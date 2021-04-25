@@ -42,6 +42,12 @@ using std::endl;
 namespace chrono {
 namespace vehicle {
 
+// Extension to computational domain in vertical direction.
+//// TODO: eliminate when Chrono::Gpu can use a domain that is *not* centered at origin!
+const double EXTRA_HEIGHT = 1.0;
+
+// -----------------------------------------------------------------------------
+
 ChVehicleCosimTerrainNodeGranularGPU::ChVehicleCosimTerrainNodeGranularGPU()
     : ChVehicleCosimTerrainNode(Type::GRANULAR_GPU, ChContactMethod::SMC),
       m_sampling_type(utils::SamplingType::POISSON_DISK),
@@ -136,7 +142,7 @@ void ChVehicleCosimTerrainNodeGranularGPU::Construct() {
     float delta = 2.0f * r;
     float dimX = 2.0f * (float)m_hdimX;
     float dimY = 2.0f * (float)m_hdimY;
-    float dimZ = m_init_depth + 1;
+    float dimZ = m_init_depth + EXTRA_HEIGHT;
     auto box = make_float3(dimX, dimY, dimZ);
 
     // Create granular system here
@@ -364,7 +370,7 @@ void ChVehicleCosimTerrainNodeGranularGPU::Settle() {
 double ChVehicleCosimTerrainNodeGranularGPU::CalculatePackingDensity() {
     // Find height of granular material
     double z_max = m_systemGPU->GetMaxParticleZ();
-    double z_min = -m_init_depth / 2;
+    double z_min = -(m_init_depth + EXTRA_HEIGHT) / 2;
 
     // Find total volume of granular material
     double Vt = (2 * m_hdimX) * (2 * m_hdimY) * (z_max - z_min);
