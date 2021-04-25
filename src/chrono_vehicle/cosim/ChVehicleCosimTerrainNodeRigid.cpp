@@ -156,7 +156,7 @@ void ChVehicleCosimTerrainNodeRigid::Construct() {
 
     // Write file with terrain node settings
     std::ofstream outf;
-    outf.open(m_node_out_dir + "/settings.dat", std::ios::out);
+    outf.open(m_node_out_dir + "/settings.info", std::ios::out);
     outf << "System settings" << endl;
     outf << "   Integration step size = " << m_step_size << endl;
     outf << "   Contact method = " << (m_method == ChContactMethod::SMC ? "SMC" : "NSC") << endl;

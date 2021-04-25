@@ -29,6 +29,8 @@
 #include "chrono/core/ChQuaternion.h"
 #include "chrono_vehicle/ChApiVehicle.h"
 
+#include "chrono_thirdparty/filesystem/path.h"
+
 #define RIG_NODE_RANK 0
 #define TERRAIN_NODE_RANK 1
 

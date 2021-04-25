@@ -234,7 +234,7 @@ void ChVehicleCosimTerrainNodeGranularSPH::Construct() {
 
     // Write file with terrain node settings
     std::ofstream outf;
-    outf.open(m_node_out_dir + "/settings.dat", std::ios::out);
+    outf.open(m_node_out_dir + "/settings.info", std::ios::out);
     outf << "System settings" << endl;
     outf << "   Integration step size = " << m_step_size << endl;
     outf << "Patch dimensions" << endl;
@@ -448,7 +448,7 @@ void ChVehicleCosimTerrainNodeGranularSPH::OnOutputData(int frame) {
                             m_systemFSI->GetDataManager()->fsiGeneralData->sr_tau_I_mu_i,
                             m_systemFSI->GetDataManager()->fsiGeneralData->referenceArray,
                             m_systemFSI->GetDataManager()->fsiGeneralData->referenceArray_FEA, 
-                            m_node_out_dir, true);
+                            m_node_out_dir + "/simulation", true);
 }
 
 // -----------------------------------------------------------------------------

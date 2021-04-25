@@ -369,7 +369,7 @@ void ChVehicleCosimRigNode::Construct() {
     // ---------------------------------
 
     std::ofstream outf;
-    outf.open(m_node_out_dir + "/settings.dat", std::ios::out);
+    outf.open(m_node_out_dir + "/settings.info", std::ios::out);
 
     outf << "System settings" << endl;
     outf << "   Integration step size = " << m_step_size << endl;

@@ -345,7 +345,7 @@ int main(int argc, char** argv) {
                     terrain->SetInputFromCheckpoint("checkpoint_settled.dat");
                 } else {
                     terrain->SetSettlingTime(0.4);
-                    terrain->EnableSettlingOutput(false, output_fps);
+                    terrain->EnableSettlingOutput(true, output_fps);
                     terrain->Settle();
                     terrain->WriteCheckpoint("checkpoint_settled.dat");
                 }

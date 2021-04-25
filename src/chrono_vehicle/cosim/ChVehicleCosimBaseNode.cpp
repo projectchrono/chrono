@@ -21,8 +21,6 @@
 
 #include "chrono_vehicle/cosim/ChVehicleCosimBaseNode.h"
 
-#include "chrono_thirdparty/filesystem/path.h"
-
 namespace chrono {
 namespace vehicle {
 

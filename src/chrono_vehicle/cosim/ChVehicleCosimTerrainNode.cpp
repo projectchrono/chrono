@@ -111,6 +111,12 @@ void ChVehicleCosimTerrainNode::EnableRuntimeVisualization(bool render, double r
 void ChVehicleCosimTerrainNode::Initialize() {
     Construct();
 
+    // Create subdirectory for output from simulation
+    if (!filesystem::create_directory(filesystem::path(m_node_out_dir + "/simulation"))) {
+        std::cout << "Error creating directory " << m_node_out_dir + "/simulation" << std::endl;
+        return;
+    }
+
     // Reset system time
     GetSystem()->SetChTime(0);
 

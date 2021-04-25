@@ -280,7 +280,7 @@ void ChVehicleCosimTerrainNodeGranularGPU::Construct() {
 
     // Write file with terrain node settings
     std::ofstream outf;
-    outf.open(m_node_out_dir + "/settings.dat", std::ios::out);
+    outf.open(m_node_out_dir + "/settings.info", std::ios::out);
     outf << "System settings" << endl;
     outf << "   Integration step size = " << m_step_size << endl;
     outf << "Terrain patch dimensions" << endl;
@@ -310,6 +310,14 @@ void ChVehicleCosimTerrainNodeGranularGPU::Construct() {
 void ChVehicleCosimTerrainNodeGranularGPU::Settle() {
     Construct();
 
+    // Create subdirectory for output from settling simulation (if enabled)
+    if (m_settling_output) {
+        if (!filesystem::create_directory(filesystem::path(m_node_out_dir + "/settling"))) {
+            std::cout << "Error creating directory " << m_node_out_dir + "/settling" << std::endl;
+            return;
+        }
+    }
+
     // Packing density at initial configuration
     double eta0 = CalculatePackingDensity();
 
@@ -317,7 +325,9 @@ void ChVehicleCosimTerrainNodeGranularGPU::Settle() {
     int sim_steps = (int)std::ceil(m_time_settling / m_step_size);
     int output_steps = (int)std::ceil(1 / (m_settling_fps * m_step_size));
     int output_frame = 0;
-
+    int n_contacts;
+    int max_contacts = 0;
+    int cum_contacts = 0;
     double render_time = 0;
 
     for (int is = 0; is < sim_steps; is++) {
@@ -328,13 +338,18 @@ void ChVehicleCosimTerrainNodeGranularGPU::Settle() {
         m_systemGPU->AdvanceSimulation((float)m_step_size);
         m_timer.stop();
         m_cum_sim_time += m_timer();
+
+        n_contacts = GetNumContacts();
+        cum_contacts += n_contacts;
+        max_contacts = std::max(max_contacts, n_contacts);
+
         cout << '\r' << std::fixed << std::setprecision(6) << m_system->GetChTime() << "  [" << m_timer.GetTimeSeconds()
-             << "]   " << GetNumContacts() << std::flush;
+             << "]   " << n_contacts << std::flush;
 
         // Output (if enabled)
         if (m_settling_output && is % output_steps == 0) {
             char filename[100];
-            sprintf(filename, "%s/settling_%04d", m_node_out_dir.c_str(), output_frame + 1);
+            sprintf(filename, "%s/settling/settling_%05d.csv", m_node_out_dir.c_str(), output_frame + 1);
             m_systemGPU->SetOutputFlags(gpu::CHGPU_OUTPUT_FLAGS::VEL_COMPONENTS |
                                         gpu::CHGPU_OUTPUT_FLAGS::ANG_VEL_COMPONENTS |
                                         gpu::CHGPU_OUTPUT_FLAGS::FORCE_COMPONENTS);
@@ -351,7 +366,6 @@ void ChVehicleCosimTerrainNodeGranularGPU::Settle() {
 
     cout << endl;
     cout << "[Terrain node] settling time = " << m_cum_sim_time << endl;
-    m_cum_sim_time = 0;
 
     // Find "height" of granular material after settling
     m_init_height = m_systemGPU->GetMaxParticleZ() + m_radius_g;
@@ -360,6 +374,22 @@ void ChVehicleCosimTerrainNodeGranularGPU::Settle() {
     // Packing density after settling
     double eta1 = CalculatePackingDensity();
     cout << "[Terrain node] packing density before and after settling: " << eta0 << " -> " << eta1 << endl;
+
+    // Write file with stats for the settling phase
+    std::ofstream outf;
+    outf.open(m_node_out_dir + "/settling_stats.info", std::ios::out);
+    outf << "Number particles:           " << m_num_particles << endl;
+    outf << "Initial packing density:    " << eta0 << endl;
+    outf << "Final packing density:      " << eta1 << endl;
+    outf << "Average number of contacts: " << cum_contacts / (double)sim_steps << endl;
+    outf << "Maximum number contacts:    " << max_contacts << endl;
+    outf << "Output?                     " << (m_settling_output ? "YES" : "NO") << endl;
+    outf << "Output frequency (FPS):     " << m_settling_fps << endl;
+    outf << "Settling duration:          " << m_time_settling << endl;
+    outf << "Settling simulation time:   " << m_cum_sim_time << endl;
+
+    // Reset cumulative simulation time
+    m_cum_sim_time = 0;
 }
 
 // -----------------------------------------------------------------------------
@@ -571,9 +601,8 @@ void ChVehicleCosimTerrainNodeGranularGPU::WriteCheckpoint(const std::string& fi
 
 void ChVehicleCosimTerrainNodeGranularGPU::OnOutputData(int frame) {
     // Create and write frame output file.
-    //// TODO: why do I not specify the file extension as well?!?
     char filename[100];
-    sprintf(filename, "%s/data_%04d", m_node_out_dir.c_str(), frame + 1);
+    sprintf(filename, "%s/simulation/simulation_%05d.csv", m_node_out_dir.c_str(), frame + 1);
     m_systemGPU->SetOutputFlags(gpu::CHGPU_OUTPUT_FLAGS::VEL_COMPONENTS | gpu::CHGPU_OUTPUT_FLAGS::ANG_VEL_COMPONENTS |
                                 gpu::CHGPU_OUTPUT_FLAGS::FORCE_COMPONENTS);
     m_systemGPU->WriteParticleFile(filename);
