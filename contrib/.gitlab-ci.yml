@@ -305,11 +305,11 @@ windows:vs2019:build:
   script:
   # Build flatbuffers
   - cd $CI_PROJECT_DIR/src/chrono_thirdparty/flatbuffers
-  - cmake -G "Visual Studio 16 2019" -DCMAKE_BUILD_TYPE=Release -DBUILD_TESTING_GPU=FALSE .
+  - cmake -G "Visual Studio 16 2019" -DCMAKE_BUILD_TYPE=Release .
   - '& "C:\Program Files (x86)\Microsoft Visual Studio\2019\BuildTools\MSBuild\Current\Bin\MSBuild.exe" FlatBuffers.sln -maxcpucount:8 -property:Configuration=Release'
   # Main build
   - cd $CI_PROJECT_DIR/build
-  - cmake --preset=windowsci-vs2019 ..
+  - cmake --preset=windowsci-vs2019 -DBUILD_TESTING_GPU=FALSE ..
   #- cmake --build . -t ALL_BUILD -j 8
   #- Invoke-Expression "& `'C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\Common7\IDE\devenv.com`' Chrono.sln -Build `"Release|x64`" -log buildlog.txt"
   - '& "C:\Program Files (x86)\Microsoft Visual Studio\2019\BuildTools\MSBuild\Current\Bin\MSBuild.exe" Chrono.sln -maxcpucount:8 -property:Configuration=Release'
@@ -367,10 +367,10 @@ windows:vs2017:build:
   script:
     # Build flatbuffers
   - cd $CI_PROJECT_DIR/src/chrono_thirdparty/flatbuffers
-  - cmake -G "Visual Studio 16 2019" -DCMAKE_BUILD_TYPE=Release -DBUILD_TESTING_GPU=FALSE .
+  - cmake -G "Visual Studio 16 2019" -DCMAKE_BUILD_TYPE=Release .
   - '& "C:\Program Files (x86)\Microsoft Visual Studio\2019\BuildTools\MSBuild\Current\Bin\MSBuild.exe" FlatBuffers.sln -maxcpucount:8 -property:Configuration=Release'
   - cd $CI_PROJECT_DIR/build
-  - cmake --preset=windowsci-vs2017 ..
+  - cmake --preset=windowsci-vs2017 -DBUILD_TESTING_GPU=FALSE ..
   #- cmake --build . -t ALL_BUILD -j 8
   #- Invoke-Expression "& `'C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\Common7\IDE\devenv.com`' Chrono.sln -Build `"Release|x64`" -log buildlog.txt"
   - '& "C:\Program Files (x86)\Microsoft Visual Studio\2019\BuildTools\MSBuild\Current\Bin\MSBuild.exe" Chrono.sln -maxcpucount:8 -property:Configuration=Release'
