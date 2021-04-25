@@ -33,18 +33,12 @@
 using namespace chrono;
 using namespace chrono::gpu;
 
-// declare global variables
-ChVector<float> pos_t;
-ChVector<float> velo_t;
-ChVector<float> angular_velo_t;
-float mass = 4 / 3 * 3.14 * 0.5 * 0.5 * 0.5 * 1.90986;
-float inertia = 2 / 5 * mass * 0.5 * 0.5;
-float precision = 1e-3;
-float radius = 0.5;
 
-int main(int argc, char* argv[]) {    
+//// TODO: test also the case where the pyramid does not hold!
+
+TEST(gpuFrictionSliding, check) {
     // load the gpu system using checkpointing
-    std::string settled_filename = GetChronoDataPath() + "testing/gpu/utest_GPU_pyramid/checkpoint.dat";
+    std::string settled_filename = GetChronoDataPath() + "testing/gpu/pyramid_checkpoint.dat";
     ChSystemGpu gpu_sys(settled_filename);
 
     // overwrite fixity to allow the top particle to drop
@@ -55,51 +49,61 @@ int main(int argc, char* argv[]) {
 
     gpu_sys.SetParticleFixed(body_fixity);
 
-    // set sliding frictin coefficient
-    double mu_k = 0.5;   
+    // set sliding friction coefficient
+    float mu_k = 0.5f;   
     gpu_sys.SetStaticFrictionCoeff_SPH2SPH(mu_k);
     gpu_sys.SetStaticFrictionCoeff_SPH2WALL(mu_k);
 
     // generate the ground for the pyramid
     ChVector<float> ground_plate_pos(0.0, 0.0, 0.0);
     ChVector<float> ground_plate_normal(0.0, 0.0, 1.0f);
-    size_t ground_plate_id = gpu_sys.CreateBCPlane(ground_plate_pos, ground_plate_normal, true);
+    gpu_sys.CreateBCPlane(ground_plate_pos, ground_plate_normal, true);
 
-    // gpu_sys.SetRecordingContactInfo(true);
+    gpu_sys.SetVerbosity(CHGPU_VERBOSITY::QUIET);
+
     gpu_sys.Initialize();
 
-    float curr_time = 0;
-    int fps = 1000;
-    int currframe = 0;
+    // Ball parameters
+    float mass = (float)((4.0 / 3) * 3.14 * 0.5 * 0.5 * 0.5 * 1.90986);
+    float inertia = (float)((2.0 / 5) * mass * 0.5 * 0.5);
+    float radius = 0.5f;
 
-    float step_size = 1e-4;
-    float endTime = 1.5;
-    while (curr_time < endTime){
+    // Test precision
+    float precision_KE = 1e-6f;
+    float precision_pos = 1e-5f;
+
+    // Initial ball position
+    auto pos = gpu_sys.GetParticlePosition(2);
+    std::cout << "\npos = " << pos << std::endl;
+
+    float step_size = 1e-4f;
+    float time_start_check = 0.1f;
+    float time_end = 1.5f;
+    bool settled = false;
+    float curr_time = 0;
+    while (curr_time < time_end) {
         gpu_sys.AdvanceSimulation(step_size);
         curr_time += step_size;
-        currframe++;
-        if (currframe%100 == 0){
-            std::cout<<"curr: "<<curr_time<<" tot: 1.5"<<std::endl;
-        }
 
+        if (curr_time > time_start_check) {
+            float vel = gpu_sys.GetParticleVelocity(2).Length();
+            float omg = gpu_sys.GetParticleAngVelocity(2).Length();
+            float KE = 0.5 * mass * vel * vel + 0.5 * inertia * omg * omg;
+            std::cout << "\r" << std::fixed << std::setprecision(6) << curr_time << "  " << KE << std::flush;
+            if (KE < precision_KE) {
+                settled = true;
+                break;
+            }
+        } else {
+            std::cout << "\r" << std::fixed << std::setprecision(6) << curr_time << std::flush;
+        }
     }
 
-    pos_t = gpu_sys.GetParticlePosition(2);
-    velo_t = gpu_sys.GetParticleVelocity(2);
-    angular_velo_t = gpu_sys.GetParticleAngVelocity(2);
-    
-    testing::InitGoogleTest(&argc, argv);
-    return RUN_ALL_TESTS();
-}
+    ASSERT_TRUE(settled);
 
-// check the top particle y and z component, pos_t.z() should be larger than sphere radius.
-TEST(gpuFrictionSliding, check) {
-    // check position y and z component
-    EXPECT_NEAR(pos_t.y(), 0, precision);
-    EXPECT_EQ(pos_t.z()>radius, true);
-
-    // check top particle KE
-    // the system should be into steady state
-    float KE = 0.5 * mass * velo_t.Length() * velo_t.Length() + 0.5 * inertia * angular_velo_t.Length() * angular_velo_t.Length();
-    EXPECT_NEAR(KE, 0, precision);
+    // Check final ball position
+    pos = gpu_sys.GetParticlePosition(2);
+    std::cout << "\npos = " << pos << std::endl;
+    ASSERT_NEAR(pos.y(), 0.0f, precision_pos);
+    ASSERT_TRUE(pos.z() > radius);
 }
