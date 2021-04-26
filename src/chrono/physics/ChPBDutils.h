@@ -40,6 +40,10 @@ namespace chrono {
 		/// Create a LinkPBD
 		ChLinkPBD(ChSystemPBD* sys) { PBDsys = sys; };
 
+		/// Constructor that fully defines a link using PBD formulation
+		ChLinkPBD::ChLinkPBD(ChBody* body1, ChBody* body2, ChFrame<>& fr1, ChFrame<>& fr2, 
+						bool mmask[6], ChSystemPBD* sys, double dist = 0, std::shared_ptr<ChFunction> motfun = nullptr);
+
 		/// Copy constructor
 		//ChLinkPBD(const ChLinkPBD& other);
 
@@ -92,7 +96,7 @@ namespace chrono {
 		double w1_tf;
 		double w2_tf;
 		// Compliance (TODO: make it settable)
-		double alpha = 0.00001;
+		double alpha = 1e-5;
 
 		// Limits
 		bool is_rot_limited = false;

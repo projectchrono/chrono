@@ -151,9 +151,30 @@ void ChSystemPBD::PBDSetup() {
     // create the list of links using PBD formulation
     for (auto& value : Get_linklist()) {
         if (dynamic_cast<const ChLinkLinActuator*>(value.get()) != nullptr) {
-            ChLinkLinActuator* linkmg = dynamic_cast<ChLinkLinActuator*>(value.get());
-            auto pbdlink = chrono_types::make_shared<ChLinkPBDLinActuator>(linkmg, this);
+            ChLinkLinActuator* linkla = dynamic_cast<ChLinkLinActuator*>(value.get());
+            auto pbdlink = chrono_types::make_shared<ChLinkPBDLinActuator>(linkla, this);
             linklistPBD.push_back(pbdlink);
+        } else if (dynamic_cast<const ChLinkRevoluteSpherical*>(value.get()) != nullptr) {
+			/// Revolute joint: we define it as 2 separate joint: distance + point-on-plane joint
+			/// Both links are defined using generic PBD links constructor
+			/// The spherical (on-plane) part is defined on link1 because the link dir is defined w.r.t. body 1
+            ChLinkRevoluteSpherical* linkrs = dynamic_cast<ChLinkRevoluteSpherical*>(value.get());
+			bool distmask[6] = {true, true, true, false, false, false};
+			double rsdist = linkrs->GetImposedDistance();
+            auto pbdlink1 = chrono_types::make_shared<ChLinkPBD>(dynamic_cast<ChBody*>(linkrs->GetBody1()), 
+				dynamic_cast<ChBody*>(linkrs->GetBody2()), ChFrame<>(linkrs->GetPoint1Rel()), 
+				ChFrame<>(linkrs->GetPoint2Rel()), distmask, this, rsdist);
+            linklistPBD.push_back(pbdlink1);
+			bool revmask[6] = {false, false, true, false, false, false};
+			ChBody* Body1 = dynamic_cast<ChBody*>(linkrs->GetBody1());
+			ChBody* Body2 = dynamic_cast<ChBody*>(linkrs->GetBody2());
+			ChVector<> pos2 = Body1->TransformPointParentToLocal(linkrs->GetPoint2Abs());
+			ChVector<> u = (linkrs->GetPoint1Rel() - pos2).GetNormalized();
+			ChVector<> v = Vcross(linkrs->GetDir1Rel(), u);
+			ChMatrix33<> A(u, v, linkrs->GetDir1Rel());
+			auto pbdlink2 = chrono_types::make_shared<ChLinkPBD>(Body1, Body2, ChFrame<>(linkrs->GetPoint1Rel()), 
+				ChFrame<>(linkrs->GetPoint2Rel(), A.Get_A_quaternion()), revmask, this);
+            linklistPBD.push_back(pbdlink2);
         } else if (dynamic_cast<const ChLinkBrake*>(value.get()) != nullptr) {
             continue;
         } else if (dynamic_cast<const ChLinkLock*>(value.get()) != nullptr) {
@@ -161,28 +182,27 @@ void ChSystemPBD::PBDSetup() {
             auto pbdlink = chrono_types::make_shared<ChLinkPBDLock>(linkll, this);
             linklistPBD.push_back(pbdlink);
         } else if (dynamic_cast<const ChLinkMotor*>(value.get()) != nullptr) {
-            ChLinkMotor* linkmg = dynamic_cast<ChLinkMotor*>(value.get());
-            auto pbdlink = chrono_types::make_shared<ChLinkPBDMotor>(linkmg, this);
+            ChLinkMotor* linkmot = dynamic_cast<ChLinkMotor*>(value.get());
+            auto pbdlink = chrono_types::make_shared<ChLinkPBDMotor>(linkmot, this);
             linklistPBD.push_back(pbdlink);
         } else if (dynamic_cast<const ChLinkMateGeneric*>(value.get()) != nullptr) {
             ChLinkMateGeneric* linkmg = dynamic_cast<ChLinkMateGeneric*>(value.get());
             auto pbdlink = chrono_types::make_shared<ChLinkPBDMate>(linkmg, this);
             linklistPBD.push_back(pbdlink);
         } else if (dynamic_cast<const ChLinkUniversal*>(value.get()) != nullptr) {
-            ChLinkUniversal* linkmg = dynamic_cast<ChLinkUniversal*>(value.get());
-            auto pbdlink = chrono_types::make_shared<ChLinkPBDUniversal>(linkmg, this);
+            ChLinkUniversal* linkuni = dynamic_cast<ChLinkUniversal*>(value.get());
+            auto pbdlink = chrono_types::make_shared<ChLinkPBDUniversal>(linkuni, this);
             linklistPBD.push_back(pbdlink);
         } else if (dynamic_cast<const ChLinkDistance*>(value.get()) != nullptr) {
-            ChLinkDistance* linkmg = dynamic_cast<ChLinkDistance*>(value.get());
-            auto pbdlink = chrono_types::make_shared<ChLinkPBDDistance>(linkmg, this);
+            ChLinkDistance* linkdist = dynamic_cast<ChLinkDistance*>(value.get());
+            auto pbdlink = chrono_types::make_shared<ChLinkPBDDistance>(linkdist, this);
             linklistPBD.push_back(pbdlink);
         } else if (dynamic_cast<const ChLinkTSDA*>(value.get()) != nullptr ||
                    dynamic_cast<const ChLinkRotSpringCB*>(value.get()) != nullptr) {
             continue;
         } else {
-            continue;
-			//std::cout << "Link not managed by PBD implementation\n";
-            //throw std::invalid_argument("One or more of the system links cannot be treated as PBD link");
+			std::cout << "Link not managed by PBD implementation\n";
+            throw std::invalid_argument("One or more of the system links cannot be treated as PBD link");
         }
     }
     // The gyroscopic term is evaluated within the PBD loop

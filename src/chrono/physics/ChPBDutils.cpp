@@ -573,10 +573,35 @@ namespace chrono {
         EvalMasses();
         dist_constr = true;
         dist = link->GetImposedDistance();
-        //alpha = 1E-3;
-        // displ_lims_low[0] = d - 1E-4;
-        // displ_lims_high[0] = d + 1E-4;
     }
+	ChLinkPBD::ChLinkPBD(ChBody* body1, ChBody* body2, ChFrame<>& fr1, ChFrame<>& fr2, 
+						bool mmask[6], ChSystemPBD* sys, double impdist, std::shared_ptr<ChFunction> motfun) : ChLinkPBD(sys) {
+		//link = alink;
+		Body1 = body1;
+		Body2 = body2;
+		f1 = fr1;
+		f2 = fr2;
+		mask[0] = mmask[0];
+		mask[1] = mmask[1];
+		mask[2] = mmask[2];
+		mask[3] = mmask[3];
+		mask[4] = mmask[4];
+		mask[5] = mmask[5];
+		EvalMasses();
+		if (impdist > 0){
+			dist_constr = true;
+			dist = impdist;
+			}
+		if (motfun) {
+			displ_actuated = true;
+			motor_func = motfun;
+		}
+		p_dir.Set(int(mask[0]), int(mask[1]), int(mask[2]));
+		p_free = (int(mask[0]) + int(mask[1]) + int(mask[2]) == 0) ? true : false;
+		r_free = (int(mask[3]) + int(mask[4]) + int(mask[5]) == 0) ? true : false;
+		findRDOF();
+
+}
 
 	/*ChLinkPBD::ChLinkPBD(const ChLinkPBD& other) :  p_dir(ChVector<>(0, 0, 0)), r_dir(ChVector<>(0, 0, 0)), f1(ChFrame<double>(VNULL)), f2(ChFrame<double>(VNULL)), p_free(false), r_free(false) {
 	ChLinkPBD(other.link);
