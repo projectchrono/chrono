@@ -94,7 +94,7 @@ linux:doxygen:deploy:
     # - doxygen Doxyfile_Generate_Search_Index
     - rsync -ra /tmp/chrono_doxygen/html/* $API_HTML_ENDPOINT
     - rsync /tmp/chrono_doxygen/searchdata.xml $API_SEARCH_ENDPOINT
-    - ssh $API_REINDEX_ENDPOINT /var/www/cgi-bin/doxyindexer.cgi /var/www/cgi-bin/searchdata.xml
+    - ssh $API_REINDEX_ENDPOINT /usr/bin/doxyindexer -o $API_CGI_DIR $API_CGI_DIR/searchdata.xml
   needs:
     - job: linux:arch-gcc:test
       artifacts: false
