@@ -21,7 +21,7 @@
 #define CH_SYSTEM_PBD_H
 
 #include "chrono/physics/ChSystem.h"
-#include "chrono/physics/ChPBDutils.h"
+#include "chrono/physics/ChPBDLinks.h"
 
 namespace chrono {
 

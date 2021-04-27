@@ -92,9 +92,6 @@ namespace chrono {
 		ChVector<> lambda_t_dir;
 		//ChVector<> p1_old;
 		//ChVector<> p2_old;
-		// Tangential friction inv masses
-		double w1_tf;
-		double w2_tf;
 		// Compliance (TODO: make it settable)
 		double alpha = 1e-5;
 
@@ -197,7 +194,7 @@ CH_CLASS_VERSION(ChLinkPBDMotor, 0)
 
 
 	class ChApi ChContactPBD : public ChLinkPBD {
-		private:
+		protected:
 			// initially the contact is dynamic since lambda_n is 0 at the first substep.
 			bool is_dynamic = false;
 			// distance between points along the contact normal
@@ -208,11 +205,12 @@ CH_CLASS_VERSION(ChLinkPBDMotor, 0)
 			// contact normal
 			ChVector<> n;
 			double v_n_old;
-
 			// Tangential friction module and direction
 			double lambda_contact_tf = 0;
 			ChVector<> lambda_tf_dir;
-
+			// Tangential friction inv masses
+			double w1_tf;
+			double w2_tf;
 
 		public:
 			//ChContactPBD* link;

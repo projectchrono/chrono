@@ -18,7 +18,7 @@
 
 #include <algorithm>
 
-#include "chrono/physics/ChPBDutils.h"
+#include "chrono/physics/ChPBDLinks.h"
 #include "chrono/physics/ChContactContainerNSC.h"
 #include "chrono/physics/ChProximityContainer.h"
 #include "chrono/physics/ChSystem.h"
@@ -471,7 +471,7 @@ namespace chrono {
 
 			// normal speed restitution
 			// TODO: use a restitution coefficient
-			double e = (abs(v_rel_n) < 2 * 9.8 * h) ? 0 : 0.05;
+			double e = (abs(v_rel_n) < 2 * 9.8 * h) ? 0 : 0.005;
 			delta_vn = -n * (v_rel_n + ChMax(e*v_n_old, 0.0));
 
 			// apply speed impulses to bodies
