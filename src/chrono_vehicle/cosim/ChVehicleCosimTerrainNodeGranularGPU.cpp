@@ -329,7 +329,7 @@ void ChVehicleCosimTerrainNodeGranularGPU::Settle() {
     int output_frame = 0;
     int n_contacts;
     int max_contacts = 0;
-    int cum_contacts = 0;
+    unsigned long long int cum_contacts = 0;
     double render_time = 0;
 
     for (int is = 0; is < sim_steps; is++) {
