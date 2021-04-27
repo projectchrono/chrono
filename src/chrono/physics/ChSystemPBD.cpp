@@ -96,9 +96,10 @@ bool ChSystemPBD::Integrate_Y() {
 
     // Re-wake the bodies that cannot sleep because they are in contact with
     // some body that is not in sleep state.
-    // TODO: I had to change ChSystem::ManageSleepingBodies from private to protected.
-    // Not sure if this is useful, maybe skip smth is abody is sleeping?
     //ManageSleepingBodies();
+    // Prepare lists of variables and constraints.
+    // TODO: check if this is needed by  PBD (constrint matrix is not, but maybe we process the state here)
+    DescriptorPrepareInject(*descriptor);
 
 
     // PERFORM TIME STEP HERE!
