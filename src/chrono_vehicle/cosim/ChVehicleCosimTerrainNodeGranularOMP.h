@@ -73,9 +73,10 @@ class CH_VEHICLE_API ChVehicleCosimTerrainNodeGranularOMP : public ChVehicleCosi
     /// The granular material is created in the volume defined by the x-y dimensions of the terrain patch and the
     /// specified initial height, using the specified sampling type, layer by layer or all at once.
     /// Note: for correct HCP, do not initialize in layers!
-    void SetSamplingMethod(utils::SamplingType type,  ///< volume sampling type (default POISSON_DISK)
-                           double init_height,        ///< height of granular material at initialization (default 0.2)
-                           bool in_layers = false     ///< initialize material in layers
+    void SetSamplingMethod(utils::SamplingType type,   ///< volume sampling type (default POISSON_DISK)
+                           double init_height,         ///< height of granular material at initialization (default 0.2)
+                           double sep_factor = 1.001,  ///< radius inflation factor for initial separation
+                           bool in_layers = false      ///< initialize material in layers
     );
 
     /// Set sweeping sphere radius for proxy bodies (default 5e-3).
@@ -119,6 +120,7 @@ class CH_VEHICLE_API ChVehicleCosimTerrainNodeGranularOMP : public ChVehicleCosi
 
     utils::SamplingType m_sampling_type;  ///< sampling method for generation of particles
     double m_init_depth;                  ///< height of granular maerial initialization volume
+    double m_separation_factor;           ///< radius inflation factor for initial particle separation
     bool m_in_layers;                     ///< initialize material layer-by-layer (true) or all at once (false)
 
     bool m_use_checkpoint;              ///< initialize granular terrain from checkpoint file

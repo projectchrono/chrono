@@ -62,6 +62,8 @@ ChVehicleCosimTerrainNodeGranularOMP::ChVehicleCosimTerrainNodeGranularOMP(ChCon
     : ChVehicleCosimTerrainNode(Type::GRANULAR_OMP, method),
       m_radius_p(5e-3),
       m_sampling_type(utils::SamplingType::POISSON_DISK),
+      m_init_depth(0.2),
+      m_separation_factor(1.001),
       m_in_layers(false),
       m_Id_g(10000),
       m_constructed(false),
@@ -69,17 +71,12 @@ ChVehicleCosimTerrainNodeGranularOMP::ChVehicleCosimTerrainNodeGranularOMP(ChCon
       m_settling_output(false),
       m_settling_fps(100),
       m_num_particles(0) {
-    // ------------------------
-    // Default model parameters
-    // ------------------------
-
     // Default container wall thickness
     m_hthick = 0.1;
 
     // Default granular material properties
     m_radius_g = 0.01;
     m_rho_g = 2000;
-    m_init_depth = 0.2;
     m_time_settling = 0.4;
 
     // ---------------------------
@@ -184,6 +181,7 @@ void ChVehicleCosimTerrainNodeGranularOMP::SetFromSpecfile(const std::string& sp
         m_sampling_type = utils::SamplingType::REGULAR_GRID;
 
     m_init_depth = d["Particle generation"]["Initial height"].GetDouble();
+    m_separation_factor = d["Particle generation"]["Separation factor"].GetDouble();
     m_in_layers = d["Particle generation"]["Initialize in layers"].GetBool();
 
     std::string n_model = d["Simulation settings"]["Normal contact model"].GetString();
@@ -239,9 +237,11 @@ void ChVehicleCosimTerrainNodeGranularOMP::SetTangentialDisplacementModel(
 
 void ChVehicleCosimTerrainNodeGranularOMP::SetSamplingMethod(utils::SamplingType type,
                                                              double init_height,
+                                                             double sep_factor,
                                                              bool in_layers) {
     m_sampling_type = type;
     m_init_depth = init_height;
+    m_separation_factor = sep_factor;
     m_in_layers = in_layers;
 }
 
@@ -276,8 +276,7 @@ void ChVehicleCosimTerrainNodeGranularOMP::Construct() {
              << " method = " << static_cast<std::underlying_type<ChContactMethod>::type>(m_method) << endl;
 
     // Calculate container (half) height
-    double separation_factor = 1.001;
-    double r = separation_factor * m_radius_g;
+    double r = m_separation_factor * m_radius_g;
     double delta = 2.0f * r;
     double hdimZ = 0.5 * m_init_depth;
 

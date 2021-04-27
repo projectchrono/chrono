@@ -346,8 +346,8 @@ int main(int argc, char** argv) {
                 double coh_force = CH_C_PI * radius * radius * coh_pressure;
 
                 terrain->SetGranularMaterial(radius, 2500);
-                terrain->SetSamplingMethod(utils::SamplingType::POISSON_DISK, 0.5, true);
-                ////terrain->SetSamplingMethod(utils::SamplingType::HCP_PACK, 0.5, false);
+                terrain->SetSamplingMethod(utils::SamplingType::POISSON_DISK, 0.5, 1.001, true);
+                ////terrain->SetSamplingMethod(utils::SamplingType::HCP_PACK, 0.5, 1.001, false);
 
                 switch (method) {
                     case ChContactMethod::SMC: {
@@ -413,8 +413,8 @@ int main(int argc, char** argv) {
 
                 terrain->SetGranularMaterial(radius, 2500);
                 terrain->SetTangentialDisplacementModel(gpu::CHGPU_FRICTION_MODE::MULTI_STEP);
-                terrain->SetSamplingMethod(utils::SamplingType::POISSON_DISK, 0.5, true);
-                ////terrain->SetSamplingMethod(utils::SamplingType::HCP_PACK, 0.5, false);
+                terrain->SetSamplingMethod(utils::SamplingType::POISSON_DISK, 0.5, 1.001, true);
+                ////terrain->SetSamplingMethod(utils::SamplingType::HCP_PACK, 0.5, 1.001, false);
 
                 auto material = chrono_types::make_shared<ChMaterialSurfaceSMC>();
                 material->SetFriction(0.9f);
@@ -524,7 +524,7 @@ bool GetProblemSpecs(int argc,
                      int& nthreads_rig,
                      int& nthreads_terrain,
                      double& step_size,
-    double& settling_time,
+                     double& settling_time,
                      double& sim_time,
                      double& init_vel,
                      double& slip,

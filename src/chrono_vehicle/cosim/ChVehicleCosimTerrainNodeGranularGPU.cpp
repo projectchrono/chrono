@@ -53,6 +53,8 @@ const double EXTRA_HEIGHT = 1.0;
 ChVehicleCosimTerrainNodeGranularGPU::ChVehicleCosimTerrainNodeGranularGPU()
     : ChVehicleCosimTerrainNode(Type::GRANULAR_GPU, ChContactMethod::SMC),
       m_sampling_type(utils::SamplingType::POISSON_DISK),
+      m_init_depth(0.2),
+      m_separation_factor(1.001),
       m_in_layers(false),
       m_constructed(false),
       m_use_checkpoint(false),
@@ -62,7 +64,6 @@ ChVehicleCosimTerrainNodeGranularGPU::ChVehicleCosimTerrainNodeGranularGPU()
     // Default granular material properties
     m_radius_g = 0.01;
     m_rho_g = 2000;
-    m_init_depth = 0.2;
     m_time_settling = 0.4;
 
     // Default granular system settings
@@ -116,6 +117,7 @@ void ChVehicleCosimTerrainNodeGranularGPU::SetFromSpecfile(const std::string& sp
         m_sampling_type = utils::SamplingType::REGULAR_GRID;
 
     m_init_depth = d["Particle generation"]["Initial height"].GetDouble();
+    m_separation_factor = d["Particle generation"]["Separation factor"].GetDouble();
     m_in_layers = d["Particle generation"]["Initialize in layers"].GetBool();
 
     std::string model = d["Simulation settings"]["Tangential displacement model"].GetString();
@@ -147,9 +149,11 @@ void ChVehicleCosimTerrainNodeGranularGPU::SetTangentialDisplacementModel(gpu::C
 
 void ChVehicleCosimTerrainNodeGranularGPU::SetSamplingMethod(utils::SamplingType type,
                                                              double init_height,
+                                                             double sep_factor,
                                                              bool in_layers) {
     m_sampling_type = type;
     m_init_depth = init_height;
+    m_separation_factor = sep_factor;
     m_in_layers = in_layers;
 }
 
@@ -190,8 +194,7 @@ void ChVehicleCosimTerrainNodeGranularGPU::Construct() {
     //// TODO: For now, we need to hack in a larger dimZ to accomodate any wheels that will only show up later.
     ////       This limitations needs to be removed in Chrono::Gpu!
     ////       Second, we are limited to creating this domain centered at the origin!?!
-    float separation_factor = 1.001f;
-    float r = separation_factor * (float)m_radius_g;
+    float r = m_separation_factor * (float)m_radius_g;
     float delta = 2.0f * r;
     float dimX = 2.0f * (float)m_hdimX;
     float dimY = 2.0f * (float)m_hdimY;

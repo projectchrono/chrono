@@ -22,7 +22,8 @@
     "Particle generation": {
         // POISSON DISK / HCP_PACK / REGULAR_GRID
         "Sampling method": "POISSON_DISK",
-        "Separation factor": 0.001,
+        // Radius inflation factor for initial separation (must be larger than 1)
+        "Separation factor": 1.001,
         "Initial height": 0.5,
         "Initialize in layers": true
     },
@@ -35,6 +36,5 @@
         "Use material properties": true,
         "Proxy contact radius": 0.002,
         "Fix proxies": true
-
     }
 }
