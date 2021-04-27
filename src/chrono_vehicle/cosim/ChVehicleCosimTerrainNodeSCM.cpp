@@ -37,7 +37,7 @@
 #include "chrono_vehicle/cosim/ChVehicleCosimTerrainNodeSCM.h"
 
 #ifdef CHRONO_IRRLICHT
-#include "chrono_irrlicht/ChIrrApp.h"
+    #include "chrono_irrlicht/ChIrrApp.h"
 #endif
 
 using std::cout;
@@ -53,8 +53,6 @@ namespace vehicle {
 // -----------------------------------------------------------------------------
 ChVehicleCosimTerrainNodeSCM::ChVehicleCosimTerrainNodeSCM(int num_threads)
     : ChVehicleCosimTerrainNode(Type::SCM, ChContactMethod::SMC), m_radius_p(5e-3), m_use_checkpoint(false) {
-    cout << "[Terrain node] SCM " << endl;
-
 #ifdef CHRONO_IRRLICHT
     m_irrapp = nullptr;
 #endif
@@ -114,6 +112,9 @@ void ChVehicleCosimTerrainNodeSCM::SetInputFromCheckpoint(const std::string& fil
 // - if specified, create the granular material
 // -----------------------------------------------------------------------------
 void ChVehicleCosimTerrainNodeSCM::Construct() {
+    if (m_verbose)
+        cout << "[Terrain node] SCM " << endl;
+
     // Create the SCM patch (default center at origin)
     m_terrain = new SCMDeformableTerrain(m_system);
     m_terrain->SetSoilParameters(m_Bekker_Kphi, m_Bekker_Kc, m_Bekker_n,            //
@@ -154,7 +155,8 @@ void ChVehicleCosimTerrainNodeSCM::Construct() {
 
         m_terrain->SetModifiedNodes(nodes);
 
-        cout << "[Terrain node] read " << checkpoint_filename << "   num. nodes = " << num_nodes << endl;
+        if (m_verbose)
+            cout << "[Terrain node] read " << checkpoint_filename << "   num. nodes = " << num_nodes << endl;
     }
 
 #ifdef CHRONO_IRRLICHT
@@ -313,7 +315,8 @@ void ChVehicleCosimTerrainNodeSCM::WriteCheckpoint(const std::string& filename) 
 
     std::string checkpoint_filename = m_node_out_dir + "/" + filename;
     csv.write_to_file(checkpoint_filename);
-    cout << "[Terrain node] write checkpoint ===> " << checkpoint_filename << endl;
+    if (m_verbose)
+        cout << "[Terrain node] write checkpoint ===> " << checkpoint_filename << endl;
 }
 
 // -----------------------------------------------------------------------------

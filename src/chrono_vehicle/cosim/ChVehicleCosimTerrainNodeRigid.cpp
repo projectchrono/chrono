@@ -34,7 +34,7 @@
 #include "chrono_vehicle/cosim/ChVehicleCosimTerrainNodeRigid.h"
 
 #ifdef CHRONO_OPENGL
-#include "chrono_opengl/ChOpenGLWindow.h"
+    #include "chrono_opengl/ChOpenGLWindow.h"
 #endif
 
 using std::cout;
@@ -50,9 +50,6 @@ namespace vehicle {
 // -----------------------------------------------------------------------------
 ChVehicleCosimTerrainNodeRigid::ChVehicleCosimTerrainNodeRigid(ChContactMethod method)
     : ChVehicleCosimTerrainNode(Type::RIGID, method), m_radius_p(0.01) {
-    cout << "[Terrain node] RIGID "
-         << " method = " << static_cast<std::underlying_type<ChContactMethod>::type>(method) << endl;
-
     // Create system and set default method-specific solver settings
     switch (m_method) {
         case ChContactMethod::SMC: {
@@ -114,6 +111,10 @@ void ChVehicleCosimTerrainNodeRigid::SetMaterialSurface(const std::shared_ptr<Ch
 // - if specified, create the granular material
 // -----------------------------------------------------------------------------
 void ChVehicleCosimTerrainNodeRigid::Construct() {
+    if (m_verbose)
+        cout << "[Terrain node] RIGID "
+             << " method = " << static_cast<std::underlying_type<ChContactMethod>::type>(m_method) << endl;
+
     // Create container body
     auto container = std::shared_ptr<ChBody>(m_system->NewBody());
     m_system->AddBody(container);

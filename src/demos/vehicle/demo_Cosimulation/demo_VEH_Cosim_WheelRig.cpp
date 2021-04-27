@@ -78,6 +78,7 @@ bool GetProblemSpecs(int argc,
                      bool& use_checkpoint,
                      bool& output,
                      bool& render,
+                     bool& verbose,
                      std::string& suffix);
 
 // =============================================================================
@@ -124,8 +125,9 @@ int main(int argc, char** argv) {
     bool render = true;
     double sys_mass = 200;
     std::string suffix = "";
+    bool verbose = true;
     if (!GetProblemSpecs(argc, argv, rank, terrain_type, nthreads_rig, nthreads_terrain, step_size, sim_time, init_vel,
-                         slip, coh_pressure, sys_mass, use_checkpoint, output, render, suffix)) {
+                         slip, coh_pressure, sys_mass, use_checkpoint, output, render, verbose, suffix)) {
         MPI_Finalize();
         return 1;
     }
@@ -135,7 +137,7 @@ int main(int argc, char** argv) {
     if (terrain_type == ChVehicleCosimTerrainNode::Type::RIGID ||
         terrain_type == ChVehicleCosimTerrainNode::Type::GRANULAR_OMP) {
         if (rank == 0)
-            std::cout << "Chrono::Multicore is required for RIGID or GRANULAR_OMP terrain type!" << std::endl;
+            cout << "Chrono::Multicore is required for RIGID or GRANULAR_OMP terrain type!" << endl;
         MPI_Abort(MPI_COMM_WORLD, 1);
         return 1;
     }
@@ -143,7 +145,7 @@ int main(int argc, char** argv) {
 #ifndef CHRONO_GPU
     if (terrain_type == ChVehicleCosimTerrainNode::Type::GRANULAR_GPU) {
         if (rank == 0)
-            std::cout << "Chrono::Gpu is required for GRANULAR_GPU terrain type!" << std::endl;
+            cout << "Chrono::Gpu is required for GRANULAR_GPU terrain type!" << endl;
         MPI_Abort(MPI_COMM_WORLD, 1);
         return 1;
     }
@@ -151,7 +153,7 @@ int main(int argc, char** argv) {
 #ifndef CHRONO_FSI
     if (terrain_type == ChVehicleCosimTerrainNode::Type::GRANULAR_SPH) {
         if (rank == 0)
-            std::cout << "Chrono::FSI is required for GRANULAR_SPH terrain type!" << std::endl;
+            cout << "Chrono::FSI is required for GRANULAR_SPH terrain type!" << endl;
         MPI_Abort(MPI_COMM_WORLD, 1);
         return 1;
     }
@@ -184,11 +186,13 @@ int main(int argc, char** argv) {
     ChVehicleCosimBaseNode* node = nullptr;
 
     if (rank == RIG_NODE_RANK) {
-        cout << "[Rig node    ] rank = " << rank << " running on: " << procname << endl;
+        if (verbose)
+            cout << "[Rig node    ] rank = " << rank << " running on: " << procname << endl;
 
         switch (tire_type) {
             case ChVehicleCosimRigNode::Type::RIGID: {
                 auto rig = new ChVehicleCosimRigNodeRigidTire(init_vel, slip, nthreads_rig);
+                rig->SetVerbose(verbose);
                 rig->SetTireJSONFile(vehicle::GetDataFile("hmmwv/tire/HMMWV_RigidMeshTire_CoarseClosed.json"));
                 rig->SetBodyMasses(1, 1, sys_mass, 15);
                 rig->SetDBPfilterWindow(0.2);
@@ -197,6 +201,7 @@ int main(int argc, char** argv) {
             }
             case ChVehicleCosimRigNode::Type::FLEXIBLE: {
                 auto rig = new ChVehicleCosimRigNodeFlexibleTire(init_vel, slip, nthreads_rig);
+                rig->SetVerbose(verbose);
                 rig->SetTireJSONFile(vehicle::GetDataFile("hmmwv/tire/HMMWV_ANCFTire.json"));
                 rig->SetBodyMasses(1, 1, sys_mass, 15);
                 rig->EnableTirePressure(true);
@@ -209,21 +214,25 @@ int main(int argc, char** argv) {
         node->SetStepSize(step_size);
         node->SetOutDir(out_dir, suffix);
 
-        cout << "[Rig node    ] output directory: " << node->GetOutDirName() << endl;
+        if (verbose)
+            cout << "[Rig node    ] output directory: " << node->GetOutDirName() << endl;
     }
 
     if (rank == TERRAIN_NODE_RANK) {
-        cout << "[Terrain node] rank = " << rank << " running on: " << procname << endl;
+        if (verbose)
+            cout << "[Terrain node] rank = " << rank << " running on: " << procname << endl;
 
         switch (terrain_type) {
             case ChVehicleCosimTerrainNode::Type::RIGID: {
 #ifdef CHRONO_MULTICORE
                 auto method = ChContactMethod::SMC;
                 auto terrain = new ChVehicleCosimTerrainNodeRigid(method);
+                terrain->SetVerbose(verbose);
                 terrain->SetStepSize(step_size);
                 terrain->SetOutDir(out_dir, suffix);
                 terrain->EnableRuntimeVisualization(render, render_fps);
-                cout << "[Terrain node] output directory: " << terrain->GetOutDirName() << endl;
+                if (verbose)
+                    cout << "[Terrain node] output directory: " << terrain->GetOutDirName() << endl;
 
                 terrain->SetPatchDimensions(10, 1);
                 terrain->SetProxyFixed(true);
@@ -261,10 +270,12 @@ int main(int argc, char** argv) {
 
             case ChVehicleCosimTerrainNode::Type::SCM: {
                 auto terrain = new ChVehicleCosimTerrainNodeSCM(nthreads_terrain);
+                terrain->SetVerbose(verbose);
                 terrain->SetStepSize(step_size);
                 terrain->SetOutDir(out_dir, suffix);
                 terrain->EnableRuntimeVisualization(render, render_fps);
-                cout << "[Terrain node] output directory: " << terrain->GetOutDirName() << endl;
+                if (verbose)
+                    cout << "[Terrain node] output directory: " << terrain->GetOutDirName() << endl;
 
                 terrain->SetPatchDimensions(10, 1);
                 terrain->SetPropertiesSCM(5e-2,   // grid spacing
@@ -293,10 +304,12 @@ int main(int argc, char** argv) {
 #ifdef CHRONO_MULTICORE
                 auto method = ChContactMethod::SMC;
                 auto terrain = new ChVehicleCosimTerrainNodeGranularOMP(method, nthreads_terrain);
+                terrain->SetVerbose(verbose);
                 terrain->SetStepSize(step_size);
                 terrain->SetOutDir(out_dir, suffix);
                 terrain->EnableRuntimeVisualization(render, render_fps);
-                cout << "[Terrain node] output directory: " << terrain->GetOutDirName() << endl;
+                if (verbose)
+                    cout << "[Terrain node] output directory: " << terrain->GetOutDirName() << endl;
 
                 ////terrain->SetPatchDimensions(10, 1);
                 terrain->SetPatchDimensions(2, 0.6);
@@ -358,10 +371,12 @@ int main(int argc, char** argv) {
             case ChVehicleCosimTerrainNode::Type::GRANULAR_GPU: {
 #ifdef CHRONO_GPU
                 auto terrain = new ChVehicleCosimTerrainNodeGranularGPU();
+                terrain->SetVerbose(verbose);
                 terrain->SetStepSize(step_size);
                 terrain->SetOutDir(out_dir, suffix);
                 terrain->EnableRuntimeVisualization(render, render_fps);
-                cout << "[Terrain node] output directory: " << terrain->GetOutDirName() << endl;
+                if (verbose)
+                    cout << "[Terrain node] output directory: " << terrain->GetOutDirName() << endl;
 
                 ////terrain->SetPatchDimensions(10, 1);
                 terrain->SetPatchDimensions(2, 0.6);
@@ -406,11 +421,13 @@ int main(int argc, char** argv) {
             case ChVehicleCosimTerrainNode::Type::GRANULAR_SPH: {
 #ifdef CHRONO_FSI
                 auto terrain = new ChVehicleCosimTerrainNodeGranularSPH();
+                terrain->SetVerbose(verbose);
                 std::string param_filename = GetChronoDataFile("fsi/input_json/demo_tire_rig.json");
                 terrain->SetStepSize(step_size);
                 terrain->SetOutDir(out_dir, suffix);
                 terrain->EnableRuntimeVisualization(render, render_fps);
-                cout << "[Terrain node] output directory: " << terrain->GetOutDirName() << endl;
+                if (verbose)
+                    cout << "[Terrain node] output directory: " << terrain->GetOutDirName() << endl;
 
                 terrain->SetPatchDimensions(10, 1);
 
@@ -446,14 +463,15 @@ int main(int argc, char** argv) {
     for (int is = 0; is < sim_steps; is++) {
         double time = is * step_size;
 
-        if (rank == 0)
+        if (verbose && rank == 0)
             cout << is << " ---------------------------- " << endl;
         MPI_Barrier(MPI_COMM_WORLD);
 
         node->Synchronize(is, time);
         node->Advance(step_size);
-        cout << "Node" << rank << " sim time = " << node->GetSimTime() << "  [" << node->GetTotalSimTime() << "]"
-             << endl;
+        if (verbose)
+            cout << "Node" << rank << " sim time = " << node->GetSimTime() << "  [" << node->GetTotalSimTime() << "]"
+                 << endl;
 
         if (output && is % output_steps == 0) {
             node->OutputData(output_frame);
@@ -486,6 +504,7 @@ bool GetProblemSpecs(int argc,
                      bool& use_checkpoint,
                      bool& output,
                      bool& render,
+                     bool& verbose,
                      std::string& suffix) {
     ChCLI cli(argv[0]);
 
@@ -499,6 +518,7 @@ bool GetProblemSpecs(int argc,
     cli.AddOption<double>("Demo", "coh_pressure", "Terrain cohesion [Pa]", std::to_string(coh_pressure));
     cli.AddOption<double>("Demo", "sys_mass", "Mass of wheel carrier [kg]", std::to_string(sys_mass));
 
+    cli.AddOption<bool>("Demo", "quiet", "Disable verbose messages");
     cli.AddOption<bool>("Demo", "no_render", "Disable OpenGL rendering");
     cli.AddOption<bool>("Demo", "no_output", "Disable generation of result output files");
     cli.AddOption<bool>("Demo", "use_checkpoint", "Initialize granular terrain from checkppoint file");
@@ -545,6 +565,7 @@ bool GetProblemSpecs(int argc,
     coh_pressure = cli.GetAsType<double>("coh_pressure");
     sys_mass = cli.GetAsType<double>("sys_mass");
 
+    verbose = !cli.GetAsType<bool>("quiet");
     render = !cli.GetAsType<bool>("no_render");
     output = !cli.GetAsType<bool>("no_output");
     use_checkpoint = cli.GetAsType<bool>("use_checkpoint");

@@ -39,7 +39,7 @@
 #include "chrono_fsi/utils/ChUtilsPrintSph.cuh"
 
 #ifdef CHRONO_OPENGL
-#include "chrono_opengl/ChOpenGLWindow.h"
+    #include "chrono_opengl/ChOpenGLWindow.h"
 #endif
 
 using namespace chrono::fsi;
@@ -57,8 +57,6 @@ namespace vehicle {
 // -----------------------------------------------------------------------------
 ChVehicleCosimTerrainNodeGranularSPH::ChVehicleCosimTerrainNodeGranularSPH()
     : ChVehicleCosimTerrainNode(Type::GRANULAR_SPH, ChContactMethod::SMC), m_depth(0) {
-    cout << "[Terrain node] GRANULAR_SPH " << endl;
-
     // Default granular material properties
     m_radius_g = 0.01;
     m_rho_g = 2000;
@@ -100,6 +98,9 @@ void ChVehicleCosimTerrainNodeGranularSPH::SetPropertiesSPH(const std::string& f
 // - set m_init_height
 // -----------------------------------------------------------------------------
 void ChVehicleCosimTerrainNodeGranularSPH::Construct() {
+    if (m_verbose)
+        cout << "[Terrain node] GRANULAR_SPH " << endl;
+
     // Reload simulation parameters to FSI system
     m_params->dT = GetStepSize();
     m_params->dT_Flex = m_params->dT;
@@ -112,8 +113,8 @@ void ChVehicleCosimTerrainNodeGranularSPH::Construct() {
     m_params->Cs = sqrt(m_params->K_bulk / m_params->rho0);
     m_params->HSML = 2 * m_radius_g;
     m_params->MULT_INITSPACE = 2 * m_radius_g / m_params->HSML;
-    // m_params->mu_fric_s = 
-    
+    // m_params->mu_fric_s =
+
     // Reload the size of the fluid container to FSI system
     m_params->boxDimX = (fsi::Real)(2 * m_hdimX);
     m_params->boxDimY = (fsi::Real)(2 * m_hdimY);
@@ -135,7 +136,7 @@ void ChVehicleCosimTerrainNodeGranularSPH::Construct() {
     // Set up the periodic boundary condition (if not, set relative larger values)
     fsi::Real initSpace0 = m_params->MULT_INITSPACE * m_params->HSML;
     m_params->cMin = chrono::fsi::mR3(-bxDim / 2, -byDim / 2, -bzDim - 10 * initSpace0) * 10;
-    m_params->cMax = chrono::fsi::mR3( bxDim / 2,  byDim / 2,  bzDim + 10 * initSpace0) * 10;
+    m_params->cMax = chrono::fsi::mR3(bxDim / 2, byDim / 2, bzDim + 10 * initSpace0) * 10;
 
     // Set the time integration type and the linear solver type (only for ISPH)
     m_systemFSI->SetFluidDynamics(m_params->fluid_dynamic_type);
@@ -170,7 +171,7 @@ void ChVehicleCosimTerrainNodeGranularSPH::Construct() {
 
     size_t numPhases = m_systemFSI->GetDataManager()->fsiGeneralData->referenceArray.size();
     if (numPhases != 0) {
-        std::cout << "ERROR: incorrect number of phases in SPH granular terrain!" << std::endl;
+        cout << "ERROR: incorrect number of phases in SPH granular terrain!" << endl;
         MPI_Abort(MPI_COMM_WORLD, 1);
     }
 
@@ -242,7 +243,9 @@ void ChVehicleCosimTerrainNodeGranularSPH::Construct() {
     outf << "   depth = " << m_depth << endl;
 }
 
-void CreateMeshMarkers(std::shared_ptr<geometry::ChTriangleMeshConnected> mesh, double delta, std::vector<ChVector<>>& point_cloud) {
+void CreateMeshMarkers(std::shared_ptr<geometry::ChTriangleMeshConnected> mesh,
+                       double delta,
+                       std::vector<ChVector<>>& point_cloud) {
     mesh->RepairDuplicateVertexes(1e-9);  // if meshes are not watertight
 
     ChVector<> minV = mesh->m_vertices[0];
@@ -339,7 +342,7 @@ void CreateMeshMarkers(std::shared_ptr<geometry::ChTriangleMeshConnected> mesh, 
                     intersectCounter[1] += t_inter[1] ? 1 : 0;
                 }
 
-                if (((intersectCounter[0] % 2) == 1) && ((intersectCounter[1] % 2) == 1)) // inside mesh
+                if (((intersectCounter[0] % 2) == 1) && ((intersectCounter[1] % 2) == 1))  // inside mesh
                     point_cloud.push_back(ChVector<>(x, y, z));
             }
         }
@@ -378,7 +381,7 @@ void ChVehicleCosimTerrainNodeGranularSPH::CreateWheelProxy() {
     auto initSpace0 = m_params->MULT_INITSPACE * m_params->HSML;
     std::vector<ChVector<>> point_cloud;
     CreateMeshMarkers(trimesh, (double)initSpace0, point_cloud);
-    fsi::utils::AddBCE_FromPoints(m_systemFSI->GetDataManager(), m_params, body, point_cloud, VNULL, QUNIT);    
+    fsi::utils::AddBCE_FromPoints(m_systemFSI->GetDataManager(), m_params, body, point_cloud, VNULL, QUNIT);
 
     // Construction of the FSI system must be finalized before running
     m_systemFSI->Finalize();
@@ -442,13 +445,12 @@ void ChVehicleCosimTerrainNodeGranularSPH::OnRender(double time) {
 
 void ChVehicleCosimTerrainNodeGranularSPH::OnOutputData(int frame) {
     // Save SPH and BCE particles' information into CSV files
-    fsi::utils::PrintToFile(m_systemFSI->GetDataManager()->sphMarkersD2->posRadD,
-                            m_systemFSI->GetDataManager()->sphMarkersD2->velMasD,
-                            m_systemFSI->GetDataManager()->sphMarkersD2->rhoPresMuD,
-                            m_systemFSI->GetDataManager()->fsiGeneralData->sr_tau_I_mu_i,
-                            m_systemFSI->GetDataManager()->fsiGeneralData->referenceArray,
-                            m_systemFSI->GetDataManager()->fsiGeneralData->referenceArray_FEA, 
-                            m_node_out_dir + "/simulation", true);
+    fsi::utils::PrintToFile(
+        m_systemFSI->GetDataManager()->sphMarkersD2->posRadD, m_systemFSI->GetDataManager()->sphMarkersD2->velMasD,
+        m_systemFSI->GetDataManager()->sphMarkersD2->rhoPresMuD,
+        m_systemFSI->GetDataManager()->fsiGeneralData->sr_tau_I_mu_i,
+        m_systemFSI->GetDataManager()->fsiGeneralData->referenceArray,
+        m_systemFSI->GetDataManager()->fsiGeneralData->referenceArray_FEA, m_node_out_dir + "/simulation", true);
 }
 
 // -----------------------------------------------------------------------------

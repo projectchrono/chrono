@@ -82,16 +82,19 @@ endif()
 #message("VEH_COSIM DEMO:  LNK FLAGS: ${LINKER_FLAGS}")
 #message("VEH_COSIM DEMO:  LIBRARIES: ${LIBRARIES}")
 
-set(PROGRAM demo_VEH_Cosim_WheelRig)
-source_group("" FILES ${PROGRAM}.cpp)
+set(PROGRAMS 
+    demo_VEH_Cosim_WheelRig
+    )
 
-message(STATUS "...add ${PROGRAM}")
+FOREACH(PROGRAM ${PROGRAMS})
+  message(STATUS "...add ${PROGRAM}")
 
-add_executable(${PROGRAM} ${PROGRAM}.cpp)
+  add_executable(${PROGRAM} ${PROGRAM}.cpp)
+  source_group("" FILES ${PROGRAM}.cpp)
 
-set_target_properties(${PROGRAM} PROPERTIES 
-    COMPILE_FLAGS "${COMPILER_FLAGS}"
-    LINK_FLAGS "${LINKER_FLAGS}")
+  set_target_properties(${PROGRAM} PROPERTIES 
+      COMPILE_FLAGS "${COMPILER_FLAGS}"
+      LINK_FLAGS "${LINKER_FLAGS}")
 
-target_link_libraries(${PROGRAM} ${LIBRARIES})
-add_dependencies(${PROGRAM} ${LIBRARIES})
+  target_link_libraries(${PROGRAM} ${LIBRARIES})
+ENDFOREACH()

@@ -129,8 +129,10 @@ void ChVehicleCosimTerrainNode::Initialize() {
     double init_dim[2] = {m_init_height + 0.05, m_hdimX};
     MPI_Send(init_dim, 2, MPI_DOUBLE, RIG_NODE_RANK, 0, MPI_COMM_WORLD);
 
-    cout << "[Terrain node] Sent initial terrain height = " << init_dim[0] << endl;
-    cout << "[Terrain node] Sent container half-length = " << init_dim[1] << endl;
+    if (m_verbose) {
+        cout << "[Terrain node] Sent initial terrain height = " << init_dim[0] << endl;
+        cout << "[Terrain node] Sent container half-length = " << init_dim[1] << endl;
+    }
 
     // ------------------------------------------
     // Receive tire contact surface specification
@@ -190,7 +192,9 @@ void ChVehicleCosimTerrainNode::Initialize() {
     delete[] vert_data;
     delete[] tri_data;
 
-    cout << "[Terrain node] Received " << surf_props[1] << " vertices and " << surf_props[3] << " triangles" << endl;
+    if (m_verbose)
+        cout << "[Terrain node] Received " << surf_props[1] << " vertices and " << surf_props[3] << " triangles"
+             << endl;
 
     // ----------------
     // Receive rig mass
@@ -198,7 +202,8 @@ void ChVehicleCosimTerrainNode::Initialize() {
 
     MPI_Recv(&m_rig_mass, 1, MPI_DOUBLE, RIG_NODE_RANK, 0, MPI_COMM_WORLD, &status);
 
-    cout << "[Terrain node] received rig mass = " << m_rig_mass << endl;
+    if (m_verbose)
+        cout << "[Terrain node] received rig mass = " << m_rig_mass << endl;
 
     // ----------------------------------------
     // Receive tire contact material properties
@@ -236,7 +241,8 @@ void ChVehicleCosimTerrainNode::Initialize() {
         }
     }
 
-    cout << "[Terrain node] received tire material:  friction = " << mat_props[0] << endl;
+    if (m_verbose)
+        cout << "[Terrain node] received tire material:  friction = " << mat_props[0] << endl;
 
     // -------------------
     // Create proxy bodies
@@ -292,7 +298,8 @@ void ChVehicleCosimTerrainNode::SynchronizeRigidTire(int step_number, double tim
                            m_wheel_contact.moment.x(), m_wheel_contact.moment.y(), m_wheel_contact.moment.z()};
     MPI_Send(force_data, 6, MPI_DOUBLE, RIG_NODE_RANK, step_number, MPI_COMM_WORLD);
 
-    cout << "[Terrain node] step number: " << step_number << "  num contacts: " << GetNumContacts() << endl;
+    if (m_verbose)
+        cout << "[Terrain node] step number: " << step_number << "  num contacts: " << GetNumContacts() << endl;
 }
 
 void ChVehicleCosimTerrainNode::SynchronizeFlexibleTire(int step_number, double time) {
@@ -308,7 +315,8 @@ void ChVehicleCosimTerrainNode::SynchronizeFlexibleTire(int step_number, double 
         m_mesh_state.vvel[iv] = ChVector<>(vert_data[offset + 0], vert_data[offset + 1], vert_data[offset + 2]);
     }
 
-    ////PrintMeshUpdateData();
+    ////if (m_verbose)
+    ////    PrintMeshUpdateData();
 
     delete[] vert_data;
 
@@ -335,8 +343,9 @@ void ChVehicleCosimTerrainNode::SynchronizeFlexibleTire(int step_number, double 
 
     delete[] force_data;
 
-    cout << "[Terrain node] step number: " << step_number << "  num contacts: " << GetNumContacts()
-         << "  vertices in contact: " << m_mesh_contact.nv << endl;
+    if (m_verbose)
+        cout << "[Terrain node] step number: " << step_number << "  num contacts: " << GetNumContacts()
+             << "  vertices in contact: " << m_mesh_contact.nv << endl;
 }
 
 // -----------------------------------------------------------------------------

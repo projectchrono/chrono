@@ -41,7 +41,7 @@
 #include "chrono_vehicle/ChVehicleModelData.h"
 
 #ifdef CHRONO_PARDISO_MKL
-#include "chrono_pardisomkl/ChSolverPardisoMKL.h"
+    #include "chrono_pardisomkl/ChSolverPardisoMKL.h"
 #endif
 
 ////#ifdef CHRONO_MUMPS
@@ -118,8 +118,6 @@ ChVehicleCosimRigNode::ChVehicleCosimRigNode(Type type, double init_vel, double 
       m_dbp_filter_window(0.1),
       m_dbp(0),
       m_constructed(false) {
-    cout << "[Rig node    ] init_vel = " << init_vel << " slip = " << slip << " num_threads = " << num_threads << endl;
-
     // ------------------------
     // Default model parameters
     // ------------------------
@@ -171,10 +169,10 @@ void ChVehicleCosimRigNode::SetIntegratorType(ChTimestepper::Type int_type, ChSo
     if (m_slv_type == ChSolver::Type::PARDISO_MKL)
         m_slv_type = ChSolver::Type::BARZILAIBORWEIN;
 #endif
-////#ifndef CHRONO_MUMPS
-////    if (m_slv_type == ChSolver::Type::MUMPS)
-////        m_slv_type = ChSolver::Type::BARZILAIBORWEIN;
-////#endif
+    ////#ifndef CHRONO_MUMPS
+    ////    if (m_slv_type == ChSolver::Type::MUMPS)
+    ////        m_slv_type = ChSolver::Type::BARZILAIBORWEIN;
+    ////#endif
 }
 
 // -----------------------------------------------------------------------------
@@ -207,6 +205,9 @@ void ChVehicleCosimRigNode::Construct() {
     if (m_constructed)
         return;
 
+    if (m_verbose)
+        cout << "[Rig node    ] init_vel = " << m_init_vel << " slip = " << m_slip << endl;
+
     // -------------------------------
     // Change solver and integrator
     // -------------------------------
@@ -220,14 +221,14 @@ void ChVehicleCosimRigNode::Construct() {
 #endif
             break;
         }
-////        case ChSolver::Type::MUMPS: {
-////#ifdef CHRONO_MUMPS
-////            auto solver = chrono_types::make_shared<ChSolverMumps>();
-////            solver->LockSparsityPattern(true);
-////            m_system->SetSolver(solver);
-////#endif
-////            break;
-////        }
+            ////        case ChSolver::Type::MUMPS: {
+            ////#ifdef CHRONO_MUMPS
+            ////            auto solver = chrono_types::make_shared<ChSolverMumps>();
+            ////            solver->LockSparsityPattern(true);
+            ////            m_system->SetSolver(solver);
+            ////#endif
+            ////            break;
+            ////        }
         case ChSolver::Type::SPARSE_LU: {
             auto solver = chrono_types::make_shared<ChSolverSparseLU>();
             solver->LockSparsityPattern(true);
@@ -257,7 +258,7 @@ void ChVehicleCosimRigNode::Construct() {
             break;
         }
         default: {
-            std::cout << "Solver type not supported!" << std::endl;
+            cout << "Solver type not supported!" << endl;
             return;
         }
     }
@@ -432,8 +433,10 @@ void ChVehicleCosimRigNode::Initialize() {
     MPI_Status status;
     MPI_Recv(init_dim, 2, MPI_DOUBLE, TERRAIN_NODE_RANK, 0, MPI_COMM_WORLD, &status);
 
-    cout << "[Rig node    ] Received initial terrain height = " << init_dim[0] << endl;
-    cout << "[Rig node    ] Received container half-length = " << init_dim[1] << endl;
+    if (m_verbose) {
+        cout << "[Rig node    ] Received initial terrain height = " << init_dim[0] << endl;
+        cout << "[Rig node    ] Received container half-length = " << init_dim[1] << endl;
+    }
 
     double init_height = init_dim[0];
     double half_length = init_dim[1];
@@ -503,7 +506,8 @@ void ChVehicleCosimRigNode::Initialize() {
 
     unsigned int surf_props[4] = {IsTireFlexible(), m_mesh_data.nv, m_mesh_data.nn, m_mesh_data.nt};
     MPI_Send(surf_props, 4, MPI_UNSIGNED, TERRAIN_NODE_RANK, 0, MPI_COMM_WORLD);
-    cout << "[Rig node    ] vertices = " << surf_props[1] << "  triangles = " << surf_props[3] << endl;
+    if (m_verbose)
+        cout << "[Rig node    ] vertices = " << surf_props[1] << "  triangles = " << surf_props[3] << endl;
 
     double* vert_data = new double[3 * m_mesh_data.nv + 3 * m_mesh_data.nn];
     int* tri_data = new int[3 * m_mesh_data.nt + 3 * m_mesh_data.nt];
@@ -536,7 +540,8 @@ void ChVehicleCosimRigNode::Initialize() {
                           m_contact_mat->GetKn(),           m_contact_mat->GetGn(),
                           m_contact_mat->GetKt(),           m_contact_mat->GetGt()};
     MPI_Send(mat_props, 8, MPI_FLOAT, TERRAIN_NODE_RANK, 0, MPI_COMM_WORLD);
-    cout << "[Rig node    ] friction = " << mat_props[0] << endl;
+    if (m_verbose)
+        cout << "[Rig node    ] friction = " << mat_props[0] << endl;
 }
 
 void ChVehicleCosimRigNodeFlexibleTire::InitializeTire() {
@@ -648,8 +653,10 @@ void ChVehicleCosimRigNodeFlexibleTire::Synchronize(int step_number, double time
     m_contact_load->OutputSimpleMesh(m_mesh_state.vpos, m_mesh_state.vvel, triangles);
 
     // Display information on lowest mesh node and lowest contact vertex.
-    PrintLowestNode();
-    PrintLowestVertex(m_mesh_state.vpos, m_mesh_state.vvel);
+    if (m_verbose) {
+        PrintLowestNode();
+        PrintLowestVertex(m_mesh_state.vpos, m_mesh_state.vvel);
+    }
 
     // Send tire mesh vertex locations and velocities to the terrain node
     double* vert_data = new double[2 * 3 * m_mesh_data.nv];
@@ -675,7 +682,8 @@ void ChVehicleCosimRigNodeFlexibleTire::Synchronize(int step_number, double time
     MPI_Recv(index_data, m_mesh_contact.nv, MPI_INT, TERRAIN_NODE_RANK, step_number, MPI_COMM_WORLD, &status);
     MPI_Recv(force_data, 3 * m_mesh_contact.nv, MPI_DOUBLE, TERRAIN_NODE_RANK, step_number, MPI_COMM_WORLD, &status);
 
-    cout << "[Rig node    ] step number: " << step_number << "  vertices in contact: " << m_mesh_contact.nv << endl;
+    if (m_verbose)
+        cout << "[Rig node    ] step number: " << step_number << "  vertices in contact: " << m_mesh_contact.nv << endl;
 
     // Repack data and apply forces to the mesh vertices
     m_mesh_contact.vidx.resize(m_mesh_contact.nv);
@@ -809,7 +817,8 @@ void ChVehicleCosimRigNode::OutputData(int frame) {
     WriteTireInformation(csv);             // tire-related data
     csv.write_to_file(filename);
 
-    cout << "[Rig node    ] write output file ==> " << filename << endl;
+    if (m_verbose)
+        cout << "[Rig node    ] write output file ==> " << filename << endl;
 }
 
 // -----------------------------------------------------------------------------

@@ -57,8 +57,6 @@ ChVehicleCosimTerrainNodeGranularGPU::ChVehicleCosimTerrainNodeGranularGPU()
       m_settling_output(false),
       m_settling_fps(100),
       m_num_particles(0) {
-    cout << "[Terrain node] GRANULAR_GPU " << endl;
-
     // Default granular material properties
     m_radius_g = 0.01;
     m_rho_g = 2000;
@@ -133,8 +131,11 @@ void ChVehicleCosimTerrainNodeGranularGPU::Construct() {
     if (m_constructed)
         return;
 
-    // Disable rendering if Chrono::OpenGL not available (performance considerations).
+    if (m_verbose)
+        cout << "[Terrain node] GRANULAR_GPU " << endl;
+
 #ifndef CHRONO_OPENGL
+    // Disable rendering if Chrono::OpenGL not available (performance considerations).
     m_render = false;
 #endif
 
@@ -198,7 +199,8 @@ void ChVehicleCosimTerrainNodeGranularGPU::Construct() {
         }
         m_systemGPU->SetParticlePositions(pos, vel, omg);
 
-        cout << "[Terrain node] read " << checkpoint_filename << "   num. particles = " << m_num_particles << endl;
+        if (m_verbose)
+            cout << "[Terrain node] read " << checkpoint_filename << "   num. particles = " << m_num_particles << endl;
     } else {
         // Generate particles using the specified volume sampling type
         utils::Sampler<float>* sampler;
@@ -221,7 +223,8 @@ void ChVehicleCosimTerrainNodeGranularGPU::Construct() {
             while (z < m_init_depth) {
                 auto p = sampler->SampleBox(ChVector<>(0, 0, z - dimZ / 2), hdims);
                 pos.insert(pos.end(), p.begin(), p.end());
-                cout << "   z =  " << z << "\tnum particles = " << pos.size() << endl;
+                if (m_verbose)
+                    cout << "   z =  " << z << "\tnum particles = " << pos.size() << endl;
                 z += delta;
             }
         } else {
@@ -232,7 +235,8 @@ void ChVehicleCosimTerrainNodeGranularGPU::Construct() {
 
         m_systemGPU->SetParticlePositions(pos);
         m_num_particles = (unsigned int)pos.size();
-        cout << "[Terrain node] Generated num particles = " << m_num_particles << endl;
+        if (m_verbose)
+            cout << "[Terrain node] Generated num particles = " << m_num_particles << endl;
 
         delete sampler;
     }
@@ -248,7 +252,8 @@ void ChVehicleCosimTerrainNodeGranularGPU::Construct() {
             init_height = p.z();
     }
     m_init_height = (double)init_height + m_radius_g;
-    cout << "[Terrain node] initial height = " << m_init_height << endl;
+    if (m_verbose)
+        cout << "[Terrain node] initial height = " << m_init_height << endl;
 
     // Complete construction of the granular system
     // Note that no meshes are defined yet, so this only initializes the granular material.
@@ -315,7 +320,7 @@ void ChVehicleCosimTerrainNodeGranularGPU::Settle() {
     // Create subdirectory for output from settling simulation (if enabled)
     if (m_settling_output) {
         if (!filesystem::create_directory(filesystem::path(m_node_out_dir + "/settling"))) {
-            std::cout << "Error creating directory " << m_node_out_dir + "/settling" << std::endl;
+            cout << "Error creating directory " << m_node_out_dir + "/settling" << endl;
             return;
         }
     }
@@ -347,8 +352,9 @@ void ChVehicleCosimTerrainNodeGranularGPU::Settle() {
         cum_contacts += n_contacts;
         max_contacts = std::max(max_contacts, n_contacts);
 
-        cout << '\r' << std::fixed << std::setprecision(6) << (is + 1) * m_step_size << "  ["
-             << m_timer.GetTimeSeconds() << "]   " << n_contacts << std::flush;
+        if (m_verbose)
+            cout << '\r' << std::fixed << std::setprecision(6) << (is + 1) * m_step_size << "  ["
+                 << m_timer.GetTimeSeconds() << "]   " << n_contacts << std::flush;
 
         // Output (if enabled)
         if (m_settling_output && is % output_steps == 0) {
@@ -368,16 +374,20 @@ void ChVehicleCosimTerrainNodeGranularGPU::Settle() {
         }
     }
 
-    cout << endl;
-    cout << "[Terrain node] settling time = " << m_cum_sim_time << endl;
+    if (m_verbose) {
+        cout << endl;
+        cout << "[Terrain node] settling time = " << m_cum_sim_time << endl;
+    }
 
     // Find "height" of granular material after settling
     m_init_height = m_systemGPU->GetMaxParticleZ() + m_radius_g;
-    cout << "[Terrain node] initial height = " << m_init_height << endl;
+    if (m_verbose)
+        cout << "[Terrain node] initial height = " << m_init_height << endl;
 
     // Packing density after settling
     double eta1 = CalculatePackingDensity();
-    cout << "[Terrain node] packing density before and after settling: " << eta0 << " -> " << eta1 << endl;
+    if (m_verbose)
+        cout << "[Terrain node] packing density before and after settling: " << eta0 << " -> " << eta1 << endl;
 
     // Write file with stats for the settling phase
     std::ofstream outf;
@@ -599,7 +609,8 @@ void ChVehicleCosimTerrainNodeGranularGPU::WriteCheckpoint(const std::string& fi
 
     std::string checkpoint_filename = m_node_out_dir + "/" + filename;
     csv.write_to_file(checkpoint_filename);
-    cout << "[Terrain node] write checkpoint ===> " << checkpoint_filename << endl;
+    if (m_verbose)
+        cout << "[Terrain node] write checkpoint ===> " << checkpoint_filename << endl;
 }
 
 // -----------------------------------------------------------------------------

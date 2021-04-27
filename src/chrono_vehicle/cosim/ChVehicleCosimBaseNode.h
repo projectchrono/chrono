@@ -53,6 +53,9 @@ class CH_VEHICLE_API ChVehicleCosimBaseNode {
     /// where [NodeName] is either "RIG" or "TERRAIN".
     void SetOutDir(const std::string& dir_name, const std::string& suffix);
 
+    /// Enable/disable verbose messages during simulation (default: true).
+    void SetVerbose(bool verbose) { m_verbose = verbose; }
+
     /// Get the output directory name for this node.
     const std::string& GetOutDirName() const { return m_node_out_dir; }
 
@@ -121,6 +124,8 @@ class CH_VEHICLE_API ChVehicleCosimBaseNode {
 
     ChTimer<double> m_timer;  ///< timer for integration cost
     double m_cum_sim_time;    ///< cumulative integration cost
+
+    bool m_verbose;  ///< verbose messages during simulation?
 
     static const double m_gacc;
 };

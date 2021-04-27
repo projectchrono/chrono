@@ -67,10 +67,6 @@ ChVehicleCosimTerrainNodeGranularOMP::ChVehicleCosimTerrainNodeGranularOMP(ChCon
       m_settling_output(false),
       m_settling_fps(100),
       m_num_particles(0) {
-    cout << "[Terrain node] GRANULAR_OMP "
-         << " method = " << static_cast<std::underlying_type<ChContactMethod>::type>(method)
-         << " num_threads = " << num_threads << endl;
-
     // ------------------------
     // Default model parameters
     // ------------------------
@@ -129,7 +125,8 @@ ChVehicleCosimTerrainNodeGranularOMP::ChVehicleCosimTerrainNodeGranularOMP(ChCon
 #pragma omp master
     {
         // Sanity check: print number of threads in a parallel region
-        cout << "[Terrain node] actual number of OpenMP threads: " << omp_get_num_threads() << endl;
+        if (m_verbose)
+            cout << "[Terrain node] actual number of OpenMP threads: " << omp_get_num_threads() << endl;
     }
 }
 
@@ -199,6 +196,10 @@ void ChVehicleCosimTerrainNodeGranularOMP::Construct() {
     if (m_constructed)
         return;
 
+    if (m_verbose)
+        cout << "[Terrain node] GRANULAR_OMP "
+             << " method = " << static_cast<std::underlying_type<ChContactMethod>::type>(m_method) << endl;
+
     // Calculate container (half) height
     double separation_factor = 1.001;
     double r = separation_factor * m_radius_g;
@@ -211,7 +212,8 @@ void ChVehicleCosimTerrainNodeGranularOMP::Construct() {
     int binsY = (int)std::ceil(m_hdimY / m_radius_g) / factor;
     int binsZ = 1;
     m_system->GetSettings()->collision.bins_per_axis = vec3(binsX, binsY, binsZ);
-    cout << "[Terrain node] broad-phase bins: " << binsX << " x " << binsY << " x " << binsZ << endl;
+    if (m_verbose)
+        cout << "[Terrain node] broad-phase bins: " << binsX << " x " << binsY << " x " << binsZ << endl;
 
     // ---------------------
     // Create container body
@@ -287,7 +289,8 @@ void ChVehicleCosimTerrainNodeGranularOMP::Construct() {
         double z = delta;
         while (z < m_init_depth) {
             gen.CreateObjectsBox(*sampler, ChVector<>(0, 0, z), hdims);
-            cout << "   z =  " << z << "\tnum particles = " << gen.getTotalNumBodies() << endl;
+            if (m_verbose)
+                cout << "   z =  " << z << "\tnum particles = " << gen.getTotalNumBodies() << endl;
             z += delta;
         }
     } else {
@@ -296,7 +299,8 @@ void ChVehicleCosimTerrainNodeGranularOMP::Construct() {
     }
 
     m_num_particles = gen.getTotalNumBodies();
-    cout << "[Terrain node] Generated num particles = " << m_num_particles << endl;
+    if (m_verbose)
+        cout << "[Terrain node] Generated num particles = " << m_num_particles << endl;
 
     // -------------------------------------------------------
     // If requested, overwrite particle states from checkpoint
@@ -347,12 +351,14 @@ void ChVehicleCosimTerrainNodeGranularOMP::Construct() {
             body->SetRot_dt(ChQuaternion<>(rot_dt.e0(), rot_dt.e1(), rot_dt.e2(), rot_dt.e3()));
         }
 
-        cout << "[Terrain node] read " << checkpoint_filename << "   num. particles = " << num_particles << endl;
+        if (m_verbose)
+            cout << "[Terrain node] read " << checkpoint_filename << "   num. particles = " << num_particles << endl;
     }
 
     // Find "height" of granular material
     m_init_height = CalcCurrentHeight() + m_radius_g;
-    cout << "[Terrain node] initial height = " << m_init_height << endl;
+    if (m_verbose)
+        cout << "[Terrain node] initial height = " << m_init_height << endl;
 
     // Mark system as constructed.
     m_constructed = true;
@@ -450,8 +456,9 @@ void ChVehicleCosimTerrainNodeGranularOMP::Settle() {
         cum_contacts += n_contacts;
         max_contacts = std::max(max_contacts, n_contacts);
 
-        cout << '\r' << std::fixed << std::setprecision(6) << m_system->GetChTime() << "  [" << m_timer.GetTimeSeconds()
-             << "]" << n_contacts << std::flush;
+        if (m_verbose)
+            cout << '\r' << std::fixed << std::setprecision(6) << m_system->GetChTime() << "  ["
+                 << m_timer.GetTimeSeconds() << "]" << n_contacts << std::flush;
 
         // Output (if enabled)
         if (m_settling_output && is % output_steps == 0) {
@@ -470,16 +477,20 @@ void ChVehicleCosimTerrainNodeGranularOMP::Settle() {
         }
     }
 
-    cout << endl;
-    cout << "[Terrain node] settling time = " << m_cum_sim_time << endl;
+    if (m_verbose) {
+        cout << endl;
+        cout << "[Terrain node] settling time = " << m_cum_sim_time << endl;
+    }
 
     // Find "height" of granular material after settling
     m_init_height = CalcCurrentHeight() + m_radius_g;
-    cout << "[Terrain node] initial height = " << m_init_height << endl;
+    if (m_verbose)
+        cout << "[Terrain node] initial height = " << m_init_height << endl;
 
     // Packing density after settling
     double eta1 = CalculatePackingDensity();
-    cout << "[Terrain node] packing density before and after settling: " << eta0 << " -> " << eta1 << endl;
+    if (m_verbose)
+        cout << "[Terrain node] packing density before and after settling: " << eta0 << " -> " << eta1 << endl;
 
     // Write file with stats for the settling phase
     std::ofstream outf;
@@ -806,7 +817,8 @@ void ChVehicleCosimTerrainNodeGranularOMP::WriteCheckpoint(const std::string& fi
 
     std::string checkpoint_filename = m_node_out_dir + "/" + filename;
     csv.write_to_file(checkpoint_filename);
-    cout << "[Terrain node] write checkpoint ===> " << checkpoint_filename << endl;
+    if (m_verbose)
+        cout << "[Terrain node] write checkpoint ===> " << checkpoint_filename << endl;
 }
 
 // -----------------------------------------------------------------------------
