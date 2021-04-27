@@ -39,7 +39,7 @@ TEST(gpuFrictionRolling, check) {
     float precision_KE = 1e-3f;
     float precision_pos = 1e-3f;
 
-    float mass = 4.f / 3.f * CH_C_PI * pow(radius, 3.f) * density;
+    float mass = 4.f / 3.f * (float)CH_C_PI * pow(radius, 3.f) * density;
     float penetration = pow(mass * abs(-g) / 1e7f, 2.f / 3.f);
 
     float inertia = 2.f / 5.f * mass * pow(radius, 2.f);
@@ -73,15 +73,13 @@ TEST(gpuFrictionRolling, check) {
 
     gpu_sys.SetPsiFactors(32, 16);
 
-    std::vector<ChVector<float>> body_points;
-    std::vector<ChVector<float>> velocity;
     // set gravity
     gpu_sys.SetGravitationalAcceleration(ChVector<>(0.f, 0.f, -g));
 
     // add only one ball
-    body_points.push_back(ChVector<float>(0, 0, settled_pos + 0.02));
-    velocity.push_back(ChVector<float>(1.0, 0.0, 0.0));
-    gpu_sys.SetParticlePositions(body_points, velocity);
+    std::vector<ChVector<float>> body_point = {ChVector<float>(0, 0, settled_pos + 0.02)};
+    std::vector<ChVector<float>> velocity = {ChVector<float>(1.0, 0.0, 0.0)};
+    gpu_sys.SetParticlePositions(body_point, velocity);
 
     float step_size = 1e-4;
     float curr_time = 0.f;
@@ -102,7 +100,7 @@ TEST(gpuFrictionRolling, check) {
             ChVector<float> pos = gpu_sys.GetParticlePosition(0);
             float vel = gpu_sys.GetParticleVelocity(0).Length();
             float omg = gpu_sys.GetParticleAngVelocity(0).Length();
-            float KE = 0.5 * mass * vel * vel + 0.5 * inertia * omg * omg;
+            float KE = 0.5f * mass * vel * vel + 0.5f * inertia * omg * omg;
             std::cout << "\r" << std::fixed << std::setprecision(6) << curr_time << "  " << KE << std::flush;
 
             // stop simulation if the kinetic energy falls below threshold
@@ -119,7 +117,8 @@ TEST(gpuFrictionRolling, check) {
     ASSERT_TRUE(settled);
 
     // check position x, y ,z components
-    ASSERT_TRUE(gpu_sys.GetParticlePosition(0).x() > 0.0f);
-    ASSERT_NEAR(gpu_sys.GetParticlePosition(0).y(), 0.0f, precision_pos);
-    ASSERT_NEAR(gpu_sys.GetParticlePosition(0).z(), settled_pos, precision_pos);
+    ChVector<> end_pos = gpu_sys.GetParticlePosition(0);
+    ASSERT_TRUE(end_pos.x() > 0.0f);
+    ASSERT_NEAR(end_pos.y(), 0.0f, precision_pos);
+    ASSERT_NEAR(end_pos.z(), settled_pos, precision_pos);
 }

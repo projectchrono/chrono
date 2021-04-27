@@ -38,8 +38,6 @@ class gpuPyramid : public ::testing::Test, public ::testing::WithParamInterface<
 };
 
 TEST_P(gpuPyramid, check) {
-    bool hold_case = hold ? true : false;
-
     // load the gpu system using checkpointing
     std::string settled_filename = GetChronoDataPath() + "testing/gpu/pyramid_checkpoint.dat";
     ChSystemGpu gpu_sys(settled_filename);
@@ -53,9 +51,10 @@ TEST_P(gpuPyramid, check) {
     gpu_sys.SetParticleFixed(body_fixity);
 
     // set sliding friction coefficient
-    if (hold_case == true) {
+    if (hold) {
         // Case 1: with high rolling friction and sliding friction
         // This top ball should be supported by two balls at the bottom
+        std::cout << "Holding pyramid" << std::endl;
         float mu_k = 0.5f;
         gpu_sys.SetStaticFrictionCoeff_SPH2SPH(mu_k);
         gpu_sys.SetStaticFrictionCoeff_SPH2WALL(mu_k);
@@ -66,10 +65,10 @@ TEST_P(gpuPyramid, check) {
     } else {
         // Case 2: no rolling resistance, very low sliding friction
         // This top ball will eventually fall
+        std::cout << "Collapsing pyramid" << std::endl;
         float mu_k = 0.01f;
         gpu_sys.SetStaticFrictionCoeff_SPH2SPH(mu_k);
         gpu_sys.SetStaticFrictionCoeff_SPH2WALL(mu_k);
-        float mu_r = 0.0000f;
         gpu_sys.SetRollingMode(CHGPU_ROLLING_MODE::NO_RESISTANCE);
     }
 
@@ -83,31 +82,44 @@ TEST_P(gpuPyramid, check) {
     gpu_sys.Initialize();
 
     // Ball parameters
-    float mass = (float)((4.0 / 3) * 3.14f * 0.5f * 0.5f * 0.5f * 1.9f);
-    float inertia = (float)((2.0 / 5) * mass * 0.5f * 0.5f);
+    float mass = (4.0f / 3) * 3.14f * 0.5f * 0.5f * 0.5f * 1.9f;
+    float inertia = (2.0f / 5) * mass * 0.5f * 0.5f;
     float radius = 0.5f;
 
     // Test precision
     float precision_KE = 1e-8f;
     float precision_pos = 1e-3f;
+    float precision_time = 1e-3f;
 
     // Initial ball position
     auto pos = gpu_sys.GetParticlePosition(2);
-    std::cout << "\npos = " << pos << std::endl;
+    std::cout << "\ninitial pos = " << pos << std::endl;
+
+    // Estimated time to impact
+    float g = 9.81f;
+    float contact_time = std::sqrt(2 * (pos.z() - (1 + std::sqrt(3)) * radius) / g);
+    std::cout << "time to contact = " << contact_time << std::endl;
 
     float step_size = 1e-4f;
-    float time_start_check = 0.1f;
-    float time_end = 1.5f;
+    bool falling = true;
     bool settled = false;
     float curr_time = 0;
-    while (curr_time < time_end) {
+
+    while (curr_time < 1.5f) {
         gpu_sys.AdvanceSimulation(step_size);
         curr_time += step_size;
 
-        if (curr_time > time_start_check) {
+        pos = gpu_sys.GetParticlePosition(2);
+        if (falling && std::abs(pos.z() - (1 + std::sqrt(3)) * radius) < precision_pos) {
+            std::cout << "\ncontact at t = " << curr_time << std::endl;
+            ASSERT_NEAR(curr_time, contact_time, precision_time);
+            falling = false;
+        }
+
+        if (!falling && curr_time > contact_time + 0.05f) {
             float vel = gpu_sys.GetParticleVelocity(2).Length();
             float omg = gpu_sys.GetParticleAngVelocity(2).Length();
-            float KE = 0.5 * mass * vel * vel + 0.5 * inertia * omg * omg;
+            float KE = 0.5f * mass * vel * vel + 0.5f * inertia * omg * omg;
             std::cout << "\r" << std::fixed << std::setprecision(6) << curr_time << "  " << KE << std::flush;
             if (KE < precision_KE) {
                 settled = true;
@@ -122,9 +134,9 @@ TEST_P(gpuPyramid, check) {
 
     // Check final ball position
     pos = gpu_sys.GetParticlePosition(2);
-    std::cout << "\npos = " << pos << std::endl;
+    std::cout << "\nfinal pos = " << pos << std::endl;
 
-    if (hold_case == true) {
+    if (hold) {
         ASSERT_NEAR(pos.y(), 0.0f, precision_pos);
         ASSERT_TRUE(pos.z() > 2 * radius);
     } else {

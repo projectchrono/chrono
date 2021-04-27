@@ -38,15 +38,15 @@ TEST(gpuStack, check) {
     float precision_KE = 1e-5f;
     float precision_pos = 1e-2f;
 
-    float mass = 4.f / 3.f * CH_C_PI * pow(radius, 3.f) * density;
-    float penetration = pow(mass * abs(-g) / 1e7, 2.f / 3.f);
+    float mass = 4.f / 3.f * (float)CH_C_PI * pow(radius, 3.f) * density;
+    float penetration = pow(mass * abs(-g) / 1e7f, 2.f / 3.f);
 
     float inertia = 2.f / 5.f * mass * pow(radius, 2.f);
     float settled_pos = -100.f / 2.0f + radius - penetration;
 
     // Setup simulation
     ChSystemGpu gpu_sys(radius, density, make_float3(100.f, 100.f, 100.f));
-    gpu_sys.SetGravitationalAcceleration(ChVector<>(0.f, 0.f, -g));
+    gpu_sys.SetGravitationalAcceleration(ChVector<>(0, 0, -g));
     gpu_sys.SetFrictionMode(CHGPU_FRICTION_MODE::MULTI_STEP);
     gpu_sys.SetTimeIntegrator(CHGPU_TIME_INTEGRATOR::CHUNG);
 
@@ -102,7 +102,7 @@ TEST(gpuStack, check) {
             for (int i = 0; i < 5; i++) {
                 float vel = gpu_sys.GetParticleVelocity(i).Length();
                 float omg = gpu_sys.GetParticleAngVelocity(i).Length();
-                KE += 0.5 * mass * vel * vel + 0.5 * inertia * omg * omg;
+                KE += 0.5f * mass * vel * vel + 0.5f * inertia * omg * omg;
             }
 
             std::cout << "\r" << std::fixed << std::setprecision(6) << curr_time << "  " << KE << std::flush;

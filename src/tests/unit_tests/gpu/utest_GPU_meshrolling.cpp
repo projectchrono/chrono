@@ -42,32 +42,19 @@ TEST(gpuMeshRolling, check) {
 
     ChSystemGpuMesh gpu_sys(radius, density, make_float3(20.f, 20.f, 10.f));
 
-    // load in the mesh
-    std::vector<std::string> mesh_filenames;
-    std::string mesh_filename;
-
-    mesh_filename = GetChronoDataPath() + "testing/gpu/one_facet.obj";
-    mesh_filenames.push_back(mesh_filename);
-    std::vector<ChMatrix33<float>> mesh_rotscales;
-    std::vector<ChVector<float>> mesh_translations;
-    mesh_rotscales.push_back(ChMatrix33<float>(ChVector<float>(1.f, 1.f, 1.f)));
-    mesh_translations.push_back(ChVector<>(0, 0, 0));
-    std::vector<float> mesh_masses;
+    // Load in the mesh
     float mass = 100.f;
-    float inertia = (float)((2.0 / 5) * mass * 0.5f * 0.5f);
-    mesh_masses.push_back(mass);
-    gpu_sys.AddMeshes(mesh_filenames, mesh_translations, mesh_rotscales, mesh_masses);
+    float inertia = (2.0f / 5) * mass * 0.5f * 0.5f;
+    gpu_sys.AddMesh(GetChronoDataPath() + "testing/gpu/one_facet.obj", ChVector<float>(0),
+                    ChMatrix33<float>(ChVector<float>(1)), mass);
     gpu_sys.EnableMeshCollision(true);
 
     // assign initial condition for the sphere
     float penetration = pow(mass * abs(-g) / (1e11f), 2.f / 3.f);
     float settled_pos = radius - penetration;
 
-    std::vector<ChVector<float>> body_point;
-    body_point.push_back(ChVector<float>(1.f, -1.f, 0.5f));
-
-    std::vector<ChVector<float>> velocity;
-    velocity.push_back(ChVector<float>(1.f, 0.f, 0.f));
+    std::vector<ChVector<float>> body_point = {ChVector<float>(1.f, -1.f, 0.5f)};
+    std::vector<ChVector<float>> velocity = {ChVector<float>(1.f, 0.f, 0.f)};
     gpu_sys.SetParticlePositions(body_point, velocity);
 
     gpu_sys.SetPsiFactors(32, 16);
@@ -122,7 +109,7 @@ TEST(gpuMeshRolling, check) {
         if (curr_time > time_start_check) {
             float vel = gpu_sys.GetParticleVelocity(0).Length();
             float omg = gpu_sys.GetParticleAngVelocity(0).Length();
-            float KE = 0.5 * mass * vel * vel + 0.5 * inertia * omg * omg;
+            float KE = 0.5f * mass * vel * vel + 0.5f * inertia * omg * omg;
             std::cout << "\r" << std::fixed << std::setprecision(6) << curr_time << "  " << KE << std::flush;
 
             // stop simulation if the kinetic energy falls below threshold
@@ -138,9 +125,8 @@ TEST(gpuMeshRolling, check) {
     // check whether the ball settles
     ASSERT_TRUE(settled);
 
-    ChVector<> end_pos = gpu_sys.GetParticlePosition(0);
-
     // check position x, y ,z components
+    ChVector<> end_pos = gpu_sys.GetParticlePosition(0);
     ASSERT_TRUE(end_pos.x() > 1.0f);
     ASSERT_NEAR(end_pos.y(), -1.0f, precision_pos);
     ASSERT_NEAR(end_pos.z(), settled_pos, precision_pos);
