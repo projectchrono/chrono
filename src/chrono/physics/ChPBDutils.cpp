@@ -164,7 +164,6 @@ namespace chrono {
 
 	ChVector<> ChLinkPBD::getQdelta() {
 		// Orientation of the 2 link frames
-		
 		if (r_locked) {
 			ChQuaternion<> ql1 = Body1->GetRot()*f1.GetCoord().rot;
 			ChQuaternion<> ql2 = Body2->GetRot()*f2.GetCoord().rot;

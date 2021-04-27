@@ -38,29 +38,25 @@ class ChApi ChSystemPBD : public ChSystem {
 	ChSystemPBD(const ChSystemPBD& other);
 
     /// Destructor
-    virtual ~ChSystemPBD() {}
+    ~ChSystemPBD() {}
 
     /// "Virtual" copy constructor (covariant return type).
-    virtual ChSystemPBD* Clone() const override { return new ChSystemPBD(*this); }
+    ChSystemPBD* Clone() const override { return new ChSystemPBD(*this); }
 
     /// Return the contact method supported by this system.
-    virtual ChContactMethod GetContactMethod() const override final { return ChContactMethod::NSC; }
+    ChContactMethod GetContactMethod() const override final { return ChContactMethod::NSC; }
 
     /// Replace the contact container.
-    virtual void SetContactContainer(std::shared_ptr<ChContactContainer> container) override;
+    void SetContactContainer(std::shared_ptr<ChContactContainer> container) override;
 
-	/// Performs a single dynamical simulation step, according to
-	/// current values of:  Y, time, step  (and other minor settings)
-	/// Depending on the integration type, it switches to one of the following:
-	virtual bool Integrate_Y() override;
 
     // SERIALIZATION
 
     /// Method to allow serialization of transient data to archives.
-    virtual void ArchiveOUT(ChArchiveOut& marchive) override;
+    void ArchiveOUT(ChArchiveOut& marchive) override;
 
     /// Method to allow deserialization of transient data from archives.
-    virtual void ArchiveIN(ChArchiveIn& marchive) override;
+    void ArchiveIN(ChArchiveIn& marchive) override;
 
 	/// Get the number of substeps
 	int GetSubsteps() { return substeps; }
@@ -68,9 +64,15 @@ class ChApi ChSystemPBD : public ChSystem {
 	/// Set the number of substeps
 	void SetSubsteps(int s) { substeps = s; }
 
-  private:
+  protected:
 	/// convert the Chrono system to fit into PBD formulation
-	void PBDSetup();
+	void SetupInitial() override;
+
+  private:  
+	/// Performs a single dynamical simulation step, according to
+	/// current values of:  Y, time, step  (and other minor settings)
+	/// Depending on the integration type, it switches to one of the following:
+	bool Integrate_Y() override;
 
 	/// Correct the state according to the contraints by performing SolvePositions on each link
 	void SolvePositions();

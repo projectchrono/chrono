@@ -476,7 +476,7 @@ class ChApi ChSystem : public ChIntegrableIIorder {
 
     /// Initial system setup before analysis.
     /// This function performs an initial system setup, once system construction is completed and before an analysis.
-    void SetupInitial();
+    virtual void SetupInitial();
 
     /// Return the resultant applied force on the specified body.
     /// This resultant force includes all external applied loads acting on the body (from gravity, loads, springs,

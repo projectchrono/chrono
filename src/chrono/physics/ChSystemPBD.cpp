@@ -53,6 +53,7 @@ ChSystemPBD::ChSystemPBD(bool init_sys) : ChSystem() {
     collision::ChCollisionModel::SetDefaultSuggestedMargin(0.01);
 }
 
+
 ChSystemPBD::ChSystemPBD(const ChSystemPBD& other) : ChSystem(other) {}
 
 void ChSystemPBD::SetContactContainer(std::shared_ptr<ChContactContainer> container) {
@@ -99,12 +100,6 @@ bool ChSystemPBD::Integrate_Y() {
     // Not sure if this is useful, maybe skip smth is abody is sleeping?
     //ManageSleepingBodies();
 
-    // If needed, update everything. No need to update visualization assets here.
-	// TODO: override setup initial
-    if (!PBD_isSetup) {
-        PBDSetup();
-        PBD_isSetup = true;
-    }
 
     // PERFORM TIME STEP HERE!
     {
@@ -147,8 +142,9 @@ void ChSystemPBD::ArchiveIN(ChArchiveIn& marchive) {
     // stream in all member data:
 }
 
-void ChSystemPBD::PBDSetup() {
-    // create the list of links using PBD formulation
+void ChSystemPBD::SetupInitial() {
+    ChSystem::SetupInitial();
+	// create the list of links using PBD formulation
     for (auto& value : Get_linklist()) {
         if (dynamic_cast<const ChLinkLinActuator*>(value.get()) != nullptr) {
             ChLinkLinActuator* linkla = dynamic_cast<ChLinkLinActuator*>(value.get());
@@ -210,7 +206,7 @@ void ChSystemPBD::PBDSetup() {
         body->SetNoGyroTorque(true);
     }
     // allocate the proper amount of vectors and quaternions
-    int n = Get_bodylist().size();
+    size_t n = Get_bodylist().size();
     x_prev.resize(n);
     q_prev.resize(n);
 }
@@ -222,7 +218,7 @@ void ChSystemPBD::SolvePositions() {
 }
 
 void ChSystemPBD::SolveContacts(double h) {
-    int n = contactlistPBD.size();
+    size_t n = contactlistPBD.size();
     //#pragma omp parallel for
     for (int i = 0; i < n; i++) {
         contactlistPBD[i]->SolveContactPositions();
@@ -230,7 +226,7 @@ void ChSystemPBD::SolveContacts(double h) {
 }
 
 void ChSystemPBD::SolveVelocities(double h) {
-    int n = contactlistPBD.size();
+    size_t n = contactlistPBD.size();
     //#pragma omp parallel for
     for (int i = 0; i < n; i++) {
         contactlistPBD[i]->SolveVelocity();
@@ -269,7 +265,7 @@ void ChSystemPBD::CollectContacts() {
 void ChSystemPBD::Advance() {
     // Update the contact pairs
     CollectContacts();
-    int n = Get_bodylist().size();
+    size_t n = Get_bodylist().size();
     h = step / substeps;
     for (int i = 0; i < substeps; i++) {
         // Used to contraint static friction
