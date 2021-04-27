@@ -133,6 +133,11 @@ void ChVehicleCosimTerrainNodeGranularGPU::Construct() {
     if (m_constructed)
         return;
 
+    // Disable rendering if Chrono::OpenGL not available (performance considerations).
+#ifndef CHRONO_OPENGL
+    m_render = false;
+#endif
+
     // Calculate domain size
     //// TODO: For now, we need to hack in a larger dimZ to accomodate any wheels that will only show up later.
     ////       This limitations needs to be removed in Chrono::Gpu!
@@ -174,11 +179,8 @@ void ChVehicleCosimTerrainNodeGranularGPU::Construct() {
             MPI_Abort(MPI_COMM_WORLD, 1);
         }
 
-        // Read and discard line with current time
-        std::string line;
-        std::getline(ifile, line);
-
         // Read number of particles in checkpoint
+        std::string line;
         std::getline(ifile, line);
         std::istringstream iss(line);
         iss >> m_num_particles;
@@ -334,7 +336,9 @@ void ChVehicleCosimTerrainNodeGranularGPU::Settle() {
         // Advance step
         m_timer.reset();
         m_timer.start();
-        m_system->DoStepDynamics(m_step_size);
+        if (m_render) {
+            m_system->DoStepDynamics(m_step_size);
+        }
         m_systemGPU->AdvanceSimulation((float)m_step_size);
         m_timer.stop();
         m_cum_sim_time += m_timer();
@@ -343,8 +347,8 @@ void ChVehicleCosimTerrainNodeGranularGPU::Settle() {
         cum_contacts += n_contacts;
         max_contacts = std::max(max_contacts, n_contacts);
 
-        cout << '\r' << std::fixed << std::setprecision(6) << m_system->GetChTime() << "  [" << m_timer.GetTimeSeconds()
-             << "]   " << n_contacts << std::flush;
+        cout << '\r' << std::fixed << std::setprecision(6) << (is + 1) * m_step_size << "  ["
+             << m_timer.GetTimeSeconds() << "]   " << n_contacts << std::flush;
 
         // Output (if enabled)
         if (m_settling_output && is % output_steps == 0) {
@@ -532,7 +536,9 @@ void ChVehicleCosimTerrainNodeGranularGPU::Advance(double step_size) {
     double t = 0;
     while (t < step_size) {
         double h = std::min<>(m_step_size, step_size - t);
-        m_system->DoStepDynamics(h);
+        if (m_render) {
+            m_system->DoStepDynamics(h);
+        }
         m_systemGPU->AdvanceSimulation((float)h);
         t += h;
     }
@@ -581,8 +587,7 @@ void ChVehicleCosimTerrainNodeGranularGPU::WriteCheckpoint(const std::string& fi
     assert(m_num_particles == m_systemGPU->GetNumParticles());
     utils::CSV_writer csv(" ");
 
-    // Write current time and number of granular material bodies.
-    csv << m_system->GetChTime() << endl;
+    // Write number of granular material bodies.
     csv << m_num_particles << endl;
 
     for (unsigned int i = 0; i < m_num_particles; i++) {
