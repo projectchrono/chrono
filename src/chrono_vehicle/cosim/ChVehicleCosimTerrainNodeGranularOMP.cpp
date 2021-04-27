@@ -48,6 +48,8 @@
 using std::cout;
 using std::endl;
 
+using namespace rapidjson;
+
 namespace chrono {
 namespace vehicle {
 
@@ -135,6 +137,79 @@ ChVehicleCosimTerrainNodeGranularOMP::~ChVehicleCosimTerrainNodeGranularOMP() {
 }
 
 // -----------------------------------------------------------------------------
+
+//// TODO: error checking
+void ChVehicleCosimTerrainNodeGranularOMP::SetFromSpecfile(const std::string& specfile) {
+    Document d;
+    ReadSpecfile(specfile, d);
+
+    m_radius_g = d["Granular material"]["Radius"].GetDouble();
+    m_rho_g = d["Granular material"]["Density"].GetDouble();
+    m_system->GetSettings()->collision.collision_envelope = 0.1 * m_radius_g;
+
+    double coh_pressure = d["Material properties"]["Cohesion pressure"].GetDouble();
+    double coh_force = CH_C_PI * m_radius_g * m_radius_g * coh_pressure;
+
+    switch (GetSystem()->GetContactMethod()) {
+        case ChContactMethod::SMC: {
+            auto material = chrono_types::make_shared<ChMaterialSurfaceSMC>();
+            material->SetFriction(d["Material properties"]["Coefficient of friction"].GetDouble());
+            material->SetRestitution(d["Material properties"]["Coefficient of restitution"].GetDouble());
+            material->SetYoungModulus(d["Material properties"]["Young modulus"].GetDouble());
+            material->SetPoissonRatio(d["Material properties"]["Poisson ratio"].GetDouble());
+            material->SetAdhesion(static_cast<float>(coh_force));
+            material->SetKn(d["Material properties"]["Kn"].GetDouble());
+            material->SetGn(d["Material properties"]["Gn"].GetDouble());
+            material->SetKt(d["Material properties"]["Kt"].GetDouble());
+            material->SetGt(d["Material properties"]["Gt"].GetDouble());
+            m_material_terrain = material;
+            break;
+        }
+        case ChContactMethod::NSC: {
+            auto material = chrono_types::make_shared<ChMaterialSurfaceNSC>();
+            material->SetFriction(d["Material properties"]["Coefficient of friction"].GetDouble());
+            material->SetRestitution(d["Material properties"]["Coefficient of restitution"].GetDouble());
+            material->SetCohesion(static_cast<float>(coh_force));
+            m_material_terrain = material;
+            break;
+        }
+    }
+
+    std::string sampling = d["Particle generation"]["Sampling method"].GetString();
+    if (sampling.compare("POISSON_DISK") == 0)
+        m_sampling_type = utils::SamplingType::POISSON_DISK;
+    else if (sampling.compare("HCP_PACK") == 0)
+        m_sampling_type = utils::SamplingType::HCP_PACK;
+    else if (sampling.compare("REGULAR_GRID") == 0)
+        m_sampling_type = utils::SamplingType::REGULAR_GRID;
+
+    m_init_depth = d["Particle generation"]["Initial height"].GetDouble();
+    m_in_layers = d["Particle generation"]["Initialize in layers"].GetBool();
+
+    std::string n_model = d["Simulation settings"]["Normal contact model"].GetString();
+    if (n_model.compare("Hertz") == 0)
+        m_system->GetSettings()->solver.contact_force_model = ChSystemSMC::ContactForceModel::Hertz;
+    else if (n_model.compare("Hooke") == 0)
+        m_system->GetSettings()->solver.contact_force_model = ChSystemSMC::ContactForceModel::Hooke;
+    else if (n_model.compare("Flores") == 0)
+        m_system->GetSettings()->solver.contact_force_model = ChSystemSMC::ContactForceModel::Flores;
+    else if (n_model.compare("Hertz") == 0)
+        m_system->GetSettings()->solver.contact_force_model = ChSystemSMC::ContactForceModel::PlainCoulomb;
+
+    std::string t_model = d["Simulation settings"]["Tangential displacement model"].GetString();
+    if (t_model.compare("MultiStep") == 0)
+        m_system->GetSettings()->solver.tangential_displ_mode = ChSystemSMC::TangentialDisplacementModel::MultiStep;
+    else if (t_model.compare("OneStep") == 0)
+        m_system->GetSettings()->solver.tangential_displ_mode = ChSystemSMC::TangentialDisplacementModel::OneStep;
+    else if (t_model.compare("None") == 0)
+        m_system->GetSettings()->solver.tangential_displ_mode = ChSystemSMC::TangentialDisplacementModel::None;
+
+    m_system->GetSettings()->solver.use_material_properties =
+        d["Simulation settings"]["Use material properties"].GetBool();
+
+    m_radius_p = d["Simulation settings"]["Proxy contact radius"].GetDouble();
+    m_fixed_proxies = d["Simulation settings"]["Fix proxies"].GetBool();
+}
 
 void ChVehicleCosimTerrainNodeGranularOMP::SetWallThickness(double thickness) {
     m_hthick = thickness / 2;

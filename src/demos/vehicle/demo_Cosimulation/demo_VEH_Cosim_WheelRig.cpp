@@ -66,15 +66,18 @@ ChVehicleCosimRigNode::Type tire_type = ChVehicleCosimRigNode::Type::RIGID;
 bool GetProblemSpecs(int argc,
                      char** argv,
                      int rank,
-                     ChVehicleCosimTerrainNode::Type& terrain_type,
+                     std::string& terrain_specfile,
                      int& nthreads_rig,
                      int& nthreads_terrain,
                      double& step_size,
+                     double& settling_time,
                      double& sim_time,
                      double& init_vel,
                      double& slip,
                      double& coh_pressure,
                      double& sys_mass,
+                     double& terrain_length,
+                     double& terrain_width,
                      bool& use_checkpoint,
                      bool& output,
                      bool& render,
@@ -112,10 +115,11 @@ int main(int argc, char** argv) {
     }
 
     // Parse command line arguments
-    ChVehicleCosimTerrainNode::Type terrain_type = ChVehicleCosimTerrainNode::Type::RIGID;
+    std::string terrain_specfile;
     int nthreads_rig = 1;
     int nthreads_terrain = 1;
-    double step_size = 1e-4;  // 1e-3
+    double step_size = 1e-4;
+    double settling_time = 0.4;
     double sim_time = 10;
     double init_vel = 0.5;
     double slip = 0;
@@ -124,10 +128,20 @@ int main(int argc, char** argv) {
     bool output = true;
     bool render = true;
     double sys_mass = 200;
+    double terrain_length = 4;
+    double terrain_width = 1;
     std::string suffix = "";
     bool verbose = true;
-    if (!GetProblemSpecs(argc, argv, rank, terrain_type, nthreads_rig, nthreads_terrain, step_size, sim_time, init_vel,
-                         slip, coh_pressure, sys_mass, use_checkpoint, output, render, verbose, suffix)) {
+    if (!GetProblemSpecs(argc, argv, rank, terrain_specfile, nthreads_rig, nthreads_terrain, step_size, settling_time, sim_time,
+                         init_vel, slip, coh_pressure, sys_mass, terrain_length, terrain_width, use_checkpoint, output,
+                         render, verbose, suffix)) {
+        MPI_Finalize();
+        return 1;
+    }
+
+    // Peek in spec file and extract terrain type
+    auto terrain_type = ChVehicleCosimTerrainNode::GetTypeFromSpecfile(terrain_specfile);
+    if (terrain_type == ChVehicleCosimTerrainNode::Type::UNKNOWN) {
         MPI_Finalize();
         return 1;
     }
@@ -234,7 +248,10 @@ int main(int argc, char** argv) {
                 if (verbose)
                     cout << "[Terrain node] output directory: " << terrain->GetOutDirName() << endl;
 
-                terrain->SetPatchDimensions(10, 1);
+                terrain->SetPatchDimensions(terrain_length, terrain_width);
+
+                terrain->SetFromSpecfile(terrain_specfile);
+                /*
                 terrain->SetProxyFixed(true);
                 terrain->SetProxyContactRadius(0.002);
 
@@ -262,6 +279,7 @@ int main(int argc, char** argv) {
                         break;
                     }
                 }
+                */
 
                 node = terrain;
 #endif
@@ -277,7 +295,10 @@ int main(int argc, char** argv) {
                 if (verbose)
                     cout << "[Terrain node] output directory: " << terrain->GetOutDirName() << endl;
 
-                terrain->SetPatchDimensions(10, 1);
+                terrain->SetPatchDimensions(terrain_length, terrain_width);
+
+                terrain->SetFromSpecfile(terrain_specfile);
+                /*
                 terrain->SetPropertiesSCM(5e-2,   // grid spacing
                                           0.2e6,  // Bekker Kphi
                                           0,      // Bekker Kc
@@ -289,8 +310,9 @@ int main(int argc, char** argv) {
                                           3e4     // Damping (Pa s/m), proportional to negative vertical speed
                 );
 
-                terrain->SetProxyFixed(false);
+                terrain->SetProxyFixed(true);
                 terrain->SetProxyContactRadius(0.002);
+                */
 
                 if (use_checkpoint) {
                     terrain->SetInputFromCheckpoint("checkpoint_end.dat");
@@ -311,10 +333,11 @@ int main(int argc, char** argv) {
                 if (verbose)
                     cout << "[Terrain node] output directory: " << terrain->GetOutDirName() << endl;
 
-                ////terrain->SetPatchDimensions(10, 1);
-                terrain->SetPatchDimensions(2, 0.6);
+                terrain->SetPatchDimensions(terrain_length, terrain_width);
                 terrain->SetWallThickness(0.1);
 
+                terrain->SetFromSpecfile(terrain_specfile);
+                /*
                 terrain->SetProxyFixed(true);
                 terrain->SetProxyContactRadius(0.002);
 
@@ -353,11 +376,12 @@ int main(int argc, char** argv) {
                         break;
                     }
                 }
+                */
 
                 if (use_checkpoint) {
                     terrain->SetInputFromCheckpoint("checkpoint_settled.dat");
                 } else {
-                    terrain->SetSettlingTime(0.4);
+                    terrain->SetSettlingTime(settling_time);
                     terrain->EnableSettlingOutput(true, output_fps);
                     terrain->Settle();
                     terrain->WriteCheckpoint("checkpoint_settled.dat");
@@ -378,12 +402,12 @@ int main(int argc, char** argv) {
                 if (verbose)
                     cout << "[Terrain node] output directory: " << terrain->GetOutDirName() << endl;
 
-                ////terrain->SetPatchDimensions(10, 1);
-                terrain->SetPatchDimensions(2, 0.6);
+                terrain->SetPatchDimensions(terrain_length, terrain_width);
 
+                terrain->SetFromSpecfile(terrain_specfile);
+                /*
                 terrain->SetProxyFixed(true);
 
-                ////double radius = 0.006;
                 double radius = 0.02;
                 double coh_force = CH_C_PI * radius * radius * coh_pressure;
 
@@ -403,11 +427,12 @@ int main(int argc, char** argv) {
                 material->SetKt(1.0e7f);
                 material->SetGt(1.0e4f);
                 terrain->SetMaterialSurface(material);
+                */
 
                 if (use_checkpoint) {
                     terrain->SetInputFromCheckpoint("checkpoint_settled.dat");
                 } else {
-                    terrain->SetSettlingTime(0.4);
+                    terrain->SetSettlingTime(settling_time);
                     terrain->EnableSettlingOutput(true, output_fps);
                     terrain->Settle();
                     terrain->WriteCheckpoint("checkpoint_settled.dat");
@@ -429,14 +454,17 @@ int main(int argc, char** argv) {
                 if (verbose)
                     cout << "[Terrain node] output directory: " << terrain->GetOutDirName() << endl;
 
-                terrain->SetPatchDimensions(10, 1);
+                terrain->SetPatchDimensions(terrain_length, terrain_width);
 
+                terrain->SetFromSpecfile(terrain_specfile);
+                /*
                 double radius = 0.02;
                 double density = 2500;
                 terrain->SetGranularMaterial(radius, density);
 
                 double depth_granular = 0.5;
                 terrain->SetPropertiesSPH(param_filename, depth_granular);
+                */
 
                 node = terrain;
 #endif
@@ -492,24 +520,28 @@ int main(int argc, char** argv) {
 bool GetProblemSpecs(int argc,
                      char** argv,
                      int rank,
-                     ChVehicleCosimTerrainNode::Type& terrain_type,
+                     std::string& terrain_specfile,
                      int& nthreads_rig,
                      int& nthreads_terrain,
                      double& step_size,
+    double& settling_time,
                      double& sim_time,
                      double& init_vel,
                      double& slip,
                      double& coh_pressure,
                      double& sys_mass,
+                     double& terrain_length,
+                     double& terrain_width,
                      bool& use_checkpoint,
                      bool& output,
                      bool& render,
                      bool& verbose,
                      std::string& suffix) {
-    ChCLI cli(argv[0]);
+    ChCLI cli(argv[0], "Single-wheel test rig simulation.");
 
-    cli.AddOption<int>("Demo", "terrain_type", "0: RIGID, 1: SCM, 2: GRAN_OMP, 3: GRAN_GPU, 4: GRAN_SPH", "0");
+    cli.AddOption<std::string>("Demo", "terrain_specfile", "Terrain specification file [JSON format]");
 
+    cli.AddOption<double>("Demo", "settling_time", "Duration of settling phase [s]", std::to_string(settling_time));
     cli.AddOption<double>("Demo", "sim_time", "Simulation length after settling phase [s]", std::to_string(sim_time));
     cli.AddOption<double>("Demo", "step_size", "Integration step size [s]", std::to_string(step_size));
 
@@ -518,10 +550,14 @@ bool GetProblemSpecs(int argc,
     cli.AddOption<double>("Demo", "coh_pressure", "Terrain cohesion [Pa]", std::to_string(coh_pressure));
     cli.AddOption<double>("Demo", "sys_mass", "Mass of wheel carrier [kg]", std::to_string(sys_mass));
 
+    cli.AddOption<double>("Demo", "terrain_length", "Length of terrain patch [m]", std::to_string(terrain_length));
+    cli.AddOption<double>("Demo", "terrain_width", "Width of terrain patch [m]", std::to_string(terrain_width));
+
+    cli.AddOption<bool>("Demo", "use_checkpoint", "Initialize granular terrain from checkppoint file");
+
     cli.AddOption<bool>("Demo", "quiet", "Disable verbose messages");
     cli.AddOption<bool>("Demo", "no_render", "Disable OpenGL rendering");
     cli.AddOption<bool>("Demo", "no_output", "Disable generation of result output files");
-    cli.AddOption<bool>("Demo", "use_checkpoint", "Initialize granular terrain from checkppoint file");
 
     cli.AddOption<int>("Demo", "threads_rig", "Number of OpenMP threads for the rig node",
                        std::to_string(nthreads_rig));
@@ -536,34 +572,27 @@ bool GetProblemSpecs(int argc,
         return false;
     }
 
-    switch (cli.GetAsType<int>("terrain_type")) {
-        case 0:
-            terrain_type = ChVehicleCosimTerrainNode::Type::RIGID;
-            break;
-        case 1:
-            terrain_type = ChVehicleCosimTerrainNode::Type::SCM;
-            break;
-        case 2:
-            terrain_type = ChVehicleCosimTerrainNode::Type::GRANULAR_OMP;
-            break;
-        case 3:
-            terrain_type = ChVehicleCosimTerrainNode::Type::GRANULAR_GPU;
-            break;
-        case 4:
-            terrain_type = ChVehicleCosimTerrainNode::Type::GRANULAR_SPH;
-            break;
-        case 5:
-            terrain_type = ChVehicleCosimTerrainNode::Type::GRANULAR_MPI;
-            break;
+    try {
+        terrain_specfile = cli.Get("terrain_specfile").as<std::string>();
+    } catch (std::domain_error& e) {
+        if (rank == 0) {
+            cout << "\nERROR: Missing terrain specification file!\n\n" << endl;
+            cli.Help();
+        }
+        return false;
     }
 
     sim_time = cli.GetAsType<double>("sim_time");
+    settling_time = cli.GetAsType<double>("settling_time");
     step_size = cli.GetAsType<double>("step_size");
 
     init_vel = cli.GetAsType<double>("init_vel");
     slip = cli.GetAsType<double>("slip");
     coh_pressure = cli.GetAsType<double>("coh_pressure");
     sys_mass = cli.GetAsType<double>("sys_mass");
+
+    terrain_length = cli.GetAsType<double>("terrain_length");
+    terrain_width = cli.GetAsType<double>("terrain_width");
 
     verbose = !cli.GetAsType<bool>("quiet");
     render = !cli.GetAsType<bool>("no_render");

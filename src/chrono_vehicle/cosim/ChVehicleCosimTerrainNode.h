@@ -30,18 +30,24 @@
 #include "chrono_vehicle/ChSubsysDefs.h"
 #include "chrono_vehicle/cosim/ChVehicleCosimBaseNode.h"
 
+#include "chrono_thirdparty/rapidjson/document.h"
+
 namespace chrono {
 namespace vehicle {
 
 /// Base class for all terrain nodes.
 class CH_VEHICLE_API ChVehicleCosimTerrainNode : public ChVehicleCosimBaseNode {
   public:
-    enum class Type { RIGID, SCM, GRANULAR_OMP, GRANULAR_GPU, GRANULAR_MPI, GRANULAR_SPH };
+    enum class Type { RIGID, SCM, GRANULAR_OMP, GRANULAR_GPU, GRANULAR_MPI, GRANULAR_SPH, UNKNOWN };
 
     virtual ~ChVehicleCosimTerrainNode() {}
 
     Type GetType() const { return m_type; }
     static std::string GetTypeAsString(Type type);
+    static Type GetTypeFromString(const std::string& type);
+
+    static bool ReadSpecfile(const std::string& specfile, rapidjson::Document& d);
+    static Type GetTypeFromSpecfile(const std::string& specfile);
 
     /// Set terrain patch dimensions (length and width).
     void SetPatchDimensions(double length,  ///< length in direction X (default: 2)

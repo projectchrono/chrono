@@ -40,6 +40,8 @@
 using std::cout;
 using std::endl;
 
+using namespace rapidjson;
+
 namespace chrono {
 namespace vehicle {
 
@@ -87,6 +89,61 @@ ChVehicleCosimTerrainNodeRigid::~ChVehicleCosimTerrainNodeRigid() {
 }
 
 // -----------------------------------------------------------------------------
+
+//// TODO: error checking
+void ChVehicleCosimTerrainNodeRigid::SetFromSpecfile(const std::string& specfile) {
+    Document d;
+    ReadSpecfile(specfile, d);
+
+    switch (GetSystem()->GetContactMethod()) {
+        case ChContactMethod::SMC: {
+            auto material = chrono_types::make_shared<ChMaterialSurfaceSMC>();
+            material->SetFriction(d["Material properties"]["Coefficient of friction"].GetDouble());
+            material->SetRestitution(d["Material properties"]["Coefficient of restitution"].GetDouble());
+            material->SetYoungModulus(d["Material properties"]["Young modulus"].GetDouble());
+            material->SetPoissonRatio(d["Material properties"]["Poisson ratio"].GetDouble());
+            material->SetKn(d["Material properties"]["Kn"].GetDouble());
+            material->SetGn(d["Material properties"]["Gn"].GetDouble());
+            material->SetKt(d["Material properties"]["Kt"].GetDouble());
+            material->SetGt(d["Material properties"]["Gt"].GetDouble());
+            m_material_terrain = material;
+            break;
+        }
+        case ChContactMethod::NSC: {
+            auto material = chrono_types::make_shared<ChMaterialSurfaceNSC>();
+            material->SetFriction(d["Material properties"]["Coefficient of friction"].GetDouble());
+            material->SetRestitution(d["Material properties"]["Coefficient of restitution"].GetDouble());
+            m_material_terrain = material;
+            break;
+        }
+    }
+
+    if (m_system->GetContactMethod() == ChContactMethod::SMC) {
+        std::string n_model = d["Simulation settings"]["Normal contact model"].GetString();
+        if (n_model.compare("Hertz") == 0)
+            m_system->GetSettings()->solver.contact_force_model = ChSystemSMC::ContactForceModel::Hertz;
+        else if (n_model.compare("Hooke") == 0)
+            m_system->GetSettings()->solver.contact_force_model = ChSystemSMC::ContactForceModel::Hooke;
+        else if (n_model.compare("Flores") == 0)
+            m_system->GetSettings()->solver.contact_force_model = ChSystemSMC::ContactForceModel::Flores;
+        else if (n_model.compare("Hertz") == 0)
+            m_system->GetSettings()->solver.contact_force_model = ChSystemSMC::ContactForceModel::PlainCoulomb;
+
+        std::string t_model = d["Simulation settings"]["Tangential displacement model"].GetString();
+        if (t_model.compare("MultiStep") == 0)
+            m_system->GetSettings()->solver.tangential_displ_mode = ChSystemSMC::TangentialDisplacementModel::MultiStep;
+        else if (t_model.compare("OneStep") == 0)
+            m_system->GetSettings()->solver.tangential_displ_mode = ChSystemSMC::TangentialDisplacementModel::OneStep;
+        else if (t_model.compare("None") == 0)
+            m_system->GetSettings()->solver.tangential_displ_mode = ChSystemSMC::TangentialDisplacementModel::None;
+
+        m_system->GetSettings()->solver.use_material_properties =
+            d["Simulation settings"]["Use material properties"].GetBool();
+    }
+
+    m_radius_p = d["Simulation settings"]["Proxy contact radius"].GetDouble();
+    m_fixed_proxies = d["Simulation settings"]["Fix proxies"].GetBool();
+}
 
 void ChVehicleCosimTerrainNodeRigid::UseMaterialProperties(bool flag) {
     assert(m_system->GetContactMethod() == ChContactMethod::SMC);

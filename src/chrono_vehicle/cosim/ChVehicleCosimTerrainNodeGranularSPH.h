@@ -39,6 +39,9 @@ class CH_VEHICLE_API ChVehicleCosimTerrainNodeGranularSPH : public ChVehicleCosi
 
     virtual ChSystem* GetSystem() override { return m_system; }
 
+    /// Set full terrain specification from JSON specfile.
+    void SetFromSpecfile(const std::string& specfile);
+
     /// Specify the SPH terrain properties.
     void SetPropertiesSPH(const std::string& filename, double depth);
 

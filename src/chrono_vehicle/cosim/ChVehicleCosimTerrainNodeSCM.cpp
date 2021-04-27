@@ -43,6 +43,8 @@
 using std::cout;
 using std::endl;
 
+using namespace rapidjson;
+
 namespace chrono {
 namespace vehicle {
 
@@ -76,6 +78,27 @@ ChVehicleCosimTerrainNodeSCM::~ChVehicleCosimTerrainNodeSCM() {
 }
 
 // -----------------------------------------------------------------------------
+
+//// TODO: error checking
+void ChVehicleCosimTerrainNodeSCM::SetFromSpecfile(const std::string& specfile) {
+    Document d;
+    ReadSpecfile(specfile, d);
+
+    m_spacing = d["Grid spacing"].GetDouble();
+
+    m_Bekker_Kphi = d["Soil parameters"]["Bekker Kphi"].GetDouble();
+    m_Bekker_Kc = d["Soil parameters"]["Bekker Kc"].GetDouble();
+    m_Bekker_n = d["Soil parameters"]["Bekker n exponent"].GetDouble();
+    m_Mohr_cohesion = d["Soil parameters"]["Mohr cohesive limit"].GetDouble();
+    m_Mohr_friction = d["Soil parameters"]["Mohr friction limit"].GetDouble();
+    m_Janosi_shear = d["Soil parameters"]["Janosi shear coefficient"].GetDouble();
+
+    m_elastic_K = d["Soil parameters"]["Elastic stiffness"].GetDouble();
+    m_damping_R = d["Soil parameters"]["Damping"].GetDouble();
+
+    m_radius_p = d["Simulation settings"]["Proxy contact radius"].GetDouble();
+    m_fixed_proxies = d["Simulation settings"]["Fix proxies"].GetBool();
+}
 
 void ChVehicleCosimTerrainNodeSCM::SetPropertiesSCM(double spacing,
                                                     double Bekker_Kphi,

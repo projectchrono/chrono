@@ -40,6 +40,9 @@ class CH_VEHICLE_API ChVehicleCosimTerrainNodeGranularOMP : public ChVehicleCosi
 
     virtual ChSystem* GetSystem() override { return m_system; }
 
+    /// Set full terrain specification from JSON specfile.
+    void SetFromSpecfile(const std::string& specfile);
+
     /// Set container wall thickness (default: 0.2)
     void SetWallThickness(double thickness);
 

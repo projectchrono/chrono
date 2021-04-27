@@ -39,6 +39,9 @@ class CH_VEHICLE_API ChVehicleCosimTerrainNodeGranularGPU : public ChVehicleCosi
 
     virtual ChSystem* GetSystem() override { return m_system; }
 
+    /// Set full terrain specification from JSON specfile.
+    void SetFromSpecfile(const std::string& specfile);
+
     /// Set properties of granular material.
     void SetGranularMaterial(double radius,  ///< particle radius (default: 0.01)
                              double density  ///< particle material density (default: 2000)

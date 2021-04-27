@@ -42,10 +42,11 @@
     #include "chrono_opengl/ChOpenGLWindow.h"
 #endif
 
-using namespace chrono::fsi;
-
 using std::cout;
 using std::endl;
+
+using namespace chrono::fsi;
+using namespace rapidjson;
 
 namespace chrono {
 namespace vehicle {
@@ -70,6 +71,22 @@ ChVehicleCosimTerrainNodeGranularSPH::ChVehicleCosimTerrainNodeGranularSPH()
 
     // Set number of threads
     m_system->SetNumThreads(1);
+}
+
+// -----------------------------------------------------------------------------
+
+//// TODO: error checking
+void ChVehicleCosimTerrainNodeGranularSPH::SetFromSpecfile(const std::string& specfile) {
+    Document d;
+    ReadSpecfile(specfile, d);
+
+    m_radius_g = d["Granular material"]["Radius"].GetDouble();
+    m_rho_g = d["Granular material"]["Density"].GetDouble();
+    m_depth = d["Granular material"]["Depth"].GetDouble();
+
+    // Get the pointer to the system parameter and use a JSON file to fill it out with the user parameters
+    m_params = m_systemFSI->GetSimParams();
+    fsi::utils::ParseJSON(specfile, m_params, fsi::mR3(0, 0, 0));
 }
 
 ChVehicleCosimTerrainNodeGranularSPH::~ChVehicleCosimTerrainNodeGranularSPH() {

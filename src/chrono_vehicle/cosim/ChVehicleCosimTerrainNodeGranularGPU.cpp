@@ -39,6 +39,8 @@
 using std::cout;
 using std::endl;
 
+using namespace rapidjson;
+
 namespace chrono {
 namespace vehicle {
 
@@ -81,6 +83,51 @@ ChVehicleCosimTerrainNodeGranularGPU ::~ChVehicleCosimTerrainNodeGranularGPU() {
 }
 
 // -----------------------------------------------------------------------------
+
+//// TODO: error checking
+void ChVehicleCosimTerrainNodeGranularGPU::SetFromSpecfile(const std::string& specfile) {
+    Document d;
+    ReadSpecfile(specfile, d);
+
+    m_radius_g = d["Granular material"]["Radius"].GetDouble();
+    m_rho_g = d["Granular material"]["Density"].GetDouble();
+
+    auto material = chrono_types::make_shared<ChMaterialSurfaceSMC>();
+    double coh_pressure = d["Material properties"]["Cohesion pressure"].GetDouble();
+    double coh_force = CH_C_PI * m_radius_g * m_radius_g * coh_pressure;
+
+    material->SetFriction(d["Material properties"]["Coefficient of friction"].GetDouble());
+    material->SetRestitution(d["Material properties"]["Coefficient of restitution"].GetDouble());
+    material->SetYoungModulus(d["Material properties"]["Young modulus"].GetDouble());
+    material->SetPoissonRatio(d["Material properties"]["Poisson ratio"].GetDouble());
+    material->SetAdhesion(static_cast<float>(coh_force));
+    material->SetKn(d["Material properties"]["Kn"].GetDouble());
+    material->SetGn(d["Material properties"]["Gn"].GetDouble());
+    material->SetKt(d["Material properties"]["Kt"].GetDouble());
+    material->SetGt(d["Material properties"]["Gt"].GetDouble());
+    m_material_terrain = material;
+
+    std::string sampling = d["Particle generation"]["Sampling method"].GetString();
+    if (sampling.compare("POISSON_DISK") == 0)
+        m_sampling_type = utils::SamplingType::POISSON_DISK;
+    else if (sampling.compare("HCP_PACK") == 0)
+        m_sampling_type = utils::SamplingType::HCP_PACK;
+    else if (sampling.compare("REGULAR_GRID") == 0)
+        m_sampling_type = utils::SamplingType::REGULAR_GRID;
+
+    m_init_depth = d["Particle generation"]["Initial height"].GetDouble();
+    m_in_layers = d["Particle generation"]["Initialize in layers"].GetBool();
+
+    std::string model = d["Simulation settings"]["Tangential displacement model"].GetString();
+    if (model.compare("MULTI_STEP") == 0)
+        m_tangential_model = gpu::CHGPU_FRICTION_MODE::MULTI_STEP;
+    else if (model.compare("SINGLE_STEP") == 0)
+        m_tangential_model = gpu::CHGPU_FRICTION_MODE::SINGLE_STEP;
+    else if (model.compare("FRCTIONLESS") == 0)
+        m_tangential_model = gpu::CHGPU_FRICTION_MODE::FRICTIONLESS;
+
+    m_fixed_proxies = d["Simulation settings"]["Fix proxies"].GetBool();
+}
 
 void ChVehicleCosimTerrainNodeGranularGPU::SetGranularMaterial(double radius, double density) {
     m_radius_g = radius;

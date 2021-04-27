@@ -45,6 +45,9 @@ class CH_VEHICLE_API ChVehicleCosimTerrainNodeSCM : public ChVehicleCosimTerrain
 
     virtual ChSystem* GetSystem() override { return m_system; }
 
+    /// Set full terrain specification from JSON specfile.
+    void SetFromSpecfile(const std::string& specfile);
+
     /// Set the SCM material properties for terrain.
     void SetPropertiesSCM(
         double spacing,        ///< SCM grid spacing

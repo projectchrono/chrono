@@ -22,6 +22,7 @@
 //
 // =============================================================================
 
+#include <fstream>
 #include <algorithm>
 #include <cmath>
 
@@ -29,13 +30,18 @@
 
 #include "chrono_vehicle/cosim/ChVehicleCosimTerrainNode.h"
 
+#include "chrono_thirdparty/rapidjson/filereadstream.h"
+#include "chrono_thirdparty/rapidjson/istreamwrapper.h"
+
 using std::cout;
 using std::endl;
+
+using namespace rapidjson;
 
 namespace chrono {
 namespace vehicle {
 
-std::string ChVehicleCosimTerrainNode::GetTypeAsString(Type type) {
+std::string ChVehicleCosimTerrainNode::GetTypeAsString(ChVehicleCosimTerrainNode::Type type) {
     switch (type) {
         case Type::RIGID:
             return "Rigid";
@@ -52,6 +58,54 @@ std::string ChVehicleCosimTerrainNode::GetTypeAsString(Type type) {
         default:
             return "Unknown";
     }
+}
+
+ChVehicleCosimTerrainNode::Type ChVehicleCosimTerrainNode::GetTypeFromString(const std::string& type) {
+    if (type == "RIGID")
+        return Type::RIGID;
+    if (type == "SCM")
+        return Type::SCM;
+    if (type == "GRANULAR_OMP")
+        return Type::GRANULAR_OMP;
+    if (type == "GRANULAR_GPU")
+        return Type::GRANULAR_GPU;
+    if (type == "GRANULAR_MPI")
+        return Type::GRANULAR_MPI;
+    if (type == "GRANULAR_SPH")
+        return Type::GRANULAR_SPH;
+
+    return Type::UNKNOWN;
+}
+
+bool ChVehicleCosimTerrainNode::ReadSpecfile(const std::string& specfile, Document& d) {
+    std::ifstream ifs(specfile);
+    if (!ifs.good()) {
+        cout << "ERROR: Could not open JSON file: " << specfile << "\n" << endl;
+        return false;
+    }
+
+    IStreamWrapper isw(ifs);
+    d.ParseStream<ParseFlag::kParseCommentsFlag>(isw);
+    if (d.IsNull()) {
+        cout << "ERROR: Invalid JSON file: " << specfile << "\n" << endl;
+        return false;
+    }
+
+    return true;
+}
+
+ChVehicleCosimTerrainNode::Type ChVehicleCosimTerrainNode::GetTypeFromSpecfile(const std::string& specfile) {
+    Document d;
+    if (!ReadSpecfile(specfile, d)) {
+        return Type::UNKNOWN;
+    }
+
+    if (!d.HasMember("Type")) {
+        cout << "ERROR: JSON file " << specfile << " does not specify terrain type!\n" << endl;
+        return Type::UNKNOWN;
+    }
+
+    return GetTypeFromString(d["Type"].GetString());
 }
 
 // -----------------------------------------------------------------------------

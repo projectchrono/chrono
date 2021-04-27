@@ -38,6 +38,9 @@ class CH_VEHICLE_API ChVehicleCosimTerrainNodeRigid : public ChVehicleCosimTerra
 
     virtual ChSystem* GetSystem() override { return m_system; }
 
+    /// Set full terrain specification from JSON specfile.
+    void SetFromSpecfile(const std::string& specfile);
+
     /// Set the material properties for terrain.
     /// The type of material must be consistent with the contact method (SMC or NSC)
     /// specified at construction. These parameters characterize the material for the container and
