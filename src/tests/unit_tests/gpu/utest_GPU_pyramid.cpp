@@ -9,7 +9,7 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Authors: Luning Fang, Jason Zhou
+// Authors: Luning Fang, Radu Serban, Jason Zhou
 // =============================================================================
 // Pyramid test: two spheres settled on the ground with gap in between, a third
 // sphere set on top to form a pyramid. With more friction (rolling/sliding) the
@@ -21,22 +21,25 @@
 #include <iostream>
 #include <string>
 
-#include "chrono/core/ChGlobal.h"
-#include "chrono/utils/ChUtilsSamplers.h"
-#include "chrono_thirdparty/filesystem/path.h"
+#include "unit_testing.h"
 
+#include "chrono/core/ChGlobal.h"
 #include "chrono_gpu/physics/ChSystemGpu.h"
-#include "chrono_gpu/utils/ChGpuJsonParser.h"
-#include "chrono_gpu/ChGpuData.h"
-#include "chrono_thirdparty/filesystem/path.h"
 
 using namespace chrono;
 using namespace chrono::gpu;
 
+class gpuPyramid : public ::testing::Test, public ::testing::WithParamInterface<bool> {
+  public:
+    gpuPyramid() : hold(GetParam()) {}
 
-//// TODO: test also the case where the pyramid does not hold!
+  protected:
+    bool hold;
+};
 
-TEST(gpuFrictionSliding, check) {
+TEST_P(gpuPyramid, check) {
+    bool hold_case = hold ? true : false;
+
     // load the gpu system using checkpointing
     std::string settled_filename = GetChronoDataPath() + "testing/gpu/pyramid_checkpoint.dat";
     ChSystemGpu gpu_sys(settled_filename);
@@ -50,9 +53,25 @@ TEST(gpuFrictionSliding, check) {
     gpu_sys.SetParticleFixed(body_fixity);
 
     // set sliding friction coefficient
-    float mu_k = 0.5f;   
-    gpu_sys.SetStaticFrictionCoeff_SPH2SPH(mu_k);
-    gpu_sys.SetStaticFrictionCoeff_SPH2WALL(mu_k);
+    if (hold_case == true) {
+        // Case 1: with high rolling friction and sliding friction
+        // This top ball should be supported by two balls at the bottom
+        float mu_k = 0.5f;
+        gpu_sys.SetStaticFrictionCoeff_SPH2SPH(mu_k);
+        gpu_sys.SetStaticFrictionCoeff_SPH2WALL(mu_k);
+        float mu_r = 0.2f;
+        gpu_sys.SetRollingMode(CHGPU_ROLLING_MODE::SCHWARTZ);
+        gpu_sys.SetRollingCoeff_SPH2SPH(mu_r);
+        gpu_sys.SetRollingCoeff_SPH2WALL(mu_r);
+    } else {
+        // Case 2: no rolling resistance, very low sliding friction
+        // This top ball will eventually fall
+        float mu_k = 0.01f;
+        gpu_sys.SetStaticFrictionCoeff_SPH2SPH(mu_k);
+        gpu_sys.SetStaticFrictionCoeff_SPH2WALL(mu_k);
+        float mu_r = 0.0000f;
+        gpu_sys.SetRollingMode(CHGPU_ROLLING_MODE::NO_RESISTANCE);
+    }
 
     // generate the ground for the pyramid
     ChVector<float> ground_plate_pos(0.0, 0.0, 0.0);
@@ -64,13 +83,13 @@ TEST(gpuFrictionSliding, check) {
     gpu_sys.Initialize();
 
     // Ball parameters
-    float mass = (float)((4.0 / 3) * 3.14 * 0.5 * 0.5 * 0.5 * 1.90986);
-    float inertia = (float)((2.0 / 5) * mass * 0.5 * 0.5);
+    float mass = (float)((4.0 / 3) * 3.14f * 0.5f * 0.5f * 0.5f * 1.9f);
+    float inertia = (float)((2.0 / 5) * mass * 0.5f * 0.5f);
     float radius = 0.5f;
 
     // Test precision
-    float precision_KE = 1e-6f;
-    float precision_pos = 1e-5f;
+    float precision_KE = 1e-8f;
+    float precision_pos = 1e-3f;
 
     // Initial ball position
     auto pos = gpu_sys.GetParticlePosition(2);
@@ -104,6 +123,14 @@ TEST(gpuFrictionSliding, check) {
     // Check final ball position
     pos = gpu_sys.GetParticlePosition(2);
     std::cout << "\npos = " << pos << std::endl;
-    ASSERT_NEAR(pos.y(), 0.0f, precision_pos);
-    ASSERT_TRUE(pos.z() > radius);
+
+    if (hold_case == true) {
+        ASSERT_NEAR(pos.y(), 0.0f, precision_pos);
+        ASSERT_TRUE(pos.z() > 2 * radius);
+    } else {
+        ASSERT_NEAR(pos.y(), 0.0f, precision_pos);
+        ASSERT_NEAR(pos.z(), radius, precision_pos);
+    }
 }
+
+INSTANTIATE_TEST_CASE_P(check, gpuPyramid, ::testing::Bool());

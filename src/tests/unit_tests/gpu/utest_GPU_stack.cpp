@@ -11,12 +11,8 @@
 // =============================================================================
 // Authors: Jason Zhou
 // =============================================================================
-// Simple stacking unit test consisting of 5 particles
-// utilizes gtest infrustructure
-// test 1 : check abs velocities of each particle after 3s
-// test 2 : check pos of each particle after 3s
-// test 3 : comprehensive check - compare the simulation pos results with ground truth
-// test 4 : comprehensive check - compare the simulation vel results with ground truth
+// Validation test: stacking unit test consisting of 5 particles
+// This test will check the end positions of all 5 particles
 // =============================================================================
 
 #include "gtest/gtest.h"
@@ -24,162 +20,110 @@
 #include <iostream>
 #include <string>
 
-#include "chrono/core/ChGlobal.h"
-#include "chrono/utils/ChUtilsSamplers.h"
-
-#include "chrono_gpu/physics/ChSystemGpu.h"
-#include "chrono_gpu/utils/ChGpuJsonParser.h"
-
-#include "chrono_thirdparty/filesystem/path.h"
-
 #include "unit_testing.h"
+
+#include "chrono/core/ChGlobal.h"
+#include "chrono_gpu/physics/ChSystemGpu.h"
 
 using namespace chrono;
 using namespace chrono::gpu;
 
-ChGpuSimulationParameters params;
+TEST(gpuStack, check) {
+    float density = 1.53f;
+    float radius = 0.5f;
+    float g = 980.f;
+    float mu_s = 0.5f;
+    float mu_r = 0.0008f;
 
-// declare global variables
-float radius;
-float precision_vel = 1e-3;
-float precision_pos = 1e-2;
+    float precision_KE = 1e-5f;
+    float precision_pos = 1e-2f;
 
-std::vector<float> end_vel;
-std::vector<ChVector<float>> end_pos;
+    float mass = 4.f / 3.f * CH_C_PI * pow(radius, 3.f) * density;
+    float penetration = pow(mass * abs(-g) / 1e7, 2.f / 3.f);
 
-float settled_pos;
-float penetration;
+    float inertia = 2.f / 5.f * mass * pow(radius, 2.f);
+    float settled_pos = -100.f / 2.0f + radius - penetration;
 
-
-int main(int argc, char* argv[]) {
-    string json_dir = GetChronoDataPath() + "testing/gpu/utest_GPU_stack/utest_GPU_stack.json";
-
-    const char* c_buff = json_dir.c_str();
-    // check whether JSON parameters file is valid
-    // Parse JSON parameters to the gpu system
-    if (ParseJSON(c_buff, params) == false) {
-        return 1;
-    }
-
-    params.box_X = 100;
-    params.box_Y = 100;
-    params.box_Z = 100;
-
-    float mu_s = 0.5;
-    float mu_r = 0.5;
-    float normalStiffness = 10000000;
-    int psi_L = 16;
-
-    params.static_friction_coeffS2S = mu_s;
-    params.static_friction_coeffS2W = mu_s;
-    params.normalStiffS2S = normalStiffness;
-    params.normalStiffS2W = normalStiffness;
-    params.rolling_friction_coeffS2S = mu_r;
-    params.rolling_friction_coeffS2W = mu_r;
-
-    params.psi_L = psi_L;
-
-    // Read particle radius
-    radius = params.sphere_radius;
     // Setup simulation
-    ChSystemGpu gpu_sys(params.sphere_radius, params.sphere_density,
-                        make_float3(params.box_X, params.box_Y, params.box_Z));
-
-    gpu_sys.SetPsiFactors(params.psi_T, params.psi_L);
-
-    // set normal force model
-    gpu_sys.SetKn_SPH2SPH(params.normalStiffS2S);
-    gpu_sys.SetKn_SPH2WALL(params.normalStiffS2W);
-    gpu_sys.SetGn_SPH2SPH(params.normalDampS2S);
-    gpu_sys.SetGn_SPH2WALL(params.normalDampS2W);
-
-    float mass = 4.0 / 3.0 * CH_C_PI * pow(params.sphere_radius, 3) * params.sphere_density;
-    std::cout << "mass:  " << mass << std::endl;
-    penetration = pow(mass * abs(params.grav_Z) / params.normalStiffS2S, 2.0 / 3.0);
-
-    float inertia = 2.0 / 5.0 * mass * pow(params.sphere_radius, 2);
-    settled_pos = -params.box_Z / 2.0 + params.sphere_radius - penetration;
-
-    printf("settled position is:%e\n", settled_pos);
-
-    // set tangential force model
-    gpu_sys.SetKt_SPH2SPH(params.tangentStiffS2S);
-    gpu_sys.SetKt_SPH2WALL(params.tangentStiffS2W);
-    gpu_sys.SetGt_SPH2SPH(params.tangentDampS2S);
-    gpu_sys.SetGt_SPH2WALL(params.tangentDampS2W);
-    gpu_sys.SetStaticFrictionCoeff_SPH2SPH(params.static_friction_coeffS2S);
-    gpu_sys.SetStaticFrictionCoeff_SPH2WALL(params.static_friction_coeffS2W);
-
-    gpu_sys.SetCohesionRatio(params.cohesion_ratio);
-    gpu_sys.SetAdhesionRatio_SPH2WALL(params.adhesion_ratio_s2w);
-    gpu_sys.SetGravitationalAcceleration(ChVector<>(params.grav_X, params.grav_Y, params.grav_Z));
-    gpu_sys.SetOutputMode(params.write_mode);
-    gpu_sys.SetOutputFlags(
-        CHGPU_OUTPUT_FLAGS::VEL_COMPONENTS | CHGPU_OUTPUT_FLAGS::FIXITY |
-        CHGPU_OUTPUT_FLAGS::FORCE_COMPONENTS); 
-
+    ChSystemGpu gpu_sys(radius, density, make_float3(100.f, 100.f, 100.f));
+    gpu_sys.SetGravitationalAcceleration(ChVector<>(0.f, 0.f, -g));
     gpu_sys.SetFrictionMode(CHGPU_FRICTION_MODE::MULTI_STEP);
     gpu_sys.SetTimeIntegrator(CHGPU_TIME_INTEGRATOR::CHUNG);
 
+    // set normal force model
+    gpu_sys.SetKn_SPH2SPH(1e7);
+    gpu_sys.SetKn_SPH2WALL(1e7);
+    gpu_sys.SetGn_SPH2SPH(2e4);
+    gpu_sys.SetGn_SPH2WALL(2e4);
+
+    // set tangential force model
+    gpu_sys.SetKt_SPH2SPH(2e6);
+    gpu_sys.SetKt_SPH2WALL(1e6);
+    gpu_sys.SetGt_SPH2SPH(50);
+    gpu_sys.SetGt_SPH2WALL(50);
+    gpu_sys.SetStaticFrictionCoeff_SPH2SPH(mu_s);
+    gpu_sys.SetStaticFrictionCoeff_SPH2WALL(mu_s);
+
     // set rolling friction model
     gpu_sys.SetRollingMode(CHGPU_ROLLING_MODE::SCHWARTZ);
-    gpu_sys.SetRollingCoeff_SPH2SPH(params.rolling_friction_coeffS2S);
-    gpu_sys.SetRollingCoeff_SPH2WALL(params.rolling_friction_coeffS2W);
+    gpu_sys.SetRollingCoeff_SPH2SPH(mu_r);
+    gpu_sys.SetRollingCoeff_SPH2WALL(mu_r);
 
+    gpu_sys.SetPsiFactors(32, 16);
+
+    // set up balls for simulation
     std::vector<ChVector<float>> body_points;
     std::vector<ChVector<float>> velocity;
     for (int i = 0; i < 5; i++) {
-        body_points.push_back(ChVector<float>(0, 0, settled_pos + params.sphere_radius * 3 * i));
-        velocity.push_back(ChVector<float>(0.0, 0.0, 0.0));
+        body_points.push_back(ChVector<float>(0.f, 0.f, settled_pos + radius * 3.f * i));
+        velocity.push_back(ChVector<float>(0.0f, 0.0f, 0.0f));
     }
 
     gpu_sys.SetParticlePositions(body_points, velocity);
 
-    gpu_sys.SetFixedStepSize(params.step_size);
-    gpu_sys.SetRecordingContactInfo(true);
+    float step_size = 1e-4f;
+    float curr_time = 0.f;
+    int currframe = 0.f;
+    float end_time = 3.f;
+    float time_start_check = 0.1f;
+    bool settled = false;
 
+    gpu_sys.SetFixedStepSize(step_size);
     gpu_sys.SetBDFixed(true);
-
-    gpu_sys.SetVerbosity(params.verbose);
     gpu_sys.Initialize();
 
-    int fps = 200;
-    float frame_step = 1.f / fps;
-    float curr_time = 0;
-    int currframe = 0;
+    while (curr_time < end_time) {
+        gpu_sys.AdvanceSimulation(step_size);
+        curr_time += step_size;
 
-    printf("time, ball_px, ball_py, ball_pz, absv, KE, omega.x, omega.y, omega.z\n");
-    while (curr_time < params.time_end && currframe < 1000) {
-        gpu_sys.AdvanceSimulation(frame_step);
+        std::cout << "\r" << std::fixed << std::setprecision(6) << curr_time << std::flush;
+        if (curr_time > time_start_check) {
+            float KE = 0.f;
+            for (int i = 0; i < 5; i++) {
+                float vel = gpu_sys.GetParticleVelocity(i).Length();
+                float omg = gpu_sys.GetParticleAngVelocity(i).Length();
+                KE += 0.5 * mass * vel * vel + 0.5 * inertia * omg * omg;
+            }
 
-        std::cout << "current step: " << curr_time << "  tot: 2" << std::endl;
-        curr_time += frame_step;
-        currframe++;
+            std::cout << "\r" << std::fixed << std::setprecision(6) << curr_time << "  " << KE << std::flush;
+
+            // stop simulation if the kinetic energy falls below threshold
+            if (KE < precision_KE) {
+                settled = true;
+                break;
+            }
+        } else {
+            std::cout << "\r" << std::fixed << std::setprecision(6) << curr_time << std::flush;
+        }
     }
 
-    for (int i = 0; i < 5; i++) {
-        end_vel.push_back(gpu_sys.GetParticleVelocity(i).Length());
-        end_pos.push_back(gpu_sys.GetParticlePosition(i));
-    }
+    // check whether the balls settle
+    ASSERT_TRUE(settled);
 
-    testing::InitGoogleTest(&argc, argv);
-    return RUN_ALL_TESTS();
-}
-
-// test 1 - check end abs velocity of each particle
-// the end velocities of all particles should be close to 0, within a barrier
-TEST(gpuStack, endVel) {
+    // check end position with theoretical values
     for (int i = 0; i < 5; i++) {
-        ASSERT_NEAR(end_vel[i], 0, precision_vel);
-    }
-}
-
-// test 2 - check the end position of each particle
-// test pass if all end positions are within a tolerance barrier
-TEST(gpuStack, endPos) {
-    for (int i = 0; i < 5; i++) {
-        ASSERT_NEAR(end_pos[i].x(), 0, precision_pos);
-        ASSERT_NEAR(end_pos[i].y(), 0, precision_pos);
-        ASSERT_NEAR(end_pos[i].z(), settled_pos + radius * 2 * i - penetration * i, precision_pos);
+        ASSERT_NEAR(gpu_sys.GetParticlePosition(i).x(), 0, precision_pos);
+        ASSERT_NEAR(gpu_sys.GetParticlePosition(i).y(), 0, precision_pos);
+        ASSERT_NEAR(gpu_sys.GetParticlePosition(i).z(), settled_pos + radius * 2 * i - penetration * i, precision_pos);
     }
 }

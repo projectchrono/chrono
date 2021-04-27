@@ -9,23 +9,24 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Authors: Ruochun Zhang, Jason Zhou
+// Authors: Ruochun Zhang, Radu Serban, Jason Zhou
 // =============================================================================
-// validation test: high velocity sphere punching through a mesh facet
+// Validation test: high velocity sphere punching through a mesh facet
 // =============================================================================
 
+#include "gtest/gtest.h"
 #include <cmath>
 #include <iostream>
+
+#include "unit_testing.h"
 
 #include "chrono/core/ChGlobal.h"
 #include "chrono_gpu/physics/ChSystemGpu.h"
 
-#include "gtest/gtest.h"
-
 using namespace chrono;
 using namespace chrono::gpu;
 
-TEST(gpuBallistic, resultTimePointCheck) {
+TEST(gpuBallistic, check) {
     float radius = 0.5f;
     float density = 7800.0f;
     ChSystemGpuMesh gpu_sys(radius, density, make_float3(20.0f, 20.0f, 10.0f));
@@ -69,7 +70,6 @@ TEST(gpuBallistic, resultTimePointCheck) {
     float tolerance = 1e-4f;
     float hit_time = (std::sqrt(v0 * v0 + 2 * g * (z0 - radius)) - v0) / g;
     std::cout << "Theoretic hit time: " << hit_time << std::endl;
-    float penetration_time = 4.5e-4;  //// WHERE DOES THIS COME FROM?!?!?
 
     bool hit = false;
     bool penetrated = false;
@@ -90,10 +90,9 @@ TEST(gpuBallistic, resultTimePointCheck) {
         // Check that ball does not bounce
         ASSERT_FALSE(hit && z_pos > radius);
 
-        // Check time of full penetration
+        // Check full penetration
         if (z_pos < -radius) {
             std::cout << "Mesh penetrated at t = " << curr_time << std::endl;
-            ASSERT_NEAR(curr_time, penetration_time, tolerance);
             penetrated = true;
             break;
         }
