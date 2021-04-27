@@ -51,11 +51,6 @@ using namespace chrono::vehicle;
 
 // =============================================================================
 
-// Output frequency (frames per second)
-double output_fps = 100;
-
-// Rendering frequency (frames per second)
-double render_fps = 100;
 
 // Tire type
 ChVehicleCosimRigNode::Type tire_type = ChVehicleCosimRigNode::Type::RIGID;
@@ -72,13 +67,14 @@ bool GetProblemSpecs(int argc,
                      double& step_size,
                      double& settling_time,
                      double& sim_time,
-                     double& init_vel,
+                     double& vel0,
                      double& slip,
-                     double& coh_pressure,
                      double& sys_mass,
                      double& terrain_length,
                      double& terrain_width,
                      bool& use_checkpoint,
+                     double& output_fps,
+                     double& render_fps,
                      bool& output,
                      bool& render,
                      bool& verbose,
@@ -121,10 +117,11 @@ int main(int argc, char** argv) {
     double step_size = 1e-4;
     double settling_time = 0.4;
     double sim_time = 10;
-    double init_vel = 0.5;
+    double vel0 = 0.5;
     double slip = 0;
-    double coh_pressure = 0;  // 8e4;
     bool use_checkpoint = false;
+    double output_fps = 100;
+    double render_fps = 100;
     bool output = true;
     bool render = true;
     double sys_mass = 200;
@@ -132,9 +129,9 @@ int main(int argc, char** argv) {
     double terrain_width = 1;
     std::string suffix = "";
     bool verbose = true;
-    if (!GetProblemSpecs(argc, argv, rank, terrain_specfile, nthreads_rig, nthreads_terrain, step_size, settling_time, sim_time,
-                         init_vel, slip, coh_pressure, sys_mass, terrain_length, terrain_width, use_checkpoint, output,
-                         render, verbose, suffix)) {
+    if (!GetProblemSpecs(argc, argv, rank, terrain_specfile, nthreads_rig, nthreads_terrain, step_size, settling_time,
+                         sim_time, vel0, slip, sys_mass, terrain_length, terrain_width, use_checkpoint, output_fps,
+                         render_fps, output, render, verbose, suffix)) {
         MPI_Finalize();
         return 1;
     }
@@ -205,7 +202,7 @@ int main(int argc, char** argv) {
 
         switch (tire_type) {
             case ChVehicleCosimRigNode::Type::RIGID: {
-                auto rig = new ChVehicleCosimRigNodeRigidTire(init_vel, slip, nthreads_rig);
+                auto rig = new ChVehicleCosimRigNodeRigidTire(vel0, slip, nthreads_rig);
                 rig->SetVerbose(verbose);
                 rig->SetTireJSONFile(vehicle::GetDataFile("hmmwv/tire/HMMWV_RigidMeshTire_CoarseClosed.json"));
                 rig->SetBodyMasses(1, 1, sys_mass, 15);
@@ -214,7 +211,7 @@ int main(int argc, char** argv) {
                 break;
             }
             case ChVehicleCosimRigNode::Type::FLEXIBLE: {
-                auto rig = new ChVehicleCosimRigNodeFlexibleTire(init_vel, slip, nthreads_rig);
+                auto rig = new ChVehicleCosimRigNodeFlexibleTire(vel0, slip, nthreads_rig);
                 rig->SetVerbose(verbose);
                 rig->SetTireJSONFile(vehicle::GetDataFile("hmmwv/tire/HMMWV_ANCFTire.json"));
                 rig->SetBodyMasses(1, 1, sys_mass, 15);
@@ -251,35 +248,6 @@ int main(int argc, char** argv) {
                 terrain->SetPatchDimensions(terrain_length, terrain_width);
 
                 terrain->SetFromSpecfile(terrain_specfile);
-                /*
-                terrain->SetProxyFixed(true);
-                terrain->SetProxyContactRadius(0.002);
-
-                switch (method) {
-                    case ChContactMethod::SMC: {
-                        auto material = chrono_types::make_shared<ChMaterialSurfaceSMC>();
-                        material->SetFriction(0.9f);
-                        material->SetRestitution(0.0f);
-                        material->SetYoungModulus(8e5f);
-                        material->SetPoissonRatio(0.3f);
-                        material->SetKn(1.0e6f);
-                        material->SetGn(6.0e1f);
-                        material->SetKt(4.0e5f);
-                        material->SetGt(4.0e1f);
-                        terrain->SetMaterialSurface(material);
-                        terrain->UseMaterialProperties(true);
-                        terrain->SetContactForceModel(ChSystemSMC::Hertz);
-                        break;
-                    }
-                    case ChContactMethod::NSC: {
-                        auto material = chrono_types::make_shared<ChMaterialSurfaceNSC>();
-                        material->SetFriction(0.9f);
-                        material->SetRestitution(0.0f);
-                        terrain->SetMaterialSurface(material);
-                        break;
-                    }
-                }
-                */
 
                 node = terrain;
 #endif
@@ -298,21 +266,6 @@ int main(int argc, char** argv) {
                 terrain->SetPatchDimensions(terrain_length, terrain_width);
 
                 terrain->SetFromSpecfile(terrain_specfile);
-                /*
-                terrain->SetPropertiesSCM(5e-2,   // grid spacing
-                                          0.2e6,  // Bekker Kphi
-                                          0,      // Bekker Kc
-                                          1.1,    // Bekker n exponent
-                                          0,      // Mohr cohesive limit (Pa)
-                                          30,     // Mohr friction limit (degrees)
-                                          0.01,   // Janosi shear coefficient (m)
-                                          4e7,    // Elastic stiffness (Pa/m), before plastic yield, must be > Kphi
-                                          3e4     // Damping (Pa s/m), proportional to negative vertical speed
-                );
-
-                terrain->SetProxyFixed(true);
-                terrain->SetProxyContactRadius(0.002);
-                */
 
                 if (use_checkpoint) {
                     terrain->SetInputFromCheckpoint("checkpoint_end.dat");
@@ -337,46 +290,6 @@ int main(int argc, char** argv) {
                 terrain->SetWallThickness(0.1);
 
                 terrain->SetFromSpecfile(terrain_specfile);
-                /*
-                terrain->SetProxyFixed(true);
-                terrain->SetProxyContactRadius(0.002);
-
-                ////double radius = 0.006;
-                double radius = 0.02;
-                double coh_force = CH_C_PI * radius * radius * coh_pressure;
-
-                terrain->SetGranularMaterial(radius, 2500);
-                terrain->SetSamplingMethod(utils::SamplingType::POISSON_DISK, 0.5, 1.001, true);
-                ////terrain->SetSamplingMethod(utils::SamplingType::HCP_PACK, 0.5, 1.001, false);
-
-                switch (method) {
-                    case ChContactMethod::SMC: {
-                        auto material = chrono_types::make_shared<ChMaterialSurfaceSMC>();
-                        material->SetFriction(0.9f);
-                        material->SetRestitution(0.0f);
-                        material->SetYoungModulus(8e5f);
-                        material->SetPoissonRatio(0.3f);
-                        material->SetAdhesion(static_cast<float>(coh_force));
-                        material->SetKn(1.0e7f);
-                        material->SetGn(1.0e4f);
-                        material->SetKt(1.0e7f);
-                        material->SetGt(1.0e4f);
-                        terrain->SetMaterialSurface(material);
-                        terrain->UseMaterialProperties(true);
-                        terrain->SetContactForceModel(ChSystemSMC::Hertz);
-                        terrain->SetTangentialDisplacementModel(ChSystemSMC::TangentialDisplacementModel::MultiStep);
-                        break;
-                    }
-                    case ChContactMethod::NSC: {
-                        auto material = chrono_types::make_shared<ChMaterialSurfaceNSC>();
-                        material->SetFriction(0.9f);
-                        material->SetRestitution(0.0f);
-                        material->SetCohesion(static_cast<float>(coh_force));
-                        terrain->SetMaterialSurface(material);
-                        break;
-                    }
-                }
-                */
 
                 if (use_checkpoint) {
                     terrain->SetInputFromCheckpoint("checkpoint_settled.dat");
@@ -405,29 +318,6 @@ int main(int argc, char** argv) {
                 terrain->SetPatchDimensions(terrain_length, terrain_width);
 
                 terrain->SetFromSpecfile(terrain_specfile);
-                /*
-                terrain->SetProxyFixed(true);
-
-                double radius = 0.02;
-                double coh_force = CH_C_PI * radius * radius * coh_pressure;
-
-                terrain->SetGranularMaterial(radius, 2500);
-                terrain->SetTangentialDisplacementModel(gpu::CHGPU_FRICTION_MODE::MULTI_STEP);
-                terrain->SetSamplingMethod(utils::SamplingType::POISSON_DISK, 0.5, 1.001, true);
-                ////terrain->SetSamplingMethod(utils::SamplingType::HCP_PACK, 0.5, 1.001, false);
-
-                auto material = chrono_types::make_shared<ChMaterialSurfaceSMC>();
-                material->SetFriction(0.9f);
-                material->SetRestitution(0.0f);
-                material->SetYoungModulus(8e5f);
-                material->SetPoissonRatio(0.3f);
-                material->SetAdhesion(static_cast<float>(coh_force));
-                material->SetKn(1.0e7f);
-                material->SetGn(1.0e4f);
-                material->SetKt(1.0e7f);
-                material->SetGt(1.0e4f);
-                terrain->SetMaterialSurface(material);
-                */
 
                 if (use_checkpoint) {
                     terrain->SetInputFromCheckpoint("checkpoint_settled.dat");
@@ -457,14 +347,6 @@ int main(int argc, char** argv) {
                 terrain->SetPatchDimensions(terrain_length, terrain_width);
 
                 terrain->SetFromSpecfile(terrain_specfile);
-                /*
-                double radius = 0.02;
-                double density = 2500;
-                terrain->SetGranularMaterial(radius, density);
-
-                double depth_granular = 0.5;
-                terrain->SetPropertiesSPH(param_filename, depth_granular);
-                */
 
                 node = terrain;
 #endif
@@ -526,13 +408,14 @@ bool GetProblemSpecs(int argc,
                      double& step_size,
                      double& settling_time,
                      double& sim_time,
-                     double& init_vel,
+                     double& vel0,
                      double& slip,
-                     double& coh_pressure,
                      double& sys_mass,
                      double& terrain_length,
                      double& terrain_width,
                      bool& use_checkpoint,
+                     double& output_fps,
+                     double& render_fps,
                      bool& output,
                      bool& render,
                      bool& verbose,
@@ -545,9 +428,8 @@ bool GetProblemSpecs(int argc,
     cli.AddOption<double>("Demo", "sim_time", "Simulation length after settling phase [s]", std::to_string(sim_time));
     cli.AddOption<double>("Demo", "step_size", "Integration step size [s]", std::to_string(step_size));
 
-    cli.AddOption<double>("Demo", "init_vel", "Initial tire linear velocity [m/s]", std::to_string(init_vel));
+    cli.AddOption<double>("Demo", "vel0", "Zero-splip tire linear velocity [m/s]", std::to_string(vel0));
     cli.AddOption<double>("Demo", "slip", "Longitudinal slip", std::to_string(slip));
-    cli.AddOption<double>("Demo", "coh_pressure", "Terrain cohesion [Pa]", std::to_string(coh_pressure));
     cli.AddOption<double>("Demo", "sys_mass", "Mass of wheel carrier [kg]", std::to_string(sys_mass));
 
     cli.AddOption<double>("Demo", "terrain_length", "Length of terrain patch [m]", std::to_string(terrain_length));
@@ -556,8 +438,12 @@ bool GetProblemSpecs(int argc,
     cli.AddOption<bool>("Demo", "use_checkpoint", "Initialize granular terrain from checkppoint file");
 
     cli.AddOption<bool>("Demo", "quiet", "Disable verbose messages");
+
     cli.AddOption<bool>("Demo", "no_render", "Disable OpenGL rendering");
     cli.AddOption<bool>("Demo", "no_output", "Disable generation of result output files");
+
+    cli.AddOption<double>("Demo", "output_fps", "Output frequency [fps]", std::to_string(output_fps));
+    cli.AddOption<double>("Demo", "render_fps", "Render frequency [fps]", std::to_string(render_fps));
 
     cli.AddOption<int>("Demo", "threads_rig", "Number of OpenMP threads for the rig node",
                        std::to_string(nthreads_rig));
@@ -586,9 +472,8 @@ bool GetProblemSpecs(int argc,
     settling_time = cli.GetAsType<double>("settling_time");
     step_size = cli.GetAsType<double>("step_size");
 
-    init_vel = cli.GetAsType<double>("init_vel");
+    vel0 = cli.GetAsType<double>("vel0");
     slip = cli.GetAsType<double>("slip");
-    coh_pressure = cli.GetAsType<double>("coh_pressure");
     sys_mass = cli.GetAsType<double>("sys_mass");
 
     terrain_length = cli.GetAsType<double>("terrain_length");
@@ -597,6 +482,10 @@ bool GetProblemSpecs(int argc,
     verbose = !cli.GetAsType<bool>("quiet");
     render = !cli.GetAsType<bool>("no_render");
     output = !cli.GetAsType<bool>("no_output");
+
+    output_fps = cli.GetAsType<double>("output_fps");
+    render_fps = cli.GetAsType<double>("render_fps");
+
     use_checkpoint = cli.GetAsType<bool>("use_checkpoint");
 
     nthreads_rig = cli.GetAsType<int>("threads_rig");
