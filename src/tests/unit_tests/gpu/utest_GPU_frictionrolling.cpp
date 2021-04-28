@@ -81,9 +81,9 @@ TEST(gpuFrictionRolling, check) {
     std::vector<ChVector<float>> velocity = {ChVector<float>(1.0, 0.0, 0.0)};
     gpu_sys.SetParticlePositions(body_point, velocity);
 
-    float step_size = 1e-4;
-    float curr_time = 0.f;
-    float end_time = 3.f;
+    float step_size = 1e-4f;
+    float curr_time = 0;
+    float end_time = 3.0f;
     float time_start_check = 0.1f;
     bool settled = false;
 

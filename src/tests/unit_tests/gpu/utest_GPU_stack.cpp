@@ -83,7 +83,6 @@ TEST(gpuStack, check) {
 
     float step_size = 1e-4f;
     float curr_time = 0.f;
-    int currframe = 0.f;
     float end_time = 3.f;
     float time_start_check = 0.1f;
     bool settled = false;

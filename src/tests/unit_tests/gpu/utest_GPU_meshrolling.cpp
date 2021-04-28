@@ -37,8 +37,8 @@ TEST(gpuMeshRolling, check) {
     float precision_KE = 1e-3f;
     float precision_pos = 1e-3f;
 
-    float mu_s = 0.2;
-    float mu_r = 0.0008;
+    float mu_s = 0.2f;
+    float mu_r = 0.0008f;
 
     ChSystemGpuMesh gpu_sys(radius, density, make_float3(20.f, 20.f, 10.f));
 
@@ -88,9 +88,9 @@ TEST(gpuMeshRolling, check) {
     // set gravity
     gpu_sys.SetGravitationalAcceleration(ChVector<>(0.f, 0.f, -g));
 
-    float step_size = 1e-4;
-    float curr_time = 0.f;
-    float end_time = 3.f;
+    float step_size = 1e-4f;
+    float curr_time = 0;
+    float end_time = 3.0f;
     float time_start_check = 0.1f;
     bool settled = false;
 

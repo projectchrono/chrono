@@ -132,7 +132,6 @@ int main(int argc, char* argv[]) {
         gpu_sys.AdvanceSimulation(frame_step);
         curr_time += frame_step;
         printf("rendering frame %u of %u\n", currframe, total_frames);
-        char filename[100];
         sprintf(filename, "%s/step%06d", out_dir.c_str(), currframe++);
         gpu_sys.WriteParticleFile(std::string(filename));
     }
