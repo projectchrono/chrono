@@ -408,8 +408,8 @@ bool segment_vs_edge(const real3& hdims,
     real tS = (Dot(s, r) - s[i] * r[i]) / d;
 
     // No interaction if point not on segment.
-    // Use a tolerance of a thousand of the segment length.
-    real eps = real(1e-3) * e;
+    // Use a tolerance a fraction of the segment length.
+    real eps = real(1e-8) * e;
     if (tS < eps || tS > 1 - eps)
         return false;
 
