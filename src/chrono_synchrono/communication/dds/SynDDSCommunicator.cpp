@@ -233,6 +233,11 @@ std::shared_ptr<SynDDSSubscriber> SynDDSCommunicator::CreateSubscriber(const std
         SynLog() << "CreateSubscriber: Topic (" << topic_name << ") instantiation FAILED\n";
         return nullptr;
     }
+	for(auto sub : m_subscribers) {
+		if (topic->GetTopicName().find(sub->m_topic->GetTopicName()) != std::string::npos) {
+			return nullptr;
+		}
+	}
 
     return CreateSubscriber(topic, callback, message, is_synchronous, is_managed);
 }

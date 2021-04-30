@@ -139,6 +139,8 @@ class SYN_API SynDDSSubscriber {
     void* m_message;                       ///< Pointer to the message type that will be used when receiving data
 
     std::function<void(void*)> m_callback;  ///< callback for each receive
+
+	friend class SynDDSCommunicator;
 };
 
 typedef std::vector<std::shared_ptr<SynDDSSubscriber>> SubscriberList;
