@@ -636,12 +636,17 @@ class ChSystemGpu_impl {
     /// User defined density of the sphere
     float sphere_density_UU;
 
-    /// X-length of the big domain; defines the global X axis located at the CM of the box
+    /// X-length of the big domain; defines the global X axis located at the CM of the box (as default)
     float box_size_X;
-    /// Y-length of the big domain; defines the global Y axis located at the CM of the box
+    /// Y-length of the big domain; defines the global Y axis located at the CM of the box (as default)
     float box_size_Y;
-    /// Z-length of the big domain; defines the global Z axis located at the CM of the box
+    /// Z-length of the big domain; defines the global Z axis located at the CM of the box (as default)
     float box_size_Z;
+
+    /// XYZ coordinate of the origin of the user global coordinate system, relative the CM of the big box domain
+    float user_coord_O_X;
+    float user_coord_O_Y;
+    float user_coord_O_Z;
 
     /// User-provided sphere positions in UU
     std::vector<float3> user_sphere_positions;

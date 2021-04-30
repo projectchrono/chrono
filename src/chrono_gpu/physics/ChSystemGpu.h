@@ -73,6 +73,13 @@ class CH_GPU_API ChSystemGpu {
     /// If fixed, it will ignore any given position functions.
     void SetBDFixed(bool fixed);
 
+    /// Set the origin of the coordinate system, relative to the center of the big box domain.
+    /// If not called, the origin will be assumed to be at the center of the big box doamin.
+    /// If set, the user should make sure the simulation information (particle locations, boundaries, meshes...) is
+    /// consistent with this coordinate system. Note the axis orientation will always be aligned with the big domain
+    /// walls and cannot be changed.
+    void SetCoordinateSystemO(const ChVector<float>& O);
+
     /// Set flags indicating whether or not a particle is fixed.
     /// MUST be called only once and MUST be called before Initialize.
     void SetParticleFixed(const std::vector<bool>& fixed);

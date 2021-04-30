@@ -69,6 +69,12 @@ void ChSystemGpu::SetBDFixed(bool fixed) {
     m_sys->BD_is_fixed = fixed;
 }
 
+void ChSystemGpu::SetCoordinateSystemO(const ChVector<float>& O) {
+    m_sys->user_coord_O_X = O.x();
+    m_sys->user_coord_O_Y = O.y();
+    m_sys->user_coord_O_Z = O.z();
+}
+
 void ChSystemGpu::SetParticleFixed(const std::vector<bool>& fixed) {
     m_sys->user_sphere_fixed = fixed;
 }
@@ -780,8 +786,8 @@ bool diff(float3 a, float3 b) {
     return std::abs(a.x - b.x) > 1e-6f || std::abs(a.y - b.y) > 1e-6f || std::abs(a.z - b.z) > 1e-6f;
 }
 
-// Use hash to find matching indentifier and load parameters. Return 0 if not change compared to current system, return
-// 1 if overwrote a current parameter setting
+// Use hash to find matching indentifier and load parameters. Return 1 if found no matching paramter to set, return 0 if
+// status normal
 bool ChSystemGpu::SetParamsFromIdentifier(const std::string& identifier, std::istringstream& iss1, bool overwrite) {
     unsigned int i;        // integer holder
     float f;               // float holder
@@ -1472,7 +1478,7 @@ void ChSystemGpuMesh::WriteMesh(const std::string& outfilename, unsigned int i) 
     // Writing face types. Type 5 is generally triangles
     ostream << "\n\n";
     ostream << "CELL_TYPES " << mmesh->getIndicesVertexes().size() << std::endl;
-    for (auto& f : mmesh->getIndicesVertexes())
+    for (size_t i = 0; i < mmesh->getIndicesVertexes().size(); i++)
         ostream << "5 " << std::endl;
 
     outfile << ostream.str();
@@ -1550,7 +1556,7 @@ void ChSystemGpuMesh::WriteMeshes(const std::string& outfilename) const {
     ostream << "\n\n";
     ostream << "CELL_TYPES " << total_f << std::endl;
     for (const auto& mmesh : m_meshes) {
-        for (auto& f : mmesh->getIndicesVertexes()) {
+        for (size_t i = 0; i < mmesh->getIndicesVertexes().size(); i++) {
             ostream << "5 " << std::endl;
         }
     }
