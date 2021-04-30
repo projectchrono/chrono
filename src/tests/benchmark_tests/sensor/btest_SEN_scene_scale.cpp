@@ -36,7 +36,7 @@ using namespace chrono;
 using namespace chrono::geometry;
 using namespace chrono::sensor;
 
-float time_interval = 1.0f;
+float time_interval = 5.0f;
 
 float x_bound = 10;
 float y_bound = 10;

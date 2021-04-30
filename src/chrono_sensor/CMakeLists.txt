@@ -160,10 +160,7 @@ set(ChronoEngine_sensor_RT_SOURCES
     optix/shaders/camera.cu
     optix/shaders/lidar.cu
     optix/shaders/miss.cu
-    optix/shaders/camera_shaders.cu
-    optix/shaders/lidar_shaders.cu
-    optix/shaders/shadow_shaders.cu
-    optix/shaders/radar_shaders.cu
+    optix/shaders/material_shaders.cu
     optix/shaders/radar.cu
 )
 set(ChronoEngine_sensor_RT_HEADERS

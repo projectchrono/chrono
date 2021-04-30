@@ -48,8 +48,9 @@ extern "C" __global__ void __raygen__lidar_single() {
     unsigned int opt1;
     unsigned int opt2;
     pointer_as_ints(&prd_lidar, opt1, opt2);
+    unsigned int raytype = (unsigned int)LIDAR_RAY_TYPE;
     optixTrace(params.root, ray_origin, ray_direction, lidar.clip_near, 1.5 * lidar.max_distance, t_traverse,
-               OptixVisibilityMask(1), OPTIX_RAY_FLAG_NONE, LIDAR_RAY_TYPE, RAY_TYPE_COUNT, LIDAR_RAY_TYPE, opt1, opt2);
+               OptixVisibilityMask(1), OPTIX_RAY_FLAG_NONE, 0, 1, 0, opt1, opt2, raytype);
 
     lidar.frame_buffer[image_index] = make_float2(prd_lidar.range, prd_lidar.intensity);
 }
@@ -135,13 +136,9 @@ extern "C" __global__ void __raygen__lidar_multi() {
     unsigned int opt1;
     unsigned int opt2;
     pointer_as_ints(&prd_lidar, opt1, opt2);
-
+    unsigned int raytype = (unsigned int)LIDAR_RAY_TYPE;
     optixTrace(params.root, ray_origin, ray_direction, lidar.clip_near, 1.5 * lidar.max_distance, t_traverse,
-               OptixVisibilityMask(1), OPTIX_RAY_FLAG_NONE, LIDAR_RAY_TYPE, RAY_TYPE_COUNT, LIDAR_RAY_TYPE, opt1, opt2);
+               OptixVisibilityMask(1), OPTIX_RAY_FLAG_NONE, 0, 1, 0, opt1, opt2, raytype);
 
-    // optixTrace(params.root, ray_origin, ray_direction, lidar.clip_near, 2 * lidar.max_distance, t_traverse,
-    //            OptixVisibilityMask(1), OPTIX_RAY_FLAG_NONE, LIDAR_RAY_TYPE, RAY_TYPE_COUNT, LIDAR_RAY_TYPE,
-    //            reinterpret_cast<unsigned int&>(prd_lidar.range),  //
-    //            reinterpret_cast<unsigned int&>(prd_lidar.intensity));
     lidar.frame_buffer[image_index] = make_float2(prd_lidar.range, prd_lidar.intensity);
 }

@@ -34,24 +34,13 @@ enum RayType {
     CAMERA_RAY_TYPE = 0,  // camera rays
     SHADOW_RAY_TYPE = 1,  // shadow rays
     LIDAR_RAY_TYPE = 2,   // lidar rays
-    RADAR_RAY_TYPE = 3,   // radar rays
-    RAY_TYPE_COUNT        // use this enum to keep track of number of ray types
+    RADAR_RAY_TYPE = 3    // radar rays
 };
 
 struct PointLight {
     float3 pos;
     float3 color;
     float max_range;
-};
-
-struct LidarMissParameters {
-    float default_range;
-    float default_intensity;
-};
-
-struct RadarMissParameters {
-    float default_range;
-    float default_rcs;
 };
 
 enum class BackgroundMode {
@@ -67,10 +56,8 @@ struct CameraMissParameters {
     cudaTextureObject_t env_map;
 };
 
-union MissParameters {
+struct MissParameters {
     CameraMissParameters camera_miss;
-    LidarMissParameters lidar_miss;
-    RadarMissParameters radar_miss;
 };
 
 struct CameraParameters {

@@ -37,13 +37,14 @@ CH_SENSOR_API ChFilterSavePtCloud::~ChFilterSavePtCloud() {}
 
 CH_SENSOR_API void ChFilterSavePtCloud::Apply() {
     cudaMemcpyAsync(m_host_buffer->Buffer.get(), m_buffer_in->Buffer.get(),
-                    m_host_buffer->Width * m_host_buffer->Height * (m_host_buffer->Dual_return + 1),
+                    sizeof(PixelXYZI) * m_host_buffer->Width * m_host_buffer->Height * (m_host_buffer->Dual_return + 1),
                     cudaMemcpyDeviceToHost, m_cuda_stream);
 
     std::string filename = m_path + "frame_" + std::to_string(m_frame_number) + ".csv";
     m_frame_number++;
     utils::CSV_writer csv_writer(",");
     cudaStreamSynchronize(m_cuda_stream);
+    std::cout << "Beam count: " << m_buffer_in->Beam_return_count << std::endl;
     for (unsigned int i = 0; i < m_buffer_in->Beam_return_count; i++) {
         csv_writer << m_host_buffer->Buffer[i].x << m_host_buffer->Buffer[i].y << m_host_buffer->Buffer[i].z
                    << m_host_buffer->Buffer[i].intensity << std::endl;

@@ -115,12 +115,13 @@ class CH_SENSOR_API ChOptixPipeline {
     OptixModule m_camera_raygen_module = 0;        // camera.cu file
     OptixModule m_lidar_raygen_module = 0;         // lidar.cu file
     OptixModule m_radar_raygen_module = 0;         // lidar.cu file
-    OptixModule m_camera_shading_module = 0;       // camera_shaders.cu file
-    OptixModule m_shadow_shading_module = 0;       // shadow_shaders.cu
-    OptixModule m_lidar_shading_module = 0;        // lidar_shaders.cu file
-    OptixModule m_radar_shading_module = 0;        // lidar_shaders.cu file
-    OptixModule m_miss_module = 0;                 // miss.cu
-    OptixModule m_exception_module = 0;            // exception.cu
+    OptixModule m_material_shading_module = 0;     // material shader file
+    // OptixModule m_camera_shading_module = 0;       // camera_shaders.cu file
+    // OptixModule m_shadow_shading_module = 0;       // shadow_shaders.cu
+    // OptixModule m_lidar_shading_module = 0;        // lidar_shaders.cu file
+    // OptixModule m_radar_shading_module = 0;        // lidar_shaders.cu file
+    OptixModule m_miss_module = 0;  // miss.cu
+    // OptixModule m_exception_module = 0;            // exception.cu
 
     // program groups - we only make one of each - do not clear when rebuilding root
     OptixProgramGroup m_camera_pinhole_raygen_group = 0;
@@ -129,30 +130,35 @@ class CH_SENSOR_API ChOptixPipeline {
     OptixProgramGroup m_lidar_multi_raygen_group = 0;
     OptixProgramGroup m_radar_raygen_group = 0;
 
-    OptixProgramGroup m_camera_hit_box_group = 0;
-    OptixProgramGroup m_shadow_hit_box_group = 0;
-    OptixProgramGroup m_lidar_hit_box_group = 0;
-    OptixProgramGroup m_radar_hit_box_group = 0;
+    OptixProgramGroup m_hit_box_group = 0;
+    // OptixProgramGroup m_camera_hit_box_group = 0;
+    // OptixProgramGroup m_shadow_hit_box_group = 0;
+    // OptixProgramGroup m_lidar_hit_box_group = 0;
+    // OptixProgramGroup m_radar_hit_box_group = 0;
 
-    OptixProgramGroup m_camera_hit_sphere_group = 0;
-    OptixProgramGroup m_shadow_hit_sphere_group = 0;
-    OptixProgramGroup m_lidar_hit_sphere_group = 0;
-    OptixProgramGroup m_radar_hit_sphere_group = 0;
+    OptixProgramGroup m_hit_sphere_group = 0;
+    // OptixProgramGroup m_camera_hit_sphere_group = 0;
+    // OptixProgramGroup m_shadow_hit_sphere_group = 0;
+    // OptixProgramGroup m_lidar_hit_sphere_group = 0;
+    // OptixProgramGroup m_radar_hit_sphere_group = 0;
 
-    OptixProgramGroup m_camera_hit_cyl_group = 0;
-    OptixProgramGroup m_shadow_hit_cyl_group = 0;
-    OptixProgramGroup m_lidar_hit_cyl_group = 0;
-    OptixProgramGroup m_radar_hit_cyl_group = 0;
+    OptixProgramGroup m_hit_cyl_group = 0;
+    // OptixProgramGroup m_camera_hit_cyl_group = 0;
+    // OptixProgramGroup m_shadow_hit_cyl_group = 0;
+    // OptixProgramGroup m_lidar_hit_cyl_group = 0;
+    // OptixProgramGroup m_radar_hit_cyl_group = 0;
 
-    OptixProgramGroup m_camera_hit_mesh_group = 0;
-    OptixProgramGroup m_shadow_hit_mesh_group = 0;
-    OptixProgramGroup m_lidar_hit_mesh_group = 0;
-    OptixProgramGroup m_radar_hit_mesh_group = 0;
+    OptixProgramGroup m_hit_mesh_group = 0;
+    // OptixProgramGroup m_camera_hit_mesh_group = 0;
+    // OptixProgramGroup m_shadow_hit_mesh_group = 0;
+    // OptixProgramGroup m_lidar_hit_mesh_group = 0;
+    // OptixProgramGroup m_radar_hit_mesh_group = 0;
 
-    OptixProgramGroup m_camera_miss_group = 0;
-    OptixProgramGroup m_shadow_miss_group = 0;
-    OptixProgramGroup m_lidar_miss_group = 0;
-    OptixProgramGroup m_radar_miss_group = 0;
+    OptixProgramGroup m_miss_group = 0;
+    // OptixProgramGroup m_camera_miss_group = 0;
+    // OptixProgramGroup m_shadow_miss_group = 0;
+    // OptixProgramGroup m_lidar_miss_group = 0;
+    // OptixProgramGroup m_radar_miss_group = 0;
     // OptixProgramGroup m_exception_group = 0;
 
     // compile options - TODO: should probably depend on the pipeline - do not clear for now
@@ -184,8 +190,8 @@ class CH_SENSOR_API ChOptixPipeline {
     // texture and image handles
     // std::vector<cudaTextureObject_t> m_texture_samplers;  ///< for keeping a handle to free later
     // std::vector<cudaArray_t> m_img_textures;              ///< for keeping a handle to free later
-    std::unordered_map<std::string,cudaTextureObject_t> m_texture_samplers;  ///< for keeping a handle to free later
-    std::unordered_map<std::string,cudaArray_t> m_img_textures;              ///< for keeping a handle to free later
+    std::unordered_map<std::string, cudaTextureObject_t> m_texture_samplers;  ///< for keeping a handle to free later
+    std::unordered_map<std::string, cudaArray_t> m_img_textures;              ///< for keeping a handle to free later
 
     cudaTextureObject_t md_miss_texture_sampler = {};  ///< handle to the environment texture sampler
     cudaArray_t md_miss_img_texture = {};              ///< handle to the environment image texture
@@ -198,12 +204,12 @@ class CH_SENSOR_API ChOptixPipeline {
         m_deformable_meshes;
 
     // record defaults - clear when rebuilding root
-    bool m_default_box_record_inst = false;
-    unsigned int m_default_box_record_id;
-    bool m_default_sphere_record_inst = false;
-    unsigned int m_default_sphere_record_id;
-    bool m_default_cyl_record_inst = false;
-    unsigned int m_default_cyl_record_id;
+    // bool m_default_box_record_inst = false;
+    // unsigned int m_default_box_record_id;
+    // bool m_default_sphere_record_inst = false;
+    // unsigned int m_default_sphere_record_id;
+    // bool m_default_cyl_record_inst = false;
+    // unsigned int m_default_cyl_record_id;
 
     // default material in the material pool
     bool m_default_material_inst = false;

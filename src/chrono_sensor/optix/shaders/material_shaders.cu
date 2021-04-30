@@ -9,10 +9,10 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Authors: Asher Elmquist, Han Wang
+// Authors: Asher Elmquist, Han Wang, Yan Xiao
 // =============================================================================
 //
-// RT kernels for box geometries
+// RT kernels for material shading
 //
 // =============================================================================
 
@@ -40,49 +40,77 @@ static __device__ __inline__ float HammonSmith(float NdV, float NdL, const float
     return 0.5f / denominator;
 }
 
-extern "C" __global__ void __closesthit__camera_shader() {
-    const MaterialRecordParameters* mat_params = (MaterialRecordParameters*)optixGetSbtDataPointer();
+// triangle mesh querie information
+__device__ __inline__ void GetTriangleData(float3& normal,
+                                           unsigned int& mat_id,
+                                           float2& uv,
+                                           float3& tangent,
+                                           const unsigned int& mesh_id) {
+    const int tri_id = optixGetPrimitiveIndex();
+    const float2 bary_coord = optixGetTriangleBarycentrics();
 
-    const float3 ray_orig = optixGetWorldRayOrigin();
-    const float3 ray_dir = normalize(optixGetWorldRayDirection());  // this may be modified by the scaling transform
-    const float ray_dist = optixGetRayTmax();
+    const MeshParameters& mesh_params = params.mesh_pool[mesh_id];
+    const uint4& vertex_idx = mesh_params.vertex_index_buffer[tri_id];
 
-    float3 object_normal;
-    float2 uv;
-    float3 tangent;
+    const float3& v1 = make_float3(mesh_params.vertex_buffer[vertex_idx.x]);
+    const float3& v2 = make_float3(mesh_params.vertex_buffer[vertex_idx.y]);
+    const float3& v3 = make_float3(mesh_params.vertex_buffer[vertex_idx.z]);
 
-    unsigned int material_id = mat_params->material_pool_id;
-    PerRayData_camera* prd_camera = getCameraPRD();
+    // calculate normales either from normal buffer or vertex positions
+    if (mesh_params.normal_index_buffer &&
+        mesh_params.normal_buffer) {  // use vertex normals if normal index buffer exists
+        const uint4& normal_idx = mesh_params.normal_index_buffer[tri_id];
 
-    // check if we hit a triangle
-    if (optixIsTriangleHit()) {
-        GetTriangleData(object_normal, material_id, uv, tangent, mat_params->mesh_pool_id);
+        normal = normalize(make_float3(mesh_params.normal_buffer[normal_idx.y]) * bary_coord.x +
+                           make_float3(mesh_params.normal_buffer[normal_idx.z]) * bary_coord.y +
+                           make_float3(mesh_params.normal_buffer[normal_idx.x]) * (1.0f - bary_coord.x - bary_coord.y));
+
+    } else {  // else use face normals calculated from vertices
+        normal = normalize(Cross(v2 - v1, v3 - v1));
+    }
+
+    // calculate texcoords if they exist
+    if (mesh_params.uv_index_buffer && mesh_params.uv_buffer) {  // use vertex normals if normal index buffer exists
+        const uint4& uv_idx = mesh_params.uv_index_buffer[tri_id];
+        const float2& uv1 = mesh_params.uv_buffer[uv_idx.x];
+        const float2& uv2 = mesh_params.uv_buffer[uv_idx.y];
+        const float2& uv3 = mesh_params.uv_buffer[uv_idx.z];
+
+        uv = uv2 * bary_coord.x + uv3 * bary_coord.y + uv1 * (1.0f - bary_coord.x - bary_coord.y);
+        float3 e1 = v2 - v1;
+        float3 e2 = v3 - v1;
+        float2 delta_uv1 = uv2 - uv1;
+        float2 delta_uv2 = uv3 - uv1;
+        float f = 1.f / (delta_uv1.x * delta_uv2.y - delta_uv2.x * delta_uv1.y);
+        tangent.x = f * (delta_uv2.y * e1.x - delta_uv1.y * e2.x);
+        tangent.y = f * (delta_uv2.y * e1.y - delta_uv1.y * e2.y);
+        tangent.z = f * (delta_uv2.y * e1.z - delta_uv1.y * e2.z);
+        tangent = normalize(tangent);
     } else {
-        object_normal = make_float3(int_as_float(optixGetAttribute_0()), int_as_float(optixGetAttribute_1()),
-                                    int_as_float(optixGetAttribute_2()));
-        uv = make_float2(int_as_float(optixGetAttribute_3()), int_as_float(optixGetAttribute_4()));
-        tangent = make_float3(int_as_float(optixGetAttribute_5()), int_as_float(optixGetAttribute_6()),
-                              int_as_float(optixGetAttribute_7()));
+        uv = make_float2(0.f);
+        tangent = make_float3(0.f);
     }
 
-    const MaterialParameters& mat = params.material_pool[material_id];
-
-    if (mat.kn_tex) {
-        float3 bitangent = normalize(Cross(object_normal, tangent));
-        const float4 tex = tex2D<float4>(mat.kn_tex, uv.x, uv.y);
-        float3 normal_delta = make_float3(tex.x, tex.y, tex.z) * 2.f - make_float3(1.f);
-        object_normal =
-            normalize(normal_delta.x * tangent + normal_delta.y * bitangent + normal_delta.z * object_normal);
+    // get material index
+    if (mesh_params.mat_index_buffer) {                  // use vertex normals if normal index buffer exists
+        mat_id += mesh_params.mat_index_buffer[tri_id];  // the material index gives an offset id
     }
+}
 
-    float3 world_normal = normalize(optixTransformNormalFromObjectToWorldSpace(object_normal));
-
-    float3 hit_point = ray_orig + ray_dir * ray_dist;
-
+static __device__ __inline__ void CameraShader(PerRayData_camera* prd_camera,
+                                               const MaterialParameters& mat,
+                                               const float3& world_normal,
+                                               const float2& uv,
+                                               const float3& tangent,
+                                               const float& ray_dist,
+                                               const float3& ray_orig,
+                                               const float3& ray_dir) {
     float3 subsurface_albedo = mat.Kd;
     float transparency = mat.transparency;
     float3 specular = mat.Ks;
     int use_specular_workfloat = mat.use_specular_workfloat;
+
+    float3 hit_point = ray_orig + ray_dir * ray_dist;
 
     if (mat.kd_tex) {
         const float4 tex = tex2D<float4>(mat.kd_tex, uv.x, uv.y);
@@ -95,13 +123,10 @@ extern "C" __global__ void __closesthit__camera_shader() {
         const float4 tex = tex2D<float4>(mat.ks_tex, uv.x, uv.y);
         specular = make_float3(tex.x, tex.y, tex.z);
     }
-  
 
     if (mat.opacity_tex) {
         transparency = tex2D<float>(mat.opacity_tex, uv.x, uv.y);
     }
-
-    
 
     // if this is perfectly transparent, we ignore it and trace the next ray (handles things like tree leaf cards)
     if (transparency < 1e-6) {
@@ -113,9 +138,9 @@ extern "C" __global__ void __closesthit__camera_shader() {
             prd_refraction.depth = prd_camera->depth + 1;
             unsigned int opt1, opt2;
             pointer_as_ints(&prd_refraction, opt1, opt2);
+            unsigned int raytype = (unsigned int)CAMERA_RAY_TYPE;
             optixTrace(params.root, hit_point, ray_dir, params.scene_epsilon, 1e16f, optixGetRayTime(),
-                       OptixVisibilityMask(1), OPTIX_RAY_FLAG_NONE, CAMERA_RAY_TYPE, RAY_TYPE_COUNT, CAMERA_RAY_TYPE,
-                       opt1, opt2);
+                       OptixVisibilityMask(1), OPTIX_RAY_FLAG_NONE, 0, 1, 0, opt1, opt2, raytype);
             prd_camera->color = prd_refraction.color;
         }
         return;
@@ -138,10 +163,9 @@ extern "C" __global__ void __closesthit__camera_shader() {
             // make_camera_data(make_float3(0), refract_importance, prd_camera.rnd, prd_camera.depth + 1);
             // float3 refract_dir = refract(optixGetWorldRayDirection(), world_normal, 1.f, 1.f);
             float3 refract_dir = ray_dir;  // pure transparency without refraction
-
+            unsigned int raytype = (unsigned int)CAMERA_RAY_TYPE;
             optixTrace(params.root, hit_point, refract_dir, params.scene_epsilon, 1e16f, optixGetRayTime(),
-                       OptixVisibilityMask(1), OPTIX_RAY_FLAG_NONE, CAMERA_RAY_TYPE, RAY_TYPE_COUNT, CAMERA_RAY_TYPE,
-                       opt1, opt2);
+                       OptixVisibilityMask(1), OPTIX_RAY_FLAG_NONE, 0, 1, 0, opt1, opt2, raytype);
             refracted_color = prd_refraction.color;
         }
     }
@@ -177,9 +201,9 @@ extern "C" __global__ void __closesthit__camera_shader() {
                 unsigned int opt1;
                 unsigned int opt2;
                 pointer_as_ints(&prd_shadow, opt1, opt2);
+                unsigned int raytype = (unsigned int)SHADOW_RAY_TYPE;
                 optixTrace(params.root, hit_point, dir_to_light, params.scene_epsilon, dist_to_light, optixGetRayTime(),
-                           OptixVisibilityMask(1), OPTIX_RAY_FLAG_NONE, SHADOW_RAY_TYPE, RAY_TYPE_COUNT,
-                           SHADOW_RAY_TYPE, opt1, opt2);
+                           OptixVisibilityMask(1), OPTIX_RAY_FLAG_NONE, 0, 1, 0, opt1, opt2, raytype);
 
                 float3 light_attenuation = prd_shadow.attenuation;
 
@@ -200,15 +224,13 @@ extern "C" __global__ void __closesthit__camera_shader() {
                         float3 F0 = specular * 0.08f;
                         F = fresnel_schlick(VdH, 5.f, F0,
                                             make_float3(1.f) /*make_float3(fresnel_max) it is usually 1*/);
-                        
-                    }
-                    else {
+
+                    } else {
                         float3 default_dielectrics_F0 = make_float3(0.04f);
                         F = metallic * subsurface_albedo + (1 - metallic) * default_dielectrics_F0;
                         subsurface_albedo =
                             (1 - metallic) * subsurface_albedo;  // since metals do not do subsurface reflection
                     }                                            // default to specular workflow
-                        
 
                     diffuse_color += (make_float3(1.f) - F) * subsurface_albedo * incoming_light_ray;
                     float D = NormalDist(NdH, roughness);        // 1/pi omitted
@@ -300,10 +322,129 @@ extern "C" __global__ void __closesthit__camera_shader() {
         prd_reflection.use_gi = prd_camera->use_gi;
         unsigned int opt1, opt2;
         pointer_as_ints(&prd_reflection, opt1, opt2);
-
+        unsigned int raytype = (unsigned int)CAMERA_RAY_TYPE;
         optixTrace(params.root, hit_point, next_dir, params.scene_epsilon, 1e16f, optixGetRayTime(),
-                   OptixVisibilityMask(1), OPTIX_RAY_FLAG_NONE, CAMERA_RAY_TYPE, RAY_TYPE_COUNT, CAMERA_RAY_TYPE, opt1,
-                   opt2);
+                   OptixVisibilityMask(1), OPTIX_RAY_FLAG_NONE, 0, 1, 0, opt1, opt2, raytype);
         prd_camera->color += prd_reflection.color;  // accumulate indirect lighting color
+    }
+}
+
+static __device__ __inline__ void LidarShader(PerRayData_lidar* prd_lidar,
+                                              const MaterialParameters& mat,
+                                              const float3& world_normal,
+                                              const float2& uv,
+                                              const float3& tangent,
+                                              const float& ray_dist,
+                                              const float3& ray_orig,
+                                              const float3& ray_dir) {
+    prd_lidar->range = ray_dist;
+    prd_lidar->intensity = mat.lidar_intensity * abs(Dot(world_normal, -ray_dir));
+}
+
+static __device__ __inline__ void RadarShader(PerRayData_radar* prd_radar,
+                                              const MaterialParameters& mat,
+                                              const float3& world_normal,
+                                              const float2& uv,
+                                              const float3& tangent,
+                                              const float& ray_dist,
+                                              const float3& ray_orig,
+                                              const float3& ray_dir) {
+    prd_radar->range = ray_dist;
+    prd_radar->rcs = mat.radar_backscatter * abs(Dot(world_normal, -ray_dir));
+}
+
+static __device__ __inline__ void ShadowShader(PerRayData_shadow* prd,
+                                               const MaterialParameters& mat,
+                                               const float3& world_normal,
+                                               const float2& uv,
+                                               const float3& tangent,
+                                               const float& ray_dist,
+                                               const float3& ray_orig,
+                                               const float3& ray_dir) {
+    float transparency = mat.transparency;
+    if (mat.kd_tex) {
+        const float4 tex = tex2D<float4>(mat.kd_tex, uv.x, uv.y);
+        if (tex.w < 1e-6)
+            transparency = 0.f;  // to handle transparent card textures such as tree leaves
+    }
+    if (mat.opacity_tex) {
+        transparency = tex2D<float>(mat.opacity_tex, uv.x, uv.y);
+    }
+    float3 hit_point = ray_orig + ray_dir * ray_dist;
+    float atten = 1.f - transparency;  // TODO: figure out the attenuation from the material transparency
+
+    // if the occlusion amount is below the
+    prd->attenuation = prd->attenuation * atten;
+
+    if (fmaxf(prd->attenuation) > params.importance_cutoff && prd->depth + 1 < params.max_depth) {
+        PerRayData_shadow prd_shadow = default_shadow_prd();
+        prd_shadow.attenuation = prd->attenuation;
+        prd_shadow.depth = prd->depth + 1;
+        prd_shadow.ramaining_dist = prd->ramaining_dist - ray_dist;
+        unsigned int opt1, opt2;
+        pointer_as_ints(&prd_shadow, opt1, opt2);
+
+        float3 hit_point = ray_orig + ray_dist * ray_dir;
+        unsigned int raytype = (unsigned int)SHADOW_RAY_TYPE;
+        optixTrace(params.root, hit_point, ray_dir, params.scene_epsilon, prd_shadow.ramaining_dist, optixGetRayTime(),
+                   OptixVisibilityMask(1), OPTIX_RAY_FLAG_NONE, 0, 1, 0, opt1, opt2, raytype);
+
+        prd->attenuation = prd_shadow.attenuation;
+    }
+}
+
+extern "C" __global__ void __closesthit__material_shader() {
+    // determine parameters that are shared across all ray types
+    const MaterialRecordParameters* mat_params = (MaterialRecordParameters*)optixGetSbtDataPointer();
+
+    const float3 ray_orig = optixGetWorldRayOrigin();
+    const float3 ray_dir = normalize(optixGetWorldRayDirection());  // this may be modified by the scaling transform
+    const float ray_dist = optixGetRayTmax();
+
+    float3 object_normal;
+    float2 uv;
+    float3 tangent;
+
+    unsigned int material_id = mat_params->material_pool_id;
+
+    // check if we hit a triangle
+    if (optixIsTriangleHit()) {
+        GetTriangleData(object_normal, material_id, uv, tangent, mat_params->mesh_pool_id);
+    } else {
+        object_normal = make_float3(int_as_float(optixGetAttribute_0()), int_as_float(optixGetAttribute_1()),
+                                    int_as_float(optixGetAttribute_2()));
+        uv = make_float2(int_as_float(optixGetAttribute_3()), int_as_float(optixGetAttribute_4()));
+        tangent = make_float3(int_as_float(optixGetAttribute_5()), int_as_float(optixGetAttribute_6()),
+                              int_as_float(optixGetAttribute_7()));
+    }
+
+    const MaterialParameters& mat = params.material_pool[material_id];
+
+    if (mat.kn_tex) {
+        float3 bitangent = normalize(Cross(object_normal, tangent));
+        const float4 tex = tex2D<float4>(mat.kn_tex, uv.x, uv.y);
+        float3 normal_delta = make_float3(tex.x, tex.y, tex.z) * 2.f - make_float3(1.f);
+        object_normal =
+            normalize(normal_delta.x * tangent + normal_delta.y * bitangent + normal_delta.z * object_normal);
+    }
+
+    float3 world_normal = normalize(optixTransformNormalFromObjectToWorldSpace(object_normal));
+
+    // from here on out, things are specific to the ray type
+    RayType raytype = (RayType)optixGetPayload_2();
+
+    switch (raytype) {
+        case CAMERA_RAY_TYPE:
+            CameraShader(getCameraPRD(), mat, world_normal, uv, tangent, ray_dist, ray_orig, ray_dir);
+            break;
+        case LIDAR_RAY_TYPE:
+            LidarShader(getLidarPRD(), mat, world_normal, uv, tangent, ray_dist, ray_orig, ray_dir);
+            break;
+        case RADAR_RAY_TYPE:
+            RadarShader(getRadarPRD(), mat, world_normal, uv, tangent, ray_dist, ray_orig, ray_dir);
+            break;
+        case SHADOW_RAY_TYPE:
+            ShadowShader(getShadowPRD(), mat, world_normal, uv, tangent, ray_dist, ray_orig, ray_dir);
+            break;
     }
 }

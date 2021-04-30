@@ -118,8 +118,8 @@ __device__ __inline__ PerRayData_camera default_camera_prd() {
 
 __device__ __inline__ PerRayData_shadow default_shadow_prd() {
     PerRayData_shadow prd = {make_float3(1.f, 1.f, 1.f),  // default opacity amount
-                             3,                           // default depth
-                             0.f};                        // default distance remaining to light
+                             3,                                            // default depth
+                             0.f};                                         // default distance remaining to light
     return prd;
 };
 
@@ -439,63 +439,6 @@ __device__ __inline__ float3 sample_hemisphere_dir(const float& z1, const float&
     float3 binormal = make_float3(-normal.y, normal.x, 0);
     float3 tangent = Cross(normal, binormal);
     return x * tangent + y * binormal + z * normal;
-}
-
-// triangle mesh querie information
-__device__ __inline__ void GetTriangleData(float3& normal,
-                                           unsigned int& mat_id,
-                                           float2& uv,
-                                           float3& tangent,
-                                           const unsigned int& mesh_id) {
-    const int tri_id = optixGetPrimitiveIndex();
-    const float2 bary_coord = optixGetTriangleBarycentrics();
-
-    const MeshParameters& mesh_params = params.mesh_pool[mesh_id];
-    const uint4& vertex_idx = mesh_params.vertex_index_buffer[tri_id];
-
-    const float3& v1 = make_float3(mesh_params.vertex_buffer[vertex_idx.x]);
-    const float3& v2 = make_float3(mesh_params.vertex_buffer[vertex_idx.y]);
-    const float3& v3 = make_float3(mesh_params.vertex_buffer[vertex_idx.z]);
-
-    // calculate normales either from normal buffer or vertex positions
-    if (mesh_params.normal_index_buffer &&
-        mesh_params.normal_buffer) {  // use vertex normals if normal index buffer exists
-        const uint4& normal_idx = mesh_params.normal_index_buffer[tri_id];
-
-        normal = normalize(make_float3(mesh_params.normal_buffer[normal_idx.y]) * bary_coord.x +
-                           make_float3(mesh_params.normal_buffer[normal_idx.z]) * bary_coord.y +
-                           make_float3(mesh_params.normal_buffer[normal_idx.x]) * (1.0f - bary_coord.x - bary_coord.y));
-
-    } else {  // else use face normals calculated from vertices
-        normal = normalize(Cross(v2 - v1, v3 - v1));
-    }
-
-    // calculate texcoords if they exist
-    if (mesh_params.uv_index_buffer && mesh_params.uv_buffer) {  // use vertex normals if normal index buffer exists
-        const uint4& uv_idx = mesh_params.uv_index_buffer[tri_id];
-        const float2& uv1 = mesh_params.uv_buffer[uv_idx.x];
-        const float2& uv2 = mesh_params.uv_buffer[uv_idx.y];
-        const float2& uv3 = mesh_params.uv_buffer[uv_idx.z];
-
-        uv = uv2 * bary_coord.x + uv3 * bary_coord.y + uv1 * (1.0f - bary_coord.x - bary_coord.y);
-        float3 e1 = v2 - v1;
-        float3 e2 = v3 - v1;
-        float2 delta_uv1 = uv2 - uv1;
-        float2 delta_uv2 = uv3 - uv1;
-        float f = 1.f / (delta_uv1.x * delta_uv2.y - delta_uv2.x * delta_uv1.y);
-        tangent.x = f * (delta_uv2.y * e1.x - delta_uv1.y * e2.x);
-        tangent.y = f * (delta_uv2.y * e1.y - delta_uv1.y * e2.y);
-        tangent.z = f * (delta_uv2.y * e1.z - delta_uv1.y * e2.z);
-        tangent = normalize(tangent);
-    } else {
-        uv = make_float2(0.f);
-        tangent = make_float3(0.f);
-    }
-
-    // get material index
-    if (mesh_params.mat_index_buffer) {                  // use vertex normals if normal index buffer exists
-        mat_id += mesh_params.mat_index_buffer[tri_id];  // the material index gives an offset id
-    }
 }
 
 #endif

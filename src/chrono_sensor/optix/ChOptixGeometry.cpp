@@ -578,7 +578,7 @@ OptixTraversableHandle ChOptixGeometry::CreateRootStructure() {
         m_instances[i].flags = OPTIX_INSTANCE_FLAG_DISABLE_TRANSFORM || OPTIX_INSTANCE_FLAG_DISABLE_ANYHIT;
         // m_instances[i].flags = OPTIX_INSTANCE_FLAG_NONE;
         m_instances[i].instanceId = i;
-        m_instances[i].sbtOffset = m_obj_mat_ids[i] * RAY_TYPE_COUNT;
+        m_instances[i].sbtOffset = m_obj_mat_ids[i];
         m_instances[i].visibilityMask = 1;
         memcpy(m_instances[i].transform, t, sizeof(float) * 12);
     }
