@@ -165,7 +165,6 @@ int main(int argc, char* argv[]) {
         sprintf(filename, "%s/step%06d", out_dir.c_str(), currframe);
         gpu_sys.WriteParticleFile(std::string(filename));
 
-        char contactFilename[100];
         sprintf(contactFilename, "%s/contact%06d", out_dir.c_str(), currframe);
         gpu_sys.WriteContactInfoFile(std::string(contactFilename));
 

@@ -1,0 +1,51 @@
+ChSystemGpu
+nSpheres: 3
+density: 1.90986
+radius: 0.5
+boxSize: 5 5 5
+BDFixed: 1
+verbosity: 1
+useMinLengthUnit: 1
+recordContactInfo: 0
+particleFileMode: 0
+particleFileFlags: 1
+fixedStepSize: 5e-06
+cohesionOverG: 0
+adhesionOverG_s2w: 0
+G: 0 0 -9.81
+elapsedTime: 0.450002
+K_n_s2s: 1e+07
+K_n_s2w: 1e+07
+K_t_s2s: 2e+06
+K_t_s2w: 2e+06
+G_n_s2s: 20000
+G_n_s2w: 20000
+G_t_s2s: 50
+G_t_s2w: 50
+RollingCoeff_s2s: 0.02
+RollingCoeff_s2w: 0.02
+SpinningCoeff_s2s: 0
+SpinningCoeff_s2w: 0
+StaticFrictionCoeff_s2s: 0.3
+StaticFrictionCoeff_s2w: 0.3
+PsiT: 32
+PsiL: 16
+PsiR: 1
+frictionMode: 2
+rollingMode: 1
+timeIntegrator: 2
+maxSafeVelSU: 4.29497e+09
+ParamsEnd
+
+CsvParticles
+x,y,z,vx,vy,vz,fixed,wx,wy,wz
+-0.525,0,0.499921,0,0,0.000153557,0,0,0,0
+0.525,0,0.499921,0,0,0.000153557,0,0,0,0
+0,0,1.5,0,0,0,1,0,0,0
+
+HstHistory
+partners 12 history 12
+10 4294967295 4294967295 4294967295 4294967295 4294967295 4294967295 4294967295 4294967295 4294967295 4294967295 4294967295 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 
+10 4294967295 4294967295 4294967295 4294967295 4294967295 4294967295 4294967295 4294967295 4294967295 4294967295 4294967295 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 
+4294967295 4294967295 4294967295 4294967295 4294967295 4294967295 4294967295 4294967295 4294967295 4294967295 4294967295 4294967295 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 
+
