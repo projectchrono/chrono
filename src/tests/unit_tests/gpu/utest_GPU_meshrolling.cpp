@@ -55,7 +55,7 @@ TEST(gpuMeshRolling, check) {
 
     std::vector<ChVector<float>> body_point = {ChVector<float>(1.f, -1.f, 0.5f)};
     std::vector<ChVector<float>> velocity = {ChVector<float>(1.f, 0.f, 0.f)};
-    gpu_sys.SetParticlePositions(body_point, velocity);
+    gpu_sys.SetParticles(body_point, velocity);
 
     gpu_sys.SetPsiFactors(32, 16);
 

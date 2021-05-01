@@ -79,7 +79,7 @@ TEST(gpuStack, check) {
         velocity.push_back(ChVector<float>(0.0f, 0.0f, 0.0f));
     }
 
-    gpu_sys.SetParticlePositions(body_points, velocity);
+    gpu_sys.SetParticles(body_points, velocity);
 
     float step_size = 1e-4f;
     float curr_time = 0.f;
