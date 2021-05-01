@@ -37,6 +37,7 @@
 namespace chrono {
 namespace vehicle {
 
+/// Base class for a co-simulation node.
 class CH_VEHICLE_API ChVehicleCosimBaseNode {
   public:
     virtual ~ChVehicleCosimBaseNode() {}

@@ -29,6 +29,7 @@
 namespace chrono {
 namespace vehicle {
 
+/// Definition of the OpenMP granular terrain node (using Chrono::Multicore).
 class CH_VEHICLE_API ChVehicleCosimTerrainNodeGranularOMP : public ChVehicleCosimTerrainNode {
   public:
     /// Create a Chrono::Multicore granular terrain subsystem.

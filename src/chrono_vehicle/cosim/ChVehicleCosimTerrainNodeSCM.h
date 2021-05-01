@@ -36,6 +36,7 @@ class ChIrrApp;
 
 namespace vehicle {
 
+/// Definition of the SCM deformable terrain node.
 class CH_VEHICLE_API ChVehicleCosimTerrainNodeSCM : public ChVehicleCosimTerrainNode {
   public:
     /// Create a rigid terrain subsystem using the specified number of OpenMP threads for SCM ray-casting.

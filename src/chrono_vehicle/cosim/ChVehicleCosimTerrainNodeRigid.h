@@ -29,6 +29,7 @@
 namespace chrono {
 namespace vehicle {
 
+/// Definition of the rigid terrain node (using Chrono::Multicore).
 class CH_VEHICLE_API ChVehicleCosimTerrainNodeRigid : public ChVehicleCosimTerrainNode {
   public:
     /// Create a rigid terrain subsystem usingn the specified contact method (SMC or NSC).

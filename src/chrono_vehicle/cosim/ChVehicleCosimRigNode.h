@@ -13,7 +13,7 @@
 // =============================================================================
 //
 // Mechanism for testing tires over granular terrain.  The mechanism + tire
-// system is co-simulated with a terrain subsystem.
+// system is co-simulated with a terrain system.
 //
 // Definition of the RIG NODE.
 //
@@ -41,6 +41,8 @@
 namespace chrono {
 namespace vehicle {
 
+/// Mechanism for testing tires over granular terrain.
+/// The mechanism + tire system is co-simulated with a terrain system.
 class CH_VEHICLE_API ChVehicleCosimRigNode : public ChVehicleCosimBaseNode {
   public:
     enum class Type { RIGID, FLEXIBLE };
@@ -154,6 +156,7 @@ class CH_VEHICLE_API ChVehicleCosimRigNode : public ChVehicleCosimBaseNode {
 
 // =============================================================================
 
+/// Rig node with a flexible tire.
 class CH_VEHICLE_API ChVehicleCosimRigNodeFlexibleTire : public ChVehicleCosimRigNode {
   public:
     ChVehicleCosimRigNodeFlexibleTire(double init_vel,  ///< initial wheel linear velocity
@@ -211,6 +214,7 @@ class CH_VEHICLE_API ChVehicleCosimRigNodeFlexibleTire : public ChVehicleCosimRi
 
 // =============================================================================
 
+/// Rig node with a rigid tire.
 class CH_VEHICLE_API ChVehicleCosimRigNodeRigidTire : public ChVehicleCosimRigNode {
   public:
     ChVehicleCosimRigNodeRigidTire(double init_vel,  ///< initial wheel linear velocity

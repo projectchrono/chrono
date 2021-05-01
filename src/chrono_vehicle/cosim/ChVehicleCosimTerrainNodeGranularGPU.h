@@ -12,7 +12,7 @@
 // Authors: Radu Serban
 // =============================================================================
 //
-// Definition of the GPU granular TERRAIN NODE (using Chrono::Granular).
+// Definition of the GPU granular TERRAIN NODE (using Chrono::Gpu).
 //
 // The global reference frame has Z up, X towards the front of the vehicle, and
 // Y pointing to the left.
@@ -30,6 +30,7 @@
 namespace chrono {
 namespace vehicle {
 
+/// Definition of the GPU granular terrain node (using Chrono::Gpu).
 class CH_VEHICLE_API ChVehicleCosimTerrainNodeGranularGPU : public ChVehicleCosimTerrainNode {
   public:
     /// Create a Chrono::Granular terrain subsystem.

@@ -12,7 +12,7 @@
 // Authors: Radu Serban
 // =============================================================================
 //
-// Implementation of the GPU granular TERRAIN NODE (using Chrono::Granular).
+// Implementation of the GPU granular TERRAIN NODE (using Chrono::Gpu).
 //
 // The global reference frame has Z up, X towards the front of the vehicle, and
 // Y pointing to the left.
