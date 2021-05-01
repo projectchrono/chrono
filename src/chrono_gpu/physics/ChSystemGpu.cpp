@@ -821,6 +821,15 @@ bool ChSystemGpu::SetParamsFromIdentifier(const std::string& identifier, std::is
             iss1 >> b;
             SetBDFixed(b);
             break;
+        case ("userCoordO"_):
+            iss1 >> f3.x;
+            iss1 >> f3.y;
+            iss1 >> f3.z;
+            incst = diff(make_float3(m_sys->user_coord_O_X, m_sys->user_coord_O_Y, m_sys->user_coord_O_Z), f3);
+            m_sys->user_coord_O_X = f3.x;
+            m_sys->user_coord_O_Y = f3.y;
+            m_sys->user_coord_O_Z = f3.z;
+            break;
         case ("verbosity"_):
             iss1 >> i;
             SetVerbosity(static_cast<CHGPU_VERBOSITY>(i));
@@ -1196,6 +1205,8 @@ void ChSystemGpu::WriteCheckpointParams(std::ofstream& cpFile) const {
     paramStream << "radius: " << m_sys->sphere_radius_UU << "\n";
     paramStream << "boxSize: " << m_sys->box_size_X << " " << m_sys->box_size_Y << " " << m_sys->box_size_Z << "\n";
     paramStream << "BDFixed: " << (int)(m_sys->BD_is_fixed) << "\n";
+    paramStream << "userCoordO: " << m_sys->user_coord_O_X << " " << m_sys->user_coord_O_Y << " "
+                << m_sys->user_coord_O_Z << "\n";
     paramStream << "verbosity: " << as_uint(m_sys->verbosity) << "\n";
     paramStream << "useMinLengthUnit: " << (int)(m_sys->use_min_length_unit) << "\n";
     paramStream << "recordContactInfo: " << (int)(m_sys->gran_params->recording_contactInfo) << "\n";

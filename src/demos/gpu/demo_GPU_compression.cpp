@@ -79,7 +79,7 @@ int main(int argc, char* argv[]) {
     }
 
     // assign initial position and velocity to the granular system
-    gpu_sys.SetParticlePositions(initialPos, initialVelo);
+    gpu_sys.SetParticles(initialPos, initialVelo);
 
     gpu_sys.SetPsiFactors(params.psi_T, params.psi_L);
 
@@ -170,7 +170,7 @@ int main(int argc, char* argv[]) {
 
         // write position
         char filename[100];
-        sprintf(filename, "%s/step%06d", out_dir.c_str(), curr_frame);
+        sprintf(filename, "%s/step%06d.csv", out_dir.c_str(), curr_frame);
         gpu_sys.WriteParticleFile(std::string(filename));
         gpu_sys.AdvanceSimulation(frame_step);
 

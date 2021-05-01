@@ -79,7 +79,7 @@ int main(int argc, char* argv[]) {
     std::vector<ChVector<float>> body_points =
         utils::PDLayerSampler_BOX<float>(center, hdims, 2.f * params.sphere_radius, 1.05f);
 
-    gpu_sys.SetParticlePositions(body_points);
+    gpu_sys.SetParticles(body_points);
 
     // Set the position of the BD
     gpu_sys.SetBDFixed(true);
@@ -122,7 +122,7 @@ int main(int argc, char* argv[]) {
     unsigned int total_frames = (unsigned int)((float)params.time_end * fps);
 
     char filename[100];
-    sprintf(filename, "%s/step%06d", out_dir.c_str(), currframe++);
+    sprintf(filename, "%s/step%06d.csv", out_dir.c_str(), currframe++);
     gpu_sys.WriteParticleFile(std::string(filename));
 
     std::cout << "frame step is " << frame_step << std::endl;
@@ -132,7 +132,7 @@ int main(int argc, char* argv[]) {
         gpu_sys.AdvanceSimulation(frame_step);
         curr_time += frame_step;
         printf("rendering frame %u of %u\n", currframe, total_frames);
-        sprintf(filename, "%s/step%06d", out_dir.c_str(), currframe++);
+        sprintf(filename, "%s/step%06d.csv", out_dir.c_str(), currframe++);
         gpu_sys.WriteParticleFile(std::string(filename));
     }
 

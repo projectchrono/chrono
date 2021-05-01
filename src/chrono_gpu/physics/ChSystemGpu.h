@@ -54,11 +54,6 @@ class CH_GPU_API ChSystemGpu {
     void SetParticles(const std::vector<ChVector<float>>& points,
                       const std::vector<ChVector<float>>& vels = std::vector<ChVector<float>>(),
                       const std::vector<ChVector<float>>& ang_vels = std::vector<ChVector<float>>());
-    void SetParticlePositions(const std::vector<ChVector<float>>& points,
-                              const std::vector<ChVector<float>>& vels = std::vector<ChVector<float>>(),
-                              const std::vector<ChVector<float>>& ang_vels = std::vector<ChVector<float>>()) {
-        SetParticles(points, vels, ang_vels);
-    }
 
     /// Set particle positions, velocities and angular velocities from a file.
     void ReadParticleFile(const std::string& infilename);

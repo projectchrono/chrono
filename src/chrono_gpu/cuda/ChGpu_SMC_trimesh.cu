@@ -123,9 +123,11 @@ __host__ void ChSystemGpuMesh_impl::runTriangleBroadphase() {
     // Start by zeroing out, it's important since not all entries will be touched in
     gpuErrchk(cudaMemset(SD_numTrianglesTouching.data(), 0, nSDs * sizeof(unsigned int)));
     nblocks = ((*d_num_runs_out) + CUDA_THREADS_PER_BLOCK - 1) / CUDA_THREADS_PER_BLOCK;
-    finalizeSD_numTrianglesTouching<<<nblocks, CUDA_THREADS_PER_BLOCK>>>(d_unique_out, d_counts_out, d_num_runs_out,
-                                                                         SD_numTrianglesTouching.data());
-    gpuErrchk(cudaDeviceSynchronize());
+    if (nblocks > 0) {
+        finalizeSD_numTrianglesTouching<<<nblocks, CUDA_THREADS_PER_BLOCK>>>(d_unique_out, d_counts_out, d_num_runs_out,
+                                                                             SD_numTrianglesTouching.data());
+        gpuErrchk(cudaDeviceSynchronize());
+    }
 
     // Now assert that no SD has over max amount of triangles
     // If there is one, exit graciously
