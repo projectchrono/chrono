@@ -96,7 +96,8 @@ class CH_VEHICLE_API ChVehicleCosimTerrainNodeGranularGPU : public ChVehicleCosi
 
     /// Estimate packing density (eta) of granular material in current configuration.
     /// Note that porosity is phi=1-eta and void ratio is e=(1-eta)/eta=phi/(1-phi).
-    double CalculatePackingDensity();
+    /// The function also returns the current depth of granular material.
+    double CalculatePackingDensity(double& depth);
 
   private:
     ChSystemSMC* m_system;              ///< system for proxy bodies

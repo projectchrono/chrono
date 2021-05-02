@@ -75,7 +75,8 @@ bool GetProblemSpecs(int argc,
                      bool& use_checkpoint,
                      double& output_fps,
                      double& render_fps,
-                     bool& output,
+                     bool& sim_output,
+                     bool& settling_output,
                      bool& render,
                      bool& verbose,
                      std::string& suffix);
@@ -122,7 +123,8 @@ int main(int argc, char** argv) {
     bool use_checkpoint = false;
     double output_fps = 100;
     double render_fps = 100;
-    bool output = true;
+    bool sim_output = true;
+    bool settling_output = true;
     bool render = true;
     double sys_mass = 200;
     double terrain_length = 4;
@@ -131,7 +133,7 @@ int main(int argc, char** argv) {
     bool verbose = true;
     if (!GetProblemSpecs(argc, argv, rank, terrain_specfile, nthreads_rig, nthreads_terrain, step_size, settling_time,
                          sim_time, vel0, slip, sys_mass, terrain_length, terrain_width, use_checkpoint, output_fps,
-                         render_fps, output, render, verbose, suffix)) {
+                         render_fps, sim_output, settling_output, render, verbose, suffix)) {
         MPI_Finalize();
         return 1;
     }
@@ -295,7 +297,7 @@ int main(int argc, char** argv) {
                     terrain->SetInputFromCheckpoint("checkpoint_settled.dat");
                 } else {
                     terrain->SetSettlingTime(settling_time);
-                    terrain->EnableSettlingOutput(true, output_fps);
+                    terrain->EnableSettlingOutput(settling_output, output_fps);
                     terrain->Settle();
                     terrain->WriteCheckpoint("checkpoint_settled.dat");
                 }
@@ -323,7 +325,7 @@ int main(int argc, char** argv) {
                     terrain->SetInputFromCheckpoint("checkpoint_settled.dat");
                 } else {
                     terrain->SetSettlingTime(settling_time);
-                    terrain->EnableSettlingOutput(true, output_fps);
+                    terrain->EnableSettlingOutput(settling_output, output_fps);
                     terrain->Settle();
                     terrain->WriteCheckpoint("checkpoint_settled.dat");
                 }
@@ -383,7 +385,7 @@ int main(int argc, char** argv) {
             cout << "Node" << rank << " sim time = " << node->GetSimTime() << "  [" << node->GetTotalSimTime() << "]"
                  << endl;
 
-        if (output && is % output_steps == 0) {
+        if (sim_output && is % output_steps == 0) {
             node->OutputData(output_frame);
             output_frame++;
         }
@@ -416,7 +418,8 @@ bool GetProblemSpecs(int argc,
                      bool& use_checkpoint,
                      double& output_fps,
                      double& render_fps,
-                     bool& output,
+                     bool& sim_output,
+                     bool& settling_output,
                      bool& render,
                      bool& verbose,
                      std::string& suffix) {
@@ -440,7 +443,8 @@ bool GetProblemSpecs(int argc,
     cli.AddOption<bool>("Demo", "quiet", "Disable verbose messages");
 
     cli.AddOption<bool>("Demo", "no_render", "Disable OpenGL rendering");
-    cli.AddOption<bool>("Demo", "no_output", "Disable generation of result output files");
+    cli.AddOption<bool>("Demo", "no_output", "Disable generation of simulation result output files");
+    cli.AddOption<bool>("Demo", "no_settling_output", "Disable generation of settling result output files");
 
     cli.AddOption<double>("Demo", "output_fps", "Output frequency [fps]", std::to_string(output_fps));
     cli.AddOption<double>("Demo", "render_fps", "Render frequency [fps]", std::to_string(render_fps));
@@ -481,7 +485,8 @@ bool GetProblemSpecs(int argc,
 
     verbose = !cli.GetAsType<bool>("quiet");
     render = !cli.GetAsType<bool>("no_render");
-    output = !cli.GetAsType<bool>("no_output");
+    sim_output = !cli.GetAsType<bool>("no_output");
+    settling_output = !cli.GetAsType<bool>("no_settling_output");
 
     output_fps = cli.GetAsType<double>("output_fps");
     render_fps = cli.GetAsType<double>("render_fps");

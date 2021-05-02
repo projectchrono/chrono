@@ -376,7 +376,8 @@ void ChVehicleCosimTerrainNodeGranularGPU::Settle() {
     }
 
     // Packing density at initial configuration
-    double eta0 = CalculatePackingDensity();
+    double depth0;
+    double eta0 = CalculatePackingDensity(depth0);
 
     // Simulate settling of granular terrain
     int sim_steps = (int)std::ceil(m_time_settling / m_step_size);
@@ -434,17 +435,37 @@ void ChVehicleCosimTerrainNodeGranularGPU::Settle() {
     if (m_verbose)
         cout << "[Terrain node] initial height = " << m_init_height << endl;
 
+    //// TEMPORARY HACK
+    // Calculate kinetic energy of granular material at the end of settling phase
+    float vol_g = (4.0f / 3) * (float)(CH_C_PI)*std::pow(m_radius_g, 3);
+    float mass_g = vol_g * m_rho_g;
+    float inertia_g = (2.0f / 5) * mass_g * std::pow(m_radius_g, 2);
+    float KE = 0;
+    for (unsigned int i = 0; i < m_num_particles; i++) {
+        auto v = m_systemGPU->GetParticleVelocity(i).Length2();
+        auto w = m_systemGPU->GetParticleAngVelocity(i).Length2();
+        KE += (mass_g * v + inertia_g * w) / 2;
+    }
+
     // Packing density after settling
-    double eta1 = CalculatePackingDensity();
-    if (m_verbose)
+    double depth1;
+    double eta1 = CalculatePackingDensity(depth1);
+    if (m_verbose) {
+        cout << "[Terrain node] total kinetic energy after settling:       " << KE << endl;
+        cout << "[Terrain node] material depth before and after settling:  " << depth0 << " -> " << depth1 << endl;
         cout << "[Terrain node] packing density before and after settling: " << eta0 << " -> " << eta1 << endl;
+    }
+
 
     // Write file with stats for the settling phase
     std::ofstream outf;
     outf.open(m_node_out_dir + "/settling_stats.info", std::ios::out);
     outf << "Number particles:           " << m_num_particles << endl;
+    outf << "Initial material depth:     " << depth0 << endl;
     outf << "Initial packing density:    " << eta0 << endl;
+    outf << "Final material depth:       " << depth1 << endl;
     outf << "Final packing density:      " << eta1 << endl;
+    outf << "Final kinetic energy:       " << KE << endl;
     outf << "Average number of contacts: " << cum_contacts / (double)sim_steps << endl;
     outf << "Maximum number contacts:    " << max_contacts << endl;
     outf << "Output?                     " << (m_settling_output ? "YES" : "NO") << endl;
@@ -454,6 +475,10 @@ void ChVehicleCosimTerrainNodeGranularGPU::Settle() {
 
     // Reset cumulative simulation time
     m_cum_sim_time = 0;
+
+
+
+    cout << "\n\nKE = " << KE << "\n\n" << endl;
 }
 
 // -----------------------------------------------------------------------------
@@ -461,10 +486,11 @@ void ChVehicleCosimTerrainNodeGranularGPU::Settle() {
 //// TODO: Consider looking only at particles below a certain fraction of the
 //// height of the highest particle.  This would eliminate errors in estimating
 //// the total volume stemming from a "non-smooth" top surface or stray particles.
-double ChVehicleCosimTerrainNodeGranularGPU::CalculatePackingDensity() {
+double ChVehicleCosimTerrainNodeGranularGPU::CalculatePackingDensity(double& depth) {
     // Find height of granular material
     double z_max = m_systemGPU->GetMaxParticleZ();
     double z_min = -(m_init_depth + EXTRA_HEIGHT) / 2;
+    depth = z_max - z_min;
 
     // Find total volume of granular material
     double Vt = (2 * m_hdimX) * (2 * m_hdimY) * (z_max - z_min);
