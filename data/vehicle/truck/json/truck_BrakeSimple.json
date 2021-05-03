@@ -1,0 +1,7 @@
+{
+  "Name":                       "Truck Simple Brake",
+  "Type":                       "Brake",
+  "Template":                   "BrakeSimple",
+
+  "Maximum Torque":             10000
+}

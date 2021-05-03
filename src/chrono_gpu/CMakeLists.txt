@@ -197,37 +197,42 @@ if(GPU_VERBOSE_PTXAS)
     set(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS} --ptxas-options=-v")
 endif()
 
-message(STATUS "NVCC Flags are " ${CUDA_NVCC_FLAGS})
+#message(STATUS "NVCC Flags: ${CUDA_NVCC_FLAGS}")
+
 set(CUDA_SEPARABLE_COMPILATION OFF)
+
 if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
+
     set(CUDA_SEPARABLE_COMPILATION ON)
-    #set(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS}; -G -lineinfo)
     target_compile_options(ChronoEngine_gpu PRIVATE $<$<COMPILE_LANGUAGE:CUDA>:
                            --generate-line-info
                            --device-debug
                            >)
+
 elseif(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
-    set(CUDA_NVCC_FLAGS_DEBUG ${CUDA_NVCC_FLAGS_DEBUG} -G -Xcompiler -g)
-    set(CUDA_NVCC_FLAGS_RELEASE ${CUDA_NVCC_FLAGS_RELEASE} -Xcompiler -O3 -Xptxas -O3 -Xcompiler -DNDEBUG)
-    set(CUDA_NVCC_FLAGS_RELWITHDEBINFO ${CUDA_NVCC_FLAGS_RELWITHDEBINFO} -Xcompiler -O2 -Xcompiler -g -Xcompiler -DNDEBUG)
-    set(CUDA_NVCC_FLAGS_MINSIZEREL ${CUDA_NVCC_FLAGS_MINSIZEREL} -Xcompiler -Os -Xcompiler -DNDEBUG)
-    message(STATUS "NVCC Flags are " ${CUDA_NVCC_FLAGS})
+
+    set(CUDA_NVCC_FLAGS_DEBUG "${CUDA_NVCC_FLAGS_DEBUG} -G -Xcompiler -g")
+    set(CUDA_NVCC_FLAGS_RELEASE "${CUDA_NVCC_FLAGS_RELEASE} -Xcompiler -O3 -Xptxas -O3 -Xcompiler -DNDEBUG")
+    set(CUDA_NVCC_FLAGS_RELWITHDEBINFO "${CUDA_NVCC_FLAGS_RELWITHDEBINFO} -Xcompiler -O2 -Xcompiler -g -Xcompiler -DNDEBUG")
+    set(CUDA_NVCC_FLAGS_MINSIZEREL "${CUDA_NVCC_FLAGS_MINSIZEREL} -Xcompiler -Os -Xcompiler -DNDEBUG")
     message(STATUS "NVCC Release flags are" ${CUDA_NVCC_FLAGS_RELEASE})
-    
-    
+       
     if(${CMAKE_CXX_COMPILER_ID} MATCHES "GNU")
         if(${CMAKE_CXX_COMPILER_VERSION} VERSION_GREATER 4.9)
             set(CUDA_PROPAGATE_HOST_FLAGS OFF)
-        ELSE()
-            message(FATAL_ERROR "Using GCC version:  ${CMAKE_CXX_COMPILER_VERSION}. GCC <= 4.9 is not supported! Please use a newer compiler")
+        else()
+            message(FATAL_ERROR "Using GCC version ${CMAKE_CXX_COMPILER_VERSION}. GCC <= 4.9 is not supported! Please use a newer compiler")
         endif()
     endif()
     set(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS}; --compiler-options -fPIC --compiler-options -Wall -lineinfo)
-    elseif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+
+elseif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+
     message(FATAL_ERROR "macOS is not supported!")
+
 endif()
 
-message(STATUS "NVCC Flags are " ${CUDA_NVCC_FLAGS})
+message(STATUS "NVCC Flags: ${CUDA_NVCC_FLAGS}")
 
 # Install required chrono_thirdparty headers
 install(DIRECTORY ${CMAKE_SOURCE_DIR}/src/chrono_thirdparty/cub

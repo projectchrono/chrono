@@ -718,12 +718,12 @@ void ChSystemGpu_impl::setBCOffset(const BC_type& bc_type,
             printf("ERROR: Unsupported BC Type!\n");
             exit(1);
         }
-
-            // do midpoint approx for velocity
-            params_SU.vel_SU.x = (new_pos.x - old_pos.x) / stepSize_SU;
-            params_SU.vel_SU.y = (new_pos.y - old_pos.y) / stepSize_SU;
-            params_SU.vel_SU.z = (new_pos.z - old_pos.z) / stepSize_SU;
     }
+
+    // do midpoint approx for velocity
+    params_SU.vel_SU.x = (new_pos.x - old_pos.x) / stepSize_SU;
+    params_SU.vel_SU.y = (new_pos.y - old_pos.y) / stepSize_SU;
+    params_SU.vel_SU.z = (new_pos.z - old_pos.z) / stepSize_SU;
 }
 
 float3 ChSystemGpu_impl::GetBCPlanePosition(size_t plane_id) const {

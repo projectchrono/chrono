@@ -1,0 +1,47 @@
+{
+  "Name": "van Bus",
+  "Type": "Vehicle",
+  "Template": "WheeledVehicle",
+
+  "Chassis": {
+    "Input File": "VW_microbus/json/van_Chassis.json"
+  },
+
+  "Axles": [
+    {
+      "Suspension Input File": "VW_microbus/json/van_FrontLeafspringAxle.json",
+      "Suspension Location": [ 0, 0, 0 ],
+      "Steering Index": 0,
+      "Left Wheel Input File": "VW_microbus/json/van_Wheel.json",
+      "Right Wheel Input File": "VW_microbus/json/van_Wheel.json",
+      "Left Brake Input File": "VW_microbus/json/van_BrakeSimple_Front.json",
+      "Right Brake Input File": "VW_microbus/json/van_BrakeSimple_Front.json"
+    },
+
+    {
+      "Suspension Input File": "VW_microbus/json/van_RearLeafspringAxle.json",
+      "Suspension Location": [ -2.62, 0, 0 ],
+      "Left Wheel Input File": "VW_microbus/json/van_Wheel.json",
+      "Right Wheel Input File": "VW_microbus/json/van_Wheel.json",
+      "Left Brake Input File": "VW_microbus/json/van_BrakeSimple_Rear.json",
+      "Right Brake Input File": "VW_microbus/json/van_BrakeSimple_Rear.json"
+    }
+  ],
+
+  "Steering Subsystems": [
+    {
+      "Input File": "VW_microbus/json/van_RotaryArm.json",
+      "Location": [ 0, 0, 0 ],
+      "Orientation": [ 1, 0, 0, 0 ]
+    }
+  ],
+
+  "Wheelbase": 2.605,
+  "Minimum Turning Radius": 5.8,
+  "Maximum Steering Angle": 27,
+
+  "Driveline": {
+    "Input File": "VW_microbus/json/van_Driveline2WD.json",
+    "Suspension Indexes": [ 1 ]
+  }
+}
