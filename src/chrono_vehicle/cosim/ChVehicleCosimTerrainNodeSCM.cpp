@@ -100,6 +100,10 @@ void ChVehicleCosimTerrainNodeSCM::SetFromSpecfile(const std::string& specfile) 
     Document d;
     ReadSpecfile(specfile, d);
 
+    double length = d["Patch dimensions"]["Length"].GetDouble();
+    double width = d["Patch dimensions"]["Width"].GetDouble();
+    SetPatchDimensions(length, width);
+
     m_spacing = d["Grid spacing"].GetDouble();
 
     m_Bekker_Kphi = d["Soil parameters"]["Bekker Kphi"].GetDouble();

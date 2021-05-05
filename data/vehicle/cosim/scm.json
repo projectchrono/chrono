@@ -2,7 +2,12 @@
 {
     "Type": "SCM",
 
-    "Grid spacing":  0.05,
+    "Patch dimensions": {
+        "Length": 4,
+        "Width": 1
+    },
+
+    "Grid spacing": 0.05,
 
     "Soil parameters": {
         "Bekker Kphi": 0.2e6,

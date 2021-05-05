@@ -66,8 +66,6 @@ bool GetProblemSpecs(int argc,
                      double& base_vel,
                      double& slip,
                      double& sys_mass,
-                     double& terrain_length,
-                     double& terrain_width,
                      bool& use_checkpoint,
                      double& output_fps,
                      double& render_fps,
@@ -125,14 +123,11 @@ int main(int argc, char** argv) {
     bool settling_output = true;
     bool render = true;
     double sys_mass = 200;
-    double terrain_length = 4;
-    double terrain_width = 1;
     std::string suffix = "";
     bool verbose = true;
     if (!GetProblemSpecs(argc, argv, rank, terrain_specfile, tire_specfile, nthreads_rig, nthreads_terrain, step_size,
-                         settling_time, sim_time, act_type, base_vel, slip, sys_mass, terrain_length, terrain_width,
-                         use_checkpoint, output_fps, render_fps, sim_output, settling_output, render, verbose,
-                         suffix)) {
+                         settling_time, sim_time, act_type, base_vel, slip, sys_mass, use_checkpoint, output_fps,
+                         render_fps, sim_output, settling_output, render, verbose, suffix)) {
         MPI_Finalize();
         return 1;
     }
@@ -262,8 +257,6 @@ int main(int argc, char** argv) {
                 if (verbose)
                     cout << "[Terrain node] output directory: " << terrain->GetOutDirName() << endl;
 
-                terrain->SetPatchDimensions(terrain_length, terrain_width);
-
                 node = terrain;
 #endif
                 break;
@@ -278,8 +271,6 @@ int main(int argc, char** argv) {
                 terrain->EnableRuntimeVisualization(render, render_fps);
                 if (verbose)
                     cout << "[Terrain node] output directory: " << terrain->GetOutDirName() << endl;
-
-                terrain->SetPatchDimensions(terrain_length, terrain_width);
 
                 if (use_checkpoint) {
                     terrain->SetInputFromCheckpoint("checkpoint_end.dat");
@@ -301,7 +292,6 @@ int main(int argc, char** argv) {
                 if (verbose)
                     cout << "[Terrain node] output directory: " << terrain->GetOutDirName() << endl;
 
-                terrain->SetPatchDimensions(terrain_length, terrain_width);
                 terrain->SetWallThickness(0.1);
 
                 if (use_checkpoint) {
@@ -328,8 +318,6 @@ int main(int argc, char** argv) {
                 if (verbose)
                     cout << "[Terrain node] output directory: " << terrain->GetOutDirName() << endl;
 
-                terrain->SetPatchDimensions(terrain_length, terrain_width);
-
                 if (use_checkpoint) {
                     terrain->SetInputFromCheckpoint("checkpoint_settled.dat");
                 } else {
@@ -354,8 +342,6 @@ int main(int argc, char** argv) {
                 terrain->EnableRuntimeVisualization(render, render_fps);
                 if (verbose)
                     cout << "[Terrain node] output directory: " << terrain->GetOutDirName() << endl;
-
-                terrain->SetPatchDimensions(terrain_length, terrain_width);
 
                 terrain->SetFromSpecfile(terrain_specfile);
 
@@ -424,8 +410,6 @@ bool GetProblemSpecs(int argc,
                      double& base_vel,
                      double& slip,
                      double& sys_mass,
-                     double& terrain_length,
-                     double& terrain_width,
                      bool& use_checkpoint,
                      double& output_fps,
                      double& render_fps,
@@ -449,16 +433,13 @@ bool GetProblemSpecs(int argc,
     cli.AddOption<double>("Demo", "slip", "Longitudinal slip", std::to_string(slip));
     cli.AddOption<double>("Demo", "sys_mass", "Mass of wheel carrier [kg]", std::to_string(sys_mass));
 
-    cli.AddOption<double>("Demo", "terrain_length", "Length of terrain patch [m]", std::to_string(terrain_length));
-    cli.AddOption<double>("Demo", "terrain_width", "Width of terrain patch [m]", std::to_string(terrain_width));
-
-    cli.AddOption<bool>("Demo", "use_checkpoint", "Initialize granular terrain from checkppoint file");
+    cli.AddOption<bool>("Demo", "use_checkpoint", "Initialize from checkpoint file");
 
     cli.AddOption<bool>("Demo", "quiet", "Disable verbose messages");
 
     cli.AddOption<bool>("Demo", "no_render", "Disable OpenGL rendering");
-    cli.AddOption<bool>("Demo", "no_output", "Disable generation of simulation result output files");
-    cli.AddOption<bool>("Demo", "no_settling_output", "Disable generation of settling result output files");
+    cli.AddOption<bool>("Demo", "no_output", "Disable generation of simulation output files");
+    cli.AddOption<bool>("Demo", "no_settling_output", "Disable generation of settling output files");
 
     cli.AddOption<double>("Demo", "output_fps", "Output frequency [fps]", std::to_string(output_fps));
     cli.AddOption<double>("Demo", "render_fps", "Render frequency [fps]", std::to_string(render_fps));
@@ -523,9 +504,6 @@ bool GetProblemSpecs(int argc,
     step_size = cli.GetAsType<double>("step_size");
 
     sys_mass = cli.GetAsType<double>("sys_mass");
-
-    terrain_length = cli.GetAsType<double>("terrain_length");
-    terrain_width = cli.GetAsType<double>("terrain_width");
 
     verbose = !cli.GetAsType<bool>("quiet");
     render = !cli.GetAsType<bool>("no_render");

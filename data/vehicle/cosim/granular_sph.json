@@ -2,6 +2,11 @@
 {
     "Type": "GRANULAR_SPH",
 
+    "Patch dimensions": {
+        "Length": 4,
+        "Width": 1
+    },
+
     "Granular material": {
         "Radius": 0.02,
         "Density": 2500,

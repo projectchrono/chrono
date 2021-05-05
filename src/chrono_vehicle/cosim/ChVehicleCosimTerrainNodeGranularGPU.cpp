@@ -113,6 +113,10 @@ void ChVehicleCosimTerrainNodeGranularGPU::SetFromSpecfile(const std::string& sp
     Document d;
     ReadSpecfile(specfile, d);
 
+    double length = d["Patch dimensions"]["Length"].GetDouble();
+    double width = d["Patch dimensions"]["Width"].GetDouble();
+    SetPatchDimensions(length, width);
+
     m_radius_g = d["Granular material"]["Radius"].GetDouble();
     m_rho_g = d["Granular material"]["Density"].GetDouble();
 

@@ -132,6 +132,10 @@ void ChVehicleCosimTerrainNodeRigid::SetFromSpecfile(const std::string& specfile
     Document d;
     ReadSpecfile(specfile, d);
 
+    double length = d["Patch dimensions"]["Length"].GetDouble();
+    double width = d["Patch dimensions"]["Width"].GetDouble();
+    SetPatchDimensions(length, width);
+
     switch (GetSystem()->GetContactMethod()) {
         case ChContactMethod::SMC: {
             auto material = chrono_types::make_shared<ChMaterialSurfaceSMC>();

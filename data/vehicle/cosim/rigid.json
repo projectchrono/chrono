@@ -2,6 +2,11 @@
 {
     "Type": "RIGID",
 
+    "Patch dimensions": {
+        "Length": 4,
+        "Width":  1
+    },
+
     "Material properties": {
         "Coefficient of friction": 0.9,
         "Coefficient of restitution": 0,
@@ -22,6 +27,5 @@
         "Use material properties": true,
         "Proxy contact radius": 0.002,
         "Fix proxies": true
-
     }
 }
