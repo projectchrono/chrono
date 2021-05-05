@@ -22,6 +22,7 @@
 //
 // =============================================================================
 
+#include <fstream>
 #include <algorithm>
 #include <set>
 #include <vector>
@@ -50,8 +51,13 @@
 
 #include "chrono_vehicle/cosim/ChVehicleCosimRigNode.h"
 
+#include "chrono_thirdparty/rapidjson/filereadstream.h"
+#include "chrono_thirdparty/rapidjson/istreamwrapper.h"
+
 using std::cout;
 using std::endl;
+
+using namespace rapidjson;
 
 namespace chrono {
 namespace vehicle {
@@ -94,24 +100,73 @@ class RigNodeWheel : public ChWheel {
 
 // =============================================================================
 
-std::string ChVehicleCosimRigNode::GetTypeAsString(Type type) {
+std::string ChVehicleCosimRigNode::GetTireTypeAsString(TireType type) {
     switch (type) {
-        case Type::RIGID:
+        case TireType::RIGID:
             return "Rigid";
-        case Type::FLEXIBLE:
+        case TireType::FLEXIBLE:
             return "Flexible";
         default:
             return "Unknown";
     }
 }
 
+ChVehicleCosimRigNode::TireType ChVehicleCosimRigNode::GetTireTypeFromString(const std::string& type) {
+    if (type == "RIGID")
+        return TireType::RIGID;
+    if (type == "FLEXIBLE")
+        return TireType::FLEXIBLE;
+
+    return TireType::UNKNOWN;
+}
+
+bool ChVehicleCosimRigNode::ReadSpecfile(const std::string& specfile, Document& d) {
+    std::ifstream ifs(specfile);
+    if (!ifs.good()) {
+        cout << "ERROR: Could not open JSON file: " << specfile << "\n" << endl;
+        return false;
+    }
+
+    IStreamWrapper isw(ifs);
+    d.ParseStream<ParseFlag::kParseCommentsFlag>(isw);
+    if (d.IsNull()) {
+        cout << "ERROR: Invalid JSON file: " << specfile << "\n" << endl;
+        return false;
+    }
+
+    return true;
+}
+
+ChVehicleCosimRigNode::TireType ChVehicleCosimRigNode::GetTireTypeFromSpecfile(const std::string& specfile) {
+    Document d;
+    if (!ReadSpecfile(specfile, d)) {
+        return TireType::UNKNOWN;
+    }
+
+    if (!d.HasMember("Type") || std::string(d["Type"].GetString()).compare("Tire") != 0) {
+        cout << "ERROR: JSON file " << specfile << " is not a tire JSON specification file!\n" << endl;
+        return TireType::UNKNOWN;
+    }
+
+    std::string tire_template = d["Template"].GetString();
+    if (tire_template.compare("RigidTire") == 0) {
+        if (d.HasMember("Contact Mesh"))
+            return TireType::RIGID;
+    }
+    if (tire_template.compare("ANCFTire") == 0 || tire_template.compare("ReissnerTire") == 0) {
+        return TireType::FLEXIBLE;
+    }
+
+    return TireType::UNKNOWN;
+}
+
 // -----------------------------------------------------------------------------
 // Construction of the rig node:
 // - create the (sequential) Chrono system and set solver parameters
 // -----------------------------------------------------------------------------
-ChVehicleCosimRigNode::ChVehicleCosimRigNode(Type type, double init_vel, double slip, int num_threads)
+ChVehicleCosimRigNode::ChVehicleCosimRigNode(TireType tire_type, double init_vel, double slip, int num_threads)
     : ChVehicleCosimBaseNode("RIG"),
-      m_type(type),
+      m_tire_type(tire_type),
       m_init_vel(init_vel),
       m_slip(slip),
       m_dbp_filter(nullptr),
@@ -187,7 +242,7 @@ void ChVehicleCosimRigNode::SetBodyMasses(double chassis_mass,
     m_rim_mass = rim_mass;
 }
 
-void ChVehicleCosimRigNode::SetTireJSONFile(const std::string& filename) {
+void ChVehicleCosimRigNode::SetTireFromSpecfile(const std::string& filename) {
     m_tire_json = filename;
 }
 

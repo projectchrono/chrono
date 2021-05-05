@@ -533,7 +533,7 @@ void ChVehicleCosimTerrainNodeGranularOMP::Settle() {
 
         if (m_verbose)
             cout << '\r' << std::fixed << std::setprecision(6) << m_system->GetChTime() << "  ["
-                 << m_timer.GetTimeSeconds() << "]" << n_contacts << std::flush;
+                 << m_timer.GetTimeSeconds() << "]  " << n_contacts << std::flush;
 
         // Output (if enabled)
         if (m_settling_output && is % output_steps == 0) {

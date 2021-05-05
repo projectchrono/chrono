@@ -51,17 +51,12 @@ using namespace chrono::vehicle;
 
 // =============================================================================
 
-
-// Tire type
-ChVehicleCosimRigNode::Type tire_type = ChVehicleCosimRigNode::Type::RIGID;
-
-// =============================================================================
-
 // Forward declarations
 bool GetProblemSpecs(int argc,
                      char** argv,
                      int rank,
                      std::string& terrain_specfile,
+                     std::string& tire_specfile,
                      int& nthreads_rig,
                      int& nthreads_terrain,
                      double& step_size,
@@ -113,6 +108,7 @@ int main(int argc, char** argv) {
 
     // Parse command line arguments
     std::string terrain_specfile;
+    std::string tire_specfile;
     int nthreads_rig = 1;
     int nthreads_terrain = 1;
     double step_size = 1e-4;
@@ -131,9 +127,16 @@ int main(int argc, char** argv) {
     double terrain_width = 1;
     std::string suffix = "";
     bool verbose = true;
-    if (!GetProblemSpecs(argc, argv, rank, terrain_specfile, nthreads_rig, nthreads_terrain, step_size, settling_time,
+    if (!GetProblemSpecs(argc, argv, rank, terrain_specfile, tire_specfile, nthreads_rig, nthreads_terrain, step_size, settling_time,
                          sim_time, vel0, slip, sys_mass, terrain_length, terrain_width, use_checkpoint, output_fps,
                          render_fps, sim_output, settling_output, render, verbose, suffix)) {
+        MPI_Finalize();
+        return 1;
+    }
+
+    // Peek in spec file and extract tire type
+    auto tire_type = ChVehicleCosimRigNode::GetTireTypeFromSpecfile(tire_specfile);
+    if (tire_type == ChVehicleCosimRigNode::TireType::UNKNOWN) {
         MPI_Finalize();
         return 1;
     }
@@ -174,8 +177,8 @@ int main(int argc, char** argv) {
 
     // Prepare output directory.
     std::string out_dir_top = GetChronoOutputPath() + "RIG_COSIM";
-    std::string out_dir = out_dir_top + "/" +                                        //
-                          ChVehicleCosimRigNode::GetTypeAsString(tire_type) + "_" +  //
+    std::string out_dir = out_dir_top + "/" +                                            //
+                          ChVehicleCosimRigNode::GetTireTypeAsString(tire_type) + "_" +  //
                           ChVehicleCosimTerrainNode::GetTypeAsString(terrain_type);
     if (rank == 0) {
         if (!filesystem::create_directory(filesystem::path(out_dir_top))) {
@@ -203,33 +206,42 @@ int main(int argc, char** argv) {
             cout << "[Rig node    ] rank = " << rank << " running on: " << procname << endl;
 
         switch (tire_type) {
-            case ChVehicleCosimRigNode::Type::RIGID: {
+            case ChVehicleCosimRigNode::TireType::RIGID: {
                 auto rig = new ChVehicleCosimRigNodeRigidTire(vel0, slip, nthreads_rig);
                 rig->SetVerbose(verbose);
-                rig->SetTireJSONFile(vehicle::GetDataFile("hmmwv/tire/HMMWV_RigidMeshTire_CoarseClosed.json"));
+                rig->SetStepSize(step_size);
+                rig->SetOutDir(out_dir, suffix);
+                if (verbose)
+                    cout << "[Rig node    ] output directory: " << rig->GetOutDirName() << endl;
+
+                rig->SetTireFromSpecfile(tire_specfile);
                 rig->SetBodyMasses(1, 1, sys_mass, 15);
                 rig->SetDBPfilterWindow(0.2);
+
                 node = rig;
                 break;
             }
-            case ChVehicleCosimRigNode::Type::FLEXIBLE: {
+
+            case ChVehicleCosimRigNode::TireType::FLEXIBLE: {
                 auto rig = new ChVehicleCosimRigNodeFlexibleTire(vel0, slip, nthreads_rig);
                 rig->SetVerbose(verbose);
-                rig->SetTireJSONFile(vehicle::GetDataFile("hmmwv/tire/HMMWV_ANCFTire.json"));
+                rig->SetStepSize(step_size);
+                rig->SetOutDir(out_dir, suffix);
+                if (verbose)
+                    cout << "[Rig node    ] output directory: " << rig->GetOutDirName() << endl;
+
+                rig->SetTireFromSpecfile(tire_specfile);
                 rig->SetBodyMasses(1, 1, sys_mass, 15);
                 rig->EnableTirePressure(true);
                 rig->SetDBPfilterWindow(0.2);
+
                 node = rig;
                 break;
             }
-        }
+        
+        } // switch terrain_type
 
-        node->SetStepSize(step_size);
-        node->SetOutDir(out_dir, suffix);
-
-        if (verbose)
-            cout << "[Rig node    ] output directory: " << node->GetOutDirName() << endl;
-    }
+    } // if RIG_NODE_RANK
 
     if (rank == TERRAIN_NODE_RANK) {
         if (verbose)
@@ -405,6 +417,7 @@ bool GetProblemSpecs(int argc,
                      char** argv,
                      int rank,
                      std::string& terrain_specfile,
+                     std::string& tire_specfile,
                      int& nthreads_rig,
                      int& nthreads_terrain,
                      double& step_size,
@@ -426,6 +439,7 @@ bool GetProblemSpecs(int argc,
     ChCLI cli(argv[0], "Single-wheel test rig simulation.");
 
     cli.AddOption<std::string>("Demo", "terrain_specfile", "Terrain specification file [JSON format]");
+    cli.AddOption<std::string>("Demo", "tire_specfile", "Tire specification file [JSON format]");
 
     cli.AddOption<double>("Demo", "settling_time", "Duration of settling phase [s]", std::to_string(settling_time));
     cli.AddOption<double>("Demo", "sim_time", "Simulation length after settling phase [s]", std::to_string(sim_time));
@@ -464,9 +478,19 @@ bool GetProblemSpecs(int argc,
 
     try {
         terrain_specfile = cli.Get("terrain_specfile").as<std::string>();
-    } catch (std::domain_error& e) {
+    } catch (std::domain_error&) {
         if (rank == 0) {
             cout << "\nERROR: Missing terrain specification file!\n\n" << endl;
+            cli.Help();
+        }
+        return false;
+    }
+
+    try {
+        tire_specfile = cli.Get("tire_specfile").as<std::string>();
+    } catch (std::domain_error&) {
+        if (rank == 0) {
+            cout << "\nERROR: Missing tire specification file!\n\n" << endl;
             cli.Help();
         }
         return false;
