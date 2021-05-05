@@ -39,8 +39,11 @@ namespace vehicle {
 /// Definition of the SCM deformable terrain node.
 class CH_VEHICLE_API ChVehicleCosimTerrainNodeSCM : public ChVehicleCosimTerrainNode {
   public:
-    /// Create a rigid terrain subsystem using the specified number of OpenMP threads for SCM ray-casting.
-    ChVehicleCosimTerrainNodeSCM(int num_threads);
+    /// Create an SCM terrain node. Note that no SCM parameters are set.
+    ChVehicleCosimTerrainNodeSCM();
+
+    /// Create an SCM terrain node using parameters from the provided JSON specfile.
+    ChVehicleCosimTerrainNodeSCM(const std::string& specfile);
 
     ~ChVehicleCosimTerrainNodeSCM();
 
@@ -61,6 +64,9 @@ class CH_VEHICLE_API ChVehicleCosimTerrainNodeSCM : public ChVehicleCosimTerrain
         double elastic_K,      ///< elastic stiffness K per unit area, [Pa/m] (must be larger than Kphi)
         double damping_R       ///< vertical damping R per unit area [Pa.s/m] (proportional to vertical speed)
     );
+
+    /// Set the number of OpenMP threads for SCM ray-casting (default: 1).
+    void SetNumThreads(int num_threads);
 
     /// Set sweeping sphere radius for proxy bodies (default 5e-3).
     /// This value is used as a "thickness" for collision meshes (a non-zero value can improve robustness of the

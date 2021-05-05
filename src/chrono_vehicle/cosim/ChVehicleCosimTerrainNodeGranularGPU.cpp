@@ -78,6 +78,29 @@ ChVehicleCosimTerrainNodeGranularGPU::ChVehicleCosimTerrainNodeGranularGPU()
     m_systemGPU = nullptr;
 }
 
+ChVehicleCosimTerrainNodeGranularGPU::ChVehicleCosimTerrainNodeGranularGPU(const std::string& specfile)
+    : ChVehicleCosimTerrainNode(Type::GRANULAR_GPU, ChContactMethod::SMC),
+      m_constructed(false),
+      m_use_checkpoint(false),
+      m_settling_output(false),
+      m_settling_fps(100),
+      m_num_particles(0) {
+
+    // Default granular system settings
+    m_integrator_type = gpu::CHGPU_TIME_INTEGRATOR::CENTERED_DIFFERENCE;
+    m_tangential_model = gpu::CHGPU_FRICTION_MODE::MULTI_STEP;
+
+    // Create systems
+    m_system = new ChSystemSMC();
+    m_system->Set_G_acc(ChVector<>(0, 0, m_gacc));
+
+    // Defer construction of the granular system to Construct
+    m_systemGPU = nullptr;
+
+    // Read GPU granular terrain parameters from provided specfile
+    SetFromSpecfile(specfile);
+}
+
 ChVehicleCosimTerrainNodeGranularGPU ::~ChVehicleCosimTerrainNodeGranularGPU() {
     delete m_system;
     delete m_systemGPU;

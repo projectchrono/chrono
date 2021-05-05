@@ -58,7 +58,7 @@ namespace vehicle {
 // - create the (multicore) Chrono system and set solver parameters
 // - create the OpenGL visualization window
 // -----------------------------------------------------------------------------
-ChVehicleCosimTerrainNodeGranularOMP::ChVehicleCosimTerrainNodeGranularOMP(ChContactMethod method, int num_threads)
+ChVehicleCosimTerrainNodeGranularOMP::ChVehicleCosimTerrainNodeGranularOMP(ChContactMethod method)
     : ChVehicleCosimTerrainNode(Type::GRANULAR_OMP, method),
       m_radius_p(5e-3),
       m_sampling_type(utils::SamplingType::POISSON_DISK),
@@ -70,20 +70,14 @@ ChVehicleCosimTerrainNodeGranularOMP::ChVehicleCosimTerrainNodeGranularOMP(ChCon
       m_use_checkpoint(false),
       m_settling_output(false),
       m_settling_fps(100),
+      m_hthick(0.1),
       m_num_particles(0) {
-    // Default container wall thickness
-    m_hthick = 0.1;
-
     // Default granular material properties
     m_radius_g = 0.01;
     m_rho_g = 2000;
     m_time_settling = 0.4;
 
-    // ---------------------------
-    // Create the multicore system
-    // ---------------------------
-
-    // Create system and set default method-specific solver settings
+    // Create system and set method-specific solver settings
     switch (m_method) {
         case ChContactMethod::SMC: {
             ChSystemMulticoreSMC* sys = new ChSystemMulticoreSMC;
@@ -117,16 +111,59 @@ ChVehicleCosimTerrainNodeGranularOMP::ChVehicleCosimTerrainNodeGranularOMP(ChCon
     m_system->GetSettings()->solver.max_iteration_bilateral = 100;
     m_system->GetSettings()->collision.narrowphase_algorithm = NarrowPhaseType::NARROWPHASE_HYBRID_MPR;
 
-    // Set number of threads
-    m_system->SetNumThreads(num_threads);
+    // Set default number of threads
+    m_system->SetNumThreads(1);
+}
 
-#pragma omp parallel
-#pragma omp master
-    {
-        // Sanity check: print number of threads in a parallel region
-        if (m_verbose)
-            cout << "[Terrain node] actual number of OpenMP threads: " << omp_get_num_threads() << endl;
+ChVehicleCosimTerrainNodeGranularOMP::ChVehicleCosimTerrainNodeGranularOMP(ChContactMethod method,
+                                                                           const std::string& specfile)
+    : ChVehicleCosimTerrainNode(Type::GRANULAR_OMP, method),
+      m_Id_g(10000),
+      m_constructed(false),
+      m_use_checkpoint(false),
+      m_settling_output(false),
+      m_settling_fps(100),
+      m_hthick(0.1),
+      m_num_particles(0) {
+    // Create system and set method-specific solver settings
+    switch (m_method) {
+        case ChContactMethod::SMC: {
+            ChSystemMulticoreSMC* sys = new ChSystemMulticoreSMC;
+            sys->GetSettings()->solver.contact_force_model = ChSystemSMC::Hertz;
+            sys->GetSettings()->solver.tangential_displ_mode = ChSystemSMC::TangentialDisplacementModel::OneStep;
+            sys->GetSettings()->solver.use_material_properties = true;
+            m_system = sys;
+
+            break;
+        }
+        case ChContactMethod::NSC: {
+            ChSystemMulticoreNSC* sys = new ChSystemMulticoreNSC;
+            sys->GetSettings()->solver.solver_mode = SolverMode::SLIDING;
+            sys->GetSettings()->solver.max_iteration_normal = 0;
+            sys->GetSettings()->solver.max_iteration_sliding = 200;
+            sys->GetSettings()->solver.max_iteration_spinning = 0;
+            sys->GetSettings()->solver.alpha = 0;
+            sys->GetSettings()->solver.contact_recovery_speed = -1;
+            sys->GetSettings()->collision.collision_envelope = 0.001;
+            sys->ChangeSolverType(SolverType::APGD);
+            m_system = sys;
+
+            break;
+        }
     }
+
+    // Solver settings independent of method type
+    m_system->Set_G_acc(ChVector<>(0, 0, m_gacc));
+    m_system->GetSettings()->solver.use_full_inertia_tensor = false;
+    m_system->GetSettings()->solver.tolerance = 0.1;
+    m_system->GetSettings()->solver.max_iteration_bilateral = 100;
+    m_system->GetSettings()->collision.narrowphase_algorithm = NarrowPhaseType::NARROWPHASE_HYBRID_MPR;
+
+    // Set default number of threads
+    m_system->SetNumThreads(1);
+
+    // Read granular OMP terrain parameters from provided specfile
+    SetFromSpecfile(specfile);
 }
 
 ChVehicleCosimTerrainNodeGranularOMP::~ChVehicleCosimTerrainNodeGranularOMP() {
@@ -209,6 +246,10 @@ void ChVehicleCosimTerrainNodeGranularOMP::SetFromSpecfile(const std::string& sp
     m_fixed_proxies = d["Simulation settings"]["Fix proxies"].GetBool();
 }
 
+void ChVehicleCosimTerrainNodeGranularOMP::SetNumThreads(int num_threads) {
+    m_system->SetNumThreads(num_threads);
+}
+
 void ChVehicleCosimTerrainNodeGranularOMP::SetWallThickness(double thickness) {
     m_hthick = thickness / 2;
 }
@@ -274,6 +315,15 @@ void ChVehicleCosimTerrainNodeGranularOMP::Construct() {
     if (m_verbose)
         cout << "[Terrain node] GRANULAR_OMP "
              << " method = " << static_cast<std::underlying_type<ChContactMethod>::type>(m_method) << endl;
+
+#pragma omp parallel
+#pragma omp master
+    {
+        // Sanity check: print number of threads in a parallel region
+        if (m_verbose)
+            cout << "[Terrain node] actual number of OpenMP threads: " << omp_get_num_threads() << endl;
+    }
+
 
     // Calculate container (half) height
     double r = m_separation_factor * m_radius_g;

@@ -254,7 +254,7 @@ int main(int argc, char** argv) {
             case ChVehicleCosimTerrainNode::Type::RIGID: {
 #ifdef CHRONO_MULTICORE
                 auto method = ChContactMethod::SMC;
-                auto terrain = new ChVehicleCosimTerrainNodeRigid(method);
+                auto terrain = new ChVehicleCosimTerrainNodeRigid(method, terrain_specfile);
                 terrain->SetVerbose(verbose);
                 terrain->SetStepSize(step_size);
                 terrain->SetOutDir(out_dir, suffix);
@@ -263,8 +263,6 @@ int main(int argc, char** argv) {
                     cout << "[Terrain node] output directory: " << terrain->GetOutDirName() << endl;
 
                 terrain->SetPatchDimensions(terrain_length, terrain_width);
-
-                terrain->SetFromSpecfile(terrain_specfile);
 
                 node = terrain;
 #endif
@@ -272,17 +270,16 @@ int main(int argc, char** argv) {
             }
 
             case ChVehicleCosimTerrainNode::Type::SCM: {
-                auto terrain = new ChVehicleCosimTerrainNodeSCM(nthreads_terrain);
+                auto terrain = new ChVehicleCosimTerrainNodeSCM(terrain_specfile);
                 terrain->SetVerbose(verbose);
                 terrain->SetStepSize(step_size);
+                terrain->SetNumThreads(nthreads_terrain);
                 terrain->SetOutDir(out_dir, suffix);
                 terrain->EnableRuntimeVisualization(render, render_fps);
                 if (verbose)
                     cout << "[Terrain node] output directory: " << terrain->GetOutDirName() << endl;
 
                 terrain->SetPatchDimensions(terrain_length, terrain_width);
-
-                terrain->SetFromSpecfile(terrain_specfile);
 
                 if (use_checkpoint) {
                     terrain->SetInputFromCheckpoint("checkpoint_end.dat");
@@ -295,9 +292,10 @@ int main(int argc, char** argv) {
             case ChVehicleCosimTerrainNode::Type::GRANULAR_OMP: {
 #ifdef CHRONO_MULTICORE
                 auto method = ChContactMethod::SMC;
-                auto terrain = new ChVehicleCosimTerrainNodeGranularOMP(method, nthreads_terrain);
+                auto terrain = new ChVehicleCosimTerrainNodeGranularOMP(method, terrain_specfile);
                 terrain->SetVerbose(verbose);
                 terrain->SetStepSize(step_size);
+                terrain->SetNumThreads(nthreads_terrain);
                 terrain->SetOutDir(out_dir, suffix);
                 terrain->EnableRuntimeVisualization(render, render_fps);
                 if (verbose)
@@ -305,8 +303,6 @@ int main(int argc, char** argv) {
 
                 terrain->SetPatchDimensions(terrain_length, terrain_width);
                 terrain->SetWallThickness(0.1);
-
-                terrain->SetFromSpecfile(terrain_specfile);
 
                 if (use_checkpoint) {
                     terrain->SetInputFromCheckpoint("checkpoint_settled.dat");
@@ -324,7 +320,7 @@ int main(int argc, char** argv) {
 
             case ChVehicleCosimTerrainNode::Type::GRANULAR_GPU: {
 #ifdef CHRONO_GPU
-                auto terrain = new ChVehicleCosimTerrainNodeGranularGPU();
+                auto terrain = new ChVehicleCosimTerrainNodeGranularGPU(terrain_specfile);
                 terrain->SetVerbose(verbose);
                 terrain->SetStepSize(step_size);
                 terrain->SetOutDir(out_dir, suffix);
@@ -333,8 +329,6 @@ int main(int argc, char** argv) {
                     cout << "[Terrain node] output directory: " << terrain->GetOutDirName() << endl;
 
                 terrain->SetPatchDimensions(terrain_length, terrain_width);
-
-                terrain->SetFromSpecfile(terrain_specfile);
 
                 if (use_checkpoint) {
                     terrain->SetInputFromCheckpoint("checkpoint_settled.dat");

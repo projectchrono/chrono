@@ -84,6 +84,43 @@ ChVehicleCosimTerrainNodeRigid::ChVehicleCosimTerrainNodeRigid(ChContactMethod m
     m_system->SetNumThreads(1);
 }
 
+ChVehicleCosimTerrainNodeRigid::ChVehicleCosimTerrainNodeRigid(ChContactMethod method, const std::string& specfile)
+    : ChVehicleCosimTerrainNode(Type::RIGID, method) {
+    // Create system and set default method-specific solver settings
+    switch (m_method) {
+        case ChContactMethod::SMC: {
+            ChSystemMulticoreSMC* sys = new ChSystemMulticoreSMC;
+            sys->GetSettings()->solver.contact_force_model = ChSystemSMC::Hertz;
+            sys->GetSettings()->solver.tangential_displ_mode = ChSystemSMC::TangentialDisplacementModel::OneStep;
+            sys->GetSettings()->solver.use_material_properties = true;
+            m_system = sys;
+            break;
+        }
+        case ChContactMethod::NSC: {
+            ChSystemMulticoreNSC* sys = new ChSystemMulticoreNSC;
+            sys->GetSettings()->solver.solver_mode = SolverMode::SLIDING;
+            sys->GetSettings()->solver.max_iteration_normal = 0;
+            sys->GetSettings()->solver.max_iteration_sliding = 200;
+            sys->GetSettings()->solver.max_iteration_spinning = 0;
+            sys->GetSettings()->solver.alpha = 0;
+            sys->GetSettings()->solver.contact_recovery_speed = -1;
+            sys->GetSettings()->collision.collision_envelope = 0.001;
+            sys->ChangeSolverType(SolverType::APGD);
+            m_system = sys;
+            break;
+        }
+    }
+
+    // Solver settings independent of method type
+    m_system->Set_G_acc(ChVector<>(0, 0, m_gacc));
+
+    // Set number of threads
+    m_system->SetNumThreads(1);
+
+    // Read rigid terrain parameters from provided specfile
+    SetFromSpecfile(specfile);
+}
+
 ChVehicleCosimTerrainNodeRigid::~ChVehicleCosimTerrainNodeRigid() {
     delete m_system;
 }
@@ -397,8 +434,8 @@ void ChVehicleCosimTerrainNodeRigid::PrintMeshProxiesContactData() {
     auto bodies = m_system->Get_bodylist();
     auto dm = m_system->data_manager;
     auto& bids = dm->host_data.bids_rigid_rigid;
-    auto& cpta = dm->host_data.cpta_rigid_rigid;
-    auto& cptb = dm->host_data.cptb_rigid_rigid;
+    ////auto& cpta = dm->host_data.cpta_rigid_rigid;
+    ////auto& cptb = dm->host_data.cptb_rigid_rigid;
     auto& dpth = dm->host_data.dpth_rigid_rigid;
     auto& norm = dm->host_data.norm_rigid_rigid;
     std::set<int> vertices_in_contact;

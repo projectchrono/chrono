@@ -32,14 +32,19 @@ namespace vehicle {
 /// Definition of the OpenMP granular terrain node (using Chrono::Multicore).
 class CH_VEHICLE_API ChVehicleCosimTerrainNodeGranularOMP : public ChVehicleCosimTerrainNode {
   public:
-    /// Create a Chrono::Multicore granular terrain subsystem.
-    ChVehicleCosimTerrainNodeGranularOMP(ChContactMethod method,  ///< contact method (SMC or NSC)
-                                         int num_threads          ///< number of OpenMP threads
-    );
+    /// Create a Chrono::Multicore granular terrain node using the specified contact method (SMC or NSC).
+    ChVehicleCosimTerrainNodeGranularOMP(ChContactMethod method);
+
+    /// Create a Chrono::Multicore granular terrain node using the specified contact method (SMC or NSC) and set
+    /// parameters from the provided JSON specfile.
+    ChVehicleCosimTerrainNodeGranularOMP(ChContactMethod method, const std::string& specfile);
 
     ~ChVehicleCosimTerrainNodeGranularOMP();
 
     virtual ChSystem* GetSystem() override { return m_system; }
+
+    /// Set the number of OpenMP threads Chrono::multicore terrain simulation.
+    void SetNumThreads(int num_threads);
 
     /// Set full terrain specification from JSON specfile.
     void SetFromSpecfile(const std::string& specfile);

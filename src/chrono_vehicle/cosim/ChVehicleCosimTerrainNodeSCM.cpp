@@ -53,7 +53,7 @@ namespace vehicle {
 // - create the Chrono system and set solver parameters
 // - create the Irrlicht visualization window
 // -----------------------------------------------------------------------------
-ChVehicleCosimTerrainNodeSCM::ChVehicleCosimTerrainNodeSCM(int num_threads)
+ChVehicleCosimTerrainNodeSCM::ChVehicleCosimTerrainNodeSCM()
     : ChVehicleCosimTerrainNode(Type::SCM, ChContactMethod::SMC), m_radius_p(5e-3), m_use_checkpoint(false) {
 #ifdef CHRONO_IRRLICHT
     m_irrapp = nullptr;
@@ -65,8 +65,24 @@ ChVehicleCosimTerrainNodeSCM::ChVehicleCosimTerrainNodeSCM(int num_threads)
     // Solver settings independent of method type
     m_system->Set_G_acc(ChVector<>(0, 0, m_gacc));
 
-    // Set number of threads
-    m_system->SetNumThreads(num_threads, 1, 1);
+    // Set default number of threads
+    m_system->SetNumThreads(1, 1, 1);
+}
+
+ChVehicleCosimTerrainNodeSCM::ChVehicleCosimTerrainNodeSCM(const std::string& specfile)
+    : ChVehicleCosimTerrainNode(Type::SCM, ChContactMethod::SMC), m_use_checkpoint(false) {
+#ifdef CHRONO_IRRLICHT
+    m_irrapp = nullptr;
+#endif
+
+    // Create system and set default method-specific solver settings
+    m_system = new ChSystemSMC;
+
+    // Solver settings independent of method type
+    m_system->Set_G_acc(ChVector<>(0, 0, m_gacc));
+
+    // Read SCM parameters from provided specfile
+    SetFromSpecfile(specfile);
 }
 
 ChVehicleCosimTerrainNodeSCM::~ChVehicleCosimTerrainNodeSCM() {
@@ -125,6 +141,10 @@ void ChVehicleCosimTerrainNodeSCM::SetPropertiesSCM(double spacing,
 void ChVehicleCosimTerrainNodeSCM::SetInputFromCheckpoint(const std::string& filename) {
     m_use_checkpoint = true;
     m_checkpoint_filename = filename;
+}
+
+void ChVehicleCosimTerrainNodeSCM::SetNumThreads(int num_threads) {
+    m_system->SetNumThreads(num_threads, 1, 1);
 }
 
 // -----------------------------------------------------------------------------
