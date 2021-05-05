@@ -63,18 +63,19 @@ class CH_VEHICLE_API ChVehicleCosimRigNode : public ChVehicleCosimBaseNode {
     static bool ReadSpecfile(const std::string& specfile, rapidjson::Document& d);
     static TireType GetTireTypeFromSpecfile(const std::string& specfile);
 
+    /// Set the number of OpenMP threads used in Chrono simulation (default: 1).
+    void SetNumThreads(int num_threads);
+
     /// Set integrator and solver types.
     /// For the MKL solver, use slv_type = ChSolver::Type::CUSTOM.
     void SetIntegratorType(ChTimestepper::Type int_type,  ///< integrator type (default: HHT)
                            ChSolver::Type slv_type        ///< solver type (default:: MKL)
     );
 
-    /// Set body masses.
-    void SetBodyMasses(double chassis_mass,  ///< mass of the (quarter-vehicle) chassis (default: 1)
-                       double set_toe_mass,  ///< mass of the set-toe body (default: 1)
-                       double upright_mass,  ///< mass of the upright body (default: 450)
-                       double rim_mass       ///< mass of the wheel rim body (default: 15)
-    );
+    /// Set total rig system mass (default: 100).
+    /// This represents the equivalent load on the soil from all rig bodies and the tire itself. Note that the total
+    /// mass must be at least 3 kg more than the tire mass; otherwise, it will be overwritten.
+    void SetTotalMass(double mass) { m_total_mass = mass; }
 
     /// Specify the tire JSON specification file name.
     void SetTireFromSpecfile(const std::string& filename);
@@ -98,8 +99,7 @@ class CH_VEHICLE_API ChVehicleCosimRigNode : public ChVehicleCosimBaseNode {
     ChVehicleCosimRigNode(TireType tire_type,      ///< tire type (RIGID or FLEXIBLE)
                           ActuationType act_type,  ///< actuation type (SET_LIN_VEL or SET_ANG_VEL)
                           double base_vel,         ///< constant linear or angular velocity
-                          double slip,             ///< longitudinal slip value
-                          int num_threads          ///< number of OpenMP threads
+                          double slip              ///< desired longitudinal slip
     );
 
     TireType m_tire_type;      ///< tire type
@@ -118,11 +118,7 @@ class CH_VEHICLE_API ChVehicleCosimRigNode : public ChVehicleCosimBaseNode {
     std::shared_ptr<ChBody> m_chassis;  ///< chassis body
     std::shared_ptr<ChBody> m_upright;  ///< upright body
 
-    double m_chassis_mass;
-    double m_set_toe_mass;
-    double m_upright_mass;
-    double m_rim_mass;
-    double m_tire_mass;
+    double m_total_mass; ///< total equivalent wheel mass 
 
     std::shared_ptr<ChWheel> m_wheel;  ///< wheel subsystem (to which a tire is attached)
 
@@ -158,6 +154,7 @@ class CH_VEHICLE_API ChVehicleCosimRigNode : public ChVehicleCosimBaseNode {
     virtual bool IsTireFlexible() const = 0;
     virtual double GetTireRadius() const = 0;
     virtual double GetTireWidth() const = 0;
+    virtual double GetTireMass() const = 0;
 
     virtual void InitializeTire() = 0;
 
@@ -176,10 +173,9 @@ class CH_VEHICLE_API ChVehicleCosimRigNodeFlexibleTire : public ChVehicleCosimRi
   public:
     ChVehicleCosimRigNodeFlexibleTire(ActuationType act_type,  ///< actuation type (SET_LIN_VEL or SET_ANG_VEL)
                                       double base_vel,         ///< constant linear or angular velocity
-                                      double slip,             ///< longitudinal slip value
-                                      int num_threads          ///< number of OpenMP threads
+                                      double slip              ///< desired longitudinal slip
                                       )
-        : ChVehicleCosimRigNode(TireType::FLEXIBLE, act_type, base_vel, slip, num_threads) {}
+        : ChVehicleCosimRigNode(TireType::FLEXIBLE, act_type, base_vel, slip) {}
 
     ~ChVehicleCosimRigNodeFlexibleTire() {}
 
@@ -203,6 +199,7 @@ class CH_VEHICLE_API ChVehicleCosimRigNodeFlexibleTire : public ChVehicleCosimRi
     virtual bool IsTireFlexible() const override { return true; }
     virtual double GetTireRadius() const { return m_tire->GetRadius(); }
     virtual double GetTireWidth() const { return m_tire->GetWidth(); }
+    virtual double GetTireMass() const { return m_tire->ReportMass(); }
 
     /// Output tire-related statistics.
     virtual void OutputTireData(const std::string& del) override;
@@ -235,10 +232,9 @@ class CH_VEHICLE_API ChVehicleCosimRigNodeRigidTire : public ChVehicleCosimRigNo
   public:
     ChVehicleCosimRigNodeRigidTire(ActuationType act_type,  ///< actuation type (SET_LIN_VEL or SET_ANG_VEL)
                                    double base_vel,         ///< constant linear or angular velocity
-                                   double slip,             ///< longitudinal slip value
-                                   int num_threads          ///< number of OpenMP threads
+                                   double slip              ///< desired longitudinal slip
                                    )
-        : ChVehicleCosimRigNode(TireType::RIGID, act_type, base_vel, slip, num_threads) {}
+        : ChVehicleCosimRigNode(TireType::RIGID, act_type, base_vel, slip) {}
 
     ~ChVehicleCosimRigNodeRigidTire() {}
 
@@ -259,6 +255,7 @@ class CH_VEHICLE_API ChVehicleCosimRigNodeRigidTire : public ChVehicleCosimRigNo
     virtual bool IsTireFlexible() const override { return false; }
     virtual double GetTireRadius() const { return m_tire->GetRadius(); }
     virtual double GetTireWidth() const { return m_tire->GetWidth(); }
+    virtual double GetTireMass() const { return m_tire->ReportMass(); }
 
     /// Initialize the rigid tire (set tire mesh information and tire mass).
     virtual void InitializeTire() override;

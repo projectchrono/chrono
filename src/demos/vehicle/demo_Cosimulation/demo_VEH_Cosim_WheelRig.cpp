@@ -65,7 +65,8 @@ bool GetProblemSpecs(int argc,
                      ChVehicleCosimRigNode::ActuationType& act_type,
                      double& base_vel,
                      double& slip,
-                     double& sys_mass,
+                     double& total_mass,
+    double& dbp_filter_window,
                      bool& use_checkpoint,
                      double& output_fps,
                      double& render_fps,
@@ -122,12 +123,14 @@ int main(int argc, char** argv) {
     bool sim_output = true;
     bool settling_output = true;
     bool render = true;
-    double sys_mass = 200;
+    double total_mass = 100;
+    double dbp_filter_window = 0.1;
     std::string suffix = "";
     bool verbose = true;
     if (!GetProblemSpecs(argc, argv, rank, terrain_specfile, tire_specfile, nthreads_rig, nthreads_terrain, step_size,
-                         settling_time, sim_time, act_type, base_vel, slip, sys_mass, use_checkpoint, output_fps,
-                         render_fps, sim_output, settling_output, render, verbose, suffix)) {
+                         settling_time, sim_time, act_type, base_vel, slip, total_mass, dbp_filter_window,
+                         use_checkpoint, output_fps, render_fps, sim_output, settling_output, render, verbose,
+                         suffix)) {
         MPI_Finalize();
         return 1;
     }
@@ -205,33 +208,35 @@ int main(int argc, char** argv) {
 
         switch (tire_type) {
             case ChVehicleCosimRigNode::TireType::RIGID: {
-                auto rig = new ChVehicleCosimRigNodeRigidTire(act_type, base_vel, slip, nthreads_rig);
+                auto rig = new ChVehicleCosimRigNodeRigidTire(act_type, base_vel, slip);
                 rig->SetVerbose(verbose);
                 rig->SetStepSize(step_size);
+                rig->SetNumThreads(nthreads_rig);
                 rig->SetOutDir(out_dir, suffix);
                 if (verbose)
                     cout << "[Rig node    ] output directory: " << rig->GetOutDirName() << endl;
 
                 rig->SetTireFromSpecfile(tire_specfile);
-                rig->SetBodyMasses(1, 1, sys_mass, 15);
-                rig->SetDBPfilterWindow(0.2);
+                rig->SetTotalMass(total_mass);
+                rig->SetDBPfilterWindow(dbp_filter_window);
 
                 node = rig;
                 break;
             }
 
             case ChVehicleCosimRigNode::TireType::FLEXIBLE: {
-                auto rig = new ChVehicleCosimRigNodeFlexibleTire(act_type, base_vel, slip, nthreads_rig);
+                auto rig = new ChVehicleCosimRigNodeFlexibleTire(act_type, base_vel, slip);
                 rig->SetVerbose(verbose);
                 rig->SetStepSize(step_size);
+                rig->SetNumThreads(nthreads_rig);
                 rig->SetOutDir(out_dir, suffix);
                 if (verbose)
                     cout << "[Rig node    ] output directory: " << rig->GetOutDirName() << endl;
 
                 rig->SetTireFromSpecfile(tire_specfile);
-                rig->SetBodyMasses(1, 1, sys_mass, 15);
+                rig->SetTotalMass(total_mass);
                 rig->EnableTirePressure(true);
-                rig->SetDBPfilterWindow(0.2);
+                rig->SetDBPfilterWindow(dbp_filter_window);
 
                 node = rig;
                 break;
@@ -407,7 +412,8 @@ bool GetProblemSpecs(int argc,
                      ChVehicleCosimRigNode::ActuationType& act_type,
                      double& base_vel,
                      double& slip,
-                     double& sys_mass,
+                     double& total_mass,
+                     double& dbp_filter_window,
                      bool& use_checkpoint,
                      double& output_fps,
                      double& render_fps,
@@ -418,36 +424,36 @@ bool GetProblemSpecs(int argc,
                      std::string& suffix) {
     ChCLI cli(argv[0], "Single-wheel test rig simulation.");
 
-    cli.AddOption<std::string>("Demo", "terrain_specfile", "Terrain specification file [JSON format]");
-    cli.AddOption<std::string>("Demo", "tire_specfile", "Tire specification file [JSON format]");
+    cli.AddOption<std::string>("Experiment", "terrain_specfile", "Terrain specification file [JSON format]");
+    cli.AddOption<std::string>("Experiment", "tire_specfile", "Tire specification file [JSON format]");
 
-    cli.AddOption<double>("Demo", "settling_time", "Duration of settling phase [s]", std::to_string(settling_time));
-    cli.AddOption<double>("Demo", "sim_time", "Simulation length after settling phase [s]", std::to_string(sim_time));
-    cli.AddOption<double>("Demo", "step_size", "Integration step size [s]", std::to_string(step_size));
-
-    cli.AddOption<std::string>("Demo", "actuation_type", "Actuation type (SET_LIN_VEL or SET_ANG_VEL)",
+    cli.AddOption<std::string>("Experiment", "actuation_type", "Actuation type (SET_LIN_VEL or SET_ANG_VEL)",
                                ChVehicleCosimRigNode::GetActuationTypeAsString(act_type));
-    cli.AddOption<double>("Demo", "base_vel", "Base velocity [m/s or rad/s]", std::to_string(base_vel));
-    cli.AddOption<double>("Demo", "slip", "Longitudinal slip", std::to_string(slip));
-    cli.AddOption<double>("Demo", "sys_mass", "Mass of wheel carrier [kg]", std::to_string(sys_mass));
+    cli.AddOption<double>("Experiment", "base_vel", "Base velocity [m/s or rad/s]", std::to_string(base_vel));
+    cli.AddOption<double>("Experiment", "slip", "Longitudinal slip", std::to_string(slip));
+    cli.AddOption<double>("Experiment", "total_mass", "Total mass [kg]", std::to_string(total_mass));
+    cli.AddOption<double>("Experiment", "filter_window", "Time window for running average filter",
+                          std::to_string(dbp_filter_window));
 
-    cli.AddOption<bool>("Demo", "use_checkpoint", "Initialize from checkpoint file");
+    cli.AddOption<double>("Simulation", "settling_time", "Duration of settling phase [s]", std::to_string(settling_time));
+    cli.AddOption<double>("Simulation", "sim_time", "Simulation length after settling phase [s]", std::to_string(sim_time));
+    cli.AddOption<double>("Simulation", "step_size", "Integration step size [s]", std::to_string(step_size));
 
-    cli.AddOption<bool>("Demo", "quiet", "Disable verbose messages");
-
-    cli.AddOption<bool>("Demo", "no_render", "Disable OpenGL rendering");
-    cli.AddOption<bool>("Demo", "no_output", "Disable generation of simulation output files");
-    cli.AddOption<bool>("Demo", "no_settling_output", "Disable generation of settling output files");
-
-    cli.AddOption<double>("Demo", "output_fps", "Output frequency [fps]", std::to_string(output_fps));
-    cli.AddOption<double>("Demo", "render_fps", "Render frequency [fps]", std::to_string(render_fps));
-
-    cli.AddOption<int>("Demo", "threads_rig", "Number of OpenMP threads for the rig node",
+    cli.AddOption<int>("Simulation", "threads_rig", "Number of OpenMP threads for the rig node",
                        std::to_string(nthreads_rig));
-    cli.AddOption<int>("Demo", "threads_terrain", "Number of OpenMP threads for the terrain node",
+    cli.AddOption<int>("Simulation", "threads_terrain", "Number of OpenMP threads for the terrain node",
                        std::to_string(nthreads_terrain));
 
-    cli.AddOption<std::string>("Demo", "suffix", "Suffix for output directory names", suffix);
+    cli.AddOption<bool>("Simulation", "use_checkpoint", "Initialize from checkpoint file");
+
+    cli.AddOption<bool>("Output", "quiet", "Disable verbose messages");
+    cli.AddOption<bool>("Output", "no_output", "Disable generation of simulation output files");
+    cli.AddOption<bool>("Output", "no_settling_output", "Disable generation of settling output files");
+    cli.AddOption<double>("Output", "output_fps", "Output frequency [fps]", std::to_string(output_fps));
+    cli.AddOption<std::string>("Output", "suffix", "Suffix for output directory names", suffix);
+
+    cli.AddOption<bool>("Visualization", "no_render", "Disable run-time rendering");
+    cli.AddOption<double>("Visualization", "render_fps", "Render frequency [fps]", std::to_string(render_fps));
 
     if (!cli.Parse(argc, argv)) {
         if (rank == 0)
@@ -501,7 +507,9 @@ bool GetProblemSpecs(int argc,
     settling_time = cli.GetAsType<double>("settling_time");
     step_size = cli.GetAsType<double>("step_size");
 
-    sys_mass = cli.GetAsType<double>("sys_mass");
+    total_mass = cli.GetAsType<double>("total_mass");
+
+    dbp_filter_window = cli.GetAsType<double>("filter_window");
 
     verbose = !cli.GetAsType<bool>("quiet");
     render = !cli.GetAsType<bool>("no_render");

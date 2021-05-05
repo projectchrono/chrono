@@ -187,8 +187,7 @@ ChVehicleCosimRigNode::TireType ChVehicleCosimRigNode::GetTireTypeFromSpecfile(c
 ChVehicleCosimRigNode::ChVehicleCosimRigNode(TireType tire_type,
                                              ActuationType act_type,
                                              double base_vel,
-                                             double slip,
-                                             int num_threads)
+                                             double slip)
     : ChVehicleCosimBaseNode("RIG"),
       m_tire_type(tire_type),
       m_act_type(act_type),
@@ -200,21 +199,11 @@ ChVehicleCosimRigNode::ChVehicleCosimRigNode(TireType tire_type,
       m_dbp_filter_window(0.1),
       m_dbp(0),
       m_constructed(false) {
-    // ------------------------
     // Default model parameters
-    // ------------------------
-
-    m_chassis_mass = 1;
-    m_set_toe_mass = 1;
-    m_upright_mass = 450;
-    m_rim_mass = 15;
-    m_tire_mass = 0;
-
+    m_total_mass = 100;
     m_tire_pressure = true;
 
-    // -----------------------------------
     // Default integrator and solver types
-    // -----------------------------------
     m_int_type = ChTimestepper::Type::HHT;
 #if defined(CHRONO_PARDISO_MKL)
     m_slv_type = ChSolver::Type::PARDISO_MKL;
@@ -224,26 +213,25 @@ ChVehicleCosimRigNode::ChVehicleCosimRigNode(TireType tire_type,
     m_slv_type == ChSolver::Type::BARZILAIBORWEIN;
 #endif
 
-    // ----------------------------------
     // Create the (sequential) SMC system
-    // ----------------------------------
-
     m_system = new ChSystemSMC;
     m_system->Set_G_acc(ChVector<>(0, 0, m_gacc));
 
-    // Set number threads
-    m_system->SetNumThreads(num_threads, 1, 1);
+    // Set default number of threads
+    m_system->SetNumThreads(1, 1, 1);
 }
 
-// -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
 ChVehicleCosimRigNode::~ChVehicleCosimRigNode() {
     delete m_dbp_filter;
     delete m_system;
 }
 
 // -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
+
+void ChVehicleCosimRigNode::SetNumThreads(int num_threads) {
+    m_system->SetNumThreads(num_threads, 1, 1);
+}
+
 void ChVehicleCosimRigNode::SetIntegratorType(ChTimestepper::Type int_type, ChSolver::Type slv_type) {
     m_int_type = int_type;
     m_slv_type = slv_type;
@@ -255,18 +243,6 @@ void ChVehicleCosimRigNode::SetIntegratorType(ChTimestepper::Type int_type, ChSo
     ////    if (m_slv_type == ChSolver::Type::MUMPS)
     ////        m_slv_type = ChSolver::Type::BARZILAIBORWEIN;
     ////#endif
-}
-
-// -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
-void ChVehicleCosimRigNode::SetBodyMasses(double chassis_mass,
-                                          double set_toe_mass,
-                                          double upright_mass,
-                                          double rim_mass) {
-    m_chassis_mass = chassis_mass;
-    m_set_toe_mass = set_toe_mass;
-    m_upright_mass = upright_mass;
-    m_rim_mass = rim_mass;
 }
 
 void ChVehicleCosimRigNode::SetTireFromSpecfile(const std::string& filename) {
@@ -361,6 +337,53 @@ void ChVehicleCosimRigNode::Construct() {
             break;
     }
 
+    // ---------------------
+    // Create wheel and tire
+    // ---------------------
+
+    m_wheel = chrono_types::make_shared<RigNodeWheel>();
+    ConstructTire();
+
+    // ---------------------
+    // Calculate body masses
+    // ---------------------
+
+    // Distribute mass equally between set_toe, upright, and rim in order to prevent large mass discrepancies.
+    // Note: the chassis is assigned the same mass, but is not counted in the total mass, as it is connected to ground
+    // through an horizontal prismatic joint.
+    double tire_mass = GetTireMass();
+    if (m_total_mass - tire_mass < 3)
+        m_total_mass = tire_mass + 3;
+    double body_mass = (m_total_mass - tire_mass) / 3;
+
+    if (m_verbose) {
+        cout << "[Rig node    ] total mass = " << m_total_mass << endl;
+        cout << "[Rig node    ] tire mass  = " << tire_mass << endl;
+        cout << "[Rig node    ] body mass  = " << body_mass << endl;
+    }
+
+    // --------------------------------------------------------
+    // Calculate rig linear velocity and wheel angular velocity
+    // --------------------------------------------------------
+
+    double tire_radius = GetTireRadius();
+    switch (m_act_type) {
+        case ActuationType::SET_ANG_VEL:
+            m_ang_vel = m_base_vel;
+            m_lin_vel = (m_ang_vel * tire_radius) * (1.0 - m_slip);
+            break;
+        case ActuationType::SET_LIN_VEL:
+            m_lin_vel = m_base_vel;
+            m_ang_vel = m_lin_vel / (tire_radius * (1.0 - m_slip));
+            break;
+    }
+
+    if (m_verbose) {
+        cout << "[Rig node    ] rig linear velocity    = " << m_lin_vel << endl;
+        cout << "[Rig node    ] wheel angular velocity = " << m_ang_vel << endl;
+        cout << "[Rig node    ] tire radius            = " << tire_radius << endl;
+    }
+
     // -------------------------------
     // Create the rig mechanism bodies
     // -------------------------------
@@ -377,25 +400,25 @@ void ChVehicleCosimRigNode::Construct() {
 
     // Create the chassis body.
     m_chassis = chrono_types::make_shared<ChBody>();
-    m_chassis->SetMass(m_chassis_mass);
+    m_chassis->SetMass(body_mass);
     m_chassis->SetInertiaXX(chassis_inertia);
     m_system->AddBody(m_chassis);
 
     // Create the set toe body.
     m_set_toe = chrono_types::make_shared<ChBody>();
-    m_set_toe->SetMass(m_set_toe_mass);
+    m_set_toe->SetMass(body_mass);
     m_set_toe->SetInertiaXX(set_toe_inertia);
     m_system->AddBody(m_set_toe);
 
     // Create the rim body.
     m_rim = chrono_types::make_shared<ChBody>();
-    m_rim->SetMass(m_rim_mass);
+    m_rim->SetMass(body_mass);
     m_rim->SetInertiaXX(rim_inertia);
     m_system->AddBody(m_rim);
 
     // Create the upright body.
     m_upright = chrono_types::make_shared<ChBody>();
-    m_upright->SetMass(m_upright_mass);
+    m_upright->SetMass(body_mass);
     m_upright->SetInertiaXX(upright_inertia);
     m_system->AddBody(m_upright);
 
@@ -429,40 +452,6 @@ void ChVehicleCosimRigNode::Construct() {
     m_rev_motor->SetName("Motor_ang_vel");
     m_system->AddLink(m_rev_motor);
 
-    // -------------------------------
-    // Create a dummy wheel subsystem
-    // -------------------------------
-
-    m_wheel = chrono_types::make_shared<RigNodeWheel>();
-
-    // ---------------
-    // Create the tire
-    // ---------------
-
-    ConstructTire();
-
-    // --------------------------------------------------------
-    // Calculate rig linear velocity and wheel angular velocity
-    // --------------------------------------------------------
-
-    double tire_radius = GetTireRadius();
-    switch (m_act_type) {
-        case ActuationType::SET_ANG_VEL:
-            m_ang_vel = m_base_vel;
-            m_lin_vel = (m_ang_vel * tire_radius) * (1.0 - m_slip);
-            break;
-        case ActuationType::SET_LIN_VEL:
-            m_lin_vel = m_base_vel;
-            m_ang_vel = m_lin_vel / (tire_radius * (1.0 - m_slip));
-            break;
-    }
-
-    if (m_verbose) {
-        cout << "[Rig node    ] rig linear velocity    = " << m_lin_vel << endl;
-        cout << "[Rig node    ] wheel angular velocity = " << m_ang_vel << endl;
-        cout << "[Rig node    ] tire radius            = " << tire_radius << endl;
-    }
-
     // ---------------------------------
     // Create DBP running average filter
     // ---------------------------------
@@ -483,11 +472,10 @@ void ChVehicleCosimRigNode::Construct() {
     outf << "   JSON file: " << m_tire_json << endl;
     outf << "   Pressure enabled? " << (m_tire_pressure ? "YES" : "NO") << endl;
     outf << "   Tire radius = " << GetTireRadius() << endl;
+    outf << "   Tire mass   = " << GetTireMass() << endl;
     outf << "Rig body masses" << endl;
-    outf << "   chassis = " << m_chassis_mass << endl;
-    outf << "   set_toe = " << m_set_toe_mass << endl;
-    outf << "   upright = " << m_upright_mass << endl;
-    outf << "   rim     = " << m_rim_mass << endl;
+    outf << "   total equivalent mass = " << m_total_mass << endl;
+    outf << "   individual body mass  = " << body_mass << endl;
     outf << "Actuation" << endl;
     outf << "   Type: " << GetActuationTypeAsString(m_act_type) << endl;
     outf << "   Base velocity          = " << m_base_vel << endl;
@@ -646,8 +634,7 @@ void ChVehicleCosimRigNode::Initialize() {
     MPI_Send(vert_data, 3 * m_mesh_data.nv + 3 * m_mesh_data.nn, MPI_DOUBLE, TERRAIN_NODE_RANK, 0, MPI_COMM_WORLD);
     MPI_Send(tri_data, 3 * m_mesh_data.nt + 3 * m_mesh_data.nt, MPI_INT, TERRAIN_NODE_RANK, 0, MPI_COMM_WORLD);
 
-    double mass = m_upright_mass + m_rim_mass + m_tire_mass;
-    MPI_Send(&mass, 1, MPI_DOUBLE, TERRAIN_NODE_RANK, 0, MPI_COMM_WORLD);
+    MPI_Send(&m_total_mass, 1, MPI_DOUBLE, TERRAIN_NODE_RANK, 0, MPI_COMM_WORLD);
 
     float mat_props[8] = {m_contact_mat->GetKfriction(),    m_contact_mat->GetRestitution(),
                           m_contact_mat->GetYoungModulus(), m_contact_mat->GetPoissonRatio(),
@@ -686,9 +673,6 @@ void ChVehicleCosimRigNodeFlexibleTire::InitializeTire() {
     // Tire contact material
     m_contact_mat = m_tire->GetContactMaterial();
 
-    // Tire mass
-    m_tire_mass = m_tire->ReportMass();
-
     // Preprocess the tire mesh and store neighbor element information for each vertex
     // and vertex indices for each element. This data is used in output.
     auto mesh = m_tire->GetMesh();
@@ -724,9 +708,6 @@ void ChVehicleCosimRigNodeRigidTire::InitializeTire() {
 
     // Tire contact material
     m_contact_mat = std::static_pointer_cast<ChMaterialSurfaceSMC>(m_tire->GetContactMaterial());
-
-    // Tire mass
-    m_tire_mass = m_tire->ReportMass();
 
     // Preprocess the tire mesh and store neighbor element information for each vertex.
     // Calculate mesh triangle areas.
