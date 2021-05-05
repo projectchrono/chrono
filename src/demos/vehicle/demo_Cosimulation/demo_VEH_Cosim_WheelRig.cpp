@@ -334,7 +334,7 @@ int main(int argc, char** argv) {
 
             case ChVehicleCosimTerrainNode::Type::GRANULAR_SPH: {
 #ifdef CHRONO_FSI
-                auto terrain = new ChVehicleCosimTerrainNodeGranularSPH();
+                auto terrain = new ChVehicleCosimTerrainNodeGranularSPH(terrain_specfile);
                 terrain->SetVerbose(verbose);
                 std::string param_filename = GetChronoDataFile("fsi/input_json/demo_tire_rig.json");
                 terrain->SetStepSize(step_size);
@@ -342,8 +342,6 @@ int main(int argc, char** argv) {
                 terrain->EnableRuntimeVisualization(render, render_fps);
                 if (verbose)
                     cout << "[Terrain node] output directory: " << terrain->GetOutDirName() << endl;
-
-                terrain->SetFromSpecfile(terrain_specfile);
 
                 node = terrain;
 #endif

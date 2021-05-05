@@ -73,6 +73,22 @@ ChVehicleCosimTerrainNodeGranularSPH::ChVehicleCosimTerrainNodeGranularSPH()
     m_system->SetNumThreads(1);
 }
 
+ChVehicleCosimTerrainNodeGranularSPH::ChVehicleCosimTerrainNodeGranularSPH(const std::string& specfile)
+    : ChVehicleCosimTerrainNode(Type::GRANULAR_SPH, ChContactMethod::SMC) {
+    // Create systems
+    m_system = new ChSystemSMC;
+    m_systemFSI = new ChSystemFsi(*m_system);
+
+    // Solver settings independent of method type
+    m_system->Set_G_acc(ChVector<>(0, 0, m_gacc));
+
+    // Set number of threads
+    m_system->SetNumThreads(1);
+
+    // Read SPH granular terrain parameters from provided specfile
+    SetFromSpecfile(specfile);
+}
+
 // -----------------------------------------------------------------------------
 
 //// TODO: error checking
