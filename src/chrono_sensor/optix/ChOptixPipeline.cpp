@@ -231,6 +231,9 @@ void ChOptixPipeline::CompileBaseShaders() {
 
     // get and compile all of our modules
     // intersection shaders
+
+    auto start_compile = std::chrono::high_resolution_clock::now();
+
     GetShaderFromFile(m_context, m_box_intersection_module, "box", module_compile_options, m_pipeline_compile_options);
     GetShaderFromFile(m_context, m_sphere_intersection_module, "sphere", module_compile_options,
                       m_pipeline_compile_options);
@@ -244,108 +247,85 @@ void ChOptixPipeline::CompileBaseShaders() {
     GetShaderFromFile(m_context, m_lidar_raygen_module, "lidar", module_compile_options, m_pipeline_compile_options);
     GetShaderFromFile(m_context, m_radar_raygen_module, "radar", module_compile_options, m_pipeline_compile_options);
     GetShaderFromFile(m_context, m_miss_module, "miss", module_compile_options, m_pipeline_compile_options);
+
+    auto end_compile = std::chrono::high_resolution_clock::now();
+
+    auto wall_time = std::chrono::duration_cast<std::chrono::duration<double>>(end_compile - start_compile);
+    std::cout << "Shader compile time: " << wall_time.count() << std::endl;
 }
-void ChOptixPipeline::AssembleBaseProgramGroups() {
+
+void ChOptixPipeline::CreateOptixProgramGroup(OptixProgramGroup& group,
+                                              OptixProgramGroupKind k,
+                                              OptixModule is_module,
+                                              const char* is_name,
+                                              OptixModule ch_module,
+                                              const char* ch_name) {
     char log[2048];
     size_t sizeof_log = sizeof(log);
 
-    // camera-hitting-box program group
-    OptixProgramGroupOptions camera_hit_box_group_options = {};
-    OptixProgramGroupDesc camera_hit_box_group_desc = {};
-    camera_hit_box_group_desc.kind = OPTIX_PROGRAM_GROUP_KIND_HITGROUP;
-    camera_hit_box_group_desc.hitgroup.moduleIS = m_box_intersection_module;
-    camera_hit_box_group_desc.hitgroup.entryFunctionNameIS = "__intersection__box_intersect";
-    camera_hit_box_group_desc.hitgroup.moduleCH = m_material_shading_module;
-    camera_hit_box_group_desc.hitgroup.entryFunctionNameCH = "__closesthit__material_shader";
-    OPTIX_ERROR_CHECK(optixProgramGroupCreate(m_context, &camera_hit_box_group_desc, 1, &camera_hit_box_group_options,
-                                              log, &sizeof_log, &m_hit_box_group));
+    OptixProgramGroupOptions group_options = {};
+    OptixProgramGroupDesc group_desc = {};
+    group_desc.kind = k;
 
-    // ray-hitting-sphere program group
-    OptixProgramGroupOptions camera_hit_sphere_group_options = {};
-    OptixProgramGroupDesc camera_hit_sphere_group_desc = {};
-    camera_hit_sphere_group_desc.kind = OPTIX_PROGRAM_GROUP_KIND_HITGROUP;
-    camera_hit_sphere_group_desc.hitgroup.moduleIS = m_sphere_intersection_module;
-    camera_hit_sphere_group_desc.hitgroup.entryFunctionNameIS = "__intersection__sphere_intersect";
-    camera_hit_sphere_group_desc.hitgroup.moduleCH = m_material_shading_module;
-    camera_hit_sphere_group_desc.hitgroup.entryFunctionNameCH = "__closesthit__material_shader";
-    OPTIX_ERROR_CHECK(optixProgramGroupCreate(m_context, &camera_hit_sphere_group_desc, 1,
-                                              &camera_hit_sphere_group_options, log, &sizeof_log, &m_hit_sphere_group));
+    switch (k) {
+        case OPTIX_PROGRAM_GROUP_KIND_HITGROUP: {
+            group_desc.hitgroup.moduleIS = is_module;
+            group_desc.hitgroup.entryFunctionNameIS = is_name;
+            group_desc.hitgroup.moduleCH = ch_module;
+            group_desc.hitgroup.entryFunctionNameCH = ch_name;
+            break;
+        }
+        case OPTIX_PROGRAM_GROUP_KIND_MISS: {
+            group_desc.miss.module = ch_module;
+            group_desc.miss.entryFunctionName = ch_name;
+            break;
+        }
+        case OPTIX_PROGRAM_GROUP_KIND_RAYGEN: {
+            group_desc.raygen.module = ch_module;
+            group_desc.raygen.entryFunctionName = ch_name;
+            break;
+        }
+        default:
+            break;
+    }
 
-    // ray-hitting-cylinder program group
-    OptixProgramGroupOptions camera_hit_cyl_group_options = {};
-    OptixProgramGroupDesc camera_hit_cyl_group_desc = {};
-    camera_hit_cyl_group_desc.kind = OPTIX_PROGRAM_GROUP_KIND_HITGROUP;
-    camera_hit_cyl_group_desc.hitgroup.moduleIS = m_cyl_intersection_module;
-    camera_hit_cyl_group_desc.hitgroup.entryFunctionNameIS = "__intersection__cylinder_intersect";
-    camera_hit_cyl_group_desc.hitgroup.moduleCH = m_material_shading_module;
-    camera_hit_cyl_group_desc.hitgroup.entryFunctionNameCH = "__closesthit__material_shader";
-    OPTIX_ERROR_CHECK(optixProgramGroupCreate(m_context, &camera_hit_cyl_group_desc, 1, &camera_hit_cyl_group_options,
-                                              log, &sizeof_log, &m_hit_cyl_group));
+    OPTIX_ERROR_CHECK(optixProgramGroupCreate(m_context, &group_desc, 1, &group_options, log, &sizeof_log, &group));
+}
 
-    // ray-hitting-mesh program group
-    OptixProgramGroupOptions camera_hit_mesh_group_options = {};
-    OptixProgramGroupDesc camera_hit_mesh_group_desc = {};
-    camera_hit_mesh_group_desc.kind = OPTIX_PROGRAM_GROUP_KIND_HITGROUP;
-    camera_hit_mesh_group_desc.hitgroup.moduleCH = m_material_shading_module;
-    camera_hit_mesh_group_desc.hitgroup.entryFunctionNameCH = "__closesthit__material_shader";
-    OPTIX_ERROR_CHECK(optixProgramGroupCreate(m_context, &camera_hit_mesh_group_desc, 1, &camera_hit_mesh_group_options,
-                                              log, &sizeof_log, &m_hit_mesh_group));
-
-    // camera miss program group
-    OptixProgramGroupOptions miss_group_options = {};
-    OptixProgramGroupDesc miss_group_desc = {};
-    miss_group_desc.kind = OPTIX_PROGRAM_GROUP_KIND_MISS;
-    miss_group_desc.miss.module = m_miss_module;
-    miss_group_desc.miss.entryFunctionName = "__miss__shader";
-    OPTIX_ERROR_CHECK(
-        optixProgramGroupCreate(m_context, &miss_group_desc, 1, &miss_group_options, log, &sizeof_log, &m_miss_group));
-
+void ChOptixPipeline::AssembleBaseProgramGroups() {
+    // box intersection and shading
+    CreateOptixProgramGroup(m_hit_box_group, OPTIX_PROGRAM_GROUP_KIND_HITGROUP, m_box_intersection_module,
+                            "__intersection__box_intersect", m_material_shading_module,
+                            "__closesthit__material_shader");
+    // sphere intersection and shading
+    CreateOptixProgramGroup(m_hit_sphere_group, OPTIX_PROGRAM_GROUP_KIND_HITGROUP, m_sphere_intersection_module,
+                            "__intersection__sphere_intersect", m_material_shading_module,
+                            "__closesthit__material_shader");
+    // cylinder intersection and shading
+    CreateOptixProgramGroup(m_hit_cyl_group, OPTIX_PROGRAM_GROUP_KIND_HITGROUP, m_cyl_intersection_module,
+                            "__intersection__cylinder_intersect", m_material_shading_module,
+                            "__closesthit__material_shader");
+    // mesh shading
+    CreateOptixProgramGroup(m_hit_mesh_group, OPTIX_PROGRAM_GROUP_KIND_HITGROUP, nullptr, nullptr,
+                            m_material_shading_module, "__closesthit__material_shader");
+    // miss shading
+    CreateOptixProgramGroup(m_miss_group, OPTIX_PROGRAM_GROUP_KIND_MISS, nullptr, nullptr, m_miss_module,
+                            "__miss__shader");
     // camera pinhole raygen
-    OptixProgramGroupOptions camera_pinhole_raygen_group_options = {};
-    OptixProgramGroupDesc camera_pinhole_raygen_group_desc = {};
-    camera_pinhole_raygen_group_desc.kind = OPTIX_PROGRAM_GROUP_KIND_RAYGEN;
-    camera_pinhole_raygen_group_desc.raygen.module = m_camera_raygen_module;
-    camera_pinhole_raygen_group_desc.raygen.entryFunctionName = "__raygen__camera_pinhole";
-    OPTIX_ERROR_CHECK(optixProgramGroupCreate(m_context, &camera_pinhole_raygen_group_desc, 1,
-                                              &camera_pinhole_raygen_group_options, log, &sizeof_log,
-                                              &m_camera_pinhole_raygen_group));
-
+    CreateOptixProgramGroup(m_camera_pinhole_raygen_group, OPTIX_PROGRAM_GROUP_KIND_RAYGEN, nullptr, nullptr,
+                            m_camera_raygen_module, "__raygen__camera_pinhole");
     // camera fov lens raygen
-    OptixProgramGroupOptions camera_fov_raygen_group_options = {};
-    OptixProgramGroupDesc camera_fov_raygen_group_desc = {};
-    camera_fov_raygen_group_desc.kind = OPTIX_PROGRAM_GROUP_KIND_RAYGEN;
-    camera_fov_raygen_group_desc.raygen.module = m_camera_raygen_module;
-    camera_fov_raygen_group_desc.raygen.entryFunctionName = "__raygen__camera_fov_lens";
-    OPTIX_ERROR_CHECK(optixProgramGroupCreate(m_context, &camera_fov_raygen_group_desc, 1,
-                                              &camera_fov_raygen_group_options, log, &sizeof_log,
-                                              &m_camera_fov_lens_raygen_group));
-
+    CreateOptixProgramGroup(m_camera_fov_lens_raygen_group, OPTIX_PROGRAM_GROUP_KIND_RAYGEN, nullptr, nullptr,
+                            m_camera_raygen_module, "__raygen__camera_fov_lens");
     // lidar single raygen
-    OptixProgramGroupOptions lidar_single_raygen_group_options = {};
-    OptixProgramGroupDesc lidar_single_raygen_group_desc = {};
-    lidar_single_raygen_group_desc.kind = OPTIX_PROGRAM_GROUP_KIND_RAYGEN;
-    lidar_single_raygen_group_desc.raygen.module = m_lidar_raygen_module;
-    lidar_single_raygen_group_desc.raygen.entryFunctionName = "__raygen__lidar_single";
-    OPTIX_ERROR_CHECK(optixProgramGroupCreate(m_context, &lidar_single_raygen_group_desc, 1,
-                                              &lidar_single_raygen_group_options, log, &sizeof_log,
-                                              &m_lidar_single_raygen_group));
+    CreateOptixProgramGroup(m_lidar_single_raygen_group, OPTIX_PROGRAM_GROUP_KIND_RAYGEN, nullptr, nullptr,
+                            m_lidar_raygen_module, "__raygen__lidar_single");
     // lidar multi raygen
-    OptixProgramGroupOptions lidar_multi_raygen_group_options = {};
-    OptixProgramGroupDesc lidar_multi_raygen_group_desc = {};
-    lidar_multi_raygen_group_desc.kind = OPTIX_PROGRAM_GROUP_KIND_RAYGEN;
-    lidar_multi_raygen_group_desc.raygen.module = m_lidar_raygen_module;
-    lidar_multi_raygen_group_desc.raygen.entryFunctionName = "__raygen__lidar_multi";
-    OPTIX_ERROR_CHECK(optixProgramGroupCreate(m_context, &lidar_multi_raygen_group_desc, 1,
-                                              &lidar_multi_raygen_group_options, log, &sizeof_log,
-                                              &m_lidar_multi_raygen_group));
+    CreateOptixProgramGroup(m_lidar_multi_raygen_group, OPTIX_PROGRAM_GROUP_KIND_RAYGEN, nullptr, nullptr,
+                            m_lidar_raygen_module, "__raygen__lidar_multi");
     // radar raygen
-    OptixProgramGroupOptions radar_raygen_group_options = {};
-    OptixProgramGroupDesc radar_raygen_group_desc = {};
-    radar_raygen_group_desc.kind = OPTIX_PROGRAM_GROUP_KIND_RAYGEN;
-    radar_raygen_group_desc.raygen.module = m_radar_raygen_module;
-    radar_raygen_group_desc.raygen.entryFunctionName = "__raygen__radar";
-    OPTIX_ERROR_CHECK(optixProgramGroupCreate(m_context, &radar_raygen_group_desc, 1, &radar_raygen_group_options, log,
-                                              &sizeof_log, &m_radar_raygen_group));
+    CreateOptixProgramGroup(m_radar_raygen_group, OPTIX_PROGRAM_GROUP_KIND_RAYGEN, nullptr, nullptr,
+                            m_radar_raygen_module, "__raygen__radar");
 }
 
 void ChOptixPipeline::CreateBaseSBT() {
@@ -358,10 +338,6 @@ void ChOptixPipeline::CreateBaseSBT() {
     miss_rec.data.camera_miss.mode = BackgroundMode::GRADIENT;
     miss_rec.data.camera_miss.color_zenith = {0.2f, 0.3f, 0.4f};
     miss_rec.data.camera_miss.color_zenith = {0.7, 0.8f, 0.9f};
-
-    // shadow defaults - not currently settable, but would do that here if desired
-    // lidar defaults - not currently settable, but would do that here if desired
-    // radar defaults - not currently settable, but would do that here if desired
 
     CUDA_ERROR_CHECK(cudaMemcpy(reinterpret_cast<void*>(md_miss_record), &miss_rec, sizeof(Record<MissParameters>),
                                 cudaMemcpyHostToDevice));
@@ -389,10 +365,6 @@ void ChOptixPipeline::UpdateBackground(Background b) {
         miss_rec.data.camera_miss.env_map = md_miss_texture_sampler;
     }
 
-    // shadow defaults - not currently settable, but would do that here if desired
-    // lidar defaults - not currently settable, but would do that here if desired
-    // radar defaults - not currently settable, but would do that here if desired
-
     CUDA_ERROR_CHECK(cudaMemcpy(reinterpret_cast<void*>(md_miss_record), &miss_rec, sizeof(Record<MissParameters>),
                                 cudaMemcpyHostToDevice));
 }
@@ -407,7 +379,6 @@ void ChOptixPipeline::SpawnPipeline(PipelineType type) {
     std::vector<OptixProgramGroup> program_groups;
 
     // create the sbt that corresponds to the pipeline
-    // OptixShaderBindingTable b = {};
     auto b = chrono_types::make_shared<OptixShaderBindingTable>();
 
     // raygen record
@@ -631,66 +602,43 @@ unsigned int ChOptixPipeline::GetMaterial(std::shared_ptr<ChVisualMaterial> mat)
         material.use_specular_workfloat = mat->GetUseSpecularWorkflow();
         material.lidar_intensity = 1.f;    // TODO: allow setting of this in the visual material chrono-side
         material.radar_backscatter = 1.f;  // TODO: allow setting of this in the visual material chrono-side
+        material.kn_tex = 0;               // explicitely null as default
+        material.kd_tex = 0;               // explicitely null as default
+        material.ks_tex = 0;               // explicitely null as default
+        material.metallic_tex = 0;         // explicitely null as default
+        material.roughness_tex = 0;        // explicitely null as default
+        material.opacity_tex = 0;          // explicitely null as default
 
         // normal texture
         if (mat->GetNormalMapTexture() != "") {
-            cudaTextureObject_t d_tex_sampler;
             cudaArray_t d_img_array;
-            CreateDeviceTexture(d_tex_sampler, d_img_array, mat->GetNormalMapTexture());
-            material.kn_tex = d_tex_sampler;
-        } else {
-            material.kn_tex = 0;  // explicitely null
+            CreateDeviceTexture(material.kn_tex, d_img_array, mat->GetNormalMapTexture());
         }
-
         // diffuse texture
         if (mat->GetKdTexture() != "") {
-            cudaTextureObject_t d_tex_sampler;
             cudaArray_t d_img_array;
-            CreateDeviceTexture(d_tex_sampler, d_img_array, mat->GetKdTexture());
-            material.kd_tex = d_tex_sampler;
-        } else {
-            material.kd_tex = 0;  // explicitely null
+            CreateDeviceTexture(material.kd_tex, d_img_array, mat->GetKdTexture());
         }
-
         // specular texture
         if (mat->GetKsTexture() != "") {
-            cudaTextureObject_t d_tex_sampler;
             cudaArray_t d_img_array;
-            CreateDeviceTexture(d_tex_sampler, d_img_array, mat->GetKsTexture());
-            material.ks_tex = d_tex_sampler;
-        } else {
-            material.ks_tex = 0;  // explicitely null
+            CreateDeviceTexture(material.ks_tex, d_img_array, mat->GetKsTexture());
         }
         // metalic texture
         if (mat->GetMetallicTexture() != "") {
-            cudaTextureObject_t d_tex_sampler;
             cudaArray_t d_img_array;
-            CreateDeviceTexture(d_tex_sampler, d_img_array, mat->GetMetallicTexture());
-            material.metallic_tex = d_tex_sampler;
-        } else {
-            material.metallic_tex = 0;  // explicitely null
+            CreateDeviceTexture(material.metallic_tex, d_img_array, mat->GetMetallicTexture());
         }
-
         // roughness texture
         if (mat->GetRoughnessTexture() != "") {
-            cudaTextureObject_t d_tex_sampler;
             cudaArray_t d_img_array;
-            CreateDeviceTexture(d_tex_sampler, d_img_array, mat->GetRoughnessTexture());
-            material.roughness_tex = d_tex_sampler;
-        } else {
-            material.roughness_tex = 0;  // explicitely null
+            CreateDeviceTexture(material.roughness_tex, d_img_array, mat->GetRoughnessTexture());
         }
-
         // opacity texture
         if (mat->GetOpacityTexture() != "") {
-            cudaTextureObject_t d_tex_sampler;
             cudaArray_t d_img_array;
-            CreateDeviceTexture(d_tex_sampler, d_img_array, mat->GetOpacityTexture());
-            material.opacity_tex = d_tex_sampler;
-        } else {
-            material.opacity_tex = 0;  // explicitely null
+            CreateDeviceTexture(material.opacity_tex, d_img_array, mat->GetOpacityTexture());
         }
-
         m_material_pool.push_back(material);
         return m_material_pool.size() - 1;
 
@@ -973,25 +921,27 @@ void ChOptixPipeline::UpdateDeformableMeshes() {
 
         // update all the vertex locations
 
-        std::vector<float3> vertex_buffer = std::vector<float3>(mesh->getCoordsVertices().size());
+        std::vector<float4> vertex_buffer = std::vector<float4>(mesh->getCoordsVertices().size());
         for (int j = 0; j < mesh->getCoordsVertices().size(); j++) {
-            vertex_buffer[j] = make_float3((float)mesh->getCoordsVertices()[j].x(),  //
+            vertex_buffer[j] = make_float4((float)mesh->getCoordsVertices()[j].x(),  //
                                            (float)mesh->getCoordsVertices()[j].y(),  //
-                                           (float)mesh->getCoordsVertices()[j].z());
+                                           (float)mesh->getCoordsVertices()[j].z(),  //
+                                           0.f);                                     // padding for alignment
         }
         CUDA_ERROR_CHECK(cudaMemcpy(reinterpret_cast<void*>(d_vertices), vertex_buffer.data(),
-                                    sizeof(float3) * vertex_buffer.size(), cudaMemcpyHostToDevice));
+                                    sizeof(float4) * vertex_buffer.size(), cudaMemcpyHostToDevice));
 
         // update all the normals if normal exist
         if (mesh_shape->GetMesh()->getCoordsNormals().size() > 0) {
-            std::vector<float3> normal_buffer = std::vector<float3>(mesh->getCoordsNormals().size());
+            std::vector<float4> normal_buffer = std::vector<float4>(mesh->getCoordsNormals().size());
             for (int j = 0; j < mesh->getCoordsNormals().size(); j++) {
-                normal_buffer[j] = make_float3((float)mesh->getCoordsNormals()[j].x(),  //
+                normal_buffer[j] = make_float4((float)mesh->getCoordsNormals()[j].x(),  //
                                                (float)mesh->getCoordsNormals()[j].y(),  //
-                                               (float)mesh->getCoordsNormals()[j].z());
+                                               (float)mesh->getCoordsNormals()[j].z(),  //
+                                               0.f);                                    // padding for alignment
             }
             CUDA_ERROR_CHECK(cudaMemcpy(reinterpret_cast<void*>(d_normals), normal_buffer.data(),
-                                        sizeof(float3) * normal_buffer.size(), cudaMemcpyHostToDevice));
+                                        sizeof(float4) * normal_buffer.size(), cudaMemcpyHostToDevice));
         }
 
         // TODO: for SCM terrain, make use of the list of modified vertices

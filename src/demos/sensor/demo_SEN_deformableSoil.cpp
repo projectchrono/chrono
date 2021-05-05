@@ -38,9 +38,7 @@
 #include "chrono_sensor/ChCameraSensor.h"
 #include "chrono_sensor/ChSensorManager.h"
 #include "chrono_sensor/filters/ChFilterVisualize.h"
-// #include "chrono_sensor/filters/ChFilterSave.h"
 #include "chrono_sensor/utils/ChVisualMaterialUtils.h"
-// #include "chrono_sensor/filters/ChFilterAccess.h"
 
 using namespace chrono;
 using namespace chrono::collision;
@@ -334,13 +332,11 @@ int main(int argc, char* argv[]) {
 
     // Create the sensor manager
     auto manager = chrono_types::make_shared<ChSensorManager>(my_hmmwv.GetSystem());
-    manager->SetVerbose(true);
 
     // Set lights
-    float intensity = 1.2;
+    float intensity = 1.0;
     manager->scene->AddPointLight({20, 20, 30}, {intensity, intensity, intensity}, 5000);
-    manager->scene->AddPointLight({-20, 20, 30}, {intensity, intensity, intensity}, 5000);
-
+    
     // Set up Camera
     chrono::ChFrame<double> offset_pose1({-8, 0, 3}, Q_from_AngAxis(.2, {0, 1, 0}));
     auto cam =

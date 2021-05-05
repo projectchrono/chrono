@@ -87,13 +87,6 @@ class CH_SENSOR_API ChOptixEngine {
     /// from Chrono to Optix
     void ConstructScene();
 
-    /// adds a static triangle mesh to the scene that is external to Chrono. This is a way to add
-    /// complex environment that includes trees, etc
-    /// @param frames The reference frames that encode location, orientation, and scale. One for each object that should
-    /// be added to the environment
-    /// @param mesh The mesh that should be added at each reference frame.
-    void AddInstancedStaticSceneMeshes(std::vector<ChFrame<>>& frames, std::shared_ptr<ChTriangleMeshShape> mesh);
-
     /// Way to query the device ID on which the engine is running. CANNOT BE MODIFIED since the engine will have been
     /// already constructed
     /// @return the GPU ID
@@ -152,37 +145,17 @@ class CH_SENSOR_API ChOptixEngine {
                                      std::shared_ptr<ChTriangleMeshShape> sphere_shape,
                                      std::shared_ptr<ChVisualization> visual_asset);
 
-    // std::thread m_thread;                                  ///< worker thread for performing render operations
-    // std::vector<std::shared_ptr<ChSensor>> m_renderQueue;  ///< list of sensors for the engine to manage to process
     std::vector<unsigned int> m_renderQueue;  ///< list of sensor indices that need to be updated
-
-    // std::deque<std::tuple<float, std::vector<std::vector<float>>>>
-    //     m_keyframes;  ///< queue of keyframes (queue of keyframes, each keyframe has a time and N bodies (vector),
-    //     each
-    // ///< body has 12 floats that define transform)
-    // std::deque<std::tuple<float, std::vector<std::vector<float>>>>
-    //     m_camera_keyframes;      ///< queue of keyframes (queue of keyframes, each keyframe has a time and N bodies
-    //                              ///< (vector), each body has 16 floats that define transform)
-    // int m_max_keyframes_needed;  ///< the maximum number of keyframes that should be stored
-
-    std::vector<float> m_internal_keyframes;  ///< holder of data for internal keyframe data for optix.
-
-    // noise buffer that is available to all programs using this context
-    bool m_noise_initialized = false;        ///< toggling whether to initialize the noise buffer
-    long unsigned int m_num_noise_vals = 0;  ///< number of noise values needed by largest sensor
 
     // mutex and condition variables
     // std::mutex m_sceneBuildMutex;               ///< mutex for protecting the scene building operation
     // std::condition_variable m_sceneBuildCV;     ///< condition variable for notifying the scene building thread
     std::deque<RenderThread> m_renderThreads;  ///< threads for rendering
     RenderThread m_sceneThread;                ///< thread for performing scene builds
-    // std::unique_lock<std::mutex> m_mainLock;   ///< a lock for the main thread to keep the mutex locked out of scope
 
     bool m_terminate = false;  ///< worker thread stop variable
     bool m_started = false;    ///< worker thread start variable
 
-    // optix::Buffer m_light_buffer;  ///< scene light buffer
-    // std::vector<PointLight> m_lights;  ///< scene light host buffer
     CUdeviceptr md_lights;  ///< lights on the gpu
 
     // information that belongs to the rendering concept of this engine

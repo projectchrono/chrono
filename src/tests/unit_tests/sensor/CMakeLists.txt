@@ -2,10 +2,12 @@ SET(LIBRARIES ChronoEngine ChronoEngine_sensor ${SENSOR_LIBRARIES})
 INCLUDE_DIRECTORIES( ${CH_INCLUDES} ${CH_SENSOR_INCLUDES} )
 
 SET(TESTS
-    utest_SEN_interface
-    utest_SEN_threadsafety
     utest_SEN_gps
+    utest_SEN_interface
     utest_SEN_optixengine
+    utest_SEN_optixgeometry
+    utest_SEN_optixpipeline
+    utest_SEN_threadsafety    
 )
 
 MESSAGE(STATUS "Unit test programs for SENSOR module...")

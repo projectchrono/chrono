@@ -612,10 +612,10 @@ void ChOptixGeometry::RebuildRootStructure() {
         const ChVector<double> pos_end = f_end.GetPos();
         const ChMatrix33<double> rot_mat_end = f_end.Amatrix;
 
-        m_motion_transforms[i].motionOptions.numKeys = 2;               // TODO: would we need more than this?
+        // m_motion_transforms[i].motionOptions.numKeys = 2;               // TODO: would we need more than this?
         m_motion_transforms[i].motionOptions.timeBegin = m_start_time;  // default at start, will be updated
         m_motion_transforms[i].motionOptions.timeEnd = m_end_time;      // default at start, will be updated
-        m_motion_transforms[i].motionOptions.flags = OPTIX_MOTION_FLAG_NONE;
+        // m_motion_transforms[i].motionOptions.flags = OPTIX_MOTION_FLAG_NONE;
 
         // ChVector<> old_pos = {m_motion_transforms[i].transform[0][3], m_motion_transforms[i].transform[0][7],
         //                       m_motion_transforms[i].transform[0][11]};

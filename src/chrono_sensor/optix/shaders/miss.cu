@@ -50,15 +50,11 @@ extern "C" __global__ void __miss__shader() {
             break;
         }
         case LIDAR_RAY_TYPE: {
-            PerRayData_lidar* prd = getLidarPRD();
-            prd->range = 0.f;
-            prd->intensity = 0.f;
+            // leave as default values
             break;
         }
         case RADAR_RAY_TYPE: {
-            PerRayData_radar* prd = getRadarPRD();
-            prd->range = 0.f;
-            prd->rcs = 0.f;
+            // leave as default values
             break;
         }
     }

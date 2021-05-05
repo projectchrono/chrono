@@ -23,7 +23,6 @@
 #endif
 
 #include "chrono_sensor/optix/shaders/device_utils.h"
-#include "chrono_sensor/optix/ChOptixDefinitions.h"
 
 static __device__ __inline__ float NormalDist(const float& NdH, const float& roughness) {
     float rough_sqr = roughness * roughness;
@@ -417,7 +416,7 @@ extern "C" __global__ void __closesthit__material_shader() {
         tangent = make_float3(int_as_float(optixGetAttribute_5()), int_as_float(optixGetAttribute_6()),
                               int_as_float(optixGetAttribute_7()));
     }
-
+    
     const MaterialParameters& mat = params.material_pool[material_id];
 
     if (mat.kn_tex) {

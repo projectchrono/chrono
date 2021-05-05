@@ -37,17 +37,18 @@ using namespace chrono;
 using namespace chrono::geometry;
 using namespace chrono::sensor;
 
-float end_time = 10.0f;
+float end_time = 2.0f;
 bool vis = true;
 
-int start_q_per_dim = 1;
-int end_q_per_dim = 1;
+int start_q_per_dim = 9;
+int end_q_per_dim = 9;
 
 float randf() {
     return static_cast<float>(rand()) / static_cast<float>(RAND_MAX);
 }
 
 int main(int argc, char* argv[]) {
+    srand(0);
     for (int q = start_q_per_dim; q <= end_q_per_dim; q++) {
         GetLog() << "Copyright (c) 2019 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
 
@@ -80,24 +81,24 @@ int main(int argc, char* argv[]) {
         for (int i = 0; i < x_instances; i++) {
             for (int j = 0; j < y_instances; j++) {
                 for (int k = 0; k < z_instances; k++) {
-                    // auto trimesh_shape = std::make_shared<ChTriangleMeshShape>();
-                    // trimesh_shape->SetMesh(mmesh);
+                    auto trimesh_shape = std::make_shared<ChTriangleMeshShape>();
+                    trimesh_shape->SetMesh(mmesh);
                     // trimesh_shape->SetName("HMMWV Chassis Mesh");
-                    // trimesh_shape->SetStatic(true);
-                    // float scale = .5 * randf() + .1;
-                    // // trimesh_shape->SetScale({scale, scale, scale});
+                    trimesh_shape->SetStatic(true);
+                    float scale = .5 * randf() + .1;
+                    trimesh_shape->SetScale({scale, scale, scale});
                     // trimesh_shape->SetScale({.8, .8, .8});
-                    // trimesh_shape->material_list = base_trimesh_shape->material_list;
+                    trimesh_shape->material_list = base_trimesh_shape->material_list;
 
-                    // auto mesh_body = std::make_shared<ChBody>();
-                    auto mesh_body = std::make_shared<ChBodyEasyBox>(2 * randf() + .1, 2 * randf() + .1,
-                                                                     2 * randf() + .1, 1000, true, false);
+                    auto mesh_body = std::make_shared<ChBody>();
+                    // auto mesh_body = std::make_shared<ChBodyEasyBox>(2 * randf() + .1, 2 * randf() + .1,
+                    //                                                  2 * randf() + .1, 1000, true, false);
                     mesh_body->SetPos({x_spread * (i + .5 - x_instances / 2.), y_spread * (j + .5 - y_instances / 2.),
                                        z_spread * (k + .5 - z_instances / 2.)});
-                    // // ChQuaternion<> q = {randf(), randf(), randf(), randf()};
-                    // // q.Normalize();
-                    // // mesh_body->SetRot(q);
-                    // mesh_body->AddAsset(trimesh_shape);
+                    ChQuaternion<> q = {randf(), randf(), randf(), randf()};
+                    q.Normalize();
+                    mesh_body->SetRot(q);
+                    mesh_body->AddAsset(trimesh_shape);
                     mesh_body->SetBodyFixed(true);
                     mphysicalSystem.Add(mesh_body);
                 }
@@ -113,24 +114,24 @@ int main(int argc, char* argv[]) {
         // -----------------------
         auto manager = std::make_shared<ChSensorManager>(&mphysicalSystem);
         manager->scene->AddPointLight({100, 100, 100}, {1, 1, 1}, 5000);
-        manager->scene->AddPointLight({-100, 100, 100}, {1, 1, 1}, 5000);
-        manager->scene->AddPointLight({100, -100, 100}, {1, 1, 1}, 5000);
-        manager->scene->AddPointLight({-100, -100, 100}, {1, 1, 1}, 5000);
+        // manager->scene->AddPointLight({-100, 100, 100}, {1, 1, 1}, 5000);
+        // manager->scene->AddPointLight({100, -100, 100}, {1, 1, 1}, 5000);
+        // manager->scene->AddPointLight({-100, -100, 100}, {1, 1, 1}, 5000);
 
         // ------------------------------------------------
         // Create a camera and add it to the sensor manager
         // ------------------------------------------------
         auto cam = std::make_shared<ChCameraSensor>(
             cam_body,                                                           // body camera is attached to
-            50.0f,                                                              // update rate in Hz
+            60.0f,                                                              // update rate in Hz
             chrono::ChFrame<double>({-8, 0, 1}, Q_from_AngAxis(0, {0, 1, 0})),  // offset pose
             1920,                                                               // image width
             1080,                                                               // image height
             (float)CH_C_PI / 3                                                  // FOV
         );
         cam->SetName("Camera Sensor");
-        if (vis)
-            cam->PushFilter(std::make_shared<ChFilterVisualize>(1280, 720));
+        // if (vis)
+        //     cam->PushFilter(std::make_shared<ChFilterVisualize>(1280, 720));
 
         manager->AddSensor(cam);
 
@@ -157,7 +158,7 @@ int main(int argc, char* argv[]) {
                 Q_from_AngAxis(ch_time * orbit_rate, {0, 0, 1})));
 
             manager->Update();
-            mphysicalSystem.DoStepDynamics(0.1);
+            mphysicalSystem.DoStepDynamics(0.01);
 
             ch_time = (float)mphysicalSystem.GetChTime();
         }
