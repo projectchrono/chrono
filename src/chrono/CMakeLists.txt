@@ -291,6 +291,7 @@ set(ChronoEngine_physics_loads_SOURCES
     physics/ChLoad.cpp
     physics/ChLoadsBody.cpp
     physics/ChLoadsXYZnode.cpp
+    physics/ChLoadsXYZROTnode.cpp
     physics/ChLoadBodyMesh.cpp
 )
 
@@ -302,6 +303,7 @@ set(ChronoEngine_physics_loads_HEADERS
     physics/ChLoaderUVW.h
     physics/ChLoad.h
     physics/ChLoadsXYZnode.h
+    physics/ChLoadsXYZROTnode.h
     physics/ChLoadsBody.h
     physics/ChLoadBodyMesh.h
     physics/ChLoadContainer.h
