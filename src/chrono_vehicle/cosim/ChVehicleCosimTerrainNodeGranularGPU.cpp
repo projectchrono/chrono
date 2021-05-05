@@ -233,7 +233,7 @@ void ChVehicleCosimTerrainNodeGranularGPU::Construct() {
     m_systemGPU->SetGravitationalAcceleration(ChVector<float>(0, 0, (float)m_gacc));
     m_systemGPU->SetTimeIntegrator(m_integrator_type);
     m_systemGPU->SetFrictionMode(m_tangential_model);
-    m_systemGPU->SetOutputMode(gpu::CHGPU_OUTPUT_MODE::CSV);
+    m_systemGPU->SetParticleOutputMode(gpu::CHGPU_OUTPUT_MODE::CSV);
     m_systemGPU->SetVerbosity(gpu::CHGPU_VERBOSITY::QUIET);
     m_systemGPU->SetMeshVerbosity(gpu::CHGPU_MESH_VERBOSITY::QUIET);
 
@@ -438,9 +438,9 @@ void ChVehicleCosimTerrainNodeGranularGPU::Settle() {
         if (m_settling_output && is % output_steps == 0) {
             char filename[100];
             sprintf(filename, "%s/settling/settling_%05d.csv", m_node_out_dir.c_str(), output_frame + 1);
-            m_systemGPU->SetOutputFlags(gpu::CHGPU_OUTPUT_FLAGS::VEL_COMPONENTS |
-                                        gpu::CHGPU_OUTPUT_FLAGS::ANG_VEL_COMPONENTS |
-                                        gpu::CHGPU_OUTPUT_FLAGS::FORCE_COMPONENTS);
+            m_systemGPU->SetParticleOutputFlags(gpu::CHGPU_OUTPUT_FLAGS::VEL_COMPONENTS |
+                                                gpu::CHGPU_OUTPUT_FLAGS::ANG_VEL_COMPONENTS |
+                                                gpu::CHGPU_OUTPUT_FLAGS::FORCE_COMPONENTS);
             m_systemGPU->WriteParticleFile(filename);
             output_frame++;
         }
@@ -722,8 +722,9 @@ void ChVehicleCosimTerrainNodeGranularGPU::OnOutputData(int frame) {
     // Create and write frame output file.
     char filename[100];
     sprintf(filename, "%s/simulation/simulation_%05d.csv", m_node_out_dir.c_str(), frame + 1);
-    m_systemGPU->SetOutputFlags(gpu::CHGPU_OUTPUT_FLAGS::VEL_COMPONENTS | gpu::CHGPU_OUTPUT_FLAGS::ANG_VEL_COMPONENTS |
-                                gpu::CHGPU_OUTPUT_FLAGS::FORCE_COMPONENTS);
+    m_systemGPU->SetParticleOutputFlags(gpu::CHGPU_OUTPUT_FLAGS::VEL_COMPONENTS |
+                                        gpu::CHGPU_OUTPUT_FLAGS::ANG_VEL_COMPONENTS |
+                                        gpu::CHGPU_OUTPUT_FLAGS::FORCE_COMPONENTS);
     m_systemGPU->WriteParticleFile(filename);
 }
 
