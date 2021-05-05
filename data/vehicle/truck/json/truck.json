@@ -1,0 +1,29 @@
+{
+  "Name": "truck",
+  "Type": "Vehicle",
+  "Template": "WheeledVehicle",
+
+  "Vehicle": {
+    "Input File": "truck/truck_Vehicle.json",
+    "Chassis Visualization Type": "Mesh",
+    "Suspension Visualization Type": "None",
+    "Steering Visualization Type": "None",
+    "Wheel Visualization Type": "Mesh"
+  },
+
+  "Powertrain": {
+    "Input File": "truck/json/truck_SimpleCVTPowertrain.json"
+  },
+
+  "Tire": {
+    "Input File": "truck/json/truck_TMeasyTire.json",
+    "Visualization Type": "Mesh"
+  },
+
+  "Zombie": {
+    "Chassis Visualization File": "truck/truck_chassis.obj",
+    "Wheel Visualization File": "truck/truck_rim.obj",
+    "Tire Visualization File": "truck/truck_tire.obj",
+    "Number of Wheels": 6
+  }
+}

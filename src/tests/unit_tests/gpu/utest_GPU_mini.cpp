@@ -59,7 +59,7 @@ bool run_test(float box_size_X, float box_size_Y, float box_size_Z) {
     gpu_sys.SetAdhesionRatio_SPH2WALL(adhesion_ratio_s2w);
 
     gpu_sys.SetGravitationalAcceleration(ChVector<float>(0.f, 0.f, grav_acceleration));
-    gpu_sys.SetOutputMode(write_mode);
+    gpu_sys.SetParticleOutputMode(write_mode);
 
     // Fill the bottom half with material
     chrono::utils::HCPSampler<float> sampler(2.1f * sphereRadius);  // Add epsilon

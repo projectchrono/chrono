@@ -1,0 +1,25 @@
+# Blender MTL File: 'None'
+# Material Count: 2
+
+newmtl phong1SG
+illum 4
+Kd 0.00 0.00 0.00
+Ka 0.00 0.00 0.00
+Tf 1.00 1.00 1.00
+map_Kd textures/Audi_Chassis_BaseColor_white.jpg
+map_Pr textures/Audi_Whole_Texturing_031021_Chassis1_Roughness.jpg
+map_Pm textures/Audi_Whole_Texturing_031021_Chassis1_Metallic.jpg
+norm textures/Audi_Whole_Texturing_031021_Chassis1_Normal.jpg
+map_d textures/Chassis1_Opacity.jpg
+Ni 1.00
+
+newmtl phong2SG
+illum 4
+Kd 0.00 0.00 0.00
+Ka 0.00 0.00 0.00
+Tf 1.00 1.00 1.00
+map_Kd textures/Audi_Whole_Texturing_031021_Interior_Aux_BaseColor.jpg
+map_Pr textures/Audi_Whole_Texturing_031021_Interior_Aux_Roughness.jpg
+map_Pm textures/Audi_Whole_Texturing_031021_Interior_Aux_Metallic.jpg
+norm textures/Audi_Whole_Texturing_031021_Interior_Aux_Normal.jpg
+Ni 1.00

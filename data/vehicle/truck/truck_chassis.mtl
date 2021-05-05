@@ -1,0 +1,45 @@
+# Blender MTL File: 'None'
+# Material Count: 3
+
+newmtl lambert10SG.002
+Ns 0.000000
+Ka 1.000000 1.000000 1.000000
+Kd 0.500000 0.500000 0.500000
+Ks 0.000000 0.000000 0.000000
+Ke 0.000000 0.000000 0.000000
+map_Kd textures/Truck_Texturing_Truck_Wheel_Tire_Trailer_BaseColor.jpg
+map_Pr textures/Truck_Texturing_Truck_Wheel_Tire_Trailer_Roughness.jpg
+map_Pm textures/Truck_Texturing_Truck_Wheel_Tire_Trailer_Metallic.jpg
+norm textures/Truck_Texturing_Truck_Wheel_Tire_Trailer_Normal.jpg
+Ni 1.000000
+d 1.000000
+illum 1
+
+newmtl lambert11SG
+Ns 0.000000
+Ka 1.000000 1.000000 1.000000
+Kd 0.500000 0.500000 0.500000
+Ks 0.000000 0.000000 0.000000
+Ke 0.000000 0.000000 0.000000
+map_Kd textures/Truck_Texturing_Truck_Chassis_BaseColor.jpg
+map_Pr textures/Truck_Texturing_Truck_Chassis_Roughness.jpg
+map_Pm textures/Truck_Texturing_Truck_Chassis_Metallic.jpg
+norm textures/Truck_Texturing_Truck_Chassis_Normal.jpg
+map_d textures/Truck_Chassis_Opacity.jpg
+Ni 1.000000
+d 1.000000
+illum 1
+
+newmtl lambert12SG
+Ns 0.000000
+Ka 1.000000 1.000000 1.000000
+Kd 0.500000 0.500000 0.500000
+Ks 0.000000 0.000000 0.000000
+Ke 0.000000 0.000000 0.000000
+map_Kd textures/Truck_Texturing_Truck_Interior_BaseColor.jpg
+map_Pr textures/Truck_Texturing_Truck_Interior_Roughness.jpg
+map_Pm textures/Truck_Texturing_Truck_Interior_Metallic.jpg
+norm textures/Truck_Texturing_Truck_Interior_Normal.jpg
+Ni 1.000000
+d 1.000000
+illum 1

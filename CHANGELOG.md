@@ -5,6 +5,7 @@ Change Log
 ==========
 
 - [Unreleased (development version)](#unreleased-development-branch)
+  - [Added new loads for ChNodeFEAxyzrot](#added-new-loads-for-ChNodeFEAxyzrot)
   - [Analytical box-box collision detection algorithm in Chrono::Multicore](#added-analytical-box-box-collision-detection-algorithm-in-chronomulticore)
   - [Checkpointing capabilities in Chrono::Gpu](#added-checkpointing-capabilities-in-chronogpu)
   - [Fixes to particle volume samplers and generators](#fixed-fixes-to-particle-volume-samplers-and-generators)
@@ -43,6 +44,14 @@ Change Log
 
 ## Unreleased (development branch)
 
+### [Added] New loads for ChNodeFEAxyzrot
+
+New classes have been added for creating loads (with automatic jacobian generation that allow also stiff loads) for ChNodeFEAxyzrot nodes, in detail:
+- on a node of ChNodeFEAxyzrot type (user defined etc.)
+- between two ChNodeFEAxyzrot (user defined, spherical bushing, plastic bushing, generic bushing, etc.)
+- between a ChNodeFEAxyzrot and a ChBody (user defined, spherical bushing, plastic bushing, generic bushing, etc.)
+Previously, these types of loads were available only for the ChNodeFEAxyz node (used in tetahedrons and bricks, for example) but not for ChNodeFEAxyzrot (used in beams and Reissner shells, for example). 
+
 ### [Added] Analytical box box collision detection algorithm in Chrono::Multicore
 
 A new algorithm for analytical collision detection for box-box interactions was added to the parallel collision system implemented in Chrono:Multicore.
@@ -76,11 +85,14 @@ sys2.ReadCheckpointFile("checkpoint.dat");
 */
 ```
 
-`ChSystemGpu::ReadParticleFile` is used to load particle positions and velocities from a CSV file. It is useful if the particle information is meant to be supplied from a file rather than using scripts.
-
-Note that these `Read` and `Write` methods work in `ChSystemGpuMesh` system as well.
+`ChSystemGpu::ReadParticleFile` is used to load particle positions and velocities from a CSV file. It is useful if the particle information is meant to be supplied from a file rather than programatically.
 
 See demo_GPU_ballcosim for an example of using checkpointing.
+
+Function renames:
+- `ChSystemGpu::WriteFile` renamed to `ChSystemGpu::WriteParticleFile`
+- `ChSystemGpu::SetOutputFlags` renamed to `ChSystemGpu::SetParticleOutputFlags`
+- `ChSystemGpu::SetOutputMode` renamed to `ChSystemGpu::SetParticleOutputMode`
 
 Notes:
 - Default output flags are set to write particle positions and velocity magnitudes only, excluding angular velocity components. The output flags can be set by `ChSystemGpu::SetParticleOutputFlags`.

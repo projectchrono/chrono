@@ -79,11 +79,9 @@ class CH_GPU_API ChSystemGpu {
 
     /// Set the output mode of the simulation.
     void SetParticleOutputMode(CHGPU_OUTPUT_MODE mode);
-    void SetOutputMode(CHGPU_OUTPUT_MODE mode) { SetParticleOutputMode(mode); }
 
     /// Set output settings bit flags by bitwise ORing settings in CHGPU_OUTPUT_FLAGS.
     void SetParticleOutputFlags(unsigned int flags);
-    void SetOutputFlags(unsigned int flags) { SetParticleOutputFlags(flags); }
 
     /// Set timestep size.
     void SetFixedStepSize(float size_UU);
@@ -422,7 +420,7 @@ class CH_GPU_API ChSystemGpuMesh : public ChSystemGpu {
         false;  ///< true: use mesh normals in file to correct mesh orientation; false: do nothing, implicitly use RHR
 
     /// GpuMesh version of setting simulation params based on identifiers in the checkpoint file.
-    bool SetParamsFromIdentifier(const std::string& identifier, std::istringstream& iss1, bool overwrite);
+    virtual bool SetParamsFromIdentifier(const std::string& identifier, std::istringstream& iss1, bool overwrite) override;
 
     /// GpuMesh version of parameter writing subroutine
     void WriteCheckpointMeshParams(std::ofstream& cpFile) const;
