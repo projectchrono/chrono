@@ -100,14 +100,34 @@ class RigNodeWheel : public ChWheel {
 
 // =============================================================================
 
+std::string ChVehicleCosimRigNode::GetActuationTypeAsString(ActuationType type) {
+    switch (type) {
+        case ActuationType::SET_LIN_VEL:
+            return "SET_LIN_VEL";
+        case ActuationType::SET_ANG_VEL:
+            return "SET_ANG_VEL";
+        default:
+            return "UNKNOWN";
+    }
+}
+
+ChVehicleCosimRigNode::ActuationType ChVehicleCosimRigNode::GetActuationTypeFromString(const std::string& type) {
+    if (type == "SET_LIN_VEL")
+        return ActuationType::SET_LIN_VEL;
+    if (type == "SET_ANG_VEL")
+        return ActuationType::SET_ANG_VEL;
+
+    return ActuationType::UNKNOWN;
+}
+
 std::string ChVehicleCosimRigNode::GetTireTypeAsString(TireType type) {
     switch (type) {
         case TireType::RIGID:
-            return "Rigid";
+            return "RIGID";
         case TireType::FLEXIBLE:
-            return "Flexible";
+            return "FLEXIBLE";
         default:
-            return "Unknown";
+            return "UNKNOWN";
     }
 }
 
@@ -164,11 +184,18 @@ ChVehicleCosimRigNode::TireType ChVehicleCosimRigNode::GetTireTypeFromSpecfile(c
 // Construction of the rig node:
 // - create the (sequential) Chrono system and set solver parameters
 // -----------------------------------------------------------------------------
-ChVehicleCosimRigNode::ChVehicleCosimRigNode(TireType tire_type, double init_vel, double slip, int num_threads)
+ChVehicleCosimRigNode::ChVehicleCosimRigNode(TireType tire_type,
+                                             ActuationType act_type,
+                                             double base_vel,
+                                             double slip,
+                                             int num_threads)
     : ChVehicleCosimBaseNode("RIG"),
       m_tire_type(tire_type),
-      m_init_vel(init_vel),
+      m_act_type(act_type),
+      m_base_vel(base_vel),
       m_slip(slip),
+      m_lin_vel(0),
+      m_ang_vel(0),
       m_dbp_filter(nullptr),
       m_dbp_filter_window(0.1),
       m_dbp(0),
@@ -261,7 +288,8 @@ void ChVehicleCosimRigNode::Construct() {
         return;
 
     if (m_verbose)
-        cout << "[Rig node    ] init_vel = " << m_init_vel << " slip = " << m_slip << endl;
+        cout << "[Rig node    ] Actuation: " << GetActuationTypeAsString(m_act_type)  //
+             << " base velocity = " << m_base_vel << " slip = " << m_slip << endl;
 
     // -------------------------------
     // Change solver and integrator
@@ -413,6 +441,28 @@ void ChVehicleCosimRigNode::Construct() {
 
     ConstructTire();
 
+    // --------------------------------------------------------
+    // Calculate rig linear velocity and wheel angular velocity
+    // --------------------------------------------------------
+
+    double tire_radius = GetTireRadius();
+    switch (m_act_type) {
+        case ActuationType::SET_ANG_VEL:
+            m_ang_vel = m_base_vel;
+            m_lin_vel = (m_ang_vel * tire_radius) * (1.0 - m_slip);
+            break;
+        case ActuationType::SET_LIN_VEL:
+            m_lin_vel = m_base_vel;
+            m_ang_vel = m_lin_vel / (tire_radius * (1.0 - m_slip));
+            break;
+    }
+
+    if (m_verbose) {
+        cout << "[Rig node    ] rig linear velocity    = " << m_lin_vel << endl;
+        cout << "[Rig node    ] wheel angular velocity = " << m_ang_vel << endl;
+        cout << "[Rig node    ] tire radius            = " << tire_radius << endl;
+    }
+
     // ---------------------------------
     // Create DBP running average filter
     // ---------------------------------
@@ -432,11 +482,19 @@ void ChVehicleCosimRigNode::Construct() {
     outf << "Tire specification" << endl;
     outf << "   JSON file: " << m_tire_json << endl;
     outf << "   Pressure enabled? " << (m_tire_pressure ? "YES" : "NO") << endl;
+    outf << "   Tire radius = " << GetTireRadius() << endl;
     outf << "Rig body masses" << endl;
     outf << "   chassis = " << m_chassis_mass << endl;
     outf << "   set_toe = " << m_set_toe_mass << endl;
     outf << "   upright = " << m_upright_mass << endl;
     outf << "   rim     = " << m_rim_mass << endl;
+    outf << "Actuation" << endl;
+    outf << "   Type: " << GetActuationTypeAsString(m_act_type) << endl;
+    outf << "   Base velocity          = " << m_base_vel << endl;
+    outf << "   Longitudinal slip      = " << m_slip << endl;
+    outf << "   Rig linear velocity    = " << m_lin_vel << endl;
+    outf << "   Wheel angular velocity = " << m_ang_vel << endl;
+    outf << endl;
 
     // Mark system as constructed.
     m_constructed = true;
@@ -490,36 +548,37 @@ void ChVehicleCosimRigNode::Initialize() {
 
     if (m_verbose) {
         cout << "[Rig node    ] Received initial terrain height = " << init_dim[0] << endl;
-        cout << "[Rig node    ] Received container half-length = " << init_dim[1] << endl;
+        cout << "[Rig node    ] Received terrain half-length    =  " << init_dim[1] << endl;
     }
 
     double init_height = init_dim[0];
     double half_length = init_dim[1];
 
+    // Calculate initial rig location and set linear velocity of all rig bodies
     double tire_radius = GetTireRadius();
     ChVector<> origin(-half_length + 1.5 * tire_radius, 0, init_height + tire_radius);
-    ChVector<> init_vel(m_init_vel * (1.0 - m_slip), 0, 0);
+    ChVector<> rig_vel(m_lin_vel, 0, 0);
 
     // Initialize chassis body
     m_chassis->SetPos(origin);
     m_chassis->SetRot(QUNIT);
-    m_chassis->SetPos_dt(init_vel);
+    m_chassis->SetPos_dt(rig_vel);
 
     // Initialize the set_toe body
     m_set_toe->SetPos(origin);
     m_set_toe->SetRot(QUNIT);
-    m_set_toe->SetPos_dt(init_vel);
+    m_set_toe->SetPos_dt(rig_vel);
 
     // Initialize rim body.
     m_rim->SetPos(origin);
     m_rim->SetRot(QUNIT);
-    m_rim->SetPos_dt(init_vel);
-    m_rim->SetWvel_loc(ChVector<>(0, m_init_vel / tire_radius, 0));
+    m_rim->SetPos_dt(rig_vel);
+    m_rim->SetWvel_loc(ChVector<>(0, m_ang_vel, 0));
 
     // Initialize axle body
     m_upright->SetPos(origin);
     m_upright->SetRot(QUNIT);
-    m_upright->SetPos_dt(init_vel);
+    m_upright->SetPos_dt(rig_vel);
 
     // -----------------------------------
     // Initialize the rig mechanism joints
@@ -533,7 +592,7 @@ void ChVehicleCosimRigNode::Initialize() {
     m_prism_vel->Initialize(m_ground, m_chassis, ChCoordsys<>(m_chassis->GetPos(), Q_from_AngY(CH_C_PI_2)));
 
     // Impose velocity actuation on the prismatic joint
-    m_lin_actuator->Set_dist_funct(chrono_types::make_shared<ChFunction_Ramp>(0.0, m_init_vel * (1.0 - m_slip)));
+    m_lin_actuator->Set_dist_funct(chrono_types::make_shared<ChFunction_Ramp>(0.0, m_lin_vel));
     m_lin_actuator->Initialize(m_ground, m_chassis, false, ChCoordsys<>(m_chassis->GetPos(), QUNIT),
                                ChCoordsys<>(m_chassis->GetPos() + ChVector<>(1, 0, 0), QUNIT));
 
@@ -541,7 +600,7 @@ void ChVehicleCosimRigNode::Initialize() {
     m_prism_axl->Initialize(m_set_toe, m_upright, ChCoordsys<>(m_set_toe->GetPos(), QUNIT));
 
     // Connect rim to upright: Impose rotation on the rim
-    m_rev_motor->SetAngleFunction(chrono_types::make_shared<ChFunction_Ramp>(0, -m_init_vel / tire_radius));
+    m_rev_motor->SetAngleFunction(chrono_types::make_shared<ChFunction_Ramp>(0, -m_ang_vel));
     m_rev_motor->Initialize(m_rim, m_upright, ChFrame<>(m_rim->GetPos(), Q_from_AngAxis(CH_C_PI / 2.0, VECT_X)));
 
     // -----------------------------------

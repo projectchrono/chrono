@@ -62,7 +62,8 @@ bool GetProblemSpecs(int argc,
                      double& step_size,
                      double& settling_time,
                      double& sim_time,
-                     double& vel0,
+                     ChVehicleCosimRigNode::ActuationType& act_type,
+                     double& base_vel,
                      double& slip,
                      double& sys_mass,
                      double& terrain_length,
@@ -109,12 +110,13 @@ int main(int argc, char** argv) {
     // Parse command line arguments
     std::string terrain_specfile;
     std::string tire_specfile;
+    ChVehicleCosimRigNode::ActuationType act_type = ChVehicleCosimRigNode::ActuationType::SET_ANG_VEL;
     int nthreads_rig = 1;
     int nthreads_terrain = 1;
     double step_size = 1e-4;
     double settling_time = 0.4;
     double sim_time = 10;
-    double vel0 = 0.5;
+    double base_vel = 1.0;
     double slip = 0;
     bool use_checkpoint = false;
     double output_fps = 100;
@@ -127,9 +129,10 @@ int main(int argc, char** argv) {
     double terrain_width = 1;
     std::string suffix = "";
     bool verbose = true;
-    if (!GetProblemSpecs(argc, argv, rank, terrain_specfile, tire_specfile, nthreads_rig, nthreads_terrain, step_size, settling_time,
-                         sim_time, vel0, slip, sys_mass, terrain_length, terrain_width, use_checkpoint, output_fps,
-                         render_fps, sim_output, settling_output, render, verbose, suffix)) {
+    if (!GetProblemSpecs(argc, argv, rank, terrain_specfile, tire_specfile, nthreads_rig, nthreads_terrain, step_size,
+                         settling_time, sim_time, act_type, base_vel, slip, sys_mass, terrain_length, terrain_width,
+                         use_checkpoint, output_fps, render_fps, sim_output, settling_output, render, verbose,
+                         suffix)) {
         MPI_Finalize();
         return 1;
     }
@@ -207,7 +210,7 @@ int main(int argc, char** argv) {
 
         switch (tire_type) {
             case ChVehicleCosimRigNode::TireType::RIGID: {
-                auto rig = new ChVehicleCosimRigNodeRigidTire(vel0, slip, nthreads_rig);
+                auto rig = new ChVehicleCosimRigNodeRigidTire(act_type, base_vel, slip, nthreads_rig);
                 rig->SetVerbose(verbose);
                 rig->SetStepSize(step_size);
                 rig->SetOutDir(out_dir, suffix);
@@ -223,7 +226,7 @@ int main(int argc, char** argv) {
             }
 
             case ChVehicleCosimRigNode::TireType::FLEXIBLE: {
-                auto rig = new ChVehicleCosimRigNodeFlexibleTire(vel0, slip, nthreads_rig);
+                auto rig = new ChVehicleCosimRigNodeFlexibleTire(act_type, base_vel, slip, nthreads_rig);
                 rig->SetVerbose(verbose);
                 rig->SetStepSize(step_size);
                 rig->SetOutDir(out_dir, suffix);
@@ -238,10 +241,10 @@ int main(int argc, char** argv) {
                 node = rig;
                 break;
             }
-        
-        } // switch terrain_type
 
-    } // if RIG_NODE_RANK
+        }  // switch terrain_type
+
+    }  // if RIG_NODE_RANK
 
     if (rank == TERRAIN_NODE_RANK) {
         if (verbose)
@@ -423,7 +426,8 @@ bool GetProblemSpecs(int argc,
                      double& step_size,
                      double& settling_time,
                      double& sim_time,
-                     double& vel0,
+                     ChVehicleCosimRigNode::ActuationType& act_type,
+                     double& base_vel,
                      double& slip,
                      double& sys_mass,
                      double& terrain_length,
@@ -445,7 +449,9 @@ bool GetProblemSpecs(int argc,
     cli.AddOption<double>("Demo", "sim_time", "Simulation length after settling phase [s]", std::to_string(sim_time));
     cli.AddOption<double>("Demo", "step_size", "Integration step size [s]", std::to_string(step_size));
 
-    cli.AddOption<double>("Demo", "vel0", "Zero-splip tire linear velocity [m/s]", std::to_string(vel0));
+    cli.AddOption<std::string>("Demo", "actuation_type", "Actuation type (SET_LIN_VEL or SET_ANG_VEL)",
+                               ChVehicleCosimRigNode::GetActuationTypeAsString(act_type));
+    cli.AddOption<double>("Demo", "base_vel", "Base velocity [m/s or rad/s]", std::to_string(base_vel));
     cli.AddOption<double>("Demo", "slip", "Longitudinal slip", std::to_string(slip));
     cli.AddOption<double>("Demo", "sys_mass", "Mass of wheel carrier [kg]", std::to_string(sys_mass));
 
@@ -496,12 +502,32 @@ bool GetProblemSpecs(int argc,
         return false;
     }
 
+    act_type = ChVehicleCosimRigNode::GetActuationTypeFromString(cli.GetAsType<std::string>("actuation_type"));
+    if (act_type == ChVehicleCosimRigNode::ActuationType::UNKNOWN) {
+        if (rank == 0) {
+            cout << "\nERROR: Unrecognized actuation type!\n\n" << endl;
+            cli.Help();
+        }
+        return false;
+    }
+
+    base_vel = cli.GetAsType<double>("base_vel");
+    slip = cli.GetAsType<double>("slip");
+
+    if (act_type == ChVehicleCosimRigNode::ActuationType::SET_LIN_VEL && slip > 0.95) {
+        if (rank == 0) {
+            cout << "\nERROR: Slip value " << slip << " too large for "
+                 << ChVehicleCosimRigNode::GetActuationTypeAsString(act_type) << " actuation mode!\n\n"
+                 << endl;
+            cli.Help();
+        }
+        return false;        
+    }
+
     sim_time = cli.GetAsType<double>("sim_time");
     settling_time = cli.GetAsType<double>("settling_time");
     step_size = cli.GetAsType<double>("step_size");
 
-    vel0 = cli.GetAsType<double>("vel0");
-    slip = cli.GetAsType<double>("slip");
     sys_mass = cli.GetAsType<double>("sys_mass");
 
     terrain_length = cli.GetAsType<double>("terrain_length");

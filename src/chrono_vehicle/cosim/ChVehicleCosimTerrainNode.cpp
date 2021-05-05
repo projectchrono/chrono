@@ -44,19 +44,19 @@ namespace vehicle {
 std::string ChVehicleCosimTerrainNode::GetTypeAsString(ChVehicleCosimTerrainNode::Type type) {
     switch (type) {
         case Type::RIGID:
-            return "Rigid";
+            return "RIGID";
         case Type::SCM:
             return "SCM";
         case Type::GRANULAR_OMP:
-            return "GranularOMP";
+            return "GRANULAR_OMP";
         case Type::GRANULAR_GPU:
-            return "GranularGPU";
+            return "GRANULAR_GPU";
         case Type::GRANULAR_MPI:
-            return "GranularMPI";
+            return "GRANULAR_MPI";
         case Type::GRANULAR_SPH:
-            return "GranularSPH";
+            return "GRANULAR_SPH";
         default:
-            return "Unknown";
+            return "UNKNOWN";
     }
 }
 

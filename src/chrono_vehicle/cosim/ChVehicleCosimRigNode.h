@@ -48,12 +48,17 @@ namespace vehicle {
 class CH_VEHICLE_API ChVehicleCosimRigNode : public ChVehicleCosimBaseNode {
   public:
     enum class TireType { RIGID, FLEXIBLE, UNKNOWN };
+    enum class ActuationType { SET_LIN_VEL, SET_ANG_VEL, UNKNOWN };
 
     virtual ~ChVehicleCosimRigNode();
 
     TireType GetTireType() const { return m_tire_type; }
     static std::string GetTireTypeAsString(TireType type);
     static TireType GetTireTypeFromString(const std::string& type);
+
+    ActuationType GetActuationType() const { return m_act_type; }
+    static std::string GetActuationTypeAsString(ActuationType type);
+    static ActuationType GetActuationTypeFromString(const std::string& type);
 
     static bool ReadSpecfile(const std::string& specfile, rapidjson::Document& d);
     static TireType GetTireTypeFromSpecfile(const std::string& specfile);
@@ -90,13 +95,15 @@ class CH_VEHICLE_API ChVehicleCosimRigNode : public ChVehicleCosimBaseNode {
 
   protected:
     /// Protected constructor. A RigNode cannot be directly created.
-    ChVehicleCosimRigNode(TireType tire_type,  ///< tire type (RIGID or FLEXIBLE)
-                          double init_vel,     ///< initial wheel linear velocity
-                          double slip,         ///< longitudinal slip value
-                          int num_threads      ///< number of OpenMP threads
+    ChVehicleCosimRigNode(TireType tire_type,      ///< tire type (RIGID or FLEXIBLE)
+                          ActuationType act_type,  ///< actuation type (SET_LIN_VEL or SET_ANG_VEL)
+                          double base_vel,         ///< constant linear or angular velocity
+                          double slip,             ///< longitudinal slip value
+                          int num_threads          ///< number of OpenMP threads
     );
 
-    TireType m_tire_type;  ///< tire type
+    TireType m_tire_type;      ///< tire type
+    ActuationType m_act_type;  ///< actuation type
 
     ChSystemSMC* m_system;  ///< containing system
     bool m_constructed;     ///< system construction completed?
@@ -128,8 +135,10 @@ class CH_VEHICLE_API ChVehicleCosimRigNode : public ChVehicleCosimBaseNode {
     std::shared_ptr<ChLinkLockPrismatic> m_prism_axl;        ///< prismatic joint for chassis-axle joint
     std::shared_ptr<ChLinkMotorRotationAngle> m_rev_motor;   ///< motor enforcing prescribed rim angular vel
 
-    double m_init_vel;  ///< initial wheel forward linear velocity
+    double m_base_vel;  ///< base velocity (linear or angular, depending on actuation type)
     double m_slip;      ///< prescribed longitudinal slip for wheel
+    double m_lin_vel;   ///< rig linear velocity (based on actuation type and slip value)
+    double m_ang_vel;   ///< wheel angular velocity (based on actuation type and slip value)
 
     utils::ChRunningAverage* m_dbp_filter;  ///< running average filter for DBP
     double m_dbp_filter_window;             ///< window (span) for the DBP filter
@@ -165,11 +174,12 @@ class CH_VEHICLE_API ChVehicleCosimRigNode : public ChVehicleCosimBaseNode {
 /// Rig node with a flexible tire.
 class CH_VEHICLE_API ChVehicleCosimRigNodeFlexibleTire : public ChVehicleCosimRigNode {
   public:
-    ChVehicleCosimRigNodeFlexibleTire(double init_vel,  ///< initial wheel linear velocity
-                                      double slip,      ///< longitudinal slip value
-                                      int num_threads   ///< number of OpenMP threads
+    ChVehicleCosimRigNodeFlexibleTire(ActuationType act_type,  ///< actuation type (SET_LIN_VEL or SET_ANG_VEL)
+                                      double base_vel,         ///< constant linear or angular velocity
+                                      double slip,             ///< longitudinal slip value
+                                      int num_threads          ///< number of OpenMP threads
                                       )
-        : ChVehicleCosimRigNode(TireType::FLEXIBLE, init_vel, slip, num_threads) {}
+        : ChVehicleCosimRigNode(TireType::FLEXIBLE, act_type, base_vel, slip, num_threads) {}
 
     ~ChVehicleCosimRigNodeFlexibleTire() {}
 
@@ -223,11 +233,12 @@ class CH_VEHICLE_API ChVehicleCosimRigNodeFlexibleTire : public ChVehicleCosimRi
 /// Rig node with a rigid tire.
 class CH_VEHICLE_API ChVehicleCosimRigNodeRigidTire : public ChVehicleCosimRigNode {
   public:
-    ChVehicleCosimRigNodeRigidTire(double init_vel,  ///< initial wheel linear velocity
-                                   double slip,      ///< longitudinal slip value
-                                   int num_threads   ///< number of OpenMP threads
+    ChVehicleCosimRigNodeRigidTire(ActuationType act_type,  ///< actuation type (SET_LIN_VEL or SET_ANG_VEL)
+                                   double base_vel,         ///< constant linear or angular velocity
+                                   double slip,             ///< longitudinal slip value
+                                   int num_threads          ///< number of OpenMP threads
                                    )
-        : ChVehicleCosimRigNode(TireType::RIGID, init_vel, slip, num_threads) {}
+        : ChVehicleCosimRigNode(TireType::RIGID, act_type, base_vel, slip, num_threads) {}
 
     ~ChVehicleCosimRigNodeRigidTire() {}
 
