@@ -219,6 +219,9 @@ class CH_GPU_API ChSystemGpu {
     /// Return particle linear velocity.
     ChVector<float> GetParticleVelocity(int nSphere) const;
 
+    /// Return the total kinetic energy of all particles.
+    float GetParticlesKineticEnergy() const;
+
     /// Return position of BC plane.
     ChVector<float> GetBCPlanePosition(size_t plane_id) const;
 

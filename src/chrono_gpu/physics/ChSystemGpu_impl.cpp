@@ -898,6 +898,12 @@ float3 ChSystemGpu_impl::GetParticlePosition(int nSphere) const {
     return make_float3(x_UU, y_UU, z_UU);
 }
 
+float ChSystemGpu_impl::ComputeTotalKE() const {
+    float sumVelSq = computeLinVelSq();
+    return 0.5 * (4. / 3.) * CH_C_PI * sphere_radius_UU * sphere_radius_UU * sphere_radius_UU * sphere_density_UU *
+           sumVelSq;
+}
+
 // return absolute velocity
 float ChSystemGpu_impl::getAbsVelocity(int nSphere) {
     float absv_SU = std::sqrt(pos_X_dt[nSphere] * pos_X_dt[nSphere] + pos_Y_dt[nSphere] * pos_Y_dt[nSphere] +

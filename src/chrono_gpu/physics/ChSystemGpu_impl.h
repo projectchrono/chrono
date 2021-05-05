@@ -312,6 +312,12 @@ class ChSystemGpu_impl {
     /// Get the max z position of the spheres, allows easier co-simulation
     double GetMaxParticleZ() const;
 
+    /// Return the total kinetic energy of all particles.
+    float ComputeTotalKE() const;
+
+    /// Return the squared sum of the linear velocity components (of all particles).
+    float computeLinVelSq() const;
+
     /// Return particle position.
     float3 GetParticlePosition(int nSphere) const;
 

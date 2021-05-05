@@ -365,6 +365,11 @@ ChVector<float> ChSystemGpu::GetParticleAngVelocity(int nSphere) const {
     return ChVector<float>(omega.x, omega.y, omega.z);
 }
 
+float ChSystemGpu::GetParticlesKineticEnergy() const {
+    float KE = (float)(m_sys->ComputeTotalKE());
+    return KE;
+}
+
 double ChSystemGpu::GetMaxParticleZ() const {
     return m_sys->GetMaxParticleZ();
 }
