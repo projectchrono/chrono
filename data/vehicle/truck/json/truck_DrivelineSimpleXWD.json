@@ -1,0 +1,7 @@
+{
+  "Name":                       "MAN 5t, 7t, 10t XWD Driveline",
+  "Type":                       "Driveline",
+  "Template":                   "SimpleDrivelineXWD",
+
+  "Differential Max Bias":  2.0
+}
