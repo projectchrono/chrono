@@ -66,7 +66,8 @@ bool GetProblemSpecs(int argc,
                      double& base_vel,
                      double& slip,
                      double& total_mass,
-    double& dbp_filter_window,
+                     double& toe_angle,
+                     double& dbp_filter_window,
                      bool& use_checkpoint,
                      double& output_fps,
                      double& render_fps,
@@ -124,11 +125,12 @@ int main(int argc, char** argv) {
     bool settling_output = true;
     bool render = true;
     double total_mass = 100;
+    double toe_angle = 0;
     double dbp_filter_window = 0.1;
     std::string suffix = "";
     bool verbose = true;
     if (!GetProblemSpecs(argc, argv, rank, terrain_specfile, tire_specfile, nthreads_rig, nthreads_terrain, step_size,
-                         settling_time, sim_time, act_type, base_vel, slip, total_mass, dbp_filter_window,
+                         settling_time, sim_time, act_type, base_vel, slip, total_mass, toe_angle, dbp_filter_window,
                          use_checkpoint, output_fps, render_fps, sim_output, settling_output, render, verbose,
                          suffix)) {
         MPI_Finalize();
@@ -413,6 +415,7 @@ bool GetProblemSpecs(int argc,
                      double& base_vel,
                      double& slip,
                      double& total_mass,
+                     double& toe_angle,
                      double& dbp_filter_window,
                      bool& use_checkpoint,
                      double& output_fps,
@@ -432,11 +435,14 @@ bool GetProblemSpecs(int argc,
     cli.AddOption<double>("Experiment", "base_vel", "Base velocity [m/s or rad/s]", std::to_string(base_vel));
     cli.AddOption<double>("Experiment", "slip", "Longitudinal slip", std::to_string(slip));
     cli.AddOption<double>("Experiment", "total_mass", "Total mass [kg]", std::to_string(total_mass));
+    cli.AddOption<double>("Experiment", "toe_angle", "Wheel toe angle [rad]", std::to_string(toe_angle));
     cli.AddOption<double>("Experiment", "filter_window", "Time window for running average filter",
                           std::to_string(dbp_filter_window));
 
-    cli.AddOption<double>("Simulation", "settling_time", "Duration of settling phase [s]", std::to_string(settling_time));
-    cli.AddOption<double>("Simulation", "sim_time", "Simulation length after settling phase [s]", std::to_string(sim_time));
+    cli.AddOption<double>("Simulation", "settling_time", "Duration of settling phase [s]",
+                          std::to_string(settling_time));
+    cli.AddOption<double>("Simulation", "sim_time", "Simulation length after settling phase [s]",
+                          std::to_string(sim_time));
     cli.AddOption<double>("Simulation", "step_size", "Integration step size [s]", std::to_string(step_size));
 
     cli.AddOption<int>("Simulation", "threads_rig", "Number of OpenMP threads for the rig node",
@@ -500,7 +506,7 @@ bool GetProblemSpecs(int argc,
                  << endl;
             cli.Help();
         }
-        return false;        
+        return false;
     }
 
     sim_time = cli.GetAsType<double>("sim_time");
@@ -508,6 +514,7 @@ bool GetProblemSpecs(int argc,
     step_size = cli.GetAsType<double>("step_size");
 
     total_mass = cli.GetAsType<double>("total_mass");
+    toe_angle = cli.GetAsType<double>("toe_angle");
 
     dbp_filter_window = cli.GetAsType<double>("filter_window");
 

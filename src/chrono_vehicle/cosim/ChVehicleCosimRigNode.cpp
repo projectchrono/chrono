@@ -71,15 +71,15 @@ class ChFunction_SlipAngle : public chrono::ChFunction {
     virtual ChFunction_SlipAngle* Clone() const override { return new ChFunction_SlipAngle(m_max_angle); }
 
     virtual double Get_y(double t) const override {
-        // Ramp for 1 second and stay at that value (scale)
+        // Ramp for 1 second then stay at prescribed value
         double delay = 0.2;
-        double scale = -m_max_angle / 180 * CH_C_PI;
         if (t <= delay)
             return 0;
         double t1 = t - delay;
-        if (t1 >= 1)
-            return scale;
-        return t1 * scale;
+        if (t1 < 1)
+            return -m_max_angle * t1;
+
+        return -m_max_angle;
     }
 
   private:
@@ -193,6 +193,7 @@ ChVehicleCosimRigNode::ChVehicleCosimRigNode(TireType tire_type,
       m_act_type(act_type),
       m_base_vel(base_vel),
       m_slip(slip),
+      m_toe_angle(0),
       m_lin_vel(0),
       m_ang_vel(0),
       m_dbp_filter(nullptr),
@@ -348,13 +349,16 @@ void ChVehicleCosimRigNode::Construct() {
     // Calculate body masses
     // ---------------------
 
-    // Distribute mass equally between set_toe, upright, and rim in order to prevent large mass discrepancies.
-    // Note: the chassis is assigned the same mass, but is not counted in the total mass, as it is connected to ground
-    // through an horizontal prismatic joint.
+    // Distribute remaining mass (after subtracting tire mass) equally between upright and spindle in order to prevent
+    // large mass discrepancies.
+    // Notes:
+    // - the dummy wheel component is assigned a zero mass (i.e., it does not affect the spindle's mass)
+    // - the chassis and set_toe bodies are assigned the same mass, but they are not counted in the total mass, as they
+    // are moving only horizontally due to the chassis ground connection.
     double tire_mass = GetTireMass();
-    if (m_total_mass - tire_mass < 3)
-        m_total_mass = tire_mass + 3;
-    double body_mass = (m_total_mass - tire_mass) / 3;
+    if (m_total_mass - tire_mass < 2)
+        m_total_mass = tire_mass + 2;
+    double body_mass = (m_total_mass - tire_mass) / 2;
 
     if (m_verbose) {
         cout << "[Rig node    ] total mass = " << m_total_mass << endl;
@@ -391,7 +395,7 @@ void ChVehicleCosimRigNode::Construct() {
     ChVector<> chassis_inertia(0.1, 0.1, 0.1);
     ChVector<> set_toe_inertia(0.1, 0.1, 0.1);
     ChVector<> upright_inertia(1, 1, 1);
-    ChVector<> rim_inertia(1, 1, 1);
+    ChVector<> spindle_inertia(1, 1, 1);
 
     // Create ground body.
     m_ground = chrono_types::make_shared<ChBody>();
@@ -410,17 +414,17 @@ void ChVehicleCosimRigNode::Construct() {
     m_set_toe->SetInertiaXX(set_toe_inertia);
     m_system->AddBody(m_set_toe);
 
-    // Create the rim body.
-    m_rim = chrono_types::make_shared<ChBody>();
-    m_rim->SetMass(body_mass);
-    m_rim->SetInertiaXX(rim_inertia);
-    m_system->AddBody(m_rim);
-
     // Create the upright body.
     m_upright = chrono_types::make_shared<ChBody>();
     m_upright->SetMass(body_mass);
     m_upright->SetInertiaXX(upright_inertia);
     m_system->AddBody(m_upright);
+
+    // Create the spindle body.
+    m_spindle = chrono_types::make_shared<ChBody>();
+    m_spindle->SetMass(body_mass);
+    m_spindle->SetInertiaXX(spindle_inertia);
+    m_system->AddBody(m_spindle);
 
     // -------------------------------
     // Create the rig mechanism joints
@@ -447,7 +451,7 @@ void ChVehicleCosimRigNode::Construct() {
     m_prism_axl->SetName("Prismatic_vertical");
     m_system->AddLink(m_prism_axl);
 
-    // Connect rim to axle: Impose rotation on the rim
+    // Create revolute motor to impose rotation on the spindle
     m_rev_motor = chrono_types::make_shared<ChLinkMotorRotationAngle>();
     m_rev_motor->SetName("Motor_ang_vel");
     m_system->AddLink(m_rev_motor);
@@ -557,11 +561,11 @@ void ChVehicleCosimRigNode::Initialize() {
     m_set_toe->SetRot(QUNIT);
     m_set_toe->SetPos_dt(rig_vel);
 
-    // Initialize rim body.
-    m_rim->SetPos(origin);
-    m_rim->SetRot(QUNIT);
-    m_rim->SetPos_dt(rig_vel);
-    m_rim->SetWvel_loc(ChVector<>(0, m_ang_vel, 0));
+    // Initialize spindle body.
+    m_spindle->SetPos(origin);
+    m_spindle->SetRot(QUNIT);
+    m_spindle->SetPos_dt(rig_vel);
+    m_spindle->SetWvel_loc(ChVector<>(0, m_ang_vel, 0));
 
     // Initialize axle body
     m_upright->SetPos(origin);
@@ -572,11 +576,11 @@ void ChVehicleCosimRigNode::Initialize() {
     // Initialize the rig mechanism joints
     // -----------------------------------
 
-    // Revolute engine on set_toe
-    m_slip_motor->SetAngleFunction(chrono_types::make_shared<ChFunction_SlipAngle>(0));
+    // Revolute engine on set_toe (about Z axis)
+    m_slip_motor->SetAngleFunction(chrono_types::make_shared<ChFunction_SlipAngle>(m_toe_angle));
     m_slip_motor->Initialize(m_set_toe, m_chassis, ChFrame<>(m_set_toe->GetPos(), QUNIT));
 
-    // Prismatic constraint on the toe
+    // Prismatic constraint on the chassis (along X axis)
     m_prism_vel->Initialize(m_ground, m_chassis, ChCoordsys<>(m_chassis->GetPos(), Q_from_AngY(CH_C_PI_2)));
 
     // Impose velocity actuation on the prismatic joint
@@ -584,19 +588,19 @@ void ChVehicleCosimRigNode::Initialize() {
     m_lin_actuator->Initialize(m_ground, m_chassis, false, ChCoordsys<>(m_chassis->GetPos(), QUNIT),
                                ChCoordsys<>(m_chassis->GetPos() + ChVector<>(1, 0, 0), QUNIT));
 
-    // Prismatic constraint on the toe-upright: Connects chassis to axle
+    // Prismatic constraint on the toe-upright (along Z axis)
     m_prism_axl->Initialize(m_set_toe, m_upright, ChCoordsys<>(m_set_toe->GetPos(), QUNIT));
 
-    // Connect rim to upright: Impose rotation on the rim
+    // Connect spindle to upright: Impose rotation on the spindle
     m_rev_motor->SetAngleFunction(chrono_types::make_shared<ChFunction_Ramp>(0, -m_ang_vel));
-    m_rev_motor->Initialize(m_rim, m_upright, ChFrame<>(m_rim->GetPos(), Q_from_AngAxis(CH_C_PI / 2.0, VECT_X)));
+    m_rev_motor->Initialize(m_spindle, m_upright, ChFrame<>(m_spindle->GetPos(), Q_from_AngAxis(CH_C_PI / 2.0, VECT_X)));
 
     // -----------------------------------
     // Initialize the wheel and tire
     // -----------------------------------
 
     // Initialize the wheel, arbitrarily assuming LEFT side
-    m_wheel->Initialize(m_rim, LEFT);
+    m_wheel->Initialize(m_spindle, LEFT);
     m_wheel->SetVisualizationType(VisualizationType::NONE);
 
     // Let the derived class initialize the tire and set tire contact information
@@ -666,7 +670,7 @@ void ChVehicleCosimRigNodeFlexibleTire::InitializeTire() {
     m_contact_load->OutputSimpleMesh(m_mesh_data.verts, vvel, m_mesh_data.idx_verts);
     m_mesh_data.idx_norms = m_mesh_data.idx_verts;
     for (unsigned int iv = 0; iv < m_mesh_data.nv; iv++) {
-        m_mesh_data.verts[iv] = m_rim->TransformPointParentToLocal(m_mesh_data.verts[iv]);
+        m_mesh_data.verts[iv] = m_spindle->TransformPointParentToLocal(m_mesh_data.verts[iv]);
         m_mesh_data.norms[iv] = ChVector<>(0, 0, 1);  //// TODO
     }
 
@@ -818,9 +822,9 @@ void ChVehicleCosimRigNodeRigidTire::Synchronize(int step_number, double time) {
     m_wheel_contact.force = ChVector<>(force_data[0], force_data[1], force_data[2]);
     m_wheel_contact.moment = ChVector<>(force_data[3], force_data[4], force_data[5]);
 
-    m_rim->Empty_forces_accumulators();
-    m_rim->Accumulate_force(m_wheel_contact.force, m_wheel_contact.point, false);
-    m_rim->Accumulate_torque(m_wheel_contact.moment, false);
+    m_spindle->Empty_forces_accumulators();
+    m_spindle->Accumulate_force(m_wheel_contact.force, m_wheel_contact.point, false);
+    m_spindle->Accumulate_torque(m_wheel_contact.moment, false);
 }
 
 // -----------------------------------------------------------------------------
@@ -863,10 +867,10 @@ void ChVehicleCosimRigNode::OutputData(int frame) {
     if (m_outf.is_open()) {
         std::string del("  ");
 
-        const ChVector<>& rim_pos = m_rim->GetPos();
         const ChVector<>& chassis_pos = m_chassis->GetPos();
-        const ChVector<>& rim_vel = m_rim->GetPos_dt();
-        const ChVector<>& rim_angvel = m_rim->GetWvel_loc();
+        const ChVector<>& spindle_pos = m_spindle->GetPos();
+        const ChVector<>& spindle_vel = m_spindle->GetPos_dt();
+        const ChVector<>& spindle_angvel = m_spindle->GetWvel_loc();
 
         const ChVector<>& rfrc_prsm = m_prism_vel->Get_react_force();
         const ChVector<>& rtrq_prsm = m_prism_vel->Get_react_torque();
@@ -877,9 +881,9 @@ void ChVehicleCosimRigNode::OutputData(int frame) {
 
         m_outf << m_system->GetChTime() << del;
         // Body states
-        m_outf << rim_pos.x() << del << rim_pos.y() << del << rim_pos.z() << del;
-        m_outf << rim_vel.x() << del << rim_vel.y() << del << rim_vel.z() << del;
-        m_outf << rim_angvel.x() << del << rim_angvel.y() << del << rim_angvel.z() << del;
+        m_outf << spindle_pos.x() << del << spindle_pos.y() << del << spindle_pos.z() << del;
+        m_outf << spindle_vel.x() << del << spindle_vel.y() << del << spindle_vel.z() << del;
+        m_outf << spindle_angvel.x() << del << spindle_angvel.y() << del << spindle_angvel.z() << del;
         m_outf << chassis_pos.x() << del << chassis_pos.y() << del << chassis_pos.z() << del;
         // Filtered actuator force X component (drawbar pull)
         m_outf << m_dbp << del;
@@ -940,8 +944,8 @@ void ChVehicleCosimRigNode::WriteBodyInformation(utils::CSV_writer& csv) {
         << m_chassis->GetRot_dt() << endl;
     csv << m_set_toe->GetIdentifier() << m_set_toe->GetPos() << m_set_toe->GetRot() << m_set_toe->GetPos_dt()
         << m_set_toe->GetRot_dt() << endl;
-    csv << m_rim->GetIdentifier() << m_rim->GetPos() << m_rim->GetRot() << m_rim->GetPos_dt() << m_rim->GetRot_dt()
-        << endl;
+    csv << m_spindle->GetIdentifier() << m_spindle->GetPos() << m_spindle->GetRot() << m_spindle->GetPos_dt()
+        << m_spindle->GetRot_dt() << endl;
     csv << m_upright->GetIdentifier() << m_upright->GetPos() << m_upright->GetRot() << m_upright->GetPos_dt()
         << m_upright->GetRot_dt() << endl;
 }
@@ -1077,7 +1081,7 @@ void ChVehicleCosimRigNodeRigidTire::WriteTireContactInformation(utils::CSV_writ
     const std::vector<ChVector<>>& normals = m_tire->GetMeshNormals();
     for (unsigned int iv = 0; iv < m_mesh_contact.vidx.size(); iv++) {
         int in = m_mesh_contact.vidx[iv];
-        ChVector<> nrm = m_rim->TransformDirectionLocalToParent(normals[in]);
+        ChVector<> nrm = m_spindle->TransformDirectionLocalToParent(normals[in]);
         csv << in << m_mesh_state.vpos[in] << m_mesh_contact.vforce[iv] << nrm << m_vertexArea[in] << endl;
     }
     */

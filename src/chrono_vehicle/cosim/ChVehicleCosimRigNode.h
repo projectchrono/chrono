@@ -74,8 +74,11 @@ class CH_VEHICLE_API ChVehicleCosimRigNode : public ChVehicleCosimBaseNode {
 
     /// Set total rig system mass (default: 100).
     /// This represents the equivalent load on the soil from all rig bodies and the tire itself. Note that the total
-    /// mass must be at least 3 kg more than the tire mass; otherwise, it will be overwritten.
+    /// mass must be at least 2 kg more than the tire mass; otherwise, it will be overwritten.
     void SetTotalMass(double mass) { m_total_mass = mass; }
+
+    /// Set (constant) toe angle in radians (default: 0).
+    void SetToeAngle(double angle) { m_toe_angle = angle; }
 
     /// Specify the tire JSON specification file name.
     void SetTireFromSpecfile(const std::string& filename);
@@ -113,12 +116,14 @@ class CH_VEHICLE_API ChVehicleCosimRigNode : public ChVehicleCosimBaseNode {
     std::shared_ptr<ChTimestepperHHT> m_integrator;  ///< HHT integrator object
 
     std::shared_ptr<ChBody> m_ground;   ///< ground body
-    std::shared_ptr<ChBody> m_rim;      ///< wheel rim body
-    std::shared_ptr<ChBody> m_set_toe;  ///< set toe body
     std::shared_ptr<ChBody> m_chassis;  ///< chassis body
+    std::shared_ptr<ChBody> m_set_toe;  ///< set toe body
     std::shared_ptr<ChBody> m_upright;  ///< upright body
+    std::shared_ptr<ChBody> m_spindle;  ///< spindle body
 
-    double m_total_mass; ///< total equivalent wheel mass 
+    double m_total_mass;  ///< total equivalent wheel mass
+
+    double m_toe_angle;  ///< toe angle (controls tire slip angle)
 
     std::shared_ptr<ChWheel> m_wheel;  ///< wheel subsystem (to which a tire is attached)
 
