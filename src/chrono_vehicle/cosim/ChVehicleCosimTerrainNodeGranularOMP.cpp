@@ -923,14 +923,15 @@ void ChVehicleCosimTerrainNodeGranularOMP::OnOutputData(int frame) {
 
 void ChVehicleCosimTerrainNodeGranularOMP::WriteParticleInformation(utils::CSV_writer& csv) {
     // Write current time, number of granular particles and their radius
-    csv << m_system->GetChTime() << endl;
-    csv << m_num_particles << m_radius_g << endl;
+    ////csv << m_system->GetChTime() << endl;
+    ////csv << m_num_particles << m_radius_g << endl;
 
     // Write particle positions and linear velocities
     for (auto body : m_system->Get_bodylist()) {
         if (body->GetIdentifier() < m_Id_g)
             continue;
-        csv << body->GetIdentifier() << body->GetPos() << body->GetPos_dt() << endl;
+        ////csv << body->GetIdentifier() << body->GetPos() << body->GetPos_dt() << endl;
+        csv << body->GetPos() << body->GetPos_dt() << endl;
     }
 }
 
