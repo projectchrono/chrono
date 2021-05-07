@@ -398,6 +398,7 @@ else()
     add_compile_options(-Wall)
     add_compile_options(-Wno-sign-compare)
     add_compile_options(-Wno-reorder)
+    add_compile_options(-Wno-unused-function)
 endif()
 
 #-----------------------------------------------------------------------------

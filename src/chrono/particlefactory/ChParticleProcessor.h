@@ -45,6 +45,8 @@ class ChParticleProcessor {
         particle_processor = chrono_types::make_shared<ChParticleProcessEventDoNothing>();
     }
 
+    virtual ~ChParticleProcessor() {}
+
     /// This function process particles according to some rule, defined by plugging appropriate ChParticleEventTrigger
     /// and ChParticleProcessEvent.
     /// Returns the number of processed particles (those that triggered events.)

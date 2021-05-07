@@ -35,7 +35,7 @@ void ChSimpleMapPowertrain::Initialize(std::shared_ptr<ChChassis> chassis, std::
 
     // Let the derived class specify the shift bands
     SetShiftPoints(m_shift_points);
-    assert(m_shift_points.size() == m_gear_ratios.size());
+    assert(m_shift_points.size() == m_gear_ratios.size() - 1);
 
     // Let the derived class set the engine maps
     SetEngineTorqueMaps(m_zero_throttle_map, m_full_throttle_map);

@@ -43,16 +43,25 @@ include(${SWIG_USE_FILE})
 
 # Add /bigobj flag to deal with large generated .cxx wrappers
 if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
-  set(CMAKE_CXX_FLAGS_DEBUG   "${CMAKE_CXX_FLAGS_DEBUG}   /bigobj")
-  set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} /bigobj")
+  set(CMAKE_CXX_FLAGS   "${CMAKE_CXX_FLAGS}   /bigobj")
 endif()
 
 # Set location of SWIG-generated files.
 set(CMAKE_SWIG_OUTDIR "${PROJECT_BINARY_DIR}/chrono_csharp")
-SET(CMAKE_SWIG_FLAGS "-c++")
+
+# Set SWIG flags.  Disable selected SWIG warnings 
+set(CMAKE_SWIG_FLAGS "-c++;-w401,503,833")
 
 message(STATUS "SWIG_USE_FILE:      ${SWIG_USE_FILE}")
 message(STATUS "CMAKE_SWIG_OUTDIR:  ${CMAKE_SWIG_OUTDIR}")
+
+# Disable additional warnings for generated C++ code
+if(MSVC)
+   add_compile_options(/wd4189)  # local variable is initialized but not referenced
+   add_compile_options(/wd4456)  # declaration hides previous local declaration
+   add_compile_options(/wd4702)  # unreachable code
+   add_compile_options(/wd4706)  # assignment within conditional expression
+endif()
 
 #-----------------------------------------------------------------------------
 

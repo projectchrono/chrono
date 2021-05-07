@@ -13,6 +13,7 @@ ENDIF()
 SET(DEMOS
     demo_VEH_Sedan
     demo_VEH_Sedan_Lockable_Diff
+    demo_VEH_Sedan_AIDriver
     )
 
 #--------------------------------------------------------------

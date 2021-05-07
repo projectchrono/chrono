@@ -85,7 +85,7 @@ int main(int argc, char* argv[]) {
     gpu_sys.SetStaticFrictionCoeff_SPH2WALL(params.static_friction_coeffS2W);
     gpu_sys.SetStaticFrictionCoeff_SPH2MESH(params.static_friction_coeffS2M);
 
-    gpu_sys.SetOutputMode(params.write_mode);
+    gpu_sys.SetParticleOutputMode(params.write_mode);
 
     std::string out_dir = GetChronoOutputPath() + "GPU/";
     filesystem::create_directory(filesystem::path(out_dir));
@@ -109,7 +109,6 @@ int main(int argc, char* argv[]) {
     const float fill_radius = Bx / 2.f - 2.f * params.sphere_radius;
     const float fill_top = fill_bottom + fill_height;
 
-    std::cout << "Created " << body_points.size() << " spheres" << std::endl;
     std::cout << "Fill radius " << fill_radius << std::endl;
     std::cout << "Fill bottom " << fill_bottom << std::endl;
     std::cout << "Fill top " << fill_top << std::endl;
@@ -175,9 +174,11 @@ int main(int argc, char* argv[]) {
         if (step % out_steps == 0) {
             std::cout << "Output frame " << (currframe + 1) << " of " << total_frames << std::endl;
             char filename[100];
-            sprintf(filename, "%s/step%06u", out_dir.c_str(), currframe++);
-            gpu_sys.WriteFile(std::string(filename));
-            gpu_sys.WriteMeshes(std::string(filename));
+            char mesh_filename[100];
+            sprintf(filename, "%s/step%06u", out_dir.c_str(), currframe);
+            sprintf(mesh_filename, "%s/step%06u_mesh", out_dir.c_str(), currframe++);
+            gpu_sys.WriteParticleFile(std::string(filename));
+            gpu_sys.WriteMeshes(std::string(mesh_filename));
 
             ChVector<> force;
             ChVector<> torque;

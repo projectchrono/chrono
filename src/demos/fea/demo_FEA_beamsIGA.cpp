@@ -50,6 +50,8 @@ using namespace irr;
 
 int ID_current_example = 1;
 
+const std::string out_dir = GetChronoOutputPath() + "FEA_BEAMS_IGA";
+
 //
 // Example A: Low  level approach, creating single elements and nodes:
 //
@@ -446,7 +448,8 @@ void MakeAndRunDemo3(ChIrrApp& myapp) {
     myapp.AssetBindAll();
     myapp.AssetUpdateAll();
 
-    ChStreamOutAsciiFile my_plasticfile("plasticity.txt");
+    std::string filename = out_dir + "/plasticity.dat";
+    ChStreamOutAsciiFile my_plasticfile(filename.c_str());
 
     while (ID_current_example == 3 && myapp.GetDevice()->run()) {
         myapp.BeginScene();
@@ -620,12 +623,6 @@ void MakeAndRunDemo4(ChIrrApp& myapp) {
     myapp.AssetBindAll();
     myapp.AssetUpdateAll();
 
-    // Prepare file for output data
-    const std::string out_dir = GetChronoOutputPath() + "JEFFCOTT_ROTOR";
-    if (!filesystem::create_directory(filesystem::path(out_dir))) {
-        std::cout << "Error creating directory " << out_dir << std::endl;
-        return;
-    }
     std::string filename = out_dir + "/rotor_displ.dat";
     chrono::ChStreamOutAsciiFile file_out1(filename.c_str());
 
@@ -688,6 +685,12 @@ class MyEventReceiver : public IEventReceiver {
 
 int main(int argc, char* argv[]) {
     GetLog() << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
+
+    // Initialize output
+    if (!filesystem::create_directory(filesystem::path(out_dir))) {
+        std::cout << "Error creating directory " << out_dir << std::endl;
+        return 1;
+    }
 
     // Create a Chrono::Engine physical system
     ChSystemSMC my_system;

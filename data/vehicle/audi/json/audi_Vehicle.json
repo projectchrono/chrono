@@ -1,0 +1,47 @@
+{
+  "Name": "audi Vehicle",
+  "Type": "Vehicle",
+  "Template": "WheeledVehicle",
+
+  "Chassis": {
+    "Input File": "audi/json/audi_Chassis.json"
+  },
+
+  "Axles": [
+    {
+      "Suspension Input File": "audi/json/audi_DoubleWishbone.json",
+      "Suspension Location": [ 1.4412, 0, 0.25 ],
+      "Steering Index": 0,
+      "Left Wheel Input File": "audi/json/audi_Wheel.json",
+      "Right Wheel Input File": "audi/json/audi_Wheel.json",
+      "Left Brake Input File": "audi/json/audi_BrakeSimple.json",
+      "Right Brake Input File": "audi/json/audi_BrakeSimple.json"
+    },
+
+    {
+      "Suspension Input File": "audi/json/audi_DoubleWishbone.json",
+      "Suspension Location": [ -1.4803, 0, 0.25 ],
+      "Left Wheel Input File": "audi/json/audi_Wheel.json",
+      "Right Wheel Input File": "audi/json/audi_Wheel.json",
+      "Left Brake Input File": "audi/json/audi_BrakeSimple.json",
+      "Right Brake Input File": "audi/json/audi_BrakeSimple.json"
+    }
+  ],
+
+  "Steering Subsystems": [
+    {
+      "Input File": "audi/json/audi_RackPinion.json",
+      "Location": [ 1.2, 0, 0.14 ],
+      "Orientation": [ 1, 0, 0, 0 ]
+    }
+  ],
+
+  "Wheelbase": 2.776,
+  "Minimum Turning Radius": 7.6,
+  "Maximum Steering Angle": 25.0,
+
+  "Driveline": {
+    "Input File": "audi/json/audi_Driveline2WD.json",
+    "Suspension Indexes": [ 0 ]
+  }
+}

@@ -1,0 +1,7 @@
+{
+  "Name":                       "van Bus Brake Rear",
+  "Type":                       "Brake",
+  "Template":                   "BrakeSimple",
+
+  "Maximum Torque":             3000
+}

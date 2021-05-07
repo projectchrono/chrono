@@ -414,7 +414,7 @@ __global__ void Shear_Stress_Rate(Real4* sortedPosRad,
                         Real wxz = -vAB_h.x * gradW.z + vAB_h.z * gradW.x;
                         Real wyz = -vAB_h.y * gradW.z + vAB_h.z * gradW.y;
                         Real wyx = -wxy;
-                        Real wzx = -wxz;
+                        // Real wzx = -wxz;
                         Real wzy = -wyz;
 
                         Real edia = 1.0 / 3.0 * (exx + eyy + ezz);
@@ -815,10 +815,10 @@ __device__ inline Real4 DifVelocityRho_ElasticSPH(Real3 gradW,
 
     // Real PA = rhoPresMuA.y;
     // Real PB = rhoPresMuB.y;
-    Real rhoA = rhoPresMuA.x;
-    Real rhoB = rhoPresMuB.x;
-    Real rhoA2 = rhoA * rhoA;
-    Real rhoB2 = rhoB * rhoB;
+    // Real rhoA = rhoPresMuA.x;
+    // Real rhoB = rhoPresMuB.x;
+    // Real rhoA2 = rhoA * rhoA;
+    // Real rhoB2 = rhoB * rhoB;
 
     Real Mass = paramsD.markerMass;
     Real MassOverRhoA2 = Mass * paramsD.invrho0 * paramsD.invrho0;//Mass/rhoA2;
@@ -856,7 +856,7 @@ __device__ inline Real4 DifVelocityRho_ElasticSPH(Real3 gradW,
     //     if ((rhoPresMuA.w < - 0.5)  && (rhoPresMuB.w < - 0.5)){ // only for fluid particles
             Real alpha = paramsD.Ar_vis_alpha;
             Real c_ab = paramsD.Cs;
-            Real rho = 0.5f * (rhoA + rhoB);
+            // Real rho = 0.5f * (rhoA + rhoB);
             Real nu = -alpha * paramsD.HSML * c_ab * paramsD.invrho0;
             Real derivM1 = -Mass * (nu * vAB_Dot_rAB * (invd * invd));//+ paramsD.epsMinMarkersDis * paramsD.HSML * paramsD.HSML
             derivVx += derivM1 * gradW.x;
@@ -1402,7 +1402,7 @@ __global__ void NS_SSR( Real4* sortedDerivVelRho,
             Real wxz = -vAB_h.x * gradW.z + vAB_h.z * gradW.x;
             Real wyz = -vAB_h.y * gradW.z + vAB_h.z * gradW.y;
             Real wyx = -wxy;
-            Real wzx = -wxz;
+            // Real wzx = -wxz;
             Real wzy = -wyz;
 
             Real edia = 1.0 / 3.0 * (exx + eyy + ezz);

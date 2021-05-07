@@ -142,14 +142,24 @@ def main():
         #Debug logging
         if (debug_output and step_number % debug_steps == 0) :
             print("\n\n============ System Information ============\n")
-            print( "Time = " << time << "\n\n")
+            print( "Time = ", time, "\n")
             #my_hmmwv.DebugLog(OUT_SPRINGS | OUT_SHOCKS | OUT_CONSTRAINTS)
 
             marker_driver = my_hmmwv.GetChassis().GetMarkers()[0].GetAbsCoord().pos
             marker_com = my_hmmwv.GetChassis().GetMarkers()[1].GetAbsCoord().pos
-            print( "Markers\n")
+            print( "\nMarkers\n")
             print( "  Driver loc:      " , marker_driver.x , " " , marker_driver.y , " " , marker_driver.z)
             print( "  Chassis COM loc: " , marker_com.x, " ", marker_com.y, " ",marker_com.z)
+
+            print("\nTire forces\n")
+            tf_FL = my_hmmwv.GetVehicle().GetTire(0, veh.LEFT).ReportTireForce(terrain)
+            tf_FR = my_hmmwv.GetVehicle().GetTire(0, veh.RIGHT).ReportTireForce(terrain)
+            tf_RL = my_hmmwv.GetVehicle().GetTire(1, veh.LEFT).ReportTireForce(terrain)
+            tf_RR = my_hmmwv.GetVehicle().GetTire(1, veh.RIGHT).ReportTireForce(terrain)
+            print("   Front left:  ", tf_FL.force.x, " ", tf_FL.force.y, " ", tf_FL.force.z)
+            print("   Front right: ", tf_FR.force.x, " ", tf_FR.force.y, " ", tf_FR.force.z)
+            print("   Rear left:   ", tf_RL.force.x, " ", tf_RL.force.y, " ", tf_RL.force.z)
+            print("   Rear right:  ", tf_RR.force.x, " ", tf_RR.force.y, " ", tf_RR.force.z)
 
         # Get driver inputs
         driver_inputs = driver.GetInputs()
@@ -234,7 +244,7 @@ render_step_size = 1.0 / 50;  # FPS = 50
 out_dir = os.path.join(os.path.dirname(__file__), "HMMWV_demo")
 
 # Debug logging
-debug_output = False
+debug_output = True
 debug_step_size = 1.0 / 1  # FPS = 1
 
 # POV-Ray output

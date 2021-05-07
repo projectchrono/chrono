@@ -60,7 +60,7 @@ VisualizationType tire_vis_type = VisualizationType::MESH;
 CollisionType chassis_collision_type = CollisionType::NONE;
 
 // Type of tire model (RIGID, TMEASY, PAC02)
-TireModelType tire_model = TireModelType::PAC02;
+TireModelType tire_model = TireModelType::TMEASY;
 
 // Rigid terrain
 RigidTerrain::PatchType terrain_model = RigidTerrain::PatchType::BOX;
@@ -76,7 +76,7 @@ ChContactMethod contact_method = ChContactMethod::SMC;
 bool contact_vis = false;
 
 // Simulation step sizes
-double step_size = 3e-3;
+double step_size = 2e-3;
 double tire_step_size = 1e-3;
 
 // Simulation end time
