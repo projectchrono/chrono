@@ -219,8 +219,8 @@ class ChSystemGpu_impl {
     // The system is not default-constructible
     ChSystemGpu_impl() = delete;
 
-    /// Construct Chrono::Gpu system with given sphere radius, density, and big domain dimensions.
-    ChSystemGpu_impl(float sphere_rad, float density, float3 boxDims);
+    /// Construct Chrono::Gpu system with given sphere radius, density, big domain dimensions and the frame origin.
+    ChSystemGpu_impl(float sphere_rad, float density, float3 boxDims, float3 O);
 
     /// Create big domain walls out of plane boundary conditions
     void CreateWallBCs();

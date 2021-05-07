@@ -37,15 +37,15 @@ size_t gran_approx_bytes_used = 0;
 namespace chrono {
 namespace gpu {
 
-ChSystemGpu_impl::ChSystemGpu_impl(float sphere_rad, float density, float3 boxDims)
+ChSystemGpu_impl::ChSystemGpu_impl(float sphere_rad, float density, float3 boxDims, float3 O)
     : sphere_radius_UU(sphere_rad),
       sphere_density_UU(density),
       box_size_X(boxDims.x),
       box_size_Y(boxDims.y),
       box_size_Z(boxDims.z),
-      user_coord_O_X(0.0),
-      user_coord_O_Y(0.0),
-      user_coord_O_Z(0.0),
+      user_coord_O_X(O.x),
+      user_coord_O_Y(O.y),
+      user_coord_O_Z(O.z),
       stepSize_UU(1e-4f),
       nSpheres(0),
       elapsedSimTime(0.f),

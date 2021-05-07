@@ -38,8 +38,9 @@ class ChSystemGpuMesh_impl;
 /// Interface to a Chrono::Gpu system.
 class CH_GPU_API ChSystemGpu {
   public:
-    /// Construct system with given sphere radius, density, and big domain dimensions.
-    ChSystemGpu(float sphere_rad, float density, float3 boxDims);
+    /// Construct system with given sphere radius, density, big domain dimensions, and an optional origin point location
+    /// of the reference frame w.r.t. the center of the big domain.
+    ChSystemGpu(float sphere_rad, float density, float3 boxDims, ChVector<float> O = ChVector<float>(0));
 
     /// Construct system with a checkpoint file.
     ChSystemGpu(const std::string& checkpoint);
@@ -307,8 +308,9 @@ class CH_GPU_API ChSystemGpu {
 /// Interface to a Chrono::Gpu mesh system.
 class CH_GPU_API ChSystemGpuMesh : public ChSystemGpu {
   public:
-    /// Construct system with given sphere radius, density, and big domain dimensions.
-    ChSystemGpuMesh(float sphere_rad, float density, float3 boxDims);
+    /// Construct system with given sphere radius, density, big domain dimensions, and an optional origin point location
+    /// of the reference frame w.r.t. the center of the big domain.
+    ChSystemGpuMesh(float sphere_rad, float density, float3 boxDims, ChVector<float> O = ChVector<float>(0));
 
     /// Construct system with a checkpoint file.
     ChSystemGpuMesh(const std::string& checkpoint);

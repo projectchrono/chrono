@@ -26,22 +26,22 @@ namespace gpu {
 
 // -----------------------------------------------------------------------------
 
-ChSystemGpu::ChSystemGpu(float sphere_rad, float density, float3 boxDims) {
-    m_sys = new ChSystemGpu_impl(sphere_rad, density, boxDims);
+ChSystemGpu::ChSystemGpu(float sphere_rad, float density, float3 boxDims, ChVector<float> O) {
+    m_sys = new ChSystemGpu_impl(sphere_rad, density, boxDims, make_float3(O.x(), O.y(), O.z()));
 }
 
 ChSystemGpu::ChSystemGpu(const std::string& checkpoint) {
-    m_sys = new ChSystemGpu_impl(1.f, 1.f, make_float3(100, 100, 100));
+    m_sys = new ChSystemGpu_impl(1.f, 1.f, make_float3(100, 100, 100), make_float3(0, 0, 0));
     ReadCheckpointFile(checkpoint, true);
 }
 
-ChSystemGpuMesh::ChSystemGpuMesh(float sphere_rad, float density, float3 boxDims)
+ChSystemGpuMesh::ChSystemGpuMesh(float sphere_rad, float density, float3 boxDims, ChVector<float> O)
     : mesh_verbosity(CHGPU_MESH_VERBOSITY::QUIET) {
-    m_sys = new ChSystemGpuMesh_impl(sphere_rad, density, boxDims);
+    m_sys = new ChSystemGpuMesh_impl(sphere_rad, density, boxDims, make_float3(O.x(), O.y(), O.z()));
 }
 
 ChSystemGpuMesh::ChSystemGpuMesh(const std::string& checkpoint) : mesh_verbosity(CHGPU_MESH_VERBOSITY::QUIET) {
-    m_sys = new ChSystemGpuMesh_impl(1.f, 1.f, make_float3(100, 100, 100));
+    m_sys = new ChSystemGpuMesh_impl(1.f, 1.f, make_float3(100, 100, 100), make_float3(0, 0, 0));
     ReadCheckpointFile(checkpoint, true);
 }
 
