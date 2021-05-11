@@ -283,6 +283,9 @@ class CH_MODELS_API ViperRover {
     /// Set motor speed.
     void SetMotorSpeed(double rad_speed, WheelID id);
 
+    /// Set lift motor speed
+    void SetLiftMotorSpeed(double rad_speed, WheelID id);
+
     /// Get wheel speed.
     ChVector<> GetWheelSpeed(WheelID id);
 
@@ -380,7 +383,9 @@ class CH_MODELS_API ViperRover {
 
     std::vector<std::shared_ptr<ChLinkMotorRotationSpeed>> m_motors;        ///< vector to store motors
     std::vector<std::shared_ptr<ChLinkMotorRotationSpeed>> m_steer_motors;  ///< vector to store steering motors
-    std::vector<std::shared_ptr<ChLinkMotorRotationSpeed>> m_lift_motors;   /// TODO: < vector to store lifting motors
+    std::vector<std::shared_ptr<ChLinkMotorRotationSpeed>>
+        m_lift_motors;  ///< vector to store lifting motors
+                        ///< Note: there are 8 lifting motors in total
 
     // DC Motor Test
     std::vector<std::shared_ptr<ChShaft>> m_power_shafts;
@@ -394,8 +399,7 @@ class CH_MODELS_API ViperRover {
 
     std::vector<std::shared_ptr<ChFunction_Const>> m_motors_func;        ///< constant motor angular speed func
     std::vector<std::shared_ptr<ChFunction_Const>> m_steer_motors_func;  ///< constant steering motor angular speed func
-    std::vector<std::shared_ptr<ChFunction_Const>>
-        m_lift_motors_func;  /// TODO: < constant lifting motor angular speed func
+    std::vector<std::shared_ptr<ChFunction_Const>> m_lift_motors_func;   ///< constant lifting motor angular speed func
     // suspension spring
     std::vector<std::shared_ptr<ChLinkTSDA>> m_sus_springs;  ///< suspension springs
 

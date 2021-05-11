@@ -658,8 +658,8 @@ void ViperRover::Initialize() {
     // add all constraints to the system
     // redefine pos data for constraints
     double sr_lx = 0.5618 + 0.08;
-    //double sr_ly = 0.2067 + 0.32 + 0.0831;
-    //double sr_lz = 0.0;
+    // double sr_ly = 0.2067 + 0.32 + 0.0831;
+    // double sr_lz = 0.0;
     double sr_ly_joint = 0.2067 + 0.32;
 
     double cr_lx = 0.5618 + 0.08;
@@ -709,14 +709,32 @@ void ViperRover::Initialize() {
         ChQuaternion<> z2x;
         z2x.Q_from_AngAxis(-CH_C_PI / 2, ChVector<>(0, 1, 0));
 
-        AddRevoluteJoint(m_chassis->GetBody(), m_bts_suss[i]->GetBody(), m_chassis->GetBody(), m_system,
-                         cr_rel_pos_lower[i], z2x);
-        AddRevoluteJoint(m_chassis->GetBody(), m_up_suss[i]->GetBody(), m_chassis->GetBody(), m_system,
-                         cr_rel_pos_upper[i], z2x);
+        // AddRevoluteJoint(m_chassis->GetBody(), m_bts_suss[i]->GetBody(), m_chassis->GetBody(), m_system,
+        //                 cr_rel_pos_lower[i], z2x);
+        // AddRevoluteJoint(m_chassis->GetBody(), m_up_suss[i]->GetBody(), m_chassis->GetBody(), m_system,
+        //                cr_rel_pos_upper[i], z2x);
         AddRevoluteJoint(m_bts_suss[i]->GetBody(), m_steers[i]->GetBody(), m_chassis->GetBody(), m_system,
                          sr_rel_pos_lower[i], z2x);
         AddRevoluteJoint(m_up_suss[i]->GetBody(), m_steers[i]->GetBody(), m_chassis->GetBody(), m_system,
                          sr_rel_pos_upper[i], z2x);
+
+        // Add lifting motors at the connecting points between upper_suspension&chassis and bottom_suspension&chassis
+        // create lifting motors speed control functions
+        if (i % 2 == 0) {
+            auto const_lift_speed_function = chrono_types::make_shared<ChFunction_Const>(-0.0);
+            m_lift_motors_func.push_back(const_lift_speed_function);
+            m_lift_motors_func.push_back(const_lift_speed_function);
+        } else {
+            auto const_lift_speed_function = chrono_types::make_shared<ChFunction_Const>(0.0);
+            m_lift_motors_func.push_back(const_lift_speed_function);
+            m_lift_motors_func.push_back(const_lift_speed_function);
+        }
+
+        // Store lifting motor objects
+        m_lift_motors.push_back(AddMotor(m_chassis->GetBody(), m_bts_suss[i]->GetBody(), m_chassis->GetBody(), m_system,
+                                         cr_rel_pos_lower[i], z2x, m_lift_motors_func[2 * i]));
+        m_lift_motors.push_back(AddMotor(m_chassis->GetBody(), m_up_suss[i]->GetBody(), m_chassis->GetBody(), m_system,
+                                         cr_rel_pos_upper[i], z2x, m_lift_motors_func[2 * i + 1]));
 
         auto steer_rod = chrono_types::make_shared<ChBodyEasyBox>(0.1, 0.1, 0.1, 1000, true, false,
                                                                   DefaultContactMaterial(m_system->GetContactMethod()));
@@ -793,6 +811,11 @@ void ViperRover::SetMotorSpeed(double rad_speed, WheelID id) {
     } else {
         std::cout << "DC_Control set to true, use SetMotorNoLoadSpeed() instead" << std::endl;
     }
+}
+
+void ViperRover::SetLiftMotorSpeed(double rad_speed, WheelID id) {
+    m_lift_motors_func[id * 2]->Set_yconst(rad_speed);
+    m_lift_motors_func[id * 2 + 1]->Set_yconst(rad_speed);
 }
 
 void ViperRover::SetMotorNoLoadSpeed(double rad_speed, WheelID id) {
