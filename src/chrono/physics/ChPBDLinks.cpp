@@ -324,8 +324,12 @@ namespace chrono {
 		}
 		else if (dynamic_cast<const ChLinkMotorLinear*>(alink) != nullptr) {
 			ChLinkMotorLinear* motor = dynamic_cast<ChLinkMotorLinear*>(alink);
-			displ_actuated = true;
 			mask[0] = false;
+			if (dynamic_cast<const ChLinkMotorLinearForce*>(alink) != nullptr) {
+				// nothing to do besides unlocking x for lin force actuator
+				return;
+			}
+			displ_actuated = true;
 			actuation_dir = 0;
 			p_dir.Set(int(mask[0]), int(mask[1]), int(mask[2]));
 			motor_func = motor->GetMotorFunction();
