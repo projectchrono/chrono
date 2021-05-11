@@ -199,10 +199,14 @@ namespace chrono {
 		if (displ_actuated) {
 			double targ = motor_func->Get_y(PBDsys->T);
 			if (speed_actuated) {
-				targ *= PBDsys->h;
-				targ += local_disp[actuation_dir];
+				// Correct of the amount necessary to acheive the target speed by the end of the substep
+				double relspeed = Body1->TransformDirectionParentToLocal(Body2->GetPos_dt() - Body1->GetPos_dt())[actuation_dir];
+				double corr = -(targ-relspeed)*PBDsys->h;
+				correction.Set(corr,0,0);
 			}
-			correction[actuation_dir] += targ - local_disp[actuation_dir];
+			else{
+				correction[actuation_dir] = targ - local_disp[actuation_dir];
+			};
 		}
 		if (is_displ_limited) {
 			for (unsigned i = 0; i < 3; i++) {
@@ -325,7 +329,10 @@ namespace chrono {
 			actuation_dir = 0;
 			p_dir.Set(int(mask[0]), int(mask[1]), int(mask[2]));
 			motor_func = motor->GetMotorFunction();
-			if (dynamic_cast<const ChLinkMotorLinearSpeed*>(alink) != nullptr) { speed_actuated = true; }
+			if (dynamic_cast<const ChLinkMotorLinearSpeed*>(alink) != nullptr) { speed_actuated = true; alpha=0; }
+			if (dynamic_cast<const ChLinkMotorLinearForce*>(alink) != nullptr) {
+				mask[0] = false;
+			}
 		}
 	}
 
@@ -456,8 +463,7 @@ namespace chrono {
 			// do not compute tangential velocity correction if there is none
 			if (is_dynamic) {
 				double ft = abs(lambda_contact_tf) / (h*h);
-				// eq. 30
-				// TODO: this is taken from the paper but does not make sense dimensionally
+				// similar to eq. 30 but this is different from the paper (which does not make sense dimensionally)
 				double threshold = h * ft * (w1_tf + w2_tf);
 				if (vt < threshold) {
 					is_dynamic = false;
@@ -470,7 +476,7 @@ namespace chrono {
 			}
 
 			// normal speed restitution
-			// TODO: use a restitution coefficient
+			// TODO: make restitution coefficient settable
 			double e = (abs(v_rel_n) < 2 * 9.8 * h) ? 0 : 0.005;
 			delta_vn = -n * (v_rel_n + ChMax(e*v_n_old, 0.0));
 
