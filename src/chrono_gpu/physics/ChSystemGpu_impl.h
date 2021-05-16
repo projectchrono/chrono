@@ -649,7 +649,7 @@ class ChSystemGpu_impl {
     /// Z-length of the big domain; defines the global Z axis located at the CM of the box (as default)
     float box_size_Z;
 
-    /// XYZ coordinate of the origin of the user global coordinate system, relative the CM of the big box domain
+    /// XYZ coordinate of the center of the big box domain in the user-defined frame. Default is (0,0,0).
     float user_coord_O_X;
     float user_coord_O_Y;
     float user_coord_O_Z;

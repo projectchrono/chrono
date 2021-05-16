@@ -69,7 +69,7 @@ void ChSystemGpu::SetBDFixed(bool fixed) {
     m_sys->BD_is_fixed = fixed;
 }
 
-void ChSystemGpu::SetCoordinateSystemO(const ChVector<float>& O) {
+void ChSystemGpu::SetBDCenter(const ChVector<float>& O) {
     m_sys->user_coord_O_X = O.x();
     m_sys->user_coord_O_Y = O.y();
     m_sys->user_coord_O_Z = O.z();
@@ -826,7 +826,7 @@ bool ChSystemGpu::SetParamsFromIdentifier(const std::string& identifier, std::is
             iss1 >> b;
             SetBDFixed(b);
             break;
-        case ("userCoordO"_):
+        case ("BDCenter"_):
             iss1 >> f3.x;
             iss1 >> f3.y;
             iss1 >> f3.z;
@@ -1210,8 +1210,8 @@ void ChSystemGpu::WriteCheckpointParams(std::ofstream& cpFile) const {
     paramStream << "radius: " << m_sys->sphere_radius_UU << "\n";
     paramStream << "boxSize: " << m_sys->box_size_X << " " << m_sys->box_size_Y << " " << m_sys->box_size_Z << "\n";
     paramStream << "BDFixed: " << (int)(m_sys->BD_is_fixed) << "\n";
-    paramStream << "userCoordO: " << m_sys->user_coord_O_X << " " << m_sys->user_coord_O_Y << " "
-                << m_sys->user_coord_O_Z << "\n";
+    paramStream << "BDCenter: " << m_sys->user_coord_O_X << " " << m_sys->user_coord_O_Y << " " << m_sys->user_coord_O_Z
+                << "\n";
     paramStream << "verbosity: " << as_uint(m_sys->verbosity) << "\n";
     paramStream << "useMinLengthUnit: " << (int)(m_sys->use_min_length_unit) << "\n";
     paramStream << "recordContactInfo: " << (int)(m_sys->gran_params->recording_contactInfo) << "\n";
