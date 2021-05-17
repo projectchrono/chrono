@@ -32,6 +32,7 @@
 
 #include "chrono_vehicle/ChVehicleModelData.h"
 #include "chrono_vehicle/ChWorldFrame.h"
+#include "chrono/physics/ChSystemSMC.h"
 #include "chrono_vehicle/driver/ChPathFollowerDriver.h"
 #include "chrono_vehicle/driver/ChHumanDriver.h"
 #include "chrono_vehicle/terrain/CRGTerrain.h"
@@ -232,7 +233,7 @@ int main(int argc, char* argv[]) {
 
     // Set up parameter defaults and command-line arguments
     DriverModelType driver_type = DriverModelType::HUMAN;
-    std::string crg_road_file = "terrain/crg_roads/Barber.crg";
+    std::string crg_road_file = "terrain/crg_roads/RoadCourse.crg";
     bool yup = false;
 
     cli.AddOption<std::string>("Demo", "m,model", "Controller model type - PID, STANLEY, XT, SR, HUMAN", "HUMAN");
@@ -258,17 +259,34 @@ int main(int argc, char* argv[]) {
     std::cout << "Forward direction:  " << ChWorldFrame::Forward() << std::endl;
 
     // ------------------
-    // Create the vehicle
+    // Create the terrain
     // ------------------
 
     // Initial location
-    auto init_loc = 2.0 * ChWorldFrame::Forward() + 0.5 * ChWorldFrame::Vertical();
-
+    // auto init_loc = 2.0 * ChWorldFrame::Forward() + 0.5 * ChWorldFrame::Vertical();
     // Create the HMMWV vehicle, set parameters, and initialize
-    HMMWV_Full my_hmmwv;
+    ChSystemSMC sys;
+    sys.Set_G_acc(-9.81 * ChWorldFrame::Vertical());
+    sys.SetSolverMaxIterations(150);
+
+    std::cout << std::endl;
+    std::cout << "CRG road file: " << crg_road_file << std::endl;
+
+    CRGTerrain terrain(&sys);
+    terrain.UseMeshVisualization(useMesh);
+    terrain.SetContactFrictionCoefficient(0.8f);
+    terrain.Initialize(crg_road_file);
+    auto init_pos = terrain.GetStartPosition();
+    init_pos.pos += 0.5 * ChWorldFrame::Vertical();
+
+    // ------------------
+    // Create the vehicle
+    // ------------------
+    HMMWV_Full my_hmmwv(&sys);
+
     my_hmmwv.SetContactMethod(ChContactMethod::SMC);
     my_hmmwv.SetChassisFixed(false);
-    my_hmmwv.SetInitPosition(ChCoordsys<>(init_loc, QUNIT));
+    my_hmmwv.SetInitPosition(init_pos);
     my_hmmwv.SetPowertrainType(PowertrainModelType::SHAFTS);
     my_hmmwv.SetDriveType(DrivelineTypeWV::RWD);
     my_hmmwv.SetTireType(tire_model);
@@ -280,18 +298,6 @@ int main(int argc, char* argv[]) {
     my_hmmwv.SetSteeringVisualizationType(VisualizationType::PRIMITIVES);
     my_hmmwv.SetWheelVisualizationType(VisualizationType::NONE);
     my_hmmwv.SetTireVisualizationType(VisualizationType::PRIMITIVES);
-
-    // ------------------
-    // Create the terrain
-    // ------------------
-
-    std::cout << std::endl;
-    std::cout << "CRG road file: " << crg_road_file << std::endl;
-
-    CRGTerrain terrain(my_hmmwv.GetSystem());
-    terrain.UseMeshVisualization(useMesh);
-    terrain.SetContactFrictionCoefficient(0.8f);
-    terrain.Initialize(crg_road_file);
 
     // Get the vehicle path (middle of the road)
     auto path = terrain.GetRoadCenterLine();
@@ -401,6 +407,7 @@ int main(int argc, char* argv[]) {
         driver.Advance(step_size);
         terrain.Advance(step_size);
         my_hmmwv.Advance(step_size);
+        sys.DoStepDynamics(step_size);
         app.Advance(step_size);
 
         // Increment simulation frame number
