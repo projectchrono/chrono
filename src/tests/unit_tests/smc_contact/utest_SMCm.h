@@ -123,7 +123,7 @@ void SetSimParameters(
     sys->GetSettings()->collision.bins_per_axis = vec3(10, 10, 10);
     sys->GetSettings()->collision.narrowphase_algorithm = NarrowPhaseType::NARROWPHASE_HYBRID_MPR;
 
-    sys->ChangeCollisionSystem(CollisionSystemType::COLLSYS_MULTICORE);
+    sys->SetCollisionSystemType(ChCollisionSystem::Type::CHRONO);
 }
 
 bool CalcKE(ChSystemMulticoreSMC* sys, const double& threshold) {

@@ -82,7 +82,7 @@ class CH_MULTICORE_API ChSystemMulticore : public ChSystem {
     virtual void AddMaterialSurfaceData(std::shared_ptr<ChBody> newbody) = 0;
     virtual void UpdateMaterialSurfaceData(int index, ChBody* body) = 0;
     virtual void Setup() override;
-    virtual void ChangeCollisionSystem(CollisionSystemType type);
+    virtual void SetCollisionSystemType(collision::ChCollisionSystem::Type type) override;
 
     /// Change the default composition laws for contact surface materials
     /// (coefficient of friction, cohesion, compliance, etc.).
@@ -199,8 +199,6 @@ class CH_MULTICORE_API ChSystemMulticore : public ChSystem {
     uint frame_threads, frame_bins, counter;
     std::vector<ChLink*>::iterator it;
 
-    CollisionSystemType collision_system_type;
-
   private:
     void AddShaft(std::shared_ptr<ChShaft> shaft);
 
@@ -260,7 +258,7 @@ class CH_MULTICORE_API ChSystemMulticoreSMC : public ChSystemMulticore {
     virtual void UpdateMaterialSurfaceData(int index, ChBody* body) override;
 
     virtual void Setup() override;
-    virtual void ChangeCollisionSystem(CollisionSystemType type) override;
+    virtual void SetCollisionSystemType(collision::ChCollisionSystem::Type type) override;
 
     virtual real3 GetBodyContactForce(uint body_id) const override;
     virtual real3 GetBodyContactTorque(uint body_id) const override;

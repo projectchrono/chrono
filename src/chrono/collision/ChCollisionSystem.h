@@ -35,8 +35,18 @@ namespace collision {
 /// Base class for generic collision engine.
 class ChApi ChCollisionSystem {
   public:
+    /// Collision engine type.
+    enum class Type {
+        BULLET,  ///< Bullet-based collision detection system
+        CHRONO,  ///< Chrono multicore collision detection system
+        OTHER    ///< other type (external)
+    };
+
     ChCollisionSystem() {}
     virtual ~ChCollisionSystem() {}
+
+    /// Return the type of this collision system.
+    virtual Type GetType() const = 0;
 
     /// Clears all data instanced by this algorithm
     /// if any (like persistent contact manifolds)

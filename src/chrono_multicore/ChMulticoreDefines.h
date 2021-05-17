@@ -138,12 +138,6 @@ enum class SolverMode {
     BILATERAL  ///< solve for bilateral Lagrange multipliers
 };
 
-/// Enumeration for the collision system type
-enum class CollisionSystemType {
-    COLLSYS_MULTICORE,        ///< default collision system
-    COLLSYS_BULLET_MULTICORE  ///< Bullet-based collision system
-};
-
 /// Enumeration of narrow-phase collision methods.
 enum class NarrowPhaseType {
     NARROWPHASE_MPR,        ///< Minkovski Portal Refinement

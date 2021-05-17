@@ -15,6 +15,7 @@
 #include <algorithm>
 
 #include "chrono/collision/ChCollisionSystemBullet.h"
+#include "chrono/collision/ChCollisionSystemChrono.h"
 #include "chrono/physics/ChProximityContainer.h"
 #include "chrono/physics/ChSystem.h"
 #include "chrono/solver/ChSolverAPGD.h"
@@ -70,7 +71,8 @@ ChSystem::ChSystem()
       applied_forces_current(false) {
     assembly.system = this;
 
-    // Set default collision envelope and margin.
+    // Set default collision engine type, collision envelope, and margin.
+    collision_system_type = collision::ChCollisionSystem::Type::BULLET;
     collision::ChCollisionModel::SetDefaultSuggestedEnvelope(0.03);
     collision::ChCollisionModel::SetDefaultSuggestedMargin(0.01);
 
@@ -110,6 +112,8 @@ ChSystem::ChSystem(const ChSystem& other) {
     is_updated = false;
     applied_forces_current = false;
     maxiter = other.maxiter;
+
+    collision_system_type = other.collision_system_type;
 
     min_bounce_speed = other.min_bounce_speed;
     max_penetration_recovery_speed = other.max_penetration_recovery_speed;
@@ -278,10 +282,29 @@ void ChSystem::SetContactContainer(std::shared_ptr<ChContactContainer> container
     contact_container->SetSystem(this);
 }
 
+void ChSystem::SetCollisionSystemType(ChCollisionSystem::Type type) {
+    assert(assembly.GetNbodies() == 0);
+
+    collision_system_type = type;
+
+    switch (type) {
+        case ChCollisionSystem::Type::BULLET:
+            collision_system = chrono_types::make_shared<ChCollisionSystemBullet>();
+            break;
+        case ChCollisionSystem::Type::CHRONO:
+            collision_system = chrono_types::make_shared<ChCollisionSystemChrono>();
+            break;
+        default:
+            GetLog() << "Collision system type not supported. Use SetCollisionSystem instead.\n";
+            break;
+    }
+}
+
 void ChSystem::SetCollisionSystem(std::shared_ptr<ChCollisionSystem> newcollsystem) {
     assert(assembly.GetNbodies() == 0);
     assert(newcollsystem);
     collision_system = newcollsystem;
+    collision_system_type = newcollsystem->GetType();
     collision_system->SetNumThreads(nthreads_collision);
 }
 
@@ -293,6 +316,24 @@ void ChSystem::SetNumThreads(int num_threads_chrono, int num_threads_collision, 
     nthreads_chrono = std::max(1, num_threads_chrono);
     nthreads_collision = (num_threads_collision == 0) ? num_threads_chrono : num_threads_collision;
     nthreads_eigen = (num_threads_eigen == 0) ? num_threads_chrono : num_threads_eigen;
+
+    collision_system->SetNumThreads(nthreads_collision);
+}
+
+// -----------------------------------------------------------------------------
+
+ChBody* ChSystem::NewBody() {
+    if (collision_system_type == ChCollisionSystem::Type::CHRONO)
+        return new ChBody(chrono_types::make_shared<collision::ChCollisionModelChrono>());
+
+    return new ChBody();
+}
+
+ChBodyAuxRef* ChSystem::NewBodyAuxRef() {
+    if (collision_system_type == ChCollisionSystem::Type::CHRONO)
+        return new ChBodyAuxRef(chrono_types::make_shared<collision::ChCollisionModelChrono>());
+
+    return new ChBodyAuxRef();
 }
 
 // -----------------------------------------------------------------------------

@@ -62,8 +62,8 @@ void ChSystemMulticoreSMC::Setup() {
     data_manager->settings.collision.collision_envelope = 0;
 }
 
-void ChSystemMulticoreSMC::ChangeCollisionSystem(CollisionSystemType type) {
-    ChSystemMulticore::ChangeCollisionSystem(type);
+void ChSystemMulticoreSMC::SetCollisionSystemType(ChCollisionSystem::Type type) {
+    ChSystemMulticore::SetCollisionSystemType(type);
     data_manager->settings.collision.collision_envelope = 0;
 }
 

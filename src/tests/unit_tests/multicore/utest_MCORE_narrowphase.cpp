@@ -212,8 +212,8 @@ int main(int argc, char* argv[]) {
     ChSystemMulticoreNSC* msystem_r = new ChSystemMulticoreNSC();
 
 #ifdef BULLET
-    msystem_mpr->ChangeCollisionSystem(CollisionSystemType::COLLSYS_BULLET_MULTICORE);
-    msystem_r->ChangeCollisionSystem(CollisionSystemType::COLLSYS_BULLET_MuLTICORE);
+    msystem_mpr->SetCollisionSystemType(ChCollisionSystem::Type::BULLET);
+    msystem_r->SetCollisionSystemType(ChCollisionSystem::Type::BULLET);
 #endif
 
     SetupSystem(msystem_mpr);

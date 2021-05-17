@@ -224,7 +224,7 @@ TEST(ChronoMulticore, jacobians) {
     msystem->SetNumThreads(1);
 
 #ifdef BULLET
-    msystem->ChangeCollisionSystem(CollisionSystemType::COLLSYS_BULLET_MULTICORE);
+    msystem->SetCollisionSystemType(ChCollisionSystem::Type::BULLET);
 #else
     msystem->GetSettings()->collision.narrowphase_algorithm = NarrowPhaseType::NARROWPHASE_MPR;
 #endif
