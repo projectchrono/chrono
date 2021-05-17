@@ -20,11 +20,13 @@
 #include "chrono/core/ChVector.h"
 #include "chrono/core/ChVector2.h"
 #include "chrono/core/ChQuaternion.h"
+#include "chrono/core/ChMatrix33.h"
 
 #include "chrono/multicore_math/real.h"
 #include "chrono/multicore_math/real2.h"
 #include "chrono/multicore_math/real3.h"
 #include "chrono/multicore_math/real4.h"
+#include "chrono/multicore_math/matrix.h"
 #include "chrono/multicore_math/other_types.h"
 
 namespace chrono {
@@ -91,6 +93,28 @@ static ChQuaternion<real> ToChQuaternion(const quaternion& q) {
 
 static quaternion FromChQuaternion(const ChQuaternion<real>& q) {
     return quaternion(q.e0(), q.e1(), q.e2(), q.e3());
+}
+
+
+static ChMatrix33<real> ToChMatrix33(const Mat33& a) {
+    ChMatrix33<real> tmp;
+    tmp(0, 0) = a[0];
+    tmp(1, 0) = a[1];
+    tmp(2, 0) = a[2];
+
+    tmp(0, 1) = a[4];
+    tmp(1, 1) = a[5];
+    tmp(2, 1) = a[6];
+
+    tmp(0, 2) = a[8];
+    tmp(1, 2) = a[9];
+    tmp(2, 2) = a[10];
+
+    return tmp;
+}
+
+static Mat33 FromChMatrix33(const ChMatrix33<real>& a) {
+    return Mat33(a(0, 0), a(1, 0), a(2, 0), a(0, 1), a(1, 1), a(2, 1), a(0, 2), a(1, 2), a(2, 2));
 }
 
 /// @} chrono_mc_math

@@ -69,7 +69,7 @@ class collision_settings {
 
     /// This parameter, similar to the one in chrono inflates each collision shape
     /// by a certain amount. This is necessary when using NSC as it creates the
-    /// contact constraints before objects acutally come into contact. In general
+    /// contact constraints before objects actually come into contact. In general
     /// this helps with stability.
     real collision_envelope;
     /// Optional feature that allows the user to set a bounding box that automatically

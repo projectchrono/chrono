@@ -16,21 +16,22 @@
 //
 // =============================================================================
 
-#include "chrono_multicore/collision/ChNarrowphaseUtils.h"
-
-#include "chrono_multicore/collision/ChNarrowphaseMPR.h"
+#include "chrono/collision/chrono/ChNarrowphaseMPR.h"
+#include "chrono/collision/chrono/ChNarrowphaseUtilsMPR.h"
 
 #include "chrono/collision/ChCollisionModel.h"
 #include "chrono/core/ChMathematics.h"
 
-#include "unit_testing.h"
+#include "chrono/collision/bullet/BulletCollision/CollisionShapes/btBoxShape.h"
+#include "chrono/collision/bullet/BulletCollision/CollisionShapes/btCollisionMargin.h"
+#include "chrono/collision/bullet/BulletCollision/CollisionShapes/btConeShape.h"
+#include "chrono/collision/bullet/BulletCollision/CollisionShapes/btCylinderShape.h"
+#include "chrono/collision/bullet/BulletCollision/CollisionShapes/btMultiSphereShape.h"
+#include "chrono/collision/bullet/BulletCollision/CollisionShapes/btSphereShape.h"
 
-#include "BulletCollision/CollisionShapes/btBoxShape.h"
-#include "BulletCollision/CollisionShapes/btCollisionMargin.h"
-#include "BulletCollision/CollisionShapes/btConeShape.h"
-#include "BulletCollision/CollisionShapes/btCylinderShape.h"
-#include "BulletCollision/CollisionShapes/btMultiSphereShape.h"
-#include "BulletCollision/CollisionShapes/btSphereShape.h"
+#include "gtest/gtest.h"
+
+#include "unit_testing.h"
 
 using namespace chrono;
 using namespace chrono::collision;
@@ -63,7 +64,7 @@ TEST(ChNarrowphaseMPR, support_functions) {
 
         btSphereShape shape((btScalar)R.x);
         shape.setMargin(0);
-        real3 answer_b = R.x * Dir;  // ToReal3(shape.localGetSupportingVertex(btVector3(Dir.x, Dir.y, Dir.z)));
+        real3 answer_b = R.x * Dir;
 
         Assert_near(answer_a, answer_b, precision);
     }
@@ -456,7 +457,7 @@ TEST(ChNarrowphaseMPR, cylinder_sphere) {
     // Cylinder position and orientation fixed for all tests.
     // Aligned with X axis and shifted by its half-length in the X direction.
     real3 c_pos(c_hlen, 0, 0);
-    quaternion c_rot = ToQuaternion(Q_from_AngAxis(CH_C_PI_2, ChVector<>(0, 0, 1)));
+    quaternion c_rot = FromChQuaternion(Q_from_AngAxis(CH_C_PI_2, ChVector<>(0, 0, 1)));
 
     real3 norm;
     real depth;
@@ -615,7 +616,7 @@ TEST(ChNarrowphaseMPR, roundedcyl_sphere) {
     // Rounded cylinder position and orientation fixed for all tests.
     // Aligned with X axis and shifted by its half-length in the X direction.
     real3 c_pos(c_hlen, 0, 0);
-    quaternion c_rot = ToQuaternion(Q_from_AngAxis(CH_C_PI_2, ChVector<>(0, 0, 1)));
+    quaternion c_rot = FromChQuaternion(Q_from_AngAxis(CH_C_PI_2, ChVector<>(0, 0, 1)));
 
     real3 norm;
     real depth;
