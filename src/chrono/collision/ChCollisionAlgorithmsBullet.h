@@ -23,8 +23,12 @@
 namespace chrono {
 namespace collision {
 
+/// @addtogroup collision_bullet
+/// @{
+
 // ================================================================================================
 
+/// Custom override of the default Bullet algorithm for capsule-box collision.
 class btCapsuleBoxCollisionAlgorithm : public btActivatingCollisionAlgorithm {
   public:
     btCapsuleBoxCollisionAlgorithm(btPersistentManifold* mf,
@@ -59,7 +63,7 @@ class btCapsuleBoxCollisionAlgorithm : public btActivatingCollisionAlgorithm {
 
 // ================================================================================================
 
-// Utility class to override the default cylshell-box collision case.
+/// Custom override of the default Bullet algorithm for cylshell-box collision.
 class btCylshellBoxCollisionAlgorithm : public btActivatingCollisionAlgorithm {
   public:
     btCylshellBoxCollisionAlgorithm(btPersistentManifold* mf,
@@ -94,8 +98,8 @@ class btCylshellBoxCollisionAlgorithm : public btActivatingCollisionAlgorithm {
 
 // ================================================================================================
 
-// Utility class to override the default cylinder-sphere collision case.
-// This replaces the default GJK algorithm in Bullet which is inaccurate if the cylinder is much larger than the sphere.
+/// Custom override of the default Bullet algorithm for sphere-cylinder collision.
+/// This replaces the default GJK algorithm in Bullet which is inaccurate if the cylinder is much larger than the sphere.
 class btSphereCylinderCollisionAlgorithm : public btActivatingCollisionAlgorithm {
   public:
     btSphereCylinderCollisionAlgorithm(btPersistentManifold* mf,
@@ -130,7 +134,8 @@ class btSphereCylinderCollisionAlgorithm : public btActivatingCollisionAlgorithm
 
 // ================================================================================================
 
-// Utility to override the default 2Dsegment-2Darc collision case (works only if the two are coplanar)
+/// Custom override of the default Bullet algorithm for 2Dsegment-2Darc collision.
+/// Note: works only if the two are coplanar.
 class btArcSegmentCollisionAlgorithm : public btActivatingCollisionAlgorithm {
   public:
     btArcSegmentCollisionAlgorithm(btPersistentManifold* mf,
@@ -165,7 +170,8 @@ class btArcSegmentCollisionAlgorithm : public btActivatingCollisionAlgorithm {
 
 // ================================================================================================
 
-// Utility class to override the default 2Darc-2Darc collision case (works only of the two are coplanar)
+/// Custom override of the default Bullet algorithm for 2Darc-2Darc collision.
+/// Note: works only if the two are coplanar.
 class btArcArcCollisionAlgorithm : public btActivatingCollisionAlgorithm {
   public:
     btArcArcCollisionAlgorithm(btPersistentManifold* mf,
@@ -200,7 +206,7 @@ class btArcArcCollisionAlgorithm : public btActivatingCollisionAlgorithm {
 
 // ================================================================================================
 
-// Utility class to override the btCEtriangleShape vs btCEtriangleShape
+/// Custom override of the default Bullet algorithm for triangle-triangle collision.
 class btCEtriangleShapeCollisionAlgorithm : public btActivatingCollisionAlgorithm {
   public:
     btCEtriangleShapeCollisionAlgorithm(btPersistentManifold* mf,
@@ -239,6 +245,8 @@ class btCEtriangleShapeCollisionAlgorithm : public btActivatingCollisionAlgorith
     btPersistentManifold* m_manifoldPtr;
     bool m_isSwapped;
 };
+
+/// @} collision_bullet
 
 }  // namespace collision
 }  // namespace chrono

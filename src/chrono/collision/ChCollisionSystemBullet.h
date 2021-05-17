@@ -22,8 +22,10 @@
 namespace chrono {
 namespace collision {
 
+/// @addtogroup collision_bullet
+/// @{
 
-/// Collision engine based on the 'Bullet' library.
+/// Collision engine based on the Bullet library.
 /// Contains both the broadphase and the narrow phase Bullet methods.
 class ChApi ChCollisionSystemBullet : public ChCollisionSystem {
   public:
@@ -134,6 +136,8 @@ class ChApi ChCollisionSystemBullet : public ChCollisionSystem {
     void* m_tmp_mem;
     btCollisionAlgorithmCreateFunc* m_emptyCreateFunc;
 };
+
+/// @} collision_bullet
 
 }  // end namespace collision
 }  // end namespace chrono

@@ -27,8 +27,10 @@ class ChVariablesBody;
 class ChContactContainer;
 class ChProximityContainer;
 
-/// Collision detection classes
 namespace collision {
+
+/// @addtogroup chrono_collision
+/// @{
 
 /// Base class for generic collision engine.
 class ChApi ChCollisionSystem {
@@ -171,6 +173,8 @@ class ChApi ChCollisionSystem {
     std::shared_ptr<BroadphaseCallback> broad_callback;    ///< user callback for each near-enough pair of shapes
     std::shared_ptr<NarrowphaseCallback> narrow_callback;  ///< user callback for each collision pair
 };
+
+/// @} chrono_collision
 
 }  // end namespace collision
 

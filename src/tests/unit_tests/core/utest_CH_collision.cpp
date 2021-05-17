@@ -40,7 +40,7 @@ TEST(BulletCollision, SnapPointToBox) {
     {
         // interior point
         btVector3 loc(0.5, -1.0, 1.5);
-        int code = utils::SnapPointToBox(hdims, loc);
+        int code = bt_utils::SnapPointToBox(hdims, loc);
         ASSERT_EQ(code, 0);
         Assert_eq(loc, btVector3(0.5, -1.0, 1.5));
     }
@@ -48,7 +48,7 @@ TEST(BulletCollision, SnapPointToBox) {
     {
         // face point
         btVector3 loc(0.5, -1.0, -3.5);
-        int code = utils::SnapPointToBox(hdims, loc);
+        int code = bt_utils::SnapPointToBox(hdims, loc);
         ASSERT_EQ(code, 4);
         Assert_eq(loc, btVector3(0.5, -1.0, -3.0));
     }
@@ -56,7 +56,7 @@ TEST(BulletCollision, SnapPointToBox) {
     {
         // edge point
         btVector3 loc(0.5, -2.5, -3.5);
-        int code = utils::SnapPointToBox(hdims, loc);
+        int code = bt_utils::SnapPointToBox(hdims, loc);
         ASSERT_EQ(code, 6);
         Assert_eq(loc, btVector3(0.5, -2.0, -3.0));
     }
@@ -64,7 +64,7 @@ TEST(BulletCollision, SnapPointToBox) {
     {
         // vertex point
         btVector3 loc(1.5, -2.5, -3.5);
-        int code = utils::SnapPointToBox(hdims, loc);
+        int code = bt_utils::SnapPointToBox(hdims, loc);
         ASSERT_EQ(code, 7);
         Assert_eq(loc, btVector3(1.0, -2.0, -3.0));
     }
@@ -76,28 +76,28 @@ TEST(BulletCollision, PointInsideBox) {
     {
         // interior point
         btVector3 loc(0.5, -1.0, 1.5);
-        bool code = utils::PointInsideBox(hdims, loc);
+        bool code = bt_utils::PointInsideBox(hdims, loc);
         ASSERT_EQ(code, true);
     }
 
     {
         // point in face Voronoi region
         btVector3 loc(0.5, -1.0, -3.5);
-        bool code = utils::PointInsideBox(hdims, loc);
+        bool code = bt_utils::PointInsideBox(hdims, loc);
         ASSERT_EQ(code, false);
     }
 
     {
         // point in edge Voronoi region
         btVector3 loc(0.5, -2.5, -3.5);
-        bool code = utils::PointInsideBox(hdims, loc);
+        bool code = bt_utils::PointInsideBox(hdims, loc);
         ASSERT_EQ(code, false);
     }
 
     {
         // point in vertex Voronoi region
         btVector3 loc(1.5, -2.5, -3.5);
-        bool code = utils::PointInsideBox(hdims, loc);
+        bool code = bt_utils::PointInsideBox(hdims, loc);
         ASSERT_EQ(code, false);
     }
 }
@@ -108,28 +108,28 @@ TEST(BulletCollision, FindClosestBoxFace) {
     {
         // interior, close to +x face
         btVector3 loc(0.5, -1.0, 1.5);
-        int code = utils::FindClosestBoxFace(hdims, loc);
+        int code = bt_utils::FindClosestBoxFace(hdims, loc);
         ASSERT_EQ(code, +1);
     }
 
     {
         // interior, close to -y face
         btVector3 loc(0.5, -1.75, 1.5);
-        int code = utils::FindClosestBoxFace(hdims, loc);
+        int code = bt_utils::FindClosestBoxFace(hdims, loc);
         ASSERT_EQ(code, -2);
     }
 
     {
         // exterior, close to +x face
         btVector3 loc(1.25, -1.0, 1.5);
-        int code = utils::FindClosestBoxFace(hdims, loc);
+        int code = bt_utils::FindClosestBoxFace(hdims, loc);
         ASSERT_EQ(code, +1);
     }
 
     {
         // exterior, close to -z face
         btVector3 loc(0.5, -1.0, -3.25);
-        int code = utils::FindClosestBoxFace(hdims, loc);
+        int code = bt_utils::FindClosestBoxFace(hdims, loc);
         ASSERT_EQ(code, -3);
     }
 }
@@ -146,27 +146,27 @@ TEST(BulletCollision, IntersectSegmentBox) {
         btScalar hlen = 1;
 
         // no intersection
-        code = utils::IntersectSegmentBox(hdims, btVector3(0.25, 3.25, 1.0), a, hlen, precision, tMin, tMax);
+        code = bt_utils::IntersectSegmentBox(hdims, btVector3(0.25, 3.25, 1.0), a, hlen, precision, tMin, tMax);
         ASSERT_EQ(code, false);
 
         // no intersection
-        code = utils::IntersectSegmentBox(hdims, btVector3(1.25, 1.5, 1.0), a, hlen, precision, tMin, tMax);
+        code = bt_utils::IntersectSegmentBox(hdims, btVector3(1.25, 1.5, 1.0), a, hlen, precision, tMin, tMax);
         ASSERT_EQ(code, false);
 
         // intersection (lower segment end inside box)
-        code = utils::IntersectSegmentBox(hdims, btVector3(0.25, 1.5, 1.0), a, hlen, precision, tMin, tMax);
+        code = bt_utils::IntersectSegmentBox(hdims, btVector3(0.25, 1.5, 1.0), a, hlen, precision, tMin, tMax);
         ASSERT_EQ(code, true);
         ASSERT_FLOAT_EQ(tMin, -hlen);
         ASSERT_FLOAT_EQ(tMax, 0.5);
 
         // intersection (upper segment end inside box)
-        code = utils::IntersectSegmentBox(hdims, btVector3(0.25, -1.5, 1.0), a, hlen, precision, tMin, tMax);
+        code = bt_utils::IntersectSegmentBox(hdims, btVector3(0.25, -1.5, 1.0), a, hlen, precision, tMin, tMax);
         ASSERT_EQ(code, true);
         ASSERT_FLOAT_EQ(tMin, -0.5);
         ASSERT_FLOAT_EQ(tMax, +hlen);
 
         // intersection (both segment ends inside box)
-        code = utils::IntersectSegmentBox(hdims, btVector3(0.25, 0.25, 1.0), a, hlen, precision, tMin, tMax);
+        code = bt_utils::IntersectSegmentBox(hdims, btVector3(0.25, 0.25, 1.0), a, hlen, precision, tMin, tMax);
         ASSERT_EQ(code, true);
         ASSERT_FLOAT_EQ(tMin, -hlen);
         ASSERT_FLOAT_EQ(tMax, +hlen);
@@ -193,8 +193,8 @@ TEST(BulletCollision, IntersectLinePlane) {
 
     btScalar t;
 
-    ASSERT_EQ(utils::IntersectLinePlane(lP1, lD1, pP, pN, precision, t), false);
-    ASSERT_EQ(utils::IntersectLinePlane(lP2, lD2, pP, pN, precision, t), true);
+    ASSERT_EQ(bt_utils::IntersectLinePlane(lP1, lD1, pP, pN, precision, t), false);
+    ASSERT_EQ(bt_utils::IntersectLinePlane(lP2, lD2, pP, pN, precision, t), true);
 
     // Transform all points and directions with same transform
     btQuaternion q(1, 2, 3, 4);
@@ -211,8 +211,8 @@ TEST(BulletCollision, IntersectLinePlane) {
     lP2 = X(lP2);
     lD2 = X.getBasis() * lD2;
 
-    ASSERT_EQ(utils::IntersectLinePlane(lP1, lD1, pP, pN, precision, t), false);
-    ASSERT_EQ(utils::IntersectLinePlane(lP2, lD2, pP, pN, precision, t), true);
+    ASSERT_EQ(bt_utils::IntersectLinePlane(lP1, lD1, pP, pN, precision, t), false);
+    ASSERT_EQ(bt_utils::IntersectLinePlane(lP2, lD2, pP, pN, precision, t), true);
 }
 
 void CheckSegmentCylinder(const btTransform& X) {
@@ -238,31 +238,31 @@ void CheckSegmentCylinder(const btTransform& X) {
 
         // no intersection (outside cylindrical surface)
         sC = X(btVector3(0.25, 1.0, 1.0));
-        code = utils::IntersectSegmentCylinder(sC, sD, sH, cC, cD, cH, cR, precision, tMin, tMax);
+        code = bt_utils::IntersectSegmentCylinder(sC, sD, sH, cC, cD, cH, cR, precision, tMin, tMax);
         ASSERT_EQ(code, false);
 
         // no intersection (above cylindrical end-cap)
         sC = X(btVector3(0.25, 1.75, 0.25));
-        code = utils::IntersectSegmentCylinder(sC, sD, sH, cC, cD, cH, cR, precision, tMin, tMax);
+        code = bt_utils::IntersectSegmentCylinder(sC, sD, sH, cC, cD, cH, cR, precision, tMin, tMax);
         ASSERT_EQ(code, false);
 
         // intersection (lower segment end inside cylinder)
         sC = X(btVector3(0.25, 1.25, 0.25));
-        code = utils::IntersectSegmentCylinder(sC, sD, sH, cC, cD, cH, cR, precision, tMin, tMax);
+        code = bt_utils::IntersectSegmentCylinder(sC, sD, sH, cC, cD, cH, cR, precision, tMin, tMax);
         ASSERT_EQ(code, true);
         ASSERT_FLOAT_EQ(tMin, -sH);
         ASSERT_FLOAT_EQ(tMax, -0.25);
 
         // intersection (upper segment end inside cylinder)
         sC = X(btVector3(0.25, -1.25, 0.25));
-        code = utils::IntersectSegmentCylinder(sC, sD, sH, cC, cD, cH, cR, precision, tMin, tMax);
+        code = bt_utils::IntersectSegmentCylinder(sC, sD, sH, cC, cD, cH, cR, precision, tMin, tMax);
         ASSERT_EQ(code, true);
         ASSERT_FLOAT_EQ(tMin, +0.25);
         ASSERT_FLOAT_EQ(tMax, +sH);
 
         // intersection (both segment ends inside cylinder)
         sC = X(btVector3(0.25, 0.25, 0.25));
-        code = utils::IntersectSegmentCylinder(sC, sD, sH, cC, cD, cH, cR, precision, tMin, tMax);
+        code = bt_utils::IntersectSegmentCylinder(sC, sD, sH, cC, cD, cH, cR, precision, tMin, tMax);
         ASSERT_EQ(code, true);
         ASSERT_FLOAT_EQ(tMin, -sH);
         ASSERT_FLOAT_EQ(tMax, +sH);
@@ -270,7 +270,7 @@ void CheckSegmentCylinder(const btTransform& X) {
         // intersection (both segment ends outside cylinder)
         sC = X(btVector3(0.25, 0.25, 0.25));
         sH = 3;
-        code = utils::IntersectSegmentCylinder(sC, sD, sH, cC, cD, cH, cR, precision, tMin, tMax);
+        code = bt_utils::IntersectSegmentCylinder(sC, sD, sH, cC, cD, cH, cR, precision, tMin, tMax);
         ASSERT_EQ(code, true);
         ASSERT_FLOAT_EQ(tMin, -1.25);
         ASSERT_FLOAT_EQ(tMax, +0.75);
@@ -287,34 +287,34 @@ void CheckSegmentCylinder(const btTransform& X) {
 
         // no intersection (outside cylindrical surface)
         sC = X(btVector3(1.0, 0.5, 2.0));
-        code = utils::IntersectSegmentCylinder(sC, sD, sH, cC, cD, cH, cR, precision, tMin, tMax);
+        code = bt_utils::IntersectSegmentCylinder(sC, sD, sH, cC, cD, cH, cR, precision, tMin, tMax);
         ASSERT_EQ(code, false);
 
         // no intersection (below cylindrical end-cap)
         sC = X(btVector3(0.25, -1.25, 0.25));
-        code = utils::IntersectSegmentCylinder(sC, sD, sH, cC, cD, cH, cR, precision, tMin, tMax);
+        code = bt_utils::IntersectSegmentCylinder(sC, sD, sH, cC, cD, cH, cR, precision, tMin, tMax);
         ASSERT_EQ(code, false);
 
         // intersection (positive segment end inside cylinder)
         sC = X(btVector3(-0.25, 0.25, 0.75));
-        code = utils::IntersectSegmentCylinder(sC, sD, sH, cC, cD, cH, cR, precision, tMin, tMax);
+        code = bt_utils::IntersectSegmentCylinder(sC, sD, sH, cC, cD, cH, cR, precision, tMin, tMax);
         ASSERT_EQ(code, true);
         ASSERT_FLOAT_EQ(tMax, +sH);
         ASSERT_GT(tMin, -sH);
-        ASSERT_NEAR(utils::DistancePointToLine(cC, cD, sC + tMin * sD), cR, precision);
+        ASSERT_NEAR(bt_utils::DistancePointToLine(cC, cD, sC + tMin * sD), cR, precision);
 
         // Intersection (negative segment end inside cylinder)
         sC = X(btVector3(+0.25, 0.25, -0.75));
-        code = utils::IntersectSegmentCylinder(sC, sD, sH, cC, cD, cH, cR, precision, tMin, tMax);
+        code = bt_utils::IntersectSegmentCylinder(sC, sD, sH, cC, cD, cH, cR, precision, tMin, tMax);
         ASSERT_EQ(code, true);
         ASSERT_FLOAT_EQ(tMin, -sH);
         ASSERT_LT(tMax, +sH);
-        ASSERT_NEAR(utils::DistancePointToLine(cC, cD, sC + tMax * sD), cR, precision);
+        ASSERT_NEAR(bt_utils::DistancePointToLine(cC, cD, sC + tMax * sD), cR, precision);
 
         // Intersection (both segment ends inside cylinder)
         sC = X(btVector3(0.25, 0.25, 0.25));
         sH = 0.125;
-        code = utils::IntersectSegmentCylinder(sC, sD, sH, cC, cD, cH, cR, precision, tMin, tMax);
+        code = bt_utils::IntersectSegmentCylinder(sC, sD, sH, cC, cD, cH, cR, precision, tMin, tMax);
         ASSERT_EQ(code, true);
         ASSERT_FLOAT_EQ(tMin, -sH);
         ASSERT_FLOAT_EQ(tMax, +sH);
@@ -322,12 +322,12 @@ void CheckSegmentCylinder(const btTransform& X) {
         // Intersection (both segment ends outside cylinder)
         sC = X(btVector3(0.25, 0.25, 0.25));
         sH = 0.75;
-        code = utils::IntersectSegmentCylinder(sC, sD, sH, cC, cD, cH, cR, precision, tMin, tMax);
+        code = bt_utils::IntersectSegmentCylinder(sC, sD, sH, cC, cD, cH, cR, precision, tMin, tMax);
         ASSERT_EQ(code, true);
         ASSERT_GT(tMin, -sH);
         ASSERT_LT(tMax, +sH);
-        ASSERT_NEAR(utils::DistancePointToLine(cC, cD, sC + tMin * sD), cR, precision);
-        ASSERT_NEAR(utils::DistancePointToLine(cC, cD, sC + tMax * sD), cR, precision);
+        ASSERT_NEAR(bt_utils::DistancePointToLine(cC, cD, sC + tMin * sD), cR, precision);
+        ASSERT_NEAR(bt_utils::DistancePointToLine(cC, cD, sC + tMax * sD), cR, precision);
     }
 
     // General segment orientation
@@ -343,7 +343,7 @@ void CheckSegmentCylinder(const btTransform& X) {
         // intersection (both segment ends inside cylinder)
         sC = X(btVector3(0.25, 0.25, 0.25));
         sH = 0.125;
-        code = utils::IntersectSegmentCylinder(sC, sD, sH, cC, cD, cH, cR, precision, tMin, tMax);
+        code = bt_utils::IntersectSegmentCylinder(sC, sD, sH, cC, cD, cH, cR, precision, tMin, tMax);
         ASSERT_EQ(code, true);
         ASSERT_FLOAT_EQ(tMin, -sH);
         ASSERT_FLOAT_EQ(tMax, +sH);
@@ -351,12 +351,12 @@ void CheckSegmentCylinder(const btTransform& X) {
         // Intersection (both segment ends outside cylinder)
         sC = X(btVector3(0.25, 0.25, 0.25));
         sH = 0.75;
-        code = utils::IntersectSegmentCylinder(sC, sD, sH, cC, cD, cH, cR, precision, tMin, tMax);
+        code = bt_utils::IntersectSegmentCylinder(sC, sD, sH, cC, cD, cH, cR, precision, tMin, tMax);
         ASSERT_EQ(code, true);
         ASSERT_GT(tMin, -sH);
         ASSERT_LT(tMax, +sH);
-        ASSERT_NEAR(utils::DistancePointToLine(cC, cD, sC + tMin * sD), cR, precision);
-        ASSERT_NEAR(utils::DistancePointToLine(cC, cD, sC + tMax * sD), cR, precision);
+        ASSERT_NEAR(bt_utils::DistancePointToLine(cC, cD, sC + tMin * sD), cR, precision);
+        ASSERT_NEAR(bt_utils::DistancePointToLine(cC, cD, sC + tMax * sD), cR, precision);
     }
 }
 

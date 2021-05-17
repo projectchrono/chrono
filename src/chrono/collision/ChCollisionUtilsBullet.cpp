@@ -17,7 +17,7 @@
 
 namespace chrono {
 namespace collision {
-namespace utils {
+namespace bt_utils {
 
 // -----------------------------------------------------------------------------
 
@@ -357,6 +357,6 @@ void ChConvexHullLibraryWrapper::ComputeHull(const std::vector<ChVector<> >& poi
     hl.ReleaseResult(hresult);
 }
 
-}  // namespace utils
+}  // namespace bt_utils
 }  // namespace collision
 }  // namespace chrono

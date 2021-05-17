@@ -36,6 +36,9 @@ class ChPhysicsItem;
 
 namespace collision {
 
+/// @addtogroup chrono_collision
+/// @{
+
 /// Class defining the geometric model for collision detection.
 /// A ChCollisionModel contains all geometric shapes on a rigid body, for collision purposes.
 class ChApi ChCollisionModel {
@@ -423,6 +426,8 @@ class ChApi ChCollisionModel {
 
     std::vector<std::shared_ptr<ChCollisionShape>> m_shapes;  ///< list of collision shapes in model
 };
+
+/// @} chrono_collision
 
 }  // end namespace collision
 
