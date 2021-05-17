@@ -644,6 +644,34 @@ source_group(assets FILES
     ${ChronoEngine_assets_SOURCES}
     ${ChronoEngine_assets_HEADERS})
 
+
+# Multicore types and math 
+
+SET(ChronoEngine_MulticoreMath_SOURCES
+    multicore_math/ChMulticoreMath.h
+    multicore_math/matrix.cpp
+    multicore_math/matrix.h
+    multicore_math/other_types.h
+    multicore_math/real.h
+    multicore_math/real_double.h
+    multicore_math/real_single.h
+    multicore_math/real2.h
+    multicore_math/real2.cpp
+    multicore_math/real3.cpp
+    multicore_math/real3.h
+    multicore_math/real4.cpp
+    multicore_math/real4.h
+    multicore_math/simd_avx.h
+    multicore_math/simd_non.h
+    multicore_math/simd_sse.h
+    multicore_math/simd.h
+    multicore_math/utility.h
+    multicore_math/vec3.cpp
+    )
+
+SOURCE_GROUP(multicore_math FILES ${ChronoEngine_MulticoreMath_SOURCES})
+
+
 # Collision group
 
 set(ChronoEngine_collision_SOURCES
@@ -1267,6 +1295,7 @@ set(ChronoEngine_FILES
     ${ChronoEngine_solver_constraints_HEADERS}
     ${ChronoEngine_solver_variables_SOURCES}
     ${ChronoEngine_solver_variables_HEADERS}
+    ${ChronoEngine_MulticoreMath_SOURCES}
     ${ChronoEngine_collision_SOURCES}
     ${ChronoEngine_collision_HEADERS}
     ${ChronoEngine_geometry_SOURCES}
