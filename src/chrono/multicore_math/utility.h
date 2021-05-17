@@ -25,6 +25,7 @@
 #include "chrono/multicore_math/real2.h"
 #include "chrono/multicore_math/real3.h"
 #include "chrono/multicore_math/real4.h"
+#include "chrono/multicore_math/other_types.h"
 
 namespace chrono {
 

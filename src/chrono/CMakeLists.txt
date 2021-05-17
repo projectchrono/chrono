@@ -648,7 +648,6 @@ source_group(assets FILES
 # Multicore types and math 
 
 SET(ChronoEngine_MulticoreMath_SOURCES
-    multicore_math/ChMulticoreMath.h
     multicore_math/matrix.cpp
     multicore_math/matrix.h
     multicore_math/other_types.h
@@ -700,6 +699,19 @@ set(ChronoEngine_collision_HEADERS
     collision/ChCollisionUtils.h
     collision/ChCollisionUtilsBullet.h
     )
+
+if (THRUST_FOUND)
+   set (ChronoEngine_collision_SOURCES ${ChronoEngine_collision_SOURCES}
+       collision/ChCollisionModelChrono.cpp
+       collision/ChCollisionSystemChrono.cpp
+       )
+   
+   set (ChronoEngine_collision_HEADERS ${ChronoEngine_collision_HEADERS}
+       collision/ChCollisionShapeChrono.h
+       collision/ChCollisionModelChrono.h
+       collision/ChCollisionSystemChrono.h
+       )
+endif()
 
 source_group(collision FILES
     ${ChronoEngine_collision_SOURCES}
@@ -997,6 +1009,32 @@ set(ChronoEngine_solver_constraints_HEADERS
 source_group(solver\\constraints FILES
     ${ChronoEngine_solver_constraints_SOURCES}
     ${ChronoEngine_solver_constraints_HEADERS})
+
+# Chrono collision group
+
+if (THRUST_FOUND)
+   set(ChronoEngine_collision_chrono_SOURCES
+       collision/chrono/ChCollisionData.h
+       collision/chrono/ChCollisionDefines.h
+       collision/chrono/ChConvexShape.h
+       collision/chrono/ChAABBGenerator.cpp
+       collision/chrono/ChAABBGenerator.h
+       collision/chrono/ChBroadphase.cpp
+       collision/chrono/ChBroadphase.h
+       collision/chrono/ChBroadphaseUtils.h
+       collision/chrono/ChNarrowphase.cpp
+       collision/chrono/ChNarrowphase.h
+       collision/chrono/ChNarrowphaseMPR.cpp
+       collision/chrono/ChNarrowphaseMPR.h
+       collision/chrono/ChNarrowphaseUtilsMPR.h
+       collision/chrono/ChNarrowphaseR.cpp
+       collision/chrono/ChNarrowphaseR.h
+       collision/chrono/ChNarrowphaseUtilsR.h
+   )
+   
+   source_group("collision\\chrono" FILES
+       ${ChronoEngine_collision_chrono_SOURCES})
+endif()
 
 # Bullet collision group
 
@@ -1314,10 +1352,9 @@ set(ChronoEngine_FILES
     ${ChronoEngine_motion_functions_HEADERS}
     ${ChronoEngine_parallel_SOURCES}
     ${ChronoEngine_parallel_HEADERS}
+    ${ChronoEngine_collision_chrono_SOURCES}
     ${ChronoEngine_collision_bullet_SOURCES}
-    ${ChronoEngine_collision_bullet_HEADERS}
     ${ChronoEngine_collision_gimpact_SOURCES}
-    ${ChronoEngine_collision_gimpact_HEADERS}
     ${ChronoEngine_utils_SOURCES}
     ${ChronoEngine_utils_HEADERS}
     ${ChronoEngine_tiny_obj_FILES}
