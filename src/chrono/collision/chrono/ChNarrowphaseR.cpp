@@ -27,219 +27,6 @@ namespace collision {
 // Fictitious radius of curvature for collision with a corner or an edge.
 static real edge_radius = 0.1;
 
-void SetDefaultEdgeRadius(real radius) {
-    edge_radius = radius;
-}
-
-real GetDefaultEdgeRadius() {
-    return edge_radius;
-}
-
-// This is the main worker function for narrow phase check of the collision
-// between two candidate shapes.  Each candidate pair of shapes can result in
-// 0, 1, or more contacts.  For each actual contact, we calculate various
-// geometrical quantities and load them in the output arguments (starting from
-// the given addresses)
-//   - ct_pt1:      contact point on first shape (in global frame)
-//   - ct_pt2:      contact point on second shape (in global frame)
-//   - ct_depth:    penetration distance (negative if overlap exists)
-//   - ct_norm:     contact normal, from ct_pt2 to ct_pt1 (in global frame)
-//   - ct_eff_rad:  effective contact radius
-// Note that we also report collisions for which the distance between the two
-// shapes is at most 'separation' (typically twice the collision envelope).
-// In these cases, the corresponding ct_depth is a positive value.
-// This function returns true if it was able to determine the collision state
-// for the given pair of shapes and false if the shape types are not supported.
-
-bool RCollision(const ConvexBase* shapeA,  // first candidate shape
-                const ConvexBase* shapeB,  // second candidate shape
-                real separation,           // maximum separation
-                real3* ct_norm,            // [output] contact normal (per contact pair)
-                real3* ct_pt1,             // [output] point on shape1 (per contact pair)
-                real3* ct_pt2,             // [output] point on shape2 (per contact pair)
-                real* ct_depth,            // [output] penetration depth (per contact pair)
-                real* ct_eff_rad,          // [output] effective contact radius (per contact pair)
-                int& nC)                   // [output] number of contacts found
-{
-    // Special-case the collision detection based on the types of the
-    // two potentially colliding shapes.
-
-    nC = 0;
-
-    if (shapeA->Type() == ChCollisionShape::Type::SPHERE && shapeB->Type() == ChCollisionShape::Type::SPHERE) {
-        if (sphere_sphere(shapeA->A(), shapeA->Radius(), shapeB->A(), shapeB->Radius(), separation, *ct_norm, *ct_depth,
-                          *ct_pt1, *ct_pt2, *ct_eff_rad)) {
-            nC = 1;
-        }
-        return true;
-    }
-
-    if (shapeA->Type() == ChCollisionShape::Type::CAPSULE && shapeB->Type() == ChCollisionShape::Type::SPHERE) {
-        if (capsule_sphere(shapeA->A(), shapeA->R(), shapeA->Capsule().x, shapeA->Capsule().y, shapeB->A(),
-                           shapeB->Radius(), separation, *ct_norm, *ct_depth, *ct_pt1, *ct_pt2, *ct_eff_rad)) {
-            nC = 1;
-        }
-        return true;
-    }
-
-    if (shapeA->Type() == ChCollisionShape::Type::SPHERE && shapeB->Type() == ChCollisionShape::Type::CAPSULE) {
-        if (capsule_sphere(shapeB->A(), shapeB->R(), shapeB->Capsule().x, shapeB->Capsule().y, shapeA->A(),
-                           shapeA->Radius(), separation, *ct_norm, *ct_depth, *ct_pt2, *ct_pt1, *ct_eff_rad)) {
-            *ct_norm = -(*ct_norm);
-            nC = 1;
-        }
-        return true;
-    }
-
-    if (shapeA->Type() == ChCollisionShape::Type::CYLINDER && shapeB->Type() == ChCollisionShape::Type::SPHERE) {
-        if (cylinder_sphere(shapeA->A(), shapeA->R(), shapeA->Box().x, shapeA->Box().y, shapeB->A(), shapeB->Radius(),
-                            separation, *ct_norm, *ct_depth, *ct_pt1, *ct_pt2, *ct_eff_rad)) {
-            nC = 1;
-        }
-        return true;
-    }
-
-    if (shapeA->Type() == ChCollisionShape::Type::SPHERE && shapeB->Type() == ChCollisionShape::Type::CYLINDER) {
-        if (cylinder_sphere(shapeB->A(), shapeB->R(), shapeB->Box().x, shapeB->Box().y, shapeA->A(), shapeA->Radius(),
-                            separation, *ct_norm, *ct_depth, *ct_pt2, *ct_pt1, *ct_eff_rad)) {
-            *ct_norm = -(*ct_norm);
-            nC = 1;
-        }
-        return true;
-    }
-
-    if (shapeA->Type() == ChCollisionShape::Type::ROUNDEDCYL && shapeB->Type() == ChCollisionShape::Type::SPHERE) {
-        if (roundedcyl_sphere(shapeA->A(), shapeA->R(), shapeA->Rbox().x, shapeA->Rbox().y, shapeA->Rbox().w,
-                              shapeB->A(), shapeB->Radius(), separation, *ct_norm, *ct_depth, *ct_pt1, *ct_pt2,
-                              *ct_eff_rad)) {
-            nC = 1;
-        }
-        return true;
-    }
-
-    if (shapeA->Type() == ChCollisionShape::Type::SPHERE && shapeB->Type() == ChCollisionShape::Type::ROUNDEDCYL) {
-        if (roundedcyl_sphere(shapeB->A(), shapeB->R(), shapeB->Rbox().x, shapeB->Rbox().y, shapeB->Rbox().w,
-                              shapeA->A(), shapeA->Radius(), separation, *ct_norm, *ct_depth, *ct_pt2, *ct_pt1,
-                              *ct_eff_rad)) {
-            *ct_norm = -(*ct_norm);
-            nC = 1;
-        }
-        return true;
-    }
-
-    if (shapeA->Type() == ChCollisionShape::Type::BOX && shapeB->Type() == ChCollisionShape::Type::SPHERE) {
-        if (box_sphere(shapeA->A(), shapeA->R(), shapeA->Box(), shapeB->A(), shapeB->Radius(), separation, *ct_norm,
-                       *ct_depth, *ct_pt1, *ct_pt2, *ct_eff_rad)) {
-            nC = 1;
-        }
-        return true;
-    }
-
-    if (shapeA->Type() == ChCollisionShape::Type::SPHERE && shapeB->Type() == ChCollisionShape::Type::BOX) {
-        if (box_sphere(shapeB->A(), shapeB->R(), shapeB->Box(), shapeA->A(), shapeA->Radius(), separation, *ct_norm,
-                       *ct_depth, *ct_pt2, *ct_pt1, *ct_eff_rad)) {
-            *ct_norm = -(*ct_norm);
-            nC = 1;
-        }
-        return true;
-    }
-
-    if (shapeA->Type() == ChCollisionShape::Type::ROUNDEDBOX && shapeB->Type() == ChCollisionShape::Type::SPHERE) {
-        if (roundedbox_sphere(shapeA->A(), shapeA->R(), shapeA->Rbox(), shapeA->Rbox().w, shapeB->A(), shapeB->Radius(),
-                              separation, *ct_norm, *ct_depth, *ct_pt1, *ct_pt2, *ct_eff_rad)) {
-            nC = 1;
-        }
-        return true;
-    }
-
-    if (shapeA->Type() == ChCollisionShape::Type::SPHERE && shapeB->Type() == ChCollisionShape::Type::ROUNDEDBOX) {
-        if (roundedbox_sphere(shapeB->A(), shapeB->R(), shapeB->Rbox(), shapeB->Rbox().w, shapeA->A(), shapeA->Radius(),
-                              separation, *ct_norm, *ct_depth, *ct_pt2, *ct_pt1, *ct_eff_rad)) {
-            *ct_norm = -(*ct_norm);
-            nC = 1;
-        }
-        return true;
-    }
-
-    if (shapeA->Type() == ChCollisionShape::Type::TRIANGLE && shapeB->Type() == ChCollisionShape::Type::SPHERE) {
-        if (triangle_sphere(shapeA->Triangles()[0], shapeA->Triangles()[1], shapeA->Triangles()[2], shapeB->A(),
-                            shapeB->Radius(), separation, *ct_norm, *ct_depth, *ct_pt1, *ct_pt2, *ct_eff_rad)) {
-            nC = 1;
-        }
-        return true;
-    }
-
-    if (shapeA->Type() == ChCollisionShape::Type::SPHERE && shapeB->Type() == ChCollisionShape::Type::TRIANGLE) {
-        if (triangle_sphere(shapeB->Triangles()[0], shapeB->Triangles()[1], shapeB->Triangles()[2], shapeA->A(),
-                            shapeA->Radius(), separation, *ct_norm, *ct_depth, *ct_pt2, *ct_pt1, *ct_eff_rad)) {
-            *ct_norm = -(*ct_norm);
-            nC = 1;
-        }
-        return true;
-    }
-
-    if (shapeA->Type() == ChCollisionShape::Type::CAPSULE && shapeB->Type() == ChCollisionShape::Type::CAPSULE) {
-        nC = capsule_capsule(shapeA->A(), shapeA->R(), shapeA->Capsule().x, shapeA->Capsule().y, shapeB->A(),
-                             shapeB->R(), shapeB->Capsule().x, shapeB->Capsule().y, separation, ct_norm, ct_depth,
-                             ct_pt1, ct_pt2, ct_eff_rad);
-        return true;
-    }
-
-    if (shapeA->Type() == ChCollisionShape::Type::BOX && shapeB->Type() == ChCollisionShape::Type::CAPSULE) {
-        nC = box_capsule(shapeA->A(), shapeA->R(), shapeA->Box(), shapeB->A(), shapeB->R(), shapeB->Capsule().x,
-                         shapeB->Capsule().y, separation, ct_norm, ct_depth, ct_pt1, ct_pt2, ct_eff_rad);
-        return true;
-    }
-
-    if (shapeA->Type() == ChCollisionShape::Type::CAPSULE && shapeB->Type() == ChCollisionShape::Type::BOX) {
-        nC = box_capsule(shapeB->A(), shapeB->R(), shapeB->Box(), shapeA->A(), shapeA->R(), shapeA->Capsule().x,
-                         shapeA->Capsule().y, separation, ct_norm, ct_depth, ct_pt2, ct_pt1, ct_eff_rad);
-        for (int i = 0; i < nC; i++) {
-            *(ct_norm + i) = -(*(ct_norm + i));
-        }
-        return true;
-    }
-
-    if (shapeA->Type() == ChCollisionShape::Type::BOX && shapeB->Type() == ChCollisionShape::Type::CYLSHELL) {
-        nC = box_cylshell(shapeA->A(), shapeA->R(), shapeA->Box(), shapeB->A(), shapeB->R(), shapeB->Cylshell().x,
-                          shapeB->Cylshell().y, separation, ct_norm, ct_depth, ct_pt1, ct_pt2, ct_eff_rad);
-        return true;
-    }
-
-    if (shapeA->Type() == ChCollisionShape::Type::CYLSHELL && shapeB->Type() == ChCollisionShape::Type::BOX) {
-        nC = box_cylshell(shapeB->A(), shapeB->R(), shapeB->Box(), shapeA->A(), shapeA->R(), shapeA->Cylshell().x,
-                          shapeA->Cylshell().y, separation, ct_norm, ct_depth, ct_pt2, ct_pt1, ct_eff_rad);
-        for (int i = 0; i < nC; i++) {
-            *(ct_norm + i) = -(*(ct_norm + i));
-        }
-        return true;
-    }
-
-    if (shapeA->Type() == ChCollisionShape::Type::BOX && shapeB->Type() == ChCollisionShape::Type::BOX) {
-        nC = box_box(shapeA->A(), shapeA->R(), shapeA->Box(), shapeB->A(), shapeB->R(), shapeB->Box(), separation,
-                     ct_norm, ct_depth, ct_pt1, ct_pt2, ct_eff_rad);
-
-        ////std::cout << nC << std::endl;
-        ////for (int j = 0; j < nC; j++) {
-        ////    real3 ptT = *(ct_pt1 + j);
-        ////    real3 ptO = *(ct_pt2 + j);
-        ////    real3 nrm = *(ct_norm + j);
-        ////    real depth = *(ct_depth + j);
-        ////    real er = *(ct_eff_rad + j);
-        ////    std::cout << "  " << ptT.x << "  " << ptT.y << "  " << ptT.z << std::endl;
-        ////    std::cout << "  " << ptO.x << "  " << ptO.y << "  " << ptO.z << std::endl;
-        ////    std::cout << "  " << nrm.x << "  " << nrm.y << "  " << nrm.z << std::endl;
-        ////    std::cout << "  " << depth << std::endl;
-        ////    std::cout << "  " << er << std::endl;
-        ////}
-
-        return true;
-    }
-
-    // Contact could not be checked using this CD algorithm
-    return false;
-}
-
 // =============================================================================
 //              SPHERE - SPHERE
 
@@ -1386,6 +1173,221 @@ int box_box(const real3& posT,
     assert(false);
 
     return 0;
+}
+
+// =============================================================================
+
+void SetDefaultEdgeRadius(real radius) {
+    edge_radius = radius;
+}
+
+real GetDefaultEdgeRadius() {
+    return edge_radius;
+}
+
+// This is the main worker function for narrow phase check of the collision
+// between two candidate shapes.  Each candidate pair of shapes can result in
+// 0, 1, or more contacts.  For each actual contact, we calculate various
+// geometrical quantities and load them in the output arguments (starting from
+// the given addresses)
+//   - ct_pt1:      contact point on first shape (in global frame)
+//   - ct_pt2:      contact point on second shape (in global frame)
+//   - ct_depth:    penetration distance (negative if overlap exists)
+//   - ct_norm:     contact normal, from ct_pt2 to ct_pt1 (in global frame)
+//   - ct_eff_rad:  effective contact radius
+// Note that we also report collisions for which the distance between the two
+// shapes is at most 'separation' (typically twice the collision envelope).
+// In these cases, the corresponding ct_depth is a positive value.
+// This function returns true if it was able to determine the collision state
+// for the given pair of shapes and false if the shape types are not supported.
+
+bool RCollision(const ConvexBase* shapeA,  // first candidate shape
+                const ConvexBase* shapeB,  // second candidate shape
+                real separation,           // maximum separation
+                real3* ct_norm,            // [output] contact normal (per contact pair)
+                real3* ct_pt1,             // [output] point on shape1 (per contact pair)
+                real3* ct_pt2,             // [output] point on shape2 (per contact pair)
+                real* ct_depth,            // [output] penetration depth (per contact pair)
+                real* ct_eff_rad,          // [output] effective contact radius (per contact pair)
+                int& nC)                   // [output] number of contacts found
+{
+    // Special-case the collision detection based on the types of the
+    // two potentially colliding shapes.
+
+    nC = 0;
+
+    if (shapeA->Type() == ChCollisionShape::Type::SPHERE && shapeB->Type() == ChCollisionShape::Type::SPHERE) {
+        if (sphere_sphere(shapeA->A(), shapeA->Radius(), shapeB->A(), shapeB->Radius(), separation, *ct_norm, *ct_depth,
+                          *ct_pt1, *ct_pt2, *ct_eff_rad)) {
+            nC = 1;
+        }
+        return true;
+    }
+
+    if (shapeA->Type() == ChCollisionShape::Type::CAPSULE && shapeB->Type() == ChCollisionShape::Type::SPHERE) {
+        if (capsule_sphere(shapeA->A(), shapeA->R(), shapeA->Capsule().x, shapeA->Capsule().y, shapeB->A(),
+                           shapeB->Radius(), separation, *ct_norm, *ct_depth, *ct_pt1, *ct_pt2, *ct_eff_rad)) {
+            nC = 1;
+        }
+        return true;
+    }
+
+    if (shapeA->Type() == ChCollisionShape::Type::SPHERE && shapeB->Type() == ChCollisionShape::Type::CAPSULE) {
+        if (capsule_sphere(shapeB->A(), shapeB->R(), shapeB->Capsule().x, shapeB->Capsule().y, shapeA->A(),
+                           shapeA->Radius(), separation, *ct_norm, *ct_depth, *ct_pt2, *ct_pt1, *ct_eff_rad)) {
+            *ct_norm = -(*ct_norm);
+            nC = 1;
+        }
+        return true;
+    }
+
+    if (shapeA->Type() == ChCollisionShape::Type::CYLINDER && shapeB->Type() == ChCollisionShape::Type::SPHERE) {
+        if (cylinder_sphere(shapeA->A(), shapeA->R(), shapeA->Box().x, shapeA->Box().y, shapeB->A(), shapeB->Radius(),
+                            separation, *ct_norm, *ct_depth, *ct_pt1, *ct_pt2, *ct_eff_rad)) {
+            nC = 1;
+        }
+        return true;
+    }
+
+    if (shapeA->Type() == ChCollisionShape::Type::SPHERE && shapeB->Type() == ChCollisionShape::Type::CYLINDER) {
+        if (cylinder_sphere(shapeB->A(), shapeB->R(), shapeB->Box().x, shapeB->Box().y, shapeA->A(), shapeA->Radius(),
+                            separation, *ct_norm, *ct_depth, *ct_pt2, *ct_pt1, *ct_eff_rad)) {
+            *ct_norm = -(*ct_norm);
+            nC = 1;
+        }
+        return true;
+    }
+
+    if (shapeA->Type() == ChCollisionShape::Type::ROUNDEDCYL && shapeB->Type() == ChCollisionShape::Type::SPHERE) {
+        if (roundedcyl_sphere(shapeA->A(), shapeA->R(), shapeA->Rbox().x, shapeA->Rbox().y, shapeA->Rbox().w,
+                              shapeB->A(), shapeB->Radius(), separation, *ct_norm, *ct_depth, *ct_pt1, *ct_pt2,
+                              *ct_eff_rad)) {
+            nC = 1;
+        }
+        return true;
+    }
+
+    if (shapeA->Type() == ChCollisionShape::Type::SPHERE && shapeB->Type() == ChCollisionShape::Type::ROUNDEDCYL) {
+        if (roundedcyl_sphere(shapeB->A(), shapeB->R(), shapeB->Rbox().x, shapeB->Rbox().y, shapeB->Rbox().w,
+                              shapeA->A(), shapeA->Radius(), separation, *ct_norm, *ct_depth, *ct_pt2, *ct_pt1,
+                              *ct_eff_rad)) {
+            *ct_norm = -(*ct_norm);
+            nC = 1;
+        }
+        return true;
+    }
+
+    if (shapeA->Type() == ChCollisionShape::Type::BOX && shapeB->Type() == ChCollisionShape::Type::SPHERE) {
+        if (box_sphere(shapeA->A(), shapeA->R(), shapeA->Box(), shapeB->A(), shapeB->Radius(), separation, *ct_norm,
+                       *ct_depth, *ct_pt1, *ct_pt2, *ct_eff_rad)) {
+            nC = 1;
+        }
+        return true;
+    }
+
+    if (shapeA->Type() == ChCollisionShape::Type::SPHERE && shapeB->Type() == ChCollisionShape::Type::BOX) {
+        if (box_sphere(shapeB->A(), shapeB->R(), shapeB->Box(), shapeA->A(), shapeA->Radius(), separation, *ct_norm,
+                       *ct_depth, *ct_pt2, *ct_pt1, *ct_eff_rad)) {
+            *ct_norm = -(*ct_norm);
+            nC = 1;
+        }
+        return true;
+    }
+
+    if (shapeA->Type() == ChCollisionShape::Type::ROUNDEDBOX && shapeB->Type() == ChCollisionShape::Type::SPHERE) {
+        if (roundedbox_sphere(shapeA->A(), shapeA->R(), shapeA->Rbox(), shapeA->Rbox().w, shapeB->A(), shapeB->Radius(),
+                              separation, *ct_norm, *ct_depth, *ct_pt1, *ct_pt2, *ct_eff_rad)) {
+            nC = 1;
+        }
+        return true;
+    }
+
+    if (shapeA->Type() == ChCollisionShape::Type::SPHERE && shapeB->Type() == ChCollisionShape::Type::ROUNDEDBOX) {
+        if (roundedbox_sphere(shapeB->A(), shapeB->R(), shapeB->Rbox(), shapeB->Rbox().w, shapeA->A(), shapeA->Radius(),
+                              separation, *ct_norm, *ct_depth, *ct_pt2, *ct_pt1, *ct_eff_rad)) {
+            *ct_norm = -(*ct_norm);
+            nC = 1;
+        }
+        return true;
+    }
+
+    if (shapeA->Type() == ChCollisionShape::Type::TRIANGLE && shapeB->Type() == ChCollisionShape::Type::SPHERE) {
+        if (triangle_sphere(shapeA->Triangles()[0], shapeA->Triangles()[1], shapeA->Triangles()[2], shapeB->A(),
+                            shapeB->Radius(), separation, *ct_norm, *ct_depth, *ct_pt1, *ct_pt2, *ct_eff_rad)) {
+            nC = 1;
+        }
+        return true;
+    }
+
+    if (shapeA->Type() == ChCollisionShape::Type::SPHERE && shapeB->Type() == ChCollisionShape::Type::TRIANGLE) {
+        if (triangle_sphere(shapeB->Triangles()[0], shapeB->Triangles()[1], shapeB->Triangles()[2], shapeA->A(),
+                            shapeA->Radius(), separation, *ct_norm, *ct_depth, *ct_pt2, *ct_pt1, *ct_eff_rad)) {
+            *ct_norm = -(*ct_norm);
+            nC = 1;
+        }
+        return true;
+    }
+
+    if (shapeA->Type() == ChCollisionShape::Type::CAPSULE && shapeB->Type() == ChCollisionShape::Type::CAPSULE) {
+        nC = capsule_capsule(shapeA->A(), shapeA->R(), shapeA->Capsule().x, shapeA->Capsule().y, shapeB->A(),
+                             shapeB->R(), shapeB->Capsule().x, shapeB->Capsule().y, separation, ct_norm, ct_depth,
+                             ct_pt1, ct_pt2, ct_eff_rad);
+        return true;
+    }
+
+    if (shapeA->Type() == ChCollisionShape::Type::BOX && shapeB->Type() == ChCollisionShape::Type::CAPSULE) {
+        nC = box_capsule(shapeA->A(), shapeA->R(), shapeA->Box(), shapeB->A(), shapeB->R(), shapeB->Capsule().x,
+                         shapeB->Capsule().y, separation, ct_norm, ct_depth, ct_pt1, ct_pt2, ct_eff_rad);
+        return true;
+    }
+
+    if (shapeA->Type() == ChCollisionShape::Type::CAPSULE && shapeB->Type() == ChCollisionShape::Type::BOX) {
+        nC = box_capsule(shapeB->A(), shapeB->R(), shapeB->Box(), shapeA->A(), shapeA->R(), shapeA->Capsule().x,
+                         shapeA->Capsule().y, separation, ct_norm, ct_depth, ct_pt2, ct_pt1, ct_eff_rad);
+        for (int i = 0; i < nC; i++) {
+            *(ct_norm + i) = -(*(ct_norm + i));
+        }
+        return true;
+    }
+
+    if (shapeA->Type() == ChCollisionShape::Type::BOX && shapeB->Type() == ChCollisionShape::Type::CYLSHELL) {
+        nC = box_cylshell(shapeA->A(), shapeA->R(), shapeA->Box(), shapeB->A(), shapeB->R(), shapeB->Cylshell().x,
+                          shapeB->Cylshell().y, separation, ct_norm, ct_depth, ct_pt1, ct_pt2, ct_eff_rad);
+        return true;
+    }
+
+    if (shapeA->Type() == ChCollisionShape::Type::CYLSHELL && shapeB->Type() == ChCollisionShape::Type::BOX) {
+        nC = box_cylshell(shapeB->A(), shapeB->R(), shapeB->Box(), shapeA->A(), shapeA->R(), shapeA->Cylshell().x,
+                          shapeA->Cylshell().y, separation, ct_norm, ct_depth, ct_pt2, ct_pt1, ct_eff_rad);
+        for (int i = 0; i < nC; i++) {
+            *(ct_norm + i) = -(*(ct_norm + i));
+        }
+        return true;
+    }
+
+    if (shapeA->Type() == ChCollisionShape::Type::BOX && shapeB->Type() == ChCollisionShape::Type::BOX) {
+        nC = box_box(shapeA->A(), shapeA->R(), shapeA->Box(), shapeB->A(), shapeB->R(), shapeB->Box(), separation,
+                     ct_norm, ct_depth, ct_pt1, ct_pt2, ct_eff_rad);
+
+        ////std::cout << nC << std::endl;
+        ////for (int j = 0; j < nC; j++) {
+        ////    real3 ptT = *(ct_pt1 + j);
+        ////    real3 ptO = *(ct_pt2 + j);
+        ////    real3 nrm = *(ct_norm + j);
+        ////    real depth = *(ct_depth + j);
+        ////    real er = *(ct_eff_rad + j);
+        ////    std::cout << "  " << ptT.x << "  " << ptT.y << "  " << ptT.z << std::endl;
+        ////    std::cout << "  " << ptO.x << "  " << ptO.y << "  " << ptO.z << std::endl;
+        ////    std::cout << "  " << nrm.x << "  " << nrm.y << "  " << nrm.z << std::endl;
+        ////    std::cout << "  " << depth << std::endl;
+        ////    std::cout << "  " << er << std::endl;
+        ////}
+
+        return true;
+    }
+
+    // Contact could not be checked using this CD algorithm
+    return false;
 }
 
 }  // end namespace collision

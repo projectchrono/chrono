@@ -162,7 +162,7 @@ TEST(ChNarrowphaseMPR, sphere_sphere) {
 
     {
         // two spheres touching perfectly
-        real3 p, n(0, 0, 0);
+        real3 n(0, 0, 0);
         real d = 0;
 
         ConvexShapeCustom* shapeA = new ConvexShapeCustom(ChCollisionShape::Type::SPHERE, real3(2, 2, 0),
@@ -170,9 +170,8 @@ TEST(ChNarrowphaseMPR, sphere_sphere) {
         ConvexShapeCustom* shapeB = new ConvexShapeCustom(ChCollisionShape::Type::SPHERE, real3(2, 0, 0),
                                                           quaternion(1, 0, 0, 0), real3(1, 0, 0));
 
-        MPRContact(shapeA, shapeB, envelope, n, p, d);
         real3 p1, p2;
-        MPRGetPoints(shapeA, shapeB, envelope, n, p, p1, p2);
+        MPRCollision(shapeA, shapeB, envelope, n, p1, p2, d);
 
         // std::cout << n << p1 << p2 << d << std::endl;
         Assert_near(n, real3(0, -1, 0), precision);
@@ -186,16 +185,16 @@ TEST(ChNarrowphaseMPR, sphere_sphere) {
 
     {
         // two spheres inter-penetrating
-        real3 p, n(0, 0, 0);
+        real3 n(0, 0, 0);
         real d = 0;
         ConvexShapeCustom* shapeA = new ConvexShapeCustom(ChCollisionShape::Type::SPHERE, real3(1, 1, 0),
                                                           quaternion(1, 0, 0, 0), real3(1, 0, 0));
         ConvexShapeCustom* shapeB = new ConvexShapeCustom(ChCollisionShape::Type::SPHERE, real3(2, 0, 0),
                                                           quaternion(1, 0, 0, 0), real3(1, 0, 0));
 
-        MPRContact(shapeA, shapeB, envelope, n, p, d);
         real3 p1, p2;
-        MPRGetPoints(shapeA, shapeB, envelope, n, p, p1, p2);
+        MPRCollision(shapeA, shapeB, envelope, n, p1, p2, d);
+
         d = Dot(n, p2 - p1);
         // std::cout << n << p1 << p2 << d << std::endl;
         real3 n_check = real3(sin(CH_C_PI / 4.0), -sin(CH_C_PI / 4.0), 0);
@@ -214,7 +213,7 @@ TEST(ChNarrowphaseMPR, sphere_sphere) {
 TEST(ChNarrowphaseMPR, ellipsoid_ellipsoid) {
     {
         // two ellipsoids touching perfectly
-        real3 p, n(0, 0, 0);
+        real3 n(0, 0, 0);
         real d = 0;
 
         ConvexShapeCustom* shapeA = new ConvexShapeCustom(ChCollisionShape::Type::ELLIPSOID, real3(2, 2, 0),
@@ -222,9 +221,8 @@ TEST(ChNarrowphaseMPR, ellipsoid_ellipsoid) {
         ConvexShapeCustom* shapeB = new ConvexShapeCustom(ChCollisionShape::Type::ELLIPSOID, real3(2, 0, 0),
                                                           quaternion(1, 0, 0, 0), real3(1, 1, 1));
 
-        MPRContact(shapeA, shapeB, envelope, n, p, d);
         real3 p1, p2;
-        MPRGetPoints(shapeA, shapeB, envelope, n, p, p1, p2);
+        MPRCollision(shapeA, shapeB, envelope, n, p1, p2, d);
 
         // std::cout << n << p1 << p2 << d << std::endl;
         Assert_near(n, real3(0, -1, 0), precision);
@@ -238,7 +236,7 @@ TEST(ChNarrowphaseMPR, ellipsoid_ellipsoid) {
 
     {
         // two ellipsoids inter-penetrating
-        real3 p, n(0, 0, 0);
+        real3 n(0, 0, 0);
         real d = 0;
 
         ConvexShapeCustom* shapeA = new ConvexShapeCustom(ChCollisionShape::Type::ELLIPSOID, real3(1, 1, 0),
@@ -246,9 +244,8 @@ TEST(ChNarrowphaseMPR, ellipsoid_ellipsoid) {
         ConvexShapeCustom* shapeB = new ConvexShapeCustom(ChCollisionShape::Type::ELLIPSOID, real3(2, 0, 0),
                                                           quaternion(1, 0, 0, 0), real3(1, 1, 1));
 
-        MPRContact(shapeA, shapeB, envelope, n, p, d);
         real3 p1, p2;
-        MPRGetPoints(shapeA, shapeB, envelope, n, p, p1, p2);
+        MPRCollision(shapeA, shapeB, envelope, n, p1, p2, d);
         d = Dot(n, p2 - p1);
 
         real3 n_check = real3(sin(CH_C_PI / 4.0), -sin(CH_C_PI / 4.0), 0);
@@ -267,16 +264,15 @@ TEST(ChNarrowphaseMPR, ellipsoid_ellipsoid) {
 TEST(ChNarrowphaseMPR, sphere_box) {
     {
         // sphere on box centered
-        real3 p, n(0, 0, 0);
+        real3 n(0, 0, 0);
         real d = 0;
         ConvexShapeCustom* shapeA = new ConvexShapeCustom(ChCollisionShape::Type::SPHERE, real3(0, 1.5, 0),
                                                           quaternion(1, 0, 0, 0), real3(1, 0, 0));
         ConvexShapeCustom* shapeB =
             new ConvexShapeCustom(ChCollisionShape::Type::BOX, real3(0, 0, 0), quaternion(1, 0, 0, 0), real3(1, 1, 1));
 
-        MPRContact(shapeA, shapeB, envelope, n, p, d);
         real3 p1, p2;
-        MPRGetPoints(shapeA, shapeB, envelope, n, p, p1, p2);
+        MPRCollision(shapeA, shapeB, envelope, n, p1, p2, d);
 
         Assert_near(n, real3(0, -1, 0), precision);
         Assert_near(p1, real3(0, 0.5, 0), precision);
@@ -289,18 +285,16 @@ TEST(ChNarrowphaseMPR, sphere_box) {
 
     {
         // sphere on box offset
-        real3 p, n(0, 0, 0);
+        real3 n(0, 0, 0);
         real d = 0;
         ConvexShapeCustom* shapeA = new ConvexShapeCustom(ChCollisionShape::Type::SPHERE, real3(.1, 2, 0),
                                                           quaternion(1, 0, 0, 0), real3(1, 0, 0));
         ConvexShapeCustom* shapeB =
             new ConvexShapeCustom(ChCollisionShape::Type::BOX, real3(0, 0, 0), quaternion(1, 0, 0, 0), real3(1, 1, 1));
 
-        if (!MPRContact(shapeA, shapeB, envelope, n, p, d)) {
-            std::cout << "No Contact!\n";
-        }
         real3 p1, p2;
-        MPRGetPoints(shapeA, shapeB, envelope, n, p, p1, p2);
+        MPRCollision(shapeA, shapeB, envelope, n, p1, p2, d);
+
         // std::cout << n << p << d << std::endl << p1 << p2 << std::endl;
         Assert_near(n, real3(0, -1, 0), precision);
         Assert_near(p1, real3(.1, 1, 0), precision);
@@ -475,7 +469,7 @@ TEST(ChNarrowphaseMPR, cylinder_sphere) {
         ConvexShapeCustom* shapeB =
             new ConvexShapeCustom(ChCollisionShape::Type::SPHERE, s_pos, quaternion(1, 0, 0, 0), real3(s_rad, 0, 0));
 
-        bool res = MPRContact(shapeA, shapeB, envelope, norm, pt, depth);
+        bool res = MPRCollision(shapeA, shapeB, envelope, norm, pt1, pt2, depth);
         ASSERT_NE(res, 0);
         //// TODO:  WHAT IS EXPECTED HERE?
 
@@ -492,7 +486,7 @@ TEST(ChNarrowphaseMPR, cylinder_sphere) {
         ConvexShapeCustom* shapeB =
             new ConvexShapeCustom(ChCollisionShape::Type::SPHERE, s_pos, quaternion(1, 0, 0, 0), real3(s_rad, 0, 0));
 
-        bool res = MPRContact(shapeA, shapeB, envelope, norm, pt, depth);
+        bool res = MPRCollision(shapeA, shapeB, envelope, norm, pt1, pt2, depth);
         ASSERT_EQ(res, 0);
 
         delete shapeA;
@@ -508,9 +502,8 @@ TEST(ChNarrowphaseMPR, cylinder_sphere) {
         ConvexShapeCustom* shapeB =
             new ConvexShapeCustom(ChCollisionShape::Type::SPHERE, s_pos, quaternion(1, 0, 0, 0), real3(s_rad, 0, 0));
 
-        bool res = MPRContact(shapeA, shapeB, envelope, norm, pt, depth);
+        bool res = MPRCollision(shapeA, shapeB, envelope, norm, pt1, pt2, depth);
         ASSERT_NE(res, 0);
-        MPRGetPoints(shapeA, shapeB, envelope, norm, pt, pt1, pt2);
         depth = Dot(norm, pt2 - pt1);
 
         Assert_near(norm, real3(1, 0, 0), precision);
@@ -530,7 +523,7 @@ TEST(ChNarrowphaseMPR, cylinder_sphere) {
         ConvexShapeCustom* shapeB =
             new ConvexShapeCustom(ChCollisionShape::Type::SPHERE, s_pos, quaternion(1, 0, 0, 0), real3(s_rad, 0, 0));
 
-        bool res = MPRContact(shapeA, shapeB, envelope, norm, pt, depth);
+        bool res = MPRCollision(shapeA, shapeB, envelope, norm, pt1, pt2, depth);
         ASSERT_EQ(res, 0);
 
         delete shapeA;
@@ -545,9 +538,8 @@ TEST(ChNarrowphaseMPR, cylinder_sphere) {
         ConvexShapeCustom* shapeB =
             new ConvexShapeCustom(ChCollisionShape::Type::SPHERE, s_pos, quaternion(1, 0, 0, 0), real3(s_rad, 0, 0));
 
-        bool res = MPRContact(shapeA, shapeB, envelope, norm, pt, depth);
+        bool res = MPRCollision(shapeA, shapeB, envelope, norm, pt1, pt2, depth);
         ASSERT_NE(res, 0);
-        MPRGetPoints(shapeA, shapeB, envelope, norm, pt, pt1, pt2);
         depth = Dot(norm, pt2 - pt1);
 
         Assert_near(norm, real3(0, 1, 0), precision);
@@ -566,7 +558,7 @@ TEST(ChNarrowphaseMPR, cylinder_sphere) {
             new ConvexShapeCustom(ChCollisionShape::Type::CYLINDER, c_pos, c_rot, real3(c_rad, c_hlen, c_rad));
         ConvexShapeCustom* shapeB =
             new ConvexShapeCustom(ChCollisionShape::Type::SPHERE, s_pos, quaternion(1, 0, 0, 0), real3(s_rad, 0, 0));
-        bool res = MPRContact(shapeA, shapeB, envelope, norm, pt, depth);
+        bool res = MPRCollision(shapeA, shapeB, envelope, norm, pt1, pt2, depth);
         ASSERT_EQ(res, 0);
 
         delete shapeA;
@@ -592,8 +584,7 @@ TEST(ChNarrowphaseMPR, cylinder_sphere) {
      shapeB.B = real3(s_rad, s_rad, s_rad);
      shapeB.C = real3(0);
      shapeB.R = quaternion(.5, 0, 0, 0);
-     bool res = MPRContact(shapeA, shapeB, norm, pt, depth);
-     MPRGetPoints(shapeA, shapeB, norm, pt, pt1, pt2);
+     bool res = MPRCollision(shapeA, shapeB, envelope, norm, pt1, pt2, depth);
      depth = Dot(norm, pt2 - pt1);
 
      Assert_near(norm, real3(oosqrt2, oosqrt2, 0), precision);
@@ -634,7 +625,7 @@ TEST(ChNarrowphaseMPR, roundedcyl_sphere) {
         ConvexShapeCustom* shapeB =
             new ConvexShapeCustom(ChCollisionShape::Type::SPHERE, s_pos, quaternion(1, 0, 0, 0), real3(s_rad, 0, 0));
 
-        bool res = MPRContact(shapeA, shapeB, envelope, norm, pt, depth);
+        bool res = MPRCollision(shapeA, shapeB, envelope, norm, pt1, pt2, depth);
         //// TODO: WHAT IS EXPECTED HERE?
         ASSERT_TRUE(res || !res);  //// <- FIX ME!
 
@@ -650,7 +641,7 @@ TEST(ChNarrowphaseMPR, roundedcyl_sphere) {
         ConvexShapeCustom* shapeB =
             new ConvexShapeCustom(ChCollisionShape::Type::SPHERE, s_pos, quaternion(1, 0, 0, 0), real3(s_rad, 0, 0));
 
-        bool res = MPRContact(shapeA, shapeB, envelope, norm, pt, depth);
+        bool res = MPRCollision(shapeA, shapeB, envelope, norm, pt1, pt2, depth);
         ASSERT_EQ(res, 0);
 
         delete shapeA;
@@ -664,9 +655,8 @@ TEST(ChNarrowphaseMPR, roundedcyl_sphere) {
                                                           real3(c_rad, c_hlen, c_rad), c_srad);
         ConvexShapeCustom* shapeB =
             new ConvexShapeCustom(ChCollisionShape::Type::SPHERE, s_pos, quaternion(1, 0, 0, 0), real3(s_rad, 0, 0));
-        bool res = MPRContact(shapeA, shapeB, envelope, norm, pt, depth);
+        bool res = MPRCollision(shapeA, shapeB, envelope, norm, pt1, pt2, depth);
         ASSERT_NE(res, 0);
-        MPRGetPoints(shapeA, shapeB, envelope, norm, pt, pt1, pt2);
         depth = Dot(norm, pt2 - pt1);
 
         Assert_near(norm, real3(1, 0, 0), precision);
@@ -686,7 +676,7 @@ TEST(ChNarrowphaseMPR, roundedcyl_sphere) {
         ConvexShapeCustom* shapeB =
             new ConvexShapeCustom(ChCollisionShape::Type::SPHERE, s_pos, quaternion(1, 0, 0, 0), real3(s_rad, 0, 0));
 
-        bool res = MPRContact(shapeA, shapeB, envelope, norm, pt, depth);
+        bool res = MPRCollision(shapeA, shapeB, envelope, norm, pt1, pt2, depth);
         ASSERT_EQ(res, 0);
 
         delete shapeA;
@@ -700,9 +690,8 @@ TEST(ChNarrowphaseMPR, roundedcyl_sphere) {
                                                           real3(c_rad, c_hlen, c_rad), c_srad);
         ConvexShapeCustom* shapeB =
             new ConvexShapeCustom(ChCollisionShape::Type::SPHERE, s_pos, quaternion(1, 0, 0, 0), real3(s_rad, 0, 0));
-        bool res = MPRContact(shapeA, shapeB, envelope, norm, pt, depth);
+        bool res = MPRCollision(shapeA, shapeB, envelope, norm, pt1, pt2, depth);
         ASSERT_NE(res, 0);
-        MPRGetPoints(shapeA, shapeB, envelope, norm, pt, pt1, pt2);
         depth = Dot(norm, pt2 - pt1);
 
         Assert_near(norm, real3(0, 1, 0), precision);
@@ -721,7 +710,7 @@ TEST(ChNarrowphaseMPR, roundedcyl_sphere) {
                                                           real3(c_rad, c_hlen, c_rad), c_srad);
         ConvexShapeCustom* shapeB =
             new ConvexShapeCustom(ChCollisionShape::Type::SPHERE, s_pos, quaternion(1, 0, 0, 0), real3(s_rad, 0, 0));
-        bool res = MPRContact(shapeA, shapeB, envelope, norm, pt, depth);
+        bool res = MPRCollision(shapeA, shapeB, envelope, norm, pt1, pt2, depth);
         ASSERT_EQ(res, 0);
 
         delete shapeA;
@@ -745,9 +734,8 @@ TEST(ChNarrowphaseMPR, roundedcyl_sphere) {
      shapeB.B = real3(s_rad, 0, 0);
      shapeB.C = real3(0);
      shapeB.R = quaternion(1, 0, 0, 0);
-     bool res = MPRContact(shapeA, shapeB, norm, pt, depth);
+     bool res = MPRCollision(shapeA, shapeB, envelope, norm, pt1, pt2, depth);
      ASSERT_EQ(res, 0);
-     MPRGetPoints(shapeA, shapeB, norm, pt, pt1, pt2);
      depth = Dot(norm, pt2 - pt1);
 
      Assert_near(norm, real3(oosqrt2, oosqrt2, 0), precision);

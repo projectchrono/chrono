@@ -38,25 +38,6 @@ struct simplex {
     support s0, s1, s2, s3, s4;
 };
 
-bool chrono::collision::MPRSphereSphere(const ConvexBase* ShapeA,
-                                        const ConvexBase* ShapeB,
-                                        real3& N,
-                                        real& depth,
-                                        real3& p1,
-                                        real3& p2) {
-    real3 relpos = ShapeB->A() - ShapeA->A();
-    real d2 = Dot(relpos);
-    real collide_dist = ShapeA->Radius() + ShapeB->Radius();
-    if (d2 <= collide_dist * collide_dist) {
-        N = relpos / Sqrt(d2);
-        p1 = ShapeA->A() + N * ShapeA->Radius();
-        p2 = ShapeB->A() - N * ShapeB->Radius();
-        depth = Dot(N, p2 - p1);
-        return true;
-    }
-    return false;
-}
-
 real3 GetCenter(const ConvexBase* Shape) {
     switch (Shape->Type()) {
         case ChCollisionShape::Type::TRIANGLE:
@@ -603,13 +584,14 @@ int RefinePortal(const ConvexBase* shapeA, const ConvexBase* shapeB, const real&
     }
     return -1;
 }
+
 // Code for Convex-Convex Collision detection, adopted from xeno-collide
-bool chrono::collision::MPRContact(const ConvexBase* shapeA,
-                                   const ConvexBase* shapeB,
-                                   const real& envelope,
-                                   real3& returnNormal,
-                                   real3& point,
-                                   real& depth) {
+bool MPRContact(const ConvexBase* shapeA,
+                const ConvexBase* shapeB,
+                const real& envelope,
+                real3& returnNormal,
+                real3& point,
+                real& depth) {
     simplex portal;
 
     int result = DiscoverPortal(shapeA, shapeB, envelope, portal);
@@ -633,19 +615,20 @@ bool chrono::collision::MPRContact(const ConvexBase* shapeA,
     return 1;
 }
 
-void chrono::collision::MPRGetPoints(const ConvexBase* shapeA,
-                                     const ConvexBase* shapeB,
-                                     const real& envelope,
-                                     real3& N,
-                                     real3 p0,
-                                     real3& p1,
-                                     real3& p2) {
+void MPRGetPoints(const ConvexBase* shapeA,
+                  const ConvexBase* shapeB,
+                  const real& envelope,
+                  real3& N,
+                  real3 p0,
+                  real3& p1,
+                  real3& p2) {
     p1 = Dot((TransformSupportVert(shapeA, -N, envelope) - p0), N) * N + p0;
     p2 = Dot((TransformSupportVert(shapeB, N, envelope) - p0), N) * N + p0;
     N = -N;
 }
 
-// Code for Convex-Convex Collision detection, adopted from xeno-collide
+// -----------------------------------------------------------------------------
+
 bool chrono::collision::MPRCollision(const ConvexBase* shapeA,
                                      const ConvexBase* shapeB,
                                      real envelope,
@@ -664,4 +647,23 @@ bool chrono::collision::MPRCollision(const ConvexBase* shapeA,
     pointB = pointB + normal * envelope;
     depth = Dot(normal, pointB - pointA);
     return true;
+}
+
+bool chrono::collision::MPRSphereSphere(const ConvexBase* ShapeA,
+                                        const ConvexBase* ShapeB,
+                                        real3& N,
+                                        real& depth,
+                                        real3& p1,
+                                        real3& p2) {
+    real3 relpos = ShapeB->A() - ShapeA->A();
+    real d2 = Dot(relpos);
+    real collide_dist = ShapeA->Radius() + ShapeB->Radius();
+    if (d2 <= collide_dist * collide_dist) {
+        N = relpos / Sqrt(d2);
+        p1 = ShapeA->A() + N * ShapeA->Radius();
+        p2 = ShapeB->A() - N * ShapeB->Radius();
+        depth = Dot(N, p2 - p1);
+        return true;
+    }
+    return false;
 }

@@ -41,162 +41,37 @@ namespace collision {
 /// @addtogroup collision_mc
 /// @{
 
-/// Analytical sphere vs. sphere collision function.
-bool sphere_sphere(const real3& pos1,
-                   const real& radius1,
-                   const real3& pos2,
-                   const real& radius2,
-                   const real& separation,
-                   real3& norm,
-                   real& depth,
-                   real3& pt1,
-                   real3& pt2,
-                   real& eff_radius);
-
-/// Analytical capsule vs. sphere collision function.
-bool capsule_sphere(const real3& pos1,
-                    const quaternion& rot1,
-                    const real& radius1,
-                    const real& hlen1,
-                    const real3& pos2,
-                    const real& radius2,
-                    const real& separation,
-                    real3& norm,
-                    real& depth,
-                    real3& pt1,
-                    real3& pt2,
-                    real& eff_radius);
-
-/// Analytical cylinder vs. sphere collision function.
-bool cylinder_sphere(const real3& pos1,
-                     const quaternion& rot1,
-                     const real& radius1,
-                     const real& hlen1,
-                     const real3& pos2,
-                     const real& radius2,
-                     const real& separation,
-                     real3& norm,
-                     real& depth,
-                     real3& pt1,
-                     real3& pt2,
-                     real& eff_radius);
-
-/// Analytical rounded cylinder vs. sphere collision function.
-bool roundedcyl_sphere(const real3& pos1,
-                       const quaternion& rot1,
-                       const real& radius1,
-                       const real& hlen1,
-                       const real& srad1,
-                       const real3& pos2,
-                       const real& radius2,
-                       const real& separation,
-                       real3& norm,
-                       real& depth,
-                       real3& pt1,
-                       real3& pt2,
-                       real& eff_radius);
-
-/// Analytical box vs. sphere collision function.
-bool box_sphere(const real3& pos1,
-                const quaternion& rot1,
-                const real3& hdims1,
-                const real3& pos2,
-                const real& radius2,
-                const real& separation,
-                real3& norm,
-                real& depth,
-                real3& pt1,
-                real3& pt2,
-                real& eff_radius);
-
-/// Analytical rounded box vs. sphere collision function.
-bool roundedbox_sphere(const real3& pos1,
-                       const quaternion& rot1,
-                       const real3& hdims1,
-                       const real& srad1,
-                       const real3& pos2,
-                       const real& radius2,
-                       const real& separation,
-                       real3& norm,
-                       real& depth,
-                       real3& pt1,
-                       real3& pt2,
-                       real& eff_radius);
-
-/// Analytical triangle face vs. sphere collision function.
-bool triangle_sphere(const real3& A1,
-                     const real3& B1,
-                     const real3& C1,
-                     const real3& pos2,
-                     const real& radius2,
-                     const real& separation,
-                     real3& norm,
-                     real& depth,
-                     real3& pt1,
-                     real3& pt2,
-                     real& eff_radius);
-
-/// Analytical capsule vs. capsule collision function.
-int capsule_capsule(const real3& pos1,
-                    const quaternion& rot1,
-                    const real& radius1,
-                    const real& hlen1,
-                    const real3& pos2,
-                    const quaternion& rot2,
-                    const real& radius2,
-                    const real& hlen2,
-                    const real& separation,
-                    real3* norm,
-                    real* depth,
-                    real3* pt1,
-                    real3* pt2,
-                    real* eff_radius);
-
-/// Analytical box vs. capsule collision function.
-int box_capsule(const real3& pos1,
-                const quaternion& rot1,
-                const real3& hdims1,
-                const real3& pos2,
-                const quaternion& rot2,
-                const real& radius2,
-                const real& hlen2,
-                const real& separation,
-                real3* norm,
-                real* depth,
-                real3* pt1,
-                real3* pt2,
-                real* eff_radius);
-
-/// Analytical box vs. cylindrical shell collision function.
-int box_cylshell(const real3& pos1,
-                 const quaternion& rot1,
-                 const real3& hdims1,
-                 const real3& pos2,
-                 const quaternion& rot2,
-                 const real& radius2,
-                 const real& hlen2,
-                 const real& separation,
-                 real3* norm,
-                 real* depth,
-                 real3* pt1,
-                 real3* pt2,
-                 real* eff_radius);
-
-/// Analytical box vs. box collision function.
-int box_box(const real3& pos1,
-            const quaternion& rot1,
-            const real3& hdims1,
-            const real3& pos2,
-            const quaternion& rot2,
-            const real3& hdims2,
-            const real& separation,
-            real3* norm,
-            real* depth,
-            real3* pt1,
-            real3* pt2,
-            real* eff_radius);
-
-/// Dispatcher for analytic collision functions.
+/// Dispatcher for analytic collision functions between a pair of candidate shapes.
+/// Each candidate pair of shapes can result in 0, 1, or more contacts.  For each actual contact, we calculate various
+/// geometrical quantities and load them in the output arguments (starting from the given addresses)
+/// @remark
+///   - ct_pt1:      contact point on first shape (in global frame)
+/// @remark
+///   - ct_pt2:      contact point on second shape (in global frame)
+/// @remark
+///   - ct_depth:    penetration distance (negative if overlap exists)
+/// @remark
+///   - ct_norm:     contact normal, from ct_pt2 to ct_pt1 (in global frame)
+/// @remark
+///   - ct_eff_rad:  effective contact radius
+/// 
+/// Note that we also report collisions for which the distance between the two shapes is at most 'separation' (typically
+/// twice the collision envelope). In these cases, the corresponding ct_depth is a positive value. This function returns
+/// true if it was able to determine the collision state for the given pair of shapes and false if the shape types are
+/// not supported.
+/// 
+/// Currently supported pair-wise interactions:
+/// <pre>
+///          |  sphere   box   rbox   capsule   cylinder   rcyl   trimesh
+/// ---------+---------------------------------------------------------- 
+/// sphere   |    Y       Y      Y       Y         Y        Y        Y   
+/// box      |            Y      N       Y         N        N        N   
+/// rbox     |                   N       N         N        N        N   
+/// capsule  |                           Y         N        N        N   
+/// cylinder |                                     N        N        N   
+/// rcyl     |                                              N        N   
+/// trimesh  |                                                       N   
+/// </pre>
 ChApi bool RCollision(const ConvexBase* shapeA,  ///< first candidate shape
                       const ConvexBase* shapeB,  ///< second candidate shape
                       real separation,           ///< maximum separation

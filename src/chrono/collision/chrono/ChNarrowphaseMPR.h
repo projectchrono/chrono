@@ -28,13 +28,8 @@ class ConvexBase;
 /// @addtogroup collision_mc
 /// @{
 
-ChApi bool MPRContact(const ConvexBase* ShapeA,
-                      const ConvexBase* ShapeB,
-                      const real& envelope,
-                      real3& returnNormal,
-                      real3& point,
-                      real& depth);
-
+/// Minkovski Portal Refinement convex-convex collision detection
+/// (adapted from Xeno Collide).
 ChApi bool MPRCollision(const ConvexBase* ShapeA,
                         const ConvexBase* ShapeB,
                         real envelope,
@@ -43,14 +38,7 @@ ChApi bool MPRCollision(const ConvexBase* ShapeA,
                         real3& pointB,
                         real& depth);
 
-ChApi void MPRGetPoints(const ConvexBase* ShapeA,
-                        const ConvexBase* ShapeB,
-                        const real& envelope,
-                        real3& N,
-                        real3 p0,
-                        real3& p1,
-                        real3& p2);
-
+/// Analytical sphere-sphere collision detection.
 ChApi bool MPRSphereSphere(const ConvexBase* ShapeA,
                            const ConvexBase* ShapeB,
                            real3& N,
