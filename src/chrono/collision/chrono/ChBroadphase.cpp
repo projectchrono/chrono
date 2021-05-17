@@ -32,6 +32,9 @@ using thrust::transform_reduce;
 namespace chrono {
 namespace collision {
 
+ChBroadphase::ChBroadphase()
+    : bins_per_axis(vec3(10, 10, 10)), fixed_bins(true), grid_density(5), data_manager(nullptr) {}
+
 // Determine the bounding box for the objects===============================================================
 
 // Inverted AABB (assumed associated with an active shape).
@@ -174,27 +177,22 @@ void ChBroadphase::ComputeTopLevelResolution() {
     const int num_shapes = data_manager->num_rigid_shapes;
     const real3& max_bounding_point = data_manager->measures.max_bounding_point;
     const real3& global_origin = data_manager->measures.global_origin;
-    const real density = data_manager->settings.grid_density;
 
-    vec3& bins_per_axis = data_manager->settings.bins_per_axis;
     real3& inv_bin_size = data_manager->measures.inv_bin_size;
     real3& bin_size = data_manager->measures.bin_size;
 
     // This is the extents of the space aka diameter
     real3 diagonal = (Abs(max_bounding_point - global_origin));
+
     // Compute the number of slices in this grid level
-    if (data_manager->settings.fixed_bins == false) {
-        bins_per_axis = function_Compute_Grid_Resolution(num_shapes, diagonal, density);
+    if (!fixed_bins) {
+        bins_per_axis = function_Compute_Grid_Resolution(num_shapes, diagonal, grid_density);
     }
     bin_size = diagonal / real3(bins_per_axis.x, bins_per_axis.y, bins_per_axis.z);
 
     // Store the inverse for use later
     inv_bin_size = 1.0 / bin_size;
 }
-
-// =========================================================================================================
-
-ChBroadphase::ChBroadphase() : data_manager(nullptr) {}
 
 // =========================================================================================================
 
@@ -224,7 +222,6 @@ void ChBroadphase::OneLevelBroadphase() {
     custom_vector<uint>& bin_start_index = data_manager->host_data.bin_start_index;
     custom_vector<uint>& bin_num_contact = data_manager->host_data.bin_num_contact;
 
-    vec3& bins_per_axis = data_manager->settings.bins_per_axis;
     const int num_shapes = data_manager->num_rigid_shapes;
 
     real3& inv_bin_size = data_manager->measures.inv_bin_size;

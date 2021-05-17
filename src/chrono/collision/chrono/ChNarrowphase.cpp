@@ -20,7 +20,7 @@
 
 #include "chrono/collision/chrono/ChNarrowphase.h"
 #include "chrono/collision/chrono/ChNarrowphaseMPR.h"
-#include "chrono/collision/chrono/ChNarrowphaseR.h"
+#include "chrono/collision/chrono/ChNarrowphasePRIMS.h"
 #include "chrono/collision/chrono/ChNarrowphaseUtilsMPR.h"
 #include "chrono/collision/chrono/ChBroadphaseUtils.h"
 
@@ -37,6 +37,8 @@
 namespace chrono {
 namespace collision {
 
+ChNarrowphase::ChNarrowphase() : algorithm(Algorithm::HYBRID), envelope(0), data_manager(nullptr) {}
+
 void ChNarrowphase::ClearContacts() {
     // Return now if no potential collisions.
     if (num_potential_rigid_contacts == 0) {
@@ -49,13 +51,11 @@ void ChNarrowphase::ClearContacts() {
     }
 }
 
-void ChNarrowphase::ProcessRigids() {
+void ChNarrowphase::ProcessRigids(const vec3& bins_per_axis) {
     //======== Indexing variables and other information
     num_potential_rigid_contacts = data_manager->num_rigid_contacts;
     num_potential_rigid_fluid_contacts = data_manager->num_rigid_fluid_contacts;
     num_potential_fluid_contacts = data_manager->num_fluid_contacts;
-    narrowphase_algorithm = data_manager->settings.narrowphase_algorithm;
-    collision_envelope = data_manager->settings.collision_envelope;
     ClearContacts();
     // Transform Rigid body shapes to global coordinate system
     PreprocessLocalToParent();
@@ -64,7 +64,7 @@ void ChNarrowphase::ProcessRigids() {
         DispatchRigid();
     }
     if (data_manager->state_data.num_fluid_bodies != 0) {
-        DispatchRigidFluid();
+        DispatchRigidFluid(bins_per_axis);
     }
 }
 
@@ -73,11 +73,11 @@ int ChNarrowphase::PreprocessCount() {
     contact_index.resize(num_potential_rigid_contacts + 1);
     contact_index[num_potential_rigid_contacts] = 0;
 
-    if (narrowphase_algorithm == NarrowPhaseType::NARROWPHASE_MPR) {
+    if (algorithm == Algorithm::MPR) {
         // MPR always reports at most one contact per pair.
         Thrust_Fill(contact_index, 1);
     } else {
-        // NarrowphaseR (and hence the hybrid algorithms) may produce different number
+        // Analytical (and hence the hybrid) algorithms may produce different number
         // of contacts per pair, depending on the interacting shapes:
         //   - an interaction involving a sphere can produce at most one contact
         //   - an interaction involving a capsule can produce up to two contacts
@@ -223,7 +223,7 @@ void ChNarrowphase::DispatchMPR() {
 
         Dispatch_Init(index, icoll, ID_A, ID_B, &shapeA, &shapeB);
 
-        if (MPRCollision(&shapeA, &shapeB, collision_envelope, norm[icoll], ptA[icoll], ptB[icoll],
+        if (MPRCollision(&shapeA, &shapeB, envelope, norm[icoll], ptA[icoll], ptB[icoll],
                          contactDepth[icoll])) {
             effective_radius[icoll] = default_eff_radius;
             // The number of contacts reported by MPR is always 1.
@@ -232,7 +232,7 @@ void ChNarrowphase::DispatchMPR() {
     }
 }
 
-void ChNarrowphase::DispatchR() {
+void ChNarrowphase::DispatchPRIMS() {
     real3* norm = data_manager->host_data.norm_rigid_rigid.data();
     real3* ptA = data_manager->host_data.cpta_rigid_rigid.data();
     real3* ptB = data_manager->host_data.cptb_rigid_rigid.data();
@@ -250,8 +250,8 @@ void ChNarrowphase::DispatchR() {
 
         Dispatch_Init(index, icoll, ID_A, ID_B, &shapeA, &shapeB);
 
-        if (RCollision(&shapeA, &shapeB, 2 * collision_envelope, &norm[icoll], &ptA[icoll], &ptB[icoll],
-                       &contactDepth[icoll], &effective_radius[icoll], nC)) {
+        if (PRIMSCollision(&shapeA, &shapeB, 2 * envelope, &norm[icoll], &ptA[icoll], &ptB[icoll],
+                           &contactDepth[icoll], &effective_radius[icoll], nC)) {
             Dispatch_Finalize(icoll, ID_A, ID_B, nC);
         }
     }
@@ -277,10 +277,10 @@ void ChNarrowphase::DispatchHybridMPR() {
 
         Dispatch_Init(index, icoll, ID_A, ID_B, &shapeA, &shapeB);
 
-        if (RCollision(&shapeA, &shapeB, 2 * collision_envelope, &norm[icoll], &ptA[icoll], &ptB[icoll],
-                       &contactDepth[icoll], &effective_radius[icoll], nC)) {
+        if (PRIMSCollision(&shapeA, &shapeB, 2 * envelope, &norm[icoll], &ptA[icoll], &ptB[icoll],
+                           &contactDepth[icoll], &effective_radius[icoll], nC)) {
             Dispatch_Finalize(icoll, ID_A, ID_B, nC);
-        } else if (MPRCollision(&shapeA, &shapeB, collision_envelope, norm[icoll], ptA[icoll], ptB[icoll],
+        } else if (MPRCollision(&shapeA, &shapeB, envelope, norm[icoll], ptA[icoll], ptB[icoll],
                                 contactDepth[icoll])) {
             effective_radius[icoll] = default_eff_radius;
             Dispatch_Finalize(icoll, ID_A, ID_B, 1);
@@ -318,14 +318,14 @@ void ChNarrowphase::DispatchRigid() {
     contact_rigid_active.resize(num_potentialContacts);
     thrust::fill(contact_rigid_active.begin(), contact_rigid_active.end(), false);
 
-    switch (narrowphase_algorithm) {
-        case NarrowPhaseType::NARROWPHASE_MPR:
+    switch (algorithm) {
+        case Algorithm::MPR:
             DispatchMPR();
             break;
-        case NarrowPhaseType::NARROWPHASE_R:
-            DispatchR();
+        case Algorithm::PRIMS:
+            DispatchPRIMS();
             break;
-        case NarrowPhaseType::NARROWPHASE_HYBRID_MPR:
+        case Algorithm::HYBRID:
             DispatchHybridMPR();
             break;
     }
@@ -353,12 +353,6 @@ void ChNarrowphase::DispatchRigid() {
     contact_shapeIDs.resize(num_rigid_contacts);
 }
 
-void ChNarrowphase::DispatchRigidFluid() {
-    //// TODO: eliminate RigidSphereContact and inline here.
-
-    RigidSphereContact();
-}
-
 inline int GridCoord(real x, real inv_bin_edge, real minimum) {
     real l = x - minimum;
     int c = (int)Round(l * inv_bin_edge);
@@ -369,8 +363,12 @@ inline int GridHash(int x, int y, int z, const vec3& bins_per_axis) {
     return ((z * bins_per_axis.y) * bins_per_axis.x) + (y * bins_per_axis.x) + x;
 }
 
-void ChNarrowphase::SphereSphereContact() {
+void ChNarrowphase::DispatchFluid() {
     //// TODO: remapping of velocities (not needed for collision detection) to be done outside.
+
+    if (data_manager->state_data.num_fluid_bodies == 0) {
+        return;
+    }
 
     // Readability replacements
     const int num_fluid_bodies = data_manager->state_data.num_fluid_bodies;
@@ -491,19 +489,9 @@ void ChNarrowphase::SphereSphereContact() {
     num_fluid_contacts = Thrust_Total(contact_counts);
 }
 
-void ChNarrowphase::DispatchFluid() {
-    //// TODO: eliminate SphereSphereContact and inline here.
-
-    if (data_manager->state_data.num_fluid_bodies == 0) {
-        return;
-    }
-
-    SphereSphereContact();
-}
-
 //==================================================================================================================================
 
-void ChNarrowphase::RigidSphereContact() {
+void ChNarrowphase::DispatchRigidFluid(const vec3& bins_per_axis) {
     // Readability replacements
     const real sphere_radius = data_manager->node_data.kernel_radius;
     const int num_spheres = data_manager->state_data.num_fluid_bodies;
@@ -517,7 +505,6 @@ void ChNarrowphase::RigidSphereContact() {
     uint& num_contacts = data_manager->num_rigid_fluid_contacts;
 
     real3 global_origin = data_manager->measures.global_origin;
-    vec3 bins_per_axis = data_manager->settings.bins_per_axis;
     real3 inv_bin_size = data_manager->measures.inv_bin_size;
     const custom_vector<short2>& fam_data = data_manager->shape_data.fam_rigid;
     const real radius = sphere_radius;
@@ -540,8 +527,8 @@ void ChNarrowphase::RigidSphereContact() {
 #pragma omp parallel for
     for (int p = 0; p < num_spheres; p++) {
         real3 pos_sphere = pos_spheres[p];
-        vec3 gmin = HashMin(pos_sphere - real3(radius + collision_envelope) - global_origin, inv_bin_size);
-        vec3 gmax = HashMax(pos_sphere + real3(radius + collision_envelope) - global_origin, inv_bin_size);
+        vec3 gmin = HashMin(pos_sphere - real3(radius + envelope) - global_origin, inv_bin_size);
+        vec3 gmax = HashMax(pos_sphere + real3(radius + envelope) - global_origin, inv_bin_size);
         f_bin_intersections[p] = (gmax.x - gmin.x + 1) * (gmax.y - gmin.y + 1) * (gmax.z - gmin.z + 1);
     }
 
@@ -557,8 +544,8 @@ void ChNarrowphase::RigidSphereContact() {
     for (int p = 0; p < num_spheres; p++) {
         uint count = 0, i, j, k;
         real3 pos_sphere = pos_spheres[p];
-        vec3 gmin = HashMin(pos_sphere - real3(radius + collision_envelope) - global_origin, inv_bin_size);
-        vec3 gmax = HashMax(pos_sphere + real3(radius + collision_envelope) - global_origin, inv_bin_size);
+        vec3 gmin = HashMin(pos_sphere - real3(radius + envelope) - global_origin, inv_bin_size);
+        vec3 gmax = HashMax(pos_sphere + real3(radius + envelope) - global_origin, inv_bin_size);
         uint mInd = f_bin_intersections[p];
         for (i = (unsigned)gmin.x; i <= (unsigned)gmax.x; i++) {
             for (j = (unsigned)gmin.y; j <= (unsigned)gmax.y; j++) {
@@ -603,8 +590,8 @@ void ChNarrowphase::RigidSphereContact() {
             for (int i = start; i < (signed)end; i++) {
                 uint p = f_bin_fluid_number[i];
                 real3 pos_sphere = pos_spheres[p];
-                real3 Bmin = pos_sphere - real3(radius + collision_envelope) - global_origin;
-                real3 Bmax = pos_sphere + real3(radius + collision_envelope) - global_origin;
+                real3 Bmin = pos_sphere - real3(radius + envelope) - global_origin;
+                real3 Bmax = pos_sphere + real3(radius + envelope) - global_origin;
                 ConvexShapeSphere* shapeB = new ConvexShapeSphere(pos_sphere, sphere_radius * .5);
 
                 for (uint j = rigid_start; j < rigid_end; j++) {
@@ -619,8 +606,8 @@ void ChNarrowphase::RigidSphereContact() {
                                 real3 ptA, ptB, norm;
                                 real depth, erad = 0;
                                 int nC = 0;
-                                if (RCollision(shapeA, shapeB, 2 * collision_envelope, &norm, &ptA, &ptB, &depth, &erad,
-                                               nC)) {
+                                if (PRIMSCollision(shapeA, shapeB, 2 * envelope, &norm, &ptA, &ptB, &depth,
+                                                   &erad, nC)) {
                                     if (nC == 1) {
                                         uint bodyA = data_manager->shape_data.id_rigid[shape_id_a];
                                         neighbor_rigid_sphere[p * max_rigid_neighbors + contact_counts[p]] = bodyA;
@@ -630,7 +617,7 @@ void ChNarrowphase::RigidSphereContact() {
                                         contact_counts[p]++;
                                     }
                                 } else if (MPRCollision(
-                                               shapeA, shapeB, collision_envelope,
+                                               shapeA, shapeB, envelope,
                                                norm_rigid_sphere[p * max_rigid_neighbors + contact_counts[p]],
                                                cpta_rigid_sphere[p * max_rigid_neighbors + contact_counts[p]], ptB,
                                                dpth_rigid_sphere[p * max_rigid_neighbors + contact_counts[p]])) {

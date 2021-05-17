@@ -33,14 +33,21 @@ class ConvexShape;
 /// Class for performing narrow-phase collision detection.
 class ChApi ChNarrowphase {
   public:
-    ChNarrowphase() {}
+    /// Narrowphase algorithm
+    enum class Algorithm {
+        MPR,    ///< Minkovski Portal Refinement for convex-convex collision
+        PRIMS,  ///< Analytical collision algorithms for primitive shapes
+        HYBRID  ///< Analytical collision algorithms with fallback on MPR
+    };
+
+    ChNarrowphase();
     ~ChNarrowphase() {}
 
     /// Clear contact data structures.
     void ClearContacts();
 
     /// Perform collision detection.
-    void ProcessRigids();
+    void ProcessRigids(const vec3& bins_per_axis);
 
     /// Calculate total number of potential contacts.
     int PreprocessCount();
@@ -54,21 +61,18 @@ class ChApi ChNarrowphase {
 
     // For each contact pair decide what to do.
     void DispatchRigid();
-    void DispatchRigidFluid();
+    void DispatchRigidFluid(const vec3& bins_per_axis);
     void DispatchFluid();
 
-    void SphereSphereContact();
-    void RigidSphereContact();
-
     void DispatchMPR();
-    void DispatchR();
+    void DispatchPRIMS();
     void DispatchHybridMPR();
     void Dispatch_Init(uint index, uint& icoll, uint& ID_A, uint& ID_B, ConvexShape* shapeA, ConvexShape* shapeB);
     void Dispatch_Finalize(uint icoll, uint ID_A, uint ID_B, int nC);
 
+  private:
     std::shared_ptr<ChCollisionData> data_manager;
 
-  private:
     custom_vector<char> contact_rigid_active;
     custom_vector<char> contact_rigid_fluid_active;
     custom_vector<char> contact_fluid_active;
@@ -77,8 +81,8 @@ class ChApi ChNarrowphase {
     uint num_potential_fluid_contacts;
     uint num_potential_rigid_fluid_contacts;
 
-    real collision_envelope;
-    NarrowPhaseType narrowphase_algorithm;
+    real envelope;
+    Algorithm algorithm;
 
     custom_vector<uint> f_bin_intersections;
     custom_vector<uint> f_bin_number;
@@ -96,6 +100,8 @@ class ChApi ChNarrowphase {
     custom_vector<uint> t_bin_number_out;
     custom_vector<uint> t_bin_fluid_number;
     custom_vector<uint> t_bin_start_index;
+
+    friend class ChCollisionSystemChrono;
 };
 
 /// @} collision_mc

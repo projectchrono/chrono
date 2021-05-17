@@ -39,7 +39,14 @@ class ChApi ChBroadphase {
     void RigidBoundingBox();
     void FluidBoundingBox();
 
+  private:
     std::shared_ptr<ChCollisionData> data_manager;
+
+    vec3 bins_per_axis;  ///< number of slices along each axis of the collision detection grid
+    bool fixed_bins;     ///< keep number of bins fixed
+    real grid_density;   ///< collision grid density
+
+    friend class ChCollisionSystemChrono;
 };
 
 /// @} collision_mc

@@ -15,8 +15,8 @@
 // Chrono::Multicore unit test for narrow phase type R collision detection
 // =============================================================================
 
-#include "chrono/collision/chrono/ChNarrowphaseR.h"
-#include "chrono/collision/chrono/ChNarrowphaseUtilsR.h"
+#include "chrono/collision/chrono/ChNarrowphasePRIMS.h"
+#include "chrono/collision/chrono/ChNarrowphaseUtilsPRIMS.h"
 
 #include "gtest/gtest.h"
 
@@ -373,7 +373,7 @@ TEST_P(Collision, box_box) {
         // penetrated
         penetration = -0.05;
         shape2->position = pos2 + real3(0, 0, penetration);
-        ASSERT_TRUE(RCollision(shape1, shape2, separation, norm, pt1, pt2, depth, eff_rad, nC));
+        ASSERT_TRUE(PRIMSCollision(shape1, shape2, separation, norm, pt1, pt2, depth, eff_rad, nC));
         ASSERT_EQ(nC, 8);
         CheckValueList(depth, nC, penetration);
         CheckPointList(norm, nC, real3(0, 0, 1));
@@ -381,7 +381,7 @@ TEST_P(Collision, box_box) {
         // penetrated, small penetration
         penetration = -1e-5;
         shape2->position = pos2 + real3(0, 0, penetration);
-        ASSERT_TRUE(RCollision(shape1, shape2, separation, norm, pt1, pt2, depth, eff_rad, nC));
+        ASSERT_TRUE(PRIMSCollision(shape1, shape2, separation, norm, pt1, pt2, depth, eff_rad, nC));
         ASSERT_EQ(nC, 8);
         CheckValueList(depth, nC, penetration);
         CheckPointList(norm, nC, real3(0, 0, 1));
@@ -389,7 +389,7 @@ TEST_P(Collision, box_box) {
         // separated by less than 'separation'
         penetration = +0.05;
         shape2->position = pos2 + real3(0, 0, penetration);
-        ASSERT_TRUE(RCollision(shape1, shape2, separation, norm, pt1, pt2, depth, eff_rad, nC));
+        ASSERT_TRUE(PRIMSCollision(shape1, shape2, separation, norm, pt1, pt2, depth, eff_rad, nC));
         if (sep) {
             ASSERT_EQ(nC, 8);
             CheckValueList(depth, nC, penetration);
@@ -401,7 +401,7 @@ TEST_P(Collision, box_box) {
         // separated by more than 'separation'
         penetration = +0.15;
         shape2->position = pos2 + real3(0, 0, penetration);
-        ASSERT_TRUE(RCollision(shape1, shape2, separation, norm, pt1, pt2, depth, eff_rad, nC));
+        ASSERT_TRUE(PRIMSCollision(shape1, shape2, separation, norm, pt1, pt2, depth, eff_rad, nC));
         ASSERT_EQ(nC, 0);
     }
 
@@ -430,7 +430,7 @@ TEST_P(Collision, box_box) {
         // penetrated
         penetration = -0.05;
         shape2->position = pos2 + real3(0, 0, penetration);
-        ASSERT_TRUE(RCollision(shape1, shape2, separation, norm, pt1, pt2, depth, eff_rad, nC));
+        ASSERT_TRUE(PRIMSCollision(shape1, shape2, separation, norm, pt1, pt2, depth, eff_rad, nC));
         ASSERT_EQ(nC, 8);
         CheckValueList(depth, nC, penetration);
         CheckPointList(norm, nC, real3(0, 0, 1));
@@ -438,7 +438,7 @@ TEST_P(Collision, box_box) {
         // penetrated, small penetration
         penetration = -1e-5;
         shape2->position = pos2 + real3(0, 0, penetration);
-        ASSERT_TRUE(RCollision(shape1, shape2, separation, norm, pt1, pt2, depth, eff_rad, nC));
+        ASSERT_TRUE(PRIMSCollision(shape1, shape2, separation, norm, pt1, pt2, depth, eff_rad, nC));
         ASSERT_EQ(nC, 8);
         CheckValueList(depth, nC, penetration);
         CheckPointList(norm, nC, real3(0, 0, 1));
@@ -446,7 +446,7 @@ TEST_P(Collision, box_box) {
         // separated by less than 'separation'
         penetration = +0.05;
         shape2->position = pos2 + real3(0, 0, penetration);
-        ASSERT_TRUE(RCollision(shape1, shape2, separation, norm, pt1, pt2, depth, eff_rad, nC));
+        ASSERT_TRUE(PRIMSCollision(shape1, shape2, separation, norm, pt1, pt2, depth, eff_rad, nC));
         if (sep) {
             ASSERT_EQ(nC, 8);
             CheckValueList(depth, nC, penetration);
@@ -458,7 +458,7 @@ TEST_P(Collision, box_box) {
         // separated by more than 'separation'
         penetration = +0.15;
         shape2->position = pos2 + real3(0, 0, penetration);
-        ASSERT_TRUE(RCollision(shape1, shape2, separation, norm, pt1, pt2, depth, eff_rad, nC));
+        ASSERT_TRUE(PRIMSCollision(shape1, shape2, separation, norm, pt1, pt2, depth, eff_rad, nC));
         ASSERT_EQ(nC, 0);
     }
 
@@ -488,7 +488,7 @@ TEST_P(Collision, box_box) {
         // penetrated
         penetration = -0.05;
         shape2->position = pos2 + real3(0, 0, penetration);
-        ASSERT_TRUE(RCollision(shape1, shape2, separation, norm, pt1, pt2, depth, eff_rad, nC));
+        ASSERT_TRUE(PRIMSCollision(shape1, shape2, separation, norm, pt1, pt2, depth, eff_rad, nC));
         ASSERT_EQ(nC, 3);
         CheckValueList(depth, nC, penetration);
         CheckPointList(norm, nC, real3(0, 0, 1));
@@ -499,7 +499,7 @@ TEST_P(Collision, box_box) {
         // penetrated, small penetration
         penetration = -1e-5;
         shape2->position = pos2 + real3(0, 0, penetration);
-        ASSERT_TRUE(RCollision(shape1, shape2, separation, norm, pt1, pt2, depth, eff_rad, nC));
+        ASSERT_TRUE(PRIMSCollision(shape1, shape2, separation, norm, pt1, pt2, depth, eff_rad, nC));
         ASSERT_EQ(nC, 3);
         CheckValueList(depth, nC, penetration);
         CheckPointList(norm, nC, real3(0, 0, 1));
@@ -510,7 +510,7 @@ TEST_P(Collision, box_box) {
         // separated by less than 'separation'
         penetration = +0.05;
         shape2->position = pos2 + real3(0, 0, penetration);
-        ASSERT_TRUE(RCollision(shape1, shape2, separation, norm, pt1, pt2, depth, eff_rad, nC));
+        ASSERT_TRUE(PRIMSCollision(shape1, shape2, separation, norm, pt1, pt2, depth, eff_rad, nC));
         if (sep) {
             ASSERT_EQ(nC, 3);
             CheckValueList(depth, nC, penetration);
@@ -525,7 +525,7 @@ TEST_P(Collision, box_box) {
         // separated by more than 'separation'
         penetration = +0.15;
         shape2->position = pos2 + real3(0, 0, penetration);
-        ASSERT_TRUE(RCollision(shape1, shape2, separation, norm, pt1, pt2, depth, eff_rad, nC));
+        ASSERT_TRUE(PRIMSCollision(shape1, shape2, separation, norm, pt1, pt2, depth, eff_rad, nC));
         ASSERT_EQ(nC, 0);
     }
 
@@ -555,7 +555,7 @@ TEST_P(Collision, box_box) {
         // penetrated
         penetration = -0.05;
         shape2->position = pos2 + real3(0, 0, penetration);
-        ASSERT_TRUE(RCollision(shape1, shape2, separation, norm, pt1, pt2, depth, eff_rad, nC));
+        ASSERT_TRUE(PRIMSCollision(shape1, shape2, separation, norm, pt1, pt2, depth, eff_rad, nC));
         ASSERT_EQ(nC, 3);
         CheckValueList(depth, nC, penetration);
         CheckPointList(norm, nC, real3(0, 0, 1));
@@ -566,7 +566,7 @@ TEST_P(Collision, box_box) {
         // penetrated, small penetration
         penetration = -1e-5;
         shape2->position = pos2 + real3(0, 0, penetration);
-        ASSERT_TRUE(RCollision(shape1, shape2, separation, norm, pt1, pt2, depth, eff_rad, nC));
+        ASSERT_TRUE(PRIMSCollision(shape1, shape2, separation, norm, pt1, pt2, depth, eff_rad, nC));
         ASSERT_EQ(nC, 3);
         CheckValueList(depth, nC, penetration);
         CheckPointList(norm, nC, real3(0, 0, 1));
@@ -577,7 +577,7 @@ TEST_P(Collision, box_box) {
         // separated by less than 'separation'
         penetration = +0.05;
         shape2->position = pos2 + real3(0, 0, penetration);
-        ASSERT_TRUE(RCollision(shape1, shape2, separation, norm, pt1, pt2, depth, eff_rad, nC));
+        ASSERT_TRUE(PRIMSCollision(shape1, shape2, separation, norm, pt1, pt2, depth, eff_rad, nC));
         if (sep) {
             ASSERT_EQ(nC, 3);
             CheckValueList(depth, nC, penetration);
@@ -592,7 +592,7 @@ TEST_P(Collision, box_box) {
         // separated by more than 'separation'
         penetration = +0.15;
         shape2->position = pos2 + real3(0, 0, penetration);
-        ASSERT_TRUE(RCollision(shape1, shape2, separation, norm, pt1, pt2, depth, eff_rad, nC));
+        ASSERT_TRUE(PRIMSCollision(shape1, shape2, separation, norm, pt1, pt2, depth, eff_rad, nC));
         ASSERT_EQ(nC, 0);
     }
 
@@ -621,7 +621,7 @@ TEST_P(Collision, box_box) {
         // penetrated
         penetration = -0.05;
         shape2->position = pos2 + real3(0, 0, penetration);
-        ASSERT_TRUE(RCollision(shape1, shape2, separation, norm, pt1, pt2, depth, eff_rad, nC));
+        ASSERT_TRUE(PRIMSCollision(shape1, shape2, separation, norm, pt1, pt2, depth, eff_rad, nC));
         ASSERT_EQ(nC, 4);
         CheckValueList(depth, nC, penetration);
         CheckPointList(norm, nC, real3(0, 0, 1));
@@ -632,7 +632,7 @@ TEST_P(Collision, box_box) {
         // penetrated, small penetration
         penetration = -1e-5;
         shape2->position = pos2 + real3(0, 0, penetration);
-        ASSERT_TRUE(RCollision(shape1, shape2, separation, norm, pt1, pt2, depth, eff_rad, nC));
+        ASSERT_TRUE(PRIMSCollision(shape1, shape2, separation, norm, pt1, pt2, depth, eff_rad, nC));
         ASSERT_EQ(nC, 4);
         CheckValueList(depth, nC, penetration);
         CheckPointList(norm, nC, real3(0, 0, 1));
@@ -643,7 +643,7 @@ TEST_P(Collision, box_box) {
         // separated by less than 'separation'
         penetration = +0.05;
         shape2->position = pos2 + real3(0, 0, penetration);
-        ASSERT_TRUE(RCollision(shape1, shape2, separation, norm, pt1, pt2, depth, eff_rad, nC));
+        ASSERT_TRUE(PRIMSCollision(shape1, shape2, separation, norm, pt1, pt2, depth, eff_rad, nC));
         if (sep) {
             ASSERT_EQ(nC, 4);
             CheckValueList(depth, nC, penetration);
@@ -658,7 +658,7 @@ TEST_P(Collision, box_box) {
         // separated by more than 'separation'
         penetration = +0.15;
         shape2->position = pos2 + real3(0, 0, penetration);
-        ASSERT_TRUE(RCollision(shape1, shape2, separation, norm, pt1, pt2, depth, eff_rad, nC));
+        ASSERT_TRUE(PRIMSCollision(shape1, shape2, separation, norm, pt1, pt2, depth, eff_rad, nC));
         ASSERT_EQ(nC, 0);
     }
 
@@ -688,7 +688,7 @@ TEST_P(Collision, box_box) {
         // penetrated
         penetration = -0.05;
         shape1->position = pos1 + real3(0, 0, penetration);
-        ASSERT_TRUE(RCollision(shape1, shape2, separation, norm, pt1, pt2, depth, eff_rad, nC));
+        ASSERT_TRUE(PRIMSCollision(shape1, shape2, separation, norm, pt1, pt2, depth, eff_rad, nC));
         ASSERT_EQ(nC, 2);
         CheckValueList(depth, nC, penetration);
         CheckPointList(norm, nC, real3(0, 0, -1));
@@ -698,7 +698,7 @@ TEST_P(Collision, box_box) {
         // penetrated, small penetration
         penetration = -1e-5;
         shape1->position = pos1 + real3(0, 0, penetration);
-        ASSERT_TRUE(RCollision(shape1, shape2, separation, norm, pt1, pt2, depth, eff_rad, nC));
+        ASSERT_TRUE(PRIMSCollision(shape1, shape2, separation, norm, pt1, pt2, depth, eff_rad, nC));
         ASSERT_EQ(nC, 2);
         CheckValueList(depth, nC, penetration);
         CheckPointList(norm, nC, real3(0, 0, -1));
@@ -708,7 +708,7 @@ TEST_P(Collision, box_box) {
         // separated by less than 'separation'
         penetration = +0.05;
         shape1->position = pos1 + real3(0, 0, penetration);
-        ASSERT_TRUE(RCollision(shape1, shape2, separation, norm, pt1, pt2, depth, eff_rad, nC));
+        ASSERT_TRUE(PRIMSCollision(shape1, shape2, separation, norm, pt1, pt2, depth, eff_rad, nC));
         if (sep) {
             ASSERT_EQ(nC, 2);
             CheckValueList(depth, nC, penetration);
@@ -722,7 +722,7 @@ TEST_P(Collision, box_box) {
         // separated by more than 'separation'
         penetration = +0.15;
         shape1->position = pos1 + real3(0, 0, penetration);
-        ASSERT_TRUE(RCollision(shape1, shape2, separation, norm, pt1, pt2, depth, eff_rad, nC));
+        ASSERT_TRUE(PRIMSCollision(shape1, shape2, separation, norm, pt1, pt2, depth, eff_rad, nC));
         ASSERT_EQ(nC, 0);
     }
 
@@ -753,7 +753,7 @@ TEST_P(Collision, box_box) {
         // penetrated
         penetration = -0.05;
         shape1->position = pos1 + real3(0, 0, penetration);
-        ASSERT_TRUE(RCollision(shape1, shape2, separation, norm, pt1, pt2, depth, eff_rad, nC));
+        ASSERT_TRUE(PRIMSCollision(shape1, shape2, separation, norm, pt1, pt2, depth, eff_rad, nC));
         ASSERT_EQ(nC, 2);
         CheckValueList(depth, nC, penetration);
         CheckPointList(norm, nC, real3(0, 0, -1));
@@ -764,7 +764,7 @@ TEST_P(Collision, box_box) {
         // penetrated, small penetration
         penetration = -1e-5;
         shape1->position = pos1 + real3(0, 0, penetration);
-        ASSERT_TRUE(RCollision(shape1, shape2, separation, norm, pt1, pt2, depth, eff_rad, nC));
+        ASSERT_TRUE(PRIMSCollision(shape1, shape2, separation, norm, pt1, pt2, depth, eff_rad, nC));
         ASSERT_EQ(nC, 2);
         CheckValueList(depth, nC, penetration);
         CheckPointList(norm, nC, real3(0, 0, -1));
@@ -775,7 +775,7 @@ TEST_P(Collision, box_box) {
         // separated by less than 'separation'
         penetration = +0.05;
         shape1->position = pos1 + real3(0, 0, penetration);
-        ASSERT_TRUE(RCollision(shape1, shape2, separation, norm, pt1, pt2, depth, eff_rad, nC));
+        ASSERT_TRUE(PRIMSCollision(shape1, shape2, separation, norm, pt1, pt2, depth, eff_rad, nC));
         if (sep) {
             ASSERT_EQ(nC, 2);
             CheckValueList(depth, nC, penetration);
@@ -790,7 +790,7 @@ TEST_P(Collision, box_box) {
         // separated by more than 'separation'
         penetration = +0.15;
         shape1->position = pos1 + real3(0, 0, penetration);
-        ASSERT_TRUE(RCollision(shape1, shape2, separation, norm, pt1, pt2, depth, eff_rad, nC));
+        ASSERT_TRUE(PRIMSCollision(shape1, shape2, separation, norm, pt1, pt2, depth, eff_rad, nC));
         ASSERT_EQ(nC, 0);
     }
 
@@ -819,7 +819,7 @@ TEST_P(Collision, box_box) {
         // penetrated
         penetration = -0.05;
         shape2->position = pos2 + real3(0, 0, penetration);
-        ASSERT_TRUE(RCollision(shape1, shape2, separation, norm, pt1, pt2, depth, eff_rad, nC));
+        ASSERT_TRUE(PRIMSCollision(shape1, shape2, separation, norm, pt1, pt2, depth, eff_rad, nC));
         ASSERT_EQ(nC, 1);
         CheckValueList(depth, nC, penetration);
         CheckPointList(norm, nC, real3(0, 0, 1));
@@ -829,7 +829,7 @@ TEST_P(Collision, box_box) {
         // penetrated, small penetration
         penetration = -1e-5;
         shape2->position = pos2 + real3(0, 0, penetration);
-        ASSERT_TRUE(RCollision(shape1, shape2, separation, norm, pt1, pt2, depth, eff_rad, nC));
+        ASSERT_TRUE(PRIMSCollision(shape1, shape2, separation, norm, pt1, pt2, depth, eff_rad, nC));
         ASSERT_EQ(nC, 1);
         CheckValueList(depth, nC, penetration);
         CheckPointList(norm, nC, real3(0, 0, 1));
@@ -839,7 +839,7 @@ TEST_P(Collision, box_box) {
         // separated by less than 'separation'
         penetration = +0.05;
         shape2->position = pos2 + real3(0, 0, penetration);
-        ASSERT_TRUE(RCollision(shape1, shape2, separation, norm, pt1, pt2, depth, eff_rad, nC));
+        ASSERT_TRUE(PRIMSCollision(shape1, shape2, separation, norm, pt1, pt2, depth, eff_rad, nC));
         if (sep) {
             ASSERT_EQ(nC, 1);
             CheckValueList(depth, nC, penetration);
@@ -853,7 +853,7 @@ TEST_P(Collision, box_box) {
         // separated by more than 'separation'
         penetration = +0.15;
         shape2->position = pos2 + real3(0, 0, penetration);
-        ASSERT_TRUE(RCollision(shape1, shape2, separation, norm, pt1, pt2, depth, eff_rad, nC));
+        ASSERT_TRUE(PRIMSCollision(shape1, shape2, separation, norm, pt1, pt2, depth, eff_rad, nC));
         ASSERT_EQ(nC, 0);
     }
 
@@ -883,7 +883,7 @@ TEST_P(Collision, box_box) {
         // penetrated
         penetration = -0.05;
         shape2->position = pos2 + real3(0, 0, penetration);
-        ASSERT_TRUE(RCollision(shape1, shape2, separation, norm, pt1, pt2, depth, eff_rad, nC));
+        ASSERT_TRUE(PRIMSCollision(shape1, shape2, separation, norm, pt1, pt2, depth, eff_rad, nC));
         ASSERT_EQ(nC, 1);
         CheckValueList(depth, nC, penetration);
         CheckPointList(norm, nC, real3(0, 0, 1));
@@ -893,7 +893,7 @@ TEST_P(Collision, box_box) {
         // penetrated, small penetration
         penetration = -1e-5;
         shape2->position = pos2 + real3(0, 0, penetration);
-        ASSERT_TRUE(RCollision(shape1, shape2, separation, norm, pt1, pt2, depth, eff_rad, nC));
+        ASSERT_TRUE(PRIMSCollision(shape1, shape2, separation, norm, pt1, pt2, depth, eff_rad, nC));
         ASSERT_EQ(nC, 1);
         CheckValueList(depth, nC, penetration);
         CheckPointList(norm, nC, real3(0, 0, 1));
@@ -903,7 +903,7 @@ TEST_P(Collision, box_box) {
         // separated by less than 'separation'
         penetration = +0.05;
         shape2->position = pos2 + real3(0, 0, penetration);
-        ASSERT_TRUE(RCollision(shape1, shape2, separation, norm, pt1, pt2, depth, eff_rad, nC));
+        ASSERT_TRUE(PRIMSCollision(shape1, shape2, separation, norm, pt1, pt2, depth, eff_rad, nC));
         if (sep) {
             ASSERT_EQ(nC, 1);
             CheckValueList(depth, nC, penetration);
@@ -917,12 +917,12 @@ TEST_P(Collision, box_box) {
         // separated by more than 'separation'
         penetration = +0.15;
         shape2->position = pos2 + real3(0, 0, penetration);
-        ASSERT_TRUE(RCollision(shape1, shape2, separation, norm, pt1, pt2, depth, eff_rad, nC));
+        ASSERT_TRUE(PRIMSCollision(shape1, shape2, separation, norm, pt1, pt2, depth, eff_rad, nC));
         ASSERT_EQ(nC, 0);
     }
 
     // Corner-corner
-    // Notes: 
+    // Notes:
     // - the current algorithm cannot produce a proper corner-corner interaction. Because it always picks
     //   the direction of minimum overlap, for this case it will report a face-face interaction.
     // - for similar reasons, the current algorithm will not report an interaction for a configuration
@@ -952,7 +952,7 @@ TEST_P(Collision, box_box) {
         // penetrated
         penetration = -0.05;
         shape2->position = pos2 + real3(0, 0, penetration);
-        ASSERT_TRUE(RCollision(shape1, shape2, separation, norm, pt1, pt2, depth, eff_rad, nC));
+        ASSERT_TRUE(PRIMSCollision(shape1, shape2, separation, norm, pt1, pt2, depth, eff_rad, nC));
         ASSERT_EQ(nC, 4);
         CheckValueList(depth, nC, penetration / std::sqrt(3.0));
         ////for (int i = 0; i < 4; i++) {
@@ -963,14 +963,14 @@ TEST_P(Collision, box_box) {
         // penetrated, small penetration
         penetration = -1e-5 * std::sqrt(3.0);
         shape2->position = pos2 + real3(0, 0, penetration);
-        ASSERT_TRUE(RCollision(shape1, shape2, separation, norm, pt1, pt2, depth, eff_rad, nC));
+        ASSERT_TRUE(PRIMSCollision(shape1, shape2, separation, norm, pt1, pt2, depth, eff_rad, nC));
         ASSERT_EQ(nC, 4);
         CheckValueList(depth, nC, penetration / std::sqrt(3.0));
 
         // separated by less than 'separation'
         penetration = +0.05;
         shape2->position = pos2 + real3(0, 0, penetration);
-        ASSERT_TRUE(RCollision(shape1, shape2, separation, norm, pt1, pt2, depth, eff_rad, nC));
+        ASSERT_TRUE(PRIMSCollision(shape1, shape2, separation, norm, pt1, pt2, depth, eff_rad, nC));
         if (sep) {
             // Limitation of current algorithm
             ASSERT_EQ(nC, 0);
@@ -1014,7 +1014,7 @@ TEST_P(Collision, sphere_sphere) {
         shapeS2->position = real3(2, 0, 0);
         shapeS2->dimensions = real3(0.5, 0, 0);
 
-        ASSERT_TRUE(RCollision(shapeS1, shapeS2, separation, &norm, &pt1, &pt2, &depth, &eff_rad, nC));
+        ASSERT_TRUE(PRIMSCollision(shapeS1, shapeS2, separation, &norm, &pt1, &pt2, &depth, &eff_rad, nC));
         ASSERT_EQ(nC, 0);
     }
 
@@ -1026,7 +1026,7 @@ TEST_P(Collision, sphere_sphere) {
         shapeS2->position = real3(2, 0, 0);
         shapeS2->dimensions = real3(0.95, 0, 0);
 
-        ASSERT_TRUE(RCollision(shapeS1, shapeS2, separation, &norm, &pt1, &pt2, &depth, &eff_rad, nC));
+        ASSERT_TRUE(PRIMSCollision(shapeS1, shapeS2, separation, &norm, &pt1, &pt2, &depth, &eff_rad, nC));
         if (sep) {
             ASSERT_EQ(nC, 1);
             Assert_near(norm, real3(0, -1, 0), precision);
@@ -1047,7 +1047,7 @@ TEST_P(Collision, sphere_sphere) {
         shapeS2->position = real3(2, 0, 0);
         shapeS2->dimensions = real3(1, 0, 0);
 
-        ASSERT_TRUE(RCollision(shapeS1, shapeS2, separation, &norm, &pt1, &pt2, &depth, &eff_rad, nC));
+        ASSERT_TRUE(PRIMSCollision(shapeS1, shapeS2, separation, &norm, &pt1, &pt2, &depth, &eff_rad, nC));
         if (sep) {
             ASSERT_EQ(nC, 1);
             Assert_near(norm, real3(0, -1, 0), precision);
@@ -1068,7 +1068,7 @@ TEST_P(Collision, sphere_sphere) {
         shapeS2->position = real3(2.5, 1, 0);
         shapeS2->dimensions = real3(1, 0, 0);
 
-        ASSERT_TRUE(RCollision(shapeS1, shapeS2, separation, &norm, &pt1, &pt2, &depth, &eff_rad, nC));
+        ASSERT_TRUE(PRIMSCollision(shapeS1, shapeS2, separation, &norm, &pt1, &pt2, &depth, &eff_rad, nC));
         ASSERT_EQ(nC, 1);
         Assert_near(norm, real3(1, 0, 0), precision);
         ASSERT_NEAR(depth, -0.5, precision);
@@ -1124,21 +1124,21 @@ TEST_P(Collision, box_sphere) {
     // sphere center inside box
     {
         shapeS->position = real3(0.5, 0.5, 1.0);
-        ASSERT_TRUE(RCollision(shapeC, shapeS, separation, &norm, &pt1, &pt2, &depth, &eff_rad, nC));
+        ASSERT_TRUE(PRIMSCollision(shapeC, shapeS, separation, &norm, &pt1, &pt2, &depth, &eff_rad, nC));
         ASSERT_EQ(nC, 0);
     }
 
     // face interaction (separated far)
     {
         shapeS->position = real3(3.5, 2.5, 1.0);
-        ASSERT_TRUE(RCollision(shapeC, shapeS, separation, &norm, &pt1, &pt2, &depth, &eff_rad, nC));
+        ASSERT_TRUE(PRIMSCollision(shapeC, shapeS, separation, &norm, &pt1, &pt2, &depth, &eff_rad, nC));
         ASSERT_EQ(nC, 0);
     }
 
     // face interaction (separated near)
     {
         shapeS->position = real3(4.55 * oosqrt2, 2.55 * oosqrt2, 1.0);
-        ASSERT_TRUE(RCollision(shapeC, shapeS, separation, &norm, &pt1, &pt2, &depth, &eff_rad, nC));
+        ASSERT_TRUE(PRIMSCollision(shapeC, shapeS, separation, &norm, &pt1, &pt2, &depth, &eff_rad, nC));
         if (sep) {
             ASSERT_EQ(nC, 1);
             Assert_near(norm, real3(oosqrt2, oosqrt2, 0.0), precision);
@@ -1153,7 +1153,7 @@ TEST_P(Collision, box_sphere) {
     // face interaction (penetrated)
     {
         shapeS->position = real3(4 * oosqrt2, 2.0 * oosqrt2, 1.0);
-        ASSERT_TRUE(RCollision(shapeC, shapeS, separation, &norm, &pt1, &pt2, &depth, &eff_rad, nC));
+        ASSERT_TRUE(PRIMSCollision(shapeC, shapeS, separation, &norm, &pt1, &pt2, &depth, &eff_rad, nC));
         ASSERT_EQ(nC, 1);
         Assert_near(norm, real3(oosqrt2, oosqrt2, 0.0), precision);
         ASSERT_NEAR(depth, -0.5, precision);
@@ -1165,14 +1165,14 @@ TEST_P(Collision, box_sphere) {
     // edge interaction (separated far)
     {
         shapeS->position = real3(oosqrt2, 4.0, 1.0);
-        ASSERT_TRUE(RCollision(shapeC, shapeS, separation, &norm, &pt1, &pt2, &depth, &eff_rad, nC));
+        ASSERT_TRUE(PRIMSCollision(shapeC, shapeS, separation, &norm, &pt1, &pt2, &depth, &eff_rad, nC));
         ASSERT_EQ(nC, 0);
     }
 
     // edge interaction (separated near)
     {
         shapeS->position = real3(oosqrt2, 3.0 * oosqrt2 + 1.55, 1.0);
-        ASSERT_TRUE(RCollision(shapeC, shapeS, separation, &norm, &pt1, &pt2, &depth, &eff_rad, nC));
+        ASSERT_TRUE(PRIMSCollision(shapeC, shapeS, separation, &norm, &pt1, &pt2, &depth, &eff_rad, nC));
         if (sep) {
             ASSERT_EQ(nC, 1);
             Assert_near(norm, real3(0.0, 1.0, 0.0), precision);
@@ -1187,7 +1187,7 @@ TEST_P(Collision, box_sphere) {
     // edge interaction (penetrated)
     {
         shapeS->position = real3(oosqrt2, 3.0 * oosqrt2 + 1.0, 1.0);
-        ASSERT_TRUE(RCollision(shapeC, shapeS, separation, &norm, &pt1, &pt2, &depth, &eff_rad, nC));
+        ASSERT_TRUE(PRIMSCollision(shapeC, shapeS, separation, &norm, &pt1, &pt2, &depth, &eff_rad, nC));
         ASSERT_EQ(nC, 1);
         Assert_near(norm, real3(0.0, 1.0, 0.0), precision);
         ASSERT_NEAR(depth, -0.5, precision);
@@ -1199,7 +1199,7 @@ TEST_P(Collision, box_sphere) {
     // corner interaction (separated far)
     {
         shapeS->position = real3(oosqrt2, 4.0, 4.0);
-        ASSERT_TRUE(RCollision(shapeC, shapeS, separation, &norm, &pt1, &pt2, &depth, &eff_rad, nC));
+        ASSERT_TRUE(PRIMSCollision(shapeC, shapeS, separation, &norm, &pt1, &pt2, &depth, &eff_rad, nC));
         ASSERT_EQ(nC, 0);
     }
 
@@ -1207,7 +1207,7 @@ TEST_P(Collision, box_sphere) {
     {
         real3 s_pos(oosqrt2, 4.55 * oosqrt2, 3.0 + 1.55 * oosqrt2);
         shapeS->position = s_pos;
-        ASSERT_TRUE(RCollision(shapeC, shapeS, separation, &norm, &pt1, &pt2, &depth, &eff_rad, nC));
+        ASSERT_TRUE(PRIMSCollision(shapeC, shapeS, separation, &norm, &pt1, &pt2, &depth, &eff_rad, nC));
         if (sep) {
             ASSERT_EQ(nC, 1);
             Assert_near(norm, real3(0.0, oosqrt2, oosqrt2), precision);
@@ -1223,7 +1223,7 @@ TEST_P(Collision, box_sphere) {
     {
         real3 s_pos(oosqrt2, 4.0 * oosqrt2, 3.0 + oosqrt2);
         shapeS->position = s_pos;
-        ASSERT_TRUE(RCollision(shapeC, shapeS, separation, &norm, &pt1, &pt2, &depth, &eff_rad, nC));
+        ASSERT_TRUE(PRIMSCollision(shapeC, shapeS, separation, &norm, &pt1, &pt2, &depth, &eff_rad, nC));
         ASSERT_EQ(nC, 1);
         Assert_near(norm, real3(0.0, oosqrt2, oosqrt2), precision);
         ASSERT_NEAR(depth, -0.5, precision);
@@ -1276,21 +1276,21 @@ TEST_P(Collision, capsule_sphere) {
     // sphere center on capsule axis
     {
         shapeS->position = real3(3.0, 0.0, 0.0);
-        ASSERT_TRUE(RCollision(shapeC, shapeS, 0, &norm, &pt1, &pt2, &depth, &eff_rad, nC));
+        ASSERT_TRUE(PRIMSCollision(shapeC, shapeS, 0, &norm, &pt1, &pt2, &depth, &eff_rad, nC));
         ASSERT_EQ(nC, 0);
     }
 
     // cap interaction (separated)
     {
         shapeS->position = real3(5.0, 1.5, 0.0);
-        ASSERT_TRUE(RCollision(shapeC, shapeS, 0, &norm, &pt1, &pt2, &depth, &eff_rad, nC));
+        ASSERT_TRUE(PRIMSCollision(shapeC, shapeS, 0, &norm, &pt1, &pt2, &depth, &eff_rad, nC));
         ASSERT_EQ(nC, 0);
     }
 
     // cap interaction (penetrated)"
     {
         shapeS->position = real3(5.0, 1.0, 0.0);
-        ASSERT_TRUE(RCollision(shapeC, shapeS, 0, &norm, &pt1, &pt2, &depth, &eff_rad, nC));
+        ASSERT_TRUE(PRIMSCollision(shapeC, shapeS, 0, &norm, &pt1, &pt2, &depth, &eff_rad, nC));
         ASSERT_EQ(nC, 1);
         Assert_near(norm, real3(oosqrt2, oosqrt2, 0), precision);
         ASSERT_NEAR(depth, sqrt(2.0) - 1.5, precision);
@@ -1302,14 +1302,14 @@ TEST_P(Collision, capsule_sphere) {
     // side interaction (separated)
     {
         shapeS->position = real3(2.5, 2.0, 0);
-        ASSERT_TRUE(RCollision(shapeC, shapeS, 0, &norm, &pt1, &pt2, &depth, &eff_rad, nC));
+        ASSERT_TRUE(PRIMSCollision(shapeC, shapeS, 0, &norm, &pt1, &pt2, &depth, &eff_rad, nC));
         ASSERT_EQ(nC, 0);
     }
 
     // side interaction (penetrated)
     {
         shapeS->position = real3(2.5, 1.25, 0);
-        ASSERT_TRUE(RCollision(shapeC, shapeS, 0, &norm, &pt1, &pt2, &depth, &eff_rad, nC));
+        ASSERT_TRUE(PRIMSCollision(shapeC, shapeS, 0, &norm, &pt1, &pt2, &depth, &eff_rad, nC));
         ASSERT_EQ(nC, 1);
         Assert_near(norm, real3(0, 1, 0), precision);
         ASSERT_NEAR(depth, -0.25, precision);
@@ -1365,21 +1365,21 @@ TEST_P(Collision, cylinder_sphere) {
     // sphere center inside cylinder
     {
         shapeS->position = real3(2.5, 1.5, 0);
-        ASSERT_TRUE(RCollision(shapeC, shapeS, 0, &norm, &pt1, &pt2, &depth, &eff_rad, nC));
+        ASSERT_TRUE(PRIMSCollision(shapeC, shapeS, 0, &norm, &pt1, &pt2, &depth, &eff_rad, nC));
         ASSERT_EQ(nC, 0);
     }
 
     // cap interaction (separated)
     {
         shapeS->position = real3(4.5, 1.5, 0);
-        ASSERT_TRUE(RCollision(shapeC, shapeS, 0, &norm, &pt1, &pt2, &depth, &eff_rad, nC));
+        ASSERT_TRUE(PRIMSCollision(shapeC, shapeS, 0, &norm, &pt1, &pt2, &depth, &eff_rad, nC));
         ASSERT_EQ(nC, 0);
     }
 
     // cap interaction (penetrated)
     {
         shapeS->position = real3(3.75, 1.5, 0);
-        ASSERT_TRUE(RCollision(shapeC, shapeS, 0, &norm, &pt1, &pt2, &depth, &eff_rad, nC));
+        ASSERT_TRUE(PRIMSCollision(shapeC, shapeS, 0, &norm, &pt1, &pt2, &depth, &eff_rad, nC));
         ASSERT_EQ(nC, 1);
         Assert_near(norm, real3(1, 0, 0), precision);
         ASSERT_NEAR(depth, -0.25, precision);
@@ -1391,14 +1391,14 @@ TEST_P(Collision, cylinder_sphere) {
     // side interaction (separated)
     {
         shapeS->position = real3(2.5, 3.5, 0);
-        ASSERT_TRUE(RCollision(shapeC, shapeS, 0, &norm, &pt1, &pt2, &depth, &eff_rad, nC));
+        ASSERT_TRUE(PRIMSCollision(shapeC, shapeS, 0, &norm, &pt1, &pt2, &depth, &eff_rad, nC));
         ASSERT_EQ(nC, 0);
     }
 
     // side interaction (penetrated)
     {
         shapeS->position = real3(2.5, 2.5, 0);
-        ASSERT_TRUE(RCollision(shapeC, shapeS, 0, &norm, &pt1, &pt2, &depth, &eff_rad, nC));
+        ASSERT_TRUE(PRIMSCollision(shapeC, shapeS, 0, &norm, &pt1, &pt2, &depth, &eff_rad, nC));
         ASSERT_EQ(nC, 1);
         Assert_near(norm, real3(0, 1, 0), precision);
         ASSERT_NEAR(depth, -0.5, precision);
@@ -1410,14 +1410,14 @@ TEST_P(Collision, cylinder_sphere) {
     // edge interaction (separated)
     {
         shapeS->position = real3(4, 3, 0);
-        ASSERT_TRUE(RCollision(shapeC, shapeS, 0, &norm, &pt1, &pt2, &depth, &eff_rad, nC));
+        ASSERT_TRUE(PRIMSCollision(shapeC, shapeS, 0, &norm, &pt1, &pt2, &depth, &eff_rad, nC));
         ASSERT_EQ(nC, 0);
     }
 
     // edge interaction (penetrated)
     {
         shapeS->position = real3(3.5, 2.5, 0);
-        ASSERT_TRUE(RCollision(shapeC, shapeS, 0, &norm, &pt1, &pt2, &depth, &eff_rad, nC));
+        ASSERT_TRUE(PRIMSCollision(shapeC, shapeS, 0, &norm, &pt1, &pt2, &depth, &eff_rad, nC));
         ASSERT_EQ(nC, 1);
         Assert_near(norm, real3(oosqrt2, oosqrt2, 0), precision);
         ASSERT_NEAR(depth, -1 + oosqrt2, precision);
@@ -1471,21 +1471,21 @@ TEST_P(Collision, roundedcyl_sphere) {
     // sphere center inside cylinder
     {
         shapeS->position = real3(2.5, 1.5, 0);
-        ASSERT_TRUE(RCollision(shapeC, shapeS, 0, &norm, &pt1, &pt2, &depth, &eff_rad, nC));
+        ASSERT_TRUE(PRIMSCollision(shapeC, shapeS, 0, &norm, &pt1, &pt2, &depth, &eff_rad, nC));
         ASSERT_EQ(nC, 0);
     }
 
     // cap interaction (separated)
     {
         shapeS->position = real3(4.5, 1.5, 0);
-        ASSERT_TRUE(RCollision(shapeC, shapeS, 0, &norm, &pt1, &pt2, &depth, &eff_rad, nC));
+        ASSERT_TRUE(PRIMSCollision(shapeC, shapeS, 0, &norm, &pt1, &pt2, &depth, &eff_rad, nC));
         ASSERT_EQ(nC, 0);
     }
 
     // cap interaction (penetrated)
     {
         shapeS->position = real3(3.75, 1.5, 0);
-        ASSERT_TRUE(RCollision(shapeC, shapeS, 0, &norm, &pt1, &pt2, &depth, &eff_rad, nC));
+        ASSERT_TRUE(PRIMSCollision(shapeC, shapeS, 0, &norm, &pt1, &pt2, &depth, &eff_rad, nC));
         ASSERT_EQ(nC, 1);
         Assert_near(norm, real3(1, 0, 0), precision);
         ASSERT_NEAR(depth, -0.35, precision);
@@ -1497,14 +1497,14 @@ TEST_P(Collision, roundedcyl_sphere) {
     // side interaction (separated)
     {
         shapeS->position = real3(2.5, 3.5, 0);
-        ASSERT_TRUE(RCollision(shapeC, shapeS, 0, &norm, &pt1, &pt2, &depth, &eff_rad, nC));
+        ASSERT_TRUE(PRIMSCollision(shapeC, shapeS, 0, &norm, &pt1, &pt2, &depth, &eff_rad, nC));
         ASSERT_EQ(nC, 0);
     }
 
     // side interaction (penetrated)
     {
         shapeS->position = real3(2.5, 2.5, 0);
-        ASSERT_TRUE(RCollision(shapeC, shapeS, 0, &norm, &pt1, &pt2, &depth, &eff_rad, nC));
+        ASSERT_TRUE(PRIMSCollision(shapeC, shapeS, 0, &norm, &pt1, &pt2, &depth, &eff_rad, nC));
         ASSERT_EQ(nC, 1);
         Assert_near(norm, real3(0, 1, 0), precision);
         ASSERT_NEAR(depth, -0.6, precision);
@@ -1516,14 +1516,14 @@ TEST_P(Collision, roundedcyl_sphere) {
     // edge interaction (separated)
     {
         shapeS->position = real3(4, 3, 0);
-        ASSERT_TRUE(RCollision(shapeC, shapeS, 0, &norm, &pt1, &pt2, &depth, &eff_rad, nC));
+        ASSERT_TRUE(PRIMSCollision(shapeC, shapeS, 0, &norm, &pt1, &pt2, &depth, &eff_rad, nC));
         ASSERT_EQ(nC, 0);
     }
 
     // edge interaction (penetrated)
     {
         shapeS->position = real3(3.5, 2.5, 0);
-        ASSERT_TRUE(RCollision(shapeC, shapeS, 0, &norm, &pt1, &pt2, &depth, &eff_rad, nC));
+        ASSERT_TRUE(PRIMSCollision(shapeC, shapeS, 0, &norm, &pt1, &pt2, &depth, &eff_rad, nC));
         ASSERT_EQ(nC, 1);
         Assert_near(norm, real3(oosqrt2, oosqrt2, 0), precision);
         ASSERT_NEAR(depth, -1.1 + oosqrt2, precision);

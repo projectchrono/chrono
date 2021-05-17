@@ -31,7 +31,7 @@ namespace collision {
 class ChApi ChAABBGenerator {
   public:
     ChAABBGenerator();
-    void GenerateAABB();
+    void GenerateAABB(real envelope);
 
     std::shared_ptr<ChCollisionData> data_manager;
 };

@@ -1027,9 +1027,9 @@ if (THRUST_FOUND)
        collision/chrono/ChNarrowphaseMPR.cpp
        collision/chrono/ChNarrowphaseMPR.h
        collision/chrono/ChNarrowphaseUtilsMPR.h
-       collision/chrono/ChNarrowphaseR.cpp
-       collision/chrono/ChNarrowphaseR.h
-       collision/chrono/ChNarrowphaseUtilsR.h
+       collision/chrono/ChNarrowphasePRIMS.cpp
+       collision/chrono/ChNarrowphasePRIMS.h
+       collision/chrono/ChNarrowphaseUtilsPRIMS.h
    )
    
    source_group("collision\\chrono" FILES

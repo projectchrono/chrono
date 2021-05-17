@@ -87,13 +87,6 @@ typedef int shape_type;
 
 namespace chrono {
 
-/// Enumeration of narrow-phase collision methods.
-enum class NarrowPhaseType {
-    NARROWPHASE_MPR,        ///< Minkovski Portal Refinement
-    NARROWPHASE_R,          ///< analytical collision detection
-    NARROWPHASE_HYBRID_MPR  ///< analytical method with fallback on MPR
-};
-
 /// Explicit conversion of scoped enumeration to int (e.g. for streaming).
 template <typename Enumeration>
 auto as_integer(Enumeration const value) -> typename std::underlying_type<Enumeration>::type {

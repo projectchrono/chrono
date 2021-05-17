@@ -109,13 +109,12 @@ static void ComputeAABBConvex(const real3* convex_points,
 
 ChAABBGenerator::ChAABBGenerator() : data_manager(nullptr) {}
 
-void ChAABBGenerator::GenerateAABB() {
+void ChAABBGenerator::GenerateAABB(real envelope) {
     if (data_manager->num_rigid_shapes > 0) {
         const custom_vector<shape_type>& typ_rigid = data_manager->shape_data.typ_rigid;
         const custom_vector<int>& start_rigid = data_manager->shape_data.start_rigid;
         const custom_vector<uint>& id_rigid = data_manager->shape_data.id_rigid;
         const custom_vector<real3>& obj_data_A = data_manager->shape_data.ObA_rigid;
-        real collision_envelope = data_manager->settings.collision_envelope;
         const custom_vector<quaternion>& obj_data_R = data_manager->shape_data.ObR_rigid;
         const custom_vector<real3>& convex_rigid = data_manager->shape_data.convex_rigid;
         const custom_vector<real3>& pos_rigid = data_manager->state_data.pos_rigid;
@@ -147,31 +146,31 @@ void ChAABBGenerator::GenerateAABB() {
 
             if (type == ChCollisionShape::Type::SPHERE) {
                 real radius = data_manager->shape_data.sphere_rigid[start];
-                ComputeAABBSphere(radius + collision_envelope, local_pos, position, body_rot[id], temp_min, temp_max);
+                ComputeAABBSphere(radius + envelope, local_pos, position, body_rot[id], temp_min, temp_max);
 
             } else if (type == ChCollisionShape::Type::ELLIPSOID || type == ChCollisionShape::Type::BOX ||
                        type == ChCollisionShape::Type::CYLINDER || type == ChCollisionShape::Type::CYLSHELL ||
                        type == ChCollisionShape::Type::CONE) {
                 real3 B = data_manager->shape_data.box_like_rigid[start];
-                ComputeAABBBox(B + collision_envelope, local_pos, position, rotation, body_rot[id], temp_min, temp_max);
+                ComputeAABBBox(B + envelope, local_pos, position, rotation, body_rot[id], temp_min, temp_max);
 
             } else if (type == ChCollisionShape::Type::ROUNDEDBOX || type == ChCollisionShape::Type::ROUNDEDCYL ||
                        type == ChCollisionShape::Type::ROUNDEDCONE) {
                 real4 T = data_manager->shape_data.rbox_like_rigid[start];
-                real3 B = real3(T.x, T.y, T.z) + T.w + collision_envelope;
+                real3 B = real3(T.x, T.y, T.z) + T.w + envelope;
                 ComputeAABBBox(B, local_pos, position, rotation, body_rot[id], temp_min, temp_max);
 
             } else if (type == ChCollisionShape::Type::CAPSULE) {
                 real2 T = data_manager->shape_data.capsule_rigid[start];
-                real3 B_ = real3(T.x, T.x + T.y, T.x) + collision_envelope;
+                real3 B_ = real3(T.x, T.x + T.y, T.x) + envelope;
                 ComputeAABBBox(B_, local_pos, position, rotation, body_rot[id], temp_min, temp_max);
 
             } else if (type == ChCollisionShape::Type::CONVEX) {
                 int length = data_manager->shape_data.length_rigid[index];
                 ComputeAABBConvex(convex_rigid.data(), start, length, local_pos, position, rotation, temp_min,
                                   temp_max);
-                temp_min -= collision_envelope;
-                temp_max += collision_envelope;
+                temp_min -= envelope;
+                temp_max += envelope;
 
             } else if (type == ChCollisionShape::Type::TRIANGLE) {
                 real3 A, B, C;

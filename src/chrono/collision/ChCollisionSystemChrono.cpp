@@ -23,7 +23,7 @@
 namespace chrono {
 namespace collision {
 
-ChCollisionSystemChrono::ChCollisionSystemChrono() {
+ChCollisionSystemChrono::ChCollisionSystemChrono() : use_aabb_active(false) {
     data_manager = chrono_types::make_shared<ChCollisionData>();
 
     broadphase.data_manager = data_manager;
@@ -32,6 +32,37 @@ ChCollisionSystemChrono::ChCollisionSystemChrono() {
 }
 
 ChCollisionSystemChrono::~ChCollisionSystemChrono() {}
+
+void ChCollisionSystemChrono::SetBroadphaseNumBins(ChVector<int> num_bins, bool fixed) {
+    broadphase.bins_per_axis = vec3(num_bins.x(), num_bins.y(), num_bins.z());
+    broadphase.fixed_bins = fixed;
+}
+
+void ChCollisionSystemChrono::SetBroadphaseGridDensity(double density) {
+    broadphase.grid_density = real(density);
+}
+
+void ChCollisionSystemChrono::SetNarrowphaseAlgorithm(ChNarrowphase::Algorithm algorithm) {
+    narrowphase.algorithm = algorithm;
+}
+
+void ChCollisionSystemChrono::SetNarrowphaseEnvelope(real envelope) {
+    narrowphase.envelope = envelope;
+}
+
+void ChCollisionSystemChrono::EnableActiveBoundingBox(const ChVector<>& aabbmin, const ChVector<>& aabbmax) {
+    aabb_min = FromChVector(aabbmin);
+    aabb_max = FromChVector(aabbmax);
+
+    use_aabb_active = true;
+}
+
+bool ChCollisionSystemChrono::GetAABB(ChVector<>& aabbmin, ChVector<>& aabbmax) const {
+    aabbmin = ToChVector(aabb_min);
+    aabbmax = ToChVector(aabb_max);
+
+    return use_aabb_active;
+}
 
 void ChCollisionSystemChrono::Add(ChCollisionModel* model) {
     if (model->GetPhysicsItem()->GetCollide() == true) {
@@ -227,12 +258,11 @@ void ChCollisionSystemChrono::SetNumThreads(int nthreads) {
 }
 
 void ChCollisionSystemChrono::Run() {
-    if (data_manager->settings.use_aabb_active) {
+    if (use_aabb_active) {
         body_active.resize(data_manager->state_data.num_rigid_bodies);
         std::fill(body_active.begin(), body_active.end(), false);
 
-        GetOverlappingAABB(body_active, data_manager->settings.aabb_min,
-                           data_manager->settings.aabb_max);
+        GetOverlappingAABB(body_active, aabb_min, aabb_max);
 
 #pragma omp parallel for
         for (int i = 0; i < data_manager->state_data.active_rigid.size(); i++) {
@@ -243,7 +273,7 @@ void ChCollisionSystemChrono::Run() {
     }
 
     m_timer_broad.start();
-    aabb_generator.GenerateAABB();
+    aabb_generator.GenerateAABB(narrowphase.envelope);
 
     // Compute the bounding box of things
     broadphase.DetermineBoundingBox();
@@ -260,7 +290,7 @@ void ChCollisionSystemChrono::Run() {
         narrowphase.DispatchFluid();
     }
     if (data_manager->num_rigid_shapes != 0) {
-        narrowphase.ProcessRigids();
+        narrowphase.ProcessRigids(broadphase.bins_per_axis);
 
     } else {
         data_manager->host_data.c_counts_rigid_fluid.clear();
@@ -334,7 +364,7 @@ double ChCollisionSystemChrono::GetTimerCollisionNarrow() const {
 }
 
 void ChCollisionSystemChrono::GetOverlappingAABB(custom_vector<char>& active_id, real3 Amin, real3 Amax) {
-    aabb_generator.GenerateAABB();
+    aabb_generator.GenerateAABB(narrowphase.envelope);
 #pragma omp parallel for
     for (int i = 0; i < data_manager->shape_data.typ_rigid.size(); i++) {
         real3 Bmin = data_manager->host_data.aabb_min[i];
@@ -357,19 +387,6 @@ std::vector<vec2> ChCollisionSystemChrono::GetOverlappingPairs() {
         pairs[i] = pair;
     }
     return pairs;
-}
-
-void ChCollisionSystemChrono::SetAABB(const ChVector<>& aabbmin, const ChVector<>& aabbmax) {
-    data_manager->settings.aabb_min = FromChVector(aabbmin);
-    data_manager->settings.aabb_max = FromChVector(aabbmax);
-    data_manager->settings.use_aabb_active = true;
-}
-
-bool ChCollisionSystemChrono::GetAABB(real3& aabbmin, real3& aabbmax) {
-    aabbmin = data_manager->settings.aabb_min;
-    aabbmax = data_manager->settings.aabb_max;
-
-    return data_manager->settings.use_aabb_active;
 }
 
 }  // end namespace collision
