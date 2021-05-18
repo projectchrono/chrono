@@ -35,6 +35,7 @@
 #include "chrono_vehicle/utils/ChUtilsJSON.h"
 
 #include "chrono_thirdparty/stb/stb.h"
+#include "chrono_thirdparty/filesystem/path.h"
 
 using namespace rapidjson;
 
@@ -108,16 +109,14 @@ void RigidTerrain::LoadPatch(const rapidjson::Value& d) {
         patch = AddPatch(material, loc, ChMatrix33<>(rot).Get_A_Zaxis(), size.x(), size.y(), size.z());
     } else if (d["Geometry"].HasMember("Mesh Filename")) {
         std::string mesh_file = d["Geometry"]["Mesh Filename"].GetString();
-        std::string mesh_name = d["Geometry"]["Mesh Name"].GetString();
-        patch = AddPatch(material, ChCoordsys<>(loc, rot), vehicle::GetDataFile(mesh_file), mesh_name);
+        patch = AddPatch(material, ChCoordsys<>(loc, rot), vehicle::GetDataFile(mesh_file));
     } else if (d["Geometry"].HasMember("Height Map Filename")) {
         std::string bmp_file = d["Geometry"]["Height Map Filename"].GetString();
-        std::string mesh_name = d["Geometry"]["Mesh Name"].GetString();
         double sx = d["Geometry"]["Size"][0u].GetDouble();
         double sy = d["Geometry"]["Size"][1u].GetDouble();
         double hMin = d["Geometry"]["Height Range"][0u].GetDouble();
         double hMax = d["Geometry"]["Height Range"][1u].GetDouble();
-        patch = AddPatch(material, ChCoordsys<>(loc, rot), vehicle::GetDataFile(bmp_file), mesh_name, sx, sy, hMin, hMax);
+        patch = AddPatch(material, ChCoordsys<>(loc, rot), vehicle::GetDataFile(bmp_file), sx, sy, hMin, hMax);
     }
 
     // Set visualization data
@@ -229,7 +228,6 @@ std::shared_ptr<RigidTerrain::Patch> RigidTerrain::AddPatch(std::shared_ptr<ChMa
 std::shared_ptr<RigidTerrain::Patch> RigidTerrain::AddPatch(std::shared_ptr<ChMaterialSurface> material,
                                                             const ChCoordsys<>& position,
                                                             const std::string& mesh_file,
-                                                            const std::string& mesh_name,
                                                             double sweep_sphere_radius,
                                                             bool visualization) {
     auto patch = chrono_types::make_shared<MeshPatch>();
@@ -244,6 +242,8 @@ std::shared_ptr<RigidTerrain::Patch> RigidTerrain::AddPatch(std::shared_ptr<ChMa
     patch->m_body->GetCollisionModel()->AddTriangleMesh(material, patch->m_trimesh, true, false, VNULL, ChMatrix33<>(1),
                                                         sweep_sphere_radius);
     patch->m_body->GetCollisionModel()->BuildModel();
+
+    auto mesh_name = filesystem::path(mesh_file).stem();
 
     // Create the visualization asset.
     if (visualization) {
@@ -272,7 +272,6 @@ std::shared_ptr<RigidTerrain::Patch> RigidTerrain::AddPatch(std::shared_ptr<ChMa
 std::shared_ptr<RigidTerrain::Patch> RigidTerrain::AddPatch(std::shared_ptr<ChMaterialSurface> material,
                                                             const ChCoordsys<>& position,
                                                             const std::string& heightmap_file,
-                                                            const std::string& mesh_name,
                                                             double length,
                                                             double width,
                                                             double hMin,
@@ -388,6 +387,8 @@ std::shared_ptr<RigidTerrain::Patch> RigidTerrain::AddPatch(std::shared_ptr<ChMa
     patch->m_body->GetCollisionModel()->AddTriangleMesh(material, patch->m_trimesh, true, false, VNULL, ChMatrix33<>(1),
                                                         sweep_sphere_radius);
     patch->m_body->GetCollisionModel()->BuildModel();
+
+    auto mesh_name = filesystem::path(heightmap_file).stem();
 
     // Create the visualization asset.
     if (visualization) {

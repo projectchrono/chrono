@@ -71,7 +71,6 @@
 
       "Geometry": {
         "Height Map Filename": "terrain/height_maps/bump64.bmp",
-        "Mesh Name": "terrain_test64_POV_geom",
         "Size": [ 64, 64 ],
         "Height Range": [ 0, 3 ]
       },
@@ -104,8 +103,7 @@
       "Orientation": [ 1, 0, 0, 0 ],
 
       "Geometry": {
-        "Mesh Filename": "terrain/meshes/bump.obj",
-        "Mesh Name": "terrain_test_POV_geom"
+        "Mesh Filename": "terrain/meshes/bump.obj"
       },
 
       "Contact Material": {

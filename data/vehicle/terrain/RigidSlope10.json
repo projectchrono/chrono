@@ -10,7 +10,6 @@
 
       "Geometry": {
         "Height Map Filename": "terrain/height_maps/slope.bmp",
-        "Mesh Name": "terrain_slope10_geom",
         "Size": [ 120, 40 ],
         "Height Range": [ 0, 4 ]
       },
