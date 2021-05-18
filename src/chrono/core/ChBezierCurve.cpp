@@ -189,7 +189,7 @@ std::shared_ptr<ChBezierCurve> ChBezierCurve::read(const std::string& filename) 
     try {
         ifile.exceptions(std::ios::failbit | std::ios::badbit | std::ios::eofbit);
         ifile.open(filename.c_str());
-    } catch (std::exception) {
+    } catch (const std::exception &) {
         throw ChException("Cannot open input file");
     }
 
