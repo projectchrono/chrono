@@ -19,6 +19,7 @@
 // =============================================================================
 
 #include "chrono_synchrono/agent/SynCopterAgent.h"
+#include "chrono_thirdparty/filesystem/path.h"
 
 namespace chrono {
 namespace synchrono {
@@ -102,7 +103,7 @@ std::shared_ptr<ChTriangleMeshShape> SynCopterAgent::CreateMeshZombieComponent(c
     auto trimesh = chrono_types::make_shared<ChTriangleMeshShape>();
     trimesh->SetMesh(mesh);
     trimesh->SetStatic(true);
-    trimesh->SetName(filename);
+    trimesh->SetName(filesystem::path(filename).stem());
 
     return trimesh;
 }

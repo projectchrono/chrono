@@ -23,7 +23,7 @@
 
 #include "chrono_vehicle/utils/ChUtilsJSON.h"
 #include "chrono_vehicle/ChVehicleModelData.h"
-
+#include "chrono_thirdparty/filesystem/path.h"
 #include "chrono_vehicle/chassis/ChRigidChassis.h"
 
 using namespace chrono::vehicle;
@@ -137,7 +137,7 @@ std::shared_ptr<ChTriangleMeshShape> SynTrackedVehicleAgent::CreateMeshZombieCom
     auto trimesh = chrono_types::make_shared<ChTriangleMeshShape>();
     trimesh->SetMesh(mesh);
     trimesh->SetStatic(true);
-    trimesh->SetName(filename);
+    trimesh->SetName(filesystem::path(filename).stem());
 
     return trimesh;
 }
