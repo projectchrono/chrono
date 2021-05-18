@@ -112,7 +112,7 @@ int main(int argc, char* argv[]) {
     body_points.insert(body_points.end(), material_points.begin(), material_points.end());
     body_points_fixed.insert(body_points_fixed.end(), material_points.size(), false);
 
-    gpu_sys.SetParticlePositions(body_points);
+    gpu_sys.SetParticles(body_points);
     gpu_sys.SetParticleFixed(body_points_fixed);
 
     std::cout << "Added " << roughness_points.size() << " fixed points" << std::endl;
@@ -145,11 +145,11 @@ int main(int argc, char* argv[]) {
 
     // write an initial frame
     char filename[100];
-    sprintf(filename, "%s/step%06d", out_dir.c_str(), currframe);
+    sprintf(filename, "%s/step%06d.csv", out_dir.c_str(), currframe);
     gpu_sys.WriteParticleFile(std::string(filename));
 
     char contactFilename[100];
-    sprintf(contactFilename, "%s/contact%06d", out_dir.c_str(), currframe);
+    sprintf(contactFilename, "%s/contact%06d.csv", out_dir.c_str(), currframe);
     gpu_sys.WriteContactInfoFile(std::string(contactFilename));
 
     currframe++;
@@ -162,10 +162,10 @@ int main(int argc, char* argv[]) {
             break;
 
         printf("Output frame %u of %u\n", currframe, total_frames);
-        sprintf(filename, "%s/step%06d", out_dir.c_str(), currframe);
+        sprintf(filename, "%s/step%06d.csv", out_dir.c_str(), currframe);
         gpu_sys.WriteParticleFile(std::string(filename));
 
-        sprintf(contactFilename, "%s/contact%06d", out_dir.c_str(), currframe);
+        sprintf(contactFilename, "%s/contact%06d.csv", out_dir.c_str(), currframe);
         gpu_sys.WriteContactInfoFile(std::string(contactFilename));
 
         curr_time += frame_step;

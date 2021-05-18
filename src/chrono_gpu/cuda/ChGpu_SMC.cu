@@ -21,6 +21,26 @@
 namespace chrono {
 namespace gpu {
 
+__host__ float ChSystemGpu_impl::computeLinVelSq() const {
+    float* sumSq;
+    size_t nSpheres = pos_X_dt.size();
+    if (nSpheres == 0)
+        return 0.f;
+    gpuErrchk(cudaMalloc(&sumSq, sizeof(float)));
+    gpuErrchk(cudaMemset(sumSq, 0.f, sizeof(float)));
+
+    const unsigned int threadsPerBlock = 1024;
+    unsigned int nBlocks = (nSpheres + threadsPerBlock - 1) / threadsPerBlock;
+    SumArray3Squared<float, threadsPerBlock><<<nBlocks, threadsPerBlock>>>(
+        sumSq, sphere_data->pos_X_dt, sphere_data->pos_Y_dt, sphere_data->pos_Z_dt, nSpheres);
+    gpuErrchk(cudaDeviceSynchronize());
+
+    float sumVelSq;
+    gpuErrchk(cudaMemcpy(&sumVelSq, sumSq, sizeof(float), cudaMemcpyDeviceToHost));
+    gpuErrchk(cudaPeekAtLastError());
+    return sumVelSq * VEL_SU2UU * VEL_SU2UU;
+}
+
 __host__ double ChSystemGpu_impl::GetMaxParticleZ() const {
     size_t nSpheres = sphere_local_pos_Z.size();
     std::vector<int64_t> sphere_pos_global_Z;

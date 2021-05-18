@@ -79,7 +79,7 @@ TEST(gpuFrictionRolling, check) {
     // add only one ball
     std::vector<ChVector<float>> body_point = {ChVector<float>(0, 0, settled_pos + 0.02)};
     std::vector<ChVector<float>> velocity = {ChVector<float>(1.0, 0.0, 0.0)};
-    gpu_sys.SetParticlePositions(body_point, velocity);
+    gpu_sys.SetParticles(body_point, velocity);
 
     float step_size = 1e-4f;
     float curr_time = 0;

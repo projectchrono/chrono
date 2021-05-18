@@ -84,7 +84,7 @@ int main(int argc, char* argv[]) {
     fixed.insert(fixed.end(), material_points.size(), false);
 
     std::cout << "Adding " << body_points.size() << " spheres." << std::endl;
-    gpu_sys.SetParticlePositions(body_points);
+    gpu_sys.SetParticles(body_points);
     gpu_sys.SetParticleFixed(fixed);
 
     // Add internal planes to prevent leaking
@@ -160,7 +160,7 @@ int main(int argc, char* argv[]) {
     for (double t = 0; t < (double)params.time_end; t += frame_step, currframe++) {
         std::cout << "Rendering frame " << (currframe + 1) << " of " << total_frames << std::endl;
         char filename[100];
-        sprintf(filename, "%s/step%06d", out_dir.c_str(), currframe);
+        sprintf(filename, "%s/step%06d.csv", out_dir.c_str(), currframe);
         gpu_sys.WriteParticleFile(std::string(filename));
 
         gpu_sys.AdvanceSimulation((float)frame_step);

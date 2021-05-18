@@ -41,9 +41,12 @@ int main(int argc, char* argv[]) {
         return 1;
     }
 
-    // Setup simulation
+    // Setup simulation. A convenient thing we can do is to move the Big Box Domain by (X/2, Y/2, Z/2) which is done
+    // with the fourth constructor param, so the coordinate range we are now working with is (0,0,0) to (X,Y,Z), instead
+    // of (-X/2,-Y/2,-Z/2) to (X/2, Y/2, Z/2).
     ChSystemGpu gpu_sys(params.sphere_radius, params.sphere_density,
-                        make_float3(params.box_X, params.box_Y, params.box_Z));
+                        make_float3(params.box_X, params.box_Y, params.box_Z),
+                        ChVector<float>(params.box_X / 2, params.box_Y / 2, params.box_Z / 2));
 
     gpu_sys.SetPsiFactors(params.psi_T, params.psi_L);
 
@@ -70,16 +73,16 @@ int main(int argc, char* argv[]) {
     out_dir = out_dir + params.output_dir;
     filesystem::create_directory(filesystem::path(out_dir));
 
-    // fill box, layer by layer
+    // The box to fill with particles
     ChVector<float> hdims((float)(params.box_X / 2.0 - 1.2), (float)(params.box_Y / 2.0 - 1.2),
                           (float)(params.box_Z / 10.0 - 1.2));
-    ChVector<float> center(0.f, 0.f, (float)(-params.box_Z / 2.0 + params.box_Z / 10.0));
+    ChVector<float> center((float)(params.box_X / 2), (float)(params.box_Y / 2), (float)(params.box_Z / 10.0));
 
     // Fill box with bodies
     std::vector<ChVector<float>> body_points =
         utils::PDLayerSampler_BOX<float>(center, hdims, 2.f * params.sphere_radius, 1.05f);
 
-    gpu_sys.SetParticlePositions(body_points);
+    gpu_sys.SetParticles(body_points);
 
     // Set the position of the BD
     gpu_sys.SetBDFixed(true);
@@ -91,7 +94,7 @@ int main(int argc, char* argv[]) {
     gpu_sys.SetVerbosity(params.verbose);
 
     // start outside BD by 10 cm
-    ChVector<float> plane_pos(-params.box_X / 2 - 10, 0, 0);
+    ChVector<float> plane_pos(-10, 0, 0);
     ChVector<float> plane_normal(1, 0, 0);
 
     size_t plane_bc_id = gpu_sys.CreateBCPlane(plane_pos, plane_normal, false);
@@ -122,7 +125,7 @@ int main(int argc, char* argv[]) {
     unsigned int total_frames = (unsigned int)((float)params.time_end * fps);
 
     char filename[100];
-    sprintf(filename, "%s/step%06d", out_dir.c_str(), currframe++);
+    sprintf(filename, "%s/step%06d.csv", out_dir.c_str(), currframe++);
     gpu_sys.WriteParticleFile(std::string(filename));
 
     std::cout << "frame step is " << frame_step << std::endl;
@@ -132,7 +135,7 @@ int main(int argc, char* argv[]) {
         gpu_sys.AdvanceSimulation(frame_step);
         curr_time += frame_step;
         printf("rendering frame %u of %u\n", currframe, total_frames);
-        sprintf(filename, "%s/step%06d", out_dir.c_str(), currframe++);
+        sprintf(filename, "%s/step%06d.csv", out_dir.c_str(), currframe++);
         gpu_sys.WriteParticleFile(std::string(filename));
     }
 

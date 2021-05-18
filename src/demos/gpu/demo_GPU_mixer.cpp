@@ -121,7 +121,7 @@ int main(int argc, char* argv[]) {
         center.z() += 2.1f * params.sphere_radius;
     }
 
-    gpu_sys.SetParticlePositions(body_points);
+    gpu_sys.SetParticles(body_points);
     gpu_sys.SetGravitationalAcceleration(ChVector<float>(0, 0, -980));
 
     // Add the mixer mesh to the GPU system
@@ -175,7 +175,7 @@ int main(int argc, char* argv[]) {
             std::cout << "Output frame " << (currframe + 1) << " of " << total_frames << std::endl;
             char filename[100];
             char mesh_filename[100];
-            sprintf(filename, "%s/step%06u", out_dir.c_str(), currframe);
+            sprintf(filename, "%s/step%06u.csv", out_dir.c_str(), currframe);
             sprintf(mesh_filename, "%s/step%06u_mesh", out_dir.c_str(), currframe++);
             gpu_sys.WriteParticleFile(std::string(filename));
             gpu_sys.WriteMeshes(std::string(mesh_filename));

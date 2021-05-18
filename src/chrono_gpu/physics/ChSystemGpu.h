@@ -38,8 +38,8 @@ class ChSystemGpuMesh_impl;
 /// Interface to a Chrono::Gpu system.
 class CH_GPU_API ChSystemGpu {
   public:
-    /// Construct system with given sphere radius, density, and big domain dimensions.
-    ChSystemGpu(float sphere_rad, float density, float3 boxDims);
+    /// Construct system with given sphere radius, density, big domain dimensions and center.
+    ChSystemGpu(float sphere_rad, float density, float3 boxDims, ChVector<float> O = ChVector<float>(0));
 
     /// Construct system with a checkpoint file.
     ChSystemGpu(const std::string& checkpoint);
@@ -54,11 +54,6 @@ class CH_GPU_API ChSystemGpu {
     void SetParticles(const std::vector<ChVector<float>>& points,
                       const std::vector<ChVector<float>>& vels = std::vector<ChVector<float>>(),
                       const std::vector<ChVector<float>>& ang_vels = std::vector<ChVector<float>>());
-    void SetParticlePositions(const std::vector<ChVector<float>>& points,
-                              const std::vector<ChVector<float>>& vels = std::vector<ChVector<float>>(),
-                              const std::vector<ChVector<float>>& ang_vels = std::vector<ChVector<float>>()) {
-        SetParticles(points, vels, ang_vels);
-    }
 
     /// Set particle positions, velocities and angular velocities from a file.
     void ReadParticleFile(const std::string& infilename);
@@ -72,6 +67,11 @@ class CH_GPU_API ChSystemGpu {
     /// Set the big domain to be fixed or not.
     /// If fixed, it will ignore any given position functions.
     void SetBDFixed(bool fixed);
+
+    /// Set the center of the big box domain, relative to the origin of the coordinate system (default: [0,0,0]).
+    /// Note that the domain is always axis-aligned. The user must make sure that all simulation information (particle
+    /// locations, boundaries, meshes...) is consistent with this domain.
+    void SetBDCenter(const ChVector<float>& O);
 
     /// Set flags indicating whether or not a particle is fixed.
     /// MUST be called only once and MUST be called before Initialize.
@@ -217,6 +217,9 @@ class CH_GPU_API ChSystemGpu {
     /// Return particle linear velocity.
     ChVector<float> GetParticleVelocity(int nSphere) const;
 
+    /// Return the total kinetic energy of all particles.
+    float GetParticlesKineticEnergy() const;
+
     /// Return position of BC plane.
     ChVector<float> GetBCPlanePosition(size_t plane_id) const;
 
@@ -302,8 +305,9 @@ class CH_GPU_API ChSystemGpu {
 /// Interface to a Chrono::Gpu mesh system.
 class CH_GPU_API ChSystemGpuMesh : public ChSystemGpu {
   public:
-    /// Construct system with given sphere radius, density, and big domain dimensions.
-    ChSystemGpuMesh(float sphere_rad, float density, float3 boxDims);
+    /// Construct system with given sphere radius, density, big domain dimensions, and an optional origin point location
+    /// of the reference frame w.r.t. the center of the big domain.
+    ChSystemGpuMesh(float sphere_rad, float density, float3 boxDims, ChVector<float> O = ChVector<float>(0));
 
     /// Construct system with a checkpoint file.
     ChSystemGpuMesh(const std::string& checkpoint);
