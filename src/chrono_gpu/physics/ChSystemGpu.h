@@ -38,8 +38,7 @@ class ChSystemGpuMesh_impl;
 /// Interface to a Chrono::Gpu system.
 class CH_GPU_API ChSystemGpu {
   public:
-    /// Construct system with given sphere radius, density, big domain dimensions, and an optional origin point location
-    /// of the reference frame w.r.t. the center of the big domain.
+    /// Construct system with given sphere radius, density, big domain dimensions and center.
     ChSystemGpu(float sphere_rad, float density, float3 boxDims, ChVector<float> O = ChVector<float>(0));
 
     /// Construct system with a checkpoint file.
@@ -69,11 +68,9 @@ class CH_GPU_API ChSystemGpu {
     /// If fixed, it will ignore any given position functions.
     void SetBDFixed(bool fixed);
 
-    /// Set the center of the big box domain, relative to the origin of the coordinate system.
-    /// If not called, the origin will be assumed to be at the center of the big box doamin.
-    /// If set, the user should make sure the simulation information (particle locations, boundaries, meshes...) is
-    /// consistent with this coordinate system. Note the axis orientation will always be aligned with the big domain
-    /// walls and cannot be changed.
+    /// Set the center of the big box domain, relative to the origin of the coordinate system (default: [0,0,0]).
+    /// Note that the domain is always axis-aligned. The user must make sure that all simulation information (particle
+    /// locations, boundaries, meshes...) is consistent with this domain.
     void SetBDCenter(const ChVector<float>& O);
 
     /// Set flags indicating whether or not a particle is fixed.
