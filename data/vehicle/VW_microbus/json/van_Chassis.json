@@ -1,0 +1,63 @@
+{
+  "Name":     "van chassis",
+  "Type":     "Chassis",
+  "Template": "RigidChassis",
+
+  "Components":
+  [
+   {
+     "Centroidal Frame":    {
+                              "Location":    [-1.204, 0.0, 0.3],
+                              "Orientation": [1, 0, 0, 0]
+                            },
+     "Mass":                2321.0,
+     "Moments of Inertia":  [785.0, 2612.0, 2761.0],
+     "Products of Inertia": [0, 0, 0],
+     "Void":                false
+   }
+  ],
+
+  "Driver Position":
+  {
+    "Location":     [0.0, 0.7, 0.5],
+    "Orientation":  [1, 0, 0, 0]
+  },
+
+  "Rear Connector Location": [-3.5, 0, -0.05],
+
+  "Contact": {
+    "Materials": [
+        {
+            "Coefficient of Friction": 0.7,
+            "Coefficient of Restitution": 0.1,
+
+            "Properties": {
+                "Young Modulus": 1e7,
+                "Poisson Ratio": 0.3
+            },
+
+            "Coefficients": {
+                "Normal Stiffness": 2e5,
+                "Normal Damping": 40.0,
+                "Tangential Stiffness": 2e5,
+                "Tangential Damping": 20.0
+            }
+        }
+    ],
+
+    "Shapes": [
+        {
+            "Type": "MESH",
+            "Filename": "VW_microbus/van_chassis_col.obj",
+            "Location": [0, 0.0, 0.0],
+            "Contact Radius": 0.0,
+            "Material Index": 0
+        }
+    ]
+  },
+
+  "Visualization":
+  {
+    "Mesh":  "VW_microbus/van_chassis.obj"
+  }
+}

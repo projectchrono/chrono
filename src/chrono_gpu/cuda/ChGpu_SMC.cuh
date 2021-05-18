@@ -105,6 +105,30 @@ inline __device__ void figureOutTouchedSD(int sphCenter_X_local,
     }
 }
 
+/// Compute the squared sum of 3 arrays.
+template <typename T, unsigned int CUB_THREADS>
+__global__ void SumArray3Squared(T* sqSum, T* arrX, T* arrY, T* arrZ, size_t nSpheres) {
+    typedef cub::BlockReduce<T, CUB_THREADS> BlockReduceT;
+    __shared__ typename BlockReduceT::TempStorage temp_storage;
+
+    size_t mySphereID = (threadIdx.x + blockIdx.x * CUB_THREADS);
+    T Xdata = 0;
+    T Ydata = 0;
+    T Zdata = 0;
+
+    if (mySphereID < nSpheres) {
+        Xdata = arrX[blockIdx.x * CUB_THREADS + threadIdx.x];
+        Ydata = arrY[blockIdx.x * CUB_THREADS + threadIdx.x];
+        Zdata = arrZ[blockIdx.x * CUB_THREADS + threadIdx.x];
+        Xdata = Xdata * Xdata + Ydata * Ydata + Zdata * Zdata;
+    }
+    __syncthreads();
+
+    T block_sum = BlockReduceT(temp_storage).Sum(Xdata);
+    if (threadIdx.x == 0)
+        atomicAdd(sqSum, block_sum);
+}
+
 /**
  * Template arguments:
  *   - CUB_THREADS: the number of threads used in this kernel, comes into play when invoking CUB block collectives
@@ -134,7 +158,7 @@ template <unsigned int CUB_THREADS>  // Number of CUB threads engaged in block-c
 __global__ void getNumberOfSpheresTouchingEachSD(ChSystemGpu_impl::GranSphereDataPtr sphere_data,
                                                  unsigned int nSpheres,  // Number of spheres in the box
                                                  ChSystemGpu_impl::GranParamsPtr gran_params) {
-    /// Set aside shared memory
+    // Set aside shared memory
     volatile __shared__ bool shMem_head_flags[CUB_THREADS * MAX_SDs_TOUCHED_BY_SPHERE];
 
     typedef cub::BlockRadixSort<unsigned int, CUB_THREADS, MAX_SDs_TOUCHED_BY_SPHERE> BlockRadixSortOP;
@@ -244,7 +268,7 @@ static __global__ void populateSpheresInEachSD(ChSystemGpu_impl::GranSphereDataP
 }
 
 /// Get position offset between two SDs
-// NOTE this assumes they are close together
+/// NOTE this assumes they are close together
 inline __device__ int3 getOffsetFromSDs(unsigned int thisSD,
                                         unsigned int otherSD,
                                         ChSystemGpu_impl::GranParamsPtr gran_params) {
@@ -346,7 +370,7 @@ static __global__ void applyBDFrameChange(int64_t3 delta,
 }
 
 /// Convert sphere positions from 64-bit global to 32-bit local
-// only need to run once at beginning
+/// only need to run once at beginning
 static __global__ void initializeLocalPositions(ChSystemGpu_impl::GranSphereDataPtr sphere_data,
                                                 int64_t* sphere_pos_global_X,
                                                 int64_t* sphere_pos_global_Y,

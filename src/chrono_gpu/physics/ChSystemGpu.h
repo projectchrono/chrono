@@ -9,7 +9,7 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Contributors: Dan Negrut, Nic Olsen, Radu Serban
+// Contributors: Nic Olsen, Ruochun Zhang, Dan Negrut, Radu Serban
 // =============================================================================
 
 #pragma once
@@ -38,38 +38,61 @@ class ChSystemGpuMesh_impl;
 /// Interface to a Chrono::Gpu system.
 class CH_GPU_API ChSystemGpu {
   public:
-    /// Construct system with given sphere radius, density, and big domain dimensions.
-    ChSystemGpu(float sphere_rad, float density, float3 boxDims);
+    /// Construct system with given sphere radius, density, big domain dimensions and center.
+    ChSystemGpu(float sphere_rad, float density, const ChVector<float>& boxDims, ChVector<float> O = ChVector<float>(0));
+
+    /// Construct system with a checkpoint file.
+    ChSystemGpu(const std::string& checkpoint);
 
     virtual ~ChSystemGpu();
 
-    /// Setr gravitational acceleration vector.
-    void SetGravitationalAcceleration(const ChVector<float> g);
+    /// Set gravitational acceleration vector.
+    void SetGravitationalAcceleration(const ChVector<float>& g);
 
-    /// Set particle positions.
-    void SetParticlePositions(const std::vector<ChVector<float>>& points,
-                              const std::vector<ChVector<float>>& vels = std::vector<ChVector<float>>(),
-                              const std::vector<ChVector<float>>& ang_vels = std::vector<ChVector<float>>());
+    /// Set particle positions, velocities and angular velocities.
+    void SetParticles(const std::vector<ChVector<float>>& points,
+                      const std::vector<ChVector<float>>& vels = std::vector<ChVector<float>>(),
+                      const std::vector<ChVector<float>>& ang_vels = std::vector<ChVector<float>>());
+
+    /// Set particle positions, velocities and angular velocities from a file.
+    void ReadParticleFile(const std::string& infilename);
+
+    /// Set particle contact friction history from a file.
+    void ReadContactHistoryFile(const std::string& infilename);
+
+    // Read in a (Chrono::Gpu generated) checkpoint file to restart a simulation.
+    void ReadCheckpointFile(const std::string& infilename, bool overwrite = false);
 
     /// Set the big domain to be fixed or not.
     /// If fixed, it will ignore any given position functions.
     void SetBDFixed(bool fixed);
+
+    /// Set the center of the big box domain, relative to the origin of the coordinate system (default: [0,0,0]).
+    /// Note that the domain is always axis-aligned. The user must make sure that all simulation information (particle
+    /// locations, boundaries, meshes...) is consistent with this domain.
+    void SetBDCenter(const ChVector<float>& O);
 
     /// Set flags indicating whether or not a particle is fixed.
     /// MUST be called only once and MUST be called before Initialize.
     void SetParticleFixed(const std::vector<bool>& fixed);
 
     /// Set the output mode of the simulation.
-    void SetOutputMode(CHGPU_OUTPUT_MODE mode);
+    void SetParticleOutputMode(CHGPU_OUTPUT_MODE mode);
 
     /// Set output settings bit flags by bitwise ORing settings in CHGPU_OUTPUT_FLAGS.
-    void SetOutputFlags(unsigned char flags);
+    void SetParticleOutputFlags(unsigned int flags);
 
     /// Set timestep size.
     void SetFixedStepSize(float size_UU);
 
+    /// If yes, on Initialize(), particles will have their order re-arranged so that those in the same SD are close
+    /// together. This is usually done if starting from scratch, and optional if this is a re-started simulation. Note
+    /// this is by default on, unless the user loads simulation data from files, in which case it gets disabled.
+    void SetDefragmentOnInitialize(bool defragment);
+
     /// Ensure that the deformation-based length unit is used.
-    void DisableMinLength();
+    void EnableMinLength(bool useMinLen);
+    void DisableMinLength() { EnableMinLength(false); }
 
     /// Set the time integration scheme for the system.
     void SetTimeIntegrator(CHGPU_TIME_INTEGRATOR new_integrator);
@@ -97,30 +120,30 @@ class CH_GPU_API ChSystemGpu {
     /// Set sphere-to-wall spinning friction coefficient -- units and use vary by spinning friction mode.
     void SetSpinningCoeff_SPH2WALL(float mu);
 
-    /// Set sphere-to-sphere normal contact stiffness
+    /// Set sphere-to-sphere normal contact stiffness.
     void SetKn_SPH2SPH(double someValue);
-    /// Set sphere-to-wall normal contact stiffness
+    /// Set sphere-to-wall normal contact stiffness.
     void SetKn_SPH2WALL(double someValue);
 
-    /// Set sphere-to-sphere normal damping coefficient
+    /// Set sphere-to-sphere normal damping coefficient.
     void SetGn_SPH2SPH(double someValue);
-    /// Set sphere-to-wall normal damping coefficient
+    /// Set sphere-to-wall normal damping coefficient.
     void SetGn_SPH2WALL(double someValue);
 
-    /// Set sphere-to-sphere tangential contact stiffness
+    /// Set sphere-to-sphere tangential contact stiffness.
     void SetKt_SPH2SPH(double someValue);
-    /// Set sphere-to-sphere tangential damping coefficient
+    /// Set sphere-to-sphere tangential damping coefficient.
     void SetGt_SPH2SPH(double someValue);
 
-    /// Set sphere-to-wall tangential contact stiffness
+    /// Set sphere-to-wall tangential contact stiffness.
     void SetKt_SPH2WALL(double someValue);
-    /// Set sphere-to-wall tangential damping coefficient
+    /// Set sphere-to-wall tangential damping coefficient.
     void SetGt_SPH2WALL(double someValue);
 
-    /// Set the ratio of cohesion to gravity for monodisperse spheres. Assumes a constant cohesion model
+    /// Set the ratio of cohesion to gravity for monodisperse spheres. Assumes a constant cohesion model.
     void SetCohesionRatio(float someValue);
 
-    /// Set the ratio of adhesion to gravity for sphere to wall. Assumes a constant cohesion model
+    /// Set the ratio of adhesion to gravity for sphere to wall. Assumes a constant cohesion model.
     void SetAdhesionRatio_SPH2WALL(float someValue);
 
     /// Safety check velocity to ensure the simulation is still stable.
@@ -128,9 +151,15 @@ class CH_GPU_API ChSystemGpu {
 
     /// Set tuning psi factors for tuning the non-dimensionalization.
     void SetPsiFactors(unsigned int psi_T, unsigned int psi_L, float psi_R = 1.f);
+    void SetPsiT(unsigned int psi_T);
+    void SetPsiL(unsigned int psi_L);
+    void SetPsiR(float psi_R = 1.f);
 
     /// Enable/disable recording of contact info.
     void SetRecordingContactInfo(bool record);
+
+    /// Manually set the simulation time (mainly used for restarted simulation).
+    void SetSimTime(float time);
 
     /// Set simualtion verbosity level.
     void SetVerbosity(CHGPU_VERBOSITY level);
@@ -164,17 +193,19 @@ class CH_GPU_API ChSystemGpu {
     /// Prescribe the motion of the big domain, allows wavetank-style simulations.
     void setBDWallsMotionFunction(const GranPositionFunction& pos_fn);
 
+    // -------------------------- A plethora of "Get" methods -------------------------------- //
+
     /// Return current simulation time.
     float GetSimTime() const;
 
     /// Return the total number of particles in the system
     size_t GetNumParticles() const;
 
-    /// Return the radius of a spherical particle.
-    float GetParticleRadius() const;
-
     /// Return the maximum Z position over all particles.
     double GetMaxParticleZ() const;
+
+    /// Return the radius of a spherical particle.
+    float GetParticleRadius() const;
 
     /// Return particle position.
     ChVector<float> GetParticlePosition(int nSphere) const;
@@ -184,6 +215,9 @@ class CH_GPU_API ChSystemGpu {
 
     /// Return particle linear velocity.
     ChVector<float> GetParticleVelocity(int nSphere) const;
+
+    /// Return the total kinetic energy of all particles.
+    float GetParticlesKineticEnergy() const;
 
     /// Return position of BC plane.
     ChVector<float> GetBCPlanePosition(size_t plane_id) const;
@@ -197,6 +231,8 @@ class CH_GPU_API ChSystemGpu {
     /// Return number of subdomains in the big domain.
     unsigned int GetNumSDs() const;
 
+    // ------------------------------- End of "Get" methods -------------------------------//
+
     /// Initialize simulation so that it can be advanced.
     /// Must be called before AdvanceSimulation and after simulation parameters are set.
     virtual void Initialize();
@@ -205,11 +241,18 @@ class CH_GPU_API ChSystemGpu {
     /// Requires Initialize() to have been called.
     virtual double AdvanceSimulation(float duration);
 
-    /// Write particle positions according to the system output mode.
-    void WriteFile(std::string ofile) const;
+    /// Write a one-stop checkpoint file for Chrono::Gpu.
+    /// All information defining a simulation is in this file.
+    void WriteCheckpointFile(const std::string& outfilename);
 
-    /// Write contact info file.
-    void WriteContactInfoFile(std::string ofile) const;
+    /// Write particle positions according to the system output mode.
+    void WriteParticleFile(const std::string& outfilename) const;
+
+    /// Write contact pair history to a file.
+    void WriteContactHistoryFile(const std::string& outfilename) const;
+
+    /// Write contact force and torque to a file.
+    void WriteContactInfoFile(const std::string& outfilename) const;
 
     /// Roughly estimate of the total amount of memory used by the system.
     size_t EstimateMemUsage() const;
@@ -219,6 +262,44 @@ class CH_GPU_API ChSystemGpu {
     ChSystemGpu() : m_sys(nullptr) {}
 
     ChSystemGpu_impl* m_sys;  ///< underlying system implementation
+
+    /// Set particle positions, velocities and angular velocities from a CSV ifstream.
+    /// Methods that read sphere position/velocity info from a file serve as its wrapper.
+    void ReadCsvParticles(std::ifstream& ifile, unsigned int totRow = UINT_MAX);
+
+    /// Set particle contact friction history from a hst ifstream.
+    /// Methods that read history info from a file serve as its wrapper.
+    void ReadHstHistory(std::ifstream& ifile, unsigned int totItem = UINT_MAX);
+
+    /// Give a string identifier, set the corresponding simulation parameter, using a switch statement.
+    /// ReadDatParams() is its wrapper.
+    /// It must be virtual, because derived classes also use it (and may call it from a inherited method), and read some
+    /// more data (thus built on top of it). We must ensure those derived classes call the correct version of it.
+    virtual bool SetParamsFromIdentifier(const std::string& identifier, std::istringstream& iss1, bool overwrite);
+
+    /// Set simulation params from a DAT checkpoint file stream. Returns the number of particles.
+    /// If instructed to overwrite, then overwrite current simulation parameters with the values in the checkpoint file;
+    /// else, when an inconsistency is found, throw an error.
+    /// ReadCheckpointFile() is its wrapper.
+    unsigned int ReadDatParams(std::ifstream& ifile, bool overwrite);
+
+    /// Write simulation params to a stream. WriteCheckpointFile() is its wrapper.
+    void WriteCheckpointParams(std::ofstream& cpFile) const;
+
+    /// Write particle position, velocity and ang. vel. to a stream (of several possible formats).
+    /// WriteCheckpointFile() and WriteParticleFile() are their wrappers.
+    void WriteCsvParticles(std::ofstream& ptFile) const;
+    void WriteRawParticles(std::ofstream& ptFile) const;
+#ifdef USE_HDF5
+    void WriteH5Particles(H5::H5File& ptFile) const;
+#endif
+
+    /// Write contact pair/history to a stream.
+    /// WriteCheckpointFile() and WriteContactHistoryFile() are its wrappers.
+    void WriteHstHistory(std::ofstream& histFile) const;
+
+    /// Set gravitational acceleration as a float3 vector.
+    void SetGravitationalAcceleration(const float3 g);
 };
 
 // -----------------------------------------------------------------------------
@@ -226,8 +307,15 @@ class CH_GPU_API ChSystemGpu {
 /// Interface to a Chrono::Gpu mesh system.
 class CH_GPU_API ChSystemGpuMesh : public ChSystemGpu {
   public:
-    /// Construct system with given sphere radius, density, and big domain dimensions.
-    ChSystemGpuMesh(float sphere_rad, float density, float3 boxDims);
+    /// Construct system with given sphere radius, density, big domain dimensions and center.
+    ChSystemGpuMesh(float sphere_rad,
+                    float density,
+                    const ChVector<float>& boxDims,
+                    ChVector<float> O = ChVector<float>(0));
+
+    /// Construct system with a checkpoint file.
+    ChSystemGpuMesh(const std::string& checkpoint);
+
     ~ChSystemGpuMesh();
 
     /// Add a trimesh to the granular system.
@@ -254,6 +342,9 @@ class CH_GPU_API ChSystemGpuMesh : public ChSystemGpu {
     /// Enable/disable mesh collision (for all defined meshes).
     void EnableMeshCollision(bool val);
 
+    /// Enable/disable mesh normal-based orientation correction.
+    void UseMeshNormals(bool val) { use_mesh_normals = val; }
+
     /// Apply rigid body motion to specified mesh.
     void ApplyMeshMotion(unsigned int mesh_id,
                          const ChVector<>& pos,
@@ -279,14 +370,14 @@ class CH_GPU_API ChSystemGpuMesh : public ChSystemGpu {
     /// Set sphere-to-mesh spinning friction coefficient.
     void SetSpinningCoeff_SPH2MESH(float mu);
 
-    /// Set sphere-to-mesh normal contact stiffness
+    /// Set sphere-to-mesh normal contact stiffness.
     void SetKn_SPH2MESH(double someValue);
-    /// Set sphere-to-mesh normal damping coefficient
+    /// Set sphere-to-mesh normal damping coefficient.
     void SetGn_SPH2MESH(double someValue);
 
-    /// Set sphere-to-mesh tangential contact stiffness
+    /// Set sphere-to-mesh tangential contact stiffness.
     void SetKt_SPH2MESH(double someValue);
-    /// Set sphere-to-mesh tangential damping coefficient
+    /// Set sphere-to-mesh tangential damping coefficient.
     void SetGt_SPH2MESH(double someValue);
 
     /// Set the ratio of adhesion force to sphere weight for sphere to mesh.
@@ -314,8 +405,17 @@ class CH_GPU_API ChSystemGpuMesh : public ChSystemGpu {
     /// Collect contact forces exerted on the specified meshe by the granular system.
     void CollectMeshContactForces(int mesh, ChVector<>& force, ChVector<>& torque);
 
-    /// Write visualization files for triangle meshes with current positions.
-    void WriteMeshes(std::string outfilename) const;
+    /// GpuMesh version of checkpoint loading from a file.
+    void ReadCheckpointFile(const std::string& infilename, bool overwrite = false);
+
+    /// GpuMesh version of checkpoint generating subroutine. Has a bit more content than parent.
+    void WriteCheckpointFile(const std::string& outfilename);
+
+    /// Write the i-th mesh cached in m_meshes, with the current position.
+    void WriteMesh(const std::string& outfilename, unsigned int i) const;
+
+    /// Write all the meshes cached in m_meshes into a combined file, with their current positions.
+    void WriteMeshes(const std::string& outfilename) const;
 
   private:
     /// Set triangle meshes in underlying GPU system.
@@ -324,6 +424,14 @@ class CH_GPU_API ChSystemGpuMesh : public ChSystemGpu {
     CHGPU_MESH_VERBOSITY mesh_verbosity;                                       ///< mesh operations verbosity level
     std::vector<std::shared_ptr<geometry::ChTriangleMeshConnected>> m_meshes;  ///< list of meshes used in cosimulation
     std::vector<float> m_mesh_masses;                                          ///< associated mesh masses
+    bool use_mesh_normals =
+        false;  ///< true: use mesh normals in file to correct mesh orientation; false: do nothing, implicitly use RHR
+
+    /// GpuMesh version of setting simulation params based on identifiers in the checkpoint file.
+    virtual bool SetParamsFromIdentifier(const std::string& identifier, std::istringstream& iss1, bool overwrite) override;
+
+    /// GpuMesh version of parameter writing subroutine
+    void WriteCheckpointMeshParams(std::ofstream& cpFile) const;
 };
 
 /// @} gpu_physics

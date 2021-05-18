@@ -339,7 +339,8 @@ inline real3 TransformSupportVert(const chrono::collision::ConvexBase* Shape, co
 
     return TransformLocalToParent(Shape->A(), Shape->R(), localSupport);
 }
-// Similar to snap_to_face, also returns barycentric coordinates
+
+// Similar to snap_to_triangle, also returns barycentric coordinates
 static bool SnapeToFaceBary(const real3& A,
                             const real3& B,
                             const real3& C,

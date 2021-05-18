@@ -33,8 +33,8 @@ namespace sedan {
 // Static variables
 // -----------------------------------------------------------------------------
 
-const double Sedan_Pac02Tire::m_mass = 11.72;
-const ChVector<> Sedan_Pac02Tire::m_inertia(0.617973, 1.09715, 0.617973);
+const double Sedan_Pac02Tire::m_mass = 11.5;
+const ChVector<> Sedan_Pac02Tire::m_inertia(0.156, 0.679, 0.156);
 
 const std::string Sedan_Pac02Tire::m_meshFile = "sedan/sedan_tire.obj";
 
@@ -49,10 +49,10 @@ void Sedan_Pac02Tire::SetPac02Params() {
     m_use_mode = 3;
     m_measured_side = LEFT;
     m_allow_mirroring = true;
-    m_PacCoeff.R0 = 0.3284;
-    m_PacCoeff.width = 0.225;
-    m_PacCoeff.aspect_ratio = 0.5;
-    m_PacCoeff.rim_radius = 0.2159;
+    m_PacCoeff.R0 = 0.3266;
+    m_PacCoeff.width = 0.245;
+    m_PacCoeff.aspect_ratio = 0.4;
+    m_PacCoeff.rim_radius = 0.2286;
     m_PacCoeff.rim_width = 0.1778;
     m_PacCoeff.Cz = 261600;
     m_PacCoeff.Kz = 1750.99;

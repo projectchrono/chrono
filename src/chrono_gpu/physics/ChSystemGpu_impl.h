@@ -48,7 +48,7 @@ class ChSolverStateData {
 
     /// vector of unsigned int that lives on the device; used by CUB or by anybody else that needs scrap space.
     /// Please pay attention to the type the vector stores.
-    std::vector<char, cudallocator<char>> deviceScratchSpace; 
+    std::vector<char, cudallocator<char>> deviceScratchSpace;
 
     /// current integration time step
     float crntStepSize_SU;  // DN: needs to be brought here from GranParams
@@ -72,8 +72,8 @@ class ChSolverStateData {
     inline unsigned int MaxNumberSpheresInAnySDThusFar() const { return largestMaxNumberSpheresInAnySD_thusFar; }
     /// reports the largest number of spheres that touched any SD at the most recent broadphase CD function call
     inline unsigned int currentMaxNumberSpheresInAnySD() const { return crntMaxNumberSpheresInAnySD; }
-    
-    ///return raw pointer to swath of device memory that is at least "sizeNeeded" large
+
+    /// return raw pointer to swath of device memory that is at least "sizeNeeded" large
     inline char* pDeviceMemoryScratchSpace(size_t sizeNeeded) {
         if (deviceScratchSpace.size() < sizeNeeded) {
             deviceScratchSpace.resize(sizeNeeded, 0);
@@ -81,7 +81,6 @@ class ChSolverStateData {
         return deviceScratchSpace.data();
     }
 };
-    
 
 // Underlying implementation of the Chrono::Gpu system.
 // used to control and dispatch the GPU sphere-only solver.
@@ -165,7 +164,7 @@ class ChSystemGpu_impl {
         /// Used as a safety check to determine whether a system has lost stability
         float max_safe_vel = (float)UINT_MAX;
 
-        bool recording_contactInfo;  ///< recording contact info
+        bool recording_contactInfo = false;  ///< recording contact info
     };
 
     /// Structure of pointers to kinematic quantities of the ChSystemGpu_impl.
@@ -220,8 +219,8 @@ class ChSystemGpu_impl {
     // The system is not default-constructible
     ChSystemGpu_impl() = delete;
 
-    /// Construct Chrono::Gpu system with given sphere radius, density, and big domain dimensions.
-    ChSystemGpu_impl(float sphere_rad, float density, float3 boxDims);
+    /// Construct Chrono::Gpu system with given sphere radius, density, big domain dimensions and the frame origin.
+    ChSystemGpu_impl(float sphere_rad, float density, float3 boxDims, float3 O);
 
     /// Create big domain walls out of plane boundary conditions
     void CreateWallBCs();
@@ -238,7 +237,9 @@ class ChSystemGpu_impl {
                          bool track_forces);
 
     /// Create plane boundary condition
-    size_t CreateBCPlane(float plane_pos[3], float plane_normal[3], bool track_forces);
+    /// Instead of always push_back, you can select a position in vector to store the BC info: this is for reserved BCs
+    /// (box domain BCs) only. And if the position is SIZE_MAX then the behavior is push_back.
+    size_t CreateBCPlane(float plane_pos[3], float plane_normal[3], bool track_forces, size_t position = SIZE_MAX);
 
     /// Create an z-axis aligned cylinder boundary condition
     size_t CreateBCCylinderZ(float center[3], float radius, bool outward_normal, bool track_forces);
@@ -311,6 +312,12 @@ class ChSystemGpu_impl {
     /// Get the max z position of the spheres, allows easier co-simulation
     double GetMaxParticleZ() const;
 
+    /// Return the total kinetic energy of all particles.
+    float ComputeTotalKE() const;
+
+    /// Return the squared sum of the linear velocity components (of all particles).
+    float computeLinVelSq() const;
+
     /// Return particle position.
     float3 GetParticlePosition(int nSphere) const;
 
@@ -333,9 +340,9 @@ class ChSystemGpu_impl {
     bool GetBCReactionForces(size_t BC_id, float3& force) const;
 
     /// Set initial particle positions. MUST be called only once and MUST be called before initialize
-    void SetParticlePositions(const std::vector<float3>& points,
-                              const std::vector<float3>& vels = std::vector<float3>(),
-                              const std::vector<float3>& ang_vels = std::vector<float3>());
+    void SetParticles(const std::vector<float3>& points,
+                      const std::vector<float3>& vels = std::vector<float3>(),
+                      const std::vector<float3>& ang_vels = std::vector<float3>());
 
     /// Advance simulation by duration in user units, return actual duration elapsed
     /// Requires initialize() to have been called
@@ -372,6 +379,10 @@ class ChSystemGpu_impl {
     /// Sorts particle positions spatially in order to improve memory efficiency
     void defragment_initial_positions();
 
+    /// Sorts the user-provided contact history array in the order determined by defragment_initial_positions(),
+    /// if that is called
+    void defragment_friction_history(unsigned int history_offset);
+
     /// Setup sphere data, initialize local coords
     void setupSphereDataStructures();
 
@@ -403,11 +414,15 @@ class ChSystemGpu_impl {
     /// Update positions of each boundary condition using prescribed functions
     void updateBCPositions();
 
-    /// Writes out particle positions according to the system output mode.
-    void WriteFile(std::string ofile) const;
+    /// Write particle positions, vels and ang vels to a file stream (based on a format)
+    void WriteRawParticles(std::ofstream& ptFile) const;
+    void WriteCsvParticles(std::ofstream& ptFile) const;
+#ifdef USE_HDF5
+    void WriteH5Particles(H5::H5File& ptFile) const;
+#endif
 
     /// Write contact info file
-    void WriteContactInfoFile(std::string ofile) const;
+    void WriteContactInfoFile(const std::string& outfilename) const;
 
     /// Rough estimate of the total amount of memory used by the system.
     size_t EstimateMemUsage() const;
@@ -452,9 +467,13 @@ class ChSystemGpu_impl {
     /// scaling, do that.
     bool use_min_length_unit;
 
-    /// Bit flags indicating what fields to write out during WriteFile
+    /// If true, on Initialize(), the order of particles will be re-arranged so those in the same SD locate close to
+    /// each other
+    bool defragment_on_start = true;
+
+    /// Bit flags indicating what fields to write out during WriteParticleFile
     /// Set with the CHGPU_OUTPUT_FLAGS enum
-    unsigned char output_flags;
+    unsigned int output_flags;
 
     /// How to write the output files?
     /// Default is CSV
@@ -619,16 +638,21 @@ class ChSystemGpu_impl {
     std::vector<GranPositionFunction> BC_offset_function_list;
 
     /// User defined radius of the sphere
-    const float sphere_radius_UU;
+    float sphere_radius_UU;
     /// User defined density of the sphere
-    const float sphere_density_UU;
+    float sphere_density_UU;
 
-    /// X-length of the big domain; defines the global X axis located at the CM of the box
-    const float box_size_X;
-    /// Y-length of the big domain; defines the global Y axis located at the CM of the box
-    const float box_size_Y;
-    /// Z-length of the big domain; defines the global Z axis located at the CM of the box
-    const float box_size_Z;
+    /// X-length of the big domain; defines the global X axis located at the CM of the box (as default)
+    float box_size_X;
+    /// Y-length of the big domain; defines the global Y axis located at the CM of the box (as default)
+    float box_size_Y;
+    /// Z-length of the big domain; defines the global Z axis located at the CM of the box (as default)
+    float box_size_Z;
+
+    /// XYZ coordinate of the center of the big box domain in the user-defined frame. Default is (0,0,0).
+    float user_coord_O_X;
+    float user_coord_O_Y;
+    float user_coord_O_Z;
 
     /// User-provided sphere positions in UU
     std::vector<float3> user_sphere_positions;
@@ -636,11 +660,17 @@ class ChSystemGpu_impl {
     /// User-provided sphere velocities in UU
     std::vector<float3> user_sphere_vel;
 
-    // User-provided sphere angular velocities in UU
+    /// User-provided sphere angular velocities in UU
     std::vector<float3> user_sphere_ang_vel;
 
     /// User-provided sphere fixity as bools
     std::vector<bool> user_sphere_fixed;
+
+    /// User-provided sphere contact pair information
+    std::vector<unsigned int> user_partner_map;
+
+    /// User-provided sphere (contact pair) friction history information in UU
+    std::vector<float3> user_friction_history;
 
     /// The offset function for the big domain walls
     GranPositionFunction BDOffsetFunction;
