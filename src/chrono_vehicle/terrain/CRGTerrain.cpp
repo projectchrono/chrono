@@ -169,35 +169,30 @@ float CRGTerrain::GetCoefficientFriction(const ChVector<>& loc) const {
 }
 
 double CRGTerrain::GetStartHeading() {
-    // complete road can have a start heading different from zero
-    double u = 0.0;
-    double v = 0.0;
-    double phi = 0.0;
-    double curv = 0.0;
-    int ret = crgEvaluv2pk(m_cpId, u, v, &phi, &curv);
-    if (ret == 0) {
-        return 0.0;
-    } else {
-        return phi;
+    double phi, curv;
+
+    if (crgEvaluv2pk(m_cpId, 0, 0, &phi, &curv) != 1) {
+        GetLog() << "CRGTerrain::GetStartHeading(): error during uv -> pk coordinate transformation\n";
+        phi = 0;
     }
+
+    return phi;
 }
 
 ChCoordsys<> CRGTerrain::GetStartPosition() {
-    double u = 0.0;
-    double v = 0.0;
-    double phi = 0.0;
-    double curv = 0.0;
     double x, y, z;
 
-    int xy_ok = crgEvaluv2xy(m_cpId, u, v, &x, &y);
-    if (xy_ok != 1) {
-        GetLog() << "CRGTerrain::GetHeight(): error during uv -> z coordinate transformation\n";
+    if (crgEvaluv2xy(m_cpId, 0, 0, &x, &y) != 1) {
+        GetLog() << "CRGTerrain::GetStartPosition(): error during uv -> xy coordinate transformation\n";
+        x = 0;
+        y = 0;
     }
 
-    int z_ok = crgEvaluv2z(m_cpId, u, v, &z);
-    if (z_ok != 1) {
-        GetLog() << "CRGTerrain::GetHeight(): error during uv -> z coordinate transformation\n";
+    if (crgEvaluv2z(m_cpId, 0, 0, &z) != 1) {
+        GetLog() << "CRGTerrain::GetStartPosition(): error during uv -> z coordinate transformation\n";
+        z = 0;
     }
+
     return ChCoordsys<>(ChVector<>(x, y, z), Q_from_AngZ(GetStartHeading()));
 }
 

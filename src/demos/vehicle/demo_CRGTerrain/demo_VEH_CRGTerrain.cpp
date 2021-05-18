@@ -258,7 +258,10 @@ int main(int argc, char* argv[]) {
     std::cout << "Vertical direction: " << ChWorldFrame::Vertical() << std::endl;
     std::cout << "Forward direction:  " << ChWorldFrame::Forward() << std::endl;
 
-    // For a crg terrain with arbitrary start heading the terrain class must be initialized before the vehicle class
+    // ----------------------------
+    // Create the containing system
+    // ----------------------------
+
     ChSystemSMC sys;
     sys.Set_G_acc(-9.81 * ChWorldFrame::Vertical());
     sys.SetSolverMaxIterations(150);
@@ -267,6 +270,8 @@ int main(int argc, char* argv[]) {
     // ------------------
     // Create the terrain
     // ------------------
+
+    // For a crg terrain with arbitrary start heading the terrain class must be initialized before the vehicle class
 
     std::cout << std::endl;
     std::cout << "CRG road file: " << crg_road_file << std::endl;
@@ -280,16 +285,15 @@ int main(int argc, char* argv[]) {
     // Create the vehicle
     // ------------------
 
-    // Initial location
-    // auto init_loc = 2.0 * ChWorldFrame::Forward() + 0.5 * ChWorldFrame::Vertical();
-    auto init_pos = terrain.GetStartPosition();
-    init_pos.pos += 0.5 * ChWorldFrame::Vertical();
+    // Initial location and orientation from CRG terrain (create vehicle 0.5 m above road)
+    auto init_csys = terrain.GetStartPosition();
+    init_csys.pos += 0.5 * ChWorldFrame::Vertical();
 
     // Create the HMMWV vehicle, set parameters, and initialize
     HMMWV_Full my_hmmwv(&sys);
     my_hmmwv.SetContactMethod(ChContactMethod::SMC);
     my_hmmwv.SetChassisFixed(false);
-    my_hmmwv.SetInitPosition(ChCoordsys<>(init_pos));
+    my_hmmwv.SetInitPosition(init_csys);
     my_hmmwv.SetPowertrainType(PowertrainModelType::SHAFTS);
     my_hmmwv.SetDriveType(DrivelineTypeWV::RWD);
     my_hmmwv.SetTireType(tire_model);
@@ -338,7 +342,7 @@ int main(int argc, char* argv[]) {
     app.SetHUDLocation(500, 20);
     app.SetSkyBox();
     app.AddTypicalLogo();
-    for (auto loc : light_locs)
+    for (auto& loc : light_locs)
         app.AddLight(irr::core::vector3dfCH(ChWorldFrame::FromISO(loc)), 100);
     app.SetChaseCamera(ChVector<>(0.0, 0.0, 1.75), 6.0, 0.5);
     app.SetTimestep(step_size);
