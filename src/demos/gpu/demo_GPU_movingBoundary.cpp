@@ -45,7 +45,7 @@ int main(int argc, char* argv[]) {
     // with the fourth constructor param, so the coordinate range we are now working with is (0,0,0) to (X,Y,Z), instead
     // of (-X/2,-Y/2,-Z/2) to (X/2, Y/2, Z/2).
     ChSystemGpu gpu_sys(params.sphere_radius, params.sphere_density,
-                        make_float3(params.box_X, params.box_Y, params.box_Z),
+                        ChVector<float>(params.box_X, params.box_Y, params.box_Z),
                         ChVector<float>(params.box_X / 2, params.box_Y / 2, params.box_Z / 2));
 
     gpu_sys.SetPsiFactors(params.psi_T, params.psi_L);

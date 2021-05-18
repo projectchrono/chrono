@@ -26,8 +26,9 @@ namespace gpu {
 
 // -----------------------------------------------------------------------------
 
-ChSystemGpu::ChSystemGpu(float sphere_rad, float density, float3 boxDims, ChVector<float> O) {
-    m_sys = new ChSystemGpu_impl(sphere_rad, density, boxDims, make_float3(O.x(), O.y(), O.z()));
+ChSystemGpu::ChSystemGpu(float sphere_rad, float density, const ChVector<float>& boxDims, ChVector<float> O) {
+    m_sys = new ChSystemGpu_impl(sphere_rad, density, make_float3(boxDims.x(), boxDims.y(), boxDims.z()),
+                                 make_float3(O.x(), O.y(), O.z()));
 }
 
 ChSystemGpu::ChSystemGpu(const std::string& checkpoint) {
@@ -35,9 +36,10 @@ ChSystemGpu::ChSystemGpu(const std::string& checkpoint) {
     ReadCheckpointFile(checkpoint, true);
 }
 
-ChSystemGpuMesh::ChSystemGpuMesh(float sphere_rad, float density, float3 boxDims, ChVector<float> O)
+ChSystemGpuMesh::ChSystemGpuMesh(float sphere_rad, float density, const ChVector<float>& boxDims, ChVector<float> O)
     : mesh_verbosity(CHGPU_MESH_VERBOSITY::QUIET) {
-    m_sys = new ChSystemGpuMesh_impl(sphere_rad, density, boxDims, make_float3(O.x(), O.y(), O.z()));
+    m_sys = new ChSystemGpuMesh_impl(sphere_rad, density, make_float3(boxDims.x(), boxDims.y(), boxDims.z()),
+                                     make_float3(O.x(), O.y(), O.z()));
 }
 
 ChSystemGpuMesh::ChSystemGpuMesh(const std::string& checkpoint) : mesh_verbosity(CHGPU_MESH_VERBOSITY::QUIET) {
@@ -53,7 +55,7 @@ ChSystemGpuMesh::~ChSystemGpuMesh() {}
 
 // -----------------------------------------------------------------------------
 
-void ChSystemGpu::SetGravitationalAcceleration(const ChVector<float> g) {
+void ChSystemGpu::SetGravitationalAcceleration(const ChVector<float>& g) {
     m_sys->X_accGrav = (float)g.x();
     m_sys->Y_accGrav = (float)g.y();
     m_sys->Z_accGrav = (float)g.z();

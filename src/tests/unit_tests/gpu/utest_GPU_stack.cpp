@@ -45,7 +45,7 @@ TEST(gpuStack, check) {
     float settled_pos = -100.f / 2.0f + radius - penetration;
 
     // Setup simulation
-    ChSystemGpu gpu_sys(radius, density, make_float3(100.f, 100.f, 100.f));
+    ChSystemGpu gpu_sys(radius, density, ChVector<float>(100.f, 100.f, 100.f));
     gpu_sys.SetGravitationalAcceleration(ChVector<>(0, 0, -g));
     gpu_sys.SetFrictionMode(CHGPU_FRICTION_MODE::MULTI_STEP);
     gpu_sys.SetTimeIntegrator(CHGPU_TIME_INTEGRATOR::CHUNG);

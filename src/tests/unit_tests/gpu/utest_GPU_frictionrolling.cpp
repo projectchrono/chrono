@@ -46,7 +46,7 @@ TEST(gpuFrictionRolling, check) {
     float settled_pos = -20.f / 2.f + radius - penetration;
 
     // setup simulation
-    ChSystemGpu gpu_sys(radius, density, make_float3(20.f, 20.f, 20.f));
+    ChSystemGpu gpu_sys(radius, density, ChVector<float>(20.f, 20.f, 20.f));
 
     // set normal force model
     gpu_sys.SetKn_SPH2SPH(1e7);

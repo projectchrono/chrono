@@ -179,7 +179,7 @@ int main(int argc, char* argv[]) {
 
     // run_mode = 0, this is a newly started run. We have to set all simulation params.
     ChSystemGpuMesh gpu_sys(params.sphere_radius, params.sphere_density,
-                            make_float3(params.box_X, params.box_Y, params.box_Z));
+                            ChVector<float>(params.box_X, params.box_Y, params.box_Z));
 
     printf(
         "Now run_mode == 0, this run is particle settling phase.\n"

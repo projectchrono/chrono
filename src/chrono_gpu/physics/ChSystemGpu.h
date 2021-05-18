@@ -39,7 +39,7 @@ class ChSystemGpuMesh_impl;
 class CH_GPU_API ChSystemGpu {
   public:
     /// Construct system with given sphere radius, density, big domain dimensions and center.
-    ChSystemGpu(float sphere_rad, float density, float3 boxDims, ChVector<float> O = ChVector<float>(0));
+    ChSystemGpu(float sphere_rad, float density, const ChVector<float>& boxDims, ChVector<float> O = ChVector<float>(0));
 
     /// Construct system with a checkpoint file.
     ChSystemGpu(const std::string& checkpoint);
@@ -47,8 +47,7 @@ class CH_GPU_API ChSystemGpu {
     virtual ~ChSystemGpu();
 
     /// Set gravitational acceleration vector.
-    void SetGravitationalAcceleration(const ChVector<float> g);
-    void SetGravitationalAcceleration(const float3 g);
+    void SetGravitationalAcceleration(const ChVector<float>& g);
 
     /// Set particle positions, velocities and angular velocities.
     void SetParticles(const std::vector<ChVector<float>>& points,
@@ -298,6 +297,9 @@ class CH_GPU_API ChSystemGpu {
     /// Write contact pair/history to a stream.
     /// WriteCheckpointFile() and WriteContactHistoryFile() are its wrappers.
     void WriteHstHistory(std::ofstream& histFile) const;
+
+    /// Set gravitational acceleration as a float3 vector.
+    void SetGravitationalAcceleration(const float3 g);
 };
 
 // -----------------------------------------------------------------------------
@@ -305,9 +307,11 @@ class CH_GPU_API ChSystemGpu {
 /// Interface to a Chrono::Gpu mesh system.
 class CH_GPU_API ChSystemGpuMesh : public ChSystemGpu {
   public:
-    /// Construct system with given sphere radius, density, big domain dimensions, and an optional origin point location
-    /// of the reference frame w.r.t. the center of the big domain.
-    ChSystemGpuMesh(float sphere_rad, float density, float3 boxDims, ChVector<float> O = ChVector<float>(0));
+    /// Construct system with given sphere radius, density, big domain dimensions and center.
+    ChSystemGpuMesh(float sphere_rad,
+                    float density,
+                    const ChVector<float>& boxDims,
+                    ChVector<float> O = ChVector<float>(0));
 
     /// Construct system with a checkpoint file.
     ChSystemGpuMesh(const std::string& checkpoint);
