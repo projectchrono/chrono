@@ -168,6 +168,39 @@ float CRGTerrain::GetCoefficientFriction(const ChVector<>& loc) const {
     return m_friction_fun ? (*m_friction_fun)(loc) : m_friction;
 }
 
+double CRGTerrain::GetStartHeading() {
+    // complete road can have a start heading different from zero
+    double u = 0.0;
+    double v = 0.0;
+    double phi = 0.0;
+    double curv = 0.0;
+    int ret = crgEvaluv2pk(m_cpId, u, v, &phi, &curv);
+    if (ret == 0) {
+        return 0.0;
+    } else {
+        return phi;
+    }
+}
+
+ChCoordsys<> CRGTerrain::GetStartPosition() {
+    double u = 0.0;
+    double v = 0.0;
+    double phi = 0.0;
+    double curv = 0.0;
+    double x, y, z;
+
+    int xy_ok = crgEvaluv2xy(m_cpId, u, v, &x, &y);
+    if (xy_ok != 1) {
+        GetLog() << "CRGTerrain::GetHeight(): error during uv -> z coordinate transformation\n";
+    }
+
+    int z_ok = crgEvaluv2z(m_cpId, u, v, &z);
+    if (z_ok != 1) {
+        GetLog() << "CRGTerrain::GetHeight(): error during uv -> z coordinate transformation\n";
+    }
+    return ChCoordsys<>(ChVector<>(x, y, z), Q_from_AngZ(GetStartHeading()));
+}
+
 double CRGTerrain::GetHeight(const ChVector<>& loc) const {
     ChVector<> loc_ISO = ChWorldFrame::ToISO(loc);
     double u, v, z;
@@ -422,7 +455,6 @@ void CRGTerrain::ExportCurvesPovray(const std::string& out_dir) {
     utils::WriteCurvePovray(*m_road_left, m_curve_left_name, out_dir, 0.04, ChColor(0.5f, 0.8f, 0.0f));
     utils::WriteCurvePovray(*m_road_right, m_curve_right_name, out_dir, 0.04, ChColor(0.5f, 0.8f, 0.0f));
 }
-
 
 }  // end namespace vehicle
 }  // end namespace chrono
