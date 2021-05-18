@@ -151,11 +151,11 @@ int main(int argc, char* argv[]) {
             break;
         case RigidTerrain::PatchType::HEIGHT_MAP:
             patch = terrain.AddPatch(patch_mat, CSYSNORM, vehicle::GetDataFile("terrain/height_maps/test64.bmp"),
-                                     "test64", 128, 128, 0, 4);
+                                     128, 128, 0, 4);
             patch->SetTexture(vehicle::GetDataFile("terrain/textures/grass.jpg"), 16, 16);
             break;
         case RigidTerrain::PatchType::MESH:
-            patch = terrain.AddPatch(patch_mat, CSYSNORM, vehicle::GetDataFile("terrain/meshes/test.obj"), "test_mesh");
+            patch = terrain.AddPatch(patch_mat, CSYSNORM, vehicle::GetDataFile("terrain/meshes/test.obj"));
             patch->SetTexture(vehicle::GetDataFile("terrain/textures/grass.jpg"), 100, 100);
             break;
     }

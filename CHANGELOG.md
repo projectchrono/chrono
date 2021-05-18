@@ -5,7 +5,8 @@ Change Log
 ==========
 
 - [Unreleased (development version)](#unreleased-development-branch)
-  - [Added new loads for ChNodeFEAxyzrot](#added-new-loads-for-ChNodeFEAxyzrot)
+  - [Miscellaneous additions to Chrono::Gpu](#added-miscellaneous-additions-to-chronogpu)
+  - [New loads for ChNodeFEAxyzrot](#added-new-loads-for-chnodefeaxyzrot)
   - [Analytical box-box collision detection algorithm in Chrono::Multicore](#added-analytical-box-box-collision-detection-algorithm-in-chronomulticore)
   - [Checkpointing capabilities in Chrono::Gpu](#added-checkpointing-capabilities-in-chronogpu)
   - [Fixes to particle volume samplers and generators](#fixed-fixes-to-particle-volume-samplers-and-generators)
@@ -43,6 +44,21 @@ Change Log
 - [Release 4.0.0](#release-400---2019-02-22)
 
 ## Unreleased (development branch)
+
+## [Added] Miscellaneous additions to Chrono::Gpu
+
+The location of the computational domain can now be specified (in addition to its dimensions) through a fourth optional constructor argument of `ChSystemGpu` and `ChSystemGpuMesh`. By default, the axis-aligned computational domain is centered at the origin.  As such,
+```cpp
+ChSystemGpu gpu_sys(1, 1, ChVector<float>(100, 80, 60));
+```
+sets the computational domain to be [-50,50] x [-40,40] x [-30,30], while
+```cpp
+ChSystemGpu gpu_sys(1, 1, ChVector<float>(100, 80, 60), ChVector<float>(10, 20, 30));
+```
+sets the computational domain to be [-40,60] x [-20,60] x [0,60].
+Note also that, for consistency of the API, the type of the domain size (third constructor argument) was changed to `const ChVector<float>&`.
+
+A new function, `ChSystemGpu::GetParticlesKineticEnergy` was added to calculate and return the total kinetic energy of the granular particles.
 
 ### [Added] New loads for ChNodeFEAxyzrot
 

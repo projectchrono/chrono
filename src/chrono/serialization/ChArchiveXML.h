@@ -307,7 +307,7 @@ class  ChArchiveInXML : public ChArchiveIn {
 			try {
 				document.parse<0>(&buffer[0]);
 			}
-			catch (rapidxml::parse_error merror) {
+			catch (const rapidxml::parse_error &merror) {
 				std::string line(merror.where<char>());
 				line.erase(std::find_if(line.begin(), line.end(), [](int c) {return (c==*"\n");}), line.end());
 				throw ChExceptionArchive(std::string("XML parsing error: ") + merror.what() + " at: \n" + line + "\n");

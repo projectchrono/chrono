@@ -17,11 +17,11 @@ stages:
   tags:
   - linux
   image: 
-    name: archlinux/base
+    name: archlinux:base-devel
     entrypoint: ["/usr/bin/bash", "-c"]
   before_script:
   - uname -a
-  - pacman -Syyu --noconfirm base-devel cuda git eigen cmake glfw glm glew glut irrlicht ninja wget python python-pip openmpi swig hdf5
+  - pacman -Syyu --noconfirm cuda git eigen cmake glfw glm glew glut irrlicht ninja wget python python-pip openmpi swig hdf5
 # Clean up the package cache to make more space for the build
   - pacman -Scc --noconfirm
   - ldconfig
@@ -70,7 +70,7 @@ linux:doxygen:deploy:
   tags:
   - linux
   image: 
-    name: archlinux/base
+    name: archlinux:base-devel
     entrypoint: ["/usr/bin/bash", "-c"]
   stage: deploy
   before_script:

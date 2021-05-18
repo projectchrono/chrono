@@ -470,7 +470,7 @@ public:
           }
           try {
               return ChClassFactory::GetClassTagName(typeid(*_ptr_to_val));
-          }catch (ChException myex) {
+          }catch (const ChException &) {
               return nostring;
           }
         }
@@ -1092,7 +1092,7 @@ class  ChArchiveOut : public ChArchive {
               const char* class_name = "";
                   try {
                       class_name = ChClassFactory::GetClassTagName(mtype).c_str(); // registered
-                  } catch(ChException mex) {   
+                  } catch(const ChException &) {   
                       class_name = mtype.name();
                   }
 				  std::string class_name_polished = class_name;
@@ -1381,7 +1381,7 @@ class  ChArchiveIn : public ChArchive {
             const char* class_name = "";
             try {
                 class_name = ChClassFactory::GetClassTagName(mtype).c_str(); // registered
-            } catch(ChException mex) {   
+            } catch(const ChException &) {   
                 class_name = mtype.name();
             }
 			std::string class_name_polished = class_name;

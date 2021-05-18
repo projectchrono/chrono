@@ -45,7 +45,7 @@ TEST(gpuStack, check) {
     float settled_pos = -100.f / 2.0f + radius - penetration;
 
     // Setup simulation
-    ChSystemGpu gpu_sys(radius, density, make_float3(100.f, 100.f, 100.f));
+    ChSystemGpu gpu_sys(radius, density, ChVector<float>(100.f, 100.f, 100.f));
     gpu_sys.SetGravitationalAcceleration(ChVector<>(0, 0, -g));
     gpu_sys.SetFrictionMode(CHGPU_FRICTION_MODE::MULTI_STEP);
     gpu_sys.SetTimeIntegrator(CHGPU_TIME_INTEGRATOR::CHUNG);
@@ -79,7 +79,7 @@ TEST(gpuStack, check) {
         velocity.push_back(ChVector<float>(0.0f, 0.0f, 0.0f));
     }
 
-    gpu_sys.SetParticlePositions(body_points, velocity);
+    gpu_sys.SetParticles(body_points, velocity);
 
     float step_size = 1e-4f;
     float curr_time = 0.f;
