@@ -328,7 +328,7 @@ void ChSystemDescriptor::DumpLastMatrices(bool assembled, const char* path) {
             file_fric.SetNumFormat(numformat);
             StreamOUTdenseMatlabFormat(mdfric, file_fric);
         }
-    } catch (chrono::ChException myexc) {
+    } catch (const chrono::ChException &myexc) {
         chrono::GetLog() << myexc.what();
     }
 }

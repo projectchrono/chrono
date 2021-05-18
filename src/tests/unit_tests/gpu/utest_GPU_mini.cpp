@@ -68,7 +68,7 @@ bool run_test(float box_size_X, float box_size_Y, float box_size_Z) {
                           box_size_Z / 4.f - sphereRadius);
     std::vector<ChVector<float>> body_points = sampler.SampleBox(center, hdims);
 
-    gpu_sys.SetParticlePositions(body_points);
+    gpu_sys.SetParticles(body_points);
 
     gpu_sys.SetBDFixed(true);
     gpu_sys.SetFrictionMode(CHGPU_FRICTION_MODE::FRICTIONLESS);

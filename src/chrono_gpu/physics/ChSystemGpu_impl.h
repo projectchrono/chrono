@@ -219,8 +219,8 @@ class ChSystemGpu_impl {
     // The system is not default-constructible
     ChSystemGpu_impl() = delete;
 
-    /// Construct Chrono::Gpu system with given sphere radius, density, and big domain dimensions.
-    ChSystemGpu_impl(float sphere_rad, float density, float3 boxDims);
+    /// Construct Chrono::Gpu system with given sphere radius, density, big domain dimensions and the frame origin.
+    ChSystemGpu_impl(float sphere_rad, float density, float3 boxDims, float3 O);
 
     /// Create big domain walls out of plane boundary conditions
     void CreateWallBCs();
@@ -311,6 +311,12 @@ class ChSystemGpu_impl {
 
     /// Get the max z position of the spheres, allows easier co-simulation
     double GetMaxParticleZ() const;
+
+    /// Return the total kinetic energy of all particles.
+    float ComputeTotalKE() const;
+
+    /// Return the squared sum of the linear velocity components (of all particles).
+    float computeLinVelSq() const;
 
     /// Return particle position.
     float3 GetParticlePosition(int nSphere) const;
@@ -636,12 +642,17 @@ class ChSystemGpu_impl {
     /// User defined density of the sphere
     float sphere_density_UU;
 
-    /// X-length of the big domain; defines the global X axis located at the CM of the box
+    /// X-length of the big domain; defines the global X axis located at the CM of the box (as default)
     float box_size_X;
-    /// Y-length of the big domain; defines the global Y axis located at the CM of the box
+    /// Y-length of the big domain; defines the global Y axis located at the CM of the box (as default)
     float box_size_Y;
-    /// Z-length of the big domain; defines the global Z axis located at the CM of the box
+    /// Z-length of the big domain; defines the global Z axis located at the CM of the box (as default)
     float box_size_Z;
+
+    /// XYZ coordinate of the center of the big box domain in the user-defined frame. Default is (0,0,0).
+    float user_coord_O_X;
+    float user_coord_O_Y;
+    float user_coord_O_Z;
 
     /// User-provided sphere positions in UU
     std::vector<float3> user_sphere_positions;
