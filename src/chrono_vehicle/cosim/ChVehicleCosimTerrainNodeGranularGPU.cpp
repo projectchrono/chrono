@@ -226,7 +226,7 @@ void ChVehicleCosimTerrainNodeGranularGPU::Construct() {
     float dimX = 2.0f * (float)m_hdimX;
     float dimY = 2.0f * (float)m_hdimY;
     float dimZ = m_init_depth + EXTRA_HEIGHT;
-    auto box = make_float3(dimX, dimY, dimZ);
+    auto box = ChVector<float>(dimX, dimY, dimZ);
 
     // Create granular system here
     m_systemGPU = new gpu::ChSystemGpuMesh((float)m_radius_g, (float)m_rho_g, box);
@@ -274,7 +274,7 @@ void ChVehicleCosimTerrainNodeGranularGPU::Construct() {
                 omg[i].x() >> omg[i].y() >> omg[i].z();
             assert(identifier == i);
         }
-        m_systemGPU->SetParticlePositions(pos, vel, omg);
+        m_systemGPU->SetParticles(pos, vel, omg);
 
         if (m_verbose)
             cout << "[Terrain node] read " << checkpoint_filename << "   num. particles = " << m_num_particles << endl;
@@ -310,7 +310,7 @@ void ChVehicleCosimTerrainNodeGranularGPU::Construct() {
             pos.insert(pos.end(), p.begin(), p.end());
         }
 
-        m_systemGPU->SetParticlePositions(pos);
+        m_systemGPU->SetParticles(pos);
         m_num_particles = (unsigned int)pos.size();
         if (m_verbose)
             cout << "[Terrain node] Generated num particles = " << m_num_particles << endl;
@@ -502,10 +502,6 @@ void ChVehicleCosimTerrainNodeGranularGPU::Settle() {
 
     // Reset cumulative simulation time
     m_cum_sim_time = 0;
-
-
-
-    cout << "\n\nKE = " << KE << "\n\n" << endl;
 }
 
 // -----------------------------------------------------------------------------
