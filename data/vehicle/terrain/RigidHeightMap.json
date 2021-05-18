@@ -10,7 +10,6 @@
 
       "Geometry": {
         "Height Map Filename": "terrain/height_maps/bump64.bmp",
-        "Mesh Name": "terrain_test64_POV_geom",
         "Size": [ 100, 64 ],
         "Height Range": [ 0, 4 ]
       },

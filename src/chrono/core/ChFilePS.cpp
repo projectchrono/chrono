@@ -145,7 +145,7 @@ ChFile_ps::ChFile_ps(char m_name[], double x, double y, double w, double h, char
             *this << mch;
             copied++;
         }
-    } catch (std::exception pollo) {
+    } catch (const std::exception &) {
         if (!copied) {
             throw ChException("Could not include the 'prolog.ps'. Is the prolog.ps file properly installed?");
         }
