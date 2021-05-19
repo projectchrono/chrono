@@ -170,6 +170,8 @@ void ChSystemGpu_impl::packSphereDataPointers() {
 
     sphere_data->sphere_fixed = sphere_fixed.data();
 
+    sphere_data->sphere_stats_buffer = sphere_stats_buffer.data();
+
     sphere_data->SD_NumSpheresTouching = SD_NumSpheresTouching.data();
     sphere_data->SD_SphereCompositeOffsets = SD_SphereCompositeOffsets.data();
     sphere_data->SD_SphereCompositeOffsets_SP = SD_SphereCompositeOffsets_ScratchPad.data();
@@ -898,10 +900,20 @@ float3 ChSystemGpu_impl::GetParticlePosition(int nSphere) const {
     return make_float3(x_UU, y_UU, z_UU);
 }
 
-float ChSystemGpu_impl::ComputeTotalKE() const {
-    float sumVelSq = computeLinVelSq();
-    return 0.5 * (4. / 3.) * CH_C_PI * sphere_radius_UU * sphere_radius_UU * sphere_radius_UU * sphere_density_UU *
-           sumVelSq;
+float ChSystemGpu_impl::ComputeTotalKE() {
+    size_t nSpheres = pos_X_dt.size();
+    if (nSpheres == 0)
+        return 0.f;
+
+    // Compute sum(v^2) and sum(w^2)
+    float v2_UU = computeArray3SquaredSum(pos_X_dt, pos_Y_dt, pos_Z_dt, nSpheres);
+    v2_UU *= VEL_SU2UU * VEL_SU2UU;
+    float w2_UU = computeArray3SquaredSum(sphere_Omega_X, sphere_Omega_Y, sphere_Omega_Z, nSpheres);
+    w2_UU /= TIME_SU2UU * TIME_SU2UU;
+    float m = (4. / 3.) * CH_C_PI * sphere_radius_UU * sphere_radius_UU * sphere_radius_UU * sphere_density_UU;
+
+    // Then, KE = 0.5 * m * sum(v^2) + 0.2 * m * r^2 * sum(w^2)
+    return 0.5 * m * v2_UU + 0.2 * m * sphere_radius_UU * sphere_radius_UU * w2_UU;
 }
 
 // return absolute velocity

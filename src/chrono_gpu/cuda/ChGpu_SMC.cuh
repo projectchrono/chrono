@@ -105,28 +105,36 @@ inline __device__ void figureOutTouchedSD(int sphCenter_X_local,
     }
 }
 
-/// Compute the squared sum of 3 arrays.
-template <typename T, unsigned int CUB_THREADS>
-__global__ void SumArray3Squared(T* sqSum, T* arrX, T* arrY, T* arrZ, size_t nSpheres) {
-    typedef cub::BlockReduce<T, CUB_THREADS> BlockReduceT;
-    __shared__ typename BlockReduceT::TempStorage temp_storage;
-
-    size_t mySphereID = (threadIdx.x + blockIdx.x * CUB_THREADS);
-    T Xdata = 0;
-    T Ydata = 0;
-    T Zdata = 0;
+/// Compute the elementwise squared sum of array XYZ components.
+template <typename T>
+__global__ void elementalArray3Squared(T* sqSum, const T* arrX, const T* arrY, const T* arrZ, size_t nSpheres) {
+    size_t mySphereID = (threadIdx.x + blockIdx.x * blockDim.x);
+    T Xdata;
+    T Ydata;
+    T Zdata;
 
     if (mySphereID < nSpheres) {
-        Xdata = arrX[blockIdx.x * CUB_THREADS + threadIdx.x];
-        Ydata = arrY[blockIdx.x * CUB_THREADS + threadIdx.x];
-        Zdata = arrZ[blockIdx.x * CUB_THREADS + threadIdx.x];
-        Xdata = Xdata * Xdata + Ydata * Ydata + Zdata * Zdata;
+        Xdata = arrX[mySphereID];
+        Ydata = arrY[mySphereID];
+        Zdata = arrZ[mySphereID];
+        sqSum[mySphereID] = Xdata * Xdata + Ydata * Ydata + Zdata * Zdata;
     }
-    __syncthreads();
+}
 
-    T block_sum = BlockReduceT(temp_storage).Sum(Xdata);
-    if (threadIdx.x == 0)
-        atomicAdd(sqSum, block_sum);
+/// A light-weight kernel that writes user-unit z coordinates of all particles to the posZ array.
+static __global__ void elementalZLocalToGlobal(float* posZ,
+                                               ChSystemGpu_impl::GranSphereDataPtr sphere_data,
+                                               size_t nSpheres,
+                                               ChSystemGpu_impl::GranParamsPtr gran_params) {
+    size_t mySphereID = (threadIdx.x + blockIdx.x * blockDim.x);
+    if (mySphereID < nSpheres) {
+        int zPos_local = sphere_data->sphere_local_pos_Z[mySphereID];
+        int3 ownerSD_triplet = SDIDTriplet(sphere_data->sphere_owner_SDs[mySphereID], gran_params);
+        float z_UU = zPos_local * gran_params->LENGTH_UNIT;
+        z_UU += gran_params->BD_frame_Z * gran_params->LENGTH_UNIT;
+        z_UU += ((int64_t)ownerSD_triplet.z * gran_params->SD_size_Z_SU) * gran_params->LENGTH_UNIT;
+        posZ[mySphereID] = z_UU;
+    }
 }
 
 /**
