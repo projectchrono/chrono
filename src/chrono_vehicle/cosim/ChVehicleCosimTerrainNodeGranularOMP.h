@@ -96,7 +96,10 @@ class CH_VEHICLE_API ChVehicleCosimTerrainNodeGranularOMP : public ChVehicleCosi
     void SetInputFromCheckpoint(const std::string& filename);
 
     /// Set simulation length for settling of granular material (default: 0.4).
-    void SetSettlingTime(double time) { m_time_settling = time; }
+    void SetSettlingTime(double time);
+
+    /// Set total kinetic energy threshold as stopping criteria for settling (default: 1e-3).
+    void SetSettlingKineticEneryThreshold(double threshold);
 
     /// Enable/disable output during settling (default: false).
     /// If enabled, output files are generated with the specified frequency.
@@ -138,9 +141,11 @@ class CH_VEHICLE_API ChVehicleCosimTerrainNodeGranularOMP : public ChVehicleCosi
     double m_radius_g;             ///< radius of one particle of granular material
     double m_rho_g;                ///< particle material density
 
-    double m_time_settling;  ///< simulation length for settling of granular material
-    bool m_settling_output;  ///< output files during settling?
-    double m_settling_fps;   ///< frequency of output during settling phase
+    bool m_fixed_settling_duration;  ///< flag controlling settling stop criteria
+    double m_time_settling;          ///< simulation length for settling of granular material
+    double m_KE_settling;            ///< threshold total kinetic energy for stopping settling
+    bool m_settling_output;          ///< output files during settling?
+    double m_settling_fps;           ///< frequency of output during settling phase
 
     virtual bool SupportsFlexibleTire() const override { return true; }
 
@@ -168,6 +173,9 @@ class CH_VEHICLE_API ChVehicleCosimTerrainNodeGranularOMP : public ChVehicleCosi
 
     /// Calculate current height of granular terrain.
     double CalcCurrentHeight();
+
+    /// Calculate total kinetic energy of granular material.
+    double CalcTotalKineticEnergy();
 
     void WriteParticleInformation(utils::CSV_writer& csv);
 

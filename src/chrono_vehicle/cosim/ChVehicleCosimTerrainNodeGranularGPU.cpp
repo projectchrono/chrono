@@ -64,7 +64,10 @@ ChVehicleCosimTerrainNodeGranularGPU::ChVehicleCosimTerrainNodeGranularGPU()
     // Default granular material properties
     m_radius_g = 0.01;
     m_rho_g = 2000;
+
+    m_fixed_settling_duration = true;
     m_time_settling = 0.4;
+    m_KE_settling = 1e-3;
 
     // Default granular system settings
     m_integrator_type = gpu::CHGPU_TIME_INTEGRATOR::CENTERED_DIFFERENCE;
@@ -191,6 +194,16 @@ void ChVehicleCosimTerrainNodeGranularGPU::SetMaterialSurface(const std::shared_
 void ChVehicleCosimTerrainNodeGranularGPU::SetInputFromCheckpoint(const std::string& filename) {
     m_use_checkpoint = true;
     m_checkpoint_filename = filename;
+}
+
+void ChVehicleCosimTerrainNodeGranularGPU::SetSettlingTime(double time) {
+    m_time_settling = time;
+    m_fixed_settling_duration = true;
+}
+
+void ChVehicleCosimTerrainNodeGranularGPU::SetSettlingKineticEneryThreshold(double threshold) {
+    m_KE_settling = threshold;
+    m_fixed_settling_duration = false;
 }
 
 void ChVehicleCosimTerrainNodeGranularGPU::EnableSettlingOutput(bool output, double output_fps) {
@@ -407,7 +420,6 @@ void ChVehicleCosimTerrainNodeGranularGPU::Settle() {
     double eta0 = CalculatePackingDensity(depth0);
 
     // Simulate settling of granular terrain
-    int sim_steps = (int)std::ceil(m_time_settling / m_step_size);
     int output_steps = (int)std::ceil(1 / (m_settling_fps * m_step_size));
     int output_frame = 0;
     int n_contacts;
@@ -415,7 +427,10 @@ void ChVehicleCosimTerrainNodeGranularGPU::Settle() {
     unsigned long long int cum_contacts = 0;
     double render_time = 0;
 
-    for (int is = 0; is < sim_steps; is++) {
+    int steps = 0;
+    double time = 0;
+    float KE = 0;
+    while (true) {
         // Advance step
         m_timer.reset();
         m_timer.start();
@@ -431,11 +446,11 @@ void ChVehicleCosimTerrainNodeGranularGPU::Settle() {
         max_contacts = std::max(max_contacts, n_contacts);
 
         if (m_verbose)
-            cout << '\r' << std::fixed << std::setprecision(6) << (is + 1) * m_step_size << "  ["
+            cout << '\r' << std::fixed << std::setprecision(6) << (steps + 1) * m_step_size << "  ["
                  << m_timer.GetTimeSeconds() << "]   " << n_contacts << std::flush;
 
         // Output (if enabled)
-        if (m_settling_output && is % output_steps == 0) {
+        if (m_settling_output && steps % output_steps == 0) {
             char filename[100];
             sprintf(filename, "%s/settling/settling_%05d.csv", m_node_out_dir.c_str(), output_frame + 1);
             m_systemGPU->SetParticleOutputFlags(gpu::CHGPU_OUTPUT_FLAGS::VEL_COMPONENTS |
@@ -450,6 +465,21 @@ void ChVehicleCosimTerrainNodeGranularGPU::Settle() {
             OnRender(m_system->GetChTime());
             render_time += std::max(m_render_step, m_step_size);
         }
+
+        steps++;
+        time += m_step_size;
+
+        // Stopping criteria
+        if (m_fixed_settling_duration) {
+            if (time >= m_time_settling) {
+                KE = m_systemGPU->GetParticlesKineticEnergy();
+                break;
+            }
+        } else if (time > 0.1) {
+            KE = m_systemGPU->GetParticlesKineticEnergy();
+            if (KE <= m_KE_settling)
+                break;
+        }
     }
 
     if (m_verbose) {
@@ -462,27 +492,15 @@ void ChVehicleCosimTerrainNodeGranularGPU::Settle() {
     if (m_verbose)
         cout << "[Terrain node] initial height = " << m_init_height << endl;
 
-    //// TEMPORARY HACK
-    // Calculate kinetic energy of granular material at the end of settling phase
-    float vol_g = (4.0f / 3) * (float)(CH_C_PI)*std::pow(m_radius_g, 3);
-    float mass_g = vol_g * m_rho_g;
-    float inertia_g = (2.0f / 5) * mass_g * std::pow(m_radius_g, 2);
-    float KE = 0;
-    for (unsigned int i = 0; i < m_num_particles; i++) {
-        auto v = m_systemGPU->GetParticleVelocity(i).Length2();
-        auto w = m_systemGPU->GetParticleAngVelocity(i).Length2();
-        KE += (mass_g * v + inertia_g * w) / 2;
-    }
-
     // Packing density after settling
     double depth1;
     double eta1 = CalculatePackingDensity(depth1);
     if (m_verbose) {
+        cout << "[Terrain node] settling phase ended at time:              " << time << endl;
         cout << "[Terrain node] total kinetic energy after settling:       " << KE << endl;
         cout << "[Terrain node] material depth before and after settling:  " << depth0 << " -> " << depth1 << endl;
         cout << "[Terrain node] packing density before and after settling: " << eta0 << " -> " << eta1 << endl;
     }
-
 
     // Write file with stats for the settling phase
     std::ofstream outf;
@@ -493,11 +511,11 @@ void ChVehicleCosimTerrainNodeGranularGPU::Settle() {
     outf << "Final material depth:       " << depth1 << endl;
     outf << "Final packing density:      " << eta1 << endl;
     outf << "Final kinetic energy:       " << KE << endl;
-    outf << "Average number of contacts: " << cum_contacts / (double)sim_steps << endl;
+    outf << "Average number of contacts: " << cum_contacts / (double)steps << endl;
     outf << "Maximum number contacts:    " << max_contacts << endl;
     outf << "Output?                     " << (m_settling_output ? "YES" : "NO") << endl;
     outf << "Output frequency (FPS):     " << m_settling_fps << endl;
-    outf << "Settling duration:          " << m_time_settling << endl;
+    outf << "Settling duration:          " << time << endl;
     outf << "Settling simulation time:   " << m_cum_sim_time << endl;
 
     // Reset cumulative simulation time

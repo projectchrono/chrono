@@ -20,6 +20,7 @@
 
 #include <iostream>
 #include <string>
+#include <limits>
 #include <mpi.h>
 
 #include "chrono/ChConfig.h"
@@ -60,6 +61,8 @@ bool GetProblemSpecs(int argc,
                      int& nthreads_rig,
                      int& nthreads_terrain,
                      double& step_size,
+                     bool& fixed_settling_time,
+                     double& KE_threshold,
                      double& settling_time,
                      double& sim_time,
                      ChVehicleCosimRigNode::ActuationType& act_type,
@@ -114,6 +117,8 @@ int main(int argc, char** argv) {
     int nthreads_rig = 1;
     int nthreads_terrain = 1;
     double step_size = 1e-4;
+    bool fixed_settling_time = true;
+    double KE_threshold = std::numeric_limits<double>::infinity();
     double settling_time = 0.4;
     double sim_time = 10;
     double base_vel = 1.0;
@@ -130,7 +135,7 @@ int main(int argc, char** argv) {
     std::string suffix = "";
     bool verbose = true;
     if (!GetProblemSpecs(argc, argv, rank, terrain_specfile, tire_specfile, nthreads_rig, nthreads_terrain, step_size,
-                         settling_time, sim_time, act_type, base_vel, slip, total_mass, toe_angle, dbp_filter_window,
+                         fixed_settling_time, KE_threshold, settling_time, sim_time, act_type, base_vel, slip, total_mass, toe_angle, dbp_filter_window,
                          use_checkpoint, output_fps, render_fps, sim_output, settling_output, render, verbose,
                          suffix)) {
         MPI_Finalize();
@@ -304,7 +309,10 @@ int main(int argc, char** argv) {
                 if (use_checkpoint) {
                     terrain->SetInputFromCheckpoint("checkpoint_settled.dat");
                 } else {
-                    terrain->SetSettlingTime(settling_time);
+                    if (fixed_settling_time)
+                        terrain->SetSettlingTime(settling_time);
+                    else
+                        terrain->SetSettlingKineticEneryThreshold(KE_threshold);
                     terrain->EnableSettlingOutput(settling_output, output_fps);
                     terrain->Settle();
                     terrain->WriteCheckpoint("checkpoint_settled.dat");
@@ -328,7 +336,10 @@ int main(int argc, char** argv) {
                 if (use_checkpoint) {
                     terrain->SetInputFromCheckpoint("checkpoint_settled.dat");
                 } else {
-                    terrain->SetSettlingTime(settling_time);
+                    if (fixed_settling_time)
+                        terrain->SetSettlingTime(settling_time);
+                    else
+                        terrain->SetSettlingKineticEneryThreshold(KE_threshold);
                     terrain->EnableSettlingOutput(settling_output, output_fps);
                     terrain->Settle();
                     terrain->WriteCheckpoint("checkpoint_settled.dat");
@@ -409,6 +420,8 @@ bool GetProblemSpecs(int argc,
                      int& nthreads_rig,
                      int& nthreads_terrain,
                      double& step_size,
+                     bool& fixed_settling_time,
+                     double& KE_threshold,
                      double& settling_time,
                      double& sim_time,
                      ChVehicleCosimRigNode::ActuationType& act_type,
@@ -441,6 +454,7 @@ bool GetProblemSpecs(int argc,
 
     cli.AddOption<double>("Simulation", "settling_time", "Duration of settling phase [s]",
                           std::to_string(settling_time));
+    cli.AddOption<double>("Simulation", "KE_threshold", "KE threshold for settling [J] (default: infinity)");
     cli.AddOption<double>("Simulation", "sim_time", "Simulation length after settling phase [s]",
                           std::to_string(sim_time));
     cli.AddOption<double>("Simulation", "step_size", "Integration step size [s]", std::to_string(step_size));
@@ -509,8 +523,15 @@ bool GetProblemSpecs(int argc,
         return false;
     }
 
+    if (cli.CheckOption("KE_threshold")) {
+        KE_threshold = cli.GetAsType<double>("KE_threshold");
+        fixed_settling_time = false;
+    } else {
+        settling_time = cli.GetAsType<double>("settling_time");
+        fixed_settling_time = true;
+    }
+
     sim_time = cli.GetAsType<double>("sim_time");
-    settling_time = cli.GetAsType<double>("settling_time");
     step_size = cli.GetAsType<double>("step_size");
 
     total_mass = cli.GetAsType<double>("total_mass");

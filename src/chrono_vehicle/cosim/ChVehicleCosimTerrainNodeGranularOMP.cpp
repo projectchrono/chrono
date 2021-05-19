@@ -75,7 +75,10 @@ ChVehicleCosimTerrainNodeGranularOMP::ChVehicleCosimTerrainNodeGranularOMP(ChCon
     // Default granular material properties
     m_radius_g = 0.01;
     m_rho_g = 2000;
+
+    m_fixed_settling_duration = true;
     m_time_settling = 0.4;
+    m_KE_settling = 1e-3;
 
     // Create system and set method-specific solver settings
     switch (m_method) {
@@ -298,6 +301,16 @@ void ChVehicleCosimTerrainNodeGranularOMP::SetMaterialSurface(const std::shared_
 void ChVehicleCosimTerrainNodeGranularOMP::SetInputFromCheckpoint(const std::string& filename) {
     m_use_checkpoint = true;
     m_checkpoint_filename = filename;
+}
+
+void ChVehicleCosimTerrainNodeGranularOMP::SetSettlingTime(double time) {
+    m_time_settling = time;
+    m_fixed_settling_duration = true;
+}
+
+void ChVehicleCosimTerrainNodeGranularOMP::SetSettlingKineticEneryThreshold(double threshold) {
+    m_KE_settling = threshold;
+    m_fixed_settling_duration = false;
 }
 
 void ChVehicleCosimTerrainNodeGranularOMP::EnableSettlingOutput(bool output, double output_fps) {
@@ -565,7 +578,6 @@ void ChVehicleCosimTerrainNodeGranularOMP::Settle() {
     double eta0 = CalculatePackingDensity(depth0);
 
     // Simulate settling of granular terrain
-    int sim_steps = (int)std::ceil(m_time_settling / m_step_size);
     int output_steps = (int)std::ceil(1 / (m_settling_fps * m_step_size));
     int output_frame = 0;
     int n_contacts;
@@ -573,7 +585,10 @@ void ChVehicleCosimTerrainNodeGranularOMP::Settle() {
     int cum_contacts = 0;
     double render_time = 0;
 
-    for (int is = 0; is < sim_steps; is++) {
+    int steps = 0;
+    double time = 0;
+    float KE = 0;
+    while (true) {
         // Advance step
         m_timer.reset();
         m_timer.start();
@@ -590,7 +605,7 @@ void ChVehicleCosimTerrainNodeGranularOMP::Settle() {
                  << m_timer.GetTimeSeconds() << "]  " << n_contacts << std::flush;
 
         // Output (if enabled)
-        if (m_settling_output && is % output_steps == 0) {
+        if (m_settling_output && steps % output_steps == 0) {
             char filename[100];
             sprintf(filename, "%s/settling/settling_%05d.dat", m_node_out_dir.c_str(), output_frame + 1);
             utils::CSV_writer csv(" ");
@@ -603,6 +618,21 @@ void ChVehicleCosimTerrainNodeGranularOMP::Settle() {
         if (m_render && m_system->GetChTime() > render_time) {
             OnRender(m_system->GetChTime());
             render_time += std::max(m_render_step, m_step_size);
+        }
+
+        steps++;
+        time += m_step_size;
+
+        // Stopping criteria
+        if (m_fixed_settling_duration) {
+            if (time >= m_time_settling) {
+                KE = CalcTotalKineticEnergy();
+                break;
+            }
+        } else if (time > 0.1) {
+            KE = CalcTotalKineticEnergy();
+            if (KE <= m_KE_settling)
+                break;
         }
     }
 
@@ -620,6 +650,8 @@ void ChVehicleCosimTerrainNodeGranularOMP::Settle() {
     double depth1;
     double eta1 = CalculatePackingDensity(depth1);
     if (m_verbose) {
+        cout << "[Terrain node] settling phase ended at time:              " << time << endl;
+        cout << "[Terrain node] total kinetic energy after settling:       " << KE << endl;
         cout << "[Terrain node] material depth before and after settling:  " << depth0 << " -> " << depth1 << endl;
         cout << "[Terrain node] packing density before and after settling: " << eta0 << " -> " << eta1 << endl;
     }
@@ -632,11 +664,12 @@ void ChVehicleCosimTerrainNodeGranularOMP::Settle() {
     outf << "Initial packing density:    " << eta0 << endl;
     outf << "Final material depth:       " << depth1 << endl;
     outf << "Final packing density:      " << eta1 << endl;
-    outf << "Average number of contacts: " << cum_contacts / (double)sim_steps << endl;
+    outf << "Final kinetic energy:       " << KE << endl;
+    outf << "Average number of contacts: " << cum_contacts / (double)steps << endl;
     outf << "Maximum number contacts:    " << max_contacts << endl;
     outf << "Output?                     " << (m_settling_output ? "YES" : "NO") << endl;
     outf << "Output frequency (FPS):     " << m_settling_fps << endl;
-    outf << "Settling duration:          " << m_time_settling << endl;
+    outf << "Settling duration:          " << time << endl;
     outf << "Settling simulation time:   " << m_cum_sim_time << endl;
 
     // Reset cumulative simulation time
@@ -644,6 +677,18 @@ void ChVehicleCosimTerrainNodeGranularOMP::Settle() {
 }
 
 // -----------------------------------------------------------------------------
+
+double ChVehicleCosimTerrainNodeGranularOMP::CalcTotalKineticEnergy() {
+    double KE = 0;
+    for (const auto& body : m_system->Get_bodylist()) {
+        if (body->GetIdentifier() > 0) {
+            auto omg = body->GetWvel_par();
+            auto J = body->GetInertiaXX();
+            KE += body->GetMass() * body->GetPos_dt().Length2() + omg.Dot(J * omg);
+        }
+    }
+    return 0.5 * KE;
+}
 
 double ChVehicleCosimTerrainNodeGranularOMP::CalcCurrentHeight() {
     double height = -std::numeric_limits<double>::max();

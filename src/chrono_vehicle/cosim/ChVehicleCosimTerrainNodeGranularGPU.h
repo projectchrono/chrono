@@ -81,7 +81,10 @@ class CH_VEHICLE_API ChVehicleCosimTerrainNodeGranularGPU : public ChVehicleCosi
     void SetInputFromCheckpoint(const std::string& filename);
 
     /// Set simulation length for settling of granular material (default: 0.4).
-    void SetSettlingTime(double time) { m_time_settling = time; }
+    void SetSettlingTime(double time);
+
+    /// Set total kinetic energy threshold as stopping criteria for settling (default: 1e-3).
+    void SetSettlingKineticEneryThreshold(double threshold);
 
     /// Enable/disable output during settling (default: false).
     /// If enabled, output files are generated with the specified frequency.
@@ -118,14 +121,15 @@ class CH_VEHICLE_API ChVehicleCosimTerrainNodeGranularGPU : public ChVehicleCosi
     bool m_use_checkpoint;              ///< initialize granular terrain from checkpoint file
     std::string m_checkpoint_filename;  ///< name of input checkpoint file
 
-    int m_num_layers;              ///< number of generated particle layers
     unsigned int m_num_particles;  ///< number of granular material bodies
     double m_radius_g;             ///< radius of one particle of granular material
     double m_rho_g;                ///< particle material density
 
-    double m_time_settling;  ///< simulation length for settling of granular material
-    bool m_settling_output;  ///< output files during settling?
-    double m_settling_fps;   ///< frequency of output during settling phase
+    bool m_fixed_settling_duration;  ///< flag controlling settling stop criteria
+    double m_time_settling;          ///< simulation length for settling of granular material
+    double m_KE_settling;            ///< threshold total kinetic energy for stopping settling
+    bool m_settling_output;          ///< output files during settling?
+    double m_settling_fps;           ///< frequency of output during settling phase
 
     virtual bool SupportsFlexibleTire() const override { return false; }
 
