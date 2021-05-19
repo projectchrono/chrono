@@ -204,6 +204,9 @@ class CH_GPU_API ChSystemGpu {
     /// Return the maximum Z position over all particles.
     double GetMaxParticleZ() const;
 
+    /// Return the minimum Z position over all particles.
+    double GetMinParticleZ() const;
+
     /// Return the radius of a spherical particle.
     float GetParticleRadius() const;
 
