@@ -127,7 +127,7 @@ class ChApi ChCollisionSystemChrono : public ChCollisionSystem {
     }
 
     /// Mark bodies whose AABB is contained within the specified box.
-    virtual void GetOverlappingAABB(custom_vector<char>& active_id, real3 Amin, real3 Amax);
+    virtual void GetOverlappingAABB(std::vector<char>& active_id, real3 Amin, real3 Amax);
 
     /// Return the pairs of IDs for overlapping contact shapes.
     virtual std::vector<vec2> GetOverlappingPairs();
@@ -139,7 +139,7 @@ class ChApi ChCollisionSystemChrono : public ChCollisionSystem {
     collision::ChNarrowphase narrowphase;       ///< methods for narrow-phase collision detection
     collision::ChAABBGenerator aabb_generator;  ///< methods for cpmputing object AABBs
 
-    custom_vector<char> body_active;
+    std::vector<char> body_active;
 
     bool use_aabb_active;  ///< enable freezing of objects outside the active bounding box
     real3 aabb_min;        ///< lower corner of active bounding box

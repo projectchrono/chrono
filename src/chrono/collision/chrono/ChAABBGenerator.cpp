@@ -111,17 +111,20 @@ ChAABBGenerator::ChAABBGenerator() : data_manager(nullptr) {}
 
 void ChAABBGenerator::GenerateAABB(real envelope) {
     if (data_manager->num_rigid_shapes > 0) {
-        const custom_vector<shape_type>& typ_rigid = data_manager->shape_data.typ_rigid;
-        const custom_vector<int>& start_rigid = data_manager->shape_data.start_rigid;
-        const custom_vector<uint>& id_rigid = data_manager->shape_data.id_rigid;
-        const custom_vector<real3>& obj_data_A = data_manager->shape_data.ObA_rigid;
-        const custom_vector<quaternion>& obj_data_R = data_manager->shape_data.ObR_rigid;
-        const custom_vector<real3>& convex_rigid = data_manager->shape_data.convex_rigid;
-        const custom_vector<real3>& pos_rigid = data_manager->state_data.pos_rigid;
-        const custom_vector<quaternion>& body_rot = data_manager->state_data.rot_rigid;
+        const std::vector<shape_type>& typ_rigid = data_manager->shape_data.typ_rigid;
+        const std::vector<int>& start_rigid = data_manager->shape_data.start_rigid;
+        const std::vector<uint>& id_rigid = data_manager->shape_data.id_rigid;
+        const std::vector<real3>& obj_data_A = data_manager->shape_data.ObA_rigid;
+        const std::vector<quaternion>& obj_data_R = data_manager->shape_data.ObR_rigid;
+        const std::vector<real3>& convex_rigid = data_manager->shape_data.convex_rigid;
+
+        const std::vector<real3>& pos_rigid = *data_manager->state_data.pos_rigid;
+        const std::vector<quaternion>& body_rot = *data_manager->state_data.rot_rigid;
+        
         const uint num_rigid_shapes = data_manager->num_rigid_shapes;
-        custom_vector<real3>& aabb_min = data_manager->host_data.aabb_min;
-        custom_vector<real3>& aabb_max = data_manager->host_data.aabb_max;
+        
+        std::vector<real3>& aabb_min = data_manager->host_data.aabb_min;
+        std::vector<real3>& aabb_max = data_manager->host_data.aabb_max;
 
         aabb_min.resize(num_rigid_shapes);
         aabb_max.resize(num_rigid_shapes);

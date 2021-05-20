@@ -52,8 +52,6 @@
 
 typedef int shape_type;
 
-#define custom_vector std::vector
-
 #if defined(CHRONO_OPENMP_ENABLED)
     #define THRUST_PAR thrust::omp::par,
 #elif defined(CHRONO_TBB_ENABLED)
@@ -113,11 +111,11 @@ OutputIterator Thrust_Expand(InputIterator1 first1,
     difference_type output_size = thrust::reduce(THRUST_PAR first1, last1);
 
     // scan the counts to obtain output offsets for each input element
-    custom_vector<difference_type> output_offsets(input_size, 0);
+    std::vector<difference_type> output_offsets(input_size, 0);
     thrust::exclusive_scan(THRUST_PAR first1, last1, output_offsets.begin());
 
     // scatter the nonzero counts into their corresponding output positions
-    custom_vector<difference_type> output_indices(output_size, 0);
+    std::vector<difference_type> output_indices(output_size, 0);
     thrust::scatter_if(THRUST_PAR thrust::counting_iterator<difference_type>(0),
                        thrust::counting_iterator<difference_type>(input_size), output_offsets.begin(), first1,
                        output_indices.begin());

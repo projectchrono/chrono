@@ -84,110 +84,131 @@ class collision_measures {
 
 /// Structure of arrays containing contact shape information.
 struct shape_container {
-    custom_vector<short2> fam_rigid;  ///< family information
-    custom_vector<uint> id_rigid;     ///< ID of associated body
-    custom_vector<int> typ_rigid;     ///< shape type
-    custom_vector<int> local_rigid;   ///< local shape index in collision model of associated body
-    custom_vector<int> start_rigid;   ///< start index in the appropriate container of dimensions
-    custom_vector<int> length_rigid;  ///< usually 1, except for convex
+    std::vector<short2> fam_rigid;  ///< family information
+    std::vector<uint> id_rigid;     ///< ID of associated body
+    std::vector<int> typ_rigid;     ///< shape type
+    std::vector<int> local_rigid;   ///< local shape index in collision model of associated body
+    std::vector<int> start_rigid;   ///< start index in the appropriate container of dimensions
+    std::vector<int> length_rigid;  ///< usually 1, except for convex
 
-    custom_vector<quaternion> ObR_rigid;  ///< Shape rotation
-    custom_vector<real3> ObA_rigid;       ///< Position of shape
+    std::vector<quaternion> ObR_rigid;  ///< Shape rotation
+    std::vector<real3> ObA_rigid;       ///< Position of shape
 
-    custom_vector<real> sphere_rigid;      ///< radius for sphere shapes
-    custom_vector<real3> box_like_rigid;   ///< dimensions for box-like shapes
-    custom_vector<real3> triangle_rigid;   ///< vertices of all triangle shapes (3 per shape)
-    custom_vector<real2> capsule_rigid;    ///< radius and half-length for capsule shapes
-    custom_vector<real4> rbox_like_rigid;  ///< dimensions and radius for rbox-like shapes
-    custom_vector<real3> convex_rigid;     ///<
+    std::vector<real> sphere_rigid;      ///< radius for sphere shapes
+    std::vector<real3> box_like_rigid;   ///< dimensions for box-like shapes
+    std::vector<real3> triangle_rigid;   ///< vertices of all triangle shapes (3 per shape)
+    std::vector<real2> capsule_rigid;    ///< radius and half-length for capsule shapes
+    std::vector<real4> rbox_like_rigid;  ///< dimensions and radius for rbox-like shapes
+    std::vector<real3> convex_rigid;     ///<
 
-    custom_vector<real3> triangle_global;
-    custom_vector<real3> obj_data_A_global;
-    custom_vector<quaternion> obj_data_R_global;
+    std::vector<real3> triangle_global;
+    std::vector<real3> obj_data_A_global;
+    std::vector<quaternion> obj_data_R_global;
 };
 
 /// Structure of arrays containing collision detection results.
 struct host_container {
-    custom_vector<real3> aabb_min;  ///< List of bounding boxes minimum point
-    custom_vector<real3> aabb_max;  ///< List of bounding boxes maximum point
+    std::vector<real3> aabb_min;  ///< List of bounding boxes minimum point
+    std::vector<real3> aabb_max;  ///< List of bounding boxes maximum point
 
-    custom_vector<long long> pair_shapeIDs;     ///< Shape IDs for each shape pair (encoded in a single long long)
-    custom_vector<long long> contact_shapeIDs;  ///< Shape IDs for each contact (encoded in a single long long)
+    std::vector<long long> pair_shapeIDs;     ///< Shape IDs for each shape pair (encoded in a single long long)
+    std::vector<long long> contact_shapeIDs;  ///< Shape IDs for each contact (encoded in a single long long)
 
     // Contact data
-    custom_vector<real3> norm_rigid_rigid;
-    custom_vector<real3> cpta_rigid_rigid;
-    custom_vector<real3> cptb_rigid_rigid;
-    custom_vector<real> dpth_rigid_rigid;
-    custom_vector<real> erad_rigid_rigid;
-    custom_vector<vec2> bids_rigid_rigid;
+    std::vector<real3> norm_rigid_rigid;
+    std::vector<real3> cpta_rigid_rigid;
+    std::vector<real3> cptb_rigid_rigid;
+    std::vector<real> dpth_rigid_rigid;
+    std::vector<real> erad_rigid_rigid;
+    std::vector<vec2> bids_rigid_rigid;
 
-    custom_vector<real3> norm_rigid_fluid;
-    custom_vector<real3> cpta_rigid_fluid;
-    custom_vector<real> dpth_rigid_fluid;
-    custom_vector<int> neighbor_rigid_fluid;
-    custom_vector<int> c_counts_rigid_fluid;
+    std::vector<real3> norm_rigid_fluid;
+    std::vector<real3> cpta_rigid_fluid;
+    std::vector<real> dpth_rigid_fluid;
+    std::vector<int> neighbor_rigid_fluid;
+    std::vector<int> c_counts_rigid_fluid;
 
     // each particle has a finite number of neighbors preallocated
-    custom_vector<int> neighbor_3dof_3dof;
-    custom_vector<int> c_counts_3dof_3dof;
-    custom_vector<int> particle_indices_3dof;
-    custom_vector<int> reverse_mapping_3dof;
+    std::vector<int> neighbor_3dof_3dof;
+    std::vector<int> c_counts_3dof_3dof;
+    std::vector<int> particle_indices_3dof;
+    std::vector<int> reverse_mapping_3dof;
 
     // Broadphase Data
-    custom_vector<uint> bin_intersections;
-    custom_vector<uint> bin_number;
-    custom_vector<uint> bin_number_out;
-    custom_vector<uint> bin_aabb_number;
-    custom_vector<uint> bin_start_index;
-    custom_vector<uint> bin_num_contact;
+    std::vector<uint> bin_intersections;
+    std::vector<uint> bin_number;
+    std::vector<uint> bin_number_out;
+    std::vector<uint> bin_aabb_number;
+    std::vector<uint> bin_start_index;
+    std::vector<uint> bin_num_contact;
 };
 
 /// Structure of arrays containing state data.
 struct state_container {
-    //// TODO: provide mechanism (shared_ptr?) to allow using external arrays when using this collision library from
-    ////       within Chrono::Multicore
-
     // Counters
     uint num_rigid_bodies;  ///< The number of rigid bodies in a system
     uint num_fluid_bodies;  ///< The number of fluid bodies in the system
 
     // Object data
-    custom_vector<real3> pos_rigid;
-    custom_vector<quaternion> rot_rigid;
-    custom_vector<char> active_rigid;
-    custom_vector<char> collide_rigid;
+    std::vector<real3>* pos_rigid;
+    std::vector<quaternion>* rot_rigid;
+    std::vector<char>* active_rigid;
+    std::vector<char>* collide_rigid;
 
     // Information for 3dof nodes
-    custom_vector<real3> pos_3dof;
-    custom_vector<real3> sorted_pos_3dof;
-    custom_vector<real3> vel_3dof;
-    custom_vector<real3> sorted_vel_3dof;
+    std::vector<real3>* pos_3dof;
+    std::vector<real3>* sorted_pos_3dof;
+    std::vector<real3>* vel_3dof;
+    std::vector<real3>* sorted_vel_3dof;
 };
 
-/// Structure with information on 3DOF fluid nodes
+/// Structure with information on 3DOF fluid nodes.
 struct node_container {
-    //// TODO: provide mechanism (shared_ptr?) to allow using external arrays when using this collision library from
-    ////       within Chrono::Multicore
-
     real kernel_radius;
     real collision_envelope;
     short2 family;
 };
 
-/// Global data for the custom Chrono collision system.
+/// Global data for the custom Chrono multicore collision system.
 class ChApi ChCollisionData {
   public:
-    ChCollisionData()
-        : num_rigid_contacts(0),
+    ChCollisionData(bool owns_data)
+        : owns_state_data(owns_data),
+          num_rigid_contacts(0),
           num_rigid_fluid_contacts(0),
           num_fluid_contacts(0),
           num_rigid_shapes(0),
-          add_contact_callback(nullptr) {}
+          add_contact_callback(nullptr) {
+        if (owns_data) {
+            state_data.pos_rigid = new std::vector<real3>;
+            state_data.rot_rigid = new std::vector<quaternion>;
+            state_data.active_rigid = new std::vector<char>;
+            state_data.collide_rigid = new std::vector<char>;
 
-    ~ChCollisionData() {}
+            state_data.pos_3dof = new std::vector<real3>;
+            state_data.sorted_pos_3dof = new std::vector<real3>;
+            state_data.vel_3dof = new std::vector<real3>;
+            state_data.sorted_vel_3dof = new std::vector<real3>;
+        }
+    }
+
+    ~ChCollisionData() {
+        if (owns_state_data) {
+            delete state_data.pos_rigid;
+            delete state_data.rot_rigid;
+            delete state_data.active_rigid;
+            delete state_data.collide_rigid;
+
+            delete state_data.pos_3dof;
+            delete state_data.sorted_pos_3dof;
+            delete state_data.vel_3dof;
+            delete state_data.sorted_vel_3dof;
+        }
+    }
 
     //// TODO: rename "host_container" and "host_data" to "collision_container" and "collision_data"
+
+    bool owns_state_data;  ///< if false, state data set from outside
 
     state_container state_data;  ///< State data arrays
     host_container host_data;    ///< Collision data arrays

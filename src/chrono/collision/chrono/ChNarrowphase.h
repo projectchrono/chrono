@@ -73,10 +73,10 @@ class ChApi ChNarrowphase {
   private:
     std::shared_ptr<ChCollisionData> data_manager;
 
-    custom_vector<char> contact_rigid_active;
-    custom_vector<char> contact_rigid_fluid_active;
-    custom_vector<char> contact_fluid_active;
-    custom_vector<uint> contact_index;
+    std::vector<char> contact_rigid_active;
+    std::vector<char> contact_rigid_fluid_active;
+    std::vector<char> contact_fluid_active;
+    std::vector<uint> contact_index;
     uint num_potential_rigid_contacts;
     uint num_potential_fluid_contacts;
     uint num_potential_rigid_fluid_contacts;
@@ -84,22 +84,22 @@ class ChApi ChNarrowphase {
     real envelope;
     Algorithm algorithm;
 
-    custom_vector<uint> f_bin_intersections;
-    custom_vector<uint> f_bin_number;
-    custom_vector<uint> f_bin_number_out;
-    custom_vector<uint> f_bin_fluid_number;
-    custom_vector<uint> f_bin_start_index;
-    custom_vector<uint> is_rigid_bin_active;
+    std::vector<uint> f_bin_intersections;
+    std::vector<uint> f_bin_number;
+    std::vector<uint> f_bin_number_out;
+    std::vector<uint> f_bin_fluid_number;
+    std::vector<uint> f_bin_start_index;
+    std::vector<uint> is_rigid_bin_active;
     uint f_number_of_bins_active;
-    custom_vector<int> ff_bin_ids;
-    custom_vector<int> ff_bin_starts;
-    custom_vector<int> ff_bin_ends;
+    std::vector<int> ff_bin_ids;
+    std::vector<int> ff_bin_starts;
+    std::vector<int> ff_bin_ends;
 
-    custom_vector<uint> t_bin_intersections;
-    custom_vector<uint> t_bin_number;
-    custom_vector<uint> t_bin_number_out;
-    custom_vector<uint> t_bin_fluid_number;
-    custom_vector<uint> t_bin_start_index;
+    std::vector<uint> t_bin_intersections;
+    std::vector<uint> t_bin_number;
+    std::vector<uint> t_bin_number_out;
+    std::vector<uint> t_bin_fluid_number;
+    std::vector<uint> t_bin_start_index;
 
     friend class ChCollisionSystemChrono;
 };

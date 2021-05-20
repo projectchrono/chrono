@@ -25,7 +25,7 @@ namespace chrono {
 namespace collision {
 
 ChCollisionSystemChrono::ChCollisionSystemChrono() : use_aabb_active(false) {
-    data_manager = chrono_types::make_shared<ChCollisionData>();
+    data_manager = chrono_types::make_shared<ChCollisionData>(true);
 
     broadphase.data_manager = data_manager;
     narrowphase.data_manager = data_manager;
@@ -261,10 +261,12 @@ void ChCollisionSystemChrono::SetNumThreads(int nthreads) {
 }
 
 void ChCollisionSystemChrono::Synchronize() {
-    custom_vector<real3>& position = data_manager->state_data.pos_rigid;
-    custom_vector<quaternion>& rotation = data_manager->state_data.rot_rigid;
-    custom_vector<char>& active = data_manager->state_data.active_rigid;
-    custom_vector<char>& collide = data_manager->state_data.collide_rigid;
+    assert(data_manager->owns_state_data);
+
+    std::vector<real3>& position = *data_manager->state_data.pos_rigid;
+    std::vector<quaternion>& rotation = *data_manager->state_data.rot_rigid;
+    std::vector<char>& active = *data_manager->state_data.active_rigid;
+    std::vector<char>& collide = *data_manager->state_data.collide_rigid;
 
     auto blist = m_system->Get_bodylist();
     int nbodies = static_cast<int>(blist.size());
@@ -294,15 +296,18 @@ void ChCollisionSystemChrono::Synchronize() {
 
 void ChCollisionSystemChrono::Run() {
     if (use_aabb_active) {
+        std::vector<char>& active = *data_manager->state_data.active_rigid;
+        const std::vector<char>& collide = *data_manager->state_data.collide_rigid;
+
         body_active.resize(data_manager->state_data.num_rigid_bodies);
         std::fill(body_active.begin(), body_active.end(), false);
 
         GetOverlappingAABB(body_active, aabb_min, aabb_max);
 
 #pragma omp parallel for
-        for (int i = 0; i < data_manager->state_data.active_rigid.size(); i++) {
-            if (data_manager->state_data.active_rigid[i] != 0 && data_manager->state_data.collide_rigid[i] != 0) {
-                data_manager->state_data.active_rigid[i] = body_active[i];
+        for (int i = 0; i < active.size(); i++) {
+            if (active[i] != 0 && collide[i] != 0) {
+                active[i] = body_active[i];
             }
         }
     }
@@ -396,7 +401,7 @@ double ChCollisionSystemChrono::GetTimerCollisionNarrow() const {
     return m_timer_narrow();
 }
 
-void ChCollisionSystemChrono::GetOverlappingAABB(custom_vector<char>& active_id, real3 Amin, real3 Amax) {
+void ChCollisionSystemChrono::GetOverlappingAABB(std::vector<char>& active_id, real3 Amin, real3 Amax) {
     aabb_generator.GenerateAABB(narrowphase.envelope);
 #pragma omp parallel for
     for (int i = 0; i < data_manager->shape_data.typ_rigid.size(); i++) {

@@ -44,7 +44,7 @@ auto inverted = thrust::make_tuple(real3(+C_LARGE_REAL, +C_LARGE_REAL, +C_LARGE_
 
 // Invert an AABB associated with an inactive shape or a shape on a non-colliding body.
 struct BoxInvert {
-    BoxInvert(const custom_vector<char>* collide) : m_collide(collide) {}
+    BoxInvert(const std::vector<char>* collide) : m_collide(collide) {}
     thrust::tuple<real3, real3, uint> operator()(const thrust::tuple<real3, real3, uint>& lhs) {
         uint lhs_id = thrust::get<2>(lhs);
         if (lhs_id == UINT_MAX || (*m_collide)[lhs_id] == 0)
@@ -52,7 +52,7 @@ struct BoxInvert {
         else
             return lhs;
     }
-    const custom_vector<char>* m_collide;
+    const std::vector<char>* m_collide;
 };
 
 // AABB union reduction operator
@@ -77,11 +77,12 @@ struct BoxReduce {
 // associated with non-colliding bodies.
 void ChBroadphase::RigidBoundingBox() {
     // Vectors of length = number of collision shapes
-    const custom_vector<real3>& aabb_min = data_manager->host_data.aabb_min;
-    const custom_vector<real3>& aabb_max = data_manager->host_data.aabb_max;
-    const custom_vector<uint>& id_rigid = data_manager->shape_data.id_rigid;
+    const std::vector<real3>& aabb_min = data_manager->host_data.aabb_min;
+    const std::vector<real3>& aabb_max = data_manager->host_data.aabb_max;
+    const std::vector<uint>& id_rigid = data_manager->shape_data.id_rigid;
+
     // Vectors of length = number of rigid bodies
-    const custom_vector<char>& collide_rigid = data_manager->state_data.collide_rigid;
+    const std::vector<char>& collide_rigid = *data_manager->state_data.collide_rigid;
 
     // Calculate union of all AABBs.
     // Excluded AABBs are inverted through the transform operation, prior to the reduction.
@@ -114,7 +115,7 @@ struct bbox_transformation : public thrust::unary_function<real3, bbox> {
 
 // Calculate AABB of all fluid particles.
 void ChBroadphase::FluidBoundingBox() {
-    const custom_vector<real3>& pos_fluid = data_manager->state_data.pos_3dof;
+    const std::vector<real3>& pos_fluid = *data_manager->state_data.pos_3dof;
     const real radius = data_manager->node_data.kernel_radius + data_manager->node_data.collision_envelope;
 
     bbox res(pos_fluid[0], pos_fluid[0]);
@@ -163,8 +164,8 @@ void ChBroadphase::DetermineBoundingBox() {
 }
 
 void ChBroadphase::OffsetAABB() {
-    custom_vector<real3>& aabb_min = data_manager->host_data.aabb_min;
-    custom_vector<real3>& aabb_max = data_manager->host_data.aabb_max;
+    std::vector<real3>& aabb_min = data_manager->host_data.aabb_min;
+    std::vector<real3>& aabb_max = data_manager->host_data.aabb_max;
 
     thrust::constant_iterator<real3> offset(data_manager->measures.global_origin);
 
@@ -207,20 +208,21 @@ void ChBroadphase::DispatchRigid() {
 }
 
 void ChBroadphase::OneLevelBroadphase() {
-    const custom_vector<real3>& aabb_min = data_manager->host_data.aabb_min;
-    const custom_vector<real3>& aabb_max = data_manager->host_data.aabb_max;
-    const custom_vector<short2>& fam_data = data_manager->shape_data.fam_rigid;
-    const custom_vector<char>& obj_active = data_manager->state_data.active_rigid;
-    const custom_vector<char>& obj_collide = data_manager->state_data.collide_rigid;
-    const custom_vector<uint>& obj_data_id = data_manager->shape_data.id_rigid;
-    custom_vector<long long>& pair_shapeIDs = data_manager->host_data.pair_shapeIDs;
+    const std::vector<uint>& obj_data_id = data_manager->shape_data.id_rigid;
+    const std::vector<short2>& fam_data = data_manager->shape_data.fam_rigid;
 
-    custom_vector<uint>& bin_intersections = data_manager->host_data.bin_intersections;
-    custom_vector<uint>& bin_number = data_manager->host_data.bin_number;
-    custom_vector<uint>& bin_number_out = data_manager->host_data.bin_number_out;
-    custom_vector<uint>& bin_aabb_number = data_manager->host_data.bin_aabb_number;
-    custom_vector<uint>& bin_start_index = data_manager->host_data.bin_start_index;
-    custom_vector<uint>& bin_num_contact = data_manager->host_data.bin_num_contact;
+    const std::vector<char>& obj_active = *data_manager->state_data.active_rigid;
+    const std::vector<char>& obj_collide = *data_manager->state_data.collide_rigid;
+
+    const std::vector<real3>& aabb_min = data_manager->host_data.aabb_min;
+    const std::vector<real3>& aabb_max = data_manager->host_data.aabb_max;
+    std::vector<long long>& pair_shapeIDs = data_manager->host_data.pair_shapeIDs;
+    std::vector<uint>& bin_intersections = data_manager->host_data.bin_intersections;
+    std::vector<uint>& bin_number = data_manager->host_data.bin_number;
+    std::vector<uint>& bin_number_out = data_manager->host_data.bin_number_out;
+    std::vector<uint>& bin_aabb_number = data_manager->host_data.bin_aabb_number;
+    std::vector<uint>& bin_start_index = data_manager->host_data.bin_start_index;
+    std::vector<uint>& bin_num_contact = data_manager->host_data.bin_num_contact;
 
     const int num_shapes = data_manager->num_rigid_shapes;
 
