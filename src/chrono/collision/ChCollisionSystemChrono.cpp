@@ -17,6 +17,7 @@
 //
 // =============================================================================
 
+#include "chrono/physics/ChSystem.h"
 #include "chrono/collision/ChCollisionSystemChrono.h"
 #include "chrono/multicore_math/utility.h"
 
@@ -65,99 +66,100 @@ bool ChCollisionSystemChrono::GetAABB(ChVector<>& aabbmin, ChVector<>& aabbmax) 
 }
 
 void ChCollisionSystemChrono::Add(ChCollisionModel* model) {
-    if (model->GetPhysicsItem()->GetCollide() == true) {
-        ChCollisionModelChrono* pmodel = static_cast<ChCollisionModelChrono*>(model);
-        int body_id = pmodel->GetBody()->GetId();
-        short2 fam = S2(pmodel->GetFamilyGroup(), pmodel->GetFamilyMask());
-        // The offset for this shape will the current total number of points in the convex data list
-        auto shape_data = data_manager->shape_data;
-        int convex_data_offset = (int)shape_data.convex_rigid.size();
-        // Insert the points into the global convex list
-        shape_data.convex_rigid.insert(shape_data.convex_rigid.end(),
-                                                     pmodel->local_convex_data.begin(),
-                                                     pmodel->local_convex_data.end());
+    if (!model->GetPhysicsItem()->GetCollide())
+        return;
 
-        // Shape index in the collision model
-        int local_shape_index = 0;
+    ChCollisionModelChrono* pmodel = static_cast<ChCollisionModelChrono*>(model);
 
-        for (auto s : pmodel->GetShapes()) {
-            auto shape = std::static_pointer_cast<ChCollisionShapeChrono>(s);
-            real3 obA = shape->A;
-            real3 obB = shape->B;
-            real3 obC = shape->C;
-            int length = 1;
-            int start;
-            // Compute the global offset of the convex data structure based on the number of points
-            // already present
+    int body_id = pmodel->GetBody()->GetId();
+    short2 fam = S2(pmodel->GetFamilyGroup(), pmodel->GetFamilyMask());
+    // The offset for this shape will the current total number of points in the convex data list
+    auto shape_data = data_manager->shape_data;
+    int convex_data_offset = (int)shape_data.convex_rigid.size();
+    // Insert the points into the global convex list
+    shape_data.convex_rigid.insert(shape_data.convex_rigid.end(), pmodel->local_convex_data.begin(),
+                                   pmodel->local_convex_data.end());
 
-            switch (shape->GetType()) {
-                case ChCollisionShape::Type::SPHERE:
-                    start = (int)shape_data.sphere_rigid.size();
-                    shape_data.sphere_rigid.push_back(obB.x);
-                    break;
-                case ChCollisionShape::Type::ELLIPSOID:
-                    start = (int)shape_data.box_like_rigid.size();
-                    shape_data.box_like_rigid.push_back(obB);
-                    break;
-                case ChCollisionShape::Type::BOX:
-                    start = (int)shape_data.box_like_rigid.size();
-                    shape_data.box_like_rigid.push_back(obB);
-                    break;
-                case ChCollisionShape::Type::CYLINDER:
-                    start = (int)shape_data.box_like_rigid.size();
-                    shape_data.box_like_rigid.push_back(obB);
-                    break;
-                case ChCollisionShape::Type::CYLSHELL:
-                    start = (int)shape_data.box_like_rigid.size();
-                    shape_data.box_like_rigid.push_back(obB);
-                    break;
-                case ChCollisionShape::Type::CONE:
-                    start = (int)shape_data.box_like_rigid.size();
-                    shape_data.box_like_rigid.push_back(obB);
-                    break;
-                case ChCollisionShape::Type::CAPSULE:
-                    start = (int)shape_data.capsule_rigid.size();
-                    shape_data.capsule_rigid.push_back(real2(obB.x, obB.y));
-                    break;
-                case ChCollisionShape::Type::ROUNDEDBOX:
-                    start = (int)shape_data.rbox_like_rigid.size();
-                    shape_data.rbox_like_rigid.push_back(real4(obB, obC.x));
-                    break;
-                case ChCollisionShape::Type::ROUNDEDCYL:
-                    start = (int)shape_data.rbox_like_rigid.size();
-                    shape_data.rbox_like_rigid.push_back(real4(obB, obC.x));
-                    break;
-                case ChCollisionShape::Type::ROUNDEDCONE:
-                    start = (int)shape_data.rbox_like_rigid.size();
-                    shape_data.rbox_like_rigid.push_back(real4(obB, obC.x));
-                    break;
-                case ChCollisionShape::Type::CONVEX:
-                    start = (int)(obB.y + convex_data_offset);
-                    length = (int)obB.x;
-                    break;
-                case ChCollisionShape::Type::TRIANGLE:
-                    start = (int)shape_data.triangle_rigid.size();
-                    shape_data.triangle_rigid.push_back(obA);
-                    shape_data.triangle_rigid.push_back(obB);
-                    shape_data.triangle_rigid.push_back(obC);
-                    break;
-                default:
-                    start = -1;
-                    break;
-            }
+    // Shape index in the collision model
+    int local_shape_index = 0;
 
-            shape_data.ObA_rigid.push_back(obA);
-            shape_data.ObR_rigid.push_back(shape->R);
-            shape_data.start_rigid.push_back(start);
-            shape_data.length_rigid.push_back(length);
+    for (auto s : pmodel->GetShapes()) {
+        auto shape = std::static_pointer_cast<ChCollisionShapeChrono>(s);
+        real3 obA = shape->A;
+        real3 obB = shape->B;
+        real3 obC = shape->C;
+        int length = 1;
+        int start;
+        // Compute the global offset of the convex data structure based on the number of points
+        // already present
 
-            shape_data.fam_rigid.push_back(fam);
-            shape_data.typ_rigid.push_back(shape->GetType());
-            shape_data.id_rigid.push_back(body_id);
-            shape_data.local_rigid.push_back(local_shape_index);
-            data_manager->num_rigid_shapes++;
-            local_shape_index++;
+        switch (shape->GetType()) {
+            case ChCollisionShape::Type::SPHERE:
+                start = (int)shape_data.sphere_rigid.size();
+                shape_data.sphere_rigid.push_back(obB.x);
+                break;
+            case ChCollisionShape::Type::ELLIPSOID:
+                start = (int)shape_data.box_like_rigid.size();
+                shape_data.box_like_rigid.push_back(obB);
+                break;
+            case ChCollisionShape::Type::BOX:
+                start = (int)shape_data.box_like_rigid.size();
+                shape_data.box_like_rigid.push_back(obB);
+                break;
+            case ChCollisionShape::Type::CYLINDER:
+                start = (int)shape_data.box_like_rigid.size();
+                shape_data.box_like_rigid.push_back(obB);
+                break;
+            case ChCollisionShape::Type::CYLSHELL:
+                start = (int)shape_data.box_like_rigid.size();
+                shape_data.box_like_rigid.push_back(obB);
+                break;
+            case ChCollisionShape::Type::CONE:
+                start = (int)shape_data.box_like_rigid.size();
+                shape_data.box_like_rigid.push_back(obB);
+                break;
+            case ChCollisionShape::Type::CAPSULE:
+                start = (int)shape_data.capsule_rigid.size();
+                shape_data.capsule_rigid.push_back(real2(obB.x, obB.y));
+                break;
+            case ChCollisionShape::Type::ROUNDEDBOX:
+                start = (int)shape_data.rbox_like_rigid.size();
+                shape_data.rbox_like_rigid.push_back(real4(obB, obC.x));
+                break;
+            case ChCollisionShape::Type::ROUNDEDCYL:
+                start = (int)shape_data.rbox_like_rigid.size();
+                shape_data.rbox_like_rigid.push_back(real4(obB, obC.x));
+                break;
+            case ChCollisionShape::Type::ROUNDEDCONE:
+                start = (int)shape_data.rbox_like_rigid.size();
+                shape_data.rbox_like_rigid.push_back(real4(obB, obC.x));
+                break;
+            case ChCollisionShape::Type::CONVEX:
+                start = (int)(obB.y + convex_data_offset);
+                length = (int)obB.x;
+                break;
+            case ChCollisionShape::Type::TRIANGLE:
+                start = (int)shape_data.triangle_rigid.size();
+                shape_data.triangle_rigid.push_back(obA);
+                shape_data.triangle_rigid.push_back(obB);
+                shape_data.triangle_rigid.push_back(obC);
+                break;
+            default:
+                start = -1;
+                break;
         }
+
+        shape_data.ObA_rigid.push_back(obA);
+        shape_data.ObR_rigid.push_back(shape->R);
+        shape_data.start_rigid.push_back(start);
+        shape_data.length_rigid.push_back(length);
+
+        shape_data.fam_rigid.push_back(fam);
+        shape_data.typ_rigid.push_back(shape->GetType());
+        shape_data.id_rigid.push_back(body_id);
+        shape_data.local_rigid.push_back(local_shape_index);
+        data_manager->num_rigid_shapes++;
+        local_shape_index++;
     }
 }
 
@@ -253,8 +255,41 @@ void ChCollisionSystemChrono::Remove(ChCollisionModel* model) {
 #undef ERASE_MACRO_LEN
 
 void ChCollisionSystemChrono::SetNumThreads(int nthreads) {
-    //// TODO 
-    // The Chrono::Multicore collision system uses the number of threads set by ChSystemMulticore.
+#ifdef _OPENMP
+    omp_set_num_threads(nthreads);
+#endif
+}
+
+void ChCollisionSystemChrono::Synchronize() {
+    custom_vector<real3>& position = data_manager->state_data.pos_rigid;
+    custom_vector<quaternion>& rotation = data_manager->state_data.rot_rigid;
+    custom_vector<char>& active = data_manager->state_data.active_rigid;
+    custom_vector<char>& collide = data_manager->state_data.collide_rigid;
+
+    auto blist = m_system->Get_bodylist();
+    int nbodies = static_cast<int>(blist.size());
+
+    position.resize(3 * nbodies);
+    rotation.resize(4 * nbodies);
+    active.resize(nbodies);
+    collide.resize(nbodies);
+
+    data_manager->state_data.num_rigid_bodies = nbodies;
+    data_manager->state_data.num_fluid_bodies = 0;
+
+#pragma omp parallel for
+    for (int i = 0; i < nbodies; i++) {
+        auto& body = blist[i];
+
+        ChVector<>& body_pos = body->GetPos();
+        ChQuaternion<>& body_rot = body->GetRot();
+
+        position[i] = real3(body_pos.x(), body_pos.y(), body_pos.z());
+        rotation[i] = quaternion(body_rot.e0(), body_rot.e1(), body_rot.e2(), body_rot.e3());
+
+        active[i] = body->IsActive();
+        collide[i] = body->GetCollide();
+    }
 }
 
 void ChCollisionSystemChrono::Run() {
@@ -311,7 +346,6 @@ void ChCollisionSystemChrono::GetBoundingBox(ChVector<>& aabb_min, ChVector<>& a
 }
 
 void ChCollisionSystemChrono::ReportContacts(ChContactContainer* mcontactcontainer) {
-
     //// TODO
 
     ////assert(dynamic_cast<ChContactContainerMulticore*>(mcontactcontainer));
@@ -353,7 +387,6 @@ void ChCollisionSystemChrono::ResetTimers() {
     m_timer_broad.reset();
     m_timer_narrow.reset();
 }
-
 
 double ChCollisionSystemChrono::GetTimerCollisionBroad() const {
     return m_timer_broad();

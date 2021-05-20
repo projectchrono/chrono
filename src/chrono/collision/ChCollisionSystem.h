@@ -22,6 +22,7 @@
 namespace chrono {
 
 // forward references
+class ChSystem;
 class ChBody;
 class ChVariablesBody;
 class ChContactContainer;
@@ -42,7 +43,7 @@ class ChApi ChCollisionSystem {
         OTHER    ///< other type (external)
     };
 
-    ChCollisionSystem() {}
+    ChCollisionSystem() : m_system(nullptr) {}
     virtual ~ChCollisionSystem() {}
 
     /// Return the type of this collision system.
@@ -63,6 +64,9 @@ class ChApi ChCollisionSystem {
     /// Removes all collision models from the collision
     /// engine (custom data may be deallocated).
     // virtual void RemoveAll() = 0;
+
+    /// Optional synchronization operations, invoked before running the collision detection.
+    virtual void Synchronize() {}
 
     /// Run the collision detection and finds the contacts.
     /// This function will be called at each simulation step.
@@ -179,7 +183,11 @@ class ChApi ChCollisionSystem {
         /*int version =*/ marchive.VersionRead<ChCollisionSystem>();
     }
 
+    /// Set associated Chrono system
+    void SetSystem(ChSystem* sys) { m_system = sys; }
+
   protected:
+    ChSystem* m_system;                                    ///< associated Chrono system
     std::shared_ptr<BroadphaseCallback> broad_callback;    ///< user callback for each near-enough pair of shapes
     std::shared_ptr<NarrowphaseCallback> narrow_callback;  ///< user callback for each collision pair
 };

@@ -262,16 +262,16 @@ class ChApi ChSystem : public ChIntegrableIIorder {
     const ChAssembly& GetAssembly() const { return assembly; }
 
     /// Attach a body to the underlying assembly.
-    virtual void AddBody(std::shared_ptr<ChBody> body) { assembly.AddBody(body); }
+    virtual void AddBody(std::shared_ptr<ChBody> body);
 
     /// Attach a link to the underlying assembly.
-    virtual void AddLink(std::shared_ptr<ChLinkBase> link) { assembly.AddLink(link); }
+    virtual void AddLink(std::shared_ptr<ChLinkBase> link);
 
     /// Attach a mesh to the underlying assembly.
-    virtual void AddMesh(std::shared_ptr<fea::ChMesh> mesh) { assembly.AddMesh(mesh); }
+    virtual void AddMesh(std::shared_ptr<fea::ChMesh> mesh);
 
     /// Attach a ChPhysicsItem object that is not a body, link, or mesh.
-    virtual void AddOtherPhysicsItem(std::shared_ptr<ChPhysicsItem> item) { assembly.AddOtherPhysicsItem(item); }
+    virtual void AddOtherPhysicsItem(std::shared_ptr<ChPhysicsItem> item);
 
     /// Attach an arbitrary ChPhysicsItem (e.g. ChBody, ChParticles, ChLink, etc.) to the assembly.
     /// It will take care of adding it to the proper list of bodies, links, meshes, or generic

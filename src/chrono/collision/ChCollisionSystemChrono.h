@@ -85,6 +85,10 @@ class ChApi ChCollisionSystemChrono : public ChCollisionSystem {
     /// Set the number of OpenMP threads for collision detection.
     virtual void SetNumThreads(int nthreads) override;
 
+    /// Synchronization operations, invoked before running the collision detection.
+    /// This function copies contactable state information in the collision system's data structures.
+    virtual void Synchronize();
+
     /// Run the algorithm and finds all the contacts.
     virtual void Run() override;
 

@@ -51,9 +51,12 @@ ChSystemMulticore::ChSystemMulticore() : ChSystem() {
     data_manager = new ChMulticoreDataManager();
 
     descriptor = chrono_types::make_shared<ChSystemDescriptorMulticore>(data_manager);
-    collision_system = chrono_types::make_shared<ChCollisionSystemMulticore>(data_manager);
 
+    collision_system = chrono_types::make_shared<ChCollisionSystemMulticore>(data_manager);
+    collision_system->SetNumThreads(nthreads_collision);
+    collision_system->SetSystem(this);
     collision_system_type = ChCollisionSystem::Type::CHRONO;
+
     counter = 0;
     timer_accumulator.resize(10, 0);
     cd_accumulator.resize(10, 0);

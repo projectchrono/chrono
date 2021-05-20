@@ -144,6 +144,23 @@ void ChSystem::Clear() {
 
 // -----------------------------------------------------------------------------
 
+void ChSystem::AddBody(std::shared_ptr<ChBody> body) {
+    body->SetId(assembly.GetNbodies());
+    assembly.AddBody(body);
+}
+
+void ChSystem::AddLink(std::shared_ptr<ChLinkBase> link) {
+    assembly.AddLink(link);
+}
+
+void ChSystem::AddMesh(std::shared_ptr<fea::ChMesh> mesh) {
+    assembly.AddMesh(mesh);
+}
+
+void ChSystem::AddOtherPhysicsItem(std::shared_ptr<ChPhysicsItem> item) {
+    assembly.AddOtherPhysicsItem(item);
+}
+
 // Add arbitrary physics item to the underlying assembly.
 // NOTE: we cannot simply invoke ChAssembly::Add as this would not provide
 // polymorphism!
@@ -298,6 +315,9 @@ void ChSystem::SetCollisionSystemType(ChCollisionSystem::Type type) {
             GetLog() << "Collision system type not supported. Use SetCollisionSystem instead.\n";
             break;
     }
+
+    collision_system->SetNumThreads(nthreads_collision);
+    collision_system->SetSystem(this);
 }
 
 void ChSystem::SetCollisionSystem(std::shared_ptr<ChCollisionSystem> newcollsystem) {
@@ -306,6 +326,7 @@ void ChSystem::SetCollisionSystem(std::shared_ptr<ChCollisionSystem> newcollsyst
     collision_system = newcollsystem;
     collision_system_type = newcollsystem->GetType();
     collision_system->SetNumThreads(nthreads_collision);
+    collision_system->SetSystem(this);
 }
 
 void ChSystem::SetMaterialCompositionStrategy(std::unique_ptr<ChMaterialCompositionStrategy>&& strategy) {
@@ -1202,6 +1223,7 @@ double ChSystem::ComputeCollisions() {
 
     // Update all positions of collision models: delegate this to the ChAssembly
     assembly.SyncCollisionModels();
+    collision_system->Synchronize();
 
     // Perform the collision detection ( broadphase and narrowphase )
     collision_system->Run();
