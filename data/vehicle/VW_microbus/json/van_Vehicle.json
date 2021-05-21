@@ -9,18 +9,21 @@
 
   "Axles": [
     {
-      "Suspension Input File": "VW_microbus/json/van_FrontLeafspringAxle.json",
+      "Suspension Input File": "VW_microbus/json/van_DoubleWishboneFront.json",
       "Suspension Location": [ 0, 0, 0 ],
       "Steering Index": 0,
       "Left Wheel Input File": "VW_microbus/json/van_Wheel.json",
       "Right Wheel Input File": "VW_microbus/json/van_Wheel.json",
       "Left Brake Input File": "VW_microbus/json/van_BrakeSimple_Front.json",
-      "Right Brake Input File": "VW_microbus/json/van_BrakeSimple_Front.json"
+      "Right Brake Input File": "VW_microbus/json/van_BrakeSimple_Front.json",
+      "Antirollbar Input File": "VW_microbus/json/van_AntirollBarRSD.json",
+      "Antirollbar Location": [ -0.3, 0, -0.05 ]
+
     },
 
     {
-      "Suspension Input File": "VW_microbus/json/van_RearLeafspringAxle.json",
-      "Suspension Location": [ -2.62, 0, 0 ],
+      "Suspension Input File": "VW_microbus/json/van_SemiTrailingArm.json",
+      "Suspension Location": [ -2.4, 0, 0 ],
       "Left Wheel Input File": "VW_microbus/json/van_Wheel.json",
       "Right Wheel Input File": "VW_microbus/json/van_Wheel.json",
       "Left Brake Input File": "VW_microbus/json/van_BrakeSimple_Rear.json",
@@ -30,14 +33,14 @@
 
   "Steering Subsystems": [
     {
-      "Input File": "VW_microbus/json/van_RotaryArm.json",
+      "Input File": "VW_microbus/json/van_RackPinion.json",
       "Location": [ 0, 0, 0 ],
       "Orientation": [ 1, 0, 0, 0 ]
     }
   ],
 
-  "Wheelbase": 2.605,
-  "Minimum Turning Radius": 5.8,
+  "Wheelbase": 2.4,
+  "Minimum Turning Radius": 6.5,
   "Maximum Steering Angle": 27,
 
   "Driveline": {
