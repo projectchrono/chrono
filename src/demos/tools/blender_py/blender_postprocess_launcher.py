@@ -27,7 +27,8 @@ targ_name = 'sedan_chassis_vis'
 camera_dist = (-15.5,-5,1.5)
 light_loc=(10, 50, 50)
 light_energy=53000
+axis_up = 'Z'
 
 blend_pproc_render.bl_render(meshes_prefixes, out_dir, datadir, res, camera_mode, use_sky, camera_pos, targ_bodyid, 
-                             targ_shapetypeid, targ_name, camera_dist, light_loc, light_energy) 
+                             targ_shapetypeid, targ_name, camera_dist, axis_up, light_loc, light_energy) 
 

@@ -34,9 +34,8 @@ Set the options in _blender_postprocess_launcher.py_ :
 Once the variables in _blender_postprocess_launcher.py_ are set, just launch it remembering to use the Pytohn interpreter that has blender-py installed.
 
 ## Limitations and future features
-#### Current Limitiations
-1. Only meshes are rendered now, not primitives. 
-2. The code does not leverage multiprocessing (HD render are time consuming)
+#### Current Limitiations 
+1. The code does not leverage multiprocessing (HD render are time consuming)
 2. No default terrain
 3. NO support for granular and FSI
 4. Textures cannot be added to meshes
