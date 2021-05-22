@@ -23,6 +23,7 @@
 #include "chrono/physics/ChSystem.h"
 
 #include "chrono/collision/ChCollisionModelBullet.h"
+#include "chrono/collision/ChCollisionModelChrono.h"
 
 namespace chrono {
 
@@ -32,7 +33,7 @@ using namespace geometry;
 // Register into the object factory, to enable run-time dynamic creation and persistence
 CH_FACTORY_REGISTER(ChBody)
 
-ChBody::ChBody() {
+ChBody::ChBody(collision::ChCollisionSystem::Type collision_type) {
     marklist.clear();
     forcelist.clear();
 
@@ -44,7 +45,17 @@ ChBody::ChBody() {
     Force_acc = VNULL;
     Torque_acc = VNULL;
 
-    collision_model = InstanceCollisionModel();
+    switch (collision_type) {
+        default:
+        case ChCollisionSystem::Type::BULLET:
+            collision_model = chrono_types::make_shared<ChCollisionModelBullet>();
+            collision_model->SetContactable(this);
+            break;
+        case ChCollisionSystem::Type::CHRONO:
+            collision_model = chrono_types::make_shared<ChCollisionModelChrono>();
+            collision_model->SetContactable(this);
+            break;
+    }
 
     density = 1000.0f;
 
@@ -107,7 +118,8 @@ ChBody::ChBody(const ChBody& other) : ChPhysicsItem(other), ChBodyFrame(other) {
     ChTime = other.ChTime;
 
     // also copy-duplicate the collision model? Let the user handle this..
-    collision_model = InstanceCollisionModel();
+    collision_model = chrono_types::make_shared<ChCollisionModelBullet>();
+    collision_model->SetContactable(this);
 
     density = other.density;
 
@@ -123,12 +135,6 @@ ChBody::ChBody(const ChBody& other) : ChPhysicsItem(other), ChBodyFrame(other) {
 ChBody::~ChBody() {
     RemoveAllForces();
     RemoveAllMarkers();
-}
-
-std::shared_ptr<collision::ChCollisionModel> ChBody::InstanceCollisionModel() {
-    auto collision_model_t = chrono_types::make_shared<ChCollisionModelBullet>();
-    collision_model_t->SetContactable(this);
-    return collision_model_t;
 }
 
 //// STATE BOOKKEEPING FUNCTIONS

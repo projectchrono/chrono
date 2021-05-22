@@ -344,17 +344,11 @@ void ChSystem::SetNumThreads(int num_threads_chrono, int num_threads_collision, 
 // -----------------------------------------------------------------------------
 
 ChBody* ChSystem::NewBody() {
-    if (collision_system_type == ChCollisionSystem::Type::CHRONO)
-        return new ChBody(chrono_types::make_shared<collision::ChCollisionModelChrono>());
-
-    return new ChBody();
+    return new ChBody(collision_system_type);
 }
 
 ChBodyAuxRef* ChSystem::NewBodyAuxRef() {
-    if (collision_system_type == ChCollisionSystem::Type::CHRONO)
-        return new ChBodyAuxRef(chrono_types::make_shared<collision::ChCollisionModelChrono>());
-
-    return new ChBodyAuxRef();
+    return new ChBodyAuxRef(collision_system_type);
 }
 
 // -----------------------------------------------------------------------------
