@@ -350,31 +350,21 @@ void ChCollisionSystemChrono::GetBoundingBox(ChVector<>& aabb_min, ChVector<>& a
     aabb_max.z() = data_manager->measures.max_bounding_point.z;
 }
 
-void ChCollisionSystemChrono::ReportContacts(ChContactContainer* mcontactcontainer) {
-    //// TODO
-
-    ////assert(dynamic_cast<ChContactContainerMulticore*>(mcontactcontainer));
+void ChCollisionSystemChrono::ReportContacts(ChContactContainer* container) {
+    const auto& blist = m_system->Get_bodylist();
 
     // Resize global arrays with composite material properties.
     // NOTE: important to do this here, to set size to zero if no contacts (in case some other added by a custom user
     // callback)
-    mcontactcontainer->BeginAddContact();
-
-    uint num_contacts = data_manager->num_rigid_contacts;
-    if (num_contacts <= 0) {
-        return;
-    }
-
-    ////auto container = static_cast<ChContactContainerMulticore*>(mcontactcontainer);
+    container->BeginAddContact();
 
     auto& bids = data_manager->host_data.bids_rigid_rigid;  // global IDs of bodies in contact
     auto& sids = data_manager->host_data.contact_shapeIDs;  // global IDs of shapes in contact
     auto& sindex = data_manager->shape_data.local_rigid;    // collision model indexes of shapes in contact
 
-    // Loop over all current contacts, create the composite material, and load material properties in the data manager
-    // (on a per contact basis). Snce this is contact method-specific, we defer to the underlying contact container.
-#pragma omp parallel for
-    for (int i = 0; i < (signed)num_contacts; i++) {
+    // Loop over all current contacts, create the cinfo structure and add contact to the container.
+    // Note that inclusions in the contact container cannot be done in parallel.
+    for (uint i = 0; i < data_manager->num_rigid_contacts; i++) {
         auto b1 = bids[i].x;                  // global IDs of bodies in contact
         auto b2 = bids[i].y;                  //
         auto s1 = int(sids[i] >> 32);         // global IDs of shapes in contact
@@ -382,10 +372,27 @@ void ChCollisionSystemChrono::ReportContacts(ChContactContainer* mcontactcontain
         auto s1_index = sindex[s1];           // collision model indexes of shapes in contact
         auto s2_index = sindex[s2];           //
 
-        ////container->AddContact(i, b1, s1, b2, s2);
+        ChCollisionInfo cinfo;
+        cinfo.modelA = blist[b1]->GetCollisionModel().get();
+        cinfo.modelB = blist[b2]->GetCollisionModel().get();
+        cinfo.shapeA = cinfo.modelA->GetShape(s1_index).get();
+        cinfo.shapeB = cinfo.modelB->GetShape(s2_index).get();
+        cinfo.vN = ToChVector(data_manager->host_data.norm_rigid_rigid[i]);
+        cinfo.vpA = ToChVector(data_manager->host_data.cpta_rigid_rigid[i]);
+        cinfo.vpB = ToChVector(data_manager->host_data.cptb_rigid_rigid[i]);
+        cinfo.distance = data_manager->host_data.dpth_rigid_rigid[i];
+        cinfo.eff_radius = data_manager->host_data.erad_rigid_rigid[i];
+
+        // Execute user custom callback, if any
+        bool add_contact = true;
+        if (this->narrow_callback)
+            add_contact = this->narrow_callback->OnNarrowphase(cinfo);
+
+        if (add_contact)
+            container->AddContact(cinfo);
     }
 
-    mcontactcontainer->EndAddContact();
+    container->EndAddContact();
 }
 
 void ChCollisionSystemChrono::ResetTimers() {
