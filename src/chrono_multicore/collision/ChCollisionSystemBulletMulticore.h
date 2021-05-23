@@ -51,7 +51,7 @@ class CH_MULTICORE_API ChCollisionSystemBulletMulticore : public ChCollisionSyst
     virtual ~ChCollisionSystemBulletMulticore();
 
     /// Return the type of this collision system.
-    virtual Type GetType() const override { return ChCollisionSystem::Type::BULLET; }
+    virtual ChCollisionSystemType GetType() const override { return ChCollisionSystemType::BULLET; }
 
     /// Clear all data instanced by this algorithm if any (like persistent contact manifolds)
     virtual void Clear(void) override;

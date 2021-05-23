@@ -55,7 +55,7 @@ ChSystemMulticore::ChSystemMulticore() : ChSystem() {
     collision_system = chrono_types::make_shared<ChCollisionSystemMulticore>(data_manager);
     collision_system->SetNumThreads(nthreads_collision);
     collision_system->SetSystem(this);
-    collision_system_type = ChCollisionSystem::Type::CHRONO;
+    collision_system_type = ChCollisionSystemType::CHRONO;
 
     counter = 0;
     timer_accumulator.resize(10, 0);
@@ -97,14 +97,14 @@ ChSystemMulticore::~ChSystemMulticore() {
 }
 
 ChBody* ChSystemMulticore::NewBody() {
-    if (collision_system_type == ChCollisionSystem::Type::CHRONO)
+    if (collision_system_type == ChCollisionSystemType::CHRONO)
         return new ChBody(chrono_types::make_shared<collision::ChCollisionModelMulticore>());
 
     return new ChBody();
 }
 
 ChBodyAuxRef* ChSystemMulticore::NewBodyAuxRef() {
-    if (collision_system_type == ChCollisionSystem::Type::CHRONO)
+    if (collision_system_type == ChCollisionSystemType::CHRONO)
         return new ChBodyAuxRef(chrono_types::make_shared<collision::ChCollisionModelMulticore>());
 
     return new ChBodyAuxRef();
@@ -764,16 +764,16 @@ void ChSystemMulticore::RecomputeThreads() {
 #endif
 }
 
-void ChSystemMulticore::SetCollisionSystemType(ChCollisionSystem::Type type) {
+void ChSystemMulticore::SetCollisionSystemType(ChCollisionSystemType type) {
     assert(assembly.GetNbodies() == 0);
 
     collision_system_type = type;
 
     switch (type) {
-        case ChCollisionSystem::Type::CHRONO:
+        case ChCollisionSystemType::CHRONO:
             collision_system = chrono_types::make_shared<ChCollisionSystemMulticore>(data_manager);
             break;
-        case ChCollisionSystem::Type::BULLET:
+        case ChCollisionSystemType::BULLET:
             collision_system = chrono_types::make_shared<ChCollisionSystemBulletMulticore>(data_manager);
             break;
         default:
@@ -809,7 +809,7 @@ void ChSystemMulticore::SetLoggingLevel(LoggingLevel level, bool state) {
 
 // Calculate the current body AABB (union of the AABB of their collision shapes).
 void ChSystemMulticore::CalculateBodyAABB() {
-    if (collision_system_type != ChCollisionSystem::Type::CHRONO)
+    if (collision_system_type != ChCollisionSystemType::CHRONO)
         return;
 
     // Readability replacements

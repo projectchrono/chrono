@@ -50,8 +50,10 @@ class ChApi ChCollisionModelBullet : public ChCollisionModel {
 
   public:
     ChCollisionModelBullet();
-
     virtual ~ChCollisionModelBullet();
+
+    /// Return the type of this collision model.
+    virtual ChCollisionSystemType GetType() const override { return ChCollisionSystemType::BULLET; }
 
     /// Delete all inserted geometries.
     /// Addition of collision shapes must be done between calls to ClearModel() and BuildModel().

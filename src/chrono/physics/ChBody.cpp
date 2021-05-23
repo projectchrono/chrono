@@ -33,7 +33,7 @@ using namespace geometry;
 // Register into the object factory, to enable run-time dynamic creation and persistence
 CH_FACTORY_REGISTER(ChBody)
 
-ChBody::ChBody(collision::ChCollisionSystem::Type collision_type) {
+ChBody::ChBody(collision::ChCollisionSystemType collision_type) {
     marklist.clear();
     forcelist.clear();
 
@@ -47,11 +47,11 @@ ChBody::ChBody(collision::ChCollisionSystem::Type collision_type) {
 
     switch (collision_type) {
         default:
-        case ChCollisionSystem::Type::BULLET:
+        case ChCollisionSystemType::BULLET:
             collision_model = chrono_types::make_shared<ChCollisionModelBullet>();
             collision_model->SetContactable(this);
             break;
-        case ChCollisionSystem::Type::CHRONO:
+        case ChCollisionSystemType::CHRONO:
             collision_model = chrono_types::make_shared<ChCollisionModelChrono>();
             collision_model->SetContactable(this);
             break;

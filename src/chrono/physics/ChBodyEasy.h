@@ -49,7 +49,7 @@ class ChApi ChBodyEasySphere : public ChBody {
     ChBodyEasySphere(double radius,                                     ///< radius of the sphere
                      double density,                                    ///< density of the body
                      std::shared_ptr<ChMaterialSurface> material,       ///< surface contact material
-                     collision::ChCollisionSystem::Type collision_type  ///< collision model type
+                     collision::ChCollisionSystemType collision_type  ///< collision model type
     );
 
   private:
@@ -82,7 +82,7 @@ class ChApi ChBodyEasyEllipsoid : public ChBody {
     ChBodyEasyEllipsoid(ChVector<> radius,                                 ///< radii of the ellipsoid
                         double density,                                    ///< density of the body
                         std::shared_ptr<ChMaterialSurface> material,       ///< surface contact material
-                        collision::ChCollisionSystem::Type collision_type  ///< collision model type
+                        collision::ChCollisionSystemType collision_type  ///< collision model type
     );
 
   private:
@@ -117,7 +117,7 @@ class ChApi ChBodyEasyCylinder : public ChBody {
                        double height,                                     ///< height of the cylinder
                        double density,                                    ///< density of the body
                        std::shared_ptr<ChMaterialSurface> material,       ///< surface contact material
-                       collision::ChCollisionSystem::Type collision_type  ///< collision model type
+                       collision::ChCollisionSystemType collision_type  ///< collision model type
     );
 
   private:
@@ -154,7 +154,7 @@ class ChApi ChBodyEasyBox : public ChBody {
                   double Zsize,                                      ///< size along the Z dimension
                   double density,                                    ///< density of the body
                   std::shared_ptr<ChMaterialSurface> material,       ///< surface contact material
-                  collision::ChCollisionSystem::Type collision_type  ///< collision model type
+                  collision::ChCollisionSystemType collision_type  ///< collision model type
     );
 
   private:
@@ -192,7 +192,7 @@ class ChApi ChBodyEasyConvexHull : public ChBody {
     ChBodyEasyConvexHull(std::vector<ChVector<> >& points,                  ///< points of the convex hull
                          double density,                                    ///< density of the body
                          std::shared_ptr<ChMaterialSurface> material,       ///< surface contact material
-                         collision::ChCollisionSystem::Type collision_type  ///< collision model type
+                         collision::ChCollisionSystemType collision_type  ///< collision model type
     );
 
     std::shared_ptr<geometry::ChTriangleMeshConnected> GetMesh() const { return m_mesh; }
@@ -230,7 +230,7 @@ class ChApi ChBodyEasyConvexHullAuxRef : public ChBodyAuxRef {
     ChBodyEasyConvexHullAuxRef(std::vector<ChVector<> >& points,                  ///< convex hull points
                                double density,                                    ///< density of the body
                                std::shared_ptr<ChMaterialSurface> material,       ///< surface contact material
-                               collision::ChCollisionSystem::Type collision_type  ///< collision model type
+                               collision::ChCollisionSystemType collision_type  ///< collision model type
     );
 
     std::shared_ptr<geometry::ChTriangleMeshConnected> GetMesh() const { return m_mesh; }
@@ -284,7 +284,7 @@ class ChApi ChBodyEasyMesh : public ChBodyAuxRef {
                    double density,                                    ///< density of the body
                    std::shared_ptr<ChMaterialSurface> material,       ///< surface contact material
                    double sphere_swept,                               ///< thickness (collision detection robustness)
-                   collision::ChCollisionSystem::Type collision_type  ///< collision model type
+                   collision::ChCollisionSystemType collision_type  ///< collision model type
     );
 
     /// Create a ChBodyAuxRef with a convex hull visualization and collision shape using the specified collision model
@@ -294,7 +294,7 @@ class ChApi ChBodyEasyMesh : public ChBodyAuxRef {
                    double density,                                           ///< density of the body
                    std::shared_ptr<ChMaterialSurface> material,              ///< surface contact material
                    double sphere_swept,                               ///< thickness (collision detection robustness)
-                   collision::ChCollisionSystem::Type collision_type  ///< collision model type
+                   collision::ChCollisionSystemType collision_type  ///< collision model type
     );
 
   private:
@@ -335,7 +335,7 @@ class ChApi ChBodyEasyClusterOfSpheres : public ChBody {
                                std::vector<double>& radii,                        ///< sphere radius
                                double density,                                    ///< density of the body
                                std::shared_ptr<ChMaterialSurface> material,       ///< surface contact material
-                               collision::ChCollisionSystem::Type collision_type  ///< collision model type
+                               collision::ChCollisionSystemType collision_type  ///< collision model type
     );
 
   private:

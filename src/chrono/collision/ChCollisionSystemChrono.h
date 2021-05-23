@@ -44,7 +44,7 @@ class ChApi ChCollisionSystemChrono : public ChCollisionSystem {
     virtual ~ChCollisionSystemChrono();
 
     /// Return the type of this collision system.
-    virtual Type GetType() const override { return ChCollisionSystem::Type::CHRONO; }
+    virtual ChCollisionSystemType GetType() const override { return ChCollisionSystemType::CHRONO; }
 
     /// Set the number of bins for the broadphase collision grid (default: 10x10x10) and specify whether this number is kept fixed (default: true).
     void SetBroadphaseNumBins(ChVector<int> num_bins, bool fixed = true);
@@ -105,7 +105,7 @@ class ChApi ChCollisionSystemChrono : public ChCollisionSystem {
     virtual double GetTimerCollisionNarrow() const override;
 
     /// Fill in the provided contact container with collision information after Run().
-    virtual void ReportContacts(ChContactContainer* mcontactcontainer) override;
+    virtual void ReportContacts(ChContactContainer* container) override;
 
     /// Fill in the provided proximity container with near point information after Run().
     /// Not used.

@@ -39,13 +39,22 @@ namespace collision {
 /// @addtogroup chrono_collision
 /// @{
 
+/// Collision engine type.
+enum class ChCollisionSystemType {
+    BULLET,  ///< Bullet-based collision detection system
+    CHRONO,  ///< Chrono multicore collision detection system
+    OTHER    ///< other type (external)
+};
+
 /// Class defining the geometric model for collision detection.
 /// A ChCollisionModel contains all geometric shapes on a rigid body, for collision purposes.
 class ChApi ChCollisionModel {
   public:
     ChCollisionModel();
-
     virtual ~ChCollisionModel() {}
+
+    /// Return the type of this collision model.
+    virtual ChCollisionSystemType GetType() const = 0;
 
     /// Delete all inserted geometries.
     /// Addition of collision shapes must be done between calls to ClearModel() and BuildModel().

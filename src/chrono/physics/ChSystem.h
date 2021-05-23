@@ -680,7 +680,7 @@ class ChApi ChSystem : public ChIntegrableIIorder {
     }
 
     /// Change the underlying collision detectino system to the specified type.
-    virtual void SetCollisionSystemType(collision::ChCollisionSystem::Type type);
+    virtual void SetCollisionSystemType(collision::ChCollisionSystemType type);
 
     /// For higher performance (ex. when GPU coprocessors are available) you can create your own custom
     /// collision engine (inherited from ChCollisionSystem) and plug it into the system using this function. 
@@ -919,7 +919,7 @@ class ChApi ChSystem : public ChIntegrableIIorder {
 
     int ncontacts;  ///< total number of contacts
 
-    collision::ChCollisionSystem::Type collision_system_type;                   ///< type of the collision engine
+    collision::ChCollisionSystemType collision_system_type;                     ///< type of the collision engine
     std::shared_ptr<collision::ChCollisionSystem> collision_system;             ///< collision engine
     std::vector<std::shared_ptr<CustomCollisionCallback>> collision_callbacks;  ///< user-defined collision callbacks
     std::unique_ptr<ChMaterialCompositionStrategy> composition_strategy;        /// material composition strategy

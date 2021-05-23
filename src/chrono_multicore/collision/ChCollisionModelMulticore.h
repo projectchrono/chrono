@@ -52,6 +52,9 @@ class CH_MULTICORE_API ChCollisionModelMulticore : public ChCollisionModel {
     ChCollisionModelMulticore();
     virtual ~ChCollisionModelMulticore();
 
+    /// Return the type of this collision model.
+    virtual ChCollisionSystemType GetType() const override { return ChCollisionSystemType::CHRONO; }
+
     /// Deletes all inserted geometries.
     /// Also, if you begin the definition of a model, AFTER adding
     /// the geometric description, remember to call the ClearModel().

@@ -72,7 +72,7 @@ ChSystem::ChSystem()
     assembly.system = this;
 
     // Set default collision engine type, collision envelope, and margin.
-    collision_system_type = collision::ChCollisionSystem::Type::BULLET;
+    collision_system_type = collision::ChCollisionSystemType::BULLET;
     collision::ChCollisionModel::SetDefaultSuggestedEnvelope(0.03);
     collision::ChCollisionModel::SetDefaultSuggestedMargin(0.01);
 
@@ -145,7 +145,8 @@ void ChSystem::Clear() {
 // -----------------------------------------------------------------------------
 
 void ChSystem::AddBody(std::shared_ptr<ChBody> body) {
-    body->SetId(assembly.GetNbodies());
+    assert(body->GetCollisionModel()->GetType() == collision_system->GetType());
+    body->SetId(Get_bodylist().size());
     assembly.AddBody(body);
 }
 
@@ -299,16 +300,16 @@ void ChSystem::SetContactContainer(std::shared_ptr<ChContactContainer> container
     contact_container->SetSystem(this);
 }
 
-void ChSystem::SetCollisionSystemType(ChCollisionSystem::Type type) {
+void ChSystem::SetCollisionSystemType(ChCollisionSystemType type) {
     assert(assembly.GetNbodies() == 0);
 
     collision_system_type = type;
 
     switch (type) {
-        case ChCollisionSystem::Type::BULLET:
+        case ChCollisionSystemType::BULLET:
             collision_system = chrono_types::make_shared<ChCollisionSystemBullet>();
             break;
-        case ChCollisionSystem::Type::CHRONO:
+        case ChCollisionSystemType::CHRONO:
             collision_system = chrono_types::make_shared<ChCollisionSystemChrono>();
             break;
         default:

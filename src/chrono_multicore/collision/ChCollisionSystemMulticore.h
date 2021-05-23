@@ -46,7 +46,7 @@ class CH_MULTICORE_API ChCollisionSystemMulticore : public ChCollisionSystem {
     virtual ~ChCollisionSystemMulticore();
 
     /// Return the type of this collision system.
-    virtual Type GetType() const override { return ChCollisionSystem::Type::CHRONO; }
+    virtual ChCollisionSystemType GetType() const override { return ChCollisionSystemType::CHRONO; }
 
     /// Clear all data instanced by this algorithm
     /// if any (like persistent contact manifolds).

@@ -45,7 +45,7 @@ class ChSystem;
 class ChApi ChBody : public ChPhysicsItem, public ChBodyFrame, public ChContactable_1vars<6>, public ChLoadableUVW {
   public:
     /// Build a rigid body.
-    ChBody(collision::ChCollisionSystem::Type collision_type = collision::ChCollisionSystem::Type::BULLET);
+    ChBody(collision::ChCollisionSystemType collision_type = collision::ChCollisionSystemType::BULLET);
 
     /// Build a rigid body with a different collision model.
     ChBody(std::shared_ptr<collision::ChCollisionModel> new_collision_model);

@@ -42,7 +42,7 @@ ChBodyEasySphere::ChBodyEasySphere(double radius,
 ChBodyEasySphere::ChBodyEasySphere(double radius,
                                    double density,
                                    std::shared_ptr<ChMaterialSurface> material,
-                                   collision::ChCollisionSystem::Type collision_type)
+                                   collision::ChCollisionSystemType collision_type)
     : ChBody(collision_type) {
     SetupBody(radius, density, true, true, material);
 }
@@ -88,7 +88,7 @@ ChBodyEasyEllipsoid::ChBodyEasyEllipsoid(ChVector<> radius,
 ChBodyEasyEllipsoid::ChBodyEasyEllipsoid(ChVector<> radius,
                                          double density,
                                          std::shared_ptr<ChMaterialSurface> material,
-                                         collision::ChCollisionSystem::Type collision_type)
+                                         collision::ChCollisionSystemType collision_type)
     : ChBody(collision_type) {
     SetupBody(radius, density, true, true, material);
 }
@@ -138,7 +138,7 @@ ChBodyEasyCylinder::ChBodyEasyCylinder(double radius,
                                        double height,
                                        double density,
                                        std::shared_ptr<ChMaterialSurface> material,
-                                       collision::ChCollisionSystem::Type collision_type)
+                                       collision::ChCollisionSystemType collision_type)
     : ChBody(collision_type) {
     SetupBody(radius, height, density, true, true, material);
 }
@@ -191,7 +191,7 @@ ChBodyEasyBox::ChBodyEasyBox(double Xsize,
                              double Zsize,
                              double density,
                              std::shared_ptr<ChMaterialSurface> material,
-                             collision::ChCollisionSystem::Type collision_type)
+                             collision::ChCollisionSystemType collision_type)
     : ChBody(collision_type) {
     SetupBody(Xsize, Ysize, Zsize, density, true, true, material);
 }
@@ -239,7 +239,7 @@ ChBodyEasyConvexHull::ChBodyEasyConvexHull(std::vector<ChVector<>>& points,
 ChBodyEasyConvexHull::ChBodyEasyConvexHull(std::vector<ChVector<>>& points,
                                            double density,
                                            std::shared_ptr<ChMaterialSurface> material,
-                                           collision::ChCollisionSystem::Type collision_type)
+                                           collision::ChCollisionSystemType collision_type)
     : ChBody(collision_type) {
     SetupBody(points, density, true, true, material);
 }
@@ -303,7 +303,7 @@ ChBodyEasyConvexHullAuxRef::ChBodyEasyConvexHullAuxRef(std::vector<ChVector<>>& 
 ChBodyEasyConvexHullAuxRef::ChBodyEasyConvexHullAuxRef(std::vector<ChVector<>>& points,
                                                        double density,
                                                        std::shared_ptr<ChMaterialSurface> material,
-                                                       collision::ChCollisionSystem::Type collision_type)
+                                                       collision::ChCollisionSystemType collision_type)
     : ChBodyAuxRef(collision_type) {
     SetupBody(points, density, true, true, material);
 }
@@ -390,7 +390,7 @@ ChBodyEasyMesh::ChBodyEasyMesh(const std::string filename,
                                double density,
                                std::shared_ptr<ChMaterialSurface> material,
                                double sphere_swept,
-                               collision::ChCollisionSystem::Type collision_type)
+                               collision::ChCollisionSystemType collision_type)
     : ChBodyAuxRef(collision_type) {
     auto trimesh = chrono_types::make_shared<geometry::ChTriangleMeshConnected>();
     trimesh->LoadWavefrontMesh(filename, true, true);
@@ -401,7 +401,7 @@ ChBodyEasyMesh::ChBodyEasyMesh(std::shared_ptr<geometry::ChTriangleMeshConnected
                                double density,
                                std::shared_ptr<ChMaterialSurface> material,
                                double sphere_swept,
-                               collision::ChCollisionSystem::Type collision_type)
+                               collision::ChCollisionSystemType collision_type)
     : ChBodyAuxRef(collision_type) {
     SetupBody(mesh, "EasyMesh", density, true, true, true, material, sphere_swept);
 }
@@ -468,7 +468,7 @@ ChBodyEasyClusterOfSpheres::ChBodyEasyClusterOfSpheres(std::vector<ChVector<>>& 
                                                        std::vector<double>& radii,
                                                        double density,
                                                        std::shared_ptr<ChMaterialSurface> material,
-                                                       collision::ChCollisionSystem::Type collision_type)
+                                                       collision::ChCollisionSystemType collision_type)
     : ChBody(collision_type) {
     SetupBody(positions, radii, density, true, true, material);
 }
