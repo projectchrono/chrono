@@ -127,16 +127,16 @@ CH_SENSOR_API void ChFilterOptixRender::Initialize(std::shared_ptr<ChSensor> pSe
         m_raygen_record->data.specific.lidar.vert_div_angle = lidar->GetVertDivAngle();
         m_bufferOut = bufferOut;
     } else if (auto radar = std::dynamic_pointer_cast<ChRadarSensor>(pSensor)) {
-        auto bufferOut = chrono_types::make_shared<SensorDeviceRangeRcsBuffer>();
-        DeviceRangeRcsBufferPtr b(cudaMallocHelper<PixelRangeRcs>(pOptixSensor->GetWidth() * pOptixSensor->GetHeight()),
-                                  cudaFreeHelper<PixelRangeRcs>);
+        auto bufferOut = chrono_types::make_shared<SensorDeviceRadarBuffer>();
+        DeviceRadarBufferPtr b(cudaMallocHelper<PixelRadar>(pOptixSensor->GetWidth() * pOptixSensor->GetHeight()),
+                                  cudaFreeHelper<PixelRadar>);
         bufferOut->Buffer = std::move(b);
         m_raygen_record->data.specific.radar.max_vert_angle = radar->GetMaxVertAngle();
         m_raygen_record->data.specific.radar.min_vert_angle = radar->GetMinVertAngle();
         m_raygen_record->data.specific.radar.hFOV = radar->GetHFOV();
         m_raygen_record->data.specific.radar.max_distance = radar->GetMaxDistance();
         m_raygen_record->data.specific.radar.clip_near = radar->GetClipNear();
-        m_raygen_record->data.specific.radar.frame_buffer = reinterpret_cast<float2*>(bufferOut->Buffer.get());
+        m_raygen_record->data.specific.radar.frame_buffer = reinterpret_cast<float*>(bufferOut->Buffer.get());
         m_bufferOut = bufferOut;
     } else {
         throw std::runtime_error("This type of sensor not supported yet by OptixRender filter");

@@ -17,6 +17,7 @@
 // =============================================================================
 
 #include "chrono_sensor/optix/shaders/device_utils.h"
+#include "chrono_sensor/optix/ChOptixDefinitions.h"
 
 extern "C" __global__ void __raygen__radar() {
     const RaygenParameters* raygen = (RaygenParameters*)optixGetSbtDataPointer();
@@ -44,7 +45,6 @@ extern "C" __global__ void __raygen__radar() {
     float3 up;
     basis_from_quaternion(ray_quat, forward, left, up);
     float3 ray_direction = normalize(forward * x + left * y + up * z);
-    // PerRayData_radar prd_radar = make_radar_data(0, 0.f);
 
     PerRayData_radar prd_radar = default_radar_prd();
     unsigned int opt1;
@@ -53,5 +53,17 @@ extern "C" __global__ void __raygen__radar() {
     unsigned int raytype = (unsigned int)RADAR_RAY_TYPE;
     optixTrace(params.root, ray_origin, ray_direction, radar.clip_near, 1.5f * radar.max_distance, t_traverse,
                OptixVisibilityMask(1), OPTIX_RAY_FLAG_NONE, 0u, 1u, 0u, opt1, opt2,raytype);
-    radar.frame_buffer[image_index] = make_float2(prd_radar.range, prd_radar.rcs);
+
+    float3 vel_global = prd_radar.velocity - radar.velocity;
+
+
+    float3 vel_radar_frame =  make_float3(Dot(forward, vel_global), Dot(left, vel_global), Dot(up, vel_global));
+        
+
+    radar.frame_buffer[6 * image_index] = prd_radar.range;
+    radar.frame_buffer[6 * image_index + 1] = prd_radar.rcs;
+    radar.frame_buffer[6 * image_index + 2] = vel_radar_frame.x; // x velocity
+    radar.frame_buffer[6 * image_index + 3] = vel_radar_frame.y; // y velocity
+    radar.frame_buffer[6 * image_index + 4] = vel_radar_frame.z; // z velocity
+    radar.frame_buffer[6 * image_index + 5] = prd_radar.objectID; // objectID
 }

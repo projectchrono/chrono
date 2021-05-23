@@ -26,6 +26,7 @@
 #include <cuda_fp16.h>
 #include <functional>
 #include <memory>
+#include <vector>
 
 namespace chrono {
 namespace sensor {
@@ -52,6 +53,7 @@ struct SensorBuffer {
                         // completed.
 };
 
+
 /// Base class of 2D buffers. This holds the raw sensor data.
 /// (Do not use this class directly, instead use the typedefs below)
 template <class B>
@@ -67,10 +69,25 @@ struct LidarBufferT : public SensorBufferT<B> {
     bool Dual_return;
 };
 
+struct float3 {
+    float x=0;
+    float y=0;
+    float z=0;
+    void add(float a, float b, float c){
+        x += a;
+        y += b;
+        z += c;
+    }
+};
+
 template <class B>
 struct RadarBufferT : public SensorBufferT<B> {
-    RadarBufferT() : Beam_return_count(0) {}
-    unsigned int Beam_return_count;
+    RadarBufferT() : Beam_return_count(0), Num_clusters(0) {}
+    int Beam_return_count;
+    int invalid_returns;
+    int Num_clusters;
+    std::vector<float3> avg_velocity;
+    std::vector<float3> centroids;
 };
 
 //================================
@@ -145,18 +162,41 @@ using UserR8BufferPtr = std::shared_ptr<SensorHostR8Buffer>;
 //=====================================
 // Range Radar Data Formats and Buffers
 //=====================================
-struct PixelRangeRcs {
+struct PixelRadar {
     float range;
-    float rcs;
+    float intensity;
+    float x_vel;
+    float y_vel;
+    float z_vel;
+    float objectID;
 };
-/// Depth-intensity host buffer to be used by radar filters in the graph
-using SensorHostRangeRcsBuffer = RadarBufferT<std::shared_ptr<PixelRangeRcs[]>>;
-/// Depth-intensity device buffer to be used by radar filters in the graph
-using DeviceRangeRcsBufferPtr = std::shared_ptr<PixelRangeRcs[]>;
-/// Sensor buffer wrapper of a DeviceRangeRcsBufferPtr
-using SensorDeviceRangeRcsBuffer = RadarBufferT<DeviceRangeRcsBufferPtr>;
-/// pointer to a depth-norm buffer on the host that has been moved for safety and can be given to the user
-using UserRangeRcsBufferPtr = std::shared_ptr<SensorHostRangeRcsBuffer>;
+/// host buffer to be used by radar filters in the graph
+using SensorHostRadarBuffer = RadarBufferT<std::shared_ptr<PixelRadar[]>>;
+/// device buffer to be used by radar filters in the graph
+using DeviceRadarBufferPtr = std::shared_ptr<PixelRadar[]>;
+/// Sensor buffer wrapper of a DeviceRadarBufferPtr
+using SensorDeviceRadarBuffer = RadarBufferT<DeviceRadarBufferPtr>;
+/// pointer to a radar buffer on the host that has been moved for safety and can be given to the user
+using UserRadarBufferPtr = std::shared_ptr<SensorHostRadarBuffer>;
+
+struct PixelProcessedRadar{
+    float x;
+    float y;
+    float z;
+    float intensity;
+    float x_vel;
+    float y_vel;
+    float z_vel;
+    float objectID;
+};
+/// processed radar host buffer to be used by radar filters in the graph
+using SensorHostProcessedRadarBuffer = RadarBufferT<std::shared_ptr<PixelProcessedRadar[]>>;
+/// processed radar buffer to be used by radar filters in the graph
+using DeviceProcessedRadarBufferPtr = std::shared_ptr<PixelProcessedRadar[]>;
+/// Sensor buffer wrapper of a DeviceProcessedRadarBufferPtr
+using SensorDeviceProcessedRadarBuffer = RadarBufferT<DeviceProcessedRadarBufferPtr>;
+/// pointer to a processed radar buffer on the host that has been moved for safety and can be given to the user
+using UserProcessedRadarBuffer = std::shared_ptr<SensorHostProcessedRadarBuffer>;
 
 //=====================================
 // Depth Lidar Data Formats and Buffers

@@ -75,9 +75,12 @@ class CH_SENSOR_API ChOptixPipeline {
 
     void UpdateAllSBTs();
     void UpdateAllPipelines();
+    void UpdateObjectVelocity();
 
     CUdeviceptr GetMeshPool();
     CUdeviceptr GetMaterialPool();
+
+    void AddBody(std::shared_ptr<ChBody> body){m_bodies.push_back(body);}
 
     OptixPipeline& GetPipeline(unsigned int id);
     std::shared_ptr<OptixShaderBindingTable> GetSBT(unsigned int id);
@@ -203,6 +206,8 @@ class CH_SENSOR_API ChOptixPipeline {
     std::vector<std::tuple<std::shared_ptr<ChTriangleMeshShape>, CUdeviceptr, CUdeviceptr, unsigned int>>
         m_deformable_meshes;
 
+    /// keep track of chrono bodies in scene so we can update velocity to device
+    std::vector<std::shared_ptr<ChBody>> m_bodies;
     // record defaults - clear when rebuilding root
     // bool m_default_box_record_inst = false;
     // unsigned int m_default_box_record_id;

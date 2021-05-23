@@ -18,6 +18,8 @@
 //
 // =============================================================================
 
+#define PROFILE false
+
 #include "chrono_sensor/optix/ChOptixEngine.h"
 
 #include <cuda.h>
@@ -27,6 +29,7 @@
 
 #include "chrono_sensor/ChCameraSensor.h"
 #include "chrono_sensor/ChLidarSensor.h"
+#include "chrono_sensor/ChRadarSensor.h"
 #include "chrono_sensor/optix/ChOptixUtils.h"
 #include "chrono_sensor/utils/ChVisualMaterialUtils.h"
 
@@ -366,7 +369,9 @@ void ChOptixEngine::RenderProcess(RenderThread& tself, std::shared_ptr<ChOptixSe
         tself.start = false;
         terminate = tself.terminate;
 
-        // std::chrono::high_resolution_clock::time_point t1 = std::chrono::high_resolution_clock::now();
+#if PROFILE
+        auto start = std::chrono::high_resolution_clock::now();
+#endif
         if (!terminate) {
             // run through the filter graph of our sensor
             for (auto f : sensor->GetFilterList()) {
@@ -376,10 +381,11 @@ void ChOptixEngine::RenderProcess(RenderThread& tself, std::shared_ptr<ChOptixSe
 
         // wait for stream to synchronize
         cudaStreamSynchronize(sensor->GetCudaStream());
-        // std::chrono::high_resolution_clock::time_point t2 = std::chrono::high_resolution_clock::now();
-        // std::chrono::duration<double> wall_time = std::chrono::duration_cast<std::chrono::duration<double>>(t2 - t1);
-        // std::cout << "Sensor = " << sensor->GetName() << ", Process time = " << wall_time.count() << std::endl;
-
+#if PROFILE
+        auto elapsed = std::chrono::high_resolution_clock::now() - start;
+        auto milli = std::chrono::duration_cast<std::chrono::milliseconds>(elapsed).count();
+        std::cout << "Sensor = " << sensor->GetName() << ", Process time = " << milli <<"ms"<<std::endl;
+#endif 
         tself.done = true;
         tmp_lock.unlock();  // explicitely release the lock on this render thread
         tself.cv.notify_all();
@@ -451,6 +457,7 @@ void ChOptixEngine::boxVisualization(std::shared_ptr<ChBody> body,
         mat_id = m_pipeline->GetBoxMaterial(box_shape->material_list[0]);
     }
     m_geometry->AddBox(body, asset_frame, size, mat_id);
+    m_pipeline->AddBody(body);
 }
 
 void ChOptixEngine::sphereVisualization(std::shared_ptr<ChBody> body,
@@ -469,6 +476,7 @@ void ChOptixEngine::sphereVisualization(std::shared_ptr<ChBody> body,
         mat_id = m_pipeline->GetSphereMaterial(sphere_shape->material_list[0]);
     }
     m_geometry->AddSphere(body, asset_frame, size, mat_id);
+    m_pipeline->AddBody(body);
 }
 
 void ChOptixEngine::cylinderVisualization(std::shared_ptr<ChBody> body,
@@ -491,6 +499,7 @@ void ChOptixEngine::cylinderVisualization(std::shared_ptr<ChBody> body,
         mat_id = m_pipeline->GetCylinderMaterial(cyl_shape->material_list[0]);
     }
     m_geometry->AddCylinder(body, asset_frame, size, mat_id);
+    m_pipeline->AddBody(body);
 }
 
 void ChOptixEngine::rigidMeshVisualization(std::shared_ptr<ChBody> body,
@@ -517,6 +526,7 @@ void ChOptixEngine::rigidMeshVisualization(std::shared_ptr<ChBody> body,
     // still possible there are no materials, but the pipeline will make a default if none exist
     mat_id = m_pipeline->GetRigidMeshMaterial(d_vertex_buffer, d_index_buffer, mesh_shape, mesh_shape->material_list);
     m_geometry->AddRigidMesh(d_vertex_buffer, d_index_buffer, mesh_shape, body, asset_frame, size, mat_id);
+    m_pipeline->AddBody(body);
 }
 
 void ChOptixEngine::deformableMeshVisualization(std::shared_ptr<ChBody> body,
@@ -544,6 +554,7 @@ void ChOptixEngine::deformableMeshVisualization(std::shared_ptr<ChBody> body,
     mat_id =
         m_pipeline->GetDeformableMeshMaterial(d_vertex_buffer, d_index_buffer, mesh_shape, mesh_shape->material_list);
     m_geometry->AddDeformableMesh(d_vertex_buffer, d_index_buffer, mesh_shape, body, asset_frame, size, mat_id);
+    m_pipeline->AddBody(body);
 }
 
 void ChOptixEngine::AddInstancedStaticSceneMeshes(std::vector<ChFrame<>>& frames,
@@ -680,6 +691,19 @@ void ChOptixEngine::UpdateCameraTransforms() {
     // go through all of the bodies
     for (int i = 0; i < m_assignedSensor.size(); i++) {
         auto sensor = m_assignedSensor[i];
+
+        // update radar velocity 
+        if (auto radar = std::dynamic_pointer_cast<ChRadarSensor>(sensor)){
+            ChVector<float> origin(0,0,0);
+            auto r = radar->GetOffsetPose().GetPos() - origin;
+            auto ang_vel = radar->GetAngularVelocity() % r;
+            auto vel_abs = radar->GetOffsetPose().TransformDirectionLocalToParent(ang_vel) + radar->GetTranslationalVelocity();
+            m_assignedRenderers[i]->m_raygen_record->data.specific.radar.velocity.x = vel_abs.x();
+            m_assignedRenderers[i]->m_raygen_record->data.specific.radar.velocity.y = vel_abs.y();
+            m_assignedRenderers[i]->m_raygen_record->data.specific.radar.velocity.z = vel_abs.z();
+            m_pipeline->UpdateObjectVelocity();
+        }
+
         ChFrame<double> f_offset = sensor->GetOffsetPose();
         ChFrame<double> f_body_0 = m_cameraStartFrames[i];
         m_cameraStartFrames_set[i] = false;  // reset this camera frame so that we know it should be packed again
@@ -706,7 +730,6 @@ void ChOptixEngine::UpdateCameraTransforms() {
 void ChOptixEngine::UpdateDeformableMeshes() {
     // update the mesh in the pipeline
     m_pipeline->UpdateDeformableMeshes();
-
     // update the meshes in the geometric scene
     m_geometry->UpdateDeformableMeshes();
 }
@@ -735,6 +758,5 @@ void ChOptixEngine::UpdateSceneDescription(std::shared_ptr<ChScene> scene) {
         scene->ResetLightsChanged();
     }
 }
-
 }  // namespace sensor
 }  // namespace chrono

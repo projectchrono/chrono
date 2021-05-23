@@ -72,12 +72,12 @@ class CH_SENSOR_API ChFilterVisualize : public ChFilter {
     std::shared_ptr<SensorDeviceR8Buffer> m_bufferR8;
     std::shared_ptr<SensorDeviceRGBA8Buffer> m_bufferRGBA8;
     std::shared_ptr<SensorDeviceDIBuffer> m_bufferDI;
-    std::shared_ptr<SensorDeviceRangeRcsBuffer> m_bufferRangeRcs;
+    std::shared_ptr<SensorDeviceRadarBuffer> m_bufferRadar;
 
     std::shared_ptr<SensorHostR8Buffer> m_hostR8;
     std::shared_ptr<SensorHostRGBA8Buffer> m_hostRGBA8;
     std::shared_ptr<SensorHostDIBuffer> m_hostDI;
-    std::shared_ptr<SensorHostRangeRcsBuffer> m_hostRangeRcs;
+    std::shared_ptr<SensorHostRadarBuffer> m_hostRadar;
 
     CUstream m_cuda_stream;  ///< reference to the cuda stream
 

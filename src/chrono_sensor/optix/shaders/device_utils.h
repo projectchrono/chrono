@@ -402,6 +402,7 @@ __device__ __inline__ void basis_from_quaternion(const float4& q, float3& f, flo
     h = make_float3((e1e3 + e0e2) * 2, (e2e3 - e0e1) * 2, (e0e0 + e3e3) * 2 - 1);
 }
 
+
 __device__ __inline__ float lerp(const float& a, const float& b, const float& t) {
     return a + t * (b - a);
 }

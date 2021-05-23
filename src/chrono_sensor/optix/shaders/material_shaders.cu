@@ -348,9 +348,22 @@ static __device__ __inline__ void RadarShader(PerRayData_radar* prd_radar,
                                               const float3& tangent,
                                               const float& ray_dist,
                                               const float3& ray_orig,
-                                              const float3& ray_dir) {
+                                              const float3& ray_dir,
+                                              const float3& translational_velocity,
+                                              const float3& angular_velocity,
+                                              const float& objectID) {
     prd_radar->range = ray_dist;
     prd_radar->rcs = mat.radar_backscatter * abs(Dot(world_normal, -ray_dir));
+    float3 hit_point = ray_orig + ray_dir * ray_dist;
+    float3 origin = optixTransformPointFromObjectToWorldSpace(make_float3(0,0,0));
+    float3 r = hit_point - origin;
+    
+    prd_radar->velocity = translational_velocity +  Cross(angular_velocity , r);
+    prd_radar->objectID = objectID;
+//    float3 linear = Cross(angular_velocity, r);
+//    printf("%f %f %f\n", r.x, r.y, r.z);
+//    printf("%f %f %f\n", angular_velocity.x, angular_velocity.y, angular_velocity.z);
+//    printf("%f %f %f\n", linear.x, linear.y, linear.z);
 }
 
 static __device__ __inline__ void ShadowShader(PerRayData_shadow* prd,
@@ -429,6 +442,12 @@ extern "C" __global__ void __closesthit__material_shader() {
     }
 
     float3 world_normal = normalize(optixTransformNormalFromObjectToWorldSpace(object_normal));
+    
+    // radar 
+    float3 angular_velocity = mat_params->angular_velocity;
+    float3 translational_velocity = mat_params->translational_velocity;
+
+//    printf("translational velocity: %f %f\n", mat_params->translational_velocity.x, mat_params->translational_velocity.y);
 
     // from here on out, things are specific to the ray type
     RayType raytype = (RayType)optixGetPayload_2();
@@ -441,7 +460,7 @@ extern "C" __global__ void __closesthit__material_shader() {
             LidarShader(getLidarPRD(), mat, world_normal, uv, tangent, ray_dist, ray_orig, ray_dir);
             break;
         case RADAR_RAY_TYPE:
-            RadarShader(getRadarPRD(), mat, world_normal, uv, tangent, ray_dist, ray_orig, ray_dir);
+            RadarShader(getRadarPRD(), mat, world_normal, uv, tangent, ray_dist, ray_orig, ray_dir, translational_velocity, angular_velocity, mat_params->objectID);
             break;
         case SHADOW_RAY_TYPE:
             ShadowShader(getShadowPRD(), mat, world_normal, uv, tangent, ray_dist, ray_orig, ray_dir);

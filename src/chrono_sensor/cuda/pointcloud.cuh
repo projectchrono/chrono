@@ -56,7 +56,14 @@ void cuda_pointcloud_from_depth_dual_return(void* bufDI,
                                             float min_v_angle,
                                             CUstream& stream);
 
-int remove_no_return_beams(void* bufIn, unsigned int size);
+void cuda_radar_pointcloud_from_depth(void* bufIn,
+                                      void* bufOut,
+                                      int width,
+                                      int height,
+                                      float hfov,
+                                      float max_v_angle,
+                                      float min_v_angle,
+                                      CUstream& stream);
 
 /// @}
 }  // namespace sensor

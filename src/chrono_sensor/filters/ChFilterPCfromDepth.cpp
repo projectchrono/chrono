@@ -68,17 +68,17 @@ CH_SENSOR_API void ChFilterPCfromDepth::Apply() {
     // counter for beam returns
     m_buffer_out->Beam_return_count = 0;
     auto buf = std::vector<PixelXYZI>(m_buffer_out->Width * m_buffer_out->Height * (m_buffer_out->Dual_return + 1));
-    auto new_buf = std::vector<PixelXYZI>(m_buffer_out->Width * m_buffer_out->Height * (m_buffer_out->Dual_return + 1));
+    auto processed_buffer = std::vector<PixelXYZI>(m_buffer_out->Width * m_buffer_out->Height * (m_buffer_out->Dual_return + 1));
     cudaMemcpyAsync(buf.data(), m_buffer_out->Buffer.get(), buf.size() * sizeof(PixelXYZI), cudaMemcpyDeviceToHost,
                     m_cuda_stream);
     cudaStreamSynchronize(m_cuda_stream);
     for (unsigned int i = 0; i < buf.size(); i++) {
         if (buf[i].intensity > 0) {
-            new_buf[m_buffer_out->Beam_return_count] = buf[i];
+            processed_buffer[m_buffer_out->Beam_return_count] = buf[i];
             m_buffer_out->Beam_return_count++;
         }
     }
-    cudaMemcpyAsync(m_buffer_out->Buffer.get(), new_buf.data(), m_buffer_out->Beam_return_count * sizeof(PixelXYZI),
+    cudaMemcpyAsync(m_buffer_out->Buffer.get(), processed_buffer.data(), m_buffer_out->Beam_return_count * sizeof(PixelXYZI),
                     cudaMemcpyHostToDevice, m_cuda_stream);
 
     m_buffer_out->LaunchedCount = m_buffer_in->LaunchedCount;

@@ -998,6 +998,27 @@ void ChOptixPipeline::UpdateDeformableMeshes() {
     }
 }
 
+void ChOptixPipeline::UpdateObjectVelocity(){
+    for (int i = 0; i < m_bodies.size(); i++){
+        m_material_records[i].data.translational_velocity = 
+        {
+            (float)m_bodies[i]->GetPos_dt().x(),
+            (float)m_bodies[i]->GetPos_dt().y(),
+            (float)m_bodies[i]->GetPos_dt().z()
+        };
+        m_material_records[i].data.angular_velocity = 
+        {
+            (float)m_bodies[i]->GetWvel_par().x(),
+            (float)m_bodies[i]->GetWvel_par().y(),
+            (float)m_bodies[i]->GetWvel_par().z()
+        };
+        m_material_records[i].data.objectID = i;
+    }
+    CUDA_ERROR_CHECK(cudaMemcpy(reinterpret_cast<void*>(md_material_records), m_material_records.data(),
+                            sizeof(Record<MaterialRecordParameters>) * m_material_records.size(),
+                            cudaMemcpyHostToDevice));
+}
+
 void ChOptixPipeline::CreateDeviceTexture(cudaTextureObject_t& d_tex_sampler,
                                           cudaArray_t& d_img_array,
                                           std::string file_name,

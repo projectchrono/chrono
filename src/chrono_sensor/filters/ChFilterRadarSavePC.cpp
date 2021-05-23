@@ -37,17 +37,14 @@ CH_SENSOR_API ChFilterRadarSavePC::ChFilterRadarSavePC(std::string data_path, st
 CH_SENSOR_API ChFilterRadarSavePC::~ChFilterRadarSavePC() {}
 
 CH_SENSOR_API void ChFilterRadarSavePC::Apply() {
-    cudaMemcpyAsync(m_host_buffer->Buffer.get(), m_buffer_in->Buffer.get(),
-                    m_host_buffer->Width * m_host_buffer->Height * (m_host_buffer->Dual_return + 1),
-                    cudaMemcpyDeviceToHost, m_cuda_stream);
 
     std::string filename = m_path + "frame_" + std::to_string(m_frame_number) + ".csv";
     m_frame_number++;
     utils::CSV_writer csv_writer(",");
-    cudaStreamSynchronize(m_cuda_stream);
     for (unsigned int i = 0; i < m_buffer_in->Beam_return_count; i++) {
-        csv_writer << m_host_buffer->Buffer[i].x << m_host_buffer->Buffer[i].y << m_host_buffer->Buffer[i].z
-                   << m_host_buffer->Buffer[i].intensity << std::endl;
+        csv_writer << m_buffer_in->Buffer[i].x << m_buffer_in->Buffer[i].y << m_buffer_in->Buffer[i].z  
+                   << m_buffer_in->Buffer[i].x_vel << m_buffer_in->Buffer[i].y_vel <<m_buffer_in->Buffer[i].z_vel
+                   << m_buffer_in->Buffer[i].intensity << m_buffer_in->Buffer[i].objectID<< std::endl;
     }
     csv_writer.write_to_file(filename);
 }
@@ -57,7 +54,7 @@ CH_SENSOR_API void ChFilterRadarSavePC::Initialize(std::shared_ptr<ChSensor> pSe
     if (!bufferInOut)
         InvalidFilterGraphNullBuffer(pSensor);
 
-    m_buffer_in = std::dynamic_pointer_cast<SensorDeviceXYZIBuffer>(bufferInOut);
+    m_buffer_in = std::dynamic_pointer_cast<SensorDeviceProcessedRadarBuffer>(bufferInOut);
     if (!m_buffer_in)
         InvalidFilterGraphBufferTypeMismatch(pSensor);
 
@@ -66,14 +63,6 @@ CH_SENSOR_API void ChFilterRadarSavePC::Initialize(std::shared_ptr<ChSensor> pSe
     } else {
         InvalidFilterGraphSensorTypeMismatch(pSensor);
     }
-
-    m_host_buffer = chrono_types::make_shared<SensorHostXYZIBuffer>();
-    std::shared_ptr<PixelXYZI[]> b(
-        cudaHostMallocHelper<PixelXYZI>(m_buffer_in->Width * m_buffer_in->Height * (m_buffer_in->Dual_return + 1)),
-        cudaHostFreeHelper<PixelXYZI>);
-    m_host_buffer->Buffer = std::move(b);
-    m_host_buffer->Width = m_buffer_in->Width;
-    m_host_buffer->Height = m_buffer_in->Height;
 
     std::vector<std::string> split_string;
 #ifdef _WIN32

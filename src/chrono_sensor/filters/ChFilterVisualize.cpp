@@ -52,9 +52,9 @@ CH_SENSOR_API void ChFilterVisualize::Apply() {
             cudaMemcpyAsync(m_hostDI->Buffer.get(), m_bufferDI->Buffer.get(),
                             m_hostDI->Width * m_hostDI->Height * sizeof(PixelDI), cudaMemcpyDeviceToHost,
                             m_cuda_stream);
-        } else if (m_bufferRangeRcs) {
-            cudaMemcpyAsync(m_hostRangeRcs->Buffer.get(), m_bufferRangeRcs->Buffer.get(),
-                            m_hostRangeRcs->Width * m_hostRangeRcs->Height * sizeof(PixelRangeRcs),
+        } else if (m_bufferRadar) {
+            cudaMemcpyAsync(m_hostRadar->Buffer.get(), m_bufferRadar->Buffer.get(),
+                            m_hostRadar->Width * m_hostRadar->Height * sizeof(PixelRadar),
                             cudaMemcpyDeviceToHost, m_cuda_stream);
         } else {
             throw std::runtime_error("No buffer incoming for visualization");
@@ -96,9 +96,9 @@ CH_SENSOR_API void ChFilterVisualize::Apply() {
             glTexImage2D(GL_TEXTURE_2D, 0, GL_RG32F, m_hostDI->Width, m_hostDI->Height, 0, GL_RG, GL_FLOAT,
                          m_hostDI->Buffer.get());
             // TODO: support dual returns
-        } else if (m_bufferRangeRcs) {
-            glTexImage2D(GL_TEXTURE_2D, 0, GL_RG32F, m_hostRangeRcs->Width, m_hostRangeRcs->Height, 0, GL_RG, GL_FLOAT,
-                         m_hostRangeRcs->Buffer.get());
+        } else if (m_bufferRadar) {
+            glTexImage2D(GL_TEXTURE_2D, 0, GL_RG32F, m_hostRadar->Width, m_hostRadar->Height, 0, GL_RG, GL_FLOAT,
+                         m_hostRadar->Buffer.get());
             // TODO: support dual returns
         } else {
             throw std::runtime_error("No buffer incoming for visualization");
@@ -144,7 +144,7 @@ CH_SENSOR_API void ChFilterVisualize::Initialize(std::shared_ptr<ChSensor> pSens
     m_bufferR8 = std::dynamic_pointer_cast<SensorDeviceR8Buffer>(bufferInOut);
     m_bufferRGBA8 = std::dynamic_pointer_cast<SensorDeviceRGBA8Buffer>(bufferInOut);
     m_bufferDI = std::dynamic_pointer_cast<SensorDeviceDIBuffer>(bufferInOut);
-    m_bufferRangeRcs = std::dynamic_pointer_cast<SensorDeviceRangeRcsBuffer>(bufferInOut);
+    m_bufferRadar = std::dynamic_pointer_cast<SensorDeviceRadarBuffer>(bufferInOut);
 
     if (m_bufferR8) {
         m_hostR8 = chrono_types::make_shared<SensorHostR8Buffer>();
@@ -168,14 +168,14 @@ CH_SENSOR_API void ChFilterVisualize::Initialize(std::shared_ptr<ChSensor> pSens
         m_hostDI->Buffer = std::move(b);
         m_hostDI->Width = m_bufferDI->Width;
         m_hostDI->Height = m_bufferDI->Height;
-    } else if (m_bufferRangeRcs) {
-        m_hostRangeRcs = chrono_types::make_shared<SensorHostRangeRcsBuffer>();
-        std::shared_ptr<PixelRangeRcs[]> b(
-            cudaHostMallocHelper<PixelRangeRcs>(m_bufferRangeRcs->Width * m_bufferRangeRcs->Height),
-            cudaHostFreeHelper<PixelRangeRcs>);
-        m_hostRangeRcs->Buffer = std::move(b);
-        m_hostRangeRcs->Width = m_bufferRangeRcs->Width;
-        m_hostRangeRcs->Height = m_bufferRangeRcs->Height;
+    } else if (m_bufferRadar) {
+        m_hostRadar = chrono_types::make_shared<SensorHostRadarBuffer>();
+        std::shared_ptr<PixelRadar[]> b(
+            cudaHostMallocHelper<PixelRadar>(m_bufferRadar->Width * m_bufferRadar->Height),
+            cudaHostFreeHelper<PixelRadar>);
+        m_hostRadar->Buffer = std::move(b);
+        m_hostRadar->Width = m_bufferRadar->Width;
+        m_hostRadar->Height = m_bufferRadar->Height;
     } else {
         InvalidFilterGraphBufferTypeMismatch(pSensor);
     }

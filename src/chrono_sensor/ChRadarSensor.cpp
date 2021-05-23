@@ -21,19 +21,17 @@
 namespace chrono {
 namespace sensor {
 
-CH_SENSOR_API ChRadarSensor::ChRadarSensor(std::shared_ptr<chrono::ChBody> parent,
-                                           float updateRate,
-                                           chrono::ChFrame<double> offsetPose,
-                                           unsigned int w,
-                                           unsigned int h,
+CH_SENSOR_API ChRadarSensor::ChRadarSensor(std::shared_ptr<chrono::ChBody> parent,  // object to attach to
+                                           float updateRate,                
+                                           chrono::ChFrame<double> offsetPose, 
+                                           unsigned int w,    // image width (# of rays)
+                                           unsigned int h,    // image height (# of rays)
                                            float hfov,
                                            float max_vertical_angle,
                                            float min_vertical_angle,
                                            float max_distance,
                                            float clip_near)
-    : m_vertical_samples(h),
-      m_horizontal_samples(w),
-      m_hFOV(hfov),
+    : m_hFOV(hfov),
       m_max_vert_angle(max_vertical_angle),
       m_min_vert_angle(min_vertical_angle),
       m_max_distance(max_distance),

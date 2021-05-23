@@ -24,6 +24,10 @@
 namespace chrono {
 namespace sensor {
 
+/// @addtogroup sensor_sensors
+/// @{
+
+/// Radar Class/ This corresponds to a fmcw radar
 class CH_SENSOR_API ChRadarSensor : public ChOptixSensor {
     /// Constructor for the base radar class
     /// @param parent Body to which the sensor is attached
@@ -37,38 +41,58 @@ class CH_SENSOR_API ChRadarSensor : public ChOptixSensor {
 
   public:
     ChRadarSensor(std::shared_ptr<chrono::ChBody> parent,
-                  float updateRate,
+                  const float updateRate,
                   chrono::ChFrame<double> offsetPose,
-                  unsigned int w,
-                  unsigned int h,
-                  float hfov,
-                  float max_vertical_angle,
-                  float min_vertical_angle,
-                  float max_distance,
-                  float clip_near = 1e-3f);
+                  const unsigned int w,
+                  const unsigned int h,
+                  const float hfov,
+                  const float max_vertical_angle,
+                  const float min_vertical_angle,
+                  const float max_distance,
+                  const float clip_near = 1e-3f);
 
     /// Class destructor
     ~ChRadarSensor();
 
-    float GetHFOV() const { return m_hFOV; }
 
+    /// Gives the horizontal field of view of the radar (angle between right-most and left-most ray for a "frame").
+    /// Horizontal field of view should be 360-(angular resulution) in degrees for a full 360 degree scanning radar.
+    /// @return The horizontal field of view of the radar sensor
+    float GetHFOV() const { return m_hFOV; }  
+
+    /// Returns the highest vertical angle of any ray in the radar
+    /// @return The angle of the highest ray
     float GetMaxVertAngle() const { return m_max_vert_angle; }
 
+    /// Returns the lowest vertical angle of any ray in the radar
+    /// @return The angle of the lowest ray
     float GetMinVertAngle() const { return m_min_vert_angle; }
 
+    /// Returns the maximum range of the radar
+    /// @return The maximum distance for the radar
     float GetMaxDistance() const { return m_max_distance; }
 
+    /// Returns the near clipping distance
+    /// @return the near clipping distance
     float GetClipNear() const { return m_clip_near; }
 
+    /// Returns the translational velocity of the object the radar is attached to
+    /// @return Returns the translational velocity of the object the radar is attached to
+    ChVector<double> GetTranslationalVelocity(){return m_parent->GetPos_dt();}
+
+    /// Returns the angular velocity of the object the radar is attached to
+    /// @return Returns the angular velocity of the object the radar is attached to
+    ChVector<double> GetAngularVelocity(){return m_parent->GetWvel_loc();}
+
   private:
-    unsigned int m_vertical_samples;
-    unsigned int m_horizontal_samples;
-    float m_hFOV;
-    float m_max_vert_angle;
-    float m_min_vert_angle;
-    float m_max_distance;
-    float m_clip_near;
+    float m_hFOV;               ///< the horizontal field of view of the radar
+    float m_max_vert_angle;     ///< max vertical angle of the rays
+    float m_min_vert_angle;     ///< min vertical angle of the rays
+    float m_max_distance;       ///< max distance for radar
+    float m_clip_near;          ///< near clipping distance so that radar sensor housings can be transparent to self
 };
+
+/// @} sensor_sensors
 
 }  // namespace sensor
 }  // namespace chrono

@@ -129,7 +129,7 @@ void SetSimParameters(
 bool CalcKE(ChSystemMulticoreSMC* sys, const double& threshold) {
     const std::shared_ptr<ChBody> body = sys->Get_bodylist().at(1);
 
-    ChVector<> eng_trn = 0.5 * body->GetMass() * body->GetPos_dt() * body->GetPos_dt();
+    ChVector<> eng_trn = 0.5 * body->GetMass() * body->retPos_dt() * body->GetPos_dt();
     ChVector<> eng_rot = 0.5 * body->GetInertiaXX() * body->GetWvel_par() * body->GetWvel_par();
 
     double KE_trn = eng_trn.x() + eng_trn.y() + eng_trn.z();

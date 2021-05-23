@@ -95,7 +95,8 @@ struct RadarParameters {
     float clip_near;
     float horiz_div_angle;
     float vert_div_angle;
-    float2* frame_buffer;
+    float3 velocity;
+    float* frame_buffer;
 };
 
 struct RaygenParameters {
@@ -158,6 +159,9 @@ struct ContextParameters {
 struct MaterialRecordParameters {
     unsigned int material_pool_id;
     unsigned int mesh_pool_id;
+    float3 translational_velocity;
+    float3 angular_velocity;
+    float objectID;
 };
 
 struct PerRayData_camera {
@@ -184,6 +188,8 @@ struct PerRayData_lidar {
 struct PerRayData_radar {
     float range;
     float rcs;
+    float3 velocity;
+    float objectID;
 };
 
 #endif
