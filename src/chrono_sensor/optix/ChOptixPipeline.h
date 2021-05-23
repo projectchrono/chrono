@@ -96,6 +96,12 @@ class CH_SENSOR_API ChOptixPipeline {
     void CompileBaseShaders();
     void AssembleBaseProgramGroups();
     void CreateBaseSBT();
+    void CreateOptixProgramGroup(OptixProgramGroup& group,
+                                 OptixProgramGroupKind k,
+                                 OptixModule is_module,
+                                 const char* is_name,
+                                 OptixModule ch_module,
+                                 const char* ch_name);
 
     unsigned int GetMaterial(std::shared_ptr<ChVisualMaterial> mat = nullptr);
 
@@ -119,12 +125,7 @@ class CH_SENSOR_API ChOptixPipeline {
     OptixModule m_lidar_raygen_module = 0;         // lidar.cu file
     OptixModule m_radar_raygen_module = 0;         // lidar.cu file
     OptixModule m_material_shading_module = 0;     // material shader file
-    // OptixModule m_camera_shading_module = 0;       // camera_shaders.cu file
-    // OptixModule m_shadow_shading_module = 0;       // shadow_shaders.cu
-    // OptixModule m_lidar_shading_module = 0;        // lidar_shaders.cu file
-    // OptixModule m_radar_shading_module = 0;        // lidar_shaders.cu file
-    OptixModule m_miss_module = 0;  // miss.cu
-    // OptixModule m_exception_module = 0;            // exception.cu
+    OptixModule m_miss_module = 0;                 // miss.cu
 
     // program groups - we only make one of each - do not clear when rebuilding root
     OptixProgramGroup m_camera_pinhole_raygen_group = 0;
@@ -134,35 +135,10 @@ class CH_SENSOR_API ChOptixPipeline {
     OptixProgramGroup m_radar_raygen_group = 0;
 
     OptixProgramGroup m_hit_box_group = 0;
-    // OptixProgramGroup m_camera_hit_box_group = 0;
-    // OptixProgramGroup m_shadow_hit_box_group = 0;
-    // OptixProgramGroup m_lidar_hit_box_group = 0;
-    // OptixProgramGroup m_radar_hit_box_group = 0;
-
     OptixProgramGroup m_hit_sphere_group = 0;
-    // OptixProgramGroup m_camera_hit_sphere_group = 0;
-    // OptixProgramGroup m_shadow_hit_sphere_group = 0;
-    // OptixProgramGroup m_lidar_hit_sphere_group = 0;
-    // OptixProgramGroup m_radar_hit_sphere_group = 0;
-
     OptixProgramGroup m_hit_cyl_group = 0;
-    // OptixProgramGroup m_camera_hit_cyl_group = 0;
-    // OptixProgramGroup m_shadow_hit_cyl_group = 0;
-    // OptixProgramGroup m_lidar_hit_cyl_group = 0;
-    // OptixProgramGroup m_radar_hit_cyl_group = 0;
-
     OptixProgramGroup m_hit_mesh_group = 0;
-    // OptixProgramGroup m_camera_hit_mesh_group = 0;
-    // OptixProgramGroup m_shadow_hit_mesh_group = 0;
-    // OptixProgramGroup m_lidar_hit_mesh_group = 0;
-    // OptixProgramGroup m_radar_hit_mesh_group = 0;
-
     OptixProgramGroup m_miss_group = 0;
-    // OptixProgramGroup m_camera_miss_group = 0;
-    // OptixProgramGroup m_shadow_miss_group = 0;
-    // OptixProgramGroup m_lidar_miss_group = 0;
-    // OptixProgramGroup m_radar_miss_group = 0;
-    // OptixProgramGroup m_exception_group = 0;
 
     // compile options - TODO: should probably depend on the pipeline - do not clear for now
     OptixPipelineCompileOptions m_pipeline_compile_options;
@@ -191,8 +167,6 @@ class CH_SENSOR_API ChOptixPipeline {
     std::vector<CUdeviceptr> m_mesh_buffers_dptrs;  ///< for keeping a handle to free later
 
     // texture and image handles
-    // std::vector<cudaTextureObject_t> m_texture_samplers;  ///< for keeping a handle to free later
-    // std::vector<cudaArray_t> m_img_textures;              ///< for keeping a handle to free later
     std::unordered_map<std::string, cudaTextureObject_t> m_texture_samplers;  ///< for keeping a handle to free later
     std::unordered_map<std::string, cudaArray_t> m_img_textures;              ///< for keeping a handle to free later
 
@@ -205,16 +179,6 @@ class CH_SENSOR_API ChOptixPipeline {
     /// list of deformable meshes <mesh shape, dvertices, dnormals, num prev triangles>
     std::vector<std::tuple<std::shared_ptr<ChTriangleMeshShape>, CUdeviceptr, CUdeviceptr, unsigned int>>
         m_deformable_meshes;
-
-    /// keep track of chrono bodies in scene so we can update velocity to device
-    std::vector<std::shared_ptr<ChBody>> m_bodies;
-    // record defaults - clear when rebuilding root
-    // bool m_default_box_record_inst = false;
-    // unsigned int m_default_box_record_id;
-    // bool m_default_sphere_record_inst = false;
-    // unsigned int m_default_sphere_record_id;
-    // bool m_default_cyl_record_inst = false;
-    // unsigned int m_default_cyl_record_id;
 
     // default material in the material pool
     bool m_default_material_inst = false;

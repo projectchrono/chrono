@@ -22,12 +22,13 @@
 #include <fstream>
 #include <sstream>
 #include <iomanip>
+#include <chrono>
 
 #include <optix_stubs.h>
 // #include <optix_function_table_definition.h>
 
 #ifdef USE_CUDA_NVRTC
-#include <nvrtc.h>
+    #include <nvrtc.h>
 #endif
 
 namespace chrono {
@@ -39,6 +40,7 @@ void GetShaderFromFile(OptixDeviceContext context,
                        OptixModuleCompileOptions& module_compile_options,
                        OptixPipelineCompileOptions& pipeline_compile_options) {
 #ifdef USE_CUDA_NVRTC
+    // std::chrono::high_resolution_clock::time_point start_compile = std::chrono::high_resolution_clock::now();
 
     std::string cuda_file = std::string(SENSOR_CUDA_SRC_DIR) + file_name + ".cu";
     std::string str;
@@ -95,6 +97,13 @@ void GetShaderFromFile(OptixDeviceContext context,
     NVRTC_ERROR_CHECK(nvrtcGetPTXSize(nvrtc_program, &ptx_size));
     ptx.resize(ptx_size);
     NVRTC_ERROR_CHECK(nvrtcGetPTX(nvrtc_program, &ptx[0]));
+
+    // std::chrono::high_resolution_clock::time_point end_compile = std::chrono::high_resolution_clock::now();
+
+    // std::cout << "Rebuilt root acceleration structure, addr = " << m_root << std::endl;
+    // std::chrono::duration<double> wall_time = std::chrono::duration_cast<std::chrono::duration<double>>(end_compile - start_compile);
+    // std::cout << "NVRTC Compilation: " << file_name << " | " << wall_time.count() << std::endl;
+    // wall_time = std::chrono::duration_cast<std::chrono::duration<double>>(t2 - t1);
 
 #else
     std::string ptx_file = std::string(PTX_GENERATED_PATH) + ptx_pre + file_name + ptx_suff;

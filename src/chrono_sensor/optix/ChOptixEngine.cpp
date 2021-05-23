@@ -13,8 +13,7 @@
 // =============================================================================
 //
 // OptiX rendering engine for processing jobs for sensing. Jobs are defined on
-// each sensor as a graph. Recommended to use one engine per GPU to mitigate
-// OptiX blocking launch calls
+// each sensor as a graph.
 //
 // =============================================================================
 
@@ -213,12 +212,6 @@ void ChOptixEngine::UpdateSensors(std::shared_ptr<ChScene> scene) {
             }
             // m_sceneThread.cv.wait(lck);  // wait for the scene thread to tell us it is done
             cudaDeviceSynchronize();  // TODO: do we need to synchronize here?
-
-            // initialize noise if not done yet
-            // if (!m_noise_initialized && m_num_noise_vals > 0) {
-            //     m_noise_initialized = true;
-            // }
-            // std::chrono::high_resolution_clock::time_point t1 = std::chrono::high_resolution_clock::now();
 
             // std::cout << "Starting optix scene update\n";
             // update the scene for the optix context
@@ -445,10 +438,8 @@ void ChOptixEngine::SceneProcess(RenderThread& tself) {
 void ChOptixEngine::boxVisualization(std::shared_ptr<ChBody> body,
                                      std::shared_ptr<ChBoxShape> box_shape,
                                      std::shared_ptr<ChVisualization> visual_asset) {
-    ChVector<double> asset_pos = visual_asset->Pos;
-    ChMatrix33<double> asset_rot_mat = visual_asset->Rot;
     ChVector<double> size = box_shape->GetBoxGeometry().GetLengths();
-    ChFrame<double> asset_frame = ChFrame<double>(asset_pos, asset_rot_mat);
+    ChFrame<double> asset_frame = ChFrame<double>(visual_asset->Pos, visual_asset->Rot);
 
     unsigned int mat_id;
     if (box_shape->material_list.size() == 0) {
@@ -463,11 +454,9 @@ void ChOptixEngine::boxVisualization(std::shared_ptr<ChBody> body,
 void ChOptixEngine::sphereVisualization(std::shared_ptr<ChBody> body,
                                         std::shared_ptr<ChSphereShape> sphere_shape,
                                         std::shared_ptr<ChVisualization> visual_asset) {
-    ChVector<double> asset_pos = visual_asset->Pos;
-    ChMatrix33<double> asset_rot_mat = visual_asset->Rot;
     ChVector<double> size = {sphere_shape->GetSphereGeometry().rad, sphere_shape->GetSphereGeometry().rad,
                              sphere_shape->GetSphereGeometry().rad};
-    ChFrame<double> asset_frame = ChFrame<double>(asset_pos + sphere_shape->GetSphereGeometry().center, asset_rot_mat);
+    ChFrame<double> asset_frame = ChFrame<double>(visual_asset->Pos + sphere_shape->GetSphereGeometry().center, visual_asset->Rot);
 
     unsigned int mat_id;
     if (sphere_shape->material_list.size() == 0) {
@@ -482,15 +471,12 @@ void ChOptixEngine::sphereVisualization(std::shared_ptr<ChBody> body,
 void ChOptixEngine::cylinderVisualization(std::shared_ptr<ChBody> body,
                                           std::shared_ptr<ChCylinderShape> cyl_shape,
                                           std::shared_ptr<ChVisualization> visual_asset) {
-    ChVector<double> asset_pos = visual_asset->Pos;
-    ChMatrix33<double> asset_rot_mat = visual_asset->Rot;
-
     double radius = cyl_shape->GetCylinderGeometry().rad;
     double height = (cyl_shape->GetCylinderGeometry().p1 - cyl_shape->GetCylinderGeometry().p2).Length();
     ChVector<double> center = (cyl_shape->GetCylinderGeometry().p1 + cyl_shape->GetCylinderGeometry().p2) / 2;
 
     ChVector<double> size = {radius, height, radius};
-    ChFrame<double> asset_frame = ChFrame<double>(asset_pos + center, asset_rot_mat);
+    ChFrame<double> asset_frame = ChFrame<double>(visual_asset->Pos + center, visual_asset->Rot);
 
     unsigned int mat_id;
     if (cyl_shape->material_list.size() == 0) {
@@ -509,10 +495,8 @@ void ChOptixEngine::rigidMeshVisualization(std::shared_ptr<ChBody> body,
         std::cerr << "WARNING: Chrono::Sensor does not support wireframe meshes. Defaulting back to solid mesh, please "
                      "check for visual issues.\n";
     }
-    ChVector<double> asset_pos = visual_asset->Pos;
-    ChMatrix33<double> asset_rot_mat = visual_asset->Rot;
     ChVector<double> size = mesh_shape->GetScale();
-    ChFrame<double> asset_frame = ChFrame<double>(asset_pos, asset_rot_mat);
+    ChFrame<double> asset_frame = ChFrame<double>(visual_asset->Pos, visual_asset->Rot);
 
     unsigned int mat_id;
 
@@ -536,10 +520,8 @@ void ChOptixEngine::deformableMeshVisualization(std::shared_ptr<ChBody> body,
         std::cerr << "WARNING: Chrono::Sensor does not support wireframe meshes. Defaulting back to solid mesh, please "
                      "check for visual issues.\n";
     }
-    ChVector<double> asset_pos = visual_asset->Pos;
-    ChMatrix33<double> asset_rot_mat = visual_asset->Rot;
     ChVector<double> size = mesh_shape->GetScale();
-    ChFrame<double> asset_frame = ChFrame<double>(asset_pos, asset_rot_mat);
+    ChFrame<double> asset_frame = ChFrame<double>(visual_asset->Pos, visual_asset->Rot);
 
     unsigned int mat_id;
 
@@ -556,9 +538,6 @@ void ChOptixEngine::deformableMeshVisualization(std::shared_ptr<ChBody> body,
     m_geometry->AddDeformableMesh(d_vertex_buffer, d_index_buffer, mesh_shape, body, asset_frame, size, mat_id);
     m_pipeline->AddBody(body);
 }
-
-void ChOptixEngine::AddInstancedStaticSceneMeshes(std::vector<ChFrame<>>& frames,
-                                                  std::shared_ptr<ChTriangleMeshShape> mesh) {}
 
 void ChOptixEngine::ConstructScene() {
     // need to lock before touching any optix stuff

@@ -17,20 +17,10 @@
 #ifndef CHSENSORDEVICEUTILS_H
 #define CHSENSORDEVICEUTILS_H
 
-#include <cuda_runtime.h>
-#include <device_types.h>
-#include <cuda_runtime_api.h>
-#include <vector_functions.h>
-#include <math_constants.h>
-
-#include <optix.h>
-#include <optix_device.h>
-#include <vector_types.h>
-#include <optix_types.h>
-// #include <curand.h>
-// #include <curand_kernel.h>
-
 #include "chrono_sensor/optix/ChOptixDefinitions.h"
+
+#include <math_constants.h>
+#include <optix.h>
 
 extern "C" {
 __constant__ ContextParameters params;
@@ -60,13 +50,6 @@ static __device__ __inline__ void pointer_as_ints(void* ptr, unsigned int& a, un
     a = uptr >> 32;
     b = uptr & 0x00000000ffffffff;
 }
-
-// static __device__ __inline__ float4 make_float4(const float3& point, const uchar4& color) {
-//     float csf;
-//     memcpy(&csf, &color, sizeof(csf));
-
-//     return make_float4(point.x, point.y, point.z, csf);
-// }
 
 static __device__ __inline__ float sensor_rand(unsigned int seed) {
     unsigned int next = (1103515245u * seed + 12345u) % 2147483648u;
@@ -118,8 +101,8 @@ __device__ __inline__ PerRayData_camera default_camera_prd() {
 
 __device__ __inline__ PerRayData_shadow default_shadow_prd() {
     PerRayData_shadow prd = {make_float3(1.f, 1.f, 1.f),  // default opacity amount
-                             3,                                            // default depth
-                             0.f};                                         // default distance remaining to light
+                             3,                           // default depth
+                             0.f};                        // default distance remaining to light
     return prd;
 };
 

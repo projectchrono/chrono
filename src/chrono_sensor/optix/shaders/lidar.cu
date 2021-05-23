@@ -44,7 +44,8 @@ extern "C" __global__ void __raygen__lidar_single() {
     float3 up;
     basis_from_quaternion(ray_quat, forward, left, up);
     float3 ray_direction = normalize(forward * x + left * y + up * z);
-    PerRayData_lidar prd_lidar = default_lidar_prd();  // make_lidar_data(0, 0.f);
+    
+    PerRayData_lidar prd_lidar = default_lidar_prd();
     unsigned int opt1;
     unsigned int opt2;
     pointer_as_ints(&prd_lidar, opt1, opt2);

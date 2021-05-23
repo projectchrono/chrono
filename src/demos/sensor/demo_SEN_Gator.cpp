@@ -278,6 +278,10 @@ int main(int argc, char* argv[]) {
 
     auto manager = chrono_types::make_shared<ChSensorManager>(gator.GetSystem());
     manager->scene->AddPointLight({100, 100, 100}, {2, 2, 2}, 5000);
+    Background b;
+    b.mode = BackgroundMode::ENVIRONMENT_MAP;
+    b.env_tex = GetChronoDataFile("sensor/textures/quarry_01_4k.hdr");
+    manager->scene->SetBackground(b);
 
     // third person camera
     auto cam = chrono_types::make_shared<ChCameraSensor>(
@@ -291,7 +295,7 @@ int main(int argc, char* argv[]) {
     cam->SetName("3rd Person Camera Sensor");
     cam->SetCollectionWindow(exposure_time);
     if (sensor_vis)
-        cam->PushFilter(chrono_types::make_shared<ChFilterVisualize>(image_width, image_height));
+        cam->PushFilter(chrono_types::make_shared<ChFilterVisualize>(image_width, image_height, "Third-person View"));
     if (sensor_save)
         cam->PushFilter(chrono_types::make_shared<ChFilterSave>(sens_dir + "/cam1/"));
     cam->PushFilter(chrono_types::make_shared<ChFilterRGBA8Access>());
@@ -309,7 +313,7 @@ int main(int argc, char* argv[]) {
     cam2->SetName("Camera Sensor");
     cam2->SetCollectionWindow(exposure_time);
     if (sensor_vis)
-        cam2->PushFilter(chrono_types::make_shared<ChFilterVisualize>(image_width, image_height));
+        cam2->PushFilter(chrono_types::make_shared<ChFilterVisualize>(image_width, image_height, "Front-facing Camera"));
     if (sensor_save)
         cam2->PushFilter(chrono_types::make_shared<ChFilterSave>(sens_dir + "/cam2/"));
     cam2->PushFilter(chrono_types::make_shared<ChFilterRGBA8Access>());
@@ -325,7 +329,7 @@ int main(int argc, char* argv[]) {
         lidar_vmax,                                                               // vertical field of view
         lidar_vmin,                                                               // vertical field of view
         100.0f,                                                                   // max distance
-        LidarBeamShape::RECTANGULAR,                                                              // beam shape
+        LidarBeamShape::RECTANGULAR,                                              // beam shape
         1,                                                                        //
         0.0f,                                                                     //
         0.0f,

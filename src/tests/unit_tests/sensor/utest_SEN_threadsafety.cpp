@@ -32,6 +32,15 @@ using namespace sensor;
 
 #define end_time 1.0
 
+// adding sensor during sim
+TEST(ChSensorManager, sensor_adding) {}
+
+// adding and deleting objects during sim
+TEST(ChSensorManager, object_adding) {}
+
+// setting sensor params during sim (pose, filters, etc)
+TEST(ChSensor, modifying) {}
+
 TEST(ChFilterAccess, data_access_safety) {
     ChSystemNSC mphysicalSystem;
 

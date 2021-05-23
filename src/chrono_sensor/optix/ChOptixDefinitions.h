@@ -23,7 +23,7 @@
 #include <curand_kernel.h>
 
 #include <cuda_fp16.h>
-struct __align__(8) half4 {
+struct half4 {
     __half x;
     __half y;
     __half z;
@@ -113,35 +113,36 @@ struct RaygenParameters {
     } specific;
 };
 
-struct __align__(16) MeshParameters {
-    float4* vertex_buffer;
-    float4* normal_buffer;
-    float2* uv_buffer;
-    uint4* vertex_index_buffer;
-    uint4* normal_index_buffer;
-    uint4* uv_index_buffer;
-    unsigned int* mat_index_buffer;
-    float pad;  // pads to 64 bytes
+struct MeshParameters {              // pad to align 16 (swig doesn't support explicit alignment calls)
+    float4* vertex_buffer;           // size 8
+    float4* normal_buffer;           // size 8
+    float2* uv_buffer;               // size 8
+    uint4* vertex_index_buffer;      // size 8
+    uint4* normal_index_buffer;      // size 8
+    uint4* uv_index_buffer;          // size 8
+    unsigned int* mat_index_buffer;  // size 8
+    double pad;                      // size 8
 };
 
-struct __align__(16) MaterialParameters {  // TODO: pad for alignment
-    float3 Kd;
-    float3 Ks;
-    float fresnel_exp;
-    float fresnel_min;
-    float fresnel_max;
-    float transparency;  // will also be the shadow attenuation
-    float roughness;
-    float metallic;
-    float lidar_intensity;
-    float radar_backscatter;
-    int use_specular_workfloat;
-    cudaTextureObject_t kd_tex;
-    cudaTextureObject_t kn_tex;
-    cudaTextureObject_t ks_tex;
-    cudaTextureObject_t metallic_tex;
-    cudaTextureObject_t roughness_tex;
-    cudaTextureObject_t opacity_tex;
+struct MaterialParameters {             // pad to align 16 (swig doesn't support explicit alignment calls)
+    float3 Kd;                          // size 12
+    float3 Ks;                          // size 12
+    float fresnel_exp;                  // size 4
+    float fresnel_min;                  // size 4
+    float fresnel_max;                  // size 4
+    float transparency;                 // size 4
+    float roughness;                    // size 4
+    float metallic;                     // size 4
+    float lidar_intensity;              // size 4
+    float radar_backscatter;            // size 4
+    int use_specular_workfloat;         // size 4
+    cudaTextureObject_t kd_tex;         // size 8
+    cudaTextureObject_t kn_tex;         // size 8
+    cudaTextureObject_t ks_tex;         // size 8
+    cudaTextureObject_t metallic_tex;   // size 8
+    cudaTextureObject_t roughness_tex;  // size 8
+    cudaTextureObject_t opacity_tex;    // size 8
+    float pad;                          // size 4
 };
 
 struct ContextParameters {
