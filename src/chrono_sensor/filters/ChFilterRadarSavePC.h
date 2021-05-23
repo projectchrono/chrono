@@ -31,7 +31,7 @@ class ChSensor;
 /// @{
 
 /// A filter that, when applied to a sensor, saves point cloud data. Format will be CSV one point per line, with
-/// data as X,Y,Z,I
+/// data as x,y,z,x_vel,y_vel,z_vel,intensity,clusterID
 class CH_SENSOR_API ChFilterRadarSavePC : public ChFilter {
   public:
     /// Class constructor
