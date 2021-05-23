@@ -74,7 +74,7 @@ void ChCollisionSystemChrono::Add(ChCollisionModel* model) {
     int body_id = pmodel->GetBody()->GetId();
     short2 fam = S2(pmodel->GetFamilyGroup(), pmodel->GetFamilyMask());
     // The offset for this shape will the current total number of points in the convex data list
-    auto shape_data = data_manager->shape_data;
+    auto& shape_data = data_manager->shape_data;
     int convex_data_offset = (int)shape_data.convex_rigid.size();
     // Insert the points into the global convex list
     shape_data.convex_rigid.insert(shape_data.convex_rigid.end(), pmodel->local_convex_data.begin(),
@@ -271,8 +271,8 @@ void ChCollisionSystemChrono::Synchronize() {
     auto blist = m_system->Get_bodylist();
     int nbodies = static_cast<int>(blist.size());
 
-    position.resize(3 * nbodies);
-    rotation.resize(4 * nbodies);
+    position.resize(nbodies);
+    rotation.resize(nbodies);
     active.resize(nbodies);
     collide.resize(nbodies);
 

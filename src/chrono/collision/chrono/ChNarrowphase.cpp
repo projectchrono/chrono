@@ -37,7 +37,8 @@
 namespace chrono {
 namespace collision {
 
-ChNarrowphase::ChNarrowphase() : algorithm(Algorithm::HYBRID), envelope(0), data_manager(nullptr) {}
+ChNarrowphase::ChNarrowphase()
+    : algorithm(Algorithm::HYBRID), envelope(ChCollisionModel::GetDefaultSuggestedEnvelope()), data_manager(nullptr) {}
 
 void ChNarrowphase::ClearContacts() {
     // Return now if no potential collisions.
