@@ -183,6 +183,9 @@ class CH_SENSOR_API ChOptixPipeline {
     // default material in the material pool
     bool m_default_material_inst = false;
     unsigned int m_default_material_id;
+
+    // bodies in simulation
+    std::vector<std::shared_ptr<ChBody>> m_bodies;
 };
 }  // namespace sensor
 }  // namespace chrono
