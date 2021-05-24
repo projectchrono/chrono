@@ -20,6 +20,7 @@
 
 #include "chrono_models/robot/viper/Viper.h"
 #include "chrono/physics/ChSystemNSC.h"
+#include "chrono/physics/ChSystemPBD.h"
 #include "chrono/physics/ChBodyEasy.h"
 #include "chrono/physics/ChInertiaUtils.h"
 #include "chrono/assets/ChTexture.h"
@@ -86,12 +87,13 @@ std::shared_ptr<ChMaterialSurface> CustomWheelMaterial(ChContactMethod contact_m
 }
 
 // Simulation time step
-double time_step = 0.0005;
+double time_step = 0.005;
+int substeps = 200;
 
 int main(int argc, char* argv[]) {
     GetLog() << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
     // Create a ChronoENGINE physical system
-    ChSystemNSC mphysicalSystem;
+    ChSystemPBD mphysicalSystem;
 
     // set gravity
     mphysicalSystem.Set_G_acc(ChVector<>(0, 0, -9.81));
@@ -152,6 +154,7 @@ int main(int argc, char* argv[]) {
     application.AddShadowAll();
 
     application.SetTimestep(time_step);
+	mphysicalSystem.SetSubsteps(substeps);
 
     //
     // Simulation loop
