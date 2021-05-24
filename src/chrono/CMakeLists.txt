@@ -292,6 +292,7 @@ set(ChronoEngine_physics_loads_SOURCES
     physics/ChLoad.cpp
     physics/ChLoadsBody.cpp
     physics/ChLoadsXYZnode.cpp
+    physics/ChLoadsXYZROTnode.cpp
     physics/ChLoadBodyMesh.cpp
 )
 
@@ -303,6 +304,7 @@ set(ChronoEngine_physics_loads_HEADERS
     physics/ChLoaderUVW.h
     physics/ChLoad.h
     physics/ChLoadsXYZnode.h
+    physics/ChLoadsXYZROTnode.h
     physics/ChLoadsBody.h
     physics/ChLoadBodyMesh.h
     physics/ChLoadContainer.h
@@ -665,9 +667,11 @@ set(ChronoEngine_collision_SOURCES
     collision/ChCollisionShape.cpp
     collision/ChCollisionModel.cpp
     collision/ChCollisionModelBullet.cpp
+    collision/ChCollisionAlgorithmsBullet.cpp
     collision/ChCollisionSystemBullet.cpp
     collision/ChConvexDecomposition.cpp
     collision/ChCollisionUtils.cpp
+    collision/ChCollisionUtilsBullet.cpp
     )
 
 set(ChronoEngine_collision_HEADERS
@@ -678,9 +682,11 @@ set(ChronoEngine_collision_HEADERS
     collision/ChCollisionSystem.h
     collision/ChCollisionShapeBullet.h
     collision/ChCollisionModelBullet.h
+    collision/ChCollisionAlgorithmsBullet.h
     collision/ChCollisionSystemBullet.h
     collision/ChConvexDecomposition.h
     collision/ChCollisionUtils.h
+    collision/ChCollisionUtilsBullet.h
     )
 
 source_group(collision FILES
@@ -1042,6 +1048,7 @@ set(ChronoEngine_collision_bullet_SOURCES
     collision/bullet/BulletCollision/CollisionShapes/btConvexTriangleMeshShape.cpp
     collision/bullet/BulletCollision/CollisionShapes/btOptimizedBvh.cpp
     collision/bullet/BulletCollision/CollisionShapes/btCylinderShape.cpp
+    collision/bullet/BulletCollision/CollisionShapes/btCylindricalShellShape.cpp
     collision/bullet/BulletCollision/CollisionShapes/btMultiSphereShape.cpp
     collision/bullet/BulletCollision/CollisionShapes/btEmptyShape.cpp
     collision/bullet/BulletCollision/CollisionShapes/btMinkowskiSumShape.cpp

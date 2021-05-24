@@ -47,7 +47,7 @@ void ChLinkMotor::ArchiveOUT(ChArchiveOut& marchive) {
 
 void ChLinkMotor::ArchiveIN(ChArchiveIn& marchive) {
     // version number
-    int version = marchive.VersionRead<ChLinkMotor>();
+    /*int version =*/ marchive.VersionRead<ChLinkMotor>();
 
     // deserialize parent class
     ChLinkMateGeneric::ArchiveIN(marchive);

@@ -79,8 +79,7 @@ void TrackedVehicle::Create(const std::string& filename) {
 
     assert(d.HasMember("Track Assemblies"));
     assert(d["Track Assemblies"].IsArray());
-    int num_tracks = d["Track Assemblies"].Size();
-    assert(num_tracks == 2);
+    assert(d["Track Assemblies"].Size() == 2); 
 
     {
         std::string file_name = d["Track Assemblies"][0u]["Input File"].GetString();

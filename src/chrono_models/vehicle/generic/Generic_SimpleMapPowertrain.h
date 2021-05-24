@@ -69,25 +69,12 @@ class CH_MODELS_API Generic_SimpleMapPowertrain : public ChPowertrain {
     /// This simplified model does not have a torque converter.
     virtual double GetTorqueConverterOutputSpeed() const override { return 0; }
 
-    /// Return the current transmission gear
-    /// This simplified model does not have a transmission box.
-    virtual int GetCurrentTransmissionGear() const override { return 1; }
-
     /// Return the output torque from the powertrain.
     /// This is the torque that is passed to a vehicle system, thus providing the
     /// interface between the powertrain and vehicle co-simulation modules.
     /// Since a ShaftsPowertrain is directly connected to the vehicle's driveline,
     /// this function returns 0.
     virtual double GetOutputTorque() const override { return m_shaftTorque; }
-
-    /// Use this function to set the mode of automatic transmission.
-    /// This simplified model does not have a transmission box.
-    virtual void SetDriveMode(ChPowertrain::DriveMode mmode) override;
-
-    /// Use this function to shift from one gear to another.
-    /// A zero latency shift is assumed.
-    /// Note, index starts from 0.
-    void SetSelectedGear(int igear);
 
   private:
     /// Initialize the powertrain system.
@@ -105,13 +92,12 @@ class CH_MODELS_API Generic_SimpleMapPowertrain : public ChPowertrain {
     /// This function does nothing for this simplified powertrain model.
     virtual void Advance(double step) override {}
 
-    double m_current_gear_ratio;
+    /// Set the transmission gear ratios (one or more forward gear ratios and a single reverse gear ratio).
+    virtual void SetGearRatios(std::vector<double>& fwd, double& rev) override;
+
     double m_motorSpeed;
     double m_motorTorque;
     double m_shaftTorque;
-
-    int m_current_gear;
-    std::vector<double> m_gear_ratios;
 
     ChCubicSpline m_zeroThrottleMap;
     ChCubicSpline m_fullThrottleMap;

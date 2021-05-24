@@ -161,6 +161,8 @@ double CreateParticles(ChSystem* system) {
 #endif
 
     // Create a particle generator and a mixture entirely made out of spheres
+    double r = 1.01 * r_g;
+    utils::PDSampler<double> sampler(2 * r);
     utils::Generator gen(system);
     std::shared_ptr<utils::MixtureIngredient> m1 = gen.AddMixtureIngredient(utils::MixtureType::SPHERE, 1.0);
     m1->setDefaultMaterial(mat_g);
@@ -171,12 +173,11 @@ double CreateParticles(ChSystem* system) {
     gen.setBodyIdentifier(Id_g);
 
     // Create particles in layers until reaching the desired number of particles
-    double r = 1.01 * r_g;
     ChVector<> hdims(hdimX - r, hdimY - r, 0);
     ChVector<> center(0, 0, 2 * r);
 
     while (gen.getTotalNumBodies() < num_particles) {
-        gen.createObjectsBox(utils::SamplingType::POISSON_DISK, 2 * r, center, hdims);
+        gen.CreateObjectsBox(sampler, center, hdims);
         center.z() += 2 * r;
     }
 
@@ -198,9 +199,9 @@ void progressbar(unsigned int x, unsigned int n, unsigned int w = 50) {
   unsigned int c = (unsigned int)(ratio * w);
 
   std::cout << std::setw(3) << (int)(ratio * 100) << "% [";
-  for (unsigned int x = 0; x < c; x++)
+  for (unsigned int ix = 0; ix < c; ix++)
     std::cout << "=";
-  for (unsigned int x = c; x < w; x++)
+  for (unsigned int ix = c; ix < w; ix++)
     std::cout << " ";
   std::cout << "]\r" << std::flush;
 }

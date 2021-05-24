@@ -15,6 +15,7 @@
 #include "chrono_gpu/cuda/ChGpu_SMC_trimesh.cuh"
 #include "chrono_gpu/cuda/ChGpu_SMC.cuh"
 #include "chrono_gpu/physics/ChSystemGpuMesh_impl.h"
+#include "chrono_gpu/utils/ChGpuUtilities.h"
 
 namespace chrono {
 namespace gpu {
@@ -121,12 +122,28 @@ __host__ void ChSystemGpuMesh_impl::runTriangleBroadphase() {
     // compute offsets in SD_trianglesInEachSD_composite and also counts for how many triangles touch each SD.
     // Start by zeroing out, it's important since not all entries will be touched in
     gpuErrchk(cudaMemset(SD_numTrianglesTouching.data(), 0, nSDs * sizeof(unsigned int)));
-    nblocks = ((*d_num_runs_out) + CUDA_THREADS_PER_BLOCK - 1) / CUDA_THREADS_PER_BLOCK; 
-    finalizeSD_numTrianglesTouching<<<nblocks, CUDA_THREADS_PER_BLOCK>>>(d_unique_out, d_counts_out, d_num_runs_out,
-                                                                         SD_numTrianglesTouching.data());
-    gpuErrchk(cudaDeviceSynchronize());
+    nblocks = ((*d_num_runs_out) + CUDA_THREADS_PER_BLOCK - 1) / CUDA_THREADS_PER_BLOCK;
+    if (nblocks > 0) {
+        finalizeSD_numTrianglesTouching<<<nblocks, CUDA_THREADS_PER_BLOCK>>>(d_unique_out, d_counts_out, d_num_runs_out,
+                                                                             SD_numTrianglesTouching.data());
+        gpuErrchk(cudaDeviceSynchronize());
+    }
 
-    // lastly, we need to do a CUB prefix scan to get the offsets in the big composite array
+    // Now assert that no SD has over max amount of triangles
+    // If there is one, exit graciously
+    in_ptr = SD_numTrianglesTouching.data();
+    // Just borrow the first element of SD_TrianglesCompositeOffsets to store the max value
+    unsigned int* maxTriCount = SD_TrianglesCompositeOffsets.data();
+    cub::DeviceReduce::Max(NULL, temp_storage_bytes, in_ptr, maxTriCount, nSDs);
+    gpuErrchk(cudaDeviceSynchronize());
+    d_scratch_space = (void*)stateOfSolver_resources.pDeviceMemoryScratchSpace(temp_storage_bytes);
+    cub::DeviceReduce::Max(d_scratch_space, temp_storage_bytes, in_ptr, maxTriCount, nSDs);
+    gpuErrchk(cudaDeviceSynchronize());
+    if (*maxTriCount > MAX_TRIANGLE_COUNT_PER_SD)
+        CHGPU_ERROR("ERROR! %u triangles are found in one of the SDs! The max allowance is %u.\n", *maxTriCount,
+                    MAX_TRIANGLE_COUNT_PER_SD);
+
+    // Lastly, we need to do a CUB prefix scan to get the offsets in the big composite array
     in_ptr = SD_numTrianglesTouching.data();    
     out_ptr = SD_TrianglesCompositeOffsets.data();
     cub::DeviceScan::ExclusiveSum(NULL, temp_storage_bytes, in_ptr, out_ptr, nSDs);

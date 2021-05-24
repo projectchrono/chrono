@@ -596,7 +596,6 @@ void ChElementBeamIGA::ComputeInternalForces_impl(ChVectorDynamic<>& Fi, ChState
             ChVector<> mFcent_i;
             ChVector<> mTgyro_i;
             for (int i = 0; i < nodes.size(); ++i) {
-                int stride = i * 6;
                 this->section->GetInertia()->ComputeQuadraticTerms(mFcent_i, mTgyro_i, state_w.segment(3 + i * 6, 3));
                 ChQuaternion<> q_i(state_x.segment(i * 7 + 3, 4));
                 Fi.segment(i * 6, 3)     -= node_multiplier * q_i.Rotate(mFcent_i).eigen();
@@ -774,8 +773,6 @@ void ChElementBeamIGA::SetupInitial(ChSystem* system) {
         double eta = ChQuadrature::GetStaticTables()->Lroots[int_order_s - 1][ig];
         // absyssa in span range:
         double u = (c1 * eta + c2);
-        // scaling = gauss weight * change of range:
-        double w = ChQuadrature::GetStaticTables()->Weight[int_order_s - 1][ig];
 
         // compute the basis functions N(u) at given u:
         int nspan = order;

@@ -52,11 +52,10 @@ int ChLinkPointTriface::Initialize(std::shared_ptr<ChNodeFEAxyz> anodeA,
     constraint3.Get_tuple_a().SetVariables(*mnodeA);
     constraint3.Get_tuple_b().SetVariables(mtriangle);
 
-    int is_into;
+    bool is_into;
     ChVector<> p_projected;
-    this->d = collision::ChCollisionUtils::PointTriangleDistance(
-        this->mnodeA->pos, this->mtriangle.mnodeB1->pos, this->mtriangle.mnodeB2->pos, this->mtriangle.mnodeB3->pos, s2,
-        s3, is_into, p_projected);
+    this->d = collision::utils::PointTriangleDistance(mnodeA->pos, mtriangle.mnodeB1->pos, mtriangle.mnodeB2->pos,
+                                                      mtriangle.mnodeB3->pos, s2, s3, is_into, p_projected);
 
     // double s1 = 1 - s2 - s3;
 
@@ -89,7 +88,7 @@ void ChLinkPointTriface::IntLoadResidual_CqL(const unsigned int off_L,    // off
                                              ChVectorDynamic<>& R,        // result: the R residual, R += c*Cq'*L
                                              const ChVectorDynamic<>& L,  // the L vector
                                              const double c               // a scaling factor
-                                             ) {
+) {
     if (!IsActive())
         return;
 
@@ -103,7 +102,7 @@ void ChLinkPointTriface::IntLoadConstraint_C(const unsigned int off_L,  // offse
                                              const double c,            // a scaling factor
                                              bool do_clamp,             // apply clamping to c*C?
                                              double recovery_clamp      // value for min/max clamping of c*C
-                                             ) {
+) {
     if (!IsActive())
         return;
 
@@ -398,11 +397,11 @@ int ChLinkPointTrifaceRot::Initialize(std::shared_ptr<ChNodeFEAxyz> anodeA,
     constraint3.Get_tuple_a().SetVariables(*mnodeA);
     constraint3.Get_tuple_b().SetVariables(mtriangle);
 
-    int is_into;
+    bool is_into;
     ChVector<> p_projected;
-    this->d = collision::ChCollisionUtils::PointTriangleDistance(
-        this->mnodeA->pos, this->mtriangle.mnodeB1->coord.pos, this->mtriangle.mnodeB2->coord.pos,
-        this->mtriangle.mnodeB3->coord.pos, s2, s3, is_into, p_projected);
+    this->d =
+        collision::utils::PointTriangleDistance(mnodeA->pos, mtriangle.mnodeB1->coord.pos, mtriangle.mnodeB2->coord.pos,
+                                                mtriangle.mnodeB3->coord.pos, s2, s3, is_into, p_projected);
 
     // double s1 = 1 - s2 - s3;
 
@@ -435,7 +434,7 @@ void ChLinkPointTrifaceRot::IntLoadResidual_CqL(const unsigned int off_L,    // 
                                                 ChVectorDynamic<>& R,        // result: the R residual, R += c*Cq'*L
                                                 const ChVectorDynamic<>& L,  // the L vector
                                                 const double c               // a scaling factor
-                                                ) {
+) {
     if (!IsActive())
         return;
 
@@ -449,7 +448,7 @@ void ChLinkPointTrifaceRot::IntLoadConstraint_C(const unsigned int off_L,  // of
                                                 const double c,            // a scaling factor
                                                 bool do_clamp,             // apply clamping to c*C?
                                                 double recovery_clamp      // value for min/max clamping of c*C
-                                                ) {
+) {
     if (!IsActive())
         return;
 

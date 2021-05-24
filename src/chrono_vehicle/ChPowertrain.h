@@ -19,6 +19,8 @@
 #ifndef CH_POWERTRAIN_H
 #define CH_POWERTRAIN_H
 
+#include <vector>
+
 #include "chrono/core/ChVector.h"
 #include "chrono/physics/ChBody.h"
 #include "chrono/physics/ChShaft.h"
@@ -37,13 +39,17 @@ namespace vehicle {
 class CH_VEHICLE_API ChPowertrain : public ChPart {
   public:
     /// Driving modes.
-    enum DriveMode {
+    enum class DriveMode {
         FORWARD,  ///< vehicle moving forward
         NEUTRAL,  ///< vehicle in neutral
         REVERSE   ///< vehicle moving backward
     };
 
-    ChPowertrain(const std::string& name);
+    /// Transmission mode.
+    enum class TransmissionMode {
+        AUTOMATIC,  ///< automatic transmission
+        MANUAL      ///< manual (manumatic) transmission
+    };
 
     virtual ~ChPowertrain() {}
 
@@ -66,28 +72,50 @@ class CH_VEHICLE_API ChPowertrain : public ChPart {
     virtual double GetTorqueConverterOutputSpeed() const = 0;
 
     /// Return the current transmission gear.
-    virtual int GetCurrentTransmissionGear() const = 0;
+    /// A return value of 0 indicates reverse; a positive value indicates a forward gear.
+    int GetCurrentTransmissionGear() const { return m_current_gear; }
 
     /// Return the output torque from the powertrain.
     /// This is the torque that is passed to a vehicle system, thus providing the
     /// interface between the powertrain and vehicle co-simulation modules.
     virtual double GetOutputTorque() const = 0;
 
-    /// Return the current mode of the transmission.
-    DriveMode GetDriveMode() { return m_drive_mode; }
+    /// Set the drive mode.
+    void SetDriveMode(DriveMode mode);
 
-    /// Set the mode of the transmission.
-    virtual void SetDriveMode(DriveMode mmode) = 0;
+    /// Return the current drive mode.
+    DriveMode GetDriveMode() const { return m_drive_mode; }
+
+    /// Set the transmission mode (automatic or manual).
+    /// Note that a derived powertrain class may ignore this is the selected mode is not supported.
+    void SetTransmissionMode(TransmissionMode mode) { m_transmission_mode = mode; }
+
+    /// Get the current transmission mode.
+    TransmissionMode GetTransmissionMode() const { return m_transmission_mode; }
+
+    /// Shift up.
+    void ShiftUp();
+
+    /// Shift down.
+    void ShiftDown();
 
   protected:
-    // Note: Users should not directly call these functions. The vehicle system (whether wheeled or tracked)
-    // intermediates calls to these functions.
+    ChPowertrain(const std::string& name);
 
     /// Initialize this powertrain system by attaching it to an existing vehicle chassis and associating it with an
     /// existing driveline subsystem. A derived class override must first call this base class version.
     virtual void Initialize(std::shared_ptr<ChChassis> chassis,     ///< [in] chassis of the associated vehicle
                             std::shared_ptr<ChDriveline> driveline  ///< [in] driveline of the associated vehicle
     );
+
+    /// Set the transmission gear ratios (one or more forward gear ratios and a single reverse gear ratio).
+    virtual void SetGearRatios(std::vector<double>& fwd, double& rev) = 0;
+
+    /// Perform any action required on a gear shift (the new gear and gear ratio are available).
+    virtual void OnGearShift() {}
+
+    /// Perform any action required on placing the transmission in neutral.
+    virtual void OnNeutralShift() {}
 
     /// Synchronize the state of this powertrain system at the current time.
     /// The powertrain system is provided the current driver throttle input, a value in the range [0,1].
@@ -98,8 +126,17 @@ class CH_VEHICLE_API ChPowertrain : public ChPart {
     /// Advance the state of this powertrain system by the specified time step.
     virtual void Advance(double step) {}
 
+    /// Shift to the specified gear.
+    /// Note that reverse gear is index 0 and forward gears are index > 0.
+    void SetGear(int gear);
+
+    TransmissionMode m_transmission_mode;      ///< transmission mode (automatic or manual)
     DriveMode m_drive_mode;                    ///< drive mode (neutral, forward, or reverse)
     std::shared_ptr<ChDriveline> m_driveline;  ///< associated driveline subsystem
+
+    std::vector<double> m_gear_ratios;  ///< gear ratios (0: reverse, 1+: forward)
+    int m_current_gear;                 ///< current transmission gear (0: reverse, 1+: forward)
+    double m_current_gear_ratio;        ///< current gear ratio (positive for forward, negative for reverse)
 
     friend class ChWheeledVehicle;
     friend class ChTrackedVehicle;

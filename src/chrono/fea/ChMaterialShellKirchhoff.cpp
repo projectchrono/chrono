@@ -89,10 +89,6 @@ void ChElasticityKirchhoffIsothropic::ComputeStress(  ChVector<>& n,
         m.z() = kur.z() * F;
     } else {
         double G = m_E / (2. * (1. + m_nu));
-        double Q11 = m_E / (1. - m_nu * m_nu);
-        double Q22 = Q11;
-        double Q12 = m_nu * Q11;
-        double Q33 = G;
         double h1 = z_sup - z_inf;
         double h2 = 0.5 * (pow(z_sup, 2) - pow(z_inf, 2));
         double h3 = (1. / 3.) * (pow(z_sup, 3) - pow(z_inf, 3));
@@ -141,10 +137,6 @@ void ChElasticityKirchhoffIsothropic::ComputeStiffnessMatrix(ChMatrixRef mC,
         mC(5, 5) = F;
     } else {
         double G = m_E / (2. * (1. + m_nu));
-        double Q11 = m_E / (1. - m_nu * m_nu);
-        double Q22 = Q11;
-        double Q12 = m_nu * Q11;
-        double Q33 = G;
         double h1 = z_sup - z_inf;
         double h2 = 0.5 * (pow(z_sup, 2) - pow(z_inf, 2));
         double h3 = (1. / 3.) * (pow(z_sup, 3) - pow(z_inf, 3));

@@ -129,7 +129,7 @@ void ChMeshFileLoader::FromTetGenFile(std::shared_ptr<ChMesh> mesh,
         if (!fin.good())
             throw ChException("ERROR opening TetGen .node file: " + std::string(filename_node) + "\n");
 
-        int ntets, nnodespertet, nattrs = 0;
+        int ntets = 0, nnodespertet, nattrs = 0;
 
         std::string line;
         while (std::getline(fin, line)) {
@@ -343,7 +343,7 @@ void ChMeshFileLoader::FromAbaqusFile(std::shared_ptr<ChMesh> mesh,
 
         // element parsing
         if (e_parse_section == E_PARSE_TETS_10 || e_parse_section == E_PARSE_TETS_4) {
-            int idelem = 0;
+            ////int idelem = 0;
             unsigned int tokenvals[20];
             int ntoken = 0;
 
@@ -359,9 +359,8 @@ void ChMeshFileLoader::FromAbaqusFile(std::shared_ptr<ChMesh> mesh,
                 if (ntoken != 11)
                     throw ChException("ERROR in .inp file, tetrahedrons require ID and 10 node IDs, see line:\n" +
                                       line + "\n");
-                // TODO: 'idelem' might be stored in an index in ChElementBase in order to provide consistency with the
-                // INP file
-                idelem = (int)tokenvals[0];
+                // TODO: 'idelem' might be stored in an index in ChElementBase in order to provide consistency with the INP file
+                ////idelem = (int)tokenvals[0];
 
                 for (int in = 0; in < 10; ++in)
                     if (tokenvals[in + 1] == -10e30)
@@ -373,7 +372,7 @@ void ChMeshFileLoader::FromAbaqusFile(std::shared_ptr<ChMesh> mesh,
 
                 // TODO: 'idelem' might be stored in an index in ChElementBase in order to provide consistency with the
                 // INP file
-                idelem = (int)tokenvals[0];
+                ////idelem = (int)tokenvals[0];
 
                 for (int in = 0; in < 4; ++in)
                     if (tokenvals[in + 1] == -10e30)
@@ -485,7 +484,7 @@ void ChMeshFileLoader::ANCFShellFromGMFFile(std::shared_ptr<ChMesh> mesh,
     std::vector<std::vector<int>> elementsVector;             // nodes of each element
     std::vector<std::vector<double>> elementsdxdy;            // dx, dy of elements
 
-    int TotalNumNodes, TotalNumElements, TottalNumBEdges;
+    int TotalNumNodes = 0, TotalNumElements = 0, TotalNumBEdges = 0;
     BoundingBox.setZero();
 
     std::ifstream fin(filename);
@@ -562,12 +561,12 @@ void ChMeshFileLoader::ANCFShellFromGMFFile(std::shared_ptr<ChMesh> mesh,
         // Reading the Boundary nodes ...
         if (line.find("Edges") == 0) {
             std::getline(fin, line);
-            TottalNumBEdges = atoi(line.c_str());
-            printf("Found %d Edges.\n", TottalNumBEdges);
+            TotalNumBEdges = atoi(line.c_str());
+            printf("Found %d Edges.\n", TotalNumBEdges);
             GetLog() << "Parsing edges from \"Edges\" \n";
             std::getline(fin, line);
 
-            for (int edge = 0; edge < TottalNumBEdges; edge++) {
+            for (int edge = 0; edge < TotalNumBEdges; edge++) {
                 int ntoken = 0;
                 std::string token;
                 std::istringstream ss(line);

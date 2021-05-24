@@ -105,13 +105,6 @@ void ChOpenGLHUD::Update(const glm::ivec2& window_size,
     sx = SCALE;           // * (float)((float)(screen_width) / (float)virtual_width);
     sy = SCALE * aspect;  //(float)((float)(screen_height) / (float)virtual_height) ;
 
-    //  z_x = vp_x/float(width)-1;
-    //  z_y = vp_y/float(height)-1;
-    //
-    //
-    //  std::cout<<window_size.x<<" "<<window_size.y<<" "<<vp_x<<" "<<vp_y<<" "<<z_x<<" "<<z_y<<" "<<height<<"
-    //  "<<width<<std::endl;
-
     text.Update();
     bars.Clear();
 
@@ -244,7 +237,6 @@ void ChOpenGLHUD::GenerateSystem(ChSystem* physics_system) {
         // bars.AddBar(stab_v, right_b, BOTTOM + thick * 3, BOTTOM + thick * 2, normalize(glm::vec3(149, 165, 166)));
     }
 
-    int average_contacts_per_body = num_rigid_bodies > 0 ? num_contacts / num_rigid_bodies : 0;
 #endif
     sprintf(buffer, "MODEL INFO");
     text.Render(buffer, LEFT, TOP - SPACING * 5, sx, sy);
@@ -304,7 +296,6 @@ void ChOpenGLHUD::GenerateCD(ChSystem* physics_system) {
         real3 bin_size_vec = 1.0 / parallel_sys->data_manager->measures.collision.bin_size;
         real3 min_pt = parallel_sys->data_manager->measures.collision.min_bounding_point;
         real3 max_pt = parallel_sys->data_manager->measures.collision.max_bounding_point;
-        real3 center = (min_pt + max_pt) * .5;
         sprintf(buffer, "COLLISION INFO");
         text.Render(buffer, LEFT, TOP - SPACING * 16, sx, sy);
         sprintf(buffer, "DIMS  [%d,%d,%d]", bins_per_axis.x, bins_per_axis.y, bins_per_axis.z);

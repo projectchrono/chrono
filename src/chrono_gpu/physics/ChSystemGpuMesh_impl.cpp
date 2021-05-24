@@ -9,7 +9,7 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Authors: Conlain Kelly, Nic Olsen, Dan Negrut, Radu Serban, Ruochun Zhang
+// Authors: Conlain Kelly, Nic Olsen, Ruochun Zhang, Dan Negrut, Radu Serban
 // =============================================================================
 
 #include <vector>
@@ -29,8 +29,8 @@
 namespace chrono {
 namespace gpu {
 
-ChSystemGpuMesh_impl::ChSystemGpuMesh_impl(float sphere_rad, float density, float3 boxDims)
-    : ChSystemGpu_impl(sphere_rad, density, boxDims),
+ChSystemGpuMesh_impl::ChSystemGpuMesh_impl(float sphere_rad, float density, float3 boxDims, float3 O)
+    : ChSystemGpu_impl(sphere_rad, density, boxDims, O),
       K_n_s2m_UU(0),
       K_t_s2m_UU(0),
       Gamma_n_s2m_UU(0),
@@ -112,53 +112,6 @@ void ChSystemGpuMesh_impl::ApplyFrameTransform(float3& p, float* pos, float* rot
 
     // overwrite p only at the end
     p = result;
-}
-
-void ChSystemGpuMesh_impl::WriteMeshes(std::string filename) const {
-    if (file_write_mode == CHGPU_OUTPUT_MODE::NONE) {
-        return;
-    }
-
-    printf("Writing meshes\n");
-    std::ofstream outfile(filename + "_mesh.vtk", std::ios::out);
-    std::ostringstream ostream;
-    ostream << "# vtk DataFile Version 1.0\n";
-    ostream << "Unstructured Grid Example\n";
-    ostream << "ASCII\n";
-    ostream << "\n\n";
-
-    ostream << "DATASET UNSTRUCTURED_GRID\n";
-    ostream << "POINTS " << meshSoup->nTrianglesInSoup * 3 << " float\n";
-
-    // Write all vertices
-    for (unsigned int tri_i = 0; tri_i < meshSoup->nTrianglesInSoup; tri_i++) {
-        float3 p1 = make_float3(meshSoup->node1[tri_i].x, meshSoup->node1[tri_i].y, meshSoup->node1[tri_i].z);
-        float3 p2 = make_float3(meshSoup->node2[tri_i].x, meshSoup->node2[tri_i].y, meshSoup->node2[tri_i].z);
-        float3 p3 = make_float3(meshSoup->node3[tri_i].x, meshSoup->node3[tri_i].y, meshSoup->node3[tri_i].z);
-
-        unsigned int fam = meshSoup->triangleFamily_ID[tri_i];
-        ApplyFrameTransform(p1, tri_params->fam_frame_broad[fam].pos, tri_params->fam_frame_broad[fam].rot_mat);
-        ApplyFrameTransform(p2, tri_params->fam_frame_broad[fam].pos, tri_params->fam_frame_broad[fam].rot_mat);
-        ApplyFrameTransform(p3, tri_params->fam_frame_broad[fam].pos, tri_params->fam_frame_broad[fam].rot_mat);
-
-        ostream << p1.x << " " << p1.y << " " << p1.z << "\n";
-        ostream << p2.x << " " << p2.y << " " << p2.z << "\n";
-        ostream << p3.x << " " << p3.y << " " << p3.z << "\n";
-    }
-
-    ostream << "\n\n";
-    ostream << "CELLS " << meshSoup->nTrianglesInSoup << " " << 4 * meshSoup->nTrianglesInSoup << "\n";
-    for (unsigned int tri_i = 0; tri_i < meshSoup->nTrianglesInSoup; tri_i++) {
-        ostream << "3 " << 3 * tri_i << " " << 3 * tri_i + 1 << " " << 3 * tri_i + 2 << "\n";
-    }
-
-    ostream << "\n\n";
-    ostream << "CELL_TYPES " << meshSoup->nTrianglesInSoup << "\n";
-    for (unsigned int tri_i = 0; tri_i < meshSoup->nTrianglesInSoup; tri_i++) {
-        ostream << "9\n";
-    }
-
-    outfile << ostream.str();
 }
 
 void ChSystemGpuMesh_impl::cleanupTriMesh() {

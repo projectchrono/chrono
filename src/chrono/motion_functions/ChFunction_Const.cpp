@@ -30,7 +30,7 @@ void ChFunction_Const::ArchiveOUT(ChArchiveOut& marchive) {
 
 void ChFunction_Const::ArchiveIN(ChArchiveIn& marchive) {
     // version number
-    int version = marchive.VersionRead<ChFunction_Const>();
+    /*int version =*/ marchive.VersionRead<ChFunction_Const>();
     // deserialize parent class
     ChFunction::ArchiveIN(marchive);
     // stream in all member data:

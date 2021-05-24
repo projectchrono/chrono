@@ -1,0 +1,56 @@
+{
+  "Name": "Truck 6x4 Offroad Truck",
+  "Type": "Vehicle",
+  "Template": "WheeledVehicle",
+
+  "Chassis": {
+    "Input File": "truck/json/truck_Chassis.json"
+  },
+
+  "Axles": [
+    {
+      "Suspension Input File": "truck/json/truck_FrontSolidThreeLinkAxle.json",
+      "Suspension Location": [ 0, 0, 0 ],
+      "Steering Index": 0,
+      "Left Wheel Input File": "truck/json/truck_Wheel.json",
+      "Right Wheel Input File": "truck/json/truck_Wheel.json",
+      "Left Brake Input File": "truck/json/truck_BrakeSimple.json",
+      "Right Brake Input File": "truck/json/truck_BrakeSimple.json"
+    },
+
+    {
+      "Suspension Input File": "truck/json/truck_RearSolidThreeLinkAxle.json",
+      "Suspension Location": [ -5.946, 0, 0 ],
+      "Left Wheel Input File": "truck/json/truck_Wheel.json",
+      "Right Wheel Input File": "truck/json/truck_Wheel.json",
+      "Left Brake Input File": "truck/json/truck_BrakeSimple.json",
+      "Right Brake Input File": "truck/json/truck_BrakeSimple.json"
+    },
+
+    {
+      "Suspension Input File": "truck/json/truck_RearSolidThreeLinkAxle.json",
+      "Suspension Location": [ -7.848, 0, 0 ],
+      "Left Wheel Input File": "truck/json/truck_Wheel.json",
+      "Right Wheel Input File": "truck/json/truck_Wheel.json",
+      "Left Brake Input File": "truck/json/truck_BrakeSimple.json",
+      "Right Brake Input File": "truck/json/truck_BrakeSimple.json"
+    }
+  ],
+
+  "Steering Subsystems": [
+    {
+      "Input File": "truck/json/truck_RotaryArm.json",
+      "Location": [ 0, 0, 0 ],
+      "Orientation": [ 1, 0, 0, 0 ]
+    }
+  ],
+
+  "Wheelbase": 6.897,
+  "Minimum Turning Radius": 10.5,
+  "Maximum Steering Angle": 49.0,
+
+  "Driveline": {
+    "Input File": "truck/json/truck_DrivelineSimpleXWD.json",
+    "Suspension Indexes": [ 1, 2 ]
+  }
+}

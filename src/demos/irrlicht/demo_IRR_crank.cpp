@@ -120,7 +120,7 @@ int main(int argc, char* argv[]) {
     ChRealtimeStepTimer realtime_timer;
     double time_step = 0.01;
 
-    bool removed = false;
+    //bool removed = false;
 
     while (application.GetDevice()->run()) {
         // Irrlicht must prepare frame to draw

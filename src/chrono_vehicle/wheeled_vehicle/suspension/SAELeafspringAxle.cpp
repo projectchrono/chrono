@@ -203,10 +203,10 @@ void SAELeafspringAxle::Create(const rapidjson::Document& d) {
     double KBvert = stiffness_bias * KAvert;
 
     double KrotLatA = KAlat * pow(ra.Length(), 2.0);
-    double KrotLatB = KAlat * pow(rb.Length(), 2.0);
+    double KrotLatB = KBlat * pow(rb.Length(), 2.0);
 
     double KrotVertA = KAvert * pow(ra.Length(), 2.0);
-    double KrotVertB = KAvert * pow(rb.Length(), 2.0);
+    double KrotVertB = KBvert * pow(rb.Length(), 2.0);
 
     double rest_angle_A = Ma.y() / KrotVertA;
     double rest_angle_B = Mb.y() / KrotVertB;

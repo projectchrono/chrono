@@ -24,9 +24,6 @@ using std::cout;
 using std::endl;
 using namespace chrono;
 
-const double ABS_ERR_D = 1e-15;
-const float ABS_ERR_F = 1e-6f;
-
 TEST(ChStateTest, create_assign) {
     ChState s1;
     s1.resize(5);

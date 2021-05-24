@@ -105,6 +105,38 @@ inline __device__ void figureOutTouchedSD(int sphCenter_X_local,
     }
 }
 
+/// Compute the elementwise squared sum of array XYZ components.
+template <typename T>
+__global__ void elementalArray3Squared(T* sqSum, const T* arrX, const T* arrY, const T* arrZ, size_t nSpheres) {
+    size_t mySphereID = (threadIdx.x + blockIdx.x * blockDim.x);
+    T Xdata;
+    T Ydata;
+    T Zdata;
+
+    if (mySphereID < nSpheres) {
+        Xdata = arrX[mySphereID];
+        Ydata = arrY[mySphereID];
+        Zdata = arrZ[mySphereID];
+        sqSum[mySphereID] = Xdata * Xdata + Ydata * Ydata + Zdata * Zdata;
+    }
+}
+
+/// A light-weight kernel that writes user-unit z coordinates of all particles to the posZ array.
+static __global__ void elementalZLocalToGlobal(float* posZ,
+                                               ChSystemGpu_impl::GranSphereDataPtr sphere_data,
+                                               size_t nSpheres,
+                                               ChSystemGpu_impl::GranParamsPtr gran_params) {
+    size_t mySphereID = (threadIdx.x + blockIdx.x * blockDim.x);
+    if (mySphereID < nSpheres) {
+        int zPos_local = sphere_data->sphere_local_pos_Z[mySphereID];
+        int3 ownerSD_triplet = SDIDTriplet(sphere_data->sphere_owner_SDs[mySphereID], gran_params);
+        float z_UU = zPos_local * gran_params->LENGTH_UNIT;
+        z_UU += gran_params->BD_frame_Z * gran_params->LENGTH_UNIT;
+        z_UU += ((int64_t)ownerSD_triplet.z * gran_params->SD_size_Z_SU) * gran_params->LENGTH_UNIT;
+        posZ[mySphereID] = z_UU;
+    }
+}
+
 /**
  * Template arguments:
  *   - CUB_THREADS: the number of threads used in this kernel, comes into play when invoking CUB block collectives
@@ -134,7 +166,7 @@ template <unsigned int CUB_THREADS>  // Number of CUB threads engaged in block-c
 __global__ void getNumberOfSpheresTouchingEachSD(ChSystemGpu_impl::GranSphereDataPtr sphere_data,
                                                  unsigned int nSpheres,  // Number of spheres in the box
                                                  ChSystemGpu_impl::GranParamsPtr gran_params) {
-    /// Set aside shared memory
+    // Set aside shared memory
     volatile __shared__ bool shMem_head_flags[CUB_THREADS * MAX_SDs_TOUCHED_BY_SPHERE];
 
     typedef cub::BlockRadixSort<unsigned int, CUB_THREADS, MAX_SDs_TOUCHED_BY_SPHERE> BlockRadixSortOP;
@@ -244,7 +276,7 @@ static __global__ void populateSpheresInEachSD(ChSystemGpu_impl::GranSphereDataP
 }
 
 /// Get position offset between two SDs
-// NOTE this assumes they are close together
+/// NOTE this assumes they are close together
 inline __device__ int3 getOffsetFromSDs(unsigned int thisSD,
                                         unsigned int otherSD,
                                         ChSystemGpu_impl::GranParamsPtr gran_params) {
@@ -346,7 +378,7 @@ static __global__ void applyBDFrameChange(int64_t3 delta,
 }
 
 /// Convert sphere positions from 64-bit global to 32-bit local
-// only need to run once at beginning
+/// only need to run once at beginning
 static __global__ void initializeLocalPositions(ChSystemGpu_impl::GranSphereDataPtr sphere_data,
                                                 int64_t* sphere_pos_global_X,
                                                 int64_t* sphere_pos_global_Y,

@@ -82,7 +82,7 @@ int main(int argc, char* argv[]) {
     try {
         ChMeshFileLoader::FromTetGenFile(my_mesh, GetChronoDataFile("fea/beam.node").c_str(),
                                          GetChronoDataFile("fea/beam.ele").c_str(), mmaterial);
-    } catch (ChException myerr) {
+    } catch (const ChException &myerr) {
         GetLog() << myerr.what();
         return 0;
     }
@@ -97,7 +97,6 @@ int main(int argc, char* argv[]) {
 
     ChVector<> hexpos(0, 0, 0);
     double sx = 0.1;
-    double sy = 0.1;
     double sz = 0.1;
     for (int e = 0; e < 6; ++e) {
         double angle = e * (2 * CH_C_PI / 8.0);

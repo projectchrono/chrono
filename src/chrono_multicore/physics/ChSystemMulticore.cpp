@@ -554,8 +554,8 @@ void ChSystemMulticore::UpdateMotorLinks() {
 // Update all fluid nodes
 // currently a stub
 void ChSystemMulticore::Update3DOFBodies() {
-    data_manager->node_container->Update(ch_time);
-    data_manager->fea_container->Update(ch_time);
+    data_manager->node_container->Update3DOF(ch_time);
+    data_manager->fea_container->Update3DOF(ch_time);
 }
 
 //

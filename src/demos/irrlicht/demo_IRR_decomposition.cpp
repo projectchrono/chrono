@@ -138,7 +138,7 @@ void SaveHullsWavefront(ChIrrAppInterface* application, const char* filename) {
     try {
         ChStreamOutAsciiFile decomposed_objfile(filename);
         mydecompositionHACDv2.WriteConvexHullsAsWavefrontObj(decomposed_objfile);
-    } catch (ChException myex) {
+    } catch (const ChException &myex) {
         application->GetIGUIEnvironment()->addMessageBox(L"Save file error", L"Impossible to write into file.");
     }
 }
@@ -150,7 +150,7 @@ void SaveHullsChulls(ChIrrAppInterface* application, const char* filename) {
     try {
         ChStreamOutAsciiFile decomposed_objfile(filename);
         mydecompositionHACDv2.WriteConvexHullsAsChullsFile(decomposed_objfile);
-    } catch (ChException myex) {
+    } catch (const ChException &myex) {
         application->GetIGUIEnvironment()->addMessageBox(L"Save file error", L"Impossible to write into file.");
     }
 }
@@ -253,7 +253,7 @@ class MyEventReceiver : public IEventReceiver {
                     // a menu item was clicked
 
                     gui::IGUIContextMenu* menu = (gui::IGUIContextMenu*)event.GUIEvent.Caller;
-                    s32 id = menu->getItemCommandId(menu->getSelectedItem());
+                    id = menu->getItemCommandId(menu->getSelectedItem());
 
                     switch (id) {
                         case 90:
@@ -357,7 +357,6 @@ class MyEventReceiver : public IEventReceiver {
   private:
     ChIrrAppInterface* app;
 
-    gui::IGUIContextMenu* menu;
     gui::IGUIButton* button_decompose;
     gui::IGUIStaticText* text_algo_type;
     gui::IGUIStaticText* text_hacd_maxhullcount;

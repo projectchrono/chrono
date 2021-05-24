@@ -28,11 +28,8 @@ namespace chrono {
 /// System descriptor for Chrono::Multicore.
 class CH_MULTICORE_API ChSystemDescriptorMulticore : public ChSystemDescriptor {
   public:
-    ChSystemDescriptorMulticore(ChMulticoreDataManager* dc) : data_manager(dc) {}
+    ChSystemDescriptorMulticore(ChMulticoreDataManager* dc) {}
     ~ChSystemDescriptorMulticore() {}
-
-  private:
-    ChMulticoreDataManager* data_manager;  ///< Pointer to the system's data manager
 };
 
 /// @} multicore_solver

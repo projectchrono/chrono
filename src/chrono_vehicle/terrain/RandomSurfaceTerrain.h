@@ -64,12 +64,12 @@
 // for vehicle ride quality (6 Watt method). WES proposed to use 60 ft high pass
 // filter before calculating the RMS.
 //
-// Actually three initilizer methods can be used, a preset based one, an
-// unevenness/waviness based one and an IRI based one. The second one allows the
+// Three different initilizer methods can be used: a preset based one, an
+// unevenness/waviness based one, and an IRI based one. The second one allows the
 // usage of non-ISO wavinesses. IRI must be given in [mm/m] to generate useful
 // results.
 //
-// Helpful literature:
+// References:
 //
 // Löhe K., Zehelein Th.: "Modellierung und Parametrierung stochastischer Fahrbahnunebenheiten mit Hub-, Wank-, Nick-,
 // und Verspannanteil", Conference Paper 2005
@@ -91,11 +91,8 @@
 #include "chrono/physics/ChBody.h"
 #include "chrono/physics/ChSystem.h"
 
-#include "chrono/assets/ChColorAsset.h"
-#include "chrono/assets/ChCylinderShape.h"
-#include "chrono/assets/ChTriangleMeshShape.h"
-
 #include "chrono/core/ChBezierCurve.h"
+#include "chrono/geometry/ChTriangleMeshConnected.h"
 
 #include "chrono_vehicle/ChApiVehicle.h"
 #include "chrono_vehicle/ChTerrain.h"
@@ -106,10 +103,16 @@ namespace vehicle {
 /// @addtogroup vehicle_terrain
 /// @{
 
-/// Concrete class for a flat horizontal terrain with an uneven area.
-/// This class implements a terrain modeled as an infinite horizontal plane at a specified height.
-/// This type of terrain can be used in conjunction with tire models that perform their own collision detection
-/// (e.g. ChPacejkaTire, ChFiala, and ChLugreTire).
+/// Terrain object representing an uneven area with controlled roughness.
+///
+/// By default, this class implements a terrain modeled as an infinite horizontal plane at a specified height with the
+/// uneven terrain lane of specified length and width starting at the origin. This type of terrain can be used in
+/// conjunction with tire models that perform their own collision detection (e.g. ChPacejkaTire, ChFiala, and
+/// ChLugreTire).
+///
+/// Alternatively, this terrain type can be represented as a collision mesh representing the uneven lane with an
+/// optional flat starting lane.  This terrain type can be used with vehicles that require contact for the
+/// vehicle-terrain interaction (wheeled vehicle with rigid tires or tracked vehicles).
 class CH_VEHICLE_API RandomSurfaceTerrain : public ChTerrain {
   public:
     enum class SurfaceType {
@@ -168,6 +171,14 @@ class CH_VEHICLE_API RandomSurfaceTerrain : public ChTerrain {
     /// Get the International Roughness Index, estimated from unevenness and waviness [m/km]
     double GetIRI() { return m_iri; }
 
+    /// Enable creation of a collision mesh and enable collision (default: no collision mesh).
+    /// Optionally (length > 0), create a flat lane of given length positioned before the uneven portion.
+    /// The specified radius (default 0) is used as a "mesh thickness" to improve robustness of the collision detection.
+    /// Note that this function must be called before Initialize().
+    void EnableCollisionMesh(std::shared_ptr<ChMaterialSurface> material,
+                             double length = 0,
+                             double sweep_sphere_radius = 0);
+
     /// Select a road surface from presets, ISO 8608 and literature
     void Initialize(RandomSurfaceTerrain::SurfaceType surfType = RandomSurfaceTerrain::SurfaceType::FLAT,
                     double vehicleTrackWidth = 2.0,
@@ -187,7 +198,6 @@ class CH_VEHICLE_API RandomSurfaceTerrain : public ChTerrain {
                     RandomSurfaceTerrain::VisualisationType vType = RandomSurfaceTerrain::VisualisationType::MESH);
 
   private:
-    bool m_useMesh;
     double m_unevenness;
     double m_waviness;
     double m_rms;                      ///< (detrended) root mean square of the uneven tracks
@@ -212,21 +222,31 @@ class CH_VEHICLE_API RandomSurfaceTerrain : public ChTerrain {
     int m_nx;                 ///< number of points in x-direction
     int m_ny;                 ///< number of points in y-direction
     std::vector<double> m_y;  ///< hold the unequally spaced y values
-    ChMatrixDynamic<> m_Q;    ///< matrix of uneven height values
-    ChMatrixDynamic<> m_a0;   ///< polynom coefficients f(x,y) = a0 + a1*x + a2*y + a3*x*y
+
+    ChMatrixDynamic<> m_Q;   ///< matrix of uneven height values
+    ChMatrixDynamic<> m_a0;  ///< polynom coefficients f(x,y) = a0 + a1*x + a2*y + a3*x*y
     ChMatrixDynamic<> m_a1;
     ChMatrixDynamic<> m_a2;
     ChMatrixDynamic<> m_a3;
     ChVectorDynamic<> m_classLimits;
-    double m_lambda_min;  ///< minimal spatial wavelength
+
     double m_lambda_max;  ///< maximal spatial wavelength
+
     double m_f_fft_min;
     double m_f_fft_max;
+
     int m_Nfft;                  ///< number of fft coefficients to avoid periodicity in x[xmin...xmax]
     std::vector<double> m_ck;    ///< Fourier coefficients
     std::vector<double> m_wfft;  ///< natural freqencies for iFFT
+
     ChVectorDynamic<> m_phase_left;
     ChVectorDynamic<> m_phase_right;
+
+    std::shared_ptr<ChMaterialSurface> m_material;
+    bool m_collision_mesh;
+    double m_start_length;
+    double m_sweep_sphere_radius;
+
     void GenerateSurfaceFromPreset(SurfaceType theSurface, double vehicleTrackWidth = 2.0);
     void GenerateSurfaceCanonical(double unevenness, double waviness = 2.0);
     void GenerateSurfaceCanonicalCorr(double unevenness,
@@ -249,8 +269,10 @@ class CH_VEHICLE_API RandomSurfaceTerrain : public ChTerrain {
     void ApplyAmplitudes();
 
     void GenerateCurves();
-    void SetupLineGraphics();
-    void SetupMeshGraphics();
+    void GenerateMesh();
+
+    void SetupVisualization(RandomSurfaceTerrain::VisualisationType vType);
+    void SetupCollision();
 };
 
 /// @} vehicle_terrain

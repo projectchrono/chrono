@@ -21,22 +21,57 @@
 namespace chrono {
 namespace gpu {
 
-__host__ double ChSystemGpu_impl::GetMaxParticleZ() const {
+__host__ float ChSystemGpu_impl::computeArray3SquaredSum(std::vector<float, cudallocator<float>>& arrX,
+                                                         std::vector<float, cudallocator<float>>& arrY,
+                                                         std::vector<float, cudallocator<float>>& arrZ,
+                                                         size_t nSpheres) {
+    const unsigned int threadsPerBlock = 1024;
+    unsigned int nBlocks = (nSpheres + threadsPerBlock - 1) / threadsPerBlock;
+    elementalArray3Squared<float><<<nBlocks, threadsPerBlock>>>(sphere_data->sphere_stats_buffer, arrX.data(),
+                                                                arrY.data(), arrZ.data(), nSpheres);
+    gpuErrchk(cudaDeviceSynchronize());
+
+    // Use CUB to reduce. And put the reduced result at the last element of sphere_stats_buffer array.
+    size_t temp_storage_bytes = 0;
+    cub::DeviceReduce::Sum(NULL, temp_storage_bytes, sphere_data->sphere_stats_buffer,
+                           sphere_data->sphere_stats_buffer + nSpheres, nSpheres);
+    void* d_scratch_space = (void*)stateOfSolver_resources.pDeviceMemoryScratchSpace(temp_storage_bytes);
+    cub::DeviceReduce::Sum(d_scratch_space, temp_storage_bytes, sphere_data->sphere_stats_buffer,
+                           sphere_data->sphere_stats_buffer + nSpheres, nSpheres);
+    gpuErrchk(cudaDeviceSynchronize());
+    gpuErrchk(cudaPeekAtLastError());
+    return *(sphere_data->sphere_stats_buffer + nSpheres);
+}
+
+__host__ double ChSystemGpu_impl::GetMaxParticleZ(bool getMax) {
     size_t nSpheres = sphere_local_pos_Z.size();
-    std::vector<int64_t> sphere_pos_global_Z;
-    sphere_pos_global_Z.resize(nSpheres);
-    for (size_t index = 0; index < nSpheres; index++) {
-        unsigned int ownerSD = sphere_data->sphere_owner_SDs[index];
-        int3 sphere_pos_local =
-            make_int3(sphere_data->sphere_local_pos_X[index], sphere_data->sphere_local_pos_Y[index],
-                      sphere_data->sphere_local_pos_Z[index]);
-        sphere_pos_global_Z[index] = convertPosLocalToGlobal(ownerSD, sphere_pos_local, gran_params).z;
+    if (nSpheres == 0)
+        CHGPU_ERROR("ERROR! 0 particle in system! Please call this method after Initialize().\n");
+
+    const unsigned int threadsPerBlock = 1024;
+    unsigned int nBlocks = (nSpheres + threadsPerBlock - 1) / threadsPerBlock;
+    elementalZLocalToGlobal<<<nBlocks, threadsPerBlock>>>(sphere_data->sphere_stats_buffer, sphere_data, nSpheres,
+                                                          gran_params);
+    gpuErrchk(cudaDeviceSynchronize());
+
+    // Use CUB to find the max or min Z.
+    size_t temp_storage_bytes = 0;
+    if (getMax) {
+        cub::DeviceReduce::Max(NULL, temp_storage_bytes, sphere_data->sphere_stats_buffer,
+                               sphere_data->sphere_stats_buffer + nSpheres, nSpheres);
+        void* d_scratch_space = (void*)stateOfSolver_resources.pDeviceMemoryScratchSpace(temp_storage_bytes);
+        cub::DeviceReduce::Max(d_scratch_space, temp_storage_bytes, sphere_data->sphere_stats_buffer,
+                               sphere_data->sphere_stats_buffer + nSpheres, nSpheres);
+    } else {
+        cub::DeviceReduce::Min(NULL, temp_storage_bytes, sphere_data->sphere_stats_buffer,
+                               sphere_data->sphere_stats_buffer + nSpheres, nSpheres);
+        void* d_scratch_space = (void*)stateOfSolver_resources.pDeviceMemoryScratchSpace(temp_storage_bytes);
+        cub::DeviceReduce::Min(d_scratch_space, temp_storage_bytes, sphere_data->sphere_stats_buffer,
+                               sphere_data->sphere_stats_buffer + nSpheres, nSpheres);
     }
-
-    double max_z_SU = (double)(*(std::max_element(sphere_pos_global_Z.begin(), sphere_pos_global_Z.end())));
-    double max_z_UU = max_z_SU * LENGTH_SU2UU;
-
-    return max_z_UU;
+    gpuErrchk(cudaDeviceSynchronize());
+    gpuErrchk(cudaPeekAtLastError());
+    return *(sphere_data->sphere_stats_buffer + nSpheres);
 }
 
 // Reset broadphase data structures
@@ -145,6 +180,10 @@ __host__ void ChSystemGpu_impl::defragment_initial_positions() {
     std::vector<float, cudallocator<float>> sphere_vel_y_tmp;
     std::vector<float, cudallocator<float>> sphere_vel_z_tmp;
 
+    std::vector<float, cudallocator<float>> sphere_angv_x_tmp;
+    std::vector<float, cudallocator<float>> sphere_angv_y_tmp;
+    std::vector<float, cudallocator<float>> sphere_angv_z_tmp;
+
     std::vector<not_stupid_bool, cudallocator<not_stupid_bool>> sphere_fixed_tmp;
     std::vector<unsigned int, cudallocator<unsigned int>> sphere_owner_SDs_tmp;
 
@@ -155,6 +194,12 @@ __host__ void ChSystemGpu_impl::defragment_initial_positions() {
     sphere_vel_x_tmp.resize(nSpheres);
     sphere_vel_y_tmp.resize(nSpheres);
     sphere_vel_z_tmp.resize(nSpheres);
+
+    if (gran_params->friction_mode != CHGPU_FRICTION_MODE::FRICTIONLESS) {
+        sphere_angv_x_tmp.resize(nSpheres);
+        sphere_angv_y_tmp.resize(nSpheres);
+        sphere_angv_z_tmp.resize(nSpheres);
+    }
 
     sphere_fixed_tmp.resize(nSpheres);
     sphere_owner_SDs_tmp.resize(nSpheres);
@@ -169,12 +214,18 @@ __host__ void ChSystemGpu_impl::defragment_initial_positions() {
         sphere_vel_y_tmp.at(i) = (float)pos_Y_dt.at(sphere_ids.at(i));
         sphere_vel_z_tmp.at(i) = (float)pos_Z_dt.at(sphere_ids.at(i));
 
+        if (gran_params->friction_mode != CHGPU_FRICTION_MODE::FRICTIONLESS) {
+            sphere_angv_x_tmp.at(i) = (float)sphere_Omega_X.at(sphere_ids.at(i));
+            sphere_angv_y_tmp.at(i) = (float)sphere_Omega_Y.at(sphere_ids.at(i));
+            sphere_angv_z_tmp.at(i) = (float)sphere_Omega_Z.at(sphere_ids.at(i));
+        }
+
         sphere_fixed_tmp.at(i) = sphere_fixed.at(sphere_ids.at(i));
         sphere_owner_SDs_tmp.at(i) = sphere_owner_SDs.at(sphere_ids.at(i));
     }
 
     // swap into the correct data structures
-    sphere_local_pos_X.swap(sphere_pos_x_tmp);
+	sphere_local_pos_X.swap(sphere_pos_x_tmp);
     sphere_local_pos_Y.swap(sphere_pos_y_tmp);
     sphere_local_pos_Z.swap(sphere_pos_z_tmp);
 
@@ -182,14 +233,53 @@ __host__ void ChSystemGpu_impl::defragment_initial_positions() {
     pos_Y_dt.swap(sphere_vel_y_tmp);
     pos_Z_dt.swap(sphere_vel_z_tmp);
 
+    if (gran_params->friction_mode != CHGPU_FRICTION_MODE::FRICTIONLESS) {
+        sphere_Omega_X.swap(sphere_angv_x_tmp);
+        sphere_Omega_Y.swap(sphere_angv_y_tmp);
+        sphere_Omega_Z.swap(sphere_angv_z_tmp);
+    }
+
     sphere_fixed.swap(sphere_fixed_tmp);
     sphere_owner_SDs.swap(sphere_owner_SDs_tmp);
 }
+
+/// Same defragment function, but this time for the contact friction history arrays.
+/// It is stand-alone because it should rarely be needed, so let us save some time by
+/// not calling it in most of our simulations.
+__host__ void ChSystemGpu_impl::defragment_friction_history(unsigned int history_offset) {
+    // key and value pointers
+    std::vector<unsigned int, cudallocator<unsigned int>> sphere_ids;
+
+    // load sphere indices
+    sphere_ids.resize(nSpheres);
+    std::iota(sphere_ids.begin(), sphere_ids.end(), 0);
+
+    // sort sphere ids by owner SD
+    std::sort(sphere_ids.begin(), sphere_ids.end(),
+              [&](std::size_t i, std::size_t j) { return sphere_owner_SDs.at(i) < sphere_owner_SDs.at(j); });
+
+    std::vector<float3, cudallocator<float3>> history_tmp;
+    std::vector<unsigned int, cudallocator<unsigned int>> partners_tmp;
+
+    history_tmp.resize(history_offset * nSpheres);
+    partners_tmp.resize(history_offset * nSpheres);
+
+    // reorder values into new sorted
+    for (unsigned int i = 0; i < nSpheres; i++) {
+        for (unsigned int j = 0; j < history_offset; j++) {
+            history_tmp.at(history_offset * i + j) = contact_history_map.at(history_offset * sphere_ids.at(i) + j);
+            partners_tmp.at(history_offset * i + j) = contact_partners_map.at(history_offset * sphere_ids.at(i) + j);
+        }
+    }
+
+    contact_history_map.swap(history_tmp);
+    contact_partners_map.swap(partners_tmp);
+}
+
 __host__ void ChSystemGpu_impl::setupSphereDataStructures() {
     // Each fills user_sphere_positions with positions to be copied
     if (user_sphere_positions.size() == 0) {
-        printf("ERROR: no sphere positions given!\n");
-        exit(1);
+        CHGPU_ERROR("ERROR! no sphere positions given!\n");
     }
 
     nSpheres = (unsigned int)user_sphere_positions.size();
@@ -213,11 +303,12 @@ __host__ void ChSystemGpu_impl::setupSphereDataStructures() {
     {
         bool user_provided_fixed = user_sphere_fixed.size() != 0;
         bool user_provided_vel = user_sphere_vel.size() != 0;
-        if ((user_provided_fixed && user_sphere_fixed.size() != nSpheres) ||
-            (user_provided_vel && user_sphere_vel.size() != nSpheres)) {
-            printf("Provided fixity or velocity array does not match provided particle positions\n");
-            exit(1);
-        }
+        if (user_provided_fixed && user_sphere_fixed.size() != nSpheres)
+            CHGPU_ERROR("Provided fixity array has length %zu, but there are %u spheres!\n", user_sphere_fixed.size(),
+                        nSpheres);
+        if (user_provided_vel && user_sphere_vel.size() != nSpheres)
+            CHGPU_ERROR("Provided velocity array has length %zu, but there are %u spheres!\n", user_sphere_vel.size(),
+                        nSpheres);
 
         std::vector<int64_t, cudallocator<int64_t>> sphere_global_pos_X;
         std::vector<int64_t, cudallocator<int64_t>> sphere_global_pos_Y;
@@ -254,12 +345,16 @@ __host__ void ChSystemGpu_impl::setupSphereDataStructures() {
 
         gpuErrchk(cudaDeviceSynchronize());
         gpuErrchk(cudaPeekAtLastError());
-        defragment_initial_positions();
     }
 
     TRACK_VECTOR_RESIZE(sphere_acc_X, nSpheres, "sphere_acc_X", 0);
     TRACK_VECTOR_RESIZE(sphere_acc_Y, nSpheres, "sphere_acc_Y", 0);
     TRACK_VECTOR_RESIZE(sphere_acc_Z, nSpheres, "sphere_acc_Z", 0);
+
+    // The buffer array that stores any quantity that the user wish to quarry. We resize it here once instead of
+    // resizing on-the-call, to save time, in case that quarry function is called with a high frequency. The last
+    // element in this array is to store the reduced value.
+    TRACK_VECTOR_RESIZE(sphere_stats_buffer, nSpheres + 1, "sphere_stats_buffer", 0);
 
     // NOTE that this will get resized again later, this is just the first estimate
     TRACK_VECTOR_RESIZE(spheres_in_SD_composite, 2 * nSpheres, "spheres_in_SD_composite", NULL_CHGPU_ID);
@@ -277,10 +372,9 @@ __host__ void ChSystemGpu_impl::setupSphereDataStructures() {
 
         {
             bool user_provided_ang_vel = user_sphere_ang_vel.size() != 0;
-            if (user_provided_ang_vel && user_sphere_ang_vel.size() != nSpheres) {
-                printf("Provided angular velocity array has an unacceptable length.");
-                exit(1);
-            }
+            if (user_provided_ang_vel && user_sphere_ang_vel.size() != nSpheres)
+                CHGPU_ERROR("Provided angular velocity array has length %zu, but there are %u spheres!\n",
+                            user_sphere_ang_vel.size(), nSpheres);
             if (user_provided_ang_vel) {
                 for (unsigned int i = 0; i < nSpheres; i++) {
                     auto ang_vel = user_sphere_ang_vel.at(i);
@@ -290,34 +384,6 @@ __host__ void ChSystemGpu_impl::setupSphereDataStructures() {
                 }
             }
         }
-    }
-
-    if (gran_params->friction_mode == CHGPU_FRICTION_MODE::MULTI_STEP ||
-        gran_params->friction_mode == CHGPU_FRICTION_MODE::SINGLE_STEP) {
-        TRACK_VECTOR_RESIZE(contact_partners_map, 12 * nSpheres, "contact_partners_map", NULL_CHGPU_ID);
-        TRACK_VECTOR_RESIZE(contact_active_map, 12 * nSpheres, "contact_active_map", false);
-    }
-    if (gran_params->friction_mode == CHGPU_FRICTION_MODE::MULTI_STEP) {
-        float3 null_history = {0., 0., 0.};
-        TRACK_VECTOR_RESIZE(contact_history_map, 12 * nSpheres, "contact_history_map", null_history);
-    }
-
-    // record normal contact force
-    if (gran_params->recording_contactInfo == true) {
-        float3 null_force = {0.0f, 0.0f, 0.0f};
-        TRACK_VECTOR_RESIZE(normal_contact_force, 12 * nSpheres, "normal contact force", null_force);
-    }
-
-    // record friction force
-    if (gran_params->recording_contactInfo == true && gran_params->friction_mode != CHGPU_FRICTION_MODE::FRICTIONLESS) {
-        float3 null_force = {0.0f, 0.0f, 0.0f};
-        TRACK_VECTOR_RESIZE(tangential_friction_force, 12 * nSpheres, "tangential contact force", null_force);
-    }
-
-    // record rolling friction torque
-    if (gran_params->recording_contactInfo == true && gran_params->rolling_mode != CHGPU_ROLLING_MODE::NO_RESISTANCE) {
-        float3 null_force = {0.0f, 0.0f, 0.0f};
-        TRACK_VECTOR_RESIZE(rolling_friction_torque, 12 * nSpheres, "rolling friction torque", null_force);
     }
 
     if (time_integrator == CHGPU_TIME_INTEGRATOR::CHUNG) {
@@ -332,6 +398,94 @@ __host__ void ChSystemGpu_impl::setupSphereDataStructures() {
             TRACK_VECTOR_RESIZE(sphere_ang_acc_Z_old, nSpheres, "sphere_ang_acc_Z_old", 0);
         }
     }
+
+    // If this is a new-boot, we usually want to do this defragment.
+    // But if this is a restart, then probably no. We do not want every time the simulation restarts,
+    // we have the order of particles completely changed: it may be bad for visualization or debugging
+	if (defragment_on_start) {
+        defragment_initial_positions();
+    }
+
+    bool user_provided_internal_data = false;
+    if (gran_params->friction_mode == CHGPU_FRICTION_MODE::MULTI_STEP ||
+        gran_params->friction_mode == CHGPU_FRICTION_MODE::SINGLE_STEP) {
+        TRACK_VECTOR_RESIZE(contact_partners_map, MAX_SPHERES_TOUCHED_BY_SPHERE * nSpheres, "contact_partners_map",
+                            NULL_CHGPU_ID);
+        TRACK_VECTOR_RESIZE(contact_active_map, MAX_SPHERES_TOUCHED_BY_SPHERE * nSpheres, "contact_active_map", false);
+
+        // If the user provides a checkpointed history array, we load it here
+        bool user_provided_partner_map = user_partner_map.size() != 0;
+        if (user_provided_partner_map && user_partner_map.size() != MAX_SPHERES_TOUCHED_BY_SPHERE * nSpheres)
+            CHGPU_ERROR("ERROR! The user provided contact partner map has size %zu. It needs to be %u * %u!\n",
+                        user_partner_map.size(), MAX_SPHERES_TOUCHED_BY_SPHERE, nSpheres);
+
+        // Hope that using .at (instead of []) gives better err msg when things go wrong,
+        // at the cost of some speed which is not important in I/O
+        if (user_provided_partner_map) {
+            for (unsigned int i = 0; i < nSpheres; i++) {
+                for (unsigned int j = 0; j < MAX_SPHERES_TOUCHED_BY_SPHERE; j++) {
+                    contact_partners_map.at(MAX_SPHERES_TOUCHED_BY_SPHERE * i + j) =
+                        user_partner_map.at(MAX_SPHERES_TOUCHED_BY_SPHERE * i + j);
+                }
+            }
+        }
+
+        user_provided_internal_data = user_provided_internal_data || user_provided_partner_map;
+    }
+
+    if (gran_params->friction_mode == CHGPU_FRICTION_MODE::MULTI_STEP) {
+        float3 null_history = {0., 0., 0.};
+        TRACK_VECTOR_RESIZE(contact_history_map, MAX_SPHERES_TOUCHED_BY_SPHERE * nSpheres, "contact_history_map",
+                            null_history);
+
+        // If the user provides a checkpointed history array, we load it here
+        bool user_provided_friction_history = user_friction_history.size() != 0;
+        if (user_provided_friction_history && user_friction_history.size() != MAX_SPHERES_TOUCHED_BY_SPHERE * nSpheres)
+            CHGPU_ERROR("ERROR! The user provided contact friction history has size %zu. It needs to be %u * %u!\n",
+                        user_friction_history.size(), MAX_SPHERES_TOUCHED_BY_SPHERE, nSpheres);
+
+        if (user_provided_friction_history) {
+            for (unsigned int i = 0; i < nSpheres; i++) {
+                for (unsigned int j = 0; j < MAX_SPHERES_TOUCHED_BY_SPHERE; j++) {
+                    float3 history_UU = user_friction_history[MAX_SPHERES_TOUCHED_BY_SPHERE * i + j];
+                    float3 history_SU = make_float3(history_UU.x / LENGTH_SU2UU, history_UU.y / LENGTH_SU2UU,
+                                                    history_UU.z / LENGTH_SU2UU);
+                    contact_history_map.at(MAX_SPHERES_TOUCHED_BY_SPHERE * i + j) = history_SU;
+                }
+            }
+        }
+
+        user_provided_internal_data = user_provided_internal_data || user_provided_friction_history;
+    }
+
+    // This if content should be executed rarely, if at all.
+    // If user gives Chrono::Gpu internal data from a file then it's a restart,
+    // then defragment_on_start should be set to false. But I implemented it anyway.
+    if (user_provided_internal_data && defragment_on_start) {
+        defragment_friction_history(MAX_SPHERES_TOUCHED_BY_SPHERE);
+    }
+
+    // record normal contact force
+    if (gran_params->recording_contactInfo == true) {
+        float3 null_force = {0.0f, 0.0f, 0.0f};
+        TRACK_VECTOR_RESIZE(normal_contact_force, MAX_SPHERES_TOUCHED_BY_SPHERE * nSpheres, "normal contact force",
+                            null_force);
+    }
+
+    // record friction force
+    if (gran_params->recording_contactInfo == true && gran_params->friction_mode != CHGPU_FRICTION_MODE::FRICTIONLESS) {
+        float3 null_force = {0.0f, 0.0f, 0.0f};
+        TRACK_VECTOR_RESIZE(tangential_friction_force, MAX_SPHERES_TOUCHED_BY_SPHERE * nSpheres,
+                            "tangential contact force", null_force);
+    }
+
+    // record rolling friction torque
+    if (gran_params->recording_contactInfo == true && gran_params->rolling_mode != CHGPU_ROLLING_MODE::NO_RESISTANCE) {
+        float3 null_force = {0.0f, 0.0f, 0.0f};
+        TRACK_VECTOR_RESIZE(rolling_friction_torque, MAX_SPHERES_TOUCHED_BY_SPHERE * nSpheres,
+                            "rolling friction torque", null_force);
+    }
+
     // make sure the right pointers are packed
     packSphereDataPointers();
 }

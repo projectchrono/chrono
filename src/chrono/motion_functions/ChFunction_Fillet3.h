@@ -39,7 +39,7 @@ class ChApi ChFunction_Fillet3 : public ChFunction {
     double c1, c2, c3, c4;  // used internally...
 
   public:
-    ChFunction_Fillet3() : y1(0), y2(0), dy1(0), dy2(0), end(1), c1(0), c2(0), c3(0), c4(0) {}
+    ChFunction_Fillet3() : end(1), y1(0), y2(0), dy1(0), dy2(0), c1(0), c2(0), c3(0), c4(0) {}
     ChFunction_Fillet3(const ChFunction_Fillet3& other);
     ~ChFunction_Fillet3() {}
 

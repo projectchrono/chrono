@@ -46,9 +46,6 @@ uint ChSolverMulticoreJacobi::Solve(ChShurProduct& ShurProduct,
     CompressedMatrix<real> Nshur = data_manager->host_data.D_T * data_manager->host_data.M_invD;
     DynamicVector<real> D;
     D.resize(num_constraints, false);
-    real theta = 1;
-    real thetaNew = theta;
-    real Beta = 0;
     // real eignenval = LargestEigenValue(ShurProduct, temp);
     // Rigid contacts
     // Bilaterals

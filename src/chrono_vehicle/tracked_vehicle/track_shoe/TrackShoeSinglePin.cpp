@@ -133,7 +133,7 @@ void TrackShoeSinglePin::Create(const rapidjson::Document& d) {
 
         if (d["Visualization"].HasMember("Primitives")) {
             assert(d["Visualization"]["Primitives"].IsArray());
-            int num_shapes = d["Visualization"]["Primitives"].Size();
+            num_shapes = d["Visualization"]["Primitives"].Size();
             for (int i = 0; i < num_shapes; i++) {
                 const Value& shape = d["Visualization"]["Primitives"][i];
                 std::string type = shape["Type"].GetString();

@@ -27,7 +27,6 @@ uint ChSolverMulticoreMinRes::Solve(ChShurProduct& ShurProduct,
     }
 
     real& residual = data_manager->measures.solver.residual;
-    real& objective_value = data_manager->measures.solver.objective_value;
 
     uint N = (uint)mb.size();
 

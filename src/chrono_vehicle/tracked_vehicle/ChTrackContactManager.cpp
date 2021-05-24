@@ -330,12 +330,14 @@ void ChTrackContactManager::WriteContacts(const std::string& filename) {
 
 // -----------------------------------------------------------------------------
 
-ChTrackCollisionManager::ChTrackCollisionManager(ChTrackedVehicle* vehicle) : m_idler_shoe(true), m_wheel_shoe(true) {}
+ChTrackCollisionManager::ChTrackCollisionManager(ChTrackedVehicle* vehicle)
+    : m_idler_shoe(false), m_wheel_shoe(false), m_ground_shoe(false) {}
 
 void ChTrackCollisionManager::Reset() {
     // Empty collision lists
     m_collisions_idler.clear();
     m_collisions_wheel.clear();
+    m_collisions_ground.clear();
 }
 
 static const double nrm_threshold = 0.8;
@@ -349,48 +351,60 @@ bool ChTrackCollisionManager::OnNarrowphase(collision::ChCollisionInfo& contacti
 
     // Body B is a track shoe body
     if (bodyB->GetIdentifier() == BodyID::SHOE_BODY) {
-        // Express collision normal in body A (wheel) frame
-        auto nrm = bodyA->TransformDirectionParentToLocal(contactinfo.vN);
+        auto nrm = bodyA->TransformDirectionParentToLocal(contactinfo.vN);  // Express collision normal in body A frame
+        auto id = bodyA->GetIdentifier();                                   // body A identifier
 
         // Identify "lateral" contacts (assumed to be with a guiding pin) and let Chrono generate contacts
         if (std::abs(nrm.y()) > nrm_threshold) {
             return true;
         }
 
-        // Intercept and cache collisions between wheels and track pad.
+        // Intercept and cache collisions between wheels and shoe or ground and shoe.
+        // (note that no collisions with sprocket are generated anyway)
         // Do not generate Chrono contact for such collisions.
-        if (m_idler_shoe && bodyA->GetIdentifier() == BodyID::IDLER_BODY) {
+        if (m_idler_shoe && id == BodyID::IDLER_BODY) {
             m_collisions_idler.push_back(contactinfo);
             return false;
         }
-        if (m_wheel_shoe && bodyA->GetIdentifier() == BodyID::WHEEL_BODY) {
+        if (m_wheel_shoe && id == BodyID::WHEEL_BODY) {
             m_collisions_wheel.push_back(contactinfo);
+            return false;
+        }
+        if (m_ground_shoe && id != BodyID::IDLER_BODY && id != BodyID::WHEEL_BODY) {
+            m_collisions_ground.push_back(contactinfo);
             return false;
         }
     }
 
     // Body A is a track shoe body
     if (bodyA->GetIdentifier() == BodyID::SHOE_BODY) {
-        // Express collision normal in body B (wheel) frame
-        auto nrm = bodyB->TransformDirectionParentToLocal(contactinfo.vN);
+        auto nrm = bodyB->TransformDirectionParentToLocal(contactinfo.vN); // Express collision normal in body B frame
+        auto id = bodyB->GetIdentifier();                                   // body A identifier
 
         // Identify "lateral" contacts (assumed to be with a guiding pin) and let Chrono generate contacts
         if (std::abs(nrm.y()) > nrm_threshold) {
             return true;
         }
  
-        // Intercept and cache collisions between wheels and track pad.
+        // Intercept and cache collisions between wheels and shoe or ground and shoe.
+        // (note that no collisions with sprocket are generated anyway)
         // Do not generate Chrono contact for such collisions.
-        if (m_idler_shoe && bodyB->GetIdentifier() == BodyID::IDLER_BODY) {
-            auto contactinfoS = contactinfo;
-            contactinfoS.SwapModels();
-            m_collisions_idler.push_back(contactinfoS);
-            return false;
+        if (m_idler_shoe && id == BodyID::IDLER_BODY) {
+                auto contactinfoS = contactinfo;
+                contactinfoS.SwapModels();
+                m_collisions_idler.push_back(contactinfoS);
+                return false;
         }
-        if (m_wheel_shoe && bodyB->GetIdentifier() == BodyID::WHEEL_BODY) {
+        if (m_wheel_shoe && id == BodyID::WHEEL_BODY) {
+                auto contactinfoS = contactinfo;
+                contactinfoS.SwapModels();
+                m_collisions_wheel.push_back(contactinfoS);
+                return false;
+        }
+        if (m_ground_shoe && id != BodyID::IDLER_BODY && id != BodyID::WHEEL_BODY) {
             auto contactinfoS = contactinfo;
             contactinfoS.SwapModels();
-            m_collisions_wheel.push_back(contactinfoS);
+            m_collisions_ground.push_back(contactinfoS);
             return false;
         }
     }
@@ -421,37 +435,54 @@ void ChTrackCustomContact::ApplyForces() {
     // Reset the load list for this load container
     GetLoadList().clear();
 
-    ////std::cout << "Idler-shoe collisions: " << m_collision_manager->m_collisions_idler.size() << std::endl;
-    ////std::cout << "Wheel-shoe collisions: " << m_collision_manager->m_collisions_wheel.size() << std::endl;
+    ////std::cout << "Idler-shoe collisions:  " << m_collision_manager->m_collisions_idler.size() << std::endl;
+    ////std::cout << "Wheel-shoe collisions:  " << m_collision_manager->m_collisions_wheel.size() << std::endl;
+    ////std::cout << "Ground-shoe collisions: " << m_collision_manager->m_collisions_ground.size() << std::endl;
 
-    ChVector<> forceB;
+    ChVector<> force_shoe;
 
-    for (auto& cInfo : m_collision_manager->m_collisions_idler) {
-        std::shared_ptr<ChBody> bodyA(static_cast<ChBody*>(cInfo.modelA->GetContactable()), [](ChBody*) {});
-        std::shared_ptr<ChBody> bodyB(static_cast<ChBody*>(cInfo.modelB->GetContactable()), [](ChBody*) {});
+    if (OverridesIdlerContact()) {
+        for (auto& cInfo : m_collision_manager->m_collisions_idler) {
+            std::shared_ptr<ChBody> idler_body(static_cast<ChBody*>(cInfo.modelA->GetContactable()), [](ChBody*) {});
+            std::shared_ptr<ChBody> shoe_body(static_cast<ChBody*>(cInfo.modelB->GetContactable()), [](ChBody*) {});
 
-        // Call user-provided force calculation
-        ComputeForce(cInfo, bodyA, bodyB, true, forceB);
+            // Call user-provided force calculation
+            ComputeIdlerContactForce(cInfo, idler_body, shoe_body, force_shoe);
 
-        // Apply equal and opposite forces on the two bodies (road wheel and track shoe) in contact
-        auto loadA = chrono_types::make_shared<ChLoadBodyForce>(bodyA, -forceB, false, cInfo.vpA, false);
-        auto loadB = chrono_types::make_shared<ChLoadBodyForce>(bodyB, +forceB, false, cInfo.vpB, false);
-        Add(loadA);
-        Add(loadB);
+            // Apply equal and opposite forces on the two bodies (idler and track shoe) in contact
+            Add(chrono_types::make_shared<ChLoadBodyForce>(idler_body, -force_shoe, false, cInfo.vpA, false));
+            Add(chrono_types::make_shared<ChLoadBodyForce>(shoe_body, +force_shoe, false, cInfo.vpB, false));
+        }
     }
-    
-    for (auto& cInfo : m_collision_manager->m_collisions_wheel) {
-        std::shared_ptr<ChBody> bodyA(static_cast<ChBody*>(cInfo.modelA->GetContactable()), [](ChBody*) {});
-        std::shared_ptr<ChBody> bodyB(static_cast<ChBody*>(cInfo.modelB->GetContactable()), [](ChBody*) {});
 
-        // Call user-provided force calculation
-        ComputeForce(cInfo, bodyA, bodyB, false, forceB);
+    if (OverridesWheelContact()) {
+        for (auto& cInfo : m_collision_manager->m_collisions_wheel) {
+            std::shared_ptr<ChBody> wheel_body(static_cast<ChBody*>(cInfo.modelA->GetContactable()), [](ChBody*) {});
+            std::shared_ptr<ChBody> shoe_body(static_cast<ChBody*>(cInfo.modelB->GetContactable()), [](ChBody*) {});
 
-        // Apply equal and opposite forces on the two bodies (wheel and track shoe) in contact
-        auto loadA = chrono_types::make_shared<ChLoadBodyForce>(bodyA, -forceB, false, cInfo.vpA, false);
-        auto loadB = chrono_types::make_shared<ChLoadBodyForce>(bodyB, +forceB, false, cInfo.vpB, false);
-        Add(loadA);
-        Add(loadB);
+            // Call user-provided force calculation
+            ComputeWheelContactForce(cInfo, wheel_body, shoe_body, force_shoe);
+
+            // Apply equal and opposite forces on the two bodies (wheel and track shoe) in contact
+            Add(chrono_types::make_shared<ChLoadBodyForce>(wheel_body, -force_shoe, false, cInfo.vpA, false));
+            Add(chrono_types::make_shared<ChLoadBodyForce>(shoe_body, +force_shoe, false, cInfo.vpB, false));
+        }
+    }
+
+    if (OverridesGroundContact()) {
+        for (auto& cInfo : m_collision_manager->m_collisions_ground) {
+            std::shared_ptr<ChBody> ground_body(static_cast<ChBody*>(cInfo.modelA->GetContactable()), [](ChBody*) {});
+            std::shared_ptr<ChBody> shoe_body(static_cast<ChBody*>(cInfo.modelB->GetContactable()), [](ChBody*) {});
+
+            // Call user-provided force calculation
+            ComputeGroundContactForce(cInfo, ground_body, shoe_body, force_shoe);
+
+            // Apply equal and opposite forces on the two bodies (ground and track shoe) in contact
+            if (!ground_body->GetBodyFixed()) {
+                Add(chrono_types::make_shared<ChLoadBodyForce>(ground_body, -force_shoe, false, cInfo.vpA, false));
+            }
+            Add(chrono_types::make_shared<ChLoadBodyForce>(shoe_body, +force_shoe, false, cInfo.vpB, false));
+        }
     }
 }
 

@@ -241,7 +241,6 @@ SawtoothTestBandfilter::SawtoothTestBandfilter(size_t nSawTeeth)
 double SawtoothTestBandfilter::Test()
 {
     for(size_t i = 0; i < input_signal.size(); i++) {
-        double t = double(i) / m_fSample;
         double y = hp.Filter(input_signal[i]);
         output_signal[i] = lp.Filter(y);
     }
@@ -268,11 +267,9 @@ SawtoothTestWkfilter::SawtoothTestWkfilter(size_t nSawTeeth)
 double SawtoothTestWkfilter::Test()
 {
     for(size_t i = 0; i < input_signal.size(); i++) {
-        double t = double(i) / m_fSample;
         output_signal[i] = wk.Filter(input_signal[i]);
     }
     return rms();
-    ;
 }
 
 class SawtoothTestWdfilter : public SawtoothTestbed
@@ -294,7 +291,6 @@ SawtoothTestWdfilter::SawtoothTestWdfilter(size_t nSawTeeth)
 double SawtoothTestWdfilter::Test()
 {
     for(size_t i = 0; i < input_signal.size(); i++) {
-        double t = double(i) / m_fSample;
         output_signal[i] = wd.Filter(input_signal[i]);
     }
     return rms();

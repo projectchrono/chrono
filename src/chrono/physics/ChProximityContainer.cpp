@@ -34,7 +34,7 @@ void ChProximityContainer::ArchiveOUT(ChArchiveOut& marchive) {
 
 void ChProximityContainer::ArchiveIN(ChArchiveIn& marchive) {
     // version number
-    int version = marchive.VersionRead();
+    /*int version =*/ marchive.VersionRead();
     // deserialize parent class
     ChPhysicsItem::ArchiveIN(marchive);
     // stream in all member data:

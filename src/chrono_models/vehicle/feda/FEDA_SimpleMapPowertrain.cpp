@@ -87,15 +87,15 @@ void FEDA_SimpleMapPowertrain::SetEngineTorqueMaps(ChFunction_Recorder& map0, Ch
     mapF.AddPoint(2550 * rpm2rads, 0);
 }
 
-void FEDA_SimpleMapPowertrain::SetGearRatios(std::vector<double>& fwd_gear_ratios, double& reverse_gear_ratio) {
-    reverse_gear_ratio = -1.0 / 3.81;
+void FEDA_SimpleMapPowertrain::SetGearRatios(std::vector<double>& fwd, double& rev) {
+    rev = -1.0 / 3.81;
 
-    fwd_gear_ratios.push_back(1.0 / 3.74);
-    fwd_gear_ratios.push_back(1.0 / 2.003);
-    fwd_gear_ratios.push_back(1.0 / 1.343);
-    fwd_gear_ratios.push_back(1.0 / 1.0);
-    fwd_gear_ratios.push_back(1.0 / 0.773);
-    fwd_gear_ratios.push_back(1.0 / 0.634);
+    fwd.push_back(1.0 / 3.74);
+    fwd.push_back(1.0 / 2.003);
+    fwd.push_back(1.0 / 1.343);
+    fwd.push_back(1.0 / 1.0);
+    fwd.push_back(1.0 / 0.773);
+    fwd.push_back(1.0 / 0.634);
 }
 
 void FEDA_SimpleMapPowertrain::SetShiftPoints(std::vector<std::pair<double, double>>& shift_bands) {

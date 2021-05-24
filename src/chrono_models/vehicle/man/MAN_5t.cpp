@@ -44,13 +44,13 @@ MAN_5t::MAN_5t()
       m_chassisCollisionType(CollisionType::NONE),
       m_fixed(false),
       m_brake_locking(false),
+      m_powertrainType(PowertrainModelType::SIMPLE_CVT),
       m_brake_type(BrakeType::SIMPLE),
       m_tireType(TireModelType::TMEASY),
       m_tire_step_size(-1),
       m_initFwdVel(0),
       m_initPos(ChCoordsys<>(ChVector<>(0, 0, 1), QUNIT)),
       m_initOmega({0, 0, 0, 0}),
-      m_use_shafts_drivetrain(false),
       m_apply_drag(false) {}
 
 MAN_5t::MAN_5t(ChSystem* system)
@@ -59,6 +59,7 @@ MAN_5t::MAN_5t(ChSystem* system)
       m_contactMethod(ChContactMethod::NSC),
       m_chassisCollisionType(CollisionType::NONE),
       m_fixed(false),
+      m_powertrainType(PowertrainModelType::SIMPLE_CVT),
       m_brake_locking(false),
       m_brake_type(BrakeType::SIMPLE),
       m_tireType(TireModelType::TMEASY),
@@ -66,7 +67,6 @@ MAN_5t::MAN_5t(ChSystem* system)
       m_initFwdVel(0),
       m_initPos(ChCoordsys<>(ChVector<>(0, 0, 1), QUNIT)),
       m_initOmega({0, 0, 0, 0}),
-      m_use_shafts_drivetrain(false),
       m_apply_drag(false) {}
 
 MAN_5t::~MAN_5t() {
@@ -97,12 +97,18 @@ void MAN_5t::Initialize() {
     }
 
     // Create and initialize the powertrain system
-    if (m_use_shafts_drivetrain) {
-        auto powertrain = chrono_types::make_shared<MAN_5t_SimpleMapPowertrain>("Powertrain");
-        m_vehicle->InitializePowertrain(powertrain);
-    } else {
-        auto powertrain = chrono_types::make_shared<MAN_5t_SimpleCVTPowertrain>("Powertrain");
-        m_vehicle->InitializePowertrain(powertrain);
+    switch (m_powertrainType) {
+        case PowertrainModelType::SIMPLE: {
+            auto powertrain = chrono_types::make_shared<MAN_5t_SimpleMapPowertrain>("Powertrain");
+            m_vehicle->InitializePowertrain(powertrain);
+            break;
+        }
+        default:
+        case PowertrainModelType::SIMPLE_CVT: {
+            auto powertrain = chrono_types::make_shared<MAN_5t_SimpleCVTPowertrain>("Powertrain");
+            m_vehicle->InitializePowertrain(powertrain);
+            break;
+        }
     }
 
     // Create the tires and set parameters depending on type.

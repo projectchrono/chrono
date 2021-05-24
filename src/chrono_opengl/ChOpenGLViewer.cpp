@@ -427,7 +427,7 @@ void ChOpenGLViewer::DrawObject(std::shared_ptr<ChBody> abody) {
             double rad = capsule_shape->GetCapsuleGeometry().rad;
             double height = capsule_shape->GetCapsuleGeometry().hlen;
             // Quaternion rott(1,0,0,0);
-            Quaternion lrot = visual_asset->Rot.Get_A_quaternion();
+            lrot = visual_asset->Rot.Get_A_quaternion();
             // lrot = lrot % rott;
             lrot = rot % lrot;
 
@@ -470,7 +470,7 @@ void ChOpenGLViewer::DrawObject(std::shared_ptr<ChBody> abody) {
             std::shared_ptr<geometry::ChLine> mline;
             mline = line_shape->GetLineGeometry();
 
-            Quaternion lrot = visual_asset->Rot.Get_A_quaternion();
+            lrot = visual_asset->Rot.Get_A_quaternion();
             lrot = rot % lrot;
             lrot.Q_to_AngAxis(angle, axis);
 

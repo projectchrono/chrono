@@ -99,8 +99,6 @@ int main(int argc, char* argv[]) {
     const int numDiv_y = 6;  // Number of elements along Y axis
     const int numDiv_z = 1;  // Single element along the thickness
     const int N_x = numDiv_x + 1;
-    const int N_y = numDiv_y + 1;
-    const int N_z = numDiv_z + 1;
     int TotalNumElements = numDiv_x * numDiv_y;
     int TotalNumNodes = (numDiv_x + 1) * (numDiv_y + 1);
 

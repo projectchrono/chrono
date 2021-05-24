@@ -44,14 +44,15 @@ FEDA_Powertrain::FEDA_Powertrain(const std::string& name) : ChShaftsPowertrain(n
 // -----------------------------------------------------------------------------
 // Initialize vector of gear ratios
 // -----------------------------------------------------------------------------
-void FEDA_Powertrain::SetGearRatios(std::vector<double>& gear_ratios) {
-    gear_ratios.push_back(-1.0 / 3.81);  // 0: reverse gear;
-    gear_ratios.push_back(1.0 / 3.74);   // 1: 1st gear;
-    gear_ratios.push_back(1.0 / 2.003);  // 2: 2nd gear;
-    gear_ratios.push_back(1.0 / 1.343);  // 3: 3rd gear;
-    gear_ratios.push_back(1.0 / 1.0);    // 4: 4th gear;
-    gear_ratios.push_back(1.0 / 0.773);  // 5: 5th gear;
-    gear_ratios.push_back(1.0 / 0.634);  // 6: 5th gear;
+void FEDA_Powertrain::SetGearRatios(std::vector<double>& fwd, double& rev) {
+    rev = -1.0 / 3.81;  // reverse gear;
+
+    fwd.push_back(1.0 / 3.74);   // 1st gear;
+    fwd.push_back(1.0 / 2.003);  // 2nd gear;
+    fwd.push_back(1.0 / 1.343);  // 3rd gear;
+    fwd.push_back(1.0 / 1.0);    // 4th gear;
+    fwd.push_back(1.0 / 0.773);  // 5th gear;
+    fwd.push_back(1.0 / 0.634);  // 5th gear;
 }
 
 // -----------------------------------------------------------------------------

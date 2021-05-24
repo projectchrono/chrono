@@ -420,8 +420,6 @@ ChExtruderBeamEuler::ChExtruderBeamEuler(
     mytime = 0;
     speed = mspeed;
 
-    ChCoordsys<> moutletGround = moutlet;
-
     ground = chrono_types::make_shared<ChBody>();
     ground->SetBodyFixed(true);
     mysystem->Add(ground);
@@ -528,8 +526,6 @@ ChExtruderBeamIGA::ChExtruderBeamIGA(ChSystem* msystem,              // system t
     beam_section = sect;
     mytime = 0;
     speed = mspeed;
-
-    ChCoordsys<> moutletGround = moutlet;
 
     ground = chrono_types::make_shared<ChBody>();
     ground->SetBodyFixed(true);

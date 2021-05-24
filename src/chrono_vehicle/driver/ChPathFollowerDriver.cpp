@@ -38,8 +38,8 @@ ChPathFollowerDriver::ChPathFollowerDriver(ChVehicle& vehicle,
                                            bool isClosedPath)
     : ChDriver(vehicle),
       m_steeringPID(path, isClosedPath),
-      m_pathName(path_name),
       m_target_speed(target_speed),
+      m_pathName(path_name),
       m_throttle_threshold(0.2) {
     Create();
 }
@@ -54,8 +54,8 @@ ChPathFollowerDriver::ChPathFollowerDriver(ChVehicle& vehicle,
     : ChDriver(vehicle),
       m_steeringPID(steering_filename, path, isClosedPath),
       m_speedPID(speed_filename),
-      m_pathName(path_name),
       m_target_speed(target_speed),
+      m_pathName(path_name),
       m_throttle_threshold(0.2) {
     Create();
 }
@@ -124,8 +124,8 @@ ChPathFollowerDriverXT::ChPathFollowerDriverXT(ChVehicle& vehicle,
                                                double maxWheelTurnAngle)
     : ChDriver(vehicle),
       m_steeringXT(path, isClosedPath, maxWheelTurnAngle),
-      m_pathName(path_name),
       m_target_speed(target_speed),
+      m_pathName(path_name),
       m_throttle_threshold(0.2) {
     Create();
 }
@@ -141,8 +141,8 @@ ChPathFollowerDriverXT::ChPathFollowerDriverXT(ChVehicle& vehicle,
     : ChDriver(vehicle),
       m_steeringXT(steering_filename, path, isClosedPath, maxWheelTurnAngle),
       m_speedPID(speed_filename),
-      m_pathName(path_name),
       m_target_speed(target_speed),
+      m_pathName(path_name),
       m_throttle_threshold(0.2) {
     Create();
 }
@@ -212,8 +212,8 @@ ChPathFollowerDriverSR::ChPathFollowerDriverSR(ChVehicle& vehicle,
                                                double axle_space)
     : ChDriver(vehicle),
       m_steeringSR(path, isClosedPath, maxWheelTurnAngle, axle_space),
-      m_pathName(path_name),
       m_target_speed(target_speed),
+      m_pathName(path_name),
       m_throttle_threshold(0.2) {
     Create();
 }
@@ -230,8 +230,8 @@ ChPathFollowerDriverSR::ChPathFollowerDriverSR(ChVehicle& vehicle,
     : ChDriver(vehicle),
       m_steeringSR(steering_filename, path, isClosedPath, maxWheelTurnAngle, axle_space),
       m_speedPID(speed_filename),
-      m_pathName(path_name),
       m_target_speed(target_speed),
+      m_pathName(path_name),
       m_throttle_threshold(0.2) {
     Create();
 }
@@ -300,8 +300,8 @@ ChPathFollowerDriverStanley::ChPathFollowerDriverStanley(ChVehicle& vehicle,
                                                          double maxWheelTurnAngle)
     : ChDriver(vehicle),
       m_steeringStanley(path, isClosedPath, maxWheelTurnAngle),
-      m_pathName(path_name),
       m_target_speed(target_speed),
+      m_pathName(path_name),
       m_throttle_threshold(0.2) {
     Create();
 }
@@ -317,8 +317,8 @@ ChPathFollowerDriverStanley::ChPathFollowerDriverStanley(ChVehicle& vehicle,
     : ChDriver(vehicle),
       m_steeringStanley(steering_filename, path, isClosedPath, maxWheelTurnAngle),
       m_speedPID(speed_filename),
-      m_pathName(path_name),
       m_target_speed(target_speed),
+      m_pathName(path_name),
       m_throttle_threshold(0.2) {
     Create();
 }

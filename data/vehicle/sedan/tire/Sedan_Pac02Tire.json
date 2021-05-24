@@ -2,20 +2,16 @@
     "Name": "Pac02 Tire from ADAMS/Car TIR file",
     "Type": "Tire",
     "Template": "Pac02Tire",
-    "Mass": 11.72,
-    "Inertia": [
-        0.6179732109460485,
-        1.0971467108801805,
-        0.6179732109460485
-    ],
+    "Mass": 11.5,
+    "Inertia": [0.156, 0.679, 0.156],
     "Use Mode": 3,
     "Coefficient of Friction": 0.8,
     "Tire Side": "left",
     "Dimension": {
-        "Unloaded Radius": 0.3284,
-        "Width": 0.225,
-        "Aspect Ratio": 0.5,
-        "Rim Radius": 0.2159,
+        "Unloaded Radius": 0.3266,
+        "Width": 0.245,
+        "Aspect Ratio": 0.4,
+        "Rim Radius": 0.2286,
         "Rim Width": 0.1778
     },
     "Vertical": {

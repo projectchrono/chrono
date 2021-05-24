@@ -194,10 +194,15 @@ set(CV_DRIVER_FILES
     driver/ChDataDriver.cpp
     driver/ChHumanDriver.h
     driver/ChHumanDriver.cpp
+    driver/ChAIDriver.h
+    driver/ChAIDriver.cpp
     driver/ChPathFollowerDriver.h
     driver/ChPathFollowerDriver.cpp
     driver/ChPathFollowerACCDriver.h
     driver/ChPathFollowerACCDriver.cpp
+
+    driver/AIDriver.h
+    driver/AIDriver.cpp
 )
 if(ENABLE_MODULE_IRRLICHT)
     set(CVIRR_DRIVER_FILES
@@ -233,6 +238,8 @@ source_group("powertrain" FILES ${CV_POVERTRAIN_FILES})
 set(CV_TERRAIN_FILES
     terrain/FlatTerrain.h
     terrain/FlatTerrain.cpp
+    terrain/ObsModTerrain.h
+    terrain/ObsModTerrain.cpp
     terrain/RigidTerrain.h
     terrain/RigidTerrain.cpp
     terrain/RandomSurfaceTerrain.h

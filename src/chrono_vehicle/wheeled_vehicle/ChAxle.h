@@ -57,15 +57,14 @@ class CH_VEHICLE_API ChAxle {
     /// body (steered suspension); otherwise they are to be attached to the chassis (non-steered suspension).
     /// 'wheel_separation' is the distance between wheel centers on one side of the axle (if using double wheels). The
     /// default value of 0 indicates the common case of a single wheel per side.
-    virtual void Initialize(
-        std::shared_ptr<ChChassis> chassis,        ///< [in] associated chassis subsystem
-        std::shared_ptr<ChSubchassis> subchassis,  ///< [in] associated subchassis subsystem (may be null)
-        std::shared_ptr<ChSteering> steering,      ///< [in] associated steering subsystem (may be null)
-        const ChVector<>& susp_location,           ///< [in] suspension location relative to the chassis frame
-        const ChVector<>& arb_location,            ///< [in] antirollbar location relative to chassis frame
-        double wheel_separation = 0,               ///< [in] distance between wheel centers on one side
-        double left_ang_vel = 0,                   ///< [in] initial angular velocity of left wheel
-        double right_ang_vel = 0                   ///< [in] initial angular velocity of right wheel
+    void Initialize(std::shared_ptr<ChChassis> chassis,        ///< associated chassis subsystem
+                    std::shared_ptr<ChSubchassis> subchassis,  ///< associated subchassis subsystem (may be null)
+                    std::shared_ptr<ChSteering> steering,      ///< associated steering subsystem (may be null)
+                    const ChVector<>& susp_location,           ///< suspension location relative to the chassis frame
+                    const ChVector<>& arb_location,            ///< antirollbar location relative to chassis frame
+                    double wheel_separation = 0,               ///< distance between wheel centers on one side
+                    double left_ang_vel = 0,                   ///< initial angular velocity of left wheel
+                    double right_ang_vel = 0                   ///< initial angular velocity of right wheel
     );
 
     /// Synchronize this suspension subsystem.

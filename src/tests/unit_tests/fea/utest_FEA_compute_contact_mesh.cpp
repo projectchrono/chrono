@@ -16,8 +16,8 @@
 // Method system->GetContactContainer()->ComputeContactForces() iterates over
 // all bodies/meshes into contact and stores resultant contact force in an unordered map.
 // Upon invocation of myBody->GetContactForce(), the user can retrieve the resultant
-// of all (!) contact forces acting on the body from the NodeCloud SMC contact. 
-// In this unit test, the overall contact force applied to a box (from mesh) is compared 
+// of all (!) contact forces acting on the body from the NodeCloud SMC contact.
+// In this unit test, the overall contact force applied to a box (from mesh) is compared
 // to the total weight of the ANCF shell mesh.
 //
 // =============================================================================
@@ -43,7 +43,7 @@ using namespace chrono::fea;
 // Simulation parameters
 // ---------------------
 
-double end_time = 0.05;     // total simulation time
+double end_time = 0.05;    // total simulation time
 double start_time = 0.04;  // start check after this period
 double time_step = 2e-4;   // integration step size
 double gravity = -9.81;    // gravitational acceleration
@@ -99,7 +99,6 @@ int main(int argc, char* argv[]) {
     system.SetTangentialDisplacementModel(tdispl_model);
     system.SetStiffContact(stiff_contact);
 
-
     auto material = chrono_types::make_shared<ChMaterialSurfaceSMC>();
     material->SetYoungModulus(young_modulus);
     material->SetRestitution(restitution);
@@ -115,18 +114,19 @@ int main(int argc, char* argv[]) {
     // Create the ANCF shell element mesh
 
     auto my_mesh = chrono_types::make_shared<ChMesh>();
+
     // Geometry of the plate
     double plate_lenght_x = 0.5;
     double plate_lenght_y = 0.05;
     double plate_lenght_z = 0.5;  // small thickness
     // Specification of the mesh
     int N_x = numDiv_x + 1;
-    int N_y = numDiv_y + 1;
-    int N_z = numDiv_z + 1;
+
     // Number of elements in the y direction is considered as 1
     int TotalNumElements = numDiv_x * numDiv_z;
     //(1+1) is the number of nodes in the z direction
     int TotalNumNodes = (numDiv_x + 1) * (numDiv_z + 1);  // Or *(numDiv_y+1) for multilayer
+
     // Element dimensions (uniform grid)
     double dx = plate_lenght_x / numDiv_x;
     double dy = plate_lenght_y / numDiv_y;
@@ -145,7 +145,8 @@ int main(int argc, char* argv[]) {
         double dir_z = 0;
 
         // Create the node
-        auto node = chrono_types::make_shared<ChNodeFEAxyzD>(ChVector<>(loc_x, loc_y, loc_z), ChVector<>(dir_x, dir_y, dir_z));
+        auto node =
+            chrono_types::make_shared<ChNodeFEAxyzD>(ChVector<>(loc_x, loc_y, loc_z), ChVector<>(dir_x, dir_y, dir_z));
         node->SetMass(0);
 
         // Add node to mesh
@@ -166,7 +167,7 @@ int main(int argc, char* argv[]) {
         int node2 = (i / (numDiv_x)) * (N_x) + i % numDiv_x + 1 + N_x;
         int node3 = (i / (numDiv_x)) * (N_x) + i % numDiv_x + 1;
 
-        /*GetLog() << std::dynamic_pointer_cast<ChNodeFEAxyzD>(my_mesh->GetNode(node0))->GetPos() << "\t" << 
+        /*GetLog() << std::dynamic_pointer_cast<ChNodeFEAxyzD>(my_mesh->GetNode(node0))->GetPos() << "\t" <<
             std::dynamic_pointer_cast<ChNodeFEAxyzD>(my_mesh->GetNode(node1))->GetPos() << "\t" <<
             std::dynamic_pointer_cast<ChNodeFEAxyzD>(my_mesh->GetNode(node2))->GetPos() << "\t" <<
             std::dynamic_pointer_cast<ChNodeFEAxyzD>(my_mesh->GetNode(node3))->GetPos() << "\t";
@@ -184,7 +185,7 @@ int main(int argc, char* argv[]) {
         // Single layer
         element->AddLayer(dy, 0.0, mat);  // Thickness: dy;  Ply angle: 0.
         // Set other element properties
-        element->SetAlphaDamp(0.05);   // Structural damping for this
+        element->SetAlphaDamp(0.05);  // Structural damping for this
         element->SetGravityOn(true);  // element calculates its own gravitational load
         // Add element to mesh
         my_mesh->AddElement(element);
@@ -211,9 +212,9 @@ int main(int argc, char* argv[]) {
     system.Add(my_mesh);
 
     // Create container box
-    auto ground =
-        utils::CreateBoxContainer(&system, binId, material, ChVector<>(bin_width, bin_length, 200 * dy), bin_thickness,
-        ChVector<>(0, -1.5*m_contact_node_radius, 0), ChQuaternion<>(1, 0, 0, 0), true, true, false, false);
+    auto ground = utils::CreateBoxContainer(&system, binId, material, ChVector<>(bin_width, bin_length, 200 * dy),
+                                            bin_thickness, ChVector<>(0, -1.5 * m_contact_node_radius, 0),
+                                            ChQuaternion<>(1, 0, 0, 0), true, true, false, false);
 
     // -------------------
     // Setup linear solver
@@ -257,14 +258,13 @@ int main(int argc, char* argv[]) {
     // ---------------
 
     bool passed = true;
-    double total_weight = rho*plate_lenght_x*plate_lenght_y*plate_lenght_z*std::abs(gravity);
+    double total_weight = rho * plate_lenght_x * plate_lenght_y * plate_lenght_z * std::abs(gravity);
     while (system.GetChTime() < end_time) {
         system.DoStepDynamics(time_step);
 
         system.GetContactContainer()->ComputeContactForces();
         ChVector<> contact_force = ground->GetContactForce();
-        GetLog() << "t = " << system.GetChTime() << " num contacts = " <<
-        system.GetContactContainer()->GetNcontacts()
+        GetLog() << "t = " << system.GetChTime() << " num contacts = " << system.GetContactContainer()->GetNcontacts()
                  << "  force =  " << contact_force.y() << "\n";
         GetLog() << "Vertical Displacement of a Node: " << nodeRef->GetPos().y() << "\n";
         GetLog() << "Total Weight of Shell: " << total_weight << "\n";

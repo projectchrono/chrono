@@ -42,7 +42,7 @@ int main(int argc, char* argv[]) {
     ChSystemNSC mphysicalSystem;
 
     // Create the Irrlicht visualization
-    ChIrrApp application(&mphysicalSystem, L"A simple project template", core::dimension2d<u32>(800, 600), false);
+    ChIrrApp application(&mphysicalSystem, L"A simple project template", core::dimension2d<u32>(800, 600));
 
     // Easy shortcuts to add camera, lights, logo and sky in Irrlicht scene:
     application.AddTypicalLogo();

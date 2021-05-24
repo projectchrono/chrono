@@ -308,6 +308,8 @@ int main(int argc, char* argv[]) {
             break;
         }
 #endif
+        default:
+            break;
     }
 
     vehicle.GetSystem()->SetTimestepperType(ChTimestepper::Type::HHT);

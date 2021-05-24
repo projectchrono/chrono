@@ -30,12 +30,13 @@ class ChApi ChCollisionShape {
         ELLIPSOID,
         BOX,
         CYLINDER,
+        CYLSHELL,
         CONVEXHULL,
         TRIANGLEMESH,
         BARREL,
         POINT,
         TRIANGLE,
-        CAPSULE,      // Currently implemented in parallel only
+        CAPSULE,
         CONE,         // Currently implemented in parallel only
         ROUNDEDBOX,   // Currently implemented in parallel only
         ROUNDEDCYL,   // Currently implemented in parallel only

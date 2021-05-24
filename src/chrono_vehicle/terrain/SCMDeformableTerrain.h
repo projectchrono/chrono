@@ -105,7 +105,7 @@ class CH_VEHICLE_API SCMDeformableTerrain : public ChTerrain {
 
     /// Set parameters controlling the creation of side ruts (bulldozing effects).
     void SetBulldozingParameters(
-        double erosion_angle,          ///< angle of erosion of the displaced material (in degrees)
+        double erosion_angle,          ///< angle of erosion of the displaced material [degrees]
         double flow_factor = 1.0,      ///< growth of lateral volume relative to pressed volume
         int erosion_iterations = 3,    ///< number of erosion refinements per timestep
         int erosion_propagations = 10  ///< number of concentric vertex selections subject to erosion
@@ -145,24 +145,24 @@ class CH_VEHICLE_API SCMDeformableTerrain : public ChTerrain {
     );
 
     /// Class to be used as a callback interface for location-dependent soil parameters.
-    /// A derived class must implement Set() and set **all** soil parameters (no defaults are provided).
+    /// A derived class must implement Set() and set *all* soil parameters (no defaults are provided).
     class CH_VEHICLE_API SoilParametersCallback {
       public:
         virtual ~SoilParametersCallback() {}
 
-        /// Set the soil properties at a given (x,y) location.
-        /// Attention: the location is assumed to be provided in the (x,y) plane of the patch reference plane!
-        /// An implementation of this method in a derived class must set all soil parameters.
-        virtual void Set(double x, double y) = 0;
-
-        double m_Bekker_Kphi;    ///< Kphi, frictional modulus in Bekker model
-        double m_Bekker_Kc;      ///< Kc, cohesive modulus in Bekker model
-        double m_Bekker_n;       ///< n, exponent of sinkage in Bekker model (usually 0.6...1.8)
-        double m_Mohr_cohesion;  ///< Cohesion for shear failure [Pa]
-        double m_Mohr_friction;  ///< Friction angle for shear failure [degree]
-        double m_Janosi_shear;   ///< Shear parameter in Janosi-Hanamoto formula [m]
-        double m_elastic_K;      ///< elastic stiffness K per unit area, [Pa/m] (must be larger than Kphi)
-        double m_damping_R;      ///< vertical damping R per unit area [Pa.s/m] (proportional to vertical speed)
+        /// Set the soil properties at a given (x,y) location (below the given point).
+        /// Attention: the location is assumed to be provided in the SCM reference frame!
+        virtual void Set(
+            const ChVector<>& loc,  ///< query location
+            double& Bekker_Kphi,    ///< frictional modulus in Bekker model
+            double& Bekker_Kc,      ///< cohesive modulus in Bekker model
+            double& Bekker_n,       ///< exponent of sinkage in Bekker model (usually 0.6...1.8)
+            double& Mohr_cohesion,  ///< cohesion for shear failure [Pa]
+            double& Mohr_friction,  ///< friction angle for shear failure [degree]
+            double& Janosi_shear,   ///< shear parameter in Janosi-Hanamoto formula [m]
+            double& elastic_K,      ///< elastic stiffness K per unit area, [Pa/m] (must be larger than Kphi)
+            double& damping_R       ///< vertical damping R per unit area [Pa.s/m] (proportional to vertical speed)
+            ) = 0;
     };
 
     /// Specify the callback object to set the soil parameters at given (x,y) locations.
@@ -262,8 +262,25 @@ class CH_VEHICLE_API SCMDeformableTerrain : public ChTerrain {
     std::shared_ptr<SCMDeformableSoil> m_ground;  ///< underlying load container for contact force generation
 };
 
-/// This class provides the underlying implementation of the Soil Contact Model.
-/// Used in SCMDeformableTerrain.
+/// Parameters for soil-contactable interaction.
+class CH_VEHICLE_API SCMContactableData {
+  public:
+    SCMContactableData(double area_ratio,     ///< area fraction with overriden parameters (in [0,1])
+                       double Mohr_cohesion,  ///< cohesion for shear failure [Pa]
+                       double Mohr_friction,  ///< friction angle for shear failure [degree]
+                       double Janosi_shear    ///< shear parameter in Janosi-Hanamoto formula [m]
+    );
+
+  private:
+    double area_ratio;     ///< fraction of contactable surface where soil-soil parameters are overriden
+    double Mohr_cohesion;  ///< cohesion for shear failure [Pa]
+    double Mohr_mu;        ///< coefficient of friction for shear failure [degree]
+    double Janosi_shear;   ///< shear parameter in Janosi-Hanamoto formula [m]
+
+    friend class SCMDeformableSoil;
+};
+
+/// Underlying implementation of the Soil Contact Model.
 class CH_VEHICLE_API SCMDeformableSoil : public ChLoadContainer {
   public:
     SCMDeformableSoil(ChSystem* system, bool visualization_mesh);
@@ -306,39 +323,39 @@ class CH_VEHICLE_API SCMDeformableSoil : public ChLoadContainer {
 
     // Information at contacted node
     struct NodeRecord {
-        double p_level_initial;      // initial node level (relative to SCM frame)
-        double p_level;              // current node level (relative to SCM frame)
-        double p_hit_level;          // ray hit level (relative to SCM frame)
-        ChVector<> p_normal;         // normal of undeformed terrain (in SCM frame)
-        double p_sinkage;            // along local normal direction
-        double p_sinkage_plastic;    // along local normal direction
-        double p_sinkage_elastic;    // along local normal direction
-        double p_sigma;              // along local normal direction
-        double p_sigma_yield;        // along local normal direction
-        double p_kshear;             // along local tangent direction
-        double p_tau;                // along local tangent direction
-        bool p_erosion;              // for bulldozing
-        double p_massremainder;      // for bulldozing
-        double p_step_plastic_flow;  // for bulldozing
+        double level_initial;      // initial node level (relative to SCM frame)
+        double level;              // current node level (relative to SCM frame)
+        double hit_level;          // ray hit level (relative to SCM frame)
+        ChVector<> normal;         // normal of undeformed terrain (in SCM frame)
+        double sinkage;            // along local normal direction
+        double sinkage_plastic;    // along local normal direction
+        double sinkage_elastic;    // along local normal direction
+        double sigma;              // along local normal direction
+        double sigma_yield;        // along local normal direction
+        double kshear;             // along local tangent direction
+        double tau;                // along local tangent direction
+        bool erosion;              // for bulldozing
+        double massremainder;      // for bulldozing
+        double step_plastic_flow;  // for bulldozing
 
         NodeRecord() : NodeRecord(0, 0, ChVector<>(0,0,1)) {}
         ~NodeRecord() {}
 
         NodeRecord(double init_level, double level, const ChVector<>& n)
-            : p_sigma(0),
-              p_sinkage_elastic(0),
-              p_sinkage_plastic(0),
-              p_step_plastic_flow(0),
-              p_erosion(false),
-              p_level(level),
-              p_level_initial(init_level),
-              p_hit_level(1e9),
-              p_sinkage(init_level - level),
-              p_kshear(0),
-              p_sigma_yield(0),
-              p_tau(0),
-              p_massremainder(0),
-              p_normal(n) {}
+            : level_initial(init_level),
+              level(level),
+              hit_level(1e9),
+              normal(n),
+              sinkage(init_level - level),
+              sinkage_plastic(0),
+              sinkage_elastic(0),
+              sigma(0),
+              sigma_yield(0),
+              kshear(0),
+              tau(0),
+              erosion(false),
+              massremainder(0),
+              step_plastic_flow(0) {}
     };
 
     // Hash function for a pair of integer grid coordinates
@@ -463,14 +480,14 @@ class CH_VEHICLE_API SCMDeformableSoil : public ChLoadContainer {
     std::shared_ptr<ChColorAsset> m_color;                 // mesh edge default color
 
     // SCM parameters
-    double m_Bekker_Kphi;
-    double m_Bekker_Kc;
-    double m_Bekker_n;
-    double m_Mohr_cohesion;
-    double m_Mohr_friction;
-    double m_Janosi_shear;
-    double m_elastic_K;
-    double m_damping_R;
+    double m_Bekker_Kphi;    ///< frictional modulus in Bekker model
+    double m_Bekker_Kc;      ///< cohesive modulus in Bekker model
+    double m_Bekker_n;       ///< exponent of sinkage in Bekker model (usually 0.6...1.8)
+    double m_Mohr_cohesion;  ///< cohesion for shear failure [Pa]
+    double m_Mohr_mu;        ///< coefficient of friction for shear failure [degree]
+    double m_Janosi_shear;   ///< shear parameter in Janosi-Hanamoto formula [m]
+    double m_elastic_K;      ///< elastic stiffness K per unit area, [Pa/m] (must be larger than Kphi)
+    double m_damping_R;      ///< vertical damping R per unit area [Pa.s/m] (proportional to vertical speed)
 
     // Callback object for position-dependent soil properties
     std::shared_ptr<SCMDeformableTerrain::SoilParametersCallback> m_soil_fun;
@@ -481,7 +498,7 @@ class CH_VEHICLE_API SCMDeformableSoil : public ChLoadContainer {
     // Bulldozing effects
     bool m_bulldozing;
     double m_flow_factor;
-    double m_erosion_angle;
+    double m_erosion_slope;
     int m_erosion_iterations;
     int m_erosion_propagations;
 

@@ -198,7 +198,6 @@ void ChIrrNodeProxyToAsset::UpdateTriangleMeshFixedConnectivity(std::shared_ptr<
     std::vector<ChVector<>>& vertices = mesh->getCoordsVertices();
     std::vector<ChVector<>>& normals = mesh->getCoordsNormals();
     std::vector<ChVector<int>>& idx_vertices = mesh->getIndicesVertexes();
-    std::vector<ChVector<int>>& idx_normals = mesh->getIndicesNormals();
     std::vector<ChVector<>>& uv_coords = mesh->getCoordsUV();
     std::vector<ChVector<float>>& cols = mesh->getCoordsColors();
 

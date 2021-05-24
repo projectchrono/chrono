@@ -128,7 +128,7 @@ void ChFunction_Recorder::ArchiveOUT(ChArchiveOut& marchive) {
 
 void ChFunction_Recorder::ArchiveIN(ChArchiveIn& marchive) {
     // version number
-    int version = marchive.VersionRead<ChFunction_Recorder>();
+    /*int version =*/ marchive.VersionRead<ChFunction_Recorder>();
     // deserialize parent class
     ChFunction::ArchiveIN(marchive);
     // stream in all member data: load vector of points and copy to list
