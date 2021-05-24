@@ -7,7 +7,7 @@ set(TESTS
 
 if (${THRUST_FOUND})
    set(TESTS ${TESTS}
-       utest_COLL_narrow_r
+       utest_COLL_narrow_prims
        utest_COLL_narrow_mpr
    )
 endif()

@@ -12,7 +12,7 @@
 // Authors: Radu Serban
 // =============================================================================
 //
-// Chrono::Multicore unit test for narrow phase type R collision detection
+// Chrono unit test for narrow phase type PRIMS collision detection
 // =============================================================================
 
 #include "chrono/collision/chrono/ChNarrowphasePRIMS.h"
@@ -38,7 +38,7 @@ const float precision = 1e-6f;
 // Tests for various utility functions
 // =============================================================================
 
-TEST(ChNarrowphaseR, snap_to_box) {
+TEST(ChNarrowphasePRIMS, snap_to_box) {
     real3 hdims(1.0, 2.0, 3.0);
 
     {
@@ -74,7 +74,7 @@ TEST(ChNarrowphaseR, snap_to_box) {
     }
 }
 
-TEST(ChNarrowphaseR, snap_to_cylinder) {
+TEST(ChNarrowphasePRIMS, snap_to_cylinder) {
     real rad = 2;
     real hlen = 1.5;
 
@@ -111,7 +111,7 @@ TEST(ChNarrowphaseR, snap_to_cylinder) {
     }
 }
 
-TEST(ChNarrowphaseR, snap_to_box_face) {
+TEST(ChNarrowphasePRIMS, snap_to_box_face) {
     {
         {
             // z dir / in range
@@ -135,7 +135,7 @@ TEST(ChNarrowphaseR, snap_to_box_face) {
     }
 }
 
-TEST(ChNarrowphaseR, get_face_corners) {
+TEST(ChNarrowphasePRIMS, get_face_corners) {
     {
         {
             // dir x / inside
@@ -181,7 +181,7 @@ TEST(ChNarrowphaseR, get_face_corners) {
     }
 }
 
-TEST(ChNarrowphaseR, get_edge_corners) {
+TEST(ChNarrowphasePRIMS, get_edge_corners) {
     {
         {
             // dir x
@@ -221,7 +221,7 @@ TEST(ChNarrowphaseR, get_edge_corners) {
     }
 }
 
-TEST(ChNarrowphaseR, point_vs_face) {
+TEST(ChNarrowphasePRIMS, point_vs_face) {
     real3 result;
     real3 normal;
     real dist;
@@ -290,7 +290,7 @@ TEST(ChNarrowphaseR, point_vs_face) {
     }
 }
 
-TEST(ChNarrowphaseR, segment_vs_edge) {
+TEST(ChNarrowphasePRIMS, segment_vs_edge) {
     real3 loc1;
     real3 loc2;
     {

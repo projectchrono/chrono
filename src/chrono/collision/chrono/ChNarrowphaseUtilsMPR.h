@@ -30,9 +30,6 @@ namespace collision {
 
 /// Support point for a sphere (for GJK and MPR).
 inline real3 GetSupportPoint_Sphere(const real& radius, const real3& n) {
-    // real3 b = real3(B.x);
-    // return b * b * n / length(b * n);
-    // the ellipsoid support function provides a cleaner solution for some reason
     return radius * n;
 }
 
@@ -67,14 +64,7 @@ inline real3 GetSupportPoint_Box(const real3& B, const real3& n) {
 inline real3 GetSupportPoint_Ellipsoid(const real3& B, const real3& n) {
     real3 normal = n;
     real3 result = B * B * normal / Length(B * normal);
-    // cout << result.x << " " << result.y << " " << result.z<<endl;
     return result;
-
-    //
-    //	real3 norm=normalize(n);
-    //	real3 dim=(norm*norm)/(B*B);
-    //	real k = Sqrt(1/(dim.x+dim.y+dim.z));
-    //	return k*norm;
 }
 
 /// Support point for a cylinder (for GJK and MPR).
