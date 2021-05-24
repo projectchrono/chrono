@@ -29,7 +29,7 @@ using namespace chrono::gpu;
 TEST(gpuBallistic, check) {
     float radius = 0.5f;
     float density = 7800.0f;
-    ChSystemGpuMesh gpu_sys(radius, density, make_float3(20.0f, 20.0f, 10.0f));
+    ChSystemGpuMesh gpu_sys(radius, density, ChVector<float>(20.0f, 20.0f, 10.0f));
 
     // Load in the mesh
     gpu_sys.AddMesh(GetChronoDataPath() + "testing/gpu/one_facet.obj", ChVector<float>(0),
@@ -41,7 +41,7 @@ TEST(gpuBallistic, check) {
     float v0 = 1e4f;
     std::vector<ChVector<float>> body_point = {ChVector<float>(1.0f, -1.0f, z0)};
     std::vector<ChVector<float>> velocity = {ChVector<float>(0.0f, 0.0f, -v0)};
-    gpu_sys.SetParticlePositions(body_point, velocity);
+    gpu_sys.SetParticles(body_point, velocity);
 
     gpu_sys.SetPsiFactors(32, 16);
 

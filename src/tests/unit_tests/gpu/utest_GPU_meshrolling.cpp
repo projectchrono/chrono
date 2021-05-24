@@ -40,7 +40,7 @@ TEST(gpuMeshRolling, check) {
     float mu_s = 0.2f;
     float mu_r = 0.0008f;
 
-    ChSystemGpuMesh gpu_sys(radius, density, make_float3(20.f, 20.f, 10.f));
+    ChSystemGpuMesh gpu_sys(radius, density, ChVector<float>(20.f, 20.f, 10.f));
 
     // Load in the mesh
     float mass = 100.f;
@@ -55,7 +55,7 @@ TEST(gpuMeshRolling, check) {
 
     std::vector<ChVector<float>> body_point = {ChVector<float>(1.f, -1.f, 0.5f)};
     std::vector<ChVector<float>> velocity = {ChVector<float>(1.f, 0.f, 0.f)};
-    gpu_sys.SetParticlePositions(body_point, velocity);
+    gpu_sys.SetParticles(body_point, velocity);
 
     gpu_sys.SetPsiFactors(32, 16);
 

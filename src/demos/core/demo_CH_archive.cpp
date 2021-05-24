@@ -738,7 +738,7 @@ int main(int argc, char* argv[]) {
 
 		
 
-    } catch (ChException myex) {
+    } catch (const ChException &myex) {
         GetLog() << "ERROR: " << myex.what() << "\n\n";
     }
 

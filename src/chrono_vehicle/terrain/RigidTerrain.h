@@ -117,7 +117,6 @@ class CH_VEHICLE_API RigidTerrain : public ChTerrain {
         std::shared_ptr<ChMaterialSurface> material,  ///< [in] contact material
         const ChCoordsys<>& position,                 ///< [in] patch location and orientation
         const std::string& mesh_file,                 ///< [in] filename of the input mesh (OBJ)
-        const std::string& mesh_name,                 ///< [in] name of the mesh asset
         double sweep_sphere_radius = 0,               ///< [in] radius of sweep sphere
         bool visualization = true                     ///< [in] enable/disable construction of visualization assets
     );
@@ -128,7 +127,6 @@ class CH_VEHICLE_API RigidTerrain : public ChTerrain {
         std::shared_ptr<ChMaterialSurface> material,  ///< [in] contact material
         const ChCoordsys<>& position,                 ///< [in] patch location and orientation
         const std::string& heightmap_file,            ///< [in] filename for the height map (BMP)
-        const std::string& mesh_name,                 ///< [in] name of the mesh asset
         double length,                                ///< [in] patch length
         double width,                                 ///< [in] patch width
         double hMin,                                  ///< [in] minimum height (black level)

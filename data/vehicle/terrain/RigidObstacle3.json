@@ -39,8 +39,7 @@
       "Orientation": [ 1, 0, 0, 0 ],
 
       "Geometry": {
-        "Mesh Filename": "terrain/meshes/halfround_150mm.obj",
-        "Mesh Name": "terrain_test_POV_geom"
+        "Mesh Filename": "terrain/meshes/halfround_150mm.obj"
       },
 
       "Contact Material": {

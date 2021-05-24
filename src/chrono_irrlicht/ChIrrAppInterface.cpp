@@ -674,7 +674,7 @@ void ChIrrAppInterface::DoStep() {
         system->DoStepDynamics(timestep);
         if (try_realtime)
             m_realtime_timer.Spin(timestep);
-    } catch (ChException my_exception) {
+    } catch (const ChException &my_exception) {
         GetLog() << my_exception.what() << "\n";
     }
 }
@@ -919,7 +919,7 @@ void ChIrrAppInterface::DumpSystemMatrices() {
         // Save M mass matrix, K stiffness matrix, R damping matrix, Cq jacobians:
         GetSystem()->DumpSystemMatrices(true, true, true, true, "dump_");
 
-    } catch (ChException myexc) {
+    } catch (const ChException &myexc) {
         GetLog() << myexc.what();
     }
 }
