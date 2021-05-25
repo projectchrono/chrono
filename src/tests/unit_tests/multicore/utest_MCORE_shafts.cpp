@@ -418,4 +418,4 @@ TEST_P(ChShaftTest, shaft_shaft_shaft) {
     ////          << "     on C: " << planetaryBAC->GetTorqueReactionOn3() << "\n\n\n";
 }
 
-INSTANTIATE_TEST_CASE_P(ChronoMulticore, ChShaftTest, ::testing::Values(ChContactMethod::NSC, ChContactMethod::SMC));
+INSTANTIATE_TEST_SUITE_P(ChronoMulticore, ChShaftTest, ::testing::Values(ChContactMethod::NSC, ChContactMethod::SMC));

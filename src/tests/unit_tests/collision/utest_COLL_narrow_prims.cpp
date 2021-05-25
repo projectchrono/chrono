@@ -1536,4 +1536,4 @@ TEST_P(Collision, roundedcyl_sphere) {
     delete shapeC;
 }
 
-INSTANTIATE_TEST_CASE_P(R, Collision, ::testing::Bool());
+INSTANTIATE_TEST_SUITE_P(R, Collision, ::testing::Bool());

@@ -145,4 +145,4 @@ TEST_P(gpuPyramid, check) {
     }
 }
 
-INSTANTIATE_TEST_CASE_P(check, gpuPyramid, ::testing::Bool());
+INSTANTIATE_TEST_SUITE_P(check, gpuPyramid, ::testing::Bool());

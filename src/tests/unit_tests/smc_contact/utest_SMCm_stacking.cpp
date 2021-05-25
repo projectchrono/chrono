@@ -109,9 +109,9 @@ TEST_P(StackingTest, stacking) {
     }
 }
 
-INSTANTIATE_TEST_CASE_P(ChronoMulticore,
-                        StackingTest,
-                        ::testing::Values(ChSystemSMC::ContactForceModel::Hooke,
-                                          ChSystemSMC::ContactForceModel::Hertz,
-                                          ChSystemSMC::ContactForceModel::PlainCoulomb,
-                                          ChSystemSMC::ContactForceModel::Flores));
+INSTANTIATE_TEST_SUITE_P(ChronoMulticore,
+                         StackingTest,
+                         ::testing::Values(ChSystemSMC::ContactForceModel::Hooke,
+                                           ChSystemSMC::ContactForceModel::Hertz,
+                                           ChSystemSMC::ContactForceModel::PlainCoulomb,
+                                           ChSystemSMC::ContactForceModel::Flores));

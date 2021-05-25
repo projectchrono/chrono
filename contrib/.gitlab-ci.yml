@@ -236,6 +236,7 @@ linux:ubuntu1804:build:
         -DCUDA_HOST_COMPILER=/usr/bin/gcc
         -DPYTHON_EXECUTABLE=/usr/bin/python3
         -DEIGEN3_INCLUDE_DIR=/usr/local/include/eigen3
+        -DCMAKE_VERBOSE_MAKEFILE=TRUE
     - make -j 8
   artifacts:
     expire_in: 60m
@@ -429,6 +430,7 @@ macos:bigsur:build:
   - cmake ../ --preset=macosci
     -DCMAKE_C_COMPILER=$(which clang)
     -DCMAKE_CXX_COMPILER=$(which clang++)
+    -DCMAKE_VERBOSE_MAKEFILE=TRUE
   - make -j 3
   artifacts:
     expire_in: 60m
