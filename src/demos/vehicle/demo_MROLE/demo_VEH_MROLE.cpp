@@ -45,7 +45,7 @@ using namespace chrono::vehicle::mrole;
 // =============================================================================
 
 // Initial vehicle location and orientation
-ChVector<> initLoc(0, 0, 1.6);
+ChVector<> initLoc(0, 0, 1.0);
 ChQuaternion<> initRot(1, 0, 0, 0);
 // ChQuaternion<> initRot(0.866025, 0, 0, 0.5);
 // ChQuaternion<> initRot(0.7071068, 0, 0, 0.7071068);
@@ -71,8 +71,11 @@ PowertrainModelType powertrain_model = PowertrainModelType::SIMPLE_CVT;
 // Drive type (FWD, RWD, or AWD)
 DrivelineTypeWV drive_type = DrivelineTypeWV::SIMPLE_XWD;
 
-// Type of tire model (TMEASY)
+// Type of tire model (TMEASY, RIGID)
 TireModelType tire_model = TireModelType::TMEASY;
+
+//
+BrakeType brake_type = BrakeType::SHAFTS;
 
 // Rigid terrain
 RigidTerrain::PatchType terrain_model = RigidTerrain::PatchType::BOX;
@@ -125,6 +128,7 @@ int main(int argc, char* argv[]) {
     my_mrole.SetInitPosition(ChCoordsys<>(initLoc, initRot));
     my_mrole.SetPowertrainType(powertrain_model);
     my_mrole.SetDriveType(drive_type);
+    my_mrole.SetBrakeType(brake_type);
     my_mrole.SetTireType(tire_model);
     my_mrole.SetTireStepSize(tire_step_size);
     my_mrole.Initialize();
@@ -326,5 +330,7 @@ int main(int argc, char* argv[]) {
         driver_csv.write_to_file(driver_file);
     }
 
+    std::cout << "Vehicle Mass       = " << my_mrole.GetVehicle().GetVehicleMass() << " kg" << std::endl;
+    std::cout << "Vehicle CoG height = " << my_mrole.GetVehicle().GetVehicleCOMPos().z() << " m" << std::endl;
     return 0;
 }

@@ -26,7 +26,7 @@ namespace mrole {
 // Static variables
 // -----------------------------------------------------------------------------
 
-const double mrole_BrakeShafts::m_maxtorque = 4000;
+const double mrole_BrakeShafts::m_maxtorque = 10000;
 const double mrole_BrakeShafts::m_shaft_inertia = 0.4;
 
 // -----------------------------------------------------------------------------

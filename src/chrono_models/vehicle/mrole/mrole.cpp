@@ -121,25 +121,33 @@ void mrole::Initialize() {
 
     // Create the tires and set parameters depending on type.
     switch (m_tireType) {
-        /*
         case TireModelType::RIGID:
         case TireModelType::RIGID_MESH: {
             bool use_mesh = (m_tireType == TireModelType::RIGID_MESH);
 
-            auto tire_FL = chrono_types::make_shared<mrole_RigidTire>("FL", use_mesh);
-            auto tire_FR = chrono_types::make_shared<mrole_RigidTire>("FR", use_mesh);
-            auto tire_RL = chrono_types::make_shared<mrole_RigidTire>("RL", use_mesh);
-            auto tire_RR = chrono_types::make_shared<mrole_RigidTire>("RR", use_mesh);
+            auto tire_FL1 = chrono_types::make_shared<mrole_RigidTire>("FL1", use_mesh);
+            auto tire_FR1 = chrono_types::make_shared<mrole_RigidTire>("FR1", use_mesh);
+            auto tire_FL2 = chrono_types::make_shared<mrole_RigidTire>("FL2", use_mesh);
+            auto tire_FR2 = chrono_types::make_shared<mrole_RigidTire>("FR2", use_mesh);
+            auto tire_RL1 = chrono_types::make_shared<mrole_RigidTire>("RL1", use_mesh);
+            auto tire_RR1 = chrono_types::make_shared<mrole_RigidTire>("RR1", use_mesh);
+            auto tire_RL2 = chrono_types::make_shared<mrole_RigidTire>("RL2", use_mesh);
+            auto tire_RR2 = chrono_types::make_shared<mrole_RigidTire>("RR2", use_mesh);
 
-            m_vehicle->InitializeTire(tire_FL, m_vehicle->GetAxle(0)->m_wheels[LEFT], VisualizationType::NONE);
-            m_vehicle->InitializeTire(tire_FR, m_vehicle->GetAxle(0)->m_wheels[RIGHT], VisualizationType::NONE);
-            m_vehicle->InitializeTire(tire_RL, m_vehicle->GetAxle(1)->m_wheels[LEFT], VisualizationType::NONE);
-            m_vehicle->InitializeTire(tire_RR, m_vehicle->GetAxle(1)->m_wheels[RIGHT], VisualizationType::NONE);
+            m_vehicle->InitializeTire(tire_FL1, m_vehicle->GetAxle(0)->m_wheels[LEFT], VisualizationType::NONE);
+            m_vehicle->InitializeTire(tire_FR1, m_vehicle->GetAxle(0)->m_wheels[RIGHT], VisualizationType::NONE);
+            m_vehicle->InitializeTire(tire_FL2, m_vehicle->GetAxle(1)->m_wheels[LEFT], VisualizationType::NONE);
+            m_vehicle->InitializeTire(tire_FR2, m_vehicle->GetAxle(1)->m_wheels[RIGHT], VisualizationType::NONE);
+            m_vehicle->InitializeTire(tire_RL1, m_vehicle->GetAxle(2)->m_wheels[LEFT], VisualizationType::NONE);
+            m_vehicle->InitializeTire(tire_RR1, m_vehicle->GetAxle(2)->m_wheels[RIGHT], VisualizationType::NONE);
+            m_vehicle->InitializeTire(tire_RL2, m_vehicle->GetAxle(3)->m_wheels[LEFT], VisualizationType::NONE);
+            m_vehicle->InitializeTire(tire_RR2, m_vehicle->GetAxle(3)->m_wheels[RIGHT], VisualizationType::NONE);
 
-            m_tire_mass = tire_FL->ReportMass();
+            m_tire_mass = tire_FL1->ReportMass();
 
             break;
         }
+        /*
         case TireModelType::LUGRE: {
             auto tire_FL = chrono_types::make_shared<mrole_LugreTire>("FL");
             auto tire_FR = chrono_types::make_shared<mrole_LugreTire>("FR");
