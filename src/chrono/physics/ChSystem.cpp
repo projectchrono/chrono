@@ -309,9 +309,12 @@ void ChSystem::SetCollisionSystemType(ChCollisionSystemType type) {
         case ChCollisionSystemType::BULLET:
             collision_system = chrono_types::make_shared<ChCollisionSystemBullet>();
             break;
-        case ChCollisionSystemType::CHRONO:
-            collision_system = chrono_types::make_shared<ChCollisionSystemChrono>();
+        case ChCollisionSystemType::CHRONO: {
+            auto cd_chrono = chrono_types::make_shared<ChCollisionSystemChrono>();
+            cd_chrono->SetEnvelope(ChCollisionModel::GetDefaultSuggestedEnvelope());
+            collision_system = cd_chrono;
             break;
+        }
         default:
             GetLog() << "Collision system type not supported. Use SetCollisionSystem instead.\n";
             break;
@@ -326,6 +329,10 @@ void ChSystem::SetCollisionSystem(std::shared_ptr<ChCollisionSystem> newcollsyst
     assert(newcollsystem);
     collision_system = newcollsystem;
     collision_system_type = newcollsystem->GetType();
+    if (collision_system_type == ChCollisionSystemType::CHRONO) {
+        auto cd_chrono = std::static_pointer_cast<ChCollisionSystemChrono>(collision_system);
+        cd_chrono->SetEnvelope(ChCollisionModel::GetDefaultSuggestedEnvelope());
+    }
     collision_system->SetNumThreads(nthreads_collision);
     collision_system->SetSystem(this);
 }

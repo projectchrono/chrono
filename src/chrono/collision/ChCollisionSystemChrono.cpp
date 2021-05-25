@@ -34,6 +34,10 @@ ChCollisionSystemChrono::ChCollisionSystemChrono() : use_aabb_active(false) {
 
 ChCollisionSystemChrono::~ChCollisionSystemChrono() {}
 
+void ChCollisionSystemChrono::SetEnvelope(double envelope) {
+    data_manager->collision_envelope = real(envelope);
+}
+
 void ChCollisionSystemChrono::SetBroadphaseNumBins(ChVector<int> num_bins, bool fixed) {
     broadphase.bins_per_axis = vec3(num_bins.x(), num_bins.y(), num_bins.z());
     broadphase.fixed_bins = fixed;
@@ -47,10 +51,6 @@ void ChCollisionSystemChrono::SetNarrowphaseAlgorithm(ChNarrowphase::Algorithm a
     narrowphase.algorithm = algorithm;
 }
 
-void ChCollisionSystemChrono::SetNarrowphaseEnvelope(real envelope) {
-    narrowphase.envelope = envelope;
-}
-
 void ChCollisionSystemChrono::EnableActiveBoundingBox(const ChVector<>& aabbmin, const ChVector<>& aabbmax) {
     aabb_min = FromChVector(aabbmin);
     aabb_max = FromChVector(aabbmax);
@@ -58,7 +58,7 @@ void ChCollisionSystemChrono::EnableActiveBoundingBox(const ChVector<>& aabbmin,
     use_aabb_active = true;
 }
 
-bool ChCollisionSystemChrono::GetAABB(ChVector<>& aabbmin, ChVector<>& aabbmax) const {
+bool ChCollisionSystemChrono::GetActiveBoundingBox(ChVector<>& aabbmin, ChVector<>& aabbmax) const {
     aabbmin = ToChVector(aabb_min);
     aabbmax = ToChVector(aabb_max);
 
@@ -313,7 +313,7 @@ void ChCollisionSystemChrono::Run() {
     }
 
     m_timer_broad.start();
-    aabb_generator.GenerateAABB(narrowphase.envelope);
+    aabb_generator.GenerateAABB();
 
     // Compute the bounding box of things
     broadphase.DetermineBoundingBox();
@@ -358,9 +358,9 @@ void ChCollisionSystemChrono::ReportContacts(ChContactContainer* container) {
     // callback)
     container->BeginAddContact();
 
-    auto& bids = data_manager->host_data.bids_rigid_rigid;  // global IDs of bodies in contact
-    auto& sids = data_manager->host_data.contact_shapeIDs;  // global IDs of shapes in contact
-    auto& sindex = data_manager->shape_data.local_rigid;    // collision model indexes of shapes in contact
+    const auto& bids = data_manager->host_data.bids_rigid_rigid;  // global IDs of bodies in contact
+    const auto& sids = data_manager->host_data.contact_shapeIDs;  // global IDs of shapes in contact
+    const auto& sindex = data_manager->shape_data.local_rigid;    // collision model indexes of shapes in contact
 
     // Loop over all current contacts, create the cinfo structure and add contact to the container.
     // Note that inclusions in the contact container cannot be done in parallel.
@@ -409,7 +409,7 @@ double ChCollisionSystemChrono::GetTimerCollisionNarrow() const {
 }
 
 void ChCollisionSystemChrono::GetOverlappingAABB(std::vector<char>& active_id, real3 Amin, real3 Amax) {
-    aabb_generator.GenerateAABB(narrowphase.envelope);
+    aabb_generator.GenerateAABB();
 #pragma omp parallel for
     for (int i = 0; i < data_manager->shape_data.typ_rigid.size(); i++) {
         real3 Bmin = data_manager->host_data.aabb_min[i];

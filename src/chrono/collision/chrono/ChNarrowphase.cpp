@@ -37,8 +37,7 @@
 namespace chrono {
 namespace collision {
 
-ChNarrowphase::ChNarrowphase()
-    : algorithm(Algorithm::HYBRID), envelope(ChCollisionModel::GetDefaultSuggestedEnvelope()), data_manager(nullptr) {}
+ChNarrowphase::ChNarrowphase() : algorithm(Algorithm::HYBRID), data_manager(nullptr) {}
 
 void ChNarrowphase::ClearContacts() {
     // Return now if no potential collisions.
@@ -72,7 +71,6 @@ void ChNarrowphase::ProcessRigids(const vec3& bins_per_axis) {
 int ChNarrowphase::PreprocessCount() {
     // Set the number of potential contact points for each collision pair
     contact_index.resize(num_potential_rigid_contacts + 1);
-    contact_index[num_potential_rigid_contacts] = 0;
 
     if (algorithm == Algorithm::MPR) {
         // MPR always reports at most one contact per pair.
@@ -110,6 +108,8 @@ int ChNarrowphase::PreprocessCount() {
             }
         }
     }
+
+    contact_index[num_potential_rigid_contacts] = 0;
 
     // Calculate total number of potential contacts
     int num_potentialContacts = thrust::reduce(THRUST_PAR contact_index.begin(), contact_index.end());
@@ -207,6 +207,7 @@ void ChNarrowphase::Dispatch_Finalize(uint icoll, uint ID_A, uint ID_B, int nC) 
 }
 
 void ChNarrowphase::DispatchMPR() {
+    const real envelope = data_manager->collision_envelope;
     std::vector<real3>& norm = data_manager->host_data.norm_rigid_rigid;
     std::vector<real3>& ptA = data_manager->host_data.cpta_rigid_rigid;
     std::vector<real3>& ptB = data_manager->host_data.cptb_rigid_rigid;
@@ -234,6 +235,7 @@ void ChNarrowphase::DispatchMPR() {
 }
 
 void ChNarrowphase::DispatchPRIMS() {
+    const real envelope = data_manager->collision_envelope;
     real3* norm = data_manager->host_data.norm_rigid_rigid.data();
     real3* ptA = data_manager->host_data.cpta_rigid_rigid.data();
     real3* ptB = data_manager->host_data.cptb_rigid_rigid.data();
@@ -259,6 +261,7 @@ void ChNarrowphase::DispatchPRIMS() {
 }
 
 void ChNarrowphase::DispatchHybridMPR() {
+    const real envelope = data_manager->collision_envelope;
     real3* norm = data_manager->host_data.norm_rigid_rigid.data();
     real3* ptA = data_manager->host_data.cpta_rigid_rigid.data();
     real3* ptB = data_manager->host_data.cptb_rigid_rigid.data();
@@ -498,6 +501,8 @@ void ChNarrowphase::DispatchRigidFluid(const vec3& bins_per_axis) {
     const int num_spheres = data_manager->state_data.num_fluid_bodies;
     const std::vector<real3>& pos_spheres = *data_manager->state_data.sorted_pos_3dof;
     const short2& family = data_manager->node_data.family;
+    const real envelope = data_manager->collision_envelope;
+
     std::vector<real3>& norm_rigid_sphere = data_manager->host_data.norm_rigid_fluid;
     std::vector<real3>& cpta_rigid_sphere = data_manager->host_data.cpta_rigid_fluid;
     std::vector<real>& dpth_rigid_sphere = data_manager->host_data.dpth_rigid_fluid;

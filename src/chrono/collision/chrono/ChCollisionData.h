@@ -174,6 +174,7 @@ class ChApi ChCollisionData {
   public:
     ChCollisionData(bool owns_data)
         : owns_state_data(owns_data),
+          collision_envelope(0),
           num_rigid_contacts(0),
           num_rigid_fluid_contacts(0),
           num_fluid_contacts(0),
@@ -216,6 +217,8 @@ class ChApi ChCollisionData {
     node_container node_data;    ///< 3DOF fluid nodes data
 
     collision_measures measures;  ///< Container for various statistics for collision detection
+
+    real collision_envelope;  ///< Collision envelope for rigid shapes
 
     // Indexing variables
     uint num_rigid_shapes;          ///< The number of collision models in a system

@@ -109,8 +109,9 @@ static void ComputeAABBConvex(const real3* convex_points,
 
 ChAABBGenerator::ChAABBGenerator() : data_manager(nullptr) {}
 
-void ChAABBGenerator::GenerateAABB(real envelope) {
+void ChAABBGenerator::GenerateAABB() {
     if (data_manager->num_rigid_shapes > 0) {
+        const real envelope = data_manager->collision_envelope;
         const std::vector<shape_type>& typ_rigid = data_manager->shape_data.typ_rigid;
         const std::vector<int>& start_rigid = data_manager->shape_data.start_rigid;
         const std::vector<uint>& id_rigid = data_manager->shape_data.id_rigid;

@@ -46,6 +46,14 @@ class ChApi ChCollisionSystemChrono : public ChCollisionSystem {
     /// Return the type of this collision system.
     virtual ChCollisionSystemType GetType() const override { return ChCollisionSystemType::CHRONO; }
 
+    /// Set collision envelope for rigid shapes (default: 0).
+    /// For stability of NSC contact, the envelope should be set to 5-10% of the smallest collision shape size (too
+    /// large a value will slow down the narrowphase collision detection). The envelope is the amount by which each
+    /// collision shape is inflated prior to performing the collision detection, in order to create contact constraints
+    /// before shapes actually comee in contact.
+    /// This collision detection system uses a global envelope, used for all rigid shapes in the system.
+    void SetEnvelope(double envelope);
+
     /// Set the number of bins for the broadphase collision grid (default: 10x10x10) and specify whether this number is kept fixed (default: true).
     void SetBroadphaseNumBins(ChVector<int> num_bins, bool fixed = true);
 
@@ -56,13 +64,6 @@ class ChApi ChCollisionSystemChrono : public ChCollisionSystem {
     /// Set the narrowphase algorithm (default: ChNarrowphase::Algorithm::HYBRID).
     void SetNarrowphaseAlgorithm(ChNarrowphase::Algorithm algorithm);
 
-    /// Set narrowphase collision envelope (default: 0).
-    /// For stability of NSC contact, the envelope should be set to 5-10% of the smallest collision shape size (too
-    /// large a value will slow down the narrowphase collision detection). The envelope is the amount by which each
-    /// collision shape is inflated prior to performing the collision detection, in order to create contact constraints
-    /// before shapes actually comee in contact.
-    void SetNarrowphaseEnvelope(real envelope);
-
     /// Enable monitoring of shapes outside active bounding box (default: false).
     /// If enabled, objects whose collision shapes exit the active bounding box are deactivated (frozen).
     /// The size of the bounding box is specified by its min and max extents.
@@ -70,7 +71,7 @@ class ChApi ChCollisionSystemChrono : public ChCollisionSystem {
 
     /// Get the dimensions of the "active" box.
     /// The return value indicates whether or not the active box feature is enabled.
-    bool GetAABB(ChVector<>& aabbmin, ChVector<>& aabbmax) const;
+    bool GetActiveBoundingBox(ChVector<>& aabbmin, ChVector<>& aabbmax) const;
 
     /// Clear all data instanced by this algorithm if any (like persistent contact manifolds).
     virtual void Clear(void) override {}
