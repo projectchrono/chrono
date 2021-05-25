@@ -118,9 +118,9 @@ TEST_P(SpinningGravityTest, rolling) {
     ASSERT_LT(wvel, 1e-3);
 }
 
-INSTANTIATE_TEST_CASE_P(ChronoMulticore,
-                        SpinningGravityTest,
-                        ::testing::Values(ChSystemSMC::ContactForceModel::Hooke,
-                                          ChSystemSMC::ContactForceModel::Hertz,
-                                          ChSystemSMC::ContactForceModel::PlainCoulomb,
-                                          ChSystemSMC::ContactForceModel::Flores));
+INSTANTIATE_TEST_SUITE_P(ChronoMulticore,
+                         SpinningGravityTest,
+                         ::testing::Values(ChSystemSMC::ContactForceModel::Hooke,
+                                           ChSystemSMC::ContactForceModel::Hertz,
+                                           ChSystemSMC::ContactForceModel::PlainCoulomb,
+                                           ChSystemSMC::ContactForceModel::Flores));

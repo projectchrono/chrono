@@ -324,8 +324,8 @@ TEST_P(ChLinActuatorTest, simulate) {
     }
 }
 
-INSTANTIATE_TEST_CASE_P(ChronoMulticore,
-                        ChLinActuatorTest,
-                        ::testing::Combine(::testing::Values(ChContactMethod::NSC, ChContactMethod::SMC),
-                                           ::testing::Values(1.0, 0.5),
-                                           ::testing::Values(QUNIT, Q_from_AngY(CH_C_PI / 4))));
+INSTANTIATE_TEST_SUITE_P(ChronoMulticore,
+                         ChLinActuatorTest,
+                         ::testing::Combine(::testing::Values(ChContactMethod::NSC, ChContactMethod::SMC),
+                                            ::testing::Values(1.0, 0.5),
+                                            ::testing::Values(QUNIT, Q_from_AngY(CH_C_PI / 4))));
