@@ -31,6 +31,7 @@
 #include "chrono_multicore/physics/ChSystemMulticore.h"
 
 #include "chrono/ChConfig.h"
+#include "chrono/physics/ChBodyEasy.h"
 #include "chrono/physics/ChLinkMotorRotationAngle.h"
 #include "chrono/utils/ChUtilsCreators.h"
 #include "chrono/utils/ChUtilsInputOutput.h"
@@ -59,7 +60,7 @@ std::shared_ptr<ChBody> AddContainer(ChSystemMulticoreNSC* sys) {
     // Create the containing bin (2 x 2 x 1)
     auto bin = chrono_types::make_shared<ChBody>(chrono_types::make_shared<ChCollisionModelMulticore>());
     bin->SetIdentifier(binId);
-    bin->SetMass(1);
+    bin->SetMass(100);
     bin->SetPos(ChVector<>(0, 0, 0));
     bin->SetRot(ChQuaternion<>(1, 0, 0, 0));
     bin->SetCollide(true);
@@ -115,35 +116,36 @@ std::shared_ptr<ChBody> AddContainer(ChSystemMulticoreNSC* sys) {
 // Create the falling spherical objects in a uniform rectangular grid.
 // -----------------------------------------------------------------------------
 void AddFallingBalls(ChSystemMulticore* sys) {
-    // Common material
-    auto ballMat = chrono_types::make_shared<ChMaterialSurfaceNSC>();
-    ballMat->SetFriction(0.4f);
+    // Shared contact materials
+    auto ball_mat = chrono_types::make_shared<ChMaterialSurfaceNSC>();
+    ball_mat->SetFriction(0.4f);
+    auto cyl_mat = chrono_types::make_shared<ChMaterialSurfaceNSC>();
 
-    // Create the falling balls
-    int ballId = 0;
-    double mass = 1;
-    double radius = 0.1;
-    ChVector<> inertia = (2.0 / 5.0) * mass * radius * radius * ChVector<>(1, 1, 1);
-
+    // Create the falling objects
     for (int ix = -2; ix < 3; ix++) {
         for (int iy = -2; iy < 3; iy++) {
-            ChVector<> pos(0.4 * ix, 0.4 * iy, 1);
+            ChVector<> b_pos(0.4 * ix, 0.4 * iy, 1);
+            ChVector<> c_pos(0.4 * ix, 0.4 * iy, 1.4);
 
-            auto ball = chrono_types::make_shared<ChBody>(chrono_types::make_shared<ChCollisionModelMulticore>());
-
-            ball->SetIdentifier(ballId++);
-            ball->SetMass(mass);
-            ball->SetInertiaXX(inertia);
-            ball->SetPos(pos);
-            ball->SetRot(ChQuaternion<>(1, 0, 0, 0));
-            ball->SetBodyFixed(false);
-            ball->SetCollide(true);
-
-            ball->GetCollisionModel()->ClearModel();
-            utils::AddSphereGeometry(ball.get(), ballMat, radius);
-            ball->GetCollisionModel()->BuildModel();
-
+            auto ball = chrono_types::make_shared<ChBodyEasySphere>(
+                0.1,                                                    // radius
+                2000,                                                   // density
+                true, true,                                             // visualize and collide
+                ball_mat,                                               // contact material
+                chrono_types::make_shared<ChCollisionModelMulticore>()  // collision model
+            );
+            ball->SetPos(b_pos);
             sys->AddBody(ball);
+
+            auto cyl = chrono_types::make_shared<ChBodyEasyCylinder>(
+                0.1, 0.05,                                              // radius, height
+                2000,                                                   // density
+                true, true,                                             // visualize and collide
+                cyl_mat,                                                // contact material
+                chrono_types::make_shared<ChCollisionModelMulticore>()  // collision model
+            );
+            cyl->SetPos(c_pos);
+            sys->AddBody(cyl);
         }
     }
 }
