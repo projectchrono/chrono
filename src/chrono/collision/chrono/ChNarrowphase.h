@@ -22,6 +22,12 @@
 
 #include "chrono/collision/chrono/ChCollisionData.h"
 
+
+//// TODO: rename these!!!
+#define max_neighbors 64
+#define max_rigid_neighbors 32
+
+
 namespace chrono {
 namespace collision {
 

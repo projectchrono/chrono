@@ -21,13 +21,7 @@
 
 #include "chrono/physics/ChContactContainer.h"
 
-#include "chrono/collision/chrono/ChCollisionDefines.h"
-
-#include "chrono/multicore_math/real.h"
-#include "chrono/multicore_math/real2.h"
-#include "chrono/multicore_math/real3.h"
-#include "chrono/multicore_math/real4.h"
-#include "chrono/multicore_math/other_types.h"
+#include "chrono/multicore_math/ChMulticoreMath.h"
 
 namespace chrono {
 namespace collision {

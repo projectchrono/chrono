@@ -1,7 +1,7 @@
 // =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2021 projectchrono.org
+// Copyright (c) 2016 projectchrono.org
 // All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
@@ -12,15 +12,17 @@
 // Authors: Hammad Mazhar, Radu Serban
 // =============================================================================
 //
-// Description: lots of useful definitions for thrust, includes and enums
-//
+// Description: definition of some convenience functions for math operations
 // =============================================================================
 
-//// ********************
-////    Equivalent of Chrono::Multicore  ChMulticoreDefines
-//// ********************
-
 #pragma once
+
+#include "chrono/multicore_math/real.h"
+#include "chrono/multicore_math/real2.h"
+#include "chrono/multicore_math/real3.h"
+#include "chrono/multicore_math/real4.h"
+#include "chrono/multicore_math/other_types.h"
+#include "chrono/multicore_math/utility.h"
 
 #undef _GLIBCXX_ATOMIC_BUILTINS
 #undef _GLIBCXX_USE_INT128
@@ -135,6 +137,3 @@ OutputIterator Thrust_Expand(InputIterator1 first1,
 }
 
 }  // end namespace chrono
-
-#define max_neighbors 64
-#define max_rigid_neighbors 32

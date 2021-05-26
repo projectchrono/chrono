@@ -19,7 +19,6 @@
 
 #include "chrono/physics/ChSystem.h"
 #include "chrono/collision/ChCollisionSystemChrono.h"
-#include "chrono/multicore_math/utility.h"
 
 namespace chrono {
 namespace collision {

@@ -647,29 +647,33 @@ source_group(assets FILES
 
 # Multicore types and math 
 
-SET(ChronoEngine_MulticoreMath_SOURCES
-    multicore_math/matrix.cpp
-    multicore_math/matrix.h
-    multicore_math/other_types.h
-    multicore_math/real.h
-    multicore_math/real_double.h
-    multicore_math/real_single.h
-    multicore_math/real2.h
-    multicore_math/real2.cpp
-    multicore_math/real3.cpp
-    multicore_math/real3.h
-    multicore_math/real4.cpp
-    multicore_math/real4.h
-    multicore_math/simd_avx.h
-    multicore_math/simd_non.h
-    multicore_math/simd_sse.h
-    multicore_math/simd.h
-    multicore_math/utility.h
-    multicore_math/vec3.cpp
-    )
-
-SOURCE_GROUP(multicore_math FILES ${ChronoEngine_MulticoreMath_SOURCES})
-
+if (THRUST_FOUND)
+    set(ChronoEngine_MulticoreMath_SOURCES
+        multicore_math/ChMulticoreMath.h
+        multicore_math/matrix.cpp
+        multicore_math/matrix.h
+        multicore_math/other_types.h
+        multicore_math/real.h
+        multicore_math/real_double.h
+        multicore_math/real_single.h
+        multicore_math/real2.h
+        multicore_math/real2.cpp
+        multicore_math/real3.cpp
+        multicore_math/real3.h
+        multicore_math/real4.cpp
+        multicore_math/real4.h
+        multicore_math/simd_avx.h
+        multicore_math/simd_non.h
+        multicore_math/simd_sse.h
+        multicore_math/simd.h
+        multicore_math/utility.h
+        multicore_math/vec3.cpp
+        )
+    
+    source_group(multicore_math FILES ${ChronoEngine_MulticoreMath_SOURCES})
+elseif()
+    set(ChronoEngine_MulticoreMath_SOURCES "")
+endif()
 
 # Collision group
 
@@ -1015,7 +1019,6 @@ source_group(solver\\constraints FILES
 if (THRUST_FOUND)
    set(ChronoEngine_collision_chrono_SOURCES
        collision/chrono/ChCollisionData.h
-       collision/chrono/ChCollisionDefines.h
        collision/chrono/ChConvexShape.h
        collision/chrono/ChAABBGenerator.cpp
        collision/chrono/ChAABBGenerator.h

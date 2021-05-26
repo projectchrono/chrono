@@ -20,9 +20,7 @@
 #include "chrono/collision/ChCollisionModel.h"
 #include "chrono/collision/ChCollisionShapeChrono.h"
 
-#include "chrono/collision/chrono/ChCollisionDefines.h"
-
-#include "chrono/multicore_math/real3.h"
+#include "chrono/multicore_math/ChMulticoreMath.h"
 
 namespace chrono {
 

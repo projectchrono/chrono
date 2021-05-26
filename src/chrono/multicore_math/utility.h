@@ -95,7 +95,6 @@ static quaternion FromChQuaternion(const ChQuaternion<real>& q) {
     return quaternion(q.e0(), q.e1(), q.e2(), q.e3());
 }
 
-
 static ChMatrix33<real> ToChMatrix33(const Mat33& a) {
     ChMatrix33<real> tmp;
     tmp(0, 0) = a[0];

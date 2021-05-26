@@ -20,8 +20,9 @@
 
 #include <climits>
 
-#include "chrono/collision/chrono/ChCollisionDefines.h"
 #include "chrono/collision/chrono/ChCollisionData.h"
+
+#include "chrono/multicore_math/ChMulticoreMath.h"
 
 // Always include ChConfig.h *before* any Thrust headers!
 #include "chrono/ChConfig.h"
