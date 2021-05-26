@@ -133,7 +133,7 @@ inline real3 GetSupportPoint_Seg(const real B, const real3& n) {
 
 /// Support point for a capsule (for GJK and MPR).
 inline real3 GetSupportPoint_Capsule(const real2& B, const real3& n) {
-    return GetSupportPoint_Seg(B.x, n) + GetSupportPoint_Sphere(B.y, n);
+    return GetSupportPoint_Seg(B.y, n) + GetSupportPoint_Sphere(B.x, n);
 }
 
 /// Support point for a disk (for GJK and MPR).
