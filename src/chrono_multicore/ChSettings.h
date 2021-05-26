@@ -23,8 +23,7 @@
 #include "chrono/physics/ChSystemSMC.h"
 #include "chrono/parallel/ChOpenMP.h"
 #include "chrono_multicore/ChMulticoreDefines.h"
-#include "chrono_multicore/math/real3.h"
-#include "chrono_multicore/math/other_types.h"
+#include "chrono/multicore_math/ChMulticoreMath.h"
 
 namespace chrono {
 

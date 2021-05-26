@@ -225,12 +225,6 @@ SET(ChronoEngine_Multicore_PHYSICS
 SOURCE_GROUP(physics FILES ${ChronoEngine_Multicore_PHYSICS})
 
 SET(ChronoEngine_Multicore_CUDA
-    #math/matrix.cu
-    #math/matrixf.cu
-    #math/matrixf.cuh
-    #math/real3.cu
-    #math/real4.cu
-    #math/vec3.cu
     physics/ChMPM.cu
     physics/ChMPM.cuh
     physics/MPMUtils.h
@@ -238,31 +232,6 @@ SET(ChronoEngine_Multicore_CUDA
 
 SOURCE_GROUP(cuda FILES ${ChronoEngine_Multicore_CUDA})
     
-SET(ChronoEngine_Multicore_MATH
-    math/ChMulticoreMath.h
-    math/matrix.cpp
-    math/matrix.h
-    math/other_types.h
-    math/real.h
-    math/real_double.h
-    math/real_single.h
-    math/real2.h
-    math/real2.cpp
-    math/real3.cpp
-    math/real3.h
-    math/real4.cpp
-    math/real4.h
-    math/simd_avx.h
-    math/simd_non.h
-    math/simd_sse.h
-    math/sse.h
-    math/svd.h
-    math/utility.h
-    math/vec3.cpp
-    )
-
-SOURCE_GROUP(math FILES ${ChronoEngine_Multicore_MATH})
-
 SET(ChronoEngine_Multicore_SOLVER
     solver/ChSystemDescriptorMulticore.h
     solver/ChIterativeSolverMulticore.h
@@ -468,7 +437,6 @@ IF(USE_MULTICORE_CUDA)
             ${ChronoEngine_Multicore_COLLISION}
             ${ChronoEngine_Multicore_CONSTRAINTS}
             ${ChronoEngine_Multicore_SOLVER}
-            ${ChronoEngine_Multicore_MATH}
             ) 
     SET(CHRONO_MULTICORE_LINKED_LIBRARIES ChronoEngine ${CUDA_FRAMEWORK} ${OPENMP_LIBRARIES} ${TBB_LIBRARIES})
 ELSE()
@@ -478,7 +446,6 @@ ELSE()
             ${ChronoEngine_Multicore_COLLISION}
             ${ChronoEngine_Multicore_CONSTRAINTS}
             ${ChronoEngine_Multicore_SOLVER}
-            ${ChronoEngine_Multicore_MATH}
             )
     SET(CHRONO_MULTICORE_LINKED_LIBRARIES ChronoEngine ${OPENMP_LIBRARIES} ${TBB_LIBRARIES})
 ENDIF()

@@ -24,13 +24,12 @@
 #include <memory>
 
 #include "chrono/physics/ChContactContainer.h"
+#include "chrono/multicore_math/ChMulticoreMath.h"
 
 #include "chrono_multicore/ChTimerMulticore.h"
 #include "chrono_multicore/ChMulticoreDefines.h"
 #include "chrono_multicore/ChSettings.h"
 #include "chrono_multicore/ChMeasures.h"
-#include "chrono_multicore/math/matrix.h"
-#include "chrono_multicore/math/sse.h"
 
 // ATTENTION: It is important for these to be included after sse.h!
 // Blaze Includes

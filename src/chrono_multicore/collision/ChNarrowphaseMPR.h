@@ -18,6 +18,8 @@
 
 #pragma once
 
+#include "chrono_multicore/ChApiMulticore.h"
+
 namespace chrono {
 namespace collision {
 
@@ -27,7 +29,7 @@ class ConvexBase;
 /// @{
 
 CH_MULTICORE_API
-bool MPRContact(const ConvexBase* ShapeA,
+bool MPRContact_mc(const ConvexBase* ShapeA,
                 const ConvexBase* ShapeB,
                 const real& envelope,
                 real3& returnNormal,
@@ -35,7 +37,7 @@ bool MPRContact(const ConvexBase* ShapeA,
                 real& depth);
 
 CH_MULTICORE_API
-bool MPRCollision(const ConvexBase* ShapeA,
+bool MPRCollision_mc(const ConvexBase* ShapeA,
                   const ConvexBase* ShapeB,
                   real envelope,
                   real3& returnNormal,
@@ -44,7 +46,7 @@ bool MPRCollision(const ConvexBase* ShapeA,
                   real& depth);
 
 CH_MULTICORE_API
-void MPRGetPoints(const ConvexBase* ShapeA,
+void MPRGetPoints_mc(const ConvexBase* ShapeA,
                   const ConvexBase* ShapeB,
                   const real& envelope,
                   real3& N,
@@ -53,7 +55,7 @@ void MPRGetPoints(const ConvexBase* ShapeA,
                   real3& p2);
 
 CH_MULTICORE_API
-bool MPRSphereSphere(const ConvexBase* ShapeA, const ConvexBase* ShapeB, real3& N, real& dist, real3& p1, real3& p2);
+bool MPRSphereSphere_mc(const ConvexBase* ShapeA, const ConvexBase* ShapeB, real3& N, real& dist, real3& p1, real3& p2);
 
 /// @} multicore_colision
 

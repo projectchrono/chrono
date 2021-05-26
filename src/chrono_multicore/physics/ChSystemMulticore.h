@@ -39,7 +39,7 @@
 #include "chrono_multicore/physics/Ch3DOFContainer.h"
 #include "chrono_multicore/ChDataManager.h"
 #include "chrono_multicore/ChMulticoreDefines.h"
-#include "chrono_multicore/math/real3.h"
+#include "chrono/multicore_math/ChMulticoreMath.h"
 #include "chrono_multicore/ChSettings.h"
 #include "chrono_multicore/ChMeasures.h"
 

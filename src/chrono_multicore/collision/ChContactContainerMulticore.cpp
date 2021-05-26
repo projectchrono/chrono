@@ -63,10 +63,6 @@ void ChContactContainerMulticore::EndAddContact() {
     }
 }
 
-static inline chrono::ChVector<> ToChVector(const real3& a) {
-    return chrono::ChVector<>(a.x, a.y, a.z);
-}
-
 void ChContactContainerMulticore::ReportAllContacts(std::shared_ptr<ReportContactCallback> callback) {
     // Readibility
     const auto& ptA = data_manager->host_data.cpta_rigid_rigid;

@@ -18,7 +18,7 @@
 #include "chrono/collision/ChCollisionModel.h"
 #include "chrono/collision/ChCollisionInfo.h"
 
-#include "chrono_multicore/math/ChMulticoreMath.h"
+#include "chrono/multicore_math/ChMulticoreMath.h"
 #include "chrono_multicore/collision/ChCollision.h"
 #include "chrono_multicore/collision/ChNarrowphaseUtils.h"
 #include "chrono_multicore/collision/ChBroadphaseUtils.h"
@@ -227,7 +227,7 @@ void ChCNarrowphaseDispatch::DispatchMPR() {
 
         Dispatch_Init(index, icoll, ID_A, ID_B, &shapeA, &shapeB);
 
-        if (MPRCollision(&shapeA, &shapeB, collision_envelope, norm[icoll], ptA[icoll], ptB[icoll],
+        if (MPRCollision_mc(&shapeA, &shapeB, collision_envelope, norm[icoll], ptA[icoll], ptB[icoll],
                          contactDepth[icoll])) {
             effective_radius[icoll] = default_eff_radius;
             // The number of contacts reported by MPR is always 1.
@@ -284,7 +284,7 @@ void ChCNarrowphaseDispatch::DispatchHybridMPR() {
         if (RCollision(&shapeA, &shapeB, 2 * collision_envelope, &norm[icoll], &ptA[icoll], &ptB[icoll],
                        &contactDepth[icoll], &effective_radius[icoll], nC)) {
             Dispatch_Finalize(icoll, ID_A, ID_B, nC);
-        } else if (MPRCollision(&shapeA, &shapeB, collision_envelope, norm[icoll], ptA[icoll], ptB[icoll],
+        } else if (MPRCollision_mc(&shapeA, &shapeB, collision_envelope, norm[icoll], ptA[icoll], ptB[icoll],
                                 contactDepth[icoll])) {
             effective_radius[icoll] = default_eff_radius;
             Dispatch_Finalize(icoll, ID_A, ID_B, 1);
@@ -691,7 +691,7 @@ void ChCNarrowphaseDispatch::RigidSphereContact(const real sphere_radius,
                                         dpth_rigid_sphere[p * max_rigid_neighbors + contact_counts[p]] = depth;
                                         contact_counts[p]++;
                                     }
-                                } else if (MPRCollision(
+                                } else if (MPRCollision_mc(
                                                shapeA, shapeB, collision_envelope,
                                                norm_rigid_sphere[p * max_rigid_neighbors + contact_counts[p]],
                                                cpta_rigid_sphere[p * max_rigid_neighbors + contact_counts[p]], ptB,
@@ -834,7 +834,7 @@ void ChCNarrowphaseDispatch::RigidTetContact(custom_vector<real3>& norm_rigid_te
                     real3 barycentric;
                     //int face;
                     real3 res;
-                    if (MPRCollision(shapeA, shapeB, collision_envelope, norm, ptA, ptB, depth)) {
+                    if (MPRCollision_mc(shapeA, shapeB, collision_envelope, norm, ptA, ptB, depth)) {
                         if (contact_counts[p] < max_rigid_neighbors) {
                             // FindTriIndex(ptB, tet_index, node_pos, face, barycentric);
                             // instead of finding the closest face, always use the surface face
@@ -984,7 +984,7 @@ void ChCNarrowphaseDispatch::MarkerTetContact(const real sphere_radius,
                     real3 barycentric;
                     //int face;
                     real3 res;
-                    if (MPRCollision(shapeA, shapeB, 0, norm, ptA, ptB, depth)) {
+                    if (MPRCollision_mc(shapeA, shapeB, 0, norm, ptA, ptB, depth)) {
                         if (contact_counts[p] < max_rigid_neighbors) {
                             // FindTriIndex(ptB, tet_index, node_pos, face, barycentric);
                             // instead of finding the closest face, always use the surface face

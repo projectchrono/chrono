@@ -20,12 +20,8 @@
 
 #pragma once
 
+#include "chrono/multicore_math/ChMulticoreMath.h"
 #include "chrono_multicore/ChMulticoreDefines.h"
-#include "chrono_multicore/math/other_types.h"  // for uint, vec2, vec3
-#include "chrono_multicore/math/real.h"         // for real
-#include "chrono_multicore/math/real2.h"        // for real2
-#include "chrono_multicore/math/real3.h"        // for real3
-#include "chrono_multicore/math/real4.h"        // for quaternion, real4
 
 namespace chrono {
 

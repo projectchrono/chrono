@@ -21,7 +21,7 @@
 #pragma once
 
 #include "chrono_multicore/ChDataManager.h"
-#include "chrono_multicore/math/ChMulticoreMath.h"
+#include "chrono/multicore_math/ChMulticoreMath.h"
 #include "chrono_multicore/constraints/ChConstraintRigidRigid.h"
 #include "chrono_multicore/physics/Ch3DOFContainer.h"
 #include "chrono_multicore/constraints/ChConstraintBilateral.h"

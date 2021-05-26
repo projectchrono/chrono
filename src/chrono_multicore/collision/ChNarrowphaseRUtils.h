@@ -21,8 +21,8 @@
 
 #pragma once
 
-#include "chrono_multicore/math/ChMulticoreMath.h"
-#include "chrono_multicore/math/matrix.h"
+#include "chrono/multicore_math/ChMulticoreMath.h"
+#include "chrono/multicore_math/matrix.h"
 
 namespace chrono {
 namespace collision {

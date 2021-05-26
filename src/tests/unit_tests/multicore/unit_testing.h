@@ -28,49 +28,10 @@
 #include "chrono/core/ChQuaternion.h"
 #include "chrono/core/ChVector.h"
 
-#include "chrono_multicore/math/matrix.h"
-#include "chrono_multicore/math/other_types.h"
+#include "chrono/multicore_math/ChMulticoreMath.h"
+#include "chrono/multicore_math/matrix.h"
 
 using namespace chrono;
-
-real3 ToReal3(const ChVector<real>& a) {
-    return real3(a.x(), a.y(), a.z());
-}
-
-ChVector<real> ToChVector(const real3& a) {
-    return ChVector<real>(a.x, a.y, a.z);
-}
-
-ChQuaternion<real> ToChQuaternion(const quaternion& a) {
-    return ChQuaternion<real>(a.w, a.x, a.y, a.z);
-}
-
-quaternion ToQuaternion(const ChQuaternion<real>& a) {
-    return quaternion(a.e0(), a.e1(), a.e2(), a.e3());
-}
-
-ChMatrix33<real> ToChMatrix33(const Mat33& a) {
-    ChMatrix33<real> tmp;
-    tmp(0, 0) = a[0];
-    tmp(1, 0) = a[1];
-    tmp(2, 0) = a[2];
-
-    tmp(0, 1) = a[4];
-    tmp(1, 1) = a[5];
-    tmp(2, 1) = a[6];
-
-    tmp(0, 2) = a[8];
-    tmp(1, 2) = a[9];
-    tmp(2, 2) = a[10];
-
-    return tmp;
-}
-
-Mat33 ToMat33(const ChMatrix33<real>& a) {
-    return Mat33(a(0, 0), a(1, 0), a(2, 0), a(0, 1), a(1, 1), a(2, 1), a(0, 2), a(1, 2), a(2, 2));
-}
-
-// -----------------------------------------------------------------------------
 
 void Assert_eq(const ChVector<>& a, const ChVector<>& b) {
     ASSERT_EQ(a.x(), b.x());

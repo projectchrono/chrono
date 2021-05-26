@@ -32,7 +32,7 @@
 #include "chrono_multicore/collision/ChCollisionModelMulticore.h"
 #include "chrono_multicore/collision/ChCollisionSystemMulticore.h"
 #include "chrono_multicore/collision/ChCollisionSystemBulletMulticore.h"
-#include "chrono_multicore/math/matrix.h"
+#include "chrono/multicore_math/matrix.h"
 #include "chrono_multicore/physics/ChSystemMulticore.h"
 #include "chrono_multicore/solver/ChSolverMulticore.h"
 #include "chrono_multicore/solver/ChSystemDescriptorMulticore.h"

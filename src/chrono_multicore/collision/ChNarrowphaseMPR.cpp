@@ -20,7 +20,7 @@
 
 #include "chrono/collision/ChCollisionModel.h"
 
-#include "chrono_multicore/math/ChMulticoreMath.h"
+#include "chrono/multicore_math/ChMulticoreMath.h"
 #include "chrono_multicore/collision/ChNarrowphaseMPR.h"
 #include "chrono_multicore/collision/ChNarrowphaseUtils.h"
 #include "chrono_multicore/collision/ChDataStructures.h"
@@ -39,7 +39,7 @@ struct simplex {
     support s0, s1, s2, s3, s4;
 };
 
-bool chrono::collision::MPRSphereSphere(const ConvexBase* ShapeA,
+bool chrono::collision::MPRSphereSphere_mc(const ConvexBase* ShapeA,
                                         const ConvexBase* ShapeB,
                                         real3& N,
                                         real& depth,
@@ -605,7 +605,7 @@ int RefinePortal(const ConvexBase* shapeA, const ConvexBase* shapeB, const real&
     return -1;
 }
 // Code for Convex-Convex Collision detection, adopted from xeno-collide
-bool chrono::collision::MPRContact(const ConvexBase* shapeA,
+bool chrono::collision::MPRContact_mc(const ConvexBase* shapeA,
                                    const ConvexBase* shapeB,
                                    const real& envelope,
                                    real3& returnNormal,
@@ -634,7 +634,7 @@ bool chrono::collision::MPRContact(const ConvexBase* shapeA,
     return 1;
 }
 
-void chrono::collision::MPRGetPoints(const ConvexBase* shapeA,
+void chrono::collision::MPRGetPoints_mc(const ConvexBase* shapeA,
                                      const ConvexBase* shapeB,
                                      const real& envelope,
                                      real3& N,
@@ -647,7 +647,7 @@ void chrono::collision::MPRGetPoints(const ConvexBase* shapeA,
 }
 
 // Code for Convex-Convex Collision detection, adopted from xeno-collide
-bool chrono::collision::MPRCollision(const ConvexBase* shapeA,
+bool chrono::collision::MPRCollision_mc(const ConvexBase* shapeA,
                                      const ConvexBase* shapeB,
                                      real envelope,
                                      real3& normal,
@@ -655,11 +655,11 @@ bool chrono::collision::MPRCollision(const ConvexBase* shapeA,
                                      real3& pointB,
                                      real& depth) {
     real3 point;
-    if (!MPRContact(shapeA, shapeB, envelope, normal, point, depth)) {
+    if (!MPRContact_mc(shapeA, shapeB, envelope, normal, point, depth)) {
         return false;
     }
 
-    MPRGetPoints(shapeA, shapeB, envelope, normal, point, pointA, pointB);
+    MPRGetPoints_mc(shapeA, shapeB, envelope, normal, point, pointA, pointB);
 
     pointA = pointA - normal * envelope;
     pointB = pointB + normal * envelope;

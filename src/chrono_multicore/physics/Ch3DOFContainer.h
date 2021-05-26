@@ -22,11 +22,10 @@
 
 // Chrono::Multicore headers
 #include "chrono_multicore/ChMulticoreDefines.h"
-#include "chrono_multicore/math/real.h"
-#include "chrono_multicore/math/real3.h"
-#include "chrono_multicore/math/other_types.h"
-#include "chrono_multicore/math/matrix.h"
-#include "chrono_multicore/math/sse.h"
+
+#include "chrono/multicore_math/ChMulticoreMath.h"
+#include "chrono/multicore_math/matrix.h"
+
 #include "chrono_multicore/physics/ChMPMSettings.h"
 
 // Chrono headers
