@@ -146,7 +146,7 @@ void ChSystem::Clear() {
 
 void ChSystem::AddBody(std::shared_ptr<ChBody> body) {
     assert(body->GetCollisionModel()->GetType() == collision_system->GetType());
-    body->SetId(Get_bodylist().size());
+    body->SetId(static_cast<int>(Get_bodylist().size()));
     assembly.AddBody(body);
 }
 
@@ -309,12 +309,9 @@ void ChSystem::SetCollisionSystemType(ChCollisionSystemType type) {
         case ChCollisionSystemType::BULLET:
             collision_system = chrono_types::make_shared<ChCollisionSystemBullet>();
             break;
-        case ChCollisionSystemType::CHRONO: {
-            auto cd_chrono = chrono_types::make_shared<ChCollisionSystemChrono>();
-            cd_chrono->SetEnvelope(ChCollisionModel::GetDefaultSuggestedEnvelope());
-            collision_system = cd_chrono;
+        case ChCollisionSystemType::CHRONO:
+            collision_system = chrono_types::make_shared<ChCollisionSystemChrono>();
             break;
-        }
         default:
             GetLog() << "Collision system type not supported. Use SetCollisionSystem instead.\n";
             break;
@@ -329,10 +326,6 @@ void ChSystem::SetCollisionSystem(std::shared_ptr<ChCollisionSystem> newcollsyst
     assert(newcollsystem);
     collision_system = newcollsystem;
     collision_system_type = newcollsystem->GetType();
-    if (collision_system_type == ChCollisionSystemType::CHRONO) {
-        auto cd_chrono = std::static_pointer_cast<ChCollisionSystemChrono>(collision_system);
-        cd_chrono->SetEnvelope(ChCollisionModel::GetDefaultSuggestedEnvelope());
-    }
     collision_system->SetNumThreads(nthreads_collision);
     collision_system->SetSystem(this);
 }
@@ -920,7 +913,7 @@ void ChSystem::StateGather(ChState& x, ChStateDelta& v, double& T) {
 void ChSystem::StateScatter(const ChState& x, const ChStateDelta& v, const double T, bool full_update) {
     unsigned int off_x = 0;
     unsigned int off_v = 0;
- 
+
     // Let each object (bodies, links, etc.) in the assembly extract its own states.
     // Note that each object also performs an update
     assembly.IntStateScatter(off_x, x, off_v, v, T, full_update);
@@ -1240,7 +1233,7 @@ double ChSystem::ComputeCollisions() {
 
         for (auto& item : assembly.otherphysicslist) {
             if (auto mcontactcontainer = std::dynamic_pointer_cast<ChContactContainer>(item)) {
-                // collision_system->ReportContacts(mcontactcontainer.get()); 
+                // collision_system->ReportContacts(mcontactcontainer.get());
                 // ***TEST*** if one wants to populate a ChContactContainer this would clear it anyway...
             }
 
@@ -1464,8 +1457,8 @@ bool ChSystem::DoAssembly(int action) {
     Update();
 
     // Overwrite various parameters
-    int new_max_iters = 300;        // if using an iterative solver
-    double new_tolerance = 1e-10;   // if using an iterative solver
+    int new_max_iters = 300;       // if using an iterative solver
+    double new_tolerance = 1e-10;  // if using an iterative solver
     double new_step = 1e-6;
 
     int old_max_iters = GetSolverMaxIterations();
@@ -1916,7 +1909,7 @@ void ChSystem::ArchiveOUT(ChArchiveOut& marchive) {
 // Method to allow de serialization of transient data from archives.
 void ChSystem::ArchiveIN(ChArchiveIn& marchive) {
     // version number
-    /*int version =*/ marchive.VersionRead<ChSystem>();
+    /*int version =*/marchive.VersionRead<ChSystem>();
 
     // deserialize unerlying assembly
     assembly.ArchiveIN(marchive);

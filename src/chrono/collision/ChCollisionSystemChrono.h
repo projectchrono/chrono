@@ -46,15 +46,16 @@ class ChApi ChCollisionSystemChrono : public ChCollisionSystem {
     /// Return the type of this collision system.
     virtual ChCollisionSystemType GetType() const override { return ChCollisionSystemType::CHRONO; }
 
-    /// Set collision envelope for rigid shapes (default: 0).
+    /// Set collision envelope for rigid shapes (default: ChCollisionModel::GetDefaultSuggestedEnvelope).
     /// For stability of NSC contact, the envelope should be set to 5-10% of the smallest collision shape size (too
     /// large a value will slow down the narrowphase collision detection). The envelope is the amount by which each
     /// collision shape is inflated prior to performing the collision detection, in order to create contact constraints
-    /// before shapes actually comee in contact.
-    /// This collision detection system uses a global envelope, used for all rigid shapes in the system.
+    /// before shapes actually come in contact. This collision detection system uses a global envelope, used for all
+    /// rigid shapes in the system.
     void SetEnvelope(double envelope);
 
-    /// Set the number of bins for the broadphase collision grid (default: 10x10x10) and specify whether this number is kept fixed (default: true).
+    /// Set the number of bins for the broadphase collision grid (default: 10x10x10) and specify whether this number is
+    /// kept fixed (default: true).
     void SetBroadphaseNumBins(ChVector<int> num_bins, bool fixed = true);
 
     /// Set the broadphase collision grid density (default: 5).

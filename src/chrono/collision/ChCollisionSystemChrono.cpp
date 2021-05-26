@@ -26,6 +26,7 @@ namespace collision {
 
 ChCollisionSystemChrono::ChCollisionSystemChrono() : use_aabb_active(false) {
     data_manager = chrono_types::make_shared<ChCollisionData>(true);
+    data_manager->collision_envelope = ChCollisionModel::GetDefaultSuggestedEnvelope();
 
     broadphase.data_manager = data_manager;
     narrowphase.data_manager = data_manager;
