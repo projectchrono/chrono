@@ -32,8 +32,7 @@ using thrust::transform_reduce;
 namespace chrono {
 namespace collision {
 
-ChBroadphase::ChBroadphase()
-    : bins_per_axis(vec3(10, 10, 10)), fixed_bins(true), grid_density(5), data_manager(nullptr) {}
+ChBroadphase::ChBroadphase() : bins_per_axis(vec3(10, 10, 10)), fixed_bins(true), grid_density(5), cd_data(nullptr) {}
 
 // Determine the bounding box for the objects===============================================================
 
@@ -77,12 +76,12 @@ struct BoxReduce {
 // associated with non-colliding bodies.
 void ChBroadphase::RigidBoundingBox() {
     // Vectors of length = number of collision shapes
-    const std::vector<real3>& aabb_min = data_manager->host_data.aabb_min;
-    const std::vector<real3>& aabb_max = data_manager->host_data.aabb_max;
-    const std::vector<uint>& id_rigid = data_manager->shape_data.id_rigid;
+    const std::vector<real3>& aabb_min = cd_data->host_data.aabb_min;
+    const std::vector<real3>& aabb_max = cd_data->host_data.aabb_max;
+    const std::vector<uint>& id_rigid = cd_data->shape_data.id_rigid;
 
     // Vectors of length = number of rigid bodies
-    const std::vector<char>& collide_rigid = *data_manager->state_data.collide_rigid;
+    const std::vector<char>& collide_rigid = *cd_data->state_data.collide_rigid;
 
     // Calculate union of all AABBs.
     // Excluded AABBs are inverted through the transform operation, prior to the reduction.
@@ -90,8 +89,8 @@ void ChBroadphase::RigidBoundingBox() {
     auto end = thrust::make_zip_iterator(thrust::make_tuple(aabb_min.end(), aabb_max.end(), id_rigid.end()));
     auto result = thrust::transform_reduce(THRUST_PAR begin, end, BoxInvert(&collide_rigid), inverted, BoxReduce());
 
-    data_manager->measures.rigid_min_bounding_point = thrust::get<0>(result);
-    data_manager->measures.rigid_max_bounding_point = thrust::get<1>(result);
+    cd_data->measures.rigid_min_bounding_point = thrust::get<0>(result);
+    cd_data->measures.rigid_max_bounding_point = thrust::get<1>(result);
 }
 
 // AABB as the pair of its min and max corners.
@@ -115,8 +114,8 @@ struct bbox_transformation : public thrust::unary_function<real3, bbox> {
 
 // Calculate AABB of all fluid particles.
 void ChBroadphase::FluidBoundingBox() {
-    const std::vector<real3>& pos_fluid = *data_manager->state_data.pos_3dof;
-    const real radius = data_manager->node_data.kernel_radius + data_manager->node_data.collision_envelope;
+    const std::vector<real3>& pos_fluid = *cd_data->state_data.pos_3dof;
+    const real radius = cd_data->node_data.kernel_radius + cd_data->node_data.collision_envelope;
 
     bbox res(pos_fluid[0], pos_fluid[0]);
     bbox_transformation unary_op;
@@ -131,8 +130,8 @@ void ChBroadphase::FluidBoundingBox() {
     res.second.y = radius * Ceil(res.second.y / radius);
     res.second.z = radius * Ceil(res.second.z / radius);
 
-    real3& min_bounding_point = data_manager->measures.ff_min_bounding_point;
-    real3& max_bounding_point = data_manager->measures.ff_max_bounding_point;
+    real3& min_bounding_point = cd_data->measures.ff_min_bounding_point;
+    real3& max_bounding_point = cd_data->measures.ff_max_bounding_point;
 
     max_bounding_point = res.second + radius * 6;
     min_bounding_point = res.first - radius * 6;
@@ -141,13 +140,13 @@ void ChBroadphase::FluidBoundingBox() {
 void ChBroadphase::DetermineBoundingBox() {
     RigidBoundingBox();
 
-    real3 min_point = data_manager->measures.rigid_min_bounding_point;
-    real3 max_point = data_manager->measures.rigid_max_bounding_point;
+    real3 min_point = cd_data->measures.rigid_min_bounding_point;
+    real3 max_point = cd_data->measures.rigid_max_bounding_point;
 
-    if (data_manager->state_data.num_fluid_bodies != 0) {
+    if (cd_data->state_data.num_fluid_bodies != 0) {
         FluidBoundingBox();
-        min_point = Min(min_point, data_manager->measures.ff_min_bounding_point);
-        max_point = Max(max_point, data_manager->measures.ff_max_bounding_point);
+        min_point = Min(min_point, cd_data->measures.ff_min_bounding_point);
+        max_point = Max(max_point, cd_data->measures.ff_max_bounding_point);
     }
 
     // Inflate the overall bounding box by a small percentage.
@@ -158,16 +157,16 @@ void ChBroadphase::DetermineBoundingBox() {
     min_point = min_point - fraction * size;
     max_point = max_point + fraction * size;
 
-    data_manager->measures.min_bounding_point = min_point;
-    data_manager->measures.max_bounding_point = max_point;
-    data_manager->measures.global_origin = min_point;
+    cd_data->measures.min_bounding_point = min_point;
+    cd_data->measures.max_bounding_point = max_point;
+    cd_data->measures.global_origin = min_point;
 }
 
 void ChBroadphase::OffsetAABB() {
-    std::vector<real3>& aabb_min = data_manager->host_data.aabb_min;
-    std::vector<real3>& aabb_max = data_manager->host_data.aabb_max;
+    std::vector<real3>& aabb_min = cd_data->host_data.aabb_min;
+    std::vector<real3>& aabb_max = cd_data->host_data.aabb_max;
 
-    thrust::constant_iterator<real3> offset(data_manager->measures.global_origin);
+    thrust::constant_iterator<real3> offset(cd_data->measures.global_origin);
 
     thrust::transform(aabb_min.begin(), aabb_min.end(), offset, aabb_min.begin(), thrust::minus<real3>());
     thrust::transform(aabb_max.begin(), aabb_max.end(), offset, aabb_max.begin(), thrust::minus<real3>());
@@ -175,12 +174,12 @@ void ChBroadphase::OffsetAABB() {
 
 // Determine resolution of the top level grid
 void ChBroadphase::ComputeTopLevelResolution() {
-    const int num_shapes = data_manager->num_rigid_shapes;
-    const real3& max_bounding_point = data_manager->measures.max_bounding_point;
-    const real3& global_origin = data_manager->measures.global_origin;
+    const int num_shapes = cd_data->num_rigid_shapes;
+    const real3& max_bounding_point = cd_data->measures.max_bounding_point;
+    const real3& global_origin = cd_data->measures.global_origin;
 
-    real3& inv_bin_size = data_manager->measures.inv_bin_size;
-    real3& bin_size = data_manager->measures.bin_size;
+    real3& inv_bin_size = cd_data->measures.inv_bin_size;
+    real3& bin_size = cd_data->measures.bin_size;
 
     // This is the extents of the space aka diameter
     real3 diagonal = (Abs(max_bounding_point - global_origin));
@@ -200,36 +199,36 @@ void ChBroadphase::ComputeTopLevelResolution() {
 // use spatial subdivision to detect the list of POSSIBLE collisions
 // let user define their own narrow-phase collision detection
 void ChBroadphase::DispatchRigid() {
-    if (data_manager->num_rigid_shapes != 0) {
+    if (cd_data->num_rigid_shapes != 0) {
         OneLevelBroadphase();
-        data_manager->num_rigid_contacts = data_manager->measures.number_of_contacts_possible;
+        cd_data->num_rigid_contacts = cd_data->measures.number_of_contacts_possible;
     }
     return;
 }
 
 void ChBroadphase::OneLevelBroadphase() {
-    const std::vector<uint>& obj_data_id = data_manager->shape_data.id_rigid;
-    const std::vector<short2>& fam_data = data_manager->shape_data.fam_rigid;
+    const std::vector<uint>& obj_data_id = cd_data->shape_data.id_rigid;
+    const std::vector<short2>& fam_data = cd_data->shape_data.fam_rigid;
 
-    const std::vector<char>& obj_active = *data_manager->state_data.active_rigid;
-    const std::vector<char>& obj_collide = *data_manager->state_data.collide_rigid;
+    const std::vector<char>& obj_active = *cd_data->state_data.active_rigid;
+    const std::vector<char>& obj_collide = *cd_data->state_data.collide_rigid;
 
-    const std::vector<real3>& aabb_min = data_manager->host_data.aabb_min;
-    const std::vector<real3>& aabb_max = data_manager->host_data.aabb_max;
-    std::vector<long long>& pair_shapeIDs = data_manager->host_data.pair_shapeIDs;
-    std::vector<uint>& bin_intersections = data_manager->host_data.bin_intersections;
-    std::vector<uint>& bin_number = data_manager->host_data.bin_number;
-    std::vector<uint>& bin_number_out = data_manager->host_data.bin_number_out;
-    std::vector<uint>& bin_aabb_number = data_manager->host_data.bin_aabb_number;
-    std::vector<uint>& bin_start_index = data_manager->host_data.bin_start_index;
-    std::vector<uint>& bin_num_contact = data_manager->host_data.bin_num_contact;
+    const std::vector<real3>& aabb_min = cd_data->host_data.aabb_min;
+    const std::vector<real3>& aabb_max = cd_data->host_data.aabb_max;
+    std::vector<long long>& pair_shapeIDs = cd_data->host_data.pair_shapeIDs;
+    std::vector<uint>& bin_intersections = cd_data->host_data.bin_intersections;
+    std::vector<uint>& bin_number = cd_data->host_data.bin_number;
+    std::vector<uint>& bin_number_out = cd_data->host_data.bin_number_out;
+    std::vector<uint>& bin_aabb_number = cd_data->host_data.bin_aabb_number;
+    std::vector<uint>& bin_start_index = cd_data->host_data.bin_start_index;
+    std::vector<uint>& bin_num_contact = cd_data->host_data.bin_num_contact;
 
-    const int num_shapes = data_manager->num_rigid_shapes;
+    const int num_shapes = cd_data->num_rigid_shapes;
 
-    real3& inv_bin_size = data_manager->measures.inv_bin_size;
-    uint& number_of_bins_active = data_manager->measures.number_of_bins_active;
-    uint& number_of_bin_intersections = data_manager->measures.number_of_bin_intersections;
-    uint& number_of_contacts_possible = data_manager->measures.number_of_contacts_possible;
+    real3& inv_bin_size = cd_data->measures.inv_bin_size;
+    uint& number_of_bins_active = cd_data->measures.number_of_bins_active;
+    uint& number_of_bin_intersections = cd_data->measures.number_of_bin_intersections;
+    uint& number_of_contacts_possible = cd_data->measures.number_of_contacts_possible;
 
     bin_intersections.resize(num_shapes + 1);
     bin_intersections[num_shapes] = 0;

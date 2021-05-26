@@ -71,14 +71,14 @@ class ChApi ChNarrowphase {
     void Dispatch_Finalize(uint icoll, uint ID_A, uint ID_B, int nC);
 
   private:
-    std::shared_ptr<ChCollisionData> data_manager;
+    std::shared_ptr<ChCollisionData> cd_data;
 
     std::vector<char> contact_rigid_active;
     std::vector<char> contact_rigid_fluid_active;
     std::vector<char> contact_fluid_active;
     std::vector<uint> contact_index;
 
-    uint num_potential_rigid_contacts;        //// TODO: obsolete these!
+    uint num_potential_rigid_contacts;  //// TODO: obsolete these!
     uint num_potential_fluid_contacts;
     uint num_potential_rigid_fluid_contacts;
 
@@ -90,7 +90,7 @@ class ChApi ChNarrowphase {
     std::vector<uint> f_bin_fluid_number;
     std::vector<uint> f_bin_start_index;
     std::vector<uint> is_rigid_bin_active;
-    uint f_number_of_bins_active;          //// TODO: obsolete this?
+    uint f_number_of_bins_active;  //// TODO: obsolete this?
     std::vector<int> ff_bin_ids;
     std::vector<int> ff_bin_starts;
     std::vector<int> ff_bin_ends;
@@ -102,6 +102,7 @@ class ChApi ChNarrowphase {
     std::vector<uint> t_bin_start_index;
 
     friend class ChCollisionSystemChrono;
+    friend class ChCollisionSystemChronoMulticore;
 };
 
 /// @} collision_mc

@@ -33,7 +33,11 @@ class ChApi ChAABBGenerator {
     ChAABBGenerator();
     void GenerateAABB();
 
-    std::shared_ptr<ChCollisionData> data_manager;
+  private:
+    std::shared_ptr<ChCollisionData> cd_data;
+
+    friend class ChCollisionSystemChrono;
+    friend class ChCollisionSystemChronoMulticore;
 };
 
 /// @} collision_mc

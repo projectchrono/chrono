@@ -37,25 +37,25 @@
 namespace chrono {
 namespace collision {
 
-ChNarrowphase::ChNarrowphase() : algorithm(Algorithm::HYBRID), data_manager(nullptr) {}
+ChNarrowphase::ChNarrowphase() : algorithm(Algorithm::HYBRID), num_potential_rigid_contacts(0), cd_data(nullptr) {}
 
 void ChNarrowphase::ClearContacts() {
     // Return now if no potential collisions.
     if (num_potential_rigid_contacts == 0) {
-        data_manager->host_data.norm_rigid_rigid.resize(0);
-        data_manager->host_data.cpta_rigid_rigid.resize(0);
-        data_manager->host_data.cptb_rigid_rigid.resize(0);
-        data_manager->host_data.dpth_rigid_rigid.resize(0);
-        data_manager->host_data.erad_rigid_rigid.resize(0);
-        data_manager->host_data.bids_rigid_rigid.resize(0);
+        cd_data->host_data.norm_rigid_rigid.resize(0);
+        cd_data->host_data.cpta_rigid_rigid.resize(0);
+        cd_data->host_data.cptb_rigid_rigid.resize(0);
+        cd_data->host_data.dpth_rigid_rigid.resize(0);
+        cd_data->host_data.erad_rigid_rigid.resize(0);
+        cd_data->host_data.bids_rigid_rigid.resize(0);
     }
 }
 
 void ChNarrowphase::ProcessRigids(const vec3& bins_per_axis) {
     //======== Indexing variables and other information
-    num_potential_rigid_contacts = data_manager->num_rigid_contacts;
-    num_potential_rigid_fluid_contacts = data_manager->num_rigid_fluid_contacts;
-    num_potential_fluid_contacts = data_manager->num_fluid_contacts;
+    num_potential_rigid_contacts = cd_data->num_rigid_contacts;
+    num_potential_rigid_fluid_contacts = cd_data->num_rigid_fluid_contacts;
+    num_potential_fluid_contacts = cd_data->num_fluid_contacts;
     ClearContacts();
     // Transform Rigid body shapes to global coordinate system
     PreprocessLocalToParent();
@@ -63,7 +63,7 @@ void ChNarrowphase::ProcessRigids(const vec3& bins_per_axis) {
     if (num_potential_rigid_contacts != 0) {
         DispatchRigid();
     }
-    if (data_manager->state_data.num_fluid_bodies != 0) {
+    if (cd_data->state_data.num_fluid_bodies != 0) {
         DispatchRigidFluid(bins_per_axis);
     }
 }
@@ -83,9 +83,9 @@ int ChNarrowphase::PreprocessCount() {
         //   - a box-box interaction can produce up to 8 contacts
 
         // shape type (per shape)
-        const shape_type* obj_data_T = data_manager->shape_data.typ_rigid.data();
+        const shape_type* obj_data_T = cd_data->shape_data.typ_rigid.data();
         // encoded shape IDs (per collision pair)
-        const long long* pair_shapeIDs = data_manager->host_data.pair_shapeIDs.data();
+        const long long* pair_shapeIDs = cd_data->host_data.pair_shapeIDs.data();
 
 #pragma omp parallel for
         for (int index = 0; index < (signed)num_potential_rigid_contacts; index++) {
@@ -116,9 +116,9 @@ int ChNarrowphase::PreprocessCount() {
 
     // Expand vector of shape IDs into contact_shapeIDs:
     // Replicate pair_shapeIDs[i] contact_index[i] times, for each potential contact for the collision pair 'i'
-    data_manager->host_data.contact_shapeIDs.resize(num_potentialContacts);
-    Thrust_Expand(contact_index.begin(), contact_index.end() - 1, data_manager->host_data.pair_shapeIDs.begin(),
-                  data_manager->host_data.contact_shapeIDs.begin());
+    cd_data->host_data.contact_shapeIDs.resize(num_potentialContacts);
+    Thrust_Expand(contact_index.begin(), contact_index.end() - 1, cd_data->host_data.pair_shapeIDs.begin(),
+                  cd_data->host_data.contact_shapeIDs.begin());
 
     // Set start index for the potential contacts for each collision pair
     Thrust_Exclusive_Scan(contact_index);
@@ -129,20 +129,20 @@ int ChNarrowphase::PreprocessCount() {
 }
 
 void ChNarrowphase::PreprocessLocalToParent() {
-    uint num_shapes = data_manager->num_rigid_shapes;
+    uint num_shapes = cd_data->num_rigid_shapes;
 
-    const std::vector<int>& obj_data_T = data_manager->shape_data.typ_rigid;
-    const std::vector<real3>& obj_data_A = data_manager->shape_data.ObA_rigid;
-    const std::vector<quaternion>& obj_data_R = data_manager->shape_data.ObR_rigid;
-    const std::vector<uint>& obj_data_ID = data_manager->shape_data.id_rigid;
+    const std::vector<int>& obj_data_T = cd_data->shape_data.typ_rigid;
+    const std::vector<real3>& obj_data_A = cd_data->shape_data.ObA_rigid;
+    const std::vector<quaternion>& obj_data_R = cd_data->shape_data.ObR_rigid;
+    const std::vector<uint>& obj_data_ID = cd_data->shape_data.id_rigid;
 
-    const std::vector<real3>& body_pos = *data_manager->state_data.pos_rigid;
-    const std::vector<quaternion>& body_rot = *data_manager->state_data.rot_rigid;
+    const std::vector<real3>& body_pos = *cd_data->state_data.pos_rigid;
+    const std::vector<quaternion>& body_rot = *cd_data->state_data.rot_rigid;
 
-    data_manager->shape_data.obj_data_A_global.resize(num_shapes);
+    cd_data->shape_data.obj_data_A_global.resize(num_shapes);
 
-    data_manager->shape_data.obj_data_R_global.resize(num_shapes);
-    data_manager->shape_data.triangle_global.resize(data_manager->shape_data.triangle_rigid.size());
+    cd_data->shape_data.obj_data_R_global.resize(num_shapes);
+    cd_data->shape_data.triangle_global.resize(cd_data->shape_data.triangle_rigid.size());
 
 #pragma omp parallel for
     for (int index = 0; index < (signed)num_shapes; index++) {
@@ -156,17 +156,17 @@ void ChNarrowphase::PreprocessLocalToParent() {
         real3 pos = body_pos[ID];       // Get the global object position
         quaternion rot = body_rot[ID];  // Get the global object rotation
 
-        data_manager->shape_data.obj_data_A_global[index] = TransformLocalToParent(pos, rot, obj_data_A[index]);
+        cd_data->shape_data.obj_data_A_global[index] = TransformLocalToParent(pos, rot, obj_data_A[index]);
         if (T == ChCollisionShape::Type::TRIANGLE) {
-            int start = data_manager->shape_data.start_rigid[index];
-            data_manager->shape_data.triangle_global[start + 0] =
-                TransformLocalToParent(pos, rot, data_manager->shape_data.triangle_rigid[start + 0]);
-            data_manager->shape_data.triangle_global[start + 1] =
-                TransformLocalToParent(pos, rot, data_manager->shape_data.triangle_rigid[start + 1]);
-            data_manager->shape_data.triangle_global[start + 2] =
-                TransformLocalToParent(pos, rot, data_manager->shape_data.triangle_rigid[start + 2]);
+            int start = cd_data->shape_data.start_rigid[index];
+            cd_data->shape_data.triangle_global[start + 0] =
+                TransformLocalToParent(pos, rot, cd_data->shape_data.triangle_rigid[start + 0]);
+            cd_data->shape_data.triangle_global[start + 1] =
+                TransformLocalToParent(pos, rot, cd_data->shape_data.triangle_rigid[start + 1]);
+            cd_data->shape_data.triangle_global[start + 2] =
+                TransformLocalToParent(pos, rot, cd_data->shape_data.triangle_rigid[start + 2]);
         }
-        data_manager->shape_data.obj_data_R_global[index] = Mult(rot, obj_data_R[index]);
+        cd_data->shape_data.obj_data_R_global[index] = Mult(rot, obj_data_R[index]);
     }
 }
 
@@ -176,8 +176,8 @@ void ChNarrowphase::Dispatch_Init(uint index,
                                   uint& ID_B,
                                   ConvexShape* shapeA,
                                   ConvexShape* shapeB) {
-    const std::vector<uint>& obj_data_ID = data_manager->shape_data.id_rigid;
-    const std::vector<long long>& pair_shapeIDs = data_manager->host_data.pair_shapeIDs;
+    const std::vector<uint>& obj_data_ID = cd_data->shape_data.id_rigid;
+    const std::vector<long long>& pair_shapeIDs = cd_data->host_data.pair_shapeIDs;
 
     // Unpack the identifiers for the two shapes involved in this collision
     long long p = pair_shapeIDs[index];
@@ -189,15 +189,15 @@ void ChNarrowphase::Dispatch_Init(uint index,
     shapeA->index = pair.x;
     shapeB->index = pair.y;
 
-    shapeA->data = &data_manager->shape_data;
-    shapeB->data = &data_manager->shape_data;
+    shapeA->data = &cd_data->shape_data;
+    shapeB->data = &cd_data->shape_data;
 
     //// TODO: what is the best way to dispatch this?
     icoll = contact_index[index];
 }
 
 void ChNarrowphase::Dispatch_Finalize(uint icoll, uint ID_A, uint ID_B, int nC) {
-    std::vector<vec2>& body_ids = data_manager->host_data.bids_rigid_rigid;
+    std::vector<vec2>& body_ids = cd_data->host_data.bids_rigid_rigid;
 
     // Mark the active contacts and set their body IDs
     for (int i = 0; i < nC; i++) {
@@ -207,12 +207,12 @@ void ChNarrowphase::Dispatch_Finalize(uint icoll, uint ID_A, uint ID_B, int nC) 
 }
 
 void ChNarrowphase::DispatchMPR() {
-    const real envelope = data_manager->collision_envelope;
-    std::vector<real3>& norm = data_manager->host_data.norm_rigid_rigid;
-    std::vector<real3>& ptA = data_manager->host_data.cpta_rigid_rigid;
-    std::vector<real3>& ptB = data_manager->host_data.cptb_rigid_rigid;
-    std::vector<real>& contactDepth = data_manager->host_data.dpth_rigid_rigid;
-    std::vector<real>& effective_radius = data_manager->host_data.erad_rigid_rigid;
+    const real envelope = cd_data->collision_envelope;
+    std::vector<real3>& norm = cd_data->host_data.norm_rigid_rigid;
+    std::vector<real3>& ptA = cd_data->host_data.cpta_rigid_rigid;
+    std::vector<real3>& ptB = cd_data->host_data.cptb_rigid_rigid;
+    std::vector<real>& contactDepth = cd_data->host_data.dpth_rigid_rigid;
+    std::vector<real>& effective_radius = cd_data->host_data.erad_rigid_rigid;
 
     ConvexShape shapeA;
     ConvexShape shapeB;
@@ -225,8 +225,7 @@ void ChNarrowphase::DispatchMPR() {
 
         Dispatch_Init(index, icoll, ID_A, ID_B, &shapeA, &shapeB);
 
-        if (MPRCollision(&shapeA, &shapeB, envelope, norm[icoll], ptA[icoll], ptB[icoll],
-                         contactDepth[icoll])) {
+        if (MPRCollision(&shapeA, &shapeB, envelope, norm[icoll], ptA[icoll], ptB[icoll], contactDepth[icoll])) {
             effective_radius[icoll] = default_eff_radius;
             // The number of contacts reported by MPR is always 1.
             Dispatch_Finalize(icoll, ID_A, ID_B, 1);
@@ -235,12 +234,12 @@ void ChNarrowphase::DispatchMPR() {
 }
 
 void ChNarrowphase::DispatchPRIMS() {
-    const real envelope = data_manager->collision_envelope;
-    real3* norm = data_manager->host_data.norm_rigid_rigid.data();
-    real3* ptA = data_manager->host_data.cpta_rigid_rigid.data();
-    real3* ptB = data_manager->host_data.cptb_rigid_rigid.data();
-    real* contactDepth = data_manager->host_data.dpth_rigid_rigid.data();
-    real* effective_radius = data_manager->host_data.erad_rigid_rigid.data();
+    const real envelope = cd_data->collision_envelope;
+    real3* norm = cd_data->host_data.norm_rigid_rigid.data();
+    real3* ptA = cd_data->host_data.cpta_rigid_rigid.data();
+    real3* ptB = cd_data->host_data.cptb_rigid_rigid.data();
+    real* contactDepth = cd_data->host_data.dpth_rigid_rigid.data();
+    real* effective_radius = cd_data->host_data.erad_rigid_rigid.data();
 
     ConvexShape shapeA;
     ConvexShape shapeB;
@@ -253,20 +252,20 @@ void ChNarrowphase::DispatchPRIMS() {
 
         Dispatch_Init(index, icoll, ID_A, ID_B, &shapeA, &shapeB);
 
-        if (PRIMSCollision(&shapeA, &shapeB, 2 * envelope, &norm[icoll], &ptA[icoll], &ptB[icoll],
-                           &contactDepth[icoll], &effective_radius[icoll], nC)) {
+        if (PRIMSCollision(&shapeA, &shapeB, 2 * envelope, &norm[icoll], &ptA[icoll], &ptB[icoll], &contactDepth[icoll],
+                           &effective_radius[icoll], nC)) {
             Dispatch_Finalize(icoll, ID_A, ID_B, nC);
         }
     }
 }
 
 void ChNarrowphase::DispatchHybridMPR() {
-    const real envelope = data_manager->collision_envelope;
-    real3* norm = data_manager->host_data.norm_rigid_rigid.data();
-    real3* ptA = data_manager->host_data.cpta_rigid_rigid.data();
-    real3* ptB = data_manager->host_data.cptb_rigid_rigid.data();
-    real* contactDepth = data_manager->host_data.dpth_rigid_rigid.data();
-    real* effective_radius = data_manager->host_data.erad_rigid_rigid.data();
+    const real envelope = cd_data->collision_envelope;
+    real3* norm = cd_data->host_data.norm_rigid_rigid.data();
+    real3* ptA = cd_data->host_data.cpta_rigid_rigid.data();
+    real3* ptB = cd_data->host_data.cptb_rigid_rigid.data();
+    real* contactDepth = cd_data->host_data.dpth_rigid_rigid.data();
+    real* effective_radius = cd_data->host_data.erad_rigid_rigid.data();
 
     ConvexShape shapeA;
     ConvexShape shapeB;
@@ -281,11 +280,10 @@ void ChNarrowphase::DispatchHybridMPR() {
 
         Dispatch_Init(index, icoll, ID_A, ID_B, &shapeA, &shapeB);
 
-        if (PRIMSCollision(&shapeA, &shapeB, 2 * envelope, &norm[icoll], &ptA[icoll], &ptB[icoll],
-                           &contactDepth[icoll], &effective_radius[icoll], nC)) {
+        if (PRIMSCollision(&shapeA, &shapeB, 2 * envelope, &norm[icoll], &ptA[icoll], &ptB[icoll], &contactDepth[icoll],
+                           &effective_radius[icoll], nC)) {
             Dispatch_Finalize(icoll, ID_A, ID_B, nC);
-        } else if (MPRCollision(&shapeA, &shapeB, envelope, norm[icoll], ptA[icoll], ptB[icoll],
-                                contactDepth[icoll])) {
+        } else if (MPRCollision(&shapeA, &shapeB, envelope, norm[icoll], ptA[icoll], ptB[icoll], contactDepth[icoll])) {
             effective_radius[icoll] = default_eff_radius;
             Dispatch_Finalize(icoll, ID_A, ID_B, 1);
         }
@@ -295,14 +293,14 @@ void ChNarrowphase::DispatchHybridMPR() {
 }
 
 void ChNarrowphase::DispatchRigid() {
-    std::vector<real3>& norm_data = data_manager->host_data.norm_rigid_rigid;
-    std::vector<real3>& cpta_data = data_manager->host_data.cpta_rigid_rigid;
-    std::vector<real3>& cptb_data = data_manager->host_data.cptb_rigid_rigid;
-    std::vector<real>& dpth_data = data_manager->host_data.dpth_rigid_rigid;
-    std::vector<real>& erad_data = data_manager->host_data.erad_rigid_rigid;
-    std::vector<vec2>& bids_data = data_manager->host_data.bids_rigid_rigid;
-    std::vector<long long>& contact_shapeIDs = data_manager->host_data.contact_shapeIDs;
-    uint& num_rigid_contacts = data_manager->num_rigid_contacts;
+    std::vector<real3>& norm_data = cd_data->host_data.norm_rigid_rigid;
+    std::vector<real3>& cpta_data = cd_data->host_data.cpta_rigid_rigid;
+    std::vector<real3>& cptb_data = cd_data->host_data.cptb_rigid_rigid;
+    std::vector<real>& dpth_data = cd_data->host_data.dpth_rigid_rigid;
+    std::vector<real>& erad_data = cd_data->host_data.erad_rigid_rigid;
+    std::vector<vec2>& bids_data = cd_data->host_data.bids_rigid_rigid;
+    std::vector<long long>& contact_shapeIDs = cd_data->host_data.contact_shapeIDs;
+    uint& num_rigid_contacts = cd_data->num_rigid_contacts;
 
     // Set maximum possible number of contacts for each potential collision
     // (depending on the narrowphase algorithm and on the types of shapes in
@@ -371,29 +369,28 @@ void ChNarrowphase::DispatchFluid() {
     //// TODO: remapping of velocities (not needed for collision detection) to be done outside.
 
     // Readability replacements
-    const int num_fluid_bodies = data_manager->state_data.num_fluid_bodies;
+    const int num_fluid_bodies = cd_data->state_data.num_fluid_bodies;
     if (num_fluid_bodies == 0)
         return;
 
-    ////const int body_offset =
-    ////    data_manager->state_data.num_rigid_bodies * 6 + data_manager->num_shafts + data_manager->num_motors;
-    const real radius = data_manager->node_data.kernel_radius + data_manager->node_data.collision_envelope;
-    const real collision_envelope = data_manager->node_data.collision_envelope;
-    const real3& min_bounding_point = data_manager->measures.ff_min_bounding_point;
-    const real3& max_bounding_point = data_manager->measures.ff_max_bounding_point;
+    ////const int body_offset = cd_data->state_data.num_rigid_bodies * 6 + cd_data->num_shafts + cd_data->num_motors;
+    const real radius = cd_data->node_data.kernel_radius + cd_data->node_data.collision_envelope;
+    const real collision_envelope = cd_data->node_data.collision_envelope;
+    const real3& min_bounding_point = cd_data->measures.ff_min_bounding_point;
+    const real3& max_bounding_point = cd_data->measures.ff_max_bounding_point;
 
-    const std::vector<real3>& pos_fluid = *data_manager->state_data.pos_3dof;
-    const std::vector<real3>& vel_fluid = *data_manager->state_data.vel_3dof;
-    std::vector<real3>& sorted_pos_fluid = *data_manager->state_data.sorted_pos_3dof;
-    std::vector<real3>& sorted_vel_fluid = *data_manager->state_data.sorted_vel_3dof;
+    const std::vector<real3>& pos_fluid = *cd_data->state_data.pos_3dof;
+    const std::vector<real3>& vel_fluid = *cd_data->state_data.vel_3dof;
+    std::vector<real3>& sorted_pos_fluid = *cd_data->state_data.sorted_pos_3dof;
+    std::vector<real3>& sorted_vel_fluid = *cd_data->state_data.sorted_vel_3dof;
 
     ////DynamicVector<real>& v;
-    std::vector<int>& neighbor_fluid_fluid = data_manager->host_data.neighbor_3dof_3dof;
-    std::vector<int>& contact_counts = data_manager->host_data.c_counts_3dof_3dof;
-    std::vector<int>& particle_indices = data_manager->host_data.particle_indices_3dof;
-    std::vector<int>& reverse_mapping = data_manager->host_data.reverse_mapping_3dof;
-    vec3& bins_per_axis = data_manager->measures.ff_bins_per_axis;
-    uint& num_fluid_contacts = data_manager->num_fluid_contacts;
+    std::vector<int>& neighbor_fluid_fluid = cd_data->host_data.neighbor_3dof_3dof;
+    std::vector<int>& contact_counts = cd_data->host_data.c_counts_3dof_3dof;
+    std::vector<int>& particle_indices = cd_data->host_data.particle_indices_3dof;
+    std::vector<int>& reverse_mapping = cd_data->host_data.reverse_mapping_3dof;
+    vec3& bins_per_axis = cd_data->measures.ff_bins_per_axis;
+    uint& num_fluid_contacts = cd_data->num_fluid_contacts;
 
     const real radius_envelope = radius + collision_envelope;
     const real radius_squared = radius_envelope * radius_envelope;
@@ -497,22 +494,22 @@ void ChNarrowphase::DispatchFluid() {
 
 void ChNarrowphase::DispatchRigidFluid(const vec3& bins_per_axis) {
     // Readability replacements
-    const real sphere_radius = data_manager->node_data.kernel_radius;
-    const int num_spheres = data_manager->state_data.num_fluid_bodies;
-    const std::vector<real3>& pos_spheres = *data_manager->state_data.sorted_pos_3dof;
-    const short2& family = data_manager->node_data.family;
-    const real envelope = data_manager->collision_envelope;
+    const real sphere_radius = cd_data->node_data.kernel_radius;
+    const int num_spheres = cd_data->state_data.num_fluid_bodies;
+    const std::vector<real3>& pos_spheres = *cd_data->state_data.sorted_pos_3dof;
+    const short2& family = cd_data->node_data.family;
+    const real envelope = cd_data->collision_envelope;
 
-    std::vector<real3>& norm_rigid_sphere = data_manager->host_data.norm_rigid_fluid;
-    std::vector<real3>& cpta_rigid_sphere = data_manager->host_data.cpta_rigid_fluid;
-    std::vector<real>& dpth_rigid_sphere = data_manager->host_data.dpth_rigid_fluid;
-    std::vector<int>& neighbor_rigid_sphere = data_manager->host_data.neighbor_rigid_fluid;
-    std::vector<int>& contact_counts = data_manager->host_data.c_counts_rigid_fluid;
-    uint& num_contacts = data_manager->num_rigid_fluid_contacts;
+    std::vector<real3>& norm_rigid_sphere = cd_data->host_data.norm_rigid_fluid;
+    std::vector<real3>& cpta_rigid_sphere = cd_data->host_data.cpta_rigid_fluid;
+    std::vector<real>& dpth_rigid_sphere = cd_data->host_data.dpth_rigid_fluid;
+    std::vector<int>& neighbor_rigid_sphere = cd_data->host_data.neighbor_rigid_fluid;
+    std::vector<int>& contact_counts = cd_data->host_data.c_counts_rigid_fluid;
+    uint& num_contacts = cd_data->num_rigid_fluid_contacts;
 
-    real3 global_origin = data_manager->measures.global_origin;
-    real3 inv_bin_size = data_manager->measures.inv_bin_size;
-    const std::vector<short2>& fam_data = data_manager->shape_data.fam_rigid;
+    real3 global_origin = cd_data->measures.global_origin;
+    real3 inv_bin_size = cd_data->measures.inv_bin_size;
+    const std::vector<short2>& fam_data = cd_data->shape_data.fam_rigid;
     const real radius = sphere_radius;
 
     uint total_bins = (bins_per_axis.x + 1) * (bins_per_axis.y + 1) * (bins_per_axis.z + 1);
@@ -520,8 +517,8 @@ void ChNarrowphase::DispatchRigidFluid(const vec3& bins_per_axis) {
 
     Thrust_Fill(is_rigid_bin_active, 1000000000);
 #pragma omp parallel for
-    for (int index = 0; index < (signed)data_manager->measures.number_of_bins_active; index++) {
-        uint bin_number = data_manager->host_data.bin_number_out[index];
+    for (int index = 0; index < (signed)cd_data->measures.number_of_bins_active; index++) {
+        uint bin_number = cd_data->host_data.bin_number_out[index];
         if (bin_number < total_bins) {
             // printf("bin_number: %d\n", index, bin_number);
             is_rigid_bin_active[bin_number] = index;
@@ -590,8 +587,8 @@ void ChNarrowphase::DispatchRigidFluid(const vec3& bins_per_axis) {
             uint start = f_bin_start_index[index];
             uint end = f_bin_start_index[index + 1];
             // start and end of rigid bodies in this bin
-            uint rigid_start = data_manager->host_data.bin_start_index[rigid_index];
-            uint rigid_end = data_manager->host_data.bin_start_index[rigid_index + 1];
+            uint rigid_start = cd_data->host_data.bin_start_index[rigid_index];
+            uint rigid_end = cd_data->host_data.bin_start_index[rigid_index + 1];
 #pragma omp parallel for
             for (int i = start; i < (signed)end; i++) {
                 uint p = f_bin_fluid_number[i];
@@ -602,20 +599,20 @@ void ChNarrowphase::DispatchRigidFluid(const vec3& bins_per_axis) {
 
                 for (uint j = rigid_start; j < rigid_end; j++) {
                     if (contact_counts[p] < max_rigid_neighbors) {
-                        uint shape_id_a = data_manager->host_data.bin_aabb_number[j];
-                        real3 Amin = data_manager->host_data.aabb_min[shape_id_a];
-                        real3 Amax = data_manager->host_data.aabb_max[shape_id_a];
+                        uint shape_id_a = cd_data->host_data.bin_aabb_number[j];
+                        real3 Amin = cd_data->host_data.aabb_min[shape_id_a];
+                        real3 Amax = cd_data->host_data.aabb_max[shape_id_a];
                         // if the sphere and the rigid body appear in the same bin more than once, dont count
                         if (current_bin(Amin, Amax, Bmin, Bmax, inv_bin_size, bins_per_axis, bin_number) == true) {
                             if (overlap(Amin, Amax, Bmin, Bmax) && collide(family, fam_data[shape_id_a])) {
-                                ConvexShape* shapeA = new ConvexShape(shape_id_a, &data_manager->shape_data);
+                                ConvexShape* shapeA = new ConvexShape(shape_id_a, &cd_data->shape_data);
                                 real3 ptA, ptB, norm;
                                 real depth, erad = 0;
                                 int nC = 0;
-                                if (PRIMSCollision(shapeA, shapeB, 2 * envelope, &norm, &ptA, &ptB, &depth,
-                                                   &erad, nC)) {
+                                if (PRIMSCollision(shapeA, shapeB, 2 * envelope, &norm, &ptA, &ptB, &depth, &erad,
+                                                   nC)) {
                                     if (nC == 1) {
-                                        uint bodyA = data_manager->shape_data.id_rigid[shape_id_a];
+                                        uint bodyA = cd_data->shape_data.id_rigid[shape_id_a];
                                         neighbor_rigid_sphere[p * max_rigid_neighbors + contact_counts[p]] = bodyA;
                                         norm_rigid_sphere[p * max_rigid_neighbors + contact_counts[p]] = norm;
                                         cpta_rigid_sphere[p * max_rigid_neighbors + contact_counts[p]] = ptA;
@@ -627,7 +624,7 @@ void ChNarrowphase::DispatchRigidFluid(const vec3& bins_per_axis) {
                                                norm_rigid_sphere[p * max_rigid_neighbors + contact_counts[p]],
                                                cpta_rigid_sphere[p * max_rigid_neighbors + contact_counts[p]], ptB,
                                                dpth_rigid_sphere[p * max_rigid_neighbors + contact_counts[p]])) {
-                                    uint bodyA = data_manager->shape_data.id_rigid[shape_id_a];
+                                    uint bodyA = cd_data->shape_data.id_rigid[shape_id_a];
                                     neighbor_rigid_sphere[p * max_rigid_neighbors + contact_counts[p]] = bodyA;
                                     contact_counts[p]++;
                                 }

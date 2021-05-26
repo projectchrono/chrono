@@ -89,7 +89,7 @@ class ChApi ChCollisionSystemChrono : public ChCollisionSystem {
 
     /// Synchronization operations, invoked before running the collision detection.
     /// This function copies contactable state information in the collision system's data structures.
-    virtual void Synchronize();
+    virtual void Synchronize() override;
 
     /// Run the algorithm and finds all the contacts.
     virtual void Run() override;
@@ -134,8 +134,8 @@ class ChApi ChCollisionSystemChrono : public ChCollisionSystem {
     /// Return the pairs of IDs for overlapping contact shapes.
     virtual std::vector<vec2> GetOverlappingPairs();
 
-  private:
-    std::shared_ptr<ChCollisionData> data_manager;
+  protected:
+    std::shared_ptr<ChCollisionData> cd_data;
 
     collision::ChBroadphase broadphase;         ///< methods for broad-phase collision detection
     collision::ChNarrowphase narrowphase;       ///< methods for narrow-phase collision detection
