@@ -23,6 +23,7 @@ SET(DEMOS
   demo_IRR_ballSMC
   demo_IRR_collisionNSC
   demo_IRR_collisionSMC
+  demo_IRR_collision_object
   demo_IRR_collision_trimesh
   demo_IRR_collision_2d
   demo_IRR_emitter
@@ -50,7 +51,6 @@ SET(DEMOS
   demo_IRR_debugDrawer_collisionModels
   demo_IRR_imposed_motion
   demo_IRR_custom_contact
-  demo_IRR_cyl_box
 )
 
 #--------------------------------------------------------------

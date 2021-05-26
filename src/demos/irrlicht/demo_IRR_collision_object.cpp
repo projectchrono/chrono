@@ -18,6 +18,7 @@
 
 #include "chrono/physics/ChSystemNSC.h"
 #include "chrono/physics/ChSystemSMC.h"
+#include "chrono/collision/ChCollisionSystemChrono.h"
 #include "chrono_irrlicht/ChIrrApp.h"
 
 using namespace chrono;
@@ -42,14 +43,24 @@ class ContactManager : public ChContactContainer::ReportContactCallback {
 // ====================================================================================
 
 int main(int argc, char* argv[]) {
-    // Collision settings
-    enum class CollisionType { CYLINDER, CAPSULE, CYLSHELL, MESH };
-    CollisionType object_model = CollisionType::CYLSHELL;
+    // Collision detection system
+    collision::ChCollisionSystemType collision_type = collision::ChCollisionSystemType::CHRONO;
+
+    // Narrowphase algorithm (only for the Chrono multicore collision system)
+    collision::ChNarrowphase::Algorithm narrowphase_algorithm = collision::ChNarrowphase::Algorithm::MPR;
+
+    // Collision envelope (NSC only)
+    double collision_envelope = 0.05;
+
+    // Collision shape
+    enum class CollisionShape { SPHERE, CYLINDER, CAPSULE, CYLSHELL, MESH };
+    CollisionShape object_model = CollisionShape::CAPSULE;
+    
     std::string tire_mesh_file = GetChronoDataFile("vehicle/hmmwv/hmmwv_tire_fine.obj");
     ////std::string tire_mesh_file = GetChronoDataFile("vehicle/hmmwv/hmmwv_tire_coarse.obj");
 
     // Contact material properties
-    ChContactMethod contact_method = ChContactMethod::SMC;
+    ChContactMethod contact_method = ChContactMethod::NSC;
     bool use_mat_properties = true;
 
     float object_friction = 0.8f;
@@ -79,7 +90,7 @@ int main(int argc, char* argv[]) {
     double init_roll = 0 * CH_C_DEG_TO_RAD;
 
     ChVector<> init_vel(0, 0, 0);
-    ChVector<> init_omg(0, 0, 5);
+    ChVector<> init_omg(0, 0, 0);
 
     double radius = 0.5;  // cylinder radius
     double hlen = 0.4;    // cylinder half-length
@@ -93,16 +104,19 @@ int main(int argc, char* argv[]) {
     std::cout << "Step size:             " << time_step << std::endl;
     std::cout << "Object collision type: ";
     switch (object_model) {
-        case CollisionType::CYLINDER:
+        case CollisionShape::SPHERE:
+            std::cout << "SPHERE" << std::endl;
+            break;
+        case CollisionShape::CYLINDER:
             std::cout << "CYLINDER" << std::endl;
             break;
-        case CollisionType::CAPSULE:
+        case CollisionShape::CAPSULE:
             std::cout << "CAPSULE" << std::endl;
             break;
-        case CollisionType::CYLSHELL:
+        case CollisionShape::CYLSHELL:
             std::cout << "CYLSHELL" << std::endl;
             break;
-        case CollisionType::MESH:
+        case CollisionShape::MESH:
             std::cout << "MESH" << std::endl;
             break;
     }
@@ -113,19 +127,26 @@ int main(int argc, char* argv[]) {
 
     switch (contact_method) {
         case ChContactMethod::NSC:
+            collision::ChCollisionModel::SetDefaultSuggestedEnvelope(collision_envelope);
             system = new ChSystemNSC();
             break;
         case ChContactMethod::SMC:
+            collision::ChCollisionModel::SetDefaultSuggestedEnvelope(0);
             system = new ChSystemSMC(use_mat_properties);
             break;
     }
-
     system->Set_G_acc(ChVector<>(0, -9.81, 0));
+
+    // Create and attach the collision detection system (default BULLET)
+    if (collision_type == collision::ChCollisionSystemType::CHRONO) {
+        ////system->SetCollisionSystemType(collision_type);
+        auto cd_chrono = chrono_types::make_shared<collision::ChCollisionSystemChrono>();
+        cd_chrono->SetNarrowphaseAlgorithm(narrowphase_algorithm);
+        system->SetCollisionSystem(cd_chrono);
+    }
 
     // Create the Irrlicht visualization
     ChIrrApp application(system, L"Collision test", irr::core::dimension2d<irr::u32>(800, 600));
-
-    // Easy shortcuts to add camera, lights, logo and sky in Irrlicht scene
     application.AddTypicalLogo();
     application.AddTypicalSky();
     application.AddTypicalLights();
@@ -141,7 +162,7 @@ int main(int argc, char* argv[]) {
     ChQuaternion<> z2y = Q_from_AngX(-CH_C_PI_2);
 
     // Create the falling object
-    auto object = std::shared_ptr<ChBody>(system->NewBody());
+    auto object = chrono_types::make_shared<ChBody>(collision_type);
     system->AddBody(object);
 
     object->SetName("object");
@@ -168,7 +189,18 @@ int main(int argc, char* argv[]) {
     }
 
     switch (object_model) {
-        case CollisionType::CYLINDER: {
+        case CollisionShape::SPHERE: {
+            object->GetCollisionModel()->ClearModel();
+            object->GetCollisionModel()->AddSphere(object_mat, radius, ChVector<>(0));
+            object->GetCollisionModel()->BuildModel();
+
+            auto sphere = chrono_types::make_shared<ChSphereShape>();
+            sphere->GetSphereGeometry().rad = radius;
+            object->AddAsset(sphere);
+
+            break;
+        }
+        case CollisionShape::CYLINDER: {
             object->GetCollisionModel()->ClearModel();
             object->GetCollisionModel()->AddCylinder(object_mat, radius, radius, hlen, ChVector<>(0), ChMatrix33<>(1));
             object->GetCollisionModel()->BuildModel();
@@ -181,7 +213,7 @@ int main(int argc, char* argv[]) {
 
             break;
         }
-        case CollisionType::CAPSULE: {
+        case CollisionShape::CAPSULE: {
             object->GetCollisionModel()->ClearModel();
             object->GetCollisionModel()->AddCapsule(object_mat, radius, hlen, ChVector<>(0), ChMatrix33<>(1));
             object->GetCollisionModel()->BuildModel();
@@ -193,7 +225,7 @@ int main(int argc, char* argv[]) {
 
             break;
         }
-        case CollisionType::CYLSHELL: {
+        case CollisionShape::CYLSHELL: {
             object->GetCollisionModel()->ClearModel();
             object->GetCollisionModel()->AddCylindricalShell(object_mat, radius, hlen, ChVector<>(0), ChMatrix33<>(1));
             object->GetCollisionModel()->BuildModel();
@@ -206,7 +238,7 @@ int main(int argc, char* argv[]) {
 
             break;
         }
-        case CollisionType::MESH: {
+        case CollisionShape::MESH: {
             double sphere_r = 0.005;
             auto trimesh = chrono_types::make_shared<geometry::ChTriangleMeshConnected>();
             if (!trimesh->LoadWavefrontMesh(tire_mesh_file, true, false))
@@ -226,11 +258,11 @@ int main(int argc, char* argv[]) {
         }
     }
 
-    auto tex = chrono_types::make_shared<ChTexture>(GetChronoDataFile("concrete.jpg"));
+    auto tex = chrono_types::make_shared<ChTexture>(GetChronoDataFile("textures/concrete.jpg"));
     object->AddAsset(tex);
 
     // Create ground body
-    auto ground = std::shared_ptr<ChBody>(system->NewBody());
+    auto ground = chrono_types::make_shared<ChBody>(collision_type);
     system->AddBody(ground);
 
     ground->SetName("ground");
@@ -284,17 +316,20 @@ int main(int argc, char* argv[]) {
 
         system->DoStepDynamics(time_step);
 
-        ////if (system->GetNcontacts()) {
-        ////    // Report all contacts
-        ////    std::cout << system->GetChTime() << "  " << system->GetNcontacts() << std::endl;
-        ////    system->GetContactContainer()->ReportAllContacts(cmanager);
+        /*
+        std::cout << "----\nTime: " << system->GetChTime() << "  " << system->GetNcontacts() << std::endl;
+        std::cout << "Object position: " << object->GetPos() << std::endl;
+        if (system->GetNcontacts()) {
+            // Report all contacts
+            system->GetContactContainer()->ReportAllContacts(cmanager);
 
-        ////    // Cumulative contact force on object
-        ////    ChVector<> frc1 = object->GetContactForce();
-        ////    ChVector<> trq1 = object->GetContactTorque();
-        ////    printf("  Contact force at COM:  %7.3f  %7.3f  %7.3f", frc1.x(), frc1.y(), frc1.z());
-        ////    printf("  Contact torque at COM: %7.3f  %7.3f  %7.3f\n", trq1.x(), trq1.y(), trq1.z());
-        ////}
+            // Cumulative contact force on object
+            ChVector<> frc1 = object->GetContactForce();
+            ChVector<> trq1 = object->GetContactTorque();
+            std::cout << "Contact force at COM:  " << frc1 << std::endl;
+            std::cout << "Contact torque at COM: " << trq1 << std::endl;
+        }
+        */
     }
 
     return 0;
@@ -315,6 +350,7 @@ bool ContactManager::OnReportContact(const ChVector<>& pA,
     auto bodyB = static_cast<ChBody*>(modB);
 
     std::cout << "  " << bodyA->GetName() << "  " << bodyB->GetName() << std::endl;
+    std::cout << "  " << bodyA->GetPos() << std::endl;
     std::cout << "  " << distance << std::endl;
     std::cout << "  " << pA << "    " << pB << std::endl;
     std::cout << "  " << plane_coord.Get_A_Xaxis() << std::endl;
