@@ -18,9 +18,6 @@
 
 #include "chrono_multicore/physics/ChSystemMulticore.h"
 
-#include "chrono/assets/ChBoxShape.h"
-#include "chrono/assets/ChCylinderShape.h"
-
 #include "chrono_irrlicht/ChIrrApp.h"
 
 using namespace chrono;
@@ -129,22 +126,15 @@ int main(int argc, char* argv[]) {
 
     switch (contact_method) {
         case ChContactMethod::NSC: {
-            double contact_recovery_speed = 10;
-
-            uint max_iteration_normal = 0;
-            uint max_iteration_sliding = 0;
-            uint max_iteration_spinning = 100;
-            uint max_iteration_bilateral = 0;
-
             auto sysNSC = new ChSystemMulticoreNSC();
             sysNSC->ChangeSolverType(SolverType::APGD);
             sysNSC->GetSettings()->solver.solver_mode = SolverMode::SPINNING;
-            sysNSC->GetSettings()->solver.max_iteration_normal = max_iteration_normal;
-            sysNSC->GetSettings()->solver.max_iteration_sliding = max_iteration_sliding;
-            sysNSC->GetSettings()->solver.max_iteration_spinning = max_iteration_spinning;
-            sysNSC->GetSettings()->solver.max_iteration_bilateral = max_iteration_bilateral;
+            sysNSC->GetSettings()->solver.max_iteration_normal = 0;
+            sysNSC->GetSettings()->solver.max_iteration_sliding = 0;
+            sysNSC->GetSettings()->solver.max_iteration_spinning = 100;
+            sysNSC->GetSettings()->solver.max_iteration_bilateral = 0;
             sysNSC->GetSettings()->solver.alpha = 0;
-            sysNSC->GetSettings()->solver.contact_recovery_speed = contact_recovery_speed;
+            sysNSC->GetSettings()->solver.contact_recovery_speed = 10;
             sysNSC->GetSettings()->collision.collision_envelope = collision_envelope;
             system = sysNSC;
             break;
@@ -169,7 +159,7 @@ int main(int argc, char* argv[]) {
     system->GetSettings()->solver.tolerance = 0;
 
     system->GetSettings()->collision.narrowphase_algorithm = narrowphase_algorithm;
-    system->GetSettings()->collision.bins_per_axis = vec3(10, 10, 10);
+    system->GetSettings()->collision.bins_per_axis = vec3(1, 1, 1);
 
     // Create the Irrlicht visualization
     ChIrrApp application(system, L"Collision test (Chrono::Multicore)", irr::core::dimension2d<irr::u32>(800, 600));

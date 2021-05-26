@@ -126,22 +126,32 @@ int main(int argc, char* argv[]) {
     ChSystem* system = nullptr;
 
     switch (contact_method) {
-        case ChContactMethod::NSC:
-            collision::ChCollisionModel::SetDefaultSuggestedEnvelope(collision_envelope);
-            system = new ChSystemNSC();
+        case ChContactMethod::NSC: {
+            auto sysNSC = new ChSystemNSC();
+            sysNSC->SetSolverType(ChSolver::Type::APGD);
+            sysNSC->SetSolverMaxIterations(100);
+            sysNSC->SetMaxPenetrationRecoverySpeed(10);
+            system = sysNSC;
             break;
-        case ChContactMethod::SMC:
-            collision::ChCollisionModel::SetDefaultSuggestedEnvelope(0);
-            system = new ChSystemSMC(use_mat_properties);
+        }
+        case ChContactMethod::SMC: {
+            auto sysSMC = new ChSystemSMC(use_mat_properties);
+            sysSMC->SetContactForceModel(ChSystemSMC::Hertz);
+            sysSMC->SetTangentialDisplacementModel(ChSystemSMC::OneStep);
+            system = sysSMC;
             break;
+        }
     }
+
     system->Set_G_acc(ChVector<>(0, -9.81, 0));
 
     // Create and attach the collision detection system (default BULLET)
     if (collision_type == collision::ChCollisionSystemType::CHRONO) {
         ////system->SetCollisionSystemType(collision_type);
         auto cd_chrono = chrono_types::make_shared<collision::ChCollisionSystemChrono>();
+        cd_chrono->SetBroadphaseNumBins(ChVector<int>(1, 1, 1));
         cd_chrono->SetNarrowphaseAlgorithm(narrowphase_algorithm);
+        cd_chrono->SetEnvelope(collision_envelope);
         system->SetCollisionSystem(cd_chrono);
     }
 
