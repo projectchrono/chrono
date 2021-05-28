@@ -60,11 +60,14 @@ class ChApi ChCollisionSystem {
     // virtual void RemoveAll() = 0;
 
     /// Optional synchronization operations, invoked before running the collision detection.
-    virtual void Synchronize() {}
+    virtual void PreProcess() {}
 
     /// Run the collision detection and finds the contacts.
     /// This function will be called at each simulation step.
     virtual void Run() = 0;
+
+    /// Optional synchronization operations, invoked after running the collision detection.
+    virtual void PostProcess() {}
 
     /// Return an AABB bounding all collision shapes in the system
     virtual void GetBoundingBox(ChVector<>& aabb_min, ChVector<>& aabb_max) const = 0;

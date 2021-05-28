@@ -1218,10 +1218,11 @@ double ChSystem::ComputeCollisions() {
 
     // Update all positions of collision models: delegate this to the ChAssembly
     assembly.SyncCollisionModels();
-    collision_system->Synchronize();
 
     // Perform the collision detection ( broadphase and narrowphase )
+    collision_system->PreProcess();
     collision_system->Run();
+    collision_system->PostProcess();
 
     // Report and store contacts and/or proximities, if there are some
     // containers in the physic system. The default contact container

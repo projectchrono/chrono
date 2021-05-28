@@ -261,7 +261,7 @@ void ChCollisionSystemChrono::SetNumThreads(int nthreads) {
 #endif
 }
 
-void ChCollisionSystemChrono::Synchronize() {
+void ChCollisionSystemChrono::PreProcess() {
     assert(cd_data->owns_state_data);
 
     std::vector<real3>& position = *cd_data->state_data.pos_rigid;
