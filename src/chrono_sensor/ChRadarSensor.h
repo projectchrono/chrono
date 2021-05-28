@@ -54,11 +54,10 @@ class CH_SENSOR_API ChRadarSensor : public ChOptixSensor {
     /// Class destructor
     ~ChRadarSensor();
 
-
     /// Gives the horizontal field of view of the radar (angle between right-most and left-most ray for a "frame").
     /// Horizontal field of view should be 360-(angular resulution) in degrees for a full 360 degree scanning radar.
     /// @return The horizontal field of view of the radar sensor
-    float GetHFOV() const { return m_hFOV; }  
+    float GetHFOV() const { return m_hFOV; }
 
     /// Returns the highest vertical angle of any ray in the radar
     /// @return The angle of the highest ray
@@ -78,18 +77,18 @@ class CH_SENSOR_API ChRadarSensor : public ChOptixSensor {
 
     /// Returns the translational velocity of the object the radar is attached to
     /// @return Returns the translational velocity of the object the radar is attached to
-    ChVector<double> GetTranslationalVelocity(){return m_parent->GetPos_dt();}
+    ChVector<double> GetTranslationalVelocity() { return m_parent->GetPos_dt(); }
 
     /// Returns the angular velocity of the object the radar is attached to
     /// @return Returns the angular velocity of the object the radar is attached to
-    ChVector<double> GetAngularVelocity(){return m_parent->GetWvel_loc();}
+    ChVector<double> GetAngularVelocity() { return m_parent->GetWvel_loc(); }
 
   private:
-    float m_hFOV;               ///< the horizontal field of view of the radar
-    float m_max_vert_angle;     ///< max vertical angle of the rays
-    float m_min_vert_angle;     ///< min vertical angle of the rays
-    float m_max_distance;       ///< max distance for radar
-    float m_clip_near;          ///< near clipping distance so that radar sensor housings can be transparent to self
+    float m_hFOV;            ///< the horizontal field of view of the radar
+    float m_max_vert_angle;  ///< max vertical angle of the rays
+    float m_min_vert_angle;  ///< min vertical angle of the rays
+    float m_max_distance;    ///< max distance for radar
+    float m_clip_near;       ///< near clipping distance so that radar sensor housings can be transparent to self
 };
 
 /// @} sensor_sensors

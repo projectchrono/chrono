@@ -22,10 +22,10 @@ namespace chrono {
 namespace sensor {
 
 CH_SENSOR_API ChRadarSensor::ChRadarSensor(std::shared_ptr<chrono::ChBody> parent,  // object to attach to
-                                           float updateRate,                
-                                           chrono::ChFrame<double> offsetPose, 
-                                           unsigned int w,    // image width (# of rays)
-                                           unsigned int h,    // image height (# of rays)
+                                           float updateRate,
+                                           chrono::ChFrame<double> offsetPose,
+                                           unsigned int w,  // image width (# of rays)
+                                           unsigned int h,  // image height (# of rays)
                                            float hfov,
                                            float max_vertical_angle,
                                            float min_vertical_angle,

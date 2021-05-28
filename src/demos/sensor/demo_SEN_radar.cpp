@@ -9,7 +9,7 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Authors: Han Wang 
+// Authors: Han Wang
 // =============================================================================
 //
 // Chrono demonstration of a radar sensor
@@ -38,7 +38,6 @@
 #include "chrono_sensor/filters/ChFilterPCfromDepth.h"
 #include "chrono_sensor/filters/ChFilterVisualizePointCloud.h"
 
-
 #include "chrono_sensor/ChCameraSensor.h"
 #include "chrono_sensor/ChSensorManager.h"
 #include "chrono_sensor/filters/ChFilterAccess.h"
@@ -48,20 +47,13 @@
 #include "chrono_sensor/filters/ChFilterCameraNoise.h"
 #include "chrono_sensor/filters/ChFilterImageOps.h"
 
-
-#include "chrono_irrlicht/ChIrrApp.h"
-#include <chrono>
-
-
 using namespace chrono;
 using namespace chrono::geometry;
 using namespace chrono::sensor;
-using namespace chrono::irrlicht;
 // using namespace irr;
 // using namespace irr::core;
 // using namespace irr::scene;
 // using namespace irr::video;
-
 
 // ------------------------------------
 // Radar Parameters
@@ -71,21 +63,24 @@ using namespace chrono::irrlicht;
 float update_rate = 5.f;
 
 // horizontal field of view of camera
-float fov = (float)CH_C_PI / 3.;
 int alias_factor = 1;
 CameraLensModelType lens_model = CameraLensModelType::PINHOLE;
 // Exposure (in seconds) of each image
 float exposure_time = 0.02f;
 
-
 // Number of horizontal and vertical samples
-unsigned int horizontal_samples = 500;
-unsigned int vertical_samples = 500;
+unsigned int horizontal_samples = 300;
+unsigned int vertical_samples = 300;
 
 // Field of View
-float horizontal_fov = CH_C_PI / 3; // 60 degree scan
-float max_vert_angle = (float) CH_C_PI / 10; // 60 degrees up
-float min_vert_angle = (float) -CH_C_PI / 10; // 15 degrees down
+float horizontal_fov = CH_C_PI / 9;           // 20 degree scan
+float max_vert_angle = (float)CH_C_PI / 15;   // 12 degrees up
+float min_vert_angle = (float)-CH_C_PI / 15;  // 12 degrees down
+
+// camera can have same view as radar
+float aspect_ratio = horizontal_fov / (max_vert_angle - min_vert_angle);
+float width = 960;
+float height = width / aspect_ratio;
 
 // max detection range
 float max_distance = 100;
@@ -94,7 +89,7 @@ float max_distance = 100;
 float lag = 0.f;
 
 // Collection window for the radar
-float collection_time = 1 / update_rate; //typically 1/update rate
+float collection_time = 1 / update_rate;  // typically 1/update rate
 
 // Output directories
 const std::string out_dir = "RADAR_OUTPUT/";
@@ -108,8 +103,8 @@ double step_size = 1e-3;
 // Simulation end time
 float end_time = 2000.0f;
 
-int main(int argc, char* argv[]){
-    GetLog() << "Copyright (c) 2019 projectchrono.org\nChrono version: " << CHRONO_VERSION <<"\n\n";
+int main(int argc, char* argv[]) {
+    GetLog() << "Copyright (c) 2019 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
 
     // -----------------
     auto material = chrono_types::make_shared<ChMaterialSurfaceNSC>();
@@ -123,7 +118,7 @@ int main(int argc, char* argv[]){
     // ----------------------------------
     auto mmesh = chrono_types::make_shared<ChTriangleMeshConnected>();
     mmesh->LoadWavefrontMesh(GetChronoDataFile("vehicle/hmmwv/hmmwv_chassis.obj"), false, true);
-    mmesh->Transform(ChVector<>(0,0,0), ChMatrix33<>()); // scale to a difference size
+    mmesh->Transform(ChVector<>(0, 0, 0), ChMatrix33<>());  // scale to a difference size
 
     auto trimesh_shape = chrono_types::make_shared<ChTriangleMeshShape>();
     trimesh_shape->SetMesh(mmesh);
@@ -131,16 +126,15 @@ int main(int argc, char* argv[]){
     trimesh_shape->SetStatic(true);
 
     // ----------------------
-    // color visual materials 
+    // color visual materials
     // ----------------------
     auto red = chrono_types::make_shared<ChVisualMaterial>();
-    red->SetDiffuseColor({1,0,0});
+    red->SetDiffuseColor({1, 0, 0});
     red->SetSpecularColor({1.f, 1.f, 1.f});
 
     auto green = chrono_types::make_shared<ChVisualMaterial>();
-    green->SetDiffuseColor({0,1,0});
-    green->SetSpecularColor({1.f,1.f,1.f});
-
+    green->SetDiffuseColor({0, 1, 0});
+    green->SetSpecularColor({1.f, 1.f, 1.f});
 
     // -------------------------------------------
     // add a few box bodies to be sense by a lidar
@@ -148,17 +142,17 @@ int main(int argc, char* argv[]){
     auto floor = chrono_types::make_shared<ChBodyEasyBox>(1, 1, 1, 1000, true, false);
     floor->SetPos({0, 0, -1});
     floor->SetBodyFixed(true);
-//    floor->SetWvel_par(ChVector<>(-0.2,-0.4,-0.3));
-//    floor->SetPos_dt(ChVector<>(0.1, 0,0));
+    //    floor->SetWvel_par(ChVector<>(-0.2,-0.4,-0.3));
+    //    floor->SetPos_dt(ChVector<>(0.1, 0,0));
     mphysicalSystem.Add(floor);
     {
         auto asset = floor->GetAssets()[0];
-        if ( auto visual_asset = std::dynamic_pointer_cast<ChVisualization>(asset)){
+        if (auto visual_asset = std::dynamic_pointer_cast<ChVisualization>(asset)) {
             visual_asset->material_list.push_back(green);
         }
     }
 
-    for (int i = 0; i < 100; i++){
+    for (int i = 0; i < 30; i++) {
         int x = rand() % 20;
         int y = rand() % 20;
         int z = rand() % 30;
@@ -167,7 +161,7 @@ int main(int argc, char* argv[]){
         mphysicalSystem.Add(box_body);
         {
             auto asset = box_body->GetAssets()[0];
-            if ( auto visual_asset = std::dynamic_pointer_cast<ChVisualization>(asset)){
+            if (auto visual_asset = std::dynamic_pointer_cast<ChVisualization>(asset)) {
                 visual_asset->material_list.push_back(red);
             }
         }
@@ -188,17 +182,9 @@ int main(int argc, char* argv[]){
     // -----------------------------------------------
     auto offset_pose = chrono::ChFrame<double>({0, 0, 1}, Q_from_AngZ(CH_C_PI / 2));
 
-    auto radar = 
-        chrono_types::make_shared<ChRadarSensor>(floor,
-                                                 update_rate,
-                                                 offset_pose,
-                                                 horizontal_samples,
-                                                 vertical_samples,
-                                                 horizontal_fov,
-                                                 max_vert_angle,
-                                                 min_vert_angle,
-                                                 max_distance
-                                                 );
+    auto radar =
+        chrono_types::make_shared<ChRadarSensor>(floor, update_rate, offset_pose, horizontal_samples, vertical_samples,
+                                                 horizontal_fov, max_vert_angle, min_vert_angle, max_distance);
     radar->SetName("Radar Sensor");
     radar->SetLag(lag);
     radar->SetCollectionWindow(collection_time);
@@ -209,86 +195,34 @@ int main(int argc, char* argv[]){
     radar->PushFilter(chrono_types::make_shared<ChFilterRadarSavePC>(out_dir));
     manager->AddSensor(radar);
 
-
-    auto lidar = chrono_types::make_shared<ChLidarSensor>(floor,
-                                                          update_rate,
-                                                          offset_pose,
-                                                          horizontal_samples,
-                                                          vertical_samples,
-                                                          horizontal_fov,
-                                                          max_vert_angle,
-                                                          min_vert_angle,
-                                                          max_distance);
-    lidar->SetName("Lidar Sensor 1");
-    lidar->SetLag(lag);
-    lidar->SetCollectionWindow(collection_time);
-    lidar->PushFilter(chrono_types::make_shared<ChFilterDIAccess>("DI Access"));
-    lidar->PushFilter(chrono_types::make_shared<ChFilterPCfromDepth>());
-    lidar->PushFilter(chrono_types::make_shared<ChFilterVisualizePointCloud>(640, 480, 1, " Lidar PC"));
-//    manager->AddSensor(lidar);
-
     auto cam_offset_pose = chrono::ChFrame<double>({0, 0, 1}, Q_from_AngZ(CH_C_PI / 2));
-    auto cam1 = chrono_types::make_shared<ChCameraSensor>(floor,   // body camera is attached to
-                                                          update_rate,   // update rate in Hz
+    auto cam1 = chrono_types::make_shared<ChCameraSensor>(floor,            // body camera is attached to
+                                                          update_rate,      // update rate in Hz
                                                           cam_offset_pose,  // offset pose
-                                                          1280,   // image width
-                                                          720,  // image height
-                                                          horizontal_fov,           // camera's horizontal field of view
-                                                          alias_factor,  // supersample factor for antialiasing
+                                                          width,            // image width
+                                                          height,           // image height
+                                                          horizontal_fov,   // camera's horizontal field of view
+                                                          alias_factor,     // supersample factor for antialiasing
                                                           lens_model,
                                                           false);  // FOV
     cam1->SetName("World Camera Sensor");
     cam1->SetLag(lag);
     cam1->SetCollectionWindow(exposure_time);
-
-    // Render the antialiased image
-    cam1->PushFilter(chrono_types::make_shared<ChFilterVisualize>(1280, 720, "World Ray Tracing"));
-
-  // Add the second camera to the sensor manager
+    cam1->PushFilter(chrono_types::make_shared<ChFilterVisualize>(width, height, "World Ray Tracing"));
     manager->AddSensor(cam1);
-
-//    //
-//    // The Visualization System
-//    //
-//    ChIrrApp application(&mphysicalSystem, L"Motors", core::dimension2d<u32>(800, 600));
-//
-//    // Easy shortcuts to add camera, lights, logo and sky in Irrlicht scene:
-//    application.AddTypicalLogo();
-//    application.AddTypicalSky();
-//    application.AddTypicalLights();
-//    application.AddTypicalCamera(core::vector3df(-15, 15, -0));
-//    application.AddLightWithShadow(vector3df(20.0f, 35.0f, -25.0f), vector3df(0, 0, 0), 55, 20, 55, 35, 512,
-//                                   video::SColorf(0.6f, 0.8f, 1.0f));
-//
-//    // Use this function for adding a ChIrrNodeAsset to all items
-//    // Otherwise use application.AssetBind(myitem); on a per-item basis.
-//    application.AssetBindAll();
-//
-//    // Use this function for 'converting' assets into Irrlicht meshes
-//    application.AssetUpdateAll();
-//
-//    // This is to enable shadow maps (shadow casting with soft shadows) in Irrlicht
-//    // for all objects (or use application.AddShadow(..) for enable shadow on a per-item basis)
-//    application.AddShadowAll();
 
     // -------------------
     // Simulate the system
     // -------------------
     double render_time = 0;
     float ch_time = 0.0;
-    
-    while(ch_time < end_time) {
-//        application.BeginScene(true, true, SColor(255, 140, 161, 192));
-//        application.DrawAll();
 
+    while (ch_time < end_time) {
         manager->Update();
 
         mphysicalSystem.DoStepDynamics(step_size);
 
         // Get the current time of the simulation
-        ch_time = (float) mphysicalSystem.GetChTime();
-
-//        application.DoStep();
-//        application.EndScene();
+        ch_time = (float)mphysicalSystem.GetChTime();
     }
 }

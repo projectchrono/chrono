@@ -1,14 +1,11 @@
 #include "Dbscan.h"
 
-int DBSCAN::Run(
-    std::vector<vec3f>*     V
-    , const float           eps
-    , const uint            min
-) {
-
+int DBSCAN::Run(std::vector<vec3f>* V, const float eps, const uint min) {
     // Validate
-    if (V->size() < 1) return ERROR_TYPE::FAILED;
-    if (min < 1) return ERROR_TYPE::FAILED;
+    if (V->size() < 1)
+        return ERROR_TYPE::FAILED;
+    if (min < 1)
+        return ERROR_TYPE::FAILED;
 
     // initialization
     this->datalen = (uint)V->size();
@@ -30,8 +27,7 @@ int DBSCAN::Run(
             const std::vector<uint> neightbors = this->regionQuery(pid);
             if (neightbors.size() < this->minpts) {
                 continue;
-            }
-            else {
+            } else {
                 uint cid = (uint)this->clusters.size();
                 this->clusters.push_back(std::vector<uint>());
                 this->addToBorderSet(pid);
@@ -48,17 +44,15 @@ int DBSCAN::Run(
     }
 
     this->destroyKdtree();
-    
-    return ERROR_TYPE::SUCCESS;
 
+    return ERROR_TYPE::SUCCESS;
 }
 
 void DBSCAN::destroyKdtree() {
     kd_free(this->tree);
 }
 
-void DBSCAN::buildKdtree(const std::vector<vec3f>* V)
-{
+void DBSCAN::buildKdtree(const std::vector<vec3f>* V) {
     this->tree = kd_create();
     std::shared_ptr<float[]> v(new float[3]);
     for (uint r = 0; r < this->datalen; ++r) {
@@ -70,7 +64,6 @@ void DBSCAN::buildKdtree(const std::vector<vec3f>* V)
 }
 
 std::vector<uint> DBSCAN::regionQuery(const uint pid) const {
-
     std::vector<uint> neighbors;
 
     std::shared_ptr<float[]> v(new float[3]);
@@ -82,34 +75,34 @@ std::vector<uint> DBSCAN::regionQuery(const uint pid) const {
     while (!kd_res_end(presults)) {
         vec3f* pch = (vec3f*)kd_res_item(presults, v.get());
         uint pnpid = (uint)(pch - &(*this->data)[0]);
-        if(pid != pnpid) neighbors.push_back(pnpid);
+        if (pid != pnpid)
+            neighbors.push_back(pnpid);
         kd_res_next(presults);
     }
     kd_res_free(presults);
 
-    
     return neighbors;
 }
 
 void DBSCAN::expandCluster(const uint cid, const std::vector<uint>& neighbors) {
-
-    std::queue<uint> border; 
-    for (uint pid : neighbors) border.push(pid); 
+    std::queue<uint> border;
+    for (uint pid : neighbors)
+        border.push(pid);
     this->addToBorderSet(neighbors);
-    
-    while(border.size() > 0) { 
-        const uint pid = border.front(); border.pop();
+
+    while (border.size() > 0) {
+        const uint pid = border.front();
+        border.pop();
 
         if (!this->visited[pid]) {
-
             this->visited[pid] = true;
             const std::vector<uint> pidneighbors = this->regionQuery(pid);
 
             if (pidneighbors.size() >= this->minpts) {
                 this->addToCluster(pid, cid);
-                for (uint pidnid : pidneighbors) { 
-                    if (!this->isInBorderSet(pidnid)) { 
-                        border.push(pidnid); 
+                for (uint pidnid : pidneighbors) {
+                    if (!this->isInBorderSet(pidnid)) {
+                        border.push(pidnid);
                         this->addToBorderSet(pidnid);
                     }
                 }
@@ -122,4 +115,3 @@ void DBSCAN::addToCluster(const uint pid, const uint cid) {
     this->clusters[cid].push_back(pid);
     this->assigned[pid] = true;
 }
-
