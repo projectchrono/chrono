@@ -120,10 +120,10 @@ void SetSimParameters(
     sys->GetSettings()->solver.adhesion_force_model = ChSystemSMC::AdhesionForceModel::Constant;
     sys->GetSettings()->solver.tangential_displ_mode = tmodel;
 
-    sys->GetSettings()->collision.bins_per_axis = vec3(10, 10, 10);
+    sys->GetSettings()->collision.bins_per_axis = vec3(1, 1, 1);
     sys->GetSettings()->collision.narrowphase_algorithm = ChNarrowphase::Algorithm::HYBRID;
 
-    sys->SetCollisionSystemType(ChCollisionSystemType::CHRONO);
+    sys->SetCollisionSystemType(ChCollisionSystemType::OTHER);
 }
 
 bool CalcKE(ChSystemMulticoreSMC* sys, const double& threshold) {
