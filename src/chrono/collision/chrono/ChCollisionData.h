@@ -172,8 +172,7 @@ class ChApi ChCollisionData {
           num_rigid_contacts(0),
           num_rigid_fluid_contacts(0),
           num_fluid_contacts(0),
-          num_rigid_shapes(0),
-          add_contact_callback(nullptr) {
+          num_rigid_shapes(0) {
         if (owns_data) {
             state_data.pos_rigid = new std::vector<real3>;
             state_data.rot_rigid = new std::vector<quaternion>;
@@ -219,9 +218,6 @@ class ChApi ChCollisionData {
     uint num_rigid_contacts;        ///< The number of contacts between rigid bodies in a system
     uint num_rigid_fluid_contacts;  ///< The number of contacts between rigid and fluid objects
     uint num_fluid_contacts;        ///< The number of contacts between fluid objects
-
-    /// User-provided callback for overriding composite material properties.
-    std::shared_ptr<ChContactContainer::AddContactCallback> add_contact_callback;
 };
 
 /// @} collision_mc

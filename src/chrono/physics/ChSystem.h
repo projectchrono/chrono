@@ -413,12 +413,6 @@ class ChApi ChSystem : public ChIntegrableIIorder {
     /// Note that the body is *not* attached to this system.
     virtual ChBodyAuxRef* NewBodyAuxRef();
 
-    /// Replace the contact container.
-    virtual void SetContactContainer(std::shared_ptr<ChContactContainer> container);
-
-    /// Get the contact container
-    std::shared_ptr<ChContactContainer> GetContactContainer() { return contact_container; }
-
     /// Given inserted markers and links, restores the
     /// pointers of links to markers given the information
     /// about the marker IDs. Will be made obsolete in future with new serialization systems.
@@ -679,19 +673,35 @@ class ChApi ChSystem : public ChIntegrableIIorder {
         collision_callbacks.push_back(callback);
     }
 
-    /// Change the underlying collision detectino system to the specified type.
+    /// Change the underlying collision detection system to the specified type.
+    /// By default, a ChSystem uses a Bullet-based collision detection engine
+    /// (collision::ChCollisionSystemType::BULLET).
     virtual void SetCollisionSystemType(collision::ChCollisionSystemType type);
 
-    /// For higher performance (ex. when GPU coprocessors are available) you can create your own custom
-    /// collision engine (inherited from ChCollisionSystem) and plug it into the system using this function. 
-    /// Note: use only _before_ you start adding colliding bodies to the system!
-    void SetCollisionSystem(std::shared_ptr<collision::ChCollisionSystem> newcollsystem);
+    /// Change the underlying collision system.
+    /// By default, a ChSystem uses a Bullet-based collision detection engine.
+    virtual void SetCollisionSystem(std::shared_ptr<collision::ChCollisionSystem> newcollsystem);
 
-    /// Access the collision system, the engine which
-    /// computes the contact points (usually you don't need to
-    /// access it, since it is automatically handled by the
-    /// client ChSystem object).
+    /// Access the underlying collision system.
+    /// Usually this is not needed, as the collision system is automatically handled by the ChSystem.
     std::shared_ptr<collision::ChCollisionSystem> GetCollisionSystem() const { return collision_system; }
+
+    /// Change the underlying contact container given the specified type of the collision detection system.
+    /// Usually this is not needed, as the contact container is automatically handled by the ChSystem.
+    /// The default implementation is a no-op, since the default contact container for a ChSystem is suitable for all
+    /// types of supported collision detection systems.
+    virtual void SetContactContainer(collision::ChCollisionSystemType type) {}
+
+    /// Change the underlying contact container.
+    /// The contact container collects information from the underlying collision detection system required for contact
+    /// force generation. Usually this is not needed, as the contact container is automatically handled by the ChSystem.
+    /// Make sure the provided contact container is compatible with both the collision detection system and the contact
+    /// force formulation (NSC or SMC).
+    virtual void SetContactContainer(std::shared_ptr<ChContactContainer> contactcontainer);
+
+    /// Access the underlying contact container.
+    /// Usually this is not needed, as the contact container is automatically handled by the ChSystem.
+    std::shared_ptr<ChContactContainer> GetContactContainer() const { return contact_container; }
 
     /// Turn on this feature to let the system put to sleep the bodies whose
     /// motion has almost come to a rest. This feature will allow faster simulation

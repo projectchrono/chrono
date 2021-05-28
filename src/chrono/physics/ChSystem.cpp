@@ -294,12 +294,6 @@ void ChSystem::SetSolver(std::shared_ptr<ChSolver> newsolver) {
     solver = newsolver;
 }
 
-void ChSystem::SetContactContainer(std::shared_ptr<ChContactContainer> container) {
-    assert(container);
-    contact_container = container;
-    contact_container->SetSystem(this);
-}
-
 void ChSystem::SetCollisionSystemType(ChCollisionSystemType type) {
     assert(assembly.GetNbodies() == 0);
 
@@ -328,6 +322,12 @@ void ChSystem::SetCollisionSystem(std::shared_ptr<ChCollisionSystem> newcollsyst
     collision_system_type = newcollsystem->GetType();
     collision_system->SetNumThreads(nthreads_collision);
     collision_system->SetSystem(this);
+}
+
+void ChSystem::SetContactContainer(std::shared_ptr<ChContactContainer> container) {
+    assert(container);
+    contact_container = container;
+    contact_container->SetSystem(this);
 }
 
 void ChSystem::SetMaterialCompositionStrategy(std::unique_ptr<ChMaterialCompositionStrategy>&& strategy) {
