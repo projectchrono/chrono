@@ -198,8 +198,8 @@ int box_box(const real3& pos1,
 
 /// Dispatcher for analytic collision functions.
 CH_MULTICORE_API
-bool RCollision(const ConvexBase* shapeA,  ///< first candidate shape
-                const ConvexBase* shapeB,  ///< second candidate shape
+bool RCollision(const ConvexBase_mc* shapeA,  ///< first candidate shape
+                const ConvexBase_mc* shapeB,  ///< second candidate shape
                 real separation,           ///< maximum separation
                 real3* ct_norm,            ///< [output] contact normal (per contact pair)
                 real3* ct_pt1,             ///< [output] point on shape1 (per contact pair)

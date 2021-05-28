@@ -65,7 +65,7 @@ int main(int argc, char** argv) {
     system.GetSettings()->solver.tolerance = 0;
 
     system.GetSettings()->collision.collision_envelope = 0.1 * radius;
-    system.GetSettings()->collision.narrowphase_algorithm = NarrowPhaseType::NARROWPHASE_HYBRID_MPR;
+    system.GetSettings()->collision.narrowphase_algorithm = ChNarrowphase::Algorithm::HYBRID;
     system.GetSettings()->collision.bins_per_axis = vec3(10, 10, 10);
 
     // Create the container body

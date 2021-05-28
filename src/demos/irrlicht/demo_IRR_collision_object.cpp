@@ -54,7 +54,7 @@ int main(int argc, char* argv[]) {
 
     // Collision shape
     enum class CollisionShape { SPHERE, CYLINDER, CAPSULE, CYLSHELL, MESH };
-    CollisionShape object_model = CollisionShape::CAPSULE;
+    CollisionShape object_model = CollisionShape::CYLINDER;
     
     std::string tire_mesh_file = GetChronoDataFile("vehicle/hmmwv/hmmwv_tire_fine.obj");
     ////std::string tire_mesh_file = GetChronoDataFile("vehicle/hmmwv/hmmwv_tire_coarse.obj");

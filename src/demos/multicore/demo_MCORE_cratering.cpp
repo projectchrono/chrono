@@ -396,7 +396,7 @@ int main(int argc, char* argv[]) {
     msystem->GetSettings()->solver.tolerance = tolerance;
 
 #ifdef USE_SMC
-    msystem->GetSettings()->collision.narrowphase_algorithm = NarrowPhaseType::NARROWPHASE_R;
+    msystem->GetSettings()->collision.narrowphase_algorithm = ChNarrowphase::Algorithm::PRIMS;
 
     msystem->GetSettings()->solver.contact_force_model = contact_force_model;
     msystem->GetSettings()->solver.tangential_displ_mode = tangential_displ_mode;

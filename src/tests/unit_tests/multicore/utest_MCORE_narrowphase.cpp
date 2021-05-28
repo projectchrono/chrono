@@ -221,8 +221,8 @@ int main(int argc, char* argv[]) {
 
     // Edit system settings
 
-    msystem_mpr->GetSettings()->collision.narrowphase_algorithm = NarrowPhaseType::NARROWPHASE_MPR;
-    msystem_r->GetSettings()->collision.narrowphase_algorithm = NarrowPhaseType::NARROWPHASE_R;
+    msystem_mpr->GetSettings()->collision.narrowphase_algorithm = ChNarrowphase::Algorithm::HYBRID;
+    msystem_r->GetSettings()->collision.narrowphase_algorithm = ChNarrowphase::Algorithm::PRIMS;
 
     // Initialize counters
     double time = 0;
@@ -319,8 +319,8 @@ TEST(ChronoMulticore, narrowphase) {
     SetupSystem(msystem_mpr);
     SetupSystem(msystem_r);
 
-    msystem_mpr->GetSettings()->collision.narrowphase_algorithm = NarrowPhaseType::NARROWPHASE_MPR;
-    msystem_r->GetSettings()->collision.narrowphase_algorithm = NarrowPhaseType::NARROWPHASE_R;
+    msystem_mpr->GetSettings()->collision.narrowphase_algorithm = ChNarrowphase::Algorithm::HYBRID;
+    msystem_r->GetSettings()->collision.narrowphase_algorithm = ChNarrowphase::Algorithm::PRIMS;
 
 
     double time_end = 1;

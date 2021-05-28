@@ -74,7 +74,7 @@ int ChCNarrowphaseDispatch::PreprocessCount() {
     // Set the number of potential contact points for each collision pair
     contact_index.resize(num_potential_rigid_contacts + 1);
 
-    if (narrowphase_algorithm == NarrowPhaseType::NARROWPHASE_MPR) {
+    if (narrowphase_algorithm == ChNarrowphase::Algorithm::MPR) {
         // MPR always reports at most one contact per pair.
         Thrust_Fill(contact_index, 1);
     } else {
@@ -177,8 +177,8 @@ void ChCNarrowphaseDispatch::Dispatch_Init(uint index,
                                            uint& icoll,
                                            uint& ID_A,
                                            uint& ID_B,
-                                           ConvexShape* shapeA,
-                                           ConvexShape* shapeB) {
+                                           ConvexShape_mc* shapeA,
+                                           ConvexShape_mc* shapeB) {
     const custom_vector<uint>& obj_data_ID = data_manager->shape_data.id_rigid;
     const custom_vector<long long>& pair_shapeIDs = data_manager->host_data.pair_shapeIDs;
 
@@ -216,8 +216,8 @@ void ChCNarrowphaseDispatch::DispatchMPR() {
     custom_vector<real>& contactDepth = data_manager->host_data.dpth_rigid_rigid;
     custom_vector<real>& effective_radius = data_manager->host_data.erad_rigid_rigid;
 
-    ConvexShape shapeA;
-    ConvexShape shapeB;
+    ConvexShape_mc shapeA;
+    ConvexShape_mc shapeB;
 
     double default_eff_radius = ChCollisionInfo::GetDefaultEffectiveCurvatureRadius();
 
@@ -243,8 +243,8 @@ void ChCNarrowphaseDispatch::DispatchR() {
     real* contactDepth = data_manager->host_data.dpth_rigid_rigid.data();
     real* effective_radius = data_manager->host_data.erad_rigid_rigid.data();
 
-    ConvexShape shapeA;
-    ConvexShape shapeB;
+    ConvexShape_mc shapeA;
+    ConvexShape_mc shapeB;
 
 #pragma omp parallel for private(shapeA, shapeB)
     for (int index = 0; index < (signed)num_potential_rigid_contacts; index++) {
@@ -268,8 +268,8 @@ void ChCNarrowphaseDispatch::DispatchHybridMPR() {
     real* contactDepth = data_manager->host_data.dpth_rigid_rigid.data();
     real* effective_radius = data_manager->host_data.erad_rigid_rigid.data();
 
-    ConvexShape shapeA;
-    ConvexShape shapeB;
+    ConvexShape_mc shapeA;
+    ConvexShape_mc shapeB;
 
     double default_eff_radius = ChCollisionInfo::GetDefaultEffectiveCurvatureRadius();
 
@@ -324,13 +324,13 @@ void ChCNarrowphaseDispatch::DispatchRigid() {
     thrust::fill(contact_rigid_active.begin(), contact_rigid_active.end(), false);
 
     switch (narrowphase_algorithm) {
-        case NarrowPhaseType::NARROWPHASE_MPR:
+        case ChNarrowphase::Algorithm::MPR:
             DispatchMPR();
             break;
-        case NarrowPhaseType::NARROWPHASE_R:
+        case ChNarrowphase::Algorithm::PRIMS:
             DispatchR();
             break;
-        case NarrowPhaseType::NARROWPHASE_HYBRID_MPR:
+        case ChNarrowphase::Algorithm::HYBRID:
             DispatchHybridMPR();
             break;
     }
@@ -667,7 +667,7 @@ void ChCNarrowphaseDispatch::RigidSphereContact(const real sphere_radius,
                 real3 pos_sphere = pos_spheres[p];
                 real3 Bmin = pos_sphere - real3(radius + collision_envelope) - global_origin;
                 real3 Bmax = pos_sphere + real3(radius + collision_envelope) - global_origin;
-                ConvexShapeSphere* shapeB = new ConvexShapeSphere(pos_sphere, sphere_radius * .5);
+                ConvexShapeSphere_mc* shapeB = new ConvexShapeSphere_mc(pos_sphere, sphere_radius * .5);
 
                 for (uint j = rigid_start; j < rigid_end; j++) {
                     if (contact_counts[p] < max_rigid_neighbors) {
@@ -677,7 +677,7 @@ void ChCNarrowphaseDispatch::RigidSphereContact(const real sphere_radius,
                         // if the sphere and the rigid body appear in the same bin more than once, dont count
                         if (current_bin(Amin, Amax, Bmin, Bmax, inv_bin_size, bins_per_axis, bin_number) == true) {
                             if (overlap(Amin, Amax, Bmin, Bmax) && collide(family, fam_data[shape_id_a])) {
-                                ConvexShape* shapeA = new ConvexShape(shape_id_a, &data_manager->shape_data);
+                                ConvexShape_mc* shapeA = new ConvexShape_mc(shape_id_a, &data_manager->shape_data);
                                 real3 ptA, ptB, norm;
                                 real depth, erad = 0;
                                 int nC = 0;
@@ -813,7 +813,7 @@ void ChCNarrowphaseDispatch::RigidTetContact(custom_vector<real3>& norm_rigid_te
                 real3 t2 = node_pos[bface.y];
                 real3 t3 = node_pos[bface.z];
                 uint bf = bface.w;
-                ConvexShapeTetrahedron* shapeB = new ConvexShapeTetrahedron(tet_index, node_pos);
+                ConvexShapeTetrahedron_mc* shapeB = new ConvexShapeTetrahedron_mc(tet_index, node_pos);
                 for (uint j = rigid_start; j < rigid_end; j++) {
                     uint shape_id_a = data_manager->host_data.bin_aabb_number[j];
                     real3 Amin = data_manager->host_data.aabb_min[shape_id_a];
@@ -827,7 +827,7 @@ void ChCNarrowphaseDispatch::RigidTetContact(custom_vector<real3>& norm_rigid_te
                     }
                     if (!collide(family, fam_data[shape_id_a]))
                         continue;
-                    ConvexShape* shapeA = new ConvexShape(shape_id_a, &data_manager->shape_data);
+                    ConvexShape_mc* shapeA = new ConvexShape_mc(shape_id_a, &data_manager->shape_data);
 
                     real3 ptA, ptB, norm;
                     real depth;
@@ -960,7 +960,7 @@ void ChCNarrowphaseDispatch::MarkerTetContact(const real sphere_radius,
                 real3 t2 = node_pos[bface.y];
                 real3 t3 = node_pos[bface.z];
                 uint bf = bface.w;
-                ConvexShapeTetrahedron* shapeB = new ConvexShapeTetrahedron(tet_index, node_pos);
+                ConvexShapeTetrahedron_mc* shapeB = new ConvexShapeTetrahedron_mc(tet_index, node_pos);
                 for (uint j = rigid_start; j < rigid_end; j++) {
                     uint fluid = f_bin_fluid_number[j];
 
@@ -977,7 +977,7 @@ void ChCNarrowphaseDispatch::MarkerTetContact(const real sphere_radius,
                     if (!collide(family, family_sphere))
                         continue;
 
-                    ConvexShapeSphere* shapeA = new ConvexShapeSphere(pos_sphere, sphere_radius * .5);
+                    ConvexShapeSphere_mc* shapeA = new ConvexShapeSphere_mc(pos_sphere, sphere_radius * .5);
 
                     real3 ptA, ptB, norm;
                     real depth;

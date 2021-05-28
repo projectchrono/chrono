@@ -22,6 +22,7 @@
 
 #include "chrono/physics/ChSystemSMC.h"
 #include "chrono/parallel/ChOpenMP.h"
+#include "chrono/collision/chrono/ChNarrowphase.h"
 #include "chrono_multicore/ChMulticoreDefines.h"
 #include "chrono/multicore_math/ChMulticoreMath.h"
 
@@ -51,7 +52,7 @@ class collision_settings {
         // NOTE!!! this really depends on the architecture that you run on and how
         // many cores you are using.
         bins_per_axis = vec3(20, 20, 20);
-        narrowphase_algorithm = NarrowPhaseType::NARROWPHASE_HYBRID_MPR;
+        narrowphase_algorithm = collision::ChNarrowphase::Algorithm::HYBRID;
         grid_density = 5;
         fixed_bins = true;
     }
@@ -80,7 +81,7 @@ class collision_settings {
     /// There are multiple narrowphase algorithms implemented in the collision
     /// detection code. The narrowphase_algorithm parameter can be used to change
     /// the type of narrowphase used at runtime.
-    NarrowPhaseType narrowphase_algorithm;
+    collision::ChNarrowphase::Algorithm narrowphase_algorithm;
     real grid_density;
     /// Use fixed number of bins instead of tuning them.
     bool fixed_bins;

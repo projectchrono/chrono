@@ -31,6 +31,7 @@
 #include "chrono_multicore/ChDataManager.h"
 #include "chrono_multicore/collision/ChCollisionModelMulticore.h"
 #include "chrono_multicore/collision/ChCollisionSystemMulticore.h"
+#include "chrono_multicore/collision/ChCollisionSystemChronoMulticore.h"
 #include "chrono_multicore/collision/ChCollisionSystemBulletMulticore.h"
 #include "chrono/multicore_math/matrix.h"
 #include "chrono_multicore/physics/ChSystemMulticore.h"
@@ -55,7 +56,7 @@ ChSystemMulticore::ChSystemMulticore() : ChSystem() {
     collision_system = chrono_types::make_shared<ChCollisionSystemMulticore>(data_manager);
     collision_system->SetNumThreads(nthreads_collision);
     collision_system->SetSystem(this);
-    collision_system_type = ChCollisionSystemType::CHRONO;
+    collision_system_type = ChCollisionSystemType::OTHER;
 
     counter = 0;
     timer_accumulator.resize(10, 0);
@@ -97,22 +98,32 @@ ChSystemMulticore::~ChSystemMulticore() {
 }
 
 ChBody* ChSystemMulticore::NewBody() {
-    if (collision_system_type == ChCollisionSystemType::CHRONO)
-        return new ChBody(chrono_types::make_shared<collision::ChCollisionModelMulticore>());
-
-    return new ChBody();
+    switch (collision_system_type) {
+        default:
+        case ChCollisionSystemType::CHRONO:
+            return new ChBody(chrono_types::make_shared<collision::ChCollisionModelChrono>());
+        case ChCollisionSystemType::OTHER:
+            return new ChBody(chrono_types::make_shared<collision::ChCollisionModelMulticore>());
+        case ChCollisionSystemType::BULLET:
+            return new ChBody();
+    }
 }
 
 ChBodyAuxRef* ChSystemMulticore::NewBodyAuxRef() {
-    if (collision_system_type == ChCollisionSystemType::CHRONO)
-        return new ChBodyAuxRef(chrono_types::make_shared<collision::ChCollisionModelMulticore>());
-
-    return new ChBodyAuxRef();
+    switch (collision_system_type) {
+        default:
+        case ChCollisionSystemType::CHRONO:
+            return new ChBodyAuxRef(chrono_types::make_shared<collision::ChCollisionModelChrono>());
+        case ChCollisionSystemType::OTHER:
+            return new ChBodyAuxRef(chrono_types::make_shared<collision::ChCollisionModelMulticore>());
+        case ChCollisionSystemType::BULLET:
+            return new ChBodyAuxRef();
+    }
 }
 
 bool ChSystemMulticore::Integrate_Y() {
     LOG(INFO) << "ChSystemMulticore::Integrate_Y() Time: " << ch_time;
-    // Get the pointer for the system descriptor and store it into the data manager
+    // Store system data in the data manager
     data_manager->system_descriptor = this->descriptor;
     data_manager->body_list = &assembly.bodylist;
     data_manager->link_list = &assembly.linklist;
@@ -128,7 +139,9 @@ bool ChSystemMulticore::Integrate_Y() {
     data_manager->system_timer.stop("update");
 
     data_manager->system_timer.start("collision");
+    collision_system->PreProcess();
     collision_system->Run();
+    collision_system->PostProcess();
     collision_system->ReportContacts(this->contact_container.get());
     for (size_t ic = 0; ic < collision_callbacks.size(); ic++) {
         collision_callbacks[ic]->OnCustomCollision(this);
@@ -771,6 +784,9 @@ void ChSystemMulticore::SetCollisionSystemType(ChCollisionSystemType type) {
 
     switch (type) {
         case ChCollisionSystemType::CHRONO:
+            collision_system = chrono_types::make_shared<ChCollisionSystemChronoMulticore>(data_manager);
+            break;
+        case ChCollisionSystemType::OTHER:
             collision_system = chrono_types::make_shared<ChCollisionSystemMulticore>(data_manager);
             break;
         case ChCollisionSystemType::BULLET:
@@ -809,7 +825,7 @@ void ChSystemMulticore::SetLoggingLevel(LoggingLevel level, bool state) {
 
 // Calculate the current body AABB (union of the AABB of their collision shapes).
 void ChSystemMulticore::CalculateBodyAABB() {
-    if (collision_system_type != ChCollisionSystemType::CHRONO)
+    if (collision_system_type == ChCollisionSystemType::BULLET)
         return;
 
     // Readability replacements

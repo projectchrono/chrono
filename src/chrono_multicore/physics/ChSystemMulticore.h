@@ -228,6 +228,9 @@ class CH_MULTICORE_API ChSystemMulticoreNSC : public ChSystemMulticore {
 
     void Add3DOFContainer(std::shared_ptr<Ch3DOFContainer> container);
 
+    virtual void SetContactContainer(collision::ChCollisionSystemType type) override;
+    virtual void SetContactContainer(std::shared_ptr<ChContactContainer> container) override;
+
     void CalculateContactForces() override;
     real CalculateKineticEnergy();
     real CalculateDualObjective();
@@ -259,6 +262,8 @@ class CH_MULTICORE_API ChSystemMulticoreSMC : public ChSystemMulticore {
 
     virtual void Setup() override;
     virtual void SetCollisionSystemType(collision::ChCollisionSystemType type) override;
+    virtual void SetContactContainer(collision::ChCollisionSystemType type) override;
+    virtual void SetContactContainer(std::shared_ptr<ChContactContainer> container) override;
 
     virtual real3 GetBodyContactForce(uint body_id) const override;
     virtual real3 GetBodyContactTorque(uint body_id) const override;

@@ -20,7 +20,7 @@ using namespace chrono;
 using namespace chrono::collision;
 
 ChSystemMulticoreSMC::ChSystemMulticoreSMC() : ChSystemMulticore() {
-    contact_container = chrono_types::make_shared<ChContactContainerMulticoreSMC>(data_manager);
+    contact_container = chrono_types::make_shared<ChContactContainerMulticoreSMC_mc>(data_manager);
     contact_container->SetSystem(this);
 
     solver = chrono_types::make_shared<ChIterativeSolverMulticoreSMC>(data_manager);
@@ -65,6 +65,26 @@ void ChSystemMulticoreSMC::Setup() {
 void ChSystemMulticoreSMC::SetCollisionSystemType(ChCollisionSystemType type) {
     ChSystemMulticore::SetCollisionSystemType(type);
     data_manager->settings.collision.collision_envelope = 0;
+}
+
+void ChSystemMulticoreSMC::SetContactContainer(collision::ChCollisionSystemType type) {
+    switch (type) {
+        case collision::ChCollisionSystemType::CHRONO: {
+            contact_container = chrono_types::make_shared<ChContactContainerMulticoreSMC>(data_manager);
+            contact_container->SetSystem(this);
+            break;
+        }
+        case collision::ChCollisionSystemType::OTHER: {
+            contact_container = chrono_types::make_shared<ChContactContainerMulticoreSMC_mc>(data_manager);
+            contact_container->SetSystem(this);
+            break;
+        }
+    }
+}
+
+void ChSystemMulticoreSMC::SetContactContainer(std::shared_ptr<ChContactContainer> container) {
+    if (std::dynamic_pointer_cast<ChContactContainerMulticoreSMC>(container))
+        ChSystem::SetContactContainer(container);
 }
 
 real3 ChSystemMulticoreSMC::GetBodyContactForce(uint body_id) const {

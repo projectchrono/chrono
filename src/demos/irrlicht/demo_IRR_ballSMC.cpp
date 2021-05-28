@@ -64,7 +64,7 @@ int main(int argc, char* argv[]) {
     double thickness = 0.1;
 
     // Collision system type
-    auto collision_type = collision::ChCollisionSystemType::BULLET;
+    auto collision_type = collision::ChCollisionSystemType::CHRONO;
 
     // Create the system
     ChSystemSMC msystem;

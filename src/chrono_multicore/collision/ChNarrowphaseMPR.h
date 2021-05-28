@@ -23,22 +23,22 @@
 namespace chrono {
 namespace collision {
 
-class ConvexBase;
+class ConvexBase_mc;
 
 /// @addtogroup multicore_collision
 /// @{
 
 CH_MULTICORE_API
-bool MPRContact_mc(const ConvexBase* ShapeA,
-                const ConvexBase* ShapeB,
+bool MPRContact_mc(const ConvexBase_mc* ShapeA,
+                   const ConvexBase_mc* ShapeB,
                 const real& envelope,
                 real3& returnNormal,
                 real3& point,
                 real& depth);
 
 CH_MULTICORE_API
-bool MPRCollision_mc(const ConvexBase* ShapeA,
-                  const ConvexBase* ShapeB,
+bool MPRCollision_mc(const ConvexBase_mc* ShapeA,
+                     const ConvexBase_mc* ShapeB,
                   real envelope,
                   real3& returnNormal,
                   real3& pointA,
@@ -46,8 +46,8 @@ bool MPRCollision_mc(const ConvexBase* ShapeA,
                   real& depth);
 
 CH_MULTICORE_API
-void MPRGetPoints_mc(const ConvexBase* ShapeA,
-                  const ConvexBase* ShapeB,
+void MPRGetPoints_mc(const ConvexBase_mc* ShapeA,
+                     const ConvexBase_mc* ShapeB,
                   const real& envelope,
                   real3& N,
                   real3 p0,
@@ -55,7 +55,12 @@ void MPRGetPoints_mc(const ConvexBase* ShapeA,
                   real3& p2);
 
 CH_MULTICORE_API
-bool MPRSphereSphere_mc(const ConvexBase* ShapeA, const ConvexBase* ShapeB, real3& N, real& dist, real3& p1, real3& p2);
+bool MPRSphereSphere_mc(const ConvexBase_mc* ShapeA,
+                        const ConvexBase_mc* ShapeB,
+                        real3& N,
+                        real& dist,
+                        real3& p1,
+                        real3& p2);
 
 /// @} multicore_colision
 

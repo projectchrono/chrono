@@ -27,10 +27,10 @@ namespace collision {
 /// @{
 
 /// Base class for convex contact shapes.
-class ConvexBase {
+class ConvexBase_mc {
   public:
-    ConvexBase() {}
-    virtual ~ConvexBase() {}
+    ConvexBase_mc() {}
+    virtual ~ConvexBase_mc() {}
     virtual int Type() const { return 0; }
     virtual real3 A() const { return real3(0); }
     virtual quaternion R() const { return quaternion(1, 0, 0, 0); }
@@ -47,11 +47,11 @@ class ConvexBase {
 };
 
 /// Convex contact shape.
-class ConvexShape : public ConvexBase {
+class ConvexShape_mc : public ConvexBase_mc {
   public:
-    ConvexShape() {}
-    ConvexShape(int i, shape_container* d) : index(i), data(d) {}
-    virtual ~ConvexShape() {}
+    ConvexShape_mc() {}
+    ConvexShape_mc(int i, shape_container_mc* d) : index(i), data(d) {}
+    virtual ~ConvexShape_mc() {}
     virtual int Type() const override { return data->typ_rigid[index]; }
     virtual real3 A() const override { return data->obj_data_A_global[index]; }
     virtual quaternion R() const override { return data->obj_data_R_global[index]; }
@@ -64,16 +64,16 @@ class ConvexShape : public ConvexBase {
     virtual real3 Cylshell() const override { return data->box_like_rigid[start()]; }
     virtual real2 Capsule() const override { return data->capsule_rigid[start()]; }
     int index;
-    shape_container* data;  // pointer to convex data;
+    shape_container_mc* data;  // pointer to convex data;
   private:
     virtual inline int start() const { return data->start_rigid[index]; }
 };
 
 /// Sphere contact shape.
-class ConvexShapeSphere : public ConvexBase {
+class ConvexShapeSphere_mc : public ConvexBase_mc {
   public:
-    ConvexShapeSphere(real3 p, real r) : position(p), radius(r) {}
-    virtual ~ConvexShapeSphere() {}
+    ConvexShapeSphere_mc(real3 p, real r) : position(p), radius(r) {}
+    virtual ~ConvexShapeSphere_mc() {}
     inline int Type() const override { return ChCollisionShape::Type::SPHERE; }
     inline real3 A() const override { return position; }
     inline real Radius() const override { return radius; }
@@ -82,12 +82,12 @@ class ConvexShapeSphere : public ConvexBase {
 };
 
 /// Custom contact shape.
-class ConvexShapeCustom : public ConvexBase {
+class ConvexShapeCustom_mc : public ConvexBase_mc {
   public:
-    ConvexShapeCustom() {}
-    ConvexShapeCustom(const int t, const real3& p, const quaternion& rot, const real3& d, const real r = 0)
+    ConvexShapeCustom_mc() {}
+    ConvexShapeCustom_mc(const int t, const real3& p, const quaternion& rot, const real3& d, const real r = 0)
         : type(t), position(p), rotation(rot), dimensions(d), radius(r) {}
-    virtual ~ConvexShapeCustom() {}
+    virtual ~ConvexShapeCustom_mc() {}
     inline int Type() const override { return type; }
     inline real3 A() const override { return position; }
     inline quaternion R() const override { return rotation; }
@@ -103,10 +103,10 @@ class ConvexShapeCustom : public ConvexBase {
 };
 
 /// Tetrahedron contact shape.
-class ConvexShapeTetrahedron : public ConvexBase {
+class ConvexShapeTetrahedron_mc : public ConvexBase_mc {
   public:
-    ConvexShapeTetrahedron(uvec4 i, real3* n) : indices(i), nodes(n) {}
-    virtual ~ConvexShapeTetrahedron() {}
+    ConvexShapeTetrahedron_mc(uvec4 i, real3* n) : indices(i), nodes(n) {}
+    virtual ~ConvexShapeTetrahedron_mc() {}
     inline int Type() const override { return ChCollisionShape::Type::TETRAHEDRON; }
     inline real3 A() const override { return real3(0); }
     uvec4 TetIndex() const override { return indices; }
@@ -116,14 +116,14 @@ class ConvexShapeTetrahedron : public ConvexBase {
 };
 
 /// Triangle contact shape.
-class ConvexShapeTriangle : public ConvexBase {
+class ConvexShapeTriangle_mc : public ConvexBase_mc {
   public:
-    ConvexShapeTriangle(real3& t1, real3& t2, real3 t3) {
+    ConvexShapeTriangle_mc(real3& t1, real3& t2, real3 t3) {
         tri[0] = t1;
         tri[1] = t2;
         tri[2] = t3;
     }
-    virtual ~ConvexShapeTriangle() {}
+    virtual ~ConvexShapeTriangle_mc() {}
     inline int Type() const override { return ChCollisionShape::Type::TRIANGLE; }
     inline real3 A() const override { return real3(0); }
     const real3* Triangles() const override { return &tri[0]; }

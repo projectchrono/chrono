@@ -25,6 +25,7 @@
 
 #include "chrono/physics/ChContactContainer.h"
 #include "chrono/multicore_math/ChMulticoreMath.h"
+#include "chrono/collision/chrono/ChCollisionData.h"
 
 #include "chrono_multicore/ChTimerMulticore.h"
 #include "chrono_multicore/ChMulticoreDefines.h"
@@ -205,7 +206,7 @@ typedef blaze::Subvector<const DynamicVector<real>> ConstSubVectorType;
 /// @{
 
 /// Structure of arrays containing contact shape information.
-struct shape_container {
+struct shape_container_mc {
     custom_vector<short2> fam_rigid;  ///< family information
     custom_vector<uint> id_rigid;     ///< ID of associated body
     custom_vector<int> typ_rigid;     ///< shape type
@@ -432,7 +433,7 @@ class CH_MULTICORE_API ChMulticoreDataManager {
     ~ChMulticoreDataManager();
 
     host_container host_data;    ///< Structure of data arrays (state, contact, etc)
-    shape_container shape_data;  ///< Structure of arrays containing contact shape information
+    shape_container_mc shape_data;  ///< Structure of arrays containing contact shape information
 
     /// Used by the bilarerals for computing the Jacobian and other terms.
     std::shared_ptr<ChSystemDescriptor> system_descriptor;
@@ -446,6 +447,8 @@ class CH_MULTICORE_API ChMulticoreDataManager {
     collision::ChCBroadphase* broadphase;            ///< methods for broad-phase collision detection
     collision::ChCNarrowphaseDispatch* narrowphase;  ///< methods for narrow-phase collision detection
     collision::ChCAABBGenerator* aabb_generator;     ///< methods for cpmputing object AABBs
+
+    std::shared_ptr<collision::ChCollisionData> cd_data; ///< shared data for the Chrono collision system
 
     // These pointers are used to compute the mass matrix instead of filling a temporary data structure
     std::vector<std::shared_ptr<ChBody>>* body_list;                  ///< List of bodies

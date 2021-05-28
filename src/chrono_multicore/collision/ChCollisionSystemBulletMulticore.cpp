@@ -44,6 +44,9 @@ namespace collision {
 
 ChCollisionSystemBulletMulticore::ChCollisionSystemBulletMulticore(ChMulticoreDataManager* dc)
     : data_manager(dc) {
+    // Container for collision detection data
+    data_manager->cd_data = chrono_types::make_shared<ChCollisionData>(false);
+
     // btDefaultCollisionConstructionInfo conf_info(...); ***TODO***
     bt_collision_configuration = new btDefaultCollisionConfiguration();
 

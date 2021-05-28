@@ -23,7 +23,10 @@
 namespace chrono {
 namespace collision {
 
-ChCollisionSystemMulticore::ChCollisionSystemMulticore(ChMulticoreDataManager* dm) : data_manager(dm) {}
+ChCollisionSystemMulticore::ChCollisionSystemMulticore(ChMulticoreDataManager* dm) : data_manager(dm) {
+    // Container for collision detection data
+    data_manager->cd_data = chrono_types::make_shared<ChCollisionData>(false);
+}
 
 ChCollisionSystemMulticore::~ChCollisionSystemMulticore() {}
 
@@ -279,7 +282,7 @@ void ChCollisionSystemMulticore::GetBoundingBox(ChVector<>& aabb_min, ChVector<>
 }
 
 void ChCollisionSystemMulticore::ReportContacts(ChContactContainer* mcontactcontainer) {
-    assert(dynamic_cast<ChContactContainerMulticore*>(mcontactcontainer));
+    assert(dynamic_cast<ChContactContainerMulticore_mc*>(mcontactcontainer));
 
     // Resize global arrays with composite material properties.
     // NOTE: important to do this here, to set size to zero if no contacts (in case some other added by a custom user
@@ -291,7 +294,7 @@ void ChCollisionSystemMulticore::ReportContacts(ChContactContainer* mcontactcont
         return;
     }
 
-    auto container = static_cast<ChContactContainerMulticore*>(mcontactcontainer);
+    auto container = static_cast<ChContactContainerMulticore_mc*>(mcontactcontainer);
 
     auto& bids = data_manager->host_data.bids_rigid_rigid;  // global IDs of bodies in contact
     auto& sids = data_manager->host_data.contact_shapeIDs;  // global IDs of shapes in contact

@@ -75,13 +75,6 @@ enum class SolverMode {
     BILATERAL  ///< solve for bilateral Lagrange multipliers
 };
 
-/// Enumeration of narrow-phase collision methods.
-enum class NarrowPhaseType {
-    NARROWPHASE_MPR,        ///< Minkovski Portal Refinement
-    NARROWPHASE_R,          ///< analytical collision detection
-    NARROWPHASE_HYBRID_MPR  ///< analytical method with fallback on MPR
-};
-
 /// Enumeration for system type.
 /// Used so that parts of the code that have been "flattened" can know what type of system is used.
 enum class SystemType {

@@ -265,7 +265,7 @@ inline real3 GetCenter_Tetrahedron(const uvec4 indices, const real3* nodes) {
     return tet / real(4.0);
 }
 
-inline real3 SupportVertNoMargin(const chrono::collision::ConvexBase* Shape, const real3& nv, const real& envelope) {
+inline real3 SupportVertNoMargin(const chrono::collision::ConvexBase_mc* Shape, const real3& nv, const real& envelope) {
     real3 localSupport;
     real3 n = Normalize(nv);
     switch (Shape->Type()) {
@@ -313,12 +313,12 @@ inline real3 SupportVertNoMargin(const chrono::collision::ConvexBase* Shape, con
     return localSupport;
 }
 
-inline real3 LocalSupportVert(const chrono::collision::ConvexBase* Shape, const real3& n, const real& envelope) {
+inline real3 LocalSupportVert(const chrono::collision::ConvexBase_mc* Shape, const real3& n, const real& envelope) {
     real3 rotated_n = RotateT(n, Shape->R());
     return SupportVertNoMargin(Shape, rotated_n, envelope);
 }
 
-inline real3 TransformSupportVert(const chrono::collision::ConvexBase* Shape, const real3& n, const real& envelope) {
+inline real3 TransformSupportVert(const chrono::collision::ConvexBase_mc* Shape, const real3& n, const real& envelope) {
     real3 localSupport;
 
     switch (Shape->Type()) {

@@ -182,7 +182,7 @@ int main(int argc, char* argv[]) {
     msystem.GetSettings()->collision.bins_per_axis = vec3(10, 10, 10);
 
     // Select the narrow phase collision algorithm
-    msystem.GetSettings()->collision.narrowphase_algorithm = NarrowPhaseType::NARROWPHASE_R;
+    msystem.GetSettings()->collision.narrowphase_algorithm = ChNarrowphase::Algorithm::HYBRID;
 
     // Set tolerance and maximum number of iterations for bilateral constraint solver
     msystem.GetSettings()->solver.max_iteration_bilateral = max_iteration;

@@ -162,7 +162,7 @@ int main(int argc, char* argv[]) {
     msystem.GetSettings()->solver.max_iteration_bilateral = max_iteration;
     msystem.GetSettings()->solver.tolerance = tolerance;
 
-    msystem.GetSettings()->collision.narrowphase_algorithm = NarrowPhaseType::NARROWPHASE_HYBRID_MPR;
+    msystem.GetSettings()->collision.narrowphase_algorithm = ChNarrowphase::Algorithm::HYBRID;
     msystem.GetSettings()->collision.bins_per_axis = vec3(10, 10, 10);
 
     // The following two lines are optional, since they are the default options. They are added for future reference,

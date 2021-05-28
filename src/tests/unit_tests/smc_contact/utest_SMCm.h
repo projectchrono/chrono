@@ -121,7 +121,7 @@ void SetSimParameters(
     sys->GetSettings()->solver.tangential_displ_mode = tmodel;
 
     sys->GetSettings()->collision.bins_per_axis = vec3(10, 10, 10);
-    sys->GetSettings()->collision.narrowphase_algorithm = NarrowPhaseType::NARROWPHASE_HYBRID_MPR;
+    sys->GetSettings()->collision.narrowphase_algorithm = ChNarrowphase::Algorithm::HYBRID;
 
     sys->SetCollisionSystemType(ChCollisionSystemType::CHRONO);
 }

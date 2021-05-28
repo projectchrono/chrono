@@ -28,7 +28,7 @@
 namespace chrono {
 namespace collision {
 
-class ConvexShape;
+class ConvexShape_mc;
 
 /// @addtogroup multicore_collision
 /// @{
@@ -137,7 +137,7 @@ class CH_MULTICORE_API ChCNarrowphaseDispatch {
     void DispatchMPR();
     void DispatchR();
     void DispatchHybridMPR();
-    void Dispatch_Init(uint index, uint& icoll, uint& ID_A, uint& ID_B, ConvexShape* shapeA, ConvexShape* shapeB);
+    void Dispatch_Init(uint index, uint& icoll, uint& ID_A, uint& ID_B, ConvexShape_mc* shapeA, ConvexShape_mc* shapeB);
     void Dispatch_Finalize(uint icoll, uint ID_A, uint ID_B, int nC);
     ChMulticoreDataManager* data_manager;
 
@@ -151,7 +151,7 @@ class CH_MULTICORE_API ChCNarrowphaseDispatch {
     uint num_potential_rigid_fluid_contacts;
 
     real collision_envelope;
-    NarrowPhaseType narrowphase_algorithm;
+    collision::ChNarrowphase::Algorithm narrowphase_algorithm;
 
     custom_vector<uint> f_bin_intersections;
     custom_vector<uint> f_bin_number;

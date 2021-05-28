@@ -288,6 +288,9 @@ SET(ChronoEngine_Multicore_COLLISION
     collision/ChContactContainerMulticoreSMC.h
     collision/ChContactContainerMulticoreSMC.cpp
 
+
+    collision/ChCollisionSystemChronoMulticore.h
+    collision/ChCollisionSystemChronoMulticore.cpp
     )
 
 SET(ChronoEngine_Multicore_COLLISION ${ChronoEngine_Multicore_COLLISION}

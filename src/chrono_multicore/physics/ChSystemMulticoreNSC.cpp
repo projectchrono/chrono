@@ -23,7 +23,7 @@
 using namespace chrono;
 
 ChSystemMulticoreNSC::ChSystemMulticoreNSC() : ChSystemMulticore() {
-    contact_container = chrono_types::make_shared<ChContactContainerMulticoreNSC>(data_manager);
+    contact_container = chrono_types::make_shared<ChContactContainerMulticoreNSC_mc>(data_manager);
     contact_container->SetSystem(this);
 
     solver = chrono_types::make_shared<ChIterativeSolverMulticoreNSC>(data_manager);
@@ -64,6 +64,26 @@ void ChSystemMulticoreNSC::Add3DOFContainer(std::shared_ptr<Ch3DOFContainer> con
 
     container->SetSystem(this);
     container->data_manager = data_manager;
+}
+
+void ChSystemMulticoreNSC::SetContactContainer(collision::ChCollisionSystemType type) {
+    switch (type) {
+        case collision::ChCollisionSystemType::CHRONO: {
+            contact_container = chrono_types::make_shared<ChContactContainerMulticoreNSC>(data_manager);
+            contact_container->SetSystem(this);
+            break;
+        }
+        case collision::ChCollisionSystemType::OTHER: {
+            contact_container = chrono_types::make_shared<ChContactContainerMulticoreNSC_mc>(data_manager);
+            contact_container->SetSystem(this);
+            break;
+        }
+    }
+}
+
+void ChSystemMulticoreNSC::SetContactContainer(std::shared_ptr<ChContactContainer> container) {
+    if (std::dynamic_pointer_cast<ChContactContainerMulticoreNSC>(container))
+        ChSystem::SetContactContainer(container);
 }
 
 void ChSystemMulticoreNSC::AddMaterialSurfaceData(std::shared_ptr<ChBody> newbody) {

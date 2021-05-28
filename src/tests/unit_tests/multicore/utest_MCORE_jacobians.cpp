@@ -226,7 +226,7 @@ TEST(ChronoMulticore, jacobians) {
 #ifdef BULLET
     msystem->SetCollisionSystemType(ChCollisionSystemType::BULLET);
 #else
-    msystem->GetSettings()->collision.narrowphase_algorithm = NarrowPhaseType::NARROWPHASE_MPR;
+    msystem->GetSettings()->collision.narrowphase_algorithm = ChNarrowphase::Algorithm::HYBRID;
 #endif
 
     SetupSystem(msystem);
