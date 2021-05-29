@@ -39,12 +39,12 @@ namespace collision {
 void ChCNarrowphaseDispatch::ClearContacts() {
     // Return now if no potential collisions.
     if (num_potential_rigid_contacts == 0) {
-        data_manager->host_data.norm_rigid_rigid.resize(0);
-        data_manager->host_data.cpta_rigid_rigid.resize(0);
-        data_manager->host_data.cptb_rigid_rigid.resize(0);
-        data_manager->host_data.dpth_rigid_rigid.resize(0);
-        data_manager->host_data.erad_rigid_rigid.resize(0);
-        data_manager->host_data.bids_rigid_rigid.resize(0);
+        data_manager->cd_data->host_data.norm_rigid_rigid.resize(0);
+        data_manager->cd_data->host_data.cpta_rigid_rigid.resize(0);
+        data_manager->cd_data->host_data.cptb_rigid_rigid.resize(0);
+        data_manager->cd_data->host_data.dpth_rigid_rigid.resize(0);
+        data_manager->cd_data->host_data.erad_rigid_rigid.resize(0);
+        data_manager->cd_data->host_data.bids_rigid_rigid.resize(0);
     }
 }
 
@@ -87,7 +87,7 @@ int ChCNarrowphaseDispatch::PreprocessCount() {
         // shape type (per shape)
         const shape_type* obj_data_T = data_manager->cd_data->shape_data.typ_rigid.data();
         // encoded shape IDs (per collision pair)
-        const long long* pair_shapeIDs = data_manager->host_data.pair_shapeIDs.data();
+        const long long* pair_shapeIDs = data_manager->cd_data->host_data.pair_shapeIDs.data();
 
 #pragma omp parallel for
         for (int index = 0; index < (signed)num_potential_rigid_contacts; index++) {
@@ -118,9 +118,9 @@ int ChCNarrowphaseDispatch::PreprocessCount() {
 
     // Expand vector of shape IDs into contact_shapeIDs:
     // Replicate pair_shapeIDs[i] contact_index[i] times, for each potential contact for the collision pair 'i'
-    data_manager->host_data.contact_shapeIDs.resize(num_potentialContacts);
-    Thrust_Expand(contact_index.begin(), contact_index.end() - 1, data_manager->host_data.pair_shapeIDs.begin(),
-                  data_manager->host_data.contact_shapeIDs.begin());
+    data_manager->cd_data->host_data.contact_shapeIDs.resize(num_potentialContacts);
+    Thrust_Expand(contact_index.begin(), contact_index.end() - 1, data_manager->cd_data->host_data.pair_shapeIDs.begin(),
+                  data_manager->cd_data->host_data.contact_shapeIDs.begin());
 
     // Set start index for the potential contacts for each collision pair
     Thrust_Exclusive_Scan(contact_index);
@@ -181,7 +181,7 @@ void ChCNarrowphaseDispatch::Dispatch_Init(uint index,
                                            ConvexShape* shapeA,
                                            ConvexShape* shapeB) {
     const custom_vector<uint>& obj_data_ID = data_manager->cd_data->shape_data.id_rigid;
-    const custom_vector<long long>& pair_shapeIDs = data_manager->host_data.pair_shapeIDs;
+    const custom_vector<long long>& pair_shapeIDs = data_manager->cd_data->host_data.pair_shapeIDs;
 
     // Unpack the identifiers for the two shapes involved in this collision
     long long p = pair_shapeIDs[index];
@@ -201,7 +201,7 @@ void ChCNarrowphaseDispatch::Dispatch_Init(uint index,
 }
 
 void ChCNarrowphaseDispatch::Dispatch_Finalize(uint icoll, uint ID_A, uint ID_B, int nC) {
-    custom_vector<vec2>& body_ids = data_manager->host_data.bids_rigid_rigid;
+    custom_vector<vec2>& body_ids = data_manager->cd_data->host_data.bids_rigid_rigid;
 
     // Mark the active contacts and set their body IDs
     for (int i = 0; i < nC; i++) {
@@ -211,11 +211,11 @@ void ChCNarrowphaseDispatch::Dispatch_Finalize(uint icoll, uint ID_A, uint ID_B,
 }
 
 void ChCNarrowphaseDispatch::DispatchMPR() {
-    custom_vector<real3>& norm = data_manager->host_data.norm_rigid_rigid;
-    custom_vector<real3>& ptA = data_manager->host_data.cpta_rigid_rigid;
-    custom_vector<real3>& ptB = data_manager->host_data.cptb_rigid_rigid;
-    custom_vector<real>& contactDepth = data_manager->host_data.dpth_rigid_rigid;
-    custom_vector<real>& effective_radius = data_manager->host_data.erad_rigid_rigid;
+    custom_vector<real3>& norm = data_manager->cd_data->host_data.norm_rigid_rigid;
+    custom_vector<real3>& ptA = data_manager->cd_data->host_data.cpta_rigid_rigid;
+    custom_vector<real3>& ptB = data_manager->cd_data->host_data.cptb_rigid_rigid;
+    custom_vector<real>& contactDepth = data_manager->cd_data->host_data.dpth_rigid_rigid;
+    custom_vector<real>& effective_radius = data_manager->cd_data->host_data.erad_rigid_rigid;
 
     ConvexShape shapeA;
     ConvexShape shapeB;
@@ -238,11 +238,11 @@ void ChCNarrowphaseDispatch::DispatchMPR() {
 }
 
 void ChCNarrowphaseDispatch::DispatchR() {
-    real3* norm = data_manager->host_data.norm_rigid_rigid.data();
-    real3* ptA = data_manager->host_data.cpta_rigid_rigid.data();
-    real3* ptB = data_manager->host_data.cptb_rigid_rigid.data();
-    real* contactDepth = data_manager->host_data.dpth_rigid_rigid.data();
-    real* effective_radius = data_manager->host_data.erad_rigid_rigid.data();
+    real3* norm = data_manager->cd_data->host_data.norm_rigid_rigid.data();
+    real3* ptA = data_manager->cd_data->host_data.cpta_rigid_rigid.data();
+    real3* ptB = data_manager->cd_data->host_data.cptb_rigid_rigid.data();
+    real* contactDepth = data_manager->cd_data->host_data.dpth_rigid_rigid.data();
+    real* effective_radius = data_manager->cd_data->host_data.erad_rigid_rigid.data();
 
     ConvexShape shapeA;
     ConvexShape shapeB;
@@ -263,11 +263,11 @@ void ChCNarrowphaseDispatch::DispatchR() {
 }
 
 void ChCNarrowphaseDispatch::DispatchHybridMPR() {
-    real3* norm = data_manager->host_data.norm_rigid_rigid.data();
-    real3* ptA = data_manager->host_data.cpta_rigid_rigid.data();
-    real3* ptB = data_manager->host_data.cptb_rigid_rigid.data();
-    real* contactDepth = data_manager->host_data.dpth_rigid_rigid.data();
-    real* effective_radius = data_manager->host_data.erad_rigid_rigid.data();
+    real3* norm = data_manager->cd_data->host_data.norm_rigid_rigid.data();
+    real3* ptA = data_manager->cd_data->host_data.cpta_rigid_rigid.data();
+    real3* ptB = data_manager->cd_data->host_data.cptb_rigid_rigid.data();
+    real* contactDepth = data_manager->cd_data->host_data.dpth_rigid_rigid.data();
+    real* effective_radius = data_manager->cd_data->host_data.erad_rigid_rigid.data();
 
     ConvexShape shapeA;
     ConvexShape shapeB;
@@ -297,13 +297,13 @@ void ChCNarrowphaseDispatch::DispatchHybridMPR() {
 
 void ChCNarrowphaseDispatch::DispatchRigid() {
     LOG(TRACE) << "ChCNarrowphaseDispatch::DispatchRigid() S";
-    custom_vector<real3>& norm_data = data_manager->host_data.norm_rigid_rigid;
-    custom_vector<real3>& cpta_data = data_manager->host_data.cpta_rigid_rigid;
-    custom_vector<real3>& cptb_data = data_manager->host_data.cptb_rigid_rigid;
-    custom_vector<real>& dpth_data = data_manager->host_data.dpth_rigid_rigid;
-    custom_vector<real>& erad_data = data_manager->host_data.erad_rigid_rigid;
-    custom_vector<vec2>& bids_data = data_manager->host_data.bids_rigid_rigid;
-    custom_vector<long long>& contact_shapeIDs = data_manager->host_data.contact_shapeIDs;
+    custom_vector<real3>& norm_data = data_manager->cd_data->host_data.norm_rigid_rigid;
+    custom_vector<real3>& cpta_data = data_manager->cd_data->host_data.cpta_rigid_rigid;
+    custom_vector<real3>& cptb_data = data_manager->cd_data->host_data.cptb_rigid_rigid;
+    custom_vector<real>& dpth_data = data_manager->cd_data->host_data.dpth_rigid_rigid;
+    custom_vector<real>& erad_data = data_manager->cd_data->host_data.erad_rigid_rigid;
+    custom_vector<vec2>& bids_data = data_manager->cd_data->host_data.bids_rigid_rigid;
+    custom_vector<long long>& contact_shapeIDs = data_manager->cd_data->host_data.contact_shapeIDs;
     uint& num_rigid_contacts = data_manager->cd_data->num_rigid_contacts;
 
     // Set maximum possible number of contacts for each potential collision
@@ -367,11 +367,11 @@ void ChCNarrowphaseDispatch::DispatchRigidFluid() {
                        data_manager->num_fluid_bodies,                //
                        data_manager->host_data.sorted_pos_3dof,       //
                        data_manager->node_container->family,          //
-                       data_manager->host_data.norm_rigid_fluid,      //
-                       data_manager->host_data.cpta_rigid_fluid,      //
-                       data_manager->host_data.dpth_rigid_fluid,      //
-                       data_manager->host_data.neighbor_rigid_fluid,  //
-                       data_manager->host_data.c_counts_rigid_fluid,  //
+                       data_manager->cd_data->host_data.norm_rigid_fluid,      //
+                       data_manager->cd_data->host_data.cpta_rigid_fluid,      //
+                       data_manager->cd_data->host_data.dpth_rigid_fluid,      //
+                       data_manager->cd_data->host_data.neighbor_rigid_fluid,  //
+                       data_manager->cd_data->host_data.c_counts_rigid_fluid,  //
                        data_manager->cd_data->num_rigid_fluid_contacts);
 
     LOG(TRACE) << "ChCNarrowphaseDispatch::DispatchRigidFluid() E " << data_manager->cd_data->num_rigid_fluid_contacts;
@@ -522,9 +522,9 @@ void ChCNarrowphaseDispatch::DispatchFluid() {
                         radius, data_manager->node_container->collision_envelope, min_bounding_point,
                         max_bounding_point, pos_fluid, data_manager->host_data.vel_3dof,
                         data_manager->host_data.sorted_pos_3dof, data_manager->host_data.sorted_vel_3dof,
-                        data_manager->host_data.v, data_manager->host_data.neighbor_3dof_3dof,
-                        data_manager->host_data.c_counts_3dof_3dof, data_manager->host_data.particle_indices_3dof,
-                        data_manager->host_data.reverse_mapping_3dof, data_manager->measures.collision.ff_bins_per_axis,
+                        data_manager->host_data.v, data_manager->cd_data->host_data.neighbor_3dof_3dof,
+                        data_manager->cd_data->host_data.c_counts_3dof_3dof, data_manager->cd_data->host_data.particle_indices_3dof,
+                        data_manager->cd_data->host_data.reverse_mapping_3dof, data_manager->measures.collision.ff_bins_per_axis,
                         data_manager->cd_data->num_fluid_contacts);
 
     LOG(TRACE) << "ChCNarrowphaseDispatch::DispatchFluid() E " << data_manager->cd_data->num_fluid_contacts;
@@ -592,7 +592,7 @@ void ChCNarrowphaseDispatch::RigidSphereContact(const real sphere_radius,
     Thrust_Fill(is_rigid_bin_active, 1000000000);
 #pragma omp parallel for
     for (int index = 0; index < (signed)data_manager->measures.collision.number_of_bins_active; index++) {
-        uint bin_number = data_manager->host_data.bin_number_out[index];
+        uint bin_number = data_manager->cd_data->host_data.bin_number_out[index];
         if (bin_number < total_bins) {
             // printf("bin_number: %d\n", index, bin_number);
             is_rigid_bin_active[bin_number] = index;
@@ -660,8 +660,8 @@ void ChCNarrowphaseDispatch::RigidSphereContact(const real sphere_radius,
             uint start = f_bin_start_index[index];
             uint end = f_bin_start_index[index + 1];
             // start and end of rigid bodies in this bin
-            uint rigid_start = data_manager->host_data.bin_start_index[rigid_index];
-            uint rigid_end = data_manager->host_data.bin_start_index[rigid_index + 1];
+            uint rigid_start = data_manager->cd_data->host_data.bin_start_index[rigid_index];
+            uint rigid_end = data_manager->cd_data->host_data.bin_start_index[rigid_index + 1];
 #pragma omp parallel for
             for (int i = start; i < (signed)end; i++) {
                 uint p = f_bin_fluid_number[i];
@@ -672,9 +672,9 @@ void ChCNarrowphaseDispatch::RigidSphereContact(const real sphere_radius,
 
                 for (uint j = rigid_start; j < rigid_end; j++) {
                     if (contact_counts[p] < max_rigid_neighbors) {
-                        uint shape_id_a = data_manager->host_data.bin_aabb_number[j];
-                        real3 Amin = data_manager->host_data.aabb_min[shape_id_a];
-                        real3 Amax = data_manager->host_data.aabb_max[shape_id_a];
+                        uint shape_id_a = data_manager->cd_data->host_data.bin_aabb_number[j];
+                        real3 Amin = data_manager->cd_data->host_data.aabb_min[shape_id_a];
+                        real3 Amax = data_manager->cd_data->host_data.aabb_max[shape_id_a];
                         // if the sphere and the rigid body appear in the same bin more than once, dont count
                         if (current_bin(Amin, Amax, Bmin, Bmax, inv_bin_size, bins_per_axis, bin_number) == true) {
                             if (overlap(Amin, Amax, Bmin, Bmax) && collide(family, fam_data[shape_id_a])) {
@@ -736,7 +736,7 @@ void ChCNarrowphaseDispatch::RigidTetContact(custom_vector<real3>& norm_rigid_te
     Thrust_Fill(is_rigid_bin_active, 1000000000);
 #pragma omp parallel for
     for (int index = 0; index < (signed)data_manager->measures.collision.number_of_bins_active; index++) {
-        uint bin_number = data_manager->host_data.bin_number_out[index];
+        uint bin_number = data_manager->cd_data->host_data.bin_number_out[index];
         if (bin_number < total_bins) {
             // printf("bin_number: %d\n", index, bin_number);
             is_rigid_bin_active[bin_number] = index;
@@ -799,8 +799,8 @@ void ChCNarrowphaseDispatch::RigidTetContact(custom_vector<real3>& norm_rigid_te
         if (rigid_index != 1000000000) {
             uint start = t_bin_start_index[index];
             uint end = t_bin_start_index[index + 1];
-            uint rigid_start = data_manager->host_data.bin_start_index[rigid_index];
-            uint rigid_end = data_manager->host_data.bin_start_index[rigid_index + 1];
+            uint rigid_start = data_manager->cd_data->host_data.bin_start_index[rigid_index];
+            uint rigid_end = data_manager->cd_data->host_data.bin_start_index[rigid_index + 1];
 #pragma omp parallel for
             for (int i = start; i < (signed)end; i++) {
                 uint p = t_bin_fluid_number[i];
@@ -816,9 +816,9 @@ void ChCNarrowphaseDispatch::RigidTetContact(custom_vector<real3>& norm_rigid_te
                 uint bf = bface.w;
                 ConvexShapeTetrahedron* shapeB = new ConvexShapeTetrahedron(tet_index, node_pos);
                 for (uint j = rigid_start; j < rigid_end; j++) {
-                    uint shape_id_a = data_manager->host_data.bin_aabb_number[j];
-                    real3 Amin = data_manager->host_data.aabb_min[shape_id_a];
-                    real3 Amax = data_manager->host_data.aabb_max[shape_id_a];
+                    uint shape_id_a = data_manager->cd_data->host_data.bin_aabb_number[j];
+                    real3 Amin = data_manager->cd_data->host_data.aabb_min[shape_id_a];
+                    real3 Amax = data_manager->cd_data->host_data.aabb_max[shape_id_a];
                     uint bodyA = data_manager->cd_data->shape_data.id_rigid[shape_id_a];
                     if (current_bin(Amin, Amax, Bmin, Bmax, inv_bin_size, bins_per_axis, bin_number) == false) {
                         continue;

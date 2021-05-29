@@ -77,8 +77,8 @@ void ChOpenGLContacts::UpdateChronoMulticore(ChSystemMulticore* system) {
 
     //#pragma omp parallel for
     for (int i = 0; i < (signed)num_rigid_contacts; i++) {
-        real3 cpta = data_manager->host_data.cpta_rigid_rigid[i];
-        real3 cptb = data_manager->host_data.cptb_rigid_rigid[i];
+        real3 cpta = data_manager->cd_data->host_data.cpta_rigid_rigid[i];
+        real3 cptb = data_manager->cd_data->host_data.cptb_rigid_rigid[i];
 
         contact_data[i] = glm::vec3(cpta.x, cpta.y, cpta.z);
         contact_data[i + num_rigid_contacts] = glm::vec3(cptb.x, cptb.y, cptb.z);
@@ -113,11 +113,11 @@ void ChOpenGLContacts::UpdateChronoMulticore(ChSystemMulticore* system) {
 
     offset += (data_manager->num_rigid_tet_node_contacts);
     for (int p = 0; p < (signed)data_manager->num_fluid_bodies; p++) {
-        int start = data_manager->host_data.c_counts_rigid_fluid[p];
-        int end = data_manager->host_data.c_counts_rigid_fluid[p + 1];
+        int start = data_manager->cd_data->host_data.c_counts_rigid_fluid[p];
+        int end = data_manager->cd_data->host_data.c_counts_rigid_fluid[p + 1];
         for (int index = start; index < end; index++) {
             int i = index - start;
-            real3 cpta = data_manager->host_data.cpta_rigid_fluid[p * max_rigid_neighbors + i];
+            real3 cpta = data_manager->cd_data->host_data.cpta_rigid_fluid[p * max_rigid_neighbors + i];
             contact_data[index + offset] = glm::vec3(cpta.x, cpta.y, cpta.z);
         }
     }

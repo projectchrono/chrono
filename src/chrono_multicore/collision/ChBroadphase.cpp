@@ -74,8 +74,8 @@ struct BoxReduce {
 // associated with non-colliding bodies.
 void ChCBroadphase::RigidBoundingBox() {
     // Vectors of length = number of collision shapes
-    const custom_vector<real3>& aabb_min = data_manager->host_data.aabb_min;
-    const custom_vector<real3>& aabb_max = data_manager->host_data.aabb_max;
+    const custom_vector<real3>& aabb_min = data_manager->cd_data->host_data.aabb_min;
+    const custom_vector<real3>& aabb_max = data_manager->cd_data->host_data.aabb_max;
     const custom_vector<uint>& id_rigid = data_manager->cd_data->shape_data.id_rigid;
     // Vectors of length = number of rigid bodies
     const custom_vector<char>& collide_rigid = data_manager->host_data.collide_rigid;
@@ -184,8 +184,8 @@ void ChCBroadphase::DetermineBoundingBox() {
 }
 
 void ChCBroadphase::OffsetAABB() {
-    custom_vector<real3>& aabb_min = data_manager->host_data.aabb_min;
-    custom_vector<real3>& aabb_max = data_manager->host_data.aabb_max;
+    custom_vector<real3>& aabb_min = data_manager->cd_data->host_data.aabb_min;
+    custom_vector<real3>& aabb_max = data_manager->cd_data->host_data.aabb_max;
 
     thrust::constant_iterator<real3> offset(data_manager->measures.collision.global_origin);
 
@@ -241,20 +241,20 @@ void ChCBroadphase::DispatchRigid() {
 
 void ChCBroadphase::OneLevelBroadphase() {
     LOG(TRACE) << "ChCBroadphase::OneLevelBroadphase()";
-    const custom_vector<real3>& aabb_min = data_manager->host_data.aabb_min;
-    const custom_vector<real3>& aabb_max = data_manager->host_data.aabb_max;
+    const custom_vector<real3>& aabb_min = data_manager->cd_data->host_data.aabb_min;
+    const custom_vector<real3>& aabb_max = data_manager->cd_data->host_data.aabb_max;
     const custom_vector<short2>& fam_data = data_manager->cd_data->shape_data.fam_rigid;
     const custom_vector<char>& obj_active = data_manager->host_data.active_rigid;
     const custom_vector<char>& obj_collide = data_manager->host_data.collide_rigid;
     const custom_vector<uint>& obj_data_id = data_manager->cd_data->shape_data.id_rigid;
-    custom_vector<long long>& pair_shapeIDs = data_manager->host_data.pair_shapeIDs;
+    custom_vector<long long>& pair_shapeIDs = data_manager->cd_data->host_data.pair_shapeIDs;
 
-    custom_vector<uint>& bin_intersections = data_manager->host_data.bin_intersections;
-    custom_vector<uint>& bin_number = data_manager->host_data.bin_number;
-    custom_vector<uint>& bin_number_out = data_manager->host_data.bin_number_out;
-    custom_vector<uint>& bin_aabb_number = data_manager->host_data.bin_aabb_number;
-    custom_vector<uint>& bin_start_index = data_manager->host_data.bin_start_index;
-    custom_vector<uint>& bin_num_contact = data_manager->host_data.bin_num_contact;
+    custom_vector<uint>& bin_intersections = data_manager->cd_data->host_data.bin_intersections;
+    custom_vector<uint>& bin_number = data_manager->cd_data->host_data.bin_number;
+    custom_vector<uint>& bin_number_out = data_manager->cd_data->host_data.bin_number_out;
+    custom_vector<uint>& bin_aabb_number = data_manager->cd_data->host_data.bin_aabb_number;
+    custom_vector<uint>& bin_start_index = data_manager->cd_data->host_data.bin_start_index;
+    custom_vector<uint>& bin_num_contact = data_manager->cd_data->host_data.bin_num_contact;
 
     vec3& bins_per_axis = data_manager->settings.collision.bins_per_axis;
     const int num_shapes = data_manager->cd_data->num_rigid_shapes;

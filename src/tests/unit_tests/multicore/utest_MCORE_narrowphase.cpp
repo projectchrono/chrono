@@ -150,8 +150,8 @@ bool CompareContacts(ChSystemMulticore* msystem_A, ChSystemMulticore* msystem_B)
     // compare depth
     if (passing) {
         for (int i = 0; i < num_contacts_A; i++) {
-            real depth_A = msystem_A->data_manager->host_data.dpth_rigid_rigid[i];
-            real depth_B = msystem_B->data_manager->host_data.dpth_rigid_rigid[i];
+            real depth_A = msystem_A->data_manager->cd_data->host_data.dpth_rigid_rigid[i];
+            real depth_B = msystem_B->data_manager->cd_data->host_data.dpth_rigid_rigid[i];
 
             if (fabs(depth_A - depth_B) > test_tolerance) {
                 std::cout << depth_A << " does not equal " << depth_B << " " << fabs(depth_A - depth_B) << std::endl;
@@ -161,8 +161,8 @@ bool CompareContacts(ChSystemMulticore* msystem_A, ChSystemMulticore* msystem_B)
     }
     if (passing) {
         for (int i = 0; i < num_contacts_A; i++) {
-            real3 norm_A = msystem_A->data_manager->host_data.norm_rigid_rigid[i];
-            real3 norm_B = msystem_B->data_manager->host_data.norm_rigid_rigid[i];
+            real3 norm_A = msystem_A->data_manager->cd_data->host_data.norm_rigid_rigid[i];
+            real3 norm_B = msystem_B->data_manager->cd_data->host_data.norm_rigid_rigid[i];
 
             real x = norm_A.x;
             real y = norm_B.x;

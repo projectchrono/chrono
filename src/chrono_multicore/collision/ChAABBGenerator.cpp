@@ -122,8 +122,8 @@ void ChCAABBGenerator::GenerateAABB() {
         const custom_vector<real3>& pos_rigid = data_manager->host_data.pos_rigid;
         const custom_vector<quaternion>& body_rot = data_manager->host_data.rot_rigid;
         const uint num_rigid_shapes = data_manager->cd_data->num_rigid_shapes;
-        custom_vector<real3>& aabb_min = data_manager->host_data.aabb_min;
-        custom_vector<real3>& aabb_max = data_manager->host_data.aabb_max;
+        custom_vector<real3>& aabb_min = data_manager->cd_data->host_data.aabb_min;
+        custom_vector<real3>& aabb_max = data_manager->cd_data->host_data.aabb_max;
 
         aabb_min.resize(num_rigid_shapes);
         aabb_max.resize(num_rigid_shapes);

@@ -226,20 +226,20 @@ void ChContactContainerMulticoreNSC_mc::AddContact(const collision::ChCollisionI
         int b1 = ((ChBody*)(cinfo.modelA->GetPhysicsItem()))->GetId();
         int b2 = ((ChBody*)(cinfo.modelB->GetPhysicsItem()))->GetId();
         if (b1 < b2) {
-            data_manager->host_data.norm_rigid_rigid.push_back(real3(cinfo.vN.x(), cinfo.vN.y(), cinfo.vN.z()));
-            data_manager->host_data.cpta_rigid_rigid.push_back(real3(cinfo.vpA.x(), cinfo.vpA.y(), cinfo.vpA.z()));
-            data_manager->host_data.cptb_rigid_rigid.push_back(real3(cinfo.vpB.x(), cinfo.vpB.y(), cinfo.vpB.z()));
-            data_manager->host_data.dpth_rigid_rigid.push_back(cinfo.distance);
-            data_manager->host_data.erad_rigid_rigid.push_back(cinfo.eff_radius);  // not really needed here
-            data_manager->host_data.bids_rigid_rigid.push_back(vec2(b1, b2));
+            cd_data->host_data.norm_rigid_rigid.push_back(real3(cinfo.vN.x(), cinfo.vN.y(), cinfo.vN.z()));
+            cd_data->host_data.cpta_rigid_rigid.push_back(real3(cinfo.vpA.x(), cinfo.vpA.y(), cinfo.vpA.z()));
+            cd_data->host_data.cptb_rigid_rigid.push_back(real3(cinfo.vpB.x(), cinfo.vpB.y(), cinfo.vpB.z()));
+            cd_data->host_data.dpth_rigid_rigid.push_back(cinfo.distance);
+            cd_data->host_data.erad_rigid_rigid.push_back(cinfo.eff_radius);  // not really needed here
+            cd_data->host_data.bids_rigid_rigid.push_back(vec2(b1, b2));
         } else {
             ChCollisionInfo cinfoS(cinfo, true);  // swap information in cinfo
-            data_manager->host_data.norm_rigid_rigid.push_back(real3(cinfoS.vN.x(), cinfoS.vN.y(), cinfoS.vN.z()));
-            data_manager->host_data.cpta_rigid_rigid.push_back(real3(cinfoS.vpA.x(), cinfoS.vpA.y(), cinfoS.vpA.z()));
-            data_manager->host_data.cptb_rigid_rigid.push_back(real3(cinfoS.vpB.x(), cinfoS.vpB.y(), cinfoS.vpB.z()));
-            data_manager->host_data.dpth_rigid_rigid.push_back(cinfoS.distance);
-            data_manager->host_data.erad_rigid_rigid.push_back(cinfoS.eff_radius);  // not really needed here
-            data_manager->host_data.bids_rigid_rigid.push_back(vec2(b2, b1));
+            cd_data->host_data.norm_rigid_rigid.push_back(real3(cinfoS.vN.x(), cinfoS.vN.y(), cinfoS.vN.z()));
+            cd_data->host_data.cpta_rigid_rigid.push_back(real3(cinfoS.vpA.x(), cinfoS.vpA.y(), cinfoS.vpA.z()));
+            cd_data->host_data.cptb_rigid_rigid.push_back(real3(cinfoS.vpB.x(), cinfoS.vpB.y(), cinfoS.vpB.z()));
+            cd_data->host_data.dpth_rigid_rigid.push_back(cinfoS.distance);
+            cd_data->host_data.erad_rigid_rigid.push_back(cinfoS.eff_radius);  // not really needed here
+            cd_data->host_data.bids_rigid_rigid.push_back(vec2(b2, b1));
         }
 
         // Composite material for added contact
@@ -277,12 +277,12 @@ void ChContactContainerMulticoreNSC_mc::AddContact(const collision::ChCollisionI
     ChContactable_1vars<6>* mmboB = dynamic_cast<ChContactable_1vars<6>*>(cinfo.modelB->GetContactable());
 
     if (mmboA && mmboB) {
-        data_manager->host_data.norm_rigid_rigid.push_back(real3(cinfo.vN.x(), cinfo.vN.y(), cinfo.vN.z()));
-        data_manager->host_data.cpta_rigid_rigid.push_back(real3(cinfo.vpA.x(), cinfo.vpA.y(), cinfo.vpA.z()));
-        data_manager->host_data.cptb_rigid_rigid.push_back(real3(cinfo.vpB.x(), cinfo.vpB.y(), cinfo.vpB.z()));
-        data_manager->host_data.dpth_rigid_rigid.push_back(cinfo.distance);
-        data_manager->host_data.erad_rigid_rigid.push_back(cinfo.eff_radius);
-        data_manager->host_data.bids_rigid_rigid.push_back(vec2(((ChBody*)(cinfo.modelA->GetPhysicsItem()))->GetId(),
+        cd_data->host_data.norm_rigid_rigid.push_back(real3(cinfo.vN.x(), cinfo.vN.y(), cinfo.vN.z()));
+        cd_data->host_data.cpta_rigid_rigid.push_back(real3(cinfo.vpA.x(), cinfo.vpA.y(), cinfo.vpA.z()));
+        cd_data->host_data.cptb_rigid_rigid.push_back(real3(cinfo.vpB.x(), cinfo.vpB.y(), cinfo.vpB.z()));
+        cd_data->host_data.dpth_rigid_rigid.push_back(cinfo.distance);
+        cd_data->host_data.erad_rigid_rigid.push_back(cinfo.eff_radius);
+        cd_data->host_data.bids_rigid_rigid.push_back(vec2(((ChBody*)(cinfo.modelA->GetPhysicsItem()))->GetId(),
                                                                 ((ChBody*)(cinfo.modelB->GetPhysicsItem()))->GetId()));
         cd_data->num_rigid_contacts++;
     }
@@ -305,9 +305,9 @@ void ChContactContainerMulticoreNSC_mc::AddContact(int index, int b1, int s1, in
 
     // Allow user to override composite material
     if (data_manager->add_contact_callback) {
-        const real3& vN = data_manager->host_data.norm_rigid_rigid[index];
-        real3 vpA = data_manager->host_data.cpta_rigid_rigid[index] + data_manager->host_data.pos_rigid[b1];
-        real3 vpB = data_manager->host_data.cptb_rigid_rigid[index] + data_manager->host_data.pos_rigid[b2];
+        const real3& vN = data_manager->cd_data->host_data.norm_rigid_rigid[index];
+        real3 vpA = data_manager->cd_data->host_data.cpta_rigid_rigid[index] + data_manager->host_data.pos_rigid[b1];
+        real3 vpB = data_manager->cd_data->host_data.cptb_rigid_rigid[index] + data_manager->host_data.pos_rigid[b2];
 
         chrono::collision::ChCollisionInfo cinfo;
         cinfo.modelA = blist[b1]->GetCollisionModel().get();
@@ -317,8 +317,8 @@ void ChContactContainerMulticoreNSC_mc::AddContact(int index, int b1, int s1, in
         cinfo.vN = ChVector<>(vN.x, vN.y, vN.z);
         cinfo.vpA = ChVector<>(vpA.x, vpA.y, vpA.z);
         cinfo.vpB = ChVector<>(vpB.x, vpB.y, vpB.z);
-        cinfo.distance = data_manager->host_data.dpth_rigid_rigid[index];
-        cinfo.eff_radius = data_manager->host_data.erad_rigid_rigid[index];
+        cinfo.distance = data_manager->cd_data->host_data.dpth_rigid_rigid[index];
+        cinfo.eff_radius = data_manager->cd_data->host_data.erad_rigid_rigid[index];
 
         data_manager->add_contact_callback->OnAddContact(cinfo, &cmat);
     }

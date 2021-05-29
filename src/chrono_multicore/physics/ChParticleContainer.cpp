@@ -149,7 +149,7 @@ void ChParticleContainer::UpdatePosition(double ChTime) {
 #pragma omp parallel for
     for (int i = 0; i < (signed)num_fluid_bodies; i++) {
         real3 vel;
-        int original_index = data_manager->host_data.particle_indices_3dof[i];
+        int original_index = data_manager->cd_data->host_data.particle_indices_3dof[i];
         // these are sorted so we have to unsort them
         vel.x = data_manager->host_data.v[offset + i * 3 + 0];
         vel.y = data_manager->host_data.v[offset + i * 3 + 1];
@@ -167,14 +167,13 @@ void ChParticleContainer::UpdatePosition(double ChTime) {
     //    if (num_fluid_bodies != 0) {
     //        data_manager->narrowphase->DispatchRigidFluid();
     //
-    //        custom_vector<real3>& cpta = data_manager->host_data.cpta_rigid_fluid;
-    //        custom_vector<real3>& norm = data_manager->host_data.norm_rigid_fluid;
-    //        custom_vector<real>& dpth = data_manager->host_data.dpth_rigid_fluid;
-    //        custom_vector<int>& neighbor_rigid_fluid = data_manager->host_data.neighbor_rigid_fluid;
-    //        custom_vector<int>& contact_counts = data_manager->host_data.c_counts_rigid_fluid;
+    //        custom_vector<real3>& cpta = data_manager->cd_data->host_data.cpta_rigid_fluid;
+    //        custom_vector<real3>& norm = data_manager->cd_data->host_data.norm_rigid_fluid;
+    //        custom_vector<real>& dpth = data_manager->cd_data->host_data.dpth_rigid_fluid;
+    //        custom_vector<int>& neighbor_rigid_fluid = data_manager->cd_data->host_data.neighbor_rigid_fluid;
+    //        custom_vector<int>& contact_counts = data_manager->cd_data->host_data.c_counts_rigid_fluid;
     //        // This treats all rigid neighbors as fixed. This correction should usually be pretty small if the
-    //        timestep
-    //        // isnt too large.
+    //        timestep isn't too large.
     //
     //        if (data_manager->cd_data->num_rigid_fluid_contacts > 0) {
     //#pragma omp parallel for
@@ -204,7 +203,7 @@ void ChParticleContainer::UpdatePosition(double ChTime) {
     //        real inv_dt = 1.0 / data_manager->settings.step_size;
     //#pragma omp parallel for
     //        for (int p = 0; p < num_fluid_bodies; p++) {
-    //            int original_index = data_manager->host_data.particle_indices_3dof[p];
+    //            int original_index = data_manager->cd_data->host_data.particle_indices_3dof[p];
     //            real3 vv = real3((sorted_pos_fluid[p] - pos_fluid[original_index]) * inv_dt);
     //            if (contact_counts[p + 1] - contact_counts[p] > 0) {
     //                pos_fluid[original_index] = sorted_pos_fluid[p];
@@ -472,8 +471,8 @@ void ChParticleContainer::GenerateSparsity() {
         int index_n = 0;
         int index_t = 0;
         for (int body_a = 0; body_a < (signed)num_fluid_bodies; body_a++) {
-            for (int i = 0; i < data_manager->host_data.c_counts_3dof_3dof[body_a]; i++) {
-                int body_b = data_manager->host_data.neighbor_3dof_3dof[body_a * max_neighbors + i];
+            for (int i = 0; i < data_manager->cd_data->host_data.c_counts_3dof_3dof[body_a]; i++) {
+                int body_b = data_manager->cd_data->host_data.neighbor_3dof_3dof[body_a * max_neighbors + i];
                 if (body_a == body_b || body_a > body_b) {
                     continue;
                 }
@@ -487,8 +486,8 @@ void ChParticleContainer::GenerateSparsity() {
         }
         if (mu != 0) {
             for (int body_a = 0; body_a < (signed)num_fluid_bodies; body_a++) {
-                for (int i = 0; i < data_manager->host_data.c_counts_3dof_3dof[body_a]; i++) {
-                    int body_b = data_manager->host_data.neighbor_3dof_3dof[body_a * max_neighbors + i];
+                for (int i = 0; i < data_manager->cd_data->host_data.c_counts_3dof_3dof[body_a]; i++) {
+                    int body_b = data_manager->cd_data->host_data.neighbor_3dof_3dof[body_a * max_neighbors + i];
                     if (body_a == body_b || body_a > body_b) {
                         continue;
                     }
@@ -550,7 +549,7 @@ void ChParticleContainer::PreSolve() {
         mpm_thread.join();
 #pragma omp parallel for
         for (int p = 0; p < (signed)num_fluid_bodies; p++) {
-            int index = data_manager->host_data.reverse_mapping_3dof[p];
+            int index = data_manager->cd_data->host_data.reverse_mapping_3dof[p];
             data_manager->host_data.v[body_offset + index * 3 + 0] = mpm_vel[p * 3 + 0];
             data_manager->host_data.v[body_offset + index * 3 + 1] = mpm_vel[p * 3 + 1];
             data_manager->host_data.v[body_offset + index * 3 + 2] = mpm_vel[p * 3 + 2];

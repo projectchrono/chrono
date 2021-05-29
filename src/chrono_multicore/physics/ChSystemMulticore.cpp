@@ -829,8 +829,8 @@ void ChSystemMulticore::CalculateBodyAABB() {
         return;
 
     // Readability replacements
-    auto& s_min = data_manager->host_data.aabb_min;
-    auto& s_max = data_manager->host_data.aabb_max;
+    auto& s_min = data_manager->cd_data->host_data.aabb_min;
+    auto& s_max = data_manager->cd_data->host_data.aabb_max;
     auto& id_rigid = data_manager->cd_data->shape_data.id_rigid;
     auto& offset = data_manager->measures.collision.global_origin;
 

@@ -265,7 +265,7 @@ void ChCollisionSystemMulticore::Run() {
 
     } else {
         data_manager->host_data.c_counts_rigid_tet.clear();
-        data_manager->host_data.c_counts_rigid_fluid.clear();
+        data_manager->cd_data->host_data.c_counts_rigid_fluid.clear();
         data_manager->num_rigid_tet_contacts = 0;
         data_manager->cd_data->num_rigid_fluid_contacts = 0;
     }
@@ -298,8 +298,8 @@ void ChCollisionSystemMulticore::ReportContacts(ChContactContainer* mcontactcont
 
     auto container = static_cast<ChContactContainerMulticore_mc*>(mcontactcontainer);
 
-    auto& bids = data_manager->host_data.bids_rigid_rigid;  // global IDs of bodies in contact
-    auto& sids = data_manager->host_data.contact_shapeIDs;  // global IDs of shapes in contact
+    auto& bids = data_manager->cd_data->host_data.bids_rigid_rigid;           // global IDs of bodies in contact
+    auto& sids = data_manager->cd_data->host_data.contact_shapeIDs;  // global IDs of shapes in contact
     ////auto& sindex = data_manager->cd_data->shape_data.local_rigid;    // collision model indexes of shapes in contact
 
     // Loop over all current contacts, create the composite material, and load material properties in the data manager
@@ -331,8 +331,8 @@ void ChCollisionSystemMulticore::GetOverlappingAABB(custom_vector<char>& active_
     data_manager->aabb_generator->GenerateAABB();
 #pragma omp parallel for
     for (int i = 0; i < data_manager->cd_data->shape_data.typ_rigid.size(); i++) {
-        real3 Bmin = data_manager->host_data.aabb_min[i];
-        real3 Bmax = data_manager->host_data.aabb_max[i];
+        real3 Bmin = data_manager->cd_data->host_data.aabb_min[i];
+        real3 Bmax = data_manager->cd_data->host_data.aabb_max[i];
 
         bool inContact = (Amin.x <= Bmax.x && Bmin.x <= Amax.x) && (Amin.y <= Bmax.y && Bmin.y <= Amax.y) &&
                          (Amin.z <= Bmax.z && Bmin.z <= Amax.z);
@@ -344,10 +344,10 @@ void ChCollisionSystemMulticore::GetOverlappingAABB(custom_vector<char>& active_
 
 std::vector<vec2> ChCollisionSystemMulticore::GetOverlappingPairs() {
     std::vector<vec2> pairs;
-    pairs.resize(data_manager->host_data.pair_shapeIDs.size());
-    for (int i = 0; i < data_manager->host_data.pair_shapeIDs.size(); i++) {
-        vec2 pair = I2(int(data_manager->host_data.pair_shapeIDs[i] >> 32),
-                       int(data_manager->host_data.pair_shapeIDs[i] & 0xffffffff));
+    pairs.resize(data_manager->cd_data->host_data.pair_shapeIDs.size());
+    for (int i = 0; i < data_manager->cd_data->host_data.pair_shapeIDs.size(); i++) {
+        vec2 pair = I2(int(data_manager->cd_data->host_data.pair_shapeIDs[i] >> 32),
+                       int(data_manager->cd_data->host_data.pair_shapeIDs[i] & 0xffffffff));
         pairs[i] = pair;
     }
     return pairs;

@@ -209,34 +209,10 @@ typedef blaze::Subvector<const DynamicVector<real>> ConstSubVectorType;
 struct host_container {
     // Collision data
 
-    custom_vector<real3> aabb_min;  ///< List of bounding boxes minimum point
-    custom_vector<real3> aabb_max;  ///< List of bounding boxes maximum point
-
     custom_vector<real3> aabb_min_tet;  ///< List of bounding boxes minimum point for tets
     custom_vector<real3> aabb_max_tet;  ///< List of bounding boxes maximum point for tets
 
-    custom_vector<long long> pair_shapeIDs;     ///< Shape IDs for each shape pair (encoded in a single long long)
-    custom_vector<long long> contact_shapeIDs;  ///< Shape IDs for each contact (encoded in a single long long)
-
-    // Contact data
-    custom_vector<real3> norm_rigid_rigid;
-    custom_vector<real3> cpta_rigid_rigid;
-    custom_vector<real3> cptb_rigid_rigid;
-    custom_vector<real> dpth_rigid_rigid;
-    custom_vector<real> erad_rigid_rigid;
-    custom_vector<vec2> bids_rigid_rigid;
-
-    custom_vector<real3> norm_rigid_fluid;
-    custom_vector<real3> cpta_rigid_fluid;
-    custom_vector<real> dpth_rigid_fluid;
-    custom_vector<int> neighbor_rigid_fluid;
-    custom_vector<int> c_counts_rigid_fluid;
-
-    // each particle has a finite number of neighbors preallocated
-    custom_vector<int> neighbor_3dof_3dof;
-    custom_vector<int> c_counts_3dof_3dof;
-    custom_vector<int> particle_indices_3dof;
-    custom_vector<int> reverse_mapping_3dof;
+    // Contact data for tets
 
     custom_vector<real3> norm_rigid_tet;
     custom_vector<real3> cpta_rigid_tet;
@@ -390,15 +366,6 @@ struct host_container {
     DynamicVector<real> E;
 
     DynamicVector<real> Fc; ///< Contact forces (NSC)
-
-    //========Broadphase Data========
-
-    custom_vector<uint> bin_intersections;
-    custom_vector<uint> bin_number;
-    custom_vector<uint> bin_number_out;
-    custom_vector<uint> bin_aabb_number;
-    custom_vector<uint> bin_start_index;
-    custom_vector<uint> bin_num_contact;
 };
 
 /// Global data manager for Chrono::Multicore.

@@ -124,8 +124,8 @@ void AppendRigidFluidBoundary(const real contact_mu,
     CompressedMatrix<real>& D_T = data_manager->host_data.D_T;
     uint num_rigid_fluid_contacts = data_manager->cd_data->num_rigid_fluid_contacts;
     if (num_rigid_fluid_contacts > 0) {
-        custom_vector<int>& neighbor_rigid_fluid = data_manager->host_data.neighbor_rigid_fluid;
-        custom_vector<int>& contact_counts = data_manager->host_data.c_counts_rigid_fluid;
+        custom_vector<int>& neighbor_rigid_fluid = data_manager->cd_data->host_data.neighbor_rigid_fluid;
+        custom_vector<int>& contact_counts = data_manager->cd_data->host_data.c_counts_rigid_fluid;
 
         Loop_Over_Rigid_Neighbors(int rigid = neighbor_rigid_fluid[p * max_rigid_neighbors + i];
                                   AppendRow6(D_T, start_boundary + index + 0, rigid * 6, 0);
@@ -154,8 +154,8 @@ void ProjectRigidFluidBoundary(const real contact_mu,
                                const uint start_boundary,
                                real* gamma,
                                ChMulticoreDataManager* data_manager) {
-    custom_vector<int>& neighbor_rigid_fluid = data_manager->host_data.neighbor_rigid_fluid;
-    custom_vector<int>& contact_counts = data_manager->host_data.c_counts_rigid_fluid;
+    custom_vector<int>& neighbor_rigid_fluid = data_manager->cd_data->host_data.neighbor_rigid_fluid;
+    custom_vector<int>& contact_counts = data_manager->cd_data->host_data.c_counts_rigid_fluid;
     uint num_rigid_fluid_contacts = data_manager->cd_data->num_rigid_fluid_contacts;
 
     if (contact_mu == 0) {
@@ -251,11 +251,11 @@ void CorrectionRigidFluidBoundary(const real contact_mu,
     real inv_hpa = 1 / (data_manager->settings.step_size + alpha);
 
     DynamicVector<real>& b = data_manager->host_data.b;
-    custom_vector<real>& dpth_rigid_fluid = data_manager->host_data.dpth_rigid_fluid;
+    custom_vector<real>& dpth_rigid_fluid = data_manager->cd_data->host_data.dpth_rigid_fluid;
     uint num_rigid_fluid_contacts = data_manager->cd_data->num_rigid_fluid_contacts;
 
     if (num_rigid_fluid_contacts > 0) {
-        custom_vector<int>& contact_counts = data_manager->host_data.c_counts_rigid_fluid;
+        custom_vector<int>& contact_counts = data_manager->cd_data->host_data.c_counts_rigid_fluid;
 
         if (contact_mu == 0) {
 #pragma omp parallel for
@@ -292,10 +292,10 @@ void BuildRigidFluidBoundary(const real contact_mu,
         custom_vector<real3>& pos_rigid = data_manager->host_data.pos_rigid;
         custom_vector<quaternion>& rot_rigid = data_manager->host_data.rot_rigid;
 
-        custom_vector<real3>& cpta = data_manager->host_data.cpta_rigid_fluid;
-        custom_vector<real3>& norm = data_manager->host_data.norm_rigid_fluid;
-        custom_vector<int>& neighbor_rigid_fluid = data_manager->host_data.neighbor_rigid_fluid;
-        custom_vector<int>& contact_counts = data_manager->host_data.c_counts_rigid_fluid;
+        custom_vector<real3>& cpta = data_manager->cd_data->host_data.cpta_rigid_fluid;
+        custom_vector<real3>& norm = data_manager->cd_data->host_data.norm_rigid_fluid;
+        custom_vector<int>& neighbor_rigid_fluid = data_manager->cd_data->host_data.neighbor_rigid_fluid;
+        custom_vector<int>& contact_counts = data_manager->cd_data->host_data.c_counts_rigid_fluid;
 
         if (contact_mu == 0) {
 #pragma omp parallel for

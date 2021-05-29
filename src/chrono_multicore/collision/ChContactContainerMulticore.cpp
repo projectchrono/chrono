@@ -226,12 +226,12 @@ void ChContactContainerMulticore_mc::EndAddContact() {
 void ChContactContainerMulticore_mc::ReportAllContacts(std::shared_ptr<ReportContactCallback> callback) {
     // Readibility
     auto& cd_data = data_manager->cd_data;
-    const auto& ptA = data_manager->host_data.cpta_rigid_rigid;
-    const auto& ptB = data_manager->host_data.cptb_rigid_rigid;
-    const auto& nrm = data_manager->host_data.norm_rigid_rigid;
-    const auto& depth = data_manager->host_data.dpth_rigid_rigid;
-    const auto& erad = data_manager->host_data.erad_rigid_rigid;
-    const auto& bids = data_manager->host_data.bids_rigid_rigid;
+    const auto& ptA = data_manager->cd_data->host_data.cpta_rigid_rigid;
+    const auto& ptB = data_manager->cd_data->host_data.cptb_rigid_rigid;
+    const auto& nrm = data_manager->cd_data->host_data.norm_rigid_rigid;
+    const auto& depth = data_manager->cd_data->host_data.dpth_rigid_rigid;
+    const auto& erad = data_manager->cd_data->host_data.erad_rigid_rigid;
+    const auto& bids = data_manager->cd_data->host_data.bids_rigid_rigid;
 
     // NSC-specific
     auto mode = data_manager->settings.solver.local_solver_mode;

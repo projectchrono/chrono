@@ -138,12 +138,12 @@ double ChCollisionSystemBulletMulticore::GetTimerCollisionNarrow() const {
 
 void ChCollisionSystemBulletMulticore::ReportContacts(ChContactContainer* mcontactcontainer) {
     data_manager->system_timer.start("collision_narrow");
-    data_manager->host_data.norm_rigid_rigid.clear();
-    data_manager->host_data.cpta_rigid_rigid.clear();
-    data_manager->host_data.cptb_rigid_rigid.clear();
-    data_manager->host_data.dpth_rigid_rigid.clear();
-    data_manager->host_data.erad_rigid_rigid.clear();
-    data_manager->host_data.bids_rigid_rigid.clear();
+    data_manager->cd_data->host_data.norm_rigid_rigid.clear();
+    data_manager->cd_data->host_data.cpta_rigid_rigid.clear();
+    data_manager->cd_data->host_data.cptb_rigid_rigid.clear();
+    data_manager->cd_data->host_data.dpth_rigid_rigid.clear();
+    data_manager->cd_data->host_data.erad_rigid_rigid.clear();
+    data_manager->cd_data->host_data.bids_rigid_rigid.clear();
     data_manager->cd_data->num_rigid_contacts = 0;
     // mcontactcontainer->BeginAddContact();
 
@@ -229,15 +229,15 @@ void ChCollisionSystemBulletMulticore::ReportContacts(ChContactContainer* mconta
                         ////std::cout << "     typeA=" << icontact.shapeA->m_type << " typeB=" << icontact.shapeB->m_type
                         ////          << std::endl;
 
-                        data_manager->host_data.norm_rigid_rigid.push_back(
+                        data_manager->cd_data->host_data.norm_rigid_rigid.push_back(
                             real3(icontact.vN.x(), icontact.vN.y(), icontact.vN.z()));
-                        data_manager->host_data.cpta_rigid_rigid.push_back(
+                        data_manager->cd_data->host_data.cpta_rigid_rigid.push_back(
                             real3(icontact.vpA.x(), icontact.vpA.y(), icontact.vpA.z()));
-                        data_manager->host_data.cptb_rigid_rigid.push_back(
+                        data_manager->cd_data->host_data.cptb_rigid_rigid.push_back(
                             real3(icontact.vpB.x(), icontact.vpB.y(), icontact.vpB.z()));
-                        data_manager->host_data.dpth_rigid_rigid.push_back(icontact.distance);
-                        data_manager->host_data.erad_rigid_rigid.push_back(icontact.eff_radius);
-                        data_manager->host_data.bids_rigid_rigid.push_back(
+                        data_manager->cd_data->host_data.dpth_rigid_rigid.push_back(icontact.distance);
+                        data_manager->cd_data->host_data.erad_rigid_rigid.push_back(icontact.eff_radius);
+                        data_manager->cd_data->host_data.bids_rigid_rigid.push_back(
                             I2(obA->getCompanionId(), obB->getCompanionId()));
                         data_manager->cd_data->num_rigid_contacts++;
                     }
