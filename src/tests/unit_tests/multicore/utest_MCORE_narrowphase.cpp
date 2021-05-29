@@ -28,7 +28,7 @@
 #include "unit_testing.h"
 
 #ifdef CHRONO_OPENGL
-#include "chrono_opengl/ChOpenGLWindow.h"
+    #include "chrono_opengl/ChOpenGLWindow.h"
 #endif
 
 using namespace chrono;
@@ -150,8 +150,8 @@ bool CompareContacts(ChSystemMulticore* msystem_A, ChSystemMulticore* msystem_B)
     // compare depth
     if (passing) {
         for (int i = 0; i < num_contacts_A; i++) {
-            real depth_A = msystem_A->data_manager->cd_data->host_data.dpth_rigid_rigid[i];
-            real depth_B = msystem_B->data_manager->cd_data->host_data.dpth_rigid_rigid[i];
+            real depth_A = msystem_A->data_manager->cd_data->dpth_rigid_rigid[i];
+            real depth_B = msystem_B->data_manager->cd_data->dpth_rigid_rigid[i];
 
             if (fabs(depth_A - depth_B) > test_tolerance) {
                 std::cout << depth_A << " does not equal " << depth_B << " " << fabs(depth_A - depth_B) << std::endl;
@@ -161,8 +161,8 @@ bool CompareContacts(ChSystemMulticore* msystem_A, ChSystemMulticore* msystem_B)
     }
     if (passing) {
         for (int i = 0; i < num_contacts_A; i++) {
-            real3 norm_A = msystem_A->data_manager->cd_data->host_data.norm_rigid_rigid[i];
-            real3 norm_B = msystem_B->data_manager->cd_data->host_data.norm_rigid_rigid[i];
+            real3 norm_A = msystem_A->data_manager->cd_data->norm_rigid_rigid[i];
+            real3 norm_B = msystem_B->data_manager->cd_data->norm_rigid_rigid[i];
 
             real x = norm_A.x;
             real y = norm_B.x;
@@ -255,8 +255,7 @@ int main(int argc, char* argv[]) {
         std::cout << "OpenGL support not available.  Cannot animate mechanism." << std::endl;
         return 1;
 #endif
-    }
-    else {
+    } else {
         while (time < time_end) {
             Sync(msystem_mpr, msystem_r);
             msystem_mpr->DoStepDynamics(time_step);
@@ -271,9 +270,6 @@ int main(int argc, char* argv[]) {
 
     return 0;
 }
-
-
-
 
 /*
 void CompareContacts(ChSystemMulticore* msystem_A, ChSystemMulticore* msystem_B) {

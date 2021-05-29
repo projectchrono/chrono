@@ -76,8 +76,8 @@ struct BoxReduce {
 // associated with non-colliding bodies.
 void ChBroadphase::RigidBoundingBox() {
     // Vectors of length = number of collision shapes
-    const std::vector<real3>& aabb_min = cd_data->host_data.aabb_min;
-    const std::vector<real3>& aabb_max = cd_data->host_data.aabb_max;
+    const std::vector<real3>& aabb_min = cd_data->aabb_min;
+    const std::vector<real3>& aabb_max = cd_data->aabb_max;
     const std::vector<uint>& id_rigid = cd_data->shape_data.id_rigid;
 
     // Vectors of length = number of rigid bodies
@@ -163,8 +163,8 @@ void ChBroadphase::DetermineBoundingBox() {
 }
 
 void ChBroadphase::OffsetAABB() {
-    std::vector<real3>& aabb_min = cd_data->host_data.aabb_min;
-    std::vector<real3>& aabb_max = cd_data->host_data.aabb_max;
+    std::vector<real3>& aabb_min = cd_data->aabb_min;
+    std::vector<real3>& aabb_max = cd_data->aabb_max;
 
     thrust::constant_iterator<real3> offset(cd_data->measures.global_origin);
 
@@ -213,15 +213,15 @@ void ChBroadphase::OneLevelBroadphase() {
     const std::vector<char>& obj_active = *cd_data->state_data.active_rigid;
     const std::vector<char>& obj_collide = *cd_data->state_data.collide_rigid;
 
-    const std::vector<real3>& aabb_min = cd_data->host_data.aabb_min;
-    const std::vector<real3>& aabb_max = cd_data->host_data.aabb_max;
-    std::vector<long long>& pair_shapeIDs = cd_data->host_data.pair_shapeIDs;
-    std::vector<uint>& bin_intersections = cd_data->host_data.bin_intersections;
-    std::vector<uint>& bin_number = cd_data->host_data.bin_number;
-    std::vector<uint>& bin_number_out = cd_data->host_data.bin_number_out;
-    std::vector<uint>& bin_aabb_number = cd_data->host_data.bin_aabb_number;
-    std::vector<uint>& bin_start_index = cd_data->host_data.bin_start_index;
-    std::vector<uint>& bin_num_contact = cd_data->host_data.bin_num_contact;
+    const std::vector<real3>& aabb_min = cd_data->aabb_min;
+    const std::vector<real3>& aabb_max = cd_data->aabb_max;
+    std::vector<long long>& pair_shapeIDs = cd_data->pair_shapeIDs;
+    std::vector<uint>& bin_intersections = cd_data->bin_intersections;
+    std::vector<uint>& bin_number = cd_data->bin_number;
+    std::vector<uint>& bin_number_out = cd_data->bin_number_out;
+    std::vector<uint>& bin_aabb_number = cd_data->bin_aabb_number;
+    std::vector<uint>& bin_start_index = cd_data->bin_start_index;
+    std::vector<uint>& bin_num_contact = cd_data->bin_num_contact;
 
     const int num_shapes = cd_data->num_rigid_shapes;
 

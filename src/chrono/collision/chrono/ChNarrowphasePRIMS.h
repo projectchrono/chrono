@@ -54,23 +54,23 @@ namespace collision {
 ///   - ct_norm:     contact normal, from ct_pt2 to ct_pt1 (in global frame)
 /// @remark
 ///   - ct_eff_rad:  effective contact radius
-/// 
+///
 /// Note that we also report collisions for which the distance between the two shapes is at most 'separation' (typically
 /// twice the collision envelope). In these cases, the corresponding ct_depth is a positive value. This function returns
 /// true if it was able to determine the collision state for the given pair of shapes and false if the shape types are
 /// not supported.
-/// 
+///
 /// Currently supported pair-wise interactions:
 /// <pre>
 ///          |  sphere   box   rbox   capsule   cylinder   rcyl   trimesh
-/// ---------+---------------------------------------------------------- 
-/// sphere   |    Y       Y      Y       Y         Y        Y        Y   
-/// box      |            Y      N       Y         N        N        N   
-/// rbox     |                   N       N         N        N        N   
-/// capsule  |                           Y         N        N        N   
-/// cylinder |                                     N        N        N   
-/// rcyl     |                                              N        N   
-/// trimesh  |                                                       N   
+/// ---------+----------------------------------------------------------
+/// sphere   |    Y       Y      Y       Y         Y        Y        Y
+/// box      |            Y      N       Y         N        N        N
+/// rbox     |                   N       N         N        N        N
+/// capsule  |                           Y         N        N        N
+/// cylinder |                                     N        N        N
+/// rcyl     |                                              N        N
+/// trimesh  |                                                       N
 /// </pre>
 ChApi bool PRIMSCollision(const ConvexBase* shapeA,  ///< first candidate shape
                           const ConvexBase* shapeB,  ///< second candidate shape

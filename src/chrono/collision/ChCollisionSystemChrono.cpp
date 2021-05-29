@@ -334,7 +334,7 @@ void ChCollisionSystemChrono::Run() {
         narrowphase.ProcessRigids(broadphase.bins_per_axis);
 
     } else {
-        cd_data->host_data.c_counts_rigid_fluid.clear();
+        cd_data->c_counts_rigid_fluid.clear();
         cd_data->num_rigid_fluid_contacts = 0;
     }
 
@@ -359,8 +359,8 @@ void ChCollisionSystemChrono::ReportContacts(ChContactContainer* container) {
     // callback)
     container->BeginAddContact();
 
-    const auto& bids = cd_data->host_data.bids_rigid_rigid;  // global IDs of bodies in contact
-    const auto& sids = cd_data->host_data.contact_shapeIDs;  // global IDs of shapes in contact
+    const auto& bids = cd_data->bids_rigid_rigid;  // global IDs of bodies in contact
+    const auto& sids = cd_data->contact_shapeIDs;  // global IDs of shapes in contact
     const auto& sindex = cd_data->shape_data.local_rigid;    // collision model indexes of shapes in contact
 
     // Loop over all current contacts, create the cinfo structure and add contact to the container.
@@ -378,11 +378,11 @@ void ChCollisionSystemChrono::ReportContacts(ChContactContainer* container) {
         cinfo.modelB = blist[b2]->GetCollisionModel().get();
         cinfo.shapeA = cinfo.modelA->GetShape(s1_index).get();
         cinfo.shapeB = cinfo.modelB->GetShape(s2_index).get();
-        cinfo.vN = ToChVector(cd_data->host_data.norm_rigid_rigid[i]);
-        cinfo.vpA = ToChVector(cd_data->host_data.cpta_rigid_rigid[i]);
-        cinfo.vpB = ToChVector(cd_data->host_data.cptb_rigid_rigid[i]);
-        cinfo.distance = cd_data->host_data.dpth_rigid_rigid[i];
-        cinfo.eff_radius = cd_data->host_data.erad_rigid_rigid[i];
+        cinfo.vN = ToChVector(cd_data->norm_rigid_rigid[i]);
+        cinfo.vpA = ToChVector(cd_data->cpta_rigid_rigid[i]);
+        cinfo.vpB = ToChVector(cd_data->cptb_rigid_rigid[i]);
+        cinfo.distance = cd_data->dpth_rigid_rigid[i];
+        cinfo.eff_radius = cd_data->erad_rigid_rigid[i];
 
         // Execute user custom callback, if any
         bool add_contact = true;
@@ -413,8 +413,8 @@ void ChCollisionSystemChrono::GetOverlappingAABB(std::vector<char>& active_id, r
     aabb_generator.GenerateAABB();
 #pragma omp parallel for
     for (int i = 0; i < cd_data->shape_data.typ_rigid.size(); i++) {
-        real3 Bmin = cd_data->host_data.aabb_min[i];
-        real3 Bmax = cd_data->host_data.aabb_max[i];
+        real3 Bmin = cd_data->aabb_min[i];
+        real3 Bmax = cd_data->aabb_max[i];
 
         bool inContact = (Amin.x <= Bmax.x && Bmin.x <= Amax.x) && (Amin.y <= Bmax.y && Bmin.y <= Amax.y) &&
                          (Amin.z <= Bmax.z && Bmin.z <= Amax.z);
@@ -426,10 +426,10 @@ void ChCollisionSystemChrono::GetOverlappingAABB(std::vector<char>& active_id, r
 
 std::vector<vec2> ChCollisionSystemChrono::GetOverlappingPairs() {
     std::vector<vec2> pairs;
-    pairs.resize(cd_data->host_data.pair_shapeIDs.size());
-    for (int i = 0; i < cd_data->host_data.pair_shapeIDs.size(); i++) {
+    pairs.resize(cd_data->pair_shapeIDs.size());
+    for (int i = 0; i < cd_data->pair_shapeIDs.size(); i++) {
         vec2 pair =
-            I2(int(cd_data->host_data.pair_shapeIDs[i] >> 32), int(cd_data->host_data.pair_shapeIDs[i] & 0xffffffff));
+            I2(int(cd_data->pair_shapeIDs[i] >> 32), int(cd_data->pair_shapeIDs[i] & 0xffffffff));
         pairs[i] = pair;
     }
     return pairs;

@@ -40,9 +40,8 @@ void ChCollisionSystemMulticore::Add(ChCollisionModel* model) {
         // the convex data list
         int convex_data_offset = (int)shape_data.convex_rigid.size();
         // Insert the points into the global convex list
-        shape_data.convex_rigid.insert(shape_data.convex_rigid.end(),
-                                                     pmodel->local_convex_data.begin(),
-                                                     pmodel->local_convex_data.end());
+        shape_data.convex_rigid.insert(shape_data.convex_rigid.end(), pmodel->local_convex_data.begin(),
+                                       pmodel->local_convex_data.end());
 
         // Shape index in the collision model
         int local_shape_index = 0;
@@ -221,7 +220,7 @@ void ChCollisionSystemMulticore::Remove(ChCollisionModel* model) {
 #undef ERASE_MACRO_LEN
 
 void ChCollisionSystemMulticore::SetNumThreads(int nthreads) {
-    // Nothing to do here.  
+    // Nothing to do here.
     // The Chrono::Multicore collision system uses the number of threads set by ChSystemMulticore.
 }
 
@@ -265,7 +264,7 @@ void ChCollisionSystemMulticore::Run() {
 
     } else {
         data_manager->host_data.c_counts_rigid_tet.clear();
-        data_manager->cd_data->host_data.c_counts_rigid_fluid.clear();
+        data_manager->cd_data->c_counts_rigid_fluid.clear();
         data_manager->num_rigid_tet_contacts = 0;
         data_manager->cd_data->num_rigid_fluid_contacts = 0;
     }
@@ -298,8 +297,8 @@ void ChCollisionSystemMulticore::ReportContacts(ChContactContainer* mcontactcont
 
     auto container = static_cast<ChContactContainerMulticore*>(mcontactcontainer);
 
-    auto& bids = data_manager->cd_data->host_data.bids_rigid_rigid;           // global IDs of bodies in contact
-    auto& sids = data_manager->cd_data->host_data.contact_shapeIDs;  // global IDs of shapes in contact
+    auto& bids = data_manager->cd_data->bids_rigid_rigid;  // global IDs of bodies in contact
+    auto& sids = data_manager->cd_data->contact_shapeIDs;  // global IDs of shapes in contact
     ////auto& sindex = data_manager->cd_data->shape_data.local_rigid;    // collision model indexes of shapes in contact
 
     // Loop over all current contacts, create the composite material, and load material properties in the data manager
@@ -331,8 +330,8 @@ void ChCollisionSystemMulticore::GetOverlappingAABB(custom_vector<char>& active_
     data_manager->aabb_generator->GenerateAABB();
 #pragma omp parallel for
     for (int i = 0; i < data_manager->cd_data->shape_data.typ_rigid.size(); i++) {
-        real3 Bmin = data_manager->cd_data->host_data.aabb_min[i];
-        real3 Bmax = data_manager->cd_data->host_data.aabb_max[i];
+        real3 Bmin = data_manager->cd_data->aabb_min[i];
+        real3 Bmax = data_manager->cd_data->aabb_max[i];
 
         bool inContact = (Amin.x <= Bmax.x && Bmin.x <= Amax.x) && (Amin.y <= Bmax.y && Bmin.y <= Amax.y) &&
                          (Amin.z <= Bmax.z && Bmin.z <= Amax.z);
@@ -344,10 +343,10 @@ void ChCollisionSystemMulticore::GetOverlappingAABB(custom_vector<char>& active_
 
 std::vector<vec2> ChCollisionSystemMulticore::GetOverlappingPairs() {
     std::vector<vec2> pairs;
-    pairs.resize(data_manager->cd_data->host_data.pair_shapeIDs.size());
-    for (int i = 0; i < data_manager->cd_data->host_data.pair_shapeIDs.size(); i++) {
-        vec2 pair = I2(int(data_manager->cd_data->host_data.pair_shapeIDs[i] >> 32),
-                       int(data_manager->cd_data->host_data.pair_shapeIDs[i] & 0xffffffff));
+    pairs.resize(data_manager->cd_data->pair_shapeIDs.size());
+    for (int i = 0; i < data_manager->cd_data->pair_shapeIDs.size(); i++) {
+        vec2 pair = I2(int(data_manager->cd_data->pair_shapeIDs[i] >> 32),
+                       int(data_manager->cd_data->pair_shapeIDs[i] & 0xffffffff));
         pairs[i] = pair;
     }
     return pairs;

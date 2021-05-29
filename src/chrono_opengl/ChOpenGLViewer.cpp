@@ -528,8 +528,8 @@ void ChOpenGLViewer::RenderAABB() {
         ChMulticoreDataManager* data_manager = system->data_manager;
         model_box.clear();
 
-        custom_vector<real3>& aabb_min = data_manager->cd_data->host_data.aabb_min;
-        custom_vector<real3>& aabb_max = data_manager->cd_data->host_data.aabb_max;
+        custom_vector<real3>& aabb_min = data_manager->cd_data->aabb_min;
+        custom_vector<real3>& aabb_max = data_manager->cd_data->aabb_max;
 
         model_box.resize(data_manager->cd_data->num_rigid_shapes);
 #pragma omp parallel for

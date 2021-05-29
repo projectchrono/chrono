@@ -33,7 +33,7 @@ using namespace chrono::irrlicht;
 using namespace irr;
 using namespace irr::core;
 
-collision::ChCollisionSystemType collision_type = collision::ChCollisionSystemType::CHRONO;
+collision::ChCollisionSystemType collision_type = collision::ChCollisionSystemType::BULLET;
 
 void AddFallingItems(ChSystemNSC& sys) {
     // Shared contact materials for falling objects

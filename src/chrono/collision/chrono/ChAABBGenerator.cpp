@@ -124,8 +124,8 @@ void ChAABBGenerator::GenerateAABB() {
 
         const uint num_rigid_shapes = cd_data->num_rigid_shapes;
 
-        std::vector<real3>& aabb_min = cd_data->host_data.aabb_min;
-        std::vector<real3>& aabb_max = cd_data->host_data.aabb_max;
+        std::vector<real3>& aabb_min = cd_data->aabb_min;
+        std::vector<real3>& aabb_max = cd_data->aabb_max;
 
         aabb_min.resize(num_rigid_shapes);
         aabb_max.resize(num_rigid_shapes);

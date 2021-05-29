@@ -27,7 +27,7 @@
 #include "unit_testing.h"
 
 #ifdef CHRONO_OPENGL
-#include "chrono_opengl/ChOpenGLWindow.h"
+    #include "chrono_opengl/ChOpenGLWindow.h"
 #endif
 
 // Comment the following line to use multicore collision detection
@@ -139,10 +139,10 @@ void CompareContacts(ChMulticoreDataManager* data_manager,
         return;
     }
 
-    real3* norm = data_manager->cd_data->host_data.norm_rigid_rigid.data();
-    real3* ptA = data_manager->cd_data->host_data.cpta_rigid_rigid.data();
-    real3* ptB = data_manager->cd_data->host_data.cptb_rigid_rigid.data();
-    chrono::vec2* ids = data_manager->cd_data->host_data.bids_rigid_rigid.data();
+    real3* norm = data_manager->cd_data->norm_rigid_rigid.data();
+    real3* ptA = data_manager->cd_data->cpta_rigid_rigid.data();
+    real3* ptB = data_manager->cd_data->cptb_rigid_rigid.data();
+    chrono::vec2* ids = data_manager->cd_data->bids_rigid_rigid.data();
 
     uint nnz_normal = 6 * 2 * num_rigid_contacts;
     uint nnz_tangential = 6 * 4 * num_rigid_contacts;

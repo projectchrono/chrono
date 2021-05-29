@@ -167,16 +167,16 @@ void ChSystemMulticoreNSC::AssembleSystem() {
     contact_container->BeginAddContact();
     chrono::collision::ChCollisionInfo icontact;
     for (int i = 0; i < (signed)data_manager->cd_data->num_rigid_contacts; i++) {
-        vec2 cd_pair = data_manager->cd_data->host_data.bids_rigid_rigid[i];
+        vec2 cd_pair = data_manager->cd_data->bids_rigid_rigid[i];
         icontact.modelA = Get_bodylist()[cd_pair.x]->GetCollisionModel().get();
         icontact.modelB = Get_bodylist()[cd_pair.y]->GetCollisionModel().get();
-        icontact.vN = ToChVector(data_manager->cd_data->host_data.norm_rigid_rigid[i]);
-        icontact.vpA = ToChVector(data_manager->cd_data->host_data.cpta_rigid_rigid[i] +
-                                  data_manager->host_data.pos_rigid[cd_pair.x]);
-        icontact.vpB = ToChVector(data_manager->cd_data->host_data.cptb_rigid_rigid[i] +
-                                  data_manager->host_data.pos_rigid[cd_pair.y]);
-        icontact.distance = data_manager->cd_data->host_data.dpth_rigid_rigid[i];
-        icontact.eff_radius = data_manager->cd_data->host_data.erad_rigid_rigid[i];
+        icontact.vN = ToChVector(data_manager->cd_data->norm_rigid_rigid[i]);
+        icontact.vpA =
+            ToChVector(data_manager->cd_data->cpta_rigid_rigid[i] + data_manager->host_data.pos_rigid[cd_pair.x]);
+        icontact.vpB =
+            ToChVector(data_manager->cd_data->cptb_rigid_rigid[i] + data_manager->host_data.pos_rigid[cd_pair.y]);
+        icontact.distance = data_manager->cd_data->dpth_rigid_rigid[i];
+        icontact.eff_radius = data_manager->cd_data->erad_rigid_rigid[i];
         contact_container->AddContact(icontact);
     }
     contact_container->EndAddContact();

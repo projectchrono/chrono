@@ -536,10 +536,8 @@ void ChSystemMulticore::UpdateShafts() {
         shaft_inr[i] = shaftlist[i]->Variables().GetInvInertia();
         shaft_active[i] = shaftlist[i]->IsActive();
 
-        data_manager->host_data.v[data_manager->num_rigid_bodies * 6 + i] =
-            shaftlist[i]->Variables().Get_qb()(0);
-        data_manager->host_data.hf[data_manager->num_rigid_bodies * 6 + i] =
-            shaftlist[i]->Variables().Get_fb()(0);
+        data_manager->host_data.v[data_manager->num_rigid_bodies * 6 + i] = shaftlist[i]->Variables().Get_qb()(0);
+        data_manager->host_data.hf[data_manager->num_rigid_bodies * 6 + i] = shaftlist[i]->Variables().Get_fb()(0);
     }
 }
 
@@ -829,8 +827,8 @@ void ChSystemMulticore::CalculateBodyAABB() {
         return;
 
     // Readability replacements
-    auto& s_min = data_manager->cd_data->host_data.aabb_min;
-    auto& s_max = data_manager->cd_data->host_data.aabb_max;
+    auto& s_min = data_manager->cd_data->aabb_min;
+    auto& s_max = data_manager->cd_data->aabb_max;
     auto& id_rigid = data_manager->cd_data->shape_data.id_rigid;
     auto& offset = data_manager->measures.collision.global_origin;
 

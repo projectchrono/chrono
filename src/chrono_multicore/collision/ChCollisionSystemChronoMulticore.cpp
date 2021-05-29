@@ -22,8 +22,7 @@
 namespace chrono {
 namespace collision {
 
-ChCollisionSystemChronoMulticore::ChCollisionSystemChronoMulticore(ChMulticoreDataManager* dc)
-    : data_manager(dc) {
+ChCollisionSystemChronoMulticore::ChCollisionSystemChronoMulticore(ChMulticoreDataManager* dc) : data_manager(dc) {
     // Create the shared data structure with external state data
     cd_data = chrono_types::make_shared<ChCollisionData>(false);
     cd_data->collision_envelope = ChCollisionModel::GetDefaultSuggestedEnvelope();
@@ -76,8 +75,8 @@ void ChCollisionSystemChronoMulticore::ReportContacts(ChContactContainer* contai
 
     auto container_mc = static_cast<ChContactContainerMulticore*>(container);
 
-    auto& bids = cd_data->host_data.bids_rigid_rigid;  // global IDs of bodies in contact
-    auto& sids = cd_data->host_data.contact_shapeIDs;  // global IDs of shapes in contact
+    auto& bids = cd_data->bids_rigid_rigid;  // global IDs of bodies in contact
+    auto& sids = cd_data->contact_shapeIDs;  // global IDs of shapes in contact
     ////auto& sindex = cd_data->shape_data.local_rigid;    // collision model indexes of shapes in contact
 
     // Loop over all current contacts, create the composite material, and load material properties in the data manager

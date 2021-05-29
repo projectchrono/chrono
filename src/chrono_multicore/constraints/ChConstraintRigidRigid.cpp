@@ -194,20 +194,19 @@ void ChConstraintRigidRigid::Setup(ChMulticoreDataManager* dm) {
     quat_b.resize(num_rigid_contacts);
 
     // Readability replacements
-    auto& bids = data_manager->cd_data->host_data.bids_rigid_rigid;  // global IDs of bodies in contact
-    auto& abody = data_manager->host_data.active_rigid;     // flags for active bodies
+    auto& bids = data_manager->cd_data->bids_rigid_rigid;  // global IDs of bodies in contact
+    auto& abody = data_manager->host_data.active_rigid;    // flags for active bodies
 
 #pragma omp parallel for
     for (int i = 0; i < (signed)num_rigid_contacts; i++) {
-        auto b1 = bids[i].x;                  // global IDs of bodies in contact
-        auto b2 = bids[i].y;                  //
+        auto b1 = bids[i].x;  // global IDs of bodies in contact
+        auto b2 = bids[i].y;  //
 
         contact_active_pairs[i] = bool2(abody[b1] != 0, abody[b2] != 0);
 
         {
             quaternion quaternion_conjugate = ~data_manager->host_data.rot_rigid[b1];
-            real3 sbar =
-                Rotate(data_manager->cd_data->host_data.cpta_rigid_rigid[i] - data_manager->host_data.pos_rigid[b1],
+            real3 sbar = Rotate(data_manager->cd_data->cpta_rigid_rigid[i] - data_manager->host_data.pos_rigid[b1],
                                 quaternion_conjugate);
 
             rotated_point_a[i] = real3_int(sbar, b1);
@@ -215,8 +214,7 @@ void ChConstraintRigidRigid::Setup(ChMulticoreDataManager* dm) {
         }
         {
             quaternion quaternion_conjugate = ~data_manager->host_data.rot_rigid[b2];
-            real3 sbar =
-                Rotate(data_manager->cd_data->host_data.cptb_rigid_rigid[i] - data_manager->host_data.pos_rigid[b2],
+            real3 sbar = Rotate(data_manager->cd_data->cptb_rigid_rigid[i] - data_manager->host_data.pos_rigid[b2],
                                 quaternion_conjugate);
 
             rotated_point_b[i] = real3_int(sbar, b2);
@@ -227,7 +225,7 @@ void ChConstraintRigidRigid::Setup(ChMulticoreDataManager* dm) {
 
 void ChConstraintRigidRigid::Project(real* gamma) {
     const auto num_rigid_contacts = data_manager->cd_data->num_rigid_contacts;
-    const custom_vector<vec2>& bids = data_manager->cd_data->host_data.bids_rigid_rigid;
+    const custom_vector<vec2>& bids = data_manager->cd_data->bids_rigid_rigid;
     const custom_vector<real3>& friction = data_manager->host_data.fric_rigid_rigid;
     const custom_vector<real>& cohesion = data_manager->host_data.coh_rigid_rigid;
 
@@ -259,7 +257,7 @@ void ChConstraintRigidRigid::Project(real* gamma) {
 }
 
 void ChConstraintRigidRigid::Project_Single(int index, real* gamma) {
-    custom_vector<vec2>& bids = data_manager->cd_data->host_data.bids_rigid_rigid;
+    custom_vector<vec2>& bids = data_manager->cd_data->bids_rigid_rigid;
     custom_vector<real3>& friction = data_manager->host_data.fric_rigid_rigid;
     custom_vector<real>& cohesion = data_manager->host_data.coh_rigid_rigid;
 
@@ -292,7 +290,7 @@ void ChConstraintRigidRigid::Build_b() {
 #pragma omp parallel for
     for (int index = 0; index < (signed)num_rigid_contacts; index++) {
         real bi = 0;
-        real depth = data_manager->cd_data->host_data.dpth_rigid_rigid[index];
+        real depth = data_manager->cd_data->dpth_rigid_rigid[index];
 
         if (data_manager->settings.solver.alpha > 0) {
             bi = inv_hpa * depth;
@@ -318,7 +316,7 @@ void ChConstraintRigidRigid::Build_s() {
         return;
     }
 
-    vec2* ids = data_manager->cd_data->host_data.bids_rigid_rigid.data();
+    vec2* ids = data_manager->cd_data->bids_rigid_rigid.data();
     const SubMatrixType& D_t_T = _DTT_;
     DynamicVector<real> v_new;
 
@@ -379,7 +377,7 @@ void ChConstraintRigidRigid::Build_E() {
 
 #pragma omp parallel for
     for (int index = 0; index < (signed)num_rigid_contacts; index++) {
-        vec2 body = data_manager->cd_data->host_data.bids_rigid_rigid[index];
+        vec2 body = data_manager->cd_data->bids_rigid_rigid[index];
 
         real compliance_normal = compliance[index].x;
         real compliance_sliding = compliance[index].y;
@@ -401,8 +399,8 @@ void ChConstraintRigidRigid::Build_E() {
 void ChConstraintRigidRigid::Build_D() {
     LOG(INFO) << "ChConstraintRigidRigid::Build_D";
     const auto num_rigid_contacts = data_manager->cd_data->num_rigid_contacts;
-    real3* norm = data_manager->cd_data->host_data.norm_rigid_rigid.data();
-    vec2* ids = data_manager->cd_data->host_data.bids_rigid_rigid.data();
+    real3* norm = data_manager->cd_data->norm_rigid_rigid.data();
+    vec2* ids = data_manager->cd_data->bids_rigid_rigid.data();
 
     CompressedMatrix<real>& D_T = data_manager->host_data.D_T;
 
@@ -479,7 +477,7 @@ void ChConstraintRigidRigid::GenerateSparsity() {
 
     CompressedMatrix<real>& D_T = data_manager->host_data.D_T;
 
-    const vec2* ids = data_manager->cd_data->host_data.bids_rigid_rigid.data();
+    const vec2* ids = data_manager->cd_data->bids_rigid_rigid.data();
 
     for (int index = 0; index < (signed)num_rigid_contacts; index++) {
         const vec2& body_id = ids[index];
@@ -550,7 +548,7 @@ void ChConstraintRigidRigid::GenerateSparsity() {
 
 void ChConstraintRigidRigid::Dx(const DynamicVector<real>& gam, DynamicVector<real>& XYZUVW) {
     const auto num_rigid_contacts = data_manager->cd_data->num_rigid_contacts;
-    real3* norm = data_manager->cd_data->host_data.norm_rigid_rigid.data();
+    real3* norm = data_manager->cd_data->norm_rigid_rigid.data();
     ////custom_vector<char>& active_rigid = data_manager->host_data.active_rigid;
     ////vec2* bids_rigid_rigid = data_manager->host_data.bids_rigid_rigid.data();
 
@@ -624,11 +622,11 @@ void ChConstraintRigidRigid::Dx(const DynamicVector<real>& gam, DynamicVector<re
 
 void ChConstraintRigidRigid::D_Tx(const DynamicVector<real>& XYZUVW, DynamicVector<real>& out_vector) {
     const auto num_rigid_contacts = data_manager->cd_data->num_rigid_contacts;
-    real3* norm = data_manager->cd_data->host_data.norm_rigid_rigid.data();
+    real3* norm = data_manager->cd_data->norm_rigid_rigid.data();
     ////custom_vector<char>& active_rigid = data_manager->host_data.active_rigid;
-    ////real3* ptA = data_manager->cd_data->host_data.cpta_rigid_rigid.data();
-    ////real3* ptB = data_manager->cd_data->host_data.cptb_rigid_rigid.data();
-    ////vec2* bids_rigid_rigid = data_manager->cd_data->host_data.bids_rigid_rigid.data();
+    ////real3* ptA = data_manager->cd_data->cpta_rigid_rigid.data();
+    ////real3* ptB = data_manager->cd_data->cptb_rigid_rigid.data();
+    ////vec2* bids_rigid_rigid = data_manager->cd_data->bids_rigid_rigid.data();
     ////real3* pos = data_manager->host_data.pos_rigid.data();
     ////quaternion* rot = data_manager->host_data.rot_rigid.data();
 

@@ -74,13 +74,13 @@ struct BoxReduce {
 // associated with non-colliding bodies.
 void ChCBroadphase::RigidBoundingBox() {
     // Vectors of length = number of collision shapes
-    const custom_vector<real3>& aabb_min = data_manager->cd_data->host_data.aabb_min;
-    const custom_vector<real3>& aabb_max = data_manager->cd_data->host_data.aabb_max;
+    const custom_vector<real3>& aabb_min = data_manager->cd_data->aabb_min;
+    const custom_vector<real3>& aabb_max = data_manager->cd_data->aabb_max;
     const custom_vector<uint>& id_rigid = data_manager->cd_data->shape_data.id_rigid;
     // Vectors of length = number of rigid bodies
     const custom_vector<char>& collide_rigid = data_manager->host_data.collide_rigid;
 
-    // Calculate union of all AABBs.  
+    // Calculate union of all AABBs.
     // Excluded AABBs are inverted through the transform operation, prior to the reduction.
     auto begin = thrust::make_zip_iterator(thrust::make_tuple(aabb_min.begin(), aabb_max.begin(), id_rigid.begin()));
     auto end = thrust::make_zip_iterator(thrust::make_tuple(aabb_min.end(), aabb_max.end(), id_rigid.end()));
@@ -97,9 +97,9 @@ typedef thrust::pair<real3, real3> bbox;
 struct bbox_reduction : public thrust::binary_function<bbox, bbox, bbox> {
     bbox operator()(bbox a, bbox b) {
         real3 ll = real3(Min(a.first.x, b.first.x), Min(a.first.y, b.first.y),
-            Min(a.first.z, b.first.z));  // lower left corner
+                         Min(a.first.z, b.first.z));  // lower left corner
         real3 ur = real3(Max(a.second.x, b.second.x), Max(a.second.y, b.second.y),
-            Max(a.second.z, b.second.z));  // upper right corner
+                         Max(a.second.z, b.second.z));  // upper right corner
         return bbox(ll, ur);
     }
 };
@@ -184,8 +184,8 @@ void ChCBroadphase::DetermineBoundingBox() {
 }
 
 void ChCBroadphase::OffsetAABB() {
-    custom_vector<real3>& aabb_min = data_manager->cd_data->host_data.aabb_min;
-    custom_vector<real3>& aabb_max = data_manager->cd_data->host_data.aabb_max;
+    custom_vector<real3>& aabb_min = data_manager->cd_data->aabb_min;
+    custom_vector<real3>& aabb_max = data_manager->cd_data->aabb_max;
 
     thrust::constant_iterator<real3> offset(data_manager->measures.collision.global_origin);
 
@@ -241,20 +241,20 @@ void ChCBroadphase::DispatchRigid() {
 
 void ChCBroadphase::OneLevelBroadphase() {
     LOG(TRACE) << "ChCBroadphase::OneLevelBroadphase()";
-    const custom_vector<real3>& aabb_min = data_manager->cd_data->host_data.aabb_min;
-    const custom_vector<real3>& aabb_max = data_manager->cd_data->host_data.aabb_max;
+    const custom_vector<real3>& aabb_min = data_manager->cd_data->aabb_min;
+    const custom_vector<real3>& aabb_max = data_manager->cd_data->aabb_max;
     const custom_vector<short2>& fam_data = data_manager->cd_data->shape_data.fam_rigid;
     const custom_vector<char>& obj_active = data_manager->host_data.active_rigid;
     const custom_vector<char>& obj_collide = data_manager->host_data.collide_rigid;
     const custom_vector<uint>& obj_data_id = data_manager->cd_data->shape_data.id_rigid;
-    custom_vector<long long>& pair_shapeIDs = data_manager->cd_data->host_data.pair_shapeIDs;
+    custom_vector<long long>& pair_shapeIDs = data_manager->cd_data->pair_shapeIDs;
 
-    custom_vector<uint>& bin_intersections = data_manager->cd_data->host_data.bin_intersections;
-    custom_vector<uint>& bin_number = data_manager->cd_data->host_data.bin_number;
-    custom_vector<uint>& bin_number_out = data_manager->cd_data->host_data.bin_number_out;
-    custom_vector<uint>& bin_aabb_number = data_manager->cd_data->host_data.bin_aabb_number;
-    custom_vector<uint>& bin_start_index = data_manager->cd_data->host_data.bin_start_index;
-    custom_vector<uint>& bin_num_contact = data_manager->cd_data->host_data.bin_num_contact;
+    custom_vector<uint>& bin_intersections = data_manager->cd_data->bin_intersections;
+    custom_vector<uint>& bin_number = data_manager->cd_data->bin_number;
+    custom_vector<uint>& bin_number_out = data_manager->cd_data->bin_number_out;
+    custom_vector<uint>& bin_aabb_number = data_manager->cd_data->bin_aabb_number;
+    custom_vector<uint>& bin_start_index = data_manager->cd_data->bin_start_index;
+    custom_vector<uint>& bin_num_contact = data_manager->cd_data->bin_num_contact;
 
     vec3& bins_per_axis = data_manager->settings.collision.bins_per_axis;
     const int num_shapes = data_manager->cd_data->num_rigid_shapes;
@@ -334,5 +334,5 @@ void ChCBroadphase::OneLevelBroadphase() {
     LOG(TRACE) << "Number of unique collisions: " << number_of_contacts_possible;
 }
 
-} // end namespace collision
-} // end namespace chrono
+}  // end namespace collision
+}  // end namespace chrono

@@ -100,43 +100,6 @@ struct shape_container {
     std::vector<quaternion> obj_data_R_global;
 };
 
-/// Structure of arrays containing collision detection results.
-struct host_container {
-    std::vector<real3> aabb_min;  ///< List of bounding boxes minimum point
-    std::vector<real3> aabb_max;  ///< List of bounding boxes maximum point
-
-    std::vector<long long> pair_shapeIDs;     ///< Shape IDs for each shape pair (encoded in a single long long)
-    std::vector<long long> contact_shapeIDs;  ///< Shape IDs for each contact (encoded in a single long long)
-
-    // Contact data
-    std::vector<real3> norm_rigid_rigid;
-    std::vector<real3> cpta_rigid_rigid;
-    std::vector<real3> cptb_rigid_rigid;
-    std::vector<real> dpth_rigid_rigid;
-    std::vector<real> erad_rigid_rigid;
-    std::vector<vec2> bids_rigid_rigid;
-
-    std::vector<real3> norm_rigid_fluid;
-    std::vector<real3> cpta_rigid_fluid;
-    std::vector<real> dpth_rigid_fluid;
-    std::vector<int> neighbor_rigid_fluid;
-    std::vector<int> c_counts_rigid_fluid;
-
-    // each particle has a finite number of neighbors preallocated
-    std::vector<int> neighbor_3dof_3dof;
-    std::vector<int> c_counts_3dof_3dof;
-    std::vector<int> particle_indices_3dof;
-    std::vector<int> reverse_mapping_3dof;
-
-    // Broadphase Data
-    std::vector<uint> bin_intersections;
-    std::vector<uint> bin_number;
-    std::vector<uint> bin_number_out;
-    std::vector<uint> bin_aabb_number;
-    std::vector<uint> bin_start_index;
-    std::vector<uint> bin_num_contact;
-};
-
 /// Structure of arrays containing state data.
 struct state_container {
     // Counters
@@ -200,12 +163,9 @@ class ChApi ChCollisionData {
         }
     }
 
-    //// TODO: rename "host_container" and "host_data" to "collision_container" and "collision_data"
-
     bool owns_state_data;  ///< if false, state data set from outside
 
     state_container state_data;  ///< State data arrays
-    host_container host_data;    ///< Collision data arrays
     shape_container shape_data;  ///< Shape information data arrays
     node_container node_data;    ///< 3DOF fluid nodes data
 
@@ -213,7 +173,49 @@ class ChApi ChCollisionData {
 
     real collision_envelope;  ///< Collision envelope for rigid shapes
 
+    // Collision detection output data
+    // -------------------------------
+
+    std::vector<real3> aabb_min;  ///< List of bounding boxes minimum point
+    std::vector<real3> aabb_max;  ///< List of bounding boxes maximum point
+
+    std::vector<long long> pair_shapeIDs;     ///< Shape IDs for each shape pair (encoded in a single long long)
+    std::vector<long long> contact_shapeIDs;  ///< Shape IDs for each contact (encoded in a single long long)
+
+    // Rigid-rigid geometric collision data 
+    std::vector<real3> norm_rigid_rigid;
+    std::vector<real3> cpta_rigid_rigid;
+    std::vector<real3> cptb_rigid_rigid;
+    std::vector<real> dpth_rigid_rigid;
+    std::vector<real> erad_rigid_rigid;
+    std::vector<vec2> bids_rigid_rigid;
+
+    // Rigid-particle geometric collision data
+    std::vector<real3> norm_rigid_fluid;
+    std::vector<real3> cpta_rigid_fluid;
+    std::vector<real> dpth_rigid_fluid;
+    std::vector<int> neighbor_rigid_fluid;
+    std::vector<int> c_counts_rigid_fluid;
+
+    // 3dof particle neighbor information
+    std::vector<int> neighbor_3dof_3dof;
+    std::vector<int> c_counts_3dof_3dof;
+
+    // Sorting map for 3dof particles
+    std::vector<int> particle_indices_3dof;
+    std::vector<int> reverse_mapping_3dof;
+
+    // Broadphase Data
+    std::vector<uint> bin_intersections;
+    std::vector<uint> bin_number;
+    std::vector<uint> bin_number_out;
+    std::vector<uint> bin_aabb_number;
+    std::vector<uint> bin_start_index;
+    std::vector<uint> bin_num_contact;
+
     // Indexing variables
+    // ------------------
+
     uint num_rigid_shapes;          ///< The number of collision models in a system
     uint num_rigid_contacts;        ///< The number of contacts between rigid bodies in a system
     uint num_rigid_fluid_contacts;  ///< The number of contacts between rigid and fluid objects
