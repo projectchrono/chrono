@@ -131,8 +131,6 @@ int main(int argc, char* argv[]) {
     my_mrole.SetBrakeType(brake_type);
     my_mrole.SetTireType(tire_model);
     my_mrole.SetTireStepSize(tire_step_size);
-    my_mrole.SelectRoadOperation();
-    std::cout << "Vehicle should not go faster than " << my_mrole.GetMaxTireSpeed() << " m/s" << std::endl;
     my_mrole.Initialize();
 
     if (tire_model == TireModelType::RIGID_MESH)
@@ -262,6 +260,8 @@ int main(int argc, char* argv[]) {
     ChRealtimeStepTimer realtime_timer;
     utils::ChRunningAverage RTF_filter(50);
 
+    std::vector<double> trace_x, trace_y;
+
     while (app.GetDevice()->run()) {
         double time = my_mrole.GetSystem()->GetChTime();
 
@@ -283,6 +283,9 @@ int main(int argc, char* argv[]) {
 
             render_frame++;
         }
+
+        trace_x.push_back(my_mrole.GetVehicle().GetVehiclePos().x());
+        trace_y.push_back(my_mrole.GetVehicle().GetVehiclePos().y());
 
         // Debug logging
         if (debug_output && step_number % debug_steps == 0) {
@@ -332,6 +335,31 @@ int main(int argc, char* argv[]) {
         driver_csv.write_to_file(driver_file);
     }
 
+    std::ofstream trace("trace.txt");
+    for (size_t i = 0; i < trace_x.size(); i++) {
+        trace << trace_x[i] << "\t" << trace_y[i] << std::endl;
+    }
+    trace.close();
+    double xmin = 9999.0;
+    double xmax = -9999.0;
+    double ymin = 9999.0;
+    double ymax = -9999.0;
+    for (size_t i = 0; i < trace_x.size(); i++) {
+        if (trace_x[i] > xmax)
+            xmax = trace_x[i];
+        if (trace_x[i] < xmin)
+            xmin = trace_x[i];
+        if (trace_y[i] > ymax)
+            ymax = trace_y[i];
+        if (trace_y[i] < ymin)
+            ymin = trace_y[i];
+    }
+    double delta_x = (xmax - xmin) + 3.0;
+    double delta_y = (ymax - ymin) + 3.0;
+    double delta = (delta_x + delta_y) / 2.0;
+    std::cout << "Turn Diameter      = " << delta << " m" << std::endl;
+    std::cout << "Turn Radius        = " << delta / 2.0 << " m" << std::endl;
+    std::cout << "Turn Radius VehCenter = " << (delta - 3.0) / 2.0 << " m" << std::endl;
     std::cout << "Vehicle Mass       = " << my_mrole.GetVehicle().GetVehicleMass() << " kg" << std::endl;
     std::cout << "Vehicle CoG height = " << my_mrole.GetVehicle().GetVehicleCOMPos().z() << " m" << std::endl;
     return 0;

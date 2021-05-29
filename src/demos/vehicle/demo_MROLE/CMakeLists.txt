@@ -12,6 +12,7 @@ ENDIF()
 
 SET(DEMOS
     demo_VEH_MROLE
+    demo_VEH_MROLE_TurnCircle
 )
 
 #--------------------------------------------------------------

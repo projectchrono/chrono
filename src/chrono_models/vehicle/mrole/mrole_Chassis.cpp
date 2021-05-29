@@ -35,7 +35,7 @@ const ChVector<> mrole_Chassis::m_inertiaXX(32786, 175786, 189800);
 const ChVector<> mrole_Chassis::m_inertiaXY(0, 0, 0);
 const ChVector<> mrole_Chassis::m_COM_loc(-2.5, 0, 0.92);
 const ChVector<> mrole_Chassis::m_connector_rear_loc(-5.5, 0, 0.0);
-const ChCoordsys<> mrole_Chassis::m_driverCsys(ChVector<>(0.87, 0.27, 1.05), ChQuaternion<>(1, 0, 0, 0));
+const ChCoordsys<> mrole_Chassis::m_driverCsys(ChVector<>(-0.5, -1.0, 1.05), ChQuaternion<>(1, 0, 0, 0));
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
