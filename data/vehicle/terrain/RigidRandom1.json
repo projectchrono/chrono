@@ -39,8 +39,7 @@
       "Orientation": [ 1, 0, 0, 0 ],
 
       "Geometry": {
-        "Mesh Filename": "terrain/meshes/uneven_300m_6m_10mm.obj",
-        "Mesh Name": "terrain_test_POV_geom"
+        "Mesh Filename": "terrain/meshes/uneven_300m_6m_10mm.obj"
       },
 
       "Contact Material": {

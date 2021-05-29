@@ -5,6 +5,8 @@ Change Log
 ==========
 
 - [Unreleased (development version)](#unreleased-development-branch)
+  - [Miscellaneous additions to Chrono::Gpu](#added-miscellaneous-additions-to-chronogpu)
+  - [New loads for ChNodeFEAxyzrot](#added-new-loads-for-chnodefeaxyzrot)
   - [Analytical box-box collision detection algorithm in Chrono::Multicore](#added-analytical-box-box-collision-detection-algorithm-in-chronomulticore)
   - [Checkpointing capabilities in Chrono::Gpu](#added-checkpointing-capabilities-in-chronogpu)
   - [Fixes to particle volume samplers and generators](#fixed-fixes-to-particle-volume-samplers-and-generators)
@@ -43,6 +45,29 @@ Change Log
 
 ## Unreleased (development branch)
 
+## [Added] Miscellaneous additions to Chrono::Gpu
+
+The location of the computational domain can now be specified (in addition to its dimensions) through a fourth optional constructor argument of `ChSystemGpu` and `ChSystemGpuMesh`. By default, the axis-aligned computational domain is centered at the origin.  As such,
+```cpp
+ChSystemGpu gpu_sys(1, 1, ChVector<float>(100, 80, 60));
+```
+sets the computational domain to be [-50,50] x [-40,40] x [-30,30], while
+```cpp
+ChSystemGpu gpu_sys(1, 1, ChVector<float>(100, 80, 60), ChVector<float>(10, 20, 30));
+```
+sets the computational domain to be [-40,60] x [-20,60] x [0,60].
+Note also that, for consistency of the API, the type of the domain size (third constructor argument) was changed to `const ChVector<float>&`.
+
+A new function, `ChSystemGpu::GetParticlesKineticEnergy` was added to calculate and return the total kinetic energy of the granular particles.
+
+### [Added] New loads for ChNodeFEAxyzrot
+
+New classes have been added for creating loads (with automatic jacobian generation that allow also stiff loads) for ChNodeFEAxyzrot nodes, in detail:
+- on a node of ChNodeFEAxyzrot type (user defined etc.)
+- between two ChNodeFEAxyzrot (user defined, spherical bushing, plastic bushing, generic bushing, etc.)
+- between a ChNodeFEAxyzrot and a ChBody (user defined, spherical bushing, plastic bushing, generic bushing, etc.)
+Previously, these types of loads were available only for the ChNodeFEAxyz node (used in tetahedrons and bricks, for example) but not for ChNodeFEAxyzrot (used in beams and Reissner shells, for example). 
+
 ### [Added] Analytical box box collision detection algorithm in Chrono::Multicore
 
 A new algorithm for analytical collision detection for box-box interactions was added to the parallel collision system implemented in Chrono:Multicore.
@@ -76,11 +101,14 @@ sys2.ReadCheckpointFile("checkpoint.dat");
 */
 ```
 
-`ChSystemGpu::ReadParticleFile` is used to load particle positions and velocities from a CSV file. It is useful if the particle information is meant to be supplied from a file rather than using scripts.
-
-Note that these `Read` and `Write` methods work in `ChSystemGpuMesh` system as well.
+`ChSystemGpu::ReadParticleFile` is used to load particle positions and velocities from a CSV file. It is useful if the particle information is meant to be supplied from a file rather than programatically.
 
 See demo_GPU_ballcosim for an example of using checkpointing.
+
+Function renames:
+- `ChSystemGpu::WriteFile` renamed to `ChSystemGpu::WriteParticleFile`
+- `ChSystemGpu::SetOutputFlags` renamed to `ChSystemGpu::SetParticleOutputFlags`
+- `ChSystemGpu::SetOutputMode` renamed to `ChSystemGpu::SetParticleOutputMode`
 
 Notes:
 - Default output flags are set to write particle positions and velocity magnitudes only, excluding angular velocity components. The output flags can be set by `ChSystemGpu::SetParticleOutputFlags`.

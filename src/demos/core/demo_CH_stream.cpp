@@ -68,7 +68,7 @@ int main(int argc, char* argv[]) {
         // basic types (double, int, string, etc.).
         mfileo << "test_token  " << 123 << " " << 0.123437;
 
-    } catch (ChException myex) {
+    } catch (const ChException &myex) {
         // Ops.. file could not be opened or written.. echo what happened!
         GetLog() << "ERROR: " << myex.what();
     }
@@ -91,7 +91,7 @@ int main(int argc, char* argv[]) {
         // Write to the console the values which have been read from file..
         GetLog() << "\nResult of ascii  I/O:  " << sbuff << " " << mint << " " << mdouble << "\n";
 
-    } catch (ChException myex) {
+    } catch (const ChException &myex) {
         // Ops.. file could not be opened or read.. echo what happened!
         GetLog() << "ERROR: " << myex.what();
     }
@@ -125,7 +125,7 @@ int main(int argc, char* argv[]) {
         mfileo << m_int;     // store data n.3
         mfileo << m_string;  // store data n.4
 
-    } catch (ChException myex) {
+    } catch (const ChException &myex) {
         GetLog() << "ERROR: " << myex.what();
     }
 
@@ -149,7 +149,7 @@ int main(int argc, char* argv[]) {
 
         GetLog() << "\nResult of binary I/O: " << m_text << " " << m_int << " " << m_double << "\n";
         
-    } catch (ChException myex) {
+    } catch (const ChException &myex) {
         // Ops.. file could not be opened or read.. echo what happened!
         GetLog() << "ERROR: " << myex.what();
     }
@@ -179,7 +179,7 @@ int main(int argc, char* argv[]) {
 
         GetLog() << "\nResult of binary I/O from wrapped std::stream: " << md_in << "\n";
 
-    } catch (ChException myex) {
+    } catch (const ChException &myex) {
         // Ops.. some error.. echo what happened!
         GetLog() << "ERROR: " << myex.what();
     }

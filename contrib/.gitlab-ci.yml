@@ -17,11 +17,11 @@ stages:
   tags:
   - linux
   image: 
-    name: archlinux/base
+    name: archlinux:base-devel
     entrypoint: ["/usr/bin/bash", "-c"]
   before_script:
   - uname -a
-  - pacman -Syyu --noconfirm base-devel cuda git eigen cmake glfw glm glew glut irrlicht ninja wget python python-pip openmpi swig hdf5
+  - pacman -Syyu --noconfirm cuda git eigen cmake glfw glm glew glut irrlicht ninja wget python python-pip openmpi swig hdf5
 # Clean up the package cache to make more space for the build
   - pacman -Scc --noconfirm
   - ldconfig
@@ -47,6 +47,7 @@ linux:arch-gcc:build:
     -DCMAKE_C_COMPILER=/usr/bin/gcc 
     -DCMAKE_CXX_COMPILER=/usr/bin/g++ 
     -DEIGEN3_INCLUDE_DIR=/usr/include/eigen3
+    -DBUILD_TESTING_GPU=FALSE
   - make -j 8
   artifacts:
     expire_in: 60m
@@ -61,7 +62,7 @@ linux:arch-gcc:test:
   script:
   - cd build
   - export OMP_NUM_THREADS=8
-  - make test
+  - make CTEST_OUTPUT_ON_FAILURE=1 test
   dependencies: ["linux:arch-gcc:build"]
 
 
@@ -69,7 +70,7 @@ linux:doxygen:deploy:
   tags:
   - linux
   image: 
-    name: archlinux/base
+    name: archlinux:base-devel
     entrypoint: ["/usr/bin/bash", "-c"]
   stage: deploy
   before_script:
@@ -94,7 +95,7 @@ linux:doxygen:deploy:
     # - doxygen Doxyfile_Generate_Search_Index
     - rsync -ra /tmp/chrono_doxygen/html/* $API_HTML_ENDPOINT
     - rsync /tmp/chrono_doxygen/searchdata.xml $API_SEARCH_ENDPOINT
-    - ssh $API_REINDEX_ENDPOINT /var/www/cgi-bin/doxyindexer.cgi /var/www/cgi-bin/searchdata.xml
+    - ssh $API_REINDEX_ENDPOINT /usr/bin/doxyindexer -o $API_CGI_DIR $API_CGI_DIR/searchdata.xml
   needs:
     - job: linux:arch-gcc:test
       artifacts: false
@@ -122,6 +123,7 @@ linux:arch-llvm:build:
     -DCMAKE_CXX_COMPILER=/usr/bin/clang++ 
     -DEIGEN3_INCLUDE_DIR=/usr/include/eigen3
     -DCUDA_HOST_COMPILER=/usr/bin/gcc
+    -DBUILD_TESTING_GPU=FALSE
   - make -j 8
   artifacts:
     expire_in: 60m
@@ -137,7 +139,7 @@ linux:arch-llvm:test:
   - pacman -S --noconfirm llvm clang openmp
   - cd build
   - export OMP_NUM_THREADS=8
-  - make test
+  - make CTEST_OUTPUT_ON_FAILURE=1 test
   dependencies: ["linux:arch-llvm:build"]
 
 
@@ -234,6 +236,7 @@ linux:ubuntu1804:build:
         -DCUDA_HOST_COMPILER=/usr/bin/gcc
         -DPYTHON_EXECUTABLE=/usr/bin/python3
         -DEIGEN3_INCLUDE_DIR=/usr/local/include/eigen3
+        -DCMAKE_VERBOSE_MAKEFILE=TRUE
     - make -j 8
   artifacts:
     expire_in: 60m
@@ -248,7 +251,7 @@ linux:ubuntu1804:test:
   script:
     - cd build
     - export OMP_NUM_THREADS=8
-    - make test
+    - make CTEST_OUTPUT_ON_FAILURE=1 test
   dependencies: ["linux:ubuntu1804:build"]
 
 
@@ -307,7 +310,7 @@ windows:vs2019:build:
   - '& "C:\Program Files (x86)\Microsoft Visual Studio\2019\BuildTools\MSBuild\Current\Bin\MSBuild.exe" FlatBuffers.sln -maxcpucount:8 -property:Configuration=Release'
   # Main build
   - cd $CI_PROJECT_DIR/build
-  - cmake --preset=windowsci-vs2019 ..
+  - cmake --preset=windowsci-vs2019 -DBUILD_TESTING_GPU=FALSE ..
   #- cmake --build . -t ALL_BUILD -j 8
   #- Invoke-Expression "& `'C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\Common7\IDE\devenv.com`' Chrono.sln -Build `"Release|x64`" -log buildlog.txt"
   - '& "C:\Program Files (x86)\Microsoft Visual Studio\2019\BuildTools\MSBuild\Current\Bin\MSBuild.exe" Chrono.sln -maxcpucount:8 -property:Configuration=Release'
@@ -323,7 +326,7 @@ windows:vs2019:test:
   extends: .windows
   script:
   - cd build
-  - ctest
+  - ctest --output-on-failure
   dependencies: ["windows:vs2019:build"]
 
 
@@ -368,7 +371,7 @@ windows:vs2017:build:
   - cmake -G "Visual Studio 16 2019" -DCMAKE_BUILD_TYPE=Release .
   - '& "C:\Program Files (x86)\Microsoft Visual Studio\2019\BuildTools\MSBuild\Current\Bin\MSBuild.exe" FlatBuffers.sln -maxcpucount:8 -property:Configuration=Release'
   - cd $CI_PROJECT_DIR/build
-  - cmake --preset=windowsci-vs2017 ..
+  - cmake --preset=windowsci-vs2017 -DBUILD_TESTING_GPU=FALSE ..
   #- cmake --build . -t ALL_BUILD -j 8
   #- Invoke-Expression "& `'C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\Common7\IDE\devenv.com`' Chrono.sln -Build `"Release|x64`" -log buildlog.txt"
   - '& "C:\Program Files (x86)\Microsoft Visual Studio\2019\BuildTools\MSBuild\Current\Bin\MSBuild.exe" Chrono.sln -maxcpucount:8 -property:Configuration=Release'
@@ -427,6 +430,7 @@ macos:bigsur:build:
   - cmake ../ --preset=macosci
     -DCMAKE_C_COMPILER=$(which clang)
     -DCMAKE_CXX_COMPILER=$(which clang++)
+    -DCMAKE_VERBOSE_MAKEFILE=TRUE
   - make -j 3
   artifacts:
     expire_in: 60m
@@ -440,7 +444,7 @@ macos:bigsur:test:
   extends: .macos
   script:
   - cd build
-  - make test
+  - make CTEST_OUTPUT_ON_FAILURE=1 test
   dependencies: ["macos:bigsur:build"]
 
 

@@ -118,7 +118,7 @@ bool ChCollisionModel::AddConvexHullsFromFile(std::shared_ptr<ChMaterialSurface>
         while (!mstream.End_of_stream()) {
             try {
                 mstream >> bufdata[linechar];
-            } catch (ChException mex) {
+            } catch (const ChException &) {
             };
             if ((bufdata[linechar] == (char)13) || (bufdata[linechar] == (char)10)) {
                 bufdata[linechar] = 0;

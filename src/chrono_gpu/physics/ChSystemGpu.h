@@ -38,8 +38,8 @@ class ChSystemGpuMesh_impl;
 /// Interface to a Chrono::Gpu system.
 class CH_GPU_API ChSystemGpu {
   public:
-    /// Construct system with given sphere radius, density, and big domain dimensions.
-    ChSystemGpu(float sphere_rad, float density, float3 boxDims);
+    /// Construct system with given sphere radius, density, big domain dimensions and center.
+    ChSystemGpu(float sphere_rad, float density, const ChVector<float>& boxDims, ChVector<float> O = ChVector<float>(0));
 
     /// Construct system with a checkpoint file.
     ChSystemGpu(const std::string& checkpoint);
@@ -47,18 +47,12 @@ class CH_GPU_API ChSystemGpu {
     virtual ~ChSystemGpu();
 
     /// Set gravitational acceleration vector.
-    void SetGravitationalAcceleration(const ChVector<float> g);
-    void SetGravitationalAcceleration(const float3 g);
+    void SetGravitationalAcceleration(const ChVector<float>& g);
 
     /// Set particle positions, velocities and angular velocities.
     void SetParticles(const std::vector<ChVector<float>>& points,
                       const std::vector<ChVector<float>>& vels = std::vector<ChVector<float>>(),
                       const std::vector<ChVector<float>>& ang_vels = std::vector<ChVector<float>>());
-    void SetParticlePositions(const std::vector<ChVector<float>>& points,
-                              const std::vector<ChVector<float>>& vels = std::vector<ChVector<float>>(),
-                              const std::vector<ChVector<float>>& ang_vels = std::vector<ChVector<float>>()) {
-        SetParticles(points, vels, ang_vels);
-    }
 
     /// Set particle positions, velocities and angular velocities from a file.
     void ReadParticleFile(const std::string& infilename);
@@ -73,17 +67,20 @@ class CH_GPU_API ChSystemGpu {
     /// If fixed, it will ignore any given position functions.
     void SetBDFixed(bool fixed);
 
+    /// Set the center of the big box domain, relative to the origin of the coordinate system (default: [0,0,0]).
+    /// Note that the domain is always axis-aligned. The user must make sure that all simulation information (particle
+    /// locations, boundaries, meshes...) is consistent with this domain.
+    void SetBDCenter(const ChVector<float>& O);
+
     /// Set flags indicating whether or not a particle is fixed.
     /// MUST be called only once and MUST be called before Initialize.
     void SetParticleFixed(const std::vector<bool>& fixed);
 
     /// Set the output mode of the simulation.
     void SetParticleOutputMode(CHGPU_OUTPUT_MODE mode);
-    void SetOutputMode(CHGPU_OUTPUT_MODE mode) { SetParticleOutputMode(mode); }
 
     /// Set output settings bit flags by bitwise ORing settings in CHGPU_OUTPUT_FLAGS.
     void SetParticleOutputFlags(unsigned int flags);
-    void SetOutputFlags(unsigned int flags) { SetParticleOutputFlags(flags); }
 
     /// Set timestep size.
     void SetFixedStepSize(float size_UU);
@@ -207,6 +204,9 @@ class CH_GPU_API ChSystemGpu {
     /// Return the maximum Z position over all particles.
     double GetMaxParticleZ() const;
 
+    /// Return the minimum Z position over all particles.
+    double GetMinParticleZ() const;
+
     /// Return the radius of a spherical particle.
     float GetParticleRadius() const;
 
@@ -218,6 +218,9 @@ class CH_GPU_API ChSystemGpu {
 
     /// Return particle linear velocity.
     ChVector<float> GetParticleVelocity(int nSphere) const;
+
+    /// Return the total kinetic energy of all particles.
+    float GetParticlesKineticEnergy() const;
 
     /// Return position of BC plane.
     ChVector<float> GetBCPlanePosition(size_t plane_id) const;
@@ -297,6 +300,9 @@ class CH_GPU_API ChSystemGpu {
     /// Write contact pair/history to a stream.
     /// WriteCheckpointFile() and WriteContactHistoryFile() are its wrappers.
     void WriteHstHistory(std::ofstream& histFile) const;
+
+    /// Set gravitational acceleration as a float3 vector.
+    void SetGravitationalAcceleration(const float3 g);
 };
 
 // -----------------------------------------------------------------------------
@@ -304,8 +310,11 @@ class CH_GPU_API ChSystemGpu {
 /// Interface to a Chrono::Gpu mesh system.
 class CH_GPU_API ChSystemGpuMesh : public ChSystemGpu {
   public:
-    /// Construct system with given sphere radius, density, and big domain dimensions.
-    ChSystemGpuMesh(float sphere_rad, float density, float3 boxDims);
+    /// Construct system with given sphere radius, density, big domain dimensions and center.
+    ChSystemGpuMesh(float sphere_rad,
+                    float density,
+                    const ChVector<float>& boxDims,
+                    ChVector<float> O = ChVector<float>(0));
 
     /// Construct system with a checkpoint file.
     ChSystemGpuMesh(const std::string& checkpoint);
@@ -422,7 +431,7 @@ class CH_GPU_API ChSystemGpuMesh : public ChSystemGpu {
         false;  ///< true: use mesh normals in file to correct mesh orientation; false: do nothing, implicitly use RHR
 
     /// GpuMesh version of setting simulation params based on identifiers in the checkpoint file.
-    bool SetParamsFromIdentifier(const std::string& identifier, std::istringstream& iss1, bool overwrite);
+    virtual bool SetParamsFromIdentifier(const std::string& identifier, std::istringstream& iss1, bool overwrite) override;
 
     /// GpuMesh version of parameter writing subroutine
     void WriteCheckpointMeshParams(std::ofstream& cpFile) const;

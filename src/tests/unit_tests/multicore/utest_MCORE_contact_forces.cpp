@@ -190,6 +190,6 @@ TEST_P(ContactForceTest, simulate) {
     }
 }
 
-INSTANTIATE_TEST_CASE_P(ChronoMulticore,
-                        ContactForceTest,
-                        ::testing::Values(ChContactMethod::NSC, ChContactMethod::SMC));
+INSTANTIATE_TEST_SUITE_P(ChronoMulticore,
+                         ContactForceTest,
+                         ::testing::Values(ChContactMethod::NSC, ChContactMethod::SMC));

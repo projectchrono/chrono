@@ -918,6 +918,69 @@ TEST_P(Collision, box_box) {
         ASSERT_TRUE(RCollision(shape1, shape2, separation, norm, pt1, pt2, depth, eff_rad, nC));
         ASSERT_EQ(nC, 0);
     }
+
+    // Corner-corner
+    // Notes: 
+    // - the current algorithm cannot produce a proper corner-corner interaction. Because it always picks
+    //   the direction of minimum overlap, for this case it will report a face-face interaction.
+    // - for similar reasons, the current algorithm will not report an interaction for a configuration
+    //   where two boxes are separated, but with corners are in each others Voronoi region (no matter of
+    //   the separation distance.
+    {
+        real3 hdims1(1.0, 1.0, 1.0);
+        real3 pos1(0.0, 0.0, 0.0);
+        quaternion rot1 = ToQuaternion(Q_from_AngAxis(atan(sqrt(2.0)), ChVector<>(1, 1, 0).GetNormalized()));
+
+        real3 hdims2(1.0, 1.0, 1.0);
+        real3 pos2(0, 0, sqrt(3.0) + sqrt(3.0));
+        quaternion rot2 = ToQuaternion(Q_from_AngAxis(atan(sqrt(2.0)), ChVector<>(1, 1, 0).GetNormalized()));
+
+        ConvexShapeCustom* shape1 = new ConvexShapeCustom();
+        shape1->type = ChCollisionShape::Type::BOX;
+        shape1->position = pos1;
+        shape1->dimensions = hdims1;
+        shape1->rotation = rot1;
+
+        ConvexShapeCustom* shape2 = new ConvexShapeCustom();
+        shape2->type = ChCollisionShape::Type::BOX;
+        shape2->position = pos2;
+        shape2->dimensions = hdims2;
+        shape2->rotation = rot2;
+
+        // penetrated
+        penetration = -0.05;
+        shape2->position = pos2 + real3(0, 0, penetration);
+        ASSERT_TRUE(RCollision(shape1, shape2, separation, norm, pt1, pt2, depth, eff_rad, nC));
+        ASSERT_EQ(nC, 4);
+        CheckValueList(depth, nC, penetration / std::sqrt(3.0));
+        ////for (int i = 0; i < 4; i++) {
+        ////    real3 p1 = RotateT((pt1[i] - pos1), rot1);
+        ////    real3 p2 = RotateT((pt2[i] - pos2 - real3(0, 0, penetration)), rot2);
+        ////}
+
+        // penetrated, small penetration
+        penetration = -1e-5 * std::sqrt(3.0);
+        shape2->position = pos2 + real3(0, 0, penetration);
+        ASSERT_TRUE(RCollision(shape1, shape2, separation, norm, pt1, pt2, depth, eff_rad, nC));
+        ASSERT_EQ(nC, 4);
+        CheckValueList(depth, nC, penetration / std::sqrt(3.0));
+
+        // separated by less than 'separation'
+        penetration = +0.05;
+        shape2->position = pos2 + real3(0, 0, penetration);
+        ASSERT_TRUE(RCollision(shape1, shape2, separation, norm, pt1, pt2, depth, eff_rad, nC));
+        if (sep) {
+            // Limitation of current algorithm
+            ASSERT_EQ(nC, 0);
+        } else {
+            ASSERT_EQ(nC, 0);
+        }
+
+        // separated by more than 'separation'
+        penetration = +0.15;
+        shape2->position = pos2 + real3(0, 0, penetration);
+        ASSERT_EQ(nC, 0);
+    }
 }
 
 TEST_P(Collision, sphere_sphere) {
@@ -1471,4 +1534,4 @@ TEST_P(Collision, roundedcyl_sphere) {
     delete shapeC;
 }
 
-INSTANTIATE_TEST_CASE_P(R, Collision, ::testing::Bool());
+INSTANTIATE_TEST_SUITE_P(R, Collision, ::testing::Bool());

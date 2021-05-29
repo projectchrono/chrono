@@ -68,7 +68,7 @@ int main(int argc, char* argv[]) {
 
     // Setup simulation
     ChSystemGpu gpu_sys(params.sphere_radius, params.sphere_density,
-                        make_float3(params.box_X, params.box_Y, params.box_Z));
+                        ChVector<float>(params.box_X, params.box_Y, params.box_Z));
 
     gpu_sys.SetPsiFactors(params.psi_T, params.psi_L);
 
@@ -89,7 +89,7 @@ int main(int argc, char* argv[]) {
     gpu_sys.SetAdhesionRatio_SPH2WALL(params.adhesion_ratio_s2w);
 
     gpu_sys.SetGravitationalAcceleration(ChVector<float>(params.grav_X, params.grav_Y, params.grav_Z));
-    gpu_sys.SetOutputMode(params.write_mode);
+    gpu_sys.SetParticleOutputMode(params.write_mode);
 
     gpu_sys.SetRollingMode(CHGPU_ROLLING_MODE::NO_RESISTANCE);
 
@@ -106,7 +106,7 @@ int main(int argc, char* argv[]) {
         body_points = sampler.SampleBox(center, hdims);
     }
 
-    gpu_sys.SetParticlePositions(body_points);
+    gpu_sys.SetParticles(body_points);
     std::cout << "Added " << body_points.size() << std::endl;
 
     switch (params.run_mode) {
@@ -155,7 +155,7 @@ int main(int argc, char* argv[]) {
 
     // write an initial frame
     char filename[100];
-    sprintf(filename, "%s/step%06d", out_dir.c_str(), currframe++);
+    sprintf(filename, "%s/step%06d.csv", out_dir.c_str(), currframe++);
     gpu_sys.WriteParticleFile(std::string(filename));
 
     std::cout << "frame step is " << frame_step << std::endl;
@@ -165,7 +165,7 @@ int main(int argc, char* argv[]) {
         gpu_sys.AdvanceSimulation(frame_step);
         curr_time += frame_step;
         printf("rendering frame %u of %u\n", currframe, total_frames + 1);
-        sprintf(filename, "%s/step%06d", out_dir.c_str(), currframe++);
+        sprintf(filename, "%s/step%06d.csv", out_dir.c_str(), currframe++);
         gpu_sys.WriteParticleFile(std::string(filename));
     }
     std::chrono::high_resolution_clock::time_point end = std::chrono::high_resolution_clock::now();

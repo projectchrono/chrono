@@ -175,7 +175,7 @@ class ChApi ChLoadXYZnodeForceAbsolute : public ChLoadXYZnodeForce {
 
 
 /// Base class for loads representing a concentrated force acting between two ChNodeXYZ.
-/// Users should inherit from this and implement a custom ComputeXYZnodeForce(), this is enough
+/// Users should inherit from this and implement a custom ComputeForce(), this is enough
 /// to have the load working.
 /// Note: there are already some predefined examples, ie. children classes 
 /// with common concrete implementations, such as ChLoadXYZnodeXYZnodeSpring ChLoadXYZnodeXYZnodeBushing etc.;

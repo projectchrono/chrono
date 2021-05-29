@@ -108,8 +108,8 @@ class ChSystemGpuMesh_impl : public ChSystemGpu_impl {
     // The system is not default-constructible
     ChSystemGpuMesh_impl() = delete;
 
-    /// Construct Chrono::Gpu system with given sphere radius, density, and big domain dimensions
-    ChSystemGpuMesh_impl(float sphere_rad, float density, float3 boxDims);
+    /// Construct Chrono::Gpu system with given sphere radius, density, big domain dimensions and frame origin.
+    ChSystemGpuMesh_impl(float sphere_rad, float density, float3 boxDims, float3 O);
 
     /// Apply rigid body motion to specified mesh.
     void ApplyMeshMotion(unsigned int mesh_id,

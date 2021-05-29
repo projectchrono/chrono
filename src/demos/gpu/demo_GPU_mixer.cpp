@@ -58,7 +58,7 @@ int main(int argc, char* argv[]) {
 
     float iteration_step = params.step_size;
 
-    ChSystemGpuMesh gpu_sys(params.sphere_radius, params.sphere_density, make_float3(Bx, By, Bz));
+    ChSystemGpuMesh gpu_sys(params.sphere_radius, params.sphere_density, ChVector<float>(Bx, By, Bz));
 
     gpu_sys.SetKn_SPH2SPH(params.normalStiffS2S);
     gpu_sys.SetKn_SPH2WALL(params.normalStiffS2W);
@@ -85,7 +85,7 @@ int main(int argc, char* argv[]) {
     gpu_sys.SetStaticFrictionCoeff_SPH2WALL(params.static_friction_coeffS2W);
     gpu_sys.SetStaticFrictionCoeff_SPH2MESH(params.static_friction_coeffS2M);
 
-    gpu_sys.SetOutputMode(params.write_mode);
+    gpu_sys.SetParticleOutputMode(params.write_mode);
 
     std::string out_dir = GetChronoOutputPath() + "GPU/";
     filesystem::create_directory(filesystem::path(out_dir));
@@ -121,7 +121,7 @@ int main(int argc, char* argv[]) {
         center.z() += 2.1f * params.sphere_radius;
     }
 
-    gpu_sys.SetParticlePositions(body_points);
+    gpu_sys.SetParticles(body_points);
     gpu_sys.SetGravitationalAcceleration(ChVector<float>(0, 0, -980));
 
     // Add the mixer mesh to the GPU system
@@ -175,7 +175,7 @@ int main(int argc, char* argv[]) {
             std::cout << "Output frame " << (currframe + 1) << " of " << total_frames << std::endl;
             char filename[100];
             char mesh_filename[100];
-            sprintf(filename, "%s/step%06u", out_dir.c_str(), currframe);
+            sprintf(filename, "%s/step%06u.csv", out_dir.c_str(), currframe);
             sprintf(mesh_filename, "%s/step%06u_mesh", out_dir.c_str(), currframe++);
             gpu_sys.WriteParticleFile(std::string(filename));
             gpu_sys.WriteMeshes(std::string(mesh_filename));

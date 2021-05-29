@@ -26,22 +26,24 @@ namespace gpu {
 
 // -----------------------------------------------------------------------------
 
-ChSystemGpu::ChSystemGpu(float sphere_rad, float density, float3 boxDims) {
-    m_sys = new ChSystemGpu_impl(sphere_rad, density, boxDims);
+ChSystemGpu::ChSystemGpu(float sphere_rad, float density, const ChVector<float>& boxDims, ChVector<float> O) {
+    m_sys = new ChSystemGpu_impl(sphere_rad, density, make_float3(boxDims.x(), boxDims.y(), boxDims.z()),
+                                 make_float3(O.x(), O.y(), O.z()));
 }
 
 ChSystemGpu::ChSystemGpu(const std::string& checkpoint) {
-    m_sys = new ChSystemGpu_impl(1.f, 1.f, make_float3(100, 100, 100));
+    m_sys = new ChSystemGpu_impl(1.f, 1.f, make_float3(100, 100, 100), make_float3(0, 0, 0));
     ReadCheckpointFile(checkpoint, true);
 }
 
-ChSystemGpuMesh::ChSystemGpuMesh(float sphere_rad, float density, float3 boxDims)
+ChSystemGpuMesh::ChSystemGpuMesh(float sphere_rad, float density, const ChVector<float>& boxDims, ChVector<float> O)
     : mesh_verbosity(CHGPU_MESH_VERBOSITY::QUIET) {
-    m_sys = new ChSystemGpuMesh_impl(sphere_rad, density, boxDims);
+    m_sys = new ChSystemGpuMesh_impl(sphere_rad, density, make_float3(boxDims.x(), boxDims.y(), boxDims.z()),
+                                     make_float3(O.x(), O.y(), O.z()));
 }
 
 ChSystemGpuMesh::ChSystemGpuMesh(const std::string& checkpoint) : mesh_verbosity(CHGPU_MESH_VERBOSITY::QUIET) {
-    m_sys = new ChSystemGpuMesh_impl(1.f, 1.f, make_float3(100, 100, 100));
+    m_sys = new ChSystemGpuMesh_impl(1.f, 1.f, make_float3(100, 100, 100), make_float3(0, 0, 0));
     ReadCheckpointFile(checkpoint, true);
 }
 
@@ -53,7 +55,7 @@ ChSystemGpuMesh::~ChSystemGpuMesh() {}
 
 // -----------------------------------------------------------------------------
 
-void ChSystemGpu::SetGravitationalAcceleration(const ChVector<float> g) {
+void ChSystemGpu::SetGravitationalAcceleration(const ChVector<float>& g) {
     m_sys->X_accGrav = (float)g.x();
     m_sys->Y_accGrav = (float)g.y();
     m_sys->Z_accGrav = (float)g.z();
@@ -67,6 +69,12 @@ void ChSystemGpu::SetGravitationalAcceleration(const float3 g) {
 
 void ChSystemGpu::SetBDFixed(bool fixed) {
     m_sys->BD_is_fixed = fixed;
+}
+
+void ChSystemGpu::SetBDCenter(const ChVector<float>& O) {
+    m_sys->user_coord_O_X = O.x();
+    m_sys->user_coord_O_Y = O.y();
+    m_sys->user_coord_O_Z = O.z();
 }
 
 void ChSystemGpu::SetParticleFixed(const std::vector<bool>& fixed) {
@@ -359,8 +367,18 @@ ChVector<float> ChSystemGpu::GetParticleAngVelocity(int nSphere) const {
     return ChVector<float>(omega.x, omega.y, omega.z);
 }
 
+float ChSystemGpu::GetParticlesKineticEnergy() const {
+    float KE = (float)(m_sys->ComputeTotalKE());
+    return KE;
+}
+
 double ChSystemGpu::GetMaxParticleZ() const {
-    return m_sys->GetMaxParticleZ();
+    return m_sys->GetMaxParticleZ(true);
+}
+
+double ChSystemGpu::GetMinParticleZ() const {
+    // Under the hood, GetMaxParticleZ(false) returns the lowest Z.
+    return m_sys->GetMaxParticleZ(false);
 }
 
 size_t ChSystemGpu::EstimateMemUsage() const {
@@ -780,8 +798,8 @@ bool diff(float3 a, float3 b) {
     return std::abs(a.x - b.x) > 1e-6f || std::abs(a.y - b.y) > 1e-6f || std::abs(a.z - b.z) > 1e-6f;
 }
 
-// Use hash to find matching indentifier and load parameters. Return 0 if not change compared to current system, return
-// 1 if overwrote a current parameter setting
+// Use hash to find matching indentifier and load parameters. Return 1 if found no matching paramter to set, return 0 if
+// status normal
 bool ChSystemGpu::SetParamsFromIdentifier(const std::string& identifier, std::istringstream& iss1, bool overwrite) {
     unsigned int i;        // integer holder
     float f;               // float holder
@@ -814,6 +832,15 @@ bool ChSystemGpu::SetParamsFromIdentifier(const std::string& identifier, std::is
         case ("BDFixed"_):
             iss1 >> b;
             SetBDFixed(b);
+            break;
+        case ("BDCenter"_):
+            iss1 >> f3.x;
+            iss1 >> f3.y;
+            iss1 >> f3.z;
+            incst = diff(make_float3(m_sys->user_coord_O_X, m_sys->user_coord_O_Y, m_sys->user_coord_O_Z), f3);
+            m_sys->user_coord_O_X = f3.x;
+            m_sys->user_coord_O_Y = f3.y;
+            m_sys->user_coord_O_Z = f3.z;
             break;
         case ("verbosity"_):
             iss1 >> i;
@@ -1190,6 +1217,8 @@ void ChSystemGpu::WriteCheckpointParams(std::ofstream& cpFile) const {
     paramStream << "radius: " << m_sys->sphere_radius_UU << "\n";
     paramStream << "boxSize: " << m_sys->box_size_X << " " << m_sys->box_size_Y << " " << m_sys->box_size_Z << "\n";
     paramStream << "BDFixed: " << (int)(m_sys->BD_is_fixed) << "\n";
+    paramStream << "BDCenter: " << m_sys->user_coord_O_X << " " << m_sys->user_coord_O_Y << " " << m_sys->user_coord_O_Z
+                << "\n";
     paramStream << "verbosity: " << as_uint(m_sys->verbosity) << "\n";
     paramStream << "useMinLengthUnit: " << (int)(m_sys->use_min_length_unit) << "\n";
     paramStream << "recordContactInfo: " << (int)(m_sys->gran_params->recording_contactInfo) << "\n";
@@ -1472,7 +1501,8 @@ void ChSystemGpuMesh::WriteMesh(const std::string& outfilename, unsigned int i) 
     // Writing face types. Type 5 is generally triangles
     ostream << "\n\n";
     ostream << "CELL_TYPES " << mmesh->getIndicesVertexes().size() << std::endl;
-    for (auto& f : mmesh->getIndicesVertexes())
+    auto nfaces = mmesh->getIndicesVertexes().size();
+    for (size_t j = 0; j < nfaces; j++)
         ostream << "5 " << std::endl;
 
     outfile << ostream.str();
@@ -1491,8 +1521,8 @@ void ChSystemGpuMesh::WriteMeshes(const std::string& outfilename) const {
     }
 
     std::vector<unsigned int> vertexOffset(m_meshes.size() + 1, 0);
-    unsigned int total_f = 0;
-    unsigned int total_v = 0;
+    size_t total_f = 0;
+    size_t total_v = 0;
 
     printf("Writing %zu mesh(es)...\n", m_meshes.size());
     std::string ofile;
@@ -1513,7 +1543,7 @@ void ChSystemGpuMesh::WriteMeshes(const std::string& outfilename) const {
     // Prescan the V and F: to write all meshes to one file, we need vertex number offset info
     unsigned int mesh_num = 0;
     for (const auto& mmesh : m_meshes) {
-        vertexOffset[mesh_num + 1] = mmesh->getCoordsVertices().size();
+        vertexOffset[mesh_num + 1] = (unsigned int)mmesh->getCoordsVertices().size();
         total_v += mmesh->getCoordsVertices().size();
         total_f += mmesh->getIndicesVertexes().size();
         mesh_num++;
@@ -1550,9 +1580,9 @@ void ChSystemGpuMesh::WriteMeshes(const std::string& outfilename) const {
     ostream << "\n\n";
     ostream << "CELL_TYPES " << total_f << std::endl;
     for (const auto& mmesh : m_meshes) {
-        for (auto& f : mmesh->getIndicesVertexes()) {
+        auto nfaces = mmesh->getIndicesVertexes().size();
+        for (size_t j = 0; j < nfaces; j++)
             ostream << "5 " << std::endl;
-        }
     }
 
     outfile << ostream.str();
