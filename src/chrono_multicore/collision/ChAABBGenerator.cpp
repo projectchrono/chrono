@@ -16,7 +16,6 @@
 #include <climits>
 
 #include "chrono_multicore/collision/ChCollision.h"
-#include "chrono_multicore/collision/ChDataStructures.h"
 #include "chrono_multicore/physics/Ch3DOFContainer.h"
 
 using namespace chrono;
@@ -112,17 +111,17 @@ ChCAABBGenerator::ChCAABBGenerator() {
 
 void ChCAABBGenerator::GenerateAABB() {
     LOG(TRACE) << "ChCAABBGenerator::GenerateAABB() S";
-    if (data_manager->num_rigid_shapes > 0) {
-        const custom_vector<shape_type>& typ_rigid = data_manager->shape_data.typ_rigid;
-        const custom_vector<int>& start_rigid = data_manager->shape_data.start_rigid;
-        const custom_vector<uint>& id_rigid = data_manager->shape_data.id_rigid;
-        const custom_vector<real3>& obj_data_A = data_manager->shape_data.ObA_rigid;
+    if (data_manager->cd_data->num_rigid_shapes > 0) {
+        const custom_vector<shape_type>& typ_rigid = data_manager->cd_data->shape_data.typ_rigid;
+        const custom_vector<int>& start_rigid = data_manager->cd_data->shape_data.start_rigid;
+        const custom_vector<uint>& id_rigid = data_manager->cd_data->shape_data.id_rigid;
+        const custom_vector<real3>& obj_data_A = data_manager->cd_data->shape_data.ObA_rigid;
         real collision_envelope = data_manager->settings.collision.collision_envelope;
-        const custom_vector<quaternion>& obj_data_R = data_manager->shape_data.ObR_rigid;
-        const custom_vector<real3>& convex_rigid = data_manager->shape_data.convex_rigid;
+        const custom_vector<quaternion>& obj_data_R = data_manager->cd_data->shape_data.ObR_rigid;
+        const custom_vector<real3>& convex_rigid = data_manager->cd_data->shape_data.convex_rigid;
         const custom_vector<real3>& pos_rigid = data_manager->host_data.pos_rigid;
         const custom_vector<quaternion>& body_rot = data_manager->host_data.rot_rigid;
-        const uint num_rigid_shapes = data_manager->num_rigid_shapes;
+        const uint num_rigid_shapes = data_manager->cd_data->num_rigid_shapes;
         custom_vector<real3>& aabb_min = data_manager->host_data.aabb_min;
         custom_vector<real3>& aabb_max = data_manager->host_data.aabb_max;
 
@@ -148,28 +147,28 @@ void ChCAABBGenerator::GenerateAABB() {
             real3 temp_max;
 
             if (type == ChCollisionShape::Type::SPHERE) {
-                real radius = data_manager->shape_data.sphere_rigid[start];
+                real radius = data_manager->cd_data->shape_data.sphere_rigid[start];
                 ComputeAABBSphere(radius + collision_envelope, local_pos, position, body_rot[id], temp_min, temp_max);
 
             } else if (type == ChCollisionShape::Type::ELLIPSOID || type == ChCollisionShape::Type::BOX ||
                        type == ChCollisionShape::Type::CYLINDER || type == ChCollisionShape::Type::CYLSHELL ||
                        type == ChCollisionShape::Type::CONE) {
-                real3 B = data_manager->shape_data.box_like_rigid[start];
+                real3 B = data_manager->cd_data->shape_data.box_like_rigid[start];
                 ComputeAABBBox(B + collision_envelope, local_pos, position, rotation, body_rot[id], temp_min, temp_max);
 
             } else if (type == ChCollisionShape::Type::ROUNDEDBOX || type == ChCollisionShape::Type::ROUNDEDCYL ||
                        type == ChCollisionShape::Type::ROUNDEDCONE) {
-                real4 T = data_manager->shape_data.rbox_like_rigid[start];
+                real4 T = data_manager->cd_data->shape_data.rbox_like_rigid[start];
                 real3 B = real3(T.x, T.y, T.z) + T.w + collision_envelope;
                 ComputeAABBBox(B, local_pos, position, rotation, body_rot[id], temp_min, temp_max);
 
             } else if (type == ChCollisionShape::Type::CAPSULE) {
-                real2 T = data_manager->shape_data.capsule_rigid[start];
+                real2 T = data_manager->cd_data->shape_data.capsule_rigid[start];
                 real3 B_ = real3(T.x, T.x + T.y, T.x) + collision_envelope;
                 ComputeAABBBox(B_, local_pos, position, rotation, body_rot[id], temp_min, temp_max);
 
             } else if (type == ChCollisionShape::Type::CONVEX) {
-                int length = data_manager->shape_data.length_rigid[index];
+                int length = data_manager->cd_data->shape_data.length_rigid[index];
                 ComputeAABBConvex(convex_rigid.data(), start, length, local_pos, position, rotation, temp_min,
                                   temp_max);
                 temp_min -= collision_envelope;
@@ -178,9 +177,9 @@ void ChCAABBGenerator::GenerateAABB() {
             } else if (type == ChCollisionShape::Type::TRIANGLE) {
                 real3 A, B, C;
 
-                A = data_manager->shape_data.triangle_rigid[start + 0];
-                B = data_manager->shape_data.triangle_rigid[start + 1];
-                C = data_manager->shape_data.triangle_rigid[start + 2];
+                A = data_manager->cd_data->shape_data.triangle_rigid[start + 0];
+                B = data_manager->cd_data->shape_data.triangle_rigid[start + 1];
+                C = data_manager->cd_data->shape_data.triangle_rigid[start + 2];
 
                 A = Rotate(A, body_rot[id]) + position;
                 B = Rotate(B, body_rot[id]) + position;
@@ -222,5 +221,5 @@ void ChCAABBGenerator::GenerateAABB() {
             aabb_max_tet[index] = Max(Max(Max(x0, x1), x2), x3) + collision_envelope + real3(node_radius);
         }
     }
-    LOG(TRACE) << "ChCAABBGenerator::GenerateAABB() E " << data_manager->num_rigid_shapes;
+    LOG(TRACE) << "ChCAABBGenerator::GenerateAABB() E " << data_manager->cd_data->num_rigid_shapes;
 }

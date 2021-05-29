@@ -268,7 +268,6 @@ SET(ChronoEngine_Multicore_COLLISION
     collision/ChAABBGenerator.cpp
     collision/ChBroadphase.cpp
     collision/ChBroadphaseUtils.h
-    collision/ChDataStructures.h
     collision/ChNarrowphaseUtils.h
     collision/ChNarrowphaseMPR.h
     collision/ChNarrowphaseMPR.cpp

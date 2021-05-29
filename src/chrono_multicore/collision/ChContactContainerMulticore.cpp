@@ -95,7 +95,7 @@ void ChContactContainerMulticore::ReportAllContacts(std::shared_ptr<ReportContac
     ChVector<> plane_x, plane_y, plane_z;
     ChMatrix33<> contact_plane;
 
-    for (uint i = 0; i < data_manager->num_rigid_contacts; i++) {
+    for (uint i = 0; i < cd_data->num_rigid_contacts; i++) {
         auto bodyA = bodylist[bids[i].x].get();
         auto bodyB = bodylist[bids[i].y].get();
 
@@ -225,6 +225,7 @@ void ChContactContainerMulticore_mc::EndAddContact() {
 
 void ChContactContainerMulticore_mc::ReportAllContacts(std::shared_ptr<ReportContactCallback> callback) {
     // Readibility
+    auto& cd_data = data_manager->cd_data;
     const auto& ptA = data_manager->host_data.cpta_rigid_rigid;
     const auto& ptB = data_manager->host_data.cptb_rigid_rigid;
     const auto& nrm = data_manager->host_data.norm_rigid_rigid;
@@ -252,7 +253,7 @@ void ChContactContainerMulticore_mc::ReportAllContacts(std::shared_ptr<ReportCon
     ChVector<> plane_x, plane_y, plane_z;
     ChMatrix33<> contact_plane;
 
-    for (uint i = 0; i < data_manager->num_rigid_contacts; i++) {
+    for (uint i = 0; i < cd_data->num_rigid_contacts; i++) {
         auto bodyA = bodylist[bids[i].x].get();
         auto bodyB = bodylist[bids[i].y].get();
 
@@ -270,9 +271,9 @@ void ChContactContainerMulticore_mc::ReportAllContacts(std::shared_ptr<ReportCon
                 double f_u = 0;
                 double f_v = 0;
                 if (mode == SolverMode::SLIDING || mode == SolverMode::SPINNING) {
-                    f_u = (double)(gamma_u[data_manager->num_rigid_contacts + 2 * i + 0] /
+                    f_u = (double)(gamma_u[cd_data->num_rigid_contacts + 2 * i + 0] /
                                     data_manager->settings.step_size);
-                    f_v = (double)(gamma_u[data_manager->num_rigid_contacts + 2 * i + 1] /
+                    f_v = (double)(gamma_u[cd_data->num_rigid_contacts + 2 * i + 1] /
                                     data_manager->settings.step_size);
                 }
                 force = ChVector<>(f_n, f_u, f_v);
@@ -280,11 +281,11 @@ void ChContactContainerMulticore_mc::ReportAllContacts(std::shared_ptr<ReportCon
                 double t_u = 0;
                 double t_v = 0;
                 if (mode == SolverMode::SPINNING) {
-                    t_n = (double)(gamma_u[3 * data_manager->num_rigid_contacts + 3 * i + 0] /
+                    t_n = (double)(gamma_u[3 * cd_data->num_rigid_contacts + 3 * i + 0] /
                                    data_manager->settings.step_size);
-                    t_u = (double)(gamma_u[3 * data_manager->num_rigid_contacts + 3 * i + 1] /
+                    t_u = (double)(gamma_u[3 * cd_data->num_rigid_contacts + 3 * i + 1] /
                                    data_manager->settings.step_size);
-                    t_v = (double)(gamma_u[3 * data_manager->num_rigid_contacts + 3 * i + 2] /
+                    t_v = (double)(gamma_u[3 * cd_data->num_rigid_contacts + 3 * i + 2] /
                                    data_manager->settings.step_size);
                 }
                 torque = ChVector<>(t_n, t_u, t_v);

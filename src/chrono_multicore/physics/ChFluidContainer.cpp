@@ -181,7 +181,7 @@ void ChFluidContainer::UpdatePosition(double ChTime) {
     //        // This treats all rigid neighbors as fixed. This correction should usually be pretty small if the
     //        // timestep
     //        // isnt too large.
-    //        if (data_manager->num_rigid_fluid_contacts > 0) {
+    //        if (data_manager->cd_data->num_rigid_fluid_contacts > 0) {
     //#pragma omp parallel for
     //            for (int p = 0; p < num_fluid_bodies; p++) {
     //                int start = contact_counts[p];
@@ -222,9 +222,9 @@ int ChFluidContainer::GetNumConstraints() {
     int num_fluid_fluid = data_manager->num_fluid_bodies;
 
     if (contact_mu == 0) {
-        num_fluid_fluid += data_manager->num_rigid_fluid_contacts;
+        num_fluid_fluid += data_manager->cd_data->num_rigid_fluid_contacts;
     } else {
-        num_fluid_fluid += data_manager->num_rigid_fluid_contacts * 3;
+        num_fluid_fluid += data_manager->cd_data->num_rigid_fluid_contacts * 3;
     }
 
     if (enable_viscosity) {
@@ -238,9 +238,9 @@ int ChFluidContainer::GetNumNonZeros() {
     int nnz_fluid_fluid = data_manager->num_fluid_bodies * 6 * max_neighbors;
 
     if (contact_mu == 0) {
-        nnz_fluid_fluid += 9 * data_manager->num_rigid_fluid_contacts;
+        nnz_fluid_fluid += 9 * data_manager->cd_data->num_rigid_fluid_contacts;
     } else {
-        nnz_fluid_fluid += 9 * 3 * data_manager->num_rigid_fluid_contacts;
+        nnz_fluid_fluid += 9 * 3 * data_manager->cd_data->num_rigid_fluid_contacts;
     }
 
     if (enable_viscosity) {
@@ -466,7 +466,7 @@ void ChFluidContainer::Build_D() {
 
     BuildRigidFluidBoundary(contact_mu, num_fluid_bodies, body_offset, start_boundary, data_manager);
 
-    if (data_manager->num_fluid_contacts > 0) {
+    if (data_manager->cd_data->num_fluid_contacts > 0) {
         LOG(INFO) << "ChFluidContainer::Build_D Fluid";
 
         real h = kernel_radius;
@@ -585,7 +585,7 @@ void ChFluidContainer::GenerateSparsity() {
     LOG(INFO) << "ChFluidContainer::GenerateSparsity";
     AppendRigidFluidBoundary(contact_mu, num_fluid_bodies, body_offset, start_boundary, data_manager);
 
-    if (data_manager->num_fluid_contacts > 0) {
+    if (data_manager->cd_data->num_fluid_contacts > 0) {
         for (int body_a = 0; body_a < (signed)num_fluid_bodies; body_a++) {
             for (int i = 0; i < data_manager->host_data.c_counts_3dof_3dof[body_a]; i++) {
                 int body_b = data_manager->host_data.neighbor_3dof_3dof[body_a * max_neighbors + i];
@@ -690,7 +690,7 @@ void ChFluidContainer::PostSolve() {
 }
 
 void ChFluidContainer::CalculateContactForces() {
-    uint num_contacts = data_manager->num_rigid_fluid_contacts;
+    uint num_contacts = data_manager->cd_data->num_rigid_fluid_contacts;
     if (num_contacts <= 0) {
         return;
     }
@@ -712,14 +712,14 @@ void ChFluidContainer::CalculateContactForces() {
 }
 
 real3 ChFluidContainer::GetBodyContactForce(uint body_id) {
-    if (data_manager->num_rigid_fluid_contacts <= 0) {
+    if (data_manager->cd_data->num_rigid_fluid_contacts <= 0) {
         return real3(0);
     }
     return real3(contact_forces[body_id * 6 + 0], contact_forces[body_id * 6 + 1], contact_forces[body_id * 6 + 2]);
 }
 
 real3 ChFluidContainer::GetBodyContactTorque(uint body_id) {
-    if (data_manager->num_rigid_fluid_contacts <= 0) {
+    if (data_manager->cd_data->num_rigid_fluid_contacts <= 0) {
         return real3(0);
     }
     return real3(contact_forces[body_id * 6 + 3], contact_forces[body_id * 6 + 4], contact_forces[body_id * 6 + 5]);

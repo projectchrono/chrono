@@ -112,7 +112,7 @@ void ChSystemMulticoreNSC::UpdateMaterialSurfaceData(int index, ChBody* body) {
 void ChSystemMulticoreNSC::CalculateContactForces() {
     uint num_unilaterals = data_manager->num_unilaterals;
     uint num_rigid_dof = data_manager->num_rigid_bodies * 6;
-    uint num_contacts = data_manager->num_rigid_contacts;
+    uint num_contacts = data_manager->cd_data->num_rigid_contacts;
     DynamicVector<real>& Fc = data_manager->host_data.Fc;
 
     data_manager->Fc_current = true;
@@ -176,7 +176,7 @@ void ChSystemMulticoreNSC::AssembleSystem() {
     ChSystem::Update();
     contact_container->BeginAddContact();
     chrono::collision::ChCollisionInfo icontact;
-    for (int i = 0; i < (signed)data_manager->num_rigid_contacts; i++) {
+    for (int i = 0; i < (signed)data_manager->cd_data->num_rigid_contacts; i++) {
         vec2 cd_pair = data_manager->host_data.bids_rigid_rigid[i];
         icontact.modelA = Get_bodylist()[cd_pair.x]->GetCollisionModel().get();
         icontact.modelB = Get_bodylist()[cd_pair.y]->GetCollisionModel().get();

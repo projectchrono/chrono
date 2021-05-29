@@ -82,10 +82,10 @@ void Ch3DOFContainer::SetPos_dt(const int& i, const real3& mposdt) {
 void Ch3DOFContainer::Setup3DOF(int start_constraint) {
     start_row = start_constraint;
     if (data_manager) {
-        num_fluid_contacts = data_manager->num_fluid_contacts;
+        num_fluid_contacts = data_manager->cd_data->num_fluid_contacts;
         num_fluid_bodies = data_manager->num_fluid_bodies;
         num_rigid_bodies = data_manager->num_rigid_bodies;
-        num_rigid_fluid_contacts = data_manager->num_rigid_fluid_contacts;
+        num_rigid_fluid_contacts = data_manager->cd_data->num_rigid_fluid_contacts;
         num_unilaterals = data_manager->num_unilaterals;
         num_bilaterals = data_manager->num_bilaterals;
         num_shafts = data_manager->num_shafts;

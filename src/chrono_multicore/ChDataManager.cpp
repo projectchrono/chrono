@@ -29,11 +29,7 @@ using namespace chrono;
 using namespace chrono::collision;
 
 ChMulticoreDataManager::ChMulticoreDataManager()
-    : num_rigid_contacts(0),
-      num_rigid_fluid_contacts(0),
-      num_fluid_contacts(0),
-      num_rigid_shapes(0),
-      num_rigid_bodies(0),
+    : num_rigid_bodies(0),
       num_fluid_bodies(0),
       num_unilaterals(0),
       num_bilaterals(0),
@@ -99,16 +95,16 @@ int ChMulticoreDataManager::OutputBlazeMatrix(CompressedMatrix<real> src, std::s
 int ChMulticoreDataManager::ExportCurrentSystem(std::string output_dir) {
     int offset = 0;
     if (settings.solver.solver_mode == SolverMode::NORMAL) {
-        offset = num_rigid_contacts;
+        offset = cd_data->num_rigid_contacts;
     } else if (settings.solver.solver_mode == SolverMode::SLIDING) {
-        offset = 3 * num_rigid_contacts;
+        offset = 3 * cd_data->num_rigid_contacts;
     } else if (settings.solver.solver_mode == SolverMode::SPINNING) {
-        offset = 6 * num_rigid_contacts;
+        offset = 6 * cd_data->num_rigid_contacts;
     }
 
     // fill in the information for constraints and friction
     DynamicVector<real> fric(num_constraints, -2.0);
-    for (unsigned int i = 0; i < num_rigid_contacts; i++) {
+    for (unsigned int i = 0; i < cd_data->num_rigid_contacts; i++) {
         if (settings.solver.solver_mode == SolverMode::NORMAL) {
             fric[i] = host_data.fric_rigid_rigid[i].x;
         } else if (settings.solver.solver_mode == SolverMode::SLIDING) {

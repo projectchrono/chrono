@@ -96,8 +96,8 @@ typedef blaze::Subvector<const DynamicVector<real>> ConstSubVectorType;
 #define _num_fluid_dof_ data_manager->num_fluid_bodies * 3
 #define _num_bil_ data_manager->num_bilaterals
 #define _num_uni_ data_manager->num_unilaterals
-#define _num_r_c_ data_manager->num_rigid_contacts
-#define _num_rf_c_ data_manager->num_rigid_fluid_contacts
+#define _num_r_c_ data_manager->cd_data->num_rigid_contacts
+#define _num_rf_c_ data_manager->cd_data->num_rigid_fluid_contacts
 #define _num_fluid_ data_manager->num_fluid_bodies
 
 // 0
@@ -204,31 +204,6 @@ typedef blaze::Subvector<const DynamicVector<real>> ConstSubVectorType;
 
 /// @addtogroup multicore_module
 /// @{
-
-/// Structure of arrays containing contact shape information.
-struct shape_container_mc {
-    custom_vector<short2> fam_rigid;  ///< family information
-    custom_vector<uint> id_rigid;     ///< ID of associated body
-    custom_vector<int> typ_rigid;     ///< shape type
-    custom_vector<int> local_rigid;   ///< local shape index in collision model of associated body
-    custom_vector<int> start_rigid;   ///< start index in the appropriate container of dimensions
-    custom_vector<int> length_rigid;  ///< usually 1, except for convex
-
-    custom_vector<quaternion> ObR_rigid;  ///< Shape rotation
-    custom_vector<real3> ObA_rigid;       ///< Position of shape
-
-    custom_vector<real> sphere_rigid;      ///< radius for sphere shapes
-    custom_vector<real3> box_like_rigid;   ///< dimensions for box-like shapes
-    custom_vector<real3> triangle_rigid;   ///< vertices of all triangle shapes (3 per shape)
-    custom_vector<real2> capsule_rigid;    ///< radius and half-length for capsule shapes
-    custom_vector<real4> rbox_like_rigid;  ///< dimensions and radius for rbox-like shapes
-    custom_vector<real3> convex_rigid;     ///<
-    custom_vector<int> tetrahedron_rigid;  ///<
-
-    custom_vector<real3> triangle_global;
-    custom_vector<real3> obj_data_A_global;
-    custom_vector<quaternion> obj_data_R_global;
-};
 
 /// Structure of arrays containing simulation data.
 struct host_container {
@@ -433,7 +408,6 @@ class CH_MULTICORE_API ChMulticoreDataManager {
     ~ChMulticoreDataManager();
 
     host_container host_data;    ///< Structure of data arrays (state, contact, etc)
-    shape_container_mc shape_data;  ///< Structure of arrays containing contact shape information
 
     /// Used by the bilarerals for computing the Jacobian and other terms.
     std::shared_ptr<ChSystemDescriptor> system_descriptor;
@@ -463,10 +437,6 @@ class CH_MULTICORE_API ChMulticoreDataManager {
     uint num_linmotors;                ///< The number of linear speed motors
     uint num_rotmotors;                ///< The number of rotation speed motors
     uint num_dof;                      ///< The number of degrees of freedom in the system
-    uint num_rigid_shapes;             ///< The number of collision models in a system
-    uint num_rigid_contacts;           ///< The number of contacts between rigid bodies in a system
-    uint num_rigid_fluid_contacts;     ///< The number of contacts between rigid and fluid objects
-    uint num_fluid_contacts;           ///< The number of contacts between fluid objects
     uint num_unilaterals;              ///< The number of contact constraints
     uint num_bilaterals;               ///< The number of bilateral constraints
     uint num_constraints;              ///< Total number of constraints

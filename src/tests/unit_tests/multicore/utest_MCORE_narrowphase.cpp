@@ -139,8 +139,8 @@ bool CompareContacts(ChSystemMulticore* msystem_A, ChSystemMulticore* msystem_B)
     double test_tolerance = 1e-5;
 
     bool passing = true;
-    int num_contacts_A = msystem_A->data_manager->num_rigid_contacts;
-    int num_contacts_B = msystem_B->data_manager->num_rigid_contacts;
+    int num_contacts_A = msystem_A->data_manager->cd_data->num_rigid_contacts;
+    int num_contacts_B = msystem_B->data_manager->cd_data->num_rigid_contacts;
 
     if (num_contacts_A != num_contacts_B) {
         std::cout << num_contacts_A << " does not equal " << num_contacts_B << std::endl;

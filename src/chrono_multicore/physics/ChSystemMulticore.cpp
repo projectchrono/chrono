@@ -729,8 +729,8 @@ void ChSystemMulticore::Setup() {
     ndof = data_manager->num_dof;
     ndoc_w_C = 0;
     ndoc_w_D = 0;
-    ncontacts =
-        data_manager->num_rigid_contacts + data_manager->num_rigid_fluid_contacts + data_manager->num_fluid_contacts;
+    ncontacts = data_manager->cd_data->num_rigid_contacts + data_manager->cd_data->num_rigid_fluid_contacts +
+                data_manager->cd_data->num_fluid_contacts;
     assembly.nbodies_sleep = 0;
     assembly.nbodies_fixed = 0;
 }
@@ -831,7 +831,7 @@ void ChSystemMulticore::CalculateBodyAABB() {
     // Readability replacements
     auto& s_min = data_manager->host_data.aabb_min;
     auto& s_max = data_manager->host_data.aabb_max;
-    auto& id_rigid = data_manager->shape_data.id_rigid;
+    auto& id_rigid = data_manager->cd_data->shape_data.id_rigid;
     auto& offset = data_manager->measures.collision.global_origin;
 
     // Initialize body AABB to inverted boxes
@@ -840,7 +840,7 @@ void ChSystemMulticore::CalculateBodyAABB() {
 
     // Loop over all shapes and update the AABB of the associated body
     //// TODO: can be done in parallel using Thrust
-    for (uint is = 0; is < data_manager->num_rigid_shapes; is++) {
+    for (uint is = 0; is < data_manager->cd_data->num_rigid_shapes; is++) {
         uint ib = id_rigid[is];
         b_min[ib] = real3(Min(b_min[ib].x, s_min[ib].x + offset.x), Min(b_min[ib].y, s_min[ib].y + offset.y),
                           Min(b_min[ib].z, s_min[ib].z + offset.z));
@@ -887,7 +887,8 @@ unsigned int ChSystemMulticore::GetNumShafts() {
 }
 
 unsigned int ChSystemMulticore::GetNumContacts() {
-    return data_manager->num_rigid_contacts + data_manager->num_rigid_fluid_contacts + data_manager->num_fluid_contacts;
+    return data_manager->cd_data->num_rigid_contacts + data_manager->cd_data->num_rigid_fluid_contacts +
+           data_manager->cd_data->num_fluid_contacts;
 }
 
 unsigned int ChSystemMulticore::GetNumBilaterals() {

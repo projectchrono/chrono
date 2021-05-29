@@ -32,14 +32,15 @@ ChCollisionSystemMulticore::~ChCollisionSystemMulticore() {}
 
 void ChCollisionSystemMulticore::Add(ChCollisionModel* model) {
     if (model->GetPhysicsItem()->GetCollide() == true) {
+        auto& shape_data = data_manager->cd_data->shape_data;
         ChCollisionModelMulticore* pmodel = static_cast<ChCollisionModelMulticore*>(model);
         int body_id = pmodel->GetBody()->GetId();
         short2 fam = S2(pmodel->GetFamilyGroup(), pmodel->GetFamilyMask());
         // The offset for this shape will the current total number of points in
         // the convex data list
-        int convex_data_offset = (int)data_manager->shape_data.convex_rigid.size();
+        int convex_data_offset = (int)shape_data.convex_rigid.size();
         // Insert the points into the global convex list
-        data_manager->shape_data.convex_rigid.insert(data_manager->shape_data.convex_rigid.end(),
+        shape_data.convex_rigid.insert(shape_data.convex_rigid.end(),
                                                      pmodel->local_convex_data.begin(),
                                                      pmodel->local_convex_data.end());
 
@@ -58,70 +59,70 @@ void ChCollisionSystemMulticore::Add(ChCollisionModel* model) {
 
             switch (shape->GetType()) {
                 case ChCollisionShape::Type::SPHERE:
-                    start = (int)data_manager->shape_data.sphere_rigid.size();
-                    data_manager->shape_data.sphere_rigid.push_back(obB.x);
+                    start = (int)shape_data.sphere_rigid.size();
+                    shape_data.sphere_rigid.push_back(obB.x);
                     break;
                 case ChCollisionShape::Type::ELLIPSOID:
-                    start = (int)data_manager->shape_data.box_like_rigid.size();
-                    data_manager->shape_data.box_like_rigid.push_back(obB);
+                    start = (int)shape_data.box_like_rigid.size();
+                    shape_data.box_like_rigid.push_back(obB);
                     break;
                 case ChCollisionShape::Type::BOX:
-                    start = (int)data_manager->shape_data.box_like_rigid.size();
-                    data_manager->shape_data.box_like_rigid.push_back(obB);
+                    start = (int)shape_data.box_like_rigid.size();
+                    shape_data.box_like_rigid.push_back(obB);
                     break;
                 case ChCollisionShape::Type::CYLINDER:
-                    start = (int)data_manager->shape_data.box_like_rigid.size();
-                    data_manager->shape_data.box_like_rigid.push_back(obB);
+                    start = (int)shape_data.box_like_rigid.size();
+                    shape_data.box_like_rigid.push_back(obB);
                     break;
                 case ChCollisionShape::Type::CYLSHELL:
-                    start = (int)data_manager->shape_data.box_like_rigid.size();
-                    data_manager->shape_data.box_like_rigid.push_back(obB);
+                    start = (int)shape_data.box_like_rigid.size();
+                    shape_data.box_like_rigid.push_back(obB);
                     break;
                 case ChCollisionShape::Type::CONE:
-                    start = (int)data_manager->shape_data.box_like_rigid.size();
-                    data_manager->shape_data.box_like_rigid.push_back(obB);
+                    start = (int)shape_data.box_like_rigid.size();
+                    shape_data.box_like_rigid.push_back(obB);
                     break;
                 case ChCollisionShape::Type::CAPSULE:
-                    start = (int)data_manager->shape_data.capsule_rigid.size();
-                    data_manager->shape_data.capsule_rigid.push_back(real2(obB.x, obB.y));
+                    start = (int)shape_data.capsule_rigid.size();
+                    shape_data.capsule_rigid.push_back(real2(obB.x, obB.y));
                     break;
                 case ChCollisionShape::Type::ROUNDEDBOX:
-                    start = (int)data_manager->shape_data.rbox_like_rigid.size();
-                    data_manager->shape_data.rbox_like_rigid.push_back(real4(obB, obC.x));
+                    start = (int)shape_data.rbox_like_rigid.size();
+                    shape_data.rbox_like_rigid.push_back(real4(obB, obC.x));
                     break;
                 case ChCollisionShape::Type::ROUNDEDCYL:
-                    start = (int)data_manager->shape_data.rbox_like_rigid.size();
-                    data_manager->shape_data.rbox_like_rigid.push_back(real4(obB, obC.x));
+                    start = (int)shape_data.rbox_like_rigid.size();
+                    shape_data.rbox_like_rigid.push_back(real4(obB, obC.x));
                     break;
                 case ChCollisionShape::Type::ROUNDEDCONE:
-                    start = (int)data_manager->shape_data.rbox_like_rigid.size();
-                    data_manager->shape_data.rbox_like_rigid.push_back(real4(obB, obC.x));
+                    start = (int)shape_data.rbox_like_rigid.size();
+                    shape_data.rbox_like_rigid.push_back(real4(obB, obC.x));
                     break;
                 case ChCollisionShape::Type::CONVEX:
                     start = (int)(obB.y + convex_data_offset);
                     length = (int)obB.x;
                     break;
                 case ChCollisionShape::Type::TRIANGLE:
-                    start = (int)data_manager->shape_data.triangle_rigid.size();
-                    data_manager->shape_data.triangle_rigid.push_back(obA);
-                    data_manager->shape_data.triangle_rigid.push_back(obB);
-                    data_manager->shape_data.triangle_rigid.push_back(obC);
+                    start = (int)shape_data.triangle_rigid.size();
+                    shape_data.triangle_rigid.push_back(obA);
+                    shape_data.triangle_rigid.push_back(obB);
+                    shape_data.triangle_rigid.push_back(obC);
                     break;
                 default:
                     start = -1;
                     break;
             }
 
-            data_manager->shape_data.ObA_rigid.push_back(obA);
-            data_manager->shape_data.ObR_rigid.push_back(shape->R);
-            data_manager->shape_data.start_rigid.push_back(start);
-            data_manager->shape_data.length_rigid.push_back(length);
+            shape_data.ObA_rigid.push_back(obA);
+            shape_data.ObR_rigid.push_back(shape->R);
+            shape_data.start_rigid.push_back(start);
+            shape_data.length_rigid.push_back(length);
 
-            data_manager->shape_data.fam_rigid.push_back(fam);
-            data_manager->shape_data.typ_rigid.push_back(shape->GetType());
-            data_manager->shape_data.id_rigid.push_back(body_id);
-            data_manager->shape_data.local_rigid.push_back(local_shape_index);
-            data_manager->num_rigid_shapes++;
+            shape_data.fam_rigid.push_back(fam);
+            shape_data.typ_rigid.push_back(shape->GetType());
+            shape_data.id_rigid.push_back(body_id);
+            shape_data.local_rigid.push_back(local_shape_index);
+            data_manager->cd_data->num_rigid_shapes++;
             local_shape_index++;
         }
     }
@@ -136,68 +137,69 @@ void ChCollisionSystemMulticore::Remove(ChCollisionModel* model) {
     int body_id = pmodel->GetBody()->GetId();
     //loop over the models we nned to remove
     //std::cout << "removing: " << pmodel->GetNumShapes() << " objects" << std::endl;
+    auto& shape_data = data_manager->cd_data->shape_data;
     for (int j = 0; j < pmodel->GetNumShapes(); j++) {
         //find a model to remove
         bool removed = false;
-        for (int i = 0; i < data_manager->shape_data.id_rigid.size(); i++) {
-            if (data_manager->shape_data.id_rigid[i] == body_id) {
+        for (int i = 0; i < shape_data.id_rigid.size(); i++) {
+            if (shape_data.id_rigid[i] == body_id) {
                 int index = i;
                 data_manager->num_rigid_shapes--;
 
-                int start = data_manager->shape_data.start_rigid[index];
-                int length = data_manager->shape_data.length_rigid[index];
-                int type = data_manager->shape_data.typ_rigid[index];
+                int start = shape_data.start_rigid[index];
+                int length = shape_data.length_rigid[index];
+                int type = shape_data.typ_rigid[index];
 
                 //std::cout << "removing: type " << type << " " << start<< " " <<j << std::endl;
 
 
                 switch (type) {
                 case ChCollisionShape::Type::SPHERE:
-                    ERASE_MACRO_LEN(data_manager->shape_data.sphere_rigid, start, length);
+                    ERASE_MACRO_LEN(shape_data.sphere_rigid, start, length);
                     break;
                 case ChCollisionShape::Type::ELLIPSOID:
-                    ERASE_MACRO_LEN(data_manager->shape_data.box_like_rigid, start, length);
+                    ERASE_MACRO_LEN(shape_data.box_like_rigid, start, length);
                     break;
                 case ChCollisionShape::Type::BOX:
-                    ERASE_MACRO_LEN(data_manager->shape_data.box_like_rigid, start, length);
+                    ERASE_MACRO_LEN(shape_data.box_like_rigid, start, length);
                     break;
                 case ChCollisionShape::Type::CYLINDER:
-                    ERASE_MACRO_LEN(data_manager->shape_data.box_like_rigid, start, length);
+                    ERASE_MACRO_LEN(shape_data.box_like_rigid, start, length);
                     break;
                 case ChCollisionShape::Type::CYLSHELL:
-                    ERASE_MACRO_LEN(data_manager->shape_data.box_like_rigid, start, length);
+                    ERASE_MACRO_LEN(shape_data.box_like_rigid, start, length);
                     break;
                 case ChCollisionShape::Type::CONE:
-                    ERASE_MACRO_LEN(data_manager->shape_data.box_like_rigid, start, length);
+                    ERASE_MACRO_LEN(shape_data.box_like_rigid, start, length);
                     break;
                 case ChCollisionShape::Type::CAPSULE:
-                    ERASE_MACRO_LEN(data_manager->shape_data.capsule_rigid, start, length);
+                    ERASE_MACRO_LEN(shape_data.capsule_rigid, start, length);
                     break;
                 case ChCollisionShape::Type::ROUNDEDBOX:
-                    ERASE_MACRO_LEN(data_manager->shape_data.rbox_like_rigid, start, length);
+                    ERASE_MACRO_LEN(shape_data.rbox_like_rigid, start, length);
                     break;
                 case ChCollisionShape::Type::ROUNDEDCYL:
-                    ERASE_MACRO_LEN(data_manager->shape_data.rbox_like_rigid, start, length);
+                    ERASE_MACRO_LEN(shape_data.rbox_like_rigid, start, length);
                     break;
                 case ChCollisionShape::Type::ROUNDEDCONE:
-                    ERASE_MACRO_LEN(data_manager->shape_data.rbox_like_rigid, start, length);
+                    ERASE_MACRO_LEN(shape_data.rbox_like_rigid, start, length);
                     break;
                 case ChCollisionShape::Type::CONVEX:
-                    ERASE_MACRO_LEN(data_manager->shape_data.convex_rigid, start, length);
+                    ERASE_MACRO_LEN(shape_data.convex_rigid, start, length);
                     break;
                 case ChCollisionShape::Type::TRIANGLE:
-                    ERASE_MACRO_LEN(data_manager->shape_data.convex_rigid, start, 3);
+                    ERASE_MACRO_LEN(shape_data.convex_rigid, start, 3);
                     break;
                 }
 
-                ERASE_MACRO(data_manager->shape_data.ObA_rigid, index);
-                ERASE_MACRO(data_manager->shape_data.ObR_rigid, index);
-                ERASE_MACRO(data_manager->shape_data.start_rigid, index);
-                ERASE_MACRO(data_manager->shape_data.length_rigid, index);
+                ERASE_MACRO(shape_data.ObA_rigid, index);
+                ERASE_MACRO(shape_data.ObR_rigid, index);
+                ERASE_MACRO(shape_data.start_rigid, index);
+                ERASE_MACRO(shape_data.length_rigid, index);
 
-                ERASE_MACRO(data_manager->shape_data.fam_rigid, index);
-                ERASE_MACRO(data_manager->shape_data.typ_rigid, index);
-                ERASE_MACRO(data_manager->shape_data.id_rigid, index);
+                ERASE_MACRO(shape_data.fam_rigid, index);
+                ERASE_MACRO(shape_data.typ_rigid, index);
+                ERASE_MACRO(shape_data.id_rigid, index);
                 removed = true;
                 break;
             }
@@ -205,9 +207,9 @@ void ChCollisionSystemMulticore::Remove(ChCollisionModel* model) {
         //std::cout << "decrement start "<< std::endl;
         if (removed) {
             //we removed a model, all of the starts are off by one, decrement all starts before removing a second model
-            for (int i = 0; i < data_manager->shape_data.start_rigid.size(); i++) {
-                if (data_manager->shape_data.start_rigid[i] != 0) {
-                    data_manager->shape_data.start_rigid[i] -= 1;
+            for (int i = 0; i < shape_data.start_rigid.size(); i++) {
+                if (shape_data.start_rigid[i] != 0) {
+                    shape_data.start_rigid[i] -= 1;
                 }
             }
         }
@@ -258,14 +260,14 @@ void ChCollisionSystemMulticore::Run() {
     if (data_manager->num_fea_tets != 0) {
         // narrowphase->DispatchTets();
     }
-    if (data_manager->num_rigid_shapes != 0) {
+    if (data_manager->cd_data->num_rigid_shapes != 0) {
         data_manager->narrowphase->ProcessRigids();
 
     } else {
         data_manager->host_data.c_counts_rigid_tet.clear();
         data_manager->host_data.c_counts_rigid_fluid.clear();
         data_manager->num_rigid_tet_contacts = 0;
-        data_manager->num_rigid_fluid_contacts = 0;
+        data_manager->cd_data->num_rigid_fluid_contacts = 0;
     }
 
     data_manager->system_timer.stop("collision_narrow");
@@ -289,7 +291,7 @@ void ChCollisionSystemMulticore::ReportContacts(ChContactContainer* mcontactcont
     // callback)
     mcontactcontainer->BeginAddContact();
 
-    uint num_contacts = data_manager->num_rigid_contacts;
+    uint num_contacts = data_manager->cd_data->num_rigid_contacts;
     if (num_contacts <= 0) {
         return;
     }
@@ -298,7 +300,7 @@ void ChCollisionSystemMulticore::ReportContacts(ChContactContainer* mcontactcont
 
     auto& bids = data_manager->host_data.bids_rigid_rigid;  // global IDs of bodies in contact
     auto& sids = data_manager->host_data.contact_shapeIDs;  // global IDs of shapes in contact
-    ////auto& sindex = data_manager->shape_data.local_rigid;    // collision model indexes of shapes in contact
+    ////auto& sindex = data_manager->cd_data->shape_data.local_rigid;    // collision model indexes of shapes in contact
 
     // Loop over all current contacts, create the composite material, and load material properties in the data manager
     // (on a per contact basis). Snce this is contact method-specific, we defer to the underlying contact container.
@@ -328,14 +330,14 @@ double ChCollisionSystemMulticore::GetTimerCollisionNarrow() const {
 void ChCollisionSystemMulticore::GetOverlappingAABB(custom_vector<char>& active_id, real3 Amin, real3 Amax) {
     data_manager->aabb_generator->GenerateAABB();
 #pragma omp parallel for
-    for (int i = 0; i < data_manager->shape_data.typ_rigid.size(); i++) {
+    for (int i = 0; i < data_manager->cd_data->shape_data.typ_rigid.size(); i++) {
         real3 Bmin = data_manager->host_data.aabb_min[i];
         real3 Bmax = data_manager->host_data.aabb_max[i];
 
         bool inContact = (Amin.x <= Bmax.x && Bmin.x <= Amax.x) && (Amin.y <= Bmax.y && Bmin.y <= Amax.y) &&
                          (Amin.z <= Bmax.z && Bmin.z <= Amax.z);
         if (inContact) {
-            active_id[data_manager->shape_data.id_rigid[i]] = true;
+            active_id[data_manager->cd_data->shape_data.id_rigid[i]] = true;
         }
     }
 }

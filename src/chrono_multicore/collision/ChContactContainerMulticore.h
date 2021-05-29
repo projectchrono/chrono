@@ -36,7 +36,7 @@ class CH_MULTICORE_API ChContactContainerMulticore : public ChContactContainer {
     ChContactContainerMulticore(const ChContactContainerMulticore& other);
     virtual ~ChContactContainerMulticore();
 
-    virtual int GetNcontacts() const override { return data_manager->num_rigid_contacts; }
+    virtual int GetNcontacts() const override { return data_manager->cd_data->num_rigid_contacts; }
 
     virtual void RemoveAllContacts() override;
     virtual void BeginAddContact() override;
@@ -105,7 +105,7 @@ class CH_MULTICORE_API ChContactContainerMulticore_mc : public ChContactContaine
     ChContactContainerMulticore_mc(const ChContactContainerMulticore_mc& other);
     virtual ~ChContactContainerMulticore_mc();
 
-    virtual int GetNcontacts() const override { return data_manager->num_rigid_contacts; }
+    virtual int GetNcontacts() const override { return data_manager->cd_data->num_rigid_contacts; }
 
     virtual void RemoveAllContacts() override;
     virtual void BeginAddContact() override;

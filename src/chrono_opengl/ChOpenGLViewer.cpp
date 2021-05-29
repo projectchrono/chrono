@@ -531,9 +531,9 @@ void ChOpenGLViewer::RenderAABB() {
         custom_vector<real3>& aabb_min = data_manager->host_data.aabb_min;
         custom_vector<real3>& aabb_max = data_manager->host_data.aabb_max;
 
-        model_box.resize(data_manager->num_rigid_shapes);
+        model_box.resize(data_manager->cd_data->num_rigid_shapes);
 #pragma omp parallel for
-        for (int i = 0; i < (signed)data_manager->num_rigid_shapes; i++) {
+        for (int i = 0; i < (signed)data_manager->cd_data->num_rigid_shapes; i++) {
             real3 min_p = aabb_min[i] + data_manager->measures.collision.global_origin;
             real3 max_p = aabb_max[i] + data_manager->measures.collision.global_origin;
 

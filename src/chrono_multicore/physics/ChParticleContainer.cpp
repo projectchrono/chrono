@@ -176,7 +176,7 @@ void ChParticleContainer::UpdatePosition(double ChTime) {
     //        timestep
     //        // isnt too large.
     //
-    //        if (data_manager->num_rigid_fluid_contacts > 0) {
+    //        if (data_manager->cd_data->num_rigid_fluid_contacts > 0) {
     //#pragma omp parallel for
     //            for (int p = 0; p < num_fluid_bodies; p++) {
     //                int start = contact_counts[p];
@@ -215,35 +215,37 @@ void ChParticleContainer::UpdatePosition(double ChTime) {
 }
 
 int ChParticleContainer::GetNumConstraints() {
+    const auto num_fluid_contacts = data_manager->cd_data->num_fluid_contacts;
     int num_fluid_fluid = 0;
     if (mu == 0) {
-        num_fluid_fluid = (data_manager->num_fluid_contacts - data_manager->num_fluid_bodies) / 2;
+        num_fluid_fluid = (num_fluid_contacts - data_manager->num_fluid_bodies) / 2;
     } else {
-        num_fluid_fluid = (data_manager->num_fluid_contacts - data_manager->num_fluid_bodies) / 2 * 3;
+        num_fluid_fluid = (num_fluid_contacts - data_manager->num_fluid_bodies) / 2 * 3;
     }
 
     if (contact_mu == 0) {
-        num_fluid_fluid += data_manager->num_rigid_fluid_contacts;
+        num_fluid_fluid += data_manager->cd_data->num_rigid_fluid_contacts;
     } else {
-        num_fluid_fluid += data_manager->num_rigid_fluid_contacts * 3;
+        num_fluid_fluid += data_manager->cd_data->num_rigid_fluid_contacts * 3;
     }
 
     return num_fluid_fluid;
 }
 
 int ChParticleContainer::GetNumNonZeros() {
+    const auto num_fluid_contacts = data_manager->cd_data->num_fluid_contacts;
     int nnz_fluid_fluid = 0;
     if (mu == 0) {
-        nnz_fluid_fluid = (data_manager->num_fluid_contacts - data_manager->num_fluid_bodies) / 2 * 6;
+        nnz_fluid_fluid = (num_fluid_contacts - data_manager->num_fluid_bodies) / 2 * 6;
 
     } else {
-        nnz_fluid_fluid = (data_manager->num_fluid_contacts - data_manager->num_fluid_bodies) / 2 * 6 * 3;
+        nnz_fluid_fluid = (num_fluid_contacts - data_manager->num_fluid_bodies) / 2 * 6 * 3;
     }
 
     if (contact_mu == 0) {
-        nnz_fluid_fluid += 9 * data_manager->num_rigid_fluid_contacts;
+        nnz_fluid_fluid += 9 * data_manager->cd_data->num_rigid_fluid_contacts;
     } else {
-        nnz_fluid_fluid += 9 * 3 * data_manager->num_rigid_fluid_contacts;
+        nnz_fluid_fluid += 9 * 3 * data_manager->cd_data->num_rigid_fluid_contacts;
     }
 
     return nnz_fluid_fluid;
@@ -509,8 +511,7 @@ void ChParticleContainer::GenerateSparsity() {
 }
 
 void ChParticleContainer::CalculateContactForces() {
-    uint num_contacts = data_manager->num_rigid_fluid_contacts;
-    if (num_contacts <= 0) {
+    if (data_manager->cd_data->num_rigid_fluid_contacts <= 0) {
         return;
     }
     LOG(INFO) << "ChParticleContainer::CalculateContactForces() ";
@@ -530,14 +531,14 @@ void ChParticleContainer::CalculateContactForces() {
 }
 
 real3 ChParticleContainer::GetBodyContactForce(uint body_id) {
-    if (data_manager->num_rigid_fluid_contacts <= 0) {
+    if (data_manager->cd_data->num_rigid_fluid_contacts <= 0) {
         return real3(0);
     }
     return real3(contact_forces[body_id * 6 + 0], contact_forces[body_id * 6 + 1], contact_forces[body_id * 6 + 2]);
 }
 
 real3 ChParticleContainer::GetBodyContactTorque(uint body_id) {
-    if (data_manager->num_rigid_fluid_contacts <= 0) {
+    if (data_manager->cd_data->num_rigid_fluid_contacts <= 0) {
         return real3(0);
     }
     return real3(contact_forces[body_id * 6 + 3], contact_forces[body_id * 6 + 4], contact_forces[body_id * 6 + 5]);

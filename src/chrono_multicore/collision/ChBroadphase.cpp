@@ -76,7 +76,7 @@ void ChCBroadphase::RigidBoundingBox() {
     // Vectors of length = number of collision shapes
     const custom_vector<real3>& aabb_min = data_manager->host_data.aabb_min;
     const custom_vector<real3>& aabb_max = data_manager->host_data.aabb_max;
-    const custom_vector<uint>& id_rigid = data_manager->shape_data.id_rigid;
+    const custom_vector<uint>& id_rigid = data_manager->cd_data->shape_data.id_rigid;
     // Vectors of length = number of rigid bodies
     const custom_vector<char>& collide_rigid = data_manager->host_data.collide_rigid;
 
@@ -200,7 +200,7 @@ void ChCBroadphase::OffsetAABB() {
 
 // Determine resolution of the top level grid
 void ChCBroadphase::ComputeTopLevelResolution() {
-    const int num_shapes = data_manager->num_rigid_shapes;
+    const int num_shapes = data_manager->cd_data->num_rigid_shapes;
     const real3& max_bounding_point = data_manager->measures.collision.max_bounding_point;
     const real3& global_origin = data_manager->measures.collision.global_origin;
     const real density = data_manager->settings.collision.grid_density;
@@ -232,9 +232,9 @@ ChCBroadphase::ChCBroadphase() {
 // use spatial subdivision to detect the list of POSSIBLE collisions
 // let user define their own narrow-phase collision detection
 void ChCBroadphase::DispatchRigid() {
-    if (data_manager->num_rigid_shapes != 0) {
+    if (data_manager->cd_data->num_rigid_shapes != 0) {
         OneLevelBroadphase();
-        data_manager->num_rigid_contacts = data_manager->measures.collision.number_of_contacts_possible;
+        data_manager->cd_data->num_rigid_contacts = data_manager->measures.collision.number_of_contacts_possible;
     }
     return;
 }
@@ -243,10 +243,10 @@ void ChCBroadphase::OneLevelBroadphase() {
     LOG(TRACE) << "ChCBroadphase::OneLevelBroadphase()";
     const custom_vector<real3>& aabb_min = data_manager->host_data.aabb_min;
     const custom_vector<real3>& aabb_max = data_manager->host_data.aabb_max;
-    const custom_vector<short2>& fam_data = data_manager->shape_data.fam_rigid;
+    const custom_vector<short2>& fam_data = data_manager->cd_data->shape_data.fam_rigid;
     const custom_vector<char>& obj_active = data_manager->host_data.active_rigid;
     const custom_vector<char>& obj_collide = data_manager->host_data.collide_rigid;
-    const custom_vector<uint>& obj_data_id = data_manager->shape_data.id_rigid;
+    const custom_vector<uint>& obj_data_id = data_manager->cd_data->shape_data.id_rigid;
     custom_vector<long long>& pair_shapeIDs = data_manager->host_data.pair_shapeIDs;
 
     custom_vector<uint>& bin_intersections = data_manager->host_data.bin_intersections;
@@ -257,7 +257,7 @@ void ChCBroadphase::OneLevelBroadphase() {
     custom_vector<uint>& bin_num_contact = data_manager->host_data.bin_num_contact;
 
     vec3& bins_per_axis = data_manager->settings.collision.bins_per_axis;
-    const int num_shapes = data_manager->num_rigid_shapes;
+    const int num_shapes = data_manager->cd_data->num_rigid_shapes;
 
     real3& inv_bin_size = data_manager->measures.collision.inv_bin_size;
     uint& number_of_bins_active = data_manager->measures.collision.number_of_bins_active;

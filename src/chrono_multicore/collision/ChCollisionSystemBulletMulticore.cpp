@@ -25,7 +25,6 @@
 #include "chrono_multicore/solver/ChSystemDescriptorMulticore.h"
 #include "chrono_multicore/collision/ChContactContainerMulticore.h"
 #include "chrono_multicore/collision/ChCollisionModelMulticore.h"
-#include "chrono_multicore/collision/ChDataStructures.h"
 
 #include "chrono/collision/bullet/BulletCollision/CollisionDispatch/btCollisionDispatcherMt.h"
 
@@ -99,7 +98,7 @@ void ChCollisionSystemBulletMulticore::Add(ChCollisionModel* model) {
         bt_collision_world->addCollisionObject(bmodel->GetBulletModel(), bmodel->GetFamilyGroup(),
                                                bmodel->GetFamilyMask());
         counter++;
-        data_manager->num_rigid_shapes++;
+        data_manager->cd_data->num_rigid_shapes++;
     }
 }
 
@@ -145,7 +144,7 @@ void ChCollisionSystemBulletMulticore::ReportContacts(ChContactContainer* mconta
     data_manager->host_data.dpth_rigid_rigid.clear();
     data_manager->host_data.erad_rigid_rigid.clear();
     data_manager->host_data.bids_rigid_rigid.clear();
-    data_manager->num_rigid_contacts = 0;
+    data_manager->cd_data->num_rigid_contacts = 0;
     // mcontactcontainer->BeginAddContact();
 
     // NOTE: Bullet does not provide information on radius of curvature at a contact point.
@@ -240,7 +239,7 @@ void ChCollisionSystemBulletMulticore::ReportContacts(ChContactContainer* mconta
                         data_manager->host_data.erad_rigid_rigid.push_back(icontact.eff_radius);
                         data_manager->host_data.bids_rigid_rigid.push_back(
                             I2(obA->getCompanionId(), obB->getCompanionId()));
-                        data_manager->num_rigid_contacts++;
+                        data_manager->cd_data->num_rigid_contacts++;
                     }
                 }
             }

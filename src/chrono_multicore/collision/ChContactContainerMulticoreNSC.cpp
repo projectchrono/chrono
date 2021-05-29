@@ -190,7 +190,7 @@ void ChContactContainerMulticoreNSC_mc::BeginAddContact() {
     ChContactContainerMulticore_mc::BeginAddContact();
 
     // Resize global arrays for composite material properties
-    uint num_contacts = data_manager->num_rigid_contacts;
+    uint num_contacts = data_manager->cd_data->num_rigid_contacts;
 
     data_manager->host_data.fric_rigid_rigid.resize(num_contacts);
     data_manager->host_data.coh_rigid_rigid.resize(num_contacts);
@@ -214,6 +214,8 @@ void ChContactContainerMulticoreNSC_mc::AddContact(const collision::ChCollisionI
 
     if (inactiveA && inactiveB)
         return;
+
+    auto& cd_data = data_manager->cd_data;  // collision system data
 
     // Currently, we only consider contacts between rigid bodies
     ChContactable_1vars<6>* mmboA = dynamic_cast<ChContactable_1vars<6>*>(cinfo.modelA->GetContactable());
@@ -253,7 +255,7 @@ void ChContactContainerMulticoreNSC_mc::AddContact(const collision::ChCollisionI
             real4(cmat.compliance, cmat.complianceT, cmat.complianceRoll, cmat.complianceSpin));
 
         // Increment number of contacts
-        data_manager->num_rigid_contacts++;
+        cd_data->num_rigid_contacts++;
     }
 }
 
@@ -268,6 +270,8 @@ void ChContactContainerMulticoreNSC_mc::AddContact(const collision::ChCollisionI
     if (inactiveA && inactiveB)
         return;
 
+    auto& cd_data = data_manager->cd_data;  // collision system data
+
     // Currently, we only consider contacts between rigid bodies
     ChContactable_1vars<6>* mmboA = dynamic_cast<ChContactable_1vars<6>*>(cinfo.modelA->GetContactable());
     ChContactable_1vars<6>* mmboB = dynamic_cast<ChContactable_1vars<6>*>(cinfo.modelB->GetContactable());
@@ -280,7 +284,7 @@ void ChContactContainerMulticoreNSC_mc::AddContact(const collision::ChCollisionI
         data_manager->host_data.erad_rigid_rigid.push_back(cinfo.eff_radius);
         data_manager->host_data.bids_rigid_rigid.push_back(vec2(((ChBody*)(cinfo.modelA->GetPhysicsItem()))->GetId(),
                                                                 ((ChBody*)(cinfo.modelB->GetPhysicsItem()))->GetId()));
-        data_manager->num_rigid_contacts++;
+        cd_data->num_rigid_contacts++;
     }
 }
 
@@ -288,8 +292,8 @@ void ChContactContainerMulticoreNSC_mc::AddContact(int index, int b1, int s1, in
     auto& blist = *data_manager->body_list;  // list of bodies in system
 
     // Identify shapes in their respective collision models
-    auto s1_index = data_manager->shape_data.local_rigid[s1];
-    auto s2_index = data_manager->shape_data.local_rigid[s2];
+    auto s1_index = data_manager->cd_data->shape_data.local_rigid[s1];
+    auto s2_index = data_manager->cd_data->shape_data.local_rigid[s2];
 
     auto mat1 = std::static_pointer_cast<ChMaterialSurfaceNSC>(
         blist[b1]->GetCollisionModel()->GetShape(s1_index)->GetMaterial());
