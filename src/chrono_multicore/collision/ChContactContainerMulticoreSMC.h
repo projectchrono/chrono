@@ -52,41 +52,6 @@ class CH_MULTICORE_API ChContactContainerMulticoreSMC : public ChContactContaine
     virtual void AddContact(int index, int b1, int s1, int b2, int s2) override;
 };
 
-////
-//// *********************************************************************************
-////
-
-/// Specialization of the multicore contact container for SMC contacts.
-class CH_MULTICORE_API ChContactContainerMulticoreSMC_mc : public ChContactContainerMulticore_mc {
-  public:
-    ChContactContainerMulticoreSMC_mc(ChMulticoreDataManager* dc);
-    ChContactContainerMulticoreSMC_mc(const ChContactContainerMulticoreSMC_mc& other);
-
-    /// "Virtual" copy constructor (covariant return type).
-    virtual ChContactContainerMulticoreSMC_mc* Clone() const override {
-        return new ChContactContainerMulticoreSMC_mc(*this);
-    }
-
-    virtual void BeginAddContact() override;
-    virtual void EndAddContact() override;
-
-    /// Add a contact between two collision shapes, storing it into this container.
-    /// A compositecontact material is created from the two given materials.
-    /// In this case, the collision info object may have null pointers to collision shapes.
-    virtual void AddContact(const collision::ChCollisionInfo& cinfo,
-                            std::shared_ptr<ChMaterialSurface> mat1,
-                            std::shared_ptr<ChMaterialSurface> mat2) override;
-
-    /// Add a contact between two collision shapes, storing it into this container.
-    /// The collision info object is assumed to contain valid pointers to the two colliding shapes.
-    /// A composite contact material is created from their material properties.
-    virtual void AddContact(const collision::ChCollisionInfo& cinfo) override;
-
-    /// Process the contact between the two specified collision shapes on the two specified bodies
-    /// (compute composite material properties and load in global data structure).
-    virtual void AddContact(int index, int b1, int s1, int b2, int s2) override;
-};
-
 /// @} multicore_colision
 
 }  // end namespace chrono

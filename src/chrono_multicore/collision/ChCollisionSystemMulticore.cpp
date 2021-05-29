@@ -284,7 +284,7 @@ void ChCollisionSystemMulticore::GetBoundingBox(ChVector<>& aabb_min, ChVector<>
 }
 
 void ChCollisionSystemMulticore::ReportContacts(ChContactContainer* mcontactcontainer) {
-    assert(dynamic_cast<ChContactContainerMulticore_mc*>(mcontactcontainer));
+    assert(dynamic_cast<ChContactContainerMulticore*>(mcontactcontainer));
 
     // Resize global arrays with composite material properties.
     // NOTE: important to do this here, to set size to zero if no contacts (in case some other added by a custom user
@@ -296,7 +296,7 @@ void ChCollisionSystemMulticore::ReportContacts(ChContactContainer* mcontactcont
         return;
     }
 
-    auto container = static_cast<ChContactContainerMulticore_mc*>(mcontactcontainer);
+    auto container = static_cast<ChContactContainerMulticore*>(mcontactcontainer);
 
     auto& bids = data_manager->cd_data->host_data.bids_rigid_rigid;           // global IDs of bodies in contact
     auto& sids = data_manager->cd_data->host_data.contact_shapeIDs;  // global IDs of shapes in contact
