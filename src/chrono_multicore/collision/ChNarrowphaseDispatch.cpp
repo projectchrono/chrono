@@ -515,8 +515,8 @@ void ChCNarrowphaseDispatch::DispatchFluid() {
     const custom_vector<real3>& pos_fluid = data_manager->host_data.pos_3dof;
     const real radius = data_manager->node_container->kernel_radius + data_manager->node_container->collision_envelope;
 
-    real3& max_bounding_point = data_manager->measures.collision.ff_max_bounding_point;
-    real3& min_bounding_point = data_manager->measures.collision.ff_min_bounding_point;
+    real3& max_bounding_point = data_manager->cd_data->measures.ff_max_bounding_point;
+    real3& min_bounding_point = data_manager->cd_data->measures.ff_min_bounding_point;
 
     SphereSphereContact(data_manager->num_fluid_bodies,
                         data_manager->num_rigid_bodies * 6 + data_manager->num_shafts + data_manager->num_motors,
@@ -525,7 +525,7 @@ void ChCNarrowphaseDispatch::DispatchFluid() {
                         data_manager->host_data.sorted_pos_3dof, data_manager->host_data.sorted_vel_3dof,
                         data_manager->host_data.v, data_manager->cd_data->neighbor_3dof_3dof,
                         data_manager->cd_data->c_counts_3dof_3dof, data_manager->cd_data->particle_indices_3dof,
-                        data_manager->cd_data->reverse_mapping_3dof, data_manager->measures.collision.ff_bins_per_axis,
+                        data_manager->cd_data->reverse_mapping_3dof, data_manager->cd_data->measures.ff_bins_per_axis,
                         data_manager->cd_data->num_fluid_contacts);
 
     LOG(TRACE) << "ChCNarrowphaseDispatch::DispatchFluid() E " << data_manager->cd_data->num_fluid_contacts;
@@ -581,9 +581,9 @@ void ChCNarrowphaseDispatch::RigidSphereContact(const real sphere_radius,
                                                 custom_vector<int>& neighbor_rigid_sphere,
                                                 custom_vector<int>& contact_counts,
                                                 uint& num_contacts) {
-    real3 global_origin = data_manager->measures.collision.global_origin;
     vec3 bins_per_axis = data_manager->settings.collision.bins_per_axis;
-    real3 inv_bin_size = data_manager->measures.collision.inv_bin_size;
+    real3 global_origin = data_manager->cd_data->measures.global_origin;
+    real3 inv_bin_size = data_manager->cd_data->measures.inv_bin_size;
     const custom_vector<short2>& fam_data = data_manager->cd_data->shape_data.fam_rigid;
     const real radius = sphere_radius;
 
@@ -592,7 +592,7 @@ void ChCNarrowphaseDispatch::RigidSphereContact(const real sphere_radius,
 
     Thrust_Fill(is_rigid_bin_active, 1000000000);
 #pragma omp parallel for
-    for (int index = 0; index < (signed)data_manager->measures.collision.number_of_bins_active; index++) {
+    for (int index = 0; index < (signed)data_manager->cd_data->measures.number_of_bins_active; index++) {
         uint bin_number = data_manager->cd_data->bin_number_out[index];
         if (bin_number < total_bins) {
             // printf("bin_number: %d\n", index, bin_number);
@@ -726,7 +726,7 @@ void ChCNarrowphaseDispatch::RigidTetContact(custom_vector<real3>& norm_rigid_te
                                              custom_vector<int>& contact_counts,
                                              uint& num_contacts) {
     vec3 bins_per_axis = data_manager->settings.collision.bins_per_axis;
-    real3 inv_bin_size = data_manager->measures.collision.inv_bin_size;
+    real3 inv_bin_size = data_manager->cd_data->measures.inv_bin_size;
 
     int num_tets = (int)data_manager->host_data.boundary_element_fea.size();
     custom_vector<real3>& aabb_min_tet = data_manager->host_data.aabb_min_tet;
@@ -736,7 +736,7 @@ void ChCNarrowphaseDispatch::RigidTetContact(custom_vector<real3>& norm_rigid_te
     is_rigid_bin_active.resize(total_bins);
     Thrust_Fill(is_rigid_bin_active, 1000000000);
 #pragma omp parallel for
-    for (int index = 0; index < (signed)data_manager->measures.collision.number_of_bins_active; index++) {
+    for (int index = 0; index < (signed)data_manager->cd_data->measures.number_of_bins_active; index++) {
         uint bin_number = data_manager->cd_data->bin_number_out[index];
         if (bin_number < total_bins) {
             // printf("bin_number: %d\n", index, bin_number);
@@ -877,8 +877,8 @@ void ChCNarrowphaseDispatch::MarkerTetContact(const real sphere_radius,
                                               custom_vector<int>& contact_counts,
                                               uint& num_contacts) {
     vec3 bins_per_axis = data_manager->settings.collision.bins_per_axis;
-    real3 inv_bin_size = data_manager->measures.collision.inv_bin_size;
-    real3 global_origin = data_manager->measures.collision.global_origin;
+    real3 inv_bin_size = data_manager->cd_data->measures.inv_bin_size;
+    real3 global_origin = data_manager->cd_data->measures.global_origin;
     int num_tets = (int)data_manager->host_data.boundary_element_fea.size();
     custom_vector<real3>& aabb_min_tet = data_manager->host_data.aabb_min_tet;
     custom_vector<real3>& aabb_max_tet = data_manager->host_data.aabb_max_tet;

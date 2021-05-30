@@ -72,6 +72,31 @@ void ChCollisionSystemChronoMulticore::PreProcess() {
     narrowphase.algorithm = settings.narrowphase_algorithm;
 }
 
+void ChCollisionSystemChronoMulticore::PostProcess() {
+    // Copy collision detection measures
+    auto& measures = data_manager->measures.collision;
+
+    measures.min_bounding_point = cd_data->measures.min_bounding_point;
+    measures.max_bounding_point = cd_data->measures.max_bounding_point;
+    measures.global_origin = cd_data->measures.global_origin;
+    measures.bin_size = cd_data->measures.bin_size;
+    measures.inv_bin_size = cd_data->measures.inv_bin_size;
+    measures.number_of_bins_active = cd_data->measures.number_of_bins_active;
+    measures.number_of_bin_intersections = cd_data->measures.number_of_bin_intersections;
+    measures.number_of_contacts_possible = cd_data->measures.number_of_contacts_possible;
+
+    measures.rigid_min_bounding_point = cd_data->measures.rigid_min_bounding_point;
+    measures.rigid_max_bounding_point = cd_data->measures.rigid_max_bounding_point;
+
+    measures.ff_bins_per_axis = cd_data->measures.ff_bins_per_axis;
+    measures.ff_min_bounding_point = cd_data->measures.ff_min_bounding_point;
+    measures.ff_max_bounding_point = cd_data->measures.ff_max_bounding_point;
+
+    measures.mpm_min_bounding_point = cd_data->measures.mpm_min_bounding_point;
+    measures.mpm_max_bounding_point = cd_data->measures.mpm_max_bounding_point;
+    measures.mpm_bins_per_axis = cd_data->measures.mpm_bins_per_axis;
+}
+
 void ChCollisionSystemChronoMulticore::ReportContacts(ChContactContainer* container) {
     assert(dynamic_cast<ChContactContainerMulticore*>(container));
 

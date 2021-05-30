@@ -273,13 +273,13 @@ void ChCollisionSystemMulticore::Run() {
 }
 
 void ChCollisionSystemMulticore::GetBoundingBox(ChVector<>& aabb_min, ChVector<>& aabb_max) const {
-    aabb_min.x() = data_manager->measures.collision.min_bounding_point.x;
-    aabb_min.y() = data_manager->measures.collision.min_bounding_point.y;
-    aabb_min.z() = data_manager->measures.collision.min_bounding_point.z;
+    aabb_min.x() = data_manager->cd_data->measures.min_bounding_point.x;
+    aabb_min.y() = data_manager->cd_data->measures.min_bounding_point.y;
+    aabb_min.z() = data_manager->cd_data->measures.min_bounding_point.z;
 
-    aabb_max.x() = data_manager->measures.collision.max_bounding_point.x;
-    aabb_max.y() = data_manager->measures.collision.max_bounding_point.y;
-    aabb_max.z() = data_manager->measures.collision.max_bounding_point.z;
+    aabb_max.x() = data_manager->cd_data->measures.max_bounding_point.x;
+    aabb_max.y() = data_manager->cd_data->measures.max_bounding_point.y;
+    aabb_max.z() = data_manager->cd_data->measures.max_bounding_point.z;
 }
 
 void ChCollisionSystemMulticore::ReportContacts(ChContactContainer* mcontactcontainer) {

@@ -86,8 +86,8 @@ void ChCBroadphase::RigidBoundingBox() {
     auto end = thrust::make_zip_iterator(thrust::make_tuple(aabb_min.end(), aabb_max.end(), id_rigid.end()));
     auto result = thrust::transform_reduce(THRUST_PAR begin, end, BoxInvert(&collide_rigid), inverted, BoxReduce());
 
-    data_manager->measures.collision.rigid_min_bounding_point = thrust::get<0>(result);
-    data_manager->measures.collision.rigid_max_bounding_point = thrust::get<1>(result);
+    data_manager->cd_data->measures.rigid_min_bounding_point = thrust::get<0>(result);
+    data_manager->cd_data->measures.rigid_max_bounding_point = thrust::get<1>(result);
 }
 
 // AABB as the pair of its min and max corners.
@@ -127,8 +127,8 @@ void ChCBroadphase::FluidBoundingBox() {
     res.second.y = radius * Ceil(res.second.y / radius);
     res.second.z = radius * Ceil(res.second.z / radius);
 
-    real3& min_bounding_point = data_manager->measures.collision.ff_min_bounding_point;
-    real3& max_bounding_point = data_manager->measures.collision.ff_max_bounding_point;
+    real3& min_bounding_point = data_manager->cd_data->measures.ff_min_bounding_point;
+    real3& max_bounding_point = data_manager->cd_data->measures.ff_max_bounding_point;
 
     max_bounding_point = res.second + radius * 6;
     min_bounding_point = res.first - radius * 6;
@@ -152,13 +152,13 @@ void ChCBroadphase::TetBoundingBox() {
 void ChCBroadphase::DetermineBoundingBox() {
     RigidBoundingBox();
 
-    real3 min_point = data_manager->measures.collision.rigid_min_bounding_point;
-    real3 max_point = data_manager->measures.collision.rigid_max_bounding_point;
+    real3 min_point = data_manager->cd_data->measures.rigid_min_bounding_point;
+    real3 max_point = data_manager->cd_data->measures.rigid_max_bounding_point;
 
     if (data_manager->num_fluid_bodies != 0) {
         FluidBoundingBox();
-        min_point = Min(min_point, data_manager->measures.collision.ff_min_bounding_point);
-        max_point = Max(max_point, data_manager->measures.collision.ff_max_bounding_point);
+        min_point = Min(min_point, data_manager->cd_data->measures.ff_min_bounding_point);
+        max_point = Max(max_point, data_manager->cd_data->measures.ff_max_bounding_point);
     }
 
     if (data_manager->num_fea_tets != 0) {
@@ -175,9 +175,9 @@ void ChCBroadphase::DetermineBoundingBox() {
     min_point = min_point - fraction * size;
     max_point = max_point + fraction * size;
 
-    data_manager->measures.collision.min_bounding_point = min_point;
-    data_manager->measures.collision.max_bounding_point = max_point;
-    data_manager->measures.collision.global_origin = min_point;
+    data_manager->cd_data->measures.min_bounding_point = min_point;
+    data_manager->cd_data->measures.max_bounding_point = max_point;
+    data_manager->cd_data->measures.global_origin = min_point;
 
     LOG(TRACE) << "ChCBroadphase::DetermineBoundingBox() Min : [" << min_point.x << ", " << min_point.y << ", "
                << min_point.z << "] Max: [" << max_point.x << ", " << max_point.y << ", " << max_point.z << "]";
@@ -187,7 +187,7 @@ void ChCBroadphase::OffsetAABB() {
     custom_vector<real3>& aabb_min = data_manager->cd_data->aabb_min;
     custom_vector<real3>& aabb_max = data_manager->cd_data->aabb_max;
 
-    thrust::constant_iterator<real3> offset(data_manager->measures.collision.global_origin);
+    thrust::constant_iterator<real3> offset(data_manager->cd_data->measures.global_origin);
 
     thrust::transform(aabb_min.begin(), aabb_min.end(), offset, aabb_min.begin(), thrust::minus<real3>());
     thrust::transform(aabb_max.begin(), aabb_max.end(), offset, aabb_max.begin(), thrust::minus<real3>());
@@ -201,13 +201,13 @@ void ChCBroadphase::OffsetAABB() {
 // Determine resolution of the top level grid
 void ChCBroadphase::ComputeTopLevelResolution() {
     const int num_shapes = data_manager->cd_data->num_rigid_shapes;
-    const real3& max_bounding_point = data_manager->measures.collision.max_bounding_point;
-    const real3& global_origin = data_manager->measures.collision.global_origin;
+    const real3& max_bounding_point = data_manager->cd_data->measures.max_bounding_point;
+    const real3& global_origin = data_manager->cd_data->measures.global_origin;
     const real density = data_manager->settings.collision.grid_density;
 
     vec3& bins_per_axis = data_manager->settings.collision.bins_per_axis;
-    real3& inv_bin_size = data_manager->measures.collision.inv_bin_size;
-    real3& bin_size = data_manager->measures.collision.bin_size;
+    real3& inv_bin_size = data_manager->cd_data->measures.inv_bin_size;
+    real3& bin_size = data_manager->cd_data->measures.bin_size;
 
     // This is the extents of the space aka diameter
     real3 diagonal = (Abs(max_bounding_point - global_origin));
@@ -234,7 +234,7 @@ ChCBroadphase::ChCBroadphase() {
 void ChCBroadphase::DispatchRigid() {
     if (data_manager->cd_data->num_rigid_shapes != 0) {
         OneLevelBroadphase();
-        data_manager->cd_data->num_rigid_contacts = data_manager->measures.collision.number_of_contacts_possible;
+        data_manager->cd_data->num_rigid_contacts = data_manager->cd_data->measures.number_of_contacts_possible;
     }
     return;
 }
@@ -259,10 +259,10 @@ void ChCBroadphase::OneLevelBroadphase() {
     vec3& bins_per_axis = data_manager->settings.collision.bins_per_axis;
     const int num_shapes = data_manager->cd_data->num_rigid_shapes;
 
-    real3& inv_bin_size = data_manager->measures.collision.inv_bin_size;
-    uint& number_of_bins_active = data_manager->measures.collision.number_of_bins_active;
-    uint& number_of_bin_intersections = data_manager->measures.collision.number_of_bin_intersections;
-    uint& number_of_contacts_possible = data_manager->measures.collision.number_of_contacts_possible;
+    real3& inv_bin_size = data_manager->cd_data->measures.inv_bin_size;
+    uint& number_of_bins_active = data_manager->cd_data->measures.number_of_bins_active;
+    uint& number_of_bin_intersections = data_manager->cd_data->measures.number_of_bin_intersections;
+    uint& number_of_contacts_possible = data_manager->cd_data->measures.number_of_contacts_possible;
 
     bin_intersections.resize(num_shapes + 1);
     bin_intersections[num_shapes] = 0;

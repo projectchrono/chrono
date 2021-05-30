@@ -553,7 +553,7 @@ void ChConstraintRigidRigid::Dx(const DynamicVector<real>& gam, DynamicVector<re
     ////vec2* bids_rigid_rigid = data_manager->host_data.bids_rigid_rigid.data();
 
 #pragma omp parallel for
-    for (int i = 0; i < num_rigid_contacts; i++) {
+    for (int i = 0; i < (signed)num_rigid_contacts; i++) {
         const real3& U = real3(norm[i]);
         real3 V, W;
         Orthogonalize(U, V, W);
@@ -631,7 +631,7 @@ void ChConstraintRigidRigid::D_Tx(const DynamicVector<real>& XYZUVW, DynamicVect
     ////quaternion* rot = data_manager->host_data.rot_rigid.data();
 
 #pragma omp parallel for
-    for (int i = 0; i < num_rigid_contacts; i++) {
+    for (int i = 0; i < (signed)num_rigid_contacts; i++) {
         const real3& U = real3(norm[i]);
         real3 V, W;
         Orthogonalize(U, V, W);

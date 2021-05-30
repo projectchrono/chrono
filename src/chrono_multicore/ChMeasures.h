@@ -56,6 +56,7 @@ class collision_measures {
         mpm_max_bounding_point = real3(0);
         mpm_bins_per_axis = vec3(0);
     }
+
     real3 min_bounding_point;          ///< The minimal global bounding point
     real3 max_bounding_point;          ///< The maximum global bounding point
     real3 global_origin;               ///< The global zero point
@@ -72,13 +73,13 @@ class collision_measures {
     vec3 ff_bins_per_axis;
     real3 ff_min_bounding_point;
     real3 ff_max_bounding_point;
+
     // Tet Collision info
     vec3 tet_bins_per_axis;
     real3 tet_min_bounding_point;
     real3 tet_max_bounding_point;
 
     // MPM Collision info
-
     real3 mpm_min_bounding_point;
     real3 mpm_max_bounding_point;
     vec3 mpm_bins_per_axis;
