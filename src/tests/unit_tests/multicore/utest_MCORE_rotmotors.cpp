@@ -98,4 +98,4 @@ std::vector<Options> options{
     {MotorType::SPEED, -0.5},
 };
 
-INSTANTIATE_TEST_CASE_P(ChronoMulticore, RotMotors, ::testing::ValuesIn(options));
+INSTANTIATE_TEST_SUITE_P(ChronoMulticore, RotMotors, ::testing::ValuesIn(options));

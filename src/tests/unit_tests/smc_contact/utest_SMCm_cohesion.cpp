@@ -130,9 +130,9 @@ TEST_P(CohesionTest, detach) {
     ASSERT_GT(distance, 2 * srad);
 }
 
-INSTANTIATE_TEST_CASE_P(ChronoMulticore,
-                        CohesionTest,
-                        ::testing::Values(ChSystemSMC::ContactForceModel::Hooke,
-                                          ChSystemSMC::ContactForceModel::Hertz,
-                                          ChSystemSMC::ContactForceModel::PlainCoulomb,
-                                          ChSystemSMC::ContactForceModel::Flores));
+INSTANTIATE_TEST_SUITE_P(ChronoMulticore,
+                         CohesionTest,
+                         ::testing::Values(ChSystemSMC::ContactForceModel::Hooke,
+                                           ChSystemSMC::ContactForceModel::Hertz,
+                                           ChSystemSMC::ContactForceModel::PlainCoulomb,
+                                           ChSystemSMC::ContactForceModel::Flores));
