@@ -52,16 +52,16 @@ void ChCollisionSystemChrono::SetNarrowphaseAlgorithm(ChNarrowphase::Algorithm a
     narrowphase.algorithm = algorithm;
 }
 
-void ChCollisionSystemChrono::EnableActiveBoundingBox(const ChVector<>& aabbmin, const ChVector<>& aabbmax) {
-    aabb_min = FromChVector(aabbmin);
-    aabb_max = FromChVector(aabbmax);
+void ChCollisionSystemChrono::EnableActiveBoundingBox(const ChVector<>& aabb_min, const ChVector<>& aabb_max) {
+    active_aabb_min = FromChVector(aabb_min);
+    active_aabb_max = FromChVector(aabb_max);
 
     use_aabb_active = true;
 }
 
-bool ChCollisionSystemChrono::GetActiveBoundingBox(ChVector<>& aabbmin, ChVector<>& aabbmax) const {
-    aabbmin = ToChVector(aabb_min);
-    aabbmax = ToChVector(aabb_max);
+bool ChCollisionSystemChrono::GetActiveBoundingBox(ChVector<>& aabb_min, ChVector<>& aabb_max) const {
+    aabb_min = ToChVector(active_aabb_min);
+    aabb_max = ToChVector(active_aabb_max);
 
     return use_aabb_active;
 }
@@ -303,7 +303,7 @@ void ChCollisionSystemChrono::Run() {
         body_active.resize(cd_data->state_data.num_rigid_bodies);
         std::fill(body_active.begin(), body_active.end(), false);
 
-        GetOverlappingAABB(body_active, aabb_min, aabb_max);
+        GetOverlappingAABB(body_active, active_aabb_min, active_aabb_max);
 
 #pragma omp parallel for
         for (int i = 0; i < active.size(); i++) {

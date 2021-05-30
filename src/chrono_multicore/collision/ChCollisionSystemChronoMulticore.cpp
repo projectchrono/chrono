@@ -45,6 +45,7 @@ void ChCollisionSystemChronoMulticore::SetNumThreads(int nthreads) {
 void ChCollisionSystemChronoMulticore::PreProcess() {
     assert(!cd_data->owns_state_data);
 
+    // Set pointers to state arrays
     cd_data->state_data.pos_rigid = &data_manager->host_data.pos_rigid;
     cd_data->state_data.rot_rigid = &data_manager->host_data.rot_rigid;
     cd_data->state_data.active_rigid = &data_manager->host_data.active_rigid;
@@ -55,8 +56,20 @@ void ChCollisionSystemChronoMulticore::PreProcess() {
     cd_data->state_data.vel_3dof = &data_manager->host_data.vel_3dof;
     cd_data->state_data.sorted_vel_3dof = &data_manager->host_data.sorted_vel_3dof;
 
+    // Set number of rigid and fluid bodies
     cd_data->state_data.num_rigid_bodies = data_manager->num_rigid_bodies;
     cd_data->state_data.num_fluid_bodies = data_manager->num_fluid_bodies;
+
+    // Update collision detection settings
+    const auto& settings = data_manager->settings.collision;
+    cd_data->collision_envelope = real(settings.collision_envelope);
+    use_aabb_active = settings.use_aabb_active;
+    active_aabb_min = settings.aabb_min;
+    active_aabb_max = settings.aabb_max;
+    broadphase.bins_per_axis = settings.bins_per_axis;
+    broadphase.fixed_bins = settings.fixed_bins;
+    broadphase.grid_density = settings.grid_density;
+    narrowphase.algorithm = settings.narrowphase_algorithm;
 }
 
 void ChCollisionSystemChronoMulticore::ReportContacts(ChContactContainer* container) {

@@ -29,7 +29,7 @@ namespace collision {
 /// @addtogroup collision_mc
 /// @{
 
-/// This structure contains all measures associated with the collision detection phase
+/// Structure with all measures associated with the collision detection system.
 class collision_measures {
   public:
     collision_measures() {

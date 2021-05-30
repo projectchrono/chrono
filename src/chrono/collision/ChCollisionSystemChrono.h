@@ -64,16 +64,19 @@ class ChApi ChCollisionSystemChrono : public ChCollisionSystem {
     void SetBroadphaseGridDensity(double density);
 
     /// Set the narrowphase algorithm (default: ChNarrowphase::Algorithm::HYBRID).
+    /// The Chrono collision detection system provides several analytical collision detection algorithms, for particular
+    /// pairs of shapes (see ChNarrowphasePRIMS). For general convex shapes, the collision system relies on the
+    /// Minkovski Portal Refinement algorithm (see ChNarrowphaseMPR).
     void SetNarrowphaseAlgorithm(ChNarrowphase::Algorithm algorithm);
 
     /// Enable monitoring of shapes outside active bounding box (default: false).
     /// If enabled, objects whose collision shapes exit the active bounding box are deactivated (frozen).
     /// The size of the bounding box is specified by its min and max extents.
-    void EnableActiveBoundingBox(const ChVector<>& aabbmin, const ChVector<>& aabbmax);
+    void EnableActiveBoundingBox(const ChVector<>& aabb_min, const ChVector<>& aabb_max);
 
     /// Get the dimensions of the "active" box.
     /// The return value indicates whether or not the active box feature is enabled.
-    bool GetActiveBoundingBox(ChVector<>& aabbmin, ChVector<>& aabbmax) const;
+    bool GetActiveBoundingBox(ChVector<>& aabb_min, ChVector<>& aabb_max) const;
 
     /// Clear all data instanced by this algorithm if any (like persistent contact manifolds).
     virtual void Clear(void) override {}
@@ -144,9 +147,9 @@ class ChApi ChCollisionSystemChrono : public ChCollisionSystem {
 
     std::vector<char> body_active;
 
-    bool use_aabb_active;  ///< enable freezing of objects outside the active bounding box
-    real3 aabb_min;        ///< lower corner of active bounding box
-    real3 aabb_max;        ///< upper corner of active bounding box
+    bool use_aabb_active;   ///< enable freezing of objects outside the active bounding box
+    real3 active_aabb_min;  ///< lower corner of active bounding box
+    real3 active_aabb_max;  ///< upper corner of active bounding box
 
     ChTimer<> m_timer_broad;
     ChTimer<> m_timer_narrow;
