@@ -587,6 +587,7 @@ void ChOpenGLViewer::RenderFluid() {
 }
 
 void ChOpenGLViewer::RenderFEA() {
+/*
 #ifdef CHRONO_MULTICORE
     ChSystemMulticore* parallel_system = dynamic_cast<ChSystemMulticore*>(physics_system);
     if (!parallel_system || parallel_system->data_manager->num_fea_nodes <= 0) {
@@ -613,6 +614,7 @@ void ChOpenGLViewer::RenderFEA() {
     glm::mat4 model(1);
     fea_elements.Draw(projection, view * model);
 #endif
+*/
 }
 
 void ChOpenGLViewer::RenderGrid() {

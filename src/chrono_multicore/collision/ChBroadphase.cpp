@@ -134,21 +134,6 @@ void ChCBroadphase::FluidBoundingBox() {
     min_bounding_point = res.first - radius * 6;
 }
 
-// Calculate AABB of all tetrahedral shapes.
-void ChCBroadphase::TetBoundingBox() {
-    custom_vector<real3>& aabb_min_tet = data_manager->host_data.aabb_min_tet;
-    custom_vector<real3>& aabb_max_tet = data_manager->host_data.aabb_max_tet;
-    // determine the bounds on the total space and subdivide based on the bins per axis
-    bbox res(aabb_min_tet[0], aabb_min_tet[0]);
-    bbox_transformation unary_op;
-    bbox_reduction binary_op;
-    res = thrust::transform_reduce(aabb_min_tet.begin(), aabb_min_tet.end(), unary_op, res, binary_op);
-    res = thrust::transform_reduce(aabb_max_tet.begin(), aabb_max_tet.end(), unary_op, res, binary_op);
-
-    data_manager->measures.collision.tet_min_bounding_point = res.first;
-    data_manager->measures.collision.tet_max_bounding_point = res.second;
-}
-
 void ChCBroadphase::DetermineBoundingBox() {
     RigidBoundingBox();
 
@@ -159,12 +144,6 @@ void ChCBroadphase::DetermineBoundingBox() {
         FluidBoundingBox();
         min_point = Min(min_point, data_manager->cd_data->measures.ff_min_bounding_point);
         max_point = Max(max_point, data_manager->cd_data->measures.ff_max_bounding_point);
-    }
-
-    if (data_manager->num_fea_tets != 0) {
-        TetBoundingBox();
-        min_point = Min(min_point, data_manager->measures.collision.tet_min_bounding_point);
-        max_point = Max(max_point, data_manager->measures.collision.tet_max_bounding_point);
     }
 
     // Inflate the overall bounding box by a small percentage.
@@ -191,11 +170,6 @@ void ChCBroadphase::OffsetAABB() {
 
     thrust::transform(aabb_min.begin(), aabb_min.end(), offset, aabb_min.begin(), thrust::minus<real3>());
     thrust::transform(aabb_max.begin(), aabb_max.end(), offset, aabb_max.begin(), thrust::minus<real3>());
-    // Offset tet aabb
-    custom_vector<real3>& aabb_min_tet = data_manager->host_data.aabb_min_tet;
-    custom_vector<real3>& aabb_max_tet = data_manager->host_data.aabb_max_tet;
-    thrust::transform(aabb_min_tet.begin(), aabb_min_tet.end(), offset, aabb_min_tet.begin(), thrust::minus<real3>());
-    thrust::transform(aabb_max_tet.begin(), aabb_max_tet.end(), offset, aabb_max_tet.begin(), thrust::minus<real3>());
 }
 
 // Determine resolution of the top level grid

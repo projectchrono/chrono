@@ -64,7 +64,6 @@ class CH_MULTICORE_API ChIterativeSolverMulticore : public ChIterativeSolverVI {
     ChIterativeSolverMulticore(ChMulticoreDataManager* dc);
 
     ChShurProductBilateral ShurProductBilateral;
-    ChShurProductFEM ShurProductFEM;
     ChProjectNone ProjectNone;
 };
 

@@ -39,18 +39,11 @@ ChMulticoreDataManager::ChMulticoreDataManager()
       num_linmotors(0),
       num_rotmotors(0),
       num_dof(0),
-      num_fea_nodes(0),
-      num_fea_tets(0),
-      num_rigid_tet_contacts(0),
-      num_rigid_tet_node_contacts(0),
-      num_marker_tet_contacts(0),
       nnz_bilaterals(0),
       add_contact_callback(nullptr),
       composition_strategy(new ChMaterialCompositionStrategy) {
     node_container = chrono_types::make_shared<Ch3DOFContainer>();
-    fea_container = chrono_types::make_shared<Ch3DOFContainer>();
     node_container->data_manager = this;
-    fea_container->data_manager = this;
 
     broadphase = new ChCBroadphase;
     narrowphase = new ChCNarrowphaseDispatch;

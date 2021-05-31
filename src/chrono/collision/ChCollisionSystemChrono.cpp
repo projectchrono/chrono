@@ -316,16 +316,11 @@ void ChCollisionSystemChrono::Run() {
     }
 
     m_timer_broad.start();
-    aabb_generator.GenerateAABB();
-
-    // Compute the bounding box of things
-    broadphase.DetermineBoundingBox();
-    broadphase.OffsetAABB();
-    broadphase.ComputeTopLevelResolution();
-
-    // Everything is offset and ready to go!
-    broadphase.DispatchRigid();
-
+    aabb_generator.GenerateAABB();           // generate shape AABBs
+    broadphase.DetermineBoundingBox();       // compute overall AABB
+    broadphase.OffsetAABB();                 // offset AABBs
+    broadphase.ComputeTopLevelResolution();  // determine resolution of the top level grid
+    broadphase.DispatchRigid();              // everything is offset and ready to go!
     m_timer_broad.stop();
 
     m_timer_narrow.start();
@@ -334,12 +329,10 @@ void ChCollisionSystemChrono::Run() {
     }
     if (cd_data->num_rigid_shapes != 0) {
         narrowphase.ProcessRigids(broadphase.bins_per_axis);
-
     } else {
         cd_data->c_counts_rigid_fluid.clear();
         cd_data->num_rigid_fluid_contacts = 0;
     }
-
     m_timer_narrow.stop();
 }
 

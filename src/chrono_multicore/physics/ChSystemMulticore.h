@@ -62,7 +62,6 @@ class CH_MULTICORE_API ChSystemMulticore : public ChSystem {
     virtual bool Integrate_Y() override;
     virtual void AddBody(std::shared_ptr<ChBody> newbody) override;
     virtual void AddLink(std::shared_ptr<ChLinkBase> link) override;
-    virtual void AddMesh(std::shared_ptr<fea::ChMesh> mesh) override;
     virtual void AddOtherPhysicsItem(std::shared_ptr<ChPhysicsItem> newitem) override;
 
     void ClearForceVariables();

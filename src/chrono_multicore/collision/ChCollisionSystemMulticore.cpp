@@ -256,16 +256,11 @@ void ChCollisionSystemMulticore::Run() {
     if (data_manager->num_fluid_bodies != 0) {
         data_manager->narrowphase->DispatchFluid();
     }
-    if (data_manager->num_fea_tets != 0) {
-        // narrowphase->DispatchTets();
-    }
+
     if (data_manager->cd_data->num_rigid_shapes != 0) {
         data_manager->narrowphase->ProcessRigids();
-
     } else {
-        data_manager->host_data.c_counts_rigid_tet.clear();
         data_manager->cd_data->c_counts_rigid_fluid.clear();
-        data_manager->num_rigid_tet_contacts = 0;
         data_manager->cd_data->num_rigid_fluid_contacts = 0;
     }
 

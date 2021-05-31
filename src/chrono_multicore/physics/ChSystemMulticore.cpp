@@ -234,7 +234,6 @@ bool ChSystemMulticore::Integrate_Y() {
     }
 
     data_manager->node_container->UpdatePosition(ch_time);
-    data_manager->fea_container->UpdatePosition(ch_time);
     data_manager->system_timer.stop("update");
 
     //=============================================================================================
@@ -342,70 +341,6 @@ void ChSystemMulticore::AddShaft(std::shared_ptr<ChShaft> shaft) {
     data_manager->host_data.shaft_rot.push_back(0);
     data_manager->host_data.shaft_inr.push_back(0);
     data_manager->host_data.shaft_active.push_back(true);
-}
-
-//
-// Add a ChMesh to the system
-// The mesh is passed to the FEM container where it gets added to the system
-// Mesh gets blown up into different data structures, connectivity and nodes are preserved
-// Adding multiple meshes isn't a problem
-void ChSystemMulticore::AddMesh(std::shared_ptr<fea::ChMesh> mesh) {
-    uint num_nodes = mesh->GetNnodes();
-    uint num_elements = mesh->GetNelements();
-
-    std::vector<real3> positions(num_nodes);
-    std::vector<real3> velocities(num_nodes);
-
-    uint current_nodes = data_manager->num_fea_nodes;
-
-    for (int i = 0; i < (signed)num_nodes; i++) {
-        if (auto node = std::dynamic_pointer_cast<fea::ChNodeFEAxyz>(mesh->GetNode(i))) {
-            positions[i] = real3(node->GetPos().x(), node->GetPos().y(), node->GetPos().z());
-            velocities[i] = real3(node->GetPos_dt().x(), node->GetPos_dt().y(), node->GetPos_dt().z());
-            // Offset the element index by the current number of nodes at the start
-            node->SetIndex(i);
-
-            // printf("%d [%f %f %f]\n", i + current_nodes, node->GetPos().x(), node->GetPos().y(), node->GetPos().z());
-        }
-    }
-
-    auto container = std::static_pointer_cast<ChFEAContainer>(data_manager->fea_container);
-
-    std::vector<uvec4> elements(num_elements);
-
-    for (int i = 0; i < (signed)num_elements; i++) {
-        if (auto tet = std::dynamic_pointer_cast<fea::ChElementTetra_4>(mesh->GetElement(i))) {
-            uvec4 elem;
-
-            elem.x = tet->GetNodeN(0)->GetIndex();  //
-            elem.y = tet->GetNodeN(1)->GetIndex();  //
-            elem.z = tet->GetNodeN(2)->GetIndex();  //
-            elem.w = tet->GetNodeN(3)->GetIndex();  //
-
-            real3 c1, c2, c3;
-            c1 = positions[elem.y] - positions[elem.x];
-            c2 = positions[elem.z] - positions[elem.x];
-            c3 = positions[elem.w] - positions[elem.x];
-
-            if (Determinant(Mat33(c1, c2, c3)) < 0) {
-                Swap(elem.x, elem.y);
-                // printf("swapped!\n");
-            }
-
-            // elem = Sort(elem);
-
-            // printf("%d %d %d %d \n", elem.x(), elem.y(), elem.z(), elem.w);
-            // Offset once we have swapped
-            elem.x += current_nodes;
-            elem.y += current_nodes;
-            elem.z += current_nodes;
-            elem.w += current_nodes;
-
-            elements[i] = elem;
-        }
-    }
-    container->AddNodes(positions, velocities);
-    container->AddElements(elements);
 }
 
 //
@@ -566,10 +501,9 @@ void ChSystemMulticore::UpdateMotorLinks() {
 
 //
 // Update all fluid nodes
-// currently a stub
+//
 void ChSystemMulticore::Update3DOFBodies() {
     data_manager->node_container->Update3DOF(ch_time);
-    data_manager->fea_container->Update3DOF(ch_time);
 }
 
 //
@@ -712,7 +646,7 @@ void ChSystemMulticore::Setup() {
 
     // Calculate the total number of degrees of freedom (6 per rigid body, 1 per shaft, 1 per motor).
     data_manager->num_dof = data_manager->num_rigid_bodies * 6 + data_manager->num_shafts + data_manager->num_motors +
-                            data_manager->num_fluid_bodies * 3 + data_manager->num_fea_nodes * 3;
+                            data_manager->num_fluid_bodies * 3;
 
     // Set variables that are stored in the ChSystem class
     assembly.nbodies = data_manager->num_rigid_bodies;

@@ -82,19 +82,6 @@ class CH_MULTICORE_API ChShurProductBilateral : public ChShurProduct {
     CompressedMatrix<real> NshurB;
 };
 
-/// Functor class for performing the Shur product.
-class CH_MULTICORE_API ChShurProductFEM : public ChShurProduct {
-  public:
-    ChShurProductFEM() {}
-    virtual ~ChShurProductFEM() {}
-    virtual void Setup(ChMulticoreDataManager* data_container_);
-
-    /// Perform the Shur Product.
-    virtual void operator()(const DynamicVector<real>& x, DynamicVector<real>& AX);
-
-    CompressedMatrix<real> NshurB;
-};
-
 //========================================================================================================
 
 /// Base class for all Chrono::Multicore solvers.

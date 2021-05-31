@@ -217,7 +217,6 @@ SET(ChronoEngine_Multicore_PHYSICS
     physics/Ch3DOFContainer.cpp
     physics/ChFluidKernels.h
     physics/ChFluidContainer.cpp
-    physics/ChFEAContainer.cpp
     physics/ChParticleContainer.cpp
     physics/ChMPMSettings.h
     )

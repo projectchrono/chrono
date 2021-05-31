@@ -61,10 +61,8 @@ class real3;
 class real4;
 class vec3;
 class Ch3DOFContainer;
-class ChFEAContainer;
 class ChFluidContainer;
 class ChMPMContainer;
-class ChFLIPContainer;
 class ChConstraintRigidRigid;
 class ChConstraintBilateral;
 class ChMaterialCompositionStrategy;
@@ -207,35 +205,6 @@ typedef blaze::Subvector<const DynamicVector<real>> ConstSubVectorType;
 
 /// Structure of arrays containing simulation data.
 struct host_container {
-    // Collision data
-
-    custom_vector<real3> aabb_min_tet;  ///< List of bounding boxes minimum point for tets
-    custom_vector<real3> aabb_max_tet;  ///< List of bounding boxes maximum point for tets
-
-    // Contact data for tets
-
-    custom_vector<real3> norm_rigid_tet;
-    custom_vector<real3> cpta_rigid_tet;
-    custom_vector<real3> cptb_rigid_tet;
-    custom_vector<real> dpth_rigid_tet;
-    custom_vector<int> neighbor_rigid_tet;
-    custom_vector<real4> face_rigid_tet;
-    custom_vector<int> c_counts_rigid_tet;
-    // contact with nodes
-    custom_vector<real3> norm_rigid_tet_node;
-    custom_vector<real3> cpta_rigid_tet_node;
-    custom_vector<real> dpth_rigid_tet_node;
-    custom_vector<int> neighbor_rigid_tet_node;
-    custom_vector<int> c_counts_rigid_tet_node;
-
-    custom_vector<real3> norm_marker_tet;
-    custom_vector<real3> cpta_marker_tet;
-    custom_vector<real3> cptb_marker_tet;
-    custom_vector<real> dpth_marker_tet;
-    custom_vector<int> neighbor_marker_tet;
-    custom_vector<real4> face_marker_tet;
-    custom_vector<int> c_counts_marker_tet;
-
     // Contact forces (SMC)
     // These vectors hold the contact forces and torques for each individual contact. For each contact, the force and
     // torque are given at the body origin, expressed in the absolute frame. These vectors include the force and torque
@@ -295,17 +264,6 @@ struct host_container {
     custom_vector<real3> sorted_pos_3dof;
     custom_vector<real3> vel_3dof;
     custom_vector<real3> sorted_vel_3dof;
-
-    // Information for FEM nodes
-    custom_vector<real3> pos_node_fea;
-    custom_vector<real3> vel_node_fea;
-    custom_vector<real> mass_node_fea;
-    custom_vector<uvec4> tet_indices;
-
-    custom_vector<uvec4> boundary_triangles_fea;
-    custom_vector<uint> boundary_node_fea;
-    custom_vector<uint> boundary_element_fea;
-    custom_vector<short2> boundary_family_fea;
 
     /// Bilateral constraint type (all supported constraints)
     custom_vector<int> bilateral_type;
@@ -380,7 +338,6 @@ class CH_MULTICORE_API ChMulticoreDataManager {
     std::shared_ptr<ChSystemDescriptor> system_descriptor;
 
     std::shared_ptr<Ch3DOFContainer> node_container;  ///< container of 3-DOF particles
-    std::shared_ptr<Ch3DOFContainer> fea_container;   ///< container of FEA nodes
 
     ChConstraintRigidRigid* rigid_rigid;  ///< methods for unilateral constraints
     ChConstraintBilateral* bilateral;     ///< methods for bilateral constraints
@@ -407,11 +364,6 @@ class CH_MULTICORE_API ChMulticoreDataManager {
     uint num_unilaterals;              ///< The number of contact constraints
     uint num_bilaterals;               ///< The number of bilateral constraints
     uint num_constraints;              ///< Total number of constraints
-    uint num_fea_nodes;                ///< Total number of FEM nodes
-    uint num_fea_tets;                 ///< Total number of FEM nodes
-    uint num_rigid_tet_contacts;       ///< The number of contacts between tetrahedron and rigid bodies
-    uint num_marker_tet_contacts;      ///< The number of contacts between tetrahedron and fluid markers
-    uint num_rigid_tet_node_contacts;  ///< The number of contacts between tetrahedron nodes and rigid bodies
     uint nnz_bilaterals;               ///< The number of non-zero entries in the bilateral Jacobian
 
     /// Flag indicating whether or not the contact forces are current (NSC only).

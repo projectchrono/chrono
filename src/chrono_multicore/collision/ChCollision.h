@@ -52,7 +52,6 @@ class CH_MULTICORE_API ChCBroadphase {
     void ComputeTopLevelResolution();
     void RigidBoundingBox();
     void FluidBoundingBox();
-    void TetBoundingBox();
     ChMulticoreDataManager* data_manager;
 
   private:
@@ -81,7 +80,6 @@ class CH_MULTICORE_API ChCNarrowphaseDispatch {
     // For each contact pair decide what to do.
     void DispatchRigid();
     void DispatchRigidFluid();
-    void DispatchRigidTet();
     void DispatchFluid();
 
     void SphereSphereContact(const int num_fluid_bodies,
@@ -112,27 +110,6 @@ class CH_MULTICORE_API ChCNarrowphaseDispatch {
                             custom_vector<int>& neighbor_rigid_sphere,
                             custom_vector<int>& contact_counts,
                             uint& num_contacts);
-
-    void RigidTetContact(custom_vector<real3>& norm_rigid_tet,
-                         custom_vector<real3>& cpta_rigid_tet,
-                         custom_vector<real3>& cptb_rigid_tet,
-                         custom_vector<real>& dpth_rigid_tet,
-                         custom_vector<int>& neighbor_rigid_tet,
-                         custom_vector<real4>& face_rigid_tet,
-                         custom_vector<int>& contact_counts,
-                         uint& num_contacts);
-
-    void MarkerTetContact(const real sphere_radius,
-                          const int num_spheres,
-                          const custom_vector<real3>& pos_sphere,
-                          const short2& family_sphere,
-                          custom_vector<real3>& norm_marker_tet,
-                          custom_vector<real3>& cptb_marker_tet,
-                          custom_vector<real>& dpth_marker_tet,
-                          custom_vector<int>& neighbor_marker_tet,
-                          custom_vector<real4>& face_marker_tet,
-                          custom_vector<int>& contact_counts,
-                          uint& num_contacts);
 
     void DispatchMPR();
     void DispatchR();

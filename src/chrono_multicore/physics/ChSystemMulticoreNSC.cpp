@@ -56,15 +56,12 @@ void ChSystemMulticoreNSC::ChangeSolverType(SolverType type) {
 }
 
 void ChSystemMulticoreNSC::Add3DOFContainer(std::shared_ptr<Ch3DOFContainer> container) {
-    if (auto fea_container = std::dynamic_pointer_cast<ChFEAContainer>(container)) {
-        data_manager->fea_container = fea_container;
-    } else {
-        data_manager->node_container = container;
-    }
+    data_manager->node_container = container;
 
-    data_manager->cd_data->p_kernel_radius = container->kernel_radius;
-    data_manager->cd_data->p_collision_envelope = container->collision_envelope;
-    data_manager->cd_data->p_collision_family = container->family;
+    //// TODO: remove this
+    ////data_manager->cd_data->p_kernel_radius = container->kernel_radius;
+    ////data_manager->cd_data->p_collision_envelope = container->collision_envelope;
+    ////data_manager->cd_data->p_collision_family = container->family;
 
     container->SetSystem(this);
     container->data_manager = data_manager;
@@ -252,8 +249,6 @@ void ChSystemMulticoreNSC::Initialize() {
     // data_manager->node_container->ComputeDOF();
 
     Setup();
-
-    data_manager->fea_container->Initialize();
 
     data_manager->system_timer.start("update");
     Update();
