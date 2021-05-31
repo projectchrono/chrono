@@ -98,10 +98,6 @@ void ChCollisionSystemChronoMulticore::PostProcess() {
     measures.ff_min_bounding_point = cd_data->measures.ff_min_bounding_point;
     measures.ff_max_bounding_point = cd_data->measures.ff_max_bounding_point;
 
-    measures.mpm_min_bounding_point = cd_data->measures.mpm_min_bounding_point;
-    measures.mpm_max_bounding_point = cd_data->measures.mpm_max_bounding_point;
-    measures.mpm_bins_per_axis = cd_data->measures.mpm_bins_per_axis;
-
     // If needed, remap particle velocities and load sorted particle velocities.
     if (data_manager->node_container) {
         data_manager->host_data.sorted_vel_3dof.resize(data_manager->num_fluid_bodies);

@@ -82,7 +82,7 @@ class ChApi ChNarrowphase {
     std::vector<char> contact_fluid_active;
     std::vector<uint> contact_index;
 
-    uint num_potential_rigid_contacts;  //// TODO: obsolete these!
+    uint num_potential_rigid_contacts;
     uint num_potential_fluid_contacts;
     uint num_potential_rigid_fluid_contacts;
 
@@ -94,7 +94,6 @@ class ChApi ChNarrowphase {
     std::vector<uint> f_bin_fluid_number;
     std::vector<uint> f_bin_start_index;
     std::vector<uint> is_rigid_bin_active;
-    uint f_number_of_bins_active;  //// TODO: obsolete this?
     std::vector<int> ff_bin_ids;
     std::vector<int> ff_bin_starts;
     std::vector<int> ff_bin_ends;

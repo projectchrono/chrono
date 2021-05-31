@@ -47,10 +47,6 @@ class collision_measures {
         ff_min_bounding_point = real3(0);
         ff_max_bounding_point = real3(0);
         ff_bins_per_axis = vec3(0);
-
-        mpm_min_bounding_point = real3(0);
-        mpm_max_bounding_point = real3(0);
-        mpm_bins_per_axis = vec3(0);
     }
 
     real3 min_bounding_point;          ///< The minimal global bounding point
@@ -69,11 +65,6 @@ class collision_measures {
     vec3 ff_bins_per_axis;
     real3 ff_min_bounding_point;
     real3 ff_max_bounding_point;
-
-    // MPM Collision info
-    real3 mpm_min_bounding_point;
-    real3 mpm_max_bounding_point;
-    vec3 mpm_bins_per_axis;
 };
 
 /// Structure of arrays containing contact shape information.

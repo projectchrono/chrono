@@ -552,7 +552,7 @@ void ChNarrowphase::DispatchRigidFluid(const vec3& bins_per_axis) {
     }
 
     Thrust_Sort_By_Key(f_bin_number, f_bin_fluid_number);
-    f_number_of_bins_active = (int)(Run_Length_Encode(f_bin_number, f_bin_number_out, f_bin_start_index));
+    auto f_number_of_bins_active = (uint)(Run_Length_Encode(f_bin_number, f_bin_number_out, f_bin_start_index));
 
     f_bin_start_index.resize(f_number_of_bins_active + 1);
     f_bin_start_index[f_number_of_bins_active] = 0;
