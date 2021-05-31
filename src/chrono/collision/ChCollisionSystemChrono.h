@@ -102,7 +102,7 @@ class ChApi ChCollisionSystemChrono : public ChCollisionSystem {
     virtual void GetBoundingBox(ChVector<>& aabb_min, ChVector<>& aabb_max) const override;
 
     /// Reset any timers associated with collision detection.
-    virtual void ResetTimers();
+    virtual void ResetTimers() override;
 
     /// Return the time (in seconds) for broadphase collision detection.
     virtual double GetTimerCollisionBroad() const override;

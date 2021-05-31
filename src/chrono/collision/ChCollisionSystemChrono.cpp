@@ -296,6 +296,8 @@ void ChCollisionSystemChrono::PreProcess() {
 }
 
 void ChCollisionSystemChrono::Run() {
+    ResetTimers();
+
     if (use_aabb_active) {
         std::vector<char>& active = *cd_data->state_data.active_rigid;
         const std::vector<char>& collide = *cd_data->state_data.collide_rigid;
