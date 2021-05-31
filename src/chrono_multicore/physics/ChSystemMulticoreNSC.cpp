@@ -62,6 +62,10 @@ void ChSystemMulticoreNSC::Add3DOFContainer(std::shared_ptr<Ch3DOFContainer> con
         data_manager->node_container = container;
     }
 
+    data_manager->cd_data->p_kernel_radius = container->kernel_radius;
+    data_manager->cd_data->p_collision_envelope = container->collision_envelope;
+    data_manager->cd_data->p_collision_family = container->family;
+
     container->SetSystem(this);
     container->data_manager = data_manager;
 }

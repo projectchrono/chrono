@@ -115,7 +115,7 @@ struct bbox_transformation : public thrust::unary_function<real3, bbox> {
 // Calculate AABB of all fluid particles.
 void ChBroadphase::FluidBoundingBox() {
     const std::vector<real3>& pos_fluid = *cd_data->state_data.pos_3dof;
-    const real radius = cd_data->node_data.kernel_radius + cd_data->node_data.collision_envelope;
+    const real radius = cd_data->p_kernel_radius + cd_data->p_collision_envelope;
 
     bbox res(pos_fluid[0], pos_fluid[0]);
     bbox_transformation unary_op;

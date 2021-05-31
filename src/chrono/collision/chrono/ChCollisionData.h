@@ -115,15 +115,6 @@ struct state_container {
     // Information for 3dof nodes
     std::vector<real3>* pos_3dof;
     std::vector<real3>* sorted_pos_3dof;
-    std::vector<real3>* vel_3dof;
-    std::vector<real3>* sorted_vel_3dof;
-};
-
-/// Structure with information on 3DOF fluid nodes.
-struct node_container {
-    real kernel_radius;
-    real collision_envelope;
-    short2 family;
 };
 
 /// Global data for the custom Chrono multicore collision system.
@@ -144,8 +135,6 @@ class ChApi ChCollisionData {
 
             state_data.pos_3dof = new std::vector<real3>;
             state_data.sorted_pos_3dof = new std::vector<real3>;
-            state_data.vel_3dof = new std::vector<real3>;
-            state_data.sorted_vel_3dof = new std::vector<real3>;
         }
     }
 
@@ -158,8 +147,6 @@ class ChApi ChCollisionData {
 
             delete state_data.pos_3dof;
             delete state_data.sorted_pos_3dof;
-            delete state_data.vel_3dof;
-            delete state_data.sorted_vel_3dof;
         }
     }
 
@@ -167,11 +154,14 @@ class ChApi ChCollisionData {
 
     state_container state_data;  ///< State data arrays
     shape_container shape_data;  ///< Shape information data arrays
-    node_container node_data;    ///< 3DOF fluid nodes data
 
     collision_measures measures;  ///< Container for various statistics for collision detection
 
     real collision_envelope;  ///< Collision envelope for rigid shapes
+
+    real p_collision_envelope;  ///< Collision envelope for 3-dof particles
+    real p_kernel_radius;       ///< 3-dof particle radius
+    short2 p_collision_family;  ///< collision family for 3-dof particles
 
     // Collision detection output data
     // -------------------------------

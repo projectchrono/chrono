@@ -18,6 +18,7 @@
 
 #include "chrono_multicore/collision/ChCollisionSystemChronoMulticore.h"
 #include "chrono_multicore/collision/ChContactContainerMulticore.h"
+#include "chrono_multicore/physics/Ch3DOFContainer.h"
 
 namespace chrono {
 namespace collision {
@@ -53,12 +54,17 @@ void ChCollisionSystemChronoMulticore::PreProcess() {
 
     cd_data->state_data.pos_3dof = &data_manager->host_data.pos_3dof;
     cd_data->state_data.sorted_pos_3dof = &data_manager->host_data.sorted_pos_3dof;
-    cd_data->state_data.vel_3dof = &data_manager->host_data.vel_3dof;
-    cd_data->state_data.sorted_vel_3dof = &data_manager->host_data.sorted_vel_3dof;
 
     // Set number of rigid and fluid bodies
     cd_data->state_data.num_rigid_bodies = data_manager->num_rigid_bodies;
     cd_data->state_data.num_fluid_bodies = data_manager->num_fluid_bodies;
+
+    // Set 3-dof particle properties
+    if (data_manager->node_container) {
+        cd_data->p_kernel_radius = data_manager->node_container->kernel_radius;
+        cd_data->p_collision_envelope = data_manager->node_container->collision_envelope;
+        cd_data->p_collision_family = data_manager->node_container->family;
+    }
 
     // Update collision detection settings
     const auto& settings = data_manager->settings.collision;
@@ -95,6 +101,22 @@ void ChCollisionSystemChronoMulticore::PostProcess() {
     measures.mpm_min_bounding_point = cd_data->measures.mpm_min_bounding_point;
     measures.mpm_max_bounding_point = cd_data->measures.mpm_max_bounding_point;
     measures.mpm_bins_per_axis = cd_data->measures.mpm_bins_per_axis;
+
+    // If needed, remap particle velocities and load sorted particle velocities.
+    if (data_manager->node_container) {
+        data_manager->host_data.sorted_vel_3dof.resize(data_manager->num_fluid_bodies);
+        const int body_offset =
+            data_manager->num_rigid_bodies * 6 + data_manager->num_shafts + data_manager->num_motors;
+        auto& v = data_manager->host_data.v;
+#pragma omp parallel for
+        for (int i = 0; i < (signed)data_manager->num_fluid_bodies; i++) {
+            int index = cd_data->particle_indices_3dof[i];
+            data_manager->host_data.sorted_vel_3dof[i] = data_manager->host_data.vel_3dof[index];
+            v[body_offset + i * 3 + 0] = data_manager->host_data.vel_3dof[index].x;
+            v[body_offset + i * 3 + 1] = data_manager->host_data.vel_3dof[index].y;
+            v[body_offset + i * 3 + 2] = data_manager->host_data.vel_3dof[index].z;
+        }
+    }
 }
 
 void ChCollisionSystemChronoMulticore::ReportContacts(ChContactContainer* container) {

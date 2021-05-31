@@ -122,7 +122,7 @@ int ChNarrowphase::PreprocessCount() {
 
     // Set start index for the potential contacts for each collision pair
     Thrust_Exclusive_Scan(contact_index);
-    assert(num_potentialContacts == contact_index.back());
+    assert(num_potentialContacts == (int)contact_index.back());
 
     // Return total number of potential contacts
     return num_potentialContacts;
@@ -366,25 +366,20 @@ inline int GridHash(int x, int y, int z, const vec3& bins_per_axis) {
 }
 
 void ChNarrowphase::DispatchFluid() {
-    //// TODO: remapping of velocities (not needed for collision detection) to be done outside.
-
     // Readability replacements
     const int num_fluid_bodies = cd_data->state_data.num_fluid_bodies;
     if (num_fluid_bodies == 0)
         return;
 
     ////const int body_offset = cd_data->state_data.num_rigid_bodies * 6 + cd_data->num_shafts + cd_data->num_motors;
-    const real radius = cd_data->node_data.kernel_radius + cd_data->node_data.collision_envelope;
-    const real collision_envelope = cd_data->node_data.collision_envelope;
+    const real radius = cd_data->p_kernel_radius + cd_data->p_collision_envelope;
+    const real collision_envelope = cd_data->p_collision_envelope;
     const real3& min_bounding_point = cd_data->measures.ff_min_bounding_point;
     const real3& max_bounding_point = cd_data->measures.ff_max_bounding_point;
 
     const std::vector<real3>& pos_fluid = *cd_data->state_data.pos_3dof;
-    const std::vector<real3>& vel_fluid = *cd_data->state_data.vel_3dof;
     std::vector<real3>& sorted_pos_fluid = *cd_data->state_data.sorted_pos_3dof;
-    std::vector<real3>& sorted_vel_fluid = *cd_data->state_data.sorted_vel_3dof;
 
-    ////DynamicVector<real>& v;
     std::vector<int>& neighbor_fluid_fluid = cd_data->neighbor_3dof_3dof;
     std::vector<int>& contact_counts = cd_data->c_counts_3dof_3dof;
     std::vector<int>& particle_indices = cd_data->particle_indices_3dof;
@@ -408,7 +403,6 @@ void ChNarrowphase::DispatchFluid() {
     ff_bin_ids.resize(num_fluid_bodies);
     //====================================
     sorted_pos_fluid.resize(num_fluid_bodies);
-    sorted_vel_fluid.resize(num_fluid_bodies);
     //====================================
     ff_bin_starts.resize(grid_size);
     ff_bin_ends.resize(grid_size);
@@ -434,10 +428,6 @@ void ChNarrowphase::DispatchFluid() {
     for (int i = 0; i < num_fluid_bodies; i++) {
         int index = particle_indices[i];
         sorted_pos_fluid[i] = pos_fluid[index];
-        sorted_vel_fluid[i] = vel_fluid[index];
-        ////v[body_offset + i * 3 + 0] = vel_fluid[index].x;
-        ////v[body_offset + i * 3 + 1] = vel_fluid[index].y;
-        ////v[body_offset + i * 3 + 2] = vel_fluid[index].z;
 
         reverse_mapping[index] = i;
 
@@ -494,10 +484,10 @@ void ChNarrowphase::DispatchFluid() {
 
 void ChNarrowphase::DispatchRigidFluid(const vec3& bins_per_axis) {
     // Readability replacements
-    const real sphere_radius = cd_data->node_data.kernel_radius;
+    const real sphere_radius = cd_data->p_kernel_radius;
     const int num_spheres = cd_data->state_data.num_fluid_bodies;
     const std::vector<real3>& pos_spheres = *cd_data->state_data.sorted_pos_3dof;
-    const short2& family = cd_data->node_data.family;
+    const short2& family = cd_data->p_collision_family;
     const real envelope = cd_data->collision_envelope;
 
     std::vector<real3>& norm_rigid_sphere = cd_data->norm_rigid_fluid;
