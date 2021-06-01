@@ -46,9 +46,9 @@ class ChApi ChBodyEasySphere : public ChBody {
 
     /// Create a ChBody with a sphere visualization and collision shape using the specified collision model type. The
     /// sphere is created centered at the center of mass. Mass and inertia are set automatically depending on density.
-    ChBodyEasySphere(double radius,                                     ///< radius of the sphere
-                     double density,                                    ///< density of the body
-                     std::shared_ptr<ChMaterialSurface> material,       ///< surface contact material
+    ChBodyEasySphere(double radius,                                   ///< radius of the sphere
+                     double density,                                  ///< density of the body
+                     std::shared_ptr<ChMaterialSurface> material,     ///< surface contact material
                      collision::ChCollisionSystemType collision_type  ///< collision model type
     );
 
@@ -79,9 +79,9 @@ class ChApi ChBodyEasyEllipsoid : public ChBody {
     /// Create a ChBody with an ellipsoid visualization and collision shape using the specified collision model type.
     /// The ellipsoid is created centered at the center of mass. Mass and inertia are set automatically depending on
     /// density.
-    ChBodyEasyEllipsoid(ChVector<> radius,                                 ///< radii of the ellipsoid
-                        double density,                                    ///< density of the body
-                        std::shared_ptr<ChMaterialSurface> material,       ///< surface contact material
+    ChBodyEasyEllipsoid(ChVector<> radius,                               ///< radii of the ellipsoid
+                        double density,                                  ///< density of the body
+                        std::shared_ptr<ChMaterialSurface> material,     ///< surface contact material
                         collision::ChCollisionSystemType collision_type  ///< collision model type
     );
 
@@ -113,10 +113,10 @@ class ChApi ChBodyEasyCylinder : public ChBody {
     /// Create a ChBody with a cylinder visualization and collision shape using the specified collision model type. The
     /// cylinder is created along the Y axis and centered at the center of mass. Mass and inertia are set automatically
     /// depending on density.
-    ChBodyEasyCylinder(double radius,                                     ///< radius of the cylinder
-                       double height,                                     ///< height of the cylinder
-                       double density,                                    ///< density of the body
-                       std::shared_ptr<ChMaterialSurface> material,       ///< surface contact material
+    ChBodyEasyCylinder(double radius,                                   ///< radius of the cylinder
+                       double height,                                   ///< height of the cylinder
+                       double density,                                  ///< density of the body
+                       std::shared_ptr<ChMaterialSurface> material,     ///< surface contact material
                        collision::ChCollisionSystemType collision_type  ///< collision model type
     );
 
@@ -149,11 +149,11 @@ class ChApi ChBodyEasyBox : public ChBody {
 
     /// Create a ChBody with a box visualization and collision shape using the specified collision model type. The box
     /// is created centered at the center of mass. Mass and inertia are set automatically depending on density.
-    ChBodyEasyBox(double Xsize,                                      ///< size along the X dimension
-                  double Ysize,                                      ///< size along the Y dimension
-                  double Zsize,                                      ///< size along the Z dimension
-                  double density,                                    ///< density of the body
-                  std::shared_ptr<ChMaterialSurface> material,       ///< surface contact material
+    ChBodyEasyBox(double Xsize,                                    ///< size along the X dimension
+                  double Ysize,                                    ///< size along the Y dimension
+                  double Zsize,                                    ///< size along the Z dimension
+                  double density,                                  ///< density of the body
+                  std::shared_ptr<ChMaterialSurface> material,     ///< surface contact material
                   collision::ChCollisionSystemType collision_type  ///< collision model type
     );
 
@@ -176,7 +176,7 @@ class ChApi ChBodyEasyConvexHull : public ChBody {
     /// The convex hull is defined with a set of points, expressed in a local frame.
     /// Mass and inertia are set automatically depending on density. The convex hull vertices are translated so that the
     /// barycenter coincides with the center of mass.
-    ChBodyEasyConvexHull(std::vector<ChVector<> >& points,                       ///< points of the convex hull
+    ChBodyEasyConvexHull(std::vector<ChVector<>>& points,                        ///< points of the convex hull
                          double density,                                         ///< density of the body
                          bool visualize = true,                                  ///< create visualization asset
                          bool collide = false,                                   ///< enable collision
@@ -189,16 +189,16 @@ class ChApi ChBodyEasyConvexHull : public ChBody {
     /// The convex hull is defined with a set of points, expressed in a local frame.
     /// Mass and inertia are set automatically depending on density. The convex hull vertices are translated so that the
     /// barycenter coincides with the center of mass.
-    ChBodyEasyConvexHull(std::vector<ChVector<> >& points,                  ///< points of the convex hull
-                         double density,                                    ///< density of the body
-                         std::shared_ptr<ChMaterialSurface> material,       ///< surface contact material
+    ChBodyEasyConvexHull(std::vector<ChVector<>>& points,                 ///< points of the convex hull
+                         double density,                                  ///< density of the body
+                         std::shared_ptr<ChMaterialSurface> material,     ///< surface contact material
                          collision::ChCollisionSystemType collision_type  ///< collision model type
     );
 
     std::shared_ptr<geometry::ChTriangleMeshConnected> GetMesh() const { return m_mesh; }
 
   private:
-    void SetupBody(std::vector<ChVector<> >& points,
+    void SetupBody(std::vector<ChVector<>>& points,
                    double density,
                    bool visualize,
                    bool collide,
@@ -215,7 +215,7 @@ class ChApi ChBodyEasyConvexHullAuxRef : public ChBodyAuxRef {
     /// Create a ChBodyAuxRef with optional convex hull visualization and/or collision shape. The convex hull is defined
     /// with a set of points, expressed in a local frame. Mass and inertia are set automatically depending on density.
     /// The center of mass is set at the barycenter.
-    ChBodyEasyConvexHullAuxRef(std::vector<ChVector<> >& points,                       ///< convex hull points
+    ChBodyEasyConvexHullAuxRef(std::vector<ChVector<>>& points,                        ///< convex hull points
                                double density,                                         ///< density of the body
                                bool visualize = true,                                  ///< create visualization asset
                                bool collide = false,                                   ///< enable collision
@@ -227,16 +227,16 @@ class ChApi ChBodyEasyConvexHullAuxRef : public ChBodyAuxRef {
     /// Create a ChBodyAuxRef with a convex hull visualization and collision shape using the specified collision model
     /// type. The convex hull is defined with a set of points, expressed in a local frame. Mass and inertia are set
     /// automatically depending on density. The center of mass is set at the barycenter.
-    ChBodyEasyConvexHullAuxRef(std::vector<ChVector<> >& points,                  ///< convex hull points
-                               double density,                                    ///< density of the body
-                               std::shared_ptr<ChMaterialSurface> material,       ///< surface contact material
+    ChBodyEasyConvexHullAuxRef(std::vector<ChVector<>>& points,                 ///< convex hull points
+                               double density,                                  ///< density of the body
+                               std::shared_ptr<ChMaterialSurface> material,     ///< surface contact material
                                collision::ChCollisionSystemType collision_type  ///< collision model type
     );
 
     std::shared_ptr<geometry::ChTriangleMeshConnected> GetMesh() const { return m_mesh; }
 
   private:
-    void SetupBody(std::vector<ChVector<> >& points,
+    void SetupBody(std::vector<ChVector<>>& points,
                    double density,
                    bool visualize,
                    bool collide,
@@ -280,10 +280,10 @@ class ChApi ChBodyEasyMesh : public ChBodyAuxRef {
     /// Create a ChBodyAuxRef with a mesh visualization and collision shape using the specified collision model type.
     /// The mesh is assumed to be provided in an OBJ Wavefront file and defined with respect to the body reference
     /// frame. Mass and inertia are set automatically depending on density.
-    ChBodyEasyMesh(const std::string filename,                        ///< file name for OBJ Wavefront mesh
-                   double density,                                    ///< density of the body
-                   std::shared_ptr<ChMaterialSurface> material,       ///< surface contact material
-                   double sphere_swept,                               ///< thickness (collision detection robustness)
+    ChBodyEasyMesh(const std::string filename,                      ///< file name for OBJ Wavefront mesh
+                   double density,                                  ///< density of the body
+                   std::shared_ptr<ChMaterialSurface> material,     ///< surface contact material
+                   double sphere_swept,                             ///< thickness (collision detection robustness)
                    collision::ChCollisionSystemType collision_type  ///< collision model type
     );
 
@@ -293,7 +293,7 @@ class ChApi ChBodyEasyMesh : public ChBodyAuxRef {
     ChBodyEasyMesh(std::shared_ptr<geometry::ChTriangleMeshConnected> mesh,  ///< triangular mesh
                    double density,                                           ///< density of the body
                    std::shared_ptr<ChMaterialSurface> material,              ///< surface contact material
-                   double sphere_swept,                               ///< thickness (collision detection robustness)
+                   double sphere_swept,                             ///< thickness (collision detection robustness)
                    collision::ChCollisionSystemType collision_type  ///< collision model type
     );
 
@@ -318,7 +318,7 @@ class ChApi ChBodyEasyClusterOfSpheres : public ChBody {
     /// Create a ChBody with optional sphere cluster mesh visualization and/or collision shapes. The cluster of spheres
     /// will be displaced so that their center of mass corresponds to the origin of the ChBody. Mass and inertia are set
     /// automatically depending on density.
-    ChBodyEasyClusterOfSpheres(std::vector<ChVector<> >& positions,                    ///< position of the spheres
+    ChBodyEasyClusterOfSpheres(std::vector<ChVector<>>& positions,                     ///< position of the spheres
                                std::vector<double>& radii,                             ///< sphere radius
                                double density,                                         ///< density of the body
                                bool visualize = true,                                  ///< create visualization asset
@@ -331,15 +331,15 @@ class ChApi ChBodyEasyClusterOfSpheres : public ChBody {
     /// Create a ChBody with a sphere cluster mesh visualization and collision shapes using the specified collision
     /// model type. The cluster of spheres will be displaced so that their center of mass corresponds to the origin of
     /// the ChBody. Mass and inertia are set automatically depending on density.
-    ChBodyEasyClusterOfSpheres(std::vector<ChVector<> >& positions,               ///< position of the spheres
-                               std::vector<double>& radii,                        ///< sphere radius
-                               double density,                                    ///< density of the body
-                               std::shared_ptr<ChMaterialSurface> material,       ///< surface contact material
+    ChBodyEasyClusterOfSpheres(std::vector<ChVector<>>& positions,              ///< position of the spheres
+                               std::vector<double>& radii,                      ///< sphere radius
+                               double density,                                  ///< density of the body
+                               std::shared_ptr<ChMaterialSurface> material,     ///< surface contact material
                                collision::ChCollisionSystemType collision_type  ///< collision model type
     );
 
   private:
-    void SetupBody(std::vector<ChVector<> >& positions,
+    void SetupBody(std::vector<ChVector<>>& positions,
                    std::vector<double>& radii,
                    double density,
                    bool visualize,

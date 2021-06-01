@@ -131,10 +131,10 @@ bool snap_to_triangle(const real3& A, const real3& B, const real3& C, const real
 /// specified in the frame of the cylinder (in this frame the cylinder is assumed
 /// to be centered at the origin and aligned with the Y axis).  The return code
 /// indicates the feature of the cylinder that caused snapping.
-///   code = 0 indicates and interior point
-///   code = 1 indicates snapping to one of the cylinder caps
-///   code = 2 indicates snapping to the cylinder side
-///   code = 3 indicates snapping to one of the cylinder edges
+///   - code = 0 indicates and interior point
+///   - code = 1 indicates snapping to one of the cylinder caps
+///   - code = 2 indicates snapping to the cylinder side
+///   - code = 3 indicates snapping to one of the cylinder edges
 uint snap_to_cylinder(const real& rad, const real& hlen, real3& loc) {
     uint code = 0;
 
@@ -171,10 +171,10 @@ uint snap_to_cylinder(const real& rad, const real& hlen, real3& loc) {
 ///   - third bit corresponds to z-axis
 ///
 /// Therefore:
-///   code = 0 indicates a degenerate direction (within a threshold)
-///   code = 1 or code = 2 or code = 4  indicates a face
-///   code = 3 or code = 5 or code = 6  indicates an edge
-///   code = 7 indicates a corner
+///   - code = 0 indicates a degenerate direction (within a threshold)
+///   - code = 1 or code = 2 or code = 4  indicates a face
+///   - code = 3 or code = 5 or code = 6  indicates an edge
+///   - code = 7 indicates a corner
 uint box_closest_feature(const real3& dir, const real3& hdims) {
     real threshold = 0.01;  // corresponds to about 0.57 degrees
     return ((Abs(dir.x) > threshold) << 0) | ((Abs(dir.y) > threshold) << 1) | ((Abs(dir.z) > threshold) << 2);
@@ -189,10 +189,10 @@ uint box_closest_feature(const real3& dir, const real3& hdims) {
 ///   - third bit corresponds to z-axis
 ///
 /// Therefore:
-///   code = 0 indicates an interior point
-///   code = 1 or code = 2 or code = 4  indicates snapping to a face
-///   code = 3 or code = 5 or code = 6  indicates snapping to an edge
-///   code = 7 indicates snapping to a corner
+///   - code = 0 indicates an interior point
+///   - code = 1 or code = 2 or code = 4  indicates snapping to a face
+///   - code = 3 or code = 5 or code = 6  indicates snapping to an edge
+///   - code = 7 indicates snapping to a corner
 uint snap_to_box(const real3& hdims, real3& loc) {
     uint code = 0;
 
@@ -466,14 +466,14 @@ real3 box_closest_corner(const real3& hdims, const real3& dir) {
 /// two boxes (Gottschalk, Lin, Manocha - Siggraph96).
 ///
 /// If not considering a separation value, the 15 tests use an overlap of the form:
-///    overlap = r1 + r2 - D
+///    <tt>overlap = r1 + r2 - D</tt>,
 /// where r1 and r2 are the half-projections of the two boxes on the current direction
 /// and D is the projected distance between the box centers. If there's no overlap
 /// (overlap <= 0) in any direction, then the boxes do not intersect. Otherwise, we
 /// keep track of the direction of minimum overlap.
 ///
 /// If considering a separation > 0, we simply use an overlap of the form:
-///    overlap = r1 + r2 - D + separation
+///    <tt>overlap = r1 + r2 - D + separation</tt>
 /// and use the exact same checks.
 int box_intersects_box(const real3& hdims1,
                        const real3& hdims2,
