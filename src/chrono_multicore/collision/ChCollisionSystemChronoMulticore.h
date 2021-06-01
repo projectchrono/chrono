@@ -25,6 +25,10 @@
 #include "chrono/collision/ChCollisionSystemChrono.h"
 
 namespace chrono {
+
+// Forward declaration for friend class declaration
+class ChSystemMulticore;
+
 namespace collision {
 
 /// @addtogroup multicore_collision
