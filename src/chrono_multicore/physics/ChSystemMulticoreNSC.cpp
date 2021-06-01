@@ -17,7 +17,6 @@
 #include "chrono_multicore/solver/ChSolverMulticore.h"
 #include "chrono_multicore/solver/ChIterativeSolverMulticore.h"
 #include "chrono_multicore/collision/ChContactContainerMulticoreNSC.h"
-#include "chrono_multicore/collision/ChCollisionSystemMulticore.h"
 #include "chrono_multicore/collision/ChCollisionSystemBulletMulticore.h"
 
 using namespace chrono;
@@ -255,7 +254,9 @@ void ChSystemMulticoreNSC::Initialize() {
     data_manager->system_timer.stop("update");
 
     data_manager->system_timer.start("collision");
+    collision_system->PreProcess();
     collision_system->Run();
+    collision_system->PostProcess();
     collision_system->ReportContacts(this->contact_container.get());
     data_manager->system_timer.stop("collision");
 

@@ -28,18 +28,15 @@
 #include "chrono/physics/ChSystem.h"
 #include "chrono/physics/ChBody.h"
 #include "chrono/physics/ChBodyAuxRef.h"
-#include "chrono/physics/ChContactSMC.h"
 #include "chrono/physics/ChShaft.h"
 #include "chrono/physics/ChLinkMotorLinearSpeed.h"
 #include "chrono/physics/ChLinkMotorRotationSpeed.h"
 
-#include "chrono/fea/ChMesh.h"
+#include "chrono/multicore_math/ChMulticoreMath.h"
 
-#include "chrono_multicore/collision/ChCollisionModelMulticore.h"
 #include "chrono_multicore/physics/Ch3DOFContainer.h"
 #include "chrono_multicore/ChDataManager.h"
 #include "chrono_multicore/ChMulticoreDefines.h"
-#include "chrono/multicore_math/ChMulticoreMath.h"
 #include "chrono_multicore/ChSettings.h"
 #include "chrono_multicore/ChMeasures.h"
 

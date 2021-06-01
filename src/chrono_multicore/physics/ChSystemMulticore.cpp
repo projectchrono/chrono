@@ -24,16 +24,13 @@
 #include "chrono/physics/ChShaftsGearboxAngled.h"
 #include "chrono/physics/ChShaftsPlanetary.h"
 
-#include "chrono/fea/ChElementTetra_4.h"
-#include "chrono/fea/ChNodeFEAxyz.h"
+#include "chrono/multicore_math/matrix.h"
 
 #include "chrono_multicore/ChConfigMulticore.h"
-#include "chrono_multicore/ChDataManager.h"
 #include "chrono_multicore/collision/ChCollisionModelMulticore.h"
 #include "chrono_multicore/collision/ChCollisionSystemMulticore.h"
 #include "chrono_multicore/collision/ChCollisionSystemChronoMulticore.h"
 #include "chrono_multicore/collision/ChCollisionSystemBulletMulticore.h"
-#include "chrono/multicore_math/matrix.h"
 #include "chrono_multicore/physics/ChSystemMulticore.h"
 #include "chrono_multicore/solver/ChSolverMulticore.h"
 #include "chrono_multicore/solver/ChSystemDescriptorMulticore.h"
@@ -53,10 +50,10 @@ ChSystemMulticore::ChSystemMulticore() : ChSystem() {
 
     descriptor = chrono_types::make_shared<ChSystemDescriptorMulticore>(data_manager);
 
-    collision_system = chrono_types::make_shared<ChCollisionSystemMulticore>(data_manager);
+    collision_system = chrono_types::make_shared<ChCollisionSystemChronoMulticore>(data_manager);
     collision_system->SetNumThreads(nthreads_collision);
     collision_system->SetSystem(this);
-    collision_system_type = ChCollisionSystemType::OTHER;
+    collision_system_type = ChCollisionSystemType::CHRONO;
 
     counter = 0;
     timer_accumulator.resize(10, 0);
