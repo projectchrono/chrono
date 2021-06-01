@@ -43,7 +43,7 @@ class ContactManager : public ChContactContainer::ReportContactCallback {
 
 int main(int argc, char* argv[]) {
     // Collision detection system
-    collision::ChCollisionSystemType collision_type = collision::ChCollisionSystemType::OTHER;
+    collision::ChCollisionSystemType collision_type = collision::ChCollisionSystemType::CHRONO;
 
     // Narrowphase algorithm
     collision::ChNarrowphase::Algorithm narrowphase_algorithm = collision::ChNarrowphase::Algorithm::MPR;
@@ -153,6 +153,7 @@ int main(int argc, char* argv[]) {
         }
     }
 
+    system->SetCollisionSystemType(collision_type);
     system->Set_G_acc(ChVector<>(0, -9.81, 0));
 
     // Set number of threads
@@ -163,18 +164,6 @@ int main(int argc, char* argv[]) {
 
     system->GetSettings()->collision.narrowphase_algorithm = narrowphase_algorithm;
     system->GetSettings()->collision.bins_per_axis = vec3(1, 1, 1);
-
-    // Create and attach the collision detection system (default BULLET)
-    if (collision_type == collision::ChCollisionSystemType::CHRONO) {
-        ////system->SetCollisionSystemType(collision_type);
-        auto cd_chrono = chrono_types::make_shared<collision::ChCollisionSystemChronoMulticore>(system->data_manager);
-        cd_chrono->SetBroadphaseNumBins(ChVector<int>(1, 1, 1));
-        cd_chrono->SetNarrowphaseAlgorithm(narrowphase_algorithm);
-        cd_chrono->SetEnvelope(collision_envelope);
-        system->SetCollisionSystem(cd_chrono);
-
-        system->SetContactContainer(collision::ChCollisionSystemType::CHRONO);
-    }
 
     // Create the Irrlicht visualization
     ChIrrApp application(system, L"Collision test (Chrono::Multicore)", irr::core::dimension2d<irr::u32>(800, 600));

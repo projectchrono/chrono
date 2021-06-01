@@ -98,7 +98,7 @@ int main(int argc, char* argv[]) {
     // Create the system
     ChSystemMulticoreSMC system;
     system.Set_G_acc(ChVector<>(0, -10, 0));
-    
+
     // Create a contact material, shared among all bodies
     auto material = chrono_types::make_shared<ChMaterialSurfaceSMC>();
     material->SetFriction(friction);

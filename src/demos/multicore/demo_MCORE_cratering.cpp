@@ -307,7 +307,7 @@ void CreateFallingBall(ChSystemMulticore* system, double z, double vz) {
 #endif
 
     // Create the falling ball
-    auto ball = chrono_types::make_shared<ChBody>(chrono_types::make_shared<ChCollisionModelMulticore>());
+    auto ball = std::shared_ptr<ChBody>(system->NewBody());
 
     ball->SetIdentifier(Id_b);
     ball->SetMass(mass_b);

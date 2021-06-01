@@ -93,7 +93,7 @@ SettlingSMC::SettlingSMC() : m_system(new ChSystemMulticoreSMC), m_step(1e-3) {
     double hthick = 0.1;
 
     // Create a bin consisting of five boxes attached to the ground.
-    auto bin = chrono_types::make_shared<ChBody>(chrono_types::make_shared<collision::ChCollisionModelMulticore>());
+    auto bin = std::shared_ptr<ChBody>(m_system->NewBody());
     bin->SetMass(1);
     bin->SetPos(ChVector<>(0, 0, 0));
     bin->SetCollide(true);

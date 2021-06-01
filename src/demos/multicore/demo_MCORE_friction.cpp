@@ -46,6 +46,7 @@ int main(int argc, char** argv) {
 
     // Create the multicore system
     ChSystemMulticoreNSC system;
+
     system.Set_G_acc(ChVector<>(0, -9.81, 0));
 
     // Set number of threads

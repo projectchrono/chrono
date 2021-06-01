@@ -51,7 +51,7 @@ std::shared_ptr<ChBody> AddSphere(int id,
     ChVector<> init_w(0, 0, 0);
 
     // Create a spherical body. Set body parameters and sphere collision model
-    auto body = chrono_types::make_shared<ChBody>(chrono_types::make_shared<ChCollisionModelMulticore>());
+    auto body = std::shared_ptr<ChBody>(sys->NewBody());
     body->SetIdentifier(id);
     body->SetMass(mass);
     body->SetPos(pos);
@@ -86,7 +86,7 @@ std::shared_ptr<ChBody> AddWall(int id,
     ChQuaternion<> rot(1, 0, 0, 0);
 
     // Create container. Set body parameters and container collision model
-    auto body = chrono_types::make_shared<ChBody>(chrono_types::make_shared<ChCollisionModelMulticore>());
+    auto body = std::shared_ptr<ChBody>(sys->NewBody());
     body->SetIdentifier(id);
     body->SetMass(mass);
     body->SetPos(pos);
@@ -122,8 +122,6 @@ void SetSimParameters(
 
     sys->GetSettings()->collision.bins_per_axis = vec3(1, 1, 1);
     sys->GetSettings()->collision.narrowphase_algorithm = ChNarrowphase::Algorithm::HYBRID;
-
-    sys->SetCollisionSystemType(ChCollisionSystemType::OTHER);
 }
 
 bool CalcKE(ChSystemMulticoreSMC* sys, const double& threshold) {

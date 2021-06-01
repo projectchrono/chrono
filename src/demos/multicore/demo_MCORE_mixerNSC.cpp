@@ -58,7 +58,7 @@ std::shared_ptr<ChBody> AddContainer(ChSystemMulticoreNSC* sys) {
     mat->SetFriction(0.4f);
 
     // Create the containing bin (2 x 2 x 1)
-    auto bin = chrono_types::make_shared<ChBody>(chrono_types::make_shared<ChCollisionModelMulticore>());
+    auto bin = std::shared_ptr<ChBody>(sys->NewBody());
     bin->SetIdentifier(binId);
     bin->SetMass(100);
     bin->SetPos(ChVector<>(0, 0, 0));
@@ -86,7 +86,7 @@ std::shared_ptr<ChBody> AddContainer(ChSystemMulticoreNSC* sys) {
     sys->AddBody(bin);
 
     // The rotating mixer body (1.6 x 0.2 x 0.4)
-    auto mixer = chrono_types::make_shared<ChBody>(chrono_types::make_shared<ChCollisionModelMulticore>());
+    auto mixer = std::shared_ptr<ChBody>(sys->NewBody());
     mixer->SetIdentifier(mixerId);
     mixer->SetMass(10.0);
     mixer->SetInertiaXX(ChVector<>(50, 50, 50));
@@ -127,23 +127,13 @@ void AddFallingBalls(ChSystemMulticore* sys) {
             ChVector<> b_pos(0.4 * ix, 0.4 * iy, 1);
             ChVector<> c_pos(0.4 * ix, 0.4 * iy, 1.4);
 
-            auto ball = chrono_types::make_shared<ChBodyEasySphere>(
-                0.1,                                                    // radius
-                2000,                                                   // density
-                true, true,                                             // visualize and collide
-                ball_mat,                                               // contact material
-                chrono_types::make_shared<ChCollisionModelMulticore>()  // collision model
-            );
+            auto ball = chrono_types::make_shared<ChBodyEasySphere>(0.1, 2000, ball_mat,
+                                                                    collision::ChCollisionSystemType::CHRONO);
             ball->SetPos(b_pos);
             sys->AddBody(ball);
 
-            auto cyl = chrono_types::make_shared<ChBodyEasyCylinder>(
-                0.1, 0.05,                                              // radius, height
-                2000,                                                   // density
-                true, true,                                             // visualize and collide
-                cyl_mat,                                                // contact material
-                chrono_types::make_shared<ChCollisionModelMulticore>()  // collision model
-            );
+            auto cyl = chrono_types::make_shared<ChBodyEasyCylinder>(0.1, 0.05, 2000, cyl_mat,
+                                                                     collision::ChCollisionSystemType::CHRONO);
             cyl->SetPos(c_pos);
             sys->AddBody(cyl);
         }

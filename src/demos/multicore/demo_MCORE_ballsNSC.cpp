@@ -60,7 +60,7 @@ void AddContainer(ChSystemMulticoreNSC* sys) {
     mat->SetFriction(0.4f);
 
     // Create the containing bin (4 x 4 x 1)
-    auto bin = chrono_types::make_shared<ChBody>(chrono_types::make_shared<ChCollisionModelMulticore>());
+    auto bin = std::shared_ptr<ChBody>(sys->NewBody());
     bin->SetIdentifier(binId);
     bin->SetMass(1);
     bin->SetPos(ChVector<>(0, 0, 0));
@@ -104,7 +104,7 @@ void AddFallingBalls(ChSystemMulticore* sys) {
         for (int iy = -count_Y; iy <= count_Y; iy++) {
             ChVector<> pos(0.4 * ix, 0.4 * iy, 1);
 
-            auto ball = chrono_types::make_shared<ChBody>(chrono_types::make_shared<ChCollisionModelMulticore>());
+            auto ball = std::shared_ptr<ChBody>(sys->NewBody());
 
             ball->SetIdentifier(ballId++);
             ball->SetMass(mass);
