@@ -15,7 +15,7 @@
 #pragma once
 
 #include "chrono_multicore/ChDataManager.h"
-#include "chrono_multicore/collision/ChCollisionSystemMulticore.h"
+#include "chrono_multicore/collision/ChCollisionSystemChronoMulticore.h"
 
 #include "chrono_distributed/ChDistributedDataManager.h"
 
@@ -25,10 +25,10 @@ namespace collision {
 /// @addtogroup distributed_collision
 /// @{
 
-/// This class scaffolds on ChCollisionSystemMulticore in order to manage
+/// This class scaffolds on ChCollisionSystemChronoMulticore in order to manage
 /// collision data for the system during MPI exchanges.
 /// Maintains a mapping from a body to its shapes.
-class ChCollisionSystemDistributed : public ChCollisionSystemMulticore {
+class ChCollisionSystemDistributed : public ChCollisionSystemChronoMulticore {
   public:
     ChCollisionSystemDistributed(ChMulticoreDataManager* dm, ChDistributedDataManager* ddm);
     virtual ~ChCollisionSystemDistributed();
