@@ -38,10 +38,12 @@ namespace vehicle {
 // Constructor for a ChVehicle using a default Chrono system.
 // Specify default step size and solver parameters.
 // -----------------------------------------------------------------------------
-ChVehicle::ChVehicle(const std::string& name, ChContactMethod contact_method)
+ChVehicle::ChVehicle(const std::string& name,
+                     ChContactMethod contact_method)
     : m_name(name),
       m_ownsSystem(true),
       m_output(false),
+      m_output_step(0),
       m_output_db(nullptr),
       m_next_output_time(0),
       m_output_frame(0) {
@@ -71,6 +73,7 @@ ChVehicle::ChVehicle(const std::string& name, ChSystem* system)
       m_system(system),
       m_ownsSystem(false),
       m_output(false),
+      m_output_step(0),
       m_output_db(nullptr),
       m_next_output_time(0),
       m_output_frame(0) {}
@@ -82,6 +85,13 @@ ChVehicle::~ChVehicle() {
     delete m_output_db;
     if (m_ownsSystem)
         delete m_system;
+}
+
+// -----------------------------------------------------------------------------
+// Change the default collision system type
+// -----------------------------------------------------------------------------
+void ChVehicle::SetCollisionSystemType(collision::ChCollisionSystemType collsys_type) {
+    m_system->SetCollisionSystemType(collsys_type);
 }
 
 // -----------------------------------------------------------------------------
