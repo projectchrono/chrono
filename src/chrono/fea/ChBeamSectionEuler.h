@@ -98,13 +98,11 @@ class ChApi ChBeamSectionEuler : public ChBeamSection {
     // DAMPING INTERFACE
 
     /// Set the Rayleigh damping ratio r (as in: R = r * K ), to do: also mass-proportional term
-    void SetBeamRaleyghDamping(double mr) { this->rdamping = mr; }
+    virtual void SetBeamRaleyghDamping(double mr) { this->rdamping = mr; }
     double GetBeamRaleyghDamping() { return this->rdamping; }
 
-  private:
-    double rdamping;
-
   protected:
+    double rdamping;
     double JzzJyy_factor;
 };
 
@@ -442,7 +440,7 @@ class ChApi ChBeamSectionEulerAdvancedGeneric : public ChBeamSectionEuler {
     /// Get inertia moment per unit length Jxx_massref, as assumed computed in the "mass reference"
     /// frame, ie. centered at the center of mass
     virtual double GetInertiaJxxPerUnitLengthInMassReference() {
-        return this->Jxx - this->mu * this->Mz * this->Mz + this->mu * this->My * this->My;
+        return this->Jxx - this->mu * this->Mz * this->Mz - this->mu * this->My * this->My;
     }
 
     /// "mass reference": set the displacement of the center of mass respect to
@@ -586,7 +584,7 @@ class ChApi ChBeamSectionRayleighEasyCircular : public ChBeamSectionRayleighSimp
 /// but adds the effect of Jyy Jzz rotational sectional inertias.
 /// The Jxx inertia of the Euler base class is automatically computed from Jyy Jzz by the polar theorem.
 class ChApi ChBeamSectionRayleighAdvancedGeneric : public ChBeamSectionEulerAdvancedGeneric {
-  private:
+  protected:
       double Jzz; // sectional inertia per unit length, in center of mass reference, measured along centerline main axes
       double Jyy; // sectional inertia per unit length, in center of mass reference, measured along centerline main axes
       double Jyz; // sectional inertia per unit length, in center of mass reference, measured along centerline main axes
@@ -647,6 +645,10 @@ class ChApi ChBeamSectionRayleighAdvancedGeneric : public ChBeamSectionEulerAdva
 
     /// Compute the 6x6 sectional inertia matrix, as in  {x_momentum,w_momentum}=[Mm]{xvel,wvel}
     virtual void ComputeInertiaMatrix(ChMatrixNM<double, 6, 6>& M) override;
+
+    // Since the section inertias Jyy,Jzz,Jyz are included in Rayleigh section, the gyroscopic term needs to update.
+    /// Compute the centrifugal term and gyroscopic term
+    virtual void ComputeQuadraticTerms(ChVector<>& mF, ChVector<>& mT, const ChVector<>& mW) override;
 
 };
 

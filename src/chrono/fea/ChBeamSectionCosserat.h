@@ -471,6 +471,114 @@ public:
 };
 
 
+// Add by PENG Chao
+class ChApi ChElasticityCosseratAdvancedGenericFPM : public ChElasticityCosserat {
+  private:
+    ChMatrixNM<double, 6, 6> Klaw;  // 6x6 material stiffness matrix of cross-section
+    double alpha;  // rotation of reference at elastic center, for bending effects [rad]
+    double Cy;     // Centroid (elastic center, tension center)
+    double Cz;
+    double beta;  // rotation of reference at shear center, for shear effects [rad]
+    double Sy;    // Shear center
+    double Sz;
+
+    ChMatrixNM<double, 6, 6> T;
+
+  public:
+    ChElasticityCosseratAdvancedGenericFPM()
+        : Klaw(ChMatrixNM<double, 6, 6>::Identity(6,6)), alpha(0), Cy(0), Cz(0), beta(0), Sy(0), Sz(0) {}
+
+    ChElasticityCosseratAdvancedGenericFPM(
+        const ChMatrixNM<double, 6, 6> mKlaw,  ///< 6x6 material stiffness matrix of cross-section
+        const double malpha,  ///< rotation of reference at elastic center, for bending effects [rad]
+        const double mCy,     ///< elastic center y displacement respect to centerline
+        const double mCz,     ///< elastic center z displacement respect to centerline
+        const double mbeta,   ///< rotation of reference at shear center, for shear effects [rad]
+        const double mSy,     ///< shear center y displacement respect to centerline
+        const double mSz      ///< shear center z displacement respect to centerline
+        )
+        : Klaw(mKlaw),
+          alpha(malpha),
+          Cy(mCy),
+          Cz(mCz),
+          beta(mbeta),
+          Sy(mSy),
+          Sz(mSz) {}
+
+    virtual ~ChElasticityCosseratAdvancedGenericFPM() {}
+
+    virtual void SetEMatrix(const ChMatrixNM<double, 6, 6> mKlaw) { Klaw = mKlaw; }
+
+    virtual ChMatrixNM<double, 6, 6>& GetEMatrix() { return Klaw; }
+
+
+    /// Set the rotation in [rad]  of the Y Z axes for which the
+    /// YbendingRigidity and ZbendingRigidity values are defined.
+    void SetSectionRotation(double ma) { this->alpha = ma; }
+    double GetSectionRotation() { return this->alpha; }
+
+    /// "Elastic reference": set the displacement of the elastic center
+    /// (or tension center) respect to the reference section coordinate system placed at centerline.
+    void SetCentroid(double my, double mz) {
+        this->Cy = my;
+        this->Cz = mz;
+    }
+    double GetCentroidY() { return this->Cy; }
+    double GetCentroidZ() { return this->Cz; }
+
+    /// Set the rotation in [rad] of the Y Z axes for which the
+    /// YshearRigidity and ZshearRigidity values are defined.
+    void SetShearRotation(double mb) { this->beta = mb; }
+    double GetShearRotation() { return this->beta; }
+
+    /// "Shear reference": set the displacement of the shear center S
+    /// respect to the reference beam line placed at centerline. For shapes like rectangles,
+    /// rotated rectangles, etc., it corresponds to the elastic center C, but
+    /// for "L" shaped or "U" shaped beams this is not always true, and
+    /// the shear center accounts for torsion effects when a shear force is applied.
+    void SetShearCenter(double my, double mz) {
+        this->Sy = my;
+        this->Sz = mz;
+    }
+    double GetShearCenterY() { return this->Sy; }
+    double GetShearCenterZ() { return this->Sz; }
+
+    // Need to update the material stiffness matrix Klaw 
+    // after input section rotation and elastic center/shear center offset.
+    // This should be called by end user.
+    void UpdateEMatrix();
+
+
+    // Interface to base:
+
+    /// Compute the generalized cut force and cut torque.
+    virtual void ComputeStress(
+        ChVector<>& stress_n,        ///< local stress (generalized force), x component = traction along beam
+        ChVector<>& stress_m,        ///< local stress (generalized torque), x component = torsion torque along beam
+        const ChVector<>& strain_e,  ///< local strain (deformation part): x= elongation, y and z are shear
+        const ChVector<>& strain_k   ///< local strain (curvature part), x= torsion, y and z are line curvatures
+        ) override;
+
+    /// Compute the 6x6 tangent material stiffness matrix [Km] = d&sigma;/d&epsilon;
+    virtual void ComputeStiffnessMatrix(
+        ChMatrixNM<double, 6, 6>& K,  ///< 6x6 stiffness matrix
+        const ChVector<>& strain_e,   ///< local strain (deformation part): x= elongation, y and z are shear
+        const ChVector<>& strain_k    ///< local strain (curvature part), x= torsion, y and z are line curvatures
+        ) override;
+
+private:
+    void ComputeTransformMatrix();
+
+
+};
+
+
+
+
+
+
+
+
 /// Elasticity for a beam section in 3D, where the section is
 /// defined by a mesh of triangles.
 /// This model saves you from the need of knowing I_z, I_y, A, etc.,

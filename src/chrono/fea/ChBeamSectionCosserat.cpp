@@ -294,6 +294,74 @@ void ChElasticityCosseratAdvancedGeneric::ComputeStiffnessMatrix(ChMatrixNM<doub
 
 // -----------------------------------------------------------------------------
 
+void ChElasticityCosseratAdvancedGenericFPM::ComputeTransformMatrix() {
+
+    // In case the section is rotated:
+    ChMatrix33<> RotsectA;
+    RotsectA.Set_A_Rxyz(ChVector<>(this->alpha, 0, 0));
+
+    // In case the shear axis is rotated:
+    ChMatrix33<> RotShearA;
+    RotShearA.Set_A_Rxyz(ChVector<>(this->beta, 0, 0));
+
+    ChMatrixNM<double, 6, 6> RotA;
+    RotA.setZero();
+    RotA.row(0) << RotsectA(0, 0), 0, 0, 0, RotsectA(0, 1), RotsectA(0, 2);
+    RotA.row(1) << 0, RotShearA(0, 0), RotShearA(0, 1), RotShearA(0, 2), 0, 0;
+    RotA.row(2) << 0, RotShearA(1, 0), RotShearA(1, 1), RotShearA(1, 2), 0, 0;
+    RotA.row(3) << 0, RotShearA(2, 0), RotShearA(2, 1), RotShearA(2, 2), 0, 0;
+    RotA.row(4) << RotsectA(1, 0), 0, 0, 0, RotsectA(1, 1), RotsectA(1, 2);
+    RotA.row(5) << RotsectA(2, 0), 0, 0, 0, RotsectA(2, 1), RotsectA(2, 2);
+
+    // In case the Elastic reference is offset to the centerline:
+    ChMatrixNM<double, 6, 6> Tc;
+    Tc.setIdentity();
+    Tc(0, 4) = Cz;
+    Tc(0, 5) = -Cy;
+    Tc(1, 3) = -Cz;
+    Tc(2, 3) = Cy;
+
+    // In case the Shear center is offset to the centerline:
+    ChMatrixNM<double, 6, 6> Ts;
+    Ts.setIdentity();
+    Ts(1, 3) = -Sz;
+    Ts(2, 3) = Sy;
+
+    this->T = RotA * Ts * Tc;
+}
+
+void ChElasticityCosseratAdvancedGenericFPM::UpdateEMatrix() {
+    // compute T
+    ComputeTransformMatrix();
+    // update Klaw after setting section rotation and EC/SC offset
+    this->Klaw = this->T.transpose() * this->Klaw * this->T;
+}
+
+
+void ChElasticityCosseratAdvancedGenericFPM::ComputeStress(ChVector<>& stress_n,
+                                                ChVector<>& stress_m,
+                                                const ChVector<>& strain_n,
+                                                const ChVector<>& strain_m) {
+    ChVectorN<double, 6> mstrain;
+    ChVectorN<double, 6> mstress;
+    mstrain.segment(0, 3) = strain_n.eigen();
+    mstrain.segment(3, 3) = strain_m.eigen();
+    mstress = this->Klaw * mstrain;
+    stress_n = mstress.segment(0, 3);
+    stress_m = mstress.segment(3, 3);
+}
+
+void ChElasticityCosseratAdvancedGenericFPM::ComputeStiffnessMatrix(ChMatrixNM<double, 6, 6>& K,
+                                                         const ChVector<>& strain_n,
+                                                         const ChVector<>& strain_m) {
+    K = this->Klaw;
+}
+
+
+
+
+// -----------------------------------------------------------------------------
+
 void ChElasticityCosseratMesh::SetAsRectangularSection(double width_y, double width_z) {
     this->vertexes.clear();
     this->vertexes.push_back(ChVector2<>(width_y * 0.5, width_z * 0.5));

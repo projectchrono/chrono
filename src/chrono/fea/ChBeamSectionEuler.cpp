@@ -156,10 +156,10 @@ namespace fea {
 		double ss = pow(sin(-phi), 2);
 		double cs = cos(-phi) * sin(-phi);
 		// generic 2x2 tensor rotation
-		double Tyy_rot = cc * Jmyy + ss * Jmzz; // + 2 * Jmyz * cs;
-		double Tzz_rot = ss * Jmyy + cc * Jmzz; // - 2 * Jmyz * cs;
-		double Tyz_rot = (Jmzz - Jmyy) * cs; // +Jmyz * (cc - ss); 
-		// add inertia transport
+		double Tyy_rot = cc * Jmyy + ss * Jmzz; // + 2 * Jmyz * cs; //TODO: it seems the commented term has an opposite sign
+		double Tzz_rot = ss * Jmyy + cc * Jmzz; // - 2 * Jmyz * cs;  //TODO: it seems the commented term has an opposite sign
+		double Tyz_rot = (Jmzz - Jmyy) * cs; // +Jmyz * (cc - ss);   //TODO: it seems the commented term has an opposite sign
+		// add inertia transport 
 		this->Jyy = Tyy_rot +  this->mu * this->Mz * this->Mz;
 		this->Jzz = Tzz_rot +  this->mu * this->My * this->My;
 		this->Jyz = -(Tyz_rot -  this->mu * this->Mz * this->My); // note minus, per definition of Jyz
@@ -202,7 +202,19 @@ namespace fea {
 	}
 
 
+	void ChBeamSectionRayleighAdvancedGeneric::ComputeQuadraticTerms(
+        ChVector<>& mF,       ///< centrifugal term (if any) returned here
+        ChVector<>& mT,       ///< gyroscopic term  returned here
+        const ChVector<>& mW  ///< current angular velocity of section, in material frame
+    ) {
+        // F_centrifugal = density_per_unit_length w X w X c
+        mF = this->mu * Vcross(mW, Vcross(mW, ChVector<>(0, My, Mz)));
 
+        // unroll the product [J] * w  in the expression w X [J] * w  as 4 values of [J] are zero anyway
+        mT = Vcross(mW, ChVector<>(this->GetInertiaJxxPerUnitLength() * mW.x(), 
+								   this->Jyy * mW.y() - this->Jyz * mW.z(),
+                                   this->Jzz * mW.z() - this->Jyz * mW.y()));
+    }
 
 
 

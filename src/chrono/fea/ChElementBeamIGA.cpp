@@ -28,7 +28,7 @@ bool   ChElementBeamIGA::add_gyroscopic_terms = true;
 
 ChElementBeamIGA::ChElementBeamIGA() {
         order = 3;
-        nodes.resize(4); // controllare se ordine = -> 2 nodi, 2 control points, o di più
+        nodes.resize(4); // controllare se ordine = -> 2 nodi, 2 control points, o di pi?
         knots.resize(8);
         int_order_s = 1;
         int_order_b = 1;
