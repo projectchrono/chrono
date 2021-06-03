@@ -109,6 +109,22 @@ CH_SENSOR_API UserXYZIBufferPtr ChSensor::GetMostRecentBuffer() {
     return GetMostRecentBufferHelper<UserXYZIBufferPtr, ChFilterXYZIAccess, ChFilterXYZIAccessName>();
 }
 
+// --------------------------------------------------------------------------
+// retriever function for radar data
+// --------------------------------------------------------------------------
+template <>
+CH_SENSOR_API UserRadarBufferPtr ChSensor::GetMostRecentBuffer() {
+    // call the templated helper function
+    return GetMostRecentBufferHelper<UserRadarBufferPtr, ChFilterRadarAccess, ChFilterRadarAccessName>();
+}
+
+template <>
+CH_SENSOR_API UserProcessedRadarBufferPtr ChSensor::GetMostRecentBuffer() {
+    // call the templated helper function
+    return GetMostRecentBufferHelper<UserProcessedRadarBufferPtr, ChFilterProcessedRadarAccess,
+                                     ChFilterProcessedRadarAccessName>();
+}
+
 template <>
 CH_SENSOR_API UserAccelBufferPtr ChSensor::GetMostRecentBuffer() {
     // call the templated helper function

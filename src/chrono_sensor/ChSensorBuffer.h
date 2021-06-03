@@ -53,7 +53,6 @@ struct SensorBuffer {
                         // completed.
 };
 
-
 /// Base class of 2D buffers. This holds the raw sensor data.
 /// (Do not use this class directly, instead use the typedefs below)
 template <class B>
@@ -70,10 +69,10 @@ struct LidarBufferT : public SensorBufferT<B> {
 };
 
 struct float3 {
-    float x=0;
-    float y=0;
-    float z=0;
-    void add(float a, float b, float c){
+    float x = 0;
+    float y = 0;
+    float z = 0;
+    void add(float a, float b, float c) {
         x += a;
         y += b;
         z += c;
@@ -179,7 +178,7 @@ using SensorDeviceRadarBuffer = RadarBufferT<DeviceRadarBufferPtr>;
 /// pointer to a radar buffer on the host that has been moved for safety and can be given to the user
 using UserRadarBufferPtr = std::shared_ptr<SensorHostRadarBuffer>;
 
-struct PixelProcessedRadar{
+struct PixelProcessedRadar {
     float x;
     float y;
     float z;
@@ -196,7 +195,7 @@ using DeviceProcessedRadarBufferPtr = std::shared_ptr<PixelProcessedRadar[]>;
 /// Sensor buffer wrapper of a DeviceProcessedRadarBufferPtr
 using SensorDeviceProcessedRadarBuffer = RadarBufferT<DeviceProcessedRadarBufferPtr>;
 /// pointer to a processed radar buffer on the host that has been moved for safety and can be given to the user
-using UserProcessedRadarBuffer = std::shared_ptr<SensorHostProcessedRadarBuffer>;
+using UserProcessedRadarBufferPtr = std::shared_ptr<SensorHostProcessedRadarBuffer>;
 
 //=====================================
 // Depth Lidar Data Formats and Buffers
@@ -272,6 +271,28 @@ struct MagnetData {
 using SensorHostMagnetBuffer = SensorBufferT<std::shared_ptr<MagnetData[]>>;
 /// pointer to an acclerometer buffer on the host that has been moved for safety and can be given to the user
 using UserMagnetBufferPtr = std::shared_ptr<SensorHostMagnetBuffer>;
+
+//===================================
+// Tachometer Data Format and Buffers
+//===================================
+struct TachometerData {
+    float rpm;  /// rpm of motor shaft
+};
+/// tachometer host buffer to be used by tachometer filters in the graph
+using SensorHostTachometerBuffer = SensorBufferT<std::shared_ptr<TachometerData[]>>;
+/// pointer to a tachometer buffer on the host that has been moved for safety and can be given to the user
+using UserTachometerBufferPtr = std::shared_ptr<SensorHostTachometerBuffer>;
+
+//================================
+// Speedometer Data Format and Buffers
+//================================
+struct SpeedometerData {
+    float speed;  /// speed of object
+};
+/// speedometer host buffer to be used by speedometer filters in the graph
+using SensorHostSpeedometerBuffer = SensorBufferT<std::shared_ptr<SpeedometerData[]>>;
+/// pointer to a speedometer buffer on the host that has been moved to safety and can be given to the user
+using UserSpeedometerBufferPtr = std::shared_ptr<SensorHostSpeedometerBuffer>;
 
 //============================
 // GPS Data Format and Buffers

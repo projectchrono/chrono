@@ -14,7 +14,7 @@
 //
 // =============================================================================
 
-#define PROFILE true
+#define PROFILE false
 
 #include "chrono_sensor/filters/ChFilterRadarVisualizeCluster.h"
 #include "chrono_sensor/ChOptixSensor.h"

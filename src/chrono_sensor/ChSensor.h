@@ -44,6 +44,8 @@ const char ChFilterAccelAccessName[] = "ChFilterAccelAccess";    /// Acceleromet
 const char ChFilterGyroAccessName[] = "ChFilterGyroAccess";      /// Gyroscope data format (3 doubles total)
 const char ChFilterMagnetAccessName[] = "ChFilterMagnetAccess";  /// Magnetometer data format (3 doubles total)
 const char ChFilterGPSAccessName[] = "ChFilterGPSAccess";        /// GPS data format (4 doubles total)
+const char ChFilterRadarAccessName[] = "ChFilterRadarAccess";
+const char ChFilterProcessedRadarAccessName[] = "ChFilterProcessedRadarAccess";
 
 /// Base class for a chrono sensor. A specific sensor can inherit from here
 class CH_SENSOR_API ChSensor {

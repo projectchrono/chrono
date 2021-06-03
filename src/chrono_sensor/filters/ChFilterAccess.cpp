@@ -214,6 +214,46 @@ CH_SENSOR_API void ChFilterAccess<SensorHostRadarBuffer, UserRadarBufferPtr>::Ap
 }
 
 template <>
+CH_SENSOR_API void ChFilterAccess<SensorHostProcessedRadarBuffer, UserProcessedRadarBufferPtr>::Apply() {
+    // create a new buffer to push to the lag buffer list
+    std::shared_ptr<SensorHostProcessedRadarBuffer> tmp_buffer;
+    if (m_empty_lag_buffers.size() > 0) {
+        tmp_buffer = m_empty_lag_buffers.top();
+        m_empty_lag_buffers.pop();
+    } else {
+        tmp_buffer = chrono_types::make_shared<SensorHostProcessedRadarBuffer>();
+        std::shared_ptr<PixelProcessedRadar[]> b(
+            cudaHostMallocHelper<PixelProcessedRadar>(m_bufferIn->Width * m_bufferIn->Height),
+            cudaHostFreeHelper<PixelProcessedRadar>);
+        tmp_buffer->Buffer = std::move(b);
+    }
+
+    tmp_buffer->Width = m_bufferIn->Width;
+    tmp_buffer->Height = m_bufferIn->Height;
+    tmp_buffer->LaunchedCount = m_bufferIn->LaunchedCount;
+    tmp_buffer->TimeStamp = m_bufferIn->TimeStamp;
+
+    cudaMemcpyAsync(tmp_buffer->Buffer.get(), m_bufferIn->Buffer.get(),
+                    m_bufferIn->Width * m_bufferIn->Height * sizeof(PixelProcessedRadar), cudaMemcpyDeviceToHost,
+                    m_cuda_stream);
+
+    {  // lock in this scope before pushing to lag buffer queue
+        std::lock_guard<std::mutex> lck(m_mutexBufferAccess);
+        // push our buffer into the lag queue
+        m_lag_buffers.push(tmp_buffer);
+        // prevent lag buffer overflow - remove any old buffers that have expired. We don't want the lag_buffer to
+        // grow unbounded
+        while (m_lag_buffers.size() > m_max_lag_buffers) {
+            m_empty_lag_buffers.push(
+                m_lag_buffers.front());  // push the buffer back for efficiency if it wasn't given to the user
+            m_lag_buffers.pop();
+        }
+        // synchronize the cuda stream since we moved data to the host
+        cudaStreamSynchronize(m_cuda_stream);
+    }
+}
+
+template <>
 CH_SENSOR_API void ChFilterAccess<SensorHostAccelBuffer, UserAccelBufferPtr>::Apply() {
     // create a new buffer to push to the lag buffer list
     std::shared_ptr<SensorHostAccelBuffer> tmp_buffer;
