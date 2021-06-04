@@ -364,6 +364,7 @@ void mrole::Initialize() {
 
 double mrole::GetMaxTireSpeed() {
     switch (m_ctis) {
+        default:
         case CTIS::ROAD:
             return 110.0 / 3.6;
         case CTIS::OFFROAD_SOIL:
