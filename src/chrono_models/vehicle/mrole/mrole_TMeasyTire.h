@@ -31,11 +31,65 @@ namespace mrole {
 /// @addtogroup vehicle_models_hmmwv
 /// @{
 
-/// TMeasy tire model for the mrole.
+/// TMeasy tire model for the mrole, for ON ROAD operation
 class CH_MODELS_API mrole_TMeasyTire : public ChTMeasyTire {
   public:
     mrole_TMeasyTire(const std::string& name);
     ~mrole_TMeasyTire() {}
+
+    virtual double GetVisualizationWidth() const override { return m_width; }
+
+    virtual void SetTMeasyParams() override;
+    virtual double GetMass() const override { return m_mass; }
+    virtual ChVector<> GetInertia() const override { return m_inertia; }
+
+    virtual void AddVisualizationAssets(VisualizationType vis) override;
+    virtual void RemoveVisualizationAssets() override final;
+
+    void GenerateCharacteristicPlots(const std::string& dirname);
+
+  private:
+    static const double m_mass;
+    static const ChVector<> m_inertia;
+
+    ChFunction_Recorder m_stiffnessMap;
+
+    static const std::string m_meshFile;
+    std::shared_ptr<ChTriangleMeshShape> m_trimesh_shape;
+};
+
+/// TMeasy tire model for the mrole, for OFFROAD operation on deformable soils
+class CH_MODELS_API mrole_TMeasyTireSoil : public ChTMeasyTire {
+  public:
+    mrole_TMeasyTireSoil(const std::string& name);
+    ~mrole_TMeasyTireSoil() {}
+
+    virtual double GetVisualizationWidth() const override { return m_width; }
+
+    virtual void SetTMeasyParams() override;
+    virtual double GetMass() const override { return m_mass; }
+    virtual ChVector<> GetInertia() const override { return m_inertia; }
+
+    virtual void AddVisualizationAssets(VisualizationType vis) override;
+    virtual void RemoveVisualizationAssets() override final;
+
+    void GenerateCharacteristicPlots(const std::string& dirname);
+
+  private:
+    static const double m_mass;
+    static const ChVector<> m_inertia;
+
+    ChFunction_Recorder m_stiffnessMap;
+
+    static const std::string m_meshFile;
+    std::shared_ptr<ChTriangleMeshShape> m_trimesh_shape;
+};
+
+/// TMeasy tire model for the mrole, for OFFROAD operation on deformable sand
+class CH_MODELS_API mrole_TMeasyTireSand : public ChTMeasyTire {
+  public:
+    mrole_TMeasyTireSand(const std::string& name);
+    ~mrole_TMeasyTireSand() {}
 
     virtual double GetVisualizationWidth() const override { return m_width; }
 
