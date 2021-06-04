@@ -27,7 +27,6 @@
 #include "chrono/multicore_math/matrix.h"
 
 #include "chrono_multicore/ChConfigMulticore.h"
-#include "chrono_multicore/collision/ChCollisionModelMulticore.h"
 #include "chrono_multicore/collision/ChCollisionSystemMulticore.h"
 #include "chrono_multicore/collision/ChCollisionSystemChronoMulticore.h"
 #include "chrono_multicore/collision/ChCollisionSystemBulletMulticore.h"
@@ -780,8 +779,8 @@ void ChSystemMulticore::CalculateBodyAABB() {
     // Loop over all bodies and set the AABB of its collision model
     for (auto b : Get_bodylist()) {
         uint ib = b->GetId();
-        std::static_pointer_cast<ChCollisionModelMulticore>(b->GetCollisionModel())->aabb_min = b_min[ib];
-        std::static_pointer_cast<ChCollisionModelMulticore>(b->GetCollisionModel())->aabb_max = b_max[ib];
+        std::static_pointer_cast<ChCollisionModelChrono>(b->GetCollisionModel())->aabb_min = ToChVector(b_min[ib]);
+        std::static_pointer_cast<ChCollisionModelChrono>(b->GetCollisionModel())->aabb_max = ToChVector(b_max[ib]);
     }
 }
 

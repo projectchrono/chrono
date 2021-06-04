@@ -24,7 +24,6 @@
 
 #include "chrono_multicore/solver/ChSystemDescriptorMulticore.h"
 #include "chrono_multicore/collision/ChContactContainerMulticore.h"
-#include "chrono_multicore/collision/ChCollisionModelMulticore.h"
 
 #include "chrono/collision/bullet/BulletCollision/CollisionDispatch/btCollisionDispatcherMt.h"
 

@@ -18,11 +18,11 @@
 #include "chrono_distributed/collision/ChCollisionModelDistributed.h"
 #include "chrono_distributed/collision/ChCollisionSystemDistributed.h"
 
+#include "chrono/collision/chrono/ChAABBGenerator.h"
+#include "chrono/collision/chrono/ChBroadphaseUtils.h"
+#include "chrono/collision/ChCollisionModelChrono.h"
+
 #include "chrono_multicore/ChDataManager.h"
-#include "chrono_multicore/collision/ChBroadphaseUtils.h"
-#include "chrono_multicore/collision/ChCollisionModelMulticore.h"
-#include "chrono_multicore/collision/ChCollisionSystemMulticore.h"
-#include "chrono_multicore/collision/ChCollision.h"
 
 namespace chrono {
 namespace collision {
@@ -178,7 +178,7 @@ void ChCollisionSystemDistributed::Add(ChCollisionModel* model) {
     if (free_dm_shapes.size() == needed_count) {
         for (int i = 0; i < needed_count; i++) {
             // i identifies a shape in the MODEL
-            auto shape = std::static_pointer_cast<ChCollisionShapeMulticore>(pmodel->GetShape(i));
+            auto shape = std::static_pointer_cast<ChCollisionShapeChrono>(pmodel->GetShape(i));
 
             int j = free_dm_shapes[i];  // Index into shape_data
 
@@ -427,7 +427,7 @@ void ChCollisionSystemDistributed::Add(ChCollisionModel* model) {
 //     // If there was not enough space in the data_manager for all shapes in the model,
 //     // call the regular add // TODO faster jump to here
 //     else {
-//         this->ChCollisionSystemMulticore::Add(model);
+//         this->ChCollisionSystemChronoMulticore::Add(model);
 //         for (int i = 0; i < needed_count; i++) {
 //             ddm->dm_free_shapes.push_back(false);
 //             ddm->body_shapes[begin_shapes] = dm->shape_data.id_rigid.size() - needed_count + i;  // TODO ?
@@ -441,7 +441,7 @@ void ChCollisionSystemDistributed::Add(ChCollisionModel* model) {
 // Id must be set before calling
 // Deactivates all shapes associated with the collision model
 void ChCollisionSystemDistributed::Remove(ChCollisionModel* model) {
-    ChCollisionModelMulticore* pmodel = static_cast<ChCollisionModelMulticore*>(model);
+    ChCollisionModelChrono* pmodel = static_cast<ChCollisionModelChrono*>(model);
     uint id = pmodel->GetBody()->GetId();
     int count = pmodel->GetNumShapes();
     int start = ddm->body_shape_start[id];
@@ -516,7 +516,7 @@ void ChCollisionSystemDistributed::Remove(ChCollisionModel* model) {
 }
 
 void ChCollisionSystemDistributed::GetOverlappingAABB(custom_vector<char>& active_id, real3 Amin, real3 Amax) {
-    ddm->data_manager->aabb_generator->GenerateAABB();
+    aabb_generator.GenerateAABB();
     ////#pragma omp parallel for
     for (int i = 0; i < ddm->data_manager->cd_data->shape_data.typ_rigid.size(); i++) {
         auto id_rigid = ddm->data_manager->cd_data->shape_data.id_rigid[i];

@@ -36,7 +36,6 @@
 
 #include "chrono_multicore/ChDataManager.h"
 #include "chrono_multicore/ChMulticoreDefines.h"
-#include "chrono_multicore/collision/ChCollisionSystemMulticore.h"
 
 using namespace chrono;
 using namespace collision;
