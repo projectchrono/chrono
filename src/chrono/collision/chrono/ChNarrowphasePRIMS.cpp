@@ -710,9 +710,9 @@ int box_capsule(const real3& pos1,
 // In:  box at position pos1, with orientation rot1, and half-dimensions hdims
 //      cylshell at pos2, with orientation rot2, radius and half-length hlen (in Y direction)
 // Notes:
-// - collisions with the caps of the cylshell are ignored!
-// - a box-cylshell collision may return 0, 1, or more contacts
-
+// - only treat interactions when the cylinder axis is parallel to or perpendicular on a box face.
+// - for any other relative configuration report -1 contacts (which will trigger a fall-back onto MPR).
+// - a box-cylshell collision may return up to 8 contacts.
 int box_cylshell(const real3& pos1,
                  const quaternion& rot1,
                  const real3& hdims,
@@ -726,144 +726,189 @@ int box_cylshell(const real3& pos1,
                  real3* pt1,
                  real3* pt2,
                  real* eff_radius) {
-    real radius_s = radius + separation;
-
     // Express cylinder in the box frame
     real3 c = RotateT(pos2 - pos1, rot1);    // cylinder center (expressed in box frame)
     quaternion rot = Mult(Inv(rot1), rot2);  // cylinder orientation (w.r.t box frame)
     real3 a = AMatV(rot);                    // cylinder axis (expressed in box frame)
 
-    // Inflate the box by the radius of the capsule plus the separation value and check if the capsule centerline
-    // intersects the expanded box. We do this by clamping the capsule axis to the volume between two parallel faces
-    // of the box, considering in turn the x, y, and z faces.
-    real3 hdims_exp = hdims + radius_s;
-    real tMin = -C_LARGE_REAL;
-    real tMax = C_LARGE_REAL;
+    real3 c_abs = Abs(c);
+    real3 a_abs = Abs(a);
 
-    real threshold = real(1e-5);  // threshold for line parallel to face tests
+    static const real threshold_par = real(1e-4);   // threshold for axis parallel to face test
+    static const real threshold_perp = real(1e-4);  // threshold for axis perpendicular to face test
 
-    if (Abs(a.x) < threshold) {
-        // Capsule axis parallel to the box x-faces
-        if (Abs(c.x) > hdims_exp.x)
-            return 0;
-    } else {
-        real t1 = (-hdims_exp.x - c.x) / a.x;
-        real t2 = (hdims_exp.x - c.x) / a.x;
+    // Loop over the 3 box directions. Treat only the cases where the cylinder axis is almost parallel or almost
+    // perpendicular to a box face.
+    for (uint i1 = 0, i2 = 1, i3 = 2; i1 < 3; i2 = i3, i3 = i1++) {
+        // (1) Check if cylinder axis is parallel to the 'i1' box face
+        if (a_abs[i1] < threshold_par) {
+            // if cylinder too far from face, no collision
+            if (c_abs[i1] > hdims[i1] + radius + separation)
+                return 0;
 
-        tMin = Max(tMin, Min(t1, t2));
-        tMax = Min(tMax, Max(t1, t2));
+            // if cylinder too far into box, do nothing
+            if (c_abs[i1] < hdims[i1])
+                continue;
 
-        if (tMin > tMax)
-            return 0;
+            // clamp cylinder centerline to [i2,i3] box slabs
+            real tMin = -C_LARGE_REAL;
+            real tMax = C_LARGE_REAL;
+            if (a_abs[i2] > threshold_par) {
+                real t1 = (-hdims[i2] - c[i2]) / a[i2];
+                real t2 = (+hdims[i2] - c[i2]) / a[i2];
+                tMin = Max(tMin, Min(t1, t2));
+                tMax = Min(tMax, Max(t1, t2));
+                if (tMin > tMax)
+                    return 0;
+            }
+            if (a_abs[i3] > threshold_par) {
+                real t1 = (-hdims[i3] - c[i3]) / a[i3];
+                real t2 = (+hdims[i3] - c[i3]) / a[i3];
+                tMin = Max(tMin, Min(t1, t2));
+                tMax = Min(tMax, Max(t1, t2));
+                if (tMin > tMax)
+                    return 0;
+            }
+
+            // clamp tMin and tMax to cylinder axis
+            ClampValue(tMin, -hlen, +hlen);
+            ClampValue(tMax, -hlen, +hlen);
+
+            // generate two collisions (points on cylinder axis)
+            real3 locs[2] = {c + tMin * a, c + tMax * a};
+
+            for (int i = 0; i < 2; i++) {
+                // snap point to box
+                real3 boxPoint = locs[i];
+                uint code = snap_to_box(hdims, boxPoint);  // point on box (in box frame)
+                assert(code != 0);                         // point cannot be inside box
+                real3 u = locs[i] - boxPoint;              // collision direction (in box frame)
+                real u_nrm = Sqrt(Dot(u, u));              // distance between point on box and cylinder axis
+                assert(u_nrm > 0);                         // cylinder axis must be outside box
+                u = u / u_nrm;                             // collision normal (in box frame)
+                real3 cylPoint = locs[i] - radius * u;     // point on cylinder (in box frame)
+
+                *(depth + i) = u_nrm - radius;                              // depth (negative for penetration)
+                *(norm + i) = Rotate(u, rot1);                              // collision normal (in global frame)
+                *(pt1 + i) = TransformLocalToParent(pos1, rot1, boxPoint);  // point on box (in global frame)
+                *(pt2 + i) = TransformLocalToParent(pos1, rot1, cylPoint);  // point on cylinder (in global frame)
+                *(eff_radius + i) = radius;                                 // effective radius
+
+                ////std::cout << u_nrm - radius << std::endl;
+            }
+
+            return 2;
+        }
+
+        // (2) Check if cylinder axis is perpendicular to the 'i1' box face
+        if (a_abs[i1] > 1 - threshold_perp) {
+            // if cylinder too far from box, no collision
+            if (c_abs[i1] > hdims[i1] + hlen + separation)
+                return 0;
+
+            // if cylinder too far into box, do nothing
+            if (c_abs[i1] < hdims[i1])
+                continue;
+
+            // if cylinder too far to the "side", do nothing
+            if (c_abs[i2] > hdims[i2] || c_abs[i3] > hdims[i3]) {
+                continue;
+            }
+
+            // decide on "sign" of box face and set the normal direction for any resulting collisions
+            int sign = (c[i1] > 0) ? +1 : -1;
+            real3 u(0);
+            u[i1] = sign;
+
+            // working in the plane fo the 'i1' face, the circle center is at (c[i2], c[i3]).
+            // check circle intersection with each face edge (and clamp to edge length if needed).
+            // if circle does not intersect edge, create collision point on circle.
+            real discr;
+            real3 locs[8];  // collision points (expressed in box frame)
+            int nc = 0;     // keep track of number of circle-rectangle intersection points (at most 8)
+
+            // negative 'i2' edge
+            discr = radius * radius - (c[i2] + hdims[i2]) * (c[i2] + hdims[i2]);
+            if (discr > 0) {
+                real sqrt_discr = Sqrt(discr);
+                locs[nc][i2] = -hdims[i2];
+                locs[nc][i3] = Clamp(c[i2] + sqrt_discr, -hdims[i3], +hdims[i3]);
+                nc++;
+                locs[nc][i2] = -hdims[i2];
+                locs[nc][i3] = Clamp(c[i2] - sqrt_discr, -hdims[i3], +hdims[i3]);
+                nc++;
+            } else {
+                locs[nc][i2] = c[i2] - radius;
+                locs[nc][i3] = c[i3];
+                nc++;
+            }
+
+            // positive 'i2' edge
+            discr = radius * radius - (c[i2] - hdims[i2]) * (c[i2] - hdims[i2]);
+            if (discr > 0) {
+                real sqrt_discr = Sqrt(discr);
+                locs[nc][i2] = +hdims[i2];
+                locs[nc][i3] = Clamp(c[i2] + sqrt_discr, -hdims[i3], +hdims[i3]);
+                nc++;
+                locs[nc][i2] = +hdims[i2];
+                locs[nc][i3] = Clamp(c[i2] - sqrt_discr, -hdims[i3], +hdims[i3]);
+                nc++;
+            } else {
+                locs[nc][i2] = c[i2] + radius;
+                locs[nc][i3] = c[i3];
+                nc++;
+            }
+
+            // negative 'i3' edge
+            discr = radius * radius - (c[i3] + hdims[i3]) * (c[i3] + hdims[i3]);
+            if (discr > 0) {
+                real sqrt_discr = Sqrt(discr);
+                locs[nc][i3] = -hdims[i3];
+                locs[nc][i2] = Clamp(c[i3] + sqrt_discr, -hdims[i2], +hdims[i2]);
+                nc++;
+                locs[nc][i3] = -hdims[i3];
+                locs[nc][i2] = Clamp(c[i3] - sqrt_discr, -hdims[i2], +hdims[i2]);
+                nc++;
+            } else {
+                locs[nc][i3] = c[i3] - radius;
+                locs[nc][i2] = c[i2];
+                nc++;
+            }
+
+            // positive 'i3' edge
+            discr = radius * radius - (c[i3] - hdims[i3]) * (c[i3] - hdims[i3]);
+            if (discr > 0) {
+                real sqrt_discr = Sqrt(discr);
+                locs[nc][i3] = +hdims[i3];
+                locs[nc][i2] = Clamp(c[i3] + sqrt_discr, -hdims[i2], +hdims[i2]);
+                nc++;
+                locs[nc][i3] = +hdims[i3];
+                locs[nc][i2] = Clamp(c[i3] - sqrt_discr, -hdims[i2], +hdims[i2]);
+                nc++;
+            } else {
+                locs[nc][i3] = c[i3] + radius;
+                locs[nc][i2] = c[i2];
+                nc++;
+            }
+
+            // Generate collision geometric information for all interactions
+            for (int i = 0; i < nc; i++) {
+                locs[i][i1] = sign * hdims[i1];                            // point on box (in box frame)
+                *(pt1 + i) = TransformLocalToParent(pos1, rot1, locs[i]);  // point on box (in global frame)
+                locs[i][i1] = c[i1] - sign * hlen;                         // point on cylinder (in box frame)
+                *(pt2 + i) = TransformLocalToParent(pos1, rot1, locs[i]);  // point on cylinder (in global frame)
+                *(depth + i) = c[i1] - sign * hlen - sign * hdims[i1];     // depth (negative for penetration)
+                *(norm + i) = Rotate(u, rot1);                             // collision normal (in global frame)
+                *(eff_radius + i) = radius;                                // questionable as this is face-face contact
+            }
+
+            ////std::cout << "Axis perpendicular to face " << i1 << "    nc = " << nc << std::endl;
+            return nc;
+        }
     }
 
-    if (Abs(a.y) < threshold) {
-        // Capsule axis parallel to the box y-faces
-        if (Abs(c.y) > hdims_exp.y)
-            return 0;
-    } else {
-        real t1 = (-hdims_exp.y - c.y) / a.y;
-        real t2 = (hdims_exp.y - c.y) / a.y;
-
-        tMin = Max(tMin, Min(t1, t2));
-        tMax = Min(tMax, Max(t1, t2));
-
-        if (tMin > tMax)
-            return 0;
-    }
-
-    if (Abs(a.z) < threshold) {
-        // Capsule axis parallel to the box z-faces
-        if (Abs(c.z) > hdims_exp.z)
-            return 0;
-    } else {
-        real t1 = (-hdims_exp.z - c.z) / a.z;
-        real t2 = (hdims_exp.z - c.z) / a.z;
-
-        tMin = Max(tMin, Min(t1, t2));
-        tMax = Min(tMax, Max(t1, t2));
-
-        if (tMin > tMax)
-            return 0;
-    }
-
-    // Generate the two points where the cylinder centerline intersects the exapanded box (still expressed in the
-    // box frame). Snap these locations to the original box, then snap back onto the cylinder axis. This reduces
-    // the collision problem to 1 or 2 collisions.
-    real3 locs[2] = {c + tMin * a, c + tMax * a};
-    real t[2];
-
-    for (int i = 0; i < 2; i++) {
-        /*uint code =*/snap_to_box(hdims, locs[i]);
-        t[i] = Clamp(Dot(locs[i] - c, a), -hlen, hlen);
-    }
-
-    // Check if the two points almost coincide (in which case consider only one of them)
-    int numPoints = IsEqual(t[0], t[1]) ? 1 : 2;
-
-    // Perform collision tests and keep track of actual number of contacts.
-    int j = 0;
-    for (int i = 0; i < numPoints; i++) {
-        // Point on the cylinder axis (expressed in the box frame).
-        real3 axisPoint = c + a * t[i];
-
-        // Snap to box. If axis point inside box, no contact.
-        real3 boxPoint = axisPoint;
-        uint code = snap_to_box(hdims, boxPoint);
-        if (code == 0)
-            continue;
-
-        // Find closest point on cylinder to the box. If this point is on the cylinder centerline, no contact.
-        real3 u = axisPoint - boxPoint;
-        real u_length = Sqrt(Dot(u, u));
-        if (u_length < threshold)
-            continue;
-        u = u / u_length;
-        real3 w = Cross(u, a);
-        real w_length = Sqrt(Dot(w, w));
-        if (w_length < threshold)
-            continue;
-        real3 v = Cross(w, a);
-        real v_length = Sqrt(Dot(v, v));
-        v = v / v_length;
-        real3 cylPoint = axisPoint + radius * v;
-
-        // If cylinder point outside box, no contact.
-        code = snap_to_box(hdims, cylPoint);
-        if (code != 0)
-            continue;
-
-        // Moving in the u direction, project cylinder point onto box surface.
-        real step = C_LARGE_REAL;
-        if (Abs(u.x) > threshold)
-            step = Min((Sign(u.x) * hdims.x - cylPoint.x) / u.x, step);
-        if (Abs(u.y) > threshold)
-            step = Min((Sign(u.y) * hdims.y - cylPoint.y) / u.y, step);
-        if (Abs(u.z) > threshold)
-            step = Min((Sign(u.z) * hdims.z - cylPoint.z) / u.z, step);
-        boxPoint = cylPoint + step * u;
-
-        // Debug check: boxPoint inside cylinder
-        assert(Abs(Dot(a, boxPoint - c)) <= real(1.01) * hlen);
-
-        // Calculate penetration
-        real3 delta = boxPoint - cylPoint;
-        real dist = Sqrt(Dot(delta, delta));
-        if (dist < 1e-10)
-            continue;
-
-        *(depth + j) = -dist;
-        *(norm + j) = Rotate(delta / dist, rot1);
-        *(pt1 + j) = TransformLocalToParent(pos1, rot1, boxPoint);
-        *(pt2 + j) = TransformLocalToParent(pos1, rot1, cylPoint);
-        *(eff_radius + j) = 0.1;
-        /// radius;
-
-        j++;
-    }
-
-    // Return the number of actual contacts
-    return j;
+    // We were unable to compute collision analytically - signal fall-back to MPR
+    return -1;
 }
 
 // =============================================================================
@@ -1351,7 +1396,7 @@ bool PRIMSCollision(const ConvexBase* shapeA,  // first candidate shape
     if (shapeA->Type() == ChCollisionShape::Type::BOX && shapeB->Type() == ChCollisionShape::Type::CYLSHELL) {
         nC = box_cylshell(shapeA->A(), shapeA->R(), shapeA->Box(), shapeB->A(), shapeB->R(), shapeB->Cylshell().x,
                           shapeB->Cylshell().y, separation, ct_norm, ct_depth, ct_pt1, ct_pt2, ct_eff_rad);
-        return true;
+        return (nC >= 0);
     }
 
     if (shapeA->Type() == ChCollisionShape::Type::CYLSHELL && shapeB->Type() == ChCollisionShape::Type::BOX) {
@@ -1360,7 +1405,7 @@ bool PRIMSCollision(const ConvexBase* shapeA,  // first candidate shape
         for (int i = 0; i < nC; i++) {
             *(ct_norm + i) = -(*(ct_norm + i));
         }
-        return true;
+        return (nC >= 0);
     }
 
     if (shapeA->Type() == ChCollisionShape::Type::BOX && shapeB->Type() == ChCollisionShape::Type::BOX) {

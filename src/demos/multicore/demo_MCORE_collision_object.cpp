@@ -19,6 +19,7 @@
 #include "chrono_multicore/physics/ChSystemMulticore.h"
 #include "chrono_multicore/collision/ChCollisionSystemChronoMulticore.h"
 #include "chrono_irrlicht/ChIrrApp.h"
+#include "chrono/core/ChRealtimeStep.h"
 
 using namespace chrono;
 using namespace chrono::irrlicht;
@@ -46,20 +47,20 @@ int main(int argc, char* argv[]) {
     collision::ChCollisionSystemType collision_type = collision::ChCollisionSystemType::CHRONO;
 
     // Narrowphase algorithm
-    collision::ChNarrowphase::Algorithm narrowphase_algorithm = collision::ChNarrowphase::Algorithm::MPR;
+    collision::ChNarrowphase::Algorithm narrowphase_algorithm = collision::ChNarrowphase::Algorithm::HYBRID;
 
     // Collision envelope (NSC only)
     double collision_envelope = 0.05;
 
     // Collision shape
     enum class CollisionShape { SPHERE, CYLINDER, CAPSULE, CYLSHELL, MESH };
-    CollisionShape object_model = CollisionShape::CAPSULE;
+    CollisionShape object_model = CollisionShape::CYLSHELL;
 
     std::string tire_mesh_file = GetChronoDataFile("vehicle/hmmwv/hmmwv_tire_fine.obj");
     ////std::string tire_mesh_file = GetChronoDataFile("vehicle/hmmwv/hmmwv_tire_coarse.obj");
 
     // Contact material properties
-    ChContactMethod contact_method = ChContactMethod::NSC;
+    ChContactMethod contact_method = ChContactMethod::SMC;
     bool use_mat_properties = true;
 
     float object_friction = 0.8f;
@@ -86,13 +87,18 @@ int main(int argc, char* argv[]) {
     double init_height = 0.65;
     double init_x = 0.0;
     double init_z = 0.0;
-    double init_roll = 0 * CH_C_DEG_TO_RAD;
+    double init_roll = 30 * CH_C_DEG_TO_RAD;
 
     ChVector<> init_vel(0, 0, 0);
     ChVector<> init_omg(0, 0, 0);
 
     double radius = 0.5;  // cylinder radius
-    double hlen = 0.4;    // cylinder half-length
+    double hlen = 0.1;    // cylinder half-length
+
+    // Fixed box (ground) dimensions
+    double hx = 4;
+    double hy = 0.5;
+    double hz = 2;
 
     // Step size
     double time_step = contact_method == ChContactMethod::NSC ? 1e-3 : 1e-4;
@@ -155,6 +161,7 @@ int main(int argc, char* argv[]) {
 
     system->SetCollisionSystemType(collision_type);
     system->Set_G_acc(ChVector<>(0, -9.81, 0));
+    //system->Set_G_acc(ChVector<>(0, 0, 0));
 
     // Set number of threads
     system->SetNumThreads(2);
@@ -191,7 +198,7 @@ int main(int argc, char* argv[]) {
     object->SetPos(ChVector<>(init_x, init_height, init_z));
     object->SetRot(z2y * Q_from_AngX(init_roll));
     object->SetPos_dt(init_vel);
-    object->SetWvel_par(init_omg);
+    object->SetWvel_loc(init_omg);
     object->SetCollide(true);
     object->SetBodyFixed(false);
 
@@ -304,10 +311,6 @@ int main(int argc, char* argv[]) {
         matSMC->SetGt(ground_gt);
     }
 
-    double hx = 1;
-    double hy = 0.5;
-    double hz = 1;
-
     ground->GetCollisionModel()->ClearModel();
     ground->GetCollisionModel()->AddBox(ground_mat, hx, hy, hz, ChVector<>(0, -hy, 0));
     ground->GetCollisionModel()->BuildModel();
@@ -329,6 +332,7 @@ int main(int argc, char* argv[]) {
     auto cmanager = chrono_types::make_shared<ContactManager>();
 
     // Simulation loop
+    ChRealtimeStepTimer rt;
     while (application.GetDevice()->run()) {
         application.BeginScene();
         application.DrawAll();
@@ -351,6 +355,8 @@ int main(int argc, char* argv[]) {
             std::cout << "Contact torque at COM: " << trq1 << std::endl;
         }
         */
+
+        rt.Spin(time_step);
     }
 
     return 0;
