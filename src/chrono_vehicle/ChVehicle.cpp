@@ -28,7 +28,7 @@
 
 #include "chrono_vehicle/output/ChVehicleOutputASCII.h"
 #ifdef CHRONO_HAS_HDF5
-#include "chrono_vehicle/output/ChVehicleOutputHDF5.h"
+    #include "chrono_vehicle/output/ChVehicleOutputHDF5.h"
 #endif
 
 namespace chrono {
@@ -38,8 +38,7 @@ namespace vehicle {
 // Constructor for a ChVehicle using a default Chrono system.
 // Specify default step size and solver parameters.
 // -----------------------------------------------------------------------------
-ChVehicle::ChVehicle(const std::string& name,
-                     ChContactMethod contact_method)
+ChVehicle::ChVehicle(const std::string& name, ChContactMethod contact_method)
     : m_name(name),
       m_ownsSystem(true),
       m_output(false),

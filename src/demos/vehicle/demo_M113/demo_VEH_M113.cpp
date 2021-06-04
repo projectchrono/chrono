@@ -19,6 +19,7 @@
 #include "chrono/utils/ChUtilsInputOutput.h"
 #include "chrono/core/ChRealtimeStep.h"
 #include "chrono/solver/ChSolverBB.h"
+#include "chrono/physics/ChSystemSMC.h"
 
 #include "chrono_vehicle/ChVehicleModelData.h"
 #include "chrono_vehicle/driver/ChIrrGuiDriver.h"
@@ -124,11 +125,14 @@ int main(int argc, char* argv[]) {
     m113.SetChassisFixed(fix_chassis);
     m113.CreateTrack(create_track);
 
-    // Disable gravity in this simulation
-    ////m113.GetSystem()->Set_G_acc(ChVector<>(0, 0, 0));
-
     // Control steering type (enable crossdrive capability)
     ////m113.GetDriveline()->SetGyrationMode(true);
+
+    // Change collision detection system
+    m113.SetCollisionSystemType(collision::ChCollisionSystemType::CHRONO);
+
+    // Change collision shape for road wheels and idlers (true: cylinder; false: cylshell)
+    m113.SetWheelCollisionType(false, false);
 
     // ------------------------------------------------
     // Initialize the vehicle at the specified position
@@ -145,6 +149,14 @@ int main(int argc, char* argv[]) {
     m113.SetRoadWheelAssemblyVisualizationType(track_vis);
     m113.SetRoadWheelVisualizationType(track_vis);
     m113.SetTrackShoeVisualizationType(track_vis);
+
+    // Disable gravity in this simulation
+    ////m113.GetSystem()->Set_G_acc(ChVector<>(0, 0, 0));
+
+    // Change (SMC) contact force model
+    ////if (contact_method == ChContactMethod::SMC) {
+    ////    static_cast<ChSystemSMC*>(m113.GetSystem())->SetContactForceModel(ChSystemSMC::ContactForceModel::PlainCoulomb);
+    ////}
 
     // --------------------------------------------------
     // Control internal collisions and contact monitoring
@@ -173,7 +185,7 @@ int main(int argc, char* argv[]) {
     ////m113.GetVehicle().MonitorContacts(TrackedCollisionFlag::SPROCKET_LEFT | TrackedCollisionFlag::SPROCKET_RIGHT);
 
     // Monitor only contacts involving the left idler.
-    ////m113.GetVehicle().MonitorContacts(TrackedCollisionFlag::IDLER_LEFT);
+    m113.GetVehicle().MonitorContacts(TrackedCollisionFlag::IDLER_LEFT);
     
     // Collect contact information.
     // If enabled, number of contacts and local contact point locations are collected for all
