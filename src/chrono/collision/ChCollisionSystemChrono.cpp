@@ -315,24 +315,15 @@ void ChCollisionSystemChrono::Run() {
         }
     }
 
+    // Broadphase
     m_timer_broad.start();
-    aabb_generator.GenerateAABB();           // generate shape AABBs
-    broadphase.DetermineBoundingBox();       // compute overall AABB
-    broadphase.OffsetAABB();                 // offset AABBs
-    broadphase.ComputeTopLevelResolution();  // determine resolution of the top level grid
-    broadphase.DispatchRigid();              // everything is offset and ready to go!
+    aabb_generator.GenerateAABB();
+    broadphase.Process();
     m_timer_broad.stop();
 
+    // Narrowphase
     m_timer_narrow.start();
-    if (cd_data->state_data.num_fluid_bodies != 0) {
-        narrowphase.DispatchFluid();
-    }
-    if (cd_data->num_rigid_shapes != 0) {
-        narrowphase.ProcessRigids(broadphase.bins_per_axis);
-    } else {
-        cd_data->c_counts_rigid_fluid.clear();
-        cd_data->num_rigid_fluid_contacts = 0;
-    }
+    narrowphase.Process(broadphase.bins_per_axis);
     m_timer_narrow.stop();
 }
 

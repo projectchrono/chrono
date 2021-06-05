@@ -108,7 +108,7 @@ void AddContainer(ChSystemDistributed* sys, double hx, double hy, double height)
     mat->SetFriction(mu);
     mat->SetRestitution(cr);
 
-    auto bin = chrono_types::make_shared<ChBody>(chrono_types::make_shared<ChCollisionModelChrono>());
+    auto bin = chrono_types::make_shared<ChBody>(chrono_types::make_shared<ChCollisionModelDistributed>());
     bin->SetIdentifier(binId);
     bin->SetMass(1);
     bin->SetPos(ChVector<>(0, 0, 0));

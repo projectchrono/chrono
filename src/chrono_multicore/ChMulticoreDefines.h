@@ -104,6 +104,3 @@ enum class LoggingLevel {
 /// @} multicore_module
 
 }  // end namespace chrono
-
-#define max_neighbors 64
-#define max_rigid_neighbors 32

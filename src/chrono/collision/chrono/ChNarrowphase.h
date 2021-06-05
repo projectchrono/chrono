@@ -22,10 +22,6 @@
 
 #include "chrono/collision/chrono/ChCollisionData.h"
 
-//// TODO: rename these!!!
-#define max_neighbors 64
-#define max_rigid_neighbors 32
-
 namespace chrono {
 namespace collision {
 
@@ -50,9 +46,14 @@ class ChApi ChNarrowphase {
     /// Clear contact data structures.
     void ClearContacts();
 
-    /// Perform collision detection.
-    void ProcessRigids(const vec3& bins_per_axis);
+    /// Perform narrowphase collision detection.
+    /// This function generates rigid-rigid, fluid-fluid, and rigid-fluid collisions, as applicable.
+    void Process(const vec3& bins_per_axis);
 
+    static const int max_neighbors = 64;
+    static const int max_rigid_neighbors = 32;
+
+  private:
     /// Calculate total number of potential contacts.
     int PreprocessCount();
 
@@ -63,10 +64,13 @@ class ChApi ChNarrowphase {
     /// transformed once per shape.
     void PreprocessLocalToParent();
 
-    // For each contact pair decide what to do.
-    void DispatchRigid();
-    void DispatchRigidFluid(const vec3& bins_per_axis);
-    void DispatchFluid();
+    /// Perform collision detection fluid-fluid.
+    void ProcessFluid();
+
+    /// Perform collision detection involving rigid shapes (rigid-rigid and rigid-fluid).
+    void ProcessRigids(const vec3& bins_per_axis);
+    void ProcessRigidRigid();
+    void ProcessRigidFluid(const vec3& bins_per_axis);
 
     void DispatchMPR();
     void DispatchPRIMS();
@@ -74,7 +78,6 @@ class ChApi ChNarrowphase {
     void Dispatch_Init(uint index, uint& icoll, uint& ID_A, uint& ID_B, ConvexShape* shapeA, ConvexShape* shapeB);
     void Dispatch_Finalize(uint icoll, uint ID_A, uint ID_B, int nC);
 
-  private:
     std::shared_ptr<ChCollisionData> cd_data;
 
     std::vector<char> contact_rigid_active;

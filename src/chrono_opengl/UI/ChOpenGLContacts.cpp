@@ -88,7 +88,7 @@ void ChOpenGLContacts::UpdateChronoMulticore(ChSystemMulticore* system) {
         int end = data_manager->cd_data->c_counts_rigid_fluid[p + 1];
         for (int index = start; index < end; index++) {
             int i = index - start;
-            real3 cpta = data_manager->cd_data->cpta_rigid_fluid[p * max_rigid_neighbors + i];
+            real3 cpta = data_manager->cd_data->cpta_rigid_fluid[p * ChNarrowphase::max_rigid_neighbors + i];
             contact_data[index + offset] = glm::vec3(cpta.x, cpta.y, cpta.z);
         }
     }

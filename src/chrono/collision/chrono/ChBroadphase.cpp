@@ -34,7 +34,7 @@ namespace collision {
 
 ChBroadphase::ChBroadphase() : bins_per_axis(vec3(10, 10, 10)), fixed_bins(true), grid_density(5), cd_data(nullptr) {}
 
-// Determine the bounding box for the objects===============================================================
+// -----------------------------------------------------------------------------
 
 // Inverted AABB (assumed associated with an active shape).
 auto inverted = thrust::make_tuple(real3(+C_LARGE_REAL, +C_LARGE_REAL, +C_LARGE_REAL),
@@ -194,11 +194,18 @@ void ChBroadphase::ComputeTopLevelResolution() {
     inv_bin_size = 1.0 / bin_size;
 }
 
-// =========================================================================================================
+// -----------------------------------------------------------------------------
 
 // use spatial subdivision to detect the list of POSSIBLE collisions
 // let user define their own narrow-phase collision detection
-void ChBroadphase::DispatchRigid() {
+void ChBroadphase::Process() {
+    // Compute overall AABB and then offset all AABBs
+    DetermineBoundingBox();
+    OffsetAABB();
+
+    // Determine resolution of the top level grid
+    ComputeTopLevelResolution();  
+
     if (cd_data->num_rigid_shapes != 0) {
         OneLevelBroadphase();
         cd_data->num_rigid_contacts = cd_data->measures.number_of_contacts_possible;

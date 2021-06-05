@@ -51,22 +51,38 @@ void ChNarrowphase::ClearContacts() {
     }
 }
 
+void ChNarrowphase::Process(const vec3& bins_per_axis) {
+    if (cd_data->state_data.num_fluid_bodies != 0) {
+        ProcessFluid();
+    }
+    if (cd_data->num_rigid_shapes != 0) {
+        ProcessRigids(bins_per_axis);
+    } else {
+        cd_data->c_counts_rigid_fluid.clear();
+        cd_data->num_rigid_fluid_contacts = 0;
+    }
+}
+
 void ChNarrowphase::ProcessRigids(const vec3& bins_per_axis) {
-    //======== Indexing variables and other information
     num_potential_rigid_contacts = cd_data->num_rigid_contacts;
     num_potential_rigid_fluid_contacts = cd_data->num_rigid_fluid_contacts;
     num_potential_fluid_contacts = cd_data->num_fluid_contacts;
+    
     ClearContacts();
+
     // Transform Rigid body shapes to global coordinate system
     PreprocessLocalToParent();
 
     if (num_potential_rigid_contacts != 0) {
-        DispatchRigid();
+        ProcessRigidRigid();
     }
+
     if (cd_data->state_data.num_fluid_bodies != 0) {
-        DispatchRigidFluid(bins_per_axis);
+        ProcessRigidFluid(bins_per_axis);
     }
 }
+
+// -----------------------------------------------------------------------------
 
 int ChNarrowphase::PreprocessCount() {
     // Set the number of potential contact points for each collision pair
@@ -169,6 +185,8 @@ void ChNarrowphase::PreprocessLocalToParent() {
         cd_data->shape_data.obj_data_R_global[index] = Mult(rot, obj_data_R[index]);
     }
 }
+
+// -----------------------------------------------------------------------------
 
 void ChNarrowphase::Dispatch_Init(uint index,
                                   uint& icoll,
@@ -292,7 +310,9 @@ void ChNarrowphase::DispatchHybridMPR() {
     }
 }
 
-void ChNarrowphase::DispatchRigid() {
+// -----------------------------------------------------------------------------
+
+void ChNarrowphase::ProcessRigidRigid() {
     std::vector<real3>& norm_data = cd_data->norm_rigid_rigid;
     std::vector<real3>& cpta_data = cd_data->cpta_rigid_rigid;
     std::vector<real3>& cptb_data = cd_data->cptb_rigid_rigid;
@@ -355,6 +375,8 @@ void ChNarrowphase::DispatchRigid() {
     contact_shapeIDs.resize(num_rigid_contacts);
 }
 
+// -----------------------------------------------------------------------------
+
 inline int GridCoord(real x, real inv_bin_edge, real minimum) {
     real l = x - minimum;
     int c = (int)Round(l * inv_bin_edge);
@@ -365,13 +387,12 @@ inline int GridHash(int x, int y, int z, const vec3& bins_per_axis) {
     return ((z * bins_per_axis.y) * bins_per_axis.x) + (y * bins_per_axis.x) + x;
 }
 
-void ChNarrowphase::DispatchFluid() {
+void ChNarrowphase::ProcessFluid() {
     // Readability replacements
     const int num_fluid_bodies = cd_data->state_data.num_fluid_bodies;
     if (num_fluid_bodies == 0)
         return;
 
-    ////const int body_offset = cd_data->state_data.num_rigid_bodies * 6 + cd_data->num_shafts + cd_data->num_motors;
     const real radius = cd_data->p_kernel_radius + cd_data->p_collision_envelope;
     const real collision_envelope = cd_data->p_collision_envelope;
     const real3& min_bounding_point = cd_data->measures.ff_min_bounding_point;
@@ -480,9 +501,9 @@ void ChNarrowphase::DispatchFluid() {
     num_fluid_contacts = Thrust_Total(contact_counts);
 }
 
-//==================================================================================================================================
+// -----------------------------------------------------------------------------
 
-void ChNarrowphase::DispatchRigidFluid(const vec3& bins_per_axis) {
+void ChNarrowphase::ProcessRigidFluid(const vec3& bins_per_axis) {
     // Readability replacements
     const real sphere_radius = cd_data->p_kernel_radius;
     const int num_spheres = cd_data->state_data.num_fluid_bodies;

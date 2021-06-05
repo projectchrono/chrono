@@ -16,10 +16,6 @@
 //
 // =============================================================================
 
-//// ********************
-////    Equivalent of Chrono::Multicore  ChDataStructures
-//// ********************
-
 #pragma once
 
 #include "chrono/collision/chrono/ChCollisionData.h"

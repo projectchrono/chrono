@@ -31,7 +31,11 @@ namespace collision {
 class ChApi ChBroadphase {
   public:
     ChBroadphase();
-    void DispatchRigid();
+
+    /// Perform broadphase collision detection.
+    void Process();
+
+  private:
     void OneLevelBroadphase();
     void DetermineBoundingBox();
     void OffsetAABB();
@@ -39,7 +43,6 @@ class ChApi ChBroadphase {
     void RigidBoundingBox();
     void FluidBoundingBox();
 
-  private:
     std::shared_ptr<ChCollisionData> cd_data;
 
     vec3 bins_per_axis;  ///< number of slices along each axis of the collision detection grid
