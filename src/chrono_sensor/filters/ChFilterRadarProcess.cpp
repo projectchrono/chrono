@@ -69,7 +69,7 @@ CH_SENSOR_API void ChFilterRadarProcess::Apply() {
     std::vector<vec3f> points;
     m_buffer_out->Beam_return_count = 0;
     for (unsigned int i = 0; i < buf.size(); i++) {
-        if (buf[i].intensity > 0) {
+        if (abs(buf[i].x_vel) > 0 || abs(buf[i].y_vel) > 0 || abs(buf[i].z_vel) > 0) {
             processed_buffer[m_buffer_out->Beam_return_count] = buf[i];
             points.push_back(vec3f{processed_buffer[m_buffer_out->Beam_return_count].x,
                                    processed_buffer[m_buffer_out->Beam_return_count].y,
@@ -83,6 +83,7 @@ CH_SENSOR_API void ChFilterRadarProcess::Apply() {
 
 #if PROFILE
     auto start = std::chrono::high_resolution_clock::now();
+    std::cout << "DBSCAN initiated with " << points.size() << " points" << std::endl;
 
     auto dbscan = DBSCAN();
     dbscan.Run(&points, epsilon, minimum_points);

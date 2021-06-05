@@ -53,13 +53,18 @@ extern "C" __global__ void __raygen__radar() {
     unsigned int raytype = (unsigned int)RADAR_RAY_TYPE;
     optixTrace(params.root, ray_origin, ray_direction, radar.clip_near, 1.5f * radar.max_distance, t_traverse,
                OptixVisibilityMask(1), OPTIX_RAY_FLAG_NONE, 0u, 1u, 0u, opt1, opt2,raytype);
+    
+    float3 vel_global;
+    // removing stationary object ray hits
+    if (abs(prd_radar.velocity.x) > 0 || abs(prd_radar.velocity.y) > 0 || abs(prd_radar.velocity.z) > 0){
+        vel_global = prd_radar.velocity - radar.velocity;
 
-    float3 vel_global = prd_radar.velocity - radar.velocity;
-
+    } else{
+        vel_global = make_float3(0,0,0);
+    }
 
     float3 vel_radar_frame =  make_float3(Dot(forward, vel_global), Dot(left, vel_global), Dot(up, vel_global));
         
-
     radar.frame_buffer[6 * image_index] = prd_radar.range;
     radar.frame_buffer[6 * image_index + 1] = prd_radar.rcs;
     radar.frame_buffer[6 * image_index + 2] = vel_radar_frame.x; // x velocity

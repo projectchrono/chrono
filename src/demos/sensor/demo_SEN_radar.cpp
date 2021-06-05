@@ -69,8 +69,8 @@ CameraLensModelType lens_model = CameraLensModelType::PINHOLE;
 float exposure_time = 0.02f;
 
 // Number of horizontal and vertical samples
-unsigned int horizontal_samples = 300;
-unsigned int vertical_samples = 300;
+unsigned int horizontal_samples = 100;
+unsigned int vertical_samples = 100;
 
 // Field of View
 float horizontal_fov = CH_C_PI / 9;           // 20 degree scan
@@ -111,19 +111,7 @@ int main(int argc, char* argv[]) {
     // Create the system
     // -----------------
     ChSystemNSC mphysicalSystem;
-    mphysicalSystem.Set_G_acc(ChVector<>(0, 0, -1));
-
-    // ----------------------------------
-    // add a mesh to be sensed by a lidar
-    // ----------------------------------
-    auto mmesh = chrono_types::make_shared<ChTriangleMeshConnected>();
-    mmesh->LoadWavefrontMesh(GetChronoDataFile("vehicle/hmmwv/hmmwv_chassis.obj"), false, true);
-    mmesh->Transform(ChVector<>(0, 0, 0), ChMatrix33<>());  // scale to a difference size
-
-    auto trimesh_shape = chrono_types::make_shared<ChTriangleMeshShape>();
-    trimesh_shape->SetMesh(mmesh);
-    trimesh_shape->SetName("HMMWV Chassis Mesh");
-    trimesh_shape->SetStatic(true);
+    mphysicalSystem.Set_G_acc(ChVector<>(0, 0, 0));
 
     // ----------------------
     // color visual materials
@@ -137,13 +125,13 @@ int main(int argc, char* argv[]) {
     green->SetSpecularColor({1.f, 1.f, 1.f});
 
     // -------------------------------------------
-    // add a few box bodies to be sense by a lidar
+    // add a few box bodies to be sense by a radar
     // -------------------------------------------
-    auto floor = chrono_types::make_shared<ChBodyEasyBox>(1, 1, 1, 1000, true, false);
+    auto floor = chrono_types::make_shared<ChBodyEasyBox>(1000, 20, 1, 1000, true, false);
     floor->SetPos({0, 0, -1});
     floor->SetBodyFixed(true);
     //    floor->SetWvel_par(ChVector<>(-0.2,-0.4,-0.3));
-    //    floor->SetPos_dt(ChVector<>(0.1, 0,0));
+    floor->SetPos_dt(ChVector<>(0.1, 0, 0));
     mphysicalSystem.Add(floor);
     {
         auto asset = floor->GetAssets()[0];
@@ -152,12 +140,29 @@ int main(int argc, char* argv[]) {
         }
     }
 
-    for (int i = 0; i < 30; i++) {
-        int x = rand() % 20;
-        int y = rand() % 20;
-        int z = rand() % 30;
+    for (int i = 0; i < 10; i++) {
+        int x = rand() % 50;
+        int y = 1;
+        int z = 0;
         auto box_body = chrono_types::make_shared<ChBodyEasyBox>(0.5, 0.5, 0.5, 1000, true, false);
-        box_body->SetPos({-10 + x, y + 5, 3 + z});
+        box_body->SetPos({5 + x, y, z});
+        box_body->SetPos_dt({-0.5, 0, 0});
+        mphysicalSystem.Add(box_body);
+        {
+            auto asset = box_body->GetAssets()[0];
+            if (auto visual_asset = std::dynamic_pointer_cast<ChVisualization>(asset)) {
+                visual_asset->material_list.push_back(red);
+            }
+        }
+    }
+
+    for (int i = 0; i < 10; i++) {
+        int x = rand() % 50;
+        int y = -1;
+        int z = 0;
+        auto box_body = chrono_types::make_shared<ChBodyEasyBox>(0.5, 0.5, 0.5, 1000, true, false);
+        box_body->SetPos({10 - x, y, z});
+        box_body->SetPos_dt({0.5, 0, 0});
         mphysicalSystem.Add(box_body);
         {
             auto asset = box_body->GetAssets()[0];
@@ -180,7 +185,7 @@ int main(int argc, char* argv[]) {
     // -----------------------------------------------
     // Create a radar and add it to the sensor manager
     // -----------------------------------------------
-    auto offset_pose = chrono::ChFrame<double>({0, 0, 1}, Q_from_AngZ(CH_C_PI / 2));
+    auto offset_pose = chrono::ChFrame<double>({0, 0, 1}, Q_from_AngZ(0));
 
     auto radar =
         chrono_types::make_shared<ChRadarSensor>(floor, update_rate, offset_pose, horizontal_samples, vertical_samples,
@@ -192,10 +197,25 @@ int main(int argc, char* argv[]) {
     radar->PushFilter(chrono_types::make_shared<ChFilterRadarProcess>("PC from Range"));
     radar->PushFilter(chrono_types::make_shared<ChFilterRadarVisualizeCluster>(640, 480, 1, "Radar Clusters"));
     const std::string out_dir = "RADAR_OUPUT/";
-    radar->PushFilter(chrono_types::make_shared<ChFilterRadarSavePC>(out_dir));
     manager->AddSensor(radar);
 
-    auto cam_offset_pose = chrono::ChFrame<double>({0, 0, 1}, Q_from_AngZ(CH_C_PI / 2));
+    auto lidar =
+        chrono_types::make_shared<ChLidarSensor>(floor,                                  // body lidar is attached to
+                                                 update_rate,                            // scanning rate in Hz
+                                                 offset_pose,                            // offset pose
+                                                 horizontal_samples,                     // number of horizontal samples
+                                                 vertical_samples,                       // number of vertical channels
+                                                 horizontal_fov,                         // horizontal field of view
+                                                 max_vert_angle, min_vert_angle, 100.0f  // vertical field of view
+        );
+    lidar->SetName("Lidar Sensor 1");
+    lidar->SetLag(lag);
+    lidar->SetCollectionWindow(collection_time);
+    lidar->PushFilter(chrono_types::make_shared<ChFilterPCfromDepth>());
+    lidar->PushFilter(chrono_types::make_shared<ChFilterVisualizePointCloud>(width, height, 2, "Radar Return"));
+    //    manager->AddSensor(lidar);
+
+    auto cam_offset_pose = chrono::ChFrame<double>({0, 0, 1}, Q_from_AngZ(0));
     auto cam1 = chrono_types::make_shared<ChCameraSensor>(floor,            // body camera is attached to
                                                           update_rate,      // update rate in Hz
                                                           cam_offset_pose,  // offset pose
