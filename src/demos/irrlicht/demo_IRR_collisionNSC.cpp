@@ -22,6 +22,7 @@
 #include "chrono/physics/ChBodyEasy.h"
 #include "chrono/physics/ChLinkMotorRotationSpeed.h"
 #include "chrono/assets/ChTexture.h"
+#include "chrono/collision/ChCollisionSystemChrono.h"
 
 #include "chrono_irrlicht/ChIrrApp.h"
 
@@ -181,6 +182,12 @@ int main(int argc, char* argv[]) {
     // Create the physical system
     ChSystemNSC sys;
     sys.SetCollisionSystemType(collision_type);
+
+    // Enable active bounding box
+    ////if (collision_type == collision::ChCollisionSystemType::CHRONO) {
+    ////    std::static_pointer_cast<collision::ChCollisionSystemChrono>(sys.GetCollisionSystem())
+    ////        ->EnableActiveBoundingBox(ChVector<>(-10, -10, -20), ChVector<>(+10, +10, +10));
+    ////}
 
     // Create the Irrlicht visualization
     ChIrrApp application(&sys, L"Collisions between objects", core::dimension2d<u32>(800, 600));

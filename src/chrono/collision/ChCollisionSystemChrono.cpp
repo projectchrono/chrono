@@ -269,7 +269,7 @@ void ChCollisionSystemChrono::PreProcess() {
     std::vector<char>& active = *cd_data->state_data.active_rigid;
     std::vector<char>& collide = *cd_data->state_data.collide_rigid;
 
-    auto blist = m_system->Get_bodylist();
+    const auto& blist = m_system->Get_bodylist();
     int nbodies = static_cast<int>(blist.size());
 
     position.resize(nbodies);
@@ -282,7 +282,7 @@ void ChCollisionSystemChrono::PreProcess() {
 
 #pragma omp parallel for
     for (int i = 0; i < nbodies; i++) {
-        auto& body = blist[i];
+        const auto& body = blist[i];
 
         ChVector<>& body_pos = body->GetPos();
         ChQuaternion<>& body_rot = body->GetRot();
@@ -292,6 +292,19 @@ void ChCollisionSystemChrono::PreProcess() {
 
         active[i] = body->IsActive();
         collide[i] = body->GetCollide();
+    }
+}
+
+void ChCollisionSystemChrono::PostProcess() {
+    if (use_aabb_active) {
+        const auto& active = *cd_data->state_data.active_rigid;
+        auto& blist = m_system->Get_bodylist();
+        int nbodies = static_cast<int>(blist.size());
+
+#pragma omp parallel for
+        for (int i = 0; i < nbodies; i++) {
+            blist[i]->SetSleeping(!active[i]);
+        }           
     }
 }
 

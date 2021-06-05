@@ -98,6 +98,10 @@ class ChApi ChCollisionSystemChrono : public ChCollisionSystem {
     /// Run the algorithm and finds all the contacts.
     virtual void Run() override;
 
+    /// Synchronization operations, invoked after running the collision detection.
+    /// This function updates the list of active bodies (if active bounding box enabled).
+    virtual void PostProcess() override;
+
     /// Return an AABB bounding all collision shapes in the system
     virtual void GetBoundingBox(ChVector<>& aabb_min, ChVector<>& aabb_max) const override;
 

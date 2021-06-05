@@ -181,6 +181,11 @@ int main(int argc, char* argv[]) {
     msystem.GetSettings()->collision.collision_envelope = 0.01;
     msystem.GetSettings()->collision.bins_per_axis = vec3(10, 10, 10);
 
+    // Enable active bounding box
+    ////msystem.GetSettings()->collision.use_aabb_active = true;
+    ////msystem.GetSettings()->collision.aabb_min = real3(-1, -1, -1.5);
+    ////msystem.GetSettings()->collision.aabb_max = real3(+1, +1, +1.5);
+
     // Create the fixed and moving bodies
     // ----------------------------------
 
