@@ -22,7 +22,6 @@
 #include "chrono_multicore/physics/ChFluidKernels.h"
 
 #include "chrono_multicore/constraints/ChConstraintUtils.h"
-#include "chrono_multicore/collision/ChCollision.h"
 
 #include "chrono/multicore_math/ChMulticoreMath.h"
 #include "chrono/multicore_math/matrix.h"

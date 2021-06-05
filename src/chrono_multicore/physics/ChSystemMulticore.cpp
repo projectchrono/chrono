@@ -27,7 +27,6 @@
 #include "chrono/multicore_math/matrix.h"
 
 #include "chrono_multicore/ChConfigMulticore.h"
-#include "chrono_multicore/collision/ChCollisionSystemMulticore.h"
 #include "chrono_multicore/collision/ChCollisionSystemChronoMulticore.h"
 #include "chrono_multicore/collision/ChCollisionSystemBulletMulticore.h"
 #include "chrono_multicore/physics/ChSystemMulticore.h"
@@ -98,8 +97,6 @@ ChBody* ChSystemMulticore::NewBody() {
         default:
         case ChCollisionSystemType::CHRONO:
             return new ChBody(chrono_types::make_shared<collision::ChCollisionModelChrono>());
-        case ChCollisionSystemType::OTHER:
-            return new ChBody(chrono_types::make_shared<collision::ChCollisionModelMulticore>());
         case ChCollisionSystemType::BULLET:
             return new ChBody();
     }
@@ -110,8 +107,6 @@ ChBodyAuxRef* ChSystemMulticore::NewBodyAuxRef() {
         default:
         case ChCollisionSystemType::CHRONO:
             return new ChBodyAuxRef(chrono_types::make_shared<collision::ChCollisionModelChrono>());
-        case ChCollisionSystemType::OTHER:
-            return new ChBodyAuxRef(chrono_types::make_shared<collision::ChCollisionModelMulticore>());
         case ChCollisionSystemType::BULLET:
             return new ChBodyAuxRef();
     }
@@ -713,9 +708,6 @@ void ChSystemMulticore::SetCollisionSystemType(ChCollisionSystemType type) {
     switch (type) {
         case ChCollisionSystemType::CHRONO:
             collision_system = chrono_types::make_shared<ChCollisionSystemChronoMulticore>(data_manager);
-            break;
-        case ChCollisionSystemType::OTHER:
-            collision_system = chrono_types::make_shared<ChCollisionSystemMulticore>(data_manager);
             break;
         case ChCollisionSystemType::BULLET:
             collision_system = chrono_types::make_shared<ChCollisionSystemBulletMulticore>(data_manager);

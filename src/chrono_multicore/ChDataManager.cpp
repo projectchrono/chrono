@@ -21,7 +21,6 @@
 
 #include "chrono_multicore/ChDataManager.h"
 #include "chrono_multicore/physics/Ch3DOFContainer.h"
-#include "chrono_multicore/collision/ChCollision.h"
 
 #include "chrono/core/ChStream.h"
 
@@ -44,19 +43,9 @@ ChMulticoreDataManager::ChMulticoreDataManager()
       composition_strategy(new ChMaterialCompositionStrategy) {
     node_container = chrono_types::make_shared<Ch3DOFContainer>();
     node_container->data_manager = this;
-
-    broadphase = new ChCBroadphase;
-    narrowphase = new ChCNarrowphaseDispatch;
-    aabb_generator = new ChCAABBGenerator;
-    broadphase->data_manager = this;
-    narrowphase->data_manager = this;
-    aabb_generator->data_manager = this;
 }
 
 ChMulticoreDataManager::~ChMulticoreDataManager() {
-    delete narrowphase;
-    delete broadphase;
-    delete aabb_generator;
 }
 
 int ChMulticoreDataManager::OutputBlazeVector(DynamicVector<real> src, std::string filename) {

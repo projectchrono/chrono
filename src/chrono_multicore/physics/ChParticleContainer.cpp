@@ -19,7 +19,6 @@
 #include "chrono_multicore/physics/Ch3DOFContainer.h"
 #include "chrono_multicore/ChDataManager.h"
 #include "chrono_multicore/constraints/ChConstraintUtils.h"
-#include "chrono_multicore/collision/ChCollision.h"
 
 #include "chrono/multicore_math/ChMulticoreMath.h"
 #include "chrono/multicore_math/matrix.h" 

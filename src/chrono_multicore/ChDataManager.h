@@ -342,10 +342,6 @@ class CH_MULTICORE_API ChMulticoreDataManager {
     ChConstraintRigidRigid* rigid_rigid;  ///< methods for unilateral constraints
     ChConstraintBilateral* bilateral;     ///< methods for bilateral constraints
 
-    collision::ChCBroadphase* broadphase;            ///< methods for broad-phase collision detection
-    collision::ChCNarrowphaseDispatch* narrowphase;  ///< methods for narrow-phase collision detection
-    collision::ChCAABBGenerator* aabb_generator;     ///< methods for cpmputing object AABBs
-
     std::shared_ptr<collision::ChCollisionData> cd_data; ///< shared data for the Chrono collision system
 
     // These pointers are used to compute the mass matrix instead of filling a temporary data structure

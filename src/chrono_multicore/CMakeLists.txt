@@ -49,14 +49,6 @@ else()
   set(CHRONO_MULTICORE_USE_CUDA "#undef CHRONO_MULTICORE_USE_CUDA")
 endif()
 
-# ----- SIMD (SSE or AVX) support -----
-
-cmake_dependent_option(USE_MULTICORE_SIMD "Enable SIMD support in Chrono::Multicore (if available)" ON "CHRONO_HAS_AVX" OFF)
-
-if(USE_MULTICORE_SIMD)
-  set(CHRONO_MULTICORE_USE_SIMD "#define CHRONO_MULTICORE_USE_SIMD")
-endif()
-
 # ----- Double precision support -----
 
 OPTION(USE_MULTICORE_DOUBLE "Compile Chrono::Multicore with double precision math" ON)
@@ -264,31 +256,14 @@ SET(ChronoEngine_Multicore_CONSTRAINTS
 SOURCE_GROUP(constraints FILES ${ChronoEngine_Multicore_CONSTRAINTS})
 
 SET(ChronoEngine_Multicore_COLLISION
-    collision/ChAABBGenerator.cpp
-    collision/ChBroadphase.cpp
-    collision/ChBroadphaseUtils.h
-    collision/ChNarrowphaseUtils.h
-    collision/ChNarrowphaseMPR.h
-    collision/ChNarrowphaseMPR.cpp
-    collision/ChNarrowphaseDispatch.cpp
-    collision/ChNarrowphaseRUtils.h
-    collision/ChNarrowphaseR.h
-    collision/ChNarrowphaseR.cpp
-    collision/ChCollision.h
-    collision/ChCollisionModelMulticore.h
-    collision/ChCollisionModelMulticore.cpp
-    collision/ChCollisionSystemMulticore.h
-    collision/ChCollisionSystemMulticore.cpp
+    collision/ChCollisionSystemChronoMulticore.h
+    collision/ChCollisionSystemChronoMulticore.cpp
     collision/ChContactContainerMulticore.h
     collision/ChContactContainerMulticore.cpp
     collision/ChContactContainerMulticoreNSC.h
     collision/ChContactContainerMulticoreNSC.cpp
     collision/ChContactContainerMulticoreSMC.h
     collision/ChContactContainerMulticoreSMC.cpp
-
-
-    collision/ChCollisionSystemChronoMulticore.h
-    collision/ChCollisionSystemChronoMulticore.cpp
     )
 
 SET(ChronoEngine_Multicore_COLLISION ${ChronoEngine_Multicore_COLLISION}
