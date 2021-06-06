@@ -37,7 +37,6 @@
 
 #include "chrono_vehicle/wheeled_vehicle/vehicle/WheeledVehicle.h"
 
-#include "chrono_models/vehicle/mtv/LMTV.h"
 #include "chrono_models/vehicle/mrole/mrole.h"
 
 #ifdef CHRONO_IRRLICHT

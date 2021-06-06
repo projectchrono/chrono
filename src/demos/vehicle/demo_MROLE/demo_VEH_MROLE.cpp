@@ -66,10 +66,10 @@ VisualizationType tire_vis_type = VisualizationType::MESH;
 CollisionType chassis_collision_type = CollisionType::NONE;
 
 // Type of powertrain model (SHAFTS, SIMPLE)
-PowertrainModelType powertrain_model = PowertrainModelType::SIMPLE_CVT;
+PowertrainModelType powertrain_model = PowertrainModelType::SHAFTS;
 
 // Drive type (FWD, RWD, or AWD)
-DrivelineTypeWV drive_type = DrivelineTypeWV::SIMPLE_XWD;
+DrivelineTypeWV drive_type = DrivelineTypeWV::AWD8;
 
 // Type of tire model (TMEASY, RIGID)
 TireModelType tire_model = TireModelType::TMEASY;
