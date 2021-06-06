@@ -319,6 +319,12 @@ int main(int argc, char* argv[]) {
         terrain.Advance(step_size);
         my_mrole.Advance(step_size);
         app.Advance(step_size);
+        GetLog() << "======================================================================\n";
+        for (size_t i = 0; i < 4; i++) {
+            double sp1l = my_mrole.GetVehicle().GetDriveline()->GetSpindleTorque(i, LEFT);
+            double sp1r = my_mrole.GetVehicle().GetDriveline()->GetSpindleTorque(i, RIGHT);
+            GetLog() << "Axle#" << i << "  Tleft = " << sp1l << "   Tright = " << sp1r << "\n";
+        }
 
         // Increment frame number
         step_number++;
