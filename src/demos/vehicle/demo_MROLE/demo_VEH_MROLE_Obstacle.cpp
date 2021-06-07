@@ -117,7 +117,7 @@ int main(int argc, char* argv[]) {
 
     ChContactMethod contact_method = ChContactMethod::SMC;
     CollisionType chassis_collision_type = CollisionType::NONE;
-    DrivelineTypeWV driveline_type = DrivelineTypeWV::AWD;
+    DrivelineTypeWV driveline_type = DrivelineTypeWV::AWD8;
     BrakeType brake_type = BrakeType::SIMPLE;
     PowertrainModelType powertrain_type = PowertrainModelType::SIMPLE_CVT;
 
@@ -145,7 +145,7 @@ int main(int argc, char* argv[]) {
     // ------------------------------------------------
     mrole.SetInitPosition(ChCoordsys<>(initLoc, initRot));
     mrole.Initialize();
-
+    mrole.LockAxleDifferential(-1, true);
     mrole.SetChassisVisualizationType(VisualizationType::NONE);
     mrole.SetSuspensionVisualizationType(VisualizationType::PRIMITIVES);
     mrole.SetSteeringVisualizationType(VisualizationType::PRIMITIVES);

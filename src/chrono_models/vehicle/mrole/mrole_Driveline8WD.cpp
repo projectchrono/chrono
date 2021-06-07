@@ -32,11 +32,11 @@ const double mrole_Driveline8WD::m_driveshaft_inertia = 0.5;
 const double mrole_Driveline8WD::m_frontshaft_inertia = 0.5;
 const double mrole_Driveline8WD::m_rearshaft_inertia = 0.5;
 
-const double mrole_Driveline8WD::m_front_conicalgear_ratio = 0.2;
-const double mrole_Driveline8WD::m_rear_conicalgear_ratio = 0.2;
+const double mrole_Driveline8WD::m_front_conicalgear_ratio = 0.1;
+const double mrole_Driveline8WD::m_rear_conicalgear_ratio = 0.1;
 
-const double mrole_Driveline8WD::m_axle_differential_locking_limit = 1000;
-const double mrole_Driveline8WD::m_central_differential_locking_limit = 1000;
+const double mrole_Driveline8WD::m_axle_differential_locking_limit = 3000;
+const double mrole_Driveline8WD::m_central_differential_locking_limit = 5000;
 
 // -----------------------------------------------------------------------------
 // Constructor of the mrole_Driveline8WD.

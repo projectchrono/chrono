@@ -136,6 +136,9 @@ int main(int argc, char* argv[]) {
     size_t NWDTH = widths.size();
     size_t NANG = angles.size();
 
+    size_t nObs = NOHGT * NWDTH * NANG;
+    size_t iObs = 1;
+
     std::ofstream inter("interference.txt");
     inter << "NOHGT" << std::endl;
     inter << std::setw(3) << NOHGT << std::endl;
@@ -155,7 +158,7 @@ int main(int argc, char* argv[]) {
 
                 ChContactMethod contact_method = ChContactMethod::SMC;
                 CollisionType chassis_collision_type = CollisionType::NONE;
-                DrivelineTypeWV driveline_type = DrivelineTypeWV::SIMPLE;
+                DrivelineTypeWV driveline_type = DrivelineTypeWV::AWD8;
                 BrakeType brake_type = BrakeType::SIMPLE;
                 PowertrainModelType powertrain_type = PowertrainModelType::SIMPLE_CVT;
 
@@ -184,6 +187,8 @@ int main(int argc, char* argv[]) {
                 mrole.SetInitPosition(ChCoordsys<>(initLoc, initRot));
                 mrole.Initialize();
 
+                mrole.LockAxleDifferential(-1, true);
+                mrole.LockCentralDifferential(-1, true);
                 mrole.SetChassisVisualizationType(VisualizationType::NONE);
                 mrole.SetSuspensionVisualizationType(VisualizationType::PRIMITIVES);
                 mrole.SetSteeringVisualizationType(VisualizationType::PRIMITIVES);
@@ -260,8 +265,11 @@ int main(int argc, char* argv[]) {
                 // ---------------------------------------
                 // Create the vehicle Irrlicht application
                 // ---------------------------------------
-
-                ChWheeledVehicleIrrApp app(&mrole.GetVehicle(), L"Marder Vehicle Ride");
+                std::wstring wTitle = L"MROLE Vehicle Ride: Obstacle ";
+                wTitle.append(std::to_wstring(iObs));
+                wTitle.append(L" von ");
+                wTitle.append(std::to_wstring(nObs));
+                ChWheeledVehicleIrrApp app(&mrole.GetVehicle(), wTitle.c_str());
                 app.SetSkyBox();
                 app.AddTypicalLights(irr::core::vector3df(30.f, -30.f, 100.f), irr::core::vector3df(30.f, 50.f, 100.f),
                                      250, 130);
@@ -357,12 +365,11 @@ int main(int argc, char* argv[]) {
                 timer.start();
                 double sim_time = 0;
                 double bail_out_time = 30.0;
-
                 ChRunningAverage avg(100);                    // filter angine torque
                 std::vector<double> engineForce;              // store obstacle related tractive force
                 double effRadius = 0.328414781 + 0.06 / 2.0;  // sprocket pitch radius + track shoe thickness / 2
                 double gear_ratio = 0.05;
-
+                bool bail_out = false;
                 while (app.GetDevice()->run()) {
                     if (step_number % render_steps == 0) {
                         // Render scene
@@ -404,6 +411,7 @@ int main(int argc, char* argv[]) {
                         break;
                     }
                     if (time > bail_out_time) {
+                        bail_out = true;
                         break;
                     }
                     driver.SetDesiredSpeed(ChSineStep(time, 1.0, 0.0, 2.0, target_speed));
@@ -466,11 +474,19 @@ int main(int argc, char* argv[]) {
                 GetLog() << "Max Tractive Force     = " << fMax << " N\n";
                 GetLog() << "Min. Clearance         = " << clearMin << " m\n";
 
+                double clearNogo = -19.99;
+                if (bail_out) {
+                    inter << std::setw(7) << std::setprecision(2) << std::fixed << clearNogo;
+
+                } else {
+                    inter << std::setw(7) << std::setprecision(2) << std::fixed << (clearMin * MetersToInch);
+                }
                 inter << std::setw(10) << std::setprecision(1) << std::fixed << (fMax * NewtonToLbf);
                 inter << std::setw(10) << std::setprecision(1) << std::fixed << (fMean * NewtonToLbf);
                 inter << std::setw(10) << std::setprecision(2) << std::fixed << heights[iHeight];
                 inter << std::setw(10) << std::setprecision(2) << std::fixed << angles[jAngle];
                 inter << std::setw(10) << std::setprecision(2) << std::fixed << widths[kWidth] << std::endl;
+                iObs++;
             }  // height loop i
         }      // angle loop j
     }          // width loop k
