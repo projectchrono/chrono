@@ -141,9 +141,9 @@ int main(int argc, char* argv[]) {
     }
 
     for (int i = 0; i < 10; i++) {
-        int x = rand() % 50;
-        int y = 1;
-        int z = 0;
+        float x = rand() % 50;
+        float y = 1;
+        float z = 0;
         auto box_body = chrono_types::make_shared<ChBodyEasyBox>(0.5, 0.5, 0.5, 1000, true, false);
         box_body->SetPos({5 + x, y, z});
         box_body->SetPos_dt({-0.5, 0, 0});
@@ -157,9 +157,9 @@ int main(int argc, char* argv[]) {
     }
 
     for (int i = 0; i < 10; i++) {
-        int x = rand() % 50;
-        int y = -1;
-        int z = 0;
+        float x = rand() % 50;
+        float y = -1;
+        float z = 0;
         auto box_body = chrono_types::make_shared<ChBodyEasyBox>(0.5, 0.5, 0.5, 1000, true, false);
         box_body->SetPos({10 - x, y, z});
         box_body->SetPos_dt({0.5, 0, 0});
