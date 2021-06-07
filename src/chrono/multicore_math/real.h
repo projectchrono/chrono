@@ -21,6 +21,7 @@
 #include "chrono/core/ChApiCE.h"
 
 #include "chrono/ChConfig.h"
+#include "chrono/multicore_math/ChCudaDefines.h"
 
 #include <cmath>
 #include <cfloat>
@@ -38,20 +39,20 @@ namespace chrono {
 /// @addtogroup chrono_mc_math
 /// @{
 
-//  static inline real DegToRad(real t) {
+// CUDA_HOST_DEVICE static inline real DegToRad(real t) {
 //    return t * C_DegToRad;
 //}
-//  static inline real RadToDeg(real t) {
+// CUDA_HOST_DEVICE static inline real RadToDeg(real t) {
 //    return t * C_RadToDeg;
 //}
 
-//  static inline real Sign(const real x) {
+// CUDA_HOST_DEVICE static inline real Sign(const real x) {
 //  return x < real(0.0) ? -1.0f : 1.0f;
 //}
 
 /// Returns a -1 if the value is negative, a +1 if the value is positive. Otherwise returns zero.
 template <typename T>
-static inline T Sign(const T& x) {
+CUDA_HOST_DEVICE static inline T Sign(const T& x) {
     if (x < 0) {
         return T(-1);
     } else if (x > 0) {
@@ -62,18 +63,18 @@ static inline T Sign(const T& x) {
 }
 
 template <typename T>
-static inline T Sqr(const T x) {
+CUDA_HOST_DEVICE static inline T Sqr(const T x) {
     return x * x;
 }
 
 template <typename T>
-static inline T Cube(const T x) {
+CUDA_HOST_DEVICE static inline T Cube(const T x) {
     return x * x * x;
 }
 
 /// Checks if the value is zero to within a certain epsilon
 /// in this case ZERO_EPSILON is defined based on what the base type of real is
-static inline bool IsZero(const real x) {
+CUDA_HOST_DEVICE static inline bool IsZero(const real x) {
     return Abs(x) < C_EPSILON;
 }
 
@@ -97,7 +98,7 @@ static inline bool IsZero(const real x) {
 /// Check if two values are equal using a small delta/epsilon value.
 /// Essentially a fuzzy comparison operator
 template <typename T>
-static inline bool IsEqual(const T& _a, const T& _b) {
+CUDA_HOST_DEVICE static inline bool IsEqual(const T& _a, const T& _b) {
     real ab;
     ab = Abs(_a - _b);
     if (Abs(ab) < C_EPSILON)
@@ -112,19 +113,19 @@ static inline bool IsEqual(const T& _a, const T& _b) {
     }
 }
 
-inline real Lerp(const real& start, const real& end, const real& t) {
+CUDA_HOST_DEVICE inline real Lerp(const real& start, const real& end, const real& t) {
     return start + (end - start) * t;
 }
 
 template <typename T>
-inline void Swap(T& a, T& b) {
+CUDA_HOST_DEVICE inline void Swap(T& a, T& b) {
     T temp = a;
     a = b;
     b = temp;
 }
 
 template <typename T>
-void Sort(T& a, T& b, T& c) {
+CUDA_HOST_DEVICE void Sort(T& a, T& b, T& c) {
     if (a > b)
         Swap(a, b);
     if (b > c)
@@ -134,14 +135,14 @@ void Sort(T& a, T& b, T& c) {
 }
 
 template <typename T>
-void SwapIfGreater(T& a, T& b) {
+CUDA_HOST_DEVICE void SwapIfGreater(T& a, T& b) {
     if (a > b) {
         Swap(a, b);
     }
 }
 
 /// Clamps a given value a between user specified minimum and maximum values.
-inline real Clamp(real x, real low, real high) {
+CUDA_HOST_DEVICE inline real Clamp(real x, real low, real high) {
     if (low > high) {
         Swap(low, high);
     }
@@ -149,7 +150,7 @@ inline real Clamp(real x, real low, real high) {
 }
 
 /// Clamps a given value a between user specified minimum and maximum values.
-inline void ClampValue(real& x, real low, real high) {
+CUDA_HOST_DEVICE inline void ClampValue(real& x, real low, real high) {
     if (low > high) {
         Swap(low, high);
     }
@@ -159,11 +160,11 @@ inline void ClampValue(real& x, real low, real high) {
         x = high;
 }
 
-inline real ClampMin(real x, real low) {
+CUDA_HOST_DEVICE inline real ClampMin(real x, real low) {
     return Max(low, x);
 }
 
-inline real ClampMax(real x, real high) {
+CUDA_HOST_DEVICE inline real ClampMax(real x, real high) {
     return Min(x, high);
 }
 

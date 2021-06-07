@@ -25,23 +25,23 @@
 
 namespace chrono {
 
-vec3 operator-(const vec3& a, const vec3& b) {
+CUDA_HOST_DEVICE vec3 operator-(const vec3& a, const vec3& b) {
     return simd::Sub(a, b);
 }
 
-vec3 operator-(const vec3& a, const int& b) {
+CUDA_HOST_DEVICE vec3 operator-(const vec3& a, const int& b) {
     return simd::Sub(a, simd::Set(b));
 }
 
-vec3 operator+(const vec3& a, const vec3& b) {
+CUDA_HOST_DEVICE vec3 operator+(const vec3& a, const vec3& b) {
     return simd::Add(a, b);
 }
 
-vec3 operator+(const vec3& a, const int& b) {
+CUDA_HOST_DEVICE vec3 operator+(const vec3& a, const int& b) {
     return simd::Add(a, simd::Set(b));
 }
 
-vec3 Clamp(const vec3& a, const vec3& clamp_min, const vec3& clamp_max) {
+CUDA_HOST_DEVICE vec3 Clamp(const vec3& a, const vec3& clamp_min, const vec3& clamp_max) {
     return simd::Max(clamp_min, simd::Min(a, clamp_max));
 }
 

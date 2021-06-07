@@ -27,15 +27,15 @@ namespace chrono {
 /// Chrono::Multicore pair (2-dimensional vector).
 class real2 {
   public:
-    real2() : x(0.0f), y(0.0f) {}
-    explicit real2(real _x) : x(_x), y(_x) {}
-    real2(real _x, real _y) : x(_x), y(_y) {}
+    CUDA_HOST_DEVICE real2() : x(0.0f), y(0.0f) {}
+    CUDA_HOST_DEVICE explicit real2(real _x) : x(_x), y(_x) {}
+    CUDA_HOST_DEVICE real2(real _x, real _y) : x(_x), y(_y) {}
     // real2(const real* p) : x(p[0]), y(p[1]) {}
 
-    operator real*() { return &x; }
-    operator const real*() const { return &x; };
+    CUDA_HOST_DEVICE operator real*() { return &x; }
+    CUDA_HOST_DEVICE operator const real*() const { return &x; };
 
-    void Set(real x_, real y_) {
+    CUDA_HOST_DEVICE void Set(real x_, real y_) {
         x = x_;
         y = y_;
     }
@@ -44,36 +44,36 @@ class real2 {
     real y;
 };
 
-real2 operator+(const real2& a, real b);
-real2 operator-(const real2& a, real b);
-real2 operator*(const real2& a, real b);
-real2 operator/(const real2& a, real b);
-real2 operator+(const real2& a, const real2& b);
-real2 operator-(const real2& a, const real2& b);
-real2 operator*(const real2& a, const real2& b);
-real2 operator/(const real2& a, const real2& b);
-real2 operator-(const real2& a);
+CUDA_HOST_DEVICE real2 operator+(const real2& a, real b);
+CUDA_HOST_DEVICE real2 operator-(const real2& a, real b);
+CUDA_HOST_DEVICE real2 operator*(const real2& a, real b);
+CUDA_HOST_DEVICE real2 operator/(const real2& a, real b);
+CUDA_HOST_DEVICE real2 operator+(const real2& a, const real2& b);
+CUDA_HOST_DEVICE real2 operator-(const real2& a, const real2& b);
+CUDA_HOST_DEVICE real2 operator*(const real2& a, const real2& b);
+CUDA_HOST_DEVICE real2 operator/(const real2& a, const real2& b);
+CUDA_HOST_DEVICE real2 operator-(const real2& a);
 
-OPERATOR_EQUALS_PROTO(*, real, real2);
-OPERATOR_EQUALS_PROTO(/, real, real2);
-OPERATOR_EQUALS_PROTO(+, real, real2);
-OPERATOR_EQUALS_PROTO(-, real, real2);
+CUDA_HOST_DEVICE OPERATOR_EQUALS_PROTO(*, real, real2);
+CUDA_HOST_DEVICE OPERATOR_EQUALS_PROTO(/, real, real2);
+CUDA_HOST_DEVICE OPERATOR_EQUALS_PROTO(+, real, real2);
+CUDA_HOST_DEVICE OPERATOR_EQUALS_PROTO(-, real, real2);
 
-OPERATOR_EQUALS_PROTO(*, real2, real2);
-OPERATOR_EQUALS_PROTO(/, real2, real2);
-OPERATOR_EQUALS_PROTO(+, real2, real2);
-OPERATOR_EQUALS_PROTO(-, real2, real2);
+CUDA_HOST_DEVICE OPERATOR_EQUALS_PROTO(*, real2, real2);
+CUDA_HOST_DEVICE OPERATOR_EQUALS_PROTO(/, real2, real2);
+CUDA_HOST_DEVICE OPERATOR_EQUALS_PROTO(+, real2, real2);
+CUDA_HOST_DEVICE OPERATOR_EQUALS_PROTO(-, real2, real2);
 
-real2 operator*(real lhs, const real2& rhs);
+CUDA_HOST_DEVICE real2 operator*(real lhs, const real2& rhs);
 
-bool operator==(const real2& lhs, const real2& rhs);
-real2 Max(const real2& a, const real2& b);
-real2 Min(const real2& a, const real2& b);
-real Dot(const real2& v1, const real2& v2);
-real Dot(const real2& v);
-real Length2(const real2& v1);
-real2 Normalize(const real2& v1);
-void Print(real2 v, const char* name);
+CUDA_HOST_DEVICE bool operator==(const real2& lhs, const real2& rhs);
+CUDA_HOST_DEVICE real2 Max(const real2& a, const real2& b);
+CUDA_HOST_DEVICE real2 Min(const real2& a, const real2& b);
+CUDA_HOST_DEVICE real Dot(const real2& v1, const real2& v2);
+CUDA_HOST_DEVICE real Dot(const real2& v);
+CUDA_HOST_DEVICE real Length2(const real2& v1);
+CUDA_HOST_DEVICE real2 Normalize(const real2& v1);
+CUDA_HOST_DEVICE void Print(real2 v, const char* name);
 
 /// @} chrono_mc_math
 
