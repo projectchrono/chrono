@@ -27,7 +27,7 @@
 #include "chrono/multicore_math/matrix.h"
 
 #ifdef CHRONO_MULTICORE_USE_CUDA
-    #include "chrono_multicore/physics/ChMPM.cuh"
+    #include "chrono_multicore/cuda/ChMPM.cuh"
 #endif
 
 namespace chrono {

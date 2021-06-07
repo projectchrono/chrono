@@ -215,9 +215,13 @@ SET(ChronoEngine_Multicore_PHYSICS
 SOURCE_GROUP(physics FILES ${ChronoEngine_Multicore_PHYSICS})
 
 SET(ChronoEngine_Multicore_CUDA
-    physics/ChMPM.cu
-    physics/ChMPM.cuh
-    physics/MPMUtils.h
+    cuda/matrixf.cuh
+    cuda/svd.h
+    cuda/ChCudaHelper.cuh
+    cuda/ChGPUVector.cuh
+    cuda/ChMPM.cu
+    cuda/ChMPM.cuh
+    cuda/ChMPMUtils.h
     )
 
 SOURCE_GROUP(cuda FILES ${ChronoEngine_Multicore_CUDA})

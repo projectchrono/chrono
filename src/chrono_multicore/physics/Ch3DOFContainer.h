@@ -20,13 +20,12 @@
 
 #include <thread>
 
-// Chrono::Multicore headers
+#include "chrono_multicore/ChConfigMulticore.h"
 #include "chrono_multicore/ChMulticoreDefines.h"
+#include "chrono_multicore/physics/ChMPMSettings.h"
 
 #include "chrono/multicore_math/ChMulticoreMath.h"
 #include "chrono/multicore_math/matrix.h"
-
-#include "chrono_multicore/physics/ChMPMSettings.h"
 
 // Chrono headers
 #include "chrono/physics/ChBody.h"

@@ -17,7 +17,8 @@
 
 #pragma once
 
-#include "chrono_multicore/math/svd.h"
+#include "chrono_multicore/cuda/svd.h"
+
 #define one_third 1.f / 3.f
 #define two_thirds 2.f / 3.f
 #define three_halves 3.f / 2.f
