@@ -17,14 +17,13 @@ SET(LIBRARIES
 SET(TESTS
     utest_MCORE_real3
     utest_MCORE_real4
-    #utest_MCORE_mat33
     utest_MCORE_matrix
     utest_MCORE_gravity
-    #utest_MCORE_rhs
     utest_MCORE_shafts
     utest_MCORE_rotmotors
     utest_MCORE_other_math
     #utest_MCORE_svd
+    #utest_MCORE_rhs
     #utest_MCORE_collision_system
 )
 
