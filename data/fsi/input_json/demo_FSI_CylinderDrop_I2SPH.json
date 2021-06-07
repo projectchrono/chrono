@@ -75,7 +75,7 @@
     "BodyLength":                   0.2001,
     "BodyIniPosX":                  0.0,
     "BodyIniPosY":                  0.0,
-    "BodyIniPosZ":                  0.0, 
+    "BodyIniPosZ":                  0.0,
     "BodyMass":                     0.0,
     "BodyDensity":                  0.0
   }

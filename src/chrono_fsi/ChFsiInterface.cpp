@@ -61,11 +61,13 @@ ChFsiInterface::ChFsiInterface(chrono::ChSystem& other_mphysicalSystem,
     size_t numBodies = mphysicalSystem.Get_bodylist().size();
     chronoRigidBackup = chrono_types::make_shared<ChronoBodiesDataH>(numBodies);
     chronoFlexMeshBackup = chrono_types::make_shared<ChronoMeshDataH>(0);
-    int numShells = 0;
-    int numCables = 0;
+    //    int numShells = 0;
+    //    int numCables = 0;
+    //    if (mphysicalSystem.Get_otherphysicslist().size())
+    //        numShells =
+    //        std::dynamic_pointer_cast<fea::ChMesh>(mphysicalSystem.Get_otherphysicslist().at(0))->GetNelements();
     int numNodes = 0;
-    if (mphysicalSystem.Get_otherphysicslist().size())
-        numShells = std::dynamic_pointer_cast<fea::ChMesh>(mphysicalSystem.Get_otherphysicslist().at(0))->GetNelements();
+
     if (mphysicalSystem.Get_otherphysicslist().size())
         numNodes = std::dynamic_pointer_cast<fea::ChMesh>(mphysicalSystem.Get_otherphysicslist().at(0))->GetNnodes();
     chronoFlexMeshBackup = chrono_types::make_shared<ChronoMeshDataH>(numNodes);
@@ -82,8 +84,10 @@ void ChFsiInterface::Add_Rigid_ForceTorques_To_ChSystem() {
     ChVector<> totalTorque(0);
 
     for (size_t i = 0; i < numRigids; i++) {
-        chrono::ChVector<> mforce = ChUtilsTypeConvert::Real3ToChVector(ChUtilsDevice::FetchElement(rigid_FSI_ForcesD, i));
-        chrono::ChVector<> mtorque = ChUtilsTypeConvert::Real3ToChVector(ChUtilsDevice::FetchElement(rigid_FSI_TorquesD, i));
+        chrono::ChVector<> mforce =
+            ChUtilsTypeConvert::Real3ToChVector(ChUtilsDevice::FetchElement(rigid_FSI_ForcesD, i));
+        chrono::ChVector<> mtorque =
+            ChUtilsTypeConvert::Real3ToChVector(ChUtilsDevice::FetchElement(rigid_FSI_TorquesD, i));
 
         totalForce += mforce;
         totalTorque + mtorque;
@@ -103,13 +107,13 @@ void ChFsiInterface::Add_Rigid_ForceTorques_To_ChSystem() {
                  << "Fy" << delim << "Fz" << delim << "Tx" << delim << "Ty" << delim << "Tz" << std::endl;
         }
 
-        if (1) // set as 1 if output to file
+        if (1)  // set as 1 if output to file
             file << mphysicalSystem.GetChTime() << delim << pos.x() << delim << pos.y() << delim << pos.z() << delim
                  << rot.e0() << delim << rot.e1() << delim << rot.e2() << delim << rot.e3() << delim << vel.x() << delim
                  << vel.y() << delim << vel.z() << delim << mforce.x() << delim << mforce.y() << delim << mforce.z()
                  << delim << mtorque.x() << delim << mtorque.y() << delim << mtorque.z() << std::endl;
 
-        if (0) // set as 1 if output to screen
+        if (0)  // set as 1 if output to screen
             std::cout << mphysicalSystem.GetChTime() << delim << pos.x() << delim << pos.y() << delim << pos.z()
                       << delim << rot.e0() << delim << rot.e1() << delim << rot.e2() << delim << rot.e3() << delim
                       << vel.x() << delim << vel.y() << delim << vel.z() << delim << mforce.x() << delim << mforce.y()
@@ -118,7 +122,7 @@ void ChFsiInterface::Add_Rigid_ForceTorques_To_ChSystem() {
 
         // note: when this FSI body goes back to Chrono system, the gravity
         // will be automaticly added. Here only accumulate force from fluid
-        body->Empty_forces_accumulators(); 
+        body->Empty_forces_accumulators();
         body->Accumulate_force(mforce, body->GetPos(), false);
         body->Accumulate_torque(mtorque, false);
 
@@ -135,7 +139,7 @@ void ChFsiInterface::Copy_External_To_ChSystem() {
             "ChSystem; thrown from Copy_External_To_ChSystem "
             "!\n");
     }
-    
+
     for (size_t i = 0; i < numBodies; i++) {
         auto mBody = mphysicalSystem.Get_bodylist().at(i);
         mBody->SetPos(ChUtilsTypeConvert::Real3ToChVector(chronoRigidBackup->pos_ChSystemH[i]));
@@ -185,12 +189,13 @@ void ChFsiInterface::Copy_fsiBodies_ChSystem_to_FluidSystem(std::shared_ptr<FsiB
     size_t num_fsiBodies_Rigids = fsiBodeis.size();
     for (size_t i = 0; i < num_fsiBodies_Rigids; i++) {
         std::shared_ptr<ChBody> bodyPtr = fsiBodeis[i];
-        fsiBodiesH->posRigid_fsiBodies_H[i]     = ChUtilsTypeConvert::ChVectorToReal3(bodyPtr->GetPos());
-        fsiBodiesH->velMassRigid_fsiBodies_H[i] = ChUtilsTypeConvert::ChVectorRToReal4(bodyPtr->GetPos_dt(), bodyPtr->GetMass());
-        fsiBodiesH->accRigid_fsiBodies_H[i]     = ChUtilsTypeConvert::ChVectorToReal3(bodyPtr->GetPos_dtdt());
-        fsiBodiesH->q_fsiBodies_H[i]            = ChUtilsTypeConvert::ChQuaternionToReal4(bodyPtr->GetRot());
-        fsiBodiesH->omegaVelLRF_fsiBodies_H[i]  = ChUtilsTypeConvert::ChVectorToReal3(bodyPtr->GetWvel_loc());
-        fsiBodiesH->omegaAccLRF_fsiBodies_H[i]  = ChUtilsTypeConvert::ChVectorToReal3(bodyPtr->GetWacc_loc());
+        fsiBodiesH->posRigid_fsiBodies_H[i] = ChUtilsTypeConvert::ChVectorToReal3(bodyPtr->GetPos());
+        fsiBodiesH->velMassRigid_fsiBodies_H[i] =
+            ChUtilsTypeConvert::ChVectorRToReal4(bodyPtr->GetPos_dt(), bodyPtr->GetMass());
+        fsiBodiesH->accRigid_fsiBodies_H[i] = ChUtilsTypeConvert::ChVectorToReal3(bodyPtr->GetPos_dtdt());
+        fsiBodiesH->q_fsiBodies_H[i] = ChUtilsTypeConvert::ChQuaternionToReal4(bodyPtr->GetRot());
+        fsiBodiesH->omegaVelLRF_fsiBodies_H[i] = ChUtilsTypeConvert::ChVectorToReal3(bodyPtr->GetWvel_loc());
+        fsiBodiesH->omegaAccLRF_fsiBodies_H[i] = ChUtilsTypeConvert::ChVectorToReal3(bodyPtr->GetWacc_loc());
     }
     fsiBodiesD->CopyFromH(*fsiBodiesH);
 }
@@ -206,8 +211,8 @@ void ChFsiInterface::ResizeChronoBodiesData() {
 //-----------------------Chrono FEA Specifics------------------------------------------
 //------------------------------------------------------------------------------------
 void ChFsiInterface::Add_Flex_Forces_To_ChSystem() {
-    int numShells = 0;
-    int numNodes_ChSystem = 0;
+    //    int numShells = 0;
+    //    int numNodes_ChSystem = 0;
     std::string delim = ",";
 
     size_t numNodes = fsiNodes.size();
