@@ -70,10 +70,6 @@ void ChShaftsDriveline8WD::Initialize(std::shared_ptr<ChChassis> chassis,
     double omega_axle_RR2 = axles[m_driven_axles[3]]->m_suspension->GetAxleSpeed(RIGHT);
 
     // Front1 differential
-    //// RADU
-    ////  Note that we assume here that the front diff ratio = -1.
-    ////  This is how it should always be anyway ->  MUST MODIFY TEMPLATE
-    ////  REMOVE GetFrontDifferentialRatio() and GetRearDifferentialRatio()
     double omega_front1_differentialbox = 0.5 * (omega_axle_FL1 + omega_axle_FR1);
     m_front1_differentialbox->SetPos_dt(omega_front1_differentialbox);
     // Front1 conical gear

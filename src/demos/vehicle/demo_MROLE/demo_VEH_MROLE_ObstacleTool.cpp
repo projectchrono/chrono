@@ -9,12 +9,14 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Authors: Radu Serban / Rainer Gericke
+// Authors: Rainer Gericke
 // =============================================================================
 //
-// Demonstration program for Marder vehicle on rigid NRMM trapezoidal obstacle
+// Demonstration program for MROLE vehicle on rigid trapezoidal obstacle
 //
 // =============================================================================
+
+#include <iomanip>
 
 #include "chrono/utils/ChUtilsInputOutput.h"
 #include "chrono/utils/ChFilters.h"
