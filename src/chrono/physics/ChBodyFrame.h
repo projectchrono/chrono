@@ -20,11 +20,7 @@
 
 namespace chrono {
 
-/// Class for objects that represent moving frames in space and
-/// that contain  ChVariables proxies to the solver.
-/// i.e. items with translational and rotational degrees of freedom
-/// This class is used as a base for the very used ChBody class
-
+/// Class for objects that represent moving frames in space and contain state variables.
 class ChApi ChBodyFrame : public ChFrameMoving<double> {
   public:
     ChBodyFrame() {}
@@ -32,25 +28,18 @@ class ChApi ChBodyFrame : public ChFrameMoving<double> {
 
     virtual ~ChBodyFrame() {}
 
-    /// Returns reference to the encapsulated ChVariablesBody,
-    /// representing body variables (pos, speed or accel.- see VariablesLoad...() )
-    /// and forces.
-    /// The ChVariablesBodyOwnMass is the interface to the system solver.
-    virtual ChVariablesBodyOwnMass& VariablesBody() = 0;
+    /// Return a reference to the encapsulated variables, representing states (pos, speed or accel.) and forces.
     virtual ChVariables& Variables() = 0;
 
-    /// Transform generic cartesian force into absolute force+torque applied to body COG.
-    /// If local=1, force & application point are intended as expressed in local
-    /// coordinates, if =0, in absolute.
+    /// Transform a force applied at a point on the body  into a force and moment applied to the COM and expressed in
+    /// the absolute frame.
+    /// If local = true, the provided applied force and point are assumed to be expressed in body coordinates.
+    /// If local = false, the provided applied force and point is assumed to be expressed in absolute coordinates.
     void To_abs_forcetorque(const ChVector<>& force,
                             const ChVector<>& appl_point,
                             bool local,
                             ChVector<>& resultforce,
                             ChVector<>& resulttorque);
-
-    /// Transform generic cartesian torque into absolute torque applied to body COG.
-    /// If local=1, torque is intended as expressed in local coordinates, if =0, in absolute.
-    void To_abs_torque(const ChVector<>& torque, bool local, ChVector<>& resulttorque);
 
     /// Method to allow serialization of transient data to archives.
     virtual void ArchiveOUT(ChArchiveOut& marchive) override;

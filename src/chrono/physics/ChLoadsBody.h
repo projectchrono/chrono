@@ -158,7 +158,7 @@ class ChApi ChLoadBodyBody : public ChLoadCustomMultiple {
 
     /// Compute the force between the two bodies, in local reference loc_application_B,
     /// given rel_AB, i.e. the position and speed of loc_application_A respect to loc_application_B.
-    /// Force is assumed applied to body B, and its opposite to A.
+    /// Force is assumed applied to loc_application_B of body B, and its opposite reaction to A.
     /// Inherited classes MUST IMPLEMENT THIS.
     virtual void ComputeBodyBodyForceTorque(const ChFrameMoving<>& rel_AB,
                                             ChVector<>& loc_force,
@@ -243,7 +243,7 @@ class ChApi ChLoadBodyBodyTorque : public ChLoadBodyBody {
 
     /// Implement the computation of the body-body force, in local
     /// coordinates of the loc_application_B.
-    /// Force is assumed applied to body B, and its opposite to A.
+    /// Force is assumed applied to loc_application_B of body B, and its opposite reaction to A.
     virtual void ComputeBodyBodyForceTorque(const ChFrameMoving<>& rel_AB,
                                             ChVector<>& loc_force,
                                             ChVector<>& loc_torque) override;
@@ -283,7 +283,7 @@ class ChApi ChLoadBodyBodyBushingSpherical : public ChLoadBodyBody {
 
     /// Implement the computation of the bushing force, in local
     /// coordinates of the loc_application_B.
-    /// Force is assumed applied to body B, and its opposite to A.
+    /// Force is assumed applied to loc_application_B of body B, and its opposite reaction to A.
     virtual void ComputeBodyBodyForceTorque(const ChFrameMoving<>& rel_AB,
                                             ChVector<>& loc_force,
                                             ChVector<>& loc_torque) override;
@@ -321,7 +321,7 @@ class ChApi ChLoadBodyBodyBushingPlastic : public ChLoadBodyBodyBushingSpherical
 
     /// Implement the computation of the bushing force, in local
     /// coordinates of the loc_application_B.
-    /// Force is assumed applied to body B, and its opposite to A.
+    /// Force is assumed applied to loc_application_B of body B, and its opposite reaction to A.
     virtual void ComputeBodyBodyForceTorque(const ChFrameMoving<>& rel_AB,
                                             ChVector<>& loc_force,
                                             ChVector<>& loc_torque) override;
@@ -360,7 +360,7 @@ class ChApi ChLoadBodyBodyBushingMate : public ChLoadBodyBodyBushingSpherical {
 
     /// Implement the computation of the bushing force, in local
     /// coordinates of the loc_application_B.
-    /// Force is assumed applied to body B, and its opposite to A.
+    /// Force is assumed applied to loc_application_B of body B, and its opposite reaction to A.
     virtual void ComputeBodyBodyForceTorque(const ChFrameMoving<>& rel_AB,
                                             ChVector<>& loc_force,
                                             ChVector<>& loc_torque) override;
@@ -427,7 +427,7 @@ class ChApi ChLoadBodyBodyBushingGeneric : public ChLoadBodyBody {
 
     /// Implement the computation of the bushing force, in local
     /// coordinates of the loc_application_B.
-    /// Force is assumed applied to body B, and its opposite to A.
+    /// Force is assumed applied to loc_application_B of body B, and its opposite reaction to A.
     virtual void ComputeBodyBodyForceTorque(const ChFrameMoving<>& rel_AB,
                                             ChVector<>& loc_force,
                                             ChVector<>& loc_torque) override;

@@ -22,6 +22,7 @@
 #include "chrono/core/ChStream.h"
 #include "chrono/core/ChRealtimeStep.h"
 #include "chrono/utils/ChUtilsInputOutput.h"
+#include "chrono/utils/ChFilters.h"
 
 #include "chrono_vehicle/ChConfigVehicle.h"
 #include "chrono_vehicle/ChVehicleModelData.h"
@@ -62,16 +63,16 @@ VisualizationType wheel_vis_type = VisualizationType::MESH;
 VisualizationType tire_vis_type = VisualizationType::MESH;
 
 // Collision type for chassis (PRIMITIVES, MESH, or NONE)
-ChassisCollisionType chassis_collision_type = ChassisCollisionType::NONE;
+CollisionType chassis_collision_type = CollisionType::NONE;
 
 // Type of powertrain model (SHAFTS, SIMPLE)
 PowertrainModelType powertrain_model = PowertrainModelType::SHAFTS;
 
 // Drive type (FWD, RWD, or AWD)
-DrivelineType drive_type = DrivelineType::AWD;
+DrivelineTypeWV drive_type = DrivelineTypeWV::AWD;
 
 // Steering type (PITMAN_ARM or PITMAN_ARM_SHAFTS)
-SteeringType steering_type = SteeringType::PITMAN_ARM;
+SteeringTypeWV steering_type = SteeringTypeWV::PITMAN_ARM;
 
 // Type of tire model (RIGID, RIGID_MESH, TMEASY, PACEJKA, LUGRE, FIALA, PAC89, PAC02)
 TireModelType tire_model = TireModelType::TMEASY;
@@ -86,7 +87,7 @@ double terrainWidth = 100.0;   // size in Y direction
 ChVector<> trackPoint(0.0, 0.0, 1.75);
 
 // Contact method
-ChMaterialSurface::ContactMethod contact_method = ChMaterialSurface::SMC;
+ChContactMethod contact_method = ChContactMethod::SMC;
 bool contact_vis = false;
 
 // Simulation step sizes
@@ -144,27 +145,30 @@ int main(int argc, char* argv[]) {
     // Create the terrain
     RigidTerrain terrain(my_hmmwv.GetSystem());
 
+    MaterialInfo minfo;
+    minfo.mu = 0.9f;
+    minfo.cr = 0.01f;
+    minfo.Y = 2e7f;
+    auto patch_mat = minfo.CreateMaterial(contact_method);
+
     std::shared_ptr<RigidTerrain::Patch> patch;
     switch (terrain_model) {
         case RigidTerrain::PatchType::BOX:
-            patch = terrain.AddPatch(ChCoordsys<>(ChVector<>(0, 0, terrainHeight - 5), QUNIT),
-                                     ChVector<>(terrainLength, terrainWidth, 10));
+            patch = terrain.AddPatch(patch_mat, ChVector<>(0, 0, 0), ChVector<>(0, 0, 1), terrainLength, terrainWidth);
             patch->SetTexture(vehicle::GetDataFile("terrain/textures/tile4.jpg"), 200, 200);
             break;
         case RigidTerrain::PatchType::HEIGHT_MAP:
-            patch = terrain.AddPatch(CSYSNORM, vehicle::GetDataFile("terrain/height_maps/test64.bmp"), "test64", 128,
-                                     128, 0, 4);
+            patch = terrain.AddPatch(patch_mat, CSYSNORM, vehicle::GetDataFile("terrain/height_maps/test64.bmp"),
+                                     128, 128, 0, 4);
             patch->SetTexture(vehicle::GetDataFile("terrain/textures/grass.jpg"), 16, 16);
             break;
         case RigidTerrain::PatchType::MESH:
-            patch = terrain.AddPatch(CSYSNORM, vehicle::GetDataFile("terrain/meshes/test.obj"), "test_mesh");
+            patch = terrain.AddPatch(patch_mat, CSYSNORM, vehicle::GetDataFile("terrain/meshes/test.obj"));
             patch->SetTexture(vehicle::GetDataFile("terrain/textures/grass.jpg"), 100, 100);
             break;
     }
-    patch->SetContactFrictionCoefficient(0.9f);
-    patch->SetContactRestitutionCoefficient(0.01f);
-    patch->SetContactMaterialProperties(2e7f, 0.3f);
     patch->SetColor(ChColor(0.8f, 0.8f, 0.5f));
+
     terrain.Initialize();
 
     // Create the vehicle Irrlicht interface
@@ -233,6 +237,8 @@ int main(int argc, char* argv[]) {
     // Simulation loop
     // ---------------
 
+    my_hmmwv.GetVehicle().LogSubsystemTypes();
+
     if (debug_output) {
         GetLog() << "\n\n============ System Configuration ============\n";
         my_hmmwv.LogHardpointLocations();
@@ -248,10 +254,12 @@ int main(int argc, char* argv[]) {
 
     if (contact_vis) {
         app.SetSymbolscale(1e-4);
-        app.SetContactsDrawMode(ChIrrTools::eCh_ContactsDrawMode::CONTACT_FORCES);
+        app.SetContactsDrawMode(IrrContactsDrawMode::CONTACT_FORCES);
     }
 
     ChRealtimeStepTimer realtime_timer;
+    utils::ChRunningAverage RTF_filter(50);
+ 
     while (app.GetDevice()->run()) {
         double time = my_hmmwv.GetSystem()->GetChTime();
 
@@ -259,15 +267,18 @@ int main(int argc, char* argv[]) {
         if (time >= t_end)
             break;
 
-        app.BeginScene(true, true, irr::video::SColor(255, 140, 161, 192));
-        app.DrawAll();
-        app.EndScene();
+        // Render scene and output POV-Ray data
+        if (step_number % render_steps == 0) {
+            app.BeginScene(true, true, irr::video::SColor(255, 140, 161, 192));
+            app.DrawAll();
+            app.EndScene();
 
-        // Output POV-Ray data
-        if (povray_output && step_number % render_steps == 0) {
-            char filename[100];
-            sprintf(filename, "%s/data_%03d.dat", pov_dir.c_str(), render_frame + 1);
-            utils::WriteShapesPovray(my_hmmwv.GetSystem(), filename);
+            if (povray_output) {
+                char filename[100];
+                sprintf(filename, "%s/data_%03d.dat", pov_dir.c_str(), render_frame + 1);
+                utils::WriteShapesPovray(my_hmmwv.GetSystem(), filename);
+            }
+
             render_frame++;
         }
 
@@ -312,6 +323,7 @@ int main(int argc, char* argv[]) {
 
         // Spin in place for real time to catch up
         realtime_timer.Spin(step_size);
+        ////std::cout << RTF_filter.Add(realtime_timer.RTF) << std::endl;
     }
 
     if (driver_mode == RECORD) {

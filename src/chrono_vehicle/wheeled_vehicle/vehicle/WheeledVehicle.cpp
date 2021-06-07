@@ -16,9 +16,6 @@
 //
 // =============================================================================
 
-//// RADU
-//// Todo: extend to allow axles with double wheels
-
 #include "chrono_vehicle/wheeled_vehicle/vehicle/WheeledVehicle.h"
 
 #include "chrono_vehicle/ChVehicleModelData.h"
@@ -31,7 +28,7 @@ namespace vehicle {
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-WheeledVehicle::WheeledVehicle(const std::string& filename, ChMaterialSurface::ContactMethod contact_method)
+WheeledVehicle::WheeledVehicle(const std::string& filename, ChContactMethod contact_method)
     : ChWheeledVehicle("", contact_method) {
     Create(filename);
 }
@@ -44,7 +41,7 @@ WheeledVehicle::WheeledVehicle(ChSystem* system, const std::string& filename) : 
 // -----------------------------------------------------------------------------
 void WheeledVehicle::Create(const std::string& filename) {
     // Open and parse the input file
-    Document d = ReadFileJSON(filename);
+    Document d; ReadFileJSON(filename, d);
     if (d.IsNull())
         return;
 
@@ -87,6 +84,8 @@ void WheeledVehicle::Create(const std::string& filename) {
     m_steerings.resize(m_num_strs);
     m_strLocations.resize(m_num_strs);
     m_strRotations.resize(m_num_strs);
+
+    m_wheelSeparations.resize(m_num_axles, 0.0);
 
     // -------------------------------------------
     // Create the chassis system
@@ -157,21 +156,42 @@ void WheeledVehicle::Create(const std::string& filename) {
             m_arbLocations[i] = ReadVectorJSON(d["Axles"][i]["Antirollbar Location"]);
         }
 
-        // Left and right wheels
-        int num_wheels = 2;
-        m_axles[i]->m_wheels.resize(num_wheels);
-        file_name = d["Axles"][i]["Left Wheel Input File"].GetString();
-        m_axles[i]->m_wheels[0] = ReadWheelJSON(vehicle::GetDataFile(file_name));
+        // Check if there are double wheels
+        // Otherwise, assume only two
+        if (d["Axles"][i].HasMember("Wheel Separation")) {
+            m_wheelSeparations[i] = d["Axles"][i]["Wheel Separation"].GetDouble();
 
-        file_name = d["Axles"][i]["Right Wheel Input File"].GetString();
-        m_axles[i]->m_wheels[1] = ReadWheelJSON(vehicle::GetDataFile(file_name));
+            int num_wheels = 4;
+            m_axles[i]->m_wheels.resize(num_wheels);
+            file_name = d["Axles"][i]["Left Inside Wheel Input File"].GetString();
+            m_axles[i]->m_wheels[0] = ReadWheelJSON(vehicle::GetDataFile(file_name));
 
-        // Left and right brakes
-        file_name = d["Axles"][i]["Left Brake Input File"].GetString();
-        m_axles[i]->m_brake_left = ReadBrakeJSON(vehicle::GetDataFile(file_name));
+            file_name = d["Axles"][i]["Right Inside Wheel Input File"].GetString();
+            m_axles[i]->m_wheels[1] = ReadWheelJSON(vehicle::GetDataFile(file_name));
 
-        file_name = d["Axles"][i]["Right Brake Input File"].GetString();
-        m_axles[i]->m_brake_right = ReadBrakeJSON(vehicle::GetDataFile(file_name));
+            file_name = d["Axles"][i]["Left Outside Wheel Input File"].GetString();
+            m_axles[i]->m_wheels[2] = ReadWheelJSON(vehicle::GetDataFile(file_name));
+
+            file_name = d["Axles"][i]["Right Outside Wheel Input File"].GetString();
+            m_axles[i]->m_wheels[3] = ReadWheelJSON(vehicle::GetDataFile(file_name));
+        } else {
+            int num_wheels = 2;
+            m_axles[i]->m_wheels.resize(num_wheels);
+            file_name = d["Axles"][i]["Left Wheel Input File"].GetString();
+            m_axles[i]->m_wheels[0] = ReadWheelJSON(vehicle::GetDataFile(file_name));
+
+            file_name = d["Axles"][i]["Right Wheel Input File"].GetString();
+            m_axles[i]->m_wheels[1] = ReadWheelJSON(vehicle::GetDataFile(file_name));
+        }
+
+        // Left and right brakes (may be absent)
+        if (d["Axles"][i].HasMember("Left Brake Input File")) {
+            file_name = d["Axles"][i]["Left Brake Input File"].GetString();
+            m_axles[i]->m_brake_left = ReadBrakeJSON(vehicle::GetDataFile(file_name));
+
+            file_name = d["Axles"][i]["Right Brake Input File"].GetString();
+            m_axles[i]->m_brake_right = ReadBrakeJSON(vehicle::GetDataFile(file_name));
+        }
 
         if (d["Axles"][i].HasMember("Output")) {
             bool output = d["Axles"][i]["Output"].GetBool();
@@ -215,23 +235,19 @@ void WheeledVehicle::Initialize(const ChCoordsys<>& chassisPos, double chassisFw
 
     // Initialize the steering subsystems.
     for (int i = 0; i < m_num_strs; i++) {
-        m_steerings[i]->Initialize(m_chassis->GetBody(), m_strLocations[i], m_strRotations[i]);
+        m_steerings[i]->Initialize(m_chassis, m_strLocations[i], m_strRotations[i]);
     }
 
     // Initialize the axles (suspension + brakes + wheels + antirollbar)
     for (int i = 0; i < m_num_axles; i++) {
         int str_index = m_suspSteering[i];
-        if (str_index == -1) {
-            m_axles[i]->Initialize(m_chassis->GetBody(), m_suspLocations[i], m_arbLocations[i], m_chassis->GetBody(),
-                                   -1, 0.0);
-        } else {
-            m_axles[i]->Initialize(m_chassis->GetBody(), m_suspLocations[i], m_arbLocations[i],
-                                   m_steerings[str_index]->GetSteeringLink(), str_index, 0.0);
-        }
+        std::shared_ptr<ChSteering> steering = (str_index == -1) ? nullptr : m_steerings[str_index];
+        m_axles[i]->Initialize(m_chassis, nullptr, steering, m_suspLocations[i], m_arbLocations[i],
+                               m_wheelSeparations[i]);
     }
 
     // Initialize the driveline
-    m_driveline->Initialize(m_chassis->GetBody(), m_axles, m_driven_axles);
+    m_driveline->Initialize(m_chassis, m_axles, m_driven_axles);
 
     // Sanity check: make sure the driveline can accommodate the number of driven axles.
     assert(m_driveline->GetNumDrivenAxles() == m_driven_axles.size());

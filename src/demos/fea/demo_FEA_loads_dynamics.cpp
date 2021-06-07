@@ -16,12 +16,11 @@
 //
 // =============================================================================
 
-#include "chrono/physics/ChSystemNSC.h"
+#include "chrono/physics/ChSystemSMC.h"
 #include "chrono/physics/ChLinkMate.h"
 #include "chrono/physics/ChLoadContainer.h"
 
 #include "chrono/solver/ChIterativeSolverLS.h"
-#include "chrono/timestepper/ChTimestepperHHT.h"
 
 #include "chrono/fea/ChMesh.h"
 #include "chrono/fea/ChNodeFEAxyz.h"
@@ -51,10 +50,10 @@ int main(int argc, char* argv[]) {
     }
 
     // Create the physical system
-    ChSystemNSC my_system;
+    ChSystemSMC my_system;
 
     // Create the Irrlicht visualization
-    ChIrrApp application(&my_system, L"Loads on beams", irr::core::dimension2d<irr::u32>(800, 600), false, true);
+    ChIrrApp application(&my_system, L"Loads on beams", irr::core::dimension2d<irr::u32>(800, 600));
     application.AddTypicalLogo();
     application.AddTypicalSky();
     application.AddTypicalLights();
@@ -73,7 +72,7 @@ int main(int argc, char* argv[]) {
     mesh->AddNode(nodeB);
 
     // Create beam section & material
-    auto msection = chrono_types::make_shared<ChBeamSectionAdvanced>();
+    auto msection = chrono_types::make_shared<ChBeamSectionEulerAdvanced>();
     double beam_wy = 0.1;
     double beam_wz = 0.2;
     msection->SetAsRectangularSection(beam_wy, beam_wz);
@@ -494,7 +493,7 @@ int main(int argc, char* argv[]) {
         application.DrawAll();
         application.DoStep();
         if (!application.GetPaused()) {
-            double time = my_system.GetChTime();
+            //double time = my_system.GetChTime();
             auto& posB = nodeB->GetPos();
             rec.AddPoint(posB.x(), posB.y());
 

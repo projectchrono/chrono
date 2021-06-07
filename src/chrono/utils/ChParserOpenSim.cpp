@@ -171,9 +171,9 @@ void ChParserOpenSim::Parse(ChSystem& system, const std::string& filename) {
 // Makes a new system and then parses into it
 // -----------------------------------------------------------------------------
 
-ChSystem* ChParserOpenSim::Parse(const std::string& filename, ChMaterialSurface::ContactMethod contact_method) {
-    ChSystem* sys = (contact_method == ChMaterialSurface::NSC) ? static_cast<ChSystem*>(new ChSystemNSC)
-                                                               : static_cast<ChSystem*>(new ChSystemSMC);
+ChSystem* ChParserOpenSim::Parse(const std::string& filename, ChContactMethod contact_method) {
+    ChSystem* sys = (contact_method == ChContactMethod::NSC) ? static_cast<ChSystem*>(new ChSystemNSC)
+                                                             : static_cast<ChSystem*>(new ChSystemSMC);
 
     Parse(*sys, filename);
 
@@ -309,26 +309,6 @@ bool ChParserOpenSim::parseBody(xml_node<>* bodyNode, ChSystem& system) {
     newBody->SetNameString(name);
     system.AddBody(newBody);
 
-    // If body collision is enabled, set the contact material properties
-    if (m_collide) {
-        switch (newBody->GetContactMethod()) {
-            case ChMaterialSurface::NSC:
-                newBody->GetMaterialSurfaceNSC()->SetFriction(m_friction);
-                newBody->GetMaterialSurfaceNSC()->SetRestitution(m_restitution);
-                break;
-            case ChMaterialSurface::SMC:
-                newBody->GetMaterialSurfaceSMC()->SetFriction(m_friction);
-                newBody->GetMaterialSurfaceSMC()->SetRestitution(m_restitution);
-                newBody->GetMaterialSurfaceSMC()->SetYoungModulus(m_young_modulus);
-                newBody->GetMaterialSurfaceSMC()->SetPoissonRatio(m_poisson_ratio);
-                newBody->GetMaterialSurfaceSMC()->SetKn(m_kn);
-                newBody->GetMaterialSurfaceSMC()->SetGn(m_gn);
-                newBody->GetMaterialSurfaceSMC()->SetKt(m_kt);
-                newBody->GetMaterialSurfaceSMC()->SetGt(m_gt);
-                break;
-        }
-    }
-
     newBody->SetCollide(m_collide);
 
     // Traverse the list of fields and parse the information for each one
@@ -365,7 +345,7 @@ void ChParserOpenSim::initFunctionTable() {
         }
     };
 
-    function_table["mass_center"] = [this](xml_node<>* fieldNode, std::shared_ptr<ChBodyAuxRef> newBody) {
+    function_table["mass_center"] = [](xml_node<>* fieldNode, std::shared_ptr<ChBodyAuxRef> newBody) {
         // Set COM in reference frame
         auto COM = strToChVector<double>(fieldNode->value());
         // Opensim doesn't really use a rotated COM to REF frame, so unit quaternion
@@ -532,7 +512,7 @@ void ChParserOpenSim::initFunctionTable() {
 
                 if (functionType == std::string("LinearFunction")) {
                     // ax + b style linear mapping
-                    auto elems = ChParserOpenSim::strToSTLVector<double>(
+                    elems = ChParserOpenSim::strToSTLVector<double>(
                         transforms->first_node("function")->first_node()->first_node("coefficients")->value());
                     transformValue = elems[0] * coordVals[coordNames.at(0)] + elems[1];
                 } else if (functionType == std::string("Constant")) {
@@ -830,12 +810,37 @@ void ChParserOpenSim::initShapes(rapidxml::xml_node<>* node, ChSystem& system) {
             }
         }
 
+        // Create a contact material that will be shared by all shapes for this body
+        std::shared_ptr<ChMaterialSurface> mat;
+        switch (system.GetContactMethod()) {
+            case ChContactMethod::NSC: {
+                auto matNSC = chrono_types::make_shared<ChMaterialSurfaceNSC>();
+                matNSC->SetFriction(m_friction);
+                matNSC->SetRestitution(m_restitution);
+                mat = matNSC;
+                break;
+            }
+            case ChContactMethod::SMC: {
+                auto matSMC = chrono_types::make_shared<ChMaterialSurfaceSMC>();
+                matSMC->SetFriction(m_friction);
+                matSMC->SetRestitution(m_restitution);
+                matSMC->SetYoungModulus(m_young_modulus);
+                matSMC->SetPoissonRatio(m_poisson_ratio);
+                matSMC->SetKn(m_kn);
+                matSMC->SetGn(m_gn);
+                matSMC->SetKt(m_kt);
+                matSMC->SetGt(m_gt);
+                mat = matSMC;
+                break;
+            }
+        }
+
         // Set collision shapes
         if (body_info.body->GetCollide()) {
             body_info.body->GetCollisionModel()->ClearModel();
 
             for (auto cyl_info : body_info.cylinders) {
-                utils::AddCylinderGeometry(body_info.body, cyl_info.rad, cyl_info.hlen, cyl_info.pos, cyl_info.rot,
+                utils::AddCylinderGeometry(body_info.body, mat, cyl_info.rad, cyl_info.hlen, cyl_info.pos, cyl_info.rot,
                                            false);
             }
 

@@ -56,7 +56,7 @@ MixtureIngredient::~MixtureIngredient() {
 void MixtureIngredient::setDefaultMaterial(std::shared_ptr<ChMaterialSurface> mat) {
     assert(mat->GetContactMethod() == m_generator->m_system->GetContactMethod());
 
-    if (mat->GetContactMethod() == ChMaterialSurface::NSC) {
+    if (mat->GetContactMethod() == ChContactMethod::NSC) {
         m_defMaterialNSC = std::static_pointer_cast<ChMaterialSurfaceNSC>(mat);
     } else {
         m_defMaterialSMC = std::static_pointer_cast<ChMaterialSurfaceSMC>(mat);
@@ -279,12 +279,10 @@ std::shared_ptr<MixtureIngredient> Generator::AddMixtureIngredient(MixtureType t
     return m_mixture.back();
 }
 
-// Create objects in a box domain using the specified type of point
-// sampler and separation distance and the current mixture settings.
+// Create objects in a box domain using the given point sampler and separation distance and the current mixture settings.
 // The types of objects created are selected randomly with probability
 // proportional to the ratio of that ingredient in the mixture.
-void Generator::createObjectsBox(SamplingType sType,
-                                 double dist,
+void Generator::CreateObjectsBox(Sampler<double>& sampler,
                                  const ChVector<>& pos,
                                  const ChVector<>& hdims,
                                  const ChVector<>& vel) {
@@ -292,25 +290,12 @@ void Generator::createObjectsBox(SamplingType sType,
     normalizeMixture();
 
     // Generate the object locations
-    if (m_system->GetContactMethod() == ChMaterialSurface::SMC)
-        dist = calcMinSeparation(dist);
+    double sep = sampler.GetSeparation();
+    if (m_system->GetContactMethod() == ChContactMethod::SMC)
+        sep = calcMinSeparation(sep);
+    sampler.SetSeparation(sep);
 
-    PointVector points;
-    switch (sType) {
-        case SamplingType::REGULAR_GRID : {
-            GridSampler<> sampler(dist);
-            points = sampler.SampleBox(pos, hdims);
-        } break;
-        case SamplingType::POISSON_DISK: {
-            PDSampler<> sampler(dist);
-            points = sampler.SampleBox(pos, hdims);
-        } break;
-        case SamplingType::HCP_PACK: {
-            HCPSampler<> sampler(dist);
-            points = sampler.SampleBox(pos, hdims);
-        } break;
-    }
-
+    PointVector points = sampler.SampleBox(pos, hdims);
     createObjects(points, vel);
 }
 
@@ -318,7 +303,7 @@ void Generator::createObjectsBox(SamplingType sType,
 // specified separation distances and using the current mixture settings.
 // The types of objects created are selected randomly with probability
 // proportional to the ratio of that ingredient in the mixture.
-void Generator::createObjectsBox(const ChVector<>& dist,
+void Generator::CreateObjectsBox(const ChVector<>& dist,
                                  const ChVector<>& pos,
                                  const ChVector<>& hdims,
                                  const ChVector<>& vel) {
@@ -327,7 +312,7 @@ void Generator::createObjectsBox(const ChVector<>& dist,
 
     // When using SMC, make sure there is no shape overlap.
     ChVector<> distv;
-    if (m_system->GetContactMethod() == ChMaterialSurface::SMC)
+    if (m_system->GetContactMethod() == ChContactMethod::SMC)
         distv = calcMinSeparation(dist);
     else
         distv = dist;
@@ -344,8 +329,7 @@ void Generator::createObjectsBox(const ChVector<>& dist,
 // sampler and separation distance and the current mixture settings.
 // The types of objects created are selected randomly with probability
 // proportional to the ratio of that ingredient in the mixture.
-void Generator::createObjectsCylinderX(SamplingType sType,
-                                       double dist,
+void Generator::CreateObjectsCylinderX(Sampler<double>& sampler,
                                        const ChVector<>& pos,
                                        float radius,
                                        float halfHeight,
@@ -354,30 +338,16 @@ void Generator::createObjectsCylinderX(SamplingType sType,
     normalizeMixture();
 
     // Generate the object locations
-    if (m_system->GetContactMethod() == ChMaterialSurface::SMC)
-        dist = calcMinSeparation(dist);
+    double sep = sampler.GetSeparation();
+    if (m_system->GetContactMethod() == ChContactMethod::SMC)
+        sep = calcMinSeparation(sep);
+    sampler.SetSeparation(sep);
 
-    PointVector points;
-    switch (sType) {
-        case SamplingType::REGULAR_GRID: {
-            GridSampler<> sampler(dist);
-            points = sampler.SampleCylinderX(pos, radius, halfHeight);
-        } break;
-        case SamplingType::POISSON_DISK: {
-            PDSampler<> sampler(dist);
-            points = sampler.SampleCylinderX(pos, radius, halfHeight);
-        } break;
-        case SamplingType::HCP_PACK: {
-            HCPSampler<> sampler(dist);
-            points = sampler.SampleCylinderX(pos, radius, halfHeight);
-        } break;
-    }
-
+    PointVector points = sampler.SampleCylinderX(pos, radius, halfHeight);
     createObjects(points, vel);
 }
 
-void Generator::createObjectsCylinderY(SamplingType sType,
-                                       double dist,
+void Generator::CreateObjectsCylinderY(Sampler<double>& sampler,
                                        const ChVector<>& pos,
                                        float radius,
                                        float halfHeight,
@@ -386,30 +356,16 @@ void Generator::createObjectsCylinderY(SamplingType sType,
     normalizeMixture();
 
     // Generate the object locations
-    if (m_system->GetContactMethod() == ChMaterialSurface::SMC)
-        dist = calcMinSeparation(dist);
+    double sep = sampler.GetSeparation();
+    if (m_system->GetContactMethod() == ChContactMethod::SMC)
+        sep = calcMinSeparation(sep);
+    sampler.SetSeparation(sep);
 
-    PointVector points;
-    switch (sType) {
-        case SamplingType::REGULAR_GRID: {
-            GridSampler<> sampler(dist);
-            points = sampler.SampleCylinderY(pos, radius, halfHeight);
-        } break;
-        case SamplingType::POISSON_DISK: {
-            PDSampler<> sampler(dist);
-            points = sampler.SampleCylinderY(pos, radius, halfHeight);
-        } break;
-        case SamplingType::HCP_PACK: {
-            HCPSampler<> sampler(dist);
-            points = sampler.SampleCylinderY(pos, radius, halfHeight);
-        } break;
-    }
-
+    PointVector points = sampler.SampleCylinderY(pos, radius, halfHeight);
     createObjects(points, vel);
 }
 
-void Generator::createObjectsCylinderZ(SamplingType sType,
-                                       double dist,
+void Generator::CreateObjectsCylinderZ(Sampler<double>& sampler,
                                        const ChVector<>& pos,
                                        float radius,
                                        float halfHeight,
@@ -418,25 +374,29 @@ void Generator::createObjectsCylinderZ(SamplingType sType,
     normalizeMixture();
 
     // Generate the object locations
-    if (m_system->GetContactMethod() == ChMaterialSurface::SMC)
-        dist = calcMinSeparation(dist);
+    double sep = sampler.GetSeparation();
+    if (m_system->GetContactMethod() == ChContactMethod::SMC)
+        sep = calcMinSeparation(sep);
+    sampler.SetSeparation(sep);
 
-    PointVector points;
-    switch (sType) {
-        case SamplingType::REGULAR_GRID: {
-            GridSampler<> sampler(dist);
-            points = sampler.SampleCylinderZ(pos, radius, halfHeight);
-        } break;
-        case SamplingType::POISSON_DISK: {
-            PDSampler<> sampler(dist);
-            points = sampler.SampleCylinderZ(pos, radius, halfHeight);
-        } break;
-        case SamplingType::HCP_PACK: {
-            HCPSampler<> sampler(dist);
-            points = sampler.SampleCylinderZ(pos, radius, halfHeight);
-        } break;
-    }
+    PointVector points = sampler.SampleCylinderZ(pos, radius, halfHeight);
+    createObjects(points, vel);
+}
 
+void Generator::CreateObjectsSphere(Sampler<double>& sampler,
+                                    const ChVector<>& pos,
+                                    float radius,
+                                    const ChVector<>& vel) {
+    // Normalize the mixture ratios
+    normalizeMixture();
+
+    // Generate the object locations
+    double sep = sampler.GetSeparation();
+    if (m_system->GetContactMethod() == ChContactMethod::SMC)
+        sep = calcMinSeparation(sep);
+    sampler.SetSeparation(sep);
+
+    PointVector points = sampler.SampleSphere(pos, radius);
     createObjects(points, vel);
 }
 
@@ -513,18 +473,26 @@ void Generator::createObjects(const PointVector& points, const ChVector<>& vel) 
         // Select the type of object to be created.
         int index = selectIngredient();
 
-        // Create the body (with appropriate contact method and collision model, consistent
-        // with the associated system) and set contact material
-        ChBody* body = m_system->NewBody();
-
+        // Create a contact material consistent with the associated system and modify it based on attributes of the
+        // current ingredient.
+        std::shared_ptr<ChMaterialSurface> mat;
         switch (m_system->GetContactMethod()) {
-            case ChMaterialSurface::NSC:
-                m_mixture[index]->setMaterialProperties(body->GetMaterialSurfaceNSC());
+            case ChContactMethod::NSC: {
+                auto matNSC = chrono_types::make_shared<ChMaterialSurfaceNSC>();
+                m_mixture[index]->setMaterialProperties(matNSC);
+                mat = matNSC;
                 break;
-            case ChMaterialSurface::SMC:
-                m_mixture[index]->setMaterialProperties(body->GetMaterialSurfaceSMC());
+            }
+            case ChContactMethod::SMC: {
+                auto matSMC = chrono_types::make_shared<ChMaterialSurfaceSMC>();
+                m_mixture[index]->setMaterialProperties(matSMC);
+                mat = matSMC;
                 break;
+            }
         }
+
+        // Create the body (with appropriate collision model, consistent with the associated system)
+        ChBody* body = m_system->NewBody();
 
         // Set identifier
         body->SetIdentifier(m_crtBodyId++);
@@ -555,28 +523,28 @@ void Generator::createObjects(const PointVector& points, const ChVector<>& vel) 
 
         switch (m_mixture[index]->m_type) {
             case MixtureType::SPHERE:
-                AddSphereGeometry(body, size.x());
+                AddSphereGeometry(body, mat, size.x());
                 break;
             case MixtureType::ELLIPSOID:
-                AddEllipsoidGeometry(body, size);
+                AddEllipsoidGeometry(body, mat, size);
                 break;
             case MixtureType::BOX:
-                AddBoxGeometry(body, size);
+                AddBoxGeometry(body, mat, size);
                 break;
             case MixtureType::CYLINDER:
-                AddCylinderGeometry(body, size.x(), size.y());
+                AddCylinderGeometry(body, mat, size.x(), size.y());
                 break;
             case MixtureType::CONE:
-                AddConeGeometry(body, size.x(), size.y());
+                AddConeGeometry(body, mat, size.x(), size.y());
                 break;
             case MixtureType::BISPHERE:
-            	AddBiSphereGeometry(body, size.x(), size.y());
+            	AddBiSphereGeometry(body, mat, size.x(), size.y());
                 break;
             case MixtureType::CAPSULE:
-                AddCapsuleGeometry(body, size.x(), size.y());
+                AddCapsuleGeometry(body, mat, size.x(), size.y());
                 break;
             case MixtureType::ROUNDEDCYLINDER:
-                AddRoundedCylinderGeometry(body, size.x(), size.y(), size.z());
+                AddRoundedCylinderGeometry(body, mat, size.x(), size.y(), size.z());
                 break;
         }
 
@@ -607,16 +575,7 @@ void Generator::writeObjectInfo(const std::string& filename) {
         csv << m_bodies[i].m_body->GetPos() << m_bodies[i].m_size;
         csv << m_bodies[i].m_density << m_bodies[i].m_body->GetMass();
 
-        switch (m_system->GetContactMethod()) {
-            case ChMaterialSurface::NSC: {
-                std::shared_ptr<ChMaterialSurfaceNSC> mat = m_bodies[i].m_body->GetMaterialSurfaceNSC();
-                csv << mat->GetSfriction() << mat->GetCohesion();
-            } break;
-            case ChMaterialSurface::SMC: {
-                std::shared_ptr<ChMaterialSurfaceSMC> mat = m_bodies[i].m_body->GetMaterialSurfaceSMC();
-                csv << mat->GetYoungModulus() << mat->GetPoissonRatio() << mat->GetSfriction() << mat->GetRestitution();
-            } break;
-        }
+        //// RADU: write collision shape information, including contact material properties?
 
         csv << std::endl;
     }

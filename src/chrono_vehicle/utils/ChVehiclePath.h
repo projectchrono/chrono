@@ -64,7 +64,7 @@ CH_VEHICLE_API std::shared_ptr<ChBezierCurve> CirclePath(
 ///                                          ^
 ///                   ______>______          |
 ///                  /             \         +---> X
-///                /                 \
+///                /                 \       | 
 /// _____>______ /                     \ ______>_______
 ///     run       ramp   length    ramp      run
 /// </pre>

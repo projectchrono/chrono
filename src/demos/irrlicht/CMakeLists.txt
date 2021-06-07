@@ -49,6 +49,8 @@ SET(DEMOS
   demo_IRR_Adams_parser
   demo_IRR_debugDrawer_collisionModels
   demo_IRR_imposed_motion
+  demo_IRR_custom_contact
+  demo_IRR_cyl_box
 )
 
 #--------------------------------------------------------------
@@ -77,17 +79,12 @@ FOREACH(PROGRAM ${DEMOS})
   SET_TARGET_PROPERTIES(${PROGRAM}  PROPERTIES
     FOLDER demos
     COMPILE_FLAGS "${CH_CXX_FLAGS} ${CH_IRRLICHT_CXX_FLAGS}"
-    LINK_FLAGS "${CH_LINKERFLAG_EXE}"
-    )
-
+    LINK_FLAGS "${CH_LINKERFLAG_EXE}")
+  SET_PROPERTY(TARGET ${PROGRAM} PROPERTY VS_DEBUGGER_WORKING_DIRECTORY "$<TARGET_FILE_DIR:${PROGRAM}>")
   TARGET_LINK_LIBRARIES(${PROGRAM}
     ChronoEngine
-    ChronoEngine_irrlicht
-    )
-    
+    ChronoEngine_irrlicht)    
   ADD_DEPENDENCIES (${PROGRAM} ChronoEngine ChronoEngine_irrlicht)
 
   INSTALL(TARGETS ${PROGRAM} DESTINATION ${CH_INSTALL_DEMO})
-
 ENDFOREACH()
-

@@ -1,0 +1,54 @@
+// =============================================================================
+// PROJECT CHRONO - http://projectchrono.org
+//
+// Copyright (c) 2020 projectchrono.org
+// All rights reserved.
+//
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
+//
+// =============================================================================
+// Authors: Jay Taves
+// =============================================================================
+//
+// Schema file that defines state data for Soil Contact Model (SCM) deformable
+// terrain. For further details see chrono_vehicle/terrain/SCMDeformableTerrain
+// To synchronize deformable terrain state, it is sufficient to communicate
+//  -- the (x, y) position of each deformed node on an integer grid
+//  -- the deformation (double) associated with each such node
+// The scheme is thus just a vector of such structs
+//
+// =============================================================================
+
+include "Utils.fbs";
+
+// Derived "class" of Terrain
+// Creates a SCM terrain message
+namespace SynFlatBuffers.Terrain.SCM;
+
+struct NodeLevel {
+    x:int;
+    y:int;
+    level:double;
+}
+
+table State {
+    time:double;
+    
+    nodes:[NodeLevel];
+}
+
+root_type State;
+
+// Base "class"
+// Creates a terrain message
+namespace SynFlatBuffers.Terrain;
+
+union Type { SCM.State }
+
+table State {
+  message:Type;
+}
+
+root_type State;

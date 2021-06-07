@@ -1,53 +1,49 @@
 {
-  "Name":     "M113 chassis",
-  "Type":     "Chassis",
-  "Template": "RigidChassis",
+    "Name": "M113 chassis",
+    "Type": "Chassis",
+    "Template": "RigidChassis",
 
-  "Components":
-  [
-   {
-     "Centroidal Frame":    {
-                              "Location":    [-2.006, 0, 0.406], 
-                              "Orientation": [1, 0, 0, 0]
-                            },
-     "Mass":                7819.24,
-     "Moments of Inertia":  [13983.08, 27287.61, 28805.57],
-     "Products of Inertia": [0, 0, 0],
-     "Void":                false
-   }
-  ],
- 
-  "Driver Position":
-  {
-    "Location":     [0, 0.5, 1.2],
-    "Orientation":  [1, 0, 0, 0]
-  },
+    "Components": [
+        {
+            "Centroidal Frame": {
+                "Location": [ -2.006, 0, 0.406 ],
+                "Orientation": [ 1, 0, 0, 0 ]
+            },
+            "Mass": 7819.24,
+            "Moments of Inertia": [ 13983.08, 27287.61, 28805.57 ],
+            "Products of Inertia": [ 0, 0, 0 ],
+            "Void": false
+        }
+    ],
 
-  "Visualization":
-  {
-    "Mesh":   "M113/Chassis.obj",
+    "Driver Position": {
+        "Location": [ 0, 0.5, 1.2 ],
+        "Orientation": [ 1, 0, 0, 0 ]
+    },
 
-    "Primitives":
-    [
-      {
-        "Type": "SPHERE",
-        "Location": [-2.006, 0, 0.406],
-        "Radius": 0.1
-      },
-      {
-        "Type": "CYLINDER",
-        "Location": [-2.006, 0, 0.406],
-        "Orientation": [1, 0, 0, 0],
-        "Radius": 0.02,
-        "Length": 0.6
-      },
-      {
-        "Type": "CYLINDER",
-        "Location": [-2.006, 0, 0.406],
-        "Orientation": [0.7071, 0, 0, 0.7071],
-        "Radius": 0.02,
-        "Length": 0.6
-      }
-   ]
-  }
+    "Visualization": {
+        "Mesh": "M113/Chassis.obj",
+
+        "Primitives": [
+            {
+                "Type": "SPHERE",
+                "Location": [ -2.006, 0, 0.406 ],
+                "Radius": 0.1
+            },
+            {
+                "Type": "CYLINDER",
+                "Location": [ -2.006, 0, 0.406 ],
+                "Orientation": [ 1, 0, 0, 0 ],
+                "Radius": 0.02,
+                "Length": 0.6
+            },
+            {
+                "Type": "CYLINDER",
+                "Location": [ -2.006, 0, 0.406 ],
+                "Orientation": [ 0.7071, 0, 0, 0.7071 ],
+                "Radius": 0.02,
+                "Length": 0.6
+            }
+        ]
+    }
 }

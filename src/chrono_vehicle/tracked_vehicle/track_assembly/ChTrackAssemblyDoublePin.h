@@ -28,7 +28,7 @@
 #include "chrono/core/ChVector2.h"
 
 #include "chrono_vehicle/ChApiVehicle.h"
-#include "chrono_vehicle/tracked_vehicle/ChTrackAssembly.h"
+#include "chrono_vehicle/tracked_vehicle/track_assembly/ChTrackAssemblySegmented.h"
 #include "chrono_vehicle/tracked_vehicle/sprocket/ChSprocketDoublePin.h"
 #include "chrono_vehicle/tracked_vehicle/track_shoe/ChTrackShoeDoublePin.h"
 
@@ -42,12 +42,11 @@ namespace vehicle {
 /// A track assembly consists of a sprocket, an idler (with tensioner mechanism),
 /// a set of suspensions (road-wheel assemblies), and a collection of track shoes.
 /// This class defines the template for a track assembly using double-pin track shoes.
-class CH_VEHICLE_API ChTrackAssemblyDoublePin : public ChTrackAssembly {
+class CH_VEHICLE_API ChTrackAssemblyDoublePin : public ChTrackAssemblySegmented {
   public:
     ChTrackAssemblyDoublePin(const std::string& name,  ///< [in] name of the subsystem
                              VehicleSide side          ///< [in] assembly on left/right vehicle side
-                             )
-        : ChTrackAssembly(name, side) {}
+    );
 
     virtual ~ChTrackAssemblyDoublePin() {}
 
@@ -84,15 +83,6 @@ class CH_VEHICLE_API ChTrackAssemblyDoublePin : public ChTrackAssembly {
                          ChVector2<> pc,  ///< (x-z) location of connector body
                          double as,       ///< shoe body angle
                          double ac        ///< connector body angle
-                         );
-
-    /// Utility function to create the bodies of the specified track shoe with
-    /// the given configuration. This version specifies the location of the center
-    /// the track shoe system (in 2D, in the (x-z) plane) and a common orientation
-    /// angle for both the shoe and connector bodies.
-    void CreateTrackShoe(size_t index,   ///< index of track shoe within assembly
-                         ChVector2<> p,  ///< (x-z) location of track shoe center
-                         double angle    ///< angle of the shoe and connector bodies
                          );
 
     std::shared_ptr<ChBodyAuxRef> m_chassis;

@@ -19,19 +19,11 @@
 #ifndef HMMWV_VEHICLE_FULL_H
 #define HMMWV_VEHICLE_FULL_H
 
+#include "chrono_vehicle/wheeled_vehicle/ChWheeledVehicle.h"
+
 #include "chrono_models/ChApiModels.h"
 #include "chrono_models/vehicle/ChVehicleModelDefs.h"
-
 #include "chrono_models/vehicle/hmmwv/HMMWV_Vehicle.h"
-#include "chrono_models/vehicle/hmmwv/HMMWV_Chassis.h"
-#include "chrono_models/vehicle/hmmwv/HMMWV_BrakeSimple.h"
-#include "chrono_models/vehicle/hmmwv/HMMWV_DoubleWishbone.h"
-#include "chrono_models/vehicle/hmmwv/HMMWV_Driveline2WD.h"
-#include "chrono_models/vehicle/hmmwv/HMMWV_Driveline4WD.h"
-#include "chrono_models/vehicle/hmmwv/HMMWV_SimpleDriveline.h"
-#include "chrono_models/vehicle/hmmwv/HMMWV_PitmanArm.h"
-#include "chrono_models/vehicle/hmmwv/HMMWV_PitmanArmShafts.h"
-#include "chrono_models/vehicle/hmmwv/HMMWV_Wheel.h"
 
 namespace chrono {
 namespace vehicle {
@@ -45,18 +37,20 @@ namespace hmmwv {
 class CH_MODELS_API HMMWV_VehicleFull : public HMMWV_Vehicle {
   public:
     HMMWV_VehicleFull(const bool fixed,
-                      DrivelineType drive_type,
-                      SteeringType steering_type,
+                      DrivelineTypeWV drive_type,
+                      BrakeType brake_type,
+                      SteeringTypeWV steering_type,
                       bool rigid_steering_column,
-                      ChMaterialSurface::ContactMethod contact_method,
-                      ChassisCollisionType chassis_collision_type);
+                      ChContactMethod contact_method,
+                      CollisionType chassis_collision_type);
 
     HMMWV_VehicleFull(ChSystem* system,
                       const bool fixed,
-                      DrivelineType drive_type,
-                      SteeringType steering_type,
+                      DrivelineTypeWV drive_type,
+                      BrakeType brake_type,
+                      SteeringTypeWV steering_type,
                       bool rigid_steering_column,
-                      ChassisCollisionType chassis_collision_type);
+                      CollisionType chassis_collision_type);
 
     ~HMMWV_VehicleFull();
 
@@ -75,7 +69,11 @@ class CH_MODELS_API HMMWV_VehicleFull : public HMMWV_Vehicle {
     void DebugLog(int what);       /// shock forces and lengths, constraints, etc.
 
   private:
-    void Create(bool fixed, SteeringType steering_type, bool rigid_steering_column, ChassisCollisionType chassis_collision_type);
+    void Create(bool fixed,
+                BrakeType brake_type,
+                SteeringTypeWV steering_type,
+                bool rigid_steering_column,
+                CollisionType chassis_collision_type);
 };
 
 /// @} vehicle_models_hmmwv

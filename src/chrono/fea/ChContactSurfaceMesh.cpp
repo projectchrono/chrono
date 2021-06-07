@@ -12,7 +12,7 @@
 // Authors: Alessandro Tasora, Radu Serban
 // =============================================================================
 
-#include "chrono/collision/ChCModelBullet.h"
+#include "chrono/collision/ChCollisionModelBullet.h"
 #include "chrono/core/ChMath.h"
 #include "chrono/physics/ChSystem.h"
 
@@ -35,8 +35,6 @@
 #include <array>
 #include <algorithm>
 
-using namespace std;
-
 namespace chrono {
 namespace fea {
 
@@ -44,8 +42,8 @@ namespace fea {
 ////  ChContactTriangleXYZ
 
 ChContactTriangleXYZ::ChContactTriangleXYZ() {
-    this->collision_model = new collision::ChModelBullet;
-    this->collision_model->SetContactable(this);
+    collision_model = new collision::ChCollisionModelBullet;
+    collision_model->SetContactable(this);
 }
 
 ChContactTriangleXYZ::ChContactTriangleXYZ(std::shared_ptr<ChNodeFEAxyz> n1,
@@ -57,12 +55,8 @@ ChContactTriangleXYZ::ChContactTriangleXYZ(std::shared_ptr<ChNodeFEAxyz> n1,
     mnode1 = n3;
     container = acontainer;
 
-    this->collision_model = new collision::ChModelBullet;
-    this->collision_model->SetContactable(this);
-}
-
-std::shared_ptr<ChMaterialSurface>& ChContactTriangleXYZ::GetMaterialSurface() {
-    return container->GetMaterialSurface();
+    collision_model = new collision::ChCollisionModelBullet;
+    collision_model->SetContactable(this);
 }
 
 ChPhysicsItem* ChContactTriangleXYZ::GetPhysicsItem() {
@@ -86,10 +80,14 @@ void ChContactTriangleXYZ::LoadableGetStateBlock_w(int block_offset, ChStateDelt
 }
 
 /// Increment all DOFs using a delta.
-void ChContactTriangleXYZ::LoadableStateIncrement(const unsigned int off_x, ChState& x_new, const ChState& x, const unsigned int off_v, const ChStateDelta& Dv)  {
-    mnode1->NodeIntStateIncrement(off_x   , x_new, x, off_v   , Dv);
-    mnode2->NodeIntStateIncrement(off_x+3 , x_new, x, off_v+3 , Dv);
-    mnode3->NodeIntStateIncrement(off_x+6 , x_new, x, off_v+6 , Dv);
+void ChContactTriangleXYZ::LoadableStateIncrement(const unsigned int off_x,
+                                                  ChState& x_new,
+                                                  const ChState& x,
+                                                  const unsigned int off_v,
+                                                  const ChStateDelta& Dv) {
+    mnode1->NodeIntStateIncrement(off_x, x_new, x, off_v, Dv);
+    mnode2->NodeIntStateIncrement(off_x + 3, x_new, x, off_v + 3, Dv);
+    mnode3->NodeIntStateIncrement(off_x + 6, x_new, x, off_v + 6, Dv);
 }
 // Get the pointers to the contained ChVariables, appending to the mvars vector.
 void ChContactTriangleXYZ::LoadableGetVariables(std::vector<ChVariables*>& mvars) {
@@ -98,6 +96,143 @@ void ChContactTriangleXYZ::LoadableGetVariables(std::vector<ChVariables*>& mvars
     mvars.push_back(&mnode3->Variables());
 }
 
+void ChContactTriangleXYZ::ContactableGetStateBlock_x(ChState& x) {
+    x.segment(0, 3) = mnode1->pos.eigen();
+    x.segment(3, 3) = mnode2->pos.eigen();
+    x.segment(6, 3) = mnode3->pos.eigen();
+}
+
+void ChContactTriangleXYZ::ContactableGetStateBlock_w(ChStateDelta& w) {
+    w.segment(0, 3) = mnode1->pos_dt.eigen();
+    w.segment(3, 3) = mnode2->pos_dt.eigen();
+    w.segment(6, 3) = mnode3->pos_dt.eigen();
+}
+
+void ChContactTriangleXYZ::ContactableIncrementState(const ChState& x, const ChStateDelta& dw, ChState& x_new) {
+    mnode1->NodeIntStateIncrement(0, x_new, x, 0, dw);
+    mnode2->NodeIntStateIncrement(3, x_new, x, 3, dw);
+    mnode3->NodeIntStateIncrement(6, x_new, x, 6, dw);
+}
+
+ChVector<> ChContactTriangleXYZ::GetContactPoint(const ChVector<>& loc_point, const ChState& state_x) {
+    // Note: because the reference coordinate system for a ChcontactTriangleXYZ is the identity,
+    // the given point loc_point is actually expressed in the global frame. In this case, we
+    // calculate the output point here by assuming that its barycentric coordinates do not change
+    // with a change in the states of this object.
+    double s2, s3;
+    ComputeUVfromP(loc_point, s2, s3);
+    double s1 = 1 - s2 - s3;
+
+    ChVector<> A1(state_x.segment(0, 3));
+    ChVector<> A2(state_x.segment(3, 3));
+    ChVector<> A3(state_x.segment(6, 3));
+
+    return s1 * A1 + s2 * A2 + s3 * A3;
+}
+
+ChVector<> ChContactTriangleXYZ::GetContactPointSpeed(const ChVector<>& loc_point,
+                                                      const ChState& state_x,
+                                                      const ChStateDelta& state_w) {
+    // Note: because the reference coordinate system for a ChcontactTriangleXYZ is the identity,
+    // the given point loc_point is actually expressed in the global frame. In this case, we
+    // calculate the output point here by assuming that its barycentric coordinates do not change
+    // with a change in the states of this object.
+    double s2, s3;
+    ComputeUVfromP(loc_point, s2, s3);
+    double s1 = 1 - s2 - s3;
+
+    ChVector<> A1_dt(state_w.segment(0, 3));
+    ChVector<> A2_dt(state_w.segment(3, 3));
+    ChVector<> A3_dt(state_w.segment(6, 3));
+
+    return s1 * A1_dt + s2 * A2_dt + s3 * A3_dt;
+}
+
+ChVector<> ChContactTriangleXYZ::GetContactPointSpeed(const ChVector<>& abs_point) {
+    double s2, s3;
+    ComputeUVfromP(abs_point, s2, s3);
+    double s1 = 1 - s2 - s3;
+    return (s1 * mnode1->pos_dt + s2 * mnode2->pos_dt + s3 * mnode3->pos_dt);
+}
+
+void ChContactTriangleXYZ::ContactForceLoadResidual_F(const ChVector<>& F,
+                                                      const ChVector<>& abs_point,
+                                                      ChVectorDynamic<>& R) {
+    double s2, s3;
+    ComputeUVfromP(abs_point, s2, s3);
+    double s1 = 1 - s2 - s3;
+    R.segment(mnode1->NodeGetOffset_w(), 3) += F.eigen() * s1;
+    R.segment(mnode2->NodeGetOffset_w(), 3) += F.eigen() * s2;
+    R.segment(mnode3->NodeGetOffset_w(), 3) += F.eigen() * s3;
+}
+
+void ChContactTriangleXYZ::ContactForceLoadQ(const ChVector<>& F,
+                                             const ChVector<>& point,
+                                             const ChState& state_x,
+                                             ChVectorDynamic<>& Q,
+                                             int offset) {
+    // Calculate barycentric coordinates
+    ChVector<> A1(state_x.segment(0, 3));
+    ChVector<> A2(state_x.segment(3, 3));
+    ChVector<> A3(state_x.segment(6, 3));
+
+    double s2, s3;
+    bool is_into;
+    ChVector<> p_projected;
+    /*double dist =*/collision::utils::PointTriangleDistance(point, A1, A2, A3, s2, s3, is_into, p_projected);
+    double s1 = 1 - s2 - s3;
+    Q.segment(offset + 0, 3) = F.eigen() * s1;
+    Q.segment(offset + 3, 3) = F.eigen() * s2;
+    Q.segment(offset + 6, 3) = F.eigen() * s3;
+}
+
+void ChContactTriangleXYZ::ComputeJacobianForContactPart(const ChVector<>& abs_point,
+                                                         ChMatrix33<>& contact_plane,
+                                                         type_constraint_tuple& jacobian_tuple_N,
+                                                         type_constraint_tuple& jacobian_tuple_U,
+                                                         type_constraint_tuple& jacobian_tuple_V,
+                                                         bool second) {
+    // compute the triangular area-parameters s1 s2 s3:
+    double s2, s3;
+    bool is_into;
+    ChVector<> p_projected;
+    /*double dist =*/collision::utils::PointTriangleDistance(abs_point, GetNode1()->pos, GetNode2()->pos,
+                                                             GetNode3()->pos, s2, s3, is_into, p_projected);
+    double s1 = 1 - s2 - s3;
+
+    ChMatrix33<> Jx1 = contact_plane.transpose();
+    if (!second)
+        Jx1 *= -1;
+
+    jacobian_tuple_N.Get_Cq_1().segment(0, 3) = Jx1.row(0);
+    jacobian_tuple_U.Get_Cq_1().segment(0, 3) = Jx1.row(1);
+    jacobian_tuple_V.Get_Cq_1().segment(0, 3) = Jx1.row(2);
+    jacobian_tuple_N.Get_Cq_1() *= s1;
+    jacobian_tuple_U.Get_Cq_1() *= s1;
+    jacobian_tuple_V.Get_Cq_1() *= s1;
+    jacobian_tuple_N.Get_Cq_2().segment(0, 3) = Jx1.row(0);
+    jacobian_tuple_U.Get_Cq_2().segment(0, 3) = Jx1.row(1);
+    jacobian_tuple_V.Get_Cq_2().segment(0, 3) = Jx1.row(2);
+    jacobian_tuple_N.Get_Cq_2() *= s2;
+    jacobian_tuple_U.Get_Cq_2() *= s2;
+    jacobian_tuple_V.Get_Cq_2() *= s2;
+    jacobian_tuple_N.Get_Cq_3().segment(0, 3) = Jx1.row(0);
+    jacobian_tuple_U.Get_Cq_3().segment(0, 3) = Jx1.row(1);
+    jacobian_tuple_V.Get_Cq_3().segment(0, 3) = Jx1.row(2);
+    jacobian_tuple_N.Get_Cq_3() *= s3;
+    jacobian_tuple_U.Get_Cq_3() *= s3;
+    jacobian_tuple_V.Get_Cq_3() *= s3;
+}
+
+unsigned int ChContactTriangleXYZ::GetSubBlockOffset(int nblock) {
+    if (nblock == 0)
+        return GetNode1()->NodeGetOffset_w();
+    if (nblock == 1)
+        return GetNode2()->NodeGetOffset_w();
+    if (nblock == 2)
+        return GetNode3()->NodeGetOffset_w();
+    return 0;
+}
 
 // Evaluate N'*F , where N is the shape function evaluated at (U,V) coordinates of the surface.
 void ChContactTriangleXYZ::ComputeNF(
@@ -108,7 +243,7 @@ void ChContactTriangleXYZ::ComputeNF(
     const ChVectorDynamic<>& F,  // Input F vector, size is =n. field coords.
     ChVectorDynamic<>* state_x,  // if != 0, update state (pos. part) to this, then evaluate Q
     ChVectorDynamic<>* state_w   // if != 0, update state (speed part) to this, then evaluate Q
-    ) {
+) {
     ChMatrixNM<double, 1, 3> N;
     // shape functions (U and V in 0..1 as triangle integration)
     N(0) = 1 - U - V;
@@ -133,12 +268,19 @@ ChVector<> ChContactTriangleXYZ::ComputeNormal(const double U, const double V) {
     return Vcross(p1 - p0, p2 - p0).GetNormalized();
 }
 
+void ChContactTriangleXYZ::ComputeUVfromP(const ChVector<> P, double& u, double& v) {
+    bool is_into;
+    ChVector<> p_projected;
+    /*double dist =*/collision::utils::PointTriangleDistance(P, mnode1->pos, mnode2->pos, mnode3->pos, u, v, is_into,
+                                                             p_projected);
+}
+
 //////////////////////////////////////////////////////////////////////////////
 ////  ChContactTriangleXYZROT
 
 ChContactTriangleXYZROT::ChContactTriangleXYZROT() {
-    this->collision_model = new collision::ChModelBullet;
-    this->collision_model->SetContactable(this);
+    collision_model = new collision::ChCollisionModelBullet;
+    collision_model->SetContactable(this);
 }
 
 ChContactTriangleXYZROT::ChContactTriangleXYZROT(std::shared_ptr<ChNodeFEAxyzrot> n1,
@@ -150,12 +292,8 @@ ChContactTriangleXYZROT::ChContactTriangleXYZROT(std::shared_ptr<ChNodeFEAxyzrot
     mnode1 = n3;
     container = acontainer;
 
-    this->collision_model = new collision::ChModelBullet;
-    this->collision_model->SetContactable(this);
-}
-
-std::shared_ptr<ChMaterialSurface>& ChContactTriangleXYZROT::GetMaterialSurface() {
-    return container->GetMaterialSurface();
+    collision_model = new collision::ChCollisionModelBullet;
+    collision_model->SetContactable(this);
 }
 
 ChPhysicsItem* ChContactTriangleXYZROT::GetPhysicsItem() {
@@ -194,15 +332,164 @@ void ChContactTriangleXYZROT::LoadableStateIncrement(const unsigned int off_x,
                                                      const ChState& x,
                                                      const unsigned int off_v,
                                                      const ChStateDelta& Dv) {
-    mnode1->NodeIntStateIncrement(off_x   , x_new, x, off_v    , Dv);
-    mnode2->NodeIntStateIncrement(off_x+7 , x_new, x, off_v+6  , Dv);
-    mnode3->NodeIntStateIncrement(off_x+14, x_new, x, off_v+12 , Dv);
+    mnode1->NodeIntStateIncrement(off_x, x_new, x, off_v, Dv);
+    mnode2->NodeIntStateIncrement(off_x + 7, x_new, x, off_v + 6, Dv);
+    mnode3->NodeIntStateIncrement(off_x + 14, x_new, x, off_v + 12, Dv);
 }
+
 // Get the pointers to the contained ChVariables, appending to the mvars vector.
 void ChContactTriangleXYZROT::LoadableGetVariables(std::vector<ChVariables*>& mvars) {
     mvars.push_back(&mnode1->Variables());
     mvars.push_back(&mnode2->Variables());
     mvars.push_back(&mnode3->Variables());
+}
+
+void ChContactTriangleXYZROT::ContactableGetStateBlock_x(ChState& x) {
+    x.segment(0, 3) = mnode1->GetPos().eigen();
+    x.segment(3, 4) = mnode1->GetRot().eigen();
+
+    x.segment(7, 3) = mnode2->GetPos().eigen();
+    x.segment(10, 4) = mnode2->GetRot().eigen();
+
+    x.segment(14, 3) = mnode3->GetPos().eigen();
+    x.segment(17, 4) = mnode3->GetRot().eigen();
+}
+
+void ChContactTriangleXYZROT::ContactableGetStateBlock_w(ChStateDelta& w) {
+    w.segment(0, 3) = mnode1->GetPos_dt().eigen();
+    w.segment(3, 3) = mnode1->GetWvel_loc().eigen();
+
+    w.segment(6, 3) = mnode2->GetPos_dt().eigen();
+    w.segment(9, 3) = mnode2->GetWvel_loc().eigen();
+
+    w.segment(12, 3) = mnode3->GetPos_dt().eigen();
+    w.segment(15, 3) = mnode3->GetWvel_loc().eigen();
+}
+
+void ChContactTriangleXYZROT::ContactableIncrementState(const ChState& x, const ChStateDelta& dw, ChState& x_new) {
+    mnode1->NodeIntStateIncrement(0, x_new, x, 0, dw);
+    mnode2->NodeIntStateIncrement(7, x_new, x, 6, dw);
+    mnode3->NodeIntStateIncrement(14, x_new, x, 12, dw);
+}
+
+ChVector<> ChContactTriangleXYZROT::GetContactPoint(const ChVector<>& loc_point, const ChState& state_x) {
+    // Note: because the reference coordinate system for a ChContactTriangleXYZROT is the identity,
+    // the given point loc_point is actually expressed in the global frame. In this case, we
+    // calculate the output point here by assuming that its barycentric coordinates do not change
+    // with a change in the states of this object.
+    double s2, s3;
+    ComputeUVfromP(loc_point, s2, s3);
+    double s1 = 1 - s2 - s3;
+
+    ChVector<> A1(state_x.segment(0, 3));
+    ChVector<> A2(state_x.segment(7, 3));
+    ChVector<> A3(state_x.segment(14, 3));
+
+    return s1 * A1 + s2 * A2 + s3 * A3;
+}
+
+ChVector<> ChContactTriangleXYZROT::GetContactPointSpeed(const ChVector<>& loc_point,
+                                                         const ChState& state_x,
+                                                         const ChStateDelta& state_w) {
+    // Note: because the reference coordinate system for a ChContactTriangleXYZROT is the identity,
+    // the given point loc_point is actually expressed in the global frame. In this case, we
+    // calculate the output point here by assuming that its barycentric coordinates do not change
+    // with a change in the states of this object.
+    double s2, s3;
+    ComputeUVfromP(loc_point, s2, s3);
+    double s1 = 1 - s2 - s3;
+
+    ChVector<> A1_dt(state_w.segment(0, 3));
+    ChVector<> A2_dt(state_w.segment(6, 3));
+    ChVector<> A3_dt(state_w.segment(12, 3));
+
+    return s1 * A1_dt + s2 * A2_dt + s3 * A3_dt;
+}
+
+ChVector<> ChContactTriangleXYZROT::GetContactPointSpeed(const ChVector<>& abs_point) {
+    double s2, s3;
+    ComputeUVfromP(abs_point, s2, s3);
+    double s1 = 1 - s2 - s3;
+    return (s1 * mnode1->GetPos_dt() + s2 * mnode2->GetPos_dt() + s3 * mnode3->GetPos_dt());
+}
+
+void ChContactTriangleXYZROT::ContactForceLoadResidual_F(const ChVector<>& F,
+                                                         const ChVector<>& abs_point,
+                                                         ChVectorDynamic<>& R) {
+    double s2, s3;
+    ComputeUVfromP(abs_point, s2, s3);
+    double s1 = 1 - s2 - s3;
+    R.segment(mnode1->NodeGetOffset_w(), 3) += F.eigen() * s1;
+    R.segment(mnode2->NodeGetOffset_w(), 3) += F.eigen() * s2;
+    R.segment(mnode3->NodeGetOffset_w(), 3) += F.eigen() * s3;
+}
+
+void ChContactTriangleXYZROT::ContactForceLoadQ(const ChVector<>& F,
+                                                const ChVector<>& point,
+                                                const ChState& state_x,
+                                                ChVectorDynamic<>& Q,
+                                                int offset) {
+    // Calculate barycentric coordinates
+    ChVector<> A1(state_x.segment(0, 3));
+    ChVector<> A2(state_x.segment(7, 3));
+    ChVector<> A3(state_x.segment(14, 3));
+
+    double s2, s3;
+    bool is_into;
+    ChVector<> p_projected;
+    /*double dist =*/collision::utils::PointTriangleDistance(point, A1, A2, A3, s2, s3, is_into, p_projected);
+    double s1 = 1 - s2 - s3;
+    Q.segment(offset + 0, 3) = F.eigen() * s1;
+    Q.segment(offset + 6, 3) = F.eigen() * s2;
+    Q.segment(offset + 12, 3) = F.eigen() * s3;
+}
+
+void ChContactTriangleXYZROT::ComputeJacobianForContactPart(const ChVector<>& abs_point,
+                                                            ChMatrix33<>& contact_plane,
+                                                            type_constraint_tuple& jacobian_tuple_N,
+                                                            type_constraint_tuple& jacobian_tuple_U,
+                                                            type_constraint_tuple& jacobian_tuple_V,
+                                                            bool second) {
+    // compute the triangular area-parameters s1 s2 s3:
+    double s2, s3;
+    bool is_into;
+    ChVector<> p_projected;
+    /*double dist =*/collision::utils::PointTriangleDistance(abs_point, GetNode1()->coord.pos, GetNode2()->coord.pos,
+                                                             GetNode3()->coord.pos, s2, s3, is_into, p_projected);
+    double s1 = 1 - s2 - s3;
+
+    ChMatrix33<> Jx1 = contact_plane.transpose();
+    if (!second)
+        Jx1 *= -1;
+
+    jacobian_tuple_N.Get_Cq_1().segment(0, 3) = Jx1.row(0);
+    jacobian_tuple_U.Get_Cq_1().segment(0, 3) = Jx1.row(1);
+    jacobian_tuple_V.Get_Cq_1().segment(0, 3) = Jx1.row(2);
+    jacobian_tuple_N.Get_Cq_1() *= s1;
+    jacobian_tuple_U.Get_Cq_1() *= s1;
+    jacobian_tuple_V.Get_Cq_1() *= s1;
+    jacobian_tuple_N.Get_Cq_2().segment(0, 3) = Jx1.row(0);
+    jacobian_tuple_U.Get_Cq_2().segment(0, 3) = Jx1.row(1);
+    jacobian_tuple_V.Get_Cq_2().segment(0, 3) = Jx1.row(2);
+    jacobian_tuple_N.Get_Cq_2() *= s2;
+    jacobian_tuple_U.Get_Cq_2() *= s2;
+    jacobian_tuple_V.Get_Cq_2() *= s2;
+    jacobian_tuple_N.Get_Cq_3().segment(0, 3) = Jx1.row(0);
+    jacobian_tuple_U.Get_Cq_3().segment(0, 3) = Jx1.row(1);
+    jacobian_tuple_V.Get_Cq_3().segment(0, 3) = Jx1.row(2);
+    jacobian_tuple_N.Get_Cq_3() *= s3;
+    jacobian_tuple_U.Get_Cq_3() *= s3;
+    jacobian_tuple_V.Get_Cq_3() *= s3;
+}
+
+unsigned int ChContactTriangleXYZROT::GetSubBlockOffset(int nblock) {
+    if (nblock == 0)
+        return GetNode1()->NodeGetOffset_w();
+    if (nblock == 1)
+        return GetNode2()->NodeGetOffset_w();
+    if (nblock == 2)
+        return GetNode3()->NodeGetOffset_w();
+    return 0;
 }
 
 // Evaluate N'*F , where N is the shape function evaluated at (U,V) coordinates of the surface.
@@ -214,7 +501,7 @@ void ChContactTriangleXYZROT::ComputeNF(
     const ChVectorDynamic<>& F,  // Input F vector, size is =n. field coords.
     ChVectorDynamic<>* state_x,  // if != 0, update state (pos. part) to this, then evaluate Q
     ChVectorDynamic<>* state_w   // if != 0, update state (speed part) to this, then evaluate Q
-    ) {
+) {
     ChMatrixNM<double, 1, 3> N;
     // shape functions (U and V in 0..1 as triangle integration)
     N(0) = 1 - U - V;
@@ -232,7 +519,7 @@ void ChContactTriangleXYZROT::ComputeNF(
 
     Qi.segment(6, 3) = N(1) * F.segment(0, 3);
     Qi.segment(9, 3) = N(1) * F.segment(3, 3);
-    
+
     Qi.segment(12, 3) = N(2) * F.segment(0, 3);
     Qi.segment(15, 3) = N(2) * F.segment(3, 3);
 }
@@ -244,8 +531,18 @@ ChVector<> ChContactTriangleXYZROT::ComputeNormal(const double U, const double V
     return Vcross(p1 - p0, p2 - p0).GetNormalized();
 }
 
-//////////////////////////////////////////////////////////////////////////////
-////  ChContactSurfaceMesh
+void ChContactTriangleXYZROT::ComputeUVfromP(const ChVector<> P, double& u, double& v) {
+    bool is_into;
+    ChVector<> p_projected;
+    /*double dist =*/collision::utils::PointTriangleDistance(P, mnode1->GetPos(), mnode2->GetPos(), mnode3->GetPos(), u,
+                                                             v, is_into, p_projected);
+}
+
+// -----------------------------------------------------------------------------
+//  ChContactSurfaceMesh
+
+ChContactSurfaceMesh::ChContactSurfaceMesh(std::shared_ptr<ChMaterialSurface> material, ChMesh* mesh)
+    : ChContactSurface(material, mesh) {}
 
 void ChContactSurfaceMesh::AddFacesFromBoundary(double sphere_swept, bool ccw) {
     std::vector<std::array<ChNodeFEAxyz*, 3>> triangles;
@@ -254,14 +551,13 @@ void ChContactSurfaceMesh::AddFacesFromBoundary(double sphere_swept, bool ccw) {
     std::vector<std::array<ChNodeFEAxyzrot*, 3>> triangles_rot;
     std::vector<std::array<std::shared_ptr<ChNodeFEAxyzrot>, 3>> triangles_rot_ptrs;
 
-    ///
-    /// Case1. Outer skin boundary of meshes of TETRAHEDRONS:
-    ///
-
+    //
+    // Case1. Outer skin boundary of meshes of TETRAHEDRONS:
+    //
     std::multimap<std::array<ChNodeFEAxyz*, 3>, ChFaceTetra_4> face_map;
 
-    for (unsigned int ie = 0; ie < this->mmesh->GetNelements(); ++ie) {
-        if (auto mtetra = std::dynamic_pointer_cast<ChElementTetra_4>(mmesh->GetElement(ie))) {
+    for (unsigned int ie = 0; ie < m_mesh->GetNelements(); ++ie) {
+        if (auto mtetra = std::dynamic_pointer_cast<ChElementTetra_4>(m_mesh->GetElement(ie))) {
             for (int nface = 0; nface < 4; ++nface) {
                 ChFaceTetra_4 mface(mtetra, nface);
                 std::array<ChNodeFEAxyz*, 3> mface_key = {mface.GetNodeN(0).get(), mface.GetNodeN(1).get(),
@@ -271,8 +567,8 @@ void ChContactSurfaceMesh::AddFacesFromBoundary(double sphere_swept, bool ccw) {
             }
         }
     }
-    for (unsigned int ie = 0; ie < this->mmesh->GetNelements(); ++ie) {
-        if (auto mtetra = std::dynamic_pointer_cast<ChElementTetra_4>(mmesh->GetElement(ie))) {
+    for (unsigned int ie = 0; ie < m_mesh->GetNelements(); ++ie) {
+        if (auto mtetra = std::dynamic_pointer_cast<ChElementTetra_4>(m_mesh->GetElement(ie))) {
             for (int nface = 0; nface < 4; ++nface) {
                 ChFaceTetra_4 mface(mtetra, nface);
                 std::array<ChNodeFEAxyz*, 3> mface_key = {mface.GetNodeN(0).get(), mface.GetNodeN(1).get(),
@@ -287,11 +583,11 @@ void ChContactSurfaceMesh::AddFacesFromBoundary(double sphere_swept, bool ccw) {
         }
     }
 
-    ///
-    /// Case2. skin of ANCF SHELLS:
-    ///
-    for (unsigned int ie = 0; ie < this->mmesh->GetNelements(); ++ie) {
-        if (auto mshell = std::dynamic_pointer_cast<ChElementShellANCF>(mmesh->GetElement(ie))) {
+    //
+    // Case2. skin of ANCF SHELLS:
+    //
+    for (unsigned int ie = 0; ie < m_mesh->GetNelements(); ++ie) {
+        if (auto mshell = std::dynamic_pointer_cast<ChElementShellANCF>(m_mesh->GetElement(ie))) {
             std::shared_ptr<ChNodeFEAxyz> nA = mshell->GetNodeA();
             std::shared_ptr<ChNodeFEAxyz> nB = mshell->GetNodeB();
             std::shared_ptr<ChNodeFEAxyz> nC = mshell->GetNodeC();
@@ -310,8 +606,8 @@ void ChContactSurfaceMesh::AddFacesFromBoundary(double sphere_swept, bool ccw) {
         }
     }
 
-    for (unsigned int ie = 0; ie < this->mmesh->GetNelements(); ++ie) {
-        if (auto mshell = std::dynamic_pointer_cast<ChElementShellANCF_8>(mmesh->GetElement(ie))) {
+    for (unsigned int ie = 0; ie < m_mesh->GetNelements(); ++ie) {
+        if (auto mshell = std::dynamic_pointer_cast<ChElementShellANCF_8>(m_mesh->GetElement(ie))) {
             auto nA = mshell->GetNodeA();
             auto nB = mshell->GetNodeB();
             auto nC = mshell->GetNodeC();
@@ -350,11 +646,11 @@ void ChContactSurfaceMesh::AddFacesFromBoundary(double sphere_swept, bool ccw) {
         }
     }
 
-    ///
-    /// Case3. EULER BEAMS (handles as a skinny triangle, with sphere swept radii, i.e. a capsule):
-    ///
-    for (unsigned int ie = 0; ie < this->mmesh->GetNelements(); ++ie) {
-        if (auto mbeam = std::dynamic_pointer_cast<ChElementBeamEuler>(mmesh->GetElement(ie))) {
+    //
+    // Case3. EULER BEAMS (handles as a skinny triangle, with sphere swept radii, i.e. a capsule):
+    //
+    for (unsigned int ie = 0; ie < m_mesh->GetNelements(); ++ie) {
+        if (auto mbeam = std::dynamic_pointer_cast<ChElementBeamEuler>(m_mesh->GetElement(ie))) {
             std::shared_ptr<ChNodeFEAxyzrot> nA = mbeam->GetNodeA();
             std::shared_ptr<ChNodeFEAxyzrot> nB = mbeam->GetNodeB();
 
@@ -362,24 +658,34 @@ void ChContactSurfaceMesh::AddFacesFromBoundary(double sphere_swept, bool ccw) {
             contact_triangle->SetNode1(nA);
             contact_triangle->SetNode2(nB);
             contact_triangle->SetNode3(nB);
-            this->vfaces_rot.push_back(contact_triangle);
+            vfaces_rot.push_back(contact_triangle);
             contact_triangle->SetContactSurface(this);
 
+            double capsule_radius =
+                collision::ChCollisionModel::GetDefaultSuggestedMargin();  // fallback for no draw profile
+            if (auto mdrawshape = mbeam->GetSection()->GetDrawShape()) {
+                double ymin, ymax, zmin, zmax;
+                mdrawshape->GetAABB(ymin, ymax, zmin, zmax);
+                capsule_radius = 0.5 * sqrt(pow(ymax - ymin, 2) + pow(zmax - zmin, 2));
+            }
+
             contact_triangle->GetCollisionModel()->ClearModel();
-            ((collision::ChModelBullet*)contact_triangle->GetCollisionModel())
-                ->AddTriangleProxy(&nA->coord.pos, &nB->coord.pos, &nB->coord.pos, 0, 0, 0,  // no wing vertexes
+            ((collision::ChCollisionModelBullet*)contact_triangle->GetCollisionModel())
+                ->AddTriangleProxy(m_material,                                      // contact material
+                                   &nA->coord.pos, &nB->coord.pos, &nB->coord.pos,  // vertices
+                                   0, 0, 0,                                         // no wing vertexes
                                    false, false, false,  // are vertexes owned by this triangle?
                                    true, false, true,    // are edges owned by this triangle?
-                                   mbeam->GetSection()->GetDrawCircularRadius());
+                                   capsule_radius);
             contact_triangle->GetCollisionModel()->BuildModel();
         }
     }
 
-    ///
-    /// Case4. ANCF BEAMS (handles as a skinny triangle, with sphere swept radii, i.e. a capsule):
-    ///
-    for (unsigned int ie = 0; ie < this->mmesh->GetNelements(); ++ie) {
-        if (auto mbeam = std::dynamic_pointer_cast<ChElementCableANCF>(mmesh->GetElement(ie))) {
+    //
+    // Case4. ANCF BEAMS (handles as a skinny triangle, with sphere swept radii, i.e. a capsule):
+    //
+    for (unsigned int ie = 0; ie < m_mesh->GetNelements(); ++ie) {
+        if (auto mbeam = std::dynamic_pointer_cast<ChElementCableANCF>(m_mesh->GetElement(ie))) {
             std::shared_ptr<ChNodeFEAxyzD> nA = mbeam->GetNodeA();
             std::shared_ptr<ChNodeFEAxyzD> nB = mbeam->GetNodeB();
 
@@ -387,27 +693,37 @@ void ChContactSurfaceMesh::AddFacesFromBoundary(double sphere_swept, bool ccw) {
             contact_triangle->SetNode1(nA);
             contact_triangle->SetNode2(nB);
             contact_triangle->SetNode3(nB);
-            this->vfaces.push_back(contact_triangle);
+            vfaces.push_back(contact_triangle);
             contact_triangle->SetContactSurface(this);
 
+            double capsule_radius =
+                collision::ChCollisionModel::GetDefaultSuggestedMargin();  // fallback for no draw profile
+            if (auto mdrawshape = mbeam->GetSection()->GetDrawShape()) {
+                double ymin, ymax, zmin, zmax;
+                mdrawshape->GetAABB(ymin, ymax, zmin, zmax);
+                capsule_radius = 0.5 * sqrt(pow(ymax - ymin, 2) + pow(zmax - zmin, 2));
+            }
+
             contact_triangle->GetCollisionModel()->ClearModel();
-            ((collision::ChModelBullet*)contact_triangle->GetCollisionModel())
-                ->AddTriangleProxy(&nA->pos, &nB->pos, &nB->pos, 0, 0, 0,  // no wing vertexes
-                                   false, false, false,                    // are vertexes owned by this triangle?
-                                   true, false, true,                      // are edges owned by this triangle?
-                                   mbeam->GetSection()->GetDrawCircularRadius());
+            ((collision::ChCollisionModelBullet*)contact_triangle->GetCollisionModel())
+                ->AddTriangleProxy(m_material,                    // contact materials
+                                   &nA->pos, &nB->pos, &nB->pos,  // vertices
+                                   0, 0, 0,                       // no wing vertexes
+                                   false, false, false,           // are vertexes owned by this triangle?
+                                   true, false, true,             // are edges owned by this triangle?
+                                   capsule_radius);
             contact_triangle->GetCollisionModel()->BuildModel();
         }
     }
 
-    ///
-    /// Case5. Outer surface boundaries of 9-node brick meshes:
-    ///
+    //
+    // Case5. Outer surface boundaries of 9-node brick meshes:
+    //
 
     std::multimap<std::array<ChNodeFEAxyz*, 4>, ChFaceBrick_9> face_map_brick;
 
-    for (unsigned int ie = 0; ie < this->mmesh->GetNelements(); ++ie) {
-        if (auto mbrick = std::dynamic_pointer_cast<ChElementBrick_9>(mmesh->GetElement(ie))) {
+    for (unsigned int ie = 0; ie < m_mesh->GetNelements(); ++ie) {
+        if (auto mbrick = std::dynamic_pointer_cast<ChElementBrick_9>(m_mesh->GetElement(ie))) {
             for (int nface = 0; nface < 6; ++nface) {
                 ChFaceBrick_9 mface(mbrick, nface);
                 std::array<ChNodeFEAxyz*, 4> mface_key = {mface.GetNodeN(0).get(), mface.GetNodeN(1).get(),
@@ -417,8 +733,8 @@ void ChContactSurfaceMesh::AddFacesFromBoundary(double sphere_swept, bool ccw) {
             }
         }
     }
-    for (unsigned int ie = 0; ie < this->mmesh->GetNelements(); ++ie) {
-        if (auto mbrick = std::dynamic_pointer_cast<ChElementBrick_9>(mmesh->GetElement(ie))) {
+    for (unsigned int ie = 0; ie < m_mesh->GetNelements(); ++ie) {
+        if (auto mbrick = std::dynamic_pointer_cast<ChElementBrick_9>(m_mesh->GetElement(ie))) {
             for (int nface = 0; nface < 6; ++nface) {  // Each of the 6 faces of a brick
                 ChFaceBrick_9 mface(mbrick, nface);    // Create a face of the element
                 std::array<ChNodeFEAxyz*, 4> mface_key = {mface.GetNodeN(0).get(), mface.GetNodeN(1).get(),
@@ -435,12 +751,11 @@ void ChContactSurfaceMesh::AddFacesFromBoundary(double sphere_swept, bool ccw) {
         }
     }
 
-    ///
-    /// Case6. skin of REISSNER SHELLS:
-    ///
-
-    for (unsigned int ie = 0; ie < this->mmesh->GetNelements(); ++ie) {
-        if (auto mshell = std::dynamic_pointer_cast<ChElementShellReissner4>(mmesh->GetElement(ie))) {
+    //
+    // Case6. skin of REISSNER SHELLS:
+    //
+    for (unsigned int ie = 0; ie < m_mesh->GetNelements(); ++ie) {
+        if (auto mshell = std::dynamic_pointer_cast<ChElementShellReissner4>(m_mesh->GetElement(ie))) {
             std::shared_ptr<ChNodeFEAxyzrot> nA = mshell->GetNodeA();
             std::shared_ptr<ChNodeFEAxyzrot> nB = mshell->GetNodeB();
             std::shared_ptr<ChNodeFEAxyzrot> nC = mshell->GetNodeC();
@@ -459,14 +774,13 @@ void ChContactSurfaceMesh::AddFacesFromBoundary(double sphere_swept, bool ccw) {
         }
     }
 
-    ///
-    /// Case7. Outer surface boundaries of 8-node hexahedron brick meshes:
-    ///
-
+    //
+    // Case7. Outer surface boundaries of 8-node hexahedron brick meshes:
+    //
     std::multimap<std::array<ChNodeFEAxyz*, 4>, ChFaceHexa_8> face_map_hexa;
 
-    for (unsigned int ie = 0; ie < this->mmesh->GetNelements(); ++ie) {
-        if (auto mbrick = std::dynamic_pointer_cast<ChElementHexa_8>(mmesh->GetElement(ie))) {
+    for (unsigned int ie = 0; ie < m_mesh->GetNelements(); ++ie) {
+        if (auto mbrick = std::dynamic_pointer_cast<ChElementHexa_8>(m_mesh->GetElement(ie))) {
             for (int nface = 0; nface < 6; ++nface) {
                 ChFaceHexa_8 mface(mbrick, nface);
                 std::array<ChNodeFEAxyz*, 4> mface_key = {mface.GetNodeN(0).get(), mface.GetNodeN(1).get(),
@@ -476,8 +790,8 @@ void ChContactSurfaceMesh::AddFacesFromBoundary(double sphere_swept, bool ccw) {
             }
         }
     }
-    for (unsigned int ie = 0; ie < this->mmesh->GetNelements(); ++ie) {
-        if (auto mbrick = std::dynamic_pointer_cast<ChElementHexa_8>(mmesh->GetElement(ie))) {
+    for (unsigned int ie = 0; ie < m_mesh->GetNelements(); ++ie) {
+        if (auto mbrick = std::dynamic_pointer_cast<ChElementHexa_8>(m_mesh->GetElement(ie))) {
             for (int nface = 0; nface < 6; ++nface) {  // Each of the 6 faces of a brick
                 ChFaceHexa_8 mface(mbrick, nface);     // Create a face of the element
                 std::array<ChNodeFEAxyz*, 4> mface_key = {mface.GetNodeN(0).get(), mface.GetNodeN(1).get(),
@@ -497,7 +811,6 @@ void ChContactSurfaceMesh::AddFacesFromBoundary(double sphere_swept, bool ccw) {
     //
     // Compute triangles connectivity
     //
-
     std::multimap<std::pair<ChNodeFEAxyz*, ChNodeFEAxyz*>, int> edge_map;
 
     for (int it = 0; it < triangles.size(); ++it) {
@@ -689,7 +1002,6 @@ void ChContactSurfaceMesh::AddFacesFromBoundary(double sphere_swept, bool ccw) {
     //
     // Now create triangles with collision models:
     //
-
     std::set<ChNodeFEAxyz*> added_vertexes;
 
     // iterate on triangles
@@ -747,12 +1059,13 @@ void ChContactSurfaceMesh::AddFacesFromBoundary(double sphere_swept, bool ccw) {
         contact_triangle->SetNode1(triangles_ptrs[it][0]);
         contact_triangle->SetNode2(triangles_ptrs[it][1]);
         contact_triangle->SetNode3(triangles_ptrs[it][2]);
-        this->vfaces.push_back(contact_triangle);
+        vfaces.push_back(contact_triangle);
         contact_triangle->SetContactSurface(this);
 
         contact_triangle->GetCollisionModel()->ClearModel();
-        ((collision::ChModelBullet*)contact_triangle->GetCollisionModel())
-            ->AddTriangleProxy(&triangles[it][0]->pos, &triangles[it][1]->pos, &triangles[it][2]->pos,
+        ((collision::ChCollisionModelBullet*)contact_triangle->GetCollisionModel())
+            ->AddTriangleProxy(m_material,  // contact material
+                               &triangles[it][0]->pos, &triangles[it][1]->pos, &triangles[it][2]->pos,
                                // if no wing vertex (ie. 'free' edge), point to opposite vertex, ie vertex in triangle
                                // not belonging to edge
                                wingedgeA->second.second != -1 ? &i_wingvertex_A->pos : &triangles[it][2]->pos,
@@ -835,12 +1148,13 @@ void ChContactSurfaceMesh::AddFacesFromBoundary(double sphere_swept, bool ccw) {
         contact_triangle_rot->SetNode1(triangles_rot_ptrs[it][0]);
         contact_triangle_rot->SetNode2(triangles_rot_ptrs[it][1]);
         contact_triangle_rot->SetNode3(triangles_rot_ptrs[it][2]);
-        this->vfaces_rot.push_back(contact_triangle_rot);
+        vfaces_rot.push_back(contact_triangle_rot);
         contact_triangle_rot->SetContactSurface(this);
 
         contact_triangle_rot->GetCollisionModel()->ClearModel();
-        ((collision::ChModelBullet*)contact_triangle_rot->GetCollisionModel())
+        ((collision::ChCollisionModelBullet*)contact_triangle_rot->GetCollisionModel())
             ->AddTriangleProxy(
+                m_material,  // contact material
                 &triangles_rot[it][0]->coord.pos, &triangles_rot[it][1]->coord.pos, &triangles_rot[it][2]->coord.pos,
                 // if no wing vertex (ie. 'free' edge), point to opposite vertex, ie vertex in triangle not belonging to
                 // edge
@@ -906,10 +1220,10 @@ unsigned int ChContactSurfaceMesh::GetNumVertices() const {
 
 void ChContactSurfaceMesh::SurfaceSyncCollisionModels() {
     for (unsigned int j = 0; j < vfaces.size(); j++) {
-        this->vfaces[j]->GetCollisionModel()->SyncPosition();
+        vfaces[j]->GetCollisionModel()->SyncPosition();
     }
     for (unsigned int j = 0; j < vfaces_rot.size(); j++) {
-        this->vfaces_rot[j]->GetCollisionModel()->SyncPosition();
+        vfaces_rot[j]->GetCollisionModel()->SyncPosition();
     }
 }
 
@@ -917,20 +1231,20 @@ void ChContactSurfaceMesh::SurfaceAddCollisionModelsToSystem(ChSystem* msys) {
     assert(msys);
     SurfaceSyncCollisionModels();
     for (unsigned int j = 0; j < vfaces.size(); j++) {
-        msys->GetCollisionSystem()->Add(this->vfaces[j]->GetCollisionModel());
+        msys->GetCollisionSystem()->Add(vfaces[j]->GetCollisionModel());
     }
     for (unsigned int j = 0; j < vfaces_rot.size(); j++) {
-        msys->GetCollisionSystem()->Add(this->vfaces_rot[j]->GetCollisionModel());
+        msys->GetCollisionSystem()->Add(vfaces_rot[j]->GetCollisionModel());
     }
 }
 
 void ChContactSurfaceMesh::SurfaceRemoveCollisionModelsFromSystem(ChSystem* msys) {
     assert(msys);
     for (unsigned int j = 0; j < vfaces.size(); j++) {
-        msys->GetCollisionSystem()->Remove(this->vfaces[j]->GetCollisionModel());
+        msys->GetCollisionSystem()->Remove(vfaces[j]->GetCollisionModel());
     }
     for (unsigned int j = 0; j < vfaces_rot.size(); j++) {
-        msys->GetCollisionSystem()->Remove(this->vfaces_rot[j]->GetCollisionModel());
+        msys->GetCollisionSystem()->Remove(vfaces_rot[j]->GetCollisionModel());
     }
 }
 

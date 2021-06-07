@@ -29,7 +29,7 @@ namespace vehicle {
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 ChIrrGuiDriverTTR::ChIrrGuiDriverTTR(irrlicht::ChIrrApp& app)
-    : m_app(app), m_current_post(0), m_msg("Active post: 0"), m_displDelta(1.0 / 250), m_throttleDelta(1.0 / 50) {
+    : m_current_post(0), m_msg("Active post: 0"), m_displDelta(1.0 / 250), m_throttleDelta(1.0 / 50) {
     app.SetUserEventReceiver(this);
 }
 

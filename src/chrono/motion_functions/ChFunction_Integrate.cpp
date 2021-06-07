@@ -96,7 +96,7 @@ void ChFunction_Integrate::ArchiveOUT(ChArchiveOut& marchive) {
 
 void ChFunction_Integrate::ArchiveIN(ChArchiveIn& marchive) {
     // version number
-    int version = marchive.VersionRead<ChFunction_Integrate>();
+    /*int version =*/ marchive.VersionRead<ChFunction_Integrate>();
     // deserialize parent class
     ChFunction::ArchiveIN(marchive);
     // stream in all member data:

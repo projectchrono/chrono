@@ -52,27 +52,30 @@ class ChContactNSCrolling : public ChContactNSC<Ta, Tb> {
         Rx.SetNormalConstraint(&this->Nx);
     }
 
-    ChContactNSCrolling(ChContactContainer* mcontainer,          ///< contact container
-                        Ta* mobjA,                               ///< collidable object A
-                        Tb* mobjB,                               ///< collidable object B
-                        const collision::ChCollisionInfo& cinfo  ///< data for the contact pair
+    ChContactNSCrolling(ChContactContainer* mcontainer,           ///< contact container
+                        Ta* mobjA,                                ///< collidable object A
+                        Tb* mobjB,                                ///< collidable object B
+                        const collision::ChCollisionInfo& cinfo,  ///< data for the collision pair
+                        const ChMaterialCompositeNSC& mat         ///< composite material
                         )
-        : ChContactNSC<Ta, Tb>(mcontainer, mobjA, mobjB, cinfo) {
+        : ChContactNSC<Ta, Tb>(mcontainer, mobjA, mobjB, cinfo, mat) {
         Rx.SetRollingConstraintU(&this->Ru);
         Rx.SetRollingConstraintV(&this->Rv);
         Rx.SetNormalConstraint(&this->Nx);
 
-        Reset(mobjA, mobjB, cinfo);
+        Reset(mobjA, mobjB, cinfo, mat);
     }
 
     virtual ~ChContactNSCrolling() {}
 
-    /// Initialize again this constraint.
-    virtual void Reset(Ta* mobjA,
-                       Tb* mobjB,
-                       const collision::ChCollisionInfo& cinfo) {
-        // Base method call:
-        ChContactNSC<Ta, Tb>::Reset(mobjA, mobjB, cinfo);
+    /// Reinitialize this contact for reuse.
+    virtual void Reset(Ta* mobjA,                                ///< collidable object A
+                       Tb* mobjB,                                ///< collidable object B
+                       const collision::ChCollisionInfo& cinfo,  ///< data for the collision pair
+                       const ChMaterialCompositeNSC& mat         ///< composite material
+                       ) override {
+        // Invoke base class method to reset normal and sliding constraints
+        ChContactNSC<Ta, Tb>::Reset(mobjA, mobjB, cinfo, mat);
 
         Rx.Get_tuple_a().SetVariables(*this->objA);
         Rx.Get_tuple_b().SetVariables(*this->objB);
@@ -81,12 +84,7 @@ class ChContactNSCrolling : public ChContactNSC<Ta, Tb> {
         Rv.Get_tuple_a().SetVariables(*this->objA);
         Rv.Get_tuple_b().SetVariables(*this->objB);
 
-        // Calculate composite material properties
-        ChMaterialCompositeNSC mat(
-            this->container->GetSystem()->composition_strategy.get(),
-            std::static_pointer_cast<ChMaterialSurfaceNSC>(this->objA->GetMaterialSurface()),
-            std::static_pointer_cast<ChMaterialSurfaceNSC>(this->objB->GetMaterialSurface()));
-
+        // Cache composite material properties
         Rx.SetRollingFrictionCoefficient(mat.rolling_friction);
         Rx.SetSpinningFrictionCoefficient(mat.spinning_friction);
 
@@ -107,21 +105,21 @@ class ChContactNSCrolling : public ChContactNSC<Ta, Tb> {
     }
 
     /// Get the contact force, if computed, in contact coordinate system
-    virtual ChVector<> GetContactTorque() { return react_torque; };
+    virtual ChVector<> GetContactTorque() { return react_torque; }
 
     /// Get the contact rolling friction coefficient
-    virtual float GetRollingFriction() { return Rx.GetRollingFrictionCoefficient(); };
+    virtual float GetRollingFriction() { return Rx.GetRollingFrictionCoefficient(); }
     /// Set the contact rolling friction coefficient
-    virtual void SetRollingFriction(float mf) { Rx.SetRollingFrictionCoefficient(mf); };
+    virtual void SetRollingFriction(float mf) { Rx.SetRollingFrictionCoefficient(mf); }
 
     /// Get the contact spinning friction coefficient
-    virtual float GetSpinningFriction() { return Rx.GetSpinningFrictionCoefficient(); };
+    virtual float GetSpinningFriction() { return Rx.GetSpinningFrictionCoefficient(); }
     /// Set the contact spinning friction coefficient
-    virtual void SetSpinningFriction(float mf) { Rx.SetSpinningFrictionCoefficient(mf); };
+    virtual void SetSpinningFriction(float mf) { Rx.SetSpinningFrictionCoefficient(mf); }
 
     // UPDATING FUNCTIONS
 
-    virtual void ContIntStateGatherReactions(const unsigned int off_L, ChVectorDynamic<>& L) {
+    virtual void ContIntStateGatherReactions(const unsigned int off_L, ChVectorDynamic<>& L) override {
         // base behaviour too
         ChContactNSC<Ta, Tb>::ContIntStateGatherReactions(off_L, L);
 
@@ -130,7 +128,7 @@ class ChContactNSCrolling : public ChContactNSC<Ta, Tb> {
         L(off_L + 5) = react_torque.z();
     }
 
-    virtual void ContIntStateScatterReactions(const unsigned int off_L, const ChVectorDynamic<>& L) {
+    virtual void ContIntStateScatterReactions(const unsigned int off_L, const ChVectorDynamic<>& L) override {
         // base behaviour too
         ChContactNSC<Ta, Tb>::ContIntStateScatterReactions(off_L, L);
 
@@ -139,11 +137,10 @@ class ChContactNSCrolling : public ChContactNSC<Ta, Tb> {
         react_torque.z() = L(off_L + 5);
     }
 
-    virtual void ContIntLoadResidual_CqL(const unsigned int off_L,  
-                                         ChVectorDynamic<>& R,      
+    virtual void ContIntLoadResidual_CqL(const unsigned int off_L,
+                                         ChVectorDynamic<>& R,
                                          const ChVectorDynamic<>& L,
-                                         const double c             
-                                         ) {
+                                         const double c) override {
         // base behaviour too
         ChContactNSC<Ta, Tb>::ContIntLoadResidual_CqL(off_L, R, L, c);
 
@@ -152,12 +149,11 @@ class ChContactNSCrolling : public ChContactNSC<Ta, Tb> {
         this->Rv.MultiplyTandAdd(R, L(off_L + 5) * c);
     }
 
-    virtual void ContIntLoadConstraint_C(const unsigned int off_L, 
-                                         ChVectorDynamic<>& Qc,    
-                                         const double c,           
-                                         bool do_clamp,            
-                                         double recovery_clamp     
-                                         ) {
+    virtual void ContIntLoadConstraint_C(const unsigned int off_L,
+                                         ChVectorDynamic<>& Qc,
+                                         const double c,
+                                         bool do_clamp,
+                                         double recovery_clamp) override {
         // base behaviour too
         ChContactNSC<Ta, Tb>::ContIntLoadConstraint_C(off_L, Qc, c, do_clamp, recovery_clamp);
 
@@ -166,7 +162,6 @@ class ChContactNSCrolling : public ChContactNSC<Ta, Tb> {
 
         //***TODO*** move to KRMmatricesLoad() the following, and only for !bounced case
         double alpha = this->dampingf;              // [R]=alpha*[K]
-        double inv_hpa = 1.0 / (h + alpha);         // 1/(h+a)
         double inv_hhpa = 1.0 / (h * (h + alpha));  // 1/(h*(h+a))
 
         this->Ru.Set_cfm_i((inv_hhpa) * this->complianceRoll);
@@ -180,7 +175,7 @@ class ChContactNSCrolling : public ChContactNSC<Ta, Tb> {
 
     virtual void ContIntToDescriptor(const unsigned int off_L,
                                      const ChVectorDynamic<>& L,
-                                     const ChVectorDynamic<>& Qc) {
+                                     const ChVectorDynamic<>& Qc) override {
         // base behaviour too
         ChContactNSC<Ta, Tb>::ContIntToDescriptor(off_L, L, Qc);
 
@@ -193,8 +188,7 @@ class ChContactNSCrolling : public ChContactNSC<Ta, Tb> {
         Rv.Set_b_i(Qc(off_L + 5));
     }
 
-    virtual void ContIntFromDescriptor(const unsigned int off_L,
-                                       ChVectorDynamic<>& L) {
+    virtual void ContIntFromDescriptor(const unsigned int off_L, ChVectorDynamic<>& L) override {
         // base behaviour too
         ChContactNSC<Ta, Tb>::ContIntFromDescriptor(off_L, L);
 
@@ -203,7 +197,7 @@ class ChContactNSCrolling : public ChContactNSC<Ta, Tb> {
         L(off_L + 5) = Rv.Get_l_i();
     }
 
-    virtual void InjectConstraints(ChSystemDescriptor& mdescriptor) {
+    virtual void InjectConstraints(ChSystemDescriptor& mdescriptor) override {
         // base behaviour too
         ChContactNSC<Ta, Tb>::InjectConstraints(mdescriptor);
 
@@ -212,7 +206,7 @@ class ChContactNSCrolling : public ChContactNSC<Ta, Tb> {
         mdescriptor.InsertConstraint(&Rv);
     }
 
-    virtual void ConstraintsBiReset() {
+    virtual void ConstraintsBiReset() override {
         // base behaviour too
         ChContactNSC<Ta, Tb>::ConstraintsBiReset();
 
@@ -221,7 +215,7 @@ class ChContactNSCrolling : public ChContactNSC<Ta, Tb> {
         Rv.Set_b_i(0.);
     }
 
-    virtual void ConstraintsBiLoad_C(double factor = 1., double recovery_clamp = 0.1, bool do_clamp = false) {
+    virtual void ConstraintsBiLoad_C(double factor = 1., double recovery_clamp = 0.1, bool do_clamp = false) override {
         // base behaviour too
         ChContactNSC<Ta, Tb>::ConstraintsBiLoad_C(factor, recovery_clamp, do_clamp);
 
@@ -230,7 +224,6 @@ class ChContactNSCrolling : public ChContactNSC<Ta, Tb> {
 
         //***TODO*** move to KRMmatricesLoad() the following, and only for !bounced case
         double alpha = this->dampingf;              // [R]=alpha*[K]
-        double inv_hpa = 1.0 / (h + alpha);         // 1/(h+a)
         double inv_hhpa = 1.0 / (h * (h + alpha));  // 1/(h*(h+a))
 
         this->Ru.Set_cfm_i((inv_hhpa) * this->complianceRoll);
@@ -240,7 +233,7 @@ class ChContactNSCrolling : public ChContactNSC<Ta, Tb> {
         // Assume no residual ever, do not load in C
     }
 
-    virtual void ConstraintsFetch_react(double factor) {
+    virtual void ConstraintsFetch_react(double factor) override {
         // base behaviour too
         ChContactNSC<Ta, Tb>::ConstraintsFetch_react(factor);
 

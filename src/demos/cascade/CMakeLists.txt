@@ -19,6 +19,7 @@ set(DEMOS_CAS
 	demo_CAS_converter
 	demo_CAS_stepfile
 	demo_CAS_robot
+	demo_CAS_profile
 )
 
 message(STATUS "Demo programs for CASCADE module...")
@@ -35,10 +36,12 @@ if(ENABLE_MODULE_IRRLICHT)
 
         ADD_EXECUTABLE(${PROGRAM} "${PROGRAM}.cpp")
         SOURCE_GROUP(""  FILES "${PROGRAM}.cpp")
+
         SET_TARGET_PROPERTIES(${PROGRAM} PROPERTIES 
             FOLDER demos
             COMPILE_FLAGS "${CH_CXX_FLAGS} ${CH_IRRLICHT_CXX_FLAGS}"
             LINK_FLAGS "${CH_LINKERFLAG_EXE}")
+        SET_PROPERTY(TARGET ${PROGRAM} PROPERTY VS_DEBUGGER_WORKING_DIRECTORY "$<TARGET_FILE_DIR:${PROGRAM}>")
         TARGET_LINK_LIBRARIES(${PROGRAM}
             ChronoEngine
             ChronoEngine_cascade
@@ -47,8 +50,8 @@ if(ENABLE_MODULE_IRRLICHT)
             ChronoEngine
             ChronoEngine_cascade
             ChronoEngine_irrlicht)
+
         INSTALL(TARGETS ${PROGRAM} DESTINATION ${CH_INSTALL_DEMO}) 
     ENDFOREACH()
 
 endif()
-

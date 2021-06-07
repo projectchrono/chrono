@@ -59,12 +59,16 @@ class CH_VEHICLE_API ChTrackDrivelineBDS : public ChDrivelineTV {
     void SetAxleDirection(const ChVector<>& dir) { m_dir_axle = dir; }
 
     /// Initialize the driveline subsystem.
-    /// This function connects this driveline subsystem to the sprockets of the
-    /// two track assembly subsystems.
-    virtual void Initialize(std::shared_ptr<ChBody> chassis,              ///< handle to the chassis body
-                            std::shared_ptr<ChTrackAssembly> track_left,  ///< handle to the left track assembly
-                            std::shared_ptr<ChTrackAssembly> track_right  ///< handle to the right track assembly
+    /// This function connects this driveline subsystem to the sprockets of the two track assembly subsystems.
+    virtual void Initialize(std::shared_ptr<ChChassis> chassis,           ///< associated chassis subsystem
+                            std::shared_ptr<ChTrackAssembly> track_left,  ///< left track assembly
+                            std::shared_ptr<ChTrackAssembly> track_right  ///< right track assembly
                             ) override;
+
+    /// Update the driveline subsystem.
+    /// The motor torque represents the input to the driveline subsystem from the
+    /// powertrain system.
+    virtual void Synchronize(double steering, double torque) override;
 
     /// Get the motor torque to be applied to the specified sprocket.
     virtual double GetSprocketTorque(VehicleSide side) const override;
@@ -80,10 +84,12 @@ class CH_VEHICLE_API ChTrackDrivelineBDS : public ChDrivelineTV {
 
     /// Return the gear ratio for the conical gear.
     virtual double GetConicalGearRatio() const = 0;
-    /// Return the gear ratio for the differential.
-    virtual double GetDifferentialRatio() const = 0;
 
   private:
+    virtual void CombineDriverInputs(const ChDriver::Inputs& driver_inputs,
+                                     double& braking_left,
+                                     double& braking_right) override;
+
     std::shared_ptr<ChShaftsGearboxAngled> m_conicalgear;
     std::shared_ptr<ChShaft> m_differentialbox;
     std::shared_ptr<ChShaftsPlanetary> m_differential;

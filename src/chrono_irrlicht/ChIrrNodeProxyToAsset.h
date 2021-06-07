@@ -72,6 +72,7 @@ class ChApiIrr ChIrrNodeProxyToAsset : public irr::scene::ISceneNode {
     bool initial_update;                           ///< flag forcing a first update
 
     void UpdateTriangleMesh(std::shared_ptr<ChTriangleMeshShape> trianglemesh);
+    void UpdateTriangleMeshFixedConnectivity(std::shared_ptr<ChTriangleMeshShape> trianglemesh);
     void UpdateGlyphs(std::shared_ptr<ChGlyphs> glyphs);
     void UpdateSurface(std::shared_ptr<ChSurfaceShape> surface);
     void UpdateLine(std::shared_ptr<geometry::ChLine> line, unsigned int nvertexes);

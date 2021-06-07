@@ -258,8 +258,8 @@ int main(int argc, char* argv[]) {
 
     // Simulation loop
     // ---------------
-    ChRealtimeStepTimer m_realtime_timer;
-    double max_step = 0.001;
+    ChRealtimeStepTimer realtime_timer;
+    double time_step = 0.001;
 
     // Initialize cart location target switching
     int target_id = 0;
@@ -273,13 +273,17 @@ int main(int argc, char* argv[]) {
                 target_id = 1 - target_id;
                 switch_time += switch_period;
             }
+
             // Apply controller force on cart body
             cart->Empty_forces_accumulators();
             cart->Accumulate_force(ChVector<>(controller.GetForce(), 0, 0), ChVector<>(0, 0, 0), true);
+
             // Advance system and controller states
-            double step = m_realtime_timer.SuggestSimulationStep(max_step);
-            system.DoStepDynamics(step);
-            controller.Advance(step);
+            system.DoStepDynamics(time_step);
+            controller.Advance(time_step);
+
+            // Enforce soft real-time
+            realtime_timer.Spin(time_step);
         }
 
         gl_window.Render();

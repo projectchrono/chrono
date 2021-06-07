@@ -4,17 +4,19 @@
 set(TESTS
     utest_FEA_ANCFCable
     utest_FEA_ANCFBeam
-	utest_FEA_IGABeam
+    utest_FEA_ANCFbeam_Twist
+    utest_FEA_IGABeam
     utest_FEA_ANCFShell_Iso
     utest_FEA_ANCFShell_Ort
     utest_FEA_ANCFShell_OrtGrav
     utest_FEA_EASBrickIso
     utest_FEA_EASBrickIso_Grav
     utest_FEA_EASBrickMooneyR_Grav
+    utest_FEA_Brick9
     utest_FEA_ANCFConstraints
     utest_FEA_ANCFContact
     utest_FEA_compute_contact_mesh
-    utest_FEA_Brick9
+    utest_FEA_beams_static
 )
 
 # Tests that REQUIRE Chrono::MKL
@@ -37,11 +39,11 @@ set(COMPILER_FLAGS "${CH_CXX_FLAGS}")
 set(LINKER_FLAGS "${CH_LINKERFLAG_EXE}")
 set(LIBRARIES ChronoEngine)
 
-if(ENABLE_MODULE_MKL)
+if(ENABLE_MODULE_PARDISO_MKL)
     include_directories(${CH_MKL_INCLUDES})
     set(COMPILER_FLAGS "${COMPILER_FLAGS} ${CH_MKL_CXX_FLAGS}")
     set(LINKER_FLAGS "${LINKER_FLAGS} ${CH_MKL_LINK_FLAGS}")
-    list(APPEND LIBRARIES "ChronoEngine_mkl")
+    list(APPEND LIBRARIES "ChronoEngine_pardisomkl")
     set(TESTS ${TESTS} ${TESTS_MKL})
 endif()
 
@@ -54,12 +56,12 @@ FOREACH(PROGRAM ${TESTS})
     SET_TARGET_PROPERTIES(${PROGRAM} PROPERTIES
         FOLDER demos
         COMPILE_FLAGS "${COMPILER_FLAGS}"
-        LINK_FLAGS "${LINKER_FLAGS}"
-    )
+        LINK_FLAGS "${LINKER_FLAGS}")
+    SET_PROPERTY(TARGET ${PROGRAM} PROPERTY VS_DEBUGGER_WORKING_DIRECTORY "$<TARGET_FILE_DIR:${PROGRAM}>")
     TARGET_LINK_LIBRARIES(${PROGRAM} ${LIBRARIES} gtest_main)
+
     INSTALL(TARGETS ${PROGRAM} DESTINATION ${CH_INSTALL_DEMO})
     ADD_TEST(${PROGRAM} ${PROJECT_BINARY_DIR}/bin/${PROGRAM})
 
-    SET_TESTS_PROPERTIES(${PROGRAM} PROPERTIES 
-                         WORKING_DIRECTORY ${MY_WORKING_DIR})
+    SET_TESTS_PROPERTIES(${PROGRAM} PROPERTIES WORKING_DIRECTORY ${MY_WORKING_DIR})
 ENDFOREACH()

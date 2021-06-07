@@ -4,6 +4,11 @@ Suspension models {#wheeled_suspension}
 
 \tableofcontents
 
+A suspension subsystem is a model of one axle of a wheeld vehicle. The base class [ChSuspension](@ref chrono::vehicle::ChSuspension) imposes that any derived suspension class (a suspension template) provide two wheel spindles (left and right) each connected through a revolute joint to some part of that type of suspension, and two spindle axles (elements of [ChShaft](@ref chrono::ChShaft) type) which may be connected to a vehicle driveline if that axle is driven.
+
+A derived suspension type defines the bodies, joints, force elements, and topology of a particular type of suspension. All locations are assumed to be provided with respect to a suspension reference frame (a derived suspension type is free to pick the location of this frame but not its orientation, which is assumed to be parallel to the chassis ISO reference frame).
+
+A suspension assembly is attached to a vehicle's chassis by specifying the location of the suspension assembly reference frame with respect to the chassis reference frame (see the definition of the [ISO reference frame](@ref vehicle_ISO_frame)).
 
 ## Double wishbone {#wheeled_suspension_ChDoubleWishbone}
 
@@ -182,6 +187,42 @@ The topology of this suspension template is:
 The hardpoints (defined for the left side only and mirrored to construct the right side) are:
 
 <img src="http://www.projectchrono.org/assets/manual/vehicle/wheeled/ToeBarLeafspringAxle_points.png" width="600" />
+
+
+
+## SAE Leaf-spring solid axle {#wheeled_suspension_ChSAELeafspringAxle}
+
+The SAE Spring Design Handbook shows a way to model a leaf spring with realistic deformation behavior under load conditions. The kinematics of a leaf spring can be defined by 5 points. These points can be used to define a leaf spring consisting of 6 rigid bodies (front leaf, front clamp, rear clamp, rear leaf and shackle). The bodies are connected by joints. The rotational springs of the front and rear leaf as well as the front clamp and rear clamp have a rotational stiffness that can be set by the user to define the correct behavior. This suspension is used as a rear suspension on the [UAZ](@ref chrono::vehicle::uaz::UAZBUS) vehicle SAE type models. The movement of the axle body due to wheel travel and the tie-up effect due to longitudinal forces can be simulated correctly with this leaf spring model. 
+
+See [ChSAELeafspringAxle](@ref chrono::vehicle::ChLeafspringAxle) and [SAELeafspringAxle](@ref chrono::vehicle::LeafspringAxle).
+
+<img src="http://www.projectchrono.org/assets/manual/vehicle/wheeled/SAELeafspringAxle_bodies.png" width="600" />
+
+The topology of this suspension template is:
+
+<img src="http://www.projectchrono.org/assets/manual/vehicle/wheeled/SAELeafspringAxle_topology.png" width="800" />
+
+The hardpoints (defined for the left side only and mirrored to construct the right side) are:
+
+<img src="http://www.projectchrono.org/assets/manual/vehicle/wheeled/SAELeafspringAxle_points.png" width="600" />
+
+
+
+## SAE Leaf-spring solid axle with toebar {#wheeled_suspension_ChSAEToeBarLeafspringAxle}
+
+Used as front suspension on the [UAZ](@ref chrono::vehicle::uaz::UAZBUS) SAE type vehicle models. The leaf spring definition is the same as in the SAE leaf spring axle.
+
+See [ChSAEToeBarLeafspringAxle](@ref chrono::vehicle::ChToeBarLeafspringAxle) and [SAEToeBarLeafspringAxle](@ref chrono::vehicle::SAEToeBarLeafspringAxle).
+
+<img src="http://www.projectchrono.org/assets/manual/vehicle/wheeled/SAEToeBarLeafspringAxle_bodies.png" width="600" />
+
+The topology of this suspension template is:
+
+<img src="http://www.projectchrono.org/assets/manual/vehicle/wheeled/SAEToeBarLeafspringAxle_topology.png" width="800" />
+
+The hardpoints (defined for the left side only and mirrored to construct the right side) are:
+
+<img src="http://www.projectchrono.org/assets/manual/vehicle/wheeled/SAEToeBarLeafspringAxle_points.png" width="600" />
 
 
 

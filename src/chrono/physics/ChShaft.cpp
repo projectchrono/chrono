@@ -26,13 +26,13 @@ ChShaft::ChShaft()
       pos_dt(0),
       pos_dtdt(0),
       inertia(1),
-      fixed(false),
-      limitspeed(false),
       max_speed(10.0f),
       sleep_time(0.6f),
-      sleep_starttime(0),
       sleep_minspeed(0.1f),
       sleep_minwvel(0.04f),
+      sleep_starttime(0),
+      fixed(false),
+      limitspeed(false),
       sleeping(false) {
     SetUseSleeping(true);
     variables.SetShaft(this);
@@ -84,11 +84,12 @@ void ChShaft::IntStateScatter(const unsigned int off_x,  // offset in x state ve
                               const ChState& x,          // state vector, position part
                               const unsigned int off_v,  // offset in v state vector
                               const ChStateDelta& v,     // state vector, speed part
-                              const double T             // time
-                              ) {
+                              const double T,            // time
+                              bool full_update           // perform complete update
+) {
     SetPos(x(off_x));
     SetPos_dt(v(off_v));
-    Update(T);
+    Update(T, full_update);
 }
 
 void ChShaft::IntStateGatherAcceleration(const unsigned int off_a, ChStateDelta& a) {
@@ -256,7 +257,7 @@ void ChShaft::ArchiveOUT(ChArchiveOut& marchive) {
 /// Method to allow de serialization of transient data from archives.
 void ChShaft::ArchiveIN(ChArchiveIn& marchive) {
     // version number
-    int version = marchive.VersionRead<ChShaft>();
+    /*int version =*/ marchive.VersionRead<ChShaft>();
 
     // deserialize parent class:
     ChPhysicsItem::ArchiveIN(marchive);

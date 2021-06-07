@@ -40,32 +40,36 @@ ChRackPinion::ChRackPinion(const std::string& name) : ChSteering(name) {}
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-void ChRackPinion::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,
-                              const ChVector<>& location,
-                              const ChQuaternion<>& rotation) {
+void ChRackPinion::Initialize(std::shared_ptr<ChChassis> chassis,
+                             const ChVector<>& location,
+                             const ChQuaternion<>& rotation) {
     m_position = ChCoordsys<>(location, rotation);
+
+    auto chassisBody = chassis->GetBody();
+    auto sys = chassisBody->GetSystem();
 
     // Express the steering reference frame in the absolute coordinate system.
     ChFrame<> steering_to_abs(location, rotation);
-    steering_to_abs.ConcatenatePreTransformation(chassis->GetFrame_REF_to_abs());
+    steering_to_abs.ConcatenatePreTransformation(chassisBody->GetFrame_REF_to_abs());
 
     // Create and initialize the steering link body
     ChVector<> link_local(0, GetSteeringLinkCOM(), 0);
     ChVector<> link_abs = steering_to_abs.TransformPointLocalToParent(link_local);
 
-    m_link = std::shared_ptr<ChBody>(chassis->GetSystem()->NewBody());
+    m_link = std::shared_ptr<ChBody>(sys->NewBody());
     m_link->SetNameString(m_name + "_link");
     m_link->SetPos(link_abs);
     m_link->SetRot(steering_to_abs.GetRot());
     m_link->SetMass(GetSteeringLinkMass());
     m_link->SetInertiaXX(GetSteeringLinkInertia());
-    chassis->GetSystem()->AddBody(m_link);
+    sys->AddBody(m_link);
 
     // Create and initialize the prismatic joint between chassis and link.
     m_prismatic = chrono_types::make_shared<ChLinkLockPrismatic>();
     m_prismatic->SetNameString(m_name + "_prismatic");
-    m_prismatic->Initialize(chassis, m_link, ChCoordsys<>(link_abs, steering_to_abs.GetRot() * Q_from_AngX(CH_C_PI_2)));
-    chassis->GetSystem()->AddLink(m_prismatic);
+    m_prismatic->Initialize(chassisBody, m_link,
+                            ChCoordsys<>(link_abs, steering_to_abs.GetRot() * Q_from_AngX(CH_C_PI_2)));
+    sys->AddLink(m_prismatic);
 
     // Create and initialize the linear actuator.
     // The offset value here must be larger than any possible displacement of the
@@ -78,9 +82,9 @@ void ChRackPinion::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,
 
     m_actuator = chrono_types::make_shared<ChLinkLinActuator>();
     m_actuator->SetNameString(m_name + "_actuator");
-    m_actuator->Initialize(chassis, m_link, false, ChCoordsys<>(pt1, QUNIT), ChCoordsys<>(pt2, QUNIT));
+    m_actuator->Initialize(chassisBody, m_link, false, ChCoordsys<>(pt1, QUNIT), ChCoordsys<>(pt2, QUNIT));
     m_actuator->Set_lin_offset(offset);
-    chassis->GetSystem()->AddLink(m_actuator);
+    sys->AddLink(m_actuator);
 }
 
 // -----------------------------------------------------------------------------

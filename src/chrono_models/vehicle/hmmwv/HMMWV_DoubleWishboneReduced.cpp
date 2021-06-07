@@ -35,7 +35,6 @@ namespace hmmwv {
 
 static const double in2m = 0.0254;
 static const double lb2kg = 0.453592;
-static const double lbf2N = 4.44822162;
 static const double lbfpin2Npm = 175.12677;
 
 // entire wheel assembly = 195 lbs, includes upright, spindle and tire.
@@ -79,24 +78,20 @@ const double HMMWV_DoubleWishboneReducedRear::m_springRestLength = in2m * 15.03;
 // -----------------------------------------------------------------------------
 HMMWV_DoubleWishboneReducedFront::HMMWV_DoubleWishboneReducedFront(const std::string& name)
     : ChDoubleWishboneReduced(name) {
-    m_shockForceCB = new LinearSpringDamperForce(m_springCoefficient, m_dampingCoefficient);
+    m_shockForceCB = chrono_types::make_shared<LinearSpringDamperForce>(m_springCoefficient, m_dampingCoefficient);
 }
 
 HMMWV_DoubleWishboneReducedRear::HMMWV_DoubleWishboneReducedRear(const std::string& name)
     : ChDoubleWishboneReduced(name) {
-    m_shockForceCB = new LinearSpringDamperForce(m_springCoefficient, m_dampingCoefficient);
+    m_shockForceCB = chrono_types::make_shared<LinearSpringDamperForce>(m_springCoefficient, m_dampingCoefficient);
 }
 
 // -----------------------------------------------------------------------------
 // Destructors
 // -----------------------------------------------------------------------------
-HMMWV_DoubleWishboneReducedFront::~HMMWV_DoubleWishboneReducedFront() {
-    delete m_shockForceCB;
-}
+HMMWV_DoubleWishboneReducedFront::~HMMWV_DoubleWishboneReducedFront() {}
 
-HMMWV_DoubleWishboneReducedRear::~HMMWV_DoubleWishboneReducedRear() {
-    delete m_shockForceCB;
-}
+HMMWV_DoubleWishboneReducedRear::~HMMWV_DoubleWishboneReducedRear() {}
 
 // -----------------------------------------------------------------------------
 // Implementations of the getLocation() virtual methods.

@@ -1,0 +1,37 @@
+{
+    "sphere_radius": 0.5,
+    "sphere_density": 2.8,
+    
+    "box_X": 100,
+    "step_size": 1e-5,
+    "time_end": 3,
+
+    "normalStiffS2S": 1e8,
+    "normalStiffS2W": 1e8,
+    "normalStiffS2M": 1e8,
+    "normalDampS2S": 1e4,
+    "normalDampS2W": 1e4,
+    "normalDampS2M": 1e4,
+
+    "tangentStiffS2S": 1e8,
+    "tangentStiffS2M": 1e8,
+    "tangentStiffS2W": 1e8,
+    "tangentDampS2S": 1e4,
+    "tangentDampS2M": 1e4,
+    "tangentDampS2W": 1e4,
+
+    "cohesion_ratio": 0,
+    "adhesion_ratio_s2w": 0,
+    "adhesion_ratio_s2m": 0,
+
+    "static_friction_coeffS2S": 0.5,
+    "static_friction_coeffS2W": 0.5,
+    "static_friction_coeffS2M": 0.5,
+    
+    "verbose": false,
+    "psi_T": 32,
+    "psi_L": 16,
+
+    "output_dir": "mixer_output",
+    "write_mode": "csv"
+}

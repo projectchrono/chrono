@@ -207,7 +207,6 @@ bool TestTranSpringCB(const ChVector<>& jointLocGnd,   // absolute location of t
     // (MKS is used in this example)
 
     double mass = 1.0;                     // mass of pendulum
-    double length = 4.0;                   // length of pendulum
     ChVector<> inertiaXX(0.04, 0.1, 0.1);  // mass moments of inertia of pendulum (centroidal frame)
     double g = 9.80665;
 
@@ -245,24 +244,20 @@ bool TestTranSpringCB(const ChVector<>& jointLocGnd,   // absolute location of t
     pendulum->SetMass(mass);
     pendulum->SetInertiaXX(inertiaXX);
 
-    // Create a translational spring damper force between pendulum at
-    // "jointLocPend"
-    // and ground at "jointLocGnd" in the global reference frame.
-    // The free length is set equal to the inital distance between
-    // "jointLocPend" and "jointLocGnd".
-
-    ChLinkTSDA::ForceFunctor* force;
+    // Create a translational spring damper force between pendulum at "jointLocPend" and ground at
+    // "jointLocGnd" in the global reference frame.
+    // The free length is set equal to the initial distance between "jointLocPend" and "jointLocGnd".
 
     auto spring = chrono_types::make_shared<ChLinkTSDA>();
     spring->Initialize(pendulum, ground, false, jointLocPend, jointLocGnd, true);
     if (customSpringType == 1) {
-        force = new MySpringForceCase01;
+        auto force = chrono_types::make_shared<MySpringForceCase01>();
         spring->RegisterForceFunctor(force);
     } else if (customSpringType == 2) {
-        force = new MySpringForceCase02;
+        auto force = chrono_types::make_shared<MySpringForceCase02>();
         spring->RegisterForceFunctor(force);
     } else if (customSpringType == 3) {
-        force = new MySpringForceCase03;
+        auto force = chrono_types::make_shared<MySpringForceCase03>();
         spring->RegisterForceFunctor(force);
     }
     my_system.AddLink(spring);
@@ -379,14 +374,12 @@ bool TestTranSpringCB(const ChVector<>& jointLocGnd,   // absolute location of t
             // Translational Kinetic Energy (1/2*m*||v||^2)
             // Rotational Kinetic Energy (1/2 w'*I*w)
             // Delta Potential Energy (m*g*dz)
-            ChMatrix33<> inertia = pendulum->GetInertia();
-            ChVector<> angVelLoc = pendulum->GetWvel_loc();
-            double transKE = 0.5 * mass * velocity.Length2();
-            double rotKE = 0.5 * Vdot(angVelLoc, inertia * angVelLoc);
-            double deltaPE = mass * g * (position.z() - PendCSYS.pos.z());
+            angVelLoc = pendulum->GetWvel_loc();
+            transKE = 0.5 * mass * velocity.Length2();
+            rotKE = 0.5 * Vdot(angVelLoc, inertia * angVelLoc);
+            deltaPE = mass * g * (position.z() - PendCSYS.pos.z());
             double totalE = transKE + rotKE + deltaPE;
             out_energy << simTime << transKE << rotKE << deltaPE << totalE - totalE0 << std::endl;
-            ;
 
             // Increment output time
             outTime += outTimeStep;

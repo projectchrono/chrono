@@ -24,31 +24,46 @@
 namespace chrono {
 namespace vehicle {
 
-ChBrakeSimple::ChBrakeSimple(const std::string& name) : ChBrake(name), m_modulation(0) {
+ChBrakeSimple::ChBrakeSimple(const std::string& name)
+    : ChBrake(name), m_modulation(0), m_locked(false) {
     m_brake = chrono_types::make_shared<ChLinkBrake>();
 }
 
-void ChBrakeSimple::Initialize(std::shared_ptr<ChSuspension> suspension, VehicleSide side) {
-    auto hub = suspension->GetRevolute(side);
+void ChBrakeSimple::Initialize(std::shared_ptr<ChChassis> chassis,
+                               std::shared_ptr<ChSuspension> suspension,
+                               VehicleSide side) {
+    m_hub = suspension->GetRevolute(side);
 
     // Reuse the same bodies and link coordinate of the hub revolute joint
     // Note that we wrap raw pointers in local shared_ptr.  For this, we must provide
     // custom empty deleters (to prevent deleting the objects when the local shared_ptr
     // go out of scope).
-    std::shared_ptr<ChBodyFrame> mbf1(hub->GetBody1(), [](ChBodyFrame*) {});
-    std::shared_ptr<ChBodyFrame> mbf2(hub->GetBody2(), [](ChBodyFrame*) {});
+    std::shared_ptr<ChBodyFrame> mbf1(m_hub->GetBody1(), [](ChBodyFrame*) {});
+    std::shared_ptr<ChBodyFrame> mbf2(m_hub->GetBody2(), [](ChBodyFrame*) {});
 
     // Downcast to ChBody shared_ptr
     auto mb1 = std::dynamic_pointer_cast<ChBody>(mbf1);
     auto mb2 = std::dynamic_pointer_cast<ChBody>(mbf2);
 
-    m_brake->Initialize(mb1, mb2, true, hub->GetMarker1()->GetCoord(), hub->GetMarker2()->GetCoord());
-    hub->GetSystem()->AddLink(m_brake);
+    m_brake->Initialize(mb1, mb2, true, m_hub->GetMarker1()->GetCoord(), m_hub->GetMarker2()->GetCoord());
+    m_hub->GetSystem()->AddLink(m_brake);
 }
 
 void ChBrakeSimple::Synchronize(double modulation) {
     m_modulation = modulation;
     m_brake->Set_brake_torque(modulation * GetMaxBrakingTorque());
+    
+    // If braking input is large enough, lock the brake
+    if (!m_can_lock)
+        return;
+
+    if (modulation > 0.99 && !m_locked) {
+        m_hub->Lock(true);
+        m_locked = true;
+    } else if (modulation <= 0.99 && m_locked) {
+        m_hub->Lock(false);
+        m_locked = false;
+    }
 }
 
 }  // end namespace vehicle

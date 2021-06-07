@@ -67,8 +67,8 @@ ChLinkRevoluteTranslational::ChLinkRevoluteTranslational(const ChLinkRevoluteTra
 // -----------------------------------------------------------------------------
 // Link initialization functions
 // -----------------------------------------------------------------------------
-void ChLinkRevoluteTranslational::Initialize(std::shared_ptr<ChBodyFrame> body1,
-                                             std::shared_ptr<ChBodyFrame> body2,
+void ChLinkRevoluteTranslational::Initialize(std::shared_ptr<ChBody> body1,
+                                             std::shared_ptr<ChBody> body2,
                                              const ChCoordsys<>& csys,
                                              double distance) {
     Body1 = body1.get();
@@ -97,8 +97,8 @@ void ChLinkRevoluteTranslational::Initialize(std::shared_ptr<ChBodyFrame> body1,
     m_cur_dist = distance;
 }
 
-void ChLinkRevoluteTranslational::Initialize(std::shared_ptr<ChBodyFrame> body1,
-                                             std::shared_ptr<ChBodyFrame> body2,
+void ChLinkRevoluteTranslational::Initialize(std::shared_ptr<ChBody> body1,
+                                             std::shared_ptr<ChBody> body2,
                                              bool local,
                                              const ChVector<>& p1,
                                              const ChVector<>& dirZ1,
@@ -332,10 +332,10 @@ void ChLinkRevoluteTranslational::IntStateScatterReactions(const unsigned int of
     m_multipliers[3] = L(off_L + 3);
 
     // Also compute 'intuitive' reactions:
-    double lam_par1 = m_multipliers[0];
-    double lam_par2 = m_multipliers[1];
-    double lam_dot = m_multipliers[2];
-    double lam_dist = m_multipliers[3];
+    ////double lam_par1 = m_multipliers[0];
+    ////double lam_par2 = m_multipliers[1];
+    ////double lam_dot = m_multipliers[2];
+    ////double lam_dist = m_multipliers[3];
 
     ////
     //// TODO
@@ -579,7 +579,7 @@ void ChLinkRevoluteTranslational::ArchiveOUT(ChArchiveOut& marchive) {
 /// Method to allow de serialization of transient data from archives.
 void ChLinkRevoluteTranslational::ArchiveIN(ChArchiveIn& marchive) {
     // version number
-    int version = marchive.VersionRead<ChLinkRevoluteTranslational>();
+    /*int version =*/ marchive.VersionRead<ChLinkRevoluteTranslational>();
 
     // deserialize parent class
     ChLink::ArchiveIN(marchive);

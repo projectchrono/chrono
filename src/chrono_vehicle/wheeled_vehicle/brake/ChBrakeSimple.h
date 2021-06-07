@@ -47,19 +47,19 @@ class CH_VEHICLE_API ChBrakeSimple : public ChBrake {
     virtual std::string GetTemplateName() const override { return "BrakeSimple"; }
 
     /// Initialize the brake by associating it to an existing suspension subsystem.
-    virtual void Initialize(std::shared_ptr<ChSuspension> suspension,  ///< associated suspension subsystem
+    virtual void Initialize(std::shared_ptr<ChChassis> chassis,        ///< associated chassis subsystem
+                            std::shared_ptr<ChSuspension> suspension,  ///< associated suspension subsystem
                             VehicleSide side                           ///< brake mounted on left/right side
                             ) override;
 
     /// Update the brake subsystem: set the brake modulation, in 0..1 range:
     /// <pre>
-    /// when = 0 it is completely free,
-    /// when = 1 it should provide the max braking torque
+    ///   modulation = 0 it is completely free,
+    ///   modulation = 1 it provides the max braking torque
     /// </pre>
     virtual void Synchronize(double modulation) override;
 
-    /// Get the current brake torque, as a result of simulation,
-    /// so it might change from time to time
+    /// Get the current brake torque.
     virtual double GetBrakeTorque() override { return m_modulation * GetMaxBrakingTorque(); }
 
     /// Get the current brake angular speed, relative between disc and caliper [rad/s]
@@ -69,8 +69,10 @@ class CH_VEHICLE_API ChBrakeSimple : public ChBrake {
     /// Get the max braking torque (for modulation =1)
     virtual double GetMaxBrakingTorque() = 0;
 
-    double m_modulation;
-    std::shared_ptr<ChLinkBrake> m_brake;
+    double m_modulation;                        ///< current braking input
+    std::shared_ptr<ChLinkBrake> m_brake;       ///< underlying brake component
+    std::shared_ptr<ChLinkLockRevolute> m_hub;  ///< associated spindle revolute joint
+    bool m_locked;                              ///< is brake locked?
 };
 
 /// @} vehicle_wheeled_brake

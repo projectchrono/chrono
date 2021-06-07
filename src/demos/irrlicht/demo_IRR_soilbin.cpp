@@ -121,7 +121,7 @@ class ParticleGenerator {
 
             // generate some dirt in the bin
             auto cubeMap = chrono_types::make_shared<ChTexture>();
-            cubeMap->SetTextureFilename(GetChronoDataFile("concrete.jpg"));
+            cubeMap->SetTextureFilename(GetChronoDataFile("textures/concrete.jpg"));
             auto rockMap = chrono_types::make_shared<ChTexture>();
             rockMap->SetTextureFilename(GetChronoDataFile("rock.jpg"));
 
@@ -136,6 +136,9 @@ class ParticleGenerator {
             double stackHeight = (this->totalParticles / 2000.0) * pSize - 0.2;
 
             // create the spheres
+            auto sphere_mat = chrono_types::make_shared<ChMaterialSurfaceNSC>();
+            sphere_mat->SetFriction(this->mu);
+
             for (int bi = 0; bi < nParticles; bi++) {
                 double sphrad = pSize + pDev * ChRandom();
                 double sphmass = (4 / 3) * CH_C_PI * pow(sphrad, 3) * this->sphDens;
@@ -145,9 +148,9 @@ class ParticleGenerator {
                 ChVector<> currPos = ChVector<>(-0.5 * bedWidth + ChRandom() * bedWidth,
                                                 stackHeight + 2 * pSize * ((double)bi / (20.0 * ChRandom() + 50.0)),
                                                 -0.5 * bedLength + ChRandom() * bedLength);
-                auto currRigidBody = chrono_types::make_shared<ChBodyEasySphere>(sphrad, this->sphDens, true, true);
+                auto currRigidBody =
+                    chrono_types::make_shared<ChBodyEasySphere>(sphrad, this->sphDens, true, true, sphere_mat);
                 currRigidBody->SetPos(currPos);
-                currRigidBody->GetMaterialSurfaceNSC()->SetFriction(this->mu);
                 currRigidBody->SetRot(randrot);
                 currRigidBody->AddAsset(rockMap);
 
@@ -163,6 +166,9 @@ class ParticleGenerator {
             }
 
             // create the boxes
+            auto box_mat = chrono_types::make_shared<ChMaterialSurfaceNSC>();
+            box_mat->SetFriction(0.5f);
+
             for (int bi = 0; bi < nBoxes; bi++) {
                 double xscale = 1.5 * ChRandom();  // scale 2 of the 3 dimensions
                 double yscale = 2.0;
@@ -177,10 +183,10 @@ class ParticleGenerator {
                 ChQuaternion<> randrot(ChRandom(), ChRandom(), ChRandom(), ChRandom());
                 randrot.Normalize();
                 // create the body object
-                auto currRigidBody = chrono_types::make_shared<ChBodyEasyBox>(pSize * xscale, pSize * yscale, pSize * zscale, this->boxDens, true, true);
+                auto currRigidBody = chrono_types::make_shared<ChBodyEasyBox>(
+                    pSize * xscale, pSize * yscale, pSize * zscale, this->boxDens, true, true, box_mat);
                 currRigidBody->SetPos(currPos);
                 currRigidBody->SetRot(randrot);
-                currRigidBody->GetMaterialSurfaceNSC()->SetFriction(0.5);
                 currRigidBody->AddAsset(cubeMap);
 
                 msys->AddBody(currRigidBody);
@@ -209,7 +215,6 @@ class ParticleGenerator {
 
     // output in the same order as in class list
     std::vector<double> getStatistics() {
-        int nStats = 9;
         std::vector<double> out;
         out.resize(9);
         out[0] = pRadMean;
@@ -262,15 +267,18 @@ class SoilbinWheel {
         wheel->SetPos(mposition);
         wheel->SetMass(mass);
         wheel->SetInertiaXX(inertia);
-        wheel->GetMaterialSurfaceNSC()->SetFriction(0.4f);
         wheel->SetCollide(true);
 
         // Visualization mesh
         auto tireMesh = chrono_types::make_shared<ChTriangleMeshConnected>();
-        tireMesh->LoadWavefrontMesh(GetChronoDataFile("tractor_wheel.obj"), true, true);
+        tireMesh->LoadWavefrontMesh(GetChronoDataFile("models/tractor_wheel/tractor_wheel.obj"), true, true);
         auto tireMesh_asset = chrono_types::make_shared<ChTriangleMeshShape>();
         tireMesh_asset->SetMesh(tireMesh);
         wheel->AddAsset(tireMesh_asset);
+
+        // Contact material
+        auto wheel_mat = chrono_types::make_shared<ChMaterialSurfaceNSC>();
+        wheel_mat->SetFriction(0.4f);
 
         // Contact mesh
         wheel->GetCollisionModel()->ClearModel();
@@ -278,12 +286,12 @@ class SoilbinWheel {
         // 'knobs'. Since these decompositions are only for 1/15th of the wheel, use for() to pattern them.
         for (double mangle = 0; mangle < 360.; mangle += (360. / 15.)) {
             ChQuaternion<> myrot;
-            ChStreamInAsciiFile myknobs(GetChronoDataFile("tractor_wheel_knobs.chulls").c_str());
-            ChStreamInAsciiFile myslice(GetChronoDataFile("tractor_wheel_slice.chulls").c_str());
+            ChStreamInAsciiFile myknobs(GetChronoDataFile("models/tractor_wheel/tractor_wheel_knobs.chulls").c_str());
+            ChStreamInAsciiFile myslice(GetChronoDataFile("models/tractor_wheel/tractor_wheel_slice.chulls").c_str());
             myrot.Q_from_AngAxis(mangle * (CH_C_PI / 180.), VECT_X);
             ChMatrix33<> mm(myrot);
-            wheel->GetCollisionModel()->AddConvexHullsFromFile(myknobs, ChVector<>(0, 0, 0), mm);
-            wheel->GetCollisionModel()->AddConvexHullsFromFile(myslice, ChVector<>(0, 0, 0), mm);
+            wheel->GetCollisionModel()->AddConvexHullsFromFile(wheel_mat, myknobs, ChVector<>(0, 0, 0), mm);
+            wheel->GetCollisionModel()->AddConvexHullsFromFile(wheel_mat, myslice, ChVector<>(0, 0, 0), mm);
         }
         wheel->GetCollisionModel()->BuildModel();
 
@@ -340,33 +348,38 @@ class TestMech {
 
         // create the floor
         auto cubeMap = chrono_types::make_shared<ChTexture>();
-        cubeMap->SetTextureFilename(GetChronoDataFile("concrete.jpg"));
+        cubeMap->SetTextureFilename(GetChronoDataFile("textures/concrete.jpg"));
 
-        floor = chrono_types::make_shared<ChBodyEasyBox>(binWidth + wallWidth / 2.0, wallWidth, binLength + wallWidth / 2.0, 1.0, true, true);
+        auto floor_mat = chrono_types::make_shared<ChMaterialSurfaceNSC>();
+        floor_mat->SetFriction(0.5f);
+
+        floor = chrono_types::make_shared<ChBodyEasyBox>(binWidth + wallWidth / 2.0, wallWidth,
+                                                         binLength + wallWidth / 2.0, 1.0, true, true, floor_mat);
         floor->SetPos(ChVector<>(0, -0.5 - wallWidth / 2.0, 0));
         floor->SetBodyFixed(true);
-        floor->GetMaterialSurfaceNSC()->SetFriction(0.5);
         floor->AddAsset(cubeMap);
         system->AddBody(floor);
 
         // add some transparent walls to the soilBin, w.r.t. width, length of bin
-        wall1 = chrono_types::make_shared<ChBodyEasyBox>(wallWidth, binHeight, binLength, 1.0, true, true);
+        wall1 = chrono_types::make_shared<ChBodyEasyBox>(wallWidth, binHeight, binLength, 1.0, true, true, floor_mat);
         wall1->SetPos(ChVector<>(-binWidth / 2.0 - wallWidth / 2.0, 0, 0));
         wall1->SetBodyFixed(true);
         system->AddBody(wall1);
 
-        wall2 = chrono_types::make_shared<ChBodyEasyBox>(wallWidth, binHeight, binLength, 1.0, true, false);
+        wall2 = chrono_types::make_shared<ChBodyEasyBox>(wallWidth, binHeight, binLength, 1.0, false, true, floor_mat);
         wall2->SetPos(ChVector<>(binWidth / 2.0 + wallWidth / 2.0, 0, 0));
         wall2->SetBodyFixed(true);
         system->AddBody(wall2);
 
-        wall3 = chrono_types::make_shared<ChBodyEasyBox>(binWidth + wallWidth / 2.0, binHeight, wallWidth, 1.0, true, false);
+        wall3 = chrono_types::make_shared<ChBodyEasyBox>(binWidth + wallWidth / 2.0, binHeight, wallWidth, 1.0, false,
+                                                         true, floor_mat);
         wall3->SetPos(ChVector<>(0, 0, -binLength / 2.0 - wallWidth / 2.0));
         wall3->SetBodyFixed(true);
         system->AddBody(wall3);
 
         // wall 4
-        wall4 = chrono_types::make_shared<ChBodyEasyBox>(binWidth + wallWidth / 2.0, binHeight, wallWidth, 1.0, true, true);
+        wall4 =
+            chrono_types::make_shared<ChBodyEasyBox>(binWidth + wallWidth / 2.0, binHeight, wallWidth, 1.0, true, true, floor_mat);
         wall4->SetPos(ChVector<>(0, 0, binLength / 2.0 + wallWidth / 2.0));
         wall4->SetBodyFixed(true);
         system->AddBody(wall4);
@@ -376,10 +389,10 @@ class TestMech {
         // single rotational DOF will be driven with a user-input for torque
         // *****
         auto bluMap = chrono_types::make_shared<ChTexture>();
-        bluMap->SetTextureFilename(GetChronoDataFile("blu.png"));
+        bluMap->SetTextureFilename(GetChronoDataFile("textures/blue.png"));
         ChVector<> trussCM = wheelBody->GetPos();
 
-        truss = chrono_types::make_shared<ChBodyEasyBox>(0.2, 0.2, 0.4, 300.0, false, true);
+        truss = chrono_types::make_shared<ChBodyEasyBox>(0.2, 0.2, 0.4, 300.0, true, false);
         truss->SetPos(trussCM);
         truss->SetMass(5.0);
         truss->AddAsset(bluMap);
@@ -400,7 +413,7 @@ class TestMech {
         ChVector<> weightCM = ChVector<>(trussCM);
         weightCM.y() += 1.0;  // note: this will determine the spring free length
 
-        suspweight = chrono_types::make_shared<ChBodyEasyBox>(0.2, 0.4, 0.2, 5000.0, false, true);
+        suspweight = chrono_types::make_shared<ChBodyEasyBox>(0.2, 0.4, 0.2, 5000.0, true, false);
         suspweight->SetPos(weightCM);
         suspweight->SetMass(weightMass);
         suspweight->AddAsset(bluMap);
@@ -419,9 +432,8 @@ class TestMech {
         spring->SetDampingCoefficient(springD);
         system->AddLink(spring);
 
-        spring->AddAsset(chrono_types::make_shared<ChColorAsset>(0.6, 0.1, 0.1));
+        spring->AddAsset(chrono_types::make_shared<ChColorAsset>(0.6f, 0.1f, 0.1f));
         spring->AddAsset(chrono_types::make_shared<ChPointPointSpring>(0.05, 80, 15));
-
 
         // create a prismatic constraint between the weight and the ground
         auto weightLink = chrono_types::make_shared<ChLinkLockOldham>();
@@ -521,7 +533,7 @@ class MyEventReceiver : public IEventReceiver {
 
         // turn wheel visibility on/off, ie = 2115
         ////checkbox_wheelVisible = app->GetIGUIEnvironment()->addCheckBox(wheelVisible, core::rect<s32>(180, 30, 195,
-        ///45),
+        /// 45),
         ////                                                               gad_tab_controls, 2115);
         ////text_wheelVisible = app->GetIGUIEnvironment()->addStaticText(L"visible?", core::rect<s32>(205, 30, 290, 45),
         ////                                                             false, false, gad_tab_controls);
@@ -662,7 +674,6 @@ class MyEventReceiver : public IEventReceiver {
         // check if user moved the sliders with mouse..
         if (event.EventType == EET_GUI_EVENT) {
             s32 id = event.GUIEvent.Caller->getID();
-            gui::IGUIEnvironment* env = mapp->GetIGUIEnvironment();
 
             switch (event.GUIEvent.EventType) {
                 case EGET_SCROLL_BAR_CHANGED:
@@ -695,7 +706,8 @@ class MyEventReceiver : public IEventReceiver {
                     if (id == 1104)  // # particles to generate
                     {
                         s32 currPos = ((IGUIScrollBar*)event.GUIEvent.Caller)->getPos();
-                        this->currNparticlesGen = nParticlesGenMax + int(double(currPos - 50) / 50.0) * nParticlesGenMax;
+                        this->currNparticlesGen =
+                            nParticlesGenMax + int(double(currPos - 50) / 50.0) * nParticlesGenMax;
                         char message[50];
                         sprintf(message, "# p Gen: %d", this->currNparticlesGen);
                         text_nParticlesGen->setText(core::stringw(message).c_str());
@@ -780,19 +792,19 @@ class MyEventReceiver : public IEventReceiver {
         ChCoordsys<> wall1Csys = this->mtester->wall1->GetCoord();
         wall1Csys.rot = chrono::Q_from_AngAxis(CH_C_PI / 2.0, VECT_Y);
         wall1Csys.pos.x() += .05;
-        ChIrrTools::drawGrid(this->mapp->GetVideoDriver(), 0.1, 0.05, 24, 20, wall1Csys,
+        tools::drawGrid(this->mapp->GetVideoDriver(), 0.1, 0.05, 24, 20, wall1Csys,
                              video::SColor(255, 80, 130, 130), true);
 
         // wall 3
         ChCoordsys<> wall3Csys = this->mtester->wall3->GetCoord();
         wall3Csys.pos.z() += .05;
-        ChIrrTools::drawGrid(this->mapp->GetVideoDriver(), 0.1, 0.05, 10, 20, wall3Csys,
+        tools::drawGrid(this->mapp->GetVideoDriver(), 0.1, 0.05, 10, 20, wall3Csys,
                              video::SColor(255, 80, 130, 130), true);
 
         // wall 4
         ChCoordsys<> wall4Csys = this->mtester->wall4->GetCoord();
         wall4Csys.pos.z() -= .05;
-        ChIrrTools::drawGrid(this->mapp->GetVideoDriver(), 0.1, 0.05, 10, 20, wall4Csys,
+        tools::drawGrid(this->mapp->GetVideoDriver(), 0.1, 0.05, 10, 20, wall4Csys,
                              video::SColor(255, 80, 130, 130), true);
     }
 
@@ -874,10 +886,12 @@ class MyEventReceiver : public IEventReceiver {
     gui::IGUIStaticText* text_createParticles;
     gui::IGUICheckBox* checkbox_wheelCollision;  // id = 2112
     gui::IGUIStaticText* text_wheelCollision;
+    /*
     gui::IGUICheckBox* checkbox_particlesVisible;  // id = 2114
     gui::IGUIStaticText* text_particlesVisible;
     gui::IGUICheckBox* checkbox_wheelVisible;  // id = 2115
     gui::IGUIStaticText* text_wheelVisible;
+    */
 
     // scroll bars, ids are: 1xxx
     IGUIScrollBar* scrollbar_pSize;  // particle size, id = 1101
@@ -921,12 +935,11 @@ int main(int argc, char* argv[]) {
 
     // Create the Irrlicht visualization (open the Irrlicht device,
     // bind a simple user interface, etc. etc.)
-    ChIrrApp application(&mphysicalSystem, L"Soil bin demo", core::dimension2d<u32>(1024, 768), false);
-    ChIrrWizard::add_typical_Logo(application.GetDevice());
-    ChIrrWizard::add_typical_Sky(application.GetDevice());
-    ChIrrWizard::add_typical_Lights(application.GetDevice(), irr::core::vector3df(20., 30., 25.),
-                                    irr::core::vector3df(25., 25., -25.), 65.0, 75.);
-    ChIrrWizard::add_typical_Camera(application.GetDevice(), core::vector3df(3.5f, 2.5f, -2.4f));
+    ChIrrApp application(&mphysicalSystem, L"Soil bin demo", core::dimension2d<u32>(1024, 768));
+    application.AddTypicalLogo();
+    application.AddTypicalSky();
+    application.AddTypicalLights(core::vector3df(20., 30., 25.), core::vector3df(25., 25., -25.), 65.0, 75.);
+    application.AddTypicalCamera(core::vector3df(3.5f, 2.5f, -2.4f));
 
     // ******* SOIL BIN WHEEL
     // Create the wheel
@@ -960,7 +973,6 @@ int main(int argc, char* argv[]) {
     mphysicalSystem.SetSolverMaxIterations(70);
 
     // Use real-time step of the simulation, OR...
-    application.SetStepManage(true);
     application.SetTimestep(0.01);
     application.SetTryRealtime(true);
 

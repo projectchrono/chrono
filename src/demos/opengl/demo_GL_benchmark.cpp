@@ -12,7 +12,7 @@
 // Authors: Hammad Mazhar
 // =============================================================================
 //
-// ChronoParallel test program for OpenGL code.
+// Chrono::Multicore test program for OpenGL code.
 //
 // A Random Set of Geometries in Space
 // The global reference frame has Z up.
@@ -31,6 +31,7 @@ using namespace geometry;
 // Create a mixture of geometries
 // -----------------------------------------------------------------------------
 void AddMixture(ChSystem* sys) {
+    utils::GridSampler<double> sampler(2);
     utils::Generator gen(sys);
     std::shared_ptr<utils::MixtureIngredient> m1 = gen.AddMixtureIngredient(utils::MixtureType::BOX, 0.3);
     std::shared_ptr<utils::MixtureIngredient> m2 = gen.AddMixtureIngredient(utils::MixtureType::SPHERE, 0.4);
@@ -38,7 +39,7 @@ void AddMixture(ChSystem* sys) {
     m1->setDefaultSize(ChVector<>(1, .5, 0.7));
     m2->setDefaultSize(ChVector<>(.5, .5, .5));
     m3->setDefaultSize(ChVector<>(1, .5, 1));
-    gen.createObjectsCylinderX(utils::SamplingType::REGULAR_GRID, 2, ChVector<>(0, 0, 0), 20, 20, ChVector<>(0, 0, 0));
+    gen.CreateObjectsCylinderX(sampler, ChVector<>(0, 0, 0), 20, 20, ChVector<>(0, 0, 0));
 }
 
 // -----------------------------------------------------------------------------

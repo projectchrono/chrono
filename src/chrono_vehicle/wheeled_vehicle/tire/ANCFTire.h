@@ -58,6 +58,7 @@ class CH_VEHICLE_API ANCFTire : public ChANCFTire {
 
   private:
     void ProcessJSON(const rapidjson::Document& d);
+    virtual void CreateContactMaterial() override;
 
     double m_tire_radius;
     double m_rim_radius;
@@ -93,6 +94,8 @@ class CH_VEHICLE_API ANCFTire : public ChANCFTire {
     std::vector<double> m_profile_t;
     std::vector<double> m_profile_x;
     std::vector<double> m_profile_y;
+
+    MaterialInfo m_mat_info;
 };
 
 /// @} vehicle_wheeled_tire

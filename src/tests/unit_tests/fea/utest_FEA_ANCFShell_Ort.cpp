@@ -48,8 +48,8 @@
 #include "chrono/fea/ChLinkPointFrame.h"
 #include "chrono/fea/ChMesh.h"
 
-#ifdef CHRONO_MKL
-#include "chrono_mkl/ChSolverMKL.h"
+#ifdef CHRONO_PARDISO_MKL
+#include "chrono_pardisomkl/ChSolverPardisoMKL.h"
 #endif
 
 using namespace chrono;
@@ -99,8 +99,6 @@ int main(int argc, char* argv[]) {
     const int numDiv_y = 6;  // Number of elements along Y axis
     const int numDiv_z = 1;  // Single element along the thickness
     const int N_x = numDiv_x + 1;
-    const int N_y = numDiv_y + 1;
-    const int N_z = numDiv_z + 1;
     int TotalNumElements = numDiv_x * numDiv_y;
     int TotalNumNodes = (numDiv_x + 1) * (numDiv_y + 1);
 
@@ -190,14 +188,14 @@ int main(int argc, char* argv[]) {
     // Simulation loop
     // ---------------
 
-#ifndef CHRONO_MKL
+#ifndef CHRONO_PARDISO_MKL
     use_mkl = false;
 #endif
 
     // Setup solver
     if (use_mkl) {
-#ifdef CHRONO_MKL
-        auto mkl_solver = chrono_types::make_shared<ChSolverMKL>();
+#ifdef CHRONO_PARDISO_MKL
+        auto mkl_solver = chrono_types::make_shared<ChSolverPardisoMKL>();
         mkl_solver->LockSparsityPattern(true);
         mkl_solver->SetVerbose(true);
         my_system.SetSolver(mkl_solver);

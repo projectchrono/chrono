@@ -28,9 +28,8 @@
 #include "chrono/physics/ChLinkMotorRotationSpeed.h"
 #include "chrono/physics/ChSystemNSC.h"
 
-#include "chrono_irrlicht/ChBodySceneNode.h"
-#include "chrono_irrlicht/ChBodySceneNodeTools.h"
 #include "chrono_irrlicht/ChIrrApp.h"
+#include "chrono_irrlicht/ChIrrMeshTools.h"
 
 // Use the namespaces of Chrono
 using namespace chrono;
@@ -90,8 +89,6 @@ class MySimpleTank {
         double mx = 0;
 
         double shoelength = 0.2;
-        double shoethickness = 0.06;
-        double shoewidth = 0.3;
         double shoemass = 2;
         double radiustrack = 0.31;
         double wheeldiameter = 0.280 * 2;
@@ -106,31 +103,48 @@ class MySimpleTank {
 
         // --- The tank body ---
 
-        truss = chrono_types::make_shared<ChBodyEasyMesh>(GetChronoDataFile("bulldozerB10.obj").c_str(), 1000, false, false, 0,
-                                                 true);
+        truss = chrono_types::make_shared<ChBodyEasyMesh>(                   //
+            GetChronoDataFile("models/bulldozer/bulldozerB10.obj").c_str(),  // file name
+            1000,                                                            // density
+            false,                                                           // do not evaluate mass automatically
+            true,                                                            // create visualization asset
+            false,                                                           // do not collide
+            nullptr,                                                         // no need for contact material
+            0                                                                // swept sphere radius
+        );
         my_system.Add(truss);
         truss->SetPos(ChVector<>(mx + passo / 2, my + radiustrack, rlwidth / 2));
         truss->SetMass(350);
         truss->SetInertiaXX(ChVector<>(13.8, 13.5, 10));
 
+        // --- Contact material for wheels ---
+
+        auto wheel_mat = chrono_types::make_shared<ChMaterialSurfaceNSC>();
+        wheel_mat->SetFriction(1.0);
+
         // --- Right Front suspension ---
 
-        // Load a triangle mesh for wheel visualization
-        IAnimatedMesh* irmesh_wheel_view = msceneManager->getMesh(GetChronoDataFile("wheel_view.obj").c_str());
-
         // ..the tank right-front wheel
-        wheelRF =
-            chrono_types::make_shared<ChBodyEasyMesh>(GetChronoDataFile("wheel_view.obj").c_str(), 1000, false, false, 0, true);
+        wheelRF = chrono_types::make_shared<ChBodyEasyMesh>(               //
+            GetChronoDataFile("models/bulldozer/wheel_view.obj").c_str(),  // data file
+            1000,                                                          // density
+            false,                                                         // do not compute mass and inertia
+            true,                                                          // visualization?
+            false,                                                         // collision?
+            nullptr,                                                       // no need for contact material
+            0);                                                            // mesh sweep sphere radius
+
         my_system.Add(wheelRF);
         wheelRF->SetPos(ChVector<>(mx + passo, my + radiustrack, 0));
         wheelRF->SetRot(Q_from_AngAxis(CH_C_PI / 2, VECT_X));
         wheelRF->SetMass(9.0);
         wheelRF->SetInertiaXX(ChVector<>(1.2, 1.2, 1.2));
-        wheelRF->GetMaterialSurfaceNSC()->SetFriction(1.0);
 
         wheelRF->GetCollisionModel()->ClearModel();
-        wheelRF->GetCollisionModel()->AddCylinder(wheeldiameter / 2, wheeldiameter / 2, cyl_hthickness, cyl_displA);
-        wheelRF->GetCollisionModel()->AddCylinder(wheeldiameter / 2, wheeldiameter / 2, cyl_hthickness, cyl_displB);
+        wheelRF->GetCollisionModel()->AddCylinder(wheel_mat, wheeldiameter / 2, wheeldiameter / 2, cyl_hthickness,
+                                                  cyl_displA);
+        wheelRF->GetCollisionModel()->AddCylinder(wheel_mat, wheeldiameter / 2, wheeldiameter / 2, cyl_hthickness,
+                                                  cyl_displB);
         wheelRF->GetCollisionModel()->BuildModel();
         wheelRF->SetCollide(true);
 
@@ -147,19 +161,27 @@ class MySimpleTank {
 
         // ..the tank left-front wheel
 
-        wheelLF =
-            chrono_types::make_shared<ChBodyEasyMesh>(GetChronoDataFile("wheel_view.obj").c_str(), 1000, false, false, 0, true);
+        wheelLF = chrono_types::make_shared<ChBodyEasyMesh>(               //
+            GetChronoDataFile("models/bulldozer/wheel_view.obj").c_str(),  // data file
+            1000,                                                          // density
+            false,                                                         // do not compute mass and inertia
+            true,                                                          // visualization?
+            false,                                                         // collision?
+            nullptr,                                                       // no need for contact material
+            0);                                                            // mesh sweep sphere radius
+
         my_system.Add(wheelLF);
         wheelLF->SetPos(ChVector<>(mx + passo, my + radiustrack, rlwidth));
         wheelLF->SetRot(Q_from_AngAxis(CH_C_PI / 2, VECT_X));
         wheelLF->SetMass(9.0);
         wheelLF->SetInertiaXX(ChVector<>(1.2, 1.2, 1.2));
-        wheelLF->GetMaterialSurfaceNSC()->SetFriction(1.0);
         wheelLF->AddAsset(color_wheel);
 
         wheelLF->GetCollisionModel()->ClearModel();
-        wheelLF->GetCollisionModel()->AddCylinder(wheeldiameter / 2, wheeldiameter / 2, cyl_hthickness, cyl_displA);
-        wheelLF->GetCollisionModel()->AddCylinder(wheeldiameter / 2, wheeldiameter / 2, cyl_hthickness, cyl_displB);
+        wheelLF->GetCollisionModel()->AddCylinder(wheel_mat, wheeldiameter / 2, wheeldiameter / 2, cyl_hthickness,
+                                                  cyl_displA);
+        wheelLF->GetCollisionModel()->AddCylinder(wheel_mat, wheeldiameter / 2, wheeldiameter / 2, cyl_hthickness,
+                                                  cyl_displB);
         wheelLF->GetCollisionModel()->BuildModel();
         wheelLF->SetCollide(true);
 
@@ -173,25 +195,34 @@ class MySimpleTank {
 
         // ..the tank right-back wheel
 
-        wheelRB =
-            chrono_types::make_shared<ChBodyEasyMesh>(GetChronoDataFile("wheel_view.obj").c_str(), 1000, false, false, 0, true);
+        wheelRB = chrono_types::make_shared<ChBodyEasyMesh>(  //
+            GetChronoDataFile("wheel_view.obj").c_str(),      // data file
+            1000,                                             // density
+            false,                                            // do not compute mass and inertia
+            true,                                             // visualization?
+            false,                                            // collision?
+            nullptr,                                          // no need for contact material
+            0);                                               // mesh sweep sphere radius
+
         my_system.Add(wheelRB);
         wheelRB->SetPos(ChVector<>(mx, my + radiustrack, 0));
         wheelRB->SetRot(Q_from_AngAxis(CH_C_PI / 2, VECT_X));
         wheelRB->SetMass(9.0);
         wheelRB->SetInertiaXX(ChVector<>(1.2, 1.2, 1.2));
-        wheelRB->GetMaterialSurfaceNSC()->SetFriction(1.0);
         wheelRB->AddAsset(color_wheel);
 
         wheelRB->GetCollisionModel()->ClearModel();
-        wheelRB->GetCollisionModel()->AddCylinder(wheeldiameter / 2, wheeldiameter / 2, cyl_hthickness, cyl_displA);
-        wheelRB->GetCollisionModel()->AddCylinder(wheeldiameter / 2, wheeldiameter / 2, cyl_hthickness, cyl_displB);
+        wheelRB->GetCollisionModel()->AddCylinder(wheel_mat, wheeldiameter / 2, wheeldiameter / 2, cyl_hthickness,
+                                                  cyl_displA);
+        wheelRB->GetCollisionModel()->AddCylinder(wheel_mat, wheeldiameter / 2, wheeldiameter / 2, cyl_hthickness,
+                                                  cyl_displB);
         wheelRB->GetCollisionModel()->BuildModel();
         wheelRB->SetCollide(true);
 
         // .. create the motor joint between the wheel and the truss (simplified motor model: just impose speed..)
         link_motorRB = chrono_types::make_shared<ChLinkMotorRotationSpeed>();
-        link_motorRB->SetSpeedFunction(chrono_types::make_shared<ChFunction_Const>());  // actually, default function type
+        link_motorRB->SetSpeedFunction(
+            chrono_types::make_shared<ChFunction_Const>());  // actually, default function type
         link_motorRB->Initialize(wheelRB, truss, ChFrame<>(ChVector<>(mx, my + radiustrack, 0), QUNIT));
         my_system.AddLink(link_motorRB);
 
@@ -199,39 +230,48 @@ class MySimpleTank {
 
         // ..the tank left-back wheel
 
-        wheelLB =
-            chrono_types::make_shared<ChBodyEasyMesh>(GetChronoDataFile("wheel_view.obj").c_str(), 1000, false, false, 0, true);
+        wheelLB = chrono_types::make_shared<ChBodyEasyMesh>(  //
+            GetChronoDataFile("wheel_view.obj").c_str(),      // data file
+            1000,                                             // density
+            false,                                            // do not compute mass and inertia
+            true,                                             // visualization?
+            false,                                            // collision?
+            nullptr,                                          // no need for contact material
+            0);                                               // mesh sweep sphere radius
+
         my_system.Add(wheelLB);
         wheelLB->SetPos(ChVector<>(mx, my + radiustrack, rlwidth));
         wheelLB->SetRot(Q_from_AngAxis(CH_C_PI / 2, VECT_X));
         wheelLB->SetMass(9.0);
         wheelLB->SetInertiaXX(ChVector<>(1.2, 1.2, 1.2));
-        wheelLB->GetMaterialSurfaceNSC()->SetFriction(1.0);
         wheelLB->AddAsset(color_wheel);
 
         wheelLB->GetCollisionModel()->ClearModel();
-        wheelLB->GetCollisionModel()->AddCylinder(wheeldiameter / 2, wheeldiameter / 2, cyl_hthickness, cyl_displA);
-        wheelLB->GetCollisionModel()->AddCylinder(wheeldiameter / 2, wheeldiameter / 2, cyl_hthickness, cyl_displB);
+        wheelLB->GetCollisionModel()->AddCylinder(wheel_mat, wheeldiameter / 2, wheeldiameter / 2, cyl_hthickness,
+                                                  cyl_displA);
+        wheelLB->GetCollisionModel()->AddCylinder(wheel_mat, wheeldiameter / 2, wheeldiameter / 2, cyl_hthickness,
+                                                  cyl_displB);
         wheelLB->GetCollisionModel()->BuildModel();
         wheelLB->SetCollide(true);
 
         // .. create the motor joint between the wheel and the truss (simplified motor model: just impose speed..)
         link_motorLB = chrono_types::make_shared<ChLinkMotorRotationSpeed>();
-        link_motorLB->SetSpeedFunction(chrono_types::make_shared<ChFunction_Const>());  // actually, default function type
+        link_motorLB->SetSpeedFunction(
+            chrono_types::make_shared<ChFunction_Const>());  // actually, default function type
         link_motorLB->Initialize(wheelLB, truss, ChFrame<>(ChVector<>(mx, my + radiustrack, rlwidth), QUNIT));
         my_system.AddLink(link_motorLB);
 
         //--- TRACKS ---
 
         // Load a triangle mesh for collision
-        IAnimatedMesh* irmesh_shoe_collision = msceneManager->getMesh(GetChronoDataFile("shoe_collision.obj").c_str());
+
+        IAnimatedMesh* irmesh_shoe_collision = msceneManager->getMesh(GetChronoDataFile("models/bulldozer/shoe_collision.obj").c_str());
 
         auto trimesh = chrono_types::make_shared<ChTriangleMeshSoup>();
         fillChTrimeshFromIrlichtMesh(trimesh.get(), irmesh_shoe_collision->getMesh(0));
 
         ChVector<> mesh_displacement(shoelength * 0.5, 0, 0);    // as mesh origin is not in body center of mass
         ChVector<> joint_displacement(-shoelength * 0.5, 0, 0);  // pos. of shoe-shoe constraint, relative to COG.
-        ChVector<> pin_displacement = mesh_displacement + ChVector<>(0, 0.05, 0);
 
         chrono::ChVector<> position;
         chrono::ChQuaternion<> rotation;
@@ -262,14 +302,14 @@ class MySimpleTank {
             // Visualization:
             auto shoe_mesh = chrono_types::make_shared<ChTriangleMeshShape>();
             firstBodyShoe->AddAsset(shoe_mesh);
-            shoe_mesh->GetMesh()->LoadWavefrontMesh(GetChronoDataFile("shoe_view.obj").c_str());
+            shoe_mesh->GetMesh()->LoadWavefrontMesh(GetChronoDataFile("models/bulldozer/shoe_view.obj").c_str());
             shoe_mesh->GetMesh()->Transform(-mesh_displacement, ChMatrix33<>(1));
             shoe_mesh->SetVisible(true);
 
             // Visualize collision mesh
             auto shoe_coll_mesh = chrono_types::make_shared<ChTriangleMeshShape>();
             firstBodyShoe->AddAsset(shoe_coll_mesh);
-            shoe_coll_mesh->GetMesh()->LoadWavefrontMesh(GetChronoDataFile("shoe_collision.obj").c_str());
+            shoe_coll_mesh->GetMesh()->LoadWavefrontMesh(GetChronoDataFile("models/bulldozer/shoe_collision.obj").c_str());
             shoe_coll_mesh->GetMesh()->Transform(-mesh_displacement, ChMatrix33<>(1));
             shoe_coll_mesh->SetVisible(false);
 
@@ -277,7 +317,8 @@ class MySimpleTank {
             firstBodyShoe->GetCollisionModel()->SetSafeMargin(0.004);  // inward safe margin
             firstBodyShoe->GetCollisionModel()->SetEnvelope(0.010);    // distance of the outward "collision envelope"
             firstBodyShoe->GetCollisionModel()->ClearModel();
-            firstBodyShoe->GetCollisionModel()->AddTriangleMesh(trimesh, false, false, mesh_displacement,
+            firstBodyShoe->GetCollisionModel()->AddTriangleMesh(chrono_types::make_shared<ChMaterialSurfaceNSC>(),
+                                                                trimesh, false, false, mesh_displacement,
                                                                 ChMatrix33<>(1), 0.005);
             firstBodyShoe->GetCollisionModel()->BuildModel();  // Creates the collision model
             firstBodyShoe->SetCollide(true);
@@ -361,12 +402,11 @@ class MySimpleTank {
     // Utility function to create quickly a track shoe connected to the previous one
     std::shared_ptr<ChBody> MakeShoe(
         std::shared_ptr<ChBody> previous_shoe,  // will be linked with this one with revolute joint
-        std::shared_ptr<ChBody>
-            template_shoe,        // collision geometry will be shared with this body, to save memory&cpu time.
-        ChVector<> position,      // position
-        ChQuaternion<> rotation,  // orientation
-        ChSystemNSC& my_system,   // the physical system
-        chrono::ChVector<> joint_displacement  // position of shoe-shoe constraint, relative to COG.
+        std::shared_ptr<ChBody> template_shoe,  // collision geometry will be shared with this body
+        ChVector<> position,                    // position
+        ChQuaternion<> rotation,                // orientation
+        ChSystemNSC& my_system,                 // the physical system
+        chrono::ChVector<> joint_displacement   // position of shoe-shoe constraint, relative to COG.
     ) {
         auto rigidBodyShoe = std::shared_ptr<ChBody>(template_shoe.get()->Clone());
         rigidBodyShoe->SetPos(position);
@@ -429,7 +469,6 @@ class MyEventReceiver : public IEventReceiver {
         // check if user moved the sliders with mouse..
         if (event.EventType == EET_GUI_EVENT) {
             s32 id = event.GUIEvent.Caller->getID();
-            IGUIEnvironment* env = application->GetIGUIEnvironment();
 
             switch (event.GUIEvent.EventType) {
                 case EGET_SCROLL_BAR_CHANGED:
@@ -479,37 +518,37 @@ int main(int argc, char* argv[]) {
     //    will be handled by this ChSystemNSC object.
     ChSystemNSC my_system;
 
-    // Create the Irrlicht visualization (open the Irrlicht device,
-    // bind a simple user interface, etc. etc.)
-    ChIrrApp application(&my_system, L"Modeling a simplified   tank", core::dimension2d<u32>(800, 600), false, true);
-
-    // Easy shortcuts to add logo, camera, lights and sky in Irrlicht scene:
-    ChIrrWizard::add_typical_Logo(application.GetDevice());
-    ChIrrWizard::add_typical_Sky(application.GetDevice());
-    ChIrrWizard::add_typical_Lights(application.GetDevice());
-    ChIrrWizard::add_typical_Camera(application.GetDevice(), core::vector3df(0, 0, -6), core::vector3df(-2, 2, 0));
+    // Create the Irrlicht visualization (open the Irrlicht device, bind a simple user interface, etc. etc.)
+    ChIrrApp application(&my_system, L"Modeling a simplified   tank", core::dimension2d<u32>(800, 600));
+    application.AddTypicalLogo();
+    application.AddTypicalSky();
+    application.AddTypicalLights();
+    application.AddTypicalCamera(core::vector3df(0, 0, -6), core::vector3df(-2, 2, 0));
 
     // 2- Create the rigid bodies of the simpified tank suspension mechanical system
     //   maybe setting position/mass/inertias of
     //   their center of mass (COG) etc.
 
     // ..the world
-    ChBodySceneNode* my_ground = (ChBodySceneNode*)addChBodySceneNode_easyBox(
-        &my_system, application.GetSceneManager(), 1.0, ChVector<>(0, -1, 0), QUNIT, ChVector<>(60, 2, 60));
-    my_ground->GetBody()->SetBodyFixed(true);
-    my_ground->GetBody()->SetCollide(true);
-    my_ground->GetBody()->GetMaterialSurfaceNSC()->SetFriction(1.0);
-    video::ITexture* groundMap = application.GetVideoDriver()->getTexture(GetChronoDataFile("blu.png").c_str());
-    my_ground->setMaterialTexture(0, groundMap);
+    auto ground_mat = chrono_types::make_shared<ChMaterialSurfaceNSC>();
+    ground_mat->SetFriction(1.0);
+
+    auto my_ground = chrono_types::make_shared<ChBodyEasyBox>(60, 2, 60, 1000, true, true, ground_mat);
+    my_ground->SetPos(ChVector<>(0, -1, 0));
+    my_ground->SetBodyFixed(true);
+    my_ground->AddAsset(chrono_types::make_shared<ChTexture>(GetChronoDataFile("textures/blue.png")));
+    my_system.AddBody(my_ground);
 
     // ..some obstacles on the ground:
+    auto obst_mat = chrono_types::make_shared<ChMaterialSurfaceNSC>();
+
     for (int i = 0; i < 50; i++) {
-        ChBodySceneNode* my_obstacle = (ChBodySceneNode*)addChBodySceneNode_easyBox(
-            &my_system, application.GetSceneManager(), 3.0,
-            ChVector<>(-6 + 6 * ChRandom(), 2 + 1 * ChRandom(), 6 * ChRandom()),
-            Q_from_AngAxis(ChRandom() * CH_C_PI, VECT_Y),
-            ChVector<>(0.6 * (1 - 0.4 * ChRandom()), 0.08, 0.3 * (1 - 0.4 * ChRandom())));
-        my_obstacle->addShadowVolumeSceneNode();
+        auto my_obstacle = chrono_types::make_shared<ChBodyEasyBox>(
+            0.6 * (1 - 0.4 * ChRandom()), 0.08, 0.3 * (1 - 0.4 * ChRandom()), 1000, true, true, obst_mat);
+        my_obstacle->SetMass(3);
+        my_obstacle->SetPos(ChVector<>(-6 + 6 * ChRandom(), 2 + 1 * ChRandom(), 6 * ChRandom()));
+        my_obstacle->SetRot(Q_from_AngAxis(ChRandom() * CH_C_PI, VECT_Y));
+        my_system.AddBody(my_obstacle);
     }
 
     // ..the tank (this class - see above - is a 'set' of bodies and links, automatically added at creation)
@@ -543,7 +582,6 @@ int main(int argc, char* argv[]) {
     // Simulation loop
     //
 
-    application.SetStepManage(true);
     application.SetTimestep(0.03);
     application.SetTryRealtime(true);
 
@@ -555,12 +593,11 @@ int main(int argc, char* argv[]) {
         application.DrawAll();
 
         // .. draw also a grid (rotated so that it's horizontal)
-        ChIrrTools::drawGrid(application.GetVideoDriver(), 2, 2, 30, 30,
+        tools::drawGrid(application.GetVideoDriver(), 2, 2, 30, 30,
                              ChCoordsys<>(ChVector<>(0, 0.01, 0), Q_from_AngX(CH_C_PI_2)),
                              video::SColor(255, 60, 60, 60), true);
 
         // HERE CHRONO INTEGRATION IS PERFORMED:
-
         application.DoStep();
 
         application.EndScene();

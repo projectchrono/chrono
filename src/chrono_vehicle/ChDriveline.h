@@ -19,7 +19,6 @@
 #ifndef CH_DRIVELINE_H
 #define CH_DRIVELINE_H
 
-#include "chrono/core/ChVector.h"
 #include "chrono/physics/ChShaft.h"
 
 #include "chrono_vehicle/ChApiVehicle.h"
@@ -46,11 +45,6 @@ class CH_VEHICLE_API ChDriveline : public ChPart {
     /// This represents the output from the driveline subsystem that is passed to the powertrain system. The default
     /// implementation returns the driveline's driveshaft speed.
     virtual double GetDriveshaftSpeed() const { return m_driveshaft->GetPos_dt(); }
-
-    /// Update the driveline subsystem.
-    /// The motor torque represents the input to the driveline subsystem from the powertrain system.
-    /// The default implementation applies this torque to the driveline's driveshaft.
-    virtual void Synchronize(double torque) { m_driveshaft->SetAppliedTorque(torque); }
 
   protected:
     std::shared_ptr<ChShaft> m_driveshaft;  ///< shaft connection to the powertrain

@@ -22,12 +22,15 @@
 
 #include "chrono/core/ChRealtimeStep.h"
 #include "chrono/utils/ChUtilsInputOutput.h"
+#include "chrono/utils/ChFilters.h"
 
 #include "chrono_vehicle/ChConfigVehicle.h"
 #include "chrono_vehicle/ChVehicleModelData.h"
 #include "chrono_vehicle/driver/ChIrrGuiDriver.h"
 #include "chrono_vehicle/terrain/RigidTerrain.h"
 #include "chrono_vehicle/wheeled_vehicle/utils/ChWheeledVehicleIrrApp.h"
+#include "chrono_models/vehicle/uaz/UAZBUS_LeafspringAxle.h"
+#include "chrono_models/vehicle/uaz/UAZBUS_ToeBarLeafspringAxle.h"
 
 #include "chrono_models/vehicle/uaz/UAZBUS.h"
 
@@ -54,14 +57,14 @@ VisualizationType wheel_vis_type = VisualizationType::MESH;
 VisualizationType tire_vis_type = VisualizationType::MESH;
 
 // Type of tire model (RIGID, TMEASY, PAC02)
-TireModelType tire_model = TireModelType::PAC02;
+TireModelType tire_model = TireModelType::TMEASY;
 
 // Point on chassis tracked by the camera
 ChVector<> trackPoint(0.0, 0.0, 1.75);
 
 // Simulation step sizes
-double step_size = 1e-3;
-double tire_step_size = step_size;
+double step_size = 3e-3;
+double tire_step_size = 1e-3;
 
 // Simulation end time
 double tend = 15;
@@ -86,6 +89,7 @@ int main(int argc, char* argv[]) {
 
     // Create the vehicle, set parameters, and initialize
     UAZBUS uaz;
+    uaz.SetContactMethod(ChContactMethod::NSC);
     uaz.SetChassisFixed(false);
     uaz.SetInitPosition(ChCoordsys<>(initLoc, initRot));
     uaz.SetTireType(tire_model);
@@ -101,8 +105,8 @@ int main(int argc, char* argv[]) {
 
     {
         auto suspF = std::static_pointer_cast<ChToeBarLeafspringAxle>(uaz.GetVehicle().GetSuspension(0));
-        double leftAngle = suspF->GetKingpinAngleLeft();
-        double rightAngle = suspF->GetKingpinAngleRight();
+        ////double leftAngle = suspF->GetKingpinAngleLeft();
+        ////double rightAngle = suspF->GetKingpinAngleRight();
 
         auto springFL = suspF->GetSpring(VehicleSide::LEFT);
         auto shockFL = suspF->GetShock(VehicleSide::RIGHT);
@@ -127,10 +131,10 @@ int main(int argc, char* argv[]) {
     // ------------------
 
     RigidTerrain terrain(uaz.GetSystem());
-    auto patch = terrain.AddPatch(ChCoordsys<>(ChVector<>(0, 0, -5), QUNIT), ChVector<>(600, 600, 10));
-    patch->SetContactFrictionCoefficient(0.8f);
-    patch->SetContactRestitutionCoefficient(0.01f);
-    patch->SetContactMaterialProperties(2e7f, 0.3f);
+    auto patch_mat = chrono_types::make_shared<ChMaterialSurfaceNSC>();
+    patch_mat->SetFriction(0.9f);
+    patch_mat->SetRestitution(0.01f);
+    auto patch = terrain.AddPatch(patch_mat, ChVector<>(0, 0, 0), ChVector<>(0, 0, 1), 300, 300);
     patch->SetColor(ChColor(0.8f, 0.8f, 1.0f));
     patch->SetTexture(vehicle::GetDataFile("terrain/textures/tile4.jpg"), 1200, 1200);
     terrain.Initialize();
@@ -183,6 +187,8 @@ int main(int argc, char* argv[]) {
     // Simulation loop
     // ---------------
 
+    uaz.GetVehicle().LogSubsystemTypes();
+
     int render_steps = (int)std::ceil(render_step_size / step_size);
     int step_number = 0;
     int render_frame = 0;
@@ -190,6 +196,8 @@ int main(int argc, char* argv[]) {
     double maxKingpinAngle = 0.0;
 
     ChRealtimeStepTimer realtime_timer;
+    utils::ChRunningAverage RTF_filter(50);
+
     while (app.GetDevice()->run()) {
         double time = uaz.GetSystem()->GetChTime();
 
@@ -203,8 +211,9 @@ int main(int argc, char* argv[]) {
                 char filename[100];
                 sprintf(filename, "%s/data_%03d.dat", pov_dir.c_str(), render_frame + 1);
                 utils::WriteShapesPovray(uaz.GetSystem(), filename);
-                render_frame++;
             }
+
+            render_frame++;
         }
 
         // Collect output data from modules (for inter-module communication)
@@ -238,6 +247,7 @@ int main(int argc, char* argv[]) {
 
         // Spin in place for real time to catch up
         realtime_timer.Spin(step_size);
+        ////std::cout << RTF_filter.Add(realtime_timer.RTF) << std::endl;
     }
 
     std::cout << "Maximum Kingpin Angle = " << maxKingpinAngle << " deg" << std::endl;

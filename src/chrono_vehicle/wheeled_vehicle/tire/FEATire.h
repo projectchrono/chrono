@@ -61,6 +61,7 @@ class CH_VEHICLE_API FEATire : public ChFEATire {
 
   private:
     void ProcessJSON(const rapidjson::Document& d);
+    virtual void CreateContactMaterial() override;
 
     double m_tire_radius;
     double m_rim_radius;
@@ -72,6 +73,8 @@ class CH_VEHICLE_API FEATire : public ChFEATire {
     std::string m_input_file;
 
     std::map<std::string, std::vector<std::shared_ptr<fea::ChNodeFEAbase>>> m_node_sets;
+
+    MaterialInfo m_mat_info;
 };
 
 /// @} vehicle_wheeled_tire

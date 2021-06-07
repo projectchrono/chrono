@@ -16,7 +16,7 @@
 //
 // =============================================================================
 
-#include "chrono/physics/ChSystemNSC.h"
+#include "chrono/physics/ChSystemSMC.h"
 #include "chrono/physics/ChLinkMate.h"
 #include "chrono/physics/ChBodyEasy.h"
 #include "chrono/timestepper/ChTimestepper.h"
@@ -41,12 +41,11 @@ int main(int argc, char* argv[]) {
     GetLog() << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
 
     // Create a Chrono::Engine physical system
-    ChSystemNSC my_system;
+    ChSystemSMC my_system;
 
     // Create the Irrlicht visualization (open the Irrlicht device,
     // bind a simple user interface, etc. etc.)
-    ChIrrApp application(&my_system, L"Beams (SPACE for dynamics, F10 / F11 statics)", core::dimension2d<u32>(800, 600),
-                         false, true);
+    ChIrrApp application(&my_system, L"Beams (SPACE for dynamics, F10 / F11 statics)", core::dimension2d<u32>(800, 600));
 
     // Easy shortcuts to add camera, lights, logo and sky in Irrlicht scene:
     application.AddTypicalLogo();
@@ -61,7 +60,7 @@ int main(int argc, char* argv[]) {
     // Create a section, i.e. thickness and material properties
     // for beams. This will be shared among some beams.
 
-    auto msection = chrono_types::make_shared<ChBeamSectionAdvanced>();
+    auto msection = chrono_types::make_shared<ChBeamSectionEulerAdvanced>();
 
     double beam_wy = 0.012;
     double beam_wz = 0.025;
@@ -128,15 +127,15 @@ int main(int argc, char* argv[]) {
     //
 
     // Shortcut!
-    // This ChBuilderBeam helper object is very useful because it will
+    // This ChBuilderBeamEuler helper object is very useful because it will
     // subdivide 'beams' into sequences of finite elements of beam type, ex.
     // one 'beam' could be made of 5 FEM elements of ChElementBeamEuler class.
     // If new nodes are needed, it will create them for you.
-    ChBuilderBeam builder;
+    ChBuilderBeamEuler builder;
 
     // Now, simply use BuildBeam to create a beam from a point to another:
     builder.BuildBeam(my_mesh,                   // the mesh where to put the created nodes and elements
-                      msection,                  // the ChBeamSectionAdvanced to use for the ChElementBeamEuler elements
+                      msection,                  // the ChBeamSectionEulerAdvanced to use for the ChElementBeamEuler elements
                       5,                         // the number of ChElementBeamEuler to create
                       ChVector<>(0, 0, -0.1),    // the 'A' point in space (beginning of beam)
                       ChVector<>(0.2, 0, -0.1),  // the 'B' point in space (end of beam)

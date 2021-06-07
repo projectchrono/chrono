@@ -12,11 +12,10 @@
 // Authors: Nic Olsen
 // =============================================================================
 
-#include "chrono_distributed/other_types.h"
 #include "chrono_distributed/physics/ChDomainDistributed.h"
 #include "chrono_distributed/physics/ChSystemDistributed.h"
 
-#include "chrono_parallel/ChDataManager.h"
+#include "chrono_multicore/ChDataManager.h"
 
 #include "chrono/core/ChVector.h"
 #include "chrono/physics/ChBody.h"

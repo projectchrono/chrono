@@ -28,7 +28,7 @@ namespace vehicle {
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-TrackedVehicle::TrackedVehicle(const std::string& filename, ChMaterialSurface::ContactMethod contact_method)
+TrackedVehicle::TrackedVehicle(const std::string& filename, ChContactMethod contact_method)
     : ChTrackedVehicle("", contact_method) {
     Create(filename);
 }
@@ -43,7 +43,7 @@ void TrackedVehicle::Create(const std::string& filename) {
     // -------------------------------------------
     // Open and parse the input file
     // -------------------------------------------
-    Document d = ReadFileJSON(filename);
+    Document d; ReadFileJSON(filename, d);
     if (d.IsNull())
         return;
 
@@ -79,8 +79,7 @@ void TrackedVehicle::Create(const std::string& filename) {
 
     assert(d.HasMember("Track Assemblies"));
     assert(d["Track Assemblies"].IsArray());
-    int num_tracks = d["Track Assemblies"].Size();
-    assert(num_tracks == 2);
+    assert(d["Track Assemblies"].Size() == 2); 
 
     {
         std::string file_name = d["Track Assemblies"][0u]["Input File"].GetString();
@@ -123,11 +122,11 @@ void TrackedVehicle::Initialize(const ChCoordsys<>& chassisPos, double chassisFw
     ChTrackedVehicle::Initialize(chassisPos, chassisFwdVel);
 
     // Initialize the left and right track assemblies.
-    m_tracks[0]->Initialize(m_chassis->GetBody(), ChVector<>(0, m_track_offset[0], 0));
-    m_tracks[1]->Initialize(m_chassis->GetBody(), ChVector<>(0, m_track_offset[1], 0));
+    m_tracks[0]->Initialize(m_chassis, ChVector<>(0, m_track_offset[0], 0));
+    m_tracks[1]->Initialize(m_chassis, ChVector<>(0, m_track_offset[1], 0));
 
     // Initialize the driveline
-    m_driveline->Initialize(m_chassis->GetBody(), m_tracks[0], m_tracks[1]);
+    m_driveline->Initialize(m_chassis, m_tracks[0], m_tracks[1]);
 }
 
 }  // end namespace vehicle

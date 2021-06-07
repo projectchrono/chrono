@@ -30,7 +30,7 @@ namespace vehicle {
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 Pac89Tire::Pac89Tire(const std::string& filename) : ChPac89Tire(""), m_mass(0), m_normalDamping(0), m_has_mesh(false) {
-    Document d = ReadFileJSON(filename);
+    Document d; ReadFileJSON(filename, d);
     if (d.IsNull())
         return;
 
@@ -138,8 +138,8 @@ void Pac89Tire::Create(const rapidjson::Document& d) {  // Invoke base class met
 
 void Pac89Tire::AddVisualizationAssets(VisualizationType vis) {
     if (vis == VisualizationType::MESH && m_has_mesh) {
-        m_trimesh_shape = AddVisualizationMesh(vehicle::GetDataFile(m_meshFile_left),    // left side
-                                               vehicle::GetDataFile(m_meshFile_right));  // right side
+        m_trimesh_shape = AddVisualizationMesh(m_meshFile_left,    // left side
+                                               m_meshFile_right);  // right side
     } else {
         ChPac89Tire::AddVisualizationAssets(vis);
     }

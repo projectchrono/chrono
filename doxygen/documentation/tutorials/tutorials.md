@@ -11,7 +11,7 @@ Tutorials {#tutorial_root}
 As such, user code should **always** use `chrono_types::make_shared` as in
 ~~~{.cpp}
 auto my_body = chrono_types::make_shared<ChBody>();
-~~~ 
+~~~
 </li>
 </ul>
 </div>
@@ -31,12 +31,28 @@ auto my_body = chrono_types::make_shared<ChBody>();
     Examples of FEA in Chrono.
 
 -   @subpage tutorial_table_of_content_chrono_vehicle
- 
+
     Examples of modeling and simulating ground vehicles in Chrono.
+
+-   @subpage tutorial_table_of_content_chrono_fsi
+
+    Examples of fluid-solid interaction problems using the FSI module.
 
 -   @subpage tutorial_table_of_content_chrono_postprocess
 
     Examples of producing postprocessing data (e.g. POVray or GNUplot output).
+
+-   @subpage tutorial_table_of_content_chrono_multicore
+
+    Examples of using the Multicore module.
+
+-   @subpage tutorial_table_of_content_chrono_distributed
+
+    Examples of using the Distributed module.
+
+-   @subpage tutorial_table_of_content_chrono_gpu
+
+    Examples of granular dynamics problems using the Gpu module.
 
 -   @subpage tutorial_table_of_content_chrono_python
 
@@ -54,32 +70,24 @@ auto my_body = chrono_types::make_shared<ChBody>();
 
     Examples of loading CAD models.
 
--   @subpage tutorial_table_of_content_chrono_parallel
-
-    Examples of using the Parallel module.
-
--   @subpage tutorial_table_of_content_chrono_distributed
-
-    Examples of using the Distributed module.
-
 -   @subpage tutorial_table_of_content_chrono_opengl
 
     Examples of run-time visualization with the OpenGL module.
 
--   @subpage tutorial_table_of_content_chrono_fsi
+-   @subpage tutorial_table_of_content_chrono_sensor
 
-    Examples of fluid-solid interaction problems using the FSI module.
+    Examples of modeling and simulating sensor for robots and autonomous vehicles in Chrono.
 
--   @subpage tutorial_table_of_content_chrono_granular
+-   @subpage tutorial_table_of_content_chrono_synchrono
 
-    Examples of granular dynamics problems (GPU).
+    Examples of distributed simulation of autonomous vehicles and robots.
 
 
 ## Other tools
 
 
 -   @subpage tutorial_table_of_content_pychrono
- 
+
     Learn how to use [PyChrono](@ref pychrono_introduction)
 
 -   @subpage tutorial_table_of_content_chrono_solidworks
@@ -99,4 +107,3 @@ auto my_body = chrono_types::make_shared<ChBody>();
 -    @subpage tutorial_table_of_content_documentation
 
      Guidelines on writing technical documentation for Chrono (for developers of new modules/features).
-

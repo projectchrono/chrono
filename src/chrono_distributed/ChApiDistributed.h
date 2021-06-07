@@ -30,14 +30,14 @@
 
 /**
     @defgroup distributed_module DISTRIBUTED module
-    @brief Module that enables distributed parallel computation in Chrono
+    @brief Module for distributed parallel simulation
 
-    This module implements MPI parallel computing algorithms that can be
-    used as a faster alternative to the default simulation algorithms
-    in Chrono::Engine. This module depends on the Chrono::Parallel module.
+    This module provides support for granular dynamics on distributed parallel computing
+    architectures through MPI. This module depends on the Chrono::Multicore module.
 
     For additional information, see:
     - the [installation guide](@ref module_distributed_installation)
+    - the [tutorials](@ref tutorial_table_of_content_chrono_distributed)
 
     @{
         @defgroup distributed_collision Collision objects

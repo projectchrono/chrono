@@ -32,7 +32,7 @@ ChNodeFEAxyz& ChNodeFEAxyz::operator=(const ChNodeFEAxyz& other) {
         return *this;
 
     ChNodeFEAbase::operator=(other);
-    ChNodeFEAxyz::operator=(other);
+    ChNodeXYZ::operator=(other);
 
     X0 = other.X0;
     Force = other.Force;
@@ -65,7 +65,7 @@ void ChNodeFEAxyz::ArchiveOUT(ChArchiveOut& marchive) {
 
 void ChNodeFEAxyz::ArchiveIN(ChArchiveIn& marchive) {
     // version number
-    int version = marchive.VersionRead<ChNodeFEAxyz>();
+    /*int version =*/ marchive.VersionRead<ChNodeFEAxyz>();
     // deserialize parent class
     ChNodeFEAbase::ArchiveIN(marchive);
     // serialize parent class

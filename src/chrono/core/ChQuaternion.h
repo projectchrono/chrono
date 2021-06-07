@@ -15,6 +15,7 @@
 #ifndef CHQUATERNION_H
 #define CHQUATERNION_H
 
+#include <cmath>
 #include <algorithm>
 #include <limits>
 
@@ -28,10 +29,10 @@ namespace chrono {
 /// Definitions of various angle sets for conversions.
 enum class AngleSet {
     ANGLE_AXIS,
-    EULERO,		///< sequence: Z - X' - Z''
-    CARDANO,	///< sequence: Z - X' - Y''
-    HPB,		///< sequence: 
-    RXYZ,		///< sequence: X - Y' - Z''
+    EULERO,   ///< sequence: Z - X' - Z''
+    CARDANO,  ///< sequence: Z - X' - Y''
+    HPB,      ///< sequence:
+    RXYZ,     ///< sequence: X - Y' - Z''
     RODRIGUEZ,
     QUATERNION,
 };
@@ -61,14 +62,17 @@ class ChQuaternion {
     ChQuaternion(const ChQuaternion<RealB>& other);
 
     /// Access to components
-    Real& e0() { return data[0]; }
-    Real& e1() { return data[1]; }
-    Real& e2() { return data[2]; }
-    Real& e3() { return data[3]; }
-    const Real& e0() const { return data[0]; }
-    const Real& e1() const { return data[1]; }
-    const Real& e2() const { return data[2]; }
-    const Real& e3() const { return data[3]; }
+    Real& e0() { return m_data[0]; }
+    Real& e1() { return m_data[1]; }
+    Real& e2() { return m_data[2]; }
+    Real& e3() { return m_data[3]; }
+    const Real& e0() const { return m_data[0]; }
+    const Real& e1() const { return m_data[1]; }
+    const Real& e2() const { return m_data[2]; }
+    const Real& e3() const { return m_data[3]; }
+
+    /// Return const pointer to underlying array storage.
+    const Real* data() const { return m_data; }
 
     // EIGEN INTER-OPERABILITY
 
@@ -77,23 +81,25 @@ class ChQuaternion {
     ChQuaternion(const Eigen::MatrixBase<Derived>& vec,
                  typename std::enable_if<(Derived::MaxRowsAtCompileTime == 1 || Derived::MaxColsAtCompileTime == 1),
                                          Derived>::type* = 0) {
-        data[0] = vec(0);
-        data[1] = vec(1);
-        data[2] = vec(2);
-        data[3] = vec(3);
+        m_data[0] = vec(0);
+        m_data[1] = vec(1);
+        m_data[2] = vec(2);
+        m_data[3] = vec(3);
     }
 
     /// View this quaternion as an Eigen vector.
-    Eigen::Map<Eigen::Matrix<Real, 4, 1>> eigen() { return Eigen::Map<Eigen::Matrix<Real, 4, 1>>(data); }
-    Eigen::Map<const Eigen::Matrix<Real, 4, 1>> eigen() const { return Eigen::Map<const Eigen::Matrix<Real, 4, 1>>(data); }
+    Eigen::Map<Eigen::Matrix<Real, 4, 1>> eigen() { return Eigen::Map<Eigen::Matrix<Real, 4, 1>>(m_data); }
+    Eigen::Map<const Eigen::Matrix<Real, 4, 1>> eigen() const {
+        return Eigen::Map<const Eigen::Matrix<Real, 4, 1>>(m_data);
+    }
 
     /// Assign an Eigen vector expression to this quaternion.
     template <typename Derived>
     ChQuaternion& operator=(const Eigen::MatrixBase<Derived>& vec) {
-        data[0] = vec(0);
-        data[1] = vec(1);
-        data[2] = vec(2);
-        data[3] = vec(3);
+        m_data[0] = vec(0);
+        m_data[1] = vec(1);
+        m_data[2] = vec(2);
+        m_data[3] = vec(3);
         return *this;
     }
 
@@ -395,15 +401,15 @@ class ChQuaternion {
                             const ChQuaternion<Real>& qdt,
                             const ChVector<Real>& qimm_dtdt);
 
-    /// Method to allow serialization of transient data to archives.
+    /// Method to allow serialization of transient m_data to archives.
     void ArchiveOUT(ChArchiveOut& marchive);
 
-    /// Method to allow de-serialization of transient data from archives.
+    /// Method to allow de-serialization of transient m_data from archives.
     void ArchiveIN(ChArchiveIn& marchive);
 
   private:
     /// Data in the order e0, e1, e2, e3
-    Real data[4];
+    Real m_data[4];
 
     /// Declaration of friend classes
     template <typename RealB>
@@ -586,43 +592,43 @@ inline std::ostream& operator<<(std::ostream& out, const ChQuaternion<Real>& q) 
 
 template <class Real>
 inline ChQuaternion<Real>::ChQuaternion() {
-    data[0] = 0;
-    data[1] = 0;
-    data[2] = 0;
-    data[3] = 0;
+    m_data[0] = 0;
+    m_data[1] = 0;
+    m_data[2] = 0;
+    m_data[3] = 0;
 }
 
 template <class Real>
 inline ChQuaternion<Real>::ChQuaternion(Real e0, Real e1, Real e2, Real e3) {
-    data[0] = e0;
-    data[1] = e1;
-    data[2] = e2;
-    data[3] = e3;
+    m_data[0] = e0;
+    m_data[1] = e1;
+    m_data[2] = e2;
+    m_data[3] = e3;
 }
 
 template <class Real>
 inline ChQuaternion<Real>::ChQuaternion(Real s, const ChVector<Real>& v) {
-    data[0] = s;
-    data[1] = v.x();
-    data[2] = v.y();
-    data[3] = v.z();
+    m_data[0] = s;
+    m_data[1] = v.x();
+    m_data[2] = v.y();
+    m_data[3] = v.z();
 }
 
 template <class Real>
 inline ChQuaternion<Real>::ChQuaternion(const ChQuaternion<Real>& other) {
-    data[0] = other.data[0];
-    data[1] = other.data[1];
-    data[2] = other.data[2];
-    data[3] = other.data[3];
+    m_data[0] = other.m_data[0];
+    m_data[1] = other.m_data[1];
+    m_data[2] = other.m_data[2];
+    m_data[3] = other.m_data[3];
 }
 
 template <class Real>
 template <class RealB>
 inline ChQuaternion<Real>::ChQuaternion(const ChQuaternion<RealB>& other) {
-    data[0] = static_cast<Real>(other.data[0]);
-    data[1] = static_cast<Real>(other.data[1]);
-    data[2] = static_cast<Real>(other.data[2]);
-    data[3] = static_cast<Real>(other.data[3]);
+    m_data[0] = static_cast<Real>(other.m_data[0]);
+    m_data[1] = static_cast<Real>(other.m_data[1]);
+    m_data[2] = static_cast<Real>(other.m_data[2]);
+    m_data[3] = static_cast<Real>(other.m_data[3]);
 }
 
 // -----------------------------------------------------------------------------
@@ -631,13 +637,13 @@ inline ChQuaternion<Real>::ChQuaternion(const ChQuaternion<RealB>& other) {
 template <class Real>
 inline Real& ChQuaternion<Real>::operator[](unsigned index) {
     assert(index < 4);
-    return data[index];
+    return m_data[index];
 }
 
 template <class Real>
 inline const Real& ChQuaternion<Real>::operator[](unsigned index) const {
     assert(index < 4);
-    return data[index];
+    return m_data[index];
 }
 
 // -----------------------------------------------------------------------------
@@ -647,10 +653,10 @@ template <class Real>
 inline ChQuaternion<Real>& ChQuaternion<Real>::operator=(const ChQuaternion<Real>& other) {
     if (&other == this)
         return *this;
-    data[0] = other.data[0];
-    data[1] = other.data[1];
-    data[2] = other.data[2];
-    data[3] = other.data[3];
+    m_data[0] = other.m_data[0];
+    m_data[1] = other.m_data[1];
+    m_data[2] = other.m_data[2];
+    m_data[3] = other.m_data[3];
     return *this;
 }
 
@@ -664,7 +670,7 @@ inline ChQuaternion<Real> ChQuaternion<Real>::operator+() const {
 
 template <class Real>
 inline ChQuaternion<Real> ChQuaternion<Real>::operator-() const {
-    return ChQuaternion<Real>(-data[0], -data[1], -data[2], -data[3]);
+    return ChQuaternion<Real>(-m_data[0], -m_data[1], -m_data[2], -m_data[3]);
 }
 
 // -----------------------------------------------------------------------------
@@ -672,36 +678,36 @@ inline ChQuaternion<Real> ChQuaternion<Real>::operator-() const {
 
 template <class Real>
 inline ChQuaternion<Real> ChQuaternion<Real>::operator!() const {
-    return ChQuaternion<Real>(data[0], -data[1], -data[2], -data[3]);
+    return ChQuaternion<Real>(m_data[0], -m_data[1], -m_data[2], -m_data[3]);
 }
 
 template <class Real>
 inline ChQuaternion<Real> ChQuaternion<Real>::operator+(const ChQuaternion<Real>& other) const {
-    return ChQuaternion<Real>(data[0] + other.data[0], data[1] + other.data[1], data[2] + other.data[2],
-                              data[3] + other.data[3]);
+    return ChQuaternion<Real>(m_data[0] + other.m_data[0], m_data[1] + other.m_data[1], m_data[2] + other.m_data[2],
+                              m_data[3] + other.m_data[3]);
 }
 
 template <class Real>
 inline ChQuaternion<Real>& ChQuaternion<Real>::operator+=(const ChQuaternion<Real>& other) {
-    data[0] += other.data[0];
-    data[1] += other.data[1];
-    data[2] += other.data[2];
-    data[3] += other.data[3];
+    m_data[0] += other.m_data[0];
+    m_data[1] += other.m_data[1];
+    m_data[2] += other.m_data[2];
+    m_data[3] += other.m_data[3];
     return *this;
 }
 
 template <class Real>
 inline ChQuaternion<Real> ChQuaternion<Real>::operator-(const ChQuaternion<Real>& other) const {
-    return ChQuaternion<Real>(data[0] - other.data[0], data[1] - other.data[1], data[2] - other.data[2],
-                              data[3] - other.data[3]);
+    return ChQuaternion<Real>(m_data[0] - other.m_data[0], m_data[1] - other.m_data[1], m_data[2] - other.m_data[2],
+                              m_data[3] - other.m_data[3]);
 }
 
 template <class Real>
 inline ChQuaternion<Real>& ChQuaternion<Real>::operator-=(const ChQuaternion<Real>& other) {
-    data[0] -= other.data[0];
-    data[1] -= other.data[1];
-    data[2] -= other.data[2];
-    data[3] -= other.data[3];
+    m_data[0] -= other.m_data[0];
+    m_data[1] -= other.m_data[1];
+    m_data[2] -= other.m_data[2];
+    m_data[3] -= other.m_data[3];
     return *this;
 }
 
@@ -733,46 +739,46 @@ inline ChQuaternion<Real>& ChQuaternion<Real>::operator>>=(const ChQuaternion<Re
 
 template <class Real>
 inline ChQuaternion<Real> ChQuaternion<Real>::operator*(Real s) const {
-    return ChQuaternion<Real>(data[0] * s, data[1] * s, data[2] * s, data[3] * s);
+    return ChQuaternion<Real>(m_data[0] * s, m_data[1] * s, m_data[2] * s, m_data[3] * s);
 }
 
 template <class Real>
 inline ChQuaternion<Real>& ChQuaternion<Real>::operator*=(Real s) {
-    data[0] *= s;
-    data[1] *= s;
-    data[2] *= s;
-    data[3] *= s;
+    m_data[0] *= s;
+    m_data[1] *= s;
+    m_data[2] *= s;
+    m_data[3] *= s;
     return *this;
 }
 
 template <class Real>
 inline ChQuaternion<Real> ChQuaternion<Real>::operator/(const ChQuaternion<Real>& other) const {
-    return ChQuaternion<Real>(data[0] / other.data[0], data[1] / other.data[1], data[2] / other.data[2],
-                              data[3] / other.data[3]);
+    return ChQuaternion<Real>(m_data[0] / other.m_data[0], m_data[1] / other.m_data[1], m_data[2] / other.m_data[2],
+                              m_data[3] / other.m_data[3]);
 }
 
 template <class Real>
 inline ChQuaternion<Real>& ChQuaternion<Real>::operator/=(const ChQuaternion<Real>& other) {
-    data[0] /= other.data[0];
-    data[1] /= other.data[1];
-    data[2] /= other.data[2];
-    data[3] /= other.data[3];
+    m_data[0] /= other.m_data[0];
+    m_data[1] /= other.m_data[1];
+    m_data[2] /= other.m_data[2];
+    m_data[3] /= other.m_data[3];
     return *this;
 }
 
 template <class Real>
 inline ChQuaternion<Real> ChQuaternion<Real>::operator/(Real s) const {
     Real oos = 1 / s;
-    return ChQuaternion<Real>(data[0] * oos, data[1] * oos, data[2] * oos, data[3] * oos);
+    return ChQuaternion<Real>(m_data[0] * oos, m_data[1] * oos, m_data[2] * oos, m_data[3] * oos);
 }
 
 template <class Real>
 inline ChQuaternion<Real>& ChQuaternion<Real>::operator/=(Real s) {
     Real oos = 1 / s;
-    data[0] *= oos;
-    data[1] *= oos;
-    data[2] *= oos;
-    data[3] *= oos;
+    m_data[0] *= oos;
+    m_data[1] *= oos;
+    m_data[2] *= oos;
+    m_data[3] *= oos;
     return *this;
 }
 
@@ -799,27 +805,32 @@ inline Real ChQuaternion<Real>::operator^(const ChQuaternion<Real>& other) const
 
 template <class Real>
 inline bool ChQuaternion<Real>::operator<=(const ChQuaternion<Real>& other) const {
-    return data[0] <= other.data[0] && data[1] <= other.data[1] && data[2] <= other.data[2] && data[3] <= other.data[3];
+    return m_data[0] <= other.m_data[0] && m_data[1] <= other.m_data[1] && m_data[2] <= other.m_data[2] &&
+           m_data[3] <= other.m_data[3];
 }
 
 template <class Real>
 inline bool ChQuaternion<Real>::operator>=(const ChQuaternion<Real>& other) const {
-    return data[0] >= other.data[0] && data[1] >= other.data[1] && data[2] >= other.data[2] && data[3] >= other.data[3];
+    return m_data[0] >= other.m_data[0] && m_data[1] >= other.m_data[1] && m_data[2] >= other.m_data[2] &&
+           m_data[3] >= other.m_data[3];
 }
 
 template <class Real>
 inline bool ChQuaternion<Real>::operator<(const ChQuaternion<Real>& other) const {
-    return data[0] < other.data[0] && data[1] < other.data[1] && data[2] < other.data[2] && data[3] < other.data[3];
+    return m_data[0] < other.m_data[0] && m_data[1] < other.m_data[1] && m_data[2] < other.m_data[2] &&
+           m_data[3] < other.m_data[3];
 }
 
 template <class Real>
 inline bool ChQuaternion<Real>::operator>(const ChQuaternion<Real>& other) const {
-    return data[0] > other.data[0] && data[1] > other.data[1] && data[2] > other.data[2] && data[3] > other.data[3];
+    return m_data[0] > other.m_data[0] && m_data[1] > other.m_data[1] && m_data[2] > other.m_data[2] &&
+           m_data[3] > other.m_data[3];
 }
 
 template <class Real>
 inline bool ChQuaternion<Real>::operator==(const ChQuaternion<Real>& other) const {
-    return other.data[0] == data[0] && other.data[1] == data[1] && other.data[2] == data[2] && other.data[3] == data[3];
+    return other.m_data[0] == m_data[0] && other.m_data[1] == m_data[1] && other.m_data[2] == m_data[2] &&
+           other.m_data[3] == m_data[3];
 }
 
 template <class Real>
@@ -832,89 +843,92 @@ inline bool ChQuaternion<Real>::operator!=(const ChQuaternion<Real>& other) cons
 
 template <class Real>
 inline void ChQuaternion<Real>::Set(Real e0, Real e1, Real e2, Real e3) {
-    data[0] = e0;
-    data[1] = e1;
-    data[2] = e2;
-    data[3] = e3;
+    m_data[0] = e0;
+    m_data[1] = e1;
+    m_data[2] = e2;
+    m_data[3] = e3;
 }
 
 template <class Real>
 inline void ChQuaternion<Real>::Set(const ChQuaternion<Real>& q) {
-    data[0] = q.data[0];
-    data[1] = q.data[1];
-    data[2] = q.data[2];
-    data[3] = q.data[3];
+    m_data[0] = q.m_data[0];
+    m_data[1] = q.m_data[1];
+    m_data[2] = q.m_data[2];
+    m_data[3] = q.m_data[3];
 }
 
 template <class Real>
 inline void ChQuaternion<Real>::Set(Real s) {
-    data[0] = s;
-    data[1] = s;
-    data[2] = s;
-    data[3] = s;
+    m_data[0] = s;
+    m_data[1] = s;
+    m_data[2] = s;
+    m_data[3] = s;
 }
 
 template <class Real>
 inline void ChQuaternion<Real>::SetNull() {
-    data[0] = 0;
-    data[1] = 0;
-    data[2] = 0;
-    data[3] = 0;
+    m_data[0] = 0;
+    m_data[1] = 0;
+    m_data[2] = 0;
+    m_data[3] = 0;
 }
 
 template <class Real>
 inline void ChQuaternion<Real>::SetUnit() {
-    data[0] = 1;
-    data[1] = 0;
-    data[2] = 0;
-    data[3] = 0;
+    m_data[0] = 1;
+    m_data[1] = 0;
+    m_data[2] = 0;
+    m_data[3] = 0;
 }
 
 template <class Real>
 inline void ChQuaternion<Real>::SetScalar(Real s) {
-    data[0] = s;
+    m_data[0] = s;
 }
 
 template <class Real>
 inline void ChQuaternion<Real>::SetVector(const ChVector<Real>& v) {
-    data[1] = v.x();
-    data[2] = v.y();
-    data[3] = v.z();
+    m_data[1] = v.x();
+    m_data[2] = v.y();
+    m_data[3] = v.z();
 }
 
 template <class Real>
 inline bool ChQuaternion<Real>::Equals(const ChQuaternion<Real>& other) const {
-    return (other.data[0] == data[0]) && (other.data[1] == data[1]) && (other.data[2] == data[2]) &&
-           (other.data[3] == data[3]);
+    return (other.m_data[0] == m_data[0]) && (other.m_data[1] == m_data[1]) && (other.m_data[2] == m_data[2]) &&
+           (other.m_data[3] == m_data[3]);
 }
 
 template <class Real>
 inline bool ChQuaternion<Real>::Equals(const ChQuaternion<Real>& other, Real tol) const {
-    return (fabs(other.data[0] - data[0]) < tol) && (fabs(other.data[1] - data[1]) < tol) &&
-           (fabs(other.data[2] - data[2]) < tol) && (fabs(other.data[3] - data[3]) < tol);
+    return (std::abs(other.m_data[0] - m_data[0]) < tol) && (std::abs(other.m_data[1] - m_data[1]) < tol) &&
+           (std::abs(other.m_data[2] - m_data[2]) < tol) && (std::abs(other.m_data[3] - m_data[3]) < tol);
 }
 
 template <class Real>
 inline ChVector<Real> ChQuaternion<Real>::GetVector() const {
-    return ChVector<Real>(data[1], data[2], data[3]);
+    return ChVector<Real>(m_data[1], m_data[2], m_data[3]);
 }
 
 template <class Real>
 inline ChVector<Real> ChQuaternion<Real>::GetXaxis() const {
-    return ChVector<Real>((data[0] * data[0] + data[1] * data[1]) * 2 - 1, (data[1] * data[2] + data[0] * data[3]) * 2,
-                          (data[1] * data[3] - data[0] * data[2]) * 2);
+    return ChVector<Real>((m_data[0] * m_data[0] + m_data[1] * m_data[1]) * 2 - 1,
+                          (m_data[1] * m_data[2] + m_data[0] * m_data[3]) * 2,
+                          (m_data[1] * m_data[3] - m_data[0] * m_data[2]) * 2);
 }
 
 template <class Real>
 inline ChVector<Real> ChQuaternion<Real>::GetYaxis() const {
-    return ChVector<Real>((data[1] * data[2] - data[0] * data[3]) * 2, (data[0] * data[0] + data[2] * data[2]) * 2 - 1,
-                          (data[2] * data[3] + data[0] * data[1]) * 2);
+    return ChVector<Real>((m_data[1] * m_data[2] - m_data[0] * m_data[3]) * 2,
+                          (m_data[0] * m_data[0] + m_data[2] * m_data[2]) * 2 - 1,
+                          (m_data[2] * m_data[3] + m_data[0] * m_data[1]) * 2);
 }
 
 template <class Real>
 inline ChVector<Real> ChQuaternion<Real>::GetZaxis() const {
-    return ChVector<Real>((data[1] * data[3] + data[0] * data[2]) * 2, (data[2] * data[3] - data[0] * data[1]) * 2,
-                          (data[0] * data[0] + data[3] * data[3]) * 2 - 1);
+    return ChVector<Real>((m_data[1] * m_data[3] + m_data[0] * m_data[2]) * 2,
+                          (m_data[2] * m_data[3] - m_data[0] * m_data[1]) * 2,
+                          (m_data[0] * m_data[0] + m_data[3] * m_data[3]) * 2 - 1);
 }
 
 template <class Real>
@@ -929,68 +943,73 @@ inline Real ChQuaternion<Real>::Length2() const {
 
 template <class Real>
 inline Real ChQuaternion<Real>::LengthInf() const {
-    Real e0e1 = std::max(fabs(data[0]), fabs(data[1]));
-    Real e0e1e2 = std::max(e0e1, fabs(data[2]));
-    return std::max(e0e1e2, fabs(data[3]));
+    Real e0e1 = std::max(std::abs(m_data[0]), std::abs(m_data[1]));
+    Real e0e1e2 = std::max(e0e1, std::abs(m_data[2]));
+    return std::max(e0e1e2, std::abs(m_data[3]));
 }
 
 template <class Real>
 inline void ChQuaternion<Real>::Add(const ChQuaternion<Real>& A, const ChQuaternion<Real>& B) {
-    data[0] = A.data[0] + B.data[0];
-    data[1] = A.data[1] + B.data[1];
-    data[2] = A.data[2] + B.data[2];
-    data[3] = A.data[3] + B.data[3];
+    m_data[0] = A.m_data[0] + B.m_data[0];
+    m_data[1] = A.m_data[1] + B.m_data[1];
+    m_data[2] = A.m_data[2] + B.m_data[2];
+    m_data[3] = A.m_data[3] + B.m_data[3];
 }
 
 template <class Real>
 inline void ChQuaternion<Real>::Sub(const ChQuaternion<Real>& A, const ChQuaternion<Real>& B) {
-    data[0] = A.data[0] - B.data[0];
-    data[1] = A.data[1] - B.data[1];
-    data[2] = A.data[2] - B.data[2];
-    data[3] = A.data[3] - B.data[3];
+    m_data[0] = A.m_data[0] - B.m_data[0];
+    m_data[1] = A.m_data[1] - B.m_data[1];
+    m_data[2] = A.m_data[2] - B.m_data[2];
+    m_data[3] = A.m_data[3] - B.m_data[3];
 }
 
 template <class Real>
 inline void ChQuaternion<Real>::Cross(const ChQuaternion<Real>& qa, const ChQuaternion<Real>& qb) {
-    Real w = qa.data[0] * qb.data[0] - qa.data[1] * qb.data[1] - qa.data[2] * qb.data[2] - qa.data[3] * qb.data[3];
-    Real x = qa.data[0] * qb.data[1] + qa.data[1] * qb.data[0] - qa.data[3] * qb.data[2] + qa.data[2] * qb.data[3];
-    Real y = qa.data[0] * qb.data[2] + qa.data[2] * qb.data[0] + qa.data[3] * qb.data[1] - qa.data[1] * qb.data[3];
-    Real z = qa.data[0] * qb.data[3] + qa.data[3] * qb.data[0] - qa.data[2] * qb.data[1] + qa.data[1] * qb.data[2];
-    data[0] = w;
-    data[1] = x;
-    data[2] = y;
-    data[3] = z;
+    Real w = qa.m_data[0] * qb.m_data[0] - qa.m_data[1] * qb.m_data[1] - qa.m_data[2] * qb.m_data[2] -
+             qa.m_data[3] * qb.m_data[3];
+    Real x = qa.m_data[0] * qb.m_data[1] + qa.m_data[1] * qb.m_data[0] - qa.m_data[3] * qb.m_data[2] +
+             qa.m_data[2] * qb.m_data[3];
+    Real y = qa.m_data[0] * qb.m_data[2] + qa.m_data[2] * qb.m_data[0] + qa.m_data[3] * qb.m_data[1] -
+             qa.m_data[1] * qb.m_data[3];
+    Real z = qa.m_data[0] * qb.m_data[3] + qa.m_data[3] * qb.m_data[0] - qa.m_data[2] * qb.m_data[1] +
+             qa.m_data[1] * qb.m_data[2];
+    m_data[0] = w;
+    m_data[1] = x;
+    m_data[2] = y;
+    m_data[3] = z;
 }
 
 template <class Real>
 inline Real ChQuaternion<Real>::Dot(const ChQuaternion<Real>& B) const {
-    return (data[0] * B.data[0]) + (data[1] * B.data[1]) + (data[2] * B.data[2]) + (data[3] * B.data[3]);
+    return (m_data[0] * B.m_data[0]) + (m_data[1] * B.m_data[1]) + (m_data[2] * B.m_data[2]) +
+           (m_data[3] * B.m_data[3]);
 }
 
 template <class Real>
 inline void ChQuaternion<Real>::Mul(const ChQuaternion<Real>& A, Real s) {
-    data[0] = A.data[0] * s;
-    data[1] = A.data[1] * s;
-    data[2] = A.data[2] * s;
-    data[3] = A.data[3] * s;
+    m_data[0] = A.m_data[0] * s;
+    m_data[1] = A.m_data[1] * s;
+    m_data[2] = A.m_data[2] * s;
+    m_data[3] = A.m_data[3] * s;
 }
 
 template <class Real>
 inline void ChQuaternion<Real>::Scale(Real s) {
-    data[0] *= s;
-    data[1] *= s;
-    data[2] *= s;
-    data[3] *= s;
+    m_data[0] *= s;
+    m_data[1] *= s;
+    m_data[2] *= s;
+    m_data[3] *= s;
 }
 
 template <class Real>
 inline bool ChQuaternion<Real>::Normalize() {
     Real length = this->Length();
     if (length < std::numeric_limits<Real>::min()) {
-        data[0] = 1;
-        data[1] = 0;
-        data[2] = 0;
-        data[3] = 0;
+        m_data[0] = 1;
+        m_data[1] = 0;
+        m_data[2] = 0;
+        m_data[3] = 0;
         return false;
     }
     this->Scale(1 / length);
@@ -1006,10 +1025,10 @@ inline ChQuaternion<Real> ChQuaternion<Real>::GetNormalized() const {
 
 template <class Real>
 inline void ChQuaternion<Real>::Conjugate(const ChQuaternion<Real>& A) {
-    data[0] = +A.data[0];
-    data[1] = -A.data[1];
-    data[2] = -A.data[2];
-    data[3] = -A.data[3];
+    m_data[0] = +A.m_data[0];
+    m_data[1] = -A.m_data[1];
+    m_data[2] = -A.m_data[2];
+    m_data[3] = -A.m_data[3];
 }
 
 template <class Real>
@@ -1019,7 +1038,7 @@ inline void ChQuaternion<Real>::Conjugate() {
 
 template <class Real>
 inline ChQuaternion<Real> ChQuaternion<Real>::GetConjugate() const {
-    return ChQuaternion<Real>(data[0], -data[1], -data[2], -data[3]);
+    return ChQuaternion<Real>(m_data[0], -m_data[1], -m_data[2], -m_data[3]);
 }
 
 template <class Real>
@@ -1031,16 +1050,16 @@ inline ChQuaternion<Real> ChQuaternion<Real>::GetInverse() const {
 
 template <class Real>
 inline ChVector<Real> ChQuaternion<Real>::Rotate(const ChVector<Real>& A) const {
-    Real e0e0 = data[0] * data[0];
-    Real e1e1 = data[1] * data[1];
-    Real e2e2 = data[2] * data[2];
-    Real e3e3 = data[3] * data[3];
-    Real e0e1 = data[0] * data[1];
-    Real e0e2 = data[0] * data[2];
-    Real e0e3 = data[0] * data[3];
-    Real e1e2 = data[1] * data[2];
-    Real e1e3 = data[1] * data[3];
-    Real e2e3 = data[2] * data[3];
+    Real e0e0 = m_data[0] * m_data[0];
+    Real e1e1 = m_data[1] * m_data[1];
+    Real e2e2 = m_data[2] * m_data[2];
+    Real e3e3 = m_data[3] * m_data[3];
+    Real e0e1 = m_data[0] * m_data[1];
+    Real e0e2 = m_data[0] * m_data[2];
+    Real e0e3 = m_data[0] * m_data[3];
+    Real e1e2 = m_data[1] * m_data[2];
+    Real e1e3 = m_data[1] * m_data[3];
+    Real e2e3 = m_data[2] * m_data[3];
     return ChVector<Real>(((e0e0 + e1e1) * 2 - 1) * A.x() + ((e1e2 - e0e3) * 2) * A.y() + ((e1e3 + e0e2) * 2) * A.z(),
                           ((e1e2 + e0e3) * 2) * A.x() + ((e0e0 + e2e2) * 2 - 1) * A.y() + ((e2e3 - e0e1) * 2) * A.z(),
                           ((e1e3 - e0e2) * 2) * A.x() + ((e2e3 + e0e1) * 2) * A.y() + ((e0e0 + e3e3) * 2 - 1) * A.z());
@@ -1048,16 +1067,16 @@ inline ChVector<Real> ChQuaternion<Real>::Rotate(const ChVector<Real>& A) const 
 
 template <class Real>
 inline ChVector<Real> ChQuaternion<Real>::RotateBack(const ChVector<Real>& A) const {
-    Real e0e0 = +data[0] * data[0];
-    Real e1e1 = +data[1] * data[1];
-    Real e2e2 = +data[2] * data[2];
-    Real e3e3 = +data[3] * data[3];
-    Real e0e1 = -data[0] * data[1];
-    Real e0e2 = -data[0] * data[2];
-    Real e0e3 = -data[0] * data[3];
-    Real e1e2 = +data[1] * data[2];
-    Real e1e3 = +data[1] * data[3];
-    Real e2e3 = +data[2] * data[3];
+    Real e0e0 = +m_data[0] * m_data[0];
+    Real e1e1 = +m_data[1] * m_data[1];
+    Real e2e2 = +m_data[2] * m_data[2];
+    Real e3e3 = +m_data[3] * m_data[3];
+    Real e0e1 = -m_data[0] * m_data[1];
+    Real e0e2 = -m_data[0] * m_data[2];
+    Real e0e3 = -m_data[0] * m_data[3];
+    Real e1e2 = +m_data[1] * m_data[2];
+    Real e1e3 = +m_data[1] * m_data[3];
+    Real e2e3 = +m_data[2] * m_data[3];
     return ChVector<Real>(((e0e0 + e1e1) * 2 - 1) * A.x() + ((e1e2 - e0e3) * 2) * A.y() + ((e1e3 + e0e2) * 2) * A.z(),
                           ((e1e2 + e0e3) * 2) * A.x() + ((e0e0 + e2e2) * 2 - 1) * A.y() + ((e2e3 - e0e1) * 2) * A.z(),
                           ((e1e3 - e0e2) * 2) * A.x() + ((e2e3 + e0e1) * 2) * A.y() + ((e0e0 + e3e3) * 2 - 1) * A.z());
@@ -1071,37 +1090,37 @@ inline void ChQuaternion<Real>::Q_from_Rotv(const ChVector<Real>& angle_axis) {
         Real theta = sqrt(theta_squared);
         Real half_theta = theta / 2;
         Real k = sin(half_theta) / theta;
-        data[0] = cos(half_theta);
-        data[1] = angle_axis.x() * k;
-        data[2] = angle_axis.y() * k;
-        data[3] = angle_axis.z() * k;
+        m_data[0] = cos(half_theta);
+        m_data[1] = angle_axis.x() * k;
+        m_data[2] = angle_axis.y() * k;
+        m_data[3] = angle_axis.z() * k;
     } else {
         // For almost zero rotation:
         Real k(0.5);
-        data[0] = Real(1.0);
-        data[1] = angle_axis.x() * k;
-        data[2] = angle_axis.y() * k;
-        data[3] = angle_axis.z() * k;
+        m_data[0] = Real(1.0);
+        m_data[1] = angle_axis.x() * k;
+        m_data[2] = angle_axis.y() * k;
+        m_data[3] = angle_axis.z() * k;
     }
 }
 
 template <class Real>
 inline ChVector<Real> ChQuaternion<Real>::Q_to_Rotv() {
     ChVector<Real> angle_axis;
-    Real sin_squared = data[1] * data[1] + data[2] * data[2] + data[3] * data[3];
+    Real sin_squared = m_data[1] * m_data[1] + m_data[2] * m_data[2] + m_data[3] * m_data[3];
     // For non-zero rotation
     if (sin_squared > 0) {
         Real sin_theta = sqrt(sin_squared);
-        Real k = 2 * atan2(sin_theta, data[0]) / sin_theta;
-        angle_axis.x() = data[1] * k;
-        angle_axis.y() = data[2] * k;
-        angle_axis.z() = data[3] * k;
+        Real k = 2 * atan2(sin_theta, m_data[0]) / sin_theta;
+        angle_axis.x() = m_data[1] * k;
+        angle_axis.y() = m_data[2] * k;
+        angle_axis.z() = m_data[3] * k;
     } else {
         // For almost zero rotation
         Real k(2.0);
-        angle_axis.x() = data[1] * k;
-        angle_axis.y() = data[2] * k;
-        angle_axis.z() = data[3] * k;
+        angle_axis.x() = m_data[1] * k;
+        angle_axis.y() = m_data[2] * k;
+        angle_axis.z() = m_data[3] * k;
     }
     return angle_axis;
 }
@@ -1110,30 +1129,30 @@ template <class Real>
 inline void ChQuaternion<Real>::Q_from_AngAxis(Real angle, const ChVector<Real>& axis) {
     Real halfang = (angle / 2);
     Real sinhalf = sin(halfang);
-    data[0] = cos(halfang);
-    data[1] = axis.x() * sinhalf;
-    data[2] = axis.y() * sinhalf;
-    data[3] = axis.z() * sinhalf;
+    m_data[0] = cos(halfang);
+    m_data[1] = axis.x() * sinhalf;
+    m_data[2] = axis.y() * sinhalf;
+    m_data[3] = axis.z() * sinhalf;
 }
 
 template <class Real>
 inline void ChQuaternion<Real>::Q_to_AngAxis(Real& a_angle, ChVector<Real>& a_axis) const {
-    Real sin_squared = data[1] * data[1] + data[2] * data[2] + data[3] * data[3];
+    Real sin_squared = m_data[1] * m_data[1] + m_data[2] * m_data[2] + m_data[3] * m_data[3];
     // For non-zero rotation
     if (sin_squared > 0) {
         Real sin_theta = sqrt(sin_squared);
-        a_angle = 2.0 * atan2(sin_theta, data[0]);
-        Real k = 1.0 / sin_theta;
-        a_axis.x() = data[1] * k;
-        a_axis.y() = data[2] * k;
-        a_axis.z() = data[3] * k;
+        a_angle = 2 * atan2(sin_theta, m_data[0]);
+        Real k = 1 / sin_theta;
+        a_axis.x() = m_data[1] * k;
+        a_axis.y() = m_data[2] * k;
+        a_axis.z() = m_data[3] * k;
         a_axis.Normalize();
     } else {
         // For almost zero rotation
         a_angle = 0.0;
-        a_axis.x() = 1;  // data[1] * 2.0;
-        a_axis.y() = 0;  // data[2] * 2.0;
-        a_axis.z() = 0;  // data[3] * 2.0;
+        a_axis.x() = 1;  // m_data[1] * 2.0;
+        a_axis.y() = 0;  // m_data[2] * 2.0;
+        a_axis.z() = 0;  // m_data[3] * 2.0;
     }
     // Ensure that angle is always in  [-PI...PI] range
     auto PI = static_cast<Real>(CH_C_PI);
@@ -1156,58 +1175,58 @@ inline void ChQuaternion<Real>::Q_from_NasaAngles(const ChVector<Real>& ang) {
     Real c1c2 = c1 * c2;
     Real s1s2 = s1 * s2;
 
-    data[0] = c1c2 * c3 + s1s2 * s3;
-    data[1] = c1c2 * s3 - s1s2 * c3;
-    data[2] = c1 * s2 * c3 + s1 * c2 * s3;
-    data[3] = s1 * c2 * c3 - c1 * s2 * s3;
+    m_data[0] = c1c2 * c3 + s1s2 * s3;
+    m_data[1] = c1c2 * s3 - s1s2 * c3;
+    m_data[2] = c1 * s2 * c3 + s1 * c2 * s3;
+    m_data[3] = s1 * c2 * c3 - c1 * s2 * s3;
 }
 
 template <class Real>
 inline ChVector<Real> ChQuaternion<Real>::Q_to_NasaAngles() {
     ChVector<Real> nasa;
-    Real sqw = data[0] * data[0];
-    Real sqx = data[1] * data[1];
-    Real sqy = data[2] * data[2];
-    Real sqz = data[3] * data[3];
+    Real sqw = m_data[0] * m_data[0];
+    Real sqx = m_data[1] * m_data[1];
+    Real sqy = m_data[2] * m_data[2];
+    Real sqz = m_data[3] * m_data[3];
     // heading
-    nasa.z() = atan2(2 * (data[1] * data[2] + data[3] * data[0]), (sqx - sqy - sqz + sqw));
+    nasa.z() = atan2(2 * (m_data[1] * m_data[2] + m_data[3] * m_data[0]), (sqx - sqy - sqz + sqw));
     // bank
-    nasa.y() = atan2(2 * (data[2] * data[3] + data[1] * data[0]), (-sqx - sqy + sqz + sqw));
+    nasa.y() = atan2(2 * (m_data[2] * m_data[3] + m_data[1] * m_data[0]), (-sqx - sqy + sqz + sqw));
     // attitude
-    nasa.x() = asin(-2 * (data[1] * data[3] - data[2] * data[0]));
+    nasa.x() = asin(-2 * (m_data[1] * m_data[3] - m_data[2] * m_data[0]));
     return nasa;
 }
 
 template <class Real>
 inline void ChQuaternion<Real>::Q_from_Euler123(const ChVector<Real>& ang) {
     // Angles {phi;theta;psi} aka {roll;pitch;yaw}
-    Real t0 = cos(ang.z() * 0.5);
-    Real t1 = sin(ang.z() * 0.5);
-    Real t2 = cos(ang.x() * 0.5);
-    Real t3 = sin(ang.x() * 0.5);
-    Real t4 = cos(ang.y() * 0.5);
-    Real t5 = sin(ang.y() * 0.5);
+    Real t0 = cos(ang.z() * Real(0.5));
+    Real t1 = sin(ang.z() * Real(0.5));
+    Real t2 = cos(ang.x() * Real(0.5));
+    Real t3 = sin(ang.x() * Real(0.5));
+    Real t4 = cos(ang.y() * Real(0.5));
+    Real t5 = sin(ang.y() * Real(0.5));
 
-    data[0] = t0 * t2 * t4 + t1 * t3 * t5;
-    data[1] = t0 * t3 * t4 - t1 * t2 * t5;
-    data[2] = t0 * t2 * t5 + t1 * t3 * t4;
-    data[3] = t1 * t2 * t4 - t0 * t3 * t5;
+    m_data[0] = t0 * t2 * t4 + t1 * t3 * t5;
+    m_data[1] = t0 * t3 * t4 - t1 * t2 * t5;
+    m_data[2] = t0 * t2 * t5 + t1 * t3 * t4;
+    m_data[3] = t1 * t2 * t4 - t0 * t3 * t5;
 }
 
 template <class Real>
 inline ChVector<Real> ChQuaternion<Real>::Q_to_Euler123() {
     // Angles {phi;theta;psi} aka {roll;pitch;yaw} rotation XYZ
     ChVector<Real> euler;
-    Real sq0 = data[0] * data[0];
-    Real sq1 = data[1] * data[1];
-    Real sq2 = data[2] * data[2];
-    Real sq3 = data[3] * data[3];
+    Real sq0 = m_data[0] * m_data[0];
+    Real sq1 = m_data[1] * m_data[1];
+    Real sq2 = m_data[2] * m_data[2];
+    Real sq3 = m_data[3] * m_data[3];
     // roll
-    euler.x() = atan2(2 * (data[2] * data[3] + data[0] * data[1]), sq3 - sq2 - sq1 + sq0);
+    euler.x() = atan2(2 * (m_data[2] * m_data[3] + m_data[0] * m_data[1]), sq3 - sq2 - sq1 + sq0);
     // pitch
-    euler.y() = -asin(2 * (data[1] * data[3] - data[0] * data[2]));
+    euler.y() = -asin(2 * (m_data[1] * m_data[3] - m_data[0] * m_data[2]));
     // yaw
-    euler.z() = atan2(2 * (data[1] * data[2] + data[3] * data[0]), sq1 + sq0 - sq3 - sq2);
+    euler.z() = atan2(2 * (m_data[1] * m_data[2] + m_data[3] * m_data[0]), sq1 + sq0 - sq3 - sq2);
     return euler;
 }
 
@@ -1289,13 +1308,13 @@ inline void ChQuaternion<Real>::Qdtdt_from_AngAxis(const ChQuaternion<Real>& q,
 template <class Real>
 inline void ChQuaternion<Real>::ImmQ_complete(const ChVector<Real>& qimm) {
     SetVector(qimm);
-    data[0] = sqrt(1 - data[1] * data[1] - data[2] * data[2] - data[3] * data[3]);
+    m_data[0] = sqrt(1 - m_data[1] * m_data[1] - m_data[2] * m_data[2] - m_data[3] * m_data[3]);
 }
 
 template <class Real>
 inline void ChQuaternion<Real>::ImmQ_dt_complete(const ChQuaternion<Real>& q, const ChVector<Real>& qimm_dt) {
     SetVector(qimm_dt);
-    data[0] = (-q.data[1] * data[1] - q.data[2] * data[2] - q.data[3] * data[3]) / q.data[0];
+    m_data[0] = (-q.m_data[1] * m_data[1] - q.m_data[2] * m_data[2] - q.m_data[3] * m_data[3]) / q.m_data[0];
 }
 
 template <class Real>
@@ -1303,9 +1322,10 @@ inline void ChQuaternion<Real>::ImmQ_dtdt_complete(const ChQuaternion<Real>& q,
                                                    const ChQuaternion<Real>& qdt,
                                                    const ChVector<Real>& qimm_dtdt) {
     SetVector(qimm_dtdt);
-    data[0] = (-q.data[1] * data[1] - q.data[2] * data[2] - q.data[3] * data[3] - qdt.data[0] * qdt.data[0] -
-               qdt.data[1] * qdt.data[1] - qdt.data[2] * qdt.data[2] - qdt.data[3] * qdt.data[3]) /
-              q.data[0];
+    m_data[0] =
+        (-q.m_data[1] * m_data[1] - q.m_data[2] * m_data[2] - q.m_data[3] * m_data[3] - qdt.m_data[0] * qdt.m_data[0] -
+         qdt.m_data[1] * qdt.m_data[1] - qdt.m_data[2] * qdt.m_data[2] - qdt.m_data[3] * qdt.m_data[3]) /
+        q.m_data[0];
 }
 
 // -----------------------------------------------------------------------------
@@ -1315,22 +1335,22 @@ template <class Real>
 inline void ChQuaternion<Real>::ArchiveOUT(ChArchiveOut& marchive) {
     // version number
     marchive.VersionWrite<ChQuaternion<double>>();  // must use specialized template (any)
-    // stream out all member data
-    marchive << CHNVP(data[0], "e0");
-    marchive << CHNVP(data[1], "e1");
-    marchive << CHNVP(data[2], "e2");
-    marchive << CHNVP(data[3], "e3");
+    // stream out all member m_data
+    marchive << CHNVP(m_data[0], "e0");
+    marchive << CHNVP(m_data[1], "e1");
+    marchive << CHNVP(m_data[2], "e2");
+    marchive << CHNVP(m_data[3], "e3");
 }
 
 template <class Real>
 inline void ChQuaternion<Real>::ArchiveIN(ChArchiveIn& marchive) {
     // version number
-    int version = marchive.VersionRead<ChQuaternion<double>>();  // must use specialized template (any)
-    // stream in all member data
-    marchive >> CHNVP(data[0], "e0");
-    marchive >> CHNVP(data[1], "e1");
-    marchive >> CHNVP(data[2], "e2");
-    marchive >> CHNVP(data[3], "e3");
+    /*int version =*/ marchive.VersionRead<ChQuaternion<double>>();  // must use specialized template (any)
+    // stream in all member m_data
+    marchive >> CHNVP(m_data[0], "e0");
+    marchive >> CHNVP(m_data[1], "e1");
+    marchive >> CHNVP(m_data[2], "e2");
+    marchive >> CHNVP(m_data[3], "e3");
 }
 
 }  // end namespace chrono

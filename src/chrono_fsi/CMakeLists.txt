@@ -11,25 +11,21 @@ IF(NOT ENABLE_MODULE_FSI)
   return()
 ENDIF()
 
+
 message(STATUS "==== Chrono FSI module ====")
 
-
-
+# Return now if Eigen version < 3.3.6
 if(EIGEN3_VERSION VERSION_LESS "3.3.6")
-  message("Chrono::FSI requires Eigen version 3.3.6 or better")
-  message("Current Eigen version: ${EIGEN3_VERSION}")
-  message("Chrono::FSI disabled")
-  set(ENABLE_MODULE_FSI OFF CACHE BOOL "Enable the Chrono FSI module" FORCE)
-  return()
+    message(WARNING "Eigen version (${EIGEN3_VERSION}) is less than the required version (3.3.6); disabling Chrono::FSI")
+    set(ENABLE_MODULE_FSI OFF CACHE BOOL "Enable the Chrono FSI module" FORCE)
+    return()
 endif()
 
 # Return now if CUDA is not available
 if(NOT CUDA_FOUND)
-  message("Chrono::FSI requires CUDA")
-  message(STATUS "Chrono::FSI disabled")
-  #mark_as_advanced(FORCE USE_FSI_DOUBLE)
-  set(ENABLE_MODULE_FSI OFF CACHE BOOL "Enable the Chrono FSI module" FORCE)
-  return()
+    message(WARNING "Chrono::FSI requires CUDA, but CUDA was not found; disabling Chrono::FSI")
+    set(ENABLE_MODULE_FSI OFF CACHE BOOL "Enable the Chrono FSI module" FORCE)
+    return()
 endif()
 
 #mark_as_advanced(CLEAR USE_FSI_DOUBLE)
@@ -43,6 +39,16 @@ endif()
   set(CHRONO_FSI_USE_DOUBLE "#define CHRONO_FSI_USE_DOUBLE")
 #endif()
 
+# ------------------------------------------------------------------------------
+# If using MSVC, disable warnings related to missing DLL interface
+# ------------------------------------------------------------------------------
+
+if(MSVC)
+  #add_compile_options(/wd4251)
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /wd4251")
+  set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /wd4251")
+endif()
+
 # ----------------------------------------------------------------------------
 # Collect additional include directories necessary for the FSI module.
 # Make some variables visible from parent directory
@@ -55,7 +61,6 @@ list(APPEND ${CUDA_cudadevrt_LIBRARY} LIBRARIES)
 list(APPEND LIBRARIES ${CUDA_CUDART_LIBRARY})
 list(APPEND LIBRARIES ${CUDA_cusparse_LIBRARY})
 list(APPEND LIBRARIES ${CUDA_cublas_LIBRARY})
-list(APPEND LIBRARIES ${CUDA_cudart_static_LIBRARY})
 
 message(STATUS "CUDA libraries: ${LIBRARIES}")
 
@@ -76,42 +81,53 @@ install(FILES "${PROJECT_BINARY_DIR}/chrono_fsi/ChConfigFSI.h"
 #-----------------------------------------------------------------------------
 
 set(ChronoEngine_FSI_SOURCES
-    ChBce.cu
-    ChCollisionSystemFsi.cu
-    ChDeviceUtils.cu
-    ChFluidDynamics.cu
-    ChFsiDataManager.cu
-    ChFsiForceExplicitSPH.cu
-    ChFsiForceIISPH.cu
-    ChFsiForce.cu
-    ChFsiGeneral.cu
-    ChSphGeneral.cu
-    ChFsiLinearSolverBiCGStab.cpp
-    ChFsiInterface.cpp
+
     ChSystemFsi.cpp
-    ChFsiTypeConvert.cpp
+    ChFsiInterface.cpp
+    ChFsiDataManager.cu
+    utils/ChUtilsDevice.cu
+    utils/ChUtilsTypeConvert.cpp
+    
+ 	physics/ChBce.cu
+    physics/ChFluidDynamics.cu
+    physics/ChCollisionSystemFsi.cu
+    physics/ChFsiForce.cu
+    physics/ChFsiForceExplicitSPH.cu   
+    physics/ChFsiForceI2SPH.cu
+    physics/ChFsiForceIISPH.cu
+    physics/ChFsiGeneral.cu
+    physics/ChSphGeneral.cu
+    
+    math/ChFsiLinearSolverBiCGStab.cpp
+    math/ChFsiLinearSolverGMRES.cpp
+
 )
 
 set(ChronoEngine_FSI_HEADERS
-    ChBce.cuh
-    ChCollisionSystemFsi.cuh
-    ChDeviceUtils.cuh
-    ChFluidDynamics.cuh
-    ChParams.cuh
-    ChFsiDataManager.cuh
-    ChFsiForceExplicitSPH.cuh
-    ChFsiForceIISPH.cuh
-    ChFsiForce.cuh
-    ChFsiGeneral.cuh
-    ChSphGeneral.cuh
-    ExactLinearSolvers.cuh
-    ChFsiLinearSolver.h
-    ChFsiLinearSolverBiCGStab.h
-    ChFsiInterface.h
-    ChSystemFsi.h
+
     ChApiFsi.h
-    ChFsiTypeConvert.h
-    custom_math.h
+    ChSystemFsi.h
+    ChFsiInterface.h
+    ChFsiDataManager.cuh
+ 	utils/ChUtilsDevice.cuh
+    utils/ChUtilsTypeConvert.h
+
+    physics/ChBce.cuh
+    physics/ChFluidDynamics.cuh
+    physics/ChCollisionSystemFsi.cuh
+    physics/ChFsiForce.cuh    
+    physics/ChFsiForceExplicitSPH.cuh    
+    physics/ChFsiForceI2SPH.cuh
+    physics/ChFsiForceIISPH.cuh
+    physics/ChFsiGeneral.cuh
+    physics/ChSphGeneral.cuh
+    physics/ChParams.cuh
+
+    math/custom_math.h
+    math/ExactLinearSolvers.cuh
+    math/ChFsiLinearSolver.h
+    math/ChFsiLinearSolverBiCGStab.h   
+    math/ChFsiLinearSolverGMRES.h 
 )
 
 source_group("" FILES
@@ -119,7 +135,7 @@ source_group("" FILES
     ${ChronoEngine_FSI_HEADERS})
 
 set(ChronoEngine_FSI_UTILS_SOURCES
-    utils/ChUtilsJsonInput.cpp
+	utils/ChUtilsJSON.cpp
     utils/ChUtilsGeneratorBce.cpp
     utils/ChUtilsGeneratorFluid.cpp
     utils/ChUtilsGeneratorFsi.cpp
@@ -127,12 +143,13 @@ set(ChronoEngine_FSI_UTILS_SOURCES
 )
 
 set(ChronoEngine_FSI_UTILS_HEADERS
-    utils/ChUtilsJsonInput.h
+   	utils/ChUtilsJSON.h
     utils/ChUtilsGeneratorBce.h
     utils/ChUtilsGeneratorFluid.h
     utils/ChUtilsGeneratorFsi.h
     utils/ChUtilsPrintStruct.h
     utils/ChUtilsPrintSph.cuh
+    
 )
 
 source_group(utils FILES
@@ -143,7 +160,21 @@ source_group(utils FILES
 # Create the ChronoEngine_fsi library
 #-----------------------------------------------------------------------------
 
+set(CXX_FLAGS ${CH_CXX_FLAGS})
+
 list(APPEND LIBRARIES "ChronoEngine")
+#set(LIBRARIES "ChronoEngine")
+
+if(ENABLE_MODULE_MULTICORE)
+  set(CXX_FLAGS ${CH_MULTICORE_CXX_FLAGS})
+  include_directories(${CH_MULTICORE_INCLUDES})
+  list(APPEND LIBRARIES ChronoEngine_multicore)
+endif()
+
+if(ENABLE_MODULE_VEHICLE)
+  include_directories(${CH_VEHICLE_INCLUDES})
+  list(APPEND LIBRARIES ChronoEngine_vehicle)
+endif()
 
 cuda_add_library(ChronoEngine_fsi SHARED
     ${ChronoEngine_FSI_SOURCES}
@@ -166,7 +197,6 @@ install(TARGETS ChronoEngine_fsi
         LIBRARY DESTINATION lib
         ARCHIVE DESTINATION lib)
 
-install(FILES ${ChronoEngine_FSI_HEADERS}
-        DESTINATION include/chrono_fsi)
-install(FILES ${ChronoEngine_FSI_UTILS_HEADERS}
-        DESTINATION include/chrono_fsi/utils)
+install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/
+        DESTINATION include/chrono_fsi
+        FILES_MATCHING PATTERN "*.h" PATTERN "*.cuh")

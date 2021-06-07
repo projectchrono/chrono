@@ -24,8 +24,6 @@
 #include <array>
 #include <algorithm>
 
-using namespace std;
-
 namespace chrono {
 namespace fea {
 

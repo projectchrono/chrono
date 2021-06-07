@@ -98,7 +98,7 @@ class Model1 {
 // ----------------------------------------------------------------------------
 // Model2: A beam composed of 10 ANCF cable element, with one end hinged to
 //         ground, moving under gravity alone.
-// This model demonstrates the use of the utility class ChBuilderBeamANCF.
+// This model demonstrates the use of the utility class ChBuilderCableANCF.
 // ----------------------------------------------------------------------------
 class Model2 {
   public:
@@ -111,11 +111,11 @@ class Model2 {
         msection_cable2->SetYoungModulus(0.01e9);
         msection_cable2->SetBeamRaleyghDamping(0.000);
 
-        // This ChBuilderBeamANCF helper object is very useful because it will
+        // This ChBuilderCableANCF helper object is very useful because it will
         // subdivide 'beams' into sequences of finite elements of beam type, ex.
         // one 'beam' could be made of 5 FEM elements of ChElementBeamANCF class.
         // If new nodes are needed, it will create them for you.
-        ChBuilderBeamANCF builder;
+        ChBuilderCableANCF builder;
 
         // Now, simply use BuildBeam to create a beam from a point to another:
         builder.BuildBeam(mesh,                    // the mesh where to put the created nodes and elements
@@ -157,7 +157,7 @@ class Model3 {
         mtruss->SetBodyFixed(true);
 
         for (int j = 0; j < n_chains; ++j) {
-            ChBuilderBeamANCF builder;
+            ChBuilderCableANCF builder;
 
             // Now, simply use BuildBeam to create a beam from a point to another:
             builder.BuildBeam(mesh,             // the mesh where to put the created nodes and elements

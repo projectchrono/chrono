@@ -70,7 +70,6 @@ class Model(object):
       if (self.animate) :
              self.myapplication = chronoirr.ChIrrApp(self.ant_sys)
              self.myapplication.AddShadowAll()
-             self.myapplication.SetStepManage(True)
              self.myapplication.SetTimestep(self.timestep)
              self. myapplication.SetTryRealtime(True)  
              self.myapplication.AddTypicalSky()
@@ -91,14 +90,12 @@ class Model(object):
       self.body_abdomen.SetMass(self.abdomen_mass)
       self.body_abdomen.SetInertiaXX(self.abdomen_inertia)
     # set collision surface properties
-      self.body_abdomen.SetMaterialSurface(self.ant_material)
       abdomen_ellipsoid = chrono.ChEllipsoid(chrono.ChVectorD(0, 0, 0 ), chrono.ChVectorD(self.abdomen_x, self.abdomen_y, self.abdomen_z ))
       self.abdomen_shape = chrono.ChEllipsoidShape(abdomen_ellipsoid)
       self.body_abdomen.AddAsset(self.abdomen_shape)
-      self.body_abdomen.SetMaterialSurface(self.ant_material)
       self.body_abdomen.SetCollide(True)
       self.body_abdomen.GetCollisionModel().ClearModel()
-      self.body_abdomen.GetCollisionModel().AddEllipsoid(self.abdomen_x, self.abdomen_y, self.abdomen_z, chrono.ChVectorD(0, 0, 0 ) )
+      self.body_abdomen.GetCollisionModel().AddEllipsoid(self.ant_material, self.abdomen_x, self.abdomen_y, self.abdomen_z, chrono.ChVectorD(0, 0, 0 ) )
       self.body_abdomen.GetCollisionModel().BuildModel()
       self.ant_sys.Add(self.body_abdomen)
       
@@ -169,10 +166,9 @@ class Model(object):
              self.ankle_motor[i].Initialize(self.leg_body[i], self.ankle_body[i],self.anklejoint_frame[i])
              self.ant_sys.Add(self.ankle_motor[i])
              # Feet collisions
-             self.ankle_body[i].SetMaterialSurface(self.ant_material)
              self.ankle_body[i].SetCollide(True)
              self.ankle_body[i].GetCollisionModel().ClearModel()
-             self.ankle_body[i].GetCollisionModel().AddSphere(self.ankle_radius, chrono.ChVectorD(self.ankle_length/2, 0, 0 ) )
+             self.ankle_body[i].GetCollisionModel().AddSphere(self.ant_material, self.ankle_radius, chrono.ChVectorD(self.ankle_length/2, 0, 0 ) )
              self.ankle_body[i].GetCollisionModel().BuildModel()
              self.ankle_body[i].AddAsset(self.ankle_shape)
              
@@ -192,12 +188,10 @@ class Model(object):
       self.body_floor = chrono.ChBody()
       self.body_floor.SetBodyFixed(True)
       self.body_floor.SetPos(chrono.ChVectorD(0, -1, 0 ))
-      self.body_floor.SetMaterialSurface(self.ant_material)
       
       # Floor Collision.
-      self.body_floor.SetMaterialSurface(self.ant_material)
       self.body_floor.GetCollisionModel().ClearModel()
-      self.body_floor.GetCollisionModel().AddBox(50, 1, 50, chrono.ChVectorD(0, 0, 0 ))
+      self.body_floor.GetCollisionModel().AddBox(self.ant_material, 50, 1, 50, chrono.ChVectorD(0, 0, 0 ))
       self.body_floor.GetCollisionModel().BuildModel()
       self.body_floor.SetCollide(True)
 

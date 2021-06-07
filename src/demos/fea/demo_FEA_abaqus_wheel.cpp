@@ -30,7 +30,7 @@
 #include "chrono/fea/ChContactSurfaceNodeCloud.h"
 #include "chrono/fea/ChVisualizationFEAmesh.h"
 #include "chrono/fea/ChLinkPointFrame.h"
-#include "chrono_mkl/ChSolverMKL.h"
+#include "chrono_pardisomkl/ChSolverPardisoMKL.h"
 #include "chrono_irrlicht/ChIrrApp.h"
 
 using namespace chrono;
@@ -55,7 +55,7 @@ int main(int argc, char* argv[]) {
 
     // Create the Irrlicht visualization (open the Irrlicht device,
     // bind a simple user interface, etc. etc.)
-    ChIrrApp application(&my_system, L"FEA contacts", core::dimension2d<u32>(1280, 720), false, true);
+    ChIrrApp application(&my_system, L"FEA contacts", core::dimension2d<u32>(1280, 720), VerticalDir::Y, false, true);
 
     // Easy shortcuts to add camera, lights, logo and sky in Irrlicht scene:
     application.AddTypicalLogo();
@@ -63,7 +63,7 @@ int main(int argc, char* argv[]) {
     application.AddTypicalLights();
     application.AddTypicalCamera(core::vector3dfCH(ChVector<>(1, 1.4, -1.2)),
                                  core::vector3dfCH(ChVector<>(0, tire_rad, 0)));
-    // application.SetContactsDrawMode(irr::ChIrrTools::CONTACT_DISTANCES);
+    // application.SetContactsDrawMode(irr::tools::CONTACT_DISTANCES);
 
     application.AddLightWithShadow(core::vector3dfCH(ChVector<>(1.5, 5.5, -2.5)), core::vector3df(0, 0, 0), 3, 2.2, 7.2,
                                    40, 512, video::SColorf((f32)0.8, (f32)0.8, (f32)1.0));
@@ -88,28 +88,26 @@ int main(int argc, char* argv[]) {
 
     // RIGID BODIES
     // Create some rigid bodies, for instance a floor:
-    auto mfloor = chrono_types::make_shared<ChBodyEasyBox>(2, 0.2, 6, 2700, true);
+    auto mfloor = chrono_types::make_shared<ChBodyEasyBox>(2, 0.2, 6, 2700, true, true, mysurfmaterial);
     mfloor->SetBodyFixed(true);
-    mfloor->SetMaterialSurface(mysurfmaterial);
     my_system.Add(mfloor);
 
     auto mtexture = chrono_types::make_shared<ChTexture>();
-    mtexture->SetTextureFilename(GetChronoDataFile("concrete.jpg"));
+    mtexture->SetTextureFilename(GetChronoDataFile("textures/concrete.jpg"));
     mfloor->AddAsset(mtexture);
 
     // Create a step
     if (false) {
-        auto mfloor_step = chrono_types::make_shared<ChBodyEasyBox>(1, 0.2, 0.5, 2700, true);
+        auto mfloor_step = chrono_types::make_shared<ChBodyEasyBox>(1, 0.2, 0.5, 2700, true, true, mysurfmaterial);
         mfloor_step->SetPos(ChVector<>(0, 0.1, -0.2));
         mfloor_step->SetBodyFixed(true);
-        mfloor_step->SetMaterialSurface(mysurfmaterial);
         my_system.Add(mfloor_step);
     }
 
     // Create some bent rectangular fixed slabs
     if (false) {
         for (int i = 0; i < 50; ++i) {
-            auto mcube = chrono_types::make_shared<ChBodyEasyBox>(0.25, 0.2, 0.25, 2700, true);
+            auto mcube = chrono_types::make_shared<ChBodyEasyBox>(0.25, 0.2, 0.25, 2700, true, true, mysurfmaterial);
             ChQuaternion<> vrot;
             vrot.Q_from_AngAxis(ChRandom() * CH_C_2PI, VECT_Y);
             mcube->Move(ChCoordsys<>(VNULL, vrot));
@@ -118,7 +116,6 @@ int main(int argc, char* argv[]) {
             mcube->Move(ChCoordsys<>(VNULL, vrot));
             mcube->SetPos(ChVector<>((ChRandom() - 0.5) * 1.8, ChRandom() * 0.1, -ChRandom() * 3.2 + 0.9));
             mcube->SetBodyFixed(true);
-            mcube->SetMaterialSurface(mysurfmaterial);
             my_system.Add(mcube);
             auto mcubecol = chrono_types::make_shared<ChColorAsset>();
             mcubecol->SetColor(ChColor(0.3f, 0.3f, 0.3f));
@@ -129,12 +126,11 @@ int main(int argc, char* argv[]) {
     // Create some stones / obstacles on the ground
     if (true) {
         for (int i = 0; i < 150; ++i) {
-            auto mcube = chrono_types::make_shared<ChBodyEasyBox>(0.18, 0.04, 0.18, 2700, true);
+            auto mcube = chrono_types::make_shared<ChBodyEasyBox>(0.18, 0.04, 0.18, 2700, true, true, mysurfmaterial2);
             ChQuaternion<> vrot;
             vrot.Q_from_AngAxis(ChRandom() * CH_C_2PI, VECT_Y);
             mcube->Move(ChCoordsys<>(VNULL, vrot));
             mcube->SetPos(ChVector<>((ChRandom() - 0.5) * 1.4, ChRandom() * 0.2 + 0.05, -ChRandom() * 2.6 + 0.2));
-            mcube->SetMaterialSurface(mysurfmaterial2);
             my_system.Add(mcube);
             auto mcubecol = chrono_types::make_shared<ChColorAsset>();
             mcubecol->SetColor(ChColor(0.3f, 0.3f, 0.3f));
@@ -163,8 +159,9 @@ int main(int argc, char* argv[]) {
     std::map<std::string, std::vector<std::shared_ptr<ChNodeFEAbase>>> node_sets;
 
     try {
-        ChMeshFileLoader::FromAbaqusFile(my_mesh, GetChronoDataFile("fea/tractor_wheel_coarse.INP").c_str(), mmaterial,
-                                         node_sets, tire_center, tire_alignment);
+        ChMeshFileLoader::FromAbaqusFile(my_mesh,
+                                         GetChronoDataFile("models/tractor_wheel/tractor_wheel_coarse.INP").c_str(),
+                                         mmaterial, node_sets, tire_center, tire_alignment);
     } catch (ChException myerr) {
         GetLog() << myerr.what();
         return 0;
@@ -173,13 +170,11 @@ int main(int argc, char* argv[]) {
     // Create the contact surface(s).
     // In this case it is a ChContactSurfaceNodeCloud, so just pass
     // all nodes to it.
-    auto mcontactsurf = chrono_types::make_shared<ChContactSurfaceNodeCloud>();
+    auto mcontactsurf = chrono_types::make_shared<ChContactSurfaceNodeCloud>(mysurfmaterial);
     my_mesh->AddContactSurface(mcontactsurf);
     mcontactsurf->AddAllNodes();
-    mcontactsurf->SetMaterialSurface(mysurfmaterial);
 
     // Apply initial speed and angular speed
-    double speed_x0 = 0.5;
     for (unsigned int i = 0; i < my_mesh->GetNnodes(); ++i) {
         ChVector<> node_pos = std::dynamic_pointer_cast<ChNodeFEAxyz>(my_mesh->GetNode(i))->GetPos();
         ChVector<> tang_vel = Vcross(ChVector<>(tire_w0, 0, 0), node_pos - tire_center);
@@ -201,7 +196,7 @@ int main(int argc, char* argv[]) {
     application.GetSystem()->Add(mwheel_rim);
 
     auto mobjmesh = chrono_types::make_shared<ChObjShapeFile>();
-    mobjmesh->SetFilename(GetChronoDataFile("fea/tractor_wheel_rim.obj"));
+    mobjmesh->SetFilename(GetChronoDataFile("models/tractor_wheel/tractor_wheel_rim.obj"));
     mwheel_rim->AddAsset(mobjmesh);
 
     // Connect rim and tire using constraints.
@@ -282,8 +277,8 @@ int main(int argc, char* argv[]) {
     // SIMULATION LOOP
     //
 
-    // Change solver to Pardiso from Chrono::MKL
-    auto mkl_solver = chrono_types::make_shared<ChSolverMKL>();
+    // Change solver to Pardiso from Chrono::PardisoMKL
+    auto mkl_solver = chrono_types::make_shared<ChSolverPardisoMKL>();
     mkl_solver->LockSparsityPattern(true);
     my_system.SetSolver(mkl_solver);
     my_system.Update();

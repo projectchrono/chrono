@@ -44,7 +44,6 @@ void ChLinkBeamIGAslider::UpdateNodes() {
     // fetch the element and the tau
     this->tau = 0;
     this->active_element = 0;
-    int nspan = this->order;
     int nnodes = (int)this->m_nodes.size();
     ChVector<> point = VNULL;
     ChVector<> goodpoint = VNULL;

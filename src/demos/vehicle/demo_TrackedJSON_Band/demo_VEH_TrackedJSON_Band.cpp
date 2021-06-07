@@ -39,8 +39,8 @@
 #include "chrono_mumps/ChSolverMumps.h"
 #endif
 
-#ifdef CHRONO_MKL
-#include "chrono_mkl/ChSolverMKL.h"
+#ifdef CHRONO_PARDISO_MKL
+#include "chrono_pardisomkl/ChSolverPardisoMKL.h"
 #endif
 
 #define USE_IRRLICHT
@@ -59,7 +59,7 @@ std::string vehicle_file("M113/vehicle/M113_Vehicle_BandBushing.json");
 ////std::string vehicle_file("M113/vehicle/M113_Vehicle_BandANCF.json");
 
 // JSON file for powertrain
-std::string simplepowertrain_file("M113/powertrain/M113_SimplePowertrain.json");
+std::string simplepowertrain_file("M113/powertrain/M113_SimpleCVTPowertrain.json");
 
 // Initial vehicle position
 ChVector<> initLoc(0, 0, 1.1);
@@ -76,9 +76,8 @@ double t_end = 1.0;
 // Simulation step size
 double step_size = 1e-4;
 
-// Linear solver
-enum SolverType { MUMPS, MKL };
-SolverType solver_type = MUMPS;
+// Linear solver (MUMPS or PARDISO_MKL)
+ChSolver::Type solver_type = ChSolver::Type::MUMPS;
 
 // Time interval between two render frames
 double render_step_size = 1.0 / 50;  // FPS = 50
@@ -121,7 +120,7 @@ int main(int argc, char* argv[]) {
     // -----------------------------
 
     // Create the vehicle system
-    TrackedVehicle vehicle(vehicle::GetDataFile(vehicle_file), ChMaterialSurface::SMC);
+    TrackedVehicle vehicle(vehicle::GetDataFile(vehicle_file), ChContactMethod::SMC);
 
     // Disable gravity in this simulation
     ////vehicle.GetSystem()->Set_G_acc(ChVector<>(0, 0, 0));
@@ -191,7 +190,7 @@ int main(int argc, char* argv[]) {
 
     ChTrackedVehicleIrrApp app(&vehicle, L"JSON Band-Tracked Vehicle Demo");
     app.SetSkyBox();
-    irrlicht::ChIrrWizard::add_typical_Logo(app.GetDevice());
+    app.SetSkyBox();
     app.AddTypicalLights(irr::core::vector3df(30.f, -30.f, 100.f), irr::core::vector3df(30.f, 50.f, 100.f), 250, 130);
     app.SetChaseCamera(ChVector<>(0, 0, 0), 6.0, 0.5);
     ////app.SetChaseCameraPosition(vehicle.GetVehiclePos() + ChVector<>(0, 2, 0));
@@ -269,18 +268,18 @@ int main(int argc, char* argv[]) {
     // Solver and integrator settings
     // ------------------------------
 
-#ifndef CHRONO_MKL
-    if (solver_type == MKL)
-        solver_type = MUMPS;
+#ifndef CHRONO_PARDISO_MKL
+    if (solver_type == ChSolver::Type::PARDISO_MKL)
+        solver_type = ChSolver::Type::MUMPS;
 #endif
 #ifndef CHRONO_MUMPS
-    if (solver_type == MUMPS)
-        solver_type = MKL;
+    if (solver_type == ChSolver::Type::MUMPS)
+        solver_type = ChSolver::Type::PARDISO_MKL;
 #endif
 
     switch (solver_type) {
 #ifdef CHRONO_MUMPS
-        case MUMPS: {
+        case ChSolver::Type::MUMPS: {
             auto mumps_solver = chrono_types::make_shared<ChSolverMumps>();
             mumps_solver->LockSparsityPattern(true);
             mumps_solver->SetVerbose(verbose_solver);
@@ -288,9 +287,9 @@ int main(int argc, char* argv[]) {
             break;
         }
 #endif
-#ifdef CHRONO_MKL
-        case MKL: {
-            auto mkl_solver = chrono_types::make_shared<ChSolverMKL>();
+#ifdef CHRONO_PARDISO_MKL
+        case ChSolver::Type::PARDISO_MKL: {
+            auto mkl_solver = chrono_types::make_shared<ChSolverPardisoMKL>();
             mkl_solver->LockSparsityPattern(true);
             mkl_solver->SetVerbose(verbose_solver);
             vehicle.GetSystem()->SetSolver(mkl_solver);
@@ -345,7 +344,6 @@ int main(int argc, char* argv[]) {
         if (dbg_output) {
             cout << "Time: " << vehicle.GetSystem()->GetChTime() << endl;
             const ChFrameMoving<>& c_ref = vehicle.GetChassisBody()->GetFrame_REF_to_abs();
-            const ChVector<>& c_pos = vehicle.GetVehiclePos();
             cout << "      chassis:    " << c_pos.x() << "  " << c_pos.y() << "  " << c_pos.z() << endl;
             {
                 const ChVector<>& i_pos_abs = vehicle.GetTrackAssembly(LEFT)->GetIdler()->GetWheelBody()->GetPos();

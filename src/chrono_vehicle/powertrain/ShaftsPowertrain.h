@@ -37,7 +37,7 @@ class CH_VEHICLE_API ShaftsPowertrain : public ChShaftsPowertrain {
     ShaftsPowertrain(const rapidjson::Document& d);
     ~ShaftsPowertrain() {}
 
-    virtual void SetGearRatios(std::vector<double>& gear_ratios) override;
+    virtual void SetGearRatios(std::vector<double>& fwd, double& rev) override;
 
     virtual double GetMotorBlockInertia() const override { return m_motorblock_inertia; }
     virtual double GetCrankshaftInertia() const override { return m_crankshaft_inertia; }
@@ -46,14 +46,10 @@ class CH_VEHICLE_API ShaftsPowertrain : public ChShaftsPowertrain {
     virtual double GetUpshiftRPM() const override { return m_upshift_RPM; }
     virtual double GetDownshiftRPM() const override { return m_downshift_RPM; }
 
-    virtual void SetEngineTorqueMap(std::shared_ptr<ChFunction_Recorder>& map) override { SetMapData(m_engine_torque, map); }
-    virtual void SetEngineLossesMap(std::shared_ptr<ChFunction_Recorder>& map) override { SetMapData(m_engine_losses, map); }
-    virtual void SetTorqueConverterCapacityFactorMap(std::shared_ptr<ChFunction_Recorder>& map) override {
-        SetMapData(m_tc_capacity_factor, map);
-    }
-    virtual void SetTorqeConverterTorqueRatioMap(std::shared_ptr<ChFunction_Recorder>& map) override {
-        SetMapData(m_tc_torque_ratio, map);
-    }
+    virtual void SetEngineTorqueMap(std::shared_ptr<ChFunction_Recorder>& map) override;
+    virtual void SetEngineLossesMap(std::shared_ptr<ChFunction_Recorder>& map) override;
+    virtual void SetTorqueConverterCapacityFactorMap(std::shared_ptr<ChFunction_Recorder>& map) override;
+    virtual void SetTorqeConverterTorqueRatioMap(std::shared_ptr<ChFunction_Recorder>& map) override;
 
   private:
     struct MapData {
@@ -65,7 +61,7 @@ class CH_VEHICLE_API ShaftsPowertrain : public ChShaftsPowertrain {
     virtual void Create(const rapidjson::Document& d) override;
 
     void ReadMapData(const rapidjson::Value& a, MapData& map_data);
-    void SetMapData(const MapData& map_data, std::shared_ptr<ChFunction_Recorder>& map);
+    void SetMapData(const MapData& map_data, double x_factor, double y_factor, std::shared_ptr<ChFunction_Recorder>& map);
 
     double m_motorblock_inertia;
     double m_crankshaft_inertia;

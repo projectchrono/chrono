@@ -12,7 +12,13 @@ These concepts are quite ubiquitous in the rest of the Chrono API and they are d
 # Linear algebra   {#linear_algebra}
 
 Handling vectors and matrices is a recurring theme throughout the Chrono API.
-ChMatrix is the base class for matrices and vectors and it is used extensively.
+Chrono uses [Eigen3](https://eigen.tuxfamily.org/dox/index.html) for representing all matrices (dense and sparse) and vectors.
+
+Dense matrices in Chrono are templated by the scalar type and have row-major storage order. All Chrono matrix and vector types below are simply aliases to appropriate Eigen matrix types; see @ref chrono_linalg and the ChMatrix.h header.
+
+<div class="ce-info">
+The [ChVector](@ref chrono::ChVector) and [ChVector2](@ref chrono::ChVector2) classes, used to represent 3D vectors in space and 2D vectors in a plane, respectively, are not Eigen types nor derived from Eigen matrices.
+</div>
 
 Matrices are indexed starting from 0, with (row,column) indexing:
 
@@ -29,207 +35,69 @@ a_{n_{rows}-1,0} & ... & ... & a_{n_{rows}-1,n_{cols}-1}
 
 There are many matrix and vector specializations and some of their basic features are outlined next.
 
-
-##ChMatrixDynamic##
-
-Use ChMatrixDynamic<> to create a matrix with generic size, say 12 rows x 4 columns. Owing to the template argument, one can indicate what type of data the matrix is supposed to store. Note that the default type is 'double'. If performance is not a top issue, this is the type of matrix that is most accurate.
-
-~~~{.cpp}
-chrono::ChMatrixDynamic<double> mh(12,4);
-~~~
-
-See @ref chrono::ChMatrixDynamic for API details.
-
-##ChMatrixNM##
-
-Use ChMatrixNM<> to create matrices that do not need to be resized and whose size is known at compile-time. Columns x rows are passed in template <..> brackets. Although the functionalities are the same of ChMatrixDynamic<>, this type of matrix has better performance. Avoid using it for large M and N sizes since it is allocated on the stack.
+<br>
+**Dynamic size matrices.**
+Use [ChMatrixDynamic](@ref chrono::ChMatrixDynamic) to create a matrix with generic size, say 12 rows x 4 columns. ChMatrixDynamic is templated by the scalar type, with `double` as the default.
 
 ~~~{.cpp}
-chrono::ChMatrixNM<double,4,4> mm;
+chrono::ChMatrixDynamic<double> A(12,4);
 ~~~
 
-See @ref chrono::ChMatrixNM for API details.
-
-
-##ChMatrix33##
-
-Use @ref chrono::ChMatrix33<> to create 3x3 matrices, which are mostly used for coordinate transformations.
-It inherits the same high-performance features of ChMatrixNM<> and offers additional dedicated functions for coordinate and rotation operations.
+<br>
+**Fixed size matrices.**
+Use [ChMatrixNM](@ref chrono::ChMatrixNM) to create matrices that do not need to be resized and whose size is known at compile-time. 
 
 ~~~{.cpp}
-	chrono::ChMatrix33<> ma;
+chrono::ChMatrixNM<double,4,4> B;
 ~~~
 
-See @ref chrono::ChMatrix33 for API details.
-
-
-##ChVectorDynamic##
-
-Use ChVectorDynamic<> to create a one-column matrix with a generic number of rows.
 <div class="ce-info">
-This class is different than the ChVector class. The latter is used to represent 3D vectors in space.
+**From the Eigen documentation:**
+<br><br>
+When should one use fixed sizes and when should one prefer dynamic sizes? The simple answer is: use fixed sizes for very small sizes where you can, and use dynamic sizes for larger sizes or where you have to. For small sizes, especially for sizes smaller than (roughly) 16, using fixed sizes is hugely beneficial to performance, as it allows Eigen to avoid dynamic memory allocation and to unroll loops. 
+<br><br>
+The limitation of using fixed sizes, of course, is that this is only possible when you know the sizes at compile time. Also, for large enough sizes, say for sizes greater than (roughly) 32, the performance benefit of using fixed sizes becomes negligible. Worse, trying to create a very large matrix using fixed sizes inside a function could result in a stack overflow, since Eigen will try to allocate the array automatically as a local variable, and this is normally done on the stack. Finally, depending on circumstances, Eigen can also be more aggressive trying to vectorize (use SIMD instructions) when dynamic sizes are used.
 </div>
 
+<br>
+**3x3 fixed size matrices.**
+Use [ChMatrix33](@ref chrono::ChMatrix33) to create 3x3 matrices, which are mostly used to represent rotation matrices and 3D inertia tensors.  ChMatrix33 is templated by the scalar type (with `double` as the default).
+This matrix type is derived from a 3x3 fixed-size Eigen matrix with row-major storage and offers several dedicated constructors and methods for coordinate and rotation operations.
+
 ~~~{.cpp}
-chrono::ChVectorDynamic<double> mv(12);
+	chrono::ChMatrix33<> R;
 ~~~
 
-See @ref chrono::ChVectorDynamic for API details.
+<br>
+**Dynamic size column vectors.**
+Use [ChVectorDynamic](@ref chrono::ChVectorDynamic) to create a column vector (one-column matrix) with a generic number of rows.
 
+~~~{.cpp}
+chrono::ChVectorDynamic<double> v(12);
+~~~
 
+<br>
+**Fixed size column vectors.**
+Use [ChVectorN](@ref chrono::ChVectorN) to create a column vector with fixed length (known at compile time).
+
+~~~{.cpp}
+chrono::ChVectorN<double,6> w;
+~~~
+
+<br>
+**Row vectors.**
+Use [ChRowVectorDynamic](@ref chrono::ChRowVectorDynamic) and [ChRowVectorN](@ref chrono::ChRowVectorN) to create row vectors (one-row matrices) with dynamic size and fixed size, respectively.
+
+<br>
+In addition to the above types, specialized 3x4, 4x3, and 4x4 matrices used in multibody formalism are defined in ChMatrixMBD.h.
 
 ##Basic operations with matrices##
 
-~~~{.cpp}
-		// Fill a matrix with an element
-	mm.FillElem(0.1);
+Consult the Eigen API for all matrix and vector [arithmetic operations](https://eigen.tuxfamily.org/dox/group__TutorialMatrixArithmetic.html), [block operations](https://eigen.tuxfamily.org/dox/group__TutorialBlockOperations.html), and [linear system solution](https://eigen.tuxfamily.org/dox/group__TutorialLinearAlgebra.html). 
 
-		// Print a matrix to cout (ex. the console, if open)
-	mm.StreamOUT(GetLog());
+The following code (see demo_CH_linalg.cpp) illustrates basic operations with matrices.
 
-
-		// Create a 5x7 random matrix
-	chrono::ChMatrixDynamic<> me(5,7);
-	me.FillRandom(-1, 2);
-
-		// Transpose the matrix in place
-	me.MatrTranspose();
-
-		// Reset the matrix to zero (and modify size, if necessary).
-	me.Reset(2,2);
-
-
-		// Create a diagonal matrix
-	chrono::ChMatrixDynamic<> md(4,4);
-	md.FillDiag(3);
-
-		// Use the () operator to reference matrix entries
-	md(0,0) = 10;
-	md(1,2) = md(0,0)+md(1,1);
-	md.Element(2,2) = 4;	// The md.Element(.,.) function has the same effect as md(.,.)
-
-
-		// Copy constructor
-	chrono::ChMatrixDynamic<> ma1(md);
-
-
-		// The - unary operator returns a negated matrix
-	chrono::ChMatrixDynamic<> ma2(-mm);
-
-
-		// A late copy - matrix will be resized if necessary
-	chrono::ChMatrixDynamic<> ma3(8,4);
-	ma3.CopyFromMatrix(ma1);
-
-		// Transposed copy. 
-		// This is faster than doing: ma3.CopyFromMatrix(ma2); ma3.MatrTranspose();
-	ma3.CopyFromMatrixT(ma1);	
-~~~
-
-<br>
-Rely on C++ operator overloading to use the  + * -  *= += -=  operators to perform matrix algebra.
-
-<div class="ce-info">
-Note that the + - *  operators may introduce overhead because they instantiate temporary
-matrix objects as intermediate results. Use *= -= +=  operators whenever possible,  
-or use the specific Add() Multiply() functions for highest computational speed.
-</div>
-
-~~~{.cpp}
-			// Note: size of result is automatically set because of copy constructor
-	chrono::ChMatrixDynamic<> result(ma1+ma2); 
-
-			// Using the assignment operator (size of result may be automatically reset)
-	result = ma1+ma2;	
-
-	 		// Another way to do operations - more intricate, but allows higher performances.
-			// Note that you must prepare 'result' with already appropriate column/row size.
-	result.MatrAdd(ma1,ma2);
-
-			// Use of the += operator typically minimizes the need of intermediate temporary matrices.
-	result = ma1;
-	result += ma2;
-
-			// Different ways to do subtraction...
-
-	result = ma1-ma2;	
-
-	result.MatrSub(ma1,ma2);
-
-	result = ma1;
-	result -= ma2;
-
-
-			// Multiplications between two matrices, different methods...
-
-	result = ma1*ma2;	
-
-	result.MatrMultiply(ma1,ma2);
- 
-
-			// Multiplication between matrix and scalars, different methods...
-
-	result = ma1*10;
-	
-	result = ma1;
-	result.MatrScale(10);
-	GetLog() << result;
-
-	result = ma1;
-	result *=10;
-	GetLog() << result;
-
-			// Dot multiplication
-	chrono::ChMatrixDynamic<> mmv1(5,1);
-	chrono::ChMatrixDynamic<> mmv2(5,1);
-	mmv1.FillRandom(1,3);
-	mmv2.FillRandom(2,4);
-	double mdot = chrono::ChMatrix<>::MatrDot(&mmv1, &mmv2);
-    
-			// Elementwise matrix comparison
-	chrono::ChMatrixDynamic<> mmv3(mmv2);
-	if (mmv2==mmv3) 
-		GetLog() << "Matrices are exactly equal \n";
-
-			// Tolerance comparison
-	mmv3.Element(2,0)+=0.001;
-	if (mmv2.Equals(mmv3,0.002)) 
-		GetLog() << "Matrices are equal within tol 0.002 \n";
-~~~
-
-<br>
-
-The matrices can operate also on 3D vectors \f$ \mathbf{v}=\{v_x,v_y,v_z\} \f$, 
-that are defined with the ChVector<> class (the Vector is a shortcut for ChVector<double> ). Example:
-
-~~~{.cpp}
-	chrono::Vector mvect(1,2,3);	
-	chrono::Quaternion mquat(1,2,3,4);
-	chrono::ChMatrix33<> mta1;
-	mta1.FillRandom(-1, 2);
-
-			// Vector transformation, typical product [A]*v
-	chrono::Vector vres  = mta1.Matr_x_Vect(mvect);
-
-			// More compact syntax: operator * between matrix and vector...
-	chrono::Vector vres2 = mta1*mvect;
-	if (vres == vres2) 
-		GetLog() << "vectors are equal \n";
-
-			// .. same, but with a transposed matrix
-	vres = mta1.MatrT_x_Vect(mvect);
-
-			// Custom multiplication functions for 3x4 matrices and quaternions:
-	chrono::ChMatrixNM<double,3,4> mgl;
-	mgl.FillRandom(-1, 2);
-	vres = mgl.Matr34_x_Quat(mquat);
-
-	chrono::Quaternion qres = mgl.Matr34T_x_Vect(mvect);
-
-	chrono::ChMatrixNM<double,4,4> mxq;
-	mxq.FillRandom(-1, 2);
-	qres = mxq.Matr44_x_Quat(mquat);
-~~~
+\snippet "../../src/demos/core/demo_CH_linalg.cpp" Basic operations with matrices
 
 
 
@@ -261,9 +129,9 @@ See @ref chrono::ChFunction for API details and a list of subclasses.
 	f_ramp.Set_ang(0.1);	// set angular coefficient;
 	f_ramp.Set_y0(0.4);		// set y value for x=0;
 
-	 // Evaluate y=f(x) function at a given x value, using Get_y() :
+	// Evaluate y=f(x) function at a given x value, using Get_y() :
 	double y	= f_ramp.Get_y(10);
-	 // Evaluate derivative df(x)/dx at a given x value, using Get_y_dx() :
+	// Evaluate derivative df(x)/dx at a given x value, using Get_y_dx() :
 	double ydx	= f_ramp.Get_y_dx(10);
 
 	GetLog() << "   ChFunction_Ramp at x=0: y=" << y << "  dy/dx=" << ydx << "\n\n";
@@ -282,8 +150,8 @@ Save values of a sine ChFunction  into a file.
 
 	ChStreamOutAsciiFile file_f_sine ("f_sine_out.dat");
 
-	 // Evaluate y=f(x) function along 100 x points, and its derivatives, 
-	 // and save to file (later it can be loaded, for example, in Matlab)
+	// Evaluate y=f(x) function along 100 x points, and its derivatives, 
+	// and save to file (later it can be loaded, for example, in Matlab)
 	for (int i=0; i<100; i++)
 	{
 		double x = (double)i/50.0;
@@ -324,8 +192,8 @@ ChFunction_MyTest f_test;
 
 ChStreamOutAsciiFile file_f_test ("f_test_out.dat");
 
- // Evaluate y=f(x) function along 100 x points, and its derivatives, 
- // and save to file (later it can be loaded, for example, in Matlab)
+// Evaluate y=f(x) function along 100 x points, and its derivatives, 
+// and save to file (later it can be loaded, for example, in Matlab)
 for (int i=0; i<100; i++)
 {
 	double x = (double)i/50.0;
@@ -372,7 +240,7 @@ For N less than 10, the quadrature uses precomputed coefficients for maximum per
 
 
 ~~~{.cpp}
-						// Define a y=f(x) function by inheriting ChIntegrable1D:
+	// Define a y=f(x) function by inheriting ChIntegrable1D:
 	class MySine1d : public ChIntegrable1D<double>
 	{
 	public: 
@@ -380,16 +248,18 @@ For N less than 10, the quadrature uses precomputed coefficients for maximum per
 			result = sin(x);
 		}
 	};
-						// Create an object from the function class
+
+	// Create an object from the function class
 	MySine1d mfx;
-						// Invoke 6th order Gauss-Legendre quadrature on 0..PI interval:
+
+    // Invoke 6th order Gauss-Legendre quadrature on 0..PI interval:
 	double qresult;	
 	ChQuadrature::Integrate1D<double>(qresult, mfx,  0, CH_C_PI,  6);
 	
 	GetLog()<< "Quadrature 1d result:" << qresult << " (analytic solution: 2.0) \n";
 
 	
-						// Other quadrature tests, this time in 2D
+	// Other quadrature tests, this time in 2D
 
 	class MySine2d : public ChIntegrable2D<double>
 	{
@@ -427,3 +297,4 @@ m-dimensional (vectorial, tensorial) functions
 	GetLog()<< "Quadrature 2d matrix result:" << resultM << " (analytic solution: 2.25, 4.5) \n";
 ~~~
 
+<br><br><br>

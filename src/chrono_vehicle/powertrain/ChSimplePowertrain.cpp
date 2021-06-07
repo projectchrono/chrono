@@ -24,37 +24,13 @@
 namespace chrono {
 namespace vehicle {
 
-// -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
-ChSimplePowertrain::ChSimplePowertrain(const std::string& name) : ChPowertrain(name), m_motorSpeed(0), m_motorTorque(0), m_shaftTorque(0) {
-}
+ChSimplePowertrain::ChSimplePowertrain(const std::string& name)
+    : ChPowertrain(name), m_motorSpeed(0), m_motorTorque(0), m_shaftTorque(0) {}
 
-// -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
 void ChSimplePowertrain::Initialize(std::shared_ptr<ChChassis> chassis, std::shared_ptr<ChDriveline> driveline) {
     ChPowertrain::Initialize(chassis, driveline);
-    m_current_gear_ratio = GetForwardGearRatio();
 }
 
-// -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
-void ChSimplePowertrain::SetDriveMode(ChPowertrain::DriveMode mode) {
-    m_drive_mode = mode;
-    switch (mode) {
-        case FORWARD:
-            m_current_gear_ratio = GetForwardGearRatio();
-            break;
-        case REVERSE:
-            m_current_gear_ratio = GetReverseGearRatio();
-            break;
-        case NEUTRAL:
-            m_current_gear_ratio = 1e20;
-            break;
-    }
-}
-
-// -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
 void ChSimplePowertrain::Synchronize(double time, double throttle) {
     double shaft_speed = m_driveline->GetDriveshaftSpeed();
 

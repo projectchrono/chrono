@@ -84,9 +84,9 @@ ChTrackTestRigChassis::ChTrackTestRigChassis() : ChRigidChassis("Ground") {
 // -----------------------------------------------------------------------------
 ChTrackTestRig::ChTrackTestRig(const std::string& filename,
                                bool create_track,
-                               ChMaterialSurface::ContactMethod contact_method)
+                               ChContactMethod contact_method,
+                               bool detracking_control)
     : ChVehicle("TrackTestRig", contact_method),
-      m_create_track(create_track),
       m_ride_height(-1),
       m_max_torque(0),
       m_displ_limit(0),
@@ -102,7 +102,7 @@ ChTrackTestRig::ChTrackTestRig(const std::string& filename,
       m_next_plot_output_time(0),
       m_csv(nullptr) {
     // Open and parse the input file (track assembly JSON specification file)
-    Document d = ReadFileJSON(filename);
+    Document d; ReadFileJSON(filename, d);
     if (d.IsNull())
         return;
 
@@ -122,14 +122,14 @@ ChTrackTestRig::ChTrackTestRig(const std::string& filename,
     }
     GetLog() << "Loaded JSON: " << filename.c_str() << "\n";
 
-    Create();
+    Create(create_track, detracking_control);
 }
 
 ChTrackTestRig::ChTrackTestRig(std::shared_ptr<ChTrackAssembly> assembly,
                                bool create_track,
-                               ChMaterialSurface::ContactMethod contact_method)
+                               ChContactMethod contact_method,
+                               bool detracking_control)
     : ChVehicle("TrackTestRig", contact_method),
-      m_create_track(create_track),
       m_track(assembly),
       m_ride_height(-1),
       m_max_torque(0),
@@ -145,21 +145,30 @@ ChTrackTestRig::ChTrackTestRig(std::shared_ptr<ChTrackAssembly> assembly,
       m_plot_output_step(0),
       m_next_plot_output_time(0),
       m_csv(nullptr) {
-    Create();
+    Create(create_track, detracking_control);
 }
 
 ChTrackTestRig::~ChTrackTestRig() {
     delete m_csv;
 }
 
-void ChTrackTestRig::Create() {
+void ChTrackTestRig::Create(bool create_track, bool detracking_control) {
+    // Create a contact material for the posts (shared)
+    //// TODO: are default material properties ok?
+    MaterialInfo minfo;
+    auto post_mat = minfo.CreateMaterial(m_system->GetContactMethod());
+
     // Create the chassis subsystem
     m_chassis = chrono_types::make_shared<ChTrackTestRigChassis>();
     m_chassis->Initialize(m_system, ChCoordsys<>(), 0);
     m_chassis->SetFixed(true);
 
+    // Disable detracking control if requested
+    if (!detracking_control)
+        m_track->GetSprocket()->DisableLateralContact();
+
     // Initialize the track assembly subsystem
-    m_track->Initialize(m_chassis->GetBody(), ChVector<>(0, 0, 0), m_create_track);
+    m_track->Initialize(m_chassis, ChVector<>(0, 0, 0), create_track);
 
     // Create and initialize the shaker post body
     auto num_wheels = m_track->GetNumRoadWheelAssemblies();
@@ -177,7 +186,7 @@ void ChTrackTestRig::Create() {
         if (m_track->GetRoadWheel(i)->GetWheelBody()->GetPos().z() < zmin)
             zmin = m_track->GetRoadWheel(i)->GetWheelBody()->GetPos().z();
     }
-    zmin -= m_create_track ? (rw_radius + m_track->GetTrackShoe(0)->GetHeight() + 0.2) : rw_radius;
+    zmin -= create_track ? (rw_radius + m_track->GetTrackShoe(0)->GetHeight() + 0.2) : rw_radius;
 
     // Create posts and associated actuators under each road wheel
     for (size_t i = 0; i < num_wheels; ++i) {
@@ -191,7 +200,7 @@ void ChTrackTestRig::Create() {
         m_system->Add(post);
 
         post->GetCollisionModel()->ClearModel();
-        post->GetCollisionModel()->AddCylinder(m_post_radius, m_post_radius, m_post_hheight,
+        post->GetCollisionModel()->AddCylinder(post_mat, m_post_radius, m_post_radius, m_post_hheight,
                                                ChVector<>(0, 0, -m_post_hheight),
                                                ChMatrix33<>(Q_from_AngX(CH_C_PI / 2)));
         post->GetCollisionModel()->BuildModel();

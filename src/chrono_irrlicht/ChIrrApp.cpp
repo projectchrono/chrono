@@ -18,14 +18,15 @@ namespace irrlicht {
 using namespace irr;
 
 ChIrrApp::ChIrrApp(ChSystem* psystem,
-                   const wchar_t* title,
-                   core::dimension2d<u32> dimens,
+                   const std::wstring& title,
+                   const core::dimension2d<u32>& dimens,
+                   VerticalDir vert,
                    bool do_fullscreen,
                    bool do_shadows,
                    bool do_antialias,
                    video::E_DRIVER_TYPE mydriver,
                    irr::ELOG_LEVEL log_level)
-    : ChIrrAppInterface(psystem, title, dimens, do_fullscreen, do_shadows, do_antialias, mydriver, log_level) {
+    : ChIrrAppInterface(psystem, title, dimens, vert, do_fullscreen, do_shadows, do_antialias, mydriver, log_level) {
     mconverter = new ChIrrAssetConverter(*this);
 }
 

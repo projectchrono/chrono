@@ -21,7 +21,7 @@
 #include "chrono/fea/ChElementTetrahedron.h"
 #include "chrono/fea/ChNodeFEAxyz.h"
 #include "chrono/fea/ChNodeFEAxyzP.h"
-#include "chrono/physics/ChTensors.h"
+#include "chrono/core/ChTensors.h"
 
 namespace chrono {
 namespace fea {

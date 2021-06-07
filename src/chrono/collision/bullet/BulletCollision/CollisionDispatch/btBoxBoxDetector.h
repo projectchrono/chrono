@@ -16,29 +16,25 @@ subject to the following restrictions:
 2. Altered source versions must be plainly marked as such, and must not be misrepresented as being the original software.
 3. This notice may not be removed or altered from any source distribution.
 */
-#ifndef BOX_BOX_DETECTOR_H
-#define BOX_BOX_DETECTOR_H
-
+#ifndef BT_BOX_BOX_DETECTOR_H
+#define BT_BOX_BOX_DETECTOR_H
 
 class btBoxShape;
 #include "BulletCollision/NarrowPhaseCollision/btDiscreteCollisionDetectorInterface.h"
-
 
 /// btBoxBoxDetector wraps the ODE box-box collision detector
 /// re-distributed under the Zlib license with permission from Russell L. Smith
 struct btBoxBoxDetector : public btDiscreteCollisionDetectorInterface
 {
-	btBoxShape* m_box1;
-	btBoxShape* m_box2;
+	const btBoxShape* m_box1;
+	const btBoxShape* m_box2;
 
 public:
+	btBoxBoxDetector(const btBoxShape* box1, const btBoxShape* box2);
 
-	btBoxBoxDetector(btBoxShape* box1,btBoxShape* box2);
+	virtual ~btBoxBoxDetector(){};
 
-	virtual ~btBoxBoxDetector() {};
-
-	virtual void	getClosestPoints(const ClosestPointInput& input,Result& output,class btIDebugDraw* debugDraw,bool swapResults=false);
-
+	virtual void getClosestPoints(const ClosestPointInput& input, Result& output, class btIDebugDraw* debugDraw, bool swapResults = false);
 };
 
-#endif //BT_BOX_BOX_DETECTOR_H
+#endif  //BT_BOX_BOX_DETECTOR_H

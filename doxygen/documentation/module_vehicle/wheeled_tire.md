@@ -17,7 +17,9 @@ The following is an example of a rigid tire with mesh geometry provided through 
 
 ## Semi-empirical tire models {#vehicle_tire_empirical}
 
-The second class of tires models offered are the semi-empirical ones commonly used for vehicle handling.  Chrono::Vehicle currently has implementations for Pacejka (89 and 2002), TMeasy, and Fiala tire models.
+The second class of tires models offered are the semi-empirical ones commonly used for vehicle handling.  Chrono::Vehicle currently has implementations for Pacejka (89 and 2002), TMeasy, and Fiala tire models. Handling tire models are designed for flat road surfaces and they normally use single point contact or four point contact (TMeasy). For ride tests on ondulated roads or for obstacle crossing a special contact algorithm called "envelope" has been implemented. It is based on a paper of Sui & Hershey and can be used with all handling tire models that are included in Chrono. Validation tests with a technology demonstrator show good results compared to measured real vehicle test data with low numerical effort. If an even better accuracy is needed the user should think about considering FEA based tire models for non-handling tests.
+
+Some users may want to build their own handling tire parameter sets from tire test data. Be sure to get familiar with the different slip definitions and the different coordinate systems in each tire model!
 
 ### Pacejka 89 (Pac89) tire model {#wheeled_tire_pac89}
 
@@ -29,9 +31,9 @@ This model is an extension of Pacejka's earlier Magic Formula tire model with ad
 
 See [ChPac02Tire](@ref chrono::vehicle::ChPac02Tire) and [Pac02Tire](@ref chrono::vehicle::Pac02Tire).
 
-### TMeasy tire model  {#wheeled_tire_tmeasy}
+### TMeasy tire model (basic version) {#wheeled_tire_tmeasy}
 
-TMeasy (Tire Model Made Easy) has been developed to allow easy parametration. Its complexity is roughly comparable to the Magic Formula based models. Based on known parameter sets for trucks and passenger cars it is possible to estimate a complete parameter set from few input data, if needed. TMeasy considers nonlinear effects and includes contact patch slip state equations.
+TMeasy (Tire Model Made Easy) has been developed by Prof. Dr. Georg Rill and is available as a comercial code (see http://www.tmeasy.de/ for more information). The aim of this model is to allow easy parametration. Its complexity is roughly comparable to the Magic Formula based models. Furthermore, based on known parameter sets for trucks and passenger cars it is possible to estimate a complete parameter set from few input data. TMeasy considers nonlinear effects and includes contact patch slip state equations. The implementation used in Chrono lacks some functionality compared to the latest comercial TMeasy versions. For example, there is no belt dynamics and no dynamic parking torque calculation possible. The Chrono TMeasy tire implementation contains algorithms that have been published in the book [Road Vehicle Dynamics - Fundamentals and Modeling with MATLAB](https://www.routledge.com/Road-Vehicle-Dynamics-Fundamentals-and-Modeling-with-MATLAB/Rill-Castro/p/book/9780367199739), Georg Rill and Abel Arrieta Castro, CRC Press, 2020.
 
 See [ChTMeasyTire](@ref chrono::vehicle::ChTMeasyTire) and [TMeasyTire](@ref chrono::vehicle::TMeasyTire).
 
@@ -41,13 +43,16 @@ A sample JSON file with a TMeasy tire specification is provided below:
 
 ### Fiala tire model  {#wheeled_tire_fiala}
 
-The Fiala tire model implemented in Chrono::Vehicle is largely based on the transient Fiala tire model presented in the MSC ADAMS/tire help documentation, which uses tire slip state equations to improve the model's behavior at slow to zero forward velocities.  The Fiala tire model is based on a brush model assumption and only requires a small number of coefficients. This tire model assumes that the tire is at zero camber with respect to the road and does not have any provisions for generating overturning moments.  It does however couple the lateral and longitudinal slip states of the tire in its force and moment calculations, providing a more realistic description of combined slip.
+The Fiala tire model implemented in Chrono::Vehicle is largely based on the transient Fiala tire model presented in the MSC ADAMS/tire help documentation, which uses tire slip state equations to improve the model's behavior at slow to zero forward velocities.  The Fiala tire model is based on a brush model assumption and only requires a small number of coefficients. This tire model assumes that the tire is at zero camber with respect to the road and does not have any provisions for generating overturning moments.  It does however couple the lateral and longitudinal slip states of the tire in its force and moment calculations, providing a more realistic description of combined slip. The Fiala tire model should not be used for serious vehicle handling simulations since it does not consider important effects that influence the results.
 
 See [ChFialaTire](@ref chrono::vehicle::ChFialaTire) and [FialaTire](@ref chrono::vehicle::FialaTire).
 
 A sample JSON file with a TMeasy tire specification is provided below:
 \include "../../data/vehicle/hmmwv/tire/HMMWV_FialaTire.json"
 
+The vertical load curve embedded in the above JSON file is show below:
+
+<img src="http://www.projectchrono.org/assets/manual/vehicle/curves/FialaTire_vertical_load.png" width="500" />
 
 ## FEA-based tire models  {#wheeled_tire_fea}
 

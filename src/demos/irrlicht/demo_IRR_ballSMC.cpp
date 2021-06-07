@@ -35,8 +35,8 @@ using namespace irr::video;
 using namespace irr::io;
 using namespace irr::gui;
 
-void AddWall(std::shared_ptr<ChBody> body, const ChVector<>& dim, const ChVector<>& loc) {
-    body->GetCollisionModel()->AddBox(dim.x(), dim.y(), dim.z(), loc);
+void AddWall(std::shared_ptr<ChBody> body, const ChVector<>& dim, const ChVector<>& loc, std::shared_ptr<ChMaterialSurface> mat) {
+    body->GetCollisionModel()->AddBox(mat, dim.x(), dim.y(), dim.z(), loc);
 
     auto box = chrono_types::make_shared<ChBoxShape>();
     box->GetBoxGeometry().Size = dim;
@@ -66,7 +66,7 @@ int main(int argc, char* argv[]) {
     int binId = 200;
     double width = 2;
     double length = 2;
-    double height = 1;
+    ////double height = 1;
     double thickness = 0.1;
 
     // Create the system
@@ -83,7 +83,7 @@ int main(int argc, char* argv[]) {
     collision::ChCollisionInfo::SetDefaultEffectiveCurvatureRadius(1);
 
     // Create the Irrlicht visualization
-    ChIrrApp application(&msystem, L"SMC demo", core::dimension2d<u32>(800, 600), false, true);
+    ChIrrApp application(&msystem, L"SMC demo", core::dimension2d<u32>(800, 600));
 
     // Easy shortcuts to add camera, lights, logo and sky in Irrlicht scene
     application.AddTypicalLogo();
@@ -93,7 +93,7 @@ int main(int argc, char* argv[]) {
 
     // This means that contactforces will be shown in Irrlicht application
     application.SetSymbolscale(1e-4);
-    application.SetContactsDrawMode(ChIrrTools::eCh_ContactsDrawMode::CONTACT_FORCES);
+    application.SetContactsDrawMode(IrrContactsDrawMode::CONTACT_FORCES);
 
     // Create a material (will be used by both objects)
     auto material = chrono_types::make_shared<ChMaterialSurfaceSMC>();
@@ -102,7 +102,7 @@ int main(int argc, char* argv[]) {
     material->SetAdhesion(0);  // Magnitude of the adhesion in Constant adhesion model
 
     // Create the falling ball
-    auto ball = chrono_types::make_shared<ChBody>(ChMaterialSurface::SMC);
+    auto ball = chrono_types::make_shared<ChBody>();
 
     ball->SetIdentifier(ballId);
     ball->SetMass(mass);
@@ -111,12 +111,11 @@ int main(int argc, char* argv[]) {
     ball->SetPos_dt(init_vel);
     // ball->SetWvel_par(ChVector<>(0,0,3));
     ball->SetBodyFixed(false);
-    ball->SetMaterialSurface(material);
 
     ball->SetCollide(true);
 
     ball->GetCollisionModel()->ClearModel();
-    ball->GetCollisionModel()->AddSphere(radius);
+    ball->GetCollisionModel()->AddSphere(material, radius);
     ball->GetCollisionModel()->BuildModel();
 
     ball->SetInertiaXX(0.4 * mass * radius * radius * ChVector<>(1, 1, 1));
@@ -126,13 +125,13 @@ int main(int argc, char* argv[]) {
     ball->AddAsset(sphere);
 
     auto mtexture = chrono_types::make_shared<ChTexture>();
-    mtexture->SetTextureFilename(GetChronoDataFile("bluwhite.png"));
+    mtexture->SetTextureFilename(GetChronoDataFile("textures/bluewhite.png"));
     ball->AddAsset(mtexture);
 
     msystem.AddBody(ball);
 
     // Create container
-    auto bin = chrono_types::make_shared<ChBody>(ChMaterialSurface::SMC);
+    auto bin = chrono_types::make_shared<ChBody>();
 
     bin->SetIdentifier(binId);
     bin->SetMass(1);
@@ -140,14 +139,13 @@ int main(int argc, char* argv[]) {
     bin->SetRot(ChQuaternion<>(1, 0, 0, 0));
     bin->SetCollide(true);
     bin->SetBodyFixed(true);
-    bin->SetMaterialSurface(material);
 
     bin->GetCollisionModel()->ClearModel();
-    AddWall(bin, ChVector<>(width, thickness, length), ChVector<>(0, 0, 0));
-    // AddWall(bin, ChVector<>(thickness, height, length), ChVector<>(-width + thickness, height, 0));
-    // AddWall(bin, ChVector<>(thickness, height, length), ChVector<>(width - thickness, height, 0));
-    // AddWall(bin, ChVector<>(width, height, thickness), ChVector<>(0, height, -length + thickness));
-    // AddWall(bin, ChVector<>(width, height, thickness), ChVector<>(0, height, length - thickness));
+    AddWall(bin, ChVector<>(width, thickness, length), ChVector<>(0, 0, 0), material);
+    ////AddWall(bin, ChVector<>(thickness, height, length), ChVector<>(-width + thickness, height, 0), material);
+    ////AddWall(bin, ChVector<>(thickness, height, length), ChVector<>(width - thickness, height, 0), material);
+    ////AddWall(bin, ChVector<>(width, height, thickness), ChVector<>(0, height, -length + thickness), material);
+    ////AddWall(bin, ChVector<>(width, height, thickness), ChVector<>(0, height, length - thickness), material);
     bin->GetCollisionModel()->BuildModel();
 
     msystem.AddBody(bin);
@@ -165,7 +163,7 @@ int main(int argc, char* argv[]) {
 
         application.DrawAll();
 
-        ChIrrTools::drawGrid(application.GetVideoDriver(), 0.2, 0.2, 20, 20,
+        tools::drawGrid(application.GetVideoDriver(), 0.2, 0.2, 20, 20,
                              ChCoordsys<>(ChVector<>(0, 0, 0), Q_from_AngX(CH_C_PI_2)),
                              video::SColor(255, 80, 100, 100), true);
 

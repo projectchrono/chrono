@@ -21,8 +21,8 @@
 #include <thrust/host_vector.h>
 #include <string>
 #include "chrono/ChConfig.h"
-#include "chrono_fsi/ChParams.cuh"
-#include "chrono_fsi/custom_math.h"
+#include "chrono_fsi/physics/ChParams.cuh"
+#include "chrono_fsi/math/custom_math.h"
 
 namespace chrono {
 // Forward declaration
@@ -34,14 +34,20 @@ class ChElementShellANCF;
 namespace fsi {
 namespace utils {
 // =============================================================================
-void CreateBCE_On_Sphere(thrust::host_vector<Real4>& posRadBCE, Real rad, SimParams* paramsH);
+void CreateBCE_On_Sphere(thrust::host_vector<Real4>& posRadBCE, Real rad, std::shared_ptr<SimParams> paramsH);
 void CreateBCE_On_surface_of_Sphere(thrust::host_vector<Real4>& posRadBCE, Real rad, Real kernel_h);
 void CreateBCE_On_Cylinder(thrust::host_vector<Real4>& posRadBCE,
                            Real cyl_rad,
                            Real cyl_h,
-                           SimParams* paramsH,
+                           std::shared_ptr<SimParams> paramsH,
                            Real kernel_h,
                            bool cartesian = true);
+void CreateBCE_On_Cone(thrust::host_vector<Real4>& posRadBCE,
+                       Real cone_rad,
+                       Real cone_h,
+                       std::shared_ptr<SimParams> paramsH,
+                       Real kernel_h,
+                       bool cartesian = true);
 
 void CreateBCE_On_surface_of_Cylinder(thrust::host_vector<Real4>& posRadBCE,
                                       thrust::host_vector<Real3>& normals,
@@ -49,19 +55,22 @@ void CreateBCE_On_surface_of_Cylinder(thrust::host_vector<Real4>& posRadBCE,
                                       Real cyl_h,
                                       Real spacing);
 
-void CreateBCE_On_Box(thrust::host_vector<Real4>& posRadBCE, const Real3& hsize, int face, SimParams* paramsH);
+void CreateBCE_On_Box(thrust::host_vector<Real4>& posRadBCE,
+                      const Real3& hsize,
+                      int face,
+                      std::shared_ptr<SimParams> paramsH);
 
-void LoadBCE_fromFile(thrust::host_vector<Real4>& posRadBCE, std::string fileName, double scale = 1);
+void LoadBCE_fromFile(thrust::host_vector<Real4>& posRadBCE, std::string fileName, double scale = 1, double hsml = 1);
 
 void CreateBCE_On_shell(thrust::host_vector<Real4>& posRadBCE,
-                        SimParams* paramsH,
+                        std::shared_ptr<SimParams> paramsH,
                         std::shared_ptr<chrono::fea::ChElementShellANCF> shell,
                         bool multiLayer = true,
                         bool removeMiddleLayer = false,
                         int SIDE = -2);
 
 void CreateBCE_On_ChElementCableANCF(thrust::host_vector<Real4>& posRadBCE,
-                                     SimParams* paramsH,
+                                     std::shared_ptr<SimParams> paramsH,
                                      std::shared_ptr<chrono::fea::ChElementCableANCF> cable,
                                      std::vector<int> remove,
                                      bool multiLayer = true,
@@ -69,7 +78,7 @@ void CreateBCE_On_ChElementCableANCF(thrust::host_vector<Real4>& posRadBCE,
                                      int SIDE = 1);
 
 void CreateBCE_On_ChElementShellANCF(thrust::host_vector<Real4>& posRadBCE,
-                                     SimParams* paramsH,
+                                     std::shared_ptr<SimParams> paramsH,
                                      std::shared_ptr<chrono::fea::ChElementShellANCF> shell,
                                      std::vector<int> remove,
                                      bool multiLayer = true,

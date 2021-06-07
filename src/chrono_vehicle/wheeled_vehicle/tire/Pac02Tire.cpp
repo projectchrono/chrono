@@ -31,7 +31,7 @@ namespace vehicle {
 // -----------------------------------------------------------------------------
 Pac02Tire::Pac02Tire(const std::string& filename)
     : ChPac02Tire(""), m_mass(0), m_has_mesh(false), m_has_vert_table(false), m_has_bott_table(false) {
-    Document d = ReadFileJSON(filename);
+    Document d; ReadFileJSON(filename, d);
     if (d.IsNull())
         return;
 
@@ -549,8 +549,8 @@ void Pac02Tire::Create(const rapidjson::Document& d) {  // Invoke base class met
 
 void Pac02Tire::AddVisualizationAssets(VisualizationType vis) {
     if (vis == VisualizationType::MESH && m_has_mesh) {
-        m_trimesh_shape = AddVisualizationMesh(vehicle::GetDataFile(m_meshFile_left),    // left side
-                                               vehicle::GetDataFile(m_meshFile_right));  // right side
+        m_trimesh_shape = AddVisualizationMesh(m_meshFile_left,    // left side
+                                               m_meshFile_right);  // right side
     } else {
         ChPac02Tire::AddVisualizationAssets(vis);
     }

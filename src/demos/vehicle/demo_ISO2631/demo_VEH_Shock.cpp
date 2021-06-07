@@ -140,7 +140,7 @@ int main(int argc, char* argv[]) {
     // --------------------------
 
     // Create the vehicle system
-    WheeledVehicle vehicle(vehicle::GetDataFile(vehicle_file), ChMaterialSurface::NSC);
+    WheeledVehicle vehicle(vehicle::GetDataFile(vehicle_file), ChContactMethod::NSC);
     vehicle.Initialize(ChCoordsys<>(initLoc, QUNIT));
     ////vehicle.GetChassis()->SetFixed(true);
     vehicle.SetChassisVisualizationType(VisualizationType::PRIMITIVES);
@@ -229,7 +229,7 @@ int main(int argc, char* argv[]) {
             break;
     }
 
-    ChWheeledVehicleIrrApp app(&vehicle, windowTitle.c_str());
+    ChWheeledVehicleIrrApp app(&vehicle, windowTitle);
 
     app.SetSkyBox();
     app.AddTypicalLights(irr::core::vector3df(30.f, -30.f, 100.f), irr::core::vector3df(30.f, 50.f, 100.f), 250, 130);
@@ -283,8 +283,7 @@ int main(int argc, char* argv[]) {
             break;
         }
         if (xpos >= xstart) {
-            double speed = vehicle.GetVehicleSpeed();
-            ChVector<> seat_acc = vehicle.GetVehicleAcceleration(vehicle.GetChassis()->GetLocalDriverCoordsys().pos);
+            ChVector<> seat_acc = vehicle.GetVehiclePointAcceleration(vehicle.GetChassis()->GetLocalDriverCoordsys().pos);
             seat_logger.AddData(seat_acc);
         }
 
@@ -311,7 +310,7 @@ int main(int argc, char* argv[]) {
 
         if (v_pos >= xstart) {
             double speed = vehicle.GetVehicleSpeed();
-            ChVector<> seat_acc = vehicle.GetVehicleAcceleration(vehicle.GetChassis()->GetLocalDriverCoordsys().pos);
+            ChVector<> seat_acc = vehicle.GetVehiclePointAcceleration(vehicle.GetChassis()->GetLocalDriverCoordsys().pos);
             seat_logger.AddData(seat_acc);
         }
     }

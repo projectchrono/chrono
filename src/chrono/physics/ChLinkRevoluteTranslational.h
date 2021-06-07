@@ -16,6 +16,7 @@
 #define CH_LINK_REVOLUTE_TRANSLATIONAL_H
 
 #include "chrono/physics/ChLink.h"
+#include "chrono/physics/ChBody.h"
 #include "chrono/solver/ChConstraintTwoBodies.h"
 
 namespace chrono {
@@ -84,11 +85,11 @@ class ChApi ChLinkRevoluteTranslational : public ChLink {
     /// The revolute joint rotates about the z axis, the translational joint moves
     /// along the y axis, and the translation axis is at the specified distance
     /// along the x axis.
-    void Initialize(std::shared_ptr<ChBodyFrame> body1,  ///< first frame (revolute side)
-                    std::shared_ptr<ChBodyFrame> body2,  ///< second frame (translational side)
-                    const ChCoordsys<>& csys,  ///< joint coordinate system (in absolute frame)
-                    double distance            ///< imposed distance
-                    );
+    void Initialize(std::shared_ptr<ChBody> body1,  ///< first frame (revolute side)
+                    std::shared_ptr<ChBody> body2,  ///< second frame (translational side)
+                    const ChCoordsys<>& csys,       ///< joint coordinate system (in absolute frame)
+                    double distance                 ///< imposed distance
+    );
 
     /// Initialize this joint by specifying the two bodies to be connected, a point
     /// and a direction on body1 defining the revolute joint, and two directions and
@@ -97,17 +98,17 @@ class ChApi ChLinkRevoluteTranslational : public ChLink {
     /// Otherwise, it is assumed that they are specified in the absolute frame. The
     /// imposed distance between the two points can be either inferred from the provided
     /// configuration (auto_distance = true) or specified explicitly.
-    void Initialize(std::shared_ptr<ChBodyFrame> body1,  ///< first frame (revolute side)
-                    std::shared_ptr<ChBodyFrame> body2,  ///< second frame (spherical side)
-                    bool local,                 ///< true if data given in body local frames
-                    const ChVector<>& p1,       ///< point on first frame (revolute side)
-                    const ChVector<>& dirZ1,    ///< direction of revolute on first frame
-                    const ChVector<>& p2,       ///< point on second frame (translational side)
-                    const ChVector<>& dirX2,    ///< first direction of translational joint
-                    const ChVector<>& dirY2,    ///< second direction of translational joint
-                    bool auto_distance = true,  ///< true if imposed distance equal to distance between axes
-                    double distance = 0         ///< imposed distance (used only if auto_distance = false)
-                    );
+    void Initialize(std::shared_ptr<ChBody> body1,  ///< first frame (revolute side)
+                    std::shared_ptr<ChBody> body2,  ///< second frame (spherical side)
+                    bool local,                     ///< true if data given in body local frames
+                    const ChVector<>& p1,           ///< point on first frame (revolute side)
+                    const ChVector<>& dirZ1,        ///< direction of revolute on first frame
+                    const ChVector<>& p2,           ///< point on second frame (translational side)
+                    const ChVector<>& dirX2,        ///< first direction of translational joint
+                    const ChVector<>& dirY2,        ///< second direction of translational joint
+                    bool auto_distance = true,      ///< true if imposed distance equal to distance between axes
+                    double distance = 0             ///< imposed distance (used only if auto_distance = false)
+    );
 
     //
     // UPDATING FUNCTIONS

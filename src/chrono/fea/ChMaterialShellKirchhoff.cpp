@@ -89,10 +89,6 @@ void ChElasticityKirchhoffIsothropic::ComputeStress(  ChVector<>& n,
         m.z() = kur.z() * F;
     } else {
         double G = m_E / (2. * (1. + m_nu));
-        double Q11 = m_E / (1. - m_nu * m_nu);
-        double Q22 = Q11;
-        double Q12 = m_nu * Q11;
-        double Q33 = G;
         double h1 = z_sup - z_inf;
         double h2 = 0.5 * (pow(z_sup, 2) - pow(z_inf, 2));
         double h3 = (1. / 3.) * (pow(z_sup, 3) - pow(z_inf, 3));
@@ -141,10 +137,6 @@ void ChElasticityKirchhoffIsothropic::ComputeStiffnessMatrix(ChMatrixRef mC,
         mC(5, 5) = F;
     } else {
         double G = m_E / (2. * (1. + m_nu));
-        double Q11 = m_E / (1. - m_nu * m_nu);
-        double Q22 = Q11;
-        double Q12 = m_nu * Q11;
-        double Q33 = G;
         double h1 = z_sup - z_inf;
         double h2 = 0.5 * (pow(z_sup, 2) - pow(z_inf, 2));
         double h3 = (1. / 3.) * (pow(z_sup, 3) - pow(z_inf, 3));
@@ -407,6 +399,54 @@ void ChDampingKirchhoff::ComputeDampingMatrix(
         dstrain_0(i, 0) -= delta;
     }
 }
+
+
+
+// -----------------------------------------------------------------------------
+
+
+ChDampingKirchhoffRayleigh::ChDampingKirchhoffRayleigh(
+									std::shared_ptr<ChElasticityKirchhoff> melasticity, 
+									const double& mbeta) {
+	this->beta = mbeta;
+	this->section_elasticity = melasticity;
+	this->updated = false;
+}
+
+
+void ChDampingKirchhoffRayleigh::ComputeStress(
+										ChVector<>& n,            ///< forces  n_11, n_22, n_12 (per unit length)
+										ChVector<>& m,            ///< torques m_11, m_22, m_12 (per unit length)
+										const ChVector<>& deps,   ///< time derivative of strains   de_11/dt, de_22/dt, de_12/dt
+										const ChVector<>& dkur,   ///< time derivative of curvature dk_11/dt, dk_22/dt, dk_12/dt
+										const double z_inf,       ///< layer lower z value (along thickness coord)
+										const double z_sup,       ///< layer upper z value (along thickness coord)
+										const double angle        ///< layer angle respect to x (if needed)
+										) {
+	if (!this->updated && this->section_elasticity->section) {
+		this->section_elasticity->ComputeStiffnessMatrix(this->E_const, VNULL, VNULL, z_inf, z_sup, angle);
+		this->updated = true;
+	}
+	ChVectorN<double, 6> mdstrain;
+    ChVectorN<double, 6> mstress;
+    mdstrain.segment(0 , 3) = deps.eigen();
+    mdstrain.segment(3 , 3) = dkur.eigen();
+    mstress = this->beta * this->E_const * mdstrain;
+    n = mstress.segment(0, 3);
+    m = mstress.segment(3, 3);
+    
+}
+
+void ChDampingKirchhoffRayleigh::ComputeDampingMatrix(	ChMatrixRef R,			  ///< 6x6 material damping matrix values here
+										const ChVector<>& deps,   ///< time derivative of strains   de_11/dt, de_22/dt, de_12/dt
+										const ChVector<>& dkur,   ///< time derivative of curvature dk_11/dt, dk_22/dt, dk_12/dt
+										const double z_inf,       ///< layer lower z value (along thickness coord)
+										const double z_sup,       ///< layer upper z value (along thickness coord)
+										const double angle        ///< layer angle respect to x (if needed) -not used in this, isotropic
+										) {
+	R = this->beta * this->E_const;
+}
+
 
 
 

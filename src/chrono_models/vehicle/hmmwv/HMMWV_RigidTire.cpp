@@ -35,27 +35,31 @@ const double HMMWV_RigidTire::m_width = 0.254;
 const double HMMWV_RigidTire::m_mass = 37.6;
 const ChVector<> HMMWV_RigidTire::m_inertia(3.84, 6.69, 3.84);
 
-const std::string HMMWV_RigidTire::m_meshFile = "hmmwv/hmmwv_tire_fine.obj";
+const std::string HMMWV_RigidTire::m_meshFile_left = "hmmwv/hmmwv_tire_left.obj";
+const std::string HMMWV_RigidTire::m_meshFile_right = "hmmwv/hmmwv_tire_right.obj";
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 HMMWV_RigidTire::HMMWV_RigidTire(const std::string& name, bool use_mesh) : ChRigidTire(name) {
-    SetContactFrictionCoefficient(0.9f);
-    SetContactRestitutionCoefficient(0.1f);
-    SetContactMaterialProperties(2e7f, 0.3f);
-    SetContactMaterialCoefficients(2e5f, 40.0f, 2e5f, 20.0f);
-
     if (use_mesh) {
-        SetMeshFilename(GetDataFile("hmmwv/hmmwv_tire_fine.obj"), 0.005);
+        SetMeshFilename(GetDataFile("hmmwv/hmmwv_tire_coarse.obj"), 0.005);
     }
 }
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
+void HMMWV_RigidTire::CreateContactMaterial(ChContactMethod contact_method) {
+    MaterialInfo minfo;
+    minfo.mu = 0.9f;
+    minfo.cr = 0.1f;
+    minfo.Y = 2e7f;
+    m_material = minfo.CreateMaterial(contact_method);
+}
+
 void HMMWV_RigidTire::AddVisualizationAssets(VisualizationType vis) {
     if (vis == VisualizationType::MESH) {
-        m_trimesh_shape = AddVisualizationMesh(vehicle::GetDataFile(m_meshFile),   // left side
-                                               vehicle::GetDataFile(m_meshFile));  // right side
+        m_trimesh_shape = AddVisualizationMesh(m_meshFile_left,    // left side
+                                               m_meshFile_right);  // right side
     } else {
         ChRigidTire::AddVisualizationAssets(vis);
     }

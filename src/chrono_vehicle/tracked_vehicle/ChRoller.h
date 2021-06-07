@@ -32,6 +32,8 @@
 namespace chrono {
 namespace vehicle {
 
+class ChTrackAssembly;
+
 /// @addtogroup vehicle_tracked_roller
 /// @{
 
@@ -72,19 +74,25 @@ class CH_VEHICLE_API ChRoller : public ChPart {
     /// A derived roller subsystem template class must extend this default
     /// implementation and specify contact geometry for the roller wheel.
     virtual void Initialize(std::shared_ptr<ChBodyAuxRef> chassis,  ///< [in] handle to the chassis body
-                            const ChVector<>& location              ///< [in] location relative to the chassis frame
-                            );
+                            const ChVector<>& location,             ///< [in] location relative to the chassis frame
+                            ChTrackAssembly* track                  ///< [in] containing track assembly
+    );
 
     /// Log current constraint violations.
     void LogConstraintViolations();
 
   protected:
+    /// Create the contact material consistent with the specified contact method.
+    virtual void CreateContactMaterial(ChContactMethod contact_method) = 0;
+
     virtual void ExportComponentList(rapidjson::Document& jsonDocument) const override;
 
     virtual void Output(ChVehicleOutput& database) const override;
 
     std::shared_ptr<ChBody> m_wheel;                 ///< handle to the roller body
     std::shared_ptr<ChLinkLockRevolute> m_revolute;  ///< handle to roller revolute joint
+    std::shared_ptr<ChMaterialSurface> m_material;   ///< contact material;
+    ChTrackAssembly* m_track;                        ///< containing track assembly
 
     friend class ChTrackAssembly;
 };

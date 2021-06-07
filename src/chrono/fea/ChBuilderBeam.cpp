@@ -15,16 +15,19 @@
 #include "chrono/physics/ChSystem.h"
 #include "chrono/fea/ChBuilderBeam.h"
 
-
 namespace chrono {
 namespace fea {
 
-void ChBuilderBeam::BuildBeam(std::shared_ptr<ChMesh> mesh,                 ///< mesh to store the resulting elements
-                              std::shared_ptr<ChBeamSectionAdvanced> sect,  ///< section material for beam elements
-                              const int N,                                  ///< number of elements in the segment
-                              const ChVector<> A,                           ///< starting point
-                              const ChVector<> B,                           ///< ending point
-                              const ChVector<> Ydir                         ///< the 'up' Y direction of the beam
+// ------------------------------------------------------------------
+// ChBuilderBeamEuler
+// ------------------------------------------------------------------
+
+void ChBuilderBeamEuler::BuildBeam(std::shared_ptr<ChMesh> mesh,                 // mesh to store the resulting elements
+                                   std::shared_ptr<ChBeamSectionEuler> sect,     // section material for beam elements
+                                   const int N,                                  // number of elements in the segment
+                                   const ChVector<> A,                           // starting point
+                                   const ChVector<> B,                           // ending point
+                                   const ChVector<> Ydir                         // the 'up' Y direction of the beam
 ) {
     beam_elems.clear();
     beam_nodes.clear();
@@ -54,12 +57,12 @@ void ChBuilderBeam::BuildBeam(std::shared_ptr<ChMesh> mesh,                 ///<
     }
 }
 
-void ChBuilderBeam::BuildBeam(std::shared_ptr<ChMesh> mesh,                 ///< mesh to store the resulting elements
-                              std::shared_ptr<ChBeamSectionAdvanced> sect,  ///< section material for beam elements
-                              const int N,                                  ///< number of elements in the segment
-                              std::shared_ptr<ChNodeFEAxyzrot> nodeA,       ///< starting point
-                              std::shared_ptr<ChNodeFEAxyzrot> nodeB,       ///< ending point
-                              const ChVector<> Ydir                         ///< the 'up' Y direction of the beam
+void ChBuilderBeamEuler::BuildBeam(std::shared_ptr<ChMesh> mesh,                 // mesh to store the resulting elements
+                                   std::shared_ptr<ChBeamSectionEuler> sect,     // section material for beam elements
+                                   const int N,                                  // number of elements in the segment
+                                   std::shared_ptr<ChNodeFEAxyzrot> nodeA,       // starting point
+                                   std::shared_ptr<ChNodeFEAxyzrot> nodeB,       // ending point
+                                   const ChVector<> Ydir                         // the 'up' Y direction of the beam
 ) {
     beam_elems.clear();
     beam_nodes.clear();
@@ -96,12 +99,12 @@ void ChBuilderBeam::BuildBeam(std::shared_ptr<ChMesh> mesh,                 ///<
     }
 }
 
-void ChBuilderBeam::BuildBeam(std::shared_ptr<ChMesh> mesh,                 ///< mesh to store the resulting elements
-                              std::shared_ptr<ChBeamSectionAdvanced> sect,  ///< section material for beam elements
-                              const int N,                                  ///< number of elements in the segment
-                              std::shared_ptr<ChNodeFEAxyzrot> nodeA,       ///< starting point
-                              const ChVector<> B,                           ///< ending point
-                              const ChVector<> Ydir                         ///< the 'up' Y direction of the beam
+void ChBuilderBeamEuler::BuildBeam(std::shared_ptr<ChMesh> mesh,                 // mesh to store the resulting elements
+                                   std::shared_ptr<ChBeamSectionEuler> sect,     // section material for beam elements
+                                   const int N,                                  // number of elements in the segment
+                                   std::shared_ptr<ChNodeFEAxyzrot> nodeA,       // starting point
+                                   const ChVector<> B,                           // ending point
+                                   const ChVector<> Ydir                         // the 'up' Y direction of the beam
 ) {
     beam_elems.clear();
     beam_nodes.clear();
@@ -135,17 +138,17 @@ void ChBuilderBeam::BuildBeam(std::shared_ptr<ChMesh> mesh,                 ///<
     }
 }
 
-/////////////////////////////////////////////////////////
-//
+// ------------------------------------------------------------------
 // ChBuilderBeamIGA
+// ------------------------------------------------------------------
 
-void ChBuilderBeamIGA::BuildBeam(std::shared_ptr<ChMesh> mesh,                 ///< mesh to store the resulting elements
-                                 std::shared_ptr<ChBeamSectionCosserat> sect,  ///< section material for beam elements
-                                 const int N,                                  ///< number of elements in the segment
-                                 const ChVector<> A,                           ///< starting point
-                                 const ChVector<> B,                           ///< ending point
-                                 const ChVector<> Ydir,                        ///< the 'up' Y direction of the beam
-                                 const int order  ///< the order of spline (default=3,cubic)
+void ChBuilderBeamIGA::BuildBeam(std::shared_ptr<ChMesh> mesh,                 // mesh to store the resulting elements
+                                 std::shared_ptr<ChBeamSectionCosserat> sect,  // section material for beam elements
+                                 const int N,                                  // number of elements in the segment
+                                 const ChVector<> A,                           // starting point
+                                 const ChVector<> B,                           // ending point
+                                 const ChVector<> Ydir,                        // the 'up' Y direction of the beam
+                                 const int order                               // the order of spline (default=3,cubic)
 ) {
     beam_elems.clear();
     beam_nodes.clear();
@@ -194,10 +197,10 @@ void ChBuilderBeamIGA::BuildBeam(std::shared_ptr<ChMesh> mesh,                 /
     }
 }
 
-void ChBuilderBeamIGA::BuildBeam(std::shared_ptr<ChMesh> mesh,                 ///< mesh to store the resulting elements
-                                 std::shared_ptr<ChBeamSectionCosserat> sect,  ///< section material for beam elements
-                                 geometry::ChLineBspline& spline,  ///< the B-spline to be used as the centerline
-                                 const ChVector<> Ydir             ///< the 'up' Y direction of the beam
+void ChBuilderBeamIGA::BuildBeam(std::shared_ptr<ChMesh> mesh,                 // mesh to store the resulting elements
+                                 std::shared_ptr<ChBeamSectionCosserat> sect,  // section material for beam elements
+                                 geometry::ChLineBspline& spline,  // the B-spline to be used as the centerline
+                                 const ChVector<> Ydir             // the 'up' Y direction of the beam
 ) {
     beam_elems.clear();
     beam_nodes.clear();
@@ -247,15 +250,15 @@ void ChBuilderBeamIGA::BuildBeam(std::shared_ptr<ChMesh> mesh,                 /
     }
 }
 
-/////////////////////////////////////////////////////////
-//
-// ChBuilderBeamANCF
+// ------------------------------------------------------------------
+// ChBuilderCableANCF
+// ------------------------------------------------------------------
 
-void ChBuilderBeamANCF::BuildBeam(std::shared_ptr<ChMesh> mesh,              ///< mesh to store the resulting elements
-                                  std::shared_ptr<ChBeamSectionCable> sect,  ///< section material for beam elements
-                                  const int N,                               ///< number of elements in the segment
-                                  const ChVector<> A,                        ///< starting point
-                                  const ChVector<> B                         ///< ending point
+void ChBuilderCableANCF::BuildBeam(std::shared_ptr<ChMesh> mesh,              // mesh to store the resulting elements
+                                   std::shared_ptr<ChBeamSectionCable> sect,  // section material for beam elements
+                                   const int N,                               // number of elements in the segment
+                                   const ChVector<> A,                        // starting point
+                                   const ChVector<> B                         // ending point
 ) {
     beam_elems.clear();
     beam_nodes.clear();
@@ -285,25 +288,78 @@ void ChBuilderBeamANCF::BuildBeam(std::shared_ptr<ChMesh> mesh,              ///
     }
 }
 
-/////////////////////////////////////////////////////////
-//
-// ChBuilderBeamANCFFullyPar
+void ChBuilderCableANCF::BuildBeam_FSI(std::shared_ptr<ChMesh> mesh,  // mesh to store the resulting elements
+                                       std::shared_ptr<ChBeamSectionCable> sect,  // section material for beam elements
+                                       const int N,                               // number of elements in the segment
+                                       const ChVector<> A,                        // starting point
+                                       const ChVector<> B,                        // ending point
+                                       std::vector<std::vector<int>>& nodes,      // node indices for all elements
+                                       std::vector<std::vector<int>>& node_nbrs  // neighbor node indices (connectivity)
+) {
+    beam_elems.clear();
+    beam_nodes.clear();
+    auto n_nodes = nodes.size();
+    auto n_nbrs = node_nbrs.size();
 
-void ChBuilderBeamANCFFullyPar::BuildBeam(
-    std::shared_ptr<ChMesh> mesh,             ///< mesh to store the resulting elements
-    std::shared_ptr<ChMaterialBeamANCF> mat,  ///< section material for beam elements
-    const int N,                              ///< number of elements in the segment
-    const ChVector<> A,                       ///< starting point
-    const ChVector<> B,                       ///< ending point
-    const double h,                           ///< height
-    const double w,                           ///< width
-    const ChVector<> DIR,                     ///< initial nodal direction
-    const ChVector<> CUR,                     ///< initial nodal curvature
-    const bool Poisson_effect,                ///< set true to evaluate poisson effects
-    const bool grav,                          ///< set true to apply gravity force
-    const double damp)                        ///< damping
+    nodes.resize(N + n_nodes);
+    node_nbrs.resize(N + 1 + n_nbrs);
+    ChVector<> bdir = (B - A);
+    bdir.Normalize();
 
-{
+    // printf("Section GetArea=%f, GetI=%f, GetDensity=%f, GetYoungModulus=%f, GetBeamRaleyghDamping=%f,bdir=%f\n",
+    //       sect->GetArea(), sect->GetI(), sect->GetDensity(), sect->GetYoungModulus(), sect->GetBeamRaleyghDamping(),
+    //       bdir.x(), bdir.y(), bdir.z());
+
+    auto nodeA = chrono_types::make_shared<ChNodeFEAxyzD>(A, bdir);
+    mesh->AddNode(nodeA);
+    beam_nodes.push_back(nodeA);
+
+    for (int i = 0; i < N; i++) {
+        double eta = (i + 1.0) / N;
+        ChVector<> pos = A + (B - A) * eta;
+
+        auto nodeB = chrono_types::make_shared<ChNodeFEAxyzD>(pos, bdir);
+        mesh->AddNode(nodeB);
+        beam_nodes.push_back(nodeB);
+
+        auto element = chrono_types::make_shared<ChElementCableANCF>();
+        mesh->AddElement(element);
+        beam_elems.push_back(element);
+
+        element->SetNodes(beam_nodes[i], beam_nodes[i + 1]);
+
+        element->SetSection(sect);
+
+        nodes[n_nodes + i].push_back(beam_nodes[i]->GetIndex() - 1);
+        nodes[n_nodes + i].push_back(beam_nodes[i]->GetIndex());
+
+        node_nbrs[beam_nodes[i]->GetIndex() - 1].push_back((int)n_nodes + i);
+        node_nbrs[beam_nodes[i]->GetIndex()].push_back((int)n_nodes + i);
+
+        // printf("Adding nodes %d,%d to the cable element %i\n ", n_nodes + i, n_nodes + i + 1, n_nodes + i);
+        // printf("Adding element %d to the nodes %d,%d\n ", n_nodes + i, n_nodes + i, n_nodes + i + 1);
+        // printf("Added cable element %d with nBp=(%f,%f,%f) from ChBuilderBeamd\n", i, pos.x, pos.y, pos.z);
+        // printf("Added cable element %d with nBp=(%f,%f,%f) from ChBuilderBeamd\n", i, pos.x, pos.y, pos.z);
+    }
+}
+
+// ------------------------------------------------------------------
+// ChBuilderBeamANCF
+// ------------------------------------------------------------------
+
+void ChBuilderBeamANCF::BuildBeam(std::shared_ptr<ChMesh> mesh,             // mesh to store the resulting elements
+                                  std::shared_ptr<ChMaterialBeamANCF> mat,  // section material for beam elements
+                                  const int N,                              // number of elements in the segment
+                                  const ChVector<> A,                       // starting point
+                                  const ChVector<> B,                       // ending point
+                                  const double h,                           // height
+                                  const double w,                           // width
+                                  const ChVector<> DIR,                     // initial nodal direction
+                                  const ChVector<> CUR,                     // initial nodal curvature
+                                  const bool Poisson_effect,                // set true to evaluate poisson effects
+                                  const bool grav,                          // set true to apply gravity force
+                                  const double damp                         // damping
+) {
     beam_elems.clear();
     beam_nodes.clear();
 
@@ -344,17 +400,18 @@ void ChBuilderBeamANCFFullyPar::BuildBeam(
     }
 }
 
-/////////////////////////////////////////////////////////
-//
+// ------------------------------------------------------------------
 // ChExtruderBeamEuler
+// ------------------------------------------------------------------
 
 ChExtruderBeamEuler::ChExtruderBeamEuler(
-    ChSystem* msystem,                            ///< system to store the constraints
-    std::shared_ptr<ChMesh> mmesh,                ///< mesh to store the resulting elements
-    std::shared_ptr<ChBeamSectionAdvanced> sect,  ///< section material for beam elements
-    double mh,                                    ///< element length
-    const ChCoordsys<> moutlet,                   ///< outlet pos & orientation (x is extrusion direction)
-    double mspeed) {
+    ChSystem* msystem,                            // system to store the constraints
+    std::shared_ptr<ChMesh> mmesh,                // mesh to store the resulting elements
+    std::shared_ptr<ChBeamSectionEuler> sect,     // section material for beam elements
+    double mh,                                    // element length
+    const ChCoordsys<> moutlet,                   // outlet pos & orientation (x is extrusion direction)
+    double mspeed                                 // speed
+) {
     h = mh;
     outlet = moutlet;
     mysystem = msystem;
@@ -362,8 +419,6 @@ ChExtruderBeamEuler::ChExtruderBeamEuler(
     beam_section = sect;
     mytime = 0;
     speed = mspeed;
-
-    ChCoordsys<> moutletGround = moutlet;
 
     ground = chrono_types::make_shared<ChBody>();
     ground->SetBodyFixed(true);
@@ -397,9 +452,8 @@ ChExtruderBeamEuler::~ChExtruderBeamEuler() {
 void ChExtruderBeamEuler::SetContact(std::shared_ptr<ChMaterialSurfaceSMC> mcontact_material, double mcontact_radius) {
     this->contact_material = mcontact_material;
     this->contact_radius = mcontact_radius;
-    this->contactcloud = chrono_types::make_shared<ChContactSurfaceNodeCloud>();
+    this->contactcloud = chrono_types::make_shared<ChContactSurfaceNodeCloud>(this->contact_material);
     this->mesh->AddContactSurface(contactcloud);
-    this->contactcloud->SetMaterialSurface(this->contact_material);
 
     this->contactcloud->AddNode(this->beam_nodes.back(), this->contact_radius);
 }
@@ -452,18 +506,18 @@ void ChExtruderBeamEuler::Update() {
     mytime = mysystem->GetChTime();
 }
 
-/////////////////////////////////////////////////////////
-//
+// ------------------------------------------------------------------
 // ChExtruderBeamIGA
+// ------------------------------------------------------------------
 
-ChExtruderBeamIGA::ChExtruderBeamIGA(
-    ChSystem* msystem,                            ///< system to store the constraints
-    std::shared_ptr<ChMesh> mmesh,                ///< mesh to store the resulting elements
-    std::shared_ptr<ChBeamSectionCosserat> sect,  ///< section material for beam elements
-    double mh,                                    ///< element length
-    const ChCoordsys<> moutlet,                   ///< outlet pos & orientation (x is extrusion direction)
-    double mspeed,
-    int morder) {
+ChExtruderBeamIGA::ChExtruderBeamIGA(ChSystem* msystem,              // system to store the constraints
+                                     std::shared_ptr<ChMesh> mmesh,  // mesh to store the resulting elements
+                                     std::shared_ptr<ChBeamSectionCosserat> sect,  // section material for beam elements
+                                     double mh,                                    // element length
+                                     const ChCoordsys<> moutlet,  // outlet pos & orientation (x is extrusion direction)
+                                     double mspeed,               // speed
+                                     int morder                   // element order
+) {
     beam_order = morder;
     h = mh;
     outlet = moutlet;
@@ -472,8 +526,6 @@ ChExtruderBeamIGA::ChExtruderBeamIGA(
     beam_section = sect;
     mytime = 0;
     speed = mspeed;
-
-    ChCoordsys<> moutletGround = moutlet;
 
     ground = chrono_types::make_shared<ChBody>();
     ground->SetBodyFixed(true);
@@ -509,9 +561,8 @@ ChExtruderBeamIGA::~ChExtruderBeamIGA() {
 void ChExtruderBeamIGA::SetContact(std::shared_ptr<ChMaterialSurfaceSMC> mcontact_material, double mcontact_radius) {
     this->contact_material = mcontact_material;
     this->contact_radius = mcontact_radius;
-    this->contactcloud = chrono_types::make_shared<ChContactSurfaceNodeCloud>();
+    this->contactcloud = chrono_types::make_shared<ChContactSurfaceNodeCloud>(this->contact_material);
     this->mesh->AddContactSurface(contactcloud);
-    this->contactcloud->SetMaterialSurface(this->contact_material);
 
     this->contactcloud->AddNode(this->beam_nodes.back(), this->contact_radius);
 }

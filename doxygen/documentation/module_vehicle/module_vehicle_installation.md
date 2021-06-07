@@ -38,6 +38,8 @@ If enabling OpenCRG support (`ENABLE_OPENCRG`), you will be prompted to provide 
 
 ## How to use it
 
+- Consult the [reference manual](@ref manual_vehicle).
+
 - Look at the [API section](@ref vehicle) of this module for documentation about classes and functions.
 
 - Look at the C++ source of [demos](@ref tutorial_table_of_content_chrono_vehicle) to learn how to use the functions of this module.

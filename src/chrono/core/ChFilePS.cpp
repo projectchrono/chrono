@@ -22,6 +22,16 @@ const ChFile_ps_color ChFile_ps_color::BLACK(0, 0, 0);
 const double ChFile_ps::PS_SCALE_CENTIMETERS = 28.3476;
 const double ChFile_ps::PS_SCALE_INCHES = 72.0;
 
+static char* ch_font_labels[] = {(char*)"/Times-Roman",
+                                 (char*)"/Times-Italic",
+                                 (char*)"/Times-Bold",
+                                 (char*)"/Times-BoldItalic",
+                                 (char*)"/Helvetica",
+                                 (char*)"/Helvetica-Oblique",
+                                 (char*)"/Helvetica-Bold",
+                                 (char*)"/Helvetica-BoldOblique",
+                                 0};
+
 ChFile_ps_axis_setting::ChFile_ps_axis_setting() {
     InitializeDefaults();
 }
@@ -135,7 +145,7 @@ ChFile_ps::ChFile_ps(char m_name[], double x, double y, double w, double h, char
             *this << mch;
             copied++;
         }
-    } catch (std::exception pollo) {
+    } catch (const std::exception &) {
         if (!copied) {
             throw ChException("Could not include the 'prolog.ps'. Is the prolog.ps file properly installed?");
         }

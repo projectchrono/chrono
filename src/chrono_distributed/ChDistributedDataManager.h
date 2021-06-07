@@ -15,11 +15,10 @@
 #pragma once
 
 #include "chrono_distributed/ChApiDistributed.h"
-#include "chrono_distributed/other_types.h"
+#include "chrono_distributed/ChTypesDistributed.h"
 #include "chrono_distributed/physics/ChSystemDistributed.h"
 
-#include "chrono_parallel/ChDataManager.h"
-#include "chrono_parallel/math/other_types.h"
+#include "chrono_multicore/ChDataManager.h"
 
 #include <vector>
 
@@ -46,14 +45,9 @@ struct LocalShapeNode {
     int size;                     ///< Number of
     bool free;                    ///< True if this index is free
 };
-/// @} distributed_module
-
-
-/// @addtogroup distributed_module
-/// @{
 
 /// A class for storing data for maintaining a consistent view of a distributed
-/// simulation consisting of multiple wrapped instances of ChSystemParallelSMC.
+/// simulation consisting of multiple wrapped instances of ChSystemMulticoreSMC.
 class CH_DISTR_API ChDistributedDataManager {
   public:
     ChDistributedDataManager(ChSystemDistributed* my_sys);
@@ -70,7 +64,7 @@ class CH_DISTR_API ChDistributedDataManager {
     std::unordered_map<uint, int> gid_to_localid;  ///< Maps gloabl id to local id on this rank
 
     /* Pointers to the rest of the system's data */
-    ChParallelDataManager* data_manager;  ///< Pointer to the main Chrono::Parallel Data Manager
+    ChMulticoreDataManager* data_manager;  ///< Pointer to the main Chrono::Multicore Data Manager
     ChSystemDistributed* my_sys;          ///< Pointer to the main dynamical system
 
     /* Collision system tracking */

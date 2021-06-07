@@ -42,7 +42,7 @@ class ChApi ChRunningAverage {
     /// Construct a running moving average filter (backward).
     /// The filter only uses previous data (as specified by the filter span)
     ChRunningAverage(int n  ///< filter span
-                     );
+    );
 
     ~ChRunningAverage() {}
 
@@ -69,7 +69,7 @@ class ChApi ChMovingAverage {
     /// The average is calculated over 2*n+1 points
     ChMovingAverage(const std::valarray<double>& data,  ///< input data
                     int n                               ///< filter half-span
-                    );
+    );
 
     ~ChMovingAverage() {}
 
@@ -80,15 +80,14 @@ class ChApi ChMovingAverage {
     double Get(int i) const { return m_out[i]; }
 
   private:
-    int m_n;
     std::valarray<double> m_out;
 };
 
-/// Abstract Base class for simulated analogue filters in the time domain
+/// Base class for simulated analogue filters in the time domain.
 class ChApi ChAnalogueFilter {
   public:
-    ChAnalogueFilter(){};
-    ~ChAnalogueFilter(){};
+    ChAnalogueFilter() {}
+    virtual ~ChAnalogueFilter() {}
     virtual void Reset() = 0;
     virtual double Filter(double u) = 0;
 
@@ -98,13 +97,13 @@ class ChApi ChAnalogueFilter {
     double m_y_old;  // last output value
 };
 
-// Calculate the integral of an input signal in the time domain
-// H(s) = 1 / ( Ti * s)
+/// Calculate the integral of an input signal in the time domain:
+/// H(s) = 1 / ( Ti * s)
 class ChApi ChFilterI : public ChAnalogueFilter {
   public:
-    ChFilterI(){};
+    ChFilterI() {}
     ChFilterI(double step, double Ti = 1.0);
-    ~ChFilterI(){};
+    ~ChFilterI() {}
     virtual void Reset() override;
     void Config(double step, double Ti = 1.0);
     virtual double Filter(double u) override;
@@ -113,13 +112,13 @@ class ChApi ChFilterI : public ChAnalogueFilter {
     double m_Ti;
 };
 
-// Caclulate the time derivation of an input signal
-// H(s) = Td * s
+/// Caclulate the time derivation of an input signal:
+/// H(s) = Td * s
 class ChApi ChFilterD : public ChAnalogueFilter {
   public:
-    ChFilterD(){};
+    ChFilterD() {}
     ChFilterD(double step, double Td = 1.0);
-    ~ChFilterD(){};
+    ~ChFilterD() {}
     virtual void Reset() override;
     void Config(double step, double Td = 1.0);
     virtual double Filter(double u) override;
@@ -128,13 +127,13 @@ class ChApi ChFilterD : public ChAnalogueFilter {
     double m_Td;
 };
 
-// Delay an input signal
-// H(s) = Kpt1 / ( T1 * s + 1 )
+/// Delay an input signal:
+/// H(s) = Kpt1 / ( T1 * s + 1 )
 class ChApi ChFilterPT1 : public ChAnalogueFilter {
   public:
-    ChFilterPT1(){};
+    ChFilterPT1() {}
     ChFilterPT1(double step, double T1 = 1.0, double Kpt1 = 1.0);
-    ~ChFilterPT1(){};
+    ~ChFilterPT1() {}
     virtual void Reset() override;
     void Config(double step, double T1 = 1.0, double Kpt1 = 1.0);
     virtual double Filter(double u) override;
@@ -144,13 +143,13 @@ class ChApi ChFilterPT1 : public ChAnalogueFilter {
     double m_Kpt1;
 };
 
-// PD1 Controller
-// H(s) = Kdt1 * ( Td1 * s + 1 )
+/// PD1 controller:
+/// H(s) = Kdt1 * ( Td1 * s + 1 )
 class ChApi ChFilterPD1 : public ChAnalogueFilter {
   public:
-    ChFilterPD1(){};
+    ChFilterPD1() {}
     ChFilterPD1(double step, double Td1 = 1.0, double Kdt1 = 1.0);
-    ~ChFilterPD1(){};
+    ~ChFilterPD1() {}
     virtual void Reset() override;
     void Config(double step, double Td1 = 1.0, double Kdt1 = 1.0);
     virtual double Filter(double u) override;
@@ -160,13 +159,13 @@ class ChApi ChFilterPD1 : public ChAnalogueFilter {
     double m_Kdt1;
 };
 
-// PDT1 Controller
-// H(s) = Kp * ( Td1 * s + 1 ) / ( T1 * s + 1)
+/// PDT1 controller:
+/// H(s) = Kp * ( Td1 * s + 1 ) / ( T1 * s + 1)
 class ChApi ChFilterPDT1 : public ChAnalogueFilter {
   public:
-    ChFilterPDT1(){};
+    ChFilterPDT1() {}
     ChFilterPDT1(double step, double Td1 = 1.0, double T1 = 1.0, double Kp = 1.0);
-    ~ChFilterPDT1(){};
+    ~ChFilterPDT1() {}
     virtual void Reset() override;
     void Config(double step, double Td1 = 1.0, double T1 = 1.0, double Kp = 1.0);
     virtual double Filter(double u) override;
@@ -180,6 +179,7 @@ class ChApi ChFilterPDT1 : public ChAnalogueFilter {
 // For the sake of stability and numerical efficiency they are based
 // on the bilinear transform (Tustin method)
 
+/// Butterworth low-pass filter.
 class ChApi ChButterworth_Lowpass {
   public:
     ChButterworth_Lowpass();
@@ -212,6 +212,7 @@ class ChApi ChButterworth_Lowpass {
     std::vector<double> m_biq_y_hist1, m_biq_y_hist2;
 };
 
+/// Butterworth high-pass filter.
 class ChApi ChButterworth_Highpass {
   public:
     ChButterworth_Highpass();
@@ -244,6 +245,7 @@ class ChApi ChButterworth_Highpass {
     std::vector<double> m_biq_y_hist1, m_biq_y_hist2;
 };
 
+/// Filter for vertical absorbed power.
 class ChApi ChAbsorbed_Power_Vertical {
   public:
     ChAbsorbed_Power_Vertical();
@@ -309,6 +311,7 @@ class ChApi ChISO2631_1_UpwardStep {
     double m_y_hist1, m_y_hist2;
 };
 
+/// Combined filter Wk.
 class ChApi ChISO2631_1_Wk {
   public:
     ChISO2631_1_Wk();
@@ -318,7 +321,6 @@ class ChApi ChISO2631_1_Wk {
     double Filter(double u);
 
   private:
-    double m_Ts;
     static const double f1;
     static const double f2;
     static const double f3;
@@ -335,6 +337,7 @@ class ChApi ChISO2631_1_Wk {
     ChISO2631_1_UpwardStep ups;
 };
 
+/// Combined filter Wd.
 class ChApi ChISO2631_1_Wd {
   public:
     ChISO2631_1_Wd();
@@ -344,7 +347,6 @@ class ChApi ChISO2631_1_Wd {
     double Filter(double u);
 
   private:
-    double m_Ts;
     static const double f1;
     static const double f2;
     static const double f3;
@@ -356,6 +358,7 @@ class ChApi ChISO2631_1_Wd {
     ChISO2631_1_AVTransition avt;
 };
 
+/// Combined filter Wf.
 class ChApi ChISO2631_1_Wf {
   public:
     ChISO2631_1_Wf();
@@ -365,7 +368,6 @@ class ChApi ChISO2631_1_Wf {
     double Filter(double u);
 
   private:
-    double m_Ts;
     static const double f1;
     static const double f2;
     static const double f4;
@@ -381,7 +383,8 @@ class ChApi ChISO2631_1_Wf {
     ChISO2631_1_UpwardStep ups;
 };
 
-// ISO2631-5 weighting filter for shock like signal in horizontal direction, does work with sample rate = 160 Hz only
+/// ISO2631-5 weighting filter for shock like signal in horizontal direction. 
+/// Works with sample rate = 160 Hz only.
 class ChApi ChISO2631_5_Wxy {
   public:
     ChISO2631_5_Wxy();
@@ -404,9 +407,9 @@ class ChApi ChISO2631_5_Wxy {
     double m_y_hist1, m_y_hist2;
 };
 
-// ISO2631-5 weighting filter for shock like signal in vertical direction
-// Unlike ChISO2631_5_Wxy this filter is nonlinear and works with a sample rate of fs = 160 Hz (step = 1/160 s) only!
-// unfiltered input u -> filtered output y
+/// ISO2631-5 weighting filter for shock like signal in vertical direction.
+/// Unlike ChISO2631_5_Wxy this filter is nonlinear and works with a sample rate of fs = 160 Hz (step = 1/160 s) only.
+/// unfiltered input u -> filtered output y
 class ChApi ChISO2631_5_Wz {
   public:
     ChISO2631_5_Wz();
@@ -417,9 +420,9 @@ class ChApi ChISO2631_5_Wz {
     static const double m_W[8];
 };
 
-// Easy to use class for evaluation of ISO 2361-1 vibration load on sitting vehicle occupants
-// input: 3 seat accelerations x,y,z in [m/s^2]
-// sample rate should be >= 250 Hz resp. step <= 1/250 s
+/// Easy to use class for evaluation of ISO 2361-1 vibration load on sitting vehicle occupants
+/// Input: 3 seat accelerations x,y,z in [m/s^2].
+/// Sample rate should be >= 250 Hz (i.e., step <= 1/250 s).
 class ChApi ChISO2631_Vibration_SeatCushionLogger {
   public:
     ChISO2631_Vibration_SeatCushionLogger();
@@ -502,12 +505,11 @@ class ChApi ChISO2631_Vibration_SeatCushionLogger {
     ChFilterI m_filter_int_vdv_z;
 };
 
-// Easy to use class for evaluation of ISO 2361-5 shock load on sitting vehicle occupants
-// input: 3 seat accelerations x,y,z in [m/s^2]
-// sample rate of the input signal should be >= 250 Hz resp. step <= 1/250 s
-// internal filtering works with 160 Hz sample rate as demanded by ISO 2631-5
-// downsampling is done automatically antialiasing included
-
+/// Easy to use class for evaluation of ISO 2361-5 shock load on sitting vehicle occupants.
+/// Input: 3 seat accelerations x,y,z in [m/s^2].
+/// Sample rate of the input signal should be >= 250 Hz (i.e., step <= 1/250 s).
+/// Internal filtering works with 160 Hz sample rate as demanded by ISO 2631-5.
+/// Downsampling is done automatically antialiasing included
 class ChApi ChISO2631_Shock_SeatCushionLogger {
   public:
     ChISO2631_Shock_SeatCushionLogger();

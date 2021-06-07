@@ -32,11 +32,11 @@ namespace vehicle {
 /// @{
 
 /// Template for simplified powertrain model.
-/// This model uses a trivial speed-torque curve, has no torque converter
-/// and no transmission box.
+/// This model uses a trivial speed-torque curve, has no torque converter, and no transmission box.
+/// As such, in automatic mode, it always uses the 1st forward gear ratio.
 class CH_VEHICLE_API ChSimpleCVTPowertrain : public ChPowertrain {
   public:
-    ChSimpleCVTPowertrain(const std::string& name, double motor_max_speed = 10000);
+    ChSimpleCVTPowertrain(const std::string& name);
 
     virtual ~ChSimpleCVTPowertrain() {}
 
@@ -61,34 +61,24 @@ class CH_VEHICLE_API ChSimpleCVTPowertrain : public ChPowertrain {
     /// This simplified model does not have a torque converter.
     virtual double GetTorqueConverterOutputTorque() const override { return 0; }
 
-    /// Return the current transmission gear.
-    /// This simplified model does not have a transmission box.
-    virtual int GetCurrentTransmissionGear() const override { return 1; }
+    /// Return the torque converter output shaft speed.
+    /// This simplified model does not have a torque converter.
+    virtual double GetTorqueConverterOutputSpeed() const override { return 0; }
 
     /// Return the output torque from the powertrain.
     /// This is the torque that is passed to a vehicle system, thus providing the
     /// interface between the powertrain and vehicle co-simulation modules.
     virtual double GetOutputTorque() const override { return m_shaftTorque; }
 
-    /// Use this function to set the mode of automatic transmission.
-    /// This simplified model does not have a transmission box.
-    virtual void SetDriveMode(ChPowertrain::DriveMode mmode) override;
-
   protected:
-    /// Return the forward gear ratio (single gear transmission).
-    virtual double GetForwardGearRatio() const = 0;
-
-    /// Return the reverse gear ratio.
-    virtual double GetReverseGearRatio() const = 0;
-
     /// Return the maximum motor torque.
     virtual double GetMaxTorque() const = 0;
 
     /// Return the maximum motor power.
     virtual double GetMaxPower() const = 0;
 
-    /// Return the critical motor speed (torque cutoff).
-    virtual double GetCriticalSpeed() const = 0;
+    /// Return the maximum motor speed (above which torque is 0).
+    virtual double GetMaxSpeed() const = 0;
 
   private:
     /// Initialize the powertrain system.
@@ -106,11 +96,10 @@ class CH_VEHICLE_API ChSimpleCVTPowertrain : public ChPowertrain {
     /// This function does nothing for this simplified powertrain model.
     virtual void Advance(double step) override {}
 
-    double m_current_gear_ratio;
     double m_motorSpeed;
     double m_motorTorque;
     double m_shaftTorque;
-    double m_motorMaxSpeed;
+    double m_critical_speed;
 };
 
 /// @} vehicle_powertrain

@@ -12,35 +12,50 @@ option(BUILD_DEMOS "Build demo programs" ON)
 option(BUILD_BENCHMARKING "Build benchmark tests" OFF)
 
 #-----------------------------------------------------------------------------
+# Search prefixes specified by <PackageName>_ROOT
+#-----------------------------------------------------------------------------
+if (POLICY CMP0074)
+  cmake_policy(SET CMP0074 NEW)
+endif()
+
+#-----------------------------------------------------------------------------
 # Collect compiler flags required to build the Chrono libraries
 #-----------------------------------------------------------------------------
 
-set(CH_C_FLAGS "")
-set(CH_CXX_FLAGS "")
+set(CH_C_FLAGS "${CMAKE_C_FLAGS}")
+set(CH_CXX_FLAGS "${CMAKE_CXX_FLAGS}")
 
 #-----------------------------------------------------------------------------
 # Enable C++11 support.  Check for C++14 support
 #-----------------------------------------------------------------------------
 
+# Allow user to enforce strict C++11 standard
+option(CH_ENFORCE_CXX11 "Enforce strict C++11 standard" OFF)
+
 find_package(ModernCXX)
-#set(CH_CXX_FLAGS "${CH_CXX_FLAGS} ${CMAKE_CXX11_STANDARD_COMPILE_OPTION}")
-set(CH_CXX_FLAGS "${CH_CXX_FLAGS} ${CMAKE_CXX14_STANDARD_COMPILE_OPTION}")
+
+if (CH_ENFORCE_CXX11)
+  set(CH_CXX_FLAGS "${CH_CXX_FLAGS} ${CMAKE_CXX11_STANDARD_COMPILE_OPTION}")
+else()
+  set(CH_CXX_FLAGS "${CH_CXX_FLAGS} ${CMAKE_CXX14_STANDARD_COMPILE_OPTION}")
+endif()
 
 # This is a hack -- look for a more robust solution
 set(CH_CXX14 FALSE)
+
 if(CMAKE_CXX_COMPILER_ID MATCHES "GNU")
   message(STATUS "GCC version:  ${CMAKE_CXX_COMPILER_VERSION}")
-  if(CMAKE_CXX_COMPILER_VERSION VERSION_GREATER 4.9.9)
+  if(NOT CH_ENFORCE_CXX11 AND CMAKE_CXX_COMPILER_VERSION VERSION_GREATER 4.9.9)
     set(CH_CXX14 TRUE)
   endif()
 elseif(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
   message(STATUS "Clang version:  ${CMAKE_CXX_COMPILER_VERSION}")
-  if(CMAKE_CXX_COMPILER_VERSION VERSION_GREATER_EQUAL 3.4)
+  if(NOT CH_ENFORCE_Cxx11 AND CMAKE_CXX_COMPILER_VERSION VERSION_GREATER_EQUAL 3.4)
     set(CH_CXX14 TRUE)
   endif()
 elseif(CMAKE_CXX_COMPILER_ID MATCHES "MSVC")
   message(STATUS "Visual Studio version:  ${MSVC_VERSION}")
-  if(MSVC_VERSION GREATER 1800)
+  if(NOT CH_ENFORCE_CXX11 AND MSVC_VERSION GREATER 1800)
     set(CH_CXX14 TRUE)
   endif()
 endif()
@@ -50,7 +65,7 @@ message(STATUS "Compiler supports C++14:  ${CH_CXX14}")
 if (CMAKE_CXX_COMPILER_ID MATCHES "PGI")
   set(CH_CXX_FLAGS "")
   message(STATUS "PGI version: ${CMAKE_CXX_COMPILER_VERSION}")
-  if(CMAKE_CXX_COMPILER_VERSION VERSION_GREATER_EQUAL 17.4)
+  if(NOT CH_ENFORCE_CXX11 AND CMAKE_CXX_COMPILER_VERSION VERSION_GREATER_EQUAL 17.4)
     message(STATUS "CMAKE_CXX14_STANDARD_COMPILE_OPTION can't be trusted for PGI, manually adding C++14 support")
     set(CH_CXX14 TRUE)
     set(CH_CXX_FLAGS "-std=c++14")
@@ -114,108 +129,126 @@ endif()
 cmake_dependent_option(ENABLE_OPENMP "Enable OpenMP support in Chrono::Engine" ON
                        "OPENMP_FOUND" OFF)
 
+set(OPENMP_INCLUDE_DIR "")
+set(OPENMP_LIBRARIES "")
 if(ENABLE_OPENMP)
   message(STATUS "  OpenMP CXX flags: ${OpenMP_CXX_FLAGS}")
   message(STATUS "  OpenMP C flags:   ${OpenMP_C_FLAGS}")
+  message(STATUS "  OpenMP includes:  ${OpenMP_CXX_INCLUDE_DIRS}")
+  message(STATUS "  OpenMP library:   ${OpenMP_CXX_LIBRARY}")
+  message(STATUS "  OpenMP libraries: ${OpenMP_CXX_LIBRARIES}")
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
   set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${OpenMP_C_FLAGS}")
   set(CH_CXX_FLAGS "${CH_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
   set(CH_C_FLAGS "${CH_C_FLAGS} ${OpenMP_C_FLAGS}")
+  set(OPENMP_INCLUDE_DIR "${OpenMP_CXX_INCLUDE_DIRS}")
+  set(OPENMP_LIBRARIES "${OpenMP_CXX_LIBRARIES}")
 else()
-	# As an alternative, if TBB is located the Parallel module will use it for all thrust calls
+	# As an alternative, if TBB is located the Multicore module will use it for all thrust calls
 	find_package("TBB")
 	cmake_dependent_option(ENABLE_TBB "Enable TBB support in Chrono::Engine" ON "TBB_FOUND" OFF)
 endif()
 
 #-----------------------------------------------------------------------------
-# SSE and AVX support
+# SSE / AVX / FMA / NEON support
 #-----------------------------------------------------------------------------
 
-# Figure out SIMD level support
-message(STATUS "Seaching for SSE...")
-find_package(SSE)
+option(USE_SIMD "Enable use of SIMD if supported (SSE, AVX, NEON)" ON)
 
-# Set substitution variables for configuration file
-if(SSE_FOUND)
-  set(CHRONO_HAS_SSE "#define CHRONO_HAS_SSE")
-  set(CHRONO_SSE_LEVEL "#define CHRONO_SSE_LEVEL \"${SSE_VERSION}\"")
-  if(DETECTED_SSE_10)
-    set(CHRONO_SSE_1_0 "#define CHRONO_SSE_1_0")
-  endif()
-  if(DETECTED_SSE_20)
-    set(CHRONO_SSE_2_0 "#define CHRONO_SSE_2_0")
-  endif()
-  if(DETECTED_SSE_30)
-    set(CHRONO_SSE_3_0 "#define CHRONO_SSE_3_0")
-  endif()
-  if(DETECTED_SSE_41)
-    set(CHRONO_SSE_4_1 "#define CHRONO_SSE_4_1")
-  endif()
-  if(DETECTED_SSE_42)
-    set(CHRONO_SSE_4_2 "#define CHRONO_SSE_4_2")
-  endif()
-endif()
-  
-# Figure out AVX level support
-message(STATUS "Searching for AVX...")
-find_package(AVX)
+if(USE_SIMD)
 
-# Set substitution variables for configuration file
-if(AVX_FOUND)
-  set(CHRONO_HAS_AVX "#define CHRONO_HAS_AVX")
-  set(CHRONO_AVX_LEVEL "#define CHRONO_AVX_LEVEL \"${AVX_VERSION}\"")
-  if(DETECTED_AVX_10)
-    set(CHRONO_AVX_1_0 "#define CHRONO_AVX_1_0")
-  endif()
-  if(DETECTED_AVX_20)
-    set(CHRONO_AVX_2_0 "#define CHRONO_AVX_2_0")
-  endif()
-endif()
+   # Figure out SIMD level support
+   message(STATUS "Seaching for SSE...")
+   find_package(SSE)
+   
+   # Set substitution variables for configuration file
+   if(SSE_FOUND)
+     set(CHRONO_HAS_SSE "#define CHRONO_HAS_SSE")
+     set(CHRONO_SSE_LEVEL "#define CHRONO_SSE_LEVEL \"${SSE_VERSION}\"")
+     if(DETECTED_SSE_10)
+       set(CHRONO_SSE_1_0 "#define CHRONO_SSE_1_0")
+     endif()
+     if(DETECTED_SSE_20)
+       set(CHRONO_SSE_2_0 "#define CHRONO_SSE_2_0")
+     endif()
+     if(DETECTED_SSE_30)
+       set(CHRONO_SSE_3_0 "#define CHRONO_SSE_3_0")
+     endif()
+     if(DETECTED_SSE_41)
+       set(CHRONO_SSE_4_1 "#define CHRONO_SSE_4_1")
+     endif()
+     if(DETECTED_SSE_42)
+       set(CHRONO_SSE_4_2 "#define CHRONO_SSE_4_2")
+     endif()
+   endif()
+   
+   # Figure out AVX level support
+   message(STATUS "Searching for AVX...")
+   find_package(AVX)
+   
+   # Set substitution variables for configuration file
+   if(AVX_FOUND)
+     set(CHRONO_HAS_AVX "#define CHRONO_HAS_AVX")
+     set(CHRONO_AVX_LEVEL "#define CHRONO_AVX_LEVEL \"${AVX_VERSION}\"")
+     if(DETECTED_AVX_10)
+       set(CHRONO_AVX_1_0 "#define CHRONO_AVX_1_0")
+     endif()
+     if(DETECTED_AVX_20)
+       set(CHRONO_AVX_2_0 "#define CHRONO_AVX_2_0")
+     endif()
+   endif()
 
-# Figure out FMA level support
-message(STATUS "Searching for FMA...")
-find_package(FMA)
+   # Figure out FMA level support
+   message(STATUS "Searching for FMA...")
+   find_package(FMA)
+   
+   # Set substitution variables for configuration file
+   if(FMA_FOUND)
+     set(CHRONO_HAS_FMA "#define CHRONO_HAS_FMA")
+   endif()
+   
+   # Add SSE, AVX, and FMA flags to Chrono compiler flags
+   # Note that these flags are already added to CMake compiler flags
+   set(CH_CXX_FLAGS "${CH_CXX_FLAGS} ${SSE_FLAGS} ${AVX_FLAGS} ${FMA_FLAGS}")
+   set(CH_C_FLAGS "${CH_C_FLAGS} ${SSE_FLAGS} ${AVX_FLAGS} ${FMA_FLAGS}")
+   
+   # Check if the system has NEON support
+   message(STATUS "Searching for NEON...")
+   find_package(NEON)
+   
+   # Set substitution variables for configuration file.
+   if (NEON_FOUND)
+     set (CHRONO_HAS_NEON "#define CHRONO_HAS_NEON")
+   endif()
 
-# Set substitution variables for configuration file
-if(FMA_FOUND)
-  set(CHRONO_HAS_FMA "#define CHRONO_HAS_FMA")
-endif()
+   # Add NEON flags to Chrono compiler flags
+   # Note that these flags are already added to CMake compiler flags
+   set(CH_CXX_FLAGS "${CH_CXX_FLAGS} ${NEON_FLAGS}")
+   set(CH_C_FLAGS "${CH_C_FLAGS} ${NEON_FLAGS}")
 
-# Add SSE, AVX, and FMA flags to Chrono compiler flags
-# Note that these flags are already added to CMake compiler flags
-set(CH_CXX_FLAGS "${CH_CXX_FLAGS} ${SSE_FLAGS} ${AVX_FLAGS} ${FMA_FLAGS}")
-set(CH_C_FLAGS "${CH_C_FLAGS} ${SSE_FLAGS} ${AVX_FLAGS} ${FMA_FLAGS}")
+else()
 
-#-----------------------------------------------------------------------------
-# NEON support
-#-----------------------------------------------------------------------------
+   message(STATUS "SIMD support disabled")
 
-# Check if the system has NEON support
-message(STATUS "Searching for NEON...")
-find_package(NEON)
+endif() 
 
-# Set substitution variables for configuration file.
-if (NEON_FOUND)
-  set (CHRONO_HAS_NEON "#define CHRONO_HAS_NEON")
-endif()
+message(STATUS "C++ compiler flags: ${CH_CXX_FLAGS}")
+message(STATUS "C compile flags:    ${CH_C_FLAGS}")
 
-# Add NEON flags to Chrono compiler flags
-# Note that these flags are already added to CMake compiler flags
-set(CH_CXX_FLAGS "${CH_CXX_FLAGS} ${NEON_FLAGS}")
-set(CH_C_FLAGS "${CH_C_FLAGS} ${NEON_FLAGS}")
 
 #-----------------------------------------------------------------------------
 # Eigen library
 #-----------------------------------------------------------------------------
 
+message(STATUS "Searching for Eigen3...")
 find_package(Eigen3 3.3.0)
 if(EIGEN3_FOUND)
-  message(STATUS "Eigen3 version: ${EIGEN3_VERSION}")
-  message(STATUS "Eigen3 include directory: ${EIGEN3_INCLUDE_DIR}")
+  message(STATUS "  Eigen3 version: ${EIGEN3_VERSION}")
+  message(STATUS "  Eigen3 include directory: ${EIGEN3_INCLUDE_DIR}")
 else()
   mark_as_advanced(CLEAR EIGEN3_INCLUDE_DIR)
   mark_as_advanced(FORCE Eigen3_DIR)
-  message(FATAL_ERROR "Eigen3 not found. Specify EIGEN3_INCLUDE_DIR")
+  message(FATAL_ERROR "  Eigen3 not found. Specify EIGEN3_INCLUDE_DIR")
 endif()
 
 # Fix for VS 2017 15.8 and newer to handle alignment specification with Eigen.
@@ -223,6 +256,13 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
 	if(MSVC AND ${MSVC_VERSION} GREATER_EQUAL 1915)
 	  add_definitions( "-D_ENABLE_EXTENDED_ALIGNED_STORAGE" )
 	endif()
+endif()
+
+cmake_dependent_option(USE_EIGEN_OPENMP "Compile Chrono with OpenMP support in Eigen" ON "ENABLE_OPENMP" OFF)
+
+if (NOT USE_EIGEN_OPENMP)
+  set(CH_CXX_FLAGS "${CH_CXX_FLAGS} -DEIGEN_DONT_PARALLELIZE")
+  set(CH_C_FLAGS "${CH_C_FLAGS} -DEIGEN_DONT_PARALLELIZE")
 endif()
 
 #-----------------------------------------------------------------------------
@@ -277,7 +317,7 @@ if(CUDA_FOUND)
   mark_as_advanced(FORCE CUDA_USE_STATIC_CUDA_RUNTIME)
 
   set(CUDA_SEPARABLE_COMPILATION OFF)
-  
+
   if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
     set(CUDA_SEPARABLE_COMPILATION OFF)
   elseif(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
@@ -303,6 +343,8 @@ if(CUDA_FOUND)
 endif()
 
 #-----------------------------------------------------------------------------
+# Miscellaneous compiler flags
+#-----------------------------------------------------------------------------
 
 if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
     if(MSVC)
@@ -327,6 +369,38 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
     endif()
 endif()
 
+
+# Compiler warning level and disbaled warnings
+
+if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+    message(STATUS "[Clang] Warning level set to default")
+    #add_compile_options(-Wall)
+    add_compile_options(-Wno-unknown-warning-option)
+    add_compile_options(-Wno-reorder-ctor)
+    add_compile_options(-Wno-pragma-pack)
+    add_compile_options(-Wno-unused-local-typedef)
+    add_compile_options(-Wno-unused-function)
+    add_compile_options(-Wno-unused-parameter)
+elseif(MSVC)
+    message(STATUS "[MSVC] Warning level set to /W4")
+    add_compile_options(/W4)
+    add_compile_options(/wd4100)   # unreferenced formal parameter
+    add_compile_options(/wd4127)   # conditional expression is constant
+    add_compile_options(/wd4201)   # nameless struct/union
+    add_compile_options(/wd4244)   # conversion; possible loss of data
+    add_compile_options(/wd4251)   # class needs to have dll-interface
+    add_compile_options(/wd4324)   # structure padded due to alignment specifier
+    add_compile_options(/wd4505)   # unreferenced local function
+    add_compile_options(/wd4458)   # declaration hides class member
+    add_compile_options(/wd4515)   # namespace uses itself
+else()
+    message(STATUS "Warning level set to -Wall")
+    add_compile_options(-Wall)
+    add_compile_options(-Wno-sign-compare)
+    add_compile_options(-Wno-reorder)
+    add_compile_options(-Wno-unused-function)
+endif()
+
 #-----------------------------------------------------------------------------
 # HDF5 support (optional)
 #-----------------------------------------------------------------------------
@@ -336,34 +410,34 @@ option(ENABLE_HDF5 "Enable HDF5 support" OFF)
 if(ENABLE_HDF5)
 
     message(STATUS "Searching for HDF5...")
-    
+
     # First look for a FindHDF5.cmake module
     # If found, this will define the following relevant variables:
     #    HDF5_INCLUDE_DIRS
     #    HDF5_C_LIBRARIES
     #    HDF5_CXX_LIBRARIES
     find_package(HDF5 COMPONENTS CXX)
-    
-    if(NOT HDF5_FOUND) 
+
+    if(NOT HDF5_FOUND)
         # Look for a package configuration file
         # LIB_TYPE can be one of STATIC or SHARED.
         set(LIB_TYPE SHARED) # STATIC or SHARED
         string(TOLOWER ${LIB_TYPE} SEARCH_TYPE)
         find_package(HDF5 NAMES hdf5 COMPONENTS CXX ${SEARCH_TYPE})
-    
+
         if (HDF5_FOUND)
             set(HDF5_INCLUDE_DIRS ${HDF5_INCLUDE_DIR})
             set(HDF5_C_LIBRARIES ${HDF5_C_${LIB_TYPE{_LIBRARY})
             set(HDF5_CXX_LIBRARIES ${HDF5_CXX_${LIB_TYPE}_LIBRARY)
         endif()
     endif()
-    
+
     if (HDF5_FOUND)
         message(STATUS "  HDF5 found         (HDF5_FOUND)         ${HDF5_FOUND}")
         message(STATUS "  HDF5 include dirs  (HDF5_INCLUDE_DIR)   ${HDF5_INCLUDE_DIRS}")
         message(STATUS "  HDF5 C libraries   (HDF5_C_LIBRARIES)   ${HDF5_C_LIBRARIES}")
         message(STATUS "  HDF5 C++ libraries (HDF5_CXX_LIBRARIES) ${HDF5_CXX_LIBRARIES}")
-    
+
         # If using shared libraries on Windows, MUST define H5_BUILT_AS_DYNAMIC_LIB to have
         # the symbols imported from the DLL.  Note also that the path to the HDF5 DLLs must
         # be in the search path (or else copied in the working directory).
@@ -373,7 +447,7 @@ if(ENABLE_HDF5)
         else()
             set(HDF5_COMPILE_DEFS "")
         endif()
-    
+
         set(CHRONO_HAS_HDF5 "#define CHRONO_HAS_HDF5")
     else()
         message(STATUS "  Could not find HDF5")
@@ -405,6 +479,7 @@ add_definitions( "-DBP_USE_FIXEDPOINT_INT_32" )
 include_directories(${CMAKE_CURRENT_SOURCE_DIR})
 include_directories(${PROJECT_BINARY_DIR})
 include_directories(${EIGEN3_INCLUDE_DIR})
+include_directories(${OPENMP_INCLUDE_DIR})
 
 #------------------------------------------------------------
 # Build submodules
@@ -421,9 +496,9 @@ if(BUILD_TESTING)
     # Force using shared libraries.
     option(INSTALL_GTEST "" OFF)
     set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
-  
+
     add_subdirectory(chrono_thirdparty/googletest)
-  
+
     # Hide some Google test-related variables
     mark_as_advanced(FORCE BUILD_GMOCK)
     mark_as_advanced(FORCE INSTALL_GTEST)
@@ -447,9 +522,9 @@ if(BUILD_BENCHMARKING)
     # Do not build tests of benchmarking lib.
     option(BENCHMARK_ENABLE_INSTALL "" OFF)
     set(BENCHMARK_ENABLE_TESTING OFF CACHE BOOL "Suppressing benchmark's tests" FORCE)
-  
+
     add_subdirectory(chrono_thirdparty/googlebenchmark)
-  
+
     # Hide some Google benchmark-related variables
     mark_as_advanced(FORCE BENCHMARK_BUILD_32_BITS)
     mark_as_advanced(FORCE BENCHMARK_DOWNLOAD_DEPENDENCIES)
@@ -476,7 +551,7 @@ endif()
 # Propagate the CMake build to other directories
 #------------------------------------------------------------
 
-# Add directory for main ChronoEngine library 
+# Add directory for main ChronoEngine library
 add_subdirectory(chrono)
 
 # Let all modules have access to the headers of the main library
@@ -484,20 +559,24 @@ include_directories(${CH_INCLUDES})
 
 # Add directories to build various optional modules.  Each module is supposed
 # to provide an option for enabling that particular module.
-add_subdirectory(chrono_mkl)
+add_subdirectory(chrono_pardisomkl)
 add_subdirectory(chrono_mumps)
 add_subdirectory(chrono_matlab)
 add_subdirectory(chrono_irrlicht)
 add_subdirectory(chrono_cascade)
 add_subdirectory(chrono_postprocess)
+add_subdirectory(chrono_pardisoproject)
 add_subdirectory(chrono_cosimulation)
 add_subdirectory(chrono_python)
-add_subdirectory(chrono_parallel)
-add_subdirectory(chrono_granular)
+add_subdirectory(chrono_multicore)
 add_subdirectory(chrono_opengl)
+add_subdirectory(chrono_gpu)
 add_subdirectory(chrono_distributed)
 add_subdirectory(chrono_vehicle)
 add_subdirectory(chrono_fsi)
+add_subdirectory(chrono_sensor)
+add_subdirectory(chrono_synchrono)
+add_subdirectory(chrono_csharp)
 
 # Add directories for model libraries
 add_subdirectory(chrono_models)
@@ -517,9 +596,52 @@ endif()
 # Install headers from chrono_thirdparty folder
 #------------------------------------------------------------
 
-install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/chrono_thirdparty
-        DESTINATION include
-	FILES_MATCHING PATTERN "*.h" PATTERN "*.cuh" PATTERN "*.hpp")
+install(DIRECTORY ${CMAKE_SOURCE_DIR}/src/chrono_thirdparty/filesystem
+        DESTINATION include/chrono_thirdparty
+        FILES_MATCHING PATTERN "*.h" PATTERN "*.cuh" PATTERN "*.hpp" PATTERN "*.inl")
+
+install(DIRECTORY ${CMAKE_SOURCE_DIR}/src/chrono_thirdparty/cxxopts
+        DESTINATION include/chrono_thirdparty
+        FILES_MATCHING PATTERN "*.h" PATTERN "*.cuh" PATTERN "*.hpp" PATTERN "*.inl")
+
+install(DIRECTORY ${CMAKE_SOURCE_DIR}/src/chrono_thirdparty/HACD
+        DESTINATION include/chrono_thirdparty
+        FILES_MATCHING PATTERN "*.h" PATTERN "*.cuh" PATTERN "*.hpp" PATTERN "*.inl")
+
+install(DIRECTORY ${CMAKE_SOURCE_DIR}/src/chrono_thirdparty/HACDv2
+        DESTINATION include/chrono_thirdparty
+        FILES_MATCHING PATTERN "*.h" PATTERN "*.cuh" PATTERN "*.hpp" PATTERN "*.inl")
+
+install(DIRECTORY ${CMAKE_SOURCE_DIR}/src/chrono_thirdparty/rapidjson
+        DESTINATION include/chrono_thirdparty
+        FILES_MATCHING PATTERN "*.h" PATTERN "*.cuh" PATTERN "*.hpp" PATTERN "*.inl")
+
+install(DIRECTORY ${CMAKE_SOURCE_DIR}/src/chrono_thirdparty/rapidxml
+        DESTINATION include/chrono_thirdparty
+        FILES_MATCHING PATTERN "*.h" PATTERN "*.cuh" PATTERN "*.hpp" PATTERN "*.inl")
+
+install(DIRECTORY ${CMAKE_SOURCE_DIR}/src/chrono_thirdparty/tinyobjloader
+        DESTINATION include/chrono_thirdparty
+        FILES_MATCHING PATTERN "*.h" PATTERN "*.cuh" PATTERN "*.hpp" PATTERN "*.inl")
+
+install(DIRECTORY ${CMAKE_SOURCE_DIR}/src/chrono_thirdparty/yafel
+        DESTINATION include/chrono_thirdparty
+        FILES_MATCHING PATTERN "*.h" PATTERN "*.cuh" PATTERN "*.hpp" PATTERN "*.inl")
+
+if(BUILD_TESTING)
+   install(DIRECTORY ${CMAKE_SOURCE_DIR}/src/chrono_thirdparty/googletest/googletest/include
+           DESTINATION include/chrono_thirdparty/googletest/googletest
+           FILES_MATCHING PATTERN "*.h" PATTERN "*.cuh" PATTERN "*.hpp" PATTERN "*.inl")
+   install(DIRECTORY ${CMAKE_SOURCE_DIR}/src/chrono_thirdparty/googletest/googlemock/include
+           DESTINATION include/chrono_thirdparty/googletest/googlemock
+           FILES_MATCHING PATTERN "*.h" PATTERN "*.cuh" PATTERN "*.hpp" PATTERN "*.inl")
+endif()
+
+if(BUILD_BENCHMARKING)
+   install(DIRECTORY ${CMAKE_SOURCE_DIR}/src/chrono_thirdparty/googlebenchmark/include
+           DESTINATION include/chrono_thirdparty/googlebenchmark
+           FILES_MATCHING PATTERN "*.h" PATTERN "*.cuh" PATTERN "*.hpp" PATTERN "*.inl")
+endif()
 
 #------------------------------------------------------------
 # Generate and install the Chrono configuration header
@@ -530,7 +652,7 @@ install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/chrono_thirdparty
 #       that a particular module was successfully built, not just
 #       enabled)
 
-if(ENABLE_UNIT_CASCADE)
+if(ENABLE_MODULE_CASCADE)
   set(CHRONO_CASCADE "#define CHRONO_CASCADE")
 else()
   set(CHRONO_CASCADE "#undef CHRONO_CASCADE")
@@ -560,10 +682,10 @@ else()
   set(CHRONO_MATLAB "#undef CHRONO_MATLAB")
 endif()
 
-if(ENABLE_MODULE_MKL)
-  set(CHRONO_MKL "#define CHRONO_MKL")
+if(ENABLE_MODULE_PARDISO_MKL)
+  set(CHRONO_PARDISO_MKL "#define CHRONO_PARDISO_MKL")
 else()
-  set(CHRONO_MKL "#undef CHRONO_MKL")
+  set(CHRONO_PARDISO_MKL "#undef CHRONO_PARDISO_MKL")
 endif()
 
 if(ENABLE_MODULE_MUMPS)
@@ -572,10 +694,10 @@ else()
   set(CHRONO_MUMPS "#undef CHRONO_MUMPS")
 endif()
 
-if(ENABLE_MODULE_PARALLEL)
-  set(CHRONO_PARALLEL "#define CHRONO_PARALLEL")
+if(ENABLE_MODULE_MULTICORE)
+  set(CHRONO_MULTICORE "#define CHRONO_MULTICORE")
 else()
-  set(CHRONO_PARALLEL "#undef CHRONO_PARALLEL")
+  set(CHRONO_MULTICORE "#undef CHRONO_MULTICORE")
 endif()
 
 if(ENABLE_MODULE_OPENGL)
@@ -584,16 +706,16 @@ else()
   set(CHRONO_OPENGL "#undef CHRONO_OPENGL")
 endif()
 
-if(ENABLE_MODULE_OGRE)
-  set(CHRONO_OGRE "#define CHRONO_OGRE")
-else()
-  set(CHRONO_OGRE "#undef CHRONO_OGRE")
-endif()
-
 if(ENABLE_MODULE_POSTPROCESS)
   set(CHRONO_POSTPROCESS "#define CHRONO_POSTPROCESS")
 else()
   set(CHRONO_POSTPROCESS "#undef CHRONO_POSTPROCESS")
+endif()
+
+if(ENABLE_MODULE_PARDISO_PROJECT)
+  set(CHRONO_PARDISOPROJECT "#define CHRONO_PARDISOPROJECT")
+else()
+  set(CHRONO_PARDISOPROJECT "#undef CHRONO_PARDISOPROJECT")
 endif()
 
 if(ENABLE_MODULE_PYTHON)
@@ -614,6 +736,24 @@ else()
   set(CHRONO_FSI "#undef CHRONO_FSI")
 endif()
 
+if(ENABLE_MODULE_GPU)
+  set(CHRONO_GPU "#define CHRONO_GPU")
+else()
+  set(CHRONO_GPU "#undef CHRONO_GPU")
+endif()
+
+if(ENABLE_MODULE_SENSOR)
+  set(CHRONO_SENSOR "#define CHRONO_SENSOR")
+else()
+  set(CHRONO_SENSOR "#undef CHRONO_SENSOR")
+endif()
+
+if(ENABLE_MODULE_SYNCHRONO)
+  set(CHRONO_SYNCHRONO "#define CHRONO_SYNCHRONO")
+else()
+  set(CHRONO_SYNCHRONO "#undef CHRONO_SYNCHRONO")
+endif()
+
 if(ENABLE_OPENMP)
   set(CHRONO_OPENMP_ENABLED "#define CHRONO_OPENMP_ENABLED")
 else()
@@ -626,6 +766,14 @@ else()
   set(CHRONO_TBB_ENABLED "#undef CHRONO_TBB_ENABLED")
 endif()
 
+if(CUDA_FOUND)
+  set(CHRONO_CUDA_FOUND "#define CHRONO_CUDA_FOUND")
+  set(CHRONO_CUDA_VERSION "#define CHRONO_CUDA_VERSION \"${CUDA_VERSION_STRING}\"")
+else()
+  set(CHRONO_CUDA_FOUND "#undef CHRONO_CUDA_FOUND")
+  set(CHRONO_CUDA_VERSION "#undef CHRONO_CUDA_VERSION")
+endif()
+
 configure_file("${CMAKE_CURRENT_SOURCE_DIR}/chrono/ChConfig.h.in"
                "${PROJECT_BINARY_DIR}/chrono/ChConfig.h"
                @ONLY)
@@ -634,7 +782,7 @@ install(FILES "${PROJECT_BINARY_DIR}/chrono/ChConfig.h"
         DESTINATION include/chrono)
 
 #-----------------------------------------------------------------------------
-# Generate and install the versioning header file 
+# Generate and install the versioning header file
 #-----------------------------------------------------------------------------
 
 configure_file("${CMAKE_CURRENT_SOURCE_DIR}/chrono/ChVersion.h.in"
@@ -653,9 +801,12 @@ set(CH_INCLUDE_DIRS "${PROJECT_SOURCE_DIR}/src")
 set(CH_INCLUDE_DIRS ${CH_INCLUDE_DIRS} "${PROJECT_SOURCE_DIR}/src/chrono")
 set(CH_INCLUDE_DIRS ${CH_INCLUDE_DIRS} "${PROJECT_SOURCE_DIR}/src/chrono/collision/bullet")
 set(CH_INCLUDE_DIRS ${CH_INCLUDE_DIRS} "${PROJECT_SOURCE_DIR}/src/chrono/collision/gimpact")
-set(CH_INCLUDE_DIRS ${CH_INCLUDE_DIRS} "${PROJECT_SOURCE_DIR}/src/chrono/collision/convexdecomposition/HACD")
+set(CH_INCLUDE_DIRS ${CH_INCLUDE_DIRS} "${PROJECT_SOURCE_DIR}/src/chrono_thirdparty/HACD")
+set(CH_INCLUDE_DIRS ${CH_INCLUDE_DIRS} "${PROJECT_SOURCE_DIR}/src/chrono_thirdparty/HACDv2")
 set(CH_INCLUDE_DIRS ${CH_INCLUDE_DIRS} "${PROJECT_BINARY_DIR}")
 set(CH_INCLUDE_DIRS ${CH_INCLUDE_DIRS} "${EIGEN3_INCLUDE_DIR}")
+set(CH_INCLUDE_DIRS ${CH_INCLUDE_DIRS} "${OPENMP_INCLUDE_DIR}")
+
 set(CH_BINARY_DIR "${PROJECT_BINARY_DIR}")
 set(CH_DATA_DIR "${PROJECT_SOURCE_DIR}/data/")
 
@@ -668,8 +819,11 @@ set(CH_INCLUDE_DIRS "${CMAKE_INSTALL_PREFIX}/include")
 set(CH_INCLUDE_DIRS ${CH_INCLUDE_DIRS} "${CMAKE_INSTALL_PREFIX}/include/chrono")
 set(CH_INCLUDE_DIRS ${CH_INCLUDE_DIRS} "${CMAKE_INSTALL_PREFIX}/include/chrono/collision/bullet")
 set(CH_INCLUDE_DIRS ${CH_INCLUDE_DIRS} "${CMAKE_INSTALL_PREFIX}/include/chrono/collision/gimpact")
-set(CH_INCLUDE_DIRS ${CH_INCLUDE_DIRS} "${CMAKE_INSTALL_PREFIX}/include/chrono/collision/convexdecomposition/HACD")
+set(CH_INCLUDE_DIRS ${CH_INCLUDE_DIRS} "${CMAKE_INSTALL_PREFIX}/include/chrono_thirdparty/HACD")
+set(CH_INCLUDE_DIRS ${CH_INCLUDE_DIRS} "${CMAKE_INSTALL_PREFIX}/include/chrono_thirdparty/HACDv2")
 set(CH_INCLUDE_DIRS ${CH_INCLUDE_DIRS} "${EIGEN3_INCLUDE_DIR}")
+set(CH_INCLUDE_DIRS ${CH_INCLUDE_DIRS} "${OPENMP_INCLUDE_DIR}")
+
 set(CH_BINARY_DIR ${CMAKE_INSTALL_PREFIX})
 set(CH_DATA_DIR "${CMAKE_INSTALL_PREFIX}/${CH_INSTALL_DATA}/")
 

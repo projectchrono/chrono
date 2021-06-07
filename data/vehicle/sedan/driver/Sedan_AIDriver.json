@@ -1,0 +1,18 @@
+// Parameters for Sedan vehicle driver based on AI (autonomy stack) controls.
+{
+    // Speed controller
+    "Speed Controller": {
+        "Kp": 0.8,
+        "Ki": 0,
+        "Kd": 0,
+        "Threshold Throttle": 0.2
+    },
+
+    // Steering map: from front wheel angle [rad] to steering input (in [-1,1])
+    // MAximum wheel steering angle: 0.63 rad (approx 36 degrees)
+    "Steering Map": [
+        [ -0.63, -1 ],
+        [ 0, 0 ],
+        [ 0.63, 1 ]
+    ]
+}

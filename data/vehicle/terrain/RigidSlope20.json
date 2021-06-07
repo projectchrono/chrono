@@ -9,8 +9,7 @@
       "Orientation": [ 1, 0, 0, 0 ],
 
       "Geometry": {
-        "Height Map Filename": "terrain/height_maps/slope.bmp",
-        "Mesh Name": "terrain_slope20_geom",
+        "Height Map Filename": "terrain/height_maps/slope.bmp"
         "Size": [ 120, 40 ],
         "Height Range": [ 0, 8 ]
       },

@@ -30,7 +30,7 @@ namespace vehicle {
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 FialaTire::FialaTire(const std::string& filename) : ChFialaTire(""), m_has_vert_table(false), m_has_mesh(false) {
-    Document d = ReadFileJSON(filename);
+    Document d; ReadFileJSON(filename, d);
     if (d.IsNull())
         return;
 
@@ -123,8 +123,8 @@ double FialaTire::GetNormalDampingForce(double depth, double velocity) const {
 // -----------------------------------------------------------------------------
 void FialaTire::AddVisualizationAssets(VisualizationType vis) {
     if (vis == VisualizationType::MESH && m_has_mesh) {
-        m_trimesh_shape = AddVisualizationMesh(vehicle::GetDataFile(m_meshFile_left),    // left side
-                                               vehicle::GetDataFile(m_meshFile_right));  // right side
+        m_trimesh_shape = AddVisualizationMesh(m_meshFile_left,    // left side
+                                               m_meshFile_right);  // right side
     } else {
         ChFialaTire::AddVisualizationAssets(vis);
     }

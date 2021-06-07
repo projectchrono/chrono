@@ -28,7 +28,7 @@ namespace vehicle {
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 ShaftsDriveline4WD::ShaftsDriveline4WD(const std::string& filename) : ChShaftsDriveline4WD("") {
-    Document d = ReadFileJSON(filename);
+    Document d; ReadFileJSON(filename, d);
     if (d.IsNull())
         return;
 
@@ -63,9 +63,6 @@ void ShaftsDriveline4WD::Create(const rapidjson::Document& d) {
     assert(d.HasMember("Gear Ratio"));
     m_front_conicalgear_ratio = d["Gear Ratio"]["Front Conical Gear"].GetDouble();
     m_rear_conicalgear_ratio = d["Gear Ratio"]["Rear Conical Gear"].GetDouble();
-    m_central_differential_ratio = d["Gear Ratio"]["Central Differential"].GetDouble();
-    m_front_differential_ratio = d["Gear Ratio"]["Front Differential"].GetDouble();
-    m_rear_differential_ratio = d["Gear Ratio"]["Rear Differential"].GetDouble();
 
     m_axle_differential_locking_limit = 100;
     if (d.HasMember("Axle Differential Locking Limit")) {

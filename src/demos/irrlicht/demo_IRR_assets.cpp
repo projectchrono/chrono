@@ -50,8 +50,7 @@ int main(int argc, char* argv[]) {
 
     // Create the Irrlicht visualization (open the Irrlicht device,
     // bind a simple user interface, etc. etc.)
-    ChIrrApp application(&mphysicalSystem, L"Assets for Irrlicht visualization", core::dimension2d<u32>(800, 600),
-                         false, true);
+    ChIrrApp application(&mphysicalSystem, L"Assets for Irrlicht visualization", core::dimension2d<u32>(800, 600));
 
     // Easy shortcuts to add camera, lights, logo and sky in Irrlicht scene:
     application.AddTypicalLogo();
@@ -63,9 +62,7 @@ int main(int argc, char* argv[]) {
     // EXAMPLE 1:
     //
 
-    // Create a ChBody, and attach some 'assets'
-    // that define 3D shapes. These shapes can be shown
-    // by Irrlicht or POV postprocessing, etc...
+    // Create a ChBody, and attach some 'assets' that define 3D shapes for visualization purposes.
     // Note: these assets are independent from collision shapes!
 
     // Create a rigid body as usual, and add it
@@ -73,9 +70,12 @@ int main(int argc, char* argv[]) {
     auto mfloor = chrono_types::make_shared<ChBody>();
     mfloor->SetBodyFixed(true);
 
+    // Contact material
+    auto floor_mat = chrono_types::make_shared<ChMaterialSurfaceNSC>();
+
     // Define a collision shape
     mfloor->GetCollisionModel()->ClearModel();
-    mfloor->GetCollisionModel()->AddBox(10, 0.5, 10, ChVector<>(0, -1, 0));
+    mfloor->GetCollisionModel()->AddBox(floor_mat, 10, 0.5, 10, ChVector<>(0, -1, 0));
     mfloor->GetCollisionModel()->BuildModel();
     mfloor->SetCollide(true);
 
@@ -193,13 +193,13 @@ int main(int argc, char* argv[]) {
     // ==Asset== Attach, in this level, a 'Wavefront mesh' asset,
     // referencing a .obj file:
     auto mobjmesh = chrono_types::make_shared<ChObjShapeFile>();
-    mobjmesh->SetFilename(GetChronoDataFile("forklift_body.obj"));
+    mobjmesh->SetFilename(GetChronoDataFile("models/forklift/body.obj"));
     mlevelA->AddAsset(mobjmesh);
 
     // ==Asset== Attach also a texture, that will affect only the
     // assets in mlevelA:
     auto mtexture = chrono_types::make_shared<ChTexture>();
-    mtexture->SetTextureFilename(GetChronoDataFile("bluwhite.png"));
+    mtexture->SetTextureFilename(GetChronoDataFile("textures/bluewhite.png"));
     mlevelA->AddAsset(mtexture);
 
     // Change the position of mlevelA, thus moving also its sub-assets:
@@ -219,6 +219,9 @@ int main(int argc, char* argv[]) {
         msmallbox->GetBoxGeometry().Pos = ChVector<>(0.4, 0, 0);
         msmallbox->GetBoxGeometry().Size = ChVector<>(0.1, 0.1, 0.01);
         mlevelC->AddAsset(msmallbox);
+
+        auto boxcol = chrono_types::make_shared<ChColorAsset>(j * 0.05f, 1 - j * 0.05f, 0.0f);
+        mlevelC->AddAsset(boxcol);
 
         ChQuaternion<> mrot;
         mrot.Q_from_AngAxis(j * 21 * CH_C_DEG_TO_RAD, ChVector<>(0, 1, 0));
@@ -254,8 +257,10 @@ int main(int argc, char* argv[]) {
 
     // Note: coll. shape, if needed, must be specified before creating particles.
     // This will be shared among all particles in the ChParticlesClones.
+    auto particle_mat = chrono_types::make_shared<ChMaterialSurfaceNSC>();
+
     mparticles->GetCollisionModel()->ClearModel();
-    mparticles->GetCollisionModel()->AddSphere(0.05);
+    mparticles->GetCollisionModel()->AddSphere(particle_mat, 0.05);
     mparticles->GetCollisionModel()->BuildModel();
     mparticles->SetCollide(true);
 
@@ -285,7 +290,8 @@ int main(int argc, char* argv[]) {
     mpoints.push_back( ChVector<>(0.0,0.3,0.3)+displ );
     mpoints.push_back( ChVector<>(0.0,0.0,0.3)+displ );
     mpoints.push_back( ChVector<>(0.8,0.0,0.3)+displ );
-    auto mhull = chrono_types::make_shared<ChBodyEasyConvexHullAuxRef>(mpoints, 1000, true, true);
+    auto mhull = chrono_types::make_shared<ChBodyEasyConvexHullAuxRef>(
+        mpoints, 1000, true, true, chrono_types::make_shared<ChMaterialSurfaceNSC>());
     //mhull->SetFrame_REF_to_abs(ChFrame<>(ChVector<>(2,0.3,0)));
     //mhull->SetPos(ChVector<>(2,0.3,0));
     mhull->Move(ChVector<>(2,0.3,0));
@@ -309,7 +315,6 @@ int main(int argc, char* argv[]) {
     // THE SOFT-REAL-TIME CYCLE
     //
 
-    application.SetStepManage(true);
     application.SetTimestep(0.01);
     application.SetTryRealtime(true);
 

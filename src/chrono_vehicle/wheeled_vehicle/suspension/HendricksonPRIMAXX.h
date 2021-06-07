@@ -65,10 +65,14 @@ class CH_VEHICLE_API HendricksonPRIMAXX : public ChHendricksonPRIMAXX {
     virtual double getAxleInertia() const override { return m_axleInertia; }
 
     virtual double getShockAHRestLength() const override { return m_shockAH_restLength; }
-    virtual ChLinkTSDA::ForceFunctor* getShockAHForceCallback() const override { return m_shockAHForceCB; }
+    virtual std::shared_ptr<ChLinkTSDA::ForceFunctor> getShockAHForceCallback() const override {
+        return m_shockAHForceCB;
+    }
 
     virtual double getShockLBRestLength() const override { return m_shockLB_restLength; }
-    virtual ChLinkTSDA::ForceFunctor* getShockLBForceCallback() const override { return m_shockLBForceCB; }
+    virtual std::shared_ptr<ChLinkTSDA::ForceFunctor> getShockLBForceCallback() const override {
+        return m_shockLBForceCB;
+    }
 
   private:
     virtual const ChVector<> getLocation(PointId which) override { return m_points[which]; }
@@ -79,8 +83,8 @@ class CH_VEHICLE_API HendricksonPRIMAXX : public ChHendricksonPRIMAXX {
     ChVector<> m_points[NUM_POINTS];
     ChVector<> m_dirs[NUM_DIRS];
 
-    ChLinkTSDA::ForceFunctor* m_shockAHForceCB;
-    ChLinkTSDA::ForceFunctor* m_shockLBForceCB;
+    std::shared_ptr<ChLinkTSDA::ForceFunctor> m_shockAHForceCB;
+    std::shared_ptr<ChLinkTSDA::ForceFunctor> m_shockLBForceCB;
 
     double m_axlehousingMass;
     double m_knuckleMass;

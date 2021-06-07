@@ -31,7 +31,8 @@ namespace fea {
 /// it implements some bookkeeping for the interface with solver.
 /// This means that most FEA elements inherited from ChElementGeneric
 /// need to implement at most the following two fundamental methods:
-///	ComputeKRMmatricesGlobal(), ComputeInternalForces()
+///	ComputeKRMmatricesGlobal(), ComputeInternalForces(), 
+/// and optionally ComputeGravityForces().
 class ChApi ChElementGeneric : public ChElementBase {
   protected:
     ChKblockGeneric Kmatr;
@@ -47,6 +48,8 @@ class ChApi ChElementGeneric : public ChElementBase {
     // Functions for interfacing to the state bookkeeping
     //
 
+    
+
     /// (This is a default (a bit unoptimal) book keeping so that in children classes you can avoid
     /// implementing this EleIntLoadResidual_F function, unless you need faster code)
     virtual void EleIntLoadResidual_F(ChVectorDynamic<>& R, const double c) override;
@@ -55,9 +58,22 @@ class ChApi ChElementGeneric : public ChElementBase {
     /// implementing this EleIntLoadResidual_Mv function, unless you need faster code.)
     virtual void EleIntLoadResidual_Mv(ChVectorDynamic<>& R, const ChVectorDynamic<>& w, const double c) override;
 
+    /// (This is a default (VERY UNOPTIMAL) book keeping so that in children classes you can avoid
+    /// implementing this EleIntLoadResidual_F_gravity function, unless you need faster code.
+    /// This fallback implementation uses a temp ChLoaderGravity that applies the load to elements
+    /// only if they are inherited by ChLoadableUVW so it can use GetDensity() and Gauss quadrature.
+    virtual void EleIntLoadResidual_F_gravity(ChVectorDynamic<>& R, const ChVector<>& G_acc, const double c) override;
+
+
     //
     // FEM functions
     //
+
+    /// (This is the default implementation (POTENTIALLY INEFFICIENT) so that in children classes you can avoid
+    /// implementing this ComputeGravityForces() function, unless you need faster code.)
+    /// This fallback implementation uses a temp ChLoaderGravity that applies the load to elements
+    /// only if they are inherited by ChLoadableUVW so it can use GetDensity() and Gauss quadrature.
+    virtual void ComputeGravityForces(ChVectorDynamic<>& Fg, const ChVector<>& G_acc) override;
 
     /// Returns the global mass matrix.
     /// This is the default implementation, POTENTIALLY VERY INEFFICIENT.

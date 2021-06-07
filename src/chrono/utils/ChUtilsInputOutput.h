@@ -128,37 +128,36 @@ inline CSV_writer& operator<<(CSV_writer& out, const std::vector<T>& vec) {
 // Free function declarations
 // -----------------------------------------------------------------------------
 
-// This function dumps to a CSV file pody position, orientation, and optionally
-// linear and angular velocity. Optionally, only active bodies are processed.
-ChApi
-void WriteBodies(ChSystem* system,
+/// This function dumps to a CSV file pody position, orientation, and optionally linear and angular velocity.
+/// Optionally, only active bodies are processed.
+ChApi void WriteBodies(ChSystem* system,
                  const std::string& filename,
                  bool active_only = false,
                  bool dump_vel = false,
                  const std::string& delim = ",");
 
-// Create a CSV file with a checkpoint...
+/// Create a CSV file with a checkpoint.
 ChApi
 bool WriteCheckpoint(ChSystem* system, const std::string& filename);
 
-// Read a CSV file with a checkpoint...
+/// Read a CSV file with a checkpoint.
 ChApi
 void ReadCheckpoint(ChSystem* system, const std::string& filename);
 
-// Write CSV output file for PovRay.
-// Each line contains information about one visualization asset shape, as
-// follows:
-//    index, x, y, z, e0, e1, e2, e3, type, geometry
-// where 'geometry' depends on 'type' (an enum).
+/// Write CSV output file for PovRay.
+/// Each line contains information about one visualization asset shape, as follows:
+/// <pre>
+///    index, x, y, z, e0, e1, e2, e3, type, geometry
+/// </pre>
+/// where 'geometry' depends on 'type' (an enum).
 ChApi
 void WriteShapesPovray(ChSystem* system,
                        const std::string& filename,
                        bool body_info = true,
-                       const std::string& delim = ",");
+                             const std::string& delim = ",");
 
-// Write the specified mesh as a macro in a PovRay include file. The output file
-// will be "[out_dir]/[mesh_name].inc". The mesh vertices will be transformed to
-// the frame with specified offset and orientation.
+/// Write the specified mesh as a macro in a PovRay include file. The output file will be "[out_dir]/[mesh_name].inc".
+/// The mesh vertices will be transformed to the frame with specified offset and orientation.
 ChApi void WriteMeshPovray(geometry::ChTriangleMeshConnected& trimesh,
                            const std::string& mesh_name,
                            const std::string& out_dir,
@@ -167,19 +166,17 @@ ChApi void WriteMeshPovray(geometry::ChTriangleMeshConnected& trimesh,
                            const ChQuaternion<>& rot = ChQuaternion<>(1, 0, 0, 0),
                            bool smoothed = false);
 
-// Write the triangular mesh from the specified OBJ file as a macro in a PovRay
-// include file. The output file will be "[out_dir]/[mesh_name].inc". The mesh
-// vertices will be transformed to the frame with specified offset and
-// orientation.
-ChApi
-void WriteMeshPovray(const std::string& obj_filename,
+/// Write the triangular mesh from the specified OBJ file as a macro in a PovRay include file. The output file will be
+/// "[out_dir]/[mesh_name].inc". The mesh vertices will be transformed to the frame with specified offset and
+/// orientation.
+ChApi bool WriteMeshPovray(const std::string& obj_filename,
                      const std::string& mesh_name,
                      const std::string& out_dir,
                      const ChColor& color = ChColor(0.4f, 0.4f, 0.4f),
                      const ChVector<>& pos = ChVector<>(0, 0, 0),
                      const ChQuaternion<>& rot = ChQuaternion<>(1, 0, 0, 0));
 
-// Write the Bezier curve from
+/// Write the specified Bezier curve as a macro in a PovRay include file. 
 ChApi void WriteCurvePovray(const ChBezierCurve& curve,
                             const std::string& curve_name,
                             const std::string& out_dir,

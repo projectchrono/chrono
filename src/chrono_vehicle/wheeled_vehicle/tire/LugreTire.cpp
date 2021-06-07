@@ -30,7 +30,7 @@ namespace vehicle {
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 LugreTire::LugreTire(const std::string& filename) : ChLugreTire(""), m_discLocs(NULL), m_has_mesh(false) {
-    Document d = ReadFileJSON(filename);
+    Document d; ReadFileJSON(filename, d);
     if (d.IsNull())
         return;
 
@@ -99,8 +99,8 @@ void LugreTire::Create(const rapidjson::Document& d) {
 // -----------------------------------------------------------------------------
 void LugreTire::AddVisualizationAssets(VisualizationType vis) {
     if (vis == VisualizationType::MESH && m_has_mesh) {
-        m_trimesh_shape = AddVisualizationMesh(vehicle::GetDataFile(m_meshFile_left),    // left side
-                                               vehicle::GetDataFile(m_meshFile_right));  // right side
+        m_trimesh_shape = AddVisualizationMesh(m_meshFile_left,    // left side
+                                               m_meshFile_right);  // right side
     }
     else {
         ChLugreTire::AddVisualizationAssets(vis);

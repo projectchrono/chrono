@@ -50,7 +50,7 @@ class MyCreatorForAll : public ChRandomShapeCreator::AddBodyCallback {
                            ChRandomShapeCreator& mcreator) override {
         // optional: add further assets, ex for improving visualization:
         auto mtexture = chrono_types::make_shared<ChTexture>();
-        mtexture->SetTextureFilename(GetChronoDataFile("bluwhite.png"));
+        mtexture->SetTextureFilename(GetChronoDataFile("textures/bluewhite.png"));
         mbody->AddAsset(mtexture);
 
         // Enable Irrlicht visualization for all particles
@@ -71,32 +71,30 @@ int main(int argc, char* argv[]) {
 
     // Create the Irrlicht visualization (open the Irrlicht device,
     // bind a simple user interface, etc. etc.)
-    ChIrrApp application(&mphysicalSystem, L"Particle emitter", core::dimension2d<u32>(800, 600), false);
-
-    // Easy shortcuts to add camera, lights, logo and sky in Irrlicht scene:
-    ChIrrWizard::add_typical_Logo(application.GetDevice());
-    ChIrrWizard::add_typical_Sky(application.GetDevice());
-    ChIrrWizard::add_typical_Lights(application.GetDevice());
-    ChIrrWizard::add_typical_Camera(application.GetDevice(), core::vector3df(0, 14, -20));
+    ChIrrApp application(&mphysicalSystem, L"Particle emitter", core::dimension2d<u32>(800, 600));
+    application.AddTypicalLogo();
+    application.AddTypicalSky();
+    application.AddTypicalLights();
+    application.AddTypicalCamera(core::vector3df(0, 14, -20));
 
     //
     // CREATE THE SYSTEM OBJECTS
     //
 
-    // Example: create a ChBody rigid body (trick: using the ChBodyEasyXXYYZZ
-    // functions it also sets mass and inertia tensor for you, and collision
-    // and visualization shapes are added automatically)
+    // Example: create a ChBody rigid body.
+    auto sphere_mat = chrono_types::make_shared<ChMaterialSurfaceNSC>();
+    sphere_mat->SetFriction(0.2f);
 
-    auto msphereBody = chrono_types::make_shared<ChBodyEasySphere>(2.1,    // radius size
-                                                          1800,   // density
-                                                          true,   // collide enable?
-                                                          true);  // visualization?
+    auto msphereBody = chrono_types::make_shared<ChBodyEasySphere>(2.1,          // radius size
+                                                                   1800,         // density
+                                                                   true,         // visualization?
+                                                                   true,         // collision?
+                                                                   sphere_mat);  // contact material
     msphereBody->SetPos(ChVector<>(1, 1, 0));
-    msphereBody->GetMaterialSurfaceNSC()->SetFriction(0.2f);
 
     // optional: add further assets, ex for improving visualization:
     auto mtexture = chrono_types::make_shared<ChTexture>();
-    mtexture->SetTextureFilename(GetChronoDataFile("concrete.jpg"));
+    mtexture->SetTextureFilename(GetChronoDataFile("textures/concrete.jpg"));
     msphereBody->AddAsset(mtexture);
 
     mphysicalSystem.Add(msphereBody);
@@ -175,7 +173,7 @@ int main(int argc, char* argv[]) {
 
     // a- define a class that implement your custom OnAddBody method (see top of source file)
     // b- create the callback object...
-    MyCreatorForAll* mcreation_callback = new MyCreatorForAll;
+    auto mcreation_callback = chrono_types::make_shared<MyCreatorForAll>();
     // c- set callback own data that he might need...
     mcreation_callback->airrlicht_application = &application;
     // d- attach the callback to the emitter!
@@ -195,12 +193,11 @@ int main(int argc, char* argv[]) {
     // Turn off default -9.8 downward gravity
     mphysicalSystem.Set_G_acc(ChVector<>(0, 0, 0));
 
-    application.SetStepManage(true);
-    application.SetTimestep(0.01);
-
     //
     // THE SOFT-REAL-TIME CYCLE
     //
+
+    application.SetTimestep(0.01);
 
     while (application.GetDevice()->run()) {
         application.BeginScene(true, true, SColor(255, 140, 161, 192));

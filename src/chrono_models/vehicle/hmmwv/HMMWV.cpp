@@ -44,10 +44,12 @@ namespace hmmwv {
 HMMWV::HMMWV()
     : m_system(nullptr),
       m_vehicle(nullptr),
-      m_contactMethod(ChMaterialSurface::NSC),
-      m_chassisCollisionType(ChassisCollisionType::NONE),
+      m_contactMethod(ChContactMethod::NSC),
+      m_chassisCollisionType(CollisionType::NONE),
       m_fixed(false),
-      m_driveType(DrivelineType::AWD),
+      m_brake_locking(false),
+      m_brake_type(BrakeType::SIMPLE),
+      m_driveType(DrivelineTypeWV::AWD),
       m_powertrainType(PowertrainModelType::SHAFTS),
       m_tireType(TireModelType::RIGID),
       m_tire_collision_type(ChTire::CollisionType::SINGLE_POINT),
@@ -60,10 +62,12 @@ HMMWV::HMMWV()
 HMMWV::HMMWV(ChSystem* system)
     : m_system(system),
       m_vehicle(nullptr),
-      m_contactMethod(ChMaterialSurface::NSC),
-      m_chassisCollisionType(ChassisCollisionType::NONE),
+      m_contactMethod(ChContactMethod::NSC),
+      m_chassisCollisionType(CollisionType::NONE),
       m_fixed(false),
-      m_driveType(DrivelineType::AWD),
+      m_brake_locking(false),
+      m_brake_type(BrakeType::SIMPLE),
+      m_driveType(DrivelineTypeWV::AWD),
       m_powertrainType(PowertrainModelType::SHAFTS),
       m_tireType(TireModelType::RIGID),
       m_tire_collision_type(ChTire::CollisionType::SINGLE_POINT),
@@ -278,6 +282,8 @@ void HMMWV::Initialize() {
                 wheel->GetTire()->SetStepsize(m_tire_step_size);
         }
     }
+
+    m_vehicle->EnableBrakeLocking(m_brake_locking);
 }
 
 // -----------------------------------------------------------------------------
@@ -308,20 +314,20 @@ double HMMWV::GetTotalMass() const {
 
 HMMWV_Vehicle* HMMWV_Full::CreateVehicle() {
     if (m_system) {
-        return new HMMWV_VehicleFull(m_system, m_fixed, m_driveType, m_steeringType, m_rigidColumn,
+        return new HMMWV_VehicleFull(m_system, m_fixed, m_driveType, m_brake_type, m_steeringType, m_rigidColumn,
                                      m_chassisCollisionType);
     }
 
-    return new HMMWV_VehicleFull(m_fixed, m_driveType, m_steeringType, m_rigidColumn, m_contactMethod,
+    return new HMMWV_VehicleFull(m_fixed, m_driveType, m_brake_type, m_steeringType, m_rigidColumn, m_contactMethod,
                                  m_chassisCollisionType);
 }
 
 HMMWV_Vehicle* HMMWV_Reduced::CreateVehicle() {
     if (m_system) {
-        return new HMMWV_VehicleReduced(m_system, m_fixed, m_driveType, m_chassisCollisionType);
+        return new HMMWV_VehicleReduced(m_system, m_fixed, m_driveType, m_brake_type, m_chassisCollisionType);
     }
 
-    return new HMMWV_VehicleReduced(m_fixed, m_driveType, m_contactMethod, m_chassisCollisionType);
+    return new HMMWV_VehicleReduced(m_fixed, m_driveType, m_brake_type, m_contactMethod, m_chassisCollisionType);
 }
 
 }  // end namespace hmmwv

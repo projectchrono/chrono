@@ -97,7 +97,7 @@ int main(int argc, char* argv[]) {
     // Create the Irrlicht application
     // -------------------------------
 
-    ChIrrApp application(&system, L"ChLinkRevoluteSpherical demo", core::dimension2d<u32>(800, 600), false, true);
+    ChIrrApp application(&system, L"ChLinkRevoluteSpherical demo", core::dimension2d<u32>(800, 600));
     application.AddTypicalLogo();
     application.AddTypicalSky();
     application.AddTypicalLights();
@@ -118,11 +118,11 @@ int main(int argc, char* argv[]) {
         application.DrawAll();
 
         // Render the rev-sph massless link.
-        ChIrrTools::drawSegment(application.GetVideoDriver(), rev_sph->GetPoint1Abs(), rev_sph->GetPoint2Abs(),
+        tools::drawSegment(application.GetVideoDriver(), rev_sph->GetPoint1Abs(), rev_sph->GetPoint2Abs(),
                                 video::SColor(255, 0, 20, 0), true);
 
         // Render the point trajectory
-        ChIrrTools::drawPolyline(application.GetVideoDriver(), trajectory, video::SColor(255, 0, 150, 0), false);
+        tools::drawPolyline(application.GetVideoDriver(), trajectory, video::SColor(255, 0, 150, 0), false);
 
         application.DoStep();
 

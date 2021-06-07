@@ -15,7 +15,6 @@
 #include <cstdlib>
 #include <algorithm>
 
-#include "chrono/collision/ChCModelBullet.h"
 #include "chrono/core/ChTransform.h"
 #include "chrono/physics/ChConveyor.h"
 #include "chrono/physics/ChSystem.h"
@@ -32,10 +31,10 @@ ChConveyor::ChConveyor(double xlength, double ythick, double zwidth) : conveyor_
     conveyor_truss = new ChBody;
     conveyor_plate = new ChBody;
 
-    // conveyor_plate->SetMaterialSurface(GetMaterialSurfaceNSC());
+    conveyor_mat = chrono_types::make_shared<ChMaterialSurfaceNSC>();
 
     conveyor_plate->GetCollisionModel()->ClearModel();
-    conveyor_plate->GetCollisionModel()->AddBox(xlength * 0.5, ythick * 0.5, zwidth * 0.5);
+    conveyor_plate->GetCollisionModel()->AddBox(conveyor_mat, xlength * 0.5, ythick * 0.5, zwidth * 0.5);
     conveyor_plate->GetCollisionModel()->BuildModel();
     conveyor_plate->SetCollide(true);
 
@@ -84,11 +83,12 @@ void ChConveyor::IntStateScatter(const unsigned int off_x,  // offset in x state
                                  const ChState& x,          // state vector, position part
                                  const unsigned int off_v,  // offset in v state vector
                                  const ChStateDelta& v,     // state vector, speed part
-                                 const double T             // time
-                                 ) {
-    conveyor_truss->IntStateScatter(off_x, x, off_v, v, T);
-    conveyor_plate->IntStateScatter(off_x + 7, x, off_v + 6, v, T);
-    this->Update(T);
+                                 const double T,            // time
+                                 bool full_update           // perform complete update
+) {
+    conveyor_truss->IntStateScatter(off_x, x, off_v, v, T, full_update);
+    conveyor_plate->IntStateScatter(off_x + 7, x, off_v + 6, v, T, full_update);
+    this->Update(T, full_update);
 }
 
 void ChConveyor::IntStateGatherAcceleration(const unsigned int off_a, ChStateDelta& a) {
@@ -320,7 +320,7 @@ void ChConveyor::ArchiveOUT(ChArchiveOut& marchive) {
 /// Method to allow de serialization of transient data from archives.
 void ChConveyor::ArchiveIN(ChArchiveIn& marchive) {
     // version number
-    int version = marchive.VersionRead<ChConveyor>();
+    /*int version =*/ marchive.VersionRead<ChConveyor>();
 
     // deserialize parent class
     ChPhysicsItem::ArchiveIN(marchive);

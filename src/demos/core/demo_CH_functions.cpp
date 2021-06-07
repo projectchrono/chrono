@@ -47,11 +47,11 @@ int main(int argc, char* argv[]) {
     f_ramp.Set_y0(0.4);   // set y value for x=0;
 
     // Evaluate y=f(x) function at a given x value, using Get_y() :
-    double y = f_ramp.Get_y(10);
+    double y_ramp = f_ramp.Get_y(10);
     // Evaluate derivative df(x)/dx at a given x value, using Get_y_dx() :
-    double ydx = f_ramp.Get_y_dx(10);
+    double ydx_ramp = f_ramp.Get_y_dx(10);
 
-    GetLog() << "   ChFunction_Ramp at x=0: y=" << y << "  dy/dx=" << ydx << "\n\n";
+    GetLog() << "   ChFunction_Ramp at x=0: y=" << y_ramp << "  dy/dx=" << ydx_ramp << "\n\n";
 
     //
     // EXAMPLE 2: save values of a sine ChFunction  into a file

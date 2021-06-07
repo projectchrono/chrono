@@ -14,7 +14,6 @@
 
 #include <list>
 
-#include "chrono/collision/ChCModelBullet.h"
 #include "chrono/physics/ChBody.h"
 #include "chrono/physics/ChMatterSPH.h"
 #include "chrono/physics/ChProximityContainerSPH.h"
@@ -223,7 +222,7 @@ void ChProximityContainerSPH::ArchiveOUT(ChArchiveOut& marchive) {
 /// Method to allow de serialization of transient data from archives.
 void ChProximityContainerSPH::ArchiveIN(ChArchiveIn& marchive) {
     // version number
-    int version = marchive.VersionRead<ChProximityContainerSPH>();
+    /*int version =*/ marchive.VersionRead<ChProximityContainerSPH>();
     // deserialize parent class
     ChProximityContainer::ArchiveIN(marchive);
     // stream in all member data:

@@ -26,7 +26,7 @@
 #include "chrono/fea/ChLinkDirFrame.h"
 #include "chrono/solver/ChIterativeSolverLS.h"
 #include "chrono/timestepper/ChTimestepper.h"
-#include "chrono_mkl/ChSolverMKL.h"
+#include "chrono_pardisomkl/ChSolverPardisoMKL.h"
 
 #include "gtest/gtest.h"
 
@@ -62,7 +62,7 @@ Model::Model() {
     auto mtruss = chrono_types::make_shared<ChBody>();
     mtruss->SetBodyFixed(true);
 
-    ChBuilderBeamANCF builder;
+    ChBuilderCableANCF builder;
 
     // Now, simply use BuildBeam to create a beam from a point to another:
     builder.BuildBeam(my_mesh,               // the mesh where to put the created nodes and elements
@@ -163,8 +163,8 @@ TEST(ANCFcables_rigid_constraints, Minres_MKL) {
 
     model1.GetSystem()->SetSolverForceTolerance(1e-13);
 
-    // MODEL2 uses MKL (Pardiso)
-    auto mkl_solver = chrono_types::make_shared<ChSolverMKL>();
+    // MODEL2 uses PardisoMKL
+    auto mkl_solver = chrono_types::make_shared<ChSolverPardisoMKL>();
     mkl_solver->LockSparsityPattern(false);
     model2.GetSystem()->SetSolver(mkl_solver);
 

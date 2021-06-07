@@ -19,35 +19,28 @@ MARK_AS_ADVANCED(CLEAR IRRLICHT_LIBRARY)
 MARK_AS_ADVANCED(CLEAR IRRLICHT_ROOT)
 
 #-------------------------------------------------------------------------------
-# List all the files in the ChronoEngine_irrlicht library
-
+# List all the files in the ChronoEngine_irrlicht lib
 SET(ChronoEngine_IRRLICHT_SOURCES
   ChIrrApp.cpp
-  ChBodySceneNode.cpp
-  ChBodySceneNodeTools.cpp
   ChIrrAppInterface.cpp
   ChIrrAssetConverter.cpp
   ChIrrCamera.cpp
   ChIrrMeshTools.cpp
   ChIrrNode.cpp
   ChIrrNodeProxyToAsset.cpp
-  ChIrrParticlesSceneNode.cpp
   ChIrrTools.cpp
-  ChIrrWizard.cpp
+  ChIrrUtils.cpp
   ChIrrNodeAsset.cpp
 )
 
 SET(ChronoEngine_IRRLICHT_HEADERS
   ChApiIrr.h
-  ChBodySceneNode.h
-  ChBodySceneNodeTools.h
   ChIrrTools.h
   ChIrrAppInterface.h
   ChIrrApp.h
   ChIrrCamera.h
   ChIrrMeshTools.h
-  ChIrrWizard.h
-  ChIrrParticlesSceneNode.h
+  ChIrrUtils.h
   ChIrrAssetConverter.h
   ChIrrNode.h
   ChIrrNodeProxyToAsset.h
@@ -70,12 +63,8 @@ IF(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
   SET(IRRLICHT_ROOT "C:/irrlicht-1.8.1"  CACHE PATH   "Path to Irrlicht SDK installation.")
   IF("${CH_COMPILER}" STREQUAL "COMPILER_MSVC")
     FIND_LIBRARY( IRRLICHT_LIBRARY NAMES Irrlicht PATHS "${IRRLICHT_ROOT}/lib/Win32-visualstudio")
-    set(CH_IRRLICHT_CXX_FLAGS "${CH_IRRLICHT_CXX_FLAGS} /wd4275")
-    set(CH_IRRLICHT_C_FLAGS "${CH_IRRLICHT_C_FLAGS} /wd4275")
   ELSEIF("${CH_COMPILER}" STREQUAL "COMPILER_MSVC_X64")
     FIND_LIBRARY( IRRLICHT_LIBRARY NAMES Irrlicht PATHS "${IRRLICHT_ROOT}/lib/Win64-visualStudio")
-    set(CH_IRRLICHT_CXX_FLAGS "${CH_IRRLICHT_CXX_FLAGS} /wd4275")
-    set(CH_IRRLICHT_C_FLAGS "${CH_IRRLICHT_C_FLAGS} /wd4275")
   ELSEIF("${CH_COMPILER}" STREQUAL "COMPILER_GCC")
     FIND_LIBRARY( IRRLICHT_LIBRARY NAMES Irrlicht PATHS "${IRRLICHT_ROOT}/lib/Win32-gcc")
   ELSEIF("${CH_COMPILER}" STREQUAL "COMPILER_GCC_X64")
@@ -100,6 +89,13 @@ else()
   set(IRRLICHT_LIBRARY "${IRRLICHT_LIBRARY}")
 ENDIF()
 
+# If using MSVC, disable warning 4275 (non-DLL-interface class used as base for DLL-interface class)
+if(MSVC)
+  add_compile_options(/wd4275)
+  set(CH_IRRLICHT_CXX_FLAGS "${CH_IRRLICHT_CXX_FLAGS} /wd4275")
+  set(CH_IRRLICHT_C_FLAGS "${CH_IRRLICHT_C_FLAGS} /wd4275")
+endif()
+
 # Add path to IRRLICHT headers
 
 IF(EXISTS "${IRRLICHT_ROOT}/include")
@@ -121,22 +117,36 @@ set(CH_IRRLICHT_C_FLAGS   "${CH_IRRLICHT_C_FLAGS}"   PARENT_SCOPE)
 #-------------------------------------------------------------------------------
 # Create the ChronoEngine_irrlicht library
 
+set(COMPILER_FLAGS "${CH_CXX_FLAGS} ${CH_IRRLICHT_CXX_FLAGS}")
+set(LINKER_FLAGS "${CH_LINKERFLAG_SHARED}")
+set(LIBRARIES 
+    ChronoEngine
+    ${IRRLICHT_LIBRARY}
+    )
+
+if (ENABLE_MODULE_POSTPROCESS)
+    #include_directories(${CH_POSTPROCESS_INCLUDES})  # nothing to append
+    #set(COMPILER_FLAGS "${COMPILER_FLAGS} ${CH_POSTPROCESS_CXX_FLAGS}") # nothing to append
+    #set(LINKER_FLAGS "${LINKER_FLAGS} ${CH_POSTPROCESS_LINK_FLAGS}") # nothing to append
+    set(LIBRARIES ${LIBRARIES} ChronoEngine_postprocess)
+endif()
+
+
 ADD_LIBRARY(ChronoEngine_irrlicht SHARED
   ${ChronoEngine_IRRLICHT_SOURCES}
   ${ChronoEngine_IRRLICHT_HEADERS}
 )
 
 SET_TARGET_PROPERTIES(ChronoEngine_irrlicht PROPERTIES
-  COMPILE_FLAGS "${CH_CXX_FLAGS} ${CH_IRRLICHT_CXX_FLAGS}"
-  LINK_FLAGS "${CH_LINKERFLAG_SHARED}")
+  COMPILE_FLAGS "${COMPILER_FLAGS}"
+  LINK_FLAGS "${LINKER_FLAGS}")
 
 target_compile_definitions(ChronoEngine_irrlicht PRIVATE "CH_API_COMPILE_IRRLICHT")
 target_compile_definitions(ChronoEngine_irrlicht PRIVATE "CH_IGNORE_DEPRECATED")
 target_compile_definitions(ChronoEngine_irrlicht PRIVATE "IGNORE_DEPRECATED_WARNING")
 
 TARGET_LINK_LIBRARIES(ChronoEngine_irrlicht
-  ChronoEngine
-  ${IRRLICHT_LIBRARY}
+  ${LIBRARIES}
 )
 IF(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 TARGET_LINK_LIBRARIES(ChronoEngine_irrlicht
@@ -145,6 +155,10 @@ TARGET_LINK_LIBRARIES(ChronoEngine_irrlicht
 ENDIF()
 
 ADD_DEPENDENCIES (ChronoEngine_irrlicht ChronoEngine)
+
+if (ENABLE_MODULE_POSTPROCESS)
+    ADD_DEPENDENCIES (ChronoEngine_irrlicht ChronoEngine_postprocess)
+endif()
 
 #-------------------------------------------------------------------------------
 # On Windows, copy the IRRLICHT DLL to the bin/ directory

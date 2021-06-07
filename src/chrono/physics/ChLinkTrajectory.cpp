@@ -116,7 +116,7 @@ void ChLinkTrajectory::ArchiveOUT(ChArchiveOut& marchive) {
 
 void ChLinkTrajectory::ArchiveIN(ChArchiveIn& marchive) {
     // version number
-    int version = marchive.VersionRead<ChLinkTrajectory>();
+    /*int version =*/ marchive.VersionRead<ChLinkTrajectory>();
 
     // deserialize parent class
     ChLinkLockLock::ArchiveIN(marchive);

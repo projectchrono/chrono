@@ -58,7 +58,7 @@ void ChGeometry::ArchiveOUT(ChArchiveOut& marchive) {
 
 void ChGeometry::ArchiveIN(ChArchiveIn& marchive) {
     // version number
-    int version = marchive.VersionRead<ChGeometry>();
+    /*int version =*/ marchive.VersionRead<ChGeometry>();
 }
 
 }  // end namespace geometry

@@ -28,8 +28,12 @@ The image below shows the shafts-based powertrain model connected to a shafts-ba
 <img src="http://www.projectchrono.org/assets/manual/vehicle/shafts_powertrain.png" width="800" />
 
 A sample JSON file with the specification of a shafts-based powertrain, illustrating the various template parameters, is provided below.
-\include "../../data/vehicle/generic/powertrain/ShaftsPowertrain.json"
+\include "../../data/vehicle/hmmwv/powertrain/HMMWV_ShaftsPowertrain.json"
 
+The curves encoded in the above JSON file are shown below.
+
+<img src="http://www.projectchrono.org/assets/manual/vehicle/curves/ShaftsPowertrain_engine_curves.png" width="500" />
+<img src="http://www.projectchrono.org/assets/manual/vehicle/curves/ShaftsPowertrain_TC_curves.png" width="500" />
 
 ## Simple powertrain model {#vehicle_powertrain_simple}
 
@@ -49,6 +53,11 @@ See [ChSimpleMapPowertrain](@ref chrono::vehicle::ChSimpleMapPowertrain) and [Si
 
 A sample JSON file with the specification of a map powertrain, illustrating the various template parameters, is provided below.
 \include "../../data/vehicle/uaz/powertrain/UAZBUS_SimpleMapPowertrain.json"
+
+The curves encoded in the above JSON file are shown below.
+
+<img src="http://www.projectchrono.org/assets/manual/vehicle/curves/SimpleMapPowertrain_engine_curves.png" width="500" />
+<img src="http://www.projectchrono.org/assets/manual/vehicle/curves/SimpleMapPowertrain_shift_bands.png" width="500" />
 
 
 ## Simple CVT-like powertrain subsystem {#vehicle_powertrain_cvt}

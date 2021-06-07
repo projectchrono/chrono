@@ -26,16 +26,14 @@ namespace man {
 // Static variables
 // -----------------------------------------------------------------------------
 
-static const double in2m = 0.0254;
-static const double lb2kg = 0.453592;
-static const double lbf2N = 4.44822162;
-static const double lbfpin2Npm = 175.12677;
-
 const double MAN_5t_BellcrankSolid3LinkAxle::m_axleTubeMass = 405.0;
 const double MAN_5t_BellcrankSolid3LinkAxle::m_spindleMass = 14.705 * 4.1;
 const double MAN_5t_BellcrankSolid3LinkAxle::m_bellcrankMass = 24.4;
 const double MAN_5t_BellcrankSolid3LinkAxle::m_knuckleMass = 145.6;
 const double MAN_5t_BellcrankSolid3LinkAxle::m_draglinkMass = 10.3;
+const double MAN_5t_BellcrankSolid3LinkAxle::m_triangleMass = 50.0;
+const double MAN_5t_BellcrankSolid3LinkAxle::m_linkMass = 25.0;
+const double MAN_5t_BellcrankSolid3LinkAxle::m_tierodMass = 10.0;
 
 const double MAN_5t_BellcrankSolid3LinkAxle::m_axleTubeRadius = 0.0476;
 const double MAN_5t_BellcrankSolid3LinkAxle::m_spindleRadius = 0.10;
@@ -46,6 +44,9 @@ const ChVector<> MAN_5t_BellcrankSolid3LinkAxle::m_spindleInertia(0.04117 * 6.56
 const ChVector<> MAN_5t_BellcrankSolid3LinkAxle::m_bellcrankInertia(0.05, 0.29, 0.30);
 const ChVector<> MAN_5t_BellcrankSolid3LinkAxle::m_knuckleInertia(2.40, 3.97, 2.45);
 const ChVector<> MAN_5t_BellcrankSolid3LinkAxle::m_draglinkInertia(0.29, 0.67, 0.95);
+const ChVector<> MAN_5t_BellcrankSolid3LinkAxle::m_triangleInertia(0.2, 0.2, 0.2);
+const ChVector<> MAN_5t_BellcrankSolid3LinkAxle::m_linkInertia(0.05, 0.1, 0.1);
+const ChVector<> MAN_5t_BellcrankSolid3LinkAxle::m_tierodInertia(0.05, 0.05, 0.5);
 
 const double MAN_5t_BellcrankSolid3LinkAxle::m_springDesignLength = 0.480919952;
 const double MAN_5t_BellcrankSolid3LinkAxle::m_springCoefficient1 = 85490.0;   // linear
@@ -131,27 +132,17 @@ double MAN_5t_SpringForceFront::operator()(double time,
 
 MAN_5t_BellcrankSolid3LinkAxle::MAN_5t_BellcrankSolid3LinkAxle(const std::string& name)
     : ChSolidBellcrankThreeLinkAxle(name) {
-    /*
-        m_springForceCB = new LinearSpringForce(m_springCoefficient  // coefficient for linear spring
-                                                );
+    m_springForceCB = chrono_types::make_shared<MAN_5t_SpringForceFront>(m_springCoefficient1, m_springCoefficient2,
+                                                                         m_springMinLength, m_springMaxLength);
 
-        m_shockForceCB = new LinearDamperForce(m_damperCoefficient  // coefficient for linear damper
-                        );
-    */
-    m_springForceCB =
-        new MAN_5t_SpringForceFront(m_springCoefficient1, m_springCoefficient2, m_springMinLength, m_springMaxLength);
-
-    m_shockForceCB = new DegressiveDamperForce(m_damperCoefCompression, m_damperDegresCompression,
-                                               m_damperCoefExpansion, m_damperDegresExpansion);
+    m_shockForceCB = chrono_types::make_shared<DegressiveDamperForce>(
+        m_damperCoefCompression, m_damperDegresCompression, m_damperCoefExpansion, m_damperDegresExpansion);
 }
 
 // -----------------------------------------------------------------------------
 // Destructors
 // -----------------------------------------------------------------------------
-MAN_5t_BellcrankSolid3LinkAxle::~MAN_5t_BellcrankSolid3LinkAxle() {
-    delete m_springForceCB;
-    delete m_shockForceCB;
-}
+MAN_5t_BellcrankSolid3LinkAxle::~MAN_5t_BellcrankSolid3LinkAxle() {}
 
 const ChVector<> MAN_5t_BellcrankSolid3LinkAxle::getLocation(PointId which) {
     switch (which) {

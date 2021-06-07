@@ -202,7 +202,7 @@ void ChLineCam::ArchiveOUT(ChArchiveOut& marchive) {
 
 void ChLineCam::ArchiveIN(ChArchiveIn& marchive) {
     // version number
-    int version = marchive.VersionRead<ChLineCam>();
+    /*int version =*/ marchive.VersionRead<ChLineCam>();
     // deserialize parent class
     ChLine::ArchiveIN(marchive);
     // stream in all member data:

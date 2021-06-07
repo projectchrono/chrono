@@ -46,18 +46,18 @@ class CH_OPENGL_API ChOpenGLMesh : public ChOpenGLObject {
     bool Initialize(chrono::ChTriangleMeshShape* tri_mesh, ChOpenGLMaterial mat);
     bool PostInitialize();
     void Update(std::vector<glm::mat4>& model);
-    virtual void Draw(const glm::mat4& projection, const glm::mat4& view);
 
-    void TakeDown();
+    virtual void Draw(const glm::mat4& projection, const glm::mat4& view) override;
+    virtual void TakeDown() override;
 
   protected:
+    typedef ChOpenGLObject super;
+
     std::vector<ChOpenGLVertexAttributesPN> data;
     glm::vec3 ambient;
     glm::vec3 specular;
     glm::vec3 diffuse;
     int size;
-
-    typedef ChOpenGLObject super;
 };
 
 /// @} opengl_module

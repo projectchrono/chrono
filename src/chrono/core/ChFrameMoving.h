@@ -281,7 +281,7 @@ class ChFrameMoving : public ChFrame<Real> {
 
     /// Set the rotation speed from given angular speed
     /// (expressed in parent csys)
-    virtual void SetWacc_par(ChVector<Real>& ap) {
+    virtual void SetWacc_par(const ChVector<Real>& ap) {
         // q_dtdt = q_dt * q' * q_dt + 1/2 * (0,ap) * q
         coord_dtdt.rot = (coord_dt.rot % this->coord.rot.GetConjugate() % coord_dt.rot) +
                          (ChQuaternion<Real>(0, ap) % this->coord.rot * (Real)0.5);
@@ -498,7 +498,7 @@ class ChFrameMoving : public ChFrame<Real> {
     /// Method to allow de serialization of transient data from archives.
     virtual void ArchiveIN(ChArchiveIn& marchive) override {
         // version number
-        int version = marchive.VersionRead<ChFrameMoving>();
+        /*int version =*/ marchive.VersionRead<ChFrameMoving>();
 
         // deserialize parent class
         ChFrame<Real>::ArchiveIN(marchive);

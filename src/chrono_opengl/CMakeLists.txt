@@ -75,8 +75,8 @@ SET(CH_OPENGL_INCLUDES
 
 INCLUDE_DIRECTORIES(${CH_OPENGL_INCLUDES})
 
-IF(ENABLE_MODULE_PARALLEL)
-    INCLUDE_DIRECTORIES(${CH_PARALLEL_INCLUDES})
+IF(ENABLE_MODULE_MULTICORE)
+    INCLUDE_DIRECTORIES(${CH_MULTICORE_INCLUDES})
 ENDIF()
 
 # ------------------------------------------------------------------------------
@@ -276,9 +276,9 @@ SET(CE_OpenGL_LIBRARIES
 SET(CE_OpenGL_FLAGS "${CH_CXX_FLAGS}")
 
 
-if(ENABLE_MODULE_PARALLEL)
-	SET(CE_OpenGL_LIBRARIES ${CE_OpenGL_LIBRARIES} ChronoEngine_parallel)
-	SET(CE_OpenGL_FLAGS "${CE_OpenGL_FLAGS} ${CH_PARALLEL_CXX_FLAGS}")
+if(ENABLE_MODULE_MULTICORE)
+	SET(CE_OpenGL_LIBRARIES ${CE_OpenGL_LIBRARIES} ChronoEngine_multicore)
+	SET(CE_OpenGL_FLAGS "${CE_OpenGL_FLAGS} ${CH_MULTICORE_CXX_FLAGS}")
 endif()
 
 
@@ -299,20 +299,25 @@ INSTALL(TARGETS ChronoEngine_opengl
 
 INSTALL(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/
     DESTINATION include/chrono_opengl
-    FILES_MATCHING PATTERN "*.h")
+    FILES_MATCHING PATTERN "*.h" PATTERN "resources" EXCLUDE)
+
+# Install required chrono_thirdparty headers
+install(DIRECTORY ${CMAKE_SOURCE_DIR}/src/chrono_thirdparty/tinyobjloader
+        DESTINATION include/chrono_thirdparty
+        FILES_MATCHING PATTERN "*.h" PATTERN "*.cuh" PATTERN "*.hpp" PATTERN "*.inl")
 
 #-------------------------------------------------------------------------------
 # On Windows, copy the GLEW and GLFW DLLs (if specified)
 #-------------------------------------------------------------------------------
 
 IF(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
-    IF(EXISTS ${GLEW_DLL})
+    IF(EXISTS "${GLEW_DLL}")
       ADD_CUSTOM_COMMAND(TARGET ChronoEngine_opengl POST_BUILD
                          COMMAND ${CMAKE_COMMAND} -E copy_if_different
                                  "${GLEW_DLL}"
                                  "${CMAKE_BINARY_DIR}/bin/$<CONFIGURATION>")
     ENDIF()
-    IF(EXISTS ${GLFW_DLL})
+    IF(EXISTS "${GLFW_DLL}")
       ADD_CUSTOM_COMMAND(TARGET ChronoEngine_opengl POST_BUILD
                          COMMAND ${CMAKE_COMMAND} -E copy_if_different
                          "${GLFW_DLL}"

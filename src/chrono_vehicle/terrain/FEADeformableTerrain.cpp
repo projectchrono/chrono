@@ -27,6 +27,7 @@
 #include "chrono/fea/ChVisualizationFEAmesh.h"
 
 #include "chrono_vehicle/ChVehicleModelData.h"
+#include "chrono_vehicle/ChWorldFrame.h"
 #include "chrono_vehicle/terrain/FEADeformableTerrain.h"
 
 using namespace chrono::fea;
@@ -50,20 +51,20 @@ FEADeformableTerrain::FEADeformableTerrain(ChSystem* system)
 }
 
 // Return the terrain height at the specified location
-double FEADeformableTerrain::GetHeight(double x, double y) const {
+double FEADeformableTerrain::GetHeight(const ChVector<>& loc) const {
     //// TODO
     return 0;
 }
 
 // Return the terrain normal at the specified location
-ChVector<> FEADeformableTerrain::GetNormal(double x, double y) const {
+ChVector<> FEADeformableTerrain::GetNormal(const ChVector<>& loc) const {
     //// TODO
-    return ChVector<>(0, 0, 1);
+    return ChWorldFrame::Vertical();
 }
 
 // Return the terrain coefficient of friction at the specified location
-float FEADeformableTerrain::GetCoefficientFriction(double x, double y) const {
-    return m_friction_fun ? (*m_friction_fun)(x, y) : 0.8f;
+float FEADeformableTerrain::GetCoefficientFriction(const ChVector<>& loc) const {
+    return m_friction_fun ? (*m_friction_fun)(loc) : 0.8f;
 }
 
 // Set properties of the FEA soil model
@@ -95,12 +96,10 @@ void FEADeformableTerrain::Initialize(const ChVector<>& start_point,
 
     int N_x = numDiv_x + 1;
     int N_y = numDiv_y + 1;
-    int N_z = numDiv_z + 1;
 
     // Calculate total number of elements based on user input
     int TotalNumElements = numDiv_x * numDiv_y * numDiv_z;
     int XYNumNodes = (numDiv_x + 1) * (numDiv_y + 1);
-    int TotalNumNodes = (numDiv_z + 1) * XYNumNodes + TotalNumElements;
 
     // For uniform mesh
     double dx = terrain_dimension.x() / numDiv_x;
@@ -174,7 +173,7 @@ void FEADeformableTerrain::Initialize(const ChVector<>& start_point,
         CCPInitial(8, k) = 1;
     }
     int jj = -1;
-    int kk;
+    int kk = 0;
     // Create the elements
     for (int i = 0; i < TotalNumElements; i++) {
         if (i % (numDiv_x * numDiv_y) == 0) {

@@ -60,10 +60,21 @@ find_package(Chrono
 and add the required module:
 ~~~{.c}
 find_package(Chrono
-             COMPONENTS Irrlicht Postprocessing
+             COMPONENTS Irrlicht Postprocess
              CONFIG)
 ~~~
-The same is done for other modules: `Vehicle`, `Matlab`, `Cosimulation`, etc.
+The same is done for any other Chrono module.  The list of available modules is: `Cascade`, `Cosimulation`, `FSI`, `Granular`, `Irrlicht`, `Matlab`, `MKL`, `MUMPS`, `OpenGL`, `Parallel`, `Postprocess`, `Python`, `Vehicle`. The syntax is case insensitive (in other words, any of `OpenGL`, `OPENGL`, or `opengl` are valid component names).
+<br><br>
+Note also that Chrono modules can be listed as **required** (after the `COMPONENTS` option) or as **optional** (after `OPTIONAL_COMPONENTS`) as in the example below:
+~~~{.c}
+find_package(Chrono
+             COMPONENTS Irrlicht
+             OPTIONAL_COMPONENTS Postprocess
+             CONFIG)
+~~~
+In the former case, CMake processing is stopped if Chrono was not configured and built with one of the required modules enabled.  In the latter case, CMake processing continues.  When listing Chrono modules as optional components, it is the responsibility of the user to appropriately check in their project code whether or not that Chrono module is in fact available; e.g., by using the macros defined in `ChConfig.h` (`CHRONO_IRRLICHT`, `CHRONO_POSTPROCESS`, etc) which are defined for enabled modules.
+<br><br>
+For more details, see the CMake documentation for `find_package` and its "Config Mode".
 </div>
 
 <div class="ce-info">
@@ -158,14 +169,14 @@ your build directory, in our example `C:\workspace\my_project_build\Release`
 Double click on the .exe file and you should see the demo running in an interactive 3D view
 <img src="http://projectchrono.org/assets/manual/Install_my_project_2.jpg" class="img-responsive">
 
-Important information for Windows users!
+Important information for Windows users
 ----------------------
 
 If you are a Windows users, your project executables need to know where to find the Chrono shared libraries (i.e. those with .dll extension), otherwise they will crash as soon as you try to run them.
 
-To make things simple, we added an auxiliary CMake target (namely COPY_DLLS) that makes a copy of the Chrono shared libraries (and of Irrlicht shared library, if enabled) in the project binaries folder (e.g. `C:\workspace\my_project_build\Release`); however, there are different scenarios. In the case that:
+To make things simple, we added an auxiliary CMake target (namely COPY_DLLS) that makes a copy of the Chrono DLLs (as well as other DLL dependencies such as the Irrlicht shared library, as appropriate) in the project binaries folder (e.g. `C:\workspace\my_project_build\Release`).  There are two different scenarios:
   + `Chrono_DIR` is a _build_ folder; if you followed our [installation guide](@ref tutorial_install_chrono) then `C:/workspace/chrono_build` is of this type; in this case you may have both Release and Debug version of Chrono (under `C:/workspace/chrono_build/bin`); if both are present, please mind that **only Release libraries will be copied**; if you want to run your project in Debug configuration then you have to manually copy the Debug libraries contained in `C:/workspace/chrono_build/bin/Debug` into `C:/workspace/my_project_build/Debug`;
-  + `Chrono_DIR` is an _install_ folder; this is the folder type that is created by building the `INSTALL` target; this folder is usually `C:/Program Files/Chrono` and contains either Debug or Release libraries, depending on the configuration that you set when you built the `INSTALL` target; please mind that the Chrono configuration type must match your project configuration. If Chrono was built in Release also your project must be compiled in Release.
+  + `Chrono_DIR` is an _install_ folder; this is the folder type that is created by building the `INSTALL` target; this folder is usually `C:/Program Files/Chrono` and contains either Debug or Release libraries, depending on the configuration that you set when you built the `INSTALL` target.
 
 
 <div class="ce-warning">
@@ -173,7 +184,7 @@ The COPY_DLLS target must be re-run (i.e. rebuilt) any time the Chrono library h
 </div>
 
 <div class="ce-warning">
-Your project has to be compiled with the same configuration type of Chrono. E.g. if Chrono was built in Release mode, also your project must be built in Release configuration.
+Your project has to be compiled with the same build configuration as Chrono. For example, if Chrono was built in Release mode, your project must also be built in Release.  Note that automatic copying of Chrono DLLs as described above is hard-coded for Release builds only.  For other build configuraitons (Debug, RelWithDebInfo, etc.) it is the user's responsibility to ensure the Chrono DLLs are found (e.g., by manually copying them from the Chrono build directory).
 </div>
 
 <img src="http://www.projectchrono.org/assets/manual/Install_project_COPYDLLS.png" class="img-responsive">

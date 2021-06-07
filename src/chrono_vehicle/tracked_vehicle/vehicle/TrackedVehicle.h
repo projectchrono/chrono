@@ -34,8 +34,7 @@ namespace vehicle {
 /// Tracked vehicle model constructed from a JSON specification file.
 class CH_VEHICLE_API TrackedVehicle : public ChTrackedVehicle {
   public:
-    TrackedVehicle(const std::string& filename,
-                   ChMaterialSurface::ContactMethod contact_method = ChMaterialSurface::NSC);
+    TrackedVehicle(const std::string& filename, ChContactMethod contact_method = ChContactMethod::NSC);
 
     TrackedVehicle(ChSystem* system, const std::string& filename);
 
