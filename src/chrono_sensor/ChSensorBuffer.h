@@ -68,25 +68,14 @@ struct LidarBufferT : public SensorBufferT<B> {
     bool Dual_return;
 };
 
-struct float3 {
-    float x = 0;
-    float y = 0;
-    float z = 0;
-    void add(float a, float b, float c) {
-        x += a;
-        y += b;
-        z += c;
-    }
-};
-
 template <class B>
 struct RadarBufferT : public SensorBufferT<B> {
     RadarBufferT() : Beam_return_count(0), Num_clusters(0) {}
     int Beam_return_count;
     int invalid_returns;
     int Num_clusters;
-    std::vector<float3> avg_velocity;
-    std::vector<float3> centroids;
+    std::vector<std::array<float, 3>> avg_velocity;
+    std::vector<std::array<float, 3>> centroids;
 };
 
 //================================

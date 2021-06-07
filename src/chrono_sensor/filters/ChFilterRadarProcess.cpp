@@ -104,8 +104,9 @@ CH_SENSOR_API void ChFilterRadarProcess::Apply() {
     m_buffer_out->centroids.clear();
 
     for (int i = 0; i < clusters.size(); i++) {
-        m_buffer_out->avg_velocity.push_back({0, 0, 0});
-        m_buffer_out->centroids.push_back({0, 0, 0});
+        std::array<float,3> temp = {0,0,0};
+        m_buffer_out->avg_velocity.push_back(temp);
+        m_buffer_out->centroids.push_back(temp);
     }
 
     std::vector<PixelProcessedRadar> valid_returns;
@@ -116,18 +117,23 @@ CH_SENSOR_API void ChFilterRadarProcess::Apply() {
             processed_buffer[idx].objectID = i + 1;
             valid_returns.push_back(processed_buffer[idx]);
             // adding velocity and xyz and then dividing by size in next for loop
-            m_buffer_out->centroids[i].add(processed_buffer[idx].x, processed_buffer[idx].y, processed_buffer[idx].z);
-            m_buffer_out->avg_velocity[i].add(processed_buffer[idx].x_vel, processed_buffer[idx].y_vel,
-                                              processed_buffer[idx].z_vel);
+            m_buffer_out->centroids[i][0] += processed_buffer[idx].x;
+            m_buffer_out->centroids[i][1] += processed_buffer[idx].y;
+            m_buffer_out->centroids[i][2] += processed_buffer[idx].z;
+
+            m_buffer_out->avg_velocity[i][0] += processed_buffer[idx].x_vel;
+            m_buffer_out->avg_velocity[i][1] += processed_buffer[idx].y_vel;
+            m_buffer_out->avg_velocity[i][2] += processed_buffer[idx].z_vel;
+           
         }
     }
     for (int i = 0; i < m_buffer_out->avg_velocity.size(); i++) {
-        m_buffer_out->avg_velocity[i].x = m_buffer_out->avg_velocity[i].x / (clusters[i].size());
-        m_buffer_out->avg_velocity[i].y = m_buffer_out->avg_velocity[i].y / (clusters[i].size());
-        m_buffer_out->avg_velocity[i].z = m_buffer_out->avg_velocity[i].z / (clusters[i].size());
-        m_buffer_out->centroids[i].x = m_buffer_out->centroids[i].x / (clusters[i].size());
-        m_buffer_out->centroids[i].y = m_buffer_out->centroids[i].y / (clusters[i].size());
-        m_buffer_out->centroids[i].z = m_buffer_out->centroids[i].z / (clusters[i].size());
+        m_buffer_out->avg_velocity[i][0] = m_buffer_out->avg_velocity[i][0] / (clusters[i].size());
+        m_buffer_out->avg_velocity[i][1] = m_buffer_out->avg_velocity[i][1] / (clusters[i].size());
+        m_buffer_out->avg_velocity[i][2] = m_buffer_out->avg_velocity[i][2] / (clusters[i].size());
+        m_buffer_out->centroids[i][0] = m_buffer_out->centroids[i][0] / (clusters[i].size());
+        m_buffer_out->centroids[i][1] = m_buffer_out->centroids[i][1] / (clusters[i].size());
+        m_buffer_out->centroids[i][2] = m_buffer_out->centroids[i][2] / (clusters[i].size());
     }
 
     m_buffer_out->invalid_returns = m_buffer_out->Beam_return_count - valid_returns.size();
@@ -153,10 +159,10 @@ CH_SENSOR_API void ChFilterRadarProcess::Apply() {
             }
         }
         printf("Cluster %i: %i returns\n", i, count);
-        printf("velocity %f %f %f\n", m_buffer_out->avg_velocity[i - 1].x, m_buffer_out->avg_velocity[i - 1].y,
-               m_buffer_out->avg_velocity[i - 1].z);
-        printf("centroid %f %f %f\n", m_buffer_out->centroids[i - 1].x, m_buffer_out->centroids[i - 1].y,
-               m_buffer_out->centroids[i - 1].z);
+        printf("velocity %f %f %f\n", m_buffer_out->avg_velocity[i - 1][0], m_buffer_out->avg_velocity[i - 1][1],
+               m_buffer_out->avg_velocity[i - 1][2]);
+        printf("centroid %f %f %f\n", m_buffer_out->centroids[i - 1][0], m_buffer_out->centroids[i - 1][1],
+               m_buffer_out->centroids[i - 1][2]);
         printf("-------\n");
     }
     printf("--------------------------------------------------------\n");
