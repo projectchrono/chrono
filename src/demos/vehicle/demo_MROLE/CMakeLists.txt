@@ -13,6 +13,10 @@ ENDIF()
 SET(DEMOS
     demo_VEH_MROLE
     demo_VEH_MROLE_TurnCircle
+    demo_VEH_MROLE_Ride
+    demo_VEH_MROLE_Shock
+    demo_VEH_MROLE_Obstacle
+    demo_VEH_MROLE_ObstacleTool
 )
 
 #--------------------------------------------------------------

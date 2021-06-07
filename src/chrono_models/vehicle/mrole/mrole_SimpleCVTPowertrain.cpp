@@ -30,7 +30,7 @@ namespace mrole {
 // -----------------------------------------------------------------------------
 const double mrole_SimpleCVTPowertrain::m_max_torque = 219363.984;
 const double mrole_SimpleCVTPowertrain::m_max_power = 533000;
-const double mrole_SimpleCVTPowertrain::m_max_speed = 10;
+const double mrole_SimpleCVTPowertrain::m_max_speed = 25;
 const double mrole_SimpleCVTPowertrain::m_fwd_gear_ratio = 1.0;
 const double mrole_SimpleCVTPowertrain::m_rev_gear_ratio = -1.0;
 
