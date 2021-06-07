@@ -195,7 +195,6 @@ SET(ChronoEngine_Multicore_BASE
     ChDataManager.h
     ChTimerMulticore.h
     ChDataManager.cpp
-    ChCudaDefines.h
     )
 
 SOURCE_GROUP("" FILES ${ChronoEngine_Multicore_BASE})

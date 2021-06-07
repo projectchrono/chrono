@@ -1,9 +1,9 @@
 #include "chrono_multicore/physics/ChMPM.cuh"
 #include "chrono_multicore/physics/MPMUtils.h"
-#include "chrono_multicore/ChCudaHelper.cuh"
-#include "chrono_multicore/ChGPUVector.cuh"
+#include "chrono_multicore/cuda/ChCudaHelper.cuh"
+#include "chrono_multicore/cuda/ChGPUVector.cuh"
 #include "chrono_thirdparty/cub/cub.cuh"
-#include "chrono_multicore/math/matrixf.cuh"
+#include "chrono_multicore/cuda/matrixf.cuh"
 
 //#define BOX_YIELD
 #define SPHERE_YIELD
