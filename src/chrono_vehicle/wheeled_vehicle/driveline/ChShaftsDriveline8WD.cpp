@@ -46,9 +46,6 @@ void ChShaftsDriveline8WD::Initialize(std::shared_ptr<ChChassis> chassis,
 
     m_driven_axles = driven_axles;
 
-    auto chassisBody = chassis->GetBody();
-    auto sys = chassisBody->GetSystem();
-
     CreateShafts(chassis);
 
     CreateDifferentials(chassis, axles);
@@ -213,7 +210,7 @@ void ChShaftsDriveline8WD::CreateDifferentials(std::shared_ptr<ChChassis> chassi
     // Create a 1 d.o.f. object: a 'shaft' with rotational inertia.
     // This represents the inertia of the rotating box of the differential.
     m_front1_differentialbox = chrono_types::make_shared<ChShaft>();
-    m_front1_differentialbox->SetInertia(GetRearDifferentialBoxInertia());
+    m_front1_differentialbox->SetInertia(GetFrontDifferentialBoxInertia());
     sys->Add(m_front1_differentialbox);
 
     // Create an angled gearbox, i.e a transmission ratio constraint between two
@@ -224,7 +221,7 @@ void ChShaftsDriveline8WD::CreateDifferentials(std::shared_ptr<ChChassis> chassi
     m_front1_conicalgear = chrono_types::make_shared<ChShaftsGearboxAngled>();
     m_front1_conicalgear->Initialize(m_front1_shaft, m_front1_differentialbox, chassisBody, m_dir_motor_block,
                                      m_dir_axle);
-    m_front1_conicalgear->SetTransmissionRatio(-GetRearConicalGearRatio());
+    m_front1_conicalgear->SetTransmissionRatio(-GetFrontConicalGearRatio());
     sys->Add(m_front1_conicalgear);
 
     // Create a differential, i.e. an epicycloidal mechanism that connects three
@@ -241,7 +238,7 @@ void ChShaftsDriveline8WD::CreateDifferentials(std::shared_ptr<ChChassis> chassi
     // Create a 1 d.o.f. object: a 'shaft' with rotational inertia.
     // This represents the inertia of the rotating box of the differential.
     m_front2_differentialbox = chrono_types::make_shared<ChShaft>();
-    m_front2_differentialbox->SetInertia(GetRearDifferentialBoxInertia());
+    m_front2_differentialbox->SetInertia(GetFrontDifferentialBoxInertia());
     sys->Add(m_front2_differentialbox);
 
     // Create an angled gearbox, i.e a transmission ratio constraint between two
@@ -252,7 +249,7 @@ void ChShaftsDriveline8WD::CreateDifferentials(std::shared_ptr<ChChassis> chassi
     m_front2_conicalgear = chrono_types::make_shared<ChShaftsGearboxAngled>();
     m_front2_conicalgear->Initialize(m_front2_shaft, m_front2_differentialbox, chassisBody, m_dir_motor_block,
                                      m_dir_axle);
-    m_front2_conicalgear->SetTransmissionRatio(-GetRearConicalGearRatio());
+    m_front2_conicalgear->SetTransmissionRatio(-GetFrontConicalGearRatio());
     sys->Add(m_front2_conicalgear);
 
     // Create a differential, i.e. an epicycloidal mechanism that connects three
@@ -260,7 +257,7 @@ void ChShaftsDriveline8WD::CreateDifferentials(std::shared_ptr<ChChassis> chassi
     // ChShaftsPlanetary; a proper 'ordinary' transmission ratio t0 must be
     // assigned according to Willis formula. For a differential, t0=-1.
     m_front2_differential = chrono_types::make_shared<ChShaftsPlanetary>();
-    m_front2_differential->Initialize(m_front1_differentialbox, axles[m_driven_axles[1]]->m_suspension->GetAxle(LEFT),
+    m_front2_differential->Initialize(m_front2_differentialbox, axles[m_driven_axles[1]]->m_suspension->GetAxle(LEFT),
                                       axles[m_driven_axles[1]]->m_suspension->GetAxle(RIGHT));
     m_front2_differential->SetTransmissionRatioOrdinary(-1.0);
     sys->Add(m_front2_differential);
@@ -389,7 +386,7 @@ void ChShaftsDriveline8WD::LockAxleDifferential(int axle, bool lock) {
         m_front1_clutch->SetModulation(lock ? 1 : 0);
         return;
     } else if (axle == m_driven_axles[1]) {
-        m_front1_clutch->SetModulation(lock ? 1 : 0);
+        m_front2_clutch->SetModulation(lock ? 1 : 0);
         return;
     } else if (axle == m_driven_axles[2]) {
         m_rear1_clutch->SetModulation(lock ? 1 : 0);
