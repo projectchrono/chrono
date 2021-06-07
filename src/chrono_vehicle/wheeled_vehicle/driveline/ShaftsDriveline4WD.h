@@ -45,9 +45,6 @@ class CH_VEHICLE_API ShaftsDriveline4WD : public ChShaftsDriveline4WD {
     virtual double GetToFrontDiffShaftInertia() const override { return m_frontshaft_inertia; }
     virtual double GetToRearDiffShaftInertia() const override { return m_rearshaft_inertia; }
 
-    virtual double GetCentralDifferentialRatio() const override { return m_central_differential_ratio; }
-    virtual double GetFrontDifferentialRatio() const override { return m_front_differential_ratio; }
-    virtual double GetRearDifferentialRatio() const override { return m_rear_differential_ratio; }
     virtual double GetFrontConicalGearRatio() const override { return m_front_conicalgear_ratio; }
     virtual double GetRearConicalGearRatio() const override { return m_rear_conicalgear_ratio; }
 
@@ -66,9 +63,6 @@ class CH_VEHICLE_API ShaftsDriveline4WD : public ChShaftsDriveline4WD {
     double m_rearshaft_inertia;
 
     // Gear ratios.
-    double m_central_differential_ratio;
-    double m_front_differential_ratio;
-    double m_rear_differential_ratio;
     double m_front_conicalgear_ratio;
     double m_rear_conicalgear_ratio;
 

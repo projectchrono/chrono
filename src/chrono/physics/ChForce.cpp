@@ -22,18 +22,18 @@ namespace chrono {
 CH_FACTORY_REGISTER(ChForce)
 
 ChForce::ChForce()
-    : Body(NULL),
+    : Body(nullptr),
+      mode(FORCE),
+      frame(BODY),
+      align(BODY_DIR),
       vpoint(VNULL),
       vrelpoint(VNULL),
-      force(VNULL),
-      relforce(VNULL),
-      vdir(VECT_X),
-      vreldir(VECT_X),
       restpos(VNULL),
       mforce(0),
-      align(BODY_DIR),
-      frame(BODY),
-      mode(FORCE) {
+      vdir(VECT_X),
+      vreldir(VECT_X),
+      force(VNULL),
+      relforce(VNULL) {
     modula = chrono_types::make_shared<ChFunction_Const>(1);
     move_x = chrono_types::make_shared<ChFunction_Const>(0);
     move_y = chrono_types::make_shared<ChFunction_Const>(0);
@@ -307,7 +307,7 @@ void ChForce::ArchiveOUT(ChArchiveOut& marchive) {
 
 void ChForce::ArchiveIN(ChArchiveIn& marchive) {
     // class version number
-    int version = marchive.VersionRead<ChForce>();
+    /*int version =*/ marchive.VersionRead<ChForce>();
 
     // deserialize parent class too
     ChObj::ArchiveIN(marchive);

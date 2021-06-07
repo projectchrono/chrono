@@ -41,18 +41,17 @@ class CH_MODELS_API HMMWV_SimpleCVTPowertrain : public ChSimpleCVTPowertrain {
 
     ~HMMWV_SimpleCVTPowertrain() {}
 
-    virtual double GetForwardGearRatio() const override { return m_fwd_gear_ratio; }
-    virtual double GetReverseGearRatio() const override { return m_rev_gear_ratio; }
+    virtual void SetGearRatios(std::vector<double>& fwd, double& rev) override;
     virtual double GetMaxTorque() const override { return m_max_torque; }
     virtual double GetMaxPower() const override { return m_max_power; }
-    virtual double GetCriticalSpeed() const override { return m_critical_speed; }
+    virtual double GetMaxSpeed() const override { return m_max_speed; }
 
   private:
     static const double m_fwd_gear_ratio;  // forward gear ratio (single gear transmission)
     static const double m_rev_gear_ratio;  // reverse gear ratio
     static const double m_max_torque;      // maximum motor torque
     static const double m_max_power;       // maximum motor power
-    static const double m_critical_speed;  // critical motor speed for torque limiting
+    static const double m_max_speed;       // maximum engine speed
 };
 
 /// @} vehicle_models_hmmwv

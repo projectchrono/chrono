@@ -98,7 +98,7 @@ int main(int argc, char* argv[]) {
     // Create the Irrlicht application
     // -------------------------------
 
-    ChIrrApp application(&system, L"Limits on LinkLockRevolute demo", core::dimension2d<u32>(800, 600), false, true);
+    ChIrrApp application(&system, L"Limits on LinkLockRevolute demo", core::dimension2d<u32>(800, 600));
     application.AddTypicalLogo();
     application.AddTypicalSky();
     application.AddTypicalLights();
@@ -120,9 +120,9 @@ int main(int argc, char* argv[]) {
         ChVector<> p0(0, 0, 0);
         ChVector<> p1(std::cos(min_angle), -std::sin(min_angle), 0);
         ChVector<> p2(std::cos(max_angle), -std::sin(max_angle), 0);
-        ChIrrTools::drawSegment(application.GetVideoDriver(), p0, p0 + 4.0 * p1, video::SColor(255, 255, 150, 0), true);
-        ChIrrTools::drawSegment(application.GetVideoDriver(), p0, p0 + 4.0 * p2, video::SColor(255, 255, 150, 0), true);
-        ChIrrTools::drawAllLinkframes(system, application.GetVideoDriver(), 1.0);
+        tools::drawSegment(application.GetVideoDriver(), p0, p0 + 4.0 * p1, video::SColor(255, 255, 150, 0), true);
+        tools::drawSegment(application.GetVideoDriver(), p0, p0 + 4.0 * p2, video::SColor(255, 255, 150, 0), true);
+        tools::drawAllLinkframes(system, application.GetVideoDriver(), 1.0);
         application.DoStep();
         application.EndScene();
     }

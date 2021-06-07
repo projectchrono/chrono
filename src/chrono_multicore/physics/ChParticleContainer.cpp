@@ -28,6 +28,10 @@
 #include "chrono_multicore/math/real4.h"        // for quaternion, real4
 #include "chrono_multicore/math/matrix.h"       // for quaternion, real4
 
+#ifdef CHRONO_MULTICORE_USE_CUDA
+#include "chrono_multicore/physics/ChMPM.cuh"
+#endif
+
 namespace chrono {
 
 using namespace collision;
@@ -64,7 +68,7 @@ void ChParticleContainer::AddBodies(const std::vector<real3>& positions, const s
     vel_fluid.resize(pos_fluid.size());
     data_manager->num_fluid_bodies = (uint)pos_fluid.size();
 }
-void ChParticleContainer::Update(double ChTime) {
+void ChParticleContainer::Update3DOF(double ChTime) {
     uint num_fluid_bodies = data_manager->num_fluid_bodies;
     uint num_rigid_bodies = data_manager->num_rigid_bodies;
     uint num_shafts = data_manager->num_shafts;
@@ -142,7 +146,7 @@ void ChParticleContainer::UpdatePosition(double ChTime) {
     uint num_motors = data_manager->num_motors;
 
     custom_vector<real3>& pos_fluid = data_manager->host_data.pos_3dof;
-    custom_vector<real3>& sorted_pos_fluid = data_manager->host_data.sorted_pos_3dof;
+    ////custom_vector<real3>& sorted_pos_fluid = data_manager->host_data.sorted_pos_3dof;
     custom_vector<real3>& vel_fluid = data_manager->host_data.vel_3dof;
 
     uint offset = num_rigid_bodies * 6 + num_shafts + num_motors;
@@ -161,7 +165,7 @@ void ChParticleContainer::UpdatePosition(double ChTime) {
         }
         vel_fluid[original_index] = vel;
         pos_fluid[original_index] += vel * data_manager->settings.step_size;
-        // sorted_pos_fluid[i] = pos_fluid[original_index];
+        ////sorted_pos_fluid[i] = pos_fluid[original_index];
     }
 
     //    if (num_fluid_bodies != 0) {
@@ -279,8 +283,8 @@ void ChParticleContainer::ComputeMass(int offset) {
     }
 }
 
-void ChParticleContainer::Setup(int start_constraint) {
-    Ch3DOFContainer::Setup(start_constraint);
+void ChParticleContainer::Setup3DOF(int start_constraint) {
+    Ch3DOFContainer::Setup3DOF(start_constraint);
 
     start_boundary = start_constraint;
     if (contact_mu == 0) {

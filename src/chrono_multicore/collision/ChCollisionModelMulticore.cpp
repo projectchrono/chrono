@@ -191,6 +191,26 @@ bool ChCollisionModelMulticore::AddCylinder(std::shared_ptr<ChMaterialSurface> m
     return true;
 }
 
+bool ChCollisionModelMulticore::AddCylindricalShell(std::shared_ptr<ChMaterialSurface> material,
+                                                   double radius,
+                                                   double hlen,
+                                                   const ChVector<>& pos,
+                                                   const ChMatrix33<>& rot) {
+    ChFrame<> frame;
+    TransformToCOG(GetBody(), pos, rot, frame);
+    const ChVector<>& position = frame.GetPos();
+    const ChQuaternion<>& rotation = frame.GetRot();
+
+    auto shape = new ChCollisionShapeMulticore(ChCollisionShape::Type::CYLSHELL, material);
+    shape->A = real3(position.x(), position.y(), position.z());
+    shape->B = real3(radius, hlen, radius);
+    shape->C = real3(0, 0, 0);
+    shape->R = quaternion(rotation.e0(), rotation.e1(), rotation.e2(), rotation.e3());
+    m_shapes.push_back(std::shared_ptr<ChCollisionShape>(shape));
+
+    return true;
+}
+
 bool ChCollisionModelMulticore::AddRoundedCylinder(std::shared_ptr<ChMaterialSurface> material,
                                                   double rx,
                                                   double rz,

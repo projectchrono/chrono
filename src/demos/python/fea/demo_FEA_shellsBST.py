@@ -24,7 +24,7 @@ import os
 
 
 # Output directory
-out_dir = "./FEA_SHELLS"
+out_dir = chrono.GetChronoOutputPath() + "FEA_SHELLS_BST"
 
 # The path to the Chrono data directory containing various assets (meshes, textures, data files)
 # is automatically set, relative to the default location of this demo.
@@ -272,7 +272,7 @@ if (False) :
 	material = fea.ChMaterialShellKirchhoff(melasticity)
 	material.SetDensity(density)
 
-	fea.ChMeshFileLoader.BSTShellFromObjFile(my_mesh, chrono.GetChronoDataFile('cube.obj'), material, thickness)
+	fea.ChMeshFileLoader.BSTShellFromObjFile(my_mesh, chrono.GetChronoDataFile('models/cube.obj'), material, thickness)
 
 
 
@@ -304,11 +304,8 @@ my_mesh.AddAsset(mvisualizeshellB)
 # VISUALIZATION
 #
 
-# Create the Irrlicht visualization (open the Irrlicht device,
-# bind a simple user interface, etc. etc.)
-application = chronoirr.ChIrrApp(my_system, "Shells FEA test: triangle BST elements", chronoirr.dimension2du(1024, 768), False, True)
-
-# Easy shortcuts to add camera, lights, logo and sky in Irrlicht scene:
+# Create the Irrlicht visualization
+application = chronoirr.ChIrrApp(my_system, "Shells FEA test: triangle BST elements", chronoirr.dimension2du(1024, 768))
 application.AddTypicalLogo(chrono.GetChronoDataFile('logo_pychrono_alpha.png'))
 application.AddTypicalSky()
 application.AddTypicalLights()

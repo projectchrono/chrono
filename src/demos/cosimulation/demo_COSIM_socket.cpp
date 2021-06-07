@@ -48,10 +48,10 @@ int main(int argc, char* argv[]) {
         // (it is assumed that, when waiting, a client will send
         // something to this port)
 
-        int PORTNUM = 50009;
+        int PORT_NUMBER = 50009;
 
         // a server is created, that could listen at a given port
-        ChSocketTCP myServer(PORTNUM);
+        ChSocketTCP myServer(PORT_NUMBER);
 
         // bind socket to server
         GetLog() << "Binding to socket... \n";

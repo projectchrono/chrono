@@ -63,7 +63,7 @@ void ChIterativeSolverVI::ArchiveOUT(ChArchiveOut& marchive) {
 
 void ChIterativeSolverVI::ArchiveIN(ChArchiveIn& marchive) {
     // version number
-    int version = marchive.VersionRead<ChIterativeSolverVI>();
+    /*int version =*/ marchive.VersionRead<ChIterativeSolverVI>();
     // deserialize parent class
     ChSolver::ArchiveIN(marchive);
     // stream in all member data:

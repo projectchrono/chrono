@@ -9,7 +9,7 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Authors: 肖言 (Yan Xiao)
+// Authors: Yan Xiao
 // =============================================================================
 //
 // Message class for Environment Agents. This class is only used to send the
@@ -54,7 +54,7 @@ class SYN_API SynEnvironmentMessage : public SynMessage {
     ///
     ///@param builder a flatbuffer builder to construct the message with
     ///@return FlatBufferMessage the constructed flatbuffer message
-    virtual FlatBufferMessage ConvertToFlatBuffers(flatbuffers::FlatBufferBuilder& builder) override;
+    virtual FlatBufferMessage ConvertToFlatBuffers(flatbuffers::FlatBufferBuilder& builder) const override;
 
     std::shared_ptr<SynMAPMessage> map_message;
     std::shared_ptr<SynSPATMessage> spat_message;

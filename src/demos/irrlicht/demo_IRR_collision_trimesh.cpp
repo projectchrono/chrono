@@ -44,18 +44,14 @@ int main(int argc, char* argv[]) {
 
     // Create the Irrlicht visualization (open the Irrlicht device,
     // bind a simple user interface, etc. etc.)
-    ChIrrApp application(&mphysicalSystem, L"Collisions between objects", core::dimension2d<u32>(1280, 720), false);
-
-    // Easy shortcuts to add camera, lights, logo and sky in Irrlicht scene:
-    ChIrrWizard::add_typical_Logo(application.GetDevice());
-    ChIrrWizard::add_typical_Sky(application.GetDevice());
-    ChIrrWizard::add_typical_Lights(application.GetDevice());
-    ChIrrWizard::add_typical_Camera(application.GetDevice(), core::vector3df(0, 1, -1));
-
+    ChIrrApp application(&mphysicalSystem, L"Collisions between objects", core::dimension2d<u32>(1280, 720), VerticalDir::Y, false, true);
+    application.AddTypicalLogo();
+    application.AddTypicalSky();
+    application.AddTypicalLights();
+    application.AddTypicalCamera(irr::core::vector3df(0, 1, -1));
     application.AddLightWithShadow(core::vector3df(1.5f, 5.5f, -2.5f), core::vector3df(0, 0, 0), 3, 2.2, 7.2, 40, 512,
                                    video::SColorf(0.8f, 0.8f, 1.0f));
-
-    application.SetContactsDrawMode(ChIrrTools::eCh_ContactsDrawMode::CONTACT_DISTANCES);
+    application.SetContactsDrawMode(IrrContactsDrawMode::CONTACT_DISTANCES);
 
     //
     // Create all the rigid bodies.
@@ -75,7 +71,7 @@ int main(int argc, char* argv[]) {
     mphysicalSystem.Add(mfloor2);
 
     auto masset_texture = chrono_types::make_shared<ChTexture>();
-    masset_texture->SetTextureFilename(GetChronoDataFile("concrete.jpg"));
+    masset_texture->SetTextureFilename(GetChronoDataFile("textures/concrete.jpg"));
     mfloor2->AddAsset(masset_texture);
 
     // - Create a falling item with triangle mesh shape
@@ -87,13 +83,13 @@ int main(int argc, char* argv[]) {
     // piece of code:
     //
     // auto mfalling = chrono_types::make_shared<ChBodyEasyMesh>(
-    //	  GetChronoDataFile("shoe_view.obj"),   ///< file name for OBJ Wavefront mesh
-    //	  1000,                                 ///< density of the body
-    //	  true,			                        ///< automatic evaluation of mass, COG position, inertia tensor
-    //    true,                                 ///< attach visualization asset
-    //	  true,			                        ///< enable the collision detection
-    //    mat,                                  ///< surface contact material
-    //	  0.005			                        ///< radius of 'inflating' of mesh (for more robust collision detection)
+    //	  GetChronoDataFile("models/bulldozer/shoe_view.obj"),  // file name for OBJ Wavefront mesh
+    //	  1000,                                                 // density of the body
+    //	  true,			                                        // automatic evaluation of mass, COG position, inertia tensor
+    //    true,                                                 // attach visualization asset
+    //	  true,			                                        // enable the collision detection
+    //    mat,                                                  // surface contact material
+    //	  0.005			                                        // radius of 'inflating' of mesh (for more robust collision detection)
     //	  );
     // mfalling->SetFrame_REF_to_abs(ChFrame<>(ChVector<>(-0.9 + ChRandom() * 1.4, 0.4 + j * 0.12, -0.9 + ChRandom()
     // * 1.4))); mphysicalSystem.Add(mfalling);
@@ -104,7 +100,7 @@ int main(int argc, char* argv[]) {
 	// imported mesh; also we want to scale the imported mesh using Transform().
 
     auto mmesh = chrono_types::make_shared<ChTriangleMeshConnected>();
-    mmesh->LoadWavefrontMesh(GetChronoDataFile("shoe_view.obj"), false, true);
+    mmesh->LoadWavefrontMesh(GetChronoDataFile("models/bulldozer/shoe_view.obj"), false, true);
     mmesh->Transform(ChVector<>(0, 0, 0), ChMatrix33<>(1.2));  // scale to a different size
     mmesh->RepairDuplicateVertexes(1e-9);                      // if meshes are not watertight
 

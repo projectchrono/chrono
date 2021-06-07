@@ -20,7 +20,6 @@
 #include "chrono/core/ChMathematics.h"
 
 #include "chrono_vehicle/tracked_vehicle/utils/ChTrackedVehicleIrrApp.h"
-#include "chrono_vehicle/tracked_vehicle/driveline/ChSimpleTrackDriveline.h"
 
 using namespace irr;
 
@@ -44,29 +43,28 @@ ChTrackedVehicleIrrApp::ChTrackedVehicleIrrApp(ChVehicle* vehicle,
 void ChTrackedVehicleIrrApp::renderOtherStats(int left, int top) {
     char msg[100];
 
-    if (auto driveline = std::dynamic_pointer_cast<ChSimpleTrackDriveline>(m_tvehicle->GetDriveline())) {
-        double toRPM = 30 / CH_C_PI;
+    auto driveline = m_tvehicle->GetDriveline();
+    double toRPM = 30 / CH_C_PI;
 
-        double shaft_speed = driveline->GetDriveshaftSpeed() * toRPM;
-        sprintf(msg, "Driveshaft (RPM): %+.2f", shaft_speed);
-        renderLinGauge(std::string(msg), shaft_speed / 2000, true, left, top, 120, 15);
+    double shaft_speed = driveline->GetDriveshaftSpeed() * toRPM;
+    sprintf(msg, "Driveshaft (RPM): %+.2f", shaft_speed);
+    renderLinGauge(std::string(msg), shaft_speed / 2000, true, left, top, 120, 15);
 
-        double speedL = driveline->GetSprocketSpeed(LEFT) * toRPM;
-        sprintf(msg, "Sprocket L (RPM): %+.2f", speedL);
-        renderLinGauge(std::string(msg), speedL / 2000, true, left, top + 30, 120, 15);
+    double speedL = driveline->GetSprocketSpeed(LEFT) * toRPM;
+    sprintf(msg, "Sprocket L (RPM): %+.2f", speedL);
+    renderLinGauge(std::string(msg), speedL / 2000, true, left, top + 30, 120, 15);
 
-        double torqueL = driveline->GetSprocketTorque(LEFT);
-        sprintf(msg, "Torque sprocket L: %+.2f", torqueL);
-        renderLinGauge(std::string(msg), torqueL / 5000, true, left, top + 50, 120, 15);
+    double torqueL = driveline->GetSprocketTorque(LEFT);
+    sprintf(msg, "Torque sprocket L: %+.2f", torqueL);
+    renderLinGauge(std::string(msg), torqueL / 5000, true, left, top + 50, 120, 15);
 
-        double speedR = driveline->GetSprocketSpeed(RIGHT) * toRPM;
-        sprintf(msg, "Sprocket R (RPM): %+.2f", speedR);
-        renderLinGauge(std::string(msg), speedR / 2000, true, left, top + 80, 120, 15);
+    double speedR = driveline->GetSprocketSpeed(RIGHT) * toRPM;
+    sprintf(msg, "Sprocket R (RPM): %+.2f", speedR);
+    renderLinGauge(std::string(msg), speedR / 2000, true, left, top + 80, 120, 15);
 
-        double torqueR = driveline->GetSprocketTorque(RIGHT);
-        sprintf(msg, "Torque sprocket R: %+.2f", torqueR);
-        renderLinGauge(std::string(msg), torqueR / 5000, true, left, top + 100, 120, 15);
-    }
+    double torqueR = driveline->GetSprocketTorque(RIGHT);
+    sprintf(msg, "Torque sprocket R: %+.2f", torqueR);
+    renderLinGauge(std::string(msg), torqueR / 5000, true, left, top + 100, 120, 15);
 }
 
 // -----------------------------------------------------------------------------
@@ -75,24 +73,22 @@ void ChTrackedVehicleIrrApp::renderOtherStats(int left, int top) {
 void ChTrackedVehicleIrrApp::renderOtherGraphics() {
     // Contact normals on left sprocket.
     // Note that we only render information for contacts on the outside gear profile
-    for (auto it = m_tvehicle->m_contact_manager->m_sprocket_L_contacts.begin();
-         it != m_tvehicle->m_contact_manager->m_sprocket_L_contacts.end(); ++it) {
-        ChVector<> v1 = it->m_point;
-        ChVector<> v2 = v1 + it->m_csys.Get_A_Xaxis();
+    for (const auto& c : m_tvehicle->m_contact_manager->m_sprocket_L_contacts) {
+        ChVector<> v1 = c.m_point;
+        ChVector<> v2 = v1 + c.m_csys.Get_A_Xaxis();
 
         if (v1.y() > m_tvehicle->GetTrackAssembly(LEFT)->GetSprocket()->GetGearBody()->GetPos().y())
-            irrlicht::ChIrrTools::drawSegment(GetVideoDriver(), v1, v2, video::SColor(255, 180, 0, 0), false);
+            irrlicht::tools::drawSegment(GetVideoDriver(), v1, v2, video::SColor(255, 180, 0, 0), false);
     }
 
     // Contact normals on rear sprocket.
     // Note that we only render information for contacts on the outside gear profile
-    for (auto it = m_tvehicle->m_contact_manager->m_sprocket_R_contacts.begin();
-         it != m_tvehicle->m_contact_manager->m_sprocket_R_contacts.end(); ++it) {
-        ChVector<> v1 = it->m_point;
-        ChVector<> v2 = v1 + it->m_csys.Get_A_Xaxis();
+    for (const auto& c : m_tvehicle->m_contact_manager->m_sprocket_R_contacts) {
+        ChVector<> v1 = c.m_point;
+        ChVector<> v2 = v1 + c.m_csys.Get_A_Xaxis();
 
         if (v1.y() < m_tvehicle->GetTrackAssembly(RIGHT)->GetSprocket()->GetGearBody()->GetPos().y())
-            irrlicht::ChIrrTools::drawSegment(GetVideoDriver(), v1, v2, video::SColor(255, 180, 0, 0), false);
+            irrlicht::tools::drawSegment(GetVideoDriver(), v1, v2, video::SColor(255, 180, 0, 0), false);
     }
 
     // Contact normals on monitored track shoes.
@@ -110,11 +106,11 @@ void ChTrackedVehicleIrrApp::renderOtherGraphics() {
 // Render normal for all contacts in the specified list, using the given color.
 void ChTrackedVehicleIrrApp::renderContactNormals(const std::list<ChTrackContactManager::ContactInfo>& lst,
                                                   const video::SColor& col) {
-    for (auto it = lst.begin(); it != lst.end(); ++it) {
-        ChVector<> v1 = it->m_point;
-        ChVector<> v2 = v1 + it->m_csys.Get_A_Xaxis();
+    for (const auto& c : lst) {
+        ChVector<> v1 = c.m_point;
+        ChVector<> v2 = v1 + c.m_csys.Get_A_Xaxis();
 
-        irrlicht::ChIrrTools::drawSegment(GetVideoDriver(), v1, v2, col, false);
+        irrlicht::tools::drawSegment(GetVideoDriver(), v1, v2, col, false);
     }
 }
 

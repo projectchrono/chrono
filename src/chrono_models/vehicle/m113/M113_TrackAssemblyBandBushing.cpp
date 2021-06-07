@@ -54,7 +54,7 @@ const ChVector<> M113_TrackAssemblyBandBushing::m_susp_locs_R[5] = {  //
 // -----------------------------------------------------------------------------
 M113_TrackAssemblyBandBushing::M113_TrackAssemblyBandBushing(VehicleSide side, BrakeType brake_type)
     : ChTrackAssemblyBandBushing("", side) {
-    size_t num_shoes;
+    size_t num_shoes = 0;
     std::string suspName("M113_Suspension");
     std::string shoeName("M113_TrackShoe");
     switch (side) {

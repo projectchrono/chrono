@@ -9,14 +9,6 @@ stages:
   - test
   - deploy
 
-variables:
-  CHRONO_UNIX_SHARED: "-DCMAKE_BUILD_TYPE=Release -DBUILD_TESTING=TRUE 
-    -DBUILD_BENCHMARKING=TRUE -DENABLE_MODULE_POSTPROCESS=TRUE 
-    -DENABLE_MODULE_PYTHON=TRUE -DENABLE_MODULE_COSIMULATION=FALSE 
-    -DENABLE_MODULE_IRRLICHT=TRUE -DENABLE_MODULE_VEHICLE=TRUE 
-    -DENABLE_MODULE_MULTICORE=TRUE -DENABLE_MODULE_OPENGL=TRUE
-    -DENABLE_MODULE_SYNCHRONO=TRUE"
-
 #---------------------#
 # Arch Linux Builders #
 #---------------------#
@@ -25,23 +17,23 @@ variables:
   tags:
   - linux
   image: 
-    name: archlinux/base
+    name: archlinux:base-devel
     entrypoint: ["/usr/bin/bash", "-c"]
   before_script:
   - uname -a
-  - pacman -Syyu --noconfirm base-devel cuda git eigen cmake glfw glm glew glut irrlicht wget boost python python-pip openmpi swig
+  - pacman -Syyu --noconfirm cuda git eigen cmake glfw glm glew glut irrlicht ninja wget python python-pip openmpi swig hdf5
 # Clean up the package cache to make more space for the build
   - pacman -Scc --noconfirm
   - ldconfig
-  - wget https://bitbucket.org/blaze-lib/blaze/downloads/blaze-3.5.tar.gz
-  - tar -xf blaze-3.5.tar.gz
-  - cp blaze-3.5/blaze -r /usr/local/include
+  - wget https://bitbucket.org/blaze-lib/blaze/downloads/blaze-3.8.tar.gz
+  - tar -xf blaze-3.8.tar.gz
+  - cp blaze-3.8/blaze -r /usr/local/include
   - git submodule init
   - git submodule update
   - mkdir -p build
 # Make flatbuffers
   - cd src/chrono_thirdparty/flatbuffers
-  - cmake -G "Unix Makefiles" -DCMAKE_BUILD_TYPE=Release
+  - cmake -G "Unix Makefiles" -DCMAKE_BUILD_TYPE=Release .
   - make
   - cd $CI_PROJECT_DIR
 
@@ -51,10 +43,11 @@ linux:arch-gcc:build:
   script:
   - cd build
   - echo $CI_PROJECT_DIR
-  - cmake ../ $CHRONO_UNIX_SHARED -DENABLE_MODULE_DISTRIBUTED=TRUE 
-    -DENABLE_MODULE_FSI=TRUE -DCMAKE_C_COMPILER=/usr/bin/gcc 
+  - cmake ../ --preset=linuxci
+    -DCMAKE_C_COMPILER=/usr/bin/gcc 
     -DCMAKE_CXX_COMPILER=/usr/bin/g++ 
-    -DEIGEN3_INCLUDE_DIR=/usr/include/eigen3 -DENABLE_MODULE_GPU=TRUE
+    -DEIGEN3_INCLUDE_DIR=/usr/include/eigen3
+    -DBUILD_TESTING_GPU=FALSE
   - make -j 8
   artifacts:
     expire_in: 60m
@@ -69,7 +62,7 @@ linux:arch-gcc:test:
   script:
   - cd build
   - export OMP_NUM_THREADS=8
-  - make test
+  - make CTEST_OUTPUT_ON_FAILURE=1 test
   dependencies: ["linux:arch-gcc:build"]
 
 
@@ -77,7 +70,7 @@ linux:doxygen:deploy:
   tags:
   - linux
   image: 
-    name: archlinux/base
+    name: archlinux:base-devel
     entrypoint: ["/usr/bin/bash", "-c"]
   stage: deploy
   before_script:
@@ -89,8 +82,8 @@ linux:doxygen:deploy:
     - chmod 0700 ~/.ssh
 # This private key is only useable from specific IPs, so it should be okay to
 # be included here.
-    - cp $API_PRIVATE_KEY ~/.ssh/id_rsa
-    - chmod 0600 ~/.ssh/id_rsa
+    - cp $API_PRIVATE_KEY ~/.ssh/id_ed25519
+    - chmod 0600 ~/.ssh/id_ed25519
 # Remove any duplicate host key entries, if necessary
     - if test -f ~/.ssh/known_hosts; then ssh-keygen -R $API_REINDEX_ENDPOINT; fi
 # Cache a verified host pubkey from file to avoid MITM attacks
@@ -102,7 +95,14 @@ linux:doxygen:deploy:
     # - doxygen Doxyfile_Generate_Search_Index
     - rsync -ra /tmp/chrono_doxygen/html/* $API_HTML_ENDPOINT
     - rsync /tmp/chrono_doxygen/searchdata.xml $API_SEARCH_ENDPOINT
-    - ssh $API_REINDEX_ENDPOINT /var/www/cgi-bin/doxyindexer.cgi /var/www/cgi-bin/searchdata.xml
+    - ssh $API_REINDEX_ENDPOINT /usr/bin/doxyindexer -o $API_CGI_DIR $API_CGI_DIR/searchdata.xml
+  needs:
+    - job: linux:arch-gcc:test
+      artifacts: false
+    - job: macos:bigsur:test
+      artifacts: false
+    - job: windows:vs2019:test
+      artifacts: false
   environment:
     name: doxygen
     url: http://api.projectchrono.org/
@@ -118,10 +118,12 @@ linux:arch-llvm:build:
   script:
   - pacman -S --noconfirm llvm clang openmp
   - cd build
-  - cmake ../ $CHRONO_UNIX_SHARED -DENABLE_MODULE_DISTRIBUTED=TRUE 
-    -DENABLE_MODULE_FSI=TRUE -DCMAKE_C_COMPILER=/usr/bin/clang 
-    -DCMAKE_CXX_COMPILER=/usr/bin/clang++ -DCUDA_HOST_COMPILER=/usr/bin/gcc 
-    -DEIGEN3_INCLUDE_DIR=/usr/include/eigen3 -DENABLE_MODULE_GPU=TRUE
+  - cmake ../ --preset=linuxci 
+    -DCMAKE_C_COMPILER=/usr/bin/clang
+    -DCMAKE_CXX_COMPILER=/usr/bin/clang++ 
+    -DEIGEN3_INCLUDE_DIR=/usr/include/eigen3
+    -DCUDA_HOST_COMPILER=/usr/bin/gcc
+    -DBUILD_TESTING_GPU=FALSE
   - make -j 8
   artifacts:
     expire_in: 60m
@@ -137,81 +139,9 @@ linux:arch-llvm:test:
   - pacman -S --noconfirm llvm clang openmp
   - cd build
   - export OMP_NUM_THREADS=8
-  - make test
+  - make CTEST_OUTPUT_ON_FAILURE=1 test
   dependencies: ["linux:arch-llvm:build"]
 
-
-#----------------#
-# CentOS Builder #
-#----------------#
-
-.centos:
-  tags:
-  - linux
-  image:
-    name: nvidia/cuda:10.0-devel-centos7
-    entrypoint: ["/usr/bin/bash", "-c"]
-  before_script:
-  - uname -a
-  - yum -y update && yum -y install epel-release
-  - yum -y groupinstall "Development Tools"
-  - yum -y install centos-release-scl
-  - yum -y install devtoolset-8
-  # The normal "scl enable ..." route creates a new bash session which will 
-  # cause the script to hang. We need to activate the environment in the
-  # _current_ shell instead
-  - source /opt/rh/devtoolset-8/enable
-  - yum -y install cmake3 eigen3 irrlicht-devel glew-devel glfw-devel glfw-devel
-      libGLEW glm-devel sudo boost-devel freeglut-devel wget fish python 
-      python-devel python-pip pcre-devel openmpi openmpi-devel
-  - alternatives --install /usr/local/bin/cmake cmake /usr/bin/cmake3 20 
-      --slave /usr/local/bin/ctest ctest /usr/bin/ctest3 
-      --slave /usr/local/bin/cpack cpack /usr/bin/cpack3 
-      --slave /usr/local/bin/ccmake ccmake /usr/bin/ccmake3 
-      --family cmake
-  # SWIG will have been mysteriously installed, we install a newer version later
-  - yum -y remove swig
-  - ldconfig
-  - wget https://sourceforge.net/projects/swig/files/swig/swig-3.0.12/swig-3.0.12.tar.gz
-  - tar -xf swig-3.0.12.tar.gz
-  - cd swig-3.0.12
-  - ./configure && make && make install
-  - ldconfig
-  - cd ../
-  - wget https://bitbucket.org/blaze-lib/blaze/downloads/blaze-3.5.tar.gz
-  - tar -xf blaze-3.5.tar.gz
-  - cp blaze-3.5/blaze -r /usr/local/include
-  - git submodule init
-  - git submodule update
-  - mkdir -p build
-
-.linux:centos:build:
-  stage: build
-  extends: .centos
-  script:
-  - cd build
-  - cmake ../ $CHRONO_UNIX_SHARED -DENABLE_MODULE_DISTRIBUTED=TRUE
-      -DCMAKE_C_COMPILER=/opt/rh/devtoolset-8/root/usr/bin/gcc 
-      -DCMAKE_CXX_COMPILER=/opt/rh/devtoolset-8/root/usr/bin/g++ 
-      -DENABLE_MODULE_GPU=TRUE
-      -DCUDA_HOST_COMPILER=/opt/rh/devtoolset-8/root/usr/bin/gcc
-      # -DENABLE_MODULE_FSI=TRUE 
-  - make -j 8
-  artifacts:
-    expire_in: 60m
-    paths:
-    - build/
-
-.linux:centos:test:
-  stage: test
-  needs: ["linux:centos:build"]
-  extends: .centos
-  script:
-  - cd build
-  - export OMP_NUM_THREADS=8
-  - make test
-  dependencies: ["linux:centos:build"]
-  
 
 #----------------#
 # Ubuntu Builder #
@@ -226,19 +156,22 @@ linux:arch-llvm:test:
     - uname -a
     - export DEBIAN_FRONTEND=noninteractive
     - apt-get update; apt-get -y install wget python git 
-        cmake build-essential libboost-dev swig3.0 libeigen3-dev 
+        cmake build-essential libboost-dev swig4.0 libeigen3-dev 
         libglfw3-dev libglm-dev libglew-dev freeglut3-dev libirrlicht-dev
-        libopenmpi-dev python3 python3-dev
+        libopenmpi-dev python3 python3-dev libhdf5-dev
     - ldconfig
-    - wget https://bitbucket.org/blaze-lib/blaze/downloads/blaze-3.5.tar.gz
-    - tar -xf blaze-3.5.tar.gz
-    - cp blaze-3.5/blaze -r /usr/local/include
+    - wget https://bitbucket.org/blaze-lib/blaze/downloads/blaze-3.8.tar.gz
+    - tar -xf blaze-3.8.tar.gz
+    - cp -r blaze-3.8/blaze /usr/local/include
+    - wget https://gitlab.com/libeigen/eigen/-/archive/3.3.9/eigen-3.3.9.tar.bz2
+    - tar -xf eigen-3.3.9.tar.bz2
+    - cp -r eigen-3.3.9 /usr/local/include/eigen3
     - git submodule init
     - git submodule update
     - mkdir -p build
     # Make flatbuffers
     - cd src/chrono_thirdparty/flatbuffers
-    - cmake -G "Unix Makefiles" -DCMAKE_BUILD_TYPE=Release
+    - cmake -G "Unix Makefiles" -DCMAKE_BUILD_TYPE=Release .
     - make
     - cd $CI_PROJECT_DIR
 
@@ -249,13 +182,13 @@ linux:arch-llvm:test:
     - uname -a
     - export DEBIAN_FRONTEND=noninteractive
     - apt-get update; apt-get -y install wget python git 
-        cmake build-essential libboost-dev swig3.0 libeigen3-dev 
+        cmake build-essential libboost-dev swig4.0 libeigen3-dev 
         libglfw3-dev libglm-dev libglew-dev freeglut3-dev libirrlicht-dev
         libopenmpi-dev python3 python3-dev
     - ldconfig
-    - wget https://bitbucket.org/blaze-lib/blaze/downloads/blaze-3.5.tar.gz
-    - tar -xf blaze-3.5.tar.gz
-    - cp blaze-3.5/blaze -r /usr/local/include
+    - wget https://bitbucket.org/blaze-lib/blaze/downloads/blaze-3.8.tar.gz
+    - tar -xf blaze-3.8.tar.gz
+    - cp blaze-3.8/blaze -r /usr/local/include
     - git submodule init
     - git submodule update
     - echo "Build PyChrono and deploy via Anaconda..."
@@ -279,19 +212,31 @@ linux:arch-llvm:test:
     name: pychrono-ubuntu1804
     url: https://anaconda.org/projectchrono/pychrono
 
+
 #----------------#
 # Ubuntu Builder #
 #----------------#
 
+# Ubuntu 18.04 doesn't have a sufficiently new CMake for presets, so we rely on manual configuration
 linux:ubuntu1804:build:
   stage: build
   extends: .ubuntu
   script:
     - cd build
-    - cmake ../ $CHRONO_UNIX_SHARED -DENABLE_MODULE_DISTRIBUTED=TRUE
-        -DCMAKE_C_COMPILER=/usr/bin/gcc -DCMAKE_CXX_COMPILER=/usr/bin/g++
-        -DPYTHON_EXECUTABLE=/usr/bin/python3 -DENABLE_MODULE_GPU=TRUE
+    - cmake ../ -DCMAKE_BUILD_TYPE=Release -DBUILD_TESTING=TRUE 
+        -DBUILD_BENCHMARKING=TRUE -DENABLE_MODULE_POSTPROCESS=TRUE 
+        -DENABLE_MODULE_PYTHON=TRUE -DENABLE_MODULE_COSIMULATION=FALSE 
+        -DENABLE_MODULE_IRRLICHT=TRUE -DENABLE_MODULE_VEHICLE=TRUE 
+        -DENABLE_MODULE_MULTICORE=TRUE -DENABLE_MODULE_OPENGL=TRUE
+        -DENABLE_MODULE_SYNCHRONO=TRUE -DENABLE_MODULE_CSHARP=TRUE
+        -DENABLE_MODULE_GPU=TRUE -DENABLE_MODULE_DISTRIBUTED=TRUE
+        -DENABLE_HDF5=TRUE
+        -DCMAKE_C_COMPILER=/usr/bin/gcc 
+        -DCMAKE_CXX_COMPILER=/usr/bin/g++
         -DCUDA_HOST_COMPILER=/usr/bin/gcc
+        -DPYTHON_EXECUTABLE=/usr/bin/python3
+        -DEIGEN3_INCLUDE_DIR=/usr/local/include/eigen3
+        -DCMAKE_VERBOSE_MAKEFILE=TRUE
     - make -j 8
   artifacts:
     expire_in: 60m
@@ -306,7 +251,7 @@ linux:ubuntu1804:test:
   script:
     - cd build
     - export OMP_NUM_THREADS=8
-    - make test
+    - make CTEST_OUTPUT_ON_FAILURE=1 test
   dependencies: ["linux:ubuntu1804:build"]
 
 
@@ -340,6 +285,7 @@ linux:ubuntu1804:deploy-python3.8:
     - anaconda -t $ANACONDA_TOKEN upload $HOME/miniconda3/conda-bld/linux-64/pychrono*.bz2 -l develop --force
   when: manual
 
+
 #------------------#
 # Windows Builders #
 #------------------#
@@ -348,37 +294,7 @@ linux:ubuntu1804:deploy-python3.8:
   tags:
   - windows
   before_script:
-  - $CHRONO_W64_SHARED = @(
-    "-DCMAKE_BUILD_TYPE=Release",
-    "-DBUILD_TESTING=TRUE",
-    "-DBUILD_BENCHMARKING=TRUE",
-    "-DENABLE_MODULE_POSTPROCESS=TRUE",
-    "-DENABLE_MODULE_PYTHON=TRUE",
-    "-DENABLE_MODULE_COSIMULATION=FALSE",
-    "-DENABLE_MODULE_IRRLICHT=TRUE",
-    "-DENABLE_MODULE_VEHICLE=TRUE",
-    "-DENABLE_MODULE_MULTICORE=TRUE",
-    "-DENABLE_MODULE_OPENGL=TRUE",
-    "-DENABLE_MODULE_SYNCHRONO=TRUE"
-    )
-    #  - wget -UseBasicParsing https://bitbucket.org/blaze-lib/blaze/downloads/blaze-3.5.tar.gz -OutFile blaze-3.5.tar.gz
-    #  - tar -xf .\blaze-3.5.tar.gz blaze-3.5/blaze
-  - $CHRONO_W64_LIBRARIES = @(
-    "-DBLAZE_DIR=C:/Users/builder/Documents/blaze-3.6",
-    "-DSWIG_EXECUTABLE=C:/Users/builder/Documents/swigwin-4.0.1/swig.exe",
-    "-DPYTHON_EXECUTABLE=C:/Users/builder/Anaconda3/python.exe",
-    "-DBOOST_ROOT=C:/Users/builder/Documents/boost_1_71_0",
-    "-DGLM_INCLUDE_DIR=C:/Users/builder/Documents/glm-0.9.9.6",
-    "-DGLEW_DLL=C:/Users/builder/Documents/glew-2.1.0/bin/Release/x64/glew32.dll",
-    "-DGLEW_INCLUDE_DIR=C:/Users/builder/Documents/glew-2.1.0/include",
-    "-DGLEW_LIBRARY=C:/Users/builder/Documents/glew-2.1.0/lib/Release/x64/glew32.lib",
-    "-DGLFW_DLL=C:/Users/builder/Documents/glfw-3.3/lib-vc2015/glfw3.dll",
-    "-DGLFW_INCLUDE_DIR=C:/Users/builder/Documents/glfw-3.3/include",
-    "-DGLFW_LIBRARY=C:/Users/builder/Documents/glfw-3.3/lib-vc2015/glfw3dll.lib",
-    "-DIRRLICHT_LIBRARY=C:/Users/builder/Documents/irrlicht-1.8.4/lib/Win64-visualStudio/Irrlicht.lib",
-    "-DIRRLICHT_ROOT=C:/Users/builder/Documents/irrlicht-1.8.4",
-    "-DEIGEN3_INCLUDE_DIR=C:/Users/builder/Documents/eigen-3.3.7"
-    )
+  - $Env:CONDA_INSTALL_LOCN= "C:\Users\builder\anaconda3"
   - echo $CI_PROJECT_DIR
   - git submodule init
   - git submodule update
@@ -390,18 +306,14 @@ windows:vs2019:build:
   script:
   # Build flatbuffers
   - cd $CI_PROJECT_DIR/src/chrono_thirdparty/flatbuffers
-  - cmake -G "Visual Studio 16 2019" -DCMAKE_BUILD_TYPE=Release
-  - '& "C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\MSBuild\Current\Bin\MSBuild.exe" FlatBuffers.sln -maxcpucount:8 -property:Configuration=Release'
+  - cmake -G "Visual Studio 16 2019" -DCMAKE_BUILD_TYPE=Release .
+  - '& "C:\Program Files (x86)\Microsoft Visual Studio\2019\BuildTools\MSBuild\Current\Bin\MSBuild.exe" FlatBuffers.sln -maxcpucount:8 -property:Configuration=Release'
   # Main build
   - cd $CI_PROJECT_DIR/build
-  - cmake ../ -G "Visual Studio 16 2019" -A x64 -T v142 
-    @CHRONO_W64_SHARED 
-    @CHRONO_W64_LIBRARIES 
-    -DUSE_MULTICORE_CUDA=OFF
-    -DENABLE_MODULE_GPU=TRUE
-    -DENABLE_MODULE_FSI=TRUE
+  - cmake --preset=windowsci-vs2019 -DBUILD_TESTING_GPU=FALSE ..
+  #- cmake --build . -t ALL_BUILD -j 8
   #- Invoke-Expression "& `'C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\Common7\IDE\devenv.com`' Chrono.sln -Build `"Release|x64`" -log buildlog.txt"
-  - '& "C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\MSBuild\Current\Bin\MSBuild.exe" Chrono.sln -maxcpucount:8 -property:Configuration=Release'
+  - '& "C:\Program Files (x86)\Microsoft Visual Studio\2019\BuildTools\MSBuild\Current\Bin\MSBuild.exe" Chrono.sln -maxcpucount:8 -property:Configuration=Release'
   artifacts:
     expire_in: 60m
     paths:
@@ -414,7 +326,7 @@ windows:vs2019:test:
   extends: .windows
   script:
   - cd build
-  - ctest
+  - ctest --output-on-failure
   dependencies: ["windows:vs2019:build"]
 
 
@@ -456,31 +368,13 @@ windows:vs2017:build:
   script:
     # Build flatbuffers
   - cd $CI_PROJECT_DIR/src/chrono_thirdparty/flatbuffers
-  - cmake -G "Visual Studio 16 2019" -DCMAKE_BUILD_TYPE=Release
-  - '& "C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\MSBuild\Current\Bin\MSBuild.exe" FlatBuffers.sln -maxcpucount:8 -property:Configuration=Release'
+  - cmake -G "Visual Studio 16 2019" -DCMAKE_BUILD_TYPE=Release .
+  - '& "C:\Program Files (x86)\Microsoft Visual Studio\2019\BuildTools\MSBuild\Current\Bin\MSBuild.exe" FlatBuffers.sln -maxcpucount:8 -property:Configuration=Release'
   - cd $CI_PROJECT_DIR/build
-  - cmake ../ -G "Visual Studio 16 2019" -A x64 -T v141
-    @CHRONO_W64_SHARED
-    @CHRONO_W64_LIBRARIES
-    -DUSE_MULTICORE_CUDA=OFF
+  - cmake --preset=windowsci-vs2017 -DBUILD_TESTING_GPU=FALSE ..
+  #- cmake --build . -t ALL_BUILD -j 8
   #- Invoke-Expression "& `'C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\Common7\IDE\devenv.com`' Chrono.sln -Build `"Release|x64`" -log buildlog.txt"
-  - '& "C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\MSBuild\Current\Bin\MSBuild.exe" Chrono.sln -maxcpucount:8 -property:Configuration=Release'
-  artifacts:
-    expire_in: 60m
-    paths:
-      - build/
-
-.windows:vs2015:build:
-  stage: build
-  extends: .windows
-  script:
-  - cd build
-  - cmake ../ -G "Visual Studio 16 2019" -A x64 -T v140
-    @CHRONO_W64_SHARED
-    @CHRONO_W64_LIBRARIES
-    -DUSE_MULTICORE_CUDA=OFF 
-  #- Invoke-Expression "& `'C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\Common7\IDE\devenv.com`' Chrono.sln -Build `"Release|x64`" -log buildlog.txt"
-  - '& "C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\MSBuild\Current\Bin\MSBuild.exe" Chrono.sln -maxcpucount:8 -property:Configuration=Release'
+  - '& "C:\Program Files (x86)\Microsoft Visual Studio\2019\BuildTools\MSBuild\Current\Bin\MSBuild.exe" Chrono.sln -maxcpucount:8 -property:Configuration=Release'
   artifacts:
     expire_in: 60m
     paths:
@@ -499,6 +393,8 @@ windows:vs2017:build:
   - git submodule init
   - git submodule update
   - mkdir -p build
+
+
 .macos-deploy-base:
   extends: .macos
   before_script:
@@ -524,18 +420,17 @@ windows:vs2017:build:
   environment:
     name: pychrono-macos
     url: https://anaconda.org/projectchrono/pychrono
-macos:highsierra:build:
+
+
+macos:bigsur:build:
   stage: build
   extends: .macos
   script:
   - cd build
-  - cmake ../ $CHRONO_UNIX_SHARED -DENABLE_MODULE_DISTRIBUTED=FALSE -DENABLE_MODULE_SYNCHRONO=FALSE 
-    -DENABLE_MODULE_FSI=FALSE -DCMAKE_C_COMPILER=$(which clang)
+  - cmake ../ --preset=macosci
+    -DCMAKE_C_COMPILER=$(which clang)
     -DCMAKE_CXX_COMPILER=$(which clang++)
-    -DCMAKE_CXX_FLAGS="-Wno-deprecated-declarations -Xpreprocessor -fopenmp -lomp -Wno-unused-command-line-argument"
-    -DUSE_MULTICORE_CUDA=FALSE -DCUDA_NVCC_FLAGS=-std=c++11
-    -DEIGEN3_INCLUDE_DIR=/usr/local/include/eigen3
-    -DBLAZE_DIR=/usr/local/include
+    -DCMAKE_VERBOSE_MAKEFILE=TRUE
   - make -j 3
   artifacts:
     expire_in: 60m
@@ -543,14 +438,14 @@ macos:highsierra:build:
     - build/
     
 
-macos:highsierra:test:
+macos:bigsur:test:
   stage: test
-  needs: ["macos:highsierra:build"]
+  needs: ["macos:bigsur:build"]
   extends: .macos
   script:
   - cd build
-  - make test
-  dependencies: ["macos:highsierra:build"]
+  - make CTEST_OUTPUT_ON_FAILURE=1 test
+  dependencies: ["macos:bigsur:build"]
 
 
 macos:macos-deploy-python3.6:
@@ -583,49 +478,3 @@ macos:macos-deploy-python3.8:
     - conda build ./contrib/packaging-python/conda --no-remove-work-dir --dirty --python=3.8
     - anaconda -t $ANACONDA_TOKEN upload $HOME/miniconda/conda-bld/osx-64/pychrono*.bz2 -l develop --force
   when: manual
-
-#-----------------#
-# FreeBSD Builder #
-#-----------------#
-
-.freebsd:
-  tags:
-  - freebsd
-  before_script:
-  - uname -a
-  - wget https://bitbucket.org/blaze-lib/blaze/downloads/blaze-3.5.tar.gz
-  - tar -xf blaze-3.5.tar.gz
-  - cp blaze-3.5/blaze -r /usr/local/include
-  - git submodule update
-  - git submodule init
-  - mkdir -p build
-
-
-.freebsd:llvm:build:
-  stage: build
-  extends: .freebsd
-  script:
-  - cmake ../ -DCMAKE_BUILD_TYPE=Release -DBUILD_TESTING=TRUE 
-    -DBUILD_BENCHMARKING=TRUE -DENABLE_MODULE_POSTPROCESS=TRUE 
-    -DENABLE_MODULE_PYTHON=TRUE -DENABLE_MODULE_COSIMULATION=FALSE 
-    -DENABLE_MODULE_IRRLICHT=TRUE -DENABLE_MODULE_VEHICLE=TRUE 
-    -DENABLE_MODULE_MULTICORE=TRUE -DENABLE_MODULE_OPENGL=TRUE 
-    -DENABLE_MODULE_DISTRIBUTED=TRUE -DEIGEN3_INCLUDE_DIR=/usr/include/eigen3
-  - make -j 8
-  artifacts:
-    expire_in: 60m
-    paths:
-    - build/
-
-
-.freebsd:llvm:test:
-  stage: test
-  needs: ["freebsd:llvm:build"]
-  extends: .freebsd
-  script:
-  - cd build
-  - make test
-  dependencies: ["freebsd:llvm:build"]
-
-
-

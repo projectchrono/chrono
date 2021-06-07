@@ -214,10 +214,12 @@ void ChCommDistributed::ProcessShapes(int num_recv, Shape* buf) {
             auto material = chrono_types::make_shared<ChMaterialSurfaceSMC>();
             material->SetFriction((buf + n)->mu);
             switch (adhesion_model) {
-                case ChSystemSMC::Constant:
+                case ChSystemSMC::AdhesionForceModel::Perko:
+                    // Not yet implemented. Falls through.
+                case ChSystemSMC::AdhesionForceModel::Constant:
                     material->SetAdhesion((buf + n)->cohesion);
                     break;
-                case ChSystemSMC::DMT:
+                case ChSystemSMC::AdhesionForceModel::DMT:
                     material->SetAdhesionMultDMT((buf + n)->cohesion);
                     break;
             }
@@ -473,8 +475,8 @@ void ChCommDistributed::Exchange() {
     int num_recv_update_down;
     int num_recv_take_up;
     int num_recv_take_down;
-    int num_recv_shapes_up;
-    int num_recv_shapes_down;
+    int num_recv_shapes_up = 0;
+    int num_recv_shapes_down = 0;
 
     BodyExchange* recv_exchange_down = NULL;
     BodyExchange* recv_exchange_up = NULL;
@@ -906,10 +908,12 @@ int ChCommDistributed::PackShapes(std::vector<Shape>* buf, int index) {
             std::static_pointer_cast<ChMaterialSurfaceSMC>(body->GetCollisionModel()->GetShape(i)->GetMaterial());
         shape.mu = material->GetSfriction();
         switch (adhesion_model) {
-            case ChSystemSMC::Constant:
+            case ChSystemSMC::AdhesionForceModel::Perko:
+                // Not yet implemented. Falls through.
+            case ChSystemSMC::AdhesionForceModel::Constant:
                 shape.cohesion = material->GetAdhesion();
                 break;
-            case ChSystemSMC::DMT:
+            case ChSystemSMC::AdhesionForceModel::DMT:
                 shape.cohesion = material->GetAdhesionMultDMT();
                 break;
         }

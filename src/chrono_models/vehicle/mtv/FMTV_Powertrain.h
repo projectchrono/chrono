@@ -38,7 +38,7 @@ class CH_MODELS_API FMTV_Powertrain : public ChShaftsPowertrain {
 
     ~FMTV_Powertrain() {}
 
-    virtual void SetGearRatios(std::vector<double>& gear_ratios) override;
+    virtual void SetGearRatios(std::vector<double>& fwd, double& rev) override;
 
     virtual double GetMotorBlockInertia() const override { return m_motorblock_inertia; }
     virtual double GetCrankshaftInertia() const override { return m_crankshaft_inertia; }

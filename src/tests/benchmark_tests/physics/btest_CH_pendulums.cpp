@@ -134,7 +134,7 @@ void ChainTest<N>::SimulateVis() {
 #ifdef CHRONO_IRRLICHT
     float offset = static_cast<float>(N * m_length);
 
-    irrlicht::ChIrrApp application(m_system, L"Pendulum chain", irr::core::dimension2d<irr::u32>(800, 600), false, true);
+    irrlicht::ChIrrApp application(m_system, L"Pendulum chain", irr::core::dimension2d<irr::u32>(800, 600));
     application.AddTypicalLogo();
     application.AddTypicalSky();
     application.AddTypicalLights();
@@ -166,7 +166,6 @@ CH_BM_SIMULATION_LOOP(Chain64, ChainTest<64>, NUM_SKIP_STEPS, NUM_SIM_STEPS, 20)
 // =============================================================================
 
 int main(int argc, char* argv[]) {
-    utils::ForceBenchmarkTabularOutput(&argc, &argv);
     ::benchmark::Initialize(&argc, argv);
 
 #ifdef CHRONO_IRRLICHT

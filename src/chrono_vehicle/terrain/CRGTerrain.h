@@ -109,6 +109,13 @@ class CH_VEHICLE_API CRGTerrain : public ChTerrain {
     /// Get width of the road.
     double GetWidth() { return m_vend - m_vbeg; }
 
+    /// Get start heading (in radians), can be different from zero for georeferenced roads.
+    double GetStartHeading();
+
+    /// Get the start position (location and orientation).
+    /// This is the (x,y,z) road location at CRG parameters u=v=0.
+    ChCoordsys<> GetStartPosition();
+
     /// Export road mesh to Wavefront file.
     void ExportMeshWavefront(const std::string& out_dir);
 

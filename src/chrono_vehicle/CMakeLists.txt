@@ -54,7 +54,7 @@ if (ENABLE_OPENCRG)
 
    if(EXISTS "${OPENCRG_INCLUDE_DIR}/crgBaseLib.h" AND EXISTS "${OPENCRG_LIBRARY}")
      set(HAVE_OPENCRG ON)
-  else()
+   else()
      set(HAVE_OPENCRG OFF)
    endif()
 
@@ -194,10 +194,15 @@ set(CV_DRIVER_FILES
     driver/ChDataDriver.cpp
     driver/ChHumanDriver.h
     driver/ChHumanDriver.cpp
+    driver/ChAIDriver.h
+    driver/ChAIDriver.cpp
     driver/ChPathFollowerDriver.h
     driver/ChPathFollowerDriver.cpp
     driver/ChPathFollowerACCDriver.h
     driver/ChPathFollowerACCDriver.cpp
+
+    driver/AIDriver.h
+    driver/AIDriver.cpp
 )
 if(ENABLE_MODULE_IRRLICHT)
     set(CVIRR_DRIVER_FILES
@@ -233,6 +238,8 @@ source_group("powertrain" FILES ${CV_POVERTRAIN_FILES})
 set(CV_TERRAIN_FILES
     terrain/FlatTerrain.h
     terrain/FlatTerrain.cpp
+    terrain/ObsModTerrain.h
+    terrain/ObsModTerrain.cpp
     terrain/RigidTerrain.h
     terrain/RigidTerrain.cpp
     terrain/RandomSurfaceTerrain.h
@@ -346,6 +353,8 @@ set(CV_WV_DRIVELINE_FILES
     wheeled_vehicle/driveline/ChShaftsDriveline2WD.cpp
     wheeled_vehicle/driveline/ChShaftsDriveline4WD.h
     wheeled_vehicle/driveline/ChShaftsDriveline4WD.cpp
+    wheeled_vehicle/driveline/ChShaftsDriveline8WD.h
+    wheeled_vehicle/driveline/ChShaftsDriveline8WD.cpp
     wheeled_vehicle/driveline/ChSimpleDrivelineXWD.h
     wheeled_vehicle/driveline/ChSimpleDrivelineXWD.cpp
     wheeled_vehicle/driveline/ChSimpleDriveline.h
@@ -932,20 +941,29 @@ install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/
         DESTINATION include/chrono_vehicle
         FILES_MATCHING PATTERN "*.h")
 
+# Install required chrono_thirdparty headers
+install(DIRECTORY ${CMAKE_SOURCE_DIR}/src/chrono_thirdparty/Easy_BMP
+        DESTINATION include/chrono_thirdparty
+        FILES_MATCHING PATTERN "*.h" PATTERN "*.cuh" PATTERN "*.hpp" PATTERN "*.inl")
+
+install(DIRECTORY ${CMAKE_SOURCE_DIR}/src/chrono_thirdparty/stb
+        DESTINATION include/chrono_thirdparty
+        FILES_MATCHING PATTERN "*.h" PATTERN "*.cuh" PATTERN "*.hpp" PATTERN "*.inl")
+
 #-------------------------------------------------------------------------------
 # On Windows, copy DLLs (if specified)
 #-------------------------------------------------------------------------------
 
 if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
 
-    if(ENABLE_MODULE_IRRLICHT AND EXISTS ${CH_IRRKLANG_DLL})
+    if(ENABLE_MODULE_IRRLICHT AND EXISTS "${CH_IRRKLANG_DLL}")
         add_custom_command(TARGET ChronoEngine_vehicle_irrlicht POST_BUILD
             COMMAND ${CMAKE_COMMAND} -E copy_if_different
             "${CH_IRRKLANG_DLL}"
             "${PROJECT_BINARY_DIR}/bin/$<CONFIGURATION>")
     endif()
 
-    if(EXISTS ${OPENCRG_DLL})
+    if(EXISTS "${OPENCRG_DLL}")
         add_custom_command(TARGET ChronoEngine_vehicle POST_BUILD
             COMMAND ${CMAKE_COMMAND} -E copy_if_different
             "${OPENCRG_DLL}"

@@ -73,7 +73,7 @@ int main(int argc, char* argv[]) {
     // rotation:  use a fixed axis of rotation and an angle(time) function defined via a ChFunction
 
     // Create the object to move
-    auto mmoved_1 = chrono_types::make_shared<ChBodyEasyMesh>(GetChronoDataFile("support.obj"), 1000, true, true, false);
+    auto mmoved_1 = chrono_types::make_shared<ChBodyEasyMesh>(GetChronoDataFile("models/support.obj"), 1000, true, true, false);
     mphysicalSystem.Add(mmoved_1);
     mmoved_1->SetPos(ChVector<>(-0.5, 0, 0));
 
@@ -112,7 +112,7 @@ int main(int argc, char* argv[]) {
     // rotation:  use a quaternion spline.
 
     // Create the object to move
-    auto mmoved_2 = chrono_types::make_shared<ChBodyEasyMesh>(GetChronoDataFile("support.obj"), 1000, true, true, false);
+    auto mmoved_2 = chrono_types::make_shared<ChBodyEasyMesh>(GetChronoDataFile("models/support.obj"), 1000, true, true, false);
     mphysicalSystem.Add(mmoved_2);
     mmoved_2->SetPos(ChVector<>(0.5, 0, 0));
 
@@ -182,7 +182,7 @@ int main(int argc, char* argv[]) {
     // rotation:  use a continuous setpoint (FOH first order hold).
 
     // Create the object to move
-    auto mmoved_3 = chrono_types::make_shared<ChBodyEasyMesh>(GetChronoDataFile("support.obj"), 1000, true, true, false);
+    auto mmoved_3 = chrono_types::make_shared<ChBodyEasyMesh>(GetChronoDataFile("models/support.obj"), 1000, true, true, false);
     mphysicalSystem.Add(mmoved_3);
     mmoved_3->SetPos(ChVector<>(1.5, 0, 0));
 
@@ -211,7 +211,7 @@ int main(int argc, char* argv[]) {
 
     // Create the object to move
     auto mmoved_4 =
-        chrono_types::make_shared<ChBodyEasyMesh>(GetChronoDataFile("support.obj"), 1000, true, true, false);
+        chrono_types::make_shared<ChBodyEasyMesh>(GetChronoDataFile("models/support.obj"), 1000, true, true, false);
     mphysicalSystem.Add(mmoved_4);
     mmoved_4->SetPos(ChVector<>(2.5, 0, 0));
 
@@ -237,7 +237,7 @@ int main(int argc, char* argv[]) {
     // rotation:  use a SQUAD (smooth interpolation of quaternion rotations as in Shoemake 1987 paper).
 
     // Create the object to move
-    auto mmoved_5 = chrono_types::make_shared<ChBodyEasyMesh>(GetChronoDataFile("support.obj"), 1000, true, true, false);
+    auto mmoved_5 = chrono_types::make_shared<ChBodyEasyMesh>(GetChronoDataFile("models/support.obj"), 1000, true, true, false);
     mphysicalSystem.Add(mmoved_5);
     mmoved_5->SetPos(ChVector<>(1, 1, 0));
 
@@ -268,7 +268,7 @@ int main(int argc, char* argv[]) {
     // Create the Irrlicht visualization (open the Irrlicht device,
     // bind a simple user interface, etc. etc.)
     ChIrrApp application(&mphysicalSystem, L"Imposing rotation and position to bodies",
-                         core::dimension2d<u32>(800, 600), false, true);
+                         core::dimension2d<u32>(800, 600));
 
     // Easy shortcuts to add camera, lights, logo and sky in Irrlicht scene:
     application.AddTypicalLogo();

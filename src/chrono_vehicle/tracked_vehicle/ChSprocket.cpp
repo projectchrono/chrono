@@ -30,12 +30,10 @@ namespace chrono {
 namespace vehicle {
 
 // -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
 ChSprocket::ChSprocket(const std::string& name) : ChPart(name), m_lateral_contact(true) {}
 
 ChSprocket::~ChSprocket() {}
 
-// -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 void ChSprocket::Initialize(std::shared_ptr<ChBodyAuxRef> chassis, const ChVector<>& location, ChTrackAssembly* track) {
     // The sprocket reference frame is aligned with that of the chassis and centered at the
@@ -85,22 +83,20 @@ void ChSprocket::Initialize(std::shared_ptr<ChBodyAuxRef> chassis, const ChVecto
 }
 
 // -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
 double ChSprocket::GetMass() const {
     return GetGearMass();
 }
 
 // -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
 void ChSprocket::AddVisualizationAssets(VisualizationType vis) {
     if (vis == VisualizationType::NONE)
         return;
 
+    auto sep = GetSeparation();
+    auto profile = GetProfile();
+
     ChQuaternion<> y2z = Q_from_AngX(CH_C_PI_2);
     ChMatrix33<> rot_y2z(y2z);
-
-    double sep = GetSeparation();
-    std::shared_ptr<geometry::ChLinePath> profile = GetProfile();
 
     auto asset_1 = chrono_types::make_shared<ChLineShape>();
     asset_1->SetLineGeometry(profile);
@@ -122,14 +118,163 @@ void ChSprocket::RemoveVisualizationAssets() {
 }
 
 // -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
-void ChSprocket::ApplyAxleTorque(double torque) {
-    //// TODO: is this really needed?
-    //// (the axle is connected to the driveline, so torque is automatically transmitted)
-    m_axle->SetAppliedTorque(torque);
+std::shared_ptr<geometry::ChTriangleMeshConnected> ChSprocket::CreateVisualizationMesh(double radius,
+                                                                                       double width,
+                                                                                       double delta,
+                                                                                       ChVector<float> color) const {
+    auto sep = GetSeparation();
+    auto profile = GetProfile();
+
+    // Evaluate points on gear profile and on ring.
+    // Generate equidistant points on profile, then transform to x-z plane.
+    // Calculate normals in radial direction.
+    std::vector<ChVector<>> ppoints; // points on profile
+    std::vector<ChVector<>> rpoints; // points on ring
+    std::vector<ChVector<>> pnormals; // normals on profile
+    std::vector<ChVector<>> rnormals; // normals on ring
+    ChVector<> p;
+    for (auto il = 0; il < profile->GetSubLinesCount(); il++) {
+        auto line = profile->GetSubLineN(il);
+        auto n = static_cast<int>(std::ceil(line->Length(2) / delta));
+        for (auto ip = 0; ip < n; ip++) {            
+            line->Evaluate(p, (1.0 * ip)/n);
+            ppoints.push_back(ChVector<>(p.x(), 0, p.y())); // Point on profile
+            p *= radius / p.Length();
+            rpoints.push_back(ChVector<>(p.x(), 0, p.y())); // Point on ring
+            p.Normalize();
+            pnormals.push_back(ChVector<>(+p.x(), 0, +p.y())); // Normal on profile (approximate)
+            rnormals.push_back(ChVector<>(-p.x(), 0, -p.y())); // Normal on ring
+        }
+    }
+
+    // Create trimesh
+    auto mesh = chrono_types::make_shared<geometry::ChTriangleMeshConnected>();
+    std::vector<ChVector<>>& vertices = mesh->getCoordsVertices();
+    std::vector<ChVector<>>& normals = mesh->getCoordsNormals();
+    std::vector<ChVector<int>>& idx_vertices = mesh->getIndicesVertexes();
+    std::vector<ChVector<int>>& idx_normals = mesh->getIndicesNormals();
+    ////std::vector<ChVector<>>& uv_coords = mesh->getCoordsUV();
+    std::vector<ChVector<float>>& colors = mesh->getCoordsColors();
+
+    // Calculate number of vertices, normals, and faces. Resize mesh arrays.
+    auto npoints = ppoints.size();
+    auto n_verts = 8 * npoints;
+    auto n_normals = 4 + 2 * npoints;
+    auto n_faces = 16 * npoints;
+
+    vertices.resize(n_verts);
+    ////uv_coords.resize(n_verts);
+    colors.resize(n_verts, color);
+    normals.resize(n_normals);
+    idx_vertices.resize(n_faces);
+    idx_normals.resize(n_faces);
+
+    // Create mesh vertices (4 layers, shifted in y direction)
+    double offset[4] = {
+        +0.5 * sep + 0.5 * width,  // Outer gear, outer face
+        +0.5 * sep - 0.5 * width,  // Outer gear, inner face
+        -0.5 * sep + 0.5 * width,  // Inner gear, outer face
+        -0.5 * sep - 0.5 * width   // Inner gear, inner face
+    };
+    for (size_t i = 0; i < 4; i++) {
+        size_t ivstart = i * (2 * npoints);
+        for (size_t ip = 0; ip < npoints; ip++) {
+            vertices[ivstart + ip] = ppoints[ip] + ChVector<>(0, offset[i], 0);
+            vertices[ivstart + ip + npoints] = rpoints[ip] + ChVector<>(0, offset[i], 0);
+        }
+    }
+
+    // Create mesh normals
+    normals[0] = ChVector<>(0, +1, 0);
+    normals[1] = ChVector<>(0, -1, 0);
+    normals[2] = ChVector<>(0, +1, 0);
+    normals[3] = ChVector<>(0, -1, 0);
+    for (size_t ip = 0; ip < npoints; ip++) {
+        normals[4 + ip] = pnormals[ip];
+        normals[4 + npoints + ip] = rnormals[ip];
+    }
+
+    // Create mesh triangular faces, two at a time (4 gear planes)
+    int np = static_cast<int>(npoints);
+    int it = 0;
+
+    // Create faces on the 4 gear planes
+    for (int i = 0; i < 4; i++) {
+        size_t ivstart = i * (2 * npoints);
+        for (size_t ip = 0; ip < npoints-1; ip++) {
+            int iv = static_cast<int>(ivstart + ip);
+            idx_vertices[it] = ChVector<int>(iv, iv + 1, iv + np);
+            idx_normals[it] = ChVector<int>(i, i, i);
+            ++it;
+            idx_vertices[it] = ChVector<int>(iv + 1, iv + np + 1, iv + np);
+            idx_normals[it] = ChVector<int>(i, i, i);
+            ++it;
+        }
+        int iv = static_cast<int>(ivstart);
+        idx_vertices[it] = ChVector<int>(iv + np - 1, iv, iv + 2 * np - 1);
+        idx_normals[it] = ChVector<int>(i, i, i);
+        ++it;
+        idx_vertices[it] = ChVector<int>(iv, iv + np, iv + 2 * np - 1);
+        idx_normals[it] = ChVector<int>(i, i, i);
+        ++it;
+    }
+
+    // Create faces on the gear profile
+    for (int i = 0; i < 2; i++) {
+        size_t ivstart = i * (4 * npoints);
+        for (size_t ip = 0; ip < npoints - 1; ip++) {
+            int iv = static_cast<int>(ivstart + ip);
+            int in = static_cast<int>(4 + ip);
+            idx_vertices[it] = ChVector<int>(iv, iv + 1, iv + 2 * np);
+            idx_normals[it] = ChVector<int>(in, in, in);
+            ++it;
+            idx_vertices[it] = ChVector<int>(iv + 1, iv + 2 * np + 1, iv + 2 * np);
+            idx_normals[it] = ChVector<int>(in, in, in);
+            ++it;
+        }
+        int iv = static_cast<int>(ivstart);
+        int in = static_cast<int>(4 + npoints - 1);
+        idx_vertices[it] = ChVector<int>(iv + np - 1, iv, iv + 3 * np - 1);
+        idx_normals[it] = ChVector<int>(in, in, in);
+        ++it;
+        idx_vertices[it] = ChVector<int>(iv, iv + 2 * np, iv + 3 * np - 1);
+        idx_normals[it] = ChVector<int>(in, in, in);
+        ++it;
+    }
+
+    // Create the faces on the inner ring
+    for (int i = 0; i < 2; i++) {
+        size_t ivstart = i * (4 * npoints) + npoints;
+        for (size_t ip = 0; ip < npoints - 1; ip++) {
+            int iv = static_cast<int>(ivstart + ip);
+            int in = static_cast<int>(4 + npoints + ip);
+            idx_vertices[it] = ChVector<int>(iv, iv + 1, iv + 2 * np);
+            idx_normals[it] = ChVector<int>(in, in, in);
+            ++it;
+            idx_vertices[it] = ChVector<int>(iv + 1, iv + 2 * np + 1, iv + 2 * np);
+            idx_normals[it] = ChVector<int>(in, in, in);
+            ++it;
+        }
+        int iv = static_cast<int>(ivstart);
+        int in = static_cast<int>(4 + 2 * npoints - 1);
+        idx_vertices[it] = ChVector<int>(iv + np - 1, iv, iv + 3 * np - 1);
+        idx_normals[it] = ChVector<int>(in, in, in);
+        ++it;
+        idx_vertices[it] = ChVector<int>(iv, iv + 2 * np, iv + 3 * np - 1);
+        idx_normals[it] = ChVector<int>(in, in, in);
+        ++it;
+    }
+
+    return mesh;
 }
 
 // -----------------------------------------------------------------------------
+void ChSprocket::ApplyAxleTorque(double torque) {
+    // Make sure this is added to any already applied torque. Change sign of provided torque (given the configuration of
+    // the ChShaft) so that a positive torque corresponds to "forward" motion.
+    m_axle->SetAppliedTorque(m_axle->GetAppliedTorque() - torque);
+}
+
 // -----------------------------------------------------------------------------
 void ChSprocket::LogConstraintViolations() {
     ChVectorDynamic<> C = m_revolute->GetC();
@@ -141,7 +286,6 @@ void ChSprocket::LogConstraintViolations() {
     GetLog() << "  " << C(4) << "\n";
 }
 
-// -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 void ChSprocket::ExportComponentList(rapidjson::Document& jsonDocument) const {
     ChPart::ExportComponentList(jsonDocument);

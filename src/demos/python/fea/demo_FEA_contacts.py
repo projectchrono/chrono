@@ -19,7 +19,7 @@
 import math as m
 import pychrono as chrono
 import pychrono.fea as fea
-import pychrono.mkl as mkl
+import pychrono.pardisomkl as mkl
 import pychrono.irrlicht as chronoirr
 
 
@@ -31,7 +31,7 @@ my_system = chrono.ChSystemSMC()
 
 # Create the Irrlicht visualization (open the Irrlicht device,
 # bind a simple user interface, etc. etc.)
-application = chronoirr.ChIrrApp(my_system, "FEA contacts", chronoirr.dimension2du(1024, 768), False, True)
+application = chronoirr.ChIrrApp(my_system, "FEA contacts", chronoirr.dimension2du(1024, 768))
 
 # Easy shortcuts to add camera, lights, logo and sky in Irrlicht scene:
 application.AddTypicalLogo(chrono.GetChronoDataFile('logo_pychrono_alpha.png'))
@@ -39,9 +39,9 @@ application.AddTypicalSky()
 application.AddTypicalLights()
 application.AddTypicalCamera(chronoirr.vector3df(0, 0.6, -1))
 application.AddLightWithShadow(chronoirr.vector3df(1.5, 5.5, -2.5), chronoirr.vector3df(0, 0, 0), 3, 2.2, 7.2, 40, 512,
-               chronoirr.SColorf(1, 1, 1))
+                               chronoirr.SColorf(1, 1, 1))
 
-application.SetContactsDrawMode(chronoirr.ChIrrTools.CONTACT_DISTANCES)
+application.SetContactsDrawMode(chronoirr.IrrContactsDrawMode_CONTACT_DISTANCES)
 
 #
 # CREATE THE PHYSICAL SYSTEM
@@ -73,7 +73,7 @@ mysurfmaterial.SetAdhesion(0)
 do_mesh_collision_floor = False
 
 mmeshbox = chrono.ChTriangleMeshConnected()
-mmeshbox.LoadWavefrontMesh(chrono.GetChronoDataFile("cube.obj"), True, True)
+mmeshbox.LoadWavefrontMesh(chrono.GetChronoDataFile("models/cube.obj"), True, True)
 
 if (do_mesh_collision_floor) :
     # floor as a triangle mesh surface:
@@ -93,7 +93,7 @@ if (do_mesh_collision_floor) :
     mfloor.AddAsset(masset_meshbox)
     
     masset_texture = chrono.ChTexture()
-    masset_texture.SetTextureFilename(chrono.GetChronoDataFile("concrete.jpg"))
+    masset_texture.SetTextureFilename(chrono.GetChronoDataFile("textures/concrete.jpg"))
     mfloor.AddAsset(masset_texture)
 
 else :
@@ -104,7 +104,7 @@ else :
     my_system.Add(mfloor)
     
     masset_texture = chrono.ChTexture()
-    masset_texture.SetTextureFilename(chrono.GetChronoDataFile("concrete.jpg"))
+    masset_texture.SetTextureFilename(chrono.GetChronoDataFile("textures/concrete.jpg"))
     mfloor.AddAsset(masset_texture)
 
 

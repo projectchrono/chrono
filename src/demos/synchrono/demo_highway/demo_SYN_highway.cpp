@@ -9,7 +9,7 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Authors: 肖言 (Yan Xiao)
+// Authors: Yan Xiao
 // =============================================================================
 //
 // Demo of several vehicles driving on a highway, vehicles follow paths to stay
@@ -79,7 +79,7 @@ double lane_change_time = 6;
 double render_step_size = 1.0 / 50;  // FPS = 50
 
 // How often SynChrono state messages are interchanged
-float heartbeat = 1e-2;  // 100[Hz]
+double heartbeat = 1e-2;  // 100[Hz]
 
 // Forward declares for straight forward helper functions
 void LogCopyright(bool show);
@@ -179,7 +179,7 @@ int main(int argc, char* argv[]) {
 
     RigidTerrain terrain(vehicle.GetSystem());
     auto patch =
-        terrain.AddPatch(patch_mat, CSYSNORM, synchrono::GetDataFile("meshes/Highway_col.obj"), "", 0.01, false);
+        terrain.AddPatch(patch_mat, CSYSNORM, synchrono::GetDataFile("meshes/Highway_col.obj"), 0.01, false);
 
     auto vis_mesh = chrono_types::make_shared<ChTriangleMeshConnected>();
     vis_mesh->LoadWavefrontMesh(synchrono::GetDataFile("meshes/Highway_vis.obj"), true, true);
@@ -271,11 +271,11 @@ int main(int argc, char* argv[]) {
 
         intersection_camera = chrono_types::make_shared<chrono::sensor::ChCameraSensor>(
             origin,                                         // body camera is attached to
-            30,                                             // update rate in Hz
+            30.0f,                                          // update rate in Hz
             chrono::ChFrame<double>(camera_loc, rotation),  // offset pose
             cam_res_width,                                  // image width
             cam_res_height,                                 // image height
-            CH_C_PI / 3,                                    // FOV
+            (float)CH_C_PI / 3,                             // FOV
             1,                                              // samples per pixel for antialiasing
             PINHOLE);                                       // camera type
 
@@ -302,8 +302,6 @@ int main(int argc, char* argv[]) {
 
     // Initialize simulation frame counters
     int step_number = 0;
-
-    std::chrono::high_resolution_clock::time_point start = std::chrono::high_resolution_clock::now();
 
     while (true) {
         double time = vehicle.GetSystem()->GetChTime();
@@ -358,6 +356,7 @@ int main(int argc, char* argv[]) {
         if (node_id == 0 && std::abs(vehicle.GetSystem()->GetChTime() - lane_change_time) < 1e-2)
             std::dynamic_pointer_cast<ChMultiPathFollowerACCDriver>(driver)->changePath(1);
     }
+    syn_manager.QuitSimulation();
 
     return 0;
 }

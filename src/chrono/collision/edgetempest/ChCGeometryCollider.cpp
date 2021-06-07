@@ -15,14 +15,13 @@
 
 #include "chrono/collision/edgetempest/ChCGeometryCollider.h"
 #include "chrono/collision/edgetempest/ChCOBB.h"
+#include "chrono/collision/ChCollisionUtils.h"
 #include "chrono/core/ChTransform.h"
 #include "chrono/geometry/ChBox.h"
 #include "chrono/geometry/ChSphere.h"
 #include "chrono/geometry/ChTriangle.h"
 
 #define COLL_PRECISION 0.000001
-
-using namespace chrono::collision;
 
 namespace chrono {
 namespace collision {
@@ -38,17 +37,19 @@ int ChGeometryCollider::ComputeCollisions(
     ChMatrix33<>* relRot,              ///< relative rotation of mgeo2 respect to mgeo1, if available, for optimization
     Vector* relPos,                    ///< relative position of mgeo2 respect to mgeo1, if available, for optimization
     bool just_intersection  ///< if true, just report if intersecting (no further calculus on normal, depht, etc.)
-    ) {
+) {
     // GetLog() << "  ChGeometryCollider::ComputeCollisions! geos:" << (int)&mgeo1 << " " << (int)&mgeo2 << "\n";
 
     // Dispatch all subcases of geometry-geometry pairs..
 
-    if ((mgeo1.GetClassType() == geometry::ChGeometry::TRIANGLE) && (mgeo2.GetClassType() == geometry::ChGeometry::TRIANGLE)) {
+    if ((mgeo1.GetClassType() == geometry::ChGeometry::TRIANGLE) &&
+        (mgeo2.GetClassType() == geometry::ChGeometry::TRIANGLE)) {
         //***TO DO***
         return 0;
     }
 
-    if ((mgeo1.GetClassType() == geometry::ChGeometry::SPHERE) && (mgeo2.GetClassType() == geometry::ChGeometry::SPHERE)) {
+    if ((mgeo1.GetClassType() == geometry::ChGeometry::SPHERE) &&
+        (mgeo2.GetClassType() == geometry::ChGeometry::SPHERE)) {
         geometry::ChSphere* msph1 = (geometry::ChSphere*)&mgeo1;
         geometry::ChSphere* msph2 = (geometry::ChSphere*)&mgeo2;
         Vector c1, c2;
@@ -63,13 +64,15 @@ int ChGeometryCollider::ComputeCollisions(
         return ComputeBoxBoxCollisions(*mbox1, R1, T1, *mbox2, R2, T2, mcollider, just_intersection);
     }
 
-    if ((mgeo1.GetClassType() == geometry::ChGeometry::SPHERE) && (mgeo2.GetClassType() == geometry::ChGeometry::TRIANGLE)) {
+    if ((mgeo1.GetClassType() == geometry::ChGeometry::SPHERE) &&
+        (mgeo2.GetClassType() == geometry::ChGeometry::TRIANGLE)) {
         geometry::ChSphere* msph = (geometry::ChSphere*)&mgeo1;
         geometry::ChTriangle* mtri = (geometry::ChTriangle*)&mgeo2;
         Vector c1 = ChTransform<>::TransformLocalToParent(msph->center, *T1, *R1);
         return ComputeSphereTriangleCollisions(*msph, &c1, *mtri, R2, T2, mcollider, just_intersection, false);
     }
-    if ((mgeo1.GetClassType() == geometry::ChGeometry::TRIANGLE) && (mgeo2.GetClassType() == geometry::ChGeometry::SPHERE)) {
+    if ((mgeo1.GetClassType() == geometry::ChGeometry::TRIANGLE) &&
+        (mgeo2.GetClassType() == geometry::ChGeometry::SPHERE)) {
         geometry::ChSphere* msph = (geometry::ChSphere*)&mgeo2;
         geometry::ChTriangle* mtri = (geometry::ChTriangle*)&mgeo1;
         Vector c2 = ChTransform<>::TransformLocalToParent(msph->center, *T2, *R2);
@@ -89,12 +92,14 @@ int ChGeometryCollider::ComputeCollisions(
         return ComputeSphereBoxCollisions(*msph, &c2, *mbox, R1, T1, mcollider, just_intersection, true);
     }
 
-    if ((mgeo1.GetClassType() == geometry::ChGeometry::BOX) && (mgeo2.GetClassType() == geometry::ChGeometry::TRIANGLE)) {
+    if ((mgeo1.GetClassType() == geometry::ChGeometry::BOX) &&
+        (mgeo2.GetClassType() == geometry::ChGeometry::TRIANGLE)) {
         geometry::ChBox* mbox = (geometry::ChBox*)&mgeo1;
         geometry::ChTriangle* mtri = (geometry::ChTriangle*)&mgeo2;
         return ComputeBoxTriangleCollisions(*mbox, R1, T1, *mtri, R2, T2, mcollider, just_intersection, false);
     }
-    if ((mgeo1.GetClassType() == geometry::ChGeometry::TRIANGLE) && (mgeo2.GetClassType() == geometry::ChGeometry::BOX)) {
+    if ((mgeo1.GetClassType() == geometry::ChGeometry::TRIANGLE) &&
+        (mgeo2.GetClassType() == geometry::ChGeometry::BOX)) {
         geometry::ChBox* mbox = (geometry::ChBox*)&mgeo2;
         geometry::ChTriangle* mtri = (geometry::ChTriangle*)&mgeo1;
         return ComputeBoxTriangleCollisions(*mbox, R2, T2, *mtri, R1, T1, mcollider, just_intersection, true);
@@ -145,7 +150,7 @@ int ChGeometryCollider::ComputeSphereTriangleCollisions(
     ChNarrowPhaseCollider& mcollider,  ///< reference to a collider to store contacts into
     bool just_intersection,  ///< if true, just report if intersecting (no further calculus on normal, depht, etc.)
     bool swap_pairs          ///< if true, pairs are reported as Triangle-Sphere (triangle will be the main ref.)
-    ) {
+) {
     Vector v_center = *c1;
     Vector v_1 = ChTransform<>::TransformLocalToParent(mgeo2.p1, *T2, *R2);
     Vector v_2 = ChTransform<>::TransformLocalToParent(mgeo2.p2, *T2, *R2);
@@ -191,8 +196,7 @@ int ChGeometryCollider::ComputeSphereTriangleCollisions(
         }
 
     // test sphere-plane
-    tdist =
-        -mgeo1.rad + fabs(geometry::ChTriangle::PointTriangleDistance(v_center, v_1, v_2, v_3, mu, mv, is_into, ept));
+    tdist = -mgeo1.rad + fabs(utils::PointTriangleDistance(v_center, v_1, v_2, v_3, mu, mv, is_into, ept));
     if (is_into)
         if (tdist < 0)
             if (tdist < mdist) {
@@ -204,7 +208,7 @@ int ChGeometryCollider::ComputeSphereTriangleCollisions(
             }
 
     // test edge-sphere
-    tdist = -mgeo1.rad + fabs(geometry::ChTriangle::PointLineDistance(v_center, v_1, v_2, mu, is_into));
+    tdist = -mgeo1.rad + fabs(utils::PointLineDistance(v_center, v_1, v_2, mu, is_into));
     if (is_into)
         if (tdist < 0)
             if (tdist < mdist) {
@@ -215,7 +219,7 @@ int ChGeometryCollider::ComputeSphereTriangleCollisions(
                 mp2 = ept;
                 mdist = tdist;
             }
-    tdist = -mgeo1.rad + fabs(geometry::ChTriangle::PointLineDistance(v_center, v_2, v_3, mu, is_into));
+    tdist = -mgeo1.rad + fabs(utils::PointLineDistance(v_center, v_2, v_3, mu, is_into));
     if (is_into)
         if (tdist < 0)
             if (tdist < mdist) {
@@ -226,7 +230,7 @@ int ChGeometryCollider::ComputeSphereTriangleCollisions(
                 mp2 = ept;
                 mdist = tdist;
             }
-    tdist = -mgeo1.rad + fabs(geometry::ChTriangle::PointLineDistance(v_center, v_3, v_1, mu, is_into));
+    tdist = -mgeo1.rad + fabs(utils::PointLineDistance(v_center, v_3, v_1, mu, is_into));
     if (is_into)
         if (tdist < 0)
             if (tdist < mdist) {
@@ -508,10 +512,10 @@ class BoxBoxCollisionTest2 {
             {
                 minimum_overlap = -10e30;
                 minimum_axis = 15;
-                for (unsigned int i = 0; i < 6; ++i) {
-                    if (overlap[i] > minimum_overlap) {
-                        minimum_overlap = overlap[i];
-                        minimum_axis = i;
+                for (unsigned int j = 0; j < 6; ++j) {
+                    if (overlap[j] > minimum_overlap) {
+                        minimum_overlap = overlap[j];
+                        minimum_axis = j;
                     }
                 }
             }
@@ -524,11 +528,11 @@ class BoxBoxCollisionTest2 {
         //--- This is definitely an edge-edge case
         if (minimum_axis >= 6) {
             //--- Find a point p_a on the edge from box A.
-            for (unsigned int i = 0; i < 3; ++i)
-                if (n.Dot(A[i]) > 0.)
-                    p_a += ext_a[i] * A[i];
+            for (int ci = 0; ci < 3; ++ci)
+                if (n.Dot(A[ci]) > 0.)
+                    p_a += ext_a[ci] * A[ci];
                 else
-                    p_a -= ext_a[i] * A[i];
+                    p_a -= ext_a[ci] * A[ci];
             //--- Find a point p_b on the edge from box B.
             for (int ci = 0; ci < 3; ++ci)
                 if (n.Dot(B[ci]) < 0.)
@@ -774,9 +778,9 @@ class BoxBoxCollisionTest2 {
             double w = ext_r[code3] + n_r_wcs.Dot(p_r);
 
             if (corners_A_in_B) {
-                for (unsigned int i = 0; i < 8; ++i) {
-                    if (AinB[i]) {
-                        Vector point = a[i];
+                for (unsigned int k = 0; k < 8; ++k) {
+                    if (AinB[k]) {
+                        Vector point = a[k];
                         double depth = n_r_wcs.Dot(point) - w;
                         if (depth < envelope) {
                             p[cnt] = point;
@@ -788,9 +792,9 @@ class BoxBoxCollisionTest2 {
                 end_corner_A = cnt;
             }
             if (corners_B_in_A) {
-                for (unsigned int i = 0; i < 8; ++i) {
-                    if (BinA[i]) {
-                        Vector point = b[i];
+                for (unsigned int k = 0; k < 8; ++k) {
+                    if (BinA[k]) {
+                        Vector point = b[k];
                         bool redundant = false;
                         for (unsigned int j = start_corner_A; j < end_corner_A; ++j) {
                             if (p[j].Equals(point, envelope)) {
@@ -925,7 +929,7 @@ int ChGeometryCollider::ComputeBoxBoxCollisions(
     Vector* T2,                        ///< absolute position of 2nd model (with box 2)
     ChNarrowPhaseCollider& mcollider,  ///< reference to a collider to store contacts into
     bool just_intersection  ///< if true, just report if intersecting (no further calculus on normal, depht, etc.)
-    ) {
+) {
     if (just_intersection) {
         ChMatrix33<> relRot = R1->transpose() * (*R2);
         Vector relPos = R1->transpose() * ((*T2) - (*T1));
@@ -971,7 +975,7 @@ int ChGeometryCollider::ComputeSphereBoxCollisions(
     ChNarrowPhaseCollider& mcollider,  ///< reference to a collider to store contacts into
     bool just_intersection,  ///< if true, just report if intersecting (no further calculus on normal, depht, etc.)
     bool swap_pairs          ///< if true, pairs are reported as Triangle-Sphere (triangle will be the main ref.)
-    ) {
+) {
     ChMatrix33<> aBoxRot = (*R2) * mgeo2.Rot;
     Vector aBoxPos = ChTransform<>::TransformLocalToParent(mgeo2.Pos, (*T2), (*R2));
 
@@ -1000,7 +1004,6 @@ int ChGeometryCollider::ComputeSphereBoxCollisions(
     } else {
         Vector pt_loc;
         bool done = false;
-        double dist = 0;
 
         if ((fabs(relC.x()) <= mgeo2.Size.x() + mgeo1.rad) && (fabs(relC.y()) <= mgeo2.Size.y()) &&
             (fabs(relC.z()) <= mgeo2.Size.z())) {
@@ -1043,7 +1046,8 @@ int ChGeometryCollider::ComputeSphereBoxCollisions(
             }
         }
         if (!done) {
-            if ((sqrt(pow(fabs(relC.x()) - mgeo2.Size.x(), 2) + pow(fabs(relC.y()) - mgeo2.Size.y(), 2)) <= mgeo1.rad) &&
+            if ((sqrt(pow(fabs(relC.x()) - mgeo2.Size.x(), 2) + pow(fabs(relC.y()) - mgeo2.Size.y(), 2)) <=
+                 mgeo1.rad) &&
                 (fabs(relC.z()) <= mgeo2.Size.z())) {
                 if (relC.x() > 0) {
                     if (relC.y() > 0) {
@@ -1071,7 +1075,8 @@ int ChGeometryCollider::ComputeSphereBoxCollisions(
             }
         }
         if (!done) {
-            if ((sqrt(pow(fabs(relC.y()) - mgeo2.Size.y(), 2) + pow(fabs(relC.z()) - mgeo2.Size.z(), 2)) <= mgeo1.rad) &&
+            if ((sqrt(pow(fabs(relC.y()) - mgeo2.Size.y(), 2) + pow(fabs(relC.z()) - mgeo2.Size.z(), 2)) <=
+                 mgeo1.rad) &&
                 (fabs(relC.x()) <= mgeo2.Size.x())) {
                 if (relC.y() > 0) {
                     if (relC.z() > 0) {
@@ -1099,7 +1104,8 @@ int ChGeometryCollider::ComputeSphereBoxCollisions(
             }
         }
         if (!done) {
-            if ((sqrt(pow(fabs(relC.z()) - mgeo2.Size.z(), 2) + pow(fabs(relC.x()) - mgeo2.Size.x(), 2)) <= mgeo1.rad) &&
+            if ((sqrt(pow(fabs(relC.z()) - mgeo2.Size.z(), 2) + pow(fabs(relC.x()) - mgeo2.Size.x(), 2)) <=
+                 mgeo1.rad) &&
                 (fabs(relC.y()) <= mgeo2.Size.y())) {
                 if (relC.z() > 0) {
                     if (relC.x() > 0) {
@@ -1146,7 +1152,7 @@ int ChGeometryCollider::ComputeSphereBoxCollisions(
                                   pt_1,            // p1
                                   pt_2,            // p2
                                   mnormal          // normal
-                                  );
+            );
             if (swap_pairs)
                 mcoll.SwapGeometries();
             mcollider.AddCollisionPair(&mcoll);
@@ -1154,53 +1160,6 @@ int ChGeometryCollider::ComputeSphereBoxCollisions(
     }
 
     return 0;
-}
-
-static double ChPointTriangleDistance(Vector& B,
-                                      Vector& A1,
-                                      Vector& A2,
-                                      Vector& A3,
-                                      double& mu,
-                                      double& mv,
-                                      int& is_into,
-                                      Vector& Bprojected) {
-    // defaults
-    is_into = 0;
-    mu = mv = -1;
-    double mdistance = 10e22;
-
-    Vector Dx, Dy, Dz, T1, T1p;
-
-    Dx = Vsub(A2, A1);
-    Dz = Vsub(A3, A1);
-    Dy = Vcross(Dz, Dx);
-
-    double dylen = Vlength(Dy);
-
-    if (fabs(dylen) < 0.000001)  // degenerated triangle
-        return mdistance;
-
-    Dy = Vmul(Dy, 1.0 / dylen);
-
-    static ChMatrix33<> mA(Dx, Dy, Dz);
-
-    // invert triangle coordinate matrix -if singular matrix, was degenerate triangle-.
-    if (std::abs(mA.determinant()) < 0.000001)
-        return mdistance;
-
-    static ChMatrix33<> mAi = mA.inverse();
-    T1 = mAi * (B - A1);
-    T1p = T1;
-    T1p.y() = 0;
-    mu = T1.x();
-    mv = T1.z();
-    if (mu >= 0 && mv >= 0 && mv <= 1.0 - mu) {
-        is_into = 1;
-        mdistance = fabs(T1.y());
-        Bprojected = A1 +  mA * T1p;
-    }
-
-    return mdistance;
 }
 
 /// BOX - TRIANGLE specific case
@@ -1215,7 +1174,7 @@ int ChGeometryCollider::ComputeBoxTriangleCollisions(
     ChNarrowPhaseCollider& mcollider,  ///< reference to a collider to store contacts into
     bool just_intersection,  ///< if true, just report if intersecting (no further calculus on normal, depht, etc.)
     bool swap_pairs          ///< if true, pairs are reported as Triangle-Box (triangle will be the main ref.)
-    ) {
+) {
     Vector v_1 = ChTransform<>::TransformLocalToParent(mtri.p1, *T2, *R2);
     Vector v_2 = ChTransform<>::TransformLocalToParent(mtri.p2, *T2, *R2);
     Vector v_3 = ChTransform<>::TransformLocalToParent(mtri.p3, *T2, *R2);
@@ -1229,7 +1188,7 @@ int ChGeometryCollider::ComputeBoxTriangleCollisions(
     v_b[2] = ChTransform<>::TransformParentToLocal(v_3, aBoxPos, aBoxRot);
 
     double distc;
-    bool hit = false;
+    ////bool hit = false;
     Vector P1_b;
     Vector P2_b;
     Vector P1_w;
@@ -1242,8 +1201,9 @@ int ChGeometryCollider::ComputeBoxTriangleCollisions(
         distc = -10e24;
         P1_b = v_b[nv];
         P2_b = v_b[nv];
-        if ((fabs(v_b[nv].x()) <= mbox.Size.x()) && (fabs(v_b[nv].y()) <= mbox.Size.y()) && (fabs(v_b[nv].z()) <= mbox.Size.z())) {
-            hit = true;
+        if ((fabs(v_b[nv].x()) <= mbox.Size.x()) && (fabs(v_b[nv].y()) <= mbox.Size.y()) &&
+            (fabs(v_b[nv].z()) <= mbox.Size.z())) {
+            ////hit = true;
             if (v_b[nv].x() - mbox.Size.x() > distc) {
                 distc = v_b[nv].x() - mbox.Size.x();
                 P1_b = v_b[nv];
@@ -1275,14 +1235,14 @@ int ChGeometryCollider::ComputeBoxTriangleCollisions(
                 P1_b.z() = -mbox.Size.z();
             }
 
-            Vector P1_w = ChTransform<>::TransformLocalToParent(P1_b, aBoxPos, aBoxRot);
-            Vector P2_w = ChTransform<>::TransformLocalToParent(P2_b, aBoxPos, aBoxRot);
+            P1_w = ChTransform<>::TransformLocalToParent(P1_b, aBoxPos, aBoxRot);
+            P2_w = ChTransform<>::TransformLocalToParent(P2_b, aBoxPos, aBoxRot);
             Vector mnormal = Vnorm(P1_w - P2_w);
             ChCollisionPair mcoll(&mbox, &mtri,  // geometries
                                   P1_w,          // p1
                                   P2_w,          // p2
                                   mnormal        // normal
-                                  );
+            );
             if (swap_pairs)
                 mcoll.SwapGeometries();
             mcollider.AddCollisionPair(&mcoll);
@@ -1297,10 +1257,10 @@ int ChGeometryCollider::ComputeBoxTriangleCollisions(
 
         P1_w = v_w;
         P2_w = v_w;
-        int is_into;
+        bool is_into;
         double mu, mv;
 
-        double dist = ChPointTriangleDistance(P1_w, v_1, v_2, v_3, mu, mv, is_into, P2_w);
+        /*double dist =*/ utils::PointTriangleDistance(P1_w, v_1, v_2, v_3, mu, mv, is_into, P2_w);
 
         Vector dir = P2_w - P1_w;
 
@@ -1311,11 +1271,11 @@ int ChGeometryCollider::ComputeBoxTriangleCollisions(
                                       P1_w,          // p1
                                       P2_w,          // p2
                                       mnormal        // normal
-                                      );
+                );
                 if (swap_pairs)
                     mcoll.SwapGeometries();
                 mcollider.AddCollisionPair(&mcoll);
-                hit = true;
+                ////hit = true;
             }
     }
 

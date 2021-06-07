@@ -249,7 +249,6 @@ void ChToeBarLeafspringAxle::InitializeSide(VehicleSide side,
     } else {
         m_universalTierod = chrono_types::make_shared<ChLinkUniversal>();
         m_universalTierod->SetNameString(m_name + "_universalTierod" + suffix);
-        ChVector<> rightPoint = points[TIEROD_K];
         m_universalTierod->Initialize(m_tierod, m_knuckle[side],
                                       ChFrame<>(points[TIEROD_K], chassisRot * Q_from_AngAxis(CH_C_PI / 2.0, VECT_X)));
         chassis->GetSystem()->AddLink(m_universalTierod);

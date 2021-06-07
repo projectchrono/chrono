@@ -345,7 +345,7 @@ std::shared_ptr<ChSystem::CustomCollisionCallback> ChSprocketSinglePin::GetColli
 // -----------------------------------------------------------------------------
 // Create and return the sprocket gear profile.
 // -----------------------------------------------------------------------------
-std::shared_ptr<geometry::ChLinePath> ChSprocketSinglePin::GetProfile() {
+std::shared_ptr<geometry::ChLinePath> ChSprocketSinglePin::GetProfile() const {
     auto profile = chrono_types::make_shared<geometry::ChLinePath>();
 
     int num_teeth = GetNumTeeth();
@@ -361,7 +361,7 @@ std::shared_ptr<geometry::ChLinePath> ChSprocketSinglePin::GetProfile() {
     double gamma = std::asin(x / R);
 
     for (int i = 0; i < num_teeth; ++i) {
-        double alpha = -i * beta;
+        double alpha = CH_C_PI - i * beta;
         ChVector<> p0(0, R_C, 0);
         ChVector<> p1(-R_T * sbeta, R_T * cbeta, 0);
         ChVector<> p2(-x, y, 0);

@@ -31,21 +31,17 @@ uint ChSolverMulticoreCG::Solve(ChShurProduct& ShurProduct,
                                const uint size,
                                const DynamicVector<real>& b,
                                DynamicVector<real>& x) {
-    real& residual = data_manager->measures.solver.residual;
-    real& objective_value = data_manager->measures.solver.objective_value;
-
     r.resize(b.size());
     q.resize(b.size());
     s.resize(b.size());
 
-    real rho_old = FLT_MAX;
+    real rho_old = C_LARGE_REAL;
     real convergence_norm = 0;
     real tolerance = 1e-4;  // Max(1e-4 * Convergence_Norm(b), 1e-6);
-    int min_iterations = 0;
+    uint min_iterations = 0;
 
-    int iterations;
-    int restart_iterations = 100;
-    for (iterations = 0;; iterations++) {
+    uint restart_iterations = 100;
+    for (uint iterations = 0;; iterations++) {
         bool restart = !iterations || (restart_iterations && iterations % restart_iterations == 0);
         if (restart) {
             printf("restarting cg\n");
@@ -75,7 +71,7 @@ uint ChSolverMulticoreCG::Solve(ChShurProduct& ShurProduct,
         ShurProduct(s, q);
         // Project(r.data());
         real s_dot_q = (s, q);
-        real alpha = s_dot_q ? rho / s_dot_q : (real)FLT_MAX;
+        real alpha = s_dot_q ? rho / s_dot_q : C_LARGE_REAL;
         x = alpha * s + x;
         r = -alpha * q + r;
         rho_old = rho;

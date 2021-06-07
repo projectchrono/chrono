@@ -48,7 +48,7 @@ int main(int argc, char* argv[]) {
 
     // Create the Irrlicht visualization (open the Irrlicht device,
     // bind a simple user interface, etc. etc.)
-    ChIrrApp application(&my_system, L"FEA contacts", core::dimension2d<u32>(800, 600), false, true);
+    ChIrrApp application(&my_system, L"FEA contacts", core::dimension2d<u32>(800, 600), VerticalDir::Y, false, true);
 
     // Easy shortcuts to add camera, lights, logo and sky in Irrlicht scene:
     application.AddTypicalLogo();
@@ -58,7 +58,7 @@ int main(int argc, char* argv[]) {
     application.AddLightWithShadow(core::vector3df(1.5, 5.5, -2.5), core::vector3df(0, 0, 0), 3, 2.2, 7.2, 40, 512,
                                    video::SColorf(1, 1, 1));
 
-    application.SetContactsDrawMode(ChIrrTools::CONTACT_DISTANCES);
+    application.SetContactsDrawMode(IrrContactsDrawMode::CONTACT_DISTANCES);
 
     //
     // CREATE THE PHYSICAL SYSTEM
@@ -91,7 +91,7 @@ int main(int argc, char* argv[]) {
     bool do_mesh_collision_floor = false;
 
     auto mmeshbox = chrono_types::make_shared<ChTriangleMeshConnected>();
-    mmeshbox->LoadWavefrontMesh(GetChronoDataFile("cube.obj"), true, true);
+    mmeshbox->LoadWavefrontMesh(GetChronoDataFile("models/cube.obj"), true, true);
 
     if (do_mesh_collision_floor) {
         // floor as a triangle mesh surface:
@@ -111,7 +111,7 @@ int main(int argc, char* argv[]) {
         mfloor->AddAsset(masset_meshbox);
 
         auto masset_texture = chrono_types::make_shared<ChTexture>();
-        masset_texture->SetTextureFilename(GetChronoDataFile("concrete.jpg"));
+        masset_texture->SetTextureFilename(GetChronoDataFile("textures/concrete.jpg"));
         mfloor->AddAsset(masset_texture);
 
     } else {
@@ -122,7 +122,7 @@ int main(int argc, char* argv[]) {
         my_system.Add(mfloor);
 
         auto masset_texture = chrono_types::make_shared<ChTexture>();
-        masset_texture->SetTextureFilename(GetChronoDataFile("concrete.jpg"));
+        masset_texture->SetTextureFilename(GetChronoDataFile("textures/concrete.jpg"));
         mfloor->AddAsset(masset_texture);
     }
 
@@ -189,7 +189,7 @@ int main(int argc, char* argv[]) {
                 ChMatrix33<> mrot(ctot.rot);
                 ChMeshFileLoader::FromTetGenFile(my_mesh, GetChronoDataFile("fea/beam.node").c_str(),
                                                  GetChronoDataFile("fea/beam.ele").c_str(), mmaterial, ctot.pos, mrot);
-            } catch (ChException myerr) {
+            } catch (const ChException &myerr) {
                 GetLog() << myerr.what();
                 return 0;
             }

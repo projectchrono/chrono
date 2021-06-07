@@ -101,7 +101,7 @@ int main(int argc, char* argv[]) {
     // Create the Irrlicht application
     // -------------------------------
 
-    ChIrrApp application(&system, L"ChLinkRevoluteTranslational demo", core::dimension2d<u32>(800, 600), false, true);
+    ChIrrApp application(&system, L"ChLinkRevoluteTranslational demo", core::dimension2d<u32>(800, 600));
     application.AddTypicalLogo();
     application.AddTypicalSky();
     application.AddTypicalLights();
@@ -123,10 +123,10 @@ int main(int argc, char* argv[]) {
         ChCoordsys<> joint_csys = ground->GetCoord() >> rev_trans->GetLinkRelativeCoords();
         ChVector<> point1 = joint_csys.pos;
         ChVector<> point2 = joint_csys.TransformPointLocalToParent(ChVector<>(L, 0, 0));
-        ChIrrTools::drawSegment(application.GetVideoDriver(), point1, point2, video::SColor(255, 0, 20, 0), true);
+        tools::drawSegment(application.GetVideoDriver(), point1, point2, video::SColor(255, 0, 20, 0), true);
 
         // Render a line between the two points of the revolute-translational joint.
-        ChIrrTools::drawSegment(application.GetVideoDriver(), rev_trans->GetPoint1Abs(), rev_trans->GetPoint2Abs(),
+        tools::drawSegment(application.GetVideoDriver(), rev_trans->GetPoint1Abs(), rev_trans->GetPoint2Abs(),
                                 video::SColor(255, 120, 120, 120), true);
 
         application.DoStep();

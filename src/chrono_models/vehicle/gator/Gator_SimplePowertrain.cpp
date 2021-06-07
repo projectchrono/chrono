@@ -34,28 +34,16 @@ const double Gator_SimplePowertrain::m_fwd_gear_ratio = 0.07;
 const double Gator_SimplePowertrain::m_rev_gear_ratio = -0.04;
 
 // -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
 Gator_SimplePowertrain::Gator_SimplePowertrain(const std::string& name)
-    : ChPowertrain(name), m_current_gear_ratio(m_fwd_gear_ratio), m_motorSpeed(0), m_motorTorque(0), m_shaftTorque(0) {}
+    : ChPowertrain(name), m_motorSpeed(0), m_motorTorque(0), m_shaftTorque(0) {}
 
 void Gator_SimplePowertrain::Initialize(std::shared_ptr<ChChassis> chassis, std::shared_ptr<ChDriveline> driveline) {
     ChPowertrain::Initialize(chassis, driveline);
-    m_current_gear_ratio = m_fwd_gear_ratio;
 }
 
-void Gator_SimplePowertrain::SetDriveMode(ChPowertrain::DriveMode mode) {
-    m_drive_mode = mode;
-    switch (mode) {
-        case FORWARD:
-            m_current_gear_ratio = m_fwd_gear_ratio;
-            break;
-        case REVERSE:
-            m_current_gear_ratio = m_rev_gear_ratio;
-            break;
-        case NEUTRAL:
-            m_current_gear_ratio = 1e20;
-            break;
-    }
+void Gator_SimplePowertrain::SetGearRatios(std::vector<double>& fwd, double& rev) {
+    rev = m_rev_gear_ratio;
+    fwd.push_back(m_fwd_gear_ratio);
 }
 
 void Gator_SimplePowertrain::Synchronize(double time, double throttle) {

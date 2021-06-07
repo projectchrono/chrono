@@ -66,4 +66,10 @@ SIMD_FORCE_INLINE void btClamp(T& a, const T& lb, const T& ub)
 	}
 }
 
+// ***CHRONO***
+template <class T>
+SIMD_FORCE_INLINE int btSign(const T& a) {
+    return (T(0) < a) - (a < T(0));
+}
+
 #endif  //BT_GEN_MINMAX_H

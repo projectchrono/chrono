@@ -117,7 +117,7 @@ void ChLinkMotorRotation::ArchiveOUT(ChArchiveOut& marchive) {
 /// Method to allow de serialization of transient data from archives.
 void ChLinkMotorRotation::ArchiveIN(ChArchiveIn& marchive) {
     // version number
-    int version = marchive.VersionRead<ChLinkMotorRotation>();
+    /*int version =*/ marchive.VersionRead<ChLinkMotorRotation>();
 
     // deserialize parent class
     ChLinkMotor::ArchiveIN(marchive);

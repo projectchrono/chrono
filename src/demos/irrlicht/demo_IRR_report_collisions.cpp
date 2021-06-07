@@ -86,11 +86,11 @@ int main(int argc, char* argv[]) {
     system.SetSolverMaxIterations(20);
 
     // Create the Irrlicht application.
-    ChIrrApp application(&system, L"Number of collisions", irr::core::dimension2d<irr::u32>(800, 600), false);
-    ChIrrWizard::add_typical_Logo(application.GetDevice());
-    ChIrrWizard::add_typical_Sky(application.GetDevice());
-    ChIrrWizard::add_typical_Lights(application.GetDevice());
-    ChIrrWizard::add_typical_Camera(application.GetDevice(), irr::core::vector3df(0, 14, -20));
+    ChIrrApp application(&system, L"Number of collisions", irr::core::dimension2d<irr::u32>(800, 600));
+    application.AddTypicalLogo();
+    application.AddTypicalSky();
+    application.AddTypicalLights();
+    application.AddTypicalCamera(irr::core::vector3df(0, 14, -20));
 
     // Create a contact material shared by all collision shapes
     auto mat = chrono_types::make_shared<ChMaterialSurfaceNSC>();
@@ -117,7 +117,7 @@ int main(int argc, char* argv[]) {
         system.Add(sphere);
         sphere->SetPos(ChVector<>(-5 + ChRandom() * 10, 4 + bi * 0.05, -5 + ChRandom() * 10));
         if (bi == 0) {
-            sphere->AddAsset(chrono_types::make_shared<ChTexture>(GetChronoDataFile("bluwhite.png")));
+            sphere->AddAsset(chrono_types::make_shared<ChTexture>(GetChronoDataFile("textures/bluewhite.png")));
             my_sphere = sphere;
         }
 
@@ -125,7 +125,7 @@ int main(int argc, char* argv[]) {
         system.Add(box);
         box->SetPos(ChVector<>(-5 + ChRandom() * 10, 4 + bi * 0.05, -5 + ChRandom() * 10));
         if (bi == 0) {
-            box->AddAsset(chrono_types::make_shared<ChTexture>(GetChronoDataFile("cubetexture_bluwhite.png")));
+            box->AddAsset(chrono_types::make_shared<ChTexture>(GetChronoDataFile("textures/cubetexture_bluewhite.png")));
             my_box = box;
         }
 
@@ -133,7 +133,7 @@ int main(int argc, char* argv[]) {
         system.Add(cylinder);
         cylinder->SetPos(ChVector<>(-5 + ChRandom() * 10, 4 + bi * 0.05, -5 + ChRandom() * 10));
         if (bi == 0) {
-            cylinder->AddAsset(chrono_types::make_shared<ChTexture>(GetChronoDataFile("pinkwhite.png")));
+            cylinder->AddAsset(chrono_types::make_shared<ChTexture>(GetChronoDataFile("textures/pinkwhite.png")));
             my_cylinder = cylinder;
         }
     }

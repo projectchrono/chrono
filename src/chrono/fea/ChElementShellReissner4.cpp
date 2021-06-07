@@ -158,7 +158,7 @@ void ChElementShellReissner4::UpdateNodalAndAveragePosAndOrientation() {
         T_avg += this->m_nodes[i]->GetA() * iTa[i];  //***TODO*** use predicted rot?
     }
     T_avg *= 0.25;
-    T_overline = ChRotUtils::Rot(ChRotUtils::VecRot(T_avg));
+    T_overline = rotutils::Rot(rotutils::VecRot(T_avg));
     /*
         // ***ALEX*** test an alternative for T_overline:
         // average four rotations with quaternion averaging:
@@ -179,7 +179,7 @@ void ChElementShellReissner4::UpdateNodalAndAveragePosAndOrientation() {
     ChMatrix33<> R_tilde_n[NUMNODES];
     for (int i = 0; i < NUMNODES; i++) {
         R_tilde_n[i] = T_overline.transpose() * Tn[i];
-        phi_tilde_n[i] = ChRotUtils::VecRot(R_tilde_n[i]);
+        phi_tilde_n[i] = rotutils::VecRot(R_tilde_n[i]);
         // if (phi_tilde_n[i].Length()*CH_C_RAD_TO_DEG > 15)
         //    GetLog() << "WARNING phi_tilde_n[" << i << "]=" <<  phi_tilde_n[i].Length()*CH_C_RAD_TO_DEG << "°\n";
     }
@@ -237,7 +237,7 @@ void ChElementShellReissner4::InterpolateOrientation() {
     ChMatrix33<> DRot_I_phi_tilde_n_MT_T_overline[NUMNODES];
     ChMatrix33<> Ri, Gammai;
     for (int n = 0; n < NUMNODES; n++) {
-        ChMatrix33<> mDrot_I = ChRotUtils::DRot_I(phi_tilde_n[n]);
+        ChMatrix33<> mDrot_I = rotutils::DRot_I(phi_tilde_n[n]);
 #ifdef CHSIMPLIFY_DROT
         mDrot_I = ChMatrix33<>(1);
 #endif
@@ -245,7 +245,7 @@ void ChElementShellReissner4::InterpolateOrientation() {
     }
     for (int i = 0; i < NUMIP; i++) {
         phi_tilde_i[i] = Interp(phi_tilde_n, xi_i[i]);
-        ChRotUtils::RotAndDRot(phi_tilde_i[i], Ri, Gammai);
+        rotutils::RotAndDRot(phi_tilde_i[i], Ri, Gammai);
 #ifdef CHSIMPLIFY_DROT
         Gammai = ChMatrix33<>(1);
 #endif
@@ -256,10 +256,10 @@ void ChElementShellReissner4::InterpolateOrientation() {
         }
     }
     ChVector<> phi_tilde_0 = Interp(phi_tilde_n, xi_0);
-    T_0 = T_overline * ChRotUtils::Rot(phi_tilde_0);
+    T_0 = T_overline * rotutils::Rot(phi_tilde_0);
     for (int i = 0; i < NUMSSEP; i++) {
         phi_tilde_A[i] = Interp(phi_tilde_n, xi_A[i]);
-        ChRotUtils::RotAndDRot(phi_tilde_A[i], Ri, Gammai);
+        rotutils::RotAndDRot(phi_tilde_A[i], Ri, Gammai);
 #ifdef CHSIMPLIFY_DROT
         Gammai = ChMatrix33<>(1);
 #endif
@@ -274,7 +274,7 @@ void ChElementShellReissner4::InterpolateOrientation() {
 void ChElementShellReissner4::ComputeIPCurvature() {
     ChMatrix33<> Gamma_I_n_MT_T_overline[NUMNODES];
     for (int n = 0; n < NUMNODES; n++) {
-        ChMatrix33<> mDrot_I = ChRotUtils::DRot_I(phi_tilde_n[n]);
+        ChMatrix33<> mDrot_I = rotutils::DRot_I(phi_tilde_n[n]);
 #ifdef CHSIMPLIFY_DROT
         mDrot_I = ChMatrix33<>(1);
 #endif
@@ -284,15 +284,15 @@ void ChElementShellReissner4::ComputeIPCurvature() {
         ChVector<> phi_tilde_1_i;
         ChVector<> phi_tilde_2_i;
         InterpDeriv(phi_tilde_n, L_alpha_beta_i[i], phi_tilde_1_i, phi_tilde_2_i);
-        ChMatrix33<> mGamma_tilde_i = ChRotUtils::DRot(phi_tilde_i[i]);
+        ChMatrix33<> mGamma_tilde_i = rotutils::DRot(phi_tilde_i[i]);
 #ifdef CHSIMPLIFY_DROT
         mGamma_tilde_i = ChMatrix33<>(1);
 #endif
         ChMatrix33<> T_overlineGamma_tilde_i(T_overline * mGamma_tilde_i);
         k_1_i[i] = T_overlineGamma_tilde_i * phi_tilde_1_i;
         k_2_i[i] = T_overlineGamma_tilde_i * phi_tilde_2_i;
-        ChMatrix33<> tmp1 = T_overline * ChRotUtils::Elle(phi_tilde_i[i], phi_tilde_1_i);
-        ChMatrix33<> tmp2 = T_overline * ChRotUtils::Elle(phi_tilde_i[i], phi_tilde_2_i);
+        ChMatrix33<> tmp1 = T_overline * rotutils::Elle(phi_tilde_i[i], phi_tilde_1_i);
+        ChMatrix33<> tmp2 = T_overline * rotutils::Elle(phi_tilde_i[i], phi_tilde_2_i);
 #ifdef CHSIMPLIFY_DROT
         tmp1 = T_overline;
         tmp2 = T_overline;
@@ -987,8 +987,6 @@ void ChElementShellReissner4::ComputeInternalJacobians(double Kfactor, double Rf
 	ChMatrixNM<double, 24, 24> Rm;
     ChMatrixNM<double, IDOFS, 24> K_beta_q;
     ChMatrixNM<double, IDOFS, IDOFS> K_beta_beta;
-
-    ChMatrixNM<double, 12, 12> C;
 
     for (int i = 0; i < NUMIP; i++) {
         // GEOMETRIC STIFFNESS Kg:

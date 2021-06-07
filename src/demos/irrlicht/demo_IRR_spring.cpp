@@ -48,12 +48,12 @@ double damping_coef = 1;
 // In this simple demonstration, we just reimplement the default linear spring-damper.
 class MySpringForce : public ChLinkTSDA::ForceFunctor {
     virtual double operator()(double time,         // current time
-                              double rest_length,  // undeformed length
+                              double restlength,  // undeformed length
                               double length,       // current length
                               double vel,          // current velocity (positive when extending)
                               ChLinkTSDA* link     // back-pointer to associated link
                               ) override {
-        double force = -spring_coef * (length - rest_length) - damping_coef * vel;
+        double force = -spring_coef * (length - restlength) - damping_coef * vel;
         return force;
     }
 };
@@ -155,7 +155,7 @@ int main(int argc, char* argv[]) {
     // Create the Irrlicht application
     // -------------------------------
 
-    ChIrrApp application(&system, L"ChLinkTSDA demo", core::dimension2d<u32>(800, 600), false, true);
+    ChIrrApp application(&system, L"ChLinkTSDA demo", core::dimension2d<u32>(800, 600));
     application.AddTypicalLogo();
     application.AddTypicalSky();
     application.AddTypicalLights();

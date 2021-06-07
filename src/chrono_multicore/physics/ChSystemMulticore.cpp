@@ -406,11 +406,11 @@ void ChSystemMulticore::ClearForceVariables() {
         shaftlist[i]->VariablesFbReset();
     }
 
-    for (int i = 0; i < data_manager->num_linmotors; i++) {
+    for (int i = 0; i < (signed)data_manager->num_linmotors; i++) {
         linmotorlist[i]->VariablesFbReset();
     }
 
-    for (int i = 0; i < data_manager->num_rotmotors; i++) {
+    for (int i = 0; i < (signed)data_manager->num_rotmotors; i++) {
         rotmotorlist[i]->VariablesFbReset();
     }
 }
@@ -532,8 +532,8 @@ void ChSystemMulticore::UpdateShafts() {
 // TODO: extend this to links with more than one variable.
 //
 void ChSystemMulticore::UpdateMotorLinks() {
-    int offset = data_manager->num_rigid_bodies * 6 + data_manager->num_shafts;
-    for (int i = 0; i < data_manager->num_linmotors; i++) {
+    uint offset = data_manager->num_rigid_bodies * 6 + data_manager->num_shafts;
+    for (uint i = 0; i < data_manager->num_linmotors; i++) {
         linmotorlist[i]->Update(ch_time, false);
         linmotorlist[i]->VariablesFbLoadForces(GetStep());
         linmotorlist[i]->VariablesQbLoadSpeed();
@@ -541,7 +541,7 @@ void ChSystemMulticore::UpdateMotorLinks() {
         data_manager->host_data.hf[offset + i] = linmotorlist[i]->Variables().Get_fb()(0);
     }
     offset += data_manager->num_linmotors;
-    for (int i = 0; i < data_manager->num_rotmotors; i++) {
+    for (uint i = 0; i < data_manager->num_rotmotors; i++) {
         rotmotorlist[i]->Update(ch_time, false);
         rotmotorlist[i]->VariablesFbLoadForces(GetStep());
         rotmotorlist[i]->VariablesQbLoadSpeed();
@@ -554,8 +554,8 @@ void ChSystemMulticore::UpdateMotorLinks() {
 // Update all fluid nodes
 // currently a stub
 void ChSystemMulticore::Update3DOFBodies() {
-    data_manager->node_container->Update(ch_time);
-    data_manager->fea_container->Update(ch_time);
+    data_manager->node_container->Update3DOF(ch_time);
+    data_manager->fea_container->Update3DOF(ch_time);
 }
 
 //

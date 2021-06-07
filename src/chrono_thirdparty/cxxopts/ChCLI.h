@@ -62,6 +62,9 @@ class ChCLI {
     /// Check if help was passed
     bool CheckHelp() { return m_result->count("help") > 0; }
 
+    /// Check if the specified option was passed
+    bool CheckOption(const std::string& option) {return m_result->count(option) > 0; }
+
     /// Check for value in vector
     template <typename T>
     bool HasValueInVector(const std::string& option, T value) {
@@ -107,7 +110,7 @@ class ChCLI {
     const T GetAsType(const std::string& option) {
         try {
             return (*m_result)[option].as<T>();
-        } catch (std::domain_error e) {
+        } catch (std::domain_error&) {
             if (m_result->count(option) != 0) {
                 std::cerr << "ChCLI::GetAsType: Could not cast \"" << option << "\" as " << typeid(T).name() << std::endl;
             } else {

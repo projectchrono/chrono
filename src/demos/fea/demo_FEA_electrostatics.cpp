@@ -50,7 +50,7 @@ int main(int argc, char* argv[]) {
 
     // Create the Irrlicht visualization (open the Irrlicht device,
     // bind a simple user interface, etc. etc.)
-    ChIrrApp application(&my_system, L"FEM electrostatics", core::dimension2d<u32>(800, 600), false, true);
+    ChIrrApp application(&my_system, L"FEM electrostatics", core::dimension2d<u32>(800, 600));
 
     // Easy shortcuts to add camera, lights, logo and sky in Irrlicht scene:
     application.AddTypicalLogo();
@@ -83,7 +83,7 @@ int main(int argc, char* argv[]) {
     try {
         ChMeshFileLoader::FromAbaqusFile(my_mesh, GetChronoDataFile("fea/electrostatics.INP").c_str(), mmaterial,
                                          node_sets);
-    } catch (ChException myerr) {
+    } catch (const ChException &myerr) {
         GetLog() << myerr.what();
         return 1;
     }

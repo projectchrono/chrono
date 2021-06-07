@@ -41,7 +41,7 @@ void ChShaftsTorque::ArchiveOUT(ChArchiveOut& marchive) {
 /// Method to allow de serialization of transient data from archives.
 void ChShaftsTorque::ArchiveIN(ChArchiveIn& marchive) {
     // version number
-    int version = marchive.VersionRead<ChShaftsTorque>();
+    /*int version =*/ marchive.VersionRead<ChShaftsTorque>();
 
     // deserialize parent class:
     ChShaftsTorqueBase::ArchiveIN(marchive);

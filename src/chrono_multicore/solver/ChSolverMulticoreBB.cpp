@@ -101,12 +101,10 @@ uint ChSolverMulticoreBB::Solve(ChShurProduct& ShurProduct,
     }
     real gmma = 1e-4;
     real gdiff = 1.0 / pow(size, 2.0);
-    bool do_preconditioning = false;
     real neg_BB1_fallback = 0.11;
     real neg_BB2_fallback = 0.12;
     ml = gamma;
     lastgoodres = 10e30;
-    real lastgoodfval = 10e30;
     ml_candidate = ml;
     ShurProduct(ml, temp);
     mg = temp - r;

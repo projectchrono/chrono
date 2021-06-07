@@ -27,12 +27,16 @@ namespace fmtv {
 
 const double FMTV_SimpleCVTPowertrain::m_max_torque = 772;
 const double FMTV_SimpleCVTPowertrain::m_max_power = 171000;
+const double FMTV_SimpleCVTPowertrain::m_max_speed = 10000;
 const double FMTV_SimpleCVTPowertrain::m_fwd_gear_ratio = 1.0;
 const double FMTV_SimpleCVTPowertrain::m_rev_gear_ratio = -1.0;
-const double FMTV_SimpleCVTPowertrain::m_critical_speed =
-    FMTV_SimpleCVTPowertrain::m_max_power / FMTV_SimpleCVTPowertrain::m_max_torque;
 
 FMTV_SimpleCVTPowertrain::FMTV_SimpleCVTPowertrain(const std::string& name) : ChSimpleCVTPowertrain(name) {}
+
+void FMTV_SimpleCVTPowertrain::SetGearRatios(std::vector<double>& fwd, double& rev) {
+    rev = m_rev_gear_ratio;
+    fwd.push_back(m_fwd_gear_ratio);
+}
 
 }  // namespace fmtv
 }  // end namespace vehicle

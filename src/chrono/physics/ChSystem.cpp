@@ -36,38 +36,38 @@ namespace chrono {
 // -----------------------------------------------------------------------------
 
 ChSystem::ChSystem()
-    : ndof(0),
+    : G_acc(ChVector<>(0, -9.8, 0)),
+      is_initialized(false),
+      is_updated(false),
+      ncoords(0),
       ndoc(0),
+      nsysvars(0),
+      ncoords_w(0),
       ndoc_w(0),
+      nsysvars_w(0),
+      ndof(0),
       ndoc_w_C(0),
       ndoc_w_D(0),
-      ncoords(0),
-      ncoords_w(0),
-      nsysvars(0),
-      nsysvars_w(0),
       ch_time(0),
       step(0.04),
       step_min(0.002),
       step_max(0.04),
       tol_force(-1),
-      nthreads_chrono(ChOMP::GetNumProcs()),
-      nthreads_collision(1),
-      nthreads_eigen(1),
-      is_initialized(false),
-      is_updated(false),
-      applied_forces_current(false),
       maxiter(6),
-      ncontacts(0),
+      use_sleeping(false),
       min_bounce_speed(0.15),
       max_penetration_recovery_speed(0.6),
-      use_sleeping(false),
-      G_acc(ChVector<>(0, -9.8, 0)),
       stepcount(0),
-      solvecount(0),
       setupcount(0),
+      solvecount(0),
       dump_matrices(false),
+      ncontacts(0),
+      composition_strategy(new ChMaterialCompositionStrategy),
+      nthreads_chrono(ChOMP::GetNumProcs()),
+      nthreads_eigen(1),
+      nthreads_collision(1),
       last_err(false),
-      composition_strategy(new ChMaterialCompositionStrategy) {
+      applied_forces_current(false) {
     assembly.system = this;
 
     // Set default collision envelope and margin.
@@ -1546,7 +1546,6 @@ bool ChSystem::DoStaticRelaxing(int nsteps) {
     setupcount = 0;
 
     int err = 0;
-    bool reached_tolerance = false;
 
     if ((ncoords > 0) && (ndof >= 0)) {
         for (int m_iter = 0; m_iter < nsteps; m_iter++) {
@@ -1672,15 +1671,10 @@ bool ChSystem::DoFrameDynamics(double end_time) {
 
     applied_forces_current = false;
 
-    double frame_step;
-    double old_step;
+    double old_step = 0;
     double left_time;
     bool restore_oldstep = false;
     int counter = 0;
-    double fixed_step_undo;
-
-    frame_step = (end_time - ch_time);
-    fixed_step_undo = step;
 
     while (ch_time < end_time) {
         restore_oldstep = false;
@@ -1751,15 +1745,12 @@ bool ChSystem::DoFrameKinematics(double end_time) {
 
     applied_forces_current = false;
 
-    double frame_step;
-    double old_step;
+    double old_step = 0;
     double left_time;
     int restore_oldstep;
     int counter = 0;
 
-    frame_step = (end_time - ch_time);
-
-    double fixed_step_undo = step;
+    ////double frame_step = (end_time - ch_time);
 
     while (ch_time < end_time) {
         restore_oldstep = false;
@@ -1860,7 +1851,7 @@ void ChSystem::ArchiveOUT(ChArchiveOut& marchive) {
 // Method to allow de serialization of transient data from archives.
 void ChSystem::ArchiveIN(ChArchiveIn& marchive) {
     // version number
-    int version = marchive.VersionRead<ChSystem>();
+    /*int version =*/ marchive.VersionRead<ChSystem>();
 
     // deserialize unerlying assembly
     assembly.ArchiveIN(marchive);

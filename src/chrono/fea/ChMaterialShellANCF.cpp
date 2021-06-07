@@ -42,9 +42,6 @@ ChMaterialShellANCF::ChMaterialShellANCF(double rho,            // material dens
 void ChMaterialShellANCF::Calc_E_eps(const ChVector<>& E, const ChVector<>& nu, const ChVector<>& G) {
     double delta = 1.0 - (nu.x() * nu.x()) * E.y() / E.x() - (nu.y() * nu.y()) * E.z() / E.x() -
                    (nu.z() * nu.z()) * E.z() / E.y() - 2.0 * nu.x() * nu.y() * nu.z() * E.z() / E.x();
-    double nu_yx = nu.x() * E.y() / E.x();
-    double nu_zx = nu.y() * E.z() / E.x();
-    double nu_zy = nu.z() * E.z() / E.y();
     m_E_eps.setZero();
     m_E_eps(0, 0) = E.x() * (1.0 - (nu.z() * nu.z()) * E.z() / E.y()) / delta;
     m_E_eps(1, 1) = E.y() * (1.0 - (nu.y() * nu.y()) * E.z() / E.x()) / delta;

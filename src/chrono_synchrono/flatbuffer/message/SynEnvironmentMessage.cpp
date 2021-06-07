@@ -9,7 +9,7 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Authors: 肖言 (Yan Xiao)
+// Authors: Yan Xiao
 // =============================================================================
 //
 // Message class for Environment Agents. This class is only used to send the
@@ -48,7 +48,7 @@ void SynEnvironmentMessage::ConvertFromFlatBuffers(const SynFlatBuffers::Message
     spat_message->ConvertFromFlatBuffers(state->spat());
 }
 
-FlatBufferMessage SynEnvironmentMessage::ConvertToFlatBuffers(flatbuffers::FlatBufferBuilder& builder) {
+FlatBufferMessage SynEnvironmentMessage::ConvertToFlatBuffers(flatbuffers::FlatBufferBuilder& builder) const {
     auto map = map_message->ConvertToFlatBuffers(builder);
     auto spat = spat_message->ConvertToFlatBuffers(builder);
 

@@ -109,7 +109,7 @@ MixerTestNSC<N>::MixerTestNSC() : m_system(new ChSystemNSC()), m_step(0.02) {
 template <int N>
 void MixerTestNSC<N>::SimulateVis() {
 #ifdef CHRONO_IRRLICHT
-    irrlicht::ChIrrApp application(m_system, L"Rigid contacts", irr::core::dimension2d<irr::u32>(800, 600), false, true);
+    irrlicht::ChIrrApp application(m_system, L"Rigid contacts", irr::core::dimension2d<irr::u32>(800, 600));
     application.AddTypicalLogo();
     application.AddTypicalSky();
     application.AddTypicalLights();
@@ -138,7 +138,6 @@ CH_BM_SIMULATION_LOOP(MixerNSC064, MixerTestNSC<64>,  NUM_SKIP_STEPS, NUM_SIM_ST
 // =============================================================================
 
 int main(int argc, char* argv[]) {
-    utils::ForceBenchmarkTabularOutput(&argc, &argv);
     ::benchmark::Initialize(&argc, argv);
 
 #ifdef CHRONO_IRRLICHT

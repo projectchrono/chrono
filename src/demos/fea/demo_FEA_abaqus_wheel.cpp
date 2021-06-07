@@ -55,7 +55,7 @@ int main(int argc, char* argv[]) {
 
     // Create the Irrlicht visualization (open the Irrlicht device,
     // bind a simple user interface, etc. etc.)
-    ChIrrApp application(&my_system, L"FEA contacts", core::dimension2d<u32>(1280, 720), false, true);
+    ChIrrApp application(&my_system, L"FEA contacts", core::dimension2d<u32>(1280, 720), VerticalDir::Y, false, true);
 
     // Easy shortcuts to add camera, lights, logo and sky in Irrlicht scene:
     application.AddTypicalLogo();
@@ -63,7 +63,7 @@ int main(int argc, char* argv[]) {
     application.AddTypicalLights();
     application.AddTypicalCamera(core::vector3dfCH(ChVector<>(1, 1.4, -1.2)),
                                  core::vector3dfCH(ChVector<>(0, tire_rad, 0)));
-    // application.SetContactsDrawMode(irr::ChIrrTools::CONTACT_DISTANCES);
+    // application.SetContactsDrawMode(irr::tools::CONTACT_DISTANCES);
 
     application.AddLightWithShadow(core::vector3dfCH(ChVector<>(1.5, 5.5, -2.5)), core::vector3df(0, 0, 0), 3, 2.2, 7.2,
                                    40, 512, video::SColorf((f32)0.8, (f32)0.8, (f32)1.0));
@@ -93,7 +93,7 @@ int main(int argc, char* argv[]) {
     my_system.Add(mfloor);
 
     auto mtexture = chrono_types::make_shared<ChTexture>();
-    mtexture->SetTextureFilename(GetChronoDataFile("concrete.jpg"));
+    mtexture->SetTextureFilename(GetChronoDataFile("textures/concrete.jpg"));
     mfloor->AddAsset(mtexture);
 
     // Create a step
@@ -159,8 +159,9 @@ int main(int argc, char* argv[]) {
     std::map<std::string, std::vector<std::shared_ptr<ChNodeFEAbase>>> node_sets;
 
     try {
-        ChMeshFileLoader::FromAbaqusFile(my_mesh, GetChronoDataFile("fea/tractor_wheel_coarse.INP").c_str(), mmaterial,
-                                         node_sets, tire_center, tire_alignment);
+        ChMeshFileLoader::FromAbaqusFile(my_mesh,
+                                         GetChronoDataFile("models/tractor_wheel/tractor_wheel_coarse.INP").c_str(),
+                                         mmaterial, node_sets, tire_center, tire_alignment);
     } catch (ChException myerr) {
         GetLog() << myerr.what();
         return 0;
@@ -174,7 +175,6 @@ int main(int argc, char* argv[]) {
     mcontactsurf->AddAllNodes();
 
     // Apply initial speed and angular speed
-    double speed_x0 = 0.5;
     for (unsigned int i = 0; i < my_mesh->GetNnodes(); ++i) {
         ChVector<> node_pos = std::dynamic_pointer_cast<ChNodeFEAxyz>(my_mesh->GetNode(i))->GetPos();
         ChVector<> tang_vel = Vcross(ChVector<>(tire_w0, 0, 0), node_pos - tire_center);
@@ -196,7 +196,7 @@ int main(int argc, char* argv[]) {
     application.GetSystem()->Add(mwheel_rim);
 
     auto mobjmesh = chrono_types::make_shared<ChObjShapeFile>();
-    mobjmesh->SetFilename(GetChronoDataFile("fea/tractor_wheel_rim.obj"));
+    mobjmesh->SetFilename(GetChronoDataFile("models/tractor_wheel/tractor_wheel_rim.obj"));
     mwheel_rim->AddAsset(mobjmesh);
 
     // Connect rim and tire using constraints.

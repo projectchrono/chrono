@@ -30,7 +30,7 @@ void ChSphereShape::ArchiveOUT(ChArchiveOut& marchive) {
 
 void ChSphereShape::ArchiveIN(ChArchiveIn& marchive) {
     // version number
-    int version = marchive.VersionRead<ChSphereShape>();
+    /*int version =*/ marchive.VersionRead<ChSphereShape>();
     // deserialize parent class
     ChVisualization::ArchiveIN(marchive);
     // stream in all member data:

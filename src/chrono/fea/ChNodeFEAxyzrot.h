@@ -17,6 +17,7 @@
 
 #include "chrono/core/ChFrameMoving.h"
 #include "chrono/physics/ChBodyFrame.h"
+#include "chrono/physics/ChLoadable.h"
 #include "chrono/solver/ChVariablesBodyOwnMass.h"
 #include "chrono/fea/ChNodeFEAbase.h"
 
@@ -28,7 +29,7 @@ namespace fea {
 
 /// Class for a generic ED finite element node, with x,y,z displacement and a 3D rotation.
 /// This is the typical node that can be used for beams, etc.
-class ChApi ChNodeFEAxyzrot : public ChNodeFEAbase, public ChBodyFrame, public ChVariableTupleCarrier_1vars<6> {
+class ChApi ChNodeFEAxyzrot : public ChNodeFEAbase, public ChBodyFrame, public ChVariableTupleCarrier_1vars<6>, public ChLoadableUVW {
   public:
     ChNodeFEAxyzrot(ChFrame<> initialf = ChFrame<>());
     ChNodeFEAxyzrot(const ChNodeFEAxyzrot& other);
@@ -136,6 +137,61 @@ class ChApi ChNodeFEAxyzrot : public ChNodeFEAbase, public ChBodyFrame, public C
     virtual void VariablesQbSetSpeed(double step = 0) override;
     virtual void VariablesFbIncrementMq() override;
     virtual void VariablesQbIncrementPosition(double step) override;
+
+    //
+    // INTERFACE to ChLoadableUVW
+    //
+
+    /// Gets the number of DOFs affected by this element (position part)
+    virtual int LoadableGet_ndof_x() override { return 7; }
+
+    /// Gets the number of DOFs affected by this element (speed part)
+    virtual int LoadableGet_ndof_w() override { return 6; }
+
+    /// Gets all the DOFs packed in a single vector (position part)
+    virtual void LoadableGetStateBlock_x(int block_offset, ChState& mD) override;
+
+    /// Gets all the DOFs packed in a single vector (speed part)
+    virtual void LoadableGetStateBlock_w(int block_offset, ChStateDelta& mD) override;
+
+    /// Increment all DOFs using a delta.
+    virtual void LoadableStateIncrement(const unsigned int off_x,
+                                        ChState& x_new,
+                                        const ChState& x,
+                                        const unsigned int off_v,
+                                        const ChStateDelta& Dv) override;
+
+    /// Number of coordinates in the interpolated field, ex=3 for a
+    /// tetrahedron finite element or a cable, etc. Here is 6: xyz displ + xyz rots
+    virtual int Get_field_ncoords() override { return 6; }
+
+    /// Tell the number of DOFs blocks (ex. =1 for a body, =4 for a tetrahedron, etc.)
+    virtual int GetSubBlocks() override { return 1; }
+
+    /// Get the offset of the i-th sub-block of DOFs in global vector
+    virtual unsigned int GetSubBlockOffset(int nblock) override { return this->NodeGetOffset_w(); }
+
+    /// Get the size of the i-th sub-block of DOFs in global vector
+    virtual unsigned int GetSubBlockSize(int nblock) override { return 6; }
+
+    /// Get the pointers to the contained ChVariables, appending to the mvars vector.
+    virtual void LoadableGetVariables(std::vector<ChVariables*>& mvars) override;
+
+    /// Evaluate Q=N'*F, for Q generalized lagrangian load, where N is some type of matrix evaluated at point P(U,V,W)
+    /// assumed in absolute coordinates, and F is a load assumed in absolute coordinates. det[J] is unused.
+    virtual void ComputeNF(
+        const double U,              ///< x coordinate of application point in absolute space
+        const double V,              ///< y coordinate of application point in absolute space
+        const double W,              ///< z coordinate of application point in absolute space
+        ChVectorDynamic<>& Qi,       ///< Return result of N'*F  here, maybe with offset block_offset
+        double& detJ,                ///< Return det[J] here
+        const ChVectorDynamic<>& F,  ///< Input F vector, size is 6, it is {Force,Torque} both in absolute coords.
+        ChVectorDynamic<>* state_x,  ///< if != 0, update state (pos. part) to this, then evaluate Q
+        ChVectorDynamic<>* state_w   ///< if != 0, update state (speed part) to this, then evaluate Q
+        ) override;
+
+    /// This is not needed because not used in quadrature.
+    virtual double GetDensity() override { return 1; }
 
     //
     // SERIALIZATION

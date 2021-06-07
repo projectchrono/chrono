@@ -114,7 +114,7 @@ int main() {
     // Create the Irrlicht visualization
     // ---------------------------------
 
-    ChIrrApp application(&system, L"Tire Test Rig", irr::core::dimension2d<irr::u32>(1280, 720), false, true);
+    ChIrrApp application(&system, L"Tire Test Rig", irr::core::dimension2d<irr::u32>(1280, 720), VerticalDir::Z);
     application.AddTypicalLogo();
     application.AddTypicalSky();
     application.AddTypicalLights();
@@ -123,7 +123,7 @@ int main() {
     application.AssetBindAll();
     application.AssetUpdateAll();
 
-    auto camera = application.GetSceneManager()->getActiveCamera();
+    auto camera = application.GetActiveCamera();
     camera->setFOV(irr::core::PI / 4.5f);
 
     // Perform the simulation
@@ -134,7 +134,7 @@ int main() {
         auto x = (irr::f32)loc.x();
         auto y = (irr::f32)loc.y();
         auto z = (irr::f32)loc.z();
-        camera->setPosition(irr::core::vector3df(x + 1, y + 1.5f, z + 2));
+        camera->setPosition(irr::core::vector3df(x + 1.0f, y + 2.5f, z + 1.5f));
         camera->setTarget(irr::core::vector3df(x, y + 0.25f, z));
 
         application.BeginScene();

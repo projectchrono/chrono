@@ -434,7 +434,7 @@ void FindPenetration(const ConvexBase* shapeA,
                      real& depth,
                      real3& n,
                      real3& point) {
-    real3 zero = real3(0);
+    ////real3 zero = real3(0);
     real3 dir;
 
     for (int i = 0; i < MAX_ITERATIONS; i++) {
@@ -442,7 +442,7 @@ void FindPenetration(const ConvexBase* shapeA,
         dir = PortalDir(portal);
         MPRSupport(shapeA, shapeB, dir, envelope, portal.s4);
 
-        real delta = Dot((portal.s4.v - portal.s3.v), dir);
+        // real delta = Dot((portal.s4.v - portal.s3.v), dir);
         // std::cout<<dir<<" "<<delta<<std::endl;
         if (portalReachTolerance(portal, dir) || i == MAX_ITERATIONS - 1) {
             //         depth = -Sqrt(Vec3PointTriDist2(zero, portal.s1.v, portal.s2.v, portal.s3.v, n));

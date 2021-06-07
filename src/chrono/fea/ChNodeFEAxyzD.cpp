@@ -219,7 +219,7 @@ void ChNodeFEAxyzD::ArchiveOUT(ChArchiveOut& marchive) {
 
 void ChNodeFEAxyzD::ArchiveIN(ChArchiveIn& marchive) {
     // version number
-    int version = marchive.VersionRead<ChNodeFEAxyzD>();
+    /*int version =*/ marchive.VersionRead<ChNodeFEAxyzD>();
     // deserialize parent class
     ChNodeFEAxyz::ArchiveIN(marchive);
     // stream in all member data:

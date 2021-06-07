@@ -121,7 +121,7 @@ class ParticleGenerator {
 
             // generate some dirt in the bin
             auto cubeMap = chrono_types::make_shared<ChTexture>();
-            cubeMap->SetTextureFilename(GetChronoDataFile("concrete.jpg"));
+            cubeMap->SetTextureFilename(GetChronoDataFile("textures/concrete.jpg"));
             auto rockMap = chrono_types::make_shared<ChTexture>();
             rockMap->SetTextureFilename(GetChronoDataFile("rock.jpg"));
 
@@ -215,7 +215,6 @@ class ParticleGenerator {
 
     // output in the same order as in class list
     std::vector<double> getStatistics() {
-        int nStats = 9;
         std::vector<double> out;
         out.resize(9);
         out[0] = pRadMean;
@@ -272,7 +271,7 @@ class SoilbinWheel {
 
         // Visualization mesh
         auto tireMesh = chrono_types::make_shared<ChTriangleMeshConnected>();
-        tireMesh->LoadWavefrontMesh(GetChronoDataFile("tractor_wheel.obj"), true, true);
+        tireMesh->LoadWavefrontMesh(GetChronoDataFile("models/tractor_wheel/tractor_wheel.obj"), true, true);
         auto tireMesh_asset = chrono_types::make_shared<ChTriangleMeshShape>();
         tireMesh_asset->SetMesh(tireMesh);
         wheel->AddAsset(tireMesh_asset);
@@ -287,8 +286,8 @@ class SoilbinWheel {
         // 'knobs'. Since these decompositions are only for 1/15th of the wheel, use for() to pattern them.
         for (double mangle = 0; mangle < 360.; mangle += (360. / 15.)) {
             ChQuaternion<> myrot;
-            ChStreamInAsciiFile myknobs(GetChronoDataFile("tractor_wheel_knobs.chulls").c_str());
-            ChStreamInAsciiFile myslice(GetChronoDataFile("tractor_wheel_slice.chulls").c_str());
+            ChStreamInAsciiFile myknobs(GetChronoDataFile("models/tractor_wheel/tractor_wheel_knobs.chulls").c_str());
+            ChStreamInAsciiFile myslice(GetChronoDataFile("models/tractor_wheel/tractor_wheel_slice.chulls").c_str());
             myrot.Q_from_AngAxis(mangle * (CH_C_PI / 180.), VECT_X);
             ChMatrix33<> mm(myrot);
             wheel->GetCollisionModel()->AddConvexHullsFromFile(wheel_mat, myknobs, ChVector<>(0, 0, 0), mm);
@@ -349,7 +348,7 @@ class TestMech {
 
         // create the floor
         auto cubeMap = chrono_types::make_shared<ChTexture>();
-        cubeMap->SetTextureFilename(GetChronoDataFile("concrete.jpg"));
+        cubeMap->SetTextureFilename(GetChronoDataFile("textures/concrete.jpg"));
 
         auto floor_mat = chrono_types::make_shared<ChMaterialSurfaceNSC>();
         floor_mat->SetFriction(0.5f);
@@ -390,7 +389,7 @@ class TestMech {
         // single rotational DOF will be driven with a user-input for torque
         // *****
         auto bluMap = chrono_types::make_shared<ChTexture>();
-        bluMap->SetTextureFilename(GetChronoDataFile("blu.png"));
+        bluMap->SetTextureFilename(GetChronoDataFile("textures/blue.png"));
         ChVector<> trussCM = wheelBody->GetPos();
 
         truss = chrono_types::make_shared<ChBodyEasyBox>(0.2, 0.2, 0.4, 300.0, true, false);
@@ -675,7 +674,6 @@ class MyEventReceiver : public IEventReceiver {
         // check if user moved the sliders with mouse..
         if (event.EventType == EET_GUI_EVENT) {
             s32 id = event.GUIEvent.Caller->getID();
-            gui::IGUIEnvironment* env = mapp->GetIGUIEnvironment();
 
             switch (event.GUIEvent.EventType) {
                 case EGET_SCROLL_BAR_CHANGED:
@@ -794,19 +792,19 @@ class MyEventReceiver : public IEventReceiver {
         ChCoordsys<> wall1Csys = this->mtester->wall1->GetCoord();
         wall1Csys.rot = chrono::Q_from_AngAxis(CH_C_PI / 2.0, VECT_Y);
         wall1Csys.pos.x() += .05;
-        ChIrrTools::drawGrid(this->mapp->GetVideoDriver(), 0.1, 0.05, 24, 20, wall1Csys,
+        tools::drawGrid(this->mapp->GetVideoDriver(), 0.1, 0.05, 24, 20, wall1Csys,
                              video::SColor(255, 80, 130, 130), true);
 
         // wall 3
         ChCoordsys<> wall3Csys = this->mtester->wall3->GetCoord();
         wall3Csys.pos.z() += .05;
-        ChIrrTools::drawGrid(this->mapp->GetVideoDriver(), 0.1, 0.05, 10, 20, wall3Csys,
+        tools::drawGrid(this->mapp->GetVideoDriver(), 0.1, 0.05, 10, 20, wall3Csys,
                              video::SColor(255, 80, 130, 130), true);
 
         // wall 4
         ChCoordsys<> wall4Csys = this->mtester->wall4->GetCoord();
         wall4Csys.pos.z() -= .05;
-        ChIrrTools::drawGrid(this->mapp->GetVideoDriver(), 0.1, 0.05, 10, 20, wall4Csys,
+        tools::drawGrid(this->mapp->GetVideoDriver(), 0.1, 0.05, 10, 20, wall4Csys,
                              video::SColor(255, 80, 130, 130), true);
     }
 
@@ -888,10 +886,12 @@ class MyEventReceiver : public IEventReceiver {
     gui::IGUIStaticText* text_createParticles;
     gui::IGUICheckBox* checkbox_wheelCollision;  // id = 2112
     gui::IGUIStaticText* text_wheelCollision;
+    /*
     gui::IGUICheckBox* checkbox_particlesVisible;  // id = 2114
     gui::IGUIStaticText* text_particlesVisible;
     gui::IGUICheckBox* checkbox_wheelVisible;  // id = 2115
     gui::IGUIStaticText* text_wheelVisible;
+    */
 
     // scroll bars, ids are: 1xxx
     IGUIScrollBar* scrollbar_pSize;  // particle size, id = 1101
@@ -935,12 +935,11 @@ int main(int argc, char* argv[]) {
 
     // Create the Irrlicht visualization (open the Irrlicht device,
     // bind a simple user interface, etc. etc.)
-    ChIrrApp application(&mphysicalSystem, L"Soil bin demo", core::dimension2d<u32>(1024, 768), false);
-    ChIrrWizard::add_typical_Logo(application.GetDevice());
-    ChIrrWizard::add_typical_Sky(application.GetDevice());
-    ChIrrWizard::add_typical_Lights(application.GetDevice(), irr::core::vector3df(20., 30., 25.),
-                                    irr::core::vector3df(25., 25., -25.), 65.0, 75.);
-    ChIrrWizard::add_typical_Camera(application.GetDevice(), core::vector3df(3.5f, 2.5f, -2.4f));
+    ChIrrApp application(&mphysicalSystem, L"Soil bin demo", core::dimension2d<u32>(1024, 768));
+    application.AddTypicalLogo();
+    application.AddTypicalSky();
+    application.AddTypicalLights(core::vector3df(20., 30., 25.), core::vector3df(25., 25., -25.), 65.0, 75.);
+    application.AddTypicalCamera(core::vector3df(3.5f, 2.5f, -2.4f));
 
     // ******* SOIL BIN WHEEL
     // Create the wheel

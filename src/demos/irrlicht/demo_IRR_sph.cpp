@@ -62,7 +62,7 @@ void create_some_falling_items(ChSystemNSC& system) {
 
     // Create the five walls of the rectangular container.
     auto texture = chrono_types::make_shared<ChTexture>();
-    texture->SetTextureFilename(GetChronoDataFile("blu.png"));
+    texture->SetTextureFilename(GetChronoDataFile("textures/blue.png"));
 
     auto wall_mat = chrono_types::make_shared<ChMaterialSurfaceNSC>();
     wall_mat->SetFriction(0.0f);
@@ -116,7 +116,7 @@ void create_some_falling_items(ChSystemNSC& system) {
     ball_mat->SetFriction(0.0f);
 
     auto ball_texture = chrono_types::make_shared<ChTexture>();
-    ball_texture->SetTextureFilename(GetChronoDataFile("bluwhite.png"));
+    ball_texture->SetTextureFilename(GetChronoDataFile("textures/bluewhite.png"));
 
     for (int ib = 0; ib < 12; ib++) {
         auto ball = chrono_types::make_shared<ChBodyEasySphere>(0.02 + ChRandom() * 0.02, 100, true, true, ball_mat);
@@ -134,13 +134,11 @@ int main(int argc, char* argv[]) {
 
     // Create the Irrlicht visualization (open the Irrlicht device,
     // bind a simple user interface, etc. etc.)
-    ChIrrApp application(&mphysicalSystem, L"SPH fluid", core::dimension2d<u32>(800, 600), false);
-
-    // Easy shortcuts to add camera, lights, logo and sky in Irrlicht scene:
-    ChIrrWizard::add_typical_Logo(application.GetDevice());
-    ChIrrWizard::add_typical_Sky(application.GetDevice());
-    ChIrrWizard::add_typical_Lights(application.GetDevice());
-    ChIrrWizard::add_typical_Camera(application.GetDevice(), core::vector3df(0, 1, -1));
+    ChIrrApp application(&mphysicalSystem, L"SPH fluid", core::dimension2d<u32>(800, 600));
+    application.AddTypicalLogo();
+    application.AddTypicalSky();
+    application.AddTypicalLights();
+    application.AddTypicalCamera(core::vector3df(0, 1, -1));
 
     // Create all the rigid bodies.
     collision::ChCollisionModel::SetDefaultSuggestedEnvelope(0.003);
@@ -183,7 +181,7 @@ int main(int argc, char* argv[]) {
                     auto mnode = std::dynamic_pointer_cast<ChNodeSPH>(myfluid->GetNode(ip));
 
                     ChVector<> mv = mnode->GetPos();
-                    float rad = (float)mnode->GetKernelRadius();
+                    ////float rad = (float)mnode->GetKernelRadius();
                     core::vector3df mpos((irr::f32)mv.x(), (irr::f32)mv.y(), (irr::f32)mv.z());
                     core::position2d<s32> spos =
                         application.GetSceneManager()->getSceneCollisionManager()->getScreenCoordinatesFrom3DPosition(
@@ -201,25 +199,25 @@ int main(int argc, char* argv[]) {
 
                     /*
                     double strain_scale =1;
-                    ChIrrTools::drawSegment(application.GetVideoDriver(), mnode->GetPos(),
+                    tools::drawSegment(application.GetVideoDriver(), mnode->GetPos(),
                     mnode->GetPos()+(VECT_X*mnode->p_strain.XX()* strain_scale), video::SColor(255,255,0,0),false);
-                    ChIrrTools::drawSegment(application.GetVideoDriver(), mnode->GetPos(),
+                    tools::drawSegment(application.GetVideoDriver(), mnode->GetPos(),
                     mnode->GetPos()+(VECT_Y*mnode->p_strain.YY()* strain_scale), video::SColor(255,0,255,0),false);
-                    ChIrrTools::drawSegment(application.GetVideoDriver(), mnode->GetPos(),
+                    tools::drawSegment(application.GetVideoDriver(), mnode->GetPos(),
                     mnode->GetPos()+(VECT_Z*mnode->p_strain.ZZ()* strain_scale), video::SColor(255,0,0,255),false);
                     */
 
                     /*
                     double stress_scale =0.008;
-                    ChIrrTools::drawSegment(application.GetVideoDriver(), mnode->GetPos(),
+                    tools::drawSegment(application.GetVideoDriver(), mnode->GetPos(),
                     mnode->GetPos()+(VECT_X*mnode->e_stress.XX()* stress_scale), video::SColor(100,255,0,0),false);
-                    ChIrrTools::drawSegment(application.GetVideoDriver(), mnode->GetPos(),
+                    tools::drawSegment(application.GetVideoDriver(), mnode->GetPos(),
                     mnode->GetPos()+(VECT_Y*mnode->e_stress.YY()* stress_scale), video::SColor(100,0,255,0),false);
-                    ChIrrTools::drawSegment(application.GetVideoDriver(), mnode->GetPos(),
+                    tools::drawSegment(application.GetVideoDriver(), mnode->GetPos(),
                     mnode->GetPos()+(VECT_Z*mnode->e_stress.ZZ()* stress_scale), video::SColor(100,0,0,255),false);
                     */
 
-                    // ChIrrTools::drawSegment(application.GetVideoDriver(), mnode->GetPos(),
+                    // tools::drawSegment(application.GetVideoDriver(), mnode->GetPos(),
                     // mnode->GetPos()+(mnode->UserForce * 0.1), video::SColor(100,0,0,0),false);
                 }
             }

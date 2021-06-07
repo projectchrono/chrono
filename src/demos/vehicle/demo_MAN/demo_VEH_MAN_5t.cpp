@@ -58,6 +58,9 @@ VisualizationType tire_vis_type = VisualizationType::MESH;
 // Collision type for chassis (PRIMITIVES, MESH, or NONE)
 CollisionType chassis_collision_type = CollisionType::NONE;
 
+// Type of powertrain (SIMPLE or SIMPLE_CVT)
+PowertrainModelType powertrain_type = PowertrainModelType::SIMPLE_CVT;
+
 // Type of tire model (TMEASY)
 TireModelType tire_model = TireModelType::TMEASY;
 
@@ -109,9 +112,9 @@ int main(int argc, char* argv[]) {
     my_truck.SetChassisCollisionType(chassis_collision_type);
     my_truck.SetChassisFixed(false);
     my_truck.SetInitPosition(ChCoordsys<>(initLoc, initRot));
+    my_truck.SetPowertrainType(powertrain_type);
     my_truck.SetTireType(tire_model);
     my_truck.SetTireStepSize(tire_step_size);
-    my_truck.SetShaftBasedDrivetrain(false);
     my_truck.Initialize();
 
     my_truck.SetChassisVisualizationType(chassis_vis_type);
@@ -137,11 +140,11 @@ int main(int argc, char* argv[]) {
             break;
         case RigidTerrain::PatchType::HEIGHT_MAP:
             patch = terrain.AddPatch(patch_mat, CSYSNORM, vehicle::GetDataFile("terrain/height_maps/test64.bmp"),
-                                     "test64", 128, 128, 0, 4);
+                                     128, 128, 0, 4);
             patch->SetTexture(vehicle::GetDataFile("terrain/textures/grass.jpg"), 16, 16);
             break;
         case RigidTerrain::PatchType::MESH:
-            patch = terrain.AddPatch(patch_mat, CSYSNORM, vehicle::GetDataFile("terrain/meshes/test.obj"), "test_mesh");
+            patch = terrain.AddPatch(patch_mat, CSYSNORM, vehicle::GetDataFile("terrain/meshes/test.obj"));
             patch->SetTexture(vehicle::GetDataFile("terrain/textures/grass.jpg"), 100, 100);
             break;
     }
@@ -224,7 +227,7 @@ int main(int argc, char* argv[]) {
 
     if (contact_vis) {
         app.SetSymbolscale(1e-4);
-        app.SetContactsDrawMode(ChIrrTools::eCh_ContactsDrawMode::CONTACT_FORCES);
+        app.SetContactsDrawMode(IrrContactsDrawMode::CONTACT_FORCES);
     }
 
     ChRealtimeStepTimer realtime_timer;

@@ -114,16 +114,13 @@ int main(int argc, char* argv[]) {
 
     double ball_radius = 0.5;
     MyObstacle obstacle;
-    double obst_radius = 2.0;
     ChVector<> obst_center(2.9, 0, 2.9);
 
     // Create the system and the various contact materials
-    ChSystem* sys;
+    ChSystem* sys = nullptr;
     std::shared_ptr<ChMaterialSurface> ground_mat;
     std::shared_ptr<ChMaterialSurface> ball_mat;
     std::shared_ptr<ChMaterialSurface> obst_mat;
-    double time_step;
-    int frame_skip;
 
     switch (contact_method) {
         case ChContactMethod::NSC: {
@@ -143,9 +140,6 @@ int main(int argc, char* argv[]) {
             ball_mat = b_mat;
             obst_mat = o_mat;
 
-            time_step = 1e-3;
-            frame_skip = 10;
-
             break;
         }
         case ChContactMethod::SMC: {
@@ -164,9 +158,6 @@ int main(int argc, char* argv[]) {
             ground_mat = g_mat;
             ball_mat = b_mat;
             obst_mat = o_mat;
-
-            time_step = 1e-4;
-            frame_skip = 100;
 
             break;
         }
@@ -189,7 +180,7 @@ int main(int argc, char* argv[]) {
     utils::AddBoxGeometry(ground.get(), ground_mat, ChVector<>(5.1, 1, 0.1), ChVector<>(0, 0, +5));
     ground->GetCollisionModel()->BuildModel();
 
-    ground->AddAsset(chrono_types::make_shared<ChTexture>(GetChronoDataFile("blu.png")));
+    ground->AddAsset(chrono_types::make_shared<ChTexture>(GetChronoDataFile("textures/blue.png")));
     ground->AddAsset(obstacle.GetVisualization());
 
     // Create the falling ball
@@ -205,7 +196,7 @@ int main(int argc, char* argv[]) {
     utils::AddSphereGeometry(ball.get(), ball_mat, ball_radius);
     ball->GetCollisionModel()->BuildModel();
 
-    ball->AddAsset(chrono_types::make_shared<ChTexture>(GetChronoDataFile("bluwhite.png")));
+    ball->AddAsset(chrono_types::make_shared<ChTexture>(GetChronoDataFile("textures/bluewhite.png")));
 
     // Create a custom collision detection callback object and register it with the system
     auto my_collision =
@@ -213,7 +204,7 @@ int main(int argc, char* argv[]) {
     sys->RegisterCustomCollisionCallback(my_collision);
 
     // Create the Irrlicht visualization
-    ChIrrApp application(sys, L"Custom contact demo", irr::core::dimension2d<irr::u32>(800, 600), false, true);
+    ChIrrApp application(sys, L"Custom contact demo", irr::core::dimension2d<irr::u32>(800, 600));
     application.AddTypicalLogo();
     application.AddTypicalSky();
     application.AddTypicalLights();

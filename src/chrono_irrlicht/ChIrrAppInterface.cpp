@@ -123,17 +123,18 @@ bool ChIrrAppEventReceiver::OnEvent(const irr::SEvent& event) {
                 }
                 return true;
             case irr::KEY_F12:
-                #ifdef CHRONO_POSTPROCESS
-                 if (app->povray_save == false) {
+#ifdef CHRONO_POSTPROCESS
+                if (app->povray_save == false) {
                     GetLog() << "Start saving POVray postprocessing scripts...\n";
                     app->SetPOVraySave(true);
-                 } else {
+                } else {
                     app->SetPOVraySave(false);
                     GetLog() << "Stop saving POVray postprocessing scripts.\n";
-                 }
-                #else
-                 GetLog() << "Saving POVray files not supported. Rebuild the solution with ENABLE_MODULE_POSTPROCESSING in CMake. \n";
-                #endif
+                }
+#else
+                GetLog() << "Saving POVray files not supported. Rebuild the solution with ENABLE_MODULE_POSTPROCESSING "
+                            "in CMake. \n";
+#endif
                 return true;
             case irr::KEY_F4:
                 if (app->camera_auto_rotate_speed <= 0)
@@ -157,8 +158,6 @@ bool ChIrrAppEventReceiver::OnEvent(const irr::SEvent& event) {
                 break;
         }
     }
-
-    irr::core::dimension2d<irr::u32> ssize = app->GetVideoDriver()->getScreenSize();
 
     // Check if user moved the sliders with mouse.
     if (event.EventType == irr::EET_GUI_EVENT) {
@@ -299,6 +298,7 @@ bool ChIrrAppEventReceiver::OnEvent(const irr::SEvent& event) {
 ChIrrAppInterface::ChIrrAppInterface(ChSystem* psystem,
                                      const std::wstring& title,
                                      const irr::core::dimension2d<irr::u32>& dimens,
+                                     VerticalDir vert,
                                      bool do_fullscreen,
                                      bool do_shadows,
                                      bool do_antialias,
@@ -314,13 +314,13 @@ ChIrrAppInterface::ChIrrAppInterface(ChSystem* psystem,
       videoframe_each(1),
       symbolscale(1.0),
       camera_auto_rotate_speed(0.0) {
-    #ifdef CHRONO_POSTPROCESS
-    pov_exporter = 0;
+    y_up = vert == (VerticalDir::Y);
+
+#ifdef CHRONO_POSTPROCESS
     povray_save = false;
     povray_each = 1;
     povray_num = 0;
-    #endif
-    
+#endif
 
     irr::SIrrlichtCreationParameters params = irr::SIrrlichtCreationParameters();
     params.AntiAlias = do_antialias;
@@ -332,22 +332,23 @@ ChIrrAppInterface::ChIrrAppInterface(ChSystem* psystem,
     params.LoggingLevel = log_level;
 
     device = irr::createDeviceEx(params);
-
-    if (device == 0) {
+    if (!device) {
         GetLog() << "Cannot use default video driver - fall back to OpenGL \n";
         params.DriverType = irr::video::EDT_OPENGL;
-
         device = irr::createDeviceEx(params);
-
         if (!device)
             return;
     }
 
+    device->grab();
+
     // Xeffects for shadow maps!
     if (do_antialias)
-        effect = new EffectHandler(device, device->getVideoDriver()->getScreenSize() * 2, true, false, true);
+        effect = std::unique_ptr<EffectHandler>(
+            new EffectHandler(device, device->getVideoDriver()->getScreenSize() * 2, true, false, true));
     else
-        effect = new EffectHandler(device, device->getVideoDriver()->getScreenSize(), true, false, true);
+        effect = std::unique_ptr<EffectHandler>(
+            new EffectHandler(device, device->getVideoDriver()->getScreenSize(), true, false, true));
     // note: Irrlicht antialiasing does not work with Xeffects, but we could fake AA in Xeffects
     // by doubling the size of its buffer:  EffectHandler(device, device->getVideoDriver()->getScreenSize()*2
     effect->setAmbientColor(irr::video::SColor(255, 122, 122, 122));
@@ -545,13 +546,6 @@ ChIrrAppInterface::ChIrrAppInterface(ChSystem* psystem,
 // (including the Irrlicht scene nodes)
 ChIrrAppInterface::~ChIrrAppInterface() {
     device->drop();
-
-    #ifdef CHRONO_POSTPROCESS
-    if (pov_exporter)
-        delete pov_exporter;
-    #endif
-
-    // delete (receiver);
 }
 
 // Set integration time step.
@@ -562,33 +556,32 @@ void ChIrrAppInterface::SetTimestep(double val) {
     gad_timestep->setText(irr::core::stringw(message).c_str());
 }
 
-
 /// If set to true, each frame of the animation will be saved on the disk
 /// as a sequence of scripts to be rendered via POVray. Only if solution build with ENABLE_MODULE_POSTPROCESS.
 
 #ifdef CHRONO_POSTPROCESS
-void ChIrrAppInterface::SetPOVraySave(bool val) { 
+void ChIrrAppInterface::SetPOVraySave(bool val) {
     povray_save = val;
 
-    if (!povray_save && pov_exporter) {
-        delete pov_exporter;
+    if (!povray_save) {
         return;
     }
+
     if (povray_save && !pov_exporter) {
-        pov_exporter = new postprocess::ChPovRay(this->system);
+        pov_exporter = std::unique_ptr<postprocess::ChPovRay>(new postprocess::ChPovRay(system));
         pov_exporter->SetUseSingleAssetFile(false);
         // Important: set the path to the template:
         pov_exporter->SetTemplateFile(GetChronoDataFile("_template_POV.pov"));
 
-        // Set the path where it will save all .pov, .ini, .asset and .dat files, 
+        // Set the path where it will save all .pov, .ini, .asset and .dat files,
         // a directory will be created if not existing
         pov_exporter->SetBasePath("povray_project");
 
         pov_exporter->AddAll();
 
-        pov_exporter->SetCamera(ChVectorIrr(this->GetSceneManager()->getActiveCamera()->getAbsolutePosition()),
-                                ChVectorIrr(this->GetSceneManager()->getActiveCamera()->getTarget()),
-                                this->GetSceneManager()->getActiveCamera()->getFOV() * this->GetSceneManager()->getActiveCamera()->getAspectRatio() * chrono::CH_C_RAD_TO_DEG);
+        pov_exporter->SetCamera(
+            ChVectorIrr(GetActiveCamera()->getAbsolutePosition()), ChVectorIrr(GetActiveCamera()->getTarget()),
+            GetActiveCamera()->getFOV() * GetActiveCamera()->getAspectRatio() * chrono::CH_C_RAD_TO_DEG);
 
         pov_exporter->ExportScript();
 
@@ -622,11 +615,11 @@ void ChIrrAppInterface::BeginScene(bool backBuffer, bool zBuffer, irr::video::SC
     GetVideoDriver()->beginScene(backBuffer, zBuffer, color);
 
     if (camera_auto_rotate_speed) {
-        irr::core::vector3df pos = GetSceneManager()->getActiveCamera()->getPosition();
-        irr::core::vector3df target = GetSceneManager()->getActiveCamera()->getTarget();
+        irr::core::vector3df pos = GetActiveCamera()->getPosition();
+        irr::core::vector3df target = GetActiveCamera()->getTarget();
         pos.rotateXZBy(camera_auto_rotate_speed, target);
-        GetSceneManager()->getActiveCamera()->setPosition(pos);
-        GetSceneManager()->getActiveCamera()->setTarget(target);
+        GetActiveCamera()->setPosition(pos);
+        GetActiveCamera()->setTarget(target);
     }
 }
 
@@ -635,7 +628,7 @@ void ChIrrAppInterface::EndScene() {
     utils::ChProfileManager::Stop_Profile();
 
     if (show_profiler)
-        ChIrrTools::drawProfiler(this->GetDevice());
+        tools::drawProfiler(this->GetDevice());
 
     GetVideoDriver()->endScene();
 }
@@ -668,20 +661,20 @@ void ChIrrAppInterface::DoStep() {
         videoframe_num++;
     }
 
-    #ifdef CHRONO_POSTPROCESS
-        if (povray_save && pov_exporter) {
-            if (povray_num % povray_each == 0) {
-                pov_exporter->ExportData();
-            }
-            povray_num++;
+#ifdef CHRONO_POSTPROCESS
+    if (povray_save && pov_exporter) {
+        if (povray_num % povray_each == 0) {
+            pov_exporter->ExportData();
         }
-    #endif
+        povray_num++;
+    }
+#endif
 
     try {
         system->DoStepDynamics(timestep);
         if (try_realtime)
             m_realtime_timer.Spin(timestep);
-    } catch (ChException my_exception) {
+    } catch (const ChException &my_exception) {
         GetLog() << my_exception.what() << "\n";
     }
 }
@@ -787,33 +780,32 @@ void ChIrrAppInterface::DrawAll() {
         GetSceneManager()->drawAll();  // DRAW 3D SCENE the usual way, if no shadow maps
 
     int dmode = gad_drawcontacts->getSelected();
-    ChIrrTools::drawAllContactPoints(system->GetContactContainer(), GetVideoDriver(), symbolscale,
-                                     (ChIrrTools::eCh_ContactsDrawMode)dmode);
+    tools::drawAllContactPoints(system->GetContactContainer(), GetVideoDriver(), symbolscale,
+                                (IrrContactsDrawMode)dmode);
 
     int lmode = gad_labelcontacts->getSelected();
-    ChIrrTools::drawAllContactLabels(system->GetContactContainer(), GetDevice(),
-                                     (ChIrrTools::eCh_ContactsLabelMode)lmode);
+    tools::drawAllContactLabels(system->GetContactContainer(), GetDevice(), (IrrContactsLabelMode)lmode);
 
     int dmodeli = gad_drawlinks->getSelected();
-    ChIrrTools::drawAllLinks(*system, GetVideoDriver(), symbolscale, (ChIrrTools::eCh_LinkDrawMode)dmodeli);
+    tools::drawAllLinks(*system, GetVideoDriver(), symbolscale, (IrrLinkDrawMode)dmodeli);
 
     int lmodeli = gad_labellinks->getSelected();
-    ChIrrTools::drawAllLinkLabels(*system, GetDevice(), (ChIrrTools::eCh_LinkLabelMode)lmodeli);
+    tools::drawAllLinkLabels(*system, GetDevice(), (IrrLinkLabelMode)lmodeli);
 
     if (gad_plot_aabb->isChecked())
-        ChIrrTools::drawAllBoundingBoxes(*system, GetVideoDriver());
+        tools::drawAllBoundingBoxes(*system, GetVideoDriver());
 
     if (gad_plot_cogs->isChecked())
-        ChIrrTools::drawAllCOGs(*system, GetVideoDriver(), symbolscale);
+        tools::drawAllCOGs(*system, GetVideoDriver(), symbolscale);
 
     if (gad_plot_linkframes->isChecked())
-        ChIrrTools::drawAllLinkframes(*system, GetVideoDriver(), symbolscale);
+        tools::drawAllLinkframes(*system, GetVideoDriver(), symbolscale);
 
     if (gad_plot_collisionshapes->isChecked())
-        ChIrrTools::drawCollisionShapes(*system, GetDevice());
+        tools::drawCollisionShapes(*system, GetDevice());
 
     if (gad_plot_convergence->isChecked())
-        ChIrrTools::drawHUDviolation(GetVideoDriver(), GetDevice(), *system, 240, 370, 300, 100, 100.0);
+        tools::drawHUDviolation(GetVideoDriver(), GetDevice(), *system, 240, 370, 300, 100, 100.0);
 
     gad_tabbed->setVisible(show_infos);
     gad_treeview->setVisible(show_explorer);
@@ -927,9 +919,59 @@ void ChIrrAppInterface::DumpSystemMatrices() {
         // Save M mass matrix, K stiffness matrix, R damping matrix, Cq jacobians:
         GetSystem()->DumpSystemMatrices(true, true, true, true, "dump_");
 
-    } catch (ChException myexc) {
+    } catch (const ChException &myexc) {
         GetLog() << myexc.what();
     }
+}
+
+// -----------------------------------------------------------------------------
+
+void ChIrrAppInterface::AddTypicalLogo(const std::string& mlogofilename) {
+    tools::add_typical_Logo(GetDevice(), mlogofilename);
+}
+
+void ChIrrAppInterface::AddTypicalCamera(irr::core::vector3df pos, irr::core::vector3df targ) {
+    tools::add_typical_Camera(GetDevice(), pos, targ, y_up);
+}
+
+void ChIrrAppInterface::AddTypicalLights(irr::core::vector3df pos1,
+                                         irr::core::vector3df pos2,
+                                         double rad1,
+                                         double rad2,
+                                         irr::video::SColorf col1,
+                                         irr::video::SColorf col2) {
+    tools::add_typical_Lights(GetDevice(), pos1, pos2, rad1, rad2, col1, col2);
+}
+
+void ChIrrAppInterface::AddTypicalSky(const std::string& mtexturedir) {
+    tools::add_typical_Sky(GetDevice(), y_up, mtexturedir);
+}
+
+irr::scene::ILightSceneNode* ChIrrAppInterface::AddLight(irr::core::vector3df pos,
+                                                         double radius,
+                                                         irr::video::SColorf color) {
+    irr::scene::ILightSceneNode* mlight = device->getSceneManager()->addLightSceneNode(0, pos, color, (irr::f32)radius);
+    return mlight;
+}
+
+irr::scene::ILightSceneNode* ChIrrAppInterface::AddLightWithShadow(irr::core::vector3df pos,
+                                                                   irr::core::vector3df aim,
+                                                                   double radius,
+                                                                   double mnear,
+                                                                   double mfar,
+                                                                   double angle,
+                                                                   irr::u32 resolution,
+                                                                   irr::video::SColorf color,
+                                                                   bool directional,
+                                                                   bool clipborder) {
+    irr::scene::ILightSceneNode* mlight = device->getSceneManager()->addLightSceneNode(0, pos, color, (irr::f32)radius);
+    effect->addShadowLight(SShadowLight(resolution, pos, aim, color, (irr::f32)mnear, (irr::f32)mfar,
+                                        ((irr::f32)angle * irr::core::DEGTORAD), directional));
+    if (clipborder == false) {
+        effect->getShadowLight(effect->getShadowLightCount() - 1).setClipBorder(clipborder);
+    }
+    use_effects = true;
+    return mlight;
 }
 
 }  // end namespace irrlicht

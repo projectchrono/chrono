@@ -61,7 +61,7 @@ void AddFallingItems(ChSystemSMC& sys) {
                 body->AddAsset(sphere);
 
                 auto texture = chrono_types::make_shared<ChTexture>();
-                texture->SetTextureFilename(GetChronoDataFile("bluwhite.png"));
+                texture->SetTextureFilename(GetChronoDataFile("textures/bluewhite.png"));
                 body->AddAsset(texture);
 
                 sys.AddBody(body);
@@ -86,7 +86,7 @@ void AddFallingItems(ChSystemSMC& sys) {
                 body->AddAsset(box);
 
                 auto texture = chrono_types::make_shared<ChTexture>();
-                texture->SetTextureFilename(GetChronoDataFile("pinkwhite.png"));
+                texture->SetTextureFilename(GetChronoDataFile("textures/pinkwhite.png"));
                 body->AddAsset(texture);
 
                 sys.AddBody(body);
@@ -133,7 +133,7 @@ std::shared_ptr<ChBody> AddContainer(ChSystemSMC& sys) {
     fixedBody->GetCollisionModel()->BuildModel();
 
     auto texture = chrono_types::make_shared<ChTexture>();
-    texture->SetTextureFilename(GetChronoDataFile("concrete.jpg"));
+    texture->SetTextureFilename(GetChronoDataFile("textures/concrete.jpg"));
     fixedBody->AddAsset(texture);
 
     sys.AddBody(fixedBody);
@@ -186,7 +186,7 @@ int main(int argc, char* argv[]) {
     ChSystemSMC sys;
 
     // Create the Irrlicht visualization
-    ChIrrApp application(&sys, L"SMC collision demo", core::dimension2d<u32>(800, 600), false, true);
+    ChIrrApp application(&sys, L"SMC collision demo", core::dimension2d<u32>(800, 600));
 
     // Add camera, lights, logo and sky in Irrlicht scene
     application.AddTypicalLogo();
@@ -203,7 +203,6 @@ int main(int argc, char* argv[]) {
     application.AssetUpdateAll();
 
     // Simulation loop
-    double time = 0;
     double out_time = 0;
 
     while (application.GetDevice()->run()) {

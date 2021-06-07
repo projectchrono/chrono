@@ -45,7 +45,7 @@ def AddFallingItems(sys):
             body.AddAsset(sphere)
 
             texture = chrono.ChTexture()
-            texture.SetTextureFilename(chrono.GetChronoDataFile("bluwhite.png"))
+            texture.SetTextureFilename(chrono.GetChronoDataFile("textures/bluewhite.png"))
             body.AddAsset(texture)
 
             sys.AddBody(body)
@@ -68,7 +68,7 @@ def AddFallingItems(sys):
             body.AddAsset(box)
 
             texture = chrono.ChTexture()
-            texture.SetTextureFilename(chrono.GetChronoDataFile("pinkwhite.png"))
+            texture.SetTextureFilename(chrono.GetChronoDataFile("textures/pinkwhite.png"))
             body.AddAsset(texture)
 
             sys.AddBody(body)
@@ -103,7 +103,7 @@ def AddContainer(sys):
     fixedBody.GetCollisionModel().BuildModel()
 
     texture = chrono.ChTexture()
-    texture.SetTextureFilename(chrono.GetChronoDataFile("concrete.jpg"))
+    texture.SetTextureFilename(chrono.GetChronoDataFile("textures/concrete.jpg"))
     fixedBody.AddAsset(texture)
 
     sys.AddBody(fixedBody)

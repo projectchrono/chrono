@@ -153,11 +153,11 @@ system.AddBody(box2)
 # Create the visualization window
 # -------------------------------
 
-application = chronoirr.ChIrrApp(system, "NSC callbacks", chronoirr.dimension2du(800, 600), False, True)
-chronoirr.ChIrrWizard.add_typical_Logo(application.GetDevice())
-chronoirr.ChIrrWizard.add_typical_Sky(application.GetDevice())
-chronoirr.ChIrrWizard.add_typical_Lights(application.GetDevice())
-chronoirr.ChIrrWizard.add_typical_Camera(application.GetDevice(), chronoirr.vector3df(4, 4, -6))
+application = chronoirr.ChIrrApp(system, "NSC callbacks", chronoirr.dimension2du(800, 600))
+application.AddTypicalLogo(chrono.GetChronoDataFile('logo_pychrono_alpha.png'))
+application.AddTypicalSky()
+application.AddTypicalLights()
+application.AddTypicalCamera(chronoirr.vector3df(4, 4, -6))
 
 application.AssetBindAll()
 application.AssetUpdateAll()
@@ -176,7 +176,7 @@ application.SetTimestep(1e-3)
 while (application.GetDevice().run()) :
     application.BeginScene(True, True, chronoirr.SColor(255, 140, 161, 192))
     application.DrawAll()
-    chronoirr.ChIrrTools.drawGrid(application.GetVideoDriver(), 0.5, 0.5, 12, 12,
+    chronoirr.drawGrid(application.GetVideoDriver(), 0.5, 0.5, 12, 12,
                                    chrono.ChCoordsysD(chrono.ChVectorD(0, 0, 0), chrono.Q_from_AngX(chrono.CH_C_PI_2)))
     application.DoStep()
     application.EndScene()

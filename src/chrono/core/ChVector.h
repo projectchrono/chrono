@@ -422,11 +422,11 @@ void XdirToDxDyDz(const ChVector<RealA>& Vxdir,
     // If close to singularity, change reference vector
     if (zlen < 0.0001) {
         ChVector<> mVsingular;
-        if (fabs(Vsingular.z()) < 0.9)
+        if (std::abs(Vsingular.z()) < 0.9)
             mVsingular = ChVector<RealA>(0, 0, 1);
-        if (fabs(Vsingular.y()) < 0.9)
+        if (std::abs(Vsingular.y()) < 0.9)
             mVsingular = ChVector<RealA>(0, 1, 0);
-        if (fabs(Vsingular.x()) < 0.9)
+        if (std::abs(Vsingular.x()) < 0.9)
             mVsingular = ChVector<RealA>(1, 0, 0);
         Vz = Vcross(Vx, mVsingular);
         zlen = Vlength(Vz);  // now should be nonzero length.
@@ -762,8 +762,8 @@ inline bool ChVector<Real>::Equals(const ChVector<Real>& other) const {
 
 template <class Real>
 inline bool ChVector<Real>::Equals(const ChVector<Real>& other, Real tol) const {
-    return (fabs(other.m_data[0] - m_data[0]) < tol) && (fabs(other.m_data[1] - m_data[1]) < tol) &&
-           (fabs(other.m_data[2] - m_data[2]) < tol);
+    return (std::abs(other.m_data[0] - m_data[0]) < tol) && (std::abs(other.m_data[1] - m_data[1]) < tol) &&
+           (std::abs(other.m_data[2] - m_data[2]) < tol);
 }
 
 template <class Real>
@@ -825,7 +825,7 @@ inline Real ChVector<Real>::Length2() const {
 
 template <class Real>
 inline Real ChVector<Real>::LengthInf() const {
-    return std::max(std::max(fabs(m_data[0]), fabs(m_data[1])), fabs(m_data[2]));
+    return std::max(std::max(std::abs(m_data[0]), std::abs(m_data[1])), std::abs(m_data[2]));
 }
 
 template <class Real>
@@ -872,11 +872,11 @@ inline void ChVector<Real>::DirToDxDyDz(ChVector<Real>& Vx,
     if (zlen < 0.0001) {
         ChVector<Real> mVsingular;
 
-        if (fabs(Vsingular.m_data[0]) < 0.9)
+        if (std::abs(Vsingular.m_data[0]) < 0.9)
             mVsingular = ChVector<Real>(1, 0, 0);
-        else if (fabs(Vsingular.m_data[1]) < 0.9)
+        else if (std::abs(Vsingular.m_data[1]) < 0.9)
             mVsingular = ChVector<Real>(0, 1, 0);
-        else if (fabs(Vsingular.m_data[2]) < 0.9)
+        else if (std::abs(Vsingular.m_data[2]) < 0.9)
             mVsingular = ChVector<Real>(0, 0, 1);
 
         Vz.Cross(Vx, mVsingular);
@@ -893,12 +893,12 @@ inline void ChVector<Real>::DirToDxDyDz(ChVector<Real>& Vx,
 template <class Real>
 inline int ChVector<Real>::GetMaxComponent() const {
     int idx = 0;
-    Real max = fabs(m_data[0]);
-    if (fabs(m_data[1]) > max) {
+    Real max = std::abs(m_data[0]);
+    if (std::abs(m_data[1]) > max) {
         idx = 1;
         max = m_data[1];
     }
-    if (fabs(m_data[2]) > max) {
+    if (std::abs(m_data[2]) > max) {
         idx = 2;
         max = m_data[2];
     }
@@ -936,7 +936,7 @@ inline void ChVector<Real>::ArchiveOUT(ChArchiveOut& marchive) {
 template <class Real>
 inline void ChVector<Real>::ArchiveIN(ChArchiveIn& marchive) {
     // suggested: use versioning
-    int version = marchive.VersionRead<ChVector<double>>();  // must use specialized template (any)
+    /*int version =*/ marchive.VersionRead<ChVector<double>>();  // must use specialized template (any)
     // stream in all member m_data
     marchive >> CHNVP(m_data[0], "x");
     marchive >> CHNVP(m_data[1], "y");

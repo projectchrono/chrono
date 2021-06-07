@@ -38,12 +38,12 @@ ChPac02Tire::ChPac02Tire(const std::string& name)
       m_alpha(0),
       m_gamma(0),
       m_gamma_limit(3.0 * CH_C_DEG_TO_RAD),
-      m_mu(0),
-      m_use_mode(1),
-      m_Shf(0),
       m_use_friction_ellipsis(false),
+      m_mu(0),
+      m_Shf(0),
+      m_measured_side(LEFT),
       m_allow_mirroring(false),
-      m_measured_side(LEFT) {
+      m_use_mode(1) {
     m_tireforce.force = ChVector<>(0, 0, 0);
     m_tireforce.point = ChVector<>(0, 0, 0);
     m_tireforce.moment = ChVector<>(0, 0, 0);
@@ -280,7 +280,7 @@ void ChPac02Tire::AddVisualizationAssets(VisualizationType vis) {
     m_wheel->GetSpindle()->AddAsset(m_cyl_shape);
 
     m_texture = chrono_types::make_shared<ChTexture>();
-    m_texture->SetTextureFilename(GetChronoDataFile("greenwhite.png"));
+    m_texture->SetTextureFilename(GetChronoDataFile("textures/greenwhite.png"));
     m_wheel->GetSpindle()->AddAsset(m_texture);
 }
 
@@ -433,7 +433,7 @@ void ChPac02Tire::Advance(double step) {
             Fx = CalcFx(m_kappa, Fz, gamma);
             Fy = CalcFy(m_alpha, Fz, gamma);
             Mx = CalcMx(Fy, Fz, gamma);
-            My = CalcMx(Fx, Fz, gamma);
+            My = CalcMy(Fx, Fz, gamma);
             Mz = CalcMz(m_alpha, Fz, gamma, Fy);
             break;
         case 4:
@@ -448,13 +448,13 @@ void ChPac02Tire::Advance(double step) {
                 Fx = mux / m_mu_x_act * Fx_u;
                 Fy = muy / m_mu_y_act * Fy_u;
                 Mx = CalcMx(Fy, Fz, gamma);
-                My = CalcMx(Fx, Fz, gamma);
+                My = CalcMy(Fx, Fz, gamma);
                 Mz = CalcMz(m_alpha, Fz, gamma, Fy);
             } else {
                 Fx = CalcFxComb(m_kappa, m_alpha, Fz, gamma);
                 Fy = CalcFyComb(m_kappa, m_alpha, Fz, gamma);
                 Mx = CalcMx(Fy, Fz, gamma);
-                My = CalcMx(Fx, Fz, gamma);
+                My = CalcMy(Fx, Fz, gamma);
                 Mz = CalcMzComb(m_kappa, m_alpha, Fz, gamma, Fx, Fy);
             }
             break;
@@ -486,7 +486,7 @@ double ChPac02Tire::CalcFx(double kappa, double Fz, double gamma) {
     double E = (m_PacCoeff.pex1 + m_PacCoeff.pex2 * dFz + m_PacCoeff.pex3 * dFz * dFz) * m_PacScal.lex;
     if (E > 1.0)
         E = 1.0;
-    double BCD = Fz * (m_PacCoeff.pkx1 + m_PacCoeff.pkx2) * m_PacScal.lkx;  // BCD = Kx
+    double BCD = Fz * (m_PacCoeff.pkx1 + m_PacCoeff.pkx2 * dFz) * m_PacScal.lkx;  // BCD = Kx
     double B = BCD / (C * D);
     double Sh = (m_PacCoeff.phx1 + m_PacCoeff.phx2 * dFz) * m_PacScal.lhx;
     double Sv = Fz * (m_PacCoeff.pvx1 + m_PacCoeff.pvx2 * dFz) * m_PacScal.lvx * m_PacScal.lmux;
@@ -590,7 +590,7 @@ double ChPac02Tire::CalcFxComb(double kappa, double alpha, double Fz, double gam
     double E = (m_PacCoeff.pex1 + m_PacCoeff.pex2 * dFz + m_PacCoeff.pex3 * dFz * dFz) * m_PacScal.lex;
     if (E > 1.0)
         E = 1.0;
-    double BCD = Fz * (m_PacCoeff.pkx1 + m_PacCoeff.pkx2) * m_PacScal.lkx;  // BCD = Kx
+    double BCD = Fz * (m_PacCoeff.pkx1 + m_PacCoeff.pkx2 * dFz) * m_PacScal.lkx;  // BCD = Kx
     double B = BCD / (C * D);
     double Sh = (m_PacCoeff.phx1 + m_PacCoeff.phx2 * dFz) * m_PacScal.lhx;
     double Sv = Fz * (m_PacCoeff.pvx1 + m_PacCoeff.pvx2 * dFz) * m_PacScal.lvx * m_PacScal.lmux;
@@ -599,7 +599,7 @@ double ChPac02Tire::CalcFxComb(double kappa, double alpha, double Fz, double gam
     double Shxa = m_PacCoeff.rhx1;
     double alpha_s = tan(alpha) * ChSignum(m_data.vel.x()) + Shxa;
     double Bxa =
-        m_PacCoeff.rbx1 + m_PacCoeff.rbx3 * pow(sin(gamma), 2) * cos(atan(m_PacCoeff.rbx2 * kappa)) * m_PacScal.lxal;
+        (m_PacCoeff.rbx1 + m_PacCoeff.rbx3 * pow(sin(gamma), 2)) * cos(atan(m_PacCoeff.rbx2 * kappa)) * m_PacScal.lxal;
     double Cxa = m_PacCoeff.rcx1;
     double Exa = m_PacCoeff.rex1 + m_PacCoeff.rex2 * dFz;
     double Gxa = cos(Cxa * atan(Bxa * alpha_s) - Exa * (Bxa * alpha_s - atan(Bxa * alpha_s))) /
@@ -680,7 +680,6 @@ double ChPac02Tire::CalcMzComb(double kappa, double alpha, double Fz, double gam
     double Kxk = Fz * (m_PacCoeff.pkx1 + m_PacCoeff.pkx2) * m_PacScal.lkx;
     double Kya = m_PacCoeff.pky1 * m_PacCoeff.FzNomin * sin(2.0 * atan(Fz / (m_PacCoeff.pky2 * Fz0s))) *
                  m_PacScal.lfz0 * m_PacScal.lky;
-    double alpha_teq = sqrt(pow(alpha_t, 2) + pow(Kxk, 2) * pow(kappa, 2) / pow(Kya, 2)) * ChSignum(alpha_t);
     double t = Dt * (Ct * atan(Bt * alpha_t - Et * (Bt * alpha_t - atan(Bt * alpha_t))));
     // residual moment
     double Shf = 0.0;  // todo!!

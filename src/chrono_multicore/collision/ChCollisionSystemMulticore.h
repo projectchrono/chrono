@@ -113,7 +113,7 @@ class CH_MULTICORE_API ChCollisionSystemMulticore : public ChCollisionSystem {
     ChMulticoreDataManager* data_manager;
     custom_vector<char> body_active;
 
-    friend class ChSystemMulticore;
+    friend class chrono::ChSystemMulticore;
 };
 
 /// @} multicore_colision

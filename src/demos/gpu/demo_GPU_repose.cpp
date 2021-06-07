@@ -35,26 +35,23 @@ using namespace chrono::gpu;
 // Enable/disable run-time visualization (if Chrono::OpenGL is available)
 bool render = true;
 
-void ShowUsage(std::string name) {
-    std::cout << "usage: " + name + " <json_file> <static_friction> <rolling_friction> <cohesion> <output_dir>"
-              << std::endl;
-}
-
 int main(int argc, char* argv[]) {
     ChGpuSimulationParameters params;
 
     // Some of the default values might be overwritten by user via command line
-    std::cout << "num_arg: " << argc << std::endl;
-    if (argc != 2 || ParseJSON(argv[1], params) == false) {
-        ShowUsage(argv[0]);
+    if (argc != 2 || ParseJSON(gpu::GetDataFile(argv[1]), params) == false) {
+        std::cout << "Usage:\n./demo_GPU_repose <json_file>" << std::endl;
         return 1;
     }
 
-    filesystem::create_directory(filesystem::path(params.output_dir));
+    std::string out_dir = GetChronoOutputPath() + "GPU/";
+    filesystem::create_directory(filesystem::path(out_dir));
+    out_dir = out_dir + params.output_dir;
+    filesystem::create_directory(filesystem::path(out_dir));
 
     // Setup simulation
     ChSystemGpu gpu_sys(params.sphere_radius, params.sphere_density,
-                        make_float3(params.box_X, params.box_Y, params.box_Z));
+                        ChVector<float>(params.box_X, params.box_Y, params.box_Z));
 
     gpu_sys.SetKn_SPH2SPH(params.normalStiffS2S);
     gpu_sys.SetKn_SPH2WALL(params.normalStiffS2W);
@@ -78,14 +75,14 @@ int main(int argc, char* argv[]) {
     gpu_sys.SetCohesionRatio(params.cohesion_ratio);
     gpu_sys.SetAdhesionRatio_SPH2WALL(params.adhesion_ratio_s2w);
     gpu_sys.SetGravitationalAcceleration(ChVector<float>(params.grav_X, params.grav_Y, params.grav_Z));
-    gpu_sys.SetOutputMode(params.write_mode);
+    gpu_sys.SetParticleOutputMode(params.write_mode);
 
     gpu_sys.SetBDFixed(true);
 
     // padding in sampler
     float fill_epsilon = 2.02f;
     // padding at top of fill
-    float drop_height = 0.f;
+    ////float drop_height = 0.f;
     float spacing = fill_epsilon * params.sphere_radius;
     chrono::utils::PDSampler<float> sampler(spacing);
 
@@ -102,7 +99,7 @@ int main(int argc, char* argv[]) {
     float fill_bottom = bottom_z + spacing;
     float fill_width = 5.f;
     float fill_height = 2.f * fill_width;
-    float fill_top = fill_bottom + fill_height;
+    ////float fill_top = fill_bottom + fill_height;
 
     ChVector<float> center(0.f, 0.f, fill_bottom + fill_height / 2.f);
     material_points = sampler.SampleCylinderZ(center, fill_width, fill_height / 2.f);
@@ -115,7 +112,7 @@ int main(int argc, char* argv[]) {
     body_points.insert(body_points.end(), material_points.begin(), material_points.end());
     body_points_fixed.insert(body_points_fixed.end(), material_points.size(), false);
 
-    gpu_sys.SetParticlePositions(body_points);
+    gpu_sys.SetParticles(body_points);
     gpu_sys.SetParticleFixed(body_points_fixed);
 
     std::cout << "Added " << roughness_points.size() << " fixed points" << std::endl;
@@ -126,7 +123,6 @@ int main(int argc, char* argv[]) {
     gpu_sys.SetTimeIntegrator(CHGPU_TIME_INTEGRATOR::EXTENDED_TAYLOR);
     gpu_sys.SetFixedStepSize(params.step_size);
 
-    filesystem::create_directory(filesystem::path(params.output_dir));
     gpu_sys.SetVerbosity(params.verbose);
     std::cout << "verbose: " << static_cast<int>(params.verbose) << std::endl;
     gpu_sys.SetRecordingContactInfo(true);
@@ -149,11 +145,11 @@ int main(int argc, char* argv[]) {
 
     // write an initial frame
     char filename[100];
-    sprintf(filename, "%s/step%06d", params.output_dir.c_str(), currframe);
-    gpu_sys.WriteFile(std::string(filename));
+    sprintf(filename, "%s/step%06d.csv", out_dir.c_str(), currframe);
+    gpu_sys.WriteParticleFile(std::string(filename));
 
     char contactFilename[100];
-    sprintf(contactFilename, "%s/contact%06d", params.output_dir.c_str(), currframe);
+    sprintf(contactFilename, "%s/contact%06d.csv", out_dir.c_str(), currframe);
     gpu_sys.WriteContactInfoFile(std::string(contactFilename));
 
     currframe++;
@@ -161,16 +157,15 @@ int main(int argc, char* argv[]) {
     std::cout << "frame step is " << frame_step << std::endl;
     while (curr_time < params.time_end) {
         gpu_sys.AdvanceSimulation(frame_step);
-
+		
         if (render && gpu_vis.Render())
             break;
 
         printf("Output frame %u of %u\n", currframe, total_frames);
-        sprintf(filename, "%s/step%06d", params.output_dir.c_str(), currframe);
-        gpu_sys.WriteFile(std::string(filename));
+        sprintf(filename, "%s/step%06d.csv", out_dir.c_str(), currframe);
+        gpu_sys.WriteParticleFile(std::string(filename));
 
-        char contactFilename[100];
-        sprintf(contactFilename, "%s/contact%06d", params.output_dir.c_str(), currframe);
+        sprintf(contactFilename, "%s/contact%06d.csv", out_dir.c_str(), currframe);
         gpu_sys.WriteContactInfoFile(std::string(contactFilename));
 
         curr_time += frame_step;

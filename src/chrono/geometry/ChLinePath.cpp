@@ -45,7 +45,6 @@ void ChLinePath::Evaluate(ChVector<>& pos, const double parU) const {
         u = fmod(parU, this->GetPathDuration());
 
     double uA = 0;
-    double uB = 0;
     // Search sub line covering the parU
     // (brute force search.. assuming a limited number of added lines, it is ok anyway.)
     int i;
@@ -55,7 +54,6 @@ void ChLinePath::Evaluate(ChVector<>& pos, const double parU) const {
     }
     if (i == lines.size())  // beyond end
         i -= 1;
-    uB = end_times[i];
     if (i > 0)
         uA = end_times[i - 1];
 
@@ -155,7 +153,7 @@ void ChLinePath::ArchiveOUT(ChArchiveOut& marchive) {
 
 void ChLinePath::ArchiveIN(ChArchiveIn& marchive) {
     // version number
-    int version = marchive.VersionRead<ChLinePath>();
+    /*int version =*/ marchive.VersionRead<ChLinePath>();
     // deserialize parent class
     ChLine::ArchiveIN(marchive);
     // stream in all member data:

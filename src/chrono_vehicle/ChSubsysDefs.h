@@ -294,24 +294,24 @@ class DegressiveDamperForce : public ChLinkTSDA::ForceFunctor {
   public:
     /// Fallback to LinearDamperForce
     DegressiveDamperForce(double c_compression)
-        : m_c_compression(c_compression), m_degr_compression(0), m_c_expansion(c_compression), m_degr_expansion(0) {}
+        : m_c_compression(c_compression), m_c_expansion(c_compression), m_degr_compression(0), m_degr_expansion(0) {}
 
     /// Fallback to LinearDamperForce with different compression and expansion bins
     DegressiveDamperForce(double c_compression, double c_expansion)
-        : m_c_compression(c_compression), m_degr_compression(0), m_c_expansion(c_expansion), m_degr_expansion(0) {}
+        : m_c_compression(c_compression), m_c_expansion(c_expansion), m_degr_compression(0), m_degr_expansion(0) {}
 
     /// Different compression and expansion degressivity, same damper coefficient at origin
     DegressiveDamperForce(double c_compression, double degr_compression, double degr_expansion)
         : m_c_compression(c_compression),
-          m_degr_compression(degr_compression),
           m_c_expansion(c_compression),
+          m_degr_compression(degr_compression),
           m_degr_expansion(degr_expansion) {}
 
     /// Full parametrization
     DegressiveDamperForce(double c_compression, double degr_compression, double c_expansion, double degr_expansion)
         : m_c_compression(c_compression),
-          m_degr_compression(degr_compression),
           m_c_expansion(c_expansion),
+          m_degr_compression(degr_compression),
           m_degr_expansion(degr_expansion) {}
 
     virtual double operator()(double time, double rest_length, double length, double vel, ChLinkTSDA* link) override {
@@ -502,7 +502,7 @@ enum class PowertrainModelType {
 };
 
 /// Enum for available wheeled-vehicle suspension model templates.
-enum class SuspensionType {
+enum class SuspensionTypeWV {
     DOUBLE_WISHBONE,                  ///< double wishbone
     DOUBLE_WISHBONE_REDUCED,          ///< simplified double wishbone (constraint-based)
     HENDRICKSON_PRIMAXX,              ///< Hendrickson PRIMAXX (walking beam)
@@ -523,22 +523,30 @@ enum class SuspensionType {
 
 /// Enum for available brake model templates.
 enum class BrakeType {
-    SHAFTS, ///< brake model using a clutch between two shafts
-    SIMPLE  ///< brake model using a simple speed-dependent torque
+    SHAFTS,  ///< brake model using a clutch between two shafts
+    SIMPLE   ///< brake model using a simple speed-dependent torque
 };
 
 /// Enum for available wheeled-vehicle steering model templates.
-enum class SteeringType {
+enum class SteeringTypeWV {
     PITMAN_ARM,         ///< Pitman arm (input to revolute joint)
     PITMAN_ARM_SHAFTS,  ///< Pitman arm with compliant column (input to steering wheel)
     RACK_PINION         ///< rack-pinion (input to pinion)
 };
 
-/// Enum for drive types.
-enum class DrivelineType {
-    FWD,    ///< front-wheel drive
-    RWD,    ///< rear-wheel drive
-    AWD,    ///< all-wheel drive
+/// Enum for wheeled-vehicle driveline types.
+enum class DrivelineTypeWV {
+    FWD,        ///< front-wheel drive
+    RWD,        ///< rear-wheel drive
+    AWD,        ///< all-wheel drive (4x4)
+    AWD8,       ///< all-wheel drive (8x8)
+    SIMPLE,     ///< simple kinematic driveline
+    SIMPLE_XWD  ///< simple kinematic driveline for more than 2 axles
+};
+
+/// Enum for tracked-vehicle driveline types.
+enum class DrivelineTypeTV {
+    BDS,    ///< braked differential steering
     SIMPLE  ///< simple kinematic driveline
 };
 
@@ -668,7 +676,7 @@ class CH_VEHICLE_API ChVehicleGeometry {
     /// Tri-mesh shape for collision.
     struct TrimeshShape {
         TrimeshShape(const ChVector<>& pos, const std::string& filename, double radius, int matID = -1)
-            : m_pos(pos), m_filename(filename), m_radius(radius), m_matID(matID) {}
+            : m_filename(filename), m_radius(radius), m_pos(pos), m_matID(matID) {}
         std::string m_filename;  ///< name of Wavefront OBJ file
         double m_radius;         ///< radius of sweeping sphere
         ChVector<> m_pos;        ///< position relative to body

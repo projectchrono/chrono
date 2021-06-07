@@ -3,21 +3,20 @@ Lidar Sensor Model {#lidar_sensor}
 
 \tableofcontents
 
-Details of the Lidar sensor implemented in Chrono::Sensor.
-
-In Chrono:Sensor:ChCameraSensor, the synthetic data is generated via GPU-based ray-tracing. By leveraging hardware acclereated support and the headless rendering capablities provided by Nvidia Optix Library.
+In Chrono:Sensor:ChCameraSensor, the synthetic data is generated via GPU-based ray-tracing. By leveraging hardware acclereated support and the headless rendering capablities provided by Nvidia Optix Library. For each lidar beam, a group of rays are traced that sample that lidar beam. The number of samples, along with beam divergence angle, are set by the user. The entire frame/scan of the lidar is processed in a single render step. To account for the time difference of rays across the scan, keyframes and motion blur techniques are used. With these keyframes, each beam in the scan traces the scene at a specific time, reproducing the motion of objects and the lidar. The intensity returned by the lidar beams is based on diffuse reflectance.
 
 #### Creating a Lidar
-~~~(.cpp)
-autolidar = chrono_types::make_shared<ChLidarSensor>(my_body,        // body lidar is attached to
-update_rate,     // scanning rate in Hz
-offset_pose,     // offset pose
-horizontal_samples,// number of horizontal samples
-vertical_channels,// number of vertical channels
-horizontal_fov,// horizontal field of view
-max_vert_angle,// high vertical extent
-min_vert_angle, // low vertical extent
-100 );  // maximum range
+~~~{.cpp}
+auto lidar = chrono_types::make_shared<ChLidarSensor>(
+	               my_body,             // body lidar is attached to
+                   update_rate,         // scanning rate in Hz
+                   offset_pose,         // offset pose
+                   horizontal_samples,  // number of horizontal samples
+                   vertical_channels,   // number of vertical channels
+                   horizontal_fov,      // horizontal field of view
+                   max_vert_angle,      // high vertical extent
+                   min_vert_angle,      // low vertical extent
+                   100);                // maximum range
 
 lidar->SetName("Lidar Sensor");
 lidar->SetLag(lag);
@@ -52,7 +51,7 @@ manager->AddSensor(cam);
 #### Lidar Data Access
 ~~~{.cpp}
 UserXYZIBufferPtr xyzi_ptr;
-while(){
+while () {
     xyzi_ptr=lidar->GetMostRecentBuffer<UserXYZIBufferPtr>();
     if(xyzi_ptr->Buffer) {
         // Retrieve and print the first point in the point cloud

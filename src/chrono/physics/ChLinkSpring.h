@@ -27,22 +27,11 @@ class ChApi
 CH_DEPRECATED("deprecated. Use ChLinkTSDA instead.")
 /// \endcond
 ChLinkSpring : public ChLinkMarkers {
-  protected:
-    double spr_restlength;                    ///< spring rest (undeformed) length
-    double spr_k;                             ///< spring coefficient
-    double spr_r;                             ///< damping coefficient
-    double spr_f;                             ///< actuator force
-    std::shared_ptr<ChFunction> mod_f_time;   ///< f(t)
-    std::shared_ptr<ChFunction> mod_k_d;      ///< k(d)
-    std::shared_ptr<ChFunction> mod_r_d;      ///< r(d)
-    std::shared_ptr<ChFunction> mod_r_speed;  ///< k(speed)
-    std::shared_ptr<ChFunction> mod_k_speed;  ///< r(speed)
-    double spr_react;                         ///< resulting force in dist. coord / readonly
-
   public:
     ChLinkSpring();
     ChLinkSpring(const ChLinkSpring& other);
-    virtual ~ChLinkSpring() {}
+    
+    ~ChLinkSpring() {}
 
     /// "Virtual" copy constructor (covariant return type).
     virtual ChLinkSpring* Clone() const override;
@@ -115,6 +104,20 @@ ChLinkSpring : public ChLinkMarkers {
 
     /// Method to allow deserialization of transient data from archives.
     virtual void ArchiveIN(ChArchiveIn& marchive) override;
+
+  protected:
+    using ChLinkMarkers::Initialize;
+
+    double spr_restlength;                    ///< spring rest (undeformed) length
+    double spr_k;                             ///< spring coefficient
+    double spr_r;                             ///< damping coefficient
+    double spr_f;                             ///< actuator force
+    std::shared_ptr<ChFunction> mod_f_time;   ///< f(t)
+    std::shared_ptr<ChFunction> mod_k_d;      ///< k(d)
+    std::shared_ptr<ChFunction> mod_r_d;      ///< r(d)
+    std::shared_ptr<ChFunction> mod_r_speed;  ///< k(speed)
+    std::shared_ptr<ChFunction> mod_k_speed;  ///< r(speed)
+    double spr_react;                         ///< resulting force in dist. coord / readonly
 };
 
 CH_CLASS_VERSION(ChLinkSpring,0)

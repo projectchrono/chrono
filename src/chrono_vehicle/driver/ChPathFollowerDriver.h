@@ -74,7 +74,7 @@ class CH_VEHICLE_API ChPathFollowerDriver : public ChDriver {
     /// If the vehicle is moving faster than the set speed, the controller attempts to
     /// reduce speed either by reducing the throttle input (if the current throttle input
     /// is above the threshold value) or by applying brakes (otherwise).
-    void SetThreshholdThrottle(double val) { m_throttle_threshold = val; }
+    void SetThresholdThrottle(double val) { m_throttle_threshold = val; }
 
     /// Get the underlying steering controller object.
     ChPathSteeringController& GetSteeringController() { return m_steeringPID; }
@@ -149,7 +149,7 @@ class CH_VEHICLE_API ChPathFollowerDriverXT : public ChDriver {
     /// If the vehicle is moving faster than the set speed, the controller attempts to
     /// reduce speed either by reducing the throttle input (if the current throttle input
     /// is above the threshold value) or by applying brakes (otherwise).
-    void SetThreshholdThrottle(double val) { m_throttle_threshold = val; }
+    void SetThresholdThrottle(double val) { m_throttle_threshold = val; }
 
     /// Get the underlying steering controller object.
     ChPathSteeringControllerXT& GetSteeringController() { return m_steeringXT; }
@@ -216,7 +216,7 @@ class CH_VEHICLE_API ChPathFollowerDriverSR : public ChDriver {
     /// If the vehicle is moving faster than the set speed, the controller attempts to
     /// reduce speed either by reducing the throttle input (if the current throttle input
     /// is above the threshold value) or by applying brakes (otherwise).
-    void SetThreshholdThrottle(double val) { m_throttle_threshold = val; }
+    void SetThresholdThrottle(double val) { m_throttle_threshold = val; }
 
     /// Get the underlying steering controller object.
     ChPathSteeringControllerSR& GetSteeringController() { return m_steeringSR; }
@@ -281,7 +281,7 @@ class CH_VEHICLE_API ChPathFollowerDriverStanley : public ChDriver {
     /// If the vehicle is moving faster than the set speed, the controller attempts to
     /// reduce speed either by reducing the throttle input (if the current throttle input
     /// is above the threshold value) or by applying brakes (otherwise).
-    void SetThreshholdThrottle(double val) { m_throttle_threshold = val; }
+    void SetThresholdThrottle(double val) { m_throttle_threshold = val; }
 
     /// Get the underlying steering controller object.
     ChPathSteeringControllerStanley& GetSteeringController() { return m_steeringStanley; }

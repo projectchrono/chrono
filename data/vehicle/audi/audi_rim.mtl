@@ -1,0 +1,13 @@
+# Blender MTL File: 'None'
+# Material Count: 1
+
+newmtl phong3SG
+illum 4
+Kd 0.00 0.00 0.00
+Ka 0.00 0.00 0.00
+Tf 1.00 1.00 1.00
+map_Kd textures/Audi_Whole_Texturing_031021_Wheels_BaseColor.jpg
+map_Pr textures/Audi_Whole_Texturing_031021_Wheels_Roughness.jpg
+map_Pm textures/Audi_Whole_Texturing_031021_Wheels_Metallic.jpg
+norm textures/Audi_Whole_Texturing_031021_Wheels_Normal.png
+Ni 1.00

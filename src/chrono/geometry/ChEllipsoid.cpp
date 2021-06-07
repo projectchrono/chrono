@@ -65,7 +65,7 @@ void ChEllipsoid::ArchiveOUT(ChArchiveOut& marchive) {
 
 void ChEllipsoid::ArchiveIN(ChArchiveIn& marchive) {
     // version number
-    int version = marchive.VersionRead<ChEllipsoid>();
+    /*int version =*/ marchive.VersionRead<ChEllipsoid>();
     // deserialize parent class
     ChGeometry::ArchiveIN(marchive);
     // stream in all member data:

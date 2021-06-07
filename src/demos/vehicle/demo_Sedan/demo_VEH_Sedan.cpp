@@ -60,7 +60,7 @@ VisualizationType tire_vis_type = VisualizationType::MESH;
 CollisionType chassis_collision_type = CollisionType::NONE;
 
 // Type of tire model (RIGID, TMEASY, PAC02)
-TireModelType tire_model = TireModelType::PAC02;
+TireModelType tire_model = TireModelType::TMEASY;
 
 // Rigid terrain
 RigidTerrain::PatchType terrain_model = RigidTerrain::PatchType::BOX;
@@ -76,7 +76,7 @@ ChContactMethod contact_method = ChContactMethod::SMC;
 bool contact_vis = false;
 
 // Simulation step sizes
-double step_size = 3e-3;
+double step_size = 2e-3;
 double tire_step_size = 1e-3;
 
 // Simulation end time
@@ -138,11 +138,11 @@ int main(int argc, char* argv[]) {
             break;
         case RigidTerrain::PatchType::HEIGHT_MAP:
             patch = terrain.AddPatch(patch_mat, CSYSNORM, vehicle::GetDataFile("terrain/height_maps/test64.bmp"),
-                                     "test64", 128, 128, 0, 4);
+                                     128, 128, 0, 4);
             patch->SetTexture(vehicle::GetDataFile("terrain/textures/grass.jpg"), 16, 16);
             break;
         case RigidTerrain::PatchType::MESH:
-            patch = terrain.AddPatch(patch_mat, CSYSNORM, vehicle::GetDataFile("terrain/meshes/test.obj"), "test_mesh");
+            patch = terrain.AddPatch(patch_mat, CSYSNORM, vehicle::GetDataFile("terrain/meshes/test.obj"));
             patch->SetTexture(vehicle::GetDataFile("terrain/textures/grass.jpg"), 100, 100);
             break;
     }
@@ -224,7 +224,7 @@ int main(int argc, char* argv[]) {
 
     if (contact_vis) {
         app.SetSymbolscale(1e-4);
-        app.SetContactsDrawMode(ChIrrTools::eCh_ContactsDrawMode::CONTACT_FORCES);
+        app.SetContactsDrawMode(IrrContactsDrawMode::CONTACT_FORCES);
     }
 
     ChRealtimeStepTimer realtime_timer;

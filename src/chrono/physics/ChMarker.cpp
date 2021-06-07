@@ -321,7 +321,7 @@ void ChMarker::ArchiveOUT(ChArchiveOut& marchive) {
 /// Method to allow de serialization of transient data from archives.
 void ChMarker::ArchiveIN(ChArchiveIn& marchive) {
     // version number
-    int version = marchive.VersionRead<ChMarker>();
+    /*int version =*/ marchive.VersionRead<ChMarker>();
 
     // deserialize parent class
     ChObj::ArchiveIN(marchive);

@@ -64,7 +64,6 @@ class SystemFixture : public ::benchmark::Fixture {
         auto mesh = chrono_types::make_shared<ChMesh>();
         m_system->Add(mesh);
 
-        int n_nodes = 2 * (1 + N);
         double dx = length / N;
         ChVector<> dir(0, 1, 0);
 
@@ -228,7 +227,6 @@ BM_SOLVER_QR(QR_learner_8000, 8000, true)
 BM_SOLVER_QR(QR_no_learner_8000, 8000, false)
 
 int main(int argc, char* argv[]) {
-    utils::ForceBenchmarkTabularOutput(&argc, &argv);
     ::benchmark::Initialize(&argc, argv);
     ::benchmark::RunSpecifiedBenchmarks();
 }

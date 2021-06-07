@@ -17,14 +17,14 @@
 // =============================================================================
 
 #include "chrono/utils/ChUtilsInputOutput.h"
+#include "chrono/solver/ChSolverBB.h"
 
 #include "chrono_vehicle/ChVehicleModelData.h"
 #include "chrono_vehicle/driver/ChIrrGuiDriver.h"
 #include "chrono_vehicle/terrain/SCMDeformableTerrain.h"
 #include "chrono_vehicle/tracked_vehicle/utils/ChTrackedVehicleIrrApp.h"
 
-#include "chrono_models/vehicle/m113/M113_SimplePowertrain.h"
-#include "chrono_models/vehicle/m113/M113_Vehicle.h"
+#include "chrono_models/vehicle/m113/M113.h"
 
 #ifdef CHRONO_PARDISO_MKL
 #include "chrono_pardisomkl/ChSolverPardisoMKL.h"
@@ -56,13 +56,13 @@ double terrainWidth = 4.0;    // size in Y direction
 double delta = 0.05;          // SCM grid spacing
 
 // Simulation step size
-double step_size = 1e-3;
+double step_size = 5e-4;
 
 // Use PardisoMKL
 bool use_mkl = false;
 
 // Time interval between two render frames
-double render_step_size = 1.0 / 50;  // FPS = 50
+double render_step_size = 1.0 / 120;  // FPS = 50
 
 // Point on chassis tracked by the camera
 ChVector<> trackPoint(-2.0, 0.0, 0.0);
@@ -89,10 +89,125 @@ void AddMovingObstacles(ChSystem* system);
 int main(int argc, char* argv[]) {
     GetLog() << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
 
+    // --------------------------
     // Construct the M113 vehicle
-    M113_Vehicle vehicle(false, TrackShoeType::SINGLE_PIN, BrakeType::SIMPLE, ChContactMethod::SMC);
+    // --------------------------
 
-    ChSystem* system = vehicle.GetSystem();
+    M113 m113;
+    m113.SetContactMethod(ChContactMethod::SMC);
+    m113.SetTrackShoeType(TrackShoeType::SINGLE_PIN);
+    m113.SetBrakeType(BrakeType::SIMPLE);
+    m113.SetDrivelineType(DrivelineTypeTV::BDS);
+    m113.SetPowertrainType(PowertrainModelType::SHAFTS);
+    m113.SetChassisCollisionType(CollisionType::NONE);
+
+    // Control steering type (enable crossdrive capability)
+    ////vehicle.GetDriveline()->SetGyrationMode(true);
+
+    // Initialize the vehicle at the specified position
+    m113.SetInitPosition(ChCoordsys<>(initLoc, initRot));
+    m113.Initialize();
+
+    // Set visualization type for vehicle components.
+    m113.SetChassisVisualizationType(VisualizationType::PRIMITIVES);
+    m113.SetSprocketVisualizationType(VisualizationType::PRIMITIVES);
+    m113.SetIdlerVisualizationType(VisualizationType::PRIMITIVES);
+    m113.SetRoadWheelAssemblyVisualizationType(VisualizationType::PRIMITIVES);
+    m113.SetRoadWheelVisualizationType(VisualizationType::PRIMITIVES);
+    m113.SetTrackShoeVisualizationType(VisualizationType::PRIMITIVES);
+
+    // Control internal collisions and contact monitoring.
+
+    // Disable contact for all tracked vehicle parts
+    ////m113.GetVehicle().SetCollide(TrackedCollisionFlag::NONE);
+
+    // Monitor internal contacts for the left sprocket, left idler, and first shoe on the left track.
+    ////m113.GetVehicle().MonitorContacts(TrackedCollisionFlag::SPROCKET_LEFT | TrackedCollisionFlag::SHOES_LEFT |
+    ///TrackedCollisionFlag::IDLER_LEFT);
+
+    // Collect contact information
+    ////m113.GetVehicle().SetContactCollection(true);
+
+    ChSystem* system = m113.GetSystem();
+
+    // ----------------------
+    // Create the SCM terrain
+    // ----------------------
+
+    SCMDeformableTerrain terrain(system);
+    terrain.SetSoilParameters(2e7,   // Bekker Kphi
+                              0,     // Bekker Kc
+                              1.1,   // Bekker n exponent
+                              0,     // Mohr cohesive limit (Pa)
+                              20,    // Mohr friction limit (degrees)
+                              0.01,  // Janosi shear coefficient (m)
+                              2e8,   // Elastic stiffness (Pa/m), before plastic yield
+                              3e4    // Damping (Pa s/m), proportional to negative vertical speed (optional)
+    );
+
+    terrain.SetPlotType(vehicle::SCMDeformableTerrain::PLOT_PRESSURE_YELD, 0, 30000.2);
+    ////terrain.SetPlotType(vehicle::SCMDeformableTerrain::PLOT_SINKAGE, 0, 0.15);
+
+    terrain.Initialize(terrainLength, terrainWidth, delta);
+
+    // Add obstacles
+    AddFixedObstacles(system);
+    ////AddMovingObstacles(system);
+
+    // ---------------------------------
+    // Create the run-time visualization
+    // ---------------------------------
+
+    ChTrackedVehicleIrrApp app(&m113.GetVehicle(), L"M113 SCM Demo");
+    app.SetSkyBox();
+    app.AddTypicalLights(irr::core::vector3df(30.f, -30.f, 100.f), irr::core::vector3df(30.f, 50.f, 100.f), 250, 130);
+    app.SetChaseCamera(trackPoint, 4.0, 1.0);
+    app.SetChaseCameraPosition(ChVector<>(-3, 4, 1.5));
+    app.SetChaseCameraMultipliers(1e-4, 10);
+    app.SetTimestep(step_size);
+    app.AssetBindAll();
+    app.AssetUpdateAll();
+
+    // ------------------------
+    // Create the driver system
+    // ------------------------
+
+    ChIrrGuiDriver driver(app);
+
+    // Set the time response for keyboard inputs.
+    double steering_time = 0.5;  // time to go from 0 to +1 (or from 0 to -1)
+    double throttle_time = 1.0;  // time to go from 0 to +1
+    double braking_time = 0.3;   // time to go from 0 to +1
+    driver.SetSteeringDelta(render_step_size / steering_time);
+    driver.SetThrottleDelta(render_step_size / throttle_time);
+    driver.SetBrakingDelta(render_step_size / braking_time);
+
+    // Set file with driver input time series
+    driver.SetInputDataFile(vehicle::GetDataFile("M113/driver/Acceleration.txt"));
+    driver.SetInputMode(ChIrrGuiDriver::DATAFILE);
+
+    driver.Initialize();
+
+    // -----------------
+    // Initialize output
+    // -----------------
+
+    if (!filesystem::create_directory(filesystem::path(out_dir))) {
+        std::cout << "Error creating directory " << out_dir << std::endl;
+        return 1;
+    }
+
+    if (img_output) {
+        if (!filesystem::create_directory(filesystem::path(img_dir))) {
+            std::cout << "Error creating directory " << img_dir << std::endl;
+            return 1;
+        }
+    }
+
+    // -------------------
+    // Simulation settings
+    // -------------------
+
     system->SetNumThreads(std::min(8, ChOMP::GetNumProcs()));
 
 #ifndef CHRONO_PARDISO_MKL
@@ -119,97 +234,14 @@ int main(int argc, char* argv[]) {
         integrator->SetVerbose(true);
 #endif
     } else {
-        system->SetSolverMaxIterations(50);
-    }
+        auto solver = chrono_types::make_shared<ChSolverBB>();
+        solver->SetMaxIterations(120);
+        solver->SetOmega(0.8);
+        solver->SetSharpnessLambda(1.0);
+        m113.GetSystem()->SetSolver(solver);
 
-    // Control steering type (enable crossdrive capability)
-    ////vehicle.GetDriveline()->SetGyrationMode(true);
-
-    // Initialize the vehicle at the specified position
-    vehicle.Initialize(ChCoordsys<>(initLoc, initRot));
-
-    // Set visualization type for vehicle components.
-    vehicle.SetChassisVisualizationType(VisualizationType::PRIMITIVES);
-    vehicle.SetSprocketVisualizationType(VisualizationType::PRIMITIVES);
-    vehicle.SetIdlerVisualizationType(VisualizationType::PRIMITIVES);
-    vehicle.SetRoadWheelAssemblyVisualizationType(VisualizationType::PRIMITIVES);
-    vehicle.SetRoadWheelVisualizationType(VisualizationType::PRIMITIVES);
-    vehicle.SetTrackShoeVisualizationType(VisualizationType::PRIMITIVES);
-
-    // Control internal collisions and contact monitoring.
-
-    // Disable contact for all tracked vehicle parts
-    ////vehicle.SetCollide(TrackedCollisionFlag::NONE);
-
-    // Monitor internal contacts for the left sprocket, left idler, and first shoe on the left track.
-    ////vehicle.MonitorContacts(TrackedCollisionFlag::SPROCKET_LEFT | TrackedCollisionFlag::SHOES_LEFT | TrackedCollisionFlag::IDLER_LEFT);
-
-    // Collect contact information
-    ////vehicle.SetContactCollection(true);
-
-    // Create the terrain
-    SCMDeformableTerrain terrain(system);
-    terrain.SetSoilParameters(2e7,   // Bekker Kphi
-                              0,     // Bekker Kc
-                              1.1,   // Bekker n exponent
-                              0,     // Mohr cohesive limit (Pa)
-                              20,    // Mohr friction limit (degrees)
-                              0.01,  // Janosi shear coefficient (m)
-                              2e8,   // Elastic stiffness (Pa/m), before plastic yield
-                              3e4    // Damping (Pa s/m), proportional to negative vertical speed (optional)
-    );
-
-    terrain.SetPlotType(vehicle::SCMDeformableTerrain::PLOT_PRESSURE_YELD, 0, 30000.2);
-    ////terrain.SetPlotType(vehicle::SCMDeformableTerrain::PLOT_SINKAGE, 0, 0.15);
-
-    terrain.Initialize(terrainLength, terrainWidth, delta);
-
-    AddFixedObstacles(system);
-    ////AddMovingObstacles(system);
-
-    // Create the powertrain system
-    auto powertrain = chrono_types::make_shared<M113_SimplePowertrain>("Powertrain");
-    vehicle.InitializePowertrain(powertrain);
-
-    // Create the vehicle Irrlicht application
-    ChTrackedVehicleIrrApp app(&vehicle, L"M113 Vehicle Demo");
-    app.SetSkyBox();
-    app.AddTypicalLights(irr::core::vector3df(30.f, -30.f, 100.f), irr::core::vector3df(30.f, 50.f, 100.f), 250, 130);
-    app.SetChaseCamera(trackPoint, 4.0, 1.0);
-    app.SetChaseCameraPosition(ChVector<>(-3, 4, 1.5));
-    app.SetChaseCameraMultipliers(1e-4, 10);
-    app.SetTimestep(step_size);
-    app.AssetBindAll();
-    app.AssetUpdateAll();
-
-    // Create the driver system
-    ChIrrGuiDriver driver(app);
-
-    // Set the time response for keyboard inputs.
-    double steering_time = 0.5;  // time to go from 0 to +1 (or from 0 to -1)
-    double throttle_time = 1.0;  // time to go from 0 to +1
-    double braking_time = 0.3;   // time to go from 0 to +1
-    driver.SetSteeringDelta(render_step_size / steering_time);
-    driver.SetThrottleDelta(render_step_size / throttle_time);
-    driver.SetBrakingDelta(render_step_size / braking_time);
-
-    // Set file with driver input time series
-    driver.SetInputDataFile(vehicle::GetDataFile("M113/driver/Acceleration.txt"));
-    driver.SetInputMode(ChIrrGuiDriver::DATAFILE);
-
-    driver.Initialize();
-
-    // Initialize output
-    if (!filesystem::create_directory(filesystem::path(out_dir))) {
-        std::cout << "Error creating directory " << out_dir << std::endl;
-        return 1;
-    }
-
-    if (img_output) {
-        if (!filesystem::create_directory(filesystem::path(img_dir))) {
-            std::cout << "Error creating directory " << img_dir << std::endl;
-            return 1;
-        }
+        m113.GetSystem()->SetMaxPenetrationRecoverySpeed(1.5);
+        m113.GetSystem()->SetMinBounceSpeed(2.0);
     }
 
     // ---------------
@@ -217,10 +249,10 @@ int main(int argc, char* argv[]) {
     // ---------------
 
     // Inter-module communication data
-    BodyStates shoe_states_left(vehicle.GetNumTrackShoes(LEFT));
-    BodyStates shoe_states_right(vehicle.GetNumTrackShoes(RIGHT));
-    TerrainForces shoe_forces_left(vehicle.GetNumTrackShoes(LEFT));
-    TerrainForces shoe_forces_right(vehicle.GetNumTrackShoes(RIGHT));
+    BodyStates shoe_states_left(m113.GetVehicle().GetNumTrackShoes(LEFT));
+    BodyStates shoe_states_right(m113.GetVehicle().GetNumTrackShoes(RIGHT));
+    TerrainForces shoe_forces_left(m113.GetVehicle().GetNumTrackShoes(LEFT));
+    TerrainForces shoe_forces_right(m113.GetVehicle().GetNumTrackShoes(RIGHT));
 
     // Number of simulation steps between two 3D view render frames
     int render_steps = (int)std::ceil(render_step_size / step_size);
@@ -233,39 +265,39 @@ int main(int argc, char* argv[]) {
     double total_timing = 0;
 
     while (app.GetDevice()->run()) {
-        // Render scene
-        app.BeginScene(true, true, irr::video::SColor(255, 140, 161, 192));
-        app.DrawAll();
+        if (step_number % render_steps == 0) {
+            app.BeginScene(true, true, irr::video::SColor(255, 140, 161, 192));
+            app.DrawAll();
+            app.EndScene();
 
-        if (img_output && step_number % render_steps == 0) {
-            char filename[100];
-            sprintf(filename, "%s/img_%03d.jpg", img_dir.c_str(), render_frame + 1);
-            app.WriteImageToFile(filename);
-            render_frame++;
+            if (img_output) {
+                char filename[100];
+                sprintf(filename, "%s/img_%03d.jpg", img_dir.c_str(), render_frame + 1);
+                app.WriteImageToFile(filename);
+                render_frame++;
+            }
         }
 
         // Collect output data from modules
         ChDriver::Inputs driver_inputs = driver.GetInputs();
-        vehicle.GetTrackShoeStates(LEFT, shoe_states_left);
-        vehicle.GetTrackShoeStates(RIGHT, shoe_states_right);
+        m113.GetVehicle().GetTrackShoeStates(LEFT, shoe_states_left);
+        m113.GetVehicle().GetTrackShoeStates(RIGHT, shoe_states_right);
 
         // Update modules (process inputs from other modules)
-        double time = vehicle.GetChTime();
+        double time = m113.GetVehicle().GetChTime();
         driver.Synchronize(time);
         terrain.Synchronize(time);
-        vehicle.Synchronize(time, driver_inputs, shoe_forces_left, shoe_forces_right);
+        m113.Synchronize(time, driver_inputs, shoe_forces_left, shoe_forces_right);
         app.Synchronize("", driver_inputs);
 
         // Advance simulation for one timestep for all modules
         driver.Advance(step_size);
         terrain.Advance(step_size);
-        vehicle.Advance(step_size);
+        m113.Advance(step_size);
         app.Advance(step_size);
 
         // Increment frame number
         step_number++;
-
-        app.EndScene();
 
         // Execution time 
         double step_timing = system->GetTimerStep();
@@ -273,7 +305,7 @@ int main(int argc, char* argv[]) {
         ////std::cout << step_number << " " << step_timing << " " << total_timing << std::endl;
     }
 
-    vehicle.WriteContacts("M113_contacts.out");
+    m113.GetVehicle().WriteContacts("M113_contacts.out");
 
     return 0;
 }
@@ -353,7 +385,7 @@ void AddMovingObstacles(ChSystem* system) {
     ball->AddAsset(sphere);
 
     auto mtexture = chrono_types::make_shared<ChTexture>();
-    mtexture->SetTextureFilename(GetChronoDataFile("bluwhite.png"));
+    mtexture->SetTextureFilename(GetChronoDataFile("textures/bluewhite.png"));
     ball->AddAsset(mtexture);
 
     system->AddBody(ball);

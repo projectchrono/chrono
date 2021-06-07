@@ -177,7 +177,6 @@ void HMMWV_ReissnerTire::CreateMesh(const ChFrameMoving<>& wheel_frame, VehicleS
             // Node direction
             ChVector<> tan_prf(std::cos(phi) * xp_prf, yp_prf, std::sin(phi) * xp_prf);
             ChVector<> nrm_prf = Vcross(tan_prf, nrm).GetNormalized();
-            ChVector<> dir = wheel_frame.TransformDirectionLocalToParent(nrm_prf);
             ChMatrix33<> mrot; mrot.Set_A_Xdir(tan_prf,nrm_prf);
             auto node = chrono_types::make_shared<ChNodeFEAxyzrot>(ChFrame<>(loc, mrot));
 
@@ -212,11 +211,6 @@ void HMMWV_ReissnerTire::CreateMesh(const ChFrameMoving<>& wheel_frame, VehicleS
             // Create the element and set its nodes.
             auto element = chrono_types::make_shared<ChElementShellReissner4>();
             element->SetNodes(node0, node1, node2, node3);
-
-            // Element dimensions
-            double len_circumference =
-                0.5 * ((node1->GetPos() - node0->GetPos()).Length() + (node3->GetPos() - node2->GetPos()).Length());
-            double len_width = (node2->GetPos() - node0->GetPos()).Length();
 
             // Figure out the section for this element
             int b1 = m_num_elements_bead;

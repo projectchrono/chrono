@@ -82,7 +82,7 @@ int main(int argc, char* argv[]) {
 
                     ChFrame<> f = ChFrame<>(p, q);
 
-                    float scale = 1 * (float)rand() / (float)RAND_MAX + .01;
+                    float scale = 1 * (float)rand() / (float)RAND_MAX + .01f;
                     for (int a = 0; a < 9; a++) {
                         f.Amatrix(a) *= scale;
                         // f.Amatrix(4) *= scale;
@@ -113,11 +113,12 @@ int main(int argc, char* argv[]) {
         // ------------------------------------------------
         auto cam = std::make_shared<ChCameraSensor>(
             cam_body,                                                            // body camera is attached to
-            60,                                                                  // update rate in Hz
+            60.0f,                                                               // update rate in Hz
             chrono::ChFrame<double>({-10, 0, 0}, Q_from_AngAxis(0, {0, 1, 0})),  // offset pose
             1920,                                                                // image width
             1080,                                                                // image height
-            CH_C_PI / 3);                                                        // FOV
+            (float)CH_C_PI / 3                                                   // FOV
+        );
         cam->SetName("Camera Sensor");
         if (vis)
             cam->PushFilter(std::make_shared<ChFilterVisualize>(1280, 720));
@@ -129,9 +130,9 @@ int main(int argc, char* argv[]) {
         // ---------------
         // Simulate system
         // ---------------
-        float orbit_radius = (x_instances / 2.) * x_spread + 5.f;
-        float orbit_rate = 0.5;
-        float ch_time = 0.0;
+        float orbit_radius = (x_instances / 2.0f) * x_spread + 5.0f;
+        float orbit_rate = 0.5f;
+        float ch_time = 0.0f;
 
         double render_time = 0;
 

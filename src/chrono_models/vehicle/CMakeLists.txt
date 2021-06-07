@@ -77,6 +77,89 @@ set(CVM_HMMWV_FILES
 )
 source_group("hmmwv" FILES ${CVM_HMMWV_FILES})
 
+set(CVM_FEDA_FILES
+    feda/FEDA_AntirollBarRSD.h
+    feda/FEDA_AntirollBarRSD.cpp
+    feda/FEDA_BrakeSimple.cpp
+    feda/FEDA_BrakeSimple.h
+    feda/FEDA_BrakeShafts.cpp
+    feda/FEDA_BrakeShafts.h
+    feda/FEDA_Chassis.cpp
+    feda/FEDA_Chassis.h
+    feda/FEDA_DoubleWishbone.cpp
+    feda/FEDA_DoubleWishbone.h
+    feda/FEDA_Driveline4WD.cpp
+    feda/FEDA_Driveline4WD.h
+    feda/FEDA_Pac02Tire.cpp
+    feda/FEDA_Pac02Tire.h
+    feda/FEDA_PitmanArm.cpp
+    feda/FEDA_PitmanArm.h
+    feda/FEDA_RigidTire.cpp
+    feda/FEDA_RigidTire.h
+    feda/FEDA_SimpleMapPowertrain.cpp
+    feda/FEDA_SimpleMapPowertrain.h
+    feda/FEDA_Powertrain.cpp
+    feda/FEDA_Powertrain.h
+    feda/FEDA_Vehicle.cpp
+    feda/FEDA_Vehicle.h   
+    feda/FEDA_Wheel.cpp
+    feda/FEDA_Wheel.h   
+    feda/FEDA.cpp
+    feda/FEDA.h   
+)
+source_group("feda" FILES ${CVM_FEDA_FILES})
+
+set(CVM_MROLE_FILES
+    mrole/mrole.cpp
+    mrole/mrole.h
+    mrole/mrole_BrakeSimple.cpp
+    mrole/mrole_BrakeSimple.h
+    mrole/mrole_BrakeShafts.cpp
+    mrole/mrole_BrakeShafts.h
+    mrole/mrole_Chassis.h
+    mrole/mrole_Chassis.cpp
+    mrole/mrole_DoubleWishbone.cpp
+    mrole/mrole_DoubleWishbone.h
+    mrole/mrole_DoubleWishboneReduced.cpp
+    mrole/mrole_DoubleWishboneReduced.h
+    mrole/mrole_Driveline2WD.cpp
+    mrole/mrole_Driveline2WD.h
+    mrole/mrole_Driveline4WD.cpp
+    mrole/mrole_Driveline8WD.h
+    mrole/mrole_Driveline8WD.cpp
+    mrole/mrole_Driveline4WD.h
+    mrole/mrole_RigidTire.cpp
+    mrole/mrole_RigidTire.h
+    mrole/mrole_TMeasyTire.cpp
+    mrole/mrole_TMeasyTire.h
+    mrole/mrole_PitmanArm.cpp
+    mrole/mrole_PitmanArm.h
+    mrole/mrole_PitmanArmShafts.cpp
+    mrole/mrole_PitmanArmShafts.h
+    mrole/mrole_Powertrain.cpp
+    mrole/mrole_Powertrain.h
+    mrole/mrole_RackPinion.cpp
+    mrole/mrole_RackPinion.h
+    mrole/mrole_SimpleDriveline.cpp
+    mrole/mrole_SimpleDriveline.h
+    mrole/mrole_SimpleDrivelineXWD.cpp
+    mrole/mrole_SimpleDrivelineXWD.h
+    mrole/mrole_SimplePowertrain.cpp
+    mrole/mrole_SimplePowertrain.h
+    mrole/mrole_SimpleCVTPowertrain.cpp
+    mrole/mrole_SimpleCVTPowertrain.h
+    mrole/mrole_SimpleMapPowertrain.cpp
+    mrole/mrole_SimpleMapPowertrain.h
+    mrole/mrole_Vehicle.h
+    mrole/mrole_VehicleFull.cpp
+    mrole/mrole_VehicleFull.h
+    mrole/mrole_VehicleReduced.cpp
+    mrole/mrole_VehicleReduced.h
+    mrole/mrole_Wheel.cpp
+    mrole/mrole_Wheel.h
+)
+source_group("mrole" FILES ${CVM_MROLE_FILES})
+
 set(CVM_FMTV_FILES
     mtv/FMTV_ChassisFront.cpp
     mtv/FMTV_ChassisFront.h
@@ -310,6 +393,8 @@ set(CVM_SEDAN_FILES
     sedan/Sedan_Vehicle.cpp
     sedan/Sedan_Wheel.cpp
     sedan/Sedan_Wheel.h
+    sedan/Sedan_AIDriver.cpp
+    sedan/Sedan_AIDriver.h
 )
 source_group("sedan" FILES ${CVM_SEDAN_FILES})
 
@@ -383,6 +468,39 @@ set(CVM_GATOR_FILES
 )
 source_group("gator" FILES ${CVM_GATOR_FILES})
 
+set(CVM_MARDER_FILES
+    marder/Marder.h
+    marder/Marder.cpp
+    marder/Marder_Chassis.h
+    marder/Marder_Chassis.cpp
+    marder/Marder_BrakeSimple.h
+    marder/Marder_BrakeShafts.h
+    marder/Marder_Idler.h
+    marder/Marder_Idler.cpp
+    marder/Marder_RoadWheel.h
+    marder/Marder_RoadWheel.cpp
+    marder/Marder_SprocketSinglePin.h
+    marder/Marder_SprocketSinglePin.cpp
+    marder/Marder_SupportRoller.h
+    marder/Marder_SupportRoller.cpp
+    marder/Marder_TrackShoeSinglePin.h
+    marder/Marder_TrackShoeSinglePin.cpp
+    marder/Marder_Suspension.h
+    marder/Marder_Suspension.cpp
+    marder/Marder_SimpleDriveline.h 
+    marder/Marder_SimpleDriveline.cpp
+    marder/Marder_SimplePowertrain.h 
+    marder/Marder_SimplePowertrain.cpp
+    marder/Marder_SimpleCVTPowertrain.h 
+    marder/Marder_SimpleCVTPowertrain.cpp
+    marder/Marder_TrackAssemblySinglePin.h
+    marder/Marder_TrackAssemblySinglePin.cpp
+    marder/Marder_Vehicle.h
+    marder/Marder_Vehicle.cpp
+)
+
+source_group("marder" FILES ${CVM_MARDER_FILES})
+
 set(CVM_M113_FILES
     m113/M113.h
     m113/M113.cpp
@@ -392,16 +510,18 @@ set(CVM_M113_FILES
     m113/M113_Chassis.cpp
     m113/M113_DrivelineBDS.cpp
     m113/M113_DrivelineBDS.h
+    m113/M113_SimpleDriveline.cpp
+    m113/M113_SimpleDriveline.h
     m113/M113_Idler.cpp
     m113/M113_Idler.h
     m113/M113_RoadWheel.cpp
     m113/M113_RoadWheel.h
     m113/M113_ShaftsPowertrain.cpp
     m113/M113_ShaftsPowertrain.h
-    m113/M113_SimpleDriveline.cpp
-    m113/M113_SimpleDriveline.h
-    m113/M113_SimplePowertrain.cpp
-    m113/M113_SimplePowertrain.h
+    m113/M113_SimpleCVTPowertrain.cpp
+    m113/M113_SimpleCVTPowertrain.h
+    m113/M113_SimpleMapPowertrain.cpp
+    m113/M113_SimpleMapPowertrain.h
     m113/M113_SprocketSinglePin.cpp
     m113/M113_SprocketSinglePin.h
     m113/M113_SprocketDoublePin.cpp
@@ -503,13 +623,16 @@ set(LIBRARIES ChronoEngine ChronoEngine_vehicle)
 add_library(ChronoModels_vehicle SHARED
     ${CVM_COMMON_FILES}
     ${CVM_HMMWV_FILES}
+    ${CVM_FEDA_FILES}
     ${CVM_FMTV_FILES}
+    ${CVM_MROLE_FILES}
     ${CVM_UAZ_FILES}
     ${CVM_GENERIC_FILES}
     ${CVM_SEDAN_FILES}
     ${CVM_CITYBUS_FILES}
     ${CVM_GATOR_FILES}
     ${CVM_M113_FILES}
+    ${CVM_MARDER_FILES}
     ${CVM_MAN_FILES}
     ${CVM_RCCAR_FILES}
     ${CVM_KRAZ_FILES}

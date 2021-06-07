@@ -30,7 +30,7 @@ namespace vehicle {
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 Pac89Tire::Pac89Tire(const std::string& filename) : ChPac89Tire(""), m_mass(0), m_normalDamping(0), m_has_mesh(false) {
-    Document d = ReadFileJSON(filename);
+    Document d; ReadFileJSON(filename, d);
     if (d.IsNull())
         return;
 

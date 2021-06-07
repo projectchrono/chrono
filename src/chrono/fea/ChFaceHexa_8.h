@@ -43,7 +43,7 @@ class ChApi ChFaceHexa_8 : public ChLoadableUV {
     std::shared_ptr<ChElementHexa_8> melement;
 
   public:
-    ChFaceHexa_8(std::shared_ptr<ChElementHexa_8> mel, char mid) : melement(mel), face_id(mid) {}
+    ChFaceHexa_8(std::shared_ptr<ChElementHexa_8> mel, char mid) : face_id(mid), melement(mel) {}
 
     virtual ~ChFaceHexa_8() {}
 

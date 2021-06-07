@@ -20,17 +20,20 @@
 // =============================================================================
 
 #include "chrono_vehicle/tracked_vehicle/ChRoller.h"
+#include "chrono_vehicle/tracked_vehicle/ChTrackAssembly.h"
 
 namespace chrono {
 namespace vehicle {
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-ChRoller::ChRoller(const std::string& name) : ChPart(name) {}
+ChRoller::ChRoller(const std::string& name) : ChPart(name), m_track(nullptr) {}
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-void ChRoller::Initialize(std::shared_ptr<ChBodyAuxRef> chassis, const ChVector<>& location) {
+void ChRoller::Initialize(std::shared_ptr<ChBodyAuxRef> chassis, const ChVector<>& location, ChTrackAssembly* track) {
+    m_track = track;
+
     // Express the roller reference frame in the absolute coordinate system.
     ChFrame<> roller_to_abs(location);
     roller_to_abs.ConcatenatePreTransformation(chassis->GetFrame_REF_to_abs());

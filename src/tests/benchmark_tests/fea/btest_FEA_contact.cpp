@@ -159,7 +159,7 @@ void FEAcontactTest::CreateFloor(std::shared_ptr<ChMaterialSurfaceSMC> cmat) {
     m_system->Add(mfloor);
 
     auto masset_texture = chrono_types::make_shared<ChTexture>();
-    masset_texture->SetTextureFilename(GetChronoDataFile("concrete.jpg"));
+    masset_texture->SetTextureFilename(GetChronoDataFile("textures/concrete.jpg"));
     mfloor->AddAsset(masset_texture);
 }
 
@@ -229,7 +229,8 @@ void FEAcontactTest::CreateCables(std::shared_ptr<ChMaterialSurfaceSMC> cmat) {
 
 void FEAcontactTest::SimulateVis() {
 #ifdef CHRONO_IRRLICHT
-    irrlicht::ChIrrApp application(m_system, L"FEA contacts", irr::core::dimension2d<irr::u32>(800, 600), false, true);
+    irrlicht::ChIrrApp application(m_system, L"FEA contacts", irr::core::dimension2d<irr::u32>(800, 600),
+                                   irrlicht::VerticalDir::Y, false, true);
     application.AddTypicalLogo();
     application.AddTypicalSky();
     application.AddTypicalLights();
@@ -268,7 +269,6 @@ CH_BM_SIMULATION_ONCE(FEAcontact_MUMPS, FEAcontactTest_MUMPS, NUM_SKIP_STEPS, NU
 // =============================================================================
 
 int main(int argc, char* argv[]) {
-    utils::ForceBenchmarkTabularOutput(&argc, &argv);
     ::benchmark::Initialize(&argc, argv);
 
 #ifdef CHRONO_IRRLICHT

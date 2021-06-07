@@ -44,7 +44,7 @@ int main(int argc, char* argv[]) {
     ChSystemSMC my_system;
     my_system.Set_G_acc(ChVector<>(0, 0, 0.0));
     // Create the Irrlicht visualization (open the Irrlicht device, bind a simple user interface, etc.)
-    ChIrrApp application(&my_system, L"ANCF Shells", core::dimension2d<u32>(800, 600), false, true);
+    ChIrrApp application(&my_system, L"ANCF Shells", core::dimension2d<u32>(800, 600));
 
     // Easy shortcuts to add camera, lights, logo and sky in Irrlicht scene:
     application.AddTypicalLogo();
@@ -69,11 +69,8 @@ int main(int argc, char* argv[]) {
     int numDiv_y = 1;
     int numDiv_z = 1;
     int N_x = numDiv_x + 1;
-    int N_y = numDiv_y + 1;
-    int N_z = numDiv_z + 1;
     // Number of elements in the z direction is considered as 1
     int TotalNumElements = numDiv_x * numDiv_y;
-    int TotalNumNodes = (numDiv_x + 1) * (numDiv_y + 2) + numDiv_x * (numDiv_y + 1);
     // For uniform mesh
     double dx = plate_lenght_x / numDiv_x;
     double dy = plate_lenght_y / numDiv_y;

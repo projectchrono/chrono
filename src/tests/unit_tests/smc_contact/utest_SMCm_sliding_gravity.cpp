@@ -60,7 +60,7 @@ class SlidingGravityTest : public ::testing::TestWithParam<ChSystemSMC::ContactF
         sys = new ChSystemMulticoreSMC();
         time_step = 2.0E-5;
         gravity = -9.81;
-        SetSimParameters(sys, ChVector<>(0, gravity, 0), fmodel);
+        SetSimParameters(sys, ChVector<>(0, gravity, 0), fmodel, ChSystemSMC::TangentialDisplacementModel::OneStep);
 
         sys->SetNumThreads(2);
 
@@ -115,7 +115,7 @@ TEST_P(SlidingGravityTest, sliding) {
     while (sys->GetChTime() < t_end) {
         sys->DoStepDynamics(time_step);
 
-        if (CalcKE(sys, 1.0E-9)) {
+        if (CalcKE(sys, 1.0E-8)) {
             std::cout << "[sliding] KE falls below threshold after " << sys->GetChTime() - t_start << " s\n";
             stopped = true;
             break;
@@ -135,9 +135,9 @@ TEST_P(SlidingGravityTest, sliding) {
     ASSERT_LT(d_err, 0.5);
 }
 
-INSTANTIATE_TEST_CASE_P(ChronoMulticore,
-                        SlidingGravityTest,
-                        ::testing::Values(ChSystemSMC::ContactForceModel::Hooke,
-                                          ChSystemSMC::ContactForceModel::Hertz,
-                                          ChSystemSMC::ContactForceModel::PlainCoulomb,
-                                          ChSystemSMC::ContactForceModel::Flores));
+INSTANTIATE_TEST_SUITE_P(ChronoMulticore,
+                         SlidingGravityTest,
+                         ::testing::Values(ChSystemSMC::ContactForceModel::Hooke,
+                                           ChSystemSMC::ContactForceModel::Hertz,
+                                           ChSystemSMC::ContactForceModel::PlainCoulomb,
+                                           ChSystemSMC::ContactForceModel::Flores));

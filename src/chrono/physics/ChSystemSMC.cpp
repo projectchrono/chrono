@@ -36,7 +36,7 @@ ChSystemSMC::ChSystemSMC(bool use_material_properties)
     : ChSystem(),
       m_use_mat_props(use_material_properties),
       m_contact_model(Hertz),
-      m_adhesion_model(Constant),
+      m_adhesion_model(AdhesionForceModel::Constant),
       m_tdispl_model(OneStep),
       m_stiff_contact(false) {
     descriptor = chrono_types::make_shared<ChSystemDescriptor>();
@@ -81,9 +81,9 @@ class my_enum_mappers : public ChSystemSMC {
     CH_ENUM_MAPPER_END(ContactForceModel);
 
     CH_ENUM_MAPPER_BEGIN(AdhesionForceModel);
-    CH_ENUM_VAL(Constant);
-    CH_ENUM_VAL(DMT);
-    CH_ENUM_VAL(Perko);
+    CH_ENUM_VAL(AdhesionForceModel::Constant);
+    CH_ENUM_VAL(AdhesionForceModel::DMT);
+    CH_ENUM_VAL(AdhesionForceModel::Perko);
     CH_ENUM_MAPPER_END(AdhesionForceModel);
 
     CH_ENUM_MAPPER_BEGIN(TangentialDisplacementModel);
@@ -116,7 +116,7 @@ void ChSystemSMC::ArchiveOUT(ChArchiveOut& marchive) {
 /// Method to allow de serialization of transient data from archives.
 void ChSystemSMC::ArchiveIN(ChArchiveIn& marchive) {
     // version number
-    int version = marchive.VersionRead<ChSystemSMC>();
+    /*int version =*/ marchive.VersionRead<ChSystemSMC>();
 
     // deserialize parent class
     ChSystem::ArchiveIN(marchive);

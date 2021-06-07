@@ -626,7 +626,7 @@ int OBJ::ParseLine(int /*lineno*/,
                 mNormals.push_back(normalz);
             } else if (strcasecmp(argv[0], "f") == 0 && argc >= 4) {
                 // ***ALEX*** do not use the BuildMesh stuff
-                int vcount = argc - 1;
+                ////int vcount = argc - 1;
                 const char* argvT[3];
                 argvT[0] = argv[1];  // pivot for triangle fans when quad/poly face
                 for (int i = 1; i < argc; i++) {
@@ -1417,7 +1417,7 @@ bool ChTriangleMeshConnected::SplitEdge(
     face_indexes[2] = &m_face_uv_indices;
     face_indexes[3] = &m_face_col_indices;
 
-    int iea, ieb;
+    int iea = 0, ieb = 0;
 
     for (int ibuffer = 0; ibuffer < 4; ++ibuffer) {
         if (face_indexes[ibuffer]->size()) {
@@ -1524,8 +1524,8 @@ bool ChTriangleMeshConnected::SplitEdge(
                     std::array<int, 4> topo_B_2 = tri_map[itB];
                     topo_B_1[1 + neB] = itA_1;
                     topo_B_2[1 + neB] = itA_2;
-                    int is1 = 1 + ((neB + 2) % 3);
-                    int is2 = 1 + ((neB + 1) % 3);
+                    is1 = 1 + ((neB + 2) % 3);
+                    is2 = 1 + ((neB + 1) % 3);
                     if (swapB)
                         std::swap(is1, is2);
                     topo_B_1[is1] = itB_2;
@@ -1739,7 +1739,7 @@ void ChTriangleMeshConnected::ArchiveOUT(ChArchiveOut& marchive) {
 
 void ChTriangleMeshConnected::ArchiveIN(ChArchiveIn& marchive) {
     // version number
-    int version = marchive.VersionRead<ChTriangleMeshConnected>();
+    /*int version =*/ marchive.VersionRead<ChTriangleMeshConnected>();
     // deserialize parent class
     ChTriangleMesh::ArchiveIN(marchive);
     // stream in all member data:

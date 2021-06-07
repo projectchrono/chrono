@@ -37,11 +37,11 @@ class CH_VEHICLE_API SimpleCVTPowertrain : public ChSimpleCVTPowertrain {
     SimpleCVTPowertrain(const rapidjson::Document& d);
     ~SimpleCVTPowertrain() {}
 
-    virtual double GetForwardGearRatio() const override { return m_fwd_gear_ratio; }
-    virtual double GetReverseGearRatio() const override { return m_rev_gear_ratio; }
+    virtual void SetGearRatios(std::vector<double>& fwd, double& rev) override;
+
     virtual double GetMaxTorque() const override { return m_max_torque; }
     virtual double GetMaxPower() const override { return m_max_power; }
-    virtual double GetCriticalSpeed() const override { return m_critical_speed; }
+    virtual double GetMaxSpeed() const override { return m_max_speed; }
 
   private:
     virtual void Create(const rapidjson::Document& d) override;
@@ -50,7 +50,7 @@ class CH_VEHICLE_API SimpleCVTPowertrain : public ChSimpleCVTPowertrain {
     double m_rev_gear_ratio;  // reverse gear ratio
     double m_max_torque;      // maximum motor torque
     double m_max_power;       // maximum motor power
-    double m_critical_speed;  // critical motor speed where torque limiting begins/ends
+    double m_max_speed;       // maximum engine speed
 };
 
 /// @} vehicle_powertrain

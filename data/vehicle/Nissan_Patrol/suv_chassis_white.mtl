@@ -1,0 +1,95 @@
+# Blender MTL File: 'None'
+# Material Count: 7
+
+newmtl lambert2SG
+Ns 0.000000
+Ka 1.000000 1.000000 1.000000
+Kd 0.000000 0.000000 0.000000
+Ks 0.000000 0.000000 0.000000
+Ke 0.000000 0.000000 0.000000
+map_Kd textures/Nissan_Chassis_OBJ_0331_Nissan_Lights_BaseColor.jpg
+map_Pr textures/Nissan_Chassis_OBJ_0331_Nissan_Lights_Roughness.jpg
+map_Pm textures/Nissan_Chassis_OBJ_0331_Nissan_Lights_Metallic.jpg
+Ni 1.000000
+d 1.000000
+illum 1
+
+newmtl lambert3SG
+Ns 0.000000
+Ka 1.000000 1.000000 1.000000
+Kd 0.000000 0.000000 0.000000
+Ks 0.000000 0.000000 0.000000
+Ke 0.000000 0.000000 0.000000
+map_Kd textures/Nissan_Chassis_OBJ_0331_Nissan_Lights_BaseColor.jpg
+map_Pr textures/Nissan_Chassis_OBJ_0331_Nissan_Lights_Roughness.jpg
+map_Pm textures/Nissan_Chassis_OBJ_0331_Nissan_Lights_Metallic.jpg
+Ni 1.000000
+d 1.000000
+illum 1
+
+newmtl lambert4SG
+Ns 0.000000
+Ka 1.000000 1.000000 1.000000
+Kd 0.000000 0.000000 0.000000
+Ks 0.000000 0.000000 0.000000
+Ke 0.000000 0.000000 0.000000
+map_Kd textures/Nissan_Chassis_OBJ_0331_Nissan_Lights_BaseColor.jpg
+map_Pr textures/Nissan_Chassis_OBJ_0331_Nissan_Lights_Roughness.jpg
+map_Pm textures/Nissan_Chassis_OBJ_0331_Nissan_Lights_Metallic.jpg
+Ni 1.000000
+d 1.000000
+illum 1
+
+newmtl lambert5SG
+Ns 0.000000
+Ka 1.000000 1.000000 1.000000
+Kd 0.500000 0.500000 0.500000
+Ks 0.000000 0.000000 0.000000
+Ke 0.000000 0.000000 0.000000
+map_Kd textures/Nissan_Chassis_BaseColor_White.jpg
+map_Pr textures/Nissan_Chassis_OBJ_0331_Nissan_Chassis_Roughness.jpg
+map_Pm textures/Nissan_Chassis_OBJ_0331_Nissan_Chassis_Metallic.jpg
+map_d textures/Nissan_Chassis_Opacity.jpg
+Ni 1.000000
+d 1.000000
+illum 1
+
+newmtl lambert6SG
+Ns 0.000000
+Ka 1.000000 1.000000 1.000000
+Kd 0.500000 0.500000 0.500000
+Ks 0.000000 0.000000 0.000000
+Ke 0.000000 0.000000 0.000000
+map_Kd textures/Nissan_Chassis_OBJ_0331_Nissan_Exterior_BaseColor.jpg
+map_Pr textures/Nissan_Chassis_OBJ_0331_Nissan_Exterior_Roughness.jpg
+map_Pm textures/Nissan_Chassis_OBJ_0331_Nissan_Exterior_Metallic.jpg
+Ni 1.000000
+d 1.000000
+illum 1
+
+newmtl lambert7SG
+Ns 0.000000
+Ka 1.000000 1.000000 1.000000
+Kd 0.500000 0.500000 0.500000
+Ks 0.000000 0.000000 0.000000
+Ke 0.000000 0.000000 0.000000
+map_Kd textures/Nissan_Chassis_OBJ_0331_Nissan_Wheel_BaseColor.jpg
+map_Pr textures/Nissan_Chassis_OBJ_0331_Nissan_Wheel_Roughness.jpg
+map_Pm textures/Nissan_Chassis_OBJ_0331_Nissan_Wheel_Metallic.jpg
+norm textures/Nissan_Chassis_OBJ_0331_Nissan_Wheel_Normal.jpg
+Ni 1.000000
+d 1.000000
+illum 1
+
+newmtl lambert8SG
+Ns 0.000000
+Ka 1.000000 1.000000 1.000000
+Kd 0.500000 0.500000 0.500000
+Ks 0.000000 0.000000 0.000000
+Ke 0.000000 0.000000 0.000000
+map_Kd textures/Nissan_Chassis_OBJ_0331_Nissan_Interior_BaseColor.jpg
+map_Pr textures/Nissan_Chassis_OBJ_0331_Nissan_Interior_Roughness.jpg
+map_Pm textures/Nissan_Chassis_OBJ_0331_Nissan_Interior_Metallic.jpg
+Ni 1.000000
+d 1.000000
+illum 1

@@ -57,7 +57,7 @@ int main(int argc, char* argv[]) {
     my_hmmwv.SetChassisCollisionType(CollisionType::NONE);
     my_hmmwv.SetInitPosition(ChCoordsys<>(ChVector<>(-10, 0, 1), ChQuaternion<>(1, 0, 0, 0)));
     my_hmmwv.SetPowertrainType(PowertrainModelType::SIMPLE);
-    my_hmmwv.SetDriveType(DrivelineType::RWD);
+    my_hmmwv.SetDriveType(DrivelineTypeWV::RWD);
     my_hmmwv.SetTireType(TireModelType::TMEASY);
     my_hmmwv.SetTireStepSize(tire_step_size);
     my_hmmwv.Initialize();
@@ -93,7 +93,7 @@ int main(int argc, char* argv[]) {
     patch3_mat->SetFriction(0.9f);
     patch3_mat->SetRestitution(0.01f);
     auto patch3 = terrain.AddPatch(patch3_mat, ChCoordsys<>(ChVector<>(0, -42, 0), QUNIT),
-                                   vehicle::GetDataFile("terrain/meshes/bump.obj"), "hills_mesh");
+                                   vehicle::GetDataFile("terrain/meshes/bump.obj"));
     patch3->SetColor(ChColor(0.5f, 0.5f, 0.8f));
     patch3->SetTexture(vehicle::GetDataFile("terrain/textures/dirt.jpg"), 6.0f, 6.0f);
 
@@ -102,7 +102,7 @@ int main(int argc, char* argv[]) {
     patch4_mat->SetRestitution(0.01f);
     auto patch4 =
         terrain.AddPatch(patch4_mat, ChCoordsys<>(ChVector<>(0, 42, 0), QUNIT),
-                         vehicle::GetDataFile("terrain/height_maps/bump64.bmp"), "field_mesh", 64.0, 64.0, 0.0, 3.0);
+                         vehicle::GetDataFile("terrain/height_maps/bump64.bmp"), 64.0, 64.0, 0.0, 3.0);
     patch4->SetTexture(vehicle::GetDataFile("terrain/textures/grass.jpg"), 6.0f, 6.0f);
 
     terrain.Initialize();

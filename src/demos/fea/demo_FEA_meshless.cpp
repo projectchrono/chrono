@@ -43,12 +43,10 @@ int main(int argc, char* argv[]) {
     // Create the Irrlicht visualization (open the Irrlicht device,
     // bind a simple user interface, etc. etc.)
     ChIrrApp application(&mphysicalSystem, L"Meshless deformable material", core::dimension2d<u32>(800, 600), false);
-
-    // Easy shortcuts to add camera, lights, logo and sky in Irrlicht scene:
-    ChIrrWizard::add_typical_Logo(application.GetDevice());
-    ChIrrWizard::add_typical_Sky(application.GetDevice());
-    ChIrrWizard::add_typical_Lights(application.GetDevice());
-    ChIrrWizard::add_typical_Camera(application.GetDevice(), core::vector3df(0, 3, -3));
+    application.AddTypicalLogo();
+    application.AddTypicalSky();
+    application.AddTypicalLights();
+    application.AddTypicalCamera(core::vector3df(0, 3, -3));
 
     // CREATE A FLOOR
 
@@ -57,7 +55,7 @@ int main(int argc, char* argv[]) {
     mfloorBody->SetBodyFixed(true);
     mfloorBody->SetPos(ChVector<>(0, -5, 0));
 
-    ChSharedPtr<ChTexture> mtexture( new ChTexture(GetChronoDataFile("concrete.jpg").c_str()));
+    ChSharedPtr<ChTexture> mtexture( new ChTexture(GetChronoDataFile("textures/concrete.jpg").c_str()));
     mfloorBody->AddAsset(mtexture);
 
    

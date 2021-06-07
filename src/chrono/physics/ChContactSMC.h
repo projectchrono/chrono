@@ -146,10 +146,10 @@ class ChContactSMC : public ChContactTuple<Ta, Tb> {
         // All models use the following formulas for normal and tangential forces:
         //     Fn = kn * delta_n - gn * v_n
         //     Ft = kt * delta_t - gt * v_t
-        double kn;
-        double kt;
-        double gn;
-        double gt;
+        double kn = 0;
+        double kt = 0;
+        double gn = 0;
+        double gt = 0;
 
         double eps = std::numeric_limits<double>::epsilon();
 
@@ -201,7 +201,6 @@ class ChContactSMC : public ChContactTuple<Ta, Tb> {
                 if (use_mat_props) {
                     double sqrt_Rd = std::sqrt(delta);
                     double Sn = 2 * mat.E_eff * sqrt_Rd;
-                    double St = 8 * mat.G_eff * sqrt_Rd;
                     double loge = (mat.cr_eff < eps) ? std::log(eps) : std::log(mat.cr_eff);
                     double beta = loge / std::sqrt(loge * loge + CH_C_PI * CH_C_PI);
                     kn = (2.0 / 3) * Sn;
@@ -221,12 +220,12 @@ class ChContactSMC : public ChContactTuple<Ta, Tb> {
                         forceN = 0;
                     double forceT = mat.mu_eff * std::tanh(5.0 * relvel_t_mag) * forceN;
                     switch (adhesion_model) {
-                        case ChSystemSMC::Perko:
+                        case ChSystemSMC::AdhesionForceModel::Perko:
                             // Currently not implemented.  Fall through to Constant.
-                        case ChSystemSMC::Constant:
+                        case ChSystemSMC::AdhesionForceModel::Constant:
                             forceN -= mat.adhesion_eff;
                             break;
-                        case ChSystemSMC::DMT:
+                        case ChSystemSMC::AdhesionForceModel::DMT:
                             forceN -= mat.adhesionMultDMT_eff * sqrt(this->eff_radius);
                             break;
                     }
@@ -265,10 +264,12 @@ class ChContactSMC : public ChContactTuple<Ta, Tb> {
 
         // Include adhesion force
         switch (adhesion_model) {
-            case ChSystemSMC::Constant:
+            case ChSystemSMC::AdhesionForceModel::Perko:
+                // Currently not implemented.  Fall through to Constant.
+            case ChSystemSMC::AdhesionForceModel::Constant:
                 forceN -= mat.adhesion_eff;
                 break;
-            case ChSystemSMC::DMT:
+            case ChSystemSMC::AdhesionForceModel::DMT:
                 forceN -= mat.adhesionMultDMT_eff * sqrt(this->eff_radius);
                 break;
         }

@@ -28,7 +28,7 @@ void ChEllipsoidShape::ArchiveOUT(ChArchiveOut& marchive) {
 
 void ChEllipsoidShape::ArchiveIN(ChArchiveIn& marchive) {
     // version number
-    int version = marchive.VersionRead<ChEllipsoidShape>();
+    /*int version =*/ marchive.VersionRead<ChEllipsoidShape>();
     // deserialize parent class
     ChVisualization::ArchiveIN(marchive);
     // stream in all member data:

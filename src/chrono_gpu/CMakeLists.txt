@@ -74,13 +74,14 @@ endif()
 # Add optional HDF5 support
 # ------------------------------------------------------------------------------
 
-if(HDF5_FOUND)
-    include_directories(${HDF5_INCLUDE_DIRS})
-    set(CH_GPU_INCLUDES ${CH_GPU_INCLUDES} ${HDF5_INCLUDE_DIRS})
-    set(CH_CPU_COMPILE_DEFS "${CH_CPU_COMPILE_DEFS} ${H5_BUILT_AS_DYNAMIC_LIB}")
-    list(APPEND CH_GPU_LINKED_LIBRARIES ${HDF5_CXX_LIBRARIES})
-    add_definitions(-DUSE_HDF5)
-endif()
+#if(HDF5_FOUND)
+#    include_directories(${HDF5_INCLUDE_DIRS})
+#    set(CH_GPU_INCLUDES ${CH_GPU_INCLUDES} ${HDF5_INCLUDE_DIRS})
+##    set(CH_CPU_COMPILE_DEFS "${CH_CPU_COMPILE_DEFS} ${HDF5_COMPILE_DEFS} ${H5_BUILT_AS_DYNAMIC_LIB}")
+#    set(CH_CPU_COMPILE_DEFS "${CH_CPU_COMPILE_DEFS} ${H5_BUILT_AS_DYNAMIC_LIB}")
+#    list(APPEND CH_GPU_LINKED_LIBRARIES ${HDF5_CXX_LIBRARIES})
+#    add_definitions(-DUSE_HDF5)
+#endif()
 
 # ------------------------------------------------------------------------------
 # Make some variables visible from parent directory
@@ -160,6 +161,10 @@ set_target_properties(ChronoEngine_gpu PROPERTIES
                       LINK_FLAGS "${CH_GPU_LINKER_FLAGS}"
                       COMPILE_DEFINITIONS "CH_API_COMPILE_GPU ${CH_CPU_COMPILE_DEFS}")
 
+#if(HDF5_FOUND)
+#target_compile_definitions(ChronoEngine_gpu PRIVATE ${HDF5_COMPILE_DEFS})
+#endif()
+
 target_link_libraries(ChronoEngine_gpu ${CH_GPU_LINKED_LIBRARIES})
 
 install(TARGETS ChronoEngine_gpu
@@ -192,34 +197,44 @@ if(GPU_VERBOSE_PTXAS)
     set(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS} --ptxas-options=-v")
 endif()
 
-message(STATUS "NVCC Flags are " ${CUDA_NVCC_FLAGS})
+#message(STATUS "NVCC Flags: ${CUDA_NVCC_FLAGS}")
+
 set(CUDA_SEPARABLE_COMPILATION OFF)
+
 if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
+
     set(CUDA_SEPARABLE_COMPILATION ON)
-    #set(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS}; -G -lineinfo)
     target_compile_options(ChronoEngine_gpu PRIVATE $<$<COMPILE_LANGUAGE:CUDA>:
                            --generate-line-info
                            --device-debug
                            >)
+
 elseif(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
-    set(CUDA_NVCC_FLAGS_DEBUG ${CUDA_NVCC_FLAGS_DEBUG} -G -Xcompiler -g)
-    set(CUDA_NVCC_FLAGS_RELEASE ${CUDA_NVCC_FLAGS_RELEASE} -Xcompiler -O3 -Xptxas -O3 -Xcompiler -DNDEBUG)
-    set(CUDA_NVCC_FLAGS_RELWITHDEBINFO ${CUDA_NVCC_FLAGS_RELWITHDEBINFO} -Xcompiler -O2 -Xcompiler -g -Xcompiler -DNDEBUG)
-    set(CUDA_NVCC_FLAGS_MINSIZEREL ${CUDA_NVCC_FLAGS_MINSIZEREL} -Xcompiler -Os -Xcompiler -DNDEBUG)
-    message(STATUS "NVCC Flags are " ${CUDA_NVCC_FLAGS})
+
+    set(CUDA_NVCC_FLAGS_DEBUG "${CUDA_NVCC_FLAGS_DEBUG} -G -Xcompiler -g")
+    set(CUDA_NVCC_FLAGS_RELEASE "${CUDA_NVCC_FLAGS_RELEASE} -Xcompiler -O3 -Xptxas -O3 -Xcompiler -DNDEBUG")
+    set(CUDA_NVCC_FLAGS_RELWITHDEBINFO "${CUDA_NVCC_FLAGS_RELWITHDEBINFO} -Xcompiler -O2 -Xcompiler -g -Xcompiler -DNDEBUG")
+    set(CUDA_NVCC_FLAGS_MINSIZEREL "${CUDA_NVCC_FLAGS_MINSIZEREL} -Xcompiler -Os -Xcompiler -DNDEBUG")
     message(STATUS "NVCC Release flags are" ${CUDA_NVCC_FLAGS_RELEASE})
-    
-    
+       
     if(${CMAKE_CXX_COMPILER_ID} MATCHES "GNU")
         if(${CMAKE_CXX_COMPILER_VERSION} VERSION_GREATER 4.9)
             set(CUDA_PROPAGATE_HOST_FLAGS OFF)
-        ELSE()
-            message(FATAL_ERROR "Using GCC version:  ${CMAKE_CXX_COMPILER_VERSION}. GCC <= 4.9 is not supported! Please use a newer compiler")
+        else()
+            message(FATAL_ERROR "Using GCC version ${CMAKE_CXX_COMPILER_VERSION}. GCC <= 4.9 is not supported! Please use a newer compiler")
         endif()
     endif()
     set(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS}; --compiler-options -fPIC --compiler-options -Wall -lineinfo)
-    elseif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+
+elseif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+
     message(FATAL_ERROR "macOS is not supported!")
+
 endif()
 
-message(STATUS "NVCC Flags are " ${CUDA_NVCC_FLAGS})
+message(STATUS "NVCC Flags: ${CUDA_NVCC_FLAGS}")
+
+# Install required chrono_thirdparty headers
+install(DIRECTORY ${CMAKE_SOURCE_DIR}/src/chrono_thirdparty/cub
+        DESTINATION include/chrono_thirdparty
+        FILES_MATCHING PATTERN "*.h" PATTERN "*.cuh" PATTERN "*.hpp" PATTERN "*.inl")

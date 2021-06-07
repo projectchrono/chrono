@@ -383,6 +383,7 @@ IF(MSVC)
         ${CMAKE_SOURCE_DIR}/src/chrono/collision/bullet/BulletCollision/CollisionShapes/btConvexTriangleMeshShape.cpp
         ${CMAKE_SOURCE_DIR}/src/chrono/collision/bullet/BulletCollision/CollisionShapes/btOptimizedBvh.cpp
         ${CMAKE_SOURCE_DIR}/src/chrono/collision/bullet/BulletCollision/CollisionShapes/btCylinderShape.cpp
+        ${CMAKE_SOURCE_DIR}/src/chrono/collision/bullet/BulletCollision/CollisionShapes/btCylindricalShellShape.cpp
         ${CMAKE_SOURCE_DIR}/src/chrono/collision/bullet/BulletCollision/CollisionShapes/btMultiSphereShape.cpp
         ${CMAKE_SOURCE_DIR}/src/chrono/collision/bullet/BulletCollision/CollisionShapes/btEmptyShape.cpp
         ${CMAKE_SOURCE_DIR}/src/chrono/collision/bullet/BulletCollision/CollisionShapes/btMinkowskiSumShape.cpp
@@ -518,3 +519,14 @@ IF(USE_MULTICORE_CUDA)
           DESTINATION include/chrono_multicore
           FILES_MATCHING PATTERN "*.cuh")
 ENDIF()
+
+# Install required chrono_thirdparty headers
+install(DIRECTORY ${CMAKE_SOURCE_DIR}/src/chrono_thirdparty/easylogging
+        DESTINATION include/chrono_thirdparty
+        FILES_MATCHING PATTERN "*.h" PATTERN "*.cuh" PATTERN "*.hpp" PATTERN "*.inl")
+
+if(USE_MULTICORE_CUDA)
+  install(DIRECTORY ${CMAKE_SOURCE_DIR}/src/chrono_thirdparty/cub
+          DESTINATION include/chrono_thirdparty
+          FILES_MATCHING PATTERN "*.h" PATTERN "*.cuh" PATTERN "*.hpp" PATTERN "*.inl")
+endif()

@@ -9,7 +9,7 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Authors: 肖言 (Yan Xiao), Shuo He
+// Authors: Yan Xiao, Shuo He
 // =============================================================================
 //
 // Store the Map information in the simulation. Currently only used for traffic
@@ -53,7 +53,7 @@ class SYN_API SynMAPMessage : public SynMessage {
     ///
     ///@param builder a flatbuffer builder to construct the message with
     ///@return FlatBufferMessage the constructed flatbuffer message
-    virtual FlatBufferMessage ConvertToFlatBuffers(flatbuffers::FlatBufferBuilder& builder) override;
+    virtual FlatBufferMessage ConvertToFlatBuffers(flatbuffers::FlatBufferBuilder& builder) const override;
 
     ///@brief Add the lane to environment.
     ///
@@ -61,7 +61,7 @@ class SYN_API SynMAPMessage : public SynMessage {
     ///@param approach
     ///@param lane
     ///@return int The lane's position in that approach
-    virtual int AddLane(int intersection, int approach, ApproachLane lane);
+    virtual unsigned AddLane(int intersection, int approach, ApproachLane lane);
 
     std::vector<Intersection> intersections;
 };

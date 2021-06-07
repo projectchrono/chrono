@@ -311,7 +311,7 @@ void ChSystemDistributed::PrintBodyStatus() {
     GetLog() << "Rank: " << my_rank << "\n";
     GetLog() << "\tBodylist:\n";
     std::vector<std::shared_ptr<ChBody>>::iterator bl_itr = assembly.bodylist.begin();
-    int i = 0;
+    uint i = 0;
     for (; bl_itr != assembly.bodylist.end(); bl_itr++, i++) {
         ChVector<double> pos = (*bl_itr)->GetPos();
         ChVector<double> vel = (*bl_itr)->GetPos_dt();
@@ -323,7 +323,7 @@ void ChSystemDistributed::PrintBodyStatus() {
     }
 
     GetLog() << "\tData Manager:\n";
-    for (uint i = 0; i < data_manager->num_rigid_bodies; i++) {
+    for (i = 0; i < data_manager->num_rigid_bodies; i++) {
         int status = ddm->comm_status[i];
         unsigned int gid = ddm->global_id[i];
 
@@ -716,7 +716,6 @@ real3 ChSystemDistributed::GetBodyContactForce(uint gid) const {
     // Master rank receives from owning rank
     MPI_Request r_bar;
     MPI_Status s_bar;
-    int num_gids = 0;
     if (my_rank == master_rank) {
         MPI_Ibarrier(world, &r_bar);
         MPI_Status s_prob;

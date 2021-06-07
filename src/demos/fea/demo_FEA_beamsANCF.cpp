@@ -69,7 +69,6 @@ int main(int argc, char* argv[]) {
     double rho = 8000;       // kg/m^3
     double E = 4e8;          // Pa
     double nu = 0;           // Poisson effect neglected for this model
-    double G = E / (2 * (1 + nu));
     // Timoshenko shear correction coefficients for a rectangular cross-section
     double k1 = 10 * (1 + nu) / (12 + 11 * nu);
     double k2 = k1;
@@ -174,7 +173,7 @@ int main(int argc, char* argv[]) {
     mesh->AddAsset(vis_node);
 
     // Create the Irrlicht visualization
-    irrlicht::ChIrrApp application(&sys, L"ANCF beam", irr::core::dimension2d<irr::u32>(800, 600), false, true);
+    irrlicht::ChIrrApp application(&sys, L"ANCF beam", irr::core::dimension2d<irr::u32>(800, 600));
     application.AddTypicalLogo();
     application.AddTypicalSky();
     application.AddTypicalLights();
@@ -189,11 +188,11 @@ int main(int argc, char* argv[]) {
 
         application.BeginScene();
         application.DrawAll();
-        irrlicht::ChIrrTools::drawSegment(application.GetVideoDriver(), ChVector<>(0), ChVector<>(0.3, 0, 0),
+        irrlicht::tools::drawSegment(application.GetVideoDriver(), ChVector<>(0), ChVector<>(0.3, 0, 0),
                                           irr::video::SColor(255, 255, 0, 0));
-        irrlicht::ChIrrTools::drawSegment(application.GetVideoDriver(), ChVector<>(0), ChVector<>(0, 0.3, 0),
+        irrlicht::tools::drawSegment(application.GetVideoDriver(), ChVector<>(0), ChVector<>(0, 0.3, 0),
                                           irr::video::SColor(255, 0, 255, 0));
-        irrlicht::ChIrrTools::drawSegment(application.GetVideoDriver(), ChVector<>(0), ChVector<>(0, 0, 0.3),
+        irrlicht::tools::drawSegment(application.GetVideoDriver(), ChVector<>(0), ChVector<>(0, 0, 0.3),
                                           irr::video::SColor(255, 0, 0, 255));
         application.EndScene();
 

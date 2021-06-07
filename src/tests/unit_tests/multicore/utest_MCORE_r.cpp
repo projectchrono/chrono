@@ -109,6 +109,221 @@ TEST(ChNarrowphaseR, snap_to_cylinder) {
     }
 }
 
+TEST(ChNarrowphaseR, snap_to_box_face) {
+    {
+        {
+            // z dir / in range
+            real3 pt_on_box(1.0, 2.0, 3.0);
+            real3 hdims(1.0, 2.0, 3.0);
+            real3 pt_to_snap(0.1, 0.3, 2.0);
+            uint code = 1 << 2;
+            real3 result = snap_to_box_face(hdims, pt_on_box, code, pt_to_snap);
+            Assert_near(result, real3(0.1, 0.3, 3.0), precision);
+        }
+
+        {
+            // z dir / out of range
+            real3 pt_on_box(1.0, 2.0, 3.0);
+            real3 hdims(1.0, 2.0, 3.0);
+            real3 pt_to_snap(1.7, -2.5, 4.0);
+            uint code = 1 << 2;
+            real3 result = snap_to_box_face(hdims, pt_on_box, code, pt_to_snap);
+            Assert_near(result, real3(1.0, -2.0, 3.0), precision);
+        }
+    }
+}
+
+TEST(ChNarrowphaseR, get_face_corners) {
+    {
+        {
+            // dir x / inside
+            real3 pt_on_box(1.0, 2.0, 3.0);
+            real3 hdims(1.0, 2.0, 3.0);
+            uint code = 1 << 0;
+            real3 corners[4];
+
+            get_face_corners(pt_on_box, code, corners);
+            Assert_near(corners[0], real3(1.0, 2.0, 3.0), precision);
+            Assert_near(corners[1], real3(1.0, -2.0, 3.0), precision);
+            Assert_near(corners[2], real3(1.0, -2.0, -3.0), precision);
+            Assert_near(corners[3], real3(1.0, 2.0, -3.0), precision);
+        }
+
+        {
+            // dir y / inside
+            real3 pt_on_box(1.0, 2.0, 3.0);
+            real3 hdims(1.0, 2.0, 3.0);
+            uint code = 1 << 1;
+            real3 corners[4];
+
+            get_face_corners(pt_on_box, code, corners);
+            Assert_near(corners[0], real3(1.0, 2.0, 3.0), precision);
+            Assert_near(corners[1], real3(1.0, 2.0, -3.0), precision);
+            Assert_near(corners[2], real3(-1.0, 2.0, -3.0), precision);
+            Assert_near(corners[3], real3(-1.0, 2.0, 3.0), precision);
+        }
+
+        {
+            // dir z / inside
+            real3 pt_on_box(1.0, 2.0, 3.0);
+            real3 hdims(1.0, 2.0, 3.0);
+            uint code = 1 << 2;
+            real3 corners[4];
+
+            get_face_corners(pt_on_box, code, corners);
+            Assert_near(corners[0], real3(1, 2, 3), precision);
+            Assert_near(corners[1], real3(-1, 2, 3), precision);
+            Assert_near(corners[2], real3(-1, -2, 3), precision);
+            Assert_near(corners[3], real3(1, -2, 3), precision);
+        }
+    }
+}
+
+TEST(ChNarrowphaseR, get_edge_corners) {
+    {
+        {
+            // dir x
+            real3 pt_on_box(1, 2, 3);
+            real3 hdims(1, 2, 3);
+            uint code = 6;
+            real3 corners[4];
+
+            get_edge_corners(pt_on_box, code, corners);
+            Assert_near(corners[0], real3(1, 2, 3), precision);
+            Assert_near(corners[1], real3(-1, 2, 3), precision);
+        }
+
+        {
+            // dir y
+            real3 pt_on_box(1, -2, -3);
+            real3 hdims(1, 2, 3);
+            uint code = 5;
+            real3 corners[4];
+
+            get_edge_corners(pt_on_box, code, corners);
+            Assert_near(corners[0], real3(1, -2, -3), precision);
+            Assert_near(corners[1], real3(1, 2, -3), precision);
+        }
+
+        {
+            // dir z
+            real3 pt_on_box(-1, 2, -3);
+            real3 hdims(1, 2, 3);
+            uint code = 3;
+            real3 corners[4];
+
+            get_edge_corners(pt_on_box, code, corners);
+            Assert_near(corners[0], real3(-1, 2, -3), precision);
+            Assert_near(corners[1], real3(-1, 2, 3), precision);
+        }
+    }
+}
+
+TEST(ChNarrowphaseR, point_vs_face) {
+    real3 result;
+    real3 normal;
+    real dist;
+
+    {
+        // dir x | valid contact | separation = 0
+        real3 pt_on_face(-0.9, 2, 3);
+        real3 hdims(1, 2, 3);
+        real3 pt_to_snap(-0.9, 1.4, 2);
+
+        ASSERT_TRUE(point_vs_face(hdims, pt_on_face, 1, pt_to_snap, 0.0, result, normal, dist));
+        Assert_near(result, real3(-1, 1.4, 2), precision);
+        Assert_near(normal, real3(-1, 0, 0), precision);
+        ASSERT_NEAR(dist, -0.1, precision);
+    }
+
+    {
+        // dir y | valid contact
+        real3 pt_on_face(1, 2, 3);
+        real3 hdims(1, 2, 3);
+        real3 pt_to_snap(0.5, 1.4, 2);
+
+        ASSERT_TRUE(point_vs_face(hdims, pt_on_face, 2, pt_to_snap, 0.0, result, normal, dist));
+        Assert_near(result, real3(0.5, 2, 2), precision);
+        Assert_near(normal, real3(0, 1, 0), precision);
+        ASSERT_NEAR(dist, -0.6, precision);
+    }
+
+    {
+        // dir z | valid contact
+        real3 pt_on_face(1, 2, 3);
+        real3 hdims(1, 2, 3);
+        real3 pt_to_snap(0.4, 0.8, 2.5);
+
+        ASSERT_TRUE(point_vs_face(hdims, pt_on_face, 4, pt_to_snap, 0.0, result, normal, dist));
+        Assert_near(result, real3(0.4, 0.8, 3), precision);
+        Assert_near(normal, real3(0, 0, 1), precision);
+        ASSERT_NEAR(dist, -0.5, precision);
+    }
+
+    {
+        // dir x | invalid contact
+        real3 pt_on_face(1, 2, 3);
+        real3 hdims(1, 2, 3);
+        real3 pt_to_snap(1.1, 1.4, 2);
+
+        ASSERT_FALSE(point_vs_face(hdims, pt_on_face, 1, pt_to_snap, 0.0, result, normal, dist));
+    }
+
+    {
+        // dir y | invalid contact
+        real3 pt_on_face(1, 2, 3);
+        real3 hdims(1, 2, 3);
+        real3 pt_to_snap(0.5, 2.4, 2);
+
+        ASSERT_FALSE(point_vs_face(hdims, pt_on_face, 2, pt_to_snap, 0.0, result, normal, dist));
+    }
+
+    {
+        // dir z | invalid contact
+        real3 pt_on_face(1, 2, 3);
+        real3 hdims(1, 2, 3);
+        real3 pt_to_snap(1.4, 0.8, 2.5);
+
+        ASSERT_FALSE(point_vs_face(hdims, pt_on_face, 4, pt_to_snap, 0.0, result, normal, dist));
+    }
+}
+
+TEST(ChNarrowphaseR, segment_vs_edge) {
+    real3 loc1;
+    real3 loc2;
+    {
+        real3 pt_on_edge(1, 2, 3);
+        real3 hdims(1, 2, 3);
+        real3 pt_to_snap(0.4, 0.8, 2.5);
+        real3 pt_1(0.5, 0.2, 2.5);
+        real3 pt_2(1.5, 0.2, 2.5);
+
+        ASSERT_TRUE(segment_vs_edge(hdims, pt_on_edge, 5, pt_1, pt_2, loc1, loc2));
+        Assert_near(loc1, real3(1, 0.2, 3), precision);
+        Assert_near(loc2, real3(1, 0.2, 2.5), precision);
+    }
+}
+
+// =============================================================================
+// Utility wrappers
+// =============================================================================
+
+void CheckValueList(real a[], const std::vector<real>& ref) {
+    Assert_near(std::vector<real>(a, a + ref.size()), ref, precision);
+}
+
+void CheckValueList(real a[], int n, const real& ref) {
+    CheckValueList(a, std::vector<real>(n, ref));
+}
+
+void CheckPointList(real3 a[], const std::vector<real3>& ref) {
+    Assert_near(std::vector<real3>(a, a + ref.size()), ref, precision);
+}
+
+void CheckPointList(real3 a[], int n, const real3& ref) {
+    CheckPointList(a, std::vector<real3>(n, ref));
+}
+
 // =============================================================================
 // Tests for various primitive collision functions
 // =============================================================================
@@ -120,6 +335,653 @@ class Collision : public ::testing::Test, public ::testing::WithParamInterface<b
   protected:
     bool sep;
 };
+
+TEST_P(Collision, box_box) {
+    real separation = sep ? 0.1 : 0.0;
+    real penetration;
+    real3 norm[8];
+    real3 pt1[8];
+    real3 pt2[8];
+    real depth[8];
+    real eff_rad[8];
+    int nC;
+
+    // face to face | stack
+    {
+        real3 hdims1(1.0, 2.0, 3.0);
+        real3 pos1(0.0, 0.0, 0.0);
+        quaternion rot1 = quaternion(1, 0, 0, 0);
+
+        real3 hdims2(1.0, 2.0, 3.0);
+        real3 pos2(0.0, 0.0, 6.0);
+        quaternion rot2 = quaternion(1, 0, 0, 0);
+
+        ConvexShapeCustom* shape1 = new ConvexShapeCustom();
+        shape1->type = ChCollisionShape::Type::BOX;
+        shape1->position = pos1;
+        shape1->dimensions = hdims1;
+        shape1->rotation = rot1;
+
+        ConvexShapeCustom* shape2 = new ConvexShapeCustom();
+        shape2->type = ChCollisionShape::Type::BOX;
+        shape2->position = pos2;
+        shape2->dimensions = hdims2;
+        shape2->rotation = rot2;
+
+        // penetrated
+        penetration = -0.05;
+        shape2->position = pos2 + real3(0, 0, penetration);
+        ASSERT_TRUE(RCollision(shape1, shape2, separation, norm, pt1, pt2, depth, eff_rad, nC));
+        ASSERT_EQ(nC, 8);
+        CheckValueList(depth, nC, penetration);
+        CheckPointList(norm, nC, real3(0, 0, 1));
+
+        // penetrated, small penetration
+        penetration = -1e-5;
+        shape2->position = pos2 + real3(0, 0, penetration);
+        ASSERT_TRUE(RCollision(shape1, shape2, separation, norm, pt1, pt2, depth, eff_rad, nC));
+        ASSERT_EQ(nC, 8);
+        CheckValueList(depth, nC, penetration);
+        CheckPointList(norm, nC, real3(0, 0, 1));
+
+        // separated by less than 'separation'
+        penetration = +0.05;
+        shape2->position = pos2 + real3(0, 0, penetration);
+        ASSERT_TRUE(RCollision(shape1, shape2, separation, norm, pt1, pt2, depth, eff_rad, nC));
+        if (sep) {
+            ASSERT_EQ(nC, 8);
+            CheckValueList(depth, nC, penetration);
+            CheckPointList(norm, nC, real3(0, 0, 1));
+        } else {
+            ASSERT_EQ(nC, 0);
+        }
+
+        // separated by more than 'separation'
+        penetration = +0.15;
+        shape2->position = pos2 + real3(0, 0, penetration);
+        ASSERT_TRUE(RCollision(shape1, shape2, separation, norm, pt1, pt2, depth, eff_rad, nC));
+        ASSERT_EQ(nC, 0);
+    }
+
+    // face to face | stack with rotation
+    {
+        real3 hdims1(1.0, 2.0, 3.0);
+        real3 pos1(0.0, 0.0, 0.0);
+        quaternion rot1 = quaternion(1, 0, 0, 0);
+
+        real3 hdims2(1.0, 2.0, 3.0);
+        real3 pos2(0.0, 0.0, 6.0);
+        quaternion rot2 = ToQuaternion(Q_from_AngZ(CH_C_PI_4));
+
+        ConvexShapeCustom* shape1 = new ConvexShapeCustom();
+        shape1->type = ChCollisionShape::Type::BOX;
+        shape1->position = pos1;
+        shape1->dimensions = hdims1;
+        shape1->rotation = rot1;
+
+        ConvexShapeCustom* shape2 = new ConvexShapeCustom();
+        shape2->type = ChCollisionShape::Type::BOX;
+        shape2->position = pos2;
+        shape2->dimensions = hdims2;
+        shape2->rotation = rot2;
+
+        // penetrated
+        penetration = -0.05;
+        shape2->position = pos2 + real3(0, 0, penetration);
+        ASSERT_TRUE(RCollision(shape1, shape2, separation, norm, pt1, pt2, depth, eff_rad, nC));
+        ASSERT_EQ(nC, 8);
+        CheckValueList(depth, nC, penetration);
+        CheckPointList(norm, nC, real3(0, 0, 1));
+
+        // penetrated, small penetration
+        penetration = -1e-5;
+        shape2->position = pos2 + real3(0, 0, penetration);
+        ASSERT_TRUE(RCollision(shape1, shape2, separation, norm, pt1, pt2, depth, eff_rad, nC));
+        ASSERT_EQ(nC, 8);
+        CheckValueList(depth, nC, penetration);
+        CheckPointList(norm, nC, real3(0, 0, 1));
+
+        // separated by less than 'separation'
+        penetration = +0.05;
+        shape2->position = pos2 + real3(0, 0, penetration);
+        ASSERT_TRUE(RCollision(shape1, shape2, separation, norm, pt1, pt2, depth, eff_rad, nC));
+        if (sep) {
+            ASSERT_EQ(nC, 8);
+            CheckValueList(depth, nC, penetration);
+            CheckPointList(norm, nC, real3(0, 0, 1));
+        } else {
+            ASSERT_EQ(nC, 0);
+        }
+
+        // separated by more than 'separation'
+        penetration = +0.15;
+        shape2->position = pos2 + real3(0, 0, penetration);
+        ASSERT_TRUE(RCollision(shape1, shape2, separation, norm, pt1, pt2, depth, eff_rad, nC));
+        ASSERT_EQ(nC, 0);
+    }
+
+    // face to face | stack with rotation and offset
+    // 2 corners of top box on edges of bottom box
+    {
+        real3 hdims1(2.0, 2.0, 3.0);
+        real3 pos1(0.0, 0.0, 0.0);
+        quaternion rot1 = quaternion(1, 0, 0, 0);
+
+        real3 hdims2(2.0, 2.0, 3.0);
+        real3 pos2(2.0, 2.0, 6.0);
+        quaternion rot2 = ToQuaternion(Q_from_AngZ(CH_C_PI_4));
+
+        ConvexShapeCustom* shape1 = new ConvexShapeCustom();
+        shape1->type = ChCollisionShape::Type::BOX;
+        shape1->position = pos1;
+        shape1->dimensions = hdims1;
+        shape1->rotation = rot1;
+
+        ConvexShapeCustom* shape2 = new ConvexShapeCustom();
+        shape2->type = ChCollisionShape::Type::BOX;
+        shape2->position = pos2;
+        shape2->dimensions = hdims2;
+        shape2->rotation = rot2;
+
+        // penetrated
+        penetration = -0.05;
+        shape2->position = pos2 + real3(0, 0, penetration);
+        ASSERT_TRUE(RCollision(shape1, shape2, separation, norm, pt1, pt2, depth, eff_rad, nC));
+        ASSERT_EQ(nC, 3);
+        CheckValueList(depth, nC, penetration);
+        CheckPointList(norm, nC, real3(0, 0, 1));
+        CheckPointList(pt1, {real3(2, 2 - 2 * sqrt(2.0), 3), real3(2 - 2 * sqrt(2.0), 2, 3), real3(2, 2, 3)});
+        CheckPointList(pt2, {real3(2, 2 - 2 * sqrt(2.0), 3 + penetration), real3(2 - 2 * sqrt(2.0), 2, 3 + penetration),
+                             real3(2, 2, 3 + penetration)});
+
+        // penetrated, small penetration
+        penetration = -1e-5;
+        shape2->position = pos2 + real3(0, 0, penetration);
+        ASSERT_TRUE(RCollision(shape1, shape2, separation, norm, pt1, pt2, depth, eff_rad, nC));
+        ASSERT_EQ(nC, 3);
+        CheckValueList(depth, nC, penetration);
+        CheckPointList(norm, nC, real3(0, 0, 1));
+        CheckPointList(pt1, {real3(2, 2 - 2 * sqrt(2.0), 3), real3(2 - 2 * sqrt(2.0), 2, 3), real3(2, 2, 3)});
+        CheckPointList(pt2, {real3(2, 2 - 2 * sqrt(2.0), 3 + penetration), real3(2 - 2 * sqrt(2.0), 2, 3 + penetration),
+                             real3(2, 2, 3 + penetration)});
+
+        // separated by less than 'separation'
+        penetration = +0.05;
+        shape2->position = pos2 + real3(0, 0, penetration);
+        ASSERT_TRUE(RCollision(shape1, shape2, separation, norm, pt1, pt2, depth, eff_rad, nC));
+        if (sep) {
+            ASSERT_EQ(nC, 3);
+            CheckValueList(depth, nC, penetration);
+            CheckPointList(norm, nC, real3(0, 0, 1));
+            CheckPointList(pt1, {real3(2, 2 - 2 * sqrt(2.0), 3), real3(2 - 2 * sqrt(2.0), 2, 3), real3(2, 2, 3)});
+            CheckPointList(pt2, {real3(2, 2 - 2 * sqrt(2.0), 3 + penetration),
+                                 real3(2 - 2 * sqrt(2.0), 2, 3 + penetration), real3(2, 2, 3 + penetration)});
+        } else {
+            ASSERT_EQ(nC, 0);
+        }
+
+        // separated by more than 'separation'
+        penetration = +0.15;
+        shape2->position = pos2 + real3(0, 0, penetration);
+        ASSERT_TRUE(RCollision(shape1, shape2, separation, norm, pt1, pt2, depth, eff_rad, nC));
+        ASSERT_EQ(nC, 0);
+    }
+
+    // face to face | stack with rotation and offset
+    // edge-edge interactions
+    {
+        real3 hdims1(2.0, 2.0, 3.0);
+        real3 pos1(0.0, 0.0, 0.0);
+        quaternion rot1 = quaternion(1, 0, 0, 0);
+
+        real3 hdims2(2.0, 2.0, 3.0);
+        real3 pos2(2 * sqrt(2.0), 2 * sqrt(2.0), 6.0);
+        quaternion rot2 = ToQuaternion(Q_from_AngZ(CH_C_PI_4));
+
+        ConvexShapeCustom* shape1 = new ConvexShapeCustom();
+        shape1->type = ChCollisionShape::Type::BOX;
+        shape1->position = pos1;
+        shape1->dimensions = hdims1;
+        shape1->rotation = rot1;
+
+        ConvexShapeCustom* shape2 = new ConvexShapeCustom();
+        shape2->type = ChCollisionShape::Type::BOX;
+        shape2->position = pos2;
+        shape2->dimensions = hdims2;
+        shape2->rotation = rot2;
+
+        // penetrated
+        penetration = -0.05;
+        shape2->position = pos2 + real3(0, 0, penetration);
+        ASSERT_TRUE(RCollision(shape1, shape2, separation, norm, pt1, pt2, depth, eff_rad, nC));
+        ASSERT_EQ(nC, 3);
+        CheckValueList(depth, nC, penetration);
+        CheckPointList(norm, nC, real3(0, 0, 1));
+        CheckPointList(pt1, {real3(2, 2 * sqrt(2.0) - 2, 3), real3(2 * sqrt(2.0) - 2, 2, 3), real3(2, 2, 3)});
+        CheckPointList(pt2, {real3(2, 2 * sqrt(2.0) - 2, 3 + penetration), real3(2 * sqrt(2.0) - 2, 2, 3 + penetration),
+                             real3(2, 2, 3 + penetration)});
+
+        // penetrated, small penetration
+        penetration = -1e-5;
+        shape2->position = pos2 + real3(0, 0, penetration);
+        ASSERT_TRUE(RCollision(shape1, shape2, separation, norm, pt1, pt2, depth, eff_rad, nC));
+        ASSERT_EQ(nC, 3);
+        CheckValueList(depth, nC, penetration);
+        CheckPointList(norm, nC, real3(0, 0, 1));
+        CheckPointList(pt1, {real3(2, 2 * sqrt(2.0) - 2, 3), real3(2 * sqrt(2.0) - 2, 2, 3), real3(2, 2, 3)});
+        CheckPointList(pt2, {real3(2, 2 * sqrt(2.0) - 2, 3 + penetration), real3(2 * sqrt(2.0) - 2, 2, 3 + penetration),
+                             real3(2, 2, 3 + penetration)});
+
+        // separated by less than 'separation'
+        penetration = +0.05;
+        shape2->position = pos2 + real3(0, 0, penetration);
+        ASSERT_TRUE(RCollision(shape1, shape2, separation, norm, pt1, pt2, depth, eff_rad, nC));
+        if (sep) {
+            ASSERT_EQ(nC, 3);
+            CheckValueList(depth, nC, penetration);
+            CheckPointList(norm, nC, real3(0, 0, 1));
+            CheckPointList(pt1, {real3(2, 2 * sqrt(2.0) - 2, 3), real3(2 * sqrt(2.0) - 2, 2, 3), real3(2, 2, 3)});
+            CheckPointList(pt2, {real3(2, 2 * sqrt(2.0) - 2, 3 + penetration),
+                                 real3(2 * sqrt(2.0) - 2, 2, 3 + penetration), real3(2, 2, 3 + penetration)});
+        } else {
+            ASSERT_EQ(nC, 0);
+        }
+
+        // separated by more than 'separation'
+        penetration = +0.15;
+        shape2->position = pos2 + real3(0, 0, penetration);
+        ASSERT_TRUE(RCollision(shape1, shape2, separation, norm, pt1, pt2, depth, eff_rad, nC));
+        ASSERT_EQ(nC, 0);
+    }
+
+    // face to face | small on large, in range
+    {
+        real3 hdims1(1.0, 2.0, 3.0);
+        real3 pos1(0.0, 0.0, 0.0);
+        quaternion rot1 = quaternion(1, 0, 0, 0);
+
+        real3 hdims2(0.5, 1.0, 1.0);
+        real3 pos2(0.0, 0.0, 4.0);
+        quaternion rot2 = quaternion(1, 0, 0, 0);
+
+        ConvexShapeCustom* shape1 = new ConvexShapeCustom();
+        shape1->type = ChCollisionShape::Type::BOX;
+        shape1->position = pos1;
+        shape1->dimensions = hdims1;
+        shape1->rotation = rot1;
+
+        ConvexShapeCustom* shape2 = new ConvexShapeCustom();
+        shape2->type = ChCollisionShape::Type::BOX;
+        shape2->position = pos2;
+        shape2->dimensions = hdims2;
+        shape2->rotation = rot2;
+
+        // penetrated
+        penetration = -0.05;
+        shape2->position = pos2 + real3(0, 0, penetration);
+        ASSERT_TRUE(RCollision(shape1, shape2, separation, norm, pt1, pt2, depth, eff_rad, nC));
+        ASSERT_EQ(nC, 4);
+        CheckValueList(depth, nC, penetration);
+        CheckPointList(norm, nC, real3(0, 0, 1));
+        CheckPointList(pt1, {real3(-0.5, -1, 3), real3(-0.5, 1, 3), real3(0.5, -1, 3), real3(0.5, 1, 3)});
+        CheckPointList(pt2, {real3(-0.5, -1, 3 + penetration), real3(-0.5, 1, 3 + penetration),
+                             real3(0.5, -1, 3 + penetration), real3(0.5, 1, 3 + penetration)});
+
+        // penetrated, small penetration
+        penetration = -1e-5;
+        shape2->position = pos2 + real3(0, 0, penetration);
+        ASSERT_TRUE(RCollision(shape1, shape2, separation, norm, pt1, pt2, depth, eff_rad, nC));
+        ASSERT_EQ(nC, 4);
+        CheckValueList(depth, nC, penetration);
+        CheckPointList(norm, nC, real3(0, 0, 1));
+        CheckPointList(pt1, {real3(-0.5, -1, 3), real3(-0.5, 1, 3), real3(0.5, -1, 3), real3(0.5, 1, 3)});
+        CheckPointList(pt2, {real3(-0.5, -1, 3 + penetration), real3(-0.5, 1, 3 + penetration),
+                             real3(0.5, -1, 3 + penetration), real3(0.5, 1, 3 + penetration)});
+
+        // separated by less than 'separation'
+        penetration = +0.05;
+        shape2->position = pos2 + real3(0, 0, penetration);
+        ASSERT_TRUE(RCollision(shape1, shape2, separation, norm, pt1, pt2, depth, eff_rad, nC));
+        if (sep) {
+            ASSERT_EQ(nC, 4);
+            CheckValueList(depth, nC, penetration);
+            CheckPointList(norm, nC, real3(0, 0, 1));
+            CheckPointList(pt1, {real3(-0.5, -1, 3), real3(-0.5, 1, 3), real3(0.5, -1, 3), real3(0.5, 1, 3)});
+            CheckPointList(pt2, {real3(-0.5, -1, 3 + penetration), real3(-0.5, 1, 3 + penetration),
+                                 real3(0.5, -1, 3 + penetration), real3(0.5, 1, 3 + penetration)});
+        } else {
+            ASSERT_EQ(nC, 0);
+        }
+
+        // separated by more than 'separation'
+        penetration = +0.15;
+        shape2->position = pos2 + real3(0, 0, penetration);
+        ASSERT_TRUE(RCollision(shape1, shape2, separation, norm, pt1, pt2, depth, eff_rad, nC));
+        ASSERT_EQ(nC, 0);
+    }
+
+    // face to edge | edge ends interacting with face
+    // one large box at the bottom and a smaller one on top (rotated pi/4 about x)
+    {
+        real3 hdims1(1.0, 1.0, 1.0);
+        real3 pos1(0.0, 0.0, 2.0 + 1.0 * sqrt(2.0));
+        quaternion rot1 = ToQuaternion(Q_from_AngX(CH_C_PI / 4));
+
+        real3 hdims2(2.0, 2.0, 2.0);
+        real3 pos2(0.0, 0.0, 0.0);
+        quaternion rot2 = quaternion(1, 0, 0, 0);
+
+        ConvexShapeCustom* shape1 = new ConvexShapeCustom();
+        shape1->type = ChCollisionShape::Type::BOX;
+        shape1->position = pos1;
+        shape1->dimensions = hdims1;
+        shape1->rotation = rot1;
+
+        ConvexShapeCustom* shape2 = new ConvexShapeCustom();
+        shape2->type = ChCollisionShape::Type::BOX;
+        shape2->position = pos2;
+        shape2->dimensions = hdims2;
+        shape2->rotation = rot2;
+
+        // penetrated
+        penetration = -0.05;
+        shape1->position = pos1 + real3(0, 0, penetration);
+        ASSERT_TRUE(RCollision(shape1, shape2, separation, norm, pt1, pt2, depth, eff_rad, nC));
+        ASSERT_EQ(nC, 2);
+        CheckValueList(depth, nC, penetration);
+        CheckPointList(norm, nC, real3(0, 0, -1));
+        CheckPointList(pt1, {real3(-1, 0, 2 + penetration), real3(1, 0, 2 + penetration)});
+        CheckPointList(pt2, {real3(-1, 0, 2), real3(1, 0, 2)});
+
+        // penetrated, small penetration
+        penetration = -1e-5;
+        shape1->position = pos1 + real3(0, 0, penetration);
+        ASSERT_TRUE(RCollision(shape1, shape2, separation, norm, pt1, pt2, depth, eff_rad, nC));
+        ASSERT_EQ(nC, 2);
+        CheckValueList(depth, nC, penetration);
+        CheckPointList(norm, nC, real3(0, 0, -1));
+        CheckPointList(pt1, {real3(-1, 0, 2 + penetration), real3(1, 0, 2 + penetration)});
+        CheckPointList(pt2, {real3(-1, 0, 2), real3(1, 0, 2)});
+
+        // separated by less than 'separation'
+        penetration = +0.05;
+        shape1->position = pos1 + real3(0, 0, penetration);
+        ASSERT_TRUE(RCollision(shape1, shape2, separation, norm, pt1, pt2, depth, eff_rad, nC));
+        if (sep) {
+            ASSERT_EQ(nC, 2);
+            CheckValueList(depth, nC, penetration);
+            CheckPointList(norm, nC, real3(0, 0, -1));
+            CheckPointList(pt1, {real3(-1, 0, 2 + penetration), real3(1, 0, 2 + penetration)});
+            CheckPointList(pt2, {real3(-1, 0, 2), real3(1, 0, 2)});
+        } else {
+            ASSERT_EQ(nC, 0);
+        }
+
+        // separated by more than 'separation'
+        penetration = +0.15;
+        shape1->position = pos1 + real3(0, 0, penetration);
+        ASSERT_TRUE(RCollision(shape1, shape2, separation, norm, pt1, pt2, depth, eff_rad, nC));
+        ASSERT_EQ(nC, 0);
+    }
+
+    // face to edge | edge middle interacting with face
+    // one large box at the bottom (rotated pi/4 about z) and a smaller one on top (rotated pi/4 about x)
+    // translate small box in x and y so that its bottom edge intersects two edges of bottom box
+    {
+        real3 hdims1(1.0, 1.0, 1.0);
+        real3 pos1(sqrt(2.0), sqrt(2.0), 2.0 + 1.0 * sqrt(2.0));
+        quaternion rot1 = ToQuaternion(Q_from_AngX(CH_C_PI / 4));
+
+        real3 hdims2(2.0, 2.0, 2.0);
+        real3 pos2(0.0, 0.0, 0.0);
+        quaternion rot2 = ToQuaternion(Q_from_AngZ(CH_C_PI / 4));
+
+        ConvexShapeCustom* shape1 = new ConvexShapeCustom();
+        shape1->type = ChCollisionShape::Type::BOX;
+        shape1->position = pos1;
+        shape1->dimensions = hdims1;
+        shape1->rotation = rot1;
+
+        ConvexShapeCustom* shape2 = new ConvexShapeCustom();
+        shape2->type = ChCollisionShape::Type::BOX;
+        shape2->position = pos2;
+        shape2->dimensions = hdims2;
+        shape2->rotation = rot2;
+
+        // penetrated
+        penetration = -0.05;
+        shape1->position = pos1 + real3(0, 0, penetration);
+        ASSERT_TRUE(RCollision(shape1, shape2, separation, norm, pt1, pt2, depth, eff_rad, nC));
+        ASSERT_EQ(nC, 2);
+        CheckValueList(depth, nC, penetration);
+        CheckPointList(norm, nC, real3(0, 0, -1));
+        CheckPointList(
+            pt1, {real3(sqrt(2.0) - 1, sqrt(2.0), 2 + penetration), real3(sqrt(2.0), sqrt(2.0), 2 + penetration)});
+        CheckPointList(pt2, {real3(sqrt(2.0) - 1, sqrt(2.0), 2), real3(sqrt(2.0), sqrt(2.0), 2)});
+
+        // penetrated, small penetration
+        penetration = -1e-5;
+        shape1->position = pos1 + real3(0, 0, penetration);
+        ASSERT_TRUE(RCollision(shape1, shape2, separation, norm, pt1, pt2, depth, eff_rad, nC));
+        ASSERT_EQ(nC, 2);
+        CheckValueList(depth, nC, penetration);
+        CheckPointList(norm, nC, real3(0, 0, -1));
+        CheckPointList(
+            pt1, {real3(sqrt(2.0) - 1, sqrt(2.0), 2 + penetration), real3(sqrt(2.0), sqrt(2.0), 2 + penetration)});
+        CheckPointList(pt2, {real3(sqrt(2.0) - 1, sqrt(2.0), 2), real3(sqrt(2.0), sqrt(2.0), 2)});
+
+        // separated by less than 'separation'
+        penetration = +0.05;
+        shape1->position = pos1 + real3(0, 0, penetration);
+        ASSERT_TRUE(RCollision(shape1, shape2, separation, norm, pt1, pt2, depth, eff_rad, nC));
+        if (sep) {
+            ASSERT_EQ(nC, 2);
+            CheckValueList(depth, nC, penetration);
+            CheckPointList(norm, nC, real3(0, 0, -1));
+            CheckPointList(
+                pt1, {real3(sqrt(2.0) - 1, sqrt(2.0), 2 + penetration), real3(sqrt(2.0), sqrt(2.0), 2 + penetration)});
+            CheckPointList(pt2, {real3(sqrt(2.0) - 1, sqrt(2.0), 2), real3(sqrt(2.0), sqrt(2.0), 2)});
+        } else {
+            ASSERT_EQ(nC, 0);
+        }
+
+        // separated by more than 'separation'
+        penetration = +0.15;
+        shape1->position = pos1 + real3(0, 0, penetration);
+        ASSERT_TRUE(RCollision(shape1, shape2, separation, norm, pt1, pt2, depth, eff_rad, nC));
+        ASSERT_EQ(nC, 0);
+    }
+
+    // Face-corner
+    {
+        real3 hdims1(1.0, 1.0, 1.0);
+        real3 pos1(0.0, 0.0, 0.0);
+        quaternion rot1(1, 0, 0, 0);
+
+        real3 hdims2(1.0, 1.0, 1.0);
+        real3 pos2(0.5, 0.5, 1.0 + sqrt(3.0));
+        quaternion rot2 = ToQuaternion(Q_from_AngAxis(atan(sqrt(2.0)), ChVector<>(1, 1, 0).GetNormalized()));
+
+        ConvexShapeCustom* shape1 = new ConvexShapeCustom();
+        shape1->type = ChCollisionShape::Type::BOX;
+        shape1->position = pos1;
+        shape1->dimensions = hdims1;
+        shape1->rotation = rot1;
+
+        ConvexShapeCustom* shape2 = new ConvexShapeCustom();
+        shape2->type = ChCollisionShape::Type::BOX;
+        shape2->position = pos2;
+        shape2->dimensions = hdims2;
+        shape2->rotation = rot2;
+
+        // penetrated
+        penetration = -0.05;
+        shape2->position = pos2 + real3(0, 0, penetration);
+        ASSERT_TRUE(RCollision(shape1, shape2, separation, norm, pt1, pt2, depth, eff_rad, nC));
+        ASSERT_EQ(nC, 1);
+        CheckValueList(depth, nC, penetration);
+        CheckPointList(norm, nC, real3(0, 0, 1));
+        CheckPointList(pt1, {real3(0.5, 0.5, 1)});
+        CheckPointList(pt2, {real3(0.5, 0.5, 1 + penetration)});
+
+        // penetrated, small penetration
+        penetration = -1e-5;
+        shape2->position = pos2 + real3(0, 0, penetration);
+        ASSERT_TRUE(RCollision(shape1, shape2, separation, norm, pt1, pt2, depth, eff_rad, nC));
+        ASSERT_EQ(nC, 1);
+        CheckValueList(depth, nC, penetration);
+        CheckPointList(norm, nC, real3(0, 0, 1));
+        CheckPointList(pt1, {real3(0.5, 0.5, 1)});
+        CheckPointList(pt2, {real3(0.5, 0.5, 1 + penetration)});
+
+        // separated by less than 'separation'
+        penetration = +0.05;
+        shape2->position = pos2 + real3(0, 0, penetration);
+        ASSERT_TRUE(RCollision(shape1, shape2, separation, norm, pt1, pt2, depth, eff_rad, nC));
+        if (sep) {
+            ASSERT_EQ(nC, 1);
+            CheckValueList(depth, nC, penetration);
+            CheckPointList(norm, nC, real3(0, 0, 1));
+            CheckPointList(pt1, {real3(0.5, 0.5, 1)});
+            CheckPointList(pt2, {real3(0.5, 0.5, 1 + penetration)});
+        } else {
+            ASSERT_EQ(nC, 0);
+        }
+
+        // separated by more than 'separation'
+        penetration = +0.15;
+        shape2->position = pos2 + real3(0, 0, penetration);
+        ASSERT_TRUE(RCollision(shape1, shape2, separation, norm, pt1, pt2, depth, eff_rad, nC));
+        ASSERT_EQ(nC, 0);
+    }
+
+    // Edge-edge
+    // Bottom box rotated by 45 deg about y. Top box rotated by 45 deg about x.
+    {
+        real3 hdims1(1.0, 1.0, 1.0);
+        real3 pos1(0, 0, 0);
+        quaternion rot1 = ToQuaternion(Q_from_AngY(CH_C_PI / 4));
+
+        real3 hdims2(1.0, 1.0, 1.0);
+        real3 pos2(0.0, 0.0, 2 * sqrt(2.0));
+        quaternion rot2 = ToQuaternion(Q_from_AngX(CH_C_PI / 4));
+
+        ConvexShapeCustom* shape1 = new ConvexShapeCustom();
+        shape1->type = ChCollisionShape::Type::BOX;
+        shape1->position = pos1;
+        shape1->dimensions = hdims1;
+        shape1->rotation = rot1;
+
+        ConvexShapeCustom* shape2 = new ConvexShapeCustom();
+        shape2->type = ChCollisionShape::Type::BOX;
+        shape2->position = pos2;
+        shape2->dimensions = hdims2;
+        shape2->rotation = rot2;
+
+        // penetrated
+        penetration = -0.05;
+        shape2->position = pos2 + real3(0, 0, penetration);
+        ASSERT_TRUE(RCollision(shape1, shape2, separation, norm, pt1, pt2, depth, eff_rad, nC));
+        ASSERT_EQ(nC, 1);
+        CheckValueList(depth, nC, penetration);
+        CheckPointList(norm, nC, real3(0, 0, 1));
+        CheckPointList(pt1, {real3(0, 0, sqrt(2.0))});
+        CheckPointList(pt2, {real3(0, 0, sqrt(2.0) + penetration)});
+
+        // penetrated, small penetration
+        penetration = -1e-5;
+        shape2->position = pos2 + real3(0, 0, penetration);
+        ASSERT_TRUE(RCollision(shape1, shape2, separation, norm, pt1, pt2, depth, eff_rad, nC));
+        ASSERT_EQ(nC, 1);
+        CheckValueList(depth, nC, penetration);
+        CheckPointList(norm, nC, real3(0, 0, 1));
+        CheckPointList(pt1, {real3(0, 0, sqrt(2.0))});
+        CheckPointList(pt2, {real3(0, 0, sqrt(2.0) + penetration)});
+
+        // separated by less than 'separation'
+        penetration = +0.05;
+        shape2->position = pos2 + real3(0, 0, penetration);
+        ASSERT_TRUE(RCollision(shape1, shape2, separation, norm, pt1, pt2, depth, eff_rad, nC));
+        if (sep) {
+            ASSERT_EQ(nC, 1);
+            CheckValueList(depth, nC, penetration);
+            CheckPointList(norm, nC, real3(0, 0, 1));
+            CheckPointList(pt1, {real3(0, 0, sqrt(2.0))});
+            CheckPointList(pt2, {real3(0, 0, sqrt(2.0) + penetration)});
+        } else {
+            ASSERT_EQ(nC, 0);
+        }
+
+        // separated by more than 'separation'
+        penetration = +0.15;
+        shape2->position = pos2 + real3(0, 0, penetration);
+        ASSERT_TRUE(RCollision(shape1, shape2, separation, norm, pt1, pt2, depth, eff_rad, nC));
+        ASSERT_EQ(nC, 0);
+    }
+
+    // Corner-corner
+    // Notes: 
+    // - the current algorithm cannot produce a proper corner-corner interaction. Because it always picks
+    //   the direction of minimum overlap, for this case it will report a face-face interaction.
+    // - for similar reasons, the current algorithm will not report an interaction for a configuration
+    //   where two boxes are separated, but with corners are in each others Voronoi region (no matter of
+    //   the separation distance.
+    {
+        real3 hdims1(1.0, 1.0, 1.0);
+        real3 pos1(0.0, 0.0, 0.0);
+        quaternion rot1 = ToQuaternion(Q_from_AngAxis(atan(sqrt(2.0)), ChVector<>(1, 1, 0).GetNormalized()));
+
+        real3 hdims2(1.0, 1.0, 1.0);
+        real3 pos2(0, 0, sqrt(3.0) + sqrt(3.0));
+        quaternion rot2 = ToQuaternion(Q_from_AngAxis(atan(sqrt(2.0)), ChVector<>(1, 1, 0).GetNormalized()));
+
+        ConvexShapeCustom* shape1 = new ConvexShapeCustom();
+        shape1->type = ChCollisionShape::Type::BOX;
+        shape1->position = pos1;
+        shape1->dimensions = hdims1;
+        shape1->rotation = rot1;
+
+        ConvexShapeCustom* shape2 = new ConvexShapeCustom();
+        shape2->type = ChCollisionShape::Type::BOX;
+        shape2->position = pos2;
+        shape2->dimensions = hdims2;
+        shape2->rotation = rot2;
+
+        // penetrated
+        penetration = -0.05;
+        shape2->position = pos2 + real3(0, 0, penetration);
+        ASSERT_TRUE(RCollision(shape1, shape2, separation, norm, pt1, pt2, depth, eff_rad, nC));
+        ASSERT_EQ(nC, 4);
+        CheckValueList(depth, nC, penetration / std::sqrt(3.0));
+        ////for (int i = 0; i < 4; i++) {
+        ////    real3 p1 = RotateT((pt1[i] - pos1), rot1);
+        ////    real3 p2 = RotateT((pt2[i] - pos2 - real3(0, 0, penetration)), rot2);
+        ////}
+
+        // penetrated, small penetration
+        penetration = -1e-5 * std::sqrt(3.0);
+        shape2->position = pos2 + real3(0, 0, penetration);
+        ASSERT_TRUE(RCollision(shape1, shape2, separation, norm, pt1, pt2, depth, eff_rad, nC));
+        ASSERT_EQ(nC, 4);
+        CheckValueList(depth, nC, penetration / std::sqrt(3.0));
+
+        // separated by less than 'separation'
+        penetration = +0.05;
+        shape2->position = pos2 + real3(0, 0, penetration);
+        ASSERT_TRUE(RCollision(shape1, shape2, separation, norm, pt1, pt2, depth, eff_rad, nC));
+        if (sep) {
+            // Limitation of current algorithm
+            ASSERT_EQ(nC, 0);
+        } else {
+            ASSERT_EQ(nC, 0);
+        }
+
+        // separated by more than 'separation'
+        penetration = +0.15;
+        shape2->position = pos2 + real3(0, 0, penetration);
+        ASSERT_EQ(nC, 0);
+    }
+}
 
 TEST_P(Collision, sphere_sphere) {
     ConvexShapeCustom* shapeS1 = new ConvexShapeCustom();
@@ -672,5 +1534,4 @@ TEST_P(Collision, roundedcyl_sphere) {
     delete shapeC;
 }
 
-INSTANTIATE_TEST_CASE_P(R, Collision, ::testing::Bool());
-
+INSTANTIATE_TEST_SUITE_P(R, Collision, ::testing::Bool());

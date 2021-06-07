@@ -480,6 +480,9 @@ class ChApi ChIntegrableIIorder : public ChIntegrable {
             "StateSolveCorrection() not implemented for ChIntegrableIIorder, implicit integrators for Ist order cannot "
             "be used. ");
     }
+
+  private:
+    using ChIntegrable::StateSetup;
 };
 
 // -----------------------------------------------------------------------------

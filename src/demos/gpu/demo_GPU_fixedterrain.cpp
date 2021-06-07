@@ -27,6 +27,7 @@
 
 #include "chrono_thirdparty/filesystem/path.h"
 
+#include "chrono_gpu/ChGpuData.h"
 #include "chrono_gpu/physics/ChSystemGpu.h"
 #include "chrono_gpu/utils/ChGpuJsonParser.h"
 #include "chrono_gpu/utils/ChGpuSphereDecomp.h"
@@ -34,22 +35,18 @@
 using namespace chrono;
 using namespace chrono::gpu;
 
-void ShowUsage(std::string name) {
-    std::cout << "usage: " + name + " <json_file>" << std::endl;
-}
-
 int main(int argc, char* argv[]) {
     ChGpuSimulationParameters params;
-    if (argc != 2 || ParseJSON(argv[1], params, true) == false) {
-        ShowUsage(argv[0]);
+    if (argc != 2 || ParseJSON(gpu::GetDataFile(argv[1]), params, true) == false) {
+        std::cout << "Usage:\n./demo_GPU_fixedterrain <json_file>" << std::endl;
         return 1;
     }
 
     ChSystemGpu gpu_sys(params.sphere_radius, params.sphere_density,
-                        make_float3(params.box_X, params.box_Y, params.box_Z));
+                        ChVector<float>(params.box_X, params.box_Y, params.box_Z));
 
     // Add spherically-decomposed underlying terrain.
-    std::string objfilename(GetChronoDataFile("gpu/demo_GPU_fixedterrain/fixedterrain.obj"));
+    std::string objfilename(GetChronoDataFile("models/fixedterrain.obj"));
 
     ChVector<float> scaling(params.box_X / 2, params.box_Y / 2, params.box_Z);
     ChVector<float> offset(0, 0, -params.box_Z / 2);
@@ -87,7 +84,7 @@ int main(int argc, char* argv[]) {
     fixed.insert(fixed.end(), material_points.size(), false);
 
     std::cout << "Adding " << body_points.size() << " spheres." << std::endl;
-    gpu_sys.SetParticlePositions(body_points);
+    gpu_sys.SetParticles(body_points);
     gpu_sys.SetParticleFixed(fixed);
 
     // Add internal planes to prevent leaking
@@ -142,13 +139,16 @@ int main(int argc, char* argv[]) {
     gpu_sys.SetRollingCoeff_SPH2SPH(params.rolling_friction_coeffS2S);
     gpu_sys.SetRollingCoeff_SPH2WALL(params.rolling_friction_coeffS2W);
 
-    gpu_sys.SetOutputMode(params.write_mode);
+    gpu_sys.SetParticleOutputMode(params.write_mode);
     gpu_sys.SetVerbosity(params.verbose);
-    gpu_sys.SetOutputFlags(CHGPU_OUTPUT_FLAGS::ABSV | CHGPU_OUTPUT_FLAGS::ANG_VEL_COMPONENTS |
-                           CHGPU_OUTPUT_FLAGS::FIXITY);
+    gpu_sys.SetParticleOutputFlags(CHGPU_OUTPUT_FLAGS::ABSV | CHGPU_OUTPUT_FLAGS::ANG_VEL_COMPONENTS |
+                                   CHGPU_OUTPUT_FLAGS::FIXITY);
 
     // Create data directory
-    filesystem::create_directory(filesystem::path(params.output_dir));
+    std::string out_dir = GetChronoOutputPath() + "GPU/";
+    filesystem::create_directory(filesystem::path(out_dir));
+    out_dir = out_dir + params.output_dir;
+    filesystem::create_directory(filesystem::path(out_dir));
 
     // Finalize initialization of the Chrono::Gpu system
     gpu_sys.Initialize();
@@ -160,8 +160,8 @@ int main(int argc, char* argv[]) {
     for (double t = 0; t < (double)params.time_end; t += frame_step, currframe++) {
         std::cout << "Rendering frame " << (currframe + 1) << " of " << total_frames << std::endl;
         char filename[100];
-        sprintf(filename, "%s/step%06d", params.output_dir.c_str(), currframe);
-        gpu_sys.WriteFile(std::string(filename));
+        sprintf(filename, "%s/step%06d.csv", out_dir.c_str(), currframe);
+        gpu_sys.WriteParticleFile(std::string(filename));
 
         gpu_sys.AdvanceSimulation((float)frame_step);
     }

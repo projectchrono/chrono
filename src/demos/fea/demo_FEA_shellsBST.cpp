@@ -290,7 +290,7 @@ int main(int argc, char* argv[]) {
         auto material = chrono_types::make_shared<ChMaterialShellKirchhoff>(melasticity);
         material->SetDensity(density);
 
-        ChMeshFileLoader::BSTShellFromObjFile(my_mesh, GetChronoDataFile("cube.obj").c_str(), material, thickness);
+        ChMeshFileLoader::BSTShellFromObjFile(my_mesh, GetChronoDataFile("models/cube.obj").c_str(), material, thickness);
     }
 
     // ==Asset== attach a visualization of the FEM mesh.
@@ -320,8 +320,7 @@ int main(int argc, char* argv[]) {
 
     // Create the Irrlicht visualization (open the Irrlicht device,
     // bind a simple user interface, etc. etc.)
-    ChIrrApp application(&my_system, L"Shells FEA test: triangle BST elements", core::dimension2d<u32>(1024, 768),
-                         false, true);
+    ChIrrApp application(&my_system, L"Shells FEA test: triangle BST elements", core::dimension2d<u32>(1024, 768));
 
     // Easy shortcuts to add camera, lights, logo and sky in Irrlicht scene:
     application.AddTypicalLogo();
@@ -365,8 +364,6 @@ int main(int argc, char* argv[]) {
 
     ChFunction_Recorder rec_X;
     ChFunction_Recorder rec_Y;
-
-    double mtime = 0;
 
     while (application.GetDevice()->run()) {
         application.BeginScene();

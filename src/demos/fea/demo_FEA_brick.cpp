@@ -38,7 +38,7 @@ int main(int argc, char* argv[]) {
 
     // Create the Irrlicht visualization (open the Irrlicht device,
     // bind a simple user interface, etc. etc.)
-    ChIrrApp application(&my_system, L"Brick Elements", core::dimension2d<u32>(800, 600), false, true);
+    ChIrrApp application(&my_system, L"Brick Elements", core::dimension2d<u32>(800, 600));
 
     // Easy shortcuts to add camera, lights, logo and sky in Irrlicht scene:
     application.AddTypicalLogo();
@@ -66,8 +66,6 @@ int main(int argc, char* argv[]) {
     int numDiv_y = 4;
     int numDiv_z = 1;
     int N_x = numDiv_x + 1;
-    int N_y = numDiv_y + 1;
-    int N_z = numDiv_z + 1;
     // Number of elements in the z direction is considered as 1
     int TotalNumElements = numDiv_x * numDiv_y;
     int TotalNumNodes = (numDiv_x + 1) * (numDiv_y + 1) * (numDiv_z + 1);
@@ -76,7 +74,6 @@ int main(int argc, char* argv[]) {
     double dy = plate_lenght_y / numDiv_y;
     double dz = plate_lenght_z / numDiv_z;
     int MaxMNUM = 1;
-    int MTYPE = 1;
     int MaxLayNum = 1;
 
     ChMatrixDynamic<double> COORDFlex(TotalNumNodes, 3);

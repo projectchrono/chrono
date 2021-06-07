@@ -29,8 +29,8 @@ const double M113_ShaftsPowertrain::m_motorblock_inertia = 10.5;
 const double M113_ShaftsPowertrain::m_crankshaft_inertia = 1.1;
 const double M113_ShaftsPowertrain::m_ingear_shaft_inertia = 0.3;
 
-const double M113_ShaftsPowertrain::m_upshift_RPM = 2500;
-const double M113_ShaftsPowertrain::m_downshift_RPM = 1500;
+const double M113_ShaftsPowertrain::m_upshift_RPM = 1500;
+const double M113_ShaftsPowertrain::m_downshift_RPM = 1000;
 
 // -----------------------------------------------------------------------------
 // Constructor of the M113_ShaftsPowertrain.
@@ -43,12 +43,15 @@ M113_ShaftsPowertrain::M113_ShaftsPowertrain(const std::string& name) : ChShafts
 
 // -----------------------------------------------------------------------------
 // Initialize vector of gear ratios
+// https://www.nsncenter.com/Files/library/TM/M113/TM-9-2520-272-34P/TM-9-2520-272-34P.pdf
 // -----------------------------------------------------------------------------
-void M113_ShaftsPowertrain::SetGearRatios(std::vector<double>& gear_ratios) {
-    gear_ratios.push_back(-0.1);  // 0: reverse gear;
-    gear_ratios.push_back(0.2);   // 1: 1st gear;
-    gear_ratios.push_back(0.4);   // 2: 2nd gear;
-    gear_ratios.push_back(0.8);   // 3: 3rd gear;
+void M113_ShaftsPowertrain::SetGearRatios(std::vector<double>& fwd, double& rev) {
+    rev = -0.151;  // reverse gear;
+
+    fwd.push_back(0.240);   // 1st gear;
+    fwd.push_back(0.427);   // 2nd gear;
+    fwd.push_back(0.685);   // 3rd gear;
+    fwd.push_back(0.962);   // 4th gear;
 }
 
 // -----------------------------------------------------------------------------
@@ -56,6 +59,7 @@ void M113_ShaftsPowertrain::SetGearRatios(std::vector<double>& gear_ratios) {
 //
 // (1) engine speed [rad/s] - torque [Nm] map
 //     must be defined beyond max speed too - engine might be 'pulled'
+//     http://powerforce.com/PDFs/2Cycle_Engines/DS_PF6V-53N.pdf
 //
 // (2) TC capacity factor map
 //
@@ -63,28 +67,18 @@ void M113_ShaftsPowertrain::SetGearRatios(std::vector<double>& gear_ratios) {
 //
 // -----------------------------------------------------------------------------
 void M113_ShaftsPowertrain::SetEngineTorqueMap(std::shared_ptr<ChFunction_Recorder>& map) {
-    double rpm_to_radsec = CH_C_2PI / 60.;
-
-    map->AddPoint(-100 * rpm_to_radsec, 300);  // to start engine
-    map->AddPoint(800 * rpm_to_radsec, 382);
-    map->AddPoint(900 * rpm_to_radsec, 490);
-    map->AddPoint(1000 * rpm_to_radsec, 579);
-    map->AddPoint(1100 * rpm_to_radsec, 650);
-    map->AddPoint(1200 * rpm_to_radsec, 706);
-    map->AddPoint(1300 * rpm_to_radsec, 746);
-    map->AddPoint(1400 * rpm_to_radsec, 774);
-    map->AddPoint(1500 * rpm_to_radsec, 789);
-    map->AddPoint(1600 * rpm_to_radsec, 793);
-    map->AddPoint(1700 * rpm_to_radsec, 788);
-    map->AddPoint(1800 * rpm_to_radsec, 774);
-    map->AddPoint(1900 * rpm_to_radsec, 754);
-    map->AddPoint(2000 * rpm_to_radsec, 728);
-    map->AddPoint(2100 * rpm_to_radsec, 697);
-    map->AddPoint(2200 * rpm_to_radsec, 664);
-    map->AddPoint(2300 * rpm_to_radsec, 628);
-    map->AddPoint(2400 * rpm_to_radsec, 593);
-    map->AddPoint(2500 * rpm_to_radsec, 558);
-    map->AddPoint(2700 * rpm_to_radsec, -400);  // fading out of engine torque
+    double rpm_to_radsec = CH_C_2PI / 60.0;
+    double lbft_to_Nm = 1.0 / 0.73756;
+    
+    map->AddPoint(-100 * rpm_to_radsec, 300 * lbft_to_Nm);  // to start engine
+    map->AddPoint(500 * rpm_to_radsec, 450 * lbft_to_Nm);
+    map->AddPoint(1000 * rpm_to_radsec, 450 * lbft_to_Nm);
+    map->AddPoint(1500 * rpm_to_radsec, 445 * lbft_to_Nm);
+    map->AddPoint(2000 * rpm_to_radsec, 435 * lbft_to_Nm);
+    map->AddPoint(2500 * rpm_to_radsec, 410 * lbft_to_Nm);
+    map->AddPoint(2800 * rpm_to_radsec, 395 * lbft_to_Nm);
+    map->AddPoint(3000 * rpm_to_radsec, 380 * lbft_to_Nm);
+    map->AddPoint(3200 * rpm_to_radsec, -100 * lbft_to_Nm);  // fading out of engine torque
 }
 
 void M113_ShaftsPowertrain::SetEngineLossesMap(std::shared_ptr<ChFunction_Recorder>& map) {
@@ -99,48 +93,43 @@ void M113_ShaftsPowertrain::SetEngineLossesMap(std::shared_ptr<ChFunction_Record
 }
 
 void M113_ShaftsPowertrain::SetTorqueConverterCapacityFactorMap(std::shared_ptr<ChFunction_Recorder>& map) {
-    map->AddPoint(0.0, 15);
-    map->AddPoint(0.25, 15);
-    map->AddPoint(0.50, 15);
-    map->AddPoint(0.75, 16);
-    map->AddPoint(0.90, 18);
-    map->AddPoint(1.00, 35);
-    /*
-        map->AddPoint(0     ,   81.0000);
-        map->AddPoint(0.1000,   81.1589);
-        map->AddPoint(0.2000,   81.3667);
-        map->AddPoint(0.3000,   81.6476);
-        map->AddPoint(0.4000,   82.0445);
-        map->AddPoint(0.5000,   82.6390);
-        map->AddPoint(0.6000,   83.6067);
-        map->AddPoint(0.7000,   85.3955);
-        map->AddPoint(0.8000,   89.5183);
-        map->AddPoint(0.9000,  105.1189);
-        map->AddPoint(0.9700,  215.5284);
-        map->AddPoint(1.0000,  235.5284);
-    */
+    map->AddPoint(0.00, 7);
+    map->AddPoint(0.25, 7);
+    map->AddPoint(0.50, 7);
+    map->AddPoint(0.75, 8);
+    map->AddPoint(0.90, 9);
+    map->AddPoint(1.00, 18);
+
+    ////map->AddPoint(0.0000, 12.2938);
+    ////map->AddPoint(0.5000, 12.8588);
+    ////map->AddPoint(0.6000, 13.1452);
+    ////map->AddPoint(0.7000, 13.6285);
+    ////map->AddPoint(0.8000, 14.6163);
+    ////map->AddPoint(0.8700, 16.2675);
+    ////map->AddPoint(0.9200, 19.3503);
+    ////map->AddPoint(0.9400, 22.1046);
+    ////map->AddPoint(0.9600, 29.9986);
+    ////map->AddPoint(0.9700, 50.0000);
 }
 
 void M113_ShaftsPowertrain::SetTorqeConverterTorqueRatioMap(std::shared_ptr<ChFunction_Recorder>& map) {
-    map->AddPoint(0.0, 2.00);
+    map->AddPoint(0.00, 2.00);
     map->AddPoint(0.25, 1.80);
     map->AddPoint(0.50, 1.50);
     map->AddPoint(0.75, 1.15);
+    map->AddPoint(0.90, 1.00);
     map->AddPoint(1.00, 1.00);
-    /*
-        map->AddPoint(0,        1.7500);
-        map->AddPoint(0.1000,    1.6667);
-        map->AddPoint(0.2000,    1.5833);
-        map->AddPoint(0.3000,    1.5000);
-        map->AddPoint(0.4000,    1.4167);
-        map->AddPoint(0.5000,    1.3334);
-        map->AddPoint(0.6000,    1.2500);
-        map->AddPoint(0.7000,    1.1667);
-        map->AddPoint(0.8000,    1.0834);
-        map->AddPoint(0.9000,    1.0000);
-        map->AddPoint(0.9700,    1.0000);
-        map->AddPoint(1.0000,    1.0000);
-    */
+
+    ////map->AddPoint(0.0000, 2.2320);
+    ////map->AddPoint(0.5000, 1.5462);
+    ////map->AddPoint(0.6000, 1.4058);
+    ////map->AddPoint(0.7000, 1.2746);
+    ////map->AddPoint(0.8000, 1.1528);
+    ////map->AddPoint(0.8700, 1.0732);
+    ////map->AddPoint(0.9200, 1.0192);
+    ////map->AddPoint(0.9400, 0.9983);
+    ////map->AddPoint(0.9600, 0.9983);
+    ////map->AddPoint(0.9700, 0.9983);
 }
 
 }  // end namespace m113

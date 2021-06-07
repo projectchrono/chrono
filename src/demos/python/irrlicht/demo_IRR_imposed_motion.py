@@ -49,7 +49,7 @@ system.Add(mfloor)
 
 # Create the object to move
 mmoved_1 = chrono.ChBodyEasyMesh(chrono.GetChronoDataFile(
-    "support.obj"), 1000, True, True, False)
+    "models/support.obj"), 1000, True, True, False)
 system.Add(mmoved_1)
 mmoved_1.SetPos(chrono.ChVectorD(-0.5, 0, 0))
 
@@ -87,7 +87,7 @@ impose_1.SetRotationFunction(f_rot_axis)
 # rotation:  use a quaternion spline.
 
 mmoved_2 = chrono.ChBodyEasyMesh(chrono.GetChronoDataFile(
-    "support.obj"), 1000, True, True, False)
+    "models/support.obj"), 1000, True, True, False)
 system.Add(mmoved_2)
 mmoved_2.SetPos(chrono.ChVectorD(0.5, 0, 0))
 
@@ -142,7 +142,7 @@ mmoved_2.SetPos(f_line.Get_p(0) >> impose_2.GetFrame2()
 # rotation:  use a continuous setpoint (FOH first order hold).
 
 mmoved_3 = chrono.ChBodyEasyMesh(chrono.GetChronoDataFile(
-    "support.obj"), 1000, True, True, False)
+    "models/support.obj"), 1000, True, True, False)
 system.Add(mmoved_3)
 mmoved_3.SetPos(chrono.ChVectorD(1.5, 0, 0))
 
@@ -166,7 +166,7 @@ impose_3.SetRotationFunction(f_rot_setpoint)
 # rotation:  use three angle functions of time, ie. three ChFunction objects
 
 mmoved_4 = chrono.ChBodyEasyMesh(chrono.GetChronoDataFile(
-    "support.obj"), 1000, True, True, False)
+    "models/support.obj"), 1000, True, True, False)
 system.Add(mmoved_4)
 mmoved_4.SetPos(chrono.ChVectorD(2.5, 0, 0))
 
@@ -190,7 +190,7 @@ impose_4.SetRotationFunction(f_abc_angles)
 # rotation:  use a SQUAD (smooth interpolation of quaternion rotations as in Shoemake 1987 paper).
 
 mmoved_5 = chrono.ChBodyEasyMesh(chrono.GetChronoDataFile(
-    "support.obj"), 1000, True, True, False)
+    "models/support.obj"), 1000, True, True, False)
 system.Add(mmoved_5)
 mmoved_5.SetPos(chrono.ChVectorD(1, 1, 0))
 
@@ -212,8 +212,7 @@ impose_5.Initialize(mmoved_5, mfloor, chrono.ChFrameD(mmoved_5.GetPos()))
 impose_5.SetRotationFunction(f_squad)
 
 # Create the Irrlicht application
-application = irr.ChIrrApp(
-    system, "Imposing rotation and position to bodies demo", irr.dimension2du(800, 600), False, True)
+application = irr.ChIrrApp(system, "Imposing rotation and position to bodies demo", irr.dimension2du(800, 600))
 application.AddTypicalLogo()
 application.AddTypicalSky()
 application.AddTypicalLights()

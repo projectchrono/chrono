@@ -44,7 +44,6 @@ FMTV_TMeasyTire::FMTV_TMeasyTire(const std::string& name) : ChTMeasyTire(name) {
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 void FMTV_TMeasyTire::SetTMeasyParams() {
-    const double lbs2N = 4.4482216153;
     unsigned int li = 159;
     const double in2m = 0.0254;
     double w = 0.395;

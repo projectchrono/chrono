@@ -42,7 +42,7 @@ my_system = chrono.ChSystemSMC()
 
 # Create the Irrlicht visualization (open the Irrlicht device,
 # bind a simple user interface, etc. etc.)
-application = chronoirr.ChIrrApp(my_system, "Shells FEA", chronoirr.dimension2du(800, 600), False, True)
+application = chronoirr.ChIrrApp(my_system, "Shells FEA", chronoirr.dimension2du(800, 600))
 
 # Easy shortcuts to add camera, lights, logo and sky in Irrlicht scene:
 application.AddTypicalLogo()
@@ -413,7 +413,7 @@ while (application.GetDevice().run()) :
     application.BeginScene()
     application.DrawAll()
     # .. draw also a grid
-    chronoirr.ChIrrTools.drawGrid(application.GetVideoDriver(), 1, 1)
+    chronoirr.drawGrid(application.GetVideoDriver(), 1, 1)
     # ...update load at end nodes, as simple lumped nodal forces
     load_scale = mtime * 0.1
     for mendnode in(nodesLoad) :

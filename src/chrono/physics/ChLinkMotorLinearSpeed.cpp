@@ -172,8 +172,6 @@ void ChLinkMotorLinearSpeed::VariablesQbLoadSpeed() {
 }
 
 void ChLinkMotorLinearSpeed::VariablesQbSetSpeed(double step) {
-    double old_dt = aux_dt;
-
     // from 'qb' vector, sets body speed, and updates auxiliary data
     aux_dt = variable.Get_qb()(0);
 
@@ -195,7 +193,7 @@ void ChLinkMotorLinearSpeed::ArchiveOUT(ChArchiveOut& marchive) {
 /// Method to allow de serialization of transient data from archives.
 void ChLinkMotorLinearSpeed::ArchiveIN(ChArchiveIn& marchive) {
     // version number
-    int version = marchive.VersionRead<ChLinkMotorLinearSpeed>();
+    /*int version =*/ marchive.VersionRead<ChLinkMotorLinearSpeed>();
 
     // deserialize parent class
     ChLinkMotorLinear::ArchiveIN(marchive);

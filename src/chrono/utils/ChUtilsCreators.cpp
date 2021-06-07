@@ -105,7 +105,6 @@ void AddBiSphereGeometry(ChBody* body,
         frame = frame >> body_ar->GetFrame_REF_to_COG();
     }
     const ChVector<>& position = frame.GetPos();
-    const ChQuaternion<>& rotation = frame.GetRot();
 
     AddSphereGeometry(body, material, radius, position + ChVector<>(0, 0.5 * cDist, 0), rot, visualization);
     AddSphereGeometry(body, material, radius, position - ChVector<>(0, 0.5 * cDist, 0), rot, visualization);
@@ -169,7 +168,6 @@ void AddConeGeometry(ChBody* body,
         frame = frame >> body_ar->GetFrame_REF_to_COG();
     }
     const ChVector<>& position = frame.GetPos();
-    const ChQuaternion<>& rotation = frame.GetRot();
 
     ChVector<> posCollisionModel = position + ChVector<>(0, 0.25 * height, 0);
 
@@ -544,10 +542,10 @@ void AddTorusGeometry(ChBody* body,
                       const ChQuaternion<>& rot,
                       bool visualization) {
     for (int i = 0; i < angle; i += angle / segments) {
-        double angle = i * CH_C_PI / 180.0;
-        double x = cos(angle) * radius;
-        double z = sin(angle) * radius;
-        Quaternion q = chrono::Q_from_AngAxis(-angle, VECT_Y) % chrono::Q_from_AngAxis(CH_C_PI / 2.0, VECT_X);
+        double alpha = i * CH_C_PI / 180.0;
+        double x = cos(alpha) * radius;
+        double z = sin(alpha) * radius;
+        Quaternion q = chrono::Q_from_AngAxis(-alpha, VECT_Y) % chrono::Q_from_AngAxis(CH_C_PI / 2.0, VECT_X);
         double outer_circ = 2 * CH_C_PI * (radius + thickness);
 
         AddCapsuleGeometry(body, material, thickness, outer_circ / segments * .5, ChVector<>(x, 0, z) + pos, q,
@@ -756,8 +754,6 @@ bool LoadConvexHulls(const std::string& file_name,
 
     if (!tinyobj::LoadObj(&att, &shapes, &materials, &warn, &err, file_name.c_str()))
         return false;
-
-    auto& positions = att.vertices;
 
     convex_hulls.resize(shapes.size());
 

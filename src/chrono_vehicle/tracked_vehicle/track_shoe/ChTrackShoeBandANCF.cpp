@@ -159,7 +159,6 @@ void ChTrackShoeBandANCF::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,
         case ElementType::ANCF_8: {
             int N_x_edge = 2 * num_elements_length + 1;
             int N_y_edge = 2 * num_elements_width + 1;
-            int N_x_mid = num_elements_length + 1;
             int N_y_mid = num_elements_width + 1;
 
             double dx = GetWebLength() / (2 * num_elements_length);
@@ -302,8 +301,6 @@ void ChTrackShoeBandANCF::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,
         case ElementType::ANCF_8: {
             int N_x_edge = 2 * num_elements_length + 1;
             int N_y_edge = 2 * num_elements_width + 1;
-            int N_x_mid = num_elements_length + 1;
-            int N_y_mid = num_elements_width + 1;
 
             double dx = GetWebLength() / (2 * num_elements_length);
             double dy = GetBeltWidth() / (2 * num_elements_width);
@@ -350,11 +347,7 @@ void ChTrackShoeBandANCF::RemoveVisualizationAssets() {
 // -----------------------------------------------------------------------------
 void ChTrackShoeBandANCF::Connect(std::shared_ptr<ChTrackShoe> next, ChTrackAssembly* assembly, bool ccw) {
     ChSystem* system = m_shoe->GetSystem();
-    ChVector<> loc_cur_shoe = m_shoe->TransformPointLocalToParent(ChVector<>(GetToothBaseLength() / 2, 0, 0));
     ChQuaternion<> rot_cur_shoe = m_shoe->GetRot();
-    ChVector<> loc_next_shoe =
-        next->GetShoeBody()->TransformPointLocalToParent(ChVector<>(-GetToothBaseLength() / 2, 0, 0));
-    ;
     ChQuaternion<> rot_next_shoe = next->GetShoeBody()->GetRot();
 
     int num_elements_length = GetNumElementsLength();
@@ -362,7 +355,6 @@ void ChTrackShoeBandANCF::Connect(std::shared_ptr<ChTrackShoe> next, ChTrackAsse
 
     switch (m_element_type) {
         case ElementType::ANCF_4: {
-            int N_x = num_elements_length + 1;
             int N_y = num_elements_width + 1;
 
             // Change the gradient on the web boundary nodes that will connect to the current shoe body
@@ -402,13 +394,11 @@ void ChTrackShoeBandANCF::Connect(std::shared_ptr<ChTrackShoe> next, ChTrackAsse
             break;
         }
         case ElementType::ANCF_8: {
-            int N_x_edge = 2 * num_elements_length + 1;
             int N_y_edge = 2 * num_elements_width + 1;
-            int N_x_mid = num_elements_length + 1;
             int N_y_mid = num_elements_width + 1;
 
-            double dx = GetWebLength() / (2 * num_elements_length);
-            double dy = GetBeltWidth() / (2 * num_elements_width);
+            ////double dx = GetWebLength() / (2 * num_elements_length);
+            ////double dy = GetBeltWidth() / (2 * num_elements_width);
 
             // Change the gradient on the web boundary nodes that will connect to the current shoe body
             // and then connect those web nodes to the show tread body

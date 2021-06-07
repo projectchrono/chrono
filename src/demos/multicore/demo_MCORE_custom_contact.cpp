@@ -112,16 +112,15 @@ int main(int argc, char* argv[]) {
 
     double ball_radius = 0.5;
     MyObstacle obstacle;
-    double obst_radius = 2.0;
     ChVector<> obst_center(2.9, 0, 2.9);
 
     // Create the system and the various contact materials
-    ChSystemMulticore* sys;
+    ChSystemMulticore* sys = nullptr;
     std::shared_ptr<ChMaterialSurface> ground_mat;
     std::shared_ptr<ChMaterialSurface> ball_mat;
     std::shared_ptr<ChMaterialSurface> obst_mat;
-    double time_step;
-    int frame_skip;
+    double time_step = 0;
+    int frame_skip = 0;
 
     switch (contact_method) {
         case ChContactMethod::NSC: {
@@ -187,7 +186,7 @@ int main(int argc, char* argv[]) {
     utils::AddBoxGeometry(ground.get(), ground_mat, ChVector<>(5.1, 1, 0.1), ChVector<>(0, 0, +5));
     ground->GetCollisionModel()->BuildModel();
 
-    ground->AddAsset(chrono_types::make_shared<ChTexture>(GetChronoDataFile("blu.png")));
+    ground->AddAsset(chrono_types::make_shared<ChTexture>(GetChronoDataFile("textures/blue.png")));
     ground->AddAsset(obstacle.GetVisualization());
 
     // Create the falling ball
@@ -203,7 +202,7 @@ int main(int argc, char* argv[]) {
     utils::AddSphereGeometry(ball.get(), ball_mat, ball_radius);
     ball->GetCollisionModel()->BuildModel();
 
-    ball->AddAsset(chrono_types::make_shared<ChTexture>(GetChronoDataFile("bluwhite.png")));
+    ball->AddAsset(chrono_types::make_shared<ChTexture>(GetChronoDataFile("textures/bluewhite.png")));
 
     // Create a custom collision detection callback object and register it with the system
     auto my_collision =
@@ -211,8 +210,7 @@ int main(int argc, char* argv[]) {
     sys->RegisterCustomCollisionCallback(my_collision);
 
     // Create the Irrlicht visualization
-    ChIrrApp application(sys, L"Custom contact demo (Chrono::Multicore)", irr::core::dimension2d<irr::u32>(800, 600),
-                         false, true);
+    ChIrrApp application(sys, L"Custom contact demo (Chrono::Multicore)", irr::core::dimension2d<irr::u32>(800, 600));
     application.AddTypicalLogo();
     application.AddTypicalSky();
     application.AddTypicalLights();

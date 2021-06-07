@@ -14,13 +14,14 @@
 
 #pragma once
 
+#include <string>
+#include <iostream>
+#include <string>
+
 #include "chrono_gpu/ChGpuDefines.h"
 
 #include "chrono_thirdparty/rapidjson/filereadstream.h"
 #include "chrono_thirdparty/rapidjson/document.h"
-
-#include <string>
-#include <iostream>
 
 using std::string;
 using std::cout;
@@ -133,9 +134,9 @@ void InvalidArg(string arg) {
 
 /// Parse the specified JSON file with simulation settings.
 /// Returns true on successful parameter load. Returns false and prints error on invalid argument.
-bool ParseJSON(const char* json_file, ChGpuSimulationParameters& params, bool verbose = true) {
-    CONDITIONAL_PRINTF(verbose, "Reading parameters: %s\n", json_file);
-    FILE* fp = fopen(json_file, "r");
+bool ParseJSON(const std::string& json_file, ChGpuSimulationParameters& params, bool verbose = true) {
+    CONDITIONAL_PRINTF(verbose, "Reading parameters: %s\n", json_file.c_str());
+    FILE* fp = fopen(json_file.c_str(), "r");
     if (!fp) {
         cout << "Invalid JSON file" << endl;
         ShowJSONUsage();
@@ -321,7 +322,7 @@ bool ParseJSON(const char* json_file, ChGpuSimulationParameters& params, bool ve
     }
     if (doc.HasMember("verbose") && doc["verbose"].IsInt()) {
         params.verbose = (CHGPU_VERBOSITY)doc["verbose"].GetInt();
-        CONDITIONAL_PRINTF(verbose, "params.verbose %d\n", params.verbose);
+        CONDITIONAL_PRINTF(verbose, "params.verbose %d\n", (int)params.verbose);
     }
     if (doc.HasMember("psi_T") && doc["psi_T"].IsInt()) {
         params.psi_T = doc["psi_T"].GetInt();

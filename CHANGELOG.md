@@ -5,8 +5,21 @@ Change Log
 ==========
 
 - [Unreleased (development version)](#unreleased-development-branch)
-  - [RoboSimian model](#added-robosimian-model)
+  - [Miscellaneous additions to Chrono::Gpu](#added-miscellaneous-additions-to-chronogpu)
+  - [New loads for ChNodeFEAxyzrot](#added-new-loads-for-chnodefeaxyzrot)
+  - [Analytical box-box collision detection algorithm in Chrono::Multicore](#added-analytical-box-box-collision-detection-algorithm-in-chronomulticore)
+  - [Checkpointing capabilities in Chrono::Gpu](#added-checkpointing-capabilities-in-chronogpu)
+  - [Fixes to particle volume samplers and generators](#fixed-fixes-to-particle-volume-samplers-and-generators)
+  - [SCM deformable terrain improvements](#changed-scm-deformable-terrain-improvements)
+  - [Miscellaneous fixes to Chrono::Vehicle API](#changed-miscellaneous-fixes-to-chronovehicle-api)
+  - [New tracked vehicle model](#added-new-tracked-vehicle-model)
+  - [Support for Z up camera in Chrono::Irrlicht](#changed-support-for-z-up-camera-in-chronoirrlicht)
+  - [Reading and writing collision meshes in Chrono::Gpu](#changed-reading-and-writing-collision-meshes-in-chronogpu)
+- [Release 6.0.0](#release-600---2021-02-10) 
+  - [New Chrono::Csharp module](#added-new-chronocsharp-module)
+  - [RoboSimian, Viper, and LittleHexy models](#added-robosimian-viper-and-littlehexy-models)
   - [Contact force reporting through user-provided callback](#added-contact-force-reporting-through-user-provided-callback)
+  - [Chrono::Gpu module rename](#changed-chronogpu-module-rename)
   - [Chrono::Multicore module rename](#changed-chronomulticore-module-rename)
   - [Geometric stiffness for Euler beams](#added-geometric-stiffness-for-euler-beams)
   - [New Chrono::Synchrono module](#added-new-chronosynchrono-module)
@@ -32,15 +45,241 @@ Change Log
 
 ## Unreleased (development branch)
 
-### [Added] RoboSimian model
+## [Added] Miscellaneous additions to Chrono::Gpu
 
-A model of the legged RoboSimian robot is now included in the collection of Chrono models.  The model has no dependencies beyond the core Chrono module, except for an (optional) utility class for visualization with Irrlicht.  A Python wrapper is also provided. Related demo programs illustrate the robot moving over rigid or SCM deformable terrain (using a core Chrono system) and over granular terrain (using the Chrono::Multicore module).
+The location of the computational domain can now be specified (in addition to its dimensions) through a fourth optional constructor argument of `ChSystemGpu` and `ChSystemGpuMesh`. By default, the axis-aligned computational domain is centered at the origin.  As such,
+```cpp
+ChSystemGpu gpu_sys(1, 1, ChVector<float>(100, 80, 60));
+```
+sets the computational domain to be [-50,50] x [-40,40] x [-30,30], while
+```cpp
+ChSystemGpu gpu_sys(1, 1, ChVector<float>(100, 80, 60), ChVector<float>(10, 20, 30));
+```
+sets the computational domain to be [-40,60] x [-20,60] x [0,60].
+Note also that, for consistency of the API, the type of the domain size (third constructor argument) was changed to `const ChVector<float>&`.
+
+A new function, `ChSystemGpu::GetParticlesKineticEnergy` was added to calculate and return the total kinetic energy of the granular particles.
+
+### [Added] New loads for ChNodeFEAxyzrot
+
+New classes have been added for creating loads (with automatic jacobian generation that allow also stiff loads) for ChNodeFEAxyzrot nodes, in detail:
+- on a node of ChNodeFEAxyzrot type (user defined etc.)
+- between two ChNodeFEAxyzrot (user defined, spherical bushing, plastic bushing, generic bushing, etc.)
+- between a ChNodeFEAxyzrot and a ChBody (user defined, spherical bushing, plastic bushing, generic bushing, etc.)
+Previously, these types of loads were available only for the ChNodeFEAxyz node (used in tetahedrons and bricks, for example) but not for ChNodeFEAxyzrot (used in beams and Reissner shells, for example). 
+
+### [Added] Analytical box box collision detection algorithm in Chrono::Multicore
+
+A new algorithm for analytical collision detection for box-box interactions was added to the parallel collision system implemented in Chrono:Multicore.
+For collisions involving two boxes, this new algorithm is now used instead of the default MPR algorithm (when using narrow phase type `NARROWPHASE_R` or `NARROWPHASE_HYBRID_MPR`).
+
+The new algorithm relies on the 15-axes test of Gottschalk, Lin, and Manocha (Siggraph 1996) for finding the direction of minimum intersection between two oriented boxes and then the collision detection is special-cased for all possible combinations of interacting features from the two boxes (9 different cases).
+The analytical algorithm can produce up to 8 collision pairs and works with or without a collision envelope (thus being appropriate for both SMC and NSC contact forumlations).
+
+### [Added] Checkpointing capabilities in Chrono::Gpu
+
+Chrono::Gpu can now output a checkpoint file to store the current simulation state, then re-start the simulation from that stage. The checkpointed information includes the simulation parameters such as sphere radius and density, the positions and velocities of particles, and the friction history if using a frictional model.
+
+To use checkpointing, at any point after `ChSystemGpu::Initialize()` , call `ChSystemGpu::WriteCheckpointFile(filename)` to generate a checkpoint file named `filename`. Then, a new simulation can be generated from this file, by either:
+- constructing a new `ChSystemGpu` system from a checkpoint file; or
+- calling `ChSystemGpu::ReadCheckpointFile(filename)` to load the checkpointed state to a existing system (before calling `ChSystemGpu::Initialize()`). This will check if the loaded simulation parameters conflict with the existing system, and throw an error if so; or
+- calling `ChSystemGpu::ReadCheckpointFile(filename, true)`, which is similar to above, but overwrites existing simulation parameters with those from the checkpoint file.
+
+A simple example:
+```cpp
+ChSystemGpu sys1(radius, density, make_float3(box_X, box_Y, box_Z));
+/* Set simulation parameters */
+sys1.Initialize();
+sys1.AdvanceSimulation(1.0);
+sys1.WriteCheckpointFile("checkpoint.dat");
+
+ChSystemGpu sys2("checkpoint.dat");
+/* Or load checkpoint manually...
+ChSystemGpu sys2(radius, density, make_float3(box_X, box_Y, box_Z));
+Set simulation parameters...
+sys2.ReadCheckpointFile("checkpoint.dat");  
+*/
+```
+
+`ChSystemGpu::ReadParticleFile` is used to load particle positions and velocities from a CSV file. It is useful if the particle information is meant to be supplied from a file rather than programatically.
+
+See demo_GPU_ballcosim for an example of using checkpointing.
+
+Function renames:
+- `ChSystemGpu::WriteFile` renamed to `ChSystemGpu::WriteParticleFile`
+- `ChSystemGpu::SetOutputFlags` renamed to `ChSystemGpu::SetParticleOutputFlags`
+- `ChSystemGpu::SetOutputMode` renamed to `ChSystemGpu::SetParticleOutputMode`
+
+Notes:
+- Default output flags are set to write particle positions and velocity magnitudes only, excluding angular velocity components. The output flags can be set by `ChSystemGpu::SetParticleOutputFlags`.
+- If the simulation loads a checkpoint file or a CSV particle file, it will not do the defragment process during `Initialize()`; otherwise it will. The defragment process tries to re-order the particle numbering such that the particles belong to a SD become close together in system arrays. It is by default disabled for re-started simulations to not change the numbering from the previous simulation. The user can manually enforce the defragment process by calling `ChSystemGpu::SetDefragmentOnInitialize(true)`.
+
+Known issues:
+- Support for `CHGPU_TIME_INTEGRATOR::CHUNG` is partial. The checkpoint file does not store velocities of the previous time step, so if a checkpoint is loaded while `CHGPU_TIME_INTEGRATOR::CHUNG` is in use, the physics will change. It is therefore best to avoid `CHGPU_TIME_INTEGRATOR::CHUNG` if checkpointing is needed. No demo uses `CHGPU_TIME_INTEGRATOR::CHUNG`.
+- The checkpoint file does not store any manually defined boundaries (those defined by `ChSystemGpu::CreateBC*`) or meshes (those defined by `ChSystemGpuMesh::AddMesh`). For now, these need to be manually added before initializing the re-started simulation.
+
+
+### [Fixed] Fixes to particle volume samplers and generators
+
+- An incorrect implementation of the HCP (Hexagonally Close Packed) sampler, `utils::HCPSampler`, resulting in the wrong lattice was fixed. 
+
+- The API of the various particle generator functions `utils::Generator::CreateObjects***` was changed to take as first argument a reference to a volume sampler.  Previous code such as:
+```cpp
+    utils::Generator gen(system);
+    gen.createObjectsBox(utils::SamplingType::POISSON_DISK, sep, center, hdims);
+```
+should be changed to:
+```cpp
+   utils::PDSampler<double> sampler(sep);
+   utils::Generator gen(system);
+   gen.CreateObjectsBox(sampler, center, hdims);
+```
+  This change was necessary to obtain proper randomization (where applicable) when generating particles in successive layers; indeed, the previous implementation created a new sampler at each function invocation resulting in layers with the same distribution of particle positions.  
+
+### [Changed] SCM deformable terrain improvements
+
+The reference frame for calculation of normal and tangential forces has been changed to be aligned with the local normal (as opposed to always being aligned with the SCM frame).  This fixes the generated terrain forces for SCM patches defined from height maps.  The Bekker forces are aligned with the local terrain normal, while the tangential shear forces (Janosi-Hanamoto) lie in the local tangent plane.  Note that the normal at each grid node is based on the undeformed terrain.
+
+In addition, the SCM implementation was changed to extend the logical grid beyond the (horizontal) limits specified by the user during initialization; this continuation is done by extending to infinity the logical patch using the terrain height and normal from the closest grid node within the specified domain.
+
+Finally, support was added for inclusion of tire-soil parameters (in addition to soil-soil parameters), if these are available. To provide this information, attach a structure of type `SCMContactableData` as user-data to the desired contactable object (e.g. a tire or track shoe body):
+```cpp
+    auto tire_data = chrono_types::make_shared<chrono::vehicle::SCMContactableData>(Aratio, Mcoh, Mfric, Jshear);
+    tire_body->SetUserData(tire_data);
+```
+The necessary data includes the SCM tangential force parameters, Mohr cohesion (Pa), friction angle (degrees), and the Janosi shear parameter (m), as well as a ratio that represents the weight of the tire-soil parameters in calculating the tangential force (using linear interpolation). A ratio value of 0 indicates using only the soil-soil parameters, while a value of 1 indicates using only the tire-soil parameters.  Typically, this ratio is set as the area ratio of tread surface over tire surface.  
+
+### [Changed] Miscellaneous fixes to Chrono::Vehicle API
+
+- Changed enum class names for suspension, driveline, and steering types to properly differentiate between wheeled and tracked vehicles.
+   The new enum classes, defined in `ChSubsysDefs.h` are SuspensionTypeWV, DrivelineTypeWV, and SteeringTypeWV for wheeled vehicles and DrivelineTypeTV for tracked vehicles.
+
+- Eliminated the setting for differential ratio in the various driveline templates.
+   To model a differential using the Chrono class `ChShaftsPlanetary`, this value must always be -1 (and represents the speed ratio of the inverted planetary) and is therefore hard-coded.
+   This affects driveline models that use the Chrono 1-D shaft modeling elements and the schema of associated JSON specifation files.
+
+- Modified all shafts-based driveline templates to expect a positive value for the conical gear ratios.
+
+- Added option (`ChPowertrain::SetTransmissionMode`) for setting the transmission mode of a powertrain to either `AUTOMATIC` or `MANUAL` (the latter modeling a manumatic-type transmission).  
+   If in `MANUAL` mode, gear shifting can be controlled with `ChPowertrain::ShiftUp`  and `ChPowertrain::ShiftDown`.
+
+- Modified the "Simple CVT" powertrain template.
+   In the new template specification, a parameter for max engine speed was added and the parameter for critical engine speed was removed.
+
+- Added utility function to programatically generate a sprocket visualization mesh (`ChSprocket::CreateVisualizationMesh`).
+   All Chrono::Vehicle sprocket profiles are defined as a succession of line segments and circle arcs. The default visualization is of type `VisualizationType::PRIMITIVES` and is a 3-D line for the profile.  The utility function `ChSprocket::CreateVisualizationMesh` creates a trimesh that can be used to visualize the sprocket when in `VisualizationType::MESH` mode.
+
+- Changed sign of sprocket angular speed reported by GetSprocketSpeed so that a positive value corresponds to forward vehicle movement.
+   This change was made simply for convenience and consistency.
+
+- Completed the braked differential steering driveline for tracked vehicles (`ChTrackDrivelineBDS`) to properly implement steering.
+    In this driveline model, steering is achieved through braking; this is implemented through a driveline-specific utility function that combines the steering and braking controls.
+
+- Added function `RandomSurfaceTerrain::EnableCollisionMesh` to optionally generate a terrain collision mesh.
+    This is necessary for tracked vehicles or wheeled vehicles with rigid tires (which rely on the underlying Chrono contact system).
+
+### [Added] New tracked vehicle model
+
+The Marder ("marten" in German) is a tracked infantry fighting vehicle used by the German Bundeswehr since 1969. It has a running gear with 12 road wheels, sprocket, idler and 3 support rollers. The first two and the last two road wheels on every side are damped by telescopic dampers. It is driven by a 444 kW Diesel engine, torque converter with lockup and 4 gear automatic gearbox. It carries up to nine soldiers (commander, gunner, driver and six infantrymen).
+
+The Chrono::Vehicle model is based only on public data available online and information found in literature. Although the original vehicle emplys double-pin tracks, the current Chrono model only implements a single-pin track.
+
+### [Changed] Support for Z up camera in Chrono::Irrlicht
+
+While the default remains to construct a camera with Y up, the ChIrrApp class was modified to also support a camera with Z up.  To create a Z up Irrlicht visualization application, pass `VerticalDir::Z` as the 4th (optional) argument to the ChIrrApp constructor. For example:
+```cpp
+    ChIrrApp application(&system, L"Demo", irr::core::dimension2d<irr::u32>(800, 600), VerticalDir::Z);
+    application.AddTypicalLogo();
+    application.AddTypicalSky();
+    application.AddTypicalLights();
+    application.AddTypicalCamera(irr::core::vector3df(1, 1, 1));
+```
+Note that this will also properly orient the sky box.
+Rotating with the left mouse button and panning with the arrow and PageUp/PageDwn keys works the same as with a Y up camera.
+
+This API change also eliminates classes with only static methods (ChIrrTools and ChIrrWizard), replacing them with free functions in the `chrono::irrlicht::tools` namespace.  See the various Chrono demos for required changes to user code.
+
+### [Changed] Reading and writing collision meshes in Chrono::Gpu
+
+The mechanism for specifying collision meshes in a `ChSystemGpuMesh` was changed to allow adding meshes in a sequential manner, at any point and as many times as desired, prior to invoking `ChSystemGpuMesh::Initialize()`. Various different functions are provided for adding a mesh from memory:
+```cpp
+    unsigned int AddMesh(std::shared_ptr<geometry::ChTriangleMeshConnected> mesh,
+                         float mass);
+```
+from a Wavefron OBJ file:
+```cpp
+    unsigned int AddMesh(const std::string& filename,
+                         const ChVector<float>& translation,
+                         const ChMatrix33<float>& rotscale,
+                         float mass);
+```
+or adding multiple meshes from a list of Wavefront OBJ files:
+```cpp
+    std::vector<unsigned int> AddMeshes(const std::vector<std::string>& objfilenames,
+                                        const std::vector<ChVector<float>>& translations,
+                                        const std::vector<ChMatrix33<float>>& rotscales,
+                                        const std::vector<float>& masses);
+```
+
+All meshes such specified are offloaded to the GPU upon calling `ChSystemGpuMesh::Initialize()`.  Note that these functions return an integral mesh identifier which can be used in subsequent function calls (e.g., `ChSystemGpuMesh::ApplyMeshMotion()`) to identify a particular mesh.
+
+The Wavefront OBJ file format requirement is changed. The nodal normal information of the meshes, a.k.a. the `vn` lines, are no longer needed by default. The meshes are still directional in contact force calculation, and the normal directions are now implicitly determined by orderings of facet nodes, using the Right-Hand Rule (RHR).
+
+This should not impact the usage of meshes, since for a properly generated OBJ mesh, the orderings of nodes are in line with the outward normals. The users can however, restore the old behavior by calling `ChSystemGpuMesh::UseMeshNormals(true)` before `ChSystemGpuMesh::Initialize()`. If it is called, Chrono::Gpu module will try to rearrange the orderings of facet nodes so that the RHR normals agree with the normals given by the corresponding `vn` lines. 
+
+Chrono::Gpu module now outputs VTK meshes correctly by writing to files the nodal coordinates and connectivities, instead of triangle soups. It also no longer appends `_mesh` to the output filenames. Users can still write all meshes to a single file by 
+```cpp
+    void WriteMeshes(const std::string& outfilename) const;
+```
+or write a particular mesh to a file by
+```cpp
+    void WriteMesh(const std::string& outfilename, unsigned int i) const;
+```
+
+## Release 6.0.0 - 2021-02-10
+
+### [Added] New Chrono::Csharp module
+
+The new Chrono::Csharp module provides a C# interface to selected Chrono functionality.  This allows using Chrono from C# programs and facilitates the integration of Chrono with external engines such as Unity.
+
+The module relies on SWIG to automatically generate the interface library and wrapper C# classes.  Upon build, the module creates the wrapper C# files under a `chrono_csharp/` directory in the build tree and a number of shared libraries (dll on Windows, so on Linux) in either the `bin/` or `lib/` directory, depending on platform. Currently, the Chrono::Csharp module provides an interface to the multibody dynamics capabilities in the core Chrono module, as well as to Chrono::Vehicle and the associated vehicle models.
+
+### [Added] RoboSimian, Viper, and LittleHexy models
+
+Models of the legged RoboSimian robot, the wheeled Viper rover, and the six-propeller LittleHexy copter are now included in the collection of Chrono models.  These models have no dependencies beyond the core Chrono module, except for an optional utility class for RoboSimian visualization with Irrlicht. Python wrappers are also provided, allowing use of these models with PyChrono. Related demo programs illustrate the robots moving over rigid or SCM deformable terrain (using a core Chrono system) and over granular terrain (using the Chrono::Multicore module).
 
 ### [Added] Contact force reporting through user-provided callback
 
-The `OnReportContact` method of a user-supplied reporter callback (derived from `ChContactContainer::ReportContactCallback`) is now called with the proper force and torque for the current contact when using a Chrono::Multicore parallel system (of either NSC or SMC type).  The reported contact force and torque are provided at the contact point and expressed in the *contact frame* (defined by the given rotation matrix).
+The `OnReportContact` method of a user-supplied reporter callback (derived from `ChContactContainer::ReportContactCallback`) is now called with the proper force and torque for the current contact when using a Chrono::Multicore parallel system (of either NSC or SMC type).  The reported contact force and torque are provided at the contact point and expressed in the *contact frame* (defined by the provided rotation matrix).
 
 For examples of using the contact reporting feature with a Chrono::Multicore system, see `demo_MCORE_callbackNSC` and `demo_MCORE_callbackSMC`.
+
+### [Changed] Chrono::Gpu module rename
+
+For consistency and to better reflect the purpose of this module, Chrono::Granular was renamed to **Chrono::Gpu**.
+With this change, the set of three Chrono modules targeting different parallel hardware (each providing different level of support for different types of simulations) are:
+- Chrono::Multicore (for shared-memory multicore parallel computing using OpenMP)
+- Chrono::Gpu (for GPU parallel computing using CUDA)
+- Chrono::Distributed (for distributed-memory parallel computing using MPI)
+
+The name change for Chrono::Gpu and its associated classes was done in conjunction with a relatively extensive refactoring of its API.  The user's interaction with the Chrono::Gpu module was streamlined by exposing in the public API a single Chrono::Gpu system object (of type `ChSystemGpu` or `ChSystemGpuMesh`) and hidding the underlying implementation in a private class.
+
+See the various Chrono::Gpu demos in the Chrono distribution (e.g., demo_GPU_ballcosim) for usage of the new Chrono::Gpu module. The main API changes are as follows:
+- user code only needs to include one Chrono::Gpu header, namely `chrono_gpu/physics/ChSystemGpu.h`;
+- optional utilities are available in the `utils/` subdirectory (e.g. `chrono_gpu/utils/GpuJsonParser.h` and `chrono_gpu/utils/ChGpuSphereDecomp.h`; see demo_GPU_ballcosim and demo_GPU_fixedterrain, respectively);
+- user must create a Chrono::Gpu object (of type `ChSystemGpu` or `ChSystemGpuMesh`, as appropriate) by specifying the radius of the granular material spherical particles, their density, and the domain size.   This system object intermediates all interactions with the solver (through various setter and getter methods) and provides wrapper functions to initialize the problem (before the simulation loop) and advance the system state (inside the simulation loop);
+- note that names of ChSystemGpu methods were changed throughout for uniformity and coherence.
+
+As part of this refactoring, we have also added run-time visualization support for Chrono::Gpu simulations using the Chrono::OpenGL module (if the latter is not enabled in your Chrono build, run-time visualization support is disabled).  While run-time visualization adds some overhead, it may prove to be a useful debugging tool.  To use it:
+- include the header `chrono_gpu/utils/ChGpuVisualization`;
+- create the visualization object by passing it a pointer to the Chrono::Gpu system and (optionally) a pointer to a Chrono system (if one already exists, e.g. for a co-simulation problem;  if passing `nullptr`, such a system is created automatically);
+- initialize the visualization system (this must be done after the Chrono::Gpu system itself was initialized) by invoking the function ChGpuVisualization::Initialize();
+- in the simulation loop, at any desired frequency, invoke the function ChGpuVisualization::Render().
+
+See demo_GPU_ballcosim, demo_GPU_mixer, or demo_GPU_repose for use of the run-time visualization option.
+
+
+Finally, note that a future version of the Chrono::Gpu module may simplify its public API even further by collapsing the two current classes ChsystemGpu and ChSystemGpuMesh into a single one.
 
 ### [Changed] Chrono::Multicore module rename
 

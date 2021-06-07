@@ -65,7 +65,7 @@ int main(int argc, char* argv[]) {
     HMMWV_Reduced hmmwv_1(&sys);
     hmmwv_1.SetInitPosition(ChCoordsys<>(ChVector<>(0, -1.5, 1.0), QUNIT));
     hmmwv_1.SetPowertrainType(PowertrainModelType::SIMPLE);
-    hmmwv_1.SetDriveType(DrivelineType::RWD);
+    hmmwv_1.SetDriveType(DrivelineTypeWV::RWD);
     hmmwv_1.SetTireType(TireModelType::RIGID);
     hmmwv_1.Initialize();
     hmmwv_1.SetChassisVisualizationType(VisualizationType::PRIMITIVES);
@@ -87,7 +87,7 @@ int main(int argc, char* argv[]) {
     HMMWV_Reduced hmmwv_2(&sys);
     hmmwv_2.SetInitPosition(ChCoordsys<>(ChVector<>(7, 1.5, 1.0), QUNIT));
     hmmwv_2.SetPowertrainType(PowertrainModelType::SIMPLE);
-    hmmwv_2.SetDriveType(DrivelineType::RWD);
+    hmmwv_2.SetDriveType(DrivelineTypeWV::RWD);
     hmmwv_2.SetTireType(TireModelType::RIGID);
     hmmwv_2.Initialize();
     hmmwv_2.SetChassisVisualizationType(VisualizationType::PRIMITIVES);
@@ -132,14 +132,6 @@ int main(int argc, char* argv[]) {
         // Driver inputs
         ChDriver::Inputs driver_inputs_1 = driver_1.GetInputs();
         ChDriver::Inputs driver_inputs_2 = driver_2.GetInputs();
-
-        double throttle_input_1 = driver_1.GetThrottle();
-        double steering_input_1 = driver_1.GetSteering();
-        double braking_input_1 = driver_1.GetBraking();
-
-        double throttle_input_2 = driver_2.GetThrottle();
-        double steering_input_2 = driver_2.GetSteering();
-        double braking_input_2 = driver_2.GetBraking();
 
         // Update modules (process inputs from other modules)
         driver_1.Synchronize(time);

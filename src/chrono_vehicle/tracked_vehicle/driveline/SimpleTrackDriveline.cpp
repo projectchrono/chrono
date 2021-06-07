@@ -27,7 +27,7 @@ namespace vehicle {
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 SimpleTrackDriveline::SimpleTrackDriveline(const std::string& filename) : ChSimpleTrackDriveline("") {
-    Document d = ReadFileJSON(filename);
+    Document d; ReadFileJSON(filename, d);
     if (d.IsNull())
         return;
 

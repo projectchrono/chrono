@@ -206,6 +206,61 @@ void ChNodeFEAxyzrot::VariablesQbIncrementPosition(double step) {
     this->SetRot(mnewrot);
 }
 
+
+// -----------------------------------------------------------------------------
+
+void ChNodeFEAxyzrot::LoadableGetVariables(std::vector<ChVariables*>& mvars) {
+    mvars.push_back(&this->Variables());
+}
+
+void ChNodeFEAxyzrot::LoadableStateIncrement(const unsigned int off_x,
+                                    ChState& x_new,
+                                    const ChState& x,
+                                    const unsigned int off_v,
+                                    const ChStateDelta& Dv) {
+    this->NodeIntStateIncrement(off_x, x_new, x, off_v, Dv);
+}
+
+void ChNodeFEAxyzrot::LoadableGetStateBlock_x(int block_offset, ChState& mD) {
+    mD.segment(block_offset + 0, 3) = this->GetCoord().pos.eigen();
+    mD.segment(block_offset + 3, 4) = this->GetCoord().rot.eigen();
+}
+
+void ChNodeFEAxyzrot::LoadableGetStateBlock_w(int block_offset, ChStateDelta& mD) {
+    mD.segment(block_offset + 0, 3) = this->GetPos_dt().eigen();
+    mD.segment(block_offset + 3, 3) = this->GetWvel_loc().eigen();
+}
+
+void ChNodeFEAxyzrot::ComputeNF(
+    const double U,              // x coordinate of application point in absolute space
+    const double V,              // y coordinate of application point in absolute space
+    const double W,              // z coordinate of application point in absolute space
+    ChVectorDynamic<>& Qi,       // Return result of N'*F  here, maybe with offset block_offset
+    double& detJ,                // Return det[J] here
+    const ChVectorDynamic<>& F,  // Input F vector, size is 6, it is {Force,Torque} both in absolute coords.
+    ChVectorDynamic<>* state_x,  // if != 0, update state (pos. part) to this, then evaluate Q
+    ChVectorDynamic<>* state_w   // if != 0, update state (speed part) to this, then evaluate Q
+) {
+    ChVector<> abs_pos(U, V, W);
+    ChVector<> absF(F.segment(0, 3));
+    ChVector<> absT(F.segment(3, 3));
+    ChVector<> body_absF;
+    ChVector<> body_locT;
+    ChCoordsys<> nodecoord;
+    if (state_x)
+        nodecoord = state_x->segment(0, 7);  // the numerical jacobian algo might change state_x
+    else
+        nodecoord = this->coord;
+
+    // compute Q components F,T, given current state of 'nodecoord'. Note T in Q is in local csys, F is an abs csys
+    body_absF = absF;
+    body_locT = nodecoord.rot.RotateBack(absT + ((abs_pos - nodecoord.pos) % absF));
+    Qi.segment(0, 3) = body_absF.eigen();
+    Qi.segment(3, 3) = body_locT.eigen();
+    detJ = 1;  // not needed because not used in quadrature.
+}
+
+
 // -----------------------------------------------------------------------------
 
 void ChNodeFEAxyzrot::ArchiveOUT(ChArchiveOut& marchive) {
@@ -223,7 +278,7 @@ void ChNodeFEAxyzrot::ArchiveOUT(ChArchiveOut& marchive) {
 
 void ChNodeFEAxyzrot::ArchiveIN(ChArchiveIn& marchive) {
     // version number
-    int version = marchive.VersionRead<ChNodeFEAxyzrot>();
+    /*int version =*/ marchive.VersionRead<ChNodeFEAxyzrot>();
     // deserialize parent class
     ChNodeFEAbase::ArchiveIN(marchive);
     // serialize parent class

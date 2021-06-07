@@ -101,8 +101,6 @@ void ChSurfaceNurbs::SetupData(
     this->points = mpoints;
     int n_u = (int)points.rows();
     int n_v = (int)points.cols();
-    int k_u = n_u + p_u + 1;
-    int k_v = n_v + p_v + 1;
 
     if (mknots_u)
         this->knots_u = *mknots_u;
@@ -139,7 +137,7 @@ void ChSurfaceNurbs::ArchiveOUT(ChArchiveOut& marchive) {
 
 void ChSurfaceNurbs::ArchiveIN(ChArchiveIn& marchive) {
     // version number
-    int version = marchive.VersionRead<ChSurfaceNurbs>();
+    /*int version =*/ marchive.VersionRead<ChSurfaceNurbs>();
     // deserialize parent class
     ChSurface::ArchiveIN(marchive);
     // stream in all member data:

@@ -1,0 +1,130 @@
+{
+	"version": 1,
+	"vendor": {
+		"projectchrono.org/chrono/6.0.0" : {}
+	},
+	"cmakeMinimumRequired": {
+		"major": 3,
+		"minor": 19,
+		"patch": 0
+	},
+	"configurePresets": [
+		{
+			"name": "genericci-base",
+			"displayName": "General CI Base Configuration",
+			"hidden": true,
+			"binaryDir": "${sourceDir}/build",
+			"cacheVariables": {
+				"CMAKE_BUILD_TYPE": "Release",
+				"BUILD_TESTING": "ON",
+				"BUILD_BENCHMARKING": "ON",
+				"ENABLE_HDF5": "ON",
+				"ENABLE_MODULE_POSTPROCESS": "ON",
+				"ENABLE_MODULE_PYTHON": "ON",
+				"ENABLE_MODULE_IRRLICHT": "ON",
+				"ENABLE_MODULE_VEHICLE": "ON",
+				"ENABLE_MODULE_MULTICORE": "ON",
+				"ENABLE_MODULE_OPENGL": "ON",
+				"ENABLE_MODULE_SYNCHRONO": "ON",
+				"ENABLE_MODULE_CSHARP": "ON",
+				"ENABLE_MODULE_COSIMULATION": "OFF"
+			}
+		},
+		{
+			"name": "unixci-base",
+			"displayName": "Unix CI Base Configuration",
+			"hidden": true,
+			"inherits": "genericci-base",
+			"generator": "Unix Makefiles"
+		},
+		{
+			"name": "linuxci",
+			"displayName": "Linux CI Configuration",
+			"description": "Options for Linux platforms",
+			"inherits": [
+				"unixci-base",
+				"genericci-base"
+			],
+			"cacheVariables": {
+				"ENABLE_MODULE_DISTRIBUTED": "ON",
+				"ENABLE_MODULE_FSI": "ON",
+				"ENABLE_MODULE_GPU": "ON"
+			}
+		},
+		{
+			"name": "macosci",
+			"displayName": "macOS CI Configuration",
+			"description": "Options for macOS (with brew)",
+			"inherits": [
+				"unixci-base",
+				"genericci-base"
+			],
+			"cacheVariables": {
+				"CMAKE_CXX_FLAGS": "-Wno-deprecated-declarations -Wno-unused-command-line-argument",
+				"OpenMP_CXX_FLAGS": "-Xpreprocessor -fopenmp -I/usr/local/opt/libomp/include",
+				"OpenMP_CXX_LIB_NAMES": "omp",
+				"OpenMP_omp_LIBRARY": "/usr/local/opt/libomp/lib/libomp.a",
+				"EIGEN3_INCLUDE_DIR": "/usr/local/include/eigen3",
+				"BLAZE_DIR": "/usr/local/include",
+				"ENABLE_MODULE_DISTRIBUTED": "OFF",
+				"ENABLE_MODULE_FSI": "OFF",
+				"ENABLE_MODULE_GPU": "OFF",
+				"USE_MULTICORE_CUDA": "OFF"
+			}
+		},
+		{
+			"name": "windowsci-base",
+			"displayName": "Windows CI Base Configuration",
+			"hidden": true,
+			"inherits": "genericci-base",
+			"cacheVariables": {
+				"ENABLE_MODULE_PARDISO_MKL": "ON",
+				"BLAZE_DIR": "C:/Users/builder/Documents/blaze-3.8",
+				"BOOST_ROOT": "C:/Users/builder/Documents/boost-1.75.0",
+				"EIGEN3_INCLUDE_DIR": "C:/Users/builder/Documents/eigen-3.3.9",
+				"GLEW_DLL": "C:/Users/builder/Documents/glew-2.1.0/bin/Release/x64/glew32.dll",
+				"GLEW_INCLUDE_DIR": "C:/Users/builder/Documents/glew-2.1.0/include",
+				"GLEW_LIBRARY": "C:/Users/builder/Documents/glew-2.1.0/lib/Release/x64/glew32.lib",
+				"GLFW_DLL": "C:/Users/builder/Documents/glfw-3.3.3/lib-vc2017/glfw3.dll",
+				"GLFW_INCLUDE_DIR": "C:/Users/builder/Documents/glfw-3.3.3/include",
+				"GLFW_LIBRARY": "C:/Users/builder/Documents/glfw-3.3.3/lib-vc2017/glfw3dll.lib",
+				"GLM_INCLUDE_DIR": "C:/Users/builder/Documents/glm-0.9.9.8",
+				"IRRLICHT_LIBRARY": "C:/Users/builder/Documents/irrlicht-1.8.4/lib/Win64-visualStudio/Irrlicht.lib",
+				"IRRLICHT_ROOT": "C:/Users/builder/Documents/irrlicht-1.8.4",
+				"PYTHON_EXECUTABLE": "C:/Users/builder/Anaconda3/python.exe",
+				"SWIG_EXECUTABLE": "C:/Users/builder/Documents/swigwin-4.0.2/swig.exe",
+				"USE_MULTICORE_CUDA": "OFF",
+				"ENABLE_HDF5": "OFF"
+			}
+		},
+		{
+			"name": "windowsci-vs2019",
+			"displayName": "Windows CI Configuration for Visual Studio 2019",
+			"description": "Options for Windows with Visual Studio 2019 toolchain",
+			"generator": "Visual Studio 16 2019",
+			"architecture": "x64",
+			"toolset": "v142",
+			"inherits": [
+				"windowsci-base",
+				"genericci-base"
+			],
+			"cacheVariables": {
+				"ENABLE_MODULE_GPU": "ON",
+				"ENABLE_MODULE_FSI": "ON"
+			}
+		},
+		{
+			"name": "windowsci-vs2017",
+			"displayName": "Windows CI Configuration for Visual Studio 2019 (as 2017)",
+			"description": "Options for Windows with Visual Studio 2017 toolchain",
+			"generator": "Visual Studio 16 2019",
+			"architecture": "x64",
+			"toolset": "v141",
+			"inherits": [
+				"windowsci-base",
+				"genericci-base"
+			]
+		}
+	]
+
+}

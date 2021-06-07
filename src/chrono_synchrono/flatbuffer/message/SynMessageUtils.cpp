@@ -42,7 +42,7 @@ SynPose::SynPose(const SynFlatBuffers::Pose* pose) {
                               pose->rot_dtdt()->e3()};
 }
 
-flatbuffers::Offset<SynFlatBuffers::Pose> SynPose::ToFlatBuffers(flatbuffers::FlatBufferBuilder& builder) {
+flatbuffers::Offset<SynFlatBuffers::Pose> SynPose::ToFlatBuffers(flatbuffers::FlatBufferBuilder& builder) const {
     auto fb_pos =
         SynFlatBuffers::CreateVector(builder, m_frame.coord.pos.x(), m_frame.coord.pos.y(), m_frame.coord.pos.z());
     auto fb_rot = SynFlatBuffers::CreateQuaternion(builder,
@@ -71,11 +71,6 @@ flatbuffers::Offset<SynFlatBuffers::Pose> SynPose::ToFlatBuffers(flatbuffers::Fl
     auto fb_pose = SynFlatBuffers::CreatePose(builder, fb_pos, fb_rot, fb_pos_dt, fb_rot_dt, fb_pos_dtdt, fb_rot_dtdt);
 
     return fb_pose;
-}
-
-void SynPose::Step(double dt) {
-    if (m_frame.coord_dt.pos.Length() > 0.05)
-        m_frame.SetCoord(m_frame.coord.pos + m_frame.coord_dt.pos * dt, m_frame.coord.rot + m_frame.coord_dt.rot * dt);
 }
 
 }  // namespace synchrono

@@ -115,7 +115,7 @@ void ChFunction::ArchiveOUT(ChArchiveOut& marchive) {
 /// Method to allow de serialization of transient data from archives.
 void ChFunction::ArchiveIN(ChArchiveIn& marchive) {
     // version number
-    int version = marchive.VersionRead<ChFunction>();
+    /*int version =*/ marchive.VersionRead<ChFunction>();
 }
 
 int ChFunction::FilePostscriptPlot(ChFile_ps* m_file, int plotY, int plotDY, int plotDDY) {

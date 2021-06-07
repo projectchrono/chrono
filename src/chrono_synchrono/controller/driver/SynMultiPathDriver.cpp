@@ -96,7 +96,7 @@ ChMultiplePathSteeringController::ChMultiplePathSteeringController(
     std::vector<std::pair<std::shared_ptr<ChBezierCurve>, bool>> path_pairs,
     int lane)
     : m_lane(lane) {
-    for (auto& path_pair : path_pairs) {
+    for (const auto& path_pair : path_pairs) {
         auto tracker_element = chrono_types::make_shared<ChBezierCurveTracker>(path_pair.first, path_pair.second);
         m_tracker.push_back(tracker_element);
         m_path.push_back(path_pair.first);
@@ -118,11 +118,11 @@ void ChMultiplePathSteeringController::Reset(const ChVehicle& vehicle) {
     }
 }
 
-int ChMultiplePathSteeringController::addPath(std::shared_ptr<ChBezierCurve> path, bool isClosedPath) {
+unsigned ChMultiplePathSteeringController::addPath(std::shared_ptr<ChBezierCurve> path, bool isClosedPath) {
     m_path.push_back(path);
     auto m_tracker_element = chrono_types::make_shared<ChBezierCurveTracker>(path, isClosedPath);
     m_tracker.push_back(m_tracker_element);
-    return m_tracker.size() - 1;
+    return (unsigned)(m_tracker.size() - 1);
 }
 
 }  // namespace synchrono

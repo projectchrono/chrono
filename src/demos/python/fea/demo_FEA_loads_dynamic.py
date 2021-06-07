@@ -18,7 +18,6 @@
 
 import pychrono as chrono
 import pychrono.fea as fea
-#import pychrono.mkl as mkl
 import pychrono.irrlicht as chronoirr
 import os
 import copy
@@ -38,7 +37,7 @@ my_system = chrono.ChSystemSMC()
 
 # Create the Irrlicht visualization
 
-application = chronoirr.ChIrrApp(my_system, "Loads on beams", chronoirr.dimension2du(800, 600), False, True)
+application = chronoirr.ChIrrApp(my_system, "Loads on beams", chronoirr.dimension2du(800, 600))
 application.AddTypicalLogo()
 application.AddTypicalSky()
 application.AddTypicalLights()

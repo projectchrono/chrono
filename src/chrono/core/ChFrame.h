@@ -81,10 +81,10 @@ class ChFrame {
     }
 
     /// Returns true for identical frames.
-    virtual bool operator==(const ChFrame<Real>& other) const { return Equals(other); }
+    bool operator==(const ChFrame<Real>& other) const { return Equals(other); }
 
     /// Returns true for different frames.
-    virtual bool operator!=(const ChFrame<Real>& other) const { return !Equals(other); }
+    bool operator!=(const ChFrame<Real>& other) const { return !Equals(other); }
 
     /// The '>>' operator transforms a coordinate system, so
     /// transformations can be represented with this syntax:
@@ -234,14 +234,14 @@ class ChFrame {
     /// Impose both translation and rotation as a
     /// single ChCoordsys. Note: the quaternion part must be
     /// already normalized!
-    virtual void SetCoord(const ChCoordsys<Real>& mcoord) {
+    void SetCoord(const ChCoordsys<Real>& mcoord) {
         coord = mcoord;
         Amatrix.Set_A_quaternion(mcoord.rot);
     }
 
     /// Impose both translation and rotation.
     /// Note: the quaternion part must be already normalized!
-    virtual void SetCoord(const ChVector<Real>& mv, const ChQuaternion<Real>& mq) {
+    void SetCoord(const ChVector<Real>& mv, const ChQuaternion<Real>& mq) {
         coord.pos = mv;
         coord.rot = mq;
         Amatrix.Set_A_quaternion(mq);
@@ -249,20 +249,20 @@ class ChFrame {
 
     /// Impose the rotation as a quaternion.
     /// Note: the quaternion must be already normalized!
-    virtual void SetRot(const ChQuaternion<Real>& mrot) {
+    void SetRot(const ChQuaternion<Real>& mrot) {
         coord.rot = mrot;
         Amatrix.Set_A_quaternion(mrot);
     }
 
     /// Impose the rotation as a 3x3 matrix.
     /// Note: the rotation matrix must be already orthogonal!
-    virtual void SetRot(const ChMatrix33<Real>& mA) {
+    void SetRot(const ChMatrix33<Real>& mA) {
         coord.rot = mA.Get_A_quaternion();
         Amatrix = mA;
     }
 
     /// Impose the translation
-    virtual void SetPos(const ChVector<Real>& mpos) { coord.pos = mpos; }
+    void SetPos(const ChVector<Real>& mpos) { coord.pos = mpos; }
 
     // FUNCTIONS TO TRANSFORM THE FRAME ITSELF
 
@@ -297,11 +297,11 @@ class ChFrame {
     /// object, this function is about 50% faster than TransformParentToLocal
     /// of a ChCoordsys.
     /// \return The point in parent coordinate
-    virtual ChVector<Real> TransformLocalToParent(const ChVector<Real>& local) const {
+    ChVector<Real> TransformLocalToParent(const ChVector<Real>& local) const {
         return ChTransform<Real>::TransformLocalToParent(local, coord.pos, Amatrix);
     }
 
-    virtual ChVector<Real> TransformPointLocalToParent(const ChVector<Real>& local) const {
+    ChVector<Real> TransformPointLocalToParent(const ChVector<Real>& local) const {
         return ChTransform<Real>::TransformLocalToParent(local, coord.pos, Amatrix);
     }
 
@@ -312,18 +312,18 @@ class ChFrame {
     /// object, this function is about 50% faster than TransformParentToLocal
     /// method of a ChCoordsys.
     /// \return The point in local frame coordinate
-    virtual ChVector<Real> TransformParentToLocal(const ChVector<Real>& parent) const {
+    ChVector<Real> TransformParentToLocal(const ChVector<Real>& parent) const {
         return ChTransform<Real>::TransformParentToLocal(parent, coord.pos, Amatrix);
     }
 
-    virtual ChVector<Real> TransformPointParentToLocal(const ChVector<Real>& parent) const {
+    ChVector<Real> TransformPointParentToLocal(const ChVector<Real>& parent) const {
         return ChTransform<Real>::TransformParentToLocal(parent, coord.pos, Amatrix);
     }
 
     /// This function transforms a frame from 'this' local coordinate
     /// system to parent frame coordinate system.
     /// \return The frame in parent frame coordinate
-    virtual void TransformLocalToParent(
+    void TransformLocalToParent(
         const ChFrame<Real>& local,  ///< frame to transform, given in local frame coordinates
         ChFrame<Real>& parent        ///< transformed frame, in parent coordinates, will be stored here
         ) const {
@@ -333,7 +333,7 @@ class ChFrame {
     /// This function transforms a frame from the parent coordinate
     /// system to 'this' local frame coordinate system.
     /// \return The frame in local frame coordinate
-    virtual void TransformParentToLocal(
+    void TransformParentToLocal(
         const ChFrame<Real>& parent,  ///< frame to transform, given in parent coordinates
         ChFrame<Real>& local          ///< transformed frame, in local coordinates, will be stored here
         ) const {
@@ -343,14 +343,14 @@ class ChFrame {
     /// This function transforms a direction from 'this' local coordinate
     /// system to parent frame coordinate system.
     /// \return The direction in local frame coordinate
-    virtual ChVector<Real> TransformDirectionParentToLocal(const ChVector<Real>& mdirection) const {
+    ChVector<Real> TransformDirectionParentToLocal(const ChVector<Real>& mdirection) const {
         return Amatrix.transpose() * mdirection;
     }
 
     /// This function transforms a direction from the parent frame coordinate system
     /// to 'this' local coordinate system.
     /// \return The direction in parent frame coordinate
-    virtual ChVector<Real> TransformDirectionLocalToParent(const ChVector<Real>& mdirection) const {
+    ChVector<Real> TransformDirectionLocalToParent(const ChVector<Real>& mdirection) const {
         return Amatrix * mdirection;
     }
 
@@ -399,7 +399,7 @@ class ChFrame {
     /// Method to allow de-serialization of transient data from archives.
     virtual void ArchiveIN(ChArchiveIn& marchive) {
         // suggested: use versioning
-        int version = marchive.VersionRead<ChFrame<double>>();
+        /*int version =*/ marchive.VersionRead<ChFrame<double>>();
         // stream in all member data
         marchive >> CHNVP(coord);
         Amatrix.Set_A_quaternion(coord.rot);

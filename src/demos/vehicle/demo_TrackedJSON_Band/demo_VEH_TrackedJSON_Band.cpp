@@ -59,7 +59,7 @@ std::string vehicle_file("M113/vehicle/M113_Vehicle_BandBushing.json");
 ////std::string vehicle_file("M113/vehicle/M113_Vehicle_BandANCF.json");
 
 // JSON file for powertrain
-std::string simplepowertrain_file("M113/powertrain/M113_SimplePowertrain.json");
+std::string simplepowertrain_file("M113/powertrain/M113_SimpleCVTPowertrain.json");
 
 // Initial vehicle position
 ChVector<> initLoc(0, 0, 1.1);
@@ -190,7 +190,7 @@ int main(int argc, char* argv[]) {
 
     ChTrackedVehicleIrrApp app(&vehicle, L"JSON Band-Tracked Vehicle Demo");
     app.SetSkyBox();
-    irrlicht::ChIrrWizard::add_typical_Logo(app.GetDevice());
+    app.SetSkyBox();
     app.AddTypicalLights(irr::core::vector3df(30.f, -30.f, 100.f), irr::core::vector3df(30.f, 50.f, 100.f), 250, 130);
     app.SetChaseCamera(ChVector<>(0, 0, 0), 6.0, 0.5);
     ////app.SetChaseCameraPosition(vehicle.GetVehiclePos() + ChVector<>(0, 2, 0));
@@ -344,7 +344,6 @@ int main(int argc, char* argv[]) {
         if (dbg_output) {
             cout << "Time: " << vehicle.GetSystem()->GetChTime() << endl;
             const ChFrameMoving<>& c_ref = vehicle.GetChassisBody()->GetFrame_REF_to_abs();
-            const ChVector<>& c_pos = vehicle.GetVehiclePos();
             cout << "      chassis:    " << c_pos.x() << "  " << c_pos.y() << "  " << c_pos.z() << endl;
             {
                 const ChVector<>& i_pos_abs = vehicle.GetTrackAssembly(LEFT)->GetIdler()->GetWheelBody()->GetPos();

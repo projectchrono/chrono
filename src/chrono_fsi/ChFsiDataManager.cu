@@ -424,18 +424,17 @@ void ChFsiDataManager::CalcNumObjects() {
         }
     }
 
-    std::cout << "numObjects->numFlexNodes" << numObjects->numFlexNodes << std::endl;
-
-    std::cout << "numObjects->numGhostMarkers" << numObjects->numGhostMarkers << std::endl;
+    std::cout << "numObjects->numFlexNodes = " << numObjects->numFlexNodes << std::endl;
+    std::cout << "numObjects->numGhostMarkers = " << numObjects->numGhostMarkers << std::endl;
     numObjects->numFluidMarkers += numObjects->numGhostMarkers + numObjects->numHelperMarkers;
-
     numObjects->numAllMarkers = numObjects->numFluidMarkers 
                               + numObjects->numBoundaryMarkers 
                               + numObjects->numRigid_SphMarkers 
                               + numObjects->numFlex_SphMarkers;
 
-    numObjects->startRigidMarkers = numObjects->numFluidMarkers + numObjects->numBoundaryMarkers;
-
+    numObjects->startRigidMarkers = 
+        (flagRigid) ? (numObjects->numFluidMarkers + numObjects->numBoundaryMarkers) 
+                    : numObjects->numAllMarkers;
     numObjects->startFlexMarkers =
         (flagFlex) ? (numObjects->numFluidMarkers + numObjects->numBoundaryMarkers + numObjects->numRigid_SphMarkers)
                    : numObjects->numAllMarkers;

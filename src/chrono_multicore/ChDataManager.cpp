@@ -138,7 +138,6 @@ int ChMulticoreDataManager::ExportCurrentSystem(std::string output_dir) {
     OutputBlazeVector(fric, filename);
 
     CompressedMatrix<real> D_T;
-    uint nnz_total = nnz_bilaterals;
 
     filename = output_dir + "dump_D.dat";
     OutputBlazeMatrix(host_data.D_T, filename);
@@ -151,7 +150,6 @@ int ChMulticoreDataManager::ExportCurrentSystem(std::string output_dir) {
 }
 
 void ChMulticoreDataManager::PrintMatrix(CompressedMatrix<real> src) {
-    const char* numformat = "%.16g";
     std::cout << src.rows() << " " << src.columns() << "\n";
     for (int i = 0; i < src.rows(); ++i) {
         std::cout << i << " ";

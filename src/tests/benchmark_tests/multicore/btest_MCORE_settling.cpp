@@ -119,6 +119,8 @@ SettlingSMC::SettlingSMC() : m_system(new ChSystemMulticoreSMC), m_step(1e-3) {
     int num_layers = 8;
 
     // Create a particle generator and a mixture entirely made out of spheres
+    double r = 1.01 * radius;
+    utils::PDSampler<double> sampler(2 * r);
     utils::Generator gen(m_system);
     std::shared_ptr<utils::MixtureIngredient> m1 = gen.AddMixtureIngredient(utils::MixtureType::SPHERE, 1.0);
     m1->setDefaultMaterial(mat);
@@ -126,11 +128,10 @@ SettlingSMC::SettlingSMC() : m_system(new ChSystemMulticoreSMC), m_step(1e-3) {
     m1->setDefaultSize(radius);
 
     // Create particles in layers until reaching the desired number of particles
-    double r = 1.01 * radius;
     ChVector<> range(hdim.x() - r, hdim.y() - r, 0);
     ChVector<> center(0, 0, 2 * r);
     for (int il = 0; il < num_layers; il++) {
-        gen.createObjectsBox(utils::SamplingType::POISSON_DISK, 2 * r, center, range);
+        gen.CreateObjectsBox(sampler, center, range);
         center.z() += 2 * r;
     }
 
@@ -164,7 +165,7 @@ void SettlingSMC::SimulateVis() {
 using TEST_NAME = chrono::utils::ChBenchmarkFixture<SettlingSMC, 0>;
 BENCHMARK_DEFINE_F(TEST_NAME, Settle)(benchmark::State& st) {
     Reset(NUM_SKIP_STEPS);
-    m_test->SetNumthreads(st.range(0));
+    m_test->SetNumthreads((int)st.range(0));
     while (st.KeepRunning()) {
         m_test->Simulate(NUM_SIM_STEPS);
     }
@@ -184,7 +185,6 @@ BENCHMARK_REGISTER_F(TEST_NAME, Settle)
 // =============================================================================
 
 int main(int argc, char* argv[]) {
-    utils::ForceBenchmarkTabularOutput(&argc, &argv);
     ::benchmark::Initialize(&argc, argv);
 
 #ifdef CHRONO_IRRLICHT

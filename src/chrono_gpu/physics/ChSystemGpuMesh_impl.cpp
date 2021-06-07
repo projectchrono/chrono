@@ -9,7 +9,7 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Authors: Conlain Kelly, Nic Olsen, Dan Negrut, Radu Serban
+// Authors: Conlain Kelly, Nic Olsen, Ruochun Zhang, Dan Negrut, Radu Serban
 // =============================================================================
 
 #include <vector>
@@ -29,8 +29,8 @@
 namespace chrono {
 namespace gpu {
 
-ChSystemGpuMesh_impl::ChSystemGpuMesh_impl(float sphere_rad, float density, float3 boxDims)
-    : ChSystemGpu_impl(sphere_rad, density, boxDims),
+ChSystemGpuMesh_impl::ChSystemGpuMesh_impl(float sphere_rad, float density, float3 boxDims, float3 O)
+    : ChSystemGpu_impl(sphere_rad, density, boxDims, O),
       K_n_s2m_UU(0),
       K_t_s2m_UU(0),
       Gamma_n_s2m_UU(0),
@@ -91,11 +91,14 @@ void ChSystemGpuMesh_impl::initializeTriangles() {
     }
 
     TRACK_VECTOR_RESIZE(SD_numTrianglesTouching, nSDs, "SD_numTrianglesTouching", 0);
-    TRACK_VECTOR_RESIZE(SD_TriangleCompositeOffsets, nSDs, "SD_TriangleCompositeOffsets", 0);
+    TRACK_VECTOR_RESIZE(SD_TrianglesCompositeOffsets, nSDs, "SD_TrianglesCompositeOffsets", 0);
+
+    TRACK_VECTOR_RESIZE(Triangle_NumSDsTouching, meshSoup->nTrianglesInSoup, "Triangle_NumSDsTouching", 0);
+    TRACK_VECTOR_RESIZE(Triangle_SDsCompositeOffsets, meshSoup->nTrianglesInSoup, "Triangle_SDsCompositeOffsets", 0);
 
     // TODO do we have a good heuristic???
     // this gets resized on-the-fly every timestep
-    TRACK_VECTOR_RESIZE(triangles_in_SD_composite, 0, "triangles_in_SD_composite", 0);
+    TRACK_VECTOR_RESIZE(SD_trianglesInEachSD_composite, 0, "SD_trianglesInEachSD_composite", 0);
 }
 
 // p = pos + rot_mat * p
@@ -109,53 +112,6 @@ void ChSystemGpuMesh_impl::ApplyFrameTransform(float3& p, float* pos, float* rot
 
     // overwrite p only at the end
     p = result;
-}
-
-void ChSystemGpuMesh_impl::WriteMeshes(std::string filename) const {
-    if (file_write_mode == CHGPU_OUTPUT_MODE::NONE) {
-        return;
-    }
-
-    printf("Writing meshes\n");
-    std::ofstream outfile(filename + "_mesh.vtk", std::ios::out);
-    std::ostringstream ostream;
-    ostream << "# vtk DataFile Version 1.0\n";
-    ostream << "Unstructured Grid Example\n";
-    ostream << "ASCII\n";
-    ostream << "\n\n";
-
-    ostream << "DATASET UNSTRUCTURED_GRID\n";
-    ostream << "POINTS " << meshSoup->nTrianglesInSoup * 3 << " float\n";
-
-    // Write all vertices
-    for (unsigned int tri_i = 0; tri_i < meshSoup->nTrianglesInSoup; tri_i++) {
-        float3 p1 = make_float3(meshSoup->node1[tri_i].x, meshSoup->node1[tri_i].y, meshSoup->node1[tri_i].z);
-        float3 p2 = make_float3(meshSoup->node2[tri_i].x, meshSoup->node2[tri_i].y, meshSoup->node2[tri_i].z);
-        float3 p3 = make_float3(meshSoup->node3[tri_i].x, meshSoup->node3[tri_i].y, meshSoup->node3[tri_i].z);
-
-        unsigned int fam = meshSoup->triangleFamily_ID[tri_i];
-        ApplyFrameTransform(p1, tri_params->fam_frame_broad[fam].pos, tri_params->fam_frame_broad[fam].rot_mat);
-        ApplyFrameTransform(p2, tri_params->fam_frame_broad[fam].pos, tri_params->fam_frame_broad[fam].rot_mat);
-        ApplyFrameTransform(p3, tri_params->fam_frame_broad[fam].pos, tri_params->fam_frame_broad[fam].rot_mat);
-
-        ostream << p1.x << " " << p1.y << " " << p1.z << "\n";
-        ostream << p2.x << " " << p2.y << " " << p2.z << "\n";
-        ostream << p3.x << " " << p3.y << " " << p3.z << "\n";
-    }
-
-    ostream << "\n\n";
-    ostream << "CELLS " << meshSoup->nTrianglesInSoup << " " << 4 * meshSoup->nTrianglesInSoup << "\n";
-    for (unsigned int tri_i = 0; tri_i < meshSoup->nTrianglesInSoup; tri_i++) {
-        ostream << "3 " << 3 * tri_i << " " << 3 * tri_i + 1 << " " << 3 * tri_i + 2 << "\n";
-    }
-
-    ostream << "\n\n";
-    ostream << "CELL_TYPES " << meshSoup->nTrianglesInSoup << "\n";
-    for (unsigned int tri_i = 0; tri_i < meshSoup->nTrianglesInSoup; tri_i++) {
-        ostream << "9\n";
-    }
-
-    outfile << ostream.str();
 }
 
 void ChSystemGpuMesh_impl::cleanupTriMesh() {
@@ -176,28 +132,28 @@ void ChSystemGpuMesh_impl::cleanupTriMesh() {
     cudaFree(tri_params);
 }
 
-void ChSystemGpuMesh_impl::ApplyMeshMotion(unsigned int mesh,
+void ChSystemGpuMesh_impl::ApplyMeshMotion(unsigned int mesh_id,
                                            const double* pos,
                                            const double* rot,
                                            const double* lin_vel,
                                            const double* ang_vel) {
     // Set position and orientation
-    tri_params->fam_frame_broad[mesh].pos[0] = (float)pos[0];
-    tri_params->fam_frame_broad[mesh].pos[1] = (float)pos[1];
-    tri_params->fam_frame_broad[mesh].pos[2] = (float)pos[2];
-    generate_rot_matrix<float>(rot, tri_params->fam_frame_broad[mesh].rot_mat);
+    tri_params->fam_frame_broad[mesh_id].pos[0] = (float)pos[0];
+    tri_params->fam_frame_broad[mesh_id].pos[1] = (float)pos[1];
+    tri_params->fam_frame_broad[mesh_id].pos[2] = (float)pos[2];
+    generate_rot_matrix<float>(rot, tri_params->fam_frame_broad[mesh_id].rot_mat);
 
-    tri_params->fam_frame_narrow[mesh].pos[0] = pos[0];
-    tri_params->fam_frame_narrow[mesh].pos[1] = pos[1];
-    tri_params->fam_frame_narrow[mesh].pos[2] = pos[2];
-    generate_rot_matrix<double>(rot, tri_params->fam_frame_narrow[mesh].rot_mat);
+    tri_params->fam_frame_narrow[mesh_id].pos[0] = pos[0];
+    tri_params->fam_frame_narrow[mesh_id].pos[1] = pos[1];
+    tri_params->fam_frame_narrow[mesh_id].pos[2] = pos[2];
+    generate_rot_matrix<double>(rot, tri_params->fam_frame_narrow[mesh_id].rot_mat);
 
     // Set linear and angular velocity
     const float C_V = (float)(TIME_SU2UU / LENGTH_SU2UU);
-    meshSoup->vel[mesh] = make_float3(C_V * (float)lin_vel[0], C_V * (float)lin_vel[1], C_V * (float)lin_vel[2]);
+    meshSoup->vel[mesh_id] = make_float3(C_V * (float)lin_vel[0], C_V * (float)lin_vel[1], C_V * (float)lin_vel[2]);
 
     const float C_O = (float)TIME_SU2UU;
-    meshSoup->omega[mesh] = make_float3(C_O * (float)ang_vel[0], C_O * (float)ang_vel[1], C_O * (float)ang_vel[2]);
+    meshSoup->omega[mesh_id] = make_float3(C_O * (float)ang_vel[0], C_O * (float)ang_vel[1], C_O * (float)ang_vel[2]);
 }
 
 template <typename T>

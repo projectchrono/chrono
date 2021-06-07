@@ -17,8 +17,7 @@
 
   "Gear Ratio":
   {
-    "Conical Gear":             -0.2,
-    "Differential":             -1.0
+    "Conical Gear":             0.2
   },
 
   "Axle Differential Locking Limit":  100

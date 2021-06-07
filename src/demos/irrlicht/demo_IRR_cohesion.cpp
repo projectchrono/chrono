@@ -83,7 +83,6 @@ class MyEventReceiver : public IEventReceiver {
         // check if user moved the sliders with mouse..
         if (event.EventType == EET_GUI_EVENT) {
             s32 id = event.GUIEvent.Caller->getID();
-            IGUIEnvironment* env = application->GetIGUIEnvironment();
 
             switch (event.GUIEvent.EventType) {
                 case EGET_SCROLL_BAR_CHANGED:
@@ -178,7 +177,7 @@ void create_some_falling_items(ChSystemNSC& mphysicalSystem) {
 
     // optional, attach  textures for better visualization
     auto mtexturewall = chrono_types::make_shared<ChTexture>();
-    mtexturewall->SetTextureFilename(GetChronoDataFile("concrete.jpg"));
+    mtexturewall->SetTextureFilename(GetChronoDataFile("textures/concrete.jpg"));
     wallBody1->AddAsset(mtexturewall);  // note: most assets can be shared
     wallBody2->AddAsset(mtexturewall);
     wallBody3->AddAsset(mtexturewall);
@@ -212,13 +211,11 @@ int main(int argc, char* argv[]) {
 
     // Create the Irrlicht visualization (open the Irrlicht device,
     // bind a simple user interface, etc. etc.)
-    ChIrrApp application(&mphysicalSystem, L"Contacts with cohesion", core::dimension2d<u32>(800, 600), false);
-
-    // Easy shortcuts to add camera, lights, logo and sky in Irrlicht scene:
-    ChIrrWizard::add_typical_Logo(application.GetDevice());
-    ChIrrWizard::add_typical_Sky(application.GetDevice());
-    ChIrrWizard::add_typical_Lights(application.GetDevice());
-    ChIrrWizard::add_typical_Camera(application.GetDevice(), core::vector3df(0, 14, -20));
+    ChIrrApp application(&mphysicalSystem, L"Contacts with cohesion", core::dimension2d<u32>(800, 600));
+    application.AddTypicalLogo();
+    application.AddTypicalSky();
+    application.AddTypicalLights();
+    application.AddTypicalCamera(irr::core::vector3df(0, 14, -20));
 
     // Create all the rigid bodies.
 

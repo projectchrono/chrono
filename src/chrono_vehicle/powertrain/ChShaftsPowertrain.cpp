@@ -32,7 +32,6 @@ ChShaftsPowertrain::ChShaftsPowertrain(const std::string& name, const ChVector<>
     : ChPowertrain(name), m_dir_motor_block(dir_motor_block), m_last_time_gearshift(0), m_gear_shift_latency(0.5) {}
 
 // -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
 void ChShaftsPowertrain::Initialize(std::shared_ptr<ChChassis> chassis, std::shared_ptr<ChDriveline> driveline) {
     ChPowertrain::Initialize(chassis, driveline);
 
@@ -42,11 +41,6 @@ void ChShaftsPowertrain::Initialize(std::shared_ptr<ChChassis> chassis, std::sha
     // Cache the upshift and downshift speeds (in rad/s)
     m_upshift_speed = GetUpshiftRPM() * CH_C_2PI / 60.0;
     m_downshift_speed = GetDownshiftRPM() * CH_C_2PI / 60.0;
-
-    // Let the derived class specify the gear ratios
-    SetGearRatios(m_gear_ratios);
-    assert(m_gear_ratios.size() > 1);
-    m_current_gear = 1;
 
     // CREATE  a 1 d.o.f. object: a 'shaft' with rotational inertia.
     // In this case it is the motor block. This because the ChShaftsThermalEngine
@@ -119,55 +113,23 @@ void ChShaftsPowertrain::Initialize(std::shared_ptr<ChChassis> chassis, std::sha
     // the possibility of transmitting a reaction torque to the box (the truss).
     m_gears = chrono_types::make_shared<ChShaftsGearbox>();
     m_gears->Initialize(m_shaft_ingear, driveline->GetDriveshaft(), chassis->GetBody(), m_dir_motor_block);
-    m_gears->SetTransmissionRatio(m_gear_ratios[m_current_gear]);
+    m_gears->SetTransmissionRatio(m_current_gear_ratio);
     my_system->Add(m_gears);
-
-    // -------
-    // Finally, update the gear ratio according to the selected gear in the
-    // array of gear ratios:
-    SetSelectedGear(1);
 }
 
 // -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
-void ChShaftsPowertrain::SetSelectedGear(int igear) {
-    assert(igear >= 0);
-    assert(igear < m_gear_ratios.size());
-
-    m_current_gear = igear;
+void ChShaftsPowertrain::OnGearShift() {
     if (m_gears)
-        m_gears->SetTransmissionRatio(m_gear_ratios[igear]);
+        m_gears->SetTransmissionRatio(m_current_gear_ratio);
 }
 
-// -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
-void ChShaftsPowertrain::SetDriveMode(ChPowertrain::DriveMode mmode) {
-    if (m_drive_mode == mmode)
-        return;
-
-    m_drive_mode = mmode;
-
-    if (!m_gears)
-        return;
-
-    switch (m_drive_mode) {
-        case FORWARD:
-            SetSelectedGear(1);
-            break;
-        case NEUTRAL:
-            m_gears->SetTransmissionRatio(1e20);
-            break;
-        case REVERSE:
-            SetSelectedGear(0);
-            break;
-    }
+void ChShaftsPowertrain::OnNeutralShift() {
+    if (m_gears)
+        m_gears->SetTransmissionRatio(m_current_gear_ratio);
 }
 
-// -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 void ChShaftsPowertrain::Synchronize(double time, double throttle) {
-    double shaft_speed = m_driveline->GetDriveshaftSpeed();
-
     // Just update the throttle level in the thermal engine
     m_engine->SetThrottle(throttle);
 
@@ -175,25 +137,21 @@ void ChShaftsPowertrain::Synchronize(double time, double throttle) {
     if (time - m_last_time_gearshift < m_gear_shift_latency)
         return;
 
-    // Shift the gear if needed, automatically shifting up or down with
-    // a very simple logic, for instance as in the following fixed latency
-    // state machine:
-    if (m_drive_mode != FORWARD)
-        return;
-
-    double gearshaft_speed = m_shaft_ingear->GetPos_dt();
-
-    if (gearshaft_speed > m_upshift_speed) {
-        // upshift if possible
-        if (m_current_gear + 1 < m_gear_ratios.size()) {
-            SetSelectedGear(m_current_gear + 1);
-            m_last_time_gearshift = time;
-        }
-    } else if (gearshaft_speed < m_downshift_speed) {
-        // downshift if possible
-        if (m_current_gear - 1 > 0) {
-            SetSelectedGear(m_current_gear - 1);
-            m_last_time_gearshift = time;
+    // Automatic gear selection (fixed latency state machine)
+    if (m_transmission_mode == TransmissionMode::AUTOMATIC && m_drive_mode == DriveMode::FORWARD) {
+        double gearshaft_speed = m_shaft_ingear->GetPos_dt();
+        if (gearshaft_speed > m_upshift_speed) {
+            // upshift if possible
+            if (m_current_gear < m_gear_ratios.size() - 1) {
+                SetGear(m_current_gear + 1);
+                m_last_time_gearshift = time;
+            }
+        } else if (gearshaft_speed < m_downshift_speed) {
+            // downshift if possible
+            if (m_current_gear > 1) {
+                SetGear(m_current_gear - 1);
+                m_last_time_gearshift = time;
+            }
         }
     }
 }
