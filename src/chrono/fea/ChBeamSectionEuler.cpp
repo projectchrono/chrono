@@ -169,6 +169,38 @@ namespace fea {
 		//M(5, 4) = -this->Jyz;
 	}
 
+	void ChBeamSectionEulerSimple::ComputeInertiaDampingMatrix(ChMatrixNM<double, 6, 6>& Ri,  ///< 6x6 sectional inertial-damping (gyroscopic damping) matrix values here
+		const ChVector<>& mW    ///< current angular velocity of section, in material frame
+	) {
+		Ri.setZero();
+		if (compute_inertia_damping_matrix == false) 
+			return;
+		if (this->compute_Ri_Ki_by_num_diff)
+			return ChBeamSectionEuler::ComputeInertiaDampingMatrix(Ri, mW);
+
+		ChStarMatrix33<> wtilde(mW);   // [w~]
+		// [I]  here a diagonal inertia, in Euler it should be Jzz = 0 Jyy = 0, but a tiny nonzero value avoids singularity:
+		ChMatrix33<> mI(ChVector<>(
+			(this->Iyy + this->Izz) * this->density,
+			JzzJyy_factor * this->Area * this->density,
+			JzzJyy_factor * this->Area * this->density));  
+		Ri.block<3, 3>(3, 3) = wtilde * mI - ChStarMatrix33<>(mI * mW);  // Ri = [0, 0; 0, [w~][I] - [([I]*w)~]  ]
+	}
+
+	void ChBeamSectionEulerSimple::ComputeInertiaStiffnessMatrix(ChMatrixNM<double, 6, 6>& Ki, ///< 6x6 sectional inertial-stiffness matrix values here
+		const ChVector<>& mWvel,      ///< current angular velocity of section, in material frame
+		const ChVector<>& mWacc,      ///< current angular acceleration of section, in material frame
+		const ChVector<>& mXacc       ///< current acceleration of section, in material frame
+	) {
+		Ki.setZero();
+		if (compute_inertia_stiffness_matrix == false) 
+        return;
+		if (this->compute_Ri_Ki_by_num_diff)
+			return ChBeamSectionEuler::ComputeInertiaStiffnessMatrix(Ki, mWvel, mWacc, mXacc);
+		// null [Ki^] (but only for the case where angular speeds and accelerations are assumed to corotate with local frames). 
+	}
+
+
 	void ChBeamSectionEulerSimple::ComputeQuadraticTerms(ChVector<>& mF, ChVector<>& mT, const ChVector<>& mW) {
 		mF = VNULL;
 		mT = VNULL;
