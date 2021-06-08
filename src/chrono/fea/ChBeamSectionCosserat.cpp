@@ -1070,6 +1070,66 @@ void  ChInertiaCosseratAdvanced::ComputeInertiaMatrix(ChMatrixNM<double, 6, 6>& 
     M(5, 4) = -this->Jyz;
 }
 
+void ChInertiaCosseratAdvanced::ComputeInertiaDampingMatrix(ChMatrixNM<double, 6, 6>& Ri,  ///< 6x6 sectional inertial-damping (gyroscopic damping) matrix values here
+    const ChVector<>& mW    ///< current angular velocity of section, in material frame
+) {
+    Ri.setZero();
+    if (compute_inertia_damping_matrix == false) 
+        return;
+    if (this->compute_Ri_Ki_by_num_diff)
+        return ChInertiaCosserat::ComputeInertiaDampingMatrix(Ri, mW);
+
+    ChStarMatrix33<> wtilde(mW);   // [w~]
+    ChVector<> mC(0, this->cm_y, this->cm_z);
+    ChStarMatrix33<> ctilde(mC);   // [c~]
+    ChMatrix33<> mI; 
+    mI << this->Jyy + this->Jzz ,           0,           0,
+                               0,   this->Jyy,  -this->Jyz,
+                               0,  -this->Jyz,   this->Jzz;
+    //  Ri = [0,  m*[w~][c~]' + m*[([w~]*c)~]'  ; 0 , [w~][I] - [([I]*w)~]  ]
+    Ri.block<3, 3>(0, 3) = this->mu * (wtilde * ctilde.transpose() + (ChStarMatrix33<>( wtilde * mC )).transpose() ); 
+    Ri.block<3, 3>(3, 3) = wtilde * mI - ChStarMatrix33<>(mI * mW);  
+}
+
+void ChInertiaCosseratAdvanced::ComputeInertiaStiffnessMatrix(ChMatrixNM<double, 6, 6>& Ki, ///< 6x6 sectional inertial-stiffness matrix values here
+    const ChVector<>& mWvel,      ///< current angular velocity of section, in material frame
+    const ChVector<>& mWacc,      ///< current angular acceleration of section, in material frame
+    const ChVector<>& mXacc       ///< current acceleration of section, in material frame
+) {
+    Ki.setZero();
+    if (compute_inertia_stiffness_matrix == false) 
+        return;
+    if (this->compute_Ri_Ki_by_num_diff)
+        return ChInertiaCosserat::ComputeInertiaStiffnessMatrix(Ki, mWvel, mWacc, mXacc);
+
+    ChStarMatrix33<> wtilde(mWvel);   // [w~]
+    ChStarMatrix33<> atilde(mWacc);   // [a~]
+    ChVector<> mC(0, this->cm_y, this->cm_z);
+    ChStarMatrix33<> ctilde(mC);   // [c~]
+    ChMatrix33<> mI;
+    mI << this->Jyy + this->Jzz ,           0,           0,
+                               0,   this->Jyy,  -this->Jyz,
+                               0,  -this->Jyz,   this->Jzz;
+    // case A: where absolute ang.vel and ang.acc are constant if the frame rotates (as in Bauchau)
+    // and the local ang.vel and ang.acc will counterrotate:
+    // for mixed absolute (translation) and local (rotation) bases one has:
+    // Ki_al = [0, 0; m*([a~]+[w~][w~])[c~]', m*[c~][xpp~] + [I][a~]  + [w~]([I][w~] - [([I]*w)~]) +[([w~][I]*w)~]  ]
+    /*
+    Ki.block<3, 3>(0, 3) = this->mu * (atilde + wtilde* wtilde) * ctilde.transpose();
+    Ki.block<3, 3>(3, 3) = this->mu * ctilde * ChStarMatrix33<>(mXacc)  
+                          + (mI * atilde )  
+                          + wtilde * (mI * wtilde  - ChStarMatrix33<>(mI * mWvel))
+                          + ChStarMatrix33<>(wtilde*(mI*mWvel));  
+    */
+    // case B: where local ang.vel and ang.acc are constant if the frame rotates (as in Chrono)
+    // and the absolute ang.vel and ang.acc will rotate:
+    // for mixed absolute (translation) and local (rotation) bases one has:
+    // Ki_al = [0, 0; -m*[([a~]c)~] -m*[([w~][w~]c)~] , m*[c~][xpp~] ]
+    Ki.block<3, 3>(0, 3) = -this->mu * ChStarMatrix33<>(atilde * mC) 
+                           -this->mu * ChStarMatrix33<>(wtilde*(wtilde*mC));
+    Ki.block<3, 3>(3, 3) = this->mu * ctilde * ChStarMatrix33<>(mXacc);
+}
+
 void ChInertiaCosseratAdvanced::ComputeQuadraticTerms(ChVector<>& mF,   ///< centrifugal term (if any) returned here
     ChVector<>& mT,                ///< gyroscopic term  returned here
     const ChVector<>& mW           ///< current angular velocity of section, in material frame
