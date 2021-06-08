@@ -39,8 +39,7 @@ void FinalizeDomain(std::shared_ptr<fsi::SimParams> paramsH) {
     int3 side0 = mI3((int)floor((paramsH->cMax.x - paramsH->cMin.x) / (2 * paramsH->HSML)),
                      (int)floor((paramsH->cMax.y - paramsH->cMin.y) / (2 * paramsH->HSML)),
                      (int)floor((paramsH->cMax.z - paramsH->cMin.z) / (2 * paramsH->HSML)));
-    Real3 binSize3 = mR3((paramsH->cMax.x - paramsH->cMin.x) / side0.x, 
-                         (paramsH->cMax.y - paramsH->cMin.y) / side0.y,
+    Real3 binSize3 = mR3((paramsH->cMax.x - paramsH->cMin.x) / side0.x, (paramsH->cMax.y - paramsH->cMin.y) / side0.y,
                          (paramsH->cMax.z - paramsH->cMin.z) / side0.z);
     paramsH->binSize0 = (binSize3.x > binSize3.y) ? binSize3.x : binSize3.y;
     paramsH->binSize0 = binSize3.x;
@@ -225,8 +224,8 @@ void CreateBceGlobalMarkersFromBceLocalPos_CableANCF(std::shared_ptr<ChFsiDataMa
     chrono::ChVector<> nAv = cable->GetNodeA()->GetPos_dt();
     chrono::ChVector<> nBv = cable->GetNodeB()->GetPos_dt();
 
-    chrono::ChVector<> nAa = cable->GetNodeA()->GetPos_dtdt();
-    chrono::ChVector<> nBa = cable->GetNodeB()->GetPos_dtdt();
+    //    chrono::ChVector<> nAa = cable->GetNodeA()->GetPos_dtdt();
+    //    chrono::ChVector<> nBa = cable->GetNodeB()->GetPos_dtdt();
 
     int posRadSizeModified = 0;
 
@@ -237,16 +236,16 @@ void CreateBceGlobalMarkersFromBceLocalPos_CableANCF(std::shared_ptr<ChFsiDataMa
 
         chrono::ChVector<> pos_natural = pos_physical * physic_to_natural;
 
-        //    cable->ShapeFunctions(N, pos_natural.x);
+        cable->ShapeFunctions(N, pos_natural.x());
 
-        Real2 Nnew = Cables_ShapeFunctions(pos_natural.x());
+        Real2 NFSI = Cables_ShapeFunctions(pos_natural.x());
 
-        chrono::ChVector<> x_dir = (nBp - nAp);
+        //        chrono::ChVector<> x_dir = (nBp - nAp);
         chrono::ChVector<> Normal;
         //    printf(" N0 =%f, nAp.z= %f, N2=%f, nAp.z=%f\n", N(0), nAp.z, N(2), nBp.z);
 
         chrono::ChVector<> Correct_Pos =
-            Nnew.x * nAp + Nnew.y * nBp + new_y_axis * pos_physical.y() + new_z_axis * pos_physical.z();
+            NFSI.x * nAp + NFSI.y * nBp + new_y_axis * pos_physical.y() + new_z_axis * pos_physical.z();
 
         printf(" physic_to_natural is = (%f,%f,%f)\n", physic_to_natural.x(), physic_to_natural.y(),
                physic_to_natural.z());
@@ -351,10 +350,10 @@ void CreateBceGlobalMarkersFromBceLocalPos_ShellANCF(std::shared_ptr<ChFsiDataMa
     chrono::ChVector<> nCv = shell->GetNodeC()->GetPos_dt();
     chrono::ChVector<> nDv = shell->GetNodeD()->GetPos_dt();
 
-    chrono::ChVector<> nAa = shell->GetNodeA()->GetPos_dtdt();
-    chrono::ChVector<> nBa = shell->GetNodeB()->GetPos_dtdt();
-    chrono::ChVector<> nCa = shell->GetNodeC()->GetPos_dtdt();
-    chrono::ChVector<> nDa = shell->GetNodeD()->GetPos_dtdt();
+    //    chrono::ChVector<> nAa = shell->GetNodeA()->GetPos_dtdt();
+    //    chrono::ChVector<> nBa = shell->GetNodeB()->GetPos_dtdt();
+    //    chrono::ChVector<> nCa = shell->GetNodeC()->GetPos_dtdt();
+    //    chrono::ChVector<> nDa = shell->GetNodeD()->GetPos_dtdt();
     printf(" posRadBCE.size()= :%zd\n", posRadBCE.size());
     for (size_t i = 0; i < posRadBCE.size(); i++) {
         //    chrono::ChVector<> posGlob =
@@ -578,7 +577,7 @@ void AddBCE_FromFile(std::shared_ptr<ChFsiDataManager> fsiData,
     thrust::host_vector<Real4> posRadBCE;
     LoadBCE_fromFile(posRadBCE, dataPath, scale, paramsH->HSML);
     CreateBceGlobalMarkersFromBceLocalPos(fsiData, paramsH, posRadBCE, body, collisionShapeRelativePos,
-                                          collisionShapeRelativeRot,isSolid);
+                                          collisionShapeRelativeRot, isSolid);
     posRadBCE.clear();
 }
 
@@ -794,7 +793,8 @@ void AddBCE_FromMesh(std::shared_ptr<ChFsiDataManager> fsiData,
         ///////////////////////////
         // Check for Cable Elements
         if (_1D_elementsNodes.size() > 0) {
-            if (auto thisCable = std::dynamic_pointer_cast<fea::ChElementCableANCF>(my_mesh->GetElement((unsigned int)i))) {
+            if (auto thisCable =
+                    std::dynamic_pointer_cast<fea::ChElementCableANCF>(my_mesh->GetElement((unsigned int)i))) {
                 remove1D.resize(2);
                 std::fill(remove1D.begin(), remove1D.end(), 0);
                 fsiCables.push_back(thisCable);
@@ -830,7 +830,8 @@ void AddBCE_FromMesh(std::shared_ptr<ChFsiDataManager> fsiData,
         ///////////////////////////
         // Check for Shell Elements
         if (_2D_elementsNodes.size() > 0) {
-            if (auto thisShell = std::dynamic_pointer_cast<fea::ChElementShellANCF>(my_mesh->GetElement((unsigned int) i))) {
+            if (auto thisShell =
+                    std::dynamic_pointer_cast<fea::ChElementShellANCF>(my_mesh->GetElement((unsigned int)i))) {
                 remove2D.resize(4);
                 std::fill(remove2D.begin(), remove2D.begin() + 4, 0);
 
@@ -857,8 +858,8 @@ void AddBCE_FromMesh(std::shared_ptr<ChFsiDataManager> fsiData,
                             continue;
 
                         size_t JNumNodes = (_2D_elementsNodes[neighborElement].size() > 4)
-                                            ? 4
-                                            : _2D_elementsNodes[neighborElement].size();
+                                               ? 4
+                                               : _2D_elementsNodes[neighborElement].size();
 
                         for (size_t inode = 0; inode < myNumNodes; inode++) {
                             for (size_t jnode = 0; jnode < JNumNodes; jnode++) {
