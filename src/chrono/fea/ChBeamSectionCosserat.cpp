@@ -843,6 +843,110 @@ void ChDampingCosseratRayleigh::UpdateStiffnessModel() {
 
 
 
+//-----------------------------------------------------------------------------
+
+void ChInertiaCosserat::ComputeInertiaDampingMatrix(ChMatrixNM<double, 6, 6>& Ri,  ///< 6x6 sectional inertial-damping (gyroscopic damping) matrix values here
+    const ChVector<>& mW    ///< current angular velocity of section, in material frame
+) {
+    double Delta = 1e-8; // magic number, todo: parametrize or #define
+    Ri.setZero();
+
+    if (compute_inertia_damping_matrix == false) 
+        return;
+
+    // Fi=Fia+Fiv, where Fia depends on acceleration only, so restrict to Fiv quadratic terms for numerical differentiation.
+    // Also we assume first three columns of Ri are null because Fiv does not depend on linear velocity.
+    // Quadratic terms (gyro, centrifugal) at current state:
+    ChVectorN<double,6> Fi0;
+    ChVector<> mF, mT;
+    this->ComputeQuadraticTerms(mF, mT, mW);  
+    Fi0.segment(0, 3) = mF.eigen();
+    Fi0.segment(3, 3) = mT.eigen();
+    // dw_x 
+    ChVectorN<double,6> Fi_dw;
+    this->ComputeQuadraticTerms(mF, mT, mW + ChVector<>(Delta,0,0)); 
+    Fi_dw.segment(0, 3) = mF.eigen();
+    Fi_dw.segment(3, 3) = mT.eigen();
+    Ri.block(0,3, 6,1) = (Fi_dw - Fi0) * (1.0 / Delta);
+    // dw_y 
+    this->ComputeQuadraticTerms(mF, mT, mW + ChVector<>(0,Delta,0)); 
+    Fi_dw.segment(0, 3) = mF.eigen();
+    Fi_dw.segment(3, 3) = mT.eigen();
+    Ri.block(0,4, 6,1) = (Fi_dw - Fi0) * (1.0 / Delta);
+    // dw_z 
+    this->ComputeQuadraticTerms(mF, mT, mW + ChVector<>(0,0,Delta)); 
+    Fi_dw.segment(0, 3) = mF.eigen();
+    Fi_dw.segment(3, 3) = mT.eigen();
+    Ri.block(0,5, 6,1) = (Fi_dw - Fi0) * (1.0 / Delta);
+}
+
+
+void ChInertiaCosserat::ComputeInertiaStiffnessMatrix(ChMatrixNM<double, 6, 6>& Ki, ///< 6x6 sectional inertial-stiffness matrix values here
+    const ChVector<>& mWvel,      ///< current angular velocity of section, in material frame
+    const ChVector<>& mWacc,      ///< current angular acceleration of section, in material frame
+    const ChVector<>& mXacc       ///< current acceleration of section, in material frame (not absolute!)
+){
+    double Delta = 1e-8; // magic number, todo: parametrize or #define
+    Ki.setZero();
+
+    if (compute_inertia_stiffness_matrix == false) 
+        return;
+
+    // We assume first three columns of Ki are null because Fi does not depend on displacement.
+    // We compute Ki by numerical differentiation.
+
+    
+    ChVector<> mF, mT;
+    this->ComputeInertialForce(mF, mT, mWvel, mWacc, mXacc);
+    ChVectorN<double,6> Fi0;
+    Fi0.segment(0, 3) = mF.eigen();
+    Fi0.segment(3, 3) = mT.eigen();
+
+   
+    ChVectorN<double,6> Fi_dr;
+    ChVectorN<double, 6> drFi;
+
+    // dr_x
+    ChStarMatrix33<> rot_lx(ChVector<>(Delta, 0, 0));
+    rot_lx.diagonal().setOnes();
+    this->ComputeInertialForce(mF, mT, 
+        mWvel, // or rot_lx.transpose()*mWvel,  if abs. ang.vel is constant during rot.increments
+        mWacc, // or rot_lx.transpose()*mWacc,  if abs. ang.vel is constant during rot.increments
+        rot_lx.transpose()*mXacc);
+    Fi_dr.segment(0, 3) = mF.eigen();
+    Fi_dr.segment(3, 3) = mT.eigen();
+    drFi.segment(0 , 3) = rot_lx * Fi0.segment(0, 3);
+    drFi.segment(3 , 3) = Fi0.segment(3, 3);
+    Ki.block(0, 3, 6, 1) = (Fi_dr - Fi0) * (1.0 / Delta) +(drFi - Fi0) * (1.0 / Delta);
+
+    // dr_y
+    ChStarMatrix33<> rot_ly(ChVector<>(0, Delta, 0));
+    rot_ly.diagonal().setOnes();
+    this->ComputeInertialForce(mF, mT, 
+        mWvel, 
+        mWacc, 
+        rot_ly.transpose()*mXacc);
+    Fi_dr.segment(0, 3) = mF.eigen();
+    Fi_dr.segment(3, 3) = mT.eigen();
+    drFi.segment(0 , 3) = rot_ly * Fi0.segment(0, 3);
+    drFi.segment(3 , 3) = Fi0.segment(3, 3);
+    Ki.block(0, 4, 6, 1) = (Fi_dr - Fi0) * (1.0 / Delta) +(drFi - Fi0) * (1.0 / Delta);
+
+    // dr_z
+    ChStarMatrix33<> rot_lz(ChVector<>(0, 0, Delta));
+    rot_lz.diagonal().setOnes();
+    this->ComputeInertialForce(mF, mT, 
+        mWvel, 
+        mWacc, 
+        rot_lz.transpose()*mXacc);
+    Fi_dr.segment(0, 3) = mF.eigen();
+    Fi_dr.segment(3, 3) = mT.eigen();
+    drFi.segment(0 , 3) = rot_lz * Fi0.segment(0, 3);
+    drFi.segment(3 , 3) = Fi0.segment(3, 3);
+    Ki.block(0, 5, 6, 1) = (Fi_dr - Fi0) * (1.0 / Delta) +(drFi - Fi0) * (1.0 / Delta);
+}
+
+
 
 
 void ChInertiaCosserat::ComputeInertialForce(

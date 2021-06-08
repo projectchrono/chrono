@@ -868,26 +868,49 @@ class ChApi ChDampingCosseratRayleigh : public ChDampingCosserat {
 ////////////////////////////////////////////////////////////////////////////////////
 
 
-/// Base class for ineri tal properties (mass, moment of inertia) of beam sections of Cosserat type.
+/// Base class for inertial properties (mass, moment of inertia) of beam sections of Cosserat type.
 /// This can be shared between multiple beams.
 class ChApi ChInertiaCosserat {
-  public:
-	ChInertiaCosserat() : section(nullptr) {};
+public:
+    ChInertiaCosserat() : section(nullptr) {};
 
     virtual ~ChInertiaCosserat() {}
 
-    /// Compute the 6x6 sectional inertia matrix, as in  {x_momentum,w_momentum}=[Mm]{xvel,wvel} 
+    /// Compute the 6x6 sectional inertia matrix, as in  {x_momentum,w_momentum}=[Mi]{xvel,wvel} 
     /// The matrix is computed in the material reference (i.e. it is the sectional mass matrix)
-    virtual void ComputeInertiaMatrix(ChMatrixNM<double, 6, 6>& M  ///< 6x6 sectional mass matrix values here
-                                      ) = 0;
+    virtual void ComputeInertiaMatrix(ChMatrixNM<double, 6, 6>& Mi  ///< 6x6 sectional mass matrix here
+    ) = 0;
+
+    /// Compute the 6x6 sectional inertia damping matrix [Ri] (gyroscopic matrix damping), as in linearization
+    ///  dFi=[Mi]*d{xacc,wacc}+[Ri]*d{xvel,wvel}+[Ki]*d{pos,rot}
+    /// The matrix is computed in the material reference, i.e. both linear and rotational coords assumed in the basis of the centerline reference.
+    /// Default implementation: falls back to numerical differentiation of ComputeInertialForce to compute Ri, 
+    /// please override this if analytical formula of Ri is known!
+    virtual void ComputeInertiaDampingMatrix(ChMatrixNM<double, 6, 6>& Ri,  ///< 6x6 sectional inertial-damping (gyroscopic damping) matrix here
+        const ChVector<>& mW    ///< current angular velocity of section, in material frame
+    );
+
+    /// Compute the 6x6 sectional inertia stiffness matrix [Ki^], as in linearization
+    ///  dFi=[Mi]*d{xacc,wacc}+[Ri]*d{xvel,wvel}+[Ki]*d{pos,rot} 
+    /// The matrix is computed in the material reference.
+    /// NOTE the matrix already contains the 'geometric' stiffness, so it transforms to absolute transl/local rot just like [Mi] and [Ri]:
+    ///  [Ki]_al =[R,0;0,I]*[Ki^]*[R',0;0,I']  , with [Ki^]=([Ki]+[0,f~';0,0])  for f=current force part of inertial forces.
+    /// Default implementation: falls back to numerical differentiation of ComputeInertialForce to compute Ki^, 
+    /// please override this if analytical formula of Ki^ is known!
+    virtual void ComputeInertiaStiffnessMatrix(ChMatrixNM<double, 6, 6>& Ki, ///< 6x6 sectional inertial-stiffness matrix [Ki^] here
+        const ChVector<>& mWvel,      ///< current angular velocity of section, in material frame
+        const ChVector<>& mWacc,      ///< current angular acceleration of section, in material frame
+        const ChVector<>& mXacc       ///< current acceleration of section, in material frame (not absolute!)
+    );
 
     /// Compute the values of inertial force & torque depending on quadratic velocity terms,
     /// that is the gyroscopic torque and the centrifugal term (if any). All terms expressed 
     /// in the material reference, ie. the reference in the centerline of the section.
     virtual void ComputeQuadraticTerms(ChVector<>& mF,   ///< centrifugal term (if any) returned here
-                                       ChVector<>& mT,   ///< gyroscopic term  returned here
-                                       const ChVector<>& mW    ///< current angular velocity of section, in material frame
-                                      ) = 0;
+        ChVector<>& mT,   ///< gyroscopic term  returned here
+        const ChVector<>& mW    ///< current angular velocity of section, in material frame
+    ) = 0;
+
     /// Compute the total inertial wrench, ie forces and torques (per unit length). 
     /// Note: both force and torque are returned in the basis of the material frame (not the absolute frame!), 
     /// ex. to apply it to a Chrono body, the force must be rotated to absolute basis.
