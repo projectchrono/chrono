@@ -275,13 +275,13 @@ using UserTachometerBufferPtr = std::shared_ptr<SensorHostTachometerBuffer>;
 //================================
 // Speedometer Data Format and Buffers
 //================================
-struct SpeedometerData {
+struct EncoderData {
     float speed;  /// speed of object
 };
 /// speedometer host buffer to be used by speedometer filters in the graph
-using SensorHostSpeedometerBuffer = SensorBufferT<std::shared_ptr<SpeedometerData[]>>;
+using SensorHostEncoderBuffer = SensorBufferT<std::shared_ptr<EncoderData[]>>;
 /// pointer to a speedometer buffer on the host that has been moved to safety and can be given to the user
-using UserSpeedometerBufferPtr = std::shared_ptr<SensorHostSpeedometerBuffer>;
+using UserEncoderBufferPtr = std::shared_ptr<SensorHostEncoderBuffer>;
 
 //============================
 // GPS Data Format and Buffers

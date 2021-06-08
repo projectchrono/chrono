@@ -388,5 +388,40 @@ CH_SENSOR_API void ChFilterAccess<SensorHostGPSBuffer, UserGPSBufferPtr>::Apply(
         }
     }
 }
+
+template <>
+CH_SENSOR_API void ChFilterAccess<SensorHostTachometerBuffer, UserTachometerBufferPtr>::Apply() {
+    // create a new buffer to push to the lag buffer list
+    std::shared_ptr<SensorHostTachometerBuffer> tmp_buffer;
+    if (m_empty_lag_buffers.size() > 0) {
+        tmp_buffer = m_empty_lag_buffers.top();
+        m_empty_lag_buffers.pop();
+    } else {
+        tmp_buffer = chrono_types::make_shared<SensorHostTachometerBuffer>();
+        tmp_buffer->Buffer = std::make_unique<TachometerData[]>(m_bufferIn->Width * m_bufferIn->Height);
+    }
+
+    tmp_buffer->Width = m_bufferIn->Width;
+    tmp_buffer->Height = m_bufferIn->Height;
+    tmp_buffer->LaunchedCount = m_bufferIn->LaunchedCount;
+    tmp_buffer->TimeStamp = m_bufferIn->TimeStamp;
+
+    // copy the data into our new buffer
+    memcpy(tmp_buffer->Buffer.get(), m_bufferIn->Buffer.get(), sizeof(TachometerData));
+
+    {  // lock in this scope before pushing to lag buffer queue
+        std::lock_guard<std::mutex> lck(m_mutexBufferAccess);
+        // push our buffer into the lag queue
+        m_lag_buffers.push(tmp_buffer);
+        // prevent lag buffer overflow - remove any super old buffers that have expired. We don't want the lag_buffer to
+        // grow unbounded
+        while (m_lag_buffers.size() > m_max_lag_buffers) {
+            m_empty_lag_buffers.push(
+                m_lag_buffers.front());  // push the buffer back for efficiency if it wasn't given to the user
+            m_lag_buffers.pop();
+        }
+    }
+}
+
 }  // namespace sensor
 }  // namespace chrono

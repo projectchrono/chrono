@@ -17,6 +17,7 @@ SET(DEMOS
   demo_SEN_lidar
   demo_SEN_GPSIMU
   demo_SEN_radar
+  demo_SEN_tachometer
 )
 
 #list of demos that combine sensor simulation with vehicle dynamics

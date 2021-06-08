@@ -217,7 +217,7 @@ set(ChronoEngine_sensor_SOURCES
     ChIMUSensor.cpp
     ChGPSSensor.cpp
     ChTachometerSensor.cpp
-    ChSpeedometerSensor.cpp
+    ChEncoderSensor.cpp
     ChSensorManager.cpp
     ChDynamicsManager.cpp
     Sensor.cpp
@@ -233,7 +233,7 @@ set(ChronoEngine_sensor_HEADERS
     ChIMUSensor.h
     ChGPSSensor.h
     ChTachometerSensor.h
-    ChSpeedometerSensor.h
+    ChEncoderSensor.h
     ChSensorManager.h
     ChDynamicsManager.h
   	ChSensorBuffer.h
@@ -307,7 +307,7 @@ set(ChronoEngine_sensor_FILTERS_SOURCES
     filters/ChFilterRadarSavePC.cpp
     filters/ChFilterRadarVisualizeCluster.cpp
     filters/ChFilterTachometerUpdate.cpp
-    filters/ChFilterSpeedometerUpdate.cpp
+    filters/ChFilterEncoderUpdate.cpp
 )
 set(ChronoEngine_sensor_FILTERS_HEADERS
   	filters/ChFilter.h
@@ -329,7 +329,7 @@ set(ChronoEngine_sensor_FILTERS_HEADERS
     filters/ChFilterRadarSavePC.h
     filters/ChFilterRadarVisualizeCluster.h
     filters/ChFilterTachometerUpdate.h
-    filters/ChFilterSpeedometerUpdate.h
+    filters/ChFilterEncoderUpdate.h
 )
 
 source_group("Filters" FILES

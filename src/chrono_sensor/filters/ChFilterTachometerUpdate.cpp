@@ -6,7 +6,20 @@ namespace sensor {
 
 ChFilterTachometerUpdate::ChFilterTachometerUpdate() : ChFilter("Tachometer Updater") {}
 
-CH_SENSOR_API void ChFilterTachometerUpdate::Apply() {}
+CH_SENSOR_API void ChFilterTachometerUpdate::Apply() {
+    if (m_tachSensor->m_axis == X){
+        m_bufferOut->Buffer[0].rpm = m_tachSensor->m_parent->GetWvel_loc().x() * 60 / 2 / CH_C_PI;
+        printf("tachomter x axis\n");
+    } else if (m_tachSensor->m_axis == Y){
+        m_bufferOut->Buffer[0].rpm = m_tachSensor->m_parent->GetWvel_loc().y() * 60 / 2 / CH_C_PI;
+        printf("tachomter y axis\n");
+    } else if (m_tachSensor->m_axis == Z){
+        m_bufferOut->Buffer[0].rpm = m_tachSensor->m_parent->GetWvel_loc().z() * 60 / 2 / CH_C_PI;
+        printf("tachomter z axis\n");
+    } else{
+        std::runtime_error("Axis has to be X Y Z");
+    }
+}
 
 CH_SENSOR_API void ChFilterTachometerUpdate::Initialize(std::shared_ptr<ChSensor> pSensor,
                                                         std::shared_ptr<SensorBuffer>& bufferInOut) {
@@ -19,6 +32,10 @@ CH_SENSOR_API void ChFilterTachometerUpdate::Initialize(std::shared_ptr<ChSensor
     }
     m_bufferOut = chrono_types::make_shared<SensorHostTachometerBuffer>();
     m_bufferOut->Buffer = std::make_unique<TachometerData[]>(1);
+    m_bufferOut->Width = m_bufferOut->Height = 1;
+    m_bufferOut->TimeStamp = 0.f;
+
+    bufferInOut = m_bufferOut;
 }
 
 }  // namespace sensor

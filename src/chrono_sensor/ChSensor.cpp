@@ -153,6 +153,16 @@ CH_SENSOR_API UserGPSBufferPtr ChSensor::GetMostRecentBuffer() {
 }
 
 // -----------------------------------------------------------------------------
+// retriever function for tachometer data
+// -----------------------------------------------------------------------------
+template <>
+CH_SENSOR_API UserTachometerBufferPtr ChSensor::GetMostRecentBuffer() {
+    // call the templated helper function
+    return GetMostRecentBufferHelper<UserTachometerBufferPtr, ChFilterTachometerAccess, ChFilterTachometerAccessName>();
+}
+
+
+// -----------------------------------------------------------------------------
 // Helper function for retrieving the last buffer of given type
 // -----------------------------------------------------------------------------
 template <class UserBufferType, class FilterType, const char* FilterName>

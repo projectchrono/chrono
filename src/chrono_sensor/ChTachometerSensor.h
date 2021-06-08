@@ -6,9 +6,11 @@
 namespace chrono {
 namespace sensor {
 
+enum Axis {X, Y, Z};
+
 class CH_SENSOR_API ChTachometerSensor : public ChDynamicSensor {
   public:
-    ChTachometerSensor(std::shared_ptr<chrono::ChBody> parent, float update, chrono::ChFrame<double> offsetPose);
+    ChTachometerSensor(std::shared_ptr<chrono::ChBody> parent, float update, chrono::ChFrame<double> offsetPose, Axis axis);
     ~ChTachometerSensor() {}
     virtual void PushKeyFrame();
     virtual void ClearKeyFrames();
@@ -16,6 +18,7 @@ class CH_SENSOR_API ChTachometerSensor : public ChDynamicSensor {
   private:
     std::vector<ChVector<double>> m_keyframes;
     friend class ChFilterTachometerUpdate;
+    Axis m_axis;
 };
 
 }  // namespace sensor

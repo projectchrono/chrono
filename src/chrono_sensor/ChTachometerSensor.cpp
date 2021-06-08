@@ -7,8 +7,9 @@ namespace sensor {
 
 CH_SENSOR_API ChTachometerSensor::ChTachometerSensor(std::shared_ptr<chrono::ChBody> parent,
                                                      float updateRate,
-                                                     chrono::ChFrame<double> offsetPose)
-    : ChDynamicSensor(parent, updateRate, offsetPose) {
+                                                     chrono::ChFrame<double> offsetPose,
+                                                     Axis axis)
+    :m_axis(axis), ChDynamicSensor(parent, updateRate, offsetPose) {
     m_filters.push_front(chrono_types::make_shared<ChFilterTachometerUpdate>());
 }
 CH_SENSOR_API void ChTachometerSensor::PushKeyFrame() {

@@ -2,23 +2,23 @@
 #define CHFILTERSPEEDOMETERUPDATE_H
 
 #include "chrono_sensor/filters/ChFilter.h"
-#include "chrono_sensor/ChSpeedometerSensor.h"
+#include "chrono_sensor/ChEncoderSensor.h"
 
 namespace chrono {
 namespace sensor {
 
 // forward declaration
-class ChSpeedometerSensor;
+class ChEncoderSensor;
 
-class CH_SENSOR_API ChFilterSpeedometerUpdate : public ChFilter {
+class CH_SENSOR_API ChFilterEncoderUpdate : public ChFilter {
   public:
-    ChFilterSpeedometerUpdate();
+    ChFilterEncoderUpdate();
     virtual void Apply();
     virtual void Initialize(std::shared_ptr<ChSensor> pSensor, std::shared_ptr<SensorBuffer>& bufferInOut);
 
   private:
-    std::shared_ptr<ChSpeedometerSensor> m_speedSensor;
-    std::shared_ptr<SensorHostSpeedometerBuffer> m_bufferOut;
+    std::shared_ptr<ChEncoderSensor> m_speedSensor;
+    std::shared_ptr<SensorHostEncoderBuffer> m_bufferOut;
 };
 
 }  // namespace sensor
