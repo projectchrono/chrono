@@ -135,6 +135,22 @@ class ChApi ChBeamSectionEuler : public ChBeamSection {
     void SetBeamRaleyghDamping(double mr) { this->rdamping = mr; }
     double GetBeamRaleyghDamping() { return this->rdamping; }
 
+
+    // Optimization flags
+
+    /// Flag that turns on/off the computation of the [Ri] 'gyroscopic' inertial damping matrix.
+    /// If false, Ri=0. Can be used for cpu speedup, profiling, tests. Default: true.
+    bool compute_inertia_damping_matrix = true;
+
+    /// Flag that turns on/off the computation of the [Ki] inertial stiffness matrix.
+    /// If false, Ki=0. Can be used for cpu speedup, profiling, tests. Default: true.
+    bool compute_inertia_stiffness_matrix = true;
+
+    /// Flag for computing the Ri and Ki matrices via numerical differentiation even if
+    /// an analytical expression is provided. Children calsses must take care of this. Default: false.
+    bool compute_Ri_Ki_by_num_diff = false;
+
+
   protected:
     double rdamping;
     double JzzJyy_factor;
