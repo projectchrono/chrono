@@ -9,7 +9,7 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Authors: Radu Serban, Justin Madsen
+// Authors: Radu Serban, Rainer Gericke
 // =============================================================================
 //
 // Main driver function for the mrole full model.
@@ -66,10 +66,10 @@ VisualizationType tire_vis_type = VisualizationType::MESH;
 CollisionType chassis_collision_type = CollisionType::NONE;
 
 // Type of powertrain model (SHAFTS, SIMPLE)
-PowertrainModelType powertrain_model = PowertrainModelType::SIMPLE_CVT;
+PowertrainModelType powertrain_model = PowertrainModelType::SHAFTS;
 
 // Drive type (FWD, RWD, or AWD)
-DrivelineTypeWV drive_type = DrivelineTypeWV::SIMPLE_XWD;
+DrivelineTypeWV drive_type = DrivelineTypeWV::AWD8;
 
 // Type of tire model (TMEASY, RIGID)
 TireModelType tire_model = TireModelType::TMEASY;
@@ -319,6 +319,12 @@ int main(int argc, char* argv[]) {
         terrain.Advance(step_size);
         my_mrole.Advance(step_size);
         app.Advance(step_size);
+        GetLog() << "======================================================================\n";
+        for (int i = 0; i < 4; i++) {
+            double sp1l = my_mrole.GetVehicle().GetDriveline()->GetSpindleTorque(i, LEFT);
+            double sp1r = my_mrole.GetVehicle().GetDriveline()->GetSpindleTorque(i, RIGHT);
+            GetLog() << "Axle#" << i << "  Tleft = " << sp1l << "   Tright = " << sp1r << "\n";
+        }
 
         // Increment frame number
         step_number++;

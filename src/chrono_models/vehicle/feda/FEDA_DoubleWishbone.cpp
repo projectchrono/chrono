@@ -193,42 +193,6 @@ class AirCoilSpringBistopForce : public ChLinkTSDA::ForceFunctor {
 // FEDA shock functor class - implements a nonlinear damper
 // -----------------------------------------------------------------------------
 
-class MyShockForce : public ChLinkTSDA::ForceFunctor {
-  public:
-    virtual double operator()(double time,         // current time
-                              double rest_length,  // undeformed length
-                              double length,       // current length
-                              double vel,          // current velocity (positive when extending)
-                              ChLinkTSDA* link     // back-pointer to associated link
-                              ) override {
-        // Access states
-        auto states = link->GetStates();
-
-        // ....
-
-        return 0;
-    }
-};
-
-class MyShockODE : public ChLinkTSDA::ODE {
-  public:
-    virtual int GetNumStates() const override { return 2; }
-    virtual void SetInitialConditions(ChVectorDynamic<>& states,  // output vector containig initial conditions
-                                      ChLinkTSDA* link            // back-pointer to associated link
-                                      ) override {
-        states(0) = 1;
-        states(1) = 0;
-    }
-    virtual void CalculateRHS(double time,
-                              const ChVectorDynamic<>& states,  // current states
-                              ChVectorDynamic<>& rhs,           // output vector containing the ODE right-hand side
-                              ChLinkTSDA* link                  // back-pointer to associated link
-                              ) override {
-        rhs(0) = states(0);
-        rhs(1) = std::cos(time);
-    }
-};
-
 class FEDA_ShockForce : public ChLinkTSDA::ForceFunctor {
   public:
     virtual double operator()(double time,         // current time
