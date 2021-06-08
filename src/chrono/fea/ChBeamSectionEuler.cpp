@@ -326,7 +326,49 @@ namespace fea {
 		M(5, 5) += this->Izz * this->density;
 	}
 
+	void ChBeamSectionRayleighSimple::ComputeInertiaDampingMatrix(ChMatrixNM<double, 6, 6>& Ri,  ///< 6x6 sectional inertial-damping (gyroscopic damping) matrix values here
+		const ChVector<>& mW    ///< current angular velocity of section, in material frame
+	) {
+		Ri.setZero();
+		if (compute_inertia_damping_matrix == false) 
+			return;
+		if (this->compute_Ri_Ki_by_num_diff)
+			return ChBeamSectionEuler::ComputeInertiaDampingMatrix(Ri, mW);
 
+		ChStarMatrix33<> wtilde(mW);   // [w~]
+		// [I]  here a diagonal inertia, in Euler it should be Jzz = 0 Jyy = 0, but a tiny nonzero value avoids singularity:
+		ChMatrix33<> mI(ChVector<>(
+			(this->Iyy + this->Izz) * this->density,
+			JzzJyy_factor * this->Area * this->density + this->Iyy * this->density,
+			JzzJyy_factor * this->Area * this->density + this->Izz * this->density));  
+		Ri.block<3, 3>(3, 3) = wtilde * mI - ChStarMatrix33<>(mI * mW);  // Ri = [0, 0; 0, [w~][I] - [([I]*w)~]  ]
+	}
+
+	void ChBeamSectionRayleighSimple::ComputeInertiaStiffnessMatrix(ChMatrixNM<double, 6, 6>& Ki, ///< 6x6 sectional inertial-stiffness matrix values here
+		const ChVector<>& mWvel,      ///< current angular velocity of section, in material frame
+		const ChVector<>& mWacc,      ///< current angular acceleration of section, in material frame
+		const ChVector<>& mXacc       ///< current acceleration of section, in material frame
+	) {
+		Ki.setZero();
+		if (compute_inertia_stiffness_matrix == false) 
+			return;
+		if (this->compute_Ri_Ki_by_num_diff)
+			return ChBeamSectionEuler::ComputeInertiaStiffnessMatrix(Ki, mWvel, mWacc, mXacc);
+		// null [Ki^] (but only for the case where angular speeds and accelerations are assumed to corotate with local frames. 
+	}
+
+	void ChBeamSectionRayleighSimple::ComputeQuadraticTerms(ChVector<>& mF,   ///< centrifugal term (if any) returned here
+		ChVector<>& mT,                ///< gyroscopic term  returned here
+		const ChVector<>& mW           ///< current angular velocity of section, in material frame
+	) {
+		// F_centrifugal = density_per_unit_length w X w X c 
+		mF = VNULL;
+
+		// unroll the product [J] * w  in the expression w X [J] * w  as 8 values of [J] are zero anyway
+		mT = Vcross(mW, ChVector<>( this->GetInertiaJxxPerUnitLength()*mW.x(),
+									(JzzJyy_factor * this->Area * this->density + this->Iyy * this->density) * mW.y(),
+									(JzzJyy_factor * this->Area * this->density + this->Izz * this->density) * mW.z())  );
+	}
 
 	ChBeamSectionRayleighEasyRectangular::ChBeamSectionRayleighEasyRectangular(double mwidth_y, double mwidth_z, double mE, double mG, double mdensity)
 	{
