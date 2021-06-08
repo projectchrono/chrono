@@ -452,8 +452,64 @@ namespace fea {
 		M(5, 4) = -this->Jyz;
 	}
 
+	void ChBeamSectionRayleighAdvancedGeneric::ComputeInertiaDampingMatrix(ChMatrixNM<double, 6, 6>& Ri,  ///< 6x6 sectional inertial-damping (gyroscopic damping) matrix values here
+		const ChVector<>& mW    ///< current angular velocity of section, in material frame
+	) {
+		Ri.setZero();
+		if (compute_inertia_damping_matrix == false) 
+			return;
+		if (this->compute_Ri_Ki_by_num_diff)
+			return ChBeamSectionEuler::ComputeInertiaDampingMatrix(Ri, mW);
 
+		ChStarMatrix33<> wtilde(mW);   // [w~]
+		ChVector<> mC(0, this->My, this->Mz);
+		ChStarMatrix33<> ctilde(mC);   // [c~]
+		ChMatrix33<> mI; 
+		mI << this->Jyy+this->Jzz ,										 0,			         			   	    0,
+								 0,   this->Jyy + JzzJyy_factor * this->mu,                            -this->Jyz,
+								 0,                             -this->Jyz,  this->Jzz + JzzJyy_factor * this->mu;
+		//  Ri = [0,  m*[w~][c~]' + m*[([w~]*c)~]'  ; 0 , [w~][I] - [([I]*w)~]  ]
+		Ri.block<3, 3>(0, 3) = this->mu * (wtilde * ctilde.transpose() + (ChStarMatrix33<>( wtilde * mC )).transpose() ); 
+		Ri.block<3, 3>(3, 3) = wtilde * mI - ChStarMatrix33<>(mI * mW);  
+	}
 
+	void ChBeamSectionRayleighAdvancedGeneric::ComputeInertiaStiffnessMatrix(ChMatrixNM<double, 6, 6>& Ki, ///< 6x6 sectional inertial-stiffness matrix values here
+		const ChVector<>& mWvel,      ///< current angular velocity of section, in material frame
+		const ChVector<>& mWacc,      ///< current angular acceleration of section, in material frame
+		const ChVector<>& mXacc       ///< current acceleration of section, in material frame
+	) {
+		Ki.setZero();
+		if (compute_inertia_stiffness_matrix == false) 
+			return;
+		if (this->compute_Ri_Ki_by_num_diff)
+			return ChBeamSectionEuler::ComputeInertiaStiffnessMatrix(Ki, mWvel, mWacc, mXacc);
+
+		ChStarMatrix33<> wtilde(mWvel);   // [w~]
+		ChStarMatrix33<> atilde(mWacc);   // [a~]
+		ChVector<> mC(0, this->My, this->Mz);
+		ChStarMatrix33<> ctilde(mC);   // [c~]
+		ChMatrix33<> mI;
+		mI << this->Jyy+this->Jzz ,										 0,			         			   	    0,
+								 0,   this->Jyy + JzzJyy_factor * this->mu,                            -this->Jyz,
+								 0,                             -this->Jyz,  this->Jzz + JzzJyy_factor * this->mu;
+		// Ki_al = [0, 0; -m*[([a~]c)~] -m*[([w~][w~]c)~] , m*[c~][xpp~] ]
+		Ki.block<3, 3>(0, 3) = -this->mu * ChStarMatrix33<>(atilde * mC) 
+							   -this->mu * ChStarMatrix33<>(wtilde*(wtilde*mC));
+		Ki.block<3, 3>(3, 3) = this->mu * ctilde * ChStarMatrix33<>(mXacc); 
+	}
+
+	void ChBeamSectionRayleighAdvancedGeneric::ComputeQuadraticTerms(ChVector<>& mF,   ///< centrifugal term (if any) returned here
+		ChVector<>& mT,                ///< gyroscopic term  returned here
+		const ChVector<>& mW           ///< current angular velocity of section, in material frame
+	) {
+		 // F_centrifugal = density_per_unit_length w X w X c 
+		mF = this->mu * Vcross(mW,Vcross(mW,ChVector<>(0,this->My,this->Mz)));
+
+		// unroll the product [J] * w  in the expression w X [J] * w  as 4 values of [J] are zero anyway
+		mT = Vcross(mW, ChVector<>( this->GetInertiaJxxPerUnitLength()*mW.x(),
+									(this->Jyy + JzzJyy_factor * this->mu)*mW.y() - this->Jyz*mW.z(),
+									(this->Jzz + JzzJyy_factor * this->mu)*mW.z() - this->Jyz*mW.y() )  );
+	}
 
 
 

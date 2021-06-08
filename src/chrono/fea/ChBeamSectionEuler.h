@@ -749,6 +749,20 @@ class ChApi ChBeamSectionRayleighAdvancedGeneric : public ChBeamSectionEulerAdva
     /// Compute the 6x6 sectional inertia matrix, as in  {x_momentum,w_momentum}=[Mm]{xvel,wvel}
     virtual void ComputeInertiaMatrix(ChMatrixNM<double, 6, 6>& M) override;
 
+    /// Compute the 6x6 sectional inertia damping matrix [Ri] (gyroscopic matrix damping)
+    virtual void ComputeInertiaDampingMatrix(ChMatrixNM<double, 6, 6>& Ri,  ///< 6x6 sectional inertial-damping (gyroscopic damping) matrix values here
+        const ChVector<>& mW    ///< current angular velocity of section, in material frame
+    ) override;
+
+    /// Compute the 6x6 sectional inertia stiffness matrix [Ki^]
+    virtual void ComputeInertiaStiffnessMatrix(ChMatrixNM<double, 6, 6>& Ki, ///< 6x6 sectional inertial-stiffness matrix [Ki^] values here
+        const ChVector<>& mWvel,      ///< current angular velocity of section, in material frame
+        const ChVector<>& mWacc,      ///< current angular acceleration of section, in material frame
+        const ChVector<>& mXacc       ///< current acceleration of section, in material frame (not absolute!)
+    ) override;
+
+    /// Compute the centrifugal term and gyroscopic term
+    virtual void ComputeQuadraticTerms(ChVector<>& mF, ChVector<>& mT, const ChVector<>& mW) override;
 };
 
 
