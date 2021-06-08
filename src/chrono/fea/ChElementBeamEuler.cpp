@@ -518,9 +518,38 @@ void ChElementBeamEuler::ComputeKRMmatricesGlobal(ChMatrixRef H, double Kfactor,
         ////CKCt.triangularView<Eigen::Upper>() = CKCt.transpose();
 
         // For K stiffness matrix and R matrix: scale by factors
+        // because [R] = r*[K] , so kf*[K]+rf*[R] = (kf+rf*r)*[K]
         CKCt *= Kfactor + Rfactor * this->section->GetBeamRaleyghDamping();
 
-        H.block(0, 0, 12, 12) = CKCt;  // because [R] = r*[K] , so kf*[K]+rf*[R] = (kf+rf*r)*[K]
+        H.block(0, 0, 12, 12) = CKCt;  
+
+        // Add inertial stiffness matrix and inertial damping matrix (gyroscopic damping), 
+        // if enabled in section material.
+        // These matrices are not symmetric. Also note
+        if (this->section->compute_inertia_damping_matrix || this->section->compute_inertia_stiffness_matrix)  {
+            ChMatrixNM<double, 6,6> matr_loc;
+            ChMatrixNM<double, 6,6> KRi_loc;
+            KRi_loc.setZero();
+            // A lumped version of the inertial damping/stiffness matrix computation is used here, on a per-node basis:
+            double node_multiplier_fact_R = 0.5 * length * Rfactor;
+            double node_multiplier_fact_K = 0.5 * length * Kfactor;
+            for (int i = 0; i < nodes.size(); ++i) {
+                int stride = i * 6;
+                if (this->section->compute_inertia_damping_matrix) {
+                    this->section->ComputeInertiaDampingMatrix(matr_loc, nodes[i]->GetWvel_loc());
+                    KRi_loc += matr_loc * node_multiplier_fact_R;
+                }
+                if (this->section->compute_inertia_stiffness_matrix) {
+                    this->section->ComputeInertiaStiffnessMatrix(matr_loc, nodes[i]->GetWvel_loc(), nodes[i]->GetWacc_loc(), (nodes[i]->GetA().transpose())*nodes[i]->GetPos_dtdt()); // assume x_dtdt in local frame!
+                    KRi_loc += matr_loc * node_multiplier_fact_K;
+                }
+                // corotate the local damping and stiffness matrices (at once, already scaled) into absolute one
+                //H.block<3, 3>(stride,   stride  ) += nodes[i]->GetA() * KRi_loc.block<3, 3>(0,0) * (nodes[i]->GetA().transpose()); // NOTE: not needed as KRi_loc.block<3, 3>(0,0) is null by construction
+                H.block<3, 3>(stride+3, stride+3) +=                    KRi_loc.block<3, 3>(3,3);
+                H.block<3, 3>(stride,   stride+3) += nodes[i]->GetA() * KRi_loc.block<3, 3>(0,3);
+               // H.block<3, 3>(stride+3, stride)   +=                    KRi_loc.block<3, 3>(3,0) * (nodes[i]->GetA().transpose()); // NOTE: not needed as KRi_loc.block<3, 3>(3,0) is null by construction
+            }
+        }
 
     } 
     else
