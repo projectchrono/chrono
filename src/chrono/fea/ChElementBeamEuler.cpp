@@ -492,9 +492,6 @@ void ChElementBeamEuler::ComputeKRMmatricesGlobal(ChMatrixRef H, double Kfactor,
             ChVectorDynamic<> displ(this->GetNdofs());
             this->GetStateBlock(displ);
             double Px = -this->Km.row(0) * displ;
-            //ChVector<> mFo, mTo;
-            //this->EvaluateSectionForceTorque(0, mFo, mTo);  // for double checking the Px value
-            //GetLog() << "   Px = " << Px << "  Px_eval = " << mFo.x() << " \n";
 
             // corotate Km + Kg  (where Kg = this->Kg * Px)
             ChMatrixCorotation::ComputeCK(this->Km + Px*this->Kg, R, 4, CK);
@@ -654,7 +651,6 @@ void ChElementBeamEuler::ComputeInternalForces(ChVectorDynamic<>& Fi) {
     ChVector<> mTgyro_i;
     for (int i = 0; i < nodes.size(); ++i) {
         this->section->ComputeQuadraticTerms(mFcent_i, mTgyro_i, nodes[i]->GetWvel_loc());
-        ChQuaternion<> q_i(nodes[i]->GetRot());
         Fi.segment(i * 6, 3)     -= node_multiplier * (nodes[i]->GetA() * mFcent_i).eigen();
         Fi.segment(3 + i * 6, 3) -= node_multiplier * mTgyro_i.eigen();
     }
