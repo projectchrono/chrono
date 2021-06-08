@@ -888,6 +888,18 @@ class ChApi ChInertiaCosserat {
                                        ChVector<>& mT,   ///< gyroscopic term  returned here
                                        const ChVector<>& mW    ///< current angular velocity of section, in material frame
                                       ) = 0;
+    /// Compute the total inertial wrench, ie forces and torques (per unit length). 
+    /// Note: both force and torque are returned in the basis of the material frame (not the absolute frame!), 
+    /// ex. to apply it to a Chrono body, the force must be rotated to absolute basis.
+    /// Default implementation: falls back to  Fi = [Mi]*{xacc,wacc}+{mF,mT} 
+    /// where [Mi] is given by ComputeInertiaMatrix() and {F_quad,T_quad} are given by ComputeQuadraticTerms(), i.e. gyro and centrif.terms. 
+    /// For faster implementations one can override this, ex. avoid doing the [Mi] matrix product.
+    virtual void ComputeInertialForce(ChVector<>& mFi,   ///< total inertial force returned here, in basis of material frame
+        ChVector<>& mTi,      ///< total inertial torque returned here, in basis of material frame
+        const ChVector<>& mWvel,  ///< current angular velocity of section, in material frame
+        const ChVector<>& mWacc,  ///< current angular acceleration of section, in material frame
+        const ChVector<>& mXacc   ///< current acceleration of section, in material frame (not absolute!)
+    );
 
     /// Compute mass per unit length, ex.SI units [kg/m]. 
     /// This is also the(0, 0) element in the sectional inertia matrix.

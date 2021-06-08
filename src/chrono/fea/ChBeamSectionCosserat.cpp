@@ -13,6 +13,7 @@
 // =============================================================================
 
 #include "chrono/fea/ChBeamSectionCosserat.h"
+#include "chrono/core/ChMatrixMBD.h"
 #include <math.h>
 
 namespace chrono {
@@ -838,6 +839,32 @@ void ChDampingCosseratRayleigh::UpdateStiffnessModel() {
 	// (for many stiffness models, this is constant anyway)
 	this->section_elasticity->ComputeStiffnessMatrix(this->E_const, VNULL, VNULL);
 	
+}
+
+
+
+
+
+void ChInertiaCosserat::ComputeInertialForce(
+                                    ChVector<>& mFi,          ///< total inertial force returned here
+                                    ChVector<>& mTi,          ///< total inertial torque returned here
+                                    const ChVector<>& mWvel,  ///< current angular velocity of section, in material frame
+                                    const ChVector<>& mWacc,  ///< current angular acceleration of section, in material frame
+                                    const ChVector<>& mXacc   ///< current acceleration of section, in material frame (not absolute!)
+) {
+    // Default implementation as Fi = [Mi]*{xacc,wacc}+{mF_quadratic,mT_quadratic}
+    // but if possible implement it in children classes with ad-hoc faster formulas.
+    ChMatrixNM<double, 6, 6> Mi;
+    this->ComputeInertiaMatrix(Mi);
+    ChVectorN<double, 6> xpp; 
+    xpp.segment(0 , 3) = mXacc.eigen();
+    xpp.segment(3 , 3) = mWacc.eigen();
+    ChVectorN<double, 6> Fipp = Mi * xpp;    // [Mi]*{xacc,wacc}
+    ChVector<> mF_quadratic;
+    ChVector<> mT_quadratic;
+    this->ComputeQuadraticTerms(mF_quadratic, mT_quadratic, mWvel);  // {mF_quadratic,mT_quadratic}
+    mFi = ChVector<>(Fipp.segment(0, 3)) + mF_quadratic; 
+    mTi = ChVector<>(Fipp.segment(3, 3)) + mT_quadratic;
 }
 
 
