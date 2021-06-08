@@ -109,6 +109,18 @@ class ChApi ChBeamSectionEuler : public ChBeamSection {
                                        const ChVector<>& mW  ///< current angular velocity of section, in material frame
                                        ) = 0;
 
+    /// Compute the total inertial forces (per unit length). This default implementation falls back to  Fi = [Mi]*{xacc,wacc}+{mF,mT} 
+    /// where [Mi] is given by ComputeInertiaMatrix() and {F_quad,T_quad} are given by ComputeQuadraticTerms(), i.e. gyro and centrif.terms. 
+    /// Note: both force and torque are returned in the basis of the material frame (not the absolute frame!), 
+    /// ex. to apply it to a Chrono body, the force must be rotated to absolute basis.
+    /// For faster implementations one can override this, ex. avoid doing the [Mi] matrix product.
+    virtual void ComputeInertialForce(ChVector<>& mFi,   ///< total inertial force returned here, in basis of material frame
+        ChVector<>& mTi,      ///< total inertial torque returned here, in basis of material frame
+        const ChVector<>& mWvel,  ///< current angular velocity of section, in material frame
+        const ChVector<>& mWacc,  ///< current angular acceleration of section, in material frame
+        const ChVector<>& mXacc   ///< current acceleration of section, in material frame (not absolute!)
+    );
+
     /// The Euler beam model has no rotational inertia per each section, assuming mass is concentrated on
     /// the centerline. However this creates a singular mass matrix, that might end in problems when doing modal
     /// analysis etc. A solution is to force Jyy and Jzz inertials per unit lengths to be a percent of the mass per unit
