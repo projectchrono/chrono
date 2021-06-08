@@ -1093,7 +1093,8 @@ class ChApi ChInertiaCosseratAdvanced : public ChInertiaCosserat {
   public:
 
 	ChInertiaCosseratAdvanced() 
-						: mu(1), cm_y(0), cm_z(0), Jzz(1), Jyy(1), Jyz(0) {};
+						: mu(1), cm_y(0), cm_z(0), Jzz(1), Jyy(1), Jyz(0) {
+    };
 
 	ChInertiaCosseratAdvanced(double mu_density,    ///< mass per unit length [kg/m] 
 		                    double c_y,             ///< displacement of center of mass along Y
@@ -1102,7 +1103,17 @@ class ChApi ChInertiaCosseratAdvanced : public ChInertiaCosserat {
 							double Jzz_moment,	    ///< moment of inertia per unit length, about Z. Also Jzz= Mm(5,5)
                             double Jyz_moment       ///< moment of inertia per unit length, about YZ (off diagonal term). Also Jyz= -Mm(4,5) = -Mm(5,4)
 							) 
-						: mu(mu_density), cm_y(0), cm_z(0), Jzz(Jzz_moment), Jyy(Jyy_moment), Jyz(Jyz_moment) {};
+						: mu(mu_density), cm_y(c_y), cm_z(c_z), Jzz(Jzz_moment), Jyy(Jyy_moment), Jyz(Jyz_moment) {
+    };
+
+    ChInertiaCosseratAdvanced(double mu_density,    ///< mass per unit length [kg/m] 
+		                    double c_y,             ///< displacement of center of mass along Y
+                            double c_z,             ///< displacement of center of mass along Z					
+                            ChVector<> Ivals
+							) 
+						: mu(mu_density), cm_y(c_y), cm_z(c_z), Jzz(Ivals.y()), Jyy(Ivals.x()), Jyz(Ivals.z()) {
+    };
+
 
     virtual ~ChInertiaCosseratAdvanced() {}
 
