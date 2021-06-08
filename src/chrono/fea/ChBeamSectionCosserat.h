@@ -1183,7 +1183,7 @@ class ChApi ChInertiaCosseratAdvanced : public ChInertiaCosserat {
 
     /// Get the Jxx component of the inertia per unit length (polar inertia), in the Y Z unrotated reference
     /// frame of the section at centerline. Note: it automatically follows Jxx=Jyy+Jzz for the polar theorem.
-    virtual double GetInertiaJxxPerUnitLength()  { return  this->Jyy + this->Jzz; }
+    virtual double GetInertiaJxxPerUnitLength() { return  this->Jyy + this->Jzz; }
 
     /// Get the Jyy component of the inertia per unit length, in the Y Z unrotated reference
     /// frame of the section at centerline, also Jyy = Mm(4,4)
