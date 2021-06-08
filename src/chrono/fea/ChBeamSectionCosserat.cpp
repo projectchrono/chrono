@@ -986,6 +986,37 @@ void ChInertiaCosseratSimple::ComputeInertiaMatrix(ChMatrixNM<double, 6, 6>& M) 
     M(5, 5) = this->GetInertiaJzzPerUnitLength();
 }
 
+void ChInertiaCosseratSimple::ComputeInertiaDampingMatrix(ChMatrixNM<double, 6, 6>& Ri,  ///< 6x6 sectional inertial-damping (gyroscopic damping) matrix values here
+    const ChVector<>& mW    ///< current angular velocity of section, in material frame
+) {
+    Ri.setZero();
+    if (compute_inertia_damping_matrix == false) 
+        return;
+    if (this->compute_Ri_Ki_by_num_diff)
+        return ChInertiaCosserat::ComputeInertiaDampingMatrix(Ri, mW);
+
+    ChStarMatrix33<> wtilde(mW);   // [w~]
+    ChMatrix33<> mI(ChVector<>(
+        this->GetInertiaJxxPerUnitLength(),
+        this->GetInertiaJyyPerUnitLength(),
+        this->GetInertiaJzzPerUnitLength()));  // [I]  here just a diagonal inertia
+    Ri.block<3, 3>(3, 3) = wtilde * mI - ChStarMatrix33<>(mI * mW);  // Ri = [0, 0; 0, [w~][I] - [([I]*w)~]  ]
+}
+
+void ChInertiaCosseratSimple::ComputeInertiaStiffnessMatrix(ChMatrixNM<double, 6, 6>& Ki, ///< 6x6 sectional inertial-stiffness matrix values here
+    const ChVector<>& mWvel,      ///< current angular velocity of section, in material frame
+    const ChVector<>& mWacc,      ///< current angular acceleration of section, in material frame
+    const ChVector<>& mXacc       ///< current acceleration of section, in material frame
+) {
+    Ki.setZero();
+    if (compute_inertia_stiffness_matrix == false) 
+        return;
+    if (this->compute_Ri_Ki_by_num_diff)
+        return ChInertiaCosserat::ComputeInertiaStiffnessMatrix(Ki, mWvel, mWacc, mXacc);
+    // null [Ki^] (but only for the case where angular speeds and accelerations are assumed to corotate with local frames.
+}
+
+
 void ChInertiaCosseratSimple::ComputeQuadraticTerms(ChVector<>& mF,   ///< centrifugal term (if any) returned here
     ChVector<>& mT,                ///< gyroscopic term  returned here
     const ChVector<>& mW           ///< current angular velocity of section, in material frame
