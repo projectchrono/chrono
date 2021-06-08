@@ -29,6 +29,7 @@
 #include "chrono_models/vehicle/mrole/mrole_DoubleWishbone.h"
 #include "chrono_models/vehicle/mrole/mrole_Driveline2WD.h"
 #include "chrono_models/vehicle/mrole/mrole_Driveline4WD.h"
+#include "chrono_models/vehicle/mrole/mrole_Driveline8WD.h"
 #include "chrono_models/vehicle/mrole/mrole_SimpleDriveline.h"
 #include "chrono_models/vehicle/mrole/mrole_SimpleDrivelineXWD.h"
 #include "chrono_models/vehicle/mrole/mrole_RackPinion.h"
@@ -132,6 +133,9 @@ void mrole_VehicleFull::Create(bool fixed,
         case DrivelineTypeWV::AWD:
             m_driveline = chrono_types::make_shared<mrole_Driveline4WD>("Driveline");
             break;
+        case DrivelineTypeWV::AWD8:
+            m_driveline = chrono_types::make_shared<mrole_Driveline8WD>("Driveline");
+            break;
         case DrivelineTypeWV::SIMPLE:
             m_driveline = chrono_types::make_shared<mrole_SimpleDriveline>("Driveline");
             break;
@@ -172,30 +176,28 @@ void mrole_VehicleFull::Initialize(const ChCoordsys<>& chassisPos, double chassi
 
     switch (m_driveType) {
         case DrivelineTypeWV::FWD:
-            driven_susp_indexes[0] = 1;
-            driven_susp_indexes[1] = 0;
-            driven_susp_indexes[2] = 0;
-            driven_susp_indexes[3] = 0;
+            driven_susp_indexes[0] = 0;
             break;
         case DrivelineTypeWV::RWD:
-            driven_susp_indexes[0] = 0;
-            driven_susp_indexes[1] = 0;
-            driven_susp_indexes[2] = 0;
-            driven_susp_indexes[3] = 1;
+            driven_susp_indexes[0] = 1;
             break;
         case DrivelineTypeWV::AWD:
         case DrivelineTypeWV::SIMPLE:
+            driven_susp_indexes[0] = 2;
+            driven_susp_indexes[1] = 3;
+            break;
+        case DrivelineTypeWV::AWD8:
             driven_susp_indexes[0] = 0;
-            driven_susp_indexes[1] = 0;
-            driven_susp_indexes[2] = 1;
-            driven_susp_indexes[3] = 1;
+            driven_susp_indexes[1] = 1;
+            driven_susp_indexes[2] = 2;
+            driven_susp_indexes[3] = 3;
             break;
         case DrivelineTypeWV::SIMPLE_XWD:
             driven_susp_indexes.resize(4);
-            driven_susp_indexes[0] = 1;
+            driven_susp_indexes[0] = 0;
             driven_susp_indexes[1] = 1;
-            driven_susp_indexes[2] = 1;
-            driven_susp_indexes[3] = 1;
+            driven_susp_indexes[2] = 2;
+            driven_susp_indexes[3] = 3;
             break;
     }
 

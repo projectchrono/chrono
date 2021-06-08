@@ -50,6 +50,7 @@ mrole::mrole()
       m_initFwdVel(0),
       m_initPos(ChCoordsys<>(ChVector<>(0, 0, 1), QUNIT)),
       m_initOmega({0, 0, 0, 0}),
+      m_ctis(CTIS::ROAD),
       m_apply_drag(false) {}
 
 mrole::mrole(ChSystem* system)
@@ -68,6 +69,7 @@ mrole::mrole(ChSystem* system)
       m_initFwdVel(0),
       m_initPos(ChCoordsys<>(ChVector<>(0, 0, 1), QUNIT)),
       m_initOmega({0, 0, 0, 0}),
+      m_ctis(CTIS::ROAD),
       m_apply_drag(false) {}
 
 mrole::~mrole() {
@@ -121,25 +123,33 @@ void mrole::Initialize() {
 
     // Create the tires and set parameters depending on type.
     switch (m_tireType) {
-        /*
         case TireModelType::RIGID:
         case TireModelType::RIGID_MESH: {
             bool use_mesh = (m_tireType == TireModelType::RIGID_MESH);
 
-            auto tire_FL = chrono_types::make_shared<mrole_RigidTire>("FL", use_mesh);
-            auto tire_FR = chrono_types::make_shared<mrole_RigidTire>("FR", use_mesh);
-            auto tire_RL = chrono_types::make_shared<mrole_RigidTire>("RL", use_mesh);
-            auto tire_RR = chrono_types::make_shared<mrole_RigidTire>("RR", use_mesh);
+            auto tire_FL1 = chrono_types::make_shared<mrole_RigidTire>("FL1", use_mesh);
+            auto tire_FR1 = chrono_types::make_shared<mrole_RigidTire>("FR1", use_mesh);
+            auto tire_FL2 = chrono_types::make_shared<mrole_RigidTire>("FL2", use_mesh);
+            auto tire_FR2 = chrono_types::make_shared<mrole_RigidTire>("FR2", use_mesh);
+            auto tire_RL1 = chrono_types::make_shared<mrole_RigidTire>("RL1", use_mesh);
+            auto tire_RR1 = chrono_types::make_shared<mrole_RigidTire>("RR1", use_mesh);
+            auto tire_RL2 = chrono_types::make_shared<mrole_RigidTire>("RL2", use_mesh);
+            auto tire_RR2 = chrono_types::make_shared<mrole_RigidTire>("RR2", use_mesh);
 
-            m_vehicle->InitializeTire(tire_FL, m_vehicle->GetAxle(0)->m_wheels[LEFT], VisualizationType::NONE);
-            m_vehicle->InitializeTire(tire_FR, m_vehicle->GetAxle(0)->m_wheels[RIGHT], VisualizationType::NONE);
-            m_vehicle->InitializeTire(tire_RL, m_vehicle->GetAxle(1)->m_wheels[LEFT], VisualizationType::NONE);
-            m_vehicle->InitializeTire(tire_RR, m_vehicle->GetAxle(1)->m_wheels[RIGHT], VisualizationType::NONE);
+            m_vehicle->InitializeTire(tire_FL1, m_vehicle->GetAxle(0)->m_wheels[LEFT], VisualizationType::NONE);
+            m_vehicle->InitializeTire(tire_FR1, m_vehicle->GetAxle(0)->m_wheels[RIGHT], VisualizationType::NONE);
+            m_vehicle->InitializeTire(tire_FL2, m_vehicle->GetAxle(1)->m_wheels[LEFT], VisualizationType::NONE);
+            m_vehicle->InitializeTire(tire_FR2, m_vehicle->GetAxle(1)->m_wheels[RIGHT], VisualizationType::NONE);
+            m_vehicle->InitializeTire(tire_RL1, m_vehicle->GetAxle(2)->m_wheels[LEFT], VisualizationType::NONE);
+            m_vehicle->InitializeTire(tire_RR1, m_vehicle->GetAxle(2)->m_wheels[RIGHT], VisualizationType::NONE);
+            m_vehicle->InitializeTire(tire_RL2, m_vehicle->GetAxle(3)->m_wheels[LEFT], VisualizationType::NONE);
+            m_vehicle->InitializeTire(tire_RR2, m_vehicle->GetAxle(3)->m_wheels[RIGHT], VisualizationType::NONE);
 
-            m_tire_mass = tire_FL->ReportMass();
+            m_tire_mass = tire_FL1->ReportMass();
 
             break;
         }
+        /*
         case TireModelType::LUGRE: {
             auto tire_FL = chrono_types::make_shared<mrole_LugreTire>("FL");
             auto tire_FR = chrono_types::make_shared<mrole_LugreTire>("FR");
@@ -172,25 +182,86 @@ void mrole::Initialize() {
         }
          */
         case TireModelType::TMEASY: {
-            auto tire_FL1 = chrono_types::make_shared<mrole_TMeasyTire>("FL1");
-            auto tire_FR1 = chrono_types::make_shared<mrole_TMeasyTire>("FR1");
-            auto tire_FL2 = chrono_types::make_shared<mrole_TMeasyTire>("FL2");
-            auto tire_FR2 = chrono_types::make_shared<mrole_TMeasyTire>("FR2");
-            auto tire_RL1 = chrono_types::make_shared<mrole_TMeasyTire>("RL1");
-            auto tire_RR1 = chrono_types::make_shared<mrole_TMeasyTire>("RR1");
-            auto tire_RL2 = chrono_types::make_shared<mrole_TMeasyTire>("RL2");
-            auto tire_RR2 = chrono_types::make_shared<mrole_TMeasyTire>("RR2");
+            switch (m_ctis) {
+                case CTIS::ROAD: {
+                    auto tire_FL1 = chrono_types::make_shared<mrole_TMeasyTire>("FL1");
+                    auto tire_FR1 = chrono_types::make_shared<mrole_TMeasyTire>("FR1");
+                    auto tire_FL2 = chrono_types::make_shared<mrole_TMeasyTire>("FL2");
+                    auto tire_FR2 = chrono_types::make_shared<mrole_TMeasyTire>("FR2");
+                    auto tire_RL1 = chrono_types::make_shared<mrole_TMeasyTire>("RL1");
+                    auto tire_RR1 = chrono_types::make_shared<mrole_TMeasyTire>("RR1");
+                    auto tire_RL2 = chrono_types::make_shared<mrole_TMeasyTire>("RL2");
+                    auto tire_RR2 = chrono_types::make_shared<mrole_TMeasyTire>("RR2");
 
-            m_vehicle->InitializeTire(tire_FL1, m_vehicle->GetAxle(0)->m_wheels[LEFT], VisualizationType::NONE);
-            m_vehicle->InitializeTire(tire_FR1, m_vehicle->GetAxle(0)->m_wheels[RIGHT], VisualizationType::NONE);
-            m_vehicle->InitializeTire(tire_FL2, m_vehicle->GetAxle(1)->m_wheels[LEFT], VisualizationType::NONE);
-            m_vehicle->InitializeTire(tire_FR2, m_vehicle->GetAxle(1)->m_wheels[RIGHT], VisualizationType::NONE);
-            m_vehicle->InitializeTire(tire_RL1, m_vehicle->GetAxle(2)->m_wheels[LEFT], VisualizationType::NONE);
-            m_vehicle->InitializeTire(tire_RR1, m_vehicle->GetAxle(2)->m_wheels[RIGHT], VisualizationType::NONE);
-            m_vehicle->InitializeTire(tire_RL2, m_vehicle->GetAxle(3)->m_wheels[LEFT], VisualizationType::NONE);
-            m_vehicle->InitializeTire(tire_RR2, m_vehicle->GetAxle(3)->m_wheels[RIGHT], VisualizationType::NONE);
+                    m_vehicle->InitializeTire(tire_FL1, m_vehicle->GetAxle(0)->m_wheels[LEFT], VisualizationType::NONE);
+                    m_vehicle->InitializeTire(tire_FR1, m_vehicle->GetAxle(0)->m_wheels[RIGHT],
+                                              VisualizationType::NONE);
+                    m_vehicle->InitializeTire(tire_FL2, m_vehicle->GetAxle(1)->m_wheels[LEFT], VisualizationType::NONE);
+                    m_vehicle->InitializeTire(tire_FR2, m_vehicle->GetAxle(1)->m_wheels[RIGHT],
+                                              VisualizationType::NONE);
+                    m_vehicle->InitializeTire(tire_RL1, m_vehicle->GetAxle(2)->m_wheels[LEFT], VisualizationType::NONE);
+                    m_vehicle->InitializeTire(tire_RR1, m_vehicle->GetAxle(2)->m_wheels[RIGHT],
+                                              VisualizationType::NONE);
+                    m_vehicle->InitializeTire(tire_RL2, m_vehicle->GetAxle(3)->m_wheels[LEFT], VisualizationType::NONE);
+                    m_vehicle->InitializeTire(tire_RR2, m_vehicle->GetAxle(3)->m_wheels[RIGHT],
+                                              VisualizationType::NONE);
 
-            m_tire_mass = tire_FL1->ReportMass();
+                    m_tire_mass = tire_FL1->ReportMass();
+
+                } break;
+                case CTIS::OFFROAD_SOIL: {
+                    auto tire_FL1 = chrono_types::make_shared<mrole_TMeasyTireSoil>("FL1");
+                    auto tire_FR1 = chrono_types::make_shared<mrole_TMeasyTireSoil>("FR1");
+                    auto tire_FL2 = chrono_types::make_shared<mrole_TMeasyTireSoil>("FL2");
+                    auto tire_FR2 = chrono_types::make_shared<mrole_TMeasyTireSoil>("FR2");
+                    auto tire_RL1 = chrono_types::make_shared<mrole_TMeasyTireSoil>("RL1");
+                    auto tire_RR1 = chrono_types::make_shared<mrole_TMeasyTireSoil>("RR1");
+                    auto tire_RL2 = chrono_types::make_shared<mrole_TMeasyTireSoil>("RL2");
+                    auto tire_RR2 = chrono_types::make_shared<mrole_TMeasyTireSoil>("RR2");
+
+                    m_vehicle->InitializeTire(tire_FL1, m_vehicle->GetAxle(0)->m_wheels[LEFT], VisualizationType::NONE);
+                    m_vehicle->InitializeTire(tire_FR1, m_vehicle->GetAxle(0)->m_wheels[RIGHT],
+                                              VisualizationType::NONE);
+                    m_vehicle->InitializeTire(tire_FL2, m_vehicle->GetAxle(1)->m_wheels[LEFT], VisualizationType::NONE);
+                    m_vehicle->InitializeTire(tire_FR2, m_vehicle->GetAxle(1)->m_wheels[RIGHT],
+                                              VisualizationType::NONE);
+                    m_vehicle->InitializeTire(tire_RL1, m_vehicle->GetAxle(2)->m_wheels[LEFT], VisualizationType::NONE);
+                    m_vehicle->InitializeTire(tire_RR1, m_vehicle->GetAxle(2)->m_wheels[RIGHT],
+                                              VisualizationType::NONE);
+                    m_vehicle->InitializeTire(tire_RL2, m_vehicle->GetAxle(3)->m_wheels[LEFT], VisualizationType::NONE);
+                    m_vehicle->InitializeTire(tire_RR2, m_vehicle->GetAxle(3)->m_wheels[RIGHT],
+                                              VisualizationType::NONE);
+
+                    m_tire_mass = tire_FL1->ReportMass();
+
+                } break;
+                case CTIS::OFFROAD_SAND: {
+                    auto tire_FL1 = chrono_types::make_shared<mrole_TMeasyTireSand>("FL1");
+                    auto tire_FR1 = chrono_types::make_shared<mrole_TMeasyTireSand>("FR1");
+                    auto tire_FL2 = chrono_types::make_shared<mrole_TMeasyTireSand>("FL2");
+                    auto tire_FR2 = chrono_types::make_shared<mrole_TMeasyTireSand>("FR2");
+                    auto tire_RL1 = chrono_types::make_shared<mrole_TMeasyTireSand>("RL1");
+                    auto tire_RR1 = chrono_types::make_shared<mrole_TMeasyTireSand>("RR1");
+                    auto tire_RL2 = chrono_types::make_shared<mrole_TMeasyTireSand>("RL2");
+                    auto tire_RR2 = chrono_types::make_shared<mrole_TMeasyTireSand>("RR2");
+
+                    m_vehicle->InitializeTire(tire_FL1, m_vehicle->GetAxle(0)->m_wheels[LEFT], VisualizationType::NONE);
+                    m_vehicle->InitializeTire(tire_FR1, m_vehicle->GetAxle(0)->m_wheels[RIGHT],
+                                              VisualizationType::NONE);
+                    m_vehicle->InitializeTire(tire_FL2, m_vehicle->GetAxle(1)->m_wheels[LEFT], VisualizationType::NONE);
+                    m_vehicle->InitializeTire(tire_FR2, m_vehicle->GetAxle(1)->m_wheels[RIGHT],
+                                              VisualizationType::NONE);
+                    m_vehicle->InitializeTire(tire_RL1, m_vehicle->GetAxle(2)->m_wheels[LEFT], VisualizationType::NONE);
+                    m_vehicle->InitializeTire(tire_RR1, m_vehicle->GetAxle(2)->m_wheels[RIGHT],
+                                              VisualizationType::NONE);
+                    m_vehicle->InitializeTire(tire_RL2, m_vehicle->GetAxle(3)->m_wheels[LEFT], VisualizationType::NONE);
+                    m_vehicle->InitializeTire(tire_RR2, m_vehicle->GetAxle(3)->m_wheels[RIGHT],
+                                              VisualizationType::NONE);
+
+                    m_tire_mass = tire_FL1->ReportMass();
+
+                } break;
+            }
 
             break;
         }
@@ -289,6 +360,18 @@ void mrole::Initialize() {
     }
 
     m_vehicle->EnableBrakeLocking(m_brake_locking);
+}
+
+double mrole::GetMaxTireSpeed() {
+    switch (m_ctis) {
+        default:
+        case CTIS::ROAD:
+            return 110.0 / 3.6;
+        case CTIS::OFFROAD_SOIL:
+            return 70.0 / 3.6;
+        case CTIS::OFFROAD_SAND:
+            return 30.0 / 3.6;
+    }
 }
 
 // -----------------------------------------------------------------------------

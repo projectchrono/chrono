@@ -9,7 +9,7 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Authors: Radu Serban, Justin Madsen
+// Authors: Radu Serban, Rainer Gericke
 // =============================================================================
 //
 // Main driver function for the mrole full model.
@@ -45,7 +45,7 @@ using namespace chrono::vehicle::mrole;
 // =============================================================================
 
 // Initial vehicle location and orientation
-ChVector<> initLoc(0, 0, 1.6);
+ChVector<> initLoc(0, 0, 1.0);
 ChQuaternion<> initRot(1, 0, 0, 0);
 // ChQuaternion<> initRot(0.866025, 0, 0, 0.5);
 // ChQuaternion<> initRot(0.7071068, 0, 0, 0.7071068);
@@ -66,13 +66,16 @@ VisualizationType tire_vis_type = VisualizationType::MESH;
 CollisionType chassis_collision_type = CollisionType::NONE;
 
 // Type of powertrain model (SHAFTS, SIMPLE)
-PowertrainModelType powertrain_model = PowertrainModelType::SIMPLE_CVT;
+PowertrainModelType powertrain_model = PowertrainModelType::SHAFTS;
 
 // Drive type (FWD, RWD, or AWD)
-DrivelineTypeWV drive_type = DrivelineTypeWV::SIMPLE_XWD;
+DrivelineTypeWV drive_type = DrivelineTypeWV::AWD8;
 
-// Type of tire model (TMEASY)
+// Type of tire model (TMEASY, RIGID)
 TireModelType tire_model = TireModelType::TMEASY;
+
+//
+BrakeType brake_type = BrakeType::SHAFTS;
 
 // Rigid terrain
 RigidTerrain::PatchType terrain_model = RigidTerrain::PatchType::BOX;
@@ -125,8 +128,11 @@ int main(int argc, char* argv[]) {
     my_mrole.SetInitPosition(ChCoordsys<>(initLoc, initRot));
     my_mrole.SetPowertrainType(powertrain_model);
     my_mrole.SetDriveType(drive_type);
+    my_mrole.SetBrakeType(brake_type);
     my_mrole.SetTireType(tire_model);
     my_mrole.SetTireStepSize(tire_step_size);
+    my_mrole.SelectRoadOperation();
+    std::cout << "Vehicle should not go faster than " << my_mrole.GetMaxTireSpeed() << " m/s" << std::endl;
     my_mrole.Initialize();
 
     if (tire_model == TireModelType::RIGID_MESH)
@@ -313,6 +319,12 @@ int main(int argc, char* argv[]) {
         terrain.Advance(step_size);
         my_mrole.Advance(step_size);
         app.Advance(step_size);
+        GetLog() << "======================================================================\n";
+        for (int i = 0; i < 4; i++) {
+            double sp1l = my_mrole.GetVehicle().GetDriveline()->GetSpindleTorque(i, LEFT);
+            double sp1r = my_mrole.GetVehicle().GetDriveline()->GetSpindleTorque(i, RIGHT);
+            GetLog() << "Axle#" << i << "  Tleft = " << sp1l << "   Tright = " << sp1r << "\n";
+        }
 
         // Increment frame number
         step_number++;
@@ -326,5 +338,7 @@ int main(int argc, char* argv[]) {
         driver_csv.write_to_file(driver_file);
     }
 
+    std::cout << "Vehicle Mass       = " << my_mrole.GetVehicle().GetVehicleMass() << " kg" << std::endl;
+    std::cout << "Vehicle CoG height = " << my_mrole.GetVehicle().GetVehicleCOMPos().z() << " m" << std::endl;
     return 0;
 }

@@ -37,10 +37,10 @@ static const double in2m = 0.0254;
 static const double lbf2N = 4.44822162;
 static const double lbfpin2Npm = 175.12677;
 
-const double mrole_DoubleWishboneFront::m_UCAMass = 5.813;
-const double mrole_DoubleWishboneFront::m_LCAMass = 23.965;
-const double mrole_DoubleWishboneFront::m_uprightMass = 19.450;
-const double mrole_DoubleWishboneFront::m_spindleMass = 14.705;
+const double mrole_DoubleWishboneFront::m_UCAMass = 150.0;
+const double mrole_DoubleWishboneFront::m_LCAMass = 150.0;
+const double mrole_DoubleWishboneFront::m_uprightMass = 145.0;
+const double mrole_DoubleWishboneFront::m_spindleMass = 40.0;
 
 const double mrole_DoubleWishboneFront::m_spindleRadius = 0.10;
 const double mrole_DoubleWishboneFront::m_spindleWidth = 0.06;
@@ -72,10 +72,10 @@ const double mrole_DoubleWishboneFront::m_damperDegresCompression = 4.0;
 
 // -----------------------------------------------------------------------------
 
-const double mrole_DoubleWishboneRear::m_UCAMass = 5.813;
-const double mrole_DoubleWishboneRear::m_LCAMass = 23.965;
-const double mrole_DoubleWishboneRear::m_uprightMass = 19.450;
-const double mrole_DoubleWishboneRear::m_spindleMass = 14.705;
+const double mrole_DoubleWishboneRear::m_UCAMass = 150.0;
+const double mrole_DoubleWishboneRear::m_LCAMass = 150.0;
+const double mrole_DoubleWishboneRear::m_uprightMass = 145.0;
+const double mrole_DoubleWishboneRear::m_spindleMass = 40.0;
 
 const double mrole_DoubleWishboneRear::m_spindleRadius = 0.10;
 const double mrole_DoubleWishboneRear::m_spindleWidth = 0.06;
