@@ -21,8 +21,9 @@
 #include "chrono/physics/ChSystemNSC.h"
 #include "chrono/physics/ChBodyEasy.h"
 #include "chrono/physics/ChLinkMotorRotationSpeed.h"
-#include "chrono/assets/ChTexture.h"
 #include "chrono/collision/ChCollisionSystemChrono.h"
+#include "chrono/assets/ChTexture.h"
+#include "chrono/core/ChRealtimeStep.h"
 
 #include "chrono_irrlicht/ChIrrApp.h"
 
@@ -183,11 +184,15 @@ int main(int argc, char* argv[]) {
     ChSystemNSC sys;
     sys.SetCollisionSystemType(collision_type);
 
-    // Enable active bounding box
-    ////if (collision_type == collision::ChCollisionSystemType::CHRONO) {
-    ////    std::static_pointer_cast<collision::ChCollisionSystemChrono>(sys.GetCollisionSystem())
-    ////        ->EnableActiveBoundingBox(ChVector<>(-10, -10, -20), ChVector<>(+10, +10, +10));
-    ////}
+    // Settings specific to Chrono multicore collision system
+    if (collision_type == collision::ChCollisionSystemType::CHRONO) {
+        auto collsys = std::static_pointer_cast<collision::ChCollisionSystemChrono>(sys.GetCollisionSystem());
+        // Change default narrowphase algorithm
+        ////collsys->SetNarrowphaseAlgorithm(collision::ChNarrowphase::Algorithm::MPR);
+        collsys->SetEnvelope(0.005);
+        // Enable active bounding box
+        collsys->EnableActiveBoundingBox(ChVector<>(-10, -10, -20), ChVector<>(+10, +10, +10));
+    }
 
     // Create the Irrlicht visualization
     ChIrrApp application(&sys, L"Collisions between objects", core::dimension2d<u32>(800, 600));
@@ -208,11 +213,13 @@ int main(int argc, char* argv[]) {
 
     // Modify some setting of the physical system for the simulation, if you want
     sys.SetSolverType(ChSolver::Type::PSOR);
-    sys.SetSolverMaxIterations(20);
+    sys.SetSolverMaxIterations(50);
     ////sys.SetUseSleeping(true);
 
     // Simulation loop
-    application.SetTimestep(0.02);
+    ChRealtimeStepTimer rt;
+    double step_size = 0.003;
+    application.SetTimestep(step_size);
 
     while (application.GetDevice()->run()) {
         application.BeginScene();
@@ -227,6 +234,8 @@ int main(int argc, char* argv[]) {
         ////auto c_frc = mixer->GetContactForce();
         ////auto c_trq = mixer->GetContactTorque();
         ////std::cout << sys.GetChTime() << "  ct force: " << c_frc << "  ct torque: " << c_trq << std::endl;
+
+        rt.Spin(step_size);
     }
 
     return 0;

@@ -412,9 +412,11 @@ std::vector<double> ChCollisionModelChrono::GetShapeDimensions(int index) const 
 }
 
 void ChCollisionModelChrono::SyncPosition() {
+#if !defined(NDEBUG)
     ChBody* bpointer = GetBody();
     assert(bpointer);
-    // assert(bpointer->GetSystem());
+    assert(bpointer->GetSystem());
+#endif
 }
 
 void ChCollisionModelChrono::SetContactable(ChContactable* mc) {
