@@ -868,32 +868,82 @@ class ChApi ChDampingCosseratRayleigh : public ChDampingCosserat {
 ////////////////////////////////////////////////////////////////////////////////////
 
 
-/// Base class for ineri tal properties (mass, moment of inertia) of beam sections of Cosserat type.
+/// Base class for inertial properties (mass, moment of inertia) of beam sections of Cosserat type.
 /// This can be shared between multiple beams.
 class ChApi ChInertiaCosserat {
-  public:
-	ChInertiaCosserat() : section(nullptr) {};
+public:
+    ChInertiaCosserat() : section(nullptr) {};
 
     virtual ~ChInertiaCosserat() {}
 
-    /// Compute the 6x6 sectional inertia matrix, as in  {x_momentum,w_momentum}=[Mm]{xvel,wvel} 
+    /// Compute the 6x6 sectional inertia matrix, as in  {x_momentum,w_momentum}=[Mi]{xvel,wvel} 
     /// The matrix is computed in the material reference (i.e. it is the sectional mass matrix)
-    virtual void ComputeInertiaMatrix(ChMatrixNM<double, 6, 6>& M  ///< 6x6 sectional mass matrix values here
-                                      ) = 0;
+    virtual void ComputeInertiaMatrix(ChMatrixNM<double, 6, 6>& Mi  ///< 6x6 sectional mass matrix here
+    ) = 0;
+
+    /// Compute the 6x6 sectional inertia damping matrix [Ri] (gyroscopic matrix damping), as in linearization
+    ///  dFi=[Mi]*d{xacc,wacc}+[Ri]*d{xvel,wvel}+[Ki]*d{pos,rot}
+    /// The matrix is computed in the material reference, i.e. both linear and rotational coords assumed in the basis of the centerline reference.
+    /// Default implementation: falls back to numerical differentiation of ComputeInertialForce to compute Ri, 
+    /// please override this if analytical formula of Ri is known!
+    virtual void ComputeInertiaDampingMatrix(ChMatrixNM<double, 6, 6>& Ri,  ///< 6x6 sectional inertial-damping (gyroscopic damping) matrix here
+        const ChVector<>& mW    ///< current angular velocity of section, in material frame
+    );
+
+    /// Compute the 6x6 sectional inertia stiffness matrix [Ki^], as in linearization
+    ///  dFi=[Mi]*d{xacc,wacc}+[Ri]*d{xvel,wvel}+[Ki]*d{pos,rot} 
+    /// The matrix is computed in the material reference.
+    /// NOTE the matrix already contains the 'geometric' stiffness, so it transforms to absolute transl/local rot just like [Mi] and [Ri]:
+    ///  [Ki]_al =[R,0;0,I]*[Ki^]*[R',0;0,I']  , with [Ki^]=([Ki]+[0,f~';0,0])  for f=current force part of inertial forces.
+    /// Default implementation: falls back to numerical differentiation of ComputeInertialForce to compute Ki^, 
+    /// please override this if analytical formula of Ki^ is known!
+    virtual void ComputeInertiaStiffnessMatrix(ChMatrixNM<double, 6, 6>& Ki, ///< 6x6 sectional inertial-stiffness matrix [Ki^] here
+        const ChVector<>& mWvel,      ///< current angular velocity of section, in material frame
+        const ChVector<>& mWacc,      ///< current angular acceleration of section, in material frame
+        const ChVector<>& mXacc       ///< current acceleration of section, in material frame (not absolute!)
+    );
 
     /// Compute the values of inertial force & torque depending on quadratic velocity terms,
     /// that is the gyroscopic torque and the centrifugal term (if any). All terms expressed 
     /// in the material reference, ie. the reference in the centerline of the section.
     virtual void ComputeQuadraticTerms(ChVector<>& mF,   ///< centrifugal term (if any) returned here
-                                       ChVector<>& mT,   ///< gyroscopic term  returned here
-                                       const ChVector<>& mW    ///< current angular velocity of section, in material frame
-                                      ) = 0;
+        ChVector<>& mT,   ///< gyroscopic term  returned here
+        const ChVector<>& mW    ///< current angular velocity of section, in material frame
+    ) = 0;
+
+    /// Compute the total inertial wrench, ie forces and torques (per unit length). 
+    /// Note: both force and torque are returned in the basis of the material frame (not the absolute frame!), 
+    /// ex. to apply it to a Chrono body, the force must be rotated to absolute basis.
+    /// Default implementation: falls back to  Fi = [Mi]*{xacc,wacc}+{mF,mT} 
+    /// where [Mi] is given by ComputeInertiaMatrix() and {F_quad,T_quad} are given by ComputeQuadraticTerms(), i.e. gyro and centrif.terms. 
+    /// For faster implementations one can override this, ex. avoid doing the [Mi] matrix product.
+    virtual void ComputeInertialForce(ChVector<>& mFi,   ///< total inertial force returned here, in basis of material frame
+        ChVector<>& mTi,      ///< total inertial torque returned here, in basis of material frame
+        const ChVector<>& mWvel,  ///< current angular velocity of section, in material frame
+        const ChVector<>& mWacc,  ///< current angular acceleration of section, in material frame
+        const ChVector<>& mXacc   ///< current acceleration of section, in material frame (not absolute!)
+    );
 
     /// Compute mass per unit length, ex.SI units [kg/m]. 
     /// This is also the(0, 0) element in the sectional inertia matrix.
     virtual double GetMassPerUnitLength() = 0;
 
 	ChBeamSectionCosserat* section;
+
+    // Optimization flags
+
+    /// Flag that turns on/off the computation of the [Ri] 'gyroscopic' inertial damping matrix.
+    /// If false, Ri=0. Can be used for cpu speedup, profiling, tests. Default: true.
+    bool compute_inertia_damping_matrix = true;
+
+    /// Flag that turns on/off the computation of the [Ki] inertial stiffness matrix.
+    /// If false, Ki=0. Can be used for cpu speedup, profiling, tests. Default: true.
+    bool compute_inertia_stiffness_matrix = true;
+
+    /// Flag for computing the Ri and Ki matrices via numerical differentiation even if
+    /// an analytical expression is provided. Children calsses must take care of this. Default: false.
+    bool compute_Ri_Ki_by_num_diff = false;
+
 };
 
 
@@ -924,12 +974,30 @@ class ChApi ChInertiaCosseratSimple : public ChInertiaCosserat {
 
     virtual ~ChInertiaCosseratSimple() {}
 
-    /// Compute the 6x6 sectional inertia matrix, as in  {x_momentum,w_momentum}=[Mm]{xvel,wvel} 
+    /// Compute the 6x6 sectional inertia matrix, as in  {x_momentum,w_momentum}=[Mi]{xvel,wvel} 
     /// The matrix is computed in the material reference (i.e. it is the sectional mass matrix).
     /// In this case it is simply a constant diagonal mass matrix with diagonal 
     /// {rho*A,rho*A,rho*A, rho*Iyy+Izz, rho*Iyy, rho*Izz}
-    virtual void ComputeInertiaMatrix(ChMatrixNM<double, 6, 6>& M  ///< 6x6 sectional mass matrix values here
+    virtual void ComputeInertiaMatrix(ChMatrixNM<double, 6, 6>& Mi  ///< 6x6 sectional mass matrix values here
                                       ) override;
+
+    /// Compute the 6x6 sectional inertia damping matrix [Ri] (gyroscopic matrix damping), as in linearization
+    ///  dFi=[Mi]*d{xacc,wacc}+[Ri]*d{xvel,wvel}+[Ki]*d{pos,rot}
+    /// The matrix is computed in the material reference, i.e. both linear and rotational coords assumed in the basis of the centerline reference.
+    virtual void ComputeInertiaDampingMatrix(ChMatrixNM<double, 6, 6>& Ri,  ///< 6x6 sectional inertial-damping (gyroscopic damping) matrix values here
+        const ChVector<>& mW    ///< current angular velocity of section, in material frame
+    ) override;
+
+    /// Compute the 6x6 sectional inertia stiffness matrix [Ki^], as in linearization
+    ///  dFi=[Mi]*d{xacc,wacc}+[Ri]*d{xvel,wvel}+[Ki]*d{pos,rot} 
+    /// The matrix is computed in the material reference.
+    /// NOTE the matrix already contains the 'geometric' stiffness, so it transforms to absolute transl/local rot just like [Mi] and [Ri]:
+    ///  [Ki]_al =[R,0;0,I]*[Ki^]*[R',0;0,I']  , with [Ki^]=([Ki]+[0,f~';0,0])  for f=current force part of inertial forces.
+    virtual void ComputeInertiaStiffnessMatrix(ChMatrixNM<double, 6, 6>& Ki, ///< 6x6 sectional inertial-stiffness matrix [Ki^] values here
+        const ChVector<>& mWvel,      ///< current angular velocity of section, in material frame
+        const ChVector<>& mWacc,      ///< current angular acceleration of section, in material frame
+        const ChVector<>& mXacc       ///< current acceleration of section, in material frame (not absolute!)
+    ) override;
 
     /// Compute the values of inertial torque depending on quadratic velocity terms, per unit length,
     /// that is the gyroscopic torque w x [J]w . Quadratic force is null as mass is centered. All terms expressed 
@@ -1025,7 +1093,8 @@ class ChApi ChInertiaCosseratAdvanced : public ChInertiaCosserat {
   public:
 
 	ChInertiaCosseratAdvanced() 
-						: mu(1), cm_y(0), cm_z(0), Jzz(1), Jyy(1), Jyz(0) {};
+						: mu(1), cm_y(0), cm_z(0), Jzz(1), Jyy(1), Jyz(0) {
+    };
 
 	ChInertiaCosseratAdvanced(double mu_density,    ///< mass per unit length [kg/m] 
 		                    double c_y,             ///< displacement of center of mass along Y
@@ -1034,14 +1103,42 @@ class ChApi ChInertiaCosseratAdvanced : public ChInertiaCosserat {
 							double Jzz_moment,	    ///< moment of inertia per unit length, about Z. Also Jzz= Mm(5,5)
                             double Jyz_moment       ///< moment of inertia per unit length, about YZ (off diagonal term). Also Jyz= -Mm(4,5) = -Mm(5,4)
 							) 
-						: mu(mu_density), cm_y(0), cm_z(0), Jzz(Jzz_moment), Jyy(Jyy_moment), Jyz(Jyz_moment) {};
+						: mu(mu_density), cm_y(c_y), cm_z(c_z), Jzz(Jzz_moment), Jyy(Jyy_moment), Jyz(Jyz_moment) {
+    };
+
+    ChInertiaCosseratAdvanced(double mu_density,    ///< mass per unit length [kg/m] 
+		                    double c_y,             ///< displacement of center of mass along Y
+                            double c_z,             ///< displacement of center of mass along Z					
+                            ChVector<> Ivals
+							) 
+						: mu(mu_density), cm_y(c_y), cm_z(c_z), Jzz(Ivals.y()), Jyy(Ivals.x()), Jyz(Ivals.z()) {
+    };
+
 
     virtual ~ChInertiaCosseratAdvanced() {}
 
-    /// Compute the 6x6 sectional inertia matrix, as in  {x_momentum,w_momentum}=[Mm]{xvel,wvel} 
-    /// The matrix is computed in the material reference (i.e. it is the sectional mass matrix).
+    /// Compute the 6x6 sectional inertia matrix, as in  {x_momentum,w_momentum}=[Mi]{xvel,wvel} 
+    /// The matrix is computed in the material reference..
     virtual void ComputeInertiaMatrix(ChMatrixNM<double, 6, 6>& M  ///< 6x6 sectional mass matrix values here
                                       ) override;
+
+    /// Compute the 6x6 sectional inertia damping matrix [Ri] (gyroscopic matrix damping), as in linearization
+    ///  dFi=[Mi]*d{xacc,wacc}+[Ri]*d{xvel,wvel}+[Ki]*d{pos,rot}
+    /// The matrix is computed in the material reference.
+    virtual void ComputeInertiaDampingMatrix(ChMatrixNM<double, 6, 6>& Ri,  ///< 6x6 sectional inertial-damping (gyroscopic damping) matrix values here
+        const ChVector<>& mW    ///< current angular velocity of section, in material frame
+    ) override;
+
+    /// Compute the 6x6 sectional inertia stiffness matrix [Ki^], as in linearization
+    ///  dFi=[Mi]*d{xacc,wacc}+[Ri]*d{xvel,wvel}+[Ki]*d{pos,rot} 
+    /// The matrix is computed in the material reference.
+    /// NOTE the matrix already contains the 'geometric' stiffness, so it transforms to absolute transl/local rot just like [Mi] and [Ri]:
+    ///  [Ki]_al =[R,0;0,I]*[Ki^]*[R',0;0,I']  , with [Ki^]=([Ki]+[0,f~';0,0])  for f=current force part of inertial forces.
+    virtual void ComputeInertiaStiffnessMatrix(ChMatrixNM<double, 6, 6>& Ki, ///< 6x6 sectional inertial-stiffness matrix [Ki^] values here
+        const ChVector<>& mWvel,      ///< current angular velocity of section, in material frame
+        const ChVector<>& mWacc,      ///< current angular acceleration of section, in material frame
+        const ChVector<>& mXacc       ///< current acceleration of section, in material frame (not absolute!)
+    ) override;
 
     /// Compute the values of inertial force & torque depending on quadratic velocity terms,
     /// that is the gyroscopic torque w x [J]w and the centrifugal term (if center of mass is offset). All terms expressed 
@@ -1086,7 +1183,7 @@ class ChApi ChInertiaCosseratAdvanced : public ChInertiaCosserat {
 
     /// Get the Jxx component of the inertia per unit length (polar inertia), in the Y Z unrotated reference
     /// frame of the section at centerline. Note: it automatically follows Jxx=Jyy+Jzz for the polar theorem.
-    virtual double GetInertiaJxxPerUnitLength()  { return  this->Jyy + this->Jzz; }
+    virtual double GetInertiaJxxPerUnitLength() { return  this->Jyy + this->Jzz; }
 
     /// Get the Jyy component of the inertia per unit length, in the Y Z unrotated reference
     /// frame of the section at centerline, also Jyy = Mm(4,4)

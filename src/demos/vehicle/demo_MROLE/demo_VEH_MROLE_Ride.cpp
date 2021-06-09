@@ -12,9 +12,6 @@
 // Authors: Rainer Gericke
 // =============================================================================
 //
-// Sample test program for sequential LMTV 2.5 ton simulation, demonstrating
-// chassis torsion due to random wheel excitation.
-//
 // The vehicle reference frame has Z up, X towards the front of the vehicle, and
 // Y pointing to the left.
 // All units SI.
