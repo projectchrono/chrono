@@ -734,7 +734,7 @@ void ChElementBeamTaperedTimoshenko::ComputeGeometricStiffnessMatrix() {
     double PL2_15_z = 2. * L / (15.);  // optional [2]: ...+ 4*IyA /(L);
     double PL_30_y = L / (30.);        // optional [2]: ...+ 2*IyA /(L);
     double PL_30_z = L / (30.);        // optional [2]: ...+ 2*IyA /(L);
-    /*
+    /*  QUESTION: why the axial geometric stiffness is ignored? I think we should include it. By PENG Chao
     this->Kg(0, 0) =  P_L;
     this->Kg(6, 6) =  P_L;
     this->Kg(0, 6) = -P_L;
@@ -1026,7 +1026,7 @@ void ChElementBeamTaperedTimoshenko::ComputeInternalForces(ChVectorDynamic<>& Fi
     ChVectorDynamic<> FiMKR_local(12);
     FiMKR_local.setZero();
     
-    if (Mfactor && true) { // static分析的叶片变形可以对的上，但是之后dynamics求解发散
+    if (Mfactor && true) { // Is this correct? Or the code in lines 1072~1090
         // set up vector of nodal accelerations (in local element system)
         ChVectorDynamic<> displ_dtdt(12);
         this->GetField_dtdt(displ_dtdt);
@@ -1069,7 +1069,7 @@ void ChElementBeamTaperedTimoshenko::ComputeInternalForces(ChVectorDynamic<>& Fi
     R.push_back(&AtolocwelB);
     ChMatrixCorotation::ComputeCK(FiMKR_local, R, 4, Fi);
 
-    if (Mfactor && false) {  //static分析的叶片变形可以对的上
+    if (Mfactor && false) {  // Is this correct? Or the code in lines 1029~1036
         // set up vector of nodal accelarations (in absolute element system)
         ChVectorDynamic<> displ_dtdt(12);
         displ_dtdt.segment(0, 3) = nodes[0]->Frame().GetPos_dtdt().eigen();
@@ -1156,7 +1156,7 @@ void ChElementBeamTaperedTimoshenko::EvaluateSectionDisplacement(const double et
     // No transformation for the displacement of two nodes, 
     // so the section displacement is evaluated at the centerline of beam
 
-    /* old code for Euler beam
+    /* old code for Euler beam. Can be removed now.
     ShapeVector N;
     ShapeFunctions(N, eta);  // Evaluate compressed shape functions
 
@@ -1226,6 +1226,7 @@ void ChElementBeamTaperedTimoshenko::EvaluateSectionFrame(const double eta, ChVe
 void ChElementBeamTaperedTimoshenko::EvaluateSectionForceTorque0(const double eta,
                                                                  ChVector<>& Fforce,
                                                                  ChVector<>& Mtorque) {
+    //This functionality is the old function for Euler beam, just for test. It can be removed now.
     assert(taperedSection);
 
     double EA = this->taperedSection->GetAverageSectionParameters()->EA;
@@ -1422,7 +1423,7 @@ void ChElementBeamTaperedTimoshenko::EvaluateSectionForceTorque(const double eta
     }
 
 
-    /*
+    /* 
     // e_x
     sect_ek(0) = (dN_xa * displ(0) + dN_xb * displ(6));  // x_a   x_b
     // e_y

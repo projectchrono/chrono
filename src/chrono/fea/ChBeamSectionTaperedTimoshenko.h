@@ -21,6 +21,12 @@
 namespace chrono {
 namespace fea {
 
+
+// This damping model would be helpful for those anisotropic material, such as wind turbine blade.
+// Refer to:
+// [1]. Hansen, M. H. (2001). Anisotropic damping of Timoshenko beam elements. (Denmark. Forskningscenter Risoe.
+//      Risoe-R; No. 1267(EN)).
+
 struct DampingCoefficients {
     double bx;  // damping coefficient along x axis (axial)
     double by;  // damping coefficient along y axis (shear) and about z axis (bending)

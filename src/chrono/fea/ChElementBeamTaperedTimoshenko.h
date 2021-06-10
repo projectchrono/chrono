@@ -185,6 +185,9 @@ class ChApi ChElementBeamTaperedTimoshenko : public ChElementBeam,
     /// values in the Fi vector.
     // This functionality can be used to output the forces and torques at two nodes directly.
     virtual void ComputeInternalForces(ChVectorDynamic<>& Fi) override;
+    // This functionality could consider the inertial forces, damping forces, centrifugal forces and gyroscopic moments 
+    // as applied external forces. in order to do the static solve when including nodal velocites and accelarations.
+    // Strictly speaking, it is not static solve now. We can name it as quasi-static equilibrium solving, just the same as Simpack. 
     virtual void ComputeInternalForces(ChVectorDynamic<>& Fi,
                                                                        bool Mfactor,
                                                                        bool Kfactor,

@@ -9,10 +9,10 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Authors: Radu Serban / Rainer Gericke
+// Authors: Rainer Gericke
 // =============================================================================
 //
-// Demonstration program for Marder vehicle on rigid NRMM trapezoidal obstacle
+// Demonstration program for MROLE vehicle on rigid trapezoidal obstacle
 //
 // =============================================================================
 
@@ -33,6 +33,10 @@
 #include "chrono_models/vehicle/mrole/mrole.h"
 
 #include "chrono_vehicle/wheeled_vehicle/utils/ChWheeledVehicleIrrApp.h"
+
+#ifdef CHRONO_PARDISO_MKL
+    #include "chrono_pardisomkl/ChSolverPardisoMKL.h"
+#endif
 
 #include "chrono_thirdparty/filesystem/path.h"
 
@@ -117,7 +121,7 @@ int main(int argc, char* argv[]) {
 
     ChContactMethod contact_method = ChContactMethod::SMC;
     CollisionType chassis_collision_type = CollisionType::NONE;
-    DrivelineTypeWV driveline_type = DrivelineTypeWV::AWD;
+    DrivelineTypeWV driveline_type = DrivelineTypeWV::AWD8;
     BrakeType brake_type = BrakeType::SIMPLE;
     PowertrainModelType powertrain_type = PowertrainModelType::SIMPLE_CVT;
 
@@ -145,7 +149,7 @@ int main(int argc, char* argv[]) {
     // ------------------------------------------------
     mrole.SetInitPosition(ChCoordsys<>(initLoc, initRot));
     mrole.Initialize();
-
+    mrole.LockAxleDifferential(-1, true);
     mrole.SetChassisVisualizationType(VisualizationType::NONE);
     mrole.SetSuspensionVisualizationType(VisualizationType::PRIMITIVES);
     mrole.SetSteeringVisualizationType(VisualizationType::PRIMITIVES);
