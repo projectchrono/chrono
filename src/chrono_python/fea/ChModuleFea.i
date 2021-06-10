@@ -204,6 +204,7 @@ using namespace chrono::fea;
 %shared_ptr(chrono::fea::ChElasticityCosseratGeneric)
 %shared_ptr(chrono::fea::ChElasticityCosseratAdvanced)
 %shared_ptr(chrono::fea::ChElasticityCosseratAdvancedGeneric)
+%shared_ptr(chrono::fea::ChElasticityCosseratAdvancedGenericFPM)
 %shared_ptr(chrono::fea::ChElasticityCosseratMesh)
 %shared_ptr(chrono::fea::ChPlasticityCosserat)
 %shared_ptr(chrono::fea::ChPlasticityCosseratLumped)
