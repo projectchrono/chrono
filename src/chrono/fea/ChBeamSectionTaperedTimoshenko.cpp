@@ -1,4 +1,37 @@
-// =
+// =============================================================================
+// PROJECT CHRONO - http://projectchrono.org
+//
+// Copyright (c) 2014 projectchrono.org
+// All rights reserved.
+//
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
+//
+// =============================================================================
+// Authors: Alessandro Tasora
+// =============================================================================
+
+#include "chrono/fea/ChBeamSectionTaperedTimoshenko.h"
+
+namespace chrono {
+namespace fea {
+
+ using EigenMat5x1 = Eigen::Matrix<double,5,1>;  // ChMatrixNM<double, 5, 1> cannot be used directly, building error
+ using EigenMat5x5 = Eigen::Matrix<double,5,5>;  // ChMatrixNM<double, 5, 5> cannot be used directly, building error
+ 
+
+ void ChBeamSectionTimoshenkoAdvancedGeneric::SetInertiasPerUnitLength(const double mJyy,
+                                                                      const double mJzz,
+                                                                      const double mJyz,
+                                                                      const double mQy,
+                                                                      const double mQz) {
+    this->Jyy = mJyy;
+    this->Jzz = mJzz;
+    this->Jyz = mJyz;
+    // automatically set parent Jxx value
+    this->Jxx = (this->Jyy + this->Jzz);
+
     this->Qy = mQy;
     this->Qz = mQz;
 }
@@ -10,6 +43,21 @@ void ChBeamSectionTimoshenkoAdvancedGeneric::SetMainInertiasInMassReference(cons
                                                                             const double Qmy,
                                                                             const double Qmz) {
    
+
+    // define a vector of local mass properties expressed in mass center coordinate system
+    EigenMat5x1 Jm_vec;
+    //Jm_vec << Qmy, Qmz, Jmyy, Jmzz, Jmyz;
+
+    Jm_vec(0) = Qmy;
+    Jm_vec(1) = Qmz;
+    Jm_vec(2) = Jmyy;
+    Jm_vec(3) = Jmzz;
+    Jm_vec(4) = Jmyz;
+
+    // a constant vector, which is from the mass center offset (My,Mz)
+    EigenMat5x1 const_vec;
+    const_vec.setZero();
+    const_vec(0) = this->mu * this->Mz;
     const_vec(1) = this->mu * this->My;
     const_vec(2) = this->mu * this->Mz * this->Mz;
     const_vec(3) = this->mu * this->My * this->My;
