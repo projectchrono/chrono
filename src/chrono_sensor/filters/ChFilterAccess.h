@@ -152,6 +152,8 @@ using ChFilterRadarAccess = ChFilterAccess<SensorHostRadarBuffer, UserRadarBuffe
 using ChFilterProcessedRadarAccess = ChFilterAccess<SensorHostProcessedRadarBuffer, UserProcessedRadarBufferPtr>;
 /// Access to Tachoemter data
 using ChFilterTachometerAccess = ChFilterAccess<SensorHostTachometerBuffer, UserTachometerBufferPtr>;
+/// Access to Encoder data
+using ChFilterEncoderAccess = ChFilterAccess<SensorHostEncoderBuffer, UserEncoderBufferPtr>;
 
 /// @}
 
