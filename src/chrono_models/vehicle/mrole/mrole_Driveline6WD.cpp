@@ -12,11 +12,11 @@
 // Authors: Radu Serban
 // =============================================================================
 //
-// mrole 8WD driveline model based on ChShaft objects.
+// mrole 4WD driveline model based on ChShaft objects.
 //
 // =============================================================================
 
-#include "chrono_models/vehicle/mrole/mrole_Driveline8WD.h"
+#include "chrono_models/vehicle/mrole/mrole_Driveline6WD.h"
 
 namespace chrono {
 namespace vehicle {
@@ -25,23 +25,25 @@ namespace mrole {
 // -----------------------------------------------------------------------------
 // Static variables
 // -----------------------------------------------------------------------------
-const double mrole_Driveline8WD::m_driveshaft_inertia = 0.5;
-const double mrole_Driveline8WD::m_group_inshaft_inertia = 0.5;
-const double mrole_Driveline8WD::m_axle_inshaft_inertia = 0.5;
-const double mrole_Driveline8WD::m_axle_diffbox_inertia = 0.6;
+const double mrole_Driveline6WD::m_central_differentialbox_inertia = 0.6;
+const double mrole_Driveline6WD::m_front_differentialbox_inertia = 0.6;
+const double mrole_Driveline6WD::m_rear_differentialbox_inertia = 0.6;
+const double mrole_Driveline6WD::m_driveshaft_inertia = 0.5;
+const double mrole_Driveline6WD::m_frontshaft_inertia = 0.5;
+const double mrole_Driveline6WD::m_rearshaft_inertia = 0.5;
 
-const double mrole_Driveline8WD::m_axle_conicalgear_ratio = 0.1;
+const double mrole_Driveline6WD::m_front_conicalgear_ratio = 0.2;
+const double mrole_Driveline6WD::m_rear_conicalgear_ratio = 0.2;
 
-const double mrole_Driveline8WD::m_central_differential_locking_limit = 5000;
-const double mrole_Driveline8WD::m_group_differential_locking_limit = 5000;
-const double mrole_Driveline8WD::m_axle_differential_locking_limit = 3000;
+const double mrole_Driveline6WD::m_axle_differential_locking_limit = 100;
+const double mrole_Driveline6WD::m_central_differential_locking_limit = 100;
 
 // -----------------------------------------------------------------------------
-// Constructor of the mrole_Driveline8WD.
+// Constructor of the mrole_Driveline6WD.
 // The direction of the motor block is along the X axis, while the directions of
 // the axles is along the Y axis (relative to the chassis coordinate frame),
 // -----------------------------------------------------------------------------
-mrole_Driveline8WD::mrole_Driveline8WD(const std::string& name) : ChShaftsDriveline8WD(name) {
+mrole_Driveline6WD::mrole_Driveline6WD(const std::string& name) : ChShaftsDriveline6WD(name) {
     SetMotorBlockDirection(ChVector<>(1, 0, 0));
     SetAxleDirection(ChVector<>(0, 1, 0));
 }

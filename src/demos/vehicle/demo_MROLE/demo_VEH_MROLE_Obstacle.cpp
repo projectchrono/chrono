@@ -34,6 +34,10 @@
 
 #include "chrono_vehicle/wheeled_vehicle/utils/ChWheeledVehicleIrrApp.h"
 
+#ifdef CHRONO_PARDISO_MKL
+    #include "chrono_pardisomkl/ChSolverPardisoMKL.h"
+#endif
+
 #include "chrono_thirdparty/filesystem/path.h"
 
 using namespace chrono;
