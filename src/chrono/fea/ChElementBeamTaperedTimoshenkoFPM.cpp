@@ -21,22 +21,22 @@ namespace fea {
 
 
 void ChElementBeamTaperedTimoshenkoFPM::ComputeStiffnessMatrix() {
-    assert(taperedSectionFPM);
+    assert(tapered_section_fpm);
 
     double L = this->length;
     double LL = L * L;
     double LLL = LL * L;
 
-    ChMatrixNM<double,6,6> Klaw = this->taperedSectionFPM->GetAverageFPM();
-    double EA = this->taperedSectionFPM->GetAverageSectionParameters()->EA;
-    double GJ = this->taperedSectionFPM->GetAverageSectionParameters()->GJ;
-    double GAyy = this->taperedSectionFPM->GetAverageSectionParameters()->GAyy;
-    double GAzz = this->taperedSectionFPM->GetAverageSectionParameters()->GAzz;
-    double EIyy = this->taperedSectionFPM->GetAverageSectionParameters()->EIyy;
-    double EIzz = this->taperedSectionFPM->GetAverageSectionParameters()->EIzz;
+    ChMatrixNM<double,6,6> Klaw = this->tapered_section_fpm->GetAverageFPM();
+    double EA = this->tapered_section_fpm->GetAverageSectionParameters()->EA;
+    double GJ = this->tapered_section_fpm->GetAverageSectionParameters()->GJ;
+    double GAyy = this->tapered_section_fpm->GetAverageSectionParameters()->GAyy;
+    double GAzz = this->tapered_section_fpm->GetAverageSectionParameters()->GAzz;
+    double EIyy = this->tapered_section_fpm->GetAverageSectionParameters()->EIyy;
+    double EIzz = this->tapered_section_fpm->GetAverageSectionParameters()->EIzz;
 
-    double phiy = this->taperedSectionFPM->GetAverageSectionParameters()->phiy;
-    double phiz = this->taperedSectionFPM->GetAverageSectionParameters()->phiz;
+    double phiy = this->tapered_section_fpm->GetAverageSectionParameters()->phiy;
+    double phiz = this->tapered_section_fpm->GetAverageSectionParameters()->phiz;
 
     double ay = 1. / (1. + phiy);
     double by = phiy * ay;
@@ -149,16 +149,16 @@ void ChElementBeamTaperedTimoshenkoFPM::ComputeStiffnessMatrix() {
 }
 
 void ChElementBeamTaperedTimoshenkoFPM::ComputeDampingMatrix() {
-    assert(taperedSectionFPM);
+    assert(tapered_section_fpm);
 
     double L = this->length;
     double LL = L * L;
     double LLL = LL * L;
 
-    double mbx = this->taperedSectionFPM->GetAverageSectionParameters()->rdamping_coeff.bx;
-    double mby = this->taperedSectionFPM->GetAverageSectionParameters()->rdamping_coeff.by;
-    double mbz = this->taperedSectionFPM->GetAverageSectionParameters()->rdamping_coeff.bz;
-    double mbt = this->taperedSectionFPM->GetAverageSectionParameters()->rdamping_coeff.bt;
+    double mbx = this->tapered_section_fpm->GetAverageSectionParameters()->rdamping_coeff.bx;
+    double mby = this->tapered_section_fpm->GetAverageSectionParameters()->rdamping_coeff.by;
+    double mbz = this->tapered_section_fpm->GetAverageSectionParameters()->rdamping_coeff.bz;
+    double mbt = this->tapered_section_fpm->GetAverageSectionParameters()->rdamping_coeff.bt;
     ChMatrixNM<double, 6, 6> mb;
     mb.setIdentity();
     mb(0, 0) = mbx;
@@ -168,7 +168,7 @@ void ChElementBeamTaperedTimoshenkoFPM::ComputeDampingMatrix() {
     mb(4, 4) = mbz;
     mb(5, 5) = mby;
 
-    ChMatrixNM<double, 6, 6> Klaw = this->taperedSectionFPM->GetAverageFPM();
+    ChMatrixNM<double, 6, 6> Klaw = this->tapered_section_fpm->GetAverageFPM();
     ChMatrixNM<double, 6, 6> Rlaw = mb.transpose() * Klaw * mb;  // material damping matrix
 
     double rEA = Rlaw(0,0);
@@ -178,8 +178,8 @@ void ChElementBeamTaperedTimoshenkoFPM::ComputeDampingMatrix() {
     double rEIyy = Rlaw(4, 4);
     double rEIzz = Rlaw(5, 5);
 
-    double phiy = this->taperedSectionFPM->GetAverageSectionParameters()->phiy;
-    double phiz = this->taperedSectionFPM->GetAverageSectionParameters()->phiz;
+    double phiy = this->tapered_section_fpm->GetAverageSectionParameters()->phiy;
+    double phiz = this->tapered_section_fpm->GetAverageSectionParameters()->phiz;
 
     double ay = 1. / (1. + phiy);
     double by = phiy * ay;
@@ -292,12 +292,12 @@ void ChElementBeamTaperedTimoshenkoFPM::ComputeDampingMatrix() {
 
 
 void ChElementBeamTaperedTimoshenkoFPM::SetupInitial(ChSystem* system) {
-    assert(taperedSectionFPM);
+    assert(tapered_section_fpm);
 
     // Compute rest length, mass:
     this->length = (nodes[1]->GetX0().GetPos() - nodes[0]->GetX0().GetPos()).Length();
-    this->mass = this->length / 2 * this->taperedSectionFPM->GetSectionA()->GetMassPerUnitLength() +
-                 this->length / 2 * this->taperedSectionFPM->GetSectionB()->GetMassPerUnitLength();
+    this->mass = this->length / 2 * this->tapered_section_fpm->GetSectionA()->GetMassPerUnitLength() +
+                 this->length / 2 * this->tapered_section_fpm->GetSectionB()->GetMassPerUnitLength();
 
     // Compute initial rotation
     ChMatrix33<> A0;
@@ -311,7 +311,7 @@ void ChElementBeamTaperedTimoshenkoFPM::SetupInitial(ChSystem* system) {
     // It could be lumped or consistent mass matrix, depends on SetLumpedMassMatrix(true/false)
     // If it is lumped mass matrix, you need to multiple 0.5 * length to obtain the final mass matrix
     // For consistent mass matrix, don't need to multiple anything.
-    this->taperedSectionFPM->ComputeInertiaMatrix(this->M);
+    this->tapered_section_fpm->ComputeInertiaMatrix(this->M);
 
     // Compute transformation matrix
     ComputeTransformMatrix();
@@ -329,7 +329,7 @@ void ChElementBeamTaperedTimoshenkoFPM::SetupInitial(ChSystem* system) {
 void ChElementBeamTaperedTimoshenkoFPM::EvaluateSectionForceTorque(const double eta,
                                                                 ChVector<>& Fforce,
                                                                 ChVector<>& Mtorque) {
-    assert(taperedSectionFPM);
+    assert(tapered_section_fpm);
 
     ChVectorDynamic<> displ(this->GetNdofs());
     this->GetStateBlock(displ);
@@ -358,12 +358,12 @@ void ChElementBeamTaperedTimoshenkoFPM::EvaluateSectionForceTorque(const double 
     auto dddkNby = std::get<0>(sfblk3d);
     auto dddkNbz = std::get<1>(sfblk3d);
 
-    double EA = this->taperedSectionFPM->GetAverageSectionParameters()->EA;
-    double GJ = this->taperedSectionFPM->GetAverageSectionParameters()->GJ;
-    double GAyy = this->taperedSectionFPM->GetAverageSectionParameters()->GAyy;
-    double GAzz = this->taperedSectionFPM->GetAverageSectionParameters()->GAzz;
-    double EIyy = this->taperedSectionFPM->GetAverageSectionParameters()->EIyy;
-    double EIzz = this->taperedSectionFPM->GetAverageSectionParameters()->EIzz;
+    double EA = this->tapered_section_fpm->GetAverageSectionParameters()->EA;
+    double GJ = this->tapered_section_fpm->GetAverageSectionParameters()->GJ;
+    double GAyy = this->tapered_section_fpm->GetAverageSectionParameters()->GAyy;
+    double GAzz = this->tapered_section_fpm->GetAverageSectionParameters()->GAzz;
+    double EIyy = this->tapered_section_fpm->GetAverageSectionParameters()->EIyy;
+    double EIzz = this->tapered_section_fpm->GetAverageSectionParameters()->EIzz;
     
     double eps = 1.0e-3;
     bool use_shear_stain = true;  // As default, use shear strain to evaluate the shear forces
@@ -406,7 +406,7 @@ void ChElementBeamTaperedTimoshenkoFPM::EvaluateSectionForceTorque(const double 
         Mtorque.z() = EIzz * sect_ek(5);
     } else {
         // 6*6 fully populated constitutive matrix of the beam:
-        ChMatrixNM<double, 6, 6> Klaw_d = this->taperedSectionFPM->GetAverageFPM();
+        ChMatrixNM<double, 6, 6> Klaw_d = this->tapered_section_fpm->GetAverageFPM();
         if (use_shear_stain == false) {
             Klaw_d(1, 1) = EIzz;
             Klaw_d(2, 2) = EIyy;

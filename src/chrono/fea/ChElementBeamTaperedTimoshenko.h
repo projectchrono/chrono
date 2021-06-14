@@ -72,10 +72,10 @@ class ChApi ChElementBeamTaperedTimoshenko : public ChElementBeam,
     /// Set the section & material of beam element .
     /// It is a shared property, so it can be shared between other beams.
     void SetTaperedSection(std::shared_ptr<ChBeamSectionTaperedTimoshenkoAdvancedGeneric> my_material) {
-        taperedSection = my_material;
+        tapered_section = my_material;
     }
     /// Get the section & material of the element
-    std::shared_ptr<ChBeamSectionTaperedTimoshenkoAdvancedGeneric> GetTaperedSection() { return taperedSection; }
+    std::shared_ptr<ChBeamSectionTaperedTimoshenkoAdvancedGeneric> GetTaperedSection() { return tapered_section; }
 
     /// Get the first node (beginning)
     std::shared_ptr<ChNodeFEAxyzrot> GetNodeA() { return nodes[0]; }
@@ -115,7 +115,6 @@ class ChApi ChElementBeamTaperedTimoshenko : public ChElementBeam,
 
     void SetUseRc(bool md) { this->use_Rc = md; }
     void SetUseRs(bool md) { this->use_Rs = md; }
-
 
     /// Fills the N matrix (compressed! single row, 12 columns) with the
     /// values of shape functions at abscissa 'eta'.
@@ -173,6 +172,9 @@ class ChApi ChElementBeamTaperedTimoshenko : public ChElementBeam,
     /// is computed only at the beginning, and later it is multiplied by P all times the real Kg is needed.
     /// If you later change some material property, call this or InitialSetup().
     void ComputeGeometricStiffnessMatrix();
+
+    void ComputeKiRimatricesLocal(bool inertial_damping, bool inertial_stiffness);
+
 
     /// Sets H as the global stiffness matrix K, scaled  by Kfactor. Optionally, also
     /// superimposes global damping matrix R, scaled by Rfactor, and global mass matrix M multiplied by Mfactor.
@@ -305,13 +307,14 @@ class ChApi ChElementBeamTaperedTimoshenko : public ChElementBeam,
 
     std::vector<std::shared_ptr<ChNodeFEAxyzrot> > nodes;
 
-    std::shared_ptr<ChBeamSectionTaperedTimoshenkoAdvancedGeneric> taperedSection;
+    std::shared_ptr<ChBeamSectionTaperedTimoshenkoAdvancedGeneric> tapered_section;
 
     ChMatrixDynamic<> Km;  ///< local material  stiffness matrix
     ChMatrixDynamic<> Kg;  ///< local geometric stiffness matrix NORMALIZED by P
     ChMatrixDynamic<> M;   ///< local material mass matrix, it could be lumped or consistent mass matrix, depends on SetLumpedMassMatrix(true/false)
     ChMatrixDynamic<> Rm;   ///< local material damping matrix
-
+    ChMatrixDynamic<> Ri;   ///< local inertial-damping (gyroscopic damping) matrix
+    ChMatrixDynamic<> Ki;   ///< local inertial-stiffness matrix
 
     ChQuaternion<> q_refrotA;
     ChQuaternion<> q_refrotB;
@@ -325,6 +328,15 @@ class ChApi ChElementBeamTaperedTimoshenko : public ChElementBeam,
     bool use_geometric_stiffness;
     bool use_Rc;
     bool use_Rs;
+     
+    /// Flag that turns on/off the computation of the [Ri] 'gyroscopic' inertial damping matrix.
+    /// If false, Ri=0. Can be used for cpu speedup, profiling, tests. Default: true.
+    //bool compute_inertia_damping_matrix = true;
+
+    /// Flag that turns on/off the computation of the [Ki] inertial stiffness matrix.
+    /// If false, Ki=0. Can be used for cpu speedup, profiling, tests. Default: true.
+    //bool compute_inertia_stiffness_matrix = true;
+
 
     ChMatrixDynamic<> T; ///< transformation matrix for two nodes, from centerline to elastic axis
     ChMatrixDynamic<> Rc;
