@@ -51,12 +51,12 @@ class ChApi ChElementBeamTaperedTimoshenkoFPM : public ChElementBeamTaperedTimos
     /// Set the section & material of beam element .
     /// It is a shared property, so it can be shared between other beams.
     void SetTaperedSection(std::shared_ptr<ChBeamSectionTaperedTimoshenkoAdvancedGenericFPM> my_material) {
-        this->taperedSectionFPM = my_material;
-        this->taperedSection = std::dynamic_pointer_cast<ChBeamSectionTaperedTimoshenkoAdvancedGeneric>(my_material);
+        this->tapered_section_fpm = my_material;
+        this->tapered_section = std::dynamic_pointer_cast<ChBeamSectionTaperedTimoshenkoAdvancedGeneric>(my_material);
     }
     /// Get the section & material of the element
     std::shared_ptr<ChBeamSectionTaperedTimoshenkoAdvancedGenericFPM> GetTaperedSection() {
-        return this->taperedSectionFPM;
+        return this->tapered_section_fpm;
     }
 
     /// Computes the local (material) stiffness matrix of the element:
@@ -87,7 +87,7 @@ class ChApi ChElementBeamTaperedTimoshenkoFPM : public ChElementBeamTaperedTimos
     /// stiffness Kl of each element, if needed, etc.
     virtual void SetupInitial(ChSystem* system) override;
 
-    std::shared_ptr<ChBeamSectionTaperedTimoshenkoAdvancedGenericFPM> taperedSectionFPM;
+    std::shared_ptr<ChBeamSectionTaperedTimoshenkoAdvancedGenericFPM> tapered_section_fpm;
 
 };
 
