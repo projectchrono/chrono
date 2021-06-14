@@ -17,12 +17,10 @@
 namespace chrono {
 namespace fea {
 
-
 void ChBeamSectionTaperedTimoshenkoAdvancedGenericFPM::ComputeAverageFPM() {
-
     // the elements off the diagonal are averaged by arithmetic mean
     this->average_fpm = (this->section_fpmA->GetFullyPopulatedMaterialStiffnessMatrix() +
-                            this->section_fpmB->GetFullyPopulatedMaterialStiffnessMatrix()) *
+                         this->section_fpmB->GetFullyPopulatedMaterialStiffnessMatrix()) *
                         0.5;
 
     // The diagonal terms are averaged by geometrical mean, to be consistent with previous algorithm
@@ -32,21 +30,16 @@ void ChBeamSectionTaperedTimoshenkoAdvancedGenericFPM::ComputeAverageFPM() {
     this->average_fpm(3, 3) = this->avg_sec_par->GJ;
     this->average_fpm(4, 4) = this->avg_sec_par->EIyy;
     this->average_fpm(5, 5) = this->avg_sec_par->EIzz;
-
 }
 
-
 void ChBeamSectionTaperedTimoshenkoAdvancedGenericFPM::ComputeInertiaMatrix(ChMatrixDynamic<>& M) {
-   
     // Inherit from base class
     ChBeamSectionTaperedTimoshenkoAdvancedGeneric::ComputeInertiaMatrix(M);
 
     // FPM doesnot influence the Inertia(/Mass) matrix of beam element,
     // so it can be evaluated after calculating the inertia matrix
     ComputeAverageFPM();
-
 }
-
 
 }  // end namespace fea
 }  // end namespace chrono
