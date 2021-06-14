@@ -80,25 +80,6 @@ struct AverageSectionParameters {
     DampingCoefficients rdamping_coeff;
 };
 
-inline auto GetAverageValue = [](const double mv1, const double mv2) { return (mv1 + mv2) / 2.0; };
-
-inline auto GetAverageValue3 = [](const double mv1, const double mv2) { 
-    if (mv1 * mv2 < 0.) {
-        // GetLog() << "WARNING: negative value, error!\n";
-        return GetAverageValue(mv1, mv2);
-    }
-    return (mv1 + pow(mv1 * mv2, 0.5) + mv2) / 3.0; 
-};
-
-inline auto GetAverageValue5 = [](const double mv1, const double mv2) {
-    if (mv1 * mv2 < 0.) {
-        // GetLog() << "WARNING: negative value, error!\n";
-        return GetAverageValue(mv1, mv2);
-    }
-    return (mv1 + pow(mv1 * mv1 * mv1 * mv2, 0.25) + pow(mv1 * mv2, 0.5) + pow(mv1 * mv2 * mv2 * mv2, 0.25) + mv2) /
-           5.0;
-};
-
 /// @addtogroup fea_utils
 /// @{
 

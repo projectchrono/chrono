@@ -200,6 +200,24 @@ void ChBeamSectionTimoshenkoAdvancedGeneric::GetMainInertiasInMassReference(doub
     Jmyz = Jm_vec(4);
 }
 
+auto GetAverageValue = [](const double mv1, const double mv2) { return (mv1 + mv2) / 2.0; };
+
+auto GetAverageValue3 = [](const double mv1, const double mv2) {
+    if (mv1 * mv2 < 0.) {
+        // GetLog() << "WARNING: negative value, error!\n";
+        return GetAverageValue(mv1, mv2);
+    }
+    return (mv1 + pow(mv1 * mv2, 0.5) + mv2) / 3.0;
+};
+
+auto GetAverageValue5 = [](const double mv1, const double mv2) {
+    if (mv1 * mv2 < 0.) {
+        // GetLog() << "WARNING: negative value, error!\n";
+        return GetAverageValue(mv1, mv2);
+    }
+    return (mv1 + pow(mv1 * mv1 * mv1 * mv2, 0.25) + pow(mv1 * mv2, 0.5) + pow(mv1 * mv2 * mv2 * mv2, 0.25) + mv2) /
+           5.0;
+};
 
 void ChBeamSectionTaperedTimoshenkoAdvancedGeneric::ComputeAverageSectionParameters() {
 
