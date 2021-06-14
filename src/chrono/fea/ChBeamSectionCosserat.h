@@ -473,17 +473,6 @@ public:
 
 // Add by PENG Chao
 class ChApi ChElasticityCosseratAdvancedGenericFPM : public ChElasticityCosserat {
-  private:
-    ChMatrixNM<double, 6, 6> Klaw;  // 6x6 material stiffness matrix of cross-section
-    double alpha;  // rotation of reference at elastic center, for bending effects [rad]
-    double Cy;     // Centroid (elastic center, tension center)
-    double Cz;
-    double beta;  // rotation of reference at shear center, for shear effects [rad]
-    double Sy;    // Shear center
-    double Sz;
-
-    ChMatrixNM<double, 6, 6> T;
-
   public:
     ChElasticityCosseratAdvancedGenericFPM()
         : Klaw(ChMatrixNM<double, 6, 6>::Identity(6,6)), alpha(0), Cy(0), Cz(0), beta(0), Sy(0), Sz(0) {}
@@ -569,7 +558,18 @@ class ChApi ChElasticityCosseratAdvancedGenericFPM : public ChElasticityCosserat
 private:
     void ComputeTransformMatrix();
 
+    ChMatrixNM<double, 6, 6> Klaw;  // 6x6 material stiffness matrix of cross-section
+    double alpha;                   // rotation of reference at elastic center, for bending effects [rad]
+    double Cy;                      // Centroid (elastic center, tension center)
+    double Cz;
+    double beta;  // rotation of reference at shear center, for shear effects [rad]
+    double Sy;    // Shear center
+    double Sz;
 
+    ChMatrixNM<double, 6, 6> T;
+
+  public:
+    EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 };
 
 

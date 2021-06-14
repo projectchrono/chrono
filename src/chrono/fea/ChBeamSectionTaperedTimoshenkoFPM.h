@@ -93,6 +93,8 @@ public:
 
 	virtual ChMatrixNM<double, 6, 6>& GetFullyPopulatedMaterialStiffnessMatrix() { return this->Klaw; }
 
+  public:
+    EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 };
 
 class ChApi ChBeamSectionTaperedTimoshenkoAdvancedGenericFPM : public ChBeamSectionTaperedTimoshenkoAdvancedGeneric {
@@ -133,6 +135,8 @@ protected:
 
 	virtual void ComputeAverageFPM();
 
+  public:
+    EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 };
 
 	/// @} fea_utils
