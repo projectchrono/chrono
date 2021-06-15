@@ -25,7 +25,6 @@
 #include "chrono/collision/ChCollisionSystem.h"
 #include "chrono/collision/ChCollisionModelChrono.h"
 #include "chrono/collision/chrono/ChCollisionData.h"
-#include "chrono/collision/chrono/ChAABBGenerator.h"
 #include "chrono/collision/chrono/ChBroadphase.h"
 #include "chrono/collision/chrono/ChNarrowphase.h"
 
@@ -81,7 +80,7 @@ class ChApi ChCollisionSystemChrono : public ChCollisionSystem {
     /// Clear all data instanced by this algorithm if any (like persistent contact manifolds).
     virtual void Clear(void) override {}
 
-    /// Add a collision model to the collision engine (custom data may be allocated).
+    /// Add a collision model to the collision engine.
     virtual void Add(ChCollisionModel* model) override;
 
     /// Remove a collision model from the collision engine.
@@ -123,31 +122,29 @@ class ChApi ChCollisionSystemChrono : public ChCollisionSystem {
 
     /// Perform a ray-hit test with all collision models.
     /// Currently not implemented.
-    virtual bool RayHit(const ChVector<>& from, const ChVector<>& to, ChRayhitResult& mresult) const override {
-        return false;
-    }
+    virtual bool RayHit(const ChVector<>& from, const ChVector<>& to, ChRayhitResult& mresult) const override;
 
     /// Perform a ray-hit test with the specified collision model.
     /// Currently not implemented.
     virtual bool RayHit(const ChVector<>& from,
                         const ChVector<>& to,
                         ChCollisionModel* model,
-                        ChRayhitResult& mresult) const override {
-        return false;
-    }
-
-    /// Mark bodies whose AABB is contained within the specified box.
-    virtual void GetOverlappingAABB(std::vector<char>& active_id, real3 Amin, real3 Amax);
+                        ChRayhitResult& mresult) const override;
 
     /// Return the pairs of IDs for overlapping contact shapes.
     virtual std::vector<vec2> GetOverlappingPairs();
 
   protected:
+    /// Mark bodies whose AABB is contained within the specified box.
+    virtual void GetOverlappingAABB(std::vector<char>& active_id, real3 Amin, real3 Amax);
+
+    /// Generate the current axis-aligned bounding boxes of collision shapes.
+    void GenerateAABB();
+
     std::shared_ptr<ChCollisionData> cd_data;
 
     collision::ChBroadphase broadphase;         ///< methods for broad-phase collision detection
     collision::ChNarrowphase narrowphase;       ///< methods for narrow-phase collision detection
-    collision::ChAABBGenerator aabb_generator;  ///< methods for cpmputing object AABBs
 
     std::vector<char> body_active;
 

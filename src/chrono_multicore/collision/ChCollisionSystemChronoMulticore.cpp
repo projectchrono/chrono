@@ -30,7 +30,6 @@ ChCollisionSystemChronoMulticore::ChCollisionSystemChronoMulticore(ChMulticoreDa
 
     broadphase.cd_data = cd_data;
     narrowphase.cd_data = cd_data;
-    aabb_generator.cd_data = cd_data;
 
     // Store a pointer to the shared data structure in the data manager.
     data_manager->cd_data = cd_data;

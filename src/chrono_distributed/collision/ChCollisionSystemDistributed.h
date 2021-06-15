@@ -31,20 +31,20 @@ namespace collision {
 class ChCollisionSystemDistributed : public ChCollisionSystemChronoMulticore {
   public:
     ChCollisionSystemDistributed(ChMulticoreDataManager* dm, ChDistributedDataManager* ddm);
-    virtual ~ChCollisionSystemDistributed();
+    ~ChCollisionSystemDistributed();
 
-    /// Adds the collision model to the collision system and creates
-    /// a mapping entry from the associated body to its collision shapes
+    /// Add a collision model to the collision engine.
+    /// Creates a mapping entry from the associated body to its collision shapes.
     virtual void Add(ChCollisionModel* model) override;
 
-    /// Deactivates the body in the data manager of Chrono::Multicore and marks the space as free
+    /// Remove a collision model from the collision engine.
+    /// Deactivates the body in the data manager of Chrono::Multicore and marks the space as free.
     virtual void Remove(ChCollisionModel* model) override;
 
-    /// Set each entry of active_id to true if the AABB of the
-    /// shape with that index overlaps the given AABB
+  private:
+    /// Mark bodies whose AABB is contained within the specified box.
     virtual void GetOverlappingAABB(custom_vector<char>& active_id, real3 Amin, real3 Amax) override;
 
-  protected:
     ChDistributedDataManager* ddm;
 };
 /// @} distributed_collision

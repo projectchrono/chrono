@@ -16,9 +16,7 @@
 //
 // =============================================================================
 
-#include "chrono/collision/ChCollisionModel.h"
-
-#include "chrono/collision/chrono/ChNarrowphasePRIMS.h"
+#include "chrono/collision/chrono/ChNarrowphase.h"
 #include "chrono/collision/chrono/ChNarrowphaseUtilsPRIMS.h"
 
 namespace chrono {
@@ -1222,11 +1220,11 @@ int box_box(const real3& posT,
 
 // =============================================================================
 
-void SetDefaultEdgeRadius(real radius) {
+void ChNarrowphase::SetDefaultEdgeRadius(real radius) {
     edge_radius = radius;
 }
 
-real GetDefaultEdgeRadius() {
+real ChNarrowphase::GetDefaultEdgeRadius() {
     return edge_radius;
 }
 
@@ -1245,15 +1243,15 @@ real GetDefaultEdgeRadius() {
 // In these cases, the corresponding ct_depth is a positive value.
 // This function returns true if it was able to determine the collision state
 // for the given pair of shapes and false if the shape types are not supported.
-bool PRIMSCollision(const ConvexBase* shapeA,  // first candidate shape
-                    const ConvexBase* shapeB,  // second candidate shape
-                    real separation,           // maximum separation
-                    real3* ct_norm,            // [output] contact normal (per contact pair)
-                    real3* ct_pt1,             // [output] point on shape1 (per contact pair)
-                    real3* ct_pt2,             // [output] point on shape2 (per contact pair)
-                    real* ct_depth,            // [output] penetration depth (per contact pair)
-                    real* ct_eff_rad,          // [output] effective contact radius (per contact pair)
-                    int& nC)                   // [output] number of contacts found
+bool ChNarrowphase::PRIMSCollision(const ConvexBase* shapeA,  // first candidate shape
+                                   const ConvexBase* shapeB,  // second candidate shape
+                                   real separation,           // maximum separation
+                                   real3* ct_norm,            // [output] contact normal (per contact pair)
+                                   real3* ct_pt1,             // [output] point on shape1 (per contact pair)
+                                   real3* ct_pt2,             // [output] point on shape2 (per contact pair)
+                                   real* ct_depth,            // [output] penetration depth (per contact pair)
+                                   real* ct_eff_rad,          // [output] effective contact radius (per contact pair)
+                                   int& nC)                   // [output] number of contacts found
 {
     // Special-case the collision detection based on the types of the two potentially colliding shapes.
 

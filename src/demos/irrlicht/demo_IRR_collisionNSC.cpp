@@ -187,11 +187,15 @@ int main(int argc, char* argv[]) {
     // Settings specific to Chrono multicore collision system
     if (collision_type == collision::ChCollisionSystemType::CHRONO) {
         auto collsys = std::static_pointer_cast<collision::ChCollisionSystemChrono>(sys.GetCollisionSystem());
+        // Change the default numnber of broadphase bins
+        collsys->SetBroadphaseNumBins(ChVector<int>(10, 10, 2));
         // Change default narrowphase algorithm
         ////collsys->SetNarrowphaseAlgorithm(collision::ChNarrowphase::Algorithm::MPR);
         collsys->SetEnvelope(0.005);
         // Enable active bounding box
         collsys->EnableActiveBoundingBox(ChVector<>(-10, -10, -20), ChVector<>(+10, +10, +10));
+        // Set number of threads used by the collision detection system
+        collsys->SetNumThreads(4);
     }
 
     // Create the Irrlicht visualization

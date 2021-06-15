@@ -47,7 +47,7 @@ int main(int argc, char* argv[]) {
     collision::ChCollisionSystemType collision_type = collision::ChCollisionSystemType::CHRONO;
 
     // Narrowphase algorithm (only for the Chrono multicore collision system)
-    collision::ChNarrowphase::Algorithm narrowphase_algorithm = collision::ChNarrowphase::Algorithm::MPR;
+    collision::ChNarrowphase::Algorithm narrowphase_algorithm = collision::ChNarrowphase::Algorithm::HYBRID;
 
     // Collision envelope (NSC only)
     double collision_envelope = 0.05;

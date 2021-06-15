@@ -18,11 +18,8 @@
 
 #include <algorithm>
 
-#include "chrono/collision/ChCollisionModel.h"
-
-#include "chrono/collision/chrono/ChNarrowphaseMPR.h"
+#include "chrono/collision/chrono/ChNarrowphase.h"
 #include "chrono/collision/chrono/ChNarrowphaseUtilsMPR.h"
-#include "chrono/collision/chrono/ChConvexShape.h"
 
 using namespace chrono;
 using namespace chrono::collision;
@@ -30,6 +27,7 @@ using namespace chrono::collision;
 #define MPR_TOLERANCE C_EPSILON
 #define MAX_ITERATIONS 100
 #define WHILE_LOOP_MAX 1000
+
 struct support {
     real3 v, v1, v2;
 };
@@ -629,13 +627,13 @@ void MPRGetPoints(const ConvexBase* shapeA,
 
 // -----------------------------------------------------------------------------
 
-bool chrono::collision::MPRCollision(const ConvexBase* shapeA,
-                                     const ConvexBase* shapeB,
-                                     real envelope,
-                                     real3& normal,
-                                     real3& pointA,
-                                     real3& pointB,
-                                     real& depth) {
+bool ChNarrowphase::MPRCollision(const ConvexBase* shapeA,
+                                 const ConvexBase* shapeB,
+                                 real envelope,
+                                 real3& normal,
+                                 real3& pointA,
+                                 real3& pointB,
+                                 real& depth) {
     real3 point;
     if (!MPRContact(shapeA, shapeB, envelope, normal, point, depth)) {
         return false;
@@ -647,23 +645,4 @@ bool chrono::collision::MPRCollision(const ConvexBase* shapeA,
     pointB = pointB + normal * envelope;
     depth = Dot(normal, pointB - pointA);
     return true;
-}
-
-bool chrono::collision::MPRSphereSphere(const ConvexBase* ShapeA,
-                                        const ConvexBase* ShapeB,
-                                        real3& N,
-                                        real& depth,
-                                        real3& p1,
-                                        real3& p2) {
-    real3 relpos = ShapeB->A() - ShapeA->A();
-    real d2 = Dot(relpos);
-    real collide_dist = ShapeA->Radius() + ShapeB->Radius();
-    if (d2 <= collide_dist * collide_dist) {
-        N = relpos / Sqrt(d2);
-        p1 = ShapeA->A() + N * ShapeA->Radius();
-        p2 = ShapeB->A() - N * ShapeB->Radius();
-        depth = Dot(N, p2 - p1);
-        return true;
-    }
-    return false;
 }

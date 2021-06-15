@@ -18,8 +18,6 @@
 #include "chrono_distributed/collision/ChCollisionModelDistributed.h"
 #include "chrono_distributed/collision/ChCollisionSystemDistributed.h"
 
-#include "chrono/collision/chrono/ChAABBGenerator.h"
-#include "chrono/collision/chrono/ChBroadphaseUtils.h"
 #include "chrono/collision/ChCollisionModelChrono.h"
 
 #include "chrono_multicore/ChDataManager.h"
@@ -516,7 +514,7 @@ void ChCollisionSystemDistributed::Remove(ChCollisionModel* model) {
 }
 
 void ChCollisionSystemDistributed::GetOverlappingAABB(custom_vector<char>& active_id, real3 Amin, real3 Amax) {
-    aabb_generator.GenerateAABB();
+    GenerateAABB();
     ////#pragma omp parallel for
     for (int i = 0; i < ddm->data_manager->cd_data->shape_data.typ_rigid.size(); i++) {
         auto id_rigid = ddm->data_manager->cd_data->shape_data.id_rigid[i];

@@ -1021,19 +1021,17 @@ if (THRUST_FOUND)
    set(ChronoEngine_collision_chrono_SOURCES
        collision/chrono/ChCollisionData.h
        collision/chrono/ChConvexShape.h
-       collision/chrono/ChAABBGenerator.cpp
-       collision/chrono/ChAABBGenerator.h
        collision/chrono/ChBroadphase.cpp
        collision/chrono/ChBroadphase.h
        collision/chrono/ChBroadphaseUtils.h
-       collision/chrono/ChNarrowphase.cpp
        collision/chrono/ChNarrowphase.h
+       collision/chrono/ChNarrowphase.cpp
        collision/chrono/ChNarrowphaseMPR.cpp
-       collision/chrono/ChNarrowphaseMPR.h
-       collision/chrono/ChNarrowphaseUtilsMPR.h
        collision/chrono/ChNarrowphasePRIMS.cpp
-       collision/chrono/ChNarrowphasePRIMS.h
+       collision/chrono/ChNarrowphaseUtilsMPR.h
        collision/chrono/ChNarrowphaseUtilsPRIMS.h
+       collision/chrono/ChRayTest.h
+       collision/chrono/ChRayTest.cpp
    )
    
    source_group("collision\\chrono" FILES

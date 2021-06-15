@@ -49,6 +49,7 @@ class CH_MULTICORE_API ChCollisionSystemChronoMulticore : public ChCollisionSyst
     /// information (in the Chrono::Multicore data manager).
     virtual void PreProcess() override;
 
+    /// Synchronization operations, invoked after running the collision detection.
     virtual void PostProcess() override;
 
     /// Fill in the provided contact container with collision information after Run().

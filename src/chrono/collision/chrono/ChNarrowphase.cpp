@@ -19,8 +19,6 @@
 #include "chrono/collision/ChCollisionInfo.h"
 
 #include "chrono/collision/chrono/ChNarrowphase.h"
-#include "chrono/collision/chrono/ChNarrowphaseMPR.h"
-#include "chrono/collision/chrono/ChNarrowphasePRIMS.h"
 #include "chrono/collision/chrono/ChNarrowphaseUtilsMPR.h"
 #include "chrono/collision/chrono/ChBroadphaseUtils.h"
 
@@ -37,7 +35,12 @@
 namespace chrono {
 namespace collision {
 
-ChNarrowphase::ChNarrowphase() : algorithm(Algorithm::HYBRID), num_potential_rigid_contacts(0), cd_data(nullptr) {}
+ChNarrowphase::ChNarrowphase()
+    : algorithm(Algorithm::HYBRID),
+      num_potential_rigid_contacts(0),
+      num_potential_fluid_contacts(0),
+      num_potential_rigid_fluid_contacts(0),
+      cd_data(nullptr) {}
 
 void ChNarrowphase::ClearContacts() {
     // Return now if no potential collisions.
@@ -67,7 +70,7 @@ void ChNarrowphase::ProcessRigids(const vec3& bins_per_axis) {
     num_potential_rigid_contacts = cd_data->num_rigid_contacts;
     num_potential_rigid_fluid_contacts = cd_data->num_rigid_fluid_contacts;
     num_potential_fluid_contacts = cd_data->num_fluid_contacts;
-    
+
     ClearContacts();
 
     // Transform Rigid body shapes to global coordinate system
