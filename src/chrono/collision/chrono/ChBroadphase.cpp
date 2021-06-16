@@ -16,7 +16,7 @@
 #include <climits>
 
 #include "chrono/collision/chrono/ChBroadphase.h"
-#include "chrono/collision/chrono/ChBroadphaseUtils.h"
+#include "chrono/collision/chrono/ChCollisionUtils.h"
 
 // Always include ChConfig.h *before* any Thrust headers!
 #include "chrono/ChConfig.h"
@@ -31,6 +31,8 @@ using thrust::transform_reduce;
 
 namespace chrono {
 namespace collision {
+
+using namespace chrono::collision::ch_utils;
 
 ChBroadphase::ChBroadphase() : bins_per_axis(vec3(10, 10, 10)), fixed_bins(true), grid_density(5), cd_data(nullptr) {}
 

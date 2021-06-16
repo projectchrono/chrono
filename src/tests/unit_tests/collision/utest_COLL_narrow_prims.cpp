@@ -16,7 +16,7 @@
 // =============================================================================
 
 #include "chrono/collision/chrono/ChNarrowphase.h"
-#include "chrono/collision/chrono/ChNarrowphaseUtilsPRIMS.h"
+#include "chrono/collision/chrono/ChCollisionUtils.h"
 
 #include "gtest/gtest.h"
 
@@ -24,6 +24,7 @@
 
 using namespace chrono;
 using namespace chrono::collision;
+using namespace chrono::collision::ch_utils;
 
 using std::cout;
 using std::endl;

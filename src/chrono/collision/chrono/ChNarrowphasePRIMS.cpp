@@ -17,10 +17,12 @@
 // =============================================================================
 
 #include "chrono/collision/chrono/ChNarrowphase.h"
-#include "chrono/collision/chrono/ChNarrowphaseUtilsPRIMS.h"
+#include "chrono/collision/chrono/ChCollisionUtils.h"
 
 namespace chrono {
 namespace collision {
+
+using namespace chrono::collision::ch_utils;
 
 // Fictitious radius of curvature for collision with a corner or an edge.
 static real edge_radius = 0.1;

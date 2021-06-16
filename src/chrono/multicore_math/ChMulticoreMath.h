@@ -52,7 +52,10 @@
     #include <cfenv>
 #endif
 
-typedef int shape_type;
+namespace chrono {
+
+/// @addtogroup chrono_mc_math
+/// @{
 
 #if defined(CHRONO_OPENMP_ENABLED)
     #define THRUST_PAR thrust::omp::par,
@@ -85,8 +88,6 @@ typedef int shape_type;
 #define Thrust_Unique(x) thrust::unique(THRUST_PAR x.begin(), x.end()) - x.begin();
 #define DBG(x) printf(x);
 
-namespace chrono {
-
 /// Explicit conversion of scoped enumeration to int (e.g. for streaming).
 template <typename Enumeration>
 auto as_integer(Enumeration const value) -> typename std::underlying_type<Enumeration>::type {
@@ -95,10 +96,9 @@ auto as_integer(Enumeration const value) -> typename std::underlying_type<Enumer
 
 /// Utility to expand an input sequence by
 /// replicating each element a variable number of times. For example,
-///
-///   expand([2,2,2],[A,B,C]) -> [A,A,B,B,C,C]
-///   expand([3,0,1],[A,B,C]) -> [A,A,A,C]
-///   expand([1,3,2],[A,B,C]) -> [A,B,B,B,C,C]
+///   - expand([2,2,2],[A,B,C]) -> [A,A,B,B,C,C]
+///   - expand([3,0,1],[A,B,C]) -> [A,A,A,C]
+///   - expand([1,3,2],[A,B,C]) -> [A,B,B,B,C,C]
 ///
 /// The element counts are assumed to be non-negative integers
 /// (from Thrust's example expand.cu)
@@ -135,5 +135,7 @@ OutputIterator Thrust_Expand(InputIterator1 first1,
     thrust::advance(output, output_size);
     return output;
 }
+
+/// @} chrono_mc_math
 
 }  // end namespace chrono

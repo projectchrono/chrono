@@ -19,8 +19,7 @@
 #include "chrono/collision/ChCollisionInfo.h"
 
 #include "chrono/collision/chrono/ChNarrowphase.h"
-#include "chrono/collision/chrono/ChNarrowphaseUtilsMPR.h"
-#include "chrono/collision/chrono/ChBroadphaseUtils.h"
+#include "chrono/collision/chrono/ChCollisionUtils.h"
 
 #include "chrono/multicore_math/utility.h"
 
@@ -34,6 +33,8 @@
 
 namespace chrono {
 namespace collision {
+
+using namespace chrono::collision::ch_utils;
 
 ChNarrowphase::ChNarrowphase()
     : algorithm(Algorithm::HYBRID),

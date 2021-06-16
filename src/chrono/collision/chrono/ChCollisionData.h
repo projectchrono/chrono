@@ -29,6 +29,9 @@ namespace collision {
 /// @addtogroup collision_mc
 /// @{
 
+/// Readibility type definition.
+typedef int shape_type;
+
 /// Structure with all measures associated with the collision detection system.
 class collision_measures {
   public:

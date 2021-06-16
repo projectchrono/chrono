@@ -19,10 +19,12 @@
 #include <algorithm>
 
 #include "chrono/collision/chrono/ChNarrowphase.h"
-#include "chrono/collision/chrono/ChNarrowphaseUtilsMPR.h"
+#include "chrono/collision/chrono/ChCollisionUtils.h"
 
-using namespace chrono;
-using namespace chrono::collision;
+namespace chrono {
+namespace collision {
+
+using namespace chrono::collision::ch_utils;
 
 #define MPR_TOLERANCE C_EPSILON
 #define MAX_ITERATIONS 100
@@ -646,3 +648,6 @@ bool ChNarrowphase::MPRCollision(const ConvexBase* shapeA,
     depth = Dot(normal, pointB - pointA);
     return true;
 }
+
+}  // namespace collision
+}  // namespace chrono

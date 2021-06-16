@@ -60,15 +60,10 @@ class ChApi ChNarrowphase {
     /// Dispatcher for analytic collision functions between a pair of candidate shapes.
     /// Each candidate pair of shapes can result in 0, 1, or more contacts.  For each actual contact, we calculate
     /// various geometrical quantities and load them in the output arguments (starting from the given addresses)
-    /// @remark
     ///   - ct_pt1:      contact point on first shape (in global frame)
-    /// @remark
     ///   - ct_pt2:      contact point on second shape (in global frame)
-    /// @remark
     ///   - ct_depth:    penetration distance (negative if overlap exists)
-    /// @remark
     ///   - ct_norm:     contact normal, from ct_pt2 to ct_pt1 (in global frame)
-    /// @remark
     ///   - ct_eff_rad:  effective contact radius
     ///
     /// Note that we also report collisions for which the distance between the two shapes is at most 'separation'
