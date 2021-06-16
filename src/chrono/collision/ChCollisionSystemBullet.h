@@ -91,6 +91,21 @@ class ChApi ChCollisionSystemBullet : public ChCollisionSystem {
     /// Perform a ray-hit test with all collision models.
     virtual bool RayHit(const ChVector<>& from, const ChVector<>& to, ChRayhitResult& mresult) const override;
 
+    /// Perform a ray-hit test with the specified collision model.
+    virtual bool RayHit(const ChVector<>& from,
+                        const ChVector<>& to,
+                        ChCollisionModel* model,
+                        ChRayhitResult& mresult) const override;
+
+    // Get the underlying Bullet collision world.
+    btCollisionWorld* GetBulletCollisionWorld() { return bt_collision_world; }
+
+    // Change default contact breaking/merging threshold tolerance of Bullet.
+    // This is the static gContactBreakingThreshold scalar in Bullet.
+    // Call this function only once, before running the simulation.
+    static void SetContactBreakingThreshold(double threshold);
+
+  private:
     /// Perform a ray-hit test with all collision models. This version allows specifying the Bullet
     /// collision filter group and mask (see btBroadphaseProxy::CollisionFilterGroups).
     bool RayHit(const ChVector<>& from,
@@ -98,12 +113,6 @@ class ChApi ChCollisionSystemBullet : public ChCollisionSystem {
                 ChRayhitResult& mresult,
                 short int filter_group,
                 short int filter_mask) const;
-
-    /// Perform a ray-hit test with the specified collision model.
-    virtual bool RayHit(const ChVector<>& from,
-                        const ChVector<>& to,
-                        ChCollisionModel* model,
-                        ChRayhitResult& mresult) const override;
 
     /// Perform a ray-hit test with the specified collision model. This version allows specifying the Bullet
     /// collision filter group and mask (see btBroadphaseProxy::CollisionFilterGroups).
@@ -114,15 +123,6 @@ class ChApi ChCollisionSystemBullet : public ChCollisionSystem {
                 short int filter_group,
                 short int filter_mask) const;
 
-    // For Bullet related stuff
-    btCollisionWorld* GetBulletCollisionWorld() { return bt_collision_world; }
-
-    // Tweak the default contact breaking/merging threshold tolerance
-    // of Bullet (is it the static gContactBreakingThreshold scalar in Bullet).
-    // Call it only once, before running the simulation.
-    static void SetContactBreakingThreshold(double threshold);
-
-  private:
     btCollisionConfiguration* bt_collision_configuration;
     btCollisionDispatcher* bt_dispatcher;
     btBroadphaseInterface* bt_broadphase;
