@@ -9,28 +9,25 @@
     "Viscosity":              0.001,
     "Body Force":             [0.0, 0.0,  0.0],
     "Gravity":                [0.0, 0.0, -9.81],
-    "Surface Tension Kappa":   0.0,
     "Characteristic Length":   1.0
   },
 
   "SPH Parameters":
   {
+    "Method":                        "IISPH",
     "Kernel h":                       0.05,
     "Initial Spacing":                0.05,
-    "Initial Spacing Solid":          0.05,
     "Epsilon":                        0.001,
     "Maximum Velocity":               1.5,
-    "XSPH Coefficient":               0.2,
-    "Shifting Coefficient":           0.00,
-    "Density Reinitialization":       200,
-    "Conservative Discretization":    true
+    "XSPH Coefficient":               0.1,
+    "Shifting Coefficient":           0.0
 
   },
 
   "Time Stepping":
   {
-    "Fluid time step":               0.002,
-    "Solid time step":               0.0002,
+    "Fluid time step":               0.001,
+    "Solid time step":               0.001,
     "End time":                      10,
     "Write frame per second":        50
   },
@@ -38,14 +35,15 @@
 
   "Pressure Equation":
   {
-    "Boundary Conditions":"Generalized Wall BC", //Original, Generalized Wall BC
-    "Linear solver":      "BICGSTAB",  //Jacobi, BICGSTAB, GMRES
-    "Under-relaxation":   0.5,
-    "Absolute residual":  1e-5,
-    "Relative residual":  0.0,
-    "Maximum Iterations": 200,
-    "Verbose monitoring": false,
-    "Constraint Pressure":false,
-    "Average Pressure":   0.0
+    "Boundary Conditions":      "Generalized Wall BC",
+    "Linear solver":            "Jacobi",
+    "Under-relaxation":         0.5,
+    "Absolute residual":        1.0,
+    "Relative residual":        0.0,
+    "Maximum Iterations":       100,
+    "Verbose monitoring":       false,
+    "Constraint Pressure":      false,
+    "Clamp Pressure":           true,
+    "Average Pressure":         0.0
   }
 }
