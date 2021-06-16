@@ -132,7 +132,7 @@ class ChApi ChBeamSectionEuler : public ChBeamSection {
     // DAMPING INTERFACE
 
     /// Set the Rayleigh damping ratio r (as in: R = r * K ), to do: also mass-proportional term
-    void SetBeamRaleyghDamping(double mr) { this->rdamping = mr; }
+    virtual void SetBeamRaleyghDamping(double mr) { this->rdamping = mr; }
     double GetBeamRaleyghDamping() { return this->rdamping; }
 
 

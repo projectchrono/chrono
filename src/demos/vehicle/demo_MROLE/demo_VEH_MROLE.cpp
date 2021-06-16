@@ -69,7 +69,7 @@ CollisionType chassis_collision_type = CollisionType::NONE;
 PowertrainModelType powertrain_model = PowertrainModelType::SHAFTS;
 
 // Drive type (FWD, RWD, or AWD)
-DrivelineTypeWV drive_type = DrivelineTypeWV::AWD8;
+DrivelineTypeWV drive_type = DrivelineTypeWV::AWD6;
 
 // Type of tire model (TMEASY, RIGID)
 TireModelType tire_model = TireModelType::TMEASY;
@@ -137,6 +137,9 @@ int main(int argc, char* argv[]) {
 
     if (tire_model == TireModelType::RIGID_MESH)
         tire_vis_type = VisualizationType::MESH;
+
+    my_mrole.LockAxleDifferential(-1, false);
+    my_mrole.LockCentralDifferential(-1, false);
 
     my_mrole.SetChassisVisualizationType(chassis_vis_type);
     my_mrole.SetSuspensionVisualizationType(suspension_vis_type);
