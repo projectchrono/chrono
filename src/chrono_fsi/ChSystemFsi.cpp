@@ -122,7 +122,7 @@ void ChSystemFsi::DoStepDynamics_FSI() {
 
         fsiInterface->Copy_External_To_ChSystem();
 
-        // paramsH->dT_Flex = paramsH->dT; 
+        // paramsH->dT_Flex = paramsH->dT;
         // dT_Flex is the time step of solid body system
         mTime += 1 * paramsH->dT;
         if (paramsH->dT_Flex == 0)
@@ -139,7 +139,7 @@ void ChSystemFsi::DoStepDynamics_FSI() {
         bceWorker->UpdateRigidMarkersPositionVelocity(fsiData->sphMarkersD2, fsiData->fsiBodiesD2);
         // fsiData->sphMarkersD1 = fsiData->sphMarkersD2;
         // Density re-initialization
-        int tStep = int(mTime / paramsH->dT);
+        //        int tStep = int(mTime / paramsH->dT);
         //        if ((tStep % (paramsH->densityReinit + 1) == 0)) {
         //            fluidDynamics->DensityReinitialization();
         //        }

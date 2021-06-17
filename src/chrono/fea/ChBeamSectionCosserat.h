@@ -53,9 +53,9 @@ class ChApi ChElasticityCosserat {
     /// known (preferred for high performance), otherwise the base behaviour here is to compute
     /// [Km] by numerical differentiation calling ComputeStress() multiple times.
     virtual void ComputeStiffnessMatrix(
-        ChMatrixNM<double, 6, 6>& K, ///< 6x6 material stiffness matrix values here
-        const ChVector<>& strain_e,  ///< local strain (deformation part): x= elongation, y and z are shear
-        const ChVector<>& strain_k   ///< local strain (curvature part), x= torsion, y and z are line curvatures
+        ChMatrixNM<double, 6, 6>& K,  ///< 6x6 material stiffness matrix values here
+        const ChVector<>& strain_e,   ///< local strain (deformation part): x= elongation, y and z are shear
+        const ChVector<>& strain_k    ///< local strain (curvature part), x= torsion, y and z are line curvatures
     );
 
     ChBeamSectionCosserat* section;
@@ -68,7 +68,7 @@ class ChApi ChElasticityCosserat {
 /// can be interpreted as a 3D extension of the Timoshenko beam theory.
 /// This can be shared between multiple beams.
 /// \image html "http://www.projectchrono.org/assets/manual/fea_ChElasticityCosseratSimple.png"
-/// 
+///
 class ChApi ChElasticityCosseratSimple : public ChElasticityCosserat {
   public:
     double Iyy;
@@ -76,7 +76,7 @@ class ChApi ChElasticityCosseratSimple : public ChElasticityCosserat {
     double J;
     double G;
     double E;
-	double A;
+    double A;
 
     double Ks_y;
     double Ks_z;
@@ -88,31 +88,30 @@ class ChApi ChElasticityCosseratSimple : public ChElasticityCosserat {
         const double mIzz,   ///< Izz second moment of area of the beam \f$ I_z =  \int_\Omega y^2 dA \f$
         const double mJ,     ///< torsion constant (torsion rigidity will be G*J, torsional stiffness = G*J*length)
         const double mG,     ///< G shear modulus
-        const double mE,     ///< E young modulus 
+        const double mE,     ///< E young modulus
         const double mA,     ///< A area
         const double mKs_y,  ///< Timoshenko shear coefficient Ks for y shear
         const double mKs_z   ///< Timoshenko shear coefficient Ks for z shear
-    ) :
-        Iyy(mIyy), Izz(mIzz), J(mJ), G(mG), E(mE), A(mA), Ks_y(mKs_y), Ks_z(mKs_z)
-    {}
+        )
+        : Iyy(mIyy), Izz(mIzz), J(mJ), G(mG), E(mE), A(mA), Ks_y(mKs_y), Ks_z(mKs_z) {}
 
     virtual ~ChElasticityCosseratSimple() {}
 
-	/// Set the A area of the beam.
+    /// Set the A area of the beam.
     void SetArea(double ma) { this->A = ma; }
     double GetArea() const { return this->A; }
 
     /// Set the Iyy second moment of area of the beam (for bending about y in xz plane),
-	/// defined as \f$ I_y =  \int_\Omega z^2 dA \f$.
+    /// defined as \f$ I_y =  \int_\Omega z^2 dA \f$.
     /// Note: some textbook calls this Iyy as Iy
-	/// Ex SI units: [m^4]
+    /// Ex SI units: [m^4]
     void SetIyy(double ma) { this->Iyy = ma; }
     double GetIyy() const { return this->Iyy; }
 
-    /// Set the Izz second moment of area of the beam (for bending about z in xy plane). 
-	/// defined as \f$ I_z =  \int_\Omega y^2 dA \f$.
+    /// Set the Izz second moment of area of the beam (for bending about z in xy plane).
+    /// defined as \f$ I_z =  \int_\Omega y^2 dA \f$.
     /// Note: some textbook calls this Izz as Iz
-	/// Ex SI units: [m^4]
+    /// Ex SI units: [m^4]
     void SetIzz(double ma) { this->Izz = ma; }
     double GetIzz() const { return this->Izz; }
 
@@ -151,8 +150,6 @@ class ChApi ChElasticityCosseratSimple : public ChElasticityCosserat {
     /// Set G, the shear modulus, given current E and the specified Poisson ratio
     void SetGwithPoissonRatio(double mpoisson) { this->G = this->E / (2.0 * (1.0 + mpoisson)); }
 
-
-
     // Interface to base:
 
     /// Compute the generalized cut force and cut torque.
@@ -165,25 +162,25 @@ class ChApi ChElasticityCosseratSimple : public ChElasticityCosserat {
 
     /// Compute the 6x6 tangent material stiffness matrix [Km] = d&sigma;/d&epsilon;
     virtual void ComputeStiffnessMatrix(
-        ChMatrixNM<double, 6, 6>& K, ///< 6x6 stiffness matrix
-        const ChVector<>& strain_e,  ///< local strain (deformation part): x= elongation, y and z are shear
-        const ChVector<>& strain_k   ///< local strain (curvature part), x= torsion, y and z are line curvatures
+        ChMatrixNM<double, 6, 6>& K,  ///< 6x6 stiffness matrix
+        const ChVector<>& strain_e,   ///< local strain (deformation part): x= elongation, y and z are shear
+        const ChVector<>& strain_k    ///< local strain (curvature part), x= torsion, y and z are line curvatures
         ) override;
 };
 
-/// Generic linear elasticity for a Cosserat beam using directly a 6x6 matrix [E] 
-/// as user-input data. 
+/// Generic linear elasticity for a Cosserat beam using directly a 6x6 matrix [E]
+/// as user-input data.
 /// The [E] matrix values ("rigidity" values) can be computed from a preprocessing
 /// stage using a FEA analysis over a detailed 3D model of a chunk of beam,
 /// hence recovering the 6x6 matrix that connects yxz displacements "e" and
 /// xyz rotations "k" to the xyz cut-force "n" and xyz cut-torque "m" as in
-///   \f$ (m,n)=[E](e,k) \f$ 
+///   \f$ (m,n)=[E](e,k) \f$
 /// where \f$ e, k, m, n \f$  are expressed in the centerline reference.
 /// Using a matrix of rigidity values, the model does not assume homogeneous elasticity
 /// and bypasses the need of entering E or G values.
 /// This can be shared between multiple beams.
 /// \image html "http://www.projectchrono.org/assets/manual/fea_ChElasticityCosseratGeneric.png"
-/// 
+///
 class ChApi ChElasticityCosseratGeneric : public ChElasticityCosserat {
   public:
     ChElasticityCosseratGeneric();
@@ -194,9 +191,8 @@ class ChApi ChElasticityCosseratGeneric : public ChElasticityCosserat {
     /// This is the matrix that defines the linear elastic constitutive model
     /// as it maps  yxz displacements "e" and xyz rotations "k"
     /// to the xyz cut-force "n" and xyz cut-torque "m" as in
-    ///    \f$ (m,n)=[E](e,k) \f$ 
+    ///    \f$ (m,n)=[E](e,k) \f$
     ChMatrixNM<double, 6, 6>& Ematrix() { return this->mE; }
-
 
     // Interface to base:
 
@@ -210,9 +206,9 @@ class ChApi ChElasticityCosseratGeneric : public ChElasticityCosserat {
 
     /// Compute the 6x6 tangent material stiffness matrix [Km] = d&sigma;/d&epsilon;
     virtual void ComputeStiffnessMatrix(
-        ChMatrixNM<double, 6, 6>& K, ///< 6x6 stiffness matrix
-        const ChVector<>& strain_e,  ///< local strain (deformation part): x= elongation, y and z are shear
-        const ChVector<>& strain_k   ///< local strain (curvature part), x= torsion, y and z are line curvatures
+        ChMatrixNM<double, 6, 6>& K,  ///< 6x6 stiffness matrix
+        const ChVector<>& strain_e,   ///< local strain (deformation part): x= elongation, y and z are shear
+        const ChVector<>& strain_k    ///< local strain (curvature part), x= torsion, y and z are line curvatures
         ) override;
 
   private:
@@ -239,7 +235,7 @@ class ChApi ChElasticityCosseratGeneric : public ChElasticityCosserat {
 ///  m_z   [A       A A ]   k_z
 ///  </pre>
 /// \image html "http://www.projectchrono.org/assets/manual/fea_ChElasticityCosseratAdvanced.png"
-/// 
+///
 class ChApi ChElasticityCosseratAdvanced : public ChElasticityCosseratSimple {
   public:
     double alpha;  ///< Rotation of Izz Iyy respect to reference section, centered on line x
@@ -252,24 +248,28 @@ class ChApi ChElasticityCosseratAdvanced : public ChElasticityCosseratSimple {
     ChElasticityCosseratAdvanced();
 
     ChElasticityCosseratAdvanced(
-        const double mIyy,   ///< Iyy second moment of area of the beam \f$ I_y =  \int_\Omega z^2 dA \f$
-        const double mIzz,   ///< Izz second moment of area of the beam \f$ I_z =  \int_\Omega y^2 dA \f$
-        const double mJ,     ///< torsion constant (torsion rigidity will be G*J, torsional stiffness = G*J*length)
-        const double mG,     ///< G shear modulus
-        const double mE,     ///< E young modulus 
-        const double mA,     ///< A area
-        const double mKs_y,  ///< Timoshenko shear coefficient Ks for y shear
-        const double mKs_z,  ///< Timoshenko shear coefficient Ks for z shear
-        const double malpha, ///< section rotation for which Iyy Izz are computed
-        const double mCy,    ///< Cy offset of elastic center about which Iyy Izz are computed
-        const double mCz,    ///< Cz offset of elastic center about which Iyy Izz are computed
-        const double mbeta, ///< section rotation for which Ks_y Ks_z are computed
-        const double mSy,    ///< Sy offset of shear center
-        const double mSz     ///< Sz offset of shear center
-    ) :
-        ChElasticityCosseratSimple(mIyy, mIzz, mJ, mG, mE, mA, mKs_y, mKs_z), alpha(malpha), Cy(mCy), Cz(mCz), beta(mbeta), Sy(mSy), Sz(mSz)
-    {}
-
+        const double mIyy,    ///< Iyy second moment of area of the beam \f$ I_y =  \int_\Omega z^2 dA \f$
+        const double mIzz,    ///< Izz second moment of area of the beam \f$ I_z =  \int_\Omega y^2 dA \f$
+        const double mJ,      ///< torsion constant (torsion rigidity will be G*J, torsional stiffness = G*J*length)
+        const double mG,      ///< G shear modulus
+        const double mE,      ///< E young modulus
+        const double mA,      ///< A area
+        const double mKs_y,   ///< Timoshenko shear coefficient Ks for y shear
+        const double mKs_z,   ///< Timoshenko shear coefficient Ks for z shear
+        const double malpha,  ///< section rotation for which Iyy Izz are computed
+        const double mCy,     ///< Cy offset of elastic center about which Iyy Izz are computed
+        const double mCz,     ///< Cz offset of elastic center about which Iyy Izz are computed
+        const double mbeta,   ///< section rotation for which Ks_y Ks_z are computed
+        const double mSy,     ///< Sy offset of shear center
+        const double mSz      ///< Sz offset of shear center
+        )
+        : ChElasticityCosseratSimple(mIyy, mIzz, mJ, mG, mE, mA, mKs_y, mKs_z),
+          alpha(malpha),
+          Cy(mCy),
+          Cz(mCz),
+          beta(mbeta),
+          Sy(mSy),
+          Sz(mSz) {}
 
     virtual ~ChElasticityCosseratAdvanced() {}
 
@@ -278,7 +278,7 @@ class ChApi ChElasticityCosseratAdvanced : public ChElasticityCosseratSimple {
     void SetSectionRotation(double ma) { this->alpha = ma; }
     double GetSectionRotation() { return this->alpha; }
 
-    /// "Elastic reference": set the displacement of the elastic center 
+    /// "Elastic reference": set the displacement of the elastic center
     /// (or tension center) respect to the reference section coordinate system placed at centerline.
     void SetCentroid(double my, double mz) {
         this->Cy = my;
@@ -288,7 +288,7 @@ class ChApi ChElasticityCosseratAdvanced : public ChElasticityCosseratSimple {
     double GetCentroidZ() { return this->Cz; }
 
     /// "Shear reference": set beta, the rotation of the section for shear decoupling, respect to
-    /// the reference section coordinate system placed at centerline. 
+    /// the reference section coordinate system placed at centerline.
     void SetShearRotation(double mb) { this->beta = mb; }
     double GetShearRotation() { return this->beta; }
 
@@ -316,14 +316,14 @@ class ChApi ChElasticityCosseratAdvanced : public ChElasticityCosseratSimple {
 
     /// Compute the 6x6 tangent material stiffness matrix [Km] = d&sigma;/d&epsilon;
     virtual void ComputeStiffnessMatrix(
-        ChMatrixNM<double, 6, 6>& K, ///< 6x6 stiffness matrix
-        const ChVector<>& strain_e,  ///< local strain (deformation part): x= elongation, y and z are shear
-        const ChVector<>& strain_k   ///< local strain (curvature part), x= torsion, y and z are line curvatures
+        ChMatrixNM<double, 6, 6>& K,  ///< 6x6 stiffness matrix
+        const ChVector<>& strain_e,   ///< local strain (deformation part): x= elongation, y and z are shear
+        const ChVector<>& strain_k    ///< local strain (curvature part), x= torsion, y and z are line curvatures
         ) override;
 };
 
-/// Advanced linear elasticity for a Cosserat section, not assuming homogeneous elasticity. 
-/// This is the case where one uses a FEA preprocessor to compute the rigidity of a complex beam 
+/// Advanced linear elasticity for a Cosserat section, not assuming homogeneous elasticity.
+/// This is the case where one uses a FEA preprocessor to compute the rigidity of a complex beam
 /// made with multi-layered reinforcements with different elasticity - in such a case you could not
 /// use ChElasticityCosseratAdvanced because you do not have a single E or G, but you rather
 /// have collective values of bending/shear/axial rigidities. This class allows using these values directly,
@@ -340,92 +340,91 @@ class ChApi ChElasticityCosseratAdvanced : public ChElasticityCosseratSimple {
 ///  m_z   [A       A A ]   k_z
 ///  </pre>
 /// \image html "http://www.projectchrono.org/assets/manual/fea_ChElasticityCosseratAdvanced.png"
-/// 
+///
 
 class ChApi ChElasticityCosseratAdvancedGeneric : public ChElasticityCosserat {
-private:
-    double Ax;      // axial rigidity
-    double Txx;     // torsion rigidity
-    double Byy;     // bending rigidity
-    double Bzz;     // bending rigidity
-    double Hyy;     // shear rigidity
-    double Hzz;     // shear rigidity
-    double alpha;   // rotation of reference at elastic center, for bending effects [rad]
-    double Cy;      // Centroid (elastic center, tension center)
+  private:
+    double Ax;     // axial rigidity
+    double Txx;    // torsion rigidity
+    double Byy;    // bending rigidity
+    double Bzz;    // bending rigidity
+    double Hyy;    // shear rigidity
+    double Hzz;    // shear rigidity
+    double alpha;  // rotation of reference at elastic center, for bending effects [rad]
+    double Cy;     // Centroid (elastic center, tension center)
     double Cz;
-    double beta;    // rotation of reference at shear center, for shear effects [rad]
-    double Sy;      // Shear center
+    double beta;  // rotation of reference at shear center, for shear effects [rad]
+    double Sy;    // Shear center
     double Sz;
-public:
 
-    ChElasticityCosseratAdvancedGeneric() : Ax(1), Txx(1), Byy(1), Bzz(1), Hyy(1), Hzz(1), alpha(0),Cy(0),Cz(0), beta(0), Sy(0),Sz(0) {}
+  public:
+    ChElasticityCosseratAdvancedGeneric()
+        : Ax(1), Txx(1), Byy(1), Bzz(1), Hyy(1), Hzz(1), alpha(0), Cy(0), Cz(0), beta(0), Sy(0), Sz(0) {}
 
-    ChElasticityCosseratAdvancedGeneric(    const double mAx,      ///< axial rigidity
-                                            const double mTxx,     ///< torsion rigidity
-                                            const double mByy,     ///< bending regidity on Y of reference at elastic center
-                                            const double mBzz,     ///< bending rigidity on Z of reference at elastic center
-                                            const double mHyy,     ///< shear rigidity on Y of reference at shear center
-                                            const double mHzz,     ///< shear rigidity on Y of reference at shear center
-                                            const double malpha,   ///< rotation of reference at elastic center, for bending effects [rad]
-                                            const double mCy,      ///< elastic center y displacement respect to centerline
-                                            const double mCz,      ///< elastic center z displacement respect to centerline
-                                            const double mbeta,    ///< rotation of reference at shear center, for shear effects [rad]
-                                            const double mSy,      ///< shear center y displacement respect to centerline
-                                            const double mSz       ///< shear center z displacement respect to centerline
-    ) :
-        Ax(mAx), Txx(mTxx), Byy(mByy), Bzz(mBzz), Hyy(mHyy), Hzz(mHzz), alpha(malpha), Cy(mCy), Cz(mCz), beta(mbeta), Sy(mSy), Sz(mSz) {}
-
+    ChElasticityCosseratAdvancedGeneric(
+        const double mAx,     ///< axial rigidity
+        const double mTxx,    ///< torsion rigidity
+        const double mByy,    ///< bending regidity on Y of reference at elastic center
+        const double mBzz,    ///< bending rigidity on Z of reference at elastic center
+        const double mHyy,    ///< shear rigidity on Y of reference at shear center
+        const double mHzz,    ///< shear rigidity on Y of reference at shear center
+        const double malpha,  ///< rotation of reference at elastic center, for bending effects [rad]
+        const double mCy,     ///< elastic center y displacement respect to centerline
+        const double mCz,     ///< elastic center z displacement respect to centerline
+        const double mbeta,   ///< rotation of reference at shear center, for shear effects [rad]
+        const double mSy,     ///< shear center y displacement respect to centerline
+        const double mSz      ///< shear center z displacement respect to centerline
+        )
+        : Ax(mAx),
+          Txx(mTxx),
+          Byy(mByy),
+          Bzz(mBzz),
+          Hyy(mHyy),
+          Hzz(mHzz),
+          alpha(malpha),
+          Cy(mCy),
+          Cz(mCz),
+          beta(mbeta),
+          Sy(mSy),
+          Sz(mSz) {}
 
     virtual ~ChElasticityCosseratAdvancedGeneric() {}
 
-
     /// Sets the axial rigidity, usually A*E for uniform elasticity, but for nonuniform elasticity
     /// here you can put a value ad-hoc from a preprocessor
-    virtual void SetAxialRigidity(const double mv) {
-        Ax = mv;
-    }
+    virtual void SetAxialRigidity(const double mv) { Ax = mv; }
 
-    /// Sets the torsion rigidity, for torsion about X axis, at elastic center, 
+    /// Sets the torsion rigidity, for torsion about X axis, at elastic center,
     /// usually J*G for uniform elasticity, but for nonuniform elasticity
-    /// here you can put a value ad-hoc from a preprocessor 
-    virtual void SetXtorsionRigidity(const double mv) {
-        Txx = mv;
-    }
+    /// here you can put a value ad-hoc from a preprocessor
+    virtual void SetXtorsionRigidity(const double mv) { Txx = mv; }
 
-    /// Sets the bending rigidity, for bending about Y axis, at elastic center, 
+    /// Sets the bending rigidity, for bending about Y axis, at elastic center,
     /// usually Iyy*E for uniform elasticity, but for nonuniform elasticity
     /// here you can put a value ad-hoc from a preprocessor
-    virtual void SetYbendingRigidity(const double mv) {
-        Byy = mv;
-    }
+    virtual void SetYbendingRigidity(const double mv) { Byy = mv; }
 
-    /// Sets the bending rigidity, for bending about Z axis, at elastic center, 
+    /// Sets the bending rigidity, for bending about Z axis, at elastic center,
     /// usually Izz*E for uniform elasticity, but for nonuniform elasticity
     /// here you can put a value ad-hoc from a preprocessor
-    virtual void SetZbendingRigidity(const double mv) {
-        Bzz = mv;
-    }
+    virtual void SetZbendingRigidity(const double mv) { Bzz = mv; }
 
-    /// Sets the shear rigidity, for shear about Y axis, at shear center, 
+    /// Sets the shear rigidity, for shear about Y axis, at shear center,
     /// usually A*G*(Timoshenko correction factor) for uniform elasticity, but for nonuniform elasticity
     /// here you can put a value ad-hoc from a preprocessor
-    virtual void SetYshearRigidity(const double mv) {
-        Hyy = mv;
-    }
+    virtual void SetYshearRigidity(const double mv) { Hyy = mv; }
 
-    /// Sets the shear rigidity, for shear about Z axis, at shear center, 
+    /// Sets the shear rigidity, for shear about Z axis, at shear center,
     /// usually A*G*(Timoshenko correction factor) for uniform elasticity, but for nonuniform elasticity
     /// here you can put a value ad-hoc from a preprocessor
-    virtual void SetZshearRigidity(const double mv) {
-        Hzz = mv;
-    }
+    virtual void SetZshearRigidity(const double mv) { Hzz = mv; }
 
-    /// Set the rotation in [rad]  of the Y Z axes for which the 
-    /// YbendingRigidity and ZbendingRigidity values are defined. 
+    /// Set the rotation in [rad]  of the Y Z axes for which the
+    /// YbendingRigidity and ZbendingRigidity values are defined.
     void SetSectionRotation(double ma) { this->alpha = ma; }
     double GetSectionRotation() { return this->alpha; }
 
-    /// "Elastic reference": set the displacement of the elastic center 
+    /// "Elastic reference": set the displacement of the elastic center
     /// (or tension center) respect to the reference section coordinate system placed at centerline.
     void SetCentroid(double my, double mz) {
         this->Cy = my;
@@ -434,8 +433,8 @@ public:
     double GetCentroidY() { return this->Cy; }
     double GetCentroidZ() { return this->Cz; }
 
-    /// Set the rotation in [rad] of the Y Z axes for which the 
-    /// YshearRigidity and ZshearRigidity values are defined. 
+    /// Set the rotation in [rad] of the Y Z axes for which the
+    /// YshearRigidity and ZshearRigidity values are defined.
     void SetShearRotation(double mb) { this->beta = mb; }
     double GetShearRotation() { return this->beta; }
 
@@ -463,13 +462,104 @@ public:
 
     /// Compute the 6x6 tangent material stiffness matrix [Km] = d&sigma;/d&epsilon;
     virtual void ComputeStiffnessMatrix(
-        ChMatrixNM<double, 6, 6>& K, ///< 6x6 stiffness matrix
+        ChMatrixNM<double, 6, 6>& K,  ///< 6x6 stiffness matrix
+        const ChVector<>& strain_e,   ///< local strain (deformation part): x= elongation, y and z are shear
+        const ChVector<>& strain_k    ///< local strain (curvature part), x= torsion, y and z are line curvatures
+        ) override;
+};
+
+// Add by PENG Chao
+class ChApi ChElasticityCosseratAdvancedGenericFPM : public ChElasticityCosserat {
+  public:
+    ChElasticityCosseratAdvancedGenericFPM()
+        : Klaw(ChMatrixNM<double, 6, 6>::Identity(6, 6)), alpha(0), Cy(0), Cz(0), beta(0), Sy(0), Sz(0) {}
+
+    ChElasticityCosseratAdvancedGenericFPM(
+        const ChMatrixNM<double, 6, 6> mKlaw,  ///< 6x6 material stiffness matrix of cross-section
+        const double malpha,                   ///< rotation of reference at elastic center, for bending effects [rad]
+        const double mCy,                      ///< elastic center y displacement respect to centerline
+        const double mCz,                      ///< elastic center z displacement respect to centerline
+        const double mbeta,                    ///< rotation of reference at shear center, for shear effects [rad]
+        const double mSy,                      ///< shear center y displacement respect to centerline
+        const double mSz                       ///< shear center z displacement respect to centerline
+        )
+        : Klaw(mKlaw), alpha(malpha), Cy(mCy), Cz(mCz), beta(mbeta), Sy(mSy), Sz(mSz) {}
+
+    virtual ~ChElasticityCosseratAdvancedGenericFPM() {}
+
+    virtual void SetEMatrix(const ChMatrixNM<double, 6, 6> mKlaw) { Klaw = mKlaw; }
+
+    virtual ChMatrixNM<double, 6, 6>& GetEMatrix() { return Klaw; }
+
+    /// Set the rotation in [rad]  of the Y Z axes for which the
+    /// YbendingRigidity and ZbendingRigidity values are defined.
+    void SetSectionRotation(double ma) { this->alpha = ma; }
+    double GetSectionRotation() { return this->alpha; }
+
+    /// "Elastic reference": set the displacement of the elastic center
+    /// (or tension center) respect to the reference section coordinate system placed at centerline.
+    void SetCentroid(double my, double mz) {
+        this->Cy = my;
+        this->Cz = mz;
+    }
+    double GetCentroidY() { return this->Cy; }
+    double GetCentroidZ() { return this->Cz; }
+
+    /// Set the rotation in [rad] of the Y Z axes for which the
+    /// YshearRigidity and ZshearRigidity values are defined.
+    void SetShearRotation(double mb) { this->beta = mb; }
+    double GetShearRotation() { return this->beta; }
+
+    /// "Shear reference": set the displacement of the shear center S
+    /// respect to the reference beam line placed at centerline. For shapes like rectangles,
+    /// rotated rectangles, etc., it corresponds to the elastic center C, but
+    /// for "L" shaped or "U" shaped beams this is not always true, and
+    /// the shear center accounts for torsion effects when a shear force is applied.
+    void SetShearCenter(double my, double mz) {
+        this->Sy = my;
+        this->Sz = mz;
+    }
+    double GetShearCenterY() { return this->Sy; }
+    double GetShearCenterZ() { return this->Sz; }
+
+    // Need to update the material stiffness matrix Klaw
+    // after input section rotation and elastic center/shear center offset.
+    // This should be called by end user.
+    void UpdateEMatrix();
+
+    // Interface to base:
+
+    /// Compute the generalized cut force and cut torque.
+    virtual void ComputeStress(
+        ChVector<>& stress_n,        ///< local stress (generalized force), x component = traction along beam
+        ChVector<>& stress_m,        ///< local stress (generalized torque), x component = torsion torque along beam
         const ChVector<>& strain_e,  ///< local strain (deformation part): x= elongation, y and z are shear
         const ChVector<>& strain_k   ///< local strain (curvature part), x= torsion, y and z are line curvatures
         ) override;
 
-};
+    /// Compute the 6x6 tangent material stiffness matrix [Km] = d&sigma;/d&epsilon;
+    virtual void ComputeStiffnessMatrix(
+        ChMatrixNM<double, 6, 6>& K,  ///< 6x6 stiffness matrix
+        const ChVector<>& strain_e,   ///< local strain (deformation part): x= elongation, y and z are shear
+        const ChVector<>& strain_k    ///< local strain (curvature part), x= torsion, y and z are line curvatures
+        ) override;
 
+  private:
+    void ComputeTransformMatrix();
+
+    ChMatrixNM<double, 6, 6> Klaw;  // 6x6 material stiffness matrix of cross-section
+    double alpha;                   // rotation of reference at elastic center, for bending effects [rad]
+    double Cy;                      // Centroid (elastic center, tension center)
+    double Cz;
+    double beta;  // rotation of reference at shear center, for shear effects [rad]
+    double Sy;    // Shear center
+    double Sz;
+
+    ChMatrixNM<double, 6, 6> T;
+
+  public:
+    EIGEN_MAKE_ALIGNED_OPERATOR_NEW
+};
 
 /// Elasticity for a beam section in 3D, where the section is
 /// defined by a mesh of triangles.
@@ -528,14 +618,14 @@ class ChApi ChElasticityCosseratMesh : public ChElasticityCosserat {
     /// in the Vertexes() array, where 0 is the 1st vertex etc.
     std::vector<ChVector<int>>& Triangles() { return triangles; }
 
-    /// Set rectangular centered section, using two triangles. 
-	/// Note: for testing only, use ChElasticityCosseratSimple instead. 
-	/// No material defined: you still must set E and G.
+    /// Set rectangular centered section, using two triangles.
+    /// Note: for testing only, use ChElasticityCosseratSimple instead.
+    /// No material defined: you still must set E and G.
     virtual void SetAsRectangularSection(double width_y, double width_z);
 
-    /// Set circular centered, using n triangles. 
-	/// Note: for testing only, use ChElasticityCosseratSimple instead. 
-	/// No material defined: you still must set E and G.
+    /// Set circular centered, using n triangles.
+    /// Note: for testing only, use ChElasticityCosseratSimple instead.
+    /// No material defined: you still must set E and G.
     virtual void SetAsCircularSection(double diameter);
 
     // Interface to base:
@@ -564,9 +654,7 @@ class ChApi ChElasticityCosseratMesh : public ChElasticityCosserat {
     std::vector<ChVector<int>> triangles;
 };
 
-
 //----------------------------------------------------------------------------------------
-
 
 /// Base class for plasticity of beam sections of Cosserat type.
 /// This can be shared between multiple beams.
@@ -606,9 +694,9 @@ class ChApi ChPlasticityCosserat {
     /// known (preferred for high performance), otherwise the base behaviour here is to compute
     /// [Km] by numerical differentiation calling ComputeStressWithReturnMapping() multiple times.
     virtual void ComputeStiffnessMatrixElastoplastic(
-        ChMatrixNM<double, 6, 6>& K, ///< 6x6 material stiffness matrix values here
-        const ChVector<>& strain_e,  ///< tot strain (deformation part): x= elongation, y and z are shear
-        const ChVector<>& strain_k,  ///< tot strain (curvature part), x= torsion, y and z are line curvatures
+        ChMatrixNM<double, 6, 6>& K,  ///< 6x6 material stiffness matrix values here
+        const ChVector<>& strain_e,   ///< tot strain (deformation part): x= elongation, y and z are shear
+        const ChVector<>& strain_k,   ///< tot strain (curvature part), x= torsion, y and z are line curvatures
         const ChBeamMaterialInternalData& data  ///< updated material internal variables, at this point,
                                                 ///< including {p_strain_e, p_strain_k, p_strain_acc}
     );
@@ -618,7 +706,6 @@ class ChApi ChPlasticityCosserat {
     // Thanks to unique_ptr there is no need to call delete for the pointed objects.
     virtual void CreatePlasticityData(int numpoints,
                                       std::vector<std::unique_ptr<ChBeamMaterialInternalData>>& plastic_data);
-
 
     ChBeamSectionCosserat* section;
     double nr_yeld_tolerance;
@@ -702,7 +789,6 @@ class ChApi ChPlasticityCosseratLumped : public ChPlasticityCosserat {
     virtual void CreatePlasticityData(int numpoints,
                                       std::vector<std::unique_ptr<ChBeamMaterialInternalData>>& plastic_data) override;
 
-
     std::shared_ptr<ChFunction> n_yeld_x;   ///< sigma_y(p_strain_acc)
     std::shared_ptr<ChFunction> n_beta_x;   ///< beta(p_strain_acc)
     std::shared_ptr<ChFunction> n_yeld_y;   ///< sigma_y(p_strain_acc)
@@ -717,10 +803,7 @@ class ChApi ChPlasticityCosseratLumped : public ChPlasticityCosserat {
     std::shared_ptr<ChFunction> n_beta_Mz;  ///< beta(p_strain_acc)
 };
 
-
 //-----------------------------------------------------------------------------------------------
-
-
 
 /// Base interface for structural damping of beam sections of Cosserat type,
 /// where xyz force "n" and xyz torque "m" are a 6-dimensional function of
@@ -751,7 +834,6 @@ class ChApi ChDampingCosserat {
                                       const ChVector<>& dstrain_e,  ///< current strain speed (deformation part)
                                       const ChVector<>& dstrain_k   ///< current strain speed (curvature part)
     );
-
 
     ChBeamSectionCosserat* section;
 };
@@ -792,12 +874,10 @@ class ChApi ChDampingCosseratLinear : public ChDampingCosserat {
     ChVector<> GetDampingCoefficientsRk() { return R_k; }
     void SetDampingCoefficientsRk(const ChVector<> mR_k) { R_k = mR_k; }
 
-
   private:
     ChVector<> R_e;
     ChVector<> R_k;
 };
-
 
 /// Simple Rayleigh damping of beam sections of Cosserat type,
 /// where damping is proportional to stiffness via a beta coefficient.
@@ -808,7 +888,7 @@ class ChApi ChDampingCosseratLinear : public ChDampingCosserat {
 ///   <pre>
 ///   {n,m}=beta*[E]*{e',k'}
 ///   </pre>
-/// where 
+/// where
 /// - beta is the 2nd Rayleigh damping parameter
 /// - [E] is the 6x6 material stiffness matrix at the undeformed unstressed case (hence assumed constant)
 /// - {e',k'} is the speed of deformation/curvature
@@ -817,14 +897,14 @@ class ChApi ChDampingCosseratLinear : public ChDampingCosserat {
 
 class ChApi ChDampingCosseratRayleigh : public ChDampingCosserat {
   public:
-		/// Construct the Rayleigh damping model from the stiffness model used by the section.
-		/// This is important because the Rayleigh damping is proportional to the stiffness,
-		/// so the model must know which is the stiffness matrix of the material.
-	    /// Note: melasticity must be alreay set with proper values: its [E] stiffness matrix will be
-		/// fetched just once for all.
-	ChDampingCosseratRayleigh(std::shared_ptr<ChElasticityCosserat> melasticity, const double& mbeta = 0);
+    /// Construct the Rayleigh damping model from the stiffness model used by the section.
+    /// This is important because the Rayleigh damping is proportional to the stiffness,
+    /// so the model must know which is the stiffness matrix of the material.
+    /// Note: melasticity must be alreay set with proper values: its [E] stiffness matrix will be
+    /// fetched just once for all.
+    ChDampingCosseratRayleigh(std::shared_ptr<ChElasticityCosserat> melasticity, const double& mbeta = 0);
 
-	virtual ~ChDampingCosseratRayleigh() {}
+    virtual ~ChDampingCosseratRayleigh() {}
 
     /// Compute the generalized cut force and cut torque, caused by structural damping,
     /// given actual deformation speed and curvature speed.
@@ -842,152 +922,223 @@ class ChApi ChDampingCosseratRayleigh : public ChDampingCosserat {
                                       const ChVector<>& dstrain_k   ///< current strain speed (curvature part)
                                       ) override;
 
-	/// Get the beta Rayleigh parameter (stiffness proportional damping)
+    /// Get the beta Rayleigh parameter (stiffness proportional damping)
     double GetBeta() { return beta; }
     /// Set the beta Rayleigh parameter (stiffness proportional damping)
-	void SetBeta(const double mbeta) { beta = mbeta; }
+    void SetBeta(const double mbeta) { beta = mbeta; }
 
-	/// After you added this damping to a ChBeamSectionCosserat, in case you have changed some parameters in the stiffness model after creating 
-	/// this Rayleigh damping, you must call this UpdateStiffnessModel() method so that here we
-	/// update the [E] 6x6 material stiffness matrix, which is stored here as private and constant data for performance
-	void UpdateStiffnessModel();
-
+    /// After you added this damping to a ChBeamSectionCosserat, in case you have changed some parameters in the
+    /// stiffness model after creating this Rayleigh damping, you must call this UpdateStiffnessModel() method so that
+    /// here we update the [E] 6x6 material stiffness matrix, which is stored here as private and constant data for
+    /// performance
+    void UpdateStiffnessModel();
 
   private:
-	std::shared_ptr<ChElasticityCosserat> section_elasticity;
-    ChMatrixNM<double, 6, 6> E_const; // to store the precomputed stiffness matrix at undeformed unstressed initial state
-	double beta;
-	bool updated;
+    std::shared_ptr<ChElasticityCosserat> section_elasticity;
+    ChMatrixNM<double, 6, 6>
+        E_const;  // to store the precomputed stiffness matrix at undeformed unstressed initial state
+    double beta;
+    bool updated;
 
   public:
     EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 };
 
-
-
 ////////////////////////////////////////////////////////////////////////////////////
 
-
-/// Base class for ineri tal properties (mass, moment of inertia) of beam sections of Cosserat type.
+/// Base class for inertial properties (mass, moment of inertia) of beam sections of Cosserat type.
 /// This can be shared between multiple beams.
 class ChApi ChInertiaCosserat {
   public:
-	ChInertiaCosserat() : section(nullptr) {};
+    ChInertiaCosserat() : section(nullptr){};
 
     virtual ~ChInertiaCosserat() {}
 
-    /// Compute the 6x6 sectional inertia matrix, as in  {x_momentum,w_momentum}=[Mm]{xvel,wvel} 
+    /// Compute the 6x6 sectional inertia matrix, as in  {x_momentum,w_momentum}=[Mi]{xvel,wvel}
     /// The matrix is computed in the material reference (i.e. it is the sectional mass matrix)
-    virtual void ComputeInertiaMatrix(ChMatrixNM<double, 6, 6>& M  ///< 6x6 sectional mass matrix values here
+    virtual void ComputeInertiaMatrix(ChMatrixNM<double, 6, 6>& Mi  ///< 6x6 sectional mass matrix here
                                       ) = 0;
+
+    /// Compute the 6x6 sectional inertia damping matrix [Ri] (gyroscopic matrix damping), as in linearization
+    ///  dFi=[Mi]*d{xacc,wacc}+[Ri]*d{xvel,wvel}+[Ki]*d{pos,rot}
+    /// The matrix is computed in the material reference, i.e. both linear and rotational coords assumed in the basis of
+    /// the centerline reference. Default implementation: falls back to numerical differentiation of
+    /// ComputeInertialForce to compute Ri, please override this if analytical formula of Ri is known!
+    virtual void ComputeInertiaDampingMatrix(
+        ChMatrixNM<double, 6, 6>& Ri,  ///< 6x6 sectional inertial-damping (gyroscopic damping) matrix here
+        const ChVector<>& mW           ///< current angular velocity of section, in material frame
+    );
+
+    /// Compute the 6x6 sectional inertia stiffness matrix [Ki^], as in linearization
+    ///  dFi=[Mi]*d{xacc,wacc}+[Ri]*d{xvel,wvel}+[Ki]*d{pos,rot}
+    /// The matrix is computed in the material reference.
+    /// NOTE the matrix already contains the 'geometric' stiffness, so it transforms to absolute transl/local rot just
+    /// like [Mi] and [Ri]:
+    ///  [Ki]_al =[R,0;0,I]*[Ki^]*[R',0;0,I']  , with [Ki^]=([Ki]+[0,f~';0,0])  for f=current force part of inertial
+    ///  forces.
+    /// Default implementation: falls back to numerical differentiation of ComputeInertialForce to compute Ki^,
+    /// please override this if analytical formula of Ki^ is known!
+    virtual void ComputeInertiaStiffnessMatrix(
+        ChMatrixNM<double, 6, 6>& Ki,  ///< 6x6 sectional inertial-stiffness matrix [Ki^] here
+        const ChVector<>& mWvel,       ///< current angular velocity of section, in material frame
+        const ChVector<>& mWacc,       ///< current angular acceleration of section, in material frame
+        const ChVector<>& mXacc        ///< current acceleration of section, in material frame (not absolute!)
+    );
 
     /// Compute the values of inertial force & torque depending on quadratic velocity terms,
-    /// that is the gyroscopic torque and the centrifugal term (if any). All terms expressed 
+    /// that is the gyroscopic torque and the centrifugal term (if any). All terms expressed
     /// in the material reference, ie. the reference in the centerline of the section.
-    virtual void ComputeQuadraticTerms(ChVector<>& mF,   ///< centrifugal term (if any) returned here
-                                       ChVector<>& mT,   ///< gyroscopic term  returned here
-                                       const ChVector<>& mW    ///< current angular velocity of section, in material frame
-                                      ) = 0;
+    virtual void ComputeQuadraticTerms(ChVector<>& mF,       ///< centrifugal term (if any) returned here
+                                       ChVector<>& mT,       ///< gyroscopic term  returned here
+                                       const ChVector<>& mW  ///< current angular velocity of section, in material frame
+                                       ) = 0;
 
-    /// Compute mass per unit length, ex.SI units [kg/m]. 
+    /// Compute the total inertial wrench, ie forces and torques (per unit length).
+    /// Note: both force and torque are returned in the basis of the material frame (not the absolute frame!),
+    /// ex. to apply it to a Chrono body, the force must be rotated to absolute basis.
+    /// Default implementation: falls back to  Fi = [Mi]*{xacc,wacc}+{mF,mT}
+    /// where [Mi] is given by ComputeInertiaMatrix() and {F_quad,T_quad} are given by ComputeQuadraticTerms(), i.e.
+    /// gyro and centrif.terms. For faster implementations one can override this, ex. avoid doing the [Mi] matrix
+    /// product.
+    virtual void ComputeInertialForce(
+        ChVector<>& mFi,          ///< total inertial force returned here, in basis of material frame
+        ChVector<>& mTi,          ///< total inertial torque returned here, in basis of material frame
+        const ChVector<>& mWvel,  ///< current angular velocity of section, in material frame
+        const ChVector<>& mWacc,  ///< current angular acceleration of section, in material frame
+        const ChVector<>& mXacc   ///< current acceleration of section, in material frame (not absolute!)
+    );
+
+    /// Compute mass per unit length, ex.SI units [kg/m].
     /// This is also the(0, 0) element in the sectional inertia matrix.
     virtual double GetMassPerUnitLength() = 0;
 
-	ChBeamSectionCosserat* section;
+    ChBeamSectionCosserat* section;
+
+    // Optimization flags
+
+    /// Flag that turns on/off the computation of the [Ri] 'gyroscopic' inertial damping matrix.
+    /// If false, Ri=0. Can be used for cpu speedup, profiling, tests. Default: true.
+    bool compute_inertia_damping_matrix = true;
+
+    /// Flag that turns on/off the computation of the [Ki] inertial stiffness matrix.
+    /// If false, Ki=0. Can be used for cpu speedup, profiling, tests. Default: true.
+    bool compute_inertia_stiffness_matrix = true;
+
+    /// Flag for computing the Ri and Ki matrices via numerical differentiation even if
+    /// an analytical expression is provided. Children calsses must take care of this. Default: false.
+    bool compute_Ri_Ki_by_num_diff = false;
 };
 
-
-
-/// Inertia properties of a beam of Cosserat type, defined from an uniform density [kg/m^3], 
+/// Inertia properties of a beam of Cosserat type, defined from an uniform density [kg/m^3],
 /// and the following geometric information:
-///  - a section area 
+///  - a section area
 ///  - Iyy Izz second moments of area
 /// The polar moment of area is automatically inferred via perpendicular axis theorem, Ip=Iyy+Izz.
 /// The section is assumed aligned to principal axis of the moment of area tensor, ie. Iyz=0,
 /// The section is assumed to be centered in the center of mass,
 /// The density is constant.
-/// 
+///
 /// \image html "http://www.projectchrono.org/assets/manual/fea_ChInertiaCosseratSimple.png"
 ///
 class ChApi ChInertiaCosseratSimple : public ChInertiaCosserat {
   public:
+    ChInertiaCosseratSimple() : rho(1000), A(1), Izz(1), Iyy(1){};
 
-	ChInertiaCosseratSimple() 
-						: rho(1000), A(1), Izz(1), Iyy(1) {};
-
-	ChInertiaCosseratSimple(double density,			///< the density fo the material [kg/m^3], assumed constant
-						    double Area,			///< area of the section, [m^2]
-							double Iyy_area_moment,	///< second moment of area [m^4] about Y 
-							double Izz_area_moment	///< second moment of area [m^4] about Z 
-							) 
-						: rho(density), A(Area), Izz(Izz_area_moment), Iyy(Iyy_area_moment) {};
+    ChInertiaCosseratSimple(double density,          ///< the density fo the material [kg/m^3], assumed constant
+                            double Area,             ///< area of the section, [m^2]
+                            double Iyy_area_moment,  ///< second moment of area [m^4] about Y
+                            double Izz_area_moment   ///< second moment of area [m^4] about Z
+                            )
+        : rho(density), A(Area), Izz(Izz_area_moment), Iyy(Iyy_area_moment){};
 
     virtual ~ChInertiaCosseratSimple() {}
 
-    /// Compute the 6x6 sectional inertia matrix, as in  {x_momentum,w_momentum}=[Mm]{xvel,wvel} 
+    /// Compute the 6x6 sectional inertia matrix, as in  {x_momentum,w_momentum}=[Mi]{xvel,wvel}
     /// The matrix is computed in the material reference (i.e. it is the sectional mass matrix).
-    /// In this case it is simply a constant diagonal mass matrix with diagonal 
+    /// In this case it is simply a constant diagonal mass matrix with diagonal
     /// {rho*A,rho*A,rho*A, rho*Iyy+Izz, rho*Iyy, rho*Izz}
-    virtual void ComputeInertiaMatrix(ChMatrixNM<double, 6, 6>& M  ///< 6x6 sectional mass matrix values here
+    virtual void ComputeInertiaMatrix(ChMatrixNM<double, 6, 6>& Mi  ///< 6x6 sectional mass matrix values here
                                       ) override;
+
+    /// Compute the 6x6 sectional inertia damping matrix [Ri] (gyroscopic matrix damping), as in linearization
+    ///  dFi=[Mi]*d{xacc,wacc}+[Ri]*d{xvel,wvel}+[Ki]*d{pos,rot}
+    /// The matrix is computed in the material reference, i.e. both linear and rotational coords assumed in the basis of
+    /// the centerline reference.
+    virtual void ComputeInertiaDampingMatrix(
+        ChMatrixNM<double, 6, 6>& Ri,  ///< 6x6 sectional inertial-damping (gyroscopic damping) matrix values here
+        const ChVector<>& mW           ///< current angular velocity of section, in material frame
+        ) override;
+
+    /// Compute the 6x6 sectional inertia stiffness matrix [Ki^], as in linearization
+    ///  dFi=[Mi]*d{xacc,wacc}+[Ri]*d{xvel,wvel}+[Ki]*d{pos,rot}
+    /// The matrix is computed in the material reference.
+    /// NOTE the matrix already contains the 'geometric' stiffness, so it transforms to absolute transl/local rot just
+    /// like [Mi] and [Ri]:
+    ///  [Ki]_al =[R,0;0,I]*[Ki^]*[R',0;0,I']  , with [Ki^]=([Ki]+[0,f~';0,0])  for f=current force part of inertial
+    ///  forces.
+    virtual void ComputeInertiaStiffnessMatrix(
+        ChMatrixNM<double, 6, 6>& Ki,  ///< 6x6 sectional inertial-stiffness matrix [Ki^] values here
+        const ChVector<>& mWvel,       ///< current angular velocity of section, in material frame
+        const ChVector<>& mWacc,       ///< current angular acceleration of section, in material frame
+        const ChVector<>& mXacc        ///< current acceleration of section, in material frame (not absolute!)
+        ) override;
 
     /// Compute the values of inertial torque depending on quadratic velocity terms, per unit length,
-    /// that is the gyroscopic torque w x [J]w . Quadratic force is null as mass is centered. All terms expressed 
+    /// that is the gyroscopic torque w x [J]w . Quadratic force is null as mass is centered. All terms expressed
     /// in the material reference, ie. the reference in the centerline of the section.
-    virtual void ComputeQuadraticTerms(ChVector<>& mF,   ///< centrifugal term (if any) returned here
-                                       ChVector<>& mT,   ///< gyroscopic term  returned here
-                                       const ChVector<>& mW    ///< current angular velocity of section, in material frame
-                                      ) override;
+    virtual void ComputeQuadraticTerms(ChVector<>& mF,       ///< centrifugal term (if any) returned here
+                                       ChVector<>& mT,       ///< gyroscopic term  returned here
+                                       const ChVector<>& mW  ///< current angular velocity of section, in material frame
+                                       ) override;
 
+    /// Compute mass per unit length, ex.SI units [kg/m]
+    /// In this case is simply  \f$ \mu = \rho A \f$, given area in [m^2] and with \f$ \rho \f$ density in [kg/m^3].
+    virtual double GetMassPerUnitLength() override { return this->rho * this->A; }
 
-	/// Compute mass per unit length, ex.SI units [kg/m]
-	/// In this case is simply  \f$ \mu = \rho A \f$, given area in [m^2] and with \f$ \rho \f$ density in [kg/m^3].
-	virtual double GetMassPerUnitLength() override { return this->rho * this->A; }
+    /// Compute the Jxx component of the inertia tensor per unit length,
+    /// i.e. the part associated with rotation about the beam direction.
+    /// In this case it is \f$ J_{xx} = \rho I_p \f$, where \f$ I_p = I_{zz} + I_{yy} \f$ is the polar moment of area.
+    virtual double GetInertiaJxxPerUnitLength() { return this->rho * (this->Iyy + this->Izz); }
 
+    /// Compute the Jyy component of the inertia tensor per unit length,
+    /// i.e. the part associated with rotation of the section on its Y axis.
+    /// Defined as: \f$ J_{yy} = \int_\Omega \rho z^2 d\Omega \f$, with \f$ \rho \f$ density in [kg/m^3].
+    /// For uniform density it is  \f$ J_{yy} = \rho I_{yy} \f$, where \f$ I_{yy} =  \int_\Omega z^2 d\Omega \f$ is the
+    /// second moment of area.
+    virtual double GetInertiaJyyPerUnitLength() { return this->rho * this->Iyy; }
 
-	/// Compute the Jxx component of the inertia tensor per unit length,
-	/// i.e. the part associated with rotation about the beam direction.
-	/// In this case it is \f$ J_{xx} = \rho I_p \f$, where \f$ I_p = I_{zz} + I_{yy} \f$ is the polar moment of area. 
-	virtual double GetInertiaJxxPerUnitLength()  { return this->rho * (this->Iyy + this->Izz); }
+    /// Compute the Jzz component of the inertia tensor per unit length,
+    /// i.e. the part associated with rotation of the section on its Z axis.
+    /// Defined as: \f$ J_{zz} = \int_\Omega \rho y^2 d\Omega \f$, with \f$ \rho \f$ density in [kg/m^3].
+    /// For uniform density it is  \f$ J_{zz} = \rho I_{zz} \f$, where \f$ I_{zz} =  \int_\Omega y^2 d\Omega \f$ is the
+    /// second moment of area.
+    virtual double GetInertiaJzzPerUnitLength() { return this->rho * this->Izz; }
 
-	/// Compute the Jyy component of the inertia tensor per unit length,
-	/// i.e. the part associated with rotation of the section on its Y axis.
-	/// Defined as: \f$ J_{yy} = \int_\Omega \rho z^2 d\Omega \f$, with \f$ \rho \f$ density in [kg/m^3].
-	/// For uniform density it is  \f$ J_{yy} = \rho I_{yy} \f$, where \f$ I_{yy} =  \int_\Omega z^2 d\Omega \f$ is the second moment of area. 
-	virtual double GetInertiaJyyPerUnitLength()  { return this->rho * this->Iyy; }
+    /// Set the volumetric density, assumed constant in the section. Ex. SI units: [kg/m^3].
+    void SetDensity(const double md) { rho = md; }
+    double GetDensity() const { return rho; }
 
-	/// Compute the Jzz component of the inertia tensor per unit length,
-	/// i.e. the part associated with rotation of the section on its Z axis.
-	/// Defined as: \f$ J_{zz} = \int_\Omega \rho y^2 d\Omega \f$, with \f$ \rho \f$ density in [kg/m^3].
-	/// For uniform density it is  \f$ J_{zz} = \rho I_{zz} \f$, where \f$ I_{zz} =  \int_\Omega y^2 d\Omega \f$ is the second moment of area. 
-	virtual double GetInertiaJzzPerUnitLength()  { return this->rho * this->Izz; }
+    /// Set the area of section for computing mass properties. Ex. SI units: [m^2]
+    void SetArea(const double ma) { A = ma; }
+    double GetArea() const { return A; }
 
-	/// Set the volumetric density, assumed constant in the section. Ex. SI units: [kg/m^3].
-	void SetDensity(const double md) {	rho = md; }
-	double GetDensity() const { return rho; }
-
-	/// Set the area of section for computing mass properties. Ex. SI units: [m^2]
-	void SetArea(const double ma) {	A = ma; }
-	double GetArea() const { return A; }
-
-	/// Set the Iyy second moment of area of the beam (for bending about y in xz plane),
-	/// defined as \f$ I_{yy} =  \int_\Omega z^2 d\Omega \f$. 
+    /// Set the Iyy second moment of area of the beam (for bending about y in xz plane),
+    /// defined as \f$ I_{yy} =  \int_\Omega z^2 d\Omega \f$.
     /// Note: some textbook calls this Iyy as Iy.
-	/// Note: it can correspond to the same Iyy that you used for the elasticity, ex. in ChElasticityCosseratSimple.
-	/// Ex. SI units: [m^4]
-	void SetIyy(double mi) { this->Iyy = mi; }
+    /// Note: it can correspond to the same Iyy that you used for the elasticity, ex. in ChElasticityCosseratSimple.
+    /// Ex. SI units: [m^4]
+    void SetIyy(double mi) { this->Iyy = mi; }
     double GetIyy() const { return this->Iyy; }
 
-	/// Set the Izz second moment of area of the beam (for bending about z in xy plane),
-	/// defined as \f$ I_{zz} =  \int_\Omega y^2 d\Omega \f$. 
+    /// Set the Izz second moment of area of the beam (for bending about z in xy plane),
+    /// defined as \f$ I_{zz} =  \int_\Omega y^2 d\Omega \f$.
     /// Note: some textbook calls this Izz as Iz.
-	/// Note: it can correspond to the same Izz that you used for the elasticity, ex. in ChElasticityCosseratSimple.
-	/// Ex. SI units: [m^4]
-	void SetIzz(double mi) { this->Izz = mi; }
+    /// Note: it can correspond to the same Izz that you used for the elasticity, ex. in ChElasticityCosseratSimple.
+    /// Ex. SI units: [m^4]
+    void SetIzz(double mi) { this->Izz = mi; }
     double GetIzz() const { return this->Izz; }
 
-
-	/// Shortcut: set Izz, Iyy, Area and density at once, given the y and z widths of the beam assumed
+    /// Shortcut: set Izz, Iyy, Area and density at once, given the y and z widths of the beam assumed
     /// with rectangular shape, and volumetric density. Assuming centered section.
     virtual void SetAsRectangularSection(double width_y, double width_z, double density);
 
@@ -995,147 +1146,160 @@ class ChApi ChInertiaCosseratSimple : public ChInertiaCosserat {
     /// with circular shape, and volumetric density. Assuming centered section.
     virtual void SetAsCircularSection(double diameter, double density);
 
-private:
-	double rho; // density
-	double A;   // Area
-	double Izz; // moment of area: m^4
-	double Iyy; // moment of area: m^4
+  private:
+    double rho;  // density
+    double A;    // Area
+    double Izz;  // moment of area: m^4
+    double Iyy;  // moment of area: m^4
 };
-
 
 // for backward compatibility - note it WILL BE DEPRECATED
 using ChInertiaCosseratUniformDensity = ChInertiaCosseratSimple;
 
-
-
-
-
-/// Inertia properties of a beam of Cosserat type, not necessarily of uniform density, 
+/// Inertia properties of a beam of Cosserat type, not necessarily of uniform density,
 /// from the following information that allows the center of mass to be
 /// offset respect to the beam centerline:
-///  - a mass per unit length 
+///  - a mass per unit length
 ///  - offset of the center of mass Cm along Y Z section axes,
 ///  - Jyy Jzz Jzy moments of inertia computed in section reference Y Z, not rotated and origin in centerline
 /// The polar moment of area is automatically inferred via perpendicular axis theorem.
-/// 
+///
 /// \image html "http://www.projectchrono.org/assets/manual/fea_ChInertiaCosseratAdvanced.png"
 ///
 
 class ChApi ChInertiaCosseratAdvanced : public ChInertiaCosserat {
   public:
+    ChInertiaCosseratAdvanced() : mu(1), cm_y(0), cm_z(0), Jzz(1), Jyy(1), Jyz(0){};
 
-	ChInertiaCosseratAdvanced() 
-						: mu(1), cm_y(0), cm_z(0), Jzz(1), Jyy(1), Jyz(0) {};
+    ChInertiaCosseratAdvanced(double mu_density,  ///< mass per unit length [kg/m]
+                              double c_y,         ///< displacement of center of mass along Y
+                              double c_z,         ///< displacement of center of mass along Z
+                              double Jyy_moment,  ///< moment of inertia per unit length, about Y. Also Jyy= Mm(4,4)
+                              double Jzz_moment,  ///< moment of inertia per unit length, about Z. Also Jzz= Mm(5,5)
+                              double Jyz_moment   ///< moment of inertia per unit length, about YZ (off diagonal term).
+                                                  ///< Also Jyz= -Mm(4,5) = -Mm(5,4)
+                              )
+        : mu(mu_density), cm_y(c_y), cm_z(c_z), Jzz(Jzz_moment), Jyy(Jyy_moment), Jyz(Jyz_moment){};
 
-	ChInertiaCosseratAdvanced(double mu_density,    ///< mass per unit length [kg/m] 
-		                    double c_y,             ///< displacement of center of mass along Y
-                            double c_z,             ///< displacement of center of mass along Z					
-                            double Jyy_moment,	    ///< moment of inertia per unit length, about Y. Also Jyy= Mm(4,4)
-							double Jzz_moment,	    ///< moment of inertia per unit length, about Z. Also Jzz= Mm(5,5)
-                            double Jyz_moment       ///< moment of inertia per unit length, about YZ (off diagonal term). Also Jyz= -Mm(4,5) = -Mm(5,4)
-							) 
-						: mu(mu_density), cm_y(0), cm_z(0), Jzz(Jzz_moment), Jyy(Jyy_moment), Jyz(Jyz_moment) {};
+    ChInertiaCosseratAdvanced(double mu_density,  ///< mass per unit length [kg/m]
+                              double c_y,         ///< displacement of center of mass along Y
+                              double c_z,         ///< displacement of center of mass along Z
+                              ChVector<> Ivals)
+        : mu(mu_density), cm_y(c_y), cm_z(c_z), Jzz(Ivals.y()), Jyy(Ivals.x()), Jyz(Ivals.z()){};
 
     virtual ~ChInertiaCosseratAdvanced() {}
 
-    /// Compute the 6x6 sectional inertia matrix, as in  {x_momentum,w_momentum}=[Mm]{xvel,wvel} 
-    /// The matrix is computed in the material reference (i.e. it is the sectional mass matrix).
+    /// Compute the 6x6 sectional inertia matrix, as in  {x_momentum,w_momentum}=[Mi]{xvel,wvel}
+    /// The matrix is computed in the material reference..
     virtual void ComputeInertiaMatrix(ChMatrixNM<double, 6, 6>& M  ///< 6x6 sectional mass matrix values here
                                       ) override;
 
+    /// Compute the 6x6 sectional inertia damping matrix [Ri] (gyroscopic matrix damping), as in linearization
+    ///  dFi=[Mi]*d{xacc,wacc}+[Ri]*d{xvel,wvel}+[Ki]*d{pos,rot}
+    /// The matrix is computed in the material reference.
+    virtual void ComputeInertiaDampingMatrix(
+        ChMatrixNM<double, 6, 6>& Ri,  ///< 6x6 sectional inertial-damping (gyroscopic damping) matrix values here
+        const ChVector<>& mW           ///< current angular velocity of section, in material frame
+        ) override;
+
+    /// Compute the 6x6 sectional inertia stiffness matrix [Ki^], as in linearization
+    ///  dFi=[Mi]*d{xacc,wacc}+[Ri]*d{xvel,wvel}+[Ki]*d{pos,rot}
+    /// The matrix is computed in the material reference.
+    /// NOTE the matrix already contains the 'geometric' stiffness, so it transforms to absolute transl/local rot just
+    /// like [Mi] and [Ri]:
+    ///  [Ki]_al =[R,0;0,I]*[Ki^]*[R',0;0,I']  , with [Ki^]=([Ki]+[0,f~';0,0])  for f=current force part of inertial
+    ///  forces.
+    virtual void ComputeInertiaStiffnessMatrix(
+        ChMatrixNM<double, 6, 6>& Ki,  ///< 6x6 sectional inertial-stiffness matrix [Ki^] values here
+        const ChVector<>& mWvel,       ///< current angular velocity of section, in material frame
+        const ChVector<>& mWacc,       ///< current angular acceleration of section, in material frame
+        const ChVector<>& mXacc        ///< current acceleration of section, in material frame (not absolute!)
+        ) override;
+
     /// Compute the values of inertial force & torque depending on quadratic velocity terms,
-    /// that is the gyroscopic torque w x [J]w and the centrifugal term (if center of mass is offset). All terms expressed 
-    /// in the material reference, ie. the reference in the centerline of the section.
-    virtual void ComputeQuadraticTerms(ChVector<>& mF,   ///< centrifugal term (if any) returned here
-                                       ChVector<>& mT,   ///< gyroscopic term  returned here
-                                       const ChVector<>& mW    ///< current angular velocity of section, in material frame
-                                      ) override;
+    /// that is the gyroscopic torque w x [J]w and the centrifugal term (if center of mass is offset). All terms
+    /// expressed in the material reference, ie. the reference in the centerline of the section.
+    virtual void ComputeQuadraticTerms(ChVector<>& mF,       ///< centrifugal term (if any) returned here
+                                       ChVector<>& mT,       ///< gyroscopic term  returned here
+                                       const ChVector<>& mW  ///< current angular velocity of section, in material frame
+                                       ) override;
 
-	/// Get mass per unit length, ex.SI units [kg/m]
-	virtual double GetMassPerUnitLength() override { return this->mu; }
-
+    /// Get mass per unit length, ex.SI units [kg/m]
+    virtual double GetMassPerUnitLength() override { return this->mu; }
 
     /// Set mass c, ex.SI units [kg/m].
     /// Note that for uniform volumetric density \f$ \rho \f$, and area \f$ A \f$, this is also \f$ \mu = \rho A \f$.
     virtual void SetMassPerUnitLength(double mmu) { mu = mmu; }
 
-    /// "mass reference": set the displacement of the center of mass respect to 
+    /// "mass reference": set the displacement of the center of mass respect to
     /// the section centerline reference.
     void SetCenterOfMass(double my, double mz) {
         this->cm_y = my;
         this->cm_z = mz;
     }
-    double GetCenterOfMassY() {
-        return this->cm_y;
-    }
-    double GetCenterOfMassZ() {
-        return this->cm_z;
-    }
+    double GetCenterOfMassY() { return this->cm_y; }
+    double GetCenterOfMassZ() { return this->cm_z; }
 
     /// Set inertia moments, assumed computed in the Y Z unrotated reference
-    /// frame of the section at centerline, and defined as: 
-    /// \f$ J_{yy} =  \int_\Omega \rho z^2 d\Omega \f$, also Jyy = Mm(4,4) 
-    /// \f$ J_{zz} =  \int_\Omega \rho y^2 d\Omega \f$, also Jzz = Mm(5,5) 
+    /// frame of the section at centerline, and defined as:
+    /// \f$ J_{yy} =  \int_\Omega \rho z^2 d\Omega \f$, also Jyy = Mm(4,4)
+    /// \f$ J_{zz} =  \int_\Omega \rho y^2 d\Omega \f$, also Jzz = Mm(5,5)
     /// \f$ J_{yz} =  \int_\Omega \rho y z  d\Omega \f$, also Jyz = -Mm(4,5) = -Mm(5,4)
     /// Note that for an uniform density, these are also related to second moments of area
     /// as \f$ J_{yy} = \rho I_{yy} \f$,  \f$ J_{zz} = \rho I_{zz} \f$.
-    /// Note also that \f$ J_{xy} = J_{xz} = J_{yx} = J_{zx} = 0 \f$ anyway. 
-    /// Note also that \f$ J_{xy} \f$ does not need to be input, as automatically computed 
+    /// Note also that \f$ J_{xy} = J_{xz} = J_{yx} = J_{zx} = 0 \f$ anyway.
+    /// Note also that \f$ J_{xy} \f$ does not need to be input, as automatically computed
     /// via \f$ J_{xx} = J_{yy} +J_{zz} \f$ for the polar theorem.
     virtual void SetInertiasPerUnitLength(double Jyy_moment, double Jzz_moment, double Jyz_moment);
 
     /// Get the Jxx component of the inertia per unit length (polar inertia), in the Y Z unrotated reference
     /// frame of the section at centerline. Note: it automatically follows Jxx=Jyy+Jzz for the polar theorem.
-    virtual double GetInertiaJxxPerUnitLength()  { return  this->Jyy + this->Jzz; }
+    virtual double GetInertiaJxxPerUnitLength() { return this->Jyy + this->Jzz; }
 
     /// Get the Jyy component of the inertia per unit length, in the Y Z unrotated reference
     /// frame of the section at centerline, also Jyy = Mm(4,4)
-    virtual double GetInertiaJyyPerUnitLength()  { return  this->Jyy; }
+    virtual double GetInertiaJyyPerUnitLength() { return this->Jyy; }
 
     /// Get the Jzz component of the inertia per unit length, in the Y Z unrotated reference
-    /// frame of the section at centerline, also Jzz = Mm(5,5) 
-    virtual double GetInertiaJzzPerUnitLength()  { return  this->Jzz; }
+    /// frame of the section at centerline, also Jzz = Mm(5,5)
+    virtual double GetInertiaJzzPerUnitLength() { return this->Jzz; }
 
     /// Get the Jyz off-diagonal component of the inertia per unit length, in the Y Z unrotated reference
     /// frame of the section at centerline. Also Jyz = -Mm(4,5) = -Mm(5,4)
-    virtual double GetInertiaJyzPerUnitLength()  { return  this->Jyz; }
-
+    virtual double GetInertiaJyzPerUnitLength() { return this->Jyz; }
 
     /// Set inertia moments, per unit length, as assumed computed in the Ym Zm "mass reference"
     /// frame, ie. centered at the center of mass and rotated by phi angle to match the main axes of inertia:
-    /// \f$ Jm_{yy} =  \int_\Omega \rho z_{m}^2 d\Omega \f$, 
+    /// \f$ Jm_{yy} =  \int_\Omega \rho z_{m}^2 d\Omega \f$,
     /// \f$ Jm_{zz} =  \int_\Omega \rho y_{m}^2 d\Omega \f$.
     /// Assuming the center of mass is already set.
     virtual void SetMainInertiasInMassReference(double Jmyy, double Jmzz, double phi);
 
-    /// Get inertia moments, per unit length, as assumed computed in the Ym Zm "mass reference" frame, and the rotation phi of that frame,
-    /// ie. inertias centered at the center of mass and rotated by phi angle to match the main axes of inertia:
-    /// \f$ Jm_{yy} =  \int_\Omega \rho z_{m}^2 d\Omega \f$, 
-    /// \f$ Jm_{zz} =  \int_\Omega \rho y_{m}^2 d\Omega \f$.
-    /// Assuming the center of mass is already set.
+    /// Get inertia moments, per unit length, as assumed computed in the Ym Zm "mass reference" frame, and the rotation
+    /// phi of that frame, ie. inertias centered at the center of mass and rotated by phi angle to match the main axes
+    /// of inertia: \f$ Jm_{yy} =  \int_\Omega \rho z_{m}^2 d\Omega \f$, \f$ Jm_{zz} =  \int_\Omega \rho y_{m}^2 d\Omega
+    /// \f$. Assuming the center of mass is already set.
     virtual void GetMainInertiasInMassReference(double& Jmyy, double& Jmzz, double& phi);
 
-private:
-	double mu;   // mass per unit length
-    double cm_y; // center of mass offset along Y of section
-    double cm_z; // center of mass offset along Z of section
-	double Jzz;  
-	double Jyy;  
-    double Jyz;  
+  private:
+    double mu;    // mass per unit length
+    double cm_y;  // center of mass offset along Y of section
+    double cm_z;  // center of mass offset along Z of section
+    double Jzz;
+    double Jyy;
+    double Jyz;
 };
 
-
-
-
-/// Inertia properties of a beam of Cosserat type, not necessarily of uniform density, 
+/// Inertia properties of a beam of Cosserat type, not necessarily of uniform density,
 /// from the following information that allows the center of mass to be
 /// offset respect to the beam centerline:
-///  - a mass per unit length 
+///  - a mass per unit length
 ///  - offset of the center of mass Cm along Y Z section axes,
 ///  - rotation of axes Y_m Z_m (used for computed Jzz_m Jyy_m) respect to Y Z section axes.
-///  - Jyy_m Jzz_m principal moments of inertia computed in reference Y_m Z_m, rotated and with origin in center of mass Cm
+///  - Jyy_m Jzz_m principal moments of inertia computed in reference Y_m Z_m, rotated and with origin in center of mass
+///  Cm
 /// The polar moment of area is automatically inferred via perpendicular axis theorem.
-/// 
+///
 /// \image html "http://www.projectchrono.org/assets/manual/fea_ChInertiaCosseratMassref.png"
 ///
 
@@ -1159,23 +1323,23 @@ class ChApi ChInertiaCosseratMassref : public ChInertiaCosseratAdvanced {
     virtual ~ChInertiaCosseratMassref() {}
 
     /// Set inertia moments, assumed computed in the Y Z unrotated reference
-    /// frame of the section at centerline, and defined as: 
-    /// \f$ J_{yy} =  \int_\Omega \rho z^2 d\Omega \f$, also Jyy = Mm(4,4) 
-    /// \f$ J_{zz} =  \int_\Omega \rho y^2 d\Omega \f$, also Jzz = Mm(5,5) 
+    /// frame of the section at centerline, and defined as:
+    /// \f$ J_{yy} =  \int_\Omega \rho z^2 d\Omega \f$, also Jyy = Mm(4,4)
+    /// \f$ J_{zz} =  \int_\Omega \rho y^2 d\Omega \f$, also Jzz = Mm(5,5)
     /// \f$ J_{yz} =  \int_\Omega \rho y z  d\Omega \f$, also Jyz = -Mm(4,5) = -Mm(5,4)
     /// Note that for an uniform density, these are also related to second moments of area
     /// as \f$ J_{yy} = \rho I_{yy} \f$,  \f$ J_{zz} = \rho I_{zz} \f$.
-    /// Note also that \f$ J_{xy} = J_{xz} = J_{yx} = J_{zx} = 0 \f$ anyway. 
-    /// Note also that \f$ J_{xy} \f$ does not need to be input, as automatically computed 
+    /// Note also that \f$ J_{xy} = J_{xz} = J_{yx} = J_{zx} = 0 \f$ anyway.
+    /// Note also that \f$ J_{xy} \f$ does not need to be input, as automatically computed
     /// via \f$ J_{xx} = J_{yy} +J_{zz} \f$ for the polar theorem.
     virtual void SetInertiasPerUnitLength(double Jyy_moment, double Jzz_moment, double Jyz_moment) override {
-        ChInertiaCosseratAdvanced::SetInertiasPerUnitLength(Jyy_moment,Jzz_moment,Jyz_moment);
+        ChInertiaCosseratAdvanced::SetInertiasPerUnitLength(Jyy_moment, Jzz_moment, Jyz_moment);
         this->GetMainInertiasInMassReference(this->Jyy_m, this->Jzz_m, this->phi);
     };
 
     /// Set inertia moments as assumed computed in the Ym Zm "mass reference"
     /// frame, ie. centered at the center of mass and rotated by phi angle to match the main axes of inertia:
-    /// \f$ Jm_{yy} =  \int_\Omega \rho z_{m}^2 d\Omega \f$, 
+    /// \f$ Jm_{yy} =  \int_\Omega \rho z_{m}^2 d\Omega \f$,
     /// \f$ Jm_{zz} =  \int_\Omega \rho y_{m}^2 d\Omega \f$.
     /// Assuming the center of mass is already set.
     virtual void SetMainInertiasInMassReference(double Jyy_massref, double Jzz_massref, double phi_massref) override {
@@ -1187,30 +1351,24 @@ class ChApi ChInertiaCosseratMassref : public ChInertiaCosseratAdvanced {
 
     /// Get inertia moments as assumed computed in the Ym Zm "mass reference" frame, and the rotation phi of that frame,
     /// ie. inertias centered at the center of mass and rotated by phi angle to match the main axes of inertia:
-    /// \f$ Jm_{yy} =  \int_\Omega \rho z_{m}^2 d\Omega \f$, 
+    /// \f$ Jm_{yy} =  \int_\Omega \rho z_{m}^2 d\Omega \f$,
     /// \f$ Jm_{zz} =  \int_\Omega \rho y_{m}^2 d\Omega \f$.
     /// Assuming the center of mass is already set.
-    virtual void GetMainInertiasInMassReference(double& Jyy_massref, double& Jzz_massref, double& phi_massref) override {
+    virtual void GetMainInertiasInMassReference(double& Jyy_massref,
+                                                double& Jzz_massref,
+                                                double& phi_massref) override {
         Jyy_massref = this->Jyy_m;
         Jzz_massref = this->Jzz_m;
         phi_massref = this->phi;
     };
 
-private:
-    double phi; // rotation of reference, also main inertia axes ie. Iyz=0
-	double Jzz_m;  
-	double Jyy_m;  
+  private:
+    double phi;  // rotation of reference, also main inertia axes ie. Iyz=0
+    double Jzz_m;
+    double Jyy_m;
 };
 
-
-
-
-
-
-
 ////////////////////////////////////////////////////////////////////////////////////////////////
-
-
 
 /// Base class for properties of beam sections of Cosserat type (with shear too)
 /// such as ChElementBeamIGA.
@@ -1226,15 +1384,14 @@ private:
 
 class ChApi ChBeamSectionCosserat : public ChBeamSection {
   protected:
-	ChBeamSectionCosserat() {};
+    ChBeamSectionCosserat(){};
 
   public:
-
     ChBeamSectionCosserat(
-		std::shared_ptr<ChInertiaCosserat>    minertia,			    ///< inertia model for this section (density, etc)
-        std::shared_ptr<ChElasticityCosserat> melasticity,		    ///< elasticity model for this section
-		std::shared_ptr<ChPlasticityCosserat> mplasticity = {},		///< plasticity model for this section, if any
-		std::shared_ptr<ChDampingCosserat>    mdamping = {}			///< damping model for this section, if any
+        std::shared_ptr<ChInertiaCosserat> minertia,             ///< inertia model for this section (density, etc)
+        std::shared_ptr<ChElasticityCosserat> melasticity,       ///< elasticity model for this section
+        std::shared_ptr<ChPlasticityCosserat> mplasticity = {},  ///< plasticity model for this section, if any
+        std::shared_ptr<ChDampingCosserat> mdamping = {}         ///< damping model for this section, if any
     );
 
     virtual ~ChBeamSectionCosserat() {}
@@ -1262,9 +1419,9 @@ class ChApi ChBeamSectionCosserat : public ChBeamSection {
     /// at a given strain state, and at given internal data state (if mdata=nullptr,
     /// computes only the elastic tangent stiffenss, regardless of plasticity).
     virtual void ComputeStiffnessMatrix(
-        ChMatrixNM<double, 6, 6>& K, ///< 6x6 stiffness matrix
-        const ChVector<>& strain_e,  ///< strain (deformation part): x= elongation, y and z are shear
-        const ChVector<>& strain_k,  ///< strain (curvature part), x= torsion, y and z are line curvatures
+        ChMatrixNM<double, 6, 6>& K,  ///< 6x6 stiffness matrix
+        const ChVector<>& strain_e,   ///< strain (deformation part): x= elongation, y and z are shear
+        const ChVector<>& strain_k,   ///< strain (curvature part), x= torsion, y and z are line curvatures
         const ChBeamMaterialInternalData* mdata = nullptr  ///< material internal variables, at this point, if any,
                                                            ///< including {p_strain_e, p_strain_k, p_strain_acc}
     );
@@ -1288,14 +1445,13 @@ class ChApi ChBeamSectionCosserat : public ChBeamSection {
     /// Use this function to access parameters such as yeld limit, etc.
     std::shared_ptr<ChPlasticityCosserat> GetPlasticity() { return this->plasticity; }
 
-	/// Set the inertial model for this section, that defines the 
+    /// Set the inertial model for this section, that defines the
     /// mass per unit length and the inertia tensor of the section.
     void SetInertia(std::shared_ptr<ChInertiaCosserat> minertia);
 
     /// Get the inertial model for this section, if any.
     /// Use this function to access parameters such as mass per unit length, etc.
     std::shared_ptr<ChInertiaCosserat> GetInertia() { return this->inertia; }
-
 
     /// Set the damping model for this section.
     /// By default no damping.
@@ -1305,56 +1461,47 @@ class ChApi ChBeamSectionCosserat : public ChBeamSection {
     /// By default no damping.
     std::shared_ptr<ChDampingCosserat> GetDamping() { return this->damping; }
 
-
   private:
     std::shared_ptr<ChElasticityCosserat> elasticity;
     std::shared_ptr<ChPlasticityCosserat> plasticity;
     std::shared_ptr<ChDampingCosserat> damping;
-	std::shared_ptr<ChInertiaCosserat> inertia;
+    std::shared_ptr<ChInertiaCosserat> inertia;
 };
 
-
-
 /// A simple specialization of ChBeamSectionCosserat if you do not need to define
-/// its separate models for elasticity, plasticity, damping and inertia. 
+/// its separate models for elasticity, plasticity, damping and inertia.
 /// Good if you just need the simplest model for a rectangular centered beam. This section automatically
 /// creates, initializes and embeds, at construction, these models:
-/// - elasticity: ChElasticityCosseratSimple  
+/// - elasticity: ChElasticityCosseratSimple
 /// - inertia:    ChInertiaCosseratSimple
 /// - damping:    none   - you can add it later
-/// - plasticity: none 
+/// - plasticity: none
 class ChApi ChBeamSectionCosseratEasyRectangular : public ChBeamSectionCosserat {
-public:
-	ChBeamSectionCosseratEasyRectangular(
-		double width_y,			///< width of section in y direction
-		double width_z,			///< width of section in z direction
-		double E,				///< Young modulus
-		double G,				///< shear modulus
-		double density			///< volumetric density (ex. in SI units: [kg/m^3])
-	);
+  public:
+    ChBeamSectionCosseratEasyRectangular(double width_y,  ///< width of section in y direction
+                                         double width_z,  ///< width of section in z direction
+                                         double E,        ///< Young modulus
+                                         double G,        ///< shear modulus
+                                         double density   ///< volumetric density (ex. in SI units: [kg/m^3])
+    );
 };
-
 
 /// A simple specialization of ChBeamSectionCosserat if you do not need to define
-/// its separate models for elasticity, plasticity, damping and inertia. 
+/// its separate models for elasticity, plasticity, damping and inertia.
 /// Good if you just need the simplest model for a circular centered beam. This section automatically
 /// creates, initializes and embeds, at construction, these models:
-/// - elasticity: ChElasticityCosseratSimple  
+/// - elasticity: ChElasticityCosseratSimple
 /// - inertia:    ChInertiaCosseratSimple
 /// - damping:    none   - you can add it later
-/// - plasticity: none 
+/// - plasticity: none
 class ChApi ChBeamSectionCosseratEasyCircular : public ChBeamSectionCosserat {
-public:
-	ChBeamSectionCosseratEasyCircular(
-		double diameter,		///< diameter of section 
-		double E,				///< Young modulus
-		double G,				///< shear modulus
-		double density			///< volumetric density (ex. in SI units: [kg/m^3])
-	);
+  public:
+    ChBeamSectionCosseratEasyCircular(double diameter,  ///< diameter of section
+                                      double E,         ///< Young modulus
+                                      double G,         ///< shear modulus
+                                      double density    ///< volumetric density (ex. in SI units: [kg/m^3])
+    );
 };
-
-
-
 
 /// @} fea_utils
 

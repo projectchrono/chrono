@@ -200,6 +200,8 @@ class ChSystemGpu_impl {
 
         not_stupid_bool* sphere_fixed;  ///< Flags indicating whether or not a sphere is fixed
 
+        float* sphere_stats_buffer;  ///< A buffer array that can store any quantity that the user wish to reduce
+
         unsigned int* contact_partners_map;   ///< Contact partners for each sphere. Only in frictional simulations
         not_stupid_bool* contact_active_map;  ///< Whether the frictional contact at an index is active
         float3* contact_history_map;  ///< Tangential history for a given contact pair. Only for multistep friction
@@ -309,14 +311,18 @@ class ChSystemGpu_impl {
     //// RADU: is this function going to be implemented?!?
     ////void checkSDCounts(std::string ofile, bool write_out, bool verbose) const;
 
-    /// Get the max z position of the spheres, allows easier co-simulation
-    double GetMaxParticleZ() const;
+    /// Get the max z position of the spheres, allows easier co-simulation. True for getting max Z, false for getting
+    /// minimum Z.
+    double GetMaxParticleZ(bool getMax = true);
 
     /// Return the total kinetic energy of all particles.
-    float ComputeTotalKE() const;
+    float ComputeTotalKE();
 
-    /// Return the squared sum of the linear velocity components (of all particles).
-    float computeLinVelSq() const;
+    /// Return the squared sum of the 3 arrays.
+    float computeArray3SquaredSum(std::vector<float, cudallocator<float>>& arrX,
+                                  std::vector<float, cudallocator<float>>& arrY,
+                                  std::vector<float, cudallocator<float>>& arrZ,
+                                  size_t nSpheres);
 
     /// Return particle position.
     float3 GetParticlePosition(int nSphere) const;
@@ -536,6 +542,11 @@ class ChSystemGpu_impl {
 
     /// Fixity of each sphere
     std::vector<not_stupid_bool, cudallocator<not_stupid_bool>> sphere_fixed;
+
+    /// A buffer array that can store any derived quantity from particles. When users quarry a quantity (such as kinetic
+    /// energy using GetParticleKineticEnergy), this array is used to store that particle-wise quantity, and then
+    /// potentially reduced via CUB.
+    std::vector<float, cudallocator<float>> sphere_stats_buffer;
 
     /// Set of contact partners for each sphere. Only used in frictional simulations
     std::vector<unsigned int, cudallocator<unsigned int>> contact_partners_map;

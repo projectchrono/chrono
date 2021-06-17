@@ -523,8 +523,8 @@ enum class SuspensionTypeWV {
 
 /// Enum for available brake model templates.
 enum class BrakeType {
-    SHAFTS, ///< brake model using a clutch between two shafts
-    SIMPLE  ///< brake model using a simple speed-dependent torque
+    SHAFTS,  ///< brake model using a clutch between two shafts
+    SIMPLE   ///< brake model using a simple speed-dependent torque
 };
 
 /// Enum for available wheeled-vehicle steering model templates.
@@ -536,10 +536,13 @@ enum class SteeringTypeWV {
 
 /// Enum for wheeled-vehicle driveline types.
 enum class DrivelineTypeWV {
-    FWD,    ///< front-wheel drive
-    RWD,    ///< rear-wheel drive
-    AWD,    ///< all-wheel drive
-    SIMPLE  ///< simple kinematic driveline
+    FWD,        ///< front-wheel drive
+    RWD,        ///< rear-wheel drive
+    AWD,        ///< all-wheel drive (4x4)
+    AWD6,       ///< all-wheel drive (6x4 / 6x6 locked)
+    AWD8,       ///< all-wheel drive (8x8)
+    SIMPLE,     ///< simple kinematic driveline
+    SIMPLE_XWD  ///< simple kinematic driveline for more than 2 axles
 };
 
 /// Enum for tracked-vehicle driveline types.

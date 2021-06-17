@@ -373,7 +373,12 @@ float ChSystemGpu::GetParticlesKineticEnergy() const {
 }
 
 double ChSystemGpu::GetMaxParticleZ() const {
-    return m_sys->GetMaxParticleZ();
+    return m_sys->GetMaxParticleZ(true);
+}
+
+double ChSystemGpu::GetMinParticleZ() const {
+    // Under the hood, GetMaxParticleZ(false) returns the lowest Z.
+    return m_sys->GetMaxParticleZ(false);
 }
 
 size_t ChSystemGpu::EstimateMemUsage() const {
