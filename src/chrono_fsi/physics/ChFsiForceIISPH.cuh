@@ -54,7 +54,6 @@ class CH_FSI_API ChFsiForceIISPH : public ChFsiForce {
                            thrust::device_vector<Real>& p_old,
                            thrust::device_vector<Real3> Normals,
                            thrust::device_vector<Real> G_i,
-                           thrust::device_vector<Real> L_i,
                            thrust::device_vector<Real>& Color);
 };
 

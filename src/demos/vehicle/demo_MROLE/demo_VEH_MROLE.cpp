@@ -9,7 +9,7 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Authors: Radu Serban, Justin Madsen
+// Authors: Radu Serban, Rainer Gericke
 // =============================================================================
 //
 // Main driver function for the mrole full model.
@@ -66,10 +66,10 @@ VisualizationType tire_vis_type = VisualizationType::MESH;
 CollisionType chassis_collision_type = CollisionType::NONE;
 
 // Type of powertrain model (SHAFTS, SIMPLE)
-PowertrainModelType powertrain_model = PowertrainModelType::SIMPLE_CVT;
+PowertrainModelType powertrain_model = PowertrainModelType::SHAFTS;
 
 // Drive type (FWD, RWD, or AWD)
-DrivelineTypeWV drive_type = DrivelineTypeWV::SIMPLE_XWD;
+DrivelineTypeWV drive_type = DrivelineTypeWV::AWD6;
 
 // Type of tire model (TMEASY, RIGID)
 TireModelType tire_model = TireModelType::TMEASY;
@@ -101,7 +101,7 @@ double t_end = 1000;
 double render_step_size = 1.0 / 50;  // FPS = 50
 
 // Output directories
-const std::string out_dir = GetChronoOutputPath() + "mrole";
+const std::string out_dir = GetChronoOutputPath() + "MROLE";
 const std::string pov_dir = out_dir + "/POVRAY";
 
 // Debug logging
@@ -137,6 +137,9 @@ int main(int argc, char* argv[]) {
 
     if (tire_model == TireModelType::RIGID_MESH)
         tire_vis_type = VisualizationType::MESH;
+
+    my_mrole.LockAxleDifferential(-1, false);
+    my_mrole.LockCentralDifferential(-1, false);
 
     my_mrole.SetChassisVisualizationType(chassis_vis_type);
     my_mrole.SetSuspensionVisualizationType(suspension_vis_type);
@@ -240,6 +243,7 @@ int main(int argc, char* argv[]) {
     // ---------------
 
     my_mrole.GetVehicle().LogSubsystemTypes();
+    std::cout << "Vehicle Mass       = " << my_mrole.GetVehicle().GetVehicleMass() << " kg" << std::endl;
 
     if (debug_output) {
         GetLog() << "\n\n============ System Configuration ============\n";
@@ -332,7 +336,5 @@ int main(int argc, char* argv[]) {
         driver_csv.write_to_file(driver_file);
     }
 
-    std::cout << "Vehicle Mass       = " << my_mrole.GetVehicle().GetVehicleMass() << " kg" << std::endl;
-    std::cout << "Vehicle CoG height = " << my_mrole.GetVehicle().GetVehicleCOMPos().z() << " m" << std::endl;
     return 0;
 }

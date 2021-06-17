@@ -30,7 +30,7 @@ const double mrole_Driveline2WD::m_differentialbox_inertia = 0.6;
 
 const double mrole_Driveline2WD::m_conicalgear_ratio = 0.2;
 
-const double mrole_Driveline2WD::m_axle_differential_locking_limit = 100;
+const double mrole_Driveline2WD::m_axle_differential_locking_limit = 1000;
 
 // -----------------------------------------------------------------------------
 // Constructor of the mrole_Driveline2WD.

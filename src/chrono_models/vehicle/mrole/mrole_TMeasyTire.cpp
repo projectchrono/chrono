@@ -70,7 +70,7 @@ void mrole_TMeasyTire::SetTMeasyParams() {
     const double in2m = 0.0254;
     double w = 0.415;
     double r = 0.8;
-    double h = r * w;
+    ////double h = r * w;
     double rimdia = 27.0 * in2m;
 
     double load = 9.81 * 4500.0;
@@ -124,7 +124,7 @@ void mrole_TMeasyTireSoil::SetTMeasyParams() {
     const double in2m = 0.0254;
     double w = 0.415;
     double r = 0.8;
-    double h = r * w;
+    ////double h = r * w;
     double rimdia = 27.0 * in2m;
 
     double load = 9.81 * 4500.0;
@@ -178,7 +178,7 @@ void mrole_TMeasyTireSand::SetTMeasyParams() {
     const double in2m = 0.0254;
     double w = 0.415;
     double r = 0.8;
-    double h = r * w;
+    ////double h = r * w;
     double rimdia = 27.0 * in2m;
 
     double load = 9.81 * 4500.0;
