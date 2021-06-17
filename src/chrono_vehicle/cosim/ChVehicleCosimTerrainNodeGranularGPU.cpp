@@ -451,8 +451,7 @@ void ChVehicleCosimTerrainNodeGranularGPU::Settle() {
 
         // Output (if enabled)
         if (m_settling_output && steps % output_steps == 0) {
-            char filename[100];
-            sprintf(filename, "%s/settling/settling_%05d.csv", m_node_out_dir.c_str(), output_frame + 1);
+            std::string filename = OutputFilename(m_node_out_dir + "/settling", "settling", "csv", output_frame + 1, 5);
             m_systemGPU->SetParticleOutputFlags(gpu::CHGPU_OUTPUT_FLAGS::VEL_COMPONENTS |
                                                 gpu::CHGPU_OUTPUT_FLAGS::ANG_VEL_COMPONENTS |
                                                 gpu::CHGPU_OUTPUT_FLAGS::FORCE_COMPONENTS);
@@ -734,8 +733,8 @@ void ChVehicleCosimTerrainNodeGranularGPU::WriteCheckpoint(const std::string& fi
 
 void ChVehicleCosimTerrainNodeGranularGPU::OnOutputData(int frame) {
     // Create and write frame output file.
-    char filename[100];
-    sprintf(filename, "%s/simulation/simulation_%05d.csv", m_node_out_dir.c_str(), frame + 1);
+    std::string filename = OutputFilename(m_node_out_dir + "/simulation", "simulation", "csv", frame + 1, 5);
+
     m_systemGPU->SetParticleOutputFlags(gpu::CHGPU_OUTPUT_FLAGS::VEL_COMPONENTS |
                                         gpu::CHGPU_OUTPUT_FLAGS::ANG_VEL_COMPONENTS |
                                         gpu::CHGPU_OUTPUT_FLAGS::FORCE_COMPONENTS);

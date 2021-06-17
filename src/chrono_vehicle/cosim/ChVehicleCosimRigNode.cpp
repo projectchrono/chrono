@@ -907,13 +907,12 @@ void ChVehicleCosimRigNode::OutputData(int frame) {
     }
 
     // Create and write frame output file.
-    char filename[100];
-    sprintf(filename, "%s/data_%04d.dat", m_node_out_dir.c_str(), frame + 1);
-
     utils::CSV_writer csv(" ");
     csv << m_system->GetChTime() << endl;  // current time
     WriteBodyInformation(csv);             // rig body states
     WriteTireInformation(csv);             // tire-related data
+
+    std::string filename = OutputFilename(m_node_out_dir, "data", "dat", frame + 1, 5);
     csv.write_to_file(filename);
 
     if (m_verbose)

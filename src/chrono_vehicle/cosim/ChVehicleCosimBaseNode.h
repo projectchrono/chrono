@@ -88,6 +88,15 @@ class CH_VEHICLE_API ChVehicleCosimBaseNode {
     /// Write checkpoint to the specified file (which will be created in the output directory).
     virtual void WriteCheckpoint(const std::string& filename) const {}
 
+    /// Utility function for creating an output file name.
+    /// It generates and returns a string of the form "{dir}/{root}_{frame}.{ext}", where {frame} is printed using the
+    /// format "%0{frame_digits}d".
+    static std::string OutputFilename(const std::string& dir,
+                                      const std::string& root,
+                                      const std::string& ext,
+                                      int frame,
+                                      int frame_digits);
+
   protected:
     /// Mesh data
     struct MeshData {

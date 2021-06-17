@@ -606,8 +606,7 @@ void ChVehicleCosimTerrainNodeGranularOMP::Settle() {
 
         // Output (if enabled)
         if (m_settling_output && steps % output_steps == 0) {
-            char filename[100];
-            sprintf(filename, "%s/settling/settling_%05d.dat", m_node_out_dir.c_str(), output_frame + 1);
+            std::string filename = OutputFilename(m_node_out_dir + "/settling", "settling", "dat", output_frame + 1, 5);
             utils::CSV_writer csv(" ");
             WriteParticleInformation(csv);
             csv.write_to_file(filename);
@@ -956,8 +955,7 @@ void ChVehicleCosimTerrainNodeGranularOMP::OnRender(double time) {
 
 void ChVehicleCosimTerrainNodeGranularOMP::OnOutputData(int frame) {
     // Create and write frame output file.
-    char filename[100];
-    sprintf(filename, "%s/simulation/simulation_%05d.dat", m_node_out_dir.c_str(), frame + 1);
+    std::string filename = OutputFilename(m_node_out_dir + "/simulation", "simulation", "dat", frame + 1, 5);
 
     utils::CSV_writer csv(" ");
     WriteParticleInformation(csv);
