@@ -13,12 +13,13 @@
 // =============================================================================
 //
 // Chrono custom multicore collision system.
-// Contains both the broadphase and the narrow phase methods.
+// Contains both the broadphase and the narrowphase methods.
 //
 // =============================================================================
 
 #include "chrono/physics/ChSystem.h"
 #include "chrono/collision/ChCollisionSystemChrono.h"
+#include "chrono/collision/chrono/ChRayTest.h"
 
 namespace chrono {
 namespace collision {
@@ -620,14 +621,33 @@ std::vector<vec2> ChCollisionSystemChrono::GetOverlappingPairs() {
 
 // -----------------------------------------------------------------------------
 
-bool ChCollisionSystemChrono::RayHit(const ChVector<>& from, const ChVector<>& to, ChRayhitResult& mresult) const {
+bool ChCollisionSystemChrono::RayHit(const ChVector<>& from, const ChVector<>& to, ChRayhitResult& result) const {
+    ChRayTest tester(cd_data);
+    ChRayTest::RayHitInfo info;
+    if (tester.Check(FromChVector(from), FromChVector(to), info)) {
+        // Hit point
+        result.hit = true;
+        result.abs_hitNormal = ToChVector(info.normal);
+        result.abs_hitPoint = ToChVector(info.point);
+        result.dist_factor = info.t;
+
+        // ID of the body carring the closest hit shape
+        uint bid = cd_data->shape_data.id_rigid[info.shapeID];
+
+        // Collision model of hit body
+        result.hitModel = m_system->Get_bodylist()[bid]->GetCollisionModel().get();
+
+        return true;
+    }
+
+    result.hit = false;
     return false;
 }
 
 bool ChCollisionSystemChrono::RayHit(const ChVector<>& from,
                                      const ChVector<>& to,
                                      ChCollisionModel* model,
-                                     ChRayhitResult& mresult) const {
+                                     ChRayhitResult& result) const {
     return false;
 }
 

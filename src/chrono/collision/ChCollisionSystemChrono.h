@@ -122,14 +122,14 @@ class ChApi ChCollisionSystemChrono : public ChCollisionSystem {
 
     /// Perform a ray-hit test with all collision models.
     /// Currently not implemented.
-    virtual bool RayHit(const ChVector<>& from, const ChVector<>& to, ChRayhitResult& mresult) const override;
+    virtual bool RayHit(const ChVector<>& from, const ChVector<>& to, ChRayhitResult& result) const override;
 
     /// Perform a ray-hit test with the specified collision model.
     /// Currently not implemented.
     virtual bool RayHit(const ChVector<>& from,
                         const ChVector<>& to,
                         ChCollisionModel* model,
-                        ChRayhitResult& mresult) const override;
+                        ChRayhitResult& result) const override;
 
     /// Return the pairs of IDs for overlapping contact shapes.
     virtual std::vector<vec2> GetOverlappingPairs();
@@ -143,8 +143,8 @@ class ChApi ChCollisionSystemChrono : public ChCollisionSystem {
 
     std::shared_ptr<ChCollisionData> cd_data;
 
-    collision::ChBroadphase broadphase;         ///< methods for broad-phase collision detection
-    collision::ChNarrowphase narrowphase;       ///< methods for narrow-phase collision detection
+    collision::ChBroadphase broadphase;    ///< methods for broad-phase collision detection
+    collision::ChNarrowphase narrowphase;  ///< methods for narrow-phase collision detection
 
     std::vector<char> body_active;
 

@@ -1035,8 +1035,8 @@ if (THRUST_FOUND)
        collision/chrono/ChNarrowphase.cpp
        collision/chrono/ChNarrowphaseMPR.cpp
        collision/chrono/ChNarrowphasePRIMS.cpp
-       #collision/chrono/ChRayTest.h
-       #collision/chrono/ChRayTest.cpp
+       collision/chrono/ChRayTest.h
+       collision/chrono/ChRayTest.cpp
        collision/chrono/ChCollisionUtils.h
        collision/chrono/ChCollisionUtilsBroadphase.cpp
        collision/chrono/ChCollisionUtilsMPR.cpp
