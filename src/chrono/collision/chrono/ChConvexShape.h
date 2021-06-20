@@ -51,29 +51,29 @@ class ConvexShape : public ConvexBase {
   public:
     ConvexShape() {}
     ConvexShape(int i, shape_container* d) : index(i), data(d) {}
-    virtual ~ConvexShape() {}
-    virtual int Type() const override { return data->typ_rigid[index]; }
-    virtual real3 A() const override { return data->obj_data_A_global[index]; }
-    virtual quaternion R() const override { return data->obj_data_R_global[index]; }
-    virtual int Size() const override { return data->length_rigid[index]; }
-    virtual const real3* Convex() const override { return &data->convex_rigid[start()]; }
-    virtual const real3* Triangles() const override { return &data->triangle_global[start()]; }
-    virtual real Radius() const override { return data->sphere_rigid[start()]; }
-    virtual real3 Box() const override { return data->box_like_rigid[start()]; }
-    virtual real4 Rbox() const override { return data->rbox_like_rigid[start()]; }
-    virtual real3 Cylshell() const override { return data->box_like_rigid[start()]; }
-    virtual real2 Capsule() const override { return data->capsule_rigid[start()]; }
+    ~ConvexShape() {}
+    inline int Type() const override { return data->typ_rigid[index]; }
+    inline real3 A() const override { return data->obj_data_A_global[index]; }
+    inline quaternion R() const override { return data->obj_data_R_global[index]; }
+    inline int Size() const override { return data->length_rigid[index]; }
+    inline const real3* Convex() const override { return &data->convex_rigid[start()]; }
+    inline const real3* Triangles() const override { return &data->triangle_global[start()]; }
+    inline real Radius() const override { return data->sphere_rigid[start()]; }
+    inline real3 Box() const override { return data->box_like_rigid[start()]; }
+    inline real4 Rbox() const override { return data->rbox_like_rigid[start()]; }
+    inline real3 Cylshell() const override { return data->box_like_rigid[start()]; }
+    inline real2 Capsule() const override { return data->capsule_rigid[start()]; }
     int index;
     shape_container* data;  // pointer to convex data;
   private:
-    virtual inline int start() const { return data->start_rigid[index]; }
+    inline int start() const { return data->start_rigid[index]; }
 };
 
 /// Sphere contact shape.
 class ConvexShapeSphere : public ConvexBase {
   public:
     ConvexShapeSphere(real3 p, real r) : position(p), radius(r) {}
-    virtual ~ConvexShapeSphere() {}
+    ~ConvexShapeSphere() {}
     inline int Type() const override { return ChCollisionShape::Type::SPHERE; }
     inline real3 A() const override { return position; }
     inline real Radius() const override { return radius; }
@@ -87,7 +87,7 @@ class ConvexShapeCustom : public ConvexBase {
     ConvexShapeCustom() {}
     ConvexShapeCustom(const int t, const real3& p, const quaternion& rot, const real3& d, const real r = 0)
         : type(t), position(p), rotation(rot), dimensions(d), radius(r) {}
-    virtual ~ConvexShapeCustom() {}
+    ~ConvexShapeCustom() {}
     inline int Type() const override { return type; }
     inline real3 A() const override { return position; }
     inline quaternion R() const override { return rotation; }
@@ -106,7 +106,7 @@ class ConvexShapeCustom : public ConvexBase {
 class ConvexShapeTetrahedron : public ConvexBase {
   public:
     ConvexShapeTetrahedron(uvec4 i, real3* n) : indices(i), nodes(n) {}
-    virtual ~ConvexShapeTetrahedron() {}
+    ~ConvexShapeTetrahedron() {}
     inline int Type() const override { return ChCollisionShape::Type::TETRAHEDRON; }
     inline real3 A() const override { return real3(0); }
     uvec4 TetIndex() const override { return indices; }
@@ -123,7 +123,7 @@ class ConvexShapeTriangle : public ConvexBase {
         tri[1] = t2;
         tri[2] = t3;
     }
-    virtual ~ConvexShapeTriangle() {}
+    ~ConvexShapeTriangle() {}
     inline int Type() const override { return ChCollisionShape::Type::TRIANGLE; }
     inline real3 A() const override { return real3(0); }
     const real3* Triangles() const override { return &tri[0]; }

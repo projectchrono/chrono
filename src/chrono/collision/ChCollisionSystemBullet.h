@@ -89,13 +89,13 @@ class ChApi ChCollisionSystemBullet : public ChCollisionSystem {
     virtual void ReportProximities(ChProximityContainer* mproximitycontainer) override;
 
     /// Perform a ray-hit test with all collision models.
-    virtual bool RayHit(const ChVector<>& from, const ChVector<>& to, ChRayhitResult& mresult) const override;
+    virtual bool RayHit(const ChVector<>& from, const ChVector<>& to, ChRayhitResult& result) const override;
 
     /// Perform a ray-hit test with the specified collision model.
     virtual bool RayHit(const ChVector<>& from,
                         const ChVector<>& to,
                         ChCollisionModel* model,
-                        ChRayhitResult& mresult) const override;
+                        ChRayhitResult& result) const override;
 
     // Get the underlying Bullet collision world.
     btCollisionWorld* GetBulletCollisionWorld() { return bt_collision_world; }
@@ -110,7 +110,7 @@ class ChApi ChCollisionSystemBullet : public ChCollisionSystem {
     /// collision filter group and mask (see btBroadphaseProxy::CollisionFilterGroups).
     bool RayHit(const ChVector<>& from,
                 const ChVector<>& to,
-                ChRayhitResult& mresult,
+                ChRayhitResult& result,
                 short int filter_group,
                 short int filter_mask) const;
 
@@ -119,7 +119,7 @@ class ChApi ChCollisionSystemBullet : public ChCollisionSystem {
     bool RayHit(const ChVector<>& from,
                 const ChVector<>& to,
                 ChCollisionModel* model,
-                ChRayhitResult& mresult,
+                ChRayhitResult& result,
                 short int filter_group,
                 short int filter_mask) const;
 

@@ -160,13 +160,13 @@ class ChApi ChCollisionSystem {
     };
 
     /// Perform a ray-hit test with the collision models.
-    virtual bool RayHit(const ChVector<>& from, const ChVector<>& to, ChRayhitResult& mresult) const = 0;
+    virtual bool RayHit(const ChVector<>& from, const ChVector<>& to, ChRayhitResult& result) const = 0;
 
     /// Perform a ray-hit test with the specified collision model.
     virtual bool RayHit(const ChVector<>& from,
                         const ChVector<>& to,
                         ChCollisionModel* model,
-                        ChRayhitResult& mresult) const = 0;
+                        ChRayhitResult& result) const = 0;
 
     /// Method to allow serialization of transient data to archives.
     virtual void ArchiveOUT(ChArchiveOut& marchive) {

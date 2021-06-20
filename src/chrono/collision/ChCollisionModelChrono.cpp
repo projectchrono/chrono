@@ -12,6 +12,11 @@
 // Authors: Radu Serban, Hammad Mazhar
 // =============================================================================
 // Geometric model for the custom multicore Chrono collision system
+//
+// TODO: Collision family information must currently be set BEFORE the collision
+//       model is added to the collision system!   Can this be relaxed?
+//       Note that we can figure out if the model was added by checking whether
+//       the associated body has a ChSystem (mbody->GetSystem())
 // =============================================================================
 
 #include "chrono/collision/ChCollisionModelChrono.h"
@@ -67,8 +72,8 @@ void TransformToCOG(ChBody* body, const ChVector<>& pos, const ChMatrix33<>& rot
 }
 
 bool ChCollisionModelChrono::AddSphere(std::shared_ptr<ChMaterialSurface> material,
-                                         double radius,
-                                         const ChVector<>& pos) {
+                                       double radius,
+                                       const ChVector<>& pos) {
     ChFrame<> frame;
     TransformToCOG(GetBody(), pos, ChMatrix33<>(1), frame);
     const ChVector<>& position = frame.GetPos();
@@ -84,11 +89,11 @@ bool ChCollisionModelChrono::AddSphere(std::shared_ptr<ChMaterialSurface> materi
 }
 
 bool ChCollisionModelChrono::AddEllipsoid(std::shared_ptr<ChMaterialSurface> material,
-                                            double rx,
-                                            double ry,
-                                            double rz,
-                                            const ChVector<>& pos,
-                                            const ChMatrix33<>& rot) {
+                                          double rx,
+                                          double ry,
+                                          double rz,
+                                          const ChVector<>& pos,
+                                          const ChMatrix33<>& rot) {
     ChFrame<> frame;
     TransformToCOG(GetBody(), pos, rot, frame);
     const ChVector<>& position = frame.GetPos();
@@ -105,11 +110,11 @@ bool ChCollisionModelChrono::AddEllipsoid(std::shared_ptr<ChMaterialSurface> mat
 }
 
 bool ChCollisionModelChrono::AddBox(std::shared_ptr<ChMaterialSurface> material,
-                                      double rx,
-                                      double ry,
-                                      double rz,
-                                      const ChVector<>& pos,
-                                      const ChMatrix33<>& rot) {
+                                    double rx,
+                                    double ry,
+                                    double rz,
+                                    const ChVector<>& pos,
+                                    const ChMatrix33<>& rot) {
     ChFrame<> frame;
     TransformToCOG(GetBody(), pos, rot, frame);
     const ChVector<>& position = frame.GetPos();
@@ -126,12 +131,12 @@ bool ChCollisionModelChrono::AddBox(std::shared_ptr<ChMaterialSurface> material,
 }
 
 bool ChCollisionModelChrono::AddRoundedBox(std::shared_ptr<ChMaterialSurface> material,
-                                             double rx,
-                                             double ry,
-                                             double rz,
-                                             double sphere_r,
-                                             const ChVector<>& pos,
-                                             const ChMatrix33<>& rot) {
+                                           double rx,
+                                           double ry,
+                                           double rz,
+                                           double sphere_r,
+                                           const ChVector<>& pos,
+                                           const ChMatrix33<>& rot) {
     ChFrame<> frame;
     TransformToCOG(GetBody(), pos, rot, frame);
     const ChVector<>& position = frame.GetPos();
@@ -148,11 +153,11 @@ bool ChCollisionModelChrono::AddRoundedBox(std::shared_ptr<ChMaterialSurface> ma
 }
 
 bool ChCollisionModelChrono::AddTriangle(std::shared_ptr<ChMaterialSurface> material,
-                                           ChVector<> A,
-                                           ChVector<> B,
-                                           ChVector<> C,
-                                           const ChVector<>& pos,
-                                           const ChMatrix33<>& rot) {
+                                         ChVector<> A,
+                                         ChVector<> B,
+                                         ChVector<> C,
+                                         const ChVector<>& pos,
+                                         const ChMatrix33<>& rot) {
     ChFrame<> frame;
     TransformToCOG(GetBody(), pos, rot, frame);
     const ChVector<>& position = frame.GetPos();
@@ -169,11 +174,11 @@ bool ChCollisionModelChrono::AddTriangle(std::shared_ptr<ChMaterialSurface> mate
 }
 
 bool ChCollisionModelChrono::AddCylinder(std::shared_ptr<ChMaterialSurface> material,
-                                           double rx,
-                                           double rz,
-                                           double hy,
-                                           const ChVector<>& pos,
-                                           const ChMatrix33<>& rot) {
+                                         double rx,
+                                         double rz,
+                                         double hy,
+                                         const ChVector<>& pos,
+                                         const ChMatrix33<>& rot) {
     ChFrame<> frame;
     TransformToCOG(GetBody(), pos, rot, frame);
     const ChVector<>& position = frame.GetPos();
@@ -190,10 +195,10 @@ bool ChCollisionModelChrono::AddCylinder(std::shared_ptr<ChMaterialSurface> mate
 }
 
 bool ChCollisionModelChrono::AddCylindricalShell(std::shared_ptr<ChMaterialSurface> material,
-                                                   double radius,
-                                                   double hlen,
-                                                   const ChVector<>& pos,
-                                                   const ChMatrix33<>& rot) {
+                                                 double radius,
+                                                 double hlen,
+                                                 const ChVector<>& pos,
+                                                 const ChMatrix33<>& rot) {
     ChFrame<> frame;
     TransformToCOG(GetBody(), pos, rot, frame);
     const ChVector<>& position = frame.GetPos();
@@ -210,12 +215,12 @@ bool ChCollisionModelChrono::AddCylindricalShell(std::shared_ptr<ChMaterialSurfa
 }
 
 bool ChCollisionModelChrono::AddRoundedCylinder(std::shared_ptr<ChMaterialSurface> material,
-                                                  double rx,
-                                                  double rz,
-                                                  double hy,
-                                                  double sphere_r,
-                                                  const ChVector<>& pos,
-                                                  const ChMatrix33<>& rot) {
+                                                double rx,
+                                                double rz,
+                                                double hy,
+                                                double sphere_r,
+                                                const ChVector<>& pos,
+                                                const ChMatrix33<>& rot) {
     ChFrame<> frame;
     TransformToCOG(GetBody(), pos, rot, frame);
     const ChVector<>& position = frame.GetPos();
@@ -232,11 +237,11 @@ bool ChCollisionModelChrono::AddRoundedCylinder(std::shared_ptr<ChMaterialSurfac
 }
 
 bool ChCollisionModelChrono::AddCone(std::shared_ptr<ChMaterialSurface> material,
-                                       double rx,
-                                       double rz,
-                                       double hy,
-                                       const ChVector<>& pos,
-                                       const ChMatrix33<>& rot) {
+                                     double rx,
+                                     double rz,
+                                     double hy,
+                                     const ChVector<>& pos,
+                                     const ChMatrix33<>& rot) {
     ChFrame<> frame;
     TransformToCOG(GetBody(), pos, rot, frame);
     const ChVector<>& position = frame.GetPos();
@@ -253,12 +258,12 @@ bool ChCollisionModelChrono::AddCone(std::shared_ptr<ChMaterialSurface> material
 }
 
 bool ChCollisionModelChrono::AddRoundedCone(std::shared_ptr<ChMaterialSurface> material,
-                                              double rx,
-                                              double rz,
-                                              double hy,
-                                              double sphere_r,
-                                              const ChVector<>& pos,
-                                              const ChMatrix33<>& rot) {
+                                            double rx,
+                                            double rz,
+                                            double hy,
+                                            double sphere_r,
+                                            const ChVector<>& pos,
+                                            const ChMatrix33<>& rot) {
     ChFrame<> frame;
     TransformToCOG(GetBody(), pos, rot, frame);
     const ChVector<>& position = frame.GetPos();
@@ -275,10 +280,10 @@ bool ChCollisionModelChrono::AddRoundedCone(std::shared_ptr<ChMaterialSurface> m
 }
 
 bool ChCollisionModelChrono::AddCapsule(std::shared_ptr<ChMaterialSurface> material,
-                                          double radius,
-                                          double hlen,
-                                          const ChVector<>& pos,
-                                          const ChMatrix33<>& rot) {
+                                        double radius,
+                                        double hlen,
+                                        const ChVector<>& pos,
+                                        const ChMatrix33<>& rot) {
     ChFrame<> frame;
     TransformToCOG(GetBody(), pos, rot, frame);
     const ChVector<>& position = frame.GetPos();
@@ -295,9 +300,9 @@ bool ChCollisionModelChrono::AddCapsule(std::shared_ptr<ChMaterialSurface> mater
 }
 
 bool ChCollisionModelChrono::AddConvexHull(std::shared_ptr<ChMaterialSurface> material,
-                                             const std::vector<ChVector<double> >& pointlist,
-                                             const ChVector<>& pos,
-                                             const ChMatrix33<>& rot) {
+                                           const std::vector<ChVector<double> >& pointlist,
+                                           const ChVector<>& pos,
+                                           const ChMatrix33<>& rot) {
     ChFrame<> frame;
     TransformToCOG(GetBody(), pos, rot, frame);
     const ChVector<>& position = frame.GetPos();
@@ -319,25 +324,25 @@ bool ChCollisionModelChrono::AddConvexHull(std::shared_ptr<ChMaterialSurface> ma
 }
 
 bool ChCollisionModelChrono::AddBarrel(std::shared_ptr<ChMaterialSurface> material,
-                                         double Y_low,
-                                         double Y_high,
-                                         double R_vert,
-                                         double R_hor,
-                                         double R_offset,
-                                         const ChVector<>& pos,
-                                         const ChMatrix33<>& rot) {
+                                       double Y_low,
+                                       double Y_high,
+                                       double R_vert,
+                                       double R_hor,
+                                       double R_offset,
+                                       const ChVector<>& pos,
+                                       const ChMatrix33<>& rot) {
     // NOT SUPPORTED
     return false;
 }
 
 /// Add a triangle mesh to this model
 bool ChCollisionModelChrono::AddTriangleMesh(std::shared_ptr<ChMaterialSurface> material,
-                                               std::shared_ptr<geometry::ChTriangleMesh> trimesh,
-                                               bool is_static,
-                                               bool is_convex,
-                                               const ChVector<>& pos,
-                                               const ChMatrix33<>& rot,
-                                               double sphereswept_thickness) {
+                                             std::shared_ptr<geometry::ChTriangleMesh> trimesh,
+                                             bool is_static,
+                                             bool is_convex,
+                                             const ChVector<>& pos,
+                                             const ChMatrix33<>& rot,
+                                             double sphereswept_thickness) {
     ChFrame<> frame;
     TransformToCOG(GetBody(), pos, rot, frame);
     const ChVector<>& position = frame.GetPos();
