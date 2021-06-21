@@ -32,44 +32,6 @@ namespace collision {
 /// Readibility type definition.
 typedef int shape_type;
 
-/// Structure with all measures associated with the collision detection system.
-class collision_measures {
-  public:
-    collision_measures() {
-        min_bounding_point = real3(0);
-        max_bounding_point = real3(0);
-        global_origin = real3(0);
-        bin_size = real3(0);
-        number_of_contacts_possible = 0;
-        number_of_bins_active = 0;
-        number_of_bin_intersections = 0;
-
-        rigid_min_bounding_point = real3(0);
-        rigid_max_bounding_point = real3(0);
-
-        ff_min_bounding_point = real3(0);
-        ff_max_bounding_point = real3(0);
-        ff_bins_per_axis = vec3(0);
-    }
-
-    real3 min_bounding_point;          ///< The minimal global bounding point
-    real3 max_bounding_point;          ///< The maximum global bounding point
-    real3 global_origin;               ///< The global zero point
-    real3 bin_size;                    ///< Vector holding bin sizes for each dimension
-    real3 inv_bin_size;                ///< Vector holding inverse bin sizes for each dimension
-    uint number_of_bins_active;        ///< Number of active bins (containing 1+ AABBs)
-    uint number_of_bin_intersections;  ///< Number of AABB bin intersections
-    uint number_of_contacts_possible;  ///< Number of contacts possible from broadphase
-
-    real3 rigid_min_bounding_point;
-    real3 rigid_max_bounding_point;
-
-    // Fluid Collision info
-    vec3 ff_bins_per_axis;
-    real3 ff_min_bounding_point;
-    real3 ff_max_bounding_point;
-};
-
 /// Structure of arrays containing contact shape information.
 struct shape_container {
     std::vector<short2> fam_rigid;  ///< family information
@@ -116,11 +78,33 @@ class ChApi ChCollisionData {
   public:
     ChCollisionData(bool owns_data)
         : owns_state_data(owns_data),
+          //
           collision_envelope(0),
+          //
           num_rigid_contacts(0),
           num_rigid_fluid_contacts(0),
           num_fluid_contacts(0),
-          num_rigid_shapes(0) {
+          num_rigid_shapes(0),
+          //
+          bins_per_axis(vec3(10, 10, 10)),
+          fixed_bins(true),
+          grid_density(5),
+          //
+          min_bounding_point(real3(0)),
+          max_bounding_point(real3(0)),
+          global_origin(real3(0)),
+          bin_size(real3(0)),
+          num_bins(0),
+          num_active_bins(0),
+          num_bin_aabb_intersections(0),
+          num_possible_collisions(0),
+          //
+          rigid_min_bounding_point(real3(0)),
+          rigid_max_bounding_point(real3(0)),
+          //
+          ff_min_bounding_point(real3(0)),
+          ff_max_bounding_point(real3(0)),
+          ff_bins_per_axis(vec3(0)) {
         if (owns_data) {
             state_data.pos_rigid = new std::vector<real3>;
             state_data.rot_rigid = new std::vector<quaternion>;
@@ -149,7 +133,7 @@ class ChApi ChCollisionData {
     state_container state_data;  ///< State data arrays
     shape_container shape_data;  ///< Shape information data arrays
 
-    collision_measures measures;  ///< Container for various statistics for collision detection
+    ////collision_measures measures;  ///< Container for various statistics for collision detection
 
     real collision_envelope;  ///< Collision envelope for rigid shapes
 
@@ -166,7 +150,7 @@ class ChApi ChCollisionData {
     std::vector<long long> pair_shapeIDs;     ///< Shape IDs for each shape pair (encoded in a single long long)
     std::vector<long long> contact_shapeIDs;  ///< Shape IDs for each contact (encoded in a single long long)
 
-    // Rigid-rigid geometric collision data 
+    // Rigid-rigid geometric collision data
     std::vector<real3> norm_rigid_rigid;
     std::vector<real3> cpta_rigid_rigid;
     std::vector<real3> cptb_rigid_rigid;
@@ -190,12 +174,33 @@ class ChApi ChCollisionData {
     std::vector<int> reverse_mapping_3dof;
 
     // Broadphase Data
-    std::vector<uint> bin_intersections;
-    std::vector<uint> bin_number;
-    std::vector<uint> bin_number_out;
-    std::vector<uint> bin_aabb_number;
-    std::vector<uint> bin_start_index;
-    std::vector<uint> bin_num_contact;
+    vec3 bins_per_axis;  ///< (input)number of slices along each axis of the collision detection grid
+    bool fixed_bins;     ///< (input) keep number of bins fixed
+    real grid_density;   ///< (input) collision grid density
+
+    real3 min_bounding_point;         ///< LBR (left-bottom-rear) corner of union of all AABBs
+    real3 max_bounding_point;         ///< RTF (right-top-front) corner of union of all AABBs
+    real3 global_origin;              ///< The grid zero point (same as LBR)
+    real3 bin_size;                   ///< Bin sizes in each direction
+    real3 inv_bin_size;               ///< Bin size reciprocals in each direction
+    uint num_bins;                    ///< Total number of bins
+    uint num_active_bins;             ///< Number of bins intersecting at least one shape AABB
+    uint num_bin_aabb_intersections;  ///< Number of shape AABB - bin intersections
+    uint num_possible_collisions;     ///< Number of candidate collisions from broadphase
+
+    real3 rigid_min_bounding_point;  ///< LBR (left-bottom-rear) corner of union of rigid AABBs
+    real3 rigid_max_bounding_point;  ///< RTF (right-top-front) corner of union of rigid AABBs
+
+    vec3 ff_bins_per_axis;        ///< grid resolution for fluid particles
+    real3 ff_min_bounding_point;  ///< LBR (left-bottom-rear) corner of union of fluid AABBs
+    real3 ff_max_bounding_point;  ///< RTF (right-top-front) corner of union of fluid AABBs
+
+    std::vector<uint> bin_intersections;  ///< [num_rigid_shapes+1] number of bin intersections for each shape AABB
+    std::vector<uint> bin_number;         ///< [num_bin_aabb_intersections] bin index for bin-shape AABB intersections
+    std::vector<uint> bin_number_out;     ///< [num_active_bins] bin index of active bins (no duplicates)
+    std::vector<uint> bin_aabb_number;    ///< [num_bin_aabb_intersections] shape ID for bin-shape AABB intersections
+    std::vector<uint> bin_start_index;    ///< [num_active_bins+1]
+    std::vector<uint> bin_num_contact;    ///< [num_active_bins+1]
 
     // Indexing variables
     // ------------------

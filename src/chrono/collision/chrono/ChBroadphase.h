@@ -45,10 +45,6 @@ class ChApi ChBroadphase {
 
     std::shared_ptr<ChCollisionData> cd_data;
 
-    vec3 bins_per_axis;  ///< number of slices along each axis of the collision detection grid
-    bool fixed_bins;     ///< keep number of bins fixed
-    real grid_density;   ///< collision grid density
-
     friend class ChCollisionSystemChrono;
     friend class ChCollisionSystemChronoMulticore;
 };

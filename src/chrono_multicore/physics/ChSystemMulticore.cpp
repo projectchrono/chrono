@@ -752,7 +752,7 @@ void ChSystemMulticore::CalculateBodyAABB() {
     auto& s_min = data_manager->cd_data->aabb_min;
     auto& s_max = data_manager->cd_data->aabb_max;
     auto& id_rigid = data_manager->cd_data->shape_data.id_rigid;
-    auto& offset = data_manager->cd_data->measures.global_origin;
+    auto& offset = data_manager->cd_data->global_origin;
 
     // Initialize body AABB to inverted boxes
     custom_vector<real3> b_min(data_manager->num_rigid_bodies, real3(C_LARGE_REAL));

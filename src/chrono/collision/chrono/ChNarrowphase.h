@@ -46,7 +46,7 @@ class ChApi ChNarrowphase {
 
     /// Perform narrowphase collision detection.
     /// This function generates rigid-rigid, fluid-fluid, and rigid-fluid collisions, as applicable.
-    void Process(const vec3& bins_per_axis);
+    void Process();
 
     /// Minkovski Portal Refinement convex-convex collision detection (adapted from Xeno Collide).
     static bool MPRCollision(const ConvexBase* ShapeA,
@@ -118,9 +118,9 @@ class ChApi ChNarrowphase {
     void ProcessFluid();
 
     /// Perform collision detection involving rigid shapes (rigid-rigid and rigid-fluid).
-    void ProcessRigids(const vec3& bins_per_axis);
+    void ProcessRigids();
     void ProcessRigidRigid();
-    void ProcessRigidFluid(const vec3& bins_per_axis);
+    void ProcessRigidFluid();
 
     void DispatchMPR();
     void DispatchPRIMS();

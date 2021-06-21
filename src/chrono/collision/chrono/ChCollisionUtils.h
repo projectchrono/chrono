@@ -67,7 +67,7 @@ inline uint Hash_Index(const vec3& A, vec3 bins_per_axis) {
     return ((A.z * bins_per_axis.y) * bins_per_axis.x) + (A.y * bins_per_axis.x) + A.x;
 }
 
-/// Decode a hash into it's associated bin position.
+/// Decode a hash into its associated bin position.
 inline vec3 Hash_Decode(uint hash, vec3 bins_per_axis) {
     vec3 decoded_hash;
     decoded_hash.x = hash % (bins_per_axis.x * bins_per_axis.y) % bins_per_axis.x;

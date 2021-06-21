@@ -71,9 +71,9 @@ void ChCollisionSystemChronoMulticore::PreProcess() {
     use_aabb_active = settings.use_aabb_active;
     active_aabb_min = settings.aabb_min;
     active_aabb_max = settings.aabb_max;
-    broadphase.bins_per_axis = settings.bins_per_axis;
-    broadphase.fixed_bins = settings.fixed_bins;
-    broadphase.grid_density = settings.grid_density;
+    cd_data->bins_per_axis = settings.bins_per_axis;
+    cd_data->fixed_bins = settings.fixed_bins;
+    cd_data->grid_density = settings.grid_density;
     narrowphase.algorithm = settings.narrowphase_algorithm;
 }
 
@@ -81,21 +81,21 @@ void ChCollisionSystemChronoMulticore::PostProcess() {
     // Copy collision detection measures
     auto& measures = data_manager->measures.collision;
 
-    measures.min_bounding_point = cd_data->measures.min_bounding_point;
-    measures.max_bounding_point = cd_data->measures.max_bounding_point;
-    measures.global_origin = cd_data->measures.global_origin;
-    measures.bin_size = cd_data->measures.bin_size;
-    measures.inv_bin_size = cd_data->measures.inv_bin_size;
-    measures.number_of_bins_active = cd_data->measures.number_of_bins_active;
-    measures.number_of_bin_intersections = cd_data->measures.number_of_bin_intersections;
-    measures.number_of_contacts_possible = cd_data->measures.number_of_contacts_possible;
+    measures.min_bounding_point = cd_data->min_bounding_point;
+    measures.max_bounding_point = cd_data->max_bounding_point;
+    measures.global_origin = cd_data->global_origin;
+    measures.bin_size = cd_data->bin_size;
+    measures.inv_bin_size = cd_data->inv_bin_size;
+    measures.number_of_bins_active = cd_data->num_active_bins;
+    measures.number_of_bin_intersections = cd_data->num_bin_aabb_intersections;
+    measures.number_of_contacts_possible = cd_data->num_possible_collisions;
 
-    measures.rigid_min_bounding_point = cd_data->measures.rigid_min_bounding_point;
-    measures.rigid_max_bounding_point = cd_data->measures.rigid_max_bounding_point;
+    measures.rigid_min_bounding_point = cd_data->rigid_min_bounding_point;
+    measures.rigid_max_bounding_point = cd_data->rigid_max_bounding_point;
 
-    measures.ff_bins_per_axis = cd_data->measures.ff_bins_per_axis;
-    measures.ff_min_bounding_point = cd_data->measures.ff_min_bounding_point;
-    measures.ff_max_bounding_point = cd_data->measures.ff_max_bounding_point;
+    measures.ff_bins_per_axis = cd_data->ff_bins_per_axis;
+    measures.ff_min_bounding_point = cd_data->ff_min_bounding_point;
+    measures.ff_max_bounding_point = cd_data->ff_max_bounding_point;
 
     // If needed, remap particle velocities and load sorted particle velocities.
     if (data_manager->node_container) {

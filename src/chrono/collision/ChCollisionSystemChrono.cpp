@@ -42,12 +42,12 @@ void ChCollisionSystemChrono::SetEnvelope(double envelope) {
 }
 
 void ChCollisionSystemChrono::SetBroadphaseNumBins(ChVector<int> num_bins, bool fixed) {
-    broadphase.bins_per_axis = vec3(num_bins.x(), num_bins.y(), num_bins.z());
-    broadphase.fixed_bins = fixed;
+    cd_data->bins_per_axis = vec3(num_bins.x(), num_bins.y(), num_bins.z());
+    cd_data->fixed_bins = fixed;
 }
 
 void ChCollisionSystemChrono::SetBroadphaseGridDensity(double density) {
-    broadphase.grid_density = real(density);
+    cd_data->grid_density = real(density);
 }
 
 void ChCollisionSystemChrono::SetNarrowphaseAlgorithm(ChNarrowphase::Algorithm algorithm) {
@@ -77,13 +77,13 @@ bool ChCollisionSystemChrono::GetActiveBoundingBox(ChVector<>& aabb_min, ChVecto
 }
 
 void ChCollisionSystemChrono::GetBoundingBox(ChVector<>& aabb_min, ChVector<>& aabb_max) const {
-    aabb_min.x() = cd_data->measures.min_bounding_point.x;
-    aabb_min.y() = cd_data->measures.min_bounding_point.y;
-    aabb_min.z() = cd_data->measures.min_bounding_point.z;
+    aabb_min.x() = cd_data->min_bounding_point.x;
+    aabb_min.y() = cd_data->min_bounding_point.y;
+    aabb_min.z() = cd_data->min_bounding_point.z;
 
-    aabb_max.x() = cd_data->measures.max_bounding_point.x;
-    aabb_max.y() = cd_data->measures.max_bounding_point.y;
-    aabb_max.z() = cd_data->measures.max_bounding_point.z;
+    aabb_max.x() = cd_data->max_bounding_point.x;
+    aabb_max.y() = cd_data->max_bounding_point.y;
+    aabb_max.z() = cd_data->max_bounding_point.z;
 }
 
 double ChCollisionSystemChrono::GetTimerCollisionBroad() const {
@@ -368,7 +368,7 @@ void ChCollisionSystemChrono::Run() {
 
     // Narrowphase
     m_timer_narrow.start();
-    narrowphase.Process(broadphase.bins_per_axis);
+    narrowphase.Process();
     m_timer_narrow.stop();
 }
 

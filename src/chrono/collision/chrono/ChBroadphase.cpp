@@ -34,7 +34,7 @@ namespace collision {
 
 using namespace chrono::collision::ch_utils;
 
-ChBroadphase::ChBroadphase() : bins_per_axis(vec3(10, 10, 10)), fixed_bins(true), grid_density(5), cd_data(nullptr) {}
+ChBroadphase::ChBroadphase() : cd_data(nullptr) {}
 
 // -----------------------------------------------------------------------------
 
@@ -91,8 +91,8 @@ void ChBroadphase::RigidBoundingBox() {
     auto end = thrust::make_zip_iterator(thrust::make_tuple(aabb_min.end(), aabb_max.end(), id_rigid.end()));
     auto result = thrust::transform_reduce(THRUST_PAR begin, end, BoxInvert(&collide_rigid), inverted, BoxReduce());
 
-    cd_data->measures.rigid_min_bounding_point = thrust::get<0>(result);
-    cd_data->measures.rigid_max_bounding_point = thrust::get<1>(result);
+    cd_data->rigid_min_bounding_point = thrust::get<0>(result);
+    cd_data->rigid_max_bounding_point = thrust::get<1>(result);
 }
 
 // AABB as the pair of its min and max corners.
@@ -132,23 +132,20 @@ void ChBroadphase::FluidBoundingBox() {
     res.second.y = radius * Ceil(res.second.y / radius);
     res.second.z = radius * Ceil(res.second.z / radius);
 
-    real3& min_bounding_point = cd_data->measures.ff_min_bounding_point;
-    real3& max_bounding_point = cd_data->measures.ff_max_bounding_point;
-
-    max_bounding_point = res.second + radius * 6;
-    min_bounding_point = res.first - radius * 6;
+    cd_data->ff_min_bounding_point = res.first - radius * 6;
+    cd_data->ff_max_bounding_point = res.second + radius * 6;
 }
 
 void ChBroadphase::DetermineBoundingBox() {
     RigidBoundingBox();
 
-    real3 min_point = cd_data->measures.rigid_min_bounding_point;
-    real3 max_point = cd_data->measures.rigid_max_bounding_point;
+    real3 min_point = cd_data->rigid_min_bounding_point;
+    real3 max_point = cd_data->rigid_max_bounding_point;
 
     if (cd_data->state_data.num_fluid_bodies != 0) {
         FluidBoundingBox();
-        min_point = Min(min_point, cd_data->measures.ff_min_bounding_point);
-        max_point = Max(max_point, cd_data->measures.ff_max_bounding_point);
+        min_point = Min(min_point, cd_data->ff_min_bounding_point);
+        max_point = Max(max_point, cd_data->ff_max_bounding_point);
     }
 
     // Inflate the overall bounding box by a small percentage.
@@ -159,16 +156,16 @@ void ChBroadphase::DetermineBoundingBox() {
     min_point = min_point - fraction * size;
     max_point = max_point + fraction * size;
 
-    cd_data->measures.min_bounding_point = min_point;
-    cd_data->measures.max_bounding_point = max_point;
-    cd_data->measures.global_origin = min_point;
+    cd_data->min_bounding_point = min_point;
+    cd_data->max_bounding_point = max_point;
+    cd_data->global_origin = min_point;
 }
 
 void ChBroadphase::OffsetAABB() {
     std::vector<real3>& aabb_min = cd_data->aabb_min;
     std::vector<real3>& aabb_max = cd_data->aabb_max;
 
-    thrust::constant_iterator<real3> offset(cd_data->measures.global_origin);
+    thrust::constant_iterator<real3> offset(cd_data->global_origin);
 
     thrust::transform(aabb_min.begin(), aabb_min.end(), offset, aabb_min.begin(), thrust::minus<real3>());
     thrust::transform(aabb_max.begin(), aabb_max.end(), offset, aabb_max.begin(), thrust::minus<real3>());
@@ -177,18 +174,19 @@ void ChBroadphase::OffsetAABB() {
 // Determine resolution of the top level grid
 void ChBroadphase::ComputeTopLevelResolution() {
     const int num_shapes = cd_data->num_rigid_shapes;
-    const real3& max_bounding_point = cd_data->measures.max_bounding_point;
-    const real3& global_origin = cd_data->measures.global_origin;
+    const real3& max_bounding_point = cd_data->max_bounding_point;
+    const real3& global_origin = cd_data->global_origin;
 
-    real3& inv_bin_size = cd_data->measures.inv_bin_size;
-    real3& bin_size = cd_data->measures.bin_size;
+    vec3& bins_per_axis = cd_data->bins_per_axis;
+    real3& inv_bin_size = cd_data->inv_bin_size;
+    real3& bin_size = cd_data->bin_size;
 
     // This is the extents of the space aka diameter
     real3 diagonal = (Abs(max_bounding_point - global_origin));
 
     // Compute the number of slices in this grid level
-    if (!fixed_bins) {
-        bins_per_axis = function_Compute_Grid_Resolution(num_shapes, diagonal, grid_density);
+    if (!cd_data->fixed_bins) {
+        bins_per_axis = function_Compute_Grid_Resolution(num_shapes, diagonal, cd_data->grid_density);
     }
     bin_size = diagonal / real3(bins_per_axis.x, bins_per_axis.y, bins_per_axis.z);
 
@@ -206,11 +204,11 @@ void ChBroadphase::Process() {
     OffsetAABB();
 
     // Determine resolution of the top level grid
-    ComputeTopLevelResolution();  
+    ComputeTopLevelResolution();
 
     if (cd_data->num_rigid_shapes != 0) {
         OneLevelBroadphase();
-        cd_data->num_rigid_contacts = cd_data->measures.number_of_contacts_possible;
+        cd_data->num_rigid_contacts = cd_data->num_possible_collisions;
     }
     return;
 }
@@ -234,14 +232,19 @@ void ChBroadphase::OneLevelBroadphase() {
 
     const int num_shapes = cd_data->num_rigid_shapes;
 
-    real3& inv_bin_size = cd_data->measures.inv_bin_size;
-    uint& number_of_bins_active = cd_data->measures.number_of_bins_active;
-    uint& number_of_bin_intersections = cd_data->measures.number_of_bin_intersections;
-    uint& number_of_contacts_possible = cd_data->measures.number_of_contacts_possible;
+    const vec3& bins_per_axis = cd_data->bins_per_axis;
+    const real3& inv_bin_size = cd_data->inv_bin_size;
+    uint& num_bins = cd_data->num_bins;
+    uint& num_active_bins = cd_data->num_active_bins;
+    uint& num_bin_aabb_intersections = cd_data->num_bin_aabb_intersections;
+    uint& num_possible_collisions = cd_data->num_possible_collisions;
+
+    num_bins = bins_per_axis.x * bins_per_axis.y * bins_per_axis.z;
 
     bin_intersections.resize(num_shapes + 1);
     bin_intersections[num_shapes] = 0;
 
+    // Count the number of bins intersected by each shape AABB -> bin_intersections
 #pragma omp parallel for
     for (int i = 0; i < num_shapes; i++) {
         if (obj_data_id[i] == UINT_MAX) {
@@ -251,14 +254,16 @@ void ChBroadphase::OneLevelBroadphase() {
         f_Count_AABB_BIN_Intersection(i, inv_bin_size, aabb_min, aabb_max, bin_intersections);
     }
 
+    // Calculate total number of bin - shape AABB intersections
     Thrust_Exclusive_Scan(bin_intersections);
-    number_of_bin_intersections = bin_intersections.back();
+    num_bin_aabb_intersections = bin_intersections.back();
 
-    bin_number.resize(number_of_bin_intersections);
-    bin_number_out.resize(number_of_bin_intersections);
-    bin_aabb_number.resize(number_of_bin_intersections);
-    bin_start_index.resize(number_of_bin_intersections);
+    bin_number.resize(num_bin_aabb_intersections);
+    bin_number_out.resize(num_bin_aabb_intersections);
+    bin_aabb_number.resize(num_bin_aabb_intersections);
+    bin_start_index.resize(num_bin_aabb_intersections);
 
+    // For each shape, store the bin index and the shape ID for intersections with this shape 
 #pragma omp parallel for
     for (int i = 0; i < num_shapes; i++) {
         if (obj_data_id[i] == UINT_MAX)
@@ -267,40 +272,44 @@ void ChBroadphase::OneLevelBroadphase() {
                                       bin_aabb_number);
     }
 
+    // Find the number of active bins (i.e. with at least one shape AABB intersection)
     Thrust_Sort_By_Key(bin_number, bin_aabb_number);
-    number_of_bins_active = (int)(Run_Length_Encode(bin_number, bin_number_out, bin_start_index));
+    num_active_bins = (int)(Run_Length_Encode(bin_number, bin_number_out, bin_start_index));
 
-    if (number_of_bins_active <= 0) {
-        number_of_contacts_possible = 0;
+    if (num_active_bins <= 0) {
+        num_possible_collisions = 0;
         return;
     }
 
-    bin_start_index.resize(number_of_bins_active + 1);
-    bin_start_index[number_of_bins_active] = 0;
+    bin_number_out.resize(num_active_bins);
+    bin_start_index.resize(num_active_bins + 1);
+    bin_start_index[num_active_bins] = 0;
 
     Thrust_Exclusive_Scan(bin_start_index);
-    bin_num_contact.resize(number_of_bins_active + 1);
-    bin_num_contact[number_of_bins_active] = 0;
+    bin_num_contact.resize(num_active_bins + 1);
+    bin_num_contact[num_active_bins] = 0;
 
+    // Count the number of AABB-AABB intersections in each active bin -> bin_num_contact
 #pragma omp parallel for
-    for (int i = 0; i < (signed)number_of_bins_active; i++) {
+    for (int i = 0; i < (signed)num_active_bins; i++) {
         f_Count_AABB_AABB_Intersection(i, inv_bin_size, bins_per_axis, aabb_min, aabb_max, bin_number_out,
                                        bin_aabb_number, bin_start_index, fam_data, obj_active, obj_collide, obj_data_id,
                                        bin_num_contact);
     }
 
     thrust::exclusive_scan(bin_num_contact.begin(), bin_num_contact.end(), bin_num_contact.begin());
-    number_of_contacts_possible = bin_num_contact.back();
-    pair_shapeIDs.resize(number_of_contacts_possible);
+    num_possible_collisions = bin_num_contact.back();
+    pair_shapeIDs.resize(num_possible_collisions);
 
+    // Store the list of shape pairs in potential collision (i.e. with intersecting AABBs)
 #pragma omp parallel for
-    for (int index = 0; index < (signed)number_of_bins_active; index++) {
+    for (int index = 0; index < (signed)num_active_bins; index++) {
         f_Store_AABB_AABB_Intersection(index, inv_bin_size, bins_per_axis, aabb_min, aabb_max, bin_number_out,
                                        bin_aabb_number, bin_start_index, bin_num_contact, fam_data, obj_active,
                                        obj_collide, obj_data_id, pair_shapeIDs);
     }
 
-    pair_shapeIDs.resize(number_of_contacts_possible);
+    pair_shapeIDs.resize(num_possible_collisions);
 }
 
 }  // end namespace collision

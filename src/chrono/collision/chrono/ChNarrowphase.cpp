@@ -55,19 +55,19 @@ void ChNarrowphase::ClearContacts() {
     }
 }
 
-void ChNarrowphase::Process(const vec3& bins_per_axis) {
+void ChNarrowphase::Process() {
     if (cd_data->state_data.num_fluid_bodies != 0) {
         ProcessFluid();
     }
     if (cd_data->num_rigid_shapes != 0) {
-        ProcessRigids(bins_per_axis);
+        ProcessRigids();
     } else {
         cd_data->c_counts_rigid_fluid.clear();
         cd_data->num_rigid_fluid_contacts = 0;
     }
 }
 
-void ChNarrowphase::ProcessRigids(const vec3& bins_per_axis) {
+void ChNarrowphase::ProcessRigids() {
     num_potential_rigid_contacts = cd_data->num_rigid_contacts;
     num_potential_rigid_fluid_contacts = cd_data->num_rigid_fluid_contacts;
     num_potential_fluid_contacts = cd_data->num_fluid_contacts;
@@ -82,7 +82,7 @@ void ChNarrowphase::ProcessRigids(const vec3& bins_per_axis) {
     }
 
     if (cd_data->state_data.num_fluid_bodies != 0) {
-        ProcessRigidFluid(bins_per_axis);
+        ProcessRigidFluid();
     }
 }
 
@@ -399,8 +399,8 @@ void ChNarrowphase::ProcessFluid() {
 
     const real radius = cd_data->p_kernel_radius + cd_data->p_collision_envelope;
     const real collision_envelope = cd_data->p_collision_envelope;
-    const real3& min_bounding_point = cd_data->measures.ff_min_bounding_point;
-    const real3& max_bounding_point = cd_data->measures.ff_max_bounding_point;
+    const real3& min_bounding_point = cd_data->ff_min_bounding_point;
+    const real3& max_bounding_point = cd_data->ff_max_bounding_point;
 
     const std::vector<real3>& pos_fluid = *cd_data->state_data.pos_3dof;
     std::vector<real3>& sorted_pos_fluid = *cd_data->state_data.sorted_pos_3dof;
@@ -409,7 +409,7 @@ void ChNarrowphase::ProcessFluid() {
     std::vector<int>& contact_counts = cd_data->c_counts_3dof_3dof;
     std::vector<int>& particle_indices = cd_data->particle_indices_3dof;
     std::vector<int>& reverse_mapping = cd_data->reverse_mapping_3dof;
-    vec3& bins_per_axis = cd_data->measures.ff_bins_per_axis;
+    vec3& bins_per_axis = cd_data->ff_bins_per_axis;
     uint& num_fluid_contacts = cd_data->num_fluid_contacts;
 
     const real radius_envelope = radius + collision_envelope;
@@ -507,7 +507,7 @@ void ChNarrowphase::ProcessFluid() {
 
 // -----------------------------------------------------------------------------
 
-void ChNarrowphase::ProcessRigidFluid(const vec3& bins_per_axis) {
+void ChNarrowphase::ProcessRigidFluid() {
     // Readability replacements
     const real sphere_radius = cd_data->p_kernel_radius;
     const int num_spheres = cd_data->state_data.num_fluid_bodies;
@@ -522,8 +522,9 @@ void ChNarrowphase::ProcessRigidFluid(const vec3& bins_per_axis) {
     std::vector<int>& contact_counts = cd_data->c_counts_rigid_fluid;
     uint& num_contacts = cd_data->num_rigid_fluid_contacts;
 
-    real3 global_origin = cd_data->measures.global_origin;
-    real3 inv_bin_size = cd_data->measures.inv_bin_size;
+    const vec3& bins_per_axis = cd_data->bins_per_axis;
+    real3 global_origin = cd_data->global_origin;
+    real3 inv_bin_size = cd_data->inv_bin_size;
     const std::vector<short2>& fam_data = cd_data->shape_data.fam_rigid;
     const real radius = sphere_radius;
 
@@ -532,7 +533,7 @@ void ChNarrowphase::ProcessRigidFluid(const vec3& bins_per_axis) {
 
     Thrust_Fill(is_rigid_bin_active, 1000000000);
 #pragma omp parallel for
-    for (int index = 0; index < (signed)cd_data->measures.number_of_bins_active; index++) {
+    for (int index = 0; index < (signed)cd_data->num_active_bins; index++) {
         uint bin_number = cd_data->bin_number_out[index];
         if (bin_number < total_bins) {
             // printf("bin_number: %d\n", index, bin_number);
