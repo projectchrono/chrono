@@ -45,4 +45,12 @@ CUDA_HOST_DEVICE vec3 Clamp(const vec3& a, const vec3& clamp_min, const vec3& cl
     return simd::Max(clamp_min, simd::Min(a, clamp_max));
 }
 
+CUDA_HOST_DEVICE vec3 Max(const vec3& a, const vec3& b) {
+    return simd::Max(a, b);
+}
+
+CUDA_HOST_DEVICE vec3 Min(const vec3& a, const vec3& b) {
+    return simd::Min(a, b);
+}
+
 }  // namespace chrono
