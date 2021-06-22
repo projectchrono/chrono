@@ -42,18 +42,20 @@ class ChApi ChRayTest {
     ChRayTest(std::shared_ptr<ChCollisionData> data);
 
     /// Check for intersection of the given ray with all collision shapes in the system.
-    /// Performs both a broadphase and narrowphase.
+    /// Uses a variant of the 3D Digital Differential Analyser (Akira Fujimoto, "ARTS: Accelerated Ray Tracing Systems",
+    /// 1986) to efficiently traverse the broadphase grid and analytical shape-ray intersection tests.
     bool Check(const real3& start,  ///< ray start point
                const real3& end,    ///< ray end point
                RayHitInfo& info     ///< [output] test result info
     );
 
-  private:
-    /// Set identifiers of candidate shapes for ray test.
-    void FindCandidates(const real3& start,  ///< ray start point
-                        const real3& end     ///< ray end point
-    );
+    /// Return the number of bins visited by the DDA algorithm during the last ray test.
+    uint GetNumBinTests() const { return num_bin_tests; }
 
+    /// Return the number of ray-shape checks required by the last ray test.
+    uint GetNumShapeTests() const { return num_shape_tests; }
+
+  private:
     /// Dispatcher for analytic functions for ray intersection with primitive shapes.
     bool CheckShape(const ConvexBase& shape,  ///< candidate shape
                     const real3& start,       ///< ray start point
@@ -62,8 +64,9 @@ class ChApi ChRayTest {
                     real& mindist2            ///< [output] smallest squared distance to ray origin
     );
 
-    std::vector<int> candidate_shapes;         ///< identifiers of candidate shapes for current ray test
     std::shared_ptr<ChCollisionData> cd_data;  ///< shared collision detection data
+    uint num_bin_tests;                        ///< number of bins visited during last ray test
+    uint num_shape_tests;                      ///< number of shape checked during last ray test
 };
 
 /// @} collision_mc

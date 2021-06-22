@@ -228,6 +228,7 @@ void ChBroadphase::OneLevelBroadphase() {
     std::vector<uint>& bin_number_out = cd_data->bin_number_out;
     std::vector<uint>& bin_aabb_number = cd_data->bin_aabb_number;
     std::vector<uint>& bin_start_index = cd_data->bin_start_index;
+    std::vector<uint>& bin_start_index_ext = cd_data->bin_start_index_ext;
     std::vector<uint>& bin_num_contact = cd_data->bin_num_contact;
 
     const int num_shapes = cd_data->num_rigid_shapes;
@@ -310,6 +311,20 @@ void ChBroadphase::OneLevelBroadphase() {
     }
 
     pair_shapeIDs.resize(num_possible_collisions);
+
+    // For use in ray intersection tests, also create an "extended" vector of start indices that also includes bins with
+    // no shape AABB intersections. Note: we take into account that the first and last bins are always active (they
+    // contain at least one shape AABB since this is how the overall grid is set up).
+    bin_start_index_ext.resize(num_bins + 1);
+    bin_start_index_ext[0] = bin_start_index[0];
+#pragma omp parallel for
+    for (int index = 1; index < (signed)num_active_bins; index++) {
+        // Set the extended array for the current active bin as well as any empty bins before it.
+        uint active_bin = bin_number_out[index];
+        for (uint j = bin_number_out[index - 1] + 1; j <= active_bin; j++)
+            bin_start_index_ext[j] = bin_start_index[index];
+    }
+    bin_start_index_ext[num_bins] = bin_start_index[num_active_bins];
 }
 
 }  // end namespace collision

@@ -24,34 +24,7 @@ namespace collision {
 
 using namespace chrono::collision::ch_utils;
 
-ChRayTest::ChRayTest(std::shared_ptr<ChCollisionData> data) : cd_data(data) {}
-
-bool ChRayTest::Check(const real3& start, const real3& end, RayHitInfo& info) {
-    // Broadphase
-    FindCandidates(start, end);
-    auto num_candidates = candidate_shapes.size();
-
-    // Narrowphase
-    real mindist2 = C_LARGE_REAL;
-    ConvexShape shape;
-    bool hit = false;
-    for (int index = 0; index < (signed)num_candidates; index++) {
-        shape.index = candidate_shapes[index];
-        shape.data = &cd_data->shape_data;
-        if (CheckShape(shape, start, end, info.normal, mindist2))
-            hit = true;
-    }
-
-    if (hit) {
-        real3 ray = end - start;            // Ray vector
-        info.shapeID = shape.index;         // Identifier of closest hit shape
-        info.dist = Sqrt(mindist2);         // Distance from ray origin
-        info.t = info.dist / Length(ray);   // Ray parameter at intersection with closest shape
-        info.point = start + info.t * ray;  // Intersection point
-    }
-
-    return hit;
-}
+ChRayTest::ChRayTest(std::shared_ptr<ChCollisionData> data) : cd_data(data), num_bin_tests(0), num_shape_tests(0) {}
 
 // =============================================================================
 
@@ -108,10 +81,10 @@ bool sphere_ray(const real3& pos,
 // ray enters the AABB is returned in 'loc' and the normal to the box is returned in 'normal'. If the ray starts inside
 // this AABB, the entry location is defined to be the ray's start location and the normal is defined to be the opposite
 // of the ray's dir.
-bool aabb_ray(const real3& hdims, const real3& start, const real3& end, real3& loc, real3& normal) {
+bool aabb_ray(const real3& hdims, const real3& start, const real3& end, real& t, real3& loc, real3& normal) {
     real3 ray = end - start;
-
     bool outside = false;
+    t = 0;
 
     for (int i = 0, j = 1, k = 2; i < 3; j = k, k = i++) {
         real locI;
@@ -130,7 +103,7 @@ bool aabb_ray(const real3& hdims, const real3& start, const real3& end, real3& l
         } else
             continue;
 
-        real t = (locI - start[i]) / ray[i];
+        t = (locI - start[i]) / ray[i];
 
         if (t * t > Length2(ray)) {
             outside = true;
@@ -177,9 +150,10 @@ bool box_ray(const real3& pos,
     real3 end_B = RotateT(end - pos, rot);
 
     // Test intersection in local frame (ray against AABB)
+    real t_B;
     real3 loc_B;
     real3 normal_B;
-    if (aabb_ray(hdims, start_B, end_B, loc_B, normal_B)) {
+    if (aabb_ray(hdims, start_B, end_B, t_B, loc_B, normal_B)) {
         real dist2 = Length2(loc_B - start_B);
         if (dist2 < mindist2) {
             normal = Rotate(normal_B, rot);
@@ -379,14 +353,100 @@ bool triangle_ray(const real3& A,
 
 // =============================================================================
 
-// Broadphase ray intersection test. It uses results from the collision detection broadphase to exclude shapes from
-// possible ray intersection.
-void ChRayTest::FindCandidates(const real3& start, const real3& end) {
-    //// TODO!!!
+// Use a variant of the 3D Digital Differential Analyser (Akira Fujimoto, "ARTS: Accelerated Ray Tracing Systems", 1986)
+// to efficiently traverse the broadphase grid and analytical shape-ray intersection tests.
+bool ChRayTest::Check(const real3& start, const real3& end, RayHitInfo& info) {
+    // Readability replacements
+    const vec3& bins_per_axis = cd_data->bins_per_axis;
+    const real3& bin_size = cd_data->bin_size;
+    const real3& inv_bin_size = cd_data->inv_bin_size;
+    const real3& lbr = cd_data->min_bounding_point;
+    const real3& rtf = cd_data->max_bounding_point;
+    const std::vector<uint>& bin_start_index_ext = cd_data->bin_start_index_ext;
+    const std::vector<uint>& bin_aabb_number = cd_data->bin_aabb_number;
 
-    // For now, simply list all existing shapes as candidates
-    candidate_shapes.resize(cd_data->num_rigid_shapes);
-    thrust::sequence(candidate_shapes.begin(), candidate_shapes.end());
+    // Calculate ray parameter at intersection of overall AABB. Return now if no intersection
+    real3 center = 0.5 * (rtf + lbr), loc, normal;
+    real t_min;
+    if (!aabb_ray(0.5 * (rtf - lbr), start - center, end - center, t_min, loc, normal))
+        return false;
+
+    // Ray direction
+    real3 ray = end - start;
+
+    // Find entry bin
+    auto bin = Clamp(HashMin(start - lbr, inv_bin_size), vec3(0, 0, 0), bins_per_axis - vec3(1, 1, 1));
+
+    // Depending on ray sign in each direction:
+    // - Initialize next crossing
+    // - Set increment in ray parameter at each crossing
+    // - Set increment in bin index at each crossing
+    // - Set termination criteria (grid exit condition)
+    real3 t_next(C_LARGE_REAL);
+    real3 delta(0);
+    vec3 step;
+    vec3 exit;
+    for (int i = 0; i < 3; i++) {
+        real start0 = (start[i] - lbr[i]) + t_min * ray[i];  // ray start point relative to grid LRB
+        if (ray[i] < 0) {
+            t_next[i] = t_min + (bin[i] * bin_size[i] - start0) / ray[i];
+            delta[i] = -bin_size[i] / ray[i];
+            step[i] = -1;
+            exit[i] = -1;
+        }
+        if (ray[i] > 0) {
+            t_next[i] = t_min + ((bin[i] + 1) * bin_size[i] - start0) / ray[i];
+            delta[i] = bin_size[i] / ray[i];
+            step[i] = +1;
+            exit[i] = bins_per_axis[i];
+        }
+    }
+
+    // Walk through each bin intersected by the ray (DDA).
+    ConvexShape shape(-1, &cd_data->shape_data);
+    real mindist2 = C_LARGE_REAL;
+    bool hit = false;
+
+    ////std::cout << "Ray start: [" << start.x << "," << start.y << "," << start.z << "]" << std::endl;
+    ////std::cout << "Ray end:   [" << end.x << "," << end.y << "," << end.z << "]" << std::endl;
+
+    while (true) {
+        ////std::cout << "  Test BIN:  [" << bin.x << "," << bin.y << "," << bin.z << "]" << std::endl;
+        num_bin_tests++;
+
+        // Test ray against all shapes in current bin.
+        auto bin_index = Hash_Index(bin, bins_per_axis);
+        auto start_index = bin_start_index_ext[bin_index];
+        auto end_index = bin_start_index_ext[bin_index + 1];
+
+        for (uint j = start_index; j < end_index; j++) {
+            num_shape_tests++;
+            shape.index = bin_aabb_number[j];
+            ////std::cout << "    Test SHAPE: " << shape.index << std::endl;
+            if (CheckShape(shape, start, end, info.normal, mindist2))
+                hit = true;
+        }
+
+        // If a shape in the current bin was hit, stop.
+        if (hit) {
+            info.shapeID = shape.index;         // Identifier of closest hit shape
+            info.dist = Sqrt(mindist2);         // Distance from ray origin
+            info.t = info.dist / Length(ray);   // Ray parameter at intersection with closest shape
+            info.point = start + info.t * ray;  // Intersection point
+            break;
+        }
+
+        // Move to the next cell (the one with lowest t_next)
+        static const int map[8] = {2, 1, 2, 1, 2, 2, 0, 0};
+        int k = ((t_next[0] < t_next[1]) << 2) + ((t_next[0] < t_next[2]) << 1) + ((t_next[1] < t_next[2]));
+        int axis = map[k];
+        bin[axis] += step[axis];
+        if (bin[axis] == exit[axis])
+            break;
+        t_next[axis] += delta[axis];
+    }
+
+    return hit;
 }
 
 // Narrowphase dispatcher for ray intersection test.  It uses analytical formulaes for known primitive shapes with

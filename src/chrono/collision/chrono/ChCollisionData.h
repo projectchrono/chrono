@@ -195,12 +195,13 @@ class ChApi ChCollisionData {
     real3 ff_min_bounding_point;  ///< LBR (left-bottom-rear) corner of union of fluid AABBs
     real3 ff_max_bounding_point;  ///< RTF (right-top-front) corner of union of fluid AABBs
 
-    std::vector<uint> bin_intersections;  ///< [num_rigid_shapes+1] number of bin intersections for each shape AABB
-    std::vector<uint> bin_number;         ///< [num_bin_aabb_intersections] bin index for bin-shape AABB intersections
-    std::vector<uint> bin_number_out;     ///< [num_active_bins] bin index of active bins (no duplicates)
-    std::vector<uint> bin_aabb_number;    ///< [num_bin_aabb_intersections] shape ID for bin-shape AABB intersections
-    std::vector<uint> bin_start_index;    ///< [num_active_bins+1]
-    std::vector<uint> bin_num_contact;    ///< [num_active_bins+1]
+    std::vector<uint> bin_intersections;    ///< [num_rigid_shapes+1] number of bin intersections for each shape AABB
+    std::vector<uint> bin_number;           ///< [num_bin_aabb_intersections] bin index for bin-shape AABB intersections
+    std::vector<uint> bin_number_out;       ///< [num_active_bins] bin index of active bins (no duplicates)
+    std::vector<uint> bin_aabb_number;      ///< [num_bin_aabb_intersections] shape ID for bin-shape AABB intersections
+    std::vector<uint> bin_start_index;      ///< [num_active_bins+1]
+    std::vector<uint> bin_start_index_ext;  ///< [num_bins+1]
+    std::vector<uint> bin_num_contact;      ///< [num_active_bins+1]
 
     // Indexing variables
     // ------------------

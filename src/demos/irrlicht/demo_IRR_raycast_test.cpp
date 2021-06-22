@@ -18,6 +18,7 @@
 
 #include "chrono/physics/ChSystemSMC.h"
 #include "chrono/physics/ChBodyEasy.h"
+#include "chrono/collision/ChCollisionSystemChrono.h"
 #include "chrono/utils/ChUtilsSamplers.h"
 
 #include "chrono_irrlicht/ChIrrApp.h"
@@ -26,6 +27,9 @@ using namespace chrono;
 using namespace chrono::irrlicht;
 using namespace irr;
 using namespace irr::core;
+
+using std::cout;
+using std::endl;
 
 // =============================================================================
 
@@ -183,6 +187,32 @@ void CreateShapes(ChSystemSMC& sys) {
     }
 }
 
+// Create a set of boxes for testing broadphase ray intersection.
+// Should be used with a (4x3x1) grid.
+void CreateTestSet(ChSystemSMC& sys) {
+    auto mat = chrono_types::make_shared<ChMaterialSurfaceSMC>();
+
+    std::vector<ChVector<>> loc = {
+        ChVector<>(1, 1, 0),   //
+        ChVector<>(8, 3, 0),   //
+        ChVector<>(5, 5, 0),   //
+        ChVector<>(13, 5, 0),  //
+        ChVector<>(2, 7, 0),   //
+        ChVector<>(3, 8, 0),   //
+        ChVector<>(13, 8, 0),  //
+        ChVector<>(19, 14, 0)  //
+    };
+
+    for (int i = 0; i < 8; i++) {
+        auto b = chrono_types::make_shared<ChBodyEasyBox>(2.0, 2.0, 2.0, 1, mat, collision_type);
+        b->SetPos(loc[i] - ChVector<>(5, 5, 0));
+        b->AddAsset(chrono_types::make_shared<ChColorAsset>(0, 0.4f, 0));
+        b->GetCollisionModel()->SetFamily(1);
+        b->GetCollisionModel()->SetFamilyMaskNoCollisionWithFamily(1);
+        sys.Add(b);
+    }
+}
+
 // =============================================================================
 
 int main(int argc, char* argv[]) {
@@ -192,10 +222,16 @@ int main(int argc, char* argv[]) {
     ChSystemSMC sys;
     sys.Set_G_acc(ChVector<>(0, 0, 0));
     sys.SetCollisionSystemType(collision_type);
+    if (collision_type == collision::ChCollisionSystemType::CHRONO) {
+        auto cd_chrono = std::static_pointer_cast<collision::ChCollisionSystemChrono>(sys.GetCollisionSystem());
+        cd_chrono->SetBroadphaseNumBins(ChVector<int>(3, 3, 3));
+        ////cd_chrono->SetBroadphaseNumBins(ChVector<int>(4, 3, 1));
+    }
 
     ////CreateSpheres(sys);
     ////CreateBoxes(sys);
     ////CreateCylinders(sys);
+    ////CreateTestSet(sys);
     CreateShapes(sys);
 
     // Cast rays in collision models (in Z direction of specified frame)
