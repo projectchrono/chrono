@@ -224,8 +224,8 @@ int main(int argc, char* argv[]) {
     sys.SetCollisionSystemType(collision_type);
     if (collision_type == collision::ChCollisionSystemType::CHRONO) {
         auto cd_chrono = std::static_pointer_cast<collision::ChCollisionSystemChrono>(sys.GetCollisionSystem());
-        cd_chrono->SetBroadphaseNumBins(ChVector<int>(3, 3, 3));
-        ////cd_chrono->SetBroadphaseNumBins(ChVector<int>(4, 3, 1));
+        cd_chrono->SetBroadphaseNumBinsFixed(ChVector<int>(3, 3, 3));
+        ////cd_chrono->SetBroadphaseNumBinsFixed(ChVector<int>(4, 3, 1));
     }
 
     ////CreateSpheres(sys);

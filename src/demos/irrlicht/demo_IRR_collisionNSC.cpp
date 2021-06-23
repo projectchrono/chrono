@@ -188,7 +188,7 @@ int main(int argc, char* argv[]) {
     if (collision_type == collision::ChCollisionSystemType::CHRONO) {
         auto collsys = std::static_pointer_cast<collision::ChCollisionSystemChrono>(sys.GetCollisionSystem());
         // Change the default numnber of broadphase bins
-        collsys->SetBroadphaseNumBins(ChVector<int>(10, 10, 2));
+        collsys->SetBroadphaseNumBinsFixed(ChVector<int>(10, 10, 2));
         // Change default narrowphase algorithm
         ////collsys->SetNarrowphaseAlgorithm(collision::ChNarrowphase::Algorithm::MPR);
         collsys->SetEnvelope(0.005);

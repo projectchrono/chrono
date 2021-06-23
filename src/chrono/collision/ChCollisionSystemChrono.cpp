@@ -41,13 +41,14 @@ void ChCollisionSystemChrono::SetEnvelope(double envelope) {
     cd_data->collision_envelope = real(envelope);
 }
 
-void ChCollisionSystemChrono::SetBroadphaseNumBins(ChVector<int> num_bins, bool fixed) {
+void ChCollisionSystemChrono::SetBroadphaseNumBinsFixed(ChVector<int> num_bins) {
     cd_data->bins_per_axis = vec3(num_bins.x(), num_bins.y(), num_bins.z());
-    cd_data->fixed_bins = fixed;
+    cd_data->fixed_bins = true;
 }
 
-void ChCollisionSystemChrono::SetBroadphaseGridDensity(double density) {
+void ChCollisionSystemChrono::SetBroadphaseNumBinsVariable(double density) {
     cd_data->grid_density = real(density);
+    cd_data->fixed_bins = false;
 }
 
 void ChCollisionSystemChrono::SetNarrowphaseAlgorithm(ChNarrowphase::Algorithm algorithm) {

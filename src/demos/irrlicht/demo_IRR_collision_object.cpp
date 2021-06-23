@@ -149,7 +149,7 @@ int main(int argc, char* argv[]) {
     if (collision_type == collision::ChCollisionSystemType::CHRONO) {
         ////system->SetCollisionSystemType(collision_type);
         auto cd_chrono = chrono_types::make_shared<collision::ChCollisionSystemChrono>();
-        cd_chrono->SetBroadphaseNumBins(ChVector<int>(1, 1, 1));
+        cd_chrono->SetBroadphaseNumBinsFixed(ChVector<int>(1, 1, 1));
         cd_chrono->SetNarrowphaseAlgorithm(narrowphase_algorithm);
         cd_chrono->SetEnvelope(collision_envelope);
         system->SetCollisionSystem(cd_chrono);

@@ -54,13 +54,13 @@ class ChApi ChCollisionSystemChrono : public ChCollisionSystem {
     /// rigid shapes in the system.
     void SetEnvelope(double envelope);
 
-    /// Set the number of bins for the broadphase collision grid (default: 10x10x10) and specify whether this number is
-    /// kept fixed (default: true).
-    void SetBroadphaseNumBins(ChVector<int> num_bins, bool fixed = true);
+    /// Set a fixed number of grid bins (default 10x10x10).
+    /// This is the default setting; to continuously adjust the number of bins, use SetBroadphaseNumBinsVariable.
+    void SetBroadphaseNumBinsFixed(ChVector<int> num_bins);
 
-    /// Set the broadphase collision grid density (default: 5).
-    /// This value is used for dynamic tuning of the number of collision bins.
-    void SetBroadphaseGridDensity(double density);
+    /// Set a variable number of grid bins, such that there are roughly `density` collision shapes per bin.
+    /// By default, a fixed number of bins is used (see SetBroadphaseNumBinsFixed).
+    void SetBroadphaseNumBinsVariable(double density);
 
     /// Set the narrowphase algorithm (default: ChNarrowphase::Algorithm::HYBRID).
     /// The Chrono collision detection system provides several analytical collision detection algorithms, for particular
