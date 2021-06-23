@@ -105,7 +105,7 @@ bool aabb_ray(const real3& hdims, const real3& start, const real3& end, real& t,
 
         t = (locI - start[i]) / ray[i];
 
-        if (t * t > Length2(ray)) {
+        if (t > 1) {
             outside = true;
             continue;
         }
@@ -226,7 +226,7 @@ bool hemisphere_ray(int cap,
                     const real3& end,
                     real3& normal,
                     real& mindist2) {
-    ////
+    //// TODO
     return false;
 }
 
@@ -347,7 +347,7 @@ bool triangle_ray(const real3& A,
                   const real3& end,
                   real3& normal,
                   real& mindist2) {
-    ////
+    //// TODO
     return false;
 }
 
