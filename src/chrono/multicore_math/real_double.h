@@ -28,11 +28,10 @@ namespace chrono {
 /// @addtogroup chrono_mc_math
 /// @{
 
-// If the user specified using doubles, define the real type as double
-// Also set some constants. The same is done if floats were specified.
 typedef double real;
-#define C_LARGE_REAL DBL_MAX
-#define C_EPSILON DBL_EPSILON
+#define C_REAL_MAX DBL_MAX
+#define C_REAL_MIN DBL_MIN
+#define C_REAL_EPSILON DBL_EPSILON
 
 // Trig Functions
 // ========================================================================================

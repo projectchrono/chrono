@@ -241,7 +241,7 @@ int box_intersects_box(const real3& hdims1,
                        real3& dir) {
     Mat33 R(rot);
     Mat33 Rabs = Abs(R);
-    real minOverlap = C_LARGE_REAL;
+    real minOverlap = C_REAL_MAX;
 
     // Test the axes of the 1st box.
     for (uint i = 0; i < 3; i++) {

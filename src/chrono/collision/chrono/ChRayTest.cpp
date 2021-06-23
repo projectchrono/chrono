@@ -382,7 +382,7 @@ bool ChRayTest::Check(const real3& start, const real3& end, RayHitInfo& info) {
     // - Set increment in ray parameter at each crossing
     // - Set increment in bin index at each crossing
     // - Set termination criteria (grid exit condition)
-    real3 t_next(C_LARGE_REAL);
+    real3 t_next(C_REAL_MAX);
     real3 delta(0);
     vec3 step;
     vec3 exit;
@@ -404,7 +404,7 @@ bool ChRayTest::Check(const real3& start, const real3& end, RayHitInfo& info) {
 
     // Walk through each bin intersected by the ray (DDA).
     ConvexShape shape(-1, &cd_data->shape_data);
-    real mindist2 = C_LARGE_REAL;
+    real mindist2 = C_REAL_MAX;
     bool hit = false;
 
     ////std::cout << "Ray start: [" << start.x << "," << start.y << "," << start.z << "]" << std::endl;

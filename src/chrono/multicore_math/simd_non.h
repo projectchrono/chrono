@@ -263,7 +263,7 @@ CUDA_HOST_DEVICE quaternion change_sign(const quaternion& a) {
 
 CUDA_HOST_DEVICE inline quaternion Normalize(const quaternion& a) {
     real length = Sqrt(Dot4(a));
-    if (length < C_EPSILON) {
+    if (length < C_REAL_EPSILON) {
         return quaternion(1, 0, 0, 0);
     }
     length = 1.0 / length;

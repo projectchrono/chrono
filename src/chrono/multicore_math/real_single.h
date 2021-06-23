@@ -27,8 +27,9 @@ namespace chrono {
 /// @{
 
 typedef float real;
-#define C_LARGE_REAL FLT_MAX
-#define C_EPSILON FLT_EPSILON
+#define C_REAL_MAX FLT_MAX
+#define C_REAL_MIN FLT_MIN
+#define C_REAL_EPSILON FLT_EPSILON
 
 // Trig Functions
 // ========================================================================================

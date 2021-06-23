@@ -256,7 +256,7 @@ CUDA_HOST_DEVICE ChApi real3 Round(const real3& v) {
 }
 
 CUDA_HOST_DEVICE ChApi bool IsZero(const real3& v) {
-    return simd::IsZero(v, C_EPSILON);
+    return simd::IsZero(v, C_REAL_EPSILON);
 }
 
 CUDA_HOST_DEVICE ChApi real3 OrthogonalVector(const real3& v) {

@@ -364,7 +364,7 @@ inline real3 GetSupportPoint_RoundedCone(const real4& B, const real3& n) {
 
 /// Support point for a generic convex shape (for GJK and MPR).
 inline real3 GetSupportPoint_Convex(const int size, const real3* convex_data, const real3& n) {
-    real max_dot_p = -C_LARGE_REAL;
+    real max_dot_p = -C_REAL_MAX;
     real dot_p;
     real3 point = convex_data[0];
     for (int i = 0; i < size; i++) {
@@ -379,7 +379,7 @@ inline real3 GetSupportPoint_Convex(const int size, const real3* convex_data, co
 
 /// Support point for a tetrahedron (for GJK and MPR).
 inline real3 GetSupportPoint_Tetrahedron(const uvec4 indices, const real3* nodes, const real3& n) {
-    real max_dot_p = -C_LARGE_REAL;
+    real max_dot_p = -C_REAL_MAX;
     real dot_p;
     real3 point;
 

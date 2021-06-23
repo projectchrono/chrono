@@ -75,7 +75,7 @@ CUDA_HOST_DEVICE static inline T Cube(const T x) {
 /// Checks if the value is zero to within a certain epsilon
 /// in this case ZERO_EPSILON is defined based on what the base type of real is
 CUDA_HOST_DEVICE static inline bool IsZero(const real x) {
-    return Abs(x) < C_EPSILON;
+    return Abs(x) < C_REAL_EPSILON;
 }
 
 // template <typename T>
@@ -101,15 +101,15 @@ template <typename T>
 CUDA_HOST_DEVICE static inline bool IsEqual(const T& _a, const T& _b) {
     real ab;
     ab = Abs(_a - _b);
-    if (Abs(ab) < C_EPSILON)
+    if (Abs(ab) < C_REAL_EPSILON)
         return 1;
     real a, b;
     a = Abs(_a);
     b = Abs(_b);
     if (b > a) {
-        return ab < C_EPSILON * b;
+        return ab < C_REAL_EPSILON * b;
     } else {
-        return ab < C_EPSILON * a;
+        return ab < C_REAL_EPSILON * a;
     }
 }
 

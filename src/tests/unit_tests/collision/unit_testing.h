@@ -75,40 +75,40 @@ void Assert_eq(const Mat33& a, const Mat33& b) {
 
 // -----------------------------------------------------------------------------
 
-void Assert_near(const ChVector<>& a, const ChVector<>& b, real COMPARE_EPS = C_EPSILON) {
+void Assert_near(const ChVector<>& a, const ChVector<>& b, real COMPARE_EPS = C_REAL_EPSILON) {
     ASSERT_NEAR(a.x(), b.x(), COMPARE_EPS);
     ASSERT_NEAR(a.y(), b.y(), COMPARE_EPS);
     ASSERT_NEAR(a.z(), b.z(), COMPARE_EPS);
 }
 
-void Assert_near(const ChQuaternion<>& a, const ChQuaternion<>& b, real COMPARE_EPS = C_EPSILON) {
+void Assert_near(const ChQuaternion<>& a, const ChQuaternion<>& b, real COMPARE_EPS = C_REAL_EPSILON) {
     ASSERT_NEAR(a.e0(), b.e0(), COMPARE_EPS);
     ASSERT_NEAR(a.e1(), b.e1(), COMPARE_EPS);
     ASSERT_NEAR(a.e2(), b.e2(), COMPARE_EPS);
     ASSERT_NEAR(a.e3(), b.e3(), COMPARE_EPS);
 }
 
-void Assert_near(const real3& a, const real3& b, real COMPARE_EPS = C_EPSILON) {
+void Assert_near(const real3& a, const real3& b, real COMPARE_EPS = C_REAL_EPSILON) {
     ASSERT_NEAR(a.x, b.x, COMPARE_EPS);
     ASSERT_NEAR(a.y, b.y, COMPARE_EPS);
     ASSERT_NEAR(a.z, b.z, COMPARE_EPS);
 }
 
-void Assert_near(const real4& a, const real4& b, real COMPARE_EPS = C_EPSILON) {
+void Assert_near(const real4& a, const real4& b, real COMPARE_EPS = C_REAL_EPSILON) {
     ASSERT_NEAR(a.x, b.x, COMPARE_EPS);
     ASSERT_NEAR(a.y, b.y, COMPARE_EPS);
     ASSERT_NEAR(a.z, b.z, COMPARE_EPS);
     ASSERT_NEAR(a.w, b.w, COMPARE_EPS);
 }
 
-void Assert_near(const quaternion& a, const quaternion& b, real COMPARE_EPS = C_EPSILON) {
+void Assert_near(const quaternion& a, const quaternion& b, real COMPARE_EPS = C_REAL_EPSILON) {
     ASSERT_NEAR(a.w, b.w, COMPARE_EPS);
     ASSERT_NEAR(a.x, b.x, COMPARE_EPS);
     ASSERT_NEAR(a.y, b.y, COMPARE_EPS);
     ASSERT_NEAR(a.z, b.z, COMPARE_EPS);
 }
 
-void Assert_near(const Mat33& a, const Mat33& b, real COMPARE_EPS = C_EPSILON) {
+void Assert_near(const Mat33& a, const Mat33& b, real COMPARE_EPS = C_REAL_EPSILON) {
     ASSERT_NEAR(a[0], b[0], COMPARE_EPS);
     ASSERT_NEAR(a[1], b[1], COMPARE_EPS);
     ASSERT_NEAR(a[2], b[2], COMPARE_EPS);
@@ -120,7 +120,7 @@ void Assert_near(const Mat33& a, const Mat33& b, real COMPARE_EPS = C_EPSILON) {
     ASSERT_NEAR(a[10], b[10], COMPARE_EPS);
 }
 
-void Assert_near(const SymMat33& a, const Mat33& b, real COMPARE_EPS = C_EPSILON) {
+void Assert_near(const SymMat33& a, const Mat33& b, real COMPARE_EPS = C_REAL_EPSILON) {
     ASSERT_NEAR(a[0], b[0], COMPARE_EPS);   // x11
     ASSERT_NEAR(a[1], b[1], COMPARE_EPS);   // x21
     ASSERT_NEAR(a[2], b[2], COMPARE_EPS);   // x31
@@ -129,7 +129,7 @@ void Assert_near(const SymMat33& a, const Mat33& b, real COMPARE_EPS = C_EPSILON
     ASSERT_NEAR(a[5], b[10], COMPARE_EPS);  // x33
 }
 
-void Assert_near(const SymMat22& a, const SymMat22& b, real COMPARE_EPS = C_EPSILON) {
+void Assert_near(const SymMat22& a, const SymMat22& b, real COMPARE_EPS = C_REAL_EPSILON) {
     ASSERT_NEAR(a.x11, b.x11, COMPARE_EPS);
     ASSERT_NEAR(a.x21, b.x21, COMPARE_EPS);
     ASSERT_NEAR(a.x22, b.x22, COMPARE_EPS);
@@ -137,7 +137,7 @@ void Assert_near(const SymMat22& a, const SymMat22& b, real COMPARE_EPS = C_EPSI
 
 // -----------------------------------------------------------------------------
 
-void Assert_near(const real a[], const real b[], int n, real COMPARE_EPS = C_EPSILON) {
+void Assert_near(const real a[], const real b[], int n, real COMPARE_EPS = C_REAL_EPSILON) {
     // Local copies (will be modified)
     std::vector<real> av(a, a + n);
     std::vector<real> bv(b, b + n);
@@ -149,7 +149,7 @@ void Assert_near(const real a[], const real b[], int n, real COMPARE_EPS = C_EPS
         ASSERT_NEAR(av[i], bv[i], COMPARE_EPS);
 }
 
-void Assert_near(const std::vector<real>& a, const std::vector<real>& b, real COMPARE_EPS = C_EPSILON) {
+void Assert_near(const std::vector<real>& a, const std::vector<real>& b, real COMPARE_EPS = C_REAL_EPSILON) {
     // Local copies (will be modified)
     auto av = a;
     auto bv = b;
@@ -161,7 +161,7 @@ void Assert_near(const std::vector<real>& a, const std::vector<real>& b, real CO
         ASSERT_NEAR(av[i], bv[i], COMPARE_EPS);
 }
 
-void Assert_near(const real3 a[], const real3 b[], int n, real COMPARE_EPS = C_EPSILON) {
+void Assert_near(const real3 a[], const real3 b[], int n, real COMPARE_EPS = C_REAL_EPSILON) {
     // Local copies (will be modified)
     std::vector<real3> av(a, a + n);
     std::vector<real3> bv(b, b + n);
@@ -173,7 +173,7 @@ void Assert_near(const real3 a[], const real3 b[], int n, real COMPARE_EPS = C_E
         Assert_near(av[i], bv[i], COMPARE_EPS);
 }
 
-void Assert_near(const std::vector<real3>& a, const std::vector<real3>& b, real COMPARE_EPS = C_EPSILON) {
+void Assert_near(const std::vector<real3>& a, const std::vector<real3>& b, real COMPARE_EPS = C_REAL_EPSILON) {
     // Local copies (will be modified)
     auto av = a;
     auto bv = b;

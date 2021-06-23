@@ -85,7 +85,7 @@ TEST_F(Mat33Test, constructors) {
     Assert_eq(Mat33(A1), A1);
 
     // Quaternion Constructor
-    Assert_near(Mat33(R1), FromChMatrix33(ToChQuaternion(R1)), C_EPSILON * 3);
+    Assert_near(Mat33(R1), FromChMatrix33(ToChQuaternion(R1)), C_REAL_EPSILON * 3);
 }
 
 TEST_F(Mat33Test, operators) {
@@ -147,50 +147,50 @@ TEST_F(Mat33Test, functions) {
         // Multiply T Matrix
         Mat33 Res1 = TransposeMult(A1, A2);
         ChMatrix33<real> Res2 = B1.transpose() * B2;
-        Assert_near(Res1, FromChMatrix33(Res2), C_EPSILON * 2);
+        Assert_near(Res1, FromChMatrix33(Res2), C_REAL_EPSILON * 2);
     }
     {
         // Multiply Matrix T
         ChMatrix33<real> Res2 = B1 * B2.transpose();
-        Assert_near(MultTranspose(A1, A2), FromChMatrix33(Res2), C_EPSILON * 2);
+        Assert_near(MultTranspose(A1, A2), FromChMatrix33(Res2), C_REAL_EPSILON * 2);
     }
     {
         // Outer Product
         Mat33 Res1 = OuterProduct(a1, a2);
         Mat33 Res2(6, 12, 18, 7, 14, 21, 8, 16, 24);
-        Assert_near(Res1, Res2, C_EPSILON);
+        Assert_near(Res1, Res2, C_REAL_EPSILON);
     }
     // Transpose
-    Assert_near(Transpose(A4), A4_T, C_EPSILON);
+    Assert_near(Transpose(A4), A4_T, C_REAL_EPSILON);
 
     // Determinant
-    ASSERT_NEAR(Determinant(A5), 45.056, C_EPSILON * 400);
+    ASSERT_NEAR(Determinant(A5), 45.056, C_REAL_EPSILON * 400);
 
     // Trace
-    ASSERT_NEAR(Trace(A5), 4.8, C_EPSILON);
+    ASSERT_NEAR(Trace(A5), 4.8, C_REAL_EPSILON);
 
     // Adjoint
-    Assert_near(Adjoint(A3), A4, C_EPSILON);
+    Assert_near(Adjoint(A3), A4, C_REAL_EPSILON);
 
     // Adjoint Transpose
-    Assert_near(AdjointTranspose(A4), Transpose(A3), C_EPSILON);
+    Assert_near(AdjointTranspose(A4), Transpose(A3), C_REAL_EPSILON);
 
     // Inverse
-    Assert_near(Inverse(A3), A4, C_EPSILON);
+    Assert_near(Inverse(A3), A4, C_REAL_EPSILON);
 
     // Inverse Transpose
-    Assert_near(InverseTranspose(A3), Transpose(Inverse(A3)), C_EPSILON);
+    Assert_near(InverseTranspose(A3), Transpose(Inverse(A3)), C_REAL_EPSILON);
 
     // Frobenius Norm
-    ASSERT_NEAR(Norm(A5), 12.674383614203887588, C_EPSILON);
+    ASSERT_NEAR(Norm(A5), 12.674383614203887588, C_REAL_EPSILON);
 
     // Largest Column Normalized
     Assert_near(LargestColumnNormalized(A4),
-                real3(-.75856744948921676267, 0.63213954124101396889, -.15803488531025349222), C_EPSILON);
+                real3(-.75856744948921676267, 0.63213954124101396889, -.15803488531025349222), C_REAL_EPSILON);
 
     // Normal Equations Matrix
-    Assert_near(NormalEquationsMatrix(A3), Transpose(A3) * A3, C_EPSILON);
-    Assert_near(NormalEquationsMatrix(A3), Mat33(26, 32, 3, 32, 41, 10, 3, 10, 25), C_EPSILON);
+    Assert_near(NormalEquationsMatrix(A3), Transpose(A3) * A3, C_REAL_EPSILON);
+    Assert_near(NormalEquationsMatrix(A3), Mat33(26, 32, 3, 32, 41, 10, 3, 10, 25), C_REAL_EPSILON);
 
     // Symm2x2 Matrix Tests ============
     {

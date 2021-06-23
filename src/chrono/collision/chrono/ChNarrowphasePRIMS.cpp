@@ -595,8 +595,8 @@ int box_capsule(const real3& pos1,
     // this by clamping the capsule axis to the volume between two parallel
     // faces of the box, considering in turn the x, y, and z faces.
     real3 hdims1_exp = hdims1 + radius2_s;
-    real tMin = -C_LARGE_REAL;
-    real tMax = C_LARGE_REAL;
+    real tMin = -C_REAL_MAX;
+    real tMax = C_REAL_MAX;
 
     if (Abs(V.x) < 1e-5) {
         // Capsule axis parallel to the box x-faces
@@ -751,8 +751,8 @@ int box_cylshell(const real3& pos1,
                 continue;
 
             // clamp cylinder centerline to [i2,i3] box slabs
-            real tMin = -C_LARGE_REAL;
-            real tMax = C_LARGE_REAL;
+            real tMin = -C_REAL_MAX;
+            real tMax = C_REAL_MAX;
             if (a_abs[i2] > threshold_par) {
                 real t1 = (-hdims[i2] - c[i2]) / a[i2];
                 real t2 = (+hdims[i2] - c[i2]) / a[i2];

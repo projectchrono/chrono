@@ -181,7 +181,7 @@ void FindTriIndex(const real3& P, const uvec4& T, const real3* pos_node, int& fa
     int l = T.w;
 
     real3 res, b;
-    real bestSqDist = C_LARGE_REAL;
+    real bestSqDist = C_REAL_MAX;
 
     SnapeToFaceBary(pos_node[j], pos_node[k], pos_node[l], P, res, b);
     real sqDist = Dot(P - res);

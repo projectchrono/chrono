@@ -26,7 +26,7 @@ namespace collision {
 
 using namespace chrono::collision::ch_utils;
 
-#define MPR_TOLERANCE C_EPSILON
+#define MPR_TOLERANCE C_REAL_EPSILON
 #define MAX_ITERATIONS 100
 #define WHILE_LOOP_MAX 1000
 

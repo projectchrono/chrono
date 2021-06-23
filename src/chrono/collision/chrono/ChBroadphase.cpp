@@ -39,9 +39,8 @@ ChBroadphase::ChBroadphase() : cd_data(nullptr) {}
 // -----------------------------------------------------------------------------
 
 // Inverted AABB (assumed associated with an active shape).
-auto inverted = thrust::make_tuple(real3(+C_LARGE_REAL, +C_LARGE_REAL, +C_LARGE_REAL),
-                                   real3(-C_LARGE_REAL, -C_LARGE_REAL, -C_LARGE_REAL),
-                                   0);
+auto inverted =
+    thrust::make_tuple(real3(+C_REAL_MAX, +C_REAL_MAX, +C_REAL_MAX), real3(-C_REAL_MAX, -C_REAL_MAX, -C_REAL_MAX), 0);
 
 // Invert an AABB associated with an inactive shape or a shape on a non-colliding body.
 struct BoxInvert {

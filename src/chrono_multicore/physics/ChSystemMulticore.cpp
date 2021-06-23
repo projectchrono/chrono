@@ -755,8 +755,8 @@ void ChSystemMulticore::CalculateBodyAABB() {
     auto& offset = data_manager->cd_data->global_origin;
 
     // Initialize body AABB to inverted boxes
-    custom_vector<real3> b_min(data_manager->num_rigid_bodies, real3(C_LARGE_REAL));
-    custom_vector<real3> b_max(data_manager->num_rigid_bodies, real3(-C_LARGE_REAL));
+    custom_vector<real3> b_min(data_manager->num_rigid_bodies, real3(C_REAL_MAX));
+    custom_vector<real3> b_max(data_manager->num_rigid_bodies, real3(-C_REAL_MAX));
 
     // Loop over all shapes and update the AABB of the associated body
     //// TODO: can be done in parallel using Thrust

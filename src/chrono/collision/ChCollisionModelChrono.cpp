@@ -28,7 +28,7 @@
 namespace chrono {
 namespace collision {
 
-ChCollisionModelChrono::ChCollisionModelChrono() : aabb_min(C_LARGE_REAL), aabb_max(-C_LARGE_REAL) {
+ChCollisionModelChrono::ChCollisionModelChrono() : aabb_min(C_REAL_MAX), aabb_max(-C_REAL_MAX) {
     model_safe_margin = 0;
 }
 
@@ -43,8 +43,8 @@ int ChCollisionModelChrono::ClearModel() {
 
     local_convex_data.clear();
     m_shapes.clear();
-    aabb_min = ChVector<>(C_LARGE_REAL);
-    aabb_max = ChVector<>(-C_LARGE_REAL);
+    aabb_min = ChVector<>(C_REAL_MAX);
+    aabb_max = ChVector<>(-C_REAL_MAX);
     family_group = 1;
     family_mask = 0x7FFF;
 
