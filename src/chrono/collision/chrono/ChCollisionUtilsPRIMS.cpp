@@ -105,6 +105,29 @@ bool snap_to_triangle(const real3& A, const real3& B, const real3& C, const real
     return false;
 }
 
+bool point_in_triangle(const real3& A, const real3& B, const real3& C, const real3& loc) {
+    // Compute vectors
+    real3 v0 = C - A;
+    real3 v1 = B - A;
+    real3 v2 = loc - A;
+
+    // Compute dot products
+    real dot00 = Dot(v0, v0);
+    real dot01 = Dot(v0, v1);
+    real dot02 = Dot(v0, v2);
+    real dot11 = Dot(v1, v1);
+    real dot12 = Dot(v1, v2);
+
+    // Compute barycentric coordinates
+    real invDenom = 1 / (dot00 * dot11 - dot01 * dot01);
+    real u = (dot11 * dot02 - dot01 * dot12) * invDenom;
+    real v = (dot00 * dot12 - dot01 * dot02) * invDenom;
+
+    // Check if point is in triangle
+    real tol = 10 * C_REAL_EPSILON;
+    return (u > -tol) && (v > -tol) && (u + v < 1 + tol);
+}
+
 // -----------------------------------------------------------------------------
 // Utilities for box collisions
 // -----------------------------------------------------------------------------

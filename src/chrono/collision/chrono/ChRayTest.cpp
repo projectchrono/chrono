@@ -242,7 +242,6 @@ bool disk_ray(int cap,
               real3& normal,
               real& mindist2) {
     real3 ray = end - start;
-    real ray_len2 = Length2(ray);
 
     // No intersection if ray (near) parallel to cylinder cap.
     if (Abs(ray.y) < 0.0001)
@@ -263,7 +262,7 @@ bool disk_ray(int cap,
 
     // Intersect infinte ray with cap plane
     real t = (cap * hlen - start.y) / ray.y;
-    real dist2 = t * t * ray_len2;
+    real dist2 = t * t * Length2(ray);
 
     if (t < 0 || t > 1 || dist2 > mindist2)
         return false;
@@ -347,8 +346,31 @@ bool triangle_ray(const real3& A,
                   const real3& end,
                   real3& normal,
                   real& mindist2) {
-    //// TODO
-    return false;
+    real3 ray = end - start;
+
+    // Calculate face normal.
+    normal = triangle_normal(A, B, C);  
+    
+    // If the 'start' point is below or on the plane of the triangle or 'ray' points away from the triangle, there is no intersection.
+    real3 vec = start - A;
+    real h = Dot(vec, normal);
+    if (h <= 0)
+        return false;
+    real a = Dot(ray, normal);
+    if (a >= 0)
+        return false;
+
+    // Find the point of intersection between the infinite ray and the plane of the triangle.  An intersection exists
+    // only if this point is inside the triangle and is closer to 'start' than both the segment length and the current
+    // 'minDist2' value.
+    real t = -h / a;
+    real dist2 = t * t * Length2(ray);
+
+    if (dist2 >= mindist2 || t > 1 || !point_in_triangle(A, B, C, start + t * ray))
+        return false;
+
+    mindist2 = dist2;
+    return true;
 }
 
 // =============================================================================

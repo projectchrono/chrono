@@ -468,9 +468,8 @@ ChApi void FindTriIndex(const real3& P, const uvec4& T, const real3* pos_node, i
 /// @name Utility functions for PRIMS narrowphase.
 /// @{
 
-/// This utility function returns the normal to the triangular face defined by
-/// the vertices A, B, and C. The face is assumed to be non-degenerate.
-/// Note that order of vertices is important!
+/// This utility function returns the normal to the triangular face defined by the vertices A, B, and C. The face is
+/// assumed to be non-degenerate. Note that order of vertices is important!
 inline real3 triangle_normal(const real3& A, const real3& B, const real3& C) {
     real3 v1 = B - A;
     real3 v2 = C - A;
@@ -480,20 +479,20 @@ inline real3 triangle_normal(const real3& A, const real3& B, const real3& C) {
     return n / len;
 }
 
-/// This utility function takes the location 'P' and snaps it to the closest
-/// point on the triangular face with given vertices (A, B, and C). The result
-/// is returned in 'res'. Both 'P' and 'res' are assumed to be specified in
-/// the same frame as the face vertices. This function returns 'true' if the
-/// result is on an edge of this face and 'false' if the result is inside the
-/// triangle.
-/// Code from Ericson, "Real-time collision detection", 2005, pp. 141
+/// This utility function takes the location 'P' and snaps it to the closest point on the triangular face with given
+/// vertices (A, B, and C). The result is returned in 'res'. Both 'P' and 'res' are assumed to be specified in the same
+/// frame as the face vertices. This function returns 'true' if the result is on an edge of this face and 'false' if the
+/// result is inside the triangle. Code from Ericson, "Real-time collision detection", 2005, pp. 141
 ChApi bool snap_to_triangle(const real3& A, const real3& B, const real3& C, const real3& P, real3& res);
 
-/// This utility function snaps the specified location to a point on a cylinder
-/// with given radius and half-length. The in/out location is assumed to be
-/// specified in the frame of the cylinder (in this frame the cylinder is assumed
-/// to be centered at the origin and aligned with the Y axis).  The return code
-/// indicates the feature of the cylinder that caused snapping.
+/// This utility function returns a boolean indicating whether or not the specified 'loc' is inside the given triangle
+/// (with vertices A, B, C and outwards 'normal'). Locations on a triangle edge are considered to be inside.
+ChApi bool point_in_triangle(const real3& A, const real3& B, const real3& C, const real3& loc);
+
+/// This utility function snaps the specified location to a point on a cylinder with given radius and half-length. The
+/// in/out location is assumed to be specified in the frame of the cylinder (in this frame the cylinder is assumed to be
+/// centered at the origin and aligned with the Y axis).  The return code indicates the feature of the cylinder that
+/// caused snapping.
 ///   - code = 0 indicates and interior point
 ///   - code = 1 indicates snapping to one of the cylinder caps
 ///   - code = 2 indicates snapping to the cylinder side
@@ -521,10 +520,9 @@ inline uint snap_to_cylinder(const real& rad, const real& hlen, real3& loc) {
     return code;
 }
 
-/// This utility function returns a code that indicates the closest feature of
-/// a box in the specified direction. The direction 'dir' is assumed to be
-/// given in the frame of the box. The return code encodes the box axes that
-/// define the closest feature:
+/// This utility function returns a code that indicates the closest feature of a box in the specified direction. The
+/// direction 'dir' is assumed to be given in the frame of the box. The return code encodes the box axes that define the
+/// closest feature:
 ///   - first bit (least significant) corresponds to x-axis
 ///   - second bit corresponds to y-axis
 ///   - third bit corresponds to z-axis
@@ -539,9 +537,8 @@ inline uint box_closest_feature(const real3& dir, const real3& hdims) {
     return ((Abs(dir.x) > threshold) << 0) | ((Abs(dir.y) > threshold) << 1) | ((Abs(dir.z) > threshold) << 2);
 }
 
-/// This utility function snaps the specified location to a point on a box with
-/// given half-dimensions. The in/out location is assumed to be specified in
-/// the frame of the box (which is therefore assumed to be an AABB centered at
+/// This utility function snaps the specified location to a point on a box with given half-dimensions. The in/out
+/// location is assumed to be specified in the frame of the box (which is therefore assumed to be an AABB centered at
 /// the origin).  The return code indicates the box axes that caused snapping.
 ///   - first bit (least significant) corresponds to x-axis
 ///   - second bit corresponds to y-axis
@@ -718,8 +715,8 @@ ChApi bool segment_vs_edge(const real3& hdims,
                            real3& locE,
                            real3& locS);
 
-/// This utility function returns the corner of a box of given dimensions that
-/// if farthest in the direction 'dir', which is assumed to be given in the frame of the box.
+/// This utility function returns the corner of a box of given dimensions that is farthest in the direction 'dir', which
+/// is assumed to be given in the frame of the box.
 inline real3 box_farthest_corner(const real3& hdims, const real3& dir) {
     real3 corner;
     corner.x = (dir.x < 0) ? hdims.x : -hdims.x;
@@ -728,8 +725,8 @@ inline real3 box_farthest_corner(const real3& hdims, const real3& dir) {
     return corner;
 }
 
-/// This utility function returns the corner of a box of given dimensions that
-/// if closest in the direction 'dir', which is assumed to be given in the frame of the box.
+/// This utility function returns the corner of a box of given dimensions that is closest in the direction 'dir', which
+/// is assumed to be given in the frame of the box.
 inline real3 box_closest_corner(const real3& hdims, const real3& dir) {
     real3 corner;
     corner.x = (dir.x > 0) ? hdims.x : -hdims.x;
@@ -738,11 +735,9 @@ inline real3 box_closest_corner(const real3& hdims, const real3& dir) {
     return corner;
 }
 
-/// This function returns an integer indicating whether or not a box1 with
-/// dimensions hdims1 intersects (or is close enough to) a second box with
-/// dimensions hdims2.
-/// The check is performed in the local frame of box1. The transform from the
-/// other box is given through 'pos' and 'rot'.
+/// This function returns an integer indicating whether or not a box1 with dimensions hdims1 intersects (or is close
+/// enough to) a second box with dimensions hdims2. The check is performed in the local frame of box1. The transform
+/// from the other box is given through 'pos' and 'rot'.
 ///
 /// The return value is -1 if the two boxes overlap, +1 if they are within
 /// a distance of 'separation' from each other, and 0 if they are "far" from

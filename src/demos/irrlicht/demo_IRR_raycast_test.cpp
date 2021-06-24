@@ -97,6 +97,14 @@ void RayCaster::Update() {
 
 // =============================================================================
 
+// Various collections of shapes.
+// Attention!
+// - we must enable collision for each shape (to be able to cast rays in the collision system)
+// - however, we do not want any two shapes to generate contact forces, so we place all shapes in the same collision
+//   family and disable collision with that family
+// - currently, for the Chrono collision system, the collision family must be set *before* adding the collision model
+//   to the collision system (i.e., before adding the body to the system)
+
 void CreateSpheres(ChSystemSMC& sys) {
     auto mat = chrono_types::make_shared<ChMaterialSurfaceSMC>();
 
@@ -120,7 +128,6 @@ void CreateBoxes(ChSystemSMC& sys) {
 
     auto b1 = chrono_types::make_shared<ChBodyEasyBox>(3.0, 2.0, 1.0, 1, mat, collision_type);
     b1->SetPos(ChVector<>(0, 0, 0));
-    ////b1->SetRot(Q_from_AngY(CH_C_PI / 4));
     b1->SetRot(ChQuaternion<>(ChRandom(), ChRandom(), ChRandom(), ChRandom()).GetNormalized());
     b1->AddAsset(chrono_types::make_shared<ChColorAsset>(0, 0.4f, 0));
     b1->GetCollisionModel()->SetFamily(1);
@@ -140,8 +147,6 @@ void CreateCylinders(ChSystemSMC& sys) {
 
     auto c1 = chrono_types::make_shared<ChBodyEasyCylinder>(1.0, 2.0, 1, mat, collision_type);
     c1->SetPos(ChVector<>(0, 0, 0));
-    // c1->SetRot(Q_from_AngX(CH_C_PI / 4));
-    // c1->SetRot(Q_from_AngZ(CH_C_PI / 4));
     c1->SetRot(ChQuaternion<>(ChRandom(), ChRandom(), ChRandom(), ChRandom()).GetNormalized());
     c1->AddAsset(chrono_types::make_shared<ChColorAsset>(0, 0, 0.4f));
     c1->GetCollisionModel()->SetFamily(1);
@@ -166,25 +171,49 @@ void CreateShapes(ChSystemSMC& sys) {
     auto points = sampler.SampleBox(ChVector<>(0, 0, 0), ChVector<>(10, 10, 10));
 
     for (int i = 0; i < points.size() / 3; i++) {
-        auto sphereBody = chrono_types::make_shared<ChBodyEasySphere>(0.75 * scale, 1, mat, collision_type);
-        sphereBody->SetPos(points[3 * i + 0]);
-        sys.Add(sphereBody);
-        sphereBody->AddAsset(chrono_types::make_shared<ChColorAsset>(0.4f, 0, 0));
+        auto s = chrono_types::make_shared<ChBodyEasySphere>(0.75 * scale, 1, mat, collision_type);
+        s->SetPos(points[3 * i + 0]);
+        s->AddAsset(chrono_types::make_shared<ChColorAsset>(0.4f, 0, 0));
+        s->GetCollisionModel()->SetFamily(1);
+        s->GetCollisionModel()->SetFamilyMaskNoCollisionWithFamily(1);
+        sys.Add(s);
 
-        auto boxBody =
+        auto b =
             chrono_types::make_shared<ChBodyEasyBox>(1.0 * scale, 1.5 * scale, 1.25 * scale, 1, mat, collision_type);
-        boxBody->SetPos(points[3 * i + 1]);
-        boxBody->SetRot(ChQuaternion<>(ChRandom(), ChRandom(), ChRandom(), ChRandom()).GetNormalized());
-        sys.Add(boxBody);
-        boxBody->AddAsset(chrono_types::make_shared<ChColorAsset>(0, 0.4f, 0));
+        b->SetPos(points[3 * i + 1]);
+        b->SetRot(ChQuaternion<>(ChRandom(), ChRandom(), ChRandom(), ChRandom()).GetNormalized());
+        b->AddAsset(chrono_types::make_shared<ChColorAsset>(0, 0.4f, 0));
+        b->GetCollisionModel()->SetFamily(1);
+        b->GetCollisionModel()->SetFamilyMaskNoCollisionWithFamily(1);
+        sys.Add(b);
 
-        auto cylBody =
-            chrono_types::make_shared<ChBodyEasyCylinder>(0.75 * scale, 0.75 * scale, 1, mat, collision_type);
-        cylBody->SetPos(points[3 * i + 2]);
-        cylBody->SetRot(ChQuaternion<>(ChRandom(), ChRandom(), ChRandom(), ChRandom()).GetNormalized());
-        sys.Add(cylBody);
-        cylBody->AddAsset(chrono_types::make_shared<ChColorAsset>(0, 0, 0.4f));
+        auto c = chrono_types::make_shared<ChBodyEasyCylinder>(0.75 * scale, 0.75 * scale, 1, mat, collision_type);
+        c->SetPos(points[3 * i + 2]);
+        c->SetRot(ChQuaternion<>(ChRandom(), ChRandom(), ChRandom(), ChRandom()).GetNormalized());
+        c->AddAsset(chrono_types::make_shared<ChColorAsset>(0, 0, 0.4f));
+        c->GetCollisionModel()->SetFamily(1);
+        c->GetCollisionModel()->SetFamilyMaskNoCollisionWithFamily(1);
+        sys.Add(c);
     }
+}
+
+void CreateMeshes(ChSystemSMC& sys) {
+    auto mat = chrono_types::make_shared<ChMaterialSurfaceSMC>();
+
+    auto trimesh = chrono_types::make_shared<geometry::ChTriangleMeshConnected>();
+    trimesh->LoadWavefrontMesh(GetChronoDataFile("models/sphere.obj"));
+    trimesh->Transform(ChVector<>(0), ChMatrix33<>(2));
+    std::shared_ptr<ChTriangleMeshShape> vismesh(new ChTriangleMeshShape);
+    vismesh->SetMesh(trimesh);
+
+    auto m1 = chrono_types::make_shared<ChBody>(collision_type);
+    m1->AddAsset(vismesh);
+    m1->AddAsset(chrono_types::make_shared<ChColorAsset>(0.4f, 0, 0));
+    m1->GetCollisionModel()->ClearModel();
+    m1->GetCollisionModel()->AddTriangleMesh(mat, trimesh, false, false, VNULL, ChMatrix33<>(1), 0.01);
+    m1->GetCollisionModel()->BuildModel();
+    m1->SetCollide(true);
+    sys.Add(m1);
 }
 
 // Create a set of boxes for testing broadphase ray intersection.
@@ -192,6 +221,7 @@ void CreateShapes(ChSystemSMC& sys) {
 void CreateTestSet(ChSystemSMC& sys) {
     auto mat = chrono_types::make_shared<ChMaterialSurfaceSMC>();
 
+    /*
     std::vector<ChVector<>> loc = {
         ChVector<>(1, 1, 0),   //
         ChVector<>(8, 3, 0),   //
@@ -201,6 +231,18 @@ void CreateTestSet(ChSystemSMC& sys) {
         ChVector<>(3, 8, 0),   //
         ChVector<>(13, 8, 0),  //
         ChVector<>(19, 14, 0)  //
+    };
+    */
+
+    std::vector<ChVector<>> loc = {
+        ChVector<>(19, 1, 0),   //
+        ChVector<>(8, 3, 0),   //
+        ChVector<>(7, 7, 0),   //
+        ChVector<>(13, 5, 0),  //
+        ChVector<>(2, 7, 0),   //
+        ChVector<>(3, 8, 0),   //
+        ChVector<>(13, 8, 0),  //
+        ChVector<>(1, 14, 0)  //
     };
 
     for (int i = 0; i < 8; i++) {
@@ -218,6 +260,9 @@ void CreateTestSet(ChSystemSMC& sys) {
 int main(int argc, char* argv[]) {
     GetLog() << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
 
+    bool rotate_shapes = true;
+    bool draw_rays = true;
+
     // Create the system
     ChSystemSMC sys;
     sys.Set_G_acc(ChVector<>(0, 0, 0));
@@ -231,6 +276,7 @@ int main(int argc, char* argv[]) {
     ////CreateSpheres(sys);
     ////CreateBoxes(sys);
     ////CreateCylinders(sys);
+    ////CreateMeshes(sys);
     ////CreateTestSet(sys);
     CreateShapes(sys);
 
@@ -249,16 +295,23 @@ int main(int argc, char* argv[]) {
     auto camera = application.GetActiveCamera();
     camera->setFOV(core::PI / 10.0f);
 
+    if (rotate_shapes) {
+        for (auto& b : sys.Get_bodylist())
+            b->SetWvel_loc(ChVector<>(0.1, 0.1, 0.1));
+    }
+
     while (application.GetDevice()->run()) {
-        sys.DoStepDynamics(0.1);
+        sys.DoStepDynamics(0.01);
         caster.Update();
 
         application.BeginScene();
         application.DrawAll();
 
-        for (auto& p : caster.GetPoints()) {
-            tools::drawSegment(application.GetVideoDriver(), p - ChVector<>(0, 0, 100), p,
-                               video::SColor(0, 150, 150, 150), true);
+        if (draw_rays) {
+            for (auto& p : caster.GetPoints()) {
+                tools::drawSegment(application.GetVideoDriver(), p - ChVector<>(0, 0, 100), p,
+                                   video::SColor(0, 150, 150, 150), true);
+            }
         }
 
         application.EndScene();
