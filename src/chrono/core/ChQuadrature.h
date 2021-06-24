@@ -128,7 +128,7 @@ class ChApi ChQuadrature {
     static void Integrate1D(T& result,                     ///< result is returned here
                             ChIntegrable1D<T>& integrand,  ///< this is the integrand
                             const double a,                ///< min limit for x domain
-                            const double b,                ///< min limit for x domain
+                            const double b,                ///< max limit for x domain
                             const int order)               ///< order of integration
     {
         ChQuadratureTables* mtables = 0;
@@ -173,9 +173,9 @@ class ChApi ChQuadrature {
     static void Integrate2D(T& result,                     ///< result is returned here
                             ChIntegrable2D<T>& integrand,  ///< this is the integrand
                             const double Xa,               ///< min limit for x domain
-                            const double Xb,               ///< min limit for x domain
+                            const double Xb,               ///< max limit for x domain
                             const double Ya,               ///< min limit for y domain
-                            const double Yb,               ///< min limit for y domain
+                            const double Yb,               ///< max limit for y domain
                             const int order)               ///< order of integration
     {
         ChQuadratureTables* mtables = 0;
@@ -223,11 +223,11 @@ class ChApi ChQuadrature {
     static void Integrate3D(T& result,                     ///< result is returned here
                             ChIntegrable3D<T>& integrand,  ///< this is the integrand
                             const double Xa,               ///< min limit for x domain
-                            const double Xb,               ///< min limit for x domain
+                            const double Xb,               ///< max limit for x domain
                             const double Ya,               ///< min limit for y domain
-                            const double Yb,               ///< min limit for y domain
+                            const double Yb,               ///< max limit for y domain
                             const double Za,               ///< min limit for z domain
-                            const double Zb,               ///< min limit for z domain
+                            const double Zb,               ///< max limit for z domain
                             const int order)               ///< order of integration
     {
         ChQuadratureTables* mtables = 0;
