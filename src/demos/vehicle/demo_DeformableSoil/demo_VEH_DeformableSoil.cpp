@@ -16,6 +16,7 @@
 #include "chrono/physics/ChLinkMotorRotationAngle.h"
 #include "chrono/physics/ChLoadContainer.h"
 #include "chrono/physics/ChSystemSMC.h"
+#include "chrono/collision/ChCollisionSystemChrono.h"
 #include "chrono/utils/ChUtilsInputOutput.h"
 
 #include "chrono_irrlicht/ChIrrApp.h"
@@ -96,7 +97,14 @@ int main(int argc, char* argv[]) {
     ChVector<> tire_center(0, 0.02 + tire_rad, -1.5);
 
     // Create a Chrono::Engine physical system
+    auto collsys_type = collision::ChCollisionSystemType::BULLET;
     ChSystemSMC my_system;
+    my_system.SetNumThreads(4, 8, 1);
+    if (collsys_type == collision::ChCollisionSystemType::CHRONO) {
+        auto collsys = chrono_types::make_shared<collision::ChCollisionSystemChrono>();
+        collsys->SetBroadphaseNumBinsFixed(ChVector<int>(20, 20, 10));
+        my_system.SetCollisionSystem(collsys);
+    }
 
     // Create the Irrlicht visualization (open the Irrlicht device,
     // bind a simple user interface, etc. etc.)
@@ -110,7 +118,7 @@ int main(int argc, char* argv[]) {
     application.AddLightWithShadow(core::vector3df(1.5f, 5.5f, -2.5f), core::vector3df(0, 0, 0), 3, 2.2, 7.2, 40, 512,
                                    video::SColorf(0.8f, 0.8f, 1.0f));
 
-    std::shared_ptr<ChBody> mtruss(new ChBody);
+    auto mtruss = chrono_types::make_shared<ChBody>(collsys_type);
     mtruss->SetBodyFixed(true);
     my_system.Add(mtruss);
 
@@ -127,7 +135,7 @@ int main(int argc, char* argv[]) {
     // Create a rigid body with a mesh or a cylinder collision shape
     //
 
-    std::shared_ptr<ChBody> mrigidbody(new ChBody);
+    auto mrigidbody = chrono_types::make_shared<ChBody>(collsys_type);
     my_system.Add(mrigidbody);
     mrigidbody->SetMass(500);
     mrigidbody->SetInertiaXX(ChVector<>(20, 20, 20));
@@ -283,10 +291,15 @@ int main(int argc, char* argv[]) {
     application.SetTimestep(0.002);
 
     while (application.GetDevice()->run()) {
+        double time = my_system.GetChTime();
         if (output) {
             vehicle::TerrainForce frc = mterrain.GetContactForce(mrigidbody);
-            csv << my_system.GetChTime() << frc.force << frc.moment << frc.point << std::endl;
+            csv << time << frc.force << frc.moment << frc.point << std::endl;
         }
+
+        ////std::cout << "\nTime: " << time << std::endl;
+        ////std::cout << "Wheel pos: " << mrigidbody->GetPos() << std::endl;
+        ////std::cout << "Wheel rot: " << mrigidbody->GetRot() << std::endl;
 
         application.BeginScene();
         application.GetActiveCamera()->setTarget(core::vector3dfCH(mrigidbody->GetPos()));
