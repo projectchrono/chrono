@@ -56,7 +56,7 @@ void ChElementBeamTaperedTimoshenko::SetNodes(std::shared_ptr<ChNodeFEAxyzrot> n
     Kmatr.SetVariables(mvars);
 }
 
-void ChElementBeamTaperedTimoshenko::ShapeFunctions(ShapeVector& N, double eta) {
+void ChElementBeamTaperedTimoshenko::ShapeFunctionsEuler(ShapeVector& N, double eta) {
     double Nx1 = (1. / 2.) * (1 - eta);
     double Nx2 = (1. / 2.) * (1 + eta);
     double Ny1 = (1. / 4.) * pow((1 - eta), 2) * (2 + eta);
@@ -730,7 +730,7 @@ void ChElementBeamTaperedTimoshenko::ComputeGeometricStiffnessMatrix() {
     double PL2_15_z = 2. * L / (15.);  // optional [2]: ...+ 4*IyA /(L);
     double PL_30_y = L / (30.);        // optional [2]: ...+ 2*IyA /(L);
     double PL_30_z = L / (30.);        // optional [2]: ...+ 2*IyA /(L);
-    /*  QUESTION: why the axial geometric stiffness is ignored? I think we should include it. By PENG Chao
+    /*  DONOT use the axial terms:
     this->Kg(0, 0) =  P_L;
     this->Kg(6, 6) =  P_L;
     this->Kg(0, 6) = -P_L;

@@ -40,18 +40,22 @@ class ChApi ChElementBeamTaperedTimoshenko : public ChElementBeam,
                                  public ChLoadableU,
                                  public ChLoadableUVW,
                                  public ChElementCorotational {
-  public:
+  private:
+    // only used inside this Class
+    // to store the shape functions
     using ShapeVector = ChMatrixNM<double, 1, 10>;
 
     using ShapeFunctionN = ChMatrixNM<double, 6, 12>;
     using SFBlock = ChMatrixNM<double, 1, 4>;
-    using ShapeFunction5Blocks = std::tuple<SFBlock,SFBlock,SFBlock,SFBlock,ChMatrixNM<double, 1, 2>>;
-    using ShapeFunction2Blocks = std::tuple<SFBlock,SFBlock>;
-    using ShapeFunctionGroup = std::tuple<ShapeFunctionN,  //  restore shape function
-        ShapeFunction5Blocks, // restore blocks of shape function
-        ShapeFunction5Blocks, // restore blocks of first derivatives
-        ShapeFunction2Blocks, // restore blocks of second derivatives
-        ShapeFunction2Blocks>; // restore blocks of thrid derivatives
+    using ShapeFunction5Blocks = std::tuple<SFBlock, SFBlock, SFBlock, SFBlock, ChMatrixNM<double, 1, 2>>;
+    using ShapeFunction2Blocks = std::tuple<SFBlock, SFBlock>;
+    using ShapeFunctionGroup = std::tuple<ShapeFunctionN,         // restore shape function
+                                          ShapeFunction5Blocks,   // restore blocks of shape function
+                                          ShapeFunction5Blocks,   // restore blocks of first derivatives
+                                          ShapeFunction2Blocks,   // restore blocks of second derivatives
+                                          ShapeFunction2Blocks>;  // restore blocks of thrid derivatives
+
+  public:
 
     ChElementBeamTaperedTimoshenko();
 
@@ -129,7 +133,7 @@ class ChApi ChElementBeamTaperedTimoshenko : public ChElementBeam,
     ///      | .    .   -6  .   8   .   .   .   -7  .   9   .   |
     ///      | .    6   .   .   .   8   .   7   .   .   .   9   |
     /// // Old shape functions here, just for test
-    void ShapeFunctions(ShapeVector& N, double eta);
+    void ShapeFunctionsEuler(ShapeVector& N, double eta);
 
     // New shape functions for Timoshenko beam
     void ShapeFunctionsTimoshenko(ShapeFunctionGroup& NN, double eta);
