@@ -623,6 +623,11 @@ std::vector<vec2> ChCollisionSystemChrono::GetOverlappingPairs() {
 // -----------------------------------------------------------------------------
 
 bool ChCollisionSystemChrono::RayHit(const ChVector<>& from, const ChVector<>& to, ChRayhitResult& result) const {
+    if (cd_data->num_active_bins == 0) {
+        result.hit = false;
+        return false;
+    }
+
     ChRayTest tester(cd_data);
     ChRayTest::RayHitInfo info;
     if (tester.Check(FromChVector(from), FromChVector(to), info)) {

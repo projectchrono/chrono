@@ -184,8 +184,8 @@ class ChApi ChCollisionData {
     real3 bin_size;                   ///< Bin sizes in each direction
     real3 inv_bin_size;               ///< Bin size reciprocals in each direction
     uint num_bins;                    ///< Total number of bins
+    uint num_bin_aabb_intersections;  ///< Number of bin - shape AABB intersections
     uint num_active_bins;             ///< Number of bins intersecting at least one shape AABB
-    uint num_bin_aabb_intersections;  ///< Number of shape AABB - bin intersections
     uint num_possible_collisions;     ///< Number of candidate collisions from broadphase
 
     real3 rigid_min_bounding_point;  ///< LBR (left-bottom-rear) corner of union of rigid AABBs
@@ -197,8 +197,8 @@ class ChApi ChCollisionData {
 
     std::vector<uint> bin_intersections;    ///< [num_rigid_shapes+1] number of bin intersections for each shape AABB
     std::vector<uint> bin_number;           ///< [num_bin_aabb_intersections] bin index for bin-shape AABB intersections
-    std::vector<uint> bin_number_out;       ///< [num_active_bins] bin index of active bins (no duplicates)
     std::vector<uint> bin_aabb_number;      ///< [num_bin_aabb_intersections] shape ID for bin-shape AABB intersections
+    std::vector<uint> bin_active;           ///< [num_active_bins] bin index of active bins (no duplicates)
     std::vector<uint> bin_start_index;      ///< [num_active_bins+1]
     std::vector<uint> bin_start_index_ext;  ///< [num_bins+1]
     std::vector<uint> bin_num_contact;      ///< [num_active_bins+1]

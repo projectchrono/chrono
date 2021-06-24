@@ -195,8 +195,7 @@ void ChBroadphase::ComputeTopLevelResolution() {
 
 // -----------------------------------------------------------------------------
 
-// use spatial subdivision to detect the list of POSSIBLE collisions
-// let user define their own narrow-phase collision detection
+// Use spatial subdivision to detect the list of POSSIBLE collisions
 void ChBroadphase::Process() {
     // Compute overall AABB and then offset all AABBs
     DetermineBoundingBox();
@@ -224,8 +223,8 @@ void ChBroadphase::OneLevelBroadphase() {
     std::vector<long long>& pair_shapeIDs = cd_data->pair_shapeIDs;
     std::vector<uint>& bin_intersections = cd_data->bin_intersections;
     std::vector<uint>& bin_number = cd_data->bin_number;
-    std::vector<uint>& bin_number_out = cd_data->bin_number_out;
     std::vector<uint>& bin_aabb_number = cd_data->bin_aabb_number;
+    std::vector<uint>& bin_active = cd_data->bin_active;
     std::vector<uint>& bin_start_index = cd_data->bin_start_index;
     std::vector<uint>& bin_start_index_ext = cd_data->bin_start_index_ext;
     std::vector<uint>& bin_num_contact = cd_data->bin_num_contact;
@@ -259,9 +258,9 @@ void ChBroadphase::OneLevelBroadphase() {
     num_bin_aabb_intersections = bin_intersections.back();
 
     bin_number.resize(num_bin_aabb_intersections);
-    bin_number_out.resize(num_bin_aabb_intersections);
     bin_aabb_number.resize(num_bin_aabb_intersections);
-    bin_start_index.resize(num_bin_aabb_intersections);
+    bin_active.resize(num_bin_aabb_intersections);       // will be resized after calculation of num_active_bins
+    bin_start_index.resize(num_bin_aabb_intersections);  // will be resized after calculation of num_active_bins
 
     // For each shape, store the bin index and the shape ID for intersections with this shape 
 #pragma omp parallel for
@@ -274,14 +273,14 @@ void ChBroadphase::OneLevelBroadphase() {
 
     // Find the number of active bins (i.e. with at least one shape AABB intersection)
     Thrust_Sort_By_Key(bin_number, bin_aabb_number);
-    num_active_bins = (int)(Run_Length_Encode(bin_number, bin_number_out, bin_start_index));
+    num_active_bins = (int)(Run_Length_Encode(bin_number, bin_active, bin_start_index));
 
     if (num_active_bins <= 0) {
         num_possible_collisions = 0;
         return;
     }
 
-    bin_number_out.resize(num_active_bins);
+    bin_active.resize(num_active_bins);
     bin_start_index.resize(num_active_bins + 1);
     bin_start_index[num_active_bins] = 0;
 
@@ -292,7 +291,7 @@ void ChBroadphase::OneLevelBroadphase() {
     // Count the number of AABB-AABB intersections in each active bin -> bin_num_contact
 #pragma omp parallel for
     for (int i = 0; i < (signed)num_active_bins; i++) {
-        f_Count_AABB_AABB_Intersection(i, inv_bin_size, bins_per_axis, aabb_min, aabb_max, bin_number_out,
+        f_Count_AABB_AABB_Intersection(i, inv_bin_size, bins_per_axis, aabb_min, aabb_max, bin_active,
                                        bin_aabb_number, bin_start_index, fam_data, obj_active, obj_collide, obj_data_id,
                                        bin_num_contact);
     }
@@ -304,7 +303,7 @@ void ChBroadphase::OneLevelBroadphase() {
     // Store the list of shape pairs in potential collision (i.e. with intersecting AABBs)
 #pragma omp parallel for
     for (int index = 0; index < (signed)num_active_bins; index++) {
-        f_Store_AABB_AABB_Intersection(index, inv_bin_size, bins_per_axis, aabb_min, aabb_max, bin_number_out,
+        f_Store_AABB_AABB_Intersection(index, inv_bin_size, bins_per_axis, aabb_min, aabb_max, bin_active,
                                        bin_aabb_number, bin_start_index, bin_num_contact, fam_data, obj_active,
                                        obj_collide, obj_data_id, pair_shapeIDs);
     }
@@ -312,18 +311,23 @@ void ChBroadphase::OneLevelBroadphase() {
     pair_shapeIDs.resize(num_possible_collisions);
 
     // For use in ray intersection tests, also create an "extended" vector of start indices that also includes bins with
-    // no shape AABB intersections. Note: we take into account that the first and last bins are always active (they
-    // contain at least one shape AABB since this is how the overall grid is set up).
+    // no shape AABB intersections. 
     bin_start_index_ext.resize(num_bins + 1);
-    bin_start_index_ext[0] = bin_start_index[0];
+
+#pragma omp parallel for
+    for (int j = 0; j <= (signed)bin_active[0]; j++) {
+        bin_start_index_ext[j] = bin_start_index[0];
+    }
 #pragma omp parallel for
     for (int index = 1; index < (signed)num_active_bins; index++) {
         // Set the extended array for the current active bin as well as any empty bins before it.
-        uint active_bin = bin_number_out[index];
-        for (uint j = bin_number_out[index - 1] + 1; j <= active_bin; j++)
+        for (uint j = bin_active[index - 1] + 1; j <= bin_active[index]; j++)
             bin_start_index_ext[j] = bin_start_index[index];
     }
-    bin_start_index_ext[num_bins] = bin_start_index[num_active_bins];
+#pragma omp parallel for
+    for (int j = bin_active[num_active_bins - 1] + 1; j <= (signed)num_bins; j++) {
+        bin_start_index_ext[j] = bin_start_index[num_active_bins];
+    }
 }
 
 }  // end namespace collision

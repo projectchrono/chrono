@@ -143,7 +143,7 @@ class ChApi ChNarrowphase {
 
     std::vector<uint> f_bin_intersections;
     std::vector<uint> f_bin_number;
-    std::vector<uint> f_bin_number_out;
+    std::vector<uint> f_bin_number_out;  //// TODO: rename to f_bin_active
     std::vector<uint> f_bin_fluid_number;
     std::vector<uint> f_bin_start_index;
     std::vector<uint> is_rigid_bin_active;

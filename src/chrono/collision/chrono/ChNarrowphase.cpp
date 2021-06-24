@@ -534,7 +534,7 @@ void ChNarrowphase::ProcessRigidFluid() {
     Thrust_Fill(is_rigid_bin_active, 1000000000);
 #pragma omp parallel for
     for (int index = 0; index < (signed)cd_data->num_active_bins; index++) {
-        uint bin_number = cd_data->bin_number_out[index];
+        uint bin_number = cd_data->bin_active[index];
         if (bin_number < total_bins) {
             // printf("bin_number: %d\n", index, bin_number);
             is_rigid_bin_active[bin_number] = index;
