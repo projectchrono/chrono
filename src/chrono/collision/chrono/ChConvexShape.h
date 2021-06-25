@@ -49,7 +49,7 @@ class ConvexBase {
 /// Convex contact shape.
 class ConvexShape : public ConvexBase {
   public:
-    ConvexShape() {}
+    ConvexShape() : index(0), data(nullptr) {}
     ConvexShape(int i, shape_container* d) : index(i), data(d) {}
     ~ConvexShape() {}
     inline int Type() const override { return data->typ_rigid[index]; }

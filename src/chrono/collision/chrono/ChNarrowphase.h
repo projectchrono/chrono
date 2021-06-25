@@ -61,20 +61,27 @@ class ChApi ChNarrowphase {
 
     /// Perform narrowphase collision detection.
     /// This function generates rigid-rigid, fluid-fluid, and rigid-fluid collisions, as applicable.
+    /// Collision detection results are loaded in the shared data object (see ChCollisionData).
     void Process();
 
     /// Minkovski Portal Refinement convex-convex collision detection (adapted from Xeno Collide).
+    /// Each candidate pair can result in 0 or 1 contacts. For each contact, the function calculates and returns:
+    ///   - pointA:   contact point on first shape (in global frame)
+    ///   - pointB:   contact point on second shape (in global frame)
+    ///   - depth:    penetration distance (negative if overlap exists)
+    ///   - normal:   contact normal, from ct_pt2 to ct_pt1 (in global frame)
     static bool MPRCollision(const ConvexBase* ShapeA,
                              const ConvexBase* ShapeB,
                              real envelope,
-                             real3& returnNormal,
+                             real3& normal,
                              real3& pointA,
                              real3& pointB,
                              real& depth);
 
     /// Dispatcher for analytic collision functions between a pair of candidate shapes.
-    /// Each candidate pair of shapes can result in 0, 1, or more contacts.  For each actual contact, we calculate
-    /// various geometrical quantities and load them in the output arguments (starting from the given addresses)
+    /// Each candidate pair of shapes can result in 0, 1, or more contacts.  For each actual contact, the function
+    /// calculates various geometrical quantities and load them in the output arguments (starting from the given
+    /// addresses)
     ///   - ct_pt1:      contact point on first shape (in global frame)
     ///   - ct_pt2:      contact point on second shape (in global frame)
     ///   - ct_depth:    penetration distance (negative if overlap exists)
@@ -110,10 +117,9 @@ class ChApi ChNarrowphase {
     int PreprocessCount();
 
     /// Transform the shape data to the global reference frame.
-    /// Perform this as a preprocessing step to improve performance.
-    /// Performance is improved because the amount of data loaded is still the same
-    /// but it does not have to be transformed per contact pair, now it is
-    /// transformed once per shape.
+    /// Perform this as a preprocessing step to improve performance. Performance is improved because the amount of data
+    /// loaded is still the same but it does not have to be transformed per contact pair, now it is transformed once per
+    /// shape.
     void PreprocessLocalToParent();
 
     /// Perform collision detection fluid-fluid.

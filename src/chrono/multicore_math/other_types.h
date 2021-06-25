@@ -36,12 +36,14 @@ namespace chrono {
 
 struct bool2 {
     bool x, y;
-    bool2() : x(0), y(0) {}
+    bool2() : x(false), y(false) {}
     bool2(bool a, bool b) : x(a), y(b) {}
 };
 
 struct short2 {
     short x, y;
+    short2() : x(0), y(0) {}
+    short2(short a, short b) : x(a), y(b) {}
 };
 
 class ChApi vec2 {

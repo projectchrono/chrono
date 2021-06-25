@@ -40,6 +40,7 @@ class ChApi ChBroadphase {
     ChBroadphase();
 
     /// Perform broadphase collision detection.
+    /// Collision detection results are loaded in the shared data object (see ChCollisionData).
     void Process();
 
   private:
