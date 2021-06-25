@@ -35,14 +35,14 @@ namespace ch_utils {
 
 // For a given number of aabbs in a grid, the grids maximum and minimum point along with the density factor
 // compute the size of the grid.
-vec3 function_Compute_Grid_Resolution(uint num_aabb, real3 d, real k) {
+vec3 Compute_Grid_Resolution(uint num_aabb, const real3& d, real k) {
     vec3 grid_size = vec3(0);
     real V = d.x * d.y * d.z;
     grid_size.x = int(d.x * Pow(k * num_aabb / V, real(1.0 / 3.0)));
     grid_size.y = int(d.y * Pow(k * num_aabb / V, real(1.0 / 3.0)));
     grid_size.z = int(d.z * Pow(k * num_aabb / V, real(1.0 / 3.0)));
 
-    grid_size = Clamp(grid_size, vec3(1), grid_size);
+    grid_size = Max(grid_size, vec3(1));
 
     return grid_size;
 }
@@ -232,7 +232,7 @@ void f_TL_Count_Leaves(const uint index,
     uint end = bin_start_index[index + 1];
     uint num_aabb_in_cell = end - start;
 
-    vec3 cell_res = function_Compute_Grid_Resolution(num_aabb_in_cell, bin_size, density);
+    vec3 cell_res = Compute_Grid_Resolution(num_aabb_in_cell, bin_size, density);
 
     leaves_per_bin[index] = cell_res.x * cell_res.y * cell_res.z;
 }
@@ -252,7 +252,7 @@ void f_TL_Count_AABB_Leaf_Intersection(const uint index,
     uint end = bin_start_index[index + 1];
     uint count = 0;
     uint num_aabb_in_cell = end - start;
-    vec3 cell_res = function_Compute_Grid_Resolution(num_aabb_in_cell, bin_size, density);
+    vec3 cell_res = Compute_Grid_Resolution(num_aabb_in_cell, bin_size, density);
     real3 inv_leaf_size = real3(cell_res.x, cell_res.y, cell_res.z) / bin_size;
     vec3 bin_index = Hash_Decode(bin_number[index], bins_per_axis);
     real3 bin_position = real3(bin_index.x * bin_size.x, bin_index.y * bin_size.y, bin_index.z * bin_size.z);
@@ -299,7 +299,7 @@ void f_TL_Write_AABB_Leaf_Intersection(const uint& index,
     uint mInd = leaves_intersected[index];
     uint count = 0;
     uint num_aabb_in_cell = end - start;
-    vec3 cell_res = function_Compute_Grid_Resolution(num_aabb_in_cell, bin_size, density);
+    vec3 cell_res = Compute_Grid_Resolution(num_aabb_in_cell, bin_size, density);
     real3 inv_leaf_size = real3(cell_res.x, cell_res.y, cell_res.z) / bin_size;
 
     vec3 bin_index = Hash_Decode(bin_number[index], bin_resolution);

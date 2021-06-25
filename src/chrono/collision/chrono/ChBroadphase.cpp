@@ -185,7 +185,7 @@ void ChBroadphase::ComputeTopLevelResolution() {
 
     // Compute the number of slices in this grid level
     if (!cd_data->fixed_bins) {
-        bins_per_axis = function_Compute_Grid_Resolution(num_shapes, diagonal, cd_data->grid_density);
+        bins_per_axis = Compute_Grid_Resolution(num_shapes, diagonal, cd_data->grid_density);
     }
     bin_size = diagonal / real3(bins_per_axis.x, bins_per_axis.y, bins_per_axis.z);
 

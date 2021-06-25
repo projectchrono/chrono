@@ -99,7 +99,12 @@ real3 TransformSupportVert(const chrono::collision::ConvexBase* Shape, const rea
 }
 
 // Similar to snap_to_triangle, also returns barycentric coordinates
-bool SnapeToFaceBary(const real3& A, const real3& B, const real3& C, const real3& P, real3& res, real3& barycentric) {
+bool snap_to_triangle_bary(const real3& A,
+                           const real3& B,
+                           const real3& C,
+                           const real3& P,
+                           real3& res,
+                           real3& barycentric) {
     real3 AB = B - A;
     real3 AC = C - A;
 
@@ -183,28 +188,28 @@ void FindTriIndex(const real3& P, const uvec4& T, const real3* pos_node, int& fa
     real3 res, b;
     real bestSqDist = C_REAL_MAX;
 
-    SnapeToFaceBary(pos_node[j], pos_node[k], pos_node[l], P, res, b);
+    snap_to_triangle_bary(pos_node[j], pos_node[k], pos_node[l], P, res, b);
     real sqDist = Dot(P - res);
     if (sqDist < bestSqDist) {
         bestSqDist = sqDist;
         cb = b;
         face = 0;
     }
-    SnapeToFaceBary(pos_node[i], pos_node[k], pos_node[l], P, res, b);
+    snap_to_triangle_bary(pos_node[i], pos_node[k], pos_node[l], P, res, b);
     sqDist = Dot(P - res);
     if (sqDist < bestSqDist) {
         bestSqDist = sqDist;
         cb = b;
         face = 1;
     }
-    SnapeToFaceBary(pos_node[i], pos_node[j], pos_node[l], P, res, b);
+    snap_to_triangle_bary(pos_node[i], pos_node[j], pos_node[l], P, res, b);
     sqDist = Dot(P - res);
     if (sqDist < bestSqDist) {
         bestSqDist = sqDist;
         cb = b;
         face = 2;
     }
-    SnapeToFaceBary(pos_node[i], pos_node[j], pos_node[k], P, res, b);
+    snap_to_triangle_bary(pos_node[i], pos_node[j], pos_node[k], P, res, b);
     sqDist = Dot(P - res);
     if (sqDist < bestSqDist) {
         bestSqDist = sqDist;

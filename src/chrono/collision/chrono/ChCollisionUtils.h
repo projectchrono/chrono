@@ -42,7 +42,7 @@ namespace ch_utils {
 /// @name Hashing functions
 /// @{
 
-/// Convert a position into a bin index ("lower" corner).
+/// Convert a position into bin coordinates ("lower" corner).
 template <class T>
 inline vec3 HashMin(const T& A, const real3& inv_bin_size_vec) {
     vec3 temp;
@@ -52,7 +52,7 @@ inline vec3 HashMin(const T& A, const real3& inv_bin_size_vec) {
     return temp;
 }
 
-/// Convert a position into a bin index ("upper" corner).
+/// Convert a position into bin coordinates ("upper" corner).
 template <class T>
 inline vec3 HashMax(const T& A, const real3& inv_bin_size_vec) {
     vec3 temp;
@@ -62,13 +62,13 @@ inline vec3 HashMax(const T& A, const real3& inv_bin_size_vec) {
     return temp;
 }
 
-/// Convert a bin index into a unique hash value.
-inline uint Hash_Index(const vec3& A, vec3 bins_per_axis) {
+/// Convert bin coordinates into a unique bin index value.
+inline uint Hash_Index(const vec3& A, const vec3& bins_per_axis) {
     return ((A.z * bins_per_axis.y) * bins_per_axis.x) + (A.y * bins_per_axis.x) + A.x;
 }
 
-/// Decode a hash into its associated bin position.
-inline vec3 Hash_Decode(uint hash, vec3 bins_per_axis) {
+/// Decode a bin index into its associated bin coordinates.
+inline vec3 Hash_Decode(uint hash, const vec3& bins_per_axis) {
     vec3 decoded_hash;
     decoded_hash.x = hash % (bins_per_axis.x * bins_per_axis.y) % bins_per_axis.x;
     decoded_hash.y = (hash % (bins_per_axis.x * bins_per_axis.y)) / bins_per_axis.x;
@@ -84,21 +84,26 @@ inline vec3 Hash_Decode(uint hash, vec3 bins_per_axis) {
 /// @{
 
 /// Check if two bodies interact using their collision family data.
-inline bool collide(short2 fam_data_A, short2 fam_data_B) {
+inline bool collide(const short2& fam_data_A, const short2& fam_data_B) {
     // Return true only if the bit corresponding to family of B is set in the mask
     // of A and vice-versa.
     return (fam_data_A.y & fam_data_B.x) && (fam_data_B.y & fam_data_A.x);
 }
 
 /// Check if two AABBs overlap using their min/max corners.
-inline bool overlap(real3 Amin, real3 Amax, real3 Bmin, real3 Bmax) {
+inline bool overlap(const real3& Amin, const real3& Amax, const real3& Bmin, const real3& Bmax) {
     // Return true only if the two AABBs overlap in all 3 directions.
     return (Amin.x <= Bmax.x && Bmin.x <= Amax.x) && (Amin.y <= Bmax.y && Bmin.y <= Amax.y) &&
            (Amin.z <= Bmax.z && Bmin.z <= Amax.z);
 }
 
-inline bool
-current_bin(real3 Amin, real3 Amax, real3 Bmin, real3 Bmax, real3 inv_bin_size_vec, vec3 bins_per_axis, uint bin) {
+inline bool current_bin(const real3& Amin,
+                        const real3& Amax,
+                        const real3& Bmin,
+                        const real3& Bmax,
+                        const real3& inv_bin_size_vec,
+                        const vec3& bins_per_axis,
+                        uint bin) {
     real3 min_p = Max(Amin, Bmin);
 
     if (Hash_Index(HashMin(min_p, inv_bin_size_vec), bins_per_axis) == bin) {
@@ -107,10 +112,6 @@ current_bin(real3 Amin, real3 Amax, real3 Bmin, real3 Bmax, real3 inv_bin_size_v
     return false;
 }
 
-/// For a given number of aabbs in a grid, the grids maximum and minimum point along with the density factor
-/// compute the size of the grid.
-ChApi vec3 function_Compute_Grid_Resolution(uint num_aabb, real3 d, real k = .1);
-
 /// @}
 
 // =============================================================================
@@ -118,14 +119,18 @@ ChApi vec3 function_Compute_Grid_Resolution(uint num_aabb, real3 d, real k = .1)
 /// @name Utility functions for broadphase
 /// @{
 
-/// Function to Count AABB Bin intersections.
+/// Compute broadphase grid resolution, given the total number of AABBs, the grid dimension (diagonal), and the desired
+/// density.
+ChApi vec3 Compute_Grid_Resolution(uint num_aabb, const real3& d, real k);
+
+/// Function to Count AABB-Bin intersections.
 ChApi void f_Count_AABB_BIN_Intersection(const uint index,
                                          const real3& inv_bin_size,
                                          const std::vector<real3>& aabb_min,
                                          const std::vector<real3>& aabb_max,
                                          std::vector<uint>& bins_intersected);
 
-/// Function to Store AABB Bin Intersections.
+/// Function to Store AABB-Bin Intersections.
 ChApi void f_Store_AABB_BIN_Intersection(const uint index,
                                          const vec3& bins_per_axis,
                                          const real3& inv_bin_size,
@@ -135,7 +140,7 @@ ChApi void f_Store_AABB_BIN_Intersection(const uint index,
                                          std::vector<uint>& bin_number,
                                          std::vector<uint>& aabb_number);
 
-/// Function to count AABB AABB intersection.
+/// Function to count AABB-AABB intersection.
 ChApi void f_Count_AABB_AABB_Intersection(const uint index,
                                           const real3 inv_bin_size_vec,
                                           const vec3 bins_per_axis,
@@ -217,7 +222,7 @@ ChApi void f_TL_Write_AABB_Leaf_Intersection(const uint& index,
 /// @{
 
 /// Support point for a sphere (for GJK and MPR).
-inline real3 GetSupportPoint_Sphere(const real& radius, const real3& n) {
+inline real3 GetSupportPoint_Sphere(const real radius, const real3& n) {
     return radius * n;
 }
 
@@ -325,7 +330,7 @@ inline real3 GetSupportPoint_Capsule(const real2& B, const real3& n) {
 }
 
 /// Support point for a disk (for GJK and MPR).
-inline real3 GetSupportPoint_Disk(const real& B, const real3& n) {
+inline real3 GetSupportPoint_Disk(const real B, const real3& n) {
     real3 n2 = real3(n.x, n.y, 0);
     n2 = Normalize(n2);
 
@@ -378,7 +383,7 @@ inline real3 GetSupportPoint_Convex(const int size, const real3* convex_data, co
 }
 
 /// Support point for a tetrahedron (for GJK and MPR).
-inline real3 GetSupportPoint_Tetrahedron(const uvec4 indices, const real3* nodes, const real3& n) {
+inline real3 GetSupportPoint_Tetrahedron(const uvec4& indices, const real3* nodes, const real3& n) {
     real max_dot_p = -C_REAL_MAX;
     real dot_p;
     real3 point;
@@ -439,7 +444,7 @@ inline real3 GetCenter_Convex(const int size, const real3* convex_data) {
     return point / real(size);
 }
 
-inline real3 GetCenter_Tetrahedron(const uvec4 indices, const real3* nodes) {
+inline real3 GetCenter_Tetrahedron(const uvec4& indices, const real3* nodes) {
     real3 tet = nodes[indices.x] + nodes[indices.y] + nodes[indices.z] + nodes[indices.w];
     return tet / real(4.0);
 }
@@ -450,13 +455,15 @@ ChApi real3 LocalSupportVert(const chrono::collision::ConvexBase* Shape, const r
 
 ChApi real3 TransformSupportVert(const chrono::collision::ConvexBase* Shape, const real3& n, const real& envelope);
 
-/// Similar to snap_to_triangle, also returns barycentric coordinates.
-ChApi bool SnapeToFaceBary(const real3& A,
-                           const real3& B,
-                           const real3& C,
-                           const real3& P,
-                           real3& res,
-                           real3& barycentric);
+/// This utility function takes the location 'P' and snaps it to the closest point on the triangular face with given
+/// vertices (A, B, and C). Additionally, it also returns the barycentric coordinates of the result point. See
+/// snap_to_triangle for additional details.
+ChApi bool snap_to_triangle_bary(const real3& A,
+                                 const real3& B,
+                                 const real3& C,
+                                 const real3& P,
+                                 real3& res,
+                                 real3& barycentric);
 
 /// Given a contact point P and a tetrahedron T compute the closest triangle to that point.
 ChApi void FindTriIndex(const real3& P, const uvec4& T, const real3* pos_node, int& face, real3& cb);
@@ -739,21 +746,18 @@ inline real3 box_closest_corner(const real3& hdims, const real3& dir) {
 /// enough to) a second box with dimensions hdims2. The check is performed in the local frame of box1. The transform
 /// from the other box is given through 'pos' and 'rot'.
 ///
-/// The return value is -1 if the two boxes overlap, +1 if they are within
-/// a distance of 'separation' from each other, and 0 if they are "far" from
-/// each other.
-/// If returning -1 or +1, 'dir' contains the direction of smallest intersection
-/// (or closest separation).
+/// The return value is -1 if the two boxes overlap, +1 if they are within a distance of 'separation' from each other,
+/// and 0 if they are "far" from each other. If returning -1 or +1, 'dir' contains the direction of smallest
+/// intersection (or closest separation).
 ///
-/// This check is performed by testing 15 possible separating planes between the
-/// two boxes (Gottschalk, Lin, Manocha - Siggraph96).
+/// This check is performed by testing 15 possible separating planes between the two boxes (Gottschalk, Lin, Manocha -
+/// Siggraph96).
 ///
 /// If not considering a separation value, the 15 tests use an overlap of the form:
 ///    <tt>overlap = r1 + r2 - D</tt>,
-/// where r1 and r2 are the half-projections of the two boxes on the current direction
-/// and D is the projected distance between the box centers. If there's no overlap
-/// (overlap <= 0) in any direction, then the boxes do not intersect. Otherwise, we
-/// keep track of the direction of minimum overlap.
+/// where r1 and r2 are the half-projections of the two boxes on the current direction and D is the projected distance
+/// between the box centers. If there's no overlap (overlap <= 0) in any direction, then the boxes do not intersect.
+/// Otherwise, we keep track of the direction of minimum overlap.
 ///
 /// If considering a separation > 0, we simply use an overlap of the form:
 ///    <tt>overlap = r1 + r2 - D + separation</tt>
