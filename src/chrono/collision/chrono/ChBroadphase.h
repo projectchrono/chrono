@@ -30,6 +30,13 @@ namespace collision {
 /// Class for performing broad-phase collision detection.
 class ChApi ChBroadphase {
   public:
+    /// Method for computing grid resolution
+    enum class GridType {
+        FIXED_RESOLUTION,  ///< user-specified number of bins in each direction
+        FIXED_BIN_SIZE,    ///< user-specified grid bin dimension
+        FIXED_DENSITY      ///< user-specified density of shapes per bin
+    };
+
     ChBroadphase();
 
     /// Perform broadphase collision detection.
@@ -44,6 +51,11 @@ class ChApi ChBroadphase {
     void FluidBoundingBox();
 
     std::shared_ptr<ChCollisionData> cd_data;
+
+    GridType grid_type;    ///< (input) method for setting grid resolution
+    vec3 grid_resolution;  ///< (input) number of bins (used for GridType::FIXED_RESOLUTION)
+    real3 bin_size;        ///< (input) desired bin dimensions (used for GridType::FIXED_BIN_SIZE)
+    real grid_density;     ///< (input) collision grid density (used for GridType::FIXED_DENSITY)
 
     friend class ChCollisionSystemChrono;
     friend class ChCollisionSystemChronoMulticore;

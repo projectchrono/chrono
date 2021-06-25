@@ -67,12 +67,6 @@ class ChConstraintRigidRigid;
 class ChConstraintBilateral;
 class ChMaterialCompositionStrategy;
 
-namespace collision {
-class ChCBroadphase;
-class ChCNarrowphaseDispatch;
-class ChCAABBGenerator;
-}  // namespace collision
-
 #if BLAZE_MAJOR_VERSION == 2
 typedef blaze::SparseSubmatrix<CompressedMatrix<real>> SubMatrixType;
 typedef blaze::DenseSubvector<DynamicVector<real>> SubVectorType;

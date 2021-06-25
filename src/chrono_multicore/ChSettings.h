@@ -22,6 +22,7 @@
 
 #include "chrono/physics/ChSystemSMC.h"
 #include "chrono/parallel/ChOpenMP.h"
+#include "chrono/collision/chrono/ChBroadphase.h"
 #include "chrono/collision/chrono/ChNarrowphase.h"
 #include "chrono_multicore/ChMulticoreDefines.h"
 #include "chrono/multicore_math/ChMulticoreMath.h"
@@ -38,9 +39,10 @@ class collision_settings {
     collision_settings()
         : use_aabb_active(false),
           collision_envelope(0),
-          bins_per_axis(vec3(20, 20, 20)),
-          fixed_bins(true),
+          bins_per_axis(vec3(10, 10, 10)),
+          bin_size(real3(1, 1, 1)),
           grid_density(5),
+          broadphase_grid(collision::ChBroadphase::GridType::FIXED_RESOLUTION),
           narrowphase_algorithm(collision::ChNarrowphase::Algorithm::HYBRID) {}
 
     /// For stability of NSC contact, the envelope should be set to 5-10% of the smallest collision shape size (too
@@ -61,16 +63,20 @@ class collision_settings {
     /// Upper corner of the axis-aligned bounding box (if set to active).
     real3 aabb_max;
 
-    /// Number of bins for the broadphase collision grid. This is the primary method to control the granularity of the
-    /// collision detection grid used for the broadphase. As the name suggests, it is the number of slices along each
-    /// axis. During the broadphase stage the extents of the simulation are computed and then sliced according to the
-    /// variable.
+    /// Method for controlling granularity of the broadphase collision grid.
+    collision::ChBroadphase::GridType broadphase_grid;
+
+    /// Number of bins for the broadphase collision grid. This is the default method to control the granularity of the
+    /// collision detection grid used for the broadphase. During the broadphase stage the extents of the simulation are
+    /// computed and then sliced according to the variable.
     vec3 bins_per_axis;
 
-    /// Use fixed number of bins instead of tuning them.
-    bool fixed_bins;
+    /// Broadphase collision grid bin size. This value  is used for dynamic tuning of the number of collision bins if
+    /// the `broadphase_grid` type is set to FIXED_BIN_SIZE.
+    real3 bin_size;
 
-    /// Broadphase collision grid density. This value is used for dynamic tuning of the number of collision bins.
+    /// Broadphase collision grid density. This value is used for dynamic tuning of the number of collision bins if the
+    /// `broadphase_grid` type is set to FIXED_DENSITY.
     real grid_density;
 
     /// Algorithm for narrowphase collision detection phase.

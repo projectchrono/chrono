@@ -71,9 +71,10 @@ void ChCollisionSystemChronoMulticore::PreProcess() {
     use_aabb_active = settings.use_aabb_active;
     active_aabb_min = settings.aabb_min;
     active_aabb_max = settings.aabb_max;
-    cd_data->bins_per_axis = settings.bins_per_axis;
-    cd_data->fixed_bins = settings.fixed_bins;
-    cd_data->grid_density = settings.grid_density;
+    broadphase.grid_type = settings.broadphase_grid;
+    broadphase.grid_resolution = settings.bins_per_axis;
+    broadphase.bin_size = settings.bin_size;
+    broadphase.grid_density = settings.grid_density;
     narrowphase.algorithm = settings.narrowphase_algorithm;
 }
 

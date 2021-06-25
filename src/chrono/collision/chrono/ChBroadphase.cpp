@@ -34,7 +34,8 @@ namespace collision {
 
 using namespace chrono::collision::ch_utils;
 
-ChBroadphase::ChBroadphase() : cd_data(nullptr) {}
+ChBroadphase::ChBroadphase()
+    : grid_type(GridType::FIXED_RESOLUTION), bin_size(real3(1, 1, 1)), grid_density(5), cd_data(nullptr) {}
 
 // -----------------------------------------------------------------------------
 
@@ -177,20 +178,29 @@ void ChBroadphase::ComputeTopLevelResolution() {
     const real3& global_origin = cd_data->global_origin;
 
     vec3& bins_per_axis = cd_data->bins_per_axis;
-    real3& inv_bin_size = cd_data->inv_bin_size;
-    real3& bin_size = cd_data->bin_size;
 
-    // This is the extents of the space aka diameter
-    real3 diagonal = (Abs(max_bounding_point - global_origin));
+    // This is the extents of the space (overall grid diagonal)
+    real3 diag = (Abs(max_bounding_point - global_origin));
 
-    // Compute the number of slices in this grid level
-    if (!cd_data->fixed_bins) {
-        bins_per_axis = Compute_Grid_Resolution(num_shapes, diagonal, cd_data->grid_density);
+    // Compute number of bins (grid resolution)
+    switch (grid_type) {
+        case GridType::FIXED_RESOLUTION:
+            bins_per_axis = grid_resolution;
+            break;
+        case GridType::FIXED_BIN_SIZE:
+            bins_per_axis.x = (int)std::ceil(diag.x / bin_size.x);
+            bins_per_axis.y = (int)std::ceil(diag.y / bin_size.y);
+            bins_per_axis.z = (int)std::ceil(diag.z / bin_size.z);
+            break;
+        case GridType::FIXED_DENSITY:
+            bins_per_axis = Compute_Grid_Resolution(num_shapes, diag, grid_density);
     }
-    bin_size = diagonal / real3(bins_per_axis.x, bins_per_axis.y, bins_per_axis.z);
 
-    // Store the inverse for use later
-    inv_bin_size = 1.0 / bin_size;
+    // Calculate actual bin dimension
+    cd_data->bin_size = diag / real3(bins_per_axis.x, bins_per_axis.y, bins_per_axis.z);
+
+    // Cache the reciprocal bin size
+    cd_data->inv_bin_size = 1.0 / cd_data->bin_size;
 }
 
 // -----------------------------------------------------------------------------

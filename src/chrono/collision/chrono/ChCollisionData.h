@@ -87,8 +87,6 @@ class ChApi ChCollisionData {
           num_rigid_shapes(0),
           //
           bins_per_axis(vec3(10, 10, 10)),
-          fixed_bins(true),
-          grid_density(5),
           //
           min_bounding_point(real3(0)),
           max_bounding_point(real3(0)),
@@ -133,8 +131,6 @@ class ChApi ChCollisionData {
     state_container state_data;  ///< State data arrays
     shape_container shape_data;  ///< Shape information data arrays
 
-    ////collision_measures measures;  ///< Container for various statistics for collision detection
-
     real collision_envelope;  ///< Collision envelope for rigid shapes
 
     real p_collision_envelope;  ///< Collision envelope for 3-dof particles
@@ -174,15 +170,12 @@ class ChApi ChCollisionData {
     std::vector<int> reverse_mapping_3dof;
 
     // Broadphase Data
-    vec3 bins_per_axis;  ///< (input)number of slices along each axis of the collision detection grid
-    bool fixed_bins;     ///< (input) keep number of bins fixed
-    real grid_density;   ///< (input) collision grid density
-
+    vec3 bins_per_axis;               ///< number of slices along each axis of the collision detection grid
+    real3 bin_size;                   ///< Bin sizes in each direction
+    real3 inv_bin_size;               ///< Bin size reciprocals in each direction
     real3 min_bounding_point;         ///< LBR (left-bottom-rear) corner of union of all AABBs
     real3 max_bounding_point;         ///< RTF (right-top-front) corner of union of all AABBs
     real3 global_origin;              ///< The grid zero point (same as LBR)
-    real3 bin_size;                   ///< Bin sizes in each direction
-    real3 inv_bin_size;               ///< Bin size reciprocals in each direction
     uint num_bins;                    ///< Total number of bins
     uint num_bin_aabb_intersections;  ///< Number of bin - shape AABB intersections
     uint num_active_bins;             ///< Number of bins intersecting at least one shape AABB

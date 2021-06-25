@@ -102,7 +102,7 @@ int main(int argc, char* argv[]) {
     my_system.SetNumThreads(4, 8, 1);
     if (collsys_type == collision::ChCollisionSystemType::CHRONO) {
         auto collsys = chrono_types::make_shared<collision::ChCollisionSystemChrono>();
-        collsys->SetBroadphaseNumBinsFixed(ChVector<int>(20, 20, 10));
+        collsys->SetBroadphaseGridResolution(ChVector<int>(20, 20, 10));
         my_system.SetCollisionSystem(collsys);
     }
 

@@ -330,8 +330,8 @@ int main(int argc, char* argv[]) {
 
     system->GetSettings()->collision.collision_envelope = envelope;
     system->GetSettings()->collision.narrowphase_algorithm = ChNarrowphase::Algorithm::HYBRID;
+    system->GetSettings()->collision.broadphase_grid = ChBroadphase::GridType::FIXED_RESOLUTION;
     system->GetSettings()->collision.bins_per_axis = vec3(100, 30, 2);
-    system->GetSettings()->collision.fixed_bins = true;
 
     // Specify active box.
     system->GetSettings()->collision.use_aabb_active = false;
