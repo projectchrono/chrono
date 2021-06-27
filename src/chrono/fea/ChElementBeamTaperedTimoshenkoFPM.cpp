@@ -18,6 +18,32 @@
 
 namespace chrono {
 namespace fea {
+ChElementBeamTaperedTimoshenkoFPM::ChElementBeamTaperedTimoshenkoFPM(): 
+    guass_order(4){
+    //q_refrotA = QUNIT;
+    //q_refrotB = QUNIT;
+    //q_element_abs_rot = QUNIT;
+    //q_element_ref_rot = QUNIT;
+    //force_symmetric_stiffness = false;
+    //disable_corotate = false;
+    //use_geometric_stiffness = true;
+    //use_Rc = true;
+    //use_Rs = true;
+
+    //nodes.resize(2);
+
+    //Km.setZero(this->GetNdofs(), this->GetNdofs());
+    //Kg.setZero(this->GetNdofs(), this->GetNdofs());
+    //M.setZero(this->GetNdofs(), this->GetNdofs());
+    //Rm.setZero(this->GetNdofs(), this->GetNdofs());
+    //Ri.setZero(this->GetNdofs(), this->GetNdofs());
+    //Ki.setZero(this->GetNdofs(), this->GetNdofs());
+
+    //T.setZero(this->GetNdofs(), this->GetNdofs());
+    //Rs.setIdentity(6, 6);
+    //Rc.setIdentity(6, 6);
+}
+
 void ChElementBeamTaperedTimoshenkoFPM::ShapeFunctionsTimoshenkoFPM(ShapeFunctionGroupFPM& NB, double eta) {
     // The shape functions have referenced two papers below, especially the first one:
     // Alexander R.Stäblein,and Morten H.Hansen.
@@ -432,27 +458,31 @@ class BeamTaperedTimoshenkoFPM : public ChIntegrable1D<ChMatrixNM<double, 12, 12
 };
 
 void BeamTaperedTimoshenkoFPM::Evaluate(ChMatrixNM<double, 12, 12>& result,const double x) {
-    ChElementBeamTaperedTimoshenkoFPM::ShapeFunctionGroupFPM NxBx;
     double eta = x;
-    m_element->ShapeFunctionsTimoshenkoFPM(NxBx,eta);
-    auto tapered_section_fpm = m_element->GetTaperedSection();
-    auto Klaw_point = tapered_section_fpm->GetKlawAtPoint(eta);
-    auto Rlaw_point = tapered_section_fpm->GetRlawAtPoint(eta);
-    auto Mlaw_point = tapered_section_fpm->GetMlawAtPoint(eta);
 
+    ChElementBeamTaperedTimoshenkoFPM::ShapeFunctionGroupFPM NxBx;
+    m_element->ShapeFunctionsTimoshenkoFPM(NxBx,eta);
     // shape function matrix
     ChMatrixNM<double, 6, 12> Nx = std::get<0>(NxBx);
     // strain-displacement relation matrix
     ChMatrixNM<double, 6, 12> Bx = std::get<1>(NxBx);
 
+    auto tapered_section_fpm = m_element->GetTaperedSection();
+    ChMatrixNM<double, 6, 6> Klaw_point;
+    ChMatrixNM<double, 6, 6> Rlaw_point;
+    ChMatrixNM<double, 6, 6> Mlaw_point;
+
     switch (m_choice_KiRiMi) {
         case 0:
+            Klaw_point = tapered_section_fpm->GetKlawAtPoint(eta);
             result = Bx.transpose() * Klaw_point * Bx;
             break;
         case 1:
+            Rlaw_point = tapered_section_fpm->GetRlawAtPoint(eta);
             result = Bx.transpose() * Rlaw_point * Bx; // modified Rayleigh damping model
             break;
         case 2:
+            Mlaw_point = tapered_section_fpm->GetMlawAtPoint(eta);
             result = Nx.transpose() * Mlaw_point * Nx;
             break;
         default:
@@ -472,7 +502,10 @@ void ChElementBeamTaperedTimoshenkoFPM::ComputeStiffnessMatrix() {
                                                           -1, 1,           // x limits
                                                           guass_order      // order of integration
     );
-
+    // eta = 2*x/L;
+    // ---> Deta/dx = 2./L;
+    // ---> detJ = dx/Deta = L/2.;
+    TempStiffnessMatrix *= this->length / 2.0;  // need to multiple detJ
     this->Km = this->T.transpose() * TempStiffnessMatrix * this->T;
 }
 
@@ -488,7 +521,10 @@ void ChElementBeamTaperedTimoshenkoFPM::ComputeDampingMatrix() {
                                                           -1, 1,                // x limits
                                                           guass_order           // order of integration
     );
-
+    // eta = 2*x/L;
+    // ---> Deta/dx = 2./L;
+    // ---> detJ = dx/Deta = L/2.;
+    TempDampingMatrix *= this->length / 2.0;  // need to multiple detJ
     this->Rm = this->T.transpose() * TempDampingMatrix * this->T;
 }
 
@@ -503,6 +539,10 @@ void ChElementBeamTaperedTimoshenkoFPM::ComputeConsistentMassMatrix() {
                                                           -1, 1,              // x limits
                                                           guass_order         // order of integration
     );
+    // eta = 2*x/L;
+    // ---> Deta/dx = 2./L;
+    // ---> detJ = dx/Deta = L/2.;
+    TempMassMatrix *= this->length / 2.0;  // need to multiple detJ
     this->M = TempMassMatrix;
     // If the cross-sectional mass properties are gives at the mass center, 
     // then it should be transformed to the centerline firstly, 
@@ -527,8 +567,8 @@ void ChElementBeamTaperedTimoshenkoFPM::SetupInitial(ChSystem* system) {
 
     // Compute rest length, mass:
     this->length = (nodes[1]->GetX0().GetPos() - nodes[0]->GetX0().GetPos()).Length();
-    this->mass = this->length / 2 * this->tapered_section_fpm->GetSectionA()->GetMassPerUnitLength() +
-                 this->length / 2 * this->tapered_section_fpm->GetSectionB()->GetMassPerUnitLength();
+    this->mass = 0.5 * this->length * this->tapered_section_fpm->GetSectionA()->GetMassPerUnitLength() +
+                 0.5 * this->length * this->tapered_section_fpm->GetSectionB()->GetMassPerUnitLength();
 
     // Compute initial rotation
     ChMatrix33<> A0;

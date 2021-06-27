@@ -294,7 +294,7 @@ class ChApi ChBeamSectionTaperedTimoshenkoAdvancedGeneric {
 
     virtual std::shared_ptr<AverageSectionParameters> GetAverageSectionParameters() const { return this->avg_sec_par; };
 
-        // Optimization flags
+    // Optimization flags
 
     /// Flag that turns on/off the computation of the [Ri] 'gyroscopic' inertial damping matrix.
     /// If false, Ri=0. Can be used for cpu speedup, profiling, tests. Default: true.

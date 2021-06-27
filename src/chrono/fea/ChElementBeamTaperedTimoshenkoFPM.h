@@ -44,7 +44,7 @@ public:
     // To store the shape function matrix 'Nx' and strain-displacement relation matrix 'Bx'
     using ShapeFunctionGroupFPM = std::tuple<ChMatrixNM<double, 6, 12>,ChMatrixNM<double, 6, 12>>;
 
-    //ChElementBeamTaperedTimoshenkoFPM();  // use the construction function of base class directly
+    ChElementBeamTaperedTimoshenkoFPM();  // use the construction function of base class directly
 
     ~ChElementBeamTaperedTimoshenkoFPM() {}
   

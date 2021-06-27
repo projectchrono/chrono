@@ -812,8 +812,8 @@ void ChElementBeamTaperedTimoshenko::SetupInitial(ChSystem* system) {
 
     // Compute rest length, mass:
     this->length = (nodes[1]->GetX0().GetPos() - nodes[0]->GetX0().GetPos()).Length();
-    this->mass = this->length / 2 * this->tapered_section->GetSectionA()->GetMassPerUnitLength() +
-                 this->length / 2 * this->tapered_section->GetSectionB()->GetMassPerUnitLength();
+    this->mass = 0.5 * this->length * this->tapered_section->GetSectionA()->GetMassPerUnitLength() +
+                 0.5 * this->length * this->tapered_section->GetSectionB()->GetMassPerUnitLength();
 
     // Compute initial rotation
     ChMatrix33<> A0;

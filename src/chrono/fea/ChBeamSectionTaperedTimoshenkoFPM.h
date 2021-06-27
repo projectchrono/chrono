@@ -175,12 +175,12 @@ public:
     std::shared_ptr<ChBeamSectionTimoshenkoAdvancedGenericFPM> GetSectionA() { return section_fpmA; }
     std::shared_ptr<ChBeamSectionTimoshenkoAdvancedGenericFPM> GetSectionB() { return section_fpmB; }
 
-	ChMatrixNM<double, 6, 6>& GetAverageFPM() { return average_fpm; }
-    ChMatrixNM<double, 6, 6>& GetAverageKlaw();
-    ChMatrixNM<double, 6, 6>& GetAverageMlaw();
-    ChMatrixNM<double, 6, 6>& GetKlawAtPoint(const double eta);
-    ChMatrixNM<double, 6, 6>& GetMlawAtPoint(const double eta);
-    ChMatrixNM<double, 6, 6>& GetRlawAtPoint(const double eta);
+	ChMatrixNM<double, 6, 6> GetAverageFPM() { return average_fpm; }
+    ChMatrixNM<double, 6, 6> GetAverageKlaw();
+    ChMatrixNM<double, 6, 6> GetAverageMlaw();
+    ChMatrixNM<double, 6, 6> GetKlawAtPoint(const double eta);
+    ChMatrixNM<double, 6, 6> GetMlawAtPoint(const double eta);
+    ChMatrixNM<double, 6, 6> GetRlawAtPoint(const double eta);
 
 	/// Compute the 12x12 sectional inertia matrix, as in  {x_momentum,w_momentum}=[Mm]{xvel,wvel}
     /// The matrix is computed in the material reference (i.e. it is the sectional mass matrix)
