@@ -606,7 +606,8 @@ void test_5() {
 // ============================================================ //
 void test_6() {
     GetLog() << "\n-------------------------------------------------\n";
-    GetLog() << "TEST: To test the new developed Tapered Timoshenko beam element  \n\n";
+    GetLog() << "TEST: To test the new developed Tapered Timoshenko "
+             <<" beam element with blade model, also check the section force/torque \n\n";
 
     struct BladeSection {
         double ref_twist;
@@ -1092,10 +1093,10 @@ void test_6() {
 
 }
 
-
 void test_7() {
     GetLog() << "\n-------------------------------------------------\n";
-    GetLog() << "TEST: To test the new developed Tapered Timoshenko FPM beam element  \n\n";
+    GetLog() << "TEST: To test the new developed Tapered Timoshenko FPM"
+             << " beam element with blade model, also check the section force/torque \n\n";
 
     struct BladeSection {
         double ref_twist;
@@ -1581,7 +1582,6 @@ void test_7() {
     }  // end of modal solving
 }
 
-
 void test_8() {
     GetLog() << "\n-------------------------------------------------\n";
     GetLog() << "TEST: To test the new developed Tapered Timoshenko beam element  \n\n";
@@ -1851,7 +1851,7 @@ void test_8() {
     hht_time_stepper_->SetAbsTolerances(1e-6);
     hht_time_stepper_->SetMaxiters(100);
     hht_time_stepper_->SetStepControl(true);     // 提高数值计算的收敛性
-    hht_time_stepper_->SetModifiedNewton(true);  // 提高数值计算的收敛性
+    hht_time_stepper_->SetModifiedNewton(false);  // 提高数值计算的收敛性
 
     my_system.Setup();
 
@@ -1883,7 +1883,7 @@ void test_8() {
 
 void test_9() {
     GetLog() << "\n-------------------------------------------------\n";
-    GetLog() << "TEST: To test the new developed Tapered Timoshenko beam element  \n\n";
+    GetLog() << "TEST: To test the new developed Tapered Timoshenko beam element with Princeton beam experiment \n\n";
     GetLog() << "TEST: To check the shear locking effect...  \n\n";
 
 
@@ -2092,7 +2092,7 @@ void test_9() {
 
 void test_10() {
     GetLog() << "\n-------------------------------------------------\n";
-    GetLog() << "TEST: To test the Euler beam element  \n\n";
+    GetLog() << "TEST: To test the Euler beam element with Princeton beam experiment \n\n";
     GetLog() << "TEST: To compare with Timoshenko beam  \n\n";
 
     double PI = 3.1415926535897932384626;
@@ -2104,6 +2104,7 @@ void test_10() {
     auto mynodes = std::vector<std::shared_ptr<ChNodeFEAxyzrot>>();
     auto mkl_solver = chrono_types::make_shared<ChSolverPardisoMKL>();
     auto hht_time_stepper = chrono_types::make_shared<ChTimestepperHHT>();
+    auto minres_solver = chrono_types::make_shared<ChSolverMINRES>();
 
     double P1 = 4.448;
     double P2 = 8.896;
@@ -2195,14 +2196,17 @@ void test_10() {
             mymesh->SetAutomaticGravity(true);
 
             // mnodeA->SetFixed(true);
-            my_system.Set_G_acc({0, 0, -9.81});
-            // my_system.Set_G_acc({0, 0, 0});
+            //my_system.Set_G_acc({0, 0, -9.81});
+             my_system.Set_G_acc({0, 0, 0});
 
             auto mynodes = beamBuilder.GetLastBeamNodes();
             auto mybeams = beamBuilder.GetLastBeamElements();
             mynodes.front()->SetFixed(true);
             mynodes.back()->SetForce(ChVector<>(0, 0, P_load));
             my_system.Add(mymesh);
+
+            //my_system.SetSolver(minres_solver);
+            //minres_solver->SetTolerance(1e-6);
 
             mkl_solver->UseSparsityPatternLearner(true);
             mkl_solver->LockSparsityPattern(true);
@@ -2280,7 +2284,7 @@ void test_10() {
 
 void test_11() {
     GetLog() << "\n-------------------------------------------------\n";
-    GetLog() << "TEST: To test the IGA beam element  \n\n";
+    GetLog() << "TEST: To test the IGA beam element with Princeton beam experiment \n\n";
     GetLog() << "TEST: To compare with Timoshenko beam  \n\n";
 
     double PI = 3.1415926535897932384626;
@@ -2559,47 +2563,521 @@ void test_12() {
     motor_hub_rotation_->SetNameString("motor of hub rotating");
     my_system.Add(motor_hub_rotation_);
 
-
-
-      auto mkl_solver_ = chrono_types::make_shared<ChSolverPardisoMKL>();
+    auto mkl_solver_ = chrono_types::make_shared<ChSolverPardisoMKL>();
     auto hht_time_stepper_ = chrono_types::make_shared<ChTimestepperHHT>();
-     // 仿真参数：仿真时长、步长、重力场
+    // 仿真参数：仿真时长、步长、重力场
     double time_step = 0.02;
     chrono::Vector m_acc_noG = {0, 0, 0};    // No Gravity
     chrono::Vector m_acc_G = {0, 0, -9.81};  // With Gravity
     my_system.SetStep(time_step);
     my_system.Set_G_acc(m_acc_noG);
 
+    mkl_solver_->UseSparsityPatternLearner(true);
+    mkl_solver_->LockSparsityPattern(true);
+    mkl_solver_->SetVerbose(false);
+    // my_system.SetSolver(mkl_solver_);  //矩阵求解
 
-        mkl_solver_->UseSparsityPatternLearner(true);
-        mkl_solver_->LockSparsityPattern(true);
-        mkl_solver_->SetVerbose(false);
-        //my_system.SetSolver(mkl_solver_);  //矩阵求解
-
-        //my_system.SetTimestepperType(chrono::ChTimestepper::Type::HHT);
-        hht_time_stepper_ = std::dynamic_pointer_cast<chrono::ChTimestepperHHT>(my_system.GetTimestepper());
-        hht_time_stepper_->SetAlpha(-0.1);  // [-1/3,0], closer to 0,less damping_
-        hht_time_stepper_->SetMinStepSize(1e-9);
-        hht_time_stepper_->SetAbsTolerances(1e-6);
-        hht_time_stepper_->SetMaxiters(100);
-        hht_time_stepper_->SetStepControl(true);
-        hht_time_stepper_->SetModifiedNewton(false);
+    // my_system.SetTimestepperType(chrono::ChTimestepper::Type::HHT);
+    hht_time_stepper_ = std::dynamic_pointer_cast<chrono::ChTimestepperHHT>(my_system.GetTimestepper());
+    hht_time_stepper_->SetAlpha(-0.1);  // [-1/3,0], closer to 0,less damping_
+    hht_time_stepper_->SetMinStepSize(1e-9);
+    hht_time_stepper_->SetAbsTolerances(1e-6);
+    hht_time_stepper_->SetMaxiters(100);
+    hht_time_stepper_->SetStepControl(true);
+    hht_time_stepper_->SetModifiedNewton(false);
 
     // 整个模型组装
-        my_system.Setup();
+    my_system.Setup();
 
-        // 提取叶片受气动载荷后模型的系统矩阵 M  K  R  Cq
+    // 提取叶片受气动载荷后模型的系统矩阵 M  K  R  Cq
+    bool save_M = true;
+    bool save_K = true;
+    bool save_R = true;
+    bool save_Cq = true;
+    const char* path_sysMatMKR =
+        R"(C:\Users\31848\Desktop\goldflex_chrono20210318\goldflex-lin\out\result\test_constraint)";
+    //输出 M K R 矩阵到文本文件，方便matlab处理
+    my_system.DumpSystemMatrices(save_M, save_K, save_R, save_Cq, path_sysMatMKR);
+
+    std::cout << "Test case simulation DONE." << std::endl;
+}
+
+void test_13() {
+    GetLog() << "\n-------------------------------------------------\n";
+    GetLog() << "TEST: To test the new developed Tapered Timoshenko FPM beam element "
+             << " with a coupled cantilever box beam proposed by Hodges et al. \n";
+    // Reference paper:
+    // D.H.Hodges, A.R.Atilgan, M.V.Fulton, and L.W.Rehfield.
+    // Free vibration analysis of composite beams.
+    // Journal of the American Helicopter Society,36(3) : 36– 47, 1991, DOI : 10.4050 / jahs .36.36.
+
+    double PI = 3.1415926535897932384626;
+    double rad2deg = 180.0 / PI;
+    double deg2rad = 1. / rad2deg;
+    // The physical system: it contains all physical objects.
+    ChSystemSMC my_system;
+
+    auto mkl_solver = chrono_types::make_shared<ChSolverPardisoMKL>();
+    auto hht_time_stepper = chrono_types::make_shared<ChTimestepperHHT>();
+
+    double L = 2.54;                                        // length
+    double H = 16.76 * 0.001;                               // heigth
+    double W = 33.53 * 0.001;                               // width
+    double t = 0.84 * 0.001;                                // wall thickness
+    double pho = 1604;                                      // density
+    double mu = pho * (W * H - (W - 2 * t) * (H - 2 * t));  // beam单位长度的质量,kg/m
+    double Jyy = pho * (1 / 12.0 * W * H * H * H - 1 / 12.0 * (W - 2 * t) * pow(H - 2 * t, 3.0));
+    double Jzz = pho * (1 / 12.0 * H * W * W * W - 1 / 12.0 * (H - 2 * t) * pow(W - 2 * t, 3.0));
+    double Jxx = Jyy + Jzz;
+    double Jyz = 0;
+    double Qy = 0;
+    double Qz = 0;
+
+    ChMatrixNM<double, 6, 6> Klaw;
+    Klaw.row(0) << 5.0576E+06, 0.0000E+00, 0.0000E+00, -1.7196E+04, 0.0000E+00, 0.0000E+00;
+    Klaw.row(1) << 0.0000E+00, 7.7444E+05, 0.0000E+00, 0.0000E+00, 8.3270E+03, 0.0000E+00;
+    Klaw.row(2) << 0.0000E+00, 0.0000E+00, 2.9558E+05, 0.0000E+00, 0.0000E+00, 9.0670E+03;
+    Klaw.row(3) << -1.7196E+04, 0.0000E+00, 0.0000E+00, 1.5041E+02, 0.0000E+00, 0.0000E+00;
+    Klaw.row(4) << 0.0000E+00, 8.3270E+03, 0.0000E+00, 0.0000E+00, 2.4577E+02, 0.0000E+00;
+    Klaw.row(5) << 0.0000E+00, 0.0000E+00, 9.0670E+03, 0.0000E+00, 0.0000E+00, 7.4529E+02;
+
+    ChMatrixNM<double, 6, 6> Mlaw;
+    Mlaw.row(0) << mu, 0, 0, 0, Qy, -Qz;
+    Mlaw.row(1) << 0, mu, 0, -Qy, 0, 0;
+    Mlaw.row(2) << 0, 0, mu, Qz, 0, 0;
+    Mlaw.row(3) << 0, -Qy, Qz, Jxx, 0, 0;
+    Mlaw.row(4) << Qy, 0, 0, 0, Jyy, -Jyz;
+    Mlaw.row(5) << -Qz, 0, 0, 0, -Jyz, Jzz;
+
+    auto section = chrono_types::make_shared<ChBeamSectionTimoshenkoAdvancedGenericFPM>();
+    //截面属性设置
+    section->SetSectionRotation(0);
+    section->SetCenterOfMass(0, 0);
+    section->SetCentroidY(0);
+    section->SetCentroidZ(0);
+    section->SetShearCenterY(0);
+    section->SetShearCenterZ(0);
+    section->SetMassPerUnitLength(mu);
+    section->SetArtificialJyyJzzFactor(0.0 / 500.);
+    section->SetMassMatrixFPM(Mlaw);
+    section->SetStiffnessMatrixFPM(Klaw);
+
+    DampingCoefficients mdamping_coeff;
+    mdamping_coeff.bx = pow(0.000007, 0.5);
+    mdamping_coeff.by = mdamping_coeff.bx;
+    mdamping_coeff.bz = mdamping_coeff.bx;
+    mdamping_coeff.bt = mdamping_coeff.bx;
+    section->SetBeamRaleyghDamping(mdamping_coeff);
+    section->compute_inertia_damping_matrix = true;  // gyroscopic damping matrix
+    section->compute_inertia_stiffness_matrix = true;
+    section->compute_Ri_Ki_by_num_diff = false;
+
+    double beam_length = L;
+    auto mnodeA =
+        chrono_types::make_shared<ChNodeFEAxyzrot>(ChFrame<>(ChVector<>(0, 0, 0), ChQuaternion<>(1, 0, 0, 0)));
+    auto mnodeB = chrono_types::make_shared<ChNodeFEAxyzrot>(
+        ChFrame<>(ChVector<>(beam_length, 0, 0), ChQuaternion<>(1, 0, 0, 0)));
+    int beam_count = 16;
+
+    bool use_lumped_mass_matrix = false;
+    auto tapered_section_fpm = chrono_types::make_shared<chrono::fea::ChBeamSectionTaperedTimoshenkoAdvancedGenericFPM>();
+    tapered_section_fpm->SetLumpedMassMatrixType(use_lumped_mass_matrix); 
+    tapered_section_fpm->SetSectionA(section);
+    tapered_section_fpm->SetSectionB(section);
+    tapered_section_fpm->SetLength(beam_length / beam_count);
+    tapered_section_fpm->compute_inertia_damping_matrix = true;  // 是否自动计入离心力、陀螺力项产生的阻尼矩阵
+    tapered_section_fpm->compute_inertia_stiffness_matrix = true;  // 是否自动计入离心力、陀螺力项产生的刚度矩阵
+    tapered_section_fpm->compute_Ri_Ki_by_num_diff = false;
+
+    chrono::fea::ChBuilderBeamTaperedTimoshenkoFPM bladeBuilder;
+    std::vector<std::shared_ptr<ChNodeFEAxyzrot>> mynodes;
+    std::vector<std::shared_ptr<ChElementBeamTaperedTimoshenkoFPM>> mybeams;
+    auto mymesh = chrono_types::make_shared<ChMesh>();
+    mymesh->AddNode(mnodeA);
+    mymesh->AddNode(mnodeB);
+    bladeBuilder.BuildBeam(mymesh,              ///< mesh to store the resulting elements
+                           tapered_section_fpm,  ///< section material for beam elements
+                           beam_count,          ///< number of elements in the segment
+                           mnodeA,              ///< starting point
+                           mnodeB,              ///< ending point
+                           ChVector<>{0, 1, 0}  // the 'up' Y direction of the beam
+    );
+    mynodes = bladeBuilder.GetLastBeamNodes();
+    mybeams = bladeBuilder.GetLastBeamElements();
+    for (int i_beam = 0; i_beam < mybeams.size();i_beam++) {
+        mybeams.at(i_beam)->SetUseGeometricStiffness(true);
+        mybeams.at(i_beam)->SetUseRc(true);
+        mybeams.at(i_beam)->SetUseRs(true);
+        mybeams.at(i_beam)->SetIntegrationPoints(4);  //高斯积分的阶次
+    }
+
+    mymesh->SetAutomaticGravity(true);
+    my_system.Add(mymesh);
+
+    //my_system.Set_G_acc({0, 0, -9.81});
+     my_system.Set_G_acc({0, 0, 0});
+
+    mynodes.front()->SetFixed(true);
+    //mynodes.back()->SetFixed(true);
+    // mynodes.back()->SetForce(ChVector<>(0, 0, 0));
+
+    mkl_solver->UseSparsityPatternLearner(true);
+    mkl_solver->LockSparsityPattern(true);
+    mkl_solver->SetVerbose(false);
+    my_system.SetSolver(mkl_solver);  //矩阵求解
+
+    my_system.SetTimestepperType(ChTimestepper::Type::HHT);
+    hht_time_stepper = std::dynamic_pointer_cast<ChTimestepperHHT>(my_system.GetTimestepper());
+    hht_time_stepper->SetAlpha(-0.1);  // [-1/3,0], closer to 0,less damping_
+    hht_time_stepper->SetMinStepSize(1e-9);
+    hht_time_stepper->SetAbsTolerances(1e-6);
+    hht_time_stepper->SetMaxiters(100);
+    hht_time_stepper->SetStepControl(true);      // 提高数值计算的收敛性
+    hht_time_stepper->SetModifiedNewton(false);  // 提高数值计算的收敛性
+
+    my_system.Setup();
+
+    // Output some results
+    GetLog() << "test_13: \n";
+    GetLog() << "Simulation starting..............\n";
+    GetLog() << "Beam tip coordinate X: " << mynodes.back()->GetPos().x() << "\n";
+    GetLog() << "Beam tip coordinate Y: " << mynodes.back()->GetPos().y() << "\n";
+    GetLog() << "Beam tip coordinate Z: " << mynodes.back()->GetPos().z() << "\n";
+    my_system.DoStaticNonlinear(100, false);
+
+    bool bSolveMode = true;
+    if (bSolveMode) {  // start of modal solving
         bool save_M = true;
         bool save_K = true;
         bool save_R = true;
         bool save_Cq = true;
-        const char* path_sysMatMKR =
-            R"(C:\Users\31848\Desktop\goldflex_chrono20210318\goldflex-lin\out\result\test_constraint)";
+        auto sysMat_name_temp = R"(E:\pengchao\matlab_work\HodgesBeam\Hodges)";
+        const char* path_sysMatMKR = R"(E:\pengchao\matlab_work\HodgesBeam\Hodges)";
         //输出 M K R 矩阵到文本文件，方便matlab处理
         my_system.DumpSystemMatrices(save_M, save_K, save_R, save_Cq, path_sysMatMKR);
+        //直接提取 M K R 矩阵，并计算特征值和特征向量
+        chrono::ChSparseMatrix sysMat_M;
+        my_system.GetMassMatrix(&sysMat_M);
+        chrono::ChSparseMatrix sysMat_K;
+        my_system.GetStiffnessMatrix(&sysMat_K);
+        chrono::ChSparseMatrix sysMat_R;
+        my_system.GetDampingMatrix(&sysMat_R);
+        chrono::ChSparseMatrix sysMat_Cq;
+        my_system.GetConstraintJacobianMatrix(&sysMat_Cq);
+        // 调用EIGEN3求解dense matrix的特征值和特征向量
+        Eigen::MatrixXd dense_sysMat_M = sysMat_M.toDense();
+        Eigen::MatrixXd dense_sysMat_K = sysMat_K.toDense();
+        Eigen::MatrixXd dense_sysMat_R = sysMat_R.toDense();
+        Eigen::MatrixXd dense_sysMat_Cq = sysMat_Cq.toDense();
+        // 计算Cq矩阵的null space（零空间）
+        Eigen::MatrixXd Cq_null_space = dense_sysMat_Cq.fullPivLu().kernel();
+        Eigen::MatrixXd M_hat = Cq_null_space.transpose() * dense_sysMat_M * Cq_null_space;
+        Eigen::MatrixXd K_hat = Cq_null_space.transpose() * dense_sysMat_K * Cq_null_space;
+        Eigen::MatrixXd R_hat = Cq_null_space.transpose() * dense_sysMat_R * Cq_null_space;
+        // frequency-shift，解决矩阵奇异问题，现在还用不着，可以置0
+        double freq_shift = 0.0;  //偏移值，可取1~10等任意数值
+        Eigen::MatrixXd M_bar = M_hat;
+        Eigen::MatrixXd K_bar = pow(freq_shift, 2) * M_hat + freq_shift * R_hat + K_hat;
+        Eigen::MatrixXd R_bar = 2 * freq_shift * M_hat + R_hat;
+        Eigen::MatrixXd M_bar_inv = M_bar.inverse();  //直接用dense matrix求逆也不慢
+        // 生成状态方程的 A 矩阵，其特征值就是模态频率
+        int dim = M_bar.rows();
+        Eigen::MatrixXd A_tilde(2 * dim, 2 * dim);  // 拼成系统矩阵 A 矩阵，dense matrix。
+        A_tilde << Eigen::MatrixXd::Zero(dim, dim), Eigen::MatrixXd::Identity(dim, dim), -M_bar_inv * K_bar,
+            -M_bar_inv * R_bar;
+        // 调用EIGEN3，dense matrix直接求解特征值和特征向量
+        // NOTE：EIGEN3在release模式下计算速度非常快[~1s]，在debug模式下计算速度非常慢[>100s]
+        Eigen::EigenSolver<Eigen::MatrixXd> eigenSolver(A_tilde);
+        Eigen::VectorXcd sys_eValues = eigenSolver.eigenvalues() + freq_shift;
+        Eigen::MatrixXcd sys_eVectors = eigenSolver.eigenvectors();
 
-        std::cout << "Test case simulation DONE." << std::endl;
+        typedef std::tuple<double, double, double, std::complex<double>, Eigen::VectorXcd> myEigenRes;
+        std::vector<myEigenRes> eigen_vectors_and_values;
+        for (int i = 0; i < sys_eValues.size(); i++) {
+            myEigenRes vec_and_val(
+                std::abs(sys_eValues(i)) / (2 * PI),  // index：0     特征值的绝对值, 无阻尼模态频率
+                sys_eValues(i).imag() / (2 * PI),     // index：1     特征值的虚部,有阻尼模态频率
+                -sys_eValues(i).real() / std::abs(sys_eValues(i)),  // index：2     特征值的实部代表了阻尼比
+                sys_eValues(i),                                     // index：3     复数形式的特征值
+                sys_eVectors.col(i)                                 // index：4     振型
+            );
+            if (std::abs(sys_eValues(i).imag()) > 1.0e-6) {  // 只有虚部不为零的特征值会放入结果中
+                eigen_vectors_and_values.push_back(vec_and_val);
+            }
+        }
+        std::sort(eigen_vectors_and_values.begin(), eigen_vectors_and_values.end(),
+                  [&](const myEigenRes& a, const myEigenRes& b) -> bool {
+                      return std::get<1>(a) < std::get<1>(b);
+                  });  // index：1，表示按照特征值的虚部进行排序，‘ < ’为升序
+
+        int size = eigen_vectors_and_values.size();
+        int midN = (int)(size / 2);
+        int nModes = 20;  // 提取8阶模态频率，文献中的结果只有8阶模态
+        std::vector<Eigen::VectorXcd> res_Modeshapes;
+        Eigen::MatrixXd res_Modes(nModes, 3);
+        int jj = 0;
+        int i = 0;
+        while ((jj + midN) < size && i < nModes) {
+            // 前面一半的特征值的虚部为负数，没有意义，需要丢掉【QUESTION：这部分的特征值到底是什么物理意义？】
+            double damping_ratio = std::get<2>(eigen_vectors_and_values.at(jj + midN));
+            if (damping_ratio < 0.5) {  // 只提取模态阻尼比小于0.5的模态
+                res_Modes(i, 0) = std::get<0>(eigen_vectors_and_values.at(jj + midN));  // 无阻尼模态频率
+                res_Modes(i, 1) = std::get<1>(eigen_vectors_and_values.at(jj + midN));  // 有阻尼模态频率
+                res_Modes(i, 2) = std::get<2>(eigen_vectors_and_values.at(jj + midN));  // 阻尼比
+                // Eigen::VectorXcd tempVector = std::get<4>(eigen_vectors_and_values.at(jj + midN));
+                // res_Modeshapes.push_back(Cq_null_space * tempVector.head(midN));
+                i++;
+            }  // TODO：阵型提取，参考单叶片稳定性分析python代码中的算法
+            jj++;
+        }
+
+        if (use_lumped_mass_matrix == true) {
+            std::cout << "\n*** The lumped mass matrix is used. ***\n" << std::endl;
+        } else {
+            std::cout << "\n*** The consistent mass matrix is used. ***\n" << std::endl;
+        }
+
+        // 模态计算结果输出到屏幕
+        std::cout << "The eigenvalues of Hodges beam are:\t\n"
+                  << "01 undamped frequency/Hz\t"
+                  << "02 damped frequency/Hz\t"
+                  << "03 damping ratio\n"
+                  << res_Modes << std::endl;
+
+        nModes = 8;
+        Eigen::MatrixXd res_Modes_cmp(nModes, 3);
+        res_Modes_cmp.topRows<6>() = res_Modes.topRows<6>();
+        res_Modes_cmp.row(6) = res_Modes.row(9);
+        res_Modes_cmp.row(7) = res_Modes.row(15);
+        // 与Bladed计算的单叶片模态频率对比，计算误差，%
+        Eigen::MatrixXd res_paper;
+        res_paper.resize(nModes, 1);
+        res_paper << 3.00,5.19,19.04,32.88,54.65,93.39,180.32,544.47;  // Hz
+        Eigen::MatrixXd error_to_paper = (res_Modes_cmp.col(0).array() - res_paper.array()) / res_paper.array() * 100.0;
+
+        // 模态计算结果输出到屏幕
+        Eigen::MatrixXd res_output(nModes, 4);
+        res_output << res_Modes_cmp, error_to_paper;
+        std::cout << "The eigenvalues of Hodges beam to compare with paper are:\t\n"
+                  << "01 undamped frequency/Hz\t"
+                  << "02 damped frequency/Hz\t"
+                  << "03 damping ratio\t"
+                  << "04 dfferences[%]\n"
+                  << res_output << std::endl;
+    }  // end of modal solving
+
+    // clear system
+    my_system.RemoveAllBodies();
+    my_system.RemoveAllLinks();
+    my_system.RemoveAllMeshes();
+    my_system.RemoveAllOtherPhysicsItems();
+
 }
+
+void test_14() {
+    GetLog() << "\n-------------------------------------------------\n";
+    GetLog() << "TEST: To test the new developed Tapered Timoshenko FPM beam element "
+             << " with a coupled cantilever proposed by Wang et al. \n";
+    // Reference paper:
+    // Q. Wang, M. Sprague, J. Jonkman, and N. Johnson. 
+    // Nonlinear legendre spectral finite elements for wind turbine blade dynamics. 
+    // In Proceedings of the 32nd ASME Wind Energy Symposium, National Harbor, Maryland, 2014, 
+    // DOI: 10.2514/6.2014-1224.
+
+    double PI = 3.1415926535897932384626;
+    double rad2deg = 180.0 / PI;
+    double deg2rad = 1. / rad2deg;
+    //double m2inch = 39.3700787;
+    //double inch2m = 1. / m2inch;
+    //double lbs2N = 4.44822162;
+    //double N2lbs = 1. / lbs2N;
+    //m2inch = 1.0;
+    //inch2m = 1.0;
+    //lbs2N = 1.0;
+    //N2lbs = 1.0;
+    // The physical system: it contains all physical objects.
+    ChSystemSMC my_system;
+
+    auto mkl_solver = chrono_types::make_shared<ChSolverPardisoMKL>();
+    auto hht_time_stepper = chrono_types::make_shared<ChTimestepperHHT>();
+
+    double L = 10.0; // length
+    double mu = 1.0;  // beam单位长度的质量,kg/m
+    double Jyy = 1.0;
+    double Jzz = 1.0;
+    double Jxx = Jyy + Jzz;
+    double Jyz = 0;
+    double Qy = 0;
+    double Qz = 0;
+
+    ChMatrixNM<double, 6, 6> Klaw;
+    Klaw.row(0) << 1368.17E+03, 0.000E+00, 0.000E+00, 0.0000E+00, 0.0000E+00, 0.0000E+00;
+    Klaw.row(1) << 0.000E+00, 88.56E+03, 0.000E+00, 0.000E+00, 0.0000E+00, 0.0000E+00;
+    Klaw.row(2) << 0.0000E+00, 0.0000E+00, 38.78E+03, 0.000E+00, 0.000E+00, 0.0000E+00;
+    Klaw.row(3) << 0.0000E+00, 0.0000E+00, 0.0000E+00, 16.96E+03, 17.610E+03, -0.351E+03;
+    Klaw.row(4) << 0.0000E+00, 0.0000E+00, 0.0000E+00, 17.610E+03, 59.12E+03, -0.370E+03;
+    Klaw.row(5) << 0.0000E+00, 0.0000E+00, 0.0000E+00, -0.351E+03, -0.370E+03, 141.47E+03;
+    //Klaw.block<3, 3>(0, 0) *= lbs2N;
+    //Klaw.block<3, 3>(3, 3) *= lbs2N * inch2m * inch2m;
+
+
+    ChMatrixNM<double, 6, 6> Mlaw;
+    Mlaw.row(0) << mu, 0, 0, 0, Qy, -Qz;
+    Mlaw.row(1) << 0, mu, 0, -Qy, 0, 0;
+    Mlaw.row(2) << 0, 0, mu, Qz, 0, 0;
+    Mlaw.row(3) << 0, -Qy, Qz, Jxx, 0, 0;
+    Mlaw.row(4) << Qy, 0, 0, 0, Jyy, -Jyz;
+    Mlaw.row(5) << -Qz, 0, 0, 0, -Jyz, Jzz;
+
+    auto section = chrono_types::make_shared<ChBeamSectionTimoshenkoAdvancedGenericFPM>();
+    //截面属性设置
+    section->SetSectionRotation(0);
+    section->SetCenterOfMass(0, 0);
+    section->SetCentroidY(0);
+    section->SetCentroidZ(0);
+    section->SetShearCenterY(0);
+    section->SetShearCenterZ(0);
+    section->SetMassPerUnitLength(mu);
+    section->SetArtificialJyyJzzFactor(0.0 / 500.);
+    section->SetMassMatrixFPM(Mlaw);
+    section->SetStiffnessMatrixFPM(Klaw);
+
+    DampingCoefficients mdamping_coeff;
+    mdamping_coeff.bx = pow(0.000007, 0.5);
+    mdamping_coeff.by = mdamping_coeff.bx;
+    mdamping_coeff.bz = mdamping_coeff.bx;
+    mdamping_coeff.bt = mdamping_coeff.bx;
+    section->SetBeamRaleyghDamping(mdamping_coeff);
+    section->compute_inertia_damping_matrix = true;  // gyroscopic damping matrix
+    section->compute_inertia_stiffness_matrix = true;
+    section->compute_Ri_Ki_by_num_diff = false;
+
+    double beam_length = L;
+    auto mnodeA =
+        chrono_types::make_shared<ChNodeFEAxyzrot>(ChFrame<>(ChVector<>(0, 0, 0), ChQuaternion<>(1, 0, 0, 0)));
+    auto mnodeB = chrono_types::make_shared<ChNodeFEAxyzrot>(
+        ChFrame<>(ChVector<>(beam_length, 0, 0), ChQuaternion<>(1, 0, 0, 0)));
+    int beam_count = 10;
+
+    bool use_lumped_mass_matrix = true;
+    auto tapered_section_fpm =
+        chrono_types::make_shared<chrono::fea::ChBeamSectionTaperedTimoshenkoAdvancedGenericFPM>();
+    tapered_section_fpm->SetLumpedMassMatrixType(use_lumped_mass_matrix);
+    tapered_section_fpm->SetSectionA(section);
+    tapered_section_fpm->SetSectionB(section);
+    tapered_section_fpm->SetLength(beam_length / beam_count);
+    tapered_section_fpm->compute_inertia_damping_matrix = true;  // 是否自动计入离心力、陀螺力项产生的阻尼矩阵
+    tapered_section_fpm->compute_inertia_stiffness_matrix = true;  // 是否自动计入离心力、陀螺力项产生的刚度矩阵
+    tapered_section_fpm->compute_Ri_Ki_by_num_diff = false;
+
+    chrono::fea::ChBuilderBeamTaperedTimoshenkoFPM bladeBuilder;
+    std::vector<std::shared_ptr<ChNodeFEAxyzrot>> mynodes;
+    std::vector<std::shared_ptr<ChElementBeamTaperedTimoshenkoFPM>> mybeams;
+    auto mymesh = chrono_types::make_shared<ChMesh>();
+    mymesh->AddNode(mnodeA);
+    mymesh->AddNode(mnodeB);
+    bladeBuilder.BuildBeam(mymesh,               ///< mesh to store the resulting elements
+                           tapered_section_fpm,  ///< section material for beam elements
+                           beam_count,           ///< number of elements in the segment
+                           mnodeA,               ///< starting point
+                           mnodeB,               ///< ending point
+                           ChVector<>{0, 1, 0}   // the 'up' Y direction of the beam
+    );
+    mynodes = bladeBuilder.GetLastBeamNodes();
+    mybeams = bladeBuilder.GetLastBeamElements();
+    for (int i_beam = 0; i_beam < mybeams.size(); i_beam++) {
+        mybeams.at(i_beam)->SetUseGeometricStiffness(true);
+        mybeams.at(i_beam)->SetUseRc(true);
+        mybeams.at(i_beam)->SetUseRs(true);
+        mybeams.at(i_beam)->SetIntegrationPoints(4);  //高斯积分的阶次
+    }
+
+    mymesh->SetAutomaticGravity(true);
+    my_system.Add(mymesh);
+
+    // my_system.Set_G_acc({0, 0, -9.81});
+    my_system.Set_G_acc({0, 0, 0});
+
+    mynodes.front()->SetFixed(true);
+    // mynodes.back()->SetFixed(true);
+     //mynodes.back()->SetForce(ChVector<>(0, 0, 150.0));
+
+    mkl_solver->UseSparsityPatternLearner(true);
+    mkl_solver->LockSparsityPattern(true);
+    mkl_solver->SetVerbose(false);
+    my_system.SetSolver(mkl_solver);  //矩阵求解
+
+    my_system.SetTimestepperType(ChTimestepper::Type::HHT);
+    hht_time_stepper = std::dynamic_pointer_cast<ChTimestepperHHT>(my_system.GetTimestepper());
+    hht_time_stepper->SetAlpha(-0.1);  // [-1/3,0], closer to 0,less damping_
+    hht_time_stepper->SetMinStepSize(1e-9);
+    hht_time_stepper->SetAbsTolerances(1e-6);
+    hht_time_stepper->SetMaxiters(100);
+    hht_time_stepper->SetStepControl(true);      // 提高数值计算的收敛性
+    hht_time_stepper->SetModifiedNewton(false);  // 提高数值计算的收敛性
+
+    my_system.Setup();
+
+    ChFrame<> root_frame_local = ChFrame<>(mynodes.front()->GetCoord());
+    ChFrame<> tip_rel_frame;
+    ChFrame<> tip_abs_frame = ChFrame<>(mynodes.back()->GetCoord());
+    root_frame_local.TransformParentToLocal(tip_abs_frame, tip_rel_frame);
+    // Beam tip coordinate
+    double PosX0 = tip_rel_frame.GetPos().x();
+    double PosY0 = tip_rel_frame.GetPos().y();
+    double PosZ0 = tip_rel_frame.GetPos().z();
+
+    // Output some results
+    GetLog() << "test_14: \n";
+    GetLog() << "Simulation starting..............\n";
+    GetLog() << "Beam tip coordinate X: " << mynodes.back()->GetPos().x() << "\n";
+    GetLog() << "Beam tip coordinate Y: " << mynodes.back()->GetPos().y() << "\n";
+    GetLog() << "Beam tip coordinate Z: " << mynodes.back()->GetPos().z() << "\n";
+
+    for (int i_do = 0; i_do < 5; i_do++) {
+        mynodes.back()->SetForce(ChVector<>(0, 0, 150.0));
+        my_system.DoStaticNonlinear(100, false);
+    }
+
+
+    tip_abs_frame = ChFrame<>(mynodes.back()->GetCoord());
+    root_frame_local.TransformParentToLocal(tip_abs_frame, tip_rel_frame);
+    // Beam tip coordinate
+    double PosX = tip_rel_frame.GetPos().x();
+    double PosY = tip_rel_frame.GetPos().y();
+    double PosZ = tip_rel_frame.GetPos().z();
+    double dPosX = PosX - PosX0;
+    double dPosY = PosY - PosY0;
+    double dPosZ = PosZ - PosZ0;
+
+    // Beam tip Euler Angle
+    double RotX_EulerAngle = tip_abs_frame.GetRot().Q_to_Euler123().x();
+    double RotY_EulerAngle = tip_abs_frame.GetRot().Q_to_Euler123().y();
+    double RotZ_EulerAngle = tip_abs_frame.GetRot().Q_to_Euler123().z();
+    // Beam tip rotation angle using Axis-Angle(旋转向量法)
+    double rot_alpha = tip_rel_frame.GetRotAngle();
+    ChVector<> rot_vector = tip_rel_frame.GetRotAxis();
+    double RotX_AxisAngle = rot_alpha * rot_vector.x();
+    double RotY_AxisAngle = rot_alpha * rot_vector.y();
+    double RotZ_AxisAngle = rot_alpha * rot_vector.z();
+    //Transform rotations into Wiener - Milenkovic Parameter
+    double P1 = 4.0 * tan(rot_alpha / 4.0) * rot_vector.x();
+    double P2 = 4.0 * tan(rot_alpha / 4.0) * rot_vector.y();
+    double P3 = 4.0 * tan(rot_alpha / 4.0) * rot_vector.z();
+
+    std::cout << "Tip displacements and rotations of WANG beam:\n "
+        << dPosX << "\t" << dPosY << "\t" << dPosZ << "\n"
+        //<< RotX_EulerAngle << "\t" << RotY_EulerAngle << "\t" << RotZ_EulerAngle << "\n" 
+        //<< RotX_AxisAngle << "\t" << RotY_AxisAngle << "\t" << RotZ_AxisAngle << "\n"
+              << P1 << "\t" << P2 << "\t" << P3 << std::endl;
+
+    // clear system
+    my_system.RemoveAllBodies();
+    my_system.RemoveAllLinks();
+    my_system.RemoveAllMeshes();
+    my_system.RemoveAllOtherPhysicsItems();
+}
+
 
 // Do some tests in a single run, inside the main() function.
 // Results will be simply text-formatted outputs in the console..
@@ -2615,13 +3093,40 @@ int main(int argc, char* argv[]) {
     //test_4();
     //test_5();
 
+    //TEST: To test the new developed Tapered Timoshenko beam element with GW blade model, 
+    // also check the section force/torque
     //test_6();
+
+    // TEST: To test the new developed Tapered Timoshenko FPM beam element with GW blade model,
+    // also check the section force/torque
     //test_7();
+
+    //TEST: To test the new developed Tapered Timoshenko beam element with GW blade model,
+    // check the shear locking effect
     //test_8();
+
+    //TEST: To test the new developed Tapered Timoshenko beam element with Princeton beam experiment,
+    // To check the shear locking effect
     //test_9();
+
+    //TEST: To test the Euler beam element with Princeton beam experiment,
+    // to compare with Timoshenko beam
     //test_10();
+
+    //TEST: To test the IGA beam element with Princeton beam experiment,
+    //to compare with Timoshenko beam
     //test_11();
-    test_12();
+
+    //TEST: To test the constraint of ChLinkMotorRotationSpeed<> 
+    //test_12();
+
+    //TEST: To test the new developed Tapered Timoshenko FPM beam element
+    // with a coupled cantilever box beam proposed by Hodges et al.
+    test_13();
+
+    //TEST: To test the new developed Tapered Timoshenko FPM beam element 
+    // with a coupled cantilever proposed by Wang et al.
+    test_14();
 
     return 0;
 }
