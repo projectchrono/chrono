@@ -186,6 +186,7 @@ set(ChronoEngine_sensor_CUDA_SOURCES
     cuda/image_ops.cu
     cuda/nn_prep.cu
     cuda/lidar_clip.cu
+    cuda/radarprocess.cu
 )
 set(ChronoEngine_sensor_CUDA_HEADERS
 	cuda/grayscale.cuh
@@ -197,6 +198,7 @@ set(ChronoEngine_sensor_CUDA_HEADERS
     cuda/image_ops.cuh
     cuda/nn_prep.cuh
     cuda/lidar_clip.cuh
+    cuda/radarprocess.cuh
 )
 
 source_group("Cuda" FILES

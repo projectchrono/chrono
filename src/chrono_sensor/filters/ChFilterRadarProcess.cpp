@@ -16,7 +16,7 @@
 
 #include "chrono_sensor/filters/ChFilterRadarProcess.h"
 #include "chrono_sensor/utils/CudaMallocHelper.h"
-#include "chrono_sensor/cuda/pointcloud.cuh"
+#include "chrono_sensor/cuda/radarprocess.cuh"
 #include "chrono_sensor/utils/Dbscan.h"
 
 namespace chrono {
