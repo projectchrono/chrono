@@ -158,6 +158,14 @@ struct PixelRadar {
     float z_vel;
     float objectID;
 };
+struct RadarReturn{
+     float range;
+     float azimuth;
+     float elevation;
+     std::array<float,3> doppler_velocity;
+     float amplitute;
+};
+
 /// host buffer to be used by radar filters in the graph
 using SensorHostRadarBuffer = RadarBufferT<std::shared_ptr<PixelRadar[]>>;
 /// device buffer to be used by radar filters in the graph
@@ -177,6 +185,19 @@ struct PixelProcessedRadar {
     float z_vel;
     float objectID;
 };
+
+struct RadarTrack {
+    std::array<float,3> position;
+    std::array<float,3> velocity;
+    std::array<float,3> acceleration;
+    std::array<float,3> size;
+    int classification;              // optional classification if object is static or dynamic
+    std::array<float,6> position_covariance;
+    std::array<float,6> velocity_covariance;
+    std::array<float,6> acceleration_covariance;
+    std::array<float,6> size_covariance;
+};
+
 /// processed radar host buffer to be used by radar filters in the graph
 using SensorHostProcessedRadarBuffer = RadarBufferT<std::shared_ptr<PixelProcessedRadar[]>>;
 /// processed radar buffer to be used by radar filters in the graph

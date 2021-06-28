@@ -27,6 +27,11 @@ namespace sensor {
 /// @addtogroup sensor_sensors
 /// @{
 
+enum class RadarReturnMode {
+    RadarReturn,
+    RadarTrack
+};
+
 /// Radar Class/ This corresponds to a fmcw radar
 class CH_SENSOR_API ChRadarSensor : public ChOptixSensor {
     /// Constructor for the base radar class
@@ -49,7 +54,9 @@ class CH_SENSOR_API ChRadarSensor : public ChOptixSensor {
                   const float max_vertical_angle,
                   const float min_vertical_angle,
                   const float max_distance,
-                  const float clip_near = 1e-3f);
+                  RadarReturnMode return_mode,
+                  const float clip_near = 1e-3f
+    );
 
     /// Class destructor
     ~ChRadarSensor();
@@ -75,6 +82,8 @@ class CH_SENSOR_API ChRadarSensor : public ChOptixSensor {
     /// @return the near clipping distance
     float GetClipNear() const { return m_clip_near; }
 
+    RadarReturnMode GetReturnMode() const {return m_return_mode;}
+
     /// Returns the translational velocity of the object the radar is attached to
     /// @return Returns the translational velocity of the object the radar is attached to
     ChVector<double> GetTranslationalVelocity() { return m_parent->GetPos_dt(); }
@@ -89,6 +98,7 @@ class CH_SENSOR_API ChRadarSensor : public ChOptixSensor {
     float m_min_vert_angle;  ///< min vertical angle of the rays
     float m_max_distance;    ///< max distance for radar
     float m_clip_near;       ///< near clipping distance so that radar sensor housings can be transparent to self
+    RadarReturnMode m_return_mode;
 };
 
 /// @} sensor_sensors

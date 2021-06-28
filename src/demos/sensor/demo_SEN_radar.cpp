@@ -68,6 +68,9 @@ CameraLensModelType lens_model = CameraLensModelType::PINHOLE;
 // Exposure (in seconds) of each image
 float exposure_time = 0.02f;
 
+// Output format of radar
+RadarReturnMode return_mode = RadarReturnMode::RadarReturn;
+
 // Number of horizontal and vertical samples
 unsigned int horizontal_samples = 100;
 unsigned int vertical_samples = 100;
@@ -188,8 +191,8 @@ int main(int argc, char* argv[]) {
     auto offset_pose = chrono::ChFrame<double>({0, 0, 1}, Q_from_AngZ(0));
 
     auto radar =
-        chrono_types::make_shared<ChRadarSensor>(floor, update_rate, offset_pose, horizontal_samples, vertical_samples,
-                                                 horizontal_fov, max_vert_angle, min_vert_angle, max_distance);
+        chrono_types::make_shared<ChRadarSensor>(floor, update_rate, offset_pose, vertical_samples, horizontal_fov,
+                                                 horizontal_fov, max_vert_angle, min_vert_angle, max_distance, return_mode); 
     radar->SetName("Radar Sensor");
     radar->SetLag(lag);
     radar->SetCollectionWindow(collection_time);
@@ -206,7 +209,7 @@ int main(int argc, char* argv[]) {
                                                  horizontal_samples,                     // number of horizontal samples
                                                  vertical_samples,                       // number of vertical channels
                                                  horizontal_fov,                         // horizontal field of view
-                                                 max_vert_angle, min_vert_angle, 100.0f  // vertical field of view
+                                                 max_vert_angle, min_vert_angle, 100.0f // vertical field of view
         );
     lidar->SetName("Lidar Sensor 1");
     lidar->SetLag(lag);
