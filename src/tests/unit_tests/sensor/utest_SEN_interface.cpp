@@ -59,7 +59,7 @@ TEST(SensorInterface, sensors) {
     auto lidar = chrono_types::make_shared<ChLidarSensor>(box, 100, chrono::ChFrame<double>(), 1, 1, 1, 1, -1, 100);
     lidar->SetLag(0.f);
     manager->AddSensor(lidar);
-    auto radar = chrono_types::make_shared<ChRadarSensor>(box, 100, chrono::ChFrame<double>(), 1, 1, 1, 1, -1, 100, RadarReturnMode::RadarReturn);
+    auto radar = chrono_types::make_shared<ChRadarSensor>(box, 100, chrono::ChFrame<double>(), 1, 1, 1, 1, -1, 100);
     radar->SetLag(0.f);
     manager->AddSensor(radar);
     auto noise = chrono_types::make_shared<ChNoiseNone>();

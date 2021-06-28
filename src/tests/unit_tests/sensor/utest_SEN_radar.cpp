@@ -97,7 +97,7 @@ TEST(ChRadarSensor, check_velocity) {
     float min_vert_angle = -CH_C_PI / 10;
 
     auto radar = chrono_types::make_shared<ChRadarSensor>(floor, 10.0f, offset_pose, 20, 20, horizontal_fov,
-                                                          max_vert_angle, min_vert_angle, 100.0f, RadarReturnMode::RadarReturn);
+                                                          max_vert_angle, min_vert_angle, 100.0f);
     radar->SetName("Radar Sensor");
     radar->PushFilter(chrono_types::make_shared<ChFilterRadarAccess>());
     radar->PushFilter(chrono_types::make_shared<ChFilterRadarProcess>("PC from Range"));
