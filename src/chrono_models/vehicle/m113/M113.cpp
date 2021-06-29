@@ -36,8 +36,8 @@ M113::M113()
     : m_system(nullptr),
       m_vehicle(nullptr),
       m_contactMethod(ChContactMethod::NSC),
+      m_collsysType(collision::ChCollisionSystemType::BULLET),
       m_chassisCollisionType(CollisionType::NONE),
-      m_collsys_type(collision::ChCollisionSystemType::BULLET),
       m_fixed(false),
       m_wheel_cyl(true),
       m_idler_cyl(true),
@@ -54,8 +54,8 @@ M113::M113(ChSystem* system)
     : m_system(system),
       m_vehicle(nullptr),
       m_contactMethod(ChContactMethod::NSC),
+      m_collsysType(collision::ChCollisionSystemType::BULLET),
       m_chassisCollisionType(CollisionType::NONE),
-      m_collsys_type(collision::ChCollisionSystemType::BULLET),
       m_wheel_cyl(true),
       m_idler_cyl(true),
       m_fixed(false),
@@ -90,7 +90,7 @@ void M113::Initialize() {
     } else {
         m_vehicle = new M113_Vehicle(m_fixed, m_shoe_type, m_driveline_type, m_brake_type, m_contactMethod,
                                      m_chassisCollisionType);
-        m_vehicle->SetCollisionSystemType(m_collsys_type);
+        m_vehicle->SetCollisionSystemType(m_collsysType);
     }
     m_vehicle->CreateTrack(m_create_track);
     m_vehicle->GetTrackAssembly(LEFT)->SetWheelCollisionType(m_wheel_cyl, m_idler_cyl, true);

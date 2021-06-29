@@ -101,6 +101,7 @@ int main(int argc, char* argv[]) {
     bool create_track = true;
 
     ChContactMethod contact_method = ChContactMethod::SMC;
+    collision::ChCollisionSystemType collsys_type = collision::ChCollisionSystemType::CHRONO;
     CollisionType chassis_collision_type = CollisionType::NONE;
     TrackShoeType shoe_type = TrackShoeType::SINGLE_PIN;
     BrakeType brake_type = BrakeType::SIMPLE;
@@ -116,6 +117,7 @@ int main(int argc, char* argv[]) {
 
     M113 m113;
     m113.SetContactMethod(contact_method);
+    m113.SetCollisionSystemType(collsys_type);
     m113.SetTrackShoeType(shoe_type);
     m113.SetDrivelineType(driveline_type);
     m113.SetBrakeType(brake_type);
@@ -127,9 +129,6 @@ int main(int argc, char* argv[]) {
 
     // Control steering type (enable crossdrive capability)
     ////m113.GetDriveline()->SetGyrationMode(true);
-
-    // Change collision detection system
-    m113.SetCollisionSystemType(collision::ChCollisionSystemType::CHRONO);
 
     // Change collision shape for road wheels and idlers (true: cylinder; false: cylshell)
     m113.SetWheelCollisionType(false, false);
