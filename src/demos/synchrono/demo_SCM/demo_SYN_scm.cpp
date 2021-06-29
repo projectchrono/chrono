@@ -106,11 +106,13 @@ int main(int argc, char* argv[]) {
         (cli.Matches<std::string>("contact_method", "SMC") ? ChContactMethod::SMC : ChContactMethod::NSC);
     auto size_x = cli.GetAsType<double>("sizeX");
     auto size_y = cli.GetAsType<double>("sizeY");
+    auto dpu = cli.GetAsType<double>("dpu");
+#ifdef CHRONO_SENSOR
     auto cam_x = cli.GetAsType<std::vector<double>>("c_pos")[0];
     auto cam_y = cli.GetAsType<std::vector<double>>("c_pos")[1];
-    auto dpu = cli.GetAsType<double>("dpu");
     auto cam_res_width = cli.GetAsType<std::vector<int>>("res")[0];
     auto cam_res_height = cli.GetAsType<std::vector<int>>("res")[1];
+#endif
     auto flat_patch = cli.Matches<std::string>("terrain_type", "Flat");
     auto bulldozing = cli.GetAsType<bool>("bulldozing");
 
