@@ -295,9 +295,17 @@ Viper_Wheel::Viper_Wheel(const std::string& name,
                          const ChVector<>& body_pos,
                          const ChQuaternion<>& body_rot,
                          std::shared_ptr<ChBodyAuxRef> chassis,
-                         bool collide)
+                         bool collide,
+                         Wheel_Type wheel_type)
     : Viper_Part(name, fixed, mat, system, body_pos, body_rot, chassis, collide) {
-    m_mesh_name = "viper_wheel";
+    if (wheel_type == Wheel_Type::RealWheel) {
+        m_mesh_name = "viper_wheel";
+    } else if (wheel_type == Wheel_Type::SimpleWheel) {
+        m_mesh_name = "viper_simplewheel";
+    } else {
+        m_mesh_name = "viper_cylwheel";
+    }
+
     m_offset = ChVector<>(0, 0, 0);
     m_color = ChColor(0.4f, 0.4f, 0.7f);
     m_density = 200;
@@ -549,8 +557,40 @@ void Viper_Steer::Translate(const ChVector<>& shift) {
 ViperRover::ViperRover(ChSystem* system,
                        const ChVector<>& rover_pos,
                        const ChQuaternion<>& rover_rot,
-                       std::shared_ptr<ChMaterialSurface> wheel_mat)
-    : m_system(system), m_rover_pos(rover_pos), m_rover_rot(rover_rot), m_wheel_material(wheel_mat) {
+                       std::shared_ptr<ChMaterialSurface> wheel_mat,
+                       Wheel_Type wheel_type)
+    : m_system(system),
+      m_rover_pos(rover_pos),
+      m_rover_rot(rover_rot),
+      m_wheel_material(wheel_mat),
+      m_wheel_type(wheel_type) {
+    // Set default collision model envelope commensurate with model dimensions.
+    // Note that an SMC system automatically sets envelope to 0.
+    auto contact_method = m_system->GetContactMethod();
+    if (contact_method == ChContactMethod::NSC) {
+        collision::ChCollisionModel::SetDefaultSuggestedEnvelope(0.01);
+        collision::ChCollisionModel::SetDefaultSuggestedMargin(0.005);
+    }
+
+    // Create the contact materials
+    m_chassis_material = DefaultContactMaterial(contact_method);
+    m_suspension_material = DefaultContactMaterial(contact_method);
+    m_steer_material = DefaultContactMaterial(contact_method);
+    if (!m_wheel_material)
+        m_wheel_material = DefaultContactMaterial(contact_method);
+
+    Create();
+}
+
+ViperRover::ViperRover(ChSystem* system,
+                       const ChVector<>& rover_pos,
+                       const ChQuaternion<>& rover_rot,
+                       Wheel_Type wheel_type)
+    : m_system(system),
+      m_rover_pos(rover_pos),
+      m_rover_rot(rover_rot),
+      m_wheel_material(nullptr),
+      m_wheel_type(wheel_type) {
     // Set default collision model envelope commensurate with model dimensions.
     // Note that an SMC system automatically sets envelope to 0.
     auto contact_method = m_system->GetContactMethod();
@@ -583,16 +623,16 @@ void ViperRover::Create() {
 
     m_wheels.push_back(chrono_types::make_shared<Viper_Wheel>("wheelLF", false, m_wheel_material, m_system,
                                                               ChVector<>(+w_lx, +w_ly, w_lz), Q_from_AngZ(CH_C_PI),
-                                                              m_chassis->GetBody(), true));
+                                                              m_chassis->GetBody(), true, m_wheel_type));
     m_wheels.push_back(chrono_types::make_shared<Viper_Wheel>("wheelRF", false, m_wheel_material, m_system,
                                                               ChVector<>(+w_lx, -w_ly, w_lz), QUNIT,
-                                                              m_chassis->GetBody(), true));
+                                                              m_chassis->GetBody(), true, m_wheel_type));
     m_wheels.push_back(chrono_types::make_shared<Viper_Wheel>("wheelLB", false, m_wheel_material, m_system,
                                                               ChVector<>(-w_lx, +w_ly, w_lz), Q_from_AngZ(CH_C_PI),
-                                                              m_chassis->GetBody(), true));
+                                                              m_chassis->GetBody(), true, m_wheel_type));
     m_wheels.push_back(chrono_types::make_shared<Viper_Wheel>("wheelRB", false, m_wheel_material, m_system,
                                                               ChVector<>(-w_lx, -w_ly, w_lz), QUNIT,
-                                                              m_chassis->GetBody(), true));
+                                                              m_chassis->GetBody(), true, m_wheel_type));
 
     // initialize rover up and bottom suspensions
     double cr_lx = 0.5618 + 0.08;

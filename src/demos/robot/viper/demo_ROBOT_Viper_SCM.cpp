@@ -70,6 +70,9 @@ bool enable_moving_patch = true;
 // If true, use provided callback to change soil properties based on location
 bool var_params = true;
 
+// Define Viper rover wheel type
+Wheel_Type wheel_type = Wheel_Type::RealWheel;
+
 // Custom callback for setting location-dependent soil properties.
 // Note that the location is given in the SCM reference frame.
 class MySoilParams : public vehicle::SCMDeformableTerrain::SoilParametersCallback {
@@ -180,7 +183,7 @@ int main(int argc, char* argv[]) {
     if (use_custom_mat == true) {
         // if customize wheel material
         viper = chrono_types::make_shared<ViperRover>(&my_system, body_pos, QUNIT,
-                                                      CustomWheelMaterial(ChContactMethod::SMC));
+                                                      CustomWheelMaterial(ChContactMethod::SMC), wheel_type);
         viper->SetDCControl(true);
         // SetDCControl needs to be called before Initialize()
         viper->Initialize();
@@ -193,7 +196,7 @@ int main(int argc, char* argv[]) {
         Body_1 = viper->GetChassisBody();
     } else {
         // if use default material
-        viper = chrono_types::make_shared<ViperRover>(&my_system, body_pos, QUNIT);
+        viper = chrono_types::make_shared<ViperRover>(&my_system, body_pos, QUNIT, wheel_type);
         // SetDCControl needs to be called before Initialize()
         viper->SetDCControl(true);
         viper->Initialize();

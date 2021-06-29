@@ -73,6 +73,14 @@ bool enable_moving_patch = true;
 // If true, use provided callback to change soil properties based on location
 bool var_params = true;
 
+// Specify rover chassis type
+// The options are Chassis_Type::Scarecrow and Chassis_Type::FullRover
+Chassis_Type chassis_type = Chassis_Type::FullRover;
+
+// Specify rover wheel type
+// The options are Wheel_Type::RealWheel, Wheel_Type::SimpleWheel, and Wheel_Type::CylWheel
+Wheel_Type wheel_type = Wheel_Type::RealWheel;
+
 // Custom callback for setting location-dependent soil properties.
 // Note that the (x,y) location is given in the terrain's reference plane.
 // Here, the vehicle moves in the terrain's negative y direction!
@@ -173,8 +181,8 @@ int main(int argc, char* argv[]) {
 
     if (use_custom_mat == true) {
         // if customize wheel material
-        rover = chrono_types::make_shared<CuriosityRover>(&my_system, body_pos, body_rot,
-                                                          CustomWheelMaterial(ChContactMethod::SMC));
+        rover = chrono_types::make_shared<CuriosityRover>(
+            &my_system, body_pos, body_rot, CustomWheelMaterial(ChContactMethod::SMC), chassis_type, wheel_type);
 
         // the user can choose to enable DC motor option
         // if the DC motor option has been enabled, the rotational speed will be switched to no-load-speed of the DC
@@ -205,7 +213,7 @@ int main(int argc, char* argv[]) {
 
     } else {
         // if use default material
-        rover = chrono_types::make_shared<CuriosityRover>(&my_system, body_pos, body_rot);
+        rover = chrono_types::make_shared<CuriosityRover>(&my_system, body_pos, body_rot, chassis_type, wheel_type);
 
         // The user can also choose to use simplified wheel
         /*

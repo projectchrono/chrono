@@ -51,6 +51,9 @@ using namespace irr::video;
 // Use custom material for the Viper Wheel
 bool use_custom_mat = false;
 
+// Define Viper rover wheel type
+Wheel_Type wheel_type = Wheel_Type::RealWheel;
+
 std::shared_ptr<ChMaterialSurface> CustomWheelMaterial(ChContactMethod contact_method) {
     float mu = 0.4f;   // coefficient of friction
     float cr = 0.2f;   // coefficient of restitution
@@ -134,12 +137,12 @@ int main(int argc, char* argv[]) {
     if (use_custom_mat == true) {
         // If use the customized wheel material
         viper = chrono_types::make_shared<ViperRover>(&mphysicalSystem, body_pos, QUNIT,
-                                                      CustomWheelMaterial(ChContactMethod::NSC));
+                                                      CustomWheelMaterial(ChContactMethod::NSC), wheel_type);
         // SetDCControl() should be called before initialize()
         viper->SetDCControl(true);
     } else {
         // If use default wheel material
-        viper = chrono_types::make_shared<ViperRover>(&mphysicalSystem, body_pos, QUNIT);
+        viper = chrono_types::make_shared<ViperRover>(&mphysicalSystem, body_pos, QUNIT, wheel_type);
 
         // SetDCControl() should be called before initialize()
         viper->SetDCControl(true);

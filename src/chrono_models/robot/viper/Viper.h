@@ -62,6 +62,9 @@ enum class TurnSig {
     HOLD = 0     ///< hold signal
 };
 
+/// Curiostiy wheel type
+enum Wheel_Type { RealWheel, SimpleWheel, CylWheel };
+
 /// Base class definition of the Viper Rover Part.
 /// Viper Rover Parts include Chassis, Steering, Upper Suspension Arm, Bottom Suspension Arm and Wheel.
 /// This class encapsulates base fields and functions.
@@ -157,7 +160,8 @@ class CH_MODELS_API Viper_Wheel : public Viper_Part {
                 const ChVector<>& body_pos,
                 const ChQuaternion<>& body_rot,
                 std::shared_ptr<ChBodyAuxRef> chassis,
-                bool collide);
+                bool collide,
+                Wheel_Type wheel_type);
     ~Viper_Wheel() {}
 
     /// Initialize the wheel at the specified (absolute) position.
@@ -260,7 +264,14 @@ class CH_MODELS_API ViperRover {
     ViperRover(ChSystem* system,
                const ChVector<>& rover_pos,
                const ChQuaternion<>& rover_rot,
-               std::shared_ptr<ChMaterialSurface> wheel_mat = nullptr);
+               std::shared_ptr<ChMaterialSurface> wheel_mat,
+               Wheel_Type wheel_type = Wheel_Type::RealWheel);
+
+    ViperRover(ChSystem* system,
+               const ChVector<>& rover_pos,
+               const ChQuaternion<>& rover_rot,
+               Wheel_Type wheel_type = Wheel_Type::RealWheel);
+
     ~ViperRover();
 
     /// Initialize the Viper rover using current parameters.
@@ -386,6 +397,8 @@ class CH_MODELS_API ViperRover {
     std::vector<std::shared_ptr<ChLinkMotorRotationSpeed>>
         m_lift_motors;  ///< vector to store lifting motors
                         ///< Note: there are 8 lifting motors in total
+
+    Wheel_Type m_wheel_type = Wheel_Type::RealWheel;
 
     // DC Motor Test
     std::vector<std::shared_ptr<ChShaft>> m_power_shafts;

@@ -54,6 +54,10 @@ bool use_custom_mat = false;
 // The options are Chassis_Type::Scarecrow and Chassis_Type::FullRover
 Chassis_Type chassis_type = Chassis_Type::FullRover;
 
+// Specify rover wheel type
+// The options are Wheel_Type::RealWheel, Wheel_Type::SimpleWheel, and Wheel_Type::CylWheel
+Wheel_Type wheel_type = Wheel_Type::RealWheel;
+
 // Helper function to create custom wheel material for the rover wheel body
 std::shared_ptr<ChMaterialSurface> CustomWheelMaterial(ChContactMethod contact_method) {
     float mu = 0.4f;   // coefficient of friction
@@ -135,8 +139,8 @@ int main(int argc, char* argv[]) {
 
     if (use_custom_mat == true) {
         // If use the customized wheel material
-        rover = chrono_types::make_shared<CuriosityRover>(&mphysicalSystem, body_pos, body_rot,
-                                                          CustomWheelMaterial(ChContactMethod::NSC), chassis_type);
+        rover = chrono_types::make_shared<CuriosityRover>(
+            &mphysicalSystem, body_pos, body_rot, CustomWheelMaterial(ChContactMethod::NSC), chassis_type, wheel_type);
         rover->SetDCControl(true);
         rover->Initialize();
 
@@ -144,7 +148,8 @@ int main(int argc, char* argv[]) {
         std::cout << "total mass:" << rover->GetRoverMass() << std::endl;
     } else {
         // If use default wheel material
-        rover = rover = chrono_types::make_shared<CuriosityRover>(&mphysicalSystem, body_pos, body_rot, chassis_type);
+        rover = rover =
+            chrono_types::make_shared<CuriosityRover>(&mphysicalSystem, body_pos, body_rot, chassis_type, wheel_type);
         rover->SetDCControl(true);
         rover->Initialize();
 
