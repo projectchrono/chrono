@@ -201,4 +201,4 @@ std::vector<Options> options{
     ////{SolverMode::SLIDING, SolverType::APGD, 0, 0, 1000}
 };
 
-INSTANTIATE_TEST_CASE_P(ChronoMulticore, JointsDVI, ::testing::ValuesIn(options));
+INSTANTIATE_TEST_SUITE_P(ChronoMulticore, JointsDVI, ::testing::ValuesIn(options));

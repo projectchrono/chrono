@@ -32,7 +32,7 @@ namespace chrono {
 namespace vehicle {
 namespace mrole {
 
-/// @addtogroup vehicle_models_hmmwv
+/// @addtogroup vehicle_models_mrole
 /// @{
 
 /// Base class for a mrole vehicle.
@@ -40,11 +40,11 @@ class CH_MODELS_API mrole_Vehicle : public ChWheeledVehicle {
   public:
     virtual ~mrole_Vehicle() {}
 
-    virtual int GetNumberAxles() const override { return 2; }
+    virtual int GetNumberAxles() const override { return 4; }
 
-    virtual double GetWheelbase() const override { return 3.378; }
-    virtual double GetMinTurningRadius() const override { return 7.62; }
-    virtual double GetMaxSteeringAngle() const override { return 30.23 * CH_C_DEG_TO_RAD; }
+    virtual double GetWheelbase() const override { return 4.225; }  // front susp -> (susp3+susp4)/2
+    virtual double GetMinTurningRadius() const override { return 9.1; }
+    virtual double GetMaxSteeringAngle() const override { return 24.66 * CH_C_DEG_TO_RAD; }
 
     void SetInitWheelAngVel(const std::vector<double>& omega) {
         assert(omega.size() == 4);
@@ -62,7 +62,7 @@ class CH_MODELS_API mrole_Vehicle : public ChWheeledVehicle {
     std::vector<double> m_omega;
 };
 
-/// @} vehicle_models_hmmwv
+/// @} vehicle_models_mrole
 
 }  // namespace mrole
 }  // end namespace vehicle

@@ -47,6 +47,10 @@ namespace mrole {
 /// concrete classes mrole_Full or mrole_Reduced.
 class CH_MODELS_API mrole {
   public:
+    // simple mimic of central tire inflation system (CTIS), lets the user select use cases
+    typedef enum { ROAD, OFFROAD_SOIL, OFFROAD_SAND } CTIS;
+
+  public:
     virtual ~mrole();
 
     void SetContactMethod(ChContactMethod val) { m_contactMethod = val; }
@@ -91,6 +95,10 @@ class CH_MODELS_API mrole {
 
     void Synchronize(double time, const ChDriver::Inputs& driver_inputs, const ChTerrain& terrain);
     void Advance(double step);
+    void SelectRoadOperation() { m_ctis = CTIS::ROAD; }  // set by default
+    void SelectOffroadSoilOperation() { m_ctis = CTIS::OFFROAD_SOIL; }
+    void SelectOffroadSandOperation() { m_ctis = CTIS::OFFROAD_SAND; }
+    double GetMaxTireSpeed();
 
   protected:
     // Protected constructors -- this class cannot be instantiated by itself.
@@ -98,6 +106,8 @@ class CH_MODELS_API mrole {
     mrole(ChSystem* system);
 
     virtual mrole_Vehicle* CreateVehicle() = 0;
+
+    CTIS m_ctis;
 
     ChContactMethod m_contactMethod;
     CollisionType m_chassisCollisionType;

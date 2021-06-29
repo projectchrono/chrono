@@ -26,6 +26,7 @@ namespace mrole {
 // Static variables
 // -----------------------------------------------------------------------------
 
+static const double max_steer_deg = 120;
 const double mrole_RackPinion1::m_steeringLinkMass = 9.072;
 const ChVector<> mrole_RackPinion1::m_steeringLinkInertia(1, 1, 1);
 const double mrole_RackPinion1::m_steeringLinkCOM = 0;
@@ -34,7 +35,7 @@ const double mrole_RackPinion1::m_steeringLinkRadius = 0.03;
 
 const double mrole_RackPinion1::m_pinionRadius = 0.1;
 
-const double mrole_RackPinion1::m_maxAngle = 90.0 * (CH_C_PI / 180);
+const double mrole_RackPinion1::m_maxAngle = max_steer_deg * (CH_C_PI / 180);
 
 const double mrole_RackPinion2::m_steeringLinkMass = 9.072;
 const ChVector<> mrole_RackPinion2::m_steeringLinkInertia(1, 1, 1);
@@ -44,7 +45,7 @@ const double mrole_RackPinion2::m_steeringLinkRadius = 0.03;
 
 const double mrole_RackPinion2::m_pinionRadius = 0.1;
 
-const double mrole_RackPinion2::m_maxAngle = 90.0 * (CH_C_PI / 180) / 1.521568406;
+const double mrole_RackPinion2::m_maxAngle = max_steer_deg * (CH_C_PI / 180) / 1.50436005;
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------

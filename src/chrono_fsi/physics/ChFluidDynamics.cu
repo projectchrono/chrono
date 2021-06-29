@@ -209,28 +209,28 @@ __global__ void ApplyOutOfBoundaryKernel(Real4* posRadD, Real4* rhoPresMuD, Real
     Real3 posRad = mR3(posRadD[index]);
     Real3 vel = mR3(velMasD[index]);
     Real h = posRadD[index].w;
-    if (posRad.x > 0.5*paramsD.boxDimX) {
-        posRad.x = 0.5*paramsD.boxDimX;
+    if (posRad.x > 0.5 * paramsD.boxDimX) {
+        posRad.x = 0.5 * paramsD.boxDimX;
         // vel.x = 0.0;
     }
-    if (posRad.x < -0.5*paramsD.boxDimX) {
-        posRad.x = -0.5*paramsD.boxDimX;
+    if (posRad.x < -0.5 * paramsD.boxDimX) {
+        posRad.x = -0.5 * paramsD.boxDimX;
         // vel.x = 0.0;
     }
-    if (posRad.y > 0.5*paramsD.boxDimY) {
-        posRad.y = 0.5*paramsD.boxDimY;
+    if (posRad.y > 0.5 * paramsD.boxDimY) {
+        posRad.y = 0.5 * paramsD.boxDimY;
         // vel.y = 0.0;
     }
-    if (posRad.y < -0.5*paramsD.boxDimY) {
-        posRad.y = -0.5*paramsD.boxDimY;
+    if (posRad.y < -0.5 * paramsD.boxDimY) {
+        posRad.y = -0.5 * paramsD.boxDimY;
         // vel.y = 0.0;
     }
-    if (posRad.z > 1.0*paramsD.boxDimZ) {
-        posRad.z = 1.0*paramsD.boxDimZ;
+    if (posRad.z > 1.0 * paramsD.boxDimZ) {
+        posRad.z = 1.0 * paramsD.boxDimZ;
         // vel.z = 0.0;
     }
-    if (posRad.z < -0.0*paramsD.boxDimZ) {
-        posRad.z = -0.0*paramsD.boxDimZ;
+    if (posRad.z < -0.0 * paramsD.boxDimZ) {
+        posRad.z = -0.0 * paramsD.boxDimZ;
         // vel.z = 0.0;
     }
     posRadD[index] = mR4(posRad, h);
@@ -246,11 +246,11 @@ __global__ void UpdateFluidD(Real4* posRadD,
                              Real3* vel_XSPH_D,
                              Real4* rhoPresMuD,
                              Real4* derivVelRhoD,
-                             Real3* tauXxYyZzD,       
-                             Real3* tauXyXzYzD,       
-                             Real3* derivTauXxYyZzD,  
-                             Real3* derivTauXyXzYzD,  
-                             Real4* sr_tau_I_mu_iD,   
+                             Real3* tauXxYyZzD,
+                             Real3* tauXyXzYzD,
+                             Real3* derivTauXxYyZzD,
+                             Real3* derivTauXyXzYzD,
+                             Real4* sr_tau_I_mu_iD,
                              int2 updatePortion,
                              Real dT,
                              volatile bool* isErrorD) {
@@ -263,12 +263,12 @@ __global__ void UpdateFluidD(Real4* posRadD,
     Real4 derivVelRho = derivVelRhoD[index];
     Real4 rhoPresMu = rhoPresMuD[index];
     Real h = posRadD[index].w;
-    Real p_tr,p_n;
+    Real p_tr, p_n;
 
     if (rhoPresMu.w < 0) {
-        if(paramsD.elastic_SPH){ // This is only implemented for granular material
+        if (paramsD.elastic_SPH) {  // This is only implemented for granular material
             //--------------------------------
-            // ** shear stress tau 
+            // ** shear stress tau
             //--------------------------------
             Real3 tauXxYyZz = tauXxYyZzD[index];
             Real3 tauXyXzYz = tauXyXzYzD[index];
@@ -278,30 +278,24 @@ __global__ void UpdateFluidD(Real4* posRadD,
             Real3 updatedTauXyXzYz = tauXyXzYz + mR3(derivTauXyXzYz) * dT;
 
             // check if there is a plastic flow
-            p_n = -1.0/3.0*(tauXxYyZz.x + tauXxYyZz.y + tauXxYyZz.z);//rhoPresMu.y;
+            p_n = -1.0 / 3.0 * (tauXxYyZz.x + tauXxYyZz.y + tauXxYyZz.z);  // rhoPresMu.y;
             tauXxYyZz.x += p_n;
             tauXxYyZz.y += p_n;
             tauXxYyZz.z += p_n;
-            p_tr = -1.0/3.0*(updatedTauXxYyZz.x + updatedTauXxYyZz.y + updatedTauXxYyZz.z);//rhoPresMu.y;
+            p_tr = -1.0 / 3.0 * (updatedTauXxYyZz.x + updatedTauXxYyZz.y + updatedTauXxYyZz.z);  // rhoPresMu.y;
             updatedTauXxYyZz.x += p_tr;
             updatedTauXxYyZz.y += p_tr;
             updatedTauXxYyZz.z += p_tr;
-            Real tau_tr = square(updatedTauXxYyZz.x) 
-                        + square(updatedTauXxYyZz.y) 
-                        + square(updatedTauXxYyZz.z)
-                        + 2.0 * square(updatedTauXyXzYz.x) 
-                        + 2.0 * square(updatedTauXyXzYz.y) 
-                        + 2.0 * square(updatedTauXyXzYz.z);
-            Real tau_n = square(tauXxYyZz.x) 
-                       + square(tauXxYyZz.y) 
-                       + square(tauXxYyZz.z) 
-                       + 2.0 * square(tauXyXzYz.x) 
-                       + 2.0 * square(tauXyXzYz.y) 
-                       + 2.0 * square(tauXyXzYz.z);
+            Real tau_tr = square(updatedTauXxYyZz.x) + square(updatedTauXxYyZz.y) + square(updatedTauXxYyZz.z) +
+                          2.0 * square(updatedTauXyXzYz.x) + 2.0 * square(updatedTauXyXzYz.y) +
+                          2.0 * square(updatedTauXyXzYz.z);
+            Real tau_n = square(tauXxYyZz.x) + square(tauXxYyZz.y) + square(tauXxYyZz.z) + 2.0 * square(tauXyXzYz.x) +
+                         2.0 * square(tauXyXzYz.y) + 2.0 * square(tauXyXzYz.z);
             tau_tr = sqrt(0.5 * tau_tr);
             tau_n = sqrt(0.5 * tau_n);
-            Real Chi = abs(tau_tr - tau_n) / dT / paramsD.G_shear;  // should use the positive magnitude according to "A constitutive 
-                                                                    // law for dense granular flows" Nature 2006
+            Real Chi =
+                abs(tau_tr - tau_n) / dT / paramsD.G_shear;  // should use the positive magnitude according to "A
+                                                             // constitutive law for dense granular flows" Nature 2006
             if (p_tr > 0.0e0) {
                 Real mu_s = paramsD.mu_fric_s;
                 Real mu_2 = paramsD.mu_fric_2;
@@ -323,8 +317,8 @@ __global__ void UpdateFluidD(Real4* posRadD,
                 //     updatedTauXyXzYz = updatedTauXyXzYz*coeff;
                 // }
                 Real tau_max = p_tr * mu;  // p_tr*paramsD.Q_FA; //
-                if (tau_tr > tau_max) {    // should use tau_max instead of s_0 according to "A constitutive law for dense
-                                           // granular flows" Nature 2006
+                if (tau_tr > tau_max) {  // should use tau_max instead of s_0 according to "A constitutive law for dense
+                                         // granular flows" Nature 2006
                     Real coeff = tau_max / (tau_tr + 1e-9);
                     updatedTauXxYyZz = updatedTauXxYyZz * coeff;
                     updatedTauXyXzYz = updatedTauXyXzYz * coeff;
@@ -340,12 +334,9 @@ __global__ void UpdateFluidD(Real4* posRadD,
                 updatedTauXyXzYz = mR3(0.0);
                 p_tr = 0.0;
             }
-            tau_tr = square(updatedTauXxYyZz.x) 
-                   + square(updatedTauXxYyZz.y) 
-                   + square(updatedTauXxYyZz.z)
-                   + 2.0 * square(updatedTauXyXzYz.x) 
-                   + 2.0 * square(updatedTauXyXzYz.y) 
-                   + 2.0 * square(updatedTauXyXzYz.z);
+            tau_tr = square(updatedTauXxYyZz.x) + square(updatedTauXxYyZz.y) + square(updatedTauXxYyZz.z) +
+                     2.0 * square(updatedTauXyXzYz.x) + 2.0 * square(updatedTauXyXzYz.y) +
+                     2.0 * square(updatedTauXyXzYz.z);
             tau_tr = sqrt(0.5 * tau_tr);
             sr_tau_I_mu_iD[index].y = tau_tr;
 
@@ -370,18 +361,17 @@ __global__ void UpdateFluidD(Real4* posRadD,
         //-------------
         // Note that the velocity update should not use the XSPH contribution
         // It adds dissipation to the solution, and provides numerical damping
-        Real3 velMas = velMasD[index] + 0.0 * vel_XSPH_D[index];// paramsD.EPS_XSPH * vel_XSPH_D[index]
-        Real3 updatedVelocity = velMas + mR3(derivVelRho) * dT;  
+        Real3 velMas = velMasD[index] + 0.0 * vel_XSPH_D[index];  // paramsD.EPS_XSPH * vel_XSPH_D[index]
+        Real3 updatedVelocity = velMas + mR3(derivVelRho) * dT;
         velMasD[index] = updatedVelocity;
 
         //-------------
         // ** density
         //-------------
-        if(paramsD.elastic_SPH){ // This is only implemented for granular material
+        if (paramsD.elastic_SPH) {  // This is only implemented for granular material
             rhoPresMu.y = p_tr;
             rhoPresMu.x = paramsD.rho0;
-        }
-        else{
+        } else {
             Real rho2 = rhoPresMu.x + derivVelRho.w * dT;
             rhoPresMu.y = Eos(rho2, rhoPresMu.w);
             rhoPresMu.x = rho2;
@@ -415,7 +405,8 @@ __global__ void Update_Fluid_State(Real3* new_vel,  // input: sorted velocities,
     if (i_idx >= updatePortion.y)
         return;
 
-    velMas[i_idx] = new_vel[i_idx];
+    velMas[i_idx] = velMas[i_idx] + paramsD.EPS_XSPH * new_vel[i_idx];
+    //    printf("%f=", new_vel[i_idx].z);
 
     Real3 newpos = mR3(posRad[i_idx]) + dT * velMas[i_idx];
     Real h = posRad[i_idx].w;
@@ -560,7 +551,8 @@ void ChFluidDynamics::IntegrateSPH(std::shared_ptr<SphMarkerDataD> sphMarkersD2,
 // -----------------------------------------------------------------------------
 
 void ChFluidDynamics::UpdateFluid(std::shared_ptr<SphMarkerDataD> sphMarkersD, Real dT) {
-    int2 updatePortion = mI2(0, fsiData->fsiGeneralData->referenceArray[fsiData->fsiGeneralData->referenceArray.size() - 1].y);
+    int2 updatePortion =
+        mI2(0, fsiData->fsiGeneralData->referenceArray[fsiData->fsiGeneralData->referenceArray.size() - 1].y);
     bool *isErrorH, *isErrorD;
     isErrorH = (bool*)malloc(sizeof(bool));
     cudaMalloc((void**)&isErrorD, sizeof(bool));
@@ -572,12 +564,9 @@ void ChFluidDynamics::UpdateFluid(std::shared_ptr<SphMarkerDataD> sphMarkersD, R
     UpdateFluidD<<<nBlock_UpdateFluid, nThreads>>>(
         mR4CAST(sphMarkersD->posRadD), mR3CAST(sphMarkersD->velMasD), mR3CAST(fsiData->fsiGeneralData->vel_XSPH_D),
         mR4CAST(sphMarkersD->rhoPresMuD), mR4CAST(fsiData->fsiGeneralData->derivVelRhoD_old),
-        mR3CAST(sphMarkersD->tauXxYyZzD),                   
-        mR3CAST(sphMarkersD->tauXyXzYzD),                   
-        mR3CAST(fsiData->fsiGeneralData->derivTauXxYyZzD),  
-        mR3CAST(fsiData->fsiGeneralData->derivTauXyXzYzD), 
-        mR4CAST(fsiData->fsiGeneralData->sr_tau_I_mu_i),  
-        updatePortion, dT, isErrorD);
+        mR3CAST(sphMarkersD->tauXxYyZzD), mR3CAST(sphMarkersD->tauXyXzYzD),
+        mR3CAST(fsiData->fsiGeneralData->derivTauXxYyZzD), mR3CAST(fsiData->fsiGeneralData->derivTauXyXzYzD),
+        mR4CAST(fsiData->fsiGeneralData->sr_tau_I_mu_i), updatePortion, dT, isErrorD);
     cudaDeviceSynchronize();
     cudaCheckError();
     //------------------------
@@ -663,9 +652,8 @@ void ChFluidDynamics::ApplyBoundarySPH_Markers(std::shared_ptr<SphMarkerDataD> s
 void ChFluidDynamics::ApplyModifiedBoundarySPH_Markers(std::shared_ptr<SphMarkerDataD> sphMarkersD) {
     uint nBlock_NumSpheres, nThreads_SphMarkers;
     computeGridSize((int)numObjectsH->numAllMarkers, 256, nBlock_NumSpheres, nThreads_SphMarkers);
-    ApplyInletBoundaryXKernel<<<nBlock_NumSpheres, nThreads_SphMarkers>>>(mR4CAST(sphMarkersD->posRadD), 
-                                                                          mR3CAST(sphMarkersD->velMasD), 
-                                                                          mR4CAST(sphMarkersD->rhoPresMuD));
+    ApplyInletBoundaryXKernel<<<nBlock_NumSpheres, nThreads_SphMarkers>>>(
+        mR4CAST(sphMarkersD->posRadD), mR3CAST(sphMarkersD->velMasD), mR4CAST(sphMarkersD->rhoPresMuD));
     cudaDeviceSynchronize();
     cudaCheckError();
     // these are useful anyway for out of bound particles

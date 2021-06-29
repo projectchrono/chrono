@@ -207,7 +207,7 @@ __device__ inline Real3 GradW_Spline(Real3 d) {  // d is positive. r is the sph 
 __device__ inline Real3 GradWh_Spline(Real3 d, Real h) {  // d is positive. r is the sph particle radius (i.e. h
                                                           // in the document) d is the distance of 2 particles
     Real q = length(d) * paramsD.INVHSML;
-    Real INVHSML5 = paramsD.INVHSML*paramsD.INVHSML*paramsD.INVHSML*paramsD.INVHSML*paramsD.INVHSML;
+    Real INVHSML5 = paramsD.INVHSML * paramsD.INVHSML * paramsD.INVHSML * paramsD.INVHSML * paramsD.INVHSML;
 
     if (abs(q) < EPSILON)
         return mR3(0.0);
@@ -498,12 +498,12 @@ inline __device__ void BCE_Vel_Acc(int i_idx,
         RotationMatirixFromQuaternion(a1, a2, a3, q4);
         Real3 rigidSPH_MeshPos_LRF__ = rigidSPH_MeshPos_LRF_D[Original_idx - updatePortion.y];
 
-        Real3 p_com = mR3(posRigid_fsiBodies_D[rigidIndex]);
+        //        Real3 p_com = mR3(posRigid_fsiBodies_D[rigidIndex]);
         Real3 v_com = mR3(velMassRigid_fsiBodies_D[rigidIndex]);
         Real3 a_com = accRigid_fsiBodies_D[rigidIndex];
         Real3 angular_v_com = omegaVelLRF_fsiBodies_D[rigidIndex];
         Real3 angular_a_com = omegaAccLRF_fsiBodies_D[rigidIndex];
-        Real3 p_rel = mR3(sortedPosRad[i_idx]) - p_com;
+        //        Real3 p_rel = mR3(sortedPosRad[i_idx]) - p_com;
         Real3 omegaCrossS = cross(angular_v_com, rigidSPH_MeshPos_LRF__);
         V_prescribed = v_com + mR3(dot(a1, omegaCrossS), dot(a2, omegaCrossS), dot(a3, omegaCrossS));
         //        V_prescribed = v_com + cross(angular_v_com, rigidSPH_MeshPos_LRF);

@@ -73,7 +73,6 @@ void ChCNarrowphaseDispatch::ProcessRigids() {
 int ChCNarrowphaseDispatch::PreprocessCount() {
     // Set the number of potential contact points for each collision pair
     contact_index.resize(num_potential_rigid_contacts + 1);
-    contact_index[num_potential_rigid_contacts] = 0;
 
     if (narrowphase_algorithm == NarrowPhaseType::NARROWPHASE_MPR) {
         // MPR always reports at most one contact per pair.
@@ -111,6 +110,8 @@ int ChCNarrowphaseDispatch::PreprocessCount() {
             }
         }
     }
+
+    contact_index[num_potential_rigid_contacts] = 0;
 
     // Calculate total number of potential contacts
     int num_potentialContacts = thrust::reduce(THRUST_PAR contact_index.begin(), contact_index.end());

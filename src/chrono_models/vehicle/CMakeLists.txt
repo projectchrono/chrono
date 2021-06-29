@@ -126,6 +126,10 @@ set(CVM_MROLE_FILES
     mrole/mrole_Driveline2WD.h
     mrole/mrole_Driveline4WD.cpp
     mrole/mrole_Driveline4WD.h
+    mrole/mrole_Driveline6WD.h
+    mrole/mrole_Driveline6WD.cpp
+    mrole/mrole_Driveline8WD.h
+    mrole/mrole_Driveline8WD.cpp
     mrole/mrole_RigidTire.cpp
     mrole/mrole_RigidTire.h
     mrole/mrole_TMeasyTire.cpp

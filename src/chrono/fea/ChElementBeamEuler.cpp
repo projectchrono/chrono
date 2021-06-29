@@ -106,7 +106,7 @@ void ChElementBeamEuler::UpdateRotation() {
         // propose Y_w as absolute dir of the Y axis of B node, removing the effect of Bref-to-B rotation if any:
         //    Y_w = [R Bref->w ]*[R Bref->B ]'*{0,1,0}
         ChVector<> myele_wB = nodes[1]->Frame().GetRot().Rotate(q_refrotB.RotateBack(ChVector<>(0, 1, 0)));
-        // Average the two Y directions to have midpoint torsion (ex -30° torsion A and +30° torsion B= 0°)
+        // Average the two Y directions to have midpoint torsion (ex -30?torsion A and +30?torsion B= 0?
         ChVector<> myele_w = (myele_wA + myele_wB).GetNormalized();
         Aabs.Set_A_Xdir(mXele_w, myele_w);
         q_element_abs_rot = Aabs.Get_A_quaternion();
@@ -290,7 +290,7 @@ void ChElementBeamEuler::ComputeStiffnessMatrix() {
 
     // In case the section has a shear center displacement:
     if (Sy || Sz) {
-        // Do [K]° = [T_s][K]"[T_s]'
+        // Do [K]?= [T_s][K]"[T_s]'
 
         for (int i = 0; i < 12; ++i)
             this->Km(3, i) +=
@@ -320,8 +320,12 @@ void ChElementBeamEuler::ComputeGeometricStiffnessMatrix() {
     // For the Reddy or timoshenko more detailed case with higher order terms, look also to:
     //   [2] "A Unified Approach to the Timoshenko Geometric Stiffness Matrix Considering Higher-Order Terms in the Strain Tensor"
     //        https://www.scielo.br/pdf/lajss/v16n4/1679-7825-lajss-16-04-e185.pdf
-    // Look also at: https://enercalc.com/3d_help/toc161394033.html or in Plesha, Malkus, Cook “Concepts and Applications of Finite Element Analysis”, 
-    // or in W. McGuire & R.H. Gallagher & R.D. Ziemian, “Matrix Structural Analysis”
+    // Look also at: https://enercalc.com/3d_help/toc161394033.html or in Plesha, Malkus, Cook ï¿½Concepts and Applications of Finite Element Analysis? 
+    // or in W. McGuire & R.H. Gallagher & R.D. Ziemian, ï¿½Matrix Structural Analysis?
+      
+    double EA = this->section->GetAxialRigidity();
+    double EIyy = this->section->GetYbendingRigidity();
+    double EIzz = this->section->GetZbendingRigidity();
 
     double L = this->length;
 
@@ -417,7 +421,7 @@ void ChElementBeamEuler::ComputeGeometricStiffnessMatrix() {
 
     // In case the section has a shear center displacement:
     if (Sy || Sz) {
-        // Do [K]° = [T_s][K]"[T_s]'
+        // Do [K]?= [T_s][K]"[T_s]'
 
         for (int i = 0; i < 12; ++i)
             this->Kg(3, i) +=
@@ -492,9 +496,6 @@ void ChElementBeamEuler::ComputeKRMmatricesGlobal(ChMatrixRef H, double Kfactor,
             ChVectorDynamic<> displ(this->GetNdofs());
             this->GetStateBlock(displ);
             double Px = -this->Km.row(0) * displ;
-            //ChVector<> mFo, mTo;
-            //this->EvaluateSectionForceTorque(0, mFo, mTo);  // for double checking the Px value
-            //GetLog() << "   Px = " << Px << "  Px_eval = " << mFo.x() << " \n";
 
             // corotate Km + Kg  (where Kg = this->Kg * Px)
             ChMatrixCorotation::ComputeCK(this->Km + Px*this->Kg, R, 4, CK);
@@ -518,9 +519,38 @@ void ChElementBeamEuler::ComputeKRMmatricesGlobal(ChMatrixRef H, double Kfactor,
         ////CKCt.triangularView<Eigen::Upper>() = CKCt.transpose();
 
         // For K stiffness matrix and R matrix: scale by factors
+        // because [R] = r*[K] , so kf*[K]+rf*[R] = (kf+rf*r)*[K]
         CKCt *= Kfactor + Rfactor * this->section->GetBeamRaleyghDamping();
 
-        H.block(0, 0, 12, 12) = CKCt;  // because [R] = r*[K] , so kf*[K]+rf*[R] = (kf+rf*r)*[K]
+        H.block(0, 0, 12, 12) = CKCt;  
+
+        // Add inertial stiffness matrix and inertial damping matrix (gyroscopic damping), 
+        // if enabled in section material.
+        // These matrices are not symmetric. Also note
+        if (this->section->compute_inertia_damping_matrix || this->section->compute_inertia_stiffness_matrix)  {
+            ChMatrixNM<double, 6,6> matr_loc;
+            ChMatrixNM<double, 6,6> KRi_loc;
+            KRi_loc.setZero();
+            // A lumped version of the inertial damping/stiffness matrix computation is used here, on a per-node basis:
+            double node_multiplier_fact_R = 0.5 * length * Rfactor;
+            double node_multiplier_fact_K = 0.5 * length * Kfactor;
+            for (int i = 0; i < nodes.size(); ++i) {
+                int stride = i * 6;
+                if (this->section->compute_inertia_damping_matrix) {
+                    this->section->ComputeInertiaDampingMatrix(matr_loc, nodes[i]->GetWvel_loc());
+                    KRi_loc += matr_loc * node_multiplier_fact_R;
+                }
+                if (this->section->compute_inertia_stiffness_matrix) {
+                    this->section->ComputeInertiaStiffnessMatrix(matr_loc, nodes[i]->GetWvel_loc(), nodes[i]->GetWacc_loc(), (nodes[i]->GetA().transpose())*nodes[i]->GetPos_dtdt()); // assume x_dtdt in local frame!
+                    KRi_loc += matr_loc * node_multiplier_fact_K;
+                }
+                // corotate the local damping and stiffness matrices (at once, already scaled) into absolute one
+                //H.block<3, 3>(stride,   stride  ) += nodes[i]->GetA() * KRi_loc.block<3, 3>(0,0) * (nodes[i]->GetA().transpose()); // NOTE: not needed as KRi_loc.block<3, 3>(0,0) is null by construction
+                H.block<3, 3>(stride+3, stride+3) +=                    KRi_loc.block<3, 3>(3,3);
+                H.block<3, 3>(stride,   stride+3) += nodes[i]->GetA() * KRi_loc.block<3, 3>(0,3);
+               // H.block<3, 3>(stride+3, stride)   +=                    KRi_loc.block<3, 3>(3,0) * (nodes[i]->GetA().transpose()); // NOTE: not needed as KRi_loc.block<3, 3>(3,0) is null by construction
+            }
+        }
 
     } 
     else
@@ -625,7 +655,6 @@ void ChElementBeamEuler::ComputeInternalForces(ChVectorDynamic<>& Fi) {
     ChVector<> mTgyro_i;
     for (int i = 0; i < nodes.size(); ++i) {
         this->section->ComputeQuadraticTerms(mFcent_i, mTgyro_i, nodes[i]->GetWvel_loc());
-        ChQuaternion<> q_i(nodes[i]->GetRot());
         Fi.segment(i * 6, 3)     -= node_multiplier * (nodes[i]->GetA() * mFcent_i).eigen();
         Fi.segment(3 + i * 6, 3) -= node_multiplier * mTgyro_i.eigen();
     }
@@ -713,9 +742,6 @@ void ChElementBeamEuler::EvaluateSectionFrame(const double eta, ChVector<>& poin
 void ChElementBeamEuler::EvaluateSectionForceTorque(const double eta, ChVector<>& Fforce, ChVector<>& Mtorque) {
     assert(section);
 
-    ChVectorDynamic<> displ(this->GetNdofs());
-    this->GetStateBlock(displ);
-
     double EA = this->section->GetAxialRigidity();
     double EIyy = this->section->GetYbendingRigidity();
     double EIzz = this->section->GetZbendingRigidity();
@@ -725,6 +751,53 @@ void ChElementBeamEuler::EvaluateSectionForceTorque(const double eta, ChVector<>
     double Cz = this->section->GetCentroidZ();
     double Sy = this->section->GetShearCenterY();
     double Sz = this->section->GetShearCenterZ();
+
+    // The shear center offset should be respect to elastic cetner.
+    Sy = Sy - Cy;
+    Sz = Sz - Cz;
+
+    ChMatrix33<> Rotsect0;
+    Rotsect0.Set_A_Rxyz(ChVector<>(alpha, 0, 0));
+    ChMatrixNM<double, 6, 6> RotsectA;
+    RotsectA.setZero();
+    RotsectA.block<3, 3>(0, 0) = Rotsect0;
+    RotsectA.block<3, 3>(3, 3) = Rotsect0;
+    ChMatrixNM<double, 12, 12> Rotsect;
+    Rotsect.setZero();
+    Rotsect.block<3, 3>(0, 0) = Rotsect0;
+    Rotsect.block<3, 3>(3, 3) = Rotsect0;
+    Rotsect.block<3, 3>(6, 6) = Rotsect0;
+    Rotsect.block<3, 3>(9, 9) = Rotsect0;
+
+    ChMatrixNM<double, 6, 6> TcA;
+    TcA.setIdentity();
+    TcA(0, 4) = Cz;
+    TcA(0, 5) = -Cy;
+    TcA(1, 3) = -Cz;
+    TcA(2, 3) = Cy;
+    ChMatrixNM<double, 12, 12> Tc;
+    Tc.setIdentity();
+    Tc.block<6, 6>(0, 0) = TcA;
+    Tc.block<6, 6>(6, 6) = TcA;
+
+    ChMatrixNM<double, 6, 6> TsA;
+    TsA.setIdentity();
+    TsA(1, 3) = -Sz;
+    TsA(2, 3) = Sy;
+    ChMatrixNM<double, 12, 12> Ts;
+    Ts.setIdentity();
+    Ts.block<6, 6>(0, 0) = TsA;
+    Ts.block<6, 6>(6, 6) = TsA;
+
+
+    ChMatrixNM<double, 6, 6> TA;
+    TA = RotsectA * TsA * TcA;
+    ChMatrixNM<double, 12, 12> T;
+    T = Rotsect * Ts * Tc;
+
+    ChVectorDynamic<> displ(this->GetNdofs());
+    this->GetStateBlock(displ);
+    ChVectorDynamic<> displ_ec = T * displ;
 
     // ShapeVector N;
     // ShapeFunctions(N, eta);  // Evaluate compressed shape functions
@@ -745,22 +818,23 @@ void ChElementBeamEuler::EvaluateSectionForceTorque(const double eta, ChVector<>
     ChVectorN<double, 6> sect_ek;
 
     // e_x
-    sect_ek(0) = (dN_xa * displ(0) + dN_xb * displ(6));  // x_a   x_b
+    sect_ek(0) = (dN_xa * displ_ec(0) + dN_xb * displ_ec(6));  // x_a   x_b
     // e_y
-    sect_ek(1) = (dddN_ua * displ(1) + dddN_ub * displ(7) +   // y_a   y_b
-                  dddN_ra * displ(5) + dddN_rb * displ(11));  // Rz_a  Rz_b
+    sect_ek(1) = (dddN_ua * displ_ec(1) + dddN_ub * displ_ec(7) +  // y_a   y_b
+                  dddN_ra * displ_ec(5) + dddN_rb * displ_ec(11));  // Rz_a  Rz_b
+    sect_ek(1) *= -1.0;
     // e_z
-    sect_ek(2) = (-dddN_ua * displ(2) - dddN_ub * displ(8) +  // z_a   z_b   note - sign
-                  dddN_ra * displ(4) + dddN_rb * displ(10));  // Ry_a  Ry_b
-
+    sect_ek(2) = (-dddN_ua * displ_ec(2) - dddN_ub * displ_ec(8) +  // z_a   z_b   note - sign
+                  dddN_ra * displ_ec(4) + dddN_rb * displ_ec(10));  // Ry_a  Ry_b
+    
     // k_x
-    sect_ek(3) = (dN_xa * displ(3) + dN_xb * displ(9));  // Rx_a  Rx_b
+    sect_ek(3) = (dN_xa * displ_ec(3) + dN_xb * displ_ec(9));  // Rx_a  Rx_b
     // k_y
-    sect_ek(4) = (-ddN_ua * displ(2) - ddN_ub * displ(8) +  // z_a   z_b   note - sign
-                  ddN_ra * displ(4) + ddN_rb * displ(10));  // Ry_a  Ry_b
+    sect_ek(4) = (-ddN_ua * displ_ec(2) - ddN_ub * displ_ec(8) +  // z_a   z_b   note - sign
+                  ddN_ra * displ_ec(4) + ddN_rb * displ_ec(10));  // Ry_a  Ry_b
     // k_z
-    sect_ek(5) = (ddN_ua * displ(1) + ddN_ub * displ(7) +   // y_a   y_b
-                  ddN_ra * displ(5) + ddN_rb * displ(11));  // Rz_a  Rz_b
+    sect_ek(5) = (ddN_ua * displ_ec(1) + ddN_ub * displ_ec(7) +  // y_a   y_b
+                  ddN_ra * displ_ec(5) + ddN_rb * displ_ec(11));  // Rz_a  Rz_b
 
     if (false)  // section->alpha ==0 && section->Cy ==0 && section->Cz==0 && section->Sy==0 && section->Sz==0)
     {
@@ -775,49 +849,25 @@ void ChElementBeamEuler::EvaluateSectionForceTorque(const double eta, ChVector<>
     } else {
         // Generic computation, by rotating and translating the constitutive
         // matrix of the beam:
-        double ca = cos(alpha);
-        double sa = sin(alpha);
-        double cb = cos(alpha);  // could be beta if shear custom axes
-        double sb = sin(alpha);
-
-        double Klaw_d0 = EA;
-        double Klaw_d1 = EIzz;
-        double Klaw_d2 = EIyy;
-        double Klaw_d3 = GJ;
-        double Klaw_d4 = EIyy;
-        double Klaw_d5 = EIzz;
+        ChMatrixNM<double, 6, 6> Klaw_d;
+        Klaw_d.setZero();
+        Klaw_d(0, 0) = EA;
+        Klaw_d(1, 1) = EIzz;
+        Klaw_d(2, 2) = EIyy;
+        Klaw_d(3, 3) = GJ;
+        Klaw_d(4, 4) = EIyy;
+        Klaw_d(5, 5) = EIzz;
 
         // ..unrolled rotated constitutive matrix..
         ChMatrixNM<double, 6, 6> Klaw_r;
         Klaw_r.setZero();
-
-        Klaw_r(0, 0) = Klaw_d0;
-        Klaw_r(1, 1) = Klaw_d1 * cb * cb + Klaw_d2 * sb * sb;
-        Klaw_r(2, 2) = Klaw_d1 * sb * sb + Klaw_d2 * cb * cb;
-        Klaw_r(1, 2) = Klaw_d1 * cb * sb - Klaw_d2 * cb * sb;
-        Klaw_r(2, 1) = Klaw_r(1, 2);
-        Klaw_r(3, 3) = Klaw_d3;
-        Klaw_r(4, 4) = Klaw_d4 * ca * ca + Klaw_d5 * sa * sa;
-        Klaw_r(5, 5) = Klaw_d4 * sa * sa + Klaw_d5 * ca * ca;
-        Klaw_r(4, 5) = Klaw_d4 * ca * sa - Klaw_d5 * ca * sa;
-        Klaw_r(5, 4) = Klaw_r(4, 5);
-
-        // ..also translate for Cy Cz
-        for (int i = 0; i < 6; ++i)
-            Klaw_r(i, 4) +=  Cz * Klaw_r(i, 0);
-        for (int i = 0; i < 6; ++i)
-            Klaw_r(i, 5) += -Cy * Klaw_r(i, 0);
-
-        // ..also translate for Sy Sz
-        for (int i = 0; i < 6; ++i)
-            Klaw_r(i, 3) += - Sz * Klaw_r(i, 1) + Sy * Klaw_r(i, 2);
+        Klaw_r = TA.transpose() * Klaw_d;
 
         // .. compute wrench = Klaw_l * sect_ek
         ChVectorN<double, 6> wrench = Klaw_r * sect_ek;
         Fforce = wrench.segment(0, 3);
         Mtorque = wrench.segment(3, 3);
 
-        // Note: to be checked.
     }
 }
 

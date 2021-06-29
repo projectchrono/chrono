@@ -94,7 +94,7 @@ int2 CreateFluidMarkers(std::shared_ptr<SphMarkerDataH> sphMarkersH,
     sphMarkersH->velMasH.resize(num_fluidOrBoundaryMarkers.x + num_fluidOrBoundaryMarkers.y);
     sphMarkersH->rhoPresMuH.resize(num_fluidOrBoundaryMarkers.x + num_fluidOrBoundaryMarkers.y);
 
-    int numAllMarkers = num_fluidOrBoundaryMarkers.x + num_fluidOrBoundaryMarkers.y;
+    //    int numAllMarkers = num_fluidOrBoundaryMarkers.x + num_fluidOrBoundaryMarkers.y;
     return num_fluidOrBoundaryMarkers;
 }
 

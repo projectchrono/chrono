@@ -9,7 +9,7 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Authors: Radu Serban, Justin Madsen
+// Authors: Radu Serban, Rainer Gericke
 // =============================================================================
 //
 // Main driver function for the mrole full model.
@@ -45,7 +45,7 @@ using namespace chrono::vehicle::mrole;
 // =============================================================================
 
 // Initial vehicle location and orientation
-ChVector<> initLoc(0, 0, 1.6);
+ChVector<> initLoc(0, 0, 1.0);
 ChQuaternion<> initRot(1, 0, 0, 0);
 // ChQuaternion<> initRot(0.866025, 0, 0, 0.5);
 // ChQuaternion<> initRot(0.7071068, 0, 0, 0.7071068);
@@ -66,13 +66,16 @@ VisualizationType tire_vis_type = VisualizationType::MESH;
 CollisionType chassis_collision_type = CollisionType::NONE;
 
 // Type of powertrain model (SHAFTS, SIMPLE)
-PowertrainModelType powertrain_model = PowertrainModelType::SIMPLE_CVT;
+PowertrainModelType powertrain_model = PowertrainModelType::SHAFTS;
 
 // Drive type (FWD, RWD, or AWD)
-DrivelineTypeWV drive_type = DrivelineTypeWV::SIMPLE_XWD;
+DrivelineTypeWV drive_type = DrivelineTypeWV::AWD6;
 
-// Type of tire model (TMEASY)
+// Type of tire model (TMEASY, RIGID)
 TireModelType tire_model = TireModelType::TMEASY;
+
+//
+BrakeType brake_type = BrakeType::SHAFTS;
 
 // Rigid terrain
 RigidTerrain::PatchType terrain_model = RigidTerrain::PatchType::BOX;
@@ -98,7 +101,7 @@ double t_end = 1000;
 double render_step_size = 1.0 / 50;  // FPS = 50
 
 // Output directories
-const std::string out_dir = GetChronoOutputPath() + "mrole";
+const std::string out_dir = GetChronoOutputPath() + "MROLE";
 const std::string pov_dir = out_dir + "/POVRAY";
 
 // Debug logging
@@ -125,12 +128,18 @@ int main(int argc, char* argv[]) {
     my_mrole.SetInitPosition(ChCoordsys<>(initLoc, initRot));
     my_mrole.SetPowertrainType(powertrain_model);
     my_mrole.SetDriveType(drive_type);
+    my_mrole.SetBrakeType(brake_type);
     my_mrole.SetTireType(tire_model);
     my_mrole.SetTireStepSize(tire_step_size);
+    my_mrole.SelectRoadOperation();
+    std::cout << "Vehicle should not go faster than " << my_mrole.GetMaxTireSpeed() << " m/s" << std::endl;
     my_mrole.Initialize();
 
     if (tire_model == TireModelType::RIGID_MESH)
         tire_vis_type = VisualizationType::MESH;
+
+    my_mrole.LockAxleDifferential(-1, false);
+    my_mrole.LockCentralDifferential(-1, false);
 
     my_mrole.SetChassisVisualizationType(chassis_vis_type);
     my_mrole.SetSuspensionVisualizationType(suspension_vis_type);
@@ -234,6 +243,7 @@ int main(int argc, char* argv[]) {
     // ---------------
 
     my_mrole.GetVehicle().LogSubsystemTypes();
+    std::cout << "Vehicle Mass       = " << my_mrole.GetVehicle().GetVehicleMass() << " kg" << std::endl;
 
     if (debug_output) {
         GetLog() << "\n\n============ System Configuration ============\n";
