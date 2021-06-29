@@ -35,7 +35,11 @@ namespace collision {
 using namespace chrono::collision::ch_utils;
 
 ChBroadphase::ChBroadphase()
-    : grid_type(GridType::FIXED_RESOLUTION), bin_size(real3(1, 1, 1)), grid_density(5), cd_data(nullptr) {}
+    : grid_type(GridType::FIXED_RESOLUTION),
+      grid_resolution(vec3(10, 10, 10)),
+      bin_size(real3(1, 1, 1)),
+      grid_density(5),
+      cd_data(nullptr) {}
 
 // -----------------------------------------------------------------------------
 
