@@ -89,7 +89,7 @@ void AddRevoluteJoint(std::shared_ptr<ChBodyAuxRef> body_1,
     ChFrame<> X_GC = X_GP * X_PC;                            // global -> child
 
     auto revo = chrono_types::make_shared<ChLinkLockRevolute>();
-    //auto revo = chrono_types::make_shared<ChLinkLockLock>();
+    // auto revo = chrono_types::make_shared<ChLinkLockLock>();
     revo->Initialize(body_1, body_2, ChCoordsys<>(X_GC.GetCoord().pos, X_GC.GetCoord().rot));
     system->AddLink(revo);
 }
@@ -324,6 +324,10 @@ Curiosity_Wheel::Curiosity_Wheel(const std::string& name,
 
         case Wheel_Type::SimpleWheel:
             m_mesh_name = "curiosity_simplewheel";
+            break;
+
+        case Wheel_Type::CylWheel:
+            m_mesh_name = "curiosity_cylwheel";
             break;
 
         default:
@@ -1087,6 +1091,10 @@ ChVector<> CuriosityRover::GetChassisVel() {
 
 ChVector<> CuriosityRover::GetChassisAcc() {
     return m_chassis->GetBody()->GetPos_dtdt();
+}
+
+ChQuaternion<> CuriosityRover::GetChassisRot() {
+    return m_chassis->GetBody()->GetRot();
 }
 
 ChVector<> CuriosityRover::GetWheelSpeed(WheelID id) {

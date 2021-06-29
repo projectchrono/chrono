@@ -61,7 +61,7 @@ enum WheelID {
 enum Chassis_Type { FullRover, Scarecrow };
 
 /// Curiostiy wheel type
-enum Wheel_Type { RealWheel, SimpleWheel };
+enum Wheel_Type { RealWheel, SimpleWheel, CylWheel };
 
 /// Base class definition of the Curiosity Rover Part.
 class CH_MODELS_API Curiosity_Part {
@@ -344,6 +344,9 @@ class CH_MODELS_API CuriosityRover {
 
     /// Get chassis accelerometer
     ChVector<> GetChassisAcc();
+
+    /// Get chassis rotation
+    ChQuaternion<> GetChassisRot();
 
     /// Get steering motor angle -/+ range
     double GetSteerAngle(WheelID id);
