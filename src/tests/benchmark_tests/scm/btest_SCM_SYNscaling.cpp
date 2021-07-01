@@ -85,6 +85,9 @@ const bool bulldozing = false;
 // How often SynChrono state messages are interchanged
 double heartbeat = 1e-2;  // 100[Hz]
 
+// Initialize vehicles on parallel tracks (default criss-cross)
+bool parallel_tracks = false;
+
 // Rank for run-time visualization
 int vis_rank = -1;
 
@@ -136,6 +139,7 @@ int main(int argc, char* argv[]) {
     nthreads = cli.GetAsType<int>("nthreads");
     chrono_collsys = cli.GetAsType<bool>("csys");
     wheel_patches = cli.GetAsType<bool>("wheel_patches");
+    parallel_tracks = cli.GetAsType<bool>("parallel_tracks");
 
     vis_rank = cli.GetAsType<int>("vis");
 #if !defined(CHRONO_IRRLICHT)
@@ -174,16 +178,30 @@ int main(int argc, char* argv[]) {
     ChVector<> init_loc;
     ChQuaternion<> init_rot;
     std::shared_ptr<ChBezierCurve> path;
-    if (node_id % 2 == 0) {
-        // Start even vehicles in a row on the south side, driving north
-        init_loc = ChVector<>(0, 2.0 * (node_id + 1), 0.5);
-        init_rot = Q_from_AngZ(0);
-        path = StraightLinePath(init_loc, init_loc + ChVector<>(pathLength, 0, 0));
+    if (parallel_tracks) {
+        if (node_id % 2 == 0) {
+            // Start even vehicles in a row on the south side, driving north
+            init_loc = ChVector<>(0, 3.0 * (node_id + 1), 0.5);
+            init_rot = Q_from_AngZ(0);
+            path = StraightLinePath(init_loc, init_loc + ChVector<>(pathLength, 0, 0));
+        } else {
+            // Start odd vehicles in a row on the north side, driving south
+            init_loc = ChVector<>(20.0, 3.0 * (node_id - 1), 0.5);
+            init_rot = Q_from_AngZ(CH_C_PI);
+            path = StraightLinePath(init_loc, init_loc - ChVector<>(pathLength, 0, 0));
+        }
     } else {
-        // Start odd vehicles staggered going up the west edge, driving east
-        init_loc = ChVector<>(2.0 * (node_id - 1), -5.0 - 2.0 * (node_id - 1), 0.5);
-        init_rot = Q_from_AngZ(CH_C_PI / 2);
-        path = StraightLinePath(init_loc, init_loc + ChVector<>(0, pathLength, 0));
+        if (node_id % 2 == 0) {
+            // Start even vehicles in a row on the south side, driving north
+            init_loc = ChVector<>(0, 2.0 * (node_id + 1), 0.5);
+            init_rot = Q_from_AngZ(0);
+            path = StraightLinePath(init_loc, init_loc + ChVector<>(pathLength, 0, 0));
+        } else {
+            // Start odd vehicles staggered going up the west edge, driving east
+            init_loc = ChVector<>(2.0 * (node_id - 1), -5.0 - 2.0 * (node_id - 1), 0.5);
+            init_rot = Q_from_AngZ(CH_C_PI / 2);
+            path = StraightLinePath(init_loc, init_loc + ChVector<>(0, pathLength, 0));
+        }
     }
 
     // Create the HMMWV
@@ -196,7 +214,7 @@ int main(int argc, char* argv[]) {
     hmmwv.SetTireStepSize(step_size);
     hmmwv.Initialize();
 
-    if (visualize) {
+    if (vis_rank >= 0) {
         hmmwv.SetChassisVisualizationType(VisualizationType::NONE);
         hmmwv.SetSuspensionVisualizationType(VisualizationType::MESH);
         hmmwv.SetSteeringVisualizationType(VisualizationType::NONE);
@@ -229,7 +247,7 @@ int main(int argc, char* argv[]) {
 
     // Add vehicle as an agent
     auto vehicle_agent = chrono_types::make_shared<SynWheeledVehicleAgent>(&hmmwv.GetVehicle());
-    if (visualize) {
+    if (vis_rank >= 0) {
         vehicle_agent->SetZombieVisualizationFiles("hmmwv/hmmwv_chassis.obj", "hmmwv/hmmwv_rim.obj",
                                                    "hmmwv/hmmwv_tire_left.obj");
     } else {
@@ -341,10 +359,12 @@ int main(int argc, char* argv[]) {
                         cout << "elapsed time (s):  " << timer() << endl;
                         cout << "chrono solver (s): " << chrono_step << endl;
                         cout << "RTF:               " << (timer() / end_time) << endl;
-                        cout << "\nSCM stats for last step:" << endl;
+                        cout << "\n[" << node_id << "] SCM stats for last step:" << endl;
                         terrain.PrintStepStatistics(cout);
-                        cout << "\nChrono stats for last step:" << endl;
+                        cout << "\n[" << node_id << "] Chrono stats for last step:" << endl;
                         PrintStepStatistics(cout, sys);
+                        cout << "\n[" << node_id << "] Synchrono stats for last step:" << endl;
+                        syn_manager.PrintStepStatistics(cout);
                     }
                     MPI_Barrier(MPI_COMM_WORLD);
                 }
@@ -397,6 +417,7 @@ int main(int argc, char* argv[]) {
         step_number++;
     }
 
+    syn_manager.QuitSimulation();
     return 0;
 }
 
@@ -405,9 +426,12 @@ void AddCommandLineOptions(ChCLI& cli) {
     cli.AddOption<double>("Test", "e,end_time", "End time", std::to_string(end_time));
     cli.AddOption<double>("Test", "b,heartbeat", "Heartbeat", std::to_string(heartbeat));
     cli.AddOption<int>("Test", "n,nthreads", "Number threads", std::to_string(nthreads));
-    cli.AddOption<bool>("Test", "c,csys", "Use Chrono multicore collision (false: Bullet)",
-                        std ::to_string(chrono_collsys));
-    cli.AddOption<bool>("Test", "w,wheel_patches", "Use patches under each wheel", "false");
+    cli.AddOption<bool>("Test", "c,csys", "Use Chrono multicore collision system (false: Bullet)",
+                        std::to_string(chrono_collsys));
+    cli.AddOption<bool>("Test", "w,wheel_patches", "Use separate patches under each wheel (false: single patch)",
+                        std::to_string(wheel_patches));
+    cli.AddOption<bool>("Test", "p,parallel_tracks", "Initialize vehicles on parallel tracks (false: criss-cross)",
+                        std::to_string(parallel_tracks));
     cli.AddOption<int>("Test", "v,vis", "Run-time visualization rank", std::to_string(vis_rank));
 }
 
