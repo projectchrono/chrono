@@ -69,11 +69,12 @@ CH_SENSOR_API void ChFilterRadarProcess::Apply() {
     std::vector<vec3f> points;
     m_buffer_out->Beam_return_count = 0;
     for (unsigned int i = 0; i < buf.size(); i++) {
-        if (abs(buf[i].x_vel) > 0 || abs(buf[i].y_vel) > 0 || abs(buf[i].z_vel) > 0) {
+//        if (abs(buf[i].vel[0]) > 0 || abs(buf[i].vel[1]) > 0 || abs(buf[i].vel[2]) > 0) {
+        if(buf[i].intensity > 0){
             processed_buffer[m_buffer_out->Beam_return_count] = buf[i];
-            points.push_back(vec3f{processed_buffer[m_buffer_out->Beam_return_count].x,
-                                   processed_buffer[m_buffer_out->Beam_return_count].y,
-                                   processed_buffer[m_buffer_out->Beam_return_count].z});
+            points.push_back(vec3f{processed_buffer[m_buffer_out->Beam_return_count].xyz[0],
+                                   processed_buffer[m_buffer_out->Beam_return_count].xyz[1],
+                                   processed_buffer[m_buffer_out->Beam_return_count].xyz[2]});
             m_buffer_out->Beam_return_count++;
         }
     }
@@ -117,13 +118,13 @@ CH_SENSOR_API void ChFilterRadarProcess::Apply() {
             processed_buffer[idx].objectID = i + 1;
             valid_returns.push_back(processed_buffer[idx]);
             // adding velocity and xyz and then dividing by size in next for loop
-            m_buffer_out->centroids[i][0] += processed_buffer[idx].x;
-            m_buffer_out->centroids[i][1] += processed_buffer[idx].y;
-            m_buffer_out->centroids[i][2] += processed_buffer[idx].z;
+            m_buffer_out->centroids[i][0] += processed_buffer[idx].xyz[0];
+            m_buffer_out->centroids[i][1] += processed_buffer[idx].xyz[1];
+            m_buffer_out->centroids[i][2] += processed_buffer[idx].xyz[2];
 
-            m_buffer_out->avg_velocity[i][0] += processed_buffer[idx].x_vel;
-            m_buffer_out->avg_velocity[i][1] += processed_buffer[idx].y_vel;
-            m_buffer_out->avg_velocity[i][2] += processed_buffer[idx].z_vel;
+            m_buffer_out->avg_velocity[i][0] += processed_buffer[idx].vel[0];
+            m_buffer_out->avg_velocity[i][1] += processed_buffer[idx].vel[1];
+            m_buffer_out->avg_velocity[i][2] += processed_buffer[idx].vel[2];
            
         }
     }

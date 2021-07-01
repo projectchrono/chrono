@@ -30,6 +30,7 @@ CH_SENSOR_API ChRadarSensor::ChRadarSensor(std::shared_ptr<chrono::ChBody> paren
                                            float max_vertical_angle,
                                            float min_vertical_angle,
                                            float max_distance,
+                                           RadarReturnMode return_mode,
                                            float clip_near)
     : m_hFOV(hfov),
       m_max_vert_angle(max_vertical_angle),
