@@ -107,6 +107,7 @@ void HMMWV_VehicleReduced::Create(bool fixed, BrakeType brake_type, CollisionTyp
         case DrivelineTypeWV::RWD:
             m_driveline = chrono_types::make_shared<HMMWV_Driveline2WD>("Driveline");
             break;
+        default:
         case DrivelineTypeWV::AWD:
             m_driveline = chrono_types::make_shared<HMMWV_Driveline4WD>("Driveline");
             break;

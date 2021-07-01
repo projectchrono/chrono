@@ -14,10 +14,15 @@ SET(DEMOS
     demo_VEH_MROLE
     demo_VEH_MROLE_TurnCircle
     demo_VEH_MROLE_Ride
-    demo_VEH_MROLE_Shock
+    
     demo_VEH_MROLE_Obstacle
     demo_VEH_MROLE_ObstacleTool
 )
+
+# demo_VEH_MROLE_Shock requires CRG
+if(HAVE_OPENCRG)
+list(APPEND DEMOS demo_VEH_MROLE_Shock)
+endif()
 
 #--------------------------------------------------------------
 # Compiler and linker flags
