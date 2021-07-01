@@ -21,20 +21,20 @@
 // The test compares the simulation results (location of the pendulum center of
 // mass) against the solution obtained by integrating the ODEs in minimal
 // coordinates q = (x1, phi2).
-//
-//                y
-//                ^
-//                |
-//    g |         |                   k1, rest_len = 0
-//      |         |    m1 _______/\/\/\/\/\/\__
-//     \|/        |      |       |
-//             ---|------|---o---|--------------------> x
-//                |      |____\__|
-//                             \
-//                              \
-//                               \ m2, l2, J2
-//                                \
-//
+/*
+                y
+                ^
+                |
+    g |         |                   k1, rest_len = 0
+      |         |    m1 _______/\/\/\/\/\/\__
+     \|/        |      |       |
+             ---|------|---o---|--------------------> x
+                |      |____\__|
+                             \
+                              \
+                               \ m2, l2, J2
+                                \
+*/
 // =============================================================================
 
 #include <cmath>

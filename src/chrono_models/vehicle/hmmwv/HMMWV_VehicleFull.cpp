@@ -120,6 +120,7 @@ void HMMWV_VehicleFull::Create(bool fixed,
         case DrivelineTypeWV::RWD:
             m_driveline = chrono_types::make_shared<HMMWV_Driveline2WD>("Driveline");
             break;
+        default:
         case DrivelineTypeWV::AWD:
             m_driveline = chrono_types::make_shared<HMMWV_Driveline4WD>("Driveline");
             break;
