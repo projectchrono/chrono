@@ -136,11 +136,19 @@ int main(int argc, char* argv[]) {
     hmmwv.SetTireStepSize(step_size);
     hmmwv.Initialize();
 
-    hmmwv.SetChassisVisualizationType(VisualizationType::NONE);
-    hmmwv.SetSuspensionVisualizationType(VisualizationType::MESH);
-    hmmwv.SetSteeringVisualizationType(VisualizationType::NONE);
-    hmmwv.SetWheelVisualizationType(VisualizationType::MESH);
-    hmmwv.SetTireVisualizationType(VisualizationType::MESH);
+    if (visualize) {
+        hmmwv.SetChassisVisualizationType(VisualizationType::NONE);
+        hmmwv.SetSuspensionVisualizationType(VisualizationType::MESH);
+        hmmwv.SetSteeringVisualizationType(VisualizationType::NONE);
+        hmmwv.SetWheelVisualizationType(VisualizationType::MESH);
+        hmmwv.SetTireVisualizationType(VisualizationType::MESH);
+    } else {
+        hmmwv.SetChassisVisualizationType(VisualizationType::NONE);
+        hmmwv.SetSuspensionVisualizationType(VisualizationType::NONE);
+        hmmwv.SetSteeringVisualizationType(VisualizationType::NONE);
+        hmmwv.SetWheelVisualizationType(VisualizationType::NONE);
+        hmmwv.SetTireVisualizationType(VisualizationType::NONE);
+    }
 
     // -----------------------------------------------------------
     // Set tire contact material, contact model, and visualization
@@ -149,8 +157,6 @@ int main(int argc, char* argv[]) {
     wheel_material->SetFriction(0.8f);
     wheel_material->SetYoungModulus(1.0e6f);
     wheel_material->SetRestitution(0.1f);
-
-    hmmwv.SetTireVisualizationType(VisualizationType::MESH);
 
     // --------------------
     // Create driver system

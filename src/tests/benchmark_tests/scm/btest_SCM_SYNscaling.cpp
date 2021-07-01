@@ -196,11 +196,19 @@ int main(int argc, char* argv[]) {
     hmmwv.SetTireStepSize(step_size);
     hmmwv.Initialize();
 
-    hmmwv.SetChassisVisualizationType(VisualizationType::NONE);
-    hmmwv.SetSuspensionVisualizationType(VisualizationType::MESH);
-    hmmwv.SetSteeringVisualizationType(VisualizationType::NONE);
-    hmmwv.SetWheelVisualizationType(VisualizationType::MESH);
-    hmmwv.SetTireVisualizationType(VisualizationType::MESH);
+    if (visualize) {
+        hmmwv.SetChassisVisualizationType(VisualizationType::NONE);
+        hmmwv.SetSuspensionVisualizationType(VisualizationType::MESH);
+        hmmwv.SetSteeringVisualizationType(VisualizationType::NONE);
+        hmmwv.SetWheelVisualizationType(VisualizationType::MESH);
+        hmmwv.SetTireVisualizationType(VisualizationType::MESH);
+    } else {
+        hmmwv.SetChassisVisualizationType(VisualizationType::NONE);
+        hmmwv.SetSuspensionVisualizationType(VisualizationType::NONE);
+        hmmwv.SetSteeringVisualizationType(VisualizationType::NONE);
+        hmmwv.SetWheelVisualizationType(VisualizationType::NONE);
+        hmmwv.SetTireVisualizationType(VisualizationType::NONE);
+    }
 
     // -----------------------------------------------------------
     // Set tire contact material, contact model, and visualization
@@ -209,8 +217,6 @@ int main(int argc, char* argv[]) {
     wheel_material->SetFriction(0.8f);
     wheel_material->SetYoungModulus(1.0e6f);
     wheel_material->SetRestitution(0.1f);
-
-    hmmwv.SetTireVisualizationType(VisualizationType::MESH);
 
     // What we defined earlier, a straight line
     ChPathFollowerDriver driver(hmmwv.GetVehicle(), path, "Box path", target_speed);
@@ -223,8 +229,12 @@ int main(int argc, char* argv[]) {
 
     // Add vehicle as an agent
     auto vehicle_agent = chrono_types::make_shared<SynWheeledVehicleAgent>(&hmmwv.GetVehicle());
-    vehicle_agent->SetZombieVisualizationFiles("hmmwv/hmmwv_chassis.obj", "hmmwv/hmmwv_rim.obj",
-                                               "hmmwv/hmmwv_tire_left.obj");
+    if (visualize) {
+        vehicle_agent->SetZombieVisualizationFiles("hmmwv/hmmwv_chassis.obj", "hmmwv/hmmwv_rim.obj",
+                                                   "hmmwv/hmmwv_tire_left.obj");
+    } else {
+        vehicle_agent->SetZombieVisualizationFiles("", "", "");
+    }
     vehicle_agent->SetNumWheels(4);
     syn_manager.AddAgent(vehicle_agent);
 
