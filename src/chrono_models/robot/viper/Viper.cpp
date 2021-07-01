@@ -907,6 +907,14 @@ ChVector<> ViperRover::GetWheelAppliedTorque(WheelID id) {
     return m_wheels[id]->GetBody()->GetAppliedTorque();
 }
 
+double ViperRover::GetWheelTracTorque(WheelID id) {
+    if (m_dc_motor_control == false) {
+        return m_motors[id]->GetMotorTorque();
+    } else {
+        return 0.0;
+    }
+}
+
 std::shared_ptr<ChBodyAuxRef> ViperRover::GetWheelBody(WheelID id) {
     return m_wheels[id]->GetBody();
 }

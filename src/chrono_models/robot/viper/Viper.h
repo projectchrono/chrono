@@ -312,6 +312,9 @@ class CH_MODELS_API ViperRover {
     /// Get wheel total applied force.
     ChVector<> GetWheelAppliedForce(WheelID id);
 
+    /// Get wheel tractive torque - if DC control set to off
+    double GetWheelTracTorque(WheelID id);
+
     /// Get wheel total applied torque.
     ChVector<> GetWheelAppliedTorque(WheelID id);
 

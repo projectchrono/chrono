@@ -322,6 +322,9 @@ class CH_MODELS_API CuriosityRover {
     /// Get wheel total applied torque
     ChVector<> GetWheelAppliedTorque(WheelID id);
 
+    /// Get wheel tractive torque - if DC control is set to off
+    double GetWheelTracTorque(WheelID id);
+
     /// Get DC motor applied torque on Power Shaft
     double GetDCPowerShaftTorque(WheelID id);
 
