@@ -241,6 +241,11 @@ int main(int argc, char* argv[]) {
         app->AssetBindAll();
         app->AssetUpdateAll();
     }
+
+    // Time interval between two render frames (1/FPS)
+    double render_step_size = 1.0 / 100;
+    // Number of simulation steps between two render frames
+    int render_steps = (int)std::ceil(render_step_size / step_size);
 #endif
 
 #ifdef CHRONO_SENSOR
@@ -299,11 +304,6 @@ int main(int argc, char* argv[]) {
     // ---------------
     // Simulation loop
     // ---------------
-    // Time interval between two render frames (1/FPS)
-    double render_step_size = 1.0 / 100;
-
-    // Number of simulation steps between miscellaneous events
-    int render_steps = (int)std::ceil(render_step_size / step_size);
 
     // Initialize simulation frame counters
     int step_number = 0;
