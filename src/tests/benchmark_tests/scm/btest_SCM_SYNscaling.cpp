@@ -354,13 +354,24 @@ int main(int argc, char* argv[]) {
         if (time > end_time) {
             if (!stats_done) {
                 timer.stop();
+                double rtf = timer() / end_time;
+                double* all_rtf = new double[num_nodes];
+                MPI_Gather(&rtf, 1, MPI_DOUBLE, all_rtf, 1, MPI_DOUBLE, 0, MPI_COMM_WORLD);
+                if (node_id == 0) {
+                    std::string fname = "stats_" + std::to_string(num_nodes) + "_" + std::to_string(nthreads) + ".out";
+                    std::ofstream ofile(fname.c_str(), std::ios_base::app);
+                    for (int i = 0; i < num_nodes; i++)
+                        ofile << all_rtf[i] << "  ";
+                    ofile << std::endl;
+                    ofile.close();
+                }
                 for (int i = 0; i < num_nodes; i++) {
                     if (node_id == i) {
                         cout << endl;
                         cout << "stop timer at (s): " << end_time << endl;
                         cout << "elapsed time (s):  " << timer() << endl;
                         cout << "chrono solver (s): " << chrono_step << endl;
-                        cout << "RTF:               " << (timer() / end_time) << endl;
+                        cout << "RTF:               " << rtf << endl;
                         cout << "\n[" << node_id << "] SCM stats for last step:" << endl;
                         terrain.PrintStepStatistics(cout);
                         cout << "\n[" << node_id << "] Chrono stats for last step:" << endl;
