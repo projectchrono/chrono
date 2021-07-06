@@ -222,9 +222,9 @@ CH_SENSOR_API void ChFilterAccess<SensorHostProcessedRadarBuffer, UserProcessedR
         m_empty_lag_buffers.pop();
     } else {
         tmp_buffer = chrono_types::make_shared<SensorHostProcessedRadarBuffer>();
-        std::shared_ptr<PixelProcessedRadar[]> b(
-            cudaHostMallocHelper<PixelProcessedRadar>(m_bufferIn->Width * m_bufferIn->Height),
-            cudaHostFreeHelper<PixelProcessedRadar>);
+        std::shared_ptr<RadarTrack[]> b(
+            cudaHostMallocHelper<RadarTrack>(m_bufferIn->Width * m_bufferIn->Height),
+            cudaHostFreeHelper<RadarTrack>);
         tmp_buffer->Buffer = std::move(b);
     }
 
@@ -234,7 +234,7 @@ CH_SENSOR_API void ChFilterAccess<SensorHostProcessedRadarBuffer, UserProcessedR
     tmp_buffer->TimeStamp = m_bufferIn->TimeStamp;
 
     cudaMemcpyAsync(tmp_buffer->Buffer.get(), m_bufferIn->Buffer.get(),
-                    m_bufferIn->Width * m_bufferIn->Height * sizeof(PixelProcessedRadar), cudaMemcpyDeviceToHost,
+                    m_bufferIn->Width * m_bufferIn->Height * sizeof(RadarTrack), cudaMemcpyDeviceToHost,
                     m_cuda_stream);
 
     {  // lock in this scope before pushing to lag buffer queue
