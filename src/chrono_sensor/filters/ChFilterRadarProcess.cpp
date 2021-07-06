@@ -53,7 +53,7 @@ CH_SENSOR_API void ChFilterRadarProcess::Initialize(std::shared_ptr<ChSensor> pS
     bufferInOut = m_buffer_out;
 }
 CH_SENSOR_API void ChFilterRadarProcess::Apply() {
-    cuda_radar_pointcloud_from_depth(m_buffer_in->Buffer.get(), m_buffer_out->Buffer.get(), (int)m_buffer_in->Width,
+    cuda_radar_pointcloud_from_angles(m_buffer_in->Buffer.get(), m_buffer_out->Buffer.get(), (int)m_buffer_in->Width,
                                      (int)m_buffer_in->Height, m_hFOV, m_max_vert_angle, m_min_vert_angle,
                                      m_cuda_stream);
 

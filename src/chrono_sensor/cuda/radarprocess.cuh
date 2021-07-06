@@ -11,7 +11,7 @@ void cuda_radar_angles(void* bufIn,
                        CUstream& stream);
 
 
-void cuda_radar_pointcloud_from_depth(void* bufIn,
+void cuda_radar_pointcloud_from_angles(void* bufIn,
                                       void* bufOut,
                                       int width,
                                       int height,

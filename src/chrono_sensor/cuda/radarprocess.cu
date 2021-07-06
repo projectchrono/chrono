@@ -33,7 +33,7 @@ __global__ void radar_angle_kernel(float* imgIn,
 }
 
 // Converts a depth and intensity buffer to an XZY and intensity buffer
-__global__ void radar_pointcloud_from_depth_kernel(float* imgIn,
+__global__ void radar_pointcloud_from_angles_kernel(float* imgIn,
                                                    float* imgOut,
                                                    int w,
                                                    int h,
@@ -67,7 +67,7 @@ __global__ void radar_pointcloud_from_depth_kernel(float* imgIn,
 }
 
 
-void cuda_radar_pointcloud_from_depth(void* bufIn,
+void cuda_radar_pointcloud_from_angles(void* bufIn,
     void* bufOut,
     int width,
     int height,
@@ -77,7 +77,7 @@ void cuda_radar_pointcloud_from_depth(void* bufIn,
     CUstream& stream){
 const int nThreads = 512;
 int nBlocks = (width * height + nThreads - 1) / nThreads;
-radar_pointcloud_from_depth_kernel<<<nBlocks, nThreads, 0, stream>>>((float*)bufIn, (float*)bufOut, width, height,
+radar_pointcloud_from_angles_kernel<<<nBlocks, nThreads, 0, stream>>>((float*)bufIn, (float*)bufOut, width, height,
                                        hfov, max_v_angle, min_v_angle);
 }
 
