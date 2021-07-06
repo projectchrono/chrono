@@ -32,9 +32,4 @@
 //   #define CHRONO_MULTICORE_USE_CUDA
 @CHRONO_MULTICORE_USE_CUDA@
 
-// If CUDA is not available, force Thrust to always use the OMP backend
-#ifndef CHRONO_CUDA_FOUND
-  #define THRUST_DEVICE_SYSTEM THRUST_DEVICE_SYSTEM_OMP
-#endif
-
 #endif

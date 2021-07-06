@@ -23,6 +23,13 @@ endif()
 
 message(STATUS "==== Chrono Multicore module ====")
 
+# Return now if Thrust not available
+if (NOT THRUST_FOUND)
+  message(WARNING "Chrono::Multicore requires Thrust, but Thrust was not found; disabling Chrono::Multicore")
+  set(ENABLE_MODULE_MULTICORE OFF CACHE BOOL "Enable the Chrono::multicore module" FORCE)
+  return()
+endif()
+
 mark_as_advanced(CLEAR BLAZE_DIR)
 mark_as_advanced(CLEAR USE_MULTICORE_DOUBLE)
 mark_as_advanced(CLEAR USE_MULTICORE_SIMD)
@@ -56,27 +63,6 @@ OPTION(USE_MULTICORE_DOUBLE "Compile Chrono::Multicore with double precision mat
 IF(USE_MULTICORE_DOUBLE)
   SET(CHRONO_MULTICORE_USE_DOUBLE "#define CHRONO_MULTICORE_USE_DOUBLE")
 ENDIF()
-
-# ----- Thrust library -----
-
-
-# Workaround for FreeBSD ports devel/thrust
-if (${CMAKE_SYSTEM_NAME} MATCHES "FreeBSD")
-  find_path(THRUST_INCLUDE_DIR NAMES thrust/version.h PATHS "/usr/local" "/usr/local/include")
-  if (THRUST_INCLUDE_DIR)
-    set(${THRUST_FOUND} TRUE)
-  else()
-    message(FATAL_ERROR "THRUST_INCLUDE_DIR is not set, but it is required.")
-  endif()
-else()
-  find_package(Thrust)
-endif()
-
-if(NOT THRUST_FOUND)
-  mark_as_advanced(CLEAR THRUST_INCLUDE_DIR)
-else()
-  mark_as_advanced(FORCE THRUST_INCLUDE_DIR)
-endif()
 
 # ----- Blaze library -----
 

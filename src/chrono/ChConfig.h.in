@@ -170,21 +170,21 @@
 // -----------------------------------------------------------------------------
 
 // If CUDA is available, then
-//   #define CHRONO_CUDA_FOUND
+//   #define CHRONO_HAS_CUDA
 //   #CHRONO_CUDA_VERSION
 
-@CHRONO_CUDA_FOUND@
+@CHRONO_HAS_CUDA@
 @CHRONO_CUDA_VERSION@
 
 // If THRUST is available, then
-//   #define CHRONO_THRUST_FOUND
+//   #define CHRONO_HAS_THRUST
 //   #CHRONO_THRUST_VERSION
 
-@CHRONO_THRUST_FOUND@
+@CHRONO_HAS_THRUST@
 @CHRONO_THRUST_VERSION@
 
 // If CUDA is not available, force Thrust to always use the OMP backend
-#ifndef CHRONO_CUDA_FOUND
+#ifndef CHRONO_HAS_CUDA
   #define THRUST_DEVICE_SYSTEM THRUST_DEVICE_SYSTEM_OMP
 #endif
 
