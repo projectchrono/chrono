@@ -3,7 +3,7 @@
 # ------------------------------------------------------------------------------
 
 # Requires Irrlicht run-time visualization.
-if(NOT ENABLE_MODULE_IRRLICHT OR NOT USE_FAST_DDS)
+if(NOT USE_FAST_DDS)
   return()
 endif()
 

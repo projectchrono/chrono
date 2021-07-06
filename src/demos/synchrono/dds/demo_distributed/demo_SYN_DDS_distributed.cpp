@@ -26,7 +26,7 @@
 #include "chrono_vehicle/utils/ChUtilsJSON.h"
 
 #include "chrono_vehicle/wheeled_vehicle/vehicle/WheeledVehicle.h"
-#include "chrono_vehicle/wheeled_vehicle/utils/ChWheeledVehicleIrrApp.h"
+
 
 #include "chrono_synchrono/SynConfig.h"
 #include "chrono_synchrono/SynChronoManager.h"
@@ -37,8 +37,14 @@
 
 #include "chrono_thirdparty/cxxopts/ChCLI.h"
 
+#ifdef CHRONO_IRRLICHT
+    #include "chrono_vehicle/wheeled_vehicle/utils/ChWheeledVehicleIrrApp.h"
+#endif
+
 using namespace chrono;
-using namespace chrono::irrlicht;
+#ifdef CHRONO_IRRLICHT
+    using namespace chrono::irrlicht;
+#endif
 using namespace chrono::synchrono;
 using namespace chrono::vehicle;
 
@@ -100,7 +106,7 @@ void GetVehicleModelFiles(VehicleType type,
                           std::string& tire,
                           std::string& zombie,
                           double& cam_distance);
-
+#ifdef CHRONO_IRRLICHT
 class IrrAppWrapper {
   public:
     IrrAppWrapper(std::shared_ptr<ChWheeledVehicleIrrApp> app = nullptr) : app(app) {}
@@ -153,7 +159,7 @@ class DriverWrapper : public ChDriver {
 
     std::shared_ptr<ChIrrGuiDriver> irr_driver;
 };
-
+#endif
 // =============================================================================
 
 int main(int argc, char* argv[]) {
@@ -252,6 +258,7 @@ int main(int argc, char* argv[]) {
     RigidTerrain terrain(vehicle.GetSystem(), vehicle::GetDataFile("terrain/RigidPlane.json"));
 
     // Create the vehicle Irrlicht interface
+#ifdef CHRONO_IRRLICHT
     IrrAppWrapper app;
     DriverWrapper driver(vehicle);
     if (cli.HasValueInVector<int>("irr", node_id)) {
@@ -281,6 +288,7 @@ int main(int argc, char* argv[]) {
         driver.Set(irr_driver);
     }
 
+#endif
     // ---------------
     // Simulation loop
     // ---------------
