@@ -23,7 +23,9 @@
 #include "chrono/physics/ChSystem.h"
 
 #include "chrono/collision/ChCollisionModelBullet.h"
-#include "chrono/collision/ChCollisionModelChrono.h"
+#ifdef CHRONO_HAS_THRUST
+    #include "chrono/collision/ChCollisionModelChrono.h"
+#endif
 
 namespace chrono {
 
@@ -45,6 +47,10 @@ ChBody::ChBody(collision::ChCollisionSystemType collision_type) {
     Force_acc = VNULL;
     Torque_acc = VNULL;
 
+#ifndef CHRONO_HAS_THRUST
+    collision_type = ChCollisionSystemType::BULLET;
+#endif
+
     switch (collision_type) {
         default:
         case ChCollisionSystemType::BULLET:
@@ -52,8 +58,10 @@ ChBody::ChBody(collision::ChCollisionSystemType collision_type) {
             collision_model->SetContactable(this);
             break;
         case ChCollisionSystemType::CHRONO:
+#ifdef CHRONO_HAS_THRUST
             collision_model = chrono_types::make_shared<ChCollisionModelChrono>();
             collision_model->SetContactable(this);
+#endif
             break;
     }
 

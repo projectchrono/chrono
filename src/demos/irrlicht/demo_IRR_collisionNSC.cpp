@@ -21,9 +21,11 @@
 #include "chrono/physics/ChSystemNSC.h"
 #include "chrono/physics/ChBodyEasy.h"
 #include "chrono/physics/ChLinkMotorRotationSpeed.h"
-#include "chrono/collision/ChCollisionSystemChrono.h"
 #include "chrono/assets/ChTexture.h"
 #include "chrono/core/ChRealtimeStep.h"
+#ifdef CHRONO_HAS_THRUST
+#include "chrono/collision/ChCollisionSystemChrono.h"
+#endif
 
 #include "chrono_irrlicht/ChIrrApp.h"
 
@@ -186,6 +188,7 @@ int main(int argc, char* argv[]) {
 
     // Settings specific to Chrono multicore collision system
     if (collision_type == collision::ChCollisionSystemType::CHRONO) {
+#ifdef CHRONO_HAS_THRUST
         auto collsys = std::static_pointer_cast<collision::ChCollisionSystemChrono>(sys.GetCollisionSystem());
         // Change the default number of broadphase bins
         collsys->SetBroadphaseGridResolution(ChVector<int>(10, 10, 2));
@@ -196,6 +199,7 @@ int main(int argc, char* argv[]) {
         collsys->EnableActiveBoundingBox(ChVector<>(-10, -10, -20), ChVector<>(+10, +10, +10));
         // Set number of threads used by the collision detection system
         collsys->SetNumThreads(4);
+#endif
     }
 
     // Create the Irrlicht visualization

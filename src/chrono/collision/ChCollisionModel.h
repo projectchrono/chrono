@@ -21,6 +21,7 @@
 
 #include <vector>
 
+#include "chrono/ChConfig.h"
 #include "chrono/core/ChApiCE.h"
 #include "chrono/core/ChCoordsys.h"
 #include "chrono/core/ChMatrix33.h"

@@ -15,7 +15,9 @@
 #include <algorithm>
 
 #include "chrono/collision/ChCollisionSystemBullet.h"
-#include "chrono/collision/ChCollisionSystemChrono.h"
+#ifdef CHRONO_HAS_THRUST
+    #include "chrono/collision/ChCollisionSystemChrono.h"
+#endif
 #include "chrono/physics/ChProximityContainer.h"
 #include "chrono/physics/ChSystem.h"
 #include "chrono/solver/ChSolverAPGD.h"
@@ -299,12 +301,19 @@ void ChSystem::SetCollisionSystemType(ChCollisionSystemType type) {
 
     collision_system_type = type;
 
+#ifndef CHRONO_HAS_THRUST
+    GetLog() << "Chrono was not built with Thrust support. CHRONO collision system type not available.\n";
+    collision_system_type = ChCollisionSystemType::BULLET;
+#endif
+
     switch (type) {
         case ChCollisionSystemType::BULLET:
             collision_system = chrono_types::make_shared<ChCollisionSystemBullet>();
             break;
         case ChCollisionSystemType::CHRONO:
+#ifdef CHRONO_HAS_THRUST
             collision_system = chrono_types::make_shared<ChCollisionSystemChrono>();
+#endif
             break;
         default:
             GetLog() << "Collision system type not supported. Use SetCollisionSystem instead.\n";

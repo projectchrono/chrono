@@ -23,7 +23,9 @@
 // =============================================================================
 
 #include "chrono/physics/ChSystemSMC.h"
-#include "chrono/collision/ChCollisionSystemChrono.h"
+#ifdef CHRONO_HAS_THRUST
+    #include "chrono/collision/ChCollisionSystemChrono.h"
+#endif
 
 #include "chrono_vehicle/ChConfigVehicle.h"
 #include "chrono_vehicle/ChVehicleModelData.h"
@@ -137,12 +139,18 @@ int main(int argc, char* argv[]) {
     end_time = cli.GetAsType<double>("end_time");
     heartbeat = cli.GetAsType<double>("heartbeat");
     nthreads = cli.GetAsType<int>("nthreads");
-    chrono_collsys = cli.GetAsType<bool>("csys");
     wheel_patches = cli.GetAsType<bool>("wheel_patches");
     parallel_tracks = cli.GetAsType<bool>("parallel_tracks");
 
+    chrono_collsys = cli.GetAsType<bool>("csys");
+#ifndef CHRONO_HAS_THRUST
+    if (chrono_collsys && node_id == 0)
+        cout << "Chrono was not built with Thrust support. Fall back to Bullet collision system." << endl;
+    chrono_collsys = false;
+#endif
+
     vis_rank = cli.GetAsType<int>("vis");
-#if !defined(CHRONO_IRRLICHT)
+#ifndef CHRONO_IRRLICHT
     if (vis_rank >= 0 && node_id == 0)
         cout << "Chrono::Irrlicht not available. Disabling visualization." << endl;
     vis_rank = -1;
@@ -164,9 +172,11 @@ int main(int argc, char* argv[]) {
     sys.Set_G_acc(ChVector<>(0, 0, -9.81));
     sys.SetNumThreads(nthreads, nthreads, 1);
     if (chrono_collsys) {
+#ifdef CHRONO_HAS_THRUST
         auto collsys = chrono_types::make_shared<collision::ChCollisionSystemChrono>();
         collsys->SetBroadphaseGridResolution(ChVector<int>(2, 2, 1));
         sys.SetCollisionSystem(collsys);
+#endif
     }
 
     // ----------------------
