@@ -22,7 +22,6 @@
 #include "chrono_vehicle/ChConfigVehicle.h"
 #include "chrono_vehicle/ChVehicleModelData.h"
 #include "chrono_vehicle/terrain/RigidTerrain.h"
-#include "chrono_vehicle/driver/ChIrrGuiDriver.h"
 #include "chrono_vehicle/utils/ChUtilsJSON.h"
 
 #include "chrono_vehicle/wheeled_vehicle/vehicle/WheeledVehicle.h"
@@ -38,6 +37,7 @@
 #include "chrono_thirdparty/cxxopts/ChCLI.h"
 
 #ifdef CHRONO_IRRLICHT
+    #include "chrono_vehicle/driver/ChIrrGuiDriver.h"
     #include "chrono_vehicle/wheeled_vehicle/utils/ChWheeledVehicleIrrApp.h"
 #endif
 
