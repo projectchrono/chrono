@@ -299,8 +299,8 @@ int main(int argc, char* argv[]) {
     int step_number = 0;
 
     std::chrono::high_resolution_clock::time_point start = std::chrono::high_resolution_clock::now();
-
-    while (app.IsOk() && syn_manager.IsOk()) {
+    bool appok = true;
+    while (appok && syn_manager.IsOk()) {
         double time = vehicle.GetSystem()->GetChTime();
 
         // End simulation
@@ -308,25 +308,28 @@ int main(int argc, char* argv[]) {
             break;
 
         // Render scene
+#ifdef CHRONO_IRRLICHT
         if (step_number % render_steps == 0)
             app.Render();
 
         // Get driver inputs
         ChDriver::Inputs driver_inputs = driver.GetInputs();
-
+#endif
         // Update modules (process inputs from other modules)
         syn_manager.Synchronize(time);  // Synchronize between nodes
-        driver.Synchronize(time);
         terrain.Synchronize(time);
         vehicle.Synchronize(time, driver_inputs, terrain);
+#ifdef CHRONO_IRRLICHT
+        driver.Synchronize(time);
         app.Synchronize("", driver_inputs);
-
         // Advance simulation for one timestep for all modules
         driver.Advance(step_size);
+#endif
         terrain.Advance(step_size);
         vehicle.Advance(step_size);
+#ifdef CHRONO_IRRLICHT
         app.Advance(step_size);
-
+#endif
         // Increment frame number
         step_number++;
 
@@ -337,6 +340,12 @@ int main(int argc, char* argv[]) {
 
             SynLog() << (time_span.count() / 1e3) / time << "\n";
         }
+
+        #ifdef CHRONO_IRRLICHT
+        appok = app.IsOk();
+        #else
+        appok = true;
+        #endif
     }
 
     return 0;
