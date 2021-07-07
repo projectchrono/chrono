@@ -23,8 +23,8 @@
 #include "chrono/physics/ChLinkMotorRotationSpeed.h"
 #include "chrono/assets/ChTexture.h"
 #include "chrono/core/ChRealtimeStep.h"
-#ifdef CHRONO_HAS_THRUST
-#include "chrono/collision/ChCollisionSystemChrono.h"
+#ifdef CHRONO_COLLISION
+    #include "chrono/collision/ChCollisionSystemChrono.h"
 #endif
 
 #include "chrono_irrlicht/ChIrrApp.h"
@@ -188,7 +188,7 @@ int main(int argc, char* argv[]) {
 
     // Settings specific to Chrono multicore collision system
     if (collision_type == collision::ChCollisionSystemType::CHRONO) {
-#ifdef CHRONO_HAS_THRUST
+#ifdef CHRONO_COLLISION
         auto collsys = std::static_pointer_cast<collision::ChCollisionSystemChrono>(sys.GetCollisionSystem());
         // Change the default number of broadphase bins
         collsys->SetBroadphaseGridResolution(ChVector<int>(10, 10, 2));

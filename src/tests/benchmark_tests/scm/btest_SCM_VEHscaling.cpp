@@ -21,7 +21,7 @@
 #include <vector>
 
 #include "chrono/physics/ChSystemSMC.h"
-#ifdef CHRONO_HAS_THRUST
+#ifdef CHRONO_COLLISION
     #include "chrono/collision/ChCollisionSystemChrono.h"
 #endif
 
@@ -102,7 +102,7 @@ int main(int argc, char* argv[]) {
     wheel_patches = cli.GetAsType<bool>("wheel_patches");
 
     chrono_collsys = cli.GetAsType<bool>("csys");
-#ifndef CHRONO_HAS_THRUST
+#ifndef CHRONO_COLLISION
     if (chrono_collsys)
         cout << "Chrono was not built with Thrust support. Fall back to Bullet collision system." << endl;
     chrono_collsys = false;
@@ -125,7 +125,7 @@ int main(int argc, char* argv[]) {
     sys.Set_G_acc(ChVector<>(0, 0, -9.81));
     sys.SetNumThreads(nthreads, nthreads, 1);
     if (chrono_collsys) {
-#ifdef CHRONO_HAS_THRUST
+#ifdef CHRONO_COLLISION
         auto collsys = chrono_types::make_shared<collision::ChCollisionSystemChrono>();
         collsys->SetBroadphaseGridResolution(ChVector<int>(2, 2, 1));
         sys.SetCollisionSystem(collsys);

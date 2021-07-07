@@ -17,7 +17,7 @@
 #include "chrono/physics/ChLoadContainer.h"
 #include "chrono/physics/ChSystemSMC.h"
 #include "chrono/utils/ChUtilsInputOutput.h"
-#ifdef CHRONO_HAS_THRUST
+#ifdef CHRONO_COLLISION
     #include "chrono/collision/ChCollisionSystemChrono.h"
 #endif
 
@@ -103,7 +103,7 @@ int main(int argc, char* argv[]) {
     ChSystemSMC my_system;
     my_system.SetNumThreads(4, 8, 1);
     if (collsys_type == collision::ChCollisionSystemType::CHRONO) {
-#ifdef CHRONO_HAS_THRUST
+#ifdef CHRONO_COLLISION
         auto collsys = chrono_types::make_shared<collision::ChCollisionSystemChrono>();
         collsys->SetBroadphaseGridResolution(ChVector<int>(20, 20, 10));
         my_system.SetCollisionSystem(collsys);
