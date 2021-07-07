@@ -21,7 +21,6 @@
 
 #include "chrono_multicore/ChDataManager.h"
 #include "chrono_multicore/physics/Ch3DOFContainer.h"
-#include "chrono_multicore/collision/ChCollision.h"
 
 #include "chrono/core/ChStream.h"
 
@@ -29,11 +28,7 @@ using namespace chrono;
 using namespace chrono::collision;
 
 ChMulticoreDataManager::ChMulticoreDataManager()
-    : num_rigid_contacts(0),
-      num_rigid_fluid_contacts(0),
-      num_fluid_contacts(0),
-      num_rigid_shapes(0),
-      num_rigid_bodies(0),
+    : num_rigid_bodies(0),
       num_fluid_bodies(0),
       num_unilaterals(0),
       num_bilaterals(0),
@@ -43,31 +38,14 @@ ChMulticoreDataManager::ChMulticoreDataManager()
       num_linmotors(0),
       num_rotmotors(0),
       num_dof(0),
-      num_fea_nodes(0),
-      num_fea_tets(0),
-      num_rigid_tet_contacts(0),
-      num_rigid_tet_node_contacts(0),
-      num_marker_tet_contacts(0),
       nnz_bilaterals(0),
       add_contact_callback(nullptr),
       composition_strategy(new ChMaterialCompositionStrategy) {
     node_container = chrono_types::make_shared<Ch3DOFContainer>();
-    fea_container = chrono_types::make_shared<Ch3DOFContainer>();
     node_container->data_manager = this;
-    fea_container->data_manager = this;
-
-    broadphase = new ChCBroadphase;
-    narrowphase = new ChCNarrowphaseDispatch;
-    aabb_generator = new ChCAABBGenerator;
-    broadphase->data_manager = this;
-    narrowphase->data_manager = this;
-    aabb_generator->data_manager = this;
 }
 
 ChMulticoreDataManager::~ChMulticoreDataManager() {
-    delete narrowphase;
-    delete broadphase;
-    delete aabb_generator;
 }
 
 int ChMulticoreDataManager::OutputBlazeVector(DynamicVector<real> src, std::string filename) {
@@ -99,16 +77,16 @@ int ChMulticoreDataManager::OutputBlazeMatrix(CompressedMatrix<real> src, std::s
 int ChMulticoreDataManager::ExportCurrentSystem(std::string output_dir) {
     int offset = 0;
     if (settings.solver.solver_mode == SolverMode::NORMAL) {
-        offset = num_rigid_contacts;
+        offset = cd_data->num_rigid_contacts;
     } else if (settings.solver.solver_mode == SolverMode::SLIDING) {
-        offset = 3 * num_rigid_contacts;
+        offset = 3 * cd_data->num_rigid_contacts;
     } else if (settings.solver.solver_mode == SolverMode::SPINNING) {
-        offset = 6 * num_rigid_contacts;
+        offset = 6 * cd_data->num_rigid_contacts;
     }
 
     // fill in the information for constraints and friction
     DynamicVector<real> fric(num_constraints, -2.0);
-    for (unsigned int i = 0; i < num_rigid_contacts; i++) {
+    for (unsigned int i = 0; i < cd_data->num_rigid_contacts; i++) {
         if (settings.solver.solver_mode == SolverMode::NORMAL) {
             fric[i] = host_data.fric_rigid_rigid[i].x;
         } else if (settings.solver.solver_mode == SolverMode::SLIDING) {

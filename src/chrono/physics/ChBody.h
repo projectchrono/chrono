@@ -23,6 +23,7 @@
 #include "chrono/physics/ChLoadable.h"
 #include "chrono/physics/ChMarker.h"
 #include "chrono/physics/ChPhysicsItem.h"
+#include "chrono/collision/ChCollisionSystem.h"
 #include "chrono/solver/ChConstraint.h"
 #include "chrono/solver/ChVariablesBodyOwnMass.h"
 
@@ -44,7 +45,7 @@ class ChSystem;
 class ChApi ChBody : public ChPhysicsItem, public ChBodyFrame, public ChContactable_1vars<6>, public ChLoadableUVW {
   public:
     /// Build a rigid body.
-    ChBody();
+    ChBody(collision::ChCollisionSystemType collision_type = collision::ChCollisionSystemType::BULLET);
 
     /// Build a rigid body with a different collision model.
     ChBody(std::shared_ptr<collision::ChCollisionModel> new_collision_model);
@@ -500,9 +501,6 @@ class ChApi ChBody : public ChPhysicsItem, public ChBodyFrame, public ChContacta
     float sleep_starttime;
 
   private:
-    /// Instantiate the collision model
-    virtual std::shared_ptr<collision::ChCollisionModel> InstanceCollisionModel();
-
     // STATE FUNCTIONS
 
     // (override/implement interfaces for global state vectors, see ChPhysicsItem for comments.)

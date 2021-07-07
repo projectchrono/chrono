@@ -21,6 +21,10 @@
 namespace chrono {
 namespace collision {
 
+/// @addtogroup collision_bullet
+/// @{
+
+/// Collision shape for Bullet collision detection system.
 class ChCollisionShapeBullet : public ChCollisionShape {
   public:
     ChCollisionShapeBullet(Type type, std::shared_ptr<ChMaterialSurface> material)
@@ -33,6 +37,8 @@ class ChCollisionShapeBullet : public ChCollisionShape {
 
     friend class ChCollisionModelBullet;
 };
+
+/// @} collision_bullet
 
 }  // end namespace collision
 }  // end namespace chrono

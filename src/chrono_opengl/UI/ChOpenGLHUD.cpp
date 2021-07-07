@@ -172,7 +172,7 @@ void ChOpenGLHUD::GenerateSystem(ChSystem* physics_system) {
     double timer_update = physics_system->GetTimerUpdate();
 #ifdef CHRONO_MULTICORE
     if (ChSystemMulticore* parallel_system = dynamic_cast<ChSystemMulticore*>(physics_system)) {
-        num_shapes = parallel_system->data_manager->num_rigid_shapes + parallel_system->data_manager->num_fluid_bodies;
+        num_shapes = parallel_system->data_manager->cd_data->num_rigid_shapes + parallel_system->data_manager->num_fluid_bodies;
         num_rigid_bodies = parallel_system->data_manager->num_rigid_bodies + parallel_system->GetNphysicsItems();
         num_fluid_bodies = parallel_system->data_manager->num_fluid_bodies;
         num_contacts = parallel_system->GetNcontacts();
@@ -303,8 +303,9 @@ void ChOpenGLHUD::GenerateCD(ChSystem* physics_system) {
         sprintf(buffer, "SIZE  [%07.5f,%07.5f,%07.5f]", bin_size_vec.x, bin_size_vec.y, bin_size_vec.z);
         text.Render(buffer, LEFT, TOP - SPACING * 18, sx, sy);
 
-        sprintf(buffer, "R: %d B: %d F: %d", parallel_sys->data_manager->num_rigid_contacts,
-                parallel_sys->data_manager->num_rigid_fluid_contacts, parallel_sys->data_manager->num_fluid_contacts);
+        sprintf(buffer, "R: %d B: %d F: %d", parallel_sys->data_manager->cd_data->num_rigid_contacts,
+                parallel_sys->data_manager->cd_data->num_rigid_fluid_contacts,
+                parallel_sys->data_manager->cd_data->num_fluid_contacts);
         text.Render(buffer, LEFT, TOP - SPACING * 20, sx, sy);
         sprintf(buffer, "--------------------------------");
         text.Render(buffer, LEFT, TOP - SPACING * 21, sx, sy);

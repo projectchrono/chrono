@@ -841,7 +841,7 @@ void ChCommDistributed::UnpackUpdate(BodyUpdate* buf, std::shared_ptr<ChBody> bo
 // Packs all shapes for a single body into the buffer
 int ChCommDistributed::PackShapes(std::vector<Shape>* buf, int index) {
     int shape_count = ddm->body_shape_count[index];
-    shape_container& shape_data = data_manager->shape_data;
+    shape_container& shape_data = data_manager->cd_data->shape_data;
 
     auto& body = my_sys->Get_bodylist()[index];
 

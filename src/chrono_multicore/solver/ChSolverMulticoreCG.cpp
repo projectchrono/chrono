@@ -35,7 +35,7 @@ uint ChSolverMulticoreCG::Solve(ChShurProduct& ShurProduct,
     q.resize(b.size());
     s.resize(b.size());
 
-    real rho_old = C_LARGE_REAL;
+    real rho_old = C_REAL_MAX;
     real convergence_norm = 0;
     real tolerance = 1e-4;  // Max(1e-4 * Convergence_Norm(b), 1e-6);
     uint min_iterations = 0;
@@ -54,7 +54,7 @@ uint ChSolverMulticoreCG::Solve(ChShurProduct& ShurProduct,
         convergence_norm = Convergence_Norm(r);
         printf("%f\n", convergence_norm);
 
-        if (convergence_norm <= tolerance && (iterations >= min_iterations || convergence_norm < C_EPSILON)) {
+        if (convergence_norm <= tolerance && (iterations >= min_iterations || convergence_norm < C_REAL_EPSILON)) {
             printf("cg iterations %d\n", iterations);
             break;
         }
@@ -71,7 +71,7 @@ uint ChSolverMulticoreCG::Solve(ChShurProduct& ShurProduct,
         ShurProduct(s, q);
         // Project(r.data());
         real s_dot_q = (s, q);
-        real alpha = s_dot_q ? rho / s_dot_q : C_LARGE_REAL;
+        real alpha = s_dot_q ? rho / s_dot_q : C_REAL_MAX;
         x = alpha * s + x;
         r = -alpha * q + r;
         rho_old = rho;

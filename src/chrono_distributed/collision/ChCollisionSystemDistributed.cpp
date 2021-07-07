@@ -18,17 +18,15 @@
 #include "chrono_distributed/collision/ChCollisionModelDistributed.h"
 #include "chrono_distributed/collision/ChCollisionSystemDistributed.h"
 
+#include "chrono/collision/ChCollisionModelChrono.h"
+
 #include "chrono_multicore/ChDataManager.h"
-#include "chrono_multicore/collision/ChBroadphaseUtils.h"
-#include "chrono_multicore/collision/ChCollisionModelMulticore.h"
-#include "chrono_multicore/collision/ChCollisionSystemMulticore.h"
-#include "chrono_multicore/collision/ChCollision.h"
 
 namespace chrono {
 namespace collision {
 
 ChCollisionSystemDistributed::ChCollisionSystemDistributed(ChMulticoreDataManager* dm, ChDistributedDataManager* ddm)
-    : ChCollisionSystemMulticore(dm) {
+    : ChCollisionSystemChronoMulticore(dm) {
     this->ddm = ddm;
     // TODO replace
     this->ddm->local_free_shapes = NULL;
@@ -42,6 +40,9 @@ ChCollisionSystemDistributed::~ChCollisionSystemDistributed() {}
 void ChCollisionSystemDistributed::Add(ChCollisionModel* model) {
     ChMulticoreDataManager* dm = ddm->data_manager;
     ChCollisionModelDistributed* pmodel = static_cast<ChCollisionModelDistributed*>(model);
+
+    auto& shape_data = dm->cd_data->shape_data;
+
     // Find space in ddm vectors - need one index for both start and count
     // need a chunk of body_shapes large enough for all shapes on this body
     int body_index = pmodel->GetBody()->GetId();  // NOTE: Assumes this is set
@@ -148,7 +149,7 @@ void ChCollisionSystemDistributed::Add(ChCollisionModel* model) {
      * beginning at begin_shapes
      */
 
-    // TODO need places for ALL shapes in the model in data_manager->shape_data,
+    // TODO need places for ALL shapes in the model in data_manager->cd_data->shape_data,
     // else need to call collsysPAR::add
 
     // Check for free spaces to insert into (DO need same shape type else can't deactivate that)
@@ -158,33 +159,33 @@ void ChCollisionSystemDistributed::Add(ChCollisionModel* model) {
             // i identifies a shape in the MODEL
 
             // TODO THIS IS THE EXPENSIVE PART
-            // Search data_manager->shape_data for a free and shape-matching spot
-            for (int j = 0; j < dm->shape_data.id_rigid.size(); j++) {
+            // Search shape_data for a free and shape-matching spot
+            for (int j = 0; j < shape_data.id_rigid.size(); j++) {
                 // If the index in the data manager is open and corresponds to the same shape type
-                if (dm->shape_data.id_rigid[j] == UINT_MAX &&
-                    dm->shape_data.typ_rigid[j] == pmodel->GetShape(i)->GetType()) {
+                if (shape_data.id_rigid[j] == UINT_MAX &&
+                    shape_data.typ_rigid[j] == pmodel->GetShape(i)->GetType()) {
                     free_dm_shapes.push_back(j);
                     break;  // Found spot for this shape, break inner loop to get new i (shape)
                 }
                 // TODO: Early break from both loops if a spot cannot be found for a shape
-            }  // End for loop over the slots in data_manager->shape_data
-        }      // End for loop over the shapes for this model
+            }
+        }
     }
     // If there is space for ALL shapes in the model in the data_manager
     // unload them.
     if (free_dm_shapes.size() == needed_count) {
         for (int i = 0; i < needed_count; i++) {
             // i identifies a shape in the MODEL
-            auto shape = std::static_pointer_cast<ChCollisionShapeMulticore>(pmodel->GetShape(i));
+            auto shape = std::static_pointer_cast<ChCollisionShapeChrono>(pmodel->GetShape(i));
 
-            int j = free_dm_shapes[i];  // Index into dm->shape_data
+            int j = free_dm_shapes[i];  // Index into shape_data
 
-            dm->shape_data.id_rigid[j] = body_index;
+            shape_data.id_rigid[j] = body_index;
             ddm->body_shapes[begin_shapes + i] = j;
             ddm->dm_free_shapes[j] = false;
 
             // type_rigid and start_rigid are unchanged because the shape type is the same
-            int start = dm->shape_data.start_rigid[j];
+            int start = shape_data.start_rigid[j];
 
             real3 obA = shape->A;
             real3 obB = shape->B;
@@ -194,54 +195,53 @@ void ChCollisionSystemDistributed::Add(ChCollisionModel* model) {
 
             switch (shape->GetType()) {
                 case ChCollisionShape::Type::SPHERE:
-                    dm->shape_data.sphere_rigid[start] = obB.x;
+                    shape_data.sphere_rigid[start] = obB.x;
                     break;
                 case ChCollisionShape::Type::TRIANGLEMESH:  // NOTE: There is space for all 3
-                    dm->shape_data.triangle_rigid[start] = obA;
-                    dm->shape_data.triangle_rigid[start + 1] = obB;
-                    dm->shape_data.triangle_rigid[start + 2] = obC;
+                    shape_data.triangle_rigid[start] = obA;
+                    shape_data.triangle_rigid[start + 1] = obB;
+                    shape_data.triangle_rigid[start + 2] = obC;
                     break;
                 case ChCollisionShape::Type::ELLIPSOID:
-                    dm->shape_data.box_like_rigid[start] = obB;
+                    shape_data.box_like_rigid[start] = obB;
                     break;
                 case ChCollisionShape::Type::BOX:
-                    dm->shape_data.box_like_rigid[start] = obB;
+                    shape_data.box_like_rigid[start] = obB;
                     break;
                 case ChCollisionShape::Type::CYLINDER:
-                    dm->shape_data.box_like_rigid[start] = obB;
+                    shape_data.box_like_rigid[start] = obB;
                     break;
                 case ChCollisionShape::Type::CONE:
-                    dm->shape_data.box_like_rigid[start] = obB;
+                    shape_data.box_like_rigid[start] = obB;
                     break;
                 case ChCollisionShape::Type::CAPSULE:
-                    dm->shape_data.capsule_rigid[start] = real2(obB.x, obB.y);
+                    shape_data.capsule_rigid[start] = real2(obB.x, obB.y);
                     break;
                 case ChCollisionShape::Type::ROUNDEDBOX:
-                    dm->shape_data.rbox_like_rigid[start] = real4(obB, obC.x);
+                    shape_data.rbox_like_rigid[start] = real4(obB, obC.x);
                     break;
                 case ChCollisionShape::Type::ROUNDEDCYL:
-                    dm->shape_data.rbox_like_rigid[start] = real4(obB, obC.x);
+                    shape_data.rbox_like_rigid[start] = real4(obB, obC.x);
                     break;
                 case ChCollisionShape::Type::ROUNDEDCONE:
-                    dm->shape_data.rbox_like_rigid[start] = real4(obB, obC.x);
+                    shape_data.rbox_like_rigid[start] = real4(obB, obC.x);
                     break;
                 default:
                     ddm->my_sys->ErrorAbort("Shape not supported\n");
             }
 
-            dm->shape_data.ObA_rigid[j] = obA;
-            dm->shape_data.ObR_rigid[j] = shape->R;
-            dm->shape_data.fam_rigid[j] = fam;
+            shape_data.ObA_rigid[j] = obA;
+            shape_data.ObR_rigid[j] = shape->R;
+            shape_data.fam_rigid[j] = fam;
         }
     }
     // If there was not enough space in the data_manager for all shapes in the model,
     // call the regular add // TODO faster jump to here
     else {
-        this->ChCollisionSystemMulticore::Add(model);
+        this->ChCollisionSystemChronoMulticore::Add(model);
         for (int i = 0; i < needed_count; i++) {
             ddm->dm_free_shapes.push_back(false);
-            ddm->body_shapes[begin_shapes] =
-                static_cast<int>(dm->shape_data.id_rigid.size()) - needed_count + i;  // TODO ?
+            ddm->body_shapes[begin_shapes] = static_cast<int>(shape_data.id_rigid.size()) - needed_count + i;  // TODO ?
             begin_shapes++;
         }
     }
@@ -425,7 +425,7 @@ void ChCollisionSystemDistributed::Add(ChCollisionModel* model) {
 //     // If there was not enough space in the data_manager for all shapes in the model,
 //     // call the regular add // TODO faster jump to here
 //     else {
-//         this->ChCollisionSystemMulticore::Add(model);
+//         this->ChCollisionSystemChronoMulticore::Add(model);
 //         for (int i = 0; i < needed_count; i++) {
 //             ddm->dm_free_shapes.push_back(false);
 //             ddm->body_shapes[begin_shapes] = dm->shape_data.id_rigid.size() - needed_count + i;  // TODO ?
@@ -439,17 +439,17 @@ void ChCollisionSystemDistributed::Add(ChCollisionModel* model) {
 // Id must be set before calling
 // Deactivates all shapes associated with the collision model
 void ChCollisionSystemDistributed::Remove(ChCollisionModel* model) {
-    ChCollisionModelMulticore* pmodel = static_cast<ChCollisionModelMulticore*>(model);
+    ChCollisionModelChrono* pmodel = static_cast<ChCollisionModelChrono*>(model);
     uint id = pmodel->GetBody()->GetId();
     int count = pmodel->GetNumShapes();
     int start = ddm->body_shape_start[id];
 
     for (int i = 0; i < count; i++) {
         int index = start + i;
-        ddm->dm_free_shapes[ddm->body_shapes[index]] = true;  // Marks the spot in data_manager->shape_data as free
+        ddm->dm_free_shapes[ddm->body_shapes[index]] = true;  // Marks the spot in shape_data as free
 
         // Forces collision detection to ignore this shape
-        ddm->data_manager->shape_data.id_rigid[ddm->body_shapes[index]] = UINT_MAX;
+        ddm->data_manager->cd_data->shape_data.id_rigid[ddm->body_shapes[index]] = UINT_MAX;
     }
 
     // TODO better Search.
@@ -514,15 +514,15 @@ void ChCollisionSystemDistributed::Remove(ChCollisionModel* model) {
 }
 
 void ChCollisionSystemDistributed::GetOverlappingAABB(custom_vector<char>& active_id, real3 Amin, real3 Amax) {
-    ddm->data_manager->aabb_generator->GenerateAABB();
+    GenerateAABB();
     ////#pragma omp parallel for
-    for (int i = 0; i < ddm->data_manager->shape_data.typ_rigid.size(); i++) {
-        auto id_rigid = ddm->data_manager->shape_data.id_rigid[i];
+    for (int i = 0; i < ddm->data_manager->cd_data->shape_data.typ_rigid.size(); i++) {
+        auto id_rigid = ddm->data_manager->cd_data->shape_data.id_rigid[i];
         if (id_rigid == UINT_MAX) {
             continue;
         }
-        real3 Bmin = ddm->data_manager->host_data.aabb_min[i];
-        real3 Bmax = ddm->data_manager->host_data.aabb_max[i];
+        real3 Bmin = ddm->data_manager->cd_data->aabb_min[i];
+        real3 Bmax = ddm->data_manager->cd_data->aabb_max[i];
 
         bool inContact = (Amin.x <= Bmax.x && Bmin.x <= Amax.x) && (Amin.y <= Bmax.y && Bmin.y <= Amax.y) &&
                          (Amin.z <= Bmax.z && Bmin.z <= Amax.z);

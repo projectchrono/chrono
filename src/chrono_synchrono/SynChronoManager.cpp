@@ -9,7 +9,16 @@ namespace chrono {
 namespace synchrono {
 
 SynChronoManager::SynChronoManager(SynNodeID nid, SynAgentNum num_nodes, std::shared_ptr<SynCommunicator> communicator)
-    : m_is_ok(true), m_initialized(false), m_nid(nid), m_num_nodes(num_nodes), m_heartbeat(1e-2), m_next_sync(0.0) {
+    : m_is_ok(true),
+      m_initialized(false),
+      m_nid(nid),
+      m_num_nodes(num_nodes),
+      m_heartbeat(1e-2),
+      m_next_sync(0.0),
+      m_time_update(0),
+      m_time_msg_gather(0),
+      m_time_communication(0),
+      m_time_msg_process(0) {
     if (communicator)
         SetCommunicator(communicator);
 
@@ -117,23 +126,42 @@ void SynChronoManager::Synchronize(double time) {
     if (time < m_next_sync)
         return;
 
+    // Reset timers
+    m_timer_update.reset();
+    m_timer_msg_gather.reset();
+    m_timer_communication.reset();
+    m_timer_msg_process.reset();
+
     // Call update for each underlying agent
+    m_timer_update.start();
     UpdateAgents();
+    m_timer_update.stop();
 
     // Gather messages from each node and add those to the communicator
     // Only add the messages to the communicator which is responsible for commuticating with that node
+    m_timer_msg_gather.start();
     SynMessageList messages = GatherMessages();
     m_communicator->AddOutgoingMessages(messages);
+    m_timer_msg_gather.stop();
 
     // Send the messages out to each node and receive any other messages
+    m_timer_communication.start();
     m_communicator->Synchronize();
+    m_timer_communication.stop();
 
     // Process any received data
     // Will most likely contain state or general purpose messages
-    ProcessReceivedMessages();
-
     // Distribute the organized messages
+    m_timer_msg_process.start();
+    ProcessReceivedMessages();
     DistributeMessages();
+    m_timer_msg_process.stop();
+
+    // Accumulate timers
+    m_time_update += m_timer_update();
+    m_time_msg_gather += m_timer_msg_gather();
+    m_time_communication += m_timer_communication();
+    m_time_msg_process += m_timer_msg_process();
 
     // Reset
     m_communicator->Reset();     // Reset the communicator
@@ -152,6 +180,14 @@ void SynChronoManager::QuitSimulation() {
         m_communicator->Synchronize();
         m_is_ok = false;
     }
+}
+
+void SynChronoManager::PrintStepStatistics(std::ostream& os) const {
+    os << " Timers (ms [s]):" << std::endl;
+    os << "   Agent update:    " << 1e3 * m_timer_update() << "  [" << m_time_update << "]" << std::endl;
+    os << "   Msg. generation: " << 1e3 * m_timer_msg_gather() << "  [" << m_time_msg_gather << "]" << std::endl;
+    os << "   Communication:   " << 1e3 * m_timer_communication() << "  [" << m_time_communication << "]" << std::endl;
+    os << "   Msg. processing: " << 1e3 * m_timer_msg_process() << "  [" << m_time_msg_process << "]" << std::endl;
 }
 
 // --------------------------------------------------------------------------------------------------------------
@@ -237,7 +273,7 @@ void SynChronoManager::CreateAgentsFromDescriptions() {
                 }
                 it = messages.erase(it);
 
-            } catch (ChException& err) {
+            } catch (const ChException&) {
                 ++it;
             }
         }
