@@ -5,6 +5,7 @@ Change Log
 ==========
 
 - [Unreleased (development version)](#unreleased-development-branch)
+  - [New multicore collision detection system](#added-new-multicore-collision-detection-system)
   - [Miscellaneous additions to Chrono::Gpu](#added-miscellaneous-additions-to-chronogpu)
   - [New loads for ChNodeFEAxyzrot](#added-new-loads-for-chnodefeaxyzrot)
   - [Analytical box-box collision detection algorithm in Chrono::Multicore](#added-analytical-box-box-collision-detection-algorithm-in-chronomulticore)
@@ -45,7 +46,98 @@ Change Log
 
 ## Unreleased (development branch)
 
-## [Added] Miscellaneous additions to Chrono::Gpu
+### [Added] New multicore collision detection system
+
+The collision detection system previously embedded in Chrono::Multicore was updated and also made available to the usual Chrono systems (ChSystemNSC and ChSystemSMC) as an alternative to the Bullet-based collision detection system.  The new collision detection system (`ChCollisionSystemChrono`) uses a single-level adaptive grid for broadphase; for the narrowphase, it uses analytical intersection functions for certain pairs of known primitive shapes with fallback to an MPR (Minkovski Portal Refinement) alhgorithm.  In addition to the features previously available in Chrono::Multicore, the new stand-alone collision detection system includes additional analytical collision functions (e.g., for box-box interaction), as well as support for ray intersection.
+
+The new collision system requires the `Thrust` library which is included in the CUDA toolkit or stand-alone (https://github.com/NVIDIA/thrust). If Thrust is available at configuration time, the `ChConfig.h` header defines a macro `CHRONO_COLLISION` (which can be used in user code to check availability of the new collision detection system).
+
+The collision system type is specified through the enum `chrono::collision::ChCollisionSystemType` with valid values `BULLET` or `CHRONO`.  
+By default, both ChSystemNSC and ChSystemSMC use the Bullet-based collision detection system.  Use of the new collision detection system can be enabled either by calling `ChSystem::SetCollisionSystemType` or else by constructing an object of type `ChCollisionSystemChrono` and then calling `ChSystem::SetCollisionSystem`. The latter method allows for changing various parameters controlling the broadphase and narrowphase algorithms from their default values.  For example:
+```cpp
+chrono::ChSystemSMC sys;
+//...
+sys.SetCollisionSystemType(chrono::collision::ChCollisionSystemType::CHRONO);
+```
+or
+```cpp
+#include "chrono/ChConfig.h"
+#ifdef CHRONO_COLLISION
+#include "chrono/collision/ChCollisionSystemChrono.h"
+#endif
+// ...
+chrono::ChSystemSMC sys;
+// ...
+#ifdef CHRONO_COLLISION
+auto collsys = chrono_types::make_shared<chrono::collision::ChCollisionSystemChrono>();
+collsys->SetBroadphaseGridResolution(ChVector<int>(2, 2, 1));
+sys.SetCollisionSystem(collsys);
+#endif
+```
+On the other hand, a Chrono::Multicore system (`ChSystemMulticoreNSC` or `ChSystemMulticoreSMC`) defaults to using the new multicore collision detection system.
+
+See the documentation of `ChCollisionSystemChrono` for details on the various parameters controlling the behavior of the underlying algorithms.  Note that, for backward compatibility, the existing mechanism for setting algorithmic parameters in Chrono::Multicore was preserved.  In other words, one can still use code such as:
+```cpp
+chrono::ChSystemMulticoreNSC sys;
+// ...
+sys.GetSettings()->collision.collision_envelope = 0.01;
+sys.GetSettings()->collision.bins_per_axis = vec3(10, 10, 10);
+```
+
+Because of the different underlying data structures, the Chrono multicore collision detection system requires collision models of the new type `ChCollisionModelChrono`. As such, the `ChBody` constructor was modified to take the collision system type as an argument (default `BULLET`). Constructors for the various `ChBodyEasy***` classes that take the collision system type as an argument are also provided. The user must ensure that objects with **compatible** collision models are added to a system! For example:
+```cpp
+auto collision_type = chrono::collision::ChCollisionSystemType::CHRONO;
+chrono::ChSystemNSC sys;
+sys.SetCollisionSystemType(collision_type);
+// ...
+auto body = chrono_types::make_shared<chrono::ChBody>(collision_type);
+sys.AddBody(body);
+// ...
+```
+
+Alternatively, for a more flexible code, one can use the `ChSystem::NewBody` and `ChSystem::NewBodyAuxRef` to construct a ChBody or ChBodyAuxRef, respectively, with a collision model consistent with the current collision system.  This assumes that the underlying collision system in the Chrono system was already set with one of the methods mentioned above:
+```cpp
+auto collision_type = chrono::collision::ChCollisionSystemType::CHRONO;
+chrono::ChSystemNSC sys;
+sys.SetCollisionSystemType(collision_type);
+// ...
+auto body = std::shared_ptr<chrono::ChBody>(sys.NewBody());
+```
+
+A few of the Chrono demos were modified to illustrate the use of the new collision detection system (e.g., demo_IRR_collisionSMC, demo_IRR_collisionNSC, demo_IRR_motors), while a new demo_IRR_raycast_test demostrates the ray intersection capabilities.
+
+**Features.**
+Some of the salient features of the new multicore collision detection system are:
+- analytical collision functions for several pairs of shapes (dynamic dispatching based on shape type if using the default `ChNarrowphase::Algorithm::HYBRID` narrowphase strategy):
+
+ |                |     _sphere_       |        _box_       |       _rbox_       |      _capsule_     |      _cylinder_    |       _rcyl_       |     _trimesh_      | 
+ | -------------- |     :------:       |        :---:       |       :----:       |      :-------:     |      :--------:    |       :----:       |     :-------:      |
+ | _**sphere**_   | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: |
+ | _**box**_      |                    | :heavy_check_mark: |         :x:        | :heavy_check_mark: |          :x:       |         :x:        |        :x:         |
+ | _**rbox**_     |                    |                    |         :x:        |         :x:        |          :x:       |         :x:        |        :x:         |
+ | _**capsule**_  |                    |                    |                    | :heavy_check_mark: |          :x:       |         :x:        |        :x:         |
+ | _**cylinder**_ |                    |                    |                    |                    |          :x:       |         :x:        |        :x:         |
+ | _**rcyl**_     |                    |                    |                    |                    |                    |         :x:        |        :x:         |
+ | _**trimesh**_  |                    |                    |                    |                    |                    |                    |        :x:         |
+
+- analytical collision functions for non-strictly convex shapes produce multiple collision points, as appropriate (e.g., up to 8 for box-box).
+- support for efficient intersection tests of mono-disperse spherical 3-D particle systems.
+- calculations done in double precision.
+- multicore parallel broadphase and narrowphase 
+- definition of the broadphase grid with fixed number of cells, fixed cell dimensions, or fixed shape density.
+- support for an optional "active" axis-aligned bounding box (objects leaving this area are automatically disabled).
+- ray casting is thread safe (i.e., multiple ray intersectino tests can be done concurrently, for example in a parallel OpenMP for loop).
+
+**Limitations.**
+The main limitation of the new multicore collision detection system is that removal of collision models from the collision system is currently not supported.  As such, bodies with collision enabled cannot be removed from the system once added.
+
+**Work in progress.**
+The following enhancements are currenty under development:
+- ray intersection with generic convex shapes
+- support for collision of flexible bodies
+
+
+### [Added] Miscellaneous additions to Chrono::Gpu
 
 The location of the computational domain can now be specified (in addition to its dimensions) through a fourth optional constructor argument of `ChSystemGpu` and `ChSystemGpuMesh`. By default, the axis-aligned computational domain is centered at the origin.  As such,
 ```cpp
