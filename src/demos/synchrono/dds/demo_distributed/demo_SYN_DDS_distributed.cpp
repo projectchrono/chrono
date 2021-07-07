@@ -257,7 +257,6 @@ int main(int argc, char* argv[]) {
 
     // Create the terrain
     RigidTerrain terrain(vehicle.GetSystem(), vehicle::GetDataFile("terrain/RigidPlane.json"));
-
     // Create the vehicle Irrlicht interface
 #ifdef CHRONO_IRRLICHT
     IrrAppWrapper app;
@@ -314,7 +313,6 @@ int main(int argc, char* argv[]) {
     driver.GetSpeedController().SetGains(0.4, 0, 0);
     driver.GetSteeringController().SetGains(0.4, 0.1, 0.2);
     driver.GetSteeringController().SetLookAheadDistance(2);
-
 #endif
     // ---------------
     // Simulation loop
@@ -346,12 +344,12 @@ int main(int argc, char* argv[]) {
         syn_manager.Synchronize(time);  // Synchronize between nodes
         terrain.Synchronize(time);
         vehicle.Synchronize(time, driver_inputs, terrain);
-#ifdef CHRONO_IRRLICHT
         driver.Synchronize(time);
+#ifdef CHRONO_IRRLICHT
         app.Synchronize("", driver_inputs);
+#endif
         // Advance simulation for one timestep for all modules
         driver.Advance(step_size);
-#endif
         terrain.Advance(step_size);
         vehicle.Advance(step_size);
 #ifdef CHRONO_IRRLICHT
