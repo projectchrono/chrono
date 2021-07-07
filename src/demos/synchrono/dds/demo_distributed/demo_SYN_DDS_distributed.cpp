@@ -33,7 +33,8 @@
 #include "chrono_synchrono/communication/dds/SynDDSCommunicator.h"
 #include "chrono_synchrono/utils/SynLog.h"
 #include "chrono_synchrono/utils/SynDataLoader.h"
-
+#include "chrono_vehicle/driver/ChPathFollowerDriver.h"
+#include "chrono_vehicle/utils/ChVehiclePath.h"
 #include "chrono_thirdparty/cxxopts/ChCLI.h"
 
 #ifdef CHRONO_IRRLICHT
@@ -287,6 +288,32 @@ int main(int argc, char* argv[]) {
         app.Set(temp_app);
         driver.Set(irr_driver);
     }
+#else
+    double target_speed = 10;
+    // Calculate initial position and paths for each vehicle
+    double pathLength = 1.5 * target_speed * end_time;
+
+    ChVector<> init_loc;
+    ChQuaternion<> init_rot;
+    std::shared_ptr<ChBezierCurve> path;
+    if (node_id % 2 == 0) {
+        // Start even vehicles in a row on the south side, driving north
+        init_loc = ChVector<>(0, 2.0 * (node_id + 1), 0.5);
+        init_rot = Q_from_AngZ(0);
+        path = StraightLinePath(init_loc, init_loc + ChVector<>(pathLength, 0, 0));
+    } else {
+        // Start odd vehicles staggered going up the west edge, driving east
+        init_loc = ChVector<>(2.0 * (node_id - 1), -5.0 - 2.0 * (node_id - 1), 0.5);
+        init_rot = Q_from_AngZ(CH_C_PI / 2);
+        path = StraightLinePath(init_loc, init_loc + ChVector<>(0, pathLength, 0));
+    }
+    ChPathFollowerDriver driver(vehicle, path, "Box path", target_speed);
+    driver.Initialize();
+
+    // Reasonable defaults for the underlying PID
+    driver.GetSpeedController().SetGains(0.4, 0, 0);
+    driver.GetSteeringController().SetGains(0.4, 0.1, 0.2);
+    driver.GetSteeringController().SetLookAheadDistance(2);
 
 #endif
     // ---------------
@@ -312,9 +339,9 @@ int main(int argc, char* argv[]) {
         if (step_number % render_steps == 0)
             app.Render();
 
+#endif
         // Get driver inputs
         ChDriver::Inputs driver_inputs = driver.GetInputs();
-#endif
         // Update modules (process inputs from other modules)
         syn_manager.Synchronize(time);  // Synchronize between nodes
         terrain.Synchronize(time);
