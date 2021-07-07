@@ -146,6 +146,7 @@ void mrole_VehicleReduced::Initialize(const ChCoordsys<>& chassisPos, double cha
         case DrivelineTypeWV::RWD:
             driven_susp_indexes[0] = 1;
             break;
+        default:
         case DrivelineTypeWV::AWD:
         case DrivelineTypeWV::SIMPLE:
             driven_susp_indexes[0] = 0;

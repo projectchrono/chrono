@@ -160,6 +160,7 @@ void HMMWV_VehicleFull::Initialize(const ChCoordsys<>& chassisPos, double chassi
         case DrivelineTypeWV::RWD:
             driven_susp_indexes[0] = 1;
             break;
+        default:
         case DrivelineTypeWV::AWD:
         case DrivelineTypeWV::SIMPLE:
             driven_susp_indexes[0] = 0;

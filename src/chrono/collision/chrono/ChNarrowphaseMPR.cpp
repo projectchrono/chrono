@@ -189,24 +189,21 @@ real Vec3PointSegmentDist2(const real3& P, const real3& x0, const real3& b) {
 }
 
 real Vec3PointTriDist2(const real3& P, const real3& x0, const real3& B, const real3& C, real3& witness) {
-    real3 d1, d2, a;
-    real u, v, w, p, q, r;
-    real s, t, dist, dist2;
-    real3 witness2;
+    real dist;
 
-    d1 = B - x0;
-    d2 = C - x0;
-    a = x0 - P;
+    real3 d1 = B - x0;
+    real3 d2 = C - x0;
+    real3 a = x0 - P;
 
-    u = Dot(a, a);
-    v = Dot(d1, d1);
-    w = Dot(d2, d2);
-    p = Dot(a, d1);
-    q = Dot(a, d2);
-    r = Dot(d1, d2);
+    real u = Dot(a, a);
+    real v = Dot(d1, d1);
+    real w = Dot(d2, d2);
+    real p = Dot(a, d1);
+    real q = Dot(a, d2);
+    real r = Dot(d1, d2);
 
-    s = (q * r - w * p) / (w * v - r * r);
-    t = (-s * r - q) / w;
+    real s = (q * r - w * p) / (w * v - r * r);
+    real t = (-s * r - q) / w;
     if ((IsZero(s) || s > 0.0) && (IsEqual(s, real(1.0)) || s < real(1.0)) && (IsZero(t) || t > 0.0) &&
         (IsEqual(t, real(1.0)) || t < real(1.0)) && (IsEqual(t + s, real(1.0)) || t + s < real(1.0))) {
         d1 *= s;
@@ -217,8 +214,9 @@ real Vec3PointTriDist2(const real3& P, const real3& x0, const real3& B, const re
 
         dist = Vec3Dist2(witness, P);
     } else {
+        real3 witness2;
         dist = Vec3PointSegmentDist2(P, x0, B, witness);
-        dist2 = Vec3PointSegmentDist2(P, x0, C, witness2);
+        real dist2 = Vec3PointSegmentDist2(P, x0, C, witness2);
         if (dist2 < dist) {
             dist = dist2;
             witness = witness2;
@@ -229,6 +227,7 @@ real Vec3PointTriDist2(const real3& P, const real3& x0, const real3& B, const re
             witness = witness2;
         }
     }
+
     return dist;
 }
 
