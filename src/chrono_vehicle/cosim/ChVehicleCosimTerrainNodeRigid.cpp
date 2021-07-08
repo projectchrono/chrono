@@ -437,14 +437,14 @@ void ChVehicleCosimTerrainNodeRigid::PrintMeshProxiesContactData() {
     // Note that proxy body identifiers match the index of the associated mesh vertex.
     auto bodies = m_system->Get_bodylist();
     auto dm = m_system->data_manager;
-    auto& bids = dm->host_data.bids_rigid_rigid;
+    auto& bids = dm->cd_data->bids_rigid_rigid;
     ////auto& cpta = dm->host_data.cpta_rigid_rigid;
     ////auto& cptb = dm->host_data.cptb_rigid_rigid;
-    auto& dpth = dm->host_data.dpth_rigid_rigid;
-    auto& norm = dm->host_data.norm_rigid_rigid;
+    auto& dpth = dm->cd_data->dpth_rigid_rigid;
+    auto& norm = dm->cd_data->norm_rigid_rigid;
     std::set<int> vertices_in_contact;
-    cout << "[Terrain node] contact information (" << dm->num_rigid_contacts << ")" << endl;
-    for (uint ic = 0; ic < dm->num_rigid_contacts; ic++) {
+    cout << "[Terrain node] contact information (" << dm->cd_data->num_rigid_contacts << ")" << endl;
+    for (uint ic = 0; ic < dm->cd_data->num_rigid_contacts; ic++) {
         int idA = bids[ic].x;
         int idB = bids[ic].y;
         int indexA = bodies[idA]->GetIdentifier();

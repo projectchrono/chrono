@@ -112,7 +112,7 @@ ChVehicleCosimTerrainNodeGranularOMP::ChVehicleCosimTerrainNodeGranularOMP(ChCon
     m_system->GetSettings()->solver.use_full_inertia_tensor = false;
     m_system->GetSettings()->solver.tolerance = 0.1;
     m_system->GetSettings()->solver.max_iteration_bilateral = 100;
-    m_system->GetSettings()->collision.narrowphase_algorithm = NarrowPhaseType::NARROWPHASE_HYBRID_MPR;
+    m_system->GetSettings()->collision.narrowphase_algorithm = collision::ChNarrowphase::Algorithm::HYBRID;
 
     // Set default number of threads
     m_system->SetNumThreads(1);
@@ -160,7 +160,7 @@ ChVehicleCosimTerrainNodeGranularOMP::ChVehicleCosimTerrainNodeGranularOMP(ChCon
     m_system->GetSettings()->solver.use_full_inertia_tensor = false;
     m_system->GetSettings()->solver.tolerance = 0.1;
     m_system->GetSettings()->solver.max_iteration_bilateral = 100;
-    m_system->GetSettings()->collision.narrowphase_algorithm = NarrowPhaseType::NARROWPHASE_HYBRID_MPR;
+    m_system->GetSettings()->collision.narrowphase_algorithm = collision::ChNarrowphase::Algorithm::HYBRID;
 
     // Set default number of threads
     m_system->SetNumThreads(1);
@@ -798,7 +798,7 @@ void ChVehicleCosimTerrainNodeGranularOMP::CreateWheelProxy() {
 void ChVehicleCosimTerrainNodeGranularOMP::UpdateMeshProxies() {
     // Readability replacement: shape_data contains all triangle vertex locations, in groups
     // of three real3, one group for each triangle.
-    auto& shape_data = m_system->data_manager->shape_data.triangle_rigid;
+    auto& shape_data = m_system->data_manager->cd_data->shape_data.triangle_rigid;
 
     for (unsigned int it = 0; it < m_mesh_data.nt; it++) {
         // Vertex locations (expressed in global frame)
