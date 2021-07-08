@@ -387,6 +387,10 @@ int main(int argc, char* argv[]) {
                     PrintStepStatistics(cout, sys);
                     cout << "\n[" << node_id << "] Synchrono stats for last step:" << endl;
                     syn_manager.PrintStepStatistics(cout);
+                    cout << "\nRTF for all nodes:" << endl;
+                    for (int i = 0; i < num_nodes; i++)
+                        cout << all_rtf[i] << "  ";
+                    cout << endl;
                 }
                 stats_done = true;
             }
