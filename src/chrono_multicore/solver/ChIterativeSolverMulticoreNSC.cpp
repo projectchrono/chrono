@@ -34,25 +34,25 @@ using namespace chrono;
 
 void ChIterativeSolverMulticoreNSC::RunTimeStep() {
     // Compute the offsets and number of constrains depending on the solver mode
+    const auto num_rigid_contacts = data_manager->cd_data->num_rigid_contacts;
+
     if (data_manager->settings.solver.solver_mode == SolverMode::NORMAL) {
         data_manager->rigid_rigid->offset = 1;
-        data_manager->num_unilaterals = 1 * data_manager->num_rigid_contacts;
+        data_manager->num_unilaterals = 1 * num_rigid_contacts;
     } else if (data_manager->settings.solver.solver_mode == SolverMode::SLIDING) {
         data_manager->rigid_rigid->offset = 3;
-        data_manager->num_unilaterals = 3 * data_manager->num_rigid_contacts;
+        data_manager->num_unilaterals = 3 * num_rigid_contacts;
     } else if (data_manager->settings.solver.solver_mode == SolverMode::SPINNING) {
         data_manager->rigid_rigid->offset = 6;
-        data_manager->num_unilaterals = 6 * data_manager->num_rigid_contacts;
+        data_manager->num_unilaterals = 6 * num_rigid_contacts;
     }
 
     uint num_3dof_3dof = data_manager->node_container->GetNumConstraints();
-    uint num_tet_constraints = data_manager->fea_container->GetNumConstraints();
 
     // Get the number of 3dof constraints, from the 3dof container in use right now
 
     // This is the total number of constraints
-    data_manager->num_constraints =
-        data_manager->num_unilaterals + data_manager->num_bilaterals + num_3dof_3dof + num_tet_constraints;
+    data_manager->num_constraints = data_manager->num_unilaterals + data_manager->num_bilaterals + num_3dof_3dof;
     LOG(INFO) << "ChIterativeSolverMulticoreNSC::RunTimeStep S num_constraints: " << data_manager->num_constraints;
     // Generate the mass matrix and compute M_inv_k
     ComputeInvMassMatrix();
@@ -65,7 +65,6 @@ void ChIterativeSolverMulticoreNSC::RunTimeStep() {
     data_manager->rigid_rigid->Setup(data_manager);
     data_manager->bilateral->Setup(data_manager);
     data_manager->node_container->Setup3DOF(data_manager->num_unilaterals + data_manager->num_bilaterals);
-    data_manager->fea_container->Setup3DOF(data_manager->num_unilaterals + data_manager->num_bilaterals + num_3dof_3dof);
 
     // Clear and reset solver history data and counters
     solver->current_iteration = 0;
@@ -91,7 +90,6 @@ void ChIterativeSolverMulticoreNSC::RunTimeStep() {
     data_manager->system_timer.start("ChIterativeSolverMulticore_Solve");
 
     data_manager->node_container->PreSolve();
-    data_manager->fea_container->PreSolve();
 
     if (data_manager->num_constraints > 0) {
         // Rhs should be updated with latest velocity after presolve
@@ -102,7 +100,6 @@ void ChIterativeSolverMulticoreNSC::RunTimeStep() {
     }
     ShurProductFull.Setup(data_manager);
     ShurProductBilateral.Setup(data_manager);
-    ShurProductFEM.Setup(data_manager);
     ProjectFull.Setup(data_manager);
 
     PerformStabilization();
@@ -154,7 +151,7 @@ void ChIterativeSolverMulticoreNSC::RunTimeStep() {
     }
 
     //    DynamicVector<real> temp(data_manager->num_rigid_bodies * 6, 0.0);
-    //    DynamicVector<real> output(data_manager->num_rigid_contacts * 3, 0.0);
+    //    DynamicVector<real> output(num_rigid_contacts * 3, 0.0);
     //
     //    // DynamicVector<real> temp(data_manager->num_fluid_bodies * 3, 0.0);
     //    // DynamicVector<real> output(data_manager->num_fluid_bodies, 0.0);
@@ -181,7 +178,6 @@ void ChIterativeSolverMulticoreNSC::RunTimeStep() {
 
     data_manager->Fc_current = false;
     data_manager->node_container->PostSolve();
-    data_manager->fea_container->PostSolve();
 
     data_manager->system_timer.stop("ChIterativeSolverMulticore_Solve");
 
@@ -209,7 +205,7 @@ void ChIterativeSolverMulticoreNSC::ComputeD() {
     }
 
     uint num_dof = data_manager->num_dof;
-    uint num_rigid_contacts = data_manager->num_rigid_contacts;
+    uint num_rigid_contacts = data_manager->cd_data->num_rigid_contacts;
     uint num_bilaterals = data_manager->num_bilaterals;
     uint nnz_bilaterals = data_manager->nnz_bilaterals;
 
@@ -224,15 +220,12 @@ void ChIterativeSolverMulticoreNSC::ComputeD() {
     uint num_fluid_fluid = data_manager->node_container->GetNumConstraints();
     uint nnz_fluid_fluid = data_manager->node_container->GetNumNonZeros();
 
-    uint num_fem = data_manager->fea_container->GetNumConstraints();
-    uint nnz_fem = data_manager->fea_container->GetNumNonZeros();
-
     CompressedMatrix<real>& D_T = data_manager->host_data.D_T;
     CompressedMatrix<real>& M_invD = data_manager->host_data.M_invD;
     const CompressedMatrix<real>& M_inv = data_manager->host_data.M_inv;
 
-    int nnz_total = nnz_bilaterals + nnz_fluid_fluid + nnz_fem;
-    int num_rows = num_bilaterals + num_fluid_fluid + num_fem;
+    int nnz_total = nnz_bilaterals + nnz_fluid_fluid;
+    int num_rows = num_bilaterals + num_fluid_fluid;
 
     switch (data_manager->settings.solver.solver_mode) {
         case SolverMode::NORMAL:
@@ -258,7 +251,6 @@ void ChIterativeSolverMulticoreNSC::ComputeD() {
     data_manager->rigid_rigid->GenerateSparsity();
     data_manager->bilateral->GenerateSparsity();
     data_manager->node_container->GenerateSparsity();
-    data_manager->fea_container->GenerateSparsity();
 
     // Move b code here so that it can be computed along side D
     DynamicVector<real>& b = data_manager->host_data.b;
@@ -268,7 +260,6 @@ void ChIterativeSolverMulticoreNSC::ComputeD() {
     data_manager->rigid_rigid->Build_D();
     data_manager->bilateral->Build_D();
     data_manager->node_container->Build_D();
-    data_manager->fea_container->Build_D();
 
     LOG(INFO) << "ChIterativeSolverMulticoreNSC::ComputeD - D = trans(D_T)";
     // using the .transpose(); function will do in place transpose and copy
@@ -292,8 +283,6 @@ void ChIterativeSolverMulticoreNSC::ComputeE() {
 
     data_manager->rigid_rigid->Build_E();
     data_manager->bilateral->Build_E();
-
-    data_manager->fea_container->Build_E();
     data_manager->node_container->Build_E();
 
     data_manager->system_timer.stop("ChIterativeSolverMulticore_E");
@@ -319,7 +308,7 @@ void ChIterativeSolverMulticoreNSC::ComputeR() {
     data_manager->rigid_rigid->Build_b();
     data_manager->bilateral->Build_b();
     data_manager->node_container->Build_b();
-    data_manager->fea_container->Build_b();
+
     // update rhs after presolve!
     ////R = -b - D_T * M_invk;
 
@@ -348,10 +337,10 @@ void ChIterativeSolverMulticoreNSC::SetR() {
     DynamicVector<real>& R = data_manager->host_data.R;
     const DynamicVector<real>& R_full = data_manager->host_data.R_full;
 
-    uint num_rigid_contacts = data_manager->num_rigid_contacts;
+    uint num_rigid_contacts = data_manager->cd_data->num_rigid_contacts;
     uint num_unilaterals = data_manager->num_unilaterals;
     uint num_bilaterals = data_manager->num_bilaterals;
-    uint num_rigid_fluid = data_manager->num_rigid_fluid_contacts * 3;
+    uint num_rigid_fluid = data_manager->cd_data->num_rigid_fluid_contacts * 3;
     uint num_fluid_bodies = data_manager->num_fluid_bodies;
     R.resize(data_manager->num_constraints);
     reset(R);

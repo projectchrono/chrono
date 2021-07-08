@@ -46,8 +46,6 @@ Ch3DOFContainer::Ch3DOFContainer()
       num_bilaterals(0),
       num_shafts(0),
       num_motors(0),
-      num_fea_tets(0),
-      num_fea_nodes(0),
       alpha(0) {
     family.x = 1;
     family.y = 0x7FFF;
@@ -82,16 +80,14 @@ void Ch3DOFContainer::SetPos_dt(const int& i, const real3& mposdt) {
 void Ch3DOFContainer::Setup3DOF(int start_constraint) {
     start_row = start_constraint;
     if (data_manager) {
-        num_fluid_contacts = data_manager->num_fluid_contacts;
+        num_fluid_contacts = data_manager->cd_data->num_fluid_contacts;
         num_fluid_bodies = data_manager->num_fluid_bodies;
         num_rigid_bodies = data_manager->num_rigid_bodies;
-        num_rigid_fluid_contacts = data_manager->num_rigid_fluid_contacts;
+        num_rigid_fluid_contacts = data_manager->cd_data->num_rigid_fluid_contacts;
         num_unilaterals = data_manager->num_unilaterals;
         num_bilaterals = data_manager->num_bilaterals;
         num_shafts = data_manager->num_shafts;
         num_motors = data_manager->num_motors;
-        num_fea_tets = data_manager->num_fea_tets;
-        num_fea_nodes = data_manager->num_fea_nodes;
     }
 }
 

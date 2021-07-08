@@ -121,11 +121,14 @@ int main(int argc, char* argv[]) {
     ////marder.SetChassisFixed(true);
     ////marder.CreateTrack(false);
 
-    // Disable gravity in this simulation
-    ////marder.GetSystem()->Set_G_acc(ChVector<>(0, 0, 0));
-
     // Control steering type (enable crossdrive capability)
     ////marder.GetDriveline()->SetGyrationMode(true);
+
+    // Change collision detection system
+    ////marder.SetCollisionSystemType(collision::ChCollisionSystemType::CHRONO);
+
+    // Change collision shape for road wheels, idlers, and rollers (true: cylinder; false: cylshell)
+    ////marder.SetWheelCollisionType(false, false, false);
 
     // ------------------------------------------------
     // Initialize the vehicle at the specified position
@@ -143,6 +146,14 @@ int main(int argc, char* argv[]) {
     marder.SetRoadWheelAssemblyVisualizationType(track_vis);
     marder.SetRoadWheelVisualizationType(track_vis);
     marder.SetTrackShoeVisualizationType(VisualizationType::PRIMITIVES);
+
+    // Disable gravity in this simulation
+    ////marder.GetSystem()->Set_G_acc(ChVector<>(0, 0, 0));
+
+    // Change (SMC) contact force model
+    ////if (contact_method == ChContactMethod::SMC) {
+    ////static_cast<ChSystemSMC*>(m113.GetSystem())->SetContactForceModel(ChSystemSMC::ContactForceModel::PlainCoulomb);
+    ////}
 
     // --------------------------------------------------
     // Control internal collisions and contact monitoring

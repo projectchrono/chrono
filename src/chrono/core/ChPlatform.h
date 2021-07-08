@@ -15,14 +15,8 @@
 #ifndef CHPLATFORM_H
 #define CHPLATFORM_H
 
-// Functionality for API import/export symbols,
-// in a platform independent way.
-//
-// When building the DLL, the CH_EXPORTS symbol must be defined.
-//
-// Each exported function / class in Chrono::Engine
-// will use the 'ChApi' macro in headers (for non-MS compilers,
-// this has no effect because all symbols will be exported).
+// Functionality for API import/export symbols, in a platform independent way.
+// When building the DLL, use the ChApiEXPORT macro. When using the DLL, use the ChApiIMPORT macro.
 
 #if ((defined _WIN32) || (defined(__MINGW32__) || defined(__CYGWIN__))) && defined(_DLL)
 #if !defined(CH_DLL) && !defined(CH_STATIC)
@@ -38,7 +32,7 @@
 #define ChApiIMPORT
 #endif
 
-// Define a deprecated macro which generates a warning at compile time.
+// Define a CH_DEPRECATED macro which generates a warning at compile time.
 // Usage:
 //   For typedef:         typedef CH_DEPRECATED int test1;
 //   For classes/structs: class CH_DEPRECATED test2 { ... };

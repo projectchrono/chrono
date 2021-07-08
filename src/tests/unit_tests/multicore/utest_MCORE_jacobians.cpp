@@ -27,7 +27,7 @@
 #include "unit_testing.h"
 
 #ifdef CHRONO_OPENGL
-#include "chrono_opengl/ChOpenGLWindow.h"
+    #include "chrono_opengl/ChOpenGLWindow.h"
 #endif
 
 // Comment the following line to use multicore collision detection
@@ -134,22 +134,23 @@ void CompareContacts(ChMulticoreDataManager* data_manager,
                      const std::vector<real3>& pos_rigid,      // positions at begining of step
                      const std::vector<quaternion>& rot_rigid  // orientations at begining of step
 ) {
-    if (data_manager->num_rigid_contacts == 0) {
+    const auto num_rigid_contacts = data_manager->cd_data->num_rigid_contacts;
+    if (num_rigid_contacts == 0) {
         return;
     }
 
-    real3* norm = data_manager->host_data.norm_rigid_rigid.data();
-    real3* ptA = data_manager->host_data.cpta_rigid_rigid.data();
-    real3* ptB = data_manager->host_data.cptb_rigid_rigid.data();
-    chrono::vec2* ids = data_manager->host_data.bids_rigid_rigid.data();
+    real3* norm = data_manager->cd_data->norm_rigid_rigid.data();
+    real3* ptA = data_manager->cd_data->cpta_rigid_rigid.data();
+    real3* ptB = data_manager->cd_data->cptb_rigid_rigid.data();
+    chrono::vec2* ids = data_manager->cd_data->bids_rigid_rigid.data();
 
-    uint nnz_normal = 6 * 2 * data_manager->num_rigid_contacts;
-    uint nnz_tangential = 6 * 4 * data_manager->num_rigid_contacts;
-    // uint nnz_spinning = 6 * 3 * data_manager->num_rigid_contacts;
+    uint nnz_normal = 6 * 2 * num_rigid_contacts;
+    uint nnz_tangential = 6 * 4 * num_rigid_contacts;
+    // uint nnz_spinning = 6 * 3 * num_rigid_contacts;
 
     ASSERT_EQ((real)data_manager->host_data.D_T.nonZeros(), nnz_normal + nnz_tangential);
 
-    for (uint index = 0; index < data_manager->num_rigid_contacts; index++) {
+    for (uint index = 0; index < num_rigid_contacts; index++) {
         real3 U = norm[index], V, W;
         real3 T3, T4, T5, T6, T7, T8;
         real3 TA, TB, TC;
@@ -165,7 +166,7 @@ void CompareContacts(ChMulticoreDataManager* data_manager,
         Compute_Jacobian(rot_rigid[body_id.x], U, V, W, ptA[index] - pos_rigid[body_id.x], T3, T4, T5);
         Compute_Jacobian(rot_rigid[body_id.y], U, V, W, ptB[index] - pos_rigid[body_id.y], T6, T7, T8);
 
-        int off = data_manager->num_rigid_contacts;
+        int off = data_manager->cd_data->num_rigid_contacts;
 
         ASSERT_EQ((real)data_manager->host_data.D_T(row * 1 + 0, body_id.x * 6 + 0), -U.x);
         ASSERT_EQ((real)data_manager->host_data.D_T(row * 1 + 0, body_id.x * 6 + 1), -U.y);
@@ -224,9 +225,9 @@ TEST(ChronoMulticore, jacobians) {
     msystem->SetNumThreads(1);
 
 #ifdef BULLET
-    msystem->ChangeCollisionSystem(CollisionSystemType::COLLSYS_BULLET_MULTICORE);
+    msystem->SetCollisionSystemType(ChCollisionSystemType::BULLET);
 #else
-    msystem->GetSettings()->collision.narrowphase_algorithm = NarrowPhaseType::NARROWPHASE_MPR;
+    msystem->GetSettings()->collision.narrowphase_algorithm = ChNarrowphase::Algorithm::HYBRID;
 #endif
 
     SetupSystem(msystem);

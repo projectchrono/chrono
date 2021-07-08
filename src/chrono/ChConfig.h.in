@@ -100,8 +100,6 @@
 @CHRONO_TBB_ENABLED@
 
 // -----------------------------------------------------------------------------
-// SSE settings
-// -----------------------------------------------------------------------------
 
 // If SSE support was found, then
 //   #define CHRONO_HAS_SSE
@@ -158,19 +156,37 @@
 
 // -----------------------------------------------------------------------------
 
+// Use SIMD if available
+
+@CHRONO_SIMD_ENABLED@
+
+// -----------------------------------------------------------------------------
+
 // If HDF5 was found, then
 //   #define CHRONO_HAS_HDF5
 
 @CHRONO_HAS_HDF5@
 
 // -----------------------------------------------------------------------------
-// CUDA settings
-// -----------------------------------------------------------------------------
 
-// If CUDA is available, define CHRONO_CUDA_FOUND and CHRONO_CUDA_VERSION
+// If CUDA is available, then
+//   #define CHRONO_HAS_CUDA
+//   #CHRONO_CUDA_VERSION
 
-@CHRONO_CUDA_FOUND@
+@CHRONO_HAS_CUDA@
 @CHRONO_CUDA_VERSION@
+
+// If THRUST is available, then
+//   #define CHRONO_HAS_THRUST
+//   #CHRONO_THRUST_VERSION
+
+@CHRONO_HAS_THRUST@
+@CHRONO_THRUST_VERSION@
+
+// If CUDA is not available, force Thrust to always use the OMP backend
+#ifndef CHRONO_HAS_CUDA
+  #define THRUST_DEVICE_SYSTEM THRUST_DEVICE_SYSTEM_OMP
+#endif
 
 // -----------------------------------------------------------------------------
 
@@ -180,5 +196,13 @@
 
 @CHRONO_HAS_GTEST@
 @CHRONO_HAS_GBENCHMARK@
+
+// -----------------------------------------------------------------------------
+
+// If the Chrono multicore collision detection is available, define CHRONO_COLLISION
+@CHRONO_COLLISION@
+
+// Always use double in custom multicore collision detection
+#define USE_COLLISION_DOUBLE
 
 #endif

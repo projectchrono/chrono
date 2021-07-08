@@ -158,7 +158,7 @@ option(USE_SIMD "Enable use of SIMD if supported (SSE, AVX, NEON)" ON)
 if(USE_SIMD)
 
    # Figure out SIMD level support
-   message(STATUS "Seaching for SSE...")
+   message(STATUS "Searching for SSE...")
    find_package(SSE)
    
    # Set substitution variables for configuration file
@@ -343,6 +343,34 @@ if(CUDA_FOUND)
 endif()
 
 #-----------------------------------------------------------------------------
+# Thrust library
+#-----------------------------------------------------------------------------
+
+message(STATUS "Searching for Thrust...")
+
+if (${CMAKE_SYSTEM_NAME} MATCHES "FreeBSD")
+  find_path(THRUST_INCLUDE_DIR NAMES thrust/version.h PATHS "/usr/local" "/usr/local/include")
+  if (THRUST_INCLUDE_DIR)
+    set(${THRUST_FOUND} TRUE)
+  else()
+    message("THRUST_INCLUDE_DIR is not set, but it is required.")
+    set(${THRUST_FOUND} FALSE)
+  endif()
+else()
+  find_package(Thrust)
+endif()
+
+if(THRUST_FOUND)
+  message(STATUS "  Thrust version:     ${THRUST_VERSION}")
+  message(STATUS "  Thrust include dir: ${THRUST_INCLUDE_DIR}")
+  mark_as_advanced(FORCE THRUST_INCLUDE_DIR)
+else()
+  message(STATUS "  Thrust not found (consider manually setting THRUST_INCLUDE_DIR)")
+  mark_as_advanced(CLEAR THRUST_INCLUDE_DIR)
+endif()
+
+
+#-----------------------------------------------------------------------------
 # Miscellaneous compiler flags
 #-----------------------------------------------------------------------------
 
@@ -480,6 +508,7 @@ include_directories(${CMAKE_CURRENT_SOURCE_DIR})
 include_directories(${PROJECT_BINARY_DIR})
 include_directories(${EIGEN3_INCLUDE_DIR})
 include_directories(${OPENMP_INCLUDE_DIR})
+include_directories(${THRUST_INCLUDE_DIR})
 
 #------------------------------------------------------------
 # Build submodules
@@ -754,6 +783,12 @@ else()
   set(CHRONO_SYNCHRONO "#undef CHRONO_SYNCHRONO")
 endif()
 
+if (USE_SIMD)
+   set(CHRONO_SIMD_ENABLED "#define CHRONO_SIMD_ENABLED")
+else()
+   set(CHRONO_SIMD_ENABLED "#undef CHRONO_SIMD_ENABLED")
+endif()
+
 if(ENABLE_OPENMP)
   set(CHRONO_OPENMP_ENABLED "#define CHRONO_OPENMP_ENABLED")
 else()
@@ -767,11 +802,21 @@ else()
 endif()
 
 if(CUDA_FOUND)
-  set(CHRONO_CUDA_FOUND "#define CHRONO_CUDA_FOUND")
+  set(CHRONO_HAS_CUDA "#define CHRONO_HAS_CUDA")
   set(CHRONO_CUDA_VERSION "#define CHRONO_CUDA_VERSION \"${CUDA_VERSION_STRING}\"")
 else()
-  set(CHRONO_CUDA_FOUND "#undef CHRONO_CUDA_FOUND")
+  set(CHRONO_HAS_CUDA "#undef CHRONO_HAS_CUDA")
   set(CHRONO_CUDA_VERSION "#undef CHRONO_CUDA_VERSION")
+endif()
+
+if(THRUST_FOUND)
+  set(CHRONO_HAS_THRUST "#define CHRONO_HAS_THRUST")
+  set(CHRONO_THRUST_VERSION "#define CHRONO_THRUST_VERSION \"${THRUST_VERSION}\"")
+  set(CHRONO_COLLISION "#define CHRONO_COLLISION")
+else()
+  set(CHRONO_HAS_THRUST "#undef CHRONO_HAS_THRUST")
+  set(CHRONO_THRUST_VERSION "#undef CHRONO_THRUST_VERSION")
+  set(CHRONO_COLLISION "#undef CHRONO_COLLISION")
 endif()
 
 configure_file("${CMAKE_CURRENT_SOURCE_DIR}/chrono/ChConfig.h.in"
@@ -806,6 +851,7 @@ set(CH_INCLUDE_DIRS ${CH_INCLUDE_DIRS} "${PROJECT_SOURCE_DIR}/src/chrono_thirdpa
 set(CH_INCLUDE_DIRS ${CH_INCLUDE_DIRS} "${PROJECT_BINARY_DIR}")
 set(CH_INCLUDE_DIRS ${CH_INCLUDE_DIRS} "${EIGEN3_INCLUDE_DIR}")
 set(CH_INCLUDE_DIRS ${CH_INCLUDE_DIRS} "${OPENMP_INCLUDE_DIR}")
+set(CH_INCLUDE_DIRS ${CH_INCLUDE_DIRS} "${THRUST_INCLUDE_DIR}")
 
 set(CH_BINARY_DIR "${PROJECT_BINARY_DIR}")
 set(CH_DATA_DIR "${PROJECT_SOURCE_DIR}/data/")
@@ -823,6 +869,7 @@ set(CH_INCLUDE_DIRS ${CH_INCLUDE_DIRS} "${CMAKE_INSTALL_PREFIX}/include/chrono_t
 set(CH_INCLUDE_DIRS ${CH_INCLUDE_DIRS} "${CMAKE_INSTALL_PREFIX}/include/chrono_thirdparty/HACDv2")
 set(CH_INCLUDE_DIRS ${CH_INCLUDE_DIRS} "${EIGEN3_INCLUDE_DIR}")
 set(CH_INCLUDE_DIRS ${CH_INCLUDE_DIRS} "${OPENMP_INCLUDE_DIR}")
+set(CH_INCLUDE_DIRS ${CH_INCLUDE_DIRS} "${THRUST_INCLUDE_DIR}")
 
 set(CH_BINARY_DIR ${CMAKE_INSTALL_PREFIX})
 set(CH_DATA_DIR "${CMAKE_INSTALL_PREFIX}/${CH_INSTALL_DATA}/")

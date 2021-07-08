@@ -44,7 +44,6 @@ void ChIterativeSolverMulticore::ComputeInvMassMatrix() {
     uint num_shafts = data_manager->num_shafts;
     uint num_motors = data_manager->num_motors;
     uint num_fluid_bodies = data_manager->num_fluid_bodies;
-    uint num_fea_nodes = data_manager->num_fea_nodes;
     uint num_dof = data_manager->num_dof;
     bool use_full_inertia_tensor = data_manager->settings.solver.use_full_inertia_tensor;
     const custom_vector<real>& shaft_inr = data_manager->host_data.shaft_inr;
@@ -64,7 +63,7 @@ void ChIterativeSolverMulticore::ComputeInvMassMatrix() {
     // Each rigid object has 3 mass entries and 9 inertia entries
     // Each shaft has one inertia entry
     // Each motor has one "mass" entry
-    M_inv.reserve(num_bodies * 12 + num_shafts * 1 + num_motors * 1 + num_fluid_bodies * 3 + num_fea_nodes * 3);
+    M_inv.reserve(num_bodies * 12 + num_shafts * 1 + num_motors * 1 + num_fluid_bodies * 3);
     // The mass matrix is square and each rigid body has 6 DOF
     // Shafts have one DOF
     M_inv.resize(num_dof, num_dof);
@@ -123,7 +122,6 @@ void ChIterativeSolverMulticore::ComputeInvMassMatrix() {
 
     int offset = num_bodies * 6 + num_shafts + num_motors;
     data_manager->node_container->ComputeInvMass(offset);
-    data_manager->fea_container->ComputeInvMass(offset + num_fluid_bodies * 3);
 
     M_invk = v + M_inv * hf;
 }
@@ -134,7 +132,6 @@ void ChIterativeSolverMulticore::ComputeMassMatrix() {
     uint num_shafts = data_manager->num_shafts;
     uint num_motors = data_manager->num_motors;
     uint num_fluid_bodies = data_manager->num_fluid_bodies;
-    uint num_fea_nodes = data_manager->num_fea_nodes;
     uint num_dof = data_manager->num_dof;
     bool use_full_inertia_tensor = data_manager->settings.solver.use_full_inertia_tensor;
     const custom_vector<real>& shaft_inr = data_manager->host_data.shaft_inr;
@@ -150,7 +147,7 @@ void ChIterativeSolverMulticore::ComputeMassMatrix() {
     // Each rigid object has 3 mass entries and 9 inertia entries
     // Each shaft has one inertia entry
     // Each motor has one "mass" entry
-    M.reserve(num_bodies * 12 + num_shafts * 1 + num_motors * 1 + num_fluid_bodies * 3 + num_fea_nodes * 3);
+    M.reserve(num_bodies * 12 + num_shafts * 1 + num_motors * 1 + num_fluid_bodies * 3);
     // The mass matrix is square and each rigid body has 6 DOF
     // Shafts have one DOF
     M.resize(num_dof, num_dof);
@@ -209,7 +206,6 @@ void ChIterativeSolverMulticore::ComputeMassMatrix() {
 
     int offset = num_bodies * 6 + num_shafts + num_motors;
     data_manager->node_container->ComputeMass(offset);
-    data_manager->fea_container->ComputeMass(offset + num_fluid_bodies * 3);
 }
 
 void ChIterativeSolverMulticore::PerformStabilization() {
@@ -233,24 +229,6 @@ void ChIterativeSolverMulticore::PerformStabilization() {
                                     R_b,                                                    //
                                     gamma_b);                                               //
         blaze::subvector(gamma, num_unilaterals, num_bilaterals) = gamma_b;
-    }
-
-    if (data_manager->settings.solver.max_iteration_fem > 0 && data_manager->num_fea_tets > 0) {
-        uint num_3dof_3dof = data_manager->node_container->GetNumConstraints();
-        uint start_tet = data_manager->num_unilaterals + data_manager->num_bilaterals + num_3dof_3dof;
-        int num_constraints = data_manager->num_fea_tets * (6 + 1);
-
-        const DynamicVector<real> R_fem = blaze::subvector(R_full, start_tet, num_constraints);
-        DynamicVector<real> gamma_fem = blaze::subvector(gamma, start_tet, num_constraints);
-
-        data_manager->measures.solver.total_iteration +=
-            bilateral_solver->Solve(ShurProductFEM,                                   //
-                                    ProjectNone,                                      //
-                                    data_manager->settings.solver.max_iteration_fem,  //
-                                    num_constraints,                                  //
-                                    R_fem,                                            //
-                                    gamma_fem);                                       //
-        blaze::subvector(gamma, start_tet, num_constraints) = gamma_fem;
     }
 
     data_manager->system_timer.stop("ChIterativeSolverMulticore_Stab");

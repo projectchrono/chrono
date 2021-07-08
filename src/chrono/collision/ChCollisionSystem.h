@@ -15,6 +15,7 @@
 #ifndef CH_COLLISIONSYSTEM_H
 #define CH_COLLISIONSYSTEM_H
 
+#include "chrono/collision/ChCollisionModel.h"
 #include "chrono/collision/ChCollisionInfo.h"
 #include "chrono/core/ChApiCE.h"
 #include "chrono/core/ChFrame.h"
@@ -22,19 +23,25 @@
 namespace chrono {
 
 // forward references
+class ChSystem;
 class ChBody;
 class ChVariablesBody;
 class ChContactContainer;
 class ChProximityContainer;
 
-/// Collision detection classes
 namespace collision {
+
+/// @addtogroup chrono_collision
+/// @{
 
 /// Base class for generic collision engine.
 class ChApi ChCollisionSystem {
   public:
-    ChCollisionSystem() {}
+    ChCollisionSystem() : m_system(nullptr) {}
     virtual ~ChCollisionSystem() {}
+
+    /// Return the type of this collision system.
+    virtual ChCollisionSystemType GetType() const = 0;
 
     /// Clears all data instanced by this algorithm
     /// if any (like persistent contact manifolds)
@@ -52,9 +59,15 @@ class ChApi ChCollisionSystem {
     /// engine (custom data may be deallocated).
     // virtual void RemoveAll() = 0;
 
+    /// Optional synchronization operations, invoked before running the collision detection.
+    virtual void PreProcess() {}
+
     /// Run the collision detection and finds the contacts.
     /// This function will be called at each simulation step.
     virtual void Run() = 0;
+
+    /// Optional synchronization operations, invoked after running the collision detection.
+    virtual void PostProcess() {}
 
     /// Return an AABB bounding all collision shapes in the system
     virtual void GetBoundingBox(ChVector<>& aabb_min, ChVector<>& aabb_max) const = 0;
@@ -147,13 +160,13 @@ class ChApi ChCollisionSystem {
     };
 
     /// Perform a ray-hit test with the collision models.
-    virtual bool RayHit(const ChVector<>& from, const ChVector<>& to, ChRayhitResult& mresult) const = 0;
+    virtual bool RayHit(const ChVector<>& from, const ChVector<>& to, ChRayhitResult& result) const = 0;
 
     /// Perform a ray-hit test with the specified collision model.
     virtual bool RayHit(const ChVector<>& from,
                         const ChVector<>& to,
                         ChCollisionModel* model,
-                        ChRayhitResult& mresult) const = 0;
+                        ChRayhitResult& result) const = 0;
 
     /// Method to allow serialization of transient data to archives.
     virtual void ArchiveOUT(ChArchiveOut& marchive) {
@@ -167,10 +180,16 @@ class ChApi ChCollisionSystem {
         /*int version =*/ marchive.VersionRead<ChCollisionSystem>();
     }
 
+    /// Set associated Chrono system
+    void SetSystem(ChSystem* sys) { m_system = sys; }
+
   protected:
+    ChSystem* m_system;                                    ///< associated Chrono system
     std::shared_ptr<BroadphaseCallback> broad_callback;    ///< user callback for each near-enough pair of shapes
     std::shared_ptr<NarrowphaseCallback> narrow_callback;  ///< user callback for each collision pair
 };
+
+/// @} chrono_collision
 
 }  // end namespace collision
 

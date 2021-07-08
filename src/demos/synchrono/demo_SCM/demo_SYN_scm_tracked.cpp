@@ -98,11 +98,13 @@ int main(int argc, char* argv[]) {
         (cli.Matches<std::string>("contact_method", "SMC") ? ChContactMethod::SMC : ChContactMethod::NSC);
     auto size_x = cli.GetAsType<double>("sizeX");
     auto size_y = cli.GetAsType<double>("sizeY");
+    auto dpu = cli.GetAsType<double>("dpu");
+#ifdef CHRONO_SENSOR
     auto cam_x = cli.GetAsType<std::vector<double>>("c_pos")[0];
     auto cam_y = cli.GetAsType<std::vector<double>>("c_pos")[1];
-    auto dpu = cli.GetAsType<double>("dpu");
     auto cam_res_width = cli.GetAsType<std::vector<int>>("res")[0];
     auto cam_res_height = cli.GetAsType<std::vector<int>>("res")[1];
+#endif
     auto flat_patch = cli.Matches<std::string>("terrain_type", "Flat");
     auto bulldozing = cli.GetAsType<bool>("bulldozing");
 
@@ -233,6 +235,11 @@ int main(int argc, char* argv[]) {
         app->AssetBindAll();
         app->AssetUpdateAll();
     }
+
+    // Time interval between two render frames (1/FPS)
+    double render_step_size = 1.0 / 100;
+    // Number of simulation steps between two render frames
+    int render_steps = (int)std::ceil(render_step_size / step_size);
 #endif
 
 #ifdef CHRONO_SENSOR
@@ -288,11 +295,6 @@ int main(int argc, char* argv[]) {
     // ---------------
     // Simulation loop
     // ---------------
-    // Time interval between two render frames (1/FPS)
-    double render_step_size = 1.0 / 100;
-
-    // Number of simulation steps between miscellaneous events
-    int render_steps = (int)std::ceil(render_step_size / step_size);
 
     // Inter-module communication data
     TerrainForces shoe_forces_left(m113.GetVehicle().GetNumTrackShoes(LEFT));
