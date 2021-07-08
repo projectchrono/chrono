@@ -805,6 +805,62 @@ void ChBeamSectionTaperedTimoshenkoAdvancedGeneric::ComputeInertiaMatrix(ChMatri
     M = Mtmp;  // transform from ChMatrixNM<double, 12, 12> to ChMatrixDynamic<>
 }
 
+void ChBeamSectionTaperedTimoshenkoAdvancedGeneric::ComputeInertiaDampingMatrix(
+    ChMatrixNM<double, 12, 12>& Ri,
+                                                                                const ChVector<>& mW_A,
+                                                                                const ChVector<>& mW_B) {
+    Ri.setZero(12, 12);
+
+    if (this->compute_inertia_damping_matrix == false)
+        return;
+
+    this->sectionA->compute_inertia_damping_matrix = this->compute_inertia_damping_matrix;
+    this->sectionA->compute_inertia_stiffness_matrix = this->compute_inertia_stiffness_matrix;
+    this->sectionA->compute_Ri_Ki_by_num_diff = this->compute_Ri_Ki_by_num_diff;
+
+    this->sectionB->compute_inertia_damping_matrix = this->compute_inertia_damping_matrix;
+    this->sectionB->compute_inertia_stiffness_matrix = this->compute_inertia_stiffness_matrix;
+    this->sectionB->compute_Ri_Ki_by_num_diff = this->compute_Ri_Ki_by_num_diff;
+
+    ChMatrixNM<double, 6, 6> Ri_A;
+    ChMatrixNM<double, 6, 6> Ri_B;
+    this->sectionA->ComputeInertiaDampingMatrix(Ri_A, mW_A);
+    this->sectionB->ComputeInertiaDampingMatrix(Ri_B, mW_B);
+
+    Ri.block<6, 6>(0, 0) = Ri_A;
+    Ri.block<6, 6>(6, 6) = Ri_B;
+}
+
+void ChBeamSectionTaperedTimoshenkoAdvancedGeneric::ComputeInertiaStiffnessMatrix(ChMatrixNM<double, 12, 12>& Ki,
+    const ChVector<>& mWvel_A,  ///< current angular velocity of section of node A, in material frame
+    const ChVector<>& mWacc_A,  ///< current angular acceleration of section of node A, in material frame
+    const ChVector<>& mXacc_A,  ///< current acceleration of section of node A, in material frame) 
+    const ChVector<>& mWvel_B,  ///< current angular velocity of section of node B, in material frame
+    const ChVector<>& mWacc_B,  ///< current angular acceleration of section of node B, in material frame
+    const ChVector<>& mXacc_B   ///< current acceleration of section of node B, in material frame
+    ){
+    Ki.setZero(12, 12);
+
+    if (this->compute_inertia_stiffness_matrix == false)
+        return;
+
+    this->sectionA->compute_inertia_damping_matrix = this->compute_inertia_damping_matrix;
+    this->sectionA->compute_inertia_stiffness_matrix = this->compute_inertia_stiffness_matrix;
+    this->sectionA->compute_Ri_Ki_by_num_diff = this->compute_Ri_Ki_by_num_diff;
+
+    this->sectionB->compute_inertia_damping_matrix = this->compute_inertia_damping_matrix;
+    this->sectionB->compute_inertia_stiffness_matrix = this->compute_inertia_stiffness_matrix;
+    this->sectionB->compute_Ri_Ki_by_num_diff = this->compute_Ri_Ki_by_num_diff;
+
+    ChMatrixNM<double, 6, 6> Ki_A;
+    ChMatrixNM<double, 6, 6> Ki_B;
+    this->sectionA->ComputeInertiaStiffnessMatrix(Ki_A, mWvel_A, mWacc_A, mXacc_A);
+    this->sectionB->ComputeInertiaStiffnessMatrix(Ki_B, mWvel_B, mWacc_B, mXacc_B);
+
+    Ki.block<6, 6>(0, 0) = Ki_A;
+    Ki.block<6, 6>(6, 6) = Ki_B;
+}
+
 DampingCoefficients ChBeamSectionTaperedTimoshenkoAdvancedGeneric::GetBeamRaleyghDamping() const {
     return this->avg_sec_par->rdamping_coeff;
 };

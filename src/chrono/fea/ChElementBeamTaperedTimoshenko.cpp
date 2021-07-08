@@ -28,7 +28,7 @@ ChElementBeamTaperedTimoshenko::ChElementBeamTaperedTimoshenko()
       disable_corotate(false),
       use_geometric_stiffness(true),
       use_Rc(true),
-      use_Rs(true){
+      use_Rs(true) {
 
     nodes.resize(2);
 
@@ -36,6 +36,8 @@ ChElementBeamTaperedTimoshenko::ChElementBeamTaperedTimoshenko()
     Kg.setZero(this->GetNdofs(), this->GetNdofs());
     M.setZero(this->GetNdofs(), this->GetNdofs());
     Rm.setZero(this->GetNdofs(), this->GetNdofs());
+    Ri.setZero(this->GetNdofs(), this->GetNdofs());
+    Ki.setZero(this->GetNdofs(), this->GetNdofs());
     T.setZero(this->GetNdofs(), this->GetNdofs());
     Rs.setIdentity(6, 6);
     Rc.setIdentity(6, 6);
@@ -54,7 +56,7 @@ void ChElementBeamTaperedTimoshenko::SetNodes(std::shared_ptr<ChNodeFEAxyzrot> n
     Kmatr.SetVariables(mvars);
 }
 
-void ChElementBeamTaperedTimoshenko::ShapeFunctions(ShapeVector& N, double eta) {
+void ChElementBeamTaperedTimoshenko::ShapeFunctionsEuler(ShapeVector& N, double eta) {
     double Nx1 = (1. / 2.) * (1 - eta);
     double Nx2 = (1. / 2.) * (1 + eta);
     double Ny1 = (1. / 4.) * pow((1 - eta), 2) * (2 + eta);
@@ -98,14 +100,14 @@ void ChElementBeamTaperedTimoshenko::ShapeFunctionsTimoshenko(ShapeFunctionGroup
     double L = this->length;
     double LL = L * L;
     double LLL = LL * L;
-    double phiy = this->taperedSection->GetAverageSectionParameters()->phiy;
-    double phiz = this->taperedSection->GetAverageSectionParameters()->phiz;
+    double phiy = this->tapered_section->GetAverageSectionParameters()->phiy;
+    double phiz = this->tapered_section->GetAverageSectionParameters()->phiz;
 
     double eta2 = eta * eta;
     double eta3 = eta2 * eta;
 
-    double ay = 1. / (1.+phiy);
-    double by = phiy/ (1. + phiy);
+    double ay = 1. / (1. + phiy);
+    double by = phiy / (1. + phiy);
     double az = 1. / (1. + phiz);
     double bz = phiz / (1. + phiz);
 
@@ -181,7 +183,7 @@ void ChElementBeamTaperedTimoshenko::ShapeFunctionsTimoshenko(ShapeFunctionGroup
     double dNsu2_dx = 1. / L;
     double dNsr_dx = -1. / 2.;
 
-    double dNbu1_dx = 1. / (2. * L) * ( 3. * eta2 - 3.);
+    double dNbu1_dx = 1. / (2. * L) * (3. * eta2 - 3.);
     double dNbu2_dx = 1. / (2. * L) * (-3. * eta2 + 3.);
 
     double dNbr1_dx = 1. / 4. * (3. * eta2 - 2. * eta - 1.);
@@ -212,13 +214,13 @@ void ChElementBeamTaperedTimoshenko::ShapeFunctionsTimoshenko(ShapeFunctionGroup
     // Continue to fill in the shape functions to finish it.
     // roty
     N(4, 2) = -dNbu1_dx * az;                  // - dNsu1_dx * bz;
-    N(4, 4) =  dNbr1_dx * az + dNbr2_dx * bz;  // + dNsr_dx  * bz;
+    N(4, 4) = dNbr1_dx * az + dNbr2_dx * bz;   // + dNsr_dx  * bz;
     N(4, 8) = -dNbu2_dx * az;                  // - dNsu2_dx * bz;
     N(4, 10) = dNbr3_dx * az + dNbr4_dx * bz;  // + dNsr_dx  * bz;
     // rotz
-    N(5, 1) =  dNbu1_dx * ay;                  // + dNsu1_dx * by;
-    N(5, 5) =  dNbr1_dx * ay + dNbr2_dx * by;  // + dNsr_dx  * by;
-    N(5, 7) =  dNbu2_dx * ay;                  // + dNsu2_dx * by;
+    N(5, 1) = dNbu1_dx * ay;                   // + dNsu1_dx * by;
+    N(5, 5) = dNbr1_dx * ay + dNbr2_dx * by;   // + dNsr_dx  * by;
+    N(5, 7) = dNbu2_dx * ay;                   // + dNsu2_dx * by;
     N(5, 11) = dNbr3_dx * ay + dNbr4_dx * by;  // + dNsr_dx  * by;
 
 
@@ -269,7 +271,7 @@ void ChElementBeamTaperedTimoshenko::ShapeFunctionsTimoshenko(ShapeFunctionGroup
     std::get<3>(NN) = SFblk2d;
     std::get<4>(NN) = SFblk3d;
 }
-    
+
 void ChElementBeamTaperedTimoshenko::Update() {
     // parent class update:
     ChElementGeneric::Update();
@@ -374,19 +376,18 @@ void ChElementBeamTaperedTimoshenko::GetField_dtdt(ChVectorDynamic<>& mD_dtdt) {
     mD_dtdt.segment(9, 3) = q_element_abs_rot.RotateBack(nodes[1]->Frame().GetWacc_par()).eigen();
 }
 
-
 void ChElementBeamTaperedTimoshenko::ComputeTransformMatrix() {
-    double alpha1 = this->taperedSection->GetSectionA()->GetSectionRotation();
-    double Cy1 = this->taperedSection->GetSectionA()->GetCentroidY();
-    double Cz1 = this->taperedSection->GetSectionA()->GetCentroidZ();
-    double Sy1 = this->taperedSection->GetSectionA()->GetShearCenterY();
-    double Sz1 = this->taperedSection->GetSectionA()->GetShearCenterZ();
+    double alpha1 = this->tapered_section->GetSectionA()->GetSectionRotation();
+    double Cy1 = this->tapered_section->GetSectionA()->GetCentroidY();
+    double Cz1 = this->tapered_section->GetSectionA()->GetCentroidZ();
+    double Sy1 = this->tapered_section->GetSectionA()->GetShearCenterY();
+    double Sz1 = this->tapered_section->GetSectionA()->GetShearCenterZ();
 
-    double alpha2 = this->taperedSection->GetSectionB()->GetSectionRotation();
-    double Cy2 = this->taperedSection->GetSectionB()->GetCentroidY();
-    double Cz2 = this->taperedSection->GetSectionB()->GetCentroidZ();
-    double Sy2 = this->taperedSection->GetSectionB()->GetShearCenterY();
-    double Sz2 = this->taperedSection->GetSectionB()->GetShearCenterZ();
+    double alpha2 = this->tapered_section->GetSectionB()->GetSectionRotation();
+    double Cy2 = this->tapered_section->GetSectionB()->GetCentroidY();
+    double Cz2 = this->tapered_section->GetSectionB()->GetCentroidZ();
+    double Sy2 = this->tapered_section->GetSectionB()->GetShearCenterY();
+    double Sz2 = this->tapered_section->GetSectionB()->GetShearCenterZ();
 
     double L = this->length;
 
@@ -421,8 +422,8 @@ void ChElementBeamTaperedTimoshenko::ComputeTransformMatrix() {
     rc(2, 0) = -dCz / LN;
     rc(2, 1) = 0.0;
     rc(2, 2) = LB / LN;
-    //ChMatrixNM<double, 6, 6> Rc;
-    //Rc.setIdentity();
+    // ChMatrixNM<double, 6, 6> Rc;
+    // Rc.setIdentity();
     if (use_Rc) {
         this->Rc.block<3, 3>(0, 0) = rc;
         this->Rc.block<3, 3>(3, 3) = rc;
@@ -472,8 +473,8 @@ void ChElementBeamTaperedTimoshenko::ComputeTransformMatrix() {
     Ts2(1, 3) = -Sz2;
     Ts2(2, 3) = Sy2;
 
-    //ChMatrixNM<double, 6, 6> Rs;
-    //Rs.setIdentity();
+    // ChMatrixNM<double, 6, 6> Rs;
+    // Rs.setIdentity();
     if (use_Rs) {
         this->Rs(3, 3) = C1;
         this->Rs(4, 3) = C2;
@@ -489,19 +490,19 @@ void ChElementBeamTaperedTimoshenko::ComputeTransformMatrix() {
 }
 
 void ChElementBeamTaperedTimoshenko::ComputeTransformMatrixAtPoint(ChMatrixDynamic<>& mT, const double eta) {
-    mT.resize(6,6);
+    mT.resize(6, 6);
 
-    double alpha1 = this->taperedSection->GetSectionA()->GetSectionRotation();
-    double Cy1 = this->taperedSection->GetSectionA()->GetCentroidY();
-    double Cz1 = this->taperedSection->GetSectionA()->GetCentroidZ();
-    double Sy1 = this->taperedSection->GetSectionA()->GetShearCenterY();
-    double Sz1 = this->taperedSection->GetSectionA()->GetShearCenterZ();
+    double alpha1 = this->tapered_section->GetSectionA()->GetSectionRotation();
+    double Cy1 = this->tapered_section->GetSectionA()->GetCentroidY();
+    double Cz1 = this->tapered_section->GetSectionA()->GetCentroidZ();
+    double Sy1 = this->tapered_section->GetSectionA()->GetShearCenterY();
+    double Sz1 = this->tapered_section->GetSectionA()->GetShearCenterZ();
 
-    double alpha2 = this->taperedSection->GetSectionB()->GetSectionRotation();
-    double Cy2 = this->taperedSection->GetSectionB()->GetCentroidY();
-    double Cz2 = this->taperedSection->GetSectionB()->GetCentroidZ();
-    double Sy2 = this->taperedSection->GetSectionB()->GetShearCenterY();
-    double Sz2 = this->taperedSection->GetSectionB()->GetShearCenterZ();
+    double alpha2 = this->tapered_section->GetSectionB()->GetSectionRotation();
+    double Cy2 = this->tapered_section->GetSectionB()->GetCentroidY();
+    double Cz2 = this->tapered_section->GetSectionB()->GetCentroidZ();
+    double Sy2 = this->tapered_section->GetSectionB()->GetShearCenterY();
+    double Sz2 = this->tapered_section->GetSectionB()->GetShearCenterZ();
 
     double L = this->length;
 
@@ -520,7 +521,7 @@ void ChElementBeamTaperedTimoshenko::ComputeTransformMatrixAtPoint(ChMatrixDynam
     double Sy = Nx1 * Sy1 + Nx2 * Sy2;
     double Sz = Nx1 * Sz1 + Nx2 * Sz2;
 
-     // In case the section is rotated:
+    // In case the section is rotated:
     ChMatrix33<> RotsectA;
     RotsectA.Set_A_Rxyz(ChVector<>(alpha, 0, 0));
     ChMatrixNM<double, 6, 6> Rotsect;
@@ -551,92 +552,90 @@ void ChElementBeamTaperedTimoshenko::ComputeTransformMatrixAtPoint(ChMatrixDynam
 }
 
 void ChElementBeamTaperedTimoshenko::ComputeStiffnessMatrix() {
-    assert(taperedSection);
+    assert(tapered_section);
 
     double L = this->length;
     double LL = L * L;
     double LLL = LL * L;
 
-    double EA = this->taperedSection->GetAverageSectionParameters()->EA;
-    double GJ = this->taperedSection->GetAverageSectionParameters()->GJ;
-    double GAyy = this->taperedSection->GetAverageSectionParameters()->GAyy;
-    double GAzz = this->taperedSection->GetAverageSectionParameters()->GAzz;
-    double EIyy = this->taperedSection->GetAverageSectionParameters()->EIyy;
-    double EIzz = this->taperedSection->GetAverageSectionParameters()->EIzz;
+    double EA = this->tapered_section->GetAverageSectionParameters()->EA;
+    double GJ = this->tapered_section->GetAverageSectionParameters()->GJ;
+    double GAyy = this->tapered_section->GetAverageSectionParameters()->GAyy;
+    double GAzz = this->tapered_section->GetAverageSectionParameters()->GAzz;
+    double EIyy = this->tapered_section->GetAverageSectionParameters()->EIyy;
+    double EIzz = this->tapered_section->GetAverageSectionParameters()->EIzz;
 
-    double phiy = this->taperedSection->GetAverageSectionParameters()->phiy;
-    double phiz = this->taperedSection->GetAverageSectionParameters()->phiz;
+    double phiy = this->tapered_section->GetAverageSectionParameters()->phiy;
+    double phiz = this->tapered_section->GetAverageSectionParameters()->phiz;
 
-     double az = 12.0 * EIzz / (LLL * (1 + phiy));
-     double ay = 12.0 * EIyy / (LLL * (1 + phiz));
-     double cz = 6.0 * EIzz / (LL * (1 + phiy));
-     double cy = 6.0 * EIyy / (LL * (1 + phiz));
-     double ez = (4 + phiy) * EIzz / (L * (1 + phiy));
-     double ey = (4 + phiz) * EIyy / (L * (1 + phiz));
-     double fz = (2 - phiy) * EIzz / (L * (1 + phiy));
-     double fy = (2 - phiz) * EIyy / (L * (1 + phiz));
+    double az = 12.0 * EIzz / (LLL * (1 + phiy));
+    double ay = 12.0 * EIyy / (LLL * (1 + phiz));
+    double cz = 6.0 * EIzz / (LL * (1 + phiy));
+    double cy = 6.0 * EIyy / (LL * (1 + phiz));
+    double ez = (4 + phiy) * EIzz / (L * (1 + phiy));
+    double ey = (4 + phiz) * EIyy / (L * (1 + phiz));
+    double fz = (2 - phiy) * EIzz / (L * (1 + phiy));
+    double fy = (2 - phiz) * EIyy / (L * (1 + phiz));
 
-      Km(0, 0) = EA/L;
-      Km(1, 1) = az;
-      Km(2, 2) = ay;
-      Km(3, 3) = GJ/L;
-      Km(4, 4) = ey;
-      Km(5, 5) = ez;
-      Km(6, 6) = EA/L;
-      Km(7, 7) = az;
-      Km(8, 8) = ay;
-      Km(9, 9) = GJ/L;
-      Km(10, 10) = ey;
-      Km(11, 11) = ez;
+    Km(0, 0) = EA / L;
+    Km(1, 1) = az;
+    Km(2, 2) = ay;
+    Km(3, 3) = GJ / L;
+    Km(4, 4) = ey;
+    Km(5, 5) = ez;
+    Km(6, 6) = EA / L;
+    Km(7, 7) = az;
+    Km(8, 8) = ay;
+    Km(9, 9) = GJ / L;
+    Km(10, 10) = ey;
+    Km(11, 11) = ez;
 
-      Km(0, 6) = -EA/L;
-      Km(1, 7) = -az;
-      Km(2, 8) = -ay;
-      Km(3, 9) = -GJ/L;
-      Km(4, 10) = fy;
-      Km(5, 11) = fz;
+    Km(0, 6) = -EA / L;
+    Km(1, 7) = -az;
+    Km(2, 8) = -ay;
+    Km(3, 9) = -GJ / L;
+    Km(4, 10) = fy;
+    Km(5, 11) = fz;
 
-      Km(4, 8) = cy;
-      Km(5, 7) = -cz;
-      Km(1, 11) = cz;
-      Km(2, 10) = -cy;
+    Km(4, 8) = cy;
+    Km(5, 7) = -cz;
+    Km(1, 11) = cz;
+    Km(2, 10) = -cy;
 
-      Km(1, 5) = cz;
-      Km(2, 4) = -cy;
-      Km(7, 11) = -cz;
-      Km(8, 10) = cy;
-    
+    Km(1, 5) = cz;
+    Km(2, 4) = -cy;
+    Km(7, 11) = -cz;
+    Km(8, 10) = cy;
+
     // symmetric part;
     for (int r = 0; r < 12; r++)
         for (int c = r + 1; c < 12; c++)
             Km(c, r) = Km(r, c);
 
-
     Km = this->T.transpose() * Km * this->T;
-
 }
 
 void ChElementBeamTaperedTimoshenko::ComputeDampingMatrix() {
-    assert(taperedSection);
+    assert(tapered_section);
 
     double L = this->length;
     double LL = L * L;
     double LLL = LL * L;
 
-    double EA = this->taperedSection->GetAverageSectionParameters()->EA;
-    double GJ = this->taperedSection->GetAverageSectionParameters()->GJ;
-    double GAyy = this->taperedSection->GetAverageSectionParameters()->GAyy;
-    double GAzz = this->taperedSection->GetAverageSectionParameters()->GAzz;
-    double EIyy = this->taperedSection->GetAverageSectionParameters()->EIyy;
-    double EIzz = this->taperedSection->GetAverageSectionParameters()->EIzz;
+    double EA = this->tapered_section->GetAverageSectionParameters()->EA;
+    double GJ = this->tapered_section->GetAverageSectionParameters()->GJ;
+    double GAyy = this->tapered_section->GetAverageSectionParameters()->GAyy;
+    double GAzz = this->tapered_section->GetAverageSectionParameters()->GAzz;
+    double EIyy = this->tapered_section->GetAverageSectionParameters()->EIyy;
+    double EIzz = this->tapered_section->GetAverageSectionParameters()->EIzz;
 
-    double phiy = this->taperedSection->GetAverageSectionParameters()->phiy;
-    double phiz = this->taperedSection->GetAverageSectionParameters()->phiz;
+    double phiy = this->tapered_section->GetAverageSectionParameters()->phiy;
+    double phiz = this->tapered_section->GetAverageSectionParameters()->phiz;
 
-    double bx2 = pow(this->taperedSection->GetAverageSectionParameters()->rdamping_coeff.bx, 2.0);
-    double by2 = pow(this->taperedSection->GetAverageSectionParameters()->rdamping_coeff.by, 2.0);
-    double bz2 = pow(this->taperedSection->GetAverageSectionParameters()->rdamping_coeff.bz, 2.0);
-    double bt2 = pow(this->taperedSection->GetAverageSectionParameters()->rdamping_coeff.bt, 2.0);
+    double bx2 = pow(this->tapered_section->GetAverageSectionParameters()->rdamping_coeff.bx, 2.0);
+    double by2 = pow(this->tapered_section->GetAverageSectionParameters()->rdamping_coeff.by, 2.0);
+    double bz2 = pow(this->tapered_section->GetAverageSectionParameters()->rdamping_coeff.bz, 2.0);
+    double bt2 = pow(this->tapered_section->GetAverageSectionParameters()->rdamping_coeff.bt, 2.0);
 
     double az = 12.0 * EIzz / (LLL * (1 + phiy));
     double ay = 12.0 * EIyy / (LLL * (1 + phiz));
@@ -686,7 +685,7 @@ void ChElementBeamTaperedTimoshenko::ComputeDampingMatrix() {
 }
 
 void ChElementBeamTaperedTimoshenko::ComputeGeometricStiffnessMatrix() {
-    assert(taperedSection);
+    assert(tapered_section);
 
     // Compute the local geometric stiffness matrix Kg without the P multiplication term, that is Kg*(1/P),
     // so that it is a constant matrix for performance reasons.
@@ -701,14 +700,20 @@ void ChElementBeamTaperedTimoshenko::ComputeGeometricStiffnessMatrix() {
     // Applications of Finite Element Analysis? or in W. McGuire & R.H. Gallagher & R.D. Ziemian, �Matrix Structural
     // Analysis?
 
-    /** 
+    /**
     double EA1 = this->taperedSection->GetSectionA()->GetAxialRigidity();
     double EIyy1 = this->taperedSection->GetSectionA()->GetYbendingRigidity();
     double EIzz1 = this->taperedSection->GetSectionA()->GetZbendingRigidity();
+    double EA1 = this->tapered_section->GetSectionA()->GetAxialRigidity();
+    double EIyy1 = this->tapered_section->GetSectionA()->GetYbendingRigidity();
+    double EIzz1 = this->tapered_section->GetSectionA()->GetZbendingRigidity();
 
     double EA2 = this->taperedSection->GetSectionB()->GetAxialRigidity();
     double EIyy2 = this->taperedSection->GetSectionB()->GetYbendingRigidity();
     double EIzz2 = this->taperedSection->GetSectionB()->GetZbendingRigidity();
+    double EA2 = this->tapered_section->GetSectionB()->GetAxialRigidity();
+    double EIyy2 = this->tapered_section->GetSectionB()->GetYbendingRigidity();
+    double EIzz2 = this->tapered_section->GetSectionB()->GetZbendingRigidity();
 
     double EA = (EA1 + pow(EA1 * EA2, 0.5) + EA2) / 3.0;
     double EIyy = (EIyy1 + pow(EIyy1 * EIyy1 * EIyy1 * EIyy2, 0.25) + pow(EIyy1 * EIyy2, 0.5) +
@@ -722,7 +727,7 @@ void ChElementBeamTaperedTimoshenko::ComputeGeometricStiffnessMatrix() {
     double IyA = EIyy / EA;
     */
 
-    // double L = this->taperedSection->GetLength();
+    // double L = this->tapered_section->GetLength();
     double L = this->length;
 
     double P_L = 1. / L;
@@ -734,7 +739,7 @@ void ChElementBeamTaperedTimoshenko::ComputeGeometricStiffnessMatrix() {
     double PL2_15_z = 2. * L / (15.);  // optional [2]: ...+ 4*IyA /(L);
     double PL_30_y = L / (30.);        // optional [2]: ...+ 2*IyA /(L);
     double PL_30_z = L / (30.);        // optional [2]: ...+ 2*IyA /(L);
-    /*  QUESTION: why the axial geometric stiffness is ignored? I think we should include it. By PENG Chao
+    /*  DONOT use the axial terms:
     this->Kg(0, 0) =  P_L;
     this->Kg(6, 6) =  P_L;
     this->Kg(0, 6) = -P_L;
@@ -776,13 +781,48 @@ void ChElementBeamTaperedTimoshenko::ComputeGeometricStiffnessMatrix() {
     Kg = this->T.transpose() * Kg * this->T;
 }
 
+void ChElementBeamTaperedTimoshenko::ComputeKiRimatricesLocal(bool inertial_damping, bool inertial_stiffness) {
+    assert(tapered_section);
+
+    if (inertial_damping) {
+        ChVector<> mW_A = this->GetNodeA()->GetWvel_loc();
+        ChVector<> mW_B = this->GetNodeB()->GetWvel_loc();
+        ChMatrixNM<double, 12, 12> mH;
+        this->tapered_section->ComputeInertiaDampingMatrix(mH, mW_A, mW_B);
+        this->Ri = 0.5 * this->length * mH;
+    } else {
+        this->Ri.setZero(this->GetNdofs(), this->GetNdofs());
+    }
+
+    if (inertial_stiffness) {
+        ///< current angular velocity of section of node A, in material frame
+        ChVector<> mWvel_A = this->GetNodeA()->GetWvel_loc();
+        ///< current angular acceleration of section of node A, in material frame
+        ChVector<> mWacc_A = this->GetNodeA()->GetWacc_loc();
+        ///< current acceleration of section of node A, in material frame)
+        ChVector<> mXacc_A = this->GetNodeA()->TransformDirectionParentToLocal(this->GetNodeA()->GetPos_dtdt());
+        ///< current angular velocity of section of node B, in material frame
+        ChVector<> mWvel_B = this->GetNodeB()->GetWvel_loc();
+        ///< current angular acceleration of section of node B, in material frame
+        ChVector<> mWacc_B = this->GetNodeB()->GetWacc_loc();
+        ///< current acceleration of section of node B, in material frame
+        ChVector<> mXacc_B = this->GetNodeB()->TransformDirectionParentToLocal(this->GetNodeB()->GetPos_dtdt());
+
+        ChMatrixNM<double, 12, 12> mH;
+        this->tapered_section->ComputeInertiaStiffnessMatrix(mH, mWvel_A, mWacc_A, mXacc_A, mWvel_B, mWacc_B, mXacc_B);
+        this->Ki = 0.5 * this->length * mH;
+    } else {
+        this->Ki.setZero(this->GetNdofs(), this->GetNdofs());
+    }
+}
+
 void ChElementBeamTaperedTimoshenko::SetupInitial(ChSystem* system) {
-    assert(taperedSection);
+    assert(tapered_section);
 
     // Compute rest length, mass:
     this->length = (nodes[1]->GetX0().GetPos() - nodes[0]->GetX0().GetPos()).Length();
-    this->mass = this->length / 2 * this->taperedSection->GetSectionA()->GetMassPerUnitLength() +
-                 this->length / 2 * this->taperedSection->GetSectionB()->GetMassPerUnitLength();
+    this->mass = 0.5 * this->length * this->tapered_section->GetSectionA()->GetMassPerUnitLength() +
+                 0.5 * this->length * this->tapered_section->GetSectionB()->GetMassPerUnitLength();
 
     // Compute initial rotation
     ChMatrix33<> A0;
@@ -795,7 +835,7 @@ void ChElementBeamTaperedTimoshenko::SetupInitial(ChSystem* system) {
     // It could be lumped or consistent mass matrix, depends on SetLumpedMassMatrix(true/false)
     // If it is lumped mass matrix, you need to multiple 0.5 * length to obtain the final mass matrix
     // For consistent mass matrix, don't need to multiple anything.
-    this->taperedSection->ComputeInertiaMatrix(this->M);
+    this->tapered_section->ComputeInertiaMatrix(this->M);
 
     // Compute transformation matrix
     ComputeTransformMatrix();
@@ -809,14 +849,14 @@ void ChElementBeamTaperedTimoshenko::SetupInitial(ChSystem* system) {
     // Compute local damping matrix:
     ComputeDampingMatrix();
 
- }
+}
 
 void ChElementBeamTaperedTimoshenko::ComputeKRMmatricesGlobal(ChMatrixRef H,
                                                               double Kfactor,
                                                               double Rfactor,
                                                               double Mfactor) {
     assert((H.rows() == 12) && (H.cols() == 12));
-    assert(taperedSection);
+    assert(tapered_section);
 
     //
     // The K stiffness matrix and R damping matrix of this element:
@@ -880,10 +920,71 @@ void ChElementBeamTaperedTimoshenko::ComputeKRMmatricesGlobal(ChMatrixRef H,
         }
 
         //// For K stiffness matrix and R matrix: scale by factors
-        //CKCt *= Kfactor + Rfactor * this->taperedSection->GetBeamRaleyghDamping();
+        // CKCt *= Kfactor + Rfactor * this->tapered_section->GetBeamRaleyghDamping();
 
         H.block(0, 0, 12, 12) = CKCt * Kfactor + CRCt * Rfactor;
- 
+
+        // Add inertial stiffness matrix and inertial damping matrix (gyroscopic damping),
+        // if enabled in this beam element.
+        // These matrices are not symmetric. Also note.
+        if (this->tapered_section->compute_inertia_damping_matrix ||
+            this->tapered_section->compute_inertia_stiffness_matrix) {
+            ChMatrixNM<double, 12, 12> matr_loc;
+            ChMatrixNM<double, 12, 12> KRi_loc;
+            KRi_loc.setZero();
+            // A lumped version of the inertial damping/stiffness matrix computation is used here, on a per-node basis:
+            double node_multiplier_fact_R = 0.5 * length * Rfactor;
+            double node_multiplier_fact_K = 0.5 * length * Kfactor;
+
+            ///< current angular velocity of section of node A, in material frame
+            ChVector<> mWvel_A = this->GetNodeA()->GetWvel_loc();
+            ///< current angular acceleration of section of node A, in material frame
+            ChVector<> mWacc_A = this->GetNodeA()->GetWacc_loc();
+            ///< current acceleration of section of node A, in material frame)
+            ChVector<> mXacc_A = this->GetNodeA()->TransformDirectionParentToLocal(this->GetNodeA()->GetPos_dtdt());
+            ///< current angular velocity of section of node B, in material frame
+            ChVector<> mWvel_B = this->GetNodeB()->GetWvel_loc();
+            ///< current angular acceleration of section of node B, in material frame
+            ChVector<> mWacc_B = this->GetNodeB()->GetWacc_loc();
+            ///< current acceleration of section of node B, in material frame
+            ChVector<> mXacc_B = this->GetNodeB()->TransformDirectionParentToLocal(this->GetNodeB()->GetPos_dtdt());
+
+            if (this->tapered_section->compute_inertia_damping_matrix) {
+                this->tapered_section->ComputeInertiaDampingMatrix(matr_loc, mWvel_A, mWacc_A);
+                KRi_loc += matr_loc * node_multiplier_fact_R;
+                // check the inertial damping matrix, it should be skew symmetric
+                //if ((matr_loc + matr_loc.transpose()).norm() < 1E-9) {
+                //    std::cout << "Gyroscopic damping matrix is skew symmetric, that's correct！" << std::endl;
+                //} else {
+                //    std::cout << "Gyroscopic damping matrix is NOT skew symmetric, something is wrong!" << std::endl;
+                //}
+            }
+
+            if (this->tapered_section->compute_inertia_stiffness_matrix) {
+                this->tapered_section->ComputeInertiaStiffnessMatrix(matr_loc, mWvel_A, mWacc_A, mXacc_A, mWvel_B,
+                                                                    mWacc_B, mXacc_B);
+                KRi_loc += matr_loc * node_multiplier_fact_K;
+                // check the inertial stiffness matrix, is it must be skew symmetric as the stiffness matrix?
+                //if ((matr_loc + matr_loc.transpose()).norm() < 1E-9) {
+                //    std::cout << "Inertial stiffness matrix is skew symmetric" << std::endl;
+                //} else {
+                //    std::cout << "Inertial stiffness matrix is NOT skew symmetric" << std::endl;
+                //}
+            }
+
+            for (int i = 0; i < nodes.size(); ++i) {
+                int stride = i * 6;
+                // corotate the local damping and stiffness matrices (at once, already scaled) into absolute one
+                // H.block<3, 3>(stride,   stride  ) += nodes[i]->GetA() * KRi_loc.block<3, 3>(0,0) *
+                // (nodes[i]->GetA().transpose()); // NOTE: not needed as KRi_loc.block<3, 3>(0,0) is null by
+                // construction
+                H.block<3, 3>(stride + 3, stride + 3) += KRi_loc.block<3, 3>(3, 3);
+                H.block<3, 3>(stride, stride + 3) += nodes[i]->GetA() * KRi_loc.block<3, 3>(0, 3);
+                // H.block<3, 3>(stride+3, stride)   +=                    KRi_loc.block<3, 3>(3,0) *
+                // (nodes[i]->GetA().transpose()); // NOTE: not needed as KRi_loc.block<3, 3>(3,0) is null by
+                // construction
+            }
+        }
     } else
         H.setZero();
 
@@ -896,9 +997,10 @@ void ChElementBeamTaperedTimoshenko::ComputeKRMmatricesGlobal(ChMatrixRef H,
         Mloc.setZero();
         ChMatrix33<> Mxw;
 
-        // ChMatrixNM<double, 12, 12> sectional_mass = this->M;  // it could be consistent mass matrix, depends on SetLumpedMassMatrix(true/false)
+        // ChMatrixNM<double, 12, 12> sectional_mass = this->M;  // it could be consistent mass matrix, depends on
+        // SetLumpedMassMatrix(true/false)
 
-        if (this->taperedSection->GetLumpedMassMatrixType()) {
+        if (this->tapered_section->GetLumpedMassMatrixType()) {
             double node_multiplier_fact = 0.5 * this->length * Mfactor;
             for (int i = 0; i < nodes.size(); ++i) {
                 int stride = i * 6;
@@ -917,7 +1019,6 @@ void ChElementBeamTaperedTimoshenko::ComputeKRMmatricesGlobal(ChMatrixRef H,
             H.block(0, 0, 12, 12) += Mloc;
 
         } else {
-
             Mloc = this->M * Mfactor;
 
             // The following would be needed if consistent mass matrix is used, but...
@@ -936,7 +1037,6 @@ void ChElementBeamTaperedTimoshenko::ComputeKRMmatricesGlobal(ChMatrixRef H,
             ChMatrixCorotation::ComputeKCt(CK, R, 4, CKCt);
 
             H.block(0, 0, 12, 12) += CKCt;
-
         }
 
         //// TODO better per-node lumping, or 4x4 consistent mass matrices, maybe with integration if not uniform
@@ -946,7 +1046,7 @@ void ChElementBeamTaperedTimoshenko::ComputeKRMmatricesGlobal(ChMatrixRef H,
 
 void ChElementBeamTaperedTimoshenko::ComputeInternalForces(ChVectorDynamic<>& Fi) {
     assert(Fi.size() == 12);
-    assert(taperedSection);
+    assert(tapered_section);
 
     // set up vector of nodal displacements and small rotations (in local element system)
     ChVectorDynamic<> displ(12);
@@ -959,7 +1059,7 @@ void ChElementBeamTaperedTimoshenko::ComputeInternalForces(ChVectorDynamic<>& Fi
     ChVectorDynamic<> displ_dt(12);
     this->GetField_dt(displ_dt);
 
-    //ChMatrixDynamic<> FiR_local = this->taperedSection->GetBeamRaleyghDamping() * this->Km * displ_dt;
+    // ChMatrixDynamic<> FiR_local = this->tapered_section->GetBeamRaleyghDamping() * this->Km * displ_dt;
     ChMatrixDynamic<> FiR_local = this->Rm * displ_dt;
 
     FiK_local += FiR_local;
@@ -989,9 +1089,9 @@ void ChElementBeamTaperedTimoshenko::ComputeInternalForces(ChVectorDynamic<>& Fi
     for (int i = 0; i < nodes.size(); ++i) {
         int stride = i * 6;
         if (i == 0) {
-            this->taperedSection->GetSectionA()->ComputeQuadraticTerms(mFcent_i, mTgyro_i, nodes[i]->GetWvel_loc());
+            this->tapered_section->GetSectionA()->ComputeQuadraticTerms(mFcent_i, mTgyro_i, nodes[i]->GetWvel_loc());
         } else {  // i==1
-            this->taperedSection->GetSectionB()->ComputeQuadraticTerms(mFcent_i, mTgyro_i, nodes[i]->GetWvel_loc());
+            this->tapered_section->GetSectionB()->ComputeQuadraticTerms(mFcent_i, mTgyro_i, nodes[i]->GetWvel_loc());
         }
         ChQuaternion<> q_i(nodes[i]->GetRot());
         Fi.segment(i * 6, 3) -= node_multiplier * (nodes[i]->GetA() * mFcent_i).eigen();
@@ -1021,12 +1121,12 @@ void ChElementBeamTaperedTimoshenko::ComputeInternalForces(ChVectorDynamic<>& Fi
                                                            bool Rfactor,
                                                            bool Gfactor) {
     assert(Fi.size() == 12);
-    assert(taperedSection);
+    assert(tapered_section);
 
     ChVectorDynamic<> FiMKR_local(12);
     FiMKR_local.setZero();
-    
-    if (Mfactor && true) { // Is this correct? Or the code in lines 1072~1090
+
+    if (Mfactor && true) {  // Is this correct? Or the code in lines 1072~1090
         // set up vector of nodal accelerations (in local element system)
         ChVectorDynamic<> displ_dtdt(12);
         this->GetField_dtdt(displ_dtdt);
@@ -1049,7 +1149,7 @@ void ChElementBeamTaperedTimoshenko::ComputeInternalForces(ChVectorDynamic<>& Fi
         ChVectorDynamic<> displ_dt(12);
         this->GetField_dt(displ_dt);
 
-        // ChMatrixDynamic<> FiR_local = this->taperedSection->GetBeamRaleyghDamping() * this->Km * displ_dt;
+        // ChMatrixDynamic<> FiR_local = this->tapered_section->GetBeamRaleyghDamping() * this->Km * displ_dt;
         ChMatrixDynamic<> FiR_local = this->Rm * displ_dt;
         FiMKR_local -= FiR_local;
     }
@@ -1073,22 +1173,20 @@ void ChElementBeamTaperedTimoshenko::ComputeInternalForces(ChVectorDynamic<>& Fi
         // set up vector of nodal accelarations (in absolute element system)
         ChVectorDynamic<> displ_dtdt(12);
         displ_dtdt.segment(0, 3) = nodes[0]->Frame().GetPos_dtdt().eigen();
-        //displ_dtdt.segment(3, 3) = nodes[0]->Frame().GetWacc_par().eigen();        //但是之后dynamics求解发散
-        displ_dtdt.segment(3, 3) = nodes[0]->Frame().GetWacc_loc().eigen();      //但是之后dynamics求解发散
+        // displ_dtdt.segment(3, 3) = nodes[0]->Frame().GetWacc_par().eigen();        //但是之后dynamics求解发散
+        displ_dtdt.segment(3, 3) = nodes[0]->Frame().GetWacc_loc().eigen();  //但是之后dynamics求解发散
 
         displ_dtdt.segment(6, 3) = nodes[1]->Frame().GetPos_dtdt().eigen();
-        //displ_dtdt.segment(9, 3) = nodes[1]->Frame().GetWacc_par().eigen();
-         displ_dtdt.segment(9, 3) = nodes[1]->Frame().GetWacc_loc().eigen();
-        //this->GetField_dtdt(displ_dtdt);
+        // displ_dtdt.segment(9, 3) = nodes[1]->Frame().GetWacc_par().eigen();
+        displ_dtdt.segment(9, 3) = nodes[1]->Frame().GetWacc_loc().eigen();
+        // this->GetField_dtdt(displ_dtdt);
 
         ChMatrixDynamic<> Mabs(12, 12);
         Mabs.setZero();
-        this->ComputeKRMmatricesGlobal(Mabs,false,false,true); // Mabs is the mass matrix in absolute coordinate for this element
 
         ChVectorDynamic<> FiM_abs = Mabs * displ_dtdt;
         Fi -= FiM_abs;
     }
-
 
     if (Gfactor) {
         // Add also inertial quadratic terms: gyroscopic and centrifugal
@@ -1100,9 +1198,9 @@ void ChElementBeamTaperedTimoshenko::ComputeInternalForces(ChVectorDynamic<>& Fi
         for (int i = 0; i < nodes.size(); ++i) {
             int stride = i * 6;
             if (i == 0) {
-                this->taperedSection->GetSectionA()->ComputeQuadraticTerms(mFcent_i, mTgyro_i, nodes[i]->GetWvel_loc());
+                this->tapered_section->GetSectionA()->ComputeQuadraticTerms(mFcent_i, mTgyro_i, nodes[i]->GetWvel_loc());
             } else {  // i==1
-                this->taperedSection->GetSectionB()->ComputeQuadraticTerms(mFcent_i, mTgyro_i, nodes[i]->GetWvel_loc());
+                this->tapered_section->GetSectionB()->ComputeQuadraticTerms(mFcent_i, mTgyro_i, nodes[i]->GetWvel_loc());
             }
             ChQuaternion<> q_i(nodes[i]->GetRot());
             Fi.segment(i * 6, 3) -= node_multiplier * (nodes[i]->GetA() * mFcent_i).eigen();
@@ -1127,7 +1225,6 @@ void ChElementBeamTaperedTimoshenko::ComputeInternalForces(ChVectorDynamic<>& Fi
 #endif
 }
 
-
 void ChElementBeamTaperedTimoshenko::ComputeGravityForces(ChVectorDynamic<>& Fg, const ChVector<>& G_acc) {
     // no so efficient... a temporary mass matrix here:
     ChMatrixDynamic<> mM(12, 12);
@@ -1144,8 +1241,6 @@ void ChElementBeamTaperedTimoshenko::ComputeGravityForces(ChVectorDynamic<>& Fg,
     // [Maybe one can replace this function with a faster ad-hoc implementation in case of lumped masses.]
     Fg = mM * mG;
 
-    //// TODO for the lumped mass matrix case, the mM * mG product can be unrolled into few multiplications as mM mostly
-    ///zero, and same for mG
 }
 
 void ChElementBeamTaperedTimoshenko::EvaluateSectionDisplacement(const double eta,
@@ -1153,7 +1248,7 @@ void ChElementBeamTaperedTimoshenko::EvaluateSectionDisplacement(const double et
                                                                  ChVector<>& u_rotaz) {
     ChVectorDynamic<> displ(this->GetNdofs());
     this->GetStateBlock(displ);
-    // No transformation for the displacement of two nodes, 
+    // No transformation for the displacement of two nodes,
     // so the section displacement is evaluated at the centerline of beam
 
     /* old code for Euler beam. Can be removed now.
@@ -1200,7 +1295,6 @@ void ChElementBeamTaperedTimoshenko::EvaluateSectionDisplacement(const double et
     u_rotaz.x() = kNx * qerx;
     u_rotaz.y() = -dkNbz * qez;
     u_rotaz.z() = dkNby * qey;
-
 }
 
 void ChElementBeamTaperedTimoshenko::EvaluateSectionFrame(const double eta, ChVector<>& point, ChQuaternion<>& rot) {
@@ -1226,20 +1320,20 @@ void ChElementBeamTaperedTimoshenko::EvaluateSectionFrame(const double eta, ChVe
 void ChElementBeamTaperedTimoshenko::EvaluateSectionForceTorque0(const double eta,
                                                                  ChVector<>& Fforce,
                                                                  ChVector<>& Mtorque) {
-    //This functionality is the old function for Euler beam, just for test. It can be removed now.
-    assert(taperedSection);
+    // This functionality is the old function for Euler beam, just for test. It can be removed now.
+    assert(tapered_section);
 
-    double EA = this->taperedSection->GetAverageSectionParameters()->EA;
-    double GJ = this->taperedSection->GetAverageSectionParameters()->GJ;
-    double GAyy = this->taperedSection->GetAverageSectionParameters()->GAyy;
-    double GAzz = this->taperedSection->GetAverageSectionParameters()->GAzz;
-    double EIyy = this->taperedSection->GetAverageSectionParameters()->EIyy;
-    double EIzz = this->taperedSection->GetAverageSectionParameters()->EIzz;
-    double alpha = this->taperedSection->GetAverageSectionParameters()->alpha;
-    double Cy = this->taperedSection->GetAverageSectionParameters()->Cy;
-    double Cz = this->taperedSection->GetAverageSectionParameters()->Cz;
-    double Sy = this->taperedSection->GetAverageSectionParameters()->Sy;
-    double Sz = this->taperedSection->GetAverageSectionParameters()->Sz;
+    double EA = this->tapered_section->GetAverageSectionParameters()->EA;
+    double GJ = this->tapered_section->GetAverageSectionParameters()->GJ;
+    double GAyy = this->tapered_section->GetAverageSectionParameters()->GAyy;
+    double GAzz = this->tapered_section->GetAverageSectionParameters()->GAzz;
+    double EIyy = this->tapered_section->GetAverageSectionParameters()->EIyy;
+    double EIzz = this->tapered_section->GetAverageSectionParameters()->EIzz;
+    double alpha = this->tapered_section->GetAverageSectionParameters()->alpha;
+    double Cy = this->tapered_section->GetAverageSectionParameters()->Cy;
+    double Cz = this->tapered_section->GetAverageSectionParameters()->Cz;
+    double Sy = this->tapered_section->GetAverageSectionParameters()->Sy;
+    double Sz = this->tapered_section->GetAverageSectionParameters()->Sz;
 
     // The shear center offset should be respect to elastic cetner.
     Sy = Sy - Cy;
@@ -1355,20 +1449,18 @@ void ChElementBeamTaperedTimoshenko::EvaluateSectionForceTorque0(const double et
         ChVectorN<double, 6> wrench = Klaw_r * sect_ek;
         Fforce = wrench.segment(0, 3);
         Mtorque = wrench.segment(3, 3);
-
     }
 }
 
 void ChElementBeamTaperedTimoshenko::EvaluateSectionForceTorque(const double eta,
                                                                 ChVector<>& Fforce,
                                                                 ChVector<>& Mtorque) {
-    assert(taperedSection);
+    assert(tapered_section);
 
     ChVectorDynamic<> displ(this->GetNdofs());
     this->GetStateBlock(displ);
 
     ChVectorDynamic<> displ_ec = this->T * displ;  // transform the displacement of two nodes to elastic axis
-
 
     ChVectorN<double, 4> qey;
     qey << displ_ec(1), displ_ec(5), displ_ec(7), displ_ec(11);
@@ -1392,16 +1484,15 @@ void ChElementBeamTaperedTimoshenko::EvaluateSectionForceTorque(const double eta
     auto dddkNby = std::get<0>(sfblk3d);
     auto dddkNbz = std::get<1>(sfblk3d);
 
-    double EA = this->taperedSection->GetAverageSectionParameters()->EA;
-    double GJ = this->taperedSection->GetAverageSectionParameters()->GJ;
-    double GAyy = this->taperedSection->GetAverageSectionParameters()->GAyy;
-    double GAzz = this->taperedSection->GetAverageSectionParameters()->GAzz;
-    double EIyy = this->taperedSection->GetAverageSectionParameters()->EIyy;
-    double EIzz = this->taperedSection->GetAverageSectionParameters()->EIzz;
+    double EA = this->tapered_section->GetAverageSectionParameters()->EA;
+    double GJ = this->tapered_section->GetAverageSectionParameters()->GJ;
+    double GAyy = this->tapered_section->GetAverageSectionParameters()->GAyy;
+    double GAzz = this->tapered_section->GetAverageSectionParameters()->GAzz;
+    double EIyy = this->tapered_section->GetAverageSectionParameters()->EIyy;
+    double EIzz = this->tapered_section->GetAverageSectionParameters()->EIzz;
 
     double eps = 1.0e-3;
     bool use_shear_stain = true;  // As default, use shear strain to evaluate the shear forces
-    if (abs(GAyy) < eps || abs(GAzz) < eps) {  // Sometimes, the user will not input GAyy, GAzz, so GAyy, GAzz may be zero.
         use_shear_stain = false;
     }
 
@@ -1422,17 +1513,13 @@ void ChElementBeamTaperedTimoshenko::EvaluateSectionForceTorque(const double eta
         sect_ek(2) = -dddkNbz * qez;  // Fz == -EIyy *  dddkNbz * qez == GAzz * dkNsz * qez;
     }
 
-
-    /* 
+    /*
     // e_x
     sect_ek(0) = (dN_xa * displ(0) + dN_xb * displ(6));  // x_a   x_b
     // e_y
     sect_ek(1) = (dddN_ua * displ(1) + dddN_ub * displ(7) +   // y_a   y_b
                   dddN_ra * displ(5) + dddN_rb * displ(11));  // Rz_a  Rz_b
     // e_z
-    sect_ek(2) = (-dddN_ua * displ(2) - dddN_ub * displ(8) +  // z_a   z_b   note - sign  TODO: need to check the sign
-                  dddN_ra * displ(4) + dddN_rb * displ(10));  // Ry_a  Ry_b
-    sect_ek(2) *= -1;  // TODO: need to check the sign of curvature, it depends on your definition
 
     // k_x
     sect_ek(3) = (dN_xa * displ(3) + dN_xb * displ(9));  // Rx_a  Rx_b
@@ -1460,19 +1547,18 @@ void ChElementBeamTaperedTimoshenko::EvaluateSectionForceTorque(const double eta
         Mtorque.y() = EIyy * sect_ek(4);
         Mtorque.z() = EIzz * sect_ek(5);
     } else {
-        
         // Constitutive matrix of the beam:
         ChMatrixNM<double, 6, 6> Klaw_d;
         Klaw_d.setZero();
-        Klaw_d(0,0) = EA;
-        Klaw_d(3,3) = GJ;
-        Klaw_d(4,4)=  EIyy;
-        Klaw_d(5,5) = EIzz;
+        Klaw_d(0, 0) = EA;
+        Klaw_d(3, 3) = GJ;
+        Klaw_d(4, 4) = EIyy;
+        Klaw_d(5, 5) = EIzz;
 
         if (use_shear_stain) {
             Klaw_d(1, 1) = GAyy;
             Klaw_d(2, 2) = GAzz;
-        }else{
+        } else {
             Klaw_d(1, 1) = EIzz;
             Klaw_d(2, 2) = EIyy;
         }
@@ -1489,7 +1575,6 @@ void ChElementBeamTaperedTimoshenko::EvaluateSectionForceTorque(const double eta
         ChVectorN<double, 6> wrench = Klaw_r * sect_ek;
         Fforce = wrench.segment(0, 3);
         Mtorque = wrench.segment(3, 3);
-
     }
 }
 
@@ -1570,12 +1655,13 @@ void ChElementBeamTaperedTimoshenko::ComputeNF(const double U,
 }
 
 double ChElementBeamTaperedTimoshenko::GetDensity() {
-    double mu1 = this->taperedSection->GetSectionA()->GetMassPerUnitLength();
-    double mu2 = this->taperedSection->GetSectionB()->GetMassPerUnitLength();
+    double mu1 = this->tapered_section->GetSectionA()->GetMassPerUnitLength();
+    double mu2 = this->tapered_section->GetSectionB()->GetMassPerUnitLength();
     double mu = (mu1 + mu2) / 2.0;
 
     return mu;
 }
+
 
 }  // end namespace fea
 }  // end namespace chrono

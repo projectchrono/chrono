@@ -40,7 +40,9 @@ class ChApi ChElementBeamTaperedTimoshenko : public ChElementBeam,
                                  public ChLoadableU,
                                  public ChLoadableUVW,
                                  public ChElementCorotational {
-  public:
+  private:
+    // only used inside this Class
+    // to store the shape functions
     using ShapeVector = ChMatrixNM<double, 1, 10>;
 
     using ShapeFunctionN = ChMatrixNM<double, 6, 12>;
@@ -52,6 +54,8 @@ class ChApi ChElementBeamTaperedTimoshenko : public ChElementBeam,
         ShapeFunction5Blocks, // restore blocks of first derivatives
         ShapeFunction2Blocks, // restore blocks of second derivatives
         ShapeFunction2Blocks>; // restore blocks of thrid derivatives
+
+  public:
 
     ChElementBeamTaperedTimoshenko();
 
@@ -72,10 +76,10 @@ class ChApi ChElementBeamTaperedTimoshenko : public ChElementBeam,
     /// Set the section & material of beam element .
     /// It is a shared property, so it can be shared between other beams.
     void SetTaperedSection(std::shared_ptr<ChBeamSectionTaperedTimoshenkoAdvancedGeneric> my_material) {
-        taperedSection = my_material;
+        tapered_section = my_material;
     }
     /// Get the section & material of the element
-    std::shared_ptr<ChBeamSectionTaperedTimoshenkoAdvancedGeneric> GetTaperedSection() { return taperedSection; }
+    std::shared_ptr<ChBeamSectionTaperedTimoshenkoAdvancedGeneric> GetTaperedSection() { return tapered_section; }
 
     /// Get the first node (beginning)
     std::shared_ptr<ChNodeFEAxyzrot> GetNodeA() { return nodes[0]; }
@@ -130,7 +134,7 @@ class ChApi ChElementBeamTaperedTimoshenko : public ChElementBeam,
     ///      | .    .   -6  .   8   .   .   .   -7  .   9   .   |
     ///      | .    6   .   .   .   8   .   7   .   .   .   9   |
     /// // Old shape functions here, just for test
-    void ShapeFunctions(ShapeVector& N, double eta);
+    void ShapeFunctionsEuler(ShapeVector& N, double eta);
 
     // New shape functions for Timoshenko beam
     void ShapeFunctionsTimoshenko(ShapeFunctionGroup& NN, double eta);
@@ -173,6 +177,9 @@ class ChApi ChElementBeamTaperedTimoshenko : public ChElementBeam,
     /// is computed only at the beginning, and later it is multiplied by P all times the real Kg is needed.
     /// If you later change some material property, call this or InitialSetup().
     void ComputeGeometricStiffnessMatrix();
+
+    void ComputeKiRimatricesLocal(bool inertial_damping, bool inertial_stiffness);
+
 
     /// Sets H as the global stiffness matrix K, scaled  by Kfactor. Optionally, also
     /// superimposes global damping matrix R, scaled by Rfactor, and global mass matrix M multiplied by Mfactor.
@@ -305,13 +312,14 @@ class ChApi ChElementBeamTaperedTimoshenko : public ChElementBeam,
 
     std::vector<std::shared_ptr<ChNodeFEAxyzrot> > nodes;
 
-    std::shared_ptr<ChBeamSectionTaperedTimoshenkoAdvancedGeneric> taperedSection;
+    std::shared_ptr<ChBeamSectionTaperedTimoshenkoAdvancedGeneric> tapered_section;
 
     ChMatrixDynamic<> Km;  ///< local material  stiffness matrix
     ChMatrixDynamic<> Kg;  ///< local geometric stiffness matrix NORMALIZED by P
     ChMatrixDynamic<> M;   ///< local material mass matrix, it could be lumped or consistent mass matrix, depends on SetLumpedMassMatrix(true/false)
     ChMatrixDynamic<> Rm;   ///< local material damping matrix
-
+    ChMatrixDynamic<> Ri;   ///< local inertial-damping (gyroscopic damping) matrix
+    ChMatrixDynamic<> Ki;   ///< local inertial-stiffness matrix
 
     ChQuaternion<> q_refrotA;
     ChQuaternion<> q_refrotB;
@@ -333,6 +341,8 @@ class ChApi ChElementBeamTaperedTimoshenko : public ChElementBeam,
 
     void ComputeTransformMatrixAtPoint(ChMatrixDynamic<>& mT, const double eta);
 
+  public:
+    EIGEN_MAKE_ALIGNED_OPERATOR_NEW
     // TODO: is it necessary to update this class?
 	//friend class ChExtruderBeamEuler;
 };

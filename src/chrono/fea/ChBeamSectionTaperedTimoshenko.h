@@ -246,10 +246,45 @@ class ChApi ChBeamSectionTaperedTimoshenkoAdvancedGeneric {
     virtual void ComputeInertiaMatrix(ChMatrixDynamic<>& M  ///< 12x12 sectional mass matrix values here
     );
 
+    // Compute the 12x12 local inertial-damping (gyroscopic damping) matrix
+    // lumped format is usded, need to multiple 0.5 * length to obtain the final inertial-damping matrix
+    virtual void ComputeInertiaDampingMatrix(
+        ChMatrixNM<double, 12, 12>& Ri,  ///< 12x12 sectional inertial-damping matrix values here
+        const ChVector<>& mW_A,          ///< current angular velocity of section of node A, in material frame
+        const ChVector<>& mW_B           ///< current angular velocity of section of node B, in material frame
+        );
+
+    // Compute the 12x12 local inertial-stiffness matrix
+    // lumped format is usded, need to multiple 0.5 * length to obtain the final inertial-stiffness matrix
+    virtual void ComputeInertiaStiffnessMatrix(
+        ChMatrixNM<double, 12, 12>& Ki,  ///< 12x12 sectional inertial-stiffness matrix values here
+        const ChVector<>& mWvel_A,       ///< current angular velocity of section of node A, in material frame
+        const ChVector<>& mWacc_A,       ///< current angular acceleration of section of node A, in material frame
+        const ChVector<>& mXacc_A,       ///< current acceleration of section of node A, in material frame)
+        const ChVector<>& mWvel_B,       ///< current angular velocity of section of node B, in material frame
+        const ChVector<>& mWacc_B,       ///< current angular acceleration of section of node B, in material frame
+        const ChVector<>& mXacc_B        ///< current acceleration of section of node B, in material frame
+        );
+
+
     /// Get the average damping coefficient of this tapered cross-section.
     virtual DampingCoefficients GetBeamRaleyghDamping() const;
 
     virtual std::shared_ptr<AverageSectionParameters> GetAverageSectionParameters() const { return this->avg_sec_par; };
+
+    // Optimization flags
+
+    /// Flag that turns on/off the computation of the [Ri] 'gyroscopic' inertial damping matrix.
+    /// If false, Ri=0. Can be used for cpu speedup, profiling, tests. Default: true.
+    bool compute_inertia_damping_matrix = true;
+
+    /// Flag that turns on/off the computation of the [Ki] inertial stiffness matrix.
+    /// If false, Ki=0. Can be used for cpu speedup, profiling, tests. Default: true.
+    bool compute_inertia_stiffness_matrix = true;
+
+    /// Flag for computing the Ri and Ki matrices via numerical differentiation even if
+    /// an analytical expression is provided. Children calsses must take care of this. Default: false.
+    bool compute_Ri_Ki_by_num_diff = false;
 
   protected:
     double length;
@@ -277,6 +312,9 @@ class ChApi ChBeamSectionTaperedTimoshenkoAdvancedGeneric {
     // Some important average section parameters, to calculate once, enable to access them conveniently.
     std::shared_ptr<AverageSectionParameters> avg_sec_par;
     virtual void ComputeAverageSectionParameters();
+
+  public:
+    EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 };
 
 /// @} fea_utils
