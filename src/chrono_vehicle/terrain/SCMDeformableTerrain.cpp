@@ -254,6 +254,9 @@ int SCMDeformableTerrain::GetNumErosionNodes() const {
 double SCMDeformableTerrain::GetTimerMovingPatches() const {
     return 1e3 * m_ground->m_timer_moving_patches();
 }
+double SCMDeformableTerrain::GetTimerRayTesting() const {
+    return 1e3 * m_ground->m_timer_ray_testing();
+}
 double SCMDeformableTerrain::GetTimerRayCasting() const {
     return 1e3 * m_ground->m_timer_ray_casting();
 }
@@ -274,6 +277,7 @@ double SCMDeformableTerrain::GetTimerVisUpdate() const {
 void SCMDeformableTerrain::PrintStepStatistics(std::ostream& os) const {
     os << " Timers (ms):" << std::endl;
     os << "   Moving patches:          " << 1e3 * m_ground->m_timer_moving_patches() << std::endl;
+    os << "   Ray testing:             " << 1e3 * m_ground->m_timer_ray_testing() << std::endl;
     os << "   Ray casting:             " << 1e3 * m_ground->m_timer_ray_casting() << std::endl;
     os << "   Contact patches:         " << 1e3 * m_ground->m_timer_contact_patches() << std::endl;
     os << "   Contact forces:          " << 1e3 * m_ground->m_timer_contact_forces() << std::endl;
@@ -892,6 +896,10 @@ static const std::vector<ChVector2<int>> neighbors4{
     ChVector2<int>(0, 1)    // N
 };
 
+// Default implementation uses Map-Reduce for collecting ray intersection hits.
+// The alternative is to simultaenously load the global map of hits while ray casting (using a critical section).
+////#define RAY_CASTING_WITH_CRITICAL_SECTION
+
 // Reset the list of forces, and fills it with forces from a soil contact model.
 void SCMDeformableSoil::ComputeInternalForces() {
     // Initialize list of modified visualization mesh vertices (use any externally modified vertices)
@@ -920,6 +928,7 @@ void SCMDeformableSoil::ComputeInternalForces() {
 
     // Reset timers
     m_timer_moving_patches.reset();
+    m_timer_ray_testing.reset();
     m_timer_ray_casting.reset();
     m_timer_contact_patches.reset();
     m_timer_contact_forces.reset();
@@ -969,12 +978,15 @@ void SCMDeformableSoil::ComputeInternalForces() {
 
     m_timer_ray_casting.start();
 
+#ifdef RAY_CASTING_WITH_CRITICAL_SECTION
+
     int nthreads = GetSystem()->GetNumThreadsChrono();
 
     // Loop through all moving patches (user-defined or default one)
     for (auto& p : m_patches) {
         // Loop through all vertices in the patch range
-#pragma omp parallel for num_threads(nthreads)
+        int num_ray_casts = 0;
+    #pragma omp parallel for num_threads(nthreads) reduction(+ : num_ray_casts)
         for (int k = 0; k < p.m_range.size(); k++) {
             ChVector2<int> ij = p.m_range[k];
 
@@ -982,7 +994,7 @@ void SCMDeformableSoil::ComputeInternalForces() {
             double x = ij.x() * m_delta;
             double y = ij.y() * m_delta;
             double z;
-#pragma omp critical(SCM_ray_casting)
+    #pragma omp critical(SCM_ray_casting)
             z = GetHeight(ij);
 
             ChVector<> vertex_abs = m_plane.TransformPointLocalToParent(ChVector<>(x, y, z));
@@ -998,11 +1010,10 @@ void SCMDeformableSoil::ComputeInternalForces() {
 
             // Cast ray into collision system
             GetSystem()->GetCollisionSystem()->RayHit(from, to, mrayhit_result);
-#pragma omp atomic
-            m_num_ray_casts++;
+            num_ray_casts++;
 
             if (mrayhit_result.hit) {
-#pragma omp critical(SCM_ray_casting)
+    #pragma omp critical(SCM_ray_casting)
                 {
                     // If this is the first hit from this node, initialize the node record
                     if (m_grid_map.find(ij) == m_grid_map.end()) {
@@ -1016,7 +1027,77 @@ void SCMDeformableSoil::ComputeInternalForces() {
                 }
             }
         }
+        m_num_ray_casts += num_ray_casts;
     }
+
+#else
+
+    // Map-reduce approach (to eliminate critical section)
+
+    const int nthreads = GetSystem()->GetNumThreadsChrono();
+    std::vector<std::unordered_map<ChVector2<int>, HitRecord, CoordHash>> t_hits(nthreads);
+
+    // Loop through all moving patches (user-defined or default one)
+    for (auto& p : m_patches) {
+        m_timer_ray_testing.start();
+
+        // Loop through all vertices in the patch range
+        int num_ray_casts = 0;
+    #pragma omp parallel for num_threads(nthreads) reduction(+:num_ray_casts)
+        for (int k = 0; k < p.m_range.size(); k++) {
+            int t_num = omp_get_thread_num();
+            ChVector2<int> ij = p.m_range[k];
+
+            // Move from (i, j) to (x, y, z) representation in the world frame
+            double x = ij.x() * m_delta;
+            double y = ij.y() * m_delta;
+            double z = GetHeight(ij);
+
+            ChVector<> vertex_abs = m_plane.TransformPointLocalToParent(ChVector<>(x, y, z));
+
+            // Create ray at current grid location
+            collision::ChCollisionSystem::ChRayhitResult mrayhit_result;
+            ChVector<> to = vertex_abs + m_Z * m_test_offset_up;
+            ChVector<> from = to - m_Z * m_test_offset_down;
+
+            // Ray-OBB test (quick rejection)
+            if (m_moving_patch && !RayOBBtest(p, from, m_Z))
+                continue;
+
+            // Cast ray into collision system
+            GetSystem()->GetCollisionSystem()->RayHit(from, to, mrayhit_result);
+            num_ray_casts++;
+
+            if (mrayhit_result.hit) {
+                // Add to our map of hits to process
+                HitRecord record = {mrayhit_result.hitModel->GetContactable(), mrayhit_result.abs_hitPoint, -1};
+                t_hits[t_num].insert(std::make_pair(ij, record));
+            }
+        }
+
+        m_timer_ray_testing.stop();
+
+        m_num_ray_casts += num_ray_casts;
+
+        // Sequential insertion in global hits
+        for (int t_num = 0; t_num < nthreads; t_num++) {
+            
+            for (auto& h : t_hits[t_num]) {
+                // If this is the first hit from this node, initialize the node record
+                if (m_grid_map.find(h.first) == m_grid_map.end()) {
+                    double z = GetInitHeight(h.first);
+                    m_grid_map.insert(std::make_pair(h.first, NodeRecord(z, z, GetInitNormal(h.first))));
+                }
+                ////hits.insert(h);
+            }
+            
+            hits.insert(t_hits[t_num].begin(), t_hits[t_num].end());
+            t_hits[t_num].clear();
+        }
+        m_num_ray_hits = hits.size();
+    }
+
+#endif
 
     m_timer_ray_casting.stop();
 
