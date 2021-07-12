@@ -53,7 +53,7 @@ using namespace chrono::vehicle;
 
 // Quality of Service
 #include <fastdds/dds/domain/qos/DomainParticipantQos.hpp>
-#include <fastdds/rtps/transport/UDPv4TransportDescriptor.h>
+#include <fastdds/rtps/transport/UDPv6TransportDescriptor.h>
 
 using namespace eprosima::fastdds::dds;
 using namespace eprosima::fastdds::rtps;
@@ -196,14 +196,15 @@ int main(int argc, char* argv[]) {
     qos.name("/syn/node/" + std::to_string(node_id) + ".0");
 
     // Use UDP by default
-    qos.transport().user_transports.push_back(chrono_types::make_shared<UDPv4TransportDescriptor>());
+    qos.transport().user_transports.push_back(std::make_shared<UDPv6TransportDescriptor>());
 
     qos.transport().use_builtin_transports = false;
 
     // Set the initialPeersList
     for (const auto& ip : ip_list) {
         Locator_t locator;
-        IPLocator::setIPv4(locator, ip);
+        locator.kind = LOCATOR_KIND_UDPv6;
+        IPLocator::setIPv6(locator, ip);
         qos.wire_protocol().builtin.initialPeersList.push_back(locator);
     }
 
