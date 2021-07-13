@@ -252,6 +252,9 @@ int main(int argc, char* argv[]) {
     int step_number = 0;
 
     double chrono_step = 0;
+    double chrono_setup = 0;
+    double raytest = 0;
+    double raycast = 0;
 
     ChTimer<> timer;
     timer.start();
@@ -262,11 +265,23 @@ int main(int argc, char* argv[]) {
         if (time > end_time) {
             if (!stats_done) {
                 timer.stop();
+                double rtf = timer() / end_time;
+                int nsteps = (int)(end_time / step_size);
+
+                std::string fname = "stats_" + std::to_string(nthreads) + ".out";
+                std::ofstream ofile(fname.c_str(), std::ios_base::app);
+                ofile << raytest / nsteps << " " << raycast / nsteps << " " << rtf << endl; 
+                ofile.close();
+                cout << "\nOUTPUT FILE: " << fname << endl;
+
                 cout << endl;
                 cout << "stop timer at (s): " << end_time << endl;
                 cout << "elapsed time (s):  " << timer() << endl;
-                cout << "chrono solver (s): " << chrono_step << endl;
-                cout << "RTF:               " << (timer() / end_time) << endl;
+                cout << "chrono step (s):   " << chrono_step << endl;
+                cout << "chrono setup (s):  " << chrono_setup << endl;
+                cout << "raytesting (s):    " << raytest / 1e3 << endl;
+                cout << "raycasting (s):    " << raycast / 1e3 << endl;
+                cout << "RTF:               " << rtf << endl;
                 cout << "\nSCM stats for last step:" << endl;
                 terrain.PrintStepStatistics(cout);
                 cout << "\nChrono stats for last step:" << endl;
@@ -313,6 +328,9 @@ int main(int argc, char* argv[]) {
 #endif
 
         chrono_step += sys.GetTimerStep();
+        chrono_setup += sys.GetTimerSetup();
+        raytest += terrain.GetTimerRayTesting();
+        raycast += terrain.GetTimerRayCasting();
 
         // Increment frame number
         step_number++;

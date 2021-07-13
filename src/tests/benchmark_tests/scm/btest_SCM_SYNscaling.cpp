@@ -372,24 +372,25 @@ int main(int argc, char* argv[]) {
                     std::ofstream ofile(fname.c_str(), std::ios_base::app);
                     for (int i = 0; i < num_nodes; i++)
                         ofile << all_rtf[i] << "  ";
-                    ofile << std::endl;
+                    ofile << endl;
                     ofile.close();
-                }
-                for (int i = 0; i < num_nodes; i++) {
-                    if (node_id == i) {
-                        cout << endl;
-                        cout << "stop timer at (s): " << end_time << endl;
-                        cout << "elapsed time (s):  " << timer() << endl;
-                        cout << "chrono solver (s): " << chrono_step << endl;
-                        cout << "RTF:               " << rtf << endl;
-                        cout << "\n[" << node_id << "] SCM stats for last step:" << endl;
-                        terrain.PrintStepStatistics(cout);
-                        cout << "\n[" << node_id << "] Chrono stats for last step:" << endl;
-                        PrintStepStatistics(cout, sys);
-                        cout << "\n[" << node_id << "] Synchrono stats for last step:" << endl;
-                        syn_manager.PrintStepStatistics(cout);
-                    }
-                    MPI_Barrier(MPI_COMM_WORLD);
+                    cout << "\nOUTPUT FILE: " << fname << endl;
+
+                    cout << endl;
+                    cout << "stop timer at (s): " << end_time << endl;
+                    cout << "elapsed time (s):  " << timer() << endl;
+                    cout << "chrono solver (s): " << chrono_step << endl;
+                    cout << "RTF:               " << rtf << endl;
+                    cout << "\n[" << node_id << "] SCM stats for last step:" << endl;
+                    terrain.PrintStepStatistics(cout);
+                    cout << "\n[" << node_id << "] Chrono stats for last step:" << endl;
+                    PrintStepStatistics(cout, sys);
+                    cout << "\n[" << node_id << "] Synchrono stats for last step:" << endl;
+                    syn_manager.PrintStepStatistics(cout);
+                    cout << "\nRTF for all nodes:" << endl;
+                    for (int i = 0; i < num_nodes; i++)
+                        cout << all_rtf[i] << "  ";
+                    cout << endl;
                 }
                 stats_done = true;
             }
