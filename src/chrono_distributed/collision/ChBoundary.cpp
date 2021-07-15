@@ -101,12 +101,12 @@ void ChBoundary::OnCustomCollision(ChSystem* system) {
         if (!sys->data_manager->host_data.active_rigid[body->GetId()])
             continue;
 
-        auto model = std::static_pointer_cast<collision::ChCollisionModelMulticore>(body->GetCollisionModel());
+        auto model = std::static_pointer_cast<collision::ChCollisionModelChrono>(body->GetCollisionModel());
 
         //// TODO: Broadphase rejection based on model AABB?
 
         for (auto s : model->GetShapes()) {
-            auto shape = std::static_pointer_cast<collision::ChCollisionShapeMulticore>(s);
+            auto shape = std::static_pointer_cast<collision::ChCollisionShapeChrono>(s);
             switch (shape->GetType()) {
                 case collision::ChCollisionShape::Type::SPHERE : {
                     ChVector<> center_loc = ChVector<>(shape->A.x, shape->A.y, shape->A.z);

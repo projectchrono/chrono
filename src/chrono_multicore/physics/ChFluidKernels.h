@@ -19,7 +19,7 @@
 #ifndef CH_FLUID_KERNELS_H
 #define CH_FLUID_KERNELS_H
 
-#include "chrono_multicore/math/ChMulticoreMath.h"
+#include "chrono/multicore_math/ChMulticoreMath.h"
 
 namespace chrono {
 

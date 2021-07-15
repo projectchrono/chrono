@@ -22,6 +22,10 @@
 #include "chrono/physics/ChBodyEasy.h"
 #include "chrono/physics/ChLinkMotorRotationSpeed.h"
 #include "chrono/assets/ChTexture.h"
+#include "chrono/core/ChRealtimeStep.h"
+#ifdef CHRONO_COLLISION
+    #include "chrono/collision/ChCollisionSystemChrono.h"
+#endif
 
 #include "chrono_irrlicht/ChIrrApp.h"
 
@@ -32,10 +36,8 @@ using namespace chrono::irrlicht;
 // Use the main namespaces of Irrlicht
 using namespace irr;
 using namespace irr::core;
-using namespace irr::scene;
-using namespace irr::video;
-using namespace irr::io;
-using namespace irr::gui;
+
+collision::ChCollisionSystemType collision_type = collision::ChCollisionSystemType::BULLET;
 
 void AddFallingItems(ChSystemNSC& sys) {
     // Shared contact materials for falling objects
@@ -46,11 +48,10 @@ void AddFallingItems(ChSystemNSC& sys) {
 
     // Create falling rigid bodies (spheres and boxes etc.)
     for (int bi = 0; bi < 29; bi++) {
-        auto msphereBody = chrono_types::make_shared<ChBodyEasySphere>(1.1,       // radius size
-                                                                       1000,      // density
-                                                                       true,      // visualization?
-                                                                       true,      // collision?
-                                                                       sph_mat);  // contact material
+        auto msphereBody = chrono_types::make_shared<ChBodyEasySphere>(1.1,      // radius size
+                                                                       1000,     // density
+                                                                       sph_mat,  // contact material
+                                                                       collision_type);
         msphereBody->SetPos(ChVector<>(-5 + ChRandom() * 10, 4 + bi * 0.05, -5 + ChRandom() * 10));
         sys.Add(msphereBody);
 
@@ -60,9 +61,8 @@ void AddFallingItems(ChSystemNSC& sys) {
 
         auto mboxBody = chrono_types::make_shared<ChBodyEasyBox>(1.5, 1.5, 1.5,  // x,y,z size
                                                                  100,            // density
-                                                                 true,           // visualization?
-                                                                 true,           // collision?
-                                                                 box_mat);       // contact material
+                                                                 box_mat,        // contact material
+                                                                 collision_type);
         mboxBody->SetPos(ChVector<>(-5 + ChRandom() * 10, 4 + bi * 0.05, -5 + ChRandom() * 10));
 
         sys.Add(mboxBody);
@@ -73,9 +73,8 @@ void AddFallingItems(ChSystemNSC& sys) {
 
         auto mcylBody = chrono_types::make_shared<ChBodyEasyCylinder>(0.75, 0.5,  // radius, height
                                                                       100,        // density
-                                                                      true,       // visualization?
-                                                                      true,       // collision?
-                                                                      cyl_mat);   // contact material
+                                                                      cyl_mat,    // contact material
+                                                                      collision_type);
         mcylBody->SetPos(ChVector<>(-5 + ChRandom() * 10, 4 + bi * 0.05, -5 + ChRandom() * 10));
 
         sys.Add(mcylBody);
@@ -92,27 +91,27 @@ std::shared_ptr<ChBody> AddContainer(ChSystemNSC& sys) {
     auto ground_mat = chrono_types::make_shared<ChMaterialSurfaceNSC>();
 
     // Create the five walls of the rectangular container, using fixed rigid bodies of 'box' type
-    auto floorBody = chrono_types::make_shared<ChBodyEasyBox>(20, 1, 20, 1000, true, true, ground_mat);
+    auto floorBody = chrono_types::make_shared<ChBodyEasyBox>(20, 1, 20, 1000, ground_mat, collision_type);
     floorBody->SetPos(ChVector<>(0, -5, 0));
     floorBody->SetBodyFixed(true);
     sys.Add(floorBody);
 
-    auto wallBody1 = chrono_types::make_shared<ChBodyEasyBox>(1, 10, 20.99, 1000, true, true, ground_mat);
+    auto wallBody1 = chrono_types::make_shared<ChBodyEasyBox>(1, 10, 20.99, 1000, ground_mat, collision_type);
     wallBody1->SetPos(ChVector<>(-10, 0, 0));
     wallBody1->SetBodyFixed(true);
     sys.Add(wallBody1);
 
-    auto wallBody2 = chrono_types::make_shared<ChBodyEasyBox>(1, 10, 20.99, 1000, true, true, ground_mat);
+    auto wallBody2 = chrono_types::make_shared<ChBodyEasyBox>(1, 10, 20.99, 1000, ground_mat, collision_type);
     wallBody2->SetPos(ChVector<>(10, 0, 0));
     wallBody2->SetBodyFixed(true);
     sys.Add(wallBody2);
 
-    auto wallBody3 = chrono_types::make_shared<ChBodyEasyBox>(20.99, 10, 1, 1000, false, true, ground_mat);
+    auto wallBody3 = chrono_types::make_shared<ChBodyEasyBox>(20.99, 10, 1, 1000, ground_mat, collision_type);
     wallBody3->SetPos(ChVector<>(0, 0, -10));
     wallBody3->SetBodyFixed(true);
     sys.Add(wallBody3);
 
-    auto wallBody4 = chrono_types::make_shared<ChBodyEasyBox>(20.99, 10, 1, 1000, true, true, ground_mat);
+    auto wallBody4 = chrono_types::make_shared<ChBodyEasyBox>(20.99, 10, 1, 1000, ground_mat, collision_type);
     wallBody4->SetPos(ChVector<>(0, 0, 10));
     wallBody4->SetBodyFixed(true);
     sys.Add(wallBody4);
@@ -130,11 +129,10 @@ std::shared_ptr<ChBody> AddContainer(ChSystemNSC& sys) {
     auto mixer_mat = chrono_types::make_shared<ChMaterialSurfaceNSC>();
     mixer_mat->SetFriction(0.4f);
 
-    auto rotatingBody = chrono_types::make_shared<ChBodyEasyBox>(10, 5, 1,    // x,y,z size
-                                                                 4000,        // density
-                                                                 true,        // visualization?
-                                                                 true,        // collision?
-                                                                 mixer_mat);  // contact material
+    auto rotatingBody = chrono_types::make_shared<ChBodyEasyBox>(10, 5, 1,   // x,y,z size
+                                                                 4000,       // density
+                                                                 mixer_mat,  // contact material
+                                                                 collision_type);
     rotatingBody->SetPos(ChVector<>(0, -1.6, 0));
     sys.Add(rotatingBody);
 
@@ -142,7 +140,7 @@ std::shared_ptr<ChBody> AddContainer(ChSystemNSC& sys) {
 
     auto my_motor = chrono_types::make_shared<ChLinkMotorRotationSpeed>();
     my_motor->Initialize(rotatingBody, floorBody, ChFrame<>(ChVector<>(0, 0, 0), Q_from_AngAxis(CH_C_PI_2, VECT_X)));
-    auto mfun = chrono_types::make_shared<ChFunction_Const>(CH_C_PI / 4.0);  // speed 45 deg/s 
+    auto mfun = chrono_types::make_shared<ChFunction_Const>(CH_C_PI / 4.0);  // speed 45 deg/s
     my_motor->SetSpeedFunction(mfun);
     sys.AddLink(my_motor);
 
@@ -153,7 +151,7 @@ std::shared_ptr<ChBody> AddContainer(ChSystemNSC& sys) {
 
     /*
     // create a plain ChBody (no colliding shape nor visualization mesh is used yet)
-    auto mrigidBody = chrono_types::make_shared<ChBody>();
+    auto mrigidBody = chrono_types::make_shared<ChBody>(collision_type);
 
     // set as fixed body, and turn collision ON, otherwise no collide by default
     mrigidBody->SetBodyFixed(true);
@@ -186,6 +184,23 @@ int main(int argc, char* argv[]) {
 
     // Create the physical system
     ChSystemNSC sys;
+    sys.SetCollisionSystemType(collision_type);
+
+    // Settings specific to Chrono multicore collision system
+    if (collision_type == collision::ChCollisionSystemType::CHRONO) {
+#ifdef CHRONO_COLLISION
+        auto collsys = std::static_pointer_cast<collision::ChCollisionSystemChrono>(sys.GetCollisionSystem());
+        // Change the default number of broadphase bins
+        collsys->SetBroadphaseGridResolution(ChVector<int>(10, 10, 2));
+        // Change default narrowphase algorithm
+        ////collsys->SetNarrowphaseAlgorithm(collision::ChNarrowphase::Algorithm::MPR);
+        collsys->SetEnvelope(0.005);
+        // Enable active bounding box
+        collsys->EnableActiveBoundingBox(ChVector<>(-10, -10, -20), ChVector<>(+10, +10, +10));
+        // Set number of threads used by the collision detection system
+        collsys->SetNumThreads(4);
+#endif
+    }
 
     // Create the Irrlicht visualization
     ChIrrApp application(&sys, L"Collisions between objects", core::dimension2d<u32>(800, 600));
@@ -206,11 +221,13 @@ int main(int argc, char* argv[]) {
 
     // Modify some setting of the physical system for the simulation, if you want
     sys.SetSolverType(ChSolver::Type::PSOR);
-    sys.SetSolverMaxIterations(20);
+    sys.SetSolverMaxIterations(50);
     ////sys.SetUseSleeping(true);
 
     // Simulation loop
-    application.SetTimestep(0.02);
+    ChRealtimeStepTimer rt;
+    double step_size = 0.003;
+    application.SetTimestep(step_size);
 
     while (application.GetDevice()->run()) {
         application.BeginScene();
@@ -225,6 +242,8 @@ int main(int argc, char* argv[]) {
         ////auto c_frc = mixer->GetContactForce();
         ////auto c_trq = mixer->GetContactTorque();
         ////std::cout << sys.GetChTime() << "  ct force: " << c_frc << "  ct torque: " << c_trq << std::endl;
+
+        rt.Spin(step_size);
     }
 
     return 0;

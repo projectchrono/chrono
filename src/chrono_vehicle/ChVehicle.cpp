@@ -28,7 +28,7 @@
 
 #include "chrono_vehicle/output/ChVehicleOutputASCII.h"
 #ifdef CHRONO_HAS_HDF5
-#include "chrono_vehicle/output/ChVehicleOutputHDF5.h"
+    #include "chrono_vehicle/output/ChVehicleOutputHDF5.h"
 #endif
 
 namespace chrono {
@@ -42,6 +42,7 @@ ChVehicle::ChVehicle(const std::string& name, ChContactMethod contact_method)
     : m_name(name),
       m_ownsSystem(true),
       m_output(false),
+      m_output_step(0),
       m_output_db(nullptr),
       m_next_output_time(0),
       m_output_frame(0) {
@@ -71,6 +72,7 @@ ChVehicle::ChVehicle(const std::string& name, ChSystem* system)
       m_system(system),
       m_ownsSystem(false),
       m_output(false),
+      m_output_step(0),
       m_output_db(nullptr),
       m_next_output_time(0),
       m_output_frame(0) {}
@@ -82,6 +84,13 @@ ChVehicle::~ChVehicle() {
     delete m_output_db;
     if (m_ownsSystem)
         delete m_system;
+}
+
+// -----------------------------------------------------------------------------
+// Change the default collision system type
+// -----------------------------------------------------------------------------
+void ChVehicle::SetCollisionSystemType(collision::ChCollisionSystemType collsys_type) {
+    m_system->SetCollisionSystemType(collsys_type);
 }
 
 // -----------------------------------------------------------------------------

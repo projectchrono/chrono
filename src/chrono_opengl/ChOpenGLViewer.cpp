@@ -528,12 +528,12 @@ void ChOpenGLViewer::RenderAABB() {
         ChMulticoreDataManager* data_manager = system->data_manager;
         model_box.clear();
 
-        custom_vector<real3>& aabb_min = data_manager->host_data.aabb_min;
-        custom_vector<real3>& aabb_max = data_manager->host_data.aabb_max;
+        custom_vector<real3>& aabb_min = data_manager->cd_data->aabb_min;
+        custom_vector<real3>& aabb_max = data_manager->cd_data->aabb_max;
 
-        model_box.resize(data_manager->num_rigid_shapes);
+        model_box.resize(data_manager->cd_data->num_rigid_shapes);
 #pragma omp parallel for
-        for (int i = 0; i < (signed)data_manager->num_rigid_shapes; i++) {
+        for (int i = 0; i < (signed)data_manager->cd_data->num_rigid_shapes; i++) {
             real3 min_p = aabb_min[i] + data_manager->measures.collision.global_origin;
             real3 max_p = aabb_max[i] + data_manager->measures.collision.global_origin;
 
@@ -587,6 +587,7 @@ void ChOpenGLViewer::RenderFluid() {
 }
 
 void ChOpenGLViewer::RenderFEA() {
+/*
 #ifdef CHRONO_MULTICORE
     ChSystemMulticore* parallel_system = dynamic_cast<ChSystemMulticore*>(physics_system);
     if (!parallel_system || parallel_system->data_manager->num_fea_nodes <= 0) {
@@ -613,6 +614,7 @@ void ChOpenGLViewer::RenderFEA() {
     glm::mat4 model(1);
     fea_elements.Draw(projection, view * model);
 #endif
+*/
 }
 
 void ChOpenGLViewer::RenderGrid() {

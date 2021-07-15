@@ -13,12 +13,13 @@ The **CSHARP module** allows users to use Chrono in C# programs and interface Ch
     - you must have the [SWIG](http://www.swig.org/) wrapper generator installed. On the Mac type <tt>brew install swig</tt>.
 
 <div class="ce-warning">
-Some previous SWIG versions have a bug related to processing private and protected C++11 enum classes. This bug has been fixed in recent releases.  Use **SWIG-3.0.12**. On the Mac **SWIG-4.0.1** is known to work. It is installed by homebrew.
+Chrono::Csharp requires SWIG version **4.0.0* or newer.
+On the Mac **SWIG v. 4.0.1** is known to work. It is installed by homebrew.
 </div>
 
 ## Building instructions
 
-1. Install SWIG on your system. Version 3.0.12 or higher is required. (on Windows, just unzip where you want).
+1. Install SWIG on your system. Version 4.0.0 or newer is required. (on Windows, just unzip where you want).
 
 2. Repeat the instructions for the [full installation](@ref tutorial_install_chrono), but when you see 
    the CMake window, you must add the following steps:
@@ -27,7 +28,7 @@ Some previous SWIG versions have a bug related to processing private and protect
 
 4. When you pressed 'Configure', CMake should have detected your SWIG tools. This should create two variables in CMake called <tt>SWIG_DIR</tt> and <tt>SWIG_EXECUTABLE</tt>. 
    If all is fine, they should automatically contain meaningful values, 
-   for example <tt>C:/swigwin-3.0.12/Lib</tt> and <tt>C:/swigwin-3.0.12/swig.exe</tt> , 
+   for example <tt>C:/swigwin-4.0.0/Lib</tt> and <tt>C:/swigwin-4.0.0/swig.exe</tt> , 
    so you do not need to touch them. (On Windows, you may need to set them by hand).
 
 5. Press 'Configure' again, then 'Generate', and proceed as usual in the installation instructions.

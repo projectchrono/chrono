@@ -21,7 +21,7 @@
 
 #include "unit_testing.h"
 
-#include "chrono_multicore/physics/MPMUtils.h"
+#include "chrono_multicore/cuda/ChMPMUtils.h"
 
 using namespace chrono;
 

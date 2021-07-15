@@ -128,11 +128,11 @@ void btCapsuleBoxCollisionAlgorithm::processCollision(const btCollisionObjectWra
         // If it does, append line parameters for intersection points (clamped to segment limits).
         btScalar tMin;
         btScalar tMax;
-        if (utils::IntersectSegmentBox(hdims, c1, a, hlen, parallel_tol, tMin, tMax)) {
+        if (bt_utils::IntersectSegmentBox(hdims, c1, a, hlen, parallel_tol, tMin, tMax)) {
             t_points.push_back(ChClamp(tMin, -hlen, +hlen));
             t_points.push_back(ChClamp(tMax, -hlen, +hlen));
         }
-        if (utils::IntersectSegmentBox(hdims, c2, a, hlen, parallel_tol, tMin, tMax)) {
+        if (bt_utils::IntersectSegmentBox(hdims, c2, a, hlen, parallel_tol, tMin, tMax)) {
             t_points.push_back(ChClamp(tMin, -hlen, +hlen));
             t_points.push_back(ChClamp(tMax, -hlen, +hlen));
         }
@@ -157,7 +157,7 @@ void btCapsuleBoxCollisionAlgorithm::processCollision(const btCollisionObjectWra
         // Calculate sphere center (point on axis, expressed in box frame) and snap it to the surface of the box
         btVector3 sphPos = c + a * t;
         btVector3 boxPos = sphPos;
-        utils::SnapPointToBox(hdims, boxPos);
+        bt_utils::SnapPointToBox(hdims, boxPos);
 
         // If the distance from the sphere center to the closest point is larger than the radius plus the separation
         // value, then there is no contact. Also, ignore contact if the sphere center (almost) coincides with the
@@ -252,7 +252,7 @@ int addContactPoint(const btVector3& pc,
     assert(iface >= -3 && iface <= +3 && iface != 0);
 
     // No contact if point outside box
-    if (!utils::PointInsideBox(hdims, pc))
+    if (!bt_utils::PointInsideBox(hdims, pc))
         return 0;  // no contacts added
 
     // Find point projection on box face and calculate normal and penetration
@@ -299,7 +299,7 @@ int addContactPoint(const btVector3& p,
                     const btTransform& X_box,
                     btManifoldResult* resultOut) {
     // Find closest point on cylindrical surface to given location
-    btVector3 q = utils::ProjectPointOnLine(c, a, p);
+    btVector3 q = bt_utils::ProjectPointOnLine(c, a, p);
     btVector3 v = p - q;
     btScalar dist = v.length();
     btVector3 n = v / dist;
@@ -383,14 +383,14 @@ void btCylshellBoxCollisionAlgorithm::processCollision(const btCollisionObjectWr
             btVector3 cs = c + dir[jdir] * radius * r;
             // Check for intersection with box
             btScalar tMin, tMax;
-            if (utils::IntersectSegmentBox(hdims, cs, a, hlen, parallel_tol, tMin, tMax)) {
+            if (bt_utils::IntersectSegmentBox(hdims, cs, a, hlen, parallel_tol, tMin, tMax)) {
                 // Consider the intersection points and their midpoint as candidates
                 btVector3 pMin = cs + a * tMin;
                 btVector3 pMax = cs + a * tMax;
                 btVector3 pMid = cs + a * ((tMin + tMax) / 2);
 
                 // Pick box face that is closest to midpoint
-                int iface = utils::FindClosestBoxFace(hdims, pMid);
+                int iface = bt_utils::FindClosestBoxFace(hdims, pMid);
 
                 // Add a contact for any of the candidate points that is inside the box
                 num_contacts += addContactPoint(pMin, iface, hdims, abs_X_box, resultOut);  // 1st segment end
@@ -424,7 +424,7 @@ void btCylshellBoxCollisionAlgorithm::processCollision(const btCollisionObjectWr
                 eC[kdir] = k * hdims[kdir];
                 // Check for edge intersection with cylinder
                 btScalar tMin, tMax;
-                if (utils::IntersectSegmentCylinder(eC, eD, eH, c, a, hlen, radius, parallel_tol, tMin, tMax)) {
+                if (bt_utils::IntersectSegmentCylinder(eC, eD, eH, c, a, hlen, radius, parallel_tol, tMin, tMax)) {
                     // Consider the intersection points and their midpoint as candidates
                     btVector3 pMin = eC + eD * tMin;
                     btVector3 pMax = eC + eD * tMax;

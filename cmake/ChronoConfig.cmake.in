@@ -169,6 +169,11 @@ foreach(COMPONENT ${Chrono_FIND_COMPONENTS})
       list(APPEND CHRONO_DLL_NAMES "ChronoEngine_irrlicht.dll")
       list(APPEND CHRONO_DLLS "@CH_IRRLICHT_DLL@")
 
+      if(Chrono_HAS_postprocess)
+          list(APPEND CHRONO_LIB_NAMES "ChronoEngine_postprocess")
+          list(APPEND CHRONO_DLL_NAMES "ChronoEngine_postprocess.dll")
+      endif()
+
     elseif(${COMPONENT_UPPER} MATCHES "VEHICLE")
 
       list(APPEND CHRONO_LIB_NAMES "ChronoEngine_vehicle")

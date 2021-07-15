@@ -15,6 +15,9 @@
 #include <algorithm>
 
 #include "chrono/collision/ChCollisionSystemBullet.h"
+#ifdef CHRONO_COLLISION
+    #include "chrono/collision/ChCollisionSystemChrono.h"
+#endif
 #include "chrono/physics/ChProximityContainer.h"
 #include "chrono/physics/ChSystem.h"
 #include "chrono/solver/ChSolverAPGD.h"
@@ -70,7 +73,8 @@ ChSystem::ChSystem()
       applied_forces_current(false) {
     assembly.system = this;
 
-    // Set default collision envelope and margin.
+    // Set default collision engine type, collision envelope, and margin.
+    collision_system_type = collision::ChCollisionSystemType::BULLET;
     collision::ChCollisionModel::SetDefaultSuggestedEnvelope(0.03);
     collision::ChCollisionModel::SetDefaultSuggestedMargin(0.01);
 
@@ -111,6 +115,8 @@ ChSystem::ChSystem(const ChSystem& other) {
     applied_forces_current = false;
     maxiter = other.maxiter;
 
+    collision_system_type = other.collision_system_type;
+
     min_bounce_speed = other.min_bounce_speed;
     max_penetration_recovery_speed = other.max_penetration_recovery_speed;
     SetSolverType(other.GetSolverType());
@@ -139,6 +145,24 @@ void ChSystem::Clear() {
 }
 
 // -----------------------------------------------------------------------------
+
+void ChSystem::AddBody(std::shared_ptr<ChBody> body) {
+    assert(body->GetCollisionModel()->GetType() == collision_system->GetType());
+    body->SetId(static_cast<int>(Get_bodylist().size()));
+    assembly.AddBody(body);
+}
+
+void ChSystem::AddLink(std::shared_ptr<ChLinkBase> link) {
+    assembly.AddLink(link);
+}
+
+void ChSystem::AddMesh(std::shared_ptr<fea::ChMesh> mesh) {
+    assembly.AddMesh(mesh);
+}
+
+void ChSystem::AddOtherPhysicsItem(std::shared_ptr<ChPhysicsItem> item) {
+    assembly.AddOtherPhysicsItem(item);
+}
 
 // Add arbitrary physics item to the underlying assembly.
 // NOTE: we cannot simply invoke ChAssembly::Add as this would not provide
@@ -272,17 +296,47 @@ void ChSystem::SetSolver(std::shared_ptr<ChSolver> newsolver) {
     solver = newsolver;
 }
 
-void ChSystem::SetContactContainer(std::shared_ptr<ChContactContainer> container) {
-    assert(container);
-    contact_container = container;
-    contact_container->SetSystem(this);
+void ChSystem::SetCollisionSystemType(ChCollisionSystemType type) {
+    assert(assembly.GetNbodies() == 0);
+
+    collision_system_type = type;
+
+#ifndef CHRONO_COLLISION
+    GetLog() << "Chrono was not built with Thrust support. CHRONO collision system type not available.\n";
+    collision_system_type = ChCollisionSystemType::BULLET;
+#endif
+
+    switch (type) {
+        case ChCollisionSystemType::BULLET:
+            collision_system = chrono_types::make_shared<ChCollisionSystemBullet>();
+            break;
+        case ChCollisionSystemType::CHRONO:
+#ifdef CHRONO_COLLISION
+            collision_system = chrono_types::make_shared<ChCollisionSystemChrono>();
+#endif
+            break;
+        default:
+            GetLog() << "Collision system type not supported. Use SetCollisionSystem instead.\n";
+            break;
+    }
+
+    collision_system->SetNumThreads(nthreads_collision);
+    collision_system->SetSystem(this);
 }
 
 void ChSystem::SetCollisionSystem(std::shared_ptr<ChCollisionSystem> newcollsystem) {
     assert(assembly.GetNbodies() == 0);
     assert(newcollsystem);
     collision_system = newcollsystem;
+    collision_system_type = newcollsystem->GetType();
     collision_system->SetNumThreads(nthreads_collision);
+    collision_system->SetSystem(this);
+}
+
+void ChSystem::SetContactContainer(std::shared_ptr<ChContactContainer> container) {
+    assert(container);
+    contact_container = container;
+    contact_container->SetSystem(this);
 }
 
 void ChSystem::SetMaterialCompositionStrategy(std::unique_ptr<ChMaterialCompositionStrategy>&& strategy) {
@@ -293,6 +347,18 @@ void ChSystem::SetNumThreads(int num_threads_chrono, int num_threads_collision, 
     nthreads_chrono = std::max(1, num_threads_chrono);
     nthreads_collision = (num_threads_collision == 0) ? num_threads_chrono : num_threads_collision;
     nthreads_eigen = (num_threads_eigen == 0) ? num_threads_chrono : num_threads_eigen;
+
+    collision_system->SetNumThreads(nthreads_collision);
+}
+
+// -----------------------------------------------------------------------------
+
+ChBody* ChSystem::NewBody() {
+    return new ChBody(collision_system_type);
+}
+
+ChBodyAuxRef* ChSystem::NewBodyAuxRef() {
+    return new ChBodyAuxRef(collision_system_type);
 }
 
 // -----------------------------------------------------------------------------
@@ -856,7 +922,7 @@ void ChSystem::StateGather(ChState& x, ChStateDelta& v, double& T) {
 void ChSystem::StateScatter(const ChState& x, const ChStateDelta& v, const double T, bool full_update) {
     unsigned int off_x = 0;
     unsigned int off_v = 0;
- 
+
     // Let each object (bodies, links, etc.) in the assembly extract its own states.
     // Note that each object also performs an update
     assembly.IntStateScatter(off_x, x, off_v, v, T, full_update);
@@ -1163,7 +1229,9 @@ double ChSystem::ComputeCollisions() {
     assembly.SyncCollisionModels();
 
     // Perform the collision detection ( broadphase and narrowphase )
+    collision_system->PreProcess();
     collision_system->Run();
+    collision_system->PostProcess();
 
     // Report and store contacts and/or proximities, if there are some
     // containers in the physic system. The default contact container
@@ -1175,7 +1243,7 @@ double ChSystem::ComputeCollisions() {
 
         for (auto& item : assembly.otherphysicslist) {
             if (auto mcontactcontainer = std::dynamic_pointer_cast<ChContactContainer>(item)) {
-                // collision_system->ReportContacts(mcontactcontainer.get()); 
+                // collision_system->ReportContacts(mcontactcontainer.get());
                 // ***TEST*** if one wants to populate a ChContactContainer this would clear it anyway...
             }
 
@@ -1399,8 +1467,8 @@ bool ChSystem::DoAssembly(int action) {
     Update();
 
     // Overwrite various parameters
-    int new_max_iters = 300;        // if using an iterative solver
-    double new_tolerance = 1e-10;   // if using an iterative solver
+    int new_max_iters = 300;       // if using an iterative solver
+    double new_tolerance = 1e-10;  // if using an iterative solver
     double new_step = 1e-6;
 
     int old_max_iters = GetSolverMaxIterations();
@@ -1851,7 +1919,7 @@ void ChSystem::ArchiveOUT(ChArchiveOut& marchive) {
 // Method to allow de serialization of transient data from archives.
 void ChSystem::ArchiveIN(ChArchiveIn& marchive) {
     // version number
-    /*int version =*/ marchive.VersionRead<ChSystem>();
+    /*int version =*/marchive.VersionRead<ChSystem>();
 
     // deserialize unerlying assembly
     assembly.ArchiveIN(marchive);

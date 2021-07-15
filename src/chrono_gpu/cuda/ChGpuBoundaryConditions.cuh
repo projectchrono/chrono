@@ -339,7 +339,7 @@ inline __device__ bool addBCForces_Plane(unsigned int sphID,
     if (contact) {
         float penetration = sphereRadius_SU - dist;
         float projection = Dot(sphVel, contact_normal);
-        float3 rel_vel = sphVel - contact_normal * projection + Cross(sphOmega, -1. * dist * contact_normal);
+        float3 rel_vel = sphVel - bc_params.vel_SU - contact_normal * projection + Cross(sphOmega, -1. * dist * contact_normal);
         float force_model_multiplier = sqrt(penetration / sphereRadius_SU);
 
         // add tangent forces
@@ -474,7 +474,7 @@ inline __device__ bool addBCForces_Zcyl(unsigned int sphID,
     if (contact) {
         float penetration = sphereRadius_SU - dist;
         float projection = Dot(sphVel, contact_normal);
-        float3 vrel_t = sphVel - contact_normal * projection + Cross(sphOmega, -1. * dist * contact_normal);
+        float3 vrel_t = sphVel - bc_params.vel_SU - contact_normal * projection + Cross(sphOmega, -1. * dist * contact_normal);
 
 
 

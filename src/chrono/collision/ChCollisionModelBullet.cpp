@@ -449,7 +449,7 @@ bool ChCollisionModelBullet::AddConvexHull(std::shared_ptr<ChMaterialSurface> ma
     SetSafeMargin((btScalar)ChMin(GetSafeMargin(), approx_chord * 0.2));
 
     // shrink the convex hull by GetSafeMargin()
-    utils::ChConvexHullLibraryWrapper lh;
+    bt_utils::ChConvexHullLibraryWrapper lh;
     geometry::ChTriangleMeshConnected mmesh;
     lh.ComputeHull(pointlist, mmesh);
     mmesh.MakeOffset(-GetSafeMargin());

@@ -18,6 +18,7 @@
 
 #include "chrono/physics/ChContactContainer.h"
 #include "chrono/physics/ChContactTuple.h"
+#include "chrono/collision/chrono/ChCollisionData.h"
 #include "chrono_multicore/ChApiMulticore.h"
 #include "chrono_multicore/ChDataManager.h"
 
@@ -35,7 +36,7 @@ class CH_MULTICORE_API ChContactContainerMulticore : public ChContactContainer {
     ChContactContainerMulticore(const ChContactContainerMulticore& other);
     virtual ~ChContactContainerMulticore();
 
-    virtual int GetNcontacts() const override { return data_manager->num_rigid_contacts; }
+    virtual int GetNcontacts() const override { return data_manager->cd_data->num_rigid_contacts; }
 
     virtual void RemoveAllContacts() override;
     virtual void BeginAddContact() override;
@@ -47,7 +48,9 @@ class CH_MULTICORE_API ChContactContainerMulticore : public ChContactContainer {
     }
 
     /// Get the callback object to be used each time a contact point is added to the container.
-    virtual std::shared_ptr<AddContactCallback> GetAddContactCallback() override { return data_manager->add_contact_callback; }
+    virtual std::shared_ptr<AddContactCallback> GetAddContactCallback() override {
+        return data_manager->add_contact_callback;
+    }
 
     /// Scan all the contacts and for each contact executes the OnReportContact()
     /// function of the provided callback object.
@@ -78,12 +81,15 @@ class CH_MULTICORE_API ChContactContainerMulticore : public ChContactContainer {
 
     ChMulticoreDataManager* data_manager;
 
-  private:
+  protected:
     int n_added_6_6;
     std::list<ChContact_6_6*> contactlist_6_6;
     std::list<ChContact_6_6*>::iterator lastcontact_6_6;
 
     using ChContactContainer::AddContact;
+
+    friend class ChSystemMulticoreNSC;
+    friend class ChSystemMulticoreSMC;
 };
 
 /// @} multicore_colision

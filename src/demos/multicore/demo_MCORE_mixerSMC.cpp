@@ -59,7 +59,7 @@ std::shared_ptr<ChBody> AddContainer(ChSystemMulticoreSMC* sys) {
     mat->SetRestitution(0.1f);
 
     // Create the containing bin (2 x 2 x 1)
-    auto bin = chrono_types::make_shared<ChBody>(chrono_types::make_shared<ChCollisionModelMulticore>());
+    auto bin = std::shared_ptr<ChBody>(sys->NewBody());
     bin->SetIdentifier(binId);
     bin->SetMass(1);
     bin->SetPos(ChVector<>(0, 0, 0));
@@ -87,8 +87,7 @@ std::shared_ptr<ChBody> AddContainer(ChSystemMulticoreSMC* sys) {
     sys->AddBody(bin);
 
     // The rotating mixer body (1.6 x 0.2 x 0.4)
-    auto mixer =
-        chrono_types::make_shared<ChBody>(chrono_types::make_shared<ChCollisionModelMulticore>());
+    auto mixer = std::shared_ptr<ChBody>(sys->NewBody());
     mixer->SetIdentifier(mixerId);
     mixer->SetMass(10.0);
     mixer->SetInertiaXX(ChVector<>(50, 50, 50));
@@ -134,7 +133,7 @@ void AddFallingBalls(ChSystemMulticoreSMC* sys) {
         for (int iy = -2; iy < 3; iy++) {
             ChVector<> pos(0.4 * ix, 0.4 * iy, 1);
 
-            auto ball = chrono_types::make_shared<ChBody>(chrono_types::make_shared<ChCollisionModelMulticore>());
+            auto ball = std::shared_ptr<ChBody>(sys->NewBody());
             ball->SetIdentifier(ballId++);
             ball->SetMass(mass);
             ball->SetInertiaXX(inertia);
@@ -182,7 +181,7 @@ int main(int argc, char* argv[]) {
     msystem.GetSettings()->collision.bins_per_axis = vec3(10, 10, 10);
 
     // Select the narrow phase collision algorithm
-    msystem.GetSettings()->collision.narrowphase_algorithm = NarrowPhaseType::NARROWPHASE_R;
+    msystem.GetSettings()->collision.narrowphase_algorithm = ChNarrowphase::Algorithm::HYBRID;
 
     // Set tolerance and maximum number of iterations for bilateral constraint solver
     msystem.GetSettings()->solver.max_iteration_bilateral = max_iteration;
