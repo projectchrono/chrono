@@ -24,9 +24,11 @@
 
 #include "chrono/physics/ChSystem.h"
 #include "chrono/physics/ChBodyAuxRef.h"
+#include "chrono/physics/ChLoadContainer.h"
 
 #include "chrono_vehicle/ChApiVehicle.h"
 #include "chrono_vehicle/ChPart.h"
+#include "chrono_vehicle/ChVehicleJoint.h"
 
 namespace chrono {
 namespace vehicle {
@@ -73,6 +75,9 @@ class CH_VEHICLE_API ChChassis : public ChPart {
 
     /// Get a handle to the vehicle's chassis body.
     std::shared_ptr<ChBodyAuxRef> GetBody() const { return m_body; }
+
+    /// Get a pointer to the containing system.
+    ChSystem* GetSystem() const { return m_body->GetSystem(); }
 
     /// Get the global location of the chassis reference frame origin.
     const ChVector<>& GetPos() const { return m_body->GetFrame_REF_to_abs().GetPos(); }
@@ -150,12 +155,15 @@ class CH_VEHICLE_API ChChassis : public ChPart {
     );
 
     /// Update the state of the chassis subsystem.
-    /// The base class implementation applies aerodynamic drag forces to the
-    /// chassis body (if enabled).
+    /// The base class implementation applies aerodynamic drag forces to the chassis body (if enabled).
     virtual void Synchronize(double time);
+
+    /// Utility function to add a joint (kinematic or bushing) to the vehicle system.
+    void AddJoint(std::shared_ptr<ChVehicleJoint> joint);
 
   protected:
     std::shared_ptr<ChBodyAuxRef> m_body;              ///< handle to the chassis body
+    std::shared_ptr<ChLoadContainer> m_bushings;       ///< load container for vehicle bushings
     std::vector<std::shared_ptr<ChMarker>> m_markers;  ///< list of user-defined markers
     bool m_fixed;                                      ///< is the chassis body fixed to ground?
 

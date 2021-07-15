@@ -29,7 +29,9 @@ namespace vehicle {
 
 // -----------------------------------------------------------------------------
 
-ChChassis::ChChassis(const std::string& name, bool fixed) : ChPart(name), m_fixed(fixed), m_apply_drag(false) {}
+ChChassis::ChChassis(const std::string& name, bool fixed) : ChPart(name), m_fixed(fixed), m_apply_drag(false) {
+    m_bushings = chrono_types::make_shared<ChLoadContainer>();
+}
 
 ChQuaternion<> ChChassis::GetRot() const {
     return m_body->GetFrame_REF_to_abs().GetRot() * ChWorldFrame::Quaternion();
@@ -77,6 +79,9 @@ void ChChassis::Initialize(ChSystem* system,
 
     system->Add(m_body);
 
+    // Add container for bushing elements.
+    system->Add(m_bushings);
+
     // Add pre-defined markers (driver position and COM) on the chassis body.
     AddMarker("driver position", GetLocalDriverCoordsys());
     AddMarker("COM", ChCoordsys<>(GetLocalPosCOM()));
@@ -123,6 +128,14 @@ void ChChassis::Synchronize(double time) {
     // Apply aerodynamic drag force at COM
     m_body->Empty_forces_accumulators();
     m_body->Accumulate_force(F, ChVector<>(0), true);
+}
+
+void ChChassis::AddJoint(std::shared_ptr<ChVehicleJoint> joint) {
+    if (joint->m_kinematic) {
+        m_body->GetSystem()->AddLink(joint->m_link);
+    } else {
+        m_bushings->Add(joint->m_bushing);
+    }
 }
 
 // -----------------------------------------------------------------------------
