@@ -24,6 +24,8 @@
 #include "chrono/physics/ChLink.h"
 #include "chrono/physics/ChLoadsBody.h"
 
+#include "chrono_thirdparty/variant/variant.hpp"
+
 namespace chrono {
 namespace vehicle {
 
@@ -62,7 +64,14 @@ class CH_VEHICLE_API ChVehicleJoint {
     /// Note that the caller is responsible for initializing the joint and adding it to the appropriate container
     /// (system or load container). Prefer using the utility static function ChVehicleJoint::Create which completely
     /// constructs the joint.
-    ChVehicleJoint(bool kinematic);
+    ChVehicleJoint();
+
+    ChVehicleJoint(Type type,
+                   const std::string& name,
+                   std::shared_ptr<ChBody> body1,
+                   std::shared_ptr<ChBody> body2,
+                   ChCoordsys<> pos,
+                   std::shared_ptr<ChVehicleBushingData> bushing_data = nullptr);
 
     ~ChVehicleJoint();
 
@@ -87,15 +96,18 @@ class CH_VEHICLE_API ChVehicleJoint {
     ChVectorDynamic<> GetConstraintViolation() const;
 
     /// Return true if wrapping a kinematic joint and false if wrapping a bushing.
-    bool IsKinematic() const { return m_kinematic; }
+    bool IsKinematic() const;
 
     /// Get the underlying kinematic joint. 
-    /// A null pointer is returned if the vehicle joint is in fact a bushing!
+    /// A null pointer is returned if the vehicle joint is in fact a bushing.
     std::shared_ptr<ChLink> GetAsLink() const;
 
     /// Get the underlying bushing.
-    /// A null pointer is returned if the vehicle joint is in fact a kinematic joint!
+    /// A null pointer is returned if the vehicle joint is in fact a kinematic joint.
     std::shared_ptr<ChLoadBodyBody> GetAsBushing() const;
+
+    typedef std::shared_ptr<ChLink> Link;
+    typedef std::shared_ptr<ChLoadBodyBodyBushingGeneric> Bushing;
 
   private:
     void CreateLink(Type type, std::shared_ptr<ChBody> body1, std::shared_ptr<ChBody> body2, ChCoordsys<> pos);
@@ -105,11 +117,7 @@ class CH_VEHICLE_API ChVehicleJoint {
                        ChCoordsys<> pos,
                        std::shared_ptr<ChVehicleBushingData> bd);
 
-    bool m_kinematic;  ///< true if kinematic joint
-    union {
-        std::shared_ptr<ChLink> m_link;                           ///< kinematic joint variant
-        std::shared_ptr<ChLoadBodyBodyBushingGeneric> m_bushing;  ///< bushing variant
-    };
+    mpark::variant<Link, Bushing> m_joint;
 
     friend class ChChassis;
 };

@@ -131,10 +131,10 @@ void ChChassis::Synchronize(double time) {
 }
 
 void ChChassis::AddJoint(std::shared_ptr<ChVehicleJoint> joint) {
-    if (joint->m_kinematic) {
-        m_body->GetSystem()->AddLink(joint->m_link);
+    if (joint->m_joint.index() == 0) {
+        m_body->GetSystem()->AddLink(mpark::get<ChVehicleJoint::Link>(joint->m_joint));
     } else {
-        m_bushings->Add(joint->m_bushing);
+        m_bushings->Add(mpark::get<ChVehicleJoint::Bushing>(joint->m_joint));
     }
 }
 

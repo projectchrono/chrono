@@ -23,7 +23,23 @@
 namespace chrono {
 namespace vehicle {
 
-ChVehicleJoint::ChVehicleJoint(bool kinematic) : m_kinematic(kinematic), m_link{}, m_bushing{} {}
+ChVehicleJoint::ChVehicleJoint() {}
+
+ChVehicleJoint::ChVehicleJoint(Type type,
+                               const std::string& name,
+                               std::shared_ptr<ChBody> body1,
+                               std::shared_ptr<ChBody> body2,
+                               ChCoordsys<> pos,
+                               std::shared_ptr<ChVehicleBushingData> bushing_data) {
+    if (bushing_data == nullptr) {
+        CreateLink(type, body1, body2, pos);
+        mpark::get<Link>(m_joint)->SetNameString(name);
+    } else {
+        CreateBushing(type, body1, body2, pos, bushing_data);
+        mpark::get<Bushing>(m_joint)->SetNameString(name);
+    }
+}
+
 ChVehicleJoint::~ChVehicleJoint() {}
 
 std::shared_ptr<ChVehicleJoint> ChVehicleJoint::Create(Type type,
@@ -32,44 +48,43 @@ std::shared_ptr<ChVehicleJoint> ChVehicleJoint::Create(Type type,
                                                        std::shared_ptr<ChBody> body2,
                                                        ChCoordsys<> pos,
                                                        std::shared_ptr<ChVehicleBushingData> bushing_data) {
-    bool kinematic = (bushing_data == nullptr);
-    auto joint = chrono_types::make_shared<ChVehicleJoint>(kinematic);
-    if (kinematic) {
+    auto joint = chrono_types::make_shared<ChVehicleJoint>();
+    if (bushing_data == nullptr) {
         joint->CreateLink(type, body1, body2, pos);
-        joint->m_link->SetNameString(name);
+        mpark::get<Link>(joint->m_joint)->SetNameString(name);
     } else {
         joint->CreateBushing(type, body1, body2, pos, bushing_data);
-        joint->m_bushing->SetNameString(name);
+        mpark::get<Bushing>(joint->m_joint)->SetNameString(name);
     }
     return joint;
 }
 
+bool ChVehicleJoint::IsKinematic() const {
+    return m_joint.index() == 0;
+}
+
 ChVector<> ChVehicleJoint::GetPos() const {
-    if (m_kinematic) {
-        return m_link->GetLinkAbsoluteCoords().pos;
+    if (m_joint.index() == 0) {
+        return mpark::get<Link>(m_joint)->GetLinkAbsoluteCoords().pos;
     } else {
-        return m_bushing->GetAbsoluteFrameB().coord.pos;
+        return mpark::get<Bushing>(m_joint)->GetAbsoluteFrameB().coord.pos;
     }
 }
 
 ChVectorDynamic<> ChVehicleJoint::GetConstraintViolation() const {
-    if (m_kinematic) {
-        return m_link->GetConstraintViolation();
+    if (m_joint.index() == 0) {
+        return mpark::get<Link>(m_joint)->GetConstraintViolation();
     } else {
         return ChVectorDynamic<>();
     }
 }
 
 std::shared_ptr<ChLink> ChVehicleJoint::GetAsLink() const {
-    if (!m_kinematic)
-        return nullptr;
-    return m_link;
+    return *mpark::get_if<Link>(&m_joint);
 }
 
 std::shared_ptr<ChLoadBodyBody> ChVehicleJoint::GetAsBushing() const {
-    if (m_kinematic)
-        return nullptr;
-    return m_bushing;
+    return *mpark::get_if<Bushing>(&m_joint);
 }
 
 void ChVehicleJoint::CreateLink(Type type,
@@ -80,25 +95,25 @@ void ChVehicleJoint::CreateLink(Type type,
         case Type::LOCK: {
             auto link = chrono_types::make_shared<ChLinkLockLock>();
             link->Initialize(body1, body2, pos);
-            m_link = link;
+            m_joint = link;
             break;
         }
         case Type::SPHERICAL: {
             auto link = chrono_types::make_shared<ChLinkLockSpherical>();
             link->Initialize(body1, body2, pos);
-            m_link = link;
+            m_joint = link;
             break;
         }
         case Type::REVOLUTE: {
             auto link = chrono_types::make_shared<ChLinkLockRevolute>();
             link->Initialize(body1, body2, pos);
-            m_link = link;
+            m_joint = link;
             break;
         }
         case Type::UNIVERSAL: {
             auto link = chrono_types::make_shared<ChLinkUniversal>();
             link->Initialize(body1, body2, ChFrame<>(pos));
-            m_link = link;
+            m_joint = link;
             break;
         }
     }
@@ -138,8 +153,7 @@ void ChVehicleJoint::CreateBushing(Type type,
             break;
     }
 
-    m_bushing =
-        chrono_types::make_shared<ChLoadBodyBodyBushingGeneric>(body1, body2, ChFrame<>(pos), K_matrix, D_matrix);
+    m_joint = chrono_types::make_shared<ChLoadBodyBodyBushingGeneric>(body1, body2, ChFrame<>(pos), K_matrix, D_matrix);
 }
 
 }  // namespace vehicle
