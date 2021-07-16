@@ -64,6 +64,8 @@ CH_VEHICLE_API ChColor ReadColorJSON(const rapidjson::Value& a);
 
 CH_VEHICLE_API MaterialInfo ReadMaterialInfoJSON(const rapidjson::Value& mat);
 
+CH_VEHICLE_API std::shared_ptr<ChVehicleBushingData> ReadBushingDataJSON(const rapidjson::Value& bd);
+
 // -----------------------------------------------------------------------------
 
 /// Load and return a chassis subsystem from the specified JSON file.

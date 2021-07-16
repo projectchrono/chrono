@@ -62,6 +62,9 @@ class CH_VEHICLE_API DoubleWishbone : public ChDoubleWishbone {
     virtual std::shared_ptr<ChLinkTSDA::ForceFunctor> getSpringForceFunctor() const override { return m_springForceCB; }
     virtual std::shared_ptr<ChLinkTSDA::ForceFunctor> getShockForceFunctor() const override { return m_shockForceCB; }
 
+    virtual std::shared_ptr<ChVehicleBushingData> getUCABushingData() const override { return m_UCABushingData; }
+    virtual std::shared_ptr<ChVehicleBushingData> getLCABushingData() const override { return m_LCABushingData; }
+
   private:
     virtual const ChVector<> getLocation(PointId which) override { return m_points[which]; }
 
@@ -90,6 +93,9 @@ class CH_VEHICLE_API DoubleWishbone : public ChDoubleWishbone {
     ChVector<> m_LCAInertiaProducts;
     ChVector<> m_uprightInertiaMoments;
     ChVector<> m_uprightInertiaProducts;
+
+    std::shared_ptr<ChVehicleBushingData> m_UCABushingData;
+    std::shared_ptr<ChVehicleBushingData> m_LCABushingData;
 
     double m_axleInertia;
 

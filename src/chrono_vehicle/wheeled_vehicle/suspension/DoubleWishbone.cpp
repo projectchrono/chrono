@@ -31,8 +31,13 @@ namespace vehicle {
 // file.
 // -----------------------------------------------------------------------------
 DoubleWishbone::DoubleWishbone(const std::string& filename)
-    : ChDoubleWishbone(""), m_springForceCB(NULL), m_shockForceCB(NULL) {
-    Document d; ReadFileJSON(filename, d);
+    : ChDoubleWishbone(""),
+      m_springForceCB(nullptr),
+      m_shockForceCB(nullptr),
+      m_UCABushingData(nullptr),
+      m_LCABushingData(nullptr) {
+    Document d;
+    ReadFileJSON(filename, d);
     if (d.IsNull())
         return;
 
@@ -42,7 +47,11 @@ DoubleWishbone::DoubleWishbone(const std::string& filename)
 }
 
 DoubleWishbone::DoubleWishbone(const rapidjson::Document& d)
-    : ChDoubleWishbone(""), m_springForceCB(NULL), m_shockForceCB(NULL) {
+    : ChDoubleWishbone(""),
+      m_springForceCB(nullptr),
+      m_shockForceCB(nullptr),
+      m_UCABushingData(nullptr),
+      m_LCABushingData(nullptr) {
     Create(d);
 }
 
@@ -97,6 +106,9 @@ void DoubleWishbone::Create(const rapidjson::Document& d) {
     m_points[UCA_F] = ReadVectorJSON(d["Upper Control Arm"]["Location Chassis Front"]);
     m_points[UCA_B] = ReadVectorJSON(d["Upper Control Arm"]["Location Chassis Back"]);
     m_points[UCA_U] = ReadVectorJSON(d["Upper Control Arm"]["Location Upright"]);
+    if (d["Upper Control Arm"].HasMember("Bushing Data")) {
+        m_UCABushingData = ReadBushingDataJSON(d["Upper Control Arm"]["Bushing Data"]);
+    }
 
     // Read LCA data
     assert(d.HasMember("Lower Control Arm"));
@@ -110,6 +122,9 @@ void DoubleWishbone::Create(const rapidjson::Document& d) {
     m_points[LCA_F] = ReadVectorJSON(d["Lower Control Arm"]["Location Chassis Front"]);
     m_points[LCA_B] = ReadVectorJSON(d["Lower Control Arm"]["Location Chassis Back"]);
     m_points[LCA_U] = ReadVectorJSON(d["Lower Control Arm"]["Location Upright"]);
+    if (d["Lower Control Arm"].HasMember("Bushing Data")) {
+        m_LCABushingData = ReadBushingDataJSON(d["Lower Control Arm"]["Bushing Data"]);
+    }
 
     // Read Tierod data
     assert(d.HasMember("Tierod"));

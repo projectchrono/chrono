@@ -20,6 +20,7 @@
 // =============================================================================
 
 #include "chrono/core/ChRealtimeStep.h"
+#include "chrono/solver/ChIterativeSolverLS.h"
 
 #include "chrono_vehicle/ChConfigVehicle.h"
 #include "chrono_vehicle/ChVehicleModelData.h"
@@ -59,6 +60,7 @@ class HMMWV_Model : public Vehicle_Model {
     virtual std::string ModelName() const override { return "HMMWV"; }
     virtual std::string VehicleJSON() const override {
         return "hmmwv/vehicle/HMMWV_Vehicle.json";
+        ////return "hmmwv/vehicle/HMMWV_Vehicle_bushings.json";
         ////return "hmmwv/vehicle/HMMWV_Vehicle_4WD.json";
     }
     virtual std::string TireJSON() const override {
@@ -177,9 +179,9 @@ class UT_Model : public Trailer_Model {
 // =============================================================================
 
 // Current vehicle model selection
-////auto vehicle_model = HMMWV_Model();
+auto vehicle_model = HMMWV_Model();
 ////auto vehicle_model = Sedan_Model();
-auto vehicle_model = VW_Microbus_Model();
+////auto vehicle_model = VW_Microbus_Model();
 ////auto vehicle_model = UAZ_Model();
 ////auto vehicle_model = CityBus_Model();
 ////auto vehicle_model = MAN_Model();
@@ -211,10 +213,10 @@ int main(int argc, char* argv[]) {
     GetLog() << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
 
     // Create the vehicle system
-    WheeledVehicle vehicle(vehicle::GetDataFile(vehicle_model.VehicleJSON()), ChContactMethod::NSC);
+    WheeledVehicle vehicle(vehicle::GetDataFile(vehicle_model.VehicleJSON()), ChContactMethod::SMC);
     vehicle.Initialize(ChCoordsys<>(initLoc, Q_from_AngZ(initYaw)));
     vehicle.GetChassis()->SetFixed(false);
-    vehicle.SetChassisVisualizationType(VisualizationType::MESH);
+    vehicle.SetChassisVisualizationType(VisualizationType::NONE);
     vehicle.SetSuspensionVisualizationType(VisualizationType::PRIMITIVES);
     vehicle.SetSteeringVisualizationType(VisualizationType::PRIMITIVES);
     vehicle.SetWheelVisualizationType(VisualizationType::MESH);
@@ -231,10 +233,13 @@ int main(int argc, char* argv[]) {
         }
     }
 
+    // Containing system
+    auto system = vehicle.GetSystem();
+
     // Create the trailer system (build into same ChSystem)
     std::shared_ptr<WheeledTrailer> trailer;
     if (add_trailer) {
-        trailer = chrono_types::make_shared<WheeledTrailer>(vehicle.GetSystem(),
+        trailer = chrono_types::make_shared<WheeledTrailer>(system,
                                                             vehicle::GetDataFile(trailer_model.TrailerJSON()));
         trailer->Initialize(vehicle.GetChassis());
         trailer->SetChassisVisualizationType(VisualizationType::PRIMITIVES);
@@ -249,7 +254,7 @@ int main(int argc, char* argv[]) {
     }
 
     // Create the terrain
-    RigidTerrain terrain(vehicle.GetSystem(), vehicle::GetDataFile(rigidterrain_file));
+    RigidTerrain terrain(system, vehicle::GetDataFile(rigidterrain_file));
 
     // Create Irrilicht visualization
     ChWheeledVehicleIrrApp app(&vehicle, L"Vehicle demo - JSON specification");
@@ -284,6 +289,20 @@ int main(int argc, char* argv[]) {
     vehicle.ExportComponentList(veh_dir + "/component_list.json");
 
     vehicle.LogSubsystemTypes();
+
+    // Modify solver settings if the vehicle model contains bushings
+    if (vehicle.HasBushings()) {
+        auto solver = chrono_types::make_shared<ChSolverMINRES>();
+        system->SetSolver(solver);
+        solver->SetMaxIterations(150);
+        solver->SetTolerance(1e-10);
+        solver->EnableDiagonalPreconditioner(true);
+        solver->EnableWarmStart(true);  // IMPORTANT for convergence when using EULER_IMPLICIT_LINEARIZED
+        solver->SetVerbose(false);
+
+        step_size = 2e-4;
+        system->SetTimestepperType(ChTimestepper::Type::EULER_IMPLICIT_LINEARIZED);
+    }
 
     // Simulation loop
     ChRealtimeStepTimer realtime_timer;

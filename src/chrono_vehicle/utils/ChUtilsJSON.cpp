@@ -148,6 +148,25 @@ MaterialInfo ReadMaterialInfoJSON(const rapidjson::Value& mat) {
     return minfo;
 }
 
+std::shared_ptr<ChVehicleBushingData> ReadBushingDataJSON(const rapidjson::Value& bd) {
+    auto bushing_data = chrono_types::make_shared<ChVehicleBushingData>();
+
+    bushing_data->K_lin = bd["Stiffness Linear"].GetDouble();
+    bushing_data->D_lin = bd["Damping Linear"].GetDouble();
+    bushing_data->K_rot = bd["Stiffness Rotational"].GetDouble();
+    bushing_data->D_rot = bd["Damping Rotational"].GetDouble();
+
+    if (bd.HasMember("DOF")) {
+        bushing_data->K_lin_dof = bd["DOF"]["Stiffness Linear"].GetDouble();
+        bushing_data->D_lin_dof = bd["DOF"]["Damping Linear"].GetDouble();
+        bushing_data->K_rot_dof = bd["DOF"]["Stiffness Rotational"].GetDouble();
+        bushing_data->D_rot_dof = bd["DOF"]["Damping Rotational"].GetDouble();    
+    }
+
+    return bushing_data;
+}
+
+
 // -----------------------------------------------------------------------------
 
 std::shared_ptr<ChChassis> ReadChassisJSON(const std::string& filename) {
