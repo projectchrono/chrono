@@ -111,28 +111,30 @@ void ChVehicleJoint::CreateBushing(Type type,
                                    std::shared_ptr<ChVehicleBushingData> bd) {
     ChMatrixNM<double, 6, 6> K_matrix;
     ChMatrixNM<double, 6, 6> D_matrix;
+    K_matrix.setZero();
+    D_matrix.setZero();
     K_matrix.diagonal() << bd->K_lin, bd->K_lin, bd->K_lin, bd->K_rot, bd->K_rot, bd->K_rot;
     D_matrix.diagonal() << bd->D_lin, bd->D_lin, bd->D_lin, bd->D_rot, bd->D_rot, bd->D_rot;
     switch (type) {
         case Type::LOCK:
             break;
         case Type::SPHERICAL:
+            K_matrix(3, 3) = bd->K_rot_dof;
             K_matrix(4, 4) = bd->K_rot_dof;
             K_matrix(5, 5) = bd->K_rot_dof;
-            K_matrix(6, 6) = bd->K_rot_dof;
+            D_matrix(3, 3) = bd->D_rot_dof;
             D_matrix(4, 4) = bd->D_rot_dof;
             D_matrix(5, 5) = bd->D_rot_dof;
-            D_matrix(6, 6) = bd->D_rot_dof;
             break;
         case Type::REVOLUTE:
-            K_matrix(6, 6) = bd->K_rot_dof;
-            D_matrix(6, 6) = bd->D_rot_dof;
+            K_matrix(5, 5) = bd->K_rot_dof;
+            D_matrix(5, 5) = bd->D_rot_dof;
             break;
         case Type::UNIVERSAL:
+            K_matrix(3, 3) = bd->K_rot_dof;
             K_matrix(4, 4) = bd->K_rot_dof;
-            K_matrix(5, 5) = bd->K_rot_dof;
+            D_matrix(3, 3) = bd->D_rot_dof;
             D_matrix(4, 4) = bd->D_rot_dof;
-            D_matrix(5, 5) = bd->D_rot_dof;
             break;
     }
 
