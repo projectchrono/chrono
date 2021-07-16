@@ -247,7 +247,7 @@ void ChSingleWishbone::LogHardpointLocations(const ChVector<>& ref, bool inches)
 void ChSingleWishbone::LogConstraintViolations(VehicleSide side) {
     // Revolute joints
     {
-        ChVectorDynamic<> C = m_revoluteCA[side]->GetC();
+        ChVectorDynamic<> C = m_revoluteCA[side]->GetConstraintViolation();
         GetLog() << "LCA revolute          ";
         GetLog() << "  " << C(0) << "  ";
         GetLog() << "  " << C(1) << "  ";
@@ -256,7 +256,7 @@ void ChSingleWishbone::LogConstraintViolations(VehicleSide side) {
         GetLog() << "  " << C(4) << "\n";
     }
     {
-        ChVectorDynamic<> C = m_revoluteUA[side]->GetC();
+        ChVectorDynamic<> C = m_revoluteUA[side]->GetConstraintViolation();
         GetLog() << "UCA revolute          ";
         GetLog() << "  " << C(0) << "  ";
         GetLog() << "  " << C(1) << "  ";
@@ -265,7 +265,7 @@ void ChSingleWishbone::LogConstraintViolations(VehicleSide side) {
         GetLog() << "  " << C(4) << "\n";
     }
     {
-        ChVectorDynamic<> C = m_revolute[side]->GetC();
+        ChVectorDynamic<> C = m_revolute[side]->GetConstraintViolation();
         GetLog() << "Spindle revolute      ";
         GetLog() << "  " << C(0) << "  ";
         GetLog() << "  " << C(1) << "  ";

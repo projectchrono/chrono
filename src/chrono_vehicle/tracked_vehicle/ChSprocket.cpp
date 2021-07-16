@@ -277,7 +277,7 @@ void ChSprocket::ApplyAxleTorque(double torque) {
 
 // -----------------------------------------------------------------------------
 void ChSprocket::LogConstraintViolations() {
-    ChVectorDynamic<> C = m_revolute->GetC();
+    ChVectorDynamic<> C = m_revolute->GetConstraintViolation();
     GetLog() << "  Sprocket-chassis revolute\n";
     GetLog() << "  " << C(0) << "  ";
     GetLog() << "  " << C(1) << "  ";

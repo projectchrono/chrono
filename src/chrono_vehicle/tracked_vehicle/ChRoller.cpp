@@ -60,7 +60,7 @@ void ChRoller::Initialize(std::shared_ptr<ChBodyAuxRef> chassis, const ChVector<
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 void ChRoller::LogConstraintViolations() {
-    ChVectorDynamic<> C = m_revolute->GetC();
+    ChVectorDynamic<> C = m_revolute->GetConstraintViolation();
     GetLog() << "  Road-wheel revolute\n";
     GetLog() << "  " << C(0) << "  ";
     GetLog() << "  " << C(1) << "  ";

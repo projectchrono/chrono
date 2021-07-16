@@ -366,7 +366,7 @@ void ChMultiLink::LogHardpointLocations(const ChVector<>& ref, bool inches) {
 void ChMultiLink::LogConstraintViolations(VehicleSide side) {
     // Revolute joints
     {
-        ChVectorDynamic<> C = m_revoluteUA[side]->GetC();
+        ChVectorDynamic<> C = m_revoluteUA[side]->GetConstraintViolation();
         GetLog() << "Upper arm revolute    ";
         GetLog() << "  " << C(0) << "  ";
         GetLog() << "  " << C(1) << "  ";
@@ -375,7 +375,7 @@ void ChMultiLink::LogConstraintViolations(VehicleSide side) {
         GetLog() << "  " << C(4) << "\n";
     }
     {
-        ChVectorDynamic<> C = m_revolute[side]->GetC();
+        ChVectorDynamic<> C = m_revolute[side]->GetConstraintViolation();
         GetLog() << "Spindle revolute      ";
         GetLog() << "  " << C(0) << "  ";
         GetLog() << "  " << C(1) << "  ";
@@ -386,21 +386,21 @@ void ChMultiLink::LogConstraintViolations(VehicleSide side) {
 
     // Spherical joints
     {
-        ChVectorDynamic<> C = m_sphericalUA[side]->GetC();
+        ChVectorDynamic<> C = m_sphericalUA[side]->GetConstraintViolation();
         GetLog() << "Upper arm spherical   ";
         GetLog() << "  " << C(0) << "  ";
         GetLog() << "  " << C(1) << "  ";
         GetLog() << "  " << C(2) << "\n";
     }
     {
-        ChVectorDynamic<> C = m_sphericalLateralUpright[side]->GetC();
+        ChVectorDynamic<> C = m_sphericalLateralUpright[side]->GetConstraintViolation();
         GetLog() << "Lateral-Upright spherical  ";
         GetLog() << "  " << C(0) << "  ";
         GetLog() << "  " << C(1) << "  ";
         GetLog() << "  " << C(2) << "\n";
     }
     {
-        ChVectorDynamic<> C = m_sphericalTLUpright[side]->GetC();
+        ChVectorDynamic<> C = m_sphericalTLUpright[side]->GetConstraintViolation();
         GetLog() << "TL-Upright spherical  ";
         GetLog() << "  " << C(0) << "  ";
         GetLog() << "  " << C(1) << "  ";
@@ -409,7 +409,7 @@ void ChMultiLink::LogConstraintViolations(VehicleSide side) {
 
     // Universal joints
     {
-        ChVectorDynamic<> C = m_universalLateralChassis[side]->GetC();
+        ChVectorDynamic<> C = m_universalLateralChassis[side]->GetConstraintViolation();
         GetLog() << "Lateral-Chassis universal  ";
         GetLog() << "  " << C(0) << "  ";
         GetLog() << "  " << C(1) << "  ";
@@ -417,7 +417,7 @@ void ChMultiLink::LogConstraintViolations(VehicleSide side) {
         GetLog() << "  " << C(3) << "\n";
     }
     {
-        ChVectorDynamic<> C = m_universalTLChassis[side]->GetC();
+        ChVectorDynamic<> C = m_universalTLChassis[side]->GetConstraintViolation();
         GetLog() << "TL-Chassis universal  ";
         GetLog() << "  " << C(0) << "  ";
         GetLog() << "  " << C(1) << "  ";

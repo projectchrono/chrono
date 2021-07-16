@@ -162,7 +162,7 @@ void ChRotaryArm::RemoveVisualizationAssets() {
 void ChRotaryArm::LogConstraintViolations() {
     // Revolute joint
     ////{
-    ////    ChVectorDynamic<> C = m_revolute->GetC();
+    ////    ChVectorDynamic<> C = m_revolute->GetConstraintViolation();
     ////    GetLog() << "Revolute              ";
     ////    GetLog() << "  " << C(0) << "  ";
     ////    GetLog() << "  " << C(1) << "  ";

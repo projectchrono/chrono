@@ -523,7 +523,7 @@ void ChSAEToeBarLeafspringAxle::LogConstraintViolations(VehicleSide side) {
     // TODO: Update this to reflect new suspension joints
     // Revolute joints
     {
-        ChVectorDynamic<> C = m_revoluteKingpin[side]->GetC();
+        ChVectorDynamic<> C = m_revoluteKingpin[side]->GetConstraintViolation();
         GetLog() << "Kingpin revolute      ";
         GetLog() << "  " << C(0) << "  ";
         GetLog() << "  " << C(1) << "  ";
@@ -533,14 +533,14 @@ void ChSAEToeBarLeafspringAxle::LogConstraintViolations(VehicleSide side) {
     }
 
     {
-        ChVectorDynamic<> C = m_sphericalTierod->GetC();
+        ChVectorDynamic<> C = m_sphericalTierod->GetConstraintViolation();
         GetLog() << "Tierod spherical          ";
         GetLog() << "  " << C(0) << "  ";
         GetLog() << "  " << C(1) << "  ";
         GetLog() << "  " << C(2) << "\n";
     }
     {
-        ChVectorDynamic<> C = m_sphericalDraglink->GetC();
+        ChVectorDynamic<> C = m_sphericalDraglink->GetConstraintViolation();
         GetLog() << "Draglink spherical          ";
         GetLog() << "  " << C(0) << "  ";
         GetLog() << "  " << C(1) << "  ";
@@ -548,7 +548,7 @@ void ChSAEToeBarLeafspringAxle::LogConstraintViolations(VehicleSide side) {
     }
 
     {
-        ChVectorDynamic<> C = m_universalTierod->GetC();
+        ChVectorDynamic<> C = m_universalTierod->GetConstraintViolation();
         GetLog() << "Tierod universal          ";
         GetLog() << "  " << C(0) << "  ";
         GetLog() << "  " << C(1) << "  ";
@@ -556,7 +556,7 @@ void ChSAEToeBarLeafspringAxle::LogConstraintViolations(VehicleSide side) {
         GetLog() << "  " << C(3) << "\n";
     }
     {
-        ChVectorDynamic<> C = m_universalDraglink->GetC();
+        ChVectorDynamic<> C = m_universalDraglink->GetConstraintViolation();
         GetLog() << "Draglink universal          ";
         GetLog() << "  " << C(0) << "  ";
         GetLog() << "  " << C(1) << "  ";

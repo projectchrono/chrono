@@ -247,7 +247,7 @@ void ChLeafspringAxle::LogConstraintViolations(VehicleSide side) {
     // Revolute joints
 
     {
-        ChVectorDynamic<> C = m_sphericalTierod->GetC();
+        ChVectorDynamic<> C = m_sphericalTierod->GetConstraintViolation();
         GetLog() << "Tierod spherical          ";
         GetLog() << "  " << C(0) << "  ";
         GetLog() << "  " << C(1) << "  ";

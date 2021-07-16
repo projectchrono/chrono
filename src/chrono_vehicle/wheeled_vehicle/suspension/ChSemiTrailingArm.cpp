@@ -233,7 +233,7 @@ void ChSemiTrailingArm::LogHardpointLocations(const ChVector<>& ref, bool inches
 // -----------------------------------------------------------------------------
 void ChSemiTrailingArm::LogConstraintViolations(VehicleSide side) {
     {
-        ChVectorDynamic<> C = m_revoluteArm[side]->GetC();
+        ChVectorDynamic<> C = m_revoluteArm[side]->GetConstraintViolation();
         GetLog() << "LCA revolute          ";
         GetLog() << "  " << C(0) << "  ";
         GetLog() << "  " << C(1) << "  ";
@@ -242,7 +242,7 @@ void ChSemiTrailingArm::LogConstraintViolations(VehicleSide side) {
         GetLog() << "  " << C(4) << "\n";
     }
     {
-        ChVectorDynamic<> C = m_revolute[side]->GetC();
+        ChVectorDynamic<> C = m_revolute[side]->GetConstraintViolation();
         GetLog() << "Spindle revolute      ";
         GetLog() << "  " << C(0) << "  ";
         GetLog() << "  " << C(1) << "  ";

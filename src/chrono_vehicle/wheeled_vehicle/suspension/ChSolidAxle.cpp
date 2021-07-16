@@ -432,7 +432,7 @@ void ChSolidAxle::LogConstraintViolations(VehicleSide side) {
     // TODO: Update this to reflect new suspension joints
     // Revolute joints
     {
-        ChVectorDynamic<> C = m_revoluteKingpin[side]->GetC();
+        ChVectorDynamic<> C = m_revoluteKingpin[side]->GetConstraintViolation();
         GetLog() << "Kingpin revolute      ";
         GetLog() << "  " << C(0) << "  ";
         GetLog() << "  " << C(1) << "  ";
@@ -442,7 +442,7 @@ void ChSolidAxle::LogConstraintViolations(VehicleSide side) {
     }
 
     {
-        ChVectorDynamic<> C = m_revoluteBellCrank->GetC();
+        ChVectorDynamic<> C = m_revoluteBellCrank->GetConstraintViolation();
         GetLog() << "Bell Crank revolute      ";
         GetLog() << "  " << C(0) << "  ";
         GetLog() << "  " << C(1) << "  ";
@@ -453,28 +453,28 @@ void ChSolidAxle::LogConstraintViolations(VehicleSide side) {
 
     // Spherical joints 
     {
-        ChVectorDynamic<> C = m_sphericalUpperLink[side]->GetC();
+        ChVectorDynamic<> C = m_sphericalUpperLink[side]->GetConstraintViolation();
         GetLog() << "UL spherical          ";
         GetLog() << "  " << C(0) << "  ";
         GetLog() << "  " << C(1) << "  ";
         GetLog() << "  " << C(2) << "\n";
     }
     {
-        ChVectorDynamic<> C = m_sphericalLowerLink[side]->GetC();
+        ChVectorDynamic<> C = m_sphericalLowerLink[side]->GetConstraintViolation();
         GetLog() << "LL spherical          ";
         GetLog() << "  " << C(0) << "  ";
         GetLog() << "  " << C(1) << "  ";
         GetLog() << "  " << C(2) << "\n";
     }
     {
-        ChVectorDynamic<> C = m_sphericalTierod->GetC();
+        ChVectorDynamic<> C = m_sphericalTierod->GetConstraintViolation();
         GetLog() << "Tierod spherical          ";
         GetLog() << "  " << C(0) << "  ";
         GetLog() << "  " << C(1) << "  ";
         GetLog() << "  " << C(2) << "\n";
     }
     {
-        ChVectorDynamic<> C = m_sphericalDraglink->GetC();
+        ChVectorDynamic<> C = m_sphericalDraglink->GetConstraintViolation();
         GetLog() << "Draglink spherical          ";
         GetLog() << "  " << C(0) << "  ";
         GetLog() << "  " << C(1) << "  ";
@@ -484,7 +484,7 @@ void ChSolidAxle::LogConstraintViolations(VehicleSide side) {
 
     // Universal joints
     {
-        ChVectorDynamic<> C = m_universalUpperLink[side]->GetC();
+        ChVectorDynamic<> C = m_universalUpperLink[side]->GetConstraintViolation();
         GetLog() << "UL universal          ";
         GetLog() << "  " << C(0) << "  ";
         GetLog() << "  " << C(1) << "  ";
@@ -492,7 +492,7 @@ void ChSolidAxle::LogConstraintViolations(VehicleSide side) {
         GetLog() << "  " << C(3) << "\n";
     }
     {
-        ChVectorDynamic<> C = m_universalLowerLink[side]->GetC();
+        ChVectorDynamic<> C = m_universalLowerLink[side]->GetConstraintViolation();
         GetLog() << "LL universal          ";
         GetLog() << "  " << C(0) << "  ";
         GetLog() << "  " << C(1) << "  ";
@@ -500,32 +500,32 @@ void ChSolidAxle::LogConstraintViolations(VehicleSide side) {
         GetLog() << "  " << C(3) << "\n";
     }
     {
-      ChVectorDynamic<> C = m_universalTierod->GetC();
-      GetLog() << "Tierod universal          ";
-      GetLog() << "  " << C(0) << "  ";
-      GetLog() << "  " << C(1) << "  ";
-      GetLog() << "  " << C(2) << "  ";
-      GetLog() << "  " << C(3) << "\n";
+        ChVectorDynamic<> C = m_universalTierod->GetConstraintViolation();
+        GetLog() << "Tierod universal          ";
+        GetLog() << "  " << C(0) << "  ";
+        GetLog() << "  " << C(1) << "  ";
+        GetLog() << "  " << C(2) << "  ";
+        GetLog() << "  " << C(3) << "\n";
     }
     {
-      ChVectorDynamic<> C = m_universalDraglink->GetC();
-      GetLog() << "Draglink universal          ";
-      GetLog() << "  " << C(0) << "  ";
-      GetLog() << "  " << C(1) << "  ";
-      GetLog() << "  " << C(2) << "  ";
-      GetLog() << "  " << C(3) << "\n";
+        ChVectorDynamic<> C = m_universalDraglink->GetConstraintViolation();
+        GetLog() << "Draglink universal          ";
+        GetLog() << "  " << C(0) << "  ";
+        GetLog() << "  " << C(1) << "  ";
+        GetLog() << "  " << C(2) << "  ";
+        GetLog() << "  " << C(3) << "\n";
     }
 
     // Point-plane joints
     {
-      ChVectorDynamic<> C = m_pointPlaneBellCrank->GetC();
-      GetLog() << "Bell Crank point-plane          ";
-      GetLog() << "  " << C(0) << "  ";
-      GetLog() << "  " << C(1) << "  ";
-      GetLog() << "  " << C(2) << "  ";
-      GetLog() << "  " << C(3) << "  ";
-      GetLog() << "  " << C(4) << "  ";
-      GetLog() << "  " << C(5) << "\n";
+        ChVectorDynamic<> C = m_pointPlaneBellCrank->GetConstraintViolation();
+        GetLog() << "Bell Crank point-plane          ";
+        GetLog() << "  " << C(0) << "  ";
+        GetLog() << "  " << C(1) << "  ";
+        GetLog() << "  " << C(2) << "  ";
+        GetLog() << "  " << C(3) << "  ";
+        GetLog() << "  " << C(4) << "  ";
+        GetLog() << "  " << C(5) << "\n";
     }
 }
 

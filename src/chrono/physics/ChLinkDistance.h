@@ -88,7 +88,7 @@ class ChApi ChLinkDistance : public ChLink {
     double GetCurrentDistance() const { return curr_dist; }
 
     /// Get the constraint violation
-    virtual ChVectorDynamic<> GetC() const override { return C; }
+    virtual ChVectorDynamic<> GetConstraintViolation() const override { return C; }
 
     /// Override _all_ time, jacobian etc. updating.
     /// In detail, it computes jacobians, violations, etc. and stores

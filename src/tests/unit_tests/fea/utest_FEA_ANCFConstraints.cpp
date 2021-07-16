@@ -226,16 +226,16 @@ bool CheckConstraints() {
     violation(3) = Vdot(body_axis, Node_1->D);
 
     // Check violation in weld joint
-    violation.segment(4, 6) = joint_weld->GetC();
+    violation.segment(4, 6) = joint_weld->GetConstraintViolation();
 
     // Check violation in revolute joint
-    violation.segment(10, 5) = joint_revolute->GetC();
+    violation.segment(10, 5) = joint_revolute->GetConstraintViolation();
 
     // Check violation in body-node hinge constraint
-    violation.segment(15, 3) = constraint_point->GetC();
+    violation.segment(15, 3) = constraint_point->GetConstraintViolation();
 
     // Check violation in body-node direction constraint
-    violation.segment(18, 2) = constraint_dir->GetC();
+    violation.segment(18, 2) = constraint_dir->GetConstraintViolation();
 
     return violation.isZero(precision);
 }
@@ -292,16 +292,16 @@ int main(int argc, char* argv[]) {
         double dot = Vdot(body_axis, Node_1->D);
         printf("Dot product = %e\n", dot);
 
-        ChVectorN<double, 3> Cp = constraint_point->GetC();
+        ChVectorN<double, 3> Cp = constraint_point->GetConstraintViolation();
         printf("Point constraint violations:      %12.4e  %12.4e  %12.4e\n", Cp(0), Cp(1), Cp(2));
-        ChVectorN<double, 2> Cd = constraint_dir->GetC();
+        ChVectorN<double, 2> Cd = constraint_dir->GetConstraintViolation();
         printf("Direction constraint violations:  %12.4e  %12.4e\n", Cd(0), Cd(1));
 
-        ChVectorDynamic<> Cw = joint_weld->GetC();
+        ChVectorDynamic<> Cw = joint_weld->GetConstraintViolation();
         printf("Weld joint constraints: %12.4e  %12.4e  %12.4e  %12.4e  %12.4e  %12.4e\n", Cw(0), Cw(1), Cw(2), Cw(3),
                Cw(4), Cw(5));
 
-        ChVectorDynamic<> Cr = joint_revolute->GetC();
+        ChVectorDynamic<> Cr = joint_revolute->GetConstraintViolation();
         printf("Rev joint constraints:  %12.4e  %12.4e  %12.4e  %12.4e  %12.4e\n", Cr(0), Cr(1), Cr(2), Cr(3), Cr(4));
 
         printf("\n\n");

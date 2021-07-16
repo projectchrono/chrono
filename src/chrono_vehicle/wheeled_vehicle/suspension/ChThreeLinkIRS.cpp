@@ -304,28 +304,28 @@ void ChThreeLinkIRS::LogHardpointLocations(const ChVector<>& ref, bool inches) {
 // -----------------------------------------------------------------------------
 void ChThreeLinkIRS::LogConstraintViolations(VehicleSide side) {
     {
-        ChVectorDynamic<> C = m_sphericalArm[side]->GetC();
+        ChVectorDynamic<> C = m_sphericalArm[side]->GetConstraintViolation();
         GetLog() << "Arm spherical         ";
         GetLog() << "  " << C(0) << "  ";
         GetLog() << "  " << C(1) << "  ";
         GetLog() << "  " << C(2) << "\n";
     }
     {
-        ChVectorDynamic<> C = m_sphericalUpper[side]->GetC();
+        ChVectorDynamic<> C = m_sphericalUpper[side]->GetConstraintViolation();
         GetLog() << "Upper spherical       ";
         GetLog() << "  " << C(0) << "  ";
         GetLog() << "  " << C(1) << "  ";
         GetLog() << "  " << C(2) << "\n";
     }
     {
-        ChVectorDynamic<> C = m_sphericalLower[side]->GetC();
+        ChVectorDynamic<> C = m_sphericalLower[side]->GetConstraintViolation();
         GetLog() << "Lower spherical       ";
         GetLog() << "  " << C(0) << "  ";
         GetLog() << "  " << C(1) << "  ";
         GetLog() << "  " << C(2) << "\n";
     }
     {
-        ChVectorDynamic<> C = m_universalUpper[side]->GetC();
+        ChVectorDynamic<> C = m_universalUpper[side]->GetConstraintViolation();
         GetLog() << "Upper universal       ";
         GetLog() << "  " << C(0) << "  ";
         GetLog() << "  " << C(1) << "  ";
@@ -333,7 +333,7 @@ void ChThreeLinkIRS::LogConstraintViolations(VehicleSide side) {
         GetLog() << "  " << C(3) << "\n";
     }
     {
-        ChVectorDynamic<> C = m_universalLower[side]->GetC();
+        ChVectorDynamic<> C = m_universalLower[side]->GetConstraintViolation();
         GetLog() << "Lower universal       ";
         GetLog() << "  " << C(0) << "  ";
         GetLog() << "  " << C(1) << "  ";
@@ -341,7 +341,7 @@ void ChThreeLinkIRS::LogConstraintViolations(VehicleSide side) {
         GetLog() << "  " << C(3) << "\n";
     }
     {
-        ChVectorDynamic<> C = m_revolute[side]->GetC();
+        ChVectorDynamic<> C = m_revolute[side]->GetConstraintViolation();
         GetLog() << "Spindle revolute      ";
         GetLog() << "  " << C(0) << "  ";
         GetLog() << "  " << C(1) << "  ";

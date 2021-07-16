@@ -367,7 +367,7 @@ void ChHendricksonPRIMAXX::LogHardpointLocations(const ChVector<>& ref, bool inc
 void ChHendricksonPRIMAXX::LogConstraintViolations(VehicleSide side) {
     // Revolute joints
     {
-        ChVectorDynamic<> C = m_revolute[side]->GetC();
+        ChVectorDynamic<> C = m_revolute[side]->GetConstraintViolation();
         GetLog() << "Spindle revolute      ";
         GetLog() << "  " << C(0) << "  ";
         GetLog() << "  " << C(1) << "  ";
@@ -376,7 +376,7 @@ void ChHendricksonPRIMAXX::LogConstraintViolations(VehicleSide side) {
         GetLog() << "  " << C(4) << "\n";
     }
     {
-        ChVectorDynamic<> C = m_revoluteKingpin[side]->GetC();
+        ChVectorDynamic<> C = m_revoluteKingpin[side]->GetConstraintViolation();
         GetLog() << "Kingpin revolute      ";
         GetLog() << "  " << C(0) << "  ";
         GetLog() << "  " << C(1) << "  ";
@@ -386,14 +386,14 @@ void ChHendricksonPRIMAXX::LogConstraintViolations(VehicleSide side) {
     }
     // Spherical joints
     {
-        ChVectorDynamic<> C = m_sphericalTorquerod[side]->GetC();
+        ChVectorDynamic<> C = m_sphericalTorquerod[side]->GetConstraintViolation();
         GetLog() << "Torquerod spherical          ";
         GetLog() << "  " << C(0) << "  ";
         GetLog() << "  " << C(1) << "  ";
         GetLog() << "  " << C(2) << "\n";
     }
     {
-        ChVectorDynamic<> C = m_sphericalLowerbeam[side]->GetC();
+        ChVectorDynamic<> C = m_sphericalLowerbeam[side]->GetConstraintViolation();
         GetLog() << "Lowerbeam spherical          ";
         GetLog() << "  " << C(0) << "  ";
         GetLog() << "  " << C(1) << "  ";
@@ -401,25 +401,24 @@ void ChHendricksonPRIMAXX::LogConstraintViolations(VehicleSide side) {
     }
 
     {
-      ChVectorDynamic<> C = m_revoluteLowerbeam[side]->GetC();
-      GetLog() << "Lowerbeam revolute          ";
-      GetLog() << "  " << C(0) << "  ";
-      GetLog() << "  " << C(1) << "  ";
-      GetLog() << "  " << C(2) << "  ";
-      GetLog() << "  " << C(3) << "  ";
-      GetLog() << "  " << C(4) << "\n";
+        ChVectorDynamic<> C = m_revoluteLowerbeam[side]->GetConstraintViolation();
+        GetLog() << "Lowerbeam revolute          ";
+        GetLog() << "  " << C(0) << "  ";
+        GetLog() << "  " << C(1) << "  ";
+        GetLog() << "  " << C(2) << "  ";
+        GetLog() << "  " << C(3) << "  ";
+        GetLog() << "  " << C(4) << "\n";
     }
 
     {
-      ChVectorDynamic<> C = m_revoluteTorquerod[side]->GetC();
-      GetLog() << "Torquerod revolute          ";
-      GetLog() << "  " << C(0) << "  ";
-      GetLog() << "  " << C(1) << "  ";
-      GetLog() << "  " << C(2) << "  ";
-      GetLog() << "  " << C(3) << "  ";
-      GetLog() << "  " << C(4) << "\n";
+        ChVectorDynamic<> C = m_revoluteTorquerod[side]->GetConstraintViolation();
+        GetLog() << "Torquerod revolute          ";
+        GetLog() << "  " << C(0) << "  ";
+        GetLog() << "  " << C(1) << "  ";
+        GetLog() << "  " << C(2) << "  ";
+        GetLog() << "  " << C(3) << "  ";
+        GetLog() << "  " << C(4) << "\n";
     }
-
 
     // Distance constraint
     GetLog() << "Tierod distance       ";

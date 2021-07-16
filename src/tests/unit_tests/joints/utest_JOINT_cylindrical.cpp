@@ -316,7 +316,7 @@ bool TestCylindrical(const ChVector<>& jointLoc,      // absolute location of jo
             out_energy << simTime << transKE << rotKE << deltaPE << totalE - totalE0 << std::endl;
 
             // Constraint violations
-            ChVectorDynamic<> C = cylindricalJoint->GetC();
+            ChVectorDynamic<> C = cylindricalJoint->GetConstraintViolation();
             out_cnstr << simTime << C(0) << C(1) << C(2) << C(3) << std::endl;
 
             // Increment output time

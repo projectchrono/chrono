@@ -159,7 +159,7 @@ void ChIdler::RemoveVisualizationAssets() {
 // -----------------------------------------------------------------------------
 void ChIdler::LogConstraintViolations() {
     {
-        ChVectorDynamic<> C = m_revolute->GetC();
+        ChVectorDynamic<> C = m_revolute->GetConstraintViolation();
         GetLog() << "  Idler-carrier revolute\n";
         GetLog() << "  " << C(0) << "  ";
         GetLog() << "  " << C(1) << "  ";
@@ -168,7 +168,7 @@ void ChIdler::LogConstraintViolations() {
         GetLog() << "  " << C(4) << "\n";
     }
     {
-        ChVectorDynamic<> C = m_prismatic->GetC();
+        ChVectorDynamic<> C = m_prismatic->GetConstraintViolation();
         GetLog() << "  Carrier-chassis prismatic\n";
         GetLog() << "  " << C(0) << "  ";
         GetLog() << "  " << C(1) << "  ";

@@ -150,7 +150,7 @@ class ChApi ChLinkMateGeneric : public ChLinkMate {
     // Get the constraint violations, i.e. the residual of the constraint equations and their time derivatives (TODO)
 
     /// Link violation (residuals of the link constraint equations).
-    virtual ChVectorDynamic<> GetC() const override { return C; }
+    virtual ChVectorDynamic<> GetConstraintViolation() const override { return C; }
 
     //
     // STATE FUNCTIONS

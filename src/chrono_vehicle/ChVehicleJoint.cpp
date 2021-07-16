@@ -54,7 +54,7 @@ ChVector<> ChVehicleJoint::GetPos() const {
 
 ChVectorDynamic<> ChVehicleJoint::GetConstraintViolation() const {
     if (m_kinematic) {
-        return m_link->GetC();
+        return m_link->GetConstraintViolation();
     } else {
         return ChVectorDynamic<>();
     }

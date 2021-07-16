@@ -314,7 +314,7 @@ void ChPitmanArmShafts::RemoveVisualizationAssets() {
 void ChPitmanArmShafts::LogConstraintViolations() {
     // Revolute joint
     {
-        ChVectorDynamic<> C = m_revolute->GetC();
+        ChVectorDynamic<> C = m_revolute->GetConstraintViolation();
         GetLog() << "Revolute              ";
         GetLog() << "  " << C(0) << "  ";
         GetLog() << "  " << C(1) << "  ";
@@ -325,7 +325,7 @@ void ChPitmanArmShafts::LogConstraintViolations() {
 
     // Universal joint
     {
-        ChVectorDynamic<> C = m_universal->GetC();
+        ChVectorDynamic<> C = m_universal->GetConstraintViolation();
         GetLog() << "Universal             ";
         GetLog() << "  " << C(0) << "  ";
         GetLog() << "  " << C(1) << "  ";
@@ -335,7 +335,7 @@ void ChPitmanArmShafts::LogConstraintViolations() {
 
     // Revolute-spherical joint
     {
-        ChVectorDynamic<> C = m_revsph->GetC();
+        ChVectorDynamic<> C = m_revsph->GetConstraintViolation();
         GetLog() << "Revolute-spherical    ";
         GetLog() << "  " << C(0) << "  ";
         GetLog() << "  " << C(1) << "\n";

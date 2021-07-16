@@ -316,7 +316,7 @@ void ChMacPhersonStrut::LogHardpointLocations(const ChVector<>& ref, bool inches
 void ChMacPhersonStrut::LogConstraintViolations(VehicleSide side) {
     // Revolute joints
     {
-        ChVectorDynamic<> C = m_revoluteLCA[side]->GetC();
+        ChVectorDynamic<> C = m_revoluteLCA[side]->GetConstraintViolation();
         GetLog() << "LCA revolute          ";
         GetLog() << "  " << C(0) << "  ";
         GetLog() << "  " << C(1) << "  ";
@@ -325,7 +325,7 @@ void ChMacPhersonStrut::LogConstraintViolations(VehicleSide side) {
         GetLog() << "  " << C(4) << "\n";
     }
     {
-        ChVectorDynamic<> C = m_revolute[side]->GetC();
+        ChVectorDynamic<> C = m_revolute[side]->GetConstraintViolation();
         GetLog() << "Spindle revolute      ";
         GetLog() << "  " << C(0) << "  ";
         GetLog() << "  " << C(1) << "  ";
@@ -336,7 +336,7 @@ void ChMacPhersonStrut::LogConstraintViolations(VehicleSide side) {
 
     // Spherical joints
     {
-        ChVectorDynamic<> C = m_sphericalLCA[side]->GetC();
+        ChVectorDynamic<> C = m_sphericalLCA[side]->GetConstraintViolation();
         GetLog() << "LCA spherical         ";
         GetLog() << "  " << C(0) << "  ";
         GetLog() << "  " << C(1) << "  ";
@@ -345,22 +345,22 @@ void ChMacPhersonStrut::LogConstraintViolations(VehicleSide side) {
 
     // Universal joints
     {
-      ChVectorDynamic<> C = m_universalStrut[side]->GetC();
-      GetLog() << "Strut universal       ";
-      GetLog() << "  " << C(0) << "  ";
-      GetLog() << "  " << C(1) << "  ";
-      GetLog() << "  " << C(2) << "\n";
-      GetLog() << "  " << C(3) << "\n";
+        ChVectorDynamic<> C = m_universalStrut[side]->GetConstraintViolation();
+        GetLog() << "Strut universal       ";
+        GetLog() << "  " << C(0) << "  ";
+        GetLog() << "  " << C(1) << "  ";
+        GetLog() << "  " << C(2) << "\n";
+        GetLog() << "  " << C(3) << "\n";
     }
 
-  // Cylindrical joints
+    // Cylindrical joints
     {
-      ChVectorDynamic<> C = m_cylindricalStrut[side]->GetC();
-      GetLog() << "Strut cylindrical     ";
-      GetLog() << "  " << C(0) << "  ";
-      GetLog() << "  " << C(1) << "  ";
-      GetLog() << "  " << C(2) << "\n";
-      GetLog() << "  " << C(3) << "\n";
+        ChVectorDynamic<> C = m_cylindricalStrut[side]->GetConstraintViolation();
+        GetLog() << "Strut cylindrical     ";
+        GetLog() << "  " << C(0) << "  ";
+        GetLog() << "  " << C(1) << "  ";
+        GetLog() << "  " << C(2) << "\n";
+        GetLog() << "  " << C(3) << "\n";
     }
 
     // Distance constraint

@@ -141,7 +141,7 @@ ChVector<> ChAntirollBarRSD::GetCOMPos() const {
 void ChAntirollBarRSD::LogConstraintViolations() {
     // Chassis revolute joint
     {
-        ChVectorDynamic<> C = m_revolute_ch->GetC();
+        ChVectorDynamic<> C = m_revolute_ch->GetConstraintViolation();
         GetLog() << "Chassis revolute          ";
         GetLog() << "  " << C(0) << "  ";
         GetLog() << "  " << C(1) << "  ";
@@ -152,7 +152,7 @@ void ChAntirollBarRSD::LogConstraintViolations() {
 
     // Central revolute joint
     {
-        ChVectorDynamic<> C = m_revolute->GetC();
+        ChVectorDynamic<> C = m_revolute->GetConstraintViolation();
         GetLog() << "Central revolute          ";
         GetLog() << "  " << C(0) << "  ";
         GetLog() << "  " << C(1) << "  ";
