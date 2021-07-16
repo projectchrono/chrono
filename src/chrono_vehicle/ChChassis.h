@@ -28,7 +28,6 @@
 
 #include "chrono_vehicle/ChApiVehicle.h"
 #include "chrono_vehicle/ChPart.h"
-#include "chrono_vehicle/ChVehicleJoint.h"
 
 namespace chrono {
 namespace vehicle {
@@ -138,6 +137,9 @@ class CH_VEHICLE_API ChChassis : public ChPart {
 
     /// Return true if the chassis body is fixed to ground.
     bool IsFixed() const { return m_body->GetBodyFixed(); }
+
+    /// Return true if the vehicle model contains bushings.
+    bool HasBushings() const { return m_bushings->GetNumLoads() > 0; }
 
     /// Add a marker on the chassis body at the specified position (relative to the chassis reference frame).
     /// If called before initialization, this function has no effect.

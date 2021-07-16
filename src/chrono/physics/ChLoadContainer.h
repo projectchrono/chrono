@@ -21,14 +21,9 @@
 namespace chrono {
 
 /// A container of ChLoad objects. This container can be added to a ChSystem.
-/// One usually create one or more ChLoad objects acting on a ChLoadable items (ex. FEA elements),
-/// add them to this container, then  the container is added to a ChSystem.
-
+/// One usually create one or more ChLoad objects acting on a ChLoadable items (e.g. FEA elements), add them to this
+/// container, then  the container is added to a ChSystem.
 class ChApi ChLoadContainer : public ChPhysicsItem {
-
-  private:
-    std::vector<std::shared_ptr<ChLoadBase> > loadlist;
-
   public:
     ChLoadContainer() {}
     ChLoadContainer(const ChLoadContainer& other);
@@ -40,8 +35,11 @@ class ChApi ChLoadContainer : public ChPhysicsItem {
     /// Add a load to the container list of loads
     void Add(std::shared_ptr<ChLoadBase> newload);
 
-    /// Direct access to the load vector, for iterating etc.
+    /// Direct access to the load vector.
     std::vector<std::shared_ptr<ChLoadBase> >& GetLoadList() { return loadlist; }
+
+    /// Return the number of loads in this container.
+    size_t GetNumLoads() const { return loadlist.size(); }
 
     virtual void Setup() override {}
 
@@ -72,6 +70,9 @@ class ChApi ChLoadContainer : public ChPhysicsItem {
 
     /// Method to allow deserialization of transient data from archives.
     virtual void ArchiveIN(ChArchiveIn& marchive) override;
+
+  private:
+    std::vector<std::shared_ptr<ChLoadBase> > loadlist;
 };
 
 CH_CLASS_VERSION(ChLoadContainer,0)
