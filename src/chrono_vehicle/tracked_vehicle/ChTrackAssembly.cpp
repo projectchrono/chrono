@@ -75,7 +75,7 @@ void ChTrackAssembly::Initialize(std::shared_ptr<ChChassis> chassis,
 
     // Initialize the suspension subsystems
     for (size_t i = 0; i < m_suspensions.size(); ++i) {
-        m_suspensions[i]->Initialize(chassis->GetBody(), location + GetRoadWhelAssemblyLocation(static_cast<int>(i)), this);
+        m_suspensions[i]->Initialize(chassis, location + GetRoadWhelAssemblyLocation(static_cast<int>(i)), this);
     }
 
     // Initialize the roller subsystems

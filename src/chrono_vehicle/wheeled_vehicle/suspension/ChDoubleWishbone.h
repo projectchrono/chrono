@@ -123,10 +123,10 @@ class CH_VEHICLE_API ChDoubleWishbone : public ChSuspension {
     double GetShockVelocity(VehicleSide side) const { return m_shock[side]->GetVelocity(); }
 
     /// Global coordinates, LCA ball joint position
-    ChVector<> Get_LCA_sph_pos(VehicleSide side) { return m_sphericalLCA[side]->GetMarker2()->GetAbsCoord().pos; }
+    ChVector<> Get_LCA_sph_pos(VehicleSide side) { return m_sphericalLCA[side]->GetPos(); }
 
     /// Global coordinates, UCA ball joint position
-    ChVector<> Get_UCA_sph_pos(VehicleSide side) { return m_sphericalUCA[side]->GetMarker2()->GetAbsCoord().pos; }
+    ChVector<> Get_UCA_sph_pos(VehicleSide side) { return m_sphericalUCA[side]->GetPos(); }
 
     /// Log current constraint violations.
     virtual void LogConstraintViolations(VehicleSide side) override;
@@ -223,19 +223,26 @@ class CH_VEHICLE_API ChDoubleWishbone : public ChSuspension {
     /// Return the functor object for shock force.
     virtual std::shared_ptr<ChLinkTSDA::ForceFunctor> getShockForceFunctor() const = 0;
 
+    /// Return stiffness and damping data for the UCA bushing.
+    /// Returning nullptr (default) results in using a kinematic revolute joint.
+    virtual std::shared_ptr<ChVehicleBushingData> getUCABushingData() const { return nullptr; }
+    /// Return stiffness and damping data for the LCA bushing.
+    /// Returning nullptr (default) results in using a kinematic revolute joint.
+    virtual std::shared_ptr<ChVehicleBushingData> getLCABushingData() const { return nullptr; }
+
     std::shared_ptr<ChBody> m_upright[2];  ///< handles to the upright bodies (left/right)
     std::shared_ptr<ChBody> m_UCA[2];      ///< handles to the upper control arm bodies (left/right)
     std::shared_ptr<ChBody> m_LCA[2];      ///< handles to the lower control arm bodies (left/right)
 
-    std::shared_ptr<ChLinkLockRevolute> m_revoluteUCA[2];    ///< handles to the chassis-UCA revolute joints (left/right)
-    std::shared_ptr<ChLinkLockSpherical> m_sphericalUCA[2];  ///< handles to the upright-UCA spherical joints (left/right)
-    std::shared_ptr<ChLinkLockRevolute> m_revoluteLCA[2];    ///< handles to the chassis-LCA revolute joints (left/right)
-    std::shared_ptr<ChLinkLockSpherical> m_sphericalLCA[2];  ///< handles to the upright-LCA spherical joints (left/right)
-    std::shared_ptr<ChLinkDistance> m_distTierod[2];         ///< handles to the tierod distance constraints (left/right)
+    std::shared_ptr<ChVehicleJoint> m_revoluteUCA[2];   ///< handles to the chassis-UCA revolute joints (left/right)
+    std::shared_ptr<ChVehicleJoint> m_sphericalUCA[2];  ///< handles to the upright-UCA spherical joints (left/right)
+    std::shared_ptr<ChVehicleJoint> m_revoluteLCA[2];   ///< handles to the chassis-LCA revolute joints (left/right)
+    std::shared_ptr<ChVehicleJoint> m_sphericalLCA[2];  ///< handles to the upright-LCA spherical joints (left/right)
+
+    std::shared_ptr<ChLinkDistance> m_distTierod[2];  ///< handles to the tierod distance constraints (left/right)
 
     std::shared_ptr<ChLinkTSDA> m_shock[2];   ///< handles to the spring links (left/right)
     std::shared_ptr<ChLinkTSDA> m_spring[2];  ///< handles to the shock links (left/right)
-
 
   private:
     // Flag indicating that the inertia matrices for the upright and control arms
@@ -247,7 +254,7 @@ class CH_VEHICLE_API ChDoubleWishbone : public ChSuspension {
     std::vector<ChVector<>> m_pointsR;
 
     void InitializeSide(VehicleSide side,
-                        std::shared_ptr<ChBodyAuxRef> chassis,
+                        std::shared_ptr<ChChassis> chassis,
                         std::shared_ptr<ChBody> tierod_body,
                         const std::vector<ChVector<> >& points,
                         double ang_vel);
