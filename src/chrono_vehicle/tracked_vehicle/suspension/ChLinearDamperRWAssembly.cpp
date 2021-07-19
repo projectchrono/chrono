@@ -80,7 +80,7 @@ void ChLinearDamperRWAssembly::Initialize(std::shared_ptr<ChChassis> chassis,
 
     // Create and initialize the revolute joint between arm and chassis.
     // The axis of rotation is the y axis of the suspension reference frame.
-    m_revolute = ChVehicleJoint::Create(
+    m_revolute = chrono_types::make_shared<ChVehicleJoint>(
         ChVehicleJoint::Type::REVOLUTE, m_name + "_revolute", chassis->GetBody(), m_arm,
         ChCoordsys<>(points[ARM_CHASSIS], susp_to_abs.GetRot() * Q_from_AngX(CH_C_PI_2)), getArmBushingData());
     chassis->AddJoint(m_revolute);

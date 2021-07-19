@@ -60,12 +60,15 @@ class CH_VEHICLE_API ChVehicleJoint {
     /// different value (typically 0).
     enum class Type { LOCK, SPHERICAL, REVOLUTE, UNIVERSAL };
 
-    /// Construct a vehicle joint wrapper indicating if this is a kinematic joint or a bushing.
-    /// Note that the caller is responsible for initializing the joint and adding it to the appropriate container
-    /// (system or load container). Prefer using the utility static function ChVehicleJoint::Create which completely
-    /// constructs the joint.
-    ChVehicleJoint();
+    typedef std::shared_ptr<ChLink> Link;
+    typedef std::shared_ptr<ChLoadBodyBodyBushingGeneric> Bushing;
 
+    /// Construct a vehicle joint wrapper of the specified type, with the given name, connecting the specified bodies at
+    /// the given position (expressed in the absolute reference frame).  If no bushing data is provided (default), a
+    /// kinematic joint is created; otherwise, this function creates a bushing. Note that the constructed element is not
+    /// included in the simulation; for that, pass the joint to the ChChassis::AddJoint function which adds the joint to
+    /// its appropriate container (the containing Chrono system for a kinematic joint or a load container managed by the
+    /// chassis subsystem for a bushing).
     ChVehicleJoint(Type type,
                    const std::string& name,
                    std::shared_ptr<ChBody> body1,
@@ -74,19 +77,6 @@ class CH_VEHICLE_API ChVehicleJoint {
                    std::shared_ptr<ChVehicleBushingData> bushing_data = nullptr);
 
     ~ChVehicleJoint();
-
-    /// Utility function for creating a kinematic joint or a bushing of the specified type, with the given name,
-    /// connecting the specified bodies at the given position (expressed in the absolute reference frame).  If no
-    /// bushing data is provided (default), a kinematic joint is created; otherwise, this function creates a bushing.
-    /// Note that the constructed element is not included in the simulation; for that, pass the joint to the
-    /// ChChassis::AddJoint function which adds the joint to its appropriate container (the containing Chrono system for
-    /// a kinematic joint or a load container managed by the chassis subsystem for a bushing).
-    static std::shared_ptr<ChVehicleJoint> Create(Type type,
-                                                  const std::string& name,
-                                                  std::shared_ptr<ChBody> body1,
-                                                  std::shared_ptr<ChBody> body2,
-                                                  ChCoordsys<> pos,
-                                                  std::shared_ptr<ChVehicleBushingData> bushing_data = nullptr);
 
     /// Get the current absolute position of the joint. This is the current absolute location of the underling marker on
     /// the 2nd connected body.
@@ -100,14 +90,11 @@ class CH_VEHICLE_API ChVehicleJoint {
 
     /// Get the underlying kinematic joint. 
     /// A null pointer is returned if the vehicle joint is in fact a bushing.
-    std::shared_ptr<ChLink> GetAsLink() const;
+    Link GetAsLink() const;
 
     /// Get the underlying bushing.
     /// A null pointer is returned if the vehicle joint is in fact a kinematic joint.
-    std::shared_ptr<ChLoadBodyBody> GetAsBushing() const;
-
-    typedef std::shared_ptr<ChLink> Link;
-    typedef std::shared_ptr<ChLoadBodyBodyBushingGeneric> Bushing;
+    Bushing GetAsBushing() const;
 
   private:
     void CreateLink(Type type, std::shared_ptr<ChBody> body1, std::shared_ptr<ChBody> body2, ChCoordsys<> pos);

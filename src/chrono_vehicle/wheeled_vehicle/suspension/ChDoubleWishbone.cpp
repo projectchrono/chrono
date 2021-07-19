@@ -187,13 +187,14 @@ void ChDoubleWishbone::InitializeSide(VehicleSide side,
     u = Vcross(v, w);
     rot.Set_A_axis(u, v, w);
 
-    m_revoluteUCA[side] = ChVehicleJoint::Create(
+    m_revoluteUCA[side] = chrono_types::make_shared<ChVehicleJoint>(
         ChVehicleJoint::Type::REVOLUTE, m_name + "_revoluteUCA" + suffix, chassis->GetBody(), m_UCA[side],
         ChCoordsys<>((points[UCA_F] + points[UCA_B]) / 2, rot.Get_A_quaternion()), getUCABushingData());
     chassis->AddJoint(m_revoluteUCA[side]);
 
     // Create and initialize the spherical joint between upright and UCA.
-    m_sphericalUCA[side] = ChVehicleJoint::Create(ChVehicleJoint::Type::SPHERICAL, m_name + "_sphericalUCA" + suffix,
+    m_sphericalUCA[side] =
+        chrono_types::make_shared<ChVehicleJoint>(ChVehicleJoint::Type::SPHERICAL, m_name + "_sphericalUCA" + suffix,
                                                   m_UCA[side], m_upright[side], ChCoordsys<>(points[UCA_U], QUNIT));
     chassis->AddJoint(m_sphericalUCA[side]);
 
@@ -208,13 +209,14 @@ void ChDoubleWishbone::InitializeSide(VehicleSide side,
     u = Vcross(v, w);
     rot.Set_A_axis(u, v, w);
 
-    m_revoluteLCA[side] = ChVehicleJoint::Create(
+    m_revoluteLCA[side] = chrono_types::make_shared<ChVehicleJoint>(
         ChVehicleJoint::Type::REVOLUTE, m_name + "_revoluteLCA" + suffix, chassis->GetBody(), m_LCA[side],
         ChCoordsys<>((points[LCA_F] + points[LCA_B]) / 2, rot.Get_A_quaternion()), getLCABushingData());
     chassis->AddJoint(m_revoluteLCA[side]);
 
     // Create and initialize the spherical joint between upright and LCA.
-    m_sphericalLCA[side] = ChVehicleJoint::Create(ChVehicleJoint::Type::SPHERICAL, m_name + "_sphericalLCA" + suffix,
+    m_sphericalLCA[side] =
+        chrono_types::make_shared<ChVehicleJoint>(ChVehicleJoint::Type::SPHERICAL, m_name + "_sphericalLCA" + suffix,
                                                   m_LCA[side], m_upright[side], ChCoordsys<>(points[LCA_U], QUNIT));
     chassis->AddJoint(m_sphericalLCA[side]);
 

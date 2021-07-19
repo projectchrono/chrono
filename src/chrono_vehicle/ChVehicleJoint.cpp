@@ -23,8 +23,6 @@
 namespace chrono {
 namespace vehicle {
 
-ChVehicleJoint::ChVehicleJoint() {}
-
 ChVehicleJoint::ChVehicleJoint(Type type,
                                const std::string& name,
                                std::shared_ptr<ChBody> body1,
@@ -41,23 +39,6 @@ ChVehicleJoint::ChVehicleJoint(Type type,
 }
 
 ChVehicleJoint::~ChVehicleJoint() {}
-
-std::shared_ptr<ChVehicleJoint> ChVehicleJoint::Create(Type type,
-                                                       const std::string& name,
-                                                       std::shared_ptr<ChBody> body1,
-                                                       std::shared_ptr<ChBody> body2,
-                                                       ChCoordsys<> pos,
-                                                       std::shared_ptr<ChVehicleBushingData> bushing_data) {
-    auto joint = chrono_types::make_shared<ChVehicleJoint>();
-    if (bushing_data == nullptr) {
-        joint->CreateLink(type, body1, body2, pos);
-        mpark::get<Link>(joint->m_joint)->SetNameString(name);
-    } else {
-        joint->CreateBushing(type, body1, body2, pos, bushing_data);
-        mpark::get<Bushing>(joint->m_joint)->SetNameString(name);
-    }
-    return joint;
-}
 
 bool ChVehicleJoint::IsKinematic() const {
     return m_joint.index() == 0;
@@ -79,11 +60,11 @@ ChVectorDynamic<> ChVehicleJoint::GetConstraintViolation() const {
     }
 }
 
-std::shared_ptr<ChLink> ChVehicleJoint::GetAsLink() const {
+ChVehicleJoint::Link ChVehicleJoint::GetAsLink() const {
     return *mpark::get_if<Link>(&m_joint);
 }
 
-std::shared_ptr<ChLoadBodyBody> ChVehicleJoint::GetAsBushing() const {
+ChVehicleJoint::Bushing ChVehicleJoint::GetAsBushing() const {
     return *mpark::get_if<Bushing>(&m_joint);
 }
 
