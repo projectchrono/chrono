@@ -30,7 +30,7 @@ namespace chrono {
 namespace vehicle {
 namespace mrole {
 
-/// @addtogroup vehicle_models_hmmwv
+/// @addtogroup vehicle_models_mrole
 /// @{
 
 /// mrole chassis subsystem.
@@ -70,7 +70,7 @@ class CH_MODELS_API mrole_Chassis : public ChRigidChassis {
     static const ChCoordsys<> m_driverCsys;
 };
 
-/// @} vehicle_models_hmmwv
+/// @} vehicle_models_mrole
 
 }  // namespace mrole
 }  // end namespace vehicle
