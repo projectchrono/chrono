@@ -53,7 +53,7 @@ ChQuaternion<> initRot(1, 0, 0, 0);
 
 // Visualization type for vehicle parts (PRIMITIVES, MESH, or NONE)
 VisualizationType chassis_vis_type = VisualizationType::MESH;
-VisualizationType chassis_rear_vis_type = VisualizationType::MESH;
+VisualizationType chassis_rear_vis_type = VisualizationType::NONE;
 VisualizationType subchassis_vis_type = VisualizationType::PRIMITIVES;
 VisualizationType suspension_vis_type = VisualizationType::PRIMITIVES;
 VisualizationType steering_vis_type = VisualizationType::PRIMITIVES;
@@ -104,7 +104,7 @@ std::string output_file_name("quality");
 // =============================================================================
 
 int main(int argc, char* argv[]) {
-    int terrainCode = 1;
+    int terrainCode = 5;
     RandomSurfaceTerrain::SurfaceType surface = RandomSurfaceTerrain::SurfaceType::FLAT;
     // read in argument as simulation duration
     switch (argc) {
@@ -211,6 +211,7 @@ int main(int argc, char* argv[]) {
     MTV mtv;
     mtv.SetContactMethod(ChContactMethod::NSC);
     mtv.SetChassisFixed(false);
+    mtv.UseWalkingBeamRearSuspension(false);
     mtv.SetInitPosition(ChCoordsys<>(initLoc, initRot));
     mtv.SetTireType(tire_model);
     mtv.SetTireStepSize(tire_step_size);
