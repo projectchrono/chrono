@@ -46,6 +46,7 @@
 #include "chrono/physics/ChLinkMotorRotationTorque.h"
 #include "chrono/physics/ChLinkDistance.h"
 
+#include "chrono_gpu/ChGpuData.h"
 #include "chrono_gpu/physics/ChSystemGpu.h"
 #include "chrono_gpu/utils/ChGpuJsonParser.h"
 #include "chrono_gpu/utils/ChGpuVisualization.h"
@@ -67,44 +68,43 @@ void ShowUsage(std::string name) {
 // Choose Curiosity rover chassis type
 Chassis_Type chassis_type = Chassis_Type::FullRover;
 
-
 int main(int argc, char* argv[]) {
     ChGpuSimulationParameters params;
-    if (argc != 2 || ParseJSON(argv[1], params) == false) {
-        ShowUsage(argv[0]);
+    if (argc != 2 || ParseJSON(gpu::GetDataFile(argv[1]), params) == false) {
+        std::cout << "Usage:\n./demo_GPU_mixer <json_file>" << std::endl;
         return 1;
     }
-    const int motor_type = 1; 
-    const double motor_F = 0.33333333333;
+
     float iteration_step = params.step_size;
-	double scale_ratio = 100.0;
+    double scale_ratio = 100.0;
     double settle_time = 1.0;
-    double max_advance_dist = 4.75*scale_ratio; // max, reaches the rim of the bin
-    //double max_advance_dist = 1.0*scale_ratio; // advance 1m, for timing tests
+    double max_advance_dist = 4.75 * scale_ratio;  // max, reaches the rim of the bin
+    // double max_advance_dist = 1.0*scale_ratio; // advance 1m, for timing tests
 
     ChSystemGpuMesh gpu_sys(params.sphere_radius, params.sphere_density,
-                            make_float3(params.box_X, params.box_Y, params.box_Z));
+                            ChVector<float>(params.box_X, params.box_Y, params.box_Z));
 
-    double road_bottom = -params.box_Z / 2.0 + 2.05*params.sphere_radius;
-    double road_top = -params.box_Z / 2.0 + 0.2*scale_ratio;
-    double pile_top = road_top + 0.8*scale_ratio; //high height
+    double road_bottom = -params.box_Z / 2.0 + 2.05 * params.sphere_radius;
+    double road_top = -params.box_Z / 2.0 + 0.2 * scale_ratio;
+    double pile_top = road_top + 0.8 * scale_ratio;  // high height
 
     unsigned int num_points = 0;
-    //chrono::utils::PDSampler<float> sampler(2.4f * params.sphere_radius);
+    // chrono::utils::PDSampler<float> sampler(2.4f * params.sphere_radius);
     chrono::utils::GridSampler<float> sampler(2.05 * params.sphere_radius);
     std::vector<ChVector<float>> body_points;
 
-    ChVector<> road_hdims(params.box_X/2.0 - 2.05*params.sphere_radius, params.box_Y/2.0 - 2.05*params.sphere_radius, (road_top - road_bottom)/2.0);
-    ChVector<> road_center(0, 0, (road_top + road_bottom)/2.0 + 0.0 * params.sphere_radius);
+    ChVector<> road_hdims(params.box_X / 2.0 - 2.05 * params.sphere_radius,
+                          params.box_Y / 2.0 - 2.05 * params.sphere_radius, (road_top - road_bottom) / 2.0);
+    ChVector<> road_center(0, 0, (road_top + road_bottom) / 2.0 + 0.0 * params.sphere_radius);
     {
         auto points = sampler.SampleBox(road_center, road_hdims);
         body_points.insert(body_points.end(), points.begin(), points.end());
         num_points += points.size();
     }
 
- 
-    ChVector<> hdims(1.0*scale_ratio - params.sphere_radius, params.box_Y / 2.0 - 2.05 * params.sphere_radius, (pile_top - road_top)/2.0);
-    ChVector<> center(-1.0*scale_ratio, 0, (pile_top + road_top)/2.0 + 4.05 * params.sphere_radius);
+    ChVector<> hdims(1.0 * scale_ratio - params.sphere_radius, params.box_Y / 2.0 - 2.05 * params.sphere_radius,
+                     (pile_top - road_top) / 2.0);
+    ChVector<> center(-1.0 * scale_ratio, 0, (pile_top + road_top) / 2.0 + 4.05 * params.sphere_radius);
     {
         auto points = sampler.SampleBox(center, hdims);
         body_points.insert(body_points.end(), points.begin(), points.end());
@@ -112,7 +112,7 @@ int main(int argc, char* argv[]) {
     }
 
     std::cout << "Done creating particles, " << num_points << " of them created." << std::endl;
-    gpu_sys.SetParticlePositions(body_points);
+    gpu_sys.SetParticles(body_points);
     gpu_sys.SetBDFixed(true);
 
     gpu_sys.SetKn_SPH2SPH(params.normalStiffS2S);
@@ -149,34 +149,36 @@ int main(int argc, char* argv[]) {
     // gpu_sys.SetRollingCoeff_SPH2WALL(params.rolling_friction_coeffS2W);
     // gpu_sys.SetRollingCoeff_SPH2MESH(params.rolling_friction_coeffS2M);
 
-	auto mysurfmaterial = chrono_types::make_shared<ChMaterialSurfaceNSC>();
-    double overallPosX = 2.3*scale_ratio; double overallPosY = 0.0; double overallPosZ = -params.box_Z / 3.0 - 0.1*scale_ratio;
+    auto mysurfmaterial = chrono_types::make_shared<ChMaterialSurfaceNSC>();
+    double overallPosX = 2.3 * scale_ratio;
+    double overallPosY = 0.0;
+    double overallPosZ = -params.box_Z / 3.0 - 0.1 * scale_ratio;
     ChSystemSMC curiosity_sys;
     std::vector<string> mesh_filenames;
     std::vector<ChMatrix33<float>> mesh_rotscales;
     std::vector<float> mesh_masses;
     std::vector<float3> mesh_translations;
 
-   	collision::ChCollisionModel::SetDefaultSuggestedEnvelope(0.0025*scale_ratio);
-	collision::ChCollisionModel::SetDefaultSuggestedMargin(0.0025*scale_ratio);
+    collision::ChCollisionModel::SetDefaultSuggestedEnvelope(0.0025 * scale_ratio);
+    collision::ChCollisionModel::SetDefaultSuggestedMargin(0.0025 * scale_ratio);
 
-    auto mfloor = chrono_types::make_shared<ChBodyEasyBox>(params.box_X, params.box_Y, 0.02*scale_ratio, 1000, false, true, mysurfmaterial);
-    mfloor->SetPos(ChVector<>(0, 0, -params.box_Z/2.0-0.01*scale_ratio));
+    auto mfloor = chrono_types::make_shared<ChBodyEasyBox>(params.box_X, params.box_Y, 0.02 * scale_ratio, 1000, false,
+                                                           true, mysurfmaterial);
+    mfloor->SetPos(ChVector<>(0, 0, -params.box_Z / 2.0 - 0.01 * scale_ratio));
     mfloor->SetBodyFixed(true);
-    curiosity_sys.Add(mfloor); 
+    curiosity_sys.Add(mfloor);
 
-	// create rover
-    ChQuaternion<> body_rot = ChQuaternion<>(1,0,0,0);
-    std::shared_ptr<CuriosityRover> rover = chrono_types::make_shared<CuriosityRover>(&curiosity_sys, 
-		ChVector<>(overallPosX,overallPosY,overallPosZ), body_rot, mysurfmaterial, chassis_type);
+    // create rover
+    ChQuaternion<> body_rot = ChQuaternion<>(1, 0, 0, 0);
+    std::shared_ptr<CuriosityRover> rover = chrono_types::make_shared<CuriosityRover>(
+        &curiosity_sys, ChVector<>(overallPosX, overallPosY, overallPosZ), body_rot, mysurfmaterial, chassis_type);
     rover->Initialize();
-    
 
-	gpu_sys.SetOutputMode(params.write_mode);
-	gpu_sys.SetVerbosity(params.verbose);
-	filesystem::create_directory(filesystem::path(params.output_dir));
+    gpu_sys.SetParticleOutputMode(params.write_mode);
+    gpu_sys.SetVerbosity(params.verbose);
+    filesystem::create_directory(filesystem::path(params.output_dir));
 
-	// only 6 wheels go into the simulation meshes list
+    // only 6 wheels go into the simulation meshes list
     for (int i = 0; i < 6; i++) {
         gpu_sys.AddMesh(rover->GetWheelPart((WheelID)i)->GetTrimesh(), rover->GetWheelMass());
     }
@@ -198,20 +200,20 @@ int main(int argc, char* argv[]) {
 
     clock_t start = std::clock();
     for (double t = 0; t < (double)params.time_end; t += iteration_step, curr_step++) {
-        if (!viper_enabled && t>settle_time){
+        if (!viper_enabled && t > settle_time) {
             gpu_sys.EnableMeshCollision(true);
             viper_enabled = true;
         }
         auto rover_body = rover->GetChassisBody();
-        if (overallPosX - rover_body->GetFrame_REF_to_abs().GetPos().x() >= max_advance_dist) 
-            break; // if it moved long enough then we stop the simulation
+        if (overallPosX - rover_body->GetFrame_REF_to_abs().GetPos().x() >= max_advance_dist)
+            break;  // if it moved long enough then we stop the simulation
 
-        int moffset = 2;
         // 6 wheels
-        for (int i=0; i<6; i++) { // Ground (0) and body (1), not interested
+        for (int i = 0; i < 6; i++) {  // Ground (0) and body (1), not interested
             auto wheel_body = rover->GetWheelBody((WheelID)i);
-            gpu_sys.ApplyMeshMotion(i, wheel_body->GetFrame_REF_to_abs().GetPos(), wheel_body->GetFrame_REF_to_abs().GetRot(),
-                                    wheel_body->GetFrame_REF_to_abs().GetPos_dt(), wheel_body->GetFrame_REF_to_abs().GetWvel_par());
+            gpu_sys.ApplyMeshMotion(
+                i, wheel_body->GetFrame_REF_to_abs().GetPos(), wheel_body->GetFrame_REF_to_abs().GetRot(),
+                wheel_body->GetFrame_REF_to_abs().GetPos_dt(), wheel_body->GetFrame_REF_to_abs().GetWvel_par());
 
             ChVector<> Body_force;
             ChVector<> Body_torque;
@@ -221,16 +223,17 @@ int main(int argc, char* argv[]) {
             wheel_body->Accumulate_force(Body_force, wheel_body->GetFrame_REF_to_abs().GetPos(), false);
             wheel_body->Accumulate_torque(Body_torque, false);
         }
-        
+
         if (curr_step % out_steps == 0) {
             std::cout << "Output frame " << currframe + 1 << " of " << total_frames << std::endl;
             char filename[100];
             sprintf(filename, "%s/step%06d", params.output_dir.c_str(), currframe++);
-            gpu_sys.WriteFile(std::string(filename));
+            gpu_sys.WriteParticleFile(std::string(filename));
         }
 
         gpu_sys.AdvanceSimulation(iteration_step);
-        if (viper_enabled) curiosity_sys.DoStepDynamics(iteration_step);
+        if (viper_enabled)
+            curiosity_sys.DoStepDynamics(iteration_step);
     }
 
     clock_t end = std::clock();
