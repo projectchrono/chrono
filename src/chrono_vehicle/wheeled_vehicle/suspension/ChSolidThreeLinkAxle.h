@@ -229,6 +229,7 @@ class CH_VEHICLE_API ChSolidThreeLinkAxle : public ChSuspension {
 
     void InitializeSide(VehicleSide side,
                         std::shared_ptr<ChBodyAuxRef> chassis,
+                        std::shared_ptr<ChBody> scbeam,
                         const std::vector<ChVector<>>& points,
                         double ang_vel);
 
