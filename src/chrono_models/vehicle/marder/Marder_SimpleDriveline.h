@@ -44,7 +44,7 @@ class CH_MODELS_API Marder_SimpleDriveline : public ChSimpleTrackDriveline {
     static const double m_diff_maxBias;
 };
 
-/// @} vehicle_models_m113
+/// @} vehicle_models_marder
 
 }  // namespace marder
 }  // end namespace vehicle

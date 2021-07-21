@@ -27,7 +27,7 @@ namespace chrono {
 namespace vehicle {
 namespace mrole {
 
-/// @addtogroup vehicle_models_hmmwv
+/// @addtogroup vehicle_models_mrole
 /// @{
 
 /// Pitman-arm steering subsystem for the mrole vehicle.
@@ -67,7 +67,7 @@ class CH_MODELS_API mrole_PitmanArm : public ChPitmanArm {
     static const ChVector<> m_pitmanArmInertiaProducts;
 };
 
-/// @} vehicle_models_hmmwv
+/// @} vehicle_models_mrole
 
 }  // namespace mrole
 }  // end namespace vehicle

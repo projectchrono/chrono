@@ -366,6 +366,7 @@ if(THRUST_FOUND)
   mark_as_advanced(FORCE THRUST_INCLUDE_DIR)
 else()
   message(STATUS "  Thrust not found (consider manually setting THRUST_INCLUDE_DIR)")
+  set(THRUST_INCLUDE_DIR "")
   mark_as_advanced(CLEAR THRUST_INCLUDE_DIR)
 endif()
 

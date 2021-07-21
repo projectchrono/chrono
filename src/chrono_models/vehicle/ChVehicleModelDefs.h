@@ -57,6 +57,12 @@ namespace m113 {}
 /// Namespace for the MAN truck vehicle models
 namespace man {}
 
+/// Namespace for the Marder track vehicle model
+namespace marder {}
+
+/// Namespace for the MROLE multi-purpose wheeled vehicle model
+namespace mrole {}
+
 /// Namespace for the rccar vehicle model
 namespace rccar {}
 
