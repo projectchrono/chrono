@@ -16,7 +16,7 @@
 // the SynChrono wrapper
 //
 // =============================================================================
-
+#include <future>
 #include <chrono>
 
 #include "chrono_vehicle/ChConfigVehicle.h"
@@ -342,7 +342,8 @@ int main(int argc, char* argv[]) {
         // Get driver inputs
         ChDriver::Inputs driver_inputs = driver.GetInputs();
         // Update modules (process inputs from other modules)
-        syn_manager.Synchronize(time);  // Synchronize between nodes
+        //std::async(&syn_manager.Synchronize, time);  // Synchronize between nodes
+        std::async(std::launch::async, &SynChronoManager::Synchronize, &syn_manager, time);
         terrain.Synchronize(time);
         vehicle.Synchronize(time, driver_inputs, terrain);
         driver.Synchronize(time);
