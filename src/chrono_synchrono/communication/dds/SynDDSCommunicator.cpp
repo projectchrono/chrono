@@ -312,9 +312,13 @@ void SynDDSCommunicator::Publish() {
 }
 
 void SynDDSCommunicator::Listen() {
-    for (auto subscriber : m_subscribers)
-        if (subscriber->IsSynchronous())
-            subscriber->Receive();
+    int numsub = m_subscribers.size();
+#pragma omp parallel for
+    for (int i = 0; i < numsub; i++) {
+        if (m_subscribers[i]->IsSynchronous()) {
+            m_subscribers[i]->Receive();
+        }
+    }
 }
 
 }  // namespace synchrono
