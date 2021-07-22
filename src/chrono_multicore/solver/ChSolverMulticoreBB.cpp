@@ -25,9 +25,9 @@ void ChSolverMulticoreBB::UpdateR() {
     DynamicVector<real>& R = data_manager->host_data.R;
     DynamicVector<real>& s = data_manager->host_data.s;
 
-    uint num_contacts = data_manager->num_rigid_contacts;
+    uint num_contacts = data_manager->cd_data->num_rigid_contacts;
 
-    s.resize(data_manager->num_rigid_contacts);
+    s.resize(num_contacts);
     reset(s);
 
     rigid_rigid->Build_s();

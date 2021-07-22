@@ -89,9 +89,9 @@ int main() {
     double collision_envelope;
     ChVector<int> collision_bins;
     rig.GetSuggestedCollisionSettings(collision_envelope, collision_bins);
-    system.GetSettings()->collision.narrowphase_algorithm = NarrowPhaseType::NARROWPHASE_HYBRID_MPR;
+    system.GetSettings()->collision.narrowphase_algorithm = collision::ChNarrowphase::Algorithm::HYBRID;
+    system.GetSettings()->collision.broadphase_grid = collision::ChBroadphase::GridType::FIXED_RESOLUTION;
     system.GetSettings()->collision.bins_per_axis = vec3(collision_bins.x(), collision_bins.y(), collision_bins.z());
-    system.GetSettings()->collision.fixed_bins = true;
 
     switch (system.GetContactMethod()) {
         case ChContactMethod::NSC:

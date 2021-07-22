@@ -31,6 +31,7 @@
 #include "chrono_multicore/physics/ChSystemMulticore.h"
 
 #include "chrono/ChConfig.h"
+#include "chrono/physics/ChBodyEasy.h"
 #include "chrono/physics/ChLinkMotorRotationAngle.h"
 #include "chrono/utils/ChUtilsCreators.h"
 #include "chrono/utils/ChUtilsInputOutput.h"
@@ -57,9 +58,9 @@ std::shared_ptr<ChBody> AddContainer(ChSystemMulticoreNSC* sys) {
     mat->SetFriction(0.4f);
 
     // Create the containing bin (2 x 2 x 1)
-    auto bin = chrono_types::make_shared<ChBody>(chrono_types::make_shared<ChCollisionModelMulticore>());
+    auto bin = std::shared_ptr<ChBody>(sys->NewBody());
     bin->SetIdentifier(binId);
-    bin->SetMass(1);
+    bin->SetMass(100);
     bin->SetPos(ChVector<>(0, 0, 0));
     bin->SetRot(ChQuaternion<>(1, 0, 0, 0));
     bin->SetCollide(true);
@@ -85,7 +86,7 @@ std::shared_ptr<ChBody> AddContainer(ChSystemMulticoreNSC* sys) {
     sys->AddBody(bin);
 
     // The rotating mixer body (1.6 x 0.2 x 0.4)
-    auto mixer = chrono_types::make_shared<ChBody>(chrono_types::make_shared<ChCollisionModelMulticore>());
+    auto mixer = std::shared_ptr<ChBody>(sys->NewBody());
     mixer->SetIdentifier(mixerId);
     mixer->SetMass(10.0);
     mixer->SetInertiaXX(ChVector<>(50, 50, 50));
@@ -115,35 +116,26 @@ std::shared_ptr<ChBody> AddContainer(ChSystemMulticoreNSC* sys) {
 // Create the falling spherical objects in a uniform rectangular grid.
 // -----------------------------------------------------------------------------
 void AddFallingBalls(ChSystemMulticore* sys) {
-    // Common material
-    auto ballMat = chrono_types::make_shared<ChMaterialSurfaceNSC>();
-    ballMat->SetFriction(0.4f);
+    // Shared contact materials
+    auto ball_mat = chrono_types::make_shared<ChMaterialSurfaceNSC>();
+    ball_mat->SetFriction(0.4f);
+    auto cyl_mat = chrono_types::make_shared<ChMaterialSurfaceNSC>();
 
-    // Create the falling balls
-    int ballId = 0;
-    double mass = 1;
-    double radius = 0.1;
-    ChVector<> inertia = (2.0 / 5.0) * mass * radius * radius * ChVector<>(1, 1, 1);
-
+    // Create the falling objects
     for (int ix = -2; ix < 3; ix++) {
         for (int iy = -2; iy < 3; iy++) {
-            ChVector<> pos(0.4 * ix, 0.4 * iy, 1);
+            ChVector<> b_pos(0.4 * ix, 0.4 * iy, 1);
+            ChVector<> c_pos(0.4 * ix, 0.4 * iy, 1.4);
 
-            auto ball = chrono_types::make_shared<ChBody>(chrono_types::make_shared<ChCollisionModelMulticore>());
-
-            ball->SetIdentifier(ballId++);
-            ball->SetMass(mass);
-            ball->SetInertiaXX(inertia);
-            ball->SetPos(pos);
-            ball->SetRot(ChQuaternion<>(1, 0, 0, 0));
-            ball->SetBodyFixed(false);
-            ball->SetCollide(true);
-
-            ball->GetCollisionModel()->ClearModel();
-            utils::AddSphereGeometry(ball.get(), ballMat, radius);
-            ball->GetCollisionModel()->BuildModel();
-
+            auto ball = chrono_types::make_shared<ChBodyEasySphere>(0.1, 2000, ball_mat,
+                                                                    collision::ChCollisionSystemType::CHRONO);
+            ball->SetPos(b_pos);
             sys->AddBody(ball);
+
+            auto cyl = chrono_types::make_shared<ChBodyEasyCylinder>(0.1, 0.05, 2000, cyl_mat,
+                                                                     collision::ChCollisionSystemType::CHRONO);
+            cyl->SetPos(c_pos);
+            sys->AddBody(cyl);
         }
     }
 }
@@ -184,10 +176,15 @@ int main(int argc, char* argv[]) {
     msystem.GetSettings()->solver.alpha = 0;
     msystem.GetSettings()->solver.contact_recovery_speed = 10000;
     msystem.ChangeSolverType(SolverType::APGD);
-    msystem.GetSettings()->collision.narrowphase_algorithm = NarrowPhaseType::NARROWPHASE_HYBRID_MPR;
+    msystem.GetSettings()->collision.narrowphase_algorithm = ChNarrowphase::Algorithm::HYBRID;
 
     msystem.GetSettings()->collision.collision_envelope = 0.01;
     msystem.GetSettings()->collision.bins_per_axis = vec3(10, 10, 10);
+
+    // Enable active bounding box
+    ////msystem.GetSettings()->collision.use_aabb_active = true;
+    ////msystem.GetSettings()->collision.aabb_min = real3(-1, -1, -1.5);
+    ////msystem.GetSettings()->collision.aabb_max = real3(+1, +1, +1.5);
 
     // Create the fixed and moving bodies
     // ----------------------------------

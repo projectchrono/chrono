@@ -21,6 +21,7 @@
 
 #include <vector>
 
+#include "chrono/ChConfig.h"
 #include "chrono/core/ChApiCE.h"
 #include "chrono/core/ChCoordsys.h"
 #include "chrono/core/ChMatrix33.h"
@@ -36,13 +37,25 @@ class ChPhysicsItem;
 
 namespace collision {
 
+/// @addtogroup chrono_collision
+/// @{
+
+/// Collision engine type.
+enum class ChCollisionSystemType {
+    BULLET,  ///< Bullet-based collision detection system
+    CHRONO,  ///< Chrono multicore collision detection system
+    OTHER    ///< other type (external)
+};
+
 /// Class defining the geometric model for collision detection.
 /// A ChCollisionModel contains all geometric shapes on a rigid body, for collision purposes.
 class ChApi ChCollisionModel {
   public:
     ChCollisionModel();
-
     virtual ~ChCollisionModel() {}
+
+    /// Return the type of this collision model.
+    virtual ChCollisionSystemType GetType() const = 0;
 
     /// Delete all inserted geometries.
     /// Addition of collision shapes must be done between calls to ClearModel() and BuildModel().
@@ -268,8 +281,6 @@ class ChApi ChCollisionModel {
     /// the objects collided with another: the contact is created
     /// only if the family is within the 'family mask' of the other,
     /// and viceversa.
-    /// NOTE: these functions have NO effect if used before you add
-    ///       the body to a ChSystem, using AddBody(). Use after AddBody().
     /// These default implementations use the family group.
     virtual void SetFamily(int mfamily);
     virtual int GetFamily();
@@ -280,8 +291,6 @@ class ChApi ChCollisionModel {
     /// When two objects collide, the contact is created
     /// only if the family is within the 'family mask' of the other,
     /// and viceversa.
-    /// NOTE: these functions have NO effect if used before you add
-    ///       the body to a ChSystem, using AddBody(). Use after AddBody().
     /// These default implementations use the family mask.
     virtual void SetFamilyMaskNoCollisionWithFamily(int mfamily);
     virtual void SetFamilyMaskDoCollisionWithFamily(int mfamily);
@@ -289,8 +298,6 @@ class ChApi ChCollisionModel {
     /// Tells if the family mask of this collision object allows
     /// for the collision with another collision object belonging to
     /// a given family.
-    /// NOTE: this function has NO effect if used before you add
-    ///       the body to a ChSystem, using AddBody().
     /// This default implementation uses the family mask.
     virtual bool GetFamilyMaskDoesCollisionWithFamily(int mfamily);
 
@@ -423,6 +430,8 @@ class ChApi ChCollisionModel {
 
     std::vector<std::shared_ptr<ChCollisionShape>> m_shapes;  ///< list of collision shapes in model
 };
+
+/// @} chrono_collision
 
 }  // end namespace collision
 

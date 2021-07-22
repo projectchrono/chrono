@@ -238,3 +238,8 @@ message(STATUS "NVCC Flags: ${CUDA_NVCC_FLAGS}")
 install(DIRECTORY ${CMAKE_SOURCE_DIR}/src/chrono_thirdparty/cub
         DESTINATION include/chrono_thirdparty
         FILES_MATCHING PATTERN "*.h" PATTERN "*.cuh" PATTERN "*.hpp" PATTERN "*.inl")
+
+install(DIRECTORY ${CMAKE_SOURCE_DIR}/src/chrono_thirdparty/chpf
+        DESTINATION include/chrono_thirdparty
+        FILES_MATCHING PATTERN "*.hpp"
+)

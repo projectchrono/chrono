@@ -40,6 +40,10 @@ if( THRUST_INCLUDE_DIR )
   list( REMOVE_DUPLICATES THRUST_INCLUDE_DIR )
 endif( THRUST_INCLUDE_DIR )
 
+if(NOT THRUST_INCLUDE_DIR)
+  return()
+endif()
+
 # Find thrust version
 file( STRINGS ${THRUST_INCLUDE_DIR}/thrust/version.h
   version

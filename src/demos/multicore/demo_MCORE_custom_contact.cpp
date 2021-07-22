@@ -173,7 +173,7 @@ int main(int argc, char* argv[]) {
 
     // Create the ground body with a plate and side walls (both collision and visualization).
     // Add obstacle visualization (in a separate level with a different color).
-    auto ground = chrono_types::make_shared<ChBody>(chrono_types::make_shared<collision::ChCollisionModelMulticore>());
+    auto ground = std::shared_ptr<ChBody>(sys->NewBody());
     sys->AddBody(ground);
     ground->SetCollide(true);
     ground->SetBodyFixed(true);
@@ -190,7 +190,7 @@ int main(int argc, char* argv[]) {
     ground->AddAsset(obstacle.GetVisualization());
 
     // Create the falling ball
-    auto ball = chrono_types::make_shared<ChBody>(chrono_types::make_shared<collision::ChCollisionModelMulticore>());
+    auto ball = std::shared_ptr<ChBody>(sys->NewBody());
     sys->AddBody(ball);
     ball->SetMass(10);
     ball->SetInertiaXX(4 * ball_radius * ball_radius * ChVector<>(1, 1, 1));

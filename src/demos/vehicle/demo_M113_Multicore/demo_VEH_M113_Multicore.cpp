@@ -25,7 +25,6 @@
 // Chrono::Multicore header files
 #include "chrono_multicore/physics/ChSystemMulticore.h"
 #include "chrono_multicore/solver/ChSystemDescriptorMulticore.h"
-#include "chrono_multicore/collision/ChNarrowphaseRUtils.h"
 
 // Chrono::Multicore OpenGL header files
 //#undef CHRONO_OPENGL

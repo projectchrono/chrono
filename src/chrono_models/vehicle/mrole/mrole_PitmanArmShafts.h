@@ -73,7 +73,7 @@ class CH_MODELS_API mrole_PitmanArmShafts : public ChPitmanArmShafts {
     static const ChVector<> m_pitmanArmInertiaProducts;
 };
 
-/// @} vehicle_models_hmmwv
+/// @} vehicle_models_mrole
 
 }  // namespace mrole
 }  // end namespace vehicle

@@ -21,6 +21,9 @@
 namespace chrono {
 namespace collision {
 
+/// @addtogroup chrono_collision
+/// @{
+
 /// Class defining a collision shape.
 class ChApi ChCollisionShape {
   public:
@@ -63,6 +66,8 @@ class ChApi ChCollisionShape {
 
     friend class ChCollisionModel;
 };
+
+/// @} chrono_collision
 
 }  // end namespace collision
 }  // end namespace chrono

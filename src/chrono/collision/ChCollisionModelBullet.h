@@ -39,6 +39,9 @@ namespace collision {
 
 class ChConvexDecomposition;
 
+/// @addtogroup collision_bullet
+/// @{
+
 /// Class defining the Bullet geometric model for collision detection.
 class ChApi ChCollisionModelBullet : public ChCollisionModel {
   protected:
@@ -47,8 +50,10 @@ class ChApi ChCollisionModelBullet : public ChCollisionModel {
 
   public:
     ChCollisionModelBullet();
-
     virtual ~ChCollisionModelBullet();
+
+    /// Return the type of this collision model.
+    virtual ChCollisionSystemType GetType() const override { return ChCollisionSystemType::BULLET; }
 
     /// Delete all inserted geometries.
     /// Addition of collision shapes must be done between calls to ClearModel() and BuildModel().
@@ -350,6 +355,8 @@ class ChApi ChCollisionModelBullet : public ChCollisionModel {
     friend class ChCollisionSystemBullet;
     friend class ChCollisionSystemBulletMulticore;
 };
+
+/// @} collision_bullet
 
 }  // end namespace collision
 

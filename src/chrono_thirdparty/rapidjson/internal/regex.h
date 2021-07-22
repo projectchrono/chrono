@@ -1,6 +1,6 @@
 // Tencent is pleased to support the open source community by making RapidJSON available.
 // 
-// Copyright (C) 2015 THL A29 Limited, a Tencent company, and Milo Yip. All rights reserved.
+// Copyright (C) 2015 THL A29 Limited, a Tencent company, and Milo Yip.
 //
 // Licensed under the MIT License (the "License"); you may not use this file except
 // in compliance with the License. You may obtain a copy of the License at
@@ -23,17 +23,14 @@
 RAPIDJSON_DIAG_PUSH
 RAPIDJSON_DIAG_OFF(padded)
 RAPIDJSON_DIAG_OFF(switch-enum)
-RAPIDJSON_DIAG_OFF(implicit-fallthrough)
+#elif defined(_MSC_VER)
+RAPIDJSON_DIAG_PUSH
+RAPIDJSON_DIAG_OFF(4512) // assignment operator could not be generated
 #endif
 
 #ifdef __GNUC__
 RAPIDJSON_DIAG_PUSH
 RAPIDJSON_DIAG_OFF(effc++)
-#endif
-
-#ifdef _MSC_VER
-RAPIDJSON_DIAG_PUSH
-RAPIDJSON_DIAG_OFF(4512) // assignment operator could not be generated
 #endif
 
 #ifndef RAPIDJSON_REGEX_VERBOSE
@@ -117,7 +114,8 @@ public:
     template <typename, typename> friend class GenericRegexSearch;
 
     GenericRegex(const Ch* source, Allocator* allocator = 0) : 
-        states_(allocator, 256), ranges_(allocator, 256), root_(kRegexInvalidState), stateCount_(), rangeCount_(), 
+        ownAllocator_(allocator ? 0 : RAPIDJSON_NEW(Allocator)()), allocator_(allocator ? allocator : ownAllocator_), 
+        states_(allocator_, 256), ranges_(allocator_, 256), root_(kRegexInvalidState), stateCount_(), rangeCount_(), 
         anchorBegin_(), anchorEnd_()
     {
         GenericStringStream<Encoding> ss(source);
@@ -125,7 +123,10 @@ public:
         Parse(ds);
     }
 
-    ~GenericRegex() {}
+    ~GenericRegex()
+    {
+        RAPIDJSON_DELETE(ownAllocator_);
+    }
 
     bool IsValid() const {
         return root_ != kRegexInvalidState;
@@ -187,10 +188,9 @@ private:
 
     template <typename InputStream>
     void Parse(DecodedStream<InputStream, Encoding>& ds) {
-        Allocator allocator;
-        Stack<Allocator> operandStack(&allocator, 256);     // Frag
-        Stack<Allocator> operatorStack(&allocator, 256);    // Operator
-        Stack<Allocator> atomCountStack(&allocator, 256);   // unsigned (Atom per parenthesis)
+        Stack<Allocator> operandStack(allocator_, 256);    // Frag
+        Stack<Allocator> operatorStack(allocator_, 256);   // Operator
+        Stack<Allocator> atomCountStack(allocator_, 256);  // unsigned (Atom per parenthesis)
 
         *atomCountStack.template Push<unsigned>() = 0;
 
@@ -287,6 +287,7 @@ private:
                     if (!CharacterEscape(ds, &codepoint))
                         return; // Unsupported escape character
                     // fall through to default
+                    RAPIDJSON_DELIBERATE_FALLTHROUGH;
 
                 default: // Pattern character
                     PushOperand(operandStack, codepoint);
@@ -391,8 +392,7 @@ private:
                 }
                 return false;
 
-            default: 
-                RAPIDJSON_ASSERT(op == kOneOrMore);
+            case kOneOrMore:
                 if (operandStack.GetSize() >= sizeof(Frag)) {
                     Frag e = *operandStack.template Pop<Frag>(1);
                     SizeType s = NewState(kRegexInvalidState, e.start, 0);
@@ -400,6 +400,10 @@ private:
                     *operandStack.template Push<Frag>() = Frag(e.start, s, e.minIndex);
                     return true;
                 }
+                return false;
+
+            default: 
+                // syntax error (e.g. unclosed kLeftParenthesis)
                 return false;
         }
     }
@@ -513,6 +517,7 @@ private:
                 else if (!CharacterEscape(ds, &codepoint))
                     return false;
                 // fall through to default
+                RAPIDJSON_DELIBERATE_FALLTHROUGH;
 
             default:
                 switch (step) {
@@ -522,6 +527,7 @@ private:
                         break;
                     }
                     // fall through to step 0 for other characters
+                    RAPIDJSON_DELIBERATE_FALLTHROUGH;
 
                 case 0:
                     {
@@ -581,6 +587,8 @@ private:
         }
     }
 
+    Allocator* ownAllocator_;
+    Allocator* allocator_;
     Stack<Allocator> states_;
     Stack<Allocator> ranges_;
     SizeType root_;
@@ -688,8 +696,8 @@ private:
             bool matched = AddState(l, s.out);
             return AddState(l, s.out1) || matched;
         }
-        else if (!(stateSet_[index >> 5] & (1 << (index & 31)))) {
-            stateSet_[index >> 5] |= (1 << (index & 31));
+        else if (!(stateSet_[index >> 5] & (1u << (index & 31)))) {
+            stateSet_[index >> 5] |= (1u << (index & 31));
             *l.template PushUnsafe<SizeType>() = index;
         }
         return s.out == kRegexInvalidState; // by using PushUnsafe() above, we can ensure s is not validated due to reallocation.
@@ -720,11 +728,11 @@ typedef GenericRegexSearch<Regex> RegexSearch;
 } // namespace internal
 RAPIDJSON_NAMESPACE_END
 
-#ifdef __clang__
+#ifdef __GNUC__
 RAPIDJSON_DIAG_POP
 #endif
 
-#ifdef _MSC_VER
+#if defined(__clang__) || defined(_MSC_VER)
 RAPIDJSON_DIAG_POP
 #endif
 

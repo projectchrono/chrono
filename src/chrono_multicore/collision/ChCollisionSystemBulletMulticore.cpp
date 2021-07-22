@@ -24,8 +24,6 @@
 
 #include "chrono_multicore/solver/ChSystemDescriptorMulticore.h"
 #include "chrono_multicore/collision/ChContactContainerMulticore.h"
-#include "chrono_multicore/collision/ChCollisionModelMulticore.h"
-#include "chrono_multicore/collision/ChDataStructures.h"
 
 #include "chrono/collision/bullet/BulletCollision/CollisionDispatch/btCollisionDispatcherMt.h"
 
@@ -42,8 +40,10 @@ namespace collision {
  }
 */
 
-ChCollisionSystemBulletMulticore::ChCollisionSystemBulletMulticore(ChMulticoreDataManager* dc)
-    : data_manager(dc) {
+ChCollisionSystemBulletMulticore::ChCollisionSystemBulletMulticore(ChMulticoreDataManager* dc) : data_manager(dc) {
+    // Container for collision detection data
+    data_manager->cd_data = chrono_types::make_shared<ChCollisionData>(false);
+
     // btDefaultCollisionConstructionInfo conf_info(...); ***TODO***
     bt_collision_configuration = new btDefaultCollisionConfiguration();
 
@@ -96,7 +96,7 @@ void ChCollisionSystemBulletMulticore::Add(ChCollisionModel* model) {
         bt_collision_world->addCollisionObject(bmodel->GetBulletModel(), bmodel->GetFamilyGroup(),
                                                bmodel->GetFamilyMask());
         counter++;
-        data_manager->num_rigid_shapes++;
+        data_manager->cd_data->num_rigid_shapes++;
     }
 }
 
@@ -136,17 +136,17 @@ double ChCollisionSystemBulletMulticore::GetTimerCollisionNarrow() const {
 
 void ChCollisionSystemBulletMulticore::ReportContacts(ChContactContainer* mcontactcontainer) {
     data_manager->system_timer.start("collision_narrow");
-    data_manager->host_data.norm_rigid_rigid.clear();
-    data_manager->host_data.cpta_rigid_rigid.clear();
-    data_manager->host_data.cptb_rigid_rigid.clear();
-    data_manager->host_data.dpth_rigid_rigid.clear();
-    data_manager->host_data.erad_rigid_rigid.clear();
-    data_manager->host_data.bids_rigid_rigid.clear();
-    data_manager->num_rigid_contacts = 0;
+    data_manager->cd_data->norm_rigid_rigid.clear();
+    data_manager->cd_data->cpta_rigid_rigid.clear();
+    data_manager->cd_data->cptb_rigid_rigid.clear();
+    data_manager->cd_data->dpth_rigid_rigid.clear();
+    data_manager->cd_data->erad_rigid_rigid.clear();
+    data_manager->cd_data->bids_rigid_rigid.clear();
+    data_manager->cd_data->num_rigid_contacts = 0;
     // mcontactcontainer->BeginAddContact();
 
     // NOTE: Bullet does not provide information on radius of curvature at a contact point.
-    // As such, for all Bullet-identified contacts, the default value will be used (SMC only). 
+    // As such, for all Bullet-identified contacts, the default value will be used (SMC only).
     ChCollisionInfo icontact;
 
     int numManifolds = bt_collision_world->getDispatcher()->getNumManifolds();
@@ -224,20 +224,20 @@ void ChCollisionSystemBulletMulticore::ReportContacts(ChContactContainer* mconta
 
                     if (add_contact) {
                         ////std::cout << " add indexA=" << indexA << " indexB=" << indexB << std::endl;
-                        ////std::cout << "     typeA=" << icontact.shapeA->m_type << " typeB=" << icontact.shapeB->m_type
-                        ////          << std::endl;
+                        ////std::cout << "     typeA=" << icontact.shapeA->m_type << " typeB=" <<
+                        ///icontact.shapeB->m_type /          << std::endl;
 
-                        data_manager->host_data.norm_rigid_rigid.push_back(
+                        data_manager->cd_data->norm_rigid_rigid.push_back(
                             real3(icontact.vN.x(), icontact.vN.y(), icontact.vN.z()));
-                        data_manager->host_data.cpta_rigid_rigid.push_back(
+                        data_manager->cd_data->cpta_rigid_rigid.push_back(
                             real3(icontact.vpA.x(), icontact.vpA.y(), icontact.vpA.z()));
-                        data_manager->host_data.cptb_rigid_rigid.push_back(
+                        data_manager->cd_data->cptb_rigid_rigid.push_back(
                             real3(icontact.vpB.x(), icontact.vpB.y(), icontact.vpB.z()));
-                        data_manager->host_data.dpth_rigid_rigid.push_back(icontact.distance);
-                        data_manager->host_data.erad_rigid_rigid.push_back(icontact.eff_radius);
-                        data_manager->host_data.bids_rigid_rigid.push_back(
+                        data_manager->cd_data->dpth_rigid_rigid.push_back(icontact.distance);
+                        data_manager->cd_data->erad_rigid_rigid.push_back(icontact.eff_radius);
+                        data_manager->cd_data->bids_rigid_rigid.push_back(
                             I2(obA->getCompanionId(), obB->getCompanionId()));
-                        data_manager->num_rigid_contacts++;
+                        data_manager->cd_data->num_rigid_contacts++;
                     }
                 }
             }

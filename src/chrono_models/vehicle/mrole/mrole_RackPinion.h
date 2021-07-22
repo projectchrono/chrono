@@ -27,7 +27,7 @@ namespace chrono {
 namespace vehicle {
 namespace mrole {
 
-/// @addtogroup vehicle_models_hmmwv
+/// @addtogroup vehicle_models_mrole
 /// @{
 
 /// Rack-pinion steering subsystem for the mrole vehicle, first axle.
@@ -86,7 +86,7 @@ class CH_MODELS_API mrole_RackPinion2 : public ChRackPinion {
     static const double m_maxAngle;
 };
 
-/// @} vehicle_models_hmmwv
+/// @} vehicle_models_mrole
 
 }  // namespace mrole
 }  // end namespace vehicle
