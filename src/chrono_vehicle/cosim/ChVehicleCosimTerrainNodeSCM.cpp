@@ -54,7 +54,7 @@ namespace vehicle {
 // - create the Irrlicht visualization window
 // -----------------------------------------------------------------------------
 ChVehicleCosimTerrainNodeSCM::ChVehicleCosimTerrainNodeSCM()
-    : ChVehicleCosimTerrainNode(Type::SCM, ChContactMethod::SMC), m_radius_p(5e-3), m_use_checkpoint(false) {
+    : ChVehicleCosimTerrainNodeChrono(Type::SCM, ChContactMethod::SMC), m_radius_p(5e-3), m_use_checkpoint(false) {
 #ifdef CHRONO_IRRLICHT
     m_irrapp = nullptr;
 #endif
@@ -70,7 +70,7 @@ ChVehicleCosimTerrainNodeSCM::ChVehicleCosimTerrainNodeSCM()
 }
 
 ChVehicleCosimTerrainNodeSCM::ChVehicleCosimTerrainNodeSCM(const std::string& specfile)
-    : ChVehicleCosimTerrainNode(Type::SCM, ChContactMethod::SMC), m_use_checkpoint(false) {
+    : ChVehicleCosimTerrainNodeChrono(Type::SCM, ChContactMethod::SMC), m_use_checkpoint(false) {
 #ifdef CHRONO_IRRLICHT
     m_irrapp = nullptr;
 #endif
@@ -364,24 +364,6 @@ void ChVehicleCosimTerrainNodeSCM::WriteCheckpoint(const std::string& filename) 
     csv.write_to_file(checkpoint_filename);
     if (m_verbose)
         cout << "[Terrain node] write checkpoint ===> " << checkpoint_filename << endl;
-}
-
-// -----------------------------------------------------------------------------
-
-void ChVehicleCosimTerrainNodeSCM::PrintMeshProxiesUpdateData() {
-    //// TODO
-}
-
-void ChVehicleCosimTerrainNodeSCM::PrintWheelProxyUpdateData() {
-    //// TODO
-}
-
-void ChVehicleCosimTerrainNodeSCM::PrintMeshProxiesContactData() {
-    //// TODO
-}
-
-void ChVehicleCosimTerrainNodeSCM::PrintWheelProxyContactData() {
-    //// TODO
 }
 
 }  // end namespace vehicle

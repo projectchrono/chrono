@@ -24,10 +24,8 @@
 
 #include "chrono/ChConfig.h"
 
-#include "chrono/physics/ChSystem.h"
-#include "chrono/physics/ChSystemSMC.h"
-
 #include "chrono_vehicle/ChSubsysDefs.h"
+#include "chrono_vehicle/ChPart.h"
 #include "chrono_vehicle/cosim/ChVehicleCosimBaseNode.h"
 
 #include "chrono_thirdparty/rapidjson/document.h"
@@ -35,27 +33,18 @@
 namespace chrono {
 namespace vehicle {
 
+/// @addtogroup vehicle_cosim
+/// @{
+
 /// Base class for all terrain nodes.
 class CH_VEHICLE_API ChVehicleCosimTerrainNode : public ChVehicleCosimBaseNode {
   public:
-    enum class Type { RIGID, SCM, GRANULAR_OMP, GRANULAR_GPU, GRANULAR_MPI, GRANULAR_SPH, UNKNOWN };
-
     virtual ~ChVehicleCosimTerrainNode() {}
-
-    Type GetType() const { return m_type; }
-    static std::string GetTypeAsString(Type type);
-    static Type GetTypeFromString(const std::string& type);
-
-    static bool ReadSpecfile(const std::string& specfile, rapidjson::Document& d);
-    static Type GetTypeFromSpecfile(const std::string& specfile);
 
     /// Set terrain patch dimensions (length and width).
     void SetPatchDimensions(double length,  ///< length in direction X (default: 2)
                             double width    ///< width in Y direction (default: 0.5)
     );
-
-    /// Set the proxy bodies as fixed to ground.
-    void SetProxyFixed(bool fixed);
 
     /// Enable/disable run-time visualization (default: false).
     /// If enabled, rendering is done with the specified frequency.
@@ -76,70 +65,23 @@ class CH_VEHICLE_API ChVehicleCosimTerrainNode : public ChVehicleCosimBaseNode {
     /// This function is called after a synchronization to allow the node to advance
     /// its state by the specified time step.  A node is allowed to take as many internal
     /// integration steps as required, but no inter-node communication should occur.
-    virtual void Advance(double step_size) override;
+    virtual void Advance(double step_size) override final;
 
     /// Output logging and debugging data.
     virtual void OutputData(int frame) override final;
-
-  protected:
-    /// Association between a proxy body and a mesh index.
-    /// The body can be associated with either a mesh vertex or a mesh triangle.
-    struct ProxyBody {
-        ProxyBody(std::shared_ptr<ChBody> body, int index) : m_body(body), m_index(index) {}
-        std::shared_ptr<ChBody> m_body;
-        int m_index;
-    };
-
-    Type m_type;  ///< terrain type
-
-    bool m_render;         ///< if true, use OpenGL rendering
-    double m_render_step;  ///< time step between rendered frames
-
-    ChContactMethod m_method;                               ///< contact method (SMC or NSC)
-    std::shared_ptr<ChMaterialSurface> m_material_terrain;  ///< material properties for terrain bodies
-    std::shared_ptr<ChMaterialSurface> m_material_tire;     ///< material properties for proxy bodies
-
-    std::vector<ProxyBody> m_proxies;  ///< list of proxy bodies with associated mesh index
-    bool m_fixed_proxies;              ///< flag indicating whether or not proxy bodies are fixed to ground
-
-    double m_hdimX;  ///< patch half-length (X direction)
-    double m_hdimY;  ///< patch half-width (Y direction)
-
-    // Communication data
-    MeshData m_mesh_data;          ///< tire mesh data
-    MeshState m_mesh_state;        ///< tire mesh state (used for flexible tire)
-    MeshContact m_mesh_contact;    ///< tire mesh contact forces (used for flexible tire)
-    WheelState m_wheel_state;      ///< wheel state (used for rigid tire)
-    TerrainForce m_wheel_contact;  ///< wheel contact force (used for rigid tire)
-
-    bool m_flexible_tire;  ///< flag indicating whether the tire is flexible or rigid
-    double m_rig_mass;     ///< mass of the rig assembly
-
-    double m_init_height;  ///< initial terrain height (after optional settling)
-
-    /// Construct a base class terrain node.
-    ChVehicleCosimTerrainNode(Type type,              ///< terrain type
-                              ChContactMethod method  ///< contact method (SMC or NSC)
-    );
-
-    /// Print vertex and face connectivity data, as received from the rig node at synchronization.
-    /// Invoked only for a flexible tire.
-    void PrintMeshUpdateData();
-
-    /// Return a pointer to the terrain node underlying Chrono system.
-    virtual ChSystem* GetSystem() = 0;
-
-    /// Construct the terrain (indpendent of the rig system).
-    virtual void Construct() = 0;
-
-    /// Specify whether or not flexible tire is supported.
-    virtual bool SupportsFlexibleTire() const = 0;
 
     /// Return current number of contacts.
     /// (concrete terrain specific)
     virtual int GetNumContacts() const { return 0; }
 
-    // --- Virtual methods for a flexible tire
+  protected:
+    /// Construct a base class terrain node.
+    ChVehicleCosimTerrainNode();
+
+    /// Specify whether or not flexible tire is supported.
+    virtual bool SupportsFlexibleTire() const = 0;
+
+    // ------------------------- Virtual methods for a flexible tire
     //     A derived class must implement these methods if SupportsFlexibleTire returns true.
 
     /// Create proxy bodies for a flexible tire mesh.
@@ -164,20 +106,8 @@ class CH_VEHICLE_API ChVehicleCosimTerrainNode : public ChVehicleCosimBaseNode {
             throw ChException("Current terrain type does not support flexible tires!");
         }
     }
-    /// Print information on proxy bodies after update.
-    virtual void PrintMeshProxiesUpdateData() {
-        if (SupportsFlexibleTire()) {
-            throw ChException("Current terrain type does not support flexible tires!");
-        }
-    }
-    /// Print information on contact forces acting on proxy bodies.
-    virtual void PrintMeshProxiesContactData() {
-        if (SupportsFlexibleTire()) {
-            throw ChException("Current terrain type does not support flexible tires!");
-        }
-    }
 
-    // --- Virtual methods for a rigid tire.
+    // ------------------------- Virtual methods for a rigid tire.
 
     /// Create proxy body for a rigid tire mesh.
     /// Use information in the m_mesh_data struct (vertex positions expressed in local frame).
@@ -190,34 +120,57 @@ class CH_VEHICLE_API ChVehicleCosimTerrainNode : public ChVehicleCosimBaseNode {
     /// Collect cumulative contact force and torque on the wheel proxy body.
     /// Load contact forces (expressed in absolute frame) into the m_wheel_contact struct.
     virtual void GetForceWheelProxy() = 0;
-    
-    /// Print information on wheel proxy body after update.
-    virtual void PrintWheelProxyUpdateData() = 0;
-    
-    /// Print information on contact forces acting on the wheel proxy body.
-    virtual void PrintWheelProxyContactData() = 0;
 
-    // --- Other virtual methods
+    // ------------------------- Other virtual methods
+
+    /// Perform any additional operations after the initial data exchange with the rig node.
+    virtual void OnInitialize() = 0;
+
+    /// Perform any additional operations after the data exchange and synchronization with the rig node.
+    virtual void OnSynchronize(int step_number, double time) {}
+
+    /// Advance the state of the terrain system by the specified step.
+    virtual void OnAdvance(double step_size) = 0;
 
     /// Perform additional output at the specified frame (called once per integration step).
     /// For example, output terrain-specific data for post-procesing.
     virtual void OnOutputData(int frame) {}
 
-    /// Perform any additional operations after the data exchange and synchronization with the rig node.
-    virtual void OnSynchronize(int step_number, double time) {}
-
-    /// Perform any additional operations after advancing the state of the terrain node.
-    virtual void OnAdvance(double step_size) {}
-
     /// Render simulation.
     virtual void OnRender(double time) {}
+
+  protected:
+    bool m_render;         ///< if true, perform run-time rendering
+    double m_render_step;  ///< time step between rendered frames
+
+    double m_hdimX;  ///< patch half-length (X direction)
+    double m_hdimY;  ///< patch half-width (Y direction)
+
+    // Communication data
+    MeshData m_mesh_data;          ///< tire mesh data
+    MeshState m_mesh_state;        ///< tire mesh state (used for flexible tire)
+    MeshContact m_mesh_contact;    ///< tire mesh contact forces (used for flexible tire)
+    WheelState m_wheel_state;      ///< wheel state (used for rigid tire)
+    TerrainForce m_wheel_contact;  ///< wheel contact force (used for rigid tire)
+
+    bool m_flexible_tire;      ///< flag indicating whether the tire is flexible or rigid
+    double m_rig_mass;         ///< mass of the rig assembly
+    MaterialInfo m_mat_props;  ///< tire contact material properties
+
+    double m_init_height;  ///< initial terrain height (after optional settling)
 
   private:
     void SynchronizeRigidTire(int step_number, double time);
     void SynchronizeFlexibleTire(int step_number, double time);
+
+    /// Print vertex and face connectivity data, as received from the rig node at synchronization.
+    /// Invoked only for a flexible tire.
+    void PrintMeshUpdateData();
 };
 
 }  // end namespace vehicle
 }  // end namespace chrono
+
+/// @} vehicle_cosim
 
 #endif

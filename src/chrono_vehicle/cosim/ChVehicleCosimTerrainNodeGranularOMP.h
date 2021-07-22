@@ -24,13 +24,17 @@
 
 #include "chrono/utils/ChUtilsSamplers.h"
 #include "chrono_multicore/physics/ChSystemMulticore.h"
-#include "chrono_vehicle/cosim/ChVehicleCosimTerrainNode.h"
+
+#include "chrono_vehicle/cosim/ChVehicleCosimTerrainNodeChrono.h"
 
 namespace chrono {
 namespace vehicle {
 
+/// @addtogroup vehicle_cosim_chrono
+/// @{
+
 /// Definition of the OpenMP granular terrain node (using Chrono::Multicore).
-class CH_VEHICLE_API ChVehicleCosimTerrainNodeGranularOMP : public ChVehicleCosimTerrainNode {
+class CH_VEHICLE_API ChVehicleCosimTerrainNodeGranularOMP : public ChVehicleCosimTerrainNodeChrono {
   public:
     /// Create a Chrono::Multicore granular terrain node using the specified contact method (SMC or NSC).
     ChVehicleCosimTerrainNodeGranularOMP(ChContactMethod method);
@@ -157,16 +161,12 @@ class CH_VEHICLE_API ChVehicleCosimTerrainNodeGranularOMP : public ChVehicleCosi
     virtual void CreateMeshProxies() override;
     virtual void UpdateMeshProxies() override;
     virtual void GetForcesMeshProxies() override;
-    virtual void PrintMeshProxiesUpdateData() override;
-    virtual void PrintMeshProxiesContactData() override;
+    void PrintMeshProxiesUpdateData();
 
     virtual void CreateWheelProxy() override;
     virtual void UpdateWheelProxy() override;
     virtual void GetForceWheelProxy() override;
-    virtual void PrintWheelProxyUpdateData() override;
-    virtual void PrintWheelProxyContactData() override;
 
-    virtual void OnSynchronize(int step_number, double time) override;
     virtual void OnAdvance(double step_size) override;
     virtual void OnOutputData(int frame) override;
     virtual void OnRender(double time) override;
@@ -187,5 +187,7 @@ class CH_VEHICLE_API ChVehicleCosimTerrainNodeGranularOMP : public ChVehicleCosi
 
 }  // end namespace vehicle
 }  // end namespace chrono
+
+/// @} vehicle_cosim_chrono
 
 #endif

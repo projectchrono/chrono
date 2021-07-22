@@ -57,7 +57,7 @@ namespace vehicle {
 // - create the Chrono FSI system
 // -----------------------------------------------------------------------------
 ChVehicleCosimTerrainNodeGranularSPH::ChVehicleCosimTerrainNodeGranularSPH()
-    : ChVehicleCosimTerrainNode(Type::GRANULAR_SPH, ChContactMethod::SMC), m_depth(0) {
+    : ChVehicleCosimTerrainNodeChrono(Type::GRANULAR_SPH, ChContactMethod::SMC), m_depth(0) {
     // Default granular material properties
     m_radius_g = 0.01;
     m_rho_g = 2000;
@@ -74,7 +74,7 @@ ChVehicleCosimTerrainNodeGranularSPH::ChVehicleCosimTerrainNodeGranularSPH()
 }
 
 ChVehicleCosimTerrainNodeGranularSPH::ChVehicleCosimTerrainNodeGranularSPH(const std::string& specfile)
-    : ChVehicleCosimTerrainNode(Type::GRANULAR_SPH, ChContactMethod::SMC) {
+    : ChVehicleCosimTerrainNodeChrono(Type::GRANULAR_SPH, ChContactMethod::SMC) {
     // Create systems
     m_system = new ChSystemSMC;
     m_systemFSI = new ChSystemFsi(*m_system);
@@ -442,26 +442,13 @@ void ChVehicleCosimTerrainNodeGranularSPH::GetForceWheelProxy() {
 
 // -----------------------------------------------------------------------------
 
-void ChVehicleCosimTerrainNodeGranularSPH::Advance(double step_size) {
-    static double render_time = 0;
-
-    m_timer.reset();
-    m_timer.start();
+void ChVehicleCosimTerrainNodeGranularSPH::OnAdvance(double step_size) {
     double t = 0;
     while (t < step_size) {
         double h = std::min<>(m_step_size, step_size - t);
         m_systemFSI->DoStepDynamics_FSI();
         t += h;
     }
-    m_timer.stop();
-    m_cum_sim_time += m_timer();
-
-    if (m_render && m_system->GetChTime() > render_time) {
-        OnRender(m_system->GetChTime());
-        render_time += std::max(m_render_step, step_size);
-    }
-
-    PrintWheelProxyContactData();
 }
 
 void ChVehicleCosimTerrainNodeGranularSPH::OnRender(double time) {
@@ -488,16 +475,6 @@ void ChVehicleCosimTerrainNodeGranularSPH::OnOutputData(int frame) {
         m_systemFSI->GetDataManager()->fsiGeneralData->sr_tau_I_mu_i,
         m_systemFSI->GetDataManager()->fsiGeneralData->referenceArray,
         m_systemFSI->GetDataManager()->fsiGeneralData->referenceArray_FEA, m_node_out_dir + "/simulation", true);
-}
-
-// -----------------------------------------------------------------------------
-
-void ChVehicleCosimTerrainNodeGranularSPH::PrintWheelProxyUpdateData() {
-    //// TODO
-}
-
-void ChVehicleCosimTerrainNodeGranularSPH::PrintWheelProxyContactData() {
-    //// TODO
 }
 
 }  // end namespace vehicle

@@ -41,80 +41,11 @@ using namespace rapidjson;
 namespace chrono {
 namespace vehicle {
 
-std::string ChVehicleCosimTerrainNode::GetTypeAsString(ChVehicleCosimTerrainNode::Type type) {
-    switch (type) {
-        case Type::RIGID:
-            return "RIGID";
-        case Type::SCM:
-            return "SCM";
-        case Type::GRANULAR_OMP:
-            return "GRANULAR_OMP";
-        case Type::GRANULAR_GPU:
-            return "GRANULAR_GPU";
-        case Type::GRANULAR_MPI:
-            return "GRANULAR_MPI";
-        case Type::GRANULAR_SPH:
-            return "GRANULAR_SPH";
-        default:
-            return "UNKNOWN";
-    }
-}
-
-ChVehicleCosimTerrainNode::Type ChVehicleCosimTerrainNode::GetTypeFromString(const std::string& type) {
-    if (type == "RIGID")
-        return Type::RIGID;
-    if (type == "SCM")
-        return Type::SCM;
-    if (type == "GRANULAR_OMP")
-        return Type::GRANULAR_OMP;
-    if (type == "GRANULAR_GPU")
-        return Type::GRANULAR_GPU;
-    if (type == "GRANULAR_MPI")
-        return Type::GRANULAR_MPI;
-    if (type == "GRANULAR_SPH")
-        return Type::GRANULAR_SPH;
-
-    return Type::UNKNOWN;
-}
-
-bool ChVehicleCosimTerrainNode::ReadSpecfile(const std::string& specfile, Document& d) {
-    std::ifstream ifs(specfile);
-    if (!ifs.good()) {
-        cout << "ERROR: Could not open JSON file: " << specfile << "\n" << endl;
-        return false;
-    }
-
-    IStreamWrapper isw(ifs);
-    d.ParseStream<ParseFlag::kParseCommentsFlag>(isw);
-    if (d.IsNull()) {
-        cout << "ERROR: Invalid JSON file: " << specfile << "\n" << endl;
-        return false;
-    }
-
-    return true;
-}
-
-ChVehicleCosimTerrainNode::Type ChVehicleCosimTerrainNode::GetTypeFromSpecfile(const std::string& specfile) {
-    Document d;
-    if (!ReadSpecfile(specfile, d)) {
-        return Type::UNKNOWN;
-    }
-
-    if (!d.HasMember("Type")) {
-        cout << "ERROR: JSON file " << specfile << " does not specify terrain type!\n" << endl;
-        return Type::UNKNOWN;
-    }
-
-    return GetTypeFromString(d["Type"].GetString());
-}
-
 // -----------------------------------------------------------------------------
 // Construction of the base terrain node.
 // -----------------------------------------------------------------------------
-ChVehicleCosimTerrainNode::ChVehicleCosimTerrainNode(Type type, ChContactMethod method)
+ChVehicleCosimTerrainNode::ChVehicleCosimTerrainNode()
     : ChVehicleCosimBaseNode("TERRAIN"),
-      m_type(type),
-      m_method(method),
       m_render(false),
       m_render_step(0.01),
       m_init_height(0) {
@@ -125,17 +56,6 @@ ChVehicleCosimTerrainNode::ChVehicleCosimTerrainNode(Type type, ChContactMethod 
     // Default proxy body properties
     m_rig_mass = 50;
     m_flexible_tire = false;
-    m_fixed_proxies = false;
-
-    // Default terrain contact material
-    switch (m_method) {
-        case ChContactMethod::SMC:
-            m_material_terrain = chrono_types::make_shared<ChMaterialSurfaceSMC>();
-            break;
-        case ChContactMethod::NSC:
-            m_material_terrain = chrono_types::make_shared<ChMaterialSurfaceNSC>();
-            break;
-    }
 }
 
 // -----------------------------------------------------------------------------
@@ -143,10 +63,6 @@ ChVehicleCosimTerrainNode::ChVehicleCosimTerrainNode(Type type, ChContactMethod 
 void ChVehicleCosimTerrainNode::SetPatchDimensions(double length, double width) {
     m_hdimX = length / 2;
     m_hdimY = width / 2;
-}
-
-void ChVehicleCosimTerrainNode::SetProxyFixed(bool fixed) {
-    m_fixed_proxies = fixed;
 }
 
 void ChVehicleCosimTerrainNode::EnableRuntimeVisualization(bool render, double render_fps) {
@@ -163,16 +79,11 @@ void ChVehicleCosimTerrainNode::EnableRuntimeVisualization(bool render, double r
 // - create the appropriate proxy bodies (state not set yet)
 // -----------------------------------------------------------------------------
 void ChVehicleCosimTerrainNode::Initialize() {
-    Construct();
-
     // Create subdirectory for output from simulation
     if (!filesystem::create_directory(filesystem::path(m_node_out_dir + "/simulation"))) {
         std::cout << "Error creating directory " << m_node_out_dir + "/simulation" << std::endl;
         return;
     }
-
-    // Reset system time
-    GetSystem()->SetChTime(0);
 
     // ------------------------------------------
     // Send information for initial tire location
@@ -263,49 +174,25 @@ void ChVehicleCosimTerrainNode::Initialize() {
     // Receive tire contact material properties
     // ----------------------------------------
 
-    // Create the "tire" contact material, but defer using it until the proxy bodies are created.
-    float mat_props[8];
-    MPI_Recv(mat_props, 8, MPI_FLOAT, RIG_NODE_RANK, 0, MPI_COMM_WORLD, &status);
+    float props[8];
+    MPI_Recv(props, 8, MPI_FLOAT, RIG_NODE_RANK, 0, MPI_COMM_WORLD, &status);
 
-    switch (m_method) {
-        case ChContactMethod::SMC: {
-            // Properties for tire
-            auto mat_tire = chrono_types::make_shared<ChMaterialSurfaceSMC>();
-            mat_tire->SetFriction(mat_props[0]);
-            mat_tire->SetRestitution(mat_props[1]);
-            mat_tire->SetYoungModulus(mat_props[2]);
-            mat_tire->SetPoissonRatio(mat_props[3]);
-            mat_tire->SetKn(mat_props[4]);
-            mat_tire->SetGn(mat_props[5]);
-            mat_tire->SetKt(mat_props[6]);
-            mat_tire->SetGt(mat_props[7]);
-
-            m_material_tire = mat_tire;
-
-            break;
-        }
-        case ChContactMethod::NSC: {
-            auto mat_tire = chrono_types::make_shared<ChMaterialSurfaceNSC>();
-            mat_tire->SetFriction(mat_props[0]);
-            mat_tire->SetRestitution(mat_props[1]);
-
-            m_material_tire = mat_tire;
-
-            break;
-        }
-    }
+    m_mat_props.mu = props[0];
+    m_mat_props.cr = props[1];
+    m_mat_props.Y =  props[2];
+    m_mat_props.nu = props[3];
+    m_mat_props.kn = props[4];
+    m_mat_props.gn = props[5];
+    m_mat_props.kt = props[6];
+    m_mat_props.gt = props[7];
 
     if (m_verbose)
-        cout << "[Terrain node] received tire material:  friction = " << mat_props[0] << endl;
+        cout << "[Terrain node] received tire material:  friction = " << props[0] << endl;
 
-    // -------------------
-    // Create proxy bodies
-    // -------------------
-
-    if (m_flexible_tire)
-        CreateMeshProxies();
-    else
-        CreateWheelProxy();
+    // ----------------------------------------------------
+    // Let derived classes perform their own initialization
+    // ----------------------------------------------------
+    OnInitialize();
 }
 
 // -----------------------------------------------------------------------------
@@ -338,7 +225,6 @@ void ChVehicleCosimTerrainNode::SynchronizeRigidTire(int step_number, double tim
 
     // Set position, rotation, and velocities of wheel proxy body.
     UpdateWheelProxy();
-    PrintWheelProxyUpdateData();
 
     // Collect contact force on wheel proxy and load in m_wheel_contact. 
     // It is assumed that this force is given at wheel center.
@@ -376,7 +262,6 @@ void ChVehicleCosimTerrainNode::SynchronizeFlexibleTire(int step_number, double 
 
     // Set position, rotation, and velocity of proxy bodies.
     UpdateMeshProxies();
-    PrintMeshProxiesUpdateData();
 
     // Collect contact forces on subset of mesh vertices and load in m_mesh_contact.
     // Note that no forces are collected at the first step.
@@ -406,32 +291,22 @@ void ChVehicleCosimTerrainNode::SynchronizeFlexibleTire(int step_number, double 
 // Advance simulation of the terrain node by the specified duration
 // -----------------------------------------------------------------------------
 void ChVehicleCosimTerrainNode::Advance(double step_size) {
+    static double sim_time = 0;
     static double render_time = 0;
 
+    // Let derived classes advance the terrain state
     m_timer.reset();
     m_timer.start();
-    double t = 0;
-    while (t < step_size) {
-        double h = std::min<>(m_step_size, step_size - t);
-        GetSystem()->DoStepDynamics(h);
-        t += h;
-    }
+    OnAdvance(step_size);
+    sim_time += step_size;
     m_timer.stop();
     m_cum_sim_time += m_timer();
 
-    // Let derived classes perform optional operations (e.g. rendering)
-    OnAdvance(step_size);
-
     // Request the derived class to render simulation
-    if (m_render && GetSystem()->GetChTime() > render_time) {
-        OnRender(GetSystem()->GetChTime());
+    if (m_render && sim_time >= render_time) {
+        OnRender(sim_time);
         render_time += std::max(m_render_step, step_size);
     }
-
-    if (m_flexible_tire)
-        PrintMeshProxiesContactData();
-    else
-        PrintWheelProxyContactData();
 }
 
 // -----------------------------------------------------------------------------

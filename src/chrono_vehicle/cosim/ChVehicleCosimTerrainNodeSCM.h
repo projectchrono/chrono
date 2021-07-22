@@ -23,8 +23,9 @@
 #define CH_VEHCOSIM__TERRAINNODE_SCM_H
 
 #include "chrono/physics/ChSystem.h"
-#include "chrono_vehicle/cosim/ChVehicleCosimTerrainNode.h"
 #include "chrono_vehicle/terrain/SCMDeformableTerrain.h"
+
+#include "chrono_vehicle/cosim/ChVehicleCosimTerrainNodeChrono.h"
 
 namespace chrono {
 
@@ -36,8 +37,11 @@ class ChIrrApp;
 
 namespace vehicle {
 
+/// @addtogroup vehicle_cosim_chrono
+/// @{
+
 /// Definition of the SCM deformable terrain node.
-class CH_VEHICLE_API ChVehicleCosimTerrainNodeSCM : public ChVehicleCosimTerrainNode {
+class CH_VEHICLE_API ChVehicleCosimTerrainNodeSCM : public ChVehicleCosimTerrainNodeChrono {
   public:
     /// Create an SCM terrain node. Note that no SCM parameters are set.
     ChVehicleCosimTerrainNodeSCM();
@@ -109,14 +113,10 @@ class CH_VEHICLE_API ChVehicleCosimTerrainNodeSCM : public ChVehicleCosimTerrain
     virtual void CreateMeshProxies() override;
     virtual void UpdateMeshProxies() override;
     virtual void GetForcesMeshProxies() override;
-    virtual void PrintMeshProxiesUpdateData() override;
-    virtual void PrintMeshProxiesContactData() override;
 
     virtual void CreateWheelProxy() override;
     virtual void UpdateWheelProxy() override;
     virtual void GetForceWheelProxy() override;
-    virtual void PrintWheelProxyUpdateData() override;
-    virtual void PrintWheelProxyContactData() override;
 
     virtual void OnOutputData(int frame) override;
     virtual void OnRender(double time) override;
@@ -124,5 +124,7 @@ class CH_VEHICLE_API ChVehicleCosimTerrainNodeSCM : public ChVehicleCosimTerrain
 
 }  // end namespace vehicle
 }  // end namespace chrono
+
+/// @} vehicle_cosim_chrono
 
 #endif

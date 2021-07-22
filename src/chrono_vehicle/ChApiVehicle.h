@@ -71,6 +71,11 @@
             @defgroup vehicle_tracked_test_rig Track test rig classes
             @defgroup vehicle_tracked_utils Utility classes
         @}
+
+        @defgroup vehicle_cosim Co-simulation support for vehicle-terrain interaction
+        @{
+            @defgroup vehicle_cosim_chrono Terrain nodes using Chrono physics
+        @}
     @}
 */
 

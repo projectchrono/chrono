@@ -22,7 +22,6 @@
 //// RADU TODO:
 ////    better approximation of mass / inertia? (CreateMeshProxies)
 ////    angular velocity (UpdateMeshProxies)
-////    implement (PrintMeshProxiesContactData)
 
 #include <algorithm>
 #include <cmath>
@@ -59,7 +58,7 @@ namespace vehicle {
 // - create the OpenGL visualization window
 // -----------------------------------------------------------------------------
 ChVehicleCosimTerrainNodeGranularOMP::ChVehicleCosimTerrainNodeGranularOMP(ChContactMethod method)
-    : ChVehicleCosimTerrainNode(Type::GRANULAR_OMP, method),
+    : ChVehicleCosimTerrainNodeChrono(Type::GRANULAR_OMP, method),
       m_radius_p(5e-3),
       m_sampling_type(utils::SamplingType::POISSON_DISK),
       m_init_depth(0.2),
@@ -120,7 +119,7 @@ ChVehicleCosimTerrainNodeGranularOMP::ChVehicleCosimTerrainNodeGranularOMP(ChCon
 
 ChVehicleCosimTerrainNodeGranularOMP::ChVehicleCosimTerrainNodeGranularOMP(ChContactMethod method,
                                                                            const std::string& specfile)
-    : ChVehicleCosimTerrainNode(Type::GRANULAR_OMP, method),
+    : ChVehicleCosimTerrainNodeChrono(Type::GRANULAR_OMP, method),
       m_Id_g(10000),
       m_constructed(false),
       m_use_checkpoint(false),
@@ -834,6 +833,8 @@ void ChVehicleCosimTerrainNodeGranularOMP::UpdateMeshProxies() {
         shape_data[3 * it + 1] = real3(pB.x() - pos.x(), pB.y() - pos.y(), pB.z() - pos.z());
         shape_data[3 * it + 2] = real3(pC.x() - pos.x(), pC.y() - pos.y(), pC.z() - pos.z());
     }
+
+    PrintMeshProxiesUpdateData();
 }
 
 // Set state of wheel proxy body.
@@ -930,11 +931,9 @@ void ChVehicleCosimTerrainNodeGranularOMP::GetForceWheelProxy() {
 
 // -----------------------------------------------------------------------------
 
-void ChVehicleCosimTerrainNodeGranularOMP::OnSynchronize(int step_number, double time) {
-    // Nothing needed here
-}
-
 void ChVehicleCosimTerrainNodeGranularOMP::OnAdvance(double step_size) {
+    ChVehicleCosimTerrainNodeChrono::OnAdvance(step_size);
+
     // Force a calculation of cumulative contact forces for all bodies in the system
     // (needed at the next synchronization)
     m_system->CalculateContactForces();
@@ -1018,18 +1017,6 @@ void ChVehicleCosimTerrainNodeGranularOMP::PrintMeshProxiesUpdateData() {
                                        [](const ChVector<>& a, const ChVector<>& b) { return a.z() < b.z(); });
         cout << "[Terrain node] lowest vertex:  height = " << (*lowest).z() << endl;
     }
-}
-
-void ChVehicleCosimTerrainNodeGranularOMP::PrintWheelProxyUpdateData() {
-    //// TODO
-}
-
-void ChVehicleCosimTerrainNodeGranularOMP::PrintMeshProxiesContactData() {
-    //// RADU TODO: implement this
-}
-
-void ChVehicleCosimTerrainNodeGranularOMP::PrintWheelProxyContactData() {
-    //// RADU TODO: implement this
 }
 
 }  // end namespace vehicle

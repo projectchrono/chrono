@@ -43,24 +43,51 @@
 namespace chrono {
 namespace vehicle {
 
+/// @addtogroup vehicle_cosim
+/// @{
+
 /// Mechanism for testing tires over granular terrain.
 /// The mechanism + tire system is co-simulated with a terrain system.
 class CH_VEHICLE_API ChVehicleCosimRigNode : public ChVehicleCosimBaseNode {
   public:
-    enum class TireType { RIGID, FLEXIBLE, UNKNOWN };
-    enum class ActuationType { SET_LIN_VEL, SET_ANG_VEL, UNKNOWN };
+    /// Tire type.
+    enum class TireType {
+        RIGID,     ///< rigid tire
+        FLEXIBLE,  ///< flexible tire
+        UNKNOWN    ///< unknown tire type
+    };
+
+    /// Type of drawbar pull actuation type.
+    enum class ActuationType {
+        SET_LIN_VEL,  ///< fixed carrier linear velocity
+        SET_ANG_VEL,  ///< fixed wheel angular velocity
+        UNKNOWN       ///< unknown actuation type
+    };
 
     virtual ~ChVehicleCosimRigNode();
 
+    /// Return the tire type.
     TireType GetTireType() const { return m_tire_type; }
+
+    /// Return a string describing the tire type.
     static std::string GetTireTypeAsString(TireType type);
+
+    /// Infer the tire type from the given string.
     static TireType GetTireTypeFromString(const std::string& type);
 
+    /// Return the actuation type.
     ActuationType GetActuationType() const { return m_act_type; }
+
+    /// Return a string describing the actuation type.
     static std::string GetActuationTypeAsString(ActuationType type);
+
+    /// Infer the actuation type from the given string.
     static ActuationType GetActuationTypeFromString(const std::string& type);
 
+    /// Read a JSON specification file for a tire.
     static bool ReadSpecfile(const std::string& specfile, rapidjson::Document& d);
+
+    /// Get the tire type from the given JSON specification file.
     static TireType GetTireTypeFromSpecfile(const std::string& specfile);
 
     /// Set the number of OpenMP threads used in Chrono simulation (default: 1).
@@ -202,9 +229,9 @@ class CH_VEHICLE_API ChVehicleCosimRigNodeFlexibleTire : public ChVehicleCosimRi
     /// Construct the flexible tire.
     virtual void ConstructTire() override;
     virtual bool IsTireFlexible() const override { return true; }
-    virtual double GetTireRadius() const { return m_tire->GetRadius(); }
-    virtual double GetTireWidth() const { return m_tire->GetWidth(); }
-    virtual double GetTireMass() const { return m_tire->ReportMass(); }
+    virtual double GetTireRadius() const override { return m_tire->GetRadius(); }
+    virtual double GetTireWidth() const override { return m_tire->GetWidth(); }
+    virtual double GetTireMass() const override { return m_tire->ReportMass(); }
 
     /// Output tire-related statistics.
     virtual void OutputTireData(const std::string& del) override;
@@ -258,9 +285,9 @@ class CH_VEHICLE_API ChVehicleCosimRigNodeRigidTire : public ChVehicleCosimRigNo
     /// Construct the rigid tire.
     virtual void ConstructTire() override;
     virtual bool IsTireFlexible() const override { return false; }
-    virtual double GetTireRadius() const { return m_tire->GetRadius(); }
-    virtual double GetTireWidth() const { return m_tire->GetWidth(); }
-    virtual double GetTireMass() const { return m_tire->ReportMass(); }
+    virtual double GetTireRadius() const override { return m_tire->GetRadius(); }
+    virtual double GetTireWidth() const override { return m_tire->GetWidth(); }
+    virtual double GetTireMass() const override { return m_tire->ReportMass(); }
 
     /// Initialize the rigid tire (set tire mesh information and tire mass).
     virtual void InitializeTire() override;
@@ -282,6 +309,8 @@ class CH_VEHICLE_API ChVehicleCosimRigNodeRigidTire : public ChVehicleCosimRigNo
     std::vector<std::vector<unsigned int>> m_adjElements;  ///< list of neighboring elements for each mesh vertex
     std::vector<double> m_vertexArea;                      ///< representative areas for each mesh vertex
 };
+
+/// @} vehicle_cosim
 
 }  // end namespace vehicle
 }  // end namespace chrono

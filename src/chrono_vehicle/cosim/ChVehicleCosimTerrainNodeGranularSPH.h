@@ -22,16 +22,19 @@
 #ifndef TESTRIG_TERRAINNODE_GRANULAR_SPH_H
 #define TESTRIG_TERRAINNODE_GRANULAR_SPH_H
 
-#include "chrono_vehicle/cosim/ChVehicleCosimTerrainNode.h"
-
 #include "chrono/physics/ChSystemSMC.h"
 #include "chrono_fsi/ChSystemFsi.h"
+
+#include "chrono_vehicle/cosim/ChVehicleCosimTerrainNodeChrono.h"
 
 namespace chrono {
 namespace vehicle {
 
+/// @addtogroup vehicle_cosim_chrono
+/// @{
+
 /// Definition of the SPH continuum representation of granular terrain node (using Chrono::FSI).
-class CH_VEHICLE_API ChVehicleCosimTerrainNodeGranularSPH : public ChVehicleCosimTerrainNode {
+class CH_VEHICLE_API ChVehicleCosimTerrainNodeGranularSPH : public ChVehicleCosimTerrainNodeChrono {
   public:
     /// Create a Chrono::FSI granular SPH terrain node. Note that no SPH parameters are set.
     ChVehicleCosimTerrainNodeGranularSPH();
@@ -70,8 +73,6 @@ class CH_VEHICLE_API ChVehicleCosimTerrainNodeGranularSPH : public ChVehicleCosi
     virtual void CreateWheelProxy() override;
     virtual void UpdateWheelProxy() override;
     virtual void GetForceWheelProxy() override;
-    virtual void PrintWheelProxyUpdateData() override;
-    virtual void PrintWheelProxyContactData() override;
 
     virtual void OnOutputData(int frame) override;
     virtual void OnRender(double time) override;
@@ -80,10 +81,12 @@ class CH_VEHICLE_API ChVehicleCosimTerrainNodeGranularSPH : public ChVehicleCosi
     /// This function is called after a synchronization to allow the node to advance
     /// its state by the specified time step.  A node is allowed to take as many internal
     /// integration steps as required, but no inter-node communication should occur.
-    virtual void Advance(double step_size) override;
+    virtual void OnAdvance(double step_size) override;
 };
 
 }  // end namespace vehicle
 }  // end namespace chrono
+
+/// @} vehicle_cosim_chrono
 
 #endif

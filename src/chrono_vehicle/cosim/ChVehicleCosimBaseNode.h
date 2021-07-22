@@ -37,6 +37,9 @@
 namespace chrono {
 namespace vehicle {
 
+/// @addtogroup vehicle_cosim
+/// @{
+
 /// Base class for a co-simulation node.
 class CH_VEHICLE_API ChVehicleCosimBaseNode {
   public:
@@ -139,6 +142,8 @@ class CH_VEHICLE_API ChVehicleCosimBaseNode {
 
     static const double m_gacc;
 };
+
+/// @} vehicle_cosim
 
 }  // end namespace vehicle
 }  // end namespace chrono

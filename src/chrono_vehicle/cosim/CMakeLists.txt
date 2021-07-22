@@ -20,6 +20,8 @@ set(CV_COSIM_FILES
     ChVehicleCosimRigNode.cpp
     ChVehicleCosimTerrainNode.h
     ChVehicleCosimTerrainNode.cpp
+    ChVehicleCosimTerrainNodeChrono.h
+    ChVehicleCosimTerrainNodeChrono.cpp
     ChVehicleCosimTerrainNodeSCM.h
     ChVehicleCosimTerrainNodeSCM.cpp
     )

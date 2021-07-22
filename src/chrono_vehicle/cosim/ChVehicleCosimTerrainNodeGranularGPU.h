@@ -25,13 +25,17 @@
 #include "chrono/physics/ChSystemSMC.h"
 #include "chrono/utils/ChUtilsSamplers.h"
 #include "chrono_gpu/physics/ChSystemGpu.h"
-#include "chrono_vehicle/cosim/ChVehicleCosimTerrainNode.h"
+
+#include "chrono_vehicle/cosim/ChVehicleCosimTerrainNodeChrono.h"
 
 namespace chrono {
 namespace vehicle {
 
+/// @addtogroup vehicle_cosim_chrono
+/// @{
+
 /// Definition of the GPU granular terrain node (using Chrono::Gpu).
-class CH_VEHICLE_API ChVehicleCosimTerrainNodeGranularGPU : public ChVehicleCosimTerrainNode {
+class CH_VEHICLE_API ChVehicleCosimTerrainNodeGranularGPU : public ChVehicleCosimTerrainNodeChrono {
   public:
     /// Create a Chrono::Granular terrain node.
     ChVehicleCosimTerrainNodeGranularGPU();
@@ -143,9 +147,6 @@ class CH_VEHICLE_API ChVehicleCosimTerrainNodeGranularGPU : public ChVehicleCosi
     virtual void UpdateWheelProxy() override;
     virtual void GetForceWheelProxy() override;
 
-    virtual void PrintWheelProxyUpdateData() override;
-    virtual void PrintWheelProxyContactData() override;
-
     virtual void OnOutputData(int frame) override;
 
     virtual void OnRender(double time) override;
@@ -154,7 +155,7 @@ class CH_VEHICLE_API ChVehicleCosimTerrainNodeGranularGPU : public ChVehicleCosi
     /// This function is called after a synchronization to allow the node to advance
     /// its state by the specified time step.  A node is allowed to take as many internal
     /// integration steps as required, but no inter-node communication should occur.
-    virtual void Advance(double step_size) override;
+    virtual void OnAdvance(double step_size) override;
 
     /// Set composite material properties for internal granular system contacts.
     void SetMatPropertiesInternal();
@@ -170,5 +171,7 @@ class CH_VEHICLE_API ChVehicleCosimTerrainNodeGranularGPU : public ChVehicleCosi
 
 }  // end namespace vehicle
 }  // end namespace chrono
+
+/// @} vehicle_cosim_chrono
 
 #endif

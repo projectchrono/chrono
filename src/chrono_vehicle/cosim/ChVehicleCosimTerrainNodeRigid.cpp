@@ -51,7 +51,7 @@ namespace vehicle {
 // - create the OpenGL visualization window
 // -----------------------------------------------------------------------------
 ChVehicleCosimTerrainNodeRigid::ChVehicleCosimTerrainNodeRigid(ChContactMethod method)
-    : ChVehicleCosimTerrainNode(Type::RIGID, method), m_radius_p(0.01) {
+    : ChVehicleCosimTerrainNodeChrono(Type::RIGID, method), m_radius_p(0.01) {
     // Create system and set default method-specific solver settings
     switch (m_method) {
         case ChContactMethod::SMC: {
@@ -85,7 +85,7 @@ ChVehicleCosimTerrainNodeRigid::ChVehicleCosimTerrainNodeRigid(ChContactMethod m
 }
 
 ChVehicleCosimTerrainNodeRigid::ChVehicleCosimTerrainNodeRigid(ChContactMethod method, const std::string& specfile)
-    : ChVehicleCosimTerrainNode(Type::RIGID, method) {
+    : ChVehicleCosimTerrainNodeChrono(Type::RIGID, method) {
     // Create system and set default method-specific solver settings
     switch (m_method) {
         case ChContactMethod::SMC: {
@@ -366,6 +366,8 @@ void ChVehicleCosimTerrainNodeRigid::UpdateMeshProxies() {
         m_proxies[iv].m_body->SetRot(ChQuaternion<>(1, 0, 0, 0));
         m_proxies[iv].m_body->SetRot_dt(ChQuaternion<>(0, 0, 0, 0));
     }
+
+    PrintMeshProxiesUpdateData();
 }
 
 // Set state of wheel proxy body.
@@ -400,6 +402,8 @@ void ChVehicleCosimTerrainNodeRigid::GetForceWheelProxy() {
 // -----------------------------------------------------------------------------
 
 void ChVehicleCosimTerrainNodeRigid::OnAdvance(double step_size) {
+    ChVehicleCosimTerrainNodeChrono::OnAdvance(step_size);
+
     // Force a calculation of cumulative contact forces for all bodies in the system
     // (needed at the next synchronization)
     m_system->CalculateContactForces();
@@ -426,62 +430,6 @@ void ChVehicleCosimTerrainNodeRigid::PrintMeshProxiesUpdateData() {
     double height = (*lowest).m_body->GetPos().z();
     cout << "[Terrain node] lowest proxy:  index = " << (*lowest).m_index << "  height = " << height
          << "  velocity = " << vel.x() << "  " << vel.y() << "  " << vel.z() << endl;
-}
-
-void ChVehicleCosimTerrainNodeRigid::PrintWheelProxyUpdateData() {
-    //// TODO
-}
-
-void ChVehicleCosimTerrainNodeRigid::PrintMeshProxiesContactData() {
-    // Information on all contacts.
-    // Note that proxy body identifiers match the index of the associated mesh vertex.
-    auto bodies = m_system->Get_bodylist();
-    auto dm = m_system->data_manager;
-    auto& bids = dm->cd_data->bids_rigid_rigid;
-    ////auto& cpta = dm->host_data.cpta_rigid_rigid;
-    ////auto& cptb = dm->host_data.cptb_rigid_rigid;
-    auto& dpth = dm->cd_data->dpth_rigid_rigid;
-    auto& norm = dm->cd_data->norm_rigid_rigid;
-    std::set<int> vertices_in_contact;
-    cout << "[Terrain node] contact information (" << dm->cd_data->num_rigid_contacts << ")" << endl;
-    for (uint ic = 0; ic < dm->cd_data->num_rigid_contacts; ic++) {
-        int idA = bids[ic].x;
-        int idB = bids[ic].y;
-        int indexA = bodies[idA]->GetIdentifier();
-        int indexB = bodies[idB]->GetIdentifier();
-        if (indexA > 0)
-            vertices_in_contact.insert(indexA);
-        if (indexB > 0)
-            vertices_in_contact.insert(indexB);
-
-        cout << "  id1 = " << indexA << "  id2 = " << indexB << "   dpth = " << dpth[ic] << "  normal = " << norm[ic].x
-             << "  " << norm[ic].y << "  " << norm[ic].z << endl;
-    }
-
-    // Cumulative contact forces on proxy bodies.
-    m_system->CalculateContactForces();
-    cout << "[Terrain node] vertex forces (" << vertices_in_contact.size() << ")" << endl;
-    for (unsigned int iv = 0; iv < m_mesh_data.nv; iv++) {
-        if (vertices_in_contact.find(iv) != vertices_in_contact.end()) {
-            real3 force = m_system->GetBodyContactForce(m_proxies[iv].m_body);
-            cout << "  id = " << m_proxies[iv].m_index << "  force = " << force.x << "  " << force.y << "  " << force.z
-                 << endl;
-        }
-    }
-
-    ////auto container = std::static_pointer_cast<ChContactContainerMulticore>(m_system->GetContactContainer());
-    ////auto contacts = container->GetContactList();
-
-    ////for (auto it = contacts.begin(); it != contacts.end(); ++it) {
-    ////    ChBody* bodyA = static_cast<ChBody*>((*it)->GetObjA());
-    ////    ChBody* bodyB = static_cast<ChBody*>((*it)->GetObjA());
-
-    ////    cout << " id1 = " << bodyA->GetIdentifier() << "  id2 = " << bodyB->GetIdentifier() << endl;
-    ////}
-}
-
-void ChVehicleCosimTerrainNodeRigid::PrintWheelProxyContactData() {
-    //// RADU TODO: implement this
 }
 
 }  // end namespace vehicle

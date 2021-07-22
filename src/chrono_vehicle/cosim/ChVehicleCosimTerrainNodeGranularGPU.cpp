@@ -51,7 +51,7 @@ const double EXTRA_HEIGHT = 1.0;
 // -----------------------------------------------------------------------------
 
 ChVehicleCosimTerrainNodeGranularGPU::ChVehicleCosimTerrainNodeGranularGPU()
-    : ChVehicleCosimTerrainNode(Type::GRANULAR_GPU, ChContactMethod::SMC),
+    : ChVehicleCosimTerrainNodeChrono(Type::GRANULAR_GPU, ChContactMethod::SMC),
       m_sampling_type(utils::SamplingType::POISSON_DISK),
       m_init_depth(0.2),
       m_separation_factor(1.001),
@@ -82,7 +82,7 @@ ChVehicleCosimTerrainNodeGranularGPU::ChVehicleCosimTerrainNodeGranularGPU()
 }
 
 ChVehicleCosimTerrainNodeGranularGPU::ChVehicleCosimTerrainNodeGranularGPU(const std::string& specfile)
-    : ChVehicleCosimTerrainNode(Type::GRANULAR_GPU, ChContactMethod::SMC),
+    : ChVehicleCosimTerrainNodeChrono(Type::GRANULAR_GPU, ChContactMethod::SMC),
       m_constructed(false),
       m_use_checkpoint(false),
       m_settling_output(false),
@@ -654,11 +654,7 @@ void ChVehicleCosimTerrainNodeGranularGPU::GetForceWheelProxy() {
 
 // -----------------------------------------------------------------------------
 
-void ChVehicleCosimTerrainNodeGranularGPU::Advance(double step_size) {
-    static double render_time = 0;
-
-    m_timer.reset();
-    m_timer.start();
+void ChVehicleCosimTerrainNodeGranularGPU::OnAdvance(double step_size) {
     double t = 0;
     while (t < step_size) {
         double h = std::min<>(m_step_size, step_size - t);
@@ -668,15 +664,6 @@ void ChVehicleCosimTerrainNodeGranularGPU::Advance(double step_size) {
         m_systemGPU->AdvanceSimulation((float)h);
         t += h;
     }
-    m_timer.stop();
-    m_cum_sim_time += m_timer();
-
-    if (m_render && m_system->GetChTime() > render_time) {
-        OnRender(m_system->GetChTime());
-        render_time += std::max(m_render_step, step_size);
-    }
-
-    PrintWheelProxyContactData();
 }
 
 void ChVehicleCosimTerrainNodeGranularGPU::OnRender(double time) {
@@ -739,16 +726,6 @@ void ChVehicleCosimTerrainNodeGranularGPU::OnOutputData(int frame) {
                                         gpu::CHGPU_OUTPUT_FLAGS::ANG_VEL_COMPONENTS |
                                         gpu::CHGPU_OUTPUT_FLAGS::FORCE_COMPONENTS);
     m_systemGPU->WriteParticleFile(filename);
-}
-
-// -----------------------------------------------------------------------------
-
-void ChVehicleCosimTerrainNodeGranularGPU::PrintWheelProxyUpdateData() {
-    //// TODO
-}
-
-void ChVehicleCosimTerrainNodeGranularGPU::PrintWheelProxyContactData() {
-    //// RADU TODO: implement this
 }
 
 }  // end namespace vehicle

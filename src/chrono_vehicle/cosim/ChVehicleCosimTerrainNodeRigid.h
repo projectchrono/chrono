@@ -24,13 +24,16 @@
 
 #include "chrono_multicore/physics/ChSystemMulticore.h"
 
-#include "chrono_vehicle/cosim/ChVehicleCosimTerrainNode.h"
+#include "chrono_vehicle/cosim/ChVehicleCosimTerrainNodeChrono.h"
 
 namespace chrono {
 namespace vehicle {
 
+/// @addtogroup vehicle_cosim_chrono
+/// @{
+
 /// Definition of the rigid terrain node (using Chrono::Multicore).
-class CH_VEHICLE_API ChVehicleCosimTerrainNodeRigid : public ChVehicleCosimTerrainNode {
+class CH_VEHICLE_API ChVehicleCosimTerrainNodeRigid : public ChVehicleCosimTerrainNodeChrono {
   public:
     /// Create a rigid terrain node using the specified contact method (SMC or NSC).
     ChVehicleCosimTerrainNodeRigid(ChContactMethod method);
@@ -80,14 +83,11 @@ class CH_VEHICLE_API ChVehicleCosimTerrainNodeRigid : public ChVehicleCosimTerra
     virtual void CreateMeshProxies() override;
     virtual void UpdateMeshProxies() override;
     virtual void GetForcesMeshProxies() override;
-    virtual void PrintMeshProxiesUpdateData() override;
-    virtual void PrintMeshProxiesContactData() override;
+    void PrintMeshProxiesUpdateData();
 
     virtual void CreateWheelProxy() override;
     virtual void UpdateWheelProxy() override;
     virtual void GetForceWheelProxy() override;
-    virtual void PrintWheelProxyUpdateData() override;
-    virtual void PrintWheelProxyContactData() override;
 
     virtual void OnAdvance(double step_size) override;
     virtual void OnRender(double time) override;
@@ -95,5 +95,7 @@ class CH_VEHICLE_API ChVehicleCosimTerrainNodeRigid : public ChVehicleCosimTerra
 
 }  // end namespace vehicle
 }  // end namespace chrono
+
+/// @} vehicle_cosim_chrono
 
 #endif
