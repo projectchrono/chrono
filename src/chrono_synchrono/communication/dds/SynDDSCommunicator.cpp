@@ -21,8 +21,8 @@
 //
 // =============================================================================
 
-#include <future>
 #include "chrono_synchrono/communication/dds/SynDDSCommunicator.h"
+
 #include "chrono_synchrono/utils/SynLog.h"
 #include "chrono_synchrono/communication/dds/SynDDSTopic.h"
 #include "chrono_synchrono/communication/dds/SynDDSListener.h"
@@ -314,9 +314,7 @@ void SynDDSCommunicator::Publish() {
 void SynDDSCommunicator::Listen() {
     for (auto subscriber : m_subscribers)
         if (subscriber->IsSynchronous())
-            //subscriber->Receive();
-            std::async(std::launch::async, &SynDDSSubscriber::Receive, &(*subscriber), 20.0);
-    //std::async(std::launch::async, &SynChronoManager::Synchronize, &syn_manager, time);
+            subscriber->Receive();
 }
 
 }  // namespace synchrono
