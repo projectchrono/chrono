@@ -61,7 +61,6 @@ void SynDDSSubscriber::Receive(long double wait_time) {
     eprosima::fastrtps::Duration_t timeout(wait_time);
     if (m_reader->wait_for_unread_message(timeout)) {
         SampleInfo info;
-        #pragma omp critical
         if (m_reader->take_next_sample(m_message, &info) == ReturnCode_t::RETCODE_OK) {
             if (info.instance_state == ALIVE_INSTANCE_STATE) {
                 m_callback(m_message);
