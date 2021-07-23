@@ -62,6 +62,7 @@ struct MissParameters {
 
 struct CameraParameters {
     float hFOV;
+    float gamma;
     half4* frame_buffer;
     bool use_gi;                // whether to use global illumination
     half4* albedo_buffer;       // only initialized if using global illumination
@@ -135,7 +136,7 @@ struct MaterialParameters {             // pad to align 16 (swig doesn't support
     float metallic;                     // size 4
     float lidar_intensity;              // size 4
     float radar_backscatter;            // size 4
-    int use_specular_workfloat;         // size 4
+    int use_specular_workflow;         // size 4
     cudaTextureObject_t kd_tex;         // size 8
     cudaTextureObject_t kn_tex;         // size 8
     cudaTextureObject_t ks_tex;         // size 8
@@ -167,7 +168,7 @@ struct MaterialRecordParameters {
 
 struct PerRayData_camera {
     float3 color;
-    float contrib_to_first_hit;
+    float3 contrib_to_pixel;
     curandState_t rng;  // only valid if use_gi is true
     int depth;
     bool use_gi;

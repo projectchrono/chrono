@@ -37,15 +37,16 @@ extern "C" __global__ void __miss__shader() {
                 float tex_x = theta / (2 * CUDART_PI_F);
                 float tex_y = phi / CUDART_PI_F + 0.5;
                 float4 tex = tex2D<float4>(camera_miss.env_map, tex_x, tex_y);
-                prd->color = make_float3(tex.x, tex.y, tex.z) * prd->contrib_to_first_hit;
+                // Gamma Correction
+                prd->color = Pow(make_float3(tex.x, tex.y, tex.z), 2.2) * prd->contrib_to_pixel;
             } else if (camera_miss.mode == BackgroundMode::GRADIENT) {  // gradient
                 // gradient assumes z=up
                 float3 ray_dir = optixGetWorldRayDirection();
                 float mix = max(0.f, ray_dir.z);
                 prd->color = (mix * camera_miss.color_zenith + (1 - mix) * camera_miss.color_horizon) *
-                             prd->contrib_to_first_hit;
+                             prd->contrib_to_pixel;
             } else {  // default to solid color
-                prd->color = camera_miss.color_zenith * prd->contrib_to_first_hit;
+                prd->color = camera_miss.color_zenith * prd->contrib_to_pixel;
             }
             break;
         }

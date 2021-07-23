@@ -90,7 +90,7 @@ __device__ __inline__ PerRayData_shadow* getShadowPRD() {
 __device__ __inline__ PerRayData_camera default_camera_prd() {
     PerRayData_camera prd = {};
     prd.color = make_float3(0.f, 0.f, 0.f);
-    prd.contrib_to_first_hit = 1.f;
+    prd.contrib_to_pixel = make_float3(1.f, 1.f, 1.f);
     prd.rng = curandState_t();
     prd.depth = 2;
     prd.use_gi = false;
@@ -222,6 +222,9 @@ __device__ __inline__ float3 make_float3(const float4& a) {
     return make_float3(a.x, a.y, a.z);
 }
 
+__device__ __inline__ float3 Pow(const float3& v, const float& a) {
+    return make_float3(pow(v.x, a), pow(v.y, a), pow(v.z, a));
+}
 /// =======================
 /// float3-float operators
 /// =======================
@@ -420,7 +423,21 @@ __device__ __inline__ float3 sample_hemisphere_dir(const float& z1, const float&
     float x = radius * cosf(theta);
     float y = radius * sinf(theta);
     float z = sqrtf(fmaxf(0.f, 1.f - x * x - y * y));
-    float3 binormal = make_float3(-normal.y, normal.x, 0);
+    float3 binormal = make_float3(0);
+    
+    // Prevent normal = (0, 0, 1)
+    if( fabs(normal.x) > fabs(normal.z) ) {
+        binormal.x = -normal.y;
+        binormal.y =  normal.x;
+        binormal.z =  0;
+    }
+    else {
+        binormal.x =  0;
+        binormal.y = -normal.z;
+        binormal.z =  normal.y;
+    }
+
+    // float3 binormal = make_float3(-normal.y, normal.x, 0);
     float3 tangent = Cross(normal, binormal);
     return x * tangent + y * binormal + z * normal;
 }

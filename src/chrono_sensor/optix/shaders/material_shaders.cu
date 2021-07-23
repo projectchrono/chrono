@@ -104,16 +104,17 @@ static __device__ __inline__ void CameraShader(PerRayData_camera* prd_camera,
                                                const float& ray_dist,
                                                const float3& ray_orig,
                                                const float3& ray_dir) {
+    // Colors in MTL files are already in linear color space
     float3 subsurface_albedo = mat.Kd;
     float transparency = mat.transparency;
     float3 specular = mat.Ks;
-    int use_specular_workfloat = mat.use_specular_workfloat;
-
+    int use_specular_workflow = mat.use_specular_workflow;
     float3 hit_point = ray_orig + ray_dir * ray_dist;
-
+    float NdV = Dot(world_normal, -ray_dir);
     if (mat.kd_tex) {
         const float4 tex = tex2D<float4>(mat.kd_tex, uv.x, uv.y);
-        subsurface_albedo = make_float3(tex.x, tex.y, tex.z);
+        // transfer sRGB texture into linear color space. All of them need this transform
+        subsurface_albedo = Pow(make_float3(tex.x, tex.y, tex.z), 2.2);
         if (tex.w < 1e-6)
             transparency = 0.f;  // to handle transparent card textures such as tree leaves
     }
@@ -129,10 +130,10 @@ static __device__ __inline__ void CameraShader(PerRayData_camera* prd_camera,
 
     // if this is perfectly transparent, we ignore it and trace the next ray (handles things like tree leaf cards)
     if (transparency < 1e-6) {
-        float refract_importance = prd_camera->contrib_to_first_hit;
-        if (refract_importance > params.importance_cutoff && prd_camera->depth + 1 < params.max_depth) {
+        float3 refract_importance = prd_camera->contrib_to_pixel;
+        if (fmaxf(refract_importance) > params.importance_cutoff && prd_camera->depth + 1 < params.max_depth) {
             PerRayData_camera prd_refraction = default_camera_prd();
-            prd_refraction.contrib_to_first_hit = refract_importance;
+            prd_refraction.contrib_to_pixel = refract_importance;
             prd_refraction.rng = prd_camera->rng;
             prd_refraction.depth = prd_camera->depth + 1;
             unsigned int opt1, opt2;
@@ -141,6 +142,9 @@ static __device__ __inline__ void CameraShader(PerRayData_camera* prd_camera,
             optixTrace(params.root, hit_point, ray_dir, params.scene_epsilon, 1e16f, optixGetRayTime(),
                        OptixVisibilityMask(1), OPTIX_RAY_FLAG_NONE, 0, 1, 0, opt1, opt2, raytype);
             prd_camera->color = prd_refraction.color;
+            // For GI, harmless without GI
+            prd_camera->albedo = prd_refraction.albedo;
+            prd_camera->normal = prd_refraction.normal;
         }
         return;
     }
@@ -150,10 +154,10 @@ static __device__ __inline__ void CameraShader(PerRayData_camera* prd_camera,
     //=================
     float3 refracted_color = make_float3(0);
     if (transparency < 0.99f) {
-        float refract_importance = prd_camera->contrib_to_first_hit * (1 - transparency);
-        if (refract_importance > params.importance_cutoff && prd_camera->depth + 1 < params.max_depth) {
+        float3 refract_importance = prd_camera->contrib_to_pixel * (1 - transparency);
+        if (fmaxf(refract_importance) > params.importance_cutoff && prd_camera->depth + 1 < params.max_depth) {
             PerRayData_camera prd_refraction = default_camera_prd();
-            prd_refraction.contrib_to_first_hit = refract_importance;
+            prd_refraction.contrib_to_pixel = refract_importance;
             prd_refraction.rng = prd_camera->rng;
             prd_refraction.depth = prd_camera->depth + 1;
             unsigned int opt1, opt2;
@@ -165,7 +169,7 @@ static __device__ __inline__ void CameraShader(PerRayData_camera* prd_camera,
             unsigned int raytype = (unsigned int)CAMERA_RAY_TYPE;
             optixTrace(params.root, hit_point, refract_dir, params.scene_epsilon, 1e16f, optixGetRayTime(),
                        OptixVisibilityMask(1), OPTIX_RAY_FLAG_NONE, 0, 1, 0, opt1, opt2, raytype);
-            refracted_color = prd_refraction.color;
+            refracted_color = prd_refraction.color; // TODO: not sure added here or not
         }
     }
 
@@ -180,9 +184,9 @@ static __device__ __inline__ void CameraShader(PerRayData_camera* prd_camera,
     }
 
     //=================
-    // Diffuse color
+    // Surface reflection toward light sources
     //=================
-    float3 diffuse_color = make_float3(0.0f);
+    float3 reflected_color = make_float3(0.0f);
     // iterate through the lights
     for (int i = 0; i < params.num_lights; i++) {
         PointLight l = params.lights[i];
@@ -217,105 +221,95 @@ static __device__ __inline__ void CameraShader(PerRayData_camera* prd_camera,
                     float NdH = Dot(world_normal, halfway);
                     float VdH = Dot(-ray_dir, halfway);
 
-                    float3 F = make_float3(0.5f);
+                    float3 F = make_float3(0.0f);
+                    float3 subsurface_albedo_updated = subsurface_albedo;
                     // === dielectric workflow
-                    if (use_specular_workfloat) {
+                    if (use_specular_workflow) {
                         float3 F0 = specular * 0.08f;
                         F = fresnel_schlick(VdH, 5.f, F0,
                                             make_float3(1.f) /*make_float3(fresnel_max) it is usually 1*/);
-
                     } else {
                         float3 default_dielectrics_F0 = make_float3(0.04f);
                         F = metallic * subsurface_albedo + (1 - metallic) * default_dielectrics_F0;
-                        subsurface_albedo =
+                        subsurface_albedo_updated =
                             (1 - metallic) * subsurface_albedo;  // since metals do not do subsurface reflection
-                    }                                            // default to specular workflow
+                    }                                         
 
-                    diffuse_color += (make_float3(1.f) - F) * subsurface_albedo * incoming_light_ray;
+                    // Diffuse portion of reflection
+                    reflected_color += (make_float3(1.f) - F) * subsurface_albedo_updated * incoming_light_ray;
                     float D = NormalDist(NdH, roughness);        // 1/pi omitted
                     float G = HammonSmith(NdV, NdL, roughness);  // 4  * NdV * NdL omitted
                     float3 f_ct = F * D * G;
-                    diffuse_color += f_ct * incoming_light_ray;
+                    reflected_color += f_ct * incoming_light_ray;
                 }
             }
         }
     }
 
-    float NdV = Dot(world_normal, -ray_dir);
-    // diffuse_color = diffuse_color + params.ambient_light_color * make_float3(NdV) * subsurface_albedo;
-    // diffuse_color = diffuse_color + params.ambient_light_color *
-    //                                     make_float3(Dot(world_normal, make_float3(0, 0, 1)) * .5f + .5f) *
-    //                                     subsurface_albedo;
-    diffuse_color =
-        diffuse_color + params.ambient_light_color *
-                            (make_float3(NdV) + make_float3(Dot(world_normal, make_float3(0, 0, 1)) * .5f + .5f)) *
-                            subsurface_albedo;
+    // Correct Light reflected color contribution
+    reflected_color = reflected_color * prd_camera->contrib_to_pixel * mat.transparency;
 
-    if (prd_camera->depth == 2) {
-        prd_camera->albedo = subsurface_albedo;
-        prd_camera->normal = world_normal;
-    }
+    //=================
+    // Ambient light
+    //=================
+    float3 ambient_light = params.ambient_light_color *
+                        (make_float3(NdV) + make_float3(Dot(world_normal, make_float3(0, 0, 1)) * .5f + .5f)) *
+                        subsurface_albedo * prd_camera->contrib_to_pixel * mat.transparency;
 
-    // refracted color contribution to this hit is accounted for when tracing refraction
-    prd_camera->color = diffuse_color * (mat.transparency) * prd_camera->contrib_to_first_hit + refracted_color;
+    //=================
+    // If the surface is very smoooth, trace the reflected direction 
+    // Do this reflection regardless of GI on or off.
+    //=================
+    bool mirror_reflection = false;
+    float3 mirror_reflection_color = make_float3(0.0);
+    float3 next_dir= reflect(ray_dir, world_normal);
+    next_dir = normalize(next_dir);
 
-    float3 next_dir;
-    if (prd_camera->use_gi) {
-        // sample hemisphere for next ray when using global illumination
-        float z1 = curand_uniform(&prd_camera->rng) * 2.f - 1.f;  //-1,1
-        float z2 = curand_uniform(&prd_camera->rng) * 2.f - 1.f;  //-1,1
-        next_dir = sample_hemisphere_dir(z1, z2, world_normal);
-    } else {
-        next_dir = reflect(ray_dir, world_normal);
-    }
     float NdL = Dot(world_normal, next_dir);
     float3 halfway = normalize(next_dir - ray_dir);
 
     float NdH = Dot(world_normal, halfway);
     float VdH = Dot(-ray_dir, halfway);  // Same as LdH
-    // NdV = Dot(world_normal, -ray_dir);
 
-    // === Metallic workflow
-    float3 F = make_float3(0.5f);
+    float3 F = make_float3(0.0f);
+    float3 subsurface_albedo_updated = subsurface_albedo;
     // === dielectric workflow
-    if (metallic > 0) {
+    if (use_specular_workflow) {
+        float3 F0 = specular * 0.08f;
+        F = fresnel_schlick(VdH, 5.f, F0,
+                            make_float3(1.f) /*make_float3(fresnel_max) it is usually 1*/);
+    } else {
         float3 default_dielectrics_F0 = make_float3(0.04f);
         F = metallic * subsurface_albedo + (1 - metallic) * default_dielectrics_F0;
-        subsurface_albedo = (1 - metallic) * subsurface_albedo;  // since metals do not do subsurface reflection
-    } else {                                                     // default to specular workflow
-        float3 F0 = mat.Ks * 0.08f;
-        F = fresnel_schlick(VdH, 5.f, F0, make_float3(1.f) /*make_float3(fresnel_max) it is usually 1*/);
-    }
+        subsurface_albedo_updated =
+            (1 - metallic) * subsurface_albedo;  // since metals do not do subsurface reflection
+    } 
 
-    float3 next_contrib_to_first_hit = (make_float3(1.f) - F) * subsurface_albedo * NdL;
-
+    
     float D = NormalDist(NdH, roughness);        // 1/pi omitted
     float G = HammonSmith(NdV, NdL, roughness);  // 4  * NdV * NdL omitted
+    
     float3 f_ct = F * D * G;
+    
+    
+    // Note only specular part appears here. Energy preserve
+    // Since it is not random, PDF is 1 (normally 1/pi),
+    float3 next_contrib_to_pixel = f_ct * NdL;
+    next_contrib_to_pixel = clamp(next_contrib_to_pixel/ CUDART_PI_F, make_float3(0), make_float3(1));
 
-    next_contrib_to_first_hit += f_ct * NdL;
-
-    // for whitted ray tracing, add reflection based on how smooth the material is (non-physical, sharp reflections)
-    if (!prd_camera->use_gi) {  // we need to account for the fact we didn't randomly sample the direction (heuristic
-        // since this is not physical)
-        next_contrib_to_first_hit =
-            clamp(next_contrib_to_first_hit / (CUDART_PI_F * 4), make_float3(0.f), make_float3(1.f)) *
-            prd_camera->contrib_to_first_hit;
-
-        next_contrib_to_first_hit =
-            (1.f - roughness) * (1.f - roughness) * metallic * metallic * next_contrib_to_first_hit;
-    } else {
-        next_contrib_to_first_hit = next_contrib_to_first_hit * prd_camera->contrib_to_first_hit;
+    // If the camera uses GI, then it will trace two rays. So each ray's contribution should be halfed 
+    if (prd_camera->use_gi) {
+        next_contrib_to_pixel = next_contrib_to_pixel * 0.5f;
     }
 
-    // russian roulette termination of rays
-    // if (prd_camera->depth >= 3 && curand_uniform(&prd_camera->rng) >= luminance(next_contrib_to_first_hit)) {
-    //     return;
-    // }
-
-    if (luminance(next_contrib_to_first_hit) > params.importance_cutoff && prd_camera->depth + 1 < params.max_depth) {
+    //  corrected for transparency
+    next_contrib_to_pixel = (next_contrib_to_pixel ) * mat.transparency * prd_camera->contrib_to_pixel;
+    
+    if (luminance(next_contrib_to_pixel) > params.importance_cutoff && prd_camera->depth + 1 < params.max_depth) {
+        mirror_reflection = true;
         PerRayData_camera prd_reflection = default_camera_prd();
-        prd_reflection.contrib_to_first_hit = luminance(next_contrib_to_first_hit);
+        prd_reflection.contrib_to_pixel = next_contrib_to_pixel;
+        
         prd_reflection.rng = prd_camera->rng;
         prd_reflection.depth = prd_camera->depth + 1;
         prd_reflection.use_gi = prd_camera->use_gi;
@@ -324,7 +318,89 @@ static __device__ __inline__ void CameraShader(PerRayData_camera* prd_camera,
         unsigned int raytype = (unsigned int)CAMERA_RAY_TYPE;
         optixTrace(params.root, hit_point, next_dir, params.scene_epsilon, 1e16f, optixGetRayTime(),
                    OptixVisibilityMask(1), OPTIX_RAY_FLAG_NONE, 0, 1, 0, opt1, opt2, raytype);
-        prd_camera->color += prd_reflection.color;  // accumulate indirect lighting color
+        mirror_reflection_color = prd_reflection.color;  // accumulate indirect lighting color
+        // prd_camera->color = mirror_reflection_color;
+        // return;
+    }
+
+    //=================
+    // Global illumination ray. 
+    //=================
+    float3 gi_reflection_color = make_float3(0);
+    if (prd_camera->use_gi) {
+        // sample hemisphere for next ray when using global illumination
+        float z1 = curand_uniform(&prd_camera->rng);// * 2.f - 1.f;  //-1,1
+        float z2 = curand_uniform(&prd_camera->rng);// * 2.f - 1.f;  //-1,1
+        // prd_camera->color = make_float3(z1);
+        // return;
+        next_dir = sample_hemisphere_dir(z1, z2, world_normal);
+
+        NdL = Dot(world_normal, next_dir);
+        halfway = normalize(next_dir - ray_dir);
+
+        NdH = Dot(world_normal, halfway);
+        VdH = Dot(-ray_dir, halfway);  // Same as LdH
+
+        F = make_float3(0.0f);
+        subsurface_albedo_updated = subsurface_albedo;
+        // === dielectric workflow
+        if (use_specular_workflow) {
+            float3 F0 = specular * 0.08f;
+            F = fresnel_schlick(VdH, 5.f, F0,
+                                make_float3(1.f) /*make_float3(fresnel_max) it is usually 1*/);
+        } else {
+            float3 default_dielectrics_F0 = make_float3(0.04f);
+            F = metallic * subsurface_albedo + (1 - metallic) * default_dielectrics_F0;
+            subsurface_albedo_updated =
+                (1 - metallic) * subsurface_albedo;  // since metals do not do subsurface reflection
+        } 
+
+        D = NormalDist(NdH, roughness);        // 1/pi omitted
+        G = HammonSmith(NdV, NdL, roughness);  // 4  * NdV * NdL omitted
+        f_ct = F * D * G;
+        // Specular part
+        next_contrib_to_pixel = f_ct * NdL;
+        
+        // If mirror_reflection, then it will trace two rays. So each ray's contribution should be halfed 
+        if (mirror_reflection) {
+            next_contrib_to_pixel = next_contrib_to_pixel  * 0.5f;
+        }
+        // Diffuse part
+        F = clamp(F, make_float3(0), make_float3(1));
+        next_contrib_to_pixel += (make_float3(1.f) - F) * subsurface_albedo_updated * NdL;
+
+        // Corrected for current transparency
+        next_contrib_to_pixel = next_contrib_to_pixel * mat.transparency * prd_camera->contrib_to_pixel;
+        
+        
+        if (luminance(next_contrib_to_pixel) > params.importance_cutoff && prd_camera->depth + 1 < params.max_depth) {
+            PerRayData_camera prd_reflection = default_camera_prd();
+            prd_reflection.contrib_to_pixel = next_contrib_to_pixel;
+            prd_reflection.rng = prd_camera->rng;
+            prd_reflection.depth = prd_camera->depth + 1;
+            prd_reflection.use_gi = prd_camera->use_gi;
+            unsigned int opt1, opt2;
+            pointer_as_ints(&prd_reflection, opt1, opt2);
+            unsigned int raytype = (unsigned int)CAMERA_RAY_TYPE;
+            optixTrace(params.root, hit_point, next_dir, params.scene_epsilon, 1e16f, optixGetRayTime(),
+                    OptixVisibilityMask(1), OPTIX_RAY_FLAG_NONE, 0, 1, 0, opt1, opt2, raytype);
+            gi_reflection_color = prd_reflection.color;  // accumulate indirect lighting color
+        }
+    }
+
+    //=================
+    // Combine all whitted ray tracing light together
+    //=================
+
+    reflected_color = reflected_color + mirror_reflection_color;
+
+    prd_camera->color = reflected_color + refracted_color;
+
+    prd_camera->color += prd_camera -> use_gi ? gi_reflection_color : ambient_light;
+
+    if (prd_camera->depth == 2) {
+        prd_camera->albedo = subsurface_albedo;
+        prd_camera->normal = world_normal;
     }
 }
 

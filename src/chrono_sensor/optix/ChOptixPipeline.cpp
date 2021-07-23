@@ -42,10 +42,11 @@ ChOptixPipeline::ChOptixPipeline(OptixDeviceContext context, unsigned int trace_
     if (m_debug) {
         m_pipeline_compile_options.exceptionFlags = OPTIX_EXCEPTION_FLAG_DEBUG;
     }
-
+ 
     CompileBaseShaders();
     AssembleBaseProgramGroups();
     CreateBaseSBT();
+  
 }
 
 ChOptixPipeline::~ChOptixPipeline() {
@@ -402,6 +403,7 @@ void ChOptixPipeline::SpawnPipeline(PipelineType type) {
             raygen_record->data.specific.camera.hFOV = 3.14 / 4.0;  // default value
             raygen_record->data.specific.camera.frame_buffer = {};  // default value
             raygen_record->data.specific.camera.use_gi = false;     // default value
+            raygen_record->data.specific.camera.gamma = 2.2;        // default value
             break;
         }
 
@@ -411,6 +413,7 @@ void ChOptixPipeline::SpawnPipeline(PipelineType type) {
             raygen_record->data.specific.camera.hFOV = 3.14 / 4.0;  // default value
             raygen_record->data.specific.camera.frame_buffer = {};  // default value
             raygen_record->data.specific.camera.use_gi = false;     // default value
+            raygen_record->data.specific.camera.gamma = 2.2;        // default value
             break;
         }
 
@@ -599,7 +602,7 @@ unsigned int ChOptixPipeline::GetMaterial(std::shared_ptr<ChVisualMaterial> mat)
         material.transparency = mat->GetTransparency();
         material.roughness = mat->GetRoughness();
         material.metallic = mat->GetMetallic();
-        material.use_specular_workfloat = mat->GetUseSpecularWorkflow();
+        material.use_specular_workflow = mat->GetUseSpecularWorkflow();
         material.lidar_intensity = 1.f;    // TODO: allow setting of this in the visual material chrono-side
         material.radar_backscatter = 1.f;  // TODO: allow setting of this in the visual material chrono-side
         material.kn_tex = 0;               // explicitely null as default
@@ -661,7 +664,7 @@ unsigned int ChOptixPipeline::GetMaterial(std::shared_ptr<ChVisualMaterial> mat)
             material.roughness_tex = 0;
             material.metallic_tex = 0;
             material.opacity_tex = 0;
-            material.use_specular_workfloat = 1;
+            material.use_specular_workflow = 0;
             m_material_pool.push_back(material);
             m_default_material_id = m_material_pool.size() - 1;
             m_default_material_inst = true;

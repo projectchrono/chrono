@@ -1,5 +1,5 @@
 # Blender MTL File: 'box.blend'
-# Material Count: 4
+# Material Count: 3
 
 newmtl Green
 Ns 0.000000
@@ -13,16 +13,8 @@ Pr 1
 Pm 0
 illum 2
 
-newmtl None
-Ns 500
-Ka 0.8 0.8 0.8
-Kd 0.8 0.8 0.8
-Ks 0.8 0.8 0.8
-d 1
-illum 2
-
 newmtl Red
-Ns 101.223217
+Ns 0.000000
 Ka 1.000000 1.000000 1.000000
 Kd 0.800000 0.001383 0.000000
 Ks 0.500000 0.500000 0.500000
@@ -34,7 +26,7 @@ Pm 0
 illum 2
 
 newmtl White
-Ns 323.999994
+Ns 0.000000
 Ka 1.000000 1.000000 1.000000
 Kd 0.800000 0.800000 0.800000
 Ks 0.500000 0.500000 0.500000

@@ -69,6 +69,7 @@ int main(int argc, char* argv[]) {
                 // color->SetFresnelMin((float)(.9 * i / x_dim));
                 color->SetMetallic((float)i / x_dim);
                 color->SetRoughness(1 - (float)j / y_dim);
+                color->SetUseSpecularWorkflow(false);
                 visual_asset->material_list.push_back(color);
             }
             mphysicalSystem.Add(sphere1);
@@ -117,7 +118,7 @@ int main(int argc, char* argv[]) {
         (float)CH_C_PI / 3, 1, CameraLensModelType::PINHOLE, true            // FOV
     );
     cam_g->SetName("Camera Sensor");
-    cam_g->PushFilter(chrono_types::make_shared<ChFilterVisualize>(1280, 720, "For user display"));
+    cam_g->PushFilter(chrono_types::make_shared<ChFilterVisualize>(1280, 720, "For user display, GI"));
     manager->AddSensor(cam_g);
 
     // ---------------

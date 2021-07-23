@@ -53,8 +53,14 @@ extern "C" __global__ void __raygen__camera_pinhole() {
     unsigned int raytype = (unsigned int)CAMERA_RAY_TYPE;
     optixTrace(params.root, ray_origin, ray_direction, params.scene_epsilon, 1e16f, t_traverse, OptixVisibilityMask(1),
                OPTIX_RAY_FLAG_NONE, 0, 1, 0, opt1, opt2, raytype);
-
-    camera.frame_buffer[image_index] = make_half4(prd.color.x, prd.color.y, prd.color.z, 1.f);
+    
+    // Need to put random state back otherwise it will always output the same number
+    //  if (camera.use_gi) {
+    //     camera.rng_buffer[image_index]  = prd.rng;  // sensor_rand(100 * (idx.y * screen.x + idx.x));
+    // }
+    // Gamma correct the output color into sRGB color space
+    float gamma = camera.gamma;
+    camera.frame_buffer[image_index] = make_half4(pow(prd.color.x, 1.0f / gamma), pow(prd.color.y, 1.0f / gamma), pow(prd.color.z, 1.0f / gamma), 1.f);
     if (camera.use_gi) {
         camera.albedo_buffer[image_index] = make_half4(prd.albedo.x, prd.albedo.y, prd.albedo.z, 0.f);
         float screen_n_x = -Dot(left, prd.normal);     // screen space (x right)

@@ -86,6 +86,7 @@ CH_SENSOR_API void ChFilterOptixRender::Initialize(std::shared_ptr<ChSensor> pSe
                                cudaFreeHelper<PixelHalf4>);
         bufferOut->Buffer = std::move(b);
         m_raygen_record->data.specific.camera.hFOV = cam->GetHFOV();
+        m_raygen_record->data.specific.camera.gamma = cam->GetGamma();
         m_raygen_record->data.specific.camera.frame_buffer = reinterpret_cast<half4*>(bufferOut->Buffer.get());
         m_raygen_record->data.specific.camera.use_gi = cam->GetUseGI();
         m_bufferOut = bufferOut;
@@ -94,7 +95,7 @@ CH_SENSOR_API void ChFilterOptixRender::Initialize(std::shared_ptr<ChSensor> pSe
             half4* frame_buffer = cudaMallocHelper<half4>(pOptixSensor->GetWidth() * pOptixSensor->GetHeight());
             half4* albedo_buffer = cudaMallocHelper<half4>(pOptixSensor->GetWidth() * pOptixSensor->GetHeight());
             half4* normal_buffer = cudaMallocHelper<half4>(pOptixSensor->GetWidth() * pOptixSensor->GetHeight());
-            m_raygen_record->data.specific.camera.frame_buffer = frame_buffer;
+            m_raygen_record->data.specific.camera.frame_buffer = frame_buffer;  // reinterpret_cast<half4*>(bufferOut->Buffer.get());
             m_raygen_record->data.specific.camera.albedo_buffer = albedo_buffer;
             m_raygen_record->data.specific.camera.normal_buffer = normal_buffer;
 
@@ -247,7 +248,7 @@ CH_SENSOR_API void ChOptixDenoiser::Initialize(unsigned int w,
 CH_SENSOR_API void ChOptixDenoiser::Execute() {
     // will not compute intensity since we are assuming we don't have HDR images
     OPTIX_ERROR_CHECK(optixDenoiserInvoke(m_denoiser, m_cuda_stream, &m_params, md_state, m_state_size,
-                                          md_inputs.data(), 3, 0, 0, &md_output, md_scratch, m_scratch_size));
+                                          md_inputs.data(), static_cast<unsigned int>(md_inputs.size()), 0, 0, &md_output, md_scratch, m_scratch_size));
 }
 
 }  // namespace sensor

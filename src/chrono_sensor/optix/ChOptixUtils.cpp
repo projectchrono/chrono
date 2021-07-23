@@ -85,11 +85,11 @@ void GetShaderFromFile(OptixDeviceContext context,
     nvrtcGetProgramLogSize(nvrtc_program, &log_length);
     nvrt_compilation_log.resize(log_length);
     if (log_length > 0) {
-        nvrtcGetProgramLog(nvrtc_program, &nvrt_compilation_log[0]);
+        NVRTC_ERROR_CHECK(nvrtcGetProgramLog(nvrtc_program, &nvrt_compilation_log[0]));
     }
     if (compile_result != NVRTC_SUCCESS) {
-        throw std::runtime_error(std::string("Error: ").append(__FILE__) + std::to_string(__LINE__) +
-                                 nvrt_compilation_log);
+        throw std::runtime_error(std::string("Error: ").append(__FILE__) + " at line " + std::to_string(__LINE__) +
+                                 "\n" + nvrt_compilation_log);
     }
 
     std::string ptx;

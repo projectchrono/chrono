@@ -48,6 +48,8 @@ class CH_SENSOR_API ChCameraSensor : public ChOptixSensor {
     // @param exposure_time The time the camera should be collecting data for each frame.
     /// @param supersample_factor The number of rays that should be sampled per pixel for antialiasing.
     /// @param lens_model A enum specifying the desired lens model.
+    /// @param use_gi Enable the global illumination, with significant decrease in performace
+    /// @gamma Gamma correction of the image, 1 for linear color space, 2.2 for sRGB 
     ChCameraSensor(std::shared_ptr<chrono::ChBody> parent,  // object to which the sensor is attached
                    float updateRate,                        // rate at which the sensor updates
                    chrono::ChFrame<double> offsetPose,      // position of sensor relative to parent object
@@ -56,7 +58,8 @@ class CH_SENSOR_API ChCameraSensor : public ChOptixSensor {
                    float hFOV,                              // horizontal field of view
                    unsigned int supersample_factor = 1,     // number of samples per pixel for antialiasing
                    CameraLensModelType lens_model = CameraLensModelType::PINHOLE,
-                   bool use_gi = false);  // camera model to use for rendering
+                   bool use_gi = false,                     // camera model to use for rendering
+                   float gamma = 2.2 );                              // gamma correction value
 
     /// camera class destructor
     ~ChCameraSensor();
@@ -70,13 +73,22 @@ class CH_SENSOR_API ChCameraSensor : public ChOptixSensor {
     /// @return An enum specifying which lens model is being used. (0: PINHOLE, 1: SPHERICAL)
     CameraLensModelType GetLensModelType() const { return m_lens_model_type; }
 
+    /// returns if the cemera requesting global illumination
+    /// @return True if it does request
     bool GetUseGI() { return m_use_gi; }
+
+    /// returns the gamma correction value of this camera.
+    /// 1 means no correction and the image is in linear color space. Useful for other ML applications
+    /// 2.2 means the image is in sRGB color space. Useful for display
+    /// @return Gamma value of the image
+    float GetGamma() { return m_gamma; }
 
   private:
     float m_hFOV;                           ///< the horizontal field of view of the sensor
     unsigned int m_supersample_factor;      ///< super sampling factor for antialiasing
     CameraLensModelType m_lens_model_type;  ///< lens model used by the camera
     bool m_use_gi;                          ///< to hold reference to whether user what to use GI or not
+    float m_gamma;
  };
 
 /// @} sensor_sensors

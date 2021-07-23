@@ -107,27 +107,33 @@ CH_SENSOR_API void ChSensorManager::AddSensor(std::shared_ptr<ChSensor> sensor) 
             }
         }
 
-        // create new engines only when we need them
-        if (!found_group) {
-            if (m_engines.size() < m_allowable_groups) {
-                auto engine = chrono_types::make_shared<ChOptixEngine>(
-                    m_system, m_device_list[(int)m_engines.size()], m_optix_reflections,
-                    m_verbose);  // limits to 2 gpus, TODO: check if device supports cuda
+        try {
+            // create new engines only when we need them
+            if (!found_group) {
+                if (m_engines.size() < m_allowable_groups) {
+                    auto engine = chrono_types::make_shared<ChOptixEngine>(
+                        m_system, m_device_list[(int)m_engines.size()], m_optix_reflections,
+                        m_verbose);  // limits to 2 gpus, TODO: check if device supports cuda
 
-                // engine->ConstructScene();
-                engine->AssignSensor(pOptixSensor);
+                    // engine->ConstructScene();
+                    engine->AssignSensor(pOptixSensor);
 
-                m_engines.push_back(engine);
-                if (m_verbose)
-                    std::cout << "Created another OptiX engine. Now at: " << m_engines.size() << "\n";
+                    m_engines.push_back(engine);
+                    if (m_verbose)
+                        std::cout << "Created another OptiX engine. Now at: " << m_engines.size() << "\n";
 
-            } else {  // if we are not allowed to create additional groups, warn the user and polute the first group
-                // std::cout << "No more allowable groups, consider allowing more groups if performace would
-                // increase\n";
-                m_engines[0]->AssignSensor(pOptixSensor);
-                if (m_verbose)
-                    std::cout << "Couldn't find suitable existing OptiX engine, so adding to first engine\n";
+                } else {  // if we are not allowed to create additional groups, warn the user and polute the first group
+                    // std::cout << "No more allowable groups, consider allowing more groups if performace would
+                    // increase\n";
+                    m_engines[0]->AssignSensor(pOptixSensor);
+                    if (m_verbose)
+                        std::cout << "Couldn't find suitable existing OptiX engine, so adding to first engine\n";
+                }
             }
+        }
+        catch (std::exception& e) {
+            std::cerr << "Failed to create a ChOptixEngine, with error:\n" << e.what() << "\n";
+            exit(1);
         }
     } else {
         if (!m_dynamics_manager) {

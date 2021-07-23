@@ -583,8 +583,9 @@ void ChOptixEngine::ConstructScene() {
                     } else if (std::shared_ptr<ChTriangleMeshShape> trimesh_shape =
                                    std::dynamic_pointer_cast<ChTriangleMeshShape>(asset)) {
                         if (trimesh_shape->IsStatic()) {
+                            
                             rigidMeshVisualization(body, trimesh_shape, visual_asset);
-                            //                            std::cout<<"mesh is stored"<<std::endl;
+                            
                             // added_asset_for_body = true;
                         } else {
                             deformableMeshVisualization(body, trimesh_shape, visual_asset);

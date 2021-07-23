@@ -97,7 +97,7 @@ void CreateModernMeshAssets(std::shared_ptr<ChTriangleMeshShape> mesh_shape) {
 
         // If metallic and roughness is set to default, use 
         // specular workflow
-        if (materials[i].metallic == 0 && materials[i].roughness == 1) {
+        if (materials[i].metallic == 0 && materials[i].roughness == 0.5) {
             mat->SetUseSpecularWorkflow(true);
         } else {
             mat->SetUseSpecularWorkflow(false);
