@@ -94,13 +94,27 @@ endif()
 # Set location of SWIG-generated files.
 # Note that *.py files are also generated in this location.
 set(CMAKE_SWIG_OUTDIR "${PROJECT_BINARY_DIR}/chrono_python")
-SET(CMAKE_SWIG_FLAGS "-c++")
+
+# Set SWIG flags.  Disable selected SWIG warnings 
+set(CMAKE_SWIG_FLAGS "-c++;-w302,362,389,401,509")
 
 if(DBG_SCRIPT)
   message("SWIG_USE_FILE:      ${SWIG_USE_FILE}")
   message("CMAKE_SWIG_OUTDIR:  ${CMAKE_SWIG_OUTDIR}")
   message("Installation path:  ${CMAKE_INSTALL_PREFIX}/${CH_INSTALL_PYTHON}")
   message("Installation prefix path:  ${CMAKE_INSTALL_PREFIX}")
+endif()
+
+# Disable additional warnings for generated C++ code
+if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+elseif(MSVC)
+   add_compile_options(/wd4189)  # local variable is initialized but not referenced
+   add_compile_options(/wd4275)  # non-DLL-interface class used as base for DLL-interface class
+   add_compile_options(/wd4456)  # declaration hides previous local declaration
+   add_compile_options(/wd4702)  # unreachable code
+   add_compile_options(/wd4706)  # assignment within conditional expression
+else()
+   add_compile_options(-Wno-unused-variable)
 endif()
 
 #-----------------------------------------------------------------------------
@@ -395,9 +409,6 @@ if(ENABLE_MODULE_IRRLICHT)
 
   if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
     set_source_files_properties(${CHPY_IRRLICHT_MODULE_FILE} PROPERTIES COMPILE_FLAGS "-D_WIN32")
-    if(CMAKE_CXX_COMPILER_ID MATCHES "MSVC")
-      add_compile_options(/wd4275)
-    endif()
   endif()
   set_source_files_properties(${CHPY_IRRLICHT_MODULE_FILE} PROPERTIES CPLUSPLUS ON)
 
@@ -617,7 +628,7 @@ if(ENABLE_MODULE_VEHICLE)
 
   # Make sure CHRONO_IRRLICHT is defined for the SWIG processor
   if (ENABLE_MODULE_IRRLICHT)
-    set(CMAKE_SWIG_FLAGS -DCHRONO_IRRLICHT)
+    set(CMAKE_SWIG_FLAGS "${CMAKE_SWIG_FLAGS};-DCHRONO_IRRLICHT")
   endif()
 
   if(${CMAKE_VERSION} VERSION_LESS "3.8.0")
@@ -768,7 +779,7 @@ endif()
 #-----------------------------------------------------------------------------
 
   message(STATUS "...add python robot module:  pychrono.robot")
-  
+
   # Python module name
   set(CHPY_RS robot)
 

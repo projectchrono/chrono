@@ -280,7 +280,7 @@ void ChParserAdams::Parse(ChSystem& sys, const std::string& filename) {
                     case ACCGRAV: {
                         auto grav_it = tokens_to_parse.begin();
                         // std::cout << "ACCGRAV(" << token << ") ";
-                        double grav[3];
+                        ChVector<> grav;
                         std::string grav_strs[3] = {"IGRAV", "JGRAV", "KGRAV"};
                         for (int i = 0; i < 3; i++) {
                             // Check to see if it matches gravity
@@ -291,7 +291,7 @@ void ChParserAdams::Parse(ChSystem& sys, const std::string& filename) {
                                 // std::cout << "setting " << grav_strs[i] << " to:" << grav[i] <<std::endl;
                             }
                         }
-                        sys.Set_G_acc(ChVector<>(grav[0], grav[1], grav[2]));
+                        sys.Set_G_acc(grav);
                         // std::cout <<std::endl;
                         break;
                     }
@@ -405,7 +405,7 @@ void ChParserAdams::Parse(ChSystem& sys, const std::string& filename) {
         parentBody->AddMarker(ch_marker);
         // std::cout << "marker " << marker_pair.first << " is at " << loc.x() << "," << loc.y() << "," << loc.z()
         // <<std::endl;
-        auto absloc = ch_marker->GetAbsCoord().pos;
+        // auto absloc = ch_marker->GetAbsCoord().pos;
         // std::cout << "marker " << marker_pair.first << " is at abs " << absloc.x() << "," << absloc.y() << "," <<
         // absloc.z()
         // <<std::endl;
@@ -530,13 +530,13 @@ void ChParserAdams::Parse(ChSystem& sys, const std::string& filename) {
     // Load visualizations, if enabled
     if (m_visType == ChParserAdams::VisType::LOADED) {
         for (auto tokens : graphics_token_list) {
-            auto iter = tokens.begin();
+            iter = tokens.begin();
             //
             if (iter->second == std::string("CYLINDER")) {
                 auto cylinder = chrono_types::make_shared<ChCylinderShape>();
                 iter++;  // Get next field
                 std::shared_ptr<ChMarker> cm_marker;
-                ChBodyAuxRef* parentBody;
+                ChBodyAuxRef* parentBody = nullptr;
                 while (iter != tokens.end()) {
                     // std::cout << "token is " << iter->first << ", " << iter->second <<std::endl;
                     if (iter->second == std::string("CM")) {
@@ -554,6 +554,7 @@ void ChParserAdams::Parse(ChSystem& sys, const std::string& filename) {
                         iter++;  // get radius
                         cylinder->GetCylinderGeometry().rad = std::stod(iter->second);
                     } else if (iter->second == std::string("LENGTH")) {
+                        assert(parentBody);
                         iter++;  // get length
                         double length = std::stod(iter->second);
                         // std::cout << "length is " << length <<std::endl;

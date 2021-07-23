@@ -70,7 +70,7 @@ SettlingSMC::SettlingSMC() : m_system(new ChSystemMulticoreSMC), m_step(1e-3) {
     m_system->GetSettings()->solver.max_iteration_bilateral = max_iteration;
     m_system->GetSettings()->solver.tolerance = tolerance;
 
-    m_system->GetSettings()->collision.narrowphase_algorithm = NarrowPhaseType::NARROWPHASE_HYBRID_MPR;
+    m_system->GetSettings()->collision.narrowphase_algorithm = collision::ChNarrowphase::Algorithm::HYBRID;
     m_system->GetSettings()->collision.bins_per_axis = vec3(10, 10, 1);
 
     // The following two lines are optional, since they are the default options.
@@ -93,7 +93,7 @@ SettlingSMC::SettlingSMC() : m_system(new ChSystemMulticoreSMC), m_step(1e-3) {
     double hthick = 0.1;
 
     // Create a bin consisting of five boxes attached to the ground.
-    auto bin = chrono_types::make_shared<ChBody>(chrono_types::make_shared<collision::ChCollisionModelMulticore>());
+    auto bin = std::shared_ptr<ChBody>(m_system->NewBody());
     bin->SetMass(1);
     bin->SetPos(ChVector<>(0, 0, 0));
     bin->SetCollide(true);
@@ -119,6 +119,8 @@ SettlingSMC::SettlingSMC() : m_system(new ChSystemMulticoreSMC), m_step(1e-3) {
     int num_layers = 8;
 
     // Create a particle generator and a mixture entirely made out of spheres
+    double r = 1.01 * radius;
+    utils::PDSampler<double> sampler(2 * r);
     utils::Generator gen(m_system);
     std::shared_ptr<utils::MixtureIngredient> m1 = gen.AddMixtureIngredient(utils::MixtureType::SPHERE, 1.0);
     m1->setDefaultMaterial(mat);
@@ -126,11 +128,10 @@ SettlingSMC::SettlingSMC() : m_system(new ChSystemMulticoreSMC), m_step(1e-3) {
     m1->setDefaultSize(radius);
 
     // Create particles in layers until reaching the desired number of particles
-    double r = 1.01 * radius;
     ChVector<> range(hdim.x() - r, hdim.y() - r, 0);
     ChVector<> center(0, 0, 2 * r);
     for (int il = 0; il < num_layers; il++) {
-        gen.createObjectsBox(utils::SamplingType::POISSON_DISK, 2 * r, center, range);
+        gen.CreateObjectsBox(sampler, center, range);
         center.z() += 2 * r;
     }
 

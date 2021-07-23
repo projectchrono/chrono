@@ -52,10 +52,6 @@ real diameter = 0.016;
 // to rotate at constant angular velocity.
 // -----------------------------------------------------------------------------
 void AddContainer(ChSystemMulticoreNSC* sys) {
-    // IDs for the two bodies
-    int binId = -200;
-    int mixerId = -201;
-
     // Create a common material
     auto mat = chrono_types::make_shared<ChMaterialSurfaceNSC>();
     mat->SetFriction(0.4f);
@@ -114,12 +110,6 @@ int main(int argc, char* argv[]) {
     // ---------------------
 
     double gravity = 9.81;
-
-    double time_end = 1;
-
-    double out_fps = 50;
-
-    uint max_iteration = 30;
     real tolerance = 1e-3;
 
     // Create system
@@ -146,7 +136,7 @@ int main(int argc, char* argv[]) {
     msystem.GetSettings()->solver.cache_step_length = true;
 
     msystem.ChangeSolverType(SolverType::BB);
-    msystem.GetSettings()->collision.narrowphase_algorithm = NarrowPhaseType::NARROWPHASE_HYBRID_MPR;
+    msystem.GetSettings()->collision.narrowphase_algorithm = ChNarrowphase::Algorithm::HYBRID;
 
     AddParticles(&msystem);
 
@@ -154,8 +144,7 @@ int main(int argc, char* argv[]) {
     msystem.GetSettings()->collision.bins_per_axis = vec3(2, 2, 2);
     msystem.SetLoggingLevel(LoggingLevel::LOG_TRACE, true);
     msystem.SetLoggingLevel(LoggingLevel::LOG_INFO, true);
-    // Create the fixed and moving bodies
-    // ----------------------------------
+
     AddContainer(&msystem);
 
 // Perform the simulation
@@ -183,6 +172,7 @@ int main(int argc, char* argv[]) {
     }
 #else
     // Run simulation for specified time
+    double time_end = 1;
     int num_steps = (int)std::ceil(time_end / time_step);
 
     double time = 0;

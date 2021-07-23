@@ -41,11 +41,11 @@ ChPathFollowerACCDriver::ChPathFollowerACCDriver(ChVehicle& vehicle,
                                                  bool isClosedPath)
     : ChDriver(vehicle),
       m_steeringPID(path, isClosedPath),
-      m_pathName(path_name),
       m_target_speed(target_speed),
       m_target_following_time(target_following_time),
       m_target_min_distance(target_min_distance),
       m_current_distance(current_distance),
+      m_pathName(path_name),
       m_throttle_threshold(0.2) {
     Create();
 }
@@ -63,11 +63,11 @@ ChPathFollowerACCDriver::ChPathFollowerACCDriver(ChVehicle& vehicle,
     : ChDriver(vehicle),
       m_steeringPID(steering_filename, path, isClosedPath),
       m_speedPID(speed_filename),
-      m_pathName(path_name),
       m_target_speed(target_speed),
       m_target_following_time(target_following_time),
       m_target_min_distance(target_min_distance),
       m_current_distance(current_distance),
+      m_pathName(path_name),
       m_throttle_threshold(0.2) {
     Create();
 }

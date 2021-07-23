@@ -31,7 +31,7 @@ namespace vehicle {
 // -----------------------------------------------------------------------------
 RotationalDamperRWAssembly::RotationalDamperRWAssembly(const std::string& filename, bool has_shock)
     : ChRotationalDamperRWAssembly("", has_shock), m_spring_torqueCB(nullptr), m_shock_torqueCB(nullptr) {
-    Document d = ReadFileJSON(filename);
+    Document d; ReadFileJSON(filename, d);
     if (d.IsNull())
         return;
 

@@ -1,0 +1,15 @@
+# Blender MTL File: 'None'
+# Material Count: 1
+
+newmtl lambert13SG.002
+Ns 0.000000
+Ka 1.000000 1.000000 1.000000
+Kd 0.500000 0.500000 0.500000
+Ks 0.000000 0.000000 0.000000
+Ke 0.000000 0.000000 0.000000
+Ni 1.000000
+d 1.000000
+map_Kd textures/Volks_Van_Texturing_Volks_Van_Chassis_BaseColor.jpg
+map_Pr textures/Volks_Van_Texturing_Volks_Van_Chassis_Roughness.jpg
+map_Pm textures/Volks_Van_Texturing_Volks_Van_Chassis_Metallic.jpg
+illum 1

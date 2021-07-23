@@ -50,6 +50,7 @@ void CopyParams_NumberOfObjects(std::shared_ptr<SimParams> paramsH, std::shared_
 //#define W_kappa 3
 
 #define W3h W3h_Spline
+#define W3h_GPU W3h_Spline_GPU
 #define GradWh GradWh_Spline
 // #define W3h W3h_High
 // #define GradWh GradWh_High
@@ -73,12 +74,25 @@ __device__ inline Real W3_Spline(Real d) {  // d is positive. h is the sph parti
 // 3D SPH kernel function, W3_SplineA
 __host__ __device__ inline Real W3h_Spline(Real d, Real h) {  // d is positive. h is the sph particle radius (i.e. h in
                                                               // the document) d is the distance of 2 particles
-    Real q = fabs(d) / h;
+    Real invh = 1.0f / h;
+    Real q = fabs(d) * invh;
     if (q < 1) {
-        return (0.25f / (PI * h * h * h) * (cube(2 - q) - 4 * cube(1 - q)));
+        return (0.25f * (INVPI * invh * invh * invh) * (cube(2 - q) - 4 * cube(1 - q)));
     }
     if (q < 2) {
-        return (0.25f / (PI * h * h * h) * cube(2 - q));
+        return (0.25f * (INVPI * invh * invh * invh) * cube(2 - q));
+    }
+    return 0;
+}
+__device__ inline Real W3h_Spline_GPU(Real d, Real h) {  // d is positive. h is the sph particle radius (i.e. h in
+                                                         // the document) d is the distance of 2 particles
+    Real invh = paramsD.INVHSML;
+    Real q = fabs(d) * invh;
+    if (q < 1) {
+        return (0.25f * (INVPI * invh * invh * invh) * (cube(2 - q) - 4 * cube(1 - q)));
+    }
+    if (q < 2) {
+        return (0.25f * (INVPI * invh * invh * invh) * cube(2 - q));
     }
     return 0;
 }
@@ -192,13 +206,14 @@ __device__ inline Real3 GradW_Spline(Real3 d) {  // d is positive. r is the sph 
 
 __device__ inline Real3 GradWh_Spline(Real3 d, Real h) {  // d is positive. r is the sph particle radius (i.e. h
                                                           // in the document) d is the distance of 2 particles
-    Real q = length(d) / h;
+    Real q = length(d) * paramsD.INVHSML;
+    Real INVHSML5 = paramsD.INVHSML * paramsD.INVHSML * paramsD.INVHSML * paramsD.INVHSML * paramsD.INVHSML;
 
     if (abs(q) < EPSILON)
         return mR3(0.0);
     bool less1 = (q < 1);
     bool less2 = (q < 2);
-    return (less1 * (3 * q - 4) + less2 * (!less1) * (-q + 4.0f - 4.0f / q)) * .75f * (INVPI)*pow(h, Real(-5)) * d;
+    return (less1 * (3 * q - 4.0f) + less2 * (!less1) * (-q + 4.0f - 4.0f / q)) * .75f * INVPI * INVHSML5 * d;
 }
 
 __device__ inline Real3 GradWh_High(Real3 d, Real h) {  // d is positive. r is the sph particle radius (i.e. h
@@ -483,12 +498,12 @@ inline __device__ void BCE_Vel_Acc(int i_idx,
         RotationMatirixFromQuaternion(a1, a2, a3, q4);
         Real3 rigidSPH_MeshPos_LRF__ = rigidSPH_MeshPos_LRF_D[Original_idx - updatePortion.y];
 
-        Real3 p_com = mR3(posRigid_fsiBodies_D[rigidIndex]);
+        //        Real3 p_com = mR3(posRigid_fsiBodies_D[rigidIndex]);
         Real3 v_com = mR3(velMassRigid_fsiBodies_D[rigidIndex]);
         Real3 a_com = accRigid_fsiBodies_D[rigidIndex];
         Real3 angular_v_com = omegaVelLRF_fsiBodies_D[rigidIndex];
         Real3 angular_a_com = omegaAccLRF_fsiBodies_D[rigidIndex];
-        Real3 p_rel = mR3(sortedPosRad[i_idx]) - p_com;
+        //        Real3 p_rel = mR3(sortedPosRad[i_idx]) - p_com;
         Real3 omegaCrossS = cross(angular_v_com, rigidSPH_MeshPos_LRF__);
         V_prescribed = v_com + mR3(dot(a1, omegaCrossS), dot(a2, omegaCrossS), dot(a3, omegaCrossS));
         //        V_prescribed = v_com + cross(angular_v_com, rigidSPH_MeshPos_LRF);
@@ -652,7 +667,7 @@ inline __device__ void grad_scalar(int i_idx,
 
                         Real h_j = sortedPosRad[j].w;
                         Real h_ij = 0.5 * (h_j + h_i);
-                        Real W3 = W3h(d, h_ij);
+                        ////Real W3 = W3h(d, h_ij);
                         Real3 grad_i_wij = GradWh(dist3, h_ij);
                         Real V_j = sumWij_inv[j];
                         Real3 common_part = mR3(0);
@@ -714,7 +729,7 @@ inline __device__ void grad_vector(int i_idx,
 
                         Real h_j = sortedPosRad[j].w;
                         Real h_ij = 0.5 * (h_j + h_i);
-                        Real W3 = W3h(d, h_ij);
+                        ////Real W3 = W3h(d, h_ij);
                         Real3 grad_i_wij = GradWh(dist3, h_ij);
                         Real V_j = sumWij_inv[j];
                         common_part.x = grad_i_wij.x * mGi[0] + grad_i_wij.y * mGi[1] + grad_i_wij.z * mGi[2];

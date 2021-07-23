@@ -136,8 +136,6 @@ int main(int argc, char* argv[]) {
 
         // Get driver inputs
         ChDriver::Inputs driver_inputs = driver.GetInputs();
-        double steering_input = driver.GetSteering();
-        double braking_input = driver.GetBraking();
 
         // Update modules (process inputs from other modules)
         driver.Synchronize(time);

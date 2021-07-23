@@ -127,6 +127,11 @@ class CH_VEHICLE_API ChVehicle {
     /// Get the global location of the driver.
     ChVector<> GetDriverPos() const { return m_chassis->GetDriverPos(); }
 
+    /// Change the default collision detection system.
+    /// Note that this function should be called *before* initialization of the vehicle system in order to create
+    /// consistent collision models.
+    void SetCollisionSystemType(collision::ChCollisionSystemType collsys_type);
+
     /// Enable output for this vehicle system.
     void SetOutput(ChVehicleOutput::Type type,   ///< [int] type of output DB
                    const std::string& out_dir,   ///< [in] output directory name

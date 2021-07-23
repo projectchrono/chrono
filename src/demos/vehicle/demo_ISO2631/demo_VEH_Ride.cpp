@@ -36,6 +36,7 @@
 #include "chrono_models/vehicle/hmmwv/HMMWV_PacejkaTire.h"
 #include "chrono_models/vehicle/hmmwv/HMMWV_Pac89Tire.h"
 #include "chrono_models/vehicle/hmmwv/HMMWV_Pac02Tire.h"
+#include "chrono_models/vehicle/hmmwv/HMMWV_RigidTire.h"
 #include "chrono_vehicle/wheeled_vehicle/tire/FialaTire.h"
 #include "chrono_vehicle/wheeled_vehicle/tire/TMeasyTire.h"
 
@@ -100,7 +101,8 @@ int main(int argc, char* argv[]) {
             GetLog() << "Using standard values for simulation:\n"
                      << "Terrain No. = " << iTerrain << "\n"
                      << "Speed       = " << target_speed << " m/s\n"
-                     << "Tire Code (1=TMeasy, 2=Fiala, 3=Pacejka, 4=Pacejka89, 5=Pacejka02) = " << iTire << "\n";
+                     << "Tire Code (1=TMeasy, 2=Fiala, 3=Pacejka, 4=Pacejka89, 5=Pacejka02, 6=Rigid) = " << iTire
+                     << "\n";
             break;
         case 2:
             if (atoi(argv[1]) >= 1 && atoi(argv[1]) <= 8) {
@@ -110,7 +112,8 @@ int main(int argc, char* argv[]) {
             GetLog() << "Using values for simulation:\n"
                      << "Terrain No. = " << iTerrain << "\n"
                      << "Speed       = " << target_speed << " m/s\n"
-                     << "Tire Code (1=TMeasy, 2=Fiala, 3=Pacejka, 4=Pacejka89, 5=Pacejka02) = " << iTire << "\n";
+                     << "Tire Code (1=TMeasy, 2=Fiala, 3=Pacejka, 4=Pacejka89, 5=Pacejka02, 6=Rigid) = " << iTire
+                     << "\n";
             break;
         case 3:
             if (atoi(argv[1]) >= 1 && atoi(argv[1]) <= 8) {
@@ -121,7 +124,8 @@ int main(int argc, char* argv[]) {
             GetLog() << "Using values for simulation:\n"
                      << "Terrain No. = " << iTerrain << "\n"
                      << "Speed       = " << target_speed << " m/s\n"
-                     << "Tire Code (1=TMeasy, 2=Fiala, 3=Pacejka, 4=Pacejka89, 5=Pacejka02) = " << iTire << "\n";
+                     << "Tire Code (1=TMeasy, 2=Fiala, 3=Pacejka, 4=Pacejka89, 5=Pacejka02, 6=Rigid) = " << iTire
+                     << "\n";
             break;
         case 4:
             if (atoi(argv[1]) >= 1 && atoi(argv[1]) <= 8) {
@@ -129,13 +133,14 @@ int main(int argc, char* argv[]) {
                 rigidterrain_file = "terrain/RigidRandom" + std::to_string(iTerrain) + ".json";
             }
             target_speed = atof(argv[2]);
-            if (atoi(argv[3]) >= 1 && atoi(argv[3]) <= 5) {
+            if (atoi(argv[3]) >= 1 && atoi(argv[3]) <= 6) {
                 iTire = atoi(argv[3]);
             }
             GetLog() << "Using values for simulation:\n"
                      << "Terrain No. = " << iTerrain << "\n"
                      << "Speed       = " << target_speed << " m/s\n"
-                     << "Tire Code (1=TMeasy, 2=Fiala, 3=Pacejka, 4=Pacejka89, 5=Pacejka02) = " << iTire << "\n";
+                     << "Tire Code (1=TMeasy, 2=Fiala, 3=Pacejka, 4=Pacejka89, 5=Pacejka02, 6=Rigid) = " << iTire
+                     << "\n";
             break;
     }
 
@@ -144,7 +149,8 @@ int main(int argc, char* argv[]) {
     // --------------------------
 
     // Create the vehicle system
-    WheeledVehicle vehicle(vehicle::GetDataFile(vehicle_file), ChContactMethod::NSC);
+    ChContactMethod contact_method = ChContactMethod::SMC;
+    WheeledVehicle vehicle(vehicle::GetDataFile(vehicle_file), contact_method);
     vehicle.Initialize(ChCoordsys<>(initLoc, QUNIT));
     ////vehicle.GetChassis()->SetFixed(true);
     vehicle.SetChassisVisualizationType(VisualizationType::PRIMITIVES);
@@ -154,6 +160,16 @@ int main(int argc, char* argv[]) {
 
     // Create the ground
     RandomSurfaceTerrain terrain(vehicle.GetSystem(), xend);
+
+    if (iTire == 6) {
+        MaterialInfo minfo;
+        minfo.mu = 0.9f;
+        minfo.cr = 0.01f;
+        minfo.Y = 2e7f;
+        auto terrain_mat = minfo.CreateMaterial(contact_method);
+        terrain.EnableCollisionMesh(terrain_mat, std::abs(initLoc.x()) + 5);
+    }
+
     switch (iTerrain) {
         default:
         case 1:
@@ -229,6 +245,14 @@ int main(int argc, char* argv[]) {
                 vehicle.InitializeTire(tireR, axle->m_wheels[1], VisualizationType::MESH, collision_type);
                 break;
             }
+            case 6: {
+                auto tireL = chrono_types::make_shared<hmmwv::HMMWV_RigidTire>("HMMWV_Rigid_Tire");
+                auto tireR = chrono_types::make_shared<hmmwv::HMMWV_RigidTire>("HMMWV_Rigid_Tire");
+                vehicle.InitializeTire(tireL, axle->m_wheels[0], VisualizationType::MESH, collision_type);
+                vehicle.InitializeTire(tireR, axle->m_wheels[1], VisualizationType::MESH, collision_type);
+
+                break;
+            }
         }
     }
 
@@ -237,7 +261,6 @@ int main(int argc, char* argv[]) {
 #ifdef USE_IRRLICHT
 
     // Create the visualization application
-    // std::wstring windowTitle = L"Vehicle Ride Quality Demo - " + std::to_wstring(rmsVal[iTerrain]) + L" mm RMS";
     std::wstring windowTitle = L"Vehicle Ride Quality Demo ";
     switch (iTire) {
         default:
@@ -256,13 +279,14 @@ int main(int argc, char* argv[]) {
         case 5:
             windowTitle.append(L"(Pacejka02 Tire)");
             break;
+        case 6:
+            windowTitle.append(L"(Rigid Tire)");
+            break;
     }
     windowTitle.append(L" - " + std::to_wstring(rmsVal) + L" mm RMS");
     ChWheeledVehicleIrrApp app(&vehicle, windowTitle);
 
     app.SetSkyBox();
-    // app.AddTypicalLights(irr::core::vector3df(30.f, -30.f, 100.f), irr::core::vector3df(30.f, 50.f, 100.f), 250,
-    // 130);
     app.GetSceneManager()->setAmbientLight(irr::video::SColorf(0.1f, 0.1f, 0.1f, 1.0f));
     app.AddTypicalLights(irr::core::vector3df(-50.f, -30.f, 40.f), irr::core::vector3df(10.f, 30.f, 40.f), 50, 50,
                          irr::video::SColorf(0.7f, 0.7f, 0.7f, 1.0f), irr::video::SColorf(0.7f, 0.7f, 0.7f, 1.0f));

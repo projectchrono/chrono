@@ -106,11 +106,8 @@ int main(int argc, char* argv[]) {
 
     // Global parameter for tire:
     double tire_rad = 0.8;
-    double tire_vel_z0 = -3;
     ChVector<> tire_center(0, 0.02 + tire_rad, 0.5);
     ChMatrix33<> tire_alignment(Q_from_AngAxis(CH_C_PI, VECT_Y));  // create rotated 180° on y
-
-    double tire_w0 = tire_vel_z0 / tire_rad;
 
     // Create a Chrono::Engine physical system
     ChSystemSMC my_system;
@@ -166,7 +163,7 @@ int main(int argc, char* argv[]) {
         ChMeshFileLoader::FromAbaqusFile(my_mesh,
                                          GetChronoDataFile("models/tractor_wheel/tractor_wheel_coarse.INP").c_str(),
                                          mmaterial, node_sets, tire_center, tire_alignment);
-    } catch (ChException myerr) {
+    } catch (const ChException &myerr) {
         GetLog() << myerr.what();
         return 0;
     }

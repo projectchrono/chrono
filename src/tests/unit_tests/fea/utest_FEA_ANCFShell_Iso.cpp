@@ -88,8 +88,6 @@ int main(int argc, char* argv[]) {
     const int numDiv_y = 4;
     const int numDiv_z = 1;
     const int N_x = numDiv_x + 1;
-    const int N_y = numDiv_y + 1;
-    const int N_z = numDiv_z + 1;
     int TotalNumElements = numDiv_x * numDiv_y;
     int TotalNumNodes = (numDiv_x + 1) * (numDiv_y + 1);
 

@@ -38,8 +38,6 @@ using namespace chrono::vehicle;
 
 static const double in2m = 0.0254;
 static const double lb2kg = 0.453592;
-static const double lbf2N = 4.44822162;
-static const double lbfpin2Npm = 175.12677;
 
 const double RCCar_DoubleWishboneFront::m_UCAMass = lb2kg * 0.15;
 const double RCCar_DoubleWishboneFront::m_LCAMass = lb2kg * 0.25;
@@ -119,7 +117,7 @@ class RCCar_ShockForce : public ChLinkTSDA::ForceFunctor {
     double m_bs_compr;
     double m_bs_rebound;
     double m_metal_K;
-    double m_F0;
+    ////double m_F0;
     double m_ms_min_length;
     double m_ms_max_length;
     double m_min_length;
@@ -141,7 +139,7 @@ RCCar_ShockForce::RCCar_ShockForce(double midstroke_compression_slope,
       m_bs_compr(bumpstop_compression_slope),
       m_bs_rebound(bumpstop_rebound_slope),
       m_metal_K(metalmetal_slope),
-      m_F0(min_bumpstop_compression_force),
+      ////m_F0(min_bumpstop_compression_force),
       m_ms_min_length(midstroke_lower_bound),
       m_ms_max_length(midstroke_upper_bound),
       m_min_length(metalmetal_lower_bound),

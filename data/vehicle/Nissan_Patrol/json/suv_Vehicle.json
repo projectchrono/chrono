@@ -1,0 +1,47 @@
+{
+  "Name": "suv bodies",
+  "Type": "Vehicle",
+  "Template": "WheeledVehicle",
+
+  "Chassis": {
+    "Input File": "Nissan_Patrol/json/suv_Chassis.json"
+  },
+
+  "Axles": [
+    {
+      "Suspension Input File": "Nissan_Patrol/json/suv_DoubleWishboneFront.json",
+      "Suspension Location": [ 0.04545, 0, 0.12 ],
+      "Steering Index": 0,
+      "Left Wheel Input File": "Nissan_Patrol/json/suv_Wheel.json",
+      "Right Wheel Input File": "Nissan_Patrol/json/suv_Wheel.json",
+      "Left Brake Input File": "Nissan_Patrol/json/suv_BrakeSimple_Front.json",
+      "Right Brake Input File": "Nissan_Patrol/json/suv_BrakeSimple_Front.json"
+    },
+
+    {
+      "Suspension Input File": "Nissan_Patrol/json/suv_DoubleWishboneRear.json",
+      "Suspension Location": [ -3.3, 0, 0.08 ],
+      "Left Wheel Input File": "Nissan_Patrol/json/suv_Wheel.json",
+      "Right Wheel Input File": "Nissan_Patrol/json/suv_Wheel.json",
+      "Left Brake Input File": "Nissan_Patrol/json/suv_BrakeSimple_Rear.json",
+      "Right Brake Input File": "Nissan_Patrol/json/suv_BrakeSimple_Rear.json"
+    }
+  ],
+
+  "Steering Subsystems": [
+    {
+      "Input File": "Nissan_Patrol/json/suv_PitmanArm.json",
+      "Location": [-0.398535, 0, 0.11],
+      "Orientation": [ 0.98699637, 0, 0.16074256, 0 ]
+    }
+  ],
+
+  "Wheelbase": 3.34545,
+  "Minimum Turning Radius": 7.62,
+  "Maximum Steering Angle": 30.23,
+
+  "Driveline": {
+    "Input File": "Nissan_Patrol/json/suv_Driveline2WD.json",
+    "Suspension Indexes": [0]
+  }
+}

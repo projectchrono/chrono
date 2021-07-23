@@ -39,6 +39,9 @@ ChSystemNSC::ChSystemNSC(bool init_sys)
 
         // Set default collision engine
         collision_system = chrono_types::make_shared<collision::ChCollisionSystemBullet>();
+        collision_system->SetNumThreads(nthreads_collision);
+        collision_system->SetSystem(this);
+        collision_system_type = collision::ChCollisionSystemType::BULLET;
 
         // Set the system descriptor
         descriptor = chrono_types::make_shared<ChSystemDescriptor>();
@@ -72,7 +75,7 @@ void ChSystemNSC::ArchiveOUT(ChArchiveOut& marchive) {
 // Method to allow de serialization of transient data from archives.
 void ChSystemNSC::ArchiveIN(ChArchiveIn& marchive) {
     // version number
-    int version = marchive.VersionRead<ChSystemNSC>();
+    /*int version =*/ marchive.VersionRead<ChSystemNSC>();
 
     // deserialize parent class
     ChSystem::ArchiveIN(marchive);

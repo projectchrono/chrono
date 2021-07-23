@@ -427,7 +427,7 @@ void ChOpenGLViewer::DrawObject(std::shared_ptr<ChBody> abody) {
             double rad = capsule_shape->GetCapsuleGeometry().rad;
             double height = capsule_shape->GetCapsuleGeometry().hlen;
             // Quaternion rott(1,0,0,0);
-            Quaternion lrot = visual_asset->Rot.Get_A_quaternion();
+            lrot = visual_asset->Rot.Get_A_quaternion();
             // lrot = lrot % rott;
             lrot = rot % lrot;
 
@@ -470,7 +470,7 @@ void ChOpenGLViewer::DrawObject(std::shared_ptr<ChBody> abody) {
             std::shared_ptr<geometry::ChLine> mline;
             mline = line_shape->GetLineGeometry();
 
-            Quaternion lrot = visual_asset->Rot.Get_A_quaternion();
+            lrot = visual_asset->Rot.Get_A_quaternion();
             lrot = rot % lrot;
             lrot.Q_to_AngAxis(angle, axis);
 
@@ -528,12 +528,12 @@ void ChOpenGLViewer::RenderAABB() {
         ChMulticoreDataManager* data_manager = system->data_manager;
         model_box.clear();
 
-        custom_vector<real3>& aabb_min = data_manager->host_data.aabb_min;
-        custom_vector<real3>& aabb_max = data_manager->host_data.aabb_max;
+        custom_vector<real3>& aabb_min = data_manager->cd_data->aabb_min;
+        custom_vector<real3>& aabb_max = data_manager->cd_data->aabb_max;
 
-        model_box.resize(data_manager->num_rigid_shapes);
+        model_box.resize(data_manager->cd_data->num_rigid_shapes);
 #pragma omp parallel for
-        for (int i = 0; i < (signed)data_manager->num_rigid_shapes; i++) {
+        for (int i = 0; i < (signed)data_manager->cd_data->num_rigid_shapes; i++) {
             real3 min_p = aabb_min[i] + data_manager->measures.collision.global_origin;
             real3 max_p = aabb_max[i] + data_manager->measures.collision.global_origin;
 
@@ -587,6 +587,7 @@ void ChOpenGLViewer::RenderFluid() {
 }
 
 void ChOpenGLViewer::RenderFEA() {
+/*
 #ifdef CHRONO_MULTICORE
     ChSystemMulticore* parallel_system = dynamic_cast<ChSystemMulticore*>(physics_system);
     if (!parallel_system || parallel_system->data_manager->num_fea_nodes <= 0) {
@@ -613,6 +614,7 @@ void ChOpenGLViewer::RenderFEA() {
     glm::mat4 model(1);
     fea_elements.Draw(projection, view * model);
 #endif
+*/
 }
 
 void ChOpenGLViewer::RenderGrid() {

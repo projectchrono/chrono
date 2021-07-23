@@ -314,7 +314,7 @@ void ChBox::ArchiveOUT(ChArchiveOut& marchive) {
 
 void ChBox::ArchiveIN(ChArchiveIn& marchive) {
     // version number
-    int version = marchive.VersionRead<ChBox>();
+    /*int version =*/ marchive.VersionRead<ChBox>();
     // deserialize parent class
     ChVolume::ArchiveIN(marchive);
     // stream in all member data:

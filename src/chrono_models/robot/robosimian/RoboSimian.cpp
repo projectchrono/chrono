@@ -1157,7 +1157,7 @@ RS_Limb::RS_Limb(const std::string& name,
                  std::shared_ptr<ChMaterialSurface> wheel_mat,
                  std::shared_ptr<ChMaterialSurface> link_mat,
                  ChSystem* system)
-    : m_name(name), m_id(id), m_collide_links(false), m_collide_wheel(true) {
+    : m_name(name), m_collide_links(false), m_collide_wheel(true) {
     for (int i = 0; i < num_links; i++) {
         bool is_wheel = (data[i].name.compare("link8") == 0);
 
@@ -1202,11 +1202,11 @@ void RS_Limb::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,
                          CollisionFamily::Enum collision_family,
                          ActuationMode wheel_mode) {
     // Set absolute position of link0
-    auto parent_body = chassis;                                  // parent body
-    auto child_body = m_links.find("link0")->second->m_body;     // child body
-    const ChFrame<>& X_GP = parent_body->GetFrame_REF_to_abs();  // global -> parent
-    ChFrame<> X_PC(xyz, rpy2quat(rpy));                          // parent -> child
-    ChFrame<> X_GC = X_GP * X_PC;                                // global -> child
+    auto parent_body = chassis;                               // parent body
+    auto child_body = m_links.find("link0")->second->m_body;  // child body
+    ChFrame<> X_GP = parent_body->GetFrame_REF_to_abs();      // global -> parent
+    ChFrame<> X_PC(xyz, rpy2quat(rpy));                       // parent -> child
+    ChFrame<> X_GC = X_GP * X_PC;                             // global -> child
     child_body->SetFrame_REF_to_abs(X_GC);
 
     // Traverse chain (base-to-tip)
@@ -1214,13 +1214,13 @@ void RS_Limb::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,
     //   add collision shapes on child body
     //   create joint between parent and child
     for (int i = 0; i < num_joints; i++) {
-        auto parent = m_links.find(joints[i].linkA)->second;         // parent part
-        auto child = m_links.find(joints[i].linkB)->second;          // child part
-        auto parent_body = parent->m_body;                           // parent body
-        auto child_body = child->m_body;                             // child body
-        const ChFrame<>& X_GP = parent_body->GetFrame_REF_to_abs();  // global -> parent
-        ChFrame<> X_PC(joints[i].xyz, rpy2quat(joints[i].rpy));      // parent -> child
-        ChFrame<> X_GC = X_GP * X_PC;                                // global -> child
+        auto parent = m_links.find(joints[i].linkA)->second;       // parent part
+        auto child = m_links.find(joints[i].linkB)->second;        // child part
+        parent_body = parent->m_body;                              // parent body
+        child_body = child->m_body;                                // child body
+        X_GP = parent_body->GetFrame_REF_to_abs();                 // global -> parent
+        X_PC = ChFrame<>(joints[i].xyz, rpy2quat(joints[i].rpy));  // parent -> child
+        X_GC = X_GP * X_PC;                                        // global -> child
         child_body->SetFrame_REF_to_abs(X_GC);
 
         // First joint connects directly to chassis

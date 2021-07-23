@@ -35,6 +35,7 @@
 #include "chrono_vehicle/utils/ChUtilsJSON.h"
 
 #include "chrono_thirdparty/stb/stb.h"
+#include "chrono_thirdparty/filesystem/path.h"
 
 using namespace rapidjson;
 
@@ -47,9 +48,9 @@ namespace vehicle {
 RigidTerrain::RigidTerrain(ChSystem* system)
     : m_system(system),
       m_num_patches(0),
-      m_collision_family(14),
       m_use_friction_functor(false),
-      m_contact_callback(nullptr) {}
+      m_contact_callback(nullptr),
+      m_collision_family(14) {}
 
 // -----------------------------------------------------------------------------
 // Constructor from JSON file
@@ -57,11 +58,12 @@ RigidTerrain::RigidTerrain(ChSystem* system)
 RigidTerrain::RigidTerrain(ChSystem* system, const std::string& filename)
     : m_system(system),
       m_num_patches(0),
-      m_collision_family(14),
       m_use_friction_functor(false),
-      m_contact_callback(nullptr) {
+      m_contact_callback(nullptr),
+      m_collision_family(14) {
     // Open and parse the input file
-    Document d = ReadFileJSON(filename);
+    Document d;
+    ReadFileJSON(filename, d);
     if (d.IsNull())
         return;
 
@@ -107,16 +109,14 @@ void RigidTerrain::LoadPatch(const rapidjson::Value& d) {
         patch = AddPatch(material, loc, ChMatrix33<>(rot).Get_A_Zaxis(), size.x(), size.y(), size.z());
     } else if (d["Geometry"].HasMember("Mesh Filename")) {
         std::string mesh_file = d["Geometry"]["Mesh Filename"].GetString();
-        std::string mesh_name = d["Geometry"]["Mesh Name"].GetString();
-        patch = AddPatch(material, ChCoordsys<>(loc, rot), vehicle::GetDataFile(mesh_file), mesh_name);
+        patch = AddPatch(material, ChCoordsys<>(loc, rot), vehicle::GetDataFile(mesh_file));
     } else if (d["Geometry"].HasMember("Height Map Filename")) {
         std::string bmp_file = d["Geometry"]["Height Map Filename"].GetString();
-        std::string mesh_name = d["Geometry"]["Mesh Name"].GetString();
         double sx = d["Geometry"]["Size"][0u].GetDouble();
         double sy = d["Geometry"]["Size"][1u].GetDouble();
         double hMin = d["Geometry"]["Height Range"][0u].GetDouble();
         double hMax = d["Geometry"]["Height Range"][1u].GetDouble();
-        patch = AddPatch(material, ChCoordsys<>(loc, rot), vehicle::GetDataFile(bmp_file), mesh_name, sx, sy, hMin, hMax);
+        patch = AddPatch(material, ChCoordsys<>(loc, rot), vehicle::GetDataFile(bmp_file), sx, sy, hMin, hMax);
     }
 
     // Set visualization data
@@ -228,7 +228,6 @@ std::shared_ptr<RigidTerrain::Patch> RigidTerrain::AddPatch(std::shared_ptr<ChMa
 std::shared_ptr<RigidTerrain::Patch> RigidTerrain::AddPatch(std::shared_ptr<ChMaterialSurface> material,
                                                             const ChCoordsys<>& position,
                                                             const std::string& mesh_file,
-                                                            const std::string& mesh_name,
                                                             double sweep_sphere_radius,
                                                             bool visualization) {
     auto patch = chrono_types::make_shared<MeshPatch>();
@@ -243,6 +242,8 @@ std::shared_ptr<RigidTerrain::Patch> RigidTerrain::AddPatch(std::shared_ptr<ChMa
     patch->m_body->GetCollisionModel()->AddTriangleMesh(material, patch->m_trimesh, true, false, VNULL, ChMatrix33<>(1),
                                                         sweep_sphere_radius);
     patch->m_body->GetCollisionModel()->BuildModel();
+
+    auto mesh_name = filesystem::path(mesh_file).stem();
 
     // Create the visualization asset.
     if (visualization) {
@@ -271,7 +272,6 @@ std::shared_ptr<RigidTerrain::Patch> RigidTerrain::AddPatch(std::shared_ptr<ChMa
 std::shared_ptr<RigidTerrain::Patch> RigidTerrain::AddPatch(std::shared_ptr<ChMaterialSurface> material,
                                                             const ChCoordsys<>& position,
                                                             const std::string& heightmap_file,
-                                                            const std::string& mesh_name,
                                                             double length,
                                                             double width,
                                                             double hMin,
@@ -362,7 +362,7 @@ std::shared_ptr<RigidTerrain::Patch> RigidTerrain::AddPatch(std::shared_ptr<ChMa
     }
 
     // Calculate normals and then average the normals from all adjacent faces.
-    for (unsigned int it = 0; it < n_faces; ++it) {
+    for (it = 0; it < n_faces; ++it) {
         // Calculate the triangle normal as a normalized cross product.
         ChVector<> nrm = Vcross(vertices[idx_vertices[it][1]] - vertices[idx_vertices[it][0]],
                                 vertices[idx_vertices[it][2]] - vertices[idx_vertices[it][0]]);
@@ -387,6 +387,8 @@ std::shared_ptr<RigidTerrain::Patch> RigidTerrain::AddPatch(std::shared_ptr<ChMa
     patch->m_body->GetCollisionModel()->AddTriangleMesh(material, patch->m_trimesh, true, false, VNULL, ChMatrix33<>(1),
                                                         sweep_sphere_radius);
     patch->m_body->GetCollisionModel()->BuildModel();
+
+    auto mesh_name = filesystem::path(heightmap_file).stem();
 
     // Create the visualization asset.
     if (visualization) {
@@ -488,13 +490,11 @@ void RigidTerrain::Initialize() {
     if (m_patches.empty())
         return;
 
-    if (m_patches.size() > 1) {
-        for (auto patch : m_patches) {
-            // Add all patches to the same collision family
-            // and disable collision with other collision models in this family.
-            patch->m_body->GetCollisionModel()->SetFamily(m_collision_family);
-            patch->m_body->GetCollisionModel()->SetFamilyMaskNoCollisionWithFamily(m_collision_family);        
-        }
+    for (auto& patch : m_patches) {
+        // Add all patches to the same collision family
+        // and disable collision with other collision models in this family.
+        patch->m_body->GetCollisionModel()->SetFamily(m_collision_family);
+        patch->m_body->GetCollisionModel()->SetFamilyMaskNoCollisionWithFamily(m_collision_family);
     }
 
     if (!m_friction_fun)

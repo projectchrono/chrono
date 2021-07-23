@@ -1,0 +1,16 @@
+# Blender MTL File: 'None'
+# Material Count: 1
+
+newmtl lambert7SG.001
+Ns 0.000000
+Ka 1.000000 1.000000 1.000000
+Kd 0.500000 0.500000 0.500000
+Ks 0.000000 0.000000 0.000000
+Ke 0.000000 0.000000 0.000000
+map_Kd textures/Nissan_Chassis_OBJ_0331_Nissan_Wheel_BaseColor.jpg
+map_Pr textures/Nissan_Chassis_OBJ_0331_Nissan_Wheel_Roughness.jpg
+map_Pm textures/Nissan_Chassis_OBJ_0331_Nissan_Wheel_Metallic.jpg
+norm textures/Nissan_Chassis_OBJ_0331_Nissan_Wheel_Normal.jpg
+Ni 1.000000
+d 1.000000
+illum 1

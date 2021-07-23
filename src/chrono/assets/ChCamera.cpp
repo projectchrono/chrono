@@ -45,7 +45,7 @@ void ChCamera::ArchiveOUT(ChArchiveOut& marchive) {
 
 void ChCamera::ArchiveIN(ChArchiveIn& marchive) {
     // version number
-    int version = marchive.VersionRead<ChCamera>();
+    /*int version =*/ marchive.VersionRead<ChCamera>();
     // deserialize parent class
     ChAsset::ArchiveIN(marchive);
     // stream in all member data:

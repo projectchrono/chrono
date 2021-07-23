@@ -172,7 +172,7 @@ void ChConstraintTwoBodies::ArchiveOUT(ChArchiveOut& marchive) {
 
 void ChConstraintTwoBodies::ArchiveIN(ChArchiveIn& marchive) {
     // version number
-    int version = marchive.VersionRead<ChConstraintTwoBodies>();
+    /*int version =*/ marchive.VersionRead<ChConstraintTwoBodies>();
 
     // deserialize the parent class data too
     ChConstraintTwo::ArchiveIN(marchive);

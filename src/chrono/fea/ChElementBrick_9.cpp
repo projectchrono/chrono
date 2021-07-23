@@ -33,7 +33,7 @@ namespace fea {
 
 ChElementBrick_9::ChElementBrick_9() : m_gravity_on(false) {
     m_nodes.resize(8);
-
+    
     m_ddT.setZero();
     m_d_dt.setZero();
 
@@ -584,7 +584,7 @@ void Brick9_Force::Evaluate(ChVectorN<double, 33>& result, const double x, const
                             YieldFlag = 1;
 
                             // Step variation of the plastic flow (rate)
-                            double DeltaGamma = YieldFunc / (3.0 * G + m_element->m_HardeningSlope);
+                            DeltaGamma = YieldFunc / (3.0 * G + m_element->m_HardeningSlope);
 
                             // Perform return mapping on deviatoric stress tensor (Up for Update)
                             if (qtrial != 0.0) {
@@ -664,34 +664,38 @@ void Brick9_Force::Evaluate(ChVectorN<double, 33>& result, const double x, const
                         double phi = m_element->m_FrictionAngle * CH_C_DEG_TO_RAD;    // Friction angle
                         double phi2 = m_element->m_DilatancyAngle * CH_C_DEG_TO_RAD;  // Dilatancy angle
 
-                        double eta;  // Coefficient multiplying hydros. pressure in yield function - function of
-                                     // internal friction
-                        double gsi;  // Coefficient multiplying 'current' cohesion value in yield function
-                        double etab;
+                        double eta = 0;  // Coefficient multiplying hydros. pressure in yield function - function of
+                                         // internal friction
+                        double gsi = 0;  // Coefficient multiplying 'current' cohesion value in yield function
+                        double etab = 0;
 
-                        if (m_element->m_DPHardening == 1) {  // Tension corresponding to Abaqus model
-                            eta = tan(phi) / sqrt(3.0);
-                            gsi = (1.0 + tan(phi) / 3.0) / sqrt(3.0);
-                            etab = tan(phi2) / sqrt(3.0);
-                        } else if (m_element->m_DPHardening == 2) {  // Compression corresponding to Abaqus model
-                            eta = tan(phi) / sqrt(3.0);
-                            gsi = (1.0 - tan(phi) / 3.0) / sqrt(3.0);
-                            etab = tan(phi2) / sqrt(3.0);
-                        } else if (m_element->m_DPHardening == 3) {  // Shear corresponding to Abaqus model
-                            eta = tan(phi) / sqrt(3.0);
-                            gsi = 1.0 / sqrt(3.0);
-                            etab = tan(phi2) / sqrt(3.0);
+                        switch (m_element->m_DPHardening) {
+                            case 1:  // Tension corresponding to Abaqus model
+                                eta = tan(phi) / sqrt(3.0);
+                                gsi = (1.0 + tan(phi) / 3.0) / sqrt(3.0);
+                                etab = tan(phi2) / sqrt(3.0);
+                                break;
+                            case 2:  // Compression corresponding to Abaqus model
+                                eta = tan(phi) / sqrt(3.0);
+                                gsi = (1.0 - tan(phi) / 3.0) / sqrt(3.0);
+                                etab = tan(phi2) / sqrt(3.0);
+                                break;
+                            case 3:  // Shear corresponding to Abaqus model
+                                eta = tan(phi) / sqrt(3.0);
+                                gsi = 1.0 / sqrt(3.0);
+                                etab = tan(phi2) / sqrt(3.0);
+                                break;
                         }
-                        double alpha1;
-                        double beta1;
+
                         if (etab == 0) {
                             etab = 0.000001;
                         }
-                        alpha1 = gsi / etab;
+                        double alpha1 = gsi / etab;
+
                         if (eta == 0) {
                             eta = 0.000001;
                         }
-                        beta1 = gsi / eta;
+                        double beta1 = gsi / eta;
 
                         // Yield function at trial stage
                         YieldFunc =
@@ -830,34 +834,38 @@ void Brick9_Force::Evaluate(ChVectorN<double, 33>& result, const double x, const
                         double phi = m_element->m_FrictionAngle * CH_C_DEG_TO_RAD;    // Friction angle
                         double phi2 = m_element->m_DilatancyAngle * CH_C_DEG_TO_RAD;  // Dilatancy angle
 
-                        double eta;  // Coefficient multiplying hydros. pressure in yield function - function of
-                                     // internal friction
-                        double gsi;  // Coefficient multiplying 'current' cohesion value in yield function
-                        double etab;
+                        double eta = 0;  // Coefficient multiplying hydros. pressure in yield function - function of
+                                         // internal friction
+                        double gsi = 0;  // Coefficient multiplying 'current' cohesion value in yield function
+                        double etab = 0;
 
-                        if (m_element->m_DPHardening == 1) {  // Tension corresponding to Abaqus model
-                            eta = tan(phi) / sqrt(3.0);
-                            gsi = (1.0 + tan(phi) / 3.0) / sqrt(3.0);
-                            etab = tan(phi2) / sqrt(3.0);
-                        } else if (m_element->m_DPHardening == 2) {  // Compression corresponding to Abaqus model
-                            eta = tan(phi) / sqrt(3.0);
-                            gsi = (1.0 - tan(phi) / 3.0) / sqrt(3.0);
-                            etab = tan(phi2) / sqrt(3.0);
-                        } else if (m_element->m_DPHardening == 3) {  // Shear corresponding to Abaqus model
-                            eta = tan(phi) / sqrt(3.0);
-                            gsi = 1.0 / sqrt(3.0);
-                            etab = tan(phi2) / sqrt(3.0);
+                        switch (m_element->m_DPHardening) {
+                            case 1:  // Tension corresponding to Abaqus model
+                                eta = tan(phi) / sqrt(3.0);
+                                gsi = (1.0 + tan(phi) / 3.0) / sqrt(3.0);
+                                etab = tan(phi2) / sqrt(3.0);
+                                break;
+                            case 2:  // Compression corresponding to Abaqus model
+                                eta = tan(phi) / sqrt(3.0);
+                                gsi = (1.0 - tan(phi) / 3.0) / sqrt(3.0);
+                                etab = tan(phi2) / sqrt(3.0);
+                                break;
+                            case 3:  // Shear corresponding to Abaqus model
+                                eta = tan(phi) / sqrt(3.0);
+                                gsi = 1.0 / sqrt(3.0);
+                                etab = tan(phi2) / sqrt(3.0);
+                                break;
                         }
-                        double alpha1;
-                        double beta1;
+
                         if (etab == 0) {
                             etab = 0.000001;
                         }
-                        alpha1 = gsi / etab;
+                        double alpha1 = gsi / etab;
+
                         if (eta == 0) {
                             eta = 0.000001;
                         }
-                        beta1 = gsi / eta;
+                        double beta1 = gsi / eta;
 
                         //-------------------------------//
                         // Yield function at trial stage //
@@ -1584,7 +1592,7 @@ void Brick9_Jacobian::Evaluate(ChMatrixNM<double, 33, 33>& result, const double 
             StressK_eig(2) = E_eps(3, 0) * LogStrain(0) + E_eps(3, 1) * LogStrain(1) + E_eps(3, 3) * LogStrain(2);
 
             // Set Yield flag to zero (within elastic range)
-            int YieldFlag = 0;
+            int YieldFlagA = 0;
 
             ChMatrixNM<double, 6, 6> Dep;
 
@@ -1652,7 +1660,7 @@ void Brick9_Jacobian::Evaluate(ChMatrixNM<double, 33, 33>& result, const double 
                             YieldFlag = 1;
 
                             // Step variation of the plastic flow (rate)
-                            double DeltaGamma = YieldFunc / (3.0 * G + m_element->m_HardeningSlope);
+                            DeltaGamma = YieldFunc / (3.0 * G + m_element->m_HardeningSlope);
 
                             // Obtain some terms necessary for plastic Jacobian of internal forces
                             qtrial = sqrt(3.0 / 2.0) * NormSn + 3.0 * G * DeltaGamma;
@@ -1737,35 +1745,38 @@ void Brick9_Jacobian::Evaluate(ChMatrixNM<double, 33, 33>& result, const double 
 
                         double phi = m_element->m_FrictionAngle * CH_C_DEG_TO_RAD;    // Friction angle
                         double phi2 = m_element->m_DilatancyAngle * CH_C_DEG_TO_RAD;  // Dilatancy angle
-                        double eta;  // Coefficient multiplying hydros. pressure in yield function - function of
-                                     // internal friction
-                        double gsi;  // Coefficient multiplying 'current' cohesion value in yield function
-                        double etab;
+                        double eta = 0;  // Coefficient multiplying hydros. pressure in yield function - function of
+                                         // internal friction
+                        double gsi = 0;  // Coefficient multiplying 'current' cohesion value in yield function
+                        double etab = 0;
 
-                        if (m_element->m_DPHardening == 1) {  // Tension corresponding to Abaqus model
-                            eta = tan(phi) / sqrt(3.0);
-                            gsi = (1.0 + tan(phi) / 3.0) / sqrt(3.0);
-                            etab = tan(phi2) / sqrt(3.0);
-                        } else if (m_element->m_DPHardening == 2) {  // Compression corresponding to Abaqus model
-                            eta = tan(phi) / sqrt(3.0);
-                            gsi = (1.0 - tan(phi) / 3.0) / sqrt(3.0);
-                            etab = tan(phi2) / sqrt(3.0);
-                        } else if (m_element->m_DPHardening == 3) {  // Shear corresponding to Abaqus model
-                            eta = tan(phi) / sqrt(3.0);
-                            gsi = 1.0 / sqrt(3.0);
-                            etab = tan(phi2) / sqrt(3.0);
+                        switch (m_element->m_DPHardening) {
+                            case 1:  // Tension corresponding to Abaqus model
+                                eta = tan(phi) / sqrt(3.0);
+                                gsi = (1.0 + tan(phi) / 3.0) / sqrt(3.0);
+                                etab = tan(phi2) / sqrt(3.0);
+                                break;
+                            case 2:  // Compression corresponding to Abaqus model
+                                eta = tan(phi) / sqrt(3.0);
+                                gsi = (1.0 - tan(phi) / 3.0) / sqrt(3.0);
+                                etab = tan(phi2) / sqrt(3.0);
+                                break;
+                            case 3:  // Shear corresponding to Abaqus model
+                                eta = tan(phi) / sqrt(3.0);
+                                gsi = 1.0 / sqrt(3.0);
+                                etab = tan(phi2) / sqrt(3.0);
+                                break;
                         }
 
-                        double alpha1;
-                        double beta1;
                         if (etab == 0) {
                             etab = 0.000001;
                         }
-                        alpha1 = gsi / etab;
+                        double alpha1 = gsi / etab;
+
                         if (eta == 0) {
                             eta = 0.000001;
                         }
-                        beta1 = gsi / eta;
+                        double beta1 = gsi / eta;
 
                         // Yield function at trial stage
                         YieldFunc =
@@ -1911,34 +1922,38 @@ void Brick9_Jacobian::Evaluate(ChMatrixNM<double, 33, 33>& result, const double 
                         double phi = m_element->m_FrictionAngle * CH_C_DEG_TO_RAD;    // Friction angle
                         double phi2 = m_element->m_DilatancyAngle * CH_C_DEG_TO_RAD;  // Dilatancy angle
 
-                        double eta;  // Coefficient multiplying hydros. pressure in yield function - function of
-                                     // internal friction
-                        double gsi;  // Coefficient multiplying 'current' cohesion value in yield function
-                        double etab;
+                        double eta = 0;  // Coefficient multiplying hydros. pressure in yield function - function of
+                                         // internal friction
+                        double gsi = 0;  // Coefficient multiplying 'current' cohesion value in yield function
+                        double etab = 0;
 
-                        if (m_element->m_DPHardening == 1) {  // Tension corresponding to Abaqus model
-                            eta = tan(phi) / sqrt(3.0);
-                            gsi = (1.0 + tan(phi) / 3.0) / sqrt(3.0);
-                            etab = tan(phi2) / sqrt(3.0);
-                        } else if (m_element->m_DPHardening == 2) {  // Compression corresponding to Abaqus model
-                            eta = tan(phi) / sqrt(3.0);
-                            gsi = (1.0 - tan(phi) / 3.0) / sqrt(3.0);
-                            etab = tan(phi2) / sqrt(3.0);
-                        } else if (m_element->m_DPHardening == 3) {  // Shear corresponding to Abaqus model
-                            eta = tan(phi) / sqrt(3.0);
-                            gsi = 1.0 / sqrt(3.0);
-                            etab = tan(phi2) / sqrt(3.0);
+                        switch (m_element->m_DPHardening) {
+                            case 1:  // Tension corresponding to Abaqus model
+                                eta = tan(phi) / sqrt(3.0);
+                                gsi = (1.0 + tan(phi) / 3.0) / sqrt(3.0);
+                                etab = tan(phi2) / sqrt(3.0);
+                                break;
+                            case 2:  // Compression corresponding to Abaqus model
+                                eta = tan(phi) / sqrt(3.0);
+                                gsi = (1.0 - tan(phi) / 3.0) / sqrt(3.0);
+                                etab = tan(phi2) / sqrt(3.0);
+                                break;
+                            case 3:  // Shear corresponding to Abaqus model
+                                eta = tan(phi) / sqrt(3.0);
+                                gsi = 1.0 / sqrt(3.0);
+                                etab = tan(phi2) / sqrt(3.0);
+                                break;
                         }
-                        double alpha1;
-                        double beta1;
+
                         if (etab == 0) {
                             etab = 0.000001;
                         }
-                        alpha1 = gsi / etab;
+                        double alpha1 = gsi / etab;
+
                         if (eta == 0) {
                             eta = 0.000001;
                         }
-                        beta1 = gsi / eta;
+                        double beta1 = gsi / eta;
 
                         //-------------------------------//
                         // Yield function at trial stage //
@@ -2092,9 +2107,9 @@ void Brick9_Jacobian::Evaluate(ChMatrixNM<double, 33, 33>& result, const double 
 
                             if (YieldFunc_Cap > 0.0 && FlagYieldType == 0) {  // Cap return mapping
                                 // Initialize of Newton raphson for Cap surface
-                                double DGamma = 0.0;
-                                double DGamma_A;
-                                double DGamma_B;
+                                double DGamma = 0;
+                                double DGamma_A = 0;
+                                double DGamma_B = 0;
                                 double EPBAR = EPBARN;
                                 double SQRJ2 = SQRJ2T;
                                 double P = PT;
@@ -2530,7 +2545,7 @@ void Brick9_Jacobian::Evaluate(ChMatrixNM<double, 33, 33>& result, const double 
             }
 
             // Jacobian of internal forces (excluding the EAS contribution).
-            if (m_element->m_Plasticity && YieldFlag == 1) {
+            if (m_element->m_Plasticity && YieldFlagA == 1) {
                 m_KTE1 = strainD.transpose() * Dep * strainD;
             } else {
                 m_KTE1 = strainD.transpose() * E_eps * strainD;

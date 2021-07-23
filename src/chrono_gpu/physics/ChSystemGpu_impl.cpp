@@ -27,8 +27,10 @@
 #include "chrono_gpu/utils/ChGpuUtilities.h"
 #include "chrono_gpu/cuda/ChCudaMathUtils.cuh"
 
+#include "chrono_thirdparty/chpf/particle_writer.hpp"
+
 #ifdef USE_HDF5
-#include "H5Cpp.h"
+    #include "H5Cpp.h"
 #endif
 
 // define it here, once and for all
@@ -37,17 +39,21 @@ size_t gran_approx_bytes_used = 0;
 namespace chrono {
 namespace gpu {
 
-ChSystemGpu_impl::ChSystemGpu_impl(float sphere_rad, float density, float3 boxDims)
+ChSystemGpu_impl::ChSystemGpu_impl(float sphere_rad, float density, float3 boxDims, float3 O)
     : sphere_radius_UU(sphere_rad),
       sphere_density_UU(density),
       box_size_X(boxDims.x),
       box_size_Y(boxDims.y),
       box_size_Z(boxDims.z),
+      user_coord_O_X(O.x),
+      user_coord_O_Y(O.y),
+      user_coord_O_Z(O.z),
       stepSize_UU(1e-4f),
       nSpheres(0),
       elapsedSimTime(0.f),
       verbosity(CHGPU_VERBOSITY::INFO),
       use_min_length_unit(true),
+      defragment_on_start(true),
       file_write_mode(CHGPU_OUTPUT_MODE::CSV),
       X_accGrav(0.f),
       Y_accGrav(0.f),
@@ -75,24 +81,27 @@ ChSystemGpu_impl::ChSystemGpu_impl(float sphere_rad, float density, float3 boxDi
     gran_params->rolling_mode = CHGPU_ROLLING_MODE::NO_RESISTANCE;
     gran_params->time_integrator = CHGPU_TIME_INTEGRATOR::EXTENDED_TAYLOR;
     this->time_integrator = CHGPU_TIME_INTEGRATOR::EXTENDED_TAYLOR;
-    this->output_flags = ABSV | ANG_VEL_COMPONENTS;
+    this->output_flags = ABSV;  // | VEL_COMPONENTS and | ANG_VEL_COMPONENTS are reasonable additions
 
     gran_params->max_safe_vel = (float)UINT_MAX;
+    gran_params->recording_contactInfo = false;
 
     gran_params->static_friction_coeff_s2s = 0;
     gran_params->static_friction_coeff_s2w = 0;
 
-    CreateWallBCs();
-    setBDWallsMotionFunction(GranPosFunction_default);
+    // Reserve seats for big box domain BCs
+    BC_type_list.resize(NUM_RESERVED_BC_IDS);
+    BC_params_list_UU.resize(NUM_RESERVED_BC_IDS);
+    BC_offset_function_list.resize(NUM_RESERVED_BC_IDS);
 }
 
 void ChSystemGpu_impl::CreateWallBCs() {
-    float plane_center_bot_X[3] = {-box_size_X / 2, 0, 0};
-    float plane_center_top_X[3] = {box_size_X / 2, 0, 0};
-    float plane_center_bot_Y[3] = {0, -box_size_Y / 2, 0};
-    float plane_center_top_Y[3] = {0, box_size_Y / 2, 0};
-    float plane_center_bot_Z[3] = {0, 0, -box_size_Z / 2};
-    float plane_center_top_Z[3] = {0, 0, box_size_Z / 2};
+    float plane_center_bot_X[3] = {-box_size_X / 2.f + user_coord_O_X, 0, 0};
+    float plane_center_top_X[3] = {box_size_X / 2.f + user_coord_O_X, 0, 0};
+    float plane_center_bot_Y[3] = {0, -box_size_Y / 2.f + user_coord_O_Y, 0};
+    float plane_center_top_Y[3] = {0, box_size_Y / 2.f + user_coord_O_Y, 0};
+    float plane_center_bot_Z[3] = {0, 0, -box_size_Z / 2.f + user_coord_O_Z};
+    float plane_center_top_Z[3] = {0, 0, box_size_Z / 2.f + user_coord_O_Z};
     // face in upwards
     float plane_normal_bot_X[3] = {1, 0, 0};
     float plane_normal_top_X[3] = {-1, 0, 0};
@@ -101,13 +110,13 @@ void ChSystemGpu_impl::CreateWallBCs() {
     float plane_normal_bot_Z[3] = {0, 0, 1};
     float plane_normal_top_Z[3] = {0, 0, -1};
 
-    // create wall BCs
-    size_t plane_BC_X_bot = CreateBCPlane(plane_center_bot_X, plane_normal_bot_X, false);
-    size_t plane_BC_X_top = CreateBCPlane(plane_center_top_X, plane_normal_top_X, false);
-    size_t plane_BC_Y_bot = CreateBCPlane(plane_center_bot_Y, plane_normal_bot_Y, false);
-    size_t plane_BC_Y_top = CreateBCPlane(plane_center_top_Y, plane_normal_top_Y, false);
-    size_t plane_BC_Z_bot = CreateBCPlane(plane_center_bot_Z, plane_normal_bot_Z, false);
-    size_t plane_BC_Z_top = CreateBCPlane(plane_center_top_Z, plane_normal_top_Z, false);
+    // create wall BCs, and put them at their reserved seats
+    size_t plane_BC_X_bot = CreateBCPlane(plane_center_bot_X, plane_normal_bot_X, false, 0);
+    size_t plane_BC_X_top = CreateBCPlane(plane_center_top_X, plane_normal_top_X, false, 1);
+    size_t plane_BC_Y_bot = CreateBCPlane(plane_center_bot_Y, plane_normal_bot_Y, false, 2);
+    size_t plane_BC_Y_top = CreateBCPlane(plane_center_top_Y, plane_normal_top_Y, false, 3);
+    size_t plane_BC_Z_bot = CreateBCPlane(plane_center_bot_Z, plane_normal_bot_Z, false, 4);
+    size_t plane_BC_Z_top = CreateBCPlane(plane_center_top_Z, plane_normal_top_Z, false, 5);
 
     // verify that we have the right IDs for these walls
     assert(plane_BC_X_bot == BD_WALL_ID_X_BOT);
@@ -163,6 +172,8 @@ void ChSystemGpu_impl::packSphereDataPointers() {
 
     sphere_data->sphere_fixed = sphere_fixed.data();
 
+    sphere_data->sphere_stats_buffer = sphere_stats_buffer.data();
+
     sphere_data->SD_NumSpheresTouching = SD_NumSpheresTouching.data();
     sphere_data->SD_SphereCompositeOffsets = SD_SphereCompositeOffsets.data();
     sphere_data->SD_SphereCompositeOffsets_SP = SD_SphereCompositeOffsets_ScratchPad.data();
@@ -191,268 +202,281 @@ void ChSystemGpu_impl::packSphereDataPointers() {
     }
 }
 
-void ChSystemGpu_impl::WriteFile(std::string ofile) const {
-    // The file writes are a pretty big slowdown in CSV mode
-    if (file_write_mode == CHGPU_OUTPUT_MODE::BINARY) {
-        // Write the data as binary to a file, requires later postprocessing that can be done in parallel, this is a
-        // much faster write due to no formatting
-        std::ofstream ptFile(ofile + ".raw", std::ios::out | std::ios::binary);
+void ChSystemGpu_impl::WriteRawParticles(std::ofstream& ptFile) const {
+    for (unsigned int n = 0; n < nSpheres; n++) {
+        unsigned int ownerSD = sphere_owner_SDs.at(n);
+        int3 ownerSD_trip = getSDTripletFromID(ownerSD);
+        float x_UU = (float)(sphere_local_pos_X[n] * LENGTH_SU2UU);
+        float y_UU = (float)(sphere_local_pos_Y[n] * LENGTH_SU2UU);
+        float z_UU = (float)(sphere_local_pos_Z[n] * LENGTH_SU2UU);
 
-        for (unsigned int n = 0; n < nSpheres; n++) {
-            unsigned int ownerSD = sphere_owner_SDs.at(n);
-            int3 ownerSD_trip = getSDTripletFromID(ownerSD);
-            float x_UU = (float)(sphere_local_pos_X[n] * LENGTH_SU2UU);
-            float y_UU = (float)(sphere_local_pos_Y[n] * LENGTH_SU2UU);
-            float z_UU = (float)(sphere_local_pos_Z[n] * LENGTH_SU2UU);
+        x_UU += (float)(gran_params->BD_frame_X * LENGTH_SU2UU);
+        y_UU += (float)(gran_params->BD_frame_Y * LENGTH_SU2UU);
+        z_UU += (float)(gran_params->BD_frame_Z * LENGTH_SU2UU);
 
-            x_UU += (float)(gran_params->BD_frame_X * LENGTH_SU2UU);
-            y_UU += (float)(gran_params->BD_frame_Y * LENGTH_SU2UU);
-            z_UU += (float)(gran_params->BD_frame_Z * LENGTH_SU2UU);
+        x_UU += (float)(((int64_t)ownerSD_trip.x * gran_params->SD_size_X_SU) * LENGTH_SU2UU);
+        y_UU += (float)(((int64_t)ownerSD_trip.y * gran_params->SD_size_Y_SU) * LENGTH_SU2UU);
+        z_UU += (float)(((int64_t)ownerSD_trip.z * gran_params->SD_size_Z_SU) * LENGTH_SU2UU);
 
-            x_UU += (float)(((int64_t)ownerSD_trip.x * gran_params->SD_size_X_SU) * LENGTH_SU2UU);
-            y_UU += (float)(((int64_t)ownerSD_trip.y * gran_params->SD_size_Y_SU) * LENGTH_SU2UU);
-            z_UU += (float)(((int64_t)ownerSD_trip.z * gran_params->SD_size_Z_SU) * LENGTH_SU2UU);
-
-            ptFile.write((const char*)&x_UU, sizeof(float));
-            ptFile.write((const char*)&y_UU, sizeof(float));
-            ptFile.write((const char*)&z_UU, sizeof(float));
-
-            if (GET_OUTPUT_SETTING(VEL_COMPONENTS)) {
-                float vx_UU = (float)(pos_X_dt[n] * LENGTH_SU2UU / TIME_SU2UU);
-                float vy_UU = (float)(pos_Y_dt[n] * LENGTH_SU2UU / TIME_SU2UU);
-                float vz_UU = (float)(pos_Z_dt[n] * LENGTH_SU2UU / TIME_SU2UU);
-
-                ptFile.write((const char*)&vx_UU, sizeof(float));
-                ptFile.write((const char*)&vy_UU, sizeof(float));
-                ptFile.write((const char*)&vz_UU, sizeof(float));
-            }
-
-            if (GET_OUTPUT_SETTING(ABSV)) {
-                float absv = (float)(std::sqrt(pos_X_dt.at(n) * pos_X_dt.at(n) + pos_Y_dt.at(n) * pos_Y_dt.at(n) +
-                                               pos_Z_dt.at(n) * pos_Z_dt.at(n)) *
-                                     VEL_SU2UU);
-
-                ptFile.write((const char*)&absv, sizeof(float));
-            }
-
-            if (gran_params->friction_mode != CHGPU_FRICTION_MODE::FRICTIONLESS &&
-                GET_OUTPUT_SETTING(ANG_VEL_COMPONENTS)) {
-                float omega_x_UU = (float)(sphere_Omega_X.at(n) / TIME_SU2UU);
-                float omega_y_UU = (float)(sphere_Omega_Y.at(n) / TIME_SU2UU);
-                float omega_z_UU = (float)(sphere_Omega_Z.at(n) / TIME_SU2UU);
-                ptFile.write((const char*)&omega_x_UU, sizeof(float));
-                ptFile.write((const char*)&omega_y_UU, sizeof(float));
-                ptFile.write((const char*)&omega_z_UU, sizeof(float));
-            }
-        }
-    } else if (file_write_mode == CHGPU_OUTPUT_MODE::CSV) {
-        // CSV is much slower but requires less postprocessing
-        std::ofstream ptFile(ofile + ".csv", std::ios::out);
-
-        // Dump to a stream, write to file only at end
-        std::ostringstream outstrstream;
-        outstrstream << "x,y,z";
-        if (GET_OUTPUT_SETTING(VEL_COMPONENTS)) {
-            outstrstream << ",vx,vy,vz";
-        }
-        if (GET_OUTPUT_SETTING(ABSV)) {
-            outstrstream << ",absv";
-        }
-        if (GET_OUTPUT_SETTING(FIXITY)) {
-            outstrstream << ",fixed";
-        }
-
-        if (gran_params->friction_mode != CHGPU_FRICTION_MODE::FRICTIONLESS && GET_OUTPUT_SETTING(ANG_VEL_COMPONENTS)) {
-            outstrstream << ",wx,wy,wz";
-        }
-
-        if (GET_OUTPUT_SETTING(FORCE_COMPONENTS)) {
-            outstrstream << ",fx,fy,fz";
-        }
-
-        outstrstream << "\n";
-        for (unsigned int n = 0; n < nSpheres; n++) {
-            unsigned int ownerSD = sphere_owner_SDs.at(n);
-            int3 ownerSD_trip = getSDTripletFromID(ownerSD);
-            float x_UU = (float)(sphere_local_pos_X[n] * LENGTH_SU2UU);
-            float y_UU = (float)(sphere_local_pos_Y[n] * LENGTH_SU2UU);
-            float z_UU = (float)(sphere_local_pos_Z[n] * LENGTH_SU2UU);
-
-            x_UU += (float)(gran_params->BD_frame_X * LENGTH_SU2UU);
-            y_UU += (float)(gran_params->BD_frame_Y * LENGTH_SU2UU);
-            z_UU += (float)(gran_params->BD_frame_Z * LENGTH_SU2UU);
-
-            x_UU += (float)(((int64_t)ownerSD_trip.x * gran_params->SD_size_X_SU) * LENGTH_SU2UU);
-            y_UU += (float)(((int64_t)ownerSD_trip.y * gran_params->SD_size_Y_SU) * LENGTH_SU2UU);
-            z_UU += (float)(((int64_t)ownerSD_trip.z * gran_params->SD_size_Z_SU) * LENGTH_SU2UU);
-
-            outstrstream << x_UU << "," << y_UU << "," << z_UU;
-
-            if (GET_OUTPUT_SETTING(VEL_COMPONENTS)) {
-                float vx_UU = (float)(pos_X_dt[n] * LENGTH_SU2UU / TIME_SU2UU);
-                float vy_UU = (float)(pos_Y_dt[n] * LENGTH_SU2UU / TIME_SU2UU);
-                float vz_UU = (float)(pos_Z_dt[n] * LENGTH_SU2UU / TIME_SU2UU);
-
-                outstrstream << "," << vx_UU << "," << vy_UU << "," << vz_UU;
-            }
-
-            if (GET_OUTPUT_SETTING(ABSV)) {
-                float absv = (float)(std::sqrt(pos_X_dt.at(n) * pos_X_dt.at(n) + pos_Y_dt.at(n) * pos_Y_dt.at(n) +
-                                               pos_Z_dt.at(n) * pos_Z_dt.at(n)) *
-                                     VEL_SU2UU);
-                outstrstream << "," << absv;
-            }
-
-            if (GET_OUTPUT_SETTING(FIXITY)) {
-                int fixed = (int)sphere_fixed[n];
-                outstrstream << "," << fixed;
-            }
-
-            if (gran_params->friction_mode != CHGPU_FRICTION_MODE::FRICTIONLESS &&
-                GET_OUTPUT_SETTING(ANG_VEL_COMPONENTS)) {
-                outstrstream << "," << sphere_Omega_X.at(n) / TIME_SU2UU << "," << sphere_Omega_Y.at(n) / TIME_SU2UU
-                             << "," << sphere_Omega_Z.at(n) / TIME_SU2UU;
-            }
-
-            if (GET_OUTPUT_SETTING(FORCE_COMPONENTS)) {
-                double fx =
-                    (sphere_acc_X.at(n) - gran_params->gravAcc_X_SU) * gran_params->sphere_mass_SU * FORCE_SU2UU;
-                double fy =
-                    (sphere_acc_Y.at(n) - gran_params->gravAcc_Y_SU) * gran_params->sphere_mass_SU * FORCE_SU2UU;
-                double fz =
-                    (sphere_acc_Z.at(n) - gran_params->gravAcc_Z_SU) * gran_params->sphere_mass_SU * FORCE_SU2UU;
-                outstrstream << "," << fx << "," << fy << "," << fz;
-            }
-
-            outstrstream << "\n";
-        }
-
-        ptFile << outstrstream.str();
-    } else if (file_write_mode == CHGPU_OUTPUT_MODE::HDF5) {
-#ifdef USE_HDF5
-        float* x = new float[nSpheres];
-        float* y = new float[nSpheres];
-        float* z = new float[nSpheres];
-
-        for (size_t n = 0; n < nSpheres; n++) {
-            unsigned int ownerSD = sphere_owner_SDs.at(n);
-            int3 ownerSD_trip = getSDTripletFromID(ownerSD);
-            float x_UU = sphere_local_pos_X[n] * LENGTH_SU2UU;
-            float y_UU = sphere_local_pos_Y[n] * LENGTH_SU2UU;
-            float z_UU = sphere_local_pos_Z[n] * LENGTH_SU2UU;
-
-            x_UU += gran_params->BD_frame_X * LENGTH_SU2UU;
-            y_UU += gran_params->BD_frame_Y * LENGTH_SU2UU;
-            z_UU += gran_params->BD_frame_Z * LENGTH_SU2UU;
-
-            x_UU += ((int64_t)ownerSD_trip.x * gran_params->SD_size_X_SU) * LENGTH_SU2UU;
-            y_UU += ((int64_t)ownerSD_trip.y * gran_params->SD_size_Y_SU) * LENGTH_SU2UU;
-            z_UU += ((int64_t)ownerSD_trip.z * gran_params->SD_size_Z_SU) * LENGTH_SU2UU;
-
-            x[n] = x_UU;
-            y[n] = y_UU;
-            z[n] = z_UU;
-        }
-
-        H5::H5File file((ofile + ".h5").c_str(), H5F_ACC_TRUNC);
-
-        hsize_t dims[1] = {nSpheres};
-        H5::DataSpace dataspace(1, dims);
-
-        H5::DataSet ds_x = file.createDataSet("x", H5::PredType::NATIVE_FLOAT, dataspace);
-        ds_x.write(x, H5::PredType::NATIVE_FLOAT);
-
-        H5::DataSet ds_y = file.createDataSet("y", H5::PredType::NATIVE_FLOAT, dataspace);
-        ds_y.write(y, H5::PredType::NATIVE_FLOAT);
-
-        H5::DataSet ds_z = file.createDataSet("z", H5::PredType::NATIVE_FLOAT, dataspace);
-        ds_z.write(z, H5::PredType::NATIVE_FLOAT);
-        delete[] x, y, z;
+        ptFile.write((const char*)&x_UU, sizeof(float));
+        ptFile.write((const char*)&y_UU, sizeof(float));
+        ptFile.write((const char*)&z_UU, sizeof(float));
 
         if (GET_OUTPUT_SETTING(VEL_COMPONENTS)) {
-            float* vx = new float[nSpheres];
-            float* vy = new float[nSpheres];
-            float* vz = new float[nSpheres];
-            for (size_t n = 0; n < nSpheres; n++) {
-                vx[n] = pos_X_dt[n] * LENGTH_SU2UU / TIME_SU2UU;
-                vy[n] = pos_Y_dt[n] * LENGTH_SU2UU / TIME_SU2UU;
-                vz[n] = pos_Z_dt[n] * LENGTH_SU2UU / TIME_SU2UU;
-            }
+            float vx_UU = (float)(pos_X_dt[n] * LENGTH_SU2UU / TIME_SU2UU);
+            float vy_UU = (float)(pos_Y_dt[n] * LENGTH_SU2UU / TIME_SU2UU);
+            float vz_UU = (float)(pos_Z_dt[n] * LENGTH_SU2UU / TIME_SU2UU);
 
-            H5::DataSet ds_vx = file.createDataSet("vx", H5::PredType::NATIVE_FLOAT, dataspace);
-            ds_vx.write(vx, H5::PredType::NATIVE_FLOAT);
-
-            H5::DataSet ds_vy = file.createDataSet("vy", H5::PredType::NATIVE_FLOAT, dataspace);
-            ds_vy.write(vy, H5::PredType::NATIVE_FLOAT);
-
-            H5::DataSet ds_vz = file.createDataSet("vz", H5::PredType::NATIVE_FLOAT, dataspace);
-            ds_vz.write(vz, H5::PredType::NATIVE_FLOAT);
-
-            delete[] vx, vy, vz;
+            ptFile.write((const char*)&vx_UU, sizeof(float));
+            ptFile.write((const char*)&vy_UU, sizeof(float));
+            ptFile.write((const char*)&vz_UU, sizeof(float));
         }
 
         if (GET_OUTPUT_SETTING(ABSV)) {
-            float* absv = new float[nSpheres];
-            for (size_t n = 0; n < nSpheres; n++) {
-                absv[n] = sqrt(pos_X_dt.at(n) * pos_X_dt.at(n) + pos_Y_dt.at(n) * pos_Y_dt.at(n) +
-                               pos_Z_dt.at(n) * pos_Z_dt.at(n)) *
-                          VEL_SU2UU;
-            }
-            H5::DataSet ds_absv = file.createDataSet("absv", H5::PredType::NATIVE_FLOAT, dataspace);
-            ds_absv.write(absv, H5::PredType::NATIVE_FLOAT);
+            float absv = (float)(std::sqrt(pos_X_dt.at(n) * pos_X_dt.at(n) + pos_Y_dt.at(n) * pos_Y_dt.at(n) +
+                                           pos_Z_dt.at(n) * pos_Z_dt.at(n)) *
+                                 VEL_SU2UU);
 
-            delete[] absv;
-        }
-
-        if (GET_OUTPUT_SETTING(FIXITY)) {
-            unsigned char* fixed = new unsigned char[nSpheres];
-            for (size_t n = 0; n < nSpheres; n++) {
-                fixed[n] = (unsigned char)sphere_fixed[n];
-            }
-            H5::DataSet ds_fixed = file.createDataSet("fixed", H5::PredType::NATIVE_UCHAR, dataspace);
-            ds_fixed.write(fixed, H5::PredType::NATIVE_UCHAR);
-
-            delete[] fixed;
+            ptFile.write((const char*)&absv, sizeof(float));
         }
 
         if (gran_params->friction_mode != CHGPU_FRICTION_MODE::FRICTIONLESS && GET_OUTPUT_SETTING(ANG_VEL_COMPONENTS)) {
-            float* wx = new float[nSpheres];
-            float* wy = new float[nSpheres];
-            float* wz = new float[nSpheres];
-            for (size_t n = 0; n < nSpheres; n++) {
-                wx[n] = sphere_Omega_X[n] / TIME_SU2UU;
-                wy[n] = sphere_Omega_Y[n] / TIME_SU2UU;
-                wz[n] = sphere_Omega_Z[n] / TIME_SU2UU;
-            }
-
-            H5::DataSet ds_wx = file.createDataSet("wx", H5::PredType::NATIVE_FLOAT, dataspace);
-            ds_wx.write(wx, H5::PredType::NATIVE_FLOAT);
-
-            H5::DataSet ds_wy = file.createDataSet("wy", H5::PredType::NATIVE_FLOAT, dataspace);
-            ds_wy.write(wy, H5::PredType::NATIVE_FLOAT);
-
-            H5::DataSet ds_wz = file.createDataSet("wz", H5::PredType::NATIVE_FLOAT, dataspace);
-            ds_wz.write(wz, H5::PredType::NATIVE_FLOAT);
-
-            delete[] wx, wy, wz;
+            float omega_x_UU = (float)(sphere_Omega_X.at(n) / TIME_SU2UU);
+            float omega_y_UU = (float)(sphere_Omega_Y.at(n) / TIME_SU2UU);
+            float omega_z_UU = (float)(sphere_Omega_Z.at(n) / TIME_SU2UU);
+            ptFile.write((const char*)&omega_x_UU, sizeof(float));
+            ptFile.write((const char*)&omega_y_UU, sizeof(float));
+            ptFile.write((const char*)&omega_z_UU, sizeof(float));
         }
-#else
-        CHGPU_ERROR("HDF5 Installation not found. Recompile with HDF5.\n");
-#endif
-    } else if (file_write_mode == CHGPU_OUTPUT_MODE::NONE) {
-        // Do nothing, only here for symmetry
     }
 }
 
-void ChSystemGpu_impl::WriteContactInfoFile(std::string ofile) const {
-    if (gran_params->recording_contactInfo == false) {
-        printf("ERROR: recording_contactInfo set to false!\n");
-        exit(1);
+void ChSystemGpu_impl::WriteCsvParticles(std::ofstream& ptFile) const {
+    // Dump to a stream, write to file only at end
+    std::ostringstream outstrstream;
+    outstrstream << "x,y,z";
+    if (GET_OUTPUT_SETTING(VEL_COMPONENTS)) {
+        outstrstream << ",vx,vy,vz";
+    }
+    if (GET_OUTPUT_SETTING(ABSV)) {
+        outstrstream << ",absv";
+    }
+    if (GET_OUTPUT_SETTING(FIXITY)) {
+        outstrstream << ",fixed";
+    }
+
+    if (gran_params->friction_mode != CHGPU_FRICTION_MODE::FRICTIONLESS && GET_OUTPUT_SETTING(ANG_VEL_COMPONENTS)) {
+        outstrstream << ",wx,wy,wz";
+    }
+
+    if (GET_OUTPUT_SETTING(FORCE_COMPONENTS)) {
+        outstrstream << ",fx,fy,fz";
+    }
+
+    outstrstream << "\n";
+    for (unsigned int n = 0; n < nSpheres; n++) {
+        unsigned int ownerSD = sphere_owner_SDs.at(n);
+        int3 ownerSD_trip = getSDTripletFromID(ownerSD);
+        float x_UU = (float)(sphere_local_pos_X[n] * LENGTH_SU2UU);
+        float y_UU = (float)(sphere_local_pos_Y[n] * LENGTH_SU2UU);
+        float z_UU = (float)(sphere_local_pos_Z[n] * LENGTH_SU2UU);
+
+        x_UU += (float)(gran_params->BD_frame_X * LENGTH_SU2UU);
+        y_UU += (float)(gran_params->BD_frame_Y * LENGTH_SU2UU);
+        z_UU += (float)(gran_params->BD_frame_Z * LENGTH_SU2UU);
+
+        x_UU += (float)(((int64_t)ownerSD_trip.x * gran_params->SD_size_X_SU) * LENGTH_SU2UU);
+        y_UU += (float)(((int64_t)ownerSD_trip.y * gran_params->SD_size_Y_SU) * LENGTH_SU2UU);
+        z_UU += (float)(((int64_t)ownerSD_trip.z * gran_params->SD_size_Z_SU) * LENGTH_SU2UU);
+
+        outstrstream << x_UU << "," << y_UU << "," << z_UU;
+
+        if (GET_OUTPUT_SETTING(VEL_COMPONENTS)) {
+            float vx_UU = (float)(pos_X_dt[n] * LENGTH_SU2UU / TIME_SU2UU);
+            float vy_UU = (float)(pos_Y_dt[n] * LENGTH_SU2UU / TIME_SU2UU);
+            float vz_UU = (float)(pos_Z_dt[n] * LENGTH_SU2UU / TIME_SU2UU);
+
+            outstrstream << "," << vx_UU << "," << vy_UU << "," << vz_UU;
+        }
+
+        if (GET_OUTPUT_SETTING(ABSV)) {
+            float absv = (float)(std::sqrt(pos_X_dt.at(n) * pos_X_dt.at(n) + pos_Y_dt.at(n) * pos_Y_dt.at(n) +
+                                           pos_Z_dt.at(n) * pos_Z_dt.at(n)) *
+                                 VEL_SU2UU);
+            outstrstream << "," << absv;
+        }
+
+        if (GET_OUTPUT_SETTING(FIXITY)) {
+            int fixed = (int)sphere_fixed[n];
+            outstrstream << "," << fixed;
+        }
+
+        if (gran_params->friction_mode != CHGPU_FRICTION_MODE::FRICTIONLESS && GET_OUTPUT_SETTING(ANG_VEL_COMPONENTS)) {
+            outstrstream << "," << sphere_Omega_X.at(n) / TIME_SU2UU << "," << sphere_Omega_Y.at(n) / TIME_SU2UU << ","
+                         << sphere_Omega_Z.at(n) / TIME_SU2UU;
+        }
+
+        if (GET_OUTPUT_SETTING(FORCE_COMPONENTS)) {
+            double fx = (sphere_acc_X.at(n) - gran_params->gravAcc_X_SU) * gran_params->sphere_mass_SU * FORCE_SU2UU;
+            double fy = (sphere_acc_Y.at(n) - gran_params->gravAcc_Y_SU) * gran_params->sphere_mass_SU * FORCE_SU2UU;
+            double fz = (sphere_acc_Z.at(n) - gran_params->gravAcc_Z_SU) * gran_params->sphere_mass_SU * FORCE_SU2UU;
+            outstrstream << "," << fx << "," << fy << "," << fz;
+        }
+
+        outstrstream << "\n";
+    }
+
+    ptFile << outstrstream.str();
+}
+
+void ChSystemGpu_impl::WriteChPFParticles(std::ofstream& ptFile) const {
+    ParticleFormatWriter pw;
+
+    std::vector<float> v_x_UU(sphere_local_pos_X.size());
+    std::vector<float> v_y_UU(sphere_local_pos_Y.size());
+    std::vector<float> v_z_UU(sphere_local_pos_Z.size());
+
+    for (unsigned int n = 0; n < nSpheres; n++) {
+        unsigned int ownerSD = sphere_owner_SDs.at(n);
+        int3 ownerSD_trip = getSDTripletFromID(ownerSD);
+        float x_UU = (float)(sphere_local_pos_X[n] * LENGTH_SU2UU);
+        float y_UU = (float)(sphere_local_pos_Y[n] * LENGTH_SU2UU);
+        float z_UU = (float)(sphere_local_pos_Z[n] * LENGTH_SU2UU);
+
+        x_UU += (float)(gran_params->BD_frame_X * LENGTH_SU2UU);
+        y_UU += (float)(gran_params->BD_frame_Y * LENGTH_SU2UU);
+        z_UU += (float)(gran_params->BD_frame_Z * LENGTH_SU2UU);
+
+        x_UU += (float)(((int64_t)ownerSD_trip.x * gran_params->SD_size_X_SU) * LENGTH_SU2UU);
+        y_UU += (float)(((int64_t)ownerSD_trip.y * gran_params->SD_size_Y_SU) * LENGTH_SU2UU);
+        z_UU += (float)(((int64_t)ownerSD_trip.z * gran_params->SD_size_Z_SU) * LENGTH_SU2UU);
+
+        v_x_UU[n] = x_UU;
+        v_y_UU[n] = y_UU;
+        v_z_UU[n] = z_UU;
+    }
+
+    pw.write(ptFile, ParticleFormatWriter::CompressionType::NONE, v_x_UU, v_y_UU, v_z_UU);
+}
+
+#ifdef USE_HDF5
+void ChSystemGpu_impl::WriteH5Particles(H5::H5File& ptFile) const {
+    float* x = new float[nSpheres];
+    float* y = new float[nSpheres];
+    float* z = new float[nSpheres];
+
+    for (size_t n = 0; n < nSpheres; n++) {
+        unsigned int ownerSD = sphere_owner_SDs.at(n);
+        int3 ownerSD_trip = getSDTripletFromID(ownerSD);
+        float x_UU = sphere_local_pos_X[n] * LENGTH_SU2UU;
+        float y_UU = sphere_local_pos_Y[n] * LENGTH_SU2UU;
+        float z_UU = sphere_local_pos_Z[n] * LENGTH_SU2UU;
+
+        x_UU += gran_params->BD_frame_X * LENGTH_SU2UU;
+        y_UU += gran_params->BD_frame_Y * LENGTH_SU2UU;
+        z_UU += gran_params->BD_frame_Z * LENGTH_SU2UU;
+
+        x_UU += ((int64_t)ownerSD_trip.x * gran_params->SD_size_X_SU) * LENGTH_SU2UU;
+        y_UU += ((int64_t)ownerSD_trip.y * gran_params->SD_size_Y_SU) * LENGTH_SU2UU;
+        z_UU += ((int64_t)ownerSD_trip.z * gran_params->SD_size_Z_SU) * LENGTH_SU2UU;
+
+        x[n] = x_UU;
+        y[n] = y_UU;
+        z[n] = z_UU;
+    }
+
+    hsize_t dims[1] = {nSpheres};
+    H5::DataSpace dataspace(1, dims);
+
+    H5::DataSet ds_x = ptFile.createDataSet("x", H5::PredType::NATIVE_FLOAT, dataspace);
+    ds_x.write(x, H5::PredType::NATIVE_FLOAT);
+
+    H5::DataSet ds_y = ptFile.createDataSet("y", H5::PredType::NATIVE_FLOAT, dataspace);
+    ds_y.write(y, H5::PredType::NATIVE_FLOAT);
+
+    H5::DataSet ds_z = ptFile.createDataSet("z", H5::PredType::NATIVE_FLOAT, dataspace);
+    ds_z.write(z, H5::PredType::NATIVE_FLOAT);
+    delete[] x, y, z;
+
+    if (GET_OUTPUT_SETTING(VEL_COMPONENTS)) {
+        float* vx = new float[nSpheres];
+        float* vy = new float[nSpheres];
+        float* vz = new float[nSpheres];
+        for (size_t n = 0; n < nSpheres; n++) {
+            vx[n] = pos_X_dt[n] * LENGTH_SU2UU / TIME_SU2UU;
+            vy[n] = pos_Y_dt[n] * LENGTH_SU2UU / TIME_SU2UU;
+            vz[n] = pos_Z_dt[n] * LENGTH_SU2UU / TIME_SU2UU;
+        }
+
+        H5::DataSet ds_vx = ptFile.createDataSet("vx", H5::PredType::NATIVE_FLOAT, dataspace);
+        ds_vx.write(vx, H5::PredType::NATIVE_FLOAT);
+
+        H5::DataSet ds_vy = ptFile.createDataSet("vy", H5::PredType::NATIVE_FLOAT, dataspace);
+        ds_vy.write(vy, H5::PredType::NATIVE_FLOAT);
+
+        H5::DataSet ds_vz = ptFile.createDataSet("vz", H5::PredType::NATIVE_FLOAT, dataspace);
+        ds_vz.write(vz, H5::PredType::NATIVE_FLOAT);
+
+        delete[] vx, vy, vz;
+    }
+
+    if (GET_OUTPUT_SETTING(ABSV)) {
+        float* absv = new float[nSpheres];
+        for (size_t n = 0; n < nSpheres; n++) {
+            absv[n] = sqrt(pos_X_dt.at(n) * pos_X_dt.at(n) + pos_Y_dt.at(n) * pos_Y_dt.at(n) +
+                           pos_Z_dt.at(n) * pos_Z_dt.at(n)) *
+                      VEL_SU2UU;
+        }
+        H5::DataSet ds_absv = ptFile.createDataSet("absv", H5::PredType::NATIVE_FLOAT, dataspace);
+        ds_absv.write(absv, H5::PredType::NATIVE_FLOAT);
+
+        delete[] absv;
+    }
+
+    if (GET_OUTPUT_SETTING(FIXITY)) {
+        unsigned char* fixed = new unsigned char[nSpheres];
+        for (size_t n = 0; n < nSpheres; n++) {
+            fixed[n] = (unsigned char)sphere_fixed[n];
+        }
+        H5::DataSet ds_fixed = ptFile.createDataSet("fixed", H5::PredType::NATIVE_UCHAR, dataspace);
+        ds_fixed.write(fixed, H5::PredType::NATIVE_UCHAR);
+
+        delete[] fixed;
+    }
+
+    if (gran_params->friction_mode != CHGPU_FRICTION_MODE::FRICTIONLESS && GET_OUTPUT_SETTING(ANG_VEL_COMPONENTS)) {
+        float* wx = new float[nSpheres];
+        float* wy = new float[nSpheres];
+        float* wz = new float[nSpheres];
+        for (size_t n = 0; n < nSpheres; n++) {
+            wx[n] = sphere_Omega_X[n] / TIME_SU2UU;
+            wy[n] = sphere_Omega_Y[n] / TIME_SU2UU;
+            wz[n] = sphere_Omega_Z[n] / TIME_SU2UU;
+        }
+
+        H5::DataSet ds_wx = ptFile.createDataSet("wx", H5::PredType::NATIVE_FLOAT, dataspace);
+        ds_wx.write(wx, H5::PredType::NATIVE_FLOAT);
+
+        H5::DataSet ds_wy = ptFile.createDataSet("wy", H5::PredType::NATIVE_FLOAT, dataspace);
+        ds_wy.write(wy, H5::PredType::NATIVE_FLOAT);
+
+        H5::DataSet ds_wz = ptFile.createDataSet("wz", H5::PredType::NATIVE_FLOAT, dataspace);
+        ds_wz.write(wz, H5::PredType::NATIVE_FLOAT);
+
+        delete[] wx, wy, wz;
+    }
+}
+#endif
+
+void ChSystemGpu_impl::WriteContactInfoFile(const std::string& outfilename) const {
+    if ((gran_params->recording_contactInfo == false) ||
+        (gran_params->friction_mode == CHGPU_FRICTION_MODE::FRICTIONLESS)) {
+        CHGPU_ERROR("ERROR! You did not enable contact info recording or are using frictionless model!\n");
     } else {
         // write contact info as an csv style in the following format
         // body i, body j, n_mag, fx, fy, fz, mx, my, mz
 
-        std::ofstream ptFile(ofile + ".csv", std::ios::out);
+        std::ofstream ptFile(outfilename, std::ios::out);
         // Dump to a stream, write to file only at end
         std::ostringstream outstrstream;
         outstrstream << "bi, bj, n_mag";
@@ -598,7 +622,7 @@ size_t ChSystemGpu_impl::CreateBCConeZ(float cone_tip[3],
     return BC_type_list.size() - 1;
 }
 
-size_t ChSystemGpu_impl::CreateBCPlane(float plane_pos[3], float plane_normal[3], bool track_forces) {
+size_t ChSystemGpu_impl::CreateBCPlane(float plane_pos[3], float plane_normal[3], bool track_forces, size_t position) {
     BC_params_t<float, float3> p;
     p.plane_params.position.x = plane_pos[0];
     p.plane_params.position.y = plane_pos[1];
@@ -615,12 +639,22 @@ size_t ChSystemGpu_impl::CreateBCPlane(float plane_pos[3], float plane_normal[3]
 
     p.track_forces = track_forces;
 
-    BC_type_list.push_back(BC_type::PLANE);
-    BC_params_list_UU.push_back(p);
-    BC_offset_function_list.push_back(GranPosFunction_default);
+    // If position is SIZE_MAX then just use standard push_back
+    if (position == SIZE_MAX) {
+        BC_type_list.push_back(BC_type::PLANE);
+        BC_params_list_UU.push_back(p);
+        BC_offset_function_list.push_back(GranPosFunction_default);
+    } else {
+        BC_type_list.at(position) = BC_type::PLANE;
+        BC_params_list_UU.at(position) = p;
+        BC_offset_function_list.at(position) = GranPosFunction_default;
+    }
 
     // get my index in the new array
-    return BC_type_list.size() - 1;
+    if (position == SIZE_MAX)
+        return BC_type_list.size() - 1;
+    else
+        return position;
 }
 
 size_t ChSystemGpu_impl::CreateBCCylinderZ(float center[3], float radius, bool outward_normal, bool track_forces) {
@@ -721,12 +755,12 @@ void ChSystemGpu_impl::setBCOffset(const BC_type& bc_type,
             printf("ERROR: Unsupported BC Type!\n");
             exit(1);
         }
-
-            // do midpoint approx for velocity
-            params_SU.vel_SU.x = (new_pos.x - old_pos.x) / stepSize_SU;
-            params_SU.vel_SU.y = (new_pos.y - old_pos.y) / stepSize_SU;
-            params_SU.vel_SU.z = (new_pos.z - old_pos.z) / stepSize_SU;
     }
+
+    // do midpoint approx for velocity
+    params_SU.vel_SU.x = (new_pos.x - old_pos.x) / stepSize_SU;
+    params_SU.vel_SU.y = (new_pos.y - old_pos.y) / stepSize_SU;
+    params_SU.vel_SU.z = (new_pos.z - old_pos.z) / stepSize_SU;
 }
 
 float3 ChSystemGpu_impl::GetBCPlanePosition(size_t plane_id) const {
@@ -870,9 +904,9 @@ void ChSystemGpu_impl::initializeSpheres() {
 }
 
 // Set particle positions in UU
-void ChSystemGpu_impl::SetParticlePositions(const std::vector<float3>& points,
-                                            const std::vector<float3>& vels,
-                                            const std::vector<float3>& ang_vels) {
+void ChSystemGpu_impl::SetParticles(const std::vector<float3>& points,
+                                    const std::vector<float3>& vels,
+                                    const std::vector<float3>& ang_vels) {
     user_sphere_positions = points;  // Copy points to class vector
     user_sphere_vel = vels;
     user_sphere_ang_vel = ang_vels;
@@ -896,6 +930,22 @@ float3 ChSystemGpu_impl::GetParticlePosition(int nSphere) const {
     y_UU += (float)(((int64_t)ownerSD_trip.y * gran_params->SD_size_Y_SU) * LENGTH_SU2UU);
     z_UU += (float)(((int64_t)ownerSD_trip.z * gran_params->SD_size_Z_SU) * LENGTH_SU2UU);
     return make_float3(x_UU, y_UU, z_UU);
+}
+
+float ChSystemGpu_impl::ComputeTotalKE() {
+    size_t nSpheres = pos_X_dt.size();
+    if (nSpheres == 0)
+        return 0.f;
+
+    // Compute sum(v^2) and sum(w^2)
+    float v2_UU = computeArray3SquaredSum(pos_X_dt, pos_Y_dt, pos_Z_dt, nSpheres);
+    v2_UU *= VEL_SU2UU * VEL_SU2UU;
+    float w2_UU = computeArray3SquaredSum(sphere_Omega_X, sphere_Omega_Y, sphere_Omega_Z, nSpheres);
+    w2_UU /= TIME_SU2UU * TIME_SU2UU;
+    float m = (4. / 3.) * CH_C_PI * sphere_radius_UU * sphere_radius_UU * sphere_radius_UU * sphere_density_UU;
+
+    // Then, KE = 0.5 * m * sum(v^2) + 0.2 * m * r^2 * sum(w^2)
+    return 0.5 * m * v2_UU + 0.2 * m * sphere_radius_UU * sphere_radius_UU * w2_UU;
 }
 
 // return absolute velocity
@@ -941,6 +991,10 @@ int ChSystemGpu_impl::GetNumContacts() const {
 
 // Partitions the big domain (BD) and sets the number of SDs that BD is split in.
 void ChSystemGpu_impl::partitionBD() {
+    // Create BC walls and potential trajactory function
+    CreateWallBCs();
+    setBDWallsMotionFunction(GranPosFunction_default);
+
     double sd_length_scale = 2.0 * sphere_radius_UU * AVERAGE_SPHERES_PER_SD_X_DIR;
 
     unsigned int nSDs_X = (unsigned int)(std::ceil(box_size_X / sd_length_scale));
@@ -975,9 +1029,9 @@ void ChSystemGpu_impl::partitionBD() {
 
     // Place BD frame at bottom-left corner, one half-length in each direction
     // Can change later if desired
-    gran_params->BD_frame_X = (int64_t)(-0.5 * ((int64_t)nSDs_X * SD_size_X));
-    gran_params->BD_frame_Y = (int64_t)(-0.5 * ((int64_t)nSDs_Y * SD_size_Y));
-    gran_params->BD_frame_Z = (int64_t)(-0.5 * ((int64_t)nSDs_Z * SD_size_Z));
+    gran_params->BD_frame_X = (int64_t)(-0.5 * ((int64_t)nSDs_X * SD_size_X) + (double)user_coord_O_X / LENGTH_SU2UU);
+    gran_params->BD_frame_Y = (int64_t)(-0.5 * ((int64_t)nSDs_Y * SD_size_Y) + (double)user_coord_O_Y / LENGTH_SU2UU);
+    gran_params->BD_frame_Z = (int64_t)(-0.5 * ((int64_t)nSDs_Z * SD_size_Z) + (double)user_coord_O_Z / LENGTH_SU2UU);
 
     // permanently cache the initial frame
     BD_rest_frame_SU = make_longlong3(gran_params->BD_frame_X, gran_params->BD_frame_Y, gran_params->BD_frame_Z);

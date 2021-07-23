@@ -37,7 +37,7 @@ class CH_VEHICLE_API ShaftsPowertrain : public ChShaftsPowertrain {
     ShaftsPowertrain(const rapidjson::Document& d);
     ~ShaftsPowertrain() {}
 
-    virtual void SetGearRatios(std::vector<double>& gear_ratios) override;
+    virtual void SetGearRatios(std::vector<double>& fwd, double& rev) override;
 
     virtual double GetMotorBlockInertia() const override { return m_motorblock_inertia; }
     virtual double GetCrankshaftInertia() const override { return m_crankshaft_inertia; }

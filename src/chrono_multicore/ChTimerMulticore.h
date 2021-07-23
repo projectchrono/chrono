@@ -25,7 +25,7 @@
 #include "chrono/core/ChTimer.h"
 
 #include "chrono_multicore/ChMulticoreDefines.h"
-#include "chrono_multicore/math/ChMulticoreMath.h"
+#include "chrono/multicore_math/ChMulticoreMath.h"
 
 namespace chrono {
 

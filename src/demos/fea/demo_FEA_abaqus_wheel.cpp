@@ -175,7 +175,6 @@ int main(int argc, char* argv[]) {
     mcontactsurf->AddAllNodes();
 
     // Apply initial speed and angular speed
-    double speed_x0 = 0.5;
     for (unsigned int i = 0; i < my_mesh->GetNnodes(); ++i) {
         ChVector<> node_pos = std::dynamic_pointer_cast<ChNodeFEAxyz>(my_mesh->GetNode(i))->GetPos();
         ChVector<> tang_vel = Vcross(ChVector<>(tire_w0, 0, 0), node_pos - tire_center);

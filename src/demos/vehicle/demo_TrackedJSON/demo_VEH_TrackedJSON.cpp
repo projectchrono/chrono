@@ -101,6 +101,10 @@ int main(int argc, char* argv[]) {
     // Create the vehicle system
     TrackedVehicle vehicle(vehicle::GetDataFile(vehicle_file), contact_method);
 
+    // Replace collision shapes from cylindrical to cylshell.
+    ////vehicle.GetTrackAssembly(LEFT)->SetWheelCollisionType(false, false, false);
+    ////vehicle.GetTrackAssembly(RIGHT)->SetWheelCollisionType(false, false, false);
+
     // Control steering type (enable crossdrive capability).
     ////vehicle.GetDriveline()->SetGyrationMode(true);
 

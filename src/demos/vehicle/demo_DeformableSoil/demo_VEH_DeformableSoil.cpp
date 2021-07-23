@@ -17,6 +17,9 @@
 #include "chrono/physics/ChLoadContainer.h"
 #include "chrono/physics/ChSystemSMC.h"
 #include "chrono/utils/ChUtilsInputOutput.h"
+#ifdef CHRONO_COLLISION
+    #include "chrono/collision/ChCollisionSystemChrono.h"
+#endif
 
 #include "chrono_irrlicht/ChIrrApp.h"
 
@@ -50,29 +53,37 @@ bool enable_moving_patch = true;
 bool var_params = true;
 
 // Custom callback for setting location-dependent soil properties.
-// Note that the (x,y) location is given in the terrain's reference plane.
+// Note that the location is given in the SCM reference frame.
 // Here, the vehicle moves in the terrain's negative y direction!
 class MySoilParams : public vehicle::SCMDeformableTerrain::SoilParametersCallback {
   public:
-    virtual void Set(double x, double y) override {
-        if (y > 0) {
-            m_Bekker_Kphi = 0.2e6;
-            m_Bekker_Kc = 0;
-            m_Bekker_n = 1.1;
-            m_Mohr_cohesion = 0;
-            m_Mohr_friction = 30;
-            m_Janosi_shear = 0.01;
-            m_elastic_K = 4e7;
-            m_damping_R = 3e4;
+    virtual void Set(const ChVector<>& loc,
+                     double& Bekker_Kphi,
+                     double& Bekker_Kc,
+                     double& Bekker_n,
+                     double& Mohr_cohesion,
+                     double& Mohr_friction,
+                     double& Janosi_shear,
+                     double& elastic_K,
+                     double& damping_R) override {
+        if (loc.y() > 0) {
+            Bekker_Kphi = 0.2e6;
+            Bekker_Kc = 0;
+            Bekker_n = 1.1;
+            Mohr_cohesion = 0;
+            Mohr_friction = 30;
+            Janosi_shear = 0.01;
+            elastic_K = 4e7;
+            damping_R = 3e4;
         } else {
-            m_Bekker_Kphi = 5301e3;
-            m_Bekker_Kc = 102e3;
-            m_Bekker_n = 0.793;
-            m_Mohr_cohesion = 1.3e3;
-            m_Mohr_friction = 31.1;
-            m_Janosi_shear = 1.2e-2;
-            m_elastic_K = 4e8;
-            m_damping_R = 3e4;
+            Bekker_Kphi = 5301e3;
+            Bekker_Kc = 102e3;
+            Bekker_n = 0.793;
+            Mohr_cohesion = 1.3e3;
+            Mohr_friction = 31.1;
+            Janosi_shear = 1.2e-2;
+            elastic_K = 4e8;
+            damping_R = 3e4;
         }
     }
 };
@@ -88,7 +99,16 @@ int main(int argc, char* argv[]) {
     ChVector<> tire_center(0, 0.02 + tire_rad, -1.5);
 
     // Create a Chrono::Engine physical system
+    auto collsys_type = collision::ChCollisionSystemType::BULLET;
     ChSystemSMC my_system;
+    my_system.SetNumThreads(4, 8, 1);
+    if (collsys_type == collision::ChCollisionSystemType::CHRONO) {
+#ifdef CHRONO_COLLISION
+        auto collsys = chrono_types::make_shared<collision::ChCollisionSystemChrono>();
+        collsys->SetBroadphaseGridResolution(ChVector<int>(20, 20, 10));
+        my_system.SetCollisionSystem(collsys);
+#endif
+    }
 
     // Create the Irrlicht visualization (open the Irrlicht device,
     // bind a simple user interface, etc. etc.)
@@ -102,7 +122,7 @@ int main(int argc, char* argv[]) {
     application.AddLightWithShadow(core::vector3df(1.5f, 5.5f, -2.5f), core::vector3df(0, 0, 0), 3, 2.2, 7.2, 40, 512,
                                    video::SColorf(0.8f, 0.8f, 1.0f));
 
-    std::shared_ptr<ChBody> mtruss(new ChBody);
+    auto mtruss = chrono_types::make_shared<ChBody>(collsys_type);
     mtruss->SetBodyFixed(true);
     my_system.Add(mtruss);
 
@@ -119,7 +139,7 @@ int main(int argc, char* argv[]) {
     // Create a rigid body with a mesh or a cylinder collision shape
     //
 
-    std::shared_ptr<ChBody> mrigidbody(new ChBody);
+    auto mrigidbody = chrono_types::make_shared<ChBody>(collsys_type);
     my_system.Add(mrigidbody);
     mrigidbody->SetMass(500);
     mrigidbody->SetInertiaXX(ChVector<>(20, 20, 20));
@@ -242,7 +262,7 @@ int main(int argc, char* argv[]) {
     ////mterrain.SetPlotType(vehicle::SCMDeformableTerrain::PLOT_STEP_PLASTIC_FLOW, 0, 0.0001);
     ////mterrain.SetPlotType(vehicle::SCMDeformableTerrain::PLOT_ISLAND_ID, 0, 8);
     ////mterrain.SetPlotType(vehicle::SCMDeformableTerrain::PLOT_IS_TOUCHED, 0, 8);
-    mterrain.GetMesh()->SetWireframe(true);
+    mterrain.SetMeshWireframe(true);
 
     // ==IMPORTANT!== Use this function for adding a ChIrrNodeAsset to all items
     application.AssetBindAll();
@@ -275,10 +295,15 @@ int main(int argc, char* argv[]) {
     application.SetTimestep(0.002);
 
     while (application.GetDevice()->run()) {
+        double time = my_system.GetChTime();
         if (output) {
             vehicle::TerrainForce frc = mterrain.GetContactForce(mrigidbody);
-            csv << my_system.GetChTime() << frc.force << frc.moment << frc.point << std::endl;
+            csv << time << frc.force << frc.moment << frc.point << std::endl;
         }
+
+        ////std::cout << "\nTime: " << time << std::endl;
+        ////std::cout << "Wheel pos: " << mrigidbody->GetPos() << std::endl;
+        ////std::cout << "Wheel rot: " << mrigidbody->GetRot() << std::endl;
 
         application.BeginScene();
         application.GetActiveCamera()->setTarget(core::vector3dfCH(mrigidbody->GetPos()));

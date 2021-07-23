@@ -34,7 +34,7 @@ void ChLineShape::ArchiveOUT(ChArchiveOut& marchive) {
 
 void ChLineShape::ArchiveIN(ChArchiveIn& marchive) {
     // version number
-    int version = marchive.VersionRead<ChLineShape>();
+    /*int version =*/ marchive.VersionRead<ChLineShape>();
     // deserialize parent class
     ChVisualization::ArchiveIN(marchive);
     // stream in all member data:

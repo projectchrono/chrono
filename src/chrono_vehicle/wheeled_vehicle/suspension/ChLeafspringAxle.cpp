@@ -79,8 +79,8 @@ void ChLeafspringAxle::Initialize(std::shared_ptr<ChChassis> chassis,
 
     // Calculate end points on the axle body, expressed in the absolute frame
     // (for visualization)
-    ChVector<> midpoint_local = 0.0;
-    // ChVector<> outer_local(axleCOM_local.x(), midpoint_local.y(), axleCOM_local.z());
+    ////ChVector<> midpoint_local = 0.0;
+    ////ChVector<> outer_local(axleCOM_local.x(), midpoint_local.y(), axleCOM_local.z());
     ChVector<> outer_local(getLocation(SPINDLE));
     m_axleOuterL = suspension_to_abs.TransformPointLocalToParent(outer_local);
     outer_local.y() = -outer_local.y();

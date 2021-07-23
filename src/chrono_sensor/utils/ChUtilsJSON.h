@@ -45,8 +45,8 @@ namespace sensor {
 /// Load and return a RapidJSON document from the specified file.
 /// A Null document is returned if the file cannot be opened.
 /// @param filename The path to the file to be parsed
-/// @return A rapid JSON document corresponding to the file name
-CH_SENSOR_API rapidjson::Document ReadFileJSON(const std::string& filename);
+/// @param d The rapid JSON document corresponding to the file name
+CH_SENSOR_API void ReadFileJSON(const std::string& filename, rapidjson::Document& d);
 
 // -----------------------------------------------------------------------------
 

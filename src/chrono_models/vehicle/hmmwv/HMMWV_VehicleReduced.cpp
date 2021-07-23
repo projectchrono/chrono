@@ -42,8 +42,6 @@ namespace hmmwv {
 // -----------------------------------------------------------------------------
 
 static const double in2m = 0.0254;
-static const double lb2kg = 0.453592;
-static const double lbf2N = 4.44822162;
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
@@ -109,6 +107,7 @@ void HMMWV_VehicleReduced::Create(bool fixed, BrakeType brake_type, CollisionTyp
         case DrivelineTypeWV::RWD:
             m_driveline = chrono_types::make_shared<HMMWV_Driveline2WD>("Driveline");
             break;
+        default:
         case DrivelineTypeWV::AWD:
             m_driveline = chrono_types::make_shared<HMMWV_Driveline4WD>("Driveline");
             break;
@@ -147,6 +146,7 @@ void HMMWV_VehicleReduced::Initialize(const ChCoordsys<>& chassisPos, double cha
         case DrivelineTypeWV::RWD:
             driven_susp_indexes[0] = 1;
             break;
+        default:
         case DrivelineTypeWV::AWD:
         case DrivelineTypeWV::SIMPLE:
             driven_susp_indexes[0] = 0;

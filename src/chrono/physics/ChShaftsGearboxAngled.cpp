@@ -196,7 +196,7 @@ void ChShaftsGearboxAngled::ArchiveOUT(ChArchiveOut& marchive) {
 /// Method to allow de serialization of transient data from archives.
 void ChShaftsGearboxAngled::ArchiveIN(ChArchiveIn& marchive) {
     // version number
-    int version = marchive.VersionRead<ChShaftsGearboxAngled>();
+    /*int version =*/ marchive.VersionRead<ChShaftsGearboxAngled>();
 
     // deserialize parent class:
     ChPhysicsItem::ArchiveIN(marchive);

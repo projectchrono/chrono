@@ -98,7 +98,7 @@ void ChBodyAuxRef::ArchiveOUT(ChArchiveOut& marchive) {
 /// Method to allow de serialization of transient data from archives.
 void ChBodyAuxRef::ArchiveIN(ChArchiveIn& marchive) {
     // version number
-    int version = marchive.VersionRead<ChBodyAuxRef>();
+    /*int version =*/ marchive.VersionRead<ChBodyAuxRef>();
 
     // deserialize parent class
     ChBody::ArchiveIN(marchive);

@@ -160,6 +160,7 @@ void GroundGranularB::Initialize(double x_min, double z_max, double step_size) {
     m_ground->GetCollisionModel()->BuildModel();
 
     // Create particles (all spheres)
+    utils::PDSampler<double> sampler(2 * m_radius1);
     utils::Generator gen(m_sys);
     std::shared_ptr<utils::MixtureIngredient> m1 = gen.AddMixtureIngredient(utils::MixtureType::SPHERE, 1.0);
     m1->setDefaultMaterial(m_material_g);
@@ -176,7 +177,7 @@ void GroundGranularB::Initialize(double x_min, double z_max, double step_size) {
 
     for (unsigned int il = 0; il < m_num_layers; il++) {
         std::cout << "Create layer at " << center.z() << std::endl;
-        gen.createObjectsBox(utils::SamplingType::POISSON_DISK, 2 * m_radius1, center, hdims);
+        gen.CreateObjectsBox(sampler, center, hdims);
         center.z() += 2 * m_radius1;
     }
 

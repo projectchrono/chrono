@@ -63,19 +63,19 @@ void FMTV_SimpleMapPowertrain::SetEngineTorqueMaps(ChFunction_Recorder& map0, Ch
     mapF.AddPoint(2400 * rpm2rads, -800.0);
 }
 
-void FMTV_SimpleMapPowertrain::SetGearRatios(std::vector<double>& fwd_gear_ratios, double& reverse_gear_ratio) {
+void FMTV_SimpleMapPowertrain::SetGearRatios(std::vector<double>& fwd, double& rev) {
     // gear ratios from the original Steyr 12m18 ZF gearbox (handshifted, same as in the MAN 7t?)
-    reverse_gear_ratio = -0.089525515;
+    rev = -0.089525515;
 
-    fwd_gear_ratios.push_back(0.077160494);
-    fwd_gear_ratios.push_back(0.11778563);
-    fwd_gear_ratios.push_back(0.162337662);
-    fwd_gear_ratios.push_back(0.220750552);
-    fwd_gear_ratios.push_back(0.283286119);
-    fwd_gear_ratios.push_back(0.414937759);
-    fwd_gear_ratios.push_back(0.571428571);
-    fwd_gear_ratios.push_back(0.78125);
-    fwd_gear_ratios.push_back(1.0);
+    fwd.push_back(0.077160494);
+    fwd.push_back(0.11778563);
+    fwd.push_back(0.162337662);
+    fwd.push_back(0.220750552);
+    fwd.push_back(0.283286119);
+    fwd.push_back(0.414937759);
+    fwd.push_back(0.571428571);
+    fwd.push_back(0.78125);
+    fwd.push_back(1.0);
 }
 
 void FMTV_SimpleMapPowertrain::SetShiftPoints(std::vector<std::pair<double, double>>& shift_bands) {

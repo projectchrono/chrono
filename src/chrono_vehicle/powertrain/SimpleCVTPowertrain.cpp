@@ -29,7 +29,7 @@ namespace vehicle {
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 SimpleCVTPowertrain::SimpleCVTPowertrain(const std::string& filename) : ChSimpleCVTPowertrain("") {
-    Document d = ReadFileJSON(filename);
+    Document d; ReadFileJSON(filename, d);
     if (d.IsNull())
         return;
 
@@ -55,5 +55,10 @@ void SimpleCVTPowertrain::Create(const rapidjson::Document& d) {
     m_max_speed = d["Maximum Engine Speed"].GetDouble();
 }
 
-}  // end namespace vehicle
+void SimpleCVTPowertrain::SetGearRatios(std::vector<double>& fwd, double& rev) {
+    rev = m_rev_gear_ratio;
+    fwd.push_back(m_fwd_gear_ratio);
+}
+
+} // end namespace vehicle
 }  // end namespace chrono

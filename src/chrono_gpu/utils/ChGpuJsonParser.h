@@ -322,7 +322,7 @@ bool ParseJSON(const std::string& json_file, ChGpuSimulationParameters& params, 
     }
     if (doc.HasMember("verbose") && doc["verbose"].IsInt()) {
         params.verbose = (CHGPU_VERBOSITY)doc["verbose"].GetInt();
-        CONDITIONAL_PRINTF(verbose, "params.verbose %d\n", params.verbose);
+        CONDITIONAL_PRINTF(verbose, "params.verbose %d\n", (int)params.verbose);
     }
     if (doc.HasMember("psi_T") && doc["psi_T"].IsInt()) {
         params.psi_T = doc["psi_T"].GetInt();
@@ -358,6 +358,9 @@ bool ParseJSON(const std::string& json_file, ChGpuSimulationParameters& params, 
         } else if (doc["write_mode"].GetString() == string("hdf5")) {
             params.write_mode = CHGPU_OUTPUT_MODE::HDF5;
             CONDITIONAL_PRINTF(verbose, "params.write_mode hdf5\n")
+        } else if (doc["write_mode"].GetString() == string("chpf")) {
+            params.write_mode = CHGPU_OUTPUT_MODE::CHPF;
+            CONDITIONAL_PRINTF(verbose, "params.write_mode chpf\n");
         } else if (doc["write_mode"].GetString() == string("none")) {
             params.write_mode = CHGPU_OUTPUT_MODE::NONE;
             CONDITIONAL_PRINTF(verbose, "params.write_mode none\n");

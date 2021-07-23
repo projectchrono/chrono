@@ -15,6 +15,7 @@
 #include <cstdio>
 
 #include "chrono/geometry/ChTriangle.h"
+#include "chrono/collision/ChCollisionUtils.h"
 
 namespace chrono {
 namespace geometry {
@@ -109,79 +110,16 @@ ChVector<> ChTriangle::GetNormal() const {
 }
 
 bool ChTriangle::IsDegenerated() const {
-    ChVector<> u = Vsub(p2, p1);
-    ChVector<> v = Vsub(p3, p1);
-
-    ChVector<> vcr;
-    vcr = Vcross(u, v);
-    if (fabs(vcr.x()) < EPS_TRIDEGENERATE && fabs(vcr.y()) < EPS_TRIDEGENERATE && fabs(vcr.z()) < EPS_TRIDEGENERATE)
-        return true;
-    return false;
+    return collision::utils::DegenerateTriangle(p1, p2, p3);
 }
 
-double ChTriangle::PointTriangleDistance(ChVector<> B,
-                                         ChVector<>& A1,  ///< point of triangle
-                                         ChVector<>& A2,  ///< point of triangle
-                                         ChVector<>& A3,  ///< point of triangle
-                                         double& mu,
-                                         double& mv,
-                                         bool& is_into,
-                                         ChVector<>& Bprojected) {
-    // defaults
-    is_into = false;
-    mu = mv = -1;
-    double mdistance = 10e22;
-
-    ChVector<> Dx, Dy, Dz, T1, T1p;
-
-    Dx = A2 - A1;
-    Dz = A3 - A1;
-    Dy = Vcross(Dz, Dx);
-
-    double dylen = Dy.Length();
-
-    if (std::abs(dylen) < EPS_TRIDEGENERATE)  // degenerate triangle
-        return mdistance;
-
-    Dy *= 1 / dylen;
-
-    ChMatrix33<> mA(Dx, Dy, Dz);
-
-    // invert triangle coordinate matrix -if singular matrix, was degenerate triangle-.
-    if (std::abs(mA.determinant()) < 0.000001)
-        return mdistance;
-
-    ChMatrix33<> mAi = mA.inverse();
-    T1 = mAi * (B - A1);
-    T1p = T1;
-    T1p.y() = 0;
-    mu = T1.x();
-    mv = T1.z();
-    if (mu >= 0 && mv >= 0 && mv <= 1.0 - mu) {
-        is_into = true;
-        mdistance = std::abs(T1.y());
-        Bprojected = A1 + mA * T1p;
-    }
-
-    return mdistance;
-}
-
-double ChTriangle::PointLineDistance(ChVector<>& p, ChVector<>& dA, ChVector<>& dB, double& mu, bool& is_insegment) {
-    mu = -1.0;
-    is_insegment = 0;
-    double mdist = 10e34;
-
-    ChVector<> vseg = Vsub(dB, dA);
-    ChVector<> vdir = Vnorm(vseg);
-    ChVector<> vray = Vsub(p, dA);
-
-    mdist = Vlength(Vcross(vray, vdir));
-    mu = Vdot(vray, vdir) / Vlength(vseg);
-
-    if ((mu >= 0) && (mu <= 1.0))
-        is_insegment = 1;
-
-    return mdist;
+double ChTriangle::PointTriangleDistance(ChVector<> B,           // point to be measured
+                                         double& mu,             // returns U parametric coord of projection
+                                         double& mv,             // returns V parametric coord of projection
+                                         bool& is_into,          // returns true if projection falls on the triangle
+                                         ChVector<>& Bprojected  // returns the position of the projected point
+) {
+    return collision::utils::PointTriangleDistance(B, p1, p2, p3, mu, mv, is_into, Bprojected);
 }
 
 void ChTriangle::ArchiveOUT(ChArchiveOut& marchive) {
@@ -197,7 +135,7 @@ void ChTriangle::ArchiveOUT(ChArchiveOut& marchive) {
 
 void ChTriangle::ArchiveIN(ChArchiveIn& marchive) {
     // version number
-    int version = marchive.VersionRead<ChTriangle>();
+    /*int version =*/ marchive.VersionRead<ChTriangle>();
     // deserialize parent class
     ChGeometry::ArchiveIN(marchive);
     // stream in all member data:

@@ -123,7 +123,8 @@ CH_FSI_API void AddBCE_FromFile(std::shared_ptr<ChFsiDataManager> fsiData,
                                 std::string dataPath,
                                 chrono::ChVector<> collisionShapeRelativePos = chrono::ChVector<>(0),
                                 chrono::ChQuaternion<> collisionShapeRelativeRot = chrono::QUNIT,
-                                double scale = 1.);
+                                double scale = 1.0,
+                                bool isSolid = true);
 
 CH_FSI_API void CreateSphereFSI(std::shared_ptr<ChFsiDataManager> fsiData,
                                 chrono::ChSystem& mphysicalSystem,

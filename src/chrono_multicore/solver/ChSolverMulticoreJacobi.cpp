@@ -35,7 +35,8 @@ uint ChSolverMulticoreJacobi::Solve(ChShurProduct& ShurProduct,
     real& objective_value = data_manager->measures.solver.objective_value;
 
     uint num_constraints = data_manager->num_constraints;
-    uint num_contacts = data_manager->num_rigid_contacts;
+    uint num_contacts = data_manager->cd_data->num_rigid_contacts;
+    uint num_rigid_fluid_contacts = data_manager->cd_data->num_rigid_fluid_contacts;
     uint num_bilaterals = data_manager->num_bilaterals;
     ml = gamma;
     ml_old = gamma;
@@ -46,9 +47,6 @@ uint ChSolverMulticoreJacobi::Solve(ChShurProduct& ShurProduct,
     CompressedMatrix<real> Nshur = data_manager->host_data.D_T * data_manager->host_data.M_invD;
     DynamicVector<real> D;
     D.resize(num_constraints, false);
-    real theta = 1;
-    real thetaNew = theta;
-    real Beta = 0;
     // real eignenval = LargestEigenValue(ShurProduct, temp);
     // Rigid contacts
     // Bilaterals
@@ -56,7 +54,7 @@ uint ChSolverMulticoreJacobi::Solve(ChShurProduct& ShurProduct,
     // rigid fluid norm
     // rigid fluid tan
 
-    for (int index = 0; index < (signed)data_manager->num_rigid_contacts; index++) {
+    for (int index = 0; index < (signed)num_contacts; index++) {
         D[index] = Nshur(index, index) + Nshur(num_contacts + index * 2 + 0, num_contacts + index * 2 + 0) +
                    Nshur(num_contacts + index * 2 + 1, num_contacts + index * 2 + 1);
         D[index] = 3.0 / D[index];
@@ -78,7 +76,7 @@ uint ChSolverMulticoreJacobi::Solve(ChShurProduct& ShurProduct,
 
         offset += data_manager->num_fluid_bodies;
 
-        for (size_t i = 0; i < data_manager->num_rigid_fluid_contacts; i++) {
+        for (size_t i = 0; i < num_rigid_fluid_contacts; i++) {
             if (data_manager->node_container->contact_mu == 0) {
                 D[offset + i] = Nshur(offset + i, offset + i);
                 D[offset + i] = 3.0 / D[offset + i];

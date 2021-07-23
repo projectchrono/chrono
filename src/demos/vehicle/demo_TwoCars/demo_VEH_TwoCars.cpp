@@ -133,14 +133,6 @@ int main(int argc, char* argv[]) {
         ChDriver::Inputs driver_inputs_1 = driver_1.GetInputs();
         ChDriver::Inputs driver_inputs_2 = driver_2.GetInputs();
 
-        double throttle_input_1 = driver_1.GetThrottle();
-        double steering_input_1 = driver_1.GetSteering();
-        double braking_input_1 = driver_1.GetBraking();
-
-        double throttle_input_2 = driver_2.GetThrottle();
-        double steering_input_2 = driver_2.GetSteering();
-        double braking_input_2 = driver_2.GetBraking();
-
         // Update modules (process inputs from other modules)
         driver_1.Synchronize(time);
         driver_2.Synchronize(time);

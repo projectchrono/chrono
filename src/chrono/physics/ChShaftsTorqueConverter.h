@@ -9,7 +9,7 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Authors: Alessandro Tasora, Radu Serban
+// Authors: Alessandro Tasora, Radu Serban, Rainer Gericke
 // =============================================================================
 
 #ifndef CHSHAFTSTORQUECONVERTER_H
@@ -27,10 +27,11 @@ namespace chrono {
 /// and output, then the multiplicative effect becomes closer to unity when the slippage
 /// is almost null; so it is similar to a variable-transmission-ratio gearbox, and just
 /// like any gearbox it requires a truss (the 'stator') that gets some torque.
+/// When the vehicle is coasting, the stator is always inactive, then the output torque
+/// cannot be increased.
 /// Note: it can work only in a given direction.
 
 class ChApi ChShaftsTorqueConverter : public ChPhysicsItem {
-
   private:
     ChShaft* shaft1;
     ChShaft* shaft2;
@@ -70,7 +71,7 @@ class ChApi ChShaftsTorqueConverter : public ChPhysicsItem {
     bool Initialize(std::shared_ptr<ChShaft> mshaft1,       ///< input shaft
                     std::shared_ptr<ChShaft> mshaft2,       ///< output shaft
                     std::shared_ptr<ChShaft> mshaft_stator  ///< stator shaft (often fixed)
-                    );
+    );
 
     /// Get the input shaft
     ChShaft* GetShaftInput() { return shaft1; }
@@ -131,8 +132,7 @@ class ChApi ChShaftsTorqueConverter : public ChPhysicsItem {
     virtual void ArchiveIN(ChArchiveIn& marchive) override;
 };
 
-CH_CLASS_VERSION(ChShaftsTorqueConverter,0)
-
+CH_CLASS_VERSION(ChShaftsTorqueConverter, 0)
 
 }  // end namespace chrono
 

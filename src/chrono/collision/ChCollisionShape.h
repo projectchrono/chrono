@@ -21,6 +21,9 @@
 namespace chrono {
 namespace collision {
 
+/// @addtogroup chrono_collision
+/// @{
+
 /// Class defining a collision shape.
 class ChApi ChCollisionShape {
   public:
@@ -30,12 +33,13 @@ class ChApi ChCollisionShape {
         ELLIPSOID,
         BOX,
         CYLINDER,
+        CYLSHELL,
         CONVEXHULL,
         TRIANGLEMESH,
         BARREL,
         POINT,
         TRIANGLE,
-        CAPSULE,      // Currently implemented in parallel only
+        CAPSULE,
         CONE,         // Currently implemented in parallel only
         ROUNDEDBOX,   // Currently implemented in parallel only
         ROUNDEDCYL,   // Currently implemented in parallel only
@@ -62,6 +66,8 @@ class ChApi ChCollisionShape {
 
     friend class ChCollisionModel;
 };
+
+/// @} chrono_collision
 
 }  // end namespace collision
 }  // end namespace chrono

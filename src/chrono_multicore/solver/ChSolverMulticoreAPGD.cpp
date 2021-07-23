@@ -38,9 +38,9 @@ void ChSolverMulticoreAPGD::UpdateR() {
     DynamicVector<real>& R = data_manager->host_data.R;
     DynamicVector<real>& s = data_manager->host_data.s;
 
-    uint num_contacts = data_manager->num_rigid_contacts;
+    uint num_contacts = data_manager->cd_data->num_rigid_contacts;
 
-    s.resize(data_manager->num_rigid_contacts);
+    s.resize(num_contacts);
     reset(s);
 
     rigid_rigid->Build_s();
@@ -167,7 +167,6 @@ uint ChSolverMulticoreAPGD::Solve(ChShurProduct& ShurProduct,
 
         // Compute the residual
         temp = gamma_new - g_diff * (N_gamma_new - r);
-        real temp_dota = (real)(temp, temp);
         // ಠ_ಠ THIS PROJECTION IS IMPORTANT! (╯°□°)╯︵ ┻━┻
         // If turned off the residual will be very incorrect! Turning it off can cause the solver to effectively use the
         // solution found in the first step because the residual never get's smaller. (You can convince yourself of this

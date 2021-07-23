@@ -68,14 +68,15 @@ const double offset_factor = 3;
 // Default constructor.
 // -----------------------------------------------------------------------------
 GranularTerrain::GranularTerrain(ChSystem* system)
-    : m_start_id(1000000),
-      m_min_num_particles(0),
+    : m_min_num_particles(0),
       m_num_particles(0),
-      m_rough_surface(false),
-      m_vis_enabled(false),
+      m_start_id(1000000),
       m_moving_patch(false),
       m_moved(false),
-      m_envelope(-1) {
+      m_rough_surface(false),
+      m_envelope(-1),
+      m_vis_enabled(false),
+      m_verbose(false) {
     // Create the ground body and add it to the system.
     m_ground = std::shared_ptr<ChBody>(system->NewBody());
     m_ground->SetName("ground");
@@ -166,10 +167,6 @@ void BoundaryContact::CheckFixedSpheres(ChBody* body, const ChVector<>& center) 
     double dist = center.z() - m_terrain->m_bottom;
     if (dist > 3 * m_radius)
         return;
-
-    // Current patch length and width
-    double length = m_terrain->m_front - m_terrain->m_rear;
-    double width = m_terrain->m_left - m_terrain->m_right;
 
     // Identify 4 potential collisions with fixed spheres
     double x_pos = center.x() - m_terrain->m_rear;
@@ -413,6 +410,7 @@ void GranularTerrain::Initialize(const ChVector<>& center,
 
     // Create particles, in layers, until exceeding the specified number.
     double r = safety_factor * radius;
+    utils::PDSampler<double> sampler(2 * r);
     unsigned int layer = 0;
     ChVector<> layer_hdims(length / 2 - r, width / 2 - r, 0);
     ChVector<> layer_center = center;
@@ -421,7 +419,7 @@ void GranularTerrain::Initialize(const ChVector<>& center,
     while (layer < num_layers || m_num_particles < m_min_num_particles) {
         if (m_verbose)
             GetLog() << "Create layer at height: " << layer_center.z() << "\n";
-        generator.createObjectsBox(utils::SamplingType::POISSON_DISK, 2 * r, layer_center, layer_hdims, init_vel);
+        generator.CreateObjectsBox(sampler, layer_center, layer_hdims, init_vel);
         layer_center.z() += 2 * r;
         m_num_particles = generator.getTotalNumBodies();
         layer++;
@@ -503,7 +501,7 @@ void GranularTerrain::Synchronize(double time) {
 double GranularTerrain::GetHeight(const ChVector<>& loc) const {
     double highest = m_bottom;
     for (auto body : m_ground->GetSystem()->Get_bodylist()) {
-        double height = ChWorldFrame::Height(body->GetPos());
+        ////double height = ChWorldFrame::Height(body->GetPos());
         if (body->GetIdentifier() > m_start_id && body->GetPos().z() > highest)
             highest = body->GetPos().z();
     }

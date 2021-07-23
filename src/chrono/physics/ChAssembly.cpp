@@ -34,15 +34,15 @@ ChAssembly::ChAssembly()
       nlinks(0),
       nmeshes(0),
       nphysicsitems(0),
-      ndof(0),
+      ncoords(0),
       ndoc(0),
+      nsysvars(0),
+      ncoords_w(0),
       ndoc_w(0),
+      nsysvars_w(0),
+      ndof(0),
       ndoc_w_C(0),
       ndoc_w_D(0),
-      ncoords(0),
-      ncoords_w(0),
-      nsysvars(0),
-      nsysvars_w(0),
       nbodies_sleep(0),
       nbodies_fixed(0) {}
 
@@ -1221,7 +1221,7 @@ void ChAssembly::ArchiveOUT(ChArchiveOut& marchive) {
 
 void ChAssembly::ArchiveIN(ChArchiveIn& marchive) {
     // version number
-    int version = marchive.VersionRead<ChAssembly>();
+    /*int version =*/ marchive.VersionRead<ChAssembly>();
 
     // deserialize parent class
     ChPhysicsItem::ArchiveIN(marchive);

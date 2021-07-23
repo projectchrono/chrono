@@ -101,7 +101,7 @@ void ChShaftsDriveline4WD::Initialize(std::shared_ptr<ChChassis> chassis,
     // (the truss).
     m_rear_conicalgear = chrono_types::make_shared<ChShaftsGearboxAngled>();
     m_rear_conicalgear->Initialize(m_rear_shaft, m_rear_differentialbox, chassisBody, m_dir_motor_block, m_dir_axle);
-    m_rear_conicalgear->SetTransmissionRatio(GetRearConicalGearRatio());
+    m_rear_conicalgear->SetTransmissionRatio(-GetRearConicalGearRatio());
     sys->Add(m_rear_conicalgear);
 
     // Create a differential, i.e. an epicycloidal mechanism that connects three
@@ -137,7 +137,7 @@ void ChShaftsDriveline4WD::Initialize(std::shared_ptr<ChChassis> chassis,
     // (the truss).
     m_front_conicalgear = chrono_types::make_shared<ChShaftsGearboxAngled>();
     m_front_conicalgear->Initialize(m_front_shaft, m_front_differentialbox, chassisBody, m_dir_motor_block, m_dir_axle);
-    m_front_conicalgear->SetTransmissionRatio(GetFrontConicalGearRatio());
+    m_front_conicalgear->SetTransmissionRatio(-GetFrontConicalGearRatio());
     sys->Add(m_front_conicalgear);
 
     // Create a differential, i.e. an epicycloidal mechanism that connects three
@@ -166,10 +166,6 @@ void ChShaftsDriveline4WD::Initialize(std::shared_ptr<ChChassis> chassis,
     double omega_axle_RR = axles[m_driven_axles[1]]->m_suspension->GetAxleSpeed(RIGHT);
 
     // Front differential 
-    //// RADU
-    ////  Note that we assume here that the front diff ratio = -1.
-    ////  This is how it should always be anyway ->  MUST MODIFY TEMPLATE
-    ////  REMOVE GetFrontDifferentialRatio() and GetRearDifferentialRatio()
     double omega_front_differentialbox = 0.5 * (omega_axle_FL + omega_axle_FR);
     m_front_differentialbox->SetPos_dt(omega_front_differentialbox);
 

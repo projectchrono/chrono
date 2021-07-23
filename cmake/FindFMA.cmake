@@ -25,7 +25,11 @@ if(CMAKE_COMPILER_IS_GNUCC OR CMAKE_COMPILER_IS_GNUCXX)
     SET(FMA_FLAGS "${FMA_FLAGS} -march=native")
     message(STATUS "Using CPU native flags for FMA optimization: ${FMA_FLAGS}")
   endif()
+elseif(CMAKE_CXX_COMPILER_ID MATCHES "Clang" AND NOT CMAKE_CROSSCOMPILING)
+    SET(FMA_FLAGS "${FMA_FLAGS} -march=native")
+    message(STATUS "Using CPU native flags for FMA optimization: ${FMA_FLAGS}")
 endif()
+
 
 include(CheckCXXSourceRuns)
 set(CMAKE_REQUIRED_FLAGS)

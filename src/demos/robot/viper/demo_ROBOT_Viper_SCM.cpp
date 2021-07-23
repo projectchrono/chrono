@@ -71,19 +71,26 @@ bool enable_moving_patch = true;
 bool var_params = true;
 
 // Custom callback for setting location-dependent soil properties.
-// Note that the (x,y) location is given in the terrain's reference plane.
-// Here, the vehicle moves in the terrain's negative y direction!
+// Note that the location is given in the SCM reference frame.
 class MySoilParams : public vehicle::SCMDeformableTerrain::SoilParametersCallback {
   public:
-    virtual void Set(double x, double y) override {
-        m_Bekker_Kphi = 0.82e6;
-        m_Bekker_Kc = 0.14e4;
-        m_Bekker_n = 1.0;
-        m_Mohr_cohesion = 0.017e4;
-        m_Mohr_friction = 35.0;
-        m_Janosi_shear = 1.78e-2;
-        m_elastic_K = 2e8;
-        m_damping_R = 3e4;
+    virtual void Set(const ChVector<>& loc,
+                     double& Bekker_Kphi,
+                     double& Bekker_Kc,
+                     double& Bekker_n,
+                     double& Mohr_cohesion,
+                     double& Mohr_friction,
+                     double& Janosi_shear,
+                     double& elastic_K,
+                     double& damping_R) override {
+        Bekker_Kphi = 0.82e6;
+        Bekker_Kc = 0.14e4;
+        Bekker_n = 1.0;
+        Mohr_cohesion = 0.017e4;
+        Mohr_friction = 35.0;
+        Janosi_shear = 1.78e-2;
+        elastic_K = 2e8;
+        damping_R = 3e4;
     }
 };
 
@@ -130,7 +137,7 @@ int main(int argc, char* argv[]) {
 
     // Global parameter for moving patch size:
     double wheel_range = 0.5;
-    double body_range = 1.2;
+    ////double body_range = 1.2;
 
     // Create a Chrono::Engine physical system
     ChSystemSMC my_system;
@@ -262,7 +269,7 @@ int main(int argc, char* argv[]) {
     // Set some visualization parameters: either with a texture, or with falsecolor plot, etc.
     mterrain.SetPlotType(vehicle::SCMDeformableTerrain::PLOT_PRESSURE, 0, 20000);
 
-    mterrain.GetMesh()->SetWireframe(true);
+    mterrain.SetMeshWireframe(true);
 
     // ==IMPORTANT!== Use this function for adding a ChIrrNodeAsset to all items
     application.AssetBindAll();

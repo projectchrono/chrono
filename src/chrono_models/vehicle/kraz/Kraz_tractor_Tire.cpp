@@ -44,7 +44,6 @@ Kraz_tractor_Tire::Kraz_tractor_Tire(const std::string& name) : ChTMeasyTire(nam
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 void Kraz_tractor_Tire::SetTMeasyParams() {
-    const double lbs2N = 4.4482216153;
     unsigned int li = 150;
     const double in2m = 0.0254;
     double w = 12.0 * in2m;

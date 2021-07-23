@@ -433,7 +433,7 @@ void ChPovRay::ExportScript(const std::string& filename) {
     // animation someone created an object with asset)
     if (single_asset_file) {
         // open asset file in append mode
-        std::string assets_filename = this->out_script_filename + ".assets";
+        assets_filename = this->out_script_filename + ".assets";
         ChStreamOutAsciiFile assets_file((base_path + assets_filename).c_str(), std::ios::app);
         // populate assets (note that already present
         // assets won't be appended!)
@@ -587,7 +587,7 @@ void ChPovRay::_recurseExportAssets(std::vector<std::shared_ptr<ChAsset> >& asse
             }
 
             // *) asset k of object i is a sphere ?
-            if (auto myobjshapeasset = std::dynamic_pointer_cast<ChSphereShape>(k_asset)) {
+            if (auto myobjshapeassetS = std::dynamic_pointer_cast<ChSphereShape>(k_asset)) {
                 // POV macro to build the asset - begin
                 assets_file << "#macro sh_" << (size_t)k_asset.get()
                             << "()\n";  //"(apx, apy, apz, aq0, aq1, aq2, aq3)\n";
@@ -595,10 +595,10 @@ void ChPovRay::_recurseExportAssets(std::vector<std::shared_ptr<ChAsset> >& asse
                 // POV will make the sphere
                 assets_file << "sphere  {\n";
 
-                assets_file << " <" << myobjshapeasset->GetSphereGeometry().center.x();
-                assets_file << "," << myobjshapeasset->GetSphereGeometry().center.y();
-                assets_file << "," << myobjshapeasset->GetSphereGeometry().center.z() << ">\n";
-                assets_file << " " << myobjshapeasset->GetSphereGeometry().rad << "\n";
+                assets_file << " <" << myobjshapeassetS->GetSphereGeometry().center.x();
+                assets_file << "," << myobjshapeassetS->GetSphereGeometry().center.y();
+                assets_file << "," << myobjshapeassetS->GetSphereGeometry().center.z() << ">\n";
+                assets_file << " " << myobjshapeassetS->GetSphereGeometry().rad << "\n";
 
                 assets_file << "}\n";
 
@@ -607,7 +607,7 @@ void ChPovRay::_recurseExportAssets(std::vector<std::shared_ptr<ChAsset> >& asse
             }
 
             // *) asset k of object i is an ellipsoid ?
-            if (auto myobjshapeasset = std::dynamic_pointer_cast<ChEllipsoidShape>(k_asset)) {
+            if (auto myobjshapeassetE = std::dynamic_pointer_cast<ChEllipsoidShape>(k_asset)) {
                 // POV macro to build the asset - begin
                 assets_file << "#macro sh_" << (size_t)k_asset.get()
                             << "()\n";  //"(apx, apy, apz, aq0, aq1, aq2, aq3)\n";
@@ -615,14 +615,14 @@ void ChPovRay::_recurseExportAssets(std::vector<std::shared_ptr<ChAsset> >& asse
                 // POV will make the sphere
                 assets_file << "sphere  {\n";
 
-                assets_file << " <" << myobjshapeasset->GetEllipsoidGeometry().center.x();
-                assets_file << "," <<  myobjshapeasset->GetEllipsoidGeometry().center.y();
-                assets_file << "," <<  myobjshapeasset->GetEllipsoidGeometry().center.z() << ">\n";
+                assets_file << " <" << myobjshapeassetE->GetEllipsoidGeometry().center.x();
+                assets_file << "," <<  myobjshapeassetE->GetEllipsoidGeometry().center.y();
+                assets_file << "," <<  myobjshapeassetE->GetEllipsoidGeometry().center.z() << ">\n";
                 assets_file << " " <<  1.0 << "\n";
                 assets_file << " scale ";
-                assets_file << "<" <<  myobjshapeasset->GetEllipsoidGeometry().rad.x();
-                assets_file << "," <<  myobjshapeasset->GetEllipsoidGeometry().rad.y();
-                assets_file << "," <<  myobjshapeasset->GetEllipsoidGeometry().rad.z() << ">\n";
+                assets_file << "<" <<  myobjshapeassetE->GetEllipsoidGeometry().rad.x();
+                assets_file << "," <<  myobjshapeassetE->GetEllipsoidGeometry().rad.y();
+                assets_file << "," <<  myobjshapeassetE->GetEllipsoidGeometry().rad.z() << ">\n";
                 assets_file << "}\n";
 
                 // POV macro - end
@@ -630,7 +630,7 @@ void ChPovRay::_recurseExportAssets(std::vector<std::shared_ptr<ChAsset> >& asse
             }
 
             // *) asset k of object i is a cylinder ?
-            if (auto myobjshapeasset = std::dynamic_pointer_cast<ChCylinderShape>(k_asset)) {
+            if (auto myobjshapeassetC = std::dynamic_pointer_cast<ChCylinderShape>(k_asset)) {
                 // POV macro to build the asset - begin
                 assets_file << "#macro sh_" << (size_t)k_asset.get()
                             << "()\n";  //"(apx, apy, apz, aq0, aq1, aq2, aq3)\n";
@@ -638,13 +638,13 @@ void ChPovRay::_recurseExportAssets(std::vector<std::shared_ptr<ChAsset> >& asse
                 // POV will make the sphere
                 assets_file << "cylinder  {\n";
 
-                assets_file << " <" << myobjshapeasset->GetCylinderGeometry().p1.x();
-                assets_file << "," << myobjshapeasset->GetCylinderGeometry().p1.y();
-                assets_file << "," << myobjshapeasset->GetCylinderGeometry().p1.z() << ">,\n";
-                assets_file << " <" << myobjshapeasset->GetCylinderGeometry().p2.x();
-                assets_file << "," << myobjshapeasset->GetCylinderGeometry().p2.y();
-                assets_file << "," << myobjshapeasset->GetCylinderGeometry().p2.z() << ">,\n";
-                assets_file << " " << myobjshapeasset->GetCylinderGeometry().rad << "\n";
+                assets_file << " <" << myobjshapeassetC->GetCylinderGeometry().p1.x();
+                assets_file << "," << myobjshapeassetC->GetCylinderGeometry().p1.y();
+                assets_file << "," << myobjshapeassetC->GetCylinderGeometry().p1.z() << ">,\n";
+                assets_file << " <" << myobjshapeassetC->GetCylinderGeometry().p2.x();
+                assets_file << "," << myobjshapeassetC->GetCylinderGeometry().p2.y();
+                assets_file << "," << myobjshapeassetC->GetCylinderGeometry().p2.z() << ">,\n";
+                assets_file << " " << myobjshapeassetC->GetCylinderGeometry().rad << "\n";
 
                 assets_file << "}\n";
 
@@ -653,7 +653,7 @@ void ChPovRay::_recurseExportAssets(std::vector<std::shared_ptr<ChAsset> >& asse
             }
 
             // *) asset k of object i is a box ?
-            if (auto myobjshapeasset = std::dynamic_pointer_cast<ChBoxShape>(k_asset)) {
+            if (auto myobjshapeassetB = std::dynamic_pointer_cast<ChBoxShape>(k_asset)) {
                 // POV macro to build the asset - begin
                 assets_file << "#macro sh_" << (size_t)k_asset.get()
                             << "()\n";  //"(apx, apy, apz, aq0, aq1, aq2, aq3)\n";
@@ -662,21 +662,21 @@ void ChPovRay::_recurseExportAssets(std::vector<std::shared_ptr<ChAsset> >& asse
                 assets_file << "union  {\n";
                 assets_file << "box  {\n";
 
-                assets_file << " <" << -myobjshapeasset->GetBoxGeometry().Size.x();
-                assets_file << "," << -myobjshapeasset->GetBoxGeometry().Size.y();
-                assets_file << "," << -myobjshapeasset->GetBoxGeometry().Size.z() << ">\n";
-                assets_file << " <" << myobjshapeasset->GetBoxGeometry().Size.x();
-                assets_file << "," << myobjshapeasset->GetBoxGeometry().Size.y();
-                assets_file << "," << myobjshapeasset->GetBoxGeometry().Size.z() << ">\n";
+                assets_file << " <" << -myobjshapeassetB->GetBoxGeometry().Size.x();
+                assets_file << "," << -myobjshapeassetB->GetBoxGeometry().Size.y();
+                assets_file << "," << -myobjshapeassetB->GetBoxGeometry().Size.z() << ">\n";
+                assets_file << " <" << myobjshapeassetB->GetBoxGeometry().Size.x();
+                assets_file << "," << myobjshapeassetB->GetBoxGeometry().Size.y();
+                assets_file << "," << myobjshapeassetB->GetBoxGeometry().Size.z() << ">\n";
 
-                ChQuaternion<> boxrot = myobjshapeasset->GetBoxGeometry().Rot.Get_A_quaternion();
+                ChQuaternion<> boxrot = myobjshapeassetB->GetBoxGeometry().Rot.Get_A_quaternion();
                 assets_file << " quatRotation(<" << boxrot.e0();
                 assets_file << "," << boxrot.e1();
                 assets_file << "," << boxrot.e2();
                 assets_file << "," << boxrot.e3() << ">) \n";
-                assets_file << " translate  <" << myobjshapeasset->GetBoxGeometry().Pos.x();
-                assets_file << "," << myobjshapeasset->GetBoxGeometry().Pos.y();
-                assets_file << "," << myobjshapeasset->GetBoxGeometry().Pos.z() << "> \n";
+                assets_file << " translate  <" << myobjshapeassetB->GetBoxGeometry().Pos.x();
+                assets_file << "," << myobjshapeassetB->GetBoxGeometry().Pos.y();
+                assets_file << "," << myobjshapeassetB->GetBoxGeometry().Pos.z() << "> \n";
 
                 assets_file << "}\n";  // end box
 

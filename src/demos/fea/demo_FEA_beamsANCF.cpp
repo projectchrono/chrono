@@ -69,7 +69,6 @@ int main(int argc, char* argv[]) {
     double rho = 8000;       // kg/m^3
     double E = 4e8;          // Pa
     double nu = 0;           // Poisson effect neglected for this model
-    double G = E / (2 * (1 + nu));
     // Timoshenko shear correction coefficients for a rectangular cross-section
     double k1 = 10 * (1 + nu) / (12 + 11 * nu);
     double k2 = k1;

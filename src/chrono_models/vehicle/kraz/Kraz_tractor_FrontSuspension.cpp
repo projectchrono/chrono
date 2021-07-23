@@ -31,11 +31,6 @@ namespace kraz {
 // Static variables
 // -----------------------------------------------------------------------------
 
-static const double in2m = 0.0254;
-static const double lb2kg = 0.453592;
-static const double lbf2N = 4.44822162;
-static const double lbfpin2Npm = 175.12677;
-
 const double Kraz_tractor_FrontSuspension::m_axleTubeMass = 581;
 const double Kraz_tractor_FrontSuspension::m_spindleMass = 14.705;
 const double Kraz_tractor_FrontSuspension::m_knuckleMass = 68.0;
@@ -149,8 +144,8 @@ Tractor_ShockForceFront::Tractor_ShockForceFront(double compression_slope,
                                                  double expansion_slope,
                                                  double expansion_degressivity)
     : m_slope_compr(compression_slope),
-      m_degres_compr(compression_degressivity),
       m_slope_expand(expansion_slope),
+      m_degres_compr(compression_degressivity),
       m_degres_expand(expansion_degressivity) {}
 
 double Tractor_ShockForceFront::operator()(double time,

@@ -20,7 +20,7 @@
 
 #include "chrono_multicore/constraints/ChConstraintBilateral.h"
 #include "chrono_multicore/ChMulticoreDefines.h"
-#include "chrono_multicore/math/ChMulticoreMath.h"
+#include "chrono/multicore_math/ChMulticoreMath.h"
 
 #include "chrono/solver/ChConstraintTwoBodies.h"
 #include "chrono/solver/ChConstraintTwoGeneric.h"
@@ -57,8 +57,6 @@ void ChConstraintBilateral::Build_D() {
     // Loop over the active constraints and fill in the rows of the Jacobian,
     // taking into account the type of each constraint.
     SubMatrixType D_b_T = _DBT_;
-
-    const CompressedMatrix<real>& M_inv = data_manager->host_data.M_inv;
 
     //#pragma omp parallel for
     for (int index = 0; index < (signed)data_manager->num_bilaterals; index++) {

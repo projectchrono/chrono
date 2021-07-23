@@ -71,7 +71,7 @@ void ChNodeXYZ::ArchiveOUT(ChArchiveOut& marchive) {
 /// Method to allow de serialization of transient data from archives.
 void ChNodeXYZ::ArchiveIN(ChArchiveIn& marchive) {
     // version number
-    int version = marchive.VersionRead<ChNodeXYZ>();
+    /*int version =*/ marchive.VersionRead<ChNodeXYZ>();
 
     // deserialize parent class:
     ChNodeBase::ArchiveIN(marchive);

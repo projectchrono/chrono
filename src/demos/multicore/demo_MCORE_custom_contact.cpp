@@ -112,16 +112,15 @@ int main(int argc, char* argv[]) {
 
     double ball_radius = 0.5;
     MyObstacle obstacle;
-    double obst_radius = 2.0;
     ChVector<> obst_center(2.9, 0, 2.9);
 
     // Create the system and the various contact materials
-    ChSystemMulticore* sys;
+    ChSystemMulticore* sys = nullptr;
     std::shared_ptr<ChMaterialSurface> ground_mat;
     std::shared_ptr<ChMaterialSurface> ball_mat;
     std::shared_ptr<ChMaterialSurface> obst_mat;
-    double time_step;
-    int frame_skip;
+    double time_step = 0;
+    int frame_skip = 0;
 
     switch (contact_method) {
         case ChContactMethod::NSC: {
@@ -174,7 +173,7 @@ int main(int argc, char* argv[]) {
 
     // Create the ground body with a plate and side walls (both collision and visualization).
     // Add obstacle visualization (in a separate level with a different color).
-    auto ground = chrono_types::make_shared<ChBody>(chrono_types::make_shared<collision::ChCollisionModelMulticore>());
+    auto ground = std::shared_ptr<ChBody>(sys->NewBody());
     sys->AddBody(ground);
     ground->SetCollide(true);
     ground->SetBodyFixed(true);
@@ -191,7 +190,7 @@ int main(int argc, char* argv[]) {
     ground->AddAsset(obstacle.GetVisualization());
 
     // Create the falling ball
-    auto ball = chrono_types::make_shared<ChBody>(chrono_types::make_shared<collision::ChCollisionModelMulticore>());
+    auto ball = std::shared_ptr<ChBody>(sys->NewBody());
     sys->AddBody(ball);
     ball->SetMass(10);
     ball->SetInertiaXX(4 * ball_radius * ball_radius * ChVector<>(1, 1, 1));

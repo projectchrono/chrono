@@ -55,7 +55,7 @@ void ChTimestepper::ArchiveOUT(ChArchiveOut& archive) {
 
 void ChTimestepper::ArchiveIN(ChArchiveIn& archive) {
     // version number
-    int version = archive.VersionRead<ChTimestepper>();
+    /*int version =*/ archive.VersionRead<ChTimestepper>();
     // method type:
     my_enum_mappers::Type_mapper typemapper;
     Type type = GetType();
@@ -856,6 +856,7 @@ void ChTimestepperNewmark::Advance(const double dt) {
     numiters = 0;
     numsetups = 0;
     numsolves = 0;
+    bool call_setup = true;
 
     for (int i = 0; i < this->GetMaxiters(); ++i) {
         mintegrable->StateScatter(Xnew, Vnew, T + dt, false);  // state -> system
@@ -871,8 +872,15 @@ void ChTimestepperNewmark::Advance(const double dt) {
             GetLog() << " Newmark iteration=" << i << "  |R|=" << R.lpNorm<Eigen::Infinity>()
                      << "  |Qc|=" << Qc.lpNorm<Eigen::Infinity>() << "\n";
 
-        if ((R.lpNorm<Eigen::Infinity>() < abstolS) && (Qc.lpNorm<Eigen::Infinity>() < abstolL))
+        if ((R.lpNorm<Eigen::Infinity>() < abstolS) && (Qc.lpNorm<Eigen::Infinity>() < abstolL)) {
+            if (verbose) {
+                GetLog() << " Newmark NR converged (" << i << ")." << "  T = " << T + dt << "  h = " << dt << "\n";
+            }
             break;
+        }
+
+        if (verbose && modified_Newton && call_setup)
+                GetLog() << " Newmark call Setup.\n";
 
         mintegrable->StateSolveCorrection(  //
             Da, Dl, R, Qc,                  //
@@ -882,12 +890,17 @@ void ChTimestepperNewmark::Advance(const double dt) {
             Xnew, Vnew, T + dt,             // not used here (scatter = false)
             false,                          // do not scatter update to Xnew Vnew T+dt before computing correction
             false,                          // full update? (not used, since no scatter)
-            true                            // force a call to the solver's Setup() function
+            call_setup                      // force a call to the solver's Setup() function
         );
 
         numiters++;
-        numsetups++;
         numsolves++;
+        if (call_setup) {
+            numsetups++;
+        }
+
+        // If using modified Newton, do not call Setup again
+        call_setup = !modified_Newton;
 
         L += Dl;  // Note it is not -= Dl because we assume StateSolveCorrection flips sign of Dl
         Anew += Da;
@@ -920,7 +933,7 @@ void ChTimestepperNewmark::ArchiveOUT(ChArchiveOut& archive) {
 
 void ChTimestepperNewmark::ArchiveIN(ChArchiveIn& archive) {
     // version number
-    int version = archive.VersionRead<ChTimestepperNewmark>();
+    /*int version =*/ archive.VersionRead<ChTimestepperNewmark>();
     // deserialize parent class:
     ChTimestepperIIorder::ArchiveIN(archive);
     ChImplicitIterativeTimestepper::ArchiveIN(archive);

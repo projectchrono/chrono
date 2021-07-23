@@ -15,9 +15,6 @@
 // Chrono::Multicore unit test for real class
 // =============================================================================
 
-#include "chrono_multicore/math/real4.h"
-#include "chrono_multicore/math/matrix.h"
-
 #include "unit_testing.h"
 
 #ifdef CHRONO_MULTICORE_USE_DOUBLE
@@ -52,7 +49,7 @@ TEST(real4, functions) {
         ASSERT_EQ(b.y, 0.0);
         ASSERT_EQ(b.z, 2.0 / 129.0);
     }
-    // =============================================================================
+
     {
         // quaternion normalize
         quaternion a(11, -2, 0, -2);
@@ -62,7 +59,7 @@ TEST(real4, functions) {
         ASSERT_NEAR(b.y, 0.0, precision);
         ASSERT_NEAR(b.z, -2.0 / sqrt(129.0), precision);
     }
-    // =============================================================================
+
     {
         // quaternion multiply
         quaternion a(11 / 2.0, -2, -3, -2);
@@ -73,7 +70,7 @@ TEST(real4, functions) {
         ASSERT_NEAR(c.y, -33.0, precision);
         ASSERT_NEAR(c.z, -39.0, precision);
     }
-    // =============================================================================
+
     {
         // quaternion multiply
         quaternion R1 = Normalize(quaternion(rand(), rand(), rand(), rand()));
@@ -82,9 +79,9 @@ TEST(real4, functions) {
         quaternion Res1 = Mult(R1, R2);
         ChQuaternion<real> Res2;
         Res2.Cross(ToChQuaternion(R1), ToChQuaternion(R2));
-        Assert_near(Res1, ToQuaternion(Res2), precision);
+        Assert_near(Res1, FromChQuaternion(Res2), precision);
     }
-    // =============================================================================
+
     {
         // quaternion rotate
         real3 a(1.0, 2.0, -3.0);
@@ -96,7 +93,7 @@ TEST(real4, functions) {
         ASSERT_NEAR(c.y, -3, precision);
         ASSERT_NEAR(c.z, 1, precision);
     }
-    // =============================================================================
+
     {
         // quaternion rotate
         real3 a(1.0, 2.0, -3.0);
@@ -107,7 +104,7 @@ TEST(real4, functions) {
         ASSERT_NEAR(c.y, 1, precision);
         ASSERT_NEAR(c.z, 2, precision);
     }
-    // =============================================================================
+
     {
         // real4 rotate
         real3 V(1.0, 2.0, -3.0);
@@ -116,9 +113,9 @@ TEST(real4, functions) {
         ChQuaternion<real> R2 = ToChQuaternion(R1);
 
         ChVector<real> Res2 = R2.Rotate(ToChVector(V));
-        Assert_near(Res1a, ToReal3(Res2), precision);
+        Assert_near(Res1a, FromChVector(Res2), precision);
     }
-    // =============================================================================
+
     {
         // quaternion conjugate
 
@@ -127,7 +124,7 @@ TEST(real4, functions) {
         ChQuaternion<real> R2 = ToChQuaternion(R1);
         R2.Conjugate();
         ChQuaternion<real> Res2 = R2;
-        Assert_near(Res1, ToQuaternion(Res2), precision);
+        Assert_near(Res1, FromChQuaternion(Res2), precision);
     }
 
     {
@@ -143,4 +140,15 @@ TEST(real4, functions) {
         Assert_near(result_1, result_2, precision * 2);
     }
 
+    {
+        // converting from parent to local frame
+        quaternion R = Normalize(quaternion(rand(), rand(), rand(), rand()));
+        real3 pos = Normalize(real3(rand(), rand(), rand()));
+        real3 p_loc = Normalize(real3(rand(), rand(), rand()));
+
+        real3 p_abs = pos + Rotate(p_loc, R);
+
+        Assert_near(Rotate(p_abs - pos, Inv(R)), p_loc, precision);
+        Assert_near(RotateT(p_abs - pos, R), p_loc, precision);
+    }
 }

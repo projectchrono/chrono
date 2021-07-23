@@ -54,8 +54,6 @@ int main(int argc, char* argv[]) {
     const double beam_w = 0.1;  // Beam width (z)
     const double beam_l = 2.0;  // Beam length
 
-    unsigned int NElem = 4;  // Number of finite elements
-
     double rho = 2000.0;                                       // Beam material density
     const double E_mod = 2.07e11;                              // Beam modulus of elasticity
     const double nu_rat = 0.3;                                 // Beam material Poisson ratio

@@ -39,6 +39,16 @@ endif()
   set(CHRONO_FSI_USE_DOUBLE "#define CHRONO_FSI_USE_DOUBLE")
 #endif()
 
+# ------------------------------------------------------------------------------
+# If using MSVC, disable warnings related to missing DLL interface
+# ------------------------------------------------------------------------------
+
+if(MSVC)
+  #add_compile_options(/wd4251)
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /wd4251")
+  set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /wd4251")
+endif()
+
 # ----------------------------------------------------------------------------
 # Collect additional include directories necessary for the FSI module.
 # Make some variables visible from parent directory

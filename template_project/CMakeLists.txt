@@ -9,7 +9,7 @@
 #--------------------------------------------------------------
  
 
-cmake_minimum_required(VERSION 2.8)
+cmake_minimum_required(VERSION 3.10)
 
 #--------------------------------------------------------------
 # === 1 === 
@@ -114,7 +114,8 @@ if(MSVC)
     add_definitions("-D_CRT_SECURE_NO_DEPRECATE")  # avoids deprecation warnings
     add_definitions("-D_SCL_SECURE_NO_DEPRECATE")  # avoids deprecation warnings
     add_definitions( "-DNOMINMAX" )                # do not use MSVC's min/max macros
-    set(EXTRA_COMPILE_FLAGS "/wd4275")             # disable warnings triggered by Irrlicht
+    add_compile_options(/wd4275)                   # disable warnings triggered by Irrlicht
+    add_compile_options(/wd4251)                   # class needs to have dll-interface
 else()
     set(EXTRA_COMPILE_FLAGS "")
 endif()

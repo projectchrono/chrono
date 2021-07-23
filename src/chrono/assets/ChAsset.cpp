@@ -28,7 +28,7 @@ void ChAsset::ArchiveOUT(ChArchiveOut& marchive) {
 
 void ChAsset::ArchiveIN(ChArchiveIn& marchive) {
     // version number
-    int version = marchive.VersionRead<ChAsset>();
+    /*int version =*/ marchive.VersionRead<ChAsset>();
 }
 
 }  // end namespace chrono

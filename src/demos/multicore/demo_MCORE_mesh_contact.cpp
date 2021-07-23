@@ -52,13 +52,11 @@ int main(int argc, char* argv[]) {
     // ---------------------------
 
     ChContactMethod contact_method = ChContactMethod::NSC;
-    bool use_mat_properties = true;
 
     float object_friction = 0.9f;
     float object_restitution = 0.0f;
     float object_young_modulus = 2e7f;
     float object_poisson_ratio = 0.3f;
-    float object_adhesion = 0.0f;
     float object_kn = 2e5;
     float object_gn = 40;
     float object_kt = 2e5;
@@ -68,7 +66,6 @@ int main(int argc, char* argv[]) {
     float ground_restitution = 0.01f;
     float ground_young_modulus = 1e6f;
     float ground_poisson_ratio = 0.3f;
-    float ground_adhesion = 0.0f;
     float ground_kn = 2e5;
     float ground_gn = 40;
     float ground_kt = 2e5;
@@ -91,7 +88,7 @@ int main(int argc, char* argv[]) {
     double thickness = 0.1;
 
     // Create the system
-    ChSystemMulticore* sys;
+    ChSystemMulticore* sys = nullptr;
     switch (contact_method) {
         case ChContactMethod::NSC: {
             auto sysNSC = new ChSystemMulticoreNSC();
@@ -124,7 +121,7 @@ int main(int argc, char* argv[]) {
     sys->GetSettings()->solver.tolerance = tolerance;
 
     sys->GetSettings()->collision.collision_envelope = collision_envelope;
-    sys->GetSettings()->collision.narrowphase_algorithm = NarrowPhaseType::NARROWPHASE_HYBRID_MPR;
+    sys->GetSettings()->collision.narrowphase_algorithm = collision::ChNarrowphase::Algorithm::HYBRID;
     sys->GetSettings()->collision.bins_per_axis = vec3(10, 10, 10);
 
     // Rotation Z->Y (because meshes used here assume Z up)

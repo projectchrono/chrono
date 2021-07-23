@@ -13,7 +13,7 @@
 // =============================================================================
 //
 // Chrono::Multicore test program using an MPM container (3DOF), either a particle
-// or a fluid container 
+// or a fluid container
 //
 // The global reference frame has Z up.
 //
@@ -38,7 +38,7 @@
 #include "chrono_multicore/physics/Ch3DOFContainer.h"
 
 #ifdef CHRONO_OPENGL
-#include "chrono_opengl/ChOpenGLWindow.h"
+    #include "chrono_opengl/ChOpenGLWindow.h"
 #endif
 
 using namespace chrono;
@@ -49,53 +49,13 @@ using namespace chrono::collision;
 double time_step = 1e-3;
 double kernel_radius = .016 * 2;
 
-// -----------------------------------------------------------------------------
-// Create a bin consisting of five boxes attached to the ground and a mixer
-// blade attached through a revolute joint to ground. The mixer is constrained
-// to rotate at constant angular velocity.
-// -----------------------------------------------------------------------------
 void AddBody(ChSystemMulticoreNSC* sys) {
-    // IDs for the two bodies
     int binId = -200;
-    int mixerId = -201;
 
-    // Create a common material
     auto mat = chrono_types::make_shared<ChMaterialSurfaceNSC>();
     mat->SetFriction(0.4f);
 
-    // Create the containing bin (2 x 2 x 1)
-    auto bin = chrono_types::make_shared<ChBody>(chrono_types::make_shared<ChCollisionModelMulticore>());
-    bin->SetIdentifier(binId);
-    bin->SetMass(100);
-    bin->SetPos(ChVector<>(0, 0, 1));
-    bin->SetRot(ChQuaternion<>(1, 0, 0, 0));
-    bin->SetCollide(true);
-    bin->SetBodyFixed(false);
-
-    ChVector<> hdim(.5, .5, 0.05);
-
-    bin->GetCollisionModel()->ClearModel();
-    utils::AddBoxGeometry(bin.get(), mat, ChVector<>(hdim.x(), hdim.y(), hdim.z()), ChVector<>(0, 0, -hdim.z()));
-    // utils::AddBoxGeometry(bin.get(), mat, ChVector<>(hdim.x(), hdim.y(), hdim.z()), ChVector<>(0, 0, hdim.z()*10));
-    bin->GetCollisionModel()->SetFamily(1);
-    bin->GetCollisionModel()->SetFamilyMaskNoCollisionWithFamily(2);
-    bin->GetCollisionModel()->BuildModel();
-    bin->SetInertiaXX(utils::CalcBoxGyration(hdim).diagonal() * 100);
-
-    sys->AddBody(bin);
-}
-
-void AddContainer(ChSystemMulticoreNSC* sys) {
-    // IDs for the two bodies
-    int binId = -200;
-    int mixerId = -201;
-
-    // Create a common material
-    auto mat = chrono_types::make_shared<ChMaterialSurfaceNSC>();
-    mat->SetFriction(0.4f);
-
-    // Create the containing bin (2 x 2 x 1)
-    auto bin = chrono_types::make_shared<ChBody>(chrono_types::make_shared<ChCollisionModelMulticore>());
+    auto bin = std::shared_ptr<ChBody>(sys->NewBody());
     bin->SetIdentifier(binId);
     bin->SetMass(1);
     bin->SetPos(ChVector<>(0, 0, 0));
@@ -107,7 +67,6 @@ void AddContainer(ChSystemMulticoreNSC* sys) {
 
     bin->GetCollisionModel()->ClearModel();
     utils::AddBoxGeometry(bin.get(), mat, ChVector<>(hdim.x(), hdim.y(), hdim.z()), ChVector<>(0, 0, 0));
-    // utils::AddBoxGeometry(bin.get(), mat, ChVector<>(hdim.x(), hdim.y(), hdim.z()), ChVector<>(0, 0, hdim.z()*10));
     bin->GetCollisionModel()->SetFamily(1);
     bin->GetCollisionModel()->SetFamilyMaskNoCollisionWithFamily(2);
     bin->GetCollisionModel()->BuildModel();
@@ -115,11 +74,8 @@ void AddContainer(ChSystemMulticoreNSC* sys) {
     sys->AddBody(bin);
 }
 
-// -----------------------------------------------------------------------------
 // Create the MPM container with spherical contact
-// -----------------------------------------------------------------------------
 void AddMPMContainer(ChSystemMulticoreNSC* sys) {
-
 #if USE_RIGID
     auto mpm_container = chrono_types::make_shared<ChParticleContainer>();
 #else
@@ -170,7 +126,6 @@ void AddMPMContainer(ChSystemMulticoreNSC* sys) {
     std::vector<real3> pos_fluid;
     std::vector<real3> vel_fluid;
 
-#if 1
 #if USE_RIGID
     double dist = kernel_radius;
 #else
@@ -201,20 +156,6 @@ void AddMPMContainer(ChSystemMulticoreNSC* sys) {
         pos_fluid[i] = real3(points[i].x(), points[i].y(), points[i].z()) + origin;
         vel_fluid[i] = real3(-6, 0, 0);
     }
-// mpm_container->AddNodes(pos_fluid, vel_fluid);
-
-#else
-    pos_fluid.resize(1);
-    vel_fluid.resize(1);
-
-    pos_fluid[0] = real3(0, 0, 0);
-    vel_fluid[0] = real3(0, 0, -1);
-    mpm_container->AddNodes(pos_fluid, vel_fluid);
-
-    pos_fluid[0] = real3(.05, 0, 0);
-    vel_fluid[0] = real3(-1, 0, 0);
-// mpm_container->AddNodes(pos_fluid, vel_fluid);
-#endif
 }
 
 // -----------------------------------------------------------------------------
@@ -223,27 +164,14 @@ void AddMPMContainer(ChSystemMulticoreNSC* sys) {
 int main(int argc, char* argv[]) {
     GetLog() << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
 
-    // Simulation parameters
-    // ---------------------
-
-    double gravity = 9.81;
-
-    double time_end = 1;
-
-    double out_fps = 50;
-
-    uint max_iteration = 30;
-    real tolerance = 1e-3;
-
     // Create system
-    // -------------
-
     ChSystemMulticoreNSC msystem;
 
     // Set number of threads
     msystem.SetNumThreads(8);
 
     // Set gravitational acceleration
+    double gravity = 9.81;
     msystem.Set_G_acc(ChVector<>(0, 0, -gravity));
 
     // Set solver parameters
@@ -258,7 +186,7 @@ int main(int argc, char* argv[]) {
     msystem.GetSettings()->solver.contact_recovery_speed = 100;
     msystem.GetSettings()->solver.cache_step_length = true;
     msystem.ChangeSolverType(SolverType::BB);
-    msystem.GetSettings()->collision.narrowphase_algorithm = NarrowPhaseType::NARROWPHASE_HYBRID_MPR;
+    msystem.GetSettings()->collision.narrowphase_algorithm = ChNarrowphase::Algorithm::HYBRID;
 
     AddMPMContainer(&msystem);
 
@@ -266,15 +194,14 @@ int main(int argc, char* argv[]) {
     msystem.GetSettings()->collision.bins_per_axis = vec3(2, 2, 2);
     msystem.SetLoggingLevel(LoggingLevel::LOG_TRACE, true);
     msystem.SetLoggingLevel(LoggingLevel::LOG_INFO, true);
-    // Create the fixed and moving bodies
-    // ----------------------------------
 
-    AddContainer(&msystem);
+    // Create the fixed body
     AddBody(&msystem);
+
     // This initializes all of the MPM stuff
     msystem.Initialize();
-// Perform the simulation
-// ----------------------
+
+    // Perform the simulation
 
 #ifdef CHRONO_OPENGL
     opengl::ChOpenGLWindow& gl_window = opengl::ChOpenGLWindow::getInstance();
@@ -298,6 +225,7 @@ int main(int argc, char* argv[]) {
     }
 #else
     // Run simulation for specified time
+    double time_end = 1;
     int num_steps = (int)std::ceil(time_end / time_step);
 
     double time = 0;
