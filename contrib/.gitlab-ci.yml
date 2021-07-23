@@ -212,7 +212,7 @@ linux:arch-llvm:test:
     - conda install -c dlr-sc opencascade --yes
     - conda install -c intel mkl-devel --yes
   environment:
-    name: pychrono-ubuntu1804
+    name: pychrono-ubuntu2004
     url: https://anaconda.org/projectchrono/pychrono
 
 
@@ -256,10 +256,10 @@ linux:ubuntu2004:test:
     - export OMP_NUM_THREADS=8
     - export CTEST_OUTPUT_ON_FAILURE=1 
     - ninja test
-  dependencies: ["linux:ubuntu1804:build"]
+  dependencies: ["linux:ubuntu2004:build"]
 
 
-linux:ubuntu1804:deploy-python3.6:
+linux:ubuntu2004:deploy-python3.6:
   stage: deploy
   needs: []
   extends: .ubuntu-deploy-base
@@ -269,7 +269,7 @@ linux:ubuntu1804:deploy-python3.6:
     - anaconda -t $ANACONDA_TOKEN upload $HOME/miniconda3/conda-bld/linux-64/pychrono*.bz2 -l develop --force
   when: manual
 
-linux:ubuntu1804:deploy-python3.7:
+linux:ubuntu2004:deploy-python3.7:
   stage: deploy
   needs: []
   extends: .ubuntu-deploy-base
@@ -279,7 +279,7 @@ linux:ubuntu1804:deploy-python3.7:
     - anaconda -t $ANACONDA_TOKEN upload $HOME/miniconda3/conda-bld/linux-64/pychrono*.bz2 -l develop --force
   when: manual
 
-linux:ubuntu1804:deploy-python3.8:
+linux:ubuntu2004:deploy-python3.8:
   stage: deploy
   needs: []
   extends: .ubuntu-deploy-base
