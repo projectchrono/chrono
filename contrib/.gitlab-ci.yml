@@ -239,7 +239,7 @@ linux:ubuntu2004:build:
         -DCMAKE_CXX_COMPILER=/usr/bin/g++
         -DCUDA_HOST_COMPILER=/usr/bin/gcc
         -DPYTHON_EXECUTABLE=/usr/bin/python3
-        -DEIGEN3_INCLUDE_DIR=/usr/local/include/eigen3
+        -DEIGEN3_INCLUDE_DIR=/usr/include/eigen3
         -DCMAKE_VERBOSE_MAKEFILE=TRUE
     - ninja -j 8
   artifacts:
