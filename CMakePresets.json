@@ -48,7 +48,8 @@
 			"cacheVariables": {
 				"ENABLE_MODULE_DISTRIBUTED": "ON",
 				"ENABLE_MODULE_FSI": "ON",
-				"ENABLE_MODULE_GPU": "ON"
+				"ENABLE_MODULE_GPU": "ON",
+				"CMAKE_CXX_FLAGS": "-fdiagnostics-color=always"
 			}
 		},
 		{
@@ -80,7 +81,7 @@
 			"cacheVariables": {
 				"ENABLE_MODULE_PARDISO_MKL": "ON",
 				"BLAZE_DIR": "C:/Users/SBEL CI/Documents/blaze-3.8",
-				"EIGEN3_INCLUDE_DIR": "C:/SBEL CI/builder/Documents/eigen-3.3.9",
+				"EIGEN3_INCLUDE_DIR": "C:/Users/SBEL CI/Documents/eigen-3.3.9",
 				"GLEW_DLL": "C:/Users/SBEL CI/Documents/glew-2.2.0/bin/Release/x64/glew32.dll",
 				"GLEW_INCLUDE_DIR": "C:/Users/SBEL CI/Documents/glew-2.2.0/include",
 				"GLEW_LIBRARY": "C:/Users/SBEL CI/Documents/glew-2.2.0/lib/Release/x64/glew32.lib",
