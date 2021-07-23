@@ -54,7 +54,7 @@ CH_SENSOR_API void ChFilterVisualize::Apply() {
                             m_cuda_stream);
         } else if (m_bufferRadar) {
             cudaMemcpyAsync(m_hostRadar->Buffer.get(), m_bufferRadar->Buffer.get(),
-                            m_hostRadar->Width * m_hostRadar->Height * sizeof(PixelRadar),
+                            m_hostRadar->Width * m_hostRadar->Height * sizeof(RadarReturn),
                             cudaMemcpyDeviceToHost, m_cuda_stream);
         } else {
             throw std::runtime_error("No buffer incoming for visualization");
@@ -170,9 +170,9 @@ CH_SENSOR_API void ChFilterVisualize::Initialize(std::shared_ptr<ChSensor> pSens
         m_hostDI->Height = m_bufferDI->Height;
     } else if (m_bufferRadar) {
         m_hostRadar = chrono_types::make_shared<SensorHostRadarBuffer>();
-        std::shared_ptr<PixelRadar[]> b(
-            cudaHostMallocHelper<PixelRadar>(m_bufferRadar->Width * m_bufferRadar->Height),
-            cudaHostFreeHelper<PixelRadar>);
+        std::shared_ptr<RadarReturn[]> b(
+            cudaHostMallocHelper<RadarReturn>(m_bufferRadar->Width * m_bufferRadar->Height),
+            cudaHostFreeHelper<RadarReturn>);
         m_hostRadar->Buffer = std::move(b);
         m_hostRadar->Width = m_bufferRadar->Width;
         m_hostRadar->Height = m_bufferRadar->Height;

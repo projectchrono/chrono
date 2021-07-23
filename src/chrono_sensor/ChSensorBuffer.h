@@ -150,37 +150,42 @@ using UserR8BufferPtr = std::shared_ptr<SensorHostR8Buffer>;
 //=====================================
 // Range Radar Data Formats and Buffers
 //=====================================
-struct PixelRadar {
+
+struct RadarReturn {
     float range;
-    float intensity;
-    float x_vel;
-    float y_vel;
-    float z_vel;
-    float objectID;
+    float azimuth;
+    float elevation;
+    float doppler_velocity[3];
+    float amplitude;
+    float objectId;
 };
+
 /// host buffer to be used by radar filters in the graph
-using SensorHostRadarBuffer = RadarBufferT<std::shared_ptr<PixelRadar[]>>;
+using SensorHostRadarBuffer = RadarBufferT<std::shared_ptr<RadarReturn[]>>;
 /// device buffer to be used by radar filters in the graph
-using DeviceRadarBufferPtr = std::shared_ptr<PixelRadar[]>;
+using DeviceRadarBufferPtr = std::shared_ptr<RadarReturn[]>;
 /// Sensor buffer wrapper of a DeviceRadarBufferPtr
 using SensorDeviceRadarBuffer = RadarBufferT<DeviceRadarBufferPtr>;
 /// pointer to a radar buffer on the host that has been moved for safety and can be given to the user
 using UserRadarBufferPtr = std::shared_ptr<SensorHostRadarBuffer>;
 
-struct PixelProcessedRadar {
-    float x;
-    float y;
-    float z;
+struct RadarTrack {
+    float xyz[3];
+    float vel[3];
+//    float acceleration[3];
+//    float size[3];
     float intensity;
-    float x_vel;
-    float y_vel;
-    float z_vel;
     float objectID;
+
+//    std::array<float, 6> position_covariance;
+//    std::array<float, 6> velocity_covariance;
+//    std::array<float, 6> acceleration_covariance;
+//    std::array<float, 6> size_covariance;
 };
 /// processed radar host buffer to be used by radar filters in the graph
-using SensorHostProcessedRadarBuffer = RadarBufferT<std::shared_ptr<PixelProcessedRadar[]>>;
+using SensorHostProcessedRadarBuffer = RadarBufferT<std::shared_ptr<RadarTrack[]>>;
 /// processed radar buffer to be used by radar filters in the graph
-using DeviceProcessedRadarBufferPtr = std::shared_ptr<PixelProcessedRadar[]>;
+using DeviceProcessedRadarBufferPtr = std::shared_ptr<RadarTrack[]>;
 /// Sensor buffer wrapper of a DeviceProcessedRadarBufferPtr
 using SensorDeviceProcessedRadarBuffer = RadarBufferT<DeviceProcessedRadarBufferPtr>;
 /// pointer to a processed radar buffer on the host that has been moved for safety and can be given to the user

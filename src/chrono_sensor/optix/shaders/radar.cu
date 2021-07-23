@@ -64,11 +64,21 @@ extern "C" __global__ void __raygen__radar() {
     }
 
     float3 vel_radar_frame =  make_float3(Dot(forward, vel_global), Dot(left, vel_global), Dot(up, vel_global));
+
+    int hIndex = image_index % screen.x;
+    int vIndex = image_index / screen.x;
+
+    float azimuth = (hIndex / (float)(screen.x)) * radar.hFOV - radar.hFOV / 2.;
+    float elevation = (vIndex / (float)(screen.y)) * (radar.max_vert_angle - radar.min_vert_angle) + radar.min_vert_angle;
         
-    radar.frame_buffer[6 * image_index] = prd_radar.range;
-    radar.frame_buffer[6 * image_index + 1] = prd_radar.rcs;
-    radar.frame_buffer[6 * image_index + 2] = vel_radar_frame.x; // x velocity
-    radar.frame_buffer[6 * image_index + 3] = vel_radar_frame.y; // y velocity
-    radar.frame_buffer[6 * image_index + 4] = vel_radar_frame.z; // z velocity
-    radar.frame_buffer[6 * image_index + 5] = prd_radar.objectID; // objectID
+    radar.frame_buffer[8 * image_index] = prd_radar.range;
+    radar.frame_buffer[8 * image_index + 1] = azimuth;
+    radar.frame_buffer[8 * image_index + 2] = elevation; // x velocity
+    radar.frame_buffer[8 * image_index + 3] = vel_radar_frame.x; // y velocity
+    radar.frame_buffer[8 * image_index + 4] = vel_radar_frame.y; // z velocity
+    radar.frame_buffer[8 * image_index + 5] = vel_radar_frame.z; // z velocity
+    radar.frame_buffer[8 * image_index + 6] = prd_radar.rcs;
+    radar.frame_buffer[8 * image_index + 7] = prd_radar.objectID; // objectID
+//    printf("%f %f\n", prd_radar.range, azimuth);
+
 }

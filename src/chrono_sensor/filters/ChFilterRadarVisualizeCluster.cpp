@@ -108,7 +108,7 @@ CH_SENSOR_API void ChFilterRadarVisualizeCluster::Apply() {
                 glColor3f(1 - inten * m_buffer_in->Buffer[i].objectID, inten * m_buffer_in->Buffer[i].objectID,
                           inten * 0.5 * m_buffer_in->Buffer[i].objectID);
                 //                glColor3f(1, 1, 1);
-                glVertex3f(-m_buffer_in->Buffer[i].y, m_buffer_in->Buffer[i].z, -m_buffer_in->Buffer[i].x);
+                glVertex3f(-m_buffer_in->Buffer[i].xyz[1], m_buffer_in->Buffer[i].xyz[2], -m_buffer_in->Buffer[i].xyz[0]);
             }
         }
 

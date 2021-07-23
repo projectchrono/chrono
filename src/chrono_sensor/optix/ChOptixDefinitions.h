@@ -88,6 +88,11 @@ struct LidarParameters {
     float2* frame_buffer;
 };
 
+enum class RadarReturnMode {
+    RETURN,
+    TRACK
+};
+
 struct RadarParameters {
     float max_vert_angle;
     float min_vert_angle;

@@ -127,11 +127,11 @@ int main(int argc, char* argv[]) {
     // -------------------------------------------
     // add a few box bodies to be sense by a radar
     // -------------------------------------------
-    auto floor = chrono_types::make_shared<ChBodyEasyBox>(1000, 20, 1, 1000, true, false);
+    auto floor = chrono_types::make_shared<ChBodyEasyBox>(1, 1, 1, 1000, true, false);
     floor->SetPos({0, 0, -1});
     floor->SetBodyFixed(true);
     //    floor->SetWvel_par(ChVector<>(-0.2,-0.4,-0.3));
-    floor->SetPos_dt(ChVector<>(0.1, 0, 0));
+//    floor->SetPos_dt(ChVector<>(0.1, 0, 0));
     mphysicalSystem.Add(floor);
     {
         auto asset = floor->GetAssets()[0];
@@ -139,6 +139,18 @@ int main(int argc, char* argv[]) {
             visual_asset->material_list.push_back(green);
         }
     }
+
+//    auto box = chrono_types::make_shared<ChBodyEasyBox>(0.5,5,5, 1000, true, false);
+//    box->SetPos({5,0,0});
+//    box->SetBodyFixed(true);
+//    mphysicalSystem.Add(box);
+//    {
+//        auto asset = box->GetAssets()[0];
+//        if (auto visual_asset = std::dynamic_pointer_cast<ChVisualization>(asset)) {
+//            visual_asset->material_list.push_back(red);
+//        }
+//
+//    }
 
     for (int i = 0; i < 10; i++) {
         float x = rand() % 50;
@@ -189,7 +201,7 @@ int main(int argc, char* argv[]) {
 
     auto radar =
         chrono_types::make_shared<ChRadarSensor>(floor, update_rate, offset_pose, horizontal_samples, vertical_samples,
-                                                 horizontal_fov, max_vert_angle, min_vert_angle, max_distance);
+                                                 horizontal_fov, max_vert_angle, min_vert_angle, max_distance, RadarReturnMode::TRACK);
     radar->SetName("Radar Sensor");
     radar->SetLag(lag);
     radar->SetCollectionWindow(collection_time);
@@ -199,21 +211,21 @@ int main(int argc, char* argv[]) {
     const std::string out_dir = "RADAR_OUPUT/";
     manager->AddSensor(radar);
 
-    auto lidar =
-        chrono_types::make_shared<ChLidarSensor>(floor,                                  // body lidar is attached to
-                                                 update_rate,                            // scanning rate in Hz
-                                                 offset_pose,                            // offset pose
-                                                 horizontal_samples,                     // number of horizontal samples
-                                                 vertical_samples,                       // number of vertical channels
-                                                 horizontal_fov,                         // horizontal field of view
-                                                 max_vert_angle, min_vert_angle, 100.0f  // vertical field of view
-        );
-    lidar->SetName("Lidar Sensor 1");
-    lidar->SetLag(lag);
-    lidar->SetCollectionWindow(collection_time);
-    lidar->PushFilter(chrono_types::make_shared<ChFilterPCfromDepth>());
-    lidar->PushFilter(chrono_types::make_shared<ChFilterVisualizePointCloud>(width, height, 2, "Radar Return"));
-    //    manager->AddSensor(lidar);
+//    auto lidar =
+//        chrono_types::make_shared<ChLidarSensor>(floor,                                  // body lidar is attached to
+//                                                 update_rate,                            // scanning rate in Hz
+//                                                 offset_pose,                            // offset pose
+//                                                 horizontal_samples,                     // number of horizontal samples
+//                                                 vertical_samples,                       // number of vertical channels
+//                                                 horizontal_fov,                         // horizontal field of view
+//                                                 max_vert_angle, min_vert_angle, 100.0f  // vertical field of view
+//        );
+//    lidar->SetName("Lidar Sensor 1");
+//    lidar->SetLag(lag);
+//    lidar->SetCollectionWindow(collection_time);
+//    lidar->PushFilter(chrono_types::make_shared<ChFilterPCfromDepth>());
+//    lidar->PushFilter(chrono_types::make_shared<ChFilterVisualizePointCloud>(width, height, 2, "Radar Return"));
+//    //    manager->AddSensor(lidar);
 
     auto cam_offset_pose = chrono::ChFrame<double>({0, 0, 1}, Q_from_AngZ(0));
     auto cam1 = chrono_types::make_shared<ChCameraSensor>(floor,            // body camera is attached to

@@ -189,8 +189,8 @@ using namespace chrono::sensor;
 %shared_ptr(chrono::sensor::SensorBufferT<std::shared_ptr<chrono::sensor::PixelDI[]>>)
 %shared_ptr(chrono::sensor::LidarBufferT<std::shared_ptr<chrono::sensor::PixelXYZI[]>>)
 %shared_ptr(chrono::sensor::LidarBufferT<std::shared_ptr<chrono::sensor::PixelDI[]>>)
-%shared_ptr(chrono::sensor::RadarBufferT<std::shared_ptr<chrono::sensor::PixelRadar[]>>)
-%shared_ptr(chrono::sensor::RadarBufferT<std::shared_ptr<chrono::sensor::PixelProcessedRadar[]>>)
+%shared_ptr(chrono::sensor::RadarBufferT<std::shared_ptr<chrono::sensor::RadarReturn[]>>)
+%shared_ptr(chrono::sensor::RadarBufferT<std::shared_ptr<chrono::sensor::RadarTrack[]>>)
 %shared_ptr(chrono::sensor::SensorBufferT<std::shared_ptr<char[]>>)
 %shared_ptr(chrono::sensor::SensorBufferT<std::shared_ptr<chrono::sensor::PixelRGBA8[]>>)
 %shared_ptr(chrono::sensor::SensorBufferT<std::shared_ptr<chrono::sensor::PixelHalf4[]>>)
@@ -202,8 +202,8 @@ using namespace chrono::sensor;
 %shared_ptr(chrono::sensor::ChFilterAccess< chrono::sensor::SensorBufferT< std::shared_ptr< chrono::sensor::MagnetData [] > >,std::shared_ptr< chrono::sensor::SensorBufferT< std::shared_ptr< chrono::sensor::MagnetData [] > > > > )
 %shared_ptr(chrono::sensor::ChFilterAccess< chrono::sensor::LidarBufferT< std::shared_ptr< chrono::sensor::PixelXYZI [] > >,std::shared_ptr< chrono::sensor::LidarBufferT< std::shared_ptr< chrono::sensor::PixelXYZI [] > > > > )
 %shared_ptr(chrono::sensor::ChFilterAccess< chrono::sensor::LidarBufferT< std::shared_ptr< chrono::sensor::PixelDI [] > >,std::shared_ptr< chrono::sensor::LidarBufferT< std::shared_ptr< chrono::sensor::PixelDI [] > > > > )
-%shared_ptr(chrono::sensor::ChFilterAccess< chrono::sensor::RadarBufferT< std::shared_ptr< chrono::sensor::PixelRadar [] > >,std::shared_ptr< chrono::sensor::RadarBufferT< std::shared_ptr< chrono::sensor::PixelRadar[] > > > > )
-%shared_ptr(chrono::sensor::ChFilterAccess< chrono::sensor::RadarBufferT< std::shared_ptr< chrono::sensor::PixelProcessedRadar [] > >,std::shared_ptr< chrono::sensor::RadarBufferT< std::shared_ptr< chrono::sensor::PixelProcessedRadar[] > > > > )
+%shared_ptr(chrono::sensor::ChFilterAccess< chrono::sensor::RadarBufferT< std::shared_ptr< chrono::sensor::RadarReturn [] > >,std::shared_ptr< chrono::sensor::RadarBufferT< std::shared_ptr< chrono::sensor::RadarReturn[] > > > > )
+%shared_ptr(chrono::sensor::ChFilterAccess< chrono::sensor::RadarBufferT< std::shared_ptr< chrono::sensor::RadarTrack [] > >,std::shared_ptr< chrono::sensor::RadarBufferT< std::shared_ptr< chrono::sensor::RadarTrack[] > > > > )
 %shared_ptr(chrono::sensor::ChFilterAccess< chrono::sensor::SensorBufferT< std::shared_ptr< char [] > >,std::shared_ptr< chrono::sensor::SensorBufferT< std::shared_ptr< char [] > > > > )
 %shared_ptr(chrono::sensor::ChFilterAccess< chrono::sensor::SensorBufferT< std::shared_ptr< chrono::sensor::PixelRGBA8 [] > >,std::shared_ptr< chrono::sensor::SensorBufferT< std::shared_ptr< chrono::sensor::PixelRGBA8 [] > > > > )
 %shared_ptr(chrono::sensor::ChFilterAccess< chrono::sensor::SensorBufferT< std::shared_ptr< chrono::sensor::GPSData [] > >,std::shared_ptr< chrono::sensor::SensorBufferT< std::shared_ptr< chrono::sensor::GPSData [] > > > > )
@@ -272,8 +272,8 @@ using namespace chrono::sensor;
 %template(UserXYZIBuffer) chrono::sensor::LidarBufferT<std::shared_ptr<chrono::sensor::PixelXYZI[]>>;
 
 //radar
-%template(UserRadarBuffer) chrono::sensor::RadarBufferT<std::shared_ptr<chrono::sensor::PixelRadar[]>>;
-%template(UserProcessedRadarBuffer) chrono::sensor::RadarBufferT<std::shared_ptr<chrono::sensor::PixelProcessedRadar[]>>;
+%template(UserRadarBuffer) chrono::sensor::RadarBufferT<std::shared_ptr<chrono::sensor::RadarReturn[]>>;
+%template(UserProcessedRadarBuffer) chrono::sensor::RadarBufferT<std::shared_ptr<chrono::sensor::RadarTrack[]>>;
 
 //dynamic
 %template(UserAccelBuffer) chrono::sensor::SensorBufferT<std::shared_ptr<chrono::sensor::AccelData[]>>;
@@ -332,10 +332,10 @@ using namespace chrono::sensor;
 %template(GetMostRecentXYZIBuffer) chrono::sensor::ChSensor::GetMostRecentBuffer< std::shared_ptr < chrono::sensor::LidarBufferT<std::shared_ptr<chrono::sensor::PixelXYZI[]>>> > ;
 
 //radar
-%template(ChFilterRadarAccess) chrono::sensor::ChFilterAccess<chrono::sensor::RadarBufferT<std::shared_ptr<chrono::sensor::PixelRadar[]>>, std::shared_ptr<chrono::sensor::RadarBufferT<std::shared_ptr<chrono::sensor::PixelRadar[]>>>>;
-%template(ChFilterProcessedRadarAccess) chrono::sensor::ChFilterAccess<chrono::sensor::RadarBufferT<std::shared_ptr<chrono::sensor::PixelProcessedRadar[]>>, std::shared_ptr<chrono::sensor::RadarBufferT<std::shared_ptr<chrono::sensor::PixelProcessedRadar[]>>>>;
-%template(GetMostRecentRadarBuffer) chrono::sensor::ChSensor::GetMostRecentBuffer<std::shared_ptr<chrono::sensor::RadarBufferT<std::shared_ptr<chrono::sensor::PixelRadar[]>>>>;
-%template(GetMostRecentProcessedRadarBuffer) chrono::sensor::ChSensor::GetMostRecentBuffer<std::shared_ptr<chrono::sensor::RadarBufferT<std::shared_ptr<chrono::sensor::PixelProcessedRadar[]>>>>;
+%template(ChFilterRadarAccess) chrono::sensor::ChFilterAccess<chrono::sensor::RadarBufferT<std::shared_ptr<chrono::sensor::RadarReturn[]>>, std::shared_ptr<chrono::sensor::RadarBufferT<std::shared_ptr<chrono::sensor::RadarReturn[]>>>>;
+%template(ChFilterProcessedRadarAccess) chrono::sensor::ChFilterAccess<chrono::sensor::RadarBufferT<std::shared_ptr<chrono::sensor::RadarTrack[]>>, std::shared_ptr<chrono::sensor::RadarBufferT<std::shared_ptr<chrono::sensor::RadarTrack[]>>>>;
+%template(GetMostRecentRadarBuffer) chrono::sensor::ChSensor::GetMostRecentBuffer<std::shared_ptr<chrono::sensor::RadarBufferT<std::shared_ptr<chrono::sensor::RadarReturn[]>>>>;
+%template(GetMostRecentProcessedRadarBuffer) chrono::sensor::ChSensor::GetMostRecentBuffer<std::shared_ptr<chrono::sensor::RadarBufferT<std::shared_ptr<chrono::sensor::RadarTrack[]>>>>;
 //dynamic 
 %template(ChFilterAccelAccess) chrono::sensor::ChFilterAccess<chrono::sensor::SensorBufferT<std::shared_ptr<chrono::sensor::AccelData[]>>, std::shared_ptr<chrono::sensor::SensorBufferT<std::shared_ptr<chrono::sensor::AccelData[]>>>>;
 %template(ChFilterGyroAccess) chrono::sensor::ChFilterAccess<chrono::sensor::SensorBufferT<std::shared_ptr<chrono::sensor::GyroData[]>>, std::shared_ptr<chrono::sensor::SensorBufferT<std::shared_ptr<chrono::sensor::GyroData[]>>>>;
@@ -370,43 +370,43 @@ void GetDIData(float** vec, int* h, int* w, int* c) {
 }
 };
 ////
-//// PixelRadar Extension
+//// RadarReturn Extension
 ////
-%extend chrono::sensor::RadarBufferT<std::shared_ptr<chrono::sensor::PixelRadar[]>>{
+%extend chrono::sensor::RadarBufferT<std::shared_ptr<chrono::sensor::RadarReturn[]>>{
     public:
     bool HasData(){
         return !($self->Buffer==NULL);
     }
 }
 ////
-//// PixelProcessedRadar Extension
+//// RadarTrack Extension
 ////
-%extend chrono::sensor::RadarBufferT<std::shared_ptr<chrono::sensor::PixelRadar[]>>{
+%extend chrono::sensor::RadarBufferT<std::shared_ptr<chrono::sensor::RadarTrack[]>>{
     void GetRadarData(float** vec, int* h, int* w, int* c){
         *h = $self->Height;
         *w = $self->Width;
-        *c = sizeof(PixelRadar)/sizeof(float);
+        *c = sizeof(RadarTrack)/sizeof(float);
         *vec = reinterpret_cast<float*>($self->Buffer.get());
     }
 }
 
 ////
-//// PixelProcessedRadar Extension
+//// RadarTrack Extension
 ////
-%extend chrono::sensor::RadarBufferT<std::shared_ptr<chrono::sensor::PixelProcessedRadar[]>>{
+%extend chrono::sensor::RadarBufferT<std::shared_ptr<chrono::sensor::RadarTrack[]>>{
     public:
     bool HasData(){
         return !($self->Buffer==NULL);
     }
 }
 ////
-//// PixelProcessedRadar Extension
+//// RadarTrack Extension
 ////
-%extend chrono::sensor::RadarBufferT<std::shared_ptr<chrono::sensor::PixelProcessedRadar[]>>{
+%extend chrono::sensor::RadarBufferT<std::shared_ptr<chrono::sensor::RadarTrack[]>>{
     void GetRadarData(float** vec, int* h, int* w, int* c){
         *h = $self->Height;
         *w = $self->Width;
-        *c = sizeof(PixelProcessedRadar)/sizeof(float);
+        *c = sizeof(RadarTrack)/sizeof(float);
         *vec = reinterpret_cast<float*>($self->Buffer.get());
     }
 }

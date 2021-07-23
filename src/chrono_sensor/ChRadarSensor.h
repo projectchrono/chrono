@@ -49,6 +49,7 @@ class CH_SENSOR_API ChRadarSensor : public ChOptixSensor {
                   const float max_vertical_angle,
                   const float min_vertical_angle,
                   const float max_distance,
+                  RadarReturnMode return_mode = RadarReturnMode::RETURN,
                   const float clip_near = 1e-3f);
 
     /// Class destructor

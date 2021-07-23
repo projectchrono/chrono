@@ -129,8 +129,8 @@ CH_SENSOR_API void ChFilterOptixRender::Initialize(std::shared_ptr<ChSensor> pSe
         m_bufferOut = bufferOut;
     } else if (auto radar = std::dynamic_pointer_cast<ChRadarSensor>(pSensor)) {
         auto bufferOut = chrono_types::make_shared<SensorDeviceRadarBuffer>();
-        DeviceRadarBufferPtr b(cudaMallocHelper<PixelRadar>(pOptixSensor->GetWidth() * pOptixSensor->GetHeight()),
-                                  cudaFreeHelper<PixelRadar>);
+        DeviceRadarBufferPtr b(cudaMallocHelper<RadarReturn>(pOptixSensor->GetWidth() * pOptixSensor->GetHeight()),
+                                  cudaFreeHelper<RadarReturn>);
         bufferOut->Buffer = std::move(b);
         m_raygen_record->data.specific.radar.max_vert_angle = radar->GetMaxVertAngle();
         m_raygen_record->data.specific.radar.min_vert_angle = radar->GetMinVertAngle();
