@@ -19,7 +19,12 @@
 //
 // =============================================================================
 
+#include <mpi.h>
+
 #include "chrono_vehicle/cosim/ChVehicleCosimBaseNode.h"
+
+using std::cout;
+using std::endl;
 
 namespace chrono {
 namespace vehicle {
@@ -27,7 +32,41 @@ namespace vehicle {
 const double ChVehicleCosimBaseNode::m_gacc = -9.81;
 
 ChVehicleCosimBaseNode::ChVehicleCosimBaseNode(const std::string& name)
-    : m_name(name), m_step_size(1e-4), m_cum_sim_time(0), m_verbose(true) {}
+    : m_name(name),
+      m_step_size(1e-4),
+      m_cum_sim_time(0),
+      m_verbose(true),
+      m_num_mbs_nodes(0),
+      m_num_terrain_nodes(0),
+      m_num_tire_nodes(0) {}
+
+void ChVehicleCosimBaseNode::Initialize() {
+    unsigned int send_data[] = {0, 0, 0};
+    switch (GetNodeType()) {
+        case NodeType::MBS:
+            send_data[0]++;
+            break;
+        case NodeType::TERRAIN:
+            send_data[1]++;
+            break;
+        case NodeType::TIRE:
+            send_data[2]++;
+            break;
+    }
+
+    unsigned int recv_data[3];
+    MPI_Allreduce(send_data, recv_data, 3, MPI_UNSIGNED, MPI_SUM, MPI_COMM_WORLD);
+    m_num_mbs_nodes = recv_data[0];
+    m_num_terrain_nodes = recv_data[1];
+    m_num_tire_nodes = recv_data[2];
+
+    if (m_verbose) {
+        cout << "[" << m_name << "]"                           //
+             << "  MBS nodes: " << m_num_mbs_nodes             //
+             << "  TERRAIN nodes: " << m_num_terrain_nodes     //
+             << "  TIRE nodes: " << m_num_tire_nodes << endl;  //
+    }
+}
 
 void ChVehicleCosimBaseNode::SetOutDir(const std::string& dir_name, const std::string& suffix) {
     m_out_dir = dir_name;

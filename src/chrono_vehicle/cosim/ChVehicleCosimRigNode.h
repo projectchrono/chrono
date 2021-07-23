@@ -66,6 +66,9 @@ class CH_VEHICLE_API ChVehicleCosimRigNode : public ChVehicleCosimBaseNode {
 
     virtual ~ChVehicleCosimRigNode();
 
+    /// Return the node type as NodeType::MBS.
+    virtual NodeType GetNodeType() const override { return NodeType::MBS; }
+
     /// Return the tire type.
     TireType GetTireType() const { return m_tire_type; }
 
@@ -117,8 +120,8 @@ class CH_VEHICLE_API ChVehicleCosimRigNode : public ChVehicleCosimBaseNode {
     void SetDBPfilterWindow(double window) { m_dbp_filter_window = window; }
 
     /// Initialize this node.
-    /// This function allows the node to initialize itself and, optionally, perform an
-    /// initial data exchange with any other node.
+    /// This function allows the node to initialize itself and, optionally, perform an initial data exchange with any
+    /// other node.
     virtual void Initialize() override;
 
     /// Output logging and debugging data.
@@ -131,6 +134,8 @@ class CH_VEHICLE_API ChVehicleCosimRigNode : public ChVehicleCosimBaseNode {
                           double base_vel,         ///< constant linear or angular velocity
                           double slip              ///< desired longitudinal slip
     );
+
+    int PartnerRank(unsigned int i);
 
     TireType m_tire_type;      ///< tire type
     ActuationType m_act_type;  ///< actuation type

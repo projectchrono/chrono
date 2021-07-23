@@ -73,7 +73,7 @@ class CH_VEHICLE_API ChVehicleCosimTerrainNodeRigid : public ChVehicleCosimTerra
     ChSystemMulticore* m_system;  ///< containing system
     double m_radius_p;            ///< radius for a proxy body
 
-    virtual bool SupportsFlexibleTire() const override { return true; }
+    virtual bool SupportsMeshInterface() const override { return true; }
 
     virtual void Construct() override;
 

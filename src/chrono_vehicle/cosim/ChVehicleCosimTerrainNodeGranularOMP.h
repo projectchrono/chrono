@@ -151,7 +151,7 @@ class CH_VEHICLE_API ChVehicleCosimTerrainNodeGranularOMP : public ChVehicleCosi
     bool m_settling_output;          ///< output files during settling?
     double m_settling_fps;           ///< frequency of output during settling phase
 
-    virtual bool SupportsFlexibleTire() const override { return true; }
+    virtual bool SupportsMeshInterface() const override { return true; }
 
     virtual void Construct() override;
 

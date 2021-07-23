@@ -135,7 +135,7 @@ class CH_VEHICLE_API ChVehicleCosimTerrainNodeGranularGPU : public ChVehicleCosi
     bool m_settling_output;          ///< output files during settling?
     double m_settling_fps;           ///< frequency of output during settling phase
 
-    virtual bool SupportsFlexibleTire() const override { return false; }
+    virtual bool SupportsMeshInterface() const override { return false; }
 
     /// Construct granular terrain
     virtual void Construct() override;

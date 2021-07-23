@@ -31,8 +31,9 @@
 
 #include "chrono_thirdparty/filesystem/path.h"
 
-#define RIG_NODE_RANK 0
+#define MBS_NODE_RANK 0
 #define TERRAIN_NODE_RANK 1
+#define TIRE_NODE_RANK(i) (i+2)
 
 namespace chrono {
 namespace vehicle {
@@ -43,7 +44,16 @@ namespace vehicle {
 /// Base class for a co-simulation node.
 class CH_VEHICLE_API ChVehicleCosimBaseNode {
   public:
+    /// Type of node participating in co-simulation
+    enum class NodeType {
+        MBS,      ///< node performing multibody dynamics (vehicle)
+        TERRAIN,  ///< node performing terrain simulation
+        TIRE      ///< node performing tire simulation (if outside MBS)
+    };
+
     virtual ~ChVehicleCosimBaseNode() {}
+
+    virtual NodeType GetNodeType() const = 0;
 
     /// Set the integration step size (default: 1e-4).
     void SetStepSize(double step) { m_step_size = step; }
@@ -63,16 +73,17 @@ class CH_VEHICLE_API ChVehicleCosimBaseNode {
     /// Get the output directory name for this node.
     const std::string& GetOutDirName() const { return m_node_out_dir; }
 
-    /// Get the simulation time for the current step on this node.
-    double GetSimTime() const { return m_timer.GetTimeSeconds(); }
+    /// Get the simulation execution time for the current step on this node.
+    /// This represents the time elapsed since the last synchronization point.
+    double GetStepExecutionTime() const { return m_timer.GetTimeSeconds(); }
 
-    /// Get the cumulative simulation time on this node.
-    double GetTotalSimTime() const { return m_cum_sim_time; }
-
+    /// Get the cumulative simulation execution time on this node.
+    double GetTotalExecutionTime() const { return m_cum_sim_time; }
+     
     /// Initialize this node.
-    /// This function allows the node to initialize itself and, optionally, perform an
-    /// initial data exchange with any other node.
-    virtual void Initialize() = 0;
+    /// This function allows the node to initialize itself and, optionally, perform an initial data exchange with any
+    /// other node. A derived class implementation should first call this base class function.
+    virtual void Initialize();
 
     /// Synchronize this node.
     /// This function is called at every co-simulation synchronization time to
@@ -134,6 +145,10 @@ class CH_VEHICLE_API ChVehicleCosimBaseNode {
     std::string m_out_dir;       ///< top-level output directory
     std::string m_node_out_dir;  ///< node-specific output directory
     std::ofstream m_outf;        ///< output file stream
+
+    unsigned int m_num_mbs_nodes;
+    unsigned int m_num_terrain_nodes;
+    unsigned int m_num_tire_nodes;
 
     ChTimer<double> m_timer;  ///< timer for integration cost
     double m_cum_sim_time;    ///< cumulative integration cost

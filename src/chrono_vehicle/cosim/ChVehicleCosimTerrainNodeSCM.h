@@ -106,7 +106,7 @@ class CH_VEHICLE_API ChVehicleCosimTerrainNodeSCM : public ChVehicleCosimTerrain
     bool m_use_checkpoint;              ///< if true, initialize height from checkpoint file
     std::string m_checkpoint_filename;  ///< name of input checkpoint file
 
-    virtual bool SupportsFlexibleTire() const override { return false; }  //// TODO
+    virtual bool SupportsMeshInterface() const override { return false; }  //// TODO
 
     virtual void Construct() override;
 

@@ -12,8 +12,7 @@
 // Authors: Radu Serban
 // =============================================================================
 //
-// Mechanism for testing tires over granular terrain.  The mechanism + tire
-// system is co-simulated with a terrain subsystem.
+// Definition of the base vehicle co-simulation TERRAIN NODE class.
 //
 // Implementation of the base class TERRAIN NODE.
 //
@@ -53,7 +52,7 @@ ChVehicleCosimTerrainNode::ChVehicleCosimTerrainNode(unsigned int num_tires)
       m_hdimX(1.0),
       m_hdimY(0.25),
       m_load_mass(50),
-      m_flexible_tire(false) {
+      m_interface_type(InterfaceType::BODY) {
     m_load_mass.resize(num_tires);
     m_mat_props.resize(num_tires);
     m_mesh_data.resize(num_tires);
@@ -76,6 +75,15 @@ void ChVehicleCosimTerrainNode::EnableRuntimeVisualization(bool render, double r
 }
 
 // -----------------------------------------------------------------------------
+
+int ChVehicleCosimTerrainNode::PartnerRank(unsigned int i) {
+    if (m_interface_type == InterfaceType::BODY)
+        return MBS_NODE_RANK;
+
+    return TIRE_NODE_RANK(i);
+}
+
+// -----------------------------------------------------------------------------
 // Initialization of the terrain node:
 // - send terrain height
 // - receive information on tire mesh topology (number vertices and triangles)
@@ -83,20 +91,27 @@ void ChVehicleCosimTerrainNode::EnableRuntimeVisualization(bool render, double r
 // - create the appropriate proxy bodies (state not set yet)
 // -----------------------------------------------------------------------------
 void ChVehicleCosimTerrainNode::Initialize() {
+    // Invoke the base class method to figure out distribution of node types
+    ChVehicleCosimBaseNode::Initialize();
+
+    // If there are no tire nodes, the communication interface is assumed to be of type BODY and the terrain
+    // communicates directly with the MBS node. Otherwise, the interface is of type MESH and the terrain communicates
+    // with TIRE nodes.
+    m_interface_type = (m_num_tire_nodes == 0) ? InterfaceType::BODY : InterfaceType::MESH;
+
     // Create subdirectory for output from simulation
     if (!filesystem::create_directory(filesystem::path(m_node_out_dir + "/simulation"))) {
         std::cout << "Error creating directory " << m_node_out_dir + "/simulation" << std::endl;
         return;
     }
 
-    // ------------------------------------------
-    // Send information for initial tire location
-    // ------------------------------------------
+    // -----------------------------
+    // Send terrain patch dimensions
+    // -----------------------------
 
-    // This includes the terrain height and the container half-length.
     // Note: take into account dimension of proxy bodies
     double init_dim[3] = {m_init_height + 0.05, m_hdimX, m_hdimY};
-    MPI_Send(init_dim, 3, MPI_DOUBLE, RIG_NODE_RANK, 0, MPI_COMM_WORLD);
+    MPI_Send(init_dim, 3, MPI_DOUBLE, MBS_NODE_RANK, 0, MPI_COMM_WORLD);
 
     if (m_verbose) {
         cout << "[Terrain node] Sent initial terrain height = " << init_dim[0] << endl;
@@ -110,22 +125,18 @@ void ChVehicleCosimTerrainNode::Initialize() {
 
     MPI_Status status;
 
-    unsigned int flex;
-    MPI_Recv(&flex, 1, MPI_UNSIGNED, RIG_NODE_RANK, 0, MPI_COMM_WORLD, &status);
-    m_flexible_tire = (flex == 1);
-
     for (unsigned int i = 0; i < m_num_tires; i++) {
         // Tire contact surface specification
 
         unsigned int surf_props[3];
-        MPI_Recv(surf_props, 3, MPI_UNSIGNED, RIG_NODE_RANK, 0, MPI_COMM_WORLD, &status);
+        MPI_Recv(surf_props, 3, MPI_UNSIGNED, PartnerRank(i), 0, MPI_COMM_WORLD, &status);
 
         m_mesh_data[i].nv = surf_props[0];
         m_mesh_data[i].nn = surf_props[1];
         m_mesh_data[i].nt = surf_props[2];
 
-        if (m_flexible_tire && !SupportsFlexibleTire()) {
-            cout << "ERROR: terrain system does not support flexible tires!" << endl;
+        if (m_interface_type == InterfaceType::MESH && !SupportsMeshInterface()) {
+            cout << "ERROR: terrain system does not support the MESH interface type!" << endl;
             MPI_Abort(MPI_COMM_WORLD, 1);
         }
 
@@ -141,9 +152,9 @@ void ChVehicleCosimTerrainNode::Initialize() {
 
         double* vert_data = new double[3 * m_mesh_data[i].nv + 3 * m_mesh_data[i].nn];
         int* tri_data = new int[3 * m_mesh_data[i].nt + 3 * m_mesh_data[i].nt];
-        MPI_Recv(vert_data, 3 * m_mesh_data[i].nv + 3 * m_mesh_data[i].nn, MPI_DOUBLE, RIG_NODE_RANK, 0, MPI_COMM_WORLD,
-                 &status);
-        MPI_Recv(tri_data, 3 * m_mesh_data[i].nt + 3 * m_mesh_data[i].nt, MPI_INT, RIG_NODE_RANK, 0, MPI_COMM_WORLD,
+        MPI_Recv(vert_data, 3 * m_mesh_data[i].nv + 3 * m_mesh_data[i].nn, MPI_DOUBLE, PartnerRank(i), 0,
+                 MPI_COMM_WORLD, &status);
+        MPI_Recv(tri_data, 3 * m_mesh_data[i].nt + 3 * m_mesh_data[i].nt, MPI_INT, PartnerRank(i), 0, MPI_COMM_WORLD,
                  &status);
 
         for (unsigned int iv = 0; iv < m_mesh_data[i].nv; iv++) {
@@ -173,7 +184,7 @@ void ChVehicleCosimTerrainNode::Initialize() {
                  << endl;
 
         // Load mass
-        MPI_Recv(&m_load_mass[i], 1, MPI_DOUBLE, RIG_NODE_RANK, 0, MPI_COMM_WORLD, &status);
+        MPI_Recv(&m_load_mass[i], 1, MPI_DOUBLE, PartnerRank(i), 0, MPI_COMM_WORLD, &status);
 
         if (m_verbose)
             cout << "[Terrain node] received load mass = " << m_load_mass[i] << endl;
@@ -181,7 +192,7 @@ void ChVehicleCosimTerrainNode::Initialize() {
         // Tire contact material properties
 
         float props[8];
-        MPI_Recv(props, 8, MPI_FLOAT, RIG_NODE_RANK, 0, MPI_COMM_WORLD, &status);
+        MPI_Recv(props, 8, MPI_FLOAT, PartnerRank(i), 0, MPI_COMM_WORLD, &status);
 
         m_mat_props[i].mu = props[0];
         m_mat_props[i].cr = props[1];
@@ -209,21 +220,25 @@ void ChVehicleCosimTerrainNode::Initialize() {
 // - extract and send forces at each vertex
 // -----------------------------------------------------------------------------
 void ChVehicleCosimTerrainNode::Synchronize(int step_number, double time) {
-    if (m_flexible_tire)
-        SynchronizeFlexibleTire(step_number, time);
-    else
-        SynchronizeRigidTire(step_number, time);
+    switch (m_interface_type) {
+        case InterfaceType::BODY:
+            SynchronizeBody(step_number, time);
+            break;
+        case InterfaceType::MESH:
+            SynchronizeMesh(step_number, time);
+            break;
+    }
 
     // Let derived classes perform optional operations
     OnSynchronize(step_number, time);
 }
 
-void ChVehicleCosimTerrainNode::SynchronizeRigidTire(int step_number, double time) {
+void ChVehicleCosimTerrainNode::SynchronizeBody(int step_number, double time) {
     for (unsigned int i = 0; i < m_num_tires; i++) {
         // Receive wheel state data
         MPI_Status status;
         double state_data[14];
-        MPI_Recv(state_data, 14, MPI_DOUBLE, RIG_NODE_RANK, step_number, MPI_COMM_WORLD, &status);
+        MPI_Recv(state_data, 14, MPI_DOUBLE, PartnerRank(i), step_number, MPI_COMM_WORLD, &status);
 
         m_wheel_state[i].pos = ChVector<>(state_data[0], state_data[1], state_data[2]);
         m_wheel_state[i].rot = ChQuaternion<>(state_data[3], state_data[4], state_data[5], state_data[6]);
@@ -244,19 +259,20 @@ void ChVehicleCosimTerrainNode::SynchronizeRigidTire(int step_number, double tim
         // Send wheel contact force.
         double force_data[] = {m_wheel_contact[i].force.x(),  m_wheel_contact[i].force.y(),  m_wheel_contact[i].force.z(),
                                m_wheel_contact[i].moment.x(), m_wheel_contact[i].moment.y(), m_wheel_contact[i].moment.z()};
-        MPI_Send(force_data, 6, MPI_DOUBLE, RIG_NODE_RANK, step_number, MPI_COMM_WORLD);
+        MPI_Send(force_data, 6, MPI_DOUBLE, PartnerRank(i), step_number, MPI_COMM_WORLD);
 
         if (m_verbose)
             cout << "[Terrain node] step number: " << step_number << "  num contacts: " << GetNumContacts() << endl;
     }
 }
 
-void ChVehicleCosimTerrainNode::SynchronizeFlexibleTire(int step_number, double time) {
+void ChVehicleCosimTerrainNode::SynchronizeMesh(int step_number, double time) {
     for (unsigned int i = 0; i < m_num_tires; i++) {
         // Receive mesh state data
         MPI_Status status;
         double* vert_data = new double[2 * 3 * m_mesh_data[i].nv];
-        MPI_Recv(vert_data, 2 * 3 * m_mesh_data[i].nv, MPI_DOUBLE, RIG_NODE_RANK, step_number, MPI_COMM_WORLD, &status);
+        MPI_Recv(vert_data, 2 * 3 * m_mesh_data[i].nv, MPI_DOUBLE, PartnerRank(i), step_number, MPI_COMM_WORLD,
+                 &status);
 
         for (unsigned int iv = 0; iv < m_mesh_data[i].nv; iv++) {
             unsigned int offset = 3 * iv;
@@ -287,9 +303,9 @@ void ChVehicleCosimTerrainNode::SynchronizeFlexibleTire(int step_number, double 
             force_data[3 * iv + 1] = m_mesh_contact[i].vforce[iv].y();
             force_data[3 * iv + 2] = m_mesh_contact[i].vforce[iv].z();
         }
-        MPI_Send(m_mesh_contact[i].vidx.data(), m_mesh_contact[i].nv, MPI_INT, RIG_NODE_RANK, step_number,
+        MPI_Send(m_mesh_contact[i].vidx.data(), m_mesh_contact[i].nv, MPI_INT, PartnerRank(i), step_number,
                  MPI_COMM_WORLD);
-        MPI_Send(force_data, 3 * m_mesh_contact[i].nv, MPI_DOUBLE, RIG_NODE_RANK, step_number, MPI_COMM_WORLD);
+        MPI_Send(force_data, 3 * m_mesh_contact[i].nv, MPI_DOUBLE, PartnerRank(i), step_number, MPI_COMM_WORLD);
 
         delete[] force_data;
 
@@ -332,7 +348,7 @@ void ChVehicleCosimTerrainNode::OutputData(int frame) {
     OnOutputData(frame);
 }
 
-// Print mesh vertex data, as received from the rig node at synchronization.
+// Print mesh vertex data, as received at synchronization.
 void ChVehicleCosimTerrainNode::PrintMeshUpdateData(unsigned int i) {
     cout << "[Terrain node] mesh vertices and faces" << endl;
     std::for_each(m_mesh_state[i].vpos.begin(), m_mesh_state[i].vpos.end(),

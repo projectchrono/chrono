@@ -12,7 +12,7 @@
 // Authors: Radu Serban
 // =============================================================================
 //
-// Definition of the base class TERRAIN NODE.
+// Definition of the base vehicle co-simulation TERRAIN NODE class.
 //
 // The global reference frame has Z up, X towards the front of the vehicle, and
 // Y pointing to the left.
@@ -39,7 +39,24 @@ namespace vehicle {
 /// Base class for all terrain nodes.
 class CH_VEHICLE_API ChVehicleCosimTerrainNode : public ChVehicleCosimBaseNode {
   public:
+    /// Type of the communication interface for the terrain node.
+    /// - A BODY interface assumes communication is done at the wheel spindle level.  At a synchronization time, the
+    /// terrain node receives the full state of the spindle body and must send forces acting on the spindle, for each
+    /// tire present in the simulation.  This type of interface should be used for a rigid tire or when the terrain node
+    /// also performs the dynamics of a flexible tire.
+    /// - A MESH interface assumes communication is done at the tire mesh level. At a synchronization time, the terrain
+    /// node receives the tire mesh vertex states (positions and velocities) are must send forces acting on vertices of
+    /// the mesh, for each tire. This tire interface is typically used when flexible tires are simulated outside the
+    /// terrain node (either on the multibody node or else on separate tire nodes).
+    enum class InterfaceType {
+        BODY,  ///< exchange state and force for a single body (wheel spindle)
+        MESH   ///< exchange state and force for a mesh (flexible tire mesh)
+    };
+
     virtual ~ChVehicleCosimTerrainNode() {}
+
+    /// Return the node type as NodeType::TERRAIN.
+    virtual NodeType GetNodeType() const override { return NodeType::TERRAIN; }
 
     /// Set terrain patch dimensions (length and width).
     void SetPatchDimensions(double length,  ///< length in direction X (default: 2)
@@ -78,46 +95,49 @@ class CH_VEHICLE_API ChVehicleCosimTerrainNode : public ChVehicleCosimBaseNode {
     /// Construct a base class terrain node.
     ChVehicleCosimTerrainNode(unsigned int num_tires = 1);
 
-    /// Specify whether or not flexible tire is supported.
-    virtual bool SupportsFlexibleTire() const = 0;
+    /// Specify whether or not the terrain node supports the MESH communication interface.
+    /// See ChVehicleCosimBaseNode::InterfaceType.
+    /// A terrain that also supports the MESH communication interface must override the functions UpdateMeshProxies and
+    /// GetForcesMeshProxies.
+    virtual bool SupportsMeshInterface() const = 0;
 
-    // ------------------------- Virtual methods for a flexible tire
-    //     A derived class must implement these methods if SupportsFlexibleTire returns true.
+    // ------------------------- Virtual methods for the MESH communication interface
+    //     A derived class must implement these methods if SupportsMeshInterface returns true.
 
-    /// Create proxy bodies for the i-th flexible tire mesh.
+    /// Create proxy bodies for the i-th tire mesh.
     /// Use information in the m_mesh_data struct (vertex positions expressed in local frame).
     virtual void CreateMeshProxies(unsigned int i) {
-        if (SupportsFlexibleTire()) {
-            throw ChException("Current terrain type does not support flexible tires!");
+        if (SupportsMeshInterface()) {
+            throw ChException("Current terrain type does not support the MESH communication interface!");
         }
     }
-    /// Update the state of all proxy bodies for the i-th flexible tire.
+    /// Update the state of all proxy bodies for the i-th tire mesh.
     /// Use information in the provided MeshState struct (vertex positions and velocities expressed in absolute frame).
     virtual void UpdateMeshProxies(unsigned int i, const MeshState& mesh_state) {
-        if (SupportsFlexibleTire()) {
-            throw ChException("Current terrain type does not support flexible tires!");
+        if (SupportsMeshInterface()) {
+            throw ChException("Current terrain type does not support the MESH communication interface!");
         }
     }
-    /// Collect cumulative contact forces on all proxy bodies for the i-th flexible tire.
+    /// Collect cumulative contact forces on all proxy bodies for the i-th tire mesh.
     /// Load indices of vertices in contact and the corresponding vertex forces (expressed in absolute frame)
     /// into the provided MeshContact struct.
     virtual void GetForcesMeshProxies(unsigned int i, MeshContact& mesh_contact) {
-        if (SupportsFlexibleTire()) {
-            throw ChException("Current terrain type does not support flexible tires!");
+        if (SupportsMeshInterface()) {
+            throw ChException("Current terrain type does not the MESH communication interface!");
         }
     }
 
-    // ------------------------- Virtual methods for a rigid tire.
+    // ------------------------- Virtual methods for the BODY communication interface
 
-    /// Create proxy body for the i-th rigid tire mesh.
+    /// Create proxy body for the i-th tire.
     /// Use information in the m_mesh_data struct (vertex positions expressed in local frame).
     virtual void CreateWheelProxy(unsigned int i) = 0;
 
-    /// Update the state of the wheel proxy body for the i-th rigid tire.
+    /// Update the state of the wheel proxy body for the i-th tire.
     /// Use information in the provided WheelState struct (pose and velocities expressed in absolute frame).
     virtual void UpdateWheelProxy(unsigned int i, const WheelState& wheel_state) = 0;
     
-    /// Collect cumulative contact force and torque on the wheel proxy body for the i-th rigid tire.
+    /// Collect cumulative contact force and torque on the wheel proxy body for the i-th tire.
     /// Load contact forces (expressed in absolute frame) into the provided TerrainForce struct.
     virtual void GetForceWheelProxy(unsigned int i, TerrainForce& wheel_contact) = 0;
 
@@ -151,23 +171,24 @@ class CH_VEHICLE_API ChVehicleCosimTerrainNode : public ChVehicleCosimBaseNode {
 
     // Communication data
 
-    bool m_flexible_tire;  ///< flag indicating whether the tire is flexible or rigid
+    InterfaceType m_interface_type; ///< type of communication interface
 
     std::vector<double> m_load_mass;        ///< vertical load on tire
     std::vector<MaterialInfo> m_mat_props;  ///< tire contact material properties
 
     std::vector<MeshData> m_mesh_data;          ///< tire mesh data
-    std::vector<MeshState> m_mesh_state;        ///< tire mesh state (used for flexible tire)
-    std::vector<MeshContact> m_mesh_contact;    ///< tire mesh contact forces (used for flexible tire)
-    std::vector<WheelState> m_wheel_state;      ///< wheel state (used for rigid tire)
-    std::vector<TerrainForce> m_wheel_contact;  ///< wheel contact force (used for rigid tire)
+    std::vector<MeshState> m_mesh_state;        ///< tire mesh state (used for MESH communication)
+    std::vector<MeshContact> m_mesh_contact;    ///< tire mesh contact forces (used for MESH communication interface)
+    std::vector<WheelState> m_wheel_state;      ///< wheel state (used for BODY communication interface)
+    std::vector<TerrainForce> m_wheel_contact;  ///< wheel contact force (used for BODY communication interface)
 
   private:
-    void SynchronizeRigidTire(int step_number, double time);
-    void SynchronizeFlexibleTire(int step_number, double time);
+    int PartnerRank(unsigned int i);
+    void SynchronizeBody(int step_number, double time);
+    void SynchronizeMesh(int step_number, double time);
 
     /// Print vertex and face connectivity data for the i-th tire, as received at synchronization.
-    /// Invoked only for a flexible tire.
+    /// Invoked only when using the MESH communicatin interface.
     void PrintMeshUpdateData(unsigned int i);
 };
 

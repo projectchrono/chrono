@@ -12,10 +12,7 @@
 // Authors: Radu Serban
 // =============================================================================
 //
-// Mechanism for testing tires over granular terrain.  The mechanism + tire
-// system is co-simulated with a terrain subsystem.
-//
-// Implementation of the base class TERRAIN NODE.
+// Base class for a TERRAIN NODE using a Chrono deformable soil formulation.
 //
 // The global reference frame has Z up, X towards the front of the vehicle, and
 // Y pointing to the left.
@@ -148,10 +145,14 @@ void ChVehicleCosimTerrainNodeChrono::OnInitialize() {
         m_material_tire[i] = m_mat_props[i].CreateMaterial(m_method);
 
         // Create proxy bodies
-        if (m_flexible_tire)
-            CreateMeshProxies(i);
-        else
-            CreateWheelProxy(i);
+        switch (m_interface_type) {
+            case InterfaceType::BODY:
+                CreateWheelProxy(i);
+                break;
+            case InterfaceType::MESH:
+                CreateMeshProxies(i);
+                break;
+        }
     }
 }
 

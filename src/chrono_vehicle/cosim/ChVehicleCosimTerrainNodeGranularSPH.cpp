@@ -143,7 +143,7 @@ void ChVehicleCosimTerrainNodeGranularSPH::Construct() {
     m_params->dT = GetStepSize();
     m_params->dT_Flex = m_params->dT;
     m_params->dT_Max = m_params->dT;
-    m_params->tFinal = GetTotalSimTime();
+    m_params->tFinal = 0;  // not used
 
     // Reload physical parameters to FSI system
     m_params->gravity.z = m_gacc;

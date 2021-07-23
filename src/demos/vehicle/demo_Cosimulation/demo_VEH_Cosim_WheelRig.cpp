@@ -209,7 +209,7 @@ int main(int argc, char** argv) {
     // Create the node (a rig node or a terrain node, depending on rank).
     ChVehicleCosimBaseNode* node = nullptr;
 
-    if (rank == RIG_NODE_RANK) {
+    if (rank == MBS_NODE_RANK) {
         if (verbose)
             cout << "[Rig node    ] rank = " << rank << " running on: " << procname << endl;
 
@@ -393,8 +393,8 @@ int main(int argc, char** argv) {
         node->Synchronize(is, time);
         node->Advance(step_size);
         if (verbose)
-            cout << "Node" << rank << " sim time = " << node->GetSimTime() << "  [" << node->GetTotalSimTime() << "]"
-                 << endl;
+            cout << "Node" << rank << " sim time = " << node->GetStepExecutionTime() << "  ["
+                 << node->GetTotalExecutionTime() << "]" << endl;
 
         if (sim_output && is % output_steps == 0) {
             node->OutputData(output_frame);

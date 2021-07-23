@@ -255,7 +255,158 @@ void ChVehicleCosimRigNode::EnableTirePressure(bool val) {
 }
 
 // -----------------------------------------------------------------------------
-// Complete construction of the mechanical system.
+
+int ChVehicleCosimRigNode::PartnerRank(unsigned int i) {
+    if (m_num_tire_nodes == 0)
+        return TERRAIN_NODE_RANK;
+
+    return TIRE_NODE_RANK(i);
+}
+
+// -----------------------------------------------------------------------------
+// Initialization of the rig node:
+// - complete system construction
+// - receive terrain height and container half-length
+// - initialize the mechanism bodies
+// - initialize the mechanism joints
+// - call the virtual method InitializeTire which does the following:
+//   - initialize the tire
+//   - set tire mesh data
+//   - set tire contact material
+//   - set tire mass
+// - send tire mesh data (vertices, normals, and triangles)
+// - send rig mass
+// - send information on tire contact material
+// -----------------------------------------------------------------------------
+void ChVehicleCosimRigNode::Initialize() {
+    // Invoke the base class method to figure out distribution of node types
+    ChVehicleCosimBaseNode::Initialize();
+
+    // --------------------------------------
+    // Initialize the rig bodies and the tire
+    // --------------------------------------
+
+    // Construct the mechanical system
+    Construct();
+
+    // Receive initial terrain dimensions: terrain height and container half-length
+    double init_dim[3];
+    MPI_Status status;
+    MPI_Recv(init_dim, 3, MPI_DOUBLE, TERRAIN_NODE_RANK, 0, MPI_COMM_WORLD, &status);
+
+    if (m_verbose) {
+        cout << "[Rig node    ] Received initial terrain height = " << init_dim[0] << endl;
+        cout << "[Rig node    ] Received terrain half-length    =  " << init_dim[1] << endl;
+    }
+
+    double init_height = init_dim[0];
+    double half_length = init_dim[1];
+
+    // Calculate initial rig location and set linear velocity of all rig bodies
+    double tire_radius = GetTireRadius();
+    ChVector<> origin(-half_length + 1.5 * tire_radius, 0, init_height + tire_radius);
+    ChVector<> rig_vel(m_lin_vel, 0, 0);
+
+    // Initialize chassis body
+    m_chassis->SetPos(origin);
+    m_chassis->SetRot(QUNIT);
+    m_chassis->SetPos_dt(rig_vel);
+
+    // Initialize the set_toe body
+    m_set_toe->SetPos(origin);
+    m_set_toe->SetRot(QUNIT);
+    m_set_toe->SetPos_dt(rig_vel);
+
+    // Initialize spindle body
+    m_spindle->SetPos(origin);
+    m_spindle->SetRot(QUNIT);
+    m_spindle->SetPos_dt(rig_vel);
+    m_spindle->SetWvel_loc(ChVector<>(0, m_ang_vel, 0));
+
+    // Initialize axle body
+    m_upright->SetPos(origin);
+    m_upright->SetRot(QUNIT);
+    m_upright->SetPos_dt(rig_vel);
+
+    // -----------------------------------
+    // Initialize the rig mechanism joints
+    // -----------------------------------
+
+    // Revolute engine on set_toe (about Z axis)
+    m_slip_motor->SetAngleFunction(chrono_types::make_shared<ChFunction_SlipAngle>(m_toe_angle));
+    m_slip_motor->Initialize(m_set_toe, m_chassis, ChFrame<>(m_set_toe->GetPos(), QUNIT));
+
+    // Prismatic constraint on the chassis (along X axis)
+    m_prism_vel->Initialize(m_ground, m_chassis, ChCoordsys<>(m_chassis->GetPos(), Q_from_AngY(CH_C_PI_2)));
+
+    // Impose velocity actuation on the prismatic joint
+    m_lin_actuator->Set_dist_funct(chrono_types::make_shared<ChFunction_Ramp>(0.0, m_lin_vel));
+    m_lin_actuator->Initialize(m_ground, m_chassis, false, ChCoordsys<>(m_chassis->GetPos(), QUNIT),
+                               ChCoordsys<>(m_chassis->GetPos() + ChVector<>(1, 0, 0), QUNIT));
+
+    // Prismatic constraint on the toe-upright (along Z axis)
+    m_prism_axl->Initialize(m_set_toe, m_upright, ChCoordsys<>(m_set_toe->GetPos(), QUNIT));
+
+    // Connect spindle to upright: Impose rotation on the spindle
+    m_rev_motor->SetAngleFunction(chrono_types::make_shared<ChFunction_Ramp>(0, -m_ang_vel));
+    m_rev_motor->Initialize(m_spindle, m_upright, ChFrame<>(m_spindle->GetPos(), Q_from_AngAxis(CH_C_PI / 2.0, VECT_X)));
+
+    // -----------------------------------
+    // Initialize the wheel and tire
+    // -----------------------------------
+
+    // Initialize the wheel, arbitrarily assuming LEFT side
+    m_wheel->Initialize(m_spindle, LEFT);
+    m_wheel->SetVisualizationType(VisualizationType::NONE);
+
+    // Let the derived class initialize the tire and set tire contact information
+    InitializeTire();
+
+    // -----------------------------------
+    // Send mesh info and contact material
+    // -----------------------------------
+
+    unsigned int surf_props[] = {m_mesh_data.nv, m_mesh_data.nn, m_mesh_data.nt};
+    MPI_Send(surf_props, 3, MPI_UNSIGNED, TERRAIN_NODE_RANK, 0, MPI_COMM_WORLD);
+    if (m_verbose)
+        cout << "[Rig node    ] vertices = " << surf_props[0] << "  triangles = " << surf_props[2] << endl;
+
+    double* vert_data = new double[3 * m_mesh_data.nv + 3 * m_mesh_data.nn];
+    int* tri_data = new int[3 * m_mesh_data.nt + 3 * m_mesh_data.nt];
+    for (unsigned int iv = 0; iv < m_mesh_data.nv; iv++) {
+        vert_data[3 * iv + 0] = m_mesh_data.verts[iv].x();
+        vert_data[3 * iv + 1] = m_mesh_data.verts[iv].y();
+        vert_data[3 * iv + 2] = m_mesh_data.verts[iv].z();
+    }
+    for (unsigned int in = 0; in < m_mesh_data.nn; in++) {
+        vert_data[3 * m_mesh_data.nv + 3 * in + 0] = m_mesh_data.norms[in].x();
+        vert_data[3 * m_mesh_data.nv + 3 * in + 1] = m_mesh_data.norms[in].y();
+        vert_data[3 * m_mesh_data.nv + 3 * in + 2] = m_mesh_data.norms[in].z();
+    }
+    for (unsigned int it = 0; it < m_mesh_data.nt; it++) {
+        tri_data[6 * it + 0] = m_mesh_data.idx_verts[it].x();
+        tri_data[6 * it + 1] = m_mesh_data.idx_verts[it].y();
+        tri_data[6 * it + 2] = m_mesh_data.idx_verts[it].z();
+        tri_data[6 * it + 3] = m_mesh_data.idx_norms[it].x();
+        tri_data[6 * it + 4] = m_mesh_data.idx_norms[it].y();
+        tri_data[6 * it + 5] = m_mesh_data.idx_norms[it].z();
+    }
+    MPI_Send(vert_data, 3 * m_mesh_data.nv + 3 * m_mesh_data.nn, MPI_DOUBLE, PartnerRank(0), 0, MPI_COMM_WORLD);
+    MPI_Send(tri_data, 3 * m_mesh_data.nt + 3 * m_mesh_data.nt, MPI_INT, PartnerRank(0), 0, MPI_COMM_WORLD);
+
+    MPI_Send(&m_total_mass, 1, MPI_DOUBLE, PartnerRank(0), 0, MPI_COMM_WORLD);
+
+    float mat_props[8] = {m_contact_mat->GetKfriction(),    m_contact_mat->GetRestitution(),
+                          m_contact_mat->GetYoungModulus(), m_contact_mat->GetPoissonRatio(),
+                          m_contact_mat->GetKn(),           m_contact_mat->GetGn(),
+                          m_contact_mat->GetKt(),           m_contact_mat->GetGt()};
+    MPI_Send(mat_props, 8, MPI_FLOAT, PartnerRank(0), 0, MPI_COMM_WORLD);
+    if (m_verbose)
+        cout << "[Rig node    ] friction = " << mat_props[0] << endl;
+}
+
+// -----------------------------------------------------------------------------
+// Construct the mechanical system.
 // This function is invoked automatically from Initialize.
 // - create (but do not initialize) the rig mechanism bodies and joints
 // - create (but do not initialize) the tire
@@ -493,8 +644,9 @@ void ChVehicleCosimRigNode::Construct() {
 }
 
 // -----------------------------------------------------------------------------
-// Construct an ANCF tire
+// Construct tires
 // -----------------------------------------------------------------------------
+
 void ChVehicleCosimRigNodeFlexibleTire::ConstructTire() {
     m_tire = chrono_types::make_shared<ANCFTire>(m_tire_json);
     m_tire->EnablePressure(m_tire_pressure);
@@ -503,154 +655,14 @@ void ChVehicleCosimRigNodeFlexibleTire::ConstructTire() {
     m_tire->SetContactSurfaceType(ChDeformableTire::TRIANGLE_MESH);
 }
 
-// -----------------------------------------------------------------------------
-// Construct a Rigid tire with mesh contact
-// -----------------------------------------------------------------------------
 void ChVehicleCosimRigNodeRigidTire::ConstructTire() {
     m_tire = chrono_types::make_shared<RigidTire>(m_tire_json);
     assert(m_tire->UseContactMesh());
 }
 
 // -----------------------------------------------------------------------------
-// Initialization of the rig node:
-// - complete system construction
-// - receive terrain height and container half-length
-// - initialize the mechanism bodies
-// - initialize the mechanism joints
-// - call the virtual method InitializeTire which does the following:
-//   - initialize the tire
-//   - set tire mesh data
-//   - set tire contact material
-//   - set tire mass
-// - send tire mesh data (vertices, normals, and triangles)
-// - send rig mass
-// - send information on tire contact material
+// Initialize tires
 // -----------------------------------------------------------------------------
-void ChVehicleCosimRigNode::Initialize() {
-    Construct();
-
-    // --------------------------------------
-    // Initialize the rig bodies and the tire
-    // --------------------------------------
-
-    // Receive initial terrain dimensions: terrain height and container half-length
-    double init_dim[3];
-    MPI_Status status;
-    MPI_Recv(init_dim, 3, MPI_DOUBLE, TERRAIN_NODE_RANK, 0, MPI_COMM_WORLD, &status);
-
-    if (m_verbose) {
-        cout << "[Rig node    ] Received initial terrain height = " << init_dim[0] << endl;
-        cout << "[Rig node    ] Received terrain half-length    =  " << init_dim[1] << endl;
-    }
-
-    double init_height = init_dim[0];
-    double half_length = init_dim[1];
-
-    // Calculate initial rig location and set linear velocity of all rig bodies
-    double tire_radius = GetTireRadius();
-    ChVector<> origin(-half_length + 1.5 * tire_radius, 0, init_height + tire_radius);
-    ChVector<> rig_vel(m_lin_vel, 0, 0);
-
-    // Initialize chassis body
-    m_chassis->SetPos(origin);
-    m_chassis->SetRot(QUNIT);
-    m_chassis->SetPos_dt(rig_vel);
-
-    // Initialize the set_toe body
-    m_set_toe->SetPos(origin);
-    m_set_toe->SetRot(QUNIT);
-    m_set_toe->SetPos_dt(rig_vel);
-
-    // Initialize spindle body
-    m_spindle->SetPos(origin);
-    m_spindle->SetRot(QUNIT);
-    m_spindle->SetPos_dt(rig_vel);
-    m_spindle->SetWvel_loc(ChVector<>(0, m_ang_vel, 0));
-
-    // Initialize axle body
-    m_upright->SetPos(origin);
-    m_upright->SetRot(QUNIT);
-    m_upright->SetPos_dt(rig_vel);
-
-    // -----------------------------------
-    // Initialize the rig mechanism joints
-    // -----------------------------------
-
-    // Revolute engine on set_toe (about Z axis)
-    m_slip_motor->SetAngleFunction(chrono_types::make_shared<ChFunction_SlipAngle>(m_toe_angle));
-    m_slip_motor->Initialize(m_set_toe, m_chassis, ChFrame<>(m_set_toe->GetPos(), QUNIT));
-
-    // Prismatic constraint on the chassis (along X axis)
-    m_prism_vel->Initialize(m_ground, m_chassis, ChCoordsys<>(m_chassis->GetPos(), Q_from_AngY(CH_C_PI_2)));
-
-    // Impose velocity actuation on the prismatic joint
-    m_lin_actuator->Set_dist_funct(chrono_types::make_shared<ChFunction_Ramp>(0.0, m_lin_vel));
-    m_lin_actuator->Initialize(m_ground, m_chassis, false, ChCoordsys<>(m_chassis->GetPos(), QUNIT),
-                               ChCoordsys<>(m_chassis->GetPos() + ChVector<>(1, 0, 0), QUNIT));
-
-    // Prismatic constraint on the toe-upright (along Z axis)
-    m_prism_axl->Initialize(m_set_toe, m_upright, ChCoordsys<>(m_set_toe->GetPos(), QUNIT));
-
-    // Connect spindle to upright: Impose rotation on the spindle
-    m_rev_motor->SetAngleFunction(chrono_types::make_shared<ChFunction_Ramp>(0, -m_ang_vel));
-    m_rev_motor->Initialize(m_spindle, m_upright, ChFrame<>(m_spindle->GetPos(), Q_from_AngAxis(CH_C_PI / 2.0, VECT_X)));
-
-    // -----------------------------------
-    // Initialize the wheel and tire
-    // -----------------------------------
-
-    // Initialize the wheel, arbitrarily assuming LEFT side
-    m_wheel->Initialize(m_spindle, LEFT);
-    m_wheel->SetVisualizationType(VisualizationType::NONE);
-
-    // Let the derived class initialize the tire and set tire contact information
-    InitializeTire();
-
-    // -----------------------------------
-    // Send mesh info and contact material
-    // -----------------------------------
-
-    unsigned int flex = IsTireFlexible();
-    MPI_Send(&flex, 1, MPI_UNSIGNED, TERRAIN_NODE_RANK, 0, MPI_COMM_WORLD);
-
-    unsigned int surf_props[] = {m_mesh_data.nv, m_mesh_data.nn, m_mesh_data.nt};
-    MPI_Send(surf_props, 3, MPI_UNSIGNED, TERRAIN_NODE_RANK, 0, MPI_COMM_WORLD);
-    if (m_verbose)
-        cout << "[Rig node    ] vertices = " << surf_props[0] << "  triangles = " << surf_props[2] << endl;
-
-    double* vert_data = new double[3 * m_mesh_data.nv + 3 * m_mesh_data.nn];
-    int* tri_data = new int[3 * m_mesh_data.nt + 3 * m_mesh_data.nt];
-    for (unsigned int iv = 0; iv < m_mesh_data.nv; iv++) {
-        vert_data[3 * iv + 0] = m_mesh_data.verts[iv].x();
-        vert_data[3 * iv + 1] = m_mesh_data.verts[iv].y();
-        vert_data[3 * iv + 2] = m_mesh_data.verts[iv].z();
-    }
-    for (unsigned int in = 0; in < m_mesh_data.nn; in++) {
-        vert_data[3 * m_mesh_data.nv + 3 * in + 0] = m_mesh_data.norms[in].x();
-        vert_data[3 * m_mesh_data.nv + 3 * in + 1] = m_mesh_data.norms[in].y();
-        vert_data[3 * m_mesh_data.nv + 3 * in + 2] = m_mesh_data.norms[in].z();
-    }
-    for (unsigned int it = 0; it < m_mesh_data.nt; it++) {
-        tri_data[6 * it + 0] = m_mesh_data.idx_verts[it].x();
-        tri_data[6 * it + 1] = m_mesh_data.idx_verts[it].y();
-        tri_data[6 * it + 2] = m_mesh_data.idx_verts[it].z();
-        tri_data[6 * it + 3] = m_mesh_data.idx_norms[it].x();
-        tri_data[6 * it + 4] = m_mesh_data.idx_norms[it].y();
-        tri_data[6 * it + 5] = m_mesh_data.idx_norms[it].z();
-    }
-    MPI_Send(vert_data, 3 * m_mesh_data.nv + 3 * m_mesh_data.nn, MPI_DOUBLE, TERRAIN_NODE_RANK, 0, MPI_COMM_WORLD);
-    MPI_Send(tri_data, 3 * m_mesh_data.nt + 3 * m_mesh_data.nt, MPI_INT, TERRAIN_NODE_RANK, 0, MPI_COMM_WORLD);
-
-    MPI_Send(&m_total_mass, 1, MPI_DOUBLE, TERRAIN_NODE_RANK, 0, MPI_COMM_WORLD);
-
-    float mat_props[8] = {m_contact_mat->GetKfriction(),    m_contact_mat->GetRestitution(),
-                          m_contact_mat->GetYoungModulus(), m_contact_mat->GetPoissonRatio(),
-                          m_contact_mat->GetKn(),           m_contact_mat->GetGn(),
-                          m_contact_mat->GetKt(),           m_contact_mat->GetGt()};
-    MPI_Send(mat_props, 8, MPI_FLOAT, TERRAIN_NODE_RANK, 0, MPI_COMM_WORLD);
-    if (m_verbose)
-        cout << "[Rig node    ] friction = " << mat_props[0] << endl;
-}
 
 void ChVehicleCosimRigNodeFlexibleTire::InitializeTire() {
     // Initialize the ANCF tire
@@ -749,6 +761,7 @@ void ChVehicleCosimRigNodeRigidTire::InitializeTire() {
 // - extract and send tire mesh vertex states
 // - receive and apply vertex contact forces
 // -----------------------------------------------------------------------------
+
 void ChVehicleCosimRigNodeFlexibleTire::Synchronize(int step_number, double time) {
     // Extract tire mesh vertex locations and velocites.
     std::vector<ChVector<int>> triangles;
@@ -772,7 +785,7 @@ void ChVehicleCosimRigNodeFlexibleTire::Synchronize(int step_number, double time
         vert_data[3 * m_mesh_data.nv + 3 * iv + 1] = m_mesh_state.vvel[iv].y();
         vert_data[3 * m_mesh_data.nv + 3 * iv + 2] = m_mesh_state.vvel[iv].z();
     }
-    MPI_Send(vert_data, 2 * 3 * m_mesh_data.nv, MPI_DOUBLE, TERRAIN_NODE_RANK, step_number, MPI_COMM_WORLD);
+    MPI_Send(vert_data, 2 * 3 * m_mesh_data.nv, MPI_DOUBLE, PartnerRank(0), step_number, MPI_COMM_WORLD);
 
     // Receive terrain forces.
     // Note that we use MPI_Probe to figure out the number of indices and forces received.
@@ -781,8 +794,8 @@ void ChVehicleCosimRigNodeFlexibleTire::Synchronize(int step_number, double time
     MPI_Get_count(&status, MPI_INT, &m_mesh_contact.nv);
     int* index_data = new int[m_mesh_contact.nv];
     double* force_data = new double[3 * m_mesh_contact.nv];
-    MPI_Recv(index_data, m_mesh_contact.nv, MPI_INT, TERRAIN_NODE_RANK, step_number, MPI_COMM_WORLD, &status);
-    MPI_Recv(force_data, 3 * m_mesh_contact.nv, MPI_DOUBLE, TERRAIN_NODE_RANK, step_number, MPI_COMM_WORLD, &status);
+    MPI_Recv(index_data, m_mesh_contact.nv, MPI_INT, PartnerRank(0), step_number, MPI_COMM_WORLD, &status);
+    MPI_Recv(force_data, 3 * m_mesh_contact.nv, MPI_DOUBLE, PartnerRank(0), step_number, MPI_COMM_WORLD, &status);
 
     if (m_verbose)
         cout << "[Rig node    ] step number: " << step_number << "  vertices in contact: " << m_mesh_contact.nv << endl;
@@ -814,13 +827,13 @@ void ChVehicleCosimRigNodeRigidTire::Synchronize(int step_number, double time) {
         m_wheel_state.ang_vel.x(), m_wheel_state.ang_vel.y(), m_wheel_state.ang_vel.z(),                          //
         m_wheel_state.omega                                                                                       //
     };
-    MPI_Send(state_data, 14, MPI_DOUBLE, TERRAIN_NODE_RANK, step_number, MPI_COMM_WORLD);
+    MPI_Send(state_data, 14, MPI_DOUBLE, PartnerRank(0), step_number, MPI_COMM_WORLD);
 
     // Receive terrain force.
     // Note that we assume this is the resultant wrench at the wheel origin (expressed in absolute frame).
     double force_data[6];
     MPI_Status status;
-    MPI_Recv(force_data, 6, MPI_DOUBLE, TERRAIN_NODE_RANK, step_number, MPI_COMM_WORLD, &status);
+    MPI_Recv(force_data, 6, MPI_DOUBLE, PartnerRank(0), step_number, MPI_COMM_WORLD, &status);
     m_wheel_contact.point = m_wheel->GetPos();
     m_wheel_contact.force = ChVector<>(force_data[0], force_data[1], force_data[2]);
     m_wheel_contact.moment = ChVector<>(force_data[3], force_data[4], force_data[5]);
@@ -833,6 +846,7 @@ void ChVehicleCosimRigNodeRigidTire::Synchronize(int step_number, double time) {
 // -----------------------------------------------------------------------------
 // Advance simulation of the rig node by the specified duration
 // -----------------------------------------------------------------------------
+
 void ChVehicleCosimRigNodeFlexibleTire::Advance(double step_size) {
     m_timer.reset();
     m_timer.start();
