@@ -112,8 +112,13 @@ ChVehicleCosimTerrainNodeChrono::Type ChVehicleCosimTerrainNodeChrono::GetTypeFr
 // -----------------------------------------------------------------------------
 // Construction of the base Chrono terrain node.
 // -----------------------------------------------------------------------------
-ChVehicleCosimTerrainNodeChrono::ChVehicleCosimTerrainNodeChrono(Type type, ChContactMethod method)
-    : ChVehicleCosimTerrainNode(), m_type(type), m_method(method), m_fixed_proxies(false) {
+ChVehicleCosimTerrainNodeChrono::ChVehicleCosimTerrainNodeChrono(Type type,
+                                                                 ChContactMethod method,
+                                                                 unsigned int num_tires)
+    : ChVehicleCosimTerrainNode(num_tires), m_type(type), m_method(method), m_fixed_proxies(false) {
+    m_material_tire.resize(num_tires);
+    m_proxies.resize(num_tires);
+
     // Default terrain contact material
     switch (m_method) {
         case ChContactMethod::SMC:
@@ -138,14 +143,16 @@ void ChVehicleCosimTerrainNodeChrono::OnInitialize() {
     // Construct the terrain
     Construct();
 
-    // Create the "tire" contact material, but defer using it until the proxy bodies are created.
-    m_material_tire = m_mat_props.CreateMaterial(m_method);
+    for (unsigned int i = 0; i < m_num_tires; i++) {
+        // Create the "tire" contact material, but defer using it until the proxy bodies are created.
+        m_material_tire[i] = m_mat_props[i].CreateMaterial(m_method);
 
-    // Create proxy bodies
-    if (m_flexible_tire)
-        CreateMeshProxies();
-    else
-        CreateWheelProxy();
+        // Create proxy bodies
+        if (m_flexible_tire)
+            CreateMeshProxies(i);
+        else
+            CreateWheelProxy(i);
+    }
 }
 
 // -----------------------------------------------------------------------------

@@ -37,10 +37,10 @@ namespace vehicle {
 class CH_VEHICLE_API ChVehicleCosimTerrainNodeGranularSPH : public ChVehicleCosimTerrainNodeChrono {
   public:
     /// Create a Chrono::FSI granular SPH terrain node. Note that no SPH parameters are set.
-    ChVehicleCosimTerrainNodeGranularSPH();
+    ChVehicleCosimTerrainNodeGranularSPH(unsigned int num_tires);
 
     /// Create a Chrono::FSI granular SPH terrain node using parameters from the provided JSON specfile.
-    ChVehicleCosimTerrainNodeGranularSPH(const std::string& specfile);
+    ChVehicleCosimTerrainNodeGranularSPH(const std::string& specfile, unsigned int num_tires);
 
     ~ChVehicleCosimTerrainNodeGranularSPH();
 
@@ -70,9 +70,9 @@ class CH_VEHICLE_API ChVehicleCosimTerrainNodeGranularSPH : public ChVehicleCosi
 
     virtual void Construct() override;
 
-    virtual void CreateWheelProxy() override;
-    virtual void UpdateWheelProxy() override;
-    virtual void GetForceWheelProxy() override;
+    virtual void CreateWheelProxy(unsigned int i) override;
+    virtual void UpdateWheelProxy(unsigned int i, const WheelState& wheel_state) override;
+    virtual void GetForceWheelProxy(unsigned int i, TerrainForce& wheel_contact) override;
 
     virtual void OnOutputData(int frame) override;
     virtual void OnRender(double time) override;

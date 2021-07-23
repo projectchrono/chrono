@@ -53,8 +53,10 @@ namespace vehicle {
 // - create the Chrono system and set solver parameters
 // - create the Irrlicht visualization window
 // -----------------------------------------------------------------------------
-ChVehicleCosimTerrainNodeSCM::ChVehicleCosimTerrainNodeSCM()
-    : ChVehicleCosimTerrainNodeChrono(Type::SCM, ChContactMethod::SMC), m_radius_p(5e-3), m_use_checkpoint(false) {
+ChVehicleCosimTerrainNodeSCM::ChVehicleCosimTerrainNodeSCM(unsigned int num_tires)
+    : ChVehicleCosimTerrainNodeChrono(Type::SCM, ChContactMethod::SMC, num_tires),
+      m_radius_p(5e-3),
+      m_use_checkpoint(false) {
 #ifdef CHRONO_IRRLICHT
     m_irrapp = nullptr;
 #endif
@@ -69,8 +71,8 @@ ChVehicleCosimTerrainNodeSCM::ChVehicleCosimTerrainNodeSCM()
     m_system->SetNumThreads(1, 1, 1);
 }
 
-ChVehicleCosimTerrainNodeSCM::ChVehicleCosimTerrainNodeSCM(const std::string& specfile)
-    : ChVehicleCosimTerrainNodeChrono(Type::SCM, ChContactMethod::SMC), m_use_checkpoint(false) {
+ChVehicleCosimTerrainNodeSCM::ChVehicleCosimTerrainNodeSCM(const std::string& specfile, unsigned int num_tires)
+    : ChVehicleCosimTerrainNodeChrono(Type::SCM, ChContactMethod::SMC, num_tires), m_use_checkpoint(false) {
 #ifdef CHRONO_IRRLICHT
     m_irrapp = nullptr;
 #endif
@@ -243,7 +245,7 @@ void ChVehicleCosimTerrainNodeSCM::Construct() {
 // Maintain a list of all bodies associated with the tire.
 // Add all proxy bodies to the same collision family and disable collision between any
 // two members of this family.
-void ChVehicleCosimTerrainNodeSCM::CreateMeshProxies() {
+void ChVehicleCosimTerrainNodeSCM::CreateMeshProxies(unsigned int i) {
     //// TODO
 
 #ifdef CHRONO_IRRLICHT
@@ -255,25 +257,25 @@ void ChVehicleCosimTerrainNodeSCM::CreateMeshProxies() {
 #endif
 }
 
-void ChVehicleCosimTerrainNodeSCM::CreateWheelProxy() {
+void ChVehicleCosimTerrainNodeSCM::CreateWheelProxy(unsigned int i) {
     // Create wheel proxy body
     auto body = std::shared_ptr<ChBody>(m_system->NewBody());
     body->SetIdentifier(0);
-    body->SetMass(m_rig_mass);
+    body->SetMass(m_load_mass[i]);
     ////body->SetInertiaXX();   //// TODO
     body->SetBodyFixed(false);  // Cannot fix the proxies with SCM
     body->SetCollide(true);
 
     // Create collision mesh
     auto trimesh = chrono_types::make_shared<geometry::ChTriangleMeshConnected>();
-    trimesh->getCoordsVertices() = m_mesh_data.verts;
-    trimesh->getCoordsNormals() = m_mesh_data.norms;
-    trimesh->getIndicesVertexes() = m_mesh_data.idx_verts;
-    trimesh->getIndicesNormals() = m_mesh_data.idx_norms;
+    trimesh->getCoordsVertices() = m_mesh_data[i].verts;
+    trimesh->getCoordsNormals() = m_mesh_data[i].norms;
+    trimesh->getIndicesVertexes() = m_mesh_data[i].idx_verts;
+    trimesh->getIndicesNormals() = m_mesh_data[i].idx_norms;
 
     // Set collision shape
     body->GetCollisionModel()->ClearModel();
-    body->GetCollisionModel()->AddTriangleMesh(m_material_tire, trimesh, false, false, ChVector<>(0), ChMatrix33<>(1),
+    body->GetCollisionModel()->AddTriangleMesh(m_material_tire[i], trimesh, false, false, ChVector<>(0), ChMatrix33<>(1),
                                                m_radius_p);
     body->GetCollisionModel()->SetFamily(1);
     body->GetCollisionModel()->SetFamilyMaskNoCollisionWithFamily(1);
@@ -287,7 +289,7 @@ void ChVehicleCosimTerrainNodeSCM::CreateWheelProxy() {
     body->GetAssets().push_back(trimesh_shape);
 
     m_system->AddBody(body);
-    m_proxies.push_back(ProxyBody(body, 0));
+    m_proxies[i].push_back(ProxyBody(body, 0));
 
 #ifdef CHRONO_IRRLICHT
     // Bind Irrlicht assets
@@ -299,27 +301,31 @@ void ChVehicleCosimTerrainNodeSCM::CreateWheelProxy() {
 }
 
 // Set position, orientation, and velocity of proxy bodies based on tire mesh faces.
-void ChVehicleCosimTerrainNodeSCM::UpdateMeshProxies() {
+void ChVehicleCosimTerrainNodeSCM::UpdateMeshProxies(unsigned int i, const MeshState& mesh_state) {
     //// TODO
 }
 
 // Set state of wheel proxy body.
-void ChVehicleCosimTerrainNodeSCM::UpdateWheelProxy() {
-    m_proxies[0].m_body->SetPos(m_wheel_state.pos);
-    m_proxies[0].m_body->SetPos_dt(m_wheel_state.lin_vel);
-    m_proxies[0].m_body->SetRot(m_wheel_state.rot);
-    m_proxies[0].m_body->SetWvel_par(m_wheel_state.ang_vel);
+void ChVehicleCosimTerrainNodeSCM::UpdateWheelProxy(unsigned int i, const WheelState& wheel_state) {
+    auto& proxies = m_proxies[i];  // proxies for the i-th tire
+
+    proxies[0].m_body->SetPos(wheel_state.pos);
+    proxies[0].m_body->SetPos_dt(wheel_state.lin_vel);
+    proxies[0].m_body->SetRot(wheel_state.rot);
+    proxies[0].m_body->SetWvel_par(wheel_state.ang_vel);
 }
 
 // Collect contact forces on the (face) proxy bodies that are in contact.
 // Load mesh vertex forces and corresponding indices.
-void ChVehicleCosimTerrainNodeSCM::GetForcesMeshProxies() {
+void ChVehicleCosimTerrainNodeSCM::GetForcesMeshProxies(unsigned int i, MeshContact& mesh_contact) {
     //// TODO
 }
 
 // Collect resultant contact force and torque on wheel proxy body.
-void ChVehicleCosimTerrainNodeSCM::GetForceWheelProxy() {
-    m_wheel_contact = m_terrain->GetContactForce(m_proxies[0].m_body);
+void ChVehicleCosimTerrainNodeSCM::GetForceWheelProxy(unsigned int i, TerrainForce& wheel_contact) {
+    const auto& proxies = m_proxies[i];  // proxies for the i-th tire
+
+    wheel_contact = m_terrain->GetContactForce(proxies[0].m_body);
 }
 
 // -----------------------------------------------------------------------------
@@ -330,7 +336,6 @@ void ChVehicleCosimTerrainNodeSCM::OnRender(double time) {
         MPI_Abort(MPI_COMM_WORLD, 1);
     }
     m_irrapp->BeginScene();
-    ////m_irrapp->GetSceneManager()->getActiveCamera()->setTarget(irr::core::vector3dfCH(mrigidbody->GetPos()));
     m_irrapp->DrawAll();
     irrlicht::tools::drawColorbar(0, 30000, "Pressure yield [Pa]", m_irrapp->GetDevice(), 1180);
     m_irrapp->EndScene();

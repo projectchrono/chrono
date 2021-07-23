@@ -44,10 +44,10 @@ namespace vehicle {
 class CH_VEHICLE_API ChVehicleCosimTerrainNodeSCM : public ChVehicleCosimTerrainNodeChrono {
   public:
     /// Create an SCM terrain node. Note that no SCM parameters are set.
-    ChVehicleCosimTerrainNodeSCM();
+    ChVehicleCosimTerrainNodeSCM(unsigned int num_tires);
 
     /// Create an SCM terrain node using parameters from the provided JSON specfile.
-    ChVehicleCosimTerrainNodeSCM(const std::string& specfile);
+    ChVehicleCosimTerrainNodeSCM(const std::string& specfile, unsigned int num_tires);
 
     ~ChVehicleCosimTerrainNodeSCM();
 
@@ -110,13 +110,13 @@ class CH_VEHICLE_API ChVehicleCosimTerrainNodeSCM : public ChVehicleCosimTerrain
 
     virtual void Construct() override;
 
-    virtual void CreateMeshProxies() override;
-    virtual void UpdateMeshProxies() override;
-    virtual void GetForcesMeshProxies() override;
+    virtual void CreateMeshProxies(unsigned int i) override;
+    virtual void UpdateMeshProxies(unsigned int i, const MeshState& mesh_state) override;
+    virtual void GetForcesMeshProxies(unsigned int i, MeshContact& mesh_contact) override;
 
-    virtual void CreateWheelProxy() override;
-    virtual void UpdateWheelProxy() override;
-    virtual void GetForceWheelProxy() override;
+    virtual void CreateWheelProxy(unsigned int i) override;
+    virtual void UpdateWheelProxy(unsigned int i, const WheelState& wheel_state) override;
+    virtual void GetForceWheelProxy(unsigned int i, TerrainForce& wheel_contact) override;
 
     virtual void OnOutputData(int frame) override;
     virtual void OnRender(double time) override;

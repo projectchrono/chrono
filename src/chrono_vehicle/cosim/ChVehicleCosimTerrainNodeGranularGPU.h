@@ -38,10 +38,10 @@ namespace vehicle {
 class CH_VEHICLE_API ChVehicleCosimTerrainNodeGranularGPU : public ChVehicleCosimTerrainNodeChrono {
   public:
     /// Create a Chrono::Granular terrain node.
-    ChVehicleCosimTerrainNodeGranularGPU();
+    ChVehicleCosimTerrainNodeGranularGPU(unsigned int num_tires);
 
     /// Create a Chrono::Granular terrain node and set parameters from the provided JSON specfile.
-    ChVehicleCosimTerrainNodeGranularGPU(const std::string& specfile);
+    ChVehicleCosimTerrainNodeGranularGPU(const std::string& specfile, unsigned int num_tires);
 
     ~ChVehicleCosimTerrainNodeGranularGPU();
 
@@ -143,9 +143,9 @@ class CH_VEHICLE_API ChVehicleCosimTerrainNodeGranularGPU : public ChVehicleCosi
     /// Return current total number of contacts.
     virtual int GetNumContacts() const override { return m_systemGPU->GetNumContacts(); }
 
-    virtual void CreateWheelProxy() override;
-    virtual void UpdateWheelProxy() override;
-    virtual void GetForceWheelProxy() override;
+    virtual void CreateWheelProxy(unsigned int i) override;
+    virtual void UpdateWheelProxy(unsigned int i, const WheelState& wheel_state) override;
+    virtual void GetForceWheelProxy(unsigned int i, TerrainForce& wheel_contact) override;
 
     virtual void OnOutputData(int frame) override;
 
@@ -162,7 +162,7 @@ class CH_VEHICLE_API ChVehicleCosimTerrainNodeGranularGPU : public ChVehicleCosi
 
     /// Set composite material properties for granular-tire contacts
     /// (can be invoked only once tire material was received).
-    void SetMatPropertiesExternal();
+    void SetMatPropertiesExternal(unsigned int i);
 
     /// Update position of visualization shapes for granular material.
     /// Note that this requires memory transfer from GPU.

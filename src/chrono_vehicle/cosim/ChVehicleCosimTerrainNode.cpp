@@ -44,18 +44,23 @@ namespace vehicle {
 // -----------------------------------------------------------------------------
 // Construction of the base terrain node.
 // -----------------------------------------------------------------------------
-ChVehicleCosimTerrainNode::ChVehicleCosimTerrainNode()
+ChVehicleCosimTerrainNode::ChVehicleCosimTerrainNode(unsigned int num_tires)
     : ChVehicleCosimBaseNode("TERRAIN"),
+      m_num_tires(num_tires),
       m_render(false),
       m_render_step(0.01),
-      m_init_height(0) {
-    // Default patch dimensions
-    m_hdimX = 1.0;
-    m_hdimY = 0.25;
-
-    // Default proxy body properties
-    m_rig_mass = 50;
-    m_flexible_tire = false;
+      m_init_height(0),
+      m_hdimX(1.0),
+      m_hdimY(0.25),
+      m_load_mass(50),
+      m_flexible_tire(false) {
+    m_load_mass.resize(num_tires);
+    m_mat_props.resize(num_tires);
+    m_mesh_data.resize(num_tires);
+    m_mesh_state.resize(num_tires);
+    m_mesh_contact.resize(num_tires);
+    m_wheel_state.resize(num_tires);
+    m_wheel_contact.resize(num_tires);
 }
 
 // -----------------------------------------------------------------------------
@@ -72,7 +77,6 @@ void ChVehicleCosimTerrainNode::EnableRuntimeVisualization(bool render, double r
 
 // -----------------------------------------------------------------------------
 // Initialization of the terrain node:
-// - if not already done, complete system construction
 // - send terrain height
 // - receive information on tire mesh topology (number vertices and triangles)
 // - receive tire contact material properties and create the "tire" material
@@ -91,103 +95,106 @@ void ChVehicleCosimTerrainNode::Initialize() {
 
     // This includes the terrain height and the container half-length.
     // Note: take into account dimension of proxy bodies
-    double init_dim[2] = {m_init_height + 0.05, m_hdimX};
-    MPI_Send(init_dim, 2, MPI_DOUBLE, RIG_NODE_RANK, 0, MPI_COMM_WORLD);
+    double init_dim[3] = {m_init_height + 0.05, m_hdimX, m_hdimY};
+    MPI_Send(init_dim, 3, MPI_DOUBLE, RIG_NODE_RANK, 0, MPI_COMM_WORLD);
 
     if (m_verbose) {
         cout << "[Terrain node] Sent initial terrain height = " << init_dim[0] << endl;
         cout << "[Terrain node] Sent container half-length = " << init_dim[1] << endl;
+        cout << "[Terrain node] Sent container half-width = " << init_dim[2] << endl;
     }
 
-    // ------------------------------------------
-    // Receive tire contact surface specification
-    // ------------------------------------------
+    // ------------------------
+    // Receive tire information
+    // ------------------------
 
     MPI_Status status;
 
-    unsigned int surf_props[4];
-    MPI_Recv(surf_props, 4, MPI_UNSIGNED, RIG_NODE_RANK, 0, MPI_COMM_WORLD, &status);
+    unsigned int flex;
+    MPI_Recv(&flex, 1, MPI_UNSIGNED, RIG_NODE_RANK, 0, MPI_COMM_WORLD, &status);
+    m_flexible_tire = (flex == 1);
 
-    m_flexible_tire = (surf_props[0] == 1);
-    m_mesh_data.nv = surf_props[1];
-    m_mesh_data.nn = surf_props[2];
-    m_mesh_data.nt = surf_props[3];
+    for (unsigned int i = 0; i < m_num_tires; i++) {
+        // Tire contact surface specification
 
-    if (m_flexible_tire && !SupportsFlexibleTire()) {
-        cout << "ERROR: terrain system does not support flexible tires!" << endl;
-        MPI_Abort(MPI_COMM_WORLD, 1);
+        unsigned int surf_props[3];
+        MPI_Recv(surf_props, 3, MPI_UNSIGNED, RIG_NODE_RANK, 0, MPI_COMM_WORLD, &status);
+
+        m_mesh_data[i].nv = surf_props[0];
+        m_mesh_data[i].nn = surf_props[1];
+        m_mesh_data[i].nt = surf_props[2];
+
+        if (m_flexible_tire && !SupportsFlexibleTire()) {
+            cout << "ERROR: terrain system does not support flexible tires!" << endl;
+            MPI_Abort(MPI_COMM_WORLD, 1);
+        }
+
+        m_mesh_data[i].verts.resize(m_mesh_data[i].nv);
+        m_mesh_data[i].norms.resize(m_mesh_data[i].nn);
+        m_mesh_data[i].idx_verts.resize(m_mesh_data[i].nt);
+        m_mesh_data[i].idx_norms.resize(m_mesh_data[i].nt);
+
+        m_mesh_state[i].vpos.resize(m_mesh_data[i].nv);
+        m_mesh_state[i].vvel.resize(m_mesh_data[i].nv);
+
+        // Tire mesh vertices & normals and triangle indices
+
+        double* vert_data = new double[3 * m_mesh_data[i].nv + 3 * m_mesh_data[i].nn];
+        int* tri_data = new int[3 * m_mesh_data[i].nt + 3 * m_mesh_data[i].nt];
+        MPI_Recv(vert_data, 3 * m_mesh_data[i].nv + 3 * m_mesh_data[i].nn, MPI_DOUBLE, RIG_NODE_RANK, 0, MPI_COMM_WORLD,
+                 &status);
+        MPI_Recv(tri_data, 3 * m_mesh_data[i].nt + 3 * m_mesh_data[i].nt, MPI_INT, RIG_NODE_RANK, 0, MPI_COMM_WORLD,
+                 &status);
+
+        for (unsigned int iv = 0; iv < m_mesh_data[i].nv; iv++) {
+            m_mesh_data[i].verts[iv].x() = vert_data[3 * iv + 0];
+            m_mesh_data[i].verts[iv].y() = vert_data[3 * iv + 1];
+            m_mesh_data[i].verts[iv].z() = vert_data[3 * iv + 2];
+        }
+        for (unsigned int in = 0; in < m_mesh_data[i].nn; in++) {
+            m_mesh_data[i].norms[in].x() = vert_data[3 * m_mesh_data[i].nv + 3 * in + 0];
+            m_mesh_data[i].norms[in].y() = vert_data[3 * m_mesh_data[i].nv + 3 * in + 1];
+            m_mesh_data[i].norms[in].z() = vert_data[3 * m_mesh_data[i].nv + 3 * in + 2];
+        }
+        for (unsigned int it = 0; it < m_mesh_data[i].nt; it++) {
+            m_mesh_data[i].idx_verts[it].x() = tri_data[6 * it + 0];
+            m_mesh_data[i].idx_verts[it].y() = tri_data[6 * it + 1];
+            m_mesh_data[i].idx_verts[it].z() = tri_data[6 * it + 2];
+            m_mesh_data[i].idx_norms[it].x() = tri_data[6 * it + 3];
+            m_mesh_data[i].idx_norms[it].y() = tri_data[6 * it + 4];
+            m_mesh_data[i].idx_norms[it].z() = tri_data[6 * it + 5];
+        }
+
+        delete[] vert_data;
+        delete[] tri_data;
+
+        if (m_verbose)
+            cout << "[Terrain node] Received " << surf_props[0] << " vertices and " << surf_props[2] << " triangles"
+                 << endl;
+
+        // Load mass
+        MPI_Recv(&m_load_mass[i], 1, MPI_DOUBLE, RIG_NODE_RANK, 0, MPI_COMM_WORLD, &status);
+
+        if (m_verbose)
+            cout << "[Terrain node] received load mass = " << m_load_mass[i] << endl;
+
+        // Tire contact material properties
+
+        float props[8];
+        MPI_Recv(props, 8, MPI_FLOAT, RIG_NODE_RANK, 0, MPI_COMM_WORLD, &status);
+
+        m_mat_props[i].mu = props[0];
+        m_mat_props[i].cr = props[1];
+        m_mat_props[i].Y = props[2];
+        m_mat_props[i].nu = props[3];
+        m_mat_props[i].kn = props[4];
+        m_mat_props[i].gn = props[5];
+        m_mat_props[i].kt = props[6];
+        m_mat_props[i].gt = props[7];
+
+        if (m_verbose)
+            cout << "[Terrain node] received tire material:  friction = " << props[0] << endl;
     }
-
-    m_mesh_data.verts.resize(m_mesh_data.nv);
-    m_mesh_data.norms.resize(m_mesh_data.nn);
-    m_mesh_data.idx_verts.resize(m_mesh_data.nt);
-    m_mesh_data.idx_norms.resize(m_mesh_data.nt);
-
-    m_mesh_state.vpos.resize(m_mesh_data.nv);
-    m_mesh_state.vvel.resize(m_mesh_data.nv);
-
-    // -----------------------------------------------------------
-    // Receive tire mesh vertices & normals and triangle indices
-    // -----------------------------------------------------------
-
-    double* vert_data = new double[3 * m_mesh_data.nv + 3 * m_mesh_data.nn];
-    int* tri_data = new int[3 * m_mesh_data.nt + 3 * m_mesh_data.nt];
-    MPI_Recv(vert_data, 3 * m_mesh_data.nv + 3 * m_mesh_data.nn, MPI_DOUBLE, RIG_NODE_RANK, 0, MPI_COMM_WORLD, &status);
-    MPI_Recv(tri_data, 3 * m_mesh_data.nt + 3 * m_mesh_data.nt, MPI_INT, RIG_NODE_RANK, 0, MPI_COMM_WORLD, &status);
-
-    for (unsigned int iv = 0; iv < m_mesh_data.nv; iv++) {
-        m_mesh_data.verts[iv].x() = vert_data[3 * iv + 0];
-        m_mesh_data.verts[iv].y() = vert_data[3 * iv + 1];
-        m_mesh_data.verts[iv].z() = vert_data[3 * iv + 2];
-    }
-    for (unsigned int in = 0; in < m_mesh_data.nn; in++) {
-        m_mesh_data.norms[in].x() = vert_data[3 * m_mesh_data.nv + 3 * in + 0];
-        m_mesh_data.norms[in].y() = vert_data[3 * m_mesh_data.nv + 3 * in + 1];
-        m_mesh_data.norms[in].z() = vert_data[3 * m_mesh_data.nv + 3 * in + 2];
-    }
-    for (unsigned int it = 0; it < m_mesh_data.nt; it++) {
-        m_mesh_data.idx_verts[it].x() = tri_data[6 * it + 0];
-        m_mesh_data.idx_verts[it].y() = tri_data[6 * it + 1];
-        m_mesh_data.idx_verts[it].z() = tri_data[6 * it + 2];
-        m_mesh_data.idx_norms[it].x() = tri_data[6 * it + 3];
-        m_mesh_data.idx_norms[it].y() = tri_data[6 * it + 4];
-        m_mesh_data.idx_norms[it].z() = tri_data[6 * it + 5];
-    }
-
-    delete[] vert_data;
-    delete[] tri_data;
-
-    if (m_verbose)
-        cout << "[Terrain node] Received " << surf_props[1] << " vertices and " << surf_props[3] << " triangles"
-             << endl;
-
-    // ----------------
-    // Receive rig mass
-    // ----------------
-
-    MPI_Recv(&m_rig_mass, 1, MPI_DOUBLE, RIG_NODE_RANK, 0, MPI_COMM_WORLD, &status);
-
-    if (m_verbose)
-        cout << "[Terrain node] received rig mass = " << m_rig_mass << endl;
-
-    // ----------------------------------------
-    // Receive tire contact material properties
-    // ----------------------------------------
-
-    float props[8];
-    MPI_Recv(props, 8, MPI_FLOAT, RIG_NODE_RANK, 0, MPI_COMM_WORLD, &status);
-
-    m_mat_props.mu = props[0];
-    m_mat_props.cr = props[1];
-    m_mat_props.Y =  props[2];
-    m_mat_props.nu = props[3];
-    m_mat_props.kn = props[4];
-    m_mat_props.gn = props[5];
-    m_mat_props.kt = props[6];
-    m_mat_props.gt = props[7];
-
-    if (m_verbose)
-        cout << "[Terrain node] received tire material:  friction = " << props[0] << endl;
 
     // ----------------------------------------------------
     // Let derived classes perform their own initialization
@@ -212,79 +219,84 @@ void ChVehicleCosimTerrainNode::Synchronize(int step_number, double time) {
 }
 
 void ChVehicleCosimTerrainNode::SynchronizeRigidTire(int step_number, double time) {
-    // Receive wheel state data
-    MPI_Status status;
-    double state_data[14];
-    MPI_Recv(state_data, 14, MPI_DOUBLE, RIG_NODE_RANK, step_number, MPI_COMM_WORLD, &status);
+    for (unsigned int i = 0; i < m_num_tires; i++) {
+        // Receive wheel state data
+        MPI_Status status;
+        double state_data[14];
+        MPI_Recv(state_data, 14, MPI_DOUBLE, RIG_NODE_RANK, step_number, MPI_COMM_WORLD, &status);
 
-    m_wheel_state.pos = ChVector<>(state_data[0], state_data[1], state_data[2]);
-    m_wheel_state.rot = ChQuaternion<>(state_data[3], state_data[4], state_data[5], state_data[6]);
-    m_wheel_state.lin_vel = ChVector<>(state_data[7], state_data[8], state_data[9]);
-    m_wheel_state.ang_vel = ChVector<>(state_data[10], state_data[11], state_data[12]);
-    m_wheel_state.omega = state_data[13];
+        m_wheel_state[i].pos = ChVector<>(state_data[0], state_data[1], state_data[2]);
+        m_wheel_state[i].rot = ChQuaternion<>(state_data[3], state_data[4], state_data[5], state_data[6]);
+        m_wheel_state[i].lin_vel = ChVector<>(state_data[7], state_data[8], state_data[9]);
+        m_wheel_state[i].ang_vel = ChVector<>(state_data[10], state_data[11], state_data[12]);
+        m_wheel_state[i].omega = state_data[13];
 
-    // Set position, rotation, and velocities of wheel proxy body.
-    UpdateWheelProxy();
+        // Set position, rotation, and velocities of wheel proxy body.
+        UpdateWheelProxy(i, m_wheel_state[i]);
 
-    // Collect contact force on wheel proxy and load in m_wheel_contact. 
-    // It is assumed that this force is given at wheel center.
-    // Note that no force is collected at the first step.
-    if (step_number > 0) {
-        GetForceWheelProxy();
+        // Collect contact force on wheel proxy and load in m_wheel_contact.
+        // It is assumed that this force is given at wheel center.
+        // Note that no force is collected at the first step.
+        if (step_number > 0) {
+            GetForceWheelProxy(i, m_wheel_contact[i]);
+        }
+
+        // Send wheel contact force.
+        double force_data[] = {m_wheel_contact[i].force.x(),  m_wheel_contact[i].force.y(),  m_wheel_contact[i].force.z(),
+                               m_wheel_contact[i].moment.x(), m_wheel_contact[i].moment.y(), m_wheel_contact[i].moment.z()};
+        MPI_Send(force_data, 6, MPI_DOUBLE, RIG_NODE_RANK, step_number, MPI_COMM_WORLD);
+
+        if (m_verbose)
+            cout << "[Terrain node] step number: " << step_number << "  num contacts: " << GetNumContacts() << endl;
     }
-
-    // Send wheel contact force.
-    double force_data[] = {m_wheel_contact.force.x(),  m_wheel_contact.force.y(),  m_wheel_contact.force.z(),
-                           m_wheel_contact.moment.x(), m_wheel_contact.moment.y(), m_wheel_contact.moment.z()};
-    MPI_Send(force_data, 6, MPI_DOUBLE, RIG_NODE_RANK, step_number, MPI_COMM_WORLD);
-
-    if (m_verbose)
-        cout << "[Terrain node] step number: " << step_number << "  num contacts: " << GetNumContacts() << endl;
 }
 
 void ChVehicleCosimTerrainNode::SynchronizeFlexibleTire(int step_number, double time) {
-    // Receive mesh state data
-    MPI_Status status;
-    double* vert_data = new double[2 * 3 * m_mesh_data.nv];
-    MPI_Recv(vert_data, 2 * 3 * m_mesh_data.nv, MPI_DOUBLE, RIG_NODE_RANK, step_number, MPI_COMM_WORLD, &status);
+    for (unsigned int i = 0; i < m_num_tires; i++) {
+        // Receive mesh state data
+        MPI_Status status;
+        double* vert_data = new double[2 * 3 * m_mesh_data[i].nv];
+        MPI_Recv(vert_data, 2 * 3 * m_mesh_data[i].nv, MPI_DOUBLE, RIG_NODE_RANK, step_number, MPI_COMM_WORLD, &status);
 
-    for (unsigned int iv = 0; iv < m_mesh_data.nv; iv++) {
-        unsigned int offset = 3 * iv;
-        m_mesh_state.vpos[iv] = ChVector<>(vert_data[offset + 0], vert_data[offset + 1], vert_data[offset + 2]);
-        offset += 3 * m_mesh_data.nv;
-        m_mesh_state.vvel[iv] = ChVector<>(vert_data[offset + 0], vert_data[offset + 1], vert_data[offset + 2]);
+        for (unsigned int iv = 0; iv < m_mesh_data[i].nv; iv++) {
+            unsigned int offset = 3 * iv;
+            m_mesh_state[i].vpos[iv] = ChVector<>(vert_data[offset + 0], vert_data[offset + 1], vert_data[offset + 2]);
+            offset += 3 * m_mesh_data[i].nv;
+            m_mesh_state[i].vvel[iv] = ChVector<>(vert_data[offset + 0], vert_data[offset + 1], vert_data[offset + 2]);
+        }
+
+        ////if (m_verbose)
+        ////    PrintMeshUpdateData(i);
+
+        delete[] vert_data;
+
+        // Set position, rotation, and velocity of proxy bodies.
+        UpdateMeshProxies(i, m_mesh_state[i]);
+
+        // Collect contact forces on subset of mesh vertices and load in m_mesh_contact.
+        // Note that no forces are collected at the first step.
+        if (step_number == 0)
+            m_mesh_contact[i].nv = 0;
+        else
+            GetForcesMeshProxies(i, m_mesh_contact[i]);
+
+        // Send vertex indices and forces.
+        double* force_data = new double[3 * m_mesh_contact[i].nv];
+        for (int iv = 0; iv < m_mesh_contact[i].nv; i++) {
+            force_data[3 * iv + 0] = m_mesh_contact[i].vforce[iv].x();
+            force_data[3 * iv + 1] = m_mesh_contact[i].vforce[iv].y();
+            force_data[3 * iv + 2] = m_mesh_contact[i].vforce[iv].z();
+        }
+        MPI_Send(m_mesh_contact[i].vidx.data(), m_mesh_contact[i].nv, MPI_INT, RIG_NODE_RANK, step_number,
+                 MPI_COMM_WORLD);
+        MPI_Send(force_data, 3 * m_mesh_contact[i].nv, MPI_DOUBLE, RIG_NODE_RANK, step_number, MPI_COMM_WORLD);
+
+        delete[] force_data;
+
+        if (m_verbose)
+            cout << "[Terrain node] step number: " << step_number << "  num contacts: " << GetNumContacts()
+                 << "  vertices in contact: " << m_mesh_contact[i].nv << endl;
     }
-
-    ////if (m_verbose)
-    ////    PrintMeshUpdateData();
-
-    delete[] vert_data;
-
-    // Set position, rotation, and velocity of proxy bodies.
-    UpdateMeshProxies();
-
-    // Collect contact forces on subset of mesh vertices and load in m_mesh_contact.
-    // Note that no forces are collected at the first step.
-    if (step_number == 0)
-        m_mesh_contact.nv = 0;
-    else
-        GetForcesMeshProxies();
-
-    // Send vertex indices and forces.
-    double* force_data = new double[3 * m_mesh_contact.nv];
-    for (int i = 0; i < m_mesh_contact.nv; i++) {
-        force_data[3 * i + 0] = m_mesh_contact.vforce[i].x();
-        force_data[3 * i + 1] = m_mesh_contact.vforce[i].y();
-        force_data[3 * i + 2] = m_mesh_contact.vforce[i].z();
-    }
-    MPI_Send(m_mesh_contact.vidx.data(), m_mesh_contact.nv, MPI_INT, RIG_NODE_RANK, step_number, MPI_COMM_WORLD);
-    MPI_Send(force_data, 3 * m_mesh_contact.nv, MPI_DOUBLE, RIG_NODE_RANK, step_number, MPI_COMM_WORLD);
-
-    delete[] force_data;
-
-    if (m_verbose)
-        cout << "[Terrain node] step number: " << step_number << "  num contacts: " << GetNumContacts()
-             << "  vertices in contact: " << m_mesh_contact.nv << endl;
 }
 
 // -----------------------------------------------------------------------------
@@ -321,9 +333,9 @@ void ChVehicleCosimTerrainNode::OutputData(int frame) {
 }
 
 // Print mesh vertex data, as received from the rig node at synchronization.
-void ChVehicleCosimTerrainNode::PrintMeshUpdateData() {
+void ChVehicleCosimTerrainNode::PrintMeshUpdateData(unsigned int i) {
     cout << "[Terrain node] mesh vertices and faces" << endl;
-    std::for_each(m_mesh_state.vpos.begin(), m_mesh_state.vpos.end(),
+    std::for_each(m_mesh_state[i].vpos.begin(), m_mesh_state[i].vpos.end(),
                   [](const ChVector<>& a) { cout << a.x() << "  " << a.y() << "  " << a.z() << endl; });
 }
 

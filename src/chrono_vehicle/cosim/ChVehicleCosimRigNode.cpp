@@ -534,9 +534,9 @@ void ChVehicleCosimRigNode::Initialize() {
     // --------------------------------------
 
     // Receive initial terrain dimensions: terrain height and container half-length
-    double init_dim[2];
+    double init_dim[3];
     MPI_Status status;
-    MPI_Recv(init_dim, 2, MPI_DOUBLE, TERRAIN_NODE_RANK, 0, MPI_COMM_WORLD, &status);
+    MPI_Recv(init_dim, 3, MPI_DOUBLE, TERRAIN_NODE_RANK, 0, MPI_COMM_WORLD, &status);
 
     if (m_verbose) {
         cout << "[Rig node    ] Received initial terrain height = " << init_dim[0] << endl;
@@ -561,7 +561,7 @@ void ChVehicleCosimRigNode::Initialize() {
     m_set_toe->SetRot(QUNIT);
     m_set_toe->SetPos_dt(rig_vel);
 
-    // Initialize spindle body.
+    // Initialize spindle body
     m_spindle->SetPos(origin);
     m_spindle->SetRot(QUNIT);
     m_spindle->SetPos_dt(rig_vel);
@@ -610,10 +610,13 @@ void ChVehicleCosimRigNode::Initialize() {
     // Send mesh info and contact material
     // -----------------------------------
 
-    unsigned int surf_props[4] = {IsTireFlexible(), m_mesh_data.nv, m_mesh_data.nn, m_mesh_data.nt};
-    MPI_Send(surf_props, 4, MPI_UNSIGNED, TERRAIN_NODE_RANK, 0, MPI_COMM_WORLD);
+    unsigned int flex = IsTireFlexible();
+    MPI_Send(&flex, 1, MPI_UNSIGNED, TERRAIN_NODE_RANK, 0, MPI_COMM_WORLD);
+
+    unsigned int surf_props[] = {m_mesh_data.nv, m_mesh_data.nn, m_mesh_data.nt};
+    MPI_Send(surf_props, 3, MPI_UNSIGNED, TERRAIN_NODE_RANK, 0, MPI_COMM_WORLD);
     if (m_verbose)
-        cout << "[Rig node    ] vertices = " << surf_props[1] << "  triangles = " << surf_props[3] << endl;
+        cout << "[Rig node    ] vertices = " << surf_props[0] << "  triangles = " << surf_props[2] << endl;
 
     double* vert_data = new double[3 * m_mesh_data.nv + 3 * m_mesh_data.nn];
     int* tri_data = new int[3 * m_mesh_data.nt + 3 * m_mesh_data.nt];

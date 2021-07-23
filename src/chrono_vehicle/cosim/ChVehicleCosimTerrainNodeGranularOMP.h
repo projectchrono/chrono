@@ -37,11 +37,11 @@ namespace vehicle {
 class CH_VEHICLE_API ChVehicleCosimTerrainNodeGranularOMP : public ChVehicleCosimTerrainNodeChrono {
   public:
     /// Create a Chrono::Multicore granular terrain node using the specified contact method (SMC or NSC).
-    ChVehicleCosimTerrainNodeGranularOMP(ChContactMethod method);
+    ChVehicleCosimTerrainNodeGranularOMP(ChContactMethod method, unsigned int num_tires);
 
     /// Create a Chrono::Multicore granular terrain node using the specified contact method (SMC or NSC) and set
     /// parameters from the provided JSON specfile.
-    ChVehicleCosimTerrainNodeGranularOMP(ChContactMethod method, const std::string& specfile);
+    ChVehicleCosimTerrainNodeGranularOMP(ChContactMethod method, const std::string& specfile, unsigned int num_tires);
 
     ~ChVehicleCosimTerrainNodeGranularOMP();
 
@@ -158,14 +158,14 @@ class CH_VEHICLE_API ChVehicleCosimTerrainNodeGranularOMP : public ChVehicleCosi
     /// Return current total number of contacts.
     virtual int GetNumContacts() const override { return m_system->GetNcontacts(); }
 
-    virtual void CreateMeshProxies() override;
-    virtual void UpdateMeshProxies() override;
-    virtual void GetForcesMeshProxies() override;
-    void PrintMeshProxiesUpdateData();
+    virtual void CreateMeshProxies(unsigned int i) override;
+    virtual void UpdateMeshProxies(unsigned int i, const MeshState& mesh_state) override;
+    virtual void GetForcesMeshProxies(unsigned int i, MeshContact& mesh_contact) override;
+    void PrintMeshProxiesUpdateData(unsigned int i, const MeshState& mesh_state);
 
-    virtual void CreateWheelProxy() override;
-    virtual void UpdateWheelProxy() override;
-    virtual void GetForceWheelProxy() override;
+    virtual void CreateWheelProxy(unsigned int i) override;
+    virtual void UpdateWheelProxy(unsigned int i, const WheelState& wheel_state) override;
+    virtual void GetForceWheelProxy(unsigned int i, TerrainForce& wheel_contact) override;
 
     virtual void OnAdvance(double step_size) override;
     virtual void OnOutputData(int frame) override;

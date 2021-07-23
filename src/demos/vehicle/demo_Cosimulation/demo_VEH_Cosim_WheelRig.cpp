@@ -261,7 +261,7 @@ int main(int argc, char** argv) {
             case ChVehicleCosimTerrainNodeChrono::Type::RIGID: {
 #ifdef CHRONO_MULTICORE
                 auto method = ChContactMethod::SMC;
-                auto terrain = new ChVehicleCosimTerrainNodeRigid(method, terrain_specfile);
+                auto terrain = new ChVehicleCosimTerrainNodeRigid(method, terrain_specfile, 1);
                 terrain->SetVerbose(verbose);
                 terrain->SetStepSize(step_size);
                 terrain->SetOutDir(out_dir, suffix);
@@ -275,7 +275,7 @@ int main(int argc, char** argv) {
             }
 
             case ChVehicleCosimTerrainNodeChrono::Type::SCM: {
-                auto terrain = new ChVehicleCosimTerrainNodeSCM(terrain_specfile);
+                auto terrain = new ChVehicleCosimTerrainNodeSCM(terrain_specfile, 1);
                 terrain->SetVerbose(verbose);
                 terrain->SetStepSize(step_size);
                 terrain->SetNumThreads(nthreads_terrain);
@@ -295,7 +295,7 @@ int main(int argc, char** argv) {
             case ChVehicleCosimTerrainNodeChrono::Type::GRANULAR_OMP: {
 #ifdef CHRONO_MULTICORE
                 auto method = ChContactMethod::SMC;
-                auto terrain = new ChVehicleCosimTerrainNodeGranularOMP(method, terrain_specfile);
+                auto terrain = new ChVehicleCosimTerrainNodeGranularOMP(method, terrain_specfile, 1);
                 terrain->SetVerbose(verbose);
                 terrain->SetStepSize(step_size);
                 terrain->SetNumThreads(nthreads_terrain);
@@ -325,7 +325,7 @@ int main(int argc, char** argv) {
 
             case ChVehicleCosimTerrainNodeChrono::Type::GRANULAR_GPU: {
 #ifdef CHRONO_GPU
-                auto terrain = new ChVehicleCosimTerrainNodeGranularGPU(terrain_specfile);
+                auto terrain = new ChVehicleCosimTerrainNodeGranularGPU(terrain_specfile, 1);
                 terrain->SetVerbose(verbose);
                 terrain->SetStepSize(step_size);
                 terrain->SetOutDir(out_dir, suffix);
@@ -352,7 +352,7 @@ int main(int argc, char** argv) {
 
             case ChVehicleCosimTerrainNodeChrono::Type::GRANULAR_SPH: {
 #ifdef CHRONO_FSI
-                auto terrain = new ChVehicleCosimTerrainNodeGranularSPH(terrain_specfile);
+                auto terrain = new ChVehicleCosimTerrainNodeGranularSPH(terrain_specfile, 1);
                 terrain->SetVerbose(verbose);
                 std::string param_filename = GetChronoDataFile("fsi/input_json/demo_tire_rig.json");
                 terrain->SetStepSize(step_size);

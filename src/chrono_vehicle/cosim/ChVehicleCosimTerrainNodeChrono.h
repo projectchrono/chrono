@@ -83,8 +83,9 @@ class CH_VEHICLE_API ChVehicleCosimTerrainNodeChrono : public ChVehicleCosimTerr
 
   protected:
     /// Construct a base class terrain node.
-    ChVehicleCosimTerrainNodeChrono(Type type,              ///< terrain type
-                                    ChContactMethod method  ///< contact method (SMC or NSC)
+    ChVehicleCosimTerrainNodeChrono(Type type,               ///< terrain type
+                                    ChContactMethod method,  ///< contact method (SMC or NSC)
+                                    unsigned int num_tires   ///< number of tires
     );
 
     /// Return a pointer to the underlying Chrono system.
@@ -102,14 +103,16 @@ class CH_VEHICLE_API ChVehicleCosimTerrainNodeChrono : public ChVehicleCosimTerr
         int m_index;
     };
 
+    typedef std::vector<ProxyBody> Proxies;
+
     Type m_type;  ///< terrain type
 
     ChContactMethod m_method;                               ///< contact method (SMC or NSC)
     std::shared_ptr<ChMaterialSurface> m_material_terrain;  ///< material properties for terrain bodies
-    std::shared_ptr<ChMaterialSurface> m_material_tire;     ///< material properties for proxy bodies
 
-    std::vector<ProxyBody> m_proxies;  ///< list of proxy bodies with associated mesh index
-    bool m_fixed_proxies;              ///< flag indicating whether or not proxy bodies are fixed to ground
+    bool m_fixed_proxies;                                             ///< are proxy bodies fixed to ground?
+    std::vector<Proxies> m_proxies;                                   ///< proxy bodies for each tire
+    std::vector<std::shared_ptr<ChMaterialSurface>> m_material_tire;  ///< material properties for proxy bodies
 };
 
 /// @} vehicle_cosim_chrono

@@ -50,8 +50,8 @@ namespace vehicle {
 // - create the Chrono system and set solver parameters
 // - create the OpenGL visualization window
 // -----------------------------------------------------------------------------
-ChVehicleCosimTerrainNodeRigid::ChVehicleCosimTerrainNodeRigid(ChContactMethod method)
-    : ChVehicleCosimTerrainNodeChrono(Type::RIGID, method), m_radius_p(0.01) {
+ChVehicleCosimTerrainNodeRigid::ChVehicleCosimTerrainNodeRigid(ChContactMethod method, unsigned int num_tires)
+    : ChVehicleCosimTerrainNodeChrono(Type::RIGID, method, num_tires), m_radius_p(0.01) {
     // Create system and set default method-specific solver settings
     switch (m_method) {
         case ChContactMethod::SMC: {
@@ -84,8 +84,10 @@ ChVehicleCosimTerrainNodeRigid::ChVehicleCosimTerrainNodeRigid(ChContactMethod m
     m_system->SetNumThreads(1);
 }
 
-ChVehicleCosimTerrainNodeRigid::ChVehicleCosimTerrainNodeRigid(ChContactMethod method, const std::string& specfile)
-    : ChVehicleCosimTerrainNodeChrono(Type::RIGID, method) {
+ChVehicleCosimTerrainNodeRigid::ChVehicleCosimTerrainNodeRigid(ChContactMethod method,
+                                                               const std::string& specfile,
+                                                               unsigned int num_tires)
+    : ChVehicleCosimTerrainNodeChrono(Type::RIGID, method, num_tires) {
     // Create system and set default method-specific solver settings
     switch (m_method) {
         case ChContactMethod::SMC: {
@@ -298,11 +300,11 @@ void ChVehicleCosimTerrainNodeRigid::Construct() {
 // Maintain a list of all bodies associated with the tire.
 // Add all proxy bodies to the same collision family and disable collision between any
 // two members of this family.
-void ChVehicleCosimTerrainNodeRigid::CreateMeshProxies() {
-    double mass_p = m_rig_mass / m_mesh_data.nv;
+void ChVehicleCosimTerrainNodeRigid::CreateMeshProxies(unsigned int i) {
+    double mass_p = m_load_mass[i] / m_mesh_data[i].nv;
     ChVector<> inertia_p = 0.4 * mass_p * m_radius_p * m_radius_p * ChVector<>(1, 1, 1);
 
-    for (unsigned int iv = 0; iv < m_mesh_data.nv; iv++) {
+    for (unsigned int iv = 0; iv < m_mesh_data[i].nv; iv++) {
         auto body = std::shared_ptr<ChBody>(m_system->NewBody());
         body->SetIdentifier(iv);
         body->SetMass(mass_p);
@@ -311,37 +313,37 @@ void ChVehicleCosimTerrainNodeRigid::CreateMeshProxies() {
         body->SetCollide(true);
 
         body->GetCollisionModel()->ClearModel();
-        utils::AddSphereGeometry(body.get(), m_material_tire, m_radius_p, ChVector<>(0, 0, 0),
+        utils::AddSphereGeometry(body.get(), m_material_tire[i], m_radius_p, ChVector<>(0, 0, 0),
                                  ChQuaternion<>(1, 0, 0, 0), true);
         body->GetCollisionModel()->SetFamily(1);
         body->GetCollisionModel()->SetFamilyMaskNoCollisionWithFamily(1);
         body->GetCollisionModel()->BuildModel();
 
         m_system->AddBody(body);
-        m_proxies.push_back(ProxyBody(body, iv));
+        m_proxies[i].push_back(ProxyBody(body, iv));
     }
 }
 
-void ChVehicleCosimTerrainNodeRigid::CreateWheelProxy() {
+void ChVehicleCosimTerrainNodeRigid::CreateWheelProxy(unsigned int i) {
     // Create wheel proxy body
     auto body = std::shared_ptr<ChBody>(m_system->NewBody());
     body->SetIdentifier(0);
-    body->SetMass(m_rig_mass);
+    body->SetMass(m_load_mass[i]);
     ////body->SetInertiaXX();   //// TODO
     body->SetBodyFixed(m_fixed_proxies);
     body->SetCollide(true);
 
     // Create collision mesh
     auto trimesh = chrono_types::make_shared<geometry::ChTriangleMeshConnected>();
-    trimesh->getCoordsVertices() = m_mesh_data.verts;
-    trimesh->getCoordsNormals() = m_mesh_data.norms;
-    trimesh->getIndicesVertexes() = m_mesh_data.idx_verts;
-    trimesh->getIndicesNormals() = m_mesh_data.idx_norms;
+    trimesh->getCoordsVertices() = m_mesh_data[i].verts;
+    trimesh->getCoordsNormals() = m_mesh_data[i].norms;
+    trimesh->getIndicesVertexes() = m_mesh_data[i].idx_verts;
+    trimesh->getIndicesNormals() = m_mesh_data[i].idx_norms;
 
     // Set collision shape
     body->GetCollisionModel()->ClearModel();
-    body->GetCollisionModel()->AddTriangleMesh(m_material_tire, trimesh, false, false, ChVector<>(0), ChMatrix33<>(1),
-                                               m_radius_p);
+    body->GetCollisionModel()->AddTriangleMesh(m_material_tire[i], trimesh, false, false, ChVector<>(0),
+                                               ChMatrix33<>(1), m_radius_p);
     body->GetCollisionModel()->SetFamily(1);
     body->GetCollisionModel()->SetFamilyMaskNoCollisionWithFamily(1);
     body->GetCollisionModel()->BuildModel();
@@ -354,49 +356,57 @@ void ChVehicleCosimTerrainNodeRigid::CreateWheelProxy() {
     body->GetAssets().push_back(trimesh_shape);
 
     m_system->AddBody(body);
-    m_proxies.push_back(ProxyBody(body, 0));
+    m_proxies[i].push_back(ProxyBody(body, 0));
 }
 
 // Set position and velocity of proxy bodies based on tire mesh vertices.
 // Set orientation to identity and angular velocity to zero.
-void ChVehicleCosimTerrainNodeRigid::UpdateMeshProxies() {
-    for (unsigned int iv = 0; iv < m_mesh_data.nv; iv++) {
-        m_proxies[iv].m_body->SetPos(m_mesh_state.vpos[iv]);
-        m_proxies[iv].m_body->SetPos_dt(m_mesh_state.vvel[iv]);
-        m_proxies[iv].m_body->SetRot(ChQuaternion<>(1, 0, 0, 0));
-        m_proxies[iv].m_body->SetRot_dt(ChQuaternion<>(0, 0, 0, 0));
+void ChVehicleCosimTerrainNodeRigid::UpdateMeshProxies(unsigned int i, const MeshState& mesh_state) {
+    auto& proxies = m_proxies[i];  // proxies for the i-th tire
+
+    for (unsigned int iv = 0; iv < m_mesh_data[i].nv; iv++) {
+        proxies[iv].m_body->SetPos(mesh_state.vpos[iv]);
+        proxies[iv].m_body->SetPos_dt(mesh_state.vvel[iv]);
+        proxies[iv].m_body->SetRot(ChQuaternion<>(1, 0, 0, 0));
+        proxies[iv].m_body->SetRot_dt(ChQuaternion<>(0, 0, 0, 0));
     }
 
-    PrintMeshProxiesUpdateData();
+    PrintMeshProxiesUpdateData(i, mesh_state);
 }
 
 // Set state of wheel proxy body.
-void ChVehicleCosimTerrainNodeRigid::UpdateWheelProxy() {
-    m_proxies[0].m_body->SetPos(m_wheel_state.pos);
-    m_proxies[0].m_body->SetPos_dt(m_wheel_state.lin_vel);
-    m_proxies[0].m_body->SetRot(m_wheel_state.rot);
-    m_proxies[0].m_body->SetWvel_par(m_wheel_state.ang_vel);
+void ChVehicleCosimTerrainNodeRigid::UpdateWheelProxy(unsigned int i, const WheelState& wheel_state) {
+    auto& proxies = m_proxies[i];  // proxies for the i-th tire
+
+    proxies[0].m_body->SetPos(wheel_state.pos);
+    proxies[0].m_body->SetPos_dt(wheel_state.lin_vel);
+    proxies[0].m_body->SetRot(wheel_state.rot);
+    proxies[0].m_body->SetWvel_par(wheel_state.ang_vel);
 }
 
 // Collect contact forces on the (node) proxy bodies that are in contact.
 // Load mesh vertex forces and corresponding indices.
-void ChVehicleCosimTerrainNodeRigid::GetForcesMeshProxies() {
-    m_mesh_contact.nv = 0;
-    for (unsigned int iv = 0; iv < m_mesh_data.nv; iv++) {
-        ChVector<> force = m_proxies[iv].m_body->GetContactForce();
+void ChVehicleCosimTerrainNodeRigid::GetForcesMeshProxies(unsigned int i, MeshContact& mesh_contact) {
+    const auto& proxies = m_proxies[i];  // proxies for the i-th tire
+
+    mesh_contact.nv = 0;
+    for (unsigned int iv = 0; iv < m_mesh_data[i].nv; iv++) {
+        ChVector<> force = proxies[iv].m_body->GetContactForce();
         if (force.Length() > 1e-15) {
-            m_mesh_contact.vforce.push_back(force);
-            m_mesh_contact.vidx.push_back(m_proxies[iv].m_index);
-            m_mesh_contact.nv++;
+            mesh_contact.vforce.push_back(force);
+            mesh_contact.vidx.push_back(proxies[iv].m_index);
+            mesh_contact.nv++;
         }
     }
 }
 
 // Collect resultant contact force and torque on wheel proxy body.
-void ChVehicleCosimTerrainNodeRigid::GetForceWheelProxy() {
-    m_wheel_contact.point = ChVector<>(0, 0, 0);
-    m_wheel_contact.force = m_proxies[0].m_body->GetContactForce();
-    m_wheel_contact.moment = m_proxies[0].m_body->GetContactTorque();
+void ChVehicleCosimTerrainNodeRigid::GetForceWheelProxy(unsigned int i, TerrainForce& wheel_contact) {
+    const auto& proxies = m_proxies[i];  // proxies for the i-th tire
+
+    wheel_contact.point = ChVector<>(0, 0, 0);
+    wheel_contact.force = proxies[0].m_body->GetContactForce();
+    wheel_contact.moment = proxies[0].m_body->GetContactTorque();
 }
 
 // -----------------------------------------------------------------------------
@@ -422,13 +432,13 @@ void ChVehicleCosimTerrainNodeRigid::OnRender(double time) {
 
 // -----------------------------------------------------------------------------
 
-void ChVehicleCosimTerrainNodeRigid::PrintMeshProxiesUpdateData() {
-    auto lowest = std::min_element(m_proxies.begin(), m_proxies.end(), [](const ProxyBody& a, const ProxyBody& b) {
-        return a.m_body->GetPos().z() < b.m_body->GetPos().z();
-    });
+void ChVehicleCosimTerrainNodeRigid::PrintMeshProxiesUpdateData(unsigned int i, const MeshState& mesh_state) {
+    auto lowest = std::min_element(
+        m_proxies[i].begin(), m_proxies[i].end(),
+        [](const ProxyBody& a, const ProxyBody& b) { return a.m_body->GetPos().z() < b.m_body->GetPos().z(); });
     const ChVector<>& vel = (*lowest).m_body->GetPos_dt();
     double height = (*lowest).m_body->GetPos().z();
-    cout << "[Terrain node] lowest proxy:  index = " << (*lowest).m_index << "  height = " << height
+    cout << "[Terrain node] tire: " << i << "  lowest proxy:  index = " << (*lowest).m_index << "  height = " << height
          << "  velocity = " << vel.x() << "  " << vel.y() << "  " << vel.z() << endl;
 }
 
