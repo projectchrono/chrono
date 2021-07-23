@@ -151,21 +151,13 @@ int main(int argc, char* argv[]) {
     fsi::ChSystemFsi myFsiSystem(mphysicalSystem);
     // Get the pointer to the system parameter and use a JSON file to fill it out with the user parameters
     std::shared_ptr<fsi::SimParams> paramsH = myFsiSystem.GetSimParams();
-    std::string inputJson = GetChronoDataFile("fsi/input_json/demo_FSI_Viper_granular.json");
-    // if (argc == 1 && fsi::utils::ParseJSON(inputJson.c_str(), paramsH, fsi::mR3(bxDim, byDim, bzDim))) {
-    // } else if (argc == 2 && fsi::utils::ParseJSON(argv[1], paramsH, fsi::mR3(bxDim, byDim, bzDim))) {
-    // } else {
-    //     ShowUsage();
-    //     return 1;
-    // }
-    if (argc == 5 && fsi::utils::ParseJSON(argv[1], paramsH, fsi::mR3(bxDim, byDim, bzDim))) {
+    std::string inputJson = GetChronoDataFile("fsi/input_json/demo_FSI_Viper_granular_NSC.json");
+    if (argc == 1 && fsi::utils::ParseJSON(inputJson.c_str(), paramsH, fsi::mR3(bxDim, byDim, bzDim))) {
+    } else if (argc == 2 && fsi::utils::ParseJSON(argv[1], paramsH, fsi::mR3(bxDim, byDim, bzDim))) {
     } else {
         ShowUsage();
         return 1;
     }
-    motor_type = std::stoi(argv[2]);
-    motor_F = std::stod(argv[3]);
-    obstacle_density = std::stod(argv[4]);
 
     /// Dimension of the space domain
     bxDim = paramsH->boxDimX + smalldis;
@@ -186,7 +178,12 @@ int main(int argc, char* argv[]) {
     paramsH->cMax = fsi::mR3(bxDim / 2, byDim / 2, bzDim + 10 * initSpace0) * 10 + 0 * initSpace0;
     // call FinalizeDomain to setup the binning for neighbor search or write your own
     fsi::utils::FinalizeDomain(paramsH);
-    fsi::utils::PrepareOutputDir(paramsH, demo_dir, out_dir, argv[1]);
+
+    if (argc == 1 && fsi::utils::ParseJSON(inputJson.c_str(), paramsH, fsi::mR3(bxDim, byDim, bzDim))) {
+        fsi::utils::PrepareOutputDir(paramsH, demo_dir, out_dir, inputJson.c_str());
+    } else if (argc == 2 && fsi::utils::ParseJSON(argv[1], paramsH, fsi::mR3(bxDim, byDim, bzDim))) {
+        fsi::utils::PrepareOutputDir(paramsH, demo_dir, out_dir, argv[1]);
+    }
 
     // ******************************* Create Fluid region ****************************************
     /// Create an initial box of fluid
@@ -233,15 +230,6 @@ int main(int argc, char* argv[]) {
     std::vector<std::vector<double>> vCoor;
     std::vector<std::vector<int>> faces;
     std::string RigidConectivity = demo_dir + "RigidConectivity.vtk";
-
-    /// Set up integrator for the MBD
-    // mphysicalSystem.SetTimestepperType(ChTimestepper::Type::HHT);
-    // auto mystepper = std::static_pointer_cast<ChTimestepperHHT>(mphysicalSystem.GetTimestepper());
-    // mystepper->SetAlpha(-0.2);
-    // mystepper->SetMaxiters(1000);
-    // mystepper->SetAbsTolerances(1e-6);
-    // mystepper->SetMode(ChTimestepperHHT::ACCELERATION);
-    // mystepper->SetScaling(true);
 
     /// Get the body from the FSI system
     std::vector<std::shared_ptr<ChBody>>& FSI_Bodies = myFsiSystem.GetFsiBodies();
@@ -370,10 +358,6 @@ void CreateSolidPhase(ChSystemNSC& mphysicalSystem,
         fsi::utils::AddBCE_FromFile(myFsiSystem.GetDataManager(), paramsH, wheel_body, BCE_path, ChVector<double>(0),
                                     QUNIT, 1.0);
     }
-
-    // double FSI_MASS = myFsiSystem.GetDataManager()->numObjects->numRigid_SphMarkers * paramsH->markerMass;
-    // printf("inertia=%f,%f,%f\n", mass * gyration.x(), mass * gyration.y(), mass * gyration.z());
-    // printf("\nreal mass=%f, FSI_MASS=%f\n\n", mass, FSI_MASS);
 }
 
 //------------------------------------------------------------------

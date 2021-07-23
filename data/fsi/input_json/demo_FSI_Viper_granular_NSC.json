@@ -50,7 +50,8 @@
     "particle diameter": 0.005,
     "frictional angle": 0.0, //3.1416, 1.5708, 0.5236
     "dilate angle": 0.0,
-    "cohesion coefficient": 0.0
+    "cohesion coefficient": 0.0,
+    "kernel threshold":0.8
   },
 
   "Geometry Inf": {
