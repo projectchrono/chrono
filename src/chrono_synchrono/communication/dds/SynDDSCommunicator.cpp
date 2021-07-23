@@ -194,6 +194,17 @@ std::shared_ptr<SynDDSSubscriber> SynDDSCommunicator::CreateSubscriber(std::shar
     qos.durability().kind = TRANSIENT_LOCAL_DURABILITY_QOS;
     qos.endpoint().history_memory_policy = PREALLOCATED_WITH_REALLOC_MEMORY_MODE;
     qos.history().kind = KEEP_LAST_HISTORY_QOS;
+    auto plist = m_participant->get_qos().wire_protocol().builtin.initialPeersList;
+    if (!plist.empty()) {
+        for (auto peer : plist) {
+            // Locator_t new_multicast_locator;
+            // if (IPLocator::hasIPv4(peer)) { IPLocator::setIPv4(new_multicast_locator, *IPLocator::getIPv4(peer)); }
+            // else if (IPLocator::hasIPv6(peer)) { IPLocator::setIPv6(new_multicast_locator,
+            // *IPLocator::getIPv6(peer)); } else {continue;}
+            ////new_multicast_locator.port = 7900;
+            qos.endpoint().multicast_locator_list.push_back(peer);
+        }
+    }
 
     // Create the listener
     auto listener = new SynDDSDataReaderListener(callback, message);
@@ -263,6 +274,17 @@ std::shared_ptr<SynDDSPublisher> SynDDSCommunicator::CreatePublisher(std::shared
     qos.reliability().kind = RELIABLE_RELIABILITY_QOS;
     qos.endpoint().history_memory_policy = PREALLOCATED_WITH_REALLOC_MEMORY_MODE;
     qos.history().kind = KEEP_LAST_HISTORY_QOS;
+    auto plist = m_participant->get_qos().wire_protocol().builtin.initialPeersList;
+    if (!plist.empty()) {
+        for (auto peer : plist) {
+            // Locator_t new_multicast_locator;
+            // if (IPLocator::hasIPv4(peer)) { IPLocator::setIPv4(new_multicast_locator, *IPLocator::getIPv4(peer)); }
+            // else if (IPLocator::hasIPv6(peer)) { IPLocator::setIPv6(new_multicast_locator,
+            // *IPLocator::getIPv6(peer)); } else {continue;}
+            ////new_multicast_locator.port = 7900;
+            qos.endpoint().multicast_locator_list.push_back(peer);
+        }
+    }
 
     // Create the listener
     auto listener = new SynDDSDataWriterListener();

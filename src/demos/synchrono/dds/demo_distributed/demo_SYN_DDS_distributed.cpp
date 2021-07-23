@@ -205,7 +205,7 @@ int main(int argc, char* argv[]) {
         Locator_t locator;
         locator.kind = LOCATOR_KIND_UDPv6;
         IPLocator::setIPv6(locator, ip);
-        qos.wire_protocol().builtin.initialPeersList.push_back(locator);
+        qos.wire_protocol().default_multicast_locator_list.push_back(locator);
     }
 
     auto communicator = chrono_types::make_shared<SynDDSCommunicator>(qos);
