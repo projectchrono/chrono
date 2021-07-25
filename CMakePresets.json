@@ -35,7 +35,7 @@
 			"displayName": "Unix CI Base Configuration",
 			"hidden": true,
 			"inherits": "genericci-base",
-			"generator": "Unix Makefiles"
+			"generator": "Ninja"
 		},
 		{
 			"name": "linuxci",
@@ -61,7 +61,7 @@
 				"genericci-base"
 			],
 			"cacheVariables": {
-				"CMAKE_CXX_FLAGS": "-Wno-deprecated-declarations -Wno-unused-command-line-argument",
+				"CMAKE_CXX_FLAGS": "-Wno-deprecated-declarations -Wno-unused-command-line-argument -fcolor-diagnostics",
 				"OpenMP_CXX_FLAGS": "-Xpreprocessor -fopenmp -I/usr/local/opt/libomp/include",
 				"OpenMP_CXX_LIB_NAMES": "omp",
 				"OpenMP_omp_LIBRARY": "/usr/local/opt/libomp/lib/libomp.a",
@@ -126,5 +126,4 @@
 			]
 		}
 	]
-
 }
