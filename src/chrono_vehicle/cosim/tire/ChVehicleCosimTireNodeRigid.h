@@ -1,0 +1,87 @@
+// =============================================================================
+// PROJECT CHRONO - http://projectchrono.org
+//
+// Copyright (c) 2021 projectchrono.org
+// All right reserved.
+//
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
+//
+// =============================================================================
+// Authors: Radu Serban
+// =============================================================================
+//
+// Definition of the vehicle co-simulation rigid TIRE NODE class.
+// This type of tire communicates with the terrain node through a BODY
+// communication interface.
+//
+// The global reference frame has Z up, X towards the front of the vehicle, and
+// Y pointing to the left.
+//
+// =============================================================================
+
+#ifndef CH_VEHCOSIM_TIRE_NODE_BODY_H
+#define CH_VEHCOSIM_TIRE_NODE_BODY_H
+
+#include "chrono/utils/ChUtilsInputOutput.h"
+
+#include "chrono_vehicle/wheeled_vehicle/tire/RigidTire.h"
+
+#include "chrono_vehicle/cosim/ChVehicleCosimTireNode.h"
+
+namespace chrono {
+namespace vehicle {
+
+/// @addtogroup vehicle_cosim
+/// @{
+
+/// Definition of the rigid tire node.
+class CH_VEHICLE_API ChVehicleCosimTireNodeRigid : public ChVehicleCosimTireNode {
+  public:
+    ChVehicleCosimTireNodeRigid(int index);
+    ~ChVehicleCosimTireNodeRigid() {}
+
+    /// Advance simulation.
+    /// A rigid tire node need not advance dynamics.
+    virtual void Advance(double step_size) override final {}
+
+  private:
+    /// A rigid tire implements the BODY communication interface.
+    virtual InterfaceType GetInterfaceType() const override { return InterfaceType::BODY; }
+
+    /// Construct the tire.
+    /// The tire radius and mass must be available after this function is called.
+    virtual void ConstructTire() override;
+
+    /// Return the tire mass.
+    virtual double GetTireMass() const override { return m_tire->ReportMass(); }
+
+    /// Return the tire radius.
+    virtual double GetTireRadius() const override { return m_tire->GetRadius(); }
+
+    /// Initialize the tire by attaching it to the provided ChWheel.
+    virtual void InitializeTire(std::shared_ptr<ChWheel> wheel) override;
+
+    /// Perform additional output at the specified frame (called once per integration step).
+    virtual void OnOutputData(int frame) override;
+
+  private:
+    /// Write mesh vertex positions and velocities.
+    void WriteTireStateInformation(utils::CSV_writer& csv);
+    /// Write mesh connectivity and strain information.
+    void WriteTireMeshInformation(utils::CSV_writer& csv);
+    /// Write contact forces on tire mesh vertices.
+    void WriteTireContactInformation(utils::CSV_writer& csv);
+
+    std::shared_ptr<ChRigidTire> m_tire;                   ///< rigid tire
+    std::vector<std::vector<unsigned int>> m_adjElements;  ///< list of neighboring elements for each mesh vertex
+    std::vector<double> m_vertexArea;                      ///< representative areas for each mesh vertex
+};
+
+/// @} vehicle_cosim
+
+}  // end namespace vehicle
+}  // end namespace chrono
+
+#endif

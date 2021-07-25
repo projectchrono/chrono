@@ -30,7 +30,7 @@
 #include "chrono/assets/ChTriangleMeshShape.h"
 #include "chrono/assets/ChSphereShape.h"
 
-#include "chrono_vehicle/cosim/ChVehicleCosimTerrainNodeGranularGPU.h"
+#include "chrono_vehicle/cosim/terrain/ChVehicleCosimTerrainNodeGranularGPU.h"
 
 #ifdef CHRONO_OPENGL
     #include "chrono_opengl/ChOpenGLWindow.h"
@@ -634,15 +634,15 @@ void ChVehicleCosimTerrainNodeGranularGPU::CreateWheelProxy(unsigned int i) {
 }
 
 // Set state of wheel proxy body.
-void ChVehicleCosimTerrainNodeGranularGPU::UpdateWheelProxy(unsigned int i, const WheelState& wheel_state) {
+void ChVehicleCosimTerrainNodeGranularGPU::UpdateWheelProxy(unsigned int i, const BodyState& spindle_state) {
     auto& proxies = m_proxies[i]; // proxies for the i-th tire
 
-    proxies[0].m_body->SetPos(wheel_state.pos);
-    proxies[0].m_body->SetPos_dt(wheel_state.lin_vel);
-    proxies[0].m_body->SetRot(wheel_state.rot);
-    proxies[0].m_body->SetWvel_par(wheel_state.ang_vel);
+    proxies[0].m_body->SetPos(spindle_state.pos);
+    proxies[0].m_body->SetPos_dt(spindle_state.lin_vel);
+    proxies[0].m_body->SetRot(spindle_state.rot);
+    proxies[0].m_body->SetWvel_par(spindle_state.ang_vel);
 
-    m_systemGPU->ApplyMeshMotion(i, wheel_state.pos, wheel_state.rot, wheel_state.lin_vel, wheel_state.ang_vel);
+    m_systemGPU->ApplyMeshMotion(i, spindle_state.pos, spindle_state.rot, spindle_state.lin_vel, spindle_state.ang_vel);
 }
 
 // Collect resultant contact force and torque on wheel proxy body.

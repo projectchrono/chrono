@@ -25,7 +25,7 @@
 
 #include <mpi.h>
 
-#include "chrono_vehicle/cosim/ChVehicleCosimTerrainNodeChrono.h"
+#include "chrono_vehicle/cosim/terrain/ChVehicleCosimTerrainNodeChrono.h"
 
 #include "chrono_thirdparty/rapidjson/filereadstream.h"
 #include "chrono_thirdparty/rapidjson/istreamwrapper.h"

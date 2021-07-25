@@ -16,15 +16,32 @@ endif()
 set(CV_COSIM_FILES
     ChVehicleCosimBaseNode.h
     ChVehicleCosimBaseNode.cpp
-    ChVehicleCosimRigNode.h
-    ChVehicleCosimRigNode.cpp
+    ChVehicleCosimMBSNode.h
+    ChVehicleCosimMBSNode.cpp
+    ChVehicleCosimTireNode.h
+    ChVehicleCosimTireNode.cpp
     ChVehicleCosimTerrainNode.h
     ChVehicleCosimTerrainNode.cpp
-    ChVehicleCosimTerrainNodeChrono.h
-    ChVehicleCosimTerrainNodeChrono.cpp
-    ChVehicleCosimTerrainNodeSCM.h
-    ChVehicleCosimTerrainNodeSCM.cpp
     )
+
+set(CV_COSIM_MBS_FILES
+    mbs/ChVehicleCosimRigNode.h
+    mbs/ChVehicleCosimRigNode.cpp    
+)
+
+set(CV_COSIM_TIRE_FILES
+    tire/ChVehicleCosimTireNodeRigid.h
+    tire/ChVehicleCosimTireNodeRigid.cpp
+    tire/ChVehicleCosimTireNodeFlexible.h
+    tire/ChVehicleCosimTireNodeFlexible.cpp
+)
+
+set(CV_COSIM_TERRAIN_FILES
+    terrain/ChVehicleCosimTerrainNodeChrono.h
+    terrain/ChVehicleCosimTerrainNodeChrono.cpp
+    terrain/ChVehicleCosimTerrainNodeSCM.h
+    terrain/ChVehicleCosimTerrainNodeSCM.cpp
+)
 
 # ------------------------------------------------------------------------------
 
@@ -34,28 +51,29 @@ set(CV_COSIM_FILES
 set(LINKER_FLAGS "${CH_LINKERFLAG_SHARED}")
 
 if(ENABLE_MODULE_MULTICORE)
-  set(CV_COSIM_FILES ${CV_COSIM_FILES}
-      ChVehicleCosimTerrainNodeRigid.h
-      ChVehicleCosimTerrainNodeRigid.cpp
-      ChVehicleCosimTerrainNodeGranularOMP.h
-      ChVehicleCosimTerrainNodeGranularOMP.cpp)
+  set(CV_COSIM_TERRAIN_FILES ${CV_COSIM_TERRAIN_FILES}
+      terrain/ChVehicleCosimTerrainNodeRigid.h
+      terrain/ChVehicleCosimTerrainNodeRigid.cpp
+      terrain/ChVehicleCosimTerrainNodeGranularOMP.h
+      terrain/ChVehicleCosimTerrainNodeGranularOMP.cpp)
+  source_group("terrain" FILES)
   include_directories(${CH_MULTICORE_INCLUDES})
   set(CXX_FLAGS "${CXX_FLAGS} ${CH_MULTICORE_CXX_FLAGS}")
   list(APPEND LIBRARIES ChronoEngine_multicore)
 endif()
 
 if(ENABLE_MODULE_FSI)
-  set(CV_COSIM_FILES ${CV_COSIM_FILES}
-      ChVehicleCosimTerrainNodeGranularSPH.h
-      ChVehicleCosimTerrainNodeGranularSPH.cpp)
+  set(CV_COSIM_TERRAIN_FILES ${CV_COSIM_TERRAIN_FILES}
+      terrain/ChVehicleCosimTerrainNodeGranularSPH.h
+      terrain/ChVehicleCosimTerrainNodeGranularSPH.cpp)
   include_directories(${CH_FSI_INCLUDES})
   list(APPEND LIBRARIES ChronoEngine_fsi)
 endif()
 
 if(ENABLE_MODULE_GPU)
-  set(CV_COSIM_FILES ${CV_COSIM_FILES}
-      ChVehicleCosimTerrainNodeGranularGPU.h
-      ChVehicleCosimTerrainNodeGranularGPU.cpp)
+  set(CV_COSIM_TERRAIN_FILES ${CV_COSIM_TERRAIN_FILES}
+      terrain/ChVehicleCosimTerrainNodeGranularGPU.h
+      terrain/ChVehicleCosimTerrainNodeGranularGPU.cpp)
   include_directories(${CH_GPU_INCLUDES})
   set(CXX_FLAGS "${CXX_FLAGS} ${CH_GPU_CXX_FLAGS}")
   list(APPEND LIBRARIES ChronoEngine_gpu)
@@ -96,9 +114,14 @@ endif()
 
 # ------------------------------------------------------------------------------
 
-# Add the ChronoEngine_vehicle_cosim library
-
 source_group("" FILES ${CV_COSIM_FILES})
+source_group("mbs" FILES ${CV_COSIM_MBS_FILES})
+source_group("tire" FILES ${CV_COSIM_TIRE_FILES})
+source_group("terrain" FILES ${CV_COSIM_TERRAIN_FILES})
+
+# ------------------------------------------------------------------------------
+
+# Add the ChronoEngine_vehicle_cosim library
 
 message(STATUS "Add ChronoEngine_vehicle_cosim library")
 
@@ -108,6 +131,9 @@ message(STATUS "Add ChronoEngine_vehicle_cosim library")
 
 add_library(ChronoEngine_vehicle_cosim SHARED
     ${CV_COSIM_FILES}
+    ${CV_COSIM_MBS_FILES}
+    ${CV_COSIM_TIRE_FILES}
+    ${CV_COSIM_TERRAIN_FILES}
 )
 
 set_target_properties(ChronoEngine_vehicle_cosim PROPERTIES

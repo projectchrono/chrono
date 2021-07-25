@@ -19,13 +19,13 @@
 //
 // =============================================================================
 
-#ifndef CH_VEHCOSIM__TERRAINNODE_SCM_H
-#define CH_VEHCOSIM__TERRAINNODE_SCM_H
+#ifndef CH_VEHCOSIM_TERRAIN_NODE_SCM_H
+#define CH_VEHCOSIM_TERRAIN_NODE_SCM_H
 
 #include "chrono/physics/ChSystem.h"
 #include "chrono_vehicle/terrain/SCMDeformableTerrain.h"
 
-#include "chrono_vehicle/cosim/ChVehicleCosimTerrainNodeChrono.h"
+#include "chrono_vehicle/cosim/terrain/ChVehicleCosimTerrainNodeChrono.h"
 
 namespace chrono {
 
@@ -115,16 +115,16 @@ class CH_VEHICLE_API ChVehicleCosimTerrainNodeSCM : public ChVehicleCosimTerrain
     virtual void GetForcesMeshProxies(unsigned int i, MeshContact& mesh_contact) override;
 
     virtual void CreateWheelProxy(unsigned int i) override;
-    virtual void UpdateWheelProxy(unsigned int i, const WheelState& wheel_state) override;
+    virtual void UpdateWheelProxy(unsigned int i, const BodyState& spindle_state) override;
     virtual void GetForceWheelProxy(unsigned int i, TerrainForce& wheel_contact) override;
 
     virtual void OnOutputData(int frame) override;
     virtual void OnRender(double time) override;
 };
 
+/// @} vehicle_cosim_chrono
+
 }  // end namespace vehicle
 }  // end namespace chrono
-
-/// @} vehicle_cosim_chrono
 
 #endif

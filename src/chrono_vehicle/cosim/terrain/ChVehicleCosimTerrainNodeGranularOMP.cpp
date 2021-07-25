@@ -38,7 +38,7 @@
 
 #include "chrono/assets/ChTriangleMeshShape.h"
 
-#include "chrono_vehicle/cosim/ChVehicleCosimTerrainNodeGranularOMP.h"
+#include "chrono_vehicle/cosim/terrain/ChVehicleCosimTerrainNodeGranularOMP.h"
 
 #ifdef CHRONO_OPENGL
     #include "chrono_opengl/ChOpenGLWindow.h"
@@ -840,13 +840,13 @@ void ChVehicleCosimTerrainNodeGranularOMP::UpdateMeshProxies(unsigned int i, con
 }
 
 // Set state of wheel proxy body.
-void ChVehicleCosimTerrainNodeGranularOMP::UpdateWheelProxy(unsigned int i, const WheelState& wheel_state) {
+void ChVehicleCosimTerrainNodeGranularOMP::UpdateWheelProxy(unsigned int i, const BodyState& spindle_state) {
     auto& proxies = m_proxies[i];  // proxies for the i-th tire
 
-    proxies[0].m_body->SetPos(wheel_state.pos);
-    proxies[0].m_body->SetPos_dt(wheel_state.lin_vel);
-    proxies[0].m_body->SetRot(wheel_state.rot);
-    proxies[0].m_body->SetWvel_par(wheel_state.ang_vel);
+    proxies[0].m_body->SetPos(spindle_state.pos);
+    proxies[0].m_body->SetPos_dt(spindle_state.lin_vel);
+    proxies[0].m_body->SetRot(spindle_state.rot);
+    proxies[0].m_body->SetWvel_par(spindle_state.ang_vel);
 }
 
 // Calculate barycentric coordinates (a1, a2, a3) for a given point P

@@ -19,8 +19,8 @@
 //
 // =============================================================================
 
-#ifndef CH_VEHCOSIM__TERRAINNODE_H
-#define CH_VEHCOSIM__TERRAINNODE_H
+#ifndef CH_VEHCOSIM_TERRAIN_NODE_H
+#define CH_VEHCOSIM_TERRAIN_NODE_H
 
 #include "chrono/ChConfig.h"
 
@@ -39,20 +39,6 @@ namespace vehicle {
 /// Base class for all terrain nodes.
 class CH_VEHICLE_API ChVehicleCosimTerrainNode : public ChVehicleCosimBaseNode {
   public:
-    /// Type of the communication interface for the terrain node.
-    /// - A BODY interface assumes communication is done at the wheel spindle level.  At a synchronization time, the
-    /// terrain node receives the full state of the spindle body and must send forces acting on the spindle, for each
-    /// tire present in the simulation.  This type of interface should be used for a rigid tire or when the terrain node
-    /// also performs the dynamics of a flexible tire.
-    /// - A MESH interface assumes communication is done at the tire mesh level. At a synchronization time, the terrain
-    /// node receives the tire mesh vertex states (positions and velocities) are must send forces acting on vertices of
-    /// the mesh, for each tire. This tire interface is typically used when flexible tires are simulated outside the
-    /// terrain node (either on the multibody node or else on separate tire nodes).
-    enum class InterfaceType {
-        BODY,  ///< exchange state and force for a single body (wheel spindle)
-        MESH   ///< exchange state and force for a mesh (flexible tire mesh)
-    };
-
     virtual ~ChVehicleCosimTerrainNode() {}
 
     /// Return the node type as NodeType::TERRAIN.
@@ -93,7 +79,7 @@ class CH_VEHICLE_API ChVehicleCosimTerrainNode : public ChVehicleCosimBaseNode {
 
   protected:
     /// Construct a base class terrain node.
-    ChVehicleCosimTerrainNode(unsigned int num_tires = 1);
+    ChVehicleCosimTerrainNode(unsigned int num_tires);
 
     /// Specify whether or not the terrain node supports the MESH communication interface.
     /// See ChVehicleCosimBaseNode::InterfaceType.
@@ -134,8 +120,8 @@ class CH_VEHICLE_API ChVehicleCosimTerrainNode : public ChVehicleCosimBaseNode {
     virtual void CreateWheelProxy(unsigned int i) = 0;
 
     /// Update the state of the wheel proxy body for the i-th tire.
-    /// Use information in the provided WheelState struct (pose and velocities expressed in absolute frame).
-    virtual void UpdateWheelProxy(unsigned int i, const WheelState& wheel_state) = 0;
+    /// Use information in the provided BodyState struct (pose and velocities expressed in absolute frame).
+    virtual void UpdateWheelProxy(unsigned int i, const BodyState& spindle_state) = 0;
     
     /// Collect cumulative contact force and torque on the wheel proxy body for the i-th tire.
     /// Load contact forces (expressed in absolute frame) into the provided TerrainForce struct.
@@ -143,10 +129,10 @@ class CH_VEHICLE_API ChVehicleCosimTerrainNode : public ChVehicleCosimBaseNode {
 
     // ------------------------- Other virtual methods
 
-    /// Perform any additional operations after the initial data exchange with the rig node.
+    /// Perform any additional operations after the initial data exchange with the MBS node.
     virtual void OnInitialize() = 0;
 
-    /// Perform any additional operations after the data exchange and synchronization with the rig node.
+    /// Perform any additional operations after the data exchange and synchronization with the MBS node.
     virtual void OnSynchronize(int step_number, double time) {}
 
     /// Advance the state of the terrain system by the specified step.
@@ -179,11 +165,10 @@ class CH_VEHICLE_API ChVehicleCosimTerrainNode : public ChVehicleCosimBaseNode {
     std::vector<MeshData> m_mesh_data;          ///< tire mesh data
     std::vector<MeshState> m_mesh_state;        ///< tire mesh state (used for MESH communication)
     std::vector<MeshContact> m_mesh_contact;    ///< tire mesh contact forces (used for MESH communication interface)
-    std::vector<WheelState> m_wheel_state;      ///< wheel state (used for BODY communication interface)
-    std::vector<TerrainForce> m_wheel_contact;  ///< wheel contact force (used for BODY communication interface)
+    std::vector<BodyState> m_spindle_state;      ///< spindle state (used for BODY communication interface)
+    std::vector<TerrainForce> m_wheel_contact;  ///< spindle contact force (used for BODY communication interface)
 
   private:
-    int PartnerRank(unsigned int i);
     void SynchronizeBody(int step_number, double time);
     void SynchronizeMesh(int step_number, double time);
 
@@ -192,9 +177,9 @@ class CH_VEHICLE_API ChVehicleCosimTerrainNode : public ChVehicleCosimBaseNode {
     void PrintMeshUpdateData(unsigned int i);
 };
 
+/// @} vehicle_cosim
+
 }  // end namespace vehicle
 }  // end namespace chrono
-
-/// @} vehicle_cosim
 
 #endif

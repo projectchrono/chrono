@@ -34,9 +34,9 @@
 
 #include "chrono_fsi/utils/ChUtilsJSON.h"
 #include "chrono_fsi/utils/ChUtilsGeneratorFsi.h"
-
-#include "chrono_vehicle/cosim/ChVehicleCosimTerrainNodeGranularSPH.h"
 #include "chrono_fsi/utils/ChUtilsPrintSph.cuh"
+
+#include "chrono_vehicle/cosim/terrain/ChVehicleCosimTerrainNodeGranularSPH.h"
 
 #ifdef CHRONO_OPENGL
     #include "chrono_opengl/ChOpenGLWindow.h"
@@ -426,13 +426,13 @@ void ChVehicleCosimTerrainNodeGranularSPH::CreateWheelProxy(unsigned int i) {
 }
 
 // Set state of wheel proxy body.
-void ChVehicleCosimTerrainNodeGranularSPH::UpdateWheelProxy(unsigned int i, const WheelState& wheel_state) {
+void ChVehicleCosimTerrainNodeGranularSPH::UpdateWheelProxy(unsigned int i, const BodyState& spindle_state) {
     auto& proxies = m_proxies[i];  // proxies for the i-th tire
 
-    proxies[0].m_body->SetPos(wheel_state.pos);
-    proxies[0].m_body->SetPos_dt(wheel_state.lin_vel);
-    proxies[0].m_body->SetRot(wheel_state.rot);
-    proxies[0].m_body->SetWvel_par(wheel_state.ang_vel);
+    proxies[0].m_body->SetPos(spindle_state.pos);
+    proxies[0].m_body->SetPos_dt(spindle_state.lin_vel);
+    proxies[0].m_body->SetRot(spindle_state.rot);
+    proxies[0].m_body->SetWvel_par(spindle_state.ang_vel);
     proxies[0].m_body->SetWacc_par(ChVector<>(0.0, 0.0, 0.0));
 }
 

@@ -19,8 +19,8 @@
 //
 // =============================================================================
 
-#ifndef CH_VEHCOSIM__TERRAINNODE_CHRONO_H
-#define CH_VEHCOSIM__TERRAINNODE_CHRONO_H
+#ifndef CH_VEHCOSIM_TERRAIN_NODE_CHRONO_H
+#define CH_VEHCOSIM_TERRAIN_NODE_CHRONO_H
 
 #include "chrono/ChConfig.h"
 
@@ -28,8 +28,6 @@
 #include "chrono/physics/ChSystemSMC.h"
 
 #include "chrono_vehicle/cosim/ChVehicleCosimTerrainNode.h"
-
-#include "chrono_thirdparty/rapidjson/document.h"
 
 namespace chrono {
 namespace vehicle {

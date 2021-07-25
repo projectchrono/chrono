@@ -31,7 +31,7 @@
 
 #include "chrono/assets/ChTriangleMeshShape.h"
 
-#include "chrono_vehicle/cosim/ChVehicleCosimTerrainNodeRigid.h"
+#include "chrono_vehicle/cosim/terrain/ChVehicleCosimTerrainNodeRigid.h"
 
 #ifdef CHRONO_OPENGL
     #include "chrono_opengl/ChOpenGLWindow.h"
@@ -375,13 +375,13 @@ void ChVehicleCosimTerrainNodeRigid::UpdateMeshProxies(unsigned int i, const Mes
 }
 
 // Set state of wheel proxy body.
-void ChVehicleCosimTerrainNodeRigid::UpdateWheelProxy(unsigned int i, const WheelState& wheel_state) {
+void ChVehicleCosimTerrainNodeRigid::UpdateWheelProxy(unsigned int i, const BodyState& spindle_state) {
     auto& proxies = m_proxies[i];  // proxies for the i-th tire
 
-    proxies[0].m_body->SetPos(wheel_state.pos);
-    proxies[0].m_body->SetPos_dt(wheel_state.lin_vel);
-    proxies[0].m_body->SetRot(wheel_state.rot);
-    proxies[0].m_body->SetWvel_par(wheel_state.ang_vel);
+    proxies[0].m_body->SetPos(spindle_state.pos);
+    proxies[0].m_body->SetPos_dt(spindle_state.lin_vel);
+    proxies[0].m_body->SetRot(spindle_state.rot);
+    proxies[0].m_body->SetWvel_par(spindle_state.ang_vel);
 }
 
 // Collect contact forces on the (node) proxy bodies that are in contact.

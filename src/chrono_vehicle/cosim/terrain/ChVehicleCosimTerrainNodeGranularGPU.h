@@ -19,14 +19,16 @@
 //
 // =============================================================================
 
-#ifndef TESTRIG_TERRAINNODE_GRANULAR_GPU_H
-#define TESTRIG_TERRAINNODE_GRANULAR_GPU_H
+#ifndef TESTRIG_TERRAIN_NODE_GRANULAR_GPU_H
+#define TESTRIG_TERRAIN_NODE_GRANULAR_GPU_H
 
 #include "chrono/physics/ChSystemSMC.h"
 #include "chrono/utils/ChUtilsSamplers.h"
 #include "chrono_gpu/physics/ChSystemGpu.h"
 
-#include "chrono_vehicle/cosim/ChVehicleCosimTerrainNodeChrono.h"
+#include "chrono_vehicle/cosim/terrain/ChVehicleCosimTerrainNodeChrono.h"
+
+#include "chrono_thirdparty/rapidjson/document.h"
 
 namespace chrono {
 namespace vehicle {
@@ -144,7 +146,7 @@ class CH_VEHICLE_API ChVehicleCosimTerrainNodeGranularGPU : public ChVehicleCosi
     virtual int GetNumContacts() const override { return m_systemGPU->GetNumContacts(); }
 
     virtual void CreateWheelProxy(unsigned int i) override;
-    virtual void UpdateWheelProxy(unsigned int i, const WheelState& wheel_state) override;
+    virtual void UpdateWheelProxy(unsigned int i, const BodyState& spindle_state) override;
     virtual void GetForceWheelProxy(unsigned int i, TerrainForce& wheel_contact) override;
 
     virtual void OnOutputData(int frame) override;
@@ -169,9 +171,9 @@ class CH_VEHICLE_API ChVehicleCosimTerrainNodeGranularGPU : public ChVehicleCosi
     void UpdateVisualizationParticles();
 };
 
+/// @} vehicle_cosim_chrono
+
 }  // end namespace vehicle
 }  // end namespace chrono
-
-/// @} vehicle_cosim_chrono
 
 #endif

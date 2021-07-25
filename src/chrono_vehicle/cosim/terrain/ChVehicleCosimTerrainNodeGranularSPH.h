@@ -19,13 +19,15 @@
 //
 // =============================================================================
 
-#ifndef TESTRIG_TERRAINNODE_GRANULAR_SPH_H
-#define TESTRIG_TERRAINNODE_GRANULAR_SPH_H
+#ifndef TESTRIG_TERRAIN_NODE_GRANULAR_SPH_H
+#define TESTRIG_TERRAIN_NODE_GRANULAR_SPH_H
 
 #include "chrono/physics/ChSystemSMC.h"
 #include "chrono_fsi/ChSystemFsi.h"
 
-#include "chrono_vehicle/cosim/ChVehicleCosimTerrainNodeChrono.h"
+#include "chrono_vehicle/cosim/terrain/ChVehicleCosimTerrainNodeChrono.h"
+
+#include "chrono_thirdparty/rapidjson/document.h"
 
 namespace chrono {
 namespace vehicle {
@@ -71,7 +73,7 @@ class CH_VEHICLE_API ChVehicleCosimTerrainNodeGranularSPH : public ChVehicleCosi
     virtual void Construct() override;
 
     virtual void CreateWheelProxy(unsigned int i) override;
-    virtual void UpdateWheelProxy(unsigned int i, const WheelState& wheel_state) override;
+    virtual void UpdateWheelProxy(unsigned int i, const BodyState& spindle_state) override;
     virtual void GetForceWheelProxy(unsigned int i, TerrainForce& wheel_contact) override;
 
     virtual void OnOutputData(int frame) override;
@@ -84,9 +86,9 @@ class CH_VEHICLE_API ChVehicleCosimTerrainNodeGranularSPH : public ChVehicleCosi
     virtual void OnAdvance(double step_size) override;
 };
 
+/// @} vehicle_cosim_chrono
+
 }  // end namespace vehicle
 }  // end namespace chrono
-
-/// @} vehicle_cosim_chrono
 
 #endif
