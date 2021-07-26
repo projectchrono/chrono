@@ -28,6 +28,7 @@
 #include "chrono_fsi/ChFsiDataManager.cuh"
 #include "chrono_fsi/physics/ChFsiGeneral.cuh"
 #include "chrono_fsi/ChFsiInterface.h"
+#include "chrono_fsi/utils/ChUtilsPrintSph.cuh"
 
 namespace chrono {
 
@@ -38,6 +39,9 @@ class ChMesh;
 class ChElementCableANCF;
 class ChElementShellANCF;
 }  // namespace fea
+
+/// Output mode of system.
+enum class CHFSI_OUTPUT_MODE { CSV, CHPF, NONE };
 
 namespace fsi {
 
@@ -137,6 +141,12 @@ class CH_FSI_API ChSystemFsi : public ChFsiGeneral {
         fsiInterface->SetFsiMesh(other_fsi_mesh);
     }
 
+    /// Sets the FSI system output mode.
+    void SetParticleOutputMode(CHFSI_OUTPUT_MODE mode) { file_write_mode = mode; }
+
+    /// Write FSI system particle output
+    void WriteParticleFile(const std::string& outfilename) const;
+
     /// Gets the FSI mesh for flexible elements.
     std::shared_ptr<fea::ChMesh> GetFsiMesh() { return fsi_mesh; }
 
@@ -145,6 +155,8 @@ class CH_FSI_API ChSystemFsi : public ChFsiGeneral {
     int DoStepChronoSystem(Real dT, double mTime);
     /// Set the type of the fluid dynamics
     void SetFluidIntegratorType(fluid_dynamics params_type);
+
+    CHFSI_OUTPUT_MODE file_write_mode;  ///< FSI particle output type::CSV | ChPF | None, default is NONE
 
     std::shared_ptr<ChFsiDataManager> fsiData;       ///< Pointer to data manager which holds all the data
     std::vector<std::shared_ptr<ChBody>> fsiBodeis;  ///< Vector of a pointers to fsi bodies. fsi bodies
