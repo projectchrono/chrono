@@ -85,6 +85,8 @@ class CH_VEHICLE_API ChVehicleCosimRigNode : public ChVehicleCosimMBSNode {
                                double terrain_height                       ///< initial terrain height
                                ) override;
 
+    virtual int GetNumSpindles() const override { return 1; }
+
     virtual std::shared_ptr<ChBody> GetSpindleBody(unsigned int i) const override { return m_spindle; }
 
     virtual double GetSpindleLoad(unsigned int i) const override { return m_total_mass; }

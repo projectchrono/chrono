@@ -74,9 +74,8 @@ class CH_VEHICLE_API ChVehicleCosimTerrainNode : public ChVehicleCosimBaseNode {
     virtual int GetNumContacts() const { return 0; }
 
   protected:
-    /// Construct a base class terrain node of given length and width which will interact with the specified number of
-    /// tires.
-    ChVehicleCosimTerrainNode(double length, double width, unsigned int num_tires);
+    /// Construct a base class terrain node of given length and width.
+    ChVehicleCosimTerrainNode(double length, double width);
 
     // ------------------------- Virtual methods
 
@@ -91,13 +90,14 @@ class CH_VEHICLE_API ChVehicleCosimTerrainNode : public ChVehicleCosimBaseNode {
     /// OnInitialize is called).
     virtual double GetInitHeight() const = 0;
 
-    /// Perform any additional operations after the initial data exchange with the MBS node.
-    /// A derived class has access to the following vectors (of size equal to the number of tires):
+    /// Perform any additional operations after the initial data exchange with the MBS node, including creating any
+    /// required proxies for the specified number of tires. A derived class has access to the following vectors (of size
+    /// equal to the number of tires):
     /// - radius for each tire (through m_tire_radius)
     /// - mesh information for each tire (through m_mesh_data)
     /// - contact material for each tire (through m_mat_props)
     /// - vertical load on each tire (through m_load_mass)
-    virtual void OnInitialize() = 0;
+    virtual void OnInitialize(unsigned int num_tires) = 0;
 
     /// Perform any additional operations after the data exchange and synchronization with the MBS node.
     virtual void OnSynchronize(int step_number, double time) {}
@@ -143,8 +143,6 @@ class CH_VEHICLE_API ChVehicleCosimTerrainNode : public ChVehicleCosimBaseNode {
     virtual void GetForceWheelProxy(unsigned int i, TerrainForce& wheel_contact) = 0;
 
   protected:
-    unsigned int m_num_tires;  ///< number of tires
-
     bool m_render;         ///< if true, perform run-time rendering
     double m_render_step;  ///< time step between rendered frames
 

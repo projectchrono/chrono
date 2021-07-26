@@ -65,7 +65,7 @@ class MyTerrain : public ChVehicleCosimTerrainNode {
     /// - mesh information for each tire (through m_mesh_data)
     /// - contact material for each tire (through m_mat_props)
     /// - vertical load on each tire (through m_load_mass)
-    virtual void OnInitialize() override final;
+    virtual void OnInitialize(unsigned int num_tires) override final;
 
     /// Advance simulation.
     /// This function is called after a synchronization to allow the node to advance
@@ -90,7 +90,7 @@ class MyTerrain : public ChVehicleCosimTerrainNode {
 #endif
 };
 
-MyTerrain::MyTerrain(double length, double width) : ChVehicleCosimTerrainNode(length, width, 1) {
+MyTerrain::MyTerrain(double length, double width) : ChVehicleCosimTerrainNode(length, width) {
     m_system = new ChSystemSMC;
     m_system->Set_G_acc(ChVector<>(0, 0, m_gacc));
     m_system->SetNumThreads(1);
@@ -107,7 +107,9 @@ MyTerrain::~MyTerrain() {
 #endif
 }
 
-void MyTerrain::OnInitialize() {
+void MyTerrain::OnInitialize(unsigned int num_tires) {
+    assert(num_tires == 1);
+
     // Create the Irrlicht visualization system
 #ifdef CHRONO_IRRLICHT
     if (m_render) {

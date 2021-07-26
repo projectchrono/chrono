@@ -39,10 +39,10 @@ namespace vehicle {
 class CH_VEHICLE_API ChVehicleCosimTerrainNodeGranularSPH : public ChVehicleCosimTerrainNodeChrono {
   public:
     /// Create a Chrono::FSI granular SPH terrain node. Note that no SPH parameters are set.
-    ChVehicleCosimTerrainNodeGranularSPH(double length, double width, unsigned int num_tires);
+    ChVehicleCosimTerrainNodeGranularSPH(double length, double width);
 
     /// Create a Chrono::FSI granular SPH terrain node using parameters from the provided JSON specfile.
-    ChVehicleCosimTerrainNodeGranularSPH(const std::string& specfile, unsigned int num_tires);
+    ChVehicleCosimTerrainNodeGranularSPH(const std::string& specfile);
 
     ~ChVehicleCosimTerrainNodeGranularSPH();
 

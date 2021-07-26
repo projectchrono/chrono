@@ -51,8 +51,8 @@ namespace vehicle {
 // - create the Chrono system and set solver parameters
 // - create the Irrlicht visualization window
 // -----------------------------------------------------------------------------
-ChVehicleCosimTerrainNodeSCM::ChVehicleCosimTerrainNodeSCM(double length, double width, unsigned int num_tires)
-    : ChVehicleCosimTerrainNodeChrono(Type::SCM, length, width, ChContactMethod::SMC, num_tires),
+ChVehicleCosimTerrainNodeSCM::ChVehicleCosimTerrainNodeSCM(double length, double width)
+    : ChVehicleCosimTerrainNodeChrono(Type::SCM, length, width, ChContactMethod::SMC),
       m_radius_p(5e-3),
       m_use_checkpoint(false) {
 #ifdef CHRONO_IRRLICHT
@@ -69,8 +69,8 @@ ChVehicleCosimTerrainNodeSCM::ChVehicleCosimTerrainNodeSCM(double length, double
     m_system->SetNumThreads(1, 1, 1);
 }
 
-ChVehicleCosimTerrainNodeSCM::ChVehicleCosimTerrainNodeSCM(const std::string& specfile, unsigned int num_tires)
-    : ChVehicleCosimTerrainNodeChrono(Type::SCM, 0, 0, ChContactMethod::SMC, num_tires), m_use_checkpoint(false) {
+ChVehicleCosimTerrainNodeSCM::ChVehicleCosimTerrainNodeSCM(const std::string& specfile)
+    : ChVehicleCosimTerrainNodeChrono(Type::SCM, 0, 0, ChContactMethod::SMC), m_use_checkpoint(false) {
 #ifdef CHRONO_IRRLICHT
     m_irrapp = nullptr;
 #endif

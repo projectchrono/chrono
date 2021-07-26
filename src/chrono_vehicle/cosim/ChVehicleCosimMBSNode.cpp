@@ -45,10 +45,7 @@ namespace chrono {
 namespace vehicle {
 
 // Construction of the base MBS node
-ChVehicleCosimMBSNode::ChVehicleCosimMBSNode(unsigned int num_tires)
-    : ChVehicleCosimBaseNode("MBS"), m_num_tires(num_tires) {
-    m_spindles.resize(num_tires);
-
+ChVehicleCosimMBSNode::ChVehicleCosimMBSNode() : ChVehicleCosimBaseNode("MBS") {
     // Default integrator and solver types
     m_int_type = ChTimestepper::Type::HHT;
 #if defined(CHRONO_PARDISO_MKL)
@@ -101,6 +98,9 @@ void ChVehicleCosimMBSNode::Initialize() {
     // Invoke the base class method to figure out distribution of node types
     ChVehicleCosimBaseNode::Initialize();
 
+    assert(GetNumSpindles() == m_num_tire_nodes);
+    m_spindles.resize(m_num_tire_nodes);
+
     // Complete setup of the underlying ChSystem
     InitializeSystem();
 
@@ -121,7 +121,7 @@ void ChVehicleCosimMBSNode::Initialize() {
     // For each TIRE, receive the tire mass and radius
     std::vector<ChVector2<>> tire_info;
 
-    for (unsigned int i = 0; i < m_num_tires; i++) {
+    for (unsigned int i = 0; i < m_num_tire_nodes; i++) {
         double tmp[2];
         MPI_Recv(tmp, 2, MPI_DOUBLE, TIRE_NODE_RANK(i), 0, MPI_COMM_WORLD, &status);
         tire_info.push_back(ChVector2<>(tmp[0], tmp[1]));
@@ -133,7 +133,7 @@ void ChVehicleCosimMBSNode::Initialize() {
     // For each tire:
     // - cache the spindle body
     // - get the load on the wheel and send to TIRE node
-    for (unsigned int i = 0; i < m_num_tires; i++) {
+    for (unsigned int i = 0; i < m_num_tire_nodes; i++) {
         m_spindles[i] = GetSpindleBody(i);
         double load = GetSpindleLoad(i);
         MPI_Send(&load, 1, MPI_DOUBLE, TIRE_NODE_RANK(i), 0, MPI_COMM_WORLD);
@@ -221,7 +221,7 @@ void ChVehicleCosimMBSNode::InitializeSystem() {
 void ChVehicleCosimMBSNode::Synchronize(int step_number, double time) {
     MPI_Status status;
 
-    for (unsigned int i = 0; i < m_num_tires; i++) {
+    for (unsigned int i = 0; i < m_num_tire_nodes; i++) {
         // Send wheel state to the tire node
         ChVector<> pos = m_spindles[i]->GetPos();
         ChQuaternion<> rot = m_spindles[i]->GetRot();

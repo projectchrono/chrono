@@ -70,7 +70,7 @@ class ChFunction_SlipAngle : public chrono::ChFunction {
 // =============================================================================
 
 ChVehicleCosimRigNode::ChVehicleCosimRigNode(ActuationType act_type, double base_vel, double slip)
-    : ChVehicleCosimMBSNode(1),
+    : ChVehicleCosimMBSNode(),
       m_act_type(act_type),
       m_base_vel(base_vel),
       m_total_mass(100),
@@ -117,6 +117,7 @@ void ChVehicleCosimRigNode::InitializeMBS(const std::vector<ChVector2<>>& tire_i
         cout << "[Rig node    ] Actuation: " << GetActuationTypeAsString(m_act_type)  //
              << " base velocity = " << m_base_vel << " slip = " << m_slip << endl;
 
+    assert(m_num_tire_nodes == 1);
     assert(tire_info.size() == 1);
     double tire_mass = tire_info[0].x();
     double tire_radius = tire_info[0].y();

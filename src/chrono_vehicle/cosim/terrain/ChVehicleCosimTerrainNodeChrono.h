@@ -74,7 +74,7 @@ class CH_VEHICLE_API ChVehicleCosimTerrainNodeChrono : public ChVehicleCosimTerr
 
     /// Initialize this Chrono terrain node.
     /// Construct the terrain system, the tire material, and the proxy bodies.
-    virtual void OnInitialize() override final;
+    virtual void OnInitialize(unsigned int num_tires) override final;
 
     /// Advance simulation.
     /// This function is called after a synchronization to allow the node to advance
@@ -84,11 +84,10 @@ class CH_VEHICLE_API ChVehicleCosimTerrainNodeChrono : public ChVehicleCosimTerr
 
   protected:
     /// Construct a base class terrain node.
-    ChVehicleCosimTerrainNodeChrono(Type type,               ///< terrain type
-                                    double length,           ///< terrain patch length
-                                    double width,            ///< terain patch width
-                                    ChContactMethod method,  ///< contact method (SMC or NSC)
-                                    unsigned int num_tires   ///< number of tires
+    ChVehicleCosimTerrainNodeChrono(Type type,              ///< terrain type
+                                    double length,          ///< terrain patch length
+                                    double width,           ///< terain patch width
+                                    ChContactMethod method  ///< contact method (SMC or NSC)
     );
 
     /// Return a pointer to the underlying Chrono system.

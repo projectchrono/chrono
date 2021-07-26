@@ -41,24 +41,14 @@ namespace vehicle {
 // -----------------------------------------------------------------------------
 // Construction of the base terrain node.
 // -----------------------------------------------------------------------------
-ChVehicleCosimTerrainNode::ChVehicleCosimTerrainNode(double length, double width, unsigned int num_tires)
+ChVehicleCosimTerrainNode::ChVehicleCosimTerrainNode(double length, double width)
     : ChVehicleCosimBaseNode("TERRAIN"),
-      m_num_tires(num_tires),
       m_hdimX(length / 2),
       m_hdimY(width / 2),
       m_load_mass(50),
       m_render(false),
       m_render_step(0.01),
-      m_interface_type(InterfaceType::BODY) {
-    m_tire_radius.resize(num_tires);
-    m_load_mass.resize(num_tires);
-    m_mat_props.resize(num_tires);
-    m_mesh_data.resize(num_tires);
-    m_mesh_state.resize(num_tires);
-    m_mesh_contact.resize(num_tires);
-    m_spindle_state.resize(num_tires);
-    m_wheel_contact.resize(num_tires);
-}
+      m_interface_type(InterfaceType::BODY) {}
 
 // -----------------------------------------------------------------------------
 
@@ -77,6 +67,15 @@ void ChVehicleCosimTerrainNode::EnableRuntimeVisualization(bool render, double r
 void ChVehicleCosimTerrainNode::Initialize() {
     // Invoke the base class method to figure out distribution of node types
     ChVehicleCosimBaseNode::Initialize();
+
+    m_tire_radius.resize(m_num_tire_nodes);
+    m_load_mass.resize(m_num_tire_nodes);
+    m_mat_props.resize(m_num_tire_nodes);
+    m_mesh_data.resize(m_num_tire_nodes);
+    m_mesh_state.resize(m_num_tire_nodes);
+    m_mesh_contact.resize(m_num_tire_nodes);
+    m_spindle_state.resize(m_num_tire_nodes);
+    m_wheel_contact.resize(m_num_tire_nodes);
 
     // Create subdirectory for output from simulation
     if (!filesystem::create_directory(filesystem::path(m_node_out_dir + "/simulation"))) {
@@ -111,7 +110,7 @@ void ChVehicleCosimTerrainNode::Initialize() {
     // Receive tire information
     // ------------------------
 
-    for (unsigned int i = 0; i < m_num_tires; i++) {
+    for (unsigned int i = 0; i < m_num_tire_nodes; i++) {
         // Tire radius
         MPI_Recv(&m_tire_radius[i], 1, MPI_DOUBLE, TIRE_NODE_RANK(i), 0, MPI_COMM_WORLD, &status);
 
@@ -199,7 +198,7 @@ void ChVehicleCosimTerrainNode::Initialize() {
     // ----------------------------------------------------
     // Let derived classes perform their own initialization
     // ----------------------------------------------------
-    OnInitialize();
+    OnInitialize(m_num_tire_nodes);
 }
 
 // -----------------------------------------------------------------------------
@@ -223,7 +222,7 @@ void ChVehicleCosimTerrainNode::Synchronize(int step_number, double time) {
 }
 
 void ChVehicleCosimTerrainNode::SynchronizeBody(int step_number, double time) {
-    for (unsigned int i = 0; i < m_num_tires; i++) {
+    for (unsigned int i = 0; i < m_num_tire_nodes; i++) {
         // Receive spindle state data
         MPI_Status status;
         double state_data[13];
@@ -256,7 +255,7 @@ void ChVehicleCosimTerrainNode::SynchronizeBody(int step_number, double time) {
 }
 
 void ChVehicleCosimTerrainNode::SynchronizeMesh(int step_number, double time) {
-    for (unsigned int i = 0; i < m_num_tires; i++) {
+    for (unsigned int i = 0; i < m_num_tire_nodes; i++) {
         // Receive mesh state data
         MPI_Status status;
         double* vert_data = new double[2 * 3 * m_mesh_data[i].nv];

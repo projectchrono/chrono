@@ -58,9 +58,8 @@ namespace vehicle {
 // -----------------------------------------------------------------------------
 ChVehicleCosimTerrainNodeGranularOMP::ChVehicleCosimTerrainNodeGranularOMP(double length,
                                                                            double width,
-                                                                           ChContactMethod method,
-                                                                           unsigned int num_tires)
-    : ChVehicleCosimTerrainNodeChrono(Type::GRANULAR_OMP, length, width, method, num_tires),
+                                                                           ChContactMethod method)
+    : ChVehicleCosimTerrainNodeChrono(Type::GRANULAR_OMP, length, width, method),
       m_radius_p(5e-3),
       m_sampling_type(utils::SamplingType::POISSON_DISK),
       m_init_depth(0.2),
@@ -120,9 +119,8 @@ ChVehicleCosimTerrainNodeGranularOMP::ChVehicleCosimTerrainNodeGranularOMP(doubl
 }
 
 ChVehicleCosimTerrainNodeGranularOMP::ChVehicleCosimTerrainNodeGranularOMP(ChContactMethod method,
-                                                                           const std::string& specfile,
-                                                                           unsigned int num_tires)
-    : ChVehicleCosimTerrainNodeChrono(Type::GRANULAR_OMP, 0, 0, method, num_tires),
+                                                                           const std::string& specfile)
+    : ChVehicleCosimTerrainNodeChrono(Type::GRANULAR_OMP, 0, 0, method),
       m_Id_g(10000),
       m_constructed(false),
       m_use_checkpoint(false),

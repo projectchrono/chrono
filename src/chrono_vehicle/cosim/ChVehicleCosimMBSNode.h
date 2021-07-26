@@ -70,13 +70,17 @@ class CH_VEHICLE_API ChVehicleCosimMBSNode : public ChVehicleCosimBaseNode {
 
   protected:
     /// Construct a base class MBS node.
-    ChVehicleCosimMBSNode(unsigned int num_tires);
+    ChVehicleCosimMBSNode();
 
     /// Initialize the underlying MBS
     virtual void InitializeMBS(const std::vector<ChVector2<>>& tire_info,  ///< mass and radius for each tire
                                const ChVector2<>& terrain_size,            ///< terrain length x width
                                double terrain_height                       ///< initial terrain height
                                ) = 0;
+
+    /// Get the number of spindles/wheels defined by the underlying MBS.
+    /// A co-simulation must have a matching number of TIRE nodes.
+    virtual int GetNumSpindles() const = 0;
 
     /// Get the spindle body to which the i-th wheel/tire is attached.
     virtual std::shared_ptr<ChBody> GetSpindleBody(unsigned int i) const = 0;
@@ -86,8 +90,6 @@ class CH_VEHICLE_API ChVehicleCosimMBSNode : public ChVehicleCosimBaseNode {
     virtual double GetSpindleLoad(unsigned int i) const = 0;
 
   protected:
-    unsigned int m_num_tires;  ///< number of tires
-
     ChSystemSMC* m_system;                           ///< containing system
     ChTimestepper::Type m_int_type;                  ///< integrator type
     ChSolver::Type m_slv_type;                       ///< solver type

@@ -110,16 +110,12 @@ ChVehicleCosimTerrainNodeChrono::Type ChVehicleCosimTerrainNodeChrono::GetTypeFr
 ChVehicleCosimTerrainNodeChrono::ChVehicleCosimTerrainNodeChrono(Type type,
                                                                  double length,
                                                                  double width,
-                                                                 ChContactMethod method,
-                                                                 unsigned int num_tires)
-    : ChVehicleCosimTerrainNode(length, width, num_tires),
+                                                                 ChContactMethod method)
+    : ChVehicleCosimTerrainNode(length, width),
       m_type(type),
       m_method(method),
       m_fixed_proxies(false),
       m_init_height(0) {
-    m_material_tire.resize(num_tires);
-    m_proxies.resize(num_tires);
-
     // Default terrain contact material
     switch (m_method) {
         case ChContactMethod::SMC:
@@ -137,14 +133,17 @@ ChVehicleCosimTerrainNodeChrono::ChVehicleCosimTerrainNodeChrono(Type type,
 // - create the "tire" material
 // - create the appropriate proxy bodies (state not set yet)
 // -----------------------------------------------------------------------------
-void ChVehicleCosimTerrainNodeChrono::OnInitialize() {
+void ChVehicleCosimTerrainNodeChrono::OnInitialize(unsigned int num_tires) {
+    m_material_tire.resize(num_tires);
+    m_proxies.resize(num_tires);
+
     // Reset system time
     GetSystem()->SetChTime(0);
 
     // Construct the terrain
     Construct();
 
-    for (unsigned int i = 0; i < m_num_tires; i++) {
+    for (unsigned int i = 0; i < num_tires; i++) {
         // Create the "tire" contact material, but defer using it until the proxy bodies are created.
         m_material_tire[i] = m_mat_props[i].CreateMaterial(m_method);
 

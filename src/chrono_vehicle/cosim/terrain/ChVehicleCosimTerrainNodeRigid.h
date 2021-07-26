@@ -38,11 +38,11 @@ namespace vehicle {
 class CH_VEHICLE_API ChVehicleCosimTerrainNodeRigid : public ChVehicleCosimTerrainNodeChrono {
   public:
     /// Create a rigid terrain node using the specified contact method (SMC or NSC).
-    ChVehicleCosimTerrainNodeRigid(double length, double width, ChContactMethod method, unsigned int num_tires);
+    ChVehicleCosimTerrainNodeRigid(double length, double width, ChContactMethod method);
 
     /// Create a rigid terrain node using the specified contact method (SMC or NSC) and set parameters from the provided
     /// JSON specfile.
-    ChVehicleCosimTerrainNodeRigid(ChContactMethod method, const std::string& specfile, unsigned int num_tires);
+    ChVehicleCosimTerrainNodeRigid(ChContactMethod method, const std::string& specfile);
 
     ~ChVehicleCosimTerrainNodeRigid();
 

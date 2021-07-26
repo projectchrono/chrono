@@ -55,9 +55,8 @@ namespace vehicle {
 // - create the Chrono FSI system
 // -----------------------------------------------------------------------------
 ChVehicleCosimTerrainNodeGranularSPH::ChVehicleCosimTerrainNodeGranularSPH(double length,
-                                                                           double width,
-                                                                           unsigned int num_tires)
-    : ChVehicleCosimTerrainNodeChrono(Type::GRANULAR_SPH, length, width, ChContactMethod::SMC, num_tires), m_depth(0) {
+                                                                           double width)
+    : ChVehicleCosimTerrainNodeChrono(Type::GRANULAR_SPH, length, width, ChContactMethod::SMC), m_depth(0) {
     // Default granular material properties
     m_radius_g = 0.01;
     m_rho_g = 2000;
@@ -73,9 +72,8 @@ ChVehicleCosimTerrainNodeGranularSPH::ChVehicleCosimTerrainNodeGranularSPH(doubl
     m_system->SetNumThreads(1);
 }
 
-ChVehicleCosimTerrainNodeGranularSPH::ChVehicleCosimTerrainNodeGranularSPH(const std::string& specfile,
-                                                                           unsigned int num_tires)
-    : ChVehicleCosimTerrainNodeChrono(Type::GRANULAR_SPH, 0, 0, ChContactMethod::SMC, num_tires) {
+ChVehicleCosimTerrainNodeGranularSPH::ChVehicleCosimTerrainNodeGranularSPH(const std::string& specfile)
+    : ChVehicleCosimTerrainNodeChrono(Type::GRANULAR_SPH, 0, 0, ChContactMethod::SMC) {
     // Create systems
     m_system = new ChSystemSMC;
     m_systemFSI = new ChSystemFsi(*m_system);

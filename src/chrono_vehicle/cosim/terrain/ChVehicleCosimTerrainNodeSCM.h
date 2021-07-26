@@ -44,10 +44,10 @@ namespace vehicle {
 class CH_VEHICLE_API ChVehicleCosimTerrainNodeSCM : public ChVehicleCosimTerrainNodeChrono {
   public:
     /// Create an SCM terrain node. Note that no SCM parameters are set.
-    ChVehicleCosimTerrainNodeSCM(double length, double width, unsigned int num_tires);
+    ChVehicleCosimTerrainNodeSCM(double length, double width);
 
     /// Create an SCM terrain node using parameters from the provided JSON specfile.
-    ChVehicleCosimTerrainNodeSCM(const std::string& specfile, unsigned int num_tires);
+    ChVehicleCosimTerrainNodeSCM(const std::string& specfile);
 
     ~ChVehicleCosimTerrainNodeSCM();
 

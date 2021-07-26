@@ -51,9 +51,8 @@ const double EXTRA_HEIGHT = 1.0;
 // -----------------------------------------------------------------------------
 
 ChVehicleCosimTerrainNodeGranularGPU::ChVehicleCosimTerrainNodeGranularGPU(double length,
-                                                                           double width,
-                                                                           unsigned int num_tires)
-    : ChVehicleCosimTerrainNodeChrono(Type::GRANULAR_GPU, length, width, ChContactMethod::SMC, num_tires),
+                                                                           double width)
+    : ChVehicleCosimTerrainNodeChrono(Type::GRANULAR_GPU, length, width, ChContactMethod::SMC),
       m_sampling_type(utils::SamplingType::POISSON_DISK),
       m_init_depth(0.2),
       m_separation_factor(1.001),
@@ -83,9 +82,8 @@ ChVehicleCosimTerrainNodeGranularGPU::ChVehicleCosimTerrainNodeGranularGPU(doubl
     m_systemGPU = nullptr;
 }
 
-ChVehicleCosimTerrainNodeGranularGPU::ChVehicleCosimTerrainNodeGranularGPU(const std::string& specfile,
-                                                                           unsigned int num_tires)
-    : ChVehicleCosimTerrainNodeChrono(Type::GRANULAR_GPU, 0, 0, ChContactMethod::SMC, num_tires),
+ChVehicleCosimTerrainNodeGranularGPU::ChVehicleCosimTerrainNodeGranularGPU(const std::string& specfile)
+    : ChVehicleCosimTerrainNodeChrono(Type::GRANULAR_GPU, 0, 0, ChContactMethod::SMC),
       m_constructed(false),
       m_use_checkpoint(false),
       m_settling_output(false),
@@ -677,11 +675,13 @@ void ChVehicleCosimTerrainNodeGranularGPU::OnRender(double time) {
     opengl::ChOpenGLWindow& gl_window = opengl::ChOpenGLWindow::getInstance();
     if (gl_window.Active()) {
         UpdateVisualizationParticles();
-        const auto& proxies = m_proxies[0];  // proxies for first tire
-        if (!proxies.empty()) {
-            ChVector<> cam_point = proxies[0].m_body->GetPos();
-            ChVector<> cam_loc = cam_point + ChVector<>(0, -3, 0.6);
-            gl_window.SetCamera(cam_loc, cam_point, ChVector<>(0, 0, 1), 0.05f);
+        if (!m_proxies.empty()) {
+            const auto& proxies = m_proxies[0];  // proxies for first tire
+            if (!proxies.empty()) {
+                ChVector<> cam_point = proxies[0].m_body->GetPos();
+                ChVector<> cam_loc = cam_point + ChVector<>(0, -3, 0.6);
+                gl_window.SetCamera(cam_loc, cam_point, ChVector<>(0, 0, 1), 0.05f);
+            }
         }
         gl_window.Render();
     } else {

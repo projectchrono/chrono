@@ -50,9 +50,8 @@ namespace vehicle {
 // -----------------------------------------------------------------------------
 ChVehicleCosimTerrainNodeRigid::ChVehicleCosimTerrainNodeRigid(double length,
                                                                double width,
-                                                               ChContactMethod method,
-                                                               unsigned int num_tires)
-    : ChVehicleCosimTerrainNodeChrono(Type::RIGID, length, width, method, num_tires), m_radius_p(0.01) {
+                                                               ChContactMethod method)
+    : ChVehicleCosimTerrainNodeChrono(Type::RIGID, length, width, method), m_radius_p(0.01) {
     // Create system and set default method-specific solver settings
     switch (m_method) {
         case ChContactMethod::SMC: {
@@ -86,9 +85,8 @@ ChVehicleCosimTerrainNodeRigid::ChVehicleCosimTerrainNodeRigid(double length,
 }
 
 ChVehicleCosimTerrainNodeRigid::ChVehicleCosimTerrainNodeRigid(ChContactMethod method,
-                                                               const std::string& specfile,
-                                                               unsigned int num_tires)
-    : ChVehicleCosimTerrainNodeChrono(Type::RIGID, 0, 0, method, num_tires) {
+                                                               const std::string& specfile)
+    : ChVehicleCosimTerrainNodeChrono(Type::RIGID, 0, 0, method) {
     // Create system and set default method-specific solver settings
     switch (m_method) {
         case ChContactMethod::SMC: {
