@@ -22,7 +22,6 @@
 #include <algorithm>
 #include <iomanip>
 #include <limits>
-#include <mpi.h>
 
 #include "chrono/utils/ChUtilsSamplers.h"
 #include "chrono/utils/ChUtilsInputOutput.h"

@@ -30,7 +30,6 @@
 #include <unordered_map>
 
 #include <omp.h>
-#include <mpi.h>
 
 #include "chrono/utils/ChUtilsCreators.h"
 #include "chrono/utils/ChUtilsGenerators.h"

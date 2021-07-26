@@ -23,8 +23,6 @@
 #include <cmath>
 #include <set>
 
-#include <mpi.h>
-
 #include "chrono/utils/ChUtilsCreators.h"
 #include "chrono/utils/ChUtilsGenerators.h"
 #include "chrono/utils/ChUtilsInputOutput.h"

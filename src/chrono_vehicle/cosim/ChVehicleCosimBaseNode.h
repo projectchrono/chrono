@@ -24,6 +24,8 @@
 #include <iostream>
 #include <vector>
 
+#include <mpi.h>
+
 #include "chrono/core/ChTimer.h"
 #include "chrono/core/ChVector.h"
 #include "chrono/core/ChQuaternion.h"
@@ -68,6 +70,17 @@ class CH_VEHICLE_API ChVehicleCosimBaseNode {
     virtual ~ChVehicleCosimBaseNode() {}
 
     virtual NodeType GetNodeType() const = 0;
+
+    /// Get the terrain MPI intracommunicator.
+    /// This intra-communicator is created if more than one node is designated of type TERRAIN.
+    /// On a TERRAIN node, the rank within the intra-communicator is accessible through TerrainRank().
+    /// On any other node type, this function returns MPI_COMM_NULL.
+    MPI_Comm TerrainCommunicator() const { return m_sub_communicator; }
+
+    /// Get the rank of a TERRAIN node within the terrain intra-communicator.
+    /// This is available only if more than one terrain node was defined.
+    /// On any other node type, this function returns -1.
+    int TerrainRank() const { return m_sub_rank; }
 
     /// Set the integration step size (default: 1e-4).
     void SetStepSize(double step) { m_step_size = step; }
@@ -152,6 +165,10 @@ class CH_VEHICLE_API ChVehicleCosimBaseNode {
 
   protected:
     ChVehicleCosimBaseNode(const std::string& name);
+
+    int m_rank;                   ///< MPI rank of this node (in MPI_COMM_WORLD)
+    MPI_Comm m_sub_communicator;  ///< communicator for terrain nodes, if more than one (null on MBS and tire nodes)
+    int m_sub_rank;               ///< MPI rank of tire node in sub-communicator (-1 on MBS and tire nodes)
 
     double m_step_size;  ///< integration step size
 

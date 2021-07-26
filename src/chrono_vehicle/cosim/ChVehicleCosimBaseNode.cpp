@@ -19,11 +19,10 @@
 //
 // =============================================================================
 
-#include <mpi.h>
-
 #include "chrono_vehicle/cosim/ChVehicleCosimBaseNode.h"
 
 using std::cout;
+using std::cerr;
 using std::endl;
 
 namespace chrono {
@@ -38,33 +37,113 @@ ChVehicleCosimBaseNode::ChVehicleCosimBaseNode(const std::string& name)
       m_verbose(true),
       m_num_mbs_nodes(0),
       m_num_terrain_nodes(0),
-      m_num_tire_nodes(0) {}
+      m_num_tire_nodes(0),
+      m_rank(-1),
+      m_sub_rank(-1),
+      m_sub_communicator(MPI_COMM_NULL) {}
 
 void ChVehicleCosimBaseNode::Initialize() {
-    unsigned int send_data[] = {0, 0, 0};
+    int size;
+    MPI_Comm_rank(MPI_COMM_WORLD, &m_rank);
+    MPI_Comm_size(MPI_COMM_WORLD, &size);
+
+    // Gather node types from all ranks
+    int type = -1;
     switch (GetNodeType()) {
         case NodeType::MBS:
-            send_data[0]++;
+            type = 0;
             break;
         case NodeType::TERRAIN:
-            send_data[1]++;
+            type = 1;
             break;
         case NodeType::TIRE:
-            send_data[2]++;
+            type = 2;
             break;
     }
+    int* type_all = new int[size];
+    MPI_Allgather(&type, 1, MPI_INT, type_all, 1, MPI_INT, MPI_COMM_WORLD);
 
-    unsigned int recv_data[3];
-    MPI_Allreduce(send_data, recv_data, 3, MPI_UNSIGNED, MPI_SUM, MPI_COMM_WORLD);
-    m_num_mbs_nodes = recv_data[0];
-    m_num_terrain_nodes = recv_data[1];
-    m_num_tire_nodes = recv_data[2];
+    // Calculate number of different node types
+    for (int i = 0; i < size; i++) {
+        switch (type_all[i]) {
+            case 0:
+                m_num_mbs_nodes++;
+                break;
+            case 1:
+                m_num_terrain_nodes++;
+                break;
+            case 2:
+                m_num_tire_nodes++;
+                break;
+        }
+    }
 
     if (m_verbose) {
         cout << "[" << m_name << "]"                           //
+             << "  total: " << size                            //
              << "  MBS nodes: " << m_num_mbs_nodes             //
              << "  TERRAIN nodes: " << m_num_terrain_nodes     //
              << "  TIRE nodes: " << m_num_tire_nodes << endl;  //
+    }
+
+    // Error checks
+    bool err = false;
+    if (m_num_mbs_nodes != 1) {
+        if (m_rank == 0)
+            cerr << "ERROR: More than one MBS node." << endl;
+        err = true;
+    }
+
+    if (type_all[MBS_NODE_RANK] != 0) {
+        if (m_rank == 0)
+            cerr << "Error: rank " << MBS_NODE_RANK << " is not running an MBS node." << endl;
+        err = true;
+    }
+
+    if (type_all[TERRAIN_NODE_RANK] != 1) {
+        if (m_rank == 0)
+            cerr << "Error: rank " << TERRAIN_NODE_RANK << " is not running a TERRAIN node." << endl;
+        err = true;
+    }
+
+    for (unsigned int i = 0; i < m_num_tire_nodes; i++) {
+        if (type_all[TIRE_NODE_RANK(i)] != 2) {
+            if (m_rank == 0)
+                cerr << "Error: rank " << TIRE_NODE_RANK(i) << " is not running a TIRE node." << endl;
+            err = true;
+        }
+    }
+
+    if (err) {
+        MPI_Abort(MPI_COMM_WORLD, 1);
+    }
+
+    // Create a sub-communicator from all TERRAIN nodes (if more than one)
+
+    if (m_num_terrain_nodes > 1) {
+        // Get the group for MPI_COMM_WORLD
+        MPI_Group world_group;
+        MPI_Comm_group(MPI_COMM_WORLD, &world_group);
+
+        // Set list of excluded ranks (vehicle and tire nodes)
+        std::vector<int> excluded;
+        excluded.push_back(MBS_NODE_RANK);
+        for (unsigned int i = 0; i < m_num_tire_nodes; i++)
+            excluded.push_back(TIRE_NODE_RANK(i));
+
+        // Create the group of ranks for terrain simulation
+        MPI_Group terrain_group;
+        MPI_Group_excl(world_group, 1 + m_num_tire_nodes, excluded.data(), &terrain_group);
+
+        // Create and return a communicator from the terrain group
+        MPI_Comm_create(MPI_COMM_WORLD, terrain_group, &m_sub_communicator);
+
+        // Get MPI rank in sub-communicator
+        if (GetNodeType() == NodeType::TERRAIN)
+            MPI_Comm_rank(m_sub_communicator, &m_sub_rank);
+
+        cout << "[" << m_name << "]"
+             << "  rank = " << m_rank << "  sub-rank = " << m_sub_rank << endl;
     }
 }
 

@@ -19,8 +19,6 @@
 //
 // =============================================================================
 
-#include <mpi.h>
-
 #include "chrono/ChConfig.h"
 #include "chrono/solver/ChIterativeSolver.h"
 #include "chrono/solver/ChDirectSolverLS.h"

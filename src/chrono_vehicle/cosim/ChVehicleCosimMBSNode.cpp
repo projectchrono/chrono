@@ -23,7 +23,6 @@
 #include <algorithm>
 #include <set>
 #include <vector>
-#include <mpi.h>
 
 #include "chrono/ChConfig.h"
 #include "chrono/solver/ChIterativeSolver.h"
