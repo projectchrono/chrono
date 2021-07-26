@@ -113,8 +113,10 @@ void ChVehicleCosimTireNode::Initialize() {
     m_spindle = chrono_types::make_shared<ChBody>();
     m_system->AddBody(m_spindle);
 
-    // Create the wheel subsystem
+    // Create the wheel subsystem, arbitrarily assuming LEFT side
     m_wheel = chrono_types::make_shared<DummyWheel>();
+    m_wheel->Initialize(m_spindle, LEFT);
+    m_wheel->SetVisualizationType(VisualizationType::NONE);
 
     // Let derived classes initialize the tire and attach it to the provided ChWheel 
     InitializeTire(m_wheel);
@@ -128,8 +130,9 @@ void ChVehicleCosimTireNode::Initialize() {
     MPI_Recv(&load_mass, 1, MPI_DOUBLE, MBS_NODE_RANK, 0, MPI_COMM_WORLD, &status);
 
     // Overwrite spindle mass and inertia
-    ChVector<> spindle_inertia(1, 1, 1);
-    m_spindle->SetMass(load_mass);
+    double spindle_mass = load_mass - GetTireMass();
+    ChVector<> spindle_inertia(1, 1, 1);   //// TODO
+    m_spindle->SetMass(spindle_mass);
     m_spindle->SetInertiaXX(spindle_inertia);
 
     // Send the expected communication interface type to the TERRAIN node (only tire 0 does this)
