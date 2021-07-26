@@ -69,6 +69,9 @@ class CH_VEHICLE_API ChVehicleCosimTerrainNodeChrono : public ChVehicleCosimTerr
     /// Set the proxy bodies as fixed to ground.
     void SetProxyFixed(bool fixed) { m_fixed_proxies = fixed; }
 
+    /// Return the terrain initial height.
+    virtual double GetInitHeight() const override final { return m_init_height; }
+
     /// Initialize this Chrono terrain node.
     /// Construct the terrain system, the tire material, and the proxy bodies.
     virtual void OnInitialize() override final;
@@ -82,6 +85,8 @@ class CH_VEHICLE_API ChVehicleCosimTerrainNodeChrono : public ChVehicleCosimTerr
   protected:
     /// Construct a base class terrain node.
     ChVehicleCosimTerrainNodeChrono(Type type,               ///< terrain type
+                                    double length,           ///< terrain patch length
+                                    double width,            ///< terain patch width
                                     ChContactMethod method,  ///< contact method (SMC or NSC)
                                     unsigned int num_tires   ///< number of tires
     );
@@ -91,6 +96,18 @@ class CH_VEHICLE_API ChVehicleCosimTerrainNodeChrono : public ChVehicleCosimTerr
 
     /// Construct the terrain (independent of the vehicle system).
     virtual void Construct() = 0;
+
+    /// Create proxy body for the i-th tire.
+    /// Use information in the m_mesh_data struct (vertex positions expressed in local frame).
+    virtual void CreateWheelProxy(unsigned int i) = 0;
+
+    /// Create proxy bodies for the i-th tire mesh.
+    /// Use information in the m_mesh_data struct (vertex positions expressed in local frame).
+    virtual void CreateMeshProxies(unsigned int i) {
+        if (SupportsMeshInterface()) {
+            throw ChException("Current terrain type does not support the MESH communication interface!");
+        }
+    }
 
   protected:
     /// Association between a proxy body and a mesh index.
@@ -107,6 +124,8 @@ class CH_VEHICLE_API ChVehicleCosimTerrainNodeChrono : public ChVehicleCosimTerr
 
     ChContactMethod m_method;                               ///< contact method (SMC or NSC)
     std::shared_ptr<ChMaterialSurface> m_material_terrain;  ///< material properties for terrain bodies
+
+    double m_init_height;  ///< terrain initial height
 
     bool m_fixed_proxies;                                             ///< are proxy bodies fixed to ground?
     std::vector<Proxies> m_proxies;                                   ///< proxy bodies for each tire

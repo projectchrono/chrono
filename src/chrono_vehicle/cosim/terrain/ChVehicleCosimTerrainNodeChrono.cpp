@@ -108,9 +108,15 @@ ChVehicleCosimTerrainNodeChrono::Type ChVehicleCosimTerrainNodeChrono::GetTypeFr
 // Construction of the base Chrono terrain node.
 // -----------------------------------------------------------------------------
 ChVehicleCosimTerrainNodeChrono::ChVehicleCosimTerrainNodeChrono(Type type,
+                                                                 double length,
+                                                                 double width,
                                                                  ChContactMethod method,
                                                                  unsigned int num_tires)
-    : ChVehicleCosimTerrainNode(num_tires), m_type(type), m_method(method), m_fixed_proxies(false) {
+    : ChVehicleCosimTerrainNode(length, width, num_tires),
+      m_type(type),
+      m_method(method),
+      m_fixed_proxies(false),
+      m_init_height(0) {
     m_material_tire.resize(num_tires);
     m_proxies.resize(num_tires);
 

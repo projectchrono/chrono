@@ -51,8 +51,8 @@ namespace vehicle {
 // - create the Chrono system and set solver parameters
 // - create the Irrlicht visualization window
 // -----------------------------------------------------------------------------
-ChVehicleCosimTerrainNodeSCM::ChVehicleCosimTerrainNodeSCM(unsigned int num_tires)
-    : ChVehicleCosimTerrainNodeChrono(Type::SCM, ChContactMethod::SMC, num_tires),
+ChVehicleCosimTerrainNodeSCM::ChVehicleCosimTerrainNodeSCM(double length, double width, unsigned int num_tires)
+    : ChVehicleCosimTerrainNodeChrono(Type::SCM, length, width, ChContactMethod::SMC, num_tires),
       m_radius_p(5e-3),
       m_use_checkpoint(false) {
 #ifdef CHRONO_IRRLICHT
@@ -70,7 +70,7 @@ ChVehicleCosimTerrainNodeSCM::ChVehicleCosimTerrainNodeSCM(unsigned int num_tire
 }
 
 ChVehicleCosimTerrainNodeSCM::ChVehicleCosimTerrainNodeSCM(const std::string& specfile, unsigned int num_tires)
-    : ChVehicleCosimTerrainNodeChrono(Type::SCM, ChContactMethod::SMC, num_tires), m_use_checkpoint(false) {
+    : ChVehicleCosimTerrainNodeChrono(Type::SCM, 0, 0, ChContactMethod::SMC, num_tires), m_use_checkpoint(false) {
 #ifdef CHRONO_IRRLICHT
     m_irrapp = nullptr;
 #endif
@@ -102,7 +102,8 @@ void ChVehicleCosimTerrainNodeSCM::SetFromSpecfile(const std::string& specfile) 
 
     double length = d["Patch dimensions"]["Length"].GetDouble();
     double width = d["Patch dimensions"]["Width"].GetDouble();
-    SetPatchDimensions(length, width);
+    m_hdimX = length / 2;
+    m_hdimY = width / 2;
 
     m_spacing = d["Grid spacing"].GetDouble();
 
@@ -273,8 +274,8 @@ void ChVehicleCosimTerrainNodeSCM::CreateWheelProxy(unsigned int i) {
 
     // Set collision shape
     body->GetCollisionModel()->ClearModel();
-    body->GetCollisionModel()->AddTriangleMesh(m_material_tire[i], trimesh, false, false, ChVector<>(0), ChMatrix33<>(1),
-                                               m_radius_p);
+    body->GetCollisionModel()->AddTriangleMesh(m_material_tire[i], trimesh, false, false, ChVector<>(0),
+                                               ChMatrix33<>(1), m_radius_p);
     body->GetCollisionModel()->SetFamily(1);
     body->GetCollisionModel()->SetFamilyMaskNoCollisionWithFamily(1);
     body->GetCollisionModel()->BuildModel();

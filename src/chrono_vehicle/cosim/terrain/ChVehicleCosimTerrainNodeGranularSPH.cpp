@@ -54,8 +54,10 @@ namespace vehicle {
 // - create the Chrono system and set solver parameters
 // - create the Chrono FSI system
 // -----------------------------------------------------------------------------
-ChVehicleCosimTerrainNodeGranularSPH::ChVehicleCosimTerrainNodeGranularSPH(unsigned int num_tires)
-    : ChVehicleCosimTerrainNodeChrono(Type::GRANULAR_SPH, ChContactMethod::SMC, num_tires), m_depth(0) {
+ChVehicleCosimTerrainNodeGranularSPH::ChVehicleCosimTerrainNodeGranularSPH(double length,
+                                                                           double width,
+                                                                           unsigned int num_tires)
+    : ChVehicleCosimTerrainNodeChrono(Type::GRANULAR_SPH, length, width, ChContactMethod::SMC, num_tires), m_depth(0) {
     // Default granular material properties
     m_radius_g = 0.01;
     m_rho_g = 2000;
@@ -73,7 +75,7 @@ ChVehicleCosimTerrainNodeGranularSPH::ChVehicleCosimTerrainNodeGranularSPH(unsig
 
 ChVehicleCosimTerrainNodeGranularSPH::ChVehicleCosimTerrainNodeGranularSPH(const std::string& specfile,
                                                                            unsigned int num_tires)
-    : ChVehicleCosimTerrainNodeChrono(Type::GRANULAR_SPH, ChContactMethod::SMC, num_tires) {
+    : ChVehicleCosimTerrainNodeChrono(Type::GRANULAR_SPH, 0, 0, ChContactMethod::SMC, num_tires) {
     // Create systems
     m_system = new ChSystemSMC;
     m_systemFSI = new ChSystemFsi(*m_system);
@@ -97,7 +99,8 @@ void ChVehicleCosimTerrainNodeGranularSPH::SetFromSpecfile(const std::string& sp
 
     double length = d["Patch dimensions"]["Length"].GetDouble();
     double width = d["Patch dimensions"]["Width"].GetDouble();
-    SetPatchDimensions(length, width);
+    m_hdimX = length / 2;
+    m_hdimY = width / 2;
 
     m_radius_g = d["Granular material"]["Radius"].GetDouble();
     m_rho_g = d["Granular material"]["Density"].GetDouble();

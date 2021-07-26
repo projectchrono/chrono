@@ -40,7 +40,7 @@ namespace vehicle {
 class CH_VEHICLE_API ChVehicleCosimTerrainNodeGranularGPU : public ChVehicleCosimTerrainNodeChrono {
   public:
     /// Create a Chrono::Granular terrain node.
-    ChVehicleCosimTerrainNodeGranularGPU(unsigned int num_tires);
+    ChVehicleCosimTerrainNodeGranularGPU(double length, double width, unsigned int num_tires);
 
     /// Create a Chrono::Granular terrain node and set parameters from the provided JSON specfile.
     ChVehicleCosimTerrainNodeGranularGPU(const std::string& specfile, unsigned int num_tires);

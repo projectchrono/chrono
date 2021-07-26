@@ -185,11 +185,13 @@ void ChVehicleCosimTireNode::Initialize() {
     m_wheel->Initialize(m_spindle, LEFT);
     m_wheel->SetVisualizationType(VisualizationType::NONE);
 
-    // Let derived classes initialize the tire and attach it to the provided ChWheel 
+    // Let derived classes initialize the tire and attach it to the provided ChWheel
     InitializeTire(m_wheel);
 
     // Send the tire radius and mass to the MBS node
-    double tire_info[] = {GetTireMass(), GetTireRadius()};
+    double tire_mass = GetTireMass();
+    double tire_radius = GetTireRadius();
+    double tire_info[] = {tire_mass, tire_radius};
     MPI_Send(tire_info, 2, MPI_DOUBLE, MBS_NODE_RANK, 0, MPI_COMM_WORLD);
 
     // Receive from the MBS node the load on this tire
@@ -198,7 +200,7 @@ void ChVehicleCosimTireNode::Initialize() {
 
     // Overwrite spindle mass and inertia
     double spindle_mass = load_mass - GetTireMass();
-    ChVector<> spindle_inertia(1, 1, 1);   //// TODO
+    ChVector<> spindle_inertia(1, 1, 1);  //// TODO
     m_spindle->SetMass(spindle_mass);
     m_spindle->SetInertiaXX(spindle_inertia);
 
@@ -208,7 +210,9 @@ void ChVehicleCosimTireNode::Initialize() {
         MPI_Send(&interface_type, 1, MPI_CHAR, TERRAIN_NODE_RANK, 0, MPI_COMM_WORLD);
     }
 
-    // Send tire mesh info, tire load, and contact material
+    // Send tire radius, mesh info, tire load, and contact material
+    MPI_Send(&tire_radius, 1, MPI_DOUBLE, TERRAIN_NODE_RANK, 0, MPI_COMM_WORLD);
+
     unsigned int surf_props[] = {m_mesh_data.nv, m_mesh_data.nn, m_mesh_data.nt};
     MPI_Send(surf_props, 3, MPI_UNSIGNED, TERRAIN_NODE_RANK, 0, MPI_COMM_WORLD);
     if (m_verbose)
@@ -239,8 +243,9 @@ void ChVehicleCosimTireNode::Initialize() {
 
     MPI_Send(&load_mass, 1, MPI_DOUBLE, TERRAIN_NODE_RANK, 0, MPI_COMM_WORLD);
 
-    float mat_props[8] = {m_contact_mat->GetKfriction(),    m_contact_mat->GetRestitution(), m_contact_mat->GetYoungModulus(),
-                          m_contact_mat->GetPoissonRatio(), m_contact_mat->GetKn(),          m_contact_mat->GetGn(),
+    float mat_props[8] = {m_contact_mat->GetKfriction(),    m_contact_mat->GetRestitution(),
+                          m_contact_mat->GetYoungModulus(), m_contact_mat->GetPoissonRatio(),
+                          m_contact_mat->GetKn(),           m_contact_mat->GetGn(),
                           m_contact_mat->GetKt(),           m_contact_mat->GetGt()};
     MPI_Send(mat_props, 8, MPI_FLOAT, TERRAIN_NODE_RANK, 0, MPI_COMM_WORLD);
     if (m_verbose)
@@ -318,7 +323,6 @@ void ChVehicleCosimTireNode::InitializeSystem() {
 }
 
 void ChVehicleCosimTireNode::Synchronize(int step_number, double time) {
-
     switch (GetInterfaceType()) {
         case InterfaceType::BODY:
             SynchronizeBody(step_number, time);
@@ -350,8 +354,8 @@ void ChVehicleCosimTireNode::SynchronizeMesh(int step_number, double time) {
     // Receive spindle state data from MBS node
     double state_data[13];
     MPI_Recv(state_data, 13, MPI_DOUBLE, MBS_NODE_RANK, step_number, MPI_COMM_WORLD, &status);
-    
-    BodyState spindle_state;    
+
+    BodyState spindle_state;
     spindle_state.pos = ChVector<>(state_data[0], state_data[1], state_data[2]);
     spindle_state.rot = ChQuaternion<>(state_data[3], state_data[4], state_data[5], state_data[6]);
     spindle_state.lin_vel = ChVector<>(state_data[7], state_data[8], state_data[9]);

@@ -39,7 +39,7 @@ namespace vehicle {
 class CH_VEHICLE_API ChVehicleCosimTerrainNodeGranularOMP : public ChVehicleCosimTerrainNodeChrono {
   public:
     /// Create a Chrono::Multicore granular terrain node using the specified contact method (SMC or NSC).
-    ChVehicleCosimTerrainNodeGranularOMP(ChContactMethod method, unsigned int num_tires);
+    ChVehicleCosimTerrainNodeGranularOMP(double length, double width, ChContactMethod method, unsigned int num_tires);
 
     /// Create a Chrono::Multicore granular terrain node using the specified contact method (SMC or NSC) and set
     /// parameters from the provided JSON specfile.

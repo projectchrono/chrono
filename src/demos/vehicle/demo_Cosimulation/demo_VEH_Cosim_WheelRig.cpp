@@ -21,7 +21,6 @@
 #include <iostream>
 #include <string>
 #include <limits>
-#include <mpi.h>
 
 #include "chrono/ChConfig.h"
 

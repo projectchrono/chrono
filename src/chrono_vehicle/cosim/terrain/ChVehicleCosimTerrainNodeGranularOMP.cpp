@@ -56,8 +56,11 @@ namespace vehicle {
 // - create the (multicore) Chrono system and set solver parameters
 // - create the OpenGL visualization window
 // -----------------------------------------------------------------------------
-ChVehicleCosimTerrainNodeGranularOMP::ChVehicleCosimTerrainNodeGranularOMP(ChContactMethod method, unsigned int num_tires)
-    : ChVehicleCosimTerrainNodeChrono(Type::GRANULAR_OMP, method, num_tires),
+ChVehicleCosimTerrainNodeGranularOMP::ChVehicleCosimTerrainNodeGranularOMP(double length,
+                                                                           double width,
+                                                                           ChContactMethod method,
+                                                                           unsigned int num_tires)
+    : ChVehicleCosimTerrainNodeChrono(Type::GRANULAR_OMP, length, width, method, num_tires),
       m_radius_p(5e-3),
       m_sampling_type(utils::SamplingType::POISSON_DISK),
       m_init_depth(0.2),
@@ -119,7 +122,7 @@ ChVehicleCosimTerrainNodeGranularOMP::ChVehicleCosimTerrainNodeGranularOMP(ChCon
 ChVehicleCosimTerrainNodeGranularOMP::ChVehicleCosimTerrainNodeGranularOMP(ChContactMethod method,
                                                                            const std::string& specfile,
                                                                            unsigned int num_tires)
-    : ChVehicleCosimTerrainNodeChrono(Type::GRANULAR_OMP, method, num_tires),
+    : ChVehicleCosimTerrainNodeChrono(Type::GRANULAR_OMP, 0, 0, method, num_tires),
       m_Id_g(10000),
       m_constructed(false),
       m_use_checkpoint(false),
@@ -181,7 +184,8 @@ void ChVehicleCosimTerrainNodeGranularOMP::SetFromSpecfile(const std::string& sp
 
     double length = d["Patch dimensions"]["Length"].GetDouble();
     double width = d["Patch dimensions"]["Width"].GetDouble();
-    SetPatchDimensions(length, width);
+    m_hdimX = length / 2;
+    m_hdimY = width / 2;
 
     m_radius_g = d["Granular material"]["Radius"].GetDouble();
     m_rho_g = d["Granular material"]["Density"].GetDouble();
@@ -339,7 +343,6 @@ void ChVehicleCosimTerrainNodeGranularOMP::Construct() {
         if (m_verbose)
             cout << "[Terrain node] actual number of OpenMP threads: " << omp_get_num_threads() << endl;
     }
-
 
     // Calculate container (half) height
     double r = m_separation_factor * m_radius_g;
@@ -1010,13 +1013,13 @@ void ChVehicleCosimTerrainNodeGranularOMP::WriteCheckpoint(const std::string& fi
 
 void ChVehicleCosimTerrainNodeGranularOMP::PrintMeshProxiesUpdateData(unsigned int i, const MeshState& mesh_state) {
     {
-        auto lowest = std::min_element(m_proxies[i].begin(), m_proxies[i].end(), [](const ProxyBody& a, const ProxyBody& b) {
-            return a.m_body->GetPos().z() < b.m_body->GetPos().z();
-        });
+        auto lowest = std::min_element(
+            m_proxies[i].begin(), m_proxies[i].end(),
+            [](const ProxyBody& a, const ProxyBody& b) { return a.m_body->GetPos().z() < b.m_body->GetPos().z(); });
         const ChVector<>& vel = (*lowest).m_body->GetPos_dt();
         double height = (*lowest).m_body->GetPos().z();
-        cout << "[Terrain node] tire: " << i << "  lowest proxy:  index = " << (*lowest).m_index << "  height = " << height
-             << "  velocity = " << vel.x() << "  " << vel.y() << "  " << vel.z() << endl;
+        cout << "[Terrain node] tire: " << i << "  lowest proxy:  index = " << (*lowest).m_index
+             << "  height = " << height << "  velocity = " << vel.x() << "  " << vel.y() << "  " << vel.z() << endl;
     }
 
     {

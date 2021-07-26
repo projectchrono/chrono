@@ -41,16 +41,16 @@ namespace vehicle {
 // -----------------------------------------------------------------------------
 // Construction of the base terrain node.
 // -----------------------------------------------------------------------------
-ChVehicleCosimTerrainNode::ChVehicleCosimTerrainNode(unsigned int num_tires)
+ChVehicleCosimTerrainNode::ChVehicleCosimTerrainNode(double length, double width, unsigned int num_tires)
     : ChVehicleCosimBaseNode("TERRAIN"),
       m_num_tires(num_tires),
+      m_hdimX(length / 2),
+      m_hdimY(width / 2),
+      m_load_mass(50),
       m_render(false),
       m_render_step(0.01),
-      m_init_height(0),
-      m_hdimX(1.0),
-      m_hdimY(0.25),
-      m_load_mass(50),
       m_interface_type(InterfaceType::BODY) {
+    m_tire_radius.resize(num_tires);
     m_load_mass.resize(num_tires);
     m_mat_props.resize(num_tires);
     m_mesh_data.resize(num_tires);
@@ -61,11 +61,6 @@ ChVehicleCosimTerrainNode::ChVehicleCosimTerrainNode(unsigned int num_tires)
 }
 
 // -----------------------------------------------------------------------------
-
-void ChVehicleCosimTerrainNode::SetPatchDimensions(double length, double width) {
-    m_hdimX = length / 2;
-    m_hdimY = width / 2;
-}
 
 void ChVehicleCosimTerrainNode::EnableRuntimeVisualization(bool render, double render_fps) {
     m_render = render;
@@ -94,7 +89,7 @@ void ChVehicleCosimTerrainNode::Initialize() {
     // -----------------------------------------
 
     // Note: take into account dimension of proxy bodies
-    double init_dim[3] = {m_init_height + 0.05, m_hdimX, m_hdimY};
+    double init_dim[3] = {GetInitHeight() + 0.05, m_hdimX, m_hdimY};
     MPI_Send(init_dim, 3, MPI_DOUBLE, MBS_NODE_RANK, 0, MPI_COMM_WORLD);
 
     if (m_verbose) {
@@ -117,6 +112,9 @@ void ChVehicleCosimTerrainNode::Initialize() {
     // ------------------------
 
     for (unsigned int i = 0; i < m_num_tires; i++) {
+        // Tire radius
+        MPI_Recv(&m_tire_radius[i], 1, MPI_DOUBLE, TIRE_NODE_RANK(i), 0, MPI_COMM_WORLD, &status);
+
         // Tire contact surface specification
 
         unsigned int surf_props[3];
@@ -247,8 +245,9 @@ void ChVehicleCosimTerrainNode::SynchronizeBody(int step_number, double time) {
         }
 
         // Send wheel contact force.
-        double force_data[] = {m_wheel_contact[i].force.x(),  m_wheel_contact[i].force.y(),  m_wheel_contact[i].force.z(),
-                               m_wheel_contact[i].moment.x(), m_wheel_contact[i].moment.y(), m_wheel_contact[i].moment.z()};
+        double force_data[] = {m_wheel_contact[i].force.x(),  m_wheel_contact[i].force.y(),
+                               m_wheel_contact[i].force.z(),  m_wheel_contact[i].moment.x(),
+                               m_wheel_contact[i].moment.y(), m_wheel_contact[i].moment.z()};
         MPI_Send(force_data, 6, MPI_DOUBLE, TIRE_NODE_RANK(i), step_number, MPI_COMM_WORLD);
 
         if (m_verbose)

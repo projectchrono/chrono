@@ -39,7 +39,7 @@ namespace vehicle {
 class CH_VEHICLE_API ChVehicleCosimTerrainNodeGranularSPH : public ChVehicleCosimTerrainNodeChrono {
   public:
     /// Create a Chrono::FSI granular SPH terrain node. Note that no SPH parameters are set.
-    ChVehicleCosimTerrainNodeGranularSPH(unsigned int num_tires);
+    ChVehicleCosimTerrainNodeGranularSPH(double length, double width, unsigned int num_tires);
 
     /// Create a Chrono::FSI granular SPH terrain node using parameters from the provided JSON specfile.
     ChVehicleCosimTerrainNodeGranularSPH(const std::string& specfile, unsigned int num_tires);
@@ -65,8 +65,8 @@ class CH_VEHICLE_API ChVehicleCosimTerrainNodeGranularSPH : public ChVehicleCosi
     std::shared_ptr<fsi::SimParams> m_params;  ///< FSI parameters
     double m_depth;                            ///< SPH soil depth
 
-    double m_radius_g;             ///< radius of one particle of granular material
-    double m_rho_g;                ///< particle material density
+    double m_radius_g;  ///< radius of one particle of granular material
+    double m_rho_g;     ///< particle material density
 
     virtual bool SupportsMeshInterface() const override { return false; }
 

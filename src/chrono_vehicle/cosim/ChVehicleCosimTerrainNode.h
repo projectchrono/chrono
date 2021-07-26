@@ -44,14 +44,10 @@ class CH_VEHICLE_API ChVehicleCosimTerrainNode : public ChVehicleCosimBaseNode {
     /// Return the node type as NodeType::TERRAIN.
     virtual NodeType GetNodeType() const override { return NodeType::TERRAIN; }
 
-    /// Set terrain patch dimensions (length and width).
-    void SetPatchDimensions(double length,  ///< length in direction X (default: 2)
-                            double width    ///< width in Y direction (default: 0.5)
-    );
-
     /// Enable/disable run-time visualization (default: false).
     /// If enabled, rendering is done with the specified frequency.
-    /// Note that a particular concrete terrain node may not support run-time visualization or may not render all physics elements.
+    /// Note that a particular concrete terrain node may not support run-time visualization or may not render all
+    /// physics elements.
     void EnableRuntimeVisualization(bool render, double render_fps = 100);
 
     /// Initialize this node.
@@ -78,8 +74,11 @@ class CH_VEHICLE_API ChVehicleCosimTerrainNode : public ChVehicleCosimBaseNode {
     virtual int GetNumContacts() const { return 0; }
 
   protected:
-    /// Construct a base class terrain node.
-    ChVehicleCosimTerrainNode(unsigned int num_tires);
+    /// Construct a base class terrain node of given length and width which will interact with the specified number of
+    /// tires.
+    ChVehicleCosimTerrainNode(double length, double width, unsigned int num_tires);
+
+    // ------------------------- Virtual methods
 
     /// Specify whether or not the terrain node supports the MESH communication interface.
     /// See ChVehicleCosimBaseNode::InterfaceType.
@@ -87,49 +86,17 @@ class CH_VEHICLE_API ChVehicleCosimTerrainNode : public ChVehicleCosimBaseNode {
     /// GetForcesMeshProxies.
     virtual bool SupportsMeshInterface() const = 0;
 
-    // ------------------------- Virtual methods for the MESH communication interface
-    //     A derived class must implement these methods if SupportsMeshInterface returns true.
-
-    /// Create proxy bodies for the i-th tire mesh.
-    /// Use information in the m_mesh_data struct (vertex positions expressed in local frame).
-    virtual void CreateMeshProxies(unsigned int i) {
-        if (SupportsMeshInterface()) {
-            throw ChException("Current terrain type does not support the MESH communication interface!");
-        }
-    }
-    /// Update the state of all proxy bodies for the i-th tire mesh.
-    /// Use information in the provided MeshState struct (vertex positions and velocities expressed in absolute frame).
-    virtual void UpdateMeshProxies(unsigned int i, const MeshState& mesh_state) {
-        if (SupportsMeshInterface()) {
-            throw ChException("Current terrain type does not support the MESH communication interface!");
-        }
-    }
-    /// Collect cumulative contact forces on all proxy bodies for the i-th tire mesh.
-    /// Load indices of vertices in contact and the corresponding vertex forces (expressed in absolute frame)
-    /// into the provided MeshContact struct.
-    virtual void GetForcesMeshProxies(unsigned int i, MeshContact& mesh_contact) {
-        if (SupportsMeshInterface()) {
-            throw ChException("Current terrain type does not the MESH communication interface!");
-        }
-    }
-
-    // ------------------------- Virtual methods for the BODY communication interface
-
-    /// Create proxy body for the i-th tire.
-    /// Use information in the m_mesh_data struct (vertex positions expressed in local frame).
-    virtual void CreateWheelProxy(unsigned int i) = 0;
-
-    /// Update the state of the wheel proxy body for the i-th tire.
-    /// Use information in the provided BodyState struct (pose and velocities expressed in absolute frame).
-    virtual void UpdateWheelProxy(unsigned int i, const BodyState& spindle_state) = 0;
-    
-    /// Collect cumulative contact force and torque on the wheel proxy body for the i-th tire.
-    /// Load contact forces (expressed in absolute frame) into the provided TerrainForce struct.
-    virtual void GetForceWheelProxy(unsigned int i, TerrainForce& wheel_contact) = 0;
-
-    // ------------------------- Other virtual methods
+    /// Return the terrain initial height.
+    /// This value must be available before the call to Initialize (and therefore, before the derived class's
+    /// OnInitialize is called).
+    virtual double GetInitHeight() const = 0;
 
     /// Perform any additional operations after the initial data exchange with the MBS node.
+    /// A derived class has access to the following vectors (of size equal to the number of tires):
+    /// - radius for each tire (through m_tire_radius)
+    /// - mesh information for each tire (through m_mesh_data)
+    /// - contact material for each tire (through m_mat_props)
+    /// - vertical load on each tire (through m_load_mass)
     virtual void OnInitialize() = 0;
 
     /// Perform any additional operations after the data exchange and synchronization with the MBS node.
@@ -145,28 +112,53 @@ class CH_VEHICLE_API ChVehicleCosimTerrainNode : public ChVehicleCosimBaseNode {
     /// Render simulation.
     virtual void OnRender(double time) {}
 
+    // ------------------------- Virtual methods for the MESH communication interface
+    // A derived class must implement these methods if SupportsMeshInterface returns true.
+
+    /// Update the state of all proxy bodies for the i-th tire mesh.
+    /// Use information in the provided MeshState struct (vertex positions and velocities expressed in absolute frame).
+    virtual void UpdateMeshProxies(unsigned int i, const MeshState& mesh_state) {
+        if (SupportsMeshInterface()) {
+            throw ChException("Current terrain type does not support the MESH communication interface!");
+        }
+    }
+
+    /// Collect cumulative contact forces on all proxy bodies for the i-th tire mesh.
+    /// Load indices of vertices in contact and the corresponding vertex forces (expressed in absolute frame)
+    /// into the provided MeshContact struct.
+    virtual void GetForcesMeshProxies(unsigned int i, MeshContact& mesh_contact) {
+        if (SupportsMeshInterface()) {
+            throw ChException("Current terrain type does not the MESH communication interface!");
+        }
+    }
+
+    // ------------------------- Virtual methods for the BODY communication interface
+
+    /// Update the state of the wheel proxy body for the i-th tire.
+    /// Use information in the provided BodyState struct (pose and velocities expressed in absolute frame).
+    virtual void UpdateWheelProxy(unsigned int i, const BodyState& spindle_state) = 0;
+
+    /// Collect cumulative contact force and torque on the wheel proxy body for the i-th tire.
+    /// Load contact forces (expressed in absolute frame) into the provided TerrainForce struct.
+    virtual void GetForceWheelProxy(unsigned int i, TerrainForce& wheel_contact) = 0;
+
   protected:
     unsigned int m_num_tires;  ///< number of tires
 
     bool m_render;         ///< if true, perform run-time rendering
     double m_render_step;  ///< time step between rendered frames
 
-    double m_hdimX;        ///< patch half-length (X direction)
-    double m_hdimY;        ///< patch half-width (Y direction)
-    double m_init_height;  ///< initial terrain height (after optional settling)
+    double m_hdimX;  ///< patch half-length (X direction)
+    double m_hdimY;  ///< patch half-width (Y direction)
 
     // Communication data
 
-    InterfaceType m_interface_type; ///< type of communication interface
+    InterfaceType m_interface_type;  ///< type of communication interface
 
+    std::vector<double> m_tire_radius;      ///< tire radius-
     std::vector<double> m_load_mass;        ///< vertical load on tire
     std::vector<MaterialInfo> m_mat_props;  ///< tire contact material properties
-
-    std::vector<MeshData> m_mesh_data;          ///< tire mesh data
-    std::vector<MeshState> m_mesh_state;        ///< tire mesh state (used for MESH communication)
-    std::vector<MeshContact> m_mesh_contact;    ///< tire mesh contact forces (used for MESH communication interface)
-    std::vector<BodyState> m_spindle_state;      ///< spindle state (used for BODY communication interface)
-    std::vector<TerrainForce> m_wheel_contact;  ///< spindle contact force (used for BODY communication interface)
+    std::vector<MeshData> m_mesh_data;      ///< tire mesh data
 
   private:
     void SynchronizeBody(int step_number, double time);
@@ -175,6 +167,11 @@ class CH_VEHICLE_API ChVehicleCosimTerrainNode : public ChVehicleCosimBaseNode {
     /// Print vertex and face connectivity data for the i-th tire, as received at synchronization.
     /// Invoked only when using the MESH communicatin interface.
     void PrintMeshUpdateData(unsigned int i);
+
+    std::vector<MeshState> m_mesh_state;        ///< tire mesh state (used for MESH communication)
+    std::vector<MeshContact> m_mesh_contact;    ///< tire mesh contact forces (used for MESH communication interface)
+    std::vector<BodyState> m_spindle_state;     ///< spindle state (used for BODY communication interface)
+    std::vector<TerrainForce> m_wheel_contact;  ///< spindle contact force (used for BODY communication interface)
 };
 
 /// @} vehicle_cosim

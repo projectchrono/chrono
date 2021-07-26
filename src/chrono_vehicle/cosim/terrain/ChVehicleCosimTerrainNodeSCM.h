@@ -44,7 +44,7 @@ namespace vehicle {
 class CH_VEHICLE_API ChVehicleCosimTerrainNodeSCM : public ChVehicleCosimTerrainNodeChrono {
   public:
     /// Create an SCM terrain node. Note that no SCM parameters are set.
-    ChVehicleCosimTerrainNodeSCM(unsigned int num_tires);
+    ChVehicleCosimTerrainNodeSCM(double length, double width, unsigned int num_tires);
 
     /// Create an SCM terrain node using parameters from the provided JSON specfile.
     ChVehicleCosimTerrainNodeSCM(const std::string& specfile, unsigned int num_tires);
@@ -78,7 +78,7 @@ class CH_VEHICLE_API ChVehicleCosimTerrainNodeSCM : public ChVehicleCosimTerrain
     void SetProxyContactRadius(double radius) { m_radius_p = radius; }
 
     /// Initialize SCM terrain from the specified checkpoint file (which must exist in the output directory).
-    /// By default, a flat rectangular SCM terrain patch is used. 
+    /// By default, a flat rectangular SCM terrain patch is used.
     void SetInputFromCheckpoint(const std::string& filename);
 
     /// Write checkpoint to the specified file (which will be created in the output directory).
@@ -88,7 +88,7 @@ class CH_VEHICLE_API ChVehicleCosimTerrainNodeSCM : public ChVehicleCosimTerrain
     ChSystem* m_system;               ///< containing system
     SCMDeformableTerrain* m_terrain;  ///< SCM terrain
 #ifdef CHRONO_IRRLICHT
-    irrlicht::ChIrrApp* m_irrapp;     ///< Irrlicht run-time visualizatino
+    irrlicht::ChIrrApp* m_irrapp;  ///< Irrlicht run-time visualization
 #endif
 
     double m_spacing;        ///< SCM grid spacing

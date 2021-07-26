@@ -69,6 +69,7 @@ class CH_VEHICLE_API ChVehicleCosimBaseNode {
 
     virtual ~ChVehicleCosimBaseNode() {}
 
+    /// Return the node type.
     virtual NodeType GetNodeType() const = 0;
 
     /// Get the terrain MPI intracommunicator.

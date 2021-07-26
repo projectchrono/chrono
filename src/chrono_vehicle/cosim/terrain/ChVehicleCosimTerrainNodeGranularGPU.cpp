@@ -50,8 +50,10 @@ const double EXTRA_HEIGHT = 1.0;
 
 // -----------------------------------------------------------------------------
 
-ChVehicleCosimTerrainNodeGranularGPU::ChVehicleCosimTerrainNodeGranularGPU(unsigned int num_tires)
-    : ChVehicleCosimTerrainNodeChrono(Type::GRANULAR_GPU, ChContactMethod::SMC, num_tires),
+ChVehicleCosimTerrainNodeGranularGPU::ChVehicleCosimTerrainNodeGranularGPU(double length,
+                                                                           double width,
+                                                                           unsigned int num_tires)
+    : ChVehicleCosimTerrainNodeChrono(Type::GRANULAR_GPU, length, width, ChContactMethod::SMC, num_tires),
       m_sampling_type(utils::SamplingType::POISSON_DISK),
       m_init_depth(0.2),
       m_separation_factor(1.001),
@@ -81,14 +83,14 @@ ChVehicleCosimTerrainNodeGranularGPU::ChVehicleCosimTerrainNodeGranularGPU(unsig
     m_systemGPU = nullptr;
 }
 
-ChVehicleCosimTerrainNodeGranularGPU::ChVehicleCosimTerrainNodeGranularGPU(const std::string& specfile, unsigned int num_tires)
-    : ChVehicleCosimTerrainNodeChrono(Type::GRANULAR_GPU, ChContactMethod::SMC, num_tires),
+ChVehicleCosimTerrainNodeGranularGPU::ChVehicleCosimTerrainNodeGranularGPU(const std::string& specfile,
+                                                                           unsigned int num_tires)
+    : ChVehicleCosimTerrainNodeChrono(Type::GRANULAR_GPU, 0, 0, ChContactMethod::SMC, num_tires),
       m_constructed(false),
       m_use_checkpoint(false),
       m_settling_output(false),
       m_settling_fps(100),
       m_num_particles(0) {
-
     // Default granular system settings
     m_integrator_type = gpu::CHGPU_TIME_INTEGRATOR::CENTERED_DIFFERENCE;
     m_tangential_model = gpu::CHGPU_FRICTION_MODE::MULTI_STEP;
@@ -118,7 +120,8 @@ void ChVehicleCosimTerrainNodeGranularGPU::SetFromSpecfile(const std::string& sp
 
     double length = d["Patch dimensions"]["Length"].GetDouble();
     double width = d["Patch dimensions"]["Width"].GetDouble();
-    SetPatchDimensions(length, width);
+    m_hdimX = length / 2;
+    m_hdimY = width / 2;
 
     m_radius_g = d["Granular material"]["Radius"].GetDouble();
     m_rho_g = d["Granular material"]["Density"].GetDouble();
@@ -634,7 +637,7 @@ void ChVehicleCosimTerrainNodeGranularGPU::CreateWheelProxy(unsigned int i) {
 
 // Set state of wheel proxy body.
 void ChVehicleCosimTerrainNodeGranularGPU::UpdateWheelProxy(unsigned int i, const BodyState& spindle_state) {
-    auto& proxies = m_proxies[i]; // proxies for the i-th tire
+    auto& proxies = m_proxies[i];  // proxies for the i-th tire
 
     proxies[0].m_body->SetPos(spindle_state.pos);
     proxies[0].m_body->SetPos_dt(spindle_state.lin_vel);

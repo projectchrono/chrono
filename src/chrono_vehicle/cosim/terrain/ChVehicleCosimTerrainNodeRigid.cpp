@@ -48,8 +48,11 @@ namespace vehicle {
 // - create the Chrono system and set solver parameters
 // - create the OpenGL visualization window
 // -----------------------------------------------------------------------------
-ChVehicleCosimTerrainNodeRigid::ChVehicleCosimTerrainNodeRigid(ChContactMethod method, unsigned int num_tires)
-    : ChVehicleCosimTerrainNodeChrono(Type::RIGID, method, num_tires), m_radius_p(0.01) {
+ChVehicleCosimTerrainNodeRigid::ChVehicleCosimTerrainNodeRigid(double length,
+                                                               double width,
+                                                               ChContactMethod method,
+                                                               unsigned int num_tires)
+    : ChVehicleCosimTerrainNodeChrono(Type::RIGID, length, width, method, num_tires), m_radius_p(0.01) {
     // Create system and set default method-specific solver settings
     switch (m_method) {
         case ChContactMethod::SMC: {
@@ -85,7 +88,7 @@ ChVehicleCosimTerrainNodeRigid::ChVehicleCosimTerrainNodeRigid(ChContactMethod m
 ChVehicleCosimTerrainNodeRigid::ChVehicleCosimTerrainNodeRigid(ChContactMethod method,
                                                                const std::string& specfile,
                                                                unsigned int num_tires)
-    : ChVehicleCosimTerrainNodeChrono(Type::RIGID, method, num_tires) {
+    : ChVehicleCosimTerrainNodeChrono(Type::RIGID, 0, 0, method, num_tires) {
     // Create system and set default method-specific solver settings
     switch (m_method) {
         case ChContactMethod::SMC: {
@@ -134,7 +137,8 @@ void ChVehicleCosimTerrainNodeRigid::SetFromSpecfile(const std::string& specfile
 
     double length = d["Patch dimensions"]["Length"].GetDouble();
     double width = d["Patch dimensions"]["Width"].GetDouble();
-    SetPatchDimensions(length, width);
+    m_hdimX = length / 2;
+    m_hdimY = width / 2;
 
     switch (GetSystem()->GetContactMethod()) {
         case ChContactMethod::SMC: {
@@ -205,7 +209,7 @@ void ChVehicleCosimTerrainNodeRigid::SetMaterialSurface(const std::shared_ptr<Ch
 // Complete construction of the mechanical system.
 // This function is invoked automatically from Initialize.
 // - adjust system settings
-// - create the container body
+// - create the container body so that the top surface is at m_init_height = 0
 // - if specified, create the granular material
 // -----------------------------------------------------------------------------
 void ChVehicleCosimTerrainNodeRigid::Construct() {
