@@ -42,6 +42,9 @@ class CH_VEHICLE_API ChVehicleCosimTireNodeRigid : public ChVehicleCosimTireNode
     ChVehicleCosimTireNodeRigid(int index);
     ~ChVehicleCosimTireNodeRigid() {}
 
+    /// Return the tire type.
+    virtual TireType GetTireType() const { return TireType::RIGID; }
+
     /// Advance simulation.
     /// A rigid tire node need not advance dynamics.
     virtual void Advance(double step_size) override final {}

@@ -30,17 +30,19 @@
 #include "chrono_thirdparty/cxxopts/ChCLI.h"
 #include "chrono_thirdparty/filesystem/path.h"
 
-#include "chrono_vehicle/cosim/ChVehicleCosimRigNode.h"
-#include "chrono_vehicle/cosim/ChVehicleCosimTerrainNodeSCM.h"
+#include "chrono_vehicle/cosim/mbs/ChVehicleCosimRigNode.h"
+#include "chrono_vehicle/cosim/tire/ChVehicleCosimTireNodeRigid.h"
+#include "chrono_vehicle/cosim/tire/ChVehicleCosimTireNodeFlexible.h"
+#include "chrono_vehicle/cosim/terrain/ChVehicleCosimTerrainNodeSCM.h"
 #ifdef CHRONO_MULTICORE
-    #include "chrono_vehicle/cosim/ChVehicleCosimTerrainNodeRigid.h"
-    #include "chrono_vehicle/cosim/ChVehicleCosimTerrainNodeGranularOMP.h"
+    #include "chrono_vehicle/cosim/terrain/ChVehicleCosimTerrainNodeRigid.h"
+    #include "chrono_vehicle/cosim/terrain/ChVehicleCosimTerrainNodeGranularOMP.h"
 #endif
 #ifdef CHRONO_FSI
-    #include "chrono_vehicle/cosim/ChVehicleCosimTerrainNodeGranularSPH.h"
+    #include "chrono_vehicle/cosim/terrain/ChVehicleCosimTerrainNodeGranularSPH.h"
 #endif
 #ifdef CHRONO_GPU
-    #include "chrono_vehicle/cosim/ChVehicleCosimTerrainNodeGranularGPU.h"
+    #include "chrono_vehicle/cosim/terrain/ChVehicleCosimTerrainNodeGranularGPU.h"
 #endif
 
 using std::cout;
@@ -58,7 +60,7 @@ bool GetProblemSpecs(int argc,
                      int rank,
                      std::string& terrain_specfile,
                      std::string& tire_specfile,
-                     int& nthreads_rig,
+                     int& nthreads_tire,
                      int& nthreads_terrain,
                      double& step_size,
                      bool& fixed_settling_time,
@@ -103,9 +105,9 @@ int main(int argc, char** argv) {
     MPI_Barrier(MPI_COMM_WORLD);
 #endif
 
-    if (num_procs != 2) {
+    if (num_procs != 3) {
         if (rank == 0)
-            std::cout << "\n\nSingle wheel cosimulation code must be run on exactly 2 ranks!\n\n" << std::endl;
+            std::cout << "\n\nSingle wheel cosimulation code must be run on exactly 3 ranks!\n\n" << std::endl;
         MPI_Abort(MPI_COMM_WORLD, 1);
         return 1;
     }
@@ -114,7 +116,7 @@ int main(int argc, char** argv) {
     std::string terrain_specfile;
     std::string tire_specfile;
     ChVehicleCosimRigNode::ActuationType act_type = ChVehicleCosimRigNode::ActuationType::SET_ANG_VEL;
-    int nthreads_rig = 1;
+    int nthreads_tire = 1;
     int nthreads_terrain = 1;
     double step_size = 1e-4;
     bool fixed_settling_time = true;
@@ -134,17 +136,17 @@ int main(int argc, char** argv) {
     double dbp_filter_window = 0.1;
     std::string suffix = "";
     bool verbose = true;
-    if (!GetProblemSpecs(argc, argv, rank, terrain_specfile, tire_specfile, nthreads_rig, nthreads_terrain, step_size,
-                         fixed_settling_time, KE_threshold, settling_time, sim_time, act_type, base_vel, slip, total_mass, toe_angle, dbp_filter_window,
-                         use_checkpoint, output_fps, render_fps, sim_output, settling_output, render, verbose,
-                         suffix)) {
+    if (!GetProblemSpecs(argc, argv, rank, terrain_specfile, tire_specfile, nthreads_tire, nthreads_terrain, step_size,
+                         fixed_settling_time, KE_threshold, settling_time, sim_time, act_type, base_vel, slip,
+                         total_mass, toe_angle, dbp_filter_window, use_checkpoint, output_fps, render_fps, sim_output,
+                         settling_output, render, verbose, suffix)) {
         MPI_Finalize();
         return 1;
     }
 
     // Peek in spec file and extract tire type
-    auto tire_type = ChVehicleCosimRigNode::GetTireTypeFromSpecfile(tire_specfile);
-    if (tire_type == ChVehicleCosimRigNode::TireType::UNKNOWN) {
+    auto tire_type = ChVehicleCosimTireNode::GetTireTypeFromSpecfile(tire_specfile);
+    if (tire_type == ChVehicleCosimTireNode::TireType::UNKNOWN) {
         MPI_Finalize();
         return 1;
     }
@@ -185,8 +187,8 @@ int main(int argc, char** argv) {
 
     // Prepare output directory.
     std::string out_dir_top = GetChronoOutputPath() + "RIG_COSIM";
-    std::string out_dir = out_dir_top + "/" +                                            //
-                          ChVehicleCosimRigNode::GetTireTypeAsString(tire_type) + "_" +  //
+    std::string out_dir = out_dir_top + "/" +                                             //
+                          ChVehicleCosimTireNode::GetTireTypeAsString(tire_type) + "_" +  //
                           ChVehicleCosimTerrainNodeChrono::GetTypeAsString(terrain_type);
     if (rank == 0) {
         if (!filesystem::create_directory(filesystem::path(out_dir_top))) {
@@ -213,45 +215,50 @@ int main(int argc, char** argv) {
         if (verbose)
             cout << "[Rig node    ] rank = " << rank << " running on: " << procname << endl;
 
-        switch (tire_type) {
-            case ChVehicleCosimRigNode::TireType::RIGID: {
-                auto rig = new ChVehicleCosimRigNodeRigidTire(act_type, base_vel, slip);
-                rig->SetVerbose(verbose);
-                rig->SetStepSize(step_size);
-                rig->SetNumThreads(nthreads_rig);
-                rig->SetOutDir(out_dir, suffix);
-                if (verbose)
-                    cout << "[Rig node    ] output directory: " << rig->GetOutDirName() << endl;
+        auto rig = new ChVehicleCosimRigNode(act_type, base_vel, slip);
+        rig->SetVerbose(verbose);
+        rig->SetStepSize(step_size);
+        rig->SetNumThreads(1);
+        rig->SetTotalMass(total_mass);
+        rig->SetDBPfilterWindow(dbp_filter_window);
+        rig->SetOutDir(out_dir, suffix);
+        if (verbose)
+            cout << "[Rig node    ] output directory: " << rig->GetOutDirName() << endl;
 
-                rig->SetTireFromSpecfile(tire_specfile);
-                rig->SetTotalMass(total_mass);
-                rig->SetDBPfilterWindow(dbp_filter_window);
-
-                node = rig;
-                break;
-            }
-
-            case ChVehicleCosimRigNode::TireType::FLEXIBLE: {
-                auto rig = new ChVehicleCosimRigNodeFlexibleTire(act_type, base_vel, slip);
-                rig->SetVerbose(verbose);
-                rig->SetStepSize(step_size);
-                rig->SetNumThreads(nthreads_rig);
-                rig->SetOutDir(out_dir, suffix);
-                if (verbose)
-                    cout << "[Rig node    ] output directory: " << rig->GetOutDirName() << endl;
-
-                rig->SetTireFromSpecfile(tire_specfile);
-                rig->SetTotalMass(total_mass);
-                rig->EnableTirePressure(true);
-                rig->SetDBPfilterWindow(dbp_filter_window);
-
-                node = rig;
-                break;
-            }
-
-        }  // switch terrain_type
+        node = rig;
 
     }  // if RIG_NODE_RANK
+
+    if (rank == TIRE_NODE_RANK(0)) {
+        if (verbose)
+            cout << "[Tire node   ] rank = " << rank << " running on: " << procname << endl;
+        switch (tire_type) {
+            case ChVehicleCosimTireNode::TireType::RIGID: {
+                auto tire = new ChVehicleCosimTireNodeRigid(0);
+                tire->SetTireFromSpecfile(tire_specfile);
+                tire->SetVerbose(verbose);
+                tire->SetStepSize(step_size);
+                tire->SetNumThreads(1);
+                tire->SetOutDir(out_dir, suffix);
+
+                node = tire;
+                break;
+            }
+            case ChVehicleCosimTireNode::TireType::FLEXIBLE: {
+                auto tire = new ChVehicleCosimTireNodeFlexible(0);
+                tire->SetTireFromSpecfile(tire_specfile);
+                tire->EnableTirePressure(true);
+                tire->SetVerbose(verbose);
+                tire->SetStepSize(step_size);
+                tire->SetNumThreads(nthreads_tire);
+                tire->SetOutDir(out_dir, suffix);
+
+                node = tire;
+                break;
+            }
+        }
+
+    }  // if TIRE_NODE_RANK
 
     if (rank == TERRAIN_NODE_RANK) {
         if (verbose)
@@ -417,7 +424,7 @@ bool GetProblemSpecs(int argc,
                      int rank,
                      std::string& terrain_specfile,
                      std::string& tire_specfile,
-                     int& nthreads_rig,
+                     int& nthreads_tire,
                      int& nthreads_terrain,
                      double& step_size,
                      bool& fixed_settling_time,
@@ -459,8 +466,8 @@ bool GetProblemSpecs(int argc,
                           std::to_string(sim_time));
     cli.AddOption<double>("Simulation", "step_size", "Integration step size [s]", std::to_string(step_size));
 
-    cli.AddOption<int>("Simulation", "threads_rig", "Number of OpenMP threads for the rig node",
-                       std::to_string(nthreads_rig));
+    cli.AddOption<int>("Simulation", "threads_tire", "Number of OpenMP threads for the tire node",
+                       std::to_string(nthreads_tire));
     cli.AddOption<int>("Simulation", "threads_terrain", "Number of OpenMP threads for the terrain node",
                        std::to_string(nthreads_terrain));
 
@@ -549,7 +556,7 @@ bool GetProblemSpecs(int argc,
 
     use_checkpoint = cli.GetAsType<bool>("use_checkpoint");
 
-    nthreads_rig = cli.GetAsType<int>("threads_rig");
+    nthreads_tire = cli.GetAsType<int>("threads_tire");
     nthreads_terrain = cli.GetAsType<int>("threads_terrain");
 
     suffix = cli.GetAsType<std::string>("suffix");

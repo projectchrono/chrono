@@ -35,8 +35,13 @@
 
 #include "chrono_vehicle/cosim/ChVehicleCosimTireNode.h"
 
+#include "chrono_thirdparty/rapidjson/filereadstream.h"
+#include "chrono_thirdparty/rapidjson/istreamwrapper.h"
+
 using std::cout;
 using std::endl;
+
+using namespace rapidjson;
 
 namespace chrono {
 namespace vehicle {
@@ -71,6 +76,70 @@ ChVehicleCosimTireNode::ChVehicleCosimTireNode(int index)
     m_system = new ChSystemSMC;
     m_system->Set_G_acc(ChVector<>(0, 0, m_gacc));
 }
+
+// -----------------------------------------------------------------------------
+
+std::string ChVehicleCosimTireNode::GetTireTypeAsString(TireType type) {
+    switch (type) {
+        case TireType::RIGID:
+            return "RIGID";
+        case TireType::FLEXIBLE:
+            return "FLEXIBLE";
+        default:
+            return "UNKNOWN";
+    }
+}
+
+ChVehicleCosimTireNode::TireType ChVehicleCosimTireNode::GetTireTypeFromString(const std::string& type) {
+    if (type == "RIGID")
+        return TireType::RIGID;
+    if (type == "FLEXIBLE")
+        return TireType::FLEXIBLE;
+
+    return TireType::UNKNOWN;
+}
+
+bool ChVehicleCosimTireNode::ReadSpecfile(const std::string& specfile, Document& d) {
+    std::ifstream ifs(specfile);
+    if (!ifs.good()) {
+        cout << "ERROR: Could not open JSON file: " << specfile << "\n" << endl;
+        return false;
+    }
+
+    IStreamWrapper isw(ifs);
+    d.ParseStream<ParseFlag::kParseCommentsFlag>(isw);
+    if (d.IsNull()) {
+        cout << "ERROR: Invalid JSON file: " << specfile << "\n" << endl;
+        return false;
+    }
+
+    return true;
+}
+
+ChVehicleCosimTireNode::TireType ChVehicleCosimTireNode::GetTireTypeFromSpecfile(const std::string& specfile) {
+    Document d;
+    if (!ReadSpecfile(specfile, d)) {
+        return TireType::UNKNOWN;
+    }
+
+    if (!d.HasMember("Type") || std::string(d["Type"].GetString()).compare("Tire") != 0) {
+        cout << "ERROR: JSON file " << specfile << " is not a tire JSON specification file!\n" << endl;
+        return TireType::UNKNOWN;
+    }
+
+    std::string tire_template = d["Template"].GetString();
+    if (tire_template.compare("RigidTire") == 0) {
+        if (d.HasMember("Contact Mesh"))
+            return TireType::RIGID;
+    }
+    if (tire_template.compare("ANCFTire") == 0 || tire_template.compare("ReissnerTire") == 0) {
+        return TireType::FLEXIBLE;
+    }
+
+    return TireType::UNKNOWN;
+}
+
+// -----------------------------------------------------------------------------
 
 void ChVehicleCosimTireNode::SetTireFromSpecfile(const std::string& filename) {
     m_tire_json = filename;

@@ -94,10 +94,9 @@ void ChVehicleCosimMBSNode::SetIntegratorType(ChTimestepper::Type int_type, ChSo
 // -----------------------------------------------------------------------------
 // Initialization of the MBS node:
 // - receive terrain height and dimensions
+// - receive tire mass and radius
 // - construct and initialize MBS
-// - send tire mesh data (vertices, normals, and triangles)
 // - send load mass on each wheel
-// - send information on tire contact material
 // -----------------------------------------------------------------------------
 void ChVehicleCosimMBSNode::Initialize() {
     // Invoke the base class method to figure out distribution of node types
@@ -120,7 +119,7 @@ void ChVehicleCosimMBSNode::Initialize() {
     double terrain_height = init_dim[0];
     ChVector2<> terrain_size(init_dim[1], init_dim[2]);
 
-    // For each tire, receive the tire mass and radius
+    // For each TIRE, receive the tire mass and radius
     std::vector<ChVector2<>> tire_info;
 
     for (unsigned int i = 0; i < m_num_tires; i++) {
@@ -134,7 +133,7 @@ void ChVehicleCosimMBSNode::Initialize() {
 
     // For each tire:
     // - cache the spindle body
-    // - get the load on the wheel and send to tire node
+    // - get the load on the wheel and send to TIRE node
     for (unsigned int i = 0; i < m_num_tires; i++) {
         m_spindles[i] = GetSpindleBody(i);
         double load = GetSpindleLoad(i);

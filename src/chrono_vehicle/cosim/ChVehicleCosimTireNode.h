@@ -37,10 +37,32 @@ namespace vehicle {
 /// Base class for all tire nodes.
 class CH_VEHICLE_API ChVehicleCosimTireNode : public ChVehicleCosimBaseNode {
   public:
+    /// Tire type.
+    enum class TireType {
+        RIGID,     ///< rigid tire
+        FLEXIBLE,  ///< flexible tire
+        UNKNOWN    ///< unknown tire type
+    };
+
     virtual ~ChVehicleCosimTireNode() {}
 
     /// Return the node type as NodeType::TIRE.
-    virtual NodeType GetNodeType() const override { return NodeType::TIRE; }
+    virtual NodeType GetNodeType() const override final { return NodeType::TIRE; }
+
+    /// Return the tire type.
+    virtual TireType GetTireType() const = 0;
+
+    /// Return a string describing the tire type.
+    static std::string GetTireTypeAsString(TireType type);
+
+    /// Infer the tire type from the given string.
+    static TireType GetTireTypeFromString(const std::string& type);
+
+    /// Read a JSON specification file for a tire.
+    static bool ReadSpecfile(const std::string& specfile, rapidjson::Document& d);
+
+    /// Get the tire type from the given JSON specification file.
+    static TireType GetTireTypeFromSpecfile(const std::string& specfile);
 
     /// Specify the tire JSON specification file name.
     void SetTireFromSpecfile(const std::string& filename);
