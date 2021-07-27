@@ -70,9 +70,9 @@ class CH_VEHICLE_API ChVehicleCosimVehicleNode : public ChVehicleCosimMBSNode {
 
   private:
     /// Initialize the vehicle MBS and any associated subsystems.
-    virtual void InitializeMBS(const std::vector<ChVector2<>>& tire_info,  ///< mass and radius for each tire
-                               const ChVector2<>& terrain_size,            ///< terrain length x width
-                               double terrain_height                       ///< initial terrain height
+    virtual void InitializeMBS(const std::vector<ChVector<>>& tire_info,  ///< mass, radius, width for each tire
+                               const ChVector2<>& terrain_size,           ///< terrain length x width
+                               double terrain_height                      ///< initial terrain height
                                ) override;
 
     /// Perform vehicle system synchronization before advancing the dynamics.
@@ -94,10 +94,11 @@ class CH_VEHICLE_API ChVehicleCosimVehicleNode : public ChVehicleCosimMBSNode {
     /// ChTire subsystem, needed to pass the terrain contact forces back to the vehicle wheels.
     class DummyTire : public ChTire {
       public:
-        DummyTire(int index, double mass, double radius)
+        DummyTire(int index, double mass, double radius, double width)
             : ChTire("dummy_tire"), m_index(index), m_mass(mass), m_radius(radius) {}
         virtual std::string GetTemplateName() const override { return "dummy_tire"; }
-        virtual double GetRadius() const override { return m_mass; }
+        virtual double GetRadius() const override { return m_radius; }
+        virtual double GetWidth() const override { return m_width; }
         virtual double GetMass() const override { return m_mass; }
         virtual ChVector<> GetInertia() const override { return ChVector<>(0.1, 0.1, 0.1); }
         virtual TerrainForce ReportTireForce(ChTerrain* terrain) const override { return m_force; }
@@ -106,6 +107,7 @@ class CH_VEHICLE_API ChVehicleCosimVehicleNode : public ChVehicleCosimMBSNode {
         int m_index;
         double m_mass;
         double m_radius;
+        double m_width;
         TerrainForce m_force;
     };
 

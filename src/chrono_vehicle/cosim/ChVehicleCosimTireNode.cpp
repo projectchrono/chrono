@@ -191,8 +191,9 @@ void ChVehicleCosimTireNode::Initialize() {
     // Send the tire radius and mass to the MBS node
     double tire_mass = GetTireMass();
     double tire_radius = GetTireRadius();
-    double tire_info[] = {tire_mass, tire_radius};
-    MPI_Send(tire_info, 2, MPI_DOUBLE, MBS_NODE_RANK, 0, MPI_COMM_WORLD);
+    double tire_width = GetTireWidth();
+    double tire_info[] = {tire_mass, tire_radius, tire_width};
+    MPI_Send(tire_info, 3, MPI_DOUBLE, MBS_NODE_RANK, 0, MPI_COMM_WORLD);
 
     // Receive from the MBS node the load on this tire
     double load_mass;
@@ -210,8 +211,8 @@ void ChVehicleCosimTireNode::Initialize() {
         MPI_Send(&interface_type, 1, MPI_CHAR, TERRAIN_NODE_RANK, 0, MPI_COMM_WORLD);
     }
 
-    // Send tire radius, mesh info, tire load, and contact material
-    MPI_Send(&tire_radius, 1, MPI_DOUBLE, TERRAIN_NODE_RANK, 0, MPI_COMM_WORLD);
+    // Send tire info (mass, radius, width), then mesh info, tire load, and contact material to TERRAIN node
+    MPI_Send(tire_info, 3, MPI_DOUBLE, TERRAIN_NODE_RANK, 0, MPI_COMM_WORLD);
 
     unsigned int surf_props[] = {m_mesh_data.nv, m_mesh_data.nn, m_mesh_data.nt};
     MPI_Send(surf_props, 3, MPI_UNSIGNED, TERRAIN_NODE_RANK, 0, MPI_COMM_WORLD);

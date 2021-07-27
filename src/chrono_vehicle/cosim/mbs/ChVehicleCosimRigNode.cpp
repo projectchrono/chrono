@@ -110,7 +110,7 @@ ChVehicleCosimRigNode::ActuationType ChVehicleCosimRigNode::GetActuationTypeFrom
 
 // -----------------------------------------------------------------------------
 
-void ChVehicleCosimRigNode::InitializeMBS(const std::vector<ChVector2<>>& tire_info,
+void ChVehicleCosimRigNode::InitializeMBS(const std::vector<ChVector<>>& tire_info,
                                           const ChVector2<>& terrain_size,
                                           double terrain_height) {
     if (m_verbose)
@@ -121,6 +121,7 @@ void ChVehicleCosimRigNode::InitializeMBS(const std::vector<ChVector2<>>& tire_i
     assert(tire_info.size() == 1);
     double tire_mass = tire_info[0].x();
     double tire_radius = tire_info[0].y();
+    double tire_width = tire_info[0].z();
 
     // Calculate initial rig location and set linear velocity of all rig bodies
     ChVector<> origin(-terrain_size.x() / 2 + 1.5 * tire_radius, 0, terrain_height + tire_radius);

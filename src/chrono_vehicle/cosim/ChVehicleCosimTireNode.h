@@ -109,6 +109,9 @@ class CH_VEHICLE_API ChVehicleCosimTireNode : public ChVehicleCosimBaseNode {
     /// Return the tire radius.
     virtual double GetTireRadius() const = 0;
 
+    /// Return the tire width.
+    virtual double GetTireWidth() const = 0;
+
     /// Initialize the tire by attaching it to the provided ChWheel.
     /// A derived class must load m_contact_mat and m_mesh_data.
     virtual void InitializeTire(std::shared_ptr<ChWheel>) = 0;

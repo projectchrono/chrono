@@ -80,9 +80,9 @@ class CH_VEHICLE_API ChVehicleCosimRigNode : public ChVehicleCosimMBSNode {
     virtual void OutputData(int frame) override final;
 
   private:
-    virtual void InitializeMBS(const std::vector<ChVector2<>>& tire_info,  ///< mass and radius for each tire
-                               const ChVector2<>& terrain_size,            ///< terrain length x width
-                               double terrain_height                       ///< initial terrain height
+    virtual void InitializeMBS(const std::vector<ChVector<>>& tire_info,  ///< mass, radius, width for each tire
+                               const ChVector2<>& terrain_size,           ///< terrain length x width
+                               double terrain_height                      ///< initial terrain height
                                ) override;
 
     virtual void ApplySpindleForce(unsigned int i, const TerrainForce& spindle_force) override;

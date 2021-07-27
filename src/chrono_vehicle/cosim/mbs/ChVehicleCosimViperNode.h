@@ -66,9 +66,9 @@ class CH_VEHICLE_API ChVehicleCosimViperNode : public ChVehicleCosimMBSNode {
 
   private:
     /// Initialize the vehicle MBS and any associated subsystems.
-    virtual void InitializeMBS(const std::vector<ChVector2<>>& tire_info,  ///< mass and radius for each tire
-                               const ChVector2<>& terrain_size,            ///< terrain length x width
-                               double terrain_height                       ///< initial terrain height
+    virtual void InitializeMBS(const std::vector<ChVector<>>& tire_info,  ///< mass, radius, width for each tire
+                               const ChVector2<>& terrain_size,           ///< terrain length x width
+                               double terrain_height                      ///< initial terrain height
                                ) override;
 
     /// Process the provided spindle force (received from the corresponding tire node).

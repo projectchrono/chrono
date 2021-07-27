@@ -50,7 +50,7 @@ ChVehicleCosimVehicleNode::~ChVehicleCosimVehicleNode() {}
 
 // -----------------------------------------------------------------------------
 
-void ChVehicleCosimVehicleNode::InitializeMBS(const std::vector<ChVector2<>>& tire_info,
+void ChVehicleCosimVehicleNode::InitializeMBS(const std::vector<ChVector<>>& tire_info,
                                               const ChVector2<>& terrain_size,
                                               double terrain_height) {
     // Initialize vehicle
@@ -69,7 +69,8 @@ void ChVehicleCosimVehicleNode::InitializeMBS(const std::vector<ChVector2<>>& ti
     int itire = 0;
     for (auto& axle : m_vehicle->GetAxles()) {
         for (auto& wheel : axle->GetWheels()) {
-            auto tire = chrono_types::make_shared<DummyTire>(itire, tire_info[itire].x(), tire_info[itire].y());
+            auto tire = chrono_types::make_shared<DummyTire>(itire, tire_info[itire].x(), tire_info[itire].y(),
+                                                             tire_info[itire].z());
             m_vehicle->InitializeTire(tire, wheel, VisualizationType::NONE);
             m_tires.push_back(tire);
             itire++;

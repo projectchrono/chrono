@@ -73,9 +73,9 @@ class CH_VEHICLE_API ChVehicleCosimMBSNode : public ChVehicleCosimBaseNode {
     ChVehicleCosimMBSNode();
 
     /// Initialize the underlying MBS
-    virtual void InitializeMBS(const std::vector<ChVector2<>>& tire_info,  ///< mass and radius for each tire
-                               const ChVector2<>& terrain_size,            ///< terrain length x width
-                               double terrain_height                       ///< initial terrain height
+    virtual void InitializeMBS(const std::vector<ChVector<>>& tire_info,  ///< mass, radius, width for each tire
+                               const ChVector2<>& terrain_size,           ///< terrain length x width
+                               double terrain_height                      ///< initial terrain height
                                ) = 0;
 
     /// Perform any required operations before advancing the state of the MBS.

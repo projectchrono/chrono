@@ -49,7 +49,7 @@ ChVehicleCosimViperNode::~ChVehicleCosimViperNode() {}
 
 // -----------------------------------------------------------------------------
 
-void ChVehicleCosimViperNode::InitializeMBS(const std::vector<ChVector2<>>& tire_info,
+void ChVehicleCosimViperNode::InitializeMBS(const std::vector<ChVector<>>& tire_info,
                                             const ChVector2<>& terrain_size,
                                             double terrain_height) {
     // Initialize vehicle

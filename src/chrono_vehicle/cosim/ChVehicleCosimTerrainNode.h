@@ -98,6 +98,7 @@ class CH_VEHICLE_API ChVehicleCosimTerrainNode : public ChVehicleCosimBaseNode {
     /// required proxies for the specified number of tires. A derived class has access to the following vectors (of size
     /// equal to the number of tires):
     /// - radius for each tire (through m_tire_radius)
+    /// - width for each tire (through m_tire_width)
     /// - mesh information for each tire (through m_mesh_data)
     /// - contact material for each tire (through m_mat_props)
     /// - vertical load on each tire (through m_load_mass)
@@ -157,7 +158,8 @@ class CH_VEHICLE_API ChVehicleCosimTerrainNode : public ChVehicleCosimBaseNode {
 
     InterfaceType m_interface_type;  ///< type of communication interface
 
-    std::vector<double> m_tire_radius;      ///< tire radius-
+    std::vector<double> m_tire_radius;      ///< tire radius
+    std::vector<double> m_tire_width;       ///< tire width
     std::vector<double> m_load_mass;        ///< vertical load on tire
     std::vector<MaterialInfo> m_mat_props;  ///< tire contact material properties
     std::vector<MeshData> m_mesh_data;      ///< tire mesh data

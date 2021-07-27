@@ -66,6 +66,9 @@ class CH_VEHICLE_API ChVehicleCosimTireNodeFlexible : public ChVehicleCosimTireN
     /// Return the tire radius.
     virtual double GetTireRadius() const override { return m_tire->GetRadius(); }
 
+    /// Return the tire width.
+    virtual double GetTireWidth() const override { return m_tire->GetWidth(); }
+
     /// Initialize the tire by attaching it to the provided ChWheel.
     virtual void InitializeTire(std::shared_ptr<ChWheel> wheel) override;
 

@@ -119,12 +119,12 @@ void ChVehicleCosimMBSNode::Initialize() {
     ChVector2<> terrain_size(init_dim[1], init_dim[2]);
 
     // For each TIRE, receive the tire mass and radius
-    std::vector<ChVector2<>> tire_info;
+    std::vector<ChVector<>> tire_info;
 
     for (unsigned int i = 0; i < m_num_tire_nodes; i++) {
-        double tmp[2];
-        MPI_Recv(tmp, 2, MPI_DOUBLE, TIRE_NODE_RANK(i), 0, MPI_COMM_WORLD, &status);
-        tire_info.push_back(ChVector2<>(tmp[0], tmp[1]));
+        double tmp[3];
+        MPI_Recv(tmp, 3, MPI_DOUBLE, TIRE_NODE_RANK(i), 0, MPI_COMM_WORLD, &status);
+        tire_info.push_back(ChVector<>(tmp[0], tmp[1], tmp[2]));
     }
 
     // Let derived classes construct and initialize their multibody system

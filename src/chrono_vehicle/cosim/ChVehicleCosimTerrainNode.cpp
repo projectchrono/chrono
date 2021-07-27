@@ -74,6 +74,7 @@ void ChVehicleCosimTerrainNode::Initialize() {
     ChVehicleCosimBaseNode::Initialize();
 
     m_tire_radius.resize(m_num_tire_nodes);
+    m_tire_width.resize(m_num_tire_nodes);
     m_load_mass.resize(m_num_tire_nodes);
     m_mat_props.resize(m_num_tire_nodes);
     m_mesh_data.resize(m_num_tire_nodes);
@@ -117,7 +118,10 @@ void ChVehicleCosimTerrainNode::Initialize() {
 
     for (unsigned int i = 0; i < m_num_tire_nodes; i++) {
         // Tire radius
-        MPI_Recv(&m_tire_radius[i], 1, MPI_DOUBLE, TIRE_NODE_RANK(i), 0, MPI_COMM_WORLD, &status);
+        double tire_info[3];
+        MPI_Recv(tire_info, 3, MPI_DOUBLE, TIRE_NODE_RANK(i), 0, MPI_COMM_WORLD, &status);
+        m_tire_radius[i] = tire_info[1];
+        m_tire_width[i] = tire_info[2];
 
         // Tire contact surface specification
 

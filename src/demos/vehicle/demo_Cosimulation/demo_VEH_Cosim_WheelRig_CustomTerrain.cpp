@@ -152,10 +152,8 @@ void MyTerrain::OnInitialize(unsigned int num_tires) {
     auto mat_proxy = m_mat_props[0].CreateMaterial(ChContactMethod::SMC);
     m_body->SetCollide(true);
 
-    double width = 0.2;
-
     m_body->GetCollisionModel()->ClearModel();
-    utils::AddCylinderGeometry(m_body.get(), mat_proxy, m_tire_radius[0], width / 2);
+    utils::AddCylinderGeometry(m_body.get(), mat_proxy, m_tire_radius[0], m_tire_width[0] / 2);
     m_body->GetCollisionModel()->BuildModel();
 
     m_system->AddBody(m_body);
