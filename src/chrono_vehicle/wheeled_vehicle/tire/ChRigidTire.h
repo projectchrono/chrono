@@ -58,9 +58,6 @@ class CH_VEHICLE_API ChRigidTire : public ChTire {
     /// Check whether or not this tire uses a contact mesh.
     bool UseContactMesh() const { return m_use_contact_mesh; }
 
-    /// Get the tire width.
-    virtual double GetWidth() const = 0;
-
     /// Report the tire force and moment.
     /// This generalized force encapsulates the tire-terrain forces (i.e. the resultant
     /// of all contact forces acting on the tire). The force and moment are expressed
