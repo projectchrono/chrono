@@ -54,6 +54,8 @@ set(CV_COSIM_TERRAIN_FILES
 
 list(APPEND LIBRARIES ChronoModels_robot)
 set(LINKER_FLAGS "${CH_LINKERFLAG_SHARED}")
+set(INCLUDES "${CH_INCLUDES}")
+set(CXX_FLAGS "${CH_CXX_FLAGS}")
 
 if(ENABLE_MODULE_MULTICORE)
   set(CV_COSIM_TERRAIN_FILES ${CV_COSIM_TERRAIN_FILES}
@@ -62,7 +64,7 @@ if(ENABLE_MODULE_MULTICORE)
       terrain/ChVehicleCosimTerrainNodeGranularOMP.h
       terrain/ChVehicleCosimTerrainNodeGranularOMP.cpp)
   source_group("terrain" FILES)
-  include_directories(${CH_MULTICORE_INCLUDES})
+  set(INCLUDES "${INCLUDES};${CH_MULTICORE_INCLUDES}")
   set(CXX_FLAGS "${CXX_FLAGS} ${CH_MULTICORE_CXX_FLAGS}")
   list(APPEND LIBRARIES ChronoEngine_multicore)
 endif()
@@ -71,7 +73,7 @@ if(ENABLE_MODULE_FSI)
   set(CV_COSIM_TERRAIN_FILES ${CV_COSIM_TERRAIN_FILES}
       terrain/ChVehicleCosimTerrainNodeGranularSPH.h
       terrain/ChVehicleCosimTerrainNodeGranularSPH.cpp)
-  include_directories(${CH_FSI_INCLUDES})
+  set(INCLUDES "${INCLUDES};${CH_FSI_INCLUDES}")
   list(APPEND LIBRARIES ChronoEngine_fsi)
 endif()
 
@@ -79,13 +81,13 @@ if(ENABLE_MODULE_GPU)
   set(CV_COSIM_TERRAIN_FILES ${CV_COSIM_TERRAIN_FILES}
       terrain/ChVehicleCosimTerrainNodeGranularGPU.h
       terrain/ChVehicleCosimTerrainNodeGranularGPU.cpp)
-  include_directories(${CH_GPU_INCLUDES})
+  set(INCLUDES "${INCLUDES};${CH_GPU_INCLUDES}")
   set(CXX_FLAGS "${CXX_FLAGS} ${CH_GPU_CXX_FLAGS}")
   list(APPEND LIBRARIES ChronoEngine_gpu)
 endif()
 
 if(ENABLE_MODULE_PARDISO_MKL)
-  include_directories(${CH_MKL_INCLUDES})
+  set(INCLUDES "${INCLUDES};${CH_MKL_INCLUDES}")
   set(CXX_FLAGS "${CXX_FLAGS} ${CH_MKL_CXX_FLAGS}")
   set(LINKER_FLAGS "${LINKER_FLAGS} ${CH_MKL_LINK_FLAGS}")
   list(APPEND LIBRARIES ChronoEngine_pardisomkl)
@@ -93,17 +95,18 @@ endif()
 
 #if(ENABLE_MODULE_MUMPS)
 #  include_directories(${CH_MUMPS_INCLUDES})
+#  set(INCLUDES "${INCLUDES};${CH_MUMPS_INCLUDES}")
 #  list(APPEND LIBRARIES ChronoEngine_mumps)
 #endif()
 
 if(ENABLE_MODULE_IRRLICHT)
-  include_directories(${CH_IRRLICHTINC})
+  set(INCLUDES "${INCLUDES};${CH_IRRLICHTINC}")
   set(CXX_FLAGS "${CXX_FLAGS} ${CH_IRRLICHT_CXX_FLAGS}")
   list(APPEND LIBRARIES ChronoEngine_irrlicht)
 endif()
 
 if(ENABLE_MODULE_OPENGL)
-  include_directories(${CH_OPENGL_INCLUDES})
+  set(INCLUDES "${INCLUDES};${CH_OPENGL_INCLUDES}")
   list(APPEND LIBRARIES ChronoEngine_opengl)
   if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
      set(LINKER_FLAGS  "${LINKER_FLAGS} -framework IOKit -framework Cocoa -framework OpenGL")
@@ -111,11 +114,24 @@ if(ENABLE_MODULE_OPENGL)
 endif()
 
 if(ENABLE_MODULE_DISTRIBUTED)
-  include_directories(${CH_DISTRIBUTED_INCLUDES})
+  set(INCLUDES "${INCLUDES};${CH_DISTRIBUTED_INCLUDES}")
   list(APPEND LIBRARIES ChronoEngine_distributed)
   set(CXX_FLAGS "${CXX_FLAGS} ${CH_DISTRIBUTED_CXX_FLAGS}")
   set(LINKER_FLAGS "${LINKER_FLAGS} ${CH_DISTRIBUTED_LINK_FLAGS}")
 endif()
+
+# ------------------------------------------------------------------------------
+# Make some variables visible from parent directory (for use in demo CMakeLists files)
+
+unset(CH_VEHCOSIM_INCLUDES CACHE)
+unset(CH_VEHCOSIM_CXX_FLAGS CACHE)
+unset(CH_VEHCOSIM_LINKER_FLAGS CACHE)
+unset(CH_VEHCOSIM_LIBRARIES CACHE)
+
+set(CH_VEHCOSIM_INCLUDES "${INCLUDES}" CACHE INTERNAL "")
+set(CH_VEHCOSIM_CXX_FLAGS "${CXX_FLAGS}" CACHE INTERNAL "")
+set(CH_VEHCOSIM_LINKER_FLAGS "${LINKER_FLAGS}" CACHE INTERNAL "")
+set(CH_VEHCOSIM_LIBRARIES "${LIBRARIES}" CACHE INTERNAL "")
 
 # ------------------------------------------------------------------------------
 
@@ -130,16 +146,14 @@ source_group("terrain" FILES ${CV_COSIM_TERRAIN_FILES})
 
 message(STATUS "Add ChronoEngine_vehicle_cosim library")
 
-#message("VEH_COSIM:  CXX FLAGS: ${CXX_FLAGS}")
-#message("VEH_COSIM:  LNK FLAGS: ${LINKER_FLAGS}")
-#message("VEH_COSIM:  LIBRARIES: ${LIBRARIES}")
-
 add_library(ChronoEngine_vehicle_cosim SHARED
     ${CV_COSIM_FILES}
     ${CV_COSIM_MBS_FILES}
     ${CV_COSIM_TIRE_FILES}
     ${CV_COSIM_TERRAIN_FILES}
 )
+
+include_directories(${INCLUDES})
 
 set_target_properties(ChronoEngine_vehicle_cosim PROPERTIES
                       COMPILE_FLAGS "${CXX_FLAGS}"
