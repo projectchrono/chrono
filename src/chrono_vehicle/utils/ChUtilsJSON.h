@@ -104,7 +104,7 @@ CH_VEHICLE_API std::shared_ptr<ChTire> ReadTireJSON(const std::string& filename)
 // -----------------------------------------------------------------------------
 
 /// Load and return a track assembly from the specified JSON file.
-CH_VEHICLE_API std::shared_ptr<ChTrackAssembly> ReadTrackAssemblySON(const std::string& filename);
+CH_VEHICLE_API std::shared_ptr<ChTrackAssembly> ReadTrackAssemblyJSON(const std::string& filename);
 
 /// Load and return a track driveline from the specified JSON file.
 CH_VEHICLE_API std::shared_ptr<ChDrivelineTV> ReadDrivelineTVJSON(const std::string& filename);
