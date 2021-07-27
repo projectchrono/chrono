@@ -22,13 +22,15 @@ set(CV_COSIM_FILES
     ChVehicleCosimTireNode.cpp
     ChVehicleCosimTerrainNode.h
     ChVehicleCosimTerrainNode.cpp
-    )
+)
 
 set(CV_COSIM_MBS_FILES
     mbs/ChVehicleCosimRigNode.h
     mbs/ChVehicleCosimRigNode.cpp
     mbs/ChVehicleCosimVehicleNode.h
     mbs/ChVehicleCosimVehicleNode.cpp
+    mbs/ChVehicleCosimViperNode.h
+    mbs/ChVehicleCosimViperNode.cpp
 )
 
 set(CV_COSIM_TIRE_FILES
@@ -50,6 +52,7 @@ set(CV_COSIM_TERRAIN_FILES
 # Note, inherit CXX_FLAGS and LIBRARIES from parent Chrono::Vehicle CMakeLists.
 # These already include MPI and (if available) Irrlicht.
 
+list(APPEND LIBRARIES ChronoModels_robot)
 set(LINKER_FLAGS "${CH_LINKERFLAG_SHARED}")
 
 if(ENABLE_MODULE_MULTICORE)
