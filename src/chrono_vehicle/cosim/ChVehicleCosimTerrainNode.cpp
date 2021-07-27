@@ -57,6 +57,11 @@ void ChVehicleCosimTerrainNode::EnableRuntimeVisualization(bool render, double r
     m_render_step = 1.0 / render_fps;
 }
 
+void ChVehicleCosimTerrainNode::SetDimensions(double length, double width) {
+    m_hdimX = length / 2;
+    m_hdimY = width / 2;
+}
+
 // -----------------------------------------------------------------------------
 // Initialization of the terrain node:
 // - send terrain height
@@ -88,13 +93,13 @@ void ChVehicleCosimTerrainNode::Initialize() {
     // -----------------------------------------
 
     // Note: take into account dimension of proxy bodies
-    double init_dim[3] = {GetInitHeight() + 0.05, m_hdimX, m_hdimY};
+    double init_dim[3] = {GetInitHeight() + 0.05, 2 * m_hdimX, 2 * m_hdimY};
     MPI_Send(init_dim, 3, MPI_DOUBLE, MBS_NODE_RANK, 0, MPI_COMM_WORLD);
 
     if (m_verbose) {
         cout << "[Terrain node] Sent initial terrain height = " << init_dim[0] << endl;
-        cout << "[Terrain node] Sent container half-length = " << init_dim[1] << endl;
-        cout << "[Terrain node] Sent container half-width = " << init_dim[2] << endl;
+        cout << "[Terrain node] Sent terrain length = " << init_dim[1] << endl;
+        cout << "[Terrain node] Sent terrain width = " << init_dim[2] << endl;
     }
 
     // -------------------------------------------------

@@ -12,8 +12,8 @@
 // Authors: Radu Serban
 // =============================================================================
 //
-// Mechanism for testing tires over granular terrain.  The mechanism is
-// co-simulated with a tire and a terrain system.
+// Mechanism for a single-wheel testing rig co-simulated with a tire and a
+// terrain system.
 //
 // The global reference frame has Z up, X towards the front of the vehicle, and
 // Y pointing to the left.
@@ -123,7 +123,7 @@ void ChVehicleCosimRigNode::InitializeMBS(const std::vector<ChVector2<>>& tire_i
     double tire_radius = tire_info[0].y();
 
     // Calculate initial rig location and set linear velocity of all rig bodies
-    ChVector<> origin(-terrain_size.x() + 1.5 * tire_radius, 0, terrain_height + tire_radius);
+    ChVector<> origin(-terrain_size.x() / 2 + 1.5 * tire_radius, 0, terrain_height + tire_radius);
     ChVector<> rig_vel(m_lin_vel, 0, 0);
 
     // Calculate body masses.
@@ -265,6 +265,14 @@ void ChVehicleCosimRigNode::InitializeMBS(const std::vector<ChVector2<>>& tire_i
     outf << "   Rig linear velocity    = " << m_lin_vel << endl;
     outf << "   Wheel angular velocity = " << m_ang_vel << endl;
     outf << endl;
+}
+
+// -----------------------------------------------------------------------------
+
+void ChVehicleCosimRigNode::ApplySpindleForce(unsigned int i, const TerrainForce& spindle_force) {
+    m_spindles[i]->Empty_forces_accumulators();
+    m_spindles[i]->Accumulate_force(spindle_force.force, spindle_force.point, false);
+    m_spindles[i]->Accumulate_torque(spindle_force.moment, false);
 }
 
 // -----------------------------------------------------------------------------

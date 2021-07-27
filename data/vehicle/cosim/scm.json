@@ -10,7 +10,7 @@
     "Grid spacing": 0.05,
 
     "Soil parameters": {
-        "Bekker Kphi": 0.2e6,
+        "Bekker Kphi": 2e6,
         "Bekker Kc": 0,
         "Bekker n exponent": 1.1,
         "Mohr cohesive limit": 0,

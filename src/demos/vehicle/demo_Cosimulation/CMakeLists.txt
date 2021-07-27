@@ -85,6 +85,7 @@ endif()
 set(PROGRAMS 
     demo_VEH_Cosim_WheelRig
     demo_VEH_Cosim_WheelRig_CustomTerrain
+    demo_VEH_Cosim_WheeledVehicle
     )
 
 FOREACH(PROGRAM ${PROGRAMS})

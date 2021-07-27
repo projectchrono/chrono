@@ -26,7 +26,9 @@ set(CV_COSIM_FILES
 
 set(CV_COSIM_MBS_FILES
     mbs/ChVehicleCosimRigNode.h
-    mbs/ChVehicleCosimRigNode.cpp    
+    mbs/ChVehicleCosimRigNode.cpp
+    mbs/ChVehicleCosimVehicleNode.h
+    mbs/ChVehicleCosimVehicleNode.cpp
 )
 
 set(CV_COSIM_TIRE_FILES

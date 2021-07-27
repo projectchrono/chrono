@@ -215,7 +215,7 @@ void ChVehicleCosimTerrainNodeSCM::Construct() {
         m_irrapp->AddTypicalLogo();
         m_irrapp->AddTypicalSky();
         m_irrapp->AddTypicalLights(irr::core::vector3df(30.f, +30.f, 100.f), irr::core::vector3df(30.f, -30.f, 100.f));
-        m_irrapp->AddTypicalCamera(irr::core::vector3df(2.0f, 1.4f, 1.0f), irr::core::vector3df(0, 0, 0));
+        m_irrapp->AddTypicalCamera(irr::core::vector3df(m_hdimX, 1.4f, 1.0f), irr::core::vector3df(0, 0, 0));
     }
 #endif
 

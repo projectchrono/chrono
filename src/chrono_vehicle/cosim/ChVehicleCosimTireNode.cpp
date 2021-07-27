@@ -46,7 +46,7 @@ namespace vehicle {
 
 // =============================================================================
 
-// Dummy wheel subsystem (needed to attach a Chrono::Vehicle tire)
+// Dummy ChWheel subsystem (needed to attach a ChTire)
 class DummyWheel : public ChWheel {
   public:
     DummyWheel() : ChWheel("tire_wheel") {}

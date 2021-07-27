@@ -98,7 +98,6 @@ void ChVehicleCosimMBSNode::Initialize() {
     // Invoke the base class method to figure out distribution of node types
     ChVehicleCosimBaseNode::Initialize();
 
-    assert(GetNumSpindles() == m_num_tire_nodes);
     m_spindles.resize(m_num_tire_nodes);
 
     // Complete setup of the underlying ChSystem
@@ -112,7 +111,8 @@ void ChVehicleCosimMBSNode::Initialize() {
 
     if (m_verbose) {
         cout << "[MBS node    ] Received initial terrain height = " << init_dim[0] << endl;
-        cout << "[MBS node    ] Received terrain half-length    =  " << init_dim[1] << endl;
+        cout << "[MBS node    ] Received terrain length    =  " << init_dim[1] << endl;
+        cout << "[MBS node    ] Received terrain width    =  " << init_dim[2] << endl;
     }
 
     double terrain_height = init_dim[0];
@@ -129,6 +129,7 @@ void ChVehicleCosimMBSNode::Initialize() {
 
     // Let derived classes construct and initialize their multibody system
     InitializeMBS(tire_info, terrain_size, terrain_height);
+    assert(GetNumSpindles() == m_num_tire_nodes);
 
     // For each tire:
     // - cache the spindle body
@@ -241,13 +242,11 @@ void ChVehicleCosimMBSNode::Synchronize(int step_number, double time) {
         double force_data[6];
         MPI_Recv(force_data, 6, MPI_DOUBLE, TIRE_NODE_RANK(i), step_number, MPI_COMM_WORLD, &status);
 
-        const ChVector<>& point = m_spindles[i]->GetPos();
-        ChVector<> force(force_data[0], force_data[1], force_data[2]);
-        ChVector<> moment(force_data[3], force_data[4], force_data[5]);
-
-        m_spindles[i]->Empty_forces_accumulators();
-        m_spindles[i]->Accumulate_force(force, point, false);
-        m_spindles[i]->Accumulate_torque(moment, false);
+        TerrainForce spindle_force;
+        spindle_force.point = m_spindles[i]->GetPos();
+        spindle_force.force = ChVector<>(force_data[0], force_data[1], force_data[2]);
+        spindle_force.moment = ChVector<>(force_data[3], force_data[4], force_data[5]);
+        ApplySpindleForce(i, spindle_force);
     }
 }
 
@@ -260,7 +259,9 @@ void ChVehicleCosimMBSNode::Advance(double step_size) {
     double t = 0;
     while (t < step_size) {
         double h = std::min<>(m_step_size, step_size - t);
+        PreAdvance();
         m_system->DoStepDynamics(h);
+        PostAdvance();
         t += h;
     }
     m_timer.stop();

@@ -12,8 +12,8 @@
 // Authors: Radu Serban
 // =============================================================================
 //
-// Mechanism for testing tires over granular terrain.  The mechanism is 
-// co-simulated with a tire and a terrain system.
+// Mechanism for a single-wheel testing rig co-simulated with a tire and a
+// terrain system.
 //
 // The global reference frame has Z up, X towards the front of the vehicle, and
 // Y pointing to the left.
@@ -85,13 +85,15 @@ class CH_VEHICLE_API ChVehicleCosimRigNode : public ChVehicleCosimMBSNode {
                                double terrain_height                       ///< initial terrain height
                                ) override;
 
+    virtual void ApplySpindleForce(unsigned int i, const TerrainForce& spindle_force) override;
+
     virtual int GetNumSpindles() const override { return 1; }
 
     virtual std::shared_ptr<ChBody> GetSpindleBody(unsigned int i) const override { return m_spindle; }
 
     virtual double GetSpindleLoad(unsigned int i) const override { return m_total_mass; }
 
-    void ChVehicleCosimRigNode::WriteBodyInformation(utils::CSV_writer& csv);
+    void WriteBodyInformation(utils::CSV_writer& csv);
 
   private:
     ActuationType m_act_type;  ///< actuation type

@@ -78,6 +78,18 @@ class CH_VEHICLE_API ChVehicleCosimMBSNode : public ChVehicleCosimBaseNode {
                                double terrain_height                       ///< initial terrain height
                                ) = 0;
 
+    /// Perform any required operations before advancing the state of the MBS.
+    /// This function is called before every integration step.
+    virtual void PreAdvance() {}
+
+    /// Perform any required operations after advancing the state of the MBS.
+    /// This function is called after every integration step.
+    virtual void PostAdvance() {}
+
+    /// Apply the provided force to the i-th spindle body.
+    /// This function is called during synchronization when the force is received from the corresponding tire node.
+    virtual void ApplySpindleForce(unsigned int i, const TerrainForce& spindle_force) = 0;
+
     /// Get the number of spindles/wheels defined by the underlying MBS.
     /// A co-simulation must have a matching number of TIRE nodes.
     virtual int GetNumSpindles() const = 0;

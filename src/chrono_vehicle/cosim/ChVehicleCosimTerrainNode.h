@@ -50,6 +50,10 @@ class CH_VEHICLE_API ChVehicleCosimTerrainNode : public ChVehicleCosimBaseNode {
     /// physics elements.
     void EnableRuntimeVisualization(bool render, double render_fps = 100);
 
+    /// Set the terrain patch dimensions.
+    /// If invoked, this function must be called before Initialize.
+    void SetDimensions(double length, double width);
+
     /// Initialize this node.
     /// This function allows the node to initialize itself and, optionally, perform an
     /// initial data exchange with any other node.

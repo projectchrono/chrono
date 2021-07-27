@@ -130,7 +130,7 @@ int main(int argc, char** argv) {
     bool sim_output = true;
     bool settling_output = true;
     bool render = true;
-    double total_mass = 100;
+    double total_mass = 200;
     double toe_angle = 0;
     double dbp_filter_window = 0.1;
     std::string suffix = "";
