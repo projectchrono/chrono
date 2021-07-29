@@ -27,7 +27,7 @@ namespace chrono {
 namespace vehicle {
 namespace mrole {
 
-/// @addtogroup vehicle_models_hmmwv
+/// @addtogroup vehicle_models_mrole
 /// @{
 
 /// Rigid tire model for the mrole vehicle.
@@ -57,7 +57,7 @@ class CH_MODELS_API mrole_RigidTire : public ChRigidTire {
     std::shared_ptr<ChTriangleMeshShape> m_trimesh_shape;
 };
 
-/// @} vehicle_models_hmmwv
+/// @} vehicle_models_mrole
 
 }  // namespace mrole
 }  // end namespace vehicle

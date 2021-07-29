@@ -7,3 +7,6 @@
 [submodule "src/chrono_thirdparty/flatbuffers"]
 	path = src/chrono_thirdparty/flatbuffers
 	url = https://github.com/google/flatbuffers.git
+[submodule "src/chrono_thirdparty/chpf"]
+	path = src/chrono_thirdparty/chpf
+	url = https://gitlab.com/uwsbel/chpf.git

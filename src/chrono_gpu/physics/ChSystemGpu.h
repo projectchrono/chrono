@@ -39,7 +39,10 @@ class ChSystemGpuMesh_impl;
 class CH_GPU_API ChSystemGpu {
   public:
     /// Construct system with given sphere radius, density, big domain dimensions and center.
-    ChSystemGpu(float sphere_rad, float density, const ChVector<float>& boxDims, ChVector<float> O = ChVector<float>(0));
+    ChSystemGpu(float sphere_rad,
+                float density,
+                const ChVector<float>& boxDims,
+                ChVector<float> O = ChVector<float>(0));
 
     /// Construct system with a checkpoint file.
     ChSystemGpu(const std::string& checkpoint);
@@ -293,6 +296,7 @@ class CH_GPU_API ChSystemGpu {
     /// WriteCheckpointFile() and WriteParticleFile() are their wrappers.
     void WriteCsvParticles(std::ofstream& ptFile) const;
     void WriteRawParticles(std::ofstream& ptFile) const;
+    void WriteChPFParticles(std::ofstream& ptFile) const;
 #ifdef USE_HDF5
     void WriteH5Particles(H5::H5File& ptFile) const;
 #endif
@@ -431,7 +435,9 @@ class CH_GPU_API ChSystemGpuMesh : public ChSystemGpu {
         false;  ///< true: use mesh normals in file to correct mesh orientation; false: do nothing, implicitly use RHR
 
     /// GpuMesh version of setting simulation params based on identifiers in the checkpoint file.
-    virtual bool SetParamsFromIdentifier(const std::string& identifier, std::istringstream& iss1, bool overwrite) override;
+    virtual bool SetParamsFromIdentifier(const std::string& identifier,
+                                         std::istringstream& iss1,
+                                         bool overwrite) override;
 
     /// GpuMesh version of parameter writing subroutine
     void WriteCheckpointMeshParams(std::ofstream& cpFile) const;

@@ -33,8 +33,8 @@ stages:
   - mkdir -p build
 # Make flatbuffers
   - cd src/chrono_thirdparty/flatbuffers
-  - cmake -G "Unix Makefiles" -DCMAKE_BUILD_TYPE=Release .
-  - make
+  - cmake -G "Ninja" -DCMAKE_BUILD_TYPE=Release .
+  - ninja -j 8
   - cd $CI_PROJECT_DIR
 
 linux:arch-gcc:build:
@@ -48,7 +48,7 @@ linux:arch-gcc:build:
     -DCMAKE_CXX_COMPILER=/usr/bin/g++ 
     -DEIGEN3_INCLUDE_DIR=/usr/include/eigen3
     -DBUILD_TESTING_GPU=FALSE
-  - make -j 8
+  - ninja -j 8
   artifacts:
     expire_in: 60m
     paths:
@@ -62,7 +62,8 @@ linux:arch-gcc:test:
   script:
   - cd build
   - export OMP_NUM_THREADS=8
-  - make CTEST_OUTPUT_ON_FAILURE=1 test
+  - export CTEST_OUTPUT_ON_FAILURE=1 
+  - ninja test
   dependencies: ["linux:arch-gcc:build"]
 
 
@@ -99,7 +100,7 @@ linux:doxygen:deploy:
   needs:
     - job: linux:arch-gcc:test
       artifacts: false
-    - job: macos:bigsur:test
+    - job: macos:catalina:test
       artifacts: false
     - job: windows:vs2019:test
       artifacts: false
@@ -124,7 +125,9 @@ linux:arch-llvm:build:
     -DEIGEN3_INCLUDE_DIR=/usr/include/eigen3
     -DCUDA_HOST_COMPILER=/usr/bin/gcc
     -DBUILD_TESTING_GPU=FALSE
-  - make -j 8
+    -DCMAKE_CXX_FLAGS=-fcolor-diagnostics
+  - export CLANG_FORCE_COLOR_DIAGNOSTICS=1
+  - ninja -j 8
   artifacts:
     expire_in: 60m
     paths:
@@ -139,7 +142,8 @@ linux:arch-llvm:test:
   - pacman -S --noconfirm llvm clang openmp
   - cd build
   - export OMP_NUM_THREADS=8
-  - make CTEST_OUTPUT_ON_FAILURE=1 test
+  - export CTEST_OUTPUT_ON_FAILURE=1 
+  - ninja test
   dependencies: ["linux:arch-llvm:build"]
 
 
@@ -151,28 +155,28 @@ linux:arch-llvm:test:
   tags:
     - linux
   image:
-    name: nvidia/cuda:11.0-devel-ubuntu18.04
+    name: nvidia/cuda:11.4.0-devel-ubuntu20.04
   before_script:
     - uname -a
     - export DEBIAN_FRONTEND=noninteractive
     - apt-get update; apt-get -y install wget python git 
-        cmake build-essential libboost-dev swig4.0 libeigen3-dev 
+        cmake ninja-build build-essential libboost-dev swig libeigen3-dev 
         libglfw3-dev libglm-dev libglew-dev freeglut3-dev libirrlicht-dev
-        libopenmpi-dev python3 python3-dev libhdf5-dev
+        libxxf86vm-dev libopenmpi-dev python3 python3-dev libhdf5-dev
     - ldconfig
     - wget https://bitbucket.org/blaze-lib/blaze/downloads/blaze-3.8.tar.gz
     - tar -xf blaze-3.8.tar.gz
     - cp -r blaze-3.8/blaze /usr/local/include
-    - wget https://gitlab.com/libeigen/eigen/-/archive/3.3.9/eigen-3.3.9.tar.bz2
-    - tar -xf eigen-3.3.9.tar.bz2
-    - cp -r eigen-3.3.9 /usr/local/include/eigen3
+      #- wget https://gitlab.com/libeigen/eigen/-/archive/3.3.9/eigen-3.3.9.tar.bz2
+      #- tar -xf eigen-3.3.9.tar.bz2
+      #- cp -r eigen-3.3.9 /usr/local/include/eigen3
     - git submodule init
     - git submodule update
     - mkdir -p build
     # Make flatbuffers
     - cd src/chrono_thirdparty/flatbuffers
-    - cmake -G "Unix Makefiles" -DCMAKE_BUILD_TYPE=Release .
-    - make
+    - cmake -G "Ninja" -DCMAKE_BUILD_TYPE=Release .
+    - ninja -j 8
     - cd $CI_PROJECT_DIR
 
 .ubuntu-deploy-base:
@@ -209,7 +213,7 @@ linux:arch-llvm:test:
     - conda install -c dlr-sc opencascade --yes
     - conda install -c intel mkl-devel --yes
   environment:
-    name: pychrono-ubuntu1804
+    name: pychrono-ubuntu2004
     url: https://anaconda.org/projectchrono/pychrono
 
 
@@ -217,13 +221,13 @@ linux:arch-llvm:test:
 # Ubuntu Builder #
 #----------------#
 
-# Ubuntu 18.04 doesn't have a sufficiently new CMake for presets, so we rely on manual configuration
-linux:ubuntu1804:build:
+# Ubuntu 20.04 doesn't have a sufficiently new CMake for presets, so we rely on manual configuration
+linux:ubuntu2004:build:
   stage: build
   extends: .ubuntu
   script:
     - cd build
-    - cmake ../ -DCMAKE_BUILD_TYPE=Release -DBUILD_TESTING=TRUE 
+    - cmake ../ -G "Ninja" -DCMAKE_BUILD_TYPE=Release -DBUILD_TESTING=TRUE 
         -DBUILD_BENCHMARKING=TRUE -DENABLE_MODULE_POSTPROCESS=TRUE 
         -DENABLE_MODULE_PYTHON=TRUE -DENABLE_MODULE_COSIMULATION=FALSE 
         -DENABLE_MODULE_IRRLICHT=TRUE -DENABLE_MODULE_VEHICLE=TRUE 
@@ -235,27 +239,28 @@ linux:ubuntu1804:build:
         -DCMAKE_CXX_COMPILER=/usr/bin/g++
         -DCUDA_HOST_COMPILER=/usr/bin/gcc
         -DPYTHON_EXECUTABLE=/usr/bin/python3
-        -DEIGEN3_INCLUDE_DIR=/usr/local/include/eigen3
+        -DEIGEN3_INCLUDE_DIR=/usr/include/eigen3
         -DCMAKE_VERBOSE_MAKEFILE=TRUE
-    - make -j 8
+    - ninja -j 8
   artifacts:
     expire_in: 60m
     paths:
       - build/
 
 
-linux:ubuntu1804:test:
+linux:ubuntu2004:test:
   stage: test
-  needs: ["linux:ubuntu1804:build"]
+  needs: ["linux:ubuntu2004:build"]
   extends: .ubuntu
   script:
     - cd build
     - export OMP_NUM_THREADS=8
-    - make CTEST_OUTPUT_ON_FAILURE=1 test
-  dependencies: ["linux:ubuntu1804:build"]
+    - export CTEST_OUTPUT_ON_FAILURE=1 
+    - ninja test
+  dependencies: ["linux:ubuntu2004:build"]
 
 
-linux:ubuntu1804:deploy-python3.6:
+linux:ubuntu2004:deploy-python3.6:
   stage: deploy
   needs: []
   extends: .ubuntu-deploy-base
@@ -265,7 +270,7 @@ linux:ubuntu1804:deploy-python3.6:
     - anaconda -t $ANACONDA_TOKEN upload $HOME/miniconda3/conda-bld/linux-64/pychrono*.bz2 -l develop --force
   when: manual
 
-linux:ubuntu1804:deploy-python3.7:
+linux:ubuntu2004:deploy-python3.7:
   stage: deploy
   needs: []
   extends: .ubuntu-deploy-base
@@ -275,7 +280,7 @@ linux:ubuntu1804:deploy-python3.7:
     - anaconda -t $ANACONDA_TOKEN upload $HOME/miniconda3/conda-bld/linux-64/pychrono*.bz2 -l develop --force
   when: manual
 
-linux:ubuntu1804:deploy-python3.8:
+linux:ubuntu2004:deploy-python3.8:
   stage: deploy
   needs: []
   extends: .ubuntu-deploy-base
@@ -294,7 +299,7 @@ linux:ubuntu1804:deploy-python3.8:
   tags:
   - windows
   before_script:
-  - $Env:CONDA_INSTALL_LOCN= "C:\Users\builder\anaconda3"
+  - $env:CONDA_INSTALL_LOCN= "C:\ProgramData\Anaconda3"
   - echo $CI_PROJECT_DIR
   - git submodule init
   - git submodule update
@@ -422,7 +427,7 @@ windows:vs2017:build:
     url: https://anaconda.org/projectchrono/pychrono
 
 
-macos:bigsur:build:
+macos:catalina:build:
   stage: build
   extends: .macos
   script:
@@ -431,21 +436,23 @@ macos:bigsur:build:
     -DCMAKE_C_COMPILER=$(which clang)
     -DCMAKE_CXX_COMPILER=$(which clang++)
     -DCMAKE_VERBOSE_MAKEFILE=TRUE
-  - make -j 3
+  - export CLANG_FORCE_COLOR_DIAGNOSTICS=1
+  - ninja -j 8
   artifacts:
     expire_in: 60m
     paths:
     - build/
     
 
-macos:bigsur:test:
+macos:catalina:test:
   stage: test
-  needs: ["macos:bigsur:build"]
+  needs: ["macos:catalina:build"]
   extends: .macos
   script:
   - cd build
-  - make CTEST_OUTPUT_ON_FAILURE=1 test
-  dependencies: ["macos:bigsur:build"]
+  - export CTEST_OUTPUT_ON_FAILURE=1 
+  - ninja test
+  dependencies: ["macos:catalina:build"]
 
 
 macos:macos-deploy-python3.6:
