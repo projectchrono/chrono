@@ -262,7 +262,6 @@ int main(int argc, char* argv[]) {
         mterrain.AddMovingPatch(Wheel_2, ChVector<>(0, 0, 0), ChVector<>(0.5, 2 * wheel_range, 2 * wheel_range));
         mterrain.AddMovingPatch(Wheel_3, ChVector<>(0, 0, 0), ChVector<>(0.5, 2 * wheel_range, 2 * wheel_range));
         mterrain.AddMovingPatch(Wheel_4, ChVector<>(0, 0, 0), ChVector<>(0.5, 2 * wheel_range, 2 * wheel_range));
-        /// mterrain.AddMovingPatch(Body_1, ChVector<>(0, 0, 0), ChVector<>(0.5, 2 * body_range, 2 * body_range))
     }
 
     // Set some visualization parameters: either with a texture, or with falsecolor plot, etc.
@@ -270,10 +269,10 @@ int main(int argc, char* argv[]) {
 
     mterrain.SetMeshWireframe(true);
 
-    // ==IMPORTANT!== Use this function for adding a ChIrrNodeAsset to all items
+    // Use this function for adding a ChIrrNodeAsset to all items
     application.AssetBindAll();
 
-    // ==IMPORTANT!== Use this function for 'converting' into Irrlicht meshes the assets
+    // Use this function for 'converting' into Irrlicht meshes the assets
     application.AssetUpdateAll();
 
     // Use shadows in realtime view
@@ -283,8 +282,10 @@ int main(int argc, char* argv[]) {
 
     while (application.GetDevice()->run()) {
         if (output) {
-            // vehicle::TerrainForce frc = mterrain.GetContactForce(mrigidbody);
-            // csv << my_system.GetChTime() << frc.force << frc.moment << frc.point << std::endl;
+            // this example writeout will write drive torques of all four wheels into file
+            csv << my_system.GetChTime() << viper->GetWheelTracTorque(WheelID::LF)
+                << viper->GetWheelTracTorque(WheelID::RF) << viper->GetWheelTracTorque(WheelID::LB)
+                << viper->GetWheelTracTorque(WheelID::RB) << std::endl;
         }
         application.BeginScene();
 

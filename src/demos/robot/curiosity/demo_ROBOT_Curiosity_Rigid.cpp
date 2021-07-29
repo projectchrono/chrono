@@ -47,7 +47,7 @@ using namespace irr::core;
 using namespace irr::scene;
 using namespace irr::video;
 
-// Use custom material for the Viper Wheel
+// Use custom material for the Curiosity Wheel
 bool use_custom_mat = false;
 
 // Specify rover chassis type
@@ -129,9 +129,7 @@ int main(int argc, char* argv[]) {
     masset_texture->SetTextureFilename(GetChronoDataFile("textures/concrete.jpg"));
     mfloor->AddAsset(masset_texture);
 
-    // Create a Viper Rover with default parameters.
-    // The default rotational speed of the Motor is speed w=3.145 rad/sec.
-    // Note: the Viper Rover uses a Z-up frame, which will need to be translated to Y-up.
+    // Create a Curiosity Rover with default parameters.
     ChVector<double> body_pos(0, -0.2, 0);
     ChQuaternion<> body_rot = Q_from_AngX(-CH_C_PI / 2);
 
@@ -141,6 +139,7 @@ int main(int argc, char* argv[]) {
         // If use the customized wheel material
         rover = chrono_types::make_shared<CuriosityRover>(
             &mphysicalSystem, body_pos, body_rot, CustomWheelMaterial(ChContactMethod::NSC), chassis_type, wheel_type);
+        // Set to use linear DC motor model for the drive motors
         rover->SetDCControl(true);
         rover->Initialize();
 
@@ -150,6 +149,7 @@ int main(int argc, char* argv[]) {
         // If use default wheel material
         rover = rover =
             chrono_types::make_shared<CuriosityRover>(&mphysicalSystem, body_pos, body_rot, chassis_type, wheel_type);
+        // Set to use linear DC motor model for the drive motors
         rover->SetDCControl(true);
         rover->Initialize();
 
@@ -193,10 +193,7 @@ int main(int argc, char* argv[]) {
 
     application.SetTimestep(time_step);
 
-    //
-    // THE SOFT-REAL-TIME CYCLE
-    //
-
+    // Simulation loop
     while (application.GetDevice()->run()) {
         rover->Update();
 

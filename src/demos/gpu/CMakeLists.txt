@@ -22,7 +22,6 @@ SET(DEMOS
         demo_GPU_mixer
 		demo_GPU_compression
 		demo_GPU_repose
-		demo_GPU_curiosity
 )
 
 # ------------------------------------------------------------------------------

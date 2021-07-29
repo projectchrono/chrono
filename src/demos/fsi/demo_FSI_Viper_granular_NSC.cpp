@@ -9,10 +9,11 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Author: Wei Hu
+// Author: Wei Hu, Jason Zhou
+// Chrono::FSI demo to show usage of viper rover models on SPH granular terrain
+// This demo uses a plug-in viper rover model from chrono::models
 // =============================================================================
 
-// General Includes
 #include <cassert>
 #include <cstdlib>
 #include <ctime>
@@ -33,10 +34,7 @@
 #include "chrono/physics/ChLinkMotorRotationSpeed.h"
 #include "chrono/physics/ChLinkMotorRotationTorque.h"
 #include "chrono/physics/ChLinkDistance.h"
-// #include "chrono/physics/ChLinkSpring.h"
-// #include "chrono/physics/ChLinkTSDA.h"
 
-// Chrono fsi includes
 #include "chrono_fsi/utils/ChUtilsTypeConvert.h"
 #include "chrono_fsi/ChSystemFsi.h"
 #include "chrono_fsi/utils/ChUtilsGeneratorFsi.h"
@@ -258,6 +256,7 @@ int main(int argc, char* argv[]) {
         else
             paramsH->dT_Max = Global_max_dT;
 
+        rover->Update();
         myFsiSystem.DoStepDynamics_FSI();
         time += paramsH->dT;
         SaveParaViewFiles(myFsiSystem, mphysicalSystem, paramsH, next_frame, time);
@@ -338,6 +337,7 @@ void CreateSolidPhase(ChSystemNSC& mphysicalSystem,
                                                   CustomWheelMaterial(ChContactMethod::NSC));
     rover->Initialize();
 
+    // add BCE particles and mesh of wheels to the system
     for (int i = 0; i < 4; i++) {
         std::shared_ptr<ChBodyAuxRef> wheel_body;
         if (i == 0) {

@@ -82,8 +82,6 @@ Chassis_Type chassis_type = Chassis_Type::FullRover;
 Wheel_Type wheel_type = Wheel_Type::RealWheel;
 
 // Custom callback for setting location-dependent soil properties.
-// Note that the (x,y) location is given in the terrain's reference plane.
-// Here, the vehicle moves in the terrain's negative y direction!
 class MySoilParams : public vehicle::SCMDeformableTerrain::SoilParametersCallback {
   public:
     virtual void Set(const ChVector<>& loc,
@@ -512,8 +510,11 @@ int main(int argc, char* argv[]) {
 
     while (application.GetDevice()->run()) {
         if (output) {
-            // vehicle::TerrainForce frc = mterrain.GetContactForce(mrigidbody);
-            // csv << my_system.GetChTime() << frc.force << frc.moment << frc.point << std::endl;
+            // this example writeout will write drive torques of all six wheels into file
+            csv << my_system.GetChTime() << rover->GetWheelTracTorque(WheelID::LF)
+                << rover->GetWheelTracTorque(WheelID::RF) << rover->GetWheelTracTorque(WheelID::LM)
+                << rover->GetWheelTracTorque(WheelID::RM) << rover->GetWheelTracTorque(WheelID::LB)
+                << rover->GetWheelTracTorque(WheelID::RB) << std::endl;
         }
         rover->Update();
         application.BeginScene();
@@ -532,7 +533,8 @@ int main(int argc, char* argv[]) {
     }
 
     if (output) {
-        // csv.write_to_file(out_dir + "/output.dat");
+        // write output data into file
+        csv.write_to_file(out_dir + "/output.dat");
     }
 
     return 0;
