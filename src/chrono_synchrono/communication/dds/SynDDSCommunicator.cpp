@@ -194,14 +194,14 @@ std::shared_ptr<SynDDSSubscriber> SynDDSCommunicator::CreateSubscriber(std::shar
     qos.durability().kind = TRANSIENT_LOCAL_DURABILITY_QOS;
     qos.endpoint().history_memory_policy = PREALLOCATED_WITH_REALLOC_MEMORY_MODE;
     qos.history().kind = KEEP_LAST_HISTORY_QOS;
-    auto plist = m_participant->get_qos().wire_protocol().builtin.initialPeersList;
+    /*auto plist = m_participant->get_qos().wire_protocol().builtin.initialPeersList;
     if (!plist.empty()) {
         Locator_t new_multicast_locator;
         IPLocator::setIPv4(new_multicast_locator, "239.255.0.4");
         new_multicast_locator.port = 7900;
         qos.endpoint().multicast_locator_list.push_back(new_multicast_locator);
 
-    }
+    }*/
 
     // Create the listener
     auto listener = new SynDDSDataReaderListener(callback, message);
