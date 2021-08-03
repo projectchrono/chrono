@@ -12,13 +12,11 @@
 // Authors: Jason Zhou
 // =============================================================================
 //
-// Demo to show Viper Rover operated on Rigid Terrain
-// This Demo includes operation to spawn a Viper rover, control wheel speed, and
-// control rover steering
+// Demo to show a Turtlebot Robot operated on Rigid Terrain
 //
 // =============================================================================
 
-#include "chrono_models/robot/viper/Viper.h"
+#include "chrono_models/robot/turtlebot/Turtlebot.h"
 #include "chrono/physics/ChSystemNSC.h"
 #include "chrono/physics/ChBodyEasy.h"
 #include "chrono/physics/ChInertiaUtils.h"
@@ -40,7 +38,7 @@
 
 using namespace chrono;
 using namespace chrono::irrlicht;
-using namespace chrono::viper;
+using namespace chrono::turtlebot;
 
 // Use the main namespaces of Irrlicht
 using namespace irr;
@@ -48,11 +46,8 @@ using namespace irr::core;
 using namespace irr::scene;
 using namespace irr::video;
 
-// Use custom material for the Viper Wheel
+// Use custom material for the turtlebot wheels
 bool use_custom_mat = false;
-
-// Define Viper rover wheel type
-Wheel_Type wheel_type = Wheel_Type::RealWheel;
 
 std::shared_ptr<ChMaterialSurface> CustomWheelMaterial(ChContactMethod contact_method) {
     float mu = 0.4f;   // coefficient of friction
@@ -89,7 +84,7 @@ std::shared_ptr<ChMaterialSurface> CustomWheelMaterial(ChContactMethod contact_m
 }
 
 // Simulation time step
-double time_step = 2e-3;
+double time_step = 0.0005;
 
 int main(int argc, char* argv[]) {
     GetLog() << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
@@ -101,12 +96,12 @@ int main(int argc, char* argv[]) {
 
     // Create the Irrlicht visualization (open the Irrlicht device,
     // bind a simple user interface, etc. etc.)
-    ChIrrApp application(&mphysicalSystem, L"Viper Rover on Rigid Terrain", core::dimension2d<u32>(1280, 720),
+    ChIrrApp application(&mphysicalSystem, L"Turtlebot Robot on Rigid Terrain", core::dimension2d<u32>(1280, 720),
                          VerticalDir::Z, false, true);
     application.AddTypicalLogo();
     application.AddTypicalSky();
     application.AddTypicalLights(irr::core::vector3df(30.f, 30.f, 100.f), irr::core::vector3df(30.f, -30.f, 100.f));
-    application.AddTypicalCamera(core::vector3df(0, 2, 2));
+    application.AddTypicalCamera(core::vector3df(0, 0.5, 0.5));
 
     application.AddLightWithShadow(core::vector3df(1.5f, 1.5f, 5.5f), core::vector3df(0, 0, 0), 3, 4, 10, 40, 512,
                                    video::SColorf(0.8f, 0.8f, 1.0f));
@@ -128,27 +123,15 @@ int main(int argc, char* argv[]) {
     masset_texture->SetTextureFilename(GetChronoDataFile("textures/concrete.jpg"));
     mfloor->AddAsset(masset_texture);
 
-    // Create a Viper Rover with default parameters.
+    // Create a Turtlebot Robot with default parameters.
     // The default rotational speed of the Motor is speed w=3.145 rad/sec.
-    // Note: the Viper Rover uses a Z-up frame, which will need to be translated to Y-up.
-    std::shared_ptr<ViperRover> viper;
-    ChVector<double> body_pos(0, 0, -0.2);
+    std::shared_ptr<TurtleBot> robot;
 
-    if (use_custom_mat == true) {
-        // If use the customized wheel material
-        viper = chrono_types::make_shared<ViperRover>(&mphysicalSystem, body_pos, QUNIT,
-                                                      CustomWheelMaterial(ChContactMethod::NSC), wheel_type);
-        // SetDCControl() should be called before initialize()
-        viper->SetDCControl(true);
-    } else {
-        // If use default wheel material
-        viper = chrono_types::make_shared<ViperRover>(&mphysicalSystem, body_pos, QUNIT, wheel_type);
+    ChVector<double> body_pos(0, 0, -0.45);
 
-        // SetDCControl() should be called before initialize()
-        viper->SetDCControl(true);
-    }
+    robot = chrono_types::make_shared<TurtleBot>(&mphysicalSystem, body_pos, QUNIT);
 
-    viper->Initialize();
+    robot->Initialize();
 
     // Use this function for adding a ChIrrNodeAsset to all items
     // Otherwise use application.AssetBind(myitem); on a per-item basis.
@@ -166,31 +149,29 @@ int main(int argc, char* argv[]) {
     // Simulation loop
     //
 
-    double time = 0.0;
+    float time = 0.0f;
 
     while (application.GetDevice()->run()) {
+        // at time = 1 s, start left turn
+        if (abs(time - 1.0f) < 1e-4) {
+            robot->SetMotorSpeed(-0.f, WheelID::LD);
+            robot->SetMotorSpeed(-CH_C_PI, WheelID::RD);
+        }
+
+        // at time = 2 s, start right turn
+        if (abs(time - 2.0f) < 1e-4) {
+            robot->SetMotorSpeed(-CH_C_PI, WheelID::LD);
+            robot->SetMotorSpeed(-0.f, WheelID::RD);
+        }
+
+        // read and display angular velocities of two drive wheels
+        ChVector<> L_Ang = robot->GetActiveWheelAngVel(WheelID::LD);
+        ChVector<> R_Ang = robot->GetActiveWheelAngVel(WheelID::RD);
+
+        ////std::cout << "time_step: " << time << " W_L: " << L_Ang.y() << " W_R: " << R_Ang.y() << std::endl;
+
+        // increment time indicator
         time = time + time_step;
-        // Display turning angle - ranges from -pi/3 to pi/3
-        ////std::cout << "turn angle: " << viper->GetTurnAngle() << std::endl;
-
-        // Once the viper rover turning angle returns back to 0, HOLD the steering
-        if ((viper->GetTurnAngle() - 0) < 1e-8 && viper->GetTurnState() == TurnSig::RIGHT) {
-            viper->SetTurn(TurnSig::HOLD);
-        }
-
-        if (abs(time - 1.0) < 1e-5) {
-            viper->SetTurn(TurnSig::LEFT, CH_C_PI / 8);
-        } else if (abs(time - 7.0) < 1e-5) {
-            viper->SetTurn(TurnSig::RIGHT, CH_C_PI / 8);
-        }
-
-        viper->Update();  // note->viper steering control needs to be updated every simulation loop
-
-        // Read rover chassis velocity
-        ////std::cout <<"Rover Chassis Speedo Reading: " << viper -> GetChassisVel() << std::endl;
-
-        // Read rover chassis acceleration
-        ////std::cout << "Rover Chassis Accelerometer Reading: "<< viper -> GetChassisAcc() << std::endl;
 
         application.BeginScene(true, true, SColor(255, 140, 161, 192));
         application.DrawAll();
