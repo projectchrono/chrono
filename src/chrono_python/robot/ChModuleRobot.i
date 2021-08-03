@@ -66,12 +66,14 @@
 #include "chrono_models/ChApiModels.h"
 #include "chrono_models/robot/robosimian/RoboSimian.h"
 #include "chrono_models/robot/viper/Viper.h"
+#include "chrono_models/robot/turtlebot/Turtlebot.h"
 #include "chrono_models/robot/copters/Copter.h"
 #include "chrono_models/robot/copters/Little_Hexy.h"
 
 using namespace chrono;
 using namespace chrono::robosimian;
 using namespace chrono::viper;
+using namespace chrono::turtlebot;
 using namespace chrono::copter;
 
 %}
@@ -145,6 +147,16 @@ using namespace chrono::copter;
 %shared_ptr(chrono::viper::Viper_Bottom_Arm)
 %shared_ptr(chrono::viper::Viper_Steer)
 
+%shared_ptr(chrono::turtlebot::Turtlebot_Part)
+%shared_ptr(chrono::turtlebot::Turtlebot_Chassis)
+%shared_ptr(chrono::turtlebot::Turtlebot_ActiveWheel)
+%shared_ptr(chrono::turtlebot::Turtlebot_PassiveWheel)
+%shared_ptr(chrono::turtlebot::Turtlebot_Rod_Short)
+%shared_ptr(chrono::turtlebot::Turtlebot_BottomPlate)
+%shared_ptr(chrono::turtlebot::Turtlebot_MiddlePlate)
+%shared_ptr(chrono::turtlebot::Turtlebot_TopPlate)
+%shared_ptr(chrono::turtlebot::Turtlebot_Rod_Long)
+
 //
 // B- INCLUDE HEADERS
 //
@@ -205,6 +217,7 @@ using namespace chrono::copter;
 
 %include "../chrono_models/robot/robosimian/RoboSimian.h"
 %include "../chrono_models/robot/viper/Viper.h"
+%include "../chrono_models/robot/turtlebot/Turtlebot.h"
 
 %include "../chrono_models/robot/copters/Copter.h"
 %template(ChCopter6) chrono::copter::Copter<6>;
@@ -248,6 +261,17 @@ using namespace chrono::copter;
                const chrono::ChQuaternion<double>& rover_rot){
 			   
 			   auto selfpoint = std::make_shared<chrono::viper::ViperRover>(system, rover_pos, rover_rot, nullptr);
+			   return selfpoint.get();
+			   }
+		};
+
+%extend chrono::turtlebot::TurtleBot{
+		public:
+			TurtleBot(chrono::ChSystem* system,
+               const chrono::ChVector<double>& robot_pos,
+               const chrono::ChQuaternion<double>& robot_rot){
+			   
+			   auto selfpoint = std::make_shared<chrono::turtlebot::TurtleBot>(system, robot_pos, robot_rot, nullptr);
 			   return selfpoint.get();
 			   }
 		};

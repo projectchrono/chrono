@@ -9,10 +9,10 @@
 # http://projectchrono.org/license-chrono.txt.
 #
 # =============================================================================
-# Authors: Radu Serban
+# Authors: Jason Zhou
 # =============================================================================
 #
-# Demo to show Viper Rover operated on Rigid Terrain
+# Demo to show a Turtlebot Robot operated on Rigid Terrain
 #
 # =============================================================================
 
@@ -20,11 +20,11 @@ import os
 import math
 import numpy as np
 import pychrono as chrono
-import pychrono.robot as viper
+import pychrono.robot as turtlebot
 try:
-   from pychrono import irrlicht as chronoirr
+    from pychrono import irrlicht as chronoirr
 except:
-   print('Could not import ChronoIrrlicht')
+    print('Could not import ChronoIrrlicht')
 
 # Chreate Chrono system
 system = chrono.ChSystemNSC()
@@ -43,36 +43,50 @@ texture = chrono.ChTexture()
 texture.SetTextureFilename(chrono.GetChronoDataFile("textures/concrete.jpg"))
 ground.AddAsset(texture)
 
-# Create Viper rover
-rover = viper.ViperRover(system, chrono.ChVectorD(0, -0.2, 0), chrono.ChQuaternionD(1, 0, 0, 0))
-rover.Initialize()
+# Create Turtlebot Robot
+robot = turtlebot.TurtleBot(system, chrono.ChVectorD(
+    0, 0, -0.45), chrono.ChQuaternionD(1, 0, 0, 0))
+robot.Initialize()
 
 # Create run-time visualization
-application = chronoirr.ChIrrApp(system, "Viper rover - Rigid terrain", chronoirr.dimension2du(1280, 720), chronoirr.VerticalDir_Z)
-application.AddTypicalLogo(chrono.GetChronoDataPath() + 'logo_pychrono_alpha.png')
+application = chronoirr.ChIrrApp(system, "Turtlebot Robot - Rigid terrain",
+                                 chronoirr.dimension2du(1280, 720), chronoirr.VerticalDir_Z)
+application.AddTypicalLogo(
+    chrono.GetChronoDataPath() + 'logo_pychrono_alpha.png')
 application.AddTypicalSky()
-application.AddTypicalCamera(chronoirr.vector3df(0, 2, 2), chronoirr.vector3df(0, 0, 0))
-application.AddTypicalLights(chronoirr.vector3df(100, 100, 100), chronoirr.vector3df(100, -100, 80))
-application.AddLightWithShadow(chronoirr.vector3df(1.5, -2.5, 5.5), chronoirr.vector3df(0, 0, 0), 3, 4, 10, 40, 512)
+application.AddTypicalCamera(chronoirr.vector3df(
+    0, 0.5, 0.5), chronoirr.vector3df(0, 0, 0))
+application.AddTypicalLights(chronoirr.vector3df(
+    100, 100, 100), chronoirr.vector3df(100, -100, 80))
+application.AddLightWithShadow(chronoirr.vector3df(
+    1.5, -2.5, 5.5), chronoirr.vector3df(0, 0, 0), 3, 4, 10, 40, 512)
 
 application.AssetBindAll()
 application.AssetUpdateAll()
 application.AddShadowAll()
 
-time_step = 1e-3
+time_step = 2e-3
 application.SetTimestep(time_step)
 
 # Simulation loop
 time = 0
-while (application.GetDevice().run()) :
+while (application.GetDevice().run()):
+    # since enum is not available in python wrapper
+    # WheelID enum has to be explicitly defined:
+    # Left Active Drive Wheel (LD) = 0
+    # Right Active Drive Wheel (RD) = 1
+
+    # at time = 1 s, start left turn
+    if abs(time - 1.0) < 1e-4:
+        robot.SetMotorSpeed(-0, 0)
+        robot.SetMotorSpeed(-math.pi, 1)
+    # at time = 2 s, start right turn
+    if (abs(time - 2.0) < 1e-4):
+        robot.SetMotorSpeed(-math.pi, 0)
+        robot.SetMotorSpeed(-0, 1)
+
+    # increment time counter
     time = time + time_step
-    if rover.GetTurnAngle() < 0 and rover.GetTurnState() ==  viper.TurnSig_RIGHT:
-        rover.SetTurn(viper.TurnSig_HOLD)
-    if abs(time - 1) < 1e-5:
-        rover.SetTurn(viper.TurnSig_LEFT, math.pi / 8)
-    elif abs(time - 7) < 1e-5:
-        rover.SetTurn(viper.TurnSig_RIGHT, math.pi / 8)
-    rover.Update()
 
     application.BeginScene(True, True, chronoirr.SColor(255, 140, 161, 192))
     application.DrawAll()

@@ -31,6 +31,9 @@
 #include "chrono/physics/ChLinkMotorRotationSpeed.h"
 #include "chrono/physics/ChLinkDistance.h"
 #include "chrono/physics/ChSystem.h"
+#include "chrono/physics/ChShaft.h"
+#include "chrono/physics/ChShaftsGear.h"
+#include "chrono/physics/ChShaftsBody.h"
 
 #include "chrono_models/ChApiModels.h"
 
@@ -58,6 +61,9 @@ enum class TurnSig {
     RIGHT = -1,  ///< right turn signal
     HOLD = 0     ///< hold signal
 };
+
+/// Curiostiy wheel type
+enum Wheel_Type { RealWheel, SimpleWheel, CylWheel };
 
 /// Base class definition of the Viper Rover Part.
 /// Viper Rover Parts include Chassis, Steering, Upper Suspension Arm, Bottom Suspension Arm and Wheel.
@@ -154,7 +160,8 @@ class CH_MODELS_API Viper_Wheel : public Viper_Part {
                 const ChVector<>& body_pos,
                 const ChQuaternion<>& body_rot,
                 std::shared_ptr<ChBodyAuxRef> chassis,
-                bool collide);
+                bool collide,
+                Wheel_Type wheel_type);
     ~Viper_Wheel() {}
 
     /// Initialize the wheel at the specified (absolute) position.
@@ -257,7 +264,14 @@ class CH_MODELS_API ViperRover {
     ViperRover(ChSystem* system,
                const ChVector<>& rover_pos,
                const ChQuaternion<>& rover_rot,
-               std::shared_ptr<ChMaterialSurface> wheel_mat = nullptr);
+               std::shared_ptr<ChMaterialSurface> wheel_mat,
+               Wheel_Type wheel_type = Wheel_Type::RealWheel);
+
+    ViperRover(ChSystem* system,
+               const ChVector<>& rover_pos,
+               const ChQuaternion<>& rover_rot,
+               Wheel_Type wheel_type = Wheel_Type::RealWheel);
+
     ~ViperRover();
 
     /// Initialize the Viper rover using current parameters.
@@ -266,14 +280,28 @@ class CH_MODELS_API ViperRover {
     /// Get the containing system.
     ChSystem* GetSystem() { return m_system; }
 
+    /// Set DC motor control
+    void SetDCControl(bool dc_control);
+
+    /// Set Motor Stall Torque
+    /// This function only works if DC_Motor Control is enabled, if not, does nothing
+    void SetMotorStallTorque(double torque, WheelID id);
+
+    /// Set DC motor no load Speed
+    /// This function only works if DC_Motor Control is enabled, if not, does nothing
+    void SetMotorNoLoadSpeed(double rad_speed, WheelID id);
+
     /// Set motor speed.
     void SetMotorSpeed(double rad_speed, WheelID id);
+
+    /// Set lift motor speed
+    void SetLiftMotorSpeed(double rad_speed, WheelID id);
 
     /// Get wheel speed.
     ChVector<> GetWheelSpeed(WheelID id);
 
     /// Get wheel angular velocity.
-    ChQuaternion<> GetWheelAngVel(WheelID id);
+    ChVector<> GetWheelAngVel(WheelID id);
 
     /// Get wheel contact force.
     ChVector<> GetWheelContactForce(WheelID id);
@@ -284,6 +312,9 @@ class CH_MODELS_API ViperRover {
     /// Get wheel total applied force.
     ChVector<> GetWheelAppliedForce(WheelID id);
 
+    /// Get wheel tractive torque - if DC control set to off
+    double GetWheelTracTorque(WheelID id);
+
     /// Get wheel total applied torque.
     ChVector<> GetWheelAppliedTorque(WheelID id);
 
@@ -292,6 +323,21 @@ class CH_MODELS_API ViperRover {
 
     /// Get the wheel body.
     std::shared_ptr<ChBodyAuxRef> GetWheelBody(WheelID id);
+
+    /// Get the steering body
+    std::shared_ptr<ChBodyAuxRef> GetSteeringBody(WheelID id);
+
+    /// Get the upper arm body
+    std::shared_ptr<ChBodyAuxRef> GetUpArmBody(WheelID id);
+
+    /// Get the bottom arm body
+    std::shared_ptr<ChBodyAuxRef> GetBottomArmBody(WheelID id);
+
+    /// Get chassis speedometer
+    ChVector<> GetChassisVel();
+
+    /// Get chassis accelerometer
+    ChVector<> GetChassisAcc();
 
     /// Get total rover mass.
     double GetRoverMass();
@@ -324,12 +370,20 @@ class CH_MODELS_API ViperRover {
     /// Note: this function needs to be included in the main simulation loop.
     void Update();
 
+    /// Sub-update function to update DC motor limit control
+    void UpdateDCMotorControl();
+
+    /// Sub-update function to update steering control
+    void UpdateSteeringControl();
+
   private:
     /// This function initializes all parameters for the rover.
     /// Note: The rover will not be constructed in the ChSystem until Initialize() is called.
     void Create();
 
     ChSystem* m_system;  ///< pointer to the Chrono system
+
+    bool m_dc_motor_control = false;
 
     std::shared_ptr<Viper_Chassis> m_chassis;                   ///< rover chassis
     std::vector<std::shared_ptr<Viper_Wheel>> m_wheels;         ///< rover wheels - 1:FL, 2:FR, 3:RL, 4:RR
@@ -343,14 +397,25 @@ class CH_MODELS_API ViperRover {
 
     std::vector<std::shared_ptr<ChLinkMotorRotationSpeed>> m_motors;        ///< vector to store motors
     std::vector<std::shared_ptr<ChLinkMotorRotationSpeed>> m_steer_motors;  ///< vector to store steering motors
-    std::vector<std::shared_ptr<ChLinkMotorRotationSpeed>> m_lift_motors;   /// TODO: < vector to store lifting motors
+    std::vector<std::shared_ptr<ChLinkMotorRotationSpeed>>
+        m_lift_motors;  ///< vector to store lifting motors
+                        ///< Note: there are 8 lifting motors in total
+
+    Wheel_Type m_wheel_type = Wheel_Type::RealWheel;
+
+    // DC Motor Test
+    std::vector<std::shared_ptr<ChShaft>> m_power_shafts;
+    std::vector<std::shared_ptr<ChShaft>> m_driven_shafts;
+    std::vector<std::shared_ptr<ChShaftsGear>> m_shaft_gears;
+
+    std::vector<double> m_stall_torque;   ///< stall torque of the motors
+    std::vector<double> m_no_load_speed;  ///< no load speed of the motors
 
     TurnSig cur_turn_state = TurnSig::HOLD;  ///< Turning state of the viper rover
 
     std::vector<std::shared_ptr<ChFunction_Const>> m_motors_func;        ///< constant motor angular speed func
     std::vector<std::shared_ptr<ChFunction_Const>> m_steer_motors_func;  ///< constant steering motor angular speed func
-    std::vector<std::shared_ptr<ChFunction_Const>>
-        m_lift_motors_func;  /// TODO: < constant lifting motor angular speed func
+    std::vector<std::shared_ptr<ChFunction_Const>> m_lift_motors_func;   ///< constant lifting motor angular speed func
     // suspension spring
     std::vector<std::shared_ptr<ChLinkTSDA>> m_sus_springs;  ///< suspension springs
 

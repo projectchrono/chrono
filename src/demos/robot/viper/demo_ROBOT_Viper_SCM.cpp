@@ -70,6 +70,9 @@ bool enable_moving_patch = true;
 // If true, use provided callback to change soil properties based on location
 bool var_params = true;
 
+// Define Viper rover wheel type
+Wheel_Type wheel_type = Wheel_Type::RealWheel;
+
 // Custom callback for setting location-dependent soil properties.
 // Note that the location is given in the SCM reference frame.
 class MySoilParams : public vehicle::SCMDeformableTerrain::SoilParametersCallback {
@@ -145,7 +148,8 @@ int main(int argc, char* argv[]) {
 
     // Create the Irrlicht visualization (open the Irrlicht device,
     // bind a simple user interface, etc. etc.)
-    ChIrrApp application(&my_system, L"Viper Rover on SCM", core::dimension2d<u32>(1280, 720), VerticalDir::Z, false, true);
+    ChIrrApp application(&my_system, L"Viper Rover on SCM", core::dimension2d<u32>(1280, 720), VerticalDir::Z, false,
+                         true);
 
     // Easy shortcuts to add camera, lights, logo and sky in Irrlicht scene:
     application.AddTypicalLogo();
@@ -165,7 +169,7 @@ int main(int argc, char* argv[]) {
     utils::CSV_writer csv(" ");
 
     // Viper rover initial position and orientation
-    ChVector<double> body_pos(-5, -0.2, 0);
+    ChVector<double> body_pos(-5, 0, -0.2);
 
     // Create a Viper Rover instance
     std::shared_ptr<ChBodyAuxRef> Wheel_1;
@@ -174,40 +178,35 @@ int main(int argc, char* argv[]) {
     std::shared_ptr<ChBodyAuxRef> Wheel_4;
     std::shared_ptr<ChBodyAuxRef> Body_1;
 
+    std::shared_ptr<ViperRover> viper;
+
     if (use_custom_mat == true) {
         // if customize wheel material
-        ViperRover viper(&my_system, body_pos, QUNIT, CustomWheelMaterial(ChContactMethod::SMC));
-        viper.Initialize();
-
-        // Default value is w = 3.1415 rad/s
-        // User can define using SetMotorSpeed
-        // viper.SetMotorSpeed(CH_C_PI,WheelID::LF);
-        // viper.SetMotorSpeed(CH_C_PI,WheelID::RF);
-        // viper.SetMotorSpeed(CH_C_PI,WheelID::LB);
-        // viper.SetMotorSpeed(CH_C_PI,WheelID::RB);
+        viper = chrono_types::make_shared<ViperRover>(&my_system, body_pos, QUNIT,
+                                                      CustomWheelMaterial(ChContactMethod::SMC), wheel_type);
+        viper->SetDCControl(true);
+        // SetDCControl needs to be called before Initialize()
+        viper->Initialize();
 
         // Get wheels and bodies to set up SCM patches
-        Wheel_1 = viper.GetWheelBody(WheelID::LF);
-        Wheel_2 = viper.GetWheelBody(WheelID::RF);
-        Wheel_3 = viper.GetWheelBody(WheelID::LB);
-        Wheel_4 = viper.GetWheelBody(WheelID::RB);
-        Body_1 = viper.GetChassisBody();
+        Wheel_1 = viper->GetWheelBody(WheelID::LF);
+        Wheel_2 = viper->GetWheelBody(WheelID::RF);
+        Wheel_3 = viper->GetWheelBody(WheelID::LB);
+        Wheel_4 = viper->GetWheelBody(WheelID::RB);
+        Body_1 = viper->GetChassisBody();
     } else {
         // if use default material
-        ViperRover viper(&my_system, body_pos, QUNIT);
-        viper.Initialize();
-
-        // viper.SetMotorSpeed(CH_C_PI * 2,WheelID::LF);
-        // viper.SetMotorSpeed(CH_C_PI * 2,WheelID::RF);
-        // viper.SetMotorSpeed(CH_C_PI * 2,WheelID::LB);
-        // viper.SetMotorSpeed(CH_C_PI * 2,WheelID::RB);
+        viper = chrono_types::make_shared<ViperRover>(&my_system, body_pos, QUNIT, wheel_type);
+        // SetDCControl needs to be called before Initialize()
+        viper->SetDCControl(true);
+        viper->Initialize();
 
         // Get wheels and bodies to set up SCM patches
-        Wheel_1 = viper.GetWheelBody(WheelID::LF);
-        Wheel_2 = viper.GetWheelBody(WheelID::RF);
-        Wheel_3 = viper.GetWheelBody(WheelID::LB);
-        Wheel_4 = viper.GetWheelBody(WheelID::RB);
-        Body_1 = viper.GetChassisBody();
+        Wheel_1 = viper->GetWheelBody(WheelID::LF);
+        Wheel_2 = viper->GetWheelBody(WheelID::RF);
+        Wheel_3 = viper->GetWheelBody(WheelID::LB);
+        Wheel_4 = viper->GetWheelBody(WheelID::RB);
+        Body_1 = viper->GetChassisBody();
     }
 
     //
@@ -263,7 +262,6 @@ int main(int argc, char* argv[]) {
         mterrain.AddMovingPatch(Wheel_2, ChVector<>(0, 0, 0), ChVector<>(0.5, 2 * wheel_range, 2 * wheel_range));
         mterrain.AddMovingPatch(Wheel_3, ChVector<>(0, 0, 0), ChVector<>(0.5, 2 * wheel_range, 2 * wheel_range));
         mterrain.AddMovingPatch(Wheel_4, ChVector<>(0, 0, 0), ChVector<>(0.5, 2 * wheel_range, 2 * wheel_range));
-        /// mterrain.AddMovingPatch(Body_1, ChVector<>(0, 0, 0), ChVector<>(0.5, 2 * body_range, 2 * body_range))
     }
 
     // Set some visualization parameters: either with a texture, or with falsecolor plot, etc.
@@ -271,10 +269,10 @@ int main(int argc, char* argv[]) {
 
     mterrain.SetMeshWireframe(true);
 
-    // ==IMPORTANT!== Use this function for adding a ChIrrNodeAsset to all items
+    // Use this function for adding a ChIrrNodeAsset to all items
     application.AssetBindAll();
 
-    // ==IMPORTANT!== Use this function for 'converting' into Irrlicht meshes the assets
+    // Use this function for 'converting' into Irrlicht meshes the assets
     application.AssetUpdateAll();
 
     // Use shadows in realtime view
@@ -284,8 +282,10 @@ int main(int argc, char* argv[]) {
 
     while (application.GetDevice()->run()) {
         if (output) {
-            // vehicle::TerrainForce frc = mterrain.GetContactForce(mrigidbody);
-            // csv << my_system.GetChTime() << frc.force << frc.moment << frc.point << std::endl;
+            // this example writeout will write drive torques of all four wheels into file
+            csv << my_system.GetChTime() << viper->GetWheelTracTorque(WheelID::LF)
+                << viper->GetWheelTracTorque(WheelID::RF) << viper->GetWheelTracTorque(WheelID::LB)
+                << viper->GetWheelTracTorque(WheelID::RB) << std::endl;
         }
         application.BeginScene();
 
@@ -295,7 +295,7 @@ int main(int argc, char* argv[]) {
         application.DoStep();
         tools::drawColorbar(0, 20000, "Pressure yield [Pa]", application.GetDevice(), 1180);
         application.EndScene();
-
+        viper->Update();
         ////mterrain.PrintStepStatistics(std::cout);
     }
 
