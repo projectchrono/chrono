@@ -742,9 +742,9 @@ void TurtleBot::Create() {
                                                              m_robot_pos, m_robot_rot, true);
 
     // active drive wheels' positions relative to the chassis
-    float dwx = 0.f;
-    float dwy = 0.11505f;
-    float dwz = 0.03735f;
+    double dwx = 0;
+    double dwy = 0.11505;
+    double dwz = 0.03735;
     for (int i = 0; i < 2; i++) {
         if (i == 0) {
             m_drive_wheels.push_back(chrono_types::make_shared<Turtlebot_ActiveWheel>(
@@ -760,9 +760,9 @@ void TurtleBot::Create() {
     }
 
     // passive driven wheels' positions relative to the chassis
-    float pwx = 0.11505f;
-    float pwy = 0.f;
-    float pwz = 0.02015f;
+    double pwx = 0.11505;
+    double pwy = 0;
+    double pwz = 0.02015;
 
     for (int i = 0; i < 2; i++) {
         if (i == 0) {
@@ -779,29 +779,29 @@ void TurtleBot::Create() {
     }
 
     // create the first level supporting rod
-    float rod_s_0_x = -0.0565f;
-    float rod_s_0_y = 0.11992f;
-    float rod_s_0_z = 0.09615f;
+    double rod_s_0_x = -0.0565;
+    double rod_s_0_y = 0.11992;
+    double rod_s_0_z = 0.09615;
 
-    float rod_s_1_x = 0.0535f;
-    float rod_s_1_y = 0.11992f;
-    float rod_s_1_z = 0.09615f;
+    double rod_s_1_x = 0.0535;
+    double rod_s_1_y = 0.11992;
+    double rod_s_1_z = 0.09615;
 
-    float rod_s_2_x = 0.11850f;
-    float rod_s_2_y = 0.08192f;
-    float rod_s_2_z = 0.09615f;
+    double rod_s_2_x = 0.11850;
+    double rod_s_2_y = 0.08192;
+    double rod_s_2_z = 0.09615;
 
-    float rod_s_3_x = 0.11850f;
-    float rod_s_3_y = -0.08192f;
-    float rod_s_3_z = 0.09615f;
+    double rod_s_3_x = 0.11850;
+    double rod_s_3_y = -0.08192;
+    double rod_s_3_z = 0.09615;
 
-    float rod_s_4_x = 0.0535f;
-    float rod_s_4_y = -0.11992f;
-    float rod_s_4_z = 0.09615f;
+    double rod_s_4_x = 0.0535;
+    double rod_s_4_y = -0.11992;
+    double rod_s_4_z = 0.09615;
 
-    float rod_s_5_x = -0.0565f;
-    float rod_s_5_y = -0.11992f;
-    float rod_s_5_z = 0.09615f;
+    double rod_s_5_x = -0.0565;
+    double rod_s_5_y = -0.11992;
+    double rod_s_5_z = 0.09615;
 
     for (int i = 0; i < 6; i++) {
         if (i == 0) {
@@ -842,38 +842,38 @@ void TurtleBot::Create() {
     }
 
     // add the bottom plate
-    float bt_plate_x = 0.0f;
-    float bt_plate_y = 0.0f;
-    float bt_plate_z = 0.14615f;
+    double bt_plate_x = 0;
+    double bt_plate_y = 0;
+    double bt_plate_z = 0.14615;
 
     m_bottom_plate = chrono_types::make_shared<Turtlebot_BottomPlate>(
         "bottom_plate", false, m_wheel_material, m_system, ChVector<>(bt_plate_x, bt_plate_y, bt_plate_z),
         ChQuaternion<>(1, 0, 0, 0), m_chassis->GetBody(), true);
 
     // create the second level support rod
-    float rod_m_0_x = -0.10394f;
-    float rod_m_0_y = 0.09792f;
-    float rod_m_0_z = 0.15015f;
+    double rod_m_0_x = -0.10394;
+    double rod_m_0_y = 0.09792;
+    double rod_m_0_z = 0.15015;
 
-    float rod_m_1_x = -0.0015f;
-    float rod_m_1_y = 0.16192f;
-    float rod_m_1_z = 0.15015f;
+    double rod_m_1_x = -0.0015;
+    double rod_m_1_y = 0.16192;
+    double rod_m_1_z = 0.15015;
 
-    float rod_m_2_x = 0.0687f;
-    float rod_m_2_y = 0.13132f;
-    float rod_m_2_z = 0.15015f;
+    double rod_m_2_x = 0.0687;
+    double rod_m_2_y = 0.13132;
+    double rod_m_2_z = 0.15015;
 
-    float rod_m_3_x = 0.0687f;
-    float rod_m_3_y = -0.13132f;
-    float rod_m_3_z = 0.15015f;
+    double rod_m_3_x = 0.0687;
+    double rod_m_3_y = -0.13132;
+    double rod_m_3_z = 0.15015;
 
-    float rod_m_4_x = -0.0015f;
-    float rod_m_4_y = -0.16192f;
-    float rod_m_4_z = 0.15015f;
+    double rod_m_4_x = -0.0015;
+    double rod_m_4_y = -0.16192;
+    double rod_m_4_z = 0.15015;
 
-    float rod_m_5_x = -0.10394f;
-    float rod_m_5_y = -0.09792f;
-    float rod_m_5_z = 0.15015f;
+    double rod_m_5_x = -0.10394;
+    double rod_m_5_y = -0.09792;
+    double rod_m_5_z = 0.15015;
 
     for (int i = 0; i < 6; i++) {
         if (i == 0) {
@@ -914,37 +914,37 @@ void TurtleBot::Create() {
     }
 
     // add the middle plate
-    float mi_plate_x = 0.f;
-    float mi_plate_y = 0.f;
-    float mi_plate_z = 0.20015f;
+    double mi_plate_x = 0;
+    double mi_plate_y = 0;
+    double mi_plate_z = 0.20015;
     m_middle_plate = chrono_types::make_shared<Turtlebot_MiddlePlate>(
         "middle_plate", false, m_wheel_material, m_system, ChVector<>(mi_plate_x, mi_plate_y, mi_plate_z),
         ChQuaternion<>(1, 0, 0, 0), m_chassis->GetBody(), true);
 
     // create the third level support rod
-    float rod_u_0_x = -0.10394f;
-    float rod_u_0_y = 0.09792f;
-    float rod_u_0_z = 0.20615f;
+    double rod_u_0_x = -0.10394;
+    double rod_u_0_y = 0.09792;
+    double rod_u_0_z = 0.20615;
 
-    float rod_u_1_x = -0.0015f;
-    float rod_u_1_y = 0.16192f;
-    float rod_u_1_z = 0.20615f;
+    double rod_u_1_x = -0.0015;
+    double rod_u_1_y = 0.16192;
+    double rod_u_1_z = 0.20615;
 
-    float rod_u_2_x = 0.0687f;
-    float rod_u_2_y = 0.13132f;
-    float rod_u_2_z = 0.20615f;
+    double rod_u_2_x = 0.0687;
+    double rod_u_2_y = 0.13132;
+    double rod_u_2_z = 0.20615;
 
-    float rod_u_3_x = 0.0687f;
-    float rod_u_3_y = -0.13132f;
-    float rod_u_3_z = 0.20615f;
+    double rod_u_3_x = 0.0687;
+    double rod_u_3_y = -0.13132;
+    double rod_u_3_z = 0.20615;
 
-    float rod_u_4_x = -0.0015f;
-    float rod_u_4_y = -0.16192f;
-    float rod_u_4_z = 0.20615f;
+    double rod_u_4_x = -0.0015;
+    double rod_u_4_y = -0.16192;
+    double rod_u_4_z = 0.20615;
 
-    float rod_u_5_x = -0.10394f;
-    float rod_u_5_y = -0.09792f;
-    float rod_u_5_z = 0.20615f;
+    double rod_u_5_x = -0.10394;
+    double rod_u_5_y = -0.09792;
+    double rod_u_5_z = 0.20615;
 
     for (int i = 0; i < 6; i++) {
         if (i == 0) {
@@ -985,9 +985,9 @@ void TurtleBot::Create() {
     }
 
     // add the top plate
-    float top_plate_x = 0.f;
-    float top_plate_y = 0.f;
-    float top_plate_z = 0.40615f;
+    double top_plate_x = 0;
+    double top_plate_y = 0;
+    double top_plate_z = 0.40615;
     m_top_plate = chrono_types::make_shared<Turtlebot_TopPlate>("top_plate", false, m_wheel_material, m_system,
                                                                 ChVector<>(top_plate_x, top_plate_y, top_plate_z),
                                                                 ChQuaternion<>(1, 0, 0, 0), m_chassis->GetBody(), true);
@@ -1011,85 +1011,85 @@ void TurtleBot::Initialize() {
     }
 
     // redeclare necessary location variables
-    float dwx = 0.f;
-    float dwy = 0.11505f;
-    float dwz = 0.03735f;
+    double dwx = 0;
+    double dwy = 0.11505;
+    double dwz = 0.03735;
 
-    float pwx = 0.11505f;
-    float pwy = 0.f;
-    float pwz = 0.02015f;
+    double pwx = 0.11505;
+    double pwy = 0;
+    double pwz = 0.02015;
 
-    float rod_s_0_x = -0.0565f;
-    float rod_s_0_y = 0.11992f;
-    float rod_s_0_z = 0.09615f;
+    double rod_s_0_x = -0.0565;
+    double rod_s_0_y = 0.11992;
+    double rod_s_0_z = 0.09615;
 
-    float rod_s_1_x = 0.0535f;
-    float rod_s_1_y = 0.11992f;
-    float rod_s_1_z = 0.09615f;
+    double rod_s_1_x = 0.0535;
+    double rod_s_1_y = 0.11992;
+    double rod_s_1_z = 0.09615;
 
-    float rod_s_2_x = 0.11850f;
-    float rod_s_2_y = 0.08192f;
-    float rod_s_2_z = 0.09615f;
+    double rod_s_2_x = 0.11850;
+    double rod_s_2_y = 0.08192;
+    double rod_s_2_z = 0.09615;
 
-    float rod_s_3_x = 0.11850f;
-    float rod_s_3_y = -0.08192f;
-    float rod_s_3_z = 0.09615f;
+    double rod_s_3_x = 0.11850;
+    double rod_s_3_y = -0.08192;
+    double rod_s_3_z = 0.09615;
 
-    float rod_s_4_x = 0.0535f;
-    float rod_s_4_y = -0.11992f;
-    float rod_s_4_z = 0.09615f;
+    double rod_s_4_x = 0.0535;
+    double rod_s_4_y = -0.11992;
+    double rod_s_4_z = 0.09615;
 
-    float rod_s_5_x = -0.0565f;
-    float rod_s_5_y = -0.11992f;
-    float rod_s_5_z = 0.09615f;
+    double rod_s_5_x = -0.0565;
+    double rod_s_5_y = -0.11992;
+    double rod_s_5_z = 0.09615;
 
-    float rod_m_0_x = -0.10394f;
-    float rod_m_0_y = 0.09792f;
-    float rod_m_0_z = 0.15015f;
+    double rod_m_0_x = -0.10394;
+    double rod_m_0_y = 0.09792;
+    double rod_m_0_z = 0.15015;
 
-    float rod_m_1_x = -0.0015f;
-    float rod_m_1_y = 0.16192f;
-    float rod_m_1_z = 0.15015f;
+    double rod_m_1_x = -0.0015;
+    double rod_m_1_y = 0.16192;
+    double rod_m_1_z = 0.15015;
 
-    float rod_m_2_x = 0.0687f;
-    float rod_m_2_y = 0.13132f;
-    float rod_m_2_z = 0.15015f;
+    double rod_m_2_x = 0.0687;
+    double rod_m_2_y = 0.13132;
+    double rod_m_2_z = 0.15015;
 
-    float rod_m_3_x = 0.0687f;
-    float rod_m_3_y = -0.13132f;
-    float rod_m_3_z = 0.15015f;
+    double rod_m_3_x = 0.0687;
+    double rod_m_3_y = -0.13132;
+    double rod_m_3_z = 0.15015;
 
-    float rod_m_4_x = -0.0015f;
-    float rod_m_4_y = -0.16192f;
-    float rod_m_4_z = 0.15015f;
+    double rod_m_4_x = -0.0015;
+    double rod_m_4_y = -0.16192;
+    double rod_m_4_z = 0.15015;
 
-    float rod_m_5_x = -0.10394f;
-    float rod_m_5_y = -0.09792f;
-    float rod_m_5_z = 0.15015f;
+    double rod_m_5_x = -0.10394;
+    double rod_m_5_y = -0.09792;
+    double rod_m_5_z = 0.15015;
 
-    float rod_u_0_x = -0.10394f;
-    float rod_u_0_y = 0.09792f;
-    float rod_u_0_z = 0.20615f;
+    double rod_u_0_x = -0.10394;
+    double rod_u_0_y = 0.09792;
+    double rod_u_0_z = 0.20615;
 
-    float rod_u_1_x = -0.0015f;
-    float rod_u_1_y = 0.16192f;
-    float rod_u_1_z = 0.20615f;
+    double rod_u_1_x = -0.0015;
+    double rod_u_1_y = 0.16192;
+    double rod_u_1_z = 0.20615;
 
-    float rod_u_2_x = 0.0687f;
-    float rod_u_2_y = 0.13132f;
-    float rod_u_2_z = 0.20615f;
+    double rod_u_2_x = 0.0687;
+    double rod_u_2_y = 0.13132;
+    double rod_u_2_z = 0.20615;
 
-    float rod_u_3_x = 0.0687f;
-    float rod_u_3_y = -0.13132f;
-    float rod_u_3_z = 0.20615f;
+    double rod_u_3_x = 0.0687;
+    double rod_u_3_y = -0.13132;
+    double rod_u_3_z = 0.20615;
 
-    float rod_u_4_x = -0.0015f;
-    float rod_u_4_y = -0.16192f;
-    float rod_u_4_z = 0.20615f;
+    double rod_u_4_x = -0.0015;
+    double rod_u_4_y = -0.16192;
+    double rod_u_4_z = 0.20615;
 
-    float rod_u_5_x = -0.10394f;
-    float rod_u_5_y = -0.09792f;
-    float rod_u_5_z = 0.20615f;
+    double rod_u_5_x = -0.10394;
+    double rod_u_5_y = -0.09792;
+    double rod_u_5_z = 0.20615;
 
     // add motors and revolute joints on the active and passive wheels
     auto const_speed_function_l = chrono_types::make_shared<ChFunction_Const>(-CH_C_PI);
@@ -1144,44 +1144,44 @@ void TurtleBot::Initialize() {
             bottom_rod_rel_pos = ChVector<>(rod_s_0_x, rod_s_0_y, rod_s_0_z);
             middle_rod_rel_pos = ChVector<>(rod_m_0_x, rod_m_0_y, rod_m_0_z);
             top_rod_rel_pos = ChVector<>(rod_u_0_x, rod_u_0_y, rod_u_0_z);
-            bottom_plate_rel_pos = bottom_rod_rel_pos + ChVector<>(0.f, 0.f, 0.05f);
-            middle_plate_rel_pos = middle_rod_rel_pos + ChVector<>(0.f, 0.f, 0.05f);
-            top_plate_rel_pos = top_rod_rel_pos + ChVector<>(0.f, 0.f, 0.2f);
+            bottom_plate_rel_pos = bottom_rod_rel_pos + ChVector<>(0, 0, 0.05);
+            middle_plate_rel_pos = middle_rod_rel_pos + ChVector<>(0, 0, 0.05);
+            top_plate_rel_pos = top_rod_rel_pos + ChVector<>(0, 0, 0.2);
         } else if (i == 1) {
             bottom_rod_rel_pos = ChVector<>(rod_s_1_x, rod_s_1_y, rod_s_1_z);
             middle_rod_rel_pos = ChVector<>(rod_m_1_x, rod_m_1_y, rod_m_1_z);
             top_rod_rel_pos = ChVector<>(rod_u_1_x, rod_u_1_y, rod_u_1_z);
-            bottom_plate_rel_pos = bottom_rod_rel_pos + ChVector<>(0.f, 0.f, 0.05f);
-            middle_plate_rel_pos = middle_rod_rel_pos + ChVector<>(0.f, 0.f, 0.05f);
-            top_plate_rel_pos = top_rod_rel_pos + ChVector<>(0.f, 0.f, 0.2f);
+            bottom_plate_rel_pos = bottom_rod_rel_pos + ChVector<>(0, 0, 0.05);
+            middle_plate_rel_pos = middle_rod_rel_pos + ChVector<>(0, 0, 0.05);
+            top_plate_rel_pos = top_rod_rel_pos + ChVector<>(0, 0, 0.2);
         } else if (i == 2) {
             bottom_rod_rel_pos = ChVector<>(rod_s_2_x, rod_s_2_y, rod_s_2_z);
             middle_rod_rel_pos = ChVector<>(rod_m_2_x, rod_m_2_y, rod_m_2_z);
             top_rod_rel_pos = ChVector<>(rod_u_2_x, rod_u_2_y, rod_u_2_z);
-            bottom_plate_rel_pos = bottom_rod_rel_pos + ChVector<>(0.f, 0.f, 0.05f);
-            middle_plate_rel_pos = middle_rod_rel_pos + ChVector<>(0.f, 0.f, 0.05f);
-            top_plate_rel_pos = top_rod_rel_pos + ChVector<>(0.f, 0.f, 0.2f);
+            bottom_plate_rel_pos = bottom_rod_rel_pos + ChVector<>(0, 0, 0.05);
+            middle_plate_rel_pos = middle_rod_rel_pos + ChVector<>(0, 0, 0.05);
+            top_plate_rel_pos = top_rod_rel_pos + ChVector<>(0, 0, 0.2);
         } else if (i == 3) {
             bottom_rod_rel_pos = ChVector<>(rod_s_3_x, rod_s_3_y, rod_s_3_z);
             middle_rod_rel_pos = ChVector<>(rod_m_3_x, rod_m_3_y, rod_m_3_z);
             top_rod_rel_pos = ChVector<>(rod_u_3_x, rod_u_3_y, rod_u_3_z);
-            bottom_plate_rel_pos = bottom_rod_rel_pos + ChVector<>(0.f, 0.f, 0.05f);
-            middle_plate_rel_pos = middle_rod_rel_pos + ChVector<>(0.f, 0.f, 0.05f);
-            top_plate_rel_pos = top_rod_rel_pos + ChVector<>(0.f, 0.f, 0.2f);
+            bottom_plate_rel_pos = bottom_rod_rel_pos + ChVector<>(0, 0, 0.05);
+            middle_plate_rel_pos = middle_rod_rel_pos + ChVector<>(0, 0, 0.05);
+            top_plate_rel_pos = top_rod_rel_pos + ChVector<>(0, 0, 0.2);
         } else if (i == 4) {
             bottom_rod_rel_pos = ChVector<>(rod_s_4_x, rod_s_4_y, rod_s_4_z);
             middle_rod_rel_pos = ChVector<>(rod_m_4_x, rod_m_4_y, rod_m_4_z);
             top_rod_rel_pos = ChVector<>(rod_u_4_x, rod_u_4_y, rod_u_4_z);
-            bottom_plate_rel_pos = bottom_rod_rel_pos + ChVector<>(0.f, 0.f, 0.05f);
-            middle_plate_rel_pos = middle_rod_rel_pos + ChVector<>(0.f, 0.f, 0.05f);
-            top_plate_rel_pos = top_rod_rel_pos + ChVector<>(0.f, 0.f, 0.2f);
+            bottom_plate_rel_pos = bottom_rod_rel_pos + ChVector<>(0, 0, 0.05);
+            middle_plate_rel_pos = middle_rod_rel_pos + ChVector<>(0, 0, 0.05);
+            top_plate_rel_pos = top_rod_rel_pos + ChVector<>(0, 0, 0.2);
         } else if (i == 5) {
             bottom_rod_rel_pos = ChVector<>(rod_s_5_x, rod_s_5_y, rod_s_5_z);
             middle_rod_rel_pos = ChVector<>(rod_m_5_x, rod_m_5_y, rod_m_5_z);
             top_rod_rel_pos = ChVector<>(rod_u_5_x, rod_u_5_y, rod_u_5_z);
-            bottom_plate_rel_pos = bottom_rod_rel_pos + ChVector<>(0.f, 0.f, 0.05f);
-            middle_plate_rel_pos = middle_rod_rel_pos + ChVector<>(0.f, 0.f, 0.05f);
-            top_plate_rel_pos = top_rod_rel_pos + ChVector<>(0.f, 0.f, 0.2f);
+            bottom_plate_rel_pos = bottom_rod_rel_pos + ChVector<>(0, 0, 0.05);
+            middle_plate_rel_pos = middle_rod_rel_pos + ChVector<>(0, 0, 0.05);
+            top_plate_rel_pos = top_rod_rel_pos + ChVector<>(0, 0, 0.2);
         }
 
         AddLockJoint(m_1st_level_rods[i]->GetBody(), m_chassis->GetBody(), m_chassis->GetBody(), m_system,
@@ -1199,7 +1199,7 @@ void TurtleBot::Initialize() {
     }
 }
 
-void TurtleBot::SetMotorSpeed(float rad_speed, WheelID id) {
+void TurtleBot::SetMotorSpeed(double rad_speed, WheelID id) {
     m_motors_func[id]->Set_yconst(rad_speed);
 }
 

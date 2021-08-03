@@ -506,8 +506,6 @@ int main(int argc, char* argv[]) {
 
     application.SetTimestep(0.001);
 
-    int step = 0;
-
     while (application.GetDevice()->run()) {
         if (output) {
             // this example writeout will write drive torques of all six wheels into file
@@ -527,9 +525,8 @@ int main(int argc, char* argv[]) {
         tools::drawColorbar(0, 20000, "Pressure yield [Pa]", application.GetDevice(), 1600);
         application.EndScene();
 
-        mterrain.PrintStepStatistics(std::cout);
-        step = step + 1;
-        std::cout << "step: " << step << std::endl;
+        ////std::cout << "--------- " << my_system.GetChTime() << std::endl;
+        ////mterrain.PrintStepStatistics(std::cout);
     }
 
     if (output) {

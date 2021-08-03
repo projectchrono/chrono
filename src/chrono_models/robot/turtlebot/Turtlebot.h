@@ -342,7 +342,7 @@ class CH_MODELS_API TurtleBot {
     void Initialize();
 
     /// Set active drive wheel speed
-    void SetMotorSpeed(float rad_speed, WheelID id);
+    void SetMotorSpeed(double rad_speed, WheelID id);
 
     /// Get active drive wheel speed
     ChVector<> GetActiveWheelSpeed(WheelID id);

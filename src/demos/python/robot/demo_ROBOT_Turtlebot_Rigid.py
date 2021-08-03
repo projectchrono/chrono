@@ -65,7 +65,7 @@ application.AssetBindAll()
 application.AssetUpdateAll()
 application.AddShadowAll()
 
-time_step = 0.0005
+time_step = 2e-3
 application.SetTimestep(time_step)
 
 # Simulation loop

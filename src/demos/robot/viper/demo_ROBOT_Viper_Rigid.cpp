@@ -89,7 +89,7 @@ std::shared_ptr<ChMaterialSurface> CustomWheelMaterial(ChContactMethod contact_m
 }
 
 // Simulation time step
-double time_step = 0.0005;
+double time_step = 2e-3;
 
 int main(int argc, char* argv[]) {
     GetLog() << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
@@ -171,7 +171,7 @@ int main(int argc, char* argv[]) {
     while (application.GetDevice()->run()) {
         time = time + time_step;
         // Display turning angle - ranges from -pi/3 to pi/3
-        std::cout << "turn angle: " << viper->GetTurnAngle() << std::endl;
+        ////std::cout << "turn angle: " << viper->GetTurnAngle() << std::endl;
 
         // Once the viper rover turning angle returns back to 0, HOLD the steering
         if ((viper->GetTurnAngle() - 0) < 1e-8 && viper->GetTurnState() == TurnSig::RIGHT) {
@@ -187,10 +187,10 @@ int main(int argc, char* argv[]) {
         viper->Update();  // note->viper steering control needs to be updated every simulation loop
 
         // Read rover chassis velocity
-        // std::cout <<"Rover Chassis Speedo Reading: " << viper -> GetChassisVel() << std::endl;
+        ////std::cout <<"Rover Chassis Speedo Reading: " << viper -> GetChassisVel() << std::endl;
 
         // Read rover chassis acceleration
-        // std::cout << "Rover Chassis Accelerometer Reading: "<< viper -> GetChassisAcc() << std::endl;
+        ////std::cout << "Rover Chassis Accelerometer Reading: "<< viper -> GetChassisAcc() << std::endl;
 
         application.BeginScene(true, true, SColor(255, 140, 161, 192));
         application.DrawAll();

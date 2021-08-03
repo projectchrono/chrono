@@ -94,7 +94,7 @@ std::shared_ptr<ChMaterialSurface> CustomWheelMaterial(ChContactMethod contact_m
 }
 
 // Simulation time step
-double time_step = 0.0005;
+double time_step = 2e-3;
 
 int main(int argc, char* argv[]) {
     GetLog() << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";

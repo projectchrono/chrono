@@ -168,7 +168,7 @@ int main(int argc, char* argv[]) {
         ChVector<> L_Ang = robot->GetActiveWheelAngVel(WheelID::LD);
         ChVector<> R_Ang = robot->GetActiveWheelAngVel(WheelID::RD);
 
-        std::cout << "time_step: " << time << " W_L: " << L_Ang.y() << " W_R: " << R_Ang.y() << std::endl;
+        ////std::cout << "time_step: " << time << " W_L: " << L_Ang.y() << " W_R: " << R_Ang.y() << std::endl;
 
         // increment time indicator
         time = time + time_step;
