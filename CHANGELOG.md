@@ -5,6 +5,7 @@ Change Log
 ==========
 
 - [Unreleased (development version)](#unreleased-development-branch)
+  - [New robot models](#added-new-robot-models)
   - [New multicore collision detection system](#added-new-multicore-collision-detection-system)
   - [Miscellaneous additions to Chrono::Gpu](#added-miscellaneous-additions-to-chronogpu)
   - [New loads for ChNodeFEAxyzrot](#added-new-loads-for-chnodefeaxyzrot)
@@ -45,6 +46,50 @@ Change Log
 - [Release 4.0.0](#release-400---2019-02-22)
 
 ## Unreleased (development branch)
+
+### [Added] New robot models
+
+Two new models were added to the collection Chrono robot models:
+
+- The **Curiosity** Mars Rover is a six-wheel rover model. The model can simulate the Curiosity-class Mars rover which includes a passive Rocker-Bogie suspension system. The operation and the usage of the Curiosity Rover is similar to the Viper Lunar Rover. The steering function of the Curiosity Rover needs to be explicitly controlled by calling
+  ```cpp
+  SetSteerSpeed(double speed, WheelID id)
+  ```
+  This independent steering control allows the rover model to conduct many types of steering maneuvers. The linear DC motor model in Curiosity is similar to the DC motor in Viper (see below).
+
+  `demo_ROBOT_Curiosity_SCM` illustrates the rover crossiung symmetric obstacles on SCM deformable terrain and `demo_ROBOT_Curioisty_Rigid` shows the rover being operated on rigid terrain while climbing a stair-shaped obstacle. Both demos show the initialization process of the Curiosity rover model and the simulated Rocker-Bogie suspension system when crossing obstacles.
+
+- The **Turtlebot** is a common basic robot used as demonstration in various robot siomulation packages (e.g., Gazebo/ROS). This robot consists of two drive wheels and one passive wheel. The steering function can be controlled by calling 
+  ```cpp
+  SetMotorSpeed(float rad_speed, WheelID id)
+  ```
+  on both wheels and using the speed difference between left and right wheels to turn. This is a model skeleton and in the future more functionalities can be added as necessary, such as adding sensors for autonomous driving simulation. 
+
+  `demo_ROBOT_Turtlebot_Rigid` shows a turtlebot model operated on rigid terrain and the turning operation.
+
+In addition, new capabilities and functionality were added to the **Viper** Lunar Rover model. These include steering controls, linear DC motor models, and an active-controlled suspension system. The steering function is achieved by four rotational motors in the Z directions (vertical direction of the rover, perpendicular to the drive motor). The steering of the rover can be accessed using the function
+```cpp
+SetTurn(TurnSig id, double turn_speed)
+```
+to specify the turn signal (left/right/hold) and the speed of the turn. The active suspension control is achieved through eight lifting motors located on the connection points between upper/lower suspension and the rover chassis. This suspension replaces the current passive suspension which only had two springs. These two springs were maintained in the new suspension system in order to include damping. Control of the active suspension can be achieved through
+```cpp
+SetLiftMotorSpeed(double rad_speed, WheelID id)
+```
+The linear DC motor is a new option which can be used to replace the constant angular velocity motor. The function 
+```cpp
+SetDCControl(bool dc_control)
+```
+must be called before the initialization of the rover. This new function can simulate a simple DC motor with a linear torque-angular speed characteristic. The linear torque-speed map can be set using
+```cpp
+SetMotorNoLoadSpeed(double rad_speed, WheelID id)
+```
+and
+```cpp
+SetMotorStallTorque(double torque, WheelID id)
+```
+
+`demo_ROBOT_Viper_Rigid` and `demo_ROBOT_Viper_SCM` were modified to reflect changes in the initialization and controls. 
+
 
 ### [Added] New multicore collision detection system
 
