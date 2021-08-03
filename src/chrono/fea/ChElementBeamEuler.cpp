@@ -337,10 +337,10 @@ void ChElementBeamEuler::ComputeGeometricStiffnessMatrix() {
     double PL2_15_z = 2.*L / (15.);// optional [2]: ...+ 4*IyA /(L);
     double PL_30_y  = L / (30.);   // optional [2]: ...+ 2*IyA /(L);
     double PL_30_z  = L / (30.);   // optional [2]: ...+ 2*IyA /(L);
-    /*
-    this->Kg(0, 0) =  P_L;
-    this->Kg(6, 6) =  P_L;
-    this->Kg(0, 6) = -P_L;
+   /* 
+    this->Kg(0, 0) =   1./L;
+    this->Kg(6, 6) =   1./L;
+    this->Kg(0, 6) = - 1./L;
     */
     
     this->Kg(1, 1) =  P6_5L_y;
