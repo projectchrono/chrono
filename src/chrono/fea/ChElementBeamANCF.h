@@ -23,6 +23,7 @@
 
 #include <vector>
 
+#include "chrono/fea/ChMaterialBeamANCF.h"
 #include "chrono/core/ChQuadrature.h"
 #include "chrono/fea/ChElementBeam.h"
 #include "chrono/fea/ChNodeFEAxyzDD.h"
@@ -32,51 +33,6 @@ namespace fea {
 
 /// @addtogroup fea_elements
 /// @{
-
-/// Material definition.
-/// This class implements material properties for a layer.
-class ChApi ChMaterialBeamANCF {
-  public:
-    /// Construct an isotropic material.
-    ChMaterialBeamANCF(double rho,        ///< material density
-                       double E,          ///< Young's modulus
-                       double nu,         ///< Poisson ratio
-                       const double& k1,  ///< Shear correction factor along beam local y axis
-                       const double& k2   ///< Shear correction factor along beam local z axis
-    );
-
-    /// Construct a (possibly) orthotropic material.
-    ChMaterialBeamANCF(double rho,            ///< material density
-                       const ChVector<>& E,   ///< elasticity moduli (E_x, E_y, E_z)
-                       const ChVector<>& nu,  ///< Poisson ratios (nu_xy, nu_xz, nu_yz)
-                       const ChVector<>& G,   ///< shear moduli (G_xy, G_xz, G_yz)
-                       const double& k1,      ///< Shear correction factor along beam local y axis
-                       const double& k2       ///< Shear correction factor along beam local z axis
-    );
-
-    /// Return the material density.
-    double Get_rho() const { return m_rho; }
-
-    /// Return the matrix of elastic coefficients: Diagonal terms.
-    const ChMatrixNM<double, 6, 6>& Get_E_eps() const { return m_E_eps; }
-
-    /// Return the matrix of elastic coefficients: Coupling terms.
-    const ChMatrixNM<double, 6, 6>& Get_E_eps_Nu() const { return m_E_eps_Nu; }
-
-  private:
-    /// Calculate the matrix of elastic coefficients: k1 and k2 are Timoshenko shear correction factors.
-    void Calc_E_eps(const ChVector<>& E, const ChVector<>& nu, const ChVector<>& G, double k1, double k2);
-
-    /// Calculate the matrix of elastic coefficients.
-    void Calc_E_eps_Nu(const ChVector<>& E, const ChVector<>& nu, const ChVector<>& G);
-
-    double m_rho;                         ///< density
-    ChMatrixNM<double, 6, 6> m_E_eps;     ///< matrix of elastic coefficients
-    ChMatrixNM<double, 6, 6> m_E_eps_Nu;  ///< matrix of elastic coefficients
-
-  public:
-    EIGEN_MAKE_ALIGNED_OPERATOR_NEW
-};
 
 // ----------------------------------------------------------------------------
 /// ANCF beam element with 3 nodes.

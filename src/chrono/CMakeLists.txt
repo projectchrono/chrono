@@ -390,7 +390,9 @@ set(ChronoEngine_fea_SOURCES
     fea/ChContactSurfaceMesh.cpp
     fea/ChMeshSurface.cpp
     fea/ChLoadContactSurfaceMesh.cpp
+    fea/ChMaterialBeamANCF.cpp
     fea/ChMaterialShellANCF.cpp
+    fea/ChMaterialBrickANCF.cpp
     fea/ChMaterialShellReissner.cpp
 	fea/ChMaterialShellKirchhoff.cpp
     )
@@ -433,7 +435,9 @@ set(ChronoEngine_fea_HEADERS
     fea/ChMeshSurface.h
     fea/ChLoadContactSurfaceMesh.h
     fea/ChRotUtils.h
+    fea/ChMaterialBeamANCF.h
     fea/ChMaterialShellANCF.h
+    fea/ChMaterialBrickANCF.h
     fea/ChMaterialShellReissner.h
 	fea/ChMaterialShellKirchhoff.h
 )
@@ -450,6 +454,7 @@ set(ChronoEngine_fea_nodes_SOURCES
     fea/ChNodeFEAxyzP.cpp
     fea/ChNodeFEAxyzD.cpp
     fea/ChNodeFEAxyzDD.cpp
+    fea/ChNodeFEAxyzDDD.cpp
     fea/ChNodeFEAcurv.cpp
 )
 
@@ -460,6 +465,7 @@ set(ChronoEngine_fea_nodes_HEADERS
     fea/ChNodeFEAxyzP.h
     fea/ChNodeFEAxyzD.h
     fea/ChNodeFEAxyzDD.h
+    fea/ChNodeFEAxyzDDD.h
     fea/ChNodeFEAcurv.h
 )
 
@@ -497,6 +503,10 @@ set(ChronoEngine_fea_elements_HEADERS
     fea/ChElementBar.h
     fea/ChElementBeam.h
     fea/ChElementBeamANCF.h
+    fea/ChElementBeamANCF_3243.h
+    fea/ChElementBeamANCF_3243_impl.h
+    fea/ChElementBeamANCF_3333.h
+    fea/ChElementBeamANCF_3333_impl.h
     fea/ChElementBeamEuler.h
     fea/ChElementBeamTaperedTimoshenko.h
     fea/ChElementBeamTaperedTimoshenkoFPM.h
@@ -510,9 +520,15 @@ set(ChronoEngine_fea_elements_HEADERS
     fea/ChElementHexahedron.h
     fea/ChElementHexa_8.h
     fea/ChElementHexa_20.h
+    fea/ChElementBrickANCF_3843.h
+    fea/ChElementBrickANCF_3843_impl.h
     fea/ChElementShell.h
     fea/ChElementShellANCF.h
+    fea/ChElementShellANCF_3443.h
+    fea/ChElementShellANCF_3443_impl.h
     fea/ChElementShellANCF_8.h
+    fea/ChElementShellANCF_3833.h
+    fea/ChElementShellANCF_3833_impl.h
     fea/ChElementShellReissner4.h
 	fea/ChElementShellBST.h
 )
