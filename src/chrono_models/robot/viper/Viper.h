@@ -63,7 +63,9 @@ enum class WheelType {
     CylWheel      ///< cylindrical wheel geometry
 };
 
-/// Base class definition of the Viper Rover Part.
+// -----------------------------------------------------------------------------
+
+/// Base class definition for all Viper parts.
 /// Viper Rover Parts include Chassis, Steering, Upper Suspension Arm, Bottom Suspension Arm and Wheel.
 /// This class encapsulates base fields and functions.
 class CH_MODELS_API ViperPart {
@@ -241,17 +243,20 @@ class CH_MODELS_API Viper {
     /// Get the chassis part.
     std::shared_ptr<ViperChassis> GetChassis() const { return m_chassis; }
 
-    /// Get the wheel part.
+    /// Get the specified rover wheel.
     std::shared_ptr<ViperWheel> GetWheel(WheelID id) const { return m_wheels[id]; }
 
-    /// Get the steering part.
-    std::shared_ptr<ViperUpright> GetSteering(WheelID id) const { return m_uprights[id]; }
+    /// Get the specified rover upright.
+    std::shared_ptr<ViperUpright> GetUpright(WheelID id) const { return m_uprights[id]; }
 
-    /// Get the upper arm part.
+    /// Get the specified rover upper arm.
     std::shared_ptr<ViperUpperArm> GetUpperArm(WheelID id) const { return m_upper_arms[id]; }
 
-    /// Get the bottom arm body.
+    /// Get the specified rover lower arm.
     std::shared_ptr<ViperLowerArm> GetLowerArm(WheelID id) const { return m_lower_arms[id]; }
+
+    /// Get the specified rover driveshaft.
+    std::shared_ptr<ChShaft> GetDriveshaft(WheelID id) const { return m_drive_shafts[id]; }
 
     /// Get chassis position.
     ChVector<> GetChassisPos() const { return m_chassis->GetPos(); }
@@ -347,12 +352,9 @@ class CH_MODELS_API Viper {
     std::array<std::shared_ptr<ChFunction_Const>, 4> m_steer_motor_funcs;     ///< steering motor functions
     std::array<std::shared_ptr<ChFunction_Const>, 4> m_lift_motor_funcs;      ///< lifting motor functions
 
-    std::array<std::shared_ptr<ChLinkTSDA>, 4> m_springs;  ///< suspension springs
+    std::array<std::shared_ptr<ChLinkTSDA>, 4> m_springs;    ///< suspension springs
+    std::array<std::shared_ptr<ChShaft>, 4> m_drive_shafts;  ///< wheel drive-shafts
 
-    // DC Motor Test
-    std::array<std::shared_ptr<ChShaft>, 4> m_power_shafts;
-    std::array<std::shared_ptr<ChShaft>, 4> m_driven_shafts;
-    std::array<std::shared_ptr<ChShaftsGear>, 4> m_shaft_gears;
 
     std::array<double, 4> m_stall_torque;   ///< stall torque of the motors
     std::array<double, 4> m_no_load_speed;  ///< no load speed of the motors

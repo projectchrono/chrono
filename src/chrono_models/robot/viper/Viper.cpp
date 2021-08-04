@@ -153,7 +153,7 @@ std::shared_ptr<ChLinkTSDA> AddSuspensionSpring(std::shared_ptr<ChBodyAuxRef> ch
     return spring;
 }
 
-// ===============================================================================
+// =============================================================================
 
 // Base class for all Viper Part
 ViperPart::ViperPart(const std::string& name,
@@ -236,7 +236,7 @@ void ViperChassis::Initialize(ChSystem* system, const ChFrame<>& pos) {
     m_body->SetFrame_REF_to_abs(pos);
 }
 
-// ==========================================================
+// =============================================================================
 
 // Viper Wheel
 ViperWheel::ViperWheel(const std::string& name,
@@ -260,7 +260,7 @@ ViperWheel::ViperWheel(const std::string& name,
     m_density = 200;
 }
 
-// ==========================================================
+// =============================================================================
 
 // Viper Upper Suspension Arm
 ViperUpperArm::ViperUpperArm(const std::string& name,
@@ -278,7 +278,7 @@ ViperUpperArm::ViperUpperArm(const std::string& name,
     m_density = 200;
 }
 
-// ==========================================================
+// =============================================================================
 
 // Viper Lower Suspension Arm
 ViperLowerArm::ViperLowerArm(const std::string& name,
@@ -296,7 +296,7 @@ ViperLowerArm::ViperLowerArm(const std::string& name,
     m_density = 200;
 }
 
-// ==========================================================
+// =============================================================================
 
 // Viper Upright
 ViperUpright::ViperUpright(const std::string& name,
@@ -314,7 +314,7 @@ ViperUpright::ViperUpright(const std::string& name,
     m_density = 200;
 }
 
-// ==========================================================
+// =============================================================================
 
 // Rover model
 Viper::Viper(ChSystem* system, WheelType wheel_type)
@@ -384,7 +384,7 @@ void Viper::Create(WheelType wheel_type) {
                                                                    m_default_material, i % 2);
     }
 
-    // create steering rod
+    // create uprights
     double sr_lx = 0.5618 + 0.08;
     double sr_ly = 0.2067 + 0.32 + 0.0831;
     double sr_lz = 0.0;
@@ -400,11 +400,9 @@ void Viper::Create(WheelType wheel_type) {
                                                                 m_default_material, i % 2);
     }
 
-    // DC Motor Test
+    // Create drive shafts
     for (int i = 0; i < 4; i++) {
-        m_power_shafts[i] = chrono_types::make_shared<ChShaft>();
-        m_driven_shafts[i] = chrono_types::make_shared<ChShaft>();
-        m_shaft_gears[i] = chrono_types::make_shared<ChShaftsGear>();
+        m_drive_shafts[i] = chrono_types::make_shared<ChShaft>();
     }
 }
 
@@ -522,29 +520,14 @@ void Viper::Initialize(const ChFrame<>& pos) {
                                            cr_rel_pos_upper[i], sr_rel_pos_lower[i]);
     }
 
-    if (m_dc_motor_control) {
-        // DC Motor Test
-        double J1 = 10;   // inertia of first shaft
-        double J2 = 100;  // inertia of second shaft
-        double r = -1;    // gear transmission ratio
-        double T = 300;   // torque applied to first shaft
-        for (int i = 0; i < 4; i++) {
-            m_power_shafts[i]->SetInertia(J1);
-            m_power_shafts[i]->SetAppliedTorque(T);
+    double J = 100;  // shaft rotational inertia
+    for (int i = 0; i < 4; i++) {
+        m_drive_shafts[i]->SetInertia(J);
+        m_system->Add(m_drive_shafts[i]);
 
-            m_system->Add(m_power_shafts[i]);
-
-            m_driven_shafts[i]->SetInertia(J2);
-            m_system->Add(m_driven_shafts[i]);
-
-            m_shaft_gears[i]->Initialize(m_power_shafts[i], m_driven_shafts[i]);
-            m_shaft_gears[i]->SetTransmissionRatio(r);
-            m_system->Add(m_shaft_gears[i]);
-
-            auto shaftbody_connection = chrono_types::make_shared<ChShaftsBody>();
-            shaftbody_connection->Initialize(m_driven_shafts[i], m_wheels[i]->GetBody(), ChVector<>(0, 0, 1));
-            m_system->Add(shaftbody_connection);
-        }
+        auto shaftbody_connection = chrono_types::make_shared<ChShaftsBody>();
+        shaftbody_connection->Initialize(m_drive_shafts[i], m_wheels[i]->GetBody(), ChVector<>(0, 0, 1));
+        m_system->Add(shaftbody_connection);
     }
 }
 
@@ -690,7 +673,7 @@ void Viper::UpdateDCMotorControl() {
     double speed_reading;
     double target_torque;
     for (int i = 0; i < 4; i++) {
-        speed_reading = -m_driven_shafts[i]->GetPos_dt();
+        speed_reading = -m_drive_shafts[i]->GetPos_dt();
 
         if (speed_reading > m_no_load_speed[i]) {
             target_torque = 0;
@@ -700,7 +683,7 @@ void Viper::UpdateDCMotorControl() {
             target_torque = m_stall_torque[i] * ((m_no_load_speed[i] - speed_reading) / m_no_load_speed[i]);
         }
 
-        m_power_shafts[i]->SetAppliedTorque(target_torque);
+        m_drive_shafts[i]->SetAppliedTorque(-target_torque);
     }
 }
 

@@ -490,16 +490,16 @@ void SaveParaViewFiles(fsi::ChSystemFsi& myFsiSystem,
         for (int i = 0; i < 4; i++) {
             std::shared_ptr<ChBodyAuxRef> body;
             if (i == 0) {
-                body = rover->GetSteering(WheelID::LF)->GetBody();
+                body = rover->GetUpright(WheelID::LF)->GetBody();
             }
             if (i == 1) {
-                body = rover->GetSteering(WheelID::RF)->GetBody();
+                body = rover->GetUpright(WheelID::RF)->GetBody();
             }
             if (i == 2) {
-                body = rover->GetSteering(WheelID::LB)->GetBody();
+                body = rover->GetUpright(WheelID::LB)->GetBody();
             }
             if (i == 3) {
-                body = rover->GetSteering(WheelID::RB)->GetBody();
+                body = rover->GetUpright(WheelID::RB)->GetBody();
             }
             ChFrame<> body_ref_frame = body->GetFrame_REF_to_abs();
             ChVector<> body_pos = body_ref_frame.GetPos();      // body->GetPos();
