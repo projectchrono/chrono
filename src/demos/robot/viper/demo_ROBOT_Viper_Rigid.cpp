@@ -139,6 +139,14 @@ int main(int argc, char* argv[]) {
 
     viper->Initialize(ChFrame<>(ChVector<>(0, 0, -0.2), QUNIT));
 
+    std::cout << "Viper total mass: " << viper->GetRoverMass() << std::endl;
+    std::cout << "  chassis:        " << viper->GetChassis()->GetBody()->GetMass() << std::endl;
+    std::cout << "  upper arm:      " << viper->GetUpperArm(WheelID::LF)->GetBody()->GetMass() << std::endl;
+    std::cout << "  lower arm:      " << viper->GetLowerArm(WheelID::LF)->GetBody()->GetMass() << std::endl;
+    std::cout << "  upright:        " << viper->GetUpright(WheelID::LF)->GetBody()->GetMass() << std::endl;
+    std::cout << "  wheel:          " << viper->GetWheel(WheelID::LF)->GetBody()->GetMass() << std::endl;
+    std::cout << std::endl;
+
     // Complete construction of visual assets
     application.AssetBindAll();
     application.AssetUpdateAll();

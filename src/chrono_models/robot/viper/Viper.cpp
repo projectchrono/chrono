@@ -232,7 +232,7 @@ ViperChassis::ViperChassis(const std::string& name, std::shared_ptr<ChMaterialSu
     : ViperPart(name, ChFrame<>(VNULL, QUNIT), mat, false) {
     m_mesh_name = "viper_chassis";
     m_color = ChColor(0.4f, 0.4f, 0.7f);
-    m_density = 200;
+    m_density = 165;
 }
 
 void ViperChassis::Initialize(ChSystem* system, const ChFrame<>& pos) {
@@ -262,7 +262,7 @@ ViperWheel::ViperWheel(const std::string& name,
     }
 
     m_color = ChColor(0.4f, 0.4f, 0.7f);
-    m_density = 200;
+    m_density = 800;
 }
 
 // =============================================================================
@@ -280,7 +280,7 @@ ViperUpperArm::ViperUpperArm(const std::string& name,
     }
 
     m_color = ChColor(0.4f, 0.4f, 0.7f);
-    m_density = 200;
+    m_density = 2000;
 }
 
 // =============================================================================
@@ -298,7 +298,7 @@ ViperLowerArm::ViperLowerArm(const std::string& name,
     }
 
     m_color = ChColor(0.4f, 0.4f, 0.7f);
-    m_density = 200;
+    m_density = 4500;
 }
 
 // =============================================================================
@@ -316,7 +316,7 @@ ViperUpright::ViperUpright(const std::string& name,
     }
 
     m_color = ChColor(0.4f, 0.4f, 0.7f);
-    m_density = 200;
+    m_density = 4500;
 }
 
 // =============================================================================
