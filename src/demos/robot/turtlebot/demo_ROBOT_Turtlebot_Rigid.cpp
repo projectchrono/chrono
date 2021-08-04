@@ -165,9 +165,8 @@ int main(int argc, char* argv[]) {
         }
 
         // read and display angular velocities of two drive wheels
-        ChVector<> L_Ang = robot->GetActiveWheelAngVel(WheelID::LD);
-        ChVector<> R_Ang = robot->GetActiveWheelAngVel(WheelID::RD);
-
+        ////ChVector<> L_Ang = robot->GetActiveWheelAngVel(WheelID::LD);
+        ////ChVector<> R_Ang = robot->GetActiveWheelAngVel(WheelID::RD);
         ////std::cout << "time_step: " << time << " W_L: " << L_Ang.y() << " W_R: " << R_Ang.y() << std::endl;
 
         // increment time indicator

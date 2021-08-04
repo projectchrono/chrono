@@ -8,7 +8,6 @@ demo_FSI_DamBreak
 demo_FSI_Compressibility
 demo_FSI_Poiseuille_flow
 demo_FSI_CylinderDrop
-demo_FSI_Viper_granular_NSC
 )
 
 # FSI demos that require Chrono::PardisoMKL
@@ -64,8 +63,7 @@ FOREACH(PROGRAM ${FSI_DEMOS})
         COMPILE_FLAGS "${CH_CXX_FLAGS}"
         LINK_FLAGS "${CH_LINKERFLAG_EXE}")
     SET_PROPERTY(TARGET ${PROGRAM} PROPERTY VS_DEBUGGER_WORKING_DIRECTORY "$<TARGET_FILE_DIR:${PROGRAM}>")
-    TARGET_LINK_LIBRARIES(${PROGRAM} ChronoEngine ChronoEngine_fsi ChronoModels_robot)
-
+    TARGET_LINK_LIBRARIES(${PROGRAM} ChronoEngine ChronoEngine_fsi)
 
     INSTALL(TARGETS ${PROGRAM} DESTINATION ${CH_INSTALL_DEMO})
 ENDFOREACH()

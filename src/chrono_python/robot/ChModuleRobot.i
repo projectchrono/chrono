@@ -140,12 +140,14 @@ using namespace chrono::copter;
 %shared_ptr(chrono::robosimian::RS_WheelDD)
 %shared_ptr(chrono::robosimian::RS_Driver)
 
-%shared_ptr(chrono::viper::Viper_Part)
-%shared_ptr(chrono::viper::Viper_Chassis)
-%shared_ptr(chrono::viper::Viper_Wheel)
-%shared_ptr(chrono::viper::Viper_Up_Arm)
-%shared_ptr(chrono::viper::Viper_Bottom_Arm)
-%shared_ptr(chrono::viper::Viper_Steer)
+%shared_ptr(chrono::viper::ViperPart)
+%shared_ptr(chrono::viper::ViperChassis)
+%shared_ptr(chrono::viper::ViperWheel)
+%shared_ptr(chrono::viper::ViperUpperArm)
+%shared_ptr(chrono::viper::ViperLowerArm)
+%shared_ptr(chrono::viper::ViperUpright)
+%shared_ptr(chrono::viper::ViperDriver)
+%shared_ptr(chrono::viper::ViperDCMotorControl)
 
 %shared_ptr(chrono::turtlebot::Turtlebot_Part)
 %shared_ptr(chrono::turtlebot::Turtlebot_Chassis)
@@ -254,13 +256,11 @@ using namespace chrono::copter;
 %}
 */
 
-%extend chrono::viper::ViperRover{
+%extend chrono::viper::Viper{
 		public:
-			ViperRover(chrono::ChSystem* system,
-               const chrono::ChVector<double>& rover_pos,
-               const chrono::ChQuaternion<double>& rover_rot){
+			Viper(chrono::ChSystem* system){
 			   
-			   auto selfpoint = std::make_shared<chrono::viper::ViperRover>(system, rover_pos, rover_rot, nullptr);
+			   auto selfpoint = std::make_shared<chrono::viper::Viper>(system, WheelType::RealWheel);
 			   return selfpoint.get();
 			   }
 		};
