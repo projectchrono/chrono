@@ -94,8 +94,7 @@ class CH_VEHICLE_API ChVehicleCosimTireNodeFlexible : public ChVehicleCosimTireN
     /// Print the current lowest mesh node.
     void PrintLowestNode();
     /// Print current contact forces.
-    void ChVehicleCosimTireNodeFlexible::PrintContactData(const std::vector<ChVector<>>& forces,
-                                                          const std::vector<int>& indices);
+    void PrintContactData(const std::vector<ChVector<>>& forces, const std::vector<int>& indices);
 
   private:
     std::shared_ptr<ChDeformableTire> m_tire;                       ///< deformable tire

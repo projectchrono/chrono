@@ -255,6 +255,8 @@ int main(int argc, char** argv) {
                 node = tire;
                 break;
             }
+            default:
+                break;
         }
 
     }  // if TIRE_NODE_RANK
@@ -371,6 +373,9 @@ int main(int argc, char** argv) {
 #endif
                 break;
             }
+
+            default:
+                break;
 
         }  // switch terrain_type
 

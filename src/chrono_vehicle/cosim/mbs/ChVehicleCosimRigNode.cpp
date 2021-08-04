@@ -121,7 +121,7 @@ void ChVehicleCosimRigNode::InitializeMBS(const std::vector<ChVector<>>& tire_in
     assert(tire_info.size() == 1);
     double tire_mass = tire_info[0].x();
     double tire_radius = tire_info[0].y();
-    double tire_width = tire_info[0].z();
+    ////double tire_width = tire_info[0].z();
 
     // Calculate initial rig location and set linear velocity of all rig bodies
     ChVector<> origin(-terrain_size.x() / 2 + 1.5 * tire_radius, 0, terrain_height + tire_radius);
@@ -153,6 +153,10 @@ void ChVehicleCosimRigNode::InitializeMBS(const std::vector<ChVector<>>& tire_in
         case ActuationType::SET_LIN_VEL:
             m_lin_vel = m_base_vel;
             m_ang_vel = m_lin_vel / (tire_radius * (1.0 - m_slip));
+            break;
+        default:
+            m_ang_vel = 0;
+            m_lin_vel = 0;
             break;
     }
 
@@ -276,6 +280,17 @@ void ChVehicleCosimRigNode::ApplySpindleForce(unsigned int i, const TerrainForce
     m_spindles[i]->Empty_forces_accumulators();
     m_spindles[i]->Accumulate_force(spindle_force.force, spindle_force.point, false);
     m_spindles[i]->Accumulate_torque(spindle_force.moment, false);
+}
+
+BodyState ChVehicleCosimRigNode::GetSpindleState(unsigned int i) const {
+    BodyState state;
+
+    state.pos = m_spindles[i]->GetPos();
+    state.rot = m_spindles[i]->GetRot();
+    state.lin_vel = m_spindles[i]->GetPos_dt();
+    state.ang_vel = m_spindles[i]->GetWvel_par();
+    
+    return state;
 }
 
 // -----------------------------------------------------------------------------

@@ -101,6 +101,9 @@ class CH_VEHICLE_API ChVehicleCosimMBSNode : public ChVehicleCosimBaseNode {
     /// Note: this must also include the mass of the tire itself.
     virtual double GetSpindleLoad(unsigned int i) const = 0;
 
+    /// Get the body state of the spindle body to which the i-th wheel/tire is attached.
+    virtual BodyState GetSpindleState(unsigned int i) const = 0;
+
   protected:
     ChSystemSMC* m_system;                           ///< containing system
     ChTimestepper::Type m_int_type;                  ///< integrator type

@@ -62,7 +62,7 @@ class CH_VEHICLE_API ChVehicleCosimVehicleNode : public ChVehicleCosimMBSNode {
     /// Set the initial vehicle yaw angle (in radians).
     void SetInitialYaw(double init_yaw) { m_init_yaw = init_yaw; }
 
-    /// Attach a vehicle drive system.
+    /// Attach a vehicle driver system.
     void SetDriver(std::shared_ptr<ChDriver> driver) { m_driver = driver; }
 
     /// Output logging and debugging data.
@@ -90,12 +90,17 @@ class CH_VEHICLE_API ChVehicleCosimVehicleNode : public ChVehicleCosimMBSNode {
     /// Return the vertical mass load on the i-th spindle.
     virtual double GetSpindleLoad(unsigned int i) const override;
 
+    /// Get the body state of the spindle body to which the i-th wheel/tire is attached.
+    virtual BodyState GetSpindleState(unsigned int i) const override;
+
+    void WriteBodyInformation(utils::CSV_writer& csv);
+
   private:
     /// ChTire subsystem, needed to pass the terrain contact forces back to the vehicle wheels.
     class DummyTire : public ChTire {
       public:
         DummyTire(int index, double mass, double radius, double width)
-            : ChTire("dummy_tire"), m_index(index), m_mass(mass), m_radius(radius) {}
+            : ChTire("dummy_tire"), m_index(index), m_mass(mass), m_radius(radius), m_width(width) {}
         virtual std::string GetTemplateName() const override { return "dummy_tire"; }
         virtual double GetRadius() const override { return m_radius; }
         virtual double GetWidth() const override { return m_width; }
@@ -110,8 +115,6 @@ class CH_VEHICLE_API ChVehicleCosimVehicleNode : public ChVehicleCosimMBSNode {
         double m_width;
         TerrainForce m_force;
     };
-
-    void WriteBodyInformation(utils::CSV_writer& csv);
 
     std::shared_ptr<ChWheeledVehicle> m_vehicle;      ///< vehicle MBS
     std::shared_ptr<ChPowertrain> m_powertrain;       ///< vehicle powertrain

@@ -81,7 +81,7 @@ void ChVehicleCosimVehicleNode::InitializeMBS(const std::vector<ChVector<>>& tir
     auto num_axles = m_vehicle->GetNumberAxles();
 
     m_num_spindles = 2 * num_axles;
-    assert(m_num_spindles == m_num_tire_nodes);
+    assert(m_num_spindles == (int)m_num_tire_nodes);
 
     auto total_mass = m_vehicle->GetVehicleMass();
     for (int is = 0; is < m_num_spindles; is++) {
@@ -102,6 +102,17 @@ std::shared_ptr<ChBody> ChVehicleCosimVehicleNode::GetSpindleBody(unsigned int i
 
 double ChVehicleCosimVehicleNode::GetSpindleLoad(unsigned int i) const {
     return m_spindle_loads[i];
+}
+
+BodyState ChVehicleCosimVehicleNode::GetSpindleState(unsigned int i) const {
+    BodyState state;
+
+    state.pos = m_spindles[i]->GetPos();
+    state.rot = m_spindles[i]->GetRot();
+    state.lin_vel = m_spindles[i]->GetPos_dt();
+    state.ang_vel = m_spindles[i]->GetWvel_par();
+    
+    return state;
 }
 
 // -----------------------------------------------------------------------------

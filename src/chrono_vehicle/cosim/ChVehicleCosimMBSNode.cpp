@@ -53,7 +53,7 @@ ChVehicleCosimMBSNode::ChVehicleCosimMBSNode() : ChVehicleCosimBaseNode("MBS") {
 ////#elif defined(CHRONO_MUMPS)
 ////    m_slv_type = ChSolver::Type::MUMPS;
 #else
-    m_slv_type == ChSolver::Type::BARZILAIBORWEIN;
+    m_slv_type = ChSolver::Type::BARZILAIBORWEIN;
 #endif
 
     // Create the (sequential) SMC system
@@ -129,7 +129,7 @@ void ChVehicleCosimMBSNode::Initialize() {
 
     // Let derived classes construct and initialize their multibody system
     InitializeMBS(tire_info, terrain_size, terrain_height);
-    assert(GetNumSpindles() == m_num_tire_nodes);
+    assert(GetNumSpindles() == (int)m_num_tire_nodes);
 
     // For each tire:
     // - cache the spindle body
@@ -209,7 +209,8 @@ void ChVehicleCosimMBSNode::InitializeSystem() {
             m_integrator->SetScaling(true);
             m_integrator->SetVerbose(false);
             m_integrator->SetMaxItersSuccess(5);
-
+            break;
+        default:
             break;
     }
 }
@@ -224,17 +225,14 @@ void ChVehicleCosimMBSNode::Synchronize(int step_number, double time) {
 
     for (unsigned int i = 0; i < m_num_tire_nodes; i++) {
         // Send wheel state to the tire node
-        ChVector<> pos = m_spindles[i]->GetPos();
-        ChQuaternion<> rot = m_spindles[i]->GetRot();
-        ChVector<> lin_vel = m_spindles[i]->GetPos_dt();
-        ChVector<> ang_vel = m_spindles[i]->GetWvel_par();
-
+        BodyState state = GetSpindleState(i);
         double state_data[] = {
-            pos.x(),     pos.y(),     pos.z(),                //
-            rot.e0(),    rot.e1(),    rot.e2(),    rot.e3(),  //
-            lin_vel.x(), lin_vel.y(), lin_vel.z(),            //
-            ang_vel.x(), ang_vel.y(), ang_vel.z()             //
+            state.pos.x(),     state.pos.y(),     state.pos.z(),                      //
+            state.rot.e0(),    state.rot.e1(),    state.rot.e2(),    state.rot.e3(),  //
+            state.lin_vel.x(), state.lin_vel.y(), state.lin_vel.z(),                  //
+            state.ang_vel.x(), state.ang_vel.y(), state.ang_vel.z()                   //
         };
+
         MPI_Send(state_data, 13, MPI_DOUBLE, TIRE_NODE_RANK(i), step_number, MPI_COMM_WORLD);
 
         // Receive spindle force as applied to the center of the spindle/wheel.

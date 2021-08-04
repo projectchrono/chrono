@@ -28,7 +28,6 @@
 
 #include "chrono_vehicle/ChVehicleModelData.h"
 #include "chrono_vehicle/utils/ChUtilsJSON.h"
-#include "chrono_vehicle/wheeled_vehicle/vehicle/WheeledVehicle.h"
 
 #include "chrono_vehicle/cosim/mbs/ChVehicleCosimViperNode.h"
 
@@ -40,12 +39,28 @@ namespace vehicle {
 
 using namespace viper;
 
-ChVehicleCosimViperNode::ChVehicleCosimViperNode(const std::string& vehicle_json, const std::string& powertrain_json)
+ChVehicleCosimViperNode::ChVehicleCosimViperNode()
     : ChVehicleCosimMBSNode(), m_num_spindles(0) {
-    m_viper = chrono_types::make_shared<ViperRover>(m_system, ChVector<>(), ChQuaternion<>(), nullptr);
+    m_viper = chrono_types::make_shared<Viper>(m_system);
 }
 
 ChVehicleCosimViperNode::~ChVehicleCosimViperNode() {}
+
+// -----------------------------------------------------------------------------
+
+static WheelID wheel_id(unsigned int i) {
+    switch (i) {
+        default:
+        case 0:
+            return WheelID::LF;
+        case 1:
+            return WheelID::RF;
+        case 2:
+            return WheelID::LB;
+        case 3:
+            return WheelID::RB;
+    }
+}
 
 // -----------------------------------------------------------------------------
 
@@ -53,22 +68,19 @@ void ChVehicleCosimViperNode::InitializeMBS(const std::vector<ChVector<>>& tire_
                                             const ChVector2<>& terrain_size,
                                             double terrain_height) {
     // Initialize vehicle
-    ChCoordsys<> init_pos(m_init_loc + ChVector<>(0, 0, terrain_height), Q_from_AngZ(m_init_yaw));
+    ChFrame<> init_pos(m_init_loc + ChVector<>(0, 0, terrain_height), Q_from_AngZ(m_init_yaw));
 
-    m_viper->Initialize();
+    m_viper->SetDriver(m_driver);
+    m_viper->Initialize(init_pos);
 
     // Extract and cache spindle bodies
     m_num_spindles = 4;
-    assert(m_num_spindles == m_num_tire_nodes);
+    assert(m_num_spindles == (int)m_num_tire_nodes);
 
     m_spindles.resize(m_num_spindles);
-    m_spindles[0] = m_viper->GetWheelBody(WheelID::LF);
-    m_spindles[1] = m_viper->GetWheelBody(WheelID::RF);
-    m_spindles[2] = m_viper->GetWheelBody(WheelID::LB);
-    m_spindles[3] = m_viper->GetWheelBody(WheelID::RB);
-
     auto total_mass = m_viper->GetRoverMass();
     for (int is = 0; is < m_num_spindles; is++) {
+        m_spindles[is] = m_viper->GetWheel(wheel_id(is))->GetBody();
         m_spindle_loads.push_back(total_mass / m_num_spindles);
     }
 }
@@ -86,7 +98,22 @@ double ChVehicleCosimViperNode::GetSpindleLoad(unsigned int i) const {
     return m_spindle_loads[i];
 }
 
+BodyState ChVehicleCosimViperNode::GetSpindleState(unsigned int i) const {
+    BodyState state;
+
+    state.pos = m_viper->GetWheel(wheel_id(i))->GetPos();
+    state.rot = m_viper->GetWheel(wheel_id(i))->GetRot();
+    state.lin_vel = m_viper->GetWheel(wheel_id(i))->GetLinVel();
+    state.ang_vel = m_viper->GetWheel(wheel_id(i))->GetAngVel();
+
+    return state;
+}
+
 // -----------------------------------------------------------------------------
+
+void ChVehicleCosimViperNode::PreAdvance() {
+    m_viper->Update();
+}
 
 void ChVehicleCosimViperNode::ApplySpindleForce(unsigned int i, const TerrainForce& spindle_force) {
     m_spindles[i]->Empty_forces_accumulators();
@@ -101,7 +128,7 @@ void ChVehicleCosimViperNode::OutputData(int frame) {
     if (m_outf.is_open()) {
         std::string del("  ");
 
-        const ChVector<>& pos = m_viper->GetChassisBody()->GetFrame_REF_to_abs().GetPos();
+        const ChVector<>& pos = m_viper->GetChassis()->GetPos();
 
         m_outf << m_system->GetChTime() << del;
         // Body states
@@ -133,8 +160,8 @@ void ChVehicleCosimViperNode::WriteBodyInformation(utils::CSV_writer& csv) {
     csv << 1 + m_num_spindles << endl;
 
     // Write body state information
-    auto chassis_pos = m_viper->GetChassisBody()->GetFrame_REF_to_abs().GetPos();
-    auto chassis_rot = m_viper->GetChassisBody()->GetFrame_REF_to_abs().GetRot();
+    auto chassis_pos = m_viper->GetChassis()->GetPos();
+    auto chassis_rot = m_viper->GetChassis()->GetRot();
     csv << chassis_pos << chassis_rot << endl;
     for (int is = 0; is < m_num_spindles; is++) {
         csv << m_spindles[is]->GetFrame_REF_to_abs().GetPos() << m_spindles[is]->GetFrame_REF_to_abs().GetRot() << endl;

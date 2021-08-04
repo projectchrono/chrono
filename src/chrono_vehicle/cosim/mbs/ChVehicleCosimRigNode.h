@@ -80,18 +80,26 @@ class CH_VEHICLE_API ChVehicleCosimRigNode : public ChVehicleCosimMBSNode {
     virtual void OutputData(int frame) override final;
 
   private:
+    /// Initialize the vehicle MBS and any associated subsystems.
     virtual void InitializeMBS(const std::vector<ChVector<>>& tire_info,  ///< mass, radius, width for each tire
                                const ChVector2<>& terrain_size,           ///< terrain length x width
                                double terrain_height                      ///< initial terrain height
                                ) override;
 
+    /// Process the provided spindle force (received from the corresponding tire node).
     virtual void ApplySpindleForce(unsigned int i, const TerrainForce& spindle_force) override;
 
+    /// Return the number of spindles in the vehicle system.
     virtual int GetNumSpindles() const override { return 1; }
 
+    /// Return the i-th spindle body in the vehicle system.
     virtual std::shared_ptr<ChBody> GetSpindleBody(unsigned int i) const override { return m_spindle; }
 
+    /// Return the vertical mass load on the i-th spindle.
     virtual double GetSpindleLoad(unsigned int i) const override { return m_total_mass; }
+
+    /// Get the body state of the spindle body to which the i-th wheel/tire is attached.
+    virtual BodyState GetSpindleState(unsigned int i) const override;
 
     void WriteBodyInformation(utils::CSV_writer& csv);
 

@@ -19,8 +19,8 @@
 //
 // =============================================================================
 
-#ifndef CH_VEHCOSIM_VEHICLE_NODE_H
-#define CH_VEHCOSIM_VEHICLE_NODE_H
+#ifndef CH_VEHCOSIM_VIPER_NODE_H
+#define CH_VEHCOSIM_VIPER_NODE_H
 
 #include "chrono/utils/ChFilters.h"
 #include "chrono/utils/ChUtilsInputOutput.h"
@@ -45,53 +45,61 @@ namespace vehicle {
 /// The rover is co-simulated with tire nodes and a terrain node.
 class CH_VEHICLE_API ChVehicleCosimViperNode : public ChVehicleCosimMBSNode {
   public:
-    /// Construct a wheeled vehicle node using the provided vehicle and powertrain JSON specification files.
-    ChVehicleCosimViperNode(const std::string& vehicle_json,    ///< vehicle JSON specification file
-                            const std::string& powertrain_json  ///< powertrain JSON specification file
-    );
+    /// Construct a Viper rover node.
+    ChVehicleCosimViperNode();
 
     ~ChVehicleCosimViperNode();
 
     /// Get the underlying rover system.
-    std::shared_ptr<viper::ViperRover> GetRover() const { return m_viper; }
+    std::shared_ptr<viper::Viper> GetRover() const { return m_viper; }
 
-    /// Set the initial vehicle position, relative to the center of the terrain top-surface.
+    /// Set the initial rover position, relative to the center of the terrain top-surface.
     void SetInitialLocation(const ChVector<>& init_loc) { m_init_loc = init_loc; }
 
-    /// Set the initial vehicle yaw angle (in radians).
+    /// Set the initial rover yaw angle (in radians).
     void SetInitialYaw(double init_yaw) { m_init_yaw = init_yaw; }
+
+    /// Attach a Viper driver system.
+    void SetDriver(std::shared_ptr<viper::ViperDriver> driver) { m_driver = driver; }
 
     /// Output logging and debugging data.
     virtual void OutputData(int frame) override final;
 
   private:
-    /// Initialize the vehicle MBS and any associated subsystems.
+    /// Initialize the rover MBS and any associated subsystems.
     virtual void InitializeMBS(const std::vector<ChVector<>>& tire_info,  ///< mass, radius, width for each tire
                                const ChVector2<>& terrain_size,           ///< terrain length x width
                                double terrain_height                      ///< initial terrain height
                                ) override;
 
+    /// Perform Viper update before advancing the dynamics.
+    virtual void PreAdvance() override;
+
     /// Process the provided spindle force (received from the corresponding tire node).
     virtual void ApplySpindleForce(unsigned int i, const TerrainForce& spindle_force) override;
 
-    /// Return the number of spindles in the vehicle system.
+    /// Return the number of spindles in the rover system.
     virtual int GetNumSpindles() const override;
 
-    /// Return the i-th spindle body in the vehicle system.
+    /// Return the i-th spindle body in the rover system.
     virtual std::shared_ptr<ChBody> GetSpindleBody(unsigned int i) const override;
 
     /// Return the vertical mass load on the i-th spindle.
     virtual double GetSpindleLoad(unsigned int i) const override;
 
-  private:
+    /// Get the body state of the spindle body to which the i-th wheel/tire is attached.
+    virtual BodyState GetSpindleState(unsigned int i) const override;
+
     void WriteBodyInformation(utils::CSV_writer& csv);
 
-    std::shared_ptr<viper::ViperRover> m_viper;  ///< viper rover;
+  private:
+    std::shared_ptr<viper::Viper> m_viper;         ///< Viper rover;
+    std::shared_ptr<viper::ViperDriver> m_driver;  ///< Viper driver
 
-    ChVector<> m_init_loc;  ///< initial vehicle location (relative to center of terrain top surface)
-    double m_init_yaw;      ///< initial vehicle yaw
+    ChVector<> m_init_loc;  ///< initial rover location (relative to center of terrain top surface)
+    double m_init_yaw;      ///< initial rover yaw
 
-    int m_num_spindles;                   ///< number of spindles/wheels of the wheeled vehicle
+    int m_num_spindles;                   ///< number of spindles/wheels of the rover
     std::vector<double> m_spindle_loads;  ///< vertical loads on each spindle
 };
 

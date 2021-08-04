@@ -67,7 +67,7 @@ ChVehicleCosimTireNode::ChVehicleCosimTireNode(int index)
 ////#elif defined(CHRONO_MUMPS)
 ////    m_slv_type = ChSolver::Type::MUMPS;
 #else
-    m_slv_type == ChSolver::Type::BARZILAIBORWEIN;
+    m_slv_type = ChSolver::Type::BARZILAIBORWEIN;
 #endif
 
     // Create the (sequential) SMC system
@@ -318,7 +318,9 @@ void ChVehicleCosimTireNode::InitializeSystem() {
             m_integrator->SetScaling(true);
             m_integrator->SetVerbose(false);
             m_integrator->SetMaxItersSuccess(5);
+            break;
 
+        default:
             break;
     }
 }
