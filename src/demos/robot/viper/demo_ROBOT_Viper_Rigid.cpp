@@ -89,72 +89,56 @@ std::shared_ptr<ChMaterialSurface> CustomWheelMaterial(ChContactMethod contact_m
 }
 
 // Simulation time step
-double time_step = 2e-3;
+double time_step = 1e-3;
 
 int main(int argc, char* argv[]) {
     GetLog() << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
-    // Create a ChronoENGINE physical system
-    ChSystemNSC mphysicalSystem;
 
-    // set gravity
-    mphysicalSystem.Set_G_acc(ChVector<>(0, 0, -9.81));
+    // Create the Chrono system with gravity in the negative Z direction
+    ChSystemNSC sys;
+    sys.Set_G_acc(ChVector<>(0, 0, -9.81));
 
-    // Create the Irrlicht visualization (open the Irrlicht device,
-    // bind a simple user interface, etc. etc.)
-    ChIrrApp application(&mphysicalSystem, L"Viper Rover on Rigid Terrain", core::dimension2d<u32>(1280, 720),
-                         VerticalDir::Z, false, true);
+    // Create the Irrlicht visualization
+    ChIrrApp application(&sys, L"Viper Rover on Rigid Terrain", core::dimension2d<u32>(1280, 720), VerticalDir::Z,
+                         false, true);
     application.AddTypicalLogo();
     application.AddTypicalSky();
     application.AddTypicalLights(irr::core::vector3df(30.f, 30.f, 100.f), irr::core::vector3df(30.f, -30.f, 100.f));
     application.AddTypicalCamera(core::vector3df(0, 2, 2));
-
     application.AddLightWithShadow(core::vector3df(1.5f, 1.5f, 5.5f), core::vector3df(0, 0, 0), 3, 4, 10, 40, 512,
                                    video::SColorf(0.8f, 0.8f, 1.0f));
-
     application.SetContactsDrawMode(IrrContactsDrawMode::CONTACT_DISTANCES);
 
     collision::ChCollisionModel::SetDefaultSuggestedEnvelope(0.0025);
     collision::ChCollisionModel::SetDefaultSuggestedMargin(0.0025);
 
-    // Create a floor
-    auto floor_mat = chrono_types::make_shared<ChMaterialSurfaceNSC>();
-    auto mfloor = chrono_types::make_shared<ChBodyEasyBox>(20, 20, 1, 1000, true, true, floor_mat);
+    // Create the ground.
+    auto ground_mat = chrono_types::make_shared<ChMaterialSurfaceNSC>();
+    auto ground = chrono_types::make_shared<ChBodyEasyBox>(20, 20, 1, 1000, true, true, ground_mat);
 
-    mfloor->SetPos(ChVector<>(0, 0, -1));
-    mfloor->SetBodyFixed(true);
-    mphysicalSystem.Add(mfloor);
+    ground->SetPos(ChVector<>(0, 0, -1));
+    ground->SetBodyFixed(true);
+    sys.Add(ground);
 
     auto masset_texture = chrono_types::make_shared<ChTexture>();
     masset_texture->SetTextureFilename(GetChronoDataFile("textures/concrete.jpg"));
-    mfloor->AddAsset(masset_texture);
+    ground->AddAsset(masset_texture);
 
-    // Create a Viper Rover with default parameters.
+    // Construct and initialize a Viper rover.
     // The default rotational speed of the Motor is speed w=3.145 rad/sec.
-    // Note: the Viper Rover uses a Z-up frame, which will need to be translated to Y-up.
-    std::shared_ptr<ViperRover> viper;
+    auto viper = chrono_types::make_shared<ViperRover>(&sys, wheel_type);
+    if (use_custom_mat)
+        viper->SetWheelContactMaterial(CustomWheelMaterial(ChContactMethod::NSC));
+    ////viper->SetChassisFixed(true);
+    ////viper->SetChassisVisualization(false);
+    ////viper->SetSuspensionVisualization(false);
+    viper->SetDCControl(true);
+
     ChVector<double> body_pos(0, 0, -0.2);
+    viper->Initialize(ChFrame<>(body_pos, QUNIT));
 
-    if (use_custom_mat == true) {
-        // If use the customized wheel material
-        viper = chrono_types::make_shared<ViperRover>(&mphysicalSystem, body_pos, QUNIT,
-                                                      CustomWheelMaterial(ChContactMethod::NSC), wheel_type);
-        // SetDCControl() should be called before initialize()
-        viper->SetDCControl(true);
-    } else {
-        // If use default wheel material
-        viper = chrono_types::make_shared<ViperRover>(&mphysicalSystem, body_pos, QUNIT, wheel_type);
-
-        // SetDCControl() should be called before initialize()
-        viper->SetDCControl(true);
-    }
-
-    viper->Initialize();
-
-    // Use this function for adding a ChIrrNodeAsset to all items
-    // Otherwise use application.AssetBind(myitem); on a per-item basis.
+    // Complete construction of visual assets
     application.AssetBindAll();
-
-    // Use this function for 'converting' assets into Irrlicht meshes
     application.AssetUpdateAll();
 
     // Use shadows in realtime view
@@ -162,18 +146,10 @@ int main(int argc, char* argv[]) {
 
     application.SetTimestep(time_step);
 
-    //
     // Simulation loop
-    //
-
     double time = 0.0;
-
     while (application.GetDevice()->run()) {
-        time = time + time_step;
-        // Display turning angle - ranges from -pi/3 to pi/3
-        ////std::cout << "turn angle: " << viper->GetTurnAngle() << std::endl;
-
-        // Once the viper rover turning angle returns back to 0, HOLD the steering
+        // Once the Viper rover turning angle returns back to 0, HOLD the steering
         if ((viper->GetTurnAngle() - 0) < 1e-8 && viper->GetTurnState() == TurnSig::RIGHT) {
             viper->SetTurn(TurnSig::HOLD);
         }
@@ -184,7 +160,11 @@ int main(int argc, char* argv[]) {
             viper->SetTurn(TurnSig::RIGHT, CH_C_PI / 8);
         }
 
-        viper->Update();  // note->viper steering control needs to be updated every simulation loop
+        // Note: Viper steering control needs to be updated every simulation loop
+        viper->Update();
+
+        // Display turning angle - ranges from -pi/3 to pi/3
+        ////std::cout << "turn angle: " << viper->GetTurnAngle() << std::endl;
 
         // Read rover chassis velocity
         ////std::cout <<"Rover Chassis Speedo Reading: " << viper -> GetChassisVel() << std::endl;
@@ -196,6 +176,8 @@ int main(int argc, char* argv[]) {
         application.DrawAll();
         application.DoStep();
         application.EndScene();
+
+        time = time + time_step;
     }
 
     return 0;

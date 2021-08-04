@@ -171,43 +171,22 @@ int main(int argc, char* argv[]) {
     // Viper rover initial position and orientation
     ChVector<double> body_pos(-5, 0, -0.2);
 
-    // Create a Viper Rover instance
-    std::shared_ptr<ChBodyAuxRef> Wheel_1;
-    std::shared_ptr<ChBodyAuxRef> Wheel_2;
-    std::shared_ptr<ChBodyAuxRef> Wheel_3;
-    std::shared_ptr<ChBodyAuxRef> Wheel_4;
-    std::shared_ptr<ChBodyAuxRef> Body_1;
+    // Create the rover
+    auto viper = chrono_types::make_shared<ViperRover>(&my_system, wheel_type);
 
-    std::shared_ptr<ViperRover> viper;
+    viper->SetDCControl(true);
 
-    if (use_custom_mat == true) {
-        // if customize wheel material
-        viper = chrono_types::make_shared<ViperRover>(&my_system, body_pos, QUNIT,
-                                                      CustomWheelMaterial(ChContactMethod::SMC), wheel_type);
-        viper->SetDCControl(true);
-        // SetDCControl needs to be called before Initialize()
-        viper->Initialize();
+    if (use_custom_mat)
+        viper->SetWheelContactMaterial(CustomWheelMaterial(ChContactMethod::NSC));
 
-        // Get wheels and bodies to set up SCM patches
-        Wheel_1 = viper->GetWheelBody(WheelID::LF);
-        Wheel_2 = viper->GetWheelBody(WheelID::RF);
-        Wheel_3 = viper->GetWheelBody(WheelID::LB);
-        Wheel_4 = viper->GetWheelBody(WheelID::RB);
-        Body_1 = viper->GetChassisBody();
-    } else {
-        // if use default material
-        viper = chrono_types::make_shared<ViperRover>(&my_system, body_pos, QUNIT, wheel_type);
-        // SetDCControl needs to be called before Initialize()
-        viper->SetDCControl(true);
-        viper->Initialize();
+    viper->Initialize(ChFrame<>(body_pos, QUNIT));
 
-        // Get wheels and bodies to set up SCM patches
-        Wheel_1 = viper->GetWheelBody(WheelID::LF);
-        Wheel_2 = viper->GetWheelBody(WheelID::RF);
-        Wheel_3 = viper->GetWheelBody(WheelID::LB);
-        Wheel_4 = viper->GetWheelBody(WheelID::RB);
-        Body_1 = viper->GetChassisBody();
-    }
+    // Get wheels and bodies to set up SCM patches
+    auto Wheel_1 = viper->GetWheel(WheelID::LF)->GetBody();
+    auto Wheel_2 = viper->GetWheel(WheelID::RF)->GetBody();
+    auto Wheel_3 = viper->GetWheel(WheelID::LB)->GetBody();
+    auto Wheel_4 = viper->GetWheel(WheelID::RB)->GetBody();
+    auto Body_1 = viper->GetChassis()->GetBody();
 
     //
     // THE DEFORMABLE TERRAIN
@@ -278,7 +257,7 @@ int main(int argc, char* argv[]) {
     // Use shadows in realtime view
     application.AddShadowAll();
 
-    application.SetTimestep(0.0005);
+    application.SetTimestep(5e-4);
 
     while (application.GetDevice()->run()) {
         if (output) {
