@@ -78,10 +78,10 @@ class CH_MODELS_API ViperPart {
     void SetName(const std::string& name) { m_name = name; }
 
     /// Enable/disable visualization.
-    void SetVisualize(bool state);
+    void SetVisualize(bool state) { m_visualize = state; }
 
     /// Enable/disable collision.
-    void SetCollide(bool state);
+    void SetCollide(bool state) { m_collide = state; }
 
     /// Initialize the rover part by attaching it to the specified chassis body.
     void Initialize(std::shared_ptr<ChBodyAuxRef> chassis);
@@ -121,6 +121,7 @@ class CH_MODELS_API ViperPart {
     std::shared_ptr<ChBodyAuxRef> m_body;      ///< part rigid body
     std::shared_ptr<ChMaterialSurface> m_mat;  ///< contact material (shared among all shapes)
 
+    ChFrame<> m_mesh_xform;   ///< mesh transform (translate, rotate, scale)
     std::string m_mesh_name;  ///< visualization mesh name
     ChColor m_color;          ///< visualization asset color
 
@@ -192,7 +193,7 @@ class CH_MODELS_API Viper {
   public:
     Viper(ChSystem* system, WheelType wheel_type = WheelType::RealWheel);
 
-    ~Viper();
+    ~Viper() {}
 
     /// Get the containing system.
     ChSystem* GetSystem() const { return m_system; }
@@ -306,21 +307,21 @@ class CH_MODELS_API Viper {
     double GetTurnAngle() const;
 
     /// Get Viper turning state - HOLD, LEFT, OR RIGHT.
-    TurnSig GetTurnState() const;
+    TurnSig GetTurnState() const { return m_turn_state; }
 
     /// Viper update function.
-    /// Note: this function needs to be included in the main simulation loop.
+    /// This function must be called before each integration step.
     void Update();
+
+  private:
+    /// Create the rover parts.
+    void Create(WheelType wheel_type);
 
     /// Update DC motor limit control.
     void UpdateDCMotorControl();
 
     /// Update steering control
     void UpdateSteeringControl();
-
-  private:
-    /// Create the rover parts.
-    void Create(WheelType wheel_type);
 
     ChSystem* m_system;  ///< pointer to the Chrono system
 
@@ -356,6 +357,9 @@ class CH_MODELS_API Viper {
 
     std::shared_ptr<ChMaterialSurface> m_default_material;  ///< common contact material for all non-wheel parts
     std::shared_ptr<ChMaterialSurface> m_wheel_material;    ///< wheel contact material (shared across limbs)
+
+    static const double m_max_steer_angle;  ///< maximum steering angle
+    static const double m_max_steer_speed;  ///< maximum steering speed
 };
 
 /// @} robot_models_viper

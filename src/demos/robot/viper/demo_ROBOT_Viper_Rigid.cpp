@@ -152,12 +152,15 @@ int main(int argc, char* argv[]) {
         // Once the Viper rover turning angle returns back to 0, HOLD the steering
         if ((viper->GetTurnAngle() - 0) < 1e-8 && viper->GetTurnState() == TurnSig::RIGHT) {
             viper->SetTurn(TurnSig::HOLD);
+            std::cout << "Hold direction" << std::endl;
         }
 
         if (abs(time - 1.0) < 1e-5) {
             viper->SetTurn(TurnSig::LEFT, CH_C_PI / 8);
+            std::cout << "Turn left " << CH_C_PI / 8 << std::endl;
         } else if (abs(time - 7.0) < 1e-5) {
             viper->SetTurn(TurnSig::RIGHT, CH_C_PI / 8);
+            std::cout << "Turn right " << CH_C_PI / 8 << std::endl;
         }
 
         // Note: Viper steering control needs to be updated every simulation loop
