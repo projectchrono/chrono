@@ -16,6 +16,7 @@ set(PROGRAMS
     demo_VEH_Cosim_WheelRig
     demo_VEH_Cosim_WheelRig_CustomTerrain
     demo_VEH_Cosim_WheeledVehicle
+    demo_VEH_Cosim_Viper
     )
 
 include_directories(${CH_VEHCOSIM_INCLUDES})
