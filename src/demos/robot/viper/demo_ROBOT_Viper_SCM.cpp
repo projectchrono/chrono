@@ -71,7 +71,7 @@ bool enable_moving_patch = true;
 bool var_params = true;
 
 // Define Viper rover wheel type
-Wheel_Type wheel_type = Wheel_Type::RealWheel;
+WheelType wheel_type = WheelType::RealWheel;
 
 // Custom callback for setting location-dependent soil properties.
 // Note that the location is given in the SCM reference frame.
@@ -172,7 +172,7 @@ int main(int argc, char* argv[]) {
     ChVector<double> body_pos(-5, 0, -0.2);
 
     // Create the rover
-    auto viper = chrono_types::make_shared<ViperRover>(&my_system, wheel_type);
+    auto viper = chrono_types::make_shared<Viper>(&my_system, wheel_type);
 
     viper->SetDCControl(true);
 

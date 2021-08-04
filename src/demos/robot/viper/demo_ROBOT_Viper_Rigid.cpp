@@ -52,7 +52,7 @@ using namespace irr::video;
 bool use_custom_mat = false;
 
 // Define Viper rover wheel type
-Wheel_Type wheel_type = Wheel_Type::RealWheel;
+WheelType wheel_type = WheelType::RealWheel;
 
 std::shared_ptr<ChMaterialSurface> CustomWheelMaterial(ChContactMethod contact_method) {
     float mu = 0.4f;   // coefficient of friction
@@ -126,7 +126,7 @@ int main(int argc, char* argv[]) {
 
     // Construct and initialize a Viper rover.
     // The default rotational speed of the Motor is speed w=3.145 rad/sec.
-    auto viper = chrono_types::make_shared<ViperRover>(&sys, wheel_type);
+    auto viper = chrono_types::make_shared<Viper>(&sys, wheel_type);
     if (use_custom_mat)
         viper->SetWheelContactMaterial(CustomWheelMaterial(ChContactMethod::NSC));
     ////viper->SetChassisFixed(true);

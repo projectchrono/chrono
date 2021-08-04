@@ -75,7 +75,7 @@ double motor_F;           // if motor_type==1, this means the rotation speed, if
 double obstacle_density;  // density of the obstacle
 
 // Pointer to store the viper instance
-std::shared_ptr<ViperRover> rover;
+std::shared_ptr<Viper> rover;
 
 std::shared_ptr<ChMaterialSurface> CustomWheelMaterial(ChContactMethod contact_method) {
     float mu = 0.4f;   // coefficient of friction
@@ -330,7 +330,7 @@ void CreateSolidPhase(ChSystemNSC& mphysicalSystem,
 
     ChQuaternion<> body_rot = ChQuaternion<>(1, 0, 0, 0);
     ChVector<> body_pos = ChVector<>(paramsH->bodyIniPosX, paramsH->bodyIniPosY, paramsH->bodyIniPosZ);
-    rover = chrono_types::make_shared<ViperRover>(&mphysicalSystem);
+    rover = chrono_types::make_shared<Viper>(&mphysicalSystem);
     rover->SetWheelContactMaterial(CustomWheelMaterial(ChContactMethod::NSC));
     rover->Initialize(ChFrame<>(body_pos, body_rot));
 
@@ -554,16 +554,16 @@ void SaveParaViewFiles(fsi::ChSystemFsi& myFsiSystem,
         for (int i = 0; i < 4; i++) {
             std::shared_ptr<ChBodyAuxRef> body;
             if (i == 0) {
-                body = rover->GetBottomArm(WheelID::LF)->GetBody();
+                body = rover->GetLowerArm(WheelID::LF)->GetBody();
             }
             if (i == 1) {
-                body = rover->GetBottomArm(WheelID::RF)->GetBody();
+                body = rover->GetLowerArm(WheelID::RF)->GetBody();
             }
             if (i == 2) {
-                body = rover->GetBottomArm(WheelID::LB)->GetBody();
+                body = rover->GetLowerArm(WheelID::LB)->GetBody();
             }
             if (i == 3) {
-                body = rover->GetBottomArm(WheelID::RB)->GetBody();
+                body = rover->GetLowerArm(WheelID::RB)->GetBody();
             }
             ChFrame<> body_ref_frame = body->GetFrame_REF_to_abs();
             ChVector<> body_pos = body_ref_frame.GetPos();      // body->GetPos();
@@ -619,16 +619,16 @@ void SaveParaViewFiles(fsi::ChSystemFsi& myFsiSystem,
         for (int i = 0; i < 4; i++) {
             std::shared_ptr<ChBodyAuxRef> body;
             if (i == 0) {
-                body = rover->GetUpArm(WheelID::LF)->GetBody();
+                body = rover->GetUpperArm(WheelID::LF)->GetBody();
             }
             if (i == 1) {
-                body = rover->GetUpArm(WheelID::RF)->GetBody();
+                body = rover->GetUpperArm(WheelID::RF)->GetBody();
             }
             if (i == 2) {
-                body = rover->GetUpArm(WheelID::LB)->GetBody();
+                body = rover->GetUpperArm(WheelID::LB)->GetBody();
             }
             if (i == 3) {
-                body = rover->GetUpArm(WheelID::RB)->GetBody();
+                body = rover->GetUpperArm(WheelID::RB)->GetBody();
             }
             ChFrame<> body_ref_frame = body->GetFrame_REF_to_abs();
             ChVector<> body_pos = body_ref_frame.GetPos();      // body->GetPos();
