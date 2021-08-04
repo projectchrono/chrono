@@ -9,7 +9,7 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Authors: Jason Zhou
+// Authors: Jason Zhou, Radu Serban
 // =============================================================================
 //
 // NASA VIPER Lunar Rover Model Class.
@@ -26,6 +26,12 @@
 // - Same for control of the list motors.
 // - Is steering always synchronized? In other words, can we use a single
 //   steering function for all 4 wheels?
+//   If independent steering is wanted, then GetTurnAngle is incorrect.
+// - Consider using a torque motor instead of driveshafts
+//   (for a driver that uses torque control)
+// - The multibody system has redundant constraints (3D four-bar mechanisms 
+//   using revolute joints)!  This poses issues if using Pardiso. 
+//   To be fixed by using universal joints.
 //
 // =============================================================================
 
@@ -44,8 +50,7 @@
 #include "chrono/physics/ChLinkMotorRotationAngle.h"
 #include "chrono/physics/ChLinkMotorRotationSpeed.h"
 #include "chrono/physics/ChLinkMotorRotationTorque.h"
-#include "chrono/physics/ChSystemNSC.h"
-#include "chrono/physics/ChSystemSMC.h"
+#include "chrono/physics/ChShaftsBody.h"
 
 #include "chrono/physics/ChInertiaUtils.h"
 
@@ -317,8 +322,7 @@ ViperUpright::ViperUpright(const std::string& name,
 // =============================================================================
 
 // Rover model
-Viper::Viper(ChSystem* system, WheelType wheel_type)
-    : m_system(system), m_turn_state(TurnSig::HOLD), m_chassis_fixed(false), m_dc_motor_control(false) {
+Viper::Viper(ChSystem* system, WheelType wheel_type) : m_system(system), m_chassis_fixed(false) {
     // Set default collision model envelope commensurate with model dimensions.
     // Note that an SMC system automatically sets envelope to 0.
     auto contact_method = m_system->GetContactMethod();
@@ -330,9 +334,6 @@ Viper::Viper(ChSystem* system, WheelType wheel_type)
     // Create the contact materials
     m_default_material = DefaultContactMaterial(contact_method);
     m_wheel_material = DefaultContactMaterial(contact_method);
-
-    m_stall_torque = {300, 300, 300, 300};
-    m_no_load_speed = {CH_C_PI, CH_C_PI, CH_C_PI, CH_C_PI};
 
     Create(wheel_type);
 }
@@ -346,19 +347,19 @@ void Viper::Create(WheelType wheel_type) {
     double wy = 0.2067 + 0.32 + 0.0831;
     double wz = 0.0;
 
-    m_wheels[LF] = chrono_types::make_shared<ViperWheel>("wheelLF", ChFrame<>(ChVector<>(+wx, +wy, wz), QUNIT),
+    m_wheels[LF] = chrono_types::make_shared<ViperWheel>("wheel_LF", ChFrame<>(ChVector<>(+wx, +wy, wz), QUNIT),
                                                          m_wheel_material, wheel_type);
-    m_wheels[RF] = chrono_types::make_shared<ViperWheel>("wheelRF", ChFrame<>(ChVector<>(+wx, -wy, wz), QUNIT),
+    m_wheels[RF] = chrono_types::make_shared<ViperWheel>("wheel_RF", ChFrame<>(ChVector<>(+wx, -wy, wz), QUNIT),
                                                          m_wheel_material, wheel_type);
-    m_wheels[LB] = chrono_types::make_shared<ViperWheel>("wheelLB", ChFrame<>(ChVector<>(-wx, +wy, wz), QUNIT),
+    m_wheels[LB] = chrono_types::make_shared<ViperWheel>("wheel_LB", ChFrame<>(ChVector<>(-wx, +wy, wz), QUNIT),
                                                          m_wheel_material, wheel_type);
-    m_wheels[RB] = chrono_types::make_shared<ViperWheel>("wheelRB", ChFrame<>(ChVector<>(-wx, -wy, wz), QUNIT),
+    m_wheels[RB] = chrono_types::make_shared<ViperWheel>("wheel_RB", ChFrame<>(ChVector<>(-wx, -wy, wz), QUNIT),
                                                          m_wheel_material, wheel_type);
 
     m_wheels[LF]->m_mesh_xform = ChFrame<>(VNULL, Q_from_AngZ(CH_C_PI));
     m_wheels[LB]->m_mesh_xform = ChFrame<>(VNULL, Q_from_AngZ(CH_C_PI));
 
-    // create rover up and bottom suspensions
+    // create rover upper and lower suspension arms
     double cr_lx = 0.5618 + 0.08;
     double cr_ly = 0.2067;  // + 0.32/2;
     double cr_lz = 0.0525;
@@ -378,9 +379,9 @@ void Viper::Create(WheelType wheel_type) {
     };
 
     for (int i = 0; i < 4; i++) {
-        m_lower_arms[i] = chrono_types::make_shared<ViperLowerArm>("bt_sus", ChFrame<>(cr_rel_pos_lower[i], QUNIT),
+        m_lower_arms[i] = chrono_types::make_shared<ViperLowerArm>("lower_arm", ChFrame<>(cr_rel_pos_lower[i], QUNIT),
                                                                    m_default_material, i % 2);
-        m_upper_arms[i] = chrono_types::make_shared<ViperUpperArm>("up_sus", ChFrame<>(cr_rel_pos_upper[i], QUNIT),
+        m_upper_arms[i] = chrono_types::make_shared<ViperUpperArm>("upper_arm", ChFrame<>(cr_rel_pos_upper[i], QUNIT),
                                                                    m_default_material, i % 2);
     }
 
@@ -396,17 +397,19 @@ void Viper::Create(WheelType wheel_type) {
     };
 
     for (int i = 0; i < 4; i++) {
-        m_uprights[i] = chrono_types::make_shared<ViperUpright>("steering", ChFrame<>(sr_rel_pos[i], QUNIT),
+        m_uprights[i] = chrono_types::make_shared<ViperUpright>("upright", ChFrame<>(sr_rel_pos[i], QUNIT),
                                                                 m_default_material, i % 2);
     }
 
-    // Create drive shafts
+    // create drive shafts
     for (int i = 0; i < 4; i++) {
         m_drive_shafts[i] = chrono_types::make_shared<ChShaft>();
     }
 }
 
 void Viper::Initialize(const ChFrame<>& pos) {
+    assert(m_driver);
+
     m_chassis->Initialize(m_system, pos);
     m_chassis->GetBody()->SetBodyFixed(m_chassis_fixed);
 
@@ -482,8 +485,7 @@ void Viper::Initialize(const ChFrame<>& pos) {
         AddRevoluteJoint(m_upper_arms[i]->GetBody(), m_uprights[i]->GetBody(), m_chassis->GetBody(), m_system,
                          sr_rel_pos_upper[i], z2x);
 
-        // Add lifting motors at the connecting points between upper_suspension&chassis and bottom_suspension&chassis
-        // create lifting motors speed control functions
+        // Add lifting motors at the connecting points between upper_arm & chassis and lower_arm & chassis
         m_lift_motor_funcs[i] = chrono_types::make_shared<ChFunction_Const>(0.0);
 
         m_lift_motors[2 * i] = AddMotor(m_chassis->GetBody(), m_lower_arms[i]->GetBody(), m_chassis->GetBody(),
@@ -504,7 +506,7 @@ void Viper::Initialize(const ChFrame<>& pos) {
         ChQuaternion<> z2y;
         z2y.Q_from_AngAxis(CH_C_PI / 2, ChVector<>(1, 0, 0));
 
-        if (m_dc_motor_control) {
+        if (m_driver->TorqueControl()) {
             AddRevoluteJoint(steer_rod, m_wheels[i]->GetBody(), m_chassis->GetBody(), m_system, wheel_rel_pos[i], z2y);
         } else {
             m_drive_motor_funcs[i] = chrono_types::make_shared<ChFunction_Setpoint>();
@@ -531,36 +533,9 @@ void Viper::Initialize(const ChFrame<>& pos) {
     }
 }
 
-void Viper::SetDCControl(bool dc_control) {
-    m_dc_motor_control = dc_control;
-}
-
-void Viper::SetMotorSpeed(double speed, WheelID id) {
-    if (m_dc_motor_control)
-        return;
-        
-    m_drive_motor_funcs[id]->SetSetpoint(m_system->GetChTime(), speed);
-}
-
-void Viper::SetMotorSpeed(double speed) {
-    if (m_dc_motor_control)
-        return;
-
-    for (int id = 0; id < 4; id++)
-        m_drive_motor_funcs[id]->SetSetpoint(m_system->GetChTime(), speed);
-}
-
-void Viper::SetLiftMotorSpeed(double rad_speed, WheelID id) {
-    m_lift_motor_funcs[id]->Set_yconst(rad_speed);
-}
-
-void Viper::SetMotorNoLoadSpeed(double rad_speed, WheelID id) {
-    if (m_dc_motor_control)
-        m_no_load_speed[id] = rad_speed;
-}
-
-void Viper::SetMotorStallTorque(double torque, WheelID id) {
-    m_stall_torque[id] = torque;
+void Viper::SetDriver(std::shared_ptr<ViperDriver> driver) {
+    m_driver = driver;
+    m_driver->viper = this;
 }
 
 void Viper::SetWheelContactMaterial(std::shared_ptr<ChMaterialSurface> mat) {
@@ -607,21 +582,20 @@ ChVector<> Viper::GetWheelAppliedTorque(WheelID id) const {
 }
 
 double Viper::GetWheelTracTorque(WheelID id) const {
-    if (m_dc_motor_control)
+    if (m_driver->TorqueControl())
         return 0;
 
     return m_drive_motors[id]->GetMotorTorque();
 }
 
 double Viper::GetRoverMass() const {
-    double tot_mass = 0.0;
+    double tot_mass = m_chassis->GetBody()->GetMass();
     for (int i = 0; i < 4; i++) {
-        tot_mass = tot_mass + m_wheels[i]->GetBody()->GetMass();
-        tot_mass = tot_mass + m_upper_arms[i]->GetBody()->GetMass();
-        tot_mass = tot_mass + m_lower_arms[i]->GetBody()->GetMass();
-        tot_mass = tot_mass + m_uprights[i]->GetBody()->GetMass();
+        tot_mass += m_wheels[i]->GetBody()->GetMass();
+        tot_mass += m_upper_arms[i]->GetBody()->GetMass();
+        tot_mass += m_lower_arms[i]->GetBody()->GetMass();
+        tot_mass += m_uprights[i]->GetBody()->GetMass();
     }
-    tot_mass = tot_mass + m_chassis->GetBody()->GetMass();
     return tot_mass;
 }
 
@@ -629,51 +603,60 @@ double Viper::GetWheelMass() const {
     return m_wheels[0]->GetBody()->GetMass();
 }
 
-void Viper::SetTurn(TurnSig id, double turn_speed) {
-    double speed = ChClamp(turn_speed, 0.0, m_max_steer_speed);
-
-    switch (id) {
-        case TurnSig::LEFT:
-            for (int i = 0; i < 4; i++) {
-                m_steer_motor_funcs[i]->Set_yconst(speed);
-            }
-            break;
-
-        case TurnSig::RIGHT:
-            for (int i = 0; i < 4; i++) {
-                m_steer_motor_funcs[i]->Set_yconst(-speed);
-            }
-            break;
-
-        case TurnSig::HOLD:
-            for (int i = 0; i < 4; i++) {
-                m_steer_motor_funcs[i]->Set_yconst(0.0);
-            }
-            break;
-    }
-
-    m_turn_state = id;
-}
-
 double Viper::GetTurnAngle() const {
     return 2 * (m_steer_motors[0]->GetMotorRot());
 }
 
 void Viper::Update() {
-    UpdateDCMotorControl();
-    UpdateSteeringControl();
+    double time = m_system->GetChTime();
+    m_driver->Update(time);
+
+    for (int i = 0; i < 4; i++) {
+        // Extract driver inputs
+        double driving = m_driver->drive_speeds[i];
+        double steering = m_driver->steer_speeds[i];
+        double lifting = m_driver->lift_speeds[i];
+
+        // Enforce maximum steering speed
+        ChClampValue(steering, -m_max_steer_speed, m_max_steer_speed);
+
+        // Enforce maximum steering angle
+        double angle = m_steer_motors[i]->GetMotorRot();
+        if ((angle > m_max_steer_angle && steering > 0) || (angle < -m_max_steer_angle && steering < 0)) {
+            steering = 0;
+        }
+
+        // Set motor functions
+        m_steer_motor_funcs[i]->Set_yconst(steering);
+        m_lift_motor_funcs[i]->Set_yconst(lifting);
+        if (!m_driver->TorqueControl())
+            m_drive_motor_funcs[i]->SetSetpoint(time, driving);
+    }
 }
 
-// A sloppy DC motor control
-//// TODO A better model is needed
-void Viper::UpdateDCMotorControl() {
-    if (!m_dc_motor_control)
-        return;
+// =============================================================================
 
+ViperDriver::ViperDriver() : drive_speeds({0, 0, 0, 0}), steer_speeds({0, 0, 0, 0}), lift_speeds({0, 0, 0, 0}), viper(nullptr) {}
+
+ViperDCMotorControl::ViperDCMotorControl()
+    : m_stall_torque({300, 300, 300, 300}), m_no_load_speed({CH_C_PI, CH_C_PI, CH_C_PI, CH_C_PI}) {}
+
+void ViperDCMotorControl::SetSteering(double speed) {
+    for (int i = 0; i < 4; i++)
+        steer_speeds[i] = speed;
+}
+
+/// Set current lift input (angular speed).
+void ViperDCMotorControl::SetLift(double speed) {
+    for (int i = 0; i < 4; i++)
+        lift_speeds[i] = speed;
+}
+
+void ViperDCMotorControl::Update(double time) {
     double speed_reading;
     double target_torque;
     for (int i = 0; i < 4; i++) {
-        speed_reading = -m_drive_shafts[i]->GetPos_dt();
+        speed_reading = -viper->m_drive_shafts[i]->GetPos_dt();
 
         if (speed_reading > m_no_load_speed[i]) {
             target_torque = 0;
@@ -683,30 +666,7 @@ void Viper::UpdateDCMotorControl() {
             target_torque = m_stall_torque[i] * ((m_no_load_speed[i] - speed_reading) / m_no_load_speed[i]);
         }
 
-        m_drive_shafts[i]->SetAppliedTorque(-target_torque);
-    }
-}
-
-void Viper::UpdateSteeringControl() {
-    switch (m_turn_state) {
-        case TurnSig::LEFT:
-            for (int i = 0; i < 4; i++) {
-                if (m_steer_motors[i]->GetMotorRot() > m_max_steer_angle) {
-                    m_steer_motor_funcs[i]->Set_yconst(0.0);
-                }
-            }
-            break;
-
-        case TurnSig::RIGHT:
-            for (int i = 0; i < 4; i++) {
-                if (m_steer_motors[i]->GetMotorRot() < -m_max_steer_angle) {
-                    m_steer_motor_funcs[i]->Set_yconst(0.0);
-                }
-            }
-            break;
-
-        case TurnSig::HOLD:
-            break;
+        viper->m_drive_shafts[i]->SetAppliedTorque(-target_torque);
     }
 }
 

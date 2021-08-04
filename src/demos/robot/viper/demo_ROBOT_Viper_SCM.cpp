@@ -168,18 +168,15 @@ int main(int argc, char* argv[]) {
     }
     utils::CSV_writer csv(" ");
 
-    // Viper rover initial position and orientation
-    ChVector<double> body_pos(-5, 0, -0.2);
-
     // Create the rover
+    auto driver = chrono_types::make_shared<ViperDCMotorControl>();
     auto viper = chrono_types::make_shared<Viper>(&my_system, wheel_type);
 
-    viper->SetDCControl(true);
-
+    viper->SetDriver(driver);
     if (use_custom_mat)
         viper->SetWheelContactMaterial(CustomWheelMaterial(ChContactMethod::NSC));
 
-    viper->Initialize(ChFrame<>(body_pos, QUNIT));
+    viper->Initialize(ChFrame<>(ChVector<>(-5, 0, -0.2), QUNIT));
 
     // Get wheels and bodies to set up SCM patches
     auto Wheel_1 = viper->GetWheel(WheelID::LF)->GetBody();

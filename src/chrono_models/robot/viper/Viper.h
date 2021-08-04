@@ -9,7 +9,7 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Authors: Jason Zhou
+// Authors: Jason Zhou, Radu Serban
 // =============================================================================
 //
 // NASA VIPER Lunar Rover Model Class.
@@ -28,8 +28,6 @@
 #include "chrono/physics/ChLinkMotorRotationSpeed.h"
 #include "chrono/physics/ChSystem.h"
 #include "chrono/physics/ChShaft.h"
-#include "chrono/physics/ChShaftsGear.h"
-#include "chrono/physics/ChShaftsBody.h"
 
 #include "chrono_models/ChApiModels.h"
 
@@ -47,13 +45,6 @@ enum WheelID {
     RF = 1,  ///< right front
     LB = 2,  ///< left back
     RB = 3   ///< right back
-};
-
-/// Viper turning signal.
-enum class TurnSig {
-    LEFT = +1,   ///< left turn signal
-    RIGHT = -1,  ///< right turn signal
-    HOLD = 0     ///< hold signal
 };
 
 /// Viper wheel type.
@@ -188,6 +179,10 @@ class CH_MODELS_API ViperUpright : public ViperPart {
     ~ViperUpright() {}
 };
 
+// -----------------------------------------------------------------------------
+
+class ViperDriver;
+
 /// Viper rover class.
 /// This class encapsulates the location and rotation information of all Viper parts wrt the chassis.
 /// This class should be the entry point to create a complete rover.
@@ -200,27 +195,8 @@ class CH_MODELS_API Viper {
     /// Get the containing system.
     ChSystem* GetSystem() const { return m_system; }
 
-    /// Enable/disable DC motor control.
-    void SetDCControl(bool dc_control);
-
-    /// Set motor stall torque for the specified wheel.
-    /// This value is used only if DC motor control is enabled.
-    void SetMotorStallTorque(double torque, WheelID id);
-
-    /// Set DC motor no load speed.
-    /// This value is used only if DC motor control is enabled.
-    void SetMotorNoLoadSpeed(double rad_speed, WheelID id);
-
-    /// Set drive motor angular speed.
-    /// Used only if DC motor control is disabled.
-    void SetMotorSpeed(double speed, WheelID id);
-
-    /// Set the same angular speed to all drive motors.
-    /// Used only if DC motor control is disabled.
-    void SetMotorSpeed(double speed);
-
-    /// Set lift motor speed
-    void SetLiftMotorSpeed(double rad_speed, WheelID id);
+    /// Attach a driver system.
+    void SetDriver(std::shared_ptr<ViperDriver> driver);
 
     /// Set wheel contact material.
     void SetWheelContactMaterial(std::shared_ptr<ChMaterialSurface> mat);
@@ -298,22 +274,18 @@ class CH_MODELS_API Viper {
     double GetWheelMass() const;
 
     /// Get drive motor function.
+    /// This will return an empty pointer if the associated driver uses torque control.
     std::shared_ptr<ChFunction_Setpoint> GetDriveMotorFunc(WheelID id) { return m_drive_motor_funcs[id]; }
 
     /// Get steer motor function.
     std::shared_ptr<ChFunction_Const> GetSteerMotorFunc(WheelID id) { return m_steer_motor_funcs[id]; }
 
     /// Get drive motor.
+    /// This will return an empty pointer if the associated driver uses torque control.
     std::shared_ptr<ChLinkMotorRotationSpeed> GetDriveMotor(WheelID id) { return m_drive_motors[id]; }
 
     /// Get steer motor.
     std::shared_ptr<ChLinkMotorRotationSpeed> GetSteerMotor(WheelID id) { return m_steer_motors[id]; }
-
-    /// Set Viper turning signal left/right/hold.
-    void SetTurn(TurnSig id, double turn_speed = 0.0);
-
-    /// Get Viper turning state - HOLD, LEFT, OR RIGHT.
-    TurnSig GetTurnState() const { return m_turn_state; }
 
     /// Get Viper turning angle.
     double GetTurnAngle() const;
@@ -326,16 +298,9 @@ class CH_MODELS_API Viper {
     /// Create the rover parts.
     void Create(WheelType wheel_type);
 
-    /// Update DC motor limit control.
-    void UpdateDCMotorControl();
-
-    /// Update steering control
-    void UpdateSteeringControl();
-
     ChSystem* m_system;  ///< pointer to the Chrono system
 
-    bool m_chassis_fixed;     ///< fix chassis to ground
-    bool m_dc_motor_control;  ///< use DC motor controller
+    bool m_chassis_fixed;  ///< fix chassis to ground
 
     std::shared_ptr<ViperChassis> m_chassis;                     ///< rover chassis
     std::array<std::shared_ptr<ViperWheel>, 4> m_wheels;         ///< rover wheels (LF, RF, LR, RB)
@@ -355,17 +320,74 @@ class CH_MODELS_API Viper {
     std::array<std::shared_ptr<ChLinkTSDA>, 4> m_springs;    ///< suspension springs
     std::array<std::shared_ptr<ChShaft>, 4> m_drive_shafts;  ///< wheel drive-shafts
 
-
-    std::array<double, 4> m_stall_torque;   ///< stall torque of the motors
-    std::array<double, 4> m_no_load_speed;  ///< no load speed of the motors
-
-    TurnSig m_turn_state;  ///< turning state of the rover
+    std::shared_ptr<ViperDriver> m_driver;  ///< rover driver system
 
     std::shared_ptr<ChMaterialSurface> m_default_material;  ///< common contact material for all non-wheel parts
     std::shared_ptr<ChMaterialSurface> m_wheel_material;    ///< wheel contact material (shared across limbs)
 
     static const double m_max_steer_angle;  ///< maximum steering angle
     static const double m_max_steer_speed;  ///< maximum steering speed
+
+    friend class ViperDCMotorControl;
+};
+
+// -----------------------------------------------------------------------------
+
+/// Base class definition for a Viper driver.
+/// A derived class must implement the Update function to set the various motor controls at the current time.
+/// Alternatively, a derived class may directly access the associate Viper rover and control it through different means
+/// (such as applying torques to the wheel driveshafts).
+class CH_MODELS_API ViperDriver {
+  public:
+    virtual ~ViperDriver() {}
+
+    /// Indicate if driver controls driveshafts through applied torque.
+    virtual bool TorqueControl() { return false; }
+
+    /// Set the current rover driver inputs.
+    /// This function is called by the associated Viper at each rover Update. A derived class must update the values for
+    /// the angular speeds for the drive motors, the steering motors, and the lift motors at the specified time. A
+    /// positive steering input corresponds to a left turn and a negative value to a right turn.
+    virtual void Update(double time) = 0;
+
+  protected:
+    ViperDriver();
+
+    Viper* viper;  ///< associated Viper rover
+
+    std::array<double, 4> drive_speeds;  ///< angular speeds for drive motors
+    std::array<double, 4> steer_speeds;  ///< angular speeds for steer motors
+    std::array<double, 4> lift_speeds;   ///< angular speeds for lift motors
+
+    friend class Viper;
+};
+
+/// Concrete Viper driver class for a simple DC motor control.
+/// This implements a simplistic DC motor control by directly applying torques to the rover's driveshafts.
+/// Control of the steering is left to the caller (through SetSteering).
+class CH_MODELS_API ViperDCMotorControl : public ViperDriver {
+  public:
+    ViperDCMotorControl();
+    ~ViperDCMotorControl() {}
+
+    /// Set motor stall torque for the specified wheel (default: 300).
+    void SetMotorStallTorque(double torque, WheelID id) { m_stall_torque[id] = torque; }
+
+    /// Set DC motor no load speed (default: pi).
+    void SetMotorNoLoadSpeed(double speed, WheelID id) { m_no_load_speed[id] = speed; }
+
+    /// Set current steering input (angular speed: negative for left, positive for right).
+    void SetSteering(double speed);
+
+    /// Set current lift input (angular speed).
+    void SetLift(double speed);
+
+  private:
+    virtual bool TorqueControl() override { return true; }
+    virtual void Update(double time) override;
+
+    std::array<double, 4> m_stall_torque;   ///< stall torque of the motors
+    std::array<double, 4> m_no_load_speed;  ///< no load speed of the motors
 };
 
 /// @} robot_models_viper

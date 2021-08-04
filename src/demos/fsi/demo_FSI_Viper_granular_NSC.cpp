@@ -328,12 +328,11 @@ void CreateSolidPhase(ChSystemNSC& mphysicalSystem,
     fsi::utils::AddBoxBce(myFsiSystem.GetDataManager(), paramsH, mfloor, pos_yp, QUNIT, size_XZ, 13);
     fsi::utils::AddBoxBce(myFsiSystem.GetDataManager(), paramsH, mfloor, pos_yn, QUNIT, size_XZ, 13);
 
-    ChQuaternion<> body_rot = ChQuaternion<>(1, 0, 0, 0);
-    ChVector<> body_pos = ChVector<>(paramsH->bodyIniPosX, paramsH->bodyIniPosY, paramsH->bodyIniPosZ);
+    auto driver = chrono_types::make_shared<ViperDCMotorControl>();
     rover = chrono_types::make_shared<Viper>(&mphysicalSystem);
+    rover->SetDriver(driver);
     rover->SetWheelContactMaterial(CustomWheelMaterial(ChContactMethod::NSC));
-    rover->Initialize(ChFrame<>(body_pos, body_rot));
-    rover->SetMotorSpeed(CH_C_PI);
+    rover->Initialize(ChFrame<>(ChVector<>(paramsH->bodyIniPosX, paramsH->bodyIniPosY, paramsH->bodyIniPosZ), QUNIT));
 
     // add BCE particles and mesh of wheels to the system
     for (int i = 0; i < 4; i++) {

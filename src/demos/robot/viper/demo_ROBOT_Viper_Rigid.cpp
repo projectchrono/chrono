@@ -126,16 +126,18 @@ int main(int argc, char* argv[]) {
 
     // Construct and initialize a Viper rover.
     // The default rotational speed of the Motor is speed w=3.145 rad/sec.
+    auto driver = chrono_types::make_shared<ViperDCMotorControl>();
     auto viper = chrono_types::make_shared<Viper>(&sys, wheel_type);
+
+    viper->SetDriver(driver);
     if (use_custom_mat)
         viper->SetWheelContactMaterial(CustomWheelMaterial(ChContactMethod::NSC));
+
     ////viper->SetChassisFixed(true);
     ////viper->SetChassisVisualization(false);
     ////viper->SetSuspensionVisualization(false);
-    viper->SetDCControl(true);
 
-    ChVector<double> body_pos(0, 0, -0.2);
-    viper->Initialize(ChFrame<>(body_pos, QUNIT));
+    viper->Initialize(ChFrame<>(ChVector<>(0, 0, -0.2), QUNIT));
 
     // Complete construction of visual assets
     application.AssetBindAll();
@@ -149,21 +151,19 @@ int main(int argc, char* argv[]) {
     // Simulation loop
     double time = 0.0;
     while (application.GetDevice()->run()) {
-        // Once the Viper rover turning angle returns back to 0, HOLD the steering
-        if ((viper->GetTurnAngle() - 0) < 1e-8 && viper->GetTurnState() == TurnSig::RIGHT) {
-            viper->SetTurn(TurnSig::HOLD);
-            std::cout << "Hold direction" << std::endl;
-        }
+        double steering = 0;
 
-        if (abs(time - 1.0) < 1e-5) {
-            viper->SetTurn(TurnSig::LEFT, CH_C_PI / 8);
-            std::cout << "Turn left " << CH_C_PI / 8 << std::endl;
-        } else if (abs(time - 7.0) < 1e-5) {
-            viper->SetTurn(TurnSig::RIGHT, CH_C_PI / 8);
-            std::cout << "Turn right " << CH_C_PI / 8 << std::endl;
-        }
+        if (time > 7) {
+            if (std::abs(viper->GetTurnAngle()) < 1e-8)
+                steering = 0;
+            else
+                steering = -CH_C_PI / 8;
+        } else if (time > 1) {
+            steering = CH_C_PI / 8;
+        } 
+        driver->SetSteering(steering);
 
-        // Note: Viper steering control needs to be updated every simulation loop
+        // Update Viper controls
         viper->Update();
 
         // Display turning angle - ranges from -pi/3 to pi/3
