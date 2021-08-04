@@ -121,7 +121,7 @@ std::shared_ptr<ChLinkMotorRotationSpeed> AddMotor(std::shared_ptr<ChBody> steer
                                                    ChSystem* system,
                                                    const ChVector<>& rel_joint_pos,
                                                    const ChQuaternion<>& rel_joint_rot,
-                                                   std::shared_ptr<ChFunction_Const> speed_func) {
+                                                   std::shared_ptr<ChFunction> speed_func) {
     const ChFrame<>& X_GP = chassis->GetFrame_REF_to_abs();  // global -> parent
     ChFrame<> X_PC(rel_joint_pos, rel_joint_rot);            // parent -> child
     ChFrame<> X_GC = X_GP * X_PC;                            // global -> child
@@ -509,7 +509,7 @@ void Viper::Initialize(const ChFrame<>& pos) {
         if (m_dc_motor_control) {
             AddRevoluteJoint(steer_rod, m_wheels[i]->GetBody(), m_chassis->GetBody(), m_system, wheel_rel_pos[i], z2y);
         } else {
-            m_drive_motor_funcs[i] = chrono_types::make_shared<ChFunction_Const>(CH_C_PI);
+            m_drive_motor_funcs[i] = chrono_types::make_shared<ChFunction_Setpoint>();
             m_drive_motors[i] = AddMotor(steer_rod, m_wheels[i]->GetBody(), m_chassis->GetBody(), m_system,
                                          wheel_rel_pos[i], z2y, m_drive_motor_funcs[i]);
         }
@@ -552,9 +552,19 @@ void Viper::SetDCControl(bool dc_control) {
     m_dc_motor_control = dc_control;
 }
 
-void Viper::SetMotorSpeed(double rad_speed, WheelID id) {
-    if (!m_dc_motor_control)
-        m_drive_motor_funcs[id]->Set_yconst(rad_speed);
+void Viper::SetMotorSpeed(double speed, WheelID id) {
+    if (m_dc_motor_control)
+        return;
+        
+    m_drive_motor_funcs[id]->SetSetpoint(m_system->GetChTime(), speed);
+}
+
+void Viper::SetMotorSpeed(double speed) {
+    if (m_dc_motor_control)
+        return;
+
+    for (int id = 0; id < 4; id++)
+        m_drive_motor_funcs[id]->SetSetpoint(m_system->GetChTime(), speed);
 }
 
 void Viper::SetLiftMotorSpeed(double rad_speed, WheelID id) {
@@ -634,22 +644,6 @@ double Viper::GetRoverMass() const {
 
 double Viper::GetWheelMass() const {
     return m_wheels[0]->GetBody()->GetMass();
-}
-
-std::shared_ptr<ChFunction_Const> Viper::GetMainMotorFunc(WheelID id) {
-    return m_drive_motor_funcs[id];
-}
-
-std::shared_ptr<ChFunction_Const> Viper::GetSteerMotorFunc(WheelID id) {
-    return m_steer_motor_funcs[id];
-}
-
-std::shared_ptr<ChLinkMotorRotationSpeed> Viper::GetMainMotorLink(WheelID id) {
-    return m_drive_motors[id];
-}
-
-std::shared_ptr<ChLinkMotorRotationSpeed> Viper::GetSteerMotorLink(WheelID id) {
-    return m_steer_motors[id];
 }
 
 void Viper::SetTurn(TurnSig id, double turn_speed) {

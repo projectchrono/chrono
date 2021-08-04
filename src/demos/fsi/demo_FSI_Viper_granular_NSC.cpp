@@ -333,6 +333,7 @@ void CreateSolidPhase(ChSystemNSC& mphysicalSystem,
     rover = chrono_types::make_shared<Viper>(&mphysicalSystem);
     rover->SetWheelContactMaterial(CustomWheelMaterial(ChContactMethod::NSC));
     rover->Initialize(ChFrame<>(body_pos, body_rot));
+    rover->SetMotorSpeed(CH_C_PI);
 
     // add BCE particles and mesh of wheels to the system
     for (int i = 0; i < 4; i++) {

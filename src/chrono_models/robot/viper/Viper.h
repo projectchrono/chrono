@@ -209,9 +209,13 @@ class CH_MODELS_API Viper {
     /// This value is used only if DC motor control is enabled.
     void SetMotorNoLoadSpeed(double rad_speed, WheelID id);
 
-    /// Set motor speed.
-    /// This value is used only if DC motor control is disabled.
-    void SetMotorSpeed(double rad_speed, WheelID id);
+    /// Set drive motor angular speed.
+    /// Used only if DC motor control is disabled.
+    void SetMotorSpeed(double speed, WheelID id);
+
+    /// Set the same angular speed to all drive motors.
+    /// Used only if DC motor control is disabled.
+    void SetMotorSpeed(double speed);
 
     /// Set lift motor speed
     void SetLiftMotorSpeed(double rad_speed, WheelID id);
@@ -288,26 +292,26 @@ class CH_MODELS_API Viper {
     /// Get total wheel mass.
     double GetWheelMass() const;
 
-    /// Get main motor function.
-    std::shared_ptr<ChFunction_Const> GetMainMotorFunc(WheelID id);
+    /// Get drive motor function.
+    std::shared_ptr<ChFunction_Setpoint> GetDriveMotorFunc(WheelID id) { return m_drive_motor_funcs[id]; }
 
     /// Get steer motor function.
-    std::shared_ptr<ChFunction_Const> GetSteerMotorFunc(WheelID id);
+    std::shared_ptr<ChFunction_Const> GetSteerMotorFunc(WheelID id) { return m_steer_motor_funcs[id]; }
 
-    /// Get main motor link.
-    std::shared_ptr<ChLinkMotorRotationSpeed> GetMainMotorLink(WheelID id);
+    /// Get drive motor.
+    std::shared_ptr<ChLinkMotorRotationSpeed> GetDriveMotor(WheelID id) { return m_drive_motors[id]; }
 
-    /// Get steer motor link.
-    std::shared_ptr<ChLinkMotorRotationSpeed> GetSteerMotorLink(WheelID id);
+    /// Get steer motor.
+    std::shared_ptr<ChLinkMotorRotationSpeed> GetSteerMotor(WheelID id) { return m_steer_motors[id]; }
 
     /// Set Viper turning signal left/right/hold.
     void SetTurn(TurnSig id, double turn_speed = 0.0);
 
-    /// Get Viper turning angle - ranges from -CH_C_PI/3 to CH_C_PI/3.
-    double GetTurnAngle() const;
-
     /// Get Viper turning state - HOLD, LEFT, OR RIGHT.
     TurnSig GetTurnState() const { return m_turn_state; }
+
+    /// Get Viper turning angle.
+    double GetTurnAngle() const;
 
     /// Viper update function.
     /// This function must be called before each integration step.
@@ -339,9 +343,9 @@ class CH_MODELS_API Viper {
     std::array<std::shared_ptr<ChLinkMotorRotationSpeed>, 4> m_steer_motors;  ///< steering motors
     std::array<std::shared_ptr<ChLinkMotorRotationSpeed>, 8> m_lift_motors;   ///< lifting motors
 
-    std::array<std::shared_ptr<ChFunction_Const>, 4> m_drive_motor_funcs;  ///< drive motor angular speed functions
-    std::array<std::shared_ptr<ChFunction_Const>, 4> m_steer_motor_funcs;  ///< steering motor angular speed functions
-    std::array<std::shared_ptr<ChFunction_Const>, 4> m_lift_motor_funcs;   ///< lifting motor angular speed functions
+    std::array<std::shared_ptr<ChFunction_Setpoint>, 4> m_drive_motor_funcs;  ///< drive motor functions
+    std::array<std::shared_ptr<ChFunction_Const>, 4> m_steer_motor_funcs;     ///< steering motor functions
+    std::array<std::shared_ptr<ChFunction_Const>, 4> m_lift_motor_funcs;      ///< lifting motor functions
 
     std::array<std::shared_ptr<ChLinkTSDA>, 4> m_springs;  ///< suspension springs
 
