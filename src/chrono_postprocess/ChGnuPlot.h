@@ -380,8 +380,8 @@ class ChGnuPlot {
 
 // Launch the GNUplot from shell:
 #ifdef _WIN32
-        // ex. of launched sys command: "start gnuplot __tmp_gnuplot.gpl -persist"
-        syscmd += "start gnuplot \"";
+        // ex. of launched sys command: "start /b gnuplot __tmp_gnuplot.gpl -persist"  where /b avoids showing the black cmd window
+        syscmd += "start /b gnuplot \"";
         syscmd += this->gpl_filename;
         syscmd += "\"";
         if (persist)
