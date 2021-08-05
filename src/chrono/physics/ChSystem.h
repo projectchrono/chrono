@@ -831,6 +831,11 @@ class ChApi ChSystem : public ChIntegrableIIorder {
 
     // ---- STATICS
 
+    /// Perform a generic static analysis. Low level API, where the user creates and configures a
+    /// ChStaticAnalysis-inherited object by his own. For ready-to-use analysis, use 
+    /// DoStaticLinear, DoStaticNonLinear, DoStaticNonlinearRheonomic etc. instead.
+    bool DoStaticAnalysis(std::shared_ptr<ChStaticAnalysis> analysis);
+
     /// Solve the position of static equilibrium (and the reactions).
     /// This is a one-step only approach that solves the **linear** equilibrium.
     /// Appropriate mostly for FEM problems with small deformations.
