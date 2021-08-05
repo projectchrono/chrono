@@ -178,8 +178,8 @@ class CH_VEHICLE_API RigidTerrain : public ChTerrain {
     /// the output is set to heigh=0, normal=[0,0,1], and friction=0.8).
     bool FindPoint(const ChVector<> loc, double& height, ChVector<>& normal, float& friction) const;
 
-    /// Set common collision family for patches.
-    /// Used only if defining two or more patches. Default: 14.
+    /// Set common collision family for patches. Default: 14.
+    /// Collision is disabled with all other objects in this family (to prevent generating contact forces between patches, if more than one is defined).
     void SetCollisionFamily(int family) { m_collision_family = family; }
 
   private:

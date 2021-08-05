@@ -83,14 +83,14 @@ class JointsDVI : public ::testing::TestWithParam<Options> {
         system->ChangeSolverType(opts.type);
 
         // Create the ground body
-        auto ground = chrono_types::make_shared<ChBody>(chrono_types::make_shared<collision::ChCollisionModelMulticore>());
+        auto ground = std::shared_ptr<ChBody>(system->NewBody());
         ground->SetIdentifier(-1);
         ground->SetBodyFixed(true);
         ground->SetCollide(false);
         system->AddBody(ground);
 
         // Create the sled body
-        auto sled = chrono_types::make_shared<ChBody>(chrono_types::make_shared<collision::ChCollisionModelMulticore>());
+        auto sled = std::shared_ptr<ChBody>(system->NewBody());
         sled->SetIdentifier(1);
         sled->SetMass(550);
         sled->SetInertiaXX(ChVector<>(100, 100, 100));
@@ -108,7 +108,7 @@ class JointsDVI : public ::testing::TestWithParam<Options> {
         system->AddBody(sled);
 
         // Create the wheel body
-        auto wheel = chrono_types::make_shared<ChBody>(chrono_types::make_shared<collision::ChCollisionModelMulticore>());
+        auto wheel = std::shared_ptr<ChBody>(system->NewBody());
         wheel->SetIdentifier(2);
         wheel->SetMass(350);
         wheel->SetInertiaXX(ChVector<>(50, 138, 138));

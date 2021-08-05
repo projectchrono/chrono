@@ -97,7 +97,8 @@ void SynCopterAgent::SetID(SynAgentID aid) {
 
 std::shared_ptr<ChTriangleMeshShape> SynCopterAgent::CreateMeshZombieComponent(const std::string& filename) {
     auto mesh = chrono_types::make_shared<geometry::ChTriangleMeshConnected>();
-    mesh->LoadWavefrontMesh(GetChronoDataFile(filename), false, false);
+    if (!filename.empty())
+        mesh->LoadWavefrontMesh(GetChronoDataFile(filename), false, false);
 
     auto trimesh = chrono_types::make_shared<ChTriangleMeshShape>();
     trimesh->SetMesh(mesh);

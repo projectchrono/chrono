@@ -27,7 +27,7 @@ namespace chrono {
 namespace vehicle {
 namespace marder {
 
-/// @addtogroup vehicle_models_m113
+/// @addtogroup vehicle_models_marder
 /// @{
 
 /// Simple M113 brake subsystem (torque applied directly to the spindle joint).
@@ -39,7 +39,7 @@ class CH_MODELS_API Marder_BrakeSimple : public ChTrackBrakeSimple {
     virtual double GetMaxBrakingTorque() override { return 30000.0; }
 };
 
-/// @} vehicle_models_m113
+/// @} vehicle_models_marder
 
 }  // namespace marder
 }  // end namespace vehicle

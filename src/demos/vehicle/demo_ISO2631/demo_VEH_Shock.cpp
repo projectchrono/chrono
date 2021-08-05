@@ -309,7 +309,6 @@ int main(int argc, char* argv[]) {
         terrain.Advance(step_size);
 
         if (v_pos >= xstart) {
-            double speed = vehicle.GetVehicleSpeed();
             ChVector<> seat_acc = vehicle.GetVehiclePointAcceleration(vehicle.GetChassis()->GetLocalDriverCoordsys().pos);
             seat_logger.AddData(seat_acc);
         }

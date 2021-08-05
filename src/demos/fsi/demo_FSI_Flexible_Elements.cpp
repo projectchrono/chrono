@@ -20,7 +20,7 @@
 #include "chrono/physics/ChSystemSMC.h"
 
 #ifdef CHRONO_PARDISO_MKL
-#include "chrono_pardisomkl/ChSolverPardisoMKL.h"
+    #include "chrono_pardisomkl/ChSolverPardisoMKL.h"
 #endif
 
 #include "chrono/solver/ChIterativeSolverLS.h"
@@ -92,12 +92,14 @@ int main(int argc, char* argv[]) {
     // Get the pointer to the system parameter and use a JSON file to fill it out with the user parameters
     std::shared_ptr<fsi::SimParams> paramsH = myFsiSystem.GetSimParams();
     // Use the default input file or you may enter your input parameters as a command line argument
-    std::string input_json = "fsi/input_json/demo_FSI_Flexible_Elements_I2SPH.json";
-    if (argc > 1) {
-        input_json = std::string(argv[1]);
-    }
-    std::string inputJson = GetChronoDataFile(input_json);
-    if (!fsi::utils::ParseJSON(inputJson, paramsH, fsi::mR3(bxDim, byDim, bzDim))) {
+    std::string inputJson = GetChronoDataFile("fsi/input_json/demo_FSI_Flexible_Elements_I2SPH.json");
+    if (argc == 1) {
+        fsi::utils::ParseJSON(inputJson, paramsH, fsi::mR3(bxDim, byDim, bzDim));
+    } else if (argc == 2) {
+        fsi::utils::ParseJSON(argv[1], paramsH, fsi::mR3(bxDim, byDim, bzDim));
+        std::string input_json = std::string(argv[1]);
+        inputJson = GetChronoDataFile(input_json);
+    } else {
         ShowUsage();
         return 1;
     }
@@ -124,24 +126,13 @@ int main(int argc, char* argv[]) {
                                                    fsi::mR3(1e-10),
                                                    fsi::mR4(paramsH->rho0, paramsH->BASEPRES, paramsH->mu0, -1.0));
     }
-
-    size_t numPhases = myFsiSystem.GetDataManager()->fsiGeneralData->referenceArray.size();
-
-    if (numPhases != 0) {
-        std::cout << "Error! numPhases is wrong, thrown from main\n" << std::endl;
-        std::cin.get();
-        return -1;
-    } else {
-        myFsiSystem.GetDataManager()->fsiGeneralData->referenceArray.push_back(mI4(0,(int)numPart, -1, -1));
-        myFsiSystem.GetDataManager()->fsiGeneralData->referenceArray.push_back(mI4((int)numPart, (int)numPart, 0, 0));
-    }
+    myFsiSystem.GetDataManager()->fsiGeneralData->referenceArray.push_back(fsi::mI4(0, (int)numPart, -1, -1));
 
     // ******************************* Create Solid region ****************************************
     Create_MB_FE(mphysicalSystem, myFsiSystem, paramsH);
     myFsiSystem.Finalize();
     auto my_mesh = myFsiSystem.GetFsiMesh();
 
-    int step_count = 0;
     double mTime = 0;
 #undef CHRONO_PARDISO_MKL
 #ifdef CHRONO_PARDISO_MKL
@@ -151,7 +142,7 @@ int main(int argc, char* argv[]) {
 #else
     auto solver = chrono_types::make_shared<ChSolverMINRES>();
     mphysicalSystem.SetSolver(solver);
-    solver->SetMaxIterations(500);
+    solver->SetMaxIterations(2000);
     solver->SetTolerance(1e-10);
     solver->EnableDiagonalPreconditioner(true);
     solver->SetVerbose(false);
@@ -266,7 +257,6 @@ void Create_MB_FE(ChSystemSMC& mphysicalSystem,
     std::vector<std::vector<int>> _2D_elementsNodes_mesh;
     if (flexible_elem_1D) {
         double E = 1e8;
-        double nu = 0.3;
         double rho = 8000;
         /*================== Cable Elements =================*/
         auto msection_cable = chrono_types::make_shared<ChBeamSectionCable>();
@@ -296,18 +286,16 @@ void Create_MB_FE(ChSystemSMC& mphysicalSystem,
         mphysicalSystem.Add(dir_const);
 
     } else {
-        int numFlexBody = 1;
         // Geometry of the plate
         double plate_lenght_x = 0.02;
         double plate_lenght_y = byDim;
-        double plate_lenght_z = initSpace0 * 12;
+        double plate_lenght_z = initSpace0 * 10;
         ChVector<> center_plate(bxDim / 8 + 3 * initSpace0, 0.0, plate_lenght_z / 2 + 1 * initSpace0);
 
         // Specification of the mesh
         int numDiv_x = 1;
-        int numDiv_y = 4;
+        int numDiv_y = 2;
         int numDiv_z = 6;
-        int N_x = numDiv_x + 1;
         int N_y = numDiv_y + 1;
         int N_z = numDiv_z + 1;
         // Number of elements in the z direction is considered as 1
@@ -352,7 +340,7 @@ void Create_MB_FE(ChSystemSMC& mphysicalSystem,
         // Create an isotropic material.
         // All layers for all elements share the same material.
         double rho = 8000;
-        double E = 5e6;
+        double E = 5e7;
         double nu = 0.3;
         auto mat = chrono_types::make_shared<ChMaterialShellANCF>(rho, E, nu);
         // Create the elements
@@ -387,7 +375,7 @@ void Create_MB_FE(ChSystemSMC& mphysicalSystem,
                 element->AddLayer(dx, 0 * CH_C_DEG_TO_RAD, mat);
 
                 // Set other element properties
-                element->SetAlphaDamp(0.02);   // Structural damping for this element
+                element->SetAlphaDamp(0.05);   // Structural damping for this element
                 element->SetGravityOn(false);  // turn internal gravitational force calculation off
 
                 // Add element to mesh
@@ -433,9 +421,7 @@ void SaveParaViewFiles(fsi::ChSystemFsi& myFsiSystem,
                        int next_frame,
                        double mTime) {
     static double exec_time;
-    int out_steps = (int)ceil((1.0 / paramsH->dT) / paramsH->out_fps);
     exec_time += mphysicalSystem.GetTimerStep();
-    int num_contacts = mphysicalSystem.GetNcontacts();
     double frame_time = 1.0 / paramsH->out_fps;
     static int out_frame = 0;
 

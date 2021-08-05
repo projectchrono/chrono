@@ -20,9 +20,10 @@
 namespace chrono {
 namespace collision {
 
-///
+/// @addtogroup chrono_collision
+/// @{
+
 /// Class for storing information about a collision point.
-///
 
 class ChCollisionPair {
   public:
@@ -144,6 +145,8 @@ class ChCollisionPair {
     float* reactions_cache;  ///< points to an array[3] of N,U,V reactions which might be stored in a persistent contact
                              /// manifold in the collision engine
 };
+
+/// @} chrono_collision
 
 }  // end namespace collision
 }  // end namespace chrono

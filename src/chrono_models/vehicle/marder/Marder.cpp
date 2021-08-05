@@ -37,6 +37,10 @@ Marder::Marder()
       m_vehicle(nullptr),
       m_contactMethod(ChContactMethod::NSC),
       m_chassisCollisionType(CollisionType::NONE),
+      m_collsys_type(collision::ChCollisionSystemType::BULLET),
+      m_wheel_cyl(true),
+      m_idler_cyl(true),
+      m_roller_cyl(true),
       m_fixed(false),
       m_create_track(true),
       m_brake_type(BrakeType::SIMPLE),
@@ -52,6 +56,10 @@ Marder::Marder(ChSystem* system)
       m_vehicle(nullptr),
       m_contactMethod(ChContactMethod::NSC),
       m_chassisCollisionType(CollisionType::NONE),
+      m_collsys_type(collision::ChCollisionSystemType::BULLET),
+      m_wheel_cyl(true),
+      m_idler_cyl(true),
+      m_roller_cyl(true),
       m_fixed(false),
       m_create_track(true),
       m_brake_type(BrakeType::SIMPLE),
@@ -78,11 +86,18 @@ void Marder::SetAerodynamicDrag(double Cd, double area, double air_density) {
 // -----------------------------------------------------------------------------
 void Marder::Initialize() {
     // Create and initialize the Marder vehicle
-    m_vehicle = m_system ? new Marder_Vehicle(m_fixed, m_shoe_type, m_driveline_type, m_brake_type, m_system,
-                                              m_chassisCollisionType)
-                         : new Marder_Vehicle(m_fixed, m_shoe_type, m_driveline_type, m_brake_type, m_contactMethod,
-                                              m_chassisCollisionType);
+    if (m_system) {
+        m_vehicle =
+            new Marder_Vehicle(m_fixed, m_shoe_type, m_driveline_type, m_brake_type, m_system, m_chassisCollisionType);
+    } else {
+        m_vehicle = new Marder_Vehicle(m_fixed, m_shoe_type, m_driveline_type, m_brake_type, m_contactMethod,
+                                       m_chassisCollisionType);
+        m_vehicle->SetCollisionSystemType(m_collsys_type);
+    }
+
     m_vehicle->CreateTrack(m_create_track);
+    m_vehicle->GetTrackAssembly(LEFT)->SetWheelCollisionType(m_wheel_cyl, m_idler_cyl, m_roller_cyl);
+    m_vehicle->GetTrackAssembly(RIGHT)->SetWheelCollisionType(m_wheel_cyl, m_idler_cyl, m_roller_cyl);
     m_vehicle->Initialize(m_initPos, m_initFwdVel);
 
     // If specified, enable aerodynamic drag
@@ -103,7 +118,6 @@ void Marder::Initialize() {
             auto powertrain = chrono_types::make_shared<Marder_SimpleCVTPowertrain>("Powertrain");
             m_vehicle->InitializePowertrain(powertrain);
             break;
-        
         }
     }
 }

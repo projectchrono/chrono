@@ -19,8 +19,6 @@
 #include <string>
 #include <cmath>
 
-#include "GpuDemoUtils.hpp"
-
 #include "chrono/core/ChGlobal.h"
 #include "chrono/core/ChStream.h"
 #include "chrono/core/ChVector.h"

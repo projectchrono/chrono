@@ -39,7 +39,7 @@ using std::cout;
 using std::endl;
 std::ofstream simParams;
 typedef fsi::Real Real;
- 
+
 // Output directories and settings
 const std::string out_dir = GetChronoOutputPath() + "FSI_CYLINDER_DROP/";
 std::string demo_dir;
@@ -69,8 +69,8 @@ void ShowUsage() {
 //------------------------------------------------------------------
 // Function to add walls into Chrono system
 //------------------------------------------------------------------
-void AddWall(std::shared_ptr<ChBody> body, 
-             const ChVector<>& dim, 
+void AddWall(std::shared_ptr<ChBody> body,
+             const ChVector<>& dim,
              std::shared_ptr<ChMaterialSurface> mat,
              const ChVector<>& loc) {
     body->GetCollisionModel()->AddBox(mat, dim.x(), dim.y(), dim.z(), loc);
@@ -82,11 +82,7 @@ void AddWall(std::shared_ptr<ChBody> body,
 //------------------------------------------------------------------
 // Function to save cylinder to Paraview VTK files
 //------------------------------------------------------------------
-void WriteCylinderVTK(std::shared_ptr<ChBody> Body, 
-                      double radius, 
-                      double length, 
-                      int res, 
-                      char SaveAsBuffer[256]) {
+void WriteCylinderVTK(std::shared_ptr<ChBody> Body, double radius, double length, int res, char SaveAsBuffer[256]) {
     std::ofstream output;
     output.open(SaveAsBuffer, std::ios::app);
     output << "# vtk DataFile Version 1.0\nUnstructured Grid Example\nASCII\n\n" << std::endl;
@@ -161,9 +157,6 @@ void SaveParaViewFiles(fsi::ChSystemFsi& myFsiSystem,
                        int this_frame,
                        double mTime,
                        std::shared_ptr<ChBody> Cylinder) {
-    // Simulation steps between two output frames
-    int out_steps = (int)ceil((1.0 / paramsH->dT) / paramsH->out_fps);
-
     // Simulation time between two output frames
     double frame_time = 1.0 / paramsH->out_fps;
 
@@ -184,13 +177,13 @@ void SaveParaViewFiles(fsi::ChSystemFsi& myFsiSystem,
         RigidCounter++;
         cout << "\n--------------------------------\n" << endl;
         cout << "------------ Output Frame:   " << this_frame << endl;
-        cout << "------------ Sim Time:       " << mTime << " (s)\n" <<endl;
+        cout << "------------ Sim Time:       " << mTime << " (s)\n" << endl;
         cout << "--------------------------------\n" << endl;
     }
 }
 
 //------------------------------------------------------------------
-// Create the objects of the MBD system. Rigid bodies, and if FSI, 
+// Create the objects of the MBD system. Rigid bodies, and if FSI,
 // their BCE representation are created and added to the systems
 //------------------------------------------------------------------
 void CreateSolidPhase(ChSystemSMC& mphysicalSystem,
@@ -274,9 +267,8 @@ void CreateSolidPhase(ChSystemSMC& mphysicalSystem,
     cylinder->SetBodyFixed(false);
     cylinder->GetCollisionModel()->ClearModel();
     cylinder->GetCollisionModel()->SetSafeMargin(initSpace0);
-    utils::AddCylinderGeometry(cylinder.get(), mysurfmaterial, cyl_radius, cyl_length, 
-                               ChVector<>(0.0, 0.0, 0.0),
-                               ChQuaternion<>(1, 0, 0, 0));
+    utils::AddCylinderGeometry(cylinder.get(), mysurfmaterial, cyl_radius, cyl_length, ChVector<>(0.0, 0.0, 0.0),
+                               cyl_rot);
     cylinder->GetCollisionModel()->BuildModel();
 
     // Add this body to chrono system
@@ -290,10 +282,9 @@ void CreateSolidPhase(ChSystemSMC& mphysicalSystem,
                                ChQuaternion<>(1, 0, 0, 0), cyl_radius, cyl_length + initSpace0, paramsH->HSML, false);
 }
 
-
 // =============================================================================
 int main(int argc, char* argv[]) {
-     // Create a physics system and an FSI system
+    // Create a physics system and an FSI system
     ChSystemSMC mphysicalSystem;
     fsi::ChSystemFsi myFsiSystem(mphysicalSystem);
 
@@ -329,7 +320,7 @@ int main(int argc, char* argv[]) {
     // Set up the periodic boundary condition (if not, set relative larger values)
     Real initSpace0 = paramsH->MULT_INITSPACE * paramsH->HSML;
     paramsH->cMin = chrono::fsi::mR3(-bxDim / 2, -byDim / 2, -bzDim - 10 * initSpace0) * 10;
-    paramsH->cMax = chrono::fsi::mR3( bxDim / 2,  byDim / 2,  bzDim + 10 * initSpace0) * 10;
+    paramsH->cMax = chrono::fsi::mR3(bxDim / 2, byDim / 2, bzDim + 10 * initSpace0) * 10;
 
     // Set the time integration type and the linear solver type (only for ISPH)
     myFsiSystem.SetFluidDynamics(paramsH->fluid_dynamic_type);
@@ -353,20 +344,13 @@ int main(int argc, char* argv[]) {
         // Calculate the pressure of a steady state (p = rho*g*h)
         Real pre_ini = paramsH->rho0 * abs(paramsH->gravity.z) * (-points[i].z() + fzDim);
         Real rho_ini = paramsH->rho0 + pre_ini / (paramsH->Cs * paramsH->Cs);
-        myFsiSystem.GetDataManager()->AddSphMarker(
-            fsi::mR4(points[i].x(), points[i].y(), points[i].z(), paramsH->HSML),
-            fsi::mR3(1e-10),
-            fsi::mR4(rho_ini, pre_ini, paramsH->mu0, -1));
+        myFsiSystem.GetDataManager()->AddSphMarker(fsi::mR4(points[i].x(), points[i].y(), points[i].z(), paramsH->HSML),
+                                                   fsi::mR3(1e-10), fsi::mR4(rho_ini, pre_ini, paramsH->mu0, -1));
     }
-    size_t numPhases = myFsiSystem.GetDataManager()->fsiGeneralData->referenceArray.size();
-    if (numPhases != 0) {
-        std::cout << "Error! numPhases is wrong, thrown from main\n" << std::endl;
-        std::cin.get();
-        return -1;
-    } else {
-        myFsiSystem.GetDataManager()->fsiGeneralData->referenceArray.push_back(mI4(0, (int)numPart, -1, -1));
-        myFsiSystem.GetDataManager()->fsiGeneralData->referenceArray.push_back(mI4((int)numPart, (int)numPart, 0, 0));
-    }
+    myFsiSystem.GetDataManager()->fsiGeneralData->referenceArray.push_back(fsi::mI4(0, (int)numPart, -1, -1));
+
+    std::cout << "myFsiSystem.GetDataManager()->fsiGeneralData->referenceArray.size() "
+              << myFsiSystem.GetDataManager()->fsiGeneralData->referenceArray.size() << std::endl;
 
     // Create Solid region and attach BCE SPH particles
     CreateSolidPhase(mphysicalSystem, myFsiSystem, paramsH);
@@ -403,7 +387,7 @@ int main(int argc, char* argv[]) {
         std::vector<std::shared_ptr<ChBody>>& FSI_Bodies = myFsiSystem.GetFsiBodies();
         auto Cylinder = FSI_Bodies[0];
         SaveParaViewFiles(myFsiSystem, mphysicalSystem, paramsH, this_frame, time, Cylinder);
-        
+
         // Call the FSI solver
         myFsiSystem.DoStepDynamics_FSI();
         time += paramsH->dT;
@@ -415,4 +399,3 @@ int main(int argc, char* argv[]) {
 
     return 0;
 }
-

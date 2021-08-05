@@ -161,7 +161,6 @@ void mrole_VehicleFull::Initialize(const ChCoordsys<>& chassisPos, double chassi
     // frame).
     ChVector<> offset1 = ChVector<>(-0.45, 0, 0.0);
     ChVector<> offset2 = ChVector<>(-0.45 - 1.55, 0, 0.0);
-    ChQuaternion<> rotation = Q_from_AngAxis(0.5 * CH_C_PI / 180, ChVector<>(0, 1, 0));
     m_steerings[0]->Initialize(m_chassis, offset1, QUNIT);
     m_steerings[1]->Initialize(m_chassis, offset2, QUNIT);
 

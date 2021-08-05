@@ -54,14 +54,14 @@ VisualizationType suspension_vis_type = VisualizationType::PRIMITIVES;
 VisualizationType steering_vis_type = VisualizationType::PRIMITIVES;
 VisualizationType wheel_vis_type = VisualizationType::MESH;
 
-// Type of powertrain model (SHAFTS, SIMPLE, SIMPLE_CVT)
-PowertrainModelType powertrain_model = PowertrainModelType::SHAFTS;
+// Type of powertrain model (SHAFTS, SIMPLE_MAP)
+PowertrainModelType powertrain_model = PowertrainModelType::SIMPLE_MAP;
 
-// Drive type (FWD, RWD, or AWD)
-DrivelineTypeWV drive_type = DrivelineTypeWV::AWD;
-
-// Type of tire model (PAC02)
+// Type of tire model (PAC02, RIGID)
 TireModelType tire_model = TireModelType::PAC02;
+
+// Type of brake model (SIMPLE, SHAFTS)
+BrakeType brake_type = BrakeType::SIMPLE;
 
 // Terrain length (X direction)
 double terrainLength = 800.0;
@@ -89,9 +89,9 @@ int main(int argc, char* argv[]) {
     my_feda.SetContactMethod(ChContactMethod::SMC);
     my_feda.SetChassisFixed(false);
     my_feda.SetInitPosition(ChCoordsys<>(ChVector<>(-terrainLength / 2 + 5, 0, 0.5), ChQuaternion<>(1, 0, 0, 0)));
-    // my_hmmwv.SetPowertrainType(powertrain_model);
-    // my_hmmwv.SetDriveType(drive_type);
+    my_feda.SetPowertrainType(powertrain_model);
     my_feda.SetTireType(tire_model);
+    my_feda.SetBrakeType(brake_type);
     my_feda.SetTireStepSize(tire_step_size);
     my_feda.SetAerodynamicDrag(0.6, 3.8, 1.2041);
     my_feda.Initialize();

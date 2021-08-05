@@ -34,7 +34,7 @@ namespace chrono {
 namespace vehicle {
 namespace mrole {
 
-/// @addtogroup vehicle_models_hmmwv
+/// @addtogroup vehicle_models_mrole
 /// @{
 
 /// Full double wishbone front suspension for the mrole vehicle.
@@ -179,7 +179,7 @@ class CH_MODELS_API mrole_DoubleWishboneRear : public ChDoubleWishbone {
     static const double m_damperCoefExpansion;
 };
 
-/// @} vehicle_models_hmmwv
+/// @} vehicle_models_mrole
 
 }  // namespace mrole
 }  // end namespace vehicle

@@ -24,13 +24,13 @@
 #include <memory>
 
 #include "chrono/physics/ChContactContainer.h"
+#include "chrono/multicore_math/ChMulticoreMath.h"
+#include "chrono/collision/chrono/ChCollisionData.h"
 
 #include "chrono_multicore/ChTimerMulticore.h"
 #include "chrono_multicore/ChMulticoreDefines.h"
 #include "chrono_multicore/ChSettings.h"
 #include "chrono_multicore/ChMeasures.h"
-#include "chrono_multicore/math/matrix.h"
-#include "chrono_multicore/math/sse.h"
 
 // ATTENTION: It is important for these to be included after sse.h!
 // Blaze Includes
@@ -61,19 +61,11 @@ class real3;
 class real4;
 class vec3;
 class Ch3DOFContainer;
-class ChFEAContainer;
 class ChFluidContainer;
 class ChMPMContainer;
-class ChFLIPContainer;
 class ChConstraintRigidRigid;
 class ChConstraintBilateral;
 class ChMaterialCompositionStrategy;
-
-namespace collision {
-class ChCBroadphase;
-class ChCNarrowphaseDispatch;
-class ChCAABBGenerator;
-}  // namespace collision
 
 #if BLAZE_MAJOR_VERSION == 2
 typedef blaze::SparseSubmatrix<CompressedMatrix<real>> SubMatrixType;
@@ -96,8 +88,8 @@ typedef blaze::Subvector<const DynamicVector<real>> ConstSubVectorType;
 #define _num_fluid_dof_ data_manager->num_fluid_bodies * 3
 #define _num_bil_ data_manager->num_bilaterals
 #define _num_uni_ data_manager->num_unilaterals
-#define _num_r_c_ data_manager->num_rigid_contacts
-#define _num_rf_c_ data_manager->num_rigid_fluid_contacts
+#define _num_r_c_ data_manager->cd_data->num_rigid_contacts
+#define _num_rf_c_ data_manager->cd_data->num_rigid_fluid_contacts
 #define _num_fluid_ data_manager->num_fluid_bodies
 
 // 0
@@ -205,86 +197,8 @@ typedef blaze::Subvector<const DynamicVector<real>> ConstSubVectorType;
 /// @addtogroup multicore_module
 /// @{
 
-/// Structure of arrays containing contact shape information.
-struct shape_container {
-    custom_vector<short2> fam_rigid;  ///< family information
-    custom_vector<uint> id_rigid;     ///< ID of associated body
-    custom_vector<int> typ_rigid;     ///< shape type
-    custom_vector<int> local_rigid;   ///< local shape index in collision model of associated body
-    custom_vector<int> start_rigid;   ///< start index in the appropriate container of dimensions
-    custom_vector<int> length_rigid;  ///< usually 1, except for convex
-
-    custom_vector<quaternion> ObR_rigid;  ///< Shape rotation
-    custom_vector<real3> ObA_rigid;       ///< Position of shape
-
-    custom_vector<real> sphere_rigid;      ///< radius for sphere shapes
-    custom_vector<real3> box_like_rigid;   ///< dimensions for box-like shapes
-    custom_vector<real3> triangle_rigid;   ///< vertices of all triangle shapes (3 per shape)
-    custom_vector<real2> capsule_rigid;    ///< radius and half-length for capsule shapes
-    custom_vector<real4> rbox_like_rigid;  ///< dimensions and radius for rbox-like shapes
-    custom_vector<real3> convex_rigid;     ///<
-    custom_vector<int> tetrahedron_rigid;  ///<
-
-    custom_vector<real3> triangle_global;
-    custom_vector<real3> obj_data_A_global;
-    custom_vector<quaternion> obj_data_R_global;
-};
-
 /// Structure of arrays containing simulation data.
 struct host_container {
-    // Collision data
-
-    custom_vector<real3> aabb_min;  ///< List of bounding boxes minimum point
-    custom_vector<real3> aabb_max;  ///< List of bounding boxes maximum point
-
-    custom_vector<real3> aabb_min_tet;  ///< List of bounding boxes minimum point for tets
-    custom_vector<real3> aabb_max_tet;  ///< List of bounding boxes maximum point for tets
-
-    custom_vector<long long> pair_shapeIDs;     ///< Shape IDs for each shape pair (encoded in a single long long)
-    custom_vector<long long> contact_shapeIDs;  ///< Shape IDs for each contact (encoded in a single long long)
-
-    // Contact data
-    custom_vector<real3> norm_rigid_rigid;
-    custom_vector<real3> cpta_rigid_rigid;
-    custom_vector<real3> cptb_rigid_rigid;
-    custom_vector<real> dpth_rigid_rigid;
-    custom_vector<real> erad_rigid_rigid;
-    custom_vector<vec2> bids_rigid_rigid;
-
-    custom_vector<real3> norm_rigid_fluid;
-    custom_vector<real3> cpta_rigid_fluid;
-    custom_vector<real> dpth_rigid_fluid;
-    custom_vector<int> neighbor_rigid_fluid;
-    custom_vector<int> c_counts_rigid_fluid;
-
-    // each particle has a finite number of neighbors preallocated
-    custom_vector<int> neighbor_3dof_3dof;
-    custom_vector<int> c_counts_3dof_3dof;
-    custom_vector<int> particle_indices_3dof;
-    custom_vector<int> reverse_mapping_3dof;
-
-    custom_vector<real3> norm_rigid_tet;
-    custom_vector<real3> cpta_rigid_tet;
-    custom_vector<real3> cptb_rigid_tet;
-    custom_vector<real> dpth_rigid_tet;
-    custom_vector<int> neighbor_rigid_tet;
-    custom_vector<real4> face_rigid_tet;
-    custom_vector<int> c_counts_rigid_tet;
-    // contact with nodes
-    custom_vector<real3> norm_rigid_tet_node;
-    custom_vector<real3> cpta_rigid_tet_node;
-    custom_vector<real> dpth_rigid_tet_node;
-    custom_vector<int> neighbor_rigid_tet_node;
-    custom_vector<int> c_counts_rigid_tet_node;
-
-    custom_vector<real3> norm_marker_tet;
-    custom_vector<real3> cpta_marker_tet;
-    custom_vector<real3> cptb_marker_tet;
-    custom_vector<real> dpth_marker_tet;
-    custom_vector<int> neighbor_marker_tet;
-    custom_vector<real4> face_marker_tet;
-    custom_vector<int> c_counts_marker_tet;
-
     // Contact forces (SMC)
     // These vectors hold the contact forces and torques for each individual contact. For each contact, the force and
     // torque are given at the body origin, expressed in the absolute frame. These vectors include the force and torque
@@ -345,17 +259,6 @@ struct host_container {
     custom_vector<real3> vel_3dof;
     custom_vector<real3> sorted_vel_3dof;
 
-    // Information for FEM nodes
-    custom_vector<real3> pos_node_fea;
-    custom_vector<real3> vel_node_fea;
-    custom_vector<real> mass_node_fea;
-    custom_vector<uvec4> tet_indices;
-
-    custom_vector<uvec4> boundary_triangles_fea;
-    custom_vector<uint> boundary_node_fea;
-    custom_vector<uint> boundary_element_fea;
-    custom_vector<short2> boundary_family_fea;
-
     /// Bilateral constraint type (all supported constraints)
     custom_vector<int> bilateral_type;
 
@@ -415,15 +318,6 @@ struct host_container {
     DynamicVector<real> E;
 
     DynamicVector<real> Fc; ///< Contact forces (NSC)
-
-    //========Broadphase Data========
-
-    custom_vector<uint> bin_intersections;
-    custom_vector<uint> bin_number;
-    custom_vector<uint> bin_number_out;
-    custom_vector<uint> bin_aabb_number;
-    custom_vector<uint> bin_start_index;
-    custom_vector<uint> bin_num_contact;
 };
 
 /// Global data manager for Chrono::Multicore.
@@ -433,20 +327,16 @@ class CH_MULTICORE_API ChMulticoreDataManager {
     ~ChMulticoreDataManager();
 
     host_container host_data;    ///< Structure of data arrays (state, contact, etc)
-    shape_container shape_data;  ///< Structure of arrays containing contact shape information
 
     /// Used by the bilarerals for computing the Jacobian and other terms.
     std::shared_ptr<ChSystemDescriptor> system_descriptor;
 
     std::shared_ptr<Ch3DOFContainer> node_container;  ///< container of 3-DOF particles
-    std::shared_ptr<Ch3DOFContainer> fea_container;   ///< container of FEA nodes
 
     ChConstraintRigidRigid* rigid_rigid;  ///< methods for unilateral constraints
     ChConstraintBilateral* bilateral;     ///< methods for bilateral constraints
 
-    collision::ChCBroadphase* broadphase;            ///< methods for broad-phase collision detection
-    collision::ChCNarrowphaseDispatch* narrowphase;  ///< methods for narrow-phase collision detection
-    collision::ChCAABBGenerator* aabb_generator;     ///< methods for cpmputing object AABBs
+    std::shared_ptr<collision::ChCollisionData> cd_data; ///< shared data for the Chrono collision system
 
     // These pointers are used to compute the mass matrix instead of filling a temporary data structure
     std::vector<std::shared_ptr<ChBody>>* body_list;                  ///< List of bodies
@@ -461,18 +351,9 @@ class CH_MULTICORE_API ChMulticoreDataManager {
     uint num_linmotors;                ///< The number of linear speed motors
     uint num_rotmotors;                ///< The number of rotation speed motors
     uint num_dof;                      ///< The number of degrees of freedom in the system
-    uint num_rigid_shapes;             ///< The number of collision models in a system
-    uint num_rigid_contacts;           ///< The number of contacts between rigid bodies in a system
-    uint num_rigid_fluid_contacts;     ///< The number of contacts between rigid and fluid objects
-    uint num_fluid_contacts;           ///< The number of contacts between fluid objects
     uint num_unilaterals;              ///< The number of contact constraints
     uint num_bilaterals;               ///< The number of bilateral constraints
     uint num_constraints;              ///< Total number of constraints
-    uint num_fea_nodes;                ///< Total number of FEM nodes
-    uint num_fea_tets;                 ///< Total number of FEM nodes
-    uint num_rigid_tet_contacts;       ///< The number of contacts between tetrahedron and rigid bodies
-    uint num_marker_tet_contacts;      ///< The number of contacts between tetrahedron and fluid markers
-    uint num_rigid_tet_node_contacts;  ///< The number of contacts between tetrahedron nodes and rigid bodies
     uint nnz_bilaterals;               ///< The number of non-zero entries in the bilateral Jacobian
 
     /// Flag indicating whether or not the contact forces are current (NSC only).

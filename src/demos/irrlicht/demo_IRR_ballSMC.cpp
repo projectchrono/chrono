@@ -21,8 +21,6 @@
 
 #include "chrono_irrlicht/ChIrrApp.h"
 
-#include <irrlicht.h>
-
 // Use the namespaces of Chrono
 using namespace chrono;
 using namespace chrono::irrlicht;
@@ -30,10 +28,6 @@ using namespace chrono::irrlicht;
 // Use the main namespaces of Irrlicht
 using namespace irr;
 using namespace irr::core;
-using namespace irr::scene;
-using namespace irr::video;
-using namespace irr::io;
-using namespace irr::gui;
 
 void AddWall(std::shared_ptr<ChBody> body, const ChVector<>& dim, const ChVector<>& loc, std::shared_ptr<ChMaterialSurface> mat) {
     body->GetCollisionModel()->AddBox(mat, dim.x(), dim.y(), dim.z(), loc);
@@ -69,15 +63,19 @@ int main(int argc, char* argv[]) {
     ////double height = 1;
     double thickness = 0.1;
 
+    // Collision system type
+    auto collision_type = collision::ChCollisionSystemType::BULLET;
+
     // Create the system
     ChSystemSMC msystem;
+
+    msystem.Set_G_acc(ChVector<>(0, gravity, 0));
+    msystem.SetCollisionSystemType(collision_type);
 
     // The following two lines are optional, since they are the default options. They are added for future reference,
     // i.e. when needed to change those models.
     msystem.SetContactForceModel(ChSystemSMC::ContactForceModel::Hertz);
     msystem.SetAdhesionForceModel(ChSystemSMC::AdhesionForceModel::Constant);
-
-    msystem.Set_G_acc(ChVector<>(0, gravity, 0));
 
     // Change the default collision effective radius of curvature 
     collision::ChCollisionInfo::SetDefaultEffectiveCurvatureRadius(1);
@@ -102,7 +100,7 @@ int main(int argc, char* argv[]) {
     material->SetAdhesion(0);  // Magnitude of the adhesion in Constant adhesion model
 
     // Create the falling ball
-    auto ball = chrono_types::make_shared<ChBody>();
+    auto ball = chrono_types::make_shared<ChBody>(collision_type);
 
     ball->SetIdentifier(ballId);
     ball->SetMass(mass);
@@ -131,7 +129,7 @@ int main(int argc, char* argv[]) {
     msystem.AddBody(ball);
 
     // Create container
-    auto bin = chrono_types::make_shared<ChBody>();
+    auto bin = chrono_types::make_shared<ChBody>(collision_type);
 
     bin->SetIdentifier(binId);
     bin->SetMass(1);

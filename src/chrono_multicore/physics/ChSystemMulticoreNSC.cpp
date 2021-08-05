@@ -17,7 +17,6 @@
 #include "chrono_multicore/solver/ChSolverMulticore.h"
 #include "chrono_multicore/solver/ChIterativeSolverMulticore.h"
 #include "chrono_multicore/collision/ChContactContainerMulticoreNSC.h"
-#include "chrono_multicore/collision/ChCollisionSystemMulticore.h"
 #include "chrono_multicore/collision/ChCollisionSystemBulletMulticore.h"
 
 using namespace chrono;
@@ -56,14 +55,25 @@ void ChSystemMulticoreNSC::ChangeSolverType(SolverType type) {
 }
 
 void ChSystemMulticoreNSC::Add3DOFContainer(std::shared_ptr<Ch3DOFContainer> container) {
-    if (auto fea_container = std::dynamic_pointer_cast<ChFEAContainer>(container)) {
-        data_manager->fea_container = fea_container;
-    } else {
-        data_manager->node_container = container;
-    }
+    data_manager->node_container = container;
+
+    //// TODO: remove this
+    ////data_manager->cd_data->p_kernel_radius = container->kernel_radius;
+    ////data_manager->cd_data->p_collision_envelope = container->collision_envelope;
+    ////data_manager->cd_data->p_collision_family = container->family;
 
     container->SetSystem(this);
     container->data_manager = data_manager;
+}
+
+void ChSystemMulticoreNSC::SetContactContainer(collision::ChCollisionSystemType type) {
+    contact_container = chrono_types::make_shared<ChContactContainerMulticoreNSC>(data_manager);
+    contact_container->SetSystem(this);
+}
+
+void ChSystemMulticoreNSC::SetContactContainer(std::shared_ptr<ChContactContainer> container) {
+    if (std::dynamic_pointer_cast<ChContactContainerMulticoreNSC>(container))
+        ChSystem::SetContactContainer(container);
 }
 
 void ChSystemMulticoreNSC::AddMaterialSurfaceData(std::shared_ptr<ChBody> newbody) {
@@ -92,7 +102,7 @@ void ChSystemMulticoreNSC::UpdateMaterialSurfaceData(int index, ChBody* body) {
 void ChSystemMulticoreNSC::CalculateContactForces() {
     uint num_unilaterals = data_manager->num_unilaterals;
     uint num_rigid_dof = data_manager->num_rigid_bodies * 6;
-    uint num_contacts = data_manager->num_rigid_contacts;
+    uint num_contacts = data_manager->cd_data->num_rigid_contacts;
     DynamicVector<real>& Fc = data_manager->host_data.Fc;
 
     data_manager->Fc_current = true;
@@ -156,17 +166,17 @@ void ChSystemMulticoreNSC::AssembleSystem() {
     ChSystem::Update();
     contact_container->BeginAddContact();
     chrono::collision::ChCollisionInfo icontact;
-    for (int i = 0; i < (signed)data_manager->num_rigid_contacts; i++) {
-        vec2 cd_pair = data_manager->host_data.bids_rigid_rigid[i];
+    for (int i = 0; i < (signed)data_manager->cd_data->num_rigid_contacts; i++) {
+        vec2 cd_pair = data_manager->cd_data->bids_rigid_rigid[i];
         icontact.modelA = Get_bodylist()[cd_pair.x]->GetCollisionModel().get();
         icontact.modelB = Get_bodylist()[cd_pair.y]->GetCollisionModel().get();
-        icontact.vN = ToChVector(data_manager->host_data.norm_rigid_rigid[i]);
+        icontact.vN = ToChVector(data_manager->cd_data->norm_rigid_rigid[i]);
         icontact.vpA =
-            ToChVector(data_manager->host_data.cpta_rigid_rigid[i] + data_manager->host_data.pos_rigid[cd_pair.x]);
+            ToChVector(data_manager->cd_data->cpta_rigid_rigid[i] + data_manager->host_data.pos_rigid[cd_pair.x]);
         icontact.vpB =
-            ToChVector(data_manager->host_data.cptb_rigid_rigid[i] + data_manager->host_data.pos_rigid[cd_pair.y]);
-        icontact.distance = data_manager->host_data.dpth_rigid_rigid[i];
-        icontact.eff_radius = data_manager->host_data.erad_rigid_rigid[i];
+            ToChVector(data_manager->cd_data->cptb_rigid_rigid[i] + data_manager->host_data.pos_rigid[cd_pair.y]);
+        icontact.distance = data_manager->cd_data->dpth_rigid_rigid[i];
+        icontact.eff_radius = data_manager->cd_data->erad_rigid_rigid[i];
         contact_container->AddContact(icontact);
     }
     contact_container->EndAddContact();
@@ -239,14 +249,14 @@ void ChSystemMulticoreNSC::Initialize() {
 
     Setup();
 
-    data_manager->fea_container->Initialize();
-
     data_manager->system_timer.start("update");
     Update();
     data_manager->system_timer.stop("update");
 
     data_manager->system_timer.start("collision");
+    collision_system->PreProcess();
     collision_system->Run();
+    collision_system->PostProcess();
     collision_system->ReportContacts(this->contact_container.get());
     data_manager->system_timer.stop("collision");
 

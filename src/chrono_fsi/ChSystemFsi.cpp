@@ -30,7 +30,7 @@ namespace fsi {
 //--------------------------------------------------------------------------------------------------------------------------------
 
 ChSystemFsi::ChSystemFsi(ChSystem& other_physicalSystem, ChFluidDynamics::Integrator type)
-    : mphysicalSystem(other_physicalSystem), mTime(0), fluidIntegrator(type) {
+    : mphysicalSystem(other_physicalSystem), mTime(0), fluidIntegrator(type), file_write_mode(CHFSI_OUTPUT_MODE::NONE) {
     fsiData = chrono_types::make_shared<ChFsiDataManager>();
     paramsH = chrono_types::make_shared<SimParams>();
     numObjectsH = fsiData->numObjects;
@@ -122,7 +122,7 @@ void ChSystemFsi::DoStepDynamics_FSI() {
 
         fsiInterface->Copy_External_To_ChSystem();
 
-        // paramsH->dT_Flex = paramsH->dT; 
+        // paramsH->dT_Flex = paramsH->dT;
         // dT_Flex is the time step of solid body system
         mTime += 1 * paramsH->dT;
         if (paramsH->dT_Flex == 0)
@@ -139,7 +139,7 @@ void ChSystemFsi::DoStepDynamics_FSI() {
         bceWorker->UpdateRigidMarkersPositionVelocity(fsiData->sphMarkersD2, fsiData->fsiBodiesD2);
         // fsiData->sphMarkersD1 = fsiData->sphMarkersD2;
         // Density re-initialization
-        int tStep = int(mTime / paramsH->dT);
+        //        int tStep = int(mTime / paramsH->dT);
         //        if ((tStep % (paramsH->densityReinit + 1) == 0)) {
         //            fluidDynamics->DensityReinitialization();
         //        }
@@ -219,6 +219,19 @@ void ChSystemFsi::FinalizeData() {
               << "\n";
     fsiData->fsiBodiesD2 = fsiData->fsiBodiesD1;  //(2) construct midpoint rigid data
 }
+
+//--------------------------------------------------------------------------------------------------------------------------------
+void ChSystemFsi::WriteParticleFile(const std::string& outfilename) const {
+    if (file_write_mode == CHFSI_OUTPUT_MODE::CSV) {
+        utils::WriteCsvParticlesToFile(fsiData->sphMarkersD2->posRadD, fsiData->sphMarkersD2->velMasD,
+                                       fsiData->sphMarkersD2->rhoPresMuD, fsiData->fsiGeneralData->referenceArray,
+                                       outfilename);
+    } else if (file_write_mode == CHFSI_OUTPUT_MODE::CHPF) {
+        utils::WriteChPFParticlesToFile(fsiData->sphMarkersD2->posRadD, fsiData->fsiGeneralData->referenceArray,
+                                        outfilename);
+    }
+}
+
 //--------------------------------------------------------------------------------------------------------------------------------
 
 }  // end namespace fsi
