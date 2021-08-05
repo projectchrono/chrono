@@ -38,17 +38,20 @@ namespace vehicle {
 /// Definition of the SPH continuum representation of granular terrain node (using Chrono::FSI).
 class CH_VEHICLE_API ChVehicleCosimTerrainNodeGranularSPH : public ChVehicleCosimTerrainNodeChrono {
   public:
-    /// Create a Chrono::FSI granular SPH terrain node. Note that no SPH parameters are set.
+    /// Create a Chrono::FSI granular SPH terrain node. 
+    /// No SPH parameters are set.
     ChVehicleCosimTerrainNodeGranularSPH(double length, double width);
 
     /// Create a Chrono::FSI granular SPH terrain node using parameters from the provided JSON specfile.
+    /// See SetFromSpecfile.
     ChVehicleCosimTerrainNodeGranularSPH(const std::string& specfile);
 
     ~ChVehicleCosimTerrainNodeGranularSPH();
 
     virtual ChSystem* GetSystem() override { return m_system; }
 
-    /// Set full terrain specification from JSON specfile.
+    /// Set full terrain specification from the provided JSON specfile.
+    /// This function is equivalent to calling SetDimensions + SetGranularMaterial + SetPropertiesSPH.
     void SetFromSpecfile(const std::string& specfile);
 
     /// Specify the SPH terrain properties.

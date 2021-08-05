@@ -103,6 +103,7 @@ void ChVehicleCosimTerrainNodeGranularSPH::SetFromSpecfile(const std::string& sp
     m_radius_g = d["Granular material"]["Radius"].GetDouble();
     m_rho_g = d["Granular material"]["Density"].GetDouble();
     m_depth = d["Granular material"]["Depth"].GetDouble();
+    m_init_height = m_depth;
 
     // Get the pointer to the system parameter and use a JSON file to fill it out with the user parameters
     m_params = m_systemFSI->GetSimParams();
@@ -121,6 +122,7 @@ void ChVehicleCosimTerrainNodeGranularSPH::SetGranularMaterial(double radius, do
 
 void ChVehicleCosimTerrainNodeGranularSPH::SetPropertiesSPH(const std::string& filename, double depth) {
     m_depth = depth;
+    m_init_height = m_depth;
 
     // Get the pointer to the system parameter and use a JSON file to fill it out with the user parameters
     m_params = m_systemFSI->GetSimParams();
@@ -132,7 +134,6 @@ void ChVehicleCosimTerrainNodeGranularSPH::SetPropertiesSPH(const std::string& f
 // This function is invoked automatically from Initialize.
 // - adjust system settings
 // - create the container body
-// - set m_init_height
 // -----------------------------------------------------------------------------
 void ChVehicleCosimTerrainNodeGranularSPH::Construct() {
     if (m_verbose)
@@ -161,9 +162,6 @@ void ChVehicleCosimTerrainNodeGranularSPH::Construct() {
     m_params->fluidDimX = (fsi::Real)(2 * m_hdimX);
     m_params->fluidDimY = (fsi::Real)(2 * m_hdimY);
     m_params->fluidDimZ = (fsi::Real)(1 * m_depth);
-
-    // Set initial height for the granular material terrain
-    m_init_height = m_params->fluidDimZ;
 
     // Dimension of the fluid container (bxDim x byDim x bzDim)
     fsi::Real bxDim = m_params->boxDimX;
@@ -224,17 +222,16 @@ void ChVehicleCosimTerrainNodeGranularSPH::Construct() {
     container->SetCollide(false);
 
     // Create the geometry of the boundaries
-    // Bottom and Top wall - size and position
+    // Bottom wall - size and position
     ChVector<> size_XY(bxDim / 2 + 3 * initSpace0, byDim / 2 + 3 * initSpace0, 2 * initSpace0);
-    ChVector<> pos_zp(0, 0, bzDim + 1 * initSpace0);
     ChVector<> pos_zn(0, 0, -3 * initSpace0);
 
-    // Left and right Wall - size and position
+    // Left and right walls - size and position
     ChVector<> size_YZ(2 * initSpace0, byDim / 2 + 3 * initSpace0, bzDim / 2);
     ChVector<> pos_xp(bxDim / 2 + initSpace0, 0.0, bzDim / 2 + 0 * initSpace0);
     ChVector<> pos_xn(-bxDim / 2 - 3 * initSpace0, 0.0, bzDim / 2 + 0 * initSpace0);
 
-    // Front and back Wall - size and position
+    // Front and back walls - size and position
     ChVector<> size_XZ(bxDim / 2, 2 * initSpace0, bzDim / 2);
     ChVector<> pos_yp(0, byDim / 2 + initSpace0, bzDim / 2 + 0 * initSpace0);
     ChVector<> pos_yn(0, -byDim / 2 - 3 * initSpace0, bzDim / 2 + 0 * initSpace0);
@@ -246,21 +243,13 @@ void ChVehicleCosimTerrainNodeGranularSPH::Construct() {
     fsi::utils::AddBoxBce(m_systemFSI->GetDataManager(), m_params, container, pos_yp, chrono::QUNIT, size_XZ, 13);
     fsi::utils::AddBoxBce(m_systemFSI->GetDataManager(), m_params, container, pos_yn, chrono::QUNIT, size_XZ, 13);
 
-    // Add visualization assets for the container
-    {
-        auto box = chrono_types::make_shared<ChBoxShape>();
-        box->GetBoxGeometry().Size = size_XY;
-        box->Pos = pos_zp;
-        container->GetAssets().push_back(box);
-    }
-    {
-        auto box = chrono_types::make_shared<ChBoxShape>();
-        box->GetBoxGeometry().Size = size_XY;
-        box->Pos = pos_zn;
-        container->GetAssets().push_back(box);
-    }
-
 #ifdef CHRONO_OPENGL
+    // Add visualization asset for the container
+    auto box = chrono_types::make_shared<ChBoxShape>();
+    box->GetBoxGeometry().Size = ChVector<>(m_hdimX, m_hdimY, m_depth / 2);
+    box->Pos = ChVector<>(0, 0, m_depth / 2);
+    container->GetAssets().push_back(box);
+
     // Create the visualization window
     if (m_render) {
         opengl::ChOpenGLWindow& gl_window = opengl::ChOpenGLWindow::getInstance();
