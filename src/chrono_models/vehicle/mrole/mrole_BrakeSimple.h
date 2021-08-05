@@ -27,7 +27,7 @@ namespace chrono {
 namespace vehicle {
 namespace mrole {
 
-/// @addtogroup vehicle_models_hmmwv
+/// @addtogroup vehicle_models_mrole
 /// @{
 
 /// Simple mrole brake subsystem (torque applied directly to the spindle joint).
@@ -42,7 +42,7 @@ class CH_MODELS_API mrole_BrakeSimple : public ChBrakeSimple {
     static const double m_maxtorque;
 };
 
-/// @} vehicle_models_hmmwv
+/// @} vehicle_models_mrole
 
 }  // namespace mrole
 }  // end namespace vehicle

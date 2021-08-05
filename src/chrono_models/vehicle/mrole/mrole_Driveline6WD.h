@@ -27,7 +27,7 @@ namespace chrono {
 namespace vehicle {
 namespace mrole {
 
-/// @addtogroup vehicle_models_hmmwv
+/// @addtogroup vehicle_models_mrole
 /// @{
 
 /// Shafts-based 6-WD driveline for the mrole vehicle.
@@ -67,7 +67,7 @@ class CH_MODELS_API mrole_Driveline6WD : public ChShaftsDriveline6WD {
     static const double m_central_differential_locking_limit;
 };
 
-/// @} vehicle_models_hmmwv
+/// @} vehicle_models_mrole
 
 }  // namespace mrole
 }  // end namespace vehicle

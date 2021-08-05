@@ -27,7 +27,7 @@ namespace chrono {
 namespace vehicle {
 namespace mrole {
 
-/// @addtogroup vehicle_models_man
+/// @addtogroup vehicle_models_mrole
 /// @{
 
 /// Simple MAN 5t driveline subsystem (purely kinematic).
@@ -43,7 +43,7 @@ class CH_MODELS_API mrole_SimpleDrivelineXWD : public ChSimpleDrivelineXWD {
     static const double m_diff_bias;
 };
 
-/// @} vehicle_models_man
+/// @} vehicle_models_mrole
 
 }  // namespace mrole
 }  // end namespace vehicle

@@ -32,12 +32,13 @@ set(CH_CXX_FLAGS "${CMAKE_CXX_FLAGS}")
 # Allow user to enforce strict C++11 standard
 option(CH_ENFORCE_CXX11 "Enforce strict C++11 standard" OFF)
 
-find_package(ModernCXX)
 
 if (CH_ENFORCE_CXX11)
-  set(CH_CXX_FLAGS "${CH_CXX_FLAGS} ${CMAKE_CXX11_STANDARD_COMPILE_OPTION}")
+	#  set(CH_CXX_FLAGS "${CH_CXX_FLAGS} ${CMAKE_CXX11_STANDARD_COMPILE_OPTION}")
+	set(CMAKE_CXX_STANDARD 11)
 else()
-  set(CH_CXX_FLAGS "${CH_CXX_FLAGS} ${CMAKE_CXX14_STANDARD_COMPILE_OPTION}")
+	#  set(CH_CXX_FLAGS "${CH_CXX_FLAGS} ${CMAKE_CXX14_STANDARD_COMPILE_OPTION}")
+	set(CMAKE_CXX_STANDARD 14)
 endif()
 
 # This is a hack -- look for a more robust solution
@@ -61,7 +62,7 @@ elseif(CMAKE_CXX_COMPILER_ID MATCHES "MSVC")
 endif()
 message(STATUS "Compiler supports C++14:  ${CH_CXX14}")
 
-# cmake/FindModernCXX.cmake behaves strangely with PGI compilers, don't trust it
+# CMake's standard support flags behave strangely with PGI compilers, don't trust them
 if (CMAKE_CXX_COMPILER_ID MATCHES "PGI")
   set(CH_CXX_FLAGS "")
   message(STATUS "PGI version: ${CMAKE_CXX_COMPILER_VERSION}")

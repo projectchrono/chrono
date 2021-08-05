@@ -22,6 +22,8 @@
 #include "chrono_fsi/utils/ChUtilsDevice.cuh"
 #include "chrono_fsi/physics/ChParams.cuh"
 #include "chrono_fsi/math/custom_math.h"
+#define FLOAT16_TYPE_AVAILABLE
+#include "chrono_thirdparty/chpf/particle_writer.hpp"
 
 struct SimParams;
 
@@ -41,6 +43,20 @@ CH_FSI_API void PrintToFile(const thrust::device_vector<Real4>& posRadD,
                             const thrust::host_vector<int4>& referenceArrayFEA,
                             const std::string& out_dir,
                             bool printToParaview = false);
+
+/// helper function to save particle info from FSI system to a CSV file
+/// this function saves particle positions, velocities, rho, pressure, and mu
+CH_FSI_API void WriteCsvParticlesToFile(thrust::device_vector<Real4>& posRadD,
+                                        thrust::device_vector<Real3>& velMasD,
+                                        thrust::device_vector<Real4>& rhoPresMuD,
+                                        thrust::host_vector<int4>& referenceArray,
+                                        const std::string& outfilename);
+
+/// helper function to save particle info from FSI system to a ChPF binary file
+/// this function saves only particle positions.
+CH_FSI_API void WriteChPFParticlesToFile(thrust::device_vector<Real4>& posRadD,
+                                         thrust::host_vector<int4>& referenceArray,
+                                         const std::string& outfilename);
 
 }  // end namespace utils
 }  // end namespace fsi
