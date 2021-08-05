@@ -158,6 +158,25 @@ class ChGnuPlot {
     }
 
     /// Shortcut to easy 2D plot of x,y data
+    /// from two std::vector<double> 
+    void Plot(const std::vector<double>& vals_x, const std::vector<double>& vals_y,const char* title, const char* customsettings = " with lines ") {
+        ChVectorDynamic<> mx(vals_x.size());
+        ChVectorDynamic<> my(vals_y.size());
+
+        int i = 0;
+        for (auto iter : vals_x) {
+            mx(i) = iter;
+            ++i;
+        }
+        i = 0;
+        for (auto iter : vals_y) {
+            my(i) = iter;
+            ++i;
+        }
+        Plot(mx, my, title, customsettings);
+    }
+
+    /// Shortcut to easy 2D plot of x,y data
     /// from a ChFunction_recorder
     void Plot(ChFunction_Oscilloscope& mrecorder, const char* title, const char* customsettings = " with lines ") {
         ChVectorDynamic<> mx(mrecorder.GetPointList().size());
