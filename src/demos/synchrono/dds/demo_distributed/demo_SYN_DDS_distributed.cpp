@@ -53,7 +53,7 @@ using namespace chrono::vehicle;
 
 // Quality of Service
 #include <fastdds/dds/domain/qos/DomainParticipantQos.hpp>
-#include <fastdds/rtps/transport/UDPv6TransportDescriptor.h>
+#include <fastdds/rtps/transport/UDPv4TransportDescriptor.h>
 
 using namespace eprosima::fastdds::dds;
 using namespace eprosima::fastdds::rtps;
@@ -196,16 +196,17 @@ int main(int argc, char* argv[]) {
     qos.name("/syn/node/" + std::to_string(node_id) + ".0");
 
     // Use UDP by default
-    qos.transport().user_transports.push_back(std::make_shared<UDPv6TransportDescriptor>());
+    qos.transport().user_transports.push_back(std::make_shared<UDPv4TransportDescriptor>());
 
     qos.transport().use_builtin_transports = false;
+    qos.wire_protocol().builtin.avoid_builtin_multicast = false;
 
     // Set the initialPeersList
     for (const auto& ip : ip_list) {
         Locator_t locator;
-        locator.kind = LOCATOR_KIND_UDPv6;
-        IPLocator::setIPv6(locator, ip);
-        qos.wire_protocol().default_multicast_locator_list.push_back(locator);
+        locator.kind = LOCATOR_KIND_UDPv4;
+        IPLocator::setIPv4(locator, ip);
+        qos.wire_protocol().builtin.initialPeersList.push_back(locator);
     }
 
     auto communicator = chrono_types::make_shared<SynDDSCommunicator>(qos);

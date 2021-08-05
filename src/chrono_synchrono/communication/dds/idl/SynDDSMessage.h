@@ -22,7 +22,6 @@
 #ifndef _SYNDDSMESSAGE_H_
 #define _SYNDDSMESSAGE_H_
 
-// TODO Poner en el contexto.
 
 #include <stdint.h>
 #include <array>
@@ -36,10 +35,10 @@
 #define eProsima_user_DllExport __declspec( dllexport )
 #else
 #define eProsima_user_DllExport
-#endif
+#endif  // EPROSIMA_USER_DLL_EXPORT
 #else
 #define eProsima_user_DllExport
-#endif
+#endif  // _WIN32
 
 #if defined(_WIN32)
 #if defined(EPROSIMA_USER_DLL_EXPORT)
@@ -50,18 +49,16 @@
 #endif // SynDDSMessage_SOURCE
 #else
 #define SynDDSMessage_DllAPI
-#endif
+#endif  // EPROSIMA_USER_DLL_EXPORT
 #else
 #define SynDDSMessage_DllAPI
 #endif // _WIN32
 
-namespace eprosima
-{
-    namespace fastcdr
-    {
-        class Cdr;
-    }
-}
+namespace eprosima {
+namespace fastcdr {
+class Cdr;
+} // namespace fastcdr
+} // namespace eprosima
 
 
 /*!
@@ -86,31 +83,36 @@ public:
      * @brief Copy constructor.
      * @param x Reference to the object SynDDSMessage that will be copied.
      */
-    eProsima_user_DllExport SynDDSMessage(const SynDDSMessage &x);
+    eProsima_user_DllExport SynDDSMessage(
+            const SynDDSMessage& x);
 
     /*!
      * @brief Move constructor.
      * @param x Reference to the object SynDDSMessage that will be copied.
      */
-    eProsima_user_DllExport SynDDSMessage(SynDDSMessage &&x);
+    eProsima_user_DllExport SynDDSMessage(
+            SynDDSMessage&& x);
 
     /*!
      * @brief Copy assignment.
      * @param x Reference to the object SynDDSMessage that will be copied.
      */
-    eProsima_user_DllExport SynDDSMessage& operator=(const SynDDSMessage &x);
+    eProsima_user_DllExport SynDDSMessage& operator =(
+            const SynDDSMessage& x);
 
     /*!
      * @brief Move assignment.
      * @param x Reference to the object SynDDSMessage that will be copied.
      */
-    eProsima_user_DllExport SynDDSMessage& operator=(SynDDSMessage &&x);
+    eProsima_user_DllExport SynDDSMessage& operator =(
+            SynDDSMessage&& x);
 
     /*!
      * @brief This function sets a value in member rank
      * @param _rank New value for member rank
      */
-    eProsima_user_DllExport void rank(uint32_t _rank);
+    eProsima_user_DllExport void rank(
+            uint32_t _rank);
 
     /*!
      * @brief This function returns the value of member rank
@@ -128,13 +130,15 @@ public:
      * @brief This function copies the value in member data
      * @param _data New value to be copied in member data
      */
-    eProsima_user_DllExport void data(const std::vector<uint8_t> &_data);
+    eProsima_user_DllExport void data(
+            const std::vector<uint8_t>& _data);
 
     /*!
      * @brief This function moves the value in member data
      * @param _data New value to be moved in member data
      */
-    eProsima_user_DllExport void data(std::vector<uint8_t> &&_data);
+    eProsima_user_DllExport void data(
+            std::vector<uint8_t>&& _data);
 
     /*!
      * @brief This function returns a constant reference to member data
@@ -154,7 +158,8 @@ public:
      * @param current_alignment Buffer alignment.
      * @return Maximum serialized size.
      */
-    eProsima_user_DllExport static size_t getMaxCdrSerializedSize(size_t current_alignment = 0);
+    eProsima_user_DllExport static size_t getMaxCdrSerializedSize(
+            size_t current_alignment = 0);
 
     /*!
      * @brief This function returns the serialized size of a data depending on the buffer alignment.
@@ -162,20 +167,24 @@ public:
      * @param current_alignment Buffer alignment.
      * @return Serialized size.
      */
-    eProsima_user_DllExport static size_t getCdrSerializedSize(const SynDDSMessage& data, size_t current_alignment = 0);
+    eProsima_user_DllExport static size_t getCdrSerializedSize(
+            const SynDDSMessage& data,
+            size_t current_alignment = 0);
 
 
     /*!
      * @brief This function serializes an object using CDR serialization.
      * @param cdr CDR serialization object.
      */
-    eProsima_user_DllExport void serialize(eprosima::fastcdr::Cdr &cdr) const;
+    eProsima_user_DllExport void serialize(
+            eprosima::fastcdr::Cdr& cdr) const;
 
     /*!
      * @brief This function deserializes an object using CDR serialization.
      * @param cdr CDR serialization object.
      */
-    eProsima_user_DllExport void deserialize(eprosima::fastcdr::Cdr &cdr);
+    eProsima_user_DllExport void deserialize(
+            eprosima::fastcdr::Cdr& cdr);
 
 
 
@@ -185,7 +194,8 @@ public:
      * @param current_alignment Buffer alignment.
      * @return Maximum serialized size.
      */
-    eProsima_user_DllExport static size_t getKeyMaxCdrSerializedSize(size_t current_alignment = 0);
+    eProsima_user_DllExport static size_t getKeyMaxCdrSerializedSize(
+            size_t current_alignment = 0);
 
     /*!
      * @brief This function tells you if the Key has been defined for this type
@@ -196,9 +206,11 @@ public:
      * @brief This function serializes the key members of an object using CDR serialization.
      * @param cdr CDR serialization object.
      */
-    eProsima_user_DllExport void serializeKey(eprosima::fastcdr::Cdr &cdr) const;
+    eProsima_user_DllExport void serializeKey(
+            eprosima::fastcdr::Cdr& cdr) const;
 
 private:
+
     uint32_t m_rank;
     std::vector<uint8_t> m_data;
 };
