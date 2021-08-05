@@ -51,10 +51,10 @@ void ChStaticLinearAnalysis::StaticAnalysis() {
 
     // Solve
     //     [-dF/dx     Cq' ] [ dx  ] = [ f]
-    //     [ Cq        0   ] [  l  ] = [ C]
+    //     [ Cq        0   ] [  l  ] = [-C]
 
     integrable->LoadResidual_F(R, 1.0);
-    integrable->LoadConstraint_C(Qc, 1.0);
+    integrable->LoadConstraint_C(Qc, 1.0);  // -C  (-sign already included)
 
     integrable->StateSolveCorrection(  //
         Dx, L, R, Qc,                  //
@@ -126,7 +126,7 @@ void ChStaticNonLinearAnalysis::StaticAnalysis() {
 
     // Use Newton Raphson iteration, solving for the increments
     //      [ - dF/dx    Cq' ] [ Dx  ] = [ f ]
-    //      [ Cq         0   ] [ L   ] = [ C ]
+    //      [ Cq         0   ] [ L   ] = [-C ]
 
     for (int i = 0; i < m_maxiters; ++i) {
         integrable->StateScatter(X, V, T, true);  // state -> system
