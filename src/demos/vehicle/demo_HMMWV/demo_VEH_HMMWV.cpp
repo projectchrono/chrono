@@ -52,8 +52,8 @@ ChQuaternion<> initRot(1, 0, 0, 0);
 // ChQuaternion<> initRot(0.25882, 0, 0, 0.965926);
 // ChQuaternion<> initRot(0, 0, 0, 1);
 
-enum DriverMode { DEFAULT, RECORD, PLAYBACK };
-DriverMode driver_mode = DEFAULT;
+enum class DriverMode { DEFAULT, RECORD, PLAYBACK };
+DriverMode driver_mode = DriverMode::DEFAULT;
 
 // Visualization type for vehicle parts (PRIMITIVES, MESH, or NONE)
 VisualizationType chassis_vis_type = VisualizationType::MESH;
@@ -73,6 +73,9 @@ DrivelineTypeWV drive_type = DrivelineTypeWV::AWD;
 
 // Steering type (PITMAN_ARM or PITMAN_ARM_SHAFTS)
 SteeringTypeWV steering_type = SteeringTypeWV::PITMAN_ARM;
+
+// Model tierods as bodies (true) or as distance constraints (false)
+bool use_tierod_bodies = true;
 
 // Type of tire model (RIGID, RIGID_MESH, TMEASY, PACEJKA, LUGRE, FIALA, PAC89, PAC02)
 TireModelType tire_model = TireModelType::TMEASY;
@@ -128,6 +131,7 @@ int main(int argc, char* argv[]) {
     my_hmmwv.SetInitPosition(ChCoordsys<>(initLoc, initRot));
     my_hmmwv.SetPowertrainType(powertrain_model);
     my_hmmwv.SetDriveType(drive_type);
+    my_hmmwv.UseTierodBodies(use_tierod_bodies);
     my_hmmwv.SetSteeringType(steering_type);
     my_hmmwv.SetTireType(tire_model);
     my_hmmwv.SetTireStepSize(tire_step_size);
@@ -226,7 +230,7 @@ int main(int argc, char* argv[]) {
 
     // If in playback mode, attach the data file to the driver system and
     // force it to playback the driver inputs.
-    if (driver_mode == PLAYBACK) {
+    if (driver_mode == DriverMode::PLAYBACK) {
         driver.SetInputDataFile(driver_file);
         driver.SetInputMode(ChIrrGuiDriver::DATAFILE);
     }
@@ -301,7 +305,7 @@ int main(int argc, char* argv[]) {
         ChDriver::Inputs driver_inputs = driver.GetInputs();
 
         // Driver output
-        if (driver_mode == RECORD) {
+        if (driver_mode == DriverMode::RECORD) {
             driver_csv << time << driver_inputs.m_steering << driver_inputs.m_throttle << driver_inputs.m_braking
                        << std::endl;
         }
@@ -326,7 +330,7 @@ int main(int argc, char* argv[]) {
         ////std::cout << RTF_filter.Add(realtime_timer.RTF) << std::endl;
     }
 
-    if (driver_mode == RECORD) {
+    if (driver_mode == DriverMode::RECORD) {
         driver_csv.write_to_file(driver_file);
     }
 
