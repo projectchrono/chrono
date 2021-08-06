@@ -222,17 +222,17 @@ void ChDoubleWishbone::InitializeSide(VehicleSide side,
 
     if (UseTierodBodies()) {
         // Orientation of tierod body
-        auto tb_z = (points[TIEROD_U] - points[TIEROD_C]).GetNormalized();
-        auto tb_x = chassisRot.GetXaxis();
-        auto tb_y = Vcross(tb_z, tb_x).GetNormalized();
-        tb_x = Vcross(tb_y, tb_z);
-        ChMatrix33<> tb_rot(tb_x, tb_y, tb_z);
+        w = (points[TIEROD_U] - points[TIEROD_C]).GetNormalized();
+        u = chassisRot.GetXaxis();
+        v = Vcross(w, u).GetNormalized();
+        u = Vcross(v, w);
+        rot.Set_A_axis(u, v, w);
 
         // Create the tierod body
         m_tierod[side] = std::shared_ptr<ChBody>(chassis->GetBody()->GetSystem()->NewBody());
         m_tierod[side]->SetNameString(m_name + "_tierodBody" + suffix);
         m_tierod[side]->SetPos((points[TIEROD_U] + points[TIEROD_C]) / 2);
-        m_tierod[side]->SetRot(tb_rot.Get_A_quaternion());
+        m_tierod[side]->SetRot(rot.Get_A_quaternion());
         m_tierod[side]->SetMass(getTierodMass());
         m_tierod[side]->SetInertiaXX(getTierodInertia());
         chassis->GetBody()->GetSystem()->AddBody(m_tierod[side]);
@@ -240,11 +240,11 @@ void ChDoubleWishbone::InitializeSide(VehicleSide side,
         // Connect tierod body to upright (spherical) and chassis (universal)
         m_sphericalTierod[side] = chrono_types::make_shared<ChVehicleJoint>(
             ChVehicleJoint::Type::SPHERICAL, m_name + "_sphericalTierod" + suffix, m_upright[side], m_tierod[side],
-            ChCoordsys<>(points[TIEROD_U], QUNIT));
+            ChCoordsys<>(points[TIEROD_U], QUNIT), getTierodBushingData());
         chassis->AddJoint(m_sphericalTierod[side]);
         m_universalTierod[side] = chrono_types::make_shared<ChVehicleJoint>(
             ChVehicleJoint::Type::UNIVERSAL, m_name + "_universalTierod" + suffix, tierod_body, m_tierod[side],
-            ChCoordsys<>(points[TIEROD_C], tb_rot.Get_A_quaternion()));
+            ChCoordsys<>(points[TIEROD_C], rot.Get_A_quaternion()), getTierodBushingData());
         chassis->AddJoint(m_universalTierod[side]);
     } else {
         // Create and initialize the tierod distance constraint between chassis and upright.

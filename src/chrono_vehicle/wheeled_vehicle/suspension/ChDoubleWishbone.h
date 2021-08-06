@@ -244,7 +244,7 @@ class CH_VEHICLE_API ChDoubleWishbone : public ChSuspension {
     virtual std::shared_ptr<ChVehicleBushingData> getLCABushingData() const { return nullptr; }
     /// Return stiffness and damping data for the tierod bushings.
     /// Used only if tierod bodies are defined (see UseTierodBody).
-    /// Returning nullptr (default) results in using a kinematic joints (spherical + universal).
+    /// Returning nullptr (default) results in using kinematic joints (spherical + universal).
     virtual std::shared_ptr<ChVehicleBushingData> getTierodBushingData() const { return nullptr; }
 
     std::shared_ptr<ChBody> m_upright[2];  ///< upright bodies (left/right)

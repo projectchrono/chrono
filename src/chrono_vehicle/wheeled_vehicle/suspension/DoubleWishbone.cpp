@@ -130,6 +130,23 @@ void DoubleWishbone::Create(const rapidjson::Document& d) {
     assert(d.HasMember("Tierod"));
     assert(d["Tierod"].IsObject());
 
+    if (d["Tierod"].HasMember("Mass")) {
+        assert(d["Tierod"].HasMember("Inertia"));
+        assert(d["Tierod"].HasMember("Radius"));
+        m_tierodMass = d["Tierod"]["Mass"].GetDouble();
+        m_tierodRadius = d["Tierod"]["Radius"].GetDouble();
+        m_tierodInertia = ReadVectorJSON(d["Tierod"]["Inertia"]);
+        m_use_tierod_bodies = true;
+        if (d["Tierod"].HasMember("Bushing Data")) {
+            m_tierodBushingData = ReadBushingDataJSON(d["Tierod"]["Bushing Data"]);
+        }
+    } else {
+        m_tierodMass = 0;
+        m_tierodRadius = 0;
+        m_tierodInertia = ChVector<>(0);
+        m_use_tierod_bodies = false;
+    }
+
     m_points[TIEROD_C] = ReadVectorJSON(d["Tierod"]["Location Chassis"]);
     m_points[TIEROD_U] = ReadVectorJSON(d["Tierod"]["Location Upright"]);
 
