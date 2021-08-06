@@ -159,16 +159,12 @@ int main(int argc, char* argv[]) {
     // Simulation loop
     double time = 0.0;
     while (application.GetDevice()->run()) {
+        // Set current steering angle
         double steering = 0;
-
-        if (time > 7) {
-            if (std::abs(viper->GetTurnAngle()) < 1e-8)
-                steering = 0;
-            else
-                steering = -CH_C_PI / 8;
-        } else if (time > 1) {
-            steering = CH_C_PI / 8;
-        } 
+        if (time > 1 && time < 6)
+            steering = (CH_C_PI / 6) * (time - 1) / 5;
+        else if (time > 6 && time < 11)
+            steering = (CH_C_PI / 6) * (11 - time) / 5;
         driver->SetSteering(steering);
 
         // Update Viper controls

@@ -25,6 +25,7 @@
 #include <array>
 
 #include "chrono/assets/ChColor.h"
+#include "chrono/physics/ChLinkMotorRotationAngle.h"
 #include "chrono/physics/ChLinkMotorRotationSpeed.h"
 #include "chrono/physics/ChSystem.h"
 #include "chrono/physics/ChShaft.h"
@@ -285,7 +286,7 @@ class CH_MODELS_API Viper {
     std::shared_ptr<ChLinkMotorRotationSpeed> GetDriveMotor(WheelID id) { return m_drive_motors[id]; }
 
     /// Get steer motor.
-    std::shared_ptr<ChLinkMotorRotationSpeed> GetSteerMotor(WheelID id) { return m_steer_motors[id]; }
+    std::shared_ptr<ChLinkMotorRotationAngle> GetSteerMotor(WheelID id) { return m_steer_motors[id]; }
 
     /// Get Viper turning angle.
     double GetTurnAngle() const;
@@ -310,8 +311,8 @@ class CH_MODELS_API Viper {
     std::array<std::shared_ptr<ChBody>, 4> m_steering_rods;      ///< rover steering rod (LF, RF, LR, RB)
 
     std::array<std::shared_ptr<ChLinkMotorRotationSpeed>, 4> m_drive_motors;  ///< drive motors
-    std::array<std::shared_ptr<ChLinkMotorRotationSpeed>, 4> m_steer_motors;  ///< steering motors
-    std::array<std::shared_ptr<ChLinkMotorRotationSpeed>, 8> m_lift_motors;   ///< lifting motors
+    std::array<std::shared_ptr<ChLinkMotorRotationAngle>, 4> m_steer_motors;  ///< steering motors
+    std::array<std::shared_ptr<ChLinkMotorRotationAngle>, 8> m_lift_motors;   ///< lifting motors
 
     std::array<std::shared_ptr<ChFunction_Setpoint>, 4> m_drive_motor_funcs;  ///< drive motor functions
     std::array<std::shared_ptr<ChFunction_Const>, 4> m_steer_motor_funcs;     ///< steering motor functions
@@ -326,7 +327,6 @@ class CH_MODELS_API Viper {
     std::shared_ptr<ChMaterialSurface> m_wheel_material;    ///< wheel contact material (shared across limbs)
 
     static const double m_max_steer_angle;  ///< maximum steering angle
-    static const double m_max_steer_speed;  ///< maximum steering speed
 
     friend class ViperDCMotorControl;
 };
@@ -346,8 +346,8 @@ class CH_MODELS_API ViperDriver {
 
     /// Set the current rover driver inputs.
     /// This function is called by the associated Viper at each rover Update. A derived class must update the values for
-    /// the angular speeds for the drive motors, the steering motors, and the lift motors at the specified time. A
-    /// positive steering input corresponds to a left turn and a negative value to a right turn.
+    /// the angular speeds for the drive motors, as well as the angles for the steering motors and the lift motors at
+    /// the specified time. A positive steering input corresponds to a left turn and a negative value to a right turn.
     virtual void Update(double time) = 0;
 
   protected:
@@ -356,8 +356,8 @@ class CH_MODELS_API ViperDriver {
     Viper* viper;  ///< associated Viper rover
 
     std::array<double, 4> drive_speeds;  ///< angular speeds for drive motors
-    std::array<double, 4> steer_speeds;  ///< angular speeds for steer motors
-    std::array<double, 4> lift_speeds;   ///< angular speeds for lift motors
+    std::array<double, 4> steer_angles;  ///< angles for steer motors
+    std::array<double, 4> lift_angles;   ///< angles for lift motors
 
     friend class Viper;
 };
@@ -376,8 +376,8 @@ class CH_MODELS_API ViperDCMotorControl : public ViperDriver {
     /// Set DC motor no load speed (default: pi).
     void SetMotorNoLoadSpeed(double speed, WheelID id) { m_no_load_speed[id] = speed; }
 
-    /// Set current steering input (angular speed: negative for left, positive for right).
-    void SetSteering(double speed);
+    /// Set current steering input (angle: negative for left, positive for right).
+    void SetSteering(double angle);
 
     /// Set current lift input (angular speed).
     void SetLift(double speed);
