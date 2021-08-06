@@ -220,11 +220,39 @@ void ChDoubleWishbone::InitializeSide(VehicleSide side,
                                                   m_LCA[side], m_upright[side], ChCoordsys<>(points[LCA_U], QUNIT));
     chassis->AddJoint(m_sphericalLCA[side]);
 
-    // Create and initialize the tierod distance constraint between chassis and upright.
-    m_distTierod[side] = chrono_types::make_shared<ChLinkDistance>();
-    m_distTierod[side]->SetNameString(m_name + "_distTierod" + suffix);
-    m_distTierod[side]->Initialize(tierod_body, m_upright[side], false, points[TIEROD_C], points[TIEROD_U]);
-    chassis->GetSystem()->AddLink(m_distTierod[side]);
+    if (UseTierodBodies()) {
+        // Orientation of tierod body
+        auto tb_z = (points[TIEROD_U] - points[TIEROD_C]).GetNormalized();
+        auto tb_x = chassisRot.GetXaxis();
+        auto tb_y = Vcross(tb_z, tb_x).GetNormalized();
+        tb_x = Vcross(tb_y, tb_z);
+        ChMatrix33<> tb_rot(tb_x, tb_y, tb_z);
+
+        // Create the tierod body
+        m_tierod[side] = std::shared_ptr<ChBody>(chassis->GetBody()->GetSystem()->NewBody());
+        m_tierod[side]->SetNameString(m_name + "_tierodBody" + suffix);
+        m_tierod[side]->SetPos((points[TIEROD_U] + points[TIEROD_C]) / 2);
+        m_tierod[side]->SetRot(tb_rot.Get_A_quaternion());
+        m_tierod[side]->SetMass(getTierodMass());
+        m_tierod[side]->SetInertiaXX(getTierodInertia());
+        chassis->GetBody()->GetSystem()->AddBody(m_tierod[side]);
+
+        // Connect tierod body to upright (spherical) and chassis (universal)
+        m_sphericalTierod[side] = chrono_types::make_shared<ChVehicleJoint>(
+            ChVehicleJoint::Type::SPHERICAL, m_name + "_sphericalTierod" + suffix, m_upright[side], m_tierod[side],
+            ChCoordsys<>(points[TIEROD_U], QUNIT));
+        chassis->AddJoint(m_sphericalTierod[side]);
+        m_universalTierod[side] = chrono_types::make_shared<ChVehicleJoint>(
+            ChVehicleJoint::Type::UNIVERSAL, m_name + "_universalTierod" + suffix, tierod_body, m_tierod[side],
+            ChCoordsys<>(points[TIEROD_C], tb_rot.Get_A_quaternion()));
+        chassis->AddJoint(m_universalTierod[side]);
+    } else {
+        // Create and initialize the tierod distance constraint between chassis and upright.
+        m_distTierod[side] = chrono_types::make_shared<ChLinkDistance>();
+        m_distTierod[side]->SetNameString(m_name + "_distTierod" + suffix);
+        m_distTierod[side]->Initialize(tierod_body, m_upright[side], false, points[TIEROD_C], points[TIEROD_U]);
+        chassis->GetSystem()->AddLink(m_distTierod[side]);    
+    }
 
     // Create and initialize the spring/damper
     m_shock[side] = chrono_types::make_shared<ChLinkTSDA>();
@@ -367,8 +395,26 @@ void ChDoubleWishbone::LogConstraintViolations(VehicleSide side) {
     }
 
     // Distance constraint
-    GetLog() << "Tierod distance       ";
-    GetLog() << "  " << m_distTierod[side]->GetCurrentDistance() - m_distTierod[side]->GetImposedDistance() << "\n";
+    if (UseTierodBodies()) {
+        {
+            const auto& C = m_sphericalTierod[side]->GetConstraintViolation();
+            GetLog() << "Tierod spherical      ";
+            GetLog() << "  " << C(0) << "  ";
+            GetLog() << "  " << C(1) << "  ";
+            GetLog() << "  " << C(2) << "\n";
+        }
+        {
+            const auto& C = m_universalTierod[side]->GetConstraintViolation();
+            GetLog() << "Tierod universal      ";
+            GetLog() << "  " << C(0) << "  ";
+            GetLog() << "  " << C(1) << "  ";
+            GetLog() << "  " << C(2) << "\n";
+            GetLog() << "  " << C(3) << "\n";
+        }
+    } else {
+        GetLog() << "Tierod distance       ";
+        GetLog() << "  " << m_distTierod[side]->GetCurrentDistance() - m_distTierod[side]->GetImposedDistance() << "\n";
+    }
 }
 
 // -----------------------------------------------------------------------------
@@ -401,10 +447,15 @@ void ChDoubleWishbone::AddVisualizationAssets(VisualizationType vis) {
     m_shock[RIGHT]->AddAsset(chrono_types::make_shared<ChPointPointSegment>());
 
     // Add visualization for the tie-rods
-    m_distTierod[LEFT]->AddAsset(chrono_types::make_shared<ChPointPointSegment>());
-    m_distTierod[RIGHT]->AddAsset(chrono_types::make_shared<ChPointPointSegment>());
-    m_distTierod[LEFT]->AddAsset(chrono_types::make_shared<ChColorAsset>(0.8f, 0.3f, 0.3f));
-    m_distTierod[RIGHT]->AddAsset(chrono_types::make_shared<ChColorAsset>(0.8f, 0.3f, 0.3f));
+    if (UseTierodBodies()) {
+        AddVisualizationTierod(m_tierod[LEFT], m_pointsL[TIEROD_C], m_pointsL[TIEROD_U], getTierodRadius());
+        AddVisualizationTierod(m_tierod[RIGHT], m_pointsR[TIEROD_C], m_pointsR[TIEROD_U], getTierodRadius());
+    } else {
+        m_distTierod[LEFT]->AddAsset(chrono_types::make_shared<ChPointPointSegment>());
+        m_distTierod[RIGHT]->AddAsset(chrono_types::make_shared<ChPointPointSegment>());
+        m_distTierod[LEFT]->AddAsset(chrono_types::make_shared<ChColorAsset>(0.8f, 0.3f, 0.3f));
+        m_distTierod[RIGHT]->AddAsset(chrono_types::make_shared<ChColorAsset>(0.8f, 0.3f, 0.3f));
+    }
 }
 
 void ChDoubleWishbone::RemoveVisualizationAssets() {
@@ -425,8 +476,13 @@ void ChDoubleWishbone::RemoveVisualizationAssets() {
     m_shock[LEFT]->GetAssets().clear();
     m_shock[RIGHT]->GetAssets().clear();
 
-    m_distTierod[LEFT]->GetAssets().clear();
-    m_distTierod[RIGHT]->GetAssets().clear();
+    if (UseTierodBodies()) {
+        m_tierod[LEFT]->GetAssets().clear();
+        m_tierod[RIGHT]->GetAssets().clear();
+    } else {
+        m_distTierod[LEFT]->GetAssets().clear();
+        m_distTierod[RIGHT]->GetAssets().clear();
+    }
 }
 
 // -----------------------------------------------------------------------------
@@ -453,9 +509,7 @@ void ChDoubleWishbone::AddVisualizationControlArm(std::shared_ptr<ChBody> arm,
     cyl_B->GetCylinderGeometry().rad = radius;
     arm->AddAsset(cyl_B);
 
-    auto col = chrono_types::make_shared<ChColorAsset>();
-    col->SetColor(ChColor(0.7f, 0.7f, 0.7f));
-    arm->AddAsset(col);
+    arm->AddAsset(chrono_types::make_shared<ChColorAsset>(0.7f, 0.7f, 0.7f));
 }
 
 void ChDoubleWishbone::AddVisualizationUpright(std::shared_ptr<ChBody> upright,
@@ -496,9 +550,24 @@ void ChDoubleWishbone::AddVisualizationUpright(std::shared_ptr<ChBody> upright,
         upright->AddAsset(cyl_T);
     }
 
-    auto col = chrono_types::make_shared<ChColorAsset>();
-    col->SetColor(ChColor(0.2f, 0.2f, 0.6f));
-    upright->AddAsset(col);
+    upright->AddAsset(chrono_types::make_shared<ChColorAsset>(0.2f, 0.2f, 0.6f));
+}
+
+void ChDoubleWishbone::AddVisualizationTierod(std::shared_ptr<ChBody> tierod,
+                                              const ChVector<> pt_C,
+                                              const ChVector<> pt_U,
+                                              double radius) {
+    // Express hardpoint locations in body frame.
+    ChVector<> p_C = tierod->TransformPointParentToLocal(pt_C);
+    ChVector<> p_U = tierod->TransformPointParentToLocal(pt_U);
+
+    auto cyl = chrono_types::make_shared<ChCylinderShape>();
+    cyl->GetCylinderGeometry().p1 = p_C;
+    cyl->GetCylinderGeometry().p2 = p_U;
+    cyl->GetCylinderGeometry().rad = radius;
+    tierod->AddAsset(cyl);
+
+    tierod->AddAsset(chrono_types::make_shared<ChColorAsset>(0.8f, 0.3f, 0.3f));
 }
 
 // -----------------------------------------------------------------------------
@@ -515,6 +584,10 @@ void ChDoubleWishbone::ExportComponentList(rapidjson::Document& jsonDocument) co
     bodies.push_back(m_UCA[1]);
     bodies.push_back(m_LCA[0]);
     bodies.push_back(m_LCA[1]);
+    if (UseTierodBodies()) {
+        bodies.push_back(m_tierod[0]);
+        bodies.push_back(m_tierod[1]);
+    }
     ChPart::ExportBodyList(jsonDocument, bodies);
 
     std::vector<std::shared_ptr<ChShaft>> shafts;
@@ -542,8 +615,19 @@ void ChDoubleWishbone::ExportComponentList(rapidjson::Document& jsonDocument) co
                                      : bushings.push_back(m_sphericalLCA[0]->GetAsBushing());
     m_sphericalLCA[1]->IsKinematic() ? joints.push_back(m_sphericalLCA[1]->GetAsLink())
                                      : bushings.push_back(m_sphericalLCA[1]->GetAsBushing());
-    joints.push_back(m_distTierod[0]);
-    joints.push_back(m_distTierod[1]);
+    if (UseTierodBodies()) {
+        m_sphericalTierod[0]->IsKinematic() ? joints.push_back(m_sphericalTierod[0]->GetAsLink())
+                                            : bushings.push_back(m_sphericalTierod[0]->GetAsBushing());
+        m_sphericalTierod[1]->IsKinematic() ? joints.push_back(m_sphericalTierod[1]->GetAsLink())
+                                            : bushings.push_back(m_sphericalTierod[1]->GetAsBushing());
+        m_universalTierod[0]->IsKinematic() ? joints.push_back(m_universalTierod[0]->GetAsLink())
+                                            : bushings.push_back(m_universalTierod[0]->GetAsBushing());
+        m_universalTierod[1]->IsKinematic() ? joints.push_back(m_universalTierod[1]->GetAsLink())
+                                            : bushings.push_back(m_universalTierod[1]->GetAsBushing());
+    } else {
+        joints.push_back(m_distTierod[0]);
+        joints.push_back(m_distTierod[1]);
+    }
     ChPart::ExportJointList(jsonDocument, joints);
     ChPart::ExportBodyLoadList(jsonDocument, bushings);
 
@@ -568,6 +652,10 @@ void ChDoubleWishbone::Output(ChVehicleOutput& database) const {
     bodies.push_back(m_UCA[1]);
     bodies.push_back(m_LCA[0]);
     bodies.push_back(m_LCA[1]);
+    if (UseTierodBodies()) {
+        bodies.push_back(m_tierod[0]);
+        bodies.push_back(m_tierod[1]);
+    }
     database.WriteBodies(bodies);
 
     std::vector<std::shared_ptr<ChShaft>> shafts;
@@ -595,8 +683,19 @@ void ChDoubleWishbone::Output(ChVehicleOutput& database) const {
                                      : bushings.push_back(m_sphericalLCA[0]->GetAsBushing());
     m_sphericalLCA[1]->IsKinematic() ? joints.push_back(m_sphericalLCA[1]->GetAsLink())
                                      : bushings.push_back(m_sphericalLCA[1]->GetAsBushing());
-    joints.push_back(m_distTierod[0]);
-    joints.push_back(m_distTierod[1]);
+    if (UseTierodBodies()) {
+        m_sphericalTierod[0]->IsKinematic() ? joints.push_back(m_sphericalTierod[0]->GetAsLink())
+                                            : bushings.push_back(m_sphericalTierod[0]->GetAsBushing());
+        m_sphericalTierod[1]->IsKinematic() ? joints.push_back(m_sphericalTierod[1]->GetAsLink())
+                                            : bushings.push_back(m_sphericalTierod[1]->GetAsBushing());
+        m_universalTierod[0]->IsKinematic() ? joints.push_back(m_universalTierod[0]->GetAsLink())
+                                            : bushings.push_back(m_universalTierod[0]->GetAsBushing());
+        m_universalTierod[1]->IsKinematic() ? joints.push_back(m_universalTierod[1]->GetAsLink())
+                                            : bushings.push_back(m_universalTierod[1]->GetAsBushing());
+    } else {
+        joints.push_back(m_distTierod[0]);
+        joints.push_back(m_distTierod[1]);
+    }
     database.WriteJoints(joints);
     database.WriteBodyLoads(bushings);
 
