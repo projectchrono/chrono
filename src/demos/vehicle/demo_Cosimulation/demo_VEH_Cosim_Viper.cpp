@@ -52,6 +52,8 @@ class MyDriver : public ViperDriver {
     MyDriver(double delay) : ViperDriver(), m_delay(delay) {}
     ~MyDriver() {}
 
+    virtual DriveMotorType GetDriveMotorType() const override { return DriveMotorType::SPEED; }
+
     virtual void Update(double time) override {
         // Do not generate any driver inputs for a duration equal to m_delay.
         double eff_time = time - m_delay;
@@ -72,7 +74,7 @@ class MyDriver : public ViperDriver {
     
         for (int i = 0; i < 4; i++) {
             drive_speeds[i] = driving;
-            steer_speeds[i] = steering;
+            steer_angles[i] = steering;
         }
     }
 
