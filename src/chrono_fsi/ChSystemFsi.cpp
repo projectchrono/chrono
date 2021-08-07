@@ -30,7 +30,7 @@ namespace fsi {
 //--------------------------------------------------------------------------------------------------------------------------------
 
 ChSystemFsi::ChSystemFsi(ChSystem& other_physicalSystem, ChFluidDynamics::Integrator type)
-    : mphysicalSystem(other_physicalSystem), mTime(0), fluidIntegrator(type) {
+    : mphysicalSystem(other_physicalSystem), mTime(0), fluidIntegrator(type), file_write_mode(CHFSI_OUTPUT_MODE::NONE) {
     fsiData = chrono_types::make_shared<ChFsiDataManager>();
     paramsH = chrono_types::make_shared<SimParams>();
     numObjectsH = fsiData->numObjects;
@@ -219,6 +219,19 @@ void ChSystemFsi::FinalizeData() {
               << "\n";
     fsiData->fsiBodiesD2 = fsiData->fsiBodiesD1;  //(2) construct midpoint rigid data
 }
+
+//--------------------------------------------------------------------------------------------------------------------------------
+void ChSystemFsi::WriteParticleFile(const std::string& outfilename) const {
+    if (file_write_mode == CHFSI_OUTPUT_MODE::CSV) {
+        utils::WriteCsvParticlesToFile(fsiData->sphMarkersD2->posRadD, fsiData->sphMarkersD2->velMasD,
+                                       fsiData->sphMarkersD2->rhoPresMuD, fsiData->fsiGeneralData->referenceArray,
+                                       outfilename);
+    } else if (file_write_mode == CHFSI_OUTPUT_MODE::CHPF) {
+        utils::WriteChPFParticlesToFile(fsiData->sphMarkersD2->posRadD, fsiData->fsiGeneralData->referenceArray,
+                                        outfilename);
+    }
+}
+
 //--------------------------------------------------------------------------------------------------------------------------------
 
 }  // end namespace fsi

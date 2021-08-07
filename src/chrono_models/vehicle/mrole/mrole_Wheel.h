@@ -31,7 +31,7 @@ namespace chrono {
 namespace vehicle {
 namespace mrole {
 
-/// @addtogroup vehicle_models_hmmwv
+/// @addtogroup vehicle_models_mrole
 /// @{
 
 /// mrole wheel (can be used on any axle, left or right).
@@ -52,7 +52,7 @@ class CH_MODELS_API mrole_Wheel : public ChWheel {
     static const ChVector<> m_inertia;
 };
 
-/// @} vehicle_models_hmmwv
+/// @} vehicle_models_mrole
 
 }  // namespace mrole
 }  // end namespace vehicle

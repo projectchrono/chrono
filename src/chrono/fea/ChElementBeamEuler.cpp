@@ -323,9 +323,9 @@ void ChElementBeamEuler::ComputeGeometricStiffnessMatrix() {
     // Look also at: https://enercalc.com/3d_help/toc161394033.html or in Plesha, Malkus, Cook �Concepts and Applications of Finite Element Analysis? 
     // or in W. McGuire & R.H. Gallagher & R.D. Ziemian, �Matrix Structural Analysis?
       
-    double EA = this->section->GetAxialRigidity();
-    double EIyy = this->section->GetYbendingRigidity();
-    double EIzz = this->section->GetZbendingRigidity();
+    //double EA = this->section->GetAxialRigidity();
+    //double EIyy = this->section->GetYbendingRigidity();
+    //double EIzz = this->section->GetZbendingRigidity();
 
     double L = this->length;
 
@@ -337,10 +337,10 @@ void ChElementBeamEuler::ComputeGeometricStiffnessMatrix() {
     double PL2_15_z = 2.*L / (15.);// optional [2]: ...+ 4*IyA /(L);
     double PL_30_y  = L / (30.);   // optional [2]: ...+ 2*IyA /(L);
     double PL_30_z  = L / (30.);   // optional [2]: ...+ 2*IyA /(L);
-    /*
-    this->Kg(0, 0) =  P_L;
-    this->Kg(6, 6) =  P_L;
-    this->Kg(0, 6) = -P_L;
+   /* 
+    this->Kg(0, 0) =   1./L;
+    this->Kg(6, 6) =   1./L;
+    this->Kg(0, 6) = - 1./L;
     */
     
     this->Kg(1, 1) =  P6_5L_y;

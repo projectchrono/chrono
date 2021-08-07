@@ -23,6 +23,8 @@
 #include <unordered_set>
 #include <limits>
 
+#include <omp.h>
+
 #include "chrono/physics/ChMaterialSurfaceNSC.h"
 #include "chrono/physics/ChMaterialSurfaceSMC.h"
 #include "chrono/assets/ChTexture.h"

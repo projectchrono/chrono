@@ -65,6 +65,9 @@ class CH_VEHICLE_API ChTire : public ChPart {
     /// Get the tire radius.
     virtual double GetRadius() const = 0;
 
+    /// Get the tire width.
+    virtual double GetWidth() const = 0;
+
     /// Get the tire mass.
     /// Note that this should not include the mass of the wheel (rim).
     virtual double GetMass() const = 0;

@@ -40,6 +40,25 @@ source_group("viper" FILES ${CRM_VIPER_FILES})
 
 #-----------------------------------------------------------------------------
 
+set(CRM_TURTLEBOT_FILES
+    turtlebot/Turtlebot.cpp
+    turtlebot/Turtlebot.h
+)
+
+source_group("turtlebot" FILES ${CRM_TURTLEBOT_FILES})
+
+#-----------------------------------------------------------------------------
+
+set(CRM_CURIOSITY_FILES
+    curiosity/Curiosity.cpp
+    curiosity/Curiosity.h
+)
+
+source_group("curiosity" FILES ${CRM_CURIOSITY_FILES})
+
+
+#-----------------------------------------------------------------------------
+
 set(CRM_COPTERS_FILES
     copters/Copter.h
     copters/Little_Hexy.h
@@ -64,7 +83,9 @@ endif()
 add_library(ChronoModels_robot SHARED 
             ${CRM_COMMON_FILES}
             ${CRM_ROBOSIMIAN_FILES}
+            ${CRM_CURIOSITY_FILES}
             ${CRM_VIPER_FILES}
+            ${CRM_TURTLEBOT_FILES}
             ${CRM_COPTERS_FILES}
             )
 

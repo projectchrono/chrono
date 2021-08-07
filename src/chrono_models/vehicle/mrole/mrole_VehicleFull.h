@@ -29,7 +29,7 @@ namespace chrono {
 namespace vehicle {
 namespace mrole {
 
-/// @addtogroup vehicle_models_hmmwv
+/// @addtogroup vehicle_models_mrole
 /// @{
 
 /// mrole vehicle system using full double wishbone suspension (control arms modeled using rigid bodies)
@@ -76,7 +76,7 @@ class CH_MODELS_API mrole_VehicleFull : public mrole_Vehicle {
                 CollisionType chassis_collision_type);
 };
 
-/// @} vehicle_models_hmmwv
+/// @} vehicle_models_mrole
 
 }  // namespace mrole
 }  // end namespace vehicle
