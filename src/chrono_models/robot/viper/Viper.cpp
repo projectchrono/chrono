@@ -20,9 +20,6 @@
 //
 // RADU TODO:
 // - Recheck kinematics of mechanism (for negative lift angle)
-// - The multibody system has redundant constraints (3D four-bar mechanisms
-//   using revolute joints)!  This poses issues if using Pardiso.
-//   To be fixed by using universal joints.
 // - Forces and torques are reported relative to the part's centroidal frame.
 //   Likely confusing for a user since all bodies are ChBodyAuxRef!
 // - Consider using a torque motor instead of driveshafts
@@ -105,10 +102,26 @@ void AddRevoluteJoint(std::shared_ptr<ChBody> body1,
     // Express relative frame in global
     ChFrame<> X_GC = chassis->GetBody()->GetFrame_REF_to_abs() * ChFrame<>(rel_pos, rel_rot);
 
-    // Create joint
-    auto rev = chrono_types::make_shared<ChLinkLockRevolute>();
-    rev->Initialize(body1, body2, ChCoordsys<>(X_GC.GetPos(), X_GC.GetRot()));
-    chassis->GetBody()->GetSystem()->AddLink(rev);
+    // Create joint (DOF about Z axis of X_GC frame)
+    auto joint = chrono_types::make_shared<ChLinkLockRevolute>();
+    joint->Initialize(body1, body2, ChCoordsys<>(X_GC.GetPos(), X_GC.GetRot()));
+    chassis->GetBody()->GetSystem()->AddLink(joint);
+}
+
+// Add a universal joint between two bodies at the given position and orientation
+// (expressed in and relative to the chassis frame).
+void AddUniversalJoint(std::shared_ptr<ChBody> body1,
+                      std::shared_ptr<ChBody> body2,
+                      std::shared_ptr<ViperChassis> chassis,
+                      const ChVector<>& rel_pos,
+                      const ChQuaternion<>& rel_rot) {
+    // Express relative frame in global
+    ChFrame<> X_GC = chassis->GetBody()->GetFrame_REF_to_abs() * ChFrame<>(rel_pos, rel_rot);
+
+    // Create joint (DOFs about X and Y axes of X_GC frame)
+    auto joint = chrono_types::make_shared<ChLinkUniversal>();
+    joint->Initialize(body1, body2, X_GC);
+    chassis->GetBody()->GetSystem()->AddLink(joint);
 }
 
 // Add a rotational speed motor between two bodies at the given position and orientation
@@ -121,7 +134,7 @@ std::shared_ptr<ChLinkMotorRotationSpeed> AddMotorSpeed(std::shared_ptr<ChBody> 
     // Express relative frame in global
     ChFrame<> X_GC = chassis->GetBody()->GetFrame_REF_to_abs() * ChFrame<>(rel_pos, rel_rot);
 
-    // Create motor
+    // Create motor (actuated DOF about Z axis of X_GC frame)
     auto motor = chrono_types::make_shared<ChLinkMotorRotationSpeed>();
     motor->Initialize(body1, body2, X_GC);
     chassis->GetBody()->GetSystem()->AddLink(motor);
@@ -139,7 +152,7 @@ std::shared_ptr<ChLinkMotorRotationAngle> AddMotorAngle(std::shared_ptr<ChBody> 
     // Express relative frame in global
     ChFrame<> X_GC = chassis->GetBody()->GetFrame_REF_to_abs() * ChFrame<>(rel_pos, rel_rot);
 
-    // Create motor
+    // Create motor (actuated DOF about Z axis of X_GC frame)
     auto motor = chrono_types::make_shared<ChLinkMotorRotationAngle>();
     motor->Initialize(body1, body2, X_GC);
     chassis->GetBody()->GetSystem()->AddLink(motor);
@@ -157,7 +170,7 @@ std::shared_ptr<ChLinkMotorRotationTorque> AddMotorTorque(std::shared_ptr<ChBody
     // Express relative frame in global
     ChFrame<> X_GC = chassis->GetBody()->GetFrame_REF_to_abs() * ChFrame<>(rel_pos, rel_rot);
 
-    // Create motor
+    // Create motor (actuated DOF about Z axis of X_GC frame)
     auto motor = chrono_types::make_shared<ChLinkMotorRotationTorque>();
     motor->Initialize(body1, body2, X_GC);
     chassis->GetBody()->GetSystem()->AddLink(motor);
@@ -518,8 +531,9 @@ void Viper::Initialize(const ChFrame<>& pos) {
     ChQuaternion<> z2x = Q_from_AngY(CH_C_PI_2);
 
     for (int i = 0; i < 4; i++) {
-        AddRevoluteJoint(m_lower_arms[i]->GetBody(), m_uprights[i]->GetBody(), m_chassis, sr_rel_pos_lower[i], z2x);
-        AddRevoluteJoint(m_upper_arms[i]->GetBody(), m_uprights[i]->GetBody(), m_chassis, sr_rel_pos_upper[i], z2x);
+        AddUniversalJoint(m_lower_arms[i]->GetBody(), m_uprights[i]->GetBody(), m_chassis, sr_rel_pos_lower[i], QUNIT);
+        AddUniversalJoint(m_upper_arms[i]->GetBody(), m_uprights[i]->GetBody(), m_chassis, sr_rel_pos_upper[i], QUNIT);
+
 
         // Add lifting motors at the connecting points between upper_arm & chassis and lower_arm & chassis
         m_lift_motor_funcs[i] = chrono_types::make_shared<ChFunction_Const>(0.0);

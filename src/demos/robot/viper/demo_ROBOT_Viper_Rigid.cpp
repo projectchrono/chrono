@@ -100,13 +100,11 @@ int main(int argc, char* argv[]) {
 
     // Create the Irrlicht visualization
     ChIrrApp application(&sys, L"Viper Rover on Rigid Terrain", core::dimension2d<u32>(1280, 720), VerticalDir::Z,
-                         false, true);
+                         false, false, true);
     application.AddTypicalLogo();
     application.AddTypicalSky();
-    application.AddTypicalLights(irr::core::vector3df(30.f, 30.f, 100.f), irr::core::vector3df(30.f, -30.f, 100.f));
+    application.AddTypicalLights(irr::core::vector3df(30.f, 30.f, 150.f), irr::core::vector3df(-30.f, -30.f, 150.f));
     application.AddTypicalCamera(core::vector3df(3, 3, 1));
-    application.AddLightWithShadow(core::vector3df(1.5f, 1.5f, 5.5f), core::vector3df(0, 0, 0), 3, 4, 10, 40, 512,
-                                   video::SColorf(0.8f, 0.8f, 1.0f));
     application.SetContactsDrawMode(IrrContactsDrawMode::CONTACT_DISTANCES);
 
     collision::ChCollisionModel::SetDefaultSuggestedEnvelope(0.0025);
@@ -114,15 +112,16 @@ int main(int argc, char* argv[]) {
 
     // Create the ground.
     auto ground_mat = chrono_types::make_shared<ChMaterialSurfaceNSC>();
-    auto ground = chrono_types::make_shared<ChBodyEasyBox>(20, 20, 1, 1000, true, true, ground_mat);
+    auto ground = chrono_types::make_shared<ChBodyEasyBox>(30, 30, 1, 1000, true, true, ground_mat);
 
     ground->SetPos(ChVector<>(0, 0, -0.5));
     ground->SetBodyFixed(true);
     sys.Add(ground);
 
-    auto masset_texture = chrono_types::make_shared<ChTexture>();
-    masset_texture->SetTextureFilename(GetChronoDataFile("textures/concrete.jpg"));
-    ground->AddAsset(masset_texture);
+    auto texture = chrono_types::make_shared<ChTexture>();
+    texture->SetTextureFilename(GetChronoDataFile("textures/concrete.jpg"));
+    texture->SetTextureScale(60, 45);
+    ground->AddAsset(texture);
 
     // Construct and initialize a Viper rover.
     // The default rotational speed of the Motor is speed w=3.145 rad/sec.
