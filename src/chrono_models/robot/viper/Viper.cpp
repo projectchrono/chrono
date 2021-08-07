@@ -555,7 +555,7 @@ void Viper::Initialize(const ChFrame<>& pos) {
                                            cr_rel_pos_upper[i], sr_rel_pos_lower[i]);
     }
 
-    double J = 100;  // shaft rotational inertia
+    double J = 0.1;  // shaft rotational inertia
     for (int i = 0; i < 4; i++) {
         m_drive_shafts[i]->SetInertia(J);
         m_system->Add(m_drive_shafts[i]);
