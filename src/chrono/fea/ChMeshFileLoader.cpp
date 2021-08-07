@@ -726,7 +726,7 @@ void ChMeshFileLoader::BSTShellFromObjFile(
 		int i0 = mmesh.m_face_v_indices[j][0];
 		int i1 = mmesh.m_face_v_indices[j][1];
 		int i2 = mmesh.m_face_v_indices[j][2];
-		GetLog() << "nodes 012 ids= " << i0 << " " << i1 << " " << i2 << " " << "\n";
+		//GetLog() << "nodes 012 ids= " << i0 << " " << i1 << " " << i2 << " " << "\n";
 
 		std::pair<int, int> medge0(i1, i2);
 		std::pair<int, int> medge1(i2, i0);

@@ -63,6 +63,13 @@ set(FEA_DEMOS ${FEA_DEMOS}
 )
 endif()
 
+# Add demos that require Irrlicht and MKL and postprocess
+if(ENABLE_MODULE_IRRLICHT AND ENABLE_MODULE_PARDISO_MKL AND ENABLE_MODULE_POSTPROCESS)
+set(FEA_DEMOS ${FEA_DEMOS}
+    demo_FEA_beams_rotor
+)
+endif()
+
 #--------------------------------------------------------------
 
 # Set include paths, compiler & linker flags, and libraries
@@ -101,6 +108,10 @@ if(ENABLE_MODULE_PARDISO_PROJECT)
   include_directories(${CH_PARDISOPROJECT_INCLUDES})
   list(APPEND LIBS "ChronoEngine_pardisoproject")
   list(APPEND LIBS ${PARDISOPROJECT_LIBRARIES})
+endif()
+
+if(ENABLE_MODULE_POSTPROCESS)
+  list(APPEND LIBS "ChronoEngine_postprocess")
 endif()
 
 #--------------------------------------------------------------
