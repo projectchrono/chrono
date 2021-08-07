@@ -288,9 +288,6 @@ class CH_MODELS_API Viper {
     /// Get steer motor.
     std::shared_ptr<ChLinkMotorRotationAngle> GetSteerMotor(WheelID id) { return m_steer_motors[id]; }
 
-    /// Get Viper turning angle.
-    double GetTurnAngle() const;
-
     /// Viper update function.
     /// This function must be called before each integration step.
     void Update();
@@ -312,7 +309,7 @@ class CH_MODELS_API Viper {
 
     std::array<std::shared_ptr<ChLinkMotorRotationSpeed>, 4> m_drive_motors;  ///< drive motors
     std::array<std::shared_ptr<ChLinkMotorRotationAngle>, 4> m_steer_motors;  ///< steering motors
-    std::array<std::shared_ptr<ChLinkMotorRotationAngle>, 8> m_lift_motors;   ///< lifting motors
+    std::array<std::shared_ptr<ChLinkMotorRotationAngle>, 4> m_lift_motors;   ///< lifting motors
 
     std::array<std::shared_ptr<ChFunction_Setpoint>, 4> m_drive_motor_funcs;  ///< drive motor functions
     std::array<std::shared_ptr<ChFunction_Const>, 4> m_steer_motor_funcs;     ///< steering motor functions
@@ -380,7 +377,7 @@ class CH_MODELS_API ViperDCMotorControl : public ViperDriver {
     void SetSteering(double angle);
 
     /// Set current lift input (angular speed).
-    void SetLift(double speed);
+    void SetLifting(double speed);
 
   private:
     virtual bool TorqueControl() override { return true; }
