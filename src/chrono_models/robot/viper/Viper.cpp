@@ -147,6 +147,24 @@ std::shared_ptr<ChLinkMotorRotationAngle> AddMotorAngle(std::shared_ptr<ChBody> 
     return motor;
 }
 
+// Add a rotational torque motor between two bodies at the given position and orientation
+// (expressed in and relative to the chassis frame).
+std::shared_ptr<ChLinkMotorRotationTorque> AddMotorTorque(std::shared_ptr<ChBody> body1,
+                                                          std::shared_ptr<ChBody> body2,
+                                                          std::shared_ptr<ViperChassis> chassis,
+                                                          const ChVector<>& rel_pos,
+                                                          const ChQuaternion<>& rel_rot) {
+    // Express relative frame in global
+    ChFrame<> X_GC = chassis->GetBody()->GetFrame_REF_to_abs() * ChFrame<>(rel_pos, rel_rot);
+
+    // Create motor
+    auto motor = chrono_types::make_shared<ChLinkMotorRotationTorque>();
+    motor->Initialize(body1, body2, X_GC);
+    chassis->GetBody()->GetSystem()->AddLink(motor);
+
+    return motor;
+}
+
 // Add a spring between two bodies connected at the specified points
 // (expressed in and relative to the chassis frame).
 std::shared_ptr<ChLinkTSDA> AddSuspensionSpring(std::shared_ptr<ChBodyAuxRef> body1,
@@ -507,7 +525,7 @@ void Viper::Initialize(const ChFrame<>& pos) {
         m_lift_motor_funcs[i] = chrono_types::make_shared<ChFunction_Const>(0.0);
         m_lift_motors[i] = AddMotorAngle(m_chassis->GetBody(), m_lower_arms[i]->GetBody(), m_chassis,
                                          cr_rel_pos_lower[i], z2x * lm_rot[i]);
-        m_lift_motors[i]->SetAngleFunction(m_lift_motor_funcs[i]);
+        m_lift_motors[i]->SetMotorFunction(m_lift_motor_funcs[i]);
         AddRevoluteJoint(m_chassis->GetBody(), m_upper_arms[i]->GetBody(), m_chassis, cr_rel_pos_upper[i], z2x);
 
         auto steer_rod = chrono_types::make_shared<ChBodyEasyBox>(0.1, 0.1, 0.1, 1000, true, false);
@@ -518,17 +536,20 @@ void Viper::Initialize(const ChFrame<>& pos) {
         ChQuaternion<> z2y;
         z2y.Q_from_AngAxis(CH_C_PI / 2, ChVector<>(1, 0, 0));
 
-        if (m_driver->TorqueControl()) {
-            AddRevoluteJoint(steer_rod, m_wheels[i]->GetBody(), m_chassis, wheel_rel_pos[i], z2y);
-        } else {
-            m_drive_motor_funcs[i] = chrono_types::make_shared<ChFunction_Setpoint>();
-            m_drive_motors[i] = AddMotorSpeed(steer_rod, m_wheels[i]->GetBody(), m_chassis, wheel_rel_pos[i], z2y);
-            m_drive_motors[i]->SetSpeedFunction(m_drive_motor_funcs[i]);
+        switch (m_driver->GetDriveMotorType()) {
+            case ViperDriver::DriveMotorType::SPEED:
+                m_drive_motor_funcs[i] = chrono_types::make_shared<ChFunction_Setpoint>();
+                m_drive_motors[i] = AddMotorSpeed(steer_rod, m_wheels[i]->GetBody(), m_chassis, wheel_rel_pos[i], z2y);
+                m_drive_motors[i]->SetMotorFunction(m_drive_motor_funcs[i]);
+                break;
+            case ViperDriver::DriveMotorType::TORQUE:
+                AddRevoluteJoint(steer_rod, m_wheels[i]->GetBody(), m_chassis, wheel_rel_pos[i], z2y);
+                break;
         }
 
         m_steer_motor_funcs[i] = chrono_types::make_shared<ChFunction_Const>(0.0);
         m_steer_motors[i] = AddMotorAngle(steer_rod, m_uprights[i]->GetBody(), m_chassis, wheel_rel_pos[i], sm_rot[i]);
-        m_steer_motors[i]->SetAngleFunction(m_steer_motor_funcs[i]);
+        m_steer_motors[i]->SetMotorFunction(m_steer_motor_funcs[i]);
 
         m_springs[i] = AddSuspensionSpring(m_chassis->GetBody(), m_uprights[i]->GetBody(), m_chassis,
                                            cr_rel_pos_upper[i], sr_rel_pos_lower[i]);
@@ -594,7 +615,7 @@ ChVector<> Viper::GetWheelAppliedTorque(WheelID id) const {
 }
 
 double Viper::GetWheelTracTorque(WheelID id) const {
-    if (m_driver->TorqueControl())
+    if (m_driver->GetDriveMotorType() == ViperDriver::DriveMotorType::TORQUE)
         return 0;
 
     return m_drive_motors[id]->GetMotorTorque();
@@ -631,7 +652,7 @@ void Viper::Update() {
         // Set motor functions
         m_steer_motor_funcs[i]->Set_yconst(steering);
         m_lift_motor_funcs[i]->Set_yconst(lifting);
-        if (!m_driver->TorqueControl())
+        if (m_driver->GetDriveMotorType() == ViperDriver::DriveMotorType::SPEED)
             m_drive_motor_funcs[i]->SetSetpoint(time, driving);
     }
 }
