@@ -29,6 +29,7 @@
 #include "chrono_sensor/ChGPSSensor.h"
 #include "chrono_sensor/ChIMUSensor.h"
 #include "chrono_sensor/ChLidarSensor.h"
+#include "chrono_sensor/ChRadarSensor.h"
 //
 #include "chrono_sensor/filters/ChFilter.h"
 //
@@ -127,6 +128,15 @@ CH_SENSOR_API std::shared_ptr<ChMagnetometerSensor> ReadMagnetometerSensorJSON(c
 /// @param offsetPose The position and rotation of the Lidar Sensr
 /// @return A shared pointer to a ChLidarSensor constructed from the JSON file
 CH_SENSOR_API std::shared_ptr<ChLidarSensor> ReadLidarSensorJSON(const std::string& filename,
+                                                                 std::shared_ptr<chrono::ChBody> parent,
+                                                                 chrono::ChFrame<double> offsetPose);
+
+/// Load and return a radar sensor from the specified JSON file.
+/// @param filename The name/path to the JSON file defining the radar sensor parameters
+/// @param parent The ChBody to which the sensor should be attached
+/// @param offsetPose The position and rotation of the radar Sensr
+/// @return A shared pointer to a ChRadarSensor constructed from the JSON file
+CH_SENSOR_API std::shared_ptr<ChRadarSensor> ReadRadarSensorJSON(const std::string& filename,
                                                                  std::shared_ptr<chrono::ChBody> parent,
                                                                  chrono::ChFrame<double> offsetPose);
 

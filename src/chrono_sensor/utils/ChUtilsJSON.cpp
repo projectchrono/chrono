@@ -429,6 +429,57 @@ std::shared_ptr<ChLidarSensor> ReadLidarSensorJSON(const std::string& filename,
     return lidar;
 }
 
+std::shared_ptr<ChRadarSensor> ReadRadarSensorJSON(const std::string& filename,
+                                                   std::shared_ptr<chrono::ChBody> parent,
+                                                   chrono::ChFrame<double> offsetPose){
+    Document d;
+    ReadFileJSON(filename, d);
+    if (d.IsNull())
+        return nullptr;
+
+    // Check that the given file is a sensor specification file.
+    assert(d.HasMember("Type"));
+    std::string type = d["Type"].GetString();
+    assert(type.compare("Sensor") == 0);
+
+    // Extract the sensor type.
+    assert(d.HasMember("Template"));
+    std::string subtype = d["Template"].GetString();
+    if (subtype.compare("Radar") != 0){
+        throw ChException("ChUtilsJSON::ReadRdarSensorJSON: Sensor type of " + subtype + " must be Radar");
+    }
+
+    // Read sensor properties
+    assert(d.HasMember("Properties"));
+    const Value& properties = d["Properties"];
+
+    // Create the radar sensor.
+    float updateRate = properties["Update Rate"].GetFloat();
+    unsigned int w = properties["Width"].GetUint();
+    unsigned int h = properties["Height"].GetUint();
+    float hfov = properties["Horizontal Field of View"].GetFloat();
+    float max_v_angle = properties["Max Vertical Angle"].GetFloat();
+    float min_v_angle = properties["Min Vertical Angle"].GetFloat();
+    float max_distance = properties["Max Distance"].GetFloat();
+
+    float near_clip = 0.f;
+
+    if (properties.HasMember("Near Clip")) {
+        near_clip = properties["Near Clip"].GetFloat();
+    }
+
+    auto radar = chrono_types::make_shared<ChRadarSensor>(
+        parent, updateRate, offsetPose, w, h, max_v_angle, min_v_angle, max_distance, near_clip
+    );
+
+    if (properties.HasMember("Collection Window")) {
+        float exposure_time = properties["Collection Window"].GetFloat();
+    radar->SetCollectionWindow(exposure_time);
+    }
+
+    return radar;
+}
+
 void ReadFilterListJSON(const std::string& filename, std::shared_ptr<ChSensor> sensor) {
     Document d;
     ReadFileJSON(filename, d);
