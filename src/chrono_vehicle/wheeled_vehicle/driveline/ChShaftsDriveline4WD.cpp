@@ -231,5 +231,13 @@ double ChShaftsDriveline4WD::GetSpindleTorque(int axle, VehicleSide side) const 
     return 0;
 }
 
+// -----------------------------------------------------------------------------
+void ChShaftsDriveline4WD::Disconnect() {
+    m_front_differential->SetDisabled(true);
+    m_rear_differential->SetDisabled(true);
+    m_front_clutch->SetDisabled(true);
+    m_rear_clutch->SetDisabled(true);
+}
+
 }  // end namespace vehicle
 }  // end namespace chrono

@@ -211,5 +211,13 @@ double ChShaftsDriveline8WD::GetSpindleTorque(int axle, VehicleSide side) const 
     return 0;
 }
 
+// -----------------------------------------------------------------------------
+void ChShaftsDriveline8WD::Disconnect() {
+    for (int i = 0; i < 4; i++) {
+        m_AD_differential[i]->SetDisabled(true);
+        m_AD_clutch[i]->SetDisabled(true);
+    }
+}
+
 }  // end namespace vehicle
 }  // end namespace chrono

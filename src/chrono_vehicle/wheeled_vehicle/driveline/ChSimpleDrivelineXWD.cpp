@@ -29,7 +29,7 @@ namespace vehicle {
 // -----------------------------------------------------------------------------
 // Construct a default 4WD simple driveline.
 // -----------------------------------------------------------------------------
-ChSimpleDrivelineXWD::ChSimpleDrivelineXWD(const std::string& name) : ChDrivelineWV(name) {}
+ChSimpleDrivelineXWD::ChSimpleDrivelineXWD(const std::string& name) : ChDrivelineWV(name), m_connected(true) {}
 
 // -----------------------------------------------------------------------------
 // Initialize the driveline subsystem.
@@ -100,6 +100,9 @@ void differentialSplitXWD(double torque,
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 void ChSimpleDrivelineXWD::Synchronize(double torque) {
+    if (!m_connected)
+        return;
+
     double alpha = 1.0 / double(m_shaft_left.size());
     double torque_axle = alpha * torque;
 
@@ -119,6 +122,9 @@ void ChSimpleDrivelineXWD::Synchronize(double torque) {
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 double ChSimpleDrivelineXWD::GetSpindleTorque(int axle, VehicleSide side) const {
+    if (!m_connected)
+        return 0;
+
     switch (side) {
         case LEFT:
             return -m_shaft_left[axle]->GetAppliedTorque();
@@ -127,6 +133,11 @@ double ChSimpleDrivelineXWD::GetSpindleTorque(int axle, VehicleSide side) const 
     }
 
     return 0;
+}
+
+// -----------------------------------------------------------------------------
+void ChSimpleDrivelineXWD::Disconnect() {
+    m_connected = false;
 }
 
 }  // end namespace vehicle

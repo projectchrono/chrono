@@ -61,7 +61,11 @@ class CH_MODELS_API Gator_SimpleDriveline : public ChDrivelineWV {
     /// Get the motor torque to be applied to the specified spindle.
     virtual double GetSpindleTorque(int axle, VehicleSide side) const override;
 
+    /// Disconnect driveline from driven wheels.
+    virtual void Disconnect() override;
+
   private:
+    bool m_connected;
     std::shared_ptr<ChShaft> m_left;
     std::shared_ptr<ChShaft> m_right;
 

@@ -185,10 +185,10 @@ void ChShaftsDriveline6WD::Initialize(std::shared_ptr<ChChassis> chassis,
     // differential. Note that, differently from the basic ChShaftsGear, this also
     // provides the possibility of transmitting a reaction torque to the box
     // (the truss).
-    m_rear2_conicalgear = chrono_types::make_shared<ChShaftsGearboxAngled>();
-    m_rear2_conicalgear->Initialize(m_rear1_shaft, m_rear1_differentialbox, chassisBody, m_dir_motor_block, m_dir_axle);
-    m_rear2_conicalgear->SetTransmissionRatio(-GetFrontConicalGearRatio());
-    sys->Add(m_rear2_conicalgear);
+    m_rear1_conicalgear = chrono_types::make_shared<ChShaftsGearboxAngled>();
+    m_rear1_conicalgear->Initialize(m_rear1_shaft, m_rear1_differentialbox, chassisBody, m_dir_motor_block, m_dir_axle);
+    m_rear1_conicalgear->SetTransmissionRatio(-GetFrontConicalGearRatio());
+    sys->Add(m_rear1_conicalgear);
 
     // Create a differential, i.e. an epicycloidal mechanism that connects three
     // rotating members. This class of mechanisms can be simulated using
@@ -315,6 +315,17 @@ double ChShaftsDriveline6WD::GetSpindleTorque(int axle, VehicleSide side) const 
     }
 
     return 0;
+}
+
+// -----------------------------------------------------------------------------
+void ChShaftsDriveline6WD::Disconnect() {
+    m_front_differential->SetDisabled(true);
+    m_rear1_differential->SetDisabled(true);
+    m_rear2_differential->SetDisabled(true);
+
+    m_front_clutch->SetDisabled(true);
+    m_rear1_clutch->SetDisabled(true);
+    m_rear2_clutch->SetDisabled(true);
 }
 
 }  // end namespace vehicle
