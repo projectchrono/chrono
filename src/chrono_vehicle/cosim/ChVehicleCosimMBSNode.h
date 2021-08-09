@@ -131,10 +131,7 @@ class CH_VEHICLE_API ChVehicleCosimMBSNode : public ChVehicleCosimBaseNode {
     ChTimestepper::Type m_int_type;                  ///< integrator type
     ChSolver::Type m_slv_type;                       ///< solver type
     std::shared_ptr<ChTimestepperHHT> m_integrator;  ///< HHT integrator object
-
-    std::vector<std::shared_ptr<ChBody>> m_spindles;  ///< spindle bodies
-
-    std::shared_ptr<ChVehicleCosimDBPRig> m_rig;  ///< DBP rig
+    std::shared_ptr<ChVehicleCosimDBPRig> m_rig;     ///< DBP rig
 
   private:
     void InitializeSystem();

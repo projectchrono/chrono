@@ -110,8 +110,6 @@ void ChVehicleCosimMBSNode::Initialize() {
     // Invoke the base class method to figure out distribution of node types
     ChVehicleCosimBaseNode::Initialize();
 
-    m_spindles.resize(m_num_tire_nodes);
-
     // Complete setup of the underlying ChSystem
     InitializeSystem();
 
@@ -147,7 +145,6 @@ void ChVehicleCosimMBSNode::Initialize() {
     // - cache the spindle body
     // - get the load on the wheel and send to TIRE node
     for (unsigned int i = 0; i < m_num_tire_nodes; i++) {
-        m_spindles[i] = GetSpindleBody(i);
         double load = GetSpindleLoad(i);
         MPI_Send(&load, 1, MPI_DOUBLE, TIRE_NODE_RANK(i), 0, MPI_COMM_WORLD);
     }
@@ -260,7 +257,7 @@ void ChVehicleCosimMBSNode::Synchronize(int step_number, double time) {
         MPI_Recv(force_data, 6, MPI_DOUBLE, TIRE_NODE_RANK(i), step_number, MPI_COMM_WORLD, &status);
 
         TerrainForce spindle_force;
-        spindle_force.point = m_spindles[i]->GetPos();
+        spindle_force.point = GetSpindleBody(i)->GetPos();
         spindle_force.force = ChVector<>(force_data[0], force_data[1], force_data[2]);
         spindle_force.moment = ChVector<>(force_data[3], force_data[4], force_data[5]);
         ApplySpindleForce(i, spindle_force);

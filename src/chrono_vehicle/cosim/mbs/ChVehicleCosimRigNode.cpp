@@ -129,18 +129,18 @@ void ChVehicleCosimRigNode::InitializeMBS(const std::vector<ChVector<>>& tire_in
 void ChVehicleCosimRigNode::ApplySpindleForce(unsigned int i, const TerrainForce& spindle_force) {
     assert(i == 0);
 
-    m_spindles[i]->Empty_forces_accumulators();
-    m_spindles[i]->Accumulate_force(spindle_force.force, spindle_force.point, false);
-    m_spindles[i]->Accumulate_torque(spindle_force.moment, false);
+    m_spindle->Empty_forces_accumulators();
+    m_spindle->Accumulate_force(spindle_force.force, spindle_force.point, false);
+    m_spindle->Accumulate_torque(spindle_force.moment, false);
 }
 
 BodyState ChVehicleCosimRigNode::GetSpindleState(unsigned int i) const {
     BodyState state;
 
-    state.pos = m_spindles[i]->GetPos();
-    state.rot = m_spindles[i]->GetRot();
-    state.lin_vel = m_spindles[i]->GetPos_dt();
-    state.ang_vel = m_spindles[i]->GetWvel_par();
+    state.pos = m_spindle->GetPos();
+    state.rot = m_spindle->GetRot();
+    state.lin_vel = m_spindle->GetPos_dt();
+    state.ang_vel = m_spindle->GetWvel_par();
     
     return state;
 }

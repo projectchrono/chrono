@@ -101,10 +101,8 @@ void ChVehicleCosimViperNode::InitializeMBS(const std::vector<ChVector<>>& tire_
     m_num_spindles = 4;
     assert(m_num_spindles == (int)m_num_tire_nodes);
 
-    m_spindles.resize(m_num_spindles);
     auto total_mass = m_viper->GetRoverMass();
     for (int is = 0; is < m_num_spindles; is++) {
-        m_spindles[is] = m_viper->GetWheel(wheel_id(is))->GetBody();
         m_spindle_loads.push_back(total_mass / m_num_spindles);
     }
 }
@@ -115,7 +113,7 @@ int ChVehicleCosimViperNode::GetNumSpindles() const {
 }
 
 std::shared_ptr<ChBody> ChVehicleCosimViperNode::GetSpindleBody(unsigned int i) const {
-    return m_spindles[i];
+    return m_viper->GetWheel(wheel_id(i))->GetBody();
 }
 
 double ChVehicleCosimViperNode::GetSpindleLoad(unsigned int i) const {
@@ -150,9 +148,10 @@ void ChVehicleCosimViperNode::PreAdvance() {
 }
 
 void ChVehicleCosimViperNode::ApplySpindleForce(unsigned int i, const TerrainForce& spindle_force) {
-    m_spindles[i]->Empty_forces_accumulators();
-    m_spindles[i]->Accumulate_force(spindle_force.force, spindle_force.point, false);
-    m_spindles[i]->Accumulate_torque(spindle_force.moment, false);
+    auto spindle_body = m_viper->GetWheel(wheel_id(i))->GetBody();
+    spindle_body->Empty_forces_accumulators();
+    spindle_body->Accumulate_force(spindle_force.force, spindle_force.point, false);
+    spindle_body->Accumulate_torque(spindle_force.moment, false);
 }
 
 // -----------------------------------------------------------------------------

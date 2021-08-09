@@ -105,12 +105,14 @@ double ChVehicleCosimVehicleNode::GetSpindleLoad(unsigned int i) const {
 }
 
 BodyState ChVehicleCosimVehicleNode::GetSpindleState(unsigned int i) const {
+    VehicleSide side = (i % 2 == 0) ? VehicleSide::LEFT : VehicleSide::RIGHT;
+    auto spindle_body = m_vehicle->GetWheel(i / 2, side)->GetSpindle();
     BodyState state;
 
-    state.pos = m_spindles[i]->GetPos();
-    state.rot = m_spindles[i]->GetRot();
-    state.lin_vel = m_spindles[i]->GetPos_dt();
-    state.ang_vel = m_spindles[i]->GetWvel_par();
+    state.pos = spindle_body->GetPos();
+    state.rot = spindle_body->GetRot();
+    state.lin_vel = spindle_body->GetPos_dt();
+    state.ang_vel = spindle_body->GetWvel_par();
     
     return state;
 }
@@ -187,9 +189,13 @@ void ChVehicleCosimVehicleNode::WriteBodyInformation(utils::CSV_writer& csv) {
     // Write body state information
     auto chassis = m_vehicle->GetChassisBody();
     csv << chassis->GetPos() << chassis->GetRot() << chassis->GetPos_dt() << chassis->GetRot_dt() << endl;
-    for (int is = 0; is < m_num_spindles; is++) {
-        csv << m_spindles[is]->GetPos() << m_spindles[is]->GetRot() << m_spindles[is]->GetPos_dt()
-            << m_spindles[is]->GetRot_dt() << endl;
+
+    for (auto& axle : m_vehicle->GetAxles()) {
+        for (auto& wheel : axle->GetWheels()) {
+            auto spindle_body = wheel->GetSpindle();
+            csv << spindle_body->GetPos() << spindle_body->GetRot() << spindle_body->GetPos_dt()
+                << spindle_body->GetRot_dt() << endl;
+        }
     }
 }
 
