@@ -38,6 +38,33 @@ using std::endl;
 namespace chrono {
 namespace vehicle {
 
+// -----------------------------------------------------------------------------
+
+class WheeledVehicleDBPDriver : public ChDriver {
+  public:
+    WheeledVehicleDBPDriver(std::shared_ptr<ChWheeledVehicle> vehicle, std::shared_ptr<ChFunction> dbp_mot_func)
+        : ChDriver(*vehicle),
+          m_wheeled_vehicle(vehicle),
+          m_func(dbp_mot_func) {}
+
+    virtual void Synchronize(double time) override {
+        m_steering = 0;
+        m_braking = 0;
+
+        double ang_speed = m_func->Get_y(time);
+
+        for (auto& axle : m_wheeled_vehicle->GetAxles()) {
+            axle->m_suspension->GetAxle(VehicleSide::LEFT)->SetPos_dt(ang_speed);
+            axle->m_suspension->GetAxle(VehicleSide::RIGHT)->SetPos_dt(ang_speed);
+        }
+    }
+
+    std::shared_ptr<ChWheeledVehicle> m_wheeled_vehicle;
+    std::shared_ptr<ChFunction> m_func;
+};
+
+// -----------------------------------------------------------------------------
+
 ChVehicleCosimVehicleNode::ChVehicleCosimVehicleNode(const std::string& vehicle_json,
                                                      const std::string& powertrain_json)
     : ChVehicleCosimMBSNode(), m_num_spindles(0) {
@@ -122,7 +149,11 @@ std::shared_ptr<ChBody> ChVehicleCosimVehicleNode::GetChassisBody() const {
 }
 
 void ChVehicleCosimVehicleNode::OnInitializeDBPRig(std::shared_ptr<ChFunction> func) {
-    //// TODO
+    // Disconnect the driveline
+    m_vehicle->DisconnectDriveline();
+    // Overwrite any driver attached to the vehicle with a custom driver which imposes zero steering and braking and
+    // directly sets the angular speed of the vehicle axleshafts as returned by the provided motor function.
+    SetDriver(chrono_types::make_shared<WheeledVehicleDBPDriver>(m_vehicle, func));
 }
 
 // -----------------------------------------------------------------------------

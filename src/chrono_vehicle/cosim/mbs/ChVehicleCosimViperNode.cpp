@@ -39,13 +39,6 @@ namespace vehicle {
 
 using namespace viper;
 
-ChVehicleCosimViperNode::ChVehicleCosimViperNode()
-    : ChVehicleCosimMBSNode(), m_num_spindles(0) {
-    m_viper = chrono_types::make_shared<Viper>(m_system);
-}
-
-ChVehicleCosimViperNode::~ChVehicleCosimViperNode() {}
-
 // -----------------------------------------------------------------------------
 
 static WheelID wheel_id(unsigned int i) {
@@ -65,10 +58,10 @@ static WheelID wheel_id(unsigned int i) {
 // -----------------------------------------------------------------------------
 
 // Custom Viper driver class used when a DBP rig is attached.
-class DBPDriver : public ViperDriver {
+class ViperDBPDriver : public ViperDriver {
   public:
-    DBPDriver(std::shared_ptr<ChFunction> dbp_mot_func) : m_func(dbp_mot_func) {}
-    ~DBPDriver() {}
+    ViperDBPDriver(std::shared_ptr<ChFunction> dbp_mot_func) : m_func(dbp_mot_func) {}
+    ~ViperDBPDriver() {}
 
     virtual DriveMotorType GetDriveMotorType() const override { return DriveMotorType::SPEED; }
 
@@ -87,6 +80,12 @@ class DBPDriver : public ViperDriver {
 };
 
 // -----------------------------------------------------------------------------
+
+ChVehicleCosimViperNode::ChVehicleCosimViperNode() : ChVehicleCosimMBSNode(), m_num_spindles(0) {
+    m_viper = chrono_types::make_shared<Viper>(m_system);
+}
+
+ChVehicleCosimViperNode::~ChVehicleCosimViperNode() {}
 
 void ChVehicleCosimViperNode::InitializeMBS(const std::vector<ChVector<>>& tire_info,
                                             const ChVector2<>& terrain_size,
@@ -138,7 +137,7 @@ std::shared_ptr<ChBody> ChVehicleCosimViperNode::GetChassisBody() const {
 void ChVehicleCosimViperNode::OnInitializeDBPRig(std::shared_ptr<ChFunction> func) {
     // Overwrite any driver attached to the underlying Viper rover with a custom driver which imposes zero steering and
     // wheel angular speeds as returned by the provided motor function.
-    m_viper->SetDriver(chrono_types::make_shared<DBPDriver>(func));
+    m_viper->SetDriver(chrono_types::make_shared<ViperDBPDriver>(func));
 }
 
 // -----------------------------------------------------------------------------

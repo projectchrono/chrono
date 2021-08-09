@@ -116,6 +116,16 @@ int main(int argc, char** argv) {
     bool render = true;
     std::string suffix = "";
     bool verbose = true;
+    bool use_DBP_rig = false;
+
+    double terrain_length = 40;
+    double terrain_width = 20;
+    ChVector<> init_loc(-15, -8, 0.5);
+    if (use_DBP_rig) {
+        terrain_length = 20;
+        terrain_width = 5;
+        init_loc = ChVector<>(-5, 0, 0.5);
+    }
 
     // Prepare output directory.
     std::string out_dir = GetChronoOutputPath() + "VEHICLE_COSIM";
@@ -142,10 +152,17 @@ int main(int argc, char** argv) {
         auto vehicle =
             new ChVehicleCosimVehicleNode(vehicle::GetDataFile("hmmwv/vehicle/HMMWV_Vehicle.json"),
                                           vehicle::GetDataFile("hmmwv/powertrain/HMMWV_ShaftsPowertrain.json"));
+        if (use_DBP_rig) {
+            auto act_type = ChVehicleCosimDBPRigImposedSlip::ActuationType::SET_ANG_VEL;
+            double base_vel = 1;
+            double slip = 0;
+            auto dbp_rig = chrono_types::make_shared<ChVehicleCosimDBPRigImposedSlip>(act_type, base_vel, slip);
+            vehicle->AttachDrawbarPullRig(dbp_rig);
+        }
         auto driver = chrono_types::make_shared<MyDriver>(*vehicle->GetVehicle(), 0.5);
         vehicle->SetDriver(driver);
         vehicle->SetVerbose(verbose);
-        vehicle->SetInitialLocation(ChVector<>(-15, -8, 0.5));
+        vehicle->SetInitialLocation(init_loc);
         vehicle->SetInitialYaw(0);
         vehicle->SetStepSize(step_size);
         vehicle->SetNumThreads(1);
@@ -160,7 +177,7 @@ int main(int argc, char** argv) {
             cout << "[Terrain node] rank = " << rank << " running on: " << procname << endl;
 
         auto terrain = new ChVehicleCosimTerrainNodeSCM(vehicle::GetDataFile("cosim/scm.json"));
-        terrain->SetDimensions(40, 20);
+        terrain->SetDimensions(terrain_length, terrain_width);
         terrain->SetVerbose(verbose);
         terrain->SetStepSize(step_size);
         terrain->SetNumThreads(2);

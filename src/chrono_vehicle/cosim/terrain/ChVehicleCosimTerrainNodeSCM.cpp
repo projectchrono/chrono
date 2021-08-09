@@ -46,6 +46,9 @@ using namespace rapidjson;
 namespace chrono {
 namespace vehicle {
 
+// Maximum sinkage for rendering
+static const double max_sinkage = 0.15;
+
 // -----------------------------------------------------------------------------
 // Construction of the terrain node:
 // - create the Chrono system and set solver parameters
@@ -168,7 +171,7 @@ void ChVehicleCosimTerrainNodeSCM::Construct() {
     m_terrain->SetSoilParameters(m_Bekker_Kphi, m_Bekker_Kc, m_Bekker_n,            //
                                  m_Mohr_cohesion, m_Mohr_friction, m_Janosi_shear,  //
                                  m_elastic_K, m_damping_R);
-    m_terrain->SetPlotType(vehicle::SCMDeformableTerrain::PLOT_SINKAGE, 0, 0.1);
+    m_terrain->SetPlotType(vehicle::SCMDeformableTerrain::PLOT_SINKAGE, 0, max_sinkage);
     m_terrain->Initialize(2 * m_hdimX, 2 * m_hdimY, m_spacing);
 
     // If indicated, set node heights from checkpoint file
@@ -336,7 +339,7 @@ void ChVehicleCosimTerrainNodeSCM::OnRender(double time) {
     }
     m_irrapp->BeginScene();
     m_irrapp->DrawAll();
-    irrlicht::tools::drawColorbar(0, 0.1, "Sinkage [m]", m_irrapp->GetDevice(), 1180);
+    irrlicht::tools::drawColorbar(0, max_sinkage, "Sinkage [m]", m_irrapp->GetDevice(), 1180);
     m_irrapp->EndScene();
 #endif
 }
