@@ -47,14 +47,8 @@ namespace vehicle {
 // Construction of the base MBS node
 ChVehicleCosimMBSNode::ChVehicleCosimMBSNode() : ChVehicleCosimBaseNode("MBS") {
     // Default integrator and solver types
-    m_int_type = ChTimestepper::Type::HHT;
-#if defined(CHRONO_PARDISO_MKL)
-    m_slv_type = ChSolver::Type::PARDISO_MKL;
-////#elif defined(CHRONO_MUMPS)
-////    m_slv_type = ChSolver::Type::MUMPS;
-#else
+    m_int_type = ChTimestepper::Type::EULER_IMPLICIT_LINEARIZED;
     m_slv_type = ChSolver::Type::BARZILAIBORWEIN;
-#endif
 
     // Create the (sequential) SMC system
     m_system = new ChSystemSMC;
@@ -85,6 +79,24 @@ void ChVehicleCosimMBSNode::SetIntegratorType(ChTimestepper::Type int_type, ChSo
     ////    if (m_slv_type == ChSolver::Type::MUMPS)
     ////        m_slv_type = ChSolver::Type::BARZILAIBORWEIN;
     ////#endif
+}
+
+// -----------------------------------------------------------------------------
+
+void ChVehicleCosimMBSNode::AttachDrawbarPullRig(std::shared_ptr<ChVehicleCosimDBPRig> rig) {
+    m_rig = rig;
+}
+
+double ChVehicleCosimMBSNode::GetDBP() const {
+    if (m_rig)
+        return m_rig->GetDBP();
+    return 0;
+}
+
+double ChVehicleCosimMBSNode::GetFilteredDBP() const {
+    if (m_rig)
+        return m_rig->GetFilteredDBP();
+    return 0;
 }
 
 // -----------------------------------------------------------------------------
@@ -138,6 +150,13 @@ void ChVehicleCosimMBSNode::Initialize() {
         m_spindles[i] = GetSpindleBody(i);
         double load = GetSpindleLoad(i);
         MPI_Send(&load, 1, MPI_DOUBLE, TIRE_NODE_RANK(i), 0, MPI_COMM_WORLD);
+    }
+
+    // Initialize the DBP rig if one is attached
+    if (m_rig) {
+        m_rig->m_verbose = m_verbose;
+        m_rig->Initialize(GetChassisBody(), tire_info, m_step_size);
+        OnInitializeDBPRig(m_rig->GetMotorFunction());
     }
 }
 
@@ -259,6 +278,9 @@ void ChVehicleCosimMBSNode::Advance(double step_size) {
         double h = std::min<>(m_step_size, step_size - t);
         PreAdvance();
         m_system->DoStepDynamics(h);
+        if (m_rig) {
+            m_rig->OnAdvance(step_size);
+        }
         PostAdvance();
         t += h;
     }

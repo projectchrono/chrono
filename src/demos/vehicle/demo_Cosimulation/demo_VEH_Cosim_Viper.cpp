@@ -67,10 +67,10 @@ class MyDriver : public ViperDriver {
         else
             driving = 3.5 * eff_time;
 
-        if (eff_time < 2)
+        if (eff_time < 4)
             steering = 0;
         else
-            steering = 0.6 * std::sin(CH_C_2PI * (eff_time - 2) / 6);
+            steering = 0.4 * std::cos(CH_C_2PI * (eff_time - 2) / 8);
     
         for (int i = 0; i < 4; i++) {
             drive_speeds[i] = driving;
@@ -120,6 +120,16 @@ int main(int argc, char** argv) {
     bool render = true;
     std::string suffix = "";
     bool verbose = true;
+    bool use_DBP_rig = false;
+
+    double terrain_length = 40;
+    double terrain_width = 20;
+    ChVector<> init_loc(-15, 6, 0.5);
+    if (use_DBP_rig) {
+        terrain_length = 20;
+        terrain_width = 5;
+        init_loc = ChVector<>(-5, 0, 0.5);
+    }
 
     // Prepare output directory.
     std::string out_dir = GetChronoOutputPath() + "VIPER_COSIM";
@@ -143,13 +153,19 @@ int main(int argc, char** argv) {
         if (verbose)
             cout << "[Viper node  ] rank = " << rank << " running on: " << procname << endl;
 
-        auto driver = chrono_types::make_shared<MyDriver>(0.2);
         auto viper = new ChVehicleCosimViperNode();
+        if (use_DBP_rig) {
+            auto act_type = ChVehicleCosimDBPRigImposedSlip::ActuationType::SET_ANG_VEL;
+            double base_vel = 1;
+            double slip = 0;
+            auto dbp_rig = chrono_types::make_shared<ChVehicleCosimDBPRigImposedSlip>(act_type, base_vel, slip);
+            viper->AttachDrawbarPullRig(dbp_rig);
+        }
+        auto driver = chrono_types::make_shared<MyDriver>(0.2);
         viper->SetDriver(driver);
-
         viper->SetIntegratorType(ChTimestepper::Type::EULER_IMPLICIT_LINEARIZED, ChSolver::Type::BARZILAIBORWEIN);
         viper->SetVerbose(verbose);
-        viper->SetInitialLocation(ChVector<>(-15, -8, 0.5));
+        viper->SetInitialLocation(init_loc);
         viper->SetInitialYaw(0);
         viper->SetStepSize(step_size);
         viper->SetNumThreads(1);
@@ -164,7 +180,7 @@ int main(int argc, char** argv) {
             cout << "[Terrain node] rank = " << rank << " running on: " << procname << endl;
 
         auto terrain = new ChVehicleCosimTerrainNodeSCM(vehicle::GetDataFile("cosim/scm.json"));
-        terrain->SetDimensions(40, 20);
+        terrain->SetDimensions(terrain_length, terrain_width);
         terrain->SetVerbose(verbose);
         terrain->SetStepSize(step_size);
         terrain->SetNumThreads(2);

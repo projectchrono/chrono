@@ -28,6 +28,7 @@
 #include "chrono_vehicle/ChSubsysDefs.h"
 
 #include "chrono_vehicle/cosim/ChVehicleCosimBaseNode.h"
+#include "chrono_vehicle/cosim/ChVehicleCosimDBPRig.h"
 
 namespace chrono {
 namespace vehicle {
@@ -51,6 +52,17 @@ class CH_VEHICLE_API ChVehicleCosimMBSNode : public ChVehicleCosimBaseNode {
     void SetIntegratorType(ChTimestepper::Type int_type,  ///< integrator type (default: HHT)
                            ChSolver::Type slv_type        ///< solver type (default:: MKL)
     );
+
+    /// Attach a drawbar pull rig to the MBS system.
+    void AttachDrawbarPullRig(std::shared_ptr<ChVehicleCosimDBPRig> rig);
+
+    /// Return current raw drawbar-pull value.
+    /// Returns zero if no DBP rig is attached.
+    double GetDBP() const;
+
+    /// Return current filtered drawbar-pull value.
+    /// Returns zero if no DBP rig is attached.
+    double GetFilteredDBP() const;
 
     /// Initialize this node.
     /// This function allows the node to initialize itself and, optionally, perform an initial data exchange with any
@@ -104,6 +116,16 @@ class CH_VEHICLE_API ChVehicleCosimMBSNode : public ChVehicleCosimBaseNode {
     /// Get the body state of the spindle body to which the i-th wheel/tire is attached.
     virtual BodyState GetSpindleState(unsigned int i) const = 0;
 
+    /// Get the "chassis" body.
+    /// Only used is a drawbar-pull rig is attached.
+    virtual std::shared_ptr<ChBody> GetChassisBody() const = 0;
+
+    /// Impose spindle angular speed function.
+    /// This function is called (during initialization, after the call to InitializeMBS) only if a drawbar-pull rig is
+    /// attached. A derived class must enforce the specified angular speed on all spindles and, if appropriate,
+    /// disconnect any other power transmission mechanism (such as a powertrain/driveline).
+    virtual void OnInitializeDBPRig(std::shared_ptr<ChFunction> func) = 0;
+
   protected:
     ChSystemSMC* m_system;                           ///< containing system
     ChTimestepper::Type m_int_type;                  ///< integrator type
@@ -111,6 +133,8 @@ class CH_VEHICLE_API ChVehicleCosimMBSNode : public ChVehicleCosimBaseNode {
     std::shared_ptr<ChTimestepperHHT> m_integrator;  ///< HHT integrator object
 
     std::vector<std::shared_ptr<ChBody>> m_spindles;  ///< spindle bodies
+
+    std::shared_ptr<ChVehicleCosimDBPRig> m_rig;  ///< DBP rig
 
   private:
     void InitializeSystem();

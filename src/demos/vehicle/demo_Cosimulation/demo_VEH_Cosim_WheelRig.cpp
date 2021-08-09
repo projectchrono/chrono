@@ -66,7 +66,7 @@ bool GetProblemSpecs(int argc,
                      double& KE_threshold,
                      double& settling_time,
                      double& sim_time,
-                     ChVehicleCosimRigNode::ActuationType& act_type,
+                     ChVehicleCosimDBPRigImposedSlip::ActuationType& act_type,
                      double& base_vel,
                      double& slip,
                      double& total_mass,
@@ -114,7 +114,7 @@ int main(int argc, char** argv) {
     // Parse command line arguments
     std::string terrain_specfile;
     std::string tire_specfile;
-    ChVehicleCosimRigNode::ActuationType act_type = ChVehicleCosimRigNode::ActuationType::SET_ANG_VEL;
+    auto act_type = ChVehicleCosimDBPRigImposedSlip::ActuationType::SET_ANG_VEL;
     int nthreads_tire = 1;
     int nthreads_terrain = 1;
     double step_size = 1e-4;
@@ -214,17 +214,20 @@ int main(int argc, char** argv) {
         if (verbose)
             cout << "[Rig node    ] rank = " << rank << " running on: " << procname << endl;
 
-        auto rig = new ChVehicleCosimRigNode(act_type, base_vel, slip);
-        rig->SetVerbose(verbose);
-        rig->SetStepSize(step_size);
-        rig->SetNumThreads(1);
-        rig->SetTotalMass(total_mass);
-        rig->SetDBPfilterWindow(dbp_filter_window);
-        rig->SetOutDir(out_dir, suffix);
-        if (verbose)
-            cout << "[Rig node    ] output directory: " << rig->GetOutDirName() << endl;
+        auto dbp_rig = chrono_types::make_shared<ChVehicleCosimDBPRigImposedSlip>(act_type, base_vel, slip);
+        dbp_rig->SetDBPfilterWindow(dbp_filter_window);
 
-        node = rig;
+        auto mbs = new ChVehicleCosimRigNode();
+        mbs->SetVerbose(verbose);
+        mbs->SetStepSize(step_size);
+        mbs->SetNumThreads(1);
+        mbs->SetTotalMass(total_mass);
+        mbs->SetOutDir(out_dir, suffix);
+        mbs->AttachDrawbarPullRig(dbp_rig);
+        if (verbose)
+            cout << "[Rig node    ] output directory: " << mbs->GetOutDirName() << endl;
+
+        node = mbs;
 
     }  // if RIG_NODE_RANK
 
@@ -435,7 +438,7 @@ bool GetProblemSpecs(int argc,
                      double& KE_threshold,
                      double& settling_time,
                      double& sim_time,
-                     ChVehicleCosimRigNode::ActuationType& act_type,
+                     ChVehicleCosimDBPRigImposedSlip::ActuationType& act_type,
                      double& base_vel,
                      double& slip,
                      double& total_mass,
@@ -455,7 +458,7 @@ bool GetProblemSpecs(int argc,
     cli.AddOption<std::string>("Experiment", "tire_specfile", "Tire specification file [JSON format]");
 
     cli.AddOption<std::string>("Experiment", "actuation_type", "Actuation type (SET_LIN_VEL or SET_ANG_VEL)",
-                               ChVehicleCosimRigNode::GetActuationTypeAsString(act_type));
+                               ChVehicleCosimDBPRigImposedSlip::GetActuationTypeAsString(act_type));
     cli.AddOption<double>("Experiment", "base_vel", "Base velocity [m/s or rad/s]", std::to_string(base_vel));
     cli.AddOption<double>("Experiment", "slip", "Longitudinal slip", std::to_string(slip));
     cli.AddOption<double>("Experiment", "total_mass", "Total mass [kg]", std::to_string(total_mass));
@@ -512,8 +515,9 @@ bool GetProblemSpecs(int argc,
         return false;
     }
 
-    act_type = ChVehicleCosimRigNode::GetActuationTypeFromString(cli.GetAsType<std::string>("actuation_type"));
-    if (act_type == ChVehicleCosimRigNode::ActuationType::UNKNOWN) {
+    act_type =
+        ChVehicleCosimDBPRigImposedSlip::GetActuationTypeFromString(cli.GetAsType<std::string>("actuation_type"));
+    if (act_type == ChVehicleCosimDBPRigImposedSlip::ActuationType::UNKNOWN) {
         if (rank == 0) {
             cout << "\nERROR: Unrecognized actuation type!\n\n" << endl;
             cli.Help();
@@ -524,10 +528,10 @@ bool GetProblemSpecs(int argc,
     base_vel = cli.GetAsType<double>("base_vel");
     slip = cli.GetAsType<double>("slip");
 
-    if (act_type == ChVehicleCosimRigNode::ActuationType::SET_LIN_VEL && slip > 0.95) {
+    if (act_type == ChVehicleCosimDBPRigImposedSlip::ActuationType::SET_LIN_VEL && slip > 0.95) {
         if (rank == 0) {
             cout << "\nERROR: Slip value " << slip << " too large for "
-                 << ChVehicleCosimRigNode::GetActuationTypeAsString(act_type) << " actuation mode!\n\n"
+                 << ChVehicleCosimDBPRigImposedSlip::GetActuationTypeAsString(act_type) << " actuation mode!\n\n"
                  << endl;
             cli.Help();
         }

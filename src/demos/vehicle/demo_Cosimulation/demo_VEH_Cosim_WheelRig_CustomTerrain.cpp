@@ -268,21 +268,26 @@ int main(int argc, char** argv) {
         if (verbose)
             cout << "[Rig node    ] rank = " << rank << " running on: " << procname << endl;
 
+        auto act_type = ChVehicleCosimDBPRigImposedSlip::ActuationType::SET_ANG_VEL;
         double total_mass = 100;
         double base_vel = 1.0;
         double slip = 0;
         double dbp_filter_window = 0.1;
-        auto rig = new ChVehicleCosimRigNode(ChVehicleCosimRigNode::ActuationType::SET_ANG_VEL, base_vel, slip);
-        rig->SetVerbose(verbose);
-        rig->SetStepSize(step_size);
-        rig->SetNumThreads(1);
-        rig->SetTotalMass(total_mass);
-        rig->SetDBPfilterWindow(dbp_filter_window);
-        rig->SetOutDir(out_dir, suffix);
-        if (verbose)
-            cout << "[Rig node    ] output directory: " << rig->GetOutDirName() << endl;
 
-        node = rig;
+        auto dbp_rig = chrono_types::make_shared<ChVehicleCosimDBPRigImposedSlip>(act_type, base_vel, slip);
+        dbp_rig->SetDBPfilterWindow(dbp_filter_window);
+
+        auto mbs = new ChVehicleCosimRigNode();
+        mbs->SetVerbose(verbose);
+        mbs->SetStepSize(step_size);
+        mbs->SetNumThreads(1);
+        mbs->SetTotalMass(total_mass);
+        mbs->SetOutDir(out_dir, suffix);
+        mbs->AttachDrawbarPullRig(dbp_rig);
+        if (verbose)
+            cout << "[Rig node    ] output directory: " << mbs->GetOutDirName() << endl;
+
+        node = mbs;
     }
 
     if (rank == TIRE_NODE_RANK(0)) {

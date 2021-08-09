@@ -64,6 +64,30 @@ static WheelID wheel_id(unsigned int i) {
 
 // -----------------------------------------------------------------------------
 
+// Custom Viper driver class used when a DBP rig is attached.
+class DBPDriver : public ViperDriver {
+  public:
+    DBPDriver(std::shared_ptr<ChFunction> dbp_mot_func) : m_func(dbp_mot_func) {}
+    ~DBPDriver() {}
+
+    virtual DriveMotorType GetDriveMotorType() const override { return DriveMotorType::SPEED; }
+
+    virtual void Update(double time) {
+        double driving = m_func->Get_y(time);
+        double steering = 0;
+        double lifting = 0;
+        for (int i = 0; i < 4; i++) {
+            drive_speeds[i] = driving;
+            steer_angles[i] = steering;
+            lift_angles[i] = lifting;
+        }
+    }
+
+    std::shared_ptr<ChFunction> m_func;
+};
+
+// -----------------------------------------------------------------------------
+
 void ChVehicleCosimViperNode::InitializeMBS(const std::vector<ChVector<>>& tire_info,
                                             const ChVector2<>& terrain_size,
                                             double terrain_height) {
@@ -109,6 +133,16 @@ BodyState ChVehicleCosimViperNode::GetSpindleState(unsigned int i) const {
     return state;
 }
 
+std::shared_ptr<ChBody> ChVehicleCosimViperNode::GetChassisBody() const {
+    return m_viper->GetChassis()->GetBody();
+}
+
+void ChVehicleCosimViperNode::OnInitializeDBPRig(std::shared_ptr<ChFunction> func) {
+    // Overwrite any driver attached to the underlying Viper rover with a custom driver which imposes zero steering and
+    // wheel angular speeds as returned by the provided motor function.
+    m_viper->SetDriver(chrono_types::make_shared<DBPDriver>(func));
+}
+
 // -----------------------------------------------------------------------------
 
 void ChVehicleCosimViperNode::PreAdvance() {
@@ -130,9 +164,18 @@ void ChVehicleCosimViperNode::OutputData(int frame) {
 
         const ChVector<>& pos = m_viper->GetChassis()->GetPos();
 
+        double dbp = 0;
+        double dbp_filtered = 0;
+        if (m_rig) {
+            dbp = m_rig->GetDBP();
+            dbp_filtered = m_rig->GetFilteredDBP();
+        }
+
         m_outf << m_system->GetChTime() << del;
         // Body states
         m_outf << pos.x() << del << pos.y() << del << pos.z() << del;
+        // Raw and filtered actuator force X component (drawbar pull)
+        m_outf << dbp << del << dbp_filtered << del;
         // Solver statistics (for last integration step)
         m_outf << m_system->GetTimerStep() << del << m_system->GetTimerLSsetup() << del << m_system->GetTimerLSsolve()
                << del << m_system->GetTimerUpdate() << del;
@@ -157,14 +200,21 @@ void ChVehicleCosimViperNode::OutputData(int frame) {
 
 void ChVehicleCosimViperNode::WriteBodyInformation(utils::CSV_writer& csv) {
     // Write number of bodies
-    csv << 1 + m_num_spindles << endl;
+    csv << 1 + 4 * 4 << endl;
 
     // Write body state information
-    auto chassis_pos = m_viper->GetChassis()->GetPos();
-    auto chassis_rot = m_viper->GetChassis()->GetRot();
-    csv << chassis_pos << chassis_rot << endl;
-    for (int is = 0; is < m_num_spindles; is++) {
-        csv << m_spindles[is]->GetFrame_REF_to_abs().GetPos() << m_spindles[is]->GetFrame_REF_to_abs().GetRot() << endl;
+    auto ch = m_viper->GetChassis();
+    csv << ch->GetPos() << ch->GetRot() << endl;
+    for (unsigned int i = 0; i < 4; i++) {
+        auto id = wheel_id(i);
+        auto ua = m_viper->GetUpperArm(id);
+        auto la = m_viper->GetLowerArm(id);
+        auto ur = m_viper->GetUpright(id);
+        auto wh = m_viper->GetWheel(id);
+        csv << ua->GetPos() << ua->GetRot() << endl;
+        csv << la->GetPos() << la->GetRot() << endl;
+        csv << ur->GetPos() << ur->GetRot() << endl;
+        csv << wh->GetPos() << wh->GetRot() << endl;
     }
 }
 

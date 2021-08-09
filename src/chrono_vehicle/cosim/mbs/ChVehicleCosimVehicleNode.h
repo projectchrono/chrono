@@ -93,6 +93,12 @@ class CH_VEHICLE_API ChVehicleCosimVehicleNode : public ChVehicleCosimMBSNode {
     /// Get the body state of the spindle body to which the i-th wheel/tire is attached.
     virtual BodyState GetSpindleState(unsigned int i) const override;
 
+    /// Get the "chassis" body.
+    virtual std::shared_ptr<ChBody> GetChassisBody() const override;
+
+    /// Impose spindle angular speed as dictated by an attached DBP rig.
+    virtual void OnInitializeDBPRig(std::shared_ptr<ChFunction> func) override;
+
     void WriteBodyInformation(utils::CSV_writer& csv);
 
   private:

@@ -115,6 +115,14 @@ BodyState ChVehicleCosimVehicleNode::GetSpindleState(unsigned int i) const {
     return state;
 }
 
+std::shared_ptr<ChBody> ChVehicleCosimVehicleNode::GetChassisBody() const {
+    return m_vehicle->GetChassisBody();
+}
+
+void ChVehicleCosimVehicleNode::OnInitializeDBPRig(std::shared_ptr<ChFunction> func) {
+    //// TODO
+}
+
 // -----------------------------------------------------------------------------
 
 void ChVehicleCosimVehicleNode::PreAdvance() {
