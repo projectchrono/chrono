@@ -280,9 +280,9 @@ void ChVSGApp2::DrawObject(std::shared_ptr<ChBody> abody) {
                         model_box.push_back(model);
             */
             auto transform = vsg::MatrixTransform::create();
-            transform->setMatrix(vsg::translate(pos_final.x(), pos_final.y(), pos_final.z()) *
-                                 vsg::rotate(angle, axis.x(), axis.y(), axis.z()) *
-                                 vsg::scale(size.x(), size.y(), size.z()));
+            transform->matrix = vsg::translate(pos_final.x(), pos_final.y(), pos_final.z()) *
+                                vsg::rotate(angle, axis.x(), axis.y(), axis.z()) *
+                                vsg::scale(size.x(), size.y(), size.z());
             VSGIndexBox box(abody, asset, transform);
             if (textureFound) {
                 box.Initialize(bodyTexture);
@@ -313,8 +313,8 @@ void ChVSGApp2::DrawObject(std::shared_ptr<ChBody> abody) {
                         model_sphere.push_back(model);
             */
             auto transform = vsg::MatrixTransform::create();
-            transform->setMatrix(vsg::translate(pos_final.x(), pos_final.y(), pos_final.z()) *
-                                 vsg::rotate(angle, axis.x(), axis.y(), axis.z()) * vsg::scale(radius, radius, radius));
+            transform->matrix = vsg::translate(pos_final.x(), pos_final.y(), pos_final.z()) *
+                                vsg::rotate(angle, axis.x(), axis.y(), axis.z()) * vsg::scale(radius, radius, radius);
 
             VSGIndexSphere sphere(abody, asset, transform);
             if (textureFound) {
@@ -358,8 +358,8 @@ void ChVSGApp2::DrawObject(std::shared_ptr<ChBody> abody) {
                         model_cylinder.push_back(model);
             */
             auto transform = vsg::MatrixTransform::create();
-            transform->setMatrix(vsg::translate(pos_final.x(), pos_final.y(), pos_final.z()) *
-                                 vsg::rotate(angle, axis.x(), axis.y(), axis.z()) * vsg::scale(rad, rad, height * 0.5));
+            transform->matrix = vsg::translate(pos_final.x(), pos_final.y(), pos_final.z()) *
+                                vsg::rotate(angle, axis.x(), axis.y(), axis.z()) * vsg::scale(rad, rad, height * 0.5);
 
             VSGIndexCylinder cylinder(abody, asset, transform);
             if (textureFound) {
@@ -408,9 +408,9 @@ void ChVSGApp2::UpdateSceneGraph() {
                 ChVector<> size = box_shape->GetBoxGeometry().GetSize();
                 ChVector<> pos_final = pos + center;
                 auto tm = GetTransform(body, asset);
-                tm->setMatrix(vsg::translate(pos_final.x(), pos_final.y(), pos_final.z()) *
-                              vsg::rotate(angle, axis.x(), axis.y(), axis.z()) *
-                              vsg::scale(size.x(), size.y(), size.z()));
+                tm->matrix = vsg::translate(pos_final.x(), pos_final.y(), pos_final.z()) *
+                             vsg::rotate(angle, axis.x(), axis.y(), axis.z()) *
+                             vsg::scale(size.x(), size.y(), size.z());
             }
         }
     }
@@ -419,9 +419,9 @@ void ChVSGApp2::UpdateSceneGraph() {
 vsg::ref_ptr<vsg::MatrixTransform> ChVSGApp2::GetTransform(std::shared_ptr<ChBody> body,
                                                            std::shared_ptr<ChAsset> asset) {
     vsg::ref_ptr<vsg::MatrixTransform> transform;
-    size_t numCh = m_scenegraph->getNumChildren();
+    size_t numCh = m_scenegraph->children.size();
     for (size_t iChild = 0; iChild < numCh; iChild++) {
-        auto myNode = m_scenegraph->getChild(iChild);
+        auto myNode = m_scenegraph->children[iChild];
         std::shared_ptr<ChBody> bodyInNode;
         bool bodyOk = myNode->getValue("bodyPtr", bodyInNode);
         std::shared_ptr<ChAsset> assetInNode;

@@ -21,13 +21,16 @@ MARK_AS_ADVANCED(CLEAR VSG_ROOT)
 #-------------------------------------------------------------------------------
 # List all the files in the ChronoEngine_vsg lib
 SET(ChronoEngine_VSG_SOURCES
+    VSGApp.cpp
     ChVSGApp.cpp
     ChVSGApp2.cpp
     assets/ChPBRSetting.cpp
     assets/ChPBRMaps.cpp
+    core/VSGIndexMesh.cpp
     resources/ChVSGPbrMaterial.cpp
     resources/ChVSGPhongMaterial.cpp
     shapes/ChVSGIndexMesh.cpp
+    shapes/VSGBox.cpp
     shapes/VSGIndexBox.cpp
     shapes/VSGIndexSphere.cpp
     shapes/VSGIndexCylinder.cpp
@@ -38,15 +41,23 @@ SET(ChronoEngine_VSG_SOURCES
 )
 
 SET(ChronoEngine_VSG_HEADERS
+    VSGApp.h
     ChVSGApp.h
     ChVSGApp2.h
     assets/ChPBRSetting.h
     assets/ChPBRMaps.h
     core/ChApiVSG.h
+    core/VSGIndexMesh.h
+    core/vsg_vertex_shader.h
+    core/vsg_phong_fragment_shader.h
+    core/vsg_pbr_fragment_shader.h
     resources/ChVSGSettings.h
     resources/ChVSGPbrMaterial.h
     resources/ChVSGPhongMaterial.h
+    resources/VSGPbrMaterial.h
+    resources/VSGPhongMaterial.h
     shapes/ChVSGIndexMesh.h
+    shapes/VSGBox.h
     shapes/VSGIndexBox.h
     shapes/VSGIndexSphere.h
     shapes/VSGIndexCylinder.h

@@ -363,9 +363,9 @@ void ChVSGApp::BuildSceneGraph() {
                 ChVector<> size = box_shape->GetBoxGeometry().GetSize();
                 ChVector<> pos_final = pos + center;
                 auto transform = vsg::MatrixTransform::create();
-                transform->setMatrix(vsg::translate(pos_final.x(), pos_final.y(), pos_final.z()) *
-                                     vsg::rotate(angle, axis.x(), axis.y(), axis.z()) *
-                                     vsg::scale(size.x(), size.y(), size.z()));
+                transform->matrix = vsg::translate(pos_final.x(), pos_final.y(), pos_final.z()) *
+                                    vsg::rotate(angle, axis.x(), axis.y(), axis.z()) *
+                                    vsg::scale(size.x(), size.y(), size.z());
                 VSGIndexBox box(body, asset, transform);
                 if (textureFound) {
                     box.Initialize(bodyTexture);
@@ -386,9 +386,9 @@ void ChVSGApp::BuildSceneGraph() {
                 ChVector<> pos_final = pos + center;
 
                 auto transform = vsg::MatrixTransform::create();
-                transform->setMatrix(vsg::translate(pos_final.x(), pos_final.y(), pos_final.z()) *
-                                     vsg::rotate(angle, axis.x(), axis.y(), axis.z()) *
-                                     vsg::scale(size.x(), size.y(), size.z()));
+                transform->matrix = vsg::translate(pos_final.x(), pos_final.y(), pos_final.z()) *
+                                    vsg::rotate(angle, axis.x(), axis.y(), axis.z()) *
+                                    vsg::scale(size.x(), size.y(), size.z());
 
                 VSGIndexSphere sphere(body, asset, transform);
                 if (textureFound) {
@@ -410,9 +410,9 @@ void ChVSGApp::BuildSceneGraph() {
                 ChVector<> pos_final = pos + center;
                 auto transform = vsg::MatrixTransform::create();
 
-                transform->setMatrix(vsg::translate(pos_final.x(), pos_final.y(), pos_final.z()) *
-                                     vsg::rotate(angle, axis.x(), axis.y(), axis.z()) *
-                                     vsg::scale(size.x(), size.y(), size.z()));
+                transform->matrix = vsg::translate(pos_final.x(), pos_final.y(), pos_final.z()) *
+                                    vsg::rotate(angle, axis.x(), axis.y(), axis.z()) *
+                                    vsg::scale(size.x(), size.y(), size.z());
 
                 VSGIndexSphere ellipsoid(body, asset, transform);
                 if (textureFound) {
@@ -434,9 +434,9 @@ void ChVSGApp::BuildSceneGraph() {
                 double height = dir.Length();
                 ChVector<> pos_final = pos + center;
                 auto transform = vsg::MatrixTransform::create();
-                transform->setMatrix(vsg::translate(pos_final.x(), pos_final.y(), pos_final.z()) *
-                                     vsg::rotate(angle, axis.x(), axis.y(), axis.z()) *
-                                     vsg::scale(radius, radius, height));
+                transform->matrix = vsg::translate(pos_final.x(), pos_final.y(), pos_final.z()) *
+                                    vsg::rotate(angle, axis.x(), axis.y(), axis.z()) *
+                                    vsg::scale(radius, radius, height);
                 VSGIndexCylinder cylinder(body, asset, transform);
                 if (textureFound) {
                     cylinder.Initialize(bodyTexture);
@@ -486,9 +486,9 @@ void ChVSGApp::UpdateSceneGraph() {
                 ChVector<> size = box_shape->GetBoxGeometry().GetSize();
                 ChVector<> pos_final = pos + center;
                 auto tm = GetTransform(body, asset);
-                tm->setMatrix(vsg::translate(pos_final.x(), pos_final.y(), pos_final.z()) *
-                              vsg::rotate(angle, axis.x(), axis.y(), axis.z()) *
-                              vsg::scale(size.x(), size.y(), size.z()));
+                tm->matrix = vsg::translate(pos_final.x(), pos_final.y(), pos_final.z()) *
+                             vsg::rotate(angle, axis.x(), axis.y(), axis.z()) *
+                             vsg::scale(size.x(), size.y(), size.z());
             }
             if (ChSphereShape* sphere_shape = dynamic_cast<ChSphereShape*>(asset.get())) {
                 // GetLog() << "Found SphereShape!\n";
@@ -496,9 +496,9 @@ void ChVSGApp::UpdateSceneGraph() {
                 ChVector<> size(radius, radius, radius);
                 ChVector<> pos_final = pos + center;
                 auto tm = GetTransform(body, asset);
-                tm->setMatrix(vsg::translate(pos_final.x(), pos_final.y(), pos_final.z()) *
-                              vsg::rotate(angle, axis.x(), axis.y(), axis.z()) *
-                              vsg::scale(size.x(), size.y(), size.z()));
+                tm->matrix = vsg::translate(pos_final.x(), pos_final.y(), pos_final.z()) *
+                             vsg::rotate(angle, axis.x(), axis.y(), axis.z()) *
+                             vsg::scale(size.x(), size.y(), size.z());
             }
             if (ChEllipsoidShape* ellipsoid_shape = dynamic_cast<ChEllipsoidShape*>(asset.get())) {
                 // GetLog() << "Found ElipsoidShape!\n";
@@ -506,9 +506,9 @@ void ChVSGApp::UpdateSceneGraph() {
                 ChVector<> size(radius.x(), radius.y(), radius.z());
                 ChVector<> pos_final = pos + center;
                 auto tm = GetTransform(body, asset);
-                tm->setMatrix(vsg::translate(pos_final.x(), pos_final.y(), pos_final.z()) *
-                              vsg::rotate(angle, axis.x(), axis.y(), axis.z()) *
-                              vsg::scale(size.x(), size.y(), size.z()));
+                tm->matrix = vsg::translate(pos_final.x(), pos_final.y(), pos_final.z()) *
+                             vsg::rotate(angle, axis.x(), axis.y(), axis.z()) *
+                             vsg::scale(size.x(), size.y(), size.z());
             }
             if (ChCylinderShape* cylinder_shape = dynamic_cast<ChCylinderShape*>(asset.get())) {
                 // GetLog() << "Found CylinderShape!\n";
@@ -517,8 +517,8 @@ void ChVSGApp::UpdateSceneGraph() {
                 double height = dir.Length();
                 ChVector<> pos_final = pos + center;
                 auto tm = GetTransform(body, asset);
-                tm->setMatrix(vsg::translate(pos_final.x(), pos_final.y(), pos_final.z()) *
-                              vsg::rotate(angle, axis.x(), axis.y(), axis.z()) * vsg::scale(radius, radius, height));
+                tm->matrix = vsg::translate(pos_final.x(), pos_final.y(), pos_final.z()) *
+                             vsg::rotate(angle, axis.x(), axis.y(), axis.z()) * vsg::scale(radius, radius, height);
             }
         }
     }
@@ -527,9 +527,9 @@ void ChVSGApp::UpdateSceneGraph() {
 vsg::ref_ptr<vsg::MatrixTransform> ChVSGApp::GetTransform(std::shared_ptr<ChBody> body,
                                                           std::shared_ptr<ChAsset> asset) {
     vsg::ref_ptr<vsg::MatrixTransform> transform;
-    size_t numCh = m_scenegraph->getNumChildren();
+    size_t numCh = m_scenegraph->children.size();
     for (size_t iChild = 0; iChild < numCh; iChild++) {
-        auto myNode = m_scenegraph->getChild(iChild);
+        auto myNode = m_scenegraph->children[iChild];
         std::shared_ptr<ChBody> bodyInNode;
         bool bodyOk = myNode->getValue("bodyPtr", bodyInNode);
         std::shared_ptr<ChAsset> assetInNode;

@@ -2,11 +2,7 @@
 # List of all OpenGL demos
 
 SET(DEMOS
-  demo_VSG_assets
-  demo_VSG_first
-  demo_VSG_pbr
-  demo_VSG_friction
-  demo_VSG_fourbar
+  demo_VSG_shapes
 )
 
 set(CMAKE_CXX_STANDARD 17)
