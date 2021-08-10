@@ -36,7 +36,6 @@
 
 #include "chrono_multicore/ChDataManager.h"
 #include "chrono_multicore/ChMulticoreDefines.h"
-#include "chrono_multicore/collision/ChCollisionSystemMulticore.h"
 
 using namespace chrono;
 using namespace collision;
@@ -83,15 +82,15 @@ ChSystemDistributed::ChSystemDistributed(MPI_Comm communicator, double ghostlaye
     data_manager->host_data.collide_rigid.reserve(init);
     data_manager->host_data.mass_rigid.reserve(init);
 
-    data_manager->shape_data.fam_rigid.reserve(init);
-    data_manager->shape_data.id_rigid.reserve(init);
-    data_manager->shape_data.typ_rigid.reserve(init);
-    data_manager->shape_data.start_rigid.reserve(init);
-    data_manager->shape_data.length_rigid.reserve(init);
-    data_manager->shape_data.ObR_rigid.reserve(init);
-    data_manager->shape_data.ObA_rigid.reserve(init);
+    data_manager->cd_data->shape_data.fam_rigid.reserve(init);
+    data_manager->cd_data->shape_data.id_rigid.reserve(init);
+    data_manager->cd_data->shape_data.typ_rigid.reserve(init);
+    data_manager->cd_data->shape_data.start_rigid.reserve(init);
+    data_manager->cd_data->shape_data.length_rigid.reserve(init);
+    data_manager->cd_data->shape_data.ObR_rigid.reserve(init);
+    data_manager->cd_data->shape_data.ObA_rigid.reserve(init);
 
-    data_manager->shape_data.sphere_rigid.reserve(init);
+    data_manager->cd_data->shape_data.sphere_rigid.reserve(init);
 
     collision_system = chrono_types::make_shared<ChCollisionSystemDistributed>(data_manager, ddm);
 
@@ -288,7 +287,7 @@ void ChSystemDistributed::RemoveBodyExchange(int index) {
 
 // Trusts the ID to be correct on the body
 void ChSystemDistributed::RemoveBody(std::shared_ptr<ChBody> body) {
-    int index = body->GetId();
+    uint index = body->GetId();
     if (assembly.bodylist.size() <= index || body.get() != assembly.bodylist[index].get())
         return;
 
@@ -351,6 +350,8 @@ void ChSystemDistributed::PrintBodyStatus() {
 }
 
 void ChSystemDistributed::PrintShapeData() {
+    const auto& shape_data = data_manager->cd_data->shape_data;
+
     std::vector<std::shared_ptr<ChBody>>::iterator bl_itr = assembly.bodylist.begin();
     int i = 0;
     for (; bl_itr != assembly.bodylist.end(); bl_itr++, i++) {
@@ -361,11 +362,11 @@ void ChSystemDistributed::PrintShapeData() {
                 std::string msg;
                 int shape_index = ddm->body_shapes[body_start + j];
 
-                switch (data_manager->shape_data.typ_rigid[shape_index]) {
+                switch (shape_data.typ_rigid[shape_index]) {
                     case ChCollisionShape::Type::SPHERE:
                         printf(
                             "%d | Sphere: r %.3f, ", my_rank,
-                            data_manager->shape_data.sphere_rigid[data_manager->shape_data.start_rigid[shape_index]]);
+                            shape_data.sphere_rigid[shape_data.start_rigid[shape_index]]);
                         break;
                     case ChCollisionShape::Type::BOX:
                         printf("%d | Box: ", my_rank);
@@ -378,12 +379,14 @@ void ChSystemDistributed::PrintShapeData() {
         }
     }
 
-    printf("%d | NumShapes: %lu NumBodies: %d\n", my_rank, (unsigned long)ddm->data_manager->shape_data.id_rigid.size(), i);
-    printf("%d | num_rigid_shapes: %d, num_rigid_bodies: %d\n", my_rank, ddm->data_manager->num_rigid_shapes,
+    printf("%d | NumShapes: %lu NumBodies: %d\n", my_rank, (unsigned long)shape_data.id_rigid.size(), i);
+    printf("%d | num_rigid_shapes: %d, num_rigid_bodies: %d\n", my_rank, data_manager->cd_data->num_rigid_shapes,
            ddm->data_manager->num_rigid_bodies);
 }
 
 void ChSystemDistributed::PrintEfficiency() {
+    const auto& shape_data = data_manager->cd_data->shape_data;
+
     double used = 0.0;
     for (int i = 0; i < assembly.bodylist.size(); i++) {
         if (ddm->comm_status[i] != distributed::EMPTY) {
@@ -393,13 +396,13 @@ void ChSystemDistributed::PrintEfficiency() {
     used = used / assembly.bodylist.size();
 
     double shapes_used = 0.0;
-    for (int i = 0; i < data_manager->shape_data.id_rigid.size(); i++) {
-        if (data_manager->shape_data.id_rigid[i] != UINT_MAX) {
+    for (int i = 0; i < shape_data.id_rigid.size(); i++) {
+        if (shape_data.id_rigid[i] != UINT_MAX) {
             shapes_used += 1.0;
         }
     }
 
-    shapes_used = shapes_used / data_manager->shape_data.id_rigid.size();
+    shapes_used = shapes_used / shape_data.id_rigid.size();
 
     FILE* fp;
     std::string filename = std::to_string(my_rank) + "Efficency.txt";
@@ -442,8 +445,10 @@ void ChSystemDistributed::CheckIds() {
 }
 
 void ChSystemDistributed::SanityCheck() {
+    const auto& shape_data = data_manager->cd_data->shape_data;
+
     // Check all shapes
-    for (auto itr = data_manager->shape_data.id_rigid.begin(); itr != data_manager->shape_data.id_rigid.end(); itr++) {
+    for (auto itr = shape_data.id_rigid.begin(); itr != shape_data.id_rigid.end(); itr++) {
         if (*itr != UINT_MAX) {
             int local_id = *itr;
             distributed::COMM_STATUS stat = ddm->comm_status[local_id];
@@ -527,12 +532,14 @@ void ChSystemDistributed::SetSphereShapes(const std::vector<uint>& gids,
 }
 
 void ChSystemDistributed::SetSphereShape(uint gid, int shape_idx, double radius) {
+    auto& shape_data = data_manager->cd_data->shape_data;
+
     int local_id = ddm->GetLocalIndex(gid);
     if (local_id != -1 && ddm->comm_status[local_id] != distributed::EMPTY) {
         int ddm_start = ddm->body_shape_start[local_id];
         int dm_start = ddm->body_shapes[ddm_start + shape_idx];  // index in data_manager of the desired shape
-        int sphere_start = data_manager->shape_data.start_rigid[dm_start];
-        data_manager->shape_data.sphere_rigid[sphere_start] = radius;
+        int sphere_start = shape_data.start_rigid[dm_start];
+        shape_data.sphere_rigid[sphere_start] = radius;
     }
 }
 
@@ -545,17 +552,16 @@ void ChSystemDistributed::SetTriangleShapes(const std::vector<uint>& gids,
 }
 
 void ChSystemDistributed::SetTriangleShape(uint gid, int shape_idx, const TriData& new_shape) {
+    auto& shape_data = data_manager->cd_data->shape_data;
+
     int local_id = ddm->GetLocalIndex(gid);
     if (local_id != -1 && ddm->comm_status[local_id] != distributed::EMPTY) {
         int ddm_start = ddm->body_shape_start[local_id];
         int dm_start = ddm->body_shapes[ddm_start + shape_idx];  // index in data_manager of the desired shape
-        int triangle_start = data_manager->shape_data.start_rigid[dm_start];
-        data_manager->shape_data.triangle_rigid[triangle_start] =
-            real3(new_shape.v1.x(), new_shape.v1.y(), new_shape.v1.z());
-        data_manager->shape_data.triangle_rigid[triangle_start + 1] =
-            real3(new_shape.v2.x(), new_shape.v2.y(), new_shape.v2.z());
-        data_manager->shape_data.triangle_rigid[triangle_start + 2] =
-            real3(new_shape.v3.x(), new_shape.v3.y(), new_shape.v3.z());
+        int triangle_start = shape_data.start_rigid[dm_start];
+        shape_data.triangle_rigid[triangle_start] = real3(new_shape.v1.x(), new_shape.v1.y(), new_shape.v1.z());
+        shape_data.triangle_rigid[triangle_start + 1] = real3(new_shape.v2.x(), new_shape.v2.y(), new_shape.v2.z());
+        shape_data.triangle_rigid[triangle_start + 2] = real3(new_shape.v3.x(), new_shape.v3.y(), new_shape.v3.z());
     }
 }
 

@@ -22,9 +22,10 @@
 
 #include "chrono/physics/ChSystemSMC.h"
 #include "chrono/parallel/ChOpenMP.h"
+#include "chrono/collision/chrono/ChBroadphase.h"
+#include "chrono/collision/chrono/ChNarrowphase.h"
 #include "chrono_multicore/ChMulticoreDefines.h"
-#include "chrono_multicore/math/real3.h"
-#include "chrono_multicore/math/other_types.h"
+#include "chrono/multicore_math/ChMulticoreMath.h"
 
 namespace chrono {
 
@@ -35,56 +36,54 @@ namespace chrono {
 /// This structure that contains all settings associated with the collision detection phase.
 class collision_settings {
   public:
-    /// The default values are specified in the constructor, use these as
-    /// guidelines when experimenting with your own simulation setup.
-    collision_settings() {
-        // by default the bounding box is not active and the default values for the
-        // bounding box size are not specified.
-        use_aabb_active = false;
-        // I chose to set the default envelope because there is no good default
-        // value (in my opinion, feel free to disagree!) I suggest that the envelope
-        // be set to 5-10 percent of the smallest object radius. Using too large of
-        // a value will slow the collision detection down.
-        collision_envelope = 0;
-        // The number of slices in each direction will greatly effect the speed at
-        // which the collision detection operates. I would suggest that on average
-        // the number of objects in a bin/grid cell should not exceed 100.
-        // NOTE!!! this really depends on the architecture that you run on and how
-        // many cores you are using.
-        bins_per_axis = vec3(20, 20, 20);
-        narrowphase_algorithm = NarrowPhaseType::NARROWPHASE_HYBRID_MPR;
-        grid_density = 5;
-        fixed_bins = true;
-    }
+    collision_settings()
+        : use_aabb_active(false),
+          collision_envelope(0),
+          bins_per_axis(vec3(10, 10, 10)),
+          bin_size(real3(1, 1, 1)),
+          grid_density(5),
+          broadphase_grid(collision::ChBroadphase::GridType::FIXED_RESOLUTION),
+          narrowphase_algorithm(collision::ChNarrowphase::Algorithm::HYBRID) {}
 
-    real3 min_bounding_point, max_bounding_point;
-
-    /// This parameter, similar to the one in chrono inflates each collision shape
-    /// by a certain amount. This is necessary when using NSC as it creates the
-    /// contact constraints before objects acutally come into contact. In general
-    /// this helps with stability.
+    /// For stability of NSC contact, the envelope should be set to 5-10% of the smallest collision shape size (too
+    /// large a value will slow down the narrowphase collision detection). The envelope is the amount by which each
+    /// collision shape is inflated prior to performing the collision detection, in order to create contact constraints
+    /// before shapes actually come in contact. This collision detection system uses a global envelope, used for all
+    /// rigid shapes in the system.
     real collision_envelope;
-    /// Chrono::Multicore has an optional feature that allows the user to set a
-    /// bounding box that automatically freezes (makes inactive) any object that
-    /// exits the bounding box.
+
+    /// Flag controlling the monitoring of shapes outside active bounding box.
+    /// If enabled, objects whose collision shapes exit the active bounding box are deactivated (frozen).
+    /// The size of the bounding box is specified by its min and max extents.
     bool use_aabb_active;
-    /// The size of the bounding box (if set to active) is specified by its min and max extents.
+
+    /// Lower corner of the axis-aligned bounding box (if set to active).
     real3 aabb_min;
-    /// The size of the bounding box (if set to active) is specified by its min and max extents.
+
+    /// Upper corner of the axis-aligned bounding box (if set to active).
     real3 aabb_max;
-    /// This variable is the primary method to control the granularity of the
-    /// collision detection grid used for the broadphase.
-    /// As the name suggests, it is the number of slices along each axis. During
-    /// the broadphase stage the extents of the simulation are computed and then
-    /// sliced according to the variable.
+
+    /// Method for controlling granularity of the broadphase collision grid.
+    collision::ChBroadphase::GridType broadphase_grid;
+
+    /// Number of bins for the broadphase collision grid. This is the default method to control the granularity of the
+    /// collision detection grid used for the broadphase. During the broadphase stage the extents of the simulation are
+    /// computed and then sliced according to the variable.
     vec3 bins_per_axis;
-    /// There are multiple narrowphase algorithms implemented in the collision
-    /// detection code. The narrowphase_algorithm parameter can be used to change
-    /// the type of narrowphase used at runtime.
-    NarrowPhaseType narrowphase_algorithm;
+
+    /// Broadphase collision grid bin size. This value  is used for dynamic tuning of the number of collision bins if
+    /// the `broadphase_grid` type is set to FIXED_BIN_SIZE.
+    real3 bin_size;
+
+    /// Broadphase collision grid density. This value is used for dynamic tuning of the number of collision bins if the
+    /// `broadphase_grid` type is set to FIXED_DENSITY.
     real grid_density;
-    /// Use fixed number of bins instead of tuning them.
-    bool fixed_bins;
+
+    /// Algorithm for narrowphase collision detection phase.
+    /// The Chrono collision detection system provides several analytical collision detection algorithms, for particular
+    /// pairs of shapes (see ChNarrowphasePRIMS). For general convex shapes, the collision system relies on the
+    /// Minkovski Portal Refinement algorithm (see ChNarrowphaseMPR).
+    collision::ChNarrowphase::Algorithm narrowphase_algorithm;
 };
 
 /// Chrono::Multicore solver_settings.
@@ -109,7 +108,6 @@ class solver_settings {
         max_iteration_sliding = 100;
         max_iteration_spinning = 0;
         max_iteration_bilateral = 100;
-        max_iteration_fem = 0;
         solver_type = SolverType::APGD;
         solver_mode = SolverMode::SLIDING;
         local_solver_mode = SolverMode::NORMAL;
@@ -206,7 +204,6 @@ class solver_settings {
     /// Bilaterals are still solved.
     uint max_iteration_spinning;
     uint max_iteration_bilateral;
-    uint max_iteration_fem;
 
     /// This variable is the tolerance for the solver in terms of speeds.
     real tolerance;

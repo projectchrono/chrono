@@ -36,14 +36,15 @@ uint ChSolverMulticoreGS::Solve(ChShurProduct& ShurProduct,
     Project(ml.data());
 
     uint num_constraints = data_manager->num_constraints;
-    uint num_contacts = data_manager->num_rigid_contacts;
+    uint num_contacts = data_manager->cd_data->num_rigid_contacts;
+    uint num_rigid_fluid_contacts = data_manager->cd_data->num_rigid_fluid_contacts;
     uint num_bilaterals = data_manager->num_bilaterals;
 
     CompressedMatrix<real> Nshur = data_manager->host_data.D_T * data_manager->host_data.M_invD;
     DynamicVector<real> D;
     D.resize(num_constraints, false);
 
-    for (int index = 0; index < (signed)data_manager->num_rigid_contacts; index++) {
+    for (int index = 0; index < (signed)num_contacts; index++) {
         D[index] = Nshur(index, index) + Nshur(num_contacts + index * 2 + 0, num_contacts + index * 2 + 0) +
                    Nshur(num_contacts + index * 2 + 1, num_contacts + index * 2 + 1);
         D[index] = 3.0 / D[index];
@@ -65,7 +66,7 @@ uint ChSolverMulticoreGS::Solve(ChShurProduct& ShurProduct,
 
         offset += data_manager->num_fluid_bodies;
 
-        for (size_t i = 0; i < data_manager->num_rigid_fluid_contacts; i++) {
+        for (size_t i = 0; i < num_rigid_fluid_contacts; i++) {
             if (data_manager->node_container->contact_mu == 0) {
                 D[offset + i] = Nshur(offset + i, offset + i);
                 D[offset + i] = 3.0 / D[offset + i];
@@ -78,13 +79,13 @@ uint ChSolverMulticoreGS::Solve(ChShurProduct& ShurProduct,
             }
         }
     }
-    int nc = data_manager->num_rigid_contacts;
-    int nfc = data_manager->num_rigid_fluid_contacts;
+    int nc = num_contacts;
+    int nfc = num_rigid_fluid_contacts;
     for (current_iteration = 0; current_iteration < (signed)max_iter; current_iteration++) {
         real omega = .2;
         offset = 0;
 
-        for (int i = 0; i < (signed)data_manager->num_rigid_contacts; i++) {
+        for (int i = 0; i < (signed)num_contacts; i++) {
             ml[offset + i] = ml[offset + i] -
                              omega * D[offset + i] * ((row(Nshur, offset + i * 1 + 0),
                                                        blaze::subvector(ml, 0, 1 * data_manager->num_constraints)) -
@@ -123,7 +124,7 @@ uint ChSolverMulticoreGS::Solve(ChShurProduct& ShurProduct,
 
             offset += data_manager->num_fluid_bodies;
 
-            for (size_t i = 0; i < data_manager->num_rigid_fluid_contacts; i++) {
+            for (size_t i = 0; i < num_rigid_fluid_contacts; i++) {
                 ml[offset + i] = ml[offset + i] -
                                  omega * D[offset + i] * ((row(Nshur, offset + i * 1 + 0),
                                                            blaze::subvector(ml, 0, 1 * data_manager->num_constraints)) -

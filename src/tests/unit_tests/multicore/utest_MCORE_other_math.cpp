@@ -15,8 +15,6 @@
 // Chrono::Multicore unit test for MPR collision detection
 // =============================================================================
 
-#include "chrono_multicore/math/other_types.h"
-
 #include "unit_testing.h"
 
 using namespace chrono;

@@ -28,7 +28,7 @@
 #include "unit_testing.h"
 
 #ifdef CHRONO_OPENGL
-#include "chrono_opengl/ChOpenGLWindow.h"
+    #include "chrono_opengl/ChOpenGLWindow.h"
 #endif
 
 using namespace chrono;
@@ -139,8 +139,8 @@ bool CompareContacts(ChSystemMulticore* msystem_A, ChSystemMulticore* msystem_B)
     double test_tolerance = 1e-5;
 
     bool passing = true;
-    int num_contacts_A = msystem_A->data_manager->num_rigid_contacts;
-    int num_contacts_B = msystem_B->data_manager->num_rigid_contacts;
+    int num_contacts_A = msystem_A->data_manager->cd_data->num_rigid_contacts;
+    int num_contacts_B = msystem_B->data_manager->cd_data->num_rigid_contacts;
 
     if (num_contacts_A != num_contacts_B) {
         std::cout << num_contacts_A << " does not equal " << num_contacts_B << std::endl;
@@ -150,8 +150,8 @@ bool CompareContacts(ChSystemMulticore* msystem_A, ChSystemMulticore* msystem_B)
     // compare depth
     if (passing) {
         for (int i = 0; i < num_contacts_A; i++) {
-            real depth_A = msystem_A->data_manager->host_data.dpth_rigid_rigid[i];
-            real depth_B = msystem_B->data_manager->host_data.dpth_rigid_rigid[i];
+            real depth_A = msystem_A->data_manager->cd_data->dpth_rigid_rigid[i];
+            real depth_B = msystem_B->data_manager->cd_data->dpth_rigid_rigid[i];
 
             if (fabs(depth_A - depth_B) > test_tolerance) {
                 std::cout << depth_A << " does not equal " << depth_B << " " << fabs(depth_A - depth_B) << std::endl;
@@ -161,8 +161,8 @@ bool CompareContacts(ChSystemMulticore* msystem_A, ChSystemMulticore* msystem_B)
     }
     if (passing) {
         for (int i = 0; i < num_contacts_A; i++) {
-            real3 norm_A = msystem_A->data_manager->host_data.norm_rigid_rigid[i];
-            real3 norm_B = msystem_B->data_manager->host_data.norm_rigid_rigid[i];
+            real3 norm_A = msystem_A->data_manager->cd_data->norm_rigid_rigid[i];
+            real3 norm_B = msystem_B->data_manager->cd_data->norm_rigid_rigid[i];
 
             real x = norm_A.x;
             real y = norm_B.x;
@@ -212,8 +212,8 @@ int main(int argc, char* argv[]) {
     ChSystemMulticoreNSC* msystem_r = new ChSystemMulticoreNSC();
 
 #ifdef BULLET
-    msystem_mpr->ChangeCollisionSystem(CollisionSystemType::COLLSYS_BULLET_MULTICORE);
-    msystem_r->ChangeCollisionSystem(CollisionSystemType::COLLSYS_BULLET_MuLTICORE);
+    msystem_mpr->SetCollisionSystemType(ChCollisionSystemType::BULLET);
+    msystem_r->SetCollisionSystemType(ChCollisionSystemType::BULLET);
 #endif
 
     SetupSystem(msystem_mpr);
@@ -221,8 +221,8 @@ int main(int argc, char* argv[]) {
 
     // Edit system settings
 
-    msystem_mpr->GetSettings()->collision.narrowphase_algorithm = NarrowPhaseType::NARROWPHASE_MPR;
-    msystem_r->GetSettings()->collision.narrowphase_algorithm = NarrowPhaseType::NARROWPHASE_R;
+    msystem_mpr->GetSettings()->collision.narrowphase_algorithm = ChNarrowphase::Algorithm::HYBRID;
+    msystem_r->GetSettings()->collision.narrowphase_algorithm = ChNarrowphase::Algorithm::PRIMS;
 
     // Initialize counters
     double time = 0;
@@ -255,8 +255,7 @@ int main(int argc, char* argv[]) {
         std::cout << "OpenGL support not available.  Cannot animate mechanism." << std::endl;
         return 1;
 #endif
-    }
-    else {
+    } else {
         while (time < time_end) {
             Sync(msystem_mpr, msystem_r);
             msystem_mpr->DoStepDynamics(time_step);
@@ -271,9 +270,6 @@ int main(int argc, char* argv[]) {
 
     return 0;
 }
-
-
-
 
 /*
 void CompareContacts(ChSystemMulticore* msystem_A, ChSystemMulticore* msystem_B) {
@@ -319,8 +315,8 @@ TEST(ChronoMulticore, narrowphase) {
     SetupSystem(msystem_mpr);
     SetupSystem(msystem_r);
 
-    msystem_mpr->GetSettings()->collision.narrowphase_algorithm = NarrowPhaseType::NARROWPHASE_MPR;
-    msystem_r->GetSettings()->collision.narrowphase_algorithm = NarrowPhaseType::NARROWPHASE_R;
+    msystem_mpr->GetSettings()->collision.narrowphase_algorithm = ChNarrowphase::Algorithm::HYBRID;
+    msystem_r->GetSettings()->collision.narrowphase_algorithm = ChNarrowphase::Algorithm::PRIMS;
 
 
     double time_end = 1;

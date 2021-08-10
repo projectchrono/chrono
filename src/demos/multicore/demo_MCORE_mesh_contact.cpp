@@ -121,7 +121,7 @@ int main(int argc, char* argv[]) {
     sys->GetSettings()->solver.tolerance = tolerance;
 
     sys->GetSettings()->collision.collision_envelope = collision_envelope;
-    sys->GetSettings()->collision.narrowphase_algorithm = NarrowPhaseType::NARROWPHASE_HYBRID_MPR;
+    sys->GetSettings()->collision.narrowphase_algorithm = collision::ChNarrowphase::Algorithm::HYBRID;
     sys->GetSettings()->collision.bins_per_axis = vec3(10, 10, 10);
 
     // Rotation Z->Y (because meshes used here assume Z up)

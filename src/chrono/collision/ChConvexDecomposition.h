@@ -24,6 +24,9 @@
 namespace chrono {
 namespace collision {
 
+/// @addtogroup chrono_collision
+/// @{
+
 /// Base interface class for convex decomposition.
 class ChApi ChConvexDecomposition {
   public:
@@ -204,6 +207,8 @@ class ChApi ChConvexDecompositionHACDv2 : public ChConvexDecomposition {
     std::vector<ChVector<int> > triangles;
     double fuse_tol;
 };
+
+/// @} chrono_collision
 
 }  // end namespace collision
 }  // end namespace chrono

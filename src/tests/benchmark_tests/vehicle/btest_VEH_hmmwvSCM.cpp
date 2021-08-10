@@ -27,7 +27,7 @@
 #include "chrono_models/vehicle/hmmwv/HMMWV.h"
 
 #ifdef CHRONO_IRRLICHT
-#include "chrono_vehicle/wheeled_vehicle/utils/ChWheeledVehicleIrrApp.h"
+    #include "chrono_vehicle/wheeled_vehicle/utils/ChWheeledVehicleIrrApp.h"
 #endif
 
 using namespace chrono;
@@ -39,7 +39,7 @@ using namespace chrono::vehicle::hmmwv;
 #define MESH_TIRE 0
 #define CYL_TIRE 1
 
-double size = 50.0;
+double patch_size = 50.0;
 int num_div = 1000;
 
 // =============================================================================
@@ -110,7 +110,8 @@ HmmwvScmTest<TIRE_TYPE, OBJECTS>::HmmwvScmTest() : m_step(2e-3) {
     m_hmmwv = new HMMWV_Full();
     m_hmmwv->SetContactMethod(ChContactMethod::SMC);
     m_hmmwv->SetChassisFixed(false);
-    m_hmmwv->SetInitPosition(ChCoordsys<>(ChVector<>(5.0 - size / 2, 5.0 - size / 2, 0.7), Q_from_AngZ(CH_C_PI / 4)));
+    m_hmmwv->SetInitPosition(
+        ChCoordsys<>(ChVector<>(5.0 - patch_size / 2, 5.0 - patch_size / 2, 0.7), Q_from_AngZ(CH_C_PI / 4)));
     m_hmmwv->SetPowertrainType(powertrain_model);
     m_hmmwv->SetDriveType(drive_type);
     m_hmmwv->SetTireType(tire_type);
@@ -149,7 +150,7 @@ HmmwvScmTest<TIRE_TYPE, OBJECTS>::HmmwvScmTest() : m_step(2e-3) {
 
     m_terrain->SetPlotType(vehicle::SCMDeformableTerrain::PLOT_SINKAGE, 0, 0.1);
 
-    m_terrain->Initialize(size, size, size / num_div);
+    m_terrain->Initialize(patch_size, patch_size, patch_size / num_div);
 
     // Custom driver
     m_driver = new HmmwvScmDriver(m_hmmwv->GetVehicle(), 1.0);
@@ -165,7 +166,8 @@ HmmwvScmTest<TIRE_TYPE, OBJECTS>::HmmwvScmTest() : m_step(2e-3) {
                                                                       true,      // visualization?
                                                                       true,      // collision?
                                                                       sph_mat);  // contact material
-            sphere->SetPos(ChVector<>((2 * ChRandom() - 1) * 0.45 * size, (2 * ChRandom() - 1) * 0.45 * size, 1.0));
+            sphere->SetPos(
+                ChVector<>((2 * ChRandom() - 1) * 0.45 * patch_size, (2 * ChRandom() - 1) * 0.45 * patch_size, 1.0));
             m_hmmwv->GetSystem()->Add(sphere);
 
             m_terrain->AddMovingPatch(sphere, ChVector<>(0, 0, 0), ChVector<>(0.6, 0.6, 0.6));
@@ -225,7 +227,7 @@ void HmmwvScmTest<TIRE_TYPE, OBJECTS>::SimulateVis() {
 // =============================================================================
 
 #define NUM_SKIP_STEPS 500  // number of steps for hot start (2e-3 * 500 = 1s)
-#define NUM_SIM_STEPS 2000   // number of simulation steps for each benchmark (2e-3 * 2000 = 4s)
+#define NUM_SIM_STEPS 2000  // number of simulation steps for each benchmark (2e-3 * 2000 = 4s)
 #define REPEATS 10
 
 // NOTE: trick to prevent erros in expanding macros due to types that contain a comma.

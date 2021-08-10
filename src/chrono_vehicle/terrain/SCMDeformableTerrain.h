@@ -244,7 +244,9 @@ class CH_VEHICLE_API SCMDeformableTerrain : public ChTerrain {
 
     /// Return time for updating moving patches at last step (ms).
     double GetTimerMovingPatches() const;
-    /// Return time for ray casting at last step (ms).
+    /// Return time for geometric ray intersection tests at last step (ms).
+    double GetTimerRayTesting() const;
+    /// Return time for ray casting at last step (ms). Includes time for ray intersectin testing.
     double GetTimerRayCasting() const;
     /// Return time for computing contact patches at last step (ms).
     double GetTimerContactPatches() const;
@@ -512,6 +514,7 @@ class CH_VEHICLE_API SCMDeformableSoil : public ChLoadContainer {
 
     // Timers and counters
     ChTimer<double> m_timer_moving_patches;
+    ChTimer<double> m_timer_ray_testing;
     ChTimer<double> m_timer_ray_casting;
     ChTimer<double> m_timer_contact_patches;
     ChTimer<double> m_timer_contact_forces;

@@ -41,22 +41,20 @@ void CreateSliderGuide(std::shared_ptr<ChBody>& mguide,
                        std::shared_ptr<ChMaterialSurface> material,
                        ChSystem& msystem,
                        const ChVector<> mpos) {
-    mguide = chrono_types::make_shared<ChBodyEasyBox>(
-        4, 0.3, 0.6, 1000, true, true, material, chrono_types::make_shared<collision::ChCollisionModelMulticore>());
+    mguide = chrono_types::make_shared<ChBodyEasyBox>(4, 0.3, 0.6, 1000, material, collision::ChCollisionSystemType::CHRONO);
     mguide->SetPos(mpos);
     mguide->SetBodyFixed(true);
     msystem.Add(mguide);
 
-    mslider = chrono_types::make_shared<ChBodyEasySphere>(
-        0.14, 1000, true, true, material, chrono_types::make_shared<collision::ChCollisionModelMulticore>());
+    mslider = chrono_types::make_shared<ChBodyEasySphere>(0.14, 1000, material, collision::ChCollisionSystemType::CHRONO);
     mslider->SetPos(mpos + ChVector<>(0, 0.3, 0));
     msystem.Add(mslider);
 
     auto mcolor = chrono_types::make_shared<ChColorAsset>(0.6f, 0.6f, 0.0f);
     mslider->AddAsset(mcolor);
 
-    auto obstacle = chrono_types::make_shared<ChBodyEasyBox>(
-        0.4, 0.4, 0.4, 8000, true, true, material, chrono_types::make_shared<collision::ChCollisionModelMulticore>());
+    auto obstacle = chrono_types::make_shared<ChBodyEasyBox>(0.4, 0.4, 0.4, 8000, material,
+                                                             collision::ChCollisionSystemType::CHRONO);
     obstacle->SetPos(mpos + ChVector<>(1.5, 0.4, 0));
     msystem.Add(obstacle);
     auto mcolorobstacle = chrono_types::make_shared<ChColorAsset>(0.2f, 0.2f, 0.2f);
@@ -68,15 +66,14 @@ void CreateStatorRotor(std::shared_ptr<ChBody>& mstator,
                        std::shared_ptr<ChMaterialSurface> material,
                        ChSystem& msystem,
                        const ChVector<> mpos) {
-    mstator = chrono_types::make_shared<ChBodyEasyCylinder>(
-        0.5, 0.1, 1000, true, true, material, chrono_types::make_shared<collision::ChCollisionModelMulticore>());
+    mstator = chrono_types::make_shared<ChBodyEasyCylinder>(0.5, 0.1, 1000, material,
+                                                            collision::ChCollisionSystemType::CHRONO);
     mstator->SetPos(mpos);
     mstator->SetRot(Q_from_AngAxis(CH_C_PI_2, VECT_X));
     mstator->SetBodyFixed(true);
     msystem.Add(mstator);
 
-    mrotor = chrono_types::make_shared<ChBodyEasyBox>(
-        1, 0.1, 0.1, 1000, true, true, material, chrono_types::make_shared<collision::ChCollisionModelMulticore>());
+    mrotor = chrono_types::make_shared<ChBodyEasyBox>(1, 0.1, 0.1, 1000, material, collision::ChCollisionSystemType::CHRONO);
     mrotor->SetPos(mpos + ChVector<>(0.5, 0, -0.15));
     msystem.Add(mrotor);
 
@@ -542,8 +539,8 @@ int main(int argc, char* argv[]) {
     sys->GetSettings()->collision.bins_per_axis = vec3(1, 1, 1);
 
     // Create ground body
-    auto floorBody = chrono_types::make_shared<ChBodyEasyBox>(
-        20, 2, 20, 3000, true, true, material, chrono_types::make_shared<collision::ChCollisionModelMulticore>());
+    auto floorBody =
+        chrono_types::make_shared<ChBodyEasyBox>(20, 2, 20, 3000, material, collision::ChCollisionSystemType::CHRONO);
     floorBody->SetPos(ChVector<>(0, -2, 0));
     floorBody->SetBodyFixed(true);
     sys->Add(floorBody);

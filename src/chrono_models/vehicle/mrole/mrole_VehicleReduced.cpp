@@ -107,6 +107,7 @@ void mrole_VehicleReduced::Create(bool fixed, BrakeType brake_type, CollisionTyp
         case DrivelineTypeWV::RWD:
             m_driveline = chrono_types::make_shared<mrole_Driveline2WD>("Driveline");
             break;
+        default:
         case DrivelineTypeWV::AWD:
             m_driveline = chrono_types::make_shared<mrole_Driveline4WD>("Driveline");
             break;
@@ -145,6 +146,7 @@ void mrole_VehicleReduced::Initialize(const ChCoordsys<>& chassisPos, double cha
         case DrivelineTypeWV::RWD:
             driven_susp_indexes[0] = 1;
             break;
+        default:
         case DrivelineTypeWV::AWD:
         case DrivelineTypeWV::SIMPLE:
             driven_susp_indexes[0] = 0;

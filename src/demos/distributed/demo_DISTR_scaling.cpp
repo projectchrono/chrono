@@ -47,11 +47,11 @@ using namespace chrono::collision;
 float Y = 2e6f;
 float mu = 0.4f;
 float cr = 0.05f;
-double gran_radius = 0.00125;  // 1.25mm radius
-double rho = 4000;
-double spacing = 2.0 * gran_radius;  // Distance between adjacent centers of particles
-double mass = rho * 4 / 3 * CH_C_PI * gran_radius * gran_radius * gran_radius;
-ChVector<> inertia = (2.0 / 5.0) * mass * gran_radius * gran_radius * ChVector<>(1, 1, 1);
+double p_radius = 0.00125;  // 1.25mm radius
+double p_rho = 4000;
+double spacing = 2.0 * p_radius;  // Distance between adjacent centers of particles
+double p_mass = p_rho * 4 / 3 * CH_C_PI * p_radius * p_radius * p_radius;
+ChVector<> p_inertia = (2.0 / 5.0) * p_mass * p_radius * p_radius * ChVector<>(1, 1, 1);
 
 // Simulation
 double time_step = 1e-4;
@@ -104,7 +104,7 @@ void AddContainer(ChSystemDistributed* sys, double hx, double hy, double height)
     mat->SetFriction(mu);
     mat->SetRestitution(cr);
 
-    auto bin = chrono_types::make_shared<ChBody>(chrono_types::make_shared<ChCollisionModelMulticore>());
+    auto bin = chrono_types::make_shared<ChBody>(chrono_types::make_shared<ChCollisionModelDistributed>());
     bin->SetIdentifier(binId);
     bin->SetMass(1);
     bin->SetPos(ChVector<>(0, 0, 0));
@@ -167,7 +167,7 @@ size_t AddFallingBalls(ChSystemDistributed* sys, double hx, double hy, double he
     int ballId = 0;
 
     for (int i = 0; i < points.size(); i++) {
-        auto ball = CreateBall(points[i], ballMat, &ballId, mass, inertia, gran_radius);
+        auto ball = CreateBall(points[i], ballMat, &ballId, p_mass, p_inertia, p_radius);
         sys->AddBody(ball);
     }
 
@@ -249,7 +249,7 @@ int main(int argc, char* argv[]) {
     }
 
     // Create distributed system
-    ChSystemDistributed my_sys(MPI_COMM_WORLD, gran_radius * 2, 100000);  // TODO
+    ChSystemDistributed my_sys(MPI_COMM_WORLD, p_radius * 2, 100000);  // TODO
 
     if (verbose) {
         if (my_rank == MASTER)
@@ -262,7 +262,7 @@ int main(int argc, char* argv[]) {
     my_sys.Set_G_acc(ChVector<double>(0, 0, -9.8));
 
     // Domain decomposition
-    ChVector<double> domlo(-hx - spacing, -hy - spacing, -2.0 * gran_radius);
+    ChVector<double> domlo(-hx - spacing, -hy - spacing, -2.0 * p_radius);
     ChVector<double> domhi(hx + spacing, hy + spacing, height + 3.0 * spacing);
     my_sys.GetDomain()->SetSplitAxis(0);  // Split along the x-axis
     my_sys.GetDomain()->SetSimDomain(domlo.x(), domhi.x(), domlo.y(), domhi.y(), domlo.z(), domhi.z());
@@ -277,7 +277,7 @@ int main(int argc, char* argv[]) {
     my_sys.GetSettings()->solver.contact_force_model = ChSystemSMC::ContactForceModel::Hertz;
     my_sys.GetSettings()->solver.adhesion_force_model = ChSystemSMC::AdhesionForceModel::Constant;
 
-    my_sys.GetSettings()->collision.narrowphase_algorithm = NarrowPhaseType::NARROWPHASE_R;
+    my_sys.GetSettings()->collision.narrowphase_algorithm = ChNarrowphase::Algorithm::PRIMS;
 
     int binX;
     int binY;
@@ -285,7 +285,7 @@ int main(int argc, char* argv[]) {
     int factor = 4;
     ChVector<> subhi = my_sys.GetDomain()->GetSubHi();
     ChVector<> sublo = my_sys.GetDomain()->GetSubLo();
-    ChVector<> subsize = (subhi - sublo) / (2 * gran_radius);
+    ChVector<> subsize = (subhi - sublo) / (2 * p_radius);
     binX = (int)std::ceil(subsize.x()) / factor;
     binY = (int)std::ceil(subsize.y()) / factor;
     my_sys.GetSettings()->collision.bins_per_axis = vec3(binX, binY, binZ);

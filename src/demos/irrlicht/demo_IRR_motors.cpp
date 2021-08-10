@@ -37,11 +37,12 @@
 // Use the namespaces of Chrono
 using namespace chrono;
 using namespace chrono::irrlicht;
+
 // Use the main namespaces of Irrlicht
 using namespace irr;
 using namespace irr::core;
-using namespace irr::scene;
-using namespace irr::video;
+
+collision::ChCollisionSystemType collision_type = collision::ChCollisionSystemType::BULLET;
 
 // Shortcut function that creates two bodies (a slider and a guide) in a given position,
 // just to simplify the creation of multiple linear motors in this demo.
@@ -52,19 +53,19 @@ void CreateSliderGuide(std::shared_ptr<ChBody>& mguide,
                        std::shared_ptr<ChMaterialSurface> material,
                        ChSystem& msystem,
                        const ChVector<> mpos) {
-    mguide = chrono_types::make_shared<ChBodyEasyBox>(4, 0.3, 0.6, 1000, true, true, material);
+    mguide = chrono_types::make_shared<ChBodyEasyBox>(4, 0.3, 0.6, 1000, material, collision_type);
     mguide->SetPos(mpos);
     mguide->SetBodyFixed(true);
     msystem.Add(mguide);
 
-    mslider = chrono_types::make_shared<ChBodyEasyBox>(0.4, 0.2, 0.5, 1000, true, true, material);
+    mslider = chrono_types::make_shared<ChBodyEasyBox>(0.4, 0.2, 0.5, 1000, material, collision_type);
     mslider->SetPos(mpos + ChVector<>(0, 0.3, 0));
     msystem.Add(mslider);
 
     auto mcolor = chrono_types::make_shared<ChColorAsset>(0.6f, 0.6f, 0.0f);
     mslider->AddAsset(mcolor);
 
-    auto obstacle = chrono_types::make_shared<ChBodyEasyBox>(0.4, 0.4, 0.4, 8000, true, true, material);
+    auto obstacle = chrono_types::make_shared<ChBodyEasyBox>(0.4, 0.4, 0.4, 8000, material, collision_type);
     obstacle->SetPos(mpos + ChVector<>(1.5, 0.4, 0));
     msystem.Add(obstacle);
     auto mcolorobstacle = chrono_types::make_shared<ChColorAsset>(0.2f, 0.2f, 0.2f);
@@ -80,13 +81,13 @@ void CreateStatorRotor(std::shared_ptr<ChBody>& mstator,
                        std::shared_ptr<ChMaterialSurface> material,
                        ChSystem& msystem,
                        const ChVector<>& mpos) {
-    mstator = chrono_types::make_shared<ChBodyEasyCylinder>(0.5, 0.1, 1000, true, true, material);
+    mstator = chrono_types::make_shared<ChBodyEasyCylinder>(0.5, 0.1, 1000, material, collision_type);
     mstator->SetPos(mpos);
     mstator->SetRot(Q_from_AngAxis(CH_C_PI_2, VECT_X));
     mstator->SetBodyFixed(true);
     msystem.Add(mstator);
 
-    mrotor = chrono_types::make_shared<ChBodyEasyBox>(1, 0.1, 0.1, 1000, true, true, material);
+    mrotor = chrono_types::make_shared<ChBodyEasyBox>(1, 0.1, 0.1, 1000, material, collision_type);
     mrotor->SetPos(mpos + ChVector<>(0.5, 0, -0.15));
     msystem.Add(mrotor);
 
@@ -99,12 +100,13 @@ int main(int argc, char* argv[]) {
 
     // Create a ChronoENGINE physical system
     ChSystemNSC mphysicalSystem;
+    mphysicalSystem.SetCollisionSystemType(collision_type);
 
     // Contact material shared among all objects
     auto material = chrono_types::make_shared<ChMaterialSurfaceNSC>();
 
     // Create a floor that is fixed (that is used also to represent the absolute reference)
-    auto floorBody = chrono_types::make_shared<ChBodyEasyBox>(20, 2, 20, 3000, true, true, material);
+    auto floorBody = chrono_types::make_shared<ChBodyEasyBox>(20, 2, 20, 3000, material, collision_type);
     floorBody->SetPos(ChVector<>(0, -2, 0));
     floorBody->SetBodyFixed(true);
     mphysicalSystem.Add(floorBody);
@@ -791,10 +793,6 @@ int main(int argc, char* argv[]) {
     // Let the motor use this motion function:
     motor6->SetMotionFunction(motor6setpoint);
 
-    //
-    // THE VISUALIZATION SYSTEM
-    //
-
     // Create the Irrlicht visualization (open the Irrlicht device,
     // bind a simple user interface, etc. etc.)
     ChIrrApp application(&mphysicalSystem, L"Motors", core::dimension2d<u32>(800, 600));
@@ -818,10 +816,6 @@ int main(int argc, char* argv[]) {
     // for all objects (or use application.AddShadow(..) for enable shadow on a per-item basis)
     application.AddShadowAll();
 
-    //
-    // THE SOFT-REAL-TIME CYCLE
-    //
-
     // Modify some setting of the physical system for the simulation, if you want
     mphysicalSystem.SetSolverType(ChSolver::Type::PSOR);
     mphysicalSystem.SetSolverMaxIterations(50);
@@ -830,7 +824,7 @@ int main(int argc, char* argv[]) {
     application.SetTryRealtime(true);
 
     while (application.GetDevice()->run()) {
-        application.BeginScene(true, true, SColor(255, 140, 161, 192));
+        application.BeginScene(true, true, video::SColor(255, 140, 161, 192));
 
         application.DrawAll();
 

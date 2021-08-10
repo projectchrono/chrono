@@ -61,9 +61,13 @@ class CH_MODELS_API Generic_SimpleDriveline : public ChDrivelineWV {
     /// Get the motor torque to be applied to the specified spindle.
     virtual double GetSpindleTorque(int axle, VehicleSide side) const override;
 
+    /// Disconnect driveline from driven wheels.
+    virtual void Disconnect() override;
+
   private:
     static const double m_conicalgear_ratio;
 
+    bool m_connected;
     std::shared_ptr<ChShaft> m_driven_left;
     std::shared_ptr<ChShaft> m_driven_right;
 };

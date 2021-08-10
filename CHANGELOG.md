@@ -5,6 +5,8 @@ Change Log
 ==========
 
 - [Unreleased (development version)](#unreleased-development-branch)
+  - [New robot models](#added-new-robot-models)
+  - [New multicore collision detection system](#added-new-multicore-collision-detection-system)
   - [Miscellaneous additions to Chrono::Gpu](#added-miscellaneous-additions-to-chronogpu)
   - [New loads for ChNodeFEAxyzrot](#added-new-loads-for-chnodefeaxyzrot)
   - [Analytical box-box collision detection algorithm in Chrono::Multicore](#added-analytical-box-box-collision-detection-algorithm-in-chronomulticore)
@@ -45,7 +47,142 @@ Change Log
 
 ## Unreleased (development branch)
 
-## [Added] Miscellaneous additions to Chrono::Gpu
+### [Added] New robot models
+
+Two new models were added to the collection Chrono robot models:
+
+- The **Curiosity** Mars Rover is a six-wheel rover model. The model can simulate the Curiosity-class Mars rover which includes a passive Rocker-Bogie suspension system. The operation and the usage of the Curiosity Rover is similar to the Viper Lunar Rover. The steering function of the Curiosity Rover needs to be explicitly controlled by calling
+  ```cpp
+  SetSteerSpeed(double speed, WheelID id)
+  ```
+  This independent steering control allows the rover model to conduct many types of steering maneuvers. The linear DC motor model in Curiosity is similar to the DC motor in Viper (see below).
+
+  `demo_ROBOT_Curiosity_SCM` illustrates the rover crossiung symmetric obstacles on SCM deformable terrain and `demo_ROBOT_Curioisty_Rigid` shows the rover being operated on rigid terrain while climbing a stair-shaped obstacle. Both demos show the initialization process of the Curiosity rover model and the simulated Rocker-Bogie suspension system when crossing obstacles.
+
+- The **Turtlebot** is a common basic robot used as demonstration in various robot siomulation packages (e.g., Gazebo/ROS). This robot consists of two drive wheels and one passive wheel. The steering function can be controlled by calling 
+  ```cpp
+  SetMotorSpeed(float rad_speed, WheelID id)
+  ```
+  on both wheels and using the speed difference between left and right wheels to turn. This is a model skeleton and in the future more functionalities can be added as necessary, such as adding sensors for autonomous driving simulation. 
+
+  `demo_ROBOT_Turtlebot_Rigid` shows a turtlebot model operated on rigid terrain and the turning operation.
+
+In addition, new capabilities and functionality were added to the **Viper** Lunar Rover model. These include steering controls, linear DC motor models, and an active-controlled suspension system. The steering function is achieved by four rotational motors in the Z directions (vertical direction of the rover, perpendicular to the drive motor). The steering of the rover can be accessed using the function
+```cpp
+SetTurn(TurnSig id, double turn_speed)
+```
+to specify the turn signal (left/right/hold) and the speed of the turn. The active suspension control is achieved through eight lifting motors located on the connection points between upper/lower suspension and the rover chassis. This suspension replaces the current passive suspension which only had two springs. These two springs were maintained in the new suspension system in order to include damping. Control of the active suspension can be achieved through
+```cpp
+SetLiftMotorSpeed(double rad_speed, WheelID id)
+```
+The linear DC motor is a new option which can be used to replace the constant angular velocity motor. The function 
+```cpp
+SetDCControl(bool dc_control)
+```
+must be called before the initialization of the rover. This new function can simulate a simple DC motor with a linear torque-angular speed characteristic. The linear torque-speed map can be set using
+```cpp
+SetMotorNoLoadSpeed(double rad_speed, WheelID id)
+```
+and
+```cpp
+SetMotorStallTorque(double torque, WheelID id)
+```
+
+`demo_ROBOT_Viper_Rigid` and `demo_ROBOT_Viper_SCM` were modified to reflect changes in the initialization and controls. 
+
+
+### [Added] New multicore collision detection system
+
+The collision detection system previously embedded in Chrono::Multicore was updated and also made available to the usual Chrono systems (ChSystemNSC and ChSystemSMC) as an alternative to the Bullet-based collision detection system.  The new collision detection system (`ChCollisionSystemChrono`) uses a single-level adaptive grid for broadphase; for the narrowphase, it uses analytical intersection functions for certain pairs of known primitive shapes with fallback to an MPR (Minkovski Portal Refinement) alhgorithm.  In addition to the features previously available in Chrono::Multicore, the new stand-alone collision detection system includes additional analytical collision functions (e.g., for box-box interaction), as well as support for ray intersection.
+
+The new collision system requires the `Thrust` library which is included in the CUDA toolkit or stand-alone (https://github.com/NVIDIA/thrust). If Thrust is available at configuration time, the `ChConfig.h` header defines a macro `CHRONO_COLLISION` (which can be used in user code to check availability of the new collision detection system).
+
+The collision system type is specified through the enum `chrono::collision::ChCollisionSystemType` with valid values `BULLET` or `CHRONO`.  
+By default, both ChSystemNSC and ChSystemSMC use the Bullet-based collision detection system.  Use of the new collision detection system can be enabled either by calling `ChSystem::SetCollisionSystemType` or else by constructing an object of type `ChCollisionSystemChrono` and then calling `ChSystem::SetCollisionSystem`. The latter method allows for changing various parameters controlling the broadphase and narrowphase algorithms from their default values.  For example:
+```cpp
+chrono::ChSystemSMC sys;
+//...
+sys.SetCollisionSystemType(chrono::collision::ChCollisionSystemType::CHRONO);
+```
+or
+```cpp
+#include "chrono/ChConfig.h"
+#ifdef CHRONO_COLLISION
+#include "chrono/collision/ChCollisionSystemChrono.h"
+#endif
+// ...
+chrono::ChSystemSMC sys;
+// ...
+#ifdef CHRONO_COLLISION
+auto collsys = chrono_types::make_shared<chrono::collision::ChCollisionSystemChrono>();
+collsys->SetBroadphaseGridResolution(ChVector<int>(2, 2, 1));
+sys.SetCollisionSystem(collsys);
+#endif
+```
+On the other hand, a Chrono::Multicore system (`ChSystemMulticoreNSC` or `ChSystemMulticoreSMC`) defaults to using the new multicore collision detection system.
+
+See the documentation of `ChCollisionSystemChrono` for details on the various parameters controlling the behavior of the underlying algorithms.  Note that, for backward compatibility, the existing mechanism for setting algorithmic parameters in Chrono::Multicore was preserved.  In other words, one can still use code such as:
+```cpp
+chrono::ChSystemMulticoreNSC sys;
+// ...
+sys.GetSettings()->collision.collision_envelope = 0.01;
+sys.GetSettings()->collision.bins_per_axis = vec3(10, 10, 10);
+```
+
+Because of the different underlying data structures, the Chrono multicore collision detection system requires collision models of the new type `ChCollisionModelChrono`. As such, the `ChBody` constructor was modified to take the collision system type as an argument (default `BULLET`). Constructors for the various `ChBodyEasy***` classes that take the collision system type as an argument are also provided. The user must ensure that objects with **compatible** collision models are added to a system! For example:
+```cpp
+auto collision_type = chrono::collision::ChCollisionSystemType::CHRONO;
+chrono::ChSystemNSC sys;
+sys.SetCollisionSystemType(collision_type);
+// ...
+auto body = chrono_types::make_shared<chrono::ChBody>(collision_type);
+sys.AddBody(body);
+// ...
+```
+
+Alternatively, for a more flexible code, one can use the `ChSystem::NewBody` and `ChSystem::NewBodyAuxRef` to construct a ChBody or ChBodyAuxRef, respectively, with a collision model consistent with the current collision system.  This assumes that the underlying collision system in the Chrono system was already set with one of the methods mentioned above:
+```cpp
+auto collision_type = chrono::collision::ChCollisionSystemType::CHRONO;
+chrono::ChSystemNSC sys;
+sys.SetCollisionSystemType(collision_type);
+// ...
+auto body = std::shared_ptr<chrono::ChBody>(sys.NewBody());
+```
+
+A few of the Chrono demos were modified to illustrate the use of the new collision detection system (e.g., demo_IRR_collisionSMC, demo_IRR_collisionNSC, demo_IRR_motors), while a new demo_IRR_raycast_test demostrates the ray intersection capabilities.
+
+**Features.**
+Some of the salient features of the new multicore collision detection system are:
+- analytical collision functions for several pairs of shapes (dynamic dispatching based on shape type if using the default `ChNarrowphase::Algorithm::HYBRID` narrowphase strategy):
+
+ |                |     _sphere_       |        _box_       |       _rbox_       |      _capsule_     |      _cylinder_    |       _rcyl_       |     _trimesh_      | 
+ | -------------- |     :------:       |        :---:       |       :----:       |      :-------:     |      :--------:    |       :----:       |     :-------:      |
+ | _**sphere**_   | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: |
+ | _**box**_      |                    | :heavy_check_mark: |         :x:        | :heavy_check_mark: |          :x:       |         :x:        |        :x:         |
+ | _**rbox**_     |                    |                    |         :x:        |         :x:        |          :x:       |         :x:        |        :x:         |
+ | _**capsule**_  |                    |                    |                    | :heavy_check_mark: |          :x:       |         :x:        |        :x:         |
+ | _**cylinder**_ |                    |                    |                    |                    |          :x:       |         :x:        |        :x:         |
+ | _**rcyl**_     |                    |                    |                    |                    |                    |         :x:        |        :x:         |
+ | _**trimesh**_  |                    |                    |                    |                    |                    |                    |        :x:         |
+
+- analytical collision functions for non-strictly convex shapes produce multiple collision points, as appropriate (e.g., up to 8 for box-box).
+- support for efficient intersection tests of mono-disperse spherical 3-D particle systems.
+- calculations done in double precision.
+- multicore parallel broadphase and narrowphase 
+- definition of the broadphase grid with fixed number of cells, fixed cell dimensions, or fixed shape density.
+- support for an optional "active" axis-aligned bounding box (objects leaving this area are automatically disabled).
+- ray casting is thread safe (i.e., multiple ray intersectino tests can be done concurrently, for example in a parallel OpenMP for loop).
+
+**Limitations.**
+The main limitation of the new multicore collision detection system is that removal of collision models from the collision system is currently not supported.  As such, bodies with collision enabled cannot be removed from the system once added.
+
+**Work in progress.**
+The following enhancements are currenty under development:
+- ray intersection with generic convex shapes
+- support for collision of flexible bodies
+
+
+### [Added] Miscellaneous additions to Chrono::Gpu
 
 The location of the computational domain can now be specified (in addition to its dimensions) through a fourth optional constructor argument of `ChSystemGpu` and `ChSystemGpuMesh`. By default, the axis-aligned computational domain is centered at the origin.  As such,
 ```cpp

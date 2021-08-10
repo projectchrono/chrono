@@ -15,8 +15,6 @@
 // Chrono::Multicore unit test for real3 class
 // =============================================================================
 
-#include "chrono_multicore/math/real3.h"
-
 #include "unit_testing.h"
 
 #ifdef CHRONO_MULTICORE_USE_DOUBLE
@@ -244,7 +242,7 @@ TEST(real3, functions) {
         real3 ans1 = Cross(a, b);
         ChVector<real> ans2;
         ans2.Cross(ToChVector(a), ToChVector(b));
-        Assert_near(ans1, ToReal3(ans2), precision);
+        Assert_near(ans1, FromChVector(ans2), precision);
     }
     {
         // float 3 length

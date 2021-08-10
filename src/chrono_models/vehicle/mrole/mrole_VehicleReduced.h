@@ -29,7 +29,7 @@ namespace chrono {
 namespace vehicle {
 namespace mrole {
 
-/// @addtogroup vehicle_models_hmmwv
+/// @addtogroup vehicle_models_mrole
 /// @{
 
 /// mrole vehicle system using reduced double wishbone suspension (control arms modeled using distance constraints)
@@ -56,7 +56,7 @@ class CH_MODELS_API mrole_VehicleReduced : public mrole_Vehicle {
     void Create(bool fixed, BrakeType brake_type, CollisionType chassis_collision_type);
 };
 
-/// @} vehicle_models_hmmwv
+/// @} vehicle_models_mrole
 
 }  // namespace mrole
 }  // end namespace vehicle

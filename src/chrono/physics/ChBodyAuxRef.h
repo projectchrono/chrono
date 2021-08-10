@@ -37,7 +37,8 @@ class ChApi ChBodyAuxRef : public ChBody {
     ChFrameMoving<> auxref_to_abs;  ///< auxiliary REF location, relative to abs coords (needs Update() )
 
   public:
-    ChBodyAuxRef() {}
+    ChBodyAuxRef(collision::ChCollisionSystemType collision_type = collision::ChCollisionSystemType::BULLET)
+        : ChBody(collision_type) {}
     ChBodyAuxRef(std::shared_ptr<collision::ChCollisionModel> new_coll_model) : ChBody(new_coll_model) {}
     ChBodyAuxRef(const ChBodyAuxRef& other);
     ~ChBodyAuxRef() {}

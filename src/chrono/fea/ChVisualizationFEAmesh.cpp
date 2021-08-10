@@ -20,6 +20,7 @@
 #include "chrono/fea/ChElementCableANCF.h"
 #include "chrono/fea/ChElementBeamANCF.h"
 #include "chrono/fea/ChElementBeamEuler.h"
+#include "chrono/fea/ChElementBeamTaperedTimoshenko.h"
 #include "chrono/fea/ChElementBeamIGA.h"
 #include "chrono/fea/ChElementBrick.h"
 #include "chrono/fea/ChElementBrick_9.h"
@@ -356,6 +357,8 @@ void ChVisualizationFEAmesh::Update(ChPhysicsItem* updater, const ChCoordsys<>& 
                     sectionshape = mycableancf->GetSection()->GetDrawShape();
                 } else if (auto mybeamiga = std::dynamic_pointer_cast<ChElementBeamIGA>(mybeam)) {
                     sectionshape = mybeamiga->GetSection()->GetDrawShape();
+                } else if (auto mybeamtimoshenko = std::dynamic_pointer_cast<ChElementBeamTaperedTimoshenko>(mybeam)) {
+                    sectionshape = mybeamtimoshenko->GetTaperedSection()->GetSectionA()->GetDrawShape();
                 } else if (auto mybeamancf = std::dynamic_pointer_cast<ChElementBeamANCF>(mybeam)) {
                     sectionshape = chrono_types::make_shared<ChBeamSectionShapeRectangular>(mybeamancf->GetThicknessY(), mybeamancf->GetThicknessZ()); // TO DO use ChBeamSection also in ANCF beam
                 }
@@ -627,6 +630,8 @@ void ChVisualizationFEAmesh::Update(ChPhysicsItem* updater, const ChCoordsys<>& 
                     sectionshape = mycableancf->GetSection()->GetDrawShape();
                 } else if (auto mybeamiga = std::dynamic_pointer_cast<ChElementBeamIGA>(mybeam)) {
                     sectionshape = mybeamiga->GetSection()->GetDrawShape();
+                } else if (auto mybeamtimoshenko = std::dynamic_pointer_cast<ChElementBeamTaperedTimoshenko>(mybeam)) {
+                    sectionshape = mybeamtimoshenko->GetTaperedSection()->GetSectionA()->GetDrawShape();
                 } else if (auto mybeamancf = std::dynamic_pointer_cast<ChElementBeamANCF>(mybeam)) {
                     sectionshape = chrono_types::make_shared<ChBeamSectionShapeRectangular>(mybeamancf->GetThicknessY(), mybeamancf->GetThicknessZ());
                 }

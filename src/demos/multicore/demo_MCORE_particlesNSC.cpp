@@ -136,7 +136,7 @@ int main(int argc, char* argv[]) {
     msystem.GetSettings()->solver.cache_step_length = true;
 
     msystem.ChangeSolverType(SolverType::BB);
-    msystem.GetSettings()->collision.narrowphase_algorithm = NarrowPhaseType::NARROWPHASE_HYBRID_MPR;
+    msystem.GetSettings()->collision.narrowphase_algorithm = ChNarrowphase::Algorithm::HYBRID;
 
     AddParticles(&msystem);
 
@@ -144,8 +144,7 @@ int main(int argc, char* argv[]) {
     msystem.GetSettings()->collision.bins_per_axis = vec3(2, 2, 2);
     msystem.SetLoggingLevel(LoggingLevel::LOG_TRACE, true);
     msystem.SetLoggingLevel(LoggingLevel::LOG_INFO, true);
-    // Create the fixed and moving bodies
-    // ----------------------------------
+
     AddContainer(&msystem);
 
 // Perform the simulation

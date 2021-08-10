@@ -87,6 +87,9 @@ class CH_VEHICLE_API ChShaftsDriveline6WD : public ChDrivelineWV {
     /// Get the motor torque to be applied to the specified spindle.
     virtual double GetSpindleTorque(int axle, VehicleSide side) const override;
 
+    /// Disconnect driveline from driven wheels.
+    virtual void Disconnect() override;
+
   protected:
     /// Return the inertia of the driveshaft.
     virtual double GetDriveshaftInertia() const = 0;
