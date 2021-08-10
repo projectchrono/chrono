@@ -34,27 +34,7 @@ class ChShaft;
 /// in knowing the reaction torque transmitted to the truss (whereas the basic
 /// ChLinkGear cannot do this because it has only in and out); in this case you
 /// just use the shaft n.1 as truss and fix it.
-
 class ChApi ChShaftsPlanetary : public ChPhysicsItem {
-
-  private:
-    double r1;  ///< transmission ratios  as in   r1*w1 + r2*w2 + r3*w3 = 0
-    double r2;
-    double r3;
-
-    double torque_react;  ///< shaft reaction torque
-    
-    bool avoid_phase_drift; 
-    double phase1;
-    double phase2;
-    double phase3;
-
-    ChConstraintThreeGeneric constraint;  ///< used as an interface to the solver
-
-    ChShaft* shaft1;  ///< first connected shaft
-    ChShaft* shaft2;  ///< second connected shaft
-    ChShaft* shaft3;  ///< third connected shaft
-
   public:
     ChShaftsPlanetary();
     ChShaftsPlanetary(const ChShaftsPlanetary& other);
@@ -118,7 +98,10 @@ class ChApi ChShaftsPlanetary : public ChPhysicsItem {
     bool Initialize(std::shared_ptr<ChShaft> mshaft1,  ///< first  shaft to join (carrier wheel)
                     std::shared_ptr<ChShaft> mshaft2,  ///< second shaft to join (wheel)
                     std::shared_ptr<ChShaft> mshaft3   ///< third  shaft to join (wheel)
-                    );
+    );
+
+    /// Disable this element (disable constraints).
+    void SetDisabled(bool val) { active = !val; }
 
     /// Get the first shaft (carrier wheel)
     ChShaft* GetShaft1() { return shaft1; }
@@ -179,15 +162,14 @@ class ChApi ChShaftsPlanetary : public ChPhysicsItem {
     /// Get the transmission ratio r1, as in  r1*w1+r2*w2+r3*w3 = 0
     double GetTransmissionR3() const { return r3; }
 
-    /// Set if the constraint must avoid phase drift. If true, phasing is always 
+    /// Set if the constraint must avoid phase drift. If true, phasing is always
     /// tracked and the constraint is satisfied also at the position level.
     /// If false, microslipping can accumulate (as in friction wheels).
     /// Default is enabled.
-    void SetAvoidPhaseDrift(bool mb) {this->avoid_phase_drift = mb;}
+    void SetAvoidPhaseDrift(bool mb) { this->avoid_phase_drift = mb; }
 
     /// Set if the constraint is in "avoid phase drift" mode.
-    bool GetAvoidPhaseDrift() { return this->avoid_phase_drift;}
-
+    bool GetAvoidPhaseDrift() { return this->avoid_phase_drift; }
 
     /// Get the reaction torque considered as applied to the 1st axis.
     double GetTorqueReactionOn1() const { return (r1 * torque_react); }
@@ -210,9 +192,29 @@ class ChApi ChShaftsPlanetary : public ChPhysicsItem {
 
     /// Method to allow deserialization of transient data from archives.
     virtual void ArchiveIN(ChArchiveIn& marchive) override;
+
+  private:
+    bool active;
+
+    double r1;  ///< transmission ratios  as in   r1*w1 + r2*w2 + r3*w3 = 0
+    double r2;
+    double r3;
+
+    double torque_react;  ///< shaft reaction torque
+
+    bool avoid_phase_drift;
+    double phase1;
+    double phase2;
+    double phase3;
+
+    ChConstraintThreeGeneric constraint;  ///< used as an interface to the solver
+
+    ChShaft* shaft1;  ///< first connected shaft
+    ChShaft* shaft2;  ///< second connected shaft
+    ChShaft* shaft3;  ///< third connected shaft
 };
 
-CH_CLASS_VERSION(ChShaftsPlanetary,0)
+CH_CLASS_VERSION(ChShaftsPlanetary, 0)
 
 }  // end namespace chrono
 

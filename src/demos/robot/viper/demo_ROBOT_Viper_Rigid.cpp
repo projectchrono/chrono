@@ -100,13 +100,11 @@ int main(int argc, char* argv[]) {
 
     // Create the Irrlicht visualization
     ChIrrApp application(&sys, L"Viper Rover on Rigid Terrain", core::dimension2d<u32>(1280, 720), VerticalDir::Z,
-                         false, true);
+                         false, false, true);
     application.AddTypicalLogo();
     application.AddTypicalSky();
-    application.AddTypicalLights(irr::core::vector3df(30.f, 30.f, 100.f), irr::core::vector3df(30.f, -30.f, 100.f));
-    application.AddTypicalCamera(core::vector3df(0, 2, 2));
-    application.AddLightWithShadow(core::vector3df(1.5f, 1.5f, 5.5f), core::vector3df(0, 0, 0), 3, 4, 10, 40, 512,
-                                   video::SColorf(0.8f, 0.8f, 1.0f));
+    application.AddTypicalLights(irr::core::vector3df(30.f, 30.f, 150.f), irr::core::vector3df(-30.f, -30.f, 150.f));
+    application.AddTypicalCamera(core::vector3df(3, 3, 1));
     application.SetContactsDrawMode(IrrContactsDrawMode::CONTACT_DISTANCES);
 
     collision::ChCollisionModel::SetDefaultSuggestedEnvelope(0.0025);
@@ -114,15 +112,16 @@ int main(int argc, char* argv[]) {
 
     // Create the ground.
     auto ground_mat = chrono_types::make_shared<ChMaterialSurfaceNSC>();
-    auto ground = chrono_types::make_shared<ChBodyEasyBox>(20, 20, 1, 1000, true, true, ground_mat);
+    auto ground = chrono_types::make_shared<ChBodyEasyBox>(30, 30, 1, 1000, true, true, ground_mat);
 
-    ground->SetPos(ChVector<>(0, 0, -1));
+    ground->SetPos(ChVector<>(0, 0, -0.5));
     ground->SetBodyFixed(true);
     sys.Add(ground);
 
-    auto masset_texture = chrono_types::make_shared<ChTexture>();
-    masset_texture->SetTextureFilename(GetChronoDataFile("textures/concrete.jpg"));
-    ground->AddAsset(masset_texture);
+    auto texture = chrono_types::make_shared<ChTexture>();
+    texture->SetTextureFilename(GetChronoDataFile("textures/concrete.jpg"));
+    texture->SetTextureScale(60, 45);
+    ground->AddAsset(texture);
 
     // Construct and initialize a Viper rover.
     // The default rotational speed of the Motor is speed w=3.145 rad/sec.
@@ -137,7 +136,7 @@ int main(int argc, char* argv[]) {
     ////viper->SetChassisVisualization(false);
     ////viper->SetSuspensionVisualization(false);
 
-    viper->Initialize(ChFrame<>(ChVector<>(0, 0, -0.2), QUNIT));
+    viper->Initialize(ChFrame<>(ChVector<>(0, 0, 0.5), QUNIT));
 
     std::cout << "Viper total mass: " << viper->GetRoverMass() << std::endl;
     std::cout << "  chassis:        " << viper->GetChassis()->GetBody()->GetMass() << std::endl;
@@ -159,23 +158,25 @@ int main(int argc, char* argv[]) {
     // Simulation loop
     double time = 0.0;
     while (application.GetDevice()->run()) {
+        // Set current steering angle
+        double max_steering = CH_C_PI / 6;
         double steering = 0;
-
-        if (time > 7) {
-            if (std::abs(viper->GetTurnAngle()) < 1e-8)
-                steering = 0;
-            else
-                steering = -CH_C_PI / 8;
-        } else if (time > 1) {
-            steering = CH_C_PI / 8;
-        } 
+        if (time > 2 && time < 7)
+            steering = max_steering * (time - 2) / 5;
+        else if (time > 7 && time < 12)
+            steering = max_steering * (12 - time) / 5;
         driver->SetSteering(steering);
+
+        ////double max_lifting = CH_C_PI / 8;
+        ////double lifting = 0;
+        ////if (time > 1 && time < 2)
+        ////    lifting = max_lifting * (time - 1);
+        ////else if (time > 2)
+        ////    lifting = max_lifting;
+        ////driver->SetLifting(lifting);
 
         // Update Viper controls
         viper->Update();
-
-        // Display turning angle - ranges from -pi/3 to pi/3
-        ////std::cout << "turn angle: " << viper->GetTurnAngle() << std::endl;
 
         // Read rover chassis velocity
         ////std::cout <<"Rover Chassis Speedo Reading: " << viper -> GetChassisVel() << std::endl;
