@@ -27,85 +27,94 @@ namespace fea {
 /// @addtogroup fea_elements
 /// @{
 
-/// Simple beam element with two nodes and Euler-Bernoulli formulation.
-/// For this 'basic' implementation, constant section and constant
-/// material are assumed.
-///
-/// Further information in the
-/// [white paper PDF](http://www.projectchrono.org/assets/white_papers/euler_beams.pdf)
-///
+/// For composite beams such as wind turbine blades and helicopter rotor blades, the cross-sectional
+/// stiffness properties in axial, shear, bending and torsion directions are coupled with each other,
+/// hence the fully-populated matrix(FPM) of cross-sectional stiffness properties is used to describe
+/// this complex coupling. The shape functions of classical Timoshenko beam are not applicable for
+/// this new Timoshenko beam. In this tapered Timoshenko beam, the shape functions are numerically
+/// derived according to the cross-sectional fully-populated stiffness matrix(FPM), and the local mass,
+/// stiffness and damping matrices(M K R) are evaluated via Gauss quadrature. When the fully-populated
+/// stiffness matrix(FPM) includes only diagonal elements(no coupling in the cross-sectional stiffness
+/// matrix, such as a circular section made from steel), the shape functions are reduced to the occasion
+/// in classical Timoshenko beam as in ChElementBeamTaperedTimoshenko, then ChElementBeamTaperedTimoshenkoFPM
+/// is equal to ChElementBeamTaperedTimoshenko.
 /// Note that there are also ChElementCableANCF if no torsional effects
 /// are needed, as in cables.
 
 class ChApi ChElementBeamTaperedTimoshenkoFPM : public ChElementBeamTaperedTimoshenko {
-  
-public:
-
+  public:
     // To store the shape function matrix 'Nx' and strain-displacement relation matrix 'Bx'
-    using ShapeFunctionGroupFPM = std::tuple<ChMatrixNM<double, 6, 12>,ChMatrixNM<double, 6, 12>>;
+    using ShapeFunctionGroupFPM = std::tuple<ChMatrixNM<double, 6, 12>, ChMatrixNM<double, 6, 12>>;
 
-    ChElementBeamTaperedTimoshenkoFPM();  // use the construction function of base class directly
+    ChElementBeamTaperedTimoshenkoFPM();
 
     ~ChElementBeamTaperedTimoshenkoFPM() {}
-  
+
     //
     // FEM functions
-    // 
+    //
 
-    /// Set the section & material of beam element .
-    /// It is a shared property, so it can be shared between other beams.
+    /// Set the tapered section & material of beam element.
     void SetTaperedSection(std::shared_ptr<ChBeamSectionTaperedTimoshenkoAdvancedGenericFPM> my_material) {
         this->tapered_section_fpm = my_material;
         this->tapered_section = std::dynamic_pointer_cast<ChBeamSectionTaperedTimoshenkoAdvancedGeneric>(my_material);
     }
-    /// Get the section & material of the element
+    /// Get the tapered section & material of the element.
     std::shared_ptr<ChBeamSectionTaperedTimoshenkoAdvancedGenericFPM> GetTaperedSection() {
         return this->tapered_section_fpm;
     }
 
-    // Shape functions and strain-displacement matrix at position eta for FPM Timoshenko beam
-    void ShapeFunctionsTimoshenkoFPM(ShapeFunctionGroupFPM& NB, double eta);
+    /// Computes the shape function matrix 'Nx' and strain-displacement relation matrix 'Bx' at dimensionless abscissa 'eta'.
+    /// Note, eta=-1 at node1, eta=+1 at node2.
+    void ShapeFunctionsTimoshenkoFPM(ShapeFunctionGroupFPM& NB,  ///< shape function matrix 'Nx' and strain-displacement relation matrix 'Bx' are stored here.
+                                                    double eta   ///< abscissa 'eta'. eta=-1 at node1, eta=+1 at node2.
+    );
 
+    /// Set the order of Gauss quadrature, as default it is four.
     void SetIntegrationPoints(int mv) { this->guass_order = mv; };
+    /// Get the order of Gauss quadrature.
     int GetIntegrationPoints() { return this->guass_order; };
 
     /// Computes the local (material) stiffness matrix of the element:
     /// K = integral( [B]' * [D] * [B] ),
-    /// Note: in this 'basic' implementation, constant section and
-    /// constant material are assumed, so the explicit result of quadrature is used.
-    /// Also, this local material stiffness matrix is constant, computed only at the beginning
-    /// for performance reasons; if you later change some material property, call this or InitialSetup().
-    void ComputeStiffnessMatrix0();  // discarded, it 's wrong
-
-    void ComputeDampingMatrix0();  // discarded, it 's wrong
-    
-    // compute the local element stiffness matrix via Guass Quadrature
+    /// Note: the sectional properties at Gauss integration point are linearly interpolated from two
+    /// ends of tapered beam. Also, this local material stiffness matrix is constant, computed only
+    /// at the beginning for performance reasons; if you later change some material property, call
+    /// this or InitialSetup().
     void ComputeStiffnessMatrix();
 
-    // Although the shape functions of this beam element have updated, 
-    // strictly speaking, we need to update the algorithm of geometric stiffness matrix correspondingly,
-    // but this geometric stiffness matrix is already a higher-order correction term,
-    // we can directly inherit the previous method for the sake of simplicity.
-    // The influence of different shape functions should be very limited.
+    // Since the shape functions of this beam element have updated, strictly speaking, we need to
+    // update the algorithm of geometric stiffness matrix correspondingly, but this geometric
+    // stiffness matrix is already a higher-order correction term, we can directly inherit the
+    // previous method for the sake of simplicity. The influence of different shape functions
+    // should be very limited.
     // void ComputeGeometricStiffnessMatrix();
 
-    // compute the local element damping matrix via Guass Quadrature
+    /// Computes the local element damping matrix via Guass Quadrature:
+    /// R = beta * integral( [B]' * [D] * [B] ),
+    /// Note: the sectional properties at Gauss integration point are linearly interpolated from two
+    /// ends of tapered beam. Only the stiffness term(beta) is used for this implemented Rayleigh
+    /// damping model. Also, this local material damping matrix is constant, computed only at the beginning
+    /// for performance reasons; if you later change some material property, call this or InitialSetup().
     void ComputeDampingMatrix();
 
-    // compute the local element consistent mass matrix via Guass Quadrature
+    /// Computes the local element consistent mass matrix via Guass Quadrature:
+    /// M = integral( [N]' * [D] * [N] ),
+    /// Note: the sectional properties at Gauss integration point are linearly interpolated from two
+    /// ends of tapered beam. Also, this local element consistent mass matrix is constant, computed only
+    /// at the beginning for performance reasons; if you later change some material property, call this
+    /// or InitialSetup().
     void ComputeConsistentMassMatrix();
 
-    // finally, choose the mass matrix of local element, 
-    // depending on 'use_lumped_mass_matrix' in its sectional settings
+    /// Finally, compute the local mass matrix of element. It could be in lumped or consistent format,
+    /// depending on the parameter 'use_lumped_mass_matrix' in its sectional settings.
     void ComputeMassMatrix();
-
 
     /// Gets the xyz displacement of a point on the beam line,
     /// and the rotation RxRyRz of section plane, at abscyssa 'eta'.
     /// Note, eta=-1 at node1, eta=+1 at node2.
     /// Results are not corotated.
     virtual void EvaluateSectionDisplacement(const double eta, ChVector<>& u_displ, ChVector<>& u_rotaz) override;
-
 
     /// Gets the force (traction x, shear y, shear z) and the
     /// torque (torsion on x, bending on y, on bending on z) at a section along
@@ -114,11 +123,9 @@ public:
     /// Results are not corotated, and are expressed in the reference system of beam.
     virtual void EvaluateSectionForceTorque(const double eta, ChVector<>& Fforce, ChVector<>& Mtorque) override;
 
-
     /* To be completed: Created to be consistent with base class implementation*/
     // strain_v = Bx * displ
     virtual void EvaluateSectionStrain(const double eta, ChVector<>& StrainV) override {}
-
 
     /// Evaluate N'*F , where N is some type of shape function
     /// evaluated at U coordinates of the line, each ranging in -1..+1
@@ -147,17 +154,18 @@ public:
                            ) override;
 
   private:
-
     /// Initial setup. Precompute mass and matrices that do not change during the simulation, such as the local tangent
     /// stiffness Kl of each element, if needed, etc.
     virtual void SetupInitial(ChSystem* system) override;
 
+    /// Tapered section & material of beam element, in fully-populated matrix(FPM) format.
     std::shared_ptr<ChBeamSectionTaperedTimoshenkoAdvancedGenericFPM> tapered_section_fpm;
-    
-    // the order of Gauss-Legendre quadrature for local element stiffness/damping/mass matrices 
+
+    /// The order of Gauss-Legendre quadrature for local element stiffness/damping/mass matrices,
+    /// as default, it is four.
     int guass_order = 4;  // be careful of shear locking effect
-  
-public:
+
+  public:
     EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 };
 
