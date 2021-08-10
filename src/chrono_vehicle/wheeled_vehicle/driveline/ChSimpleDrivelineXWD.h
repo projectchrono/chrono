@@ -67,12 +67,17 @@ class CH_VEHICLE_API ChSimpleDrivelineXWD : public ChDrivelineWV {
     /// Get the motor torque to be applied to the specified spindle.
     virtual double GetSpindleTorque(int axle, VehicleSide side) const override;
 
+    /// Disconnect driveline from driven wheels.
+    virtual void Disconnect() override;
+
   protected:
     /// Return the torque bias ratio every axlewise differential.
     /// This is a simple model of a Torsen limited-slip differential.
     virtual double GetDifferentialMaxBias() const = 0;
 
   private:
+    bool m_connected;
+
     std::vector<std::shared_ptr<ChShaft> > m_shaft_left;
     std::vector<std::shared_ptr<ChShaft> > m_shaft_right;
 };

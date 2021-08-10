@@ -142,6 +142,12 @@ void ChWheeledVehicle::LockCentralDifferential(int which, bool lock) {
     m_driveline->LockCentralDifferential(which, lock);
 }
 
+// Disconnect driveline
+void ChWheeledVehicle::DisconnectDriveline() {
+    if (m_driveline)
+        m_driveline->Disconnect();
+}
+
 // -----------------------------------------------------------------------------
 // Brake behavior
 // -----------------------------------------------------------------------------

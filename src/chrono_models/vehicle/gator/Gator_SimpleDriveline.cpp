@@ -28,7 +28,7 @@ namespace gator {
 const double Gator_SimpleDriveline::m_diff_bias = 2.0;
 
 // -----------------------------------------------------------------------------
-Gator_SimpleDriveline::Gator_SimpleDriveline(const std::string& name) : ChDrivelineWV(name) {}
+Gator_SimpleDriveline::Gator_SimpleDriveline(const std::string& name) : ChDrivelineWV(name), m_connected(true) {}
 
 void Gator_SimpleDriveline::Initialize(std::shared_ptr<ChChassis> chassis,
                                        const ChAxleList& axles,
@@ -45,6 +45,9 @@ void Gator_SimpleDriveline::Initialize(std::shared_ptr<ChChassis> chassis,
 
 // -----------------------------------------------------------------------------
 void Gator_SimpleDriveline::Synchronize(double torque) {
+    if (!m_connected)
+        return;
+
     // Split the driveshaft torque for the corresponding left/right wheels.
     // Use a siple model of a Torsten limited-slip differential with a max_bias:1 torque bias ratio.
     double speed_left = m_left->GetPos_dt();
@@ -85,6 +88,9 @@ double Gator_SimpleDriveline::GetDriveshaftSpeed() const {
 
 // -----------------------------------------------------------------------------
 double Gator_SimpleDriveline::GetSpindleTorque(int axle, VehicleSide side) const {
+    if (!m_connected)
+        return 0;
+
     if (axle != m_driven_axles[0])
         return 0;
 
@@ -92,6 +98,11 @@ double Gator_SimpleDriveline::GetSpindleTorque(int axle, VehicleSide side) const
         return -m_left->GetAppliedTorque();
 
     return -m_right->GetAppliedTorque();
+}
+
+// -----------------------------------------------------------------------------
+void Gator_SimpleDriveline::Disconnect() {
+    m_connected = false;
 }
 
 }  // end namespace gator

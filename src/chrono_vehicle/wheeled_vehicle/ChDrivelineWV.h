@@ -65,6 +65,9 @@ class CH_VEHICLE_API ChDrivelineWV : public ChDriveline {
     /// Get the motor torque to be applied to the specified spindle.
     virtual double GetSpindleTorque(int axle, VehicleSide side) const = 0;
 
+    /// Disconnect driveline from driven wheels.
+    virtual void Disconnect() = 0;
+
   protected:
     std::vector<int> m_driven_axles;  ///< indexes of the driven vehicle axles
 };

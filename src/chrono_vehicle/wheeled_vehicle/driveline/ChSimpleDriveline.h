@@ -65,6 +65,9 @@ class CH_VEHICLE_API ChSimpleDriveline : public ChDrivelineWV {
     /// Get the motor torque to be applied to the specified spindle.
     virtual double GetSpindleTorque(int axle, VehicleSide side) const override;
 
+    /// Disconnect driveline from driven wheels.
+    virtual void Disconnect() override;
+
   protected:
     /// Return the front torque fraction [0,1].
     virtual double GetFrontTorqueFraction() const = 0;
@@ -78,6 +81,8 @@ class CH_VEHICLE_API ChSimpleDriveline : public ChDrivelineWV {
     virtual double GetRearDifferentialMaxBias() const = 0;
 
   private:
+    bool m_connected;
+
     std::shared_ptr<ChShaft> m_front_left;
     std::shared_ptr<ChShaft> m_front_right;
     std::shared_ptr<ChShaft> m_rear_left;
