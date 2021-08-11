@@ -171,7 +171,7 @@ class CH_VEHICLE_API ChVehicleCosimTerrainNodeGranularOMP : public ChVehicleCosi
 
     virtual void OnAdvance(double step_size) override;
     virtual void OnOutputData(int frame) override;
-    virtual void OnRender(double time) override;
+    virtual void Render(double time) override;
 
     /// Calculate current height of granular terrain.
     double CalcCurrentHeight();

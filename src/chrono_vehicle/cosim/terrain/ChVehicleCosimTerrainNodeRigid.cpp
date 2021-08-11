@@ -419,7 +419,7 @@ void ChVehicleCosimTerrainNodeRigid::OnAdvance(double step_size) {
     m_system->CalculateContactForces();
 }
 
-void ChVehicleCosimTerrainNodeRigid::OnRender(double time) {
+void ChVehicleCosimTerrainNodeRigid::Render(double time) {
 #ifdef CHRONO_OPENGL
     opengl::ChOpenGLWindow& gl_window = opengl::ChOpenGLWindow::getInstance();
     if (gl_window.Active()) {

@@ -36,7 +36,21 @@ namespace vehicle {
 /// @addtogroup vehicle_cosim
 /// @{
 
-/// Base class for all terrain nodes.
+/// Base class for a terrain node.
+/// Implements required functionality for a co-simulation node (Initialize(), Synchronize(), Advance()) and all MPI
+/// communication.
+///
+/// A derived class must implement functions to:
+/// - specify the communication interface type (SupportsMeshInterface())
+/// - construct and initialize the concrete terrain object (OnInitialize())
+/// - accept new spindle body states (UpdateWheelProxy() and/or UpdateMeshProxies())
+/// - provide terrain forces acting on the spindle bodies (GetForceWheelProxy() and/or GetForcesMeshProxies())
+/// - advance the dynamic state of the terrain (OnAdvance())
+///
+/// Optionally, a derived class may implement functions to:
+/// - perform additional operations after a synchronization data exchange (OnSynchronize())
+/// - perform additional data output (OnOutputData())
+/// - provide run-time visualization (Render())
 class CH_VEHICLE_API ChVehicleCosimTerrainNode : public ChVehicleCosimBaseNode {
   public:
     virtual ~ChVehicleCosimTerrainNode() {}
@@ -78,20 +92,20 @@ class CH_VEHICLE_API ChVehicleCosimTerrainNode : public ChVehicleCosimBaseNode {
     virtual int GetNumContacts() const { return 0; }
 
   protected:
-    /// Construct a base class terrain node of given length and width.
+    /// Construct a terrain node to wrap a terrain patch of given length and width.
     ChVehicleCosimTerrainNode(double length, double width);
 
     // ------------------------- Virtual methods
 
     /// Specify whether or not the terrain node supports the MESH communication interface.
     /// See ChVehicleCosimBaseNode::InterfaceType.
-    /// A terrain that also supports the MESH communication interface must override the functions UpdateMeshProxies and
-    /// GetForcesMeshProxies.
+    /// A terrain that also supports the MESH communication interface must override the functions UpdateMeshProxies() and
+    /// GetForcesMeshProxies().
     virtual bool SupportsMeshInterface() const = 0;
 
     /// Return the terrain initial height.
-    /// This value must be available before the call to Initialize (and therefore, before the derived class's
-    /// OnInitialize is called).
+    /// This value must be available before the call to Initialize() (and therefore, before the derived class's
+    /// OnInitialize() is called).
     virtual double GetInitHeight() const = 0;
 
     /// Perform any additional operations after the initial data exchange with the MBS node, including creating any
@@ -104,18 +118,23 @@ class CH_VEHICLE_API ChVehicleCosimTerrainNode : public ChVehicleCosimBaseNode {
     /// - vertical load on each tire (through m_load_mass)
     virtual void OnInitialize(unsigned int num_tires) = 0;
 
-    /// Perform any additional operations after the data exchange and synchronization with the MBS node.
+    /// Perform any additional operations after the data exchange and synchronization with the MBS node. A derived class
+    /// has access to the following vectors (of size equal to the number of tires):
+    /// - full dynamic state of the spindle bodies (through m_spindle_state) when using the BODY communication interface 
+    /// - state of the mesh vertices (through m_mesh_state) when using the MESH communication interface
     virtual void OnSynchronize(int step_number, double time) {}
 
     /// Advance the state of the terrain system by the specified step.
     virtual void OnAdvance(double step_size) = 0;
 
-    /// Perform additional output at the specified frame (called once per integration step).
+    /// Perform additional output at the specified frame (called from within OutputData).
     /// For example, output terrain-specific data for post-procesing.
     virtual void OnOutputData(int frame) {}
 
     /// Render simulation.
-    virtual void OnRender(double time) {}
+    /// This function is called from Advance() at the frequency spoecified in the call to EnableRuntimeVisualization().
+    /// Any call to Render occurs after a call to OnAdvance().
+    virtual void Render(double time) {}
 
     // ------------------------- Virtual methods for the MESH communication interface
     // A derived class must implement these methods if SupportsMeshInterface returns true.

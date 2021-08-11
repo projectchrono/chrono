@@ -32,6 +32,21 @@
 namespace chrono {
 namespace vehicle {
 
+/** @addtogroup vehicle_cosim_chrono
+ *
+ * This module defines concrete terrain nodes using Chrono physics:
+ * - ChVehicleCosimTerrainNodeChrono is a base class (itself derived from ChVehicleCosimTerrainNode).
+ * - ChVehicleCosimTerrainNodeRigid wraps a rigid terrain rectangular patch which interacts with tires through friction
+ * and contact.
+ * - ChVehicleCosimTerrainNodeSCM wraps an SCM deformable terrain rectangular patch.
+ * - ChVehicleCosimTerrainNodeGranularOMP wraps a deformable terrain rectangular patch modeled with granular material
+ * (using the Chrono::Multicore module).
+ * - ChVehicleCosimTerrainNodeGranularGPU wraps a deformable terrain rectangular patch modeled with granular material
+ * (using the Chrono::GPU module).
+ * - ChVehicleCosimTerrainNodeGranularSPH wraps a deformable terrain rectangular patch modeled with granular material
+ * (using the Chrono::FSI module).
+ */
+
 /// @addtogroup vehicle_cosim_chrono
 /// @{
 

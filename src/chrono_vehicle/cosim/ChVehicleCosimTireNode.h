@@ -31,6 +31,15 @@
 namespace chrono {
 namespace vehicle {
 
+/** @addtogroup vehicle_cosim_tire
+ *
+ * This module defines concrete tire nodes using Chrono physics:
+ * - ChVehicleCosimTireNodeRigid wraps a rigid tire model and implements the ChVehicleCosimBaseNode::InterfaceType::BODY
+ * communication interface.
+ * - ChVehicleCosimTireNodeFlexible wraps a flexible FEA-based tire model and implements the
+ * ChVehicleCosimBaseNode::InterfaceType::MESH communication interface.
+ */
+
 /// @addtogroup vehicle_cosim
 /// @{
 

@@ -32,7 +32,7 @@
 namespace chrono {
 namespace vehicle {
 
-/// @addtogroup vehicle_cosim
+/// @addtogroup vehicle_cosim_mbs
 /// @{
 
 /// Mechanism for a single-wheel testing rig.
@@ -91,7 +91,7 @@ class CH_VEHICLE_API ChVehicleCosimRigNode : public ChVehicleCosimMBSNode {
     std::shared_ptr<ChLinkMotorRotationSpeed> m_rev_motor;  ///< motor to enforce spindle angular vel
 };
 
-/// @} vehicle_cosim
+/// @} vehicle_cosim_mbs
 
 }  // end namespace vehicle
 }  // end namespace chrono

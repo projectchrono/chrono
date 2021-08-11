@@ -74,7 +74,7 @@ class MyTerrain : public ChVehicleCosimTerrainNode {
     virtual void OnAdvance(double step_size) override;
 
     /// Render simulation.
-    virtual void OnRender(double time) override;
+    virtual void Render(double time) override;
 
     /// Update the state of the wheel proxy body for the i-th tire.
     virtual void UpdateWheelProxy(unsigned int i, const BodyState& spindle_state) override;
@@ -179,7 +179,7 @@ void MyTerrain::OnAdvance(double step_size) {
     }
 }
 
-void MyTerrain::OnRender(double time) {
+void MyTerrain::Render(double time) {
 #ifdef CHRONO_IRRLICHT
     if (!m_irrapp->GetDevice()->run()) {
         MPI_Abort(MPI_COMM_WORLD, 1);

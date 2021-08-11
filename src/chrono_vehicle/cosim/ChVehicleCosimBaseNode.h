@@ -40,6 +40,28 @@
 namespace chrono {
 namespace vehicle {
 
+/** @addtogroup vehicle_cosim
+ *
+ * The vehicle co-simulation module provides an MPI_based framework for co-simulating a multibody system representing a
+ * wheeled mechanism with various terrain models and optionally various tire models. It implements a 3-way explicit
+ * force-displacement co-simulation approach.  The three different types of nodes present in a co-simulation are as
+ * follows:
+ * - MBS node, a single MPI rank which simulates the multibody system up to the wheel spindles.
+ * - Tire nodes, a number of MPI ranks (equal to the number of wheels), each simulating one of the tires.
+ * - Terrain node(s), one or more MPI ranks which simulate the deformable terrain
+ *
+ * The inter-node communication at each synchronization time is as follows:
+ * - MBS node sends spindle body state to corresponding Tire nodes
+ * - Tire nodes send spindle forces to MBS node
+ * - Tire nodes send tire state (rigid body state or deformable mesh state) to Terrain node
+ * - Terrain node sends tire forces (single resultant force or distributed vertex forces) to corresponding Tire node
+ *
+ * The communication interface between Tire and Terrain nodes can be of one of two types:
+ * - ChVehicleCosimBaseNode::InterfaceType::BODY, in which data (force-displacement) for a single rigid body is
+ * exchanged
+ * - ChVehicleCosimBaseNode::InterfaceType::MESH, in which data (force-displacement) for a deformable mesh is exchanged
+ */
+
 /// @addtogroup vehicle_cosim
 /// @{
 

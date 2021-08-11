@@ -444,7 +444,7 @@ void ChVehicleCosimTerrainNodeGranularSPH::OnAdvance(double step_size) {
     }
 }
 
-void ChVehicleCosimTerrainNodeGranularSPH::OnRender(double time) {
+void ChVehicleCosimTerrainNodeGranularSPH::Render(double time) {
 #ifdef CHRONO_OPENGL
     opengl::ChOpenGLWindow& gl_window = opengl::ChOpenGLWindow::getInstance();
     if (gl_window.Active()) {

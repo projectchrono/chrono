@@ -151,7 +151,7 @@ class CH_VEHICLE_API ChVehicleCosimTerrainNodeGranularGPU : public ChVehicleCosi
 
     virtual void OnOutputData(int frame) override;
 
-    virtual void OnRender(double time) override;
+    virtual void Render(double time) override;
 
     /// Advance simulation.
     /// This function is called after a synchronization to allow the node to advance

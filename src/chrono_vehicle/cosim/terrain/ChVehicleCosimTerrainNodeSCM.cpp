@@ -332,7 +332,7 @@ void ChVehicleCosimTerrainNodeSCM::GetForceWheelProxy(unsigned int i, TerrainFor
 
 // -----------------------------------------------------------------------------
 
-void ChVehicleCosimTerrainNodeSCM::OnRender(double time) {
+void ChVehicleCosimTerrainNodeSCM::Render(double time) {
 #ifdef CHRONO_IRRLICHT
     if (!m_irrapp->GetDevice()->run()) {
         MPI_Abort(MPI_COMM_WORLD, 1);

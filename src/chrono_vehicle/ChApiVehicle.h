@@ -74,6 +74,8 @@
 
         @defgroup vehicle_cosim Co-simulation support for vehicle-terrain interaction
         @{
+            @defgroup vehicle_cosim_mbs Multibody system nodes
+            @defgroup vehicle_cosim_tire Tire simulation nodes
             @defgroup vehicle_cosim_chrono Terrain nodes using Chrono physics
         @}
     @}

@@ -31,7 +31,7 @@
 namespace chrono {
 namespace vehicle {
 
-/// @addtogroup vehicle_cosim
+/// @addtogroup vehicle_cosim_mbs
 /// @{
 
 /// Base class for a drawbar-pull rig mechanism.
@@ -118,7 +118,7 @@ class CH_VEHICLE_API ChVehicleCosimDBPRigImposedSlip : public ChVehicleCosimDBPR
     double m_ang_vel;   ///< wheel angular velocity (based on actuation type and slip value)
 };
 
-/// @} vehicle_cosim
+/// @} vehicle_cosim_mbs
 
 }  // end namespace vehicle
 }  // end namespace chrono

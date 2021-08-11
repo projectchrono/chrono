@@ -33,7 +33,7 @@
 namespace chrono {
 namespace vehicle {
 
-/// @addtogroup vehicle_cosim
+/// @addtogroup vehicle_cosim_tire
 /// @{
 
 /// Definition of the rigid tire node.
@@ -85,7 +85,7 @@ class CH_VEHICLE_API ChVehicleCosimTireNodeRigid : public ChVehicleCosimTireNode
     std::vector<double> m_vertexArea;                      ///< representative areas for each mesh vertex
 };
 
-/// @} vehicle_cosim
+/// @} vehicle_cosim_tire
 
 }  // end namespace vehicle
 }  // end namespace chrono

@@ -329,7 +329,7 @@ void ChVehicleCosimTerrainNode::Advance(double step_size) {
 
     // Request the derived class to render simulation
     if (m_render && sim_time >= render_time) {
-        OnRender(sim_time);
+        Render(sim_time);
         render_time += std::max(m_render_step, step_size);
     }
 }

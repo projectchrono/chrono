@@ -33,6 +33,19 @@
 namespace chrono {
 namespace vehicle {
 
+/** @addtogroup vehicle_cosim_mbs
+ *
+ * This module defines concrete multibody system nodes:
+ * - ChVehicleCosimRigNode wraps a single-wheel test rig.
+ * - ChVehicleCosimVehicleNode wraps a Chrono::Vehicle wheeled vehicle definued through JSON specification files.
+ * - ChVehicleCosimViperNode node wraps the Viper lunar rover model.
+ *
+ * Additionally, this module provides various drawbar pull rigs which can be attached to any of the MBS nodes:
+ * - ChVehicleCosimDBPRigImposedSlip is a rig consisting of a carrier connected through two orthogonal prismatic joints
+ * which can impose a desired longitudinal slip by correlating the horizontal rig translational speed and the imposed
+ * wheel angular speed.
+ */
+
 /// @addtogroup vehicle_cosim
 /// @{
 

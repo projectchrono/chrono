@@ -92,7 +92,7 @@ class CH_VEHICLE_API ChVehicleCosimTerrainNodeRigid : public ChVehicleCosimTerra
     virtual void GetForceWheelProxy(unsigned int i, TerrainForce& wheel_contact) override;
 
     virtual void OnAdvance(double step_size) override;
-    virtual void OnRender(double time) override;
+    virtual void Render(double time) override;
 };
 
 /// @} vehicle_cosim_chrono

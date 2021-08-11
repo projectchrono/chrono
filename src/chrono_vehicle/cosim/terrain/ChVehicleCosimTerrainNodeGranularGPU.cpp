@@ -462,7 +462,7 @@ void ChVehicleCosimTerrainNodeGranularGPU::Settle() {
 
         // Render (if enabled)
         if (m_render && m_system->GetChTime() > render_time) {
-            OnRender(m_system->GetChTime());
+            Render(m_system->GetChTime());
             render_time += std::max(m_render_step, m_step_size);
         }
 
@@ -670,7 +670,7 @@ void ChVehicleCosimTerrainNodeGranularGPU::OnAdvance(double step_size) {
     }
 }
 
-void ChVehicleCosimTerrainNodeGranularGPU::OnRender(double time) {
+void ChVehicleCosimTerrainNodeGranularGPU::Render(double time) {
 #ifdef CHRONO_OPENGL
     opengl::ChOpenGLWindow& gl_window = opengl::ChOpenGLWindow::getInstance();
     if (gl_window.Active()) {

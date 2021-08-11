@@ -38,7 +38,7 @@
 namespace chrono {
 namespace vehicle {
 
-/// @addtogroup vehicle_cosim
+/// @addtogroup vehicle_cosim_mbs
 /// @{
 
 /// Viper rover co-simulation node.
@@ -109,7 +109,7 @@ class CH_VEHICLE_API ChVehicleCosimViperNode : public ChVehicleCosimMBSNode {
     std::vector<double> m_spindle_loads;  ///< vertical loads on each spindle
 };
 
-/// @} vehicle_cosim
+/// @} vehicle_cosim_mbs
 
 }  // end namespace vehicle
 }  // end namespace chrono
