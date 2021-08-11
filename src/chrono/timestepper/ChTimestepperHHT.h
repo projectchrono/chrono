@@ -129,17 +129,17 @@ class ChApi ChTimestepperHHT : public ChTimestepperIIorder, public ChImplicitIte
     /// This could be helpful if you want to fall back to iterate again via using more rigorous stepper settings, 
     /// such as smaller fixed time stepper, turning off ModifiedNerton,etc, 
     /// WHEN you are not satisfied by current iteration result.
-    virtual bool GetConvergenceFlag() { return convergence_trend_flag; };
+    bool GetConvergenceFlag() { return convergence_trend_flag; };
 
     /// Set the threshold of norm of R, which is used to judge the trend of convergency.
     /// For different systems, this threshold may be much different, such as a mini robot and a huge wind turbine.
     /// You could turn on 'verbose' of HHT stepper and look at the norm of R for your system firstly, 
     /// and then set a suitable threshold of norm of R. 
     /// This threshold should always be larger than the normal norm of R for your system.
-    virtual void SetThreshold_R(double mv) { threshold_R = mv; };
+    void SetThreshold_R(double mv) { threshold_R = mv; };
 
     /// Get the threshold of norm of R, which is used to judge the trend of convergency.
-    virtual double GetThreshold_R() { return threshold_R; };
+    double GetThreshold_R() { return threshold_R; };
 
     /// Method to allow serialization of transient data to archives.
     virtual void ArchiveOUT(ChArchiveOut& archive) override;
