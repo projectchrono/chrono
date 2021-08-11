@@ -44,7 +44,7 @@ class CH_VEHICLE_API ChVehicleCosimTireNodeFlexible : public ChVehicleCosimTireN
     ~ChVehicleCosimTireNodeFlexible() {}
 
     /// Return the tire type.
-    virtual TireType GetTireType() const { return TireType::FLEXIBLE; }
+    virtual TireType GetTireType() const override { return TireType::FLEXIBLE; }
 
     /// Advance simulation.
     /// This function is called after a synchronization to allow the node to advance

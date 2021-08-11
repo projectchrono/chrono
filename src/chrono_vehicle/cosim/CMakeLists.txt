@@ -40,6 +40,8 @@ set(CV_COSIM_TIRE_FILES
     tire/ChVehicleCosimTireNodeRigid.cpp
     tire/ChVehicleCosimTireNodeFlexible.h
     tire/ChVehicleCosimTireNodeFlexible.cpp
+    tire/ChVehicleCosimTireNodeBypass.h
+    tire/ChVehicleCosimTireNodeBypass.cpp
 )
 
 set(CV_COSIM_TERRAIN_FILES

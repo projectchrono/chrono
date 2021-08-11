@@ -13,9 +13,9 @@
 // =============================================================================
 //
 // Demo for single-wheel rig cosimulation framework using a custom terrain node.
-// Illustration of connecting a terrain simulation potentially done oustside Chrono.
+// Illustrates use of a terrain simulation potentially done oustside Chrono.
 //
-// Global reference frame: Z up, X towards the front, and Y pointing to the left
+// Global reference frame: Z up, X front, and Y left.
 //
 // =============================================================================
 
@@ -30,7 +30,7 @@
 
 #include "chrono_vehicle/cosim/ChVehicleCosimTerrainNode.h"
 #include "chrono_vehicle/cosim/mbs/ChVehicleCosimRigNode.h"
-#include "chrono_vehicle/cosim/tire/ChVehicleCosimTireNodeRigid.h"
+#include "chrono_vehicle/cosim/tire/ChVehicleCosimTireNodeBypass.h"
 
 #ifdef CHRONO_IRRLICHT
     #include "chrono_irrlicht/ChIrrApp.h"
@@ -46,47 +46,44 @@ using namespace chrono::vehicle;
 // =============================================================================
 
 // Example of a custom terrain node.
-// This simple illustration class can only interact with a single wheel.
+// This simple demonstration terrain node uses a simple rigid plate as the terrain mode and creates rigid cylindrical
+// tires. This terrain node works can work with a tire node of type BYPASS.
 class MyTerrain : public ChVehicleCosimTerrainNode {
   public:
     MyTerrain(double length, double width);
     ~MyTerrain();
 
-    /// This terrain type does not support the MESH communication interface.
+    // This terrain type does not support the MESH communication interface.
     virtual bool SupportsMeshInterface() const override { return false; }
 
-    /// Return the terrain initial height.
+    // Return the terrain initial height.
     virtual double GetInitHeight() const override { return 0; }
 
-    /// Initialize this Chrono terrain node.
-    /// Construct the terrain system, the tire material, and the proxy bodies.
-    /// Use information from the following vectors (of size equal to the number of tires):
-    /// - radius for each tire (through m_tire_radius)
-    /// - mesh information for each tire (through m_mesh_data)
-    /// - contact material for each tire (through m_mat_props)
-    /// - vertical load on each tire (through m_load_mass)
+    // Initialize this Chrono terrain node.
+    // Construct the terrain system, the tire material, and the proxy bodies.
+    // Use information from the following vectors (of size equal to the number of tires):
+    // - radius for each tire (through m_tire_radius)
+    // - vertical load on each tire (through m_load_mass)
     virtual void OnInitialize(unsigned int num_tires) override final;
 
-    /// Advance simulation.
-    /// This function is called after a synchronization to allow the node to advance
-    /// its state by the specified time step.  A node is allowed to take as many internal
-    /// integration steps as required, but no inter-node communication should occur.
+    // Advance simulation.
     virtual void OnAdvance(double step_size) override;
 
-    /// Render simulation.
+    // Render simulation.
     virtual void Render(double time) override;
 
-    /// Update the state of the wheel proxy body for the i-th tire.
+    // Update the state of the wheel proxy body for the i-th tire.
     virtual void UpdateWheelProxy(unsigned int i, const BodyState& spindle_state) override;
 
-    /// Collect cumulative contact force and torque on the wheel proxy body for the i-th tire.
+    // Collect cumulative contact force and torque on the wheel proxy body for the i-th tire.
     virtual void GetForceWheelProxy(unsigned int i, TerrainForce& wheel_contact) override;
 
   private:
-    ChSystemSMC* m_system;           ///< containing Chrono system
-    std::shared_ptr<ChBody> m_body;  ///< proxy body for the tire
+    ChSystemSMC* m_system;                          // containing Chrono system
+    std::vector<std::shared_ptr<ChBody>> m_bodies;  // proxy tire bodies
+
 #ifdef CHRONO_IRRLICHT
-    irrlicht::ChIrrApp* m_irrapp;  ///< Irrlicht run-time visualizatino
+    irrlicht::ChIrrApp* m_irrapp;  // Irrlicht run-time visualizatino
 #endif
 };
 
@@ -144,19 +141,31 @@ void MyTerrain::OnInitialize(unsigned int num_tires) {
                           ChQuaternion<>(1, 0, 0, 0), true);
     ground->GetCollisionModel()->BuildModel();
 
-    // Create the proxy body with a cylindrical shape
-    m_body = chrono_types::make_shared<ChBody>();
-    m_body->SetMass(m_load_mass[0]);
-    m_body->SetInertiaXX(ChVector<>(0.1, 0.1, 0.1));
+    // Shared proxy contact material
+        auto mat_proxy = chrono_types::make_shared<ChMaterialSurfaceSMC>();
+    mat_proxy->SetFriction(0.9f);
+    mat_proxy->SetRestitution(0);
+    mat_proxy->SetYoungModulus(2e7f);
+    mat_proxy->SetPoissonRatio(0.3f);
+    mat_proxy->SetKn(2e5f);
+    mat_proxy->SetGn(4e1f);
+    mat_proxy->SetKt(2e5f);
+    mat_proxy->SetGt(4e1f);
 
-    auto mat_proxy = m_mat_props[0].CreateMaterial(ChContactMethod::SMC);
-    m_body->SetCollide(true);
+    // Create the proxy bodies with cylindrical shapes
+    m_bodies.resize(num_tires);
+    for (unsigned int i = 0; i < num_tires; i++) {
+        m_bodies[i] = chrono_types::make_shared<ChBody>();
+        m_bodies[i]->SetMass(m_load_mass[0]);
+        m_bodies[i]->SetInertiaXX(ChVector<>(0.1, 0.1, 0.1));
+        m_bodies[i]->SetCollide(true);
 
-    m_body->GetCollisionModel()->ClearModel();
-    utils::AddCylinderGeometry(m_body.get(), mat_proxy, m_tire_radius[0], m_tire_width[0] / 2);
-    m_body->GetCollisionModel()->BuildModel();
+        m_bodies[i]->GetCollisionModel()->ClearModel();
+        utils::AddCylinderGeometry(m_bodies[i].get(), mat_proxy, m_tire_radius[0], m_tire_width[0] / 2);
+        m_bodies[i]->GetCollisionModel()->BuildModel();
 
-    m_system->AddBody(m_body);
+        m_system->AddBody(m_bodies[i]);
+    }
 
     // Reset system time to 0.
     m_system->SetChTime(0);
@@ -193,18 +202,18 @@ void MyTerrain::Render(double time) {
 void MyTerrain::UpdateWheelProxy(unsigned int i, const BodyState& spindle_state) {
     assert(i == 0);
 
-    m_body->SetPos(spindle_state.pos);
-    m_body->SetPos_dt(spindle_state.lin_vel);
-    m_body->SetRot(spindle_state.rot);
-    m_body->SetWvel_par(spindle_state.ang_vel);
+    m_bodies[i]->SetPos(spindle_state.pos);
+    m_bodies[i]->SetPos_dt(spindle_state.lin_vel);
+    m_bodies[i]->SetRot(spindle_state.rot);
+    m_bodies[i]->SetWvel_par(spindle_state.ang_vel);
 }
 
 void MyTerrain::GetForceWheelProxy(unsigned int i, TerrainForce& wheel_contact) {
     assert(i == 0);
 
     wheel_contact.point = ChVector<>(0, 0, 0);
-    wheel_contact.force = m_body->GetContactForce();
-    wheel_contact.moment = m_body->GetContactTorque();
+    wheel_contact.force = m_bodies[i]->GetContactForce();
+    wheel_contact.moment = m_bodies[i]->GetContactTorque();
 }
 
 // =============================================================================
@@ -261,7 +270,7 @@ int main(int argc, char** argv) {
     int sim_steps = (int)std::ceil(sim_time / step_size);
     int output_steps = (int)std::ceil(1 / (output_fps * step_size));
 
-    // Create the node (a rig node or a terrain node, depending on rank).
+    // Create the node (a rig, tire, or terrain node, depending on rank).
     ChVehicleCosimBaseNode* node = nullptr;
 
     if (rank == MBS_NODE_RANK) {
@@ -269,10 +278,10 @@ int main(int argc, char** argv) {
             cout << "[Rig node    ] rank = " << rank << " running on: " << procname << endl;
 
         auto act_type = ChVehicleCosimDBPRigImposedSlip::ActuationType::SET_ANG_VEL;
-        double total_mass = 100;
         double base_vel = 1.0;
         double slip = 0;
         double dbp_filter_window = 0.1;
+        double total_mass = 100;
 
         auto dbp_rig = chrono_types::make_shared<ChVehicleCosimDBPRigImposedSlip>(act_type, base_vel, slip);
         dbp_rig->SetDBPfilterWindow(dbp_filter_window);
@@ -294,8 +303,7 @@ int main(int argc, char** argv) {
         if (verbose)
             cout << "[Tire node   ] rank = " << rank << " running on: " << procname << endl;
 
-        auto tire = new ChVehicleCosimTireNodeRigid(0);
-        tire->SetTireFromSpecfile(vehicle::GetDataFile("hmmwv/tire/HMMWV_RigidMeshTire_Coarse.json"));
+        auto tire = new ChVehicleCosimTireNodeBypass(0, 37.6, 0.47, 0.25);
         tire->SetVerbose(verbose);
         tire->SetStepSize(step_size);
         tire->SetNumThreads(1);

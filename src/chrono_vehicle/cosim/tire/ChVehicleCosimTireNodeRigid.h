@@ -21,8 +21,8 @@
 //
 // =============================================================================
 
-#ifndef CH_VEHCOSIM_TIRE_NODE_BODY_H
-#define CH_VEHCOSIM_TIRE_NODE_BODY_H
+#ifndef CH_VEHCOSIM_TIRE_NODE_RIGID_H
+#define CH_VEHCOSIM_TIRE_NODE_RIGID_H
 
 #include "chrono/utils/ChUtilsInputOutput.h"
 
@@ -43,7 +43,7 @@ class CH_VEHICLE_API ChVehicleCosimTireNodeRigid : public ChVehicleCosimTireNode
     ~ChVehicleCosimTireNodeRigid() {}
 
     /// Return the tire type.
-    virtual TireType GetTireType() const { return TireType::RIGID; }
+    virtual TireType GetTireType() const override { return TireType::RIGID; }
 
     /// Advance simulation.
     /// A rigid tire node need not advance dynamics.
