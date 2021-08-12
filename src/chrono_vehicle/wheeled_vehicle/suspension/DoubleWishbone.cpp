@@ -176,7 +176,7 @@ void DoubleWishbone::Create(const rapidjson::Document& d) {
     } else {
         if (d["Spring"].HasMember("Spring Coefficient")) {
             m_springForceCB =
-                chrono_types::make_shared < LinearSpringForce>(d["Spring"]["Spring Coefficient"].GetDouble());
+                chrono_types::make_shared<LinearSpringForce>(d["Spring"]["Spring Coefficient"].GetDouble());
         } else if (d["Spring"].HasMember("Curve Data")) {
             int num_points = d["Spring"]["Curve Data"].Size();
             auto springForceCB = chrono_types::make_shared<MapSpringForce>();

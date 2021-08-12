@@ -105,11 +105,11 @@ class CH_VEHICLE_API DoubleWishbone : public ChDoubleWishbone {
     ChVector<> m_uprightInertiaProducts;
     ChVector<> m_tierodInertia;
 
+    double m_axleInertia;
+
     std::shared_ptr<ChVehicleBushingData> m_UCABushingData;
     std::shared_ptr<ChVehicleBushingData> m_LCABushingData;
     std::shared_ptr<ChVehicleBushingData> m_tierodBushingData;
-
-    double m_axleInertia;
 
     double m_springRestLength;
 };
