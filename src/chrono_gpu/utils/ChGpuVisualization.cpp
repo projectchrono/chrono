@@ -34,7 +34,7 @@ ChGpuVisualization::ChGpuVisualization(ChSystemGpu* sysGPU, ChSystem* sys)
       m_cam_target(0, 0, 0),
       m_cam_up(0, 0, 1),
       m_cam_scale(0.1f),
-      m_part_start_index(-1) {
+      m_part_start_index(0) {
 #ifdef CHRONO_OPENGL
     if (!sys) {
         m_system = new ChSystemSMC();

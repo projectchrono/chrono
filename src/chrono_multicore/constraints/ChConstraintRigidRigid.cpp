@@ -377,7 +377,7 @@ void ChConstraintRigidRigid::Build_E() {
 
 #pragma omp parallel for
     for (int index = 0; index < (signed)num_rigid_contacts; index++) {
-        vec2 body = data_manager->cd_data->bids_rigid_rigid[index];
+        ////vec2 body = data_manager->cd_data->bids_rigid_rigid[index];
 
         real compliance_normal = compliance[index].x;
         real compliance_sliding = compliance[index].y;

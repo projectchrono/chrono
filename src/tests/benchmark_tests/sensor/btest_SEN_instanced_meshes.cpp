@@ -40,7 +40,7 @@ float end_time = 10.0f;
 bool vis = false;
 
 int main(int argc, char* argv[]) {
-    for (int q = 0; q <= 3; q++) {
+    for (int iq = 0; iq <= 3; iq++) {
         GetLog() << "Copyright (c) 2019 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
 
         // -----------------
@@ -62,9 +62,9 @@ int main(int argc, char* argv[]) {
 
         std::vector<ChFrame<>> frame_list;
 
-        int x_instances = q + 1;
-        int y_instances = q + 1;
-        int z_instances = q + 1;
+        int x_instances = iq + 1;
+        int y_instances = iq + 1;
+        int z_instances = iq + 1;
         float x_spread = 2.5f;
         float y_spread = 1.5f;
         float z_spread = 1.f;
@@ -133,8 +133,6 @@ int main(int argc, char* argv[]) {
         float orbit_radius = (x_instances / 2.0f) * x_spread + 5.0f;
         float orbit_rate = 0.5f;
         float ch_time = 0.0f;
-
-        double render_time = 0;
 
         std::chrono::high_resolution_clock::time_point t1 = std::chrono::high_resolution_clock::now();
 
