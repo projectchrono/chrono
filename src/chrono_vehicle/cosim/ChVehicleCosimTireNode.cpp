@@ -27,9 +27,9 @@
     #include "chrono_pardisomkl/ChSolverPardisoMKL.h"
 #endif
 
-////#ifdef CHRONO_MUMPS
-////#include "chrono_mumps/ChSolverMumps.h"
-////#endif
+#ifdef CHRONO_MUMPS
+#include "chrono_mumps/ChSolverMumps.h"
+#endif
 
 #include "chrono_vehicle/cosim/ChVehicleCosimTireNode.h"
 
@@ -59,16 +59,10 @@ class DummyWheel : public ChWheel {
 // =============================================================================
 
 ChVehicleCosimTireNode::ChVehicleCosimTireNode(int index)
-    : ChVehicleCosimBaseNode("TIRE"), m_index(index), m_tire_pressure(false) {
+    : ChVehicleCosimBaseNode("TIRE"), m_index(index), m_tire_pressure(true) {
     // Default integrator and solver types
-    m_int_type = ChTimestepper::Type::HHT;
-#if defined(CHRONO_PARDISO_MKL)
-    m_slv_type = ChSolver::Type::PARDISO_MKL;
-////#elif defined(CHRONO_MUMPS)
-////    m_slv_type = ChSolver::Type::MUMPS;
-#else
+    m_int_type = ChTimestepper::Type::EULER_IMPLICIT_LINEARIZED;
     m_slv_type = ChSolver::Type::BARZILAIBORWEIN;
-#endif
 
     // Create the (sequential) SMC system
     m_system = new ChSystemSMC;
@@ -158,10 +152,10 @@ void ChVehicleCosimTireNode::SetIntegratorType(ChTimestepper::Type int_type, ChS
     if (m_slv_type == ChSolver::Type::PARDISO_MKL)
         m_slv_type = ChSolver::Type::BARZILAIBORWEIN;
 #endif
-    ////#ifndef CHRONO_MUMPS
-    ////    if (m_slv_type == ChSolver::Type::MUMPS)
-    ////        m_slv_type = ChSolver::Type::BARZILAIBORWEIN;
-    ////#endif
+#ifndef CHRONO_MUMPS
+    if (m_slv_type == ChSolver::Type::MUMPS)
+        m_slv_type = ChSolver::Type::BARZILAIBORWEIN;
+#endif
 }
 
 void ChVehicleCosimTireNode::Initialize() {
@@ -264,14 +258,14 @@ void ChVehicleCosimTireNode::InitializeSystem() {
 #endif
             break;
         }
-            ////        case ChSolver::Type::MUMPS: {
-            ////#ifdef CHRONO_MUMPS
-            ////            auto solver = chrono_types::make_shared<ChSolverMumps>();
-            ////            solver->LockSparsityPattern(true);
-            ////            m_system->SetSolver(solver);
-            ////#endif
-            ////            break;
-            ////        }
+        case ChSolver::Type::MUMPS: {
+#ifdef CHRONO_MUMPS
+            auto solver = chrono_types::make_shared<ChSolverMumps>();
+            solver->LockSparsityPattern(true);
+            m_system->SetSolver(solver);
+#endif
+            break;
+        }
         case ChSolver::Type::SPARSE_LU: {
             auto solver = chrono_types::make_shared<ChSolverSparseLU>();
             solver->LockSparsityPattern(true);

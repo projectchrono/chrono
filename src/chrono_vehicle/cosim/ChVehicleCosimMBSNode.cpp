@@ -32,9 +32,9 @@
     #include "chrono_pardisomkl/ChSolverPardisoMKL.h"
 #endif
 
-////#ifdef CHRONO_MUMPS
-////#include "chrono_mumps/ChSolverMumps.h"
-////#endif
+#ifdef CHRONO_MUMPS
+#include "chrono_mumps/ChSolverMumps.h"
+#endif
 
 #include "chrono_vehicle/cosim/ChVehicleCosimMBSNode.h"
 
@@ -75,10 +75,10 @@ void ChVehicleCosimMBSNode::SetIntegratorType(ChTimestepper::Type int_type, ChSo
     if (m_slv_type == ChSolver::Type::PARDISO_MKL)
         m_slv_type = ChSolver::Type::BARZILAIBORWEIN;
 #endif
-    ////#ifndef CHRONO_MUMPS
-    ////    if (m_slv_type == ChSolver::Type::MUMPS)
-    ////        m_slv_type = ChSolver::Type::BARZILAIBORWEIN;
-    ////#endif
+#ifndef CHRONO_MUMPS
+    if (m_slv_type == ChSolver::Type::MUMPS)
+        m_slv_type = ChSolver::Type::BARZILAIBORWEIN;
+#endif
 }
 
 // -----------------------------------------------------------------------------
@@ -171,14 +171,14 @@ void ChVehicleCosimMBSNode::InitializeSystem() {
 #endif
             break;
         }
-            ////        case ChSolver::Type::MUMPS: {
-            ////#ifdef CHRONO_MUMPS
-            ////            auto solver = chrono_types::make_shared<ChSolverMumps>();
-            ////            solver->LockSparsityPattern(true);
-            ////            m_system->SetSolver(solver);
-            ////#endif
-            ////            break;
-            ////        }
+        case ChSolver::Type::MUMPS: {
+#ifdef CHRONO_MUMPS
+            auto solver = chrono_types::make_shared<ChSolverMumps>();
+            solver->LockSparsityPattern(true);
+            m_system->SetSolver(solver);
+#endif
+            break;
+        }
         case ChSolver::Type::SPARSE_LU: {
             auto solver = chrono_types::make_shared<ChSolverSparseLU>();
             solver->LockSparsityPattern(true);

@@ -25,8 +25,6 @@
 #ifndef CH_VEHCOSIM_TIRE_NODE_BYPASS_H
 #define CH_VEHCOSIM_TIRE_NODE_BYPASS_H
 
-#include "chrono/utils/ChUtilsInputOutput.h"
-
 #include "chrono_vehicle/cosim/ChVehicleCosimTireNode.h"
 
 namespace chrono {
