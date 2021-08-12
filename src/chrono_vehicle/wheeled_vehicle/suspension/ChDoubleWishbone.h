@@ -261,8 +261,8 @@ class CH_VEHICLE_API ChDoubleWishbone : public ChSuspension {
     std::shared_ptr<ChVehicleJoint> m_sphericalTierod[2];   ///< tierod-upright spherical joints (left/right)
     std::shared_ptr<ChVehicleJoint> m_universalTierod[2];   ///< tierod-chassis universal joints (left/right)
 
-    std::shared_ptr<ChLinkTSDA> m_shock[2];   ///< handles to the spring links (left/right)
-    std::shared_ptr<ChLinkTSDA> m_spring[2];  ///< handles to the shock links (left/right)
+    std::shared_ptr<ChLinkTSDA> m_shock[2];   ///< spring links (left/right)
+    std::shared_ptr<ChLinkTSDA> m_spring[2];  ///< shock links (left/right)
 
   private:
     // Flag indicating that the inertia matrices for the upright and control arms

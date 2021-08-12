@@ -89,6 +89,12 @@ void ChDoubleWishbone::InitializeSide(VehicleSide side,
     // Recall that the suspension reference frame is aligned with the chassis.
     ChQuaternion<> chassisRot = chassis->GetBody()->GetFrame_REF_to_abs().GetRot();
 
+    // Unit vectors for orientation matrices.
+    ChVector<> u;
+    ChVector<> v;
+    ChVector<> w;
+    ChMatrix33<> rot;
+
     // Create and initialize spindle body (same orientation as the chassis)
     m_spindle[side] = std::shared_ptr<ChBody>(chassis->GetSystem()->NewBody());
     m_spindle[side]->SetNameString(m_name + "_spindle" + suffix);
@@ -114,12 +120,6 @@ void ChDoubleWishbone::InitializeSide(VehicleSide side,
         m_upright[side]->SetInertiaXY(getUprightInertiaProducts());
     }
     chassis->GetSystem()->AddBody(m_upright[side]);
-
-    // Unit vectors for orientation matrices.
-    ChVector<> u;
-    ChVector<> v;
-    ChVector<> w;
-    ChMatrix33<> rot;
 
     // Create and initialize Upper Control Arm body.
     // Determine the rotation matrix of the UCA based on the plane of the hard points
@@ -251,7 +251,7 @@ void ChDoubleWishbone::InitializeSide(VehicleSide side,
         m_distTierod[side] = chrono_types::make_shared<ChLinkDistance>();
         m_distTierod[side]->SetNameString(m_name + "_distTierod" + suffix);
         m_distTierod[side]->Initialize(tierod_body, m_upright[side], false, points[TIEROD_C], points[TIEROD_U]);
-        chassis->GetSystem()->AddLink(m_distTierod[side]);    
+        chassis->GetSystem()->AddLink(m_distTierod[side]);
     }
 
     // Create and initialize the spring/damper
@@ -394,7 +394,7 @@ void ChDoubleWishbone::LogConstraintViolations(VehicleSide side) {
         GetLog() << "  " << C(2) << "\n";
     }
 
-    // Distance constraint
+    // Tierod constraint
     if (UseTierodBodies()) {
         {
             const auto& C = m_sphericalTierod[side]->GetConstraintViolation();
