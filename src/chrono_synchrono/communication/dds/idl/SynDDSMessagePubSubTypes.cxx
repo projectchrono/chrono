@@ -31,7 +31,9 @@ using InstanceHandle_t = eprosima::fastrtps::rtps::InstanceHandle_t;
 SynDDSMessagePubSubType::SynDDSMessagePubSubType()
 {
     setName("SynDDSMessage");
-    m_typeSize = static_cast<uint32_t>(SynDDSMessage::getMaxCdrSerializedSize()) + 4 /*encapsulation*/;
+    auto type_size = SynDDSMessage::getMaxCdrSerializedSize();
+    type_size += eprosima::fastcdr::Cdr::alignment(type_size, 4); /* possible submessage alignment */
+    m_typeSize = static_cast<uint32_t>(type_size) + 4; /*encapsulation*/
     m_isGetKeyDefined = SynDDSMessage::isKeyDefined();
     size_t keyLength = SynDDSMessage::getKeyMaxCdrSerializedSize() > 16 ?
             SynDDSMessage::getKeyMaxCdrSerializedSize() : 16;

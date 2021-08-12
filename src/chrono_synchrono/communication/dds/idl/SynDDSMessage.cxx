@@ -36,9 +36,9 @@ using namespace eprosima::fastcdr::exception;
 
 SynDDSMessage::SynDDSMessage()
 {
-    // m_rank com.eprosima.idl.parser.typecode.PrimitiveTypeCode@12b07fd
+    // m_rank com.eprosima.idl.parser.typecode.PrimitiveTypeCode@614ddd49
     m_rank = 0;
-    // m_data com.eprosima.idl.parser.typecode.SequenceTypeCode@bf3bbf
+    // m_data com.eprosima.idl.parser.typecode.SequenceTypeCode@694e1548
 
 
 }
