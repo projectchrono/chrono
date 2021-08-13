@@ -39,6 +39,7 @@ namespace dds {
 class DomainParticipant;
 class DomainParticipantQos;
 class TopicDataType;
+class DataReaderQos;
 
 }  // namespace dds
 }  // namespace fastdds
@@ -143,11 +144,13 @@ class SYN_API SynDDSCommunicator : public SynCommunicator {
     ///@param message The message that is used to parse the returned message
     ///@param is_synchronous Whether the subscriber synchronously receives data (default: true)
     ///@param is_managed Whether the SynDDSCommunicator is responsible for using the sending/receiving function calls
+    ///@param read_qos Data Reader Quality of Service. Fallback to default if nullptr
     std::shared_ptr<SynDDSSubscriber> CreateSubscriber(std::shared_ptr<SynDDSTopic> topic,
                                                        std::function<void(void*)> callback,
                                                        void* message,
                                                        bool is_synchronous = true,
-                                                       bool is_managed = false);
+                                                       bool is_managed = false,
+                                                       eprosima::fastdds::dds::DataReaderQos* read_qos = nullptr);
 
     ///@brief Create a subscription to the specified topic
     /// Will call the callback when a subscription is received

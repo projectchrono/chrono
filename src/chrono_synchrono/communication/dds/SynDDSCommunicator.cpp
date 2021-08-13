@@ -173,7 +173,8 @@ std::shared_ptr<SynDDSSubscriber> SynDDSCommunicator::CreateSubscriber(std::shar
                                                                        std::function<void(void*)> callback,
                                                                        void* message,
                                                                        bool is_synchronous,
-                                                                       bool is_managed) {
+                                                                       bool is_managed,
+                                                                       DataReaderQos* read_qos) {
     SynLog() << "Creating Subscriber " << topic->GetFullTopicName() << "\n";
 
     if (!m_participant) {
@@ -187,14 +188,18 @@ std::shared_ptr<SynDDSSubscriber> SynDDSCommunicator::CreateSubscriber(std::shar
         SynLog() << "CreateSubscriber: Subscriber instantiation FAILED\n";
         return nullptr;
     }
-
+    std::shared_ptr<DataReaderQos> qos = nullptr;
+    if (read_qos != nullptr) {
+        qos = std::make_shared<DataReaderQos>(*read_qos);
+    }
     // Create data reader qos and allow for automatic reallocation on data reception
-    DataReaderQos qos;
-    qos.reliability().kind = RELIABLE_RELIABILITY_QOS;
-    qos.durability().kind = TRANSIENT_LOCAL_DURABILITY_QOS;
-    qos.endpoint().history_memory_policy = PREALLOCATED_WITH_REALLOC_MEMORY_MODE;
-    qos.history().kind = KEEP_LAST_HISTORY_QOS;
-
+    else {
+        qos = std::make_shared<DataReaderQos>();
+        qos->reliability().kind = RELIABLE_RELIABILITY_QOS;
+        qos->durability().kind = TRANSIENT_LOCAL_DURABILITY_QOS;
+        qos->endpoint().history_memory_policy = PREALLOCATED_WITH_REALLOC_MEMORY_MODE;
+        qos->history().kind = KEEP_LAST_HISTORY_QOS;
+    }
     // Create the listener
     auto listener = new SynDDSDataReaderListener(callback, message);
 
@@ -202,7 +207,7 @@ std::shared_ptr<SynDDSSubscriber> SynDDSCommunicator::CreateSubscriber(std::shar
     StatusMask mask = StatusMask::all();
     if (is_synchronous)
         mask >> StatusMask::data_available();
-    auto reader = subscriber->create_datareader(topic->GetDDSTopic(), qos, listener, mask);
+    auto reader = subscriber->create_datareader(topic->GetDDSTopic(), *qos, listener, mask);
     if (!reader) {
         SynLog() << "CreateSubscriber: Reader instantiation FAILED\n";
         return nullptr;
