@@ -120,13 +120,6 @@ int main(int argc, char* argv[]) {
     end_time = cli.GetAsType<double>("end_time");
     heartbeat = cli.GetAsType<double>("heartbeat");
 
-    const double cam_x = cli.GetAsType<std::vector<double>>("c_pos")[0];
-    const double cam_y = cli.GetAsType<std::vector<double>>("c_pos")[1];
-    const int cam_res_width = cli.GetAsType<std::vector<int>>("res")[0];
-    const int cam_res_height = cli.GetAsType<std::vector<int>>("res")[1];
-
-    const bool use_sensor_vis = cli.HasValueInVector<int>("sens", node_id);
-
     // Change SynChronoManager settings
     syn_manager.SetHeartbeat(heartbeat);
 
@@ -251,6 +244,13 @@ int main(int argc, char* argv[]) {
     }
 
 #ifdef CHRONO_SENSOR
+    const double cam_x = cli.GetAsType<std::vector<double>>("c_pos")[0];
+    const double cam_y = cli.GetAsType<std::vector<double>>("c_pos")[1];
+    const int cam_res_width = cli.GetAsType<std::vector<int>>("res")[0];
+    const int cam_res_height = cli.GetAsType<std::vector<int>>("res")[1];
+
+    const bool use_sensor_vis = cli.HasValueInVector<int>("sens", node_id);
+
     std::shared_ptr<ChCameraSensor> intersection_camera;
     ChVector<double> camera_loc(cam_x, cam_y, 15);
 
@@ -286,9 +286,9 @@ int main(int argc, char* argv[]) {
             intersection_camera->PushFilter(
                 chrono_types::make_shared<ChFilterVisualize>(cam_res_width, cam_res_height, "Main Camera"));
 
-        std::string path = std::string("SENSOR_OUTPUT/highway") + std::to_string(node_id) + std::string("/");
+        std::string file_path = std::string("SENSOR_OUTPUT/highway") + std::to_string(node_id) + std::string("/");
         if (cli.GetAsType<bool>("sens_save"))
-            intersection_camera->PushFilter(chrono_types::make_shared<ChFilterSave>(path));
+            intersection_camera->PushFilter(chrono_types::make_shared<ChFilterSave>(file_path));
 
         sensor_manager.AddSensor(intersection_camera);
     }

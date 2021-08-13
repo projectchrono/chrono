@@ -150,6 +150,9 @@ using namespace gui;
 %include "vector3d.h"
 %template(vector3df) irr::core::vector3d<irr::f32>;
 %template(vector3di) irr::core::vector3d<irr::s32>;
+%include "rect.h"
+%template(rectf) irr::core::rect<irr::f32>;
+%template(recti) irr::core::rect<irr::s32>;
 %include "SColor.h"
 %include "SMaterial.h"
 %include "SMaterialLayer.h"

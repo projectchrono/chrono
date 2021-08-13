@@ -1096,7 +1096,7 @@ void SCMDeformableSoil::ComputeInternalForces() {
             hits.insert(t_hits[t_num].begin(), t_hits[t_num].end());
             t_hits[t_num].clear();
         }
-        m_num_ray_hits = hits.size();
+        m_num_ray_hits = (int)hits.size();
     }
 
 #endif

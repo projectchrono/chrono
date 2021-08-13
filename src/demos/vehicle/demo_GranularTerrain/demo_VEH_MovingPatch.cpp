@@ -196,7 +196,7 @@ int main(int argc, char* argv[]) {
         ////    std::cout << "   " << aabb_max.x << "  " << aabb_max.y << "  " << aabb_max.z << std::endl;
         ////}
 
-        opengl::ChOpenGLWindow& gl_window = opengl::ChOpenGLWindow::getInstance();
+        ////opengl::ChOpenGLWindow& gl_window = opengl::ChOpenGLWindow::getInstance();
         if (gl_window.Active()) {
             switch (cam_type) {
                 case FRONT: {

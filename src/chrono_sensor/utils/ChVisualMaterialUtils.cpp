@@ -63,8 +63,6 @@ void CreateModernMeshAssets(std::shared_ptr<ChTriangleMeshShape> mesh_shape) {
     std::vector<ChVector<int>> texcoord_index_buffer;  // = std::vector<ChVector<int>>();
     std::vector<ChVector<int>> material_index_buffer;  // = std::vector<ChVector<int>>();
 
-    unsigned int previous_vertices = 0;
-
     // copy in vertices
     // vertex_buffer.resize(att.vertices.size() / 3);
     for (int i = 0; i < att.vertices.size() / 3; i++) {
@@ -174,13 +172,12 @@ void ConvertToModernAssets(std::shared_ptr<ChBody> body) {
 
             }
             // check if the asset is a ChColorAsset
-            else if (std::shared_ptr<ChColorAsset> visual_asset = std::dynamic_pointer_cast<ChColorAsset>(asset)) {
+            else if (std::shared_ptr<ChColorAsset> color_asset = std::dynamic_pointer_cast<ChColorAsset>(asset)) {
                 // std::cout << "Asset was color\n";
-                // CreateVisualMaterial(body, visual_asset);
             }
 
             // check if the asset is a ChTexture
-            else if (std::shared_ptr<ChTexture> visual_asset = std::dynamic_pointer_cast<ChTexture>(asset)) {
+            else if (std::shared_ptr<ChTexture> texture_asset = std::dynamic_pointer_cast<ChTexture>(asset)) {
                 // std::cout << "Asset was texture\n";
             }
         }

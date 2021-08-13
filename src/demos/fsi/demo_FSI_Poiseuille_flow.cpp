@@ -67,7 +67,7 @@ void SaveParaViewFilesMBD(fsi::ChSystemFsi& myFsiSystem,
                           int this_frame,
                           double mTime) {
     // Simulation steps between two output frames
-    int out_steps = (int)ceil((1.0 / paramsH->dT) / paramsH->out_fps);
+    ////int out_steps = (int)ceil((1.0 / paramsH->dT) / paramsH->out_fps);
 
     // Simulation time between two output frames
     double frame_time = 1.0 / paramsH->out_fps;
