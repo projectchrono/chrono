@@ -59,7 +59,7 @@ class DummyWheel : public ChWheel {
 // =============================================================================
 
 ChVehicleCosimTireNode::ChVehicleCosimTireNode(int index)
-    : ChVehicleCosimBaseNode("TIRE"), m_index(index), m_tire_pressure(true) {
+    : ChVehicleCosimBaseNode("TIRE_" + std::to_string(index)), m_index(index), m_tire_pressure(true) {
     // Default integrator and solver types
     m_int_type = ChTimestepper::Type::EULER_IMPLICIT_LINEARIZED;
     m_slv_type = ChSolver::Type::BARZILAIBORWEIN;
