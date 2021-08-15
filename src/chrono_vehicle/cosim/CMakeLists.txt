@@ -53,9 +53,9 @@ set(CV_COSIM_TERRAIN_FILES
 
 # ------------------------------------------------------------------------------
 
-# Note, inherit CXX_FLAGS and LIBRARIES from parent Chrono::Vehicle CMakeLists.
-# These already include Irrlicht (if available).
+# Set flags, include paths, and libraries
 
+list(APPEND LIBRARIES ChronoEngine_vehicle)
 list(APPEND LIBRARIES ChronoModels_robot)
 list(APPEND LIBRARIES "${MPI_CXX_LIBRARIES}")
 set(LINKER_FLAGS "${CH_LINKERFLAG_SHARED} ${MPI_CXX_LINK_FLAGS}")
