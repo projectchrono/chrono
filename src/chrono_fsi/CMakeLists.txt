@@ -11,7 +11,6 @@ IF(NOT ENABLE_MODULE_FSI)
   return()
 ENDIF()
 
-
 message(STATUS "==== Chrono FSI module ====")
 
 # Return now if Eigen version < 3.3.6
@@ -81,7 +80,6 @@ install(FILES "${PROJECT_BINARY_DIR}/chrono_fsi/ChConfigFSI.h"
 #-----------------------------------------------------------------------------
 
 set(ChronoEngine_FSI_SOURCES
-
     ChSystemFsi.cpp
     ChFsiInterface.cpp
     ChFsiDataManager.cu
@@ -92,7 +90,7 @@ set(ChronoEngine_FSI_SOURCES
     physics/ChFluidDynamics.cu
     physics/ChCollisionSystemFsi.cu
     physics/ChFsiForce.cu
-    physics/ChFsiForceExplicitSPH.cu   
+    physics/ChFsiForceExplicitSPH.cu
     physics/ChFsiForceI2SPH.cu
     physics/ChFsiForceIISPH.cu
     physics/ChFsiGeneral.cu
@@ -100,11 +98,9 @@ set(ChronoEngine_FSI_SOURCES
     
     math/ChFsiLinearSolverBiCGStab.cpp
     math/ChFsiLinearSolverGMRES.cpp
-
 )
 
 set(ChronoEngine_FSI_HEADERS
-
     ChApiFsi.h
     ChSystemFsi.h
     ChFsiInterface.h
@@ -116,7 +112,7 @@ set(ChronoEngine_FSI_HEADERS
     physics/ChFluidDynamics.cuh
     physics/ChCollisionSystemFsi.cuh
     physics/ChFsiForce.cuh    
-    physics/ChFsiForceExplicitSPH.cuh    
+    physics/ChFsiForceExplicitSPH.cuh
     physics/ChFsiForceI2SPH.cuh
     physics/ChFsiForceIISPH.cuh
     physics/ChFsiGeneral.cuh
@@ -126,8 +122,8 @@ set(ChronoEngine_FSI_HEADERS
     math/custom_math.h
     math/ExactLinearSolvers.cuh
     math/ChFsiLinearSolver.h
-    math/ChFsiLinearSolverBiCGStab.h   
-    math/ChFsiLinearSolverGMRES.h 
+    math/ChFsiLinearSolverBiCGStab.h
+    math/ChFsiLinearSolverGMRES.h
 )
 
 source_group("" FILES
@@ -149,7 +145,6 @@ set(ChronoEngine_FSI_UTILS_HEADERS
     utils/ChUtilsGeneratorFsi.h
     utils/ChUtilsPrintStruct.h
     utils/ChUtilsPrintSph.cuh
-    
 )
 
 source_group(utils FILES
@@ -161,20 +156,6 @@ source_group(utils FILES
 #-----------------------------------------------------------------------------
 
 set(CXX_FLAGS ${CH_CXX_FLAGS})
-
-list(APPEND LIBRARIES "ChronoEngine")
-#set(LIBRARIES "ChronoEngine")
-
-if(ENABLE_MODULE_MULTICORE)
-  set(CXX_FLAGS ${CH_MULTICORE_CXX_FLAGS})
-  include_directories(${CH_MULTICORE_INCLUDES})
-  list(APPEND LIBRARIES ChronoEngine_multicore)
-endif()
-
-if(ENABLE_MODULE_VEHICLE)
-  include_directories(${CH_VEHICLE_INCLUDES})
-  list(APPEND LIBRARIES ChronoEngine_vehicle)
-endif()
 
 cuda_add_library(ChronoEngine_fsi SHARED
     ${ChronoEngine_FSI_SOURCES}
@@ -190,7 +171,7 @@ set_target_properties(ChronoEngine_fsi PROPERTIES
 target_compile_definitions(ChronoEngine_fsi PRIVATE "CH_API_COMPILE_FSI")
 target_compile_definitions(ChronoEngine_fsi PRIVATE "CH_IGNORE_DEPRECATED")
 
-target_link_libraries(ChronoEngine_fsi ${LIBRARIES})
+target_link_libraries(ChronoEngine_fsi ${LIBRARIES} ChronoEngine)
 
 install(TARGETS ChronoEngine_fsi
         RUNTIME DESTINATION bin
