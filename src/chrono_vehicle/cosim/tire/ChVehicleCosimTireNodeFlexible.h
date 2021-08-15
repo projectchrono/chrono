@@ -78,10 +78,10 @@ class CH_VEHICLE_API ChVehicleCosimTireNodeFlexible : public ChVehicleCosimTireN
     /// Return the tire force at the spindle.
     virtual void LoadSpindleForce(TerrainForce& spindle_force) override;
 
-    /// Apply the spindle state.
+    /// Apply the spindle state (received from MBS node).
     virtual void ApplySpindleState(const BodyState& spindle_state) override;
 
-    /// Apply the mesh contact forces.
+    /// Apply the mesh contact forces (received from Terrain node).
     virtual void ApplyMeshForces(const MeshContact& mesh_contact) override;
 
     /// Perform additional output at the specified frame (called once per integration step).

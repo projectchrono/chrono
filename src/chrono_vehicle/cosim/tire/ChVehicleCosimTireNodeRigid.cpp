@@ -81,13 +81,18 @@ void ChVehicleCosimTireNodeRigid::InitializeTire(std::shared_ptr<ChWheel> wheel)
     }
 }
 
+void ChVehicleCosimTireNodeRigid::ApplySpindleState(const BodyState& spindle_state) {
+    m_spindle->SetPos(spindle_state.pos);
+    m_spindle->SetRot(spindle_state.rot);
+    m_spindle->SetPos_dt(spindle_state.lin_vel);
+    m_spindle->SetWvel_par(spindle_state.ang_vel);
+}
+
 void ChVehicleCosimTireNodeRigid::OnOutputData(int frame) {
     // Create and write frame output file.
     utils::CSV_writer csv(" ");
-    csv << m_system->GetChTime() << endl;
     WriteTireStateInformation(csv);
     WriteTireMeshInformation(csv);
-    WriteTireContactInformation(csv);
 
     std::string filename = OutputFilename(m_node_out_dir, "data", "dat", frame + 1, 5);
     csv.write_to_file(filename);
@@ -113,16 +118,12 @@ void ChVehicleCosimTireNodeRigid::WriteTireStateInformation(utils::CSV_writer& c
 
 void ChVehicleCosimTireNodeRigid::WriteTireMeshInformation(utils::CSV_writer& csv) {
     // Print tire mesh connectivity
-    csv << "\n Connectivity " << m_tire->GetNumTriangles() << endl;
+    csv << m_tire->GetNumTriangles() << endl;
 
     const std::vector<ChVector<int>>& triangles = m_tire->GetMeshConnectivity();
     for (unsigned int ie = 0; ie < m_tire->GetNumTriangles(); ie++) {
         csv << triangles[ie] << endl;
     }
-}
-
-void ChVehicleCosimTireNodeRigid::WriteTireContactInformation(utils::CSV_writer& csv) {
-    //// TODO
 }
 
 }  // namespace vehicle

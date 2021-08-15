@@ -128,6 +128,10 @@ class CH_VEHICLE_API ChVehicleCosimTireNode : public ChVehicleCosimBaseNode {
     /// A derived class must load m_contact_mat and m_mesh_data.
     virtual void InitializeTire(std::shared_ptr<ChWheel>) = 0;
 
+    /// Apply the spindle state.
+    /// The BodyState struct contains the spindle body state as received from the MBS node.
+    virtual void ApplySpindleState(const BodyState& spindle_state) = 0;
+
     /// Load current tire mesh state.
     /// A derived class which implements the MESH communication interface must override this function and must load the
     /// provided MeshState struct to be sent to the TERRAIN node.
@@ -141,15 +145,6 @@ class CH_VEHICLE_API ChVehicleCosimTireNode : public ChVehicleCosimBaseNode {
     /// A derived class which implements the MESH communication interface must override this function and must load the
     /// provided TerrainForce struct to be sent to the MBS node.
     virtual void LoadSpindleForce(TerrainForce& spindle_force) {
-        if (GetInterfaceType() == InterfaceType::MESH) {
-            throw ChException("Current tire does not properly implement the MESH communication interface!");
-        }
-    }
-
-    /// Apply the spindle state.
-    /// A derived class which implements the MESH communication interface must override this function and must use the
-    /// BodyState struct received from the MBS node.
-    virtual void ApplySpindleState(const BodyState& spindle_state) {
         if (GetInterfaceType() == InterfaceType::MESH) {
             throw ChException("Current tire does not properly implement the MESH communication interface!");
         }

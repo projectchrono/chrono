@@ -384,17 +384,12 @@ int main(int argc, char** argv) {
 
     }  // if TERRAIN_NODE_RANK
 
-    // Initialize systems.
-    // Data exchange:
-    //   terrain => rig (terrain height)
-    //   rig => terrain (tire mesh topology and local vertex information)
-    //   rig => terrain (tire contact material properties)
+    // Initialize systems
+    // (perform initial inter-node data exchange)
     node->Initialize();
 
-    // Perform co-simulation.
-    // At synchronization, there is bi-directional data exchange:
-    //     rig => terrain (state information)
-    //     terrain => rig (force information)
+    // Perform co-simulation
+    // (perform synchronization inter-node data exchange)
     int output_frame = 0;
 
     for (int is = 0; is < sim_steps; is++) {

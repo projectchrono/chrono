@@ -334,9 +334,20 @@ void ChVehicleCosimTireNode::SynchronizeBody(int step_number, double time) {
     // Act as a simple counduit between the MBS and TERRAIN nodes
     MPI_Status status;
 
-    // Receive spindle state data from MBS node and send to TERRAIN node
+    // Receive spindle state data from MBS node
     double state_data[13];
     MPI_Recv(state_data, 13, MPI_DOUBLE, MBS_NODE_RANK, step_number, MPI_COMM_WORLD, &status);
+
+    BodyState spindle_state;
+    spindle_state.pos = ChVector<>(state_data[0], state_data[1], state_data[2]);
+    spindle_state.rot = ChQuaternion<>(state_data[3], state_data[4], state_data[5], state_data[6]);
+    spindle_state.lin_vel = ChVector<>(state_data[7], state_data[8], state_data[9]);
+    spindle_state.ang_vel = ChVector<>(state_data[10], state_data[11], state_data[12]);
+
+    // Pass it to derived class.
+    ApplySpindleState(spindle_state);
+
+    // Send spindle state data to Terrain node
     MPI_Send(state_data, 13, MPI_DOUBLE, TERRAIN_NODE_RANK, step_number, MPI_COMM_WORLD);
 
     // Receive spindle force from TERRAIN NODE and send to MBS node
@@ -380,7 +391,7 @@ void ChVehicleCosimTireNode::SynchronizeMesh(int step_number, double time) {
 
     // Receive mesh forces from TERRAIN node.
     // Note that we use MPI_Probe to figure out the number of indices and forces received.
-    int nvc;
+    int nvc = 0;
     MPI_Probe(TERRAIN_NODE_RANK, step_number, MPI_COMM_WORLD, &status);
     MPI_Get_count(&status, MPI_INT, &nvc);
     int* index_data = new int[nvc];

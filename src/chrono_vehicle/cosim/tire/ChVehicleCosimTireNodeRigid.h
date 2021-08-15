@@ -69,6 +69,9 @@ class CH_VEHICLE_API ChVehicleCosimTireNodeRigid : public ChVehicleCosimTireNode
     /// Initialize the tire by attaching it to the provided ChWheel.
     virtual void InitializeTire(std::shared_ptr<ChWheel> wheel) override;
 
+    /// Apply the spindle state (received from MBS node).
+    virtual void ApplySpindleState(const BodyState& spindle_state) override;
+
     /// Perform additional output at the specified frame (called once per integration step).
     virtual void OnOutputData(int frame) override;
 
@@ -77,8 +80,6 @@ class CH_VEHICLE_API ChVehicleCosimTireNodeRigid : public ChVehicleCosimTireNode
     void WriteTireStateInformation(utils::CSV_writer& csv);
     /// Write mesh connectivity and strain information.
     void WriteTireMeshInformation(utils::CSV_writer& csv);
-    /// Write contact forces on tire mesh vertices.
-    void WriteTireContactInformation(utils::CSV_writer& csv);
 
     std::shared_ptr<ChRigidTire> m_tire;                   ///< rigid tire
     std::vector<std::vector<unsigned int>> m_adjElements;  ///< list of neighboring elements for each mesh vertex
