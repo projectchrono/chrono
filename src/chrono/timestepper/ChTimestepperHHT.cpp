@@ -136,11 +136,24 @@ void ChTimestepperHHT::Advance(const double dt) {
             // If using modified Newton, do not call Setup again
             call_setup = !modified_Newton;
 
+            // A flag to indicate the trend of convergence
+            if ((Rold.norm() < R.norm()) && (R.norm() > threshold_R)) {
+                convergence_trend_flag = false; // very dangerous, seems to diverge
+                break;
+            } else {
+                convergence_trend_flag = true;  // normal, seems to converge
+            }
+
             // Check convergence
             converged = CheckConvergence(scaling_factor);
             if (converged)
                 break;
         }
+
+        if (!converged) { // ------ NR did not converge
+            convergence_trend_flag = false;
+        }
+
 
         if (converged) {
             // ------ NR converged

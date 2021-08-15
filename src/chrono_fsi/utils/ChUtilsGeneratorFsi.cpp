@@ -301,7 +301,7 @@ void CreateBceGlobalMarkersFromBceLocalPos_CableANCF(std::shared_ptr<ChFsiDataMa
     fsiData->numObjects->numFlex_SphMarkers += numBce;
     fsiData->numObjects->numFlexBodies1D += 1;
     fsiData->numObjects->startFlexMarkers = fsiData->fsiGeneralData->referenceArray[numRigid + 1].y;
-    int start_flex = (int)fsiData->numObjects->startFlexMarkers;
+    ////int start_flex = (int)fsiData->numObjects->startFlexMarkers;
 
     int4 last = fsiData->fsiGeneralData->referenceArray[fsiData->fsiGeneralData->referenceArray.size() - 1];
     fsiData->fsiGeneralData->referenceArray.push_back(
@@ -422,7 +422,7 @@ void CreateBceGlobalMarkersFromBceLocalPos_ShellANCF(std::shared_ptr<ChFsiDataMa
     fsiData->numObjects->numFlex_SphMarkers += numBce;
     fsiData->numObjects->numFlexBodies2D += 1;
     fsiData->numObjects->startFlexMarkers = fsiData->fsiGeneralData->referenceArray[numRigid + 1].y;
-    int start_flex = (int)fsiData->numObjects->startFlexMarkers;
+    ////int start_flex = (int)fsiData->numObjects->startFlexMarkers;
 
     int4 last = fsiData->fsiGeneralData->referenceArray[fsiData->fsiGeneralData->referenceArray.size() - 1];
     fsiData->fsiGeneralData->referenceArray.push_back(
