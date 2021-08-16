@@ -39,10 +39,19 @@ namespace vehicle {
 /// Derived classes implement different ways for measuring DBP.
 class CH_VEHICLE_API ChVehicleCosimDBPRig {
   public:
+    /// Type of DBP rig
+    enum class Type {
+        IMPOSED_SLIP,    ///< rig of type ChVehicleCosimDBPRigImposedSlip
+        IMPOSED_ANG_VEL  ///< rig of type ChVehicleCosimDBPRigImposedAngVel
+    };
+
     virtual ~ChVehicleCosimDBPRig() {}
 
     /// Set window (in seconds) for the running average filter for drawbar pull reporting (default: 0.1 s).
     void SetDBPfilterWindow(double window) { m_filter_window = window; }
+
+    /// Get rig type.
+    virtual Type GetType() const = 0;
 
     /// Return current value of longitudinal slip.
     virtual double GetSlip() const = 0;
@@ -70,7 +79,8 @@ class CH_VEHICLE_API ChVehicleCosimDBPRig {
     /// Return a function to specify spindle angular speed.
     virtual std::shared_ptr<ChFunction> GetMotorFunction() const = 0;
 
-    bool m_verbose;  ///< verbose messages during simulation?
+    bool m_verbose;       ///< verbose messages during simulation?
+    double m_delay_time;  ///< initialization (ramping up) time
 
   private:
     void Initialize(std::shared_ptr<ChBody> chassis, const std::vector<ChVector<>>& tire_info, double step_size);
@@ -104,6 +114,9 @@ class CH_VEHICLE_API ChVehicleCosimDBPRigImposedSlip : public ChVehicleCosimDBPR
     );
 
     ~ChVehicleCosimDBPRigImposedSlip() {}
+
+    /// Get rig type.
+    virtual Type GetType() const override { return Type::IMPOSED_SLIP; }
 
     /// Return the actuation type.
     ActuationType GetActuationType() const { return m_act_type; }
@@ -153,6 +166,9 @@ class CH_VEHICLE_API ChVehicleCosimDBPRigImposedAngVel : public ChVehicleCosimDB
                                       double force_rate  ///< rate of change of resistive force
     );
     ~ChVehicleCosimDBPRigImposedAngVel() {}
+
+    /// Get rig type.
+    virtual Type GetType() const override { return Type::IMPOSED_ANG_VEL; }
 
     /// Return the current slip value.
     virtual double GetSlip() const override;

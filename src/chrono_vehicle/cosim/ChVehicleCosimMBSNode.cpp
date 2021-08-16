@@ -283,11 +283,13 @@ void ChVehicleCosimMBSNode::Advance(double step_size) {
 }
 
 void ChVehicleCosimMBSNode::OutputData(int frame) {
+    double time = m_system->GetChTime();
+
     // If a DBP rig is attached, output its results
-    if (m_DBP_rig) {
+    if (m_DBP_rig && time >= m_DBP_rig->m_delay_time) {
         std::string del("  ");
 
-        m_DBP_outf << m_system->GetChTime() << del;
+        m_DBP_outf << time << del;
         m_DBP_outf << m_DBP_rig->GetLinVel() << del << m_DBP_rig->GetAngVel() << del;
         m_DBP_outf << m_DBP_rig->GetSlip() << del;
         m_DBP_outf << m_DBP_rig->GetDBP() << del << m_DBP_rig->GetFilteredDBP() << del;

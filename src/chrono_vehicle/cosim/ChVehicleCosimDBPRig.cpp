@@ -95,7 +95,8 @@ class RampFunction : public chrono::ChFunction {
 
 // =============================================================================
 
-ChVehicleCosimDBPRig::ChVehicleCosimDBPRig() : m_filter_window(0.1), m_dbp_filtered(0), m_verbose(false) {}
+ChVehicleCosimDBPRig::ChVehicleCosimDBPRig()
+    : m_filter_window(0.1), m_dbp_filtered(0), m_verbose(false), m_delay_time(0) {}
 
 void ChVehicleCosimDBPRig::Initialize(std::shared_ptr<ChBody> chassis,
                                       const std::vector<ChVector<>>& tire_info,
@@ -196,6 +197,9 @@ void ChVehicleCosimDBPRigImposedSlip::InitializeRig(std::shared_ptr<ChBody> chas
     m_lin_motor->SetSpeedFunction(m_lin_motor_func);
     m_lin_motor->Initialize(carrier, ground, ChFrame<>(carrier->GetPos(), QUNIT));
     chassis->GetSystem()->AddLink(m_lin_motor);
+
+    // Set initialization (ramping up) time
+    m_delay_time = 0.2 + 0.5;
 }
 
 std::shared_ptr<ChFunction> ChVehicleCosimDBPRigImposedSlip::GetMotorFunction() const {
@@ -249,6 +253,9 @@ void ChVehicleCosimDBPRigImposedAngVel::InitializeRig(std::shared_ptr<ChBody> ch
     auto load_container = chrono_types::make_shared<ChLoadContainer>();
     load_container->Add(m_DBP_force);
     chassis->GetSystem()->Add(load_container);
+
+    // Set initialization (ramping up) time
+    m_delay_time = 0.2 + 0.5;
 }
 
 std::shared_ptr<ChFunction> ChVehicleCosimDBPRigImposedAngVel::GetMotorFunction() const {

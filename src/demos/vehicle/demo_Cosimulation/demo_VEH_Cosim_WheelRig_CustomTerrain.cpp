@@ -277,26 +277,30 @@ int main(int argc, char** argv) {
         if (verbose)
             cout << "[Rig node    ] rank = " << rank << " running on: " << procname << endl;
 
-        double dbp_filter_window = 0.1;
-        double total_mass = 100;
-
-        auto act_type = ChVehicleCosimDBPRigImposedSlip::ActuationType::SET_ANG_VEL;
-        double base_vel = 1.0;
-        double slip = 0;
-        auto dbp_rig = chrono_types::make_shared<ChVehicleCosimDBPRigImposedSlip>(act_type, base_vel, slip);
-
-        /*
-        double ang_speed = 1;
-        double force_rate = 40;
-        auto dbp_rig = chrono_types::make_shared<ChVehicleCosimDBPRigImposedAngVel>(ang_speed, force_rate);
-        dbp_rig->SetDBPfilterWindow(dbp_filter_window);
-        */
+        auto rig_type = ChVehicleCosimDBPRig::Type::IMPOSED_SLIP;
+        std::shared_ptr<ChVehicleCosimDBPRig> dbp_rig;
+        switch (rig_type) {
+            case ChVehicleCosimDBPRig::Type::IMPOSED_SLIP: {
+                auto act_type = ChVehicleCosimDBPRigImposedSlip::ActuationType::SET_ANG_VEL;
+                double base_vel = 1.0;
+                double slip = 0;
+                dbp_rig = chrono_types::make_shared<ChVehicleCosimDBPRigImposedSlip>(act_type, base_vel, slip);
+                break;
+            }
+            case ChVehicleCosimDBPRig::Type::IMPOSED_ANG_VEL: {
+                double ang_speed = 1;
+                double force_rate = 40;
+                dbp_rig = chrono_types::make_shared<ChVehicleCosimDBPRigImposedAngVel>(ang_speed, force_rate);
+                break;
+            }
+        }
+        dbp_rig->SetDBPfilterWindow(0.1);
 
         auto mbs = new ChVehicleCosimRigNode();
         mbs->SetVerbose(verbose);
         mbs->SetStepSize(step_size);
         mbs->SetNumThreads(1);
-        mbs->SetTotalMass(total_mass);
+        mbs->SetTotalMass(100);
         mbs->SetOutDir(out_dir, suffix);
         mbs->AttachDrawbarPullRig(dbp_rig);
         if (verbose)
