@@ -277,14 +277,20 @@ int main(int argc, char** argv) {
         if (verbose)
             cout << "[Rig node    ] rank = " << rank << " running on: " << procname << endl;
 
-        auto act_type = ChVehicleCosimDBPRigImposedSlip::ActuationType::SET_ANG_VEL;
-        double base_vel = 1.0;
-        double slip = 0;
         double dbp_filter_window = 0.1;
         double total_mass = 100;
 
+        auto act_type = ChVehicleCosimDBPRigImposedSlip::ActuationType::SET_ANG_VEL;
+        double base_vel = 1.0;
+        double slip = 0;
         auto dbp_rig = chrono_types::make_shared<ChVehicleCosimDBPRigImposedSlip>(act_type, base_vel, slip);
+
+        /*
+        double ang_speed = 1;
+        double force_rate = 40;
+        auto dbp_rig = chrono_types::make_shared<ChVehicleCosimDBPRigImposedAngVel>(ang_speed, force_rate);
         dbp_rig->SetDBPfilterWindow(dbp_filter_window);
+        */
 
         auto mbs = new ChVehicleCosimRigNode();
         mbs->SetVerbose(verbose);

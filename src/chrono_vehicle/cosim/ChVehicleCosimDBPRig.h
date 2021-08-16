@@ -26,6 +26,7 @@
 
 #include "chrono/physics/ChBody.h"
 #include "chrono/physics/ChLinkMotorLinearSpeed.h"
+#include "chrono/physics/ChLoadsBody.h"
 #include "chrono/utils/ChFilters.h"
 
 namespace chrono {
@@ -139,6 +140,42 @@ class CH_VEHICLE_API ChVehicleCosimDBPRigImposedSlip : public ChVehicleCosimDBPR
     double m_slip;      ///< prescribed longitudinal slip for wheel
     double m_lin_vel;   ///< rig linear velocity (based on actuation type and slip value)
     double m_ang_vel;   ///< wheel angular velocity (based on actuation type and slip value)
+};
+
+/// Drawbar-pull rig mechanism with imposed angular velocity.
+/// This mechanism enforces a prescribed wheel angular velocity. A linearly increasing resistive force is applied
+/// against the forward motion of the vehicle and the experiment is ended when the vehicle stops. At each time, the
+/// vehicle forward speed and resulting slip are calculated and stored together with the current resistive force (DBP).
+/// This experiment produces the entire slip-DBP curve at once.
+class CH_VEHICLE_API ChVehicleCosimDBPRigImposedAngVel : public ChVehicleCosimDBPRig {
+  public:
+    ChVehicleCosimDBPRigImposedAngVel(double ang_vel,    ///< prescribed wheel angular speed
+                                      double force_rate  ///< rate of change of resistive force
+    );
+    ~ChVehicleCosimDBPRigImposedAngVel() {}
+
+    /// Return the current slip value.
+    virtual double GetSlip() const override;
+
+    /// Return current rig linear speed.
+    virtual double GetLinVel() const override;
+
+    /// Return current wheel angular spped.
+    virtual double GetAngVel() const { return m_ang_vel; }
+
+    /// Return current raw drawbar-pull value.
+    virtual double GetDBP() const override;
+
+  private:
+    virtual void InitializeRig(std::shared_ptr<ChBody> chassis, const std::vector<ChVector<>>& tire_info) override;
+    virtual std::shared_ptr<ChFunction> GetMotorFunction() const override;
+
+    std::shared_ptr<ChBody> m_carrier;             ///< rig carrier body
+    std::shared_ptr<ChFunction> m_rot_motor_func;  ///< imposed spindle angular speed
+    std::shared_ptr<ChLoadBodyForce> m_DBP_force;  ///< resistive (DBP) force
+    double m_ang_vel;                              ///< wheel angular velocity
+    double m_force_rate;                           ///< rate of change of resistive force
+    double m_tire_radius;                          ///< tire radius
 };
 
 /// @} vehicle_cosim_mbs
