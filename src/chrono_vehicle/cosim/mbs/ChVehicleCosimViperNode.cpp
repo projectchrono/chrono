@@ -155,25 +155,16 @@ void ChVehicleCosimViperNode::ApplySpindleForce(unsigned int i, const TerrainFor
 
 // -----------------------------------------------------------------------------
 
-void ChVehicleCosimViperNode::OutputData(int frame) {
+void ChVehicleCosimViperNode::OnOutputData(int frame) {
     // Append to results output file
     if (m_outf.is_open()) {
         std::string del("  ");
 
         const ChVector<>& pos = m_viper->GetChassis()->GetPos();
 
-        double dbp = 0;
-        double dbp_filtered = 0;
-        if (m_rig) {
-            dbp = m_rig->GetDBP();
-            dbp_filtered = m_rig->GetFilteredDBP();
-        }
-
         m_outf << m_system->GetChTime() << del;
         // Body states
         m_outf << pos.x() << del << pos.y() << del << pos.z() << del;
-        // Raw and filtered actuator force X component (drawbar pull)
-        m_outf << dbp << del << dbp_filtered << del;
         // Solver statistics (for last integration step)
         m_outf << m_system->GetTimerStep() << del << m_system->GetTimerLSsetup() << del << m_system->GetTimerLSsolve()
                << del << m_system->GetTimerUpdate() << del;

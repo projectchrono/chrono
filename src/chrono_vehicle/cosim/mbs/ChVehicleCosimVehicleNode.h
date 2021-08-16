@@ -65,15 +65,15 @@ class CH_VEHICLE_API ChVehicleCosimVehicleNode : public ChVehicleCosimMBSNode {
     /// Attach a vehicle driver system.
     void SetDriver(std::shared_ptr<ChDriver> driver) { m_driver = driver; }
 
-    /// Output logging and debugging data.
-    virtual void OutputData(int frame) override final;
-
   private:
     /// Initialize the vehicle MBS and any associated subsystems.
     virtual void InitializeMBS(const std::vector<ChVector<>>& tire_info,  ///< mass, radius, width for each tire
                                const ChVector2<>& terrain_size,           ///< terrain length x width
                                double terrain_height                      ///< initial terrain height
                                ) override;
+
+    // Output vehicle data.
+    virtual void OnOutputData(int frame) override;
 
     /// Perform vehicle system synchronization before advancing the dynamics.
     virtual void PreAdvance() override;

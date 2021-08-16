@@ -181,7 +181,7 @@ void ChVehicleCosimVehicleNode::ApplySpindleForce(unsigned int i, const TerrainF
 
 // -----------------------------------------------------------------------------
 
-void ChVehicleCosimVehicleNode::OutputData(int frame) {
+void ChVehicleCosimVehicleNode::OnOutputData(int frame) {
     // Append to results output file
     if (m_outf.is_open()) {
         std::string del("  ");

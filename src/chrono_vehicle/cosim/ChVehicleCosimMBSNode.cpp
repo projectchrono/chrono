@@ -33,7 +33,7 @@
 #endif
 
 #ifdef CHRONO_MUMPS
-#include "chrono_mumps/ChSolverMumps.h"
+    #include "chrono_mumps/ChSolverMumps.h"
 #endif
 
 #include "chrono_vehicle/cosim/ChVehicleCosimMBSNode.h"
@@ -84,19 +84,11 @@ void ChVehicleCosimMBSNode::SetIntegratorType(ChTimestepper::Type int_type, ChSo
 // -----------------------------------------------------------------------------
 
 void ChVehicleCosimMBSNode::AttachDrawbarPullRig(std::shared_ptr<ChVehicleCosimDBPRig> rig) {
-    m_rig = rig;
+    m_DBP_rig = rig;
 }
 
-double ChVehicleCosimMBSNode::GetDBP() const {
-    if (m_rig)
-        return m_rig->GetDBP();
-    return 0;
-}
-
-double ChVehicleCosimMBSNode::GetFilteredDBP() const {
-    if (m_rig)
-        return m_rig->GetFilteredDBP();
-    return 0;
+std::shared_ptr<ChVehicleCosimDBPRig> ChVehicleCosimMBSNode::GetDrawbarPullRig() const {
+    return m_DBP_rig;
 }
 
 // -----------------------------------------------------------------------------
@@ -150,10 +142,15 @@ void ChVehicleCosimMBSNode::Initialize() {
     }
 
     // Initialize the DBP rig if one is attached
-    if (m_rig) {
-        m_rig->m_verbose = m_verbose;
-        m_rig->Initialize(GetChassisBody(), tire_info, m_step_size);
-        OnInitializeDBPRig(m_rig->GetMotorFunction());
+    if (m_DBP_rig) {
+        m_DBP_rig->m_verbose = m_verbose;
+        m_DBP_rig->Initialize(GetChassisBody(), tire_info, m_step_size);
+
+        m_DBP_outf.open(m_node_out_dir + "/DBP.dat", std::ios::out);
+        m_DBP_outf.precision(7);
+        m_DBP_outf << std::scientific;
+
+        OnInitializeDBPRig(m_DBP_rig->GetMotorFunction());
     }
 }
 
@@ -275,14 +272,31 @@ void ChVehicleCosimMBSNode::Advance(double step_size) {
         double h = std::min<>(m_step_size, step_size - t);
         PreAdvance();
         m_system->DoStepDynamics(h);
-        if (m_rig) {
-            m_rig->OnAdvance(step_size);
+        if (m_DBP_rig) {
+            m_DBP_rig->OnAdvance(step_size);
         }
         PostAdvance();
         t += h;
     }
     m_timer.stop();
     m_cum_sim_time += m_timer();
+}
+
+void ChVehicleCosimMBSNode::OutputData(int frame) {
+    // If a DBP rig is attached, output its results
+    if (m_DBP_rig) {
+        std::string del("  ");
+
+        m_DBP_outf << m_system->GetChTime() << del;
+        m_DBP_outf << m_DBP_rig->GetLinVel() << del << m_DBP_rig->GetAngVel() << del;
+        m_DBP_outf << m_DBP_rig->GetSlip() << del;
+        m_DBP_outf << m_DBP_rig->GetDBP() << del << m_DBP_rig->GetFilteredDBP() << del;
+
+        m_DBP_outf << endl;
+    }
+
+    // Let derived classes perform specific output
+    OnOutputData(frame);
 }
 
 }  // end namespace vehicle

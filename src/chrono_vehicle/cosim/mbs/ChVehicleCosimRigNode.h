@@ -50,15 +50,15 @@ class CH_VEHICLE_API ChVehicleCosimRigNode : public ChVehicleCosimMBSNode {
     /// Set (constant) toe angle in radians (default: 0).
     void SetToeAngle(double angle) { m_toe_angle = angle; }
 
-    /// Output logging and debugging data.
-    virtual void OutputData(int frame) override final;
-
   private:
     /// Initialize the vehicle MBS and any associated subsystems.
     virtual void InitializeMBS(const std::vector<ChVector<>>& tire_info,  ///< mass, radius, width for each tire
                                const ChVector2<>& terrain_size,           ///< terrain length x width
                                double terrain_height                      ///< initial terrain height
                                ) override;
+
+    // Output rig data.
+    virtual void OnOutputData(int frame) override;
 
     /// Process the provided spindle force (received from the corresponding tire node).
     virtual void ApplySpindleForce(unsigned int i, const TerrainForce& spindle_force) override;

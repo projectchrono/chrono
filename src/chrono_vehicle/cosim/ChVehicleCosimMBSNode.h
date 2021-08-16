@@ -69,13 +69,8 @@ class CH_VEHICLE_API ChVehicleCosimMBSNode : public ChVehicleCosimBaseNode {
     /// Attach a drawbar pull rig to the MBS system.
     void AttachDrawbarPullRig(std::shared_ptr<ChVehicleCosimDBPRig> rig);
 
-    /// Return current raw drawbar-pull value.
-    /// Returns zero if no DBP rig is attached.
-    double GetDBP() const;
-
-    /// Return current filtered drawbar-pull value.
-    /// Returns zero if no DBP rig is attached.
-    double GetFilteredDBP() const;
+    /// Return the drawbar-pull rig, if one is attached.
+    std::shared_ptr<ChVehicleCosimDBPRig> GetDrawbarPullRig() const;
 
     /// Initialize this node.
     /// This function allows the node to initialize itself and, optionally, perform an initial data exchange with any
@@ -92,6 +87,9 @@ class CH_VEHICLE_API ChVehicleCosimMBSNode : public ChVehicleCosimBaseNode {
     /// its state by the specified time step.  A node is allowed to take as many internal
     /// integration steps as required, but no inter-node communication should occur.
     virtual void Advance(double step_size) override final;
+
+    /// Output logging and debugging data.
+    virtual void OutputData(int frame) override final;
 
   protected:
     /// Construct a base class MBS node.
@@ -110,6 +108,10 @@ class CH_VEHICLE_API ChVehicleCosimMBSNode : public ChVehicleCosimBaseNode {
     /// Perform any required operations after advancing the state of the MBS.
     /// This function is called after every integration step.
     virtual void PostAdvance() {}
+
+    /// Perform additional output at the specified frame (called from within OutputData).
+    /// For example, output mechanism-specific data for post-procesing.
+    virtual void OnOutputData(int frame) {}
 
     /// Apply the provided force to the i-th spindle body.
     /// This function is called during synchronization when the force is received from the corresponding tire node.
@@ -140,11 +142,12 @@ class CH_VEHICLE_API ChVehicleCosimMBSNode : public ChVehicleCosimBaseNode {
     virtual void OnInitializeDBPRig(std::shared_ptr<ChFunction> func) = 0;
 
   protected:
-    ChSystemSMC* m_system;                           ///< containing system
-    ChTimestepper::Type m_int_type;                  ///< integrator type
-    ChSolver::Type m_slv_type;                       ///< solver type
-    std::shared_ptr<ChTimestepperHHT> m_integrator;  ///< HHT integrator object
-    std::shared_ptr<ChVehicleCosimDBPRig> m_rig;     ///< DBP rig
+    ChSystemSMC* m_system;                            ///< containing system
+    ChTimestepper::Type m_int_type;                   ///< integrator type
+    ChSolver::Type m_slv_type;                        ///< solver type
+    std::shared_ptr<ChTimestepperHHT> m_integrator;   ///< HHT integrator object
+    std::shared_ptr<ChVehicleCosimDBPRig> m_DBP_rig;  ///< DBP rig
+    std::ofstream m_DBP_outf;                         ///< DBP output file stream
 
   private:
     void InitializeSystem();

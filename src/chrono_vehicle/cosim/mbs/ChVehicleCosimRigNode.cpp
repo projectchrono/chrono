@@ -62,7 +62,7 @@ void ChVehicleCosimRigNode::InitializeMBS(const std::vector<ChVector<>>& tire_in
     ////double tire_width = tire_info[0].z();
 
     // A single-wheel test rig needs a DBP rig
-    if (!m_rig) {
+    if (!m_DBP_rig) {
         cout << "\n\nERROR: Single-wheel test rig REQUIRES a drawbar-pull rig!\n\n" << endl;
         MPI_Abort(MPI_COMM_WORLD, 1);
     }
@@ -153,7 +153,7 @@ void ChVehicleCosimRigNode::OnInitializeDBPRig(std::shared_ptr<ChFunction> func)
 
 // -----------------------------------------------------------------------------
 
-void ChVehicleCosimRigNode::OutputData(int frame) {
+void ChVehicleCosimRigNode::OnOutputData(int frame) {
     // Append to results output file
     if (m_outf.is_open()) {
         std::string del("  ");
@@ -166,21 +166,12 @@ void ChVehicleCosimRigNode::OutputData(int frame) {
         const ChVector<>& rfrc_motor = m_rev_motor->Get_react_force();
         const ChVector<>& rtrq_motor = m_rev_motor->GetMotorTorque();
 
-        double dbp = 0;
-        double dbp_filtered = 0;
-        if (m_rig) {
-            dbp = m_rig->GetDBP();
-            dbp_filtered = m_rig->GetFilteredDBP();
-        }
-
         m_outf << m_system->GetChTime() << del;
         // Body states
         m_outf << spindle_pos.x() << del << spindle_pos.y() << del << spindle_pos.z() << del;
         m_outf << spindle_vel.x() << del << spindle_vel.y() << del << spindle_vel.z() << del;
         m_outf << spindle_angvel.x() << del << spindle_angvel.y() << del << spindle_angvel.z() << del;
         m_outf << chassis_pos.x() << del << chassis_pos.y() << del << chassis_pos.z() << del;
-        // Raw and filtered actuator force X component (drawbar pull)
-        m_outf << dbp << del << dbp_filtered << del;
         // Joint reactions
         m_outf << rfrc_motor.x() << del << rfrc_motor.y() << del << rfrc_motor.z() << del;
         m_outf << rtrq_motor.x() << del << rtrq_motor.y() << del << rtrq_motor.z() << del;
