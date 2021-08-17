@@ -207,7 +207,7 @@ std::shared_ptr<ChFunction> ChVehicleCosimDBPRigImposedSlip::GetMotorFunction() 
 }
 
 double ChVehicleCosimDBPRigImposedSlip::GetDBP() const {
-    return m_lin_motor->GetMotorForce();
+    return -m_lin_motor->GetMotorForce();
 }
 
 // =============================================================================
@@ -273,7 +273,7 @@ double ChVehicleCosimDBPRigImposedAngVel::GetLinVel() const {
 }
 
 double ChVehicleCosimDBPRigImposedAngVel::GetDBP() const {
-    return m_DBP_force->GetForce().x();
+    return -m_DBP_force->GetForce().x();
 }
 
 }  // namespace vehicle
