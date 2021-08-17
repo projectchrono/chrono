@@ -48,7 +48,10 @@ class CH_VEHICLE_API ChVehicleCosimDBPRig {
     virtual ~ChVehicleCosimDBPRig() {}
 
     /// Set window (in seconds) for the running average filter for drawbar pull reporting (default: 0.1 s).
-    void SetDBPfilterWindow(double window) { m_filter_window = window; }
+    void SetDBPFilterWindow(double window) { m_dbp_filter_window = window; }
+
+    /// Set window (in seconds) for the running average filter for slip reporting (default: 0.1 s).
+    void SetSlipFilterWindow(double window) { m_slip_filter_window = window; }
 
     /// Get rig type.
     virtual Type GetType() const = 0;
@@ -68,6 +71,9 @@ class CH_VEHICLE_API ChVehicleCosimDBPRig {
     /// Return current filtered drawbar-pull value.
     double GetFilteredDBP() const { return m_dbp_filtered; }
 
+    /// Return current filtered slip value.
+    double GetFilteredSlip() const { return m_slip_filtered; }
+
   protected:
     ChVehicleCosimDBPRig();
 
@@ -86,9 +92,12 @@ class CH_VEHICLE_API ChVehicleCosimDBPRig {
     void Initialize(std::shared_ptr<ChBody> chassis, const std::vector<ChVector<>>& tire_info, double step_size);
     void OnAdvance(double step_size);
 
-    std::unique_ptr<utils::ChRunningAverage> m_filter;  ///< running average filter for DBP
-    double m_filter_window;                             ///< window (span) for the DBP filter
-    double m_dbp_filtered;                              ///< current value of filtered DBP
+    std::unique_ptr<utils::ChRunningAverage> m_dbp_filter;   ///< running average filter for DBP
+    double m_dbp_filter_window;                              ///< window (span) for the DBP filter
+    double m_dbp_filtered;                                   ///< current value of filtered DBP
+    std::unique_ptr<utils::ChRunningAverage> m_slip_filter;  ///< running average filter for slip
+    double m_slip_filter_window;                             ///< window (span) for the slip filter
+    double m_slip_filtered;                                  ///< current value of filtered slip
 
     friend class ChVehicleCosimMBSNode;
 };

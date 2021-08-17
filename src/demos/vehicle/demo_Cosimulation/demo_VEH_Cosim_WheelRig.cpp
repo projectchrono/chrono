@@ -215,7 +215,7 @@ int main(int argc, char** argv) {
             cout << "[Rig node    ] rank = " << rank << " running on: " << procname << endl;
 
         auto dbp_rig = chrono_types::make_shared<ChVehicleCosimDBPRigImposedSlip>(act_type, base_vel, slip);
-        dbp_rig->SetDBPfilterWindow(dbp_filter_window);
+        dbp_rig->SetDBPFilterWindow(dbp_filter_window);
 
         auto mbs = new ChVehicleCosimRigNode();
         mbs->SetVerbose(verbose);

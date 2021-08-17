@@ -96,20 +96,28 @@ class RampFunction : public chrono::ChFunction {
 // =============================================================================
 
 ChVehicleCosimDBPRig::ChVehicleCosimDBPRig()
-    : m_filter_window(0.1), m_dbp_filtered(0), m_verbose(false), m_delay_time(0) {}
+    : m_dbp_filter_window(0.1),
+      m_dbp_filtered(0),
+      m_slip_filter_window(0.1),
+      m_slip_filtered(0),
+      m_verbose(false),
+      m_delay_time(0) {}
 
 void ChVehicleCosimDBPRig::Initialize(std::shared_ptr<ChBody> chassis,
                                       const std::vector<ChVector<>>& tire_info,
                                       double step_size) {
-    // Initialize DBP filter
-    int nw = static_cast<int>(std::round(m_filter_window / step_size));
-    m_filter = chrono_types::make_unique<utils::ChRunningAverage>(nw);
+    // Initialize filters
+    int nw_dbp = static_cast<int>(std::round(m_dbp_filter_window / step_size));
+    m_dbp_filter = chrono_types::make_unique<utils::ChRunningAverage>(nw_dbp);
+    int nw_slip = static_cast<int>(std::round(m_slip_filter_window / step_size));
+    m_slip_filter = chrono_types::make_unique<utils::ChRunningAverage>(nw_slip);
 
     InitializeRig(chassis, tire_info);
 }
 
 void ChVehicleCosimDBPRig::OnAdvance(double step_size) {
-    m_dbp_filtered = m_filter->Add(GetDBP());
+    m_dbp_filtered = m_dbp_filter->Add(GetDBP());
+    m_slip_filtered = m_slip_filter->Add(GetSlip());
 }
 
 // =============================================================================

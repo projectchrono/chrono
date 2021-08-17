@@ -291,7 +291,7 @@ void ChVehicleCosimMBSNode::OutputData(int frame) {
 
         m_DBP_outf << time << del;
         m_DBP_outf << m_DBP_rig->GetLinVel() << del << m_DBP_rig->GetAngVel() << del;
-        m_DBP_outf << m_DBP_rig->GetSlip() << del;
+        m_DBP_outf << m_DBP_rig->GetSlip() << del << m_DBP_rig->GetFilteredSlip() << del;
         m_DBP_outf << m_DBP_rig->GetDBP() << del << m_DBP_rig->GetFilteredDBP() << del;
 
         m_DBP_outf << endl;

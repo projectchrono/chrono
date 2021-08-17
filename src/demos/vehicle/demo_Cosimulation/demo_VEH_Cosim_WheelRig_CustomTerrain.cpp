@@ -294,7 +294,7 @@ int main(int argc, char** argv) {
                 break;
             }
         }
-        dbp_rig->SetDBPfilterWindow(0.1);
+        dbp_rig->SetDBPFilterWindow(0.1);
 
         auto mbs = new ChVehicleCosimRigNode();
         mbs->SetVerbose(verbose);
