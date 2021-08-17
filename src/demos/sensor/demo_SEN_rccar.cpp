@@ -308,8 +308,6 @@ int main(int argc, char* argv[]) {
 
     double render_time = 0;
 
-    int num_camera_updates = 0;
-
     std::cout << "setup complete." << '\n';
 
     auto cam_buffer = cam1->GetMostRecentBuffer<UserRGBA8BufferPtr>();
@@ -327,14 +325,14 @@ int main(int argc, char* argv[]) {
             int w = cam_buffer->Width;
             int c = 4;
             uint8_t* data = (uint8_t*)(cam_buffer->Buffer.get());
-            int min = 1000;
+            ////int min = 1000;
             int zeros = 0;
             for (int i = 0; i < h; i++) {
                 for (int j = 0; j < w; j++) {
                     for (int k = 0; k < 1; k++) {
                         if (data[i * w * c + j * c + k] == 0) {
                             zeros++;
-                            // min = data[i * w * c + j * c + k];
+                            ////min = data[i * w * c + j * c + k];
                         }
                     }
                 }

@@ -90,7 +90,6 @@ int main(int argc, char* argv[]) {
     // ------------------------------------------------
     // Create a camera and add it to the sensor manager
     // ------------------------------------------------
-    int alias_factor = 4;
     auto cam = chrono_types::make_shared<ChCameraSensor>(
         sphere2,                                                             // body camera is attached to
         30.0f,                                                               // update rate in Hz
@@ -117,11 +116,7 @@ int main(int argc, char* argv[]) {
     // ---------------
     // Simulate system
     // ---------------
-    float orbit_radius = 10.f;
-    float orbit_rate = 0.5;
     float ch_time = 0.0;
-
-    double render_time = 0;
 
     std::chrono::high_resolution_clock::time_point t1 = std::chrono::high_resolution_clock::now();
 

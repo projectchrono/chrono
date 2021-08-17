@@ -45,8 +45,7 @@ std::shared_ptr<SynMessage> SynMessageFactory::GenerateMessage(const SynFlatBuff
         if (terrain_state->message_type() == SynFlatBuffers::Terrain::Type_SCM_State) {
             message = chrono_types::make_shared<SynSCMMessage>(source_id, destination_id);
         } else {
-            std::string message = "SynMessageFactory::GenerateMessage: Unknown TERRAIN type.";
-            throw ChException(message);
+            throw ChException("SynMessageFactory::GenerateMessage: Unknown TERRAIN type.");
         }
     } else if (incoming_message->message_type() == SynFlatBuffers::Type_Agent_State) {
         const SynFlatBuffers::Agent::State* agent_state = incoming_message->message_as_Agent_State();
@@ -60,8 +59,7 @@ std::shared_ptr<SynMessage> SynMessageFactory::GenerateMessage(const SynFlatBuff
         } else if (agent_state->message_type() == SynFlatBuffers::Agent::Type_Copter_State) {
             message = chrono_types::make_shared<SynCopterStateMessage>(source_id, destination_id);
         } else {
-            std::string message = "SynMessageFactory::GenerateMessage: Unknown AGENT STATE type.";
-            throw ChException(message);
+            throw ChException("SynMessageFactory::GenerateMessage: Unknown AGENT STATE type.");
         }
     } else if (incoming_message->message_type() == SynFlatBuffers::Type_Agent_Description) {
         auto agent_description = incoming_message->message_as_Agent_Description();
@@ -75,8 +73,7 @@ std::shared_ptr<SynMessage> SynMessageFactory::GenerateMessage(const SynFlatBuff
         } else if (agent_description->description_type() == SynFlatBuffers::Agent::Type_Copter_Description) {
             message = chrono_types::make_shared<SynCopterDescriptionMessage>(source_id, destination_id);
         } else {
-            std::string message = "SynMessageFactory::GenerateMessage: Unknown AGENT DESCRIPTION type.";
-            throw ChException(message);
+            throw ChException("SynMessageFactory::GenerateMessage: Unknown AGENT DESCRIPTION type.");
         }
     } else if (incoming_message->message_type() == SynFlatBuffers::Type_Simulation_State) {
         message = chrono_types::make_shared<SynSimulationMessage>(source_id, destination_id);
@@ -85,8 +82,7 @@ std::shared_ptr<SynMessage> SynMessageFactory::GenerateMessage(const SynFlatBuff
     } else if (incoming_message->message_type() == SynFlatBuffers::Type_MAP_State) {
         message = chrono_types::make_shared<SynMAPMessage>(source_id, destination_id);
     } else {
-        std::string message = "SynMessageFactory::GenerateMessage: Unknown type.";
-        throw ChException(message);
+        throw ChException("SynMessageFactory::GenerateMessage: Unknown type.");
     }
 
     message->SetMessageType(incoming_message->message_type());

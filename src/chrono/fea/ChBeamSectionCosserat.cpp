@@ -52,14 +52,14 @@ void ChElasticityCosserat::ComputeStiffnessMatrix(ChMatrixNM<double, 6, 6>& K,
 // -----------------------------------------------------------------------------
 
 ChElasticityCosseratSimple::ChElasticityCosseratSimple()
-    : E(0.01e9)       // default E stiffness (almost rubber)
+    : E(0.01e9)  // default E stiffness (almost rubber)
 {
     SetGwithPoissonRatio(0.3);            // default G (low poisson ratio)
     SetAsRectangularSection(0.01, 0.01);  // defaults Area, Ixx, Iyy, Ks_y, Ks_z, J
 }
 
 void ChElasticityCosseratSimple::SetAsRectangularSection(double width_y, double width_z) {
-	this->A   = width_y * width_z;
+    this->A = width_y * width_z;
     this->Izz = (1.0 / 12.0) * width_z * pow(width_y, 3);
     this->Iyy = (1.0 / 12.0) * width_y * pow(width_z, 3);
 
@@ -75,7 +75,7 @@ void ChElasticityCosseratSimple::SetAsRectangularSection(double width_y, double 
 }
 
 void ChElasticityCosseratSimple::SetAsCircularSection(double diameter) {
-	this->A   = CH_C_PI * pow((0.5 * diameter), 2);
+    this->A = CH_C_PI * pow((0.5 * diameter), 2);
     this->Izz = (CH_C_PI / 4.0) * pow((0.5 * diameter), 4);
     this->Iyy = Izz;
 
@@ -116,10 +116,8 @@ void ChElasticityCosseratSimple::ComputeStiffnessMatrix(ChMatrixNM<double, 6, 6>
 // -----------------------------------------------------------------------------
 
 ChElasticityCosseratGeneric::ChElasticityCosseratGeneric() {
-    mE.setIdentity();                     // default E stiffness: diagonal 1.
+    mE.setIdentity();  // default E stiffness: diagonal 1.
 }
-
-
 
 void ChElasticityCosseratGeneric::ComputeStress(ChVector<>& stress_n,
                                                 ChVector<>& stress_m,
@@ -127,8 +125,8 @@ void ChElasticityCosseratGeneric::ComputeStress(ChVector<>& stress_n,
                                                 const ChVector<>& strain_m) {
     ChVectorN<double, 6> mstrain;
     ChVectorN<double, 6> mstress;
-    mstrain.segment(0 , 3) = strain_n.eigen();
-    mstrain.segment(3 , 3) = strain_m.eigen();
+    mstrain.segment(0, 3) = strain_n.eigen();
+    mstrain.segment(3, 3) = strain_m.eigen();
     mstress = this->mE * mstrain;
     stress_n = mstress.segment(0, 3);
     stress_m = mstress.segment(3, 3);
@@ -217,13 +215,12 @@ void ChElasticityCosseratAdvanced::ComputeStiffnessMatrix(ChMatrixNM<double, 6, 
     K(5, 5) = a33;
 }
 
-
 // -----------------------------------------------------------------------------
 
 void ChElasticityCosseratAdvancedGeneric::ComputeStress(ChVector<>& stress_n,
-                                                 ChVector<>& stress_m,
-                                                 const ChVector<>& strain_n,
-                                                 const ChVector<>& strain_m) {
+                                                        ChVector<>& stress_m,
+                                                        const ChVector<>& strain_n,
+                                                        const ChVector<>& strain_m) {
     double cos_alpha = cos(alpha);
     double sin_alpha = sin(alpha);
     double a11 = this->Ax;
@@ -231,13 +228,13 @@ void ChElasticityCosseratAdvancedGeneric::ComputeStress(ChVector<>& stress_n,
     double a33 = this->Bzz * pow(cos_alpha, 2.) + this->Byy * pow(sin_alpha, 2.) + Cy * Cy * this->Ax;
     double a12 = Cz * this->Ax;
     double a13 = -Cy * this->Ax;
-    double a23 = (this->Byy - this->Bzz) * cos_alpha * sin_alpha -  Cy * Cz * this->Ax;
+    double a23 = (this->Byy - this->Bzz) * cos_alpha * sin_alpha - Cy * Cz * this->Ax;
     stress_n.x() = a11 * strain_n.x() + a12 * strain_m.y() + a13 * strain_m.z();
     stress_m.y() = a12 * strain_n.x() + a22 * strain_m.y() + a23 * strain_m.z();
     stress_m.z() = a13 * strain_n.x() + a23 * strain_m.y() + a33 * strain_m.z();
     double cos_beta = cos(beta);
     double sin_beta = sin(beta);
-    double KsyGA = this->Hyy; 
+    double KsyGA = this->Hyy;
     double KszGA = this->Hzz;
     double s11 = KsyGA * pow(cos_beta, 2.) + KszGA * pow(sin_beta, 2.);
     double s22 = KsyGA * pow(sin_beta, 2.) + KszGA * pow(cos_beta, 2.);  // ..+s_loc_12*sin(beta)*cos(beta);
@@ -251,8 +248,8 @@ void ChElasticityCosseratAdvancedGeneric::ComputeStress(ChVector<>& stress_n,
 }
 
 void ChElasticityCosseratAdvancedGeneric::ComputeStiffnessMatrix(ChMatrixNM<double, 6, 6>& K,
-                                                          const ChVector<>& strain_n,
-                                                          const ChVector<>& strain_m) {
+                                                                 const ChVector<>& strain_n,
+                                                                 const ChVector<>& strain_m) {
     K.setZero(6, 6);
     double cos_alpha = cos(alpha);
     double sin_alpha = sin(alpha);
@@ -261,7 +258,7 @@ void ChElasticityCosseratAdvancedGeneric::ComputeStiffnessMatrix(ChMatrixNM<doub
     double a33 = this->Bzz * pow(cos_alpha, 2.) + this->Byy * pow(sin_alpha, 2.) + Cy * Cy * this->Ax;
     double a12 = Cz * this->Ax;
     double a13 = -Cy * this->Ax;
-    double a23 = (this->Byy - this->Bzz) * cos_alpha * sin_alpha -   Cy * Cz * this->Ax;
+    double a23 = (this->Byy - this->Bzz) * cos_alpha * sin_alpha - Cy * Cz * this->Ax;
     double cos_beta = cos(beta);
     double sin_beta = sin(beta);
     double KsyGA = this->Hyy;
@@ -296,6 +293,8 @@ void ChElasticityCosseratAdvancedGeneric::ComputeStiffnessMatrix(ChMatrixNM<doub
 // -----------------------------------------------------------------------------
 
 void ChElasticityCosseratAdvancedGenericFPM::ComputeTransformMatrix() {
+    // Initialization of the transformation matrix
+    this->T.setIdentity();
 
     // In case the section is rotated:
     ChMatrix33<> RotsectA;
@@ -332,17 +331,19 @@ void ChElasticityCosseratAdvancedGenericFPM::ComputeTransformMatrix() {
 }
 
 void ChElasticityCosseratAdvancedGenericFPM::UpdateEMatrix() {
-    // compute T
-    ComputeTransformMatrix();
-    // update Klaw after setting section rotation and EC/SC offset
-    this->Klaw = this->T.transpose() * this->Klaw * this->T;
+    if (!updated) {  // do it only once
+        // compute T
+        ComputeTransformMatrix();
+        // update Klaw after setting section rotation and EC/SC offset
+        this->Klaw = this->T.transpose() * this->Klaw * this->T;
+        updated = true;
+    }
 }
 
-
 void ChElasticityCosseratAdvancedGenericFPM::ComputeStress(ChVector<>& stress_n,
-                                                ChVector<>& stress_m,
-                                                const ChVector<>& strain_n,
-                                                const ChVector<>& strain_m) {
+                                                           ChVector<>& stress_m,
+                                                           const ChVector<>& strain_n,
+                                                           const ChVector<>& strain_m) {
     ChVectorN<double, 6> mstrain;
     ChVectorN<double, 6> mstress;
     mstrain.segment(0, 3) = strain_n.eigen();
@@ -353,13 +354,10 @@ void ChElasticityCosseratAdvancedGenericFPM::ComputeStress(ChVector<>& stress_n,
 }
 
 void ChElasticityCosseratAdvancedGenericFPM::ComputeStiffnessMatrix(ChMatrixNM<double, 6, 6>& K,
-                                                         const ChVector<>& strain_n,
-                                                         const ChVector<>& strain_m) {
+                                                                    const ChVector<>& strain_n,
+                                                                    const ChVector<>& strain_m) {
     K = this->Klaw;
 }
-
-
-
 
 // -----------------------------------------------------------------------------
 
@@ -862,187 +860,165 @@ void ChDampingCosseratLinear::ComputeDampingMatrix(ChMatrixNM<double, 6, 6>& R,
 
 // -----------------------------------------------------------------------------
 
-
-
 // -----------------------------------------------------------------------------
 
-ChDampingCosseratRayleigh::ChDampingCosseratRayleigh(
-									std::shared_ptr<ChElasticityCosserat> melasticity, 
-									const double& mbeta) {
-	this->beta = mbeta;
-	this->section_elasticity = melasticity;
-	this->updated = false;
+ChDampingCosseratRayleigh::ChDampingCosseratRayleigh(std::shared_ptr<ChElasticityCosserat> melasticity,
+                                                     const double& mbeta) {
+    this->beta = mbeta;
+    this->section_elasticity = melasticity;
+    this->updated = false;
 }
 
-
 void ChDampingCosseratRayleigh::ComputeStress(ChVector<>& stress_n,
-                                            ChVector<>& stress_m,
-                                            const ChVector<>& dstrain_e,
-                                            const ChVector<>& dstrain_k) {
-	if (!this->updated) {
-		this->UpdateStiffnessModel();
-		this->updated = true;
-	}
-	ChVectorN<double, 6> mdstrain;
+                                              ChVector<>& stress_m,
+                                              const ChVector<>& dstrain_e,
+                                              const ChVector<>& dstrain_k) {
+    if (!this->updated) {
+        this->UpdateStiffnessModel();
+        this->updated = true;
+    }
+    ChVectorN<double, 6> mdstrain;
     ChVectorN<double, 6> mstress;
-    mdstrain.segment(0 , 3) = dstrain_e.eigen();
-    mdstrain.segment(3 , 3) = dstrain_k.eigen();
+    mdstrain.segment(0, 3) = dstrain_e.eigen();
+    mdstrain.segment(3, 3) = dstrain_k.eigen();
     mstress = this->beta * this->E_const * mdstrain;
     stress_n = mstress.segment(0, 3);
     stress_m = mstress.segment(3, 3);
-    
 }
 
 void ChDampingCosseratRayleigh::ComputeDampingMatrix(ChMatrixNM<double, 6, 6>& R,
-                                                   const ChVector<>& dstrain_e,
-                                                   const ChVector<>& dstrain_k) {
-	R = this->beta * this->E_const;
+                                                     const ChVector<>& dstrain_e,
+                                                     const ChVector<>& dstrain_k) {
+    R = this->beta * this->E_const;
 }
-
 
 void ChDampingCosseratRayleigh::UpdateStiffnessModel() {
-	
-	// Precompute and store the stiffness matrix into E_const, assuming 
-	// initial zero stress and zero strain, and use it as constant E from now on
-	// (for many stiffness models, this is constant anyway)
-	this->section_elasticity->ComputeStiffnessMatrix(this->E_const, VNULL, VNULL);
-	
+    // Precompute and store the stiffness matrix into E_const, assuming
+    // initial zero stress and zero strain, and use it as constant E from now on
+    // (for many stiffness models, this is constant anyway)
+    this->section_elasticity->ComputeStiffnessMatrix(this->E_const, VNULL, VNULL);
 }
-
-
 
 //-----------------------------------------------------------------------------
 
-void ChInertiaCosserat::ComputeInertiaDampingMatrix(ChMatrixNM<double, 6, 6>& Ri,  ///< 6x6 sectional inertial-damping (gyroscopic damping) matrix values here
-    const ChVector<>& mW    ///< current angular velocity of section, in material frame
+void ChInertiaCosserat::ComputeInertiaDampingMatrix(
+    ChMatrixNM<double, 6, 6>& Ri,  ///< 6x6 sectional inertial-damping (gyroscopic damping) matrix values here
+    const ChVector<>& mW           ///< current angular velocity of section, in material frame
 ) {
-    double Delta = 1e-8; // magic number, todo: parametrize or #define
+    double Delta = 1e-8;  // magic number, todo: parametrize or #define
     Ri.setZero();
 
-    if (compute_inertia_damping_matrix == false) 
+    if (compute_inertia_damping_matrix == false)
         return;
 
-    // Fi=Fia+Fiv, where Fia depends on acceleration only, so restrict to Fiv quadratic terms for numerical differentiation.
-    // Also we assume first three columns of Ri are null because Fiv does not depend on linear velocity.
-    // Quadratic terms (gyro, centrifugal) at current state:
-    ChVectorN<double,6> Fi0;
+    // Fi=Fia+Fiv, where Fia depends on acceleration only, so restrict to Fiv quadratic terms for numerical
+    // differentiation. Also we assume first three columns of Ri are null because Fiv does not depend on linear
+    // velocity. Quadratic terms (gyro, centrifugal) at current state:
+    ChVectorN<double, 6> Fi0;
     ChVector<> mF, mT;
-    this->ComputeQuadraticTerms(mF, mT, mW);  
+    this->ComputeQuadraticTerms(mF, mT, mW);
     Fi0.segment(0, 3) = mF.eigen();
     Fi0.segment(3, 3) = mT.eigen();
-    // dw_x 
-    ChVectorN<double,6> Fi_dw;
-    this->ComputeQuadraticTerms(mF, mT, mW + ChVector<>(Delta,0,0)); 
+    // dw_x
+    ChVectorN<double, 6> Fi_dw;
+    this->ComputeQuadraticTerms(mF, mT, mW + ChVector<>(Delta, 0, 0));
     Fi_dw.segment(0, 3) = mF.eigen();
     Fi_dw.segment(3, 3) = mT.eigen();
-    Ri.block(0,3, 6,1) = (Fi_dw - Fi0) * (1.0 / Delta);
-    // dw_y 
-    this->ComputeQuadraticTerms(mF, mT, mW + ChVector<>(0,Delta,0)); 
+    Ri.block(0, 3, 6, 1) = (Fi_dw - Fi0) * (1.0 / Delta);
+    // dw_y
+    this->ComputeQuadraticTerms(mF, mT, mW + ChVector<>(0, Delta, 0));
     Fi_dw.segment(0, 3) = mF.eigen();
     Fi_dw.segment(3, 3) = mT.eigen();
-    Ri.block(0,4, 6,1) = (Fi_dw - Fi0) * (1.0 / Delta);
-    // dw_z 
-    this->ComputeQuadraticTerms(mF, mT, mW + ChVector<>(0,0,Delta)); 
+    Ri.block(0, 4, 6, 1) = (Fi_dw - Fi0) * (1.0 / Delta);
+    // dw_z
+    this->ComputeQuadraticTerms(mF, mT, mW + ChVector<>(0, 0, Delta));
     Fi_dw.segment(0, 3) = mF.eigen();
     Fi_dw.segment(3, 3) = mT.eigen();
-    Ri.block(0,5, 6,1) = (Fi_dw - Fi0) * (1.0 / Delta);
+    Ri.block(0, 5, 6, 1) = (Fi_dw - Fi0) * (1.0 / Delta);
 }
 
-
-void ChInertiaCosserat::ComputeInertiaStiffnessMatrix(ChMatrixNM<double, 6, 6>& Ki, ///< 6x6 sectional inertial-stiffness matrix values here
-    const ChVector<>& mWvel,      ///< current angular velocity of section, in material frame
-    const ChVector<>& mWacc,      ///< current angular acceleration of section, in material frame
-    const ChVector<>& mXacc       ///< current acceleration of section, in material frame (not absolute!)
-){
-    double Delta = 1e-8; // magic number, todo: parametrize or #define
+void ChInertiaCosserat::ComputeInertiaStiffnessMatrix(
+    ChMatrixNM<double, 6, 6>& Ki,  ///< 6x6 sectional inertial-stiffness matrix values here
+    const ChVector<>& mWvel,       ///< current angular velocity of section, in material frame
+    const ChVector<>& mWacc,       ///< current angular acceleration of section, in material frame
+    const ChVector<>& mXacc        ///< current acceleration of section, in material frame (not absolute!)
+) {
+    double Delta = 1e-8;  // magic number, todo: parametrize or #define
     Ki.setZero();
 
-    if (compute_inertia_stiffness_matrix == false) 
+    if (compute_inertia_stiffness_matrix == false)
         return;
 
     // We assume first three columns of Ki are null because Fi does not depend on displacement.
     // We compute Ki by numerical differentiation.
 
-    
     ChVector<> mF, mT;
     this->ComputeInertialForce(mF, mT, mWvel, mWacc, mXacc);
-    ChVectorN<double,6> Fi0;
+    ChVectorN<double, 6> Fi0;
     Fi0.segment(0, 3) = mF.eigen();
     Fi0.segment(3, 3) = mT.eigen();
 
-   
-    ChVectorN<double,6> Fi_dr;
+    ChVectorN<double, 6> Fi_dr;
     ChVectorN<double, 6> drFi;
 
     // dr_x
     ChStarMatrix33<> rot_lx(ChVector<>(Delta, 0, 0));
     rot_lx.diagonal().setOnes();
-    this->ComputeInertialForce(mF, mT, 
-        mWvel, // or rot_lx.transpose()*mWvel,  if abs. ang.vel is constant during rot.increments
-        mWacc, // or rot_lx.transpose()*mWacc,  if abs. ang.vel is constant during rot.increments
-        rot_lx.transpose()*mXacc);
+    this->ComputeInertialForce(
+        mF, mT,
+        mWvel,  // or rot_lx.transpose()*mWvel,  if abs. ang.vel is constant during rot.increments
+        mWacc,  // or rot_lx.transpose()*mWacc,  if abs. ang.vel is constant during rot.increments
+        rot_lx.transpose() * mXacc);
     Fi_dr.segment(0, 3) = mF.eigen();
     Fi_dr.segment(3, 3) = mT.eigen();
-    drFi.segment(0 , 3) = rot_lx * Fi0.segment(0, 3);
-    drFi.segment(3 , 3) = Fi0.segment(3, 3);
-    Ki.block(0, 3, 6, 1) = (Fi_dr - Fi0) * (1.0 / Delta) +(drFi - Fi0) * (1.0 / Delta);
+    drFi.segment(0, 3) = rot_lx * Fi0.segment(0, 3);
+    drFi.segment(3, 3) = Fi0.segment(3, 3);
+    Ki.block(0, 3, 6, 1) = (Fi_dr - Fi0) * (1.0 / Delta) + (drFi - Fi0) * (1.0 / Delta);
 
     // dr_y
     ChStarMatrix33<> rot_ly(ChVector<>(0, Delta, 0));
     rot_ly.diagonal().setOnes();
-    this->ComputeInertialForce(mF, mT, 
-        mWvel, 
-        mWacc, 
-        rot_ly.transpose()*mXacc);
+    this->ComputeInertialForce(mF, mT, mWvel, mWacc, rot_ly.transpose() * mXacc);
     Fi_dr.segment(0, 3) = mF.eigen();
     Fi_dr.segment(3, 3) = mT.eigen();
-    drFi.segment(0 , 3) = rot_ly * Fi0.segment(0, 3);
-    drFi.segment(3 , 3) = Fi0.segment(3, 3);
-    Ki.block(0, 4, 6, 1) = (Fi_dr - Fi0) * (1.0 / Delta) +(drFi - Fi0) * (1.0 / Delta);
+    drFi.segment(0, 3) = rot_ly * Fi0.segment(0, 3);
+    drFi.segment(3, 3) = Fi0.segment(3, 3);
+    Ki.block(0, 4, 6, 1) = (Fi_dr - Fi0) * (1.0 / Delta) + (drFi - Fi0) * (1.0 / Delta);
 
     // dr_z
     ChStarMatrix33<> rot_lz(ChVector<>(0, 0, Delta));
     rot_lz.diagonal().setOnes();
-    this->ComputeInertialForce(mF, mT, 
-        mWvel, 
-        mWacc, 
-        rot_lz.transpose()*mXacc);
+    this->ComputeInertialForce(mF, mT, mWvel, mWacc, rot_lz.transpose() * mXacc);
     Fi_dr.segment(0, 3) = mF.eigen();
     Fi_dr.segment(3, 3) = mT.eigen();
-    drFi.segment(0 , 3) = rot_lz * Fi0.segment(0, 3);
-    drFi.segment(3 , 3) = Fi0.segment(3, 3);
-    Ki.block(0, 5, 6, 1) = (Fi_dr - Fi0) * (1.0 / Delta) +(drFi - Fi0) * (1.0 / Delta);
+    drFi.segment(0, 3) = rot_lz * Fi0.segment(0, 3);
+    drFi.segment(3, 3) = Fi0.segment(3, 3);
+    Ki.block(0, 5, 6, 1) = (Fi_dr - Fi0) * (1.0 / Delta) + (drFi - Fi0) * (1.0 / Delta);
 }
 
-
-
-
 void ChInertiaCosserat::ComputeInertialForce(
-                                    ChVector<>& mFi,          ///< total inertial force returned here
-                                    ChVector<>& mTi,          ///< total inertial torque returned here
-                                    const ChVector<>& mWvel,  ///< current angular velocity of section, in material frame
-                                    const ChVector<>& mWacc,  ///< current angular acceleration of section, in material frame
-                                    const ChVector<>& mXacc   ///< current acceleration of section, in material frame (not absolute!)
+    ChVector<>& mFi,          ///< total inertial force returned here
+    ChVector<>& mTi,          ///< total inertial torque returned here
+    const ChVector<>& mWvel,  ///< current angular velocity of section, in material frame
+    const ChVector<>& mWacc,  ///< current angular acceleration of section, in material frame
+    const ChVector<>& mXacc   ///< current acceleration of section, in material frame (not absolute!)
 ) {
     // Default implementation as Fi = [Mi]*{xacc,wacc}+{mF_quadratic,mT_quadratic}
     // but if possible implement it in children classes with ad-hoc faster formulas.
     ChMatrixNM<double, 6, 6> Mi;
     this->ComputeInertiaMatrix(Mi);
-    ChVectorN<double, 6> xpp; 
-    xpp.segment(0 , 3) = mXacc.eigen();
-    xpp.segment(3 , 3) = mWacc.eigen();
-    ChVectorN<double, 6> Fipp = Mi * xpp;    // [Mi]*{xacc,wacc}
+    ChVectorN<double, 6> xpp;
+    xpp.segment(0, 3) = mXacc.eigen();
+    xpp.segment(3, 3) = mWacc.eigen();
+    ChVectorN<double, 6> Fipp = Mi * xpp;  // [Mi]*{xacc,wacc}
     ChVector<> mF_quadratic;
     ChVector<> mT_quadratic;
     this->ComputeQuadraticTerms(mF_quadratic, mT_quadratic, mWvel);  // {mF_quadratic,mT_quadratic}
-    mFi = ChVector<>(Fipp.segment(0, 3)) + mF_quadratic; 
+    mFi = ChVector<>(Fipp.segment(0, 3)) + mF_quadratic;
     mTi = ChVector<>(Fipp.segment(3, 3)) + mT_quadratic;
 }
 
-
-
 //-----------------------------------------------------------------------------
-
 
 void ChInertiaCosseratSimple::ComputeInertiaMatrix(ChMatrixNM<double, 6, 6>& M) {
     M.setZero();
@@ -1054,82 +1030,78 @@ void ChInertiaCosseratSimple::ComputeInertiaMatrix(ChMatrixNM<double, 6, 6>& M) 
     M(5, 5) = this->GetInertiaJzzPerUnitLength();
 }
 
-void ChInertiaCosseratSimple::ComputeInertiaDampingMatrix(ChMatrixNM<double, 6, 6>& Ri,  ///< 6x6 sectional inertial-damping (gyroscopic damping) matrix values here
-    const ChVector<>& mW    ///< current angular velocity of section, in material frame
+void ChInertiaCosseratSimple::ComputeInertiaDampingMatrix(
+    ChMatrixNM<double, 6, 6>& Ri,  ///< 6x6 sectional inertial-damping (gyroscopic damping) matrix values here
+    const ChVector<>& mW           ///< current angular velocity of section, in material frame
 ) {
     Ri.setZero();
-    if (compute_inertia_damping_matrix == false) 
+    if (compute_inertia_damping_matrix == false)
         return;
     if (this->compute_Ri_Ki_by_num_diff)
         return ChInertiaCosserat::ComputeInertiaDampingMatrix(Ri, mW);
 
-    ChStarMatrix33<> wtilde(mW);   // [w~]
-    ChMatrix33<> mI(ChVector<>(
-        this->GetInertiaJxxPerUnitLength(),
-        this->GetInertiaJyyPerUnitLength(),
-        this->GetInertiaJzzPerUnitLength()));  // [I]  here just a diagonal inertia
-    Ri.block<3, 3>(3, 3) = wtilde * mI - ChStarMatrix33<>(mI * mW);  // Ri = [0, 0; 0, [w~][I] - [([I]*w)~]  ]
+    ChStarMatrix33<> wtilde(mW);  // [w~]
+    ChMatrix33<> mI(ChVector<>(this->GetInertiaJxxPerUnitLength(), this->GetInertiaJyyPerUnitLength(),
+                               this->GetInertiaJzzPerUnitLength()));  // [I]  here just a diagonal inertia
+    Ri.block<3, 3>(3, 3) = wtilde * mI - ChStarMatrix33<>(mI * mW);   // Ri = [0, 0; 0, [w~][I] - [([I]*w)~]  ]
 }
 
-void ChInertiaCosseratSimple::ComputeInertiaStiffnessMatrix(ChMatrixNM<double, 6, 6>& Ki, ///< 6x6 sectional inertial-stiffness matrix values here
-    const ChVector<>& mWvel,      ///< current angular velocity of section, in material frame
-    const ChVector<>& mWacc,      ///< current angular acceleration of section, in material frame
-    const ChVector<>& mXacc       ///< current acceleration of section, in material frame
+void ChInertiaCosseratSimple::ComputeInertiaStiffnessMatrix(
+    ChMatrixNM<double, 6, 6>& Ki,  ///< 6x6 sectional inertial-stiffness matrix values here
+    const ChVector<>& mWvel,       ///< current angular velocity of section, in material frame
+    const ChVector<>& mWacc,       ///< current angular acceleration of section, in material frame
+    const ChVector<>& mXacc        ///< current acceleration of section, in material frame
 ) {
     Ki.setZero();
-    if (compute_inertia_stiffness_matrix == false) 
+    if (compute_inertia_stiffness_matrix == false)
         return;
     if (this->compute_Ri_Ki_by_num_diff)
         return ChInertiaCosserat::ComputeInertiaStiffnessMatrix(Ki, mWvel, mWacc, mXacc);
-    // null [Ki^] (but only for the case where angular speeds and accelerations are assumed to corotate with local frames.
+    // null [Ki^] (but only for the case where angular speeds and accelerations are assumed to corotate with local
+    // frames.
 }
 
-
-void ChInertiaCosseratSimple::ComputeQuadraticTerms(ChVector<>& mF,   ///< centrifugal term (if any) returned here
-    ChVector<>& mT,                ///< gyroscopic term  returned here
-    const ChVector<>& mW           ///< current angular velocity of section, in material frame
+void ChInertiaCosseratSimple::ComputeQuadraticTerms(
+    ChVector<>& mF,       ///< centrifugal term (if any) returned here
+    ChVector<>& mT,       ///< gyroscopic term  returned here
+    const ChVector<>& mW  ///< current angular velocity of section, in material frame
 ) {
     mF = VNULL;
-    mT = Vcross(mW, ChVector<>( this->GetInertiaJxxPerUnitLength()*mW.x(),
-                                this->GetInertiaJyyPerUnitLength()*mW.y(),
-                                this->GetInertiaJzzPerUnitLength()*mW.z() )  );
+    mT = Vcross(mW, ChVector<>(this->GetInertiaJxxPerUnitLength() * mW.x(), this->GetInertiaJyyPerUnitLength() * mW.y(),
+                               this->GetInertiaJzzPerUnitLength() * mW.z()));
 }
-
 
 void ChInertiaCosseratSimple::SetAsRectangularSection(double width_y, double width_z, double density) {
-	this->A = width_y * width_z;
-	this->Izz = (1.0 / 12.0) * width_z * pow(width_y, 3);
-	this->Iyy = (1.0 / 12.0) * width_y * pow(width_z, 3);
-	this->rho = density;
+    this->A = width_y * width_z;
+    this->Izz = (1.0 / 12.0) * width_z * pow(width_y, 3);
+    this->Iyy = (1.0 / 12.0) * width_y * pow(width_z, 3);
+    this->rho = density;
 }
-
 
 void ChInertiaCosseratSimple::SetAsCircularSection(double diameter, double density) {
-	this->A   = CH_C_PI * pow((0.5 * diameter), 2);
+    this->A = CH_C_PI * pow((0.5 * diameter), 2);
     this->Izz = (CH_C_PI / 4.0) * pow((0.5 * diameter), 4);
     this->Iyy = Izz;
-	this->rho = density;
+    this->rho = density;
 }
-
-
 
 // -----------------------------------------------------------------------------
 
-void  ChInertiaCosseratAdvanced::ComputeInertiaMatrix(ChMatrixNM<double, 6, 6>& M) {
+void ChInertiaCosseratAdvanced::ComputeInertiaMatrix(ChMatrixNM<double, 6, 6>& M) {
     M.setZero();
     M(0, 0) = this->mu;
     M(1, 1) = this->mu;
     M(2, 2) = this->mu;
 
-    M(3, 1) = - this->mu * this->cm_z;
-    M(3, 2) =   this->mu * this->cm_y;
-    M(4, 0) =   this->mu * this->cm_z;
-    M(5, 0) = - this->mu * this->cm_y;
+    M(3, 1) = -this->mu * this->cm_z;
+    M(3, 2) = this->mu * this->cm_y;
+    M(4, 0) = this->mu * this->cm_z;
+    M(5, 0) = -this->mu * this->cm_y;
 
-    M(1, 3) = - this->mu * this->cm_z;
-    M(2, 3) =   this->mu * this->cm_y;
-    M(0, 4) =   this->mu * this->cm_z;
-    M(0, 5) = - this->mu * this->cm_y;
+    M(1, 3) = -this->mu * this->cm_z;
+    M(2, 3) = this->mu * this->cm_y;
+    M(0, 4) = this->mu * this->cm_z;
+    M(0, 5) = -this->mu * this->cm_y;
 
     M(3, 3) = this->Jyy + this->Jzz;
     M(4, 4) = this->Jyy;
@@ -1138,99 +1110,96 @@ void  ChInertiaCosseratAdvanced::ComputeInertiaMatrix(ChMatrixNM<double, 6, 6>& 
     M(5, 4) = -this->Jyz;
 }
 
-void ChInertiaCosseratAdvanced::ComputeInertiaDampingMatrix(ChMatrixNM<double, 6, 6>& Ri,  ///< 6x6 sectional inertial-damping (gyroscopic damping) matrix values here
-    const ChVector<>& mW    ///< current angular velocity of section, in material frame
+void ChInertiaCosseratAdvanced::ComputeInertiaDampingMatrix(
+    ChMatrixNM<double, 6, 6>& Ri,  ///< 6x6 sectional inertial-damping (gyroscopic damping) matrix values here
+    const ChVector<>& mW           ///< current angular velocity of section, in material frame
 ) {
     Ri.setZero();
-    if (compute_inertia_damping_matrix == false) 
+    if (compute_inertia_damping_matrix == false)
         return;
     if (this->compute_Ri_Ki_by_num_diff)
         return ChInertiaCosserat::ComputeInertiaDampingMatrix(Ri, mW);
 
-    ChStarMatrix33<> wtilde(mW);   // [w~]
+    ChStarMatrix33<> wtilde(mW);  // [w~]
     ChVector<> mC(0, this->cm_y, this->cm_z);
-    ChStarMatrix33<> ctilde(mC);   // [c~]
-    ChMatrix33<> mI; 
-    mI << this->Jyy + this->Jzz ,           0,           0,
-                               0,   this->Jyy,  -this->Jyz,
-                               0,  -this->Jyz,   this->Jzz;
+    ChStarMatrix33<> ctilde(mC);  // [c~]
+    ChMatrix33<> mI;
+    mI << this->Jyy + this->Jzz, 0, 0, 0, this->Jyy, -this->Jyz, 0, -this->Jyz, this->Jzz;
     //  Ri = [0,  m*[w~][c~]' + m*[([w~]*c)~]'  ; 0 , [w~][I] - [([I]*w)~]  ]
-    Ri.block<3, 3>(0, 3) = this->mu * (wtilde * ctilde.transpose() + (ChStarMatrix33<>( wtilde * mC )).transpose() ); 
-    Ri.block<3, 3>(3, 3) = wtilde * mI - ChStarMatrix33<>(mI * mW);  
+    Ri.block<3, 3>(0, 3) = this->mu * (wtilde * ctilde.transpose() + (ChStarMatrix33<>(wtilde * mC)).transpose());
+    Ri.block<3, 3>(3, 3) = wtilde * mI - ChStarMatrix33<>(mI * mW);
 }
 
-void ChInertiaCosseratAdvanced::ComputeInertiaStiffnessMatrix(ChMatrixNM<double, 6, 6>& Ki, ///< 6x6 sectional inertial-stiffness matrix values here
-    const ChVector<>& mWvel,      ///< current angular velocity of section, in material frame
-    const ChVector<>& mWacc,      ///< current angular acceleration of section, in material frame
-    const ChVector<>& mXacc       ///< current acceleration of section, in material frame
+void ChInertiaCosseratAdvanced::ComputeInertiaStiffnessMatrix(
+    ChMatrixNM<double, 6, 6>& Ki,  ///< 6x6 sectional inertial-stiffness matrix values here
+    const ChVector<>& mWvel,       ///< current angular velocity of section, in material frame
+    const ChVector<>& mWacc,       ///< current angular acceleration of section, in material frame
+    const ChVector<>& mXacc        ///< current acceleration of section, in material frame
 ) {
     Ki.setZero();
-    if (compute_inertia_stiffness_matrix == false) 
+    if (compute_inertia_stiffness_matrix == false)
         return;
     if (this->compute_Ri_Ki_by_num_diff)
         return ChInertiaCosserat::ComputeInertiaStiffnessMatrix(Ki, mWvel, mWacc, mXacc);
 
-    ChStarMatrix33<> wtilde(mWvel);   // [w~]
-    ChStarMatrix33<> atilde(mWacc);   // [a~]
+    ChStarMatrix33<> wtilde(mWvel);  // [w~]
+    ChStarMatrix33<> atilde(mWacc);  // [a~]
     ChVector<> mC(0, this->cm_y, this->cm_z);
-    ChStarMatrix33<> ctilde(mC);   // [c~]
+    ChStarMatrix33<> ctilde(mC);  // [c~]
     ChMatrix33<> mI;
-    mI << this->Jyy + this->Jzz ,           0,           0,
-                               0,   this->Jyy,  -this->Jyz,
-                               0,  -this->Jyz,   this->Jzz;
+    mI << this->Jyy + this->Jzz, 0, 0, 0, this->Jyy, -this->Jyz, 0, -this->Jyz, this->Jzz;
     // case A: where absolute ang.vel and ang.acc are constant if the frame rotates (as in Bauchau)
     // and the local ang.vel and ang.acc will counterrotate:
     // for mixed absolute (translation) and local (rotation) bases one has:
     // Ki_al = [0, 0; m*([a~]+[w~][w~])[c~]', m*[c~][xpp~] + [I][a~]  + [w~]([I][w~] - [([I]*w)~]) +[([w~][I]*w)~]  ]
     /*
     Ki.block<3, 3>(0, 3) = this->mu * (atilde + wtilde* wtilde) * ctilde.transpose();
-    Ki.block<3, 3>(3, 3) = this->mu * ctilde * ChStarMatrix33<>(mXacc)  
-                          + (mI * atilde )  
+    Ki.block<3, 3>(3, 3) = this->mu * ctilde * ChStarMatrix33<>(mXacc)
+                          + (mI * atilde )
                           + wtilde * (mI * wtilde  - ChStarMatrix33<>(mI * mWvel))
-                          + ChStarMatrix33<>(wtilde*(mI*mWvel));  
+                          + ChStarMatrix33<>(wtilde*(mI*mWvel));
     */
     // case B: where local ang.vel and ang.acc are constant if the frame rotates (as in Chrono)
     // and the absolute ang.vel and ang.acc will rotate:
     // for mixed absolute (translation) and local (rotation) bases one has:
     // Ki_al = [0, 0; -m*[([a~]c)~] -m*[([w~][w~]c)~] , m*[c~][xpp~] ]
-    Ki.block<3, 3>(0, 3) = -this->mu * ChStarMatrix33<>(atilde * mC) 
-                           -this->mu * ChStarMatrix33<>(wtilde*(wtilde*mC));
+    Ki.block<3, 3>(0, 3) =
+        -this->mu * ChStarMatrix33<>(atilde * mC) - this->mu * ChStarMatrix33<>(wtilde * (wtilde * mC));
     Ki.block<3, 3>(3, 3) = this->mu * ctilde * ChStarMatrix33<>(mXacc);
 }
 
-void ChInertiaCosseratAdvanced::ComputeQuadraticTerms(ChVector<>& mF,   ///< centrifugal term (if any) returned here
-    ChVector<>& mT,                ///< gyroscopic term  returned here
-    const ChVector<>& mW           ///< current angular velocity of section, in material frame
+void ChInertiaCosseratAdvanced::ComputeQuadraticTerms(
+    ChVector<>& mF,       ///< centrifugal term (if any) returned here
+    ChVector<>& mT,       ///< gyroscopic term  returned here
+    const ChVector<>& mW  ///< current angular velocity of section, in material frame
 ) {
-    // F_centrifugal = density_per_unit_length w X w X c 
-    mF = this->mu * Vcross(mW,Vcross(mW,ChVector<>(0,cm_y,cm_z)));
+    // F_centrifugal = density_per_unit_length w X w X c
+    mF = this->mu * Vcross(mW, Vcross(mW, ChVector<>(0, cm_y, cm_z)));
 
     // unroll the product [J] * w  in the expression w X [J] * w  as 4 values of [J] are zero anyway
-    mT = Vcross(mW, ChVector<>( this->GetInertiaJxxPerUnitLength()*mW.x(),
-                                this->Jyy*mW.y() - this->Jyz*mW.z(),
-                                this->Jzz*mW.z() - this->Jyz*mW.y() )  );
+    mT = Vcross(mW, ChVector<>(this->GetInertiaJxxPerUnitLength() * mW.x(), this->Jyy * mW.y() - this->Jyz * mW.z(),
+                               this->Jzz * mW.z() - this->Jyz * mW.y()));
 }
-
 
 void ChInertiaCosseratAdvanced::SetMainInertiasInMassReference(double Jmyy, double Jmzz, double phi) {
     double cc = pow(cos(-phi), 2);
     double ss = pow(sin(-phi), 2);
     double cs = cos(-phi) * sin(-phi);
     // generic 2x2 tensor rotation
-    double Tyy_rot = cc * Jmyy + ss * Jmzz; // + 2 * Jmyz * cs;
-    double Tzz_rot = ss * Jmyy + cc * Jmzz; // - 2 * Jmyz * cs;
-    double Tyz_rot = (Jmzz - Jmyy) * cs; // +Jmyz * (cc - ss); 
+    double Tyy_rot = cc * Jmyy + ss * Jmzz;  // + 2 * Jmyz * cs;
+    double Tzz_rot = ss * Jmyy + cc * Jmzz;  // - 2 * Jmyz * cs;
+    double Tyz_rot = (Jmzz - Jmyy) * cs;     // +Jmyz * (cc - ss);
     // add inertia transport
-    this->Jyy = Tyy_rot +  this->mu * this->cm_z * this->cm_z;
-    this->Jzz = Tzz_rot +  this->mu * this->cm_y * this->cm_y;
-    this->Jyz = -(Tyz_rot -  this->mu * this->cm_z * this->cm_y); // note minus, per definition of Jyz
+    this->Jyy = Tyy_rot + this->mu * this->cm_z * this->cm_z;
+    this->Jzz = Tzz_rot + this->mu * this->cm_y * this->cm_y;
+    this->Jyz = -(Tyz_rot - this->mu * this->cm_z * this->cm_y);  // note minus, per definition of Jyz
 }
 
 void ChInertiaCosseratAdvanced::GetMainInertiasInMassReference(double& Jmyy, double& Jmzz, double& phi) {
     // remove inertia transport
-    double Tyy_rot  =  this->Jyy - this->mu * this->cm_z * this->cm_z;
-    double Tzz_rot  =  this->Jzz - this->mu * this->cm_y * this->cm_y;
-    double Tyz_rot  = -this->Jyz + this->mu * this->cm_z * this->cm_y;
+    double Tyy_rot = this->Jyy - this->mu * this->cm_z * this->cm_z;
+    double Tzz_rot = this->Jzz - this->mu * this->cm_y * this->cm_y;
+    double Tyz_rot = -this->Jyz + this->mu * this->cm_z * this->cm_y;
     // tensor de-rotation up to principal axes
     double argum = pow((Tyy_rot - Tzz_rot) * 0.5, 2) + pow(Tyz_rot, 2);
     if (argum <= 0) {
@@ -1239,12 +1208,11 @@ void ChInertiaCosseratAdvanced::GetMainInertiasInMassReference(double& Jmyy, dou
         Jmzz = 0.5 * (Tzz_rot + Tyy_rot);
         return;
     }
-    double discr = sqrt( pow((Tyy_rot - Tzz_rot)*0.5,2) + pow(Tyz_rot, 2) );
-    phi = - 0.5* atan2(Tyz_rot / discr, (Tzz_rot - Tyy_rot) / (2. * discr));
+    double discr = sqrt(pow((Tyy_rot - Tzz_rot) * 0.5, 2) + pow(Tyz_rot, 2));
+    phi = -0.5 * atan2(Tyz_rot / discr, (Tzz_rot - Tyy_rot) / (2. * discr));
     Jmyy = 0.5 * (Tzz_rot + Tyy_rot) - discr;
     Jmzz = 0.5 * (Tzz_rot + Tyy_rot) + discr;
 }
-
 
 void ChInertiaCosseratAdvanced::SetInertiasPerUnitLength(double Jyy_moment, double Jzz_moment, double Jyz_moment) {
     this->Jyy = Jyy_moment;
@@ -1254,15 +1222,13 @@ void ChInertiaCosseratAdvanced::SetInertiasPerUnitLength(double Jyy_moment, doub
 
 // -----------------------------------------------------------------------------
 
-
-
-ChBeamSectionCosserat::ChBeamSectionCosserat(std::shared_ptr<ChInertiaCosserat>    minertia,			 
-											 std::shared_ptr<ChElasticityCosserat> melasticity,
+ChBeamSectionCosserat::ChBeamSectionCosserat(std::shared_ptr<ChInertiaCosserat> minertia,
+                                             std::shared_ptr<ChElasticityCosserat> melasticity,
                                              std::shared_ptr<ChPlasticityCosserat> mplasticity,
                                              std::shared_ptr<ChDampingCosserat> mdamping) {
     this->SetInertia(minertia);
 
-	this->SetElasticity(melasticity);
+    this->SetElasticity(melasticity);
 
     if (mplasticity)
         this->SetPlasticity(mplasticity);
@@ -1318,59 +1284,50 @@ void ChBeamSectionCosserat::SetInertia(std::shared_ptr<ChInertiaCosserat> minert
     inertia->section = this;
 }
 
-
-
-
 // -----------------------------------------------------------------------------
 
-
-
 ChBeamSectionCosseratEasyRectangular::ChBeamSectionCosseratEasyRectangular(
-	double width_y,			// width of section in y direction
-	double width_z,			// width of section in z direction
-	double E,				// Young modulus
-	double G,				// shear modulus
-	double density			// volumetric density (ex. in SI units: [kg/m])
+    double width_y,  // width of section in y direction
+    double width_z,  // width of section in z direction
+    double E,        // Young modulus
+    double G,        // shear modulus
+    double density   // volumetric density (ex. in SI units: [kg/m])
 ) {
-	auto melasticity = chrono_types::make_shared<ChElasticityCosseratSimple>();
-	melasticity->SetYoungModulus(E);
-	melasticity->SetGshearModulus(G);
-	melasticity->SetAsRectangularSection(width_y, width_z);
-	this->SetElasticity(melasticity);
+    auto melasticity = chrono_types::make_shared<ChElasticityCosseratSimple>();
+    melasticity->SetYoungModulus(E);
+    melasticity->SetGshearModulus(G);
+    melasticity->SetAsRectangularSection(width_y, width_z);
+    this->SetElasticity(melasticity);
 
-	auto minertia = chrono_types::make_shared<ChInertiaCosseratSimple>();
-	minertia->SetAsRectangularSection(width_y, width_z, density);
-	this->SetInertia(minertia);
+    auto minertia = chrono_types::make_shared<ChInertiaCosseratSimple>();
+    minertia->SetAsRectangularSection(width_y, width_z, density);
+    this->SetInertia(minertia);
 
     auto mdrawshape = chrono_types::make_shared<ChBeamSectionShapeRectangular>(width_y, width_z);
     this->SetDrawShape(mdrawshape);
 }
 
-
 ChBeamSectionCosseratEasyCircular::ChBeamSectionCosseratEasyCircular(
-	double diameter,		// diameter
-	double E,				// Young modulus
-	double G,				// shear modulus
-	double density			// volumetric density (ex. in SI units: [kg/m])
+    double diameter,  // diameter
+    double E,         // Young modulus
+    double G,         // shear modulus
+    double density    // volumetric density (ex. in SI units: [kg/m])
 ) {
-	auto melasticity = chrono_types::make_shared<ChElasticityCosseratSimple>();
-	melasticity->SetYoungModulus(E);
-	melasticity->SetGshearModulus(G);
-	melasticity->SetAsCircularSection(diameter);
-	this->SetElasticity(melasticity);
+    auto melasticity = chrono_types::make_shared<ChElasticityCosseratSimple>();
+    melasticity->SetYoungModulus(E);
+    melasticity->SetGshearModulus(G);
+    melasticity->SetAsCircularSection(diameter);
+    this->SetElasticity(melasticity);
 
-	auto minertia = chrono_types::make_shared<ChInertiaCosseratSimple>();
-	minertia->SetAsCircularSection(diameter, density);
-	this->SetInertia(minertia);
+    auto minertia = chrono_types::make_shared<ChInertiaCosseratSimple>();
+    minertia->SetAsCircularSection(diameter, density);
+    this->SetInertia(minertia);
 
     auto mdrawshape = chrono_types::make_shared<ChBeamSectionShapeCircular>(diameter / 2, 10);
     this->SetDrawShape(mdrawshape);
 }
 
-
-
 // ------------------------------------------------------------------------------
-
 
 }  // end namespace fea
 }  // end namespace chrono

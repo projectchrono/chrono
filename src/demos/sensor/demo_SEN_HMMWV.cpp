@@ -293,7 +293,7 @@ int main(int argc, char* argv[]) {
 
     // Number of simulation steps between miscellaneous events
     int render_steps = (int)std::ceil(render_step_size / step_size);
-    int debug_steps = (int)std::ceil(debug_step_size / step_size);
+    ////int debug_steps = (int)std::ceil(debug_step_size / step_size);
 
     // Initialize simulation frame counter and simulation time
     int step_number = 0;
