@@ -75,6 +75,9 @@ class CH_OPENGL_API ChOpenGLWindow {
     bool DoStepDynamics(double time_step  ///< integration step size
     );
 
+    /// Enable/disable HUD display (default: true).
+    void EnableHUD(bool state) { render_hud = state; }
+
     /// Render the ChSystem and the HUD.
     void Render();
 
@@ -112,7 +115,7 @@ class CH_OPENGL_API ChOpenGLWindow {
 
   private:
     // Singleton constructor should be private so that a user cannot call it
-    ChOpenGLWindow() {}
+    ChOpenGLWindow() : render_hud(true) {}
 
     // Singleton destructor should be private so that a user cannot call it
     ~ChOpenGLWindow() {}
@@ -142,7 +145,7 @@ class CH_OPENGL_API ChOpenGLWindow {
     // Pointer to the opengl context
     GLFWwindow* window;
     int poll_frame;
-
+    bool render_hud;
     std::vector<ChOpenGLEventCB*> user_receivers;
 };
 

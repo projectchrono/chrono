@@ -108,7 +108,7 @@ void ChOpenGLWindow::Render() {
         glClearColor(18.0f / 255.0f, 26.0f / 255.0f, 32.0f / 255.0f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         GLReturnedError("Before Render");
-        pointer->Render();
+        pointer->Render(render_hud);
         GLReturnedError("After Render");
         glfwSwapBuffers(window);
     }
