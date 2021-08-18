@@ -46,7 +46,7 @@ class CH_VEHICLE_API ChChassis : public ChPart {
               bool fixed = false        ///< [in] is the chassis body fixed to ground?
     );
 
-    virtual ~ChChassis() {}
+    virtual ~ChChassis();
 
     /// Get the chassis mass.
     virtual double GetMass() const = 0;
@@ -162,6 +162,9 @@ class CH_VEHICLE_API ChChassis : public ChPart {
 
     /// Utility function to add a joint (kinematic or bushing) to the vehicle system.
     void AddJoint(std::shared_ptr<ChVehicleJoint> joint);
+
+    /// Utility function to remove a joint (kinematic or bushing) from the vehicle system.
+    static void RemoveJoint(std::shared_ptr<ChVehicleJoint> joint);
 
   protected:
     std::shared_ptr<ChBodyAuxRef> m_body;              ///< handle to the chassis body

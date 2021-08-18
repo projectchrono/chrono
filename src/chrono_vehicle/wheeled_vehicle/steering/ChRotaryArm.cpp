@@ -33,6 +33,13 @@ namespace vehicle {
 ChRotaryArm::ChRotaryArm(const std::string& name, bool vehicle_frame_inertia)
     : ChSteering(name), m_vehicle_frame_inertia(vehicle_frame_inertia) {}
 
+ChRotaryArm::~ChRotaryArm() {
+    auto sys = m_revolute->GetSystem();
+    if (sys) {
+        sys->Remove(m_revolute);
+    }
+}
+
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 void ChRotaryArm::Initialize(std::shared_ptr<ChChassis> chassis,

@@ -53,7 +53,7 @@ namespace vehicle {
 /// the right side.
 class CH_VEHICLE_API ChMultiLink : public ChSuspension {
   public:
-    virtual ~ChMultiLink() {}
+    virtual ~ChMultiLink();
 
     /// Get the name of the vehicle subsystem template.
     virtual std::string GetTemplateName() const override { return "MultiLink"; }
@@ -242,14 +242,12 @@ class CH_VEHICLE_API ChMultiLink : public ChSuspension {
     std::shared_ptr<ChBody> m_trailingLink[2];  ///< trailing link bodies (left/right)
     std::shared_ptr<ChBody> m_tierod[2];        ///< tierod bodies, if used (left/right)
 
-    std::shared_ptr<ChLinkLockRevolute> m_revoluteUA[2];            ///< chassis-UA revolute joints (left/right)
-    std::shared_ptr<ChLinkLockSpherical> m_sphericalUA[2];          ///< upright-UA spherical joints (left/right)
-    std::shared_ptr<ChLinkUniversal> m_universalLateralChassis[2];  ///< chassis-lateral universal joints (left/right)
-    std::shared_ptr<ChLinkLockSpherical>
-        m_sphericalLateralUpright[2];                          ///< upright-lateral spherical joints (left/right)
-    std::shared_ptr<ChLinkUniversal> m_universalTLChassis[2];  ///< chassis-trailing link universal joints (left/right)
-    std::shared_ptr<ChLinkLockSpherical>
-        m_sphericalTLUpright[2];  ///< upright-trailing link spherical joints (left/right)
+    std::shared_ptr<ChLinkLockRevolute> m_revoluteUA[2];                ///< chassis-UA revolute (left/right)
+    std::shared_ptr<ChLinkLockSpherical> m_sphericalUA[2];              ///< upright-UA spherical (left/right)
+    std::shared_ptr<ChLinkUniversal> m_universalLateralChassis[2];      ///< chassis-lateral universal (left/right)
+    std::shared_ptr<ChLinkLockSpherical> m_sphericalLateralUpright[2];  ///< upright-lateral spherical (left/right)
+    std::shared_ptr<ChLinkUniversal> m_universalTLChassis[2];      ///< chassis-trailing link universal (left/right)
+    std::shared_ptr<ChLinkLockSpherical> m_sphericalTLUpright[2];  ///< upright-trailing link spherical (left/right)
 
     std::shared_ptr<ChLinkDistance> m_distTierod[2];       ///< tierod distance constraints (left/right)
     std::shared_ptr<ChVehicleJoint> m_sphericalTierod[2];  ///< tierod-upright spherical joints (left/right)

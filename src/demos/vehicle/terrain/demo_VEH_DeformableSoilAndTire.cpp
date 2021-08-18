@@ -82,7 +82,7 @@ int main(int argc, char* argv[]) {
     auto tire_reissner = chrono_types::make_shared<ReissnerTire>(vehicle::GetDataFile("hmmwv/tire/HMMWV_ReissnerTire.json"));
     tire_reissner->EnablePressure(false);
     tire_reissner->EnableContact(true);
-    tire_reissner->SetContactSurfaceType(ChDeformableTire::TRIANGLE_MESH);
+    tire_reissner->SetContactSurfaceType(ChDeformableTire::ContactSurfaceType::TRIANGLE_MESH);
     tire_reissner->EnableRimConnection(true);
     std::static_pointer_cast<ChTire>(tire_reissner)->Initialize(wheel);
     tire_reissner->SetVisualizationType(VisualizationType::MESH);

@@ -35,7 +35,7 @@ class CH_VEHICLE_API ChDriveline : public ChPart {
   public:
     ChDriveline(const std::string& name);
 
-    virtual ~ChDriveline() {}
+    virtual ~ChDriveline();
 
     /// Get a handle to the driveshaft.
     /// Return a pointer to the shaft that connects this driveline to a powertrain system.

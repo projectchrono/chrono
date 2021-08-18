@@ -60,7 +60,7 @@ class CH_VEHICLE_API ChThreeLinkIRS : public ChSuspension {
     ChThreeLinkIRS(const std::string& name  ///< [in] name of the subsystem
                    );
 
-    virtual ~ChThreeLinkIRS() {}
+    virtual ~ChThreeLinkIRS();
 
     /// Get the name of the vehicle subsystem template.
     virtual std::string GetTemplateName() const override { return "ThreeLinkIRS"; }

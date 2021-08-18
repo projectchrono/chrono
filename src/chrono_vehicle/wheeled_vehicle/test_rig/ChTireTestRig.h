@@ -48,6 +48,8 @@ class CH_VEHICLE_API ChTireTestRig {
                   ChSystem* system                 ///< containing mechanical system
     );
 
+    ~ChTireTestRig();
+
     /// Set gravitational acceleration (default: 9.81 m/s2).
     void SetGravitationalAcceleration(double grav) { m_grav = grav; }
 

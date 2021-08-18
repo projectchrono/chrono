@@ -56,7 +56,38 @@ const std::string ChSolidAxle::m_pointNames[] = {"SHOCK_A    ",
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-ChSolidAxle::ChSolidAxle(const std::string& name) : ChSuspension(name) {
+ChSolidAxle::ChSolidAxle(const std::string& name) : ChSuspension(name) {}
+
+ChSolidAxle::~ChSolidAxle() {
+    auto sys = m_axleTube->GetSystem();
+    if (sys) {
+        sys->Remove(m_axleTube);
+        sys->Remove(m_tierod);
+        sys->Remove(m_bellCrank);
+        sys->Remove(m_draglink);
+
+        sys->Remove(m_revoluteBellCrank);
+        sys->Remove(m_sphericalTierod);
+        sys->Remove(m_sphericalDraglink);
+        sys->Remove(m_universalDraglink);
+        sys->Remove(m_universalTierod);
+        sys->Remove(m_pointPlaneBellCrank);
+
+        for (int i = 0; i < 2; i++) {
+            sys->Remove(m_knuckle[i]);
+            sys->Remove(m_upperLink[i]);
+            sys->Remove(m_lowerLink[i]);
+
+            sys->Remove(m_revoluteKingpin[i]);
+            sys->Remove(m_sphericalUpperLink[i]);
+            sys->Remove(m_sphericalLowerLink[i]);
+            sys->Remove(m_universalUpperLink[i]);
+            sys->Remove(m_universalLowerLink[i]);
+
+            sys->Remove(m_shock[i]);
+            sys->Remove(m_spring[i]);
+        }
+    }
 }
 
 // -----------------------------------------------------------------------------

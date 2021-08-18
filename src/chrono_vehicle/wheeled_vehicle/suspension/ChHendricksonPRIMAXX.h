@@ -55,7 +55,7 @@ namespace vehicle {
 /// the right side.
 class CH_VEHICLE_API ChHendricksonPRIMAXX : public ChSuspension {
   public:
-    virtual ~ChHendricksonPRIMAXX() {}
+    virtual ~ChHendricksonPRIMAXX();
 
     /// Get the name of the vehicle subsystem template.
     virtual std::string GetTemplateName() const override { return "HendricksonPRIMAXX"; }

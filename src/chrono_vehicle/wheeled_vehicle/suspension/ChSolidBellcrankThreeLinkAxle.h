@@ -63,7 +63,7 @@ class CH_VEHICLE_API ChSolidBellcrankThreeLinkAxle : public ChSuspension {
     ChSolidBellcrankThreeLinkAxle(const std::string& name  ///< [in] name of the subsystem
     );
 
-    virtual ~ChSolidBellcrankThreeLinkAxle() {}
+    virtual ~ChSolidBellcrankThreeLinkAxle();
 
     /// Get the name of the vehicle subsystem template.
     virtual std::string GetTemplateName() const override { return "SolidBellcrankThreeLinkAxle"; }

@@ -53,6 +53,20 @@ const std::string ChLeafspringAxle::m_pointNames[] = {"SHOCK_A    ", "SHOCK_C   
 // -----------------------------------------------------------------------------
 ChLeafspringAxle::ChLeafspringAxle(const std::string& name) : ChSuspension(name) {}
 
+ChLeafspringAxle::~ChLeafspringAxle() {
+    auto sys = m_axleTube->GetSystem();
+    if (sys) {
+        sys->Remove(m_axleTube);
+        sys->Remove(m_tierod);
+        sys->Remove(m_axleTubeGuide);
+        sys->Remove(m_sphericalTierod);
+        for (int i = 0; i < 2; i++) {
+            sys->Remove(m_shock[i]);
+            sys->Remove(m_spring[i]);
+        }
+    }
+}
+
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 void ChLeafspringAxle::Initialize(std::shared_ptr<ChChassis> chassis,

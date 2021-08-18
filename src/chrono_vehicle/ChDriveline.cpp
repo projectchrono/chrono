@@ -16,12 +16,20 @@
 //
 // =============================================================================
 
+#include "chrono/physics/ChSystem.h"
 #include "chrono_vehicle/ChDriveline.h"
 
 namespace chrono {
 namespace vehicle {
 
 ChDriveline::ChDriveline(const std::string& name) : ChPart(name) {}
+
+ChDriveline::~ChDriveline() {
+    auto sys = m_driveshaft->GetSystem();
+    if (sys) {
+        sys->Remove(m_driveshaft);
+    }
+}
 
 }  // end namespace vehicle
 }  // end namespace chrono

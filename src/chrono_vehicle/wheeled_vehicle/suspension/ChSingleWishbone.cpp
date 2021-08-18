@@ -46,6 +46,30 @@ const std::string ChSingleWishbone::m_pointNames[] = {"SPINDLE ", "UPRIGHT ", "C
 // -----------------------------------------------------------------------------
 ChSingleWishbone::ChSingleWishbone(const std::string& name) : ChSuspension(name) {}
 
+ChSingleWishbone::~ChSingleWishbone() {
+    auto sys = m_upright[0]->GetSystem();
+    if (sys) {
+        for (int i = 0; i < 2; i++) {
+            sys->Remove(m_upright[i]);
+            sys->Remove(m_control_arm[i]);
+
+            sys->Remove(m_revoluteUA[i]);
+            sys->Remove(m_revoluteUA[i]);
+
+            if (m_tierod[i]) {
+                sys->Remove(m_tierod[i]);
+                ChChassis::RemoveJoint(m_sphericalTierod[i]);
+                ChChassis::RemoveJoint(m_universalTierod[i]);
+            }
+            if (m_distTierod[i]) {
+                sys->Remove(m_distTierod[i]);
+            }
+
+            sys->Remove(m_shock[i]);
+        }
+    }
+}
+
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 void ChSingleWishbone::Initialize(std::shared_ptr<ChChassis> chassis,

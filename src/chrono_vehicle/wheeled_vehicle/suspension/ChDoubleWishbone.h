@@ -53,7 +53,7 @@ namespace vehicle {
 /// the right side.
 class CH_VEHICLE_API ChDoubleWishbone : public ChSuspension {
   public:
-    virtual ~ChDoubleWishbone() {}
+    virtual ~ChDoubleWishbone();
 
     /// Get the name of the vehicle subsystem template.
     virtual std::string GetTemplateName() const override { return "DoubleWishbone"; }

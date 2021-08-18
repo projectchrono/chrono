@@ -48,6 +48,34 @@ const std::string ChDoubleWishbone::m_pointNames[] = {
 ChDoubleWishbone::ChDoubleWishbone(const std::string& name, bool vehicle_frame_inertia)
     : ChSuspension(name), m_vehicle_frame_inertia(vehicle_frame_inertia) {}
 
+ChDoubleWishbone::~ChDoubleWishbone() {
+    auto sys = m_upright[0]->GetSystem();
+    if (sys) {
+        for (int i = 0; i < 2; i++) {
+            sys->Remove(m_upright[i]);
+            sys->Remove(m_UCA[i]);
+            sys->Remove(m_LCA[i]);
+
+            ChChassis::RemoveJoint(m_revoluteUCA[i]);
+            ChChassis::RemoveJoint(m_sphericalUCA[i]);
+            ChChassis::RemoveJoint(m_revoluteLCA[i]);
+            ChChassis::RemoveJoint(m_sphericalLCA[i]);
+
+            if (m_tierod[i]) {
+                sys->Remove(m_tierod[i]);
+                ChChassis::RemoveJoint(m_sphericalTierod[i]);
+                ChChassis::RemoveJoint(m_universalTierod[i]);
+            }
+            if (m_distTierod[i]) {
+                sys->Remove(m_distTierod[i]);
+            }
+
+            sys->Remove(m_shock[i]);
+            sys->Remove(m_spring[i]);
+        }
+    }
+}
+
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 void ChDoubleWishbone::Initialize(std::shared_ptr<ChChassis> chassis,

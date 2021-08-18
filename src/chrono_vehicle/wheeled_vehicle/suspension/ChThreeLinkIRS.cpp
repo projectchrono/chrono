@@ -48,6 +48,24 @@ const std::string ChThreeLinkIRS::m_pointNames[] = {"SPINDLE ", "TA_CM",    "TA_
 // -----------------------------------------------------------------------------
 ChThreeLinkIRS::ChThreeLinkIRS(const std::string& name) : ChSuspension(name) {}
 
+ChThreeLinkIRS::~ChThreeLinkIRS() {
+    auto sys = m_arm[0]->GetSystem();
+    if (sys) {
+        for (int i = 0; i < 2; i++) {
+            sys->Remove(m_arm[i]);
+            sys->Remove(m_upper[i]);
+            sys->Remove(m_lower[i]);
+            sys->Remove(m_sphericalArm[i]);
+            sys->Remove(m_sphericalUpper[i]);
+            sys->Remove(m_sphericalLower[i]);
+            sys->Remove(m_universalUpper[i]);
+            sys->Remove(m_universalLower[i]);
+            sys->Remove(m_shock[i]);
+            sys->Remove(m_spring[i]);
+        }
+    }
+}
+
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 void ChThreeLinkIRS::Initialize(std::shared_ptr<ChChassis> chassis,

@@ -32,7 +32,7 @@ namespace vehicle {
 /// Template for a balancer subchassis system.
 class CH_VEHICLE_API ChBalancer : public ChSubchassis {
   public:
-    virtual ~ChBalancer() {}
+    virtual ~ChBalancer();
 
     /// Get the name of the vehicle subsystem template.
     virtual std::string GetTemplateName() const override { return "Balancer"; }

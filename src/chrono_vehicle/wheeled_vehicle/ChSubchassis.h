@@ -36,7 +36,7 @@ class CH_VEHICLE_API ChSubchassis : public ChPart {
     ChSubchassis(const std::string& name  ///< [in] name of the subsystem
     );
 
-    virtual ~ChSubchassis() {}
+    virtual ~ChSubchassis();
 
     /// Get the location of the subchassis relative to the chassis reference frame.
     /// The subchassis reference frame is always aligned with the chassis reference frame.

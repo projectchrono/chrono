@@ -25,6 +25,13 @@ namespace vehicle {
 
 ChChassisConnectorArticulated::ChChassisConnectorArticulated(const std::string& name) : ChChassisConnector(name) {}
 
+ChChassisConnectorArticulated::~ChChassisConnectorArticulated() {
+    auto sys = m_motor->GetSystem();
+    if (sys) {
+        sys->Remove(m_motor);
+    }
+}
+
 void ChChassisConnectorArticulated::Initialize(std::shared_ptr<ChChassis> front,
                                                std::shared_ptr<ChChassisRear> rear) {
 

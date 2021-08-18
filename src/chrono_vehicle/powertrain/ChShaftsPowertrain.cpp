@@ -31,6 +31,20 @@ namespace vehicle {
 ChShaftsPowertrain::ChShaftsPowertrain(const std::string& name, const ChVector<>& dir_motor_block)
     : ChPowertrain(name), m_dir_motor_block(dir_motor_block), m_last_time_gearshift(0), m_gear_shift_latency(0.5) {}
 
+ChShaftsPowertrain::~ChShaftsPowertrain() {
+    auto sys = m_engine->GetSystem();
+    if (sys) {
+        sys->Remove(m_motorblock_to_body);
+        sys->Remove(m_motorblock);
+        sys->Remove(m_engine);
+        sys->Remove(m_engine_losses);
+        sys->Remove(m_crankshaft);
+        sys->Remove(m_torqueconverter);
+        sys->Remove(m_shaft_ingear);
+        sys->Remove(m_gears);
+    }
+}
+
 // -----------------------------------------------------------------------------
 void ChShaftsPowertrain::Initialize(std::shared_ptr<ChChassis> chassis, std::shared_ptr<ChDriveline> driveline) {
     ChPowertrain::Initialize(chassis, driveline);

@@ -53,7 +53,7 @@ namespace vehicle {
 /// the right side.
 class CH_VEHICLE_API ChMacPhersonStrut : public ChSuspension {
   public:
-	virtual ~ChMacPhersonStrut() {}
+    virtual ~ChMacPhersonStrut();
 
     /// Get the name of the vehicle subsystem template.
     virtual std::string GetTemplateName() const override { return "MacPhersonStrut"; }

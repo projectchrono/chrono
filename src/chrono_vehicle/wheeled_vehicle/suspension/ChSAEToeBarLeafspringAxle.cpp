@@ -82,6 +82,47 @@ const std::string ChSAEToeBarLeafspringAxle::m_pointNames[] = {
 // -----------------------------------------------------------------------------
 ChSAEToeBarLeafspringAxle::ChSAEToeBarLeafspringAxle(const std::string& name) : ChSuspension(name) {}
 
+ChSAEToeBarLeafspringAxle::~ChSAEToeBarLeafspringAxle() {
+    auto sys = m_axleTube->GetSystem();
+    if (sys) {
+        sys->Remove(m_axleTube);
+        sys->Remove(m_tierod);
+        sys->Remove(m_draglink);
+
+        sys->Remove(m_axleTubeGuide);
+        sys->Remove(m_sphericalTierod);
+        sys->Remove(m_sphericalDraglink);
+        sys->Remove(m_universalDraglink);
+        sys->Remove(m_universalTierod);
+
+        for (int i = 0; i < 2; i++) {
+            sys->Remove(m_knuckle[i]);
+            sys->Remove(m_revoluteKingpin[i]);
+
+            sys->Remove(m_shock[i]);
+            sys->Remove(m_spring[i]);
+
+            sys->Remove(m_shackle[i]);
+            sys->Remove(m_shackleRev[i]);
+            sys->Remove(m_frontleaf[i]);
+            sys->Remove(m_frontleafSph[i]);
+            sys->Remove(m_frontleafRev[i]);
+            sys->Remove(m_rearleaf[i]);
+            sys->Remove(m_rearleafSph[i]);
+            sys->Remove(m_rearleafRev[i]);
+            sys->Remove(m_clampA[i]);
+            sys->Remove(m_clampARev[i]);
+            sys->Remove(m_clampB[i]);
+            sys->Remove(m_clampBRev[i]);
+
+            sys->Remove(m_latRotSpringA[i]);
+            sys->Remove(m_latRotSpringB[i]);
+            sys->Remove(m_vertRotSpringA[i]);
+            sys->Remove(m_vertRotSpringB[i]);
+        }
+    }
+}
+
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 void ChSAEToeBarLeafspringAxle::Initialize(std::shared_ptr<ChChassis> chassis,

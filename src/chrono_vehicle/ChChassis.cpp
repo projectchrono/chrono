@@ -33,6 +33,16 @@ ChChassis::ChChassis(const std::string& name, bool fixed) : ChPart(name), m_fixe
     m_bushings = chrono_types::make_shared<ChLoadContainer>();
 }
 
+ChChassis::~ChChassis() {
+    auto sys = m_body->GetSystem();
+    if (sys) {
+        sys->Remove(m_body);
+        sys->Remove(m_bushings);
+    }
+}
+
+// -----------------------------------------------------------------------------
+
 ChQuaternion<> ChChassis::GetRot() const {
     return m_body->GetFrame_REF_to_abs().GetRot() * ChWorldFrame::Quaternion();
 }
@@ -137,6 +147,18 @@ void ChChassis::AddJoint(std::shared_ptr<ChVehicleJoint> joint) {
         m_bushings->Add(mpark::get<ChVehicleJoint::Bushing>(joint->m_joint));
     }
 }
+
+void ChChassis::RemoveJoint(std::shared_ptr<ChVehicleJoint> joint) {
+    if (joint->m_joint.index() == 0) {
+        ChVehicleJoint::Link& link = mpark::get<ChVehicleJoint::Link>(joint->m_joint);
+        auto sys = link->GetSystem();  
+        if (sys) {
+            sys->Remove(link);
+        }
+    }
+    // Note: bushing are removed when the load container is removed
+}
+
 
 // -----------------------------------------------------------------------------
 

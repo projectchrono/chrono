@@ -32,8 +32,19 @@ namespace chrono {
 namespace vehicle {
 
 // -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
-ChAntirollBarRSD::ChAntirollBarRSD(const std::string& name) : ChAntirollBar(name) {
+
+ChAntirollBarRSD::ChAntirollBarRSD(const std::string& name) : ChAntirollBar(name) {}
+
+ChAntirollBarRSD::~ChAntirollBarRSD() {
+    auto sys = m_arm_left->GetSystem();
+    if (sys) {
+        sys->Remove(m_arm_left);
+        sys->Remove(m_arm_right);
+        sys->Remove(m_revolute_ch);
+        sys->Remove(m_revolute);
+        sys->Remove(m_link_left);
+        sys->Remove(m_link_right);
+    }
 }
 
 // -----------------------------------------------------------------------------
