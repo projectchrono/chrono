@@ -24,15 +24,11 @@
 #include "chrono/physics/ChShaftsGearboxAngled.h"
 #include "chrono/physics/ChShaftsPlanetary.h"
 
-#include "chrono/fea/ChElementTetra_4.h"
-#include "chrono/fea/ChNodeFEAxyz.h"
+#include "chrono/multicore_math/matrix.h"
 
 #include "chrono_multicore/ChConfigMulticore.h"
-#include "chrono_multicore/ChDataManager.h"
-#include "chrono_multicore/collision/ChCollisionModelMulticore.h"
-#include "chrono_multicore/collision/ChCollisionSystemMulticore.h"
+#include "chrono_multicore/collision/ChCollisionSystemChronoMulticore.h"
 #include "chrono_multicore/collision/ChCollisionSystemBulletMulticore.h"
-#include "chrono_multicore/math/matrix.h"
 #include "chrono_multicore/physics/ChSystemMulticore.h"
 #include "chrono_multicore/solver/ChSolverMulticore.h"
 #include "chrono_multicore/solver/ChSystemDescriptorMulticore.h"
@@ -51,9 +47,12 @@ ChSystemMulticore::ChSystemMulticore() : ChSystem() {
     data_manager = new ChMulticoreDataManager();
 
     descriptor = chrono_types::make_shared<ChSystemDescriptorMulticore>(data_manager);
-    collision_system = chrono_types::make_shared<ChCollisionSystemMulticore>(data_manager);
 
-    collision_system_type = CollisionSystemType::COLLSYS_MULTICORE;
+    collision_system = chrono_types::make_shared<ChCollisionSystemChronoMulticore>(data_manager);
+    collision_system->SetNumThreads(nthreads_collision);
+    collision_system->SetSystem(this);
+    collision_system_type = ChCollisionSystemType::CHRONO;
+
     counter = 0;
     timer_accumulator.resize(10, 0);
     cd_accumulator.resize(10, 0);
@@ -94,22 +93,28 @@ ChSystemMulticore::~ChSystemMulticore() {
 }
 
 ChBody* ChSystemMulticore::NewBody() {
-    if (collision_system_type == CollisionSystemType::COLLSYS_MULTICORE)
-        return new ChBody(chrono_types::make_shared<collision::ChCollisionModelMulticore>());
-
-    return new ChBody();
+    switch (collision_system_type) {
+        default:
+        case ChCollisionSystemType::CHRONO:
+            return new ChBody(chrono_types::make_shared<collision::ChCollisionModelChrono>());
+        case ChCollisionSystemType::BULLET:
+            return new ChBody();
+    }
 }
 
 ChBodyAuxRef* ChSystemMulticore::NewBodyAuxRef() {
-    if (collision_system_type == CollisionSystemType::COLLSYS_MULTICORE)
-        return new ChBodyAuxRef(chrono_types::make_shared<collision::ChCollisionModelMulticore>());
-
-    return new ChBodyAuxRef();
+    switch (collision_system_type) {
+        default:
+        case ChCollisionSystemType::CHRONO:
+            return new ChBodyAuxRef(chrono_types::make_shared<collision::ChCollisionModelChrono>());
+        case ChCollisionSystemType::BULLET:
+            return new ChBodyAuxRef();
+    }
 }
 
 bool ChSystemMulticore::Integrate_Y() {
     LOG(INFO) << "ChSystemMulticore::Integrate_Y() Time: " << ch_time;
-    // Get the pointer for the system descriptor and store it into the data manager
+    // Store system data in the data manager
     data_manager->system_descriptor = this->descriptor;
     data_manager->body_list = &assembly.bodylist;
     data_manager->link_list = &assembly.linklist;
@@ -125,7 +130,9 @@ bool ChSystemMulticore::Integrate_Y() {
     data_manager->system_timer.stop("update");
 
     data_manager->system_timer.start("collision");
+    collision_system->PreProcess();
     collision_system->Run();
+    collision_system->PostProcess();
     collision_system->ReportContacts(this->contact_container.get());
     for (size_t ic = 0; ic < collision_callbacks.size(); ic++) {
         collision_callbacks[ic]->OnCustomCollision(this);
@@ -218,7 +225,6 @@ bool ChSystemMulticore::Integrate_Y() {
     }
 
     data_manager->node_container->UpdatePosition(ch_time);
-    data_manager->fea_container->UpdatePosition(ch_time);
     data_manager->system_timer.stop("update");
 
     //=============================================================================================
@@ -326,70 +332,6 @@ void ChSystemMulticore::AddShaft(std::shared_ptr<ChShaft> shaft) {
     data_manager->host_data.shaft_rot.push_back(0);
     data_manager->host_data.shaft_inr.push_back(0);
     data_manager->host_data.shaft_active.push_back(true);
-}
-
-//
-// Add a ChMesh to the system
-// The mesh is passed to the FEM container where it gets added to the system
-// Mesh gets blown up into different data structures, connectivity and nodes are preserved
-// Adding multiple meshes isn't a problem
-void ChSystemMulticore::AddMesh(std::shared_ptr<fea::ChMesh> mesh) {
-    uint num_nodes = mesh->GetNnodes();
-    uint num_elements = mesh->GetNelements();
-
-    std::vector<real3> positions(num_nodes);
-    std::vector<real3> velocities(num_nodes);
-
-    uint current_nodes = data_manager->num_fea_nodes;
-
-    for (int i = 0; i < (signed)num_nodes; i++) {
-        if (auto node = std::dynamic_pointer_cast<fea::ChNodeFEAxyz>(mesh->GetNode(i))) {
-            positions[i] = real3(node->GetPos().x(), node->GetPos().y(), node->GetPos().z());
-            velocities[i] = real3(node->GetPos_dt().x(), node->GetPos_dt().y(), node->GetPos_dt().z());
-            // Offset the element index by the current number of nodes at the start
-            node->SetIndex(i);
-
-            // printf("%d [%f %f %f]\n", i + current_nodes, node->GetPos().x(), node->GetPos().y(), node->GetPos().z());
-        }
-    }
-
-    auto container = std::static_pointer_cast<ChFEAContainer>(data_manager->fea_container);
-
-    std::vector<uvec4> elements(num_elements);
-
-    for (int i = 0; i < (signed)num_elements; i++) {
-        if (auto tet = std::dynamic_pointer_cast<fea::ChElementTetra_4>(mesh->GetElement(i))) {
-            uvec4 elem;
-
-            elem.x = tet->GetNodeN(0)->GetIndex();  //
-            elem.y = tet->GetNodeN(1)->GetIndex();  //
-            elem.z = tet->GetNodeN(2)->GetIndex();  //
-            elem.w = tet->GetNodeN(3)->GetIndex();  //
-
-            real3 c1, c2, c3;
-            c1 = positions[elem.y] - positions[elem.x];
-            c2 = positions[elem.z] - positions[elem.x];
-            c3 = positions[elem.w] - positions[elem.x];
-
-            if (Determinant(Mat33(c1, c2, c3)) < 0) {
-                Swap(elem.x, elem.y);
-                // printf("swapped!\n");
-            }
-
-            // elem = Sort(elem);
-
-            // printf("%d %d %d %d \n", elem.x(), elem.y(), elem.z(), elem.w);
-            // Offset once we have swapped
-            elem.x += current_nodes;
-            elem.y += current_nodes;
-            elem.z += current_nodes;
-            elem.w += current_nodes;
-
-            elements[i] = elem;
-        }
-    }
-    container->AddNodes(positions, velocities);
-    container->AddElements(elements);
 }
 
 //
@@ -520,10 +462,8 @@ void ChSystemMulticore::UpdateShafts() {
         shaft_inr[i] = shaftlist[i]->Variables().GetInvInertia();
         shaft_active[i] = shaftlist[i]->IsActive();
 
-        data_manager->host_data.v[data_manager->num_rigid_bodies * 6 + i] =
-            shaftlist[i]->Variables().Get_qb()(0);
-        data_manager->host_data.hf[data_manager->num_rigid_bodies * 6 + i] =
-            shaftlist[i]->Variables().Get_fb()(0);
+        data_manager->host_data.v[data_manager->num_rigid_bodies * 6 + i] = shaftlist[i]->Variables().Get_qb()(0);
+        data_manager->host_data.hf[data_manager->num_rigid_bodies * 6 + i] = shaftlist[i]->Variables().Get_fb()(0);
     }
 }
 
@@ -552,10 +492,9 @@ void ChSystemMulticore::UpdateMotorLinks() {
 
 //
 // Update all fluid nodes
-// currently a stub
+//
 void ChSystemMulticore::Update3DOFBodies() {
     data_manager->node_container->Update3DOF(ch_time);
-    data_manager->fea_container->Update3DOF(ch_time);
 }
 
 //
@@ -698,7 +637,7 @@ void ChSystemMulticore::Setup() {
 
     // Calculate the total number of degrees of freedom (6 per rigid body, 1 per shaft, 1 per motor).
     data_manager->num_dof = data_manager->num_rigid_bodies * 6 + data_manager->num_shafts + data_manager->num_motors +
-                            data_manager->num_fluid_bodies * 3 + data_manager->num_fea_nodes * 3;
+                            data_manager->num_fluid_bodies * 3;
 
     // Set variables that are stored in the ChSystem class
     assembly.nbodies = data_manager->num_rigid_bodies;
@@ -713,8 +652,8 @@ void ChSystemMulticore::Setup() {
     ndof = data_manager->num_dof;
     ndoc_w_C = 0;
     ndoc_w_D = 0;
-    ncontacts =
-        data_manager->num_rigid_contacts + data_manager->num_rigid_fluid_contacts + data_manager->num_fluid_contacts;
+    ncontacts = data_manager->cd_data->num_rigid_contacts + data_manager->cd_data->num_rigid_fluid_contacts +
+                data_manager->cd_data->num_fluid_contacts;
     assembly.nbodies_sleep = 0;
     assembly.nbodies_fixed = 0;
 }
@@ -761,17 +700,20 @@ void ChSystemMulticore::RecomputeThreads() {
 #endif
 }
 
-void ChSystemMulticore::ChangeCollisionSystem(CollisionSystemType type) {
+void ChSystemMulticore::SetCollisionSystemType(ChCollisionSystemType type) {
     assert(assembly.GetNbodies() == 0);
 
     collision_system_type = type;
 
     switch (type) {
-        case CollisionSystemType::COLLSYS_MULTICORE:
-            collision_system = chrono_types::make_shared<ChCollisionSystemMulticore>(data_manager);
+        case ChCollisionSystemType::CHRONO:
+            collision_system = chrono_types::make_shared<ChCollisionSystemChronoMulticore>(data_manager);
             break;
-        case CollisionSystemType::COLLSYS_BULLET_MULTICORE:
+        case ChCollisionSystemType::BULLET:
             collision_system = chrono_types::make_shared<ChCollisionSystemBulletMulticore>(data_manager);
+            break;
+        default:
+            //// Error
             break;
     }
 }
@@ -803,22 +745,22 @@ void ChSystemMulticore::SetLoggingLevel(LoggingLevel level, bool state) {
 
 // Calculate the current body AABB (union of the AABB of their collision shapes).
 void ChSystemMulticore::CalculateBodyAABB() {
-    if (collision_system_type != CollisionSystemType::COLLSYS_MULTICORE)
+    if (collision_system_type == ChCollisionSystemType::BULLET)
         return;
 
     // Readability replacements
-    auto& s_min = data_manager->host_data.aabb_min;
-    auto& s_max = data_manager->host_data.aabb_max;
-    auto& id_rigid = data_manager->shape_data.id_rigid;
-    auto& offset = data_manager->measures.collision.global_origin;
+    auto& s_min = data_manager->cd_data->aabb_min;
+    auto& s_max = data_manager->cd_data->aabb_max;
+    auto& id_rigid = data_manager->cd_data->shape_data.id_rigid;
+    auto& offset = data_manager->cd_data->global_origin;
 
     // Initialize body AABB to inverted boxes
-    custom_vector<real3> b_min(data_manager->num_rigid_bodies, real3(C_LARGE_REAL));
-    custom_vector<real3> b_max(data_manager->num_rigid_bodies, real3(-C_LARGE_REAL));
+    custom_vector<real3> b_min(data_manager->num_rigid_bodies, real3(C_REAL_MAX));
+    custom_vector<real3> b_max(data_manager->num_rigid_bodies, real3(-C_REAL_MAX));
 
     // Loop over all shapes and update the AABB of the associated body
     //// TODO: can be done in parallel using Thrust
-    for (uint is = 0; is < data_manager->num_rigid_shapes; is++) {
+    for (uint is = 0; is < data_manager->cd_data->num_rigid_shapes; is++) {
         uint ib = id_rigid[is];
         b_min[ib] = real3(Min(b_min[ib].x, s_min[ib].x + offset.x), Min(b_min[ib].y, s_min[ib].y + offset.y),
                           Min(b_min[ib].z, s_min[ib].z + offset.z));
@@ -829,8 +771,8 @@ void ChSystemMulticore::CalculateBodyAABB() {
     // Loop over all bodies and set the AABB of its collision model
     for (auto b : Get_bodylist()) {
         uint ib = b->GetId();
-        std::static_pointer_cast<ChCollisionModelMulticore>(b->GetCollisionModel())->aabb_min = b_min[ib];
-        std::static_pointer_cast<ChCollisionModelMulticore>(b->GetCollisionModel())->aabb_max = b_max[ib];
+        std::static_pointer_cast<ChCollisionModelChrono>(b->GetCollisionModel())->aabb_min = ToChVector(b_min[ib]);
+        std::static_pointer_cast<ChCollisionModelChrono>(b->GetCollisionModel())->aabb_max = ToChVector(b_max[ib]);
     }
 }
 
@@ -865,7 +807,8 @@ unsigned int ChSystemMulticore::GetNumShafts() {
 }
 
 unsigned int ChSystemMulticore::GetNumContacts() {
-    return data_manager->num_rigid_contacts + data_manager->num_rigid_fluid_contacts + data_manager->num_fluid_contacts;
+    return data_manager->cd_data->num_rigid_contacts + data_manager->cd_data->num_rigid_fluid_contacts +
+           data_manager->cd_data->num_fluid_contacts;
 }
 
 unsigned int ChSystemMulticore::GetNumBilaterals() {

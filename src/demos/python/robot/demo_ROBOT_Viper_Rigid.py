@@ -44,8 +44,10 @@ texture.SetTextureFilename(chrono.GetChronoDataFile("textures/concrete.jpg"))
 ground.AddAsset(texture)
 
 # Create Viper rover
-rover = viper.ViperRover(system, chrono.ChVectorD(0, -0.2, 0), chrono.ChQuaternionD(1, 0, 0, 0))
-rover.Initialize()
+driver = viper.ViperDCMotorControl()
+rover = viper.Viper(system)
+rover.SetDriver(driver)
+rover.Initialize(chrono.ChFrameD(chrono.ChVectorD(0, -0.2, 0), chrono.ChQuaternionD(1, 0, 0, 0)))
 
 # Create run-time visualization
 application = chronoirr.ChIrrApp(system, "Viper rover - Rigid terrain", chronoirr.dimension2du(1280, 720), chronoirr.VerticalDir_Z)
@@ -59,19 +61,23 @@ application.AssetBindAll()
 application.AssetUpdateAll()
 application.AddShadowAll()
 
-time_step = 0.0005
+time_step = 1e-3
 application.SetTimestep(time_step)
 
 # Simulation loop
 time = 0
 while (application.GetDevice().run()) :
     time = time + time_step
-    if rover.GetTurnAngle() < 0 and rover.GetTurnState() ==  viper.TurnSig_RIGHT:
-        rover.SetTurn(viper.TurnSig_HOLD)
-    if abs(time - 1) < 1e-5:
-        rover.SetTurn(viper.TurnSig_LEFT, math.pi / 8)
-    elif abs(time - 7) < 1e-5:
-        rover.SetTurn(viper.TurnSig_RIGHT, math.pi / 8)
+    steering = 0
+    if time > 7:
+    	if abs(rover.GetTurnAngle()) < 1e-8:
+    		steering = 0
+    	else:
+    		steering = -0.4
+    elif time > 1:
+    	steering = 0.4
+    driver.SetSteering(steering)
+
     rover.Update()
 
     application.BeginScene(True, True, chronoirr.SColor(255, 140, 161, 192))

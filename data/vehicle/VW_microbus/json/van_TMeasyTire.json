@@ -10,8 +10,8 @@
     "Unloaded Radius [m]": 0.376,
     "Mass [kg]": 19.8,
     "Inertia [kg.m2]": [ 1.2369, 2.22357, 1.2369 ],
-    "Width [m]": 0.228,
-    "Rim Radius [m]": 0.2032,
+    "Width [m]": 0.185,
+    "Rim Radius [m]": 0.1778,
     "Roundness of Cross Section": 0.1
   },
 
@@ -24,18 +24,18 @@
   // Required only if tire specified with "load index" or "bearing capacity".
   // Must be one of "Truck" or "Passenger"
 
-  "Vehicle Type": "Truck",
+  "Vehicle Type": "Passenger",
 
   // ------------------------------------------------
   // Load index specification.
   // Takes priority over "bearing capacity" (used only if a full parameterization not provided)
 
-  "Load Index": 121,
+  "Load Index": 86,
 
   // ------------------------------------------------
   // Tire inflation pressure specification  (used only if a full parameterization not provided)
-  "Inflation Pressure Design [Pa]": 590000,
-  "Inflation Pressure Use [Pa]": 220000,
+  "Inflation Pressure Design [Pa]": 200000,
+  "Inflation Pressure Use [Pa]": 200000,
 
   // ------------------------------------------------
   // Visualization mesh (OPTIONAL)

@@ -281,13 +281,13 @@ void ChCollisionSystemBullet::ReportProximities(ChProximityContainer* mproximity
     mproximitycontainer->EndAddProximities();
 }
 
-bool ChCollisionSystemBullet::RayHit(const ChVector<>& from, const ChVector<>& to, ChRayhitResult& mresult) const {
-    return RayHit(from, to, mresult, btBroadphaseProxy::DefaultFilter, btBroadphaseProxy::AllFilter);
+bool ChCollisionSystemBullet::RayHit(const ChVector<>& from, const ChVector<>& to, ChRayhitResult& result) const {
+    return RayHit(from, to, result, btBroadphaseProxy::DefaultFilter, btBroadphaseProxy::AllFilter);
 }
 
 bool ChCollisionSystemBullet::RayHit(const ChVector<>& from,
                                      const ChVector<>& to,
-                                     ChRayhitResult& mresult,
+                                     ChRayhitResult& result,
                                      short int filter_group,
                                      short int filter_mask) const {
     btVector3 btfrom((btScalar)from.x(), (btScalar)from.y(), (btScalar)from.z());
@@ -300,35 +300,34 @@ bool ChCollisionSystemBullet::RayHit(const ChVector<>& from,
     this->bt_collision_world->rayTest(btfrom, btto, rayCallback);
 
     if (rayCallback.hasHit()) {
-        mresult.hitModel = (ChCollisionModel*)(rayCallback.m_collisionObject->getUserPointer());
-        if (mresult.hitModel) {
-            mresult.hit = true;
-            mresult.abs_hitPoint.Set(rayCallback.m_hitPointWorld.x(), rayCallback.m_hitPointWorld.y(),
-                                     rayCallback.m_hitPointWorld.z());
-            mresult.abs_hitNormal.Set(rayCallback.m_hitNormalWorld.x(), rayCallback.m_hitNormalWorld.y(),
-                                      rayCallback.m_hitNormalWorld.z());
-            mresult.abs_hitNormal.Normalize();
-            mresult.hit = true;
-            mresult.dist_factor = rayCallback.m_closestHitFraction;
-            mresult.abs_hitPoint = mresult.abs_hitPoint - mresult.abs_hitNormal * mresult.hitModel->GetEnvelope();
+        result.hitModel = (ChCollisionModel*)(rayCallback.m_collisionObject->getUserPointer());
+        if (result.hitModel) {
+            result.hit = true;
+            result.abs_hitPoint.Set(rayCallback.m_hitPointWorld.x(), rayCallback.m_hitPointWorld.y(),
+                                    rayCallback.m_hitPointWorld.z());
+            result.abs_hitNormal.Set(rayCallback.m_hitNormalWorld.x(), rayCallback.m_hitNormalWorld.y(),
+                                     rayCallback.m_hitNormalWorld.z());
+            result.abs_hitNormal.Normalize();
+            result.dist_factor = rayCallback.m_closestHitFraction;
+            result.abs_hitPoint = result.abs_hitPoint - result.abs_hitNormal * result.hitModel->GetEnvelope();
             return true;
         }
     }
-    mresult.hit = false;
+    result.hit = false;
     return false;
 }
 
 bool ChCollisionSystemBullet::RayHit(const ChVector<>& from,
                                      const ChVector<>& to,
                                      ChCollisionModel* model,
-                                     ChRayhitResult& mresult) const {
-    return RayHit(from, to, model, mresult, btBroadphaseProxy::DefaultFilter, btBroadphaseProxy::AllFilter);
+                                     ChRayhitResult& result) const {
+    return RayHit(from, to, model, result, btBroadphaseProxy::DefaultFilter, btBroadphaseProxy::AllFilter);
 }
 
 bool ChCollisionSystemBullet::RayHit(const ChVector<>& from,
                                      const ChVector<>& to,
                                      ChCollisionModel* model,
-                                     ChRayhitResult& mresult,
+                                     ChRayhitResult& result,
                                      short int filter_group,
                                      short int filter_mask) const {
     btVector3 btfrom((btScalar)from.x(), (btScalar)from.y(), (btScalar)from.z());
@@ -352,20 +351,20 @@ bool ChCollisionSystemBullet::RayHit(const ChVector<>& from,
 
     // Ray does not hit specified model
     if (hit == -1) {
-        mresult.hit = false;
+        result.hit = false;
         return false;
     }
 
     // Return the closest hit on the specified model
-    mresult.hit = true;
-    mresult.hitModel = static_cast<ChCollisionModel*>(rayCallback.m_collisionObjects[hit]->getUserPointer());
-    mresult.abs_hitPoint.Set(rayCallback.m_hitPointWorld[hit].x(), rayCallback.m_hitPointWorld[hit].y(),
-                             rayCallback.m_hitPointWorld[hit].z());
-    mresult.abs_hitNormal.Set(rayCallback.m_hitNormalWorld[hit].x(), rayCallback.m_hitNormalWorld[hit].y(),
-                              rayCallback.m_hitNormalWorld[hit].z());
-    mresult.abs_hitNormal.Normalize();
-    mresult.dist_factor = fraction;
-    mresult.abs_hitPoint = mresult.abs_hitPoint - mresult.abs_hitNormal * mresult.hitModel->GetEnvelope();
+    result.hit = true;
+    result.hitModel = static_cast<ChCollisionModel*>(rayCallback.m_collisionObjects[hit]->getUserPointer());
+    result.abs_hitPoint.Set(rayCallback.m_hitPointWorld[hit].x(), rayCallback.m_hitPointWorld[hit].y(),
+                            rayCallback.m_hitPointWorld[hit].z());
+    result.abs_hitNormal.Set(rayCallback.m_hitNormalWorld[hit].x(), rayCallback.m_hitNormalWorld[hit].y(),
+                             rayCallback.m_hitNormalWorld[hit].z());
+    result.abs_hitNormal.Normalize();
+    result.dist_factor = fraction;
+    result.abs_hitPoint = result.abs_hitPoint - result.abs_hitNormal * result.hitModel->GetEnvelope();
     return true;
 }
 

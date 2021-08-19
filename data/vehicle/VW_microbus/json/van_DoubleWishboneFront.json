@@ -1,0 +1,77 @@
+{
+  "Name":                       "VW Bus T2 DoubleWishbone Front",
+  "Type":                       "Suspension",
+  "Template":                   "DoubleWishbone",
+
+  "Vehicle-Frame Inertia":      false,
+
+  "Spindle" :
+  {
+    "Mass":                     14.705,
+    "COM":                      [-0.040, 0.6975, -0.026],
+    "Inertia":                  [0.04117, 0.07352, 0.04117],
+    "Radius":                   0.15,
+    "Width":                    0.06
+  },
+
+  "Upright":
+  {
+    "Mass":                     19.450,
+    "COM":                      [-0.040, 0.5385, -0.026],
+    "Moments of Inertia":       [0.1656, 0.1934, 0.04367],
+    "Products of Inertia":      [0, 0, 0],
+    "Radius":                   0.025
+  },
+
+  "Upper Control Arm":
+  {
+    "Mass":                     5.813,
+    "COM":                      [-0.106, 0.3765, 0.218],
+    "Moments of Inertia":       [0.03, 0.03, 0.06276],
+    "Products of Inertia":      [0, 0, 0],
+    "Radius":                   0.02,
+    "Location Chassis Front":   [-0.048, 0.2335, 0.245],
+    "Location Chassis Back":    [-0.268, 0.2655, 0.196],
+    "Location Upright":         [-0.053, 0.5035, 0.215]
+  },
+
+  "Lower Control Arm":
+  {
+    "Mass":                     23.965,
+    "COM":                      [0.000, 0.3345, -0.059],
+    "Moments of Inertia":       [0.4, 0.4, 0.8938],
+    "Products of Inertia":      [0, 0, 0],
+    "Radius":                   0.03,
+    "Location Chassis Front":   [0.223, 0.0945, 0.000],
+    "Location Chassis Back":    [-0.223, 0.0954, 0.000],
+    "Location Upright":         [-0.036, 0.5745, -0.118]
+  },
+
+  "Tierod":
+  {
+    "Location Chassis":         [-0.250, 0.2, 0.054],
+    "Location Upright":         [-0.176, 0.821, -0.016]
+  },
+
+  "Spring":
+  {
+    "Location Chassis":         [0.104, 0.2975, 0.197],
+    "Location Arm":             [0.097, 0.3305, -0.047],
+    "Minimum Length":       0.15,
+    "Maximum Length":      0.3,
+    "Spring Coefficient":     112912.1427,
+    "Free Length" :             0.339
+  },
+
+  "Shock":
+  {
+    "Location Chassis":         [0.104, 0.2975, 0.323],
+    "Location Arm":             [0.097, 0.3305, -0.047],
+    "Damping Coefficient":      43290.22357
+  },
+
+  "Axle":
+  {
+    "Inertia":                  0.4
+  }
+}

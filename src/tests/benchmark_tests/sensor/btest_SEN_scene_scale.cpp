@@ -153,8 +153,6 @@ int main(int argc, char* argv[]) {
         float orbit_rate = 0.5;
         float ch_time = 0.0;
 
-        double render_time = 0;
-
         std::chrono::high_resolution_clock::time_point t1 = std::chrono::high_resolution_clock::now();
         float start_time = (float)mphysicalSystem.GetChTime();
         while (ch_time < start_time + time_interval) {

@@ -17,7 +17,7 @@
 
 namespace chrono {
 namespace collision {
-namespace utils {
+namespace bt_utils {
 
 // -----------------------------------------------------------------------------
 
@@ -281,7 +281,7 @@ bool IntersectSegmentCylinder(const btVector3& sC,  // segment center point
     btScalar t2;
     bool code2 = IntersectLinePlane(sC, sD, cC - cH * cD, cD, tol, t2);
     assert(code1 == code2);
-    if (code1) {
+    if (code1 && code2) {
         // line intersects end-caps
         if (t1 < t2) {
             tMin = btMax(tMin, t1);
@@ -357,6 +357,6 @@ void ChConvexHullLibraryWrapper::ComputeHull(const std::vector<ChVector<> >& poi
     hl.ReleaseResult(hresult);
 }
 
-}  // namespace utils
+}  // namespace bt_utils
 }  // namespace collision
 }  // namespace chrono

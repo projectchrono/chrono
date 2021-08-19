@@ -120,6 +120,7 @@ void HMMWV_VehicleFull::Create(bool fixed,
         case DrivelineTypeWV::RWD:
             m_driveline = chrono_types::make_shared<HMMWV_Driveline2WD>("Driveline");
             break;
+        default:
         case DrivelineTypeWV::AWD:
             m_driveline = chrono_types::make_shared<HMMWV_Driveline4WD>("Driveline");
             break;
@@ -159,6 +160,7 @@ void HMMWV_VehicleFull::Initialize(const ChCoordsys<>& chassisPos, double chassi
         case DrivelineTypeWV::RWD:
             driven_susp_indexes[0] = 1;
             break;
+        default:
         case DrivelineTypeWV::AWD:
         case DrivelineTypeWV::SIMPLE:
             driven_susp_indexes[0] = 0;

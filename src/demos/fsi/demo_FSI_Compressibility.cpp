@@ -133,12 +133,14 @@ int main(int argc, char* argv[]) {
     // Get the pointer to the system parameter and use a JSON file to fill it out with the user parameters
     std::shared_ptr<fsi::SimParams> paramsH = myFsiSystem.GetSimParams();
     // Use the default input file or you may enter your input parameters as a command line argument
-    std::string input_json = "fsi/input_json/demo_FSI_Compressibility_I2SPH.json";
-    if (argc > 1) {
-        input_json = std::string(argv[1]);
-    }
-    std::string inputJson = GetChronoDataFile(input_json);
-    if (!fsi::utils::ParseJSON(inputJson, paramsH, fsi::mR3(bxDim, byDim, bzDim))) {
+    std::string inputJson = GetChronoDataFile("fsi/input_json/demo_FSI_Compressibility_I2SPH.json");
+    if (argc == 1) {
+        fsi::utils::ParseJSON(inputJson, paramsH, fsi::mR3(bxDim, byDim, bzDim));
+    } else if (argc == 2) {
+        fsi::utils::ParseJSON(argv[1], paramsH, fsi::mR3(bxDim, byDim, bzDim));
+        std::string input_json = std::string(argv[1]);
+        inputJson = GetChronoDataFile(input_json);
+    } else {
         ShowUsage();
         return 1;
     }
@@ -170,8 +172,6 @@ int main(int argc, char* argv[]) {
 
     /// Construction of the FSI system must be finalized
     myFsiSystem.Finalize();
-
-    double mTime = 0;
 
     int stepEnd = int(paramsH->tFinal / paramsH->dT);
     stepEnd = 50000;
@@ -242,10 +242,10 @@ void SaveParaViewFilesMBD(fsi::ChSystemFsi& myFsiSystem,
                           std::shared_ptr<fsi::SimParams> paramsH,
                           int next_frame,
                           double mTime) {
-    static double exec_time;
-    int out_steps = (int)ceil((1.0 / paramsH->dT) / paramsH->out_fps);
+    static double exec_time = 0;
     exec_time += mphysicalSystem.GetTimerStep();
-    int num_contacts = mphysicalSystem.GetNcontacts();
+    ////int out_steps = (int)ceil((1.0 / paramsH->dT) / paramsH->out_fps);
+    ////int num_contacts = mphysicalSystem.GetNcontacts();
     double frame_time = 1.0 / paramsH->out_fps;
     static int out_frame = 0;
 

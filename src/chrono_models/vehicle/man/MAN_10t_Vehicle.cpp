@@ -130,7 +130,7 @@ void MAN_10t_Vehicle::Create(bool fixed, BrakeType brake_type, CollisionType cha
 
     // Create the steering subsystem
     m_steerings.resize(2);
-    m_steerings[0] = chrono_types::make_shared<MAN_5t_RotaryArm>("Steering2");
+    m_steerings[0] = chrono_types::make_shared<MAN_5t_RotaryArm>("Steering1");
     m_steerings[1] = chrono_types::make_shared<MAN_10t_RotaryArm2>("Steering2");
 
     // Create the driveline

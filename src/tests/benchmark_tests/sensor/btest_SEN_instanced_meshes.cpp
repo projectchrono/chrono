@@ -65,8 +65,11 @@ int main(int argc, char* argv[]) {
         for (int i = 0; i < x_instances; i++) {
             for (int j = 0; j < y_instances; j++) {
                 for (int k = 0; k < z_instances; k++) {
+                    auto mesh_body = std::make_shared<ChBody>();
                     ChVector<> p = {x_spread * (i + .5 - x_instances / 2.), y_spread * (j + .5 - y_instances / 2.),
                                     z_spread * (k + .5 - z_instances / 2.)};
+
+                    // ChVector<> p = {10 * (float)rand() - 5, 10 * (float)rand() - 5, 10 * (float)rand() - 5};
 
                     ChQuaternion<> q = Q_from_AngAxis(p.Length(), {0, 0, 1});
 
@@ -97,6 +100,7 @@ int main(int argc, char* argv[]) {
         // Create a sensor manager
         // -----------------------
         auto manager = std::make_shared<ChSensorManager>(&mphysicalSystem);
+        manager->SetRayRecursions(0);
         manager->scene->AddPointLight({100, 100, 100}, {1, 1, 1}, 5000);
         // manager->scene->AddPointLight({-100, 100, 100}, {1, 1, 1}, 5000);
         // manager->scene->AddPointLight({100, -100, 100}, {1, 1, 1}, 5000);
@@ -118,6 +122,8 @@ int main(int argc, char* argv[]) {
             cam->PushFilter(std::make_shared<ChFilterVisualize>(1280, 720));
 
         manager->AddSensor(cam);
+
+        manager->AddInstancedStaticSceneMeshes(frame_list, trimesh_shape);
 
         // ---------------
         // Simulate system

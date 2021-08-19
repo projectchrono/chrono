@@ -17,8 +17,6 @@
 #include <iostream>
 #include <string>
 
-#include "GpuDemoUtils.hpp"
-
 #include "chrono/core/ChGlobal.h"
 #include "chrono/utils/ChUtilsSamplers.h"
 
@@ -51,7 +49,7 @@ int main(int argc, char* argv[]) {
 
     // Setup simulation
     ChSystemGpu gpu_sys(params.sphere_radius, params.sphere_density,
-                        make_float3(params.box_X, params.box_Y, params.box_Z));
+                        ChVector<float>(params.box_X, params.box_Y, params.box_Z));
 
     gpu_sys.SetKn_SPH2SPH(params.normalStiffS2S);
     gpu_sys.SetKn_SPH2WALL(params.normalStiffS2W);
@@ -112,7 +110,7 @@ int main(int argc, char* argv[]) {
     body_points.insert(body_points.end(), material_points.begin(), material_points.end());
     body_points_fixed.insert(body_points_fixed.end(), material_points.size(), false);
 
-    gpu_sys.SetParticlePositions(body_points);
+    gpu_sys.SetParticles(body_points);
     gpu_sys.SetParticleFixed(body_points_fixed);
 
     std::cout << "Added " << roughness_points.size() << " fixed points" << std::endl;
@@ -145,11 +143,11 @@ int main(int argc, char* argv[]) {
 
     // write an initial frame
     char filename[100];
-    sprintf(filename, "%s/step%06d", out_dir.c_str(), currframe);
+    sprintf(filename, "%s/step%06d.csv", out_dir.c_str(), currframe);
     gpu_sys.WriteParticleFile(std::string(filename));
 
     char contactFilename[100];
-    sprintf(contactFilename, "%s/contact%06d", out_dir.c_str(), currframe);
+    sprintf(contactFilename, "%s/contact%06d.csv", out_dir.c_str(), currframe);
     gpu_sys.WriteContactInfoFile(std::string(contactFilename));
 
     currframe++;
@@ -157,15 +155,15 @@ int main(int argc, char* argv[]) {
     std::cout << "frame step is " << frame_step << std::endl;
     while (curr_time < params.time_end) {
         gpu_sys.AdvanceSimulation(frame_step);
-		
+
         if (render && gpu_vis.Render())
             break;
 
         printf("Output frame %u of %u\n", currframe, total_frames);
-        sprintf(filename, "%s/step%06d", out_dir.c_str(), currframe);
+        sprintf(filename, "%s/step%06d.csv", out_dir.c_str(), currframe);
         gpu_sys.WriteParticleFile(std::string(filename));
 
-        sprintf(contactFilename, "%s/contact%06d", out_dir.c_str(), currframe);
+        sprintf(contactFilename, "%s/contact%06d.csv", out_dir.c_str(), currframe);
         gpu_sys.WriteContactInfoFile(std::string(contactFilename));
 
         curr_time += frame_step;

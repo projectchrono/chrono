@@ -43,7 +43,7 @@ int main(int argc, char* argv[]) {
     }
 
     ChSystemGpu gpu_sys(params.sphere_radius, params.sphere_density,
-                        make_float3(params.box_X, params.box_Y, params.box_Z));
+                        ChVector<float>(params.box_X, params.box_Y, params.box_Z));
 
     // Add spherically-decomposed underlying terrain.
     std::string objfilename(GetChronoDataFile("models/fixedterrain.obj"));
@@ -84,7 +84,7 @@ int main(int argc, char* argv[]) {
     fixed.insert(fixed.end(), material_points.size(), false);
 
     std::cout << "Adding " << body_points.size() << " spheres." << std::endl;
-    gpu_sys.SetParticlePositions(body_points);
+    gpu_sys.SetParticles(body_points);
     gpu_sys.SetParticleFixed(fixed);
 
     // Add internal planes to prevent leaking
@@ -160,7 +160,7 @@ int main(int argc, char* argv[]) {
     for (double t = 0; t < (double)params.time_end; t += frame_step, currframe++) {
         std::cout << "Rendering frame " << (currframe + 1) << " of " << total_frames << std::endl;
         char filename[100];
-        sprintf(filename, "%s/step%06d", out_dir.c_str(), currframe);
+        sprintf(filename, "%s/step%06d.csv", out_dir.c_str(), currframe);
         gpu_sys.WriteParticleFile(std::string(filename));
 
         gpu_sys.AdvanceSimulation((float)frame_step);

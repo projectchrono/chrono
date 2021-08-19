@@ -8,7 +8,7 @@ Project Chrono represents a community effort aimed at producing a physics-based 
 
 
 - [Project website](http://projectchrono.org/)
-- [Build and install instructions](http://api.projectchrono.org/4.0.0/tutorial_table_of_content_install.html)
+- [Build and install instructions](https://api.projectchrono.org/development/tutorial_table_of_content_install.html)
 - Documentation
 	- [development branch](http://api.projectchrono.org/)
 	- [release 5.0.0](http://api.projectchrono.org/5.0.0/)

@@ -674,7 +674,7 @@ void ChIrrAppInterface::DoStep() {
         system->DoStepDynamics(timestep);
         if (try_realtime)
             m_realtime_timer.Spin(timestep);
-    } catch (ChException my_exception) {
+    } catch (const ChException &my_exception) {
         GetLog() << my_exception.what() << "\n";
     }
 }
@@ -750,27 +750,32 @@ void recurse_update_tree_node(ChValue* mvalue, irr::gui::IGUITreeViewNode* mnode
 void ChIrrAppInterface::DrawAll() {
     CH_PROFILE("DrawAll");
 
-    irr::core::stringw str = "World time   =";
+    irr::core::stringw str = "World time:  ";
     str += (int)(1000 * system->GetChTime());
-    str += " ms  \n\nCPU step (total)      =";
+    str += " ms";
+    str += "\n\nCPU step (total):  ";
     str += (int)(1000 * system->GetTimerStep());
-    str += " ms \n  CPU Collision time =";
+    str += " ms";
+    str += "\n  CPU Collision time:  ";
     str += (int)(1000 * system->GetTimerCollision());
-    str += " ms \n  CPU Solver time         =";
+    str += " ms";
+    str += "\n  CPU Solver time:  ";
     str += (int)(1000 * system->GetTimerLSsolve());
-    str += " ms \n  CPU Update time      =";
+    str += " ms";
+    str += "\n  CPU Update time:  ";
     str += (int)(1000 * system->GetTimerUpdate());
-    str += "\n\nN.of active bodies  : ";
+    str += " ms";
+    str += "\n\nN.of active bodies:  ";
     str += system->GetNbodies();
-    str += "\nN.of sleeping bodies  : ";
+    str += "\nN.of sleeping bodies:  ";
     str += system->GetNbodiesSleeping();
-    str += "\nN.of contacts  : ";
+    str += "\nN.of contacts:  ";
     str += system->GetNcontacts();
-    str += "\nN.of coords    : ";
+    str += "\nN.of coords:  ";
     str += system->GetNcoords_w();
-    str += "\nN.of constr.   : ";
+    str += "\nN.of constr:  ";
     str += system->GetNdoc_w();
-    str += "\nN.of variables : ";
+    str += "\nN.of variables:  ";
     str += system->GetNsysvars_w();
     gad_textFPS->setText(str.c_str());
 
@@ -919,7 +924,7 @@ void ChIrrAppInterface::DumpSystemMatrices() {
         // Save M mass matrix, K stiffness matrix, R damping matrix, Cq jacobians:
         GetSystem()->DumpSystemMatrices(true, true, true, true, "dump_");
 
-    } catch (ChException myexc) {
+    } catch (const ChException &myexc) {
         GetLog() << myexc.what();
     }
 }

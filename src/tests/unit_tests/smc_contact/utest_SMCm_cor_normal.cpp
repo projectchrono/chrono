@@ -97,10 +97,9 @@ TEST_P(CorNormalTest, impact) {
 }
 
 // Note: we do not check the Flores model here because it is known to be only valid for high values of COR.
-INSTANTIATE_TEST_CASE_P(ChronoMulticore,
-                        CorNormalTest,
-                        ::testing::Combine(::testing::Values(ChSystemSMC::ContactForceModel::Hooke,
-                                                             ChSystemSMC::ContactForceModel::Hertz,
-                                                             ChSystemSMC::ContactForceModel::PlainCoulomb),
-                                           ::testing::Values(0.0, 0.25, 0.5, 0.75, 1.0)));
-
+INSTANTIATE_TEST_SUITE_P(ChronoMulticore,
+                         CorNormalTest,
+                         ::testing::Combine(::testing::Values(ChSystemSMC::ContactForceModel::Hooke,
+                                                              ChSystemSMC::ContactForceModel::Hertz,
+                                                              ChSystemSMC::ContactForceModel::PlainCoulomb),
+                                            ::testing::Values(0.0, 0.25, 0.5, 0.75, 1.0)));

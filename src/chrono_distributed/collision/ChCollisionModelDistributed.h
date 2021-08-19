@@ -16,10 +16,9 @@
 
 #include "chrono_distributed/ChApiDistributed.h"
 
-#include "chrono_multicore/collision/ChCollisionModelMulticore.h"
+#include "chrono/collision/ChCollisionModelChrono.h"
 
 namespace chrono {
-
 namespace collision {
 
 /// @addtogroup distributed_collision
@@ -27,7 +26,7 @@ namespace collision {
 
 /// This class adds the ability to track the axis-aligned bounding box for the entire model
 /// so that an entire body can be classified by which sub-domains it intersects.
-class CH_DISTR_API ChCollisionModelDistributed : public ChCollisionModelMulticore {
+class CH_DISTR_API ChCollisionModelDistributed : public ChCollisionModelChrono {
   public:
     ChCollisionModelDistributed();
     virtual ~ChCollisionModelDistributed();
@@ -72,6 +71,7 @@ class CH_DISTR_API ChCollisionModelDistributed : public ChCollisionModelMulticor
 
     bool aabb_valid;  ///< Indicates that the bounding box has been computed
 };
+
 /// @} distributed_collision
 
 }  // namespace collision

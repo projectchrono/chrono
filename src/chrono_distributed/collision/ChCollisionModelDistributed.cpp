@@ -25,7 +25,7 @@ ChCollisionModelDistributed::ChCollisionModelDistributed() {
 ChCollisionModelDistributed::~ChCollisionModelDistributed() {}
 
 int ChCollisionModelDistributed::ClearModel() {
-    ChCollisionModelMulticore::ClearModel();
+    ChCollisionModelChrono::ClearModel();
     aabb_valid = false;
     shape_aabb_max.clear();
     shape_aabb_min.clear();
@@ -84,7 +84,7 @@ bool ChCollisionModelDistributed::AddBox(std::shared_ptr<ChMaterialSurface> mate
     shape_aabb_min.push_back(box_aabb_min);
     shape_aabb_max.push_back(box_aabb_max);
 
-    return this->ChCollisionModelMulticore::AddBox(material, hx, hy, hz, pos, rot);
+    return this->ChCollisionModelChrono::AddBox(material, hx, hy, hz, pos, rot);
 }
 
 bool ChCollisionModelDistributed::AddSphere(std::shared_ptr<ChMaterialSurface> material,
@@ -115,7 +115,7 @@ bool ChCollisionModelDistributed::AddSphere(std::shared_ptr<ChMaterialSurface> m
     shape_aabb_max.push_back(real3(max.x(), max.y(), max.z()));
     shape_aabb_min.push_back(real3(min.x(), min.y(), min.z()));
 
-    return this->ChCollisionModelMulticore::AddSphere(material, radius, pos);
+    return this->ChCollisionModelChrono::AddSphere(material, radius, pos);
 }
 
 bool ChCollisionModelDistributed::AddTriangle(std::shared_ptr<ChMaterialSurface> material,
@@ -125,7 +125,7 @@ bool ChCollisionModelDistributed::AddTriangle(std::shared_ptr<ChMaterialSurface>
                                               const ChVector<>& pos,
                                               const ChMatrix33<>& rot) {
     // TODO doesn't allow for global triangle bodies
-    return this->ChCollisionModelMulticore::AddTriangle(material, A, B, C, pos, rot);
+    return this->ChCollisionModelChrono::AddTriangle(material, A, B, C, pos, rot);
 }
 
 // TODO: Add other adds for shapes that can be global

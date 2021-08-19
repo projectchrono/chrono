@@ -24,14 +24,6 @@ namespace chrono {
 /// parts; i.e., shafts that can be used to build 1D models of powertrains.
 
 class ChApi ChShaftsClutch : public ChShaftsCouple {
-
-  private:
-    double maxT;                             ///< clutch max transmissible torque (for forward direction
-    double minT;                             ///< clutch min transmissible torque (for backward direction)
-    double modulation;                       ///< 0...1  (default 1).
-    double torque_react;                     ///< reaction torque
-    ChConstraintTwoGenericBoxed constraint;  ///< used as an interface to the solver
-
   public:
     ChShaftsClutch();
     ChShaftsClutch(const ChShaftsClutch& other);
@@ -85,8 +77,11 @@ class ChApi ChShaftsClutch : public ChShaftsCouple {
     /// two shafts to join.
     /// Each shaft must belong to the same ChSystem.
     bool Initialize(std::shared_ptr<ChShaft> mshaft1,  ///< first  shaft to join
-                    std::shared_ptr<ChShaft> mshaft2  ///< second shaft to join
+                    std::shared_ptr<ChShaft> mshaft2   ///< second shaft to join
                     ) override;
+
+    /// Disable this element (disable constraints).
+    void SetDisabled(bool val) { active = !val; }
 
     /// Set the transmissible torque limit (the maximum torque that
     /// the clutch can transmit between the two shafts).
@@ -142,9 +137,18 @@ class ChApi ChShaftsClutch : public ChShaftsCouple {
 
     /// Method to allow deserialization of transient data from archives.
     virtual void ArchiveIN(ChArchiveIn& marchive) override;
+
+  private:
+    bool active;
+
+    double maxT;                             ///< clutch max transmissible torque (for forward direction
+    double minT;                             ///< clutch min transmissible torque (for backward direction)
+    double modulation;                       ///< 0...1  (default 1).
+    double torque_react;                     ///< reaction torque
+    ChConstraintTwoGenericBoxed constraint;  ///< used as an interface to the solver
 };
 
-CH_CLASS_VERSION(ChShaftsClutch,0)
+CH_CLASS_VERSION(ChShaftsClutch, 0)
 
 }  // end namespace chrono
 

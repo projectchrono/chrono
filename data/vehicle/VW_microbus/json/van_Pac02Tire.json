@@ -12,11 +12,11 @@
     "Coefficient of Friction": 0.8,
     "Tire Side": "left",
     "Dimension": {
-        "Unloaded Radius": 0.372,
-        "Width": 0.228,
-        "Aspect Ratio": 0.75,
-        "Rim Radius": 0.203,
-        "Rim Width": 0.1524
+        "Unloaded Radius": 0.376,
+        "Width": 0.185,
+        "Aspect Ratio": 0.85,
+        "Rim Radius": 0.1778,
+        "Rim Width": 0.17
     },
     "Vertical": {
         "Vertical Stiffness": 332736.8,

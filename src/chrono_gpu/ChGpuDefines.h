@@ -36,7 +36,7 @@ enum class CHGPU_VERBOSITY { QUIET = 0, INFO = 1, METRICS = 2 };
 enum class CHGPU_MESH_VERBOSITY { QUIET = 0, INFO = 1 };
 
 /// Output mode of system.
-enum class CHGPU_OUTPUT_MODE { CSV, BINARY, HDF5, NONE };
+enum class CHGPU_OUTPUT_MODE { CSV, BINARY, HDF5, CHPF, NONE };
 
 /// How are we integrating through time.
 enum class CHGPU_TIME_INTEGRATOR { FORWARD_EULER, CHUNG, CENTERED_DIFFERENCE, EXTENDED_TAYLOR };

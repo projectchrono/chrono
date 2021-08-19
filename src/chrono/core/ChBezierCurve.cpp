@@ -189,7 +189,7 @@ std::shared_ptr<ChBezierCurve> ChBezierCurve::read(const std::string& filename) 
     try {
         ifile.exceptions(std::ios::failbit | std::ios::badbit | std::ios::eofbit);
         ifile.open(filename.c_str());
-    } catch (std::exception) {
+    } catch (const std::exception &) {
         throw ChException("Cannot open input file");
     }
 
@@ -398,6 +398,23 @@ ChVector<> ChBezierCurve::calcClosestPoint(const ChVector<>& loc, size_t i, doub
         if ((dt * Qd).Length2() < m_sqrDistTol)
             break;
     };
+
+    ChVector<> Q_0 = eval(i, 0.0);
+    ChVector<> Q_1 = eval(i, 1.0);
+
+    double d2 = (Q - loc).Length2();
+    double d2_0 = (Q_0 - loc).Length2();
+    double d2_1 = (Q_1 - loc).Length2();
+
+    if (d2_0 < d2) {
+        t = 0;
+        Q = Q_0;
+        d2 = d2_0;
+    }
+    if (d2_1 < d2) {
+        t = 1;
+        Q = Q_1;
+    }
 
     return Q;
 }

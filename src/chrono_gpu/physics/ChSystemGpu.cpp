@@ -26,22 +26,24 @@ namespace gpu {
 
 // -----------------------------------------------------------------------------
 
-ChSystemGpu::ChSystemGpu(float sphere_rad, float density, float3 boxDims) {
-    m_sys = new ChSystemGpu_impl(sphere_rad, density, boxDims);
+ChSystemGpu::ChSystemGpu(float sphere_rad, float density, const ChVector<float>& boxDims, ChVector<float> O) {
+    m_sys = new ChSystemGpu_impl(sphere_rad, density, make_float3(boxDims.x(), boxDims.y(), boxDims.z()),
+                                 make_float3(O.x(), O.y(), O.z()));
 }
 
 ChSystemGpu::ChSystemGpu(const std::string& checkpoint) {
-    m_sys = new ChSystemGpu_impl(1.f, 1.f, make_float3(100, 100, 100));
+    m_sys = new ChSystemGpu_impl(1.f, 1.f, make_float3(100, 100, 100), make_float3(0, 0, 0));
     ReadCheckpointFile(checkpoint, true);
 }
 
-ChSystemGpuMesh::ChSystemGpuMesh(float sphere_rad, float density, float3 boxDims)
+ChSystemGpuMesh::ChSystemGpuMesh(float sphere_rad, float density, const ChVector<float>& boxDims, ChVector<float> O)
     : mesh_verbosity(CHGPU_MESH_VERBOSITY::QUIET) {
-    m_sys = new ChSystemGpuMesh_impl(sphere_rad, density, boxDims);
+    m_sys = new ChSystemGpuMesh_impl(sphere_rad, density, make_float3(boxDims.x(), boxDims.y(), boxDims.z()),
+                                     make_float3(O.x(), O.y(), O.z()));
 }
 
 ChSystemGpuMesh::ChSystemGpuMesh(const std::string& checkpoint) : mesh_verbosity(CHGPU_MESH_VERBOSITY::QUIET) {
-    m_sys = new ChSystemGpuMesh_impl(1.f, 1.f, make_float3(100, 100, 100));
+    m_sys = new ChSystemGpuMesh_impl(1.f, 1.f, make_float3(100, 100, 100), make_float3(0, 0, 0));
     ReadCheckpointFile(checkpoint, true);
 }
 
@@ -53,7 +55,7 @@ ChSystemGpuMesh::~ChSystemGpuMesh() {}
 
 // -----------------------------------------------------------------------------
 
-void ChSystemGpu::SetGravitationalAcceleration(const ChVector<float> g) {
+void ChSystemGpu::SetGravitationalAcceleration(const ChVector<float>& g) {
     m_sys->X_accGrav = (float)g.x();
     m_sys->Y_accGrav = (float)g.y();
     m_sys->Z_accGrav = (float)g.z();
@@ -67,6 +69,12 @@ void ChSystemGpu::SetGravitationalAcceleration(const float3 g) {
 
 void ChSystemGpu::SetBDFixed(bool fixed) {
     m_sys->BD_is_fixed = fixed;
+}
+
+void ChSystemGpu::SetBDCenter(const ChVector<float>& O) {
+    m_sys->user_coord_O_X = O.x();
+    m_sys->user_coord_O_Y = O.y();
+    m_sys->user_coord_O_Z = O.z();
 }
 
 void ChSystemGpu::SetParticleFixed(const std::vector<bool>& fixed) {
@@ -359,8 +367,18 @@ ChVector<float> ChSystemGpu::GetParticleAngVelocity(int nSphere) const {
     return ChVector<float>(omega.x, omega.y, omega.z);
 }
 
+float ChSystemGpu::GetParticlesKineticEnergy() const {
+    float KE = (float)(m_sys->ComputeTotalKE());
+    return KE;
+}
+
 double ChSystemGpu::GetMaxParticleZ() const {
-    return m_sys->GetMaxParticleZ();
+    return m_sys->GetMaxParticleZ(true);
+}
+
+double ChSystemGpu::GetMinParticleZ() const {
+    // Under the hood, GetMaxParticleZ(false) returns the lowest Z.
+    return m_sys->GetMaxParticleZ(false);
 }
 
 size_t ChSystemGpu::EstimateMemUsage() const {
@@ -780,8 +798,8 @@ bool diff(float3 a, float3 b) {
     return std::abs(a.x - b.x) > 1e-6f || std::abs(a.y - b.y) > 1e-6f || std::abs(a.z - b.z) > 1e-6f;
 }
 
-// Use hash to find matching indentifier and load parameters. Return 0 if not change compared to current system, return
-// 1 if overwrote a current parameter setting
+// Use hash to find matching indentifier and load parameters. Return 1 if found no matching paramter to set, return 0 if
+// status normal
 bool ChSystemGpu::SetParamsFromIdentifier(const std::string& identifier, std::istringstream& iss1, bool overwrite) {
     unsigned int i;        // integer holder
     float f;               // float holder
@@ -814,6 +832,15 @@ bool ChSystemGpu::SetParamsFromIdentifier(const std::string& identifier, std::is
         case ("BDFixed"_):
             iss1 >> b;
             SetBDFixed(b);
+            break;
+        case ("BDCenter"_):
+            iss1 >> f3.x;
+            iss1 >> f3.y;
+            iss1 >> f3.z;
+            incst = diff(make_float3(m_sys->user_coord_O_X, m_sys->user_coord_O_Y, m_sys->user_coord_O_Z), f3);
+            m_sys->user_coord_O_X = f3.x;
+            m_sys->user_coord_O_Y = f3.y;
+            m_sys->user_coord_O_Z = f3.z;
             break;
         case ("verbosity"_):
             iss1 >> i;
@@ -1190,6 +1217,8 @@ void ChSystemGpu::WriteCheckpointParams(std::ofstream& cpFile) const {
     paramStream << "radius: " << m_sys->sphere_radius_UU << "\n";
     paramStream << "boxSize: " << m_sys->box_size_X << " " << m_sys->box_size_Y << " " << m_sys->box_size_Z << "\n";
     paramStream << "BDFixed: " << (int)(m_sys->BD_is_fixed) << "\n";
+    paramStream << "BDCenter: " << m_sys->user_coord_O_X << " " << m_sys->user_coord_O_Y << " " << m_sys->user_coord_O_Z
+                << "\n";
     paramStream << "verbosity: " << as_uint(m_sys->verbosity) << "\n";
     paramStream << "useMinLengthUnit: " << (int)(m_sys->use_min_length_unit) << "\n";
     paramStream << "recordContactInfo: " << (int)(m_sys->gran_params->recording_contactInfo) << "\n";
@@ -1279,6 +1308,10 @@ void ChSystemGpu::WriteCsvParticles(std::ofstream& ptFile) const {
     m_sys->WriteCsvParticles(ptFile);
 }
 
+void ChSystemGpu::WriteChPFParticles(std::ofstream& ptFile) const {
+    m_sys->WriteChPFParticles(ptFile);
+}
+
 #ifdef USE_HDF5
 void ChSystemGpu::WriteH5Particles(H5::H5File ptFile) const {
     m_sys->WriteH5Particles(ptFile);
@@ -1293,6 +1326,9 @@ void ChSystemGpu::WriteParticleFile(const std::string& outfilename) const {
     } else if (m_sys->file_write_mode == CHGPU_OUTPUT_MODE::CSV) {
         std::ofstream ptFile(outfilename, std::ios::out);
         WriteCsvParticles(ptFile);
+    } else if (m_sys->file_write_mode == CHGPU_OUTPUT_MODE::CHPF) {
+        std::ofstream ptFile(outfilename, std::ios::out | std::ios::binary);
+        WriteChPFParticles(ptFile);
     } else if (m_sys->file_write_mode == CHGPU_OUTPUT_MODE::HDF5) {
 #ifdef USE_HDF5
         H5::H5File ptFile(outfilename.c_str(), H5F_ACC_TRUNC);

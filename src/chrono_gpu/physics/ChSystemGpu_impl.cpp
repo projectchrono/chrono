@@ -27,6 +27,8 @@
 #include "chrono_gpu/utils/ChGpuUtilities.h"
 #include "chrono_gpu/cuda/ChCudaMathUtils.cuh"
 
+#include "chrono_thirdparty/chpf/particle_writer.hpp"
+
 #ifdef USE_HDF5
     #include "H5Cpp.h"
 #endif
@@ -37,12 +39,15 @@ size_t gran_approx_bytes_used = 0;
 namespace chrono {
 namespace gpu {
 
-ChSystemGpu_impl::ChSystemGpu_impl(float sphere_rad, float density, float3 boxDims)
+ChSystemGpu_impl::ChSystemGpu_impl(float sphere_rad, float density, float3 boxDims, float3 O)
     : sphere_radius_UU(sphere_rad),
       sphere_density_UU(density),
       box_size_X(boxDims.x),
       box_size_Y(boxDims.y),
       box_size_Z(boxDims.z),
+      user_coord_O_X(O.x),
+      user_coord_O_Y(O.y),
+      user_coord_O_Z(O.z),
       stepSize_UU(1e-4f),
       nSpheres(0),
       elapsedSimTime(0.f),
@@ -91,12 +96,12 @@ ChSystemGpu_impl::ChSystemGpu_impl(float sphere_rad, float density, float3 boxDi
 }
 
 void ChSystemGpu_impl::CreateWallBCs() {
-    float plane_center_bot_X[3] = {-box_size_X / 2, 0, 0};
-    float plane_center_top_X[3] = {box_size_X / 2, 0, 0};
-    float plane_center_bot_Y[3] = {0, -box_size_Y / 2, 0};
-    float plane_center_top_Y[3] = {0, box_size_Y / 2, 0};
-    float plane_center_bot_Z[3] = {0, 0, -box_size_Z / 2};
-    float plane_center_top_Z[3] = {0, 0, box_size_Z / 2};
+    float plane_center_bot_X[3] = {-box_size_X / 2.f + user_coord_O_X, 0, 0};
+    float plane_center_top_X[3] = {box_size_X / 2.f + user_coord_O_X, 0, 0};
+    float plane_center_bot_Y[3] = {0, -box_size_Y / 2.f + user_coord_O_Y, 0};
+    float plane_center_top_Y[3] = {0, box_size_Y / 2.f + user_coord_O_Y, 0};
+    float plane_center_bot_Z[3] = {0, 0, -box_size_Z / 2.f + user_coord_O_Z};
+    float plane_center_top_Z[3] = {0, 0, box_size_Z / 2.f + user_coord_O_Z};
     // face in upwards
     float plane_normal_bot_X[3] = {1, 0, 0};
     float plane_normal_top_X[3] = {-1, 0, 0};
@@ -166,6 +171,8 @@ void ChSystemGpu_impl::packSphereDataPointers() {
     }
 
     sphere_data->sphere_fixed = sphere_fixed.data();
+
+    sphere_data->sphere_stats_buffer = sphere_stats_buffer.data();
 
     sphere_data->SD_NumSpheresTouching = SD_NumSpheresTouching.data();
     sphere_data->SD_SphereCompositeOffsets = SD_SphereCompositeOffsets.data();
@@ -320,6 +327,36 @@ void ChSystemGpu_impl::WriteCsvParticles(std::ofstream& ptFile) const {
     }
 
     ptFile << outstrstream.str();
+}
+
+void ChSystemGpu_impl::WriteChPFParticles(std::ofstream& ptFile) const {
+    ParticleFormatWriter pw;
+
+    std::vector<float> v_x_UU(sphere_local_pos_X.size());
+    std::vector<float> v_y_UU(sphere_local_pos_Y.size());
+    std::vector<float> v_z_UU(sphere_local_pos_Z.size());
+
+    for (unsigned int n = 0; n < nSpheres; n++) {
+        unsigned int ownerSD = sphere_owner_SDs.at(n);
+        int3 ownerSD_trip = getSDTripletFromID(ownerSD);
+        float x_UU = (float)(sphere_local_pos_X[n] * LENGTH_SU2UU);
+        float y_UU = (float)(sphere_local_pos_Y[n] * LENGTH_SU2UU);
+        float z_UU = (float)(sphere_local_pos_Z[n] * LENGTH_SU2UU);
+
+        x_UU += (float)(gran_params->BD_frame_X * LENGTH_SU2UU);
+        y_UU += (float)(gran_params->BD_frame_Y * LENGTH_SU2UU);
+        z_UU += (float)(gran_params->BD_frame_Z * LENGTH_SU2UU);
+
+        x_UU += (float)(((int64_t)ownerSD_trip.x * gran_params->SD_size_X_SU) * LENGTH_SU2UU);
+        y_UU += (float)(((int64_t)ownerSD_trip.y * gran_params->SD_size_Y_SU) * LENGTH_SU2UU);
+        z_UU += (float)(((int64_t)ownerSD_trip.z * gran_params->SD_size_Z_SU) * LENGTH_SU2UU);
+
+        v_x_UU[n] = x_UU;
+        v_y_UU[n] = y_UU;
+        v_z_UU[n] = z_UU;
+    }
+
+    pw.write(ptFile, ParticleFormatWriter::CompressionType::NONE, v_x_UU, v_y_UU, v_z_UU);
 }
 
 #ifdef USE_HDF5
@@ -895,6 +932,22 @@ float3 ChSystemGpu_impl::GetParticlePosition(int nSphere) const {
     return make_float3(x_UU, y_UU, z_UU);
 }
 
+float ChSystemGpu_impl::ComputeTotalKE() {
+    size_t nSpheres = pos_X_dt.size();
+    if (nSpheres == 0)
+        return 0.f;
+
+    // Compute sum(v^2) and sum(w^2)
+    float v2_UU = computeArray3SquaredSum(pos_X_dt, pos_Y_dt, pos_Z_dt, nSpheres);
+    v2_UU *= VEL_SU2UU * VEL_SU2UU;
+    float w2_UU = computeArray3SquaredSum(sphere_Omega_X, sphere_Omega_Y, sphere_Omega_Z, nSpheres);
+    w2_UU /= TIME_SU2UU * TIME_SU2UU;
+    float m = (4. / 3.) * CH_C_PI * sphere_radius_UU * sphere_radius_UU * sphere_radius_UU * sphere_density_UU;
+
+    // Then, KE = 0.5 * m * sum(v^2) + 0.2 * m * r^2 * sum(w^2)
+    return 0.5 * m * v2_UU + 0.2 * m * sphere_radius_UU * sphere_radius_UU * w2_UU;
+}
+
 // return absolute velocity
 float ChSystemGpu_impl::getAbsVelocity(int nSphere) {
     float absv_SU = std::sqrt(pos_X_dt[nSphere] * pos_X_dt[nSphere] + pos_Y_dt[nSphere] * pos_Y_dt[nSphere] +
@@ -976,9 +1029,9 @@ void ChSystemGpu_impl::partitionBD() {
 
     // Place BD frame at bottom-left corner, one half-length in each direction
     // Can change later if desired
-    gran_params->BD_frame_X = (int64_t)(-0.5 * ((int64_t)nSDs_X * SD_size_X));
-    gran_params->BD_frame_Y = (int64_t)(-0.5 * ((int64_t)nSDs_Y * SD_size_Y));
-    gran_params->BD_frame_Z = (int64_t)(-0.5 * ((int64_t)nSDs_Z * SD_size_Z));
+    gran_params->BD_frame_X = (int64_t)(-0.5 * ((int64_t)nSDs_X * SD_size_X) + (double)user_coord_O_X / LENGTH_SU2UU);
+    gran_params->BD_frame_Y = (int64_t)(-0.5 * ((int64_t)nSDs_Y * SD_size_Y) + (double)user_coord_O_Y / LENGTH_SU2UU);
+    gran_params->BD_frame_Z = (int64_t)(-0.5 * ((int64_t)nSDs_Z * SD_size_Z) + (double)user_coord_O_Z / LENGTH_SU2UU);
 
     // permanently cache the initial frame
     BD_rest_frame_SU = make_longlong3(gran_params->BD_frame_X, gran_params->BD_frame_Y, gran_params->BD_frame_Z);

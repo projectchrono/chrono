@@ -288,6 +288,7 @@ int main(int argc, char* argv[]) {
         }
 #endif
 #ifdef CHRONO_PARDISO_MKL
+        default:
         case ChSolver::Type::PARDISO_MKL: {
             auto mkl_solver = chrono_types::make_shared<ChSolverPardisoMKL>();
             mkl_solver->LockSparsityPattern(true);

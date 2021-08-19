@@ -49,6 +49,7 @@ class CH_MODELS_API HMMWV {
     virtual ~HMMWV();
 
     void SetContactMethod(ChContactMethod val) { m_contactMethod = val; }
+    void SetCollisionSystemType(collision::ChCollisionSystemType collsys_type) { m_collsysType = collsys_type; }
 
     void SetChassisFixed(bool val) { m_fixed = val; }
     void SetChassisCollisionType(CollisionType val) { m_chassisCollisionType = val; }
@@ -99,6 +100,7 @@ class CH_MODELS_API HMMWV {
     virtual HMMWV_Vehicle* CreateVehicle() = 0;
 
     ChContactMethod m_contactMethod;
+    collision::ChCollisionSystemType m_collsysType;
     CollisionType m_chassisCollisionType;
     bool m_fixed;
     bool m_brake_locking;

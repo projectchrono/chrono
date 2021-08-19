@@ -25,7 +25,12 @@
 
 namespace chrono {
 namespace collision {
-namespace utils {
+
+/// @addtogroup collision_bullet
+/// @{
+
+/// Utilities for Bullet-based collision detection
+namespace bt_utils {
 
 /// Project point onto line.
 ChApi btVector3 ProjectPointOnLine(const btVector3& lP,  ///< point on line
@@ -118,7 +123,10 @@ class ChApi ChConvexHullLibraryWrapper {
     void ComputeHull(const std::vector<ChVector<> >& points, geometry::ChTriangleMeshConnected& vshape);
 };
 
-}  // namespace utils
+}  // namespace bt_utils
+
+/// @} collision_bullet
+
 }  // namespace collision
 }  // namespace chrono
 

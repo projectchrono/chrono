@@ -42,9 +42,11 @@
          @defgroup vehicle_models_fmtv FMTV truck models
          @defgroup vehicle_models_man MAN truck models
          @defgroup vehicle_models_kraz Kraz 64431 semi-trailer truck model
+         @defgroup vehicle_models_mrole Multi-purpose wheeled vehicle
          @defgroup vehicle_models_rccar RC car vehicle model
          @defgroup vehicle_models_generic Generic wheeled vehicle
          @defgroup vehicle_models_m113 M113 tracked vehicle model
+         @defgroup vehicle_models_marder Marder tracked vehicle model
        @}
        @defgroup robot_models Robot models
        @brief Collection of robotic system models

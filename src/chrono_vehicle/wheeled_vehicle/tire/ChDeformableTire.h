@@ -103,9 +103,6 @@ class CH_VEHICLE_API ChDeformableTire : public ChTire {
     /// Get the rim radius (inner tire radius).
     virtual double GetRimRadius() const = 0;
 
-    /// Get the tire width.
-    virtual double GetWidth() const = 0;
-
     /// Calculate and return the tire mass.
     /// The return value is the mass of the underlying FEA mesh.
     double GetTireMass() const;

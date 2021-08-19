@@ -511,7 +511,7 @@ std::shared_ptr<ChTire> ReadTireJSON(const std::string& filename) {
 
 // -----------------------------------------------------------------------------
 
-std::shared_ptr<ChTrackAssembly> ReadTrackAssemblySON(const std::string& filename) {
+std::shared_ptr<ChTrackAssembly> ReadTrackAssemblyJSON(const std::string& filename) {
     std::shared_ptr<ChTrackAssembly> track;
 
     Document d;ReadFileJSON(filename, d);
@@ -537,7 +537,7 @@ std::shared_ptr<ChTrackAssembly> ReadTrackAssemblySON(const std::string& filenam
     } else if (subtype.compare("TrackAssemblyBandANCF") == 0) {
         track = chrono_types::make_shared<TrackAssemblyBandANCF>(d);
     } else {
-        throw ChException("TrackAssembly type not supported in ReadTrackAssemblySON.");
+        throw ChException("TrackAssembly type not supported in ReadTrackAssemblyJSON.");
     }
 
     return track;

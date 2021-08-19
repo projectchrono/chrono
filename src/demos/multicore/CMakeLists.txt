@@ -51,7 +51,8 @@ if(ENABLE_MODULE_IRRLICHT)
 	include_directories(${CH_IRRLICHTINC})
 
 	set(DEMOS_IRRLICHT
-		demo_MCORE_custom_contact)
+		demo_MCORE_custom_contact
+        demo_MCORE_collision_object)
 endif()
 
 # ------------------------------------------------------------------------------
