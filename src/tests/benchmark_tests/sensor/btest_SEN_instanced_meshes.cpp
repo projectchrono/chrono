@@ -65,7 +65,6 @@ int main(int argc, char* argv[]) {
         for (int i = 0; i < x_instances; i++) {
             for (int j = 0; j < y_instances; j++) {
                 for (int k = 0; k < z_instances; k++) {
-                    auto mesh_body = std::make_shared<ChBody>();
                     ChVector<> p = {x_spread * (i + .5 - x_instances / 2.), y_spread * (j + .5 - y_instances / 2.),
                                     z_spread * (k + .5 - z_instances / 2.)};
 
@@ -122,8 +121,6 @@ int main(int argc, char* argv[]) {
             cam->PushFilter(std::make_shared<ChFilterVisualize>(1280, 720));
 
         manager->AddSensor(cam);
-
-        manager->AddInstancedStaticSceneMeshes(frame_list, trimesh_shape);
 
         // ---------------
         // Simulate system

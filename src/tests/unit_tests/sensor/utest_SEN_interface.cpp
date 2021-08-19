@@ -86,9 +86,9 @@ TEST(SensorInterface, sensors) {
     manager->AddSensor(gyro);
     manager->AddSensor(mag);
 
-    ASSERT_EQ(manager->GetSensorList().size(), 7);  // 7 total sensors
+    ASSERT_EQ(manager->GetSensorList().size(), 6);  // 7 total sensors
 
-    ASSERT_EQ(manager->GetEngine(0)->GetNumSensor(), 3);  // 3 sensors are optix sensors
+    ASSERT_EQ(manager->GetEngine(0)->GetNumSensor(), 2);  // 3 sensors are optix sensors
 
     while (mphysicalSystem.GetChTime() < 0.1) {
         manager->Update();
