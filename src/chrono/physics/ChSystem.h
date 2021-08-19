@@ -669,9 +669,10 @@ class ChApi ChSystem : public ChIntegrableIIorder {
     /// collision detection step (ex. all the times that ComputeCollisions() is automatically
     /// called by the integration method). For example some other collision engine could
     /// add further contacts using this callback.
-    void RegisterCustomCollisionCallback(std::shared_ptr<CustomCollisionCallback> callback) {
-        collision_callbacks.push_back(callback);
-    }
+    void RegisterCustomCollisionCallback(std::shared_ptr<CustomCollisionCallback> callback);
+
+    /// Remove the given collision callback from this system.
+    void UnregisterCustomCollisionCallback(std::shared_ptr<CustomCollisionCallback> callback);
 
     /// Change the underlying collision detection system to the specified type.
     /// By default, a ChSystem uses a Bullet-based collision detection engine

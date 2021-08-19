@@ -39,15 +39,14 @@ ChSprocket::~ChSprocket() {
         sys->Remove(m_axle);
         sys->Remove(m_axle_to_spindle);
         sys->Remove(m_revolute);
+
+        sys->UnregisterCustomCollisionCallback(m_callback);
     }
 }
 
 // -----------------------------------------------------------------------------
 void ChSprocket::Initialize(std::shared_ptr<ChBodyAuxRef> chassis, const ChVector<>& location, ChTrackAssembly* track) {
-    // The sprocket reference frame is aligned with that of the chassis and centered at the
-    // specified location.
-    ////ChFrame<> sprocket_to_abs(location);
-    ////sprocket_to_abs.ConcatenatePreTransformation(chassis->GetFrame_REF_to_abs());
+    // The sprocket reference frame is aligned with that of the chassis and centered at the specified location.
     ChVector<> loc = chassis->GetFrame_REF_to_abs().TransformPointLocalToParent(location);
     ChQuaternion<> chassisRot = chassis->GetFrame_REF_to_abs().GetRot();
     ChQuaternion<> y2z = Q_from_AngX(CH_C_PI_2);
@@ -87,7 +86,8 @@ void ChSprocket::Initialize(std::shared_ptr<ChBodyAuxRef> chassis, const ChVecto
     CreateContactMaterial(chassis->GetSystem()->GetContactMethod());
 
     // Set user-defined custom collision callback class for sprocket-shoes contact.
-    chassis->GetSystem()->RegisterCustomCollisionCallback(GetCollisionCallback(track));
+    m_callback = GetCollisionCallback(track);
+    chassis->GetSystem()->RegisterCustomCollisionCallback(m_callback);
 }
 
 // -----------------------------------------------------------------------------
