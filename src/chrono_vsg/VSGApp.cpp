@@ -30,13 +30,17 @@ struct Params : public vsg::Inherit<vsg::Object, Params> {
 };
 
 class MyGuiComponent {
-  public:
-    MyGuiComponent(vsg::ref_ptr<Params> params) : _params(params) {}
+public:
+    MyGuiComponent(vsg::ref_ptr<Params> params) : _params(params) {
+    }
 
     // Example here taken from the Dear imgui comments (mostly)
     bool operator()() {
-        bool visibleComponents = false;
 
+        bool visibleComponents = false;
+        ImGuiIO& io = ImGui::GetIO();
+        io.FontGlobalScale = 2;
+        
         // 2. Show a simple window that we create ourselves. We use a Begin/End pair to created a named window.
         if (_params->showGui) {
             ImGui::Begin("Hello, world!");  // Create a window called "Hello, world!" and append into it.
@@ -57,7 +61,6 @@ class MyGuiComponent {
             ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate,
                         ImGui::GetIO().Framerate);
             ImGui::End();
-
             visibleComponents = true;
         }
 
