@@ -66,6 +66,9 @@ class CH_VEHICLE_API ChVehicleCosimMBSNode : public ChVehicleCosimBaseNode {
                            ChSolver::Type slv_type        ///< solver type (default:: MKL)
     );
 
+    /// Fix the chassis to ground (default: false).
+    void SetChassisFixed(bool val) { m_fix_chassis = val; }
+
     /// Attach a drawbar pull rig to the MBS system.
     void AttachDrawbarPullRig(std::shared_ptr<ChVehicleCosimDBPRig> rig);
 
@@ -151,6 +154,8 @@ class CH_VEHICLE_API ChVehicleCosimMBSNode : public ChVehicleCosimBaseNode {
 
   private:
     void InitializeSystem();
+
+    bool m_fix_chassis;
 };
 
 /// @} vehicle_cosim

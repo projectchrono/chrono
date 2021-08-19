@@ -45,7 +45,7 @@ namespace chrono {
 namespace vehicle {
 
 // Construction of the base MBS node
-ChVehicleCosimMBSNode::ChVehicleCosimMBSNode() : ChVehicleCosimBaseNode("MBS") {
+ChVehicleCosimMBSNode::ChVehicleCosimMBSNode() : ChVehicleCosimBaseNode("MBS"), m_fix_chassis(false) {
     // Default integrator and solver types
     m_int_type = ChTimestepper::Type::EULER_IMPLICIT_LINEARIZED;
     m_slv_type = ChSolver::Type::BARZILAIBORWEIN;
@@ -132,6 +132,8 @@ void ChVehicleCosimMBSNode::Initialize() {
     // Let derived classes construct and initialize their multibody system
     InitializeMBS(tire_info, terrain_size, terrain_height);
     assert(GetNumSpindles() == (int)m_num_tire_nodes);
+
+    GetChassisBody()->SetBodyFixed(m_fix_chassis);
 
     // For each tire:
     // - cache the spindle body
