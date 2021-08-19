@@ -71,6 +71,8 @@ class CH_VEHICLE_API ChVehicleCosimTerrainNodeGranularSPH : public ChVehicleCosi
     double m_radius_g;  ///< radius of one particle of granular material
     double m_rho_g;     ///< particle material density
 
+    bool m_FSI_finalized; ///< flag that Finalize was called for ChSystemFsi
+
     virtual bool SupportsMeshInterface() const override { return false; }
 
     virtual void Construct() override;

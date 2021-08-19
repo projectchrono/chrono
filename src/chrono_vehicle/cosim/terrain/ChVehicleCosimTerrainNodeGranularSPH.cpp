@@ -54,9 +54,10 @@ namespace vehicle {
 // - create the Chrono system and set solver parameters
 // - create the Chrono FSI system
 // -----------------------------------------------------------------------------
-ChVehicleCosimTerrainNodeGranularSPH::ChVehicleCosimTerrainNodeGranularSPH(double length,
-                                                                           double width)
-    : ChVehicleCosimTerrainNodeChrono(Type::GRANULAR_SPH, length, width, ChContactMethod::SMC), m_depth(0) {
+ChVehicleCosimTerrainNodeGranularSPH::ChVehicleCosimTerrainNodeGranularSPH(double length, double width)
+    : ChVehicleCosimTerrainNodeChrono(Type::GRANULAR_SPH, length, width, ChContactMethod::SMC),
+      m_depth(0),
+      m_FSI_finalized(false) {
     // Default granular material properties
     m_radius_g = 0.01;
     m_rho_g = 2000;
@@ -73,7 +74,7 @@ ChVehicleCosimTerrainNodeGranularSPH::ChVehicleCosimTerrainNodeGranularSPH(doubl
 }
 
 ChVehicleCosimTerrainNodeGranularSPH::ChVehicleCosimTerrainNodeGranularSPH(const std::string& specfile)
-    : ChVehicleCosimTerrainNodeChrono(Type::GRANULAR_SPH, 0, 0, ChContactMethod::SMC) {
+    : ChVehicleCosimTerrainNodeChrono(Type::GRANULAR_SPH, 0, 0, ChContactMethod::SMC), m_FSI_finalized(false) {
     // Create systems
     m_system = new ChSystemSMC;
     m_systemFSI = new ChSystemFsi(*m_system);
@@ -408,9 +409,6 @@ void ChVehicleCosimTerrainNodeGranularSPH::CreateWheelProxy(unsigned int i) {
     std::vector<ChVector<>> point_cloud;
     CreateMeshMarkers(trimesh, (double)initSpace0, point_cloud);
     fsi::utils::AddBCE_FromPoints(m_systemFSI->GetDataManager(), m_params, body, point_cloud, VNULL, QUNIT);
-
-    // Construction of the FSI system must be finalized before running
-    m_systemFSI->Finalize();
 }
 
 // Set state of wheel proxy body.
@@ -436,6 +434,12 @@ void ChVehicleCosimTerrainNodeGranularSPH::GetForceWheelProxy(unsigned int i, Te
 // -----------------------------------------------------------------------------
 
 void ChVehicleCosimTerrainNodeGranularSPH::OnAdvance(double step_size) {
+    // Complete construction of the FSI system before running
+    if (!m_FSI_finalized) {
+        m_systemFSI->Finalize();
+        m_FSI_finalized = true;
+    }
+
     double t = 0;
     while (t < step_size) {
         double h = std::min<>(m_step_size, step_size - t);
