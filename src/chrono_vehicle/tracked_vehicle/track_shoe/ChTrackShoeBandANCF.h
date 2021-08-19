@@ -50,7 +50,7 @@ class CH_VEHICLE_API ChTrackShoeBandANCF : public ChTrackShoeBand {
                         ElementType element_type = ElementType::ANCF_4  ///< [in] ANCF shell element type
     );
 
-    virtual ~ChTrackShoeBandANCF() {}
+    virtual ~ChTrackShoeBandANCF();
 
     /// Get the name of the vehicle subsystem template.
     virtual std::string GetTemplateName() const override { return "TrackShoeBandANCF"; }
@@ -115,7 +115,8 @@ class CH_VEHICLE_API ChTrackShoeBandANCF : public ChTrackShoeBand {
 
     ElementType m_element_type;
 
-    std::shared_ptr<fea::ChMesh> m_web_mesh;
+    std::shared_ptr<fea::ChMesh> m_web_mesh;  ///< FEA mesh (owned by containing track assembly)
+
     std::shared_ptr<fea::ChMaterialShellANCF> m_rubber_mat;
     std::shared_ptr<fea::ChMaterialShellANCF> m_steel_mat;
     double m_angle_1;
@@ -124,6 +125,8 @@ class CH_VEHICLE_API ChTrackShoeBandANCF : public ChTrackShoeBand {
     double m_alpha;
 
     unsigned int m_starting_node_index;
+
+    std::vector<std::shared_ptr<ChLinkBase>> m_connections;  ///< constraints for connection to neighbor track shoe
 
     friend class ChTrackAssemblyBandANCF;
 };

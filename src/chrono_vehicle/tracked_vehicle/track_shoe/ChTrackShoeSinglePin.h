@@ -38,7 +38,7 @@ class CH_VEHICLE_API ChTrackShoeSinglePin : public ChTrackShoeSegmented {
     ChTrackShoeSinglePin(const std::string& name  ///< [in] name of the subsystem
                          );
 
-    virtual ~ChTrackShoeSinglePin() {}
+    virtual ~ChTrackShoeSinglePin();
 
     /// Get the name of the vehicle subsystem template.
     virtual std::string GetTemplateName() const override { return "TrackShoeSinglePin"; }
@@ -85,6 +85,9 @@ class CH_VEHICLE_API ChTrackShoeSinglePin : public ChTrackShoeSegmented {
                          ChTrackAssembly* assembly,          ///< [in] containing track assembly
                          bool ccw                            ///< [in] track assembled in counter clockwise direction
                          ) override final;
+
+    std::shared_ptr<ChLinkBase> m_connection_joint;        ///< connection to neighboring track shoe
+    std::shared_ptr<ChLinkRotSpringCB> m_connection_rsda;  ///< optional RSDA on connection
 
     friend class ChSprocketSinglePin;
     friend class SprocketSinglePinContactCB;

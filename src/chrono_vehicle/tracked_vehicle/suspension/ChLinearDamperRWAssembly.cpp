@@ -33,6 +33,17 @@ ChLinearDamperRWAssembly::ChLinearDamperRWAssembly(const std::string& name, bool
     : ChRoadWheelAssembly(name, has_shock) {
 }
 
+ChLinearDamperRWAssembly::~ChLinearDamperRWAssembly() {
+    auto sys = m_arm->GetSystem();
+    if (sys) {
+        sys->Remove(m_arm);
+        ChChassis::RemoveJoint(m_revolute);
+        sys->Remove(m_spring);
+        if (m_shock)
+            sys->Remove(m_shock);
+    }
+}
+
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 void ChLinearDamperRWAssembly::Initialize(std::shared_ptr<ChChassis> chassis,

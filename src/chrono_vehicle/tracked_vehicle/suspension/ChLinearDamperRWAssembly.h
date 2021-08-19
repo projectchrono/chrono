@@ -42,7 +42,7 @@ class CH_VEHICLE_API ChLinearDamperRWAssembly : public ChRoadWheelAssembly {
                              bool has_shock = true     ///< [in] specify whether or not the suspension has a damper
                              );
 
-    virtual ~ChLinearDamperRWAssembly() {}
+    virtual ~ChLinearDamperRWAssembly();
 
     /// Get the name of the vehicle subsystem template.
     virtual std::string GetTemplateName() const override { return "LinearDamperRWAssembly"; }

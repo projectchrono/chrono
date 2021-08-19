@@ -29,6 +29,14 @@ namespace vehicle {
 // -----------------------------------------------------------------------------
 ChRoller::ChRoller(const std::string& name) : ChPart(name), m_track(nullptr) {}
 
+ChRoller::~ChRoller() {
+    auto sys = m_wheel->GetSystem();
+    if (sys) {
+        sys->Remove(m_wheel);
+        sys->Remove(m_revolute);
+    }
+}
+
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 void ChRoller::Initialize(std::shared_ptr<ChBodyAuxRef> chassis, const ChVector<>& location, ChTrackAssembly* track) {

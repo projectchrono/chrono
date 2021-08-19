@@ -36,7 +36,7 @@ class CH_VEHICLE_API ChTrackShoeDoublePin : public ChTrackShoeSegmented {
     ChTrackShoeDoublePin(const std::string& name  ///< [in] name of the subsystem
                          );
 
-    virtual ~ChTrackShoeDoublePin() {}
+    virtual ~ChTrackShoeDoublePin();
 
     /// Get the name of the vehicle subsystem template.
     virtual std::string GetTemplateName() const override { return "TrackShoeDoublePin"; }
@@ -105,6 +105,13 @@ class CH_VEHICLE_API ChTrackShoeDoublePin : public ChTrackShoeSegmented {
 
     std::shared_ptr<ChLinkLockRevolute> m_revolute_L;  ///< handle to shoe - left connector joint
     std::shared_ptr<ChLinkLockRevolute> m_revolute_R;  ///< handle to shoe - right connector joint
+    std::shared_ptr<ChLinkRotSpringCB> m_rsda_L;       ///< optional RSDA on left revolute
+    std::shared_ptr<ChLinkRotSpringCB> m_rsda_R;       ///< optional RSDA on right revolute
+
+    std::shared_ptr<ChLinkBase> m_connection_joint_L;        ///< connection to neighboring track shoe
+    std::shared_ptr<ChLinkBase> m_connection_joint_R;        ///< connection to neighboring track shoe
+    std::shared_ptr<ChLinkRotSpringCB> m_connection_rsda_L;  ///< optional RSDA on connection
+    std::shared_ptr<ChLinkRotSpringCB> m_connection_rsda_R;  ///< optional RSDA on connection
 
   private:
     /// Connect this track shoe to the specified neighbor.

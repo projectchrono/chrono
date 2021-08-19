@@ -43,7 +43,7 @@ class CH_VEHICLE_API ChTrackShoe : public ChPart {
     ChTrackShoe(const std::string& name  ///< [in] name of the subsystem
                 );
 
-    virtual ~ChTrackShoe() {}
+    virtual ~ChTrackShoe();
 
     /// Return the type of track shoe (guiding pin).
     /// A derived class must specify the type of track shoe (which must be

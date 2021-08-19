@@ -25,6 +25,8 @@ namespace vehicle {
 ChDriveline::ChDriveline(const std::string& name) : ChPart(name) {}
 
 ChDriveline::~ChDriveline() {
+    if (!m_driveshaft)
+        return;
     auto sys = m_driveshaft->GetSystem();
     if (sys) {
         sys->Remove(m_driveshaft);

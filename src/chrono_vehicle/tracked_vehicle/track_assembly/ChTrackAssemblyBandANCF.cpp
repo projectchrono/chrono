@@ -82,7 +82,12 @@ ChTrackAssemblyBandANCF::ChTrackAssemblyBandANCF(const std::string& name, Vehicl
       m_angle_3(0),
       m_alpha(0.05) {}
 
-ChTrackAssemblyBandANCF::~ChTrackAssemblyBandANCF() {}
+ChTrackAssemblyBandANCF::~ChTrackAssemblyBandANCF() {
+    auto sys = m_track_mesh->GetSystem();
+    if (sys) {
+        sys->Remove(m_track_mesh);
+    }
+}
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------

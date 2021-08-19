@@ -38,6 +38,17 @@ namespace vehicle {
 // -----------------------------------------------------------------------------
 ChIdler::ChIdler(const std::string& name) : ChPart(name), m_track(nullptr) {}
 
+ChIdler::~ChIdler() {
+    auto sys = m_wheel->GetSystem();
+    if (sys) {
+        sys->Remove(m_wheel);
+        sys->Remove(m_carrier);
+        sys->Remove(m_revolute);
+        sys->Remove(m_prismatic);
+        sys->Remove(m_tensioner);
+    }
+}
+
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 void ChIdler::Initialize(std::shared_ptr<ChBodyAuxRef> chassis, const ChVector<>& location, ChTrackAssembly* track) {

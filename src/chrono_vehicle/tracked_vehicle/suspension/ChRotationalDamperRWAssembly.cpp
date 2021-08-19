@@ -31,6 +31,17 @@ namespace vehicle {
 ChRotationalDamperRWAssembly::ChRotationalDamperRWAssembly(const std::string& name, bool has_shock)
     : ChRoadWheelAssembly(name, has_shock) {}
 
+ChRotationalDamperRWAssembly::~ChRotationalDamperRWAssembly() {
+    auto sys = m_arm->GetSystem();
+    if (sys) {
+        sys->Remove(m_arm);
+        ChChassis::RemoveJoint(m_revolute);
+        sys->Remove(m_spring);
+        if (m_shock)
+            sys->Remove(m_shock);
+    }
+}
+
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 void ChRotationalDamperRWAssembly::Initialize(std::shared_ptr<ChChassis> chassis,

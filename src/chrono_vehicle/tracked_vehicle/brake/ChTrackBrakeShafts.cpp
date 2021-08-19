@@ -23,6 +23,14 @@ namespace vehicle {
 
 ChTrackBrakeShafts::ChTrackBrakeShafts(const std::string& name) : ChTrackBrake(name), m_braking(0) {}
 
+ChTrackBrakeShafts::~ChTrackBrakeShafts() {
+    auto sys = m_shaft->GetSystem();
+    if (sys) {
+        sys->Remove(m_shaft);
+        sys->Remove(m_clutch);
+    }
+}
+
 void ChTrackBrakeShafts::Initialize(std::shared_ptr<ChChassis> chassis, std::shared_ptr<ChSprocket> sprocket) {
     // Create and initialize the brake shaft
     m_shaft = chrono_types::make_shared<ChShaft>();

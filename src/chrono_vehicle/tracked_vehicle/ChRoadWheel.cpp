@@ -29,6 +29,14 @@ namespace vehicle {
 // -----------------------------------------------------------------------------
 ChRoadWheel::ChRoadWheel(const std::string& name) : ChPart(name), m_track(nullptr) {}
 
+ChRoadWheel::~ChRoadWheel() {
+    auto sys = m_wheel->GetSystem();
+    if (sys) {
+        sys->Remove(m_wheel);
+        sys->Remove(m_revolute);
+    }
+}
+
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 void ChRoadWheel::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,

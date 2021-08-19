@@ -32,7 +32,15 @@ namespace vehicle {
 // -----------------------------------------------------------------------------
 ChSprocket::ChSprocket(const std::string& name) : ChPart(name), m_lateral_contact(true) {}
 
-ChSprocket::~ChSprocket() {}
+ChSprocket::~ChSprocket() {
+    auto sys = m_gear->GetSystem();
+    if (sys) {
+        sys->Remove(m_gear);
+        sys->Remove(m_axle);
+        sys->Remove(m_axle_to_spindle);
+        sys->Remove(m_revolute);
+    }
+}
 
 // -----------------------------------------------------------------------------
 void ChSprocket::Initialize(std::shared_ptr<ChBodyAuxRef> chassis, const ChVector<>& location, ChTrackAssembly* track) {
