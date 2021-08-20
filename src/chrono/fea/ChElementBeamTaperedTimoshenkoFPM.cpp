@@ -383,6 +383,29 @@ void ChElementBeamTaperedTimoshenkoFPM::EvaluateSectionForceTorque(const double 
     Mtorque = wrench.segment(3, 3);
 }
 
+void ChElementBeamTaperedTimoshenkoFPM::EvaluateSectionStrain(const double eta,
+                                                           ChVector<>& StrainV_trans,
+                                                           ChVector<>& StrainV_rot) {
+    assert(tapered_section_fpm);
+
+    ChVectorDynamic<> displ(this->GetNdofs());
+    this->GetStateBlock(displ);
+
+    // transform the displacement of two nodes to elastic axis
+    ChVectorDynamic<> displ_ec = this->T * displ;
+
+    ShapeFunctionGroupFPM NxBx;
+    ShapeFunctionsTimoshenkoFPM(NxBx, eta);
+    // the strain displacement matrix B:
+    ChMatrixNM<double, 6, 12> Bx = std::get<1>(NxBx);
+
+    // generalized strains/curvatures;
+    ChVectorN<double, 6> sect_ek = Bx * displ_ec;
+
+    StrainV_trans = sect_ek.segment(0, 3);
+    StrainV_rot = sect_ek.segment(3, 3);
+}
+
 void ChElementBeamTaperedTimoshenkoFPM::ComputeNF(const double U,
                                                   ChVectorDynamic<>& Qi,
                                                   double& detJ,

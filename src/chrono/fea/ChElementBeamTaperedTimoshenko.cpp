@@ -1366,6 +1366,107 @@ void ChElementBeamTaperedTimoshenko::EvaluateSectionForceTorque(const double eta
     }
 }
 
+void ChElementBeamTaperedTimoshenko::EvaluateSectionStrain(const double eta,
+                                                           ChVector<>& StrainV_trans,
+                                                           ChVector<>& StrainV_rot) {
+    assert(tapered_section);
+
+    ChVectorDynamic<> displ(this->GetNdofs());
+    this->GetStateBlock(displ);
+
+    ChVectorDynamic<> displ_ec = this->T * displ;  // transform the displacement of two nodes to elastic axis
+
+    ChVectorN<double, 4> qey;
+    qey << displ_ec(1), displ_ec(5), displ_ec(7), displ_ec(11);
+    ChVectorN<double, 4> qez;
+    qez << displ_ec(2), displ_ec(4), displ_ec(8), displ_ec(10);
+    ChVectorN<double, 2> qeux;
+    qeux << displ_ec(0), displ_ec(6);
+    ChVectorN<double, 2> qerx;
+    qerx << displ_ec(3), displ_ec(9);
+
+    ShapeFunctionGroup NN;
+    ShapeFunctionsTimoshenko(NN, eta);
+    ShapeFunction5Blocks sfblk1d = std::get<2>(NN);
+    ShapeFunction2Blocks sfblk2d = std::get<3>(NN);
+    ShapeFunction2Blocks sfblk3d = std::get<4>(NN);
+    auto dkNx1 = std::get<4>(sfblk1d);
+    auto dkNsy = std::get<1>(sfblk1d);
+    auto dkNsz = std::get<3>(sfblk1d);
+    auto ddkNby = std::get<0>(sfblk2d);
+    auto ddkNbz = std::get<1>(sfblk2d);
+    auto dddkNby = std::get<0>(sfblk3d);
+    auto dddkNbz = std::get<1>(sfblk3d);
+
+    double EA = this->tapered_section->GetAverageSectionParameters()->EA;
+    double GJ = this->tapered_section->GetAverageSectionParameters()->GJ;
+    double GAyy = this->tapered_section->GetAverageSectionParameters()->GAyy;
+    double GAzz = this->tapered_section->GetAverageSectionParameters()->GAzz;
+    double EIyy = this->tapered_section->GetAverageSectionParameters()->EIyy;
+    double EIzz = this->tapered_section->GetAverageSectionParameters()->EIzz;
+
+    double eps = 1.0e-3;
+    bool use_shear_stain = true;  // As default, use shear strain to evaluate the shear forces
+    if (abs(GAyy) < eps ||
+        abs(GAzz) < eps) {  // Sometimes, the user will not input GAyy, GAzz, so GAyy, GAzz may be zero.
+        use_shear_stain = false;
+    }
+
+    // generalized strains/curvatures;
+    ChVectorN<double, 6> sect_ek;
+    sect_ek(0) = dkNx1 * qeux;   // ux
+    sect_ek(3) = dkNx1 * qerx;   // rotx
+    sect_ek(4) = -ddkNbz * qez;  // roty
+    sect_ek(5) = ddkNby * qey;   // rotz
+
+    if (use_shear_stain) {
+        // Strictly speaking, dkNsy * qey,dkNsz * qez are the real shear strains.
+        sect_ek(1) = dkNsy * qey;  // gamma_y = dkNsy * qey; Fy = GAyy * gamma_y;
+        sect_ek(2) = dkNsz * qez;  // gamma_z = dkNsz * qez; Fz = GAzz * gamma_z;
+    } else {
+        // Calculate the shear strain through third-differentian of bending displacement
+        sect_ek(1) = -dddkNby * qey;  // Fy == -EIzz * dddkNby * qey == GAyy * dkNsy * qey;
+        sect_ek(2) = -dddkNbz * qez;  // Fz == -EIyy *  dddkNbz * qez == GAzz * dkNsz * qez;
+    }
+
+    StrainV_trans = sect_ek.segment(0, 3);
+    StrainV_rot = sect_ek.segment(3, 3);
+}
+
+void ChElementBeamTaperedTimoshenko::EvaluateElementStrainEnergy(ChVector<>& StrainEnergyV_trans,
+                                                                 ChVector<>& StrainEnergyV_rot) {
+    ChVectorDynamic<> displ(this->GetNdofs());
+    this->GetStateBlock(displ);
+
+    ChVectorN<double, 12> strain_energy = 1.0 / 2.0 * displ.asDiagonal() * this->Km * displ;
+    ChVectorN<double, 6> strain_energy_v;
+    // double strain_energy_sum = 0;
+    for (int i = 0; i < 6; i++) {
+        strain_energy_v(i) = strain_energy(i) + strain_energy(i + 6);
+        // strain_energy_sum += strain_energy_v(i);
+    }
+
+    StrainEnergyV_trans = strain_energy_v.segment(0, 3);
+    StrainEnergyV_rot = strain_energy_v.segment(3, 3);
+}
+
+void ChElementBeamTaperedTimoshenko::EvaluateElementDampingEnergy(ChVector<>& DampingEnergyV_trans,
+                                                                  ChVector<>& DampingEnergyV_rot) {
+    ChVectorDynamic<> displ_dt(this->GetNdofs());
+    this->GetField_dt(displ_dt);
+
+    ChVectorN<double, 12> damping_energy = 1.0 / 2.0 * displ_dt.asDiagonal() * this->Rm * displ_dt;
+    ChVectorN<double, 6> damping_energy_v;
+    // double damping_energy_sum = 0;
+    for (int i = 0; i < 6; i++) {
+        damping_energy_v(i) = damping_energy(i) + damping_energy(i + 6);
+        // damping_energy_sum += damping_energy_v(i);
+    }
+
+    DampingEnergyV_trans = damping_energy_v.segment(0, 3);
+    DampingEnergyV_rot = damping_energy_v.segment(3, 3);
+}
+
 void ChElementBeamTaperedTimoshenko::LoadableGetStateBlock_x(int block_offset, ChState& mD) {
     mD.segment(block_offset + 0, 3) = nodes[0]->GetPos().eigen();
     mD.segment(block_offset + 3, 4) = nodes[0]->GetRot().eigen();

@@ -232,6 +232,19 @@ class ChApi ChElementBeamTaperedTimoshenko : public ChElementBeam,
     /* To be completed: Created to be consistent with base class implementation*/
     virtual void EvaluateSectionStrain(const double eta, ChVector<>& StrainV) override {}
 
+    /// Gets the strains(traction along x, shear along y, along shear z, torsion about x, bending about y, on bending
+    /// about z) at a section along the beam line, at abscissa 'eta'. It's evaluated at the elastic center. Note, eta=-1
+    /// at node1, eta=+1 at node2. Results are not corotated, and are expressed in the reference system of beam.
+    virtual void EvaluateSectionStrain(const double eta, ChVector<>& StrainV_trans, ChVector<>& StrainV_rot);
+
+    /// Gets the elastic strain energy(traction along x, shear along y, along shear z, torsion about x, bending about
+    /// y, on bending about z) in the element.
+    virtual void EvaluateElementStrainEnergy(ChVector<>& StrainEnergyV_trans, ChVector<>& StrainEnergyV_rot);
+
+    /// Gets the damping dissipated energy(traction along x, shear along y, along shear z, torsion about x, bending
+    /// about y, on bending about z) in the element.
+    virtual void EvaluateElementDampingEnergy(ChVector<>& DampingEnergyV_trans, ChVector<>& DampingEnergyV_rot);
+
     //
     // Functions for interfacing to the solver
     //            (***not needed, thank to bookkeeping in parent class ChElementGeneric)
