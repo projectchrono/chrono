@@ -64,6 +64,17 @@ class CH_VEHICLE_API ChVehicleCosimTerrainNodeChrono : public ChVehicleCosimTerr
         UNKNOWN        ///< unknown terrain type
     };
 
+    /// Specification of a rigid obstacle
+    struct RigidObstacle {
+        std::string m_mesh_filename;
+        ChVector<> m_init_pos;
+        ChQuaternion<> m_init_rot;
+        ChVector<> m_oobb_center;
+        ChVector<> m_oobb_dims;
+        double m_density;
+        MaterialInfo m_contact_mat;
+    };
+
     virtual ~ChVehicleCosimTerrainNodeChrono() {}
 
     /// Return the type of this terrain node.
@@ -81,11 +92,25 @@ class CH_VEHICLE_API ChVehicleCosimTerrainNodeChrono : public ChVehicleCosimTerr
     /// Get the terrain type from the given JSON specification file.
     static Type GetTypeFromSpecfile(const std::string& specfile);
 
+    /// Get the terrain dimensions (length and width) from the given JSON specification file.
+    static ChVector2<> GetSizeFromSpecfile(const std::string& specfile);
+
     /// Set the proxy bodies as fixed to ground.
     void SetProxyFixed(bool fixed) { m_fixed_proxies = fixed; }
 
     /// Return the terrain initial height.
     virtual double GetInitHeight() const override final { return m_init_height; }
+
+    /// Add a rigid obstacle.
+    void AddRigidObstacle(const RigidObstacle& obstacle);
+
+  protected:
+    /// Construct a base class terrain node.
+    ChVehicleCosimTerrainNodeChrono(Type type,              ///< terrain type
+                                    double length,          ///< terrain patch length
+                                    double width,           ///< terain patch width
+                                    ChContactMethod method  ///< contact method (SMC or NSC)
+    );
 
     /// Initialize this Chrono terrain node.
     /// Construct the terrain system, the tire material, and the proxy bodies.
@@ -96,14 +121,6 @@ class CH_VEHICLE_API ChVehicleCosimTerrainNodeChrono : public ChVehicleCosimTerr
     /// its state by the specified time step.  A node is allowed to take as many internal
     /// integration steps as required, but no inter-node communication should occur.
     virtual void OnAdvance(double step_size) override;
-
-  protected:
-    /// Construct a base class terrain node.
-    ChVehicleCosimTerrainNodeChrono(Type type,              ///< terrain type
-                                    double length,          ///< terrain patch length
-                                    double width,           ///< terain patch width
-                                    ChContactMethod method  ///< contact method (SMC or NSC)
-    );
 
     /// Return a pointer to the underlying Chrono system.
     virtual ChSystem* GetSystem() = 0;
@@ -144,6 +161,8 @@ class CH_VEHICLE_API ChVehicleCosimTerrainNodeChrono : public ChVehicleCosimTerr
     bool m_fixed_proxies;                                             ///< are proxy bodies fixed to ground?
     std::vector<Proxies> m_proxies;                                   ///< proxy bodies for each tire
     std::vector<std::shared_ptr<ChMaterialSurface>> m_material_tire;  ///< material properties for proxy bodies
+
+    std::vector<RigidObstacle> m_obstacles;  ///< list of rigid obstacles
 };
 
 /// @} vehicle_cosim_chrono

@@ -104,6 +104,25 @@ ChVehicleCosimTerrainNodeChrono::Type ChVehicleCosimTerrainNodeChrono::GetTypeFr
     return GetTypeFromString(d["Type"].GetString());
 }
 
+ChVector2<> ChVehicleCosimTerrainNodeChrono::GetSizeFromSpecfile(const std::string& specfile) {
+    ChVector2<> size;
+
+    Document d;
+    if (!ReadSpecfile(specfile, d)) {
+        return size;
+    }
+
+    if (!d.HasMember("Patch dimensions")) {
+        cout << "ERROR: JSON file " << specfile << " does not specify terrain patch size!\n" << endl;
+        return size;
+    }
+
+    size.x() = d["Patch dimensions"]["Length"].GetDouble();
+    size.y() = d["Patch dimensions"]["Width"].GetDouble();
+
+    return size;
+}
+
 // -----------------------------------------------------------------------------
 // Construction of the base Chrono terrain node.
 // -----------------------------------------------------------------------------
@@ -125,6 +144,10 @@ ChVehicleCosimTerrainNodeChrono::ChVehicleCosimTerrainNodeChrono(Type type,
             m_material_terrain = chrono_types::make_shared<ChMaterialSurfaceNSC>();
             break;
     }
+}
+
+void ChVehicleCosimTerrainNodeChrono::AddRigidObstacle(const RigidObstacle& obstacle) {
+    m_obstacles.push_back(obstacle);
 }
 
 // -----------------------------------------------------------------------------

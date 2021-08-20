@@ -501,8 +501,39 @@ void ChVehicleCosimTerrainNodeGranularOMP::Construct() {
     if (m_verbose)
         cout << "[Terrain node] initial height = " << m_init_height << endl;
 
-    // Mark system as constructed.
-    m_constructed = true;
+    // Add all rigid obstacles
+    for (auto& b : m_obstacles) {
+        auto mat = b.m_contact_mat.CreateMaterial(m_system->GetContactMethod());
+        auto trimesh = chrono_types::make_shared<geometry::ChTriangleMeshConnected>();
+        trimesh->LoadWavefrontMesh(GetChronoDataFile(b.m_mesh_filename), true, true);
+        double mass;
+        ChVector<> baricenter;
+        ChMatrix33<> inertia;
+        trimesh->ComputeMassProperties(true, mass, baricenter, inertia);
+
+        auto body = std::shared_ptr<ChBody>(m_system->NewBody());
+        body->SetNameString("obstacle");
+        body->SetPos(b.m_init_pos);
+        body->SetRot(b.m_init_rot);
+        body->SetMass(mass * b.m_density);
+        body->SetInertia(inertia * b.m_density);
+        body->SetBodyFixed(false);
+        body->SetCollide(true);
+
+        body->GetCollisionModel()->ClearModel();
+        body->GetCollisionModel()->AddTriangleMesh(mat, trimesh, false, false, ChVector<>(0), ChMatrix33<>(1),
+                                                   m_radius_g);
+        body->GetCollisionModel()->SetFamily(2);
+        body->GetCollisionModel()->BuildModel();
+
+        auto trimesh_shape = chrono_types::make_shared<ChTriangleMeshShape>();
+        trimesh_shape->SetMesh(trimesh);
+        trimesh_shape->Pos = ChVector<>(0, 0, 0);
+        trimesh_shape->Rot = ChQuaternion<>(1, 0, 0, 0);
+        body->GetAssets().push_back(trimesh_shape);
+
+        m_system->AddBody(body);
+    }
 
 #ifdef CHRONO_OPENGL
     // Create the visualization window
@@ -555,6 +586,9 @@ void ChVehicleCosimTerrainNodeGranularOMP::Construct() {
     outf << "Proxy body properties" << endl;
     outf << "   proxies fixed? " << (m_fixed_proxies ? "YES" : "NO") << endl;
     outf << "   proxy contact radius = " << m_radius_p << endl;
+
+    // Mark system as constructed.
+    m_constructed = true;
 }
 
 // -----------------------------------------------------------------------------
