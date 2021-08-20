@@ -64,15 +64,15 @@ class CH_VEHICLE_API ChVehicleCosimTerrainNodeChrono : public ChVehicleCosimTerr
         UNKNOWN        ///< unknown terrain type
     };
 
-    /// Specification of a rigid obstacle
+    /// Specification of a rigid obstacle.
     struct RigidObstacle {
-        std::string m_mesh_filename;
-        ChVector<> m_init_pos;
-        ChQuaternion<> m_init_rot;
-        ChVector<> m_oobb_center;
-        ChVector<> m_oobb_dims;
-        double m_density;
-        MaterialInfo m_contact_mat;
+        std::string m_mesh_filename;  ///< OBJ file with mesh specification
+        double m_density;             ///< material density
+        ChVector<> m_init_pos;        ///< initial position of obstacle
+        ChQuaternion<> m_init_rot;    ///< initial orientation of obstacle
+        ChVector<> m_oobb_center;     ///< center of bounding box
+        ChVector<> m_oobb_dims;       ///< dimensions of bounding box
+        MaterialInfo m_contact_mat;   ///< contact material parameters
     };
 
     virtual ~ChVehicleCosimTerrainNodeChrono() {}

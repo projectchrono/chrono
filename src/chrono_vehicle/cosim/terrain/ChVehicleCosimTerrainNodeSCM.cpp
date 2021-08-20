@@ -240,6 +240,9 @@ void ChVehicleCosimTerrainNodeSCM::Construct() {
         trimesh_shape->Rot = ChQuaternion<>(1, 0, 0, 0);
         body->GetAssets().push_back(trimesh_shape);
 
+        // Add corresponding moving patch to SCM terrain
+        m_terrain->AddMovingPatch(body, b.m_oobb_center, b.m_oobb_dims);
+
         m_system->AddBody(body);
     }
 
@@ -325,6 +328,10 @@ void ChVehicleCosimTerrainNodeSCM::CreateWheelProxy(unsigned int i) {
 
     m_system->AddBody(body);
     m_proxies[i].push_back(ProxyBody(body, 0));
+
+    // Add corresponding moving patch to SCM terrain
+    m_terrain->AddMovingPatch(body, ChVector<>(0, 0, 0),
+                              ChVector<>(2 * m_tire_radius[i], m_tire_width[i], 2 * m_tire_radius[i]));
 
 #ifdef CHRONO_IRRLICHT
     // Bind Irrlicht assets
