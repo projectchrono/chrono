@@ -202,10 +202,12 @@ int main(int argc, char** argv) {
         node = tire;
     }
 
-    // Initialize systems.
+    // Initialize systems
+    // (perform initial inter-node data exchange)
     node->Initialize();
 
-    // Perform co-simulation.
+    // Perform co-simulation
+    // (perform synchronization inter-node data exchange)
     int output_frame = 0;
 
     for (int is = 0; is < sim_steps; is++) {

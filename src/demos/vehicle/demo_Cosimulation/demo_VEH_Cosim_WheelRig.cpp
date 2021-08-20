@@ -207,7 +207,7 @@ int main(int argc, char** argv) {
     int sim_steps = (int)std::ceil(sim_time / step_size);
     int output_steps = (int)std::ceil(1 / (output_fps * step_size));
 
-    // Create the node (a rig node or a terrain node, depending on rank).
+    // Create the node (a rig, tire, or terrain node, depending on rank).
     ChVehicleCosimBaseNode* node = nullptr;
 
     if (rank == MBS_NODE_RANK) {
@@ -229,7 +229,7 @@ int main(int argc, char** argv) {
 
         node = mbs;
 
-    }  // if RIG_NODE_RANK
+    }  // if MBS_NODE_RANK
 
     if (rank == TIRE_NODE_RANK(0)) {
         if (verbose)
@@ -447,7 +447,7 @@ bool GetProblemSpecs(int argc,
                      bool& render,
                      bool& verbose,
                      std::string& suffix) {
-    ChCLI cli(argv[0], "Single-wheel test rig simulation.");
+    ChCLI cli(argv[0], "Single-wheel test rig simulation (run on 3 MPI ranks)");
 
     cli.AddOption<std::string>("Experiment", "terrain_specfile", "Terrain specification file [JSON format]");
     cli.AddOption<std::string>("Experiment", "tire_specfile", "Tire specification file [JSON format]");
