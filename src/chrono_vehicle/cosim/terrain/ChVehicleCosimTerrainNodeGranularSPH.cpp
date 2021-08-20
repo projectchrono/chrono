@@ -379,6 +379,7 @@ void ChVehicleCosimTerrainNodeGranularSPH::Construct() {
 
         auto trimesh_shape = chrono_types::make_shared<ChTriangleMeshShape>();
         trimesh_shape->SetMesh(trimesh);
+        trimesh_shape->SetName(filesystem::path(b.m_mesh_filename).stem());
         trimesh_shape->Pos = ChVector<>(0, 0, 0);
         trimesh_shape->Rot = ChQuaternion<>(1, 0, 0, 0);
         body->GetAssets().push_back(trimesh_shape);
@@ -442,6 +443,7 @@ void ChVehicleCosimTerrainNodeGranularSPH::CreateWheelProxy(unsigned int i) {
     // Set visualization asset
     auto trimesh_shape = chrono_types::make_shared<ChTriangleMeshShape>();
     trimesh_shape->SetMesh(trimesh);
+    trimesh_shape->SetName("wheel_" + std::to_string(i));
     trimesh_shape->Pos = ChVector<>(0, 0, 0);
     trimesh_shape->Rot = ChQuaternion<>(1, 0, 0, 0);
     body->GetAssets().push_back(trimesh_shape);
