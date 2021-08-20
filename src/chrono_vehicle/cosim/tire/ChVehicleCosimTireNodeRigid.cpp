@@ -88,7 +88,23 @@ void ChVehicleCosimTireNodeRigid::ApplySpindleState(const BodyState& spindle_sta
     m_spindle->SetWvel_par(spindle_state.ang_vel);
 }
 
+void ChVehicleCosimTireNodeRigid::ApplySpindleForce(const TerrainForce& spindle_force) {
+    // Cache spindle force for reporting
+    m_force = spindle_force;
+}
+
 void ChVehicleCosimTireNodeRigid::OnOutputData(int frame) {
+    // Append to results output file
+    if (m_outf.is_open()) {
+        std::string del("  ");
+
+        m_outf << frame << del;
+        m_outf << m_force.point.x() << del << m_force.point.y() << del << m_force.point.z() << del;
+        m_outf << m_force.force.x() << del << m_force.force.y() << del << m_force.force.z() << del;
+        m_outf << m_force.moment.x() << del << m_force.moment.y() << del << m_force.moment.z() << del;
+        m_outf << endl;
+    }
+
     // Create and write frame output file.
     utils::CSV_writer csv(" ");
     WriteTireStateInformation(csv);

@@ -130,21 +130,25 @@ class CH_VEHICLE_API ChVehicleCosimTireNode : public ChVehicleCosimBaseNode {
 
     /// Apply the spindle state.
     /// The BodyState struct contains the spindle body state as received from the MBS node.
-    virtual void ApplySpindleState(const BodyState& spindle_state) = 0;
-
-    /// Load current tire mesh state.
-    /// A derived class which implements the MESH communication interface must override this function and must load the
-    /// provided MeshState struct to be sent to the TERRAIN node.
-    virtual void LoadMeshState(MeshState& mesh_state) {
-        if (GetInterfaceType() == InterfaceType::MESH) {
-            throw ChException("Current tire does not properly implement the MESH communication interface!");
-        }
-    }
+    virtual void ApplySpindleState(const BodyState& spindle_state) {}
 
     /// Load current spindle force.
     /// A derived class which implements the MESH communication interface must override this function and must load the
     /// provided TerrainForce struct to be sent to the MBS node.
     virtual void LoadSpindleForce(TerrainForce& spindle_force) {
+        if (GetInterfaceType() == InterfaceType::MESH) {
+            throw ChException("Current tire does not properly implement the MESH communication interface!");
+        }
+    }
+ 
+    /// Apply the spindle force (BODY communication interface).
+    /// The TerrainForce struct contains the terrain forces applied to the spindle as received from the TERRAIN node.
+    virtual void ApplySpindleForce(const TerrainForce& spindle_force) {}
+
+    /// Load current tire mesh state.
+    /// A derived class which implements the MESH communication interface must override this function and must load the
+    /// provided MeshState struct to be sent to the TERRAIN node.
+    virtual void LoadMeshState(MeshState& mesh_state) {
         if (GetInterfaceType() == InterfaceType::MESH) {
             throw ChException("Current tire does not properly implement the MESH communication interface!");
         }

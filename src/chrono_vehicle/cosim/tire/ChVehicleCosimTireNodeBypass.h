@@ -68,9 +68,6 @@ class CH_VEHICLE_API ChVehicleCosimTireNodeBypass : public ChVehicleCosimTireNod
     /// A bypass tire requires no construction.
     virtual void InitializeTire(std::shared_ptr<ChWheel> wheel) override {}
 
-    /// Apply the spindle state (received from MBS node).
-    virtual void ApplySpindleState(const BodyState& spindle_state) {}
-
   private:
     double m_mass;
     double m_radius;

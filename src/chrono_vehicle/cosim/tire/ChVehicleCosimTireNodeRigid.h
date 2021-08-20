@@ -72,6 +72,9 @@ class CH_VEHICLE_API ChVehicleCosimTireNodeRigid : public ChVehicleCosimTireNode
     /// Apply the spindle state (received from MBS node).
     virtual void ApplySpindleState(const BodyState& spindle_state) override;
 
+    /// Apply the spindle force (received from TERRAIN node).
+    virtual void ApplySpindleForce(const TerrainForce& spindle_force) override;
+
     /// Perform additional output at the specified frame (called once per integration step).
     virtual void OnOutputData(int frame) override;
 
@@ -84,6 +87,7 @@ class CH_VEHICLE_API ChVehicleCosimTireNodeRigid : public ChVehicleCosimTireNode
     std::shared_ptr<ChRigidTire> m_tire;                   ///< rigid tire
     std::vector<std::vector<unsigned int>> m_adjElements;  ///< list of neighboring elements for each mesh vertex
     std::vector<double> m_vertexArea;                      ///< representative areas for each mesh vertex
+    TerrainForce m_force;                                  ///< cached force received from Terran node
 };
 
 /// @} vehicle_cosim_tire

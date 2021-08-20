@@ -344,7 +344,7 @@ void ChVehicleCosimTireNode::SynchronizeBody(int step_number, double time) {
     spindle_state.lin_vel = ChVector<>(state_data[7], state_data[8], state_data[9]);
     spindle_state.ang_vel = ChVector<>(state_data[10], state_data[11], state_data[12]);
 
-    // Pass it to derived class.
+    // Pass it to derived class
     ApplySpindleState(spindle_state);
 
     // Send spindle state data to Terrain node
@@ -353,6 +353,15 @@ void ChVehicleCosimTireNode::SynchronizeBody(int step_number, double time) {
     // Receive spindle force from TERRAIN NODE and send to MBS node
     double force_data[6];
     MPI_Recv(force_data, 6, MPI_DOUBLE, TERRAIN_NODE_RANK, step_number, MPI_COMM_WORLD, &status);
+
+    TerrainForce spindle_force;
+    spindle_force.force = ChVector<>(force_data[0], force_data[1], force_data[2]);
+    spindle_force.moment = ChVector<>(force_data[3], force_data[4], force_data[5]);
+
+    // Pass it to derived class
+    ApplySpindleForce(spindle_force);
+
+    // Send spindle force to MBS node
     MPI_Send(force_data, 6, MPI_DOUBLE, MBS_NODE_RANK, step_number, MPI_COMM_WORLD);
 }
 
@@ -429,8 +438,6 @@ void ChVehicleCosimTireNode::SynchronizeMesh(int step_number, double time) {
 }
 
 void ChVehicleCosimTireNode::OutputData(int frame) {
-    //// TODO
-
     OnOutputData(frame);
 }
 
