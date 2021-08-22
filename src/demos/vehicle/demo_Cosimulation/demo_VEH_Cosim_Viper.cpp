@@ -60,6 +60,7 @@ bool GetProblemSpecs(int argc,
                      char** argv,
                      int rank,
                      std::string& terrain_specfile,
+                     ChVector2<>& init_loc,
                      double& terrain_length,
                      double& terrain_width,
                      int& nthreads_tire,
@@ -158,6 +159,7 @@ int main(int argc, char** argv) {
 
     // Parse command line arguments
     std::string terrain_specfile;
+    ChVector2<> init_loc(0, 0);
     double terrain_length = -1;
     double terrain_width = -1;
     int nthreads_tire = 1;
@@ -172,7 +174,7 @@ int main(int argc, char** argv) {
     bool verbose = true;
     bool use_DBP_rig = false;
     bool add_obstacles = false;
-    if (!GetProblemSpecs(argc, argv, rank, terrain_specfile, terrain_length, terrain_width, nthreads_tire,
+    if (!GetProblemSpecs(argc, argv, rank, terrain_specfile, init_loc, terrain_length, terrain_width, nthreads_tire,
                          nthreads_terrain, step_size, fixed_settling_time, KE_threshold, settling_time, sim_time,
                          output_fps, render_fps, verbose, use_DBP_rig, add_obstacles)) {
         MPI_Finalize();
@@ -195,12 +197,6 @@ int main(int argc, char** argv) {
         terrain_length = size.x();
     if (terrain_width < 0)
         terrain_width = size.y();
-
-    // Set initial rover location
-    ChVector<> init_loc(-terrain_length / 2 + 6, terrain_width / 4, 0.5);
-    if (use_DBP_rig) {
-        init_loc = ChVector<>(-terrain_length / 2 + 6, 0, 0.5);
-    }
 
     // Do not create obstacles if a DBP rig is attached
     if (use_DBP_rig) {
@@ -275,7 +271,7 @@ int main(int argc, char** argv) {
         viper->SetDriver(driver);
         viper->SetIntegratorType(ChTimestepper::Type::EULER_IMPLICIT_LINEARIZED, ChSolver::Type::BARZILAIBORWEIN);
         viper->SetVerbose(verbose);
-        viper->SetInitialLocation(init_loc);
+        viper->SetInitialLocation(ChVector<>(init_loc.x(), init_loc.y(), 0.5));
         viper->SetInitialYaw(0);
         viper->SetStepSize(step_size);
         viper->SetNumThreads(1);
@@ -470,6 +466,7 @@ bool GetProblemSpecs(int argc,
                      char** argv,
                      int rank,
                      std::string& terrain_specfile,
+                     ChVector2<>& init_loc,
                      double& terrain_length,
                      double& terrain_width,
                      int& nthreads_tire,
@@ -491,6 +488,7 @@ bool GetProblemSpecs(int argc,
                           std::to_string(terrain_length));
     cli.AddOption<double>("Experiment", "terrain_width", "If positive, overwrite terrain width read from JSON file",
                           std::to_string(terrain_width));
+    cli.AddOption<std::vector<double>>("Experiment", "init_loc", "Initial rover position (x,y)", "0,0");
     cli.AddOption<bool>("Experiment", "attach_rig", "Attache DBP rig");
     cli.AddOption<bool>("Experiment", "add_obstacles", "Add rigid obstacles");
 
@@ -526,6 +524,17 @@ bool GetProblemSpecs(int argc,
         }
         return false;
     }
+
+    auto loc = cli.GetAsType<std::vector<double>>("init_loc");
+    if (loc.size() != 2) {
+        if (rank == 0) {
+            cout << "\nERROR: Incorrect initial location!\n\n" << endl;
+            cli.Help();
+        }
+        return false;
+    }
+    init_loc.x() = loc[0];
+    init_loc.y() = loc[1];
 
     terrain_length = cli.GetAsType<double>("terrain_length");
     terrain_width = cli.GetAsType<double>("terrain_width");
