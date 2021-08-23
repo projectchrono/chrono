@@ -56,6 +56,7 @@
 #include "chrono_vehicle/wheeled_vehicle/suspension/ThreeLinkIRS.h"
 #include "chrono_vehicle/wheeled_vehicle/suspension/ToeBarLeafspringAxle.h"
 #include "chrono_vehicle/wheeled_vehicle/suspension/SAEToeBarLeafspringAxle.h"
+#include "chrono_vehicle/wheeled_vehicle/subchassis/Balancer.h"
 #include "chrono_vehicle/wheeled_vehicle/tire/ANCFTire.h"
 #include "chrono_vehicle/wheeled_vehicle/tire/FEATire.h"
 #include "chrono_vehicle/wheeled_vehicle/tire/FialaTire.h"
@@ -454,6 +455,33 @@ std::shared_ptr<ChWheel> ReadWheelJSON(const std::string& filename) {
     }
 
     return wheel;
+}
+
+std::shared_ptr<ChSubchassis> ReadSubchassisJSON(const std::string& filename) {
+    std::shared_ptr<ChSubchassis> chassis;
+
+    Document d;
+    ReadFileJSON(filename, d);
+    if (d.IsNull())
+        return nullptr;
+
+    // Check that the given file is a wheel specification file.
+    assert(d.HasMember("Type"));
+    std::string type = d["Type"].GetString();
+    assert(type.compare("Subchassis") == 0);
+
+    // Extract the wheel type.
+    assert(d.HasMember("Template"));
+    std::string subtype = d["Template"].GetString();
+
+    // Create the wheel using the appropriate template.
+    if (subtype.compare("Balancer") == 0) {
+        chassis = chrono_types::make_shared<Balancer>(d);
+    } else {
+        throw ChException("Subchassis type not supported in ReadSubchassisJSON.");
+    }
+
+    return chassis;
 }
 
 std::shared_ptr<ChBrake> ReadBrakeJSON(const std::string& filename) {

@@ -146,7 +146,7 @@ void MTV_Vehicle::Initialize(const ChCoordsys<>& chassisPos, double chassisFwdVe
     m_chassis_connectors[0]->Initialize(m_chassis, m_chassis_rear[0]);
 
     // Initialize the balancer subsystem
-    m_subchassis[0]->Initialize(m_chassis_rear[0]->GetBody(), ChVector<>(-4.1, 0.0, 0.26));
+    m_subchassis[0]->Initialize(m_chassis_rear[0], ChVector<>(-4.1, 0.0, 0.26));
 
     // Initialize the steering subsystem (specify the steering frame relative to the chassis reference frame)
     ChVector<> offset = ChVector<>(0, 0, 0);

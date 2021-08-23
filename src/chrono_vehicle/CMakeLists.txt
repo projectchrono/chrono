@@ -398,8 +398,8 @@ set(CV_WV_SUBCHASSIS_FILES
     wheeled_vehicle/subchassis/ChBalancer.h
     wheeled_vehicle/subchassis/ChBalancer.cpp
 
-    #wheeled_vehicle/subchassis/Balancer.h
-    #wheeled_vehicle/subchassis/Balancer.cpp
+    wheeled_vehicle/subchassis/Balancer.h
+    wheeled_vehicle/subchassis/Balancer.cpp
 )
 source_group("wheeled_vehicle\\subchassis" FILES ${CV_WV_SUBCHASSIS_FILES})
 
