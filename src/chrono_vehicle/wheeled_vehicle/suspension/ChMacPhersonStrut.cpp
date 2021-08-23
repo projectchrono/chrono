@@ -56,8 +56,9 @@ ChMacPhersonStrut::~ChMacPhersonStrut() {
 
             sys->Remove(m_cylindricalStrut[i]);
             sys->Remove(m_universalStrut[i]);
-            sys->Remove(m_revoluteLCA[i]);
-            sys->Remove(m_sphericalLCA[i]);
+
+            ChChassis::RemoveJoint(m_revoluteLCA[i]);
+            ChChassis::RemoveJoint(m_sphericalLCA[i]);
 
             if (m_tierod[i]) {
                 sys->Remove(m_tierod[i]);
@@ -220,17 +221,16 @@ void ChMacPhersonStrut::InitializeSide(VehicleSide side,
     u = Vcross(v, w);
     rot.Set_A_axis(u, v, w);
 
-    m_revoluteLCA[side] = chrono_types::make_shared<ChLinkLockRevolute>();
-    m_revoluteLCA[side]->SetNameString(m_name + "_revoluteLCA" + suffix);
-    m_revoluteLCA[side]->Initialize(chassis->GetBody(), m_LCA[side],
-                                    ChCoordsys<>((points[LCA_F] + points[LCA_B]) / 2, rot.Get_A_quaternion()));
-    chassis->GetSystem()->AddLink(m_revoluteLCA[side]);
+    m_revoluteLCA[side] = chrono_types::make_shared<ChVehicleJoint>(
+        ChVehicleJoint::Type::REVOLUTE, m_name + "_revoluteLCA" + suffix, chassis->GetBody(), m_LCA[side],
+        ChCoordsys<>((points[LCA_F] + points[LCA_B]) / 2, rot.Get_A_quaternion()), getLCABushingData());
+    chassis->AddJoint(m_revoluteLCA[side]);
 
     // Create and initialize the spherical joint between upright and LCA.
-    m_sphericalLCA[side] = chrono_types::make_shared<ChLinkLockSpherical>();
-    m_sphericalLCA[side]->SetNameString(m_name + "_sphericalLCA" + suffix);
-    m_sphericalLCA[side]->Initialize(m_LCA[side], m_upright[side], ChCoordsys<>(points[LCA_U], QUNIT));
-    chassis->GetSystem()->AddLink(m_sphericalLCA[side]);
+    m_sphericalLCA[side] =
+        chrono_types::make_shared<ChVehicleJoint>(ChVehicleJoint::Type::SPHERICAL, m_name + "_sphericalLCA" + suffix,
+                                                  m_LCA[side], m_upright[side], ChCoordsys<>(points[LCA_U], QUNIT));
+    chassis->AddJoint(m_sphericalLCA[side]);
 
     if (UseTierodBodies()) {
         // Orientation of tierod body
@@ -639,10 +639,14 @@ void ChMacPhersonStrut::ExportComponentList(rapidjson::Document& jsonDocument) c
     joints.push_back(m_cylindricalStrut[1]);
     joints.push_back(m_universalStrut[0]);
     joints.push_back(m_universalStrut[1]);
-    joints.push_back(m_revoluteLCA[0]);
-    joints.push_back(m_revoluteLCA[1]);
-    joints.push_back(m_sphericalLCA[0]);
-    joints.push_back(m_sphericalLCA[1]);
+    m_revoluteLCA[0]->IsKinematic() ? joints.push_back(m_revoluteLCA[0]->GetAsLink())
+                                    : bushings.push_back(m_revoluteLCA[0]->GetAsBushing());
+    m_revoluteLCA[1]->IsKinematic() ? joints.push_back(m_revoluteLCA[1]->GetAsLink())
+                                    : bushings.push_back(m_revoluteLCA[1]->GetAsBushing());
+    m_sphericalLCA[0]->IsKinematic() ? joints.push_back(m_sphericalLCA[0]->GetAsLink())
+                                     : bushings.push_back(m_sphericalLCA[0]->GetAsBushing());
+    m_sphericalLCA[1]->IsKinematic() ? joints.push_back(m_sphericalLCA[1]->GetAsLink())
+                                     : bushings.push_back(m_sphericalLCA[1]->GetAsBushing());
     if (UseTierodBodies()) {
         m_sphericalTierod[0]->IsKinematic() ? joints.push_back(m_sphericalTierod[0]->GetAsLink())
                                             : bushings.push_back(m_sphericalTierod[0]->GetAsBushing());
@@ -699,10 +703,14 @@ void ChMacPhersonStrut::Output(ChVehicleOutput& database) const {
     joints.push_back(m_cylindricalStrut[1]);
     joints.push_back(m_universalStrut[0]);
     joints.push_back(m_universalStrut[1]);
-    joints.push_back(m_revoluteLCA[0]);
-    joints.push_back(m_revoluteLCA[1]);
-    joints.push_back(m_sphericalLCA[0]);
-    joints.push_back(m_sphericalLCA[1]);
+    m_revoluteLCA[0]->IsKinematic() ? joints.push_back(m_revoluteLCA[0]->GetAsLink())
+                                    : bushings.push_back(m_revoluteLCA[0]->GetAsBushing());
+    m_revoluteLCA[1]->IsKinematic() ? joints.push_back(m_revoluteLCA[1]->GetAsLink())
+                                    : bushings.push_back(m_revoluteLCA[1]->GetAsBushing());
+    m_sphericalLCA[0]->IsKinematic() ? joints.push_back(m_sphericalLCA[0]->GetAsLink())
+                                     : bushings.push_back(m_sphericalLCA[0]->GetAsBushing());
+    m_sphericalLCA[1]->IsKinematic() ? joints.push_back(m_sphericalLCA[1]->GetAsLink())
+                                     : bushings.push_back(m_sphericalLCA[1]->GetAsBushing());
     if (UseTierodBodies()) {
         m_sphericalTierod[0]->IsKinematic() ? joints.push_back(m_sphericalTierod[0]->GetAsLink())
                                             : bushings.push_back(m_sphericalTierod[0]->GetAsBushing());

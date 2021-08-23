@@ -31,7 +31,7 @@ namespace vehicle {
 // file.
 // -----------------------------------------------------------------------------
 MacPhersonStrut::MacPhersonStrut(const std::string& filename)
-    : ChMacPhersonStrut(""), m_springForceCB(NULL), m_shockForceCB(NULL) {
+    : ChMacPhersonStrut(""), m_springForceCB(nullptr), m_shockForceCB(nullptr), m_LCABushingData(nullptr) {
     Document d;
     ReadFileJSON(filename, d);
     if (d.IsNull())
@@ -43,7 +43,7 @@ MacPhersonStrut::MacPhersonStrut(const std::string& filename)
 }
 
 MacPhersonStrut::MacPhersonStrut(const rapidjson::Document& d)
-    : ChMacPhersonStrut(""), m_springForceCB(NULL), m_shockForceCB(NULL) {
+    : ChMacPhersonStrut(""), m_springForceCB(nullptr), m_shockForceCB(nullptr), m_LCABushingData(nullptr) {
     Create(d);
 }
 
@@ -89,6 +89,9 @@ void MacPhersonStrut::Create(const rapidjson::Document& d) {
     m_points[LCA_F] = ReadVectorJSON(d["Control Arm"]["Location Chassis Front"]);
     m_points[LCA_B] = ReadVectorJSON(d["Control Arm"]["Location Chassis Back"]);
     m_points[LCA_U] = ReadVectorJSON(d["Control Arm"]["Location Upright"]);
+    if (d["Lower Control Arm"].HasMember("Bushing Data")) {
+        m_LCABushingData = ReadBushingDataJSON(d["Lower Control Arm"]["Bushing Data"]);
+    }
 
     // Read strut data
     assert(d.HasMember("Strut"));

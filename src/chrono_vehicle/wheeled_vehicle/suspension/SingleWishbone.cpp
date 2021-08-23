@@ -27,7 +27,8 @@ namespace chrono {
 namespace vehicle {
 
 // Construct a single wishbone suspension using data from the specified JSON file.
-SingleWishbone::SingleWishbone(const std::string& filename) : ChSingleWishbone(""), m_shockForceCB(nullptr) {
+SingleWishbone::SingleWishbone(const std::string& filename)
+    : ChSingleWishbone(""), m_shockForceCB(nullptr), m_CABushingData(nullptr) {
     Document d;
     ReadFileJSON(filename, d);
     if (d.IsNull())
@@ -38,7 +39,8 @@ SingleWishbone::SingleWishbone(const std::string& filename) : ChSingleWishbone("
     GetLog() << "Loaded JSON: " << filename.c_str() << "\n";
 }
 
-SingleWishbone::SingleWishbone(const rapidjson::Document& d) : ChSingleWishbone(""), m_shockForceCB(nullptr) {
+SingleWishbone::SingleWishbone(const rapidjson::Document& d)
+    : ChSingleWishbone(""), m_shockForceCB(nullptr), m_CABushingData(nullptr) {
     Create(d);
 }
 
@@ -80,6 +82,9 @@ void SingleWishbone::Create(const rapidjson::Document& d) {
     m_CARadius = d["Control Arm"]["Radius"].GetDouble();
     m_points[CA_C] = ReadVectorJSON(d["Control Arm"]["Location Chassis"]);
     m_points[CA_U] = ReadVectorJSON(d["Control Arm"]["Location Upright"]);
+    if (d["Lower Control Arm"].HasMember("Bushing Data")) {
+        m_CABushingData = ReadBushingDataJSON(d["Control Arm"]["Bushing Data"]);
+    }
 
     // Read Tierod data
     assert(d.HasMember("Tierod"));

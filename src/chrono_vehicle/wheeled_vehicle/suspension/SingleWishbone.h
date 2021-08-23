@@ -62,6 +62,7 @@ class CH_VEHICLE_API SingleWishbone : public ChSingleWishbone {
     virtual double getSpringRestLength() const override { return m_springRestLength; }
     virtual std::shared_ptr<ChLinkTSDA::ForceFunctor> getShockForceFunctor() const override { return m_shockForceCB; }
 
+    virtual std::shared_ptr<ChVehicleBushingData> getCABushingData() const override { return m_CABushingData; }
     virtual std::shared_ptr<ChVehicleBushingData> getTierodBushingData() const override { return m_tierodBushingData; }
 
   private:
@@ -95,6 +96,7 @@ class CH_VEHICLE_API SingleWishbone : public ChSingleWishbone {
 
     double m_axleInertia;
 
+    std::shared_ptr<ChVehicleBushingData> m_CABushingData;
     std::shared_ptr<ChVehicleBushingData> m_tierodBushingData;
 
     double m_springRestLength;

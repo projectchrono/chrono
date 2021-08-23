@@ -64,6 +64,7 @@ class CH_VEHICLE_API MacPhersonStrut : public ChMacPhersonStrut {
     virtual std::shared_ptr<ChLinkTSDA::ForceFunctor> getSpringForceFunctor() const override { return m_springForceCB; }
     virtual std::shared_ptr<ChLinkTSDA::ForceFunctor> getShockForceFunctor() const override { return m_shockForceCB; }
 
+    virtual std::shared_ptr<ChVehicleBushingData> getLCABushingData() const override { return m_LCABushingData; }
     virtual std::shared_ptr<ChVehicleBushingData> getTierodBushingData() const override { return m_tierodBushingData; }
 
   private:
@@ -99,6 +100,7 @@ class CH_VEHICLE_API MacPhersonStrut : public ChMacPhersonStrut {
 
     double m_axleInertia;
 
+    std::shared_ptr<ChVehicleBushingData> m_LCABushingData;
     std::shared_ptr<ChVehicleBushingData> m_tierodBushingData;
 
     double m_springRestLength;

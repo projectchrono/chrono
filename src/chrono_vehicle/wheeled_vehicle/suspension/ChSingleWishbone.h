@@ -188,6 +188,9 @@ class CH_VEHICLE_API ChSingleWishbone : public ChSuspension {
     /// Return the functor object for spring-damper force.
     virtual std::shared_ptr<ChLinkTSDA::ForceFunctor> getShockForceFunctor() const = 0;
 
+    /// Return stiffness and damping data for the chassis-CA bushing.
+    /// Returning nullptr (default) results in using a kinematic revolute joint.
+    virtual std::shared_ptr<ChVehicleBushingData> getCABushingData() const { return nullptr; }
     /// Return stiffness and damping data for the tierod bushings.
     /// Used only if tierod bodies are defined (see UseTierodBody).
     /// Returning nullptr (default) results in using kinematic joints (spherical + universal).
@@ -197,8 +200,8 @@ class CH_VEHICLE_API ChSingleWishbone : public ChSuspension {
     std::shared_ptr<ChBody> m_control_arm[2];  ///< control arm bodies (left/right)
     std::shared_ptr<ChBody> m_tierod[2];       ///< tierod bodies, if used (left/right)
 
-    std::shared_ptr<ChLinkLockRevolute> m_revoluteCA[2];  ///< chassis-CA revolute joints (left/right)
-    std::shared_ptr<ChLinkLockRevolute> m_revoluteUA[2];  ///< upright-CA revolute joints (left/right)
+    std::shared_ptr<ChVehicleJoint> m_revoluteCA[2];  ///< chassis-CA revolute joints (left/right)
+    std::shared_ptr<ChVehicleJoint> m_revoluteUA[2];  ///< upright-CA revolute joints (left/right)
 
     std::shared_ptr<ChLinkDistance> m_distTierod[2];       ///< tierod distance constraints (left/right)
     std::shared_ptr<ChVehicleJoint> m_sphericalTierod[2];  ///< tierod-upright spherical joints (left/right)

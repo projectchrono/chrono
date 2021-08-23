@@ -638,7 +638,7 @@ void ChDoubleWishbone::ExportComponentList(rapidjson::Document& jsonDocument) co
     m_revoluteLCA[0]->IsKinematic() ? joints.push_back(m_revoluteLCA[0]->GetAsLink())
                                     : bushings.push_back(m_revoluteLCA[0]->GetAsBushing());
     m_revoluteLCA[1]->IsKinematic() ? joints.push_back(m_revoluteLCA[1]->GetAsLink())
-                                    : bushings.push_back(m_revoluteUCA[1]->GetAsBushing());
+                                    : bushings.push_back(m_revoluteLCA[1]->GetAsBushing());
     m_sphericalLCA[0]->IsKinematic() ? joints.push_back(m_sphericalLCA[0]->GetAsLink())
                                      : bushings.push_back(m_sphericalLCA[0]->GetAsBushing());
     m_sphericalLCA[1]->IsKinematic() ? joints.push_back(m_sphericalLCA[1]->GetAsLink())

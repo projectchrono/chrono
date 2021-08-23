@@ -123,10 +123,7 @@ class CH_VEHICLE_API ChMacPhersonStrut : public ChSuspension {
     double GetShockVelocity(VehicleSide side) const { return m_shock[side]->GetVelocity(); }
 
     /// Global coordinates, LCA ball joint position
-    ChVector<> Get_LCA_sph_pos(VehicleSide side) { return m_sphericalLCA[side]->GetMarker2()->GetAbsCoord().pos; }
-
-    /// Global coordinates, strut ball joint position
-    //ChVector<> Get_Strut_sph_pos(VehicleSide side) { return m_universalStrut[side]->GetMarker2()->GetAbsCoord().pos; }
+    ChVector<> Get_LCA_sph_pos(VehicleSide side) { return m_sphericalLCA[side]->GetPos(); }
 
     /// Log current constraint violations.
     virtual void LogConstraintViolations(VehicleSide side) override;
@@ -213,6 +210,9 @@ class CH_VEHICLE_API ChMacPhersonStrut : public ChSuspension {
     /// Return the functor object for shock force.
     virtual std::shared_ptr<ChLinkTSDA::ForceFunctor> getShockForceFunctor() const = 0;
 
+    /// Return stiffness and damping data for the LCA bushing.
+    /// Returning nullptr (default) results in using a kinematic revolute joint.
+    virtual std::shared_ptr<ChVehicleBushingData> getLCABushingData() const { return nullptr; }
     /// Return stiffness and damping data for the tierod bushings.
     /// Used only if tierod bodies are defined (see UseTierodBody).
     /// Returning nullptr (default) results in using kinematic joints (spherical + universal).
@@ -225,8 +225,8 @@ class CH_VEHICLE_API ChMacPhersonStrut : public ChSuspension {
 
     std::shared_ptr<ChLinkLockCylindrical> m_cylindricalStrut[2];  ///< strut-LCA cylindrical joints (left/right)
     std::shared_ptr<ChLinkUniversal> m_universalStrut[2];          ///< chassis-strut universal joints (left/right)
-    std::shared_ptr<ChLinkLockRevolute> m_revoluteLCA[2];          ///< chassis-LCA revolute joints (left/right)
-    std::shared_ptr<ChLinkLockSpherical> m_sphericalLCA[2];        ///< upright-LCA spherical joints (left/right)
+    std::shared_ptr<ChVehicleJoint> m_revoluteLCA[2];              ///< chassis-LCA revolute joints (left/right)
+    std::shared_ptr<ChVehicleJoint> m_sphericalLCA[2];             ///< upright-LCA spherical joints (left/right)
 
     std::shared_ptr<ChLinkDistance> m_distTierod[2];       ///< tierod distance constraints (left/right)
     std::shared_ptr<ChVehicleJoint> m_sphericalTierod[2];  ///< tierod-upright spherical joints (left/right)
