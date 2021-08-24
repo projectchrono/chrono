@@ -138,6 +138,8 @@ void ChVehicleJoint::CreateBushing(Type type,
             D_matrix(3, 3) = bd->D_rot_dof;
             D_matrix(4, 4) = bd->D_rot_dof;
             break;
+        case Type::POINTLINE:
+            return; // do not create a bushing
     }
 
     m_joint = chrono_types::make_shared<ChLoadBodyBodyBushingGeneric>(body1, body2, ChFrame<>(pos), K_matrix, D_matrix);
