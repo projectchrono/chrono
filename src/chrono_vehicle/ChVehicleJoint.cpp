@@ -97,6 +97,12 @@ void ChVehicleJoint::CreateLink(Type type,
             m_joint = link;
             break;
         }
+        case Type::POINTLINE: {
+            auto link = chrono_types::make_shared<ChLinkLockPointLine>();
+            link->Initialize(body1, body2, pos);
+            m_joint = link;
+            break;
+        }
     }
 }
 

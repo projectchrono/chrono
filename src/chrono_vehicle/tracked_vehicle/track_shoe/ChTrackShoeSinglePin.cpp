@@ -36,9 +36,9 @@ namespace vehicle {
 ChTrackShoeSinglePin::ChTrackShoeSinglePin(const std::string& name) : ChTrackShoeSegmented(name) {}
 
 ChTrackShoeSinglePin::~ChTrackShoeSinglePin() {
-    auto sys = m_connection_joint->GetSystem();
+    auto sys = m_shoe->GetSystem();
     if (sys) {
-        sys->Remove(m_connection_joint);
+        ChChassis::RemoveJoint(m_connection_joint);
         if (m_connection_rsda)
             sys->Remove(m_connection_rsda);
     }
@@ -80,7 +80,10 @@ double ChTrackShoeSinglePin::GetMass() const {
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-void ChTrackShoeSinglePin::Connect(std::shared_ptr<ChTrackShoe> next, ChTrackAssembly* assembly, bool ccw) {
+void ChTrackShoeSinglePin::Connect(std::shared_ptr<ChTrackShoe> next,
+                                   ChTrackAssembly* assembly,
+                                   ChChassis* chassis,
+                                   bool ccw) {
     auto track = static_cast<ChTrackAssemblySinglePin*>(assembly);
     ChSystem* system = m_shoe->GetSystem();
     double sign = ccw ? +1 : -1;
@@ -90,23 +93,21 @@ void ChTrackShoeSinglePin::Connect(std::shared_ptr<ChTrackShoe> next, ChTrackAss
 
     ChVector<> loc = m_shoe->TransformPointLocalToParent(ChVector<>(sign * GetPitch() / 2, 0, 0));
 
-    if (m_index == 0) {
+    if (m_index == 0 && !GetBushingData()) {
         // Create and initialize a point-line joint (sliding line along X)
-        ChQuaternion<> rot = m_shoe->GetRot() * Q_from_AngZ(CH_C_PI_2);
-
-        auto pointline = chrono_types::make_shared<ChLinkLockPointLine>();
-        pointline->SetNameString(m_name + "_pointline");
-        pointline->Initialize(m_shoe, next->GetShoeBody(), ChCoordsys<>(loc, rot));
-        system->AddLink(pointline);
+        auto rot = m_shoe->GetRot() * Q_from_AngZ(CH_C_PI_2);
+        auto pointline =
+            chrono_types::make_shared<ChVehicleJoint>(ChVehicleJoint::Type::POINTLINE, m_name + "_pointline", m_shoe,
+                                                      next->GetShoeBody(), ChCoordsys<>(loc, rot));
+        chassis->AddJoint(pointline);
         m_connection_joint = pointline;
     } else {
         // Create and initialize the revolute joint (rotation axis along Z)
-        ChQuaternion<> rot = m_shoe->GetRot() * Q_from_AngX(CH_C_PI_2);
-
-        auto revolute = chrono_types::make_shared<ChLinkLockRevolute>();
-        revolute->SetNameString(m_name + "_revolute");
-        revolute->Initialize(m_shoe, next->GetShoeBody(), ChCoordsys<>(loc, rot));
-        system->AddLink(revolute);
+        auto rot = m_shoe->GetRot() * Q_from_AngX(CH_C_PI_2);
+        auto revolute =
+            chrono_types::make_shared<ChVehicleJoint>(ChVehicleJoint::Type::REVOLUTE, m_name + "_revolute", m_shoe,
+                                                      next->GetShoeBody(), ChCoordsys<>(loc, rot), GetBushingData());
+        chassis->AddJoint(revolute);
         m_connection_joint = revolute;
     }
 

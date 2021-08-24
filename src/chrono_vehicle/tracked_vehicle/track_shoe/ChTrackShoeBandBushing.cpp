@@ -168,7 +168,10 @@ void ChTrackShoeBandBushing::AddWebVisualization(std::shared_ptr<ChBody> segment
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-void ChTrackShoeBandBushing::Connect(std::shared_ptr<ChTrackShoe> next, ChTrackAssembly* assembly, bool ccw) {
+void ChTrackShoeBandBushing::Connect(std::shared_ptr<ChTrackShoe> next,
+                                     ChTrackAssembly* assembly,
+                                     ChChassis* chassis,
+                                     bool ccw) {
     // Bushings are inherited from ChLoad, so they require a 'load container'
     m_loadcontainer = chrono_types::make_shared<ChLoadContainer>();
     m_shoe->GetSystem()->Add(m_loadcontainer);

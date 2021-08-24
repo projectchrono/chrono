@@ -353,7 +353,10 @@ void ChTrackShoeBandANCF::RemoveVisualizationAssets() {
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-void ChTrackShoeBandANCF::Connect(std::shared_ptr<ChTrackShoe> next, ChTrackAssembly* assembly, bool ccw) {
+void ChTrackShoeBandANCF::Connect(std::shared_ptr<ChTrackShoe> next,
+                                  ChTrackAssembly* assembly,
+                                  ChChassis* chassis,
+                                  bool ccw) {
     ChSystem* system = m_shoe->GetSystem();
     ChQuaternion<> rot_cur_shoe = m_shoe->GetRot();
     ChQuaternion<> rot_next_shoe = next->GetShoeBody()->GetRot();
