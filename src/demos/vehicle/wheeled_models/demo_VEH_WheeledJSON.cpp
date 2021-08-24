@@ -45,6 +45,7 @@ using namespace chrono::vehicle;
 //    UAZ
 //    CityBus
 //    MAN
+//    MTV
 
 class Vehicle_Model {
   public:
@@ -154,6 +155,15 @@ class MAN_Model : public Vehicle_Model {
     virtual double CameraDistance() const override { return 12.0; }
 };
 
+class MTV_Model : public Vehicle_Model {
+  public:
+    virtual std::string ModelName() const override { return "MTV"; }
+    virtual std::string VehicleJSON() const override { return "mtv/vehicle/MTV_Vehicle_WalkingBeam.json"; }
+    virtual std::string TireJSON() const override { return "mtv/tire/FMTV_TMeasyTire.json"; }
+    virtual std::string PowertrainJSON() const override { return "mtv/powertrain/FMTV_ShaftsPowertrain.json"; }
+    virtual double CameraDistance() const override { return 10.0; }
+};
+
 // =============================================================================
 // Specification of a trailer model from JSON files
 // Available models:
@@ -185,6 +195,7 @@ auto vehicle_model = HMMWV_Model();
 ////auto vehicle_model = UAZ_Model();
 ////auto vehicle_model = CityBus_Model();
 ////auto vehicle_model = MAN_Model();
+////auto vehicle_model = MTV_Model();
 
 // Trailer model selection (use only with HMMWV, Sedan, or UAZ)
 bool add_trailer = false;
@@ -217,6 +228,7 @@ int main(int argc, char* argv[]) {
     vehicle.Initialize(ChCoordsys<>(initLoc, Q_from_AngZ(initYaw)));
     vehicle.GetChassis()->SetFixed(false);
     vehicle.SetChassisVisualizationType(VisualizationType::NONE);
+    vehicle.SetChassisRearVisualizationType(VisualizationType::NONE);
     vehicle.SetSuspensionVisualizationType(VisualizationType::PRIMITIVES);
     vehicle.SetSteeringVisualizationType(VisualizationType::PRIMITIVES);
     vehicle.SetWheelVisualizationType(VisualizationType::MESH);
