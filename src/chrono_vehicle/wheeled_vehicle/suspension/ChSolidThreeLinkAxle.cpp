@@ -50,8 +50,8 @@ ChSolidThreeLinkAxle::~ChSolidThreeLinkAxle() {
     auto sys = m_axleTube->GetSystem();
     if (sys) {
         sys->Remove(m_axleTube);
-        sys->Remove(m_tierod);
-        sys->Remove(m_axleTubeGuide);
+        ////sys->Remove(m_tierod);
+        ////sys->Remove(m_axleTubeGuide);
 
         sys->Remove(m_triangleBody);
         sys->Remove(m_triangleRev);
