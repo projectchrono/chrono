@@ -179,26 +179,16 @@ int main(int argc, char* argv[]) {
 
     if (use_custom_mat == true) {
         // if customize wheel material
-        rover = chrono_types::make_shared<CuriosityRover>(
-            &my_system, body_pos, body_rot, CustomWheelMaterial(ChContactMethod::SMC), chassis_type, wheel_type);
+        rover = chrono_types::make_shared<CuriosityRover>(&my_system, CustomWheelMaterial(ChContactMethod::SMC),
+                                                          chassis_type, wheel_type);
 
         // the user can choose to enable DC motor option
         // if the DC motor option has been enabled, the rotational speed will be switched to no-load-speed of the DC
         // motor Note: This function has to be called before initialization
         // motor defaut linear relationship is set to stall torque 500 N-m, and no load speed 3.1415 rad/s
-        rover->SetDCControl(true);
-
-        // The user can also choose to use simplified wheel
-        /*
-        rover = chrono_types::make_shared<CuriosityRover>(&my_system,
-                                                            body_pos,
-                                                            body_rot,
-                                                            CustomWheelMaterial(ChContactMethod::SMC),
-                                                            Chassis_Type::FullRover,
-                                                            Wheel_Type::SimpleWheel);
-        */
-
-        rover->Initialize();
+        auto driver = chrono_types::make_shared<CuriosityDCMotorControl>();
+        rover->SetDriver(driver);
+        rover->Initialize(ChFrame<>(body_pos, body_rot));
 
         // Default value is w = 3.1415 rad/s
         // User can define using SetMotorSpeed
@@ -211,7 +201,7 @@ int main(int argc, char* argv[]) {
 
     } else {
         // if use default material
-        rover = chrono_types::make_shared<CuriosityRover>(&my_system, body_pos, body_rot, chassis_type, wheel_type);
+        rover = chrono_types::make_shared<CuriosityRover>(&my_system, chassis_type, wheel_type);
 
         // The user can also choose to use simplified wheel
         /*
@@ -222,12 +212,9 @@ int main(int argc, char* argv[]) {
                                                         Wheel_Type::SimpleWheel);
         */
 
-        // the user can choose to enable DC motor option
-        // if the DC motor option has been enabled, the rotational speed will be switched to no-load-speed of the DC
-        // motor Note: This function has to be called before initialization
-        // motor defaut linear relationship is set to stall torque 500 N-m, and no load speed 3.1415 rad/s
-        rover->SetDCControl(true);
-        rover->Initialize();
+        auto driver = chrono_types::make_shared<CuriosityDCMotorControl>();
+        rover->SetDriver(driver);
+        rover->Initialize(ChFrame<>(body_pos, body_rot));
 
         // Default value is w = 3.1415 rad/s
         // User can define using SetMotorSpeed

@@ -111,10 +111,10 @@ void AddRevoluteJoint(std::shared_ptr<ChBody> body1,
 // Add a universal joint between two bodies at the given position and orientation
 // (expressed in and relative to the chassis frame).
 void AddUniversalJoint(std::shared_ptr<ChBody> body1,
-                      std::shared_ptr<ChBody> body2,
-                      std::shared_ptr<ViperChassis> chassis,
-                      const ChVector<>& rel_pos,
-                      const ChQuaternion<>& rel_rot) {
+                       std::shared_ptr<ChBody> body2,
+                       std::shared_ptr<ViperChassis> chassis,
+                       const ChVector<>& rel_pos,
+                       const ChQuaternion<>& rel_rot) {
     // Express relative frame in global
     ChFrame<> X_GC = chassis->GetBody()->GetFrame_REF_to_abs() * ChFrame<>(rel_pos, rel_rot);
 
@@ -533,7 +533,6 @@ void Viper::Initialize(const ChFrame<>& pos) {
     for (int i = 0; i < 4; i++) {
         AddUniversalJoint(m_lower_arms[i]->GetBody(), m_uprights[i]->GetBody(), m_chassis, sr_rel_pos_lower[i], QUNIT);
         AddUniversalJoint(m_upper_arms[i]->GetBody(), m_uprights[i]->GetBody(), m_chassis, sr_rel_pos_upper[i], QUNIT);
-
 
         // Add lifting motors at the connecting points between upper_arm & chassis and lower_arm & chassis
         m_lift_motor_funcs[i] = chrono_types::make_shared<ChFunction_Const>(0.0);

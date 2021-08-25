@@ -137,21 +137,22 @@ int main(int argc, char* argv[]) {
 
     if (use_custom_mat == true) {
         // If use the customized wheel material
-        rover = chrono_types::make_shared<CuriosityRover>(
-            &mphysicalSystem, body_pos, body_rot, CustomWheelMaterial(ChContactMethod::NSC), chassis_type, wheel_type);
-        // Set to use linear DC motor model for the drive motors
-        rover->SetDCControl(true);
-        rover->Initialize();
+        rover = chrono_types::make_shared<CuriosityRover>(&mphysicalSystem, CustomWheelMaterial(ChContactMethod::NSC),
+                                                          chassis_type, wheel_type);
+
+        auto driver = chrono_types::make_shared<CuriosityDCMotorControl>();
+        rover->SetDriver(driver);
+        rover->Initialize(ChFrame<>(body_pos, body_rot));
 
         // Display the mass of the rover
         std::cout << "total mass:" << rover->GetRoverMass() << std::endl;
     } else {
         // If use default wheel material
-        rover = rover =
-            chrono_types::make_shared<CuriosityRover>(&mphysicalSystem, body_pos, body_rot, chassis_type, wheel_type);
-        // Set to use linear DC motor model for the drive motors
-        rover->SetDCControl(true);
-        rover->Initialize();
+        rover = rover = chrono_types::make_shared<CuriosityRover>(&mphysicalSystem, chassis_type, wheel_type);
+
+        auto driver = chrono_types::make_shared<CuriosityDCMotorControl>();
+        rover->SetDriver(driver);
+        rover->Initialize(ChFrame<>(body_pos, body_rot));
 
         // Display the mass of the rover
         std::cout << "total mass:" << rover->GetRoverMass() << std::endl;
@@ -195,6 +196,7 @@ int main(int argc, char* argv[]) {
 
     // Simulation loop
     while (application.GetDevice()->run()) {
+        std::cout << "test point 1" << std::endl;
         rover->Update();
 
         // Read rover chassis velocity
@@ -202,6 +204,8 @@ int main(int argc, char* argv[]) {
 
         // Read rover chassis acceleration
         // std::cout << "Rover Chassis Accelerometer Reading: "<< rover -> GetChassisAcc() << std::endl;
+
+        std::cout << "test point 2" << std::endl;
 
         application.BeginScene(true, true, SColor(255, 140, 161, 192));
 
