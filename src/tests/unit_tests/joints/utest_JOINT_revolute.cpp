@@ -330,7 +330,7 @@ bool TestRevolute(const ChVector<>& jointLoc,      // absolute location of joint
             out_energy << simTime << transKE << rotKE << deltaPE << totalE - totalE0 << std::endl;
 
             // Constraint violations
-            ChVectorDynamic<> C = revoluteJoint->GetC();
+            ChVectorDynamic<> C = revoluteJoint->GetConstraintViolation();
             out_cnstr << simTime << C(0) << C(1) << C(2) << C(3) << C(4) << std::endl;
 
             // Increment output time

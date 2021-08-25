@@ -28,6 +28,13 @@ ChTrackBrakeSimple::ChTrackBrakeSimple(const std::string& name) : ChTrackBrake(n
     m_brake = chrono_types::make_shared<ChLinkBrake>();
 }
 
+ChTrackBrakeSimple::~ChTrackBrakeSimple() {
+    auto sys = m_brake->GetSystem();
+    if (sys) {
+        sys->Remove(m_brake);
+    }
+}
+
 void ChTrackBrakeSimple::Initialize(std::shared_ptr<ChChassis> chassis, std::shared_ptr<ChSprocket> sprocket) {
     auto hub = sprocket->GetRevolute();
     auto sys = hub->GetSystem();

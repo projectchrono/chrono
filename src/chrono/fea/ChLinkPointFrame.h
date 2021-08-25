@@ -29,11 +29,8 @@ namespace fea {
 /// @addtogroup fea_constraints
 /// @{
 
-/// Class for creating a constraint between an FEA node of ChNodeFEAxyz type
-/// and a ChBodyFrame (frame) object.
-/// The node position is enforced to coincide to a given position associated
-/// with the ChBodyFrame.
-
+/// Class for creating a constraint between an FEA node of ChNodeFEAxyz type and a ChBodyFrame (frame) object.
+/// The node position is enforced to coincide to a given position associated with the ChBodyFrame.
 class ChApi ChLinkPointFrame : public ChLinkBase {
 
   private:
@@ -69,7 +66,7 @@ class ChApi ChLinkPointFrame : public ChLinkBase {
     virtual ChVector<> Get_react_force() override { return GetReactionOnBody(); }
 
     // Get constraint violations
-    ChVectorN<double, 3> GetC() const;
+    virtual ChVectorDynamic<> GetConstraintViolation() const override;
 
     //
     // STATE FUNCTIONS
@@ -178,21 +175,13 @@ class ChApi ChLinkPointFrame : public ChLinkBase {
     virtual void ArchiveIN(ChArchiveIn& marchive) override;
 };
 
-
-/// Class for creating a constraint between an FEA node of ChNodeFEAxyz type
-/// and a ChBodyFrame (frame) object.
-/// The node position is constrained to a given coordinate system CSYS
-/// that moves with the ChBodyFrame. The movements of the node respect
-/// to X, Y, Z  axes of such CSYS can be costrained or not, 
-/// depending on three boolean toggles. 
-/// By default, XYZ are all constrained and the node follows the center of CSYS, 
-/// s it is completely locked to it, but other options are, for example, that
-/// you just enable the X constraint (so the node moves on the flat YZ plane)
-/// or you just enable XY constraints (so the node moves along the Z direction) 
-/// etc. 
-
+/// Class for creating a constraint between an FEA node of ChNodeFEAxyz type and a ChBodyFrame (frame) object.
+/// The node position is constrained to a given coordinate system CSYS that moves with the ChBodyFrame. The movements of
+/// the node respect to X, Y, Z  axes of such CSYS can be costrained or not,  depending on three boolean toggles. By
+/// default, XYZ are all constrained and the node follows the center of CSYS,  s it is completely locked to it, but
+/// other options are, for example, that you just enable the X constraint (so the node moves on the flat YZ plane) or
+/// you just enable XY constraints (so the node moves along the Z direction), etc.
 class ChApi ChLinkPointFrameGeneric : public ChLinkBase {
-
   private:
     ChVector<> m_react;
 
@@ -230,7 +219,7 @@ class ChApi ChLinkPointFrameGeneric : public ChLinkBase {
     virtual ChVector<> Get_react_force() override { return GetReactionOnBody(); }
 
     // Get constraint violations
-    //ChVectorN<double, 3> GetC() const;
+    virtual ChVectorDynamic<> GetConstraintViolation() const override;
 
 	bool IsConstrainedX() { return c_x; }
     bool IsConstrainedY() { return c_y; }

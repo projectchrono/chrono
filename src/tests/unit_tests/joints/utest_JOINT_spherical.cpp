@@ -297,7 +297,7 @@ bool TestSpherical(const ChVector<>& jointLoc,      // absolute location of join
             ;
 
             // Constraint violations
-            ChVectorDynamic<> C = sphericalJoint->GetC();
+            ChVectorDynamic<> C = sphericalJoint->GetConstraintViolation();
             out_cnstr << simTime << C(0) << C(1) << C(2) << std::endl;
 
             // Increment output time

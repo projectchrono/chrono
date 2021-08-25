@@ -75,7 +75,7 @@ void ChLinkDirFrame::Update(double mytime, bool update_assets) {
     // ...
 }
 
-ChVectorN<double, 2> ChLinkDirFrame::GetC() const {
+ChVectorDynamic<> ChLinkDirFrame::GetConstraintViolation() const {
     ChMatrix33<> Arw = m_csys.rot >> m_body->coord.rot;
     ChVector<> res = Arw.transpose() * m_node->GetD();
     ChVectorN<double, 2> C;

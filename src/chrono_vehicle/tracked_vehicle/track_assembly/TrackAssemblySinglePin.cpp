@@ -112,6 +112,8 @@ TrackAssemblySinglePin::TrackAssemblySinglePin(const rapidjson::Document& d) : C
     Create(d);
 }
 
+TrackAssemblySinglePin::~TrackAssemblySinglePin() {}
+
 void TrackAssemblySinglePin::Create(const rapidjson::Document& d) {
     // Invoke base class method.
     ChPart::Create(d);

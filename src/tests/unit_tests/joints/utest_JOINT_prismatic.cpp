@@ -314,7 +314,7 @@ bool TestPrismatic(const ChVector<>& jointLoc,      // absolute location of join
             out_energy << simTime << transKE << rotKE << deltaPE << totalE - totalE0 << std::endl;
 
             // Constraint violations
-            ChVectorDynamic<> C = prismaticJoint->GetC();
+            ChVectorDynamic<> C = prismaticJoint->GetConstraintViolation();
             out_cnstr << simTime << C(0) << C(1) << C(2) << C(3) << C(4) << std::endl;
 
             // Increment output time

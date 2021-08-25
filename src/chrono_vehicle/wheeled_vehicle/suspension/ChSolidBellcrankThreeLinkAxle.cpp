@@ -47,6 +47,37 @@ const std::string ChSolidBellcrankThreeLinkAxle::m_pointNames[] = {
 // -----------------------------------------------------------------------------
 ChSolidBellcrankThreeLinkAxle::ChSolidBellcrankThreeLinkAxle(const std::string& name) : ChSuspension(name) {}
 
+ChSolidBellcrankThreeLinkAxle::~ChSolidBellcrankThreeLinkAxle() {
+    auto sys = m_axleTube->GetSystem();
+    if (sys) {
+        sys->Remove(m_axleTube);
+        sys->Remove(m_bellcrank);
+        sys->Remove(m_draglink);
+
+        sys->Remove(m_revBellcrank);
+        sys->Remove(m_sphericalDraglink);
+        sys->Remove(m_universalDraglink);
+
+        sys->Remove(m_triangleBody);
+        sys->Remove(m_triangleRev);
+        sys->Remove(m_triangleSph);
+
+        for (int i = 0; i < 2; i++) {
+            sys->Remove(m_knuckle[i]);
+            sys->Remove(m_revKingpin[i]);
+            sys->Remove(m_linkBody[i]);
+            sys->Remove(m_linkBodyToChassis[i]);
+            sys->Remove(m_linkBodyToAxleTube[i]);
+            sys->Remove(m_tierodBody[i]);
+            sys->Remove(m_tierodBodyToKnuckle[i]);
+            sys->Remove(m_tierodBodyToBellcrank[i]);
+
+            sys->Remove(m_shock[i]);
+            sys->Remove(m_spring[i]);
+        }
+    }
+}
+
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 void ChSolidBellcrankThreeLinkAxle::Initialize(std::shared_ptr<ChChassis> chassis,

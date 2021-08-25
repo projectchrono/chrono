@@ -81,6 +81,37 @@ const std::string ChSAELeafspringAxle::m_pointNames[] = {"SHOCK_A     ", "SHOCK_
 // -----------------------------------------------------------------------------
 ChSAELeafspringAxle::ChSAELeafspringAxle(const std::string& name) : ChSuspension(name) {}
 
+ChSAELeafspringAxle::~ChSAELeafspringAxle() {
+    auto sys = m_axleTube->GetSystem();
+    if (sys) {
+        sys->Remove(m_axleTube);
+        sys->Remove(m_tierod);
+
+        for (int i = 0; i < 2; i++) {
+            sys->Remove(m_shock[i]);
+            sys->Remove(m_spring[i]);
+
+            sys->Remove(m_shackle[i]);
+            sys->Remove(m_shackleRev[i]);
+            sys->Remove(m_frontleaf[i]);
+            sys->Remove(m_frontleafSph[i]);
+            sys->Remove(m_frontleafRev[i]);
+            sys->Remove(m_rearleaf[i]);
+            sys->Remove(m_rearleafSph[i]);
+            sys->Remove(m_rearleafRev[i]);
+            sys->Remove(m_clampA[i]);
+            sys->Remove(m_clampARev[i]);
+            sys->Remove(m_clampB[i]);
+            sys->Remove(m_clampBRev[i]);
+
+            sys->Remove(m_latRotSpringA[i]);
+            sys->Remove(m_latRotSpringB[i]);
+            sys->Remove(m_vertRotSpringA[i]);
+            sys->Remove(m_vertRotSpringB[i]);
+        }
+    }
+}
+
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 void ChSAELeafspringAxle::Initialize(std::shared_ptr<ChChassis> chassis,

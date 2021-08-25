@@ -162,6 +162,9 @@ class CH_VEHICLE_API ChVehicle {
     /// Enable/disable output from the chassis subsystem.
     void SetChassisOutput(bool state);
 
+    /// Return true if the vehicle model contains bushings.
+    bool HasBushings() const { return m_chassis->HasBushings(); }
+
     /// Advance the state of this vehicle by the specified time step.
     /// A call to ChSystem::DoStepDynamics is done only if the vehicle owns the underlying Chrono system.
     /// Otherwise, the caller is responsible for advancing the sate of the entire system.

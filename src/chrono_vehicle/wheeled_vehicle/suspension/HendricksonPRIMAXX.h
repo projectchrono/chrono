@@ -37,6 +37,8 @@ class CH_VEHICLE_API HendricksonPRIMAXX : public ChHendricksonPRIMAXX {
     HendricksonPRIMAXX(const rapidjson::Document& d);
     ~HendricksonPRIMAXX();
 
+    virtual bool UseTierodBodies() const override { return m_use_tierod_bodies; }
+
     virtual const ChVector<> getAxlehousingCOM() const override { return m_axlehousingCOM; }
     virtual const ChVector<> getTransversebeamCOM() const override { return m_transversebeamCOM; }
 
@@ -46,6 +48,7 @@ class CH_VEHICLE_API HendricksonPRIMAXX : public ChHendricksonPRIMAXX {
     virtual double getTorquerodMass() const override { return m_torquerodMass; }
     virtual double getLowerbeamMass() const override { return m_lowerbeamMass; }
     virtual double getTransversebeamMass() const override { return m_transversebeamMass; }
+    virtual double getTierodMass() const override { return m_tierodMass; }
 
     virtual double getAxlehousingRadius() const override { return m_axlehousingRadius; }
     virtual double getKnuckleRadius() const override { return m_knuckleRadius; }
@@ -54,6 +57,7 @@ class CH_VEHICLE_API HendricksonPRIMAXX : public ChHendricksonPRIMAXX {
     virtual double getTorquerodRadius() const override { return m_torquerodRadius; }
     virtual double getLowerbeamRadius() const override { return m_lowerbeamRadius; }
     virtual double getTransversebeamRadius() const override { return m_transversebeamRadius; }
+    virtual double getTierodRadius() const override { return m_tierodRadius; }
 
     virtual const ChVector<>& getAxlehousingInertia() const override { return m_axlehousingInertia; }
     virtual const ChVector<>& getKnuckleInertia() const override { return m_knuckleInertia; }
@@ -61,6 +65,7 @@ class CH_VEHICLE_API HendricksonPRIMAXX : public ChHendricksonPRIMAXX {
     virtual const ChVector<>& getTorquerodInertia() const override { return m_torquerodInertia; }
     virtual const ChVector<>& getLowerbeamInertia() const override { return m_lowerbeamInertia; }
     virtual const ChVector<>& getTransversebeamInertia() const override { return m_transversebeamInertia; }
+    virtual const ChVector<> getTierodInertia() const override { return m_tierodInertia; }
 
     virtual double getAxleInertia() const override { return m_axleInertia; }
 
@@ -74,6 +79,8 @@ class CH_VEHICLE_API HendricksonPRIMAXX : public ChHendricksonPRIMAXX {
         return m_shockLBForceCB;
     }
 
+    virtual std::shared_ptr<ChVehicleBushingData> getTierodBushingData() const override { return m_tierodBushingData; }
+
   private:
     virtual const ChVector<> getLocation(PointId which) override { return m_points[which]; }
     virtual const ChVector<> getDirection(DirectionId which) override { return m_dirs[which]; }
@@ -82,6 +89,8 @@ class CH_VEHICLE_API HendricksonPRIMAXX : public ChHendricksonPRIMAXX {
 
     ChVector<> m_points[NUM_POINTS];
     ChVector<> m_dirs[NUM_DIRS];
+
+    bool m_use_tierod_bodies;
 
     std::shared_ptr<ChLinkTSDA::ForceFunctor> m_shockAHForceCB;
     std::shared_ptr<ChLinkTSDA::ForceFunctor> m_shockLBForceCB;
@@ -92,6 +101,7 @@ class CH_VEHICLE_API HendricksonPRIMAXX : public ChHendricksonPRIMAXX {
     double m_torquerodMass;
     double m_lowerbeamMass;
     double m_transversebeamMass;
+    double m_tierodMass;
 
     double m_axlehousingRadius;
     double m_knuckleRadius;
@@ -100,6 +110,7 @@ class CH_VEHICLE_API HendricksonPRIMAXX : public ChHendricksonPRIMAXX {
     double m_torquerodRadius;
     double m_lowerbeamRadius;
     double m_transversebeamRadius;
+    double m_tierodRadius;
 
     ChVector<> m_axlehousingCOM;
     ChVector<> m_transversebeamCOM;
@@ -110,8 +121,11 @@ class CH_VEHICLE_API HendricksonPRIMAXX : public ChHendricksonPRIMAXX {
     ChVector<> m_torquerodInertia;
     ChVector<> m_lowerbeamInertia;
     ChVector<> m_transversebeamInertia;
+    ChVector<> m_tierodInertia;
 
     double m_axleInertia;
+
+    std::shared_ptr<ChVehicleBushingData> m_tierodBushingData;
 
     double m_shockAH_restLength;
     double m_shockLB_restLength;

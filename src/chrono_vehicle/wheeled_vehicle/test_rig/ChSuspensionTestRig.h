@@ -290,6 +290,8 @@ class CH_VEHICLE_API ChSuspensionTestRigPlatform : public ChSuspensionTestRig {
                                 ChContactMethod contact_method = ChContactMethod::NSC  ///< contact method
     );
 
+    ~ChSuspensionTestRigPlatform();
+
     virtual double GetActuatorDisp(VehicleSide side) override;
     virtual double GetActuatorForce(VehicleSide side) override;
 
@@ -370,6 +372,8 @@ class CH_VEHICLE_API ChSuspensionTestRigPushrod : public ChSuspensionTestRig {
                                std::shared_ptr<ChTire> tire_right,  ///< right tire
                                ChContactMethod contact_method = ChContactMethod::NSC  ///< contact method
     );
+    
+    ~ChSuspensionTestRigPushrod();
 
     virtual double GetActuatorDisp(VehicleSide side) override;
     virtual double GetActuatorForce(VehicleSide side) override;

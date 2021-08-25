@@ -325,16 +325,19 @@ class ChApi ChElementShellBST : public ChElementShell , public ChLoadableUV, pub
     /// tetrahedron finite element or a cable, = 1 for a thermal problem, etc.
     virtual int Get_field_ncoords() override { return 3; }
 
-    /// Tell the number of DOFs blocks (ex. =1 for a body, =4 for a tetrahedron, etc.)
+    /// Get the number of DOFs sub-blocks.
     virtual int GetSubBlocks() override { return n_usednodes; }
 
-    /// Get the offset of the i-th sub-block of DOFs in global vector.
-    virtual unsigned int GetSubBlockOffset(int nblock) override { return m_nodes[nodes_used_to_six[nblock]]->NodeGetOffset_w(); }
+    /// Get the offset of the specified sub-block of DOFs in global vector.
+    virtual unsigned int GetSubBlockOffset(int nblock) override {
+        return m_nodes[nodes_used_to_six[nblock]]->NodeGetOffset_w();
+    }
 
-    /// Get the size of the i-th sub-block of DOFs in global vector.
+    /// Get the size of the specified sub-block of DOFs in global vector.
     virtual unsigned int GetSubBlockSize(int nblock) override { return 3; }
 
-    
+    /// Check if the specified sub-block of DOFs is active.
+    virtual bool IsSubBlockActive(int nblock) const override { return !m_nodes[nodes_used_to_six[nblock]]->GetFixed(); }
 
     /// Get the pointers to the contained ChVariables, appending to the mvars vector.
     virtual void LoadableGetVariables(std::vector<ChVariables*>& mvars) override;

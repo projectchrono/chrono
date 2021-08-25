@@ -52,7 +52,7 @@ class CH_VEHICLE_API ChSuspension : public ChPart {
 
     ChSuspension(const std::string& name);
 
-    virtual ~ChSuspension() {}
+    virtual ~ChSuspension();
 
     /// Specify whether or not this suspension can be steered.
     virtual bool IsSteerable() const = 0;
