@@ -1,0 +1,31 @@
+{
+  "Name":     "FMTV chassis",
+  "Type":     "Chassis",
+  "Template": "RigidChassis",
+
+  "Components":
+  [
+   {
+     "Centroidal Frame":    {
+        "Location": [ -0.6972, 0, 0.6672 ], 
+        "Orientation": [1, 0, 0, 0]
+                            },
+     "Mass":                3946,
+     "Moments of Inertia":  [3228, 5232, 4498],
+     "Products of Inertia": [0, -403, 0],
+     "Void":                false
+   }
+  ],
+
+  "Driver Position":
+  {
+    "Location":     [0.4, 0.7, 1.18],
+    "Orientation":  [1, 0, 0, 0]
+  },
+  
+  "Rear Connector Location": [ -1.85, 0, 0.45 ],
+
+    "Visualization": {
+        "Mesh": "mtv/meshes/m1078_front.obj"
+    }
+}

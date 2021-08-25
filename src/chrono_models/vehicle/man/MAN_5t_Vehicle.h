@@ -36,14 +36,12 @@ class CH_MODELS_API MAN_5t_Vehicle : public ChWheeledVehicle {
     MAN_5t_Vehicle(const bool fixed,
                    BrakeType brake_type,
                    ChContactMethod contact_method,
-                   CollisionType chassis_collision_type = CollisionType::NONE,
-                   bool useShaftDrivetrain = true);
+                   CollisionType chassis_collision_type = CollisionType::NONE);
 
     MAN_5t_Vehicle(ChSystem* system,
                    const bool fixed,
                    BrakeType brake_type,
-                   CollisionType chassis_collision_type = CollisionType::NONE,
-                   bool useShaftDrivetrain = true);
+                   CollisionType chassis_collision_type = CollisionType::NONE);
 
     ~MAN_5t_Vehicle();
 
@@ -75,7 +73,6 @@ class CH_MODELS_API MAN_5t_Vehicle : public ChWheeledVehicle {
     void Create(bool fixed, BrakeType brake_type, CollisionType chassis_collision_type);
 
     std::vector<double> m_omega;
-    bool m_use_shafts_drivetrain;
 };
 
 /// @} vehicle_models_man

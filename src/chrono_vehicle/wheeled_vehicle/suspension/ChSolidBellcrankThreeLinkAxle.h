@@ -63,7 +63,7 @@ class CH_VEHICLE_API ChSolidBellcrankThreeLinkAxle : public ChSuspension {
     ChSolidBellcrankThreeLinkAxle(const std::string& name  ///< [in] name of the subsystem
     );
 
-    virtual ~ChSolidBellcrankThreeLinkAxle() {}
+    virtual ~ChSolidBellcrankThreeLinkAxle();
 
     /// Get the name of the vehicle subsystem template.
     virtual std::string GetTemplateName() const override { return "SolidBellcrankThreeLinkAxle"; }
@@ -214,10 +214,10 @@ class CH_VEHICLE_API ChSolidBellcrankThreeLinkAxle : public ChSuspension {
     /// Return the functor object for shock force.
     virtual std::shared_ptr<ChLinkTSDA::ForceFunctor> getShockForceFunctor() const = 0;
 
-    std::shared_ptr<ChBody> m_axleTube;    ///< handles to the axle tube body
-    std::shared_ptr<ChBody> m_bellcrank;   ///< handles to the bellcrank body
-    std::shared_ptr<ChBody> m_knuckle[2];  ///< handles to the knuckle body
-    std::shared_ptr<ChBody> m_draglink;    ///< handles to the draglink body
+    std::shared_ptr<ChBody> m_axleTube;    ///< axle tube body
+    std::shared_ptr<ChBody> m_bellcrank;   ///< bellcrank body
+    std::shared_ptr<ChBody> m_knuckle[2];  ///< knuckle body
+    std::shared_ptr<ChBody> m_draglink;    ///< draglink body
 
     std::shared_ptr<ChLinkLockRevolute> m_revBellcrank;        ///< rotation about z-axis
     std::shared_ptr<ChLinkLockSpherical> m_sphericalDraglink;  ///< connection draglink/steering
@@ -232,13 +232,12 @@ class CH_VEHICLE_API ChSolidBellcrankThreeLinkAxle : public ChSuspension {
     std::shared_ptr<ChLinkUniversal> m_linkBodyToChassis[2];
     std::shared_ptr<ChLinkLockSpherical> m_linkBodyToAxleTube[2];
 
-    // std::shared_ptr<ChLinkDistance> m_tierod[2];  ///< connects knuckle and bellcrank
-    std::shared_ptr<ChBody> m_tierodBody[2];  ///< handles to the tierod bodies
-    std::shared_ptr<ChLinkLockSpherical> m_tierodBodyToKnuckle[2];
-    std::shared_ptr<ChLinkLockSpherical> m_tierodBodyToBellcrank[2];
+    std::shared_ptr<ChBody> m_tierodBody[2];                          ///< tierod bodies
+    std::shared_ptr<ChLinkLockSpherical> m_tierodBodyToKnuckle[2];    ///< tierod-knuckle connection
+    std::shared_ptr<ChLinkLockSpherical> m_tierodBodyToBellcrank[2];  ///< tierod-bellcranck connection
 
-    std::shared_ptr<ChLinkTSDA> m_shock[2];   ///< handles to the spring links (L/R)
-    std::shared_ptr<ChLinkTSDA> m_spring[2];  ///< handles to the shock links (L/R)
+    std::shared_ptr<ChLinkTSDA> m_shock[2];   ///< spring links (L/R)
+    std::shared_ptr<ChLinkTSDA> m_spring[2];  ///< shock links (L/R)
 
   private:
     // Hardpoint absolute locations

@@ -37,7 +37,7 @@ class CH_VEHICLE_API TrackAssemblySinglePin : public ChTrackAssemblySinglePin {
   public:
     TrackAssemblySinglePin(const std::string& filename);
     TrackAssemblySinglePin(const rapidjson::Document& d);
-    ~TrackAssemblySinglePin() {}
+    ~TrackAssemblySinglePin();
 
     virtual const ChVector<> GetSprocketLocation() const override { return m_sprocket_loc; }
     virtual const ChVector<> GetIdlerLocation() const override { return m_idler_loc; }

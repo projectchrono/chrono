@@ -175,13 +175,13 @@ TEST_P(JointsDVI, simulate) {
             system->DoStepDynamics(time_step);
 
             // Check constraints for prismatic joint
-            ChVectorDynamic<> pC = prismatic->GetC();
+            ChVectorDynamic<> pC = prismatic->GetConstraintViolation();
             for (int i = 0; i < 5; i++) {
                 ASSERT_NEAR(pC(i), 0.0, max_cnstr_violation);
             }
 
             // Check constraints for revolute joint
-            ChVectorDynamic<> rC = revolute->GetC();
+            ChVectorDynamic<> rC = revolute->GetConstraintViolation();
             for (int i = 0; i < 5; i++) {
                 ASSERT_NEAR(rC(i), 0.0, max_cnstr_violation);
             }

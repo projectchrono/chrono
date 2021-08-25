@@ -108,7 +108,7 @@ void ChOpenGLWindow::Render() {
         glClearColor(18.0f / 255.0f, 26.0f / 255.0f, 32.0f / 255.0f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         GLReturnedError("Before Render");
-        pointer->Render();
+        pointer->Render(render_hud);
         GLReturnedError("After Render");
         glfwSwapBuffers(window);
     }
@@ -172,28 +172,45 @@ void ChOpenGLWindow::CallbackReshape(GLFWwindow* window, int w, int h) {
 }
 
 void ChOpenGLWindow::CallbackKeyboard(GLFWwindow* window, int key, int scancode, int action, int mode) {
-    ChOpenGLViewer* pointer = ((ChOpenGLViewer*)(glfwGetWindowUserPointer(window)));
-
     if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS) {
         glfwSetWindowShouldClose(window, GL_TRUE);
     }
 
     if (action == GLFW_PRESS || action == GLFW_REPEAT) {
+        auto& w = getInstance();
+        for (auto ue : w.user_receivers) {
+            if (ue->CallbackKeyboard(window, key, scancode, action, mode))
+                return;
+        }
+
+        ChOpenGLViewer* pointer = ((ChOpenGLViewer*)(glfwGetWindowUserPointer(window)));
         pointer->HandleInput(key, 0, 0);
     }
 }
 
 void ChOpenGLWindow::CallbackMouseButton(GLFWwindow* window, int button, int state, int mods) {
-    ChOpenGLViewer* pointer = ((ChOpenGLViewer*)(glfwGetWindowUserPointer(window)));
+    auto& w = getInstance();
+    for (auto ue : w.user_receivers) {
+        if (ue->CallbackMouseButton(window, button, state, mods))
+            return;
+    }
+
     double x, y;
     glfwGetCursorPos(window, &x, &y);
-
+    ChOpenGLViewer* pointer = ((ChOpenGLViewer*)(glfwGetWindowUserPointer(window)));
     pointer->render_camera.SetPos(button, state, (int)x, (int)y);
 }
-void ChOpenGLWindow::CallbackMousePos(GLFWwindow* window, double x, double y) {
-    ChOpenGLViewer* pointer = ((ChOpenGLViewer*)(glfwGetWindowUserPointer(window)));
 
+void ChOpenGLWindow::CallbackMousePos(GLFWwindow* window, double x, double y) {
+    auto& w = getInstance();
+    for (auto ue : w.user_receivers) {
+        if (ue->CallbackMousePos(window, x, y))
+            return;
+    }
+
+    ChOpenGLViewer* pointer = ((ChOpenGLViewer*)(glfwGetWindowUserPointer(window)));
     pointer->render_camera.Move2D((int)x, (int)y);
 }
-}
-}
+
+} // end opengl
+} // end chrono

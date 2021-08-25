@@ -71,8 +71,8 @@ class CH_VEHICLE_API ChSimpleTrackDriveline : public ChDrivelineTV {
     virtual double GetDifferentialMaxBias() const = 0;
 
   private:
-      std::shared_ptr<ChShaft> m_shaft_left;
-      std::shared_ptr<ChShaft> m_shaft_right;
+    std::shared_ptr<ChShaft> m_shaft_left;   ///< associated left sprocket shaft
+    std::shared_ptr<ChShaft> m_shaft_right;  ///< associated right sprocket shaft
 };
 
 /// @} vehicle_tracked_driveline

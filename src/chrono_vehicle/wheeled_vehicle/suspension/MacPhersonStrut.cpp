@@ -31,8 +31,9 @@ namespace vehicle {
 // file.
 // -----------------------------------------------------------------------------
 MacPhersonStrut::MacPhersonStrut(const std::string& filename)
-    : ChMacPhersonStrut(""), m_springForceCB(NULL), m_shockForceCB(NULL) {
-    Document d; ReadFileJSON(filename, d);
+    : ChMacPhersonStrut(""), m_springForceCB(nullptr), m_shockForceCB(nullptr), m_LCABushingData(nullptr) {
+    Document d;
+    ReadFileJSON(filename, d);
     if (d.IsNull())
         return;
 
@@ -42,7 +43,7 @@ MacPhersonStrut::MacPhersonStrut(const std::string& filename)
 }
 
 MacPhersonStrut::MacPhersonStrut(const rapidjson::Document& d)
-    : ChMacPhersonStrut(""), m_springForceCB(NULL), m_shockForceCB(NULL) {
+    : ChMacPhersonStrut(""), m_springForceCB(nullptr), m_shockForceCB(nullptr), m_LCABushingData(nullptr) {
     Create(d);
 }
 
@@ -88,6 +89,9 @@ void MacPhersonStrut::Create(const rapidjson::Document& d) {
     m_points[LCA_F] = ReadVectorJSON(d["Control Arm"]["Location Chassis Front"]);
     m_points[LCA_B] = ReadVectorJSON(d["Control Arm"]["Location Chassis Back"]);
     m_points[LCA_U] = ReadVectorJSON(d["Control Arm"]["Location Upright"]);
+    if (d["Lower Control Arm"].HasMember("Bushing Data")) {
+        m_LCABushingData = ReadBushingDataJSON(d["Lower Control Arm"]["Bushing Data"]);
+    }
 
     // Read strut data
     assert(d.HasMember("Strut"));
@@ -100,6 +104,23 @@ void MacPhersonStrut::Create(const rapidjson::Document& d) {
     // Read Tierod data
     assert(d.HasMember("Tierod"));
     assert(d["Tierod"].IsObject());
+
+    if (d["Tierod"].HasMember("Mass")) {
+        assert(d["Tierod"].HasMember("Inertia"));
+        assert(d["Tierod"].HasMember("Radius"));
+        m_tierodMass = d["Tierod"]["Mass"].GetDouble();
+        m_tierodRadius = d["Tierod"]["Radius"].GetDouble();
+        m_tierodInertia = ReadVectorJSON(d["Tierod"]["Inertia"]);
+        m_use_tierod_bodies = true;
+        if (d["Tierod"].HasMember("Bushing Data")) {
+            m_tierodBushingData = ReadBushingDataJSON(d["Tierod"]["Bushing Data"]);
+        }
+    } else {
+        m_tierodMass = 0;
+        m_tierodRadius = 0;
+        m_tierodInertia = ChVector<>(0);
+        m_use_tierod_bodies = false;
+    }
 
     m_points[TIEROD_C] = ReadVectorJSON(d["Tierod"]["Location Chassis"]);
     m_points[TIEROD_U] = ReadVectorJSON(d["Tierod"]["Location Upright"]);

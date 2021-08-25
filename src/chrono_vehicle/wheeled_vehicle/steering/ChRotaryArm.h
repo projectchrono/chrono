@@ -47,7 +47,7 @@ namespace vehicle {
 /// are provided.
 class CH_VEHICLE_API ChRotaryArm : public ChSteering {
   public:
-    virtual ~ChRotaryArm() {}
+    virtual ~ChRotaryArm();
 
     /// Get the name of the vehicle subsystem template.
     virtual std::string GetTemplateName() const override { return "RotaryArm"; }

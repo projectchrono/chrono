@@ -30,18 +30,10 @@ namespace chrono {
 /// the more advanced ChLinkLinActuator.
 
 class ChApi ChLinkDistance : public ChLink {
-
-  protected:
-    double distance;           ////< the imposed distance
-    ChVector<> pos1;           ////< first endpoint, in body rel.coords
-    ChVector<> pos2;           ////< second endpoint, in body rel.coords
-    ChConstraintTwoBodies Cx;  ////< the constraint object
-    double curr_dist;          ////< used for internal optimizations
-
   public:
     ChLinkDistance();
     ChLinkDistance(const ChLinkDistance& other);
-    virtual ~ChLinkDistance() {}
+    ~ChLinkDistance() {}
 
     /// "Virtual" copy constructor (covariant return type).
     virtual ChLinkDistance* Clone() const override { return new ChLinkDistance(*this); }
@@ -49,7 +41,7 @@ class ChApi ChLinkDistance : public ChLink {
     /// Initialize this constraint, given the two bodies to be connected, the
     /// positions of the two anchor endpoints of the distance (each expressed
     /// in body or abs. coordinates) and the imposed distance.
-    virtual int Initialize(
+    int Initialize(
         std::shared_ptr<ChBodyFrame> mbody1,  ///< first frame to link
         std::shared_ptr<ChBodyFrame> mbody2,  ///< second frame to link
         bool pos_are_relative,                ///< true: following pos. are relative to bodies
@@ -86,15 +78,17 @@ class ChApi ChLinkDistance : public ChLink {
     /// Set the 1st anchor endpoint for the distance (expressed in absolute coordinate system)
     void SetEndPoint2Abs(ChVector<>& mset) { pos2 = ((ChFrame<double>*)Body2)->TransformParentToLocal(mset); }
 
-    /// Get the imposed distance
-    double GetImposedDistance() const { return distance; };
     /// Set the imposed distance
     void SetImposedDistance(const double mset) { distance = mset; }
+
+    /// Get the imposed distance
+    double GetImposedDistance() const { return distance; };
+
     /// Get the distance currently existing between the two endpoints
-    double GetCurrentDistance() const;
+    double GetCurrentDistance() const { return curr_dist; }
 
     /// Get the constraint violation
-    double GetC() const { return GetCurrentDistance() - distance; }
+    virtual ChVectorDynamic<> GetConstraintViolation() const override { return C; }
 
     /// Override _all_ time, jacobian etc. updating.
     /// In detail, it computes jacobians, violations, etc. and stores
@@ -146,6 +140,14 @@ class ChApi ChLinkDistance : public ChLink {
 
     /// Method to allow deserialization of transient data from archives.
     virtual void ArchiveIN(ChArchiveIn& marchive) override;
+
+  private:
+    double distance;           ///< imposed distance
+    double curr_dist;          ///< current distance
+    ChVector<> pos1;           ///< first endpoint, in body rel. coords
+    ChVector<> pos2;           ///< second endpoint, in body rel. coords
+    ChConstraintTwoBodies Cx;  ///< the constraint object
+    ChVectorN<double, 1> C;    ///< constraint violation
 };
 
 CH_CLASS_VERSION(ChLinkDistance,0)

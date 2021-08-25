@@ -33,6 +33,16 @@ namespace vehicle {
 ChPitmanArm::ChPitmanArm(const std::string& name, bool vehicle_frame_inertia)
     : ChSteering(name), m_vehicle_frame_inertia(vehicle_frame_inertia) {}
 
+ChPitmanArm::~ChPitmanArm() {
+    auto sys = m_arm->GetSystem();
+    if (sys) {
+        sys->Remove(m_arm);
+        sys->Remove(m_revolute);
+        sys->Remove(m_revsph);
+        sys->Remove(m_universal);
+    }
+}
+
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 void ChPitmanArm::Initialize(std::shared_ptr<ChChassis> chassis,
@@ -242,7 +252,7 @@ void ChPitmanArm::RemoveVisualizationAssets() {
 void ChPitmanArm::LogConstraintViolations() {
     // Revolute joint
     ////{
-    ////    ChVectorDynamic<> C = m_revolute->GetC();
+    ////    ChVectorDynamic<> C = m_revolute->GetConstraintViolation();
     ////    GetLog() << "Revolute              ";
     ////    GetLog() << "  " << C(0) << "  ";
     ////    GetLog() << "  " << C(1) << "  ";
@@ -253,7 +263,7 @@ void ChPitmanArm::LogConstraintViolations() {
 
     // Universal joint
     {
-        ChVectorDynamic<> C = m_universal->GetC();
+        ChVectorDynamic<> C = m_universal->GetConstraintViolation();
         GetLog() << "Universal             ";
         GetLog() << "  " << C(0) << "  ";
         GetLog() << "  " << C(1) << "  ";
@@ -263,7 +273,7 @@ void ChPitmanArm::LogConstraintViolations() {
 
     // Revolute-spherical joint
     {
-        ChVectorDynamic<> C = m_revsph->GetC();
+        ChVectorDynamic<> C = m_revsph->GetConstraintViolation();
         GetLog() << "Revolute-spherical    ";
         GetLog() << "  " << C(0) << "  ";
         GetLog() << "  " << C(1) << "\n";
