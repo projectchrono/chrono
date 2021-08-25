@@ -112,6 +112,7 @@ int main(int argc, char* argv[]) {
     my_truck.SetChassisCollisionType(chassis_collision_type);
     my_truck.SetChassisFixed(false);
     my_truck.SetInitPosition(ChCoordsys<>(initLoc, initRot));
+    my_truck.SetDriveline6WD(true);
     my_truck.SetPowertrainType(powertrain_type);
     my_truck.SetTireType(tire_model);
     my_truck.SetTireStepSize(tire_step_size);
