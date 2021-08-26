@@ -38,7 +38,12 @@ ChSimpleDriveline::ChSimpleDriveline(const std::string& name) : ChDrivelineWV(na
 void ChSimpleDriveline::Initialize(std::shared_ptr<ChChassis> chassis,
                                    const ChAxleList& axles,
                                    const std::vector<int>& driven_axles) {
-    assert(axles.size() >= 2);
+    assert(driven_axles.size() == 2);
+
+    // Create the driveshaft
+    m_driveshaft = chrono_types::make_shared<ChShaft>();
+    m_driveshaft->SetInertia(0.5);
+    chassis->GetSystem()->Add(m_driveshaft);
 
     m_driven_axles = driven_axles;
 
@@ -48,16 +53,6 @@ void ChSimpleDriveline::Initialize(std::shared_ptr<ChChassis> chassis,
 
     m_rear_left = axles[m_driven_axles[1]]->m_suspension->GetAxle(LEFT);
     m_rear_right = axles[m_driven_axles[1]]->m_suspension->GetAxle(RIGHT);
-}
-
-// -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
-double ChSimpleDriveline::GetDriveshaftSpeed() const {
-    double speed_front = 0.5 * (m_front_left->GetPos_dt() + m_front_right->GetPos_dt());
-    double speed_rear = 0.5 * (m_rear_left->GetPos_dt() + m_rear_right->GetPos_dt());
-    double alpha = GetFrontTorqueFraction();
-
-    return alpha * speed_front + (1 - alpha) * speed_rear;
 }
 
 // -----------------------------------------------------------------------------
@@ -101,6 +96,13 @@ void ChSimpleDriveline::Synchronize(double torque) {
     if (!m_connected)
         return;
 
+    // Enforce driveshaft speed 
+    double speed_front = 0.5 * (m_front_left->GetPos_dt() + m_front_right->GetPos_dt());
+    double speed_rear = 0.5 * (m_rear_left->GetPos_dt() + m_rear_right->GetPos_dt());
+    double alpha = GetFrontTorqueFraction();
+    double driveshaft_speed = alpha * speed_front + (1 - alpha) * speed_rear;
+    m_driveshaft->SetPos_dt(driveshaft_speed);
+
     // Split the input torque front/back.
     double torque_front = torque * GetFrontTorqueFraction();
     double torque_rear = torque - torque_front;
@@ -119,6 +121,10 @@ void ChSimpleDriveline::Synchronize(double torque) {
                       torque_left, torque_right);
     m_rear_left->SetAppliedTorque(-torque_left);
     m_rear_right->SetAppliedTorque(-torque_right);
+
+    std::cout << m_front_left->GetPos_dt() << "  " << m_front_right->GetPos_dt() << "  "
+              << " " << GetFrontTorqueFraction() << " " << GetDriveshaftSpeed() << " ***** " << torque_left << "  "
+              << torque_right << std::endl;
 }
 
 // -----------------------------------------------------------------------------
