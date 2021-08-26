@@ -124,7 +124,7 @@ void ChShaftsPowertrain::Initialize(std::shared_ptr<ChChassis> chassis) {
 
     // Create the final power shaft (interface to a driveline)
     m_shaft = chrono_types::make_shared<ChShaft>();
-    m_shaft->SetInertia(0.5);
+    m_shaft->SetInertia(GetPowershaftInertia());
     my_system->Add(m_shaft);
 
     // CREATE a gearbox, i.e a transmission ratio constraint between two

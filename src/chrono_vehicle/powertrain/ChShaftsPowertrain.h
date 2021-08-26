@@ -90,6 +90,7 @@ class CH_VEHICLE_API ChShaftsPowertrain : public ChPowertrain {
     virtual double GetMotorBlockInertia() const = 0;
     virtual double GetCrankshaftInertia() const = 0;
     virtual double GetIngearShaftInertia() const = 0;
+    virtual double GetPowershaftInertia() const = 0;
 
     /// Upshift and downshift rotation speeds (in RPM)
     virtual double GetUpshiftRPM() const = 0;
