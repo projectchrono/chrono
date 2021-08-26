@@ -33,7 +33,7 @@ void ChSimpleCVTPowertrain::Initialize(std::shared_ptr<ChChassis> chassis, std::
 }
 
 void ChSimpleCVTPowertrain::Synchronize(double time, double throttle) {
-    double shaft_speed = m_driveline->GetDriveshaftSpeed();
+    double shaft_speed = m_driveline->GetDriveshaft()->GetPos_dt();
 
     // The motor speed is the shaft speed multiplied by gear ratio inversed:
     m_motorSpeed = std::abs(shaft_speed / m_current_gear_ratio);

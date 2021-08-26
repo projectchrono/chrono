@@ -43,7 +43,7 @@ class CH_VEHICLE_API ChDriveline : public ChPart {
 
     /// Get the angular speed of the driveshaft.
     /// This represents the output from the driveline subsystem that is passed to the powertrain system.
-    double GetDriveshaftSpeed() const { return m_driveshaft->GetPos_dt(); }
+    double GetDriveshaftSpeed() const { return -m_driveshaft->GetPos_dt(); }
 
   protected:
     std::shared_ptr<ChShaft> m_driveshaft;  ///< shaft connection to the powertrain

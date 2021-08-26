@@ -47,7 +47,7 @@ void Gator_SimplePowertrain::SetGearRatios(std::vector<double>& fwd, double& rev
 }
 
 void Gator_SimplePowertrain::Synchronize(double time, double throttle) {
-    double shaftSpeed = std::abs(m_driveline->GetDriveshaftSpeed());
+    double shaftSpeed = std::abs(m_driveline->GetDriveshaft()->GetPos_dt());
 
     // The motor speed is the shaft speed multiplied by gear ratio inversed
     m_motorSpeed = shaftSpeed / std::abs(m_current_gear_ratio);
