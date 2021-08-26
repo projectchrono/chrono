@@ -35,6 +35,9 @@ namespace vehicle {
 ChTrackShoeDoublePin::ChTrackShoeDoublePin(const std::string& name) : ChTrackShoeSegmented(name) {}
 
 ChTrackShoeDoublePin::~ChTrackShoeDoublePin() {
+    if (!m_shoe)
+        return;
+
     auto sys = m_shoe->GetSystem();
     if (sys) {
         sys->Remove(m_connector_L);

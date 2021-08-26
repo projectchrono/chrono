@@ -41,6 +41,9 @@ ChTrackShoeBandBushing::ChTrackShoeBandBushing(const std::string& name)
       m_Drot_other(0.05 * 1e5) {}
 
 ChTrackShoeBandBushing::~ChTrackShoeBandBushing() {
+    if (!m_loadcontainer)
+        return;
+
     auto sys = m_loadcontainer->GetSystem();
     if (sys) {
         sys->Remove(m_loadcontainer);
