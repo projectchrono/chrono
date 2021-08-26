@@ -46,6 +46,7 @@ class CH_VSG_API VSGApp {
 
     bool Initialize(int windowWidth, int windowHeight, const char* windowTitle, ChSystem* system);
     void Render();
+    void Quit() { m_viewer->close(); }
     vsg::ref_ptr<vsg::Viewer> GetViewer() { return m_viewer; }
 
   protected:

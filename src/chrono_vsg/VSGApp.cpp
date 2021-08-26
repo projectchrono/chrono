@@ -22,64 +22,42 @@ using namespace chrono::vsg3d;
 
 struct Params : public vsg::Inherit<vsg::Object, Params> {
     bool showGui = true;  // you can toggle this with your own EventHandler and key
-    bool showDemoWindow = false;
-    bool showSecondWindow = false;
-    float clearColor[3]{0.2f, 0.2f, 0.4f};  // Unfortunately, this doesn't change dynamically in vsg
-    uint32_t counter = 0;
-    float dist = 0.f;
 };
 
 class MyGuiComponent {
 public:
-    MyGuiComponent(vsg::ref_ptr<Params> params) : _params(params) {
+    MyGuiComponent(vsg::ref_ptr<Params> params, VSGApp* appPtr) : _params(params), m_appPtr(appPtr) {
     }
-
+    
     // Example here taken from the Dear imgui comments (mostly)
     bool operator()() {
 
         bool visibleComponents = false;
         ImGuiIO& io = ImGui::GetIO();
-        io.FontGlobalScale = 2;
-        
+#ifdef __APPLE__
+        io.FontGlobalScale = 2.0;
+#else
+        io.FontGlobalScale = 1.0;
+#endif
+
         // 2. Show a simple window that we create ourselves. We use a Begin/End pair to created a named window.
         if (_params->showGui) {
-            ImGui::Begin("Hello, world!");  // Create a window called "Hello, world!" and append into it.
+            ImGui::SetNextWindowSize(ImVec2(0.0f,0.0f));
+            ImGui::Begin("Chrono::VSG GUI");  // Create a window called "Hello, world!" and append into it.
 
-            ImGui::Text("Some useful message here.");  // Display some text (you can use a format strings too)
-            ImGui::Checkbox("Demo Window", &_params->showDemoWindow);  // Edit bools storing our window open/close state
-            ImGui::Checkbox("Another Window", &_params->showSecondWindow);
-            ImGui::SliderFloat("float", &_params->dist, 0.0f, 1.0f);  // Edit 1 float using a slider from 0.0f to 1.0f
-            ImGui::ColorEdit3("clear color", (float*)&_params->clearColor);  // Edit 3 floats representing a color
+            ImGui::Text("3D Draw Mode (tbd): ");
+            ImGui::SameLine();
+            ImGui::RadioButton("Filled", &m_drawMode, 0);
+            ImGui::SameLine();
+            ImGui::RadioButton("Wireframe", &m_drawMode, 1);
+            ImGui::SameLine();
+            ImGui::RadioButton("Body CoG Dots", &m_drawMode, 2);
 
             if (ImGui::Button(
-                    "Button"))  // Buttons return true when clicked (most widgets return true when edited/activated)
-                _params->counter++;
+                    "Quit"))  // Buttons return true when clicked (most widgets return true when edited/activated)
+                m_appPtr->Quit();
 
-            ImGui::SameLine();
-            ImGui::Text("counter = %d", _params->counter);
-
-            ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate,
-                        ImGui::GetIO().Framerate);
             ImGui::End();
-            visibleComponents = true;
-        }
-
-        // 3. Show another simple window.
-        if (_params->showSecondWindow) {
-            ImGui::Begin("Another Window",
-                         &_params->showSecondWindow);  // Pass a pointer to our bool variable (the window will have a
-                                                       // closing button that will clear the bool when clicked)
-            ImGui::Text("Hello from another window!");
-            if (ImGui::Button("Close Me"))
-                _params->showSecondWindow = false;
-            ImGui::End();
-
-            visibleComponents = true;
-        }
-
-        if (_params->showDemoWindow) {
-            ImGui::ShowDemoWindow(&_params->showDemoWindow);
-
             visibleComponents = true;
         }
 
@@ -88,6 +66,8 @@ public:
 
   private:
     vsg::ref_ptr<Params> _params;
+    int m_drawMode = 0;
+    VSGApp* m_appPtr;
 };
 
 VSGApp::VSGApp() {
@@ -160,7 +140,7 @@ bool VSGApp::Initialize(int windowWidth, int windowHeight, const char* windowTit
 
     // Create the ImGui node and add it to the renderGraph
     auto params = Params::create();
-    m_renderGraph->addChild(vsgImGui::RenderImGui::create(m_window, MyGuiComponent(params)));
+    m_renderGraph->addChild(vsgImGui::RenderImGui::create(m_window, MyGuiComponent(params,this)));
 
     // Add the ImGui event handler first to handle events early
     m_viewer->addEventHandler(vsgImGui::SendEventsToImGui::create());
