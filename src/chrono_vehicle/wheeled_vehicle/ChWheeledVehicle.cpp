@@ -331,12 +331,6 @@ double ChWheeledVehicle::GetSpindleOmega(int axle, VehicleSide side) const {
 }
 
 // -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
-double ChWheeledVehicle::GetDriveshaftSpeed() const {
-    return m_driveline->GetDriveshaftSpeed();
-}
-
-// -----------------------------------------------------------------------------
 // Estimate the maximum steering angle based on a bicycle model, from the vehicle
 // minimum turning radius, the wheelbase, and the track of the front suspension.
 // -----------------------------------------------------------------------------

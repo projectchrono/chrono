@@ -171,7 +171,6 @@ class CH_VEHICLE_API ChTrackTestRig : public ChVehicle {
     // Overrides of ChVehicle methods
     virtual std::string GetTemplateName() const override { return "TrackTestRig"; }
     virtual std::shared_ptr<ChShaft> GetDriveshaft() const override { return m_dummy_shaft; }
-    virtual double GetDriveshaftSpeed() const override { return 0; }
     virtual double GetVehicleMass() const override { return GetMass(); }
     virtual ChVector<> GetVehicleCOMPos() const override { return ChVector<>(0, 0, 0); }
     virtual std::string ExportComponentList() const override { return ""; }
