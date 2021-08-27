@@ -40,6 +40,7 @@ namespace vehicle {
 /// @{
 
 class ChTrackedVehicle;
+class ChTrackTestRig;
 
 // -----------------------------------------------------------------------------
 
@@ -56,6 +57,7 @@ class CH_VEHICLE_API ChTrackContactManager : public ChContactContainer::ReportCo
     void SetTrackShoeIndexRight(size_t idx) { m_shoe_index_R = idx; }
 
     void Process(ChTrackedVehicle* vehicle);
+    void Process(ChTrackTestRig* rig);
 
     bool InContact(TrackedCollisionFlag::Enum part) const;
 
@@ -110,6 +112,7 @@ class CH_VEHICLE_API ChTrackContactManager : public ChContactContainer::ReportCo
     std::list<ContactInfo> m_idler_R_contacts;     ///< list of contacts on right idler wheel
 
     friend class ChTrackedVehicleIrrApp;
+    friend class ChTrackTestRigIrrApp;
 };
 
 // -----------------------------------------------------------------------------

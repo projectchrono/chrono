@@ -23,7 +23,7 @@
 #include "chrono_vehicle/tracked_vehicle/test_rig/ChDataDriverTTR.h"
 #include "chrono_vehicle/tracked_vehicle/test_rig/ChRoadDriverTTR.h"
 #include "chrono_vehicle/tracked_vehicle/test_rig/ChTrackTestRig.h"
-#include "chrono_vehicle/utils/ChVehicleIrrApp.h"
+#include "chrono_vehicle/tracked_vehicle/utils/ChTrackTestRigIrrApp.h"
 
 #include "chrono_models/vehicle/m113/M113_TrackAssemblyDoublePin.h"
 #include "chrono_models/vehicle/m113/M113_TrackAssemblySinglePin.h"
@@ -137,7 +137,7 @@ int main(int argc, char* argv[]) {
     ChVector<> target_point = 0.5 * (rig->GetTrackAssembly()->GetSprocket()->GetGearBody()->GetPos() +
                                      rig->GetTrackAssembly()->GetIdler()->GetWheelBody()->GetPos());
 
-    ChVehicleIrrApp app(rig, L"Suspension Test Rig");
+    ChTrackTestRigIrrApp app(rig, L"Track Test Rig");
     app.SetSkyBox();
     app.AddTypicalLights(irr::core::vector3df(30.f, -30.f, 100.f), irr::core::vector3df(30.f, 50.f, 100.f), 250, 130);
     app.SetChaseCamera(ChVector<>(0), 3.0, 0.0);
@@ -184,6 +184,9 @@ int main(int argc, char* argv[]) {
 
     ////rig->SetCollide(TrackedCollisionFlag::NONE);
     ////rig->SetCollide(TrackedCollisionFlag::SPROCKET_LEFT | TrackedCollisionFlag::SHOES_LEFT);
+    ////rig->SetPostCollide(false);
+
+    ////rig->MonitorContacts(TrackedCollisionFlag::SPROCKET_LEFT);
 
     rig->SetSprocketVisualizationType(VisualizationType::PRIMITIVES);
     rig->SetIdlerVisualizationType(VisualizationType::PRIMITIVES);

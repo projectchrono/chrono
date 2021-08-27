@@ -111,6 +111,31 @@ class CH_VEHICLE_API ChTrackTestRig : public ChVehicle {
     /// By default, collision is enabled for sprocket, idler, road wheels, and track shoes.
     void SetCollide(int flags) { m_collide_flags = flags; }
 
+    /// Enable/disable collision for the rig posts (default: true).
+    void SetPostCollide(bool flag);
+
+    /// Set contacts to be monitored.
+    /// Contact information will be tracked for the specified subsystems.
+    void MonitorContacts(int flags) { m_contact_manager->MonitorContacts(flags); }
+
+    /// Turn on/off contact data collection.
+    /// If enabled, contact information will be collected for all monitored subsystems.
+    void SetContactCollection(bool val) { m_contact_manager->SetContactCollection(val); }
+
+    /// Return true if the specified vehicle part is currently experiencing a collision.
+    bool IsPartInContact(TrackedCollisionFlag::Enum part) const { return m_contact_manager->InContact(part); }
+
+    /// Return estimated resistive torque on the specified sprocket.
+    /// This torque is available only if monitoring of contacts for that sprocket is enabled.
+    ChVector<> GetSprocketResistiveTorque(VehicleSide side) const {
+        return m_contact_manager->GetSprocketResistiveTorque(side);
+    }
+
+    /// Write contact information to file.
+    /// If data collection was enabled and at least one subsystem is monitored,
+    /// contact information is written (in CSV format) to the specified file.
+    void WriteContacts(const std::string& filename) { m_contact_manager->WriteContacts(filename); }
+
     double GetThrottleInput() const { return m_throttle_input; }
     double GetDisplacementInput(int index) { return m_displ_input[index]; }
     std::string GetDriverMessage() const { return m_driver->GetInfoMessage(); }
@@ -205,10 +230,14 @@ class CH_VEHICLE_API ChTrackTestRig : public ChVehicle {
     double m_post_radius;   ///< radius of the post cylindrical platform
     double m_post_hheight;  ///< half-height of the post cylindrical platform
 
+    std::shared_ptr<ChTrackContactManager> m_contact_manager;  ///< manager for internal contacts
+
     bool m_plot_output;
     double m_plot_output_step;
     double m_next_plot_output_time;
     utils::CSV_writer* m_csv;
+
+    friend class ChTrackTestRigIrrApp;
 };
 
 /// @} vehicle_tracked_test_rig
