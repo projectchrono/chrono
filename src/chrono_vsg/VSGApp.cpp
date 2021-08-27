@@ -22,6 +22,44 @@ using namespace chrono::vsg3d;
 
 struct Params : public vsg::Inherit<vsg::Object, Params> {
     bool showGui = true;  // you can toggle this with your own EventHandler and key
+    int drawMode = 0;
+};
+
+class AppKeyboardHandler : public vsg::Inherit<vsg::Visitor, AppKeyboardHandler>
+{
+public:
+    AppKeyboardHandler(vsg::Viewer* viewer)
+        : m_viewer(viewer)
+    {
+    }
+    void SetParams(vsg::ref_ptr<Params> params, VSGApp* appPtr) {
+        _params = params;
+        m_appPtr = appPtr;
+    }
+    void apply(vsg::KeyPressEvent& keyPress) override
+    {
+        if(keyPress.keyBase == '1') {
+            _params->drawMode = 0;
+            m_appPtr->UpdateDrawMode(_params->drawMode);
+        }
+        if(keyPress.keyBase == '2') {
+            _params->drawMode = 1;
+            m_appPtr->UpdateDrawMode(_params->drawMode);
+        }
+        if(keyPress.keyBase == '3') {
+            _params->drawMode = 2;
+            m_appPtr->UpdateDrawMode(_params->drawMode);
+        }
+        if(keyPress.keyBase == 'm') {
+            std::cout << "Key 'm' hit" << std::endl;
+            _params->showGui = !_params->showGui;
+        }
+    }
+
+private:
+    vsg::observer_ptr<vsg::Viewer> m_viewer;
+    vsg::ref_ptr<Params> _params;
+    VSGApp* m_appPtr;
 };
 
 class MyGuiComponent {
@@ -47,11 +85,18 @@ public:
 
             ImGui::Text("3D Draw Mode (tbd): ");
             ImGui::SameLine();
-            ImGui::RadioButton("Filled", &m_drawMode, 0);
+            
+            if(ImGui::RadioButton("Filled", &_params->drawMode, 0)) {
+                m_appPtr->UpdateDrawMode(_params->drawMode);
+            }
             ImGui::SameLine();
-            ImGui::RadioButton("Wireframe", &m_drawMode, 1);
+            if(ImGui::RadioButton("Wireframe", &_params->drawMode, 1)) {
+                m_appPtr->UpdateDrawMode(_params->drawMode);
+            }
             ImGui::SameLine();
-            ImGui::RadioButton("Body CoG Dots", &m_drawMode, 2);
+            if(ImGui::RadioButton("Body CoG Dots", &_params->drawMode, 2)) {
+                m_appPtr->UpdateDrawMode(_params->drawMode);
+            }
 
             if (ImGui::Button(
                     "Quit"))  // Buttons return true when clicked (most widgets return true when edited/activated)
@@ -66,7 +111,6 @@ public:
 
   private:
     vsg::ref_ptr<Params> _params;
-    int m_drawMode = 0;
     VSGApp* m_appPtr;
 };
 
@@ -144,6 +188,10 @@ bool VSGApp::Initialize(int windowWidth, int windowHeight, const char* windowTit
 
     // Add the ImGui event handler first to handle events early
     m_viewer->addEventHandler(vsgImGui::SendEventsToImGui::create());
+    
+    auto kbHandler = AppKeyboardHandler::create(m_viewer);
+    kbHandler->SetParams(params,this);
+    m_viewer->addEventHandler(kbHandler);
 
     // add close handler to respond the close window button and pressing escape
     m_viewer->addEventHandler(vsg::CloseHandler::create(m_viewer));
@@ -164,6 +212,27 @@ void VSGApp::UpdateSceneGraph() {}
 void VSGApp::Render() {
     m_viewer->handleEvents();
     m_viewer->update();
+    // adjust draw mode, if necessary
+    if(m_drawModeChanged) {
+    switch(m_drawMode) {
+        case 0:
+            m_dot_subgraph->setAllChildren(false);
+            m_line_subgraph->setAllChildren(false);
+            m_polygon_subgraph->setAllChildren(true);
+            break;
+        case 1:
+            m_dot_subgraph->setAllChildren(false);
+            m_line_subgraph->setAllChildren(true);
+            m_polygon_subgraph->setAllChildren(false);
+            break;
+        case 2:
+            m_dot_subgraph->setAllChildren(true);
+            m_line_subgraph->setAllChildren(false);
+            m_polygon_subgraph->setAllChildren(false);
+            break;
+    }
+        m_drawModeChanged = false;
+    }
     m_viewer->recordAndSubmit();
     m_viewer->present();
 }

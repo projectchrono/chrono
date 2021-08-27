@@ -48,12 +48,15 @@ class CH_VSG_API VSGApp {
     void Render();
     void Quit() { m_viewer->close(); }
     vsg::ref_ptr<vsg::Viewer> GetViewer() { return m_viewer; }
+    void UpdateDrawMode(int mode) { m_drawMode = mode; m_drawModeChanged = true; }
 
   protected:
     void BuildSceneGraph();
     void UpdateSceneGraph();
 
   private:
+    int m_drawMode = 0;
+    bool m_drawModeChanged = true;
     vsg::ref_ptr<vsg::Viewer> m_viewer;
     vsg::ref_ptr<vsg::Window> m_window;
 
