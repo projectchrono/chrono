@@ -173,8 +173,6 @@ int main(int argc, char* argv[]) {
     /// Construction of the FSI system must be finalized
     myFsiSystem.Finalize();
 
-    double mTime = 0;
-
     int stepEnd = int(paramsH->tFinal / paramsH->dT);
     stepEnd = 50000;
     std::vector<std::vector<double>> vCoor;
@@ -244,10 +242,10 @@ void SaveParaViewFilesMBD(fsi::ChSystemFsi& myFsiSystem,
                           std::shared_ptr<fsi::SimParams> paramsH,
                           int next_frame,
                           double mTime) {
-    static double exec_time;
-    int out_steps = (int)ceil((1.0 / paramsH->dT) / paramsH->out_fps);
+    static double exec_time = 0;
     exec_time += mphysicalSystem.GetTimerStep();
-    int num_contacts = mphysicalSystem.GetNcontacts();
+    ////int out_steps = (int)ceil((1.0 / paramsH->dT) / paramsH->out_fps);
+    ////int num_contacts = mphysicalSystem.GetNcontacts();
     double frame_time = 1.0 / paramsH->out_fps;
     static int out_frame = 0;
 

@@ -285,7 +285,20 @@ std::shared_ptr<ChSolver> ChSystem::GetSolver() {
     return solver;
 }
 
-// Plug-in components configuration
+// -----------------------------------------------------------------------------
+
+void ChSystem::RegisterCustomCollisionCallback(std::shared_ptr<CustomCollisionCallback> callback) {
+    collision_callbacks.push_back(callback);
+}
+
+void ChSystem::UnregisterCustomCollisionCallback(std::shared_ptr<CustomCollisionCallback> callback) {
+    auto itr = std::find(std::begin(collision_callbacks), std::end(collision_callbacks), callback);
+    if (itr != collision_callbacks.end()) {
+        collision_callbacks.erase(itr);
+    }
+}
+
+// -----------------------------------------------------------------------------
 
 void ChSystem::SetSystemDescriptor(std::shared_ptr<ChSystemDescriptor> newdescriptor) {
     assert(newdescriptor);

@@ -39,27 +39,45 @@ namespace vehicle {
 // -----------------------------------------------------------------------------
 // Static variables
 // -----------------------------------------------------------------------------
-const std::string ChHendricksonPRIMAXX::m_pointNames[] = {"SPINDLE ",
-                                                          "KNUCKLE_L",
-                                                          "KNUCKLE_U",
-                                                          "TIEROD_C",
-                                                          "TIEROD_K",
-                                                          "TORQUEROD_C",
-                                                          "TORQUEROD_AH",
-                                                          "LOWERBEAM_C",
-                                                          "LOWERBEAM_AH",
-                                                          "LOWERBEAM_TB",
-                                                          "SHOCKAH_C",
-                                                          "SHOCKAH_AH",
-                                                          "SHOCKLB_C",
-                                                          "SHOCKLB_LB",
-                                                          "KNUCKLE_CM",
-                                                          "TORQUEROD_CM",
-                                                          "LOWERBEAM_CM"};
+const std::string ChHendricksonPRIMAXX::m_pointNames[] = {
+    "SPINDLE ",     "KNUCKLE_L",   "KNUCKLE_U",    "TIEROD_C",     "TIEROD_K",    "TORQUEROD_C",
+    "TORQUEROD_AH", "LOWERBEAM_C", "LOWERBEAM_AH", "LOWERBEAM_TB", "SHOCKAH_C",   "SHOCKAH_AH",
+    "SHOCKLB_C",    "SHOCKLB_LB",  "KNUCKLE_CM",   "TORQUEROD_CM", "LOWERBEAM_CM"};
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-ChHendricksonPRIMAXX::ChHendricksonPRIMAXX(const std::string& name) : ChSuspension(name) {
+ChHendricksonPRIMAXX::ChHendricksonPRIMAXX(const std::string& name) : ChSuspension(name) {}
+
+ChHendricksonPRIMAXX::~ChHendricksonPRIMAXX() {
+    auto sys = m_transversebeam->GetSystem();
+    if (sys) {
+        sys->Remove(m_transversebeam);
+        sys->Remove(m_axlehousing);
+
+        for (int i = 0; i < 2; i++) {
+            sys->Remove(m_knuckle[i]);
+            sys->Remove(m_torquerod[i]);
+            sys->Remove(m_lowerbeam[i]);
+            sys->Remove(m_revoluteKingpin[i]);
+            sys->Remove(m_sphericalTorquerod[i]);
+            sys->Remove(m_revoluteTorquerod[i]);
+            sys->Remove(m_sphericalLowerbeam[i]);
+            sys->Remove(m_revoluteLowerbeam[i]);
+            sys->Remove(m_sphericalTB[i]);
+
+            if (m_tierod[i]) {
+                sys->Remove(m_tierod[i]);
+                ChChassis::RemoveJoint(m_sphericalTierod[i]);
+                ChChassis::RemoveJoint(m_universalTierod[i]);
+            }
+            if (m_distTierod[i]) {
+                sys->Remove(m_distTierod[i]);
+            }
+            
+            sys->Remove(m_shockLB[i]);
+            sys->Remove(m_shockAH[i]);
+        }
+    }
 }
 
 // -----------------------------------------------------------------------------
@@ -132,27 +150,27 @@ void ChHendricksonPRIMAXX::Initialize(std::shared_ptr<ChChassis> chassis,
 
     // Initialize left and right sides.
     std::shared_ptr<ChBody> tierod_body = (steering == nullptr) ? chassis->GetBody() : steering->GetSteeringLink();
-    InitializeSide(LEFT, chassis->GetBody(), tierod_body, m_pointsL, m_dirsL, left_ang_vel);
-    InitializeSide(RIGHT, chassis->GetBody(), tierod_body, m_pointsR, m_dirsR, right_ang_vel);
+    InitializeSide(LEFT, chassis, tierod_body, m_pointsL, m_dirsL, left_ang_vel);
+    InitializeSide(RIGHT, chassis, tierod_body, m_pointsR, m_dirsR, right_ang_vel);
 }
 
 void ChHendricksonPRIMAXX::InitializeSide(VehicleSide side,
-                                          std::shared_ptr<ChBodyAuxRef> chassis,
+                                          std::shared_ptr<ChChassis> chassis,
                                           std::shared_ptr<ChBody> tierod_body,
-                                          const std::vector<ChVector<> >& points,
-                                          const std::vector<ChVector<> >& dirs,
+                                          const std::vector<ChVector<>>& points,
+                                          const std::vector<ChVector<>>& dirs,
                                           double ang_vel) {
     std::string suffix = (side == LEFT) ? "_L" : "_R";
+
+    // Chassis orientation (expressed in absolute frame)
+    // Recall that the suspension reference frame is aligned with the chassis.
+    ChQuaternion<> chassisRot = chassis->GetBody()->GetFrame_REF_to_abs().GetRot();
 
     // Unit vectors for orientation matrices.
     ChVector<> u;
     ChVector<> v;
     ChVector<> w;
     ChMatrix33<> rot;
-
-    // Chassis orientation (expressed in absolute frame)
-    // Recall that the suspension reference frame is aligned with the chassis.
-    ChQuaternion<> chassisRot = chassis->GetFrame_REF_to_abs().GetRot();
 
     // Create and initialize knuckle body (same orientation as the chassis)
     m_knuckle[side] = std::shared_ptr<ChBody>(chassis->GetSystem()->NewBody());
@@ -242,14 +260,14 @@ void ChHendricksonPRIMAXX::InitializeSide(VehicleSide side,
     ChCoordsys<> revTR_csys(points[TORQUEROD_C], chassisRot * Q_from_AngAxis(CH_C_PI / 2.0, VECT_X));
     m_revoluteTorquerod[side] = chrono_types::make_shared<ChLinkLockRevolute>();
     m_revoluteTorquerod[side]->SetNameString(m_name + "_revoluteTorquerod" + suffix);
-    m_revoluteTorquerod[side]->Initialize(chassis, m_torquerod[side], revTR_csys);
+    m_revoluteTorquerod[side]->Initialize(chassis->GetBody(), m_torquerod[side], revTR_csys);
     chassis->GetSystem()->AddLink(m_revoluteTorquerod[side]);
 
     // Create and initialize the revolute joint between chassis and lower beam.
     ChCoordsys<> revLB_csys(points[LOWERBEAM_C], chassisRot * Q_from_AngAxis(CH_C_PI / 2.0, VECT_X));
     m_revoluteLowerbeam[side] = chrono_types::make_shared<ChLinkLockRevolute>();
     m_revoluteLowerbeam[side]->SetNameString(m_name + "_revoluteLowerbeam" + suffix);
-    m_revoluteLowerbeam[side]->Initialize(chassis, m_lowerbeam[side], revLB_csys);
+    m_revoluteLowerbeam[side]->Initialize(chassis->GetBody(), m_lowerbeam[side], revLB_csys);
     chassis->GetSystem()->AddLink(m_revoluteLowerbeam[side]);
 
     // Create and initialize the revolute joint between upright and spindle.
@@ -263,22 +281,50 @@ void ChHendricksonPRIMAXX::InitializeSide(VehicleSide side,
     // Create and initialize the spring/damper between axle housing and chassis
     m_shockAH[side] = chrono_types::make_shared<ChLinkTSDA>();
     m_shockAH[side]->SetNameString(m_name + "_shockAH" + suffix);
-    m_shockAH[side]->Initialize(chassis, m_axlehousing, false, points[SHOCKAH_C], points[SHOCKAH_AH]);
+    m_shockAH[side]->Initialize(chassis->GetBody(), m_axlehousing, false, points[SHOCKAH_C], points[SHOCKAH_AH]);
     m_shockAH[side]->RegisterForceFunctor(getShockAHForceCallback());
     chassis->GetSystem()->AddLink(m_shockAH[side]);
 
     // Create and initialize the spring/damper between lower beam and chassis
     m_shockLB[side] = chrono_types::make_shared<ChLinkTSDA>();
     m_shockLB[side]->SetNameString(m_name + "_shockLB" + suffix);
-    m_shockLB[side]->Initialize(chassis, m_axlehousing, false, points[SHOCKLB_C], points[SHOCKLB_LB]);
+    m_shockLB[side]->Initialize(chassis->GetBody(), m_axlehousing, false, points[SHOCKLB_C], points[SHOCKLB_LB]);
     m_shockLB[side]->RegisterForceFunctor(getShockLBForceCallback());
     chassis->GetSystem()->AddLink(m_shockLB[side]);
 
-    // Create and initialize the tierod distance constraint between chassis and upright.
-    m_distTierod[side] = chrono_types::make_shared<ChLinkDistance>();
-    m_distTierod[side]->SetNameString(m_name + "_distTierod" + suffix);
-    m_distTierod[side]->Initialize(tierod_body, m_knuckle[side], false, points[TIEROD_C], points[TIEROD_K]);
-    chassis->GetSystem()->AddLink(m_distTierod[side]);
+    if (UseTierodBodies()) {
+        // Orientation of tierod body
+        w = (points[TIEROD_K] - points[TIEROD_C]).GetNormalized();
+        u = chassisRot.GetXaxis();
+        v = Vcross(w, u).GetNormalized();
+        u = Vcross(v, w);
+        rot.Set_A_axis(u, v, w);
+
+        // Create the tierod body
+        m_tierod[side] = std::shared_ptr<ChBody>(chassis->GetBody()->GetSystem()->NewBody());
+        m_tierod[side]->SetNameString(m_name + "_tierodBody" + suffix);
+        m_tierod[side]->SetPos((points[TIEROD_K] + points[TIEROD_C]) / 2);
+        m_tierod[side]->SetRot(rot.Get_A_quaternion());
+        m_tierod[side]->SetMass(getTierodMass());
+        m_tierod[side]->SetInertiaXX(getTierodInertia());
+        chassis->GetBody()->GetSystem()->AddBody(m_tierod[side]);
+
+        // Connect tierod body to knuckle (spherical) and chassis (universal)
+        m_sphericalTierod[side] = chrono_types::make_shared<ChVehicleJoint>(
+            ChVehicleJoint::Type::SPHERICAL, m_name + "_sphericalTierod" + suffix, m_knuckle[side], m_tierod[side],
+            ChCoordsys<>(points[TIEROD_K], QUNIT), getTierodBushingData());
+        chassis->AddJoint(m_sphericalTierod[side]);
+        m_universalTierod[side] = chrono_types::make_shared<ChVehicleJoint>(
+            ChVehicleJoint::Type::UNIVERSAL, m_name + "_universalTierod" + suffix, tierod_body, m_tierod[side],
+            ChCoordsys<>(points[TIEROD_C], rot.Get_A_quaternion()), getTierodBushingData());
+        chassis->AddJoint(m_universalTierod[side]);
+    } else {
+        // Create and initialize the tierod distance constraint between chassis and knuckle.
+        m_distTierod[side] = chrono_types::make_shared<ChLinkDistance>();
+        m_distTierod[side]->SetNameString(m_name + "_distTierod" + suffix);
+        m_distTierod[side]->Initialize(tierod_body, m_knuckle[side], false, points[TIEROD_C], points[TIEROD_K]);
+        chassis->GetSystem()->AddLink(m_distTierod[side]);
+    }
 
     // Create and initialize the axle shaft and its connection to the spindle. Note that the
     // spindle rotates about the Y axis.
@@ -367,7 +413,7 @@ void ChHendricksonPRIMAXX::LogHardpointLocations(const ChVector<>& ref, bool inc
 void ChHendricksonPRIMAXX::LogConstraintViolations(VehicleSide side) {
     // Revolute joints
     {
-        ChVectorDynamic<> C = m_revolute[side]->GetC();
+        ChVectorDynamic<> C = m_revolute[side]->GetConstraintViolation();
         GetLog() << "Spindle revolute      ";
         GetLog() << "  " << C(0) << "  ";
         GetLog() << "  " << C(1) << "  ";
@@ -376,7 +422,7 @@ void ChHendricksonPRIMAXX::LogConstraintViolations(VehicleSide side) {
         GetLog() << "  " << C(4) << "\n";
     }
     {
-        ChVectorDynamic<> C = m_revoluteKingpin[side]->GetC();
+        ChVectorDynamic<> C = m_revoluteKingpin[side]->GetConstraintViolation();
         GetLog() << "Kingpin revolute      ";
         GetLog() << "  " << C(0) << "  ";
         GetLog() << "  " << C(1) << "  ";
@@ -386,14 +432,14 @@ void ChHendricksonPRIMAXX::LogConstraintViolations(VehicleSide side) {
     }
     // Spherical joints
     {
-        ChVectorDynamic<> C = m_sphericalTorquerod[side]->GetC();
+        ChVectorDynamic<> C = m_sphericalTorquerod[side]->GetConstraintViolation();
         GetLog() << "Torquerod spherical          ";
         GetLog() << "  " << C(0) << "  ";
         GetLog() << "  " << C(1) << "  ";
         GetLog() << "  " << C(2) << "\n";
     }
     {
-        ChVectorDynamic<> C = m_sphericalLowerbeam[side]->GetC();
+        ChVectorDynamic<> C = m_sphericalLowerbeam[side]->GetConstraintViolation();
         GetLog() << "Lowerbeam spherical          ";
         GetLog() << "  " << C(0) << "  ";
         GetLog() << "  " << C(1) << "  ";
@@ -401,29 +447,46 @@ void ChHendricksonPRIMAXX::LogConstraintViolations(VehicleSide side) {
     }
 
     {
-      ChVectorDynamic<> C = m_revoluteLowerbeam[side]->GetC();
-      GetLog() << "Lowerbeam revolute          ";
-      GetLog() << "  " << C(0) << "  ";
-      GetLog() << "  " << C(1) << "  ";
-      GetLog() << "  " << C(2) << "  ";
-      GetLog() << "  " << C(3) << "  ";
-      GetLog() << "  " << C(4) << "\n";
+        ChVectorDynamic<> C = m_revoluteLowerbeam[side]->GetConstraintViolation();
+        GetLog() << "Lowerbeam revolute          ";
+        GetLog() << "  " << C(0) << "  ";
+        GetLog() << "  " << C(1) << "  ";
+        GetLog() << "  " << C(2) << "  ";
+        GetLog() << "  " << C(3) << "  ";
+        GetLog() << "  " << C(4) << "\n";
     }
 
     {
-      ChVectorDynamic<> C = m_revoluteTorquerod[side]->GetC();
-      GetLog() << "Torquerod revolute          ";
-      GetLog() << "  " << C(0) << "  ";
-      GetLog() << "  " << C(1) << "  ";
-      GetLog() << "  " << C(2) << "  ";
-      GetLog() << "  " << C(3) << "  ";
-      GetLog() << "  " << C(4) << "\n";
+        ChVectorDynamic<> C = m_revoluteTorquerod[side]->GetConstraintViolation();
+        GetLog() << "Torquerod revolute          ";
+        GetLog() << "  " << C(0) << "  ";
+        GetLog() << "  " << C(1) << "  ";
+        GetLog() << "  " << C(2) << "  ";
+        GetLog() << "  " << C(3) << "  ";
+        GetLog() << "  " << C(4) << "\n";
     }
 
-
-    // Distance constraint
-    GetLog() << "Tierod distance       ";
-    GetLog() << "  " << m_distTierod[side]->GetCurrentDistance() - m_distTierod[side]->GetImposedDistance() << "\n";
+    // Tierod constraint
+    if (UseTierodBodies()) {
+        {
+            const auto& C = m_sphericalTierod[side]->GetConstraintViolation();
+            GetLog() << "Tierod spherical      ";
+            GetLog() << "  " << C(0) << "  ";
+            GetLog() << "  " << C(1) << "  ";
+            GetLog() << "  " << C(2) << "\n";
+        }
+        {
+            const auto& C = m_universalTierod[side]->GetConstraintViolation();
+            GetLog() << "Tierod universal      ";
+            GetLog() << "  " << C(0) << "  ";
+            GetLog() << "  " << C(1) << "  ";
+            GetLog() << "  " << C(2) << "\n";
+            GetLog() << "  " << C(3) << "\n";
+        }
+    } else {
+        GetLog() << "Tierod distance       ";
+        GetLog() << "  " << m_distTierod[side]->GetCurrentDistance() - m_distTierod[side]->GetImposedDistance() << "\n";
+    }
 }
 
 // -----------------------------------------------------------------------------
@@ -472,10 +535,15 @@ void ChHendricksonPRIMAXX::AddVisualizationAssets(VisualizationType vis) {
     m_shockAH[RIGHT]->AddAsset(chrono_types::make_shared<ChPointPointSegment>());
 
     // Add visualization for the tie-rods
-    m_distTierod[LEFT]->AddAsset(chrono_types::make_shared<ChPointPointSegment>());
-    m_distTierod[RIGHT]->AddAsset(chrono_types::make_shared<ChPointPointSegment>());
-    m_distTierod[LEFT]->AddAsset(chrono_types::make_shared<ChColorAsset>(0.8f, 0.3f, 0.3f));
-    m_distTierod[RIGHT]->AddAsset(chrono_types::make_shared<ChColorAsset>(0.8f, 0.3f, 0.3f));
+    if (UseTierodBodies()) {
+        AddVisualizationTierod(m_tierod[LEFT], m_pointsL[TIEROD_C], m_pointsL[TIEROD_K], getTierodRadius());
+        AddVisualizationTierod(m_tierod[RIGHT], m_pointsR[TIEROD_C], m_pointsR[TIEROD_K], getTierodRadius());
+    } else {
+        m_distTierod[LEFT]->AddAsset(chrono_types::make_shared<ChPointPointSegment>());
+        m_distTierod[RIGHT]->AddAsset(chrono_types::make_shared<ChPointPointSegment>());
+        m_distTierod[LEFT]->AddAsset(chrono_types::make_shared<ChColorAsset>(0.8f, 0.3f, 0.3f));
+        m_distTierod[RIGHT]->AddAsset(chrono_types::make_shared<ChColorAsset>(0.8f, 0.3f, 0.3f));
+    }
 }
 
 void ChHendricksonPRIMAXX::RemoveVisualizationAssets() {
@@ -499,8 +567,13 @@ void ChHendricksonPRIMAXX::RemoveVisualizationAssets() {
     m_shockAH[LEFT]->GetAssets().clear();
     m_shockAH[RIGHT]->GetAssets().clear();
 
-    m_distTierod[LEFT]->GetAssets().clear();
-    m_distTierod[RIGHT]->GetAssets().clear();
+    if (UseTierodBodies()) {
+        m_tierod[LEFT]->GetAssets().clear();
+        m_tierod[RIGHT]->GetAssets().clear();
+    } else {
+        m_distTierod[LEFT]->GetAssets().clear();
+        m_distTierod[RIGHT]->GetAssets().clear();
+    }
 }
 
 // -----------------------------------------------------------------------------
@@ -596,6 +669,24 @@ void ChHendricksonPRIMAXX::AddVisualizationKnuckle(std::shared_ptr<ChBody> knuck
     col->SetColor(ChColor(0.2f, 0.2f, 0.6f));
     knuckle->AddAsset(col);
 }
+
+void ChHendricksonPRIMAXX::AddVisualizationTierod(std::shared_ptr<ChBody> tierod,
+                                                  const ChVector<> pt_C,
+                                                  const ChVector<> pt_U,
+                                                  double radius) {
+    // Express hardpoint locations in body frame.
+    ChVector<> p_C = tierod->TransformPointParentToLocal(pt_C);
+    ChVector<> p_U = tierod->TransformPointParentToLocal(pt_U);
+
+    auto cyl = chrono_types::make_shared<ChCylinderShape>();
+    cyl->GetCylinderGeometry().p1 = p_C;
+    cyl->GetCylinderGeometry().p2 = p_U;
+    cyl->GetCylinderGeometry().rad = radius;
+    tierod->AddAsset(cyl);
+
+    tierod->AddAsset(chrono_types::make_shared<ChColorAsset>(0.8f, 0.3f, 0.3f));
+}
+
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 void ChHendricksonPRIMAXX::ExportComponentList(rapidjson::Document& jsonDocument) const {
@@ -612,6 +703,10 @@ void ChHendricksonPRIMAXX::ExportComponentList(rapidjson::Document& jsonDocument
     bodies.push_back(m_lowerbeam[1]);
     bodies.push_back(m_transversebeam);
     bodies.push_back(m_axlehousing);
+    if (UseTierodBodies()) {
+        bodies.push_back(m_tierod[0]);
+        bodies.push_back(m_tierod[1]);
+    }
     ChPart::ExportBodyList(jsonDocument, bodies);
 
     std::vector<std::shared_ptr<ChShaft>> shafts;
@@ -620,6 +715,7 @@ void ChHendricksonPRIMAXX::ExportComponentList(rapidjson::Document& jsonDocument
     ChPart::ExportShaftList(jsonDocument, shafts);
 
     std::vector<std::shared_ptr<ChLink>> joints;
+    std::vector<std::shared_ptr<ChLoadBodyBody>> bushings;
     joints.push_back(m_revolute[0]);
     joints.push_back(m_revolute[1]);
     joints.push_back(m_revoluteKingpin[0]);
@@ -634,9 +730,21 @@ void ChHendricksonPRIMAXX::ExportComponentList(rapidjson::Document& jsonDocument
     joints.push_back(m_revoluteLowerbeam[1]);
     joints.push_back(m_sphericalTB[0]);
     joints.push_back(m_sphericalTB[1]);
-    joints.push_back(m_distTierod[0]);
-    joints.push_back(m_distTierod[1]);
+    if (UseTierodBodies()) {
+        m_sphericalTierod[0]->IsKinematic() ? joints.push_back(m_sphericalTierod[0]->GetAsLink())
+                                            : bushings.push_back(m_sphericalTierod[0]->GetAsBushing());
+        m_sphericalTierod[1]->IsKinematic() ? joints.push_back(m_sphericalTierod[1]->GetAsLink())
+                                            : bushings.push_back(m_sphericalTierod[1]->GetAsBushing());
+        m_universalTierod[0]->IsKinematic() ? joints.push_back(m_universalTierod[0]->GetAsLink())
+                                            : bushings.push_back(m_universalTierod[0]->GetAsBushing());
+        m_universalTierod[1]->IsKinematic() ? joints.push_back(m_universalTierod[1]->GetAsLink())
+                                            : bushings.push_back(m_universalTierod[1]->GetAsBushing());
+    } else {
+        joints.push_back(m_distTierod[0]);
+        joints.push_back(m_distTierod[1]);
+    }
     ChPart::ExportJointList(jsonDocument, joints);
+    ChPart::ExportBodyLoadList(jsonDocument, bushings);
 
     std::vector<std::shared_ptr<ChLinkTSDA>> springs;
     springs.push_back(m_shockLB[0]);
@@ -661,6 +769,10 @@ void ChHendricksonPRIMAXX::Output(ChVehicleOutput& database) const {
     bodies.push_back(m_lowerbeam[1]);
     bodies.push_back(m_transversebeam);
     bodies.push_back(m_axlehousing);
+    if (UseTierodBodies()) {
+        bodies.push_back(m_tierod[0]);
+        bodies.push_back(m_tierod[1]);
+    }
     database.WriteBodies(bodies);
 
     std::vector<std::shared_ptr<ChShaft>> shafts;
@@ -669,6 +781,7 @@ void ChHendricksonPRIMAXX::Output(ChVehicleOutput& database) const {
     database.WriteShafts(shafts);
 
     std::vector<std::shared_ptr<ChLink>> joints;
+    std::vector<std::shared_ptr<ChLoadBodyBody>> bushings;
     joints.push_back(m_revolute[0]);
     joints.push_back(m_revolute[1]);
     joints.push_back(m_revoluteKingpin[0]);
@@ -683,9 +796,21 @@ void ChHendricksonPRIMAXX::Output(ChVehicleOutput& database) const {
     joints.push_back(m_revoluteLowerbeam[1]);
     joints.push_back(m_sphericalTB[0]);
     joints.push_back(m_sphericalTB[1]);
-    joints.push_back(m_distTierod[0]);
-    joints.push_back(m_distTierod[1]);
+    if (UseTierodBodies()) {
+        m_sphericalTierod[0]->IsKinematic() ? joints.push_back(m_sphericalTierod[0]->GetAsLink())
+                                            : bushings.push_back(m_sphericalTierod[0]->GetAsBushing());
+        m_sphericalTierod[1]->IsKinematic() ? joints.push_back(m_sphericalTierod[1]->GetAsLink())
+                                            : bushings.push_back(m_sphericalTierod[1]->GetAsBushing());
+        m_universalTierod[0]->IsKinematic() ? joints.push_back(m_universalTierod[0]->GetAsLink())
+                                            : bushings.push_back(m_universalTierod[0]->GetAsBushing());
+        m_universalTierod[1]->IsKinematic() ? joints.push_back(m_universalTierod[1]->GetAsLink())
+                                            : bushings.push_back(m_universalTierod[1]->GetAsBushing());
+    } else {
+        joints.push_back(m_distTierod[0]);
+        joints.push_back(m_distTierod[1]);
+    }
     database.WriteJoints(joints);
+    database.WriteBodyLoads(bushings);
 
     std::vector<std::shared_ptr<ChLinkTSDA>> springs;
     springs.push_back(m_shockLB[0]);

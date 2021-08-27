@@ -49,7 +49,7 @@ class CH_VEHICLE_API ChRackPinion : public ChSteering {
     ChRackPinion(const std::string& name  ///< [in] name of the subsystem
                  );
 
-    virtual ~ChRackPinion() {}
+    virtual ~ChRackPinion();
 
     /// Get the name of the vehicle subsystem template.
     virtual std::string GetTemplateName() const override { return "RackPinion"; }

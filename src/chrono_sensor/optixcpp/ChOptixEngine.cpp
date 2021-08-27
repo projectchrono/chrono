@@ -934,16 +934,12 @@ void ChOptixEngine::ConstructScene() {
 
                     } else if (std::shared_ptr<ChEllipsoidShape> ellipsoid_shape =
                                    std::dynamic_pointer_cast<ChEllipsoidShape>(asset)) {
-                    } else if (std::shared_ptr<ChCylinderShape> cylinder_shape =
-                                   std::dynamic_pointer_cast<ChCylinderShape>(asset)) {
                     } else if (std::shared_ptr<ChConeShape> cone_shape =
                                    std::dynamic_pointer_cast<ChConeShape>(asset)) {
                     } else if (std::shared_ptr<ChRoundedBoxShape> shape =
                                    std::dynamic_pointer_cast<ChRoundedBoxShape>(asset)) {
                     } else if (std::shared_ptr<ChCapsuleShape> capsule_shape =
                                    std::dynamic_pointer_cast<ChCapsuleShape>(asset)) {
-                    } else if (std::shared_ptr<ChTriangleMeshShape> trimesh_shape =
-                                   std::dynamic_pointer_cast<ChTriangleMeshShape>(asset)) {
                     } else if (std::shared_ptr<ChPathShape> path_shape =
                                    std::dynamic_pointer_cast<ChPathShape>(asset)) {
                     } else if (std::shared_ptr<ChLineShape> line_shape =
@@ -951,13 +947,13 @@ void ChOptixEngine::ConstructScene() {
                     }
 
                     // check if the asset is a ChColorAsset
-                    else if (std::shared_ptr<ChColorAsset> visual_asset =
+                    else if (std::shared_ptr<ChColorAsset> color_asset =
                                  std::dynamic_pointer_cast<ChColorAsset>(asset)) {
                         // std::cout << "Asset was color\n";
                     }
 
                     // check if the asset is a ChTexture
-                    else if (std::shared_ptr<ChTexture> visual_asset = std::dynamic_pointer_cast<ChTexture>(asset)) {
+                    else if (std::shared_ptr<ChTexture> texture_asset = std::dynamic_pointer_cast<ChTexture>(asset)) {
                         // std::cout << "Asset was texture\n";
                     }
                 }
@@ -1076,8 +1072,9 @@ void ChOptixEngine::UpdateBodyTransforms() {
             }
         }
 
-        auto res = rtTransformSetMotionKeys(t->get(), (unsigned int)m_keyframes.size(), RT_MOTIONKEYTYPE_MATRIX_FLOAT12,
-                                            &m_internal_keyframes[i * m_keyframes.size() * 12]);
+        /*auto res =*/rtTransformSetMotionKeys(t->get(), (unsigned int)m_keyframes.size(),
+                                               RT_MOTIONKEYTYPE_MATRIX_FLOAT12,
+                                               &m_internal_keyframes[i * m_keyframes.size() * 12]);
         t->setMotionBorderMode(RT_MOTIONBORDERMODE_CLAMP, RT_MOTIONBORDERMODE_CLAMP);
     }
     // mark the transform for rebuild

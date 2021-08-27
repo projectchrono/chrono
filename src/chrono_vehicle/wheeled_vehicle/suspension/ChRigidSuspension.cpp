@@ -148,7 +148,7 @@ ChSuspension::Force ChRigidSuspension::ReportSuspensionForce(VehicleSide side) c
 void ChRigidSuspension::LogConstraintViolations(VehicleSide side) {
     // Revolute joint
     {
-        ChVectorDynamic<> C = m_revolute[side]->GetC();
+        ChVectorDynamic<> C = m_revolute[side]->GetConstraintViolation();
         GetLog() << "Spindle revolute      ";
         GetLog() << "  " << C(0) << "  ";
         GetLog() << "  " << C(1) << "  ";

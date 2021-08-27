@@ -56,10 +56,8 @@ TEST(ChFilterAccess, data_access_safety) {
 
     bool success = true;
 
-    double ch_time = 0;
-
     UserRGBA8BufferPtr camera_data = cam->GetMostRecentBuffer<UserRGBA8BufferPtr>();
-    int frames = 0;
+    unsigned int frames = 0;
     while (frames < 5) {
         manager->Update();
         mphysicalSystem.DoStepDynamics(0.01);

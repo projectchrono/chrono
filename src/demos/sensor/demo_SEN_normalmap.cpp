@@ -182,7 +182,7 @@ int main(int argc, char* argv[]) {
     manager->scene->AddPointLight({-10, 0, 10}, {1, 1, 1}, 3000);
 
     // Get the point lights
-    std::vector<PointLight>& lights = manager->scene->GetPointLights();
+    ////std::vector<PointLight>& lights = manager->scene->GetPointLights();
 
     // ------------------------------------------------
     // Create a camera and add it to the sensor manager
@@ -241,7 +241,6 @@ int main(int argc, char* argv[]) {
     //----------------
     // Simulate system
     //----------------
-    float orbit_radius = 6.5f;
     float orbit_rate = 0.10f;
     float ch_time = 0.0f;
 

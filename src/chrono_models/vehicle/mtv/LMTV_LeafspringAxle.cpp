@@ -86,10 +86,6 @@ LMTV_SpringForceRear::LMTV_SpringForceRear(double spring_constant, double min_le
 }
 
 double LMTV_SpringForceRear::operator()(double time, double rest_length, double length, double vel, ChLinkTSDA* link) {
-    /*
-     *
-     */
-
     double force = 0;
 
     double defl_spring = rest_length - length;

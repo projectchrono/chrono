@@ -60,7 +60,7 @@ class CH_MODELS_API MTV {
     void SetTireType(TireModelType val) { m_tireType = val; }
     void SetPowertrainType(PowertrainModelType val) { m_powertrainType = val; }
 
-    // void setSteeringType(SteeringTypeWV val) { m_steeringType = val; }
+    void UseWalkingBeamRearSuspension(bool val) { m_use_walking_beam = val; }
 
     void SetInitPosition(const ChCoordsys<>& pos) { m_initPos = pos; }
     void SetInitFwdVel(double fwdVel) { m_initFwdVel = fwdVel; }
@@ -107,10 +107,10 @@ class CH_MODELS_API MTV {
     BrakeType m_brake_type;
     TireModelType m_tireType;
     PowertrainModelType m_powertrainType;
+    
+    bool m_use_walking_beam;
 
     double m_tire_step_size;
-
-    SteeringTypeWV m_steeringType;
 
     ChCoordsys<> m_initPos;
     double m_initFwdVel;

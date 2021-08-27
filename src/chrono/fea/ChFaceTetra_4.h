@@ -38,7 +38,7 @@ class ChApi ChFaceTetra_4 : public ChLoadableUV {
     virtual ~ChFaceTetra_4() {}
 
     // Get the node 'i' of face , with i=0,1,2
-    std::shared_ptr<ChNodeFEAxyz> GetNodeN(int i) {
+    std::shared_ptr<ChNodeFEAxyz> GetNodeN(int i) const {
         int iface0[] = {2, 1, 3};
         int iface1[] = {3, 0, 2};
         int iface2[] = {3, 1, 0};
@@ -77,16 +77,16 @@ class ChApi ChFaceTetra_4 : public ChLoadableUV {
 
     /// Gets all the DOFs packed in a single vector (position part)
     virtual void LoadableGetStateBlock_x(int block_offset, ChState& mD) override {
-        mD.segment(block_offset + 0, 3) = this->GetNodeN(0)->GetPos().eigen();
-        mD.segment(block_offset + 3, 3) = this->GetNodeN(1)->GetPos().eigen();
-        mD.segment(block_offset + 6, 3) = this->GetNodeN(2)->GetPos().eigen();
+        mD.segment(block_offset + 0, 3) = GetNodeN(0)->GetPos().eigen();
+        mD.segment(block_offset + 3, 3) = GetNodeN(1)->GetPos().eigen();
+        mD.segment(block_offset + 6, 3) = GetNodeN(2)->GetPos().eigen();
     }
 
     /// Gets all the DOFs packed in a single vector (speed part)
     virtual void LoadableGetStateBlock_w(int block_offset, ChStateDelta& mD) override {
-        mD.segment(block_offset + 0, 3) = this->GetNodeN(0)->GetPos_dt().eigen();
-        mD.segment(block_offset + 3, 3) = this->GetNodeN(1)->GetPos_dt().eigen();
-        mD.segment(block_offset + 6, 3) = this->GetNodeN(2)->GetPos_dt().eigen();
+        mD.segment(block_offset + 0, 3) = GetNodeN(0)->GetPos_dt().eigen();
+        mD.segment(block_offset + 3, 3) = GetNodeN(1)->GetPos_dt().eigen();
+        mD.segment(block_offset + 6, 3) = GetNodeN(2)->GetPos_dt().eigen();
     }
 
     /// Increment all DOFs using a delta.
@@ -99,19 +99,22 @@ class ChApi ChFaceTetra_4 : public ChLoadableUV {
     /// Number of coordinates in the interpolated field: here the {x,y,z} displacement
     virtual int Get_field_ncoords() override { return 3; }
 
-    /// Tell the number of DOFs blocks (ex. =1 for a body, =4 for a tetrahedron, etc.)
+    /// Get the number of DOFs sub-blocks.
     virtual int GetSubBlocks() override { return 3; }
 
-    /// Get the offset of the i-th sub-block of DOFs in global vector
-    virtual unsigned int GetSubBlockOffset(int nblock) override { return this->GetNodeN(nblock)->NodeGetOffset_w(); }
+    /// Get the offset of the specified sub-block of DOFs in global vector.
+    virtual unsigned int GetSubBlockOffset(int nblock) override { return GetNodeN(nblock)->NodeGetOffset_w(); }
 
-    /// Get the size of the i-th sub-block of DOFs in global vector
+    /// Get the size of the specified sub-block of DOFs in global vector.
     virtual unsigned int GetSubBlockSize(int nblock) override { return 3; }
+
+    /// Check if the specified sub-block of DOFs is active.
+    virtual bool IsSubBlockActive(int nblock) const override { return !GetNodeN(nblock)->GetFixed(); }
 
     /// Get the pointers to the contained ChVariables, appending to the mvars vector.
     virtual void LoadableGetVariables(std::vector<ChVariables*>& mvars) override {
         for (int i = 0; i < 3; ++i)
-            mvars.push_back(&this->GetNodeN(i)->Variables());
+            mvars.push_back(&GetNodeN(i)->Variables());
     };
 
     /// Evaluate N'*F , where N is some type of shape function

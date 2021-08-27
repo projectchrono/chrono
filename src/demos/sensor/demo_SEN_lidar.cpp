@@ -289,8 +289,6 @@ int main(int argc, char* argv[]) {
     // ---------------
     // Simulate system
     // ---------------
-    double render_time = 0;
-    float orbit_radius = 10.f;
     float orbit_rate = 2.5;
     float ch_time = 0.0;
 

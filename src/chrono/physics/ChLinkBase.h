@@ -75,6 +75,9 @@ class ChApi ChLinkBase : public ChPhysicsItem {
     virtual ChVector<> Get_react_torque() { return VNULL; }
     // (Note, functions above might fit better in a specialized subclass, but here for easier GUI interface)
 
+    /// Get the current constraint violations.
+    virtual ChVectorDynamic<> GetConstraintViolation() const { return ChVectorDynamic<>(); }
+
     /// Tells if this link requires that the connected ChBody objects
     /// must be waken if they are sleeping. By default =true, i.e. always keep awaken, but
     /// child classes might return false for optimizing sleeping, in case no time-dependant.

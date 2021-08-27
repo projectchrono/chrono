@@ -55,10 +55,7 @@ namespace vehicle {
 /// the right side.
 class CH_VEHICLE_API ChHendricksonPRIMAXX : public ChSuspension {
   public:
-    ChHendricksonPRIMAXX(const std::string& name  ///< [in] name of the subsystem
-                         );
-
-    virtual ~ChHendricksonPRIMAXX() {}
+    virtual ~ChHendricksonPRIMAXX();
 
     /// Get the name of the vehicle subsystem template.
     virtual std::string GetTemplateName() const override { return "HendricksonPRIMAXX"; }
@@ -144,23 +141,23 @@ class CH_VEHICLE_API ChHendricksonPRIMAXX : public ChSuspension {
   protected:
     /// Identifiers for the various hardpoints.
     enum PointId {
-        SPINDLE,            ///< spindle location
-        KNUCKLE_L,          ///< lower knuckle point
-        KNUCKLE_U,          ///< upper knuckle point
-        TIEROD_C,           ///< tierod, chassis
-        TIEROD_K,           ///< tierod, knuckle
-        TORQUEROD_C,        ///< torquerod, chassis
-        TORQUEROD_AH,       ///< torquerod, axle housing (AH)
-        LOWERBEAM_C,        ///< lowerbeam, chassis
-        LOWERBEAM_AH,       ///< lowerbeam, axle housing (AH)
-        LOWERBEAM_TB,       ///< lowerbeam, transverse beam
-        SHOCKAH_C,          ///< shock at axle housing (AH), chasis
-        SHOCKAH_AH,         ///< shock at axle housing (AH), axle housing
-        SHOCKLB_C,          ///< shock at lower beam (LB), chasis
-        SHOCKLB_LB,         ///< shock at lower beam (LB), lower beam
-        KNUCKLE_CM,         ///< knuckle, center of mass
-        TORQUEROD_CM,       ///< torquerod, center of mass
-        LOWERBEAM_CM,       ///< lowerbeam, center of mass
+        SPINDLE,       ///< spindle location
+        KNUCKLE_L,     ///< lower knuckle point
+        KNUCKLE_U,     ///< upper knuckle point
+        TIEROD_C,      ///< tierod, chassis
+        TIEROD_K,      ///< tierod, knuckle
+        TORQUEROD_C,   ///< torquerod, chassis
+        TORQUEROD_AH,  ///< torquerod, axle housing (AH)
+        LOWERBEAM_C,   ///< lowerbeam, chassis
+        LOWERBEAM_AH,  ///< lowerbeam, axle housing (AH)
+        LOWERBEAM_TB,  ///< lowerbeam, transverse beam
+        SHOCKAH_C,     ///< shock at axle housing (AH), chasis
+        SHOCKAH_AH,    ///< shock at axle housing (AH), axle housing
+        SHOCKLB_C,     ///< shock at lower beam (LB), chasis
+        SHOCKLB_LB,    ///< shock at lower beam (LB), lower beam
+        KNUCKLE_CM,    ///< knuckle, center of mass
+        TORQUEROD_CM,  ///< torquerod, center of mass
+        LOWERBEAM_CM,  ///< lowerbeam, center of mass
         NUM_POINTS
     };
 
@@ -172,6 +169,15 @@ class CH_VEHICLE_API ChHendricksonPRIMAXX : public ChSuspension {
         UNIV_AXIS_TORQUEROD_CHASSIS,  ///< universal joint (torquerod, chasis side)
         NUM_DIRS
     };
+
+    ChHendricksonPRIMAXX(const std::string& name  ///< [in] name of the subsystem
+    );
+
+    /// Indicate whether or not tirod bodies are modelled (default: false).
+    /// If false, tierods are modelled using distance constraints.
+    /// If true, rigid tierod bodies are created (in which case a derived class must provide the mass and inertia) and
+    /// connected either with kinematic joints or bushings (depending on whether or not bushing data is defined).
+    virtual bool UseTierodBodies() const { return false; }
 
     /// Return the location of the specified hardpoint.
     /// The returned location must be expressed in the suspension reference frame.
@@ -198,6 +204,8 @@ class CH_VEHICLE_API ChHendricksonPRIMAXX : public ChSuspension {
     virtual double getTransversebeamMass() const = 0;
     /// Return the mass of the axle housing body.
     virtual double getAxlehousingMass() const = 0;
+    /// Return the mass of the tierod body.
+    virtual double getTierodMass() const { return 0; }
 
     /// Return the moments of inertia of the spindle body.
     virtual const ChVector<>& getSpindleInertia() const = 0;
@@ -211,13 +219,14 @@ class CH_VEHICLE_API ChHendricksonPRIMAXX : public ChSuspension {
     virtual const ChVector<>& getTransversebeamInertia() const = 0;
     /// Return the moments of inertia of the axle housing body.
     virtual const ChVector<>& getAxlehousingInertia() const = 0;
+    /// Return the moments of inertia of the tierod body.
+    virtual const ChVector<> getTierodInertia() const { return ChVector<>(0); }
 
     /// Return the inertia of the axle shaft.
     virtual double getAxleInertia() const = 0;
 
     /// Return the radius of the knuckle body (visualization only).
     virtual double getKnuckleRadius() const = 0;
-
     /// Return the radius of the torque rod body (visualization only).
     virtual double getTorquerodRadius() const = 0;
     /// Return the radius of the lower beam body (visualization only).
@@ -226,6 +235,8 @@ class CH_VEHICLE_API ChHendricksonPRIMAXX : public ChSuspension {
     virtual double getTransversebeamRadius() const = 0;
     /// Return the radius of the axle housing body (visualization only).
     virtual double getAxlehousingRadius() const = 0;
+    /// Return the radius of the tierod body (visualization only).
+    virtual double getTierodRadius() const { return 0; }
 
     // Lower beam spring and damper
 
@@ -241,32 +252,31 @@ class CH_VEHICLE_API ChHendricksonPRIMAXX : public ChSuspension {
     /// Return the functor object for shock force.
     virtual std::shared_ptr<ChLinkTSDA::ForceFunctor> getShockAHForceCallback() const = 0;
 
-    std::shared_ptr<ChBody> m_knuckle[2];      ///< handles to the knuckle bodies (left/right)
-    std::shared_ptr<ChBody> m_torquerod[2];    ///< handles to torquerod bodies (left/right)
-    std::shared_ptr<ChBody> m_lowerbeam[2];    ///< handles to lowerbeam bodies (left/right)
-    std::shared_ptr<ChBody> m_transversebeam;  ///< handles to transversebeam body
-    std::shared_ptr<ChBody> m_axlehousing;     ///< handles to axlehousing body
+    /// Return stiffness and damping data for the tierod bushings.
+    /// Used only if tierod bodies are defined (see UseTierodBody).
+    /// Returning nullptr (default) results in using kinematic joints (spherical + universal).
+    virtual std::shared_ptr<ChVehicleBushingData> getTierodBushingData() const { return nullptr; }
 
-    std::shared_ptr<ChLinkLockRevolute>
-        m_revoluteKingpin[2];  ///< handles to the knuckle-axle housing revolute joints (left/right)
-    std::shared_ptr<ChLinkLockSpherical>
-        m_sphericalTorquerod[2];  ///< handles to the torque rod-axle housing spherical joints (left/right)
+    std::shared_ptr<ChBody> m_knuckle[2];      ///< the knuckle bodies (left/right)
+    std::shared_ptr<ChBody> m_torquerod[2];    ///< torquerod bodies (left/right)
+    std::shared_ptr<ChBody> m_lowerbeam[2];    ///< lowerbeam bodies (left/right)
+    std::shared_ptr<ChBody> m_transversebeam;  ///< transversebeam body
+    std::shared_ptr<ChBody> m_axlehousing;     ///< axlehousing body
+    std::shared_ptr<ChBody> m_tierod[2];       ///< tierod bodies, if used (left/right)
 
-    std::shared_ptr<ChLinkLockRevolute>
-      m_revoluteTorquerod[2];  ///< handles to the torquerod chasis revolute joints (left/right)
+    std::shared_ptr<ChLinkLockRevolute> m_revoluteKingpin[2];      ///< knuckle-axle housing joints (left/right)
+    std::shared_ptr<ChLinkLockSpherical> m_sphericalTorquerod[2];  ///< torquerod-axle housing joints (left/right)
+    std::shared_ptr<ChLinkLockRevolute> m_revoluteTorquerod[2];    ///< torquerod-chasis joints (left/right)
+    std::shared_ptr<ChLinkLockSpherical> m_sphericalLowerbeam[2];  ///< lowerbeam-axle housing joints (left/right)
+    std::shared_ptr<ChLinkLockRevolute> m_revoluteLowerbeam[2];    ///< lowerbeam chasis joints (left/right)
+    std::shared_ptr<ChLinkLockSpherical> m_sphericalTB[2];         ///< transversebeam-lower beam joints (left/right)
 
-    std::shared_ptr<ChLinkLockSpherical>
-        m_sphericalLowerbeam[2];  ///< handles to the lower beam-axle housing spherical joints (left/right)
+    std::shared_ptr<ChLinkDistance> m_distTierod[2];       ///< tierod distance constraints (left/right)
+    std::shared_ptr<ChVehicleJoint> m_sphericalTierod[2];  ///< tierod-upright spherical joints (left/right)
+    std::shared_ptr<ChVehicleJoint> m_universalTierod[2];  ///< tierod-chassis universal joints (left/right)
 
-    std::shared_ptr<ChLinkLockRevolute>
-      m_revoluteLowerbeam[2];  ///< handles to the lowerbeam chasis revolute joints (left/right)
-
-    std::shared_ptr<ChLinkLockSpherical>
-        m_sphericalTB[2];  ///< handles to the transversebeam-lower beam spherical joints (left/right)
-    std::shared_ptr<ChLinkDistance> m_distTierod[2];  ///< handles to the tierod distance constraints (left/right)
-
-    std::shared_ptr<ChLinkTSDA> m_shockLB[2];  ///< handles to the spring links (left/right)
-    std::shared_ptr<ChLinkTSDA> m_shockAH[2];  ///< handles to the spring links (left/right)
+    std::shared_ptr<ChLinkTSDA> m_shockLB[2];  ///< spring links (left/right)
+    std::shared_ptr<ChLinkTSDA> m_shockAH[2];  ///< spring links (left/right)
 
   private:
     // Hardpoint absolute locations and directions
@@ -281,7 +291,7 @@ class CH_VEHICLE_API ChHendricksonPRIMAXX : public ChSuspension {
     ChVector<> m_outerR;
 
     void InitializeSide(VehicleSide side,
-                        std::shared_ptr<ChBodyAuxRef> chassis,
+                        std::shared_ptr<ChChassis> chassis,
                         std::shared_ptr<ChBody> tierod_body,
                         const std::vector<ChVector<>>& points,
                         const std::vector<ChVector<>>& dirs,
@@ -303,6 +313,10 @@ class CH_VEHICLE_API ChHendricksonPRIMAXX : public ChSuspension {
                                         const ChVector<> pt_L,
                                         const ChVector<> pt_T,
                                         double radius);
+    static void AddVisualizationTierod(std::shared_ptr<ChBody> tierod,
+                                       const ChVector<> pt_C,
+                                       const ChVector<> pt_U,
+                                       double radius);
 
     virtual void ExportComponentList(rapidjson::Document& jsonDocument) const override;
 

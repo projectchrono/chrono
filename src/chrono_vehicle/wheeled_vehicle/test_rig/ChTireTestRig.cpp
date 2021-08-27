@@ -55,6 +55,20 @@ ChTireTestRig::ChTireTestRig(std::shared_ptr<ChWheel> wheel, std::shared_ptr<ChT
     m_tire->SetCollisionType(ChTire::CollisionType::SINGLE_POINT);
 }
 
+ChTireTestRig::~ChTireTestRig() {
+    auto sys = m_ground_body->GetSystem();
+    if (sys) {
+        sys->Remove(m_ground_body);
+        sys->Remove(m_carrier_body);
+        sys->Remove(m_chassis_body);
+        sys->Remove(m_slip_body);
+        sys->Remove(m_spindle_body);
+        sys->Remove(m_lin_motor);
+        sys->Remove(m_rot_motor);
+        sys->Remove(m_slip_lock);
+    }
+}
+
 // -----------------------------------------------------------------------------
 
 void ChTireTestRig::SetLongSpeedFunction(std::shared_ptr<ChFunction> funct) {

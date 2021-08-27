@@ -51,7 +51,7 @@ class CH_VEHICLE_API ChShaftsPowertrain : public ChPowertrain {
     ChShaftsPowertrain(const std::string& name,
                        const ChVector<>& dir_motor_block = ChVector<>(1, 0, 0));
 
-    virtual ~ChShaftsPowertrain() {}
+    virtual ~ChShaftsPowertrain();
 
     /// Get the name of the vehicle subsystem template.
     virtual std::string GetTemplateName() const override { return "ShaftsPowertrain"; }

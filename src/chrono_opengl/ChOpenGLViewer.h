@@ -50,9 +50,9 @@ class CH_OPENGL_API ChOpenGLViewer : public ChOpenGLBase {
     void TakeDown();
     bool Initialize();
     bool Update(double time_step);
-    void Render();
+    void Render(bool render_hud);
     void DrawObject(std::shared_ptr<ChBody> abody);
-    void DisplayHUD();
+    void DisplayHUD(bool render_hud);
     void RenderContacts();
     void RenderAABB();
     void RenderGrid();

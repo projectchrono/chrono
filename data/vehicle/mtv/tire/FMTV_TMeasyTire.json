@@ -1,0 +1,53 @@
+{
+  "Name": "FMTV TMeasy Tire",
+  "Type": "Tire",
+  "Template": "TMeasyTire",
+
+  // ------------------------------------------------
+  // Tire design (REQUIRED)
+
+  "Design": {
+    "Unloaded Radius [m]": 0.59,
+    "Mass [kg]": 110.0,
+    "Inertia [kg.m2]": [ 16.9, 29.5, 16.9 ],
+    "Width [m]": 0.395,
+    "Rim Radius [m]": 0.254,
+    "Roundness of Cross Section": 0.1
+  },
+
+  "Coefficient of Friction": 0.8,
+
+  "Rolling Resistance Coefficients": [ 0.015, 0.015 ],
+
+  // ------------------------------------------------
+  // Vehicle type.
+  // Required only if tire specified with "load index" or "bearing capacity".
+  // Must be one of "Truck" or "Passenger"
+
+  "Vehicle Type": "Truck",
+
+  // ------------------------------------------------
+  // Load index specification.
+  // Takes priority over "bearing capacity" (used only if a full parameterization not provided)
+
+  "Load Index": 159,
+
+  // ------------------------------------------------
+  // Bearing capacity specification.
+  // Lowest priority (used only if no other specification provided)
+
+  "Maximum Bearing Capacity [N]": 49050,
+  
+  // consider reduced inflation pressure
+  "Inflation Pressure Design [Pa]": 6.55e5,
+  "Inflation Pressure Use [Pa]": 6.55e5,
+
+  // ------------------------------------------------
+  // Visualization mesh (OPTIONAL)
+
+    "Visualization": {
+        "Mesh Filename Left": "mtv/meshes/MTV_tire.obj",
+        "Mesh Filename Right": "mtv/meshes/MTV_tire.obj"
+    }
+
+}

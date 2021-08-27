@@ -156,8 +156,8 @@ class ChronoModelL : public ChronoModel {
     virtual std::string GetJointType() const override { return "LinkLock"; }
 
   private:
-    virtual ChVectorDynamic<> GetViolation1() override { return m_revolute1->GetC(); }
-    virtual ChVectorDynamic<> GetViolation2() override { return m_revolute2->GetC(); }
+    virtual ChVectorDynamic<> GetViolation1() override { return m_revolute1->GetConstraintViolation(); }
+    virtual ChVectorDynamic<> GetViolation2() override { return m_revolute2->GetConstraintViolation(); }
 
     std::shared_ptr<ChLinkLockRevolute> m_revolute1;
     std::shared_ptr<ChLinkLockRevolute> m_revolute2;
@@ -170,8 +170,8 @@ class ChronoModelM : public ChronoModel {
     virtual std::string GetJointType() const override { return "LinkMate"; }
 
   private:
-    virtual ChVectorDynamic<> GetViolation1() override { return m_revolute1->GetC(); }
-    virtual ChVectorDynamic<> GetViolation2() override { return m_revolute2->GetC(); }
+    virtual ChVectorDynamic<> GetViolation1() override { return m_revolute1->GetConstraintViolation(); }
+    virtual ChVectorDynamic<> GetViolation2() override { return m_revolute2->GetConstraintViolation(); }
 
     std::shared_ptr<ChLinkMateGeneric> m_revolute1;
     std::shared_ptr<ChLinkMateGeneric> m_revolute2;

@@ -53,18 +53,20 @@ class ChApi ChLoadable {
                                    const ChStateDelta& Dv) = 0;
 
 
-    /// Number of coordinates in the interpolated field, ex=3 for a
-    /// tetrahedron finite element or a cable, = 1 for a thermal problem, etc.
+    /// Number of coordinates in the interpolated field (e.g., 3 for a tetrahedron, 1 for a thermal problem, etc.).
     virtual int Get_field_ncoords() = 0;
 
-    /// Tell the number of DOFs blocks (ex. =1 for a body, =4 for a tetrahedron, etc.)
+    /// Get the number of DOFs sub-blocks (e.g., 1 for a body, 4 for a tetrahedron, etc.).
     virtual int GetSubBlocks() = 0;
 
-    /// Get the offset of the i-th sub-block of DOFs in global vector
+    /// Get the offset of the specified sub-block of DOFs in global vector.
     virtual unsigned int GetSubBlockOffset(int nblock) = 0;
 
-    /// Get the size of the i-th sub-block of DOFs in global vector
+    /// Get the size of the specified sub-block of DOFs in global vector.
     virtual unsigned int GetSubBlockSize(int nblock) = 0;
+
+    /// Check if the specified sub-block of DOFs is active.
+    virtual bool IsSubBlockActive(int nblock) const = 0;
 
     /// Get the pointers to the contained ChVariables, appending to the mvars vector.
     virtual void LoadableGetVariables(std::vector<ChVariables*>& mvars) = 0;

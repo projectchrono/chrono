@@ -21,6 +21,7 @@
 #include "chrono/assets/ChCylinderShape.h"
 #include "chrono/assets/ChColorAsset.h"
 
+#include "chrono_vehicle/ChChassis.h"
 #include "chrono_vehicle/wheeled_vehicle/subchassis/ChBalancer.h"
 
 namespace chrono {
@@ -28,18 +29,26 @@ namespace vehicle {
 
 ChBalancer::ChBalancer(const std::string& name) : ChSubchassis(name) {}
 
+ChBalancer::~ChBalancer() {
+    auto sys = m_beam[0]->GetSystem();
+    if (sys) {
+        ChChassis::RemoveJoint(m_balancer_joint[0]);
+        ChChassis::RemoveJoint(m_balancer_joint[1]);
+    }
+}
+
 // -----------------------------------------------------------------------------
 
-void ChBalancer::Initialize(std::shared_ptr<ChBodyAuxRef> chassis, const ChVector<>& location) {
+void ChBalancer::Initialize(std::shared_ptr<ChChassis> chassis, const ChVector<>& location) {
     m_location = location;
 
     // Express the subchassis reference frame in the absolute coordinate system
     ChFrame<> to_abs(location);
-    to_abs.ConcatenatePreTransformation(chassis->GetFrame_REF_to_abs());
+    to_abs.ConcatenatePreTransformation(chassis->GetBody()->GetFrame_REF_to_abs());
 
     // Chassis orientation (expressed in absolute frame)
     // Recall that the suspension reference frame is aligned with the chassis
-    ChQuaternion<> chassisRot = chassis->GetFrame_REF_to_abs().GetRot();
+    ChQuaternion<> chassisRot = chassis->GetBody()->GetFrame_REF_to_abs().GetRot();
 
     // Transform all hardpoints to absolute frame
     m_pointsL.resize(NUM_POINTS);
@@ -64,13 +73,17 @@ void ChBalancer::Initialize(std::shared_ptr<ChBodyAuxRef> chassis, const ChVecto
     chassis->GetSystem()->AddBody(m_beam[LEFT]);
 
     // Attach left balancer to chassis through a revolute joint and set joint limits
-    m_balancer_joint[LEFT] = chrono_types::make_shared<ChLinkLockRevolute>();
-    m_balancer_joint[LEFT]->SetNameString(m_name + "_rev_balancer_L");
-    m_balancer_joint[LEFT]->GetLimit_Rz().SetActive(true);
-    m_balancer_joint[LEFT]->GetLimit_Rz().SetMin(-GetBalancerMaxPitch());
-    m_balancer_joint[LEFT]->GetLimit_Rz().SetMax(+GetBalancerMaxPitch());
-    m_balancer_joint[LEFT]->Initialize(m_beam[LEFT], chassis, ChCoordsys<>(m_pointsL[REVOLUTE], joint_rot));
-    chassis->GetSystem()->AddLink(m_balancer_joint[LEFT]);
+    m_balancer_joint[LEFT] = chrono_types::make_shared<ChVehicleJoint>(
+        ChVehicleJoint::Type::REVOLUTE, m_name + "_rev_balancer_L", m_beam[LEFT], chassis->GetBody(),
+        ChCoordsys<>(m_pointsL[REVOLUTE], joint_rot), GetBushingData());
+    chassis->AddJoint(m_balancer_joint[LEFT]);
+
+    if (m_balancer_joint[LEFT]->IsKinematic()) {
+        auto rev = std::static_pointer_cast<ChLinkLock>(m_balancer_joint[LEFT]->GetAsLink());
+        rev->GetLimit_Rz().SetActive(true);
+        rev->GetLimit_Rz().SetMin(-GetBalancerMaxPitch());
+        rev->GetLimit_Rz().SetMax(+GetBalancerMaxPitch());
+    }
 
     // Create right side beam body
     m_beam[RIGHT] = std::shared_ptr<ChBody>(chassis->GetSystem()->NewBody());
@@ -82,13 +95,17 @@ void ChBalancer::Initialize(std::shared_ptr<ChBodyAuxRef> chassis, const ChVecto
     chassis->GetSystem()->AddBody(m_beam[RIGHT]);
 
     // Attach right balancer to chassis through a revolute joint and set joint limits
-    m_balancer_joint[RIGHT] = chrono_types::make_shared<ChLinkLockRevolute>();
-    m_balancer_joint[RIGHT]->SetNameString(m_name + "_rev_balancer_R");
-    m_balancer_joint[RIGHT]->GetLimit_Rz().SetActive(true);
-    m_balancer_joint[RIGHT]->GetLimit_Rz().SetMin(-GetBalancerMaxPitch());
-    m_balancer_joint[RIGHT]->GetLimit_Rz().SetMax(+GetBalancerMaxPitch());
-    m_balancer_joint[RIGHT]->Initialize(m_beam[RIGHT], chassis, ChCoordsys<>(m_pointsR[REVOLUTE], joint_rot));
-    chassis->GetSystem()->AddLink(m_balancer_joint[RIGHT]);
+    m_balancer_joint[RIGHT] = chrono_types::make_shared<ChVehicleJoint>(
+        ChVehicleJoint::Type::REVOLUTE, m_name + "_rev_balancer_R", m_beam[RIGHT], chassis->GetBody(),
+        ChCoordsys<>(m_pointsR[REVOLUTE], joint_rot), GetBushingData());
+    chassis->AddJoint(m_balancer_joint[RIGHT]);
+
+    if (m_balancer_joint[RIGHT]->IsKinematic()) {
+        auto rev = std::static_pointer_cast<ChLinkLock>(m_balancer_joint[RIGHT]->GetAsLink());
+        rev->GetLimit_Rz().SetActive(true);
+        rev->GetLimit_Rz().SetMin(-GetBalancerMaxPitch());
+        rev->GetLimit_Rz().SetMax(+GetBalancerMaxPitch());
+    }
 }
 
 // -----------------------------------------------------------------------------

@@ -252,7 +252,6 @@ int main(int argc, char* argv[]) {
 
     UserRGBA8BufferPtr rgba8_ptr;
     UserR8BufferPtr r8_ptr;
-    int num_cam2_updates = 0;
 
     while (ch_time < end_time) {
         // Rotate the cameras around the mesh at a fixed rate

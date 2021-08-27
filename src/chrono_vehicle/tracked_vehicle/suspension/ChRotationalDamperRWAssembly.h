@@ -41,7 +41,7 @@ class CH_VEHICLE_API ChRotationalDamperRWAssembly : public ChRoadWheelAssembly {
                                  bool has_shock = true     ///< [in] specify whether or not the suspension has a damper
                                  );
 
-    virtual ~ChRotationalDamperRWAssembly() {}
+    virtual ~ChRotationalDamperRWAssembly();
 
     /// Get the name of the vehicle subsystem template.
     virtual std::string GetTemplateName() const override { return "RotationalDamperRWAssembly"; }
@@ -54,9 +54,6 @@ class CH_VEHICLE_API ChRotationalDamperRWAssembly : public ChRoadWheelAssembly {
     /// and follows the right-hand rule.
     virtual double GetCarrierAngle() const override;
 
-    /// Get a handle to the revolute joint of the arm.
-    std::shared_ptr<ChLinkLockRevolute> GetArmRevolute() const { return m_revolute; }
-
     /// Get the total mass of the roadwheel assembly.
     /// This includes the mass of the roadwheel and of the suspension mechanism.
     virtual double GetMass() const override;
@@ -67,9 +64,9 @@ class CH_VEHICLE_API ChRotationalDamperRWAssembly : public ChRoadWheelAssembly {
     /// the reference frame of the chassis). It is assumed that the suspension
     /// reference frame is always centered at the location of the road wheel and
     /// aligned with the chassis reference frame.
-    virtual void Initialize(std::shared_ptr<ChBodyAuxRef> chassis,  ///< [in] handle to the chassis body
-                            const ChVector<>& location,             ///< [in] location relative to the chassis frame
-                            ChTrackAssembly* track                  ///< [in] containing track assembly
+    virtual void Initialize(std::shared_ptr<ChChassis> chassis,  ///< [in] associated chassis subsystem
+                            const ChVector<>& location,          ///< [in] location relative to the chassis frame
+                            ChTrackAssembly* track               ///< [in] containing track assembly
                             ) override;
 
     /// Add visualization assets for the suspension subsystem.
@@ -107,14 +104,18 @@ class CH_VEHICLE_API ChRotationalDamperRWAssembly : public ChRoadWheelAssembly {
     /// Return the functor object for the rotational shock force.
     virtual std::shared_ptr<ChLinkRotSpringCB::TorqueFunctor> GetShockTorqueCallback() const = 0;
 
+    /// Return stiffness and damping data for the arm bushing.
+    /// Returning nullptr (default) results in using a kinematic revolute joint.
+    virtual std::shared_ptr<ChVehicleBushingData> getArmBushingData() const { return nullptr; }
+
     virtual void ExportComponentList(rapidjson::Document& jsonDocument) const override;
 
     virtual void Output(ChVehicleOutput& database) const override;
 
-    std::shared_ptr<ChBody> m_arm;                   ///< handle to the trailing arm body
-    std::shared_ptr<ChLinkLockRevolute> m_revolute;  ///< handle to the revolute joint arm-chassis
-    std::shared_ptr<ChLinkRotSpringCB> m_spring;     ///< handle to the rotational spring link
-    std::shared_ptr<ChLinkRotSpringCB> m_shock;      ///< handle to the rotational shock link
+    std::shared_ptr<ChBody> m_arm;                ///< handle to the trailing arm body
+    std::shared_ptr<ChVehicleJoint> m_revolute;   ///< handle to the revolute joint arm-chassis
+    std::shared_ptr<ChLinkRotSpringCB> m_spring;  ///< handle to the rotational spring link
+    std::shared_ptr<ChLinkRotSpringCB> m_shock;   ///< handle to the rotational shock link
 
   private:
     // Points for arm visualization

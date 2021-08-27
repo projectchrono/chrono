@@ -90,7 +90,8 @@ ChVehicle::~ChVehicle() {
 // Change the default collision system type
 // -----------------------------------------------------------------------------
 void ChVehicle::SetCollisionSystemType(collision::ChCollisionSystemType collsys_type) {
-    m_system->SetCollisionSystemType(collsys_type);
+    if (m_ownsSystem)
+        m_system->SetCollisionSystemType(collsys_type);
 }
 
 // -----------------------------------------------------------------------------
