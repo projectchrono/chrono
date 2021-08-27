@@ -20,7 +20,7 @@
 
 #include "chrono_multicore/constraints/ChConstraintBilateral.h"
 #include "chrono_multicore/ChMulticoreDefines.h"
-#include "chrono_multicore/math/ChMulticoreMath.h"
+#include "chrono/multicore_math/ChMulticoreMath.h"
 
 #include "chrono/solver/ChConstraintTwoBodies.h"
 #include "chrono/solver/ChConstraintTwoGeneric.h"

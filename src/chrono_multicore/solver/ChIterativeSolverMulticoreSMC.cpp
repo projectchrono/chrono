@@ -38,7 +38,7 @@
 #include <thrust/sort.h>
 
 #if defined _WIN32
-#include <cstdint>
+    #include <cstdint>
 #endif
 
 using namespace chrono;
@@ -64,7 +64,7 @@ void function_CalcContactForces(
     real min_spin_vel,                                    // threshold spinning velocity
     real dT,                                              // integration time step
     real* body_mass,                                      // body masses (per body)
-    real3* pos,                                           // body positions 
+    real3* pos,                                           // body positions
     quaternion* rot,                                      // body orientations
     real* vel,                                            // body linear and angular velocities
     real3* friction,                                      // eff. coefficients of friction (per contact)
@@ -553,15 +553,15 @@ void function_CalcContactForces(
 // -----------------------------------------------------------------------------
 
 void ChIterativeSolverMulticoreSMC::host_CalcContactForces(custom_vector<int>& ct_bid,
-                                                          custom_vector<real3>& ct_force,
-                                                          custom_vector<real3>& ct_torque,
-                                                          custom_vector<vec2>& shape_pairs,
-                                                          custom_vector<char>& shear_touch) {
+                                                           custom_vector<real3>& ct_force,
+                                                           custom_vector<real3>& ct_torque,
+                                                           custom_vector<vec2>& shape_pairs,
+                                                           custom_vector<char>& shear_touch) {
 #pragma omp parallel for
-    for (int index = 0; index < (signed)data_manager->num_rigid_contacts; index++) {
+    for (int index = 0; index < (signed)data_manager->cd_data->num_rigid_contacts; index++) {
         function_CalcContactForces(
             index,                                                  // index of this contact pair
-            data_manager->host_data.bids_rigid_rigid.data(),        // indices of the body pair in contact
+            data_manager->cd_data->bids_rigid_rigid.data(),         // indices of the body pair in contact
             shape_pairs.data(),                                     // indices of the shape pair in contact
             data_manager->settings.solver.contact_force_model,      // contact force model
             data_manager->settings.solver.adhesion_force_model,     // adhesion force model
@@ -581,11 +581,11 @@ void ChIterativeSolverMulticoreSMC::host_CalcContactForces(custom_vector<int>& c
             data_manager->host_data.adhesion_rigid_rigid.data(),    // eff. adhesion paramters (per contact)
             data_manager->host_data.cr_rigid_rigid.data(),          // eff. coefficient of restitution (per contact)
             data_manager->host_data.smc_rigid_rigid.data(),         // eff. SMC parameters k and g (per contact)
-            data_manager->host_data.cpta_rigid_rigid.data(),        // point on shape 1 (per contact)
-            data_manager->host_data.cptb_rigid_rigid.data(),        // point on shape 2 (per contact)
-            data_manager->host_data.norm_rigid_rigid.data(),        // contact normal (per contact)
-            data_manager->host_data.dpth_rigid_rigid.data(),        // penetration depth (per contact)
-            data_manager->host_data.erad_rigid_rigid.data(),        // effective contact radius (per contact)
+            data_manager->cd_data->cpta_rigid_rigid.data(),         // point on shape 1 (per contact)
+            data_manager->cd_data->cptb_rigid_rigid.data(),         // point on shape 2 (per contact)
+            data_manager->cd_data->norm_rigid_rigid.data(),         // contact normal (per contact)
+            data_manager->cd_data->dpth_rigid_rigid.data(),         // penetration depth (per contact)
+            data_manager->cd_data->erad_rigid_rigid.data(),         // effective contact radius (per contact)
             data_manager->host_data.shear_neigh.data(),  // neighbor list of contacting bodies and shapes (per body)
             shear_touch.data(),                          // flag if contact in neighbor list is persistent (per body)
             data_manager->host_data.shear_disp.data(),   // accumulated shear displacement for each neighbor (per body)
@@ -648,34 +648,36 @@ struct sum_tuples {
 // all bodies involved in at least one contact.
 // -----------------------------------------------------------------------------
 void ChIterativeSolverMulticoreSMC::ProcessContacts() {
+    const auto num_rigid_contacts = data_manager->cd_data->num_rigid_contacts;
+
     // 1. Calculate contact forces and torques - per contact basis
     //    For each pair of contact shapes that overlap, we calculate and store the
     //    IDs of the two corresponding bodies and the resulting contact forces and
     //    torques on the two bodies.
 
-    custom_vector<int> ct_bid(2 * data_manager->num_rigid_contacts);
-    custom_vector<real3> ct_force(2 * data_manager->num_rigid_contacts);
-    custom_vector<real3> ct_torque(2 * data_manager->num_rigid_contacts);
+    custom_vector<int> ct_bid(2 * num_rigid_contacts);
+    custom_vector<real3> ct_force(2 * num_rigid_contacts);
+    custom_vector<real3> ct_torque(2 * num_rigid_contacts);
 
     // Set up additional vectors for multi-step tangential model
     custom_vector<vec2> shape_pairs;
     custom_vector<char> shear_touch;
     if (data_manager->settings.solver.tangential_displ_mode == ChSystemSMC::TangentialDisplacementModel::MultiStep) {
-        shape_pairs.resize(data_manager->num_rigid_contacts);
+        shape_pairs.resize(num_rigid_contacts);
         shear_touch.resize(max_shear * data_manager->num_rigid_bodies);
         Thrust_Fill(shear_touch, false);
 #pragma omp parallel for
-        for (int i = 0; i < (signed)data_manager->num_rigid_contacts; i++) {
-            vec2 pair = I2(int(data_manager->host_data.contact_shapeIDs[i] >> 32),
-                           int(data_manager->host_data.contact_shapeIDs[i] & 0xffffffff));
+        for (int i = 0; i < (signed)num_rigid_contacts; i++) {
+            vec2 pair = I2(int(data_manager->cd_data->contact_shapeIDs[i] >> 32),
+                           int(data_manager->cd_data->contact_shapeIDs[i] & 0xffffffff));
             shape_pairs[i] = pair;
         }
     }
 
     host_CalcContactForces(ct_bid, ct_force, ct_torque, shape_pairs, shear_touch);
 
-    data_manager->host_data.ct_force.resize(2 * data_manager->num_rigid_contacts);
-    data_manager->host_data.ct_torque.resize(2 * data_manager->num_rigid_contacts);
+    data_manager->host_data.ct_force.resize(2 * num_rigid_contacts);
+    data_manager->host_data.ct_torque.resize(2 * num_rigid_contacts);
     thrust::copy(THRUST_PAR ct_force.begin(), ct_force.end(), data_manager->host_data.ct_force.begin());
     thrust::copy(THRUST_PAR ct_torque.begin(), ct_torque.end(), data_manager->host_data.ct_torque.begin());
 
@@ -709,15 +711,14 @@ void ChIterativeSolverMulticoreSMC::ProcessContacts() {
     // zip iterators.
     auto end_range = thrust::reduce_by_key(
         THRUST_PAR ct_bid.begin(), ct_bid.end(),
-        thrust::make_zip_iterator(thrust::make_tuple(ct_force.begin(), ct_torque.begin())),
-        ct_body_id.begin(),
+        thrust::make_zip_iterator(thrust::make_tuple(ct_force.begin(), ct_torque.begin())), ct_body_id.begin(),
         thrust::make_zip_iterator(thrust::make_tuple(ct_body_force.begin(), ct_body_torque.begin())),
 #if defined _WIN32
         thrust::equal_to<int64_t>(), sum_tuples()  // Windows compilers require an explicit-width type
 #else
         thrust::equal_to<int>(), sum_tuples()
 #endif
-    );        
+    );
 
     uint ct_body_count = (uint)(end_range.first - ct_body_id.begin());
 
@@ -797,7 +798,7 @@ void ChIterativeSolverMulticoreSMC::RunTimeStep() {
     data_manager->host_data.ct_body_map.resize(data_manager->num_rigid_bodies);
     Thrust_Fill(data_manager->host_data.ct_body_map, -1);
 
-    if (data_manager->num_rigid_contacts > 0) {
+    if (data_manager->cd_data->num_rigid_contacts > 0) {
         data_manager->system_timer.start("ChIterativeSolverMulticoreSMC_ProcessContact");
         ProcessContacts();
         data_manager->system_timer.stop("ChIterativeSolverMulticoreSMC_ProcessContact");

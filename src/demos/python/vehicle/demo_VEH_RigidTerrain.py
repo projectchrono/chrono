@@ -59,7 +59,7 @@ def main():
     patch2_mat = chrono.ChMaterialSurfaceNSC()
     patch2_mat.SetFriction(0.9)
     patch2_mat.SetRestitution(0.01)
-    patch2 = terrain.AddPatch(patch1_mat, chrono.ChVectorD(16, 0, 0.15), chrono.ChVectorD(0, 0, 1), 32, 30);
+    patch2 = terrain.AddPatch(patch2_mat, chrono.ChVectorD(16, 0, 0.15), chrono.ChVectorD(0, 0, 1), 32, 30);
     patch2.SetColor(chrono.ChColor(1.0, 0.5, 0.5))
     patch2.SetTexture(veh.GetDataFile("terrain/textures/concrete.jpg"), 20, 20)
 
@@ -67,7 +67,7 @@ def main():
     patch3_mat.SetFriction(0.9)
     patch3_mat.SetRestitution(0.01)
     patch3 = terrain.AddPatch(patch3_mat, chrono.ChCoordsysD(chrono.ChVectorD(0, -42, 0), chrono.QUNIT),
-                              veh.GetDataFile("terrain/meshes/bump.obj"), "hills_mesh")
+                              veh.GetDataFile("terrain/meshes/bump.obj"))
     patch3.SetColor(chrono.ChColor(0.5, 0.5, 0.8))
     patch3.SetTexture(veh.GetDataFile("terrain/textures/dirt.jpg"), 6.0, 6.0)
 
@@ -75,7 +75,7 @@ def main():
     patch4_mat.SetFriction(0.9)
     patch4_mat.SetRestitution(0.01)
     patch4 = terrain.AddPatch(patch4_mat, chrono.ChCoordsysD(chrono.ChVectorD(0, 42, 0), chrono.QUNIT),
-                              veh.GetDataFile("terrain/height_maps/bump64.bmp"), "field_mesh", 64.0, 64.0, 0.0, 3.0)
+                              veh.GetDataFile("terrain/height_maps/bump64.bmp"), 64.0, 64.0, 0.0, 3.0)
     patch4.SetTexture(veh.GetDataFile("terrain/textures/grass.jpg"), 6.0, 6.0)
 
     # Create the vehicle Irrlicht interface

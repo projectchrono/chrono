@@ -36,7 +36,7 @@ class CH_VEHICLE_API ChTrackShoeDoublePin : public ChTrackShoeSegmented {
     ChTrackShoeDoublePin(const std::string& name  ///< [in] name of the subsystem
                          );
 
-    virtual ~ChTrackShoeDoublePin() {}
+    virtual ~ChTrackShoeDoublePin();
 
     /// Get the name of the vehicle subsystem template.
     virtual std::string GetTemplateName() const override { return "TrackShoeDoublePin"; }
@@ -53,7 +53,7 @@ class CH_VEHICLE_API ChTrackShoeDoublePin : public ChTrackShoeSegmented {
     /// This version initializes the bodies of a double-pin track shoe such that
     /// the center of the track shoe subsystem is at the specified location and all
     /// bodies have the specified orientation.
-    virtual void Initialize(std::shared_ptr<ChBodyAuxRef> chassis,  ///< [in] handle to the chassis body
+    virtual void Initialize(std::shared_ptr<ChBodyAuxRef> chassis,  ///< [in] chassis body
                             const ChVector<>& location,             ///< [in] location relative to the chassis frame
                             const ChQuaternion<>& rotation          ///< [in] orientation relative to the chassis frame
                             ) override;
@@ -61,7 +61,7 @@ class CH_VEHICLE_API ChTrackShoeDoublePin : public ChTrackShoeSegmented {
     /// Initialize this track shoe system.
     /// This version specifies the locations and orientations of the shoe body and of
     /// the connector bodies (relative to the chassis frame).
-    void Initialize(std::shared_ptr<ChBodyAuxRef> chassis,  ///< [in] handle to chassis body
+    void Initialize(std::shared_ptr<ChBodyAuxRef> chassis,  ///< [in] chassis body
                     const ChVector<>& loc_shoe,             ///< [in] location of shoe body
                     const ChQuaternion<>& rot_shoe,         ///< [in] orientation of shoe body
                     const ChVector<>& loc_connector_L,      ///< [in] location of left connector body
@@ -96,21 +96,33 @@ class CH_VEHICLE_API ChTrackShoeDoublePin : public ChTrackShoeSegmented {
     /// Return the radius of a connector body.
     virtual double GetConnectorRadius() const = 0;
 
+    /// Return stiffness and damping data for the shoe bushing.
+    /// Returning nullptr (default) results in using a kinematic revolute joint.
+    virtual std::shared_ptr<ChVehicleBushingData> GetBushingData() const { return nullptr; }
+
     virtual void ExportComponentList(rapidjson::Document& jsonDocument) const override;
 
     virtual void Output(ChVehicleOutput& database) const override;
 
-    std::shared_ptr<ChBody> m_connector_L;  ///< handle to left connector body
-    std::shared_ptr<ChBody> m_connector_R;  ///< handle to right connector body
+    std::shared_ptr<ChBody> m_connector_L;  ///< left connector body
+    std::shared_ptr<ChBody> m_connector_R;  ///< right connector body
 
-    std::shared_ptr<ChLinkLockRevolute> m_revolute_L;  ///< handle to shoe - left connector joint
-    std::shared_ptr<ChLinkLockRevolute> m_revolute_R;  ///< handle to shoe - right connector joint
+    std::shared_ptr<ChVehicleJoint> m_revolute_L;      ///< shoe - left connector joint
+    std::shared_ptr<ChVehicleJoint> m_revolute_R;      ///< shoe - right connector joint
+    std::shared_ptr<ChLinkRotSpringCB> m_rsda_L;       ///< optional RSDA on left revolute
+    std::shared_ptr<ChLinkRotSpringCB> m_rsda_R;       ///< optional RSDA on right revolute
+
+    std::shared_ptr<ChVehicleJoint> m_connection_joint_L;    ///< connection to neighboring track shoe
+    std::shared_ptr<ChVehicleJoint> m_connection_joint_R;    ///< connection to neighboring track shoe
+    std::shared_ptr<ChLinkRotSpringCB> m_connection_rsda_L;  ///< optional RSDA on connection
+    std::shared_ptr<ChLinkRotSpringCB> m_connection_rsda_R;  ///< optional RSDA on connection
 
   private:
     /// Connect this track shoe to the specified neighbor.
     /// This function must be called only after both track shoes have been initialized.
-    virtual void Connect(std::shared_ptr<ChTrackShoe> next,  ///< [in] handle to the neighbor track shoe
+    virtual void Connect(std::shared_ptr<ChTrackShoe> next,  ///< [in] neighbor track shoe
                          ChTrackAssembly* assembly,          ///< [in] containing track assembly
+                         ChChassis* chassis,                 ///< [in] associated chassis
                          bool ccw                            ///< [in] track assembled in counter clockwise direction
                          ) override final;
 
@@ -122,7 +134,7 @@ class CH_VEHICLE_API ChTrackShoeDoublePin : public ChTrackShoeSegmented {
     friend class ChTrackAssemblyDoublePin;
 };
 
-/// Vector of handles to double-pin track shoe subsystems.
+/// Vector of double-pin track shoe subsystems.
 typedef std::vector<std::shared_ptr<ChTrackShoeDoublePin> > ChTrackShoeDoublePinList;
 
 /// @} vehicle_tracked_shoe

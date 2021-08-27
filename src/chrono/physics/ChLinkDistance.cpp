@@ -60,13 +60,9 @@ int ChLinkDistance::Initialize(std::shared_ptr<ChBodyFrame> mbody1,
         distance = mdistance;
     }
 
-    return true;
-}
+    C[0] = curr_dist - distance;
 
-double ChLinkDistance::GetCurrentDistance() const {
-    return (((ChFrame<double>*)Body1)->TransformLocalToParent(pos1) -
-            ((ChFrame<double>*)Body2)->TransformLocalToParent(pos2))
-        .Length();
+    return true;
 }
 
 ChCoordsys<> ChLinkDistance::GetLinkRelativeCoords() {
@@ -112,7 +108,9 @@ void ChLinkDistance::Update(double mytime, bool update_assets) {
     Cx.Get_Cq_b()(4) = CqBr.y();
     Cx.Get_Cq_b()(5) = CqBr.z();
 
-    //***TO DO***  C_dt? C_dtdt? (may be never used..)
+    C[0] = curr_dist - distance;
+
+    //// TODO  C_dt? C_dtdt? (may be never used..)
 }
 
 //// STATE BOOKKEEPING FUNCTIONS

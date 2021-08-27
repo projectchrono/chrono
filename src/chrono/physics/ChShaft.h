@@ -207,6 +207,7 @@ class ChApi ChShaft : public ChPhysicsItem, public ChLoadable {
     virtual int GetSubBlocks() override { return 1; }
     virtual unsigned int GetSubBlockOffset(int nblock) override { return this->GetOffset_w(); }
     virtual unsigned int GetSubBlockSize(int nblock) override { return 1; }
+    virtual bool IsSubBlockActive(int nblock) const override { return true; }
     virtual void LoadableGetVariables(std::vector<ChVariables*>& mvars) override { mvars.push_back(&this->Variables()); };
 
 

@@ -26,7 +26,7 @@
 
 #include "chrono_multicore/physics/Ch3DOFContainer.h"
 
-#include "chrono_multicore/math/ChMulticoreMath.h"
+#include "chrono/multicore_math/ChMulticoreMath.h"
 #include "chrono_multicore/solver/ChSolverMulticore.h"
 
 namespace chrono {
@@ -64,7 +64,6 @@ class CH_MULTICORE_API ChIterativeSolverMulticore : public ChIterativeSolverVI {
     ChIterativeSolverMulticore(ChMulticoreDataManager* dc);
 
     ChShurProductBilateral ShurProductBilateral;
-    ChShurProductFEM ShurProductFEM;
     ChProjectNone ProjectNone;
 };
 

@@ -38,6 +38,14 @@ namespace vehicle {
 // -----------------------------------------------------------------------------
 ChRackPinion::ChRackPinion(const std::string& name) : ChSteering(name) {}
 
+ChRackPinion::~ChRackPinion() {
+    auto sys = m_prismatic->GetSystem();
+    if (sys) {
+        sys->Remove(m_prismatic);
+        sys->Remove(m_actuator);
+    }
+}
+
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 void ChRackPinion::Initialize(std::shared_ptr<ChChassis> chassis,
@@ -141,7 +149,7 @@ void ChRackPinion::RemoveVisualizationAssets() {
 void ChRackPinion::LogConstraintViolations() {
     // Translational joint
     {
-        ChVectorDynamic<> C = m_prismatic->GetC();
+        ChVectorDynamic<> C = m_prismatic->GetConstraintViolation();
         GetLog() << "Prismatic           ";
         GetLog() << "  " << C(0) << "  ";
         GetLog() << "  " << C(1) << "  ";
@@ -152,7 +160,7 @@ void ChRackPinion::LogConstraintViolations() {
 
     // Actuator
     {
-        ChVectorDynamic<> C = m_actuator->GetC();
+        ChVectorDynamic<> C = m_actuator->GetConstraintViolation();
         GetLog() << "Actuator            ";
         GetLog() << "  " << C(0) << "  ";
     }

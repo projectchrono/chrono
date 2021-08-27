@@ -20,8 +20,6 @@
 #include <cmath>
 #include <chrono>
 
-#include "GpuDemoUtils.hpp"
-
 #include "chrono/core/ChGlobal.h"
 #include "chrono/utils/ChUtilsSamplers.h"
 

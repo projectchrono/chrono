@@ -34,12 +34,12 @@ ChRoadWheelAssembly::ChRoadWheelAssembly(const std::string& name, bool has_shock
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-void ChRoadWheelAssembly::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,
+void ChRoadWheelAssembly::Initialize(std::shared_ptr<ChChassis> chassis,
                                      const ChVector<>& location,
                                      ChTrackAssembly* track) {
     m_track = track;
 
-    m_road_wheel->Initialize(chassis, GetCarrierBody(), location, track);
+    m_road_wheel->Initialize(chassis->GetBody(), GetCarrierBody(), location, track);
 }
 
 // -----------------------------------------------------------------------------

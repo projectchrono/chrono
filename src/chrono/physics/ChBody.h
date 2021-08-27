@@ -23,6 +23,7 @@
 #include "chrono/physics/ChLoadable.h"
 #include "chrono/physics/ChMarker.h"
 #include "chrono/physics/ChPhysicsItem.h"
+#include "chrono/collision/ChCollisionSystem.h"
 #include "chrono/solver/ChConstraint.h"
 #include "chrono/solver/ChVariablesBodyOwnMass.h"
 
@@ -44,7 +45,7 @@ class ChSystem;
 class ChApi ChBody : public ChPhysicsItem, public ChBodyFrame, public ChContactable_1vars<6>, public ChLoadableUVW {
   public:
     /// Build a rigid body.
-    ChBody();
+    ChBody(collision::ChCollisionSystemType collision_type = collision::ChCollisionSystemType::BULLET);
 
     /// Build a rigid body with a different collision model.
     ChBody(std::shared_ptr<collision::ChCollisionModel> new_collision_model);
@@ -500,9 +501,6 @@ class ChApi ChBody : public ChPhysicsItem, public ChBodyFrame, public ChContacta
     float sleep_starttime;
 
   private:
-    /// Instantiate the collision model
-    virtual std::shared_ptr<collision::ChCollisionModel> InstanceCollisionModel();
-
     // STATE FUNCTIONS
 
     // (override/implement interfaces for global state vectors, see ChPhysicsItem for comments.)
@@ -672,18 +670,20 @@ class ChApi ChBody : public ChPhysicsItem, public ChBodyFrame, public ChContacta
     /// Gets the number of DOFs affected by this element (speed part)
     virtual int LoadableGet_ndof_w() override { return 6; }
 
-    /// Number of coordinates in the interpolated field, ex=3 for a
-    /// tetrahedron finite element or a cable, etc. Here is 6: xyz displ + xyz rots
+    /// Number of coordinates in the interpolated field. Here, 6: = xyz displ + xyz rots.
     virtual int Get_field_ncoords() override { return 6; }
 
-    /// Tell the number of DOFs blocks (ex. =1 for a body, =4 for a tetrahedron, etc.)
+    /// Tell the number of DOFs blocks.
     virtual int GetSubBlocks() override { return 1; }
 
-    /// Get the offset of the i-th sub-block of DOFs in global vector
-    virtual unsigned int GetSubBlockOffset(int nblock) override { return this->GetOffset_w(); }
+    /// Get the offset of the specified sub-block of DOFs in global vector.
+    virtual unsigned int GetSubBlockOffset(int nblock) override { return GetOffset_w(); }
 
-    /// Get the size of the i-th sub-block of DOFs in global vector
+    /// Get the size of the specified sub-block of DOFs in global vector.
     virtual unsigned int GetSubBlockSize(int nblock) override { return 6; }
+
+    /// Check if the specified sub-block of DOFs is active.
+    virtual bool IsSubBlockActive(int nblock) const override { return true; }
 
     /// This is not needed because not used in quadrature.
     virtual double GetDensity() override { return density; }

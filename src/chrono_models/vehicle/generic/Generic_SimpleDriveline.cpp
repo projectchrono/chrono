@@ -31,7 +31,7 @@ const double Generic_SimpleDriveline::m_conicalgear_ratio = -0.2433;
 // -----------------------------------------------------------------------------
 // Construct a 2WD open differential simple driveline.
 // -----------------------------------------------------------------------------
-Generic_SimpleDriveline::Generic_SimpleDriveline(const std::string& name) : ChDrivelineWV(name) {}
+Generic_SimpleDriveline::Generic_SimpleDriveline(const std::string& name) : ChDrivelineWV(name), m_connected(true) {}
 
 // -----------------------------------------------------------------------------
 // Initialize the driveline subsystem.
@@ -60,6 +60,9 @@ double Generic_SimpleDriveline::GetDriveshaftSpeed() const {
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 void Generic_SimpleDriveline::Synchronize(double torque) {
+    if (!m_connected)
+        return;
+
     // Split the input torque front/back.
     double torque_drive = -torque / m_conicalgear_ratio;
 
@@ -70,6 +73,9 @@ void Generic_SimpleDriveline::Synchronize(double torque) {
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 double Generic_SimpleDriveline::GetSpindleTorque(int axle, VehicleSide side) const {
+    if (!m_connected)
+        return 0;
+
     if (axle == m_driven_axles[0]) {
         switch (side) {
             case LEFT:
@@ -80,6 +86,11 @@ double Generic_SimpleDriveline::GetSpindleTorque(int axle, VehicleSide side) con
     }
 
     return 0;
+}
+
+// -----------------------------------------------------------------------------
+void Generic_SimpleDriveline::Disconnect() {
+    m_connected = false;
 }
 
 }  // end namespace generic

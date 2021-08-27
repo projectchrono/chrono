@@ -60,7 +60,7 @@ class CH_VEHICLE_API ChSolidThreeLinkAxle : public ChSuspension {
     ChSolidThreeLinkAxle(const std::string& name  ///< [in] name of the subsystem
     );
 
-    virtual ~ChSolidThreeLinkAxle() {}
+    virtual ~ChSolidThreeLinkAxle();
 
     /// Get the name of the vehicle subsystem template.
     virtual std::string GetTemplateName() const override { return "SolidThreeLinkAxle"; }
@@ -186,17 +186,14 @@ class CH_VEHICLE_API ChSolidThreeLinkAxle : public ChSuspension {
     /// Return the functor object for shock force.
     virtual std::shared_ptr<ChLinkTSDA::ForceFunctor> getShockForceFunctor() const = 0;
 
-    std::shared_ptr<ChBody> m_axleTube;  ///< handles to the axle tube body
-    std::shared_ptr<ChBody> m_tierod;    ///< handles to the tierod body
-
-    std::shared_ptr<ChLinkLockFree> m_axleTubeGuide;  ///< allows all translations and rotations
-
+    std::shared_ptr<ChBody> m_axleTube;                  ///< handles to the axle tube body
+    ////std::shared_ptr<ChBody> m_tierod;                    ///< handles to the tierod body
+    ////std::shared_ptr<ChLinkLockFree> m_axleTubeGuide;     ///< allows all translations and rotations
     std::shared_ptr<ChBody> m_triangleBody;              ///< axle guide body with spherical link and rotary link
     std::shared_ptr<ChLinkLockRevolute> m_triangleRev;   ///< triangle to chassis revolute joint
     std::shared_ptr<ChLinkLockSpherical> m_triangleSph;  ///< triangle to axle tube spherical joint
 
     std::shared_ptr<ChBody> m_linkBody[2];  ///< axle guide body with spherical link and universal link
-    // std::shared_ptr<ChLinkLockSpherical> m_linkBodyToChassis[2];
     std::shared_ptr<ChLinkUniversal> m_linkBodyToChassis[2];
     std::shared_ptr<ChLinkLockSpherical> m_linkBodyToAxleTube[2];
 
@@ -229,6 +226,7 @@ class CH_VEHICLE_API ChSolidThreeLinkAxle : public ChSuspension {
 
     void InitializeSide(VehicleSide side,
                         std::shared_ptr<ChBodyAuxRef> chassis,
+                        std::shared_ptr<ChBody> scbeam,
                         const std::vector<ChVector<>>& points,
                         double ang_vel);
 

@@ -177,7 +177,7 @@ bool ChOpenGLViewer::Update(double time_step) {
     single_step = false;
     return true;
 }
-void ChOpenGLViewer::Render() {
+void ChOpenGLViewer::Render(bool render_hud) {
     timer_render.reset();
     timer_text.reset();
     timer_geometry.reset();
@@ -268,7 +268,7 @@ void ChOpenGLViewer::Render() {
         time_geometry = .5 * timer_geometry() + .5 * time_geometry;
 
         timer_text.start();
-        DisplayHUD();
+        DisplayHUD(render_hud);
         timer_text.stop();
         time_text = .5 * timer_text() + .5 * time_text;
     }
@@ -495,7 +495,10 @@ void ChOpenGLViewer::DrawObject(std::shared_ptr<ChBody> abody) {
     }
 }
 
-void ChOpenGLViewer::DisplayHUD() {
+void ChOpenGLViewer::DisplayHUD(bool render_hud) {
+    if (!render_hud && !view_help)
+        return;
+
     GLReturnedError("Start text");
     HUD_renderer.Update(window_size, dpi, fps, time_geometry, time_text, time_total);
     if (view_help) {
@@ -528,12 +531,12 @@ void ChOpenGLViewer::RenderAABB() {
         ChMulticoreDataManager* data_manager = system->data_manager;
         model_box.clear();
 
-        custom_vector<real3>& aabb_min = data_manager->host_data.aabb_min;
-        custom_vector<real3>& aabb_max = data_manager->host_data.aabb_max;
+        custom_vector<real3>& aabb_min = data_manager->cd_data->aabb_min;
+        custom_vector<real3>& aabb_max = data_manager->cd_data->aabb_max;
 
-        model_box.resize(data_manager->num_rigid_shapes);
+        model_box.resize(data_manager->cd_data->num_rigid_shapes);
 #pragma omp parallel for
-        for (int i = 0; i < (signed)data_manager->num_rigid_shapes; i++) {
+        for (int i = 0; i < (signed)data_manager->cd_data->num_rigid_shapes; i++) {
             real3 min_p = aabb_min[i] + data_manager->measures.collision.global_origin;
             real3 max_p = aabb_max[i] + data_manager->measures.collision.global_origin;
 
@@ -587,6 +590,7 @@ void ChOpenGLViewer::RenderFluid() {
 }
 
 void ChOpenGLViewer::RenderFEA() {
+/*
 #ifdef CHRONO_MULTICORE
     ChSystemMulticore* parallel_system = dynamic_cast<ChSystemMulticore*>(physics_system);
     if (!parallel_system || parallel_system->data_manager->num_fea_nodes <= 0) {
@@ -613,6 +617,7 @@ void ChOpenGLViewer::RenderFEA() {
     glm::mat4 model(1);
     fea_elements.Draw(projection, view * model);
 #endif
+*/
 }
 
 void ChOpenGLViewer::RenderGrid() {

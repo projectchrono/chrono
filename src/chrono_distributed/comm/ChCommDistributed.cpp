@@ -386,14 +386,14 @@ void ChCommDistributed::Exchange() {
                 else if ((location == distributed::UNOWNED_UP || location == distributed::UNOWNED_DOWN) &&
                          (ddm->comm_status[i] == distributed::SHARED_UP ||
                           ddm->comm_status[i] == distributed::SHARED_DOWN)) {
-                    int up;
+                    ////int up;
                     if (location == distributed::UNOWNED_UP && my_rank != num_ranks - 1) {
                         GetLog() << "GIVE " << ddm->global_id[i] << " from rank " << my_rank << "\n";
                         BodyUpdate b_upd = {};
                         PackUpdate(&b_upd, i, distributed::FINAL_UPDATE_GIVE);
                         update_up_buf.push_back(b_upd);
                         num_update_up++;  // TODO might be able to eliminate
-                        up = 1;
+                        ////up = 1;
                     } else if (location == distributed::UNOWNED_DOWN && my_rank != 0) {
                         GetLog() << "GIVE " << ddm->global_id[i] << " from rank " << my_rank << "\n";
                         BodyUpdate b_upd = {};
@@ -401,7 +401,7 @@ void ChCommDistributed::Exchange() {
                         update_down_buf.push_back(b_upd);
 
                         num_update_down++;  // TODO might be able to eliminate
-                        up = -1;
+                        ////up = -1;
                     }
 
                     my_sys->RemoveBodyExchange(i);
@@ -841,7 +841,7 @@ void ChCommDistributed::UnpackUpdate(BodyUpdate* buf, std::shared_ptr<ChBody> bo
 // Packs all shapes for a single body into the buffer
 int ChCommDistributed::PackShapes(std::vector<Shape>* buf, int index) {
     int shape_count = ddm->body_shape_count[index];
-    shape_container& shape_data = data_manager->shape_data;
+    shape_container& shape_data = data_manager->cd_data->shape_data;
 
     auto& body = my_sys->Get_bodylist()[index];
 

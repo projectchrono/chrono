@@ -28,7 +28,7 @@ namespace chrono {
 namespace vehicle {
 namespace mrole {
 
-/// @addtogroup vehicle_models_hmmwv
+/// @addtogroup vehicle_models_mrole
 /// @{
 
 /// Shafts-based powertrain model for the mrole vehicle.
@@ -63,7 +63,7 @@ class CH_MODELS_API mrole_Powertrain : public ChShaftsPowertrain {
     static const double m_downshift_RPM;
 };
 
-/// @} vehicle_models_hmmwv
+/// @} vehicle_models_mrole
 
 }  // namespace mrole
 }  // end namespace vehicle

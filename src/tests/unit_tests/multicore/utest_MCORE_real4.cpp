@@ -15,9 +15,6 @@
 // Chrono::Multicore unit test for real class
 // =============================================================================
 
-#include "chrono_multicore/math/real4.h"
-#include "chrono_multicore/math/matrix.h"
-
 #include "unit_testing.h"
 
 #ifdef CHRONO_MULTICORE_USE_DOUBLE
@@ -82,7 +79,7 @@ TEST(real4, functions) {
         quaternion Res1 = Mult(R1, R2);
         ChQuaternion<real> Res2;
         Res2.Cross(ToChQuaternion(R1), ToChQuaternion(R2));
-        Assert_near(Res1, ToQuaternion(Res2), precision);
+        Assert_near(Res1, FromChQuaternion(Res2), precision);
     }
 
     {
@@ -116,7 +113,7 @@ TEST(real4, functions) {
         ChQuaternion<real> R2 = ToChQuaternion(R1);
 
         ChVector<real> Res2 = R2.Rotate(ToChVector(V));
-        Assert_near(Res1a, ToReal3(Res2), precision);
+        Assert_near(Res1a, FromChVector(Res2), precision);
     }
 
     {
@@ -127,7 +124,7 @@ TEST(real4, functions) {
         ChQuaternion<real> R2 = ToChQuaternion(R1);
         R2.Conjugate();
         ChQuaternion<real> Res2 = R2;
-        Assert_near(Res1, ToQuaternion(Res2), precision);
+        Assert_near(Res1, FromChQuaternion(Res2), precision);
     }
 
     {

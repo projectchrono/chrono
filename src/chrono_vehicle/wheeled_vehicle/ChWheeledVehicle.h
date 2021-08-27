@@ -244,6 +244,10 @@ class CH_VEHICLE_API ChWheeledVehicle : public ChVehicle {
     /// Returns the state of the parking brake (true if enagaged, false otherwise).
     bool ParkingBrake() const { return m_parking_on; }
 
+    /// Disconnect driveline.
+    /// This function has no effect if called before vehicle initialization.
+    void DisconnectDriveline();
+
     /// Log current constraint violations.
     virtual void LogConstraintViolations() override;
 

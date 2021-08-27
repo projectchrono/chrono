@@ -93,26 +93,15 @@ void ChVehicleOutputASCII::WriteShafts(const std::vector<std::shared_ptr<ChShaft
 }
 
 void ChVehicleOutputASCII::WriteJoints(const std::vector<std::shared_ptr<ChLink>>& joints) {
-    for (auto joint : joints) {
+    for (const auto& joint : joints) {
         std::vector<double> violations;
-        //// TODO: Fix this mess in Chrono
-        if (auto jntL = std::dynamic_pointer_cast<ChLinkLock>(joint)) {
-            ChVectorDynamic<> C = jntL->GetC();
-            for (int i = 0; i < C.size(); i++)
-                violations.push_back(C(i));
-        }
-        else if (auto jntU = std::dynamic_pointer_cast<ChLinkUniversal>(joint)) {
-            ChVectorDynamic<> C = jntU->GetC();
-            for (int i = 0; i < C.size(); i++)
-                violations.push_back(C(i));
-        }
-        else if (auto jntD = std::dynamic_pointer_cast<ChLinkDistance>(joint)) {
-            violations.push_back(jntD->GetCurrentDistance() - jntD->GetImposedDistance());
-        }
+        auto C = joint->GetConstraintViolation();
+        for (int i = 0; i < C.size(); i++)
+            violations.push_back(C(i));
 
         m_stream << "    joint: " << joint->GetIdentifier() << " \"" << joint->GetNameString() << "\" ";
         m_stream << joint->Get_react_force() << " " << joint->Get_react_torque() << " ";
-        for (auto val : violations) {
+        for (const auto& val : violations) {
             m_stream << val << " ";
         }
         m_stream << std::endl;

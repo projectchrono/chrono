@@ -58,7 +58,7 @@ class CH_VEHICLE_API ChFialaTire : public ChTire {
     virtual TerrainForce ReportTireForce(ChTerrain* terrain) const override { return m_tireforce; }
 
     /// Get the width of the tire.
-    double GetWidth() const { return m_width; }
+    virtual double GetWidth() const override { return m_width; }
 
     /// Get visualization width.
     virtual double GetVisualizationWidth() const { return m_width; }

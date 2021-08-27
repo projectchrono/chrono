@@ -32,8 +32,19 @@ namespace chrono {
 namespace vehicle {
 
 // -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
-ChAntirollBarRSD::ChAntirollBarRSD(const std::string& name) : ChAntirollBar(name) {
+
+ChAntirollBarRSD::ChAntirollBarRSD(const std::string& name) : ChAntirollBar(name) {}
+
+ChAntirollBarRSD::~ChAntirollBarRSD() {
+    auto sys = m_arm_left->GetSystem();
+    if (sys) {
+        sys->Remove(m_arm_left);
+        sys->Remove(m_arm_right);
+        sys->Remove(m_revolute_ch);
+        sys->Remove(m_revolute);
+        sys->Remove(m_link_left);
+        sys->Remove(m_link_right);
+    }
 }
 
 // -----------------------------------------------------------------------------
@@ -141,7 +152,7 @@ ChVector<> ChAntirollBarRSD::GetCOMPos() const {
 void ChAntirollBarRSD::LogConstraintViolations() {
     // Chassis revolute joint
     {
-        ChVectorDynamic<> C = m_revolute_ch->GetC();
+        ChVectorDynamic<> C = m_revolute_ch->GetConstraintViolation();
         GetLog() << "Chassis revolute          ";
         GetLog() << "  " << C(0) << "  ";
         GetLog() << "  " << C(1) << "  ";
@@ -152,7 +163,7 @@ void ChAntirollBarRSD::LogConstraintViolations() {
 
     // Central revolute joint
     {
-        ChVectorDynamic<> C = m_revolute->GetC();
+        ChVectorDynamic<> C = m_revolute->GetConstraintViolation();
         GetLog() << "Central revolute          ";
         GetLog() << "  " << C(0) << "  ";
         GetLog() << "  " << C(1) << "  ";

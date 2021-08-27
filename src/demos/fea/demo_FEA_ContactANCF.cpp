@@ -118,7 +118,6 @@ int main(int argc, char* argv[]) {
         mfloor->AddAsset(masset_texture);
     }
 
-    int TotalNumNodes, TotalNumElements;
     std::vector<int> BC_NODES;
     auto material = chrono_types::make_shared<ChMaterialShellANCF>(1000, 1e8, 0.3);
     auto my_mesh = chrono_types::make_shared<ChMesh>();
@@ -147,10 +146,10 @@ int main(int argc, char* argv[]) {
     ////my_mesh->AddContactSurface(mcontactcloud);
     ////mcontactcloud->AddAllNodes(sphere_swept_thickness);
 
-    TotalNumNodes = my_mesh->GetNnodes();
-    TotalNumElements = my_mesh->GetNelements();
+    ////auto TotalNumNodes = my_mesh->GetNnodes();
+    auto TotalNumElements = my_mesh->GetNelements();
 
-    for (int ele = 0; ele < TotalNumElements; ele++) {
+    for (unsigned int ele = 0; ele < TotalNumElements; ele++) {
         auto element = chrono_types::make_shared<ChElementShellANCF>();
         element = std::dynamic_pointer_cast<ChElementShellANCF>(my_mesh->GetElement(ele));
         // Add a single layers with a fiber angle of 0 degrees.

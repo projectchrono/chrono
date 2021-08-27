@@ -1,0 +1,7 @@
+{
+    "Name": "MTV connector",
+    "Type": "ChassisConnector",
+    "Template": "ChassisConnectorTorsion",
+
+    "Torsional Stiffness": 7085
+}

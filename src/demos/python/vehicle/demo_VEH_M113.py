@@ -36,6 +36,7 @@ def main():
 
     vehicle = veh.M113_Vehicle(False, 
                                veh.TrackShoeType_SINGLE_PIN, 
+                               veh.DrivelineTypeTV_BDS,
                                veh.BrakeType_SIMPLE, 
                                chrono.ChContactMethod_SMC,
                                veh.CollisionType_NONE)

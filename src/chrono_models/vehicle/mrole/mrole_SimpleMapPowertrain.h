@@ -31,7 +31,7 @@ namespace chrono {
 namespace vehicle {
 namespace mrole {
 
-/// @addtogroup vehicle_models_hmmwv
+/// @addtogroup vehicle_models_mrole
 /// @{
 
 /// Simple mrole powertrain subsystem (based on engine speed-torque maps).
@@ -60,7 +60,7 @@ class CH_MODELS_API mrole_SimpleMapPowertrain : public ChSimpleMapPowertrain {
         ) override;
 };
 
-/// @} vehicle_models_hmmwv
+/// @} vehicle_models_mrole
 
 }  // namespace mrole
 }  // end namespace vehicle

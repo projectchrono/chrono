@@ -50,7 +50,7 @@ class CH_VEHICLE_API ChAntirollBarRSD : public ChAntirollBar {
     ChAntirollBarRSD(const std::string& name  ///< [in] name of the subsystem
                      );
 
-    virtual ~ChAntirollBarRSD() {}
+    virtual ~ChAntirollBarRSD();
 
     /// Get the name of the vehicle subsystem template.
     virtual std::string GetTemplateName() const override { return "AntirollBarRSD"; }

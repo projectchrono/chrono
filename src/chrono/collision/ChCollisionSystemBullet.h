@@ -22,13 +22,18 @@
 namespace chrono {
 namespace collision {
 
+/// @addtogroup collision_bullet
+/// @{
 
-/// Collision engine based on the 'Bullet' library.
+/// Collision engine based on the Bullet library.
 /// Contains both the broadphase and the narrow phase Bullet methods.
 class ChApi ChCollisionSystemBullet : public ChCollisionSystem {
   public:
     ChCollisionSystemBullet();
     virtual ~ChCollisionSystemBullet();
+
+    /// Return the type of this collision system.
+    virtual ChCollisionSystemType GetType() const override { return ChCollisionSystemType::BULLET; }
 
     /// Clears all data instanced by this algorithm
     /// if any (like persistent contact manifolds)
@@ -84,40 +89,40 @@ class ChApi ChCollisionSystemBullet : public ChCollisionSystem {
     virtual void ReportProximities(ChProximityContainer* mproximitycontainer) override;
 
     /// Perform a ray-hit test with all collision models.
-    virtual bool RayHit(const ChVector<>& from, const ChVector<>& to, ChRayhitResult& mresult) const override;
-
-    /// Perform a ray-hit test with all collision models. This version allows specifying the Bullet
-    /// collision filter group and mask (see btBroadphaseProxy::CollisionFilterGroups).
-    bool RayHit(const ChVector<>& from,
-                const ChVector<>& to,
-                ChRayhitResult& mresult,
-                short int filter_group,
-                short int filter_mask) const;
+    virtual bool RayHit(const ChVector<>& from, const ChVector<>& to, ChRayhitResult& result) const override;
 
     /// Perform a ray-hit test with the specified collision model.
     virtual bool RayHit(const ChVector<>& from,
                         const ChVector<>& to,
                         ChCollisionModel* model,
-                        ChRayhitResult& mresult) const override;
+                        ChRayhitResult& result) const override;
+
+    // Get the underlying Bullet collision world.
+    btCollisionWorld* GetBulletCollisionWorld() { return bt_collision_world; }
+
+    // Change default contact breaking/merging threshold tolerance of Bullet.
+    // This is the static gContactBreakingThreshold scalar in Bullet.
+    // Call this function only once, before running the simulation.
+    static void SetContactBreakingThreshold(double threshold);
+
+  private:
+    /// Perform a ray-hit test with all collision models. This version allows specifying the Bullet
+    /// collision filter group and mask (see btBroadphaseProxy::CollisionFilterGroups).
+    bool RayHit(const ChVector<>& from,
+                const ChVector<>& to,
+                ChRayhitResult& result,
+                short int filter_group,
+                short int filter_mask) const;
 
     /// Perform a ray-hit test with the specified collision model. This version allows specifying the Bullet
     /// collision filter group and mask (see btBroadphaseProxy::CollisionFilterGroups).
     bool RayHit(const ChVector<>& from,
                 const ChVector<>& to,
                 ChCollisionModel* model,
-                ChRayhitResult& mresult,
+                ChRayhitResult& result,
                 short int filter_group,
                 short int filter_mask) const;
 
-    // For Bullet related stuff
-    btCollisionWorld* GetBulletCollisionWorld() { return bt_collision_world; }
-
-    // Tweak the default contact breaking/merging threshold tolerance
-    // of Bullet (is it the static gContactBreakingThreshold scalar in Bullet).
-    // Call it only once, before running the simulation.
-    static void SetContactBreakingThreshold(double threshold);
-
-  private:
     btCollisionConfiguration* bt_collision_configuration;
     btCollisionDispatcher* bt_dispatcher;
     btBroadphaseInterface* bt_broadphase;
@@ -134,6 +139,8 @@ class ChApi ChCollisionSystemBullet : public ChCollisionSystem {
     void* m_tmp_mem;
     btCollisionAlgorithmCreateFunc* m_emptyCreateFunc;
 };
+
+/// @} collision_bullet
 
 }  // end namespace collision
 }  // end namespace chrono

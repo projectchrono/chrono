@@ -47,9 +47,9 @@ class CH_MODELS_API M113 {
 
     void SetChassisFixed(bool val) { m_fixed = val; }
     void SetChassisCollisionType(CollisionType val) { m_chassisCollisionType = val; }
-    void SetWheelCollisionType(VehicleSide side, bool roadwheel_as_cylinder, bool idler_as_cylinder) {
-        m_wheel_cyl[side] = roadwheel_as_cylinder;
-        m_idler_cyl[side] = idler_as_cylinder;
+    void SetWheelCollisionType(bool roadwheel_as_cylinder, bool idler_as_cylinder) {
+        m_wheel_cyl = roadwheel_as_cylinder;
+        m_idler_cyl = idler_as_cylinder;
     }
 
     void SetBrakeType(BrakeType brake_type) { m_brake_type = brake_type; }
@@ -59,6 +59,8 @@ class CH_MODELS_API M113 {
 
     void SetInitPosition(const ChCoordsys<>& pos) { m_initPos = pos; }
     void SetInitFwdVel(double fwdVel) { m_initFwdVel = fwdVel; }
+
+    void SetCollisionSystemType(collision::ChCollisionSystemType collsys_type) { m_collsysType = collsys_type; }
 
     void CreateTrack(bool val) { m_create_track = val; }
 
@@ -93,11 +95,12 @@ class CH_MODELS_API M113 {
 
   protected:
     ChContactMethod m_contactMethod;
+    collision::ChCollisionSystemType m_collsysType;
     CollisionType m_chassisCollisionType;
     bool m_fixed;
     bool m_create_track;
-    bool m_wheel_cyl[2];
-    bool m_idler_cyl[2];
+    bool m_wheel_cyl;
+    bool m_idler_cyl;
 
     BrakeType m_brake_type;
     TrackShoeType m_shoe_type;

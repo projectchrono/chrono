@@ -358,6 +358,9 @@ bool ParseJSON(const std::string& json_file, ChGpuSimulationParameters& params, 
         } else if (doc["write_mode"].GetString() == string("hdf5")) {
             params.write_mode = CHGPU_OUTPUT_MODE::HDF5;
             CONDITIONAL_PRINTF(verbose, "params.write_mode hdf5\n")
+        } else if (doc["write_mode"].GetString() == string("chpf")) {
+            params.write_mode = CHGPU_OUTPUT_MODE::CHPF;
+            CONDITIONAL_PRINTF(verbose, "params.write_mode chpf\n");
         } else if (doc["write_mode"].GetString() == string("none")) {
             params.write_mode = CHGPU_OUTPUT_MODE::NONE;
             CONDITIONAL_PRINTF(verbose, "params.write_mode none\n");

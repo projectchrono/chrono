@@ -67,7 +67,7 @@ class ChApi ChLinkRevoluteSpherical : public ChLink {
     virtual ChCoordsys<> GetLinkRelativeCoords() override;
 
     /// Get the joint violation (residuals of the constraint equations)
-    const ChVectorN<double, 2>& GetC() const { return m_C; }
+    virtual ChVectorDynamic<> GetConstraintViolation() const override { return m_C; }
 
     /// Initialize this joint by specifying the two bodies to be connected, a
     /// coordinate system specified in the absolute frame, and the distance of

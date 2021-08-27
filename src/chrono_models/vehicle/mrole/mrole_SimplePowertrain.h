@@ -31,7 +31,7 @@ namespace chrono {
 namespace vehicle {
 namespace mrole {
 
-/// @addtogroup vehicle_models_hmmwv
+/// @addtogroup vehicle_models_mrole
 /// @{
 
 /// Simple mrole powertrain subsystem (purely kinematic).
@@ -52,7 +52,7 @@ class CH_MODELS_API mrole_SimplePowertrain : public ChSimplePowertrain {
     static const double m_max_speed;       // maximum motor speed
 };
 
-/// @} vehicle_models_hmmwv
+/// @} vehicle_models_mrole
 
 }  // namespace mrole
 }  // end namespace vehicle

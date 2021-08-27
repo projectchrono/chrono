@@ -21,7 +21,7 @@
 #pragma once
 
 #include "chrono_multicore/ChDataManager.h"
-#include "chrono_multicore/math/ChMulticoreMath.h"
+#include "chrono/multicore_math/ChMulticoreMath.h"
 #include "chrono_multicore/constraints/ChConstraintRigidRigid.h"
 #include "chrono_multicore/physics/Ch3DOFContainer.h"
 #include "chrono_multicore/constraints/ChConstraintBilateral.h"
@@ -74,19 +74,6 @@ class CH_MULTICORE_API ChShurProductBilateral : public ChShurProduct {
   public:
     ChShurProductBilateral() {}
     virtual ~ChShurProductBilateral() {}
-    virtual void Setup(ChMulticoreDataManager* data_container_);
-
-    /// Perform the Shur Product.
-    virtual void operator()(const DynamicVector<real>& x, DynamicVector<real>& AX);
-
-    CompressedMatrix<real> NshurB;
-};
-
-/// Functor class for performing the Shur product.
-class CH_MULTICORE_API ChShurProductFEM : public ChShurProduct {
-  public:
-    ChShurProductFEM() {}
-    virtual ~ChShurProductFEM() {}
     virtual void Setup(ChMulticoreDataManager* data_container_);
 
     /// Perform the Shur Product.

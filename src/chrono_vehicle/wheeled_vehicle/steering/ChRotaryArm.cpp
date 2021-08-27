@@ -33,6 +33,13 @@ namespace vehicle {
 ChRotaryArm::ChRotaryArm(const std::string& name, bool vehicle_frame_inertia)
     : ChSteering(name), m_vehicle_frame_inertia(vehicle_frame_inertia) {}
 
+ChRotaryArm::~ChRotaryArm() {
+    auto sys = m_revolute->GetSystem();
+    if (sys) {
+        sys->Remove(m_revolute);
+    }
+}
+
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 void ChRotaryArm::Initialize(std::shared_ptr<ChChassis> chassis,
@@ -162,7 +169,7 @@ void ChRotaryArm::RemoveVisualizationAssets() {
 void ChRotaryArm::LogConstraintViolations() {
     // Revolute joint
     ////{
-    ////    ChVectorDynamic<> C = m_revolute->GetC();
+    ////    ChVectorDynamic<> C = m_revolute->GetConstraintViolation();
     ////    GetLog() << "Revolute              ";
     ////    GetLog() << "  " << C(0) << "  ";
     ////    GetLog() << "  " << C(1) << "  ";

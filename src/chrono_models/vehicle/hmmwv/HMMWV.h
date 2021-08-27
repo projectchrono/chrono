@@ -49,6 +49,7 @@ class CH_MODELS_API HMMWV {
     virtual ~HMMWV();
 
     void SetContactMethod(ChContactMethod val) { m_contactMethod = val; }
+    void SetCollisionSystemType(collision::ChCollisionSystemType collsys_type) { m_collsysType = collsys_type; }
 
     void SetChassisFixed(bool val) { m_fixed = val; }
     void SetChassisCollisionType(CollisionType val) { m_chassisCollisionType = val; }
@@ -99,6 +100,7 @@ class CH_MODELS_API HMMWV {
     virtual HMMWV_Vehicle* CreateVehicle() = 0;
 
     ChContactMethod m_contactMethod;
+    collision::ChCollisionSystemType m_collsysType;
     CollisionType m_chassisCollisionType;
     bool m_fixed;
     bool m_brake_locking;
@@ -131,8 +133,9 @@ class CH_MODELS_API HMMWV {
 /// and lower control arms) and a Pitman arm steering mechanism.
 class CH_MODELS_API HMMWV_Full : public HMMWV {
   public:
-    HMMWV_Full() : m_steeringType(SteeringTypeWV::PITMAN_ARM), m_rigidColumn(false) {}
-    HMMWV_Full(ChSystem* system) : HMMWV(system), m_steeringType(SteeringTypeWV::PITMAN_ARM), m_rigidColumn(false) {}
+    HMMWV_Full() : m_steeringType(SteeringTypeWV::PITMAN_ARM), m_rigidColumn(false), m_use_tierod_bodies(false) {}
+    HMMWV_Full(ChSystem* system)
+        : HMMWV(system), m_steeringType(SteeringTypeWV::PITMAN_ARM), m_rigidColumn(false), m_use_tierod_bodies(false) {}
 
     /// Set the type of steering mechanism (PITMAN_ARM or PITMAN_ARM_SHAFTS.
     /// Default: PITMAN_ARM
@@ -142,6 +145,10 @@ class CH_MODELS_API HMMWV_Full : public HMMWV {
     /// Default: false (compliant column).
     void SetRigidSteeringColumn(bool val) { m_rigidColumn = val; }
 
+    /// Use rigid bodies and joints to model the tierods.
+    /// Default: false (tierods modelled with distance constraints).
+    void UseTierodBodies(bool val) { m_use_tierod_bodies = val; }
+
     void LogHardpointLocations() { ((HMMWV_VehicleFull*)m_vehicle)->LogHardpointLocations(); }
     void DebugLog(int what) { ((HMMWV_VehicleFull*)m_vehicle)->DebugLog(what); }
 
@@ -149,6 +156,7 @@ class CH_MODELS_API HMMWV_Full : public HMMWV {
     virtual HMMWV_Vehicle* CreateVehicle() override;
 
     SteeringTypeWV m_steeringType;  ///< type of steering mechanism
+    bool m_use_tierod_bodies;       ///< tierod bodies + joints (true) or distance constraints (false)
     bool m_rigidColumn;             ///< only used with PITMAN_ARM_SHAFT
 };
 

@@ -169,24 +169,19 @@ class ChApi ChElementBrick_9 : public ChElementGeneric, public ChLoadableUVW {
     /// Number of coordinates in the interpolated field: here the {x,y,z} displacement.
     virtual int Get_field_ncoords() override { return 3; }
 
-    /// Tell the number of DOFs blocks: here 9, 1 for each node.
+    /// Get the number of DOFs sub-blocks.
     virtual int GetSubBlocks() override { return 9; }
 
-    /// Get the offset of the i-th sub-block of DOFs in global vector.
+    /// Get the offset of the specified sub-block of DOFs in global vector.
     virtual unsigned int GetSubBlockOffset(int nblock) override {
-        if (nblock < 8)
-            return m_nodes[nblock]->NodeGetOffset_w();
-
-        return m_central_node->NodeGetOffset_w();
+        return (nblock < 8) ? m_nodes[nblock]->NodeGetOffset_w() : m_central_node->NodeGetOffset_w();
     }
 
-    /// Get the size of the i-th sub-block of DOFs in global vector.
-    virtual unsigned int GetSubBlockSize(int nblock) override {
-        if (nblock < 8)
-            return 3;
+    /// Get the size of the specified sub-block of DOFs in global vector.
+    virtual unsigned int GetSubBlockSize(int nblock) override { return (nblock < 8) ? 3 : 9; }
 
-        return 9;
-    }
+    /// Check if the specified sub-block of DOFs is active.
+    virtual bool IsSubBlockActive(int nblock) const override { return !m_nodes[nblock]->GetFixed(); }
 
     /// Get the number of DOFs affected by this element (position part).
     virtual int LoadableGet_ndof_x() override { return 8 * 3 + 9; }

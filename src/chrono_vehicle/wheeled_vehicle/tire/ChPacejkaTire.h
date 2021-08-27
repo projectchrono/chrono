@@ -87,6 +87,9 @@ class CH_VEHICLE_API ChPacejkaTire : public ChTire {
     /// Get the tire radius.
     virtual double GetRadius() const override { return m_R_eff; }
 
+    /// Get tire width.
+    virtual double GetWidth() const override { return m_params->dimension.width; }
+
     /// Get visualization tire width.
     virtual double GetVisualizationWidth() const { return 0.25; }
 

@@ -23,6 +23,13 @@ endif()
 
 message(STATUS "==== Chrono Multicore module ====")
 
+# Return now if Thrust not available
+if (NOT THRUST_FOUND)
+  message(WARNING "Chrono::Multicore requires Thrust, but Thrust was not found; disabling Chrono::Multicore")
+  set(ENABLE_MODULE_MULTICORE OFF CACHE BOOL "Enable the Chrono::multicore module" FORCE)
+  return()
+endif()
+
 mark_as_advanced(CLEAR BLAZE_DIR)
 mark_as_advanced(CLEAR USE_MULTICORE_DOUBLE)
 mark_as_advanced(CLEAR USE_MULTICORE_SIMD)
@@ -49,14 +56,6 @@ else()
   set(CHRONO_MULTICORE_USE_CUDA "#undef CHRONO_MULTICORE_USE_CUDA")
 endif()
 
-# ----- SIMD (SSE or AVX) support -----
-
-cmake_dependent_option(USE_MULTICORE_SIMD "Enable SIMD support in Chrono::Multicore (if available)" ON "CHRONO_HAS_AVX" OFF)
-
-if(USE_MULTICORE_SIMD)
-  set(CHRONO_MULTICORE_USE_SIMD "#define CHRONO_MULTICORE_USE_SIMD")
-endif()
-
 # ----- Double precision support -----
 
 OPTION(USE_MULTICORE_DOUBLE "Compile Chrono::Multicore with double precision math" ON)
@@ -64,27 +63,6 @@ OPTION(USE_MULTICORE_DOUBLE "Compile Chrono::Multicore with double precision mat
 IF(USE_MULTICORE_DOUBLE)
   SET(CHRONO_MULTICORE_USE_DOUBLE "#define CHRONO_MULTICORE_USE_DOUBLE")
 ENDIF()
-
-# ----- Thrust library -----
-
-
-# Workaround for FreeBSD ports devel/thrust
-if (${CMAKE_SYSTEM_NAME} MATCHES "FreeBSD")
-  find_path(THRUST_INCLUDE_DIR NAMES thrust/version.h PATHS "/usr/local" "/usr/local/include")
-  if (THRUST_INCLUDE_DIR)
-    set(${THRUST_FOUND} TRUE)
-  else()
-    message(FATAL_ERROR "THRUST_INCLUDE_DIR is not set, but it is required.")
-  endif()
-else()
-  find_package(Thrust)
-endif()
-
-if(NOT THRUST_FOUND)
-  mark_as_advanced(CLEAR THRUST_INCLUDE_DIR)
-else()
-  mark_as_advanced(FORCE THRUST_INCLUDE_DIR)
-endif()
 
 # ----- Blaze library -----
 
@@ -203,7 +181,6 @@ SET(ChronoEngine_Multicore_BASE
     ChDataManager.h
     ChTimerMulticore.h
     ChDataManager.cpp
-    ChCudaDefines.h
     )
 
 SOURCE_GROUP("" FILES ${ChronoEngine_Multicore_BASE})
@@ -217,7 +194,6 @@ SET(ChronoEngine_Multicore_PHYSICS
     physics/Ch3DOFContainer.cpp
     physics/ChFluidKernels.h
     physics/ChFluidContainer.cpp
-    physics/ChFEAContainer.cpp
     physics/ChParticleContainer.cpp
     physics/ChMPMSettings.h
     )
@@ -225,44 +201,17 @@ SET(ChronoEngine_Multicore_PHYSICS
 SOURCE_GROUP(physics FILES ${ChronoEngine_Multicore_PHYSICS})
 
 SET(ChronoEngine_Multicore_CUDA
-    #math/matrix.cu
-    #math/matrixf.cu
-    #math/matrixf.cuh
-    #math/real3.cu
-    #math/real4.cu
-    #math/vec3.cu
-    physics/ChMPM.cu
-    physics/ChMPM.cuh
-    physics/MPMUtils.h
+    cuda/matrixf.cuh
+    cuda/svd.h
+    cuda/ChCudaHelper.cuh
+    cuda/ChGPUVector.cuh
+    cuda/ChMPM.cu
+    cuda/ChMPM.cuh
+    cuda/ChMPMUtils.h
     )
 
 SOURCE_GROUP(cuda FILES ${ChronoEngine_Multicore_CUDA})
     
-SET(ChronoEngine_Multicore_MATH
-    math/ChMulticoreMath.h
-    math/matrix.cpp
-    math/matrix.h
-    math/other_types.h
-    math/real.h
-    math/real_double.h
-    math/real_single.h
-    math/real2.h
-    math/real2.cpp
-    math/real3.cpp
-    math/real3.h
-    math/real4.cpp
-    math/real4.h
-    math/simd_avx.h
-    math/simd_non.h
-    math/simd_sse.h
-    math/sse.h
-    math/svd.h
-    math/utility.h
-    math/vec3.cpp
-    )
-
-SOURCE_GROUP(math FILES ${ChronoEngine_Multicore_MATH})
-
 SET(ChronoEngine_Multicore_SOLVER
     solver/ChSystemDescriptorMulticore.h
     solver/ChIterativeSolverMulticore.h
@@ -296,29 +245,14 @@ SET(ChronoEngine_Multicore_CONSTRAINTS
 SOURCE_GROUP(constraints FILES ${ChronoEngine_Multicore_CONSTRAINTS})
 
 SET(ChronoEngine_Multicore_COLLISION
-    collision/ChAABBGenerator.cpp
-    collision/ChBroadphase.cpp
-    collision/ChBroadphaseUtils.h
-    collision/ChDataStructures.h
-    collision/ChNarrowphaseUtils.h
-    collision/ChNarrowphaseMPR.h
-    collision/ChNarrowphaseMPR.cpp
-    collision/ChNarrowphaseDispatch.cpp
-    collision/ChNarrowphaseRUtils.h
-    collision/ChNarrowphaseR.h
-    collision/ChNarrowphaseR.cpp
-    collision/ChCollision.h
-    collision/ChCollisionModelMulticore.h
-    collision/ChCollisionModelMulticore.cpp
-    collision/ChCollisionSystemMulticore.h
-    collision/ChCollisionSystemMulticore.cpp
+    collision/ChCollisionSystemChronoMulticore.h
+    collision/ChCollisionSystemChronoMulticore.cpp
     collision/ChContactContainerMulticore.h
     collision/ChContactContainerMulticore.cpp
     collision/ChContactContainerMulticoreNSC.h
     collision/ChContactContainerMulticoreNSC.cpp
     collision/ChContactContainerMulticoreSMC.h
     collision/ChContactContainerMulticoreSMC.cpp
-
     )
 
 SET(ChronoEngine_Multicore_COLLISION ${ChronoEngine_Multicore_COLLISION}
@@ -468,7 +402,6 @@ IF(USE_MULTICORE_CUDA)
             ${ChronoEngine_Multicore_COLLISION}
             ${ChronoEngine_Multicore_CONSTRAINTS}
             ${ChronoEngine_Multicore_SOLVER}
-            ${ChronoEngine_Multicore_MATH}
             ) 
     SET(CHRONO_MULTICORE_LINKED_LIBRARIES ChronoEngine ${CUDA_FRAMEWORK} ${OPENMP_LIBRARIES} ${TBB_LIBRARIES})
 ELSE()
@@ -478,7 +411,6 @@ ELSE()
             ${ChronoEngine_Multicore_COLLISION}
             ${ChronoEngine_Multicore_CONSTRAINTS}
             ${ChronoEngine_Multicore_SOLVER}
-            ${ChronoEngine_Multicore_MATH}
             )
     SET(CHRONO_MULTICORE_LINKED_LIBRARIES ChronoEngine ${OPENMP_LIBRARIES} ${TBB_LIBRARIES})
 ENDIF()

@@ -29,12 +29,9 @@ namespace fea {
 /// @{
 
 /// Class for creating a constraint between two xyz FEA nodes (points).
-/// That is, the two nodes will be joined, as overlapping.
-/// Nodes are 3-DOF points that are used in point-based
-/// primitives, such as ChMatterSPH or finite elements.
-
+/// The two nodes will be joined, as overlapping. Nodes are 3-DOF points that are used in point-based primitives, such
+/// as finite elements.
 class ChApi ChLinkPointPoint : public ChLinkBase {
-
   private:
     ChVector<> react;
 
@@ -64,7 +61,7 @@ class ChApi ChLinkPointPoint : public ChLinkBase {
     virtual ChVector<> Get_react_force() override { return GetReactionOnNode(); }
 
     // Get constraint violations
-    ChVectorN<double, 3> GetC() const;
+    virtual ChVectorDynamic<> GetConstraintViolation() const override;
 
     //
     // STATE FUNCTIONS

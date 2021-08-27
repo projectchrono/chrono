@@ -32,18 +32,17 @@ namespace vehicle {
 /// Template for a balancer subchassis system.
 class CH_VEHICLE_API ChBalancer : public ChSubchassis {
   public:
-    virtual ~ChBalancer() {}
+    virtual ~ChBalancer();
 
     /// Get the name of the vehicle subsystem template.
     virtual std::string GetTemplateName() const override { return "Balancer"; }
 
     /// Initialize this subchassis subsystem.
-    /// The subchassis is initialized by attaching it to the specified
-    /// chassis body at the specified location (with respect to and expressed in
-    /// the reference frame of the chassis). It is assumed that the subchassis
-    /// reference frame is always aligned with the chassis reference frame.
-    virtual void Initialize(std::shared_ptr<ChBodyAuxRef> chassis,  ///< [in] handle to the chassis body
-                            const ChVector<>& location              ///< [in] location relative to the chassis frame
+    /// The subchassis is initialized by attaching it to the specified chassis at the specified location (with respect
+    /// to and expressed in the reference frame of the chassis). It is assumed that the subchassis reference frame is
+    /// always aligned with the chassis reference frame.
+    virtual void Initialize(std::shared_ptr<ChChassis> chassis,  ///< [in] chassis
+                            const ChVector<>& location           ///< [in] location relative to the chassis frame
                             ) override;
 
     /// Get the total mass of the subchassis subsystem.
@@ -79,12 +78,17 @@ class CH_VEHICLE_API ChBalancer : public ChSubchassis {
     virtual const ChVector<>& GetBalancerBeamInertia() const = 0;
 
     /// Get the rear balancer min/max pitch.
+    /// Used only if using a kinematic joint.
     virtual const double GetBalancerMaxPitch() const = 0;
 
     ///  Get balancer dimensions (for visualization).
     virtual const ChVector<>& GetBalancerBeamDimensions() const = 0;
 
-    std::shared_ptr<ChLinkLockRevolute> m_balancer_joint[2];  ///< balancer pivot joints
+    /// Return stiffness and damping data for the balancer bushing.
+    /// Returning nullptr (default) results in using a kinematic revolute joint.
+    virtual std::shared_ptr<ChVehicleBushingData> GetBushingData() const { return nullptr; }
+
+    std::shared_ptr<ChVehicleJoint> m_balancer_joint[2];  ///< balancer pivot joints
 
 private:
     // Hardpoint absolute locations

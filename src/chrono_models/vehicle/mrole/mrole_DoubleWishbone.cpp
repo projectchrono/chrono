@@ -193,7 +193,6 @@ const ChVector<> mrole_DoubleWishboneFront::getLocation(PointId which) {
 
 const ChVector<> mrole_DoubleWishboneRear::getLocation(PointId which) {
     switch (which) {
-        default:
         case SPINDLE:
             // return in2m * ChVector<>(-1.59, 35.815, -1.035);
             return ChVector<>(0.0, 1.29, 0.0);
@@ -240,6 +239,7 @@ const ChVector<> mrole_DoubleWishboneRear::getLocation(PointId which) {
         case TIEROD_U:
             // return in2m * ChVector<>(-6.922, 32.327, -0.643);
             return ChVector<>(-0.45, 0.93852071, 0.0);
+        default:
             return ChVector<>(0, 0, 0);
     }
 }

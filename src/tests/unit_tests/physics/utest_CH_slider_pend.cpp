@@ -21,20 +21,20 @@
 // The test compares the simulation results (location of the pendulum center of
 // mass) against the solution obtained by integrating the ODEs in minimal
 // coordinates q = (x1, phi2).
-//
-//                y
-//                ^
-//                |
-//    g |         |                   k1, rest_len = 0
-//      |         |    m1 _______/\/\/\/\/\/\__
-//     \|/        |      |       |
-//             ---|------|---o---|--------------------> x
-//                |      |____\__|
-//                             \
-//                              \
-//                               \ m2, l2, J2
-//                                \
-//
+/*
+                y
+                ^
+                |
+    g |         |                   k1, rest_len = 0
+      |         |    m1 _______/\/\/\/\/\/\__
+     \|/        |      |       |
+             ---|------|---o---|--------------------> x
+                |      |____\__|
+                             \
+                              \
+                               \ m2, l2, J2
+                                \
+*/
 // =============================================================================
 
 #include <cmath>
@@ -169,8 +169,8 @@ class ChronoModelL : public ChronoModel {
     virtual std::string GetJointType() const override { return "LinkLock"; }
 
   private:
-    virtual ChVectorDynamic<> GetViolation1() override { return m_prismatic->GetC(); }
-    virtual ChVectorDynamic<> GetViolation2() override { return m_revolute->GetC(); }
+    virtual ChVectorDynamic<> GetViolation1() override { return m_prismatic->GetConstraintViolation(); }
+    virtual ChVectorDynamic<> GetViolation2() override { return m_revolute->GetConstraintViolation(); }
 
     std::shared_ptr<ChLinkLockPrismatic> m_prismatic;
     std::shared_ptr<ChLinkLockRevolute> m_revolute;
@@ -183,8 +183,8 @@ class ChronoModelM : public ChronoModel {
     virtual std::string GetJointType() const override { return "LinkMate"; }
 
   private:
-    virtual ChVectorDynamic<> GetViolation1() override { return m_prismatic->GetC(); }
-    virtual ChVectorDynamic<> GetViolation2() override { return m_revolute->GetC(); }
+    virtual ChVectorDynamic<> GetViolation1() override { return m_prismatic->GetConstraintViolation(); }
+    virtual ChVectorDynamic<> GetViolation2() override { return m_revolute->GetConstraintViolation(); }
 
     std::shared_ptr<ChLinkMateGeneric> m_prismatic;
     std::shared_ptr<ChLinkMateGeneric> m_revolute;

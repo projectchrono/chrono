@@ -28,7 +28,7 @@ namespace chrono {
 namespace vehicle {
 namespace mrole {
 
-/// @addtogroup vehicle_models_hmmwv
+/// @addtogroup vehicle_models_mrole
 /// @{
 
 /// TMeasy tire model for the mrole, for ON ROAD operation
@@ -112,7 +112,7 @@ class CH_MODELS_API mrole_TMeasyTireSand : public ChTMeasyTire {
     std::shared_ptr<ChTriangleMeshShape> m_trimesh_shape;
 };
 
-/// @} vehicle_models_hmmwv
+/// @} vehicle_models_mrole
 
 }  // namespace mrole
 }  // end namespace vehicle

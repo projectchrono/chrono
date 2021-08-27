@@ -62,7 +62,7 @@ class CH_VEHICLE_API ChRigidPinnedAxle : public ChSuspension {
     ChRigidPinnedAxle(const std::string& name  ///< [in] name of the subsystem
                       );
 
-    virtual ~ChRigidPinnedAxle() {}
+    virtual ~ChRigidPinnedAxle();
 
     /// Get the name of the vehicle subsystem template.
     virtual std::string GetTemplateName() const override { return "RigidPinnedAxle"; }

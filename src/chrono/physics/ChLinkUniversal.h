@@ -55,7 +55,7 @@ class ChApi ChLinkUniversal : public ChLink {
     ChFrame<> GetFrame2Abs() const { return m_frame2 >> *Body2; }
 
     /// Get the joint violation (residuals of the constraint equations)
-    const ChVectorN<double, 4>& GetC() const { return m_C; }
+    virtual ChVectorDynamic<> GetConstraintViolation() const override { return m_C; }
 
     /// Initialize this joint by specifying the two bodies to be connected and a
     /// joint frame specified in the absolute frame. Two local joint frames, one

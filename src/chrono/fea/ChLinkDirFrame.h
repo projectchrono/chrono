@@ -29,13 +29,10 @@ namespace fea {
 /// @addtogroup fea_constraints
 /// @{
 
-/// Class for creating a constraint between the direction of a FEA node
-/// of ChNodeFEAxyzD class, and a ChBodyFrame (frame).
-/// The D direction of the ChNodeFEAxyzD is enforced to stay parallel
-/// to a given direction associated to the ChBodyFrame.
-
+/// Class for creating a constraint between the direction of a FEA node of ChNodeFEAxyzD class, and a ChBodyFrame
+/// (frame). The D direction of the ChNodeFEAxyzD is enforced to stay parallel to a given direction associated to the
+/// ChBodyFrame.
 class ChApi ChLinkDirFrame : public ChLinkBase {
-
   private:
     ChVector<> m_react;
 
@@ -68,7 +65,7 @@ class ChApi ChLinkDirFrame : public ChLinkBase {
     virtual ChVector<> Get_react_torque() override { return GetReactionOnBody(); }
 
     // Get constraint violations
-    ChVectorN<double, 2> GetC() const;
+    virtual ChVectorDynamic<> GetConstraintViolation() const override;
 
     //
     // STATE FUNCTIONS
