@@ -840,7 +840,7 @@ void ChElementShellANCF_3443<NP, NT>::PrecomputeInternalForceMatricesWeightsCont
 
     for (size_t kl = 0; kl < m_numLayers; kl++) {
         double thickness = m_layers[kl].Get_thickness();
-        double zoffset = m_layer_zoffsets[kl];
+        ////double zoffset = m_layer_zoffsets[kl];
         double layer_midsurface_offset =
             -m_thicknessZ / 2 + m_layer_zoffsets[kl] + m_layers[kl].Get_thickness() / 2 + m_midsurfoffset;
 

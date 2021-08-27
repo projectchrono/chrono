@@ -265,6 +265,9 @@ class ChElementBeamANCF_3333 : public ChElementBeam, public ChLoadableU, public 
     /// Get the size of the i-th sub-block of DOFs in global vector.
     virtual unsigned int GetSubBlockSize(int nblock) override { return 9; }
 
+    /// Check if the specified sub-block of DOFs is active.
+    virtual bool IsSubBlockActive(int nblock) const override { return !m_nodes[nblock]->GetFixed(); }
+
     /// Get the pointers to the contained ChVariables, appending to the mvars vector.
     virtual void LoadableGetVariables(std::vector<ChVariables*>& mvars) override;
 
