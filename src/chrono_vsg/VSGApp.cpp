@@ -50,8 +50,7 @@ public:
             _params->drawMode = 2;
             m_appPtr->UpdateDrawMode(_params->drawMode);
         }
-        if(keyPress.keyBase == 'm') {
-            std::cout << "Key 'm' hit" << std::endl;
+        if (keyPress.keyBase == 'm' || keyPress.keyModified == 'm') {
             _params->showGui = !_params->showGui;
         }
     }
