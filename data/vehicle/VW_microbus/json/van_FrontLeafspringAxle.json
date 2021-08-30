@@ -1,0 +1,74 @@
+{
+  "Name":                           "UAZBUS Front Leafspring Axle",
+  "Type":                           "Suspension",
+  "Template":                       "ToeBarLeafspringAxle",
+
+  "Spindle" :
+  {
+    "Mass":                         14.705,
+    "COM":                          [0, 0.7325, 0],
+    "Inertia":                      [0.04117, 0.07352, 0.04117],
+    "Radius":                       0.10,
+    "Width":                        0.06
+  },
+
+  "Knuckle":
+  {
+    "Mass":                         10.0,
+    "COM":                          [0.0, 0.6625, 0.0],
+    "Inertia":                      [0.1, 0.1, 0.1],
+    "Radius":                       0.05,
+    "Location Lower":               [0.0, 0.672305806756909, -0.1],
+    "Location Upper":               [0.0, 0.652694193243091, 0.1],
+    "Location Draglink":            [0.0, 0.5325, 0.2]  // y > 0 -> left knuckle connects to draglink
+                                                        // y < 0 -> right knuckle connects to draglink
+  },
+    
+  "Axle Tube" :
+  {
+    "Mass":                         124.0,
+    "COM":                          [0, 0, 0],
+    "Inertia":                      [22.21, 0.0775, 22.21],
+    "Radius":                       0.0476
+  },
+  
+  "Tierod":
+  {
+    "Mass":                         5.0,
+    "Inertia":                      [1.0, 0.1, 1.0],
+    "Location Knuckle":             [-0.190568826619798, 0.601807971522173, 0.1],
+	"Radius":                       0.02
+  },
+  
+  "Draglink":
+  {
+    "Mass":                         5.0,
+    "Inertia":                      [0.1, 1.0, 0.1],
+    "Location Chassis":             [0.6, 0.5325, 0.2],
+	"Radius":                       0.02
+  },
+
+  "Spring":
+  {
+    "Location Chassis":             [0.0, 0.5142, 0.2476],
+    "Location Axle":                [0.0, 0.5142, 0.0476],
+    "Spring Coefficient":           102643.885771329,
+    "Free Length":                  0.2621225507207084,
+    "Minimum Length":               0.28,
+    "Maximum Length":               0.12
+  },
+
+  "Shock":
+  {
+    "Location Chassis":             [-0.3648,  0.4193, 0.4298],
+    "Location Axle":                [-0.125, 0.441, -0.0507],
+    "Damping Coefficient":          16336.2817986669,
+    "Degressivity Compression":     3,
+    "Degressivity Expansion":       1
+  },
+
+  "Axle":
+  {
+    "Inertia":                      0.4
+  }
+}

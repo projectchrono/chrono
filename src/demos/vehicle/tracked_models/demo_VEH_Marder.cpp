@@ -98,22 +98,15 @@ int main(int argc, char* argv[]) {
 
     ChContactMethod contact_method = ChContactMethod::SMC;
     CollisionType chassis_collision_type = CollisionType::NONE;
-    TrackShoeType shoe_type = TrackShoeType::SINGLE_PIN;
-    DrivelineTypeTV driveline_type = DrivelineTypeTV::SIMPLE;
+    ////TrackShoeType shoe_type = TrackShoeType::SINGLE_PIN;
+    ////DrivelineTypeTV driveline_type = DrivelineTypeTV::SIMPLE;
     BrakeType brake_type = BrakeType::SIMPLE;
     PowertrainModelType powertrain_type = PowertrainModelType::SIMPLE_CVT;
 
-    //// TODO
-    //// When using SMC, a double-pin shoe type requires MKL or MUMPS.
-    //// However, there appear to still be redundant constraints in the double-pin assembly
-    //// resulting in solver failures with MKL and MUMPS (rank-deficient matrix).
-    if (shoe_type == TrackShoeType::DOUBLE_PIN)
-        contact_method = ChContactMethod::NSC;
-
     Marder marder;
     marder.SetContactMethod(contact_method);
-    marder.SetTrackShoeType(shoe_type);
-    marder.SetDrivelineType(driveline_type);
+    ////marder.SetTrackShoeType(shoe_type);
+    ////marder.SetDrivelineType(driveline_type);
     marder.SetBrakeType(brake_type);
     marder.SetPowertrainType(powertrain_type);
     marder.SetChassisCollisionType(chassis_collision_type);
@@ -137,8 +130,7 @@ int main(int argc, char* argv[]) {
     marder.Initialize();
 
     // Set visualization type for vehicle components.
-    VisualizationType track_vis =
-        (shoe_type == TrackShoeType::SINGLE_PIN) ? VisualizationType::MESH : VisualizationType::PRIMITIVES;
+    VisualizationType track_vis = VisualizationType::MESH;
     marder.SetChassisVisualizationType(VisualizationType::MESH);
     marder.SetSprocketVisualizationType(track_vis);
     marder.SetIdlerVisualizationType(track_vis);
@@ -175,8 +167,15 @@ int main(int argc, char* argv[]) {
     ////marder.GetVehicle().MonitorContacts(TrackedCollisionFlag::CHASSIS | TrackedCollisionFlag::SPROCKET_LEFT |
     ////                        TrackedCollisionFlag::SHOES_LEFT | TrackedCollisionFlag::IDLER_LEFT);
 
+    // Monitor contacts involving one of the sprockets.
+    marder.GetVehicle().MonitorContacts(TrackedCollisionFlag::SPROCKET_LEFT | TrackedCollisionFlag::SPROCKET_RIGHT);
+
     // Monitor only contacts involving the chassis.
-    marder.GetVehicle().MonitorContacts(TrackedCollisionFlag::CHASSIS);
+    ////marder.GetVehicle().MonitorContacts(TrackedCollisionFlag::CHASSIS);
+
+    // Render contact normals and/or contact forces.
+    marder.GetVehicle().SetRenderContactNormals(true);
+    ////marder.GetVehicle().SetRenderContactForces(true, 1e-4);
 
     // Collect contact information.
     // If enabled, number of contacts and local contact point locations are collected for all
@@ -212,10 +211,10 @@ int main(int argc, char* argv[]) {
     ChTrackedVehicleIrrApp app(&marder.GetVehicle(), L"Marder Vehicle Demo");
     app.SetSkyBox();
     app.AddTypicalLights(irr::core::vector3df(30.f, -30.f, 100.f), irr::core::vector3df(30.f, 50.f, 100.f), 250, 130);
-    app.SetChaseCamera(trackPoint, 6.0, 0.5);
+    app.SetChaseCamera(trackPoint, 10.0, 0.5);
     ////app.SetChaseCameraPosition(vehicle.GetVehiclePos() + ChVector<>(0, 2, 0));
     app.SetChaseCameraMultipliers(1e-4, 10);
-    app.SetTimestep(step_size);
+
     app.AssetBindAll();
     app.AssetUpdateAll();
 
@@ -261,29 +260,37 @@ int main(int argc, char* argv[]) {
     }
 
     // Set up vehicle output
-    marder.GetVehicle().SetChassisOutput(true);
-    marder.GetVehicle().SetTrackAssemblyOutput(VehicleSide::LEFT, true);
-    marder.GetVehicle().SetOutput(ChVehicleOutput::ASCII, out_dir, "output", 0.1);
+    ////marder.GetVehicle().SetChassisOutput(true);
+    ////marder.GetVehicle().SetTrackAssemblyOutput(VehicleSide::LEFT, true);
+    ////marder.GetVehicle().SetOutput(ChVehicleOutput::ASCII, out_dir, "output", 0.1);
 
     // Generate JSON information with available output channels
-    marder.GetVehicle().ExportComponentList(out_dir + "/component_list.json");
+    ////marder.GetVehicle().ExportComponentList(out_dir + "/component_list.json");
 
     // ------------------------------
     // Solver and integrator settings
     // ------------------------------
 
-    // Cannot use HHT + MKL with NSC contact
-    if (contact_method == ChContactMethod::NSC) {
-        use_mkl = false;
+    switch (contact_method) {
+        case ChContactMethod::NSC:
+            std::cout << "Use NSC" << std::endl;
+            // Cannot use HHT + MKL with NSC contact
+            use_mkl = false;
+            break;
+        case ChContactMethod::SMC:
+            std::cout << "Use SMC" << std::endl;
+            break;
     }
 
 #ifndef CHRONO_PARDISO_MKL
-    // Cannot use HHT + PardisoMKL if Chrono::PardisoMKL not available
     use_mkl = false;
 #endif
 
     if (use_mkl) {
 #ifdef CHRONO_PARDISO_MKL
+        std::cout << "Solver: PardisoMKL" << std::endl;
+        std::cout << "Integrator: HHT" << std::endl;
+
         auto mkl_solver = chrono_types::make_shared<ChSolverPardisoMKL>();
         mkl_solver->LockSparsityPattern(true);
         marder.GetSystem()->SetSolver(mkl_solver);
@@ -297,7 +304,7 @@ int main(int argc, char* argv[]) {
         integrator->SetStepControl(false);
         integrator->SetModifiedNewton(false);
         integrator->SetScaling(true);
-        integrator->SetVerbose(true);
+        ////integrator->SetVerbose(true);
 #endif
     } else {
         auto solver = chrono_types::make_shared<ChSolverBB>();

@@ -28,7 +28,7 @@
             "Coefficient of Friction": 0.8,
             "Coefficient of Restitution": 0.75,
             "Properties": {
-                "Young Modulus": 1e7,
+                "Young Modulus": 1e9,
                 "Poisson Ratio": 0.3
             },
             "Coefficients": {
