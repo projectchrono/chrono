@@ -60,7 +60,13 @@ Change Log
 
 3. JSON-based specification of a wheeled vehicle was enhanced to allow specification of rear chassis and associated chassis connectors, as well as subchassis subsystems.  An example set of JSON specification files for modelling an MTV truck with rear walking beam suspensions is available under the `data/vehicle/mtv/` directory.
 
-4. A demonstration program (`demo_VEH_RenderJSON`) was created to illustrate visualization of a Chrono::Vehicle model based on JSON specificatin files.  Using the Chrono::OpenGL run-time visualization module, this demo program allows re-creating the vehicle model after a potential change to one or more JSON specification files (use key `U` to trigger).
+4. The interface between a Chrono::Vehicle and a powertrain was modified to completely decouple the two systems and use a force-displacement co-simulation approach for all possible combinations of powertrain and driveline templates. In particular, this now allows using a shafts-based powertrain to drive one of the “simple” drivelines.
+
+   Note also that a drivetrain's `GetDriveshaftSpeed` function now always reports a positive angular speed for a vehicle moving forward and a negative value for reverse (although internally these signs must be reversed due to the particular implementation of the shafts-body constraint in Chrono).
+
+5. The contact manager for tracked vehicles was extended to also allow use with a track test rig. Furthermore, new public methods on `ChTrackedVehicle` and `ChTrackTestRig` allow controlling rendering of contact information (normals and/or contact forces) for all monitored subsystems.
+
+6. A demonstration program (`demo_VEH_RenderJSON`) was created to illustrate visualization of a Chrono::Vehicle model based on JSON specificatin files.  Using the Chrono::OpenGL run-time visualization module, this demo program allows re-creating the vehicle model after a potential change to one or more JSON specification files (use key `U` to trigger).
 
 ### [Added] New robot models
 
