@@ -230,7 +230,6 @@ class CH_VEHICLE_API ChSuspensionTestRig : public ChVehicle {
     // Overrides of ChVehicle methods
     virtual std::string GetTemplateName() const override { return "SuspensionTestRig"; }
     virtual std::shared_ptr<ChShaft> GetDriveshaft() const override { return m_dummy_shaft; }
-    virtual double GetDriveshaftSpeed() const override { return 0; }
     virtual ChVector<> GetVehicleCOMPos() const override { return ChVector<>(0, 0, 0); }
     virtual std::string ExportComponentList() const override { return ""; }
     virtual void ExportComponentList(const std::string& filename) const override {}

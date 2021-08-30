@@ -36,6 +36,11 @@ void Gator_SimpleDriveline::Initialize(std::shared_ptr<ChChassis> chassis,
     assert(axles.size() == 2);
     assert(driven_axles.size() == 1);
 
+    // Create the driveshaft
+    m_driveshaft = chrono_types::make_shared<ChShaft>();
+    m_driveshaft->SetInertia(0.5);
+    chassis->GetSystem()->Add(m_driveshaft);
+
     m_driven_axles = driven_axles;
 
     // Grab handles to the suspension wheel shafts.
@@ -47,6 +52,10 @@ void Gator_SimpleDriveline::Initialize(std::shared_ptr<ChChassis> chassis,
 void Gator_SimpleDriveline::Synchronize(double torque) {
     if (!m_connected)
         return;
+
+    // Enforce driveshaft speed
+    double driveshaft_speed = 0.5 * (m_left->GetPos_dt() + m_right->GetPos_dt());
+    m_driveshaft->SetPos_dt(driveshaft_speed);
 
     // Split the driveshaft torque for the corresponding left/right wheels.
     // Use a siple model of a Torsten limited-slip differential with a max_bias:1 torque bias ratio.
@@ -79,11 +88,6 @@ void Gator_SimpleDriveline::Synchronize(double torque) {
     // Apply torques to left and right shafts
     m_left->SetAppliedTorque(-torque_left);
     m_right->SetAppliedTorque(-torque_right);
-}
-
-// -----------------------------------------------------------------------------
-double Gator_SimpleDriveline::GetDriveshaftSpeed() const {
-    return 0.5 * (m_left->GetPos_dt() + m_right->GetPos_dt());
 }
 
 // -----------------------------------------------------------------------------

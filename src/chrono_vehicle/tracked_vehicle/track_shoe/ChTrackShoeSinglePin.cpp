@@ -36,6 +36,9 @@ namespace vehicle {
 ChTrackShoeSinglePin::ChTrackShoeSinglePin(const std::string& name) : ChTrackShoeSegmented(name) {}
 
 ChTrackShoeSinglePin::~ChTrackShoeSinglePin() {
+    if (!m_shoe)
+        return;
+
     auto sys = m_shoe->GetSystem();
     if (sys) {
         ChChassis::RemoveJoint(m_connection_joint);

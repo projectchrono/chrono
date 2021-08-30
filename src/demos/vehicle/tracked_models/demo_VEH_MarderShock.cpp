@@ -118,22 +118,15 @@ int main(int argc, char* argv[]) {
 
     ChContactMethod contact_method = ChContactMethod::SMC;
     CollisionType chassis_collision_type = CollisionType::NONE;
-    TrackShoeType shoe_type = TrackShoeType::SINGLE_PIN;
-    DrivelineTypeTV driveline_type = DrivelineTypeTV::SIMPLE;
+    ////TrackShoeType shoe_type = TrackShoeType::SINGLE_PIN;
+    ////DrivelineTypeTV driveline_type = DrivelineTypeTV::SIMPLE;
     BrakeType brake_type = BrakeType::SIMPLE;
     PowertrainModelType powertrain_type = PowertrainModelType::SIMPLE_CVT;
 
-    //// TODO
-    //// When using SMC, a double-pin shoe type requires MKL or MUMPS.
-    //// However, there appear to still be redundant constraints in the double-pin assembly
-    //// resulting in solver failures with MKL and MUMPS (rank-deficient matrix).
-    if (shoe_type == TrackShoeType::DOUBLE_PIN)
-        contact_method = ChContactMethod::NSC;
-
     Marder marder;
     marder.SetContactMethod(contact_method);
-    marder.SetTrackShoeType(shoe_type);
-    marder.SetDrivelineType(driveline_type);
+    ////marder.SetTrackShoeType(shoe_type);
+    ////marder.SetDrivelineType(driveline_type);
     marder.SetBrakeType(brake_type);
     marder.SetPowertrainType(powertrain_type);
     marder.SetChassisCollisionType(chassis_collision_type);
@@ -154,8 +147,7 @@ int main(int argc, char* argv[]) {
     marder.Initialize();
 
     // Set visualization type for vehicle components.
-    VisualizationType track_vis =
-        (shoe_type == TrackShoeType::SINGLE_PIN) ? VisualizationType::MESH : VisualizationType::PRIMITIVES;
+    VisualizationType track_vis = VisualizationType::MESH;
     marder.SetChassisVisualizationType(VisualizationType::MESH);
     marder.SetSprocketVisualizationType(track_vis);
     marder.SetIdlerVisualizationType(track_vis);
