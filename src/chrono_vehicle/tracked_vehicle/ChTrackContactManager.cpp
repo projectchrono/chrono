@@ -28,8 +28,14 @@ namespace vehicle {
 // -----------------------------------------------------------------------------
 
 ChTrackContactManager::ChTrackContactManager()
-    : m_initialized(false), m_flags(0), m_collect(false), m_shoe_index_L(0), m_shoe_index_R(0) {
-}
+    : m_initialized(false),
+      m_flags(0),
+      m_collect(false),
+      m_shoe_index_L(0),
+      m_shoe_index_R(0),
+      m_render_normals(false),
+      m_render_forces(false),
+      m_scale_forces(1e-3) {}
 
 void ChTrackContactManager::Process(ChTrackedVehicle* vehicle) {
     // Initialize the manager if not already done.

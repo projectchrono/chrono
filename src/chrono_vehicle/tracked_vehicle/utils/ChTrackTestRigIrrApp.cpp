@@ -34,46 +34,73 @@ ChTrackTestRigIrrApp::ChTrackTestRigIrrApp(ChTrackTestRig* rig,
 
 // Render contact normals for monitored subsystems
 void ChTrackTestRigIrrApp::renderOtherGraphics() {
+    bool normals = m_rig->m_contact_manager->m_render_normals;
+    bool forces = m_rig->m_contact_manager->m_render_forces;
+    double scale_normals = 0.4;
+    double scale_forces = m_rig->m_contact_manager->m_scale_forces;
+
     // Contact normals on left sprocket.
     // Note that we only render information for contacts on the outside gear profile
     for (const auto& c : m_rig->m_contact_manager->m_sprocket_L_contacts) {
         ChVector<> v1 = c.m_point;
-        ChVector<> v2 = v1 + c.m_csys.Get_A_Xaxis();
-
+        if (normals) {
+        ChVector<> v2 = v1 + c.m_csys.Get_A_Xaxis() * scale_normals;
         if (v1.y() > m_rig->GetTrackAssembly()->GetSprocket()->GetGearBody()->GetPos().y())
             irrlicht::tools::drawSegment(GetVideoDriver(), v1, v2, video::SColor(255, 180, 0, 0), false);
+        }
+        if (forces) {
+            ChVector<> v2 = v1 + c.m_force * scale_forces;
+            if (v1.y() > m_rig->GetTrackAssembly()->GetSprocket()->GetGearBody()->GetPos().y())
+                irrlicht::tools::drawSegment(GetVideoDriver(), v1, v2, video::SColor(255, 180, 0, 0), false);
+        }
     }
 
     // Contact normals on rear sprocket.
     // Note that we only render information for contacts on the outside gear profile
     for (const auto& c : m_rig->m_contact_manager->m_sprocket_R_contacts) {
         ChVector<> v1 = c.m_point;
-        ChVector<> v2 = v1 + c.m_csys.Get_A_Xaxis();
-
+        if (normals) {
+        ChVector<> v2 = v1 + c.m_csys.Get_A_Xaxis() * scale_normals;
         if (v1.y() < m_rig->GetTrackAssembly()->GetSprocket()->GetGearBody()->GetPos().y())
             irrlicht::tools::drawSegment(GetVideoDriver(), v1, v2, video::SColor(255, 180, 0, 0), false);
+        }
+        if (forces) {
+            ChVector<> v2 = v1 + c.m_force * scale_forces;
+            if (v1.y() > m_rig->GetTrackAssembly()->GetSprocket()->GetGearBody()->GetPos().y())
+                irrlicht::tools::drawSegment(GetVideoDriver(), v1, v2, video::SColor(255, 180, 0, 0), false);
+        }
     }
 
     // Contact normals on monitored track shoes.
-    renderContactNormals(m_rig->m_contact_manager->m_shoe_L_contacts, video::SColor(255, 180, 180, 0));
-    renderContactNormals(m_rig->m_contact_manager->m_shoe_R_contacts, video::SColor(255, 180, 180, 0));
+    renderContacts(m_rig->m_contact_manager->m_shoe_L_contacts, video::SColor(255, 180, 180, 0), normals, forces,
+                   scale_normals, scale_forces);
+    renderContacts(m_rig->m_contact_manager->m_shoe_R_contacts, video::SColor(255, 180, 180, 0), normals, forces,
+                   scale_normals, scale_forces);
 
     // Contact normals on idler wheels.
-    renderContactNormals(m_rig->m_contact_manager->m_idler_L_contacts, video::SColor(255, 0, 0, 180));
-    renderContactNormals(m_rig->m_contact_manager->m_idler_R_contacts, video::SColor(255, 0, 0, 180));
-
-    // Contact normals on chassis.
-    renderContactNormals(m_rig->m_contact_manager->m_chassis_contacts, video::SColor(255, 0, 180, 0));
+    renderContacts(m_rig->m_contact_manager->m_idler_L_contacts, video::SColor(255, 0, 0, 180), normals, forces,
+                   scale_normals, scale_forces);
+    renderContacts(m_rig->m_contact_manager->m_idler_R_contacts, video::SColor(255, 0, 0, 180), normals, forces,
+                   scale_normals, scale_forces);
 }
 
 // Render normal for all contacts in the specified list, using the given color.
-void ChTrackTestRigIrrApp::renderContactNormals(const std::list<ChTrackContactManager::ContactInfo>& lst,
-                                                const video::SColor& col) {
+void ChTrackTestRigIrrApp::renderContacts(const std::list<ChTrackContactManager::ContactInfo>& lst,
+                                          const video::SColor& col,
+                                          bool normals,
+                                          bool forces,
+                                          double scale_normals,
+                                          double scale_forces) {
     for (const auto& c : lst) {
         ChVector<> v1 = c.m_point;
-        ChVector<> v2 = v1 + c.m_csys.Get_A_Xaxis();
-
-        irrlicht::tools::drawSegment(GetVideoDriver(), v1, v2, col, false);
+        if (normals) {
+            ChVector<> v2 = v1 + c.m_csys.Get_A_Xaxis() * scale_normals;
+            irrlicht::tools::drawSegment(GetVideoDriver(), v1, v2, col, false);
+        }
+        if (forces) {
+            ChVector<> v2 = v1 + c.m_force * scale_forces;
+            irrlicht::tools::drawSegment(GetVideoDriver(), v1, v2, video::SColor(255, 180, 0, 0), false);
+        }
     }
 }
 

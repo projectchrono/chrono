@@ -118,6 +118,12 @@ class CH_VEHICLE_API ChTrackTestRig : public ChVehicle {
     /// Contact information will be tracked for the specified subsystems.
     void MonitorContacts(int flags) { m_contact_manager->MonitorContacts(flags); }
 
+    /// Render normals of all monitored contacts.
+    void SetRenderContactNormals(bool val) { m_contact_manager->SetRenderNormals(val); }
+
+    /// Render forces of all monitored contacts.
+    void SetRenderContactForces(bool val, double scale) { m_contact_manager->SetRenderForces(val, scale); }
+
     /// Turn on/off contact data collection.
     /// If enabled, contact information will be collected for all monitored subsystems.
     void SetContactCollection(bool val) { m_contact_manager->SetContactCollection(val); }
