@@ -18,6 +18,7 @@
 #include "chrono_sensor/utils/CudaMallocHelper.h"
 #include "chrono_sensor/cuda/radarprocess.cuh"
 #include "chrono_sensor/utils/Dbscan.h"
+#include <random>
 
 namespace chrono {
 namespace sensor {
@@ -53,34 +54,76 @@ CH_SENSOR_API void ChFilterRadarProcess::Initialize(std::shared_ptr<ChSensor> pS
     bufferInOut = m_buffer_out;
 }
 CH_SENSOR_API void ChFilterRadarProcess::Apply() {
+
+    // converts azimuth and elevation to XYZ Coordinates in device
     cuda_radar_pointcloud_from_angles(m_buffer_in->Buffer.get(), m_buffer_out->Buffer.get(), (int)m_buffer_in->Width,
                                      (int)m_buffer_in->Height, m_hFOV, m_max_vert_angle, m_min_vert_angle,
                                      m_cuda_stream);
 
+    // Transfer pointcloud to host
     auto buf = std::vector<RadarTrack>(m_buffer_out->Width * m_buffer_out->Height);
     cudaMemcpyAsync(buf.data(), m_buffer_out->Buffer.get(),
                     m_buffer_out->Width * m_buffer_out->Height * sizeof(RadarTrack), cudaMemcpyDeviceToHost,
                     m_cuda_stream);
-
-    auto processed_buffer = std::vector<RadarTrack>(m_buffer_out->Width * m_buffer_out->Height);
-
     cudaStreamSynchronize(m_cuda_stream);
 
-    std::vector<vec3f> points;
-    m_buffer_out->Beam_return_count = 0;
-    for (unsigned int i = 0; i < buf.size(); i++) {
-//        if (abs(buf[i].vel[0]) > 0 || abs(buf[i].vel[1]) > 0 || abs(buf[i].vel[2]) > 0) {
-        if(buf[i].intensity > 0){
-            processed_buffer[m_buffer_out->Beam_return_count] = buf[i];
-            points.push_back(vec3f{processed_buffer[m_buffer_out->Beam_return_count].xyz[0],
-                                   processed_buffer[m_buffer_out->Beam_return_count].xyz[1],
-                                   processed_buffer[m_buffer_out->Beam_return_count].xyz[2]});
-            m_buffer_out->Beam_return_count++;
+    // Keeping track of number of beams with valid returns
+
+
+    // sort returns to bins by objectID
+    auto bins = std::vector<std::vector<RadarTrack>>();
+    for (RadarTrack point : buf){
+        // remove rays with no returns
+        if (point.intensity > 0){
+            // tries to add the return to the bin, if bin doesnt exist, add the bin
+            while (bins.size() <= point.objectID){
+                bins.push_back(std::vector<RadarTrack>());
+            }
+            bins[point.objectID].push_back(point);
         }
     }
 
-    int minimum_points = 5;
-    float epsilon = 1;
+#if PROFILE
+    
+    printf("number of bins: %i\n", bins.size());
+    for (int i = 0; i < bins.size(); i++){
+        printf("bin %i has %i points\n", i, bins[i].size());
+    }
+
+#endif
+
+    // Down sample each bin to 30 points if necessary
+    for (std::vector<RadarTrack>& bin : bins){
+        auto rng = std::default_random_engine{};
+        if (bin.size() > 30){
+            std::shuffle(std::begin(bin), std::end(bin), rng);
+            bin = std::vector<RadarTrack>(bin.begin(), bin.begin() + 50);
+        }
+    }
+
+    // buffer to store clustered radar data
+    m_buffer_out->Beam_return_count = 0;
+    auto processed_buffer = std::vector<RadarTrack>(m_buffer_out->Width * m_buffer_out->Height);
+
+    // cluster each bin 
+    int i = 0;
+    for (std::vector<RadarTrack> bin : bins){
+        for (RadarTrack point : bin){
+            buf[m_buffer_out->Beam_return_count] = point;
+            m_buffer_out->Beam_return_count+=1;
+        }
+    }
+
+    std::vector<vec3f> points;
+    for (unsigned int i = 0; i < m_buffer_out->Beam_return_count; i++) {
+        processed_buffer[i] = buf[i];
+        points.push_back(vec3f{processed_buffer[i].xyz[0],
+                               processed_buffer[i].xyz[1],
+                               processed_buffer[i].xyz[2]});
+    }
+
+    int minimum_points = points.size() / 20;
+    float epsilon = 2;
 
 #if PROFILE
     auto start = std::chrono::high_resolution_clock::now();
