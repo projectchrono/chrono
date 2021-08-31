@@ -136,8 +136,8 @@ int main(int argc, char* argv[]) {
         }
     }
 
-    auto wall = chrono_types::make_shared<ChBodyEasyBox>(1,10,10, 1000, true, false);
-    wall->SetPos({8,0,4});
+    auto wall = chrono_types::make_shared<ChBodyEasyBox>(1,30,30, 1000, true, false);
+    wall->SetPos({15,0,4});
     wall->SetBodyFixed(true);
     mphysicalSystem.Add(wall);
     {

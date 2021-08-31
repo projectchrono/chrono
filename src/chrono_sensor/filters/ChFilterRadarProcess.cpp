@@ -97,7 +97,7 @@ CH_SENSOR_API void ChFilterRadarProcess::Apply() {
         auto rng = std::default_random_engine{};
         if (bin.size() > 30){
             std::shuffle(std::begin(bin), std::end(bin), rng);
-            bin = std::vector<RadarTrack>(bin.begin(), bin.begin() + 50);
+            bin = std::vector<RadarTrack>(bin.begin(), bin.begin() + (int)(bin.size() * 0.1));
         }
     }
 
@@ -122,8 +122,8 @@ CH_SENSOR_API void ChFilterRadarProcess::Apply() {
                                processed_buffer[i].xyz[2]});
     }
 
-    int minimum_points = points.size() / 20;
-    float epsilon = 2;
+    int minimum_points = 10;
+    float epsilon = 1;
 
 #if PROFILE
     auto start = std::chrono::high_resolution_clock::now();
@@ -174,7 +174,6 @@ CH_SENSOR_API void ChFilterRadarProcess::Apply() {
             m_buffer_out->avg_velocity[i][2] += processed_buffer[idx].vel[2];
 
             m_buffer_out->intensity[i] += processed_buffer[idx].intensity;
-           
         }
     }
 
@@ -191,6 +190,7 @@ CH_SENSOR_API void ChFilterRadarProcess::Apply() {
     m_buffer_out->invalid_returns = m_buffer_out->Beam_return_count - valid_returns.size();
     m_buffer_out->Beam_return_count = valid_returns.size();
     m_buffer_out->Num_clusters = clusters.size();
+    printf("number of clusters: %f\n", clusters.size());
     memcpy(m_buffer_out->Buffer.get(), valid_returns.data(),
            m_buffer_out->Beam_return_count * sizeof(RadarTrack));
 
@@ -198,8 +198,8 @@ CH_SENSOR_API void ChFilterRadarProcess::Apply() {
     printf("Scan %i\n", m_scan_number);
     m_scan_number++;
     int total_returns = m_buffer_out->Beam_return_count + m_buffer_out->invalid_returns;
-    printf("Number of returns: %i |  Number of valid returns: %i | Number of clusters: %i\n", total_returns,
-           m_buffer_in->Beam_return_count, clusters.size());
+    printf("Total Number of returns: %i |  Number of clustered returns: %i | Number of clusters: %i\n", total_returns,
+           m_buffer_out->Beam_return_count, clusters.size());
 
     // note that we are starting with i = 1 because there are no clusters with id of 0
     for (int i = 1; i <= clusters.size(); i++) {
@@ -215,6 +215,7 @@ CH_SENSOR_API void ChFilterRadarProcess::Apply() {
                m_buffer_out->avg_velocity[i - 1][2]);
         printf("centroid %f %f %f\n", m_buffer_out->centroids[i - 1][0], m_buffer_out->centroids[i - 1][1],
                m_buffer_out->centroids[i - 1][2]);
+        printf("intensity %f\n", m_buffer_out->intensity[i - 1]);
         printf("-------\n");
     }
     printf("--------------------------------------------------------\n");
