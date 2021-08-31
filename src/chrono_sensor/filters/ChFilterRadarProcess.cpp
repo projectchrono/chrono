@@ -140,19 +140,23 @@ CH_SENSOR_API void ChFilterRadarProcess::Apply() {
     dbscan.Run(&points, epsilon, minimum_points);
 #endif
 
+    // Grab the clustered points from DBSCAN
     auto clusters = dbscan.getClusters();
 
-    // calculate average velocity and centroids of each cluster
-
+    // vectors are populated with last scans values, clear them out
     m_buffer_out->avg_velocity.clear();
     m_buffer_out->centroids.clear();
+    m_buffer_out->intensity.clear();
 
+    // initialize values for each cluster
     for (int i = 0; i < clusters.size(); i++) {
         std::array<float,3> temp = {0,0,0};
         m_buffer_out->avg_velocity.push_back(temp);
         m_buffer_out->centroids.push_back(temp);
+        m_buffer_out->intensity.push_back(0);
     }
 
+    // summing positions, velocities, intensities to caculate average
     std::vector<RadarTrack> valid_returns;
     for (int i = 0; i < clusters.size(); i++) {
         for (int j = 0; j < clusters[i].size(); j++) {
@@ -168,9 +172,13 @@ CH_SENSOR_API void ChFilterRadarProcess::Apply() {
             m_buffer_out->avg_velocity[i][0] += processed_buffer[idx].vel[0];
             m_buffer_out->avg_velocity[i][1] += processed_buffer[idx].vel[1];
             m_buffer_out->avg_velocity[i][2] += processed_buffer[idx].vel[2];
+
+            m_buffer_out->intensity[i] += processed_buffer[idx].intensity;
            
         }
     }
+
+    // averaging positions and velocities. NOTE: We are not averaging intensity
     for (int i = 0; i < m_buffer_out->avg_velocity.size(); i++) {
         m_buffer_out->avg_velocity[i][0] = m_buffer_out->avg_velocity[i][0] / (clusters[i].size());
         m_buffer_out->avg_velocity[i][1] = m_buffer_out->avg_velocity[i][1] / (clusters[i].size());

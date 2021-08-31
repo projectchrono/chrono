@@ -76,6 +76,7 @@ struct RadarBufferT : public SensorBufferT<B> {
     int Num_clusters;
     std::vector<std::array<float, 3>> avg_velocity;
     std::vector<std::array<float, 3>> centroids;
+    std::vector<float> intensity;
 };
 
 //================================
