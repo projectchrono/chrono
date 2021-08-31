@@ -104,44 +104,6 @@ class MySoilParams : public vehicle::SCMDeformableTerrain::SoilParametersCallbac
     }
 };
 
-// Use custom material for the Viper Wheel
-bool use_custom_mat = true;
-
-// Return customized wheel material parameters
-std::shared_ptr<ChMaterialSurface> CustomWheelMaterial(ChContactMethod contact_method) {
-    float mu = 0.65f;  // coefficient of friction
-    float cr = 0.1f;   // coefficient of restitution
-    float Y = 2e7f;    // Young's modulus
-    float nu = 0.3f;   // Poisson ratio
-    float kn = 2e5f;   // normal stiffness
-    float gn = 40.0f;  // normal viscous damping
-    float kt = 2e5f;   // tangential stiffness
-    float gt = 20.0f;  // tangential viscous damping
-
-    switch (contact_method) {
-        case ChContactMethod::NSC: {
-            auto matNSC = chrono_types::make_shared<ChMaterialSurfaceNSC>();
-            matNSC->SetFriction(mu);
-            matNSC->SetRestitution(cr);
-            return matNSC;
-        }
-        case ChContactMethod::SMC: {
-            auto matSMC = chrono_types::make_shared<ChMaterialSurfaceSMC>();
-            matSMC->SetFriction(mu);
-            matSMC->SetRestitution(cr);
-            matSMC->SetYoungModulus(Y);
-            matSMC->SetPoissonRatio(nu);
-            matSMC->SetKn(kn);
-            matSMC->SetGn(gn);
-            matSMC->SetKt(kt);
-            matSMC->SetGt(gt);
-            return matSMC;
-        }
-        default:
-            return std::shared_ptr<ChMaterialSurface>();
-    }
-}
-
 int main(int argc, char* argv[]) {
     GetLog() << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
 
@@ -171,60 +133,18 @@ int main(int argc, char* argv[]) {
     }
     utils::CSV_writer csv(" ");
 
-    // Viper rover initial position and orientation
+    // Curiosity rover initial position and orientation
     ChVector<double> body_pos(-5, -0.2, 0);
     ChQuaternion<> body_rot = Q_from_AngX(-CH_C_PI / 2);
 
+    // Create a Curiosity rover
     std::shared_ptr<CuriosityRover> rover;
+    rover = chrono_types::make_shared<CuriosityRover>(&my_system, chassis_type, wheel_type);
 
-    if (use_custom_mat == true) {
-        // if customize wheel material
-        rover = chrono_types::make_shared<CuriosityRover>(&my_system, CustomWheelMaterial(ChContactMethod::SMC),
-                                                          chassis_type, wheel_type);
-
-        // the user can choose to enable DC motor option
-        // if the DC motor option has been enabled, the rotational speed will be switched to no-load-speed of the DC
-        // motor Note: This function has to be called before initialization
-        // motor defaut linear relationship is set to stall torque 500 N-m, and no load speed 3.1415 rad/s
-        auto driver = chrono_types::make_shared<CuriosityDCMotorControl>();
-        rover->SetDriver(driver);
-        rover->Initialize(ChFrame<>(body_pos, body_rot));
-
-        // Default value is w = 3.1415 rad/s
-        // User can define using SetMotorSpeed
-        // curiosity->SetMotorSpeed(CH_C_PI,WheelID::LF);
-        // curiosity->SetMotorSpeed(CH_C_PI,WheelID::RF);
-        // curiosity->SetMotorSpeed(CH_C_PI,WheelID::LM);
-        // curiosity->SetMotorSpeed(CH_C_PI,WheelID::RM);
-        // curiosity->SetMotorSpeed(CH_C_PI,WheelID::LB);
-        // curiosity->SetMotorSpeed(CH_C_PI,WheelID::RB);
-
-    } else {
-        // if use default material
-        rover = chrono_types::make_shared<CuriosityRover>(&my_system, chassis_type, wheel_type);
-
-        // The user can also choose to use simplified wheel
-        /*
-        rover = chrono_types::make_shared<CuriosityRover>(&my_system,
-                                                        body_pos,
-                                                        body_rot,
-                                                        Chassis_Type::FullRover,
-                                                        Wheel_Type::SimpleWheel);
-        */
-
-        auto driver = chrono_types::make_shared<CuriosityDCMotorControl>();
-        rover->SetDriver(driver);
-        rover->Initialize(ChFrame<>(body_pos, body_rot));
-
-        // Default value is w = 3.1415 rad/s
-        // User can define using SetMotorSpeed
-        // curiosity->SetMotorSpeed(CH_C_PI,WheelID::LF);
-        // curiosity->SetMotorSpeed(CH_C_PI,WheelID::RF);
-        // curiosity->SetMotorSpeed(CH_C_PI,WheelID::LM);
-        // curiosity->SetMotorSpeed(CH_C_PI,WheelID::RM);
-        // curiosity->SetMotorSpeed(CH_C_PI,WheelID::LB);
-        // curiosity->SetMotorSpeed(CH_C_PI,WheelID::RB);
-    }
+    // Create a CuriosityDriver to command the rover
+    auto driver = chrono_types::make_shared<CuriosityConstMotorControl>();
+    rover->SetDriver(driver);
+    rover->Initialize(ChFrame<>(body_pos, body_rot));
 
     std::shared_ptr<ChBodyAuxRef> rock_1;
     std::shared_ptr<ChBodyAuxRef> rock_2;
@@ -234,7 +154,8 @@ int main(int argc, char* argv[]) {
     std::shared_ptr<ChBodyAuxRef> rock_6;
 
     // create default SMC materials for the obstacles
-    std::shared_ptr<ChMaterialSurface> rockSufaceMaterial = CustomWheelMaterial(ChContactMethod::SMC);
+    std::shared_ptr<ChMaterialSurface> rockSufaceMaterial =
+        ChMaterialSurface::DefaultMaterial(my_system.GetContactMethod());
 
     for (int i = 0; i < 2; i++) {
         // Create a rock

@@ -47,51 +47,13 @@ using namespace irr::core;
 using namespace irr::scene;
 using namespace irr::video;
 
-// Use custom material for the Curiosity Wheel
-bool use_custom_mat = false;
-
 // Specify rover chassis type
 // The options are Chassis_Type::Scarecrow and Chassis_Type::FullRover
-Chassis_Type chassis_type = Chassis_Type::FullRover;
+Chassis_Type chassis_type = Chassis_Type::Scarecrow;
 
 // Specify rover wheel type
 // The options are Wheel_Type::RealWheel, Wheel_Type::SimpleWheel, and Wheel_Type::CylWheel
 Wheel_Type wheel_type = Wheel_Type::RealWheel;
-
-// Helper function to create custom wheel material for the rover wheel body
-std::shared_ptr<ChMaterialSurface> CustomWheelMaterial(ChContactMethod contact_method) {
-    float mu = 0.4f;   // coefficient of friction
-    float cr = 0.2f;   // coefficient of restitution
-    float Y = 2e7f;    // Young's modulus
-    float nu = 0.3f;   // Poisson ratio
-    float kn = 2e5f;   // normal stiffness
-    float gn = 40.0f;  // normal viscous damping
-    float kt = 2e5f;   // tangential stiffness
-    float gt = 20.0f;  // tangential viscous damping
-
-    switch (contact_method) {
-        case ChContactMethod::NSC: {
-            auto matNSC = chrono_types::make_shared<ChMaterialSurfaceNSC>();
-            matNSC->SetFriction(mu);
-            matNSC->SetRestitution(cr);
-            return matNSC;
-        }
-        case ChContactMethod::SMC: {
-            auto matSMC = chrono_types::make_shared<ChMaterialSurfaceSMC>();
-            matSMC->SetFriction(mu);
-            matSMC->SetRestitution(cr);
-            matSMC->SetYoungModulus(Y);
-            matSMC->SetPoissonRatio(nu);
-            matSMC->SetKn(kn);
-            matSMC->SetGn(gn);
-            matSMC->SetKt(kt);
-            matSMC->SetGt(gt);
-            return matSMC;
-        }
-        default:
-            return std::shared_ptr<ChMaterialSurface>();
-    }
-}
 
 // Simulation time step
 double time_step = 2e-3;
@@ -129,37 +91,22 @@ int main(int argc, char* argv[]) {
     masset_texture->SetTextureFilename(GetChronoDataFile("textures/concrete.jpg"));
     mfloor->AddAsset(masset_texture);
 
-    // Create a Curiosity Rover with default parameters.
+    // Create a Curiosity Rover
     ChVector<double> body_pos(0, -0.2, 0);
     ChQuaternion<> body_rot = Q_from_AngX(-CH_C_PI / 2);
 
     std::shared_ptr<CuriosityRover> rover;
+    rover = chrono_types::make_shared<CuriosityRover>(&mphysicalSystem, chassis_type, wheel_type);
 
-    if (use_custom_mat == true) {
-        // If use the customized wheel material
-        rover = chrono_types::make_shared<CuriosityRover>(&mphysicalSystem, CustomWheelMaterial(ChContactMethod::NSC),
-                                                          chassis_type, wheel_type);
-
-        auto driver = chrono_types::make_shared<CuriosityDCMotorControl>();
-        rover->SetDriver(driver);
-        rover->Initialize(ChFrame<>(body_pos, body_rot));
-
-        // Display the mass of the rover
-        std::cout << "total mass:" << rover->GetRoverMass() << std::endl;
-    } else {
-        // If use default wheel material
-        rover = rover = chrono_types::make_shared<CuriosityRover>(&mphysicalSystem, chassis_type, wheel_type);
-
-        auto driver = chrono_types::make_shared<CuriosityDCMotorControl>();
-        rover->SetDriver(driver);
-        rover->Initialize(ChFrame<>(body_pos, body_rot));
-
-        // Display the mass of the rover
-        std::cout << "total mass:" << rover->GetRoverMass() << std::endl;
-    }
+    // Create a CuriosityDriver to command the rover
+    auto driver = chrono_types::make_shared<CuriosityConstMotorControl>();
+    // auto driver = chrono_types::make_shared<CuriosityDCMotorControl>();
+    rover->SetDriver(driver);
+    rover->Initialize(ChFrame<>(body_pos, body_rot));
+    rover->GetRoverMass();
 
     // Create the first step of the stair-shaped obstacle
-    auto mbox = chrono_types::make_shared<ChBodyEasyBox>(0.6, 0.3, 1, 1000, true, true, floor_mat);
+    auto mbox = chrono_types::make_shared<ChBodyEasyBox>(0.6, 0.1, 1, 1000, true, true, floor_mat);
 
     mbox->SetPos(ChVector<>(3, -0.4, 1));
     mbox->SetBodyFixed(true);
@@ -167,7 +114,7 @@ int main(int argc, char* argv[]) {
     mphysicalSystem.Add(mbox);
 
     // Create the second step of the stair-shaped obstacle
-    auto mbox_2 = chrono_types::make_shared<ChBodyEasyBox>(0.6, 0.6, 1, 1000, true, true, floor_mat);
+    auto mbox_2 = chrono_types::make_shared<ChBodyEasyBox>(0.6, 0.2, 1, 1000, true, true, floor_mat);
 
     mbox_2->SetPos(ChVector<>(3.3, -0.4, 1));
     mbox_2->SetBodyFixed(true);
@@ -175,7 +122,7 @@ int main(int argc, char* argv[]) {
     mphysicalSystem.Add(mbox_2);
 
     // Create the third step of the stair-shaped obstacle
-    auto mbox_3 = chrono_types::make_shared<ChBodyEasyBox>(0.6, 0.8, 1, 1000, true, true, floor_mat);
+    auto mbox_3 = chrono_types::make_shared<ChBodyEasyBox>(0.6, 0.3, 1, 1000, true, true, floor_mat);
 
     mbox_3->SetPos(ChVector<>(3.6, -0.4, 1));
     mbox_3->SetBodyFixed(true);
@@ -196,7 +143,6 @@ int main(int argc, char* argv[]) {
 
     // Simulation loop
     while (application.GetDevice()->run()) {
-        std::cout << "test point 1" << std::endl;
         rover->Update();
 
         // Read rover chassis velocity
@@ -204,8 +150,6 @@ int main(int argc, char* argv[]) {
 
         // Read rover chassis acceleration
         // std::cout << "Rover Chassis Accelerometer Reading: "<< rover -> GetChassisAcc() << std::endl;
-
-        std::cout << "test point 2" << std::endl;
 
         application.BeginScene(true, true, SColor(255, 140, 161, 192));
 
