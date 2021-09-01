@@ -112,7 +112,7 @@ class CH_MODELS_API Curiosity_Part {
     const ChVector<> GetAngAcc() const { return m_body->GetFrame_REF_to_abs().GetWacc_par(); }
 
     /// Initialize the rover part by attaching it to the specified chassis body.
-    void Initialize(std::shared_ptr<ChBodyAuxRef> chassis);
+    virtual void Initialize(std::shared_ptr<ChBodyAuxRef> chassis);
 
   protected:
     void Construct(ChSystem* system);
@@ -158,6 +158,8 @@ class CH_MODELS_API Curiosity_Wheel : public Curiosity_Part {
     );
     ~Curiosity_Wheel() {}
 
+    virtual void Initialize(std::shared_ptr<ChBodyAuxRef> chassis) override;
+
     friend class CuriosityRover;
 };
 
@@ -180,6 +182,8 @@ class CH_MODELS_API Curiosity_Steer : public Curiosity_Part {
                     std::shared_ptr<ChMaterialSurface> mat  ///< contact material
     );
     ~Curiosity_Steer() {}
+
+    virtual void Initialize(std::shared_ptr<ChBodyAuxRef> chassis) override;
 };
 
 /// Curiosity rover steering rod.
@@ -221,6 +225,9 @@ class CH_MODELS_API CuriosityRover {
     /// Fix the chassis to ground.
     void SetChassisFixed(bool fixed);
 
+    /// Fix the suspension arms and steering bodies (for debugging).
+    void SetSuspensionFixed(bool fixed);
+ 
     /// Enable/disable visualization of the rover chassis (default: true).
     void SetChassisVisualization(bool state);
 
@@ -306,7 +313,8 @@ class CH_MODELS_API CuriosityRover {
 
     ChSystem* m_system;  ///< pointer to the Chrono system
 
-    bool m_chassis_fixed;  ///< fix chassis to ground
+    bool m_chassis_fixed;     ///< fix chassis to ground
+    bool m_suspension_fixed;  ///< fix suspension to ground
 
     std::shared_ptr<Curiosity_Chassis> m_chassis;              ///< rover chassis
     std::array<std::shared_ptr<Curiosity_Wheel>, 6> m_wheels;  ///< rover wheels - 1:LF, 2:RF, 3:LM, 4:RM, 5:LB, 6:RB
@@ -397,13 +405,13 @@ class CH_MODELS_API CuriosityDCMotorControl : public CuriosityDriver {
 /// Control of the steering is left to the caller (through SetSteering).
 class CH_MODELS_API CuriosityConstMotorControl : public CuriosityDriver {
   public:
-    CuriosityConstMotorControl();
+    CuriosityConstMotorControl(double speed);
     ~CuriosityConstMotorControl() {}
 
-    /// Set motor const speed (default: pi).
+    /// Set const speed for the specified motor.
     void SetMotorSpeed(double speed, WheelID id) { m_const_speed[id] = speed; }
 
-    /// Set current steering input
+    /// Set current steering input.
     void SetSteering(double angle, WheelID id);
 
   private:

@@ -142,7 +142,7 @@ int main(int argc, char* argv[]) {
     rover = chrono_types::make_shared<CuriosityRover>(&my_system, chassis_type, wheel_type);
 
     // Create a CuriosityDriver to command the rover
-    auto driver = chrono_types::make_shared<CuriosityConstMotorControl>();
+    auto driver = chrono_types::make_shared<CuriosityConstMotorControl>(CH_C_PI);
     rover->SetDriver(driver);
     rover->Initialize(ChFrame<>(body_pos, body_rot));
 

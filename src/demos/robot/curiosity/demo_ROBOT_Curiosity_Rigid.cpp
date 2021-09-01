@@ -62,16 +62,16 @@ int main(int argc, char* argv[]) {
     GetLog() << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
     // Create a ChronoENGINE physical system
     ChSystemNSC mphysicalSystem;
-    mphysicalSystem.Set_G_acc(ChVector<>(0, -9.81, 0));
+    mphysicalSystem.Set_G_acc(ChVector<>(0, 0, -9.81));
 
     // Create the Irrlicht visualization (open the Irrlicht device,
     // bind a simple user interface, etc. etc.)
     ChIrrApp application(&mphysicalSystem, L"Curiosity Rover on Rigid Terrain", core::dimension2d<u32>(1280, 720),
-                         VerticalDir::Y);
+                         VerticalDir::Z);
     application.AddTypicalLogo();
     application.AddTypicalSky();
     application.AddTypicalLights();
-    application.AddTypicalCamera(core::vector3df(0, 2, -2));
+    application.AddTypicalCamera(core::vector3df(3, 3, 1));
     application.AddLightWithShadow(core::vector3df(2.5f, 7.0f, 0.0f), core::vector3df(0, 0, 0), 50, 4, 25, 130, 512,
                                    video::SColorf(0.8f, 0.8f, 1.0f));
     application.SetContactsDrawMode(IrrContactsDrawMode::CONTACT_DISTANCES);
@@ -81,17 +81,19 @@ int main(int argc, char* argv[]) {
     collision::ChCollisionModel::SetDefaultSuggestedMargin(0.0025);
 
     // Create the ground and obstacles
-    auto floor_mat = chrono_types::make_shared<ChMaterialSurfaceNSC>();
-    auto mfloor = chrono_types::make_shared<ChBodyEasyBox>(20, 1, 20, 1000, true, true, floor_mat);
+    auto ground_mat = chrono_types::make_shared<ChMaterialSurfaceNSC>();
+    auto ground = chrono_types::make_shared<ChBodyEasyBox>(30, 30, 1, 1000, true, true, ground_mat);
 
-    mfloor->SetPos(ChVector<>(0, -1, 0));
-    mfloor->SetBodyFixed(true);
-    mphysicalSystem.Add(mfloor);
+    ground->SetPos(ChVector<>(0, 0, -0.5));
+    ground->SetBodyFixed(true);
+    mphysicalSystem.Add(ground);
 
-    auto masset_texture = chrono_types::make_shared<ChTexture>();
-    masset_texture->SetTextureFilename(GetChronoDataFile("textures/concrete.jpg"));
-    mfloor->AddAsset(masset_texture);
+    auto texture = chrono_types::make_shared<ChTexture>();
+    texture->SetTextureFilename(GetChronoDataFile("textures/concrete.jpg"));
+    texture->SetTextureScale(60, 45);
+    ground->AddAsset(texture);
 
+    /*
     // Create the first step of the stair-shaped obstacle
     auto mbox_1 = chrono_types::make_shared<ChBodyEasyBox>(0.6, 0.1, 1, 1000, true, true, floor_mat);
     mbox_1->SetPos(ChVector<>(3, -0.4, 1));
@@ -112,20 +114,23 @@ int main(int argc, char* argv[]) {
     mbox_3->SetBodyFixed(true);
     mbox_3->SetCollide(true);
     mphysicalSystem.Add(mbox_3);
+    */
 
     // Create a Curiosity Rover and the asociated driver
-    ////auto driver = chrono_types::make_shared<CuriosityConstMotorControl>();
-    auto driver = chrono_types::make_shared<CuriosityDCMotorControl>();
+    auto driver = chrono_types::make_shared<CuriosityConstMotorControl>(0);
+    ////auto driver = chrono_types::make_shared<CuriosityDCMotorControl>();
 
     auto rover = chrono_types::make_shared<CuriosityRover>(&mphysicalSystem, chassis_type, wheel_type);
     rover->SetDriver(driver);
 
     ////rover->SetChassisFixed(true);
+    ////rover->SetSuspensionFixed(true);
+
     ////rover->SetChassisVisualization(false);
     ////rover->SetWheelVisualization(false);
     ////rover->SetSuspensionVisualization(false);
 
-    rover->Initialize(ChFrame<>(ChVector<double>(0, 0, 0), Q_from_AngX(-CH_C_PI / 2)));
+    rover->Initialize(ChFrame<>(ChVector<double>(0, 0, 0.5), QUNIT));
 
     // Complete visual asset construction
     application.AssetBindAll();
