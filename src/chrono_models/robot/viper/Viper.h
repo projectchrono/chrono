@@ -58,7 +58,6 @@ enum class WheelType {
 
 /// Base class definition for all Viper parts.
 /// Viper Rover Parts include Chassis, Steering, Upper Suspension Arm, Bottom Suspension Arm and Wheel.
-/// This class encapsulates base fields and functions.
 class CH_MODELS_API ViperPart {
   public:
     ViperPart(const std::string& name, const ChFrame<>& rel_pos, std::shared_ptr<ChMaterialSurface> mat, bool collide);
@@ -216,7 +215,7 @@ class CH_MODELS_API Viper {
     /// Initialize the Viper rover at the specified position.
     void Initialize(const ChFrame<>& pos);
 
-    /// Get the chassis part.
+    /// Get the rover chassis.
     std::shared_ptr<ViperChassis> GetChassis() const { return m_chassis; }
 
     /// Get the specified rover wheel.
@@ -275,17 +274,17 @@ class CH_MODELS_API Viper {
 
     /// Get drive motor function.
     /// This will return an empty pointer if the associated driver uses torque control.
-    std::shared_ptr<ChFunction_Setpoint> GetDriveMotorFunc(WheelID id) { return m_drive_motor_funcs[id]; }
+    std::shared_ptr<ChFunction_Setpoint> GetDriveMotorFunc(WheelID id) const { return m_drive_motor_funcs[id]; }
 
     /// Get steer motor function.
-    std::shared_ptr<ChFunction_Const> GetSteerMotorFunc(WheelID id) { return m_steer_motor_funcs[id]; }
+    std::shared_ptr<ChFunction_Const> GetSteerMotorFunc(WheelID id) const { return m_steer_motor_funcs[id]; }
 
     /// Get drive motor.
     /// This will return an empty pointer if the associated driver uses torque control.
-    std::shared_ptr<ChLinkMotorRotation> GetDriveMotor(WheelID id) { return m_drive_motors[id]; }
+    std::shared_ptr<ChLinkMotorRotation> GetDriveMotor(WheelID id) const { return m_drive_motors[id]; }
 
     /// Get steer motor.
-    std::shared_ptr<ChLinkMotorRotation> GetSteerMotor(WheelID id) { return m_steer_motors[id]; }
+    std::shared_ptr<ChLinkMotorRotation> GetSteerMotor(WheelID id) const { return m_steer_motors[id]; }
 
     /// Viper update function.
     /// This function must be called before each integration step.

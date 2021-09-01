@@ -48,12 +48,12 @@ using namespace irr::scene;
 using namespace irr::video;
 
 // Specify rover chassis type
-// The options are Chassis_Type::Scarecrow and Chassis_Type::FullRover
-Chassis_Type chassis_type = Chassis_Type::Scarecrow;
+// The options are ChassisType::Scarecrow and ChassisType::FullRover
+ChassisType chassis_type = ChassisType::Scarecrow;
 
 // Specify rover wheel type
-// The options are Wheel_Type::RealWheel, Wheel_Type::SimpleWheel, and Wheel_Type::CylWheel
-Wheel_Type wheel_type = Wheel_Type::RealWheel;
+// The options are WheelType::RealWheel, WheelType::SimpleWheel, and WheelType::CylWheel
+WheelType wheel_type = WheelType::RealWheel;
 
 // Simulation time step
 double time_step = 2e-3;
@@ -75,11 +75,12 @@ int main(int argc, char* argv[]) {
     application.AddLightWithShadow(core::vector3df(2.5f, 7.0f, 0.0f), core::vector3df(0, 0, 0), 50, 4, 25, 130, 512,
                                    video::SColorf(0.8f, 0.8f, 1.0f));
     application.SetContactsDrawMode(IrrContactsDrawMode::CONTACT_DISTANCES);
+    application.SetTimestep(time_step);
 
     collision::ChCollisionModel::SetDefaultSuggestedEnvelope(0.0025);
     collision::ChCollisionModel::SetDefaultSuggestedMargin(0.0025);
 
-    // Create a floor
+    // Create the ground and obstacles
     auto floor_mat = chrono_types::make_shared<ChMaterialSurfaceNSC>();
     auto mfloor = chrono_types::make_shared<ChBodyEasyBox>(20, 1, 20, 1000, true, true, floor_mat);
 
@@ -91,31 +92,15 @@ int main(int argc, char* argv[]) {
     masset_texture->SetTextureFilename(GetChronoDataFile("textures/concrete.jpg"));
     mfloor->AddAsset(masset_texture);
 
-    // Create a Curiosity Rover
-    ChVector<double> body_pos(0, -0.2, 0);
-    ChQuaternion<> body_rot = Q_from_AngX(-CH_C_PI / 2);
-
-    std::shared_ptr<CuriosityRover> rover;
-    rover = chrono_types::make_shared<CuriosityRover>(&mphysicalSystem, chassis_type, wheel_type);
-
-    // Create a CuriosityDriver to command the rover
-    auto driver = chrono_types::make_shared<CuriosityConstMotorControl>();
-    // auto driver = chrono_types::make_shared<CuriosityDCMotorControl>();
-    rover->SetDriver(driver);
-    rover->Initialize(ChFrame<>(body_pos, body_rot));
-    rover->GetRoverMass();
-
     // Create the first step of the stair-shaped obstacle
-    auto mbox = chrono_types::make_shared<ChBodyEasyBox>(0.6, 0.1, 1, 1000, true, true, floor_mat);
-
-    mbox->SetPos(ChVector<>(3, -0.4, 1));
-    mbox->SetBodyFixed(true);
-    mbox->SetCollide(true);
-    mphysicalSystem.Add(mbox);
+    auto mbox_1 = chrono_types::make_shared<ChBodyEasyBox>(0.6, 0.1, 1, 1000, true, true, floor_mat);
+    mbox_1->SetPos(ChVector<>(3, -0.4, 1));
+    mbox_1->SetBodyFixed(true);
+    mbox_1->SetCollide(true);
+    mphysicalSystem.Add(mbox_1);
 
     // Create the second step of the stair-shaped obstacle
     auto mbox_2 = chrono_types::make_shared<ChBodyEasyBox>(0.6, 0.2, 1, 1000, true, true, floor_mat);
-
     mbox_2->SetPos(ChVector<>(3.3, -0.4, 1));
     mbox_2->SetBodyFixed(true);
     mbox_2->SetCollide(true);
@@ -123,23 +108,29 @@ int main(int argc, char* argv[]) {
 
     // Create the third step of the stair-shaped obstacle
     auto mbox_3 = chrono_types::make_shared<ChBodyEasyBox>(0.6, 0.3, 1, 1000, true, true, floor_mat);
-
     mbox_3->SetPos(ChVector<>(3.6, -0.4, 1));
     mbox_3->SetBodyFixed(true);
     mbox_3->SetCollide(true);
     mphysicalSystem.Add(mbox_3);
 
-    // Use this function for adding a ChIrrNodeAsset to all items
-    // Otherwise use application.AssetBind(myitem); on a per-item basis.
+    // Create a Curiosity Rover and the asociated driver
+    ////auto driver = chrono_types::make_shared<CuriosityConstMotorControl>();
+    auto driver = chrono_types::make_shared<CuriosityDCMotorControl>();
+
+    auto rover = chrono_types::make_shared<CuriosityRover>(&mphysicalSystem, chassis_type, wheel_type);
+    rover->SetDriver(driver);
+
+    ////rover->SetChassisFixed(true);
+    ////rover->SetChassisVisualization(false);
+    ////rover->SetWheelVisualization(false);
+    ////rover->SetSuspensionVisualization(false);
+
+    rover->Initialize(ChFrame<>(ChVector<double>(0, 0, 0), Q_from_AngX(-CH_C_PI / 2)));
+
+    // Complete visual asset construction
     application.AssetBindAll();
-
-    // Use this function for 'converting' assets into Irrlicht meshes
     application.AssetUpdateAll();
-
-    // Use shadows in realtime view
     application.AddShadowAll();
-
-    application.SetTimestep(time_step);
 
     // Simulation loop
     while (application.GetDevice()->run()) {
@@ -152,11 +143,8 @@ int main(int argc, char* argv[]) {
         // std::cout << "Rover Chassis Accelerometer Reading: "<< rover -> GetChassisAcc() << std::endl;
 
         application.BeginScene(true, true, SColor(255, 140, 161, 192));
-
         application.DrawAll();
-
         application.DoStep();
-
         application.EndScene();
     }
 

@@ -74,12 +74,12 @@ bool enable_moving_patch = true;
 bool var_params = true;
 
 // Specify rover chassis type
-// The options are Chassis_Type::Scarecrow and Chassis_Type::FullRover
-Chassis_Type chassis_type = Chassis_Type::FullRover;
+// The options are ChassisType::Scarecrow and ChassisType::FullRover
+ChassisType chassis_type = ChassisType::FullRover;
 
 // Specify rover wheel type
-// The options are Wheel_Type::RealWheel, Wheel_Type::SimpleWheel, and Wheel_Type::CylWheel
-Wheel_Type wheel_type = Wheel_Type::RealWheel;
+// The options are WheelType::RealWheel, WheelType::SimpleWheel, and WheelType::CylWheel
+WheelType wheel_type = WheelType::RealWheel;
 
 // Custom callback for setting location-dependent soil properties.
 class MySoilParams : public vehicle::SCMDeformableTerrain::SoilParametersCallback {
@@ -376,17 +376,17 @@ int main(int argc, char* argv[]) {
     if (enable_moving_patch) {
         // add moving patch for the SCM terrain
         // the bodies were retrieved from the rover instance
-        mterrain.AddMovingPatch(rover->GetWheelBody(WheelID::LF), ChVector<>(0, 0, 0),
+        mterrain.AddMovingPatch(rover->GetWheel(WheelID::LF)->GetBody(), ChVector<>(0, 0, 0),
                                 ChVector<>(0.5, 2 * wheel_range, 2 * wheel_range));
-        mterrain.AddMovingPatch(rover->GetWheelBody(WheelID::RF), ChVector<>(0, 0, 0),
+        mterrain.AddMovingPatch(rover->GetWheel(WheelID::RF)->GetBody(), ChVector<>(0, 0, 0),
                                 ChVector<>(0.5, 2 * wheel_range, 2 * wheel_range));
-        mterrain.AddMovingPatch(rover->GetWheelBody(WheelID::LM), ChVector<>(0, 0, 0),
+        mterrain.AddMovingPatch(rover->GetWheel(WheelID::LM)->GetBody(), ChVector<>(0, 0, 0),
                                 ChVector<>(0.5, 2 * wheel_range, 2 * wheel_range));
-        mterrain.AddMovingPatch(rover->GetWheelBody(WheelID::RM), ChVector<>(0, 0, 0),
+        mterrain.AddMovingPatch(rover->GetWheel(WheelID::RM)->GetBody(), ChVector<>(0, 0, 0),
                                 ChVector<>(0.5, 2 * wheel_range, 2 * wheel_range));
-        mterrain.AddMovingPatch(rover->GetWheelBody(WheelID::LB), ChVector<>(0, 0, 0),
+        mterrain.AddMovingPatch(rover->GetWheel(WheelID::LB)->GetBody(), ChVector<>(0, 0, 0),
                                 ChVector<>(0.5, 2 * wheel_range, 2 * wheel_range));
-        mterrain.AddMovingPatch(rover->GetWheelBody(WheelID::RB), ChVector<>(0, 0, 0),
+        mterrain.AddMovingPatch(rover->GetWheel(WheelID::RB)->GetBody(), ChVector<>(0, 0, 0),
                                 ChVector<>(0.5, 2 * wheel_range, 2 * wheel_range));
 
         // add moving patch for all obstacles
@@ -426,7 +426,7 @@ int main(int argc, char* argv[]) {
         application.BeginScene();
 
         application.GetSceneManager()->getActiveCamera()->setTarget(
-            core::vector3dfCH(rover->GetChassisBody()->GetPos()));
+            core::vector3dfCH(rover->GetChassis()->GetBody()->GetPos()));
         application.DrawAll();
 
         application.DoStep();
