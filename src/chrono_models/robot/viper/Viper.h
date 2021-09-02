@@ -40,15 +40,15 @@ namespace viper {
 /// @{
 
 /// Viper wheel/suspension identifiers.
-enum WheelID {
-    LF = 0,  ///< left front
-    RF = 1,  ///< right front
-    LB = 2,  ///< left back
-    RB = 3   ///< right back
+enum ViperWheelID {
+    V_LF = 0,  ///< left front
+    V_RF = 1,  ///< right front
+    V_LB = 2,  ///< left back
+    V_RB = 3   ///< right back
 };
 
 /// Viper wheel type.
-enum class WheelType {
+enum class ViperWheelType {
     RealWheel,    ///< actual geometry of the Viper wheel
     SimpleWheel,  ///< simplified wheel geometry
     CylWheel      ///< cylindrical wheel geometry
@@ -146,7 +146,7 @@ class CH_MODELS_API ViperWheel : public ViperPart {
     ViperWheel(const std::string& name,                 ///< part name
                const ChFrame<>& rel_pos,                ///< position relative to chassis frame
                std::shared_ptr<ChMaterialSurface> mat,  ///< contact material
-               WheelType wheel_type                     ///< wheel type
+               ViperWheelType wheel_type                ///< wheel type
     );
     ~ViperWheel() {}
 
@@ -197,7 +197,7 @@ class ViperDriver;
 /// This class should be the entry point to create a complete rover.
 class CH_MODELS_API Viper {
   public:
-    Viper(ChSystem* system, WheelType wheel_type = WheelType::RealWheel);
+    Viper(ChSystem* system, ViperWheelType wheel_type = ViperWheelType::RealWheel);
 
     ~Viper() {}
 
@@ -229,19 +229,19 @@ class CH_MODELS_API Viper {
     std::shared_ptr<ViperChassis> GetChassis() const { return m_chassis; }
 
     /// Get the specified rover wheel.
-    std::shared_ptr<ViperWheel> GetWheel(WheelID id) const { return m_wheels[id]; }
+    std::shared_ptr<ViperWheel> GetWheel(ViperWheelID id) const { return m_wheels[id]; }
 
     /// Get the specified rover upright.
-    std::shared_ptr<ViperUpright> GetUpright(WheelID id) const { return m_uprights[id]; }
+    std::shared_ptr<ViperUpright> GetUpright(ViperWheelID id) const { return m_uprights[id]; }
 
     /// Get the specified rover upper arm.
-    std::shared_ptr<ViperUpperArm> GetUpperArm(WheelID id) const { return m_upper_arms[id]; }
+    std::shared_ptr<ViperUpperArm> GetUpperArm(ViperWheelID id) const { return m_upper_arms[id]; }
 
     /// Get the specified rover lower arm.
-    std::shared_ptr<ViperLowerArm> GetLowerArm(WheelID id) const { return m_lower_arms[id]; }
+    std::shared_ptr<ViperLowerArm> GetLowerArm(ViperWheelID id) const { return m_lower_arms[id]; }
 
     /// Get the specified rover driveshaft.
-    std::shared_ptr<ChShaft> GetDriveshaft(WheelID id) const { return m_drive_shafts[id]; }
+    std::shared_ptr<ChShaft> GetDriveshaft(ViperWheelID id) const { return m_drive_shafts[id]; }
 
     /// Get chassis position.
     ChVector<> GetChassisPos() const { return m_chassis->GetPos(); }
@@ -256,25 +256,25 @@ class CH_MODELS_API Viper {
     ChVector<> GetChassisAcc() const { return m_chassis->GetLinAcc(); }
 
     /// Get wheel speed.
-    ChVector<> GetWheelLinVel(WheelID id) const { return m_wheels[id]->GetLinVel(); }
+    ChVector<> GetWheelLinVel(ViperWheelID id) const { return m_wheels[id]->GetLinVel(); }
 
     /// Get wheel angular velocity.
-    ChVector<> GetWheelAngVel(WheelID id) const { return m_wheels[id]->GetAngVel(); }
+    ChVector<> GetWheelAngVel(ViperWheelID id) const { return m_wheels[id]->GetAngVel(); }
 
     /// Get wheel contact force.
-    ChVector<> GetWheelContactForce(WheelID id) const;
+    ChVector<> GetWheelContactForce(ViperWheelID id) const;
 
     /// Get wheel contact torque.
-    ChVector<> GetWheelContactTorque(WheelID id) const;
+    ChVector<> GetWheelContactTorque(ViperWheelID id) const;
 
     /// Get wheel total applied force.
-    ChVector<> GetWheelAppliedForce(WheelID id) const;
+    ChVector<> GetWheelAppliedForce(ViperWheelID id) const;
 
     /// Get wheel tractive torque - if DC control set to off
-    double GetWheelTracTorque(WheelID id) const;
+    double GetWheelTracTorque(ViperWheelID id) const;
 
     /// Get wheel total applied torque.
-    ChVector<> GetWheelAppliedTorque(WheelID id) const;
+    ChVector<> GetWheelAppliedTorque(ViperWheelID id) const;
 
     /// Get total rover mass.
     double GetRoverMass() const;
@@ -284,17 +284,17 @@ class CH_MODELS_API Viper {
 
     /// Get drive motor function.
     /// This will return an empty pointer if the associated driver uses torque control.
-    std::shared_ptr<ChFunction_Setpoint> GetDriveMotorFunc(WheelID id) const { return m_drive_motor_funcs[id]; }
+    std::shared_ptr<ChFunction_Setpoint> GetDriveMotorFunc(ViperWheelID id) const { return m_drive_motor_funcs[id]; }
 
     /// Get steer motor function.
-    std::shared_ptr<ChFunction_Const> GetSteerMotorFunc(WheelID id) const { return m_steer_motor_funcs[id]; }
+    std::shared_ptr<ChFunction_Const> GetSteerMotorFunc(ViperWheelID id) const { return m_steer_motor_funcs[id]; }
 
     /// Get drive motor.
     /// This will return an empty pointer if the associated driver uses torque control.
-    std::shared_ptr<ChLinkMotorRotation> GetDriveMotor(WheelID id) const { return m_drive_motors[id]; }
+    std::shared_ptr<ChLinkMotorRotation> GetDriveMotor(ViperWheelID id) const { return m_drive_motors[id]; }
 
     /// Get steer motor.
-    std::shared_ptr<ChLinkMotorRotation> GetSteerMotor(WheelID id) const { return m_steer_motors[id]; }
+    std::shared_ptr<ChLinkMotorRotation> GetSteerMotor(ViperWheelID id) const { return m_steer_motors[id]; }
 
     /// Viper update function.
     /// This function must be called before each integration step.
@@ -302,7 +302,7 @@ class CH_MODELS_API Viper {
 
   private:
     /// Create the rover parts.
-    void Create(WheelType wheel_type);
+    void Create(ViperWheelType wheel_type);
 
     ChSystem* m_system;  ///< pointer to the Chrono system
 
@@ -359,7 +359,7 @@ class CH_MODELS_API ViperDriver {
 
     /// Set current steering input (angle: negative for left turn, positive for right turn).
     /// This function sets the steering angle for the specified wheel.
-    void SetSteering(double angle, WheelID id);
+    void SetSteering(double angle, ViperWheelID id);
 
     /// Set current lift input angle.
     void SetLifting(double angle);
@@ -391,10 +391,10 @@ class CH_MODELS_API ViperDCMotorControl : public ViperDriver {
     ~ViperDCMotorControl() {}
 
     /// Set motor stall torque for the specified wheel (default: 300).
-    void SetMotorStallTorque(double torque, WheelID id) { m_stall_torque[id] = torque; }
+    void SetMotorStallTorque(double torque, ViperWheelID id) { m_stall_torque[id] = torque; }
 
     /// Set DC motor no load speed (default: pi).
-    void SetMotorNoLoadSpeed(double speed, WheelID id) { m_no_load_speed[id] = speed; }
+    void SetMotorNoLoadSpeed(double speed, ViperWheelID id) { m_no_load_speed[id] = speed; }
 
   private:
     virtual DriveMotorType GetDriveMotorType() const override { return DriveMotorType::TORQUE; }

@@ -239,6 +239,7 @@ void ViperPart::Construct(ChSystem* system) {
         trimesh_shape->SetName(m_mesh_name);
         trimesh_shape->SetStatic(true);
         m_body->AddAsset(trimesh_shape);
+        m_body->AddAsset(chrono_types::make_shared<ChColorAsset>(m_color));
     }
 
     // Add collision shape
@@ -270,7 +271,7 @@ void ViperPart::Initialize(std::shared_ptr<ChBodyAuxRef> chassis) {
 ViperChassis::ViperChassis(const std::string& name, std::shared_ptr<ChMaterialSurface> mat)
     : ViperPart(name, ChFrame<>(VNULL, QUNIT), mat, false) {
     m_mesh_name = "viper_chassis";
-    m_color = ChColor(0.4f, 0.4f, 0.7f);
+    m_color = ChColor(1.0f, 1.0f, 1.0f);
     m_density = 165;
 }
 
@@ -286,21 +287,21 @@ void ViperChassis::Initialize(ChSystem* system, const ChFrame<>& pos) {
 ViperWheel::ViperWheel(const std::string& name,
                        const ChFrame<>& rel_pos,
                        std::shared_ptr<ChMaterialSurface> mat,
-                       WheelType wheel_type)
+                       ViperWheelType wheel_type)
     : ViperPart(name, rel_pos, mat, true) {
     switch (wheel_type) {
-        case WheelType::RealWheel:
+        case ViperWheelType::RealWheel:
             m_mesh_name = "viper_wheel";
             break;
-        case WheelType::SimpleWheel:
+        case ViperWheelType::SimpleWheel:
             m_mesh_name = "viper_simplewheel";
             break;
-        case WheelType::CylWheel:
+        case ViperWheelType::CylWheel:
             m_mesh_name = "viper_cylwheel";
             break;
     }
 
-    m_color = ChColor(0.4f, 0.4f, 0.7f);
+    m_color = ChColor(0.4f, 0.7f, 0.4f);
     m_density = 800;
 }
 
@@ -318,7 +319,7 @@ ViperUpperArm::ViperUpperArm(const std::string& name,
         m_mesh_name = "viper_R_up_sus";
     }
 
-    m_color = ChColor(0.4f, 0.4f, 0.7f);
+    m_color = ChColor(0.7f, 0.4f, 0.4f);
     m_density = 2000;
 }
 
@@ -336,7 +337,7 @@ ViperLowerArm::ViperLowerArm(const std::string& name,
         m_mesh_name = "viper_R_bt_sus";
     }
 
-    m_color = ChColor(0.4f, 0.4f, 0.7f);
+    m_color = ChColor(0.7f, 0.4f, 0.4f);
     m_density = 4500;
 }
 
@@ -354,14 +355,14 @@ ViperUpright::ViperUpright(const std::string& name,
         m_mesh_name = "viper_R_steer";
     }
 
-    m_color = ChColor(0.4f, 0.4f, 0.7f);
+    m_color = ChColor(0.7f, 0.7f, 0.7f);
     m_density = 4500;
 }
 
 // =============================================================================
 
 // Rover model
-Viper::Viper(ChSystem* system, WheelType wheel_type) : m_system(system), m_chassis_fixed(false) {
+Viper::Viper(ChSystem* system, ViperWheelType wheel_type) : m_system(system), m_chassis_fixed(false) {
     // Set default collision model envelope commensurate with model dimensions.
     // Note that an SMC system automatically sets envelope to 0.
     auto contact_method = m_system->GetContactMethod();
@@ -377,7 +378,7 @@ Viper::Viper(ChSystem* system, WheelType wheel_type) : m_system(system), m_chass
     Create(wheel_type);
 }
 
-void Viper::Create(WheelType wheel_type) {
+void Viper::Create(ViperWheelType wheel_type) {
     // create rover chassis
     m_chassis = chrono_types::make_shared<ViperChassis>("chassis", m_default_material);
 
@@ -386,17 +387,17 @@ void Viper::Create(WheelType wheel_type) {
     double wy = 0.2067 + 0.32 + 0.0831;
     double wz = 0.0;
 
-    m_wheels[LF] = chrono_types::make_shared<ViperWheel>("wheel_LF", ChFrame<>(ChVector<>(+wx, +wy, wz), QUNIT),
+    m_wheels[V_LF] = chrono_types::make_shared<ViperWheel>("wheel_LF", ChFrame<>(ChVector<>(+wx, +wy, wz), QUNIT),
                                                          m_wheel_material, wheel_type);
-    m_wheels[RF] = chrono_types::make_shared<ViperWheel>("wheel_RF", ChFrame<>(ChVector<>(+wx, -wy, wz), QUNIT),
+    m_wheels[V_RF] = chrono_types::make_shared<ViperWheel>("wheel_RF", ChFrame<>(ChVector<>(+wx, -wy, wz), QUNIT),
                                                          m_wheel_material, wheel_type);
-    m_wheels[LB] = chrono_types::make_shared<ViperWheel>("wheel_LB", ChFrame<>(ChVector<>(-wx, +wy, wz), QUNIT),
+    m_wheels[V_LB] = chrono_types::make_shared<ViperWheel>("wheel_LB", ChFrame<>(ChVector<>(-wx, +wy, wz), QUNIT),
                                                          m_wheel_material, wheel_type);
-    m_wheels[RB] = chrono_types::make_shared<ViperWheel>("wheel_RB", ChFrame<>(ChVector<>(-wx, -wy, wz), QUNIT),
+    m_wheels[V_RB] = chrono_types::make_shared<ViperWheel>("wheel_RB", ChFrame<>(ChVector<>(-wx, -wy, wz), QUNIT),
                                                          m_wheel_material, wheel_type);
 
-    m_wheels[LF]->m_mesh_xform = ChFrame<>(VNULL, Q_from_AngZ(CH_C_PI));
-    m_wheels[LB]->m_mesh_xform = ChFrame<>(VNULL, Q_from_AngZ(CH_C_PI));
+    m_wheels[V_LF]->m_mesh_xform = ChFrame<>(VNULL, Q_from_AngZ(CH_C_PI));
+    m_wheels[V_LB]->m_mesh_xform = ChFrame<>(VNULL, Q_from_AngZ(CH_C_PI));
 
     // create rover upper and lower suspension arms
     double cr_lx = 0.5618 + 0.08;
@@ -611,23 +612,23 @@ void Viper::SetSuspensionVisualization(bool state) {
         p->SetVisualize(state);
 }
 
-ChVector<> Viper::GetWheelContactForce(WheelID id) const {
+ChVector<> Viper::GetWheelContactForce(ViperWheelID id) const {
     return m_wheels[id]->GetBody()->GetContactForce();
 }
 
-ChVector<> Viper::GetWheelContactTorque(WheelID id) const {
+ChVector<> Viper::GetWheelContactTorque(ViperWheelID id) const {
     return m_wheels[id]->GetBody()->GetContactTorque();
 }
 
-ChVector<> Viper::GetWheelAppliedForce(WheelID id) const {
+ChVector<> Viper::GetWheelAppliedForce(ViperWheelID id) const {
     return m_wheels[id]->GetBody()->GetAppliedForce();
 }
 
-ChVector<> Viper::GetWheelAppliedTorque(WheelID id) const {
+ChVector<> Viper::GetWheelAppliedTorque(ViperWheelID id) const {
     return m_wheels[id]->GetBody()->GetAppliedTorque();
 }
 
-double Viper::GetWheelTracTorque(WheelID id) const {
+double Viper::GetWheelTracTorque(ViperWheelID id) const {
     if (m_driver->GetDriveMotorType() == ViperDriver::DriveMotorType::TORQUE)
         return 0;
 
@@ -680,7 +681,7 @@ void ViperDriver::SetSteering(double angle) {
         steer_angles[i] = angle;
 }
 
-void ViperDriver::SetSteering(double angle, WheelID id) {
+void ViperDriver::SetSteering(double angle, ViperWheelID id) {
     steer_angles[id] = angle;
 }
 

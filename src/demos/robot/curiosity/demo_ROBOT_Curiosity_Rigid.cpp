@@ -40,12 +40,12 @@ using namespace irr::scene;
 using namespace irr::video;
 
 // Specify rover chassis type
-// The options are ChassisType::Scarecrow and ChassisType::FullRover
-ChassisType chassis_type = ChassisType::Scarecrow;
+// The options are Scarecrow and FullRover
+CuriosityChassisType chassis_type = CuriosityChassisType::Scarecrow;
 
 // Specify rover wheel type
-// The options are WheelType::RealWheel, WheelType::SimpleWheel, and WheelType::CylWheel
-WheelType wheel_type = WheelType::RealWheel;
+// The options are RealWheel, SimpleWheel, and CylWheel
+CuriosityWheelType wheel_type = CuriosityWheelType::RealWheel;
 
 // Simulation time step
 double time_step = 1e-3;
@@ -60,8 +60,7 @@ int main(int argc, char* argv[]) {
 
     // Create the Irrlicht visualization (open the Irrlicht device,
     // bind a simple user interface, etc. etc.)
-    ChIrrApp application(&sys, L"Curiosity Rover on Rigid Terrain", core::dimension2d<u32>(1280, 720),
-                         VerticalDir::Z);
+    ChIrrApp application(&sys, L"Curiosity Rover on Rigid Terrain", core::dimension2d<u32>(1280, 720), VerticalDir::Z);
     application.AddTypicalLogo();
     application.AddTypicalSky();
     application.AddTypicalLights();
@@ -87,7 +86,6 @@ int main(int argc, char* argv[]) {
     texture->SetTextureScale(60, 45);
     ground->AddAsset(texture);
 
-   
     // Create the first step of the stair-shaped obstacle
     auto mbox_1 = chrono_types::make_shared<ChBodyEasyBox>(2.4, 1.4, 0.1, 1000, true, true, ground_mat);
     mbox_1->SetPos(ChVector<>(3, 1, 0.05));
@@ -108,7 +106,6 @@ int main(int argc, char* argv[]) {
     mbox_3->SetBodyFixed(true);
     mbox_3->SetCollide(true);
     sys.Add(mbox_3);
-   
 
     // Create a Curiosity rover and the asociated driver
     ////auto driver = chrono_types::make_shared<CuriositySpeedDriver>(1.0, 5.0);
@@ -129,7 +126,7 @@ int main(int argc, char* argv[]) {
 
     std::cout << "Curiosity total mass: " << rover.GetRoverMass() << std::endl;
     std::cout << "  chassis:            " << rover.GetChassis()->GetBody()->GetMass() << std::endl;
-    std::cout << "  wheel:              " << rover.GetWheel(WheelID::LF)->GetBody()->GetMass() << std::endl;
+    std::cout << "  wheel:              " << rover.GetWheel(CuriosityWheelID::C_LF)->GetBody()->GetMass() << std::endl;
     std::cout << std::endl;
 
     // Complete visual asset construction

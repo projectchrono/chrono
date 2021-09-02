@@ -71,7 +71,7 @@ bool enable_moving_patch = true;
 bool var_params = true;
 
 // Define Viper rover wheel type
-WheelType wheel_type = WheelType::RealWheel;
+ViperWheelType wheel_type = ViperWheelType::RealWheel;
 
 // Custom callback for setting location-dependent soil properties.
 // Note that the location is given in the SCM reference frame.
@@ -179,10 +179,10 @@ int main(int argc, char* argv[]) {
     viper.Initialize(ChFrame<>(ChVector<>(-5, 0, -0.2), QUNIT));
 
     // Get wheels and bodies to set up SCM patches
-    auto Wheel_1 = viper.GetWheel(WheelID::LF)->GetBody();
-    auto Wheel_2 = viper.GetWheel(WheelID::RF)->GetBody();
-    auto Wheel_3 = viper.GetWheel(WheelID::LB)->GetBody();
-    auto Wheel_4 = viper.GetWheel(WheelID::RB)->GetBody();
+    auto Wheel_1 = viper.GetWheel(ViperWheelID::V_LF)->GetBody();
+    auto Wheel_2 = viper.GetWheel(ViperWheelID::V_RF)->GetBody();
+    auto Wheel_3 = viper.GetWheel(ViperWheelID::V_LB)->GetBody();
+    auto Wheel_4 = viper.GetWheel(ViperWheelID::V_RB)->GetBody();
     auto Body_1 = viper.GetChassis()->GetBody();
 
     //
@@ -259,8 +259,9 @@ int main(int argc, char* argv[]) {
     while (application.GetDevice()->run()) {
         if (output) {
             // write drive torques of all four wheels into file
-            csv << sys.GetChTime() << viper.GetWheelTracTorque(WheelID::LF) << viper.GetWheelTracTorque(WheelID::RF)
-                << viper.GetWheelTracTorque(WheelID::LB) << viper.GetWheelTracTorque(WheelID::RB) << std::endl;
+            csv << sys.GetChTime() << viper.GetWheelTracTorque(ViperWheelID::V_LF)
+                << viper.GetWheelTracTorque(ViperWheelID::V_RF) << viper.GetWheelTracTorque(ViperWheelID::V_LB)
+                << viper.GetWheelTracTorque(ViperWheelID::V_RB) << std::endl;
         }
         application.BeginScene();
 

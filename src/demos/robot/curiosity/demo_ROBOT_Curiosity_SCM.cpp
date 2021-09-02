@@ -64,12 +64,12 @@ bool enable_moving_patch = true;
 bool var_params = true;
 
 // Specify rover chassis type
-// The options are ChassisType::Scarecrow and ChassisType::FullRover
-ChassisType chassis_type = ChassisType::FullRover;
+// The options are Scarecrow and FullRover
+CuriosityChassisType chassis_type = CuriosityChassisType::FullRover;
 
 // Specify rover wheel type
-// The options are WheelType::RealWheel, WheelType::SimpleWheel, and WheelType::CylWheel
-WheelType wheel_type = WheelType::RealWheel;
+// The options are RealWheel, SimpleWheel, and CylWheel
+CuriosityWheelType wheel_type = CuriosityWheelType::RealWheel;
 
 // Simulation time step
 double time_step = 1e-3;
@@ -370,17 +370,17 @@ int main(int argc, char* argv[]) {
     if (enable_moving_patch) {
         // add moving patch for the SCM terrain
         // the bodies were retrieved from the rover instance
-        terrain.AddMovingPatch(rover.GetWheel(WheelID::LF)->GetBody(), ChVector<>(0, 0, 0),
+        terrain.AddMovingPatch(rover.GetWheel(CuriosityWheelID::C_LF)->GetBody(), ChVector<>(0, 0, 0),
                                ChVector<>(0.5, 2 * wheel_range, 2 * wheel_range));
-        terrain.AddMovingPatch(rover.GetWheel(WheelID::RF)->GetBody(), ChVector<>(0, 0, 0),
+        terrain.AddMovingPatch(rover.GetWheel(CuriosityWheelID::C_RF)->GetBody(), ChVector<>(0, 0, 0),
                                ChVector<>(0.5, 2 * wheel_range, 2 * wheel_range));
-        terrain.AddMovingPatch(rover.GetWheel(WheelID::LM)->GetBody(), ChVector<>(0, 0, 0),
+        terrain.AddMovingPatch(rover.GetWheel(CuriosityWheelID::C_LM)->GetBody(), ChVector<>(0, 0, 0),
                                ChVector<>(0.5, 2 * wheel_range, 2 * wheel_range));
-        terrain.AddMovingPatch(rover.GetWheel(WheelID::RM)->GetBody(), ChVector<>(0, 0, 0),
+        terrain.AddMovingPatch(rover.GetWheel(CuriosityWheelID::C_RM)->GetBody(), ChVector<>(0, 0, 0),
                                ChVector<>(0.5, 2 * wheel_range, 2 * wheel_range));
-        terrain.AddMovingPatch(rover.GetWheel(WheelID::LB)->GetBody(), ChVector<>(0, 0, 0),
+        terrain.AddMovingPatch(rover.GetWheel(CuriosityWheelID::C_LB)->GetBody(), ChVector<>(0, 0, 0),
                                ChVector<>(0.5, 2 * wheel_range, 2 * wheel_range));
-        terrain.AddMovingPatch(rover.GetWheel(WheelID::RB)->GetBody(), ChVector<>(0, 0, 0),
+        terrain.AddMovingPatch(rover.GetWheel(CuriosityWheelID::C_RB)->GetBody(), ChVector<>(0, 0, 0),
                                ChVector<>(0.5, 2 * wheel_range, 2 * wheel_range));
 
         // add moving patch for all obstacles
@@ -405,9 +405,10 @@ int main(int argc, char* argv[]) {
     while (application.GetDevice()->run()) {
         if (output) {
             // write drive torques of all six wheels into file
-            csv << sys.GetChTime() << rover.GetWheelTracTorque(WheelID::LF) << rover.GetWheelTracTorque(WheelID::RF)
-                << rover.GetWheelTracTorque(WheelID::LM) << rover.GetWheelTracTorque(WheelID::RM)
-                << rover.GetWheelTracTorque(WheelID::LB) << rover.GetWheelTracTorque(WheelID::RB) << std::endl;
+            csv << sys.GetChTime() << rover.GetWheelTracTorque(CuriosityWheelID::C_LF)
+                << rover.GetWheelTracTorque(CuriosityWheelID::C_RF) << rover.GetWheelTracTorque(CuriosityWheelID::C_LM)
+                << rover.GetWheelTracTorque(CuriosityWheelID::C_RM) << rover.GetWheelTracTorque(CuriosityWheelID::C_LB)
+                << rover.GetWheelTracTorque(CuriosityWheelID::C_RB) << std::endl;
         }
         rover.Update();
         application.BeginScene();

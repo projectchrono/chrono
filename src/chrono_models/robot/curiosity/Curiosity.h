@@ -50,20 +50,20 @@ namespace curiosity {
 // -----------------------------------------------------------------------------
 
 /// Curiosity wheel/suspension identifiers.
-enum WheelID {
-    LF,  ///< left front
-    RF,  ///< right front
-    LM,  ///< left middle
-    RM,  ///< right middle
-    LB,  ///< left back
-    RB   ///< right back
+enum CuriosityWheelID {
+    C_LF = 0,  ///< left front
+    C_RF = 1,  ///< right front
+    C_LM = 2,  ///< left middle
+    C_RM = 3,  ///< right middle
+    C_LB = 4,  ///< left back
+    C_RB = 5   ///< right back
 };
 
 /// Curiosity chassis type.
-enum class ChassisType { FullRover, Scarecrow };
+enum class CuriosityChassisType { FullRover, Scarecrow };
 
 /// Curiostiy wheel type.
-enum class WheelType { RealWheel, SimpleWheel, CylWheel };
+enum class CuriosityWheelType { RealWheel, SimpleWheel, CylWheel };
 
 // -----------------------------------------------------------------------------
 
@@ -143,7 +143,7 @@ class CH_MODELS_API CuriosityPart {
 class CH_MODELS_API CuriosityChassis : public CuriosityPart {
   public:
     CuriosityChassis(const std::string& name,                ///< part name
-                     ChassisType chassis_type,               ///< chassis type
+                     CuriosityChassisType chassis_type,      ///< chassis type
                      std::shared_ptr<ChMaterialSurface> mat  ///< contact material
     );
     ~CuriosityChassis() {}
@@ -152,7 +152,7 @@ class CH_MODELS_API CuriosityChassis : public CuriosityPart {
     void Initialize(ChSystem* system, const ChFrame<>& pos);
 
   private:
-    ChassisType m_chassis_type;
+    CuriosityChassisType m_chassis_type;
 };
 
 /// Curiosity rover Wheel.
@@ -161,7 +161,7 @@ class CH_MODELS_API CuriosityWheel : public CuriosityPart {
     CuriosityWheel(const std::string& name,                 ///< part name
                    const ChFrame<>& rel_pos,                ///< position relative to chassis frame
                    std::shared_ptr<ChMaterialSurface> mat,  ///< contact material
-                   WheelType wheel_type                     ///< wheel type
+                   CuriosityWheelType wheel_type            ///< wheel type
     );
     ~CuriosityWheel() {}
 
@@ -214,8 +214,8 @@ class CuriosityDriver;
 class CH_MODELS_API Curiosity {
   public:
     Curiosity(ChSystem* system,
-              ChassisType chassis_type = ChassisType::FullRover,
-              WheelType wheel_type = WheelType::RealWheel);
+              CuriosityChassisType chassis_type = CuriosityChassisType::FullRover,
+              CuriosityWheelType wheel_type = CuriosityWheelType::RealWheel);
     ~Curiosity() {}
 
     /// Get the containing system.
@@ -256,10 +256,10 @@ class CH_MODELS_API Curiosity {
     std::shared_ptr<CuriosityChassis> GetChassis() const { return m_chassis; }
 
     /// Get the specified rover wheel.
-    std::shared_ptr<CuriosityWheel> GetWheel(WheelID id) const;
+    std::shared_ptr<CuriosityWheel> GetWheel(CuriosityWheelID id) const;
 
     /// Get the specified rover driveshaft.
-    std::shared_ptr<ChShaft> GetDriveshaft(WheelID id) const { return m_drive_shafts[id]; }
+    std::shared_ptr<ChShaft> GetDriveshaft(CuriosityWheelID id) const { return m_drive_shafts[id]; }
 
     /// Get chassis position.
     ChVector<> GetChassisPos() const { return m_chassis->GetPos(); }
@@ -274,25 +274,25 @@ class CH_MODELS_API Curiosity {
     ChVector<> GetChassisAcc() const { return m_chassis->GetLinAcc(); }
 
     /// Get wheel speed.
-    ChVector<> GetWheelLinVel(WheelID id) const { return m_wheels[id]->GetLinVel(); }
+    ChVector<> GetWheelLinVel(CuriosityWheelID id) const { return m_wheels[id]->GetLinVel(); }
 
     /// Get wheel angular velocity.
-    ChVector<> GetWheelAngVel(WheelID id) const { return m_wheels[id]->GetAngVel(); }
+    ChVector<> GetWheelAngVel(CuriosityWheelID id) const { return m_wheels[id]->GetAngVel(); }
 
     /// Get wheel contact force.
-    ChVector<> GetWheelContactForce(WheelID id) const;
+    ChVector<> GetWheelContactForce(CuriosityWheelID id) const;
 
     /// Get wheel contact torque.
-    ChVector<> GetWheelContactTorque(WheelID id) const;
+    ChVector<> GetWheelContactTorque(CuriosityWheelID id) const;
 
     /// Get wheel total applied force.
-    ChVector<> GetWheelAppliedForce(WheelID id) const;
+    ChVector<> GetWheelAppliedForce(CuriosityWheelID id) const;
 
     /// Get wheel total applied torque.
-    ChVector<> GetWheelAppliedTorque(WheelID id) const;
+    ChVector<> GetWheelAppliedTorque(CuriosityWheelID id) const;
 
     /// Get wheel tractive torque - if DC control is set to off.
-    double GetWheelTracTorque(WheelID id) const;
+    double GetWheelTracTorque(CuriosityWheelID id) const;
 
     /// Get total rover mass.
     double GetRoverMass() const;
@@ -301,20 +301,22 @@ class CH_MODELS_API Curiosity {
     double GetWheelMass() const;
 
     /// Get drive motor function.
-    std::shared_ptr<ChFunction_Setpoint> GetDriveMotorFunc(WheelID id) const { return m_drive_motor_funcs[id]; }
+    std::shared_ptr<ChFunction_Setpoint> GetDriveMotorFunc(CuriosityWheelID id) const {
+        return m_drive_motor_funcs[id];
+    }
 
     /// Get steer motor function.
-    std::shared_ptr<ChFunction_Const> GetSteerMotorFunc(WheelID id) const { return m_steer_motor_funcs[id]; }
+    std::shared_ptr<ChFunction_Const> GetSteerMotorFunc(CuriosityWheelID id) const { return m_steer_motor_funcs[id]; }
 
     /// Get drive motor.
-    std::shared_ptr<ChLinkMotorRotation> GetDriveMotor(WheelID id) const { return m_drive_motors[id]; }
+    std::shared_ptr<ChLinkMotorRotation> GetDriveMotor(CuriosityWheelID id) const { return m_drive_motors[id]; }
 
     /// Get steer motor.
-    std::shared_ptr<ChLinkMotorRotation> GetSteerMotor(WheelID id) const { return m_steer_motors[id]; }
+    std::shared_ptr<ChLinkMotorRotation> GetSteerMotor(CuriosityWheelID id) const { return m_steer_motors[id]; }
 
   private:
     /// Create the rover parts.
-    void Create(ChassisType chassis_type, WheelType wheel_type);
+    void Create(CuriosityChassisType chassis_type, CuriosityWheelType wheel_type);
 
     ChSystem* m_system;  ///< pointer to the Chrono system
 
@@ -367,7 +369,7 @@ class CH_MODELS_API CuriosityDriver {
 
     /// Set current steering input (angle: negative for left turn, positive for right turn).
     /// This function sets the steering angle for the specified wheel.
-    void SetSteering(double angle, WheelID id);
+    void SetSteering(double angle, CuriosityWheelID id);
 
     /// Indicate the control type for the drive motors.
     virtual DriveMotorType GetDriveMotorType() const = 0;
@@ -399,10 +401,10 @@ class CH_MODELS_API CuriosityDCMotorControl : public CuriosityDriver {
     ~CuriosityDCMotorControl() {}
 
     /// Set motor stall torque for the specified wheel (default: 300).
-    void SetMotorStallTorque(double torque, WheelID id) { m_stall_torque[id] = torque; }
+    void SetMotorStallTorque(double torque, CuriosityWheelID id) { m_stall_torque[id] = torque; }
 
     /// Set DC motor no load speed (default: pi).
-    void SetMotorNoLoadSpeed(double speed, WheelID id) { m_no_load_speed[id] = speed; }
+    void SetMotorNoLoadSpeed(double speed, CuriosityWheelID id) { m_no_load_speed[id] = speed; }
 
   private:
     virtual DriveMotorType GetDriveMotorType() const override { return DriveMotorType::TORQUE; }

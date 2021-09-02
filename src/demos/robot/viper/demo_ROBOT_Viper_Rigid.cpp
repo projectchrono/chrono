@@ -52,7 +52,7 @@ using namespace irr::video;
 bool use_custom_mat = false;
 
 // Define Viper rover wheel type
-WheelType wheel_type = WheelType::RealWheel;
+ViperWheelType wheel_type = ViperWheelType::RealWheel;
 
 std::shared_ptr<ChMaterialSurface> CustomWheelMaterial(ChContactMethod contact_method) {
     float mu = 0.4f;   // coefficient of friction
@@ -133,7 +133,7 @@ int main(int argc, char* argv[]) {
         viper.SetWheelContactMaterial(CustomWheelMaterial(ChContactMethod::NSC));
 
     ////viper.SetChassisFixed(true);
-    
+
     ////viper.SetChassisVisualization(false);
     ////viper.SetSuspensionVisualization(false);
 
@@ -141,10 +141,10 @@ int main(int argc, char* argv[]) {
 
     std::cout << "Viper total mass: " << viper.GetRoverMass() << std::endl;
     std::cout << "  chassis:        " << viper.GetChassis()->GetBody()->GetMass() << std::endl;
-    std::cout << "  upper arm:      " << viper.GetUpperArm(WheelID::LF)->GetBody()->GetMass() << std::endl;
-    std::cout << "  lower arm:      " << viper.GetLowerArm(WheelID::LF)->GetBody()->GetMass() << std::endl;
-    std::cout << "  upright:        " << viper.GetUpright(WheelID::LF)->GetBody()->GetMass() << std::endl;
-    std::cout << "  wheel:          " << viper.GetWheel(WheelID::LF)->GetBody()->GetMass() << std::endl;
+    std::cout << "  upper arm:      " << viper.GetUpperArm(ViperWheelID::V_LF)->GetBody()->GetMass() << std::endl;
+    std::cout << "  lower arm:      " << viper.GetLowerArm(ViperWheelID::V_LF)->GetBody()->GetMass() << std::endl;
+    std::cout << "  upright:        " << viper.GetUpright(ViperWheelID::V_LF)->GetBody()->GetMass() << std::endl;
+    std::cout << "  wheel:          " << viper.GetWheel(ViperWheelID::V_LF)->GetBody()->GetMass() << std::endl;
     std::cout << std::endl;
 
     // Complete construction of visual assets

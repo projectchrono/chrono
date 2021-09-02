@@ -256,15 +256,15 @@ void CuriosityPart::Initialize(std::shared_ptr<ChBodyAuxRef> chassis) {
 //
 // Rover Chassis
 CuriosityChassis::CuriosityChassis(const std::string& name,
-                                   ChassisType chassis_type,
+                                   CuriosityChassisType chassis_type,
                                    std::shared_ptr<ChMaterialSurface> mat)
     : CuriosityPart(name, ChFrame<>(VNULL, QUNIT), mat, false), m_chassis_type(chassis_type) {
     switch (m_chassis_type) {
-        case ChassisType::FullRover:
+        case CuriosityChassisType::FullRover:
             m_mesh_name = "curiosity_chassis";
             break;
 
-        case ChassisType::Scarecrow:
+        case CuriosityChassisType::Scarecrow:
             m_mesh_name = "scarecrow_chassis";
             break;
     }
@@ -278,11 +278,11 @@ void CuriosityChassis::Initialize(ChSystem* system, const ChFrame<>& pos) {
     double vol = 0;
     ChVector<> inertia;
     switch (m_chassis_type) {
-        case ChassisType::FullRover:
+        case CuriosityChassisType::FullRover:
             vol = 8.3;
             inertia = ChVector<>(0.2);
             break;
-        case ChassisType::Scarecrow:
+        case CuriosityChassisType::Scarecrow:
             vol = 2.3;
             inertia = ChVector<>(0.5);
             break;
@@ -298,17 +298,17 @@ void CuriosityChassis::Initialize(ChSystem* system, const ChFrame<>& pos) {
 CuriosityWheel::CuriosityWheel(const std::string& name,
                                const ChFrame<>& rel_pos,
                                std::shared_ptr<ChMaterialSurface> mat,
-                               WheelType wheel_type)
+                               CuriosityWheelType wheel_type)
     : CuriosityPart(name, rel_pos, mat, true) {
     switch (wheel_type) {
         default:
-        case WheelType::RealWheel:
+        case CuriosityWheelType::RealWheel:
             m_mesh_name = "curiosity_wheel";
             break;
-        case WheelType::SimpleWheel:
+        case CuriosityWheelType::SimpleWheel:
             m_mesh_name = "curiosity_simplewheel";
             break;
-        case WheelType::CylWheel:
+        case CuriosityWheelType::CylWheel:
             m_mesh_name = "curiosity_cylwheel";
             break;
     }
@@ -391,7 +391,7 @@ CuriosityBalancer::CuriosityBalancer(const std::string& name,
 
 // ==========================================================
 
-Curiosity::Curiosity(ChSystem* system, ChassisType chassis_type, WheelType wheel_type)
+Curiosity::Curiosity(ChSystem* system, CuriosityChassisType chassis_type, CuriosityWheelType wheel_type)
     : m_system(system), m_chassis_fixed(false), m_suspension_fixed(false), m_uprights_fixed(false) {
     // Set default collision model envelope commensurate with model dimensions.
     // Note that an SMC system automatically sets envelope to 0.
@@ -408,7 +408,7 @@ Curiosity::Curiosity(ChSystem* system, ChassisType chassis_type, WheelType wheel
     Create(chassis_type, wheel_type);
 }
 
-void Curiosity::Create(ChassisType chassis_type, WheelType wheel_type) {
+void Curiosity::Create(CuriosityChassisType chassis_type, CuriosityWheelType wheel_type) {
     // create rover chassis
     ChQuaternion<> body_rot;
     m_chassis = chrono_types::make_shared<CuriosityChassis>("chassis", chassis_type, m_default_material);
@@ -427,9 +427,9 @@ void Curiosity::Create(ChassisType chassis_type, WheelType wheel_type) {
         m_wheels[i] = chrono_types::make_shared<CuriosityWheel>("wheel", ChFrame<>(wheel_pos[i], QUNIT),
                                                                 m_wheel_material, wheel_type);
     }
-    m_wheels[RF]->m_mesh_xform = ChFrame<>(VNULL, Q_from_AngZ(CH_C_PI));
-    m_wheels[RM]->m_mesh_xform = ChFrame<>(VNULL, Q_from_AngZ(CH_C_PI));
-    m_wheels[RB]->m_mesh_xform = ChFrame<>(VNULL, Q_from_AngZ(CH_C_PI));
+    m_wheels[C_RF]->m_mesh_xform = ChFrame<>(VNULL, Q_from_AngZ(CH_C_PI));
+    m_wheels[C_RM]->m_mesh_xform = ChFrame<>(VNULL, Q_from_AngZ(CH_C_PI));
+    m_wheels[C_RB]->m_mesh_xform = ChFrame<>(VNULL, Q_from_AngZ(CH_C_PI));
 
     // Create 4 Curiosity Suspension Arms
     ChVector<> rod_pos[] = {
@@ -634,30 +634,30 @@ void Curiosity::SetSuspensionVisualization(bool state) {
         p->SetVisualize(state);
 }
 
-ChVector<> Curiosity::GetWheelContactForce(WheelID id) const {
+ChVector<> Curiosity::GetWheelContactForce(CuriosityWheelID id) const {
     return m_wheels[id]->GetBody()->GetContactForce();
 }
 
-ChVector<> Curiosity::GetWheelContactTorque(WheelID id) const {
+ChVector<> Curiosity::GetWheelContactTorque(CuriosityWheelID id) const {
     return m_wheels[id]->GetBody()->GetContactTorque();
 }
 
-ChVector<> Curiosity::GetWheelAppliedForce(WheelID id) const {
+ChVector<> Curiosity::GetWheelAppliedForce(CuriosityWheelID id) const {
     return m_wheels[id]->GetBody()->GetAppliedForce();
 }
 
-ChVector<> Curiosity::GetWheelAppliedTorque(WheelID id) const {
+ChVector<> Curiosity::GetWheelAppliedTorque(CuriosityWheelID id) const {
     return m_wheels[id]->GetBody()->GetAppliedTorque();
 }
 
-double Curiosity::GetWheelTracTorque(WheelID id) const {
+double Curiosity::GetWheelTracTorque(CuriosityWheelID id) const {
     if (m_driver->GetDriveMotorType() == CuriosityDriver::DriveMotorType::TORQUE)
         return 0;
 
     return m_drive_motors[id]->GetMotorTorque();
 }
 
-std::shared_ptr<CuriosityWheel> Curiosity::GetWheel(WheelID id) const {
+std::shared_ptr<CuriosityWheel> Curiosity::GetWheel(CuriosityWheelID id) const {
     return m_wheels[id];
 }
 
@@ -707,8 +707,8 @@ void CuriosityDriver::SetSteering(double angle) {
     steer_angles = {angle, angle, angle, angle};
 }
 
-void CuriosityDriver::SetSteering(double angle, WheelID id) {
-    if (id == WheelID::LM || id == WheelID::RM)
+void CuriosityDriver::SetSteering(double angle, CuriosityWheelID id) {
+    if (id == CuriosityWheelID::C_LM || id == CuriosityWheelID::C_RM)
         return;
     steer_angles[id] = angle;
 }
