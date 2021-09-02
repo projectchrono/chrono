@@ -9,7 +9,7 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Authors: Jason Zhou
+// Authors: Jason Zhou, Radu Serban
 // =============================================================================
 //
 // NASA Curiosity Mars Rover Model Class.
@@ -47,34 +47,35 @@ namespace curiosity {
 /// @addtogroup robot_models_curiosity
 /// @{
 
+// -----------------------------------------------------------------------------
+
 /// Curiosity wheel/suspension identifiers.
-enum WheelID {
-    LF,  ///< left front
-    RF,  ///< right front
-    LM,  ///< left middle
-    RM,  ///< right middle
-    LB,  ///< left back
-    RB   ///< right back
+enum CuriosityWheelID {
+    C_LF = 0,  ///< left front
+    C_RF = 1,  ///< right front
+    C_LM = 2,  ///< left middle
+    C_RM = 3,  ///< right middle
+    C_LB = 4,  ///< left back
+    C_RB = 5   ///< right back
 };
 
-/// Curiosity chassis type
-enum Chassis_Type { FullRover, Scarecrow };
+/// Curiosity chassis type.
+enum class CuriosityChassisType { FullRover, Scarecrow };
 
-/// Curiostiy wheel type
-enum Wheel_Type { RealWheel, SimpleWheel, CylWheel };
+/// Curiostiy wheel type.
+enum class CuriosityWheelType { RealWheel, SimpleWheel, CylWheel };
 
-/// Base class definition of the Curiosity Rover Part.
-class CH_MODELS_API Curiosity_Part {
+// -----------------------------------------------------------------------------
+
+/// Base class definition for all Curiosity Rover parts.
+class CH_MODELS_API CuriosityPart {
   public:
-    Curiosity_Part(const std::string& name,
-                   bool fixed,
-                   std::shared_ptr<ChMaterialSurface> mat,
-                   ChSystem* system,
-                   const ChVector<>& body_pos,
-                   const ChQuaternion<>& body_rot,
-                   std::shared_ptr<ChBodyAuxRef> chassis_body,
-                   bool collide);
-    virtual ~Curiosity_Part() {}
+    CuriosityPart(const std::string& name,                 ///< part name
+                  const ChFrame<>& rel_pos,                ///< position relative to chassis frame
+                  std::shared_ptr<ChMaterialSurface> mat,  ///< contact material
+                  bool collide                             ///< enable collision?
+    );
+    virtual ~CuriosityPart() {}
 
     /// Return the name of the part.
     const std::string& GetName() const { return m_name; }
@@ -82,336 +83,355 @@ class CH_MODELS_API Curiosity_Part {
     /// Set the name of the part.
     void SetName(const std::string& name) { m_name = name; }
 
+    /// Enable/disable visualization.
+    void SetVisualize(bool state) { m_visualize = state; }
+
+    /// Enable/disable collision.
+    void SetCollide(bool state) { m_collide = state; }
+
     /// Return the ChBody of the corresponding Curiosity part.
     std::shared_ptr<ChBodyAuxRef> GetBody() const { return m_body; }
 
-    std::shared_ptr<geometry::ChTriangleMeshConnected> GetTrimesh() { return m_trimesh; }
-
-    /// Return the ChBody of the chassis wrt the Curiosity part.
-    std::shared_ptr<ChBodyAuxRef> GetChassis() const { return m_chassis; }
-
-    /// Return the Position of the Curiosity part.
+    /// Return the position of the Curiosity part.
+    /// This is the absolute location of the part reference frame.
     const ChVector<>& GetPos() const { return m_body->GetFrame_REF_to_abs().GetPos(); }
 
-    /// Return the Rotation of the Curiosity part.
+    /// Return the rotation of the Curiosity part.
+    /// This is the orientation wrt the global frame of the part reference frame.
     const ChQuaternion<>& GetRot() const { return m_body->GetFrame_REF_to_abs().GetRot(); }
 
+    /// Return the linear velocity of the Curiopsity part.
+    /// This is the absolute linear velocity of the part reference frame.
+    const ChVector<>& GetLinVel() const { return m_body->GetFrame_REF_to_abs().GetPos_dt(); }
+
+    /// Return the angular velocity of the Curiosity part.
+    /// This is the absolute angular velocity of the part reference frame.
+    const ChVector<> GetAngVel() const { return m_body->GetFrame_REF_to_abs().GetWvel_par(); }
+
+    /// Return the linear acceleration of the Curiosity part.
+    /// This is the absolute linear acceleration of the part reference frame.
+    const ChVector<>& GetLinAcc() const { return m_body->GetFrame_REF_to_abs().GetPos_dtdt(); }
+
+    /// Return the angular acceleratino of the Curiosity part.
+    /// This is the absolute angular acceleratin of the part reference frame.
+    const ChVector<> GetAngAcc() const { return m_body->GetFrame_REF_to_abs().GetWacc_par(); }
+
+    /// Initialize the rover part by attaching it to the specified chassis body.
+    virtual void Initialize(std::shared_ptr<ChBodyAuxRef> chassis);
+
   protected:
-    /// Initialize the visulization mesh of the Curiosity part.
-    void AddVisualizationAssets();
-
-    /// Initialize the collision mesh of the Curiosity part.
-    void AddCollisionShapes();
-
-    /// Enable/disable collision.
-    void SetCollide(bool state);
+    void Construct(ChSystem* system);
 
     std::string m_name;                        ///< subsystem name
     std::shared_ptr<ChBodyAuxRef> m_body;      ///< rigid body
     std::shared_ptr<ChMaterialSurface> m_mat;  ///< contact material (shared among all shapes)
 
-    std::string m_mesh_name;                  ///< visualization mesh name
-    ChVector<> m_offset;                      ///< offset for visualization mesh
-    ChColor m_color;                          ///< visualization asset color
-    ChSystem* m_system;                       ///< system which Curiosity Part belongs to
-    std::shared_ptr<ChBodyAuxRef> m_chassis;  ///< the chassis body for the rover
-    std::shared_ptr<geometry::ChTriangleMeshConnected> m_trimesh;
+    ChFrame<> m_mesh_xform;   ///< mesh transform (translate, rotate, scale)
+    std::string m_mesh_name;  ///< visualization mesh name
+    ChColor m_color;          ///< visualization asset color
 
-    ChVector<> m_pos;      ///< Curiosity part's relative position wrt the chassis
-    ChQuaternion<> m_rot;  ///< Curiosity part's relative rotation wrt the chassis
-    double m_density;      ///< Curiosity part's density
+    ChFrame<> m_pos;   ///< Curiosity part's relative position wrt the chassis
+    double m_density;  ///< Curiosity part's density
 
-    bool m_collide;  ///< Curiosity part's collision indicator
-    bool m_fixed;    ///< Curiosity part's fixed indication
+    bool m_visualize;  ///< part visualization flag
+    bool m_collide;    ///< Curiosity part's collision indicator
 };
 
+// -----------------------------------------------------------------------------
+
 /// Curiosity rover Chassis.
-class CH_MODELS_API Curiosity_Chassis : public Curiosity_Part {
+class CH_MODELS_API CuriosityChassis : public CuriosityPart {
   public:
-    Curiosity_Chassis(const std::string& name,
-                      bool fixed,
-                      std::shared_ptr<ChMaterialSurface> mat,
-                      ChSystem* system,
-                      const ChVector<>& body_pos,
-                      const ChQuaternion<>& body_rot,
-                      bool collide,
-                      Chassis_Type chassis_type);
-    ~Curiosity_Chassis() {}
+    CuriosityChassis(const std::string& name,                ///< part name
+                     CuriosityChassisType chassis_type,      ///< chassis type
+                     std::shared_ptr<ChMaterialSurface> mat  ///< contact material
+    );
+    ~CuriosityChassis() {}
 
     /// Initialize the chassis at the specified (absolute) position.
-    void Initialize();
-
-    /// Enable/disable collision for the rover chassis.
-    void SetCollide(bool state);
+    void Initialize(ChSystem* system, const ChFrame<>& pos);
 
   private:
-    Chassis_Type m_chassis_type = Chassis_Type::FullRover;
-
-    /// Translate the chassis by the specified value.
-    void Translate(const ChVector<>& shift);
-    friend class Curiosity_Rover;
+    CuriosityChassisType m_chassis_type;
 };
 
 /// Curiosity rover Wheel.
-class CH_MODELS_API Curiosity_Wheel : public Curiosity_Part {
+class CH_MODELS_API CuriosityWheel : public CuriosityPart {
   public:
-    Curiosity_Wheel(const std::string& name,
-                    bool fixed,
-                    std::shared_ptr<ChMaterialSurface> mat,
-                    ChSystem* system,
-                    const ChVector<>& body_pos,
-                    const ChQuaternion<>& body_rot,
-                    std::shared_ptr<ChBodyAuxRef> chassis,
-                    bool collide,
-                    Wheel_Type wheel_type);
-    ~Curiosity_Wheel() {}
+    CuriosityWheel(const std::string& name,                 ///< part name
+                   const ChFrame<>& rel_pos,                ///< position relative to chassis frame
+                   std::shared_ptr<ChMaterialSurface> mat,  ///< contact material
+                   CuriosityWheelType wheel_type            ///< wheel type
+    );
+    ~CuriosityWheel() {}
 
-    /// Initialize the wheel at the specified (absolute) position.
-    void Initialize();
+    virtual void Initialize(std::shared_ptr<ChBodyAuxRef> chassis) override;
 
-    /// Enable/disable collision for the wheel.
-    void SetCollide(bool state);
-
-  private:
-    /// Translate the chassis by the specified value.
-    void Translate(const ChVector<>& shift);
-    friend class Curiosity_Rover;
+    friend class Curiosity;
 };
 
-/// Curiosity rover Connecting Arm.
-class CH_MODELS_API Curiosity_Arm : public Curiosity_Part {
+/// Curiosity rover connecting arm.
+class CH_MODELS_API CuriosityArm : public CuriosityPart {
   public:
-    Curiosity_Arm(const std::string& name,
-                  bool fixed,
-                  std::shared_ptr<ChMaterialSurface> mat,
-                  ChSystem* system,
-                  const ChVector<>& body_pos,
-                  const ChQuaternion<>& body_rot,
-                  std::shared_ptr<ChBodyAuxRef> chassis,
-                  bool collide,
-                  const int& side);  // 0 == FL, 1 == FR, 2 == BL, 3 == BR
-    ~Curiosity_Arm() {}
-
-    /// Initialize the wheel at the specified (absolute) position.
-    void Initialize();
-
-    /// Enable/disable collision for the wheel.
-    void SetCollide(bool state);
-
-  private:
-    /// Translate the chassis by the specified value.
-    void Translate(const ChVector<>& shift);
-    friend class Curiosity_Rover;
+    CuriosityArm(const std::string& name,                 ///< part name
+                 const ChFrame<>& rel_pos,                ///< position relative to chassis frame
+                 std::shared_ptr<ChMaterialSurface> mat,  ///< contact material
+                 int which                                ///< 0: FL, 1: FR, 2: BL, 3: BR
+    );
+    ~CuriosityArm() {}
 };
 
-/// Curiosity rover steering rod.
-class CH_MODELS_API Curiosity_Steer : public Curiosity_Part {
+/// Curiosity rover steering upright.
+class CH_MODELS_API CuriosityUpright : public CuriosityPart {
   public:
-    Curiosity_Steer(const std::string& name,
-                    bool fixed,
-                    std::shared_ptr<ChMaterialSurface> mat,
-                    ChSystem* system,
-                    const ChVector<>& body_pos,
-                    const ChQuaternion<>& body_rot,
-                    std::shared_ptr<ChBodyAuxRef> chassis,
-                    bool collide);
-    ~Curiosity_Steer() {}
+    CuriosityUpright(const std::string& name,                ///< part name
+                     const ChFrame<>& rel_pos,               ///< position relative to chassis frame
+                     std::shared_ptr<ChMaterialSurface> mat  ///< contact material
+    );
+    ~CuriosityUpright() {}
 
-    /// Initialize the wheel at the specified (absolute) position.
-    void Initialize();
-
-    /// Enable/disable collision for the wheel.
-    void SetCollide(bool state);
-
-  private:
-    /// Translate the chassis by the specified value.
-    void Translate(const ChVector<>& shift);
-    friend class Curiosity_Rover;
+    virtual void Initialize(std::shared_ptr<ChBodyAuxRef> chassis) override;
 };
 
-/// Curiosity rover steering rod.
-class CH_MODELS_API Curiosity_Balancer : public Curiosity_Part {
+/// Curiosity rover balancer.
+class CH_MODELS_API CuriosityBalancer : public CuriosityPart {
   public:
-    Curiosity_Balancer(const std::string& name,
-                       bool fixed,
-                       std::shared_ptr<ChMaterialSurface> mat,
-                       ChSystem* system,
-                       const ChVector<>& body_pos,
-                       const ChQuaternion<>& body_rot,
-                       std::shared_ptr<ChBodyAuxRef> chassis,
-                       bool collide,
-                       const int& side);  // 0 - > L, 1 - > R, 2 - > M
-    ~Curiosity_Balancer() {}
-
-    /// Initialize the wheel at the specified (absolute) position.
-    void Initialize();
-
-    /// Enable/disable collision for the wheel.
-    void SetCollide(bool state);
-
-  private:
-    /// Translate the chassis by the specified value.
-    void Translate(const ChVector<>& shift);
-    friend class Curiosity_Rover;
+    CuriosityBalancer(const std::string& name,                 ///< part name
+                      const ChFrame<>& rel_pos,                ///< position relative to chassis frame
+                      std::shared_ptr<ChMaterialSurface> mat,  ///< contact material
+                      int which                                ///< 0: L, 1: R, 2: M
+    );
+    ~CuriosityBalancer() {}
 };
+
+// -----------------------------------------------------------------------------
+
+class CuriosityDriver;
 
 /// Curiosity rover class.
 /// This class encapsulates the location and rotation information of all Curiosity parts wrt the chassis.
 /// This class should be the entry point to create a complete rover.
-class CH_MODELS_API CuriosityRover {
+class CH_MODELS_API Curiosity {
   public:
-    CuriosityRover(ChSystem* system,
-                   const ChVector<>& rover_pos,
-                   const ChQuaternion<>& rover_rot,
-                   std::shared_ptr<ChMaterialSurface> wheel_mat,
-                   Chassis_Type chassis_type = Chassis_Type::FullRover,
-                   Wheel_Type wheel_type = Wheel_Type::RealWheel);
-    CuriosityRover(ChSystem* system,
-                   const ChVector<>& rover_pos,
-                   const ChQuaternion<>& rover_rot,
-                   Chassis_Type chassis_type = Chassis_Type::FullRover,
-                   Wheel_Type wheel_type = Wheel_Type::RealWheel);
-    ~CuriosityRover();
+    Curiosity(ChSystem* system,
+              CuriosityChassisType chassis_type = CuriosityChassisType::FullRover,
+              CuriosityWheelType wheel_type = CuriosityWheelType::RealWheel);
+    ~Curiosity() {}
 
-    /// Initialize the Curiosity rover using current parameters.
-    void Initialize();
-
-    /// General control updated function
-    /// Note: This is the main caller function, submodule controls such as steering and traction
-    /// are handled by sub helper functions
-    void Update();
-
-    /// Sub-update function to update DC motor limit control
-    void UpdateDCMotorControl();
-
-    /// Get the ChSystem
+    /// Get the containing system.
     ChSystem* GetSystem() { return m_system; }
 
-    /// Get Chassis Type
-    Chassis_Type GetChassisType();
+    /// Set the curiosity driver
+    void SetDriver(std::shared_ptr<CuriosityDriver> driver);
 
-    /// Set Motor Speed
-    /// If DC_Motor Control is enabled, the function will set the no_load_speed
-    void SetMotorSpeed(double rad_speed, WheelID id);
+    /// Set wheel contact material.
+    void SetWheelContactMaterial(std::shared_ptr<ChMaterialSurface> mat);
 
-    /// Set Motor Stall Torque
-    /// This function only works if DC_Motor Control is enabled, if not, does nothing
-    void SetMotorStallTorque(double torque, WheelID id);
+    /// Fix the chassis to ground.
+    void SetChassisFixed(bool fixed) { m_chassis_fixed = fixed; }
 
-    /// Set dc motor control
-    void SetDCControl(bool dc_control);
+    /// Fix the suspension arms (for debugging).
+    void SetSuspensionFixed(bool fixed) { m_suspension_fixed = fixed; }
 
-    /// Set steer motor speed
-    void SetSteerSpeed(double speed, WheelID id);
+    /// Fix the steering uprights (for debugging).
+    void SetUprightsFixed(bool fixed) { m_uprights_fixed = fixed; }
 
-    /// Get wheel speed
-    ChVector<> GetWheelSpeed(WheelID id);
+    /// Enable/disable visualization of the rover chassis (default: true).
+    void SetChassisVisualization(bool state);
 
-    /// Get wheel angular velocity
-    ChVector<> GetWheelAngVel(WheelID id);
+    /// Enable/disable visualization of rover wheels (default: true).
+    void SetWheelVisualization(bool state);
 
-    /// Get wheel contact force
-    ChVector<> GetWheelContactForce(WheelID id);
+    /// Enable/disable visualization of rover suspensions (default: true).
+    void SetSuspensionVisualization(bool state);
 
-    /// Get wheel contact torque
-    ChVector<> GetWheelContactTorque(WheelID id);
+    /// Initialize the Curiosity rover at the specified position.
+    void Initialize(const ChFrame<>& pos);
 
-    /// Get wheel total applied force
-    ChVector<> GetWheelAppliedForce(WheelID id);
+    /// General control update function.
+    /// This function must be called before each integration step.
+    void Update();
 
-    /// Get wheel total applied torque
-    ChVector<> GetWheelAppliedTorque(WheelID id);
+    /// Get the rover chassis.
+    std::shared_ptr<CuriosityChassis> GetChassis() const { return m_chassis; }
 
-    /// Get wheel tractive torque - if DC control is set to off
-    double GetWheelTracTorque(WheelID id);
+    /// Get the specified rover wheel.
+    std::shared_ptr<CuriosityWheel> GetWheel(CuriosityWheelID id) const;
 
-    /// Get DC motor applied torque on Power Shaft
-    double GetDCPowerShaftTorque(WheelID id);
+    /// Get the specified rover driveshaft.
+    std::shared_ptr<ChShaft> GetDriveshaft(CuriosityWheelID id) const { return m_drive_shafts[id]; }
 
-    /// Get the chassis body
-    std::shared_ptr<ChBodyAuxRef> GetChassisBody();
+    /// Get chassis position.
+    ChVector<> GetChassisPos() const { return m_chassis->GetPos(); }
 
-    /// Get the wheel body
-    std::shared_ptr<ChBodyAuxRef> GetWheelBody(WheelID id);
+    /// Get chassis orientation.
+    ChQuaternion<> GetChassisRot() const { return m_chassis->GetRot(); }
 
-    /// Get the wheel trimesh
-    /// This function is required for GPU module coupling
-    std::shared_ptr<geometry::ChTriangleMeshConnected> GetWheelTrimesh(WheelID id);
+    /// Get chassis linear velocity.
+    ChVector<> GetChassisVel() const { return m_chassis->GetLinVel(); }
 
-    /// Get the wheel part
-    /// This function returns the curiosity part, required for GPU module coupling
-    std::shared_ptr<Curiosity_Wheel> GetWheelPart(WheelID id);
+    /// Get chassis linear acceleration.
+    ChVector<> GetChassisAcc() const { return m_chassis->GetLinAcc(); }
 
-    /// Get chassis speedometer
-    ChVector<> GetChassisVel();
+    /// Get wheel speed.
+    ChVector<> GetWheelLinVel(CuriosityWheelID id) const { return m_wheels[id]->GetLinVel(); }
 
-    /// Get chassis accelerometer
-    ChVector<> GetChassisAcc();
+    /// Get wheel angular velocity.
+    ChVector<> GetWheelAngVel(CuriosityWheelID id) const { return m_wheels[id]->GetAngVel(); }
 
-    /// Get chassis rotation
-    ChQuaternion<> GetChassisRot();
+    /// Get wheel contact force.
+    ChVector<> GetWheelContactForce(CuriosityWheelID id) const;
 
-    /// Get steering motor angle -/+ range
-    double GetSteerAngle(WheelID id);
+    /// Get wheel contact torque.
+    ChVector<> GetWheelContactTorque(CuriosityWheelID id) const;
 
-    /// Get steering motor speed -/+ range
-    double GetSteerSpeed(WheelID id);
+    /// Get wheel total applied force.
+    ChVector<> GetWheelAppliedForce(CuriosityWheelID id) const;
 
-    /// Get total rover mass
-    double GetRoverMass();
+    /// Get wheel total applied torque.
+    ChVector<> GetWheelAppliedTorque(CuriosityWheelID id) const;
 
-    /// Get total wheel mass
-    double GetWheelMass();
+    /// Get wheel tractive torque - if DC control is set to off.
+    double GetWheelTracTorque(CuriosityWheelID id) const;
+
+    /// Get total rover mass.
+    double GetRoverMass() const;
+
+    /// Get total wheel mass.
+    double GetWheelMass() const;
+
+    /// Get drive motor function.
+    std::shared_ptr<ChFunction_Setpoint> GetDriveMotorFunc(CuriosityWheelID id) const {
+        return m_drive_motor_funcs[id];
+    }
+
+    /// Get steer motor function.
+    std::shared_ptr<ChFunction_Const> GetSteerMotorFunc(CuriosityWheelID id) const { return m_steer_motor_funcs[id]; }
+
+    /// Get drive motor.
+    std::shared_ptr<ChLinkMotorRotation> GetDriveMotor(CuriosityWheelID id) const { return m_drive_motors[id]; }
+
+    /// Get steer motor.
+    std::shared_ptr<ChLinkMotorRotation> GetSteerMotor(CuriosityWheelID id) const { return m_steer_motors[id]; }
 
   private:
-    /// This function initializes all parameters for the rover
-    /// Note: The rover will not be constructed in the ChSystem until Initialize() is called
-    void Create();
+    /// Create the rover parts.
+    void Create(CuriosityChassisType chassis_type, CuriosityWheelType wheel_type);
 
     ChSystem* m_system;  ///< pointer to the Chrono system
 
-    Chassis_Type m_chassis_type = Chassis_Type::FullRover;  ///< curiosity chassis type
-    Wheel_Type m_wheel_type = Wheel_Type::RealWheel;        ///< curiosity chassis type
+    bool m_chassis_fixed;     ///< fix chassis to ground
+    bool m_suspension_fixed;  ///< fix suspension arms to ground
+    bool m_uprights_fixed;    ///< fix uprights to ground
 
-    bool m_custom_wheel_mat;  ///< bool indicating whether the wheel material is customized
+    std::shared_ptr<CuriosityChassis> m_chassis;                    ///< rover chassis
+    std::array<std::shared_ptr<CuriosityWheel>, 6> m_wheels;        ///< rover wheels 1:LF, 2:RF, 3:LM, 4:RM, 5:LB, 6:RB
+    std::array<std::shared_ptr<CuriosityArm>, 4> m_arms;            ///< rover arms
+    std::array<std::shared_ptr<CuriosityUpright>, 4> m_uprights;    ///< rover steering uprights
+    std::array<std::shared_ptr<CuriosityBalancer>, 3> m_balancers;  ///< rover balancers
 
-    bool m_dc_motor_control = false;  ///< enable dc motor control, default set to false
+    ChFrame<> m_rover_pos;  ///< rover placement position
 
-    std::shared_ptr<Curiosity_Chassis> m_chassis;            ///< rover chassis
-    std::vector<std::shared_ptr<Curiosity_Wheel>> m_wheels;  ///< rover wheels - 1:LF, 2:RF, 3:LM, 4:RM, 5:LB, 6:RB
-    std::vector<std::shared_ptr<Curiosity_Arm>> m_arms;      ///< rover arms
-    std::vector<std::shared_ptr<Curiosity_Steer>> m_steers;  ///< rover steering rods
-    std::vector<std::shared_ptr<Curiosity_Balancer>> m_balancers;  ///< rover balancers parts
+    std::array<std::shared_ptr<ChLinkMotorRotation>, 6> m_drive_motors;  ///< drive motors
+    std::array<std::shared_ptr<ChLinkMotorRotation>, 6> m_steer_motors;  ///< steering motors
 
-    ChQuaternion<> m_rover_rot;  ///< rover placement rotation
-    ChVector<> m_rover_pos;      ///< rover placement position
+    std::array<std::shared_ptr<ChFunction_Setpoint>, 6> m_drive_motor_funcs;  ///< cdrive motor functions
+    std::array<std::shared_ptr<ChFunction_Const>, 6> m_steer_motor_funcs;     ///< steering motor functions
 
-    std::vector<std::shared_ptr<ChLinkMotorRotationSpeed>> m_motors;        ///< vector to store motors
-                                                                            ///< 0-LF,1-RF,2-LM,3-RM,4-LB,5-RB
-    std::vector<std::shared_ptr<ChLinkMotorRotationSpeed>> m_steer_motors;  ///< vector to store steering motors
-                                                                            ///< 0-LF,1-RF,2-LM,3-RM,4-LB,5-RB
+    std::array<std::shared_ptr<ChShaft>, 6> m_drive_shafts;  ///< power shafts for torque-controlled drive mode
 
-    // DC Motor Model
-    std::vector<std::shared_ptr<ChShaft>> m_power_shafts;      ///< DC motor power shafts
-    std::vector<std::shared_ptr<ChShaft>> m_driven_shafts;     ///< DC motor driven shafts
-    std::vector<std::shared_ptr<ChShaftsGear>> m_shaft_gears;  ///< DC motor transmission gears -> default set to 1
+    std::shared_ptr<CuriosityDriver> m_driver;  ///< rover driver system
 
-    std::vector<std::shared_ptr<ChFunction_Const>> m_motors_func;        ///< constant motor angular speed func
-    std::vector<std::shared_ptr<ChFunction_Const>> m_steer_motors_func;  ///< constant steering motor angular speed func
+    std::shared_ptr<ChMaterialSurface> m_default_material;  ///< common contact material for all non-wheel parts
+    std::shared_ptr<ChMaterialSurface> m_wheel_material;    ///< wheel contact material (shared across limbs)
 
-    std::vector<double> m_stall_torque;   ///< stall torque of the motors
-    std::vector<double> m_no_load_speed;  ///< no load speed of the motors
+    friend class CuriosityDCMotorControl;
+};
 
-    // model parts material
-    std::shared_ptr<ChMaterialSurface> m_chassis_material;   ///< chassis contact material
-    std::shared_ptr<ChMaterialSurface> m_wheel_material;     ///< wheel contact material (shared across limbs)
-    std::shared_ptr<ChMaterialSurface> m_arm_material;       ///< arm contact material (shared across suspension arms)
-    std::shared_ptr<ChMaterialSurface> m_steer_material;     ///< steer contact material
-    std::shared_ptr<ChMaterialSurface> m_balancer_material;  ///< balancer contact material
+// -----------------------------------------------------------------------------
+
+/// Base class definition for a Curiosity driver.
+/// A derived class must implement the Update function to set the various motor controls at the current time.
+/// Alternatively, a derived class may directly access the associate Curiosity rover and control it through different
+/// means (such as applying torques to the wheel driveshafts).
+class CH_MODELS_API CuriosityDriver {
+  public:
+    /// Type of drive motor control.
+    enum class DriveMotorType {
+        SPEED,  ///< angular speed
+        TORQUE  ///< torque
+    };
+    virtual ~CuriosityDriver() {}
+
+    /// Set current steering input (angle: negative for left turn, positive for right turn).
+    /// This function sets the same steering angle for all steerable wheels.
+    void SetSteering(double angle);
+
+    /// Set current steering input (angle: negative for left turn, positive for right turn).
+    /// This function sets the steering angle for the specified wheel.
+    void SetSteering(double angle, CuriosityWheelID id);
+
+    /// Indicate the control type for the drive motors.
+    virtual DriveMotorType GetDriveMotorType() const = 0;
+
+  protected:
+    CuriosityDriver();
+
+    /// Set the current rover driver inputs.
+    /// This function is called by the associated Curiosity at each rover Update. A derived class must update the values
+    /// for the angular speeds for the drive motors, as well as the angles for the steering motors and the lift motors
+    /// at the specified time. A positive steering input corresponds to a left turn and a negative value to a right
+    /// turn.
+    virtual void Update(double time) = 0;
+
+    Curiosity* curiosity;  ///< associated Curiosity rover
+
+    std::array<double, 6> drive_speeds;  ///< angular speeds for drive motors (positive for forward motion)
+    std::array<double, 4> steer_angles;  ///< angles for steer motors (negative for left turn, positive for right turn)
+
+    friend class Curiosity;
+};
+
+/// Concrete Curiosity driver class for a simple DC motor control.
+/// This implements a simplistic DC motor control by directly applying torques to the rover's driveshafts.
+/// Control of the steering is left to the caller (through SetSteering).
+class CH_MODELS_API CuriosityDCMotorControl : public CuriosityDriver {
+  public:
+    CuriosityDCMotorControl();
+    ~CuriosityDCMotorControl() {}
+
+    /// Set motor stall torque for the specified wheel (default: 300).
+    void SetMotorStallTorque(double torque, CuriosityWheelID id) { m_stall_torque[id] = torque; }
+
+    /// Set DC motor no load speed (default: pi).
+    void SetMotorNoLoadSpeed(double speed, CuriosityWheelID id) { m_no_load_speed[id] = speed; }
+
+  private:
+    virtual DriveMotorType GetDriveMotorType() const override { return DriveMotorType::TORQUE; }
+    virtual void Update(double time) override;
+
+    std::array<double, 6> m_stall_torque;   ///< stall torque of the motors
+    std::array<double, 6> m_no_load_speed;  ///< no load speed of the motors
+};
+
+/// Concrete Curiosity speed driver.
+/// This driver applies the same angular speed (ramped from 0 to a prescribed value) to all wheels.
+class CH_MODELS_API CuriositySpeedDriver : public CuriosityDriver {
+  public:
+    CuriositySpeedDriver(double time_ramp, double speed);
+    ~CuriositySpeedDriver() {}
+
+  private:
+    virtual DriveMotorType GetDriveMotorType() const override { return DriveMotorType::SPEED; }
+    virtual void Update(double time) override;
+
+    double m_ramp;
+    double m_speed;
 };
 
 /// @} robot_models_curiosity
 
 }  // namespace curiosity
 }  // namespace chrono
+
 #endif
