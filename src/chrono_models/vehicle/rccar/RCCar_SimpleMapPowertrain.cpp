@@ -31,7 +31,7 @@ namespace rccar {
 
 const double rpm2rads = CH_C_PI / 30;
 
-const double max_rpm = 19240;
+const double max_rpm = 19240; //TODO
 
 RCCar_SimpleMapPowertrain::RCCar_SimpleMapPowertrain(const std::string& name) : ChSimpleMapPowertrain(name) {}
 
@@ -40,7 +40,7 @@ double RCCar_SimpleMapPowertrain::GetMaxEngineSpeed() {
 }
 
 void RCCar_SimpleMapPowertrain::SetEngineTorqueMaps(ChFunction_Recorder& map0, ChFunction_Recorder& mapF) {
-    double m = -2e-3;
+    double m = -2e-3; 
 
     double x1 = max_rpm * rpm2rads, y1 = 0;
     double x0 = 0, y0 = -m * x1;
@@ -49,7 +49,7 @@ void RCCar_SimpleMapPowertrain::SetEngineTorqueMaps(ChFunction_Recorder& map0, C
         double t = (double)i / r;
         double x = (1.0 - t) * x0 + t * x1;
         double y = (1.0 - t) * y0 + t * y1;
-        mapF.AddPoint(x, y);
+        mapF.AddPoint(x, y); //TODO
     }
 
     // N-m and rad/s
@@ -58,9 +58,9 @@ void RCCar_SimpleMapPowertrain::SetEngineTorqueMaps(ChFunction_Recorder& map0, C
 }
 
 void RCCar_SimpleMapPowertrain::SetGearRatios(std::vector<double>& fwd, double& rev) {
-    rev = -0.2;
+    rev = -0.2; //TODO
 
-    fwd.push_back(1.0 / 3);
+    fwd.push_back(1.0 / 3); //TODO
 }
 
 void RCCar_SimpleMapPowertrain::SetShiftPoints(std::vector<std::pair<double, double>>& shift_bands) {
