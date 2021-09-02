@@ -391,7 +391,7 @@ class CH_MODELS_API CuriosityDCMotorControl : public CuriosityDriver {
     void SetMotorNoLoadSpeed(double speed, WheelID id) { m_no_load_speed[id] = speed; }
 
     /// Set current steering input (angle: negative for left, positive for right).
-    void SetSteering(double angle, WheelID id);
+    void SetSteering(double angle);
 
   private:
     virtual DriveMotorType GetDriveMotorType() const override { return DriveMotorType::TORQUE; }
