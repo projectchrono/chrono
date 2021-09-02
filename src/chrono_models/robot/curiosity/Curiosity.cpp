@@ -9,7 +9,7 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Authors: Jason Zhou
+// Authors: Jason Zhou, Radu Serban
 // =============================================================================
 //
 // NASA Curiosity Mars Rover Model Class.
@@ -42,8 +42,9 @@ namespace curiosity {
 
 // =============================================================================
 
-// maximum steering angle
-static const double max_steer_angle = CH_C_PI / 6;
+// Maximum steering angle
+// hard limit: +- 95 deg, soft limit: +- 85 deg
+static const double max_steer_angle = 85 * CH_C_DEG_TO_RAD;
 
 // rover wheels positions
 static const ChVector<> wheel_rel_pos_lf = ChVector<>(1.095, 1.063, 0.249);
@@ -569,15 +570,21 @@ void CuriosityRover::Initialize(const ChFrame<>& pos) {
     }
 
     // Add revolute joints between steering rod and suspension arms
-    ChVector<> rev_steer_suspension[] = {
+    ChVector<> steer_motor_loc[] = {
         sr_rel_pos_lf, sr_rel_pos_rf,  // front (left/right)
         sr_rel_pos_lb, sr_rel_pos_rb   // back (left/right)
+    };
+    ChQuaternion<> steer_motor_rot[] = {
+        Q_from_AngX(CH_C_PI),  // front left
+        Q_from_AngX(CH_C_PI),  // front right
+        QUNIT,                 // back left
+        QUNIT                  // back right
     };
 
     for (int i = 0; i < 4; i++) {
         m_steer_motor_funcs[i] = chrono_types::make_shared<ChFunction_Const>(0.0);
-        m_steer_motors[i] =
-            AddMotorAngle(m_steers[i]->GetBody(), m_arms[i]->GetBody(), m_chassis, rev_steer_suspension[i], QUNIT);
+        m_steer_motors[i] = AddMotorAngle(m_steers[i]->GetBody(), m_arms[i]->GetBody(), m_chassis, steer_motor_loc[i],
+                                          steer_motor_rot[i]);
         m_steer_motors[i]->SetMotorFunction(m_steer_motor_funcs[i]);
     }
 
