@@ -60,7 +60,11 @@ enum class WheelType {
 /// Viper Rover Parts include Chassis, Steering, Upper Suspension Arm, Bottom Suspension Arm and Wheel.
 class CH_MODELS_API ViperPart {
   public:
-    ViperPart(const std::string& name, const ChFrame<>& rel_pos, std::shared_ptr<ChMaterialSurface> mat, bool collide);
+    ViperPart(const std::string& name,                 ///< part name
+              const ChFrame<>& rel_pos,                ///< position relative to chassis frame
+              std::shared_ptr<ChMaterialSurface> mat,  ///< contact material
+              bool collide                             ///< enable collision?
+    );
     virtual ~ViperPart() {}
 
     /// Return the name of the part.
@@ -127,7 +131,9 @@ class CH_MODELS_API ViperPart {
 /// Viper rover Chassis.
 class CH_MODELS_API ViperChassis : public ViperPart {
   public:
-    ViperChassis(const std::string& name, std::shared_ptr<ChMaterialSurface> mat);
+    ViperChassis(const std::string& name,                ///< part name
+                 std::shared_ptr<ChMaterialSurface> mat  ///< contact material
+    );
     ~ViperChassis() {}
 
     /// Initialize the chassis at the specified (absolute) position.
@@ -137,10 +143,11 @@ class CH_MODELS_API ViperChassis : public ViperPart {
 /// Viper rover Wheel.
 class CH_MODELS_API ViperWheel : public ViperPart {
   public:
-    ViperWheel(const std::string& name,
-               const ChFrame<>& rel_pos,
-               std::shared_ptr<ChMaterialSurface> mat,
-               WheelType wheel_type);
+    ViperWheel(const std::string& name,                 ///< part name
+               const ChFrame<>& rel_pos,                ///< position relative to chassis frame
+               std::shared_ptr<ChMaterialSurface> mat,  ///< contact material
+               WheelType wheel_type                     ///< wheel type
+    );
     ~ViperWheel() {}
 
     friend class Viper;
@@ -149,20 +156,22 @@ class CH_MODELS_API ViperWheel : public ViperPart {
 /// The upper arm of the Viper rover suspension.
 class CH_MODELS_API ViperUpperArm : public ViperPart {
   public:
-    ViperUpperArm(const std::string& name,
-                  const ChFrame<>& rel_pos,
-                  std::shared_ptr<ChMaterialSurface> mat,
-                  const int& side);  ///< indicate which side of the suspension 0->L, 1->R
+    ViperUpperArm(const std::string& name,                 ///< part name
+                  const ChFrame<>& rel_pos,                ///< position relative to chassis frame
+                  std::shared_ptr<ChMaterialSurface> mat,  ///< contact material
+                  const int& side                          ///< vehicle side 0: L, 1: R
+    );
     ~ViperUpperArm() {}
 };
 
 /// The bottom arm of the Viper rover suspension.
 class CH_MODELS_API ViperLowerArm : public ViperPart {
   public:
-    ViperLowerArm(const std::string& name,
-                  const ChFrame<>& rel_pos,
-                  std::shared_ptr<ChMaterialSurface> mat,
-                  const int& side);  ///< indicate which side of the suspension 0->L, 1->R
+    ViperLowerArm(const std::string& name,                 ///< part name
+                  const ChFrame<>& rel_pos,                ///< position relative to chassis frame
+                  std::shared_ptr<ChMaterialSurface> mat,  ///< contact material
+                  const int& side                          ///< vehicle side 0: L, 1: R
+    );
     ~ViperLowerArm() {}
 };
 
@@ -171,10 +180,11 @@ class CH_MODELS_API ViperLowerArm : public ViperPart {
 /// There are two connecting rods on the steering rod, linking to upper and bottom arms of the suspension.
 class CH_MODELS_API ViperUpright : public ViperPart {
   public:
-    ViperUpright(const std::string& name,
-                 const ChFrame<>& rel_pos,
-                 std::shared_ptr<ChMaterialSurface> mat,
-                 const int& side);  ///< indicate which side of the rover 0->L, 1->R
+    ViperUpright(const std::string& name,                 ///< part name
+                 const ChFrame<>& rel_pos,                ///< position relative to chassis frame
+                 std::shared_ptr<ChMaterialSurface> mat,  ///< contact material
+                 const int& side                          ///< vehicle side 0: L, 1: R
+    );
     ~ViperUpright() {}
 };
 
@@ -413,4 +423,5 @@ class CH_MODELS_API ViperSpeedDriver : public ViperDriver {
 
 }  // namespace viper
 }  // namespace chrono
+
 #endif

@@ -70,10 +70,11 @@ enum class WheelType { RealWheel, SimpleWheel, CylWheel };
 /// Base class definition for all Curiosity Rover parts.
 class CH_MODELS_API CuriosityPart {
   public:
-    CuriosityPart(const std::string& name,
-                  const ChFrame<>& rel_pos,
-                  std::shared_ptr<ChMaterialSurface> mat,
-                  bool collide);
+    CuriosityPart(const std::string& name,                 ///< part name
+                  const ChFrame<>& rel_pos,                ///< position relative to chassis frame
+                  std::shared_ptr<ChMaterialSurface> mat,  ///< contact material
+                  bool collide                             ///< enable collision?
+    );
     virtual ~CuriosityPart() {}
 
     /// Return the name of the part.
@@ -99,19 +100,19 @@ class CH_MODELS_API CuriosityPart {
     /// This is the orientation wrt the global frame of the part reference frame.
     const ChQuaternion<>& GetRot() const { return m_body->GetFrame_REF_to_abs().GetRot(); }
 
-    /// Return the linear velocity of the Viper part.
+    /// Return the linear velocity of the Curiopsity part.
     /// This is the absolute linear velocity of the part reference frame.
     const ChVector<>& GetLinVel() const { return m_body->GetFrame_REF_to_abs().GetPos_dt(); }
 
-    /// Return the angular velocity of the Viper part.
+    /// Return the angular velocity of the Curiosity part.
     /// This is the absolute angular velocity of the part reference frame.
     const ChVector<> GetAngVel() const { return m_body->GetFrame_REF_to_abs().GetWvel_par(); }
 
-    /// Return the linear acceleration of the Viper part.
+    /// Return the linear acceleration of the Curiosity part.
     /// This is the absolute linear acceleration of the part reference frame.
     const ChVector<>& GetLinAcc() const { return m_body->GetFrame_REF_to_abs().GetPos_dtdt(); }
 
-    /// Return the angular acceleratino of the Viper part.
+    /// Return the angular acceleratino of the Curiosity part.
     /// This is the absolute angular acceleratin of the part reference frame.
     const ChVector<> GetAngAcc() const { return m_body->GetFrame_REF_to_abs().GetWacc_par(); }
 
@@ -180,7 +181,7 @@ class CH_MODELS_API CuriosityArm : public CuriosityPart {
     ~CuriosityArm() {}
 };
 
-/// Curiosity rover steering rod.
+/// Curiosity rover steering upright.
 class CH_MODELS_API CuriosityUpright : public CuriosityPart {
   public:
     CuriosityUpright(const std::string& name,                ///< part name
@@ -192,7 +193,7 @@ class CH_MODELS_API CuriosityUpright : public CuriosityPart {
     virtual void Initialize(std::shared_ptr<ChBodyAuxRef> chassis) override;
 };
 
-/// Curiosity rover steering rod.
+/// Curiosity rover balancer.
 class CH_MODELS_API CuriosityBalancer : public CuriosityPart {
   public:
     CuriosityBalancer(const std::string& name,                 ///< part name
@@ -229,7 +230,7 @@ class CH_MODELS_API Curiosity {
     /// Fix the chassis to ground.
     void SetChassisFixed(bool fixed) { m_chassis_fixed = fixed; }
 
-    /// Fix the suspension arms and steering bodies (for debugging).
+    /// Fix the suspension arms (for debugging).
     void SetSuspensionFixed(bool fixed) { m_suspension_fixed = fixed; }
 
     /// Fix the steering uprights (for debugging).
@@ -253,9 +254,6 @@ class CH_MODELS_API Curiosity {
 
     /// Get the rover chassis.
     std::shared_ptr<CuriosityChassis> GetChassis() const { return m_chassis; }
-
-    /// Get the wheel trimesh.
-    std::shared_ptr<geometry::ChTriangleMeshConnected> GetWheelTrimesh(WheelID id);  //// RADU: obosolete?
 
     /// Get the specified rover wheel.
     std::shared_ptr<CuriosityWheel> GetWheel(WheelID id) const;
@@ -327,8 +325,8 @@ class CH_MODELS_API Curiosity {
     std::shared_ptr<CuriosityChassis> m_chassis;                    ///< rover chassis
     std::array<std::shared_ptr<CuriosityWheel>, 6> m_wheels;        ///< rover wheels 1:LF, 2:RF, 3:LM, 4:RM, 5:LB, 6:RB
     std::array<std::shared_ptr<CuriosityArm>, 4> m_arms;            ///< rover arms
-    std::array<std::shared_ptr<CuriosityUpright>, 4> m_uprights;    ///< rover steering rods
-    std::array<std::shared_ptr<CuriosityBalancer>, 3> m_balancers;  ///< rover balancers parts
+    std::array<std::shared_ptr<CuriosityUpright>, 4> m_uprights;    ///< rover steering uprights
+    std::array<std::shared_ptr<CuriosityBalancer>, 3> m_balancers;  ///< rover balancers
 
     ChFrame<> m_rover_pos;  ///< rover placement position
 
@@ -433,4 +431,5 @@ class CH_MODELS_API CuriositySpeedDriver : public CuriosityDriver {
 
 }  // namespace curiosity
 }  // namespace chrono
+
 #endif
