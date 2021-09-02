@@ -355,8 +355,19 @@ class CH_MODELS_API CuriosityDriver {
     };
     virtual ~CuriosityDriver() {}
 
+    /// Set current steering input (angle: negative for left turn, positive for right turn).
+    /// This function sets the same steering angle for all steerable wheels.
+    void SetSteering(double angle);
+
+    /// Set current steering input (angle: negative for left turn, positive for right turn).
+    /// This function sets the steering angle for the specified wheel.
+    void SetSteering(double angle, WheelID id);
+
     /// Indicate the control type for the drive motors.
     virtual DriveMotorType GetDriveMotorType() const = 0;
+
+  protected:
+    CuriosityDriver();
 
     /// Set the current rover driver inputs.
     /// This function is called by the associated Curiosity at each rover Update. A derived class must update the values
@@ -365,13 +376,10 @@ class CH_MODELS_API CuriosityDriver {
     /// turn.
     virtual void Update(double time) = 0;
 
-  protected:
-    CuriosityDriver();
-
     CuriosityRover* curiosity;  ///< associated Curiosity rover
 
-    std::array<double, 6> drive_speeds;  ///< angular speeds for drive motors
-    std::array<double, 4> steer_angles;  ///< angles for steer motors
+    std::array<double, 6> drive_speeds;  ///< angular speeds for drive motors (positive for forward motion)
+    std::array<double, 4> steer_angles;  ///< angles for steer motors (negative for left turn, positive for right turn)
 
     friend class CuriosityRover;
 };
@@ -390,9 +398,6 @@ class CH_MODELS_API CuriosityDCMotorControl : public CuriosityDriver {
     /// Set DC motor no load speed (default: pi).
     void SetMotorNoLoadSpeed(double speed, WheelID id) { m_no_load_speed[id] = speed; }
 
-    /// Set current steering input (angle: negative for left, positive for right).
-    void SetSteering(double angle);
-
   private:
     virtual DriveMotorType GetDriveMotorType() const override { return DriveMotorType::TORQUE; }
     virtual void Update(double time) override;
@@ -401,25 +406,21 @@ class CH_MODELS_API CuriosityDCMotorControl : public CuriosityDriver {
     std::array<double, 6> m_no_load_speed;  ///< no load speed of the motors
 };
 
-/// Concrete Curiosity driver class for a constant speed drive motor control.
-/// Control of the steering is left to the caller (through SetSteering).
-class CH_MODELS_API CuriosityConstMotorControl : public CuriosityDriver {
+/// Concrete Curiosity speed driver.
+/// This driver applies the same angular speed (ramped from 0 to a prescribed value) to all wheels.
+class CH_MODELS_API CuriositySpeedDriver : public CuriosityDriver {
   public:
-    CuriosityConstMotorControl(double speed);
-    ~CuriosityConstMotorControl() {}
-
-    /// Set const speed for the specified motor.
-    void SetMotorSpeed(double speed, WheelID id) { m_const_speed[id] = speed; }
-
-    /// Set current steering input.
-    void SetSteering(double angle, WheelID id);
+    CuriositySpeedDriver(double time_ramp, double speed);
+    ~CuriositySpeedDriver() {}
 
   private:
     virtual DriveMotorType GetDriveMotorType() const override { return DriveMotorType::SPEED; }
     virtual void Update(double time) override;
 
-    std::array<double, 6> m_const_speed;  ///< current constant motor speed (default: pi).
+    double m_ramp;
+    double m_speed;
 };
+
 
 /// @} robot_models_curiosity
 

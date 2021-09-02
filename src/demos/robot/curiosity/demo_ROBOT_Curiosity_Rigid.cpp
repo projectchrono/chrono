@@ -56,7 +56,9 @@ ChassisType chassis_type = ChassisType::Scarecrow;
 WheelType wheel_type = WheelType::RealWheel;
 
 // Simulation time step
-double time_step = 2e-3;
+double time_step = 1e-3;
+
+// -----------------------------------------------------------------------------
 
 int main(int argc, char* argv[]) {
     GetLog() << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
@@ -117,20 +119,21 @@ int main(int argc, char* argv[]) {
     */
 
     // Create a Curiosity Rover and the asociated driver
-    auto driver = chrono_types::make_shared<CuriosityConstMotorControl>(0);
-    ////auto driver = chrono_types::make_shared<CuriosityDCMotorControl>();
+    ////auto driver = chrono_types::make_shared<CuriositySpeedDriver>(1.0, 5.0);
+    auto driver = chrono_types::make_shared<CuriosityDCMotorControl>();
 
-    auto rover = chrono_types::make_shared<CuriosityRover>(&mphysicalSystem, chassis_type, wheel_type);
-    rover->SetDriver(driver);
+    CuriosityRover rover(&mphysicalSystem, chassis_type, wheel_type);
+    rover.SetDriver(driver);
 
-    ////rover->SetChassisFixed(true);
-    ////rover->SetSuspensionFixed(true);
+    ////rover.SetChassisFixed(true);
+    ////rover.SetSuspensionFixed(true);
+    ////rover.SetUprightsFixed(true);
 
-    ////rover->SetChassisVisualization(false);
-    ////rover->SetWheelVisualization(false);
-    ////rover->SetSuspensionVisualization(false);
+    ////rover.SetChassisVisualization(false);
+    ////rover.SetWheelVisualization(false);
+    ////rover.SetSuspensionVisualization(false);
 
-    rover->Initialize(ChFrame<>(ChVector<double>(0, 0, 0.5), QUNIT));
+    rover.Initialize(ChFrame<>(ChVector<double>(0, 0, 0.2), QUNIT));
 
     // Complete visual asset construction
     application.AssetBindAll();
@@ -139,13 +142,19 @@ int main(int argc, char* argv[]) {
 
     // Simulation loop
     while (application.GetDevice()->run()) {
-        rover->Update();
+        rover.Update();
 
         // Read rover chassis velocity
-        // std::cout <<"Rover Chassis Speedo Reading: " << rover -> GetChassisVel() << std::endl;
+        ////std::cout <<"Rover speed: " << rover.GetChassisVel() << std::endl;
 
         // Read rover chassis acceleration
-        // std::cout << "Rover Chassis Accelerometer Reading: "<< rover -> GetChassisAcc() << std::endl;
+        ////std::cout << "Rover acceleration: "<< rover.GetChassisAcc() << std::endl;
+
+        ////auto time = rover.GetSystem()->GetChTime();
+        ////if (time < 1)
+        ////    driver->SetSteering(0);
+        ////else
+        ////    driver->SetSteering(time * 0.2);
 
         application.BeginScene(true, true, SColor(255, 140, 161, 192));
         application.DrawAll();

@@ -701,18 +701,25 @@ void CuriosityRover::Update() {
     }
 }
 
-// =================================================================
+// =============================================================================
 
 CuriosityDriver::CuriosityDriver() : drive_speeds({0, 0, 0, 0, 0, 0}), steer_angles({0, 0, 0, 0}), curiosity(nullptr) {}
+
+void CuriosityDriver::SetSteering(double angle) {
+    steer_angles = {angle, angle, angle, angle};
+}
+
+void CuriosityDriver::SetSteering(double angle, WheelID id) {
+    if (id == WheelID::LM || id == WheelID::RM)
+        return;
+    steer_angles[id] = angle;
+}
+
+// -----------------------------------------------------------------------------
 
 CuriosityDCMotorControl::CuriosityDCMotorControl()
     : m_stall_torque({300, 300, 300, 300, 300, 300}),
       m_no_load_speed({CH_C_PI, CH_C_PI, CH_C_PI, CH_C_PI, CH_C_PI, CH_C_PI}) {}
-
-void CuriosityDCMotorControl::SetSteering(double angle) {
-    for (int i = 0; i < 4; i++)
-        steer_angles[i] = angle;
-}
 
 void CuriosityDCMotorControl::Update(double time) {
     double speed_reading;
@@ -731,20 +738,13 @@ void CuriosityDCMotorControl::Update(double time) {
     }
 }
 
-// =================================================================
+CuriositySpeedDriver::CuriositySpeedDriver(double time_ramp, double speed) : m_ramp(time_ramp), m_speed(speed) {}
 
-CuriosityConstMotorControl::CuriosityConstMotorControl(double speed)
-    : m_const_speed({speed, speed, speed, speed, speed, speed}) {}
-
-void CuriosityConstMotorControl::Update(double time) {
-    for (int i = 0; i < 6; i++) {
-        drive_speeds[i] = m_const_speed[i];
-    }
-}
-
-void CuriosityConstMotorControl::SetSteering(double angle, WheelID id) {
-    for (int i = 0; i < 4; i++)
-        steer_angles[i] = angle;
+void CuriositySpeedDriver::Update(double time) {
+    double speed = m_speed;
+    if (time < m_ramp)
+        speed = m_speed * (time / m_ramp);
+    drive_speeds = {speed, speed, speed, speed, speed, speed};
 }
 
 }  // namespace curiosity

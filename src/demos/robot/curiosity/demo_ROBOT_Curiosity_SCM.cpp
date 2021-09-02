@@ -81,6 +81,8 @@ ChassisType chassis_type = ChassisType::FullRover;
 // The options are WheelType::RealWheel, WheelType::SimpleWheel, and WheelType::CylWheel
 WheelType wheel_type = WheelType::RealWheel;
 
+// -----------------------------------------------------------------------------
+
 // Custom callback for setting location-dependent soil properties.
 class MySoilParams : public vehicle::SCMDeformableTerrain::SoilParametersCallback {
   public:
@@ -142,7 +144,7 @@ int main(int argc, char* argv[]) {
     rover = chrono_types::make_shared<CuriosityRover>(&my_system, chassis_type, wheel_type);
 
     // Create a CuriosityDriver to command the rover
-    auto driver = chrono_types::make_shared<CuriosityConstMotorControl>(CH_C_PI);
+    auto driver = chrono_types::make_shared<CuriositySpeedDriver>(1.0, CH_C_PI);
     rover->SetDriver(driver);
     rover->Initialize(ChFrame<>(body_pos, body_rot));
 
