@@ -27,7 +27,7 @@ using namespace chrono;
 using namespace geometry;
 using namespace vsg3d;
 
-int main(int argc, char* argv[]) {
+int main(int argc, char *argv[]) {
     GetLog() << "Copyright (c) 2021 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
 
     ChSystemNSC sys;

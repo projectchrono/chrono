@@ -25,7 +25,10 @@
 #include "chrono/core/ChVector.h"
 #include "chrono/assets/ChVisualization.h"
 #include "chrono/assets/ChSphereShape.h"
+#include "chrono/assets/ChEllipsoidShape.h"
+#include "chrono/assets/ChBoxShape.h"
 #include "chrono/assets/ChCylinderShape.h"
+#include "chrono/assets/ChConeShape.h"
 
 #include <vsgImGui/RenderImGui.h>
 #include <vsgImGui/SendEventsToImGui.h>
@@ -48,7 +51,10 @@ class CH_VSG_API VSGApp {
     void Render();
     void Quit() { m_viewer->close(); }
     vsg::ref_ptr<vsg::Viewer> GetViewer() { return m_viewer; }
-    void UpdateDrawMode(int mode) { m_drawMode = mode; m_drawModeChanged = true; }
+    void UpdateDrawMode(int mode) {
+        m_drawMode = mode;
+        m_drawModeChanged = true;
+    }
 
   protected:
     void BuildSceneGraph();
@@ -69,6 +75,8 @@ class CH_VSG_API VSGApp {
     vsg::ref_ptr<vsg::Switch> m_dot_subgraph;
     vsg::ref_ptr<vsg::Switch> m_line_subgraph;
     vsg::ref_ptr<vsg::Switch> m_polygon_subgraph;
+
+    vsg::ref_ptr<vsg::Builder> m_builder;
 
     vsg::ref_ptr<vsg::CommandGraph> m_commandGraph;
     vsg::ref_ptr<vsg::RenderGraph> m_renderGraph;
