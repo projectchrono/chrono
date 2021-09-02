@@ -123,27 +123,28 @@ int main(int argc, char* argv[]) {
     texture->SetTextureScale(60, 45);
     ground->AddAsset(texture);
 
-    // Construct and initialize a Viper rover.
-    // The default rotational speed of the Motor is speed w=3.145 rad/sec.
+    // Construct a Viper rover and the asociated driver
+    ////auto driver = chrono_types::make_shared<ViperSpeedDriver>(1.0, 5.0);
     auto driver = chrono_types::make_shared<ViperDCMotorControl>();
-    auto viper = chrono_types::make_shared<Viper>(&sys, wheel_type);
 
-    viper->SetDriver(driver);
+    Viper viper(&sys, wheel_type);
+    viper.SetDriver(driver);
     if (use_custom_mat)
-        viper->SetWheelContactMaterial(CustomWheelMaterial(ChContactMethod::NSC));
+        viper.SetWheelContactMaterial(CustomWheelMaterial(ChContactMethod::NSC));
 
-    ////viper->SetChassisFixed(true);
-    ////viper->SetChassisVisualization(false);
-    ////viper->SetSuspensionVisualization(false);
+    ////viper.SetChassisFixed(true);
+    
+    ////viper.SetChassisVisualization(false);
+    ////viper.SetSuspensionVisualization(false);
 
-    viper->Initialize(ChFrame<>(ChVector<>(0, 0, 0.5), QUNIT));
+    viper.Initialize(ChFrame<>(ChVector<>(0, 0, 0.5), QUNIT));
 
-    std::cout << "Viper total mass: " << viper->GetRoverMass() << std::endl;
-    std::cout << "  chassis:        " << viper->GetChassis()->GetBody()->GetMass() << std::endl;
-    std::cout << "  upper arm:      " << viper->GetUpperArm(WheelID::LF)->GetBody()->GetMass() << std::endl;
-    std::cout << "  lower arm:      " << viper->GetLowerArm(WheelID::LF)->GetBody()->GetMass() << std::endl;
-    std::cout << "  upright:        " << viper->GetUpright(WheelID::LF)->GetBody()->GetMass() << std::endl;
-    std::cout << "  wheel:          " << viper->GetWheel(WheelID::LF)->GetBody()->GetMass() << std::endl;
+    std::cout << "Viper total mass: " << viper.GetRoverMass() << std::endl;
+    std::cout << "  chassis:        " << viper.GetChassis()->GetBody()->GetMass() << std::endl;
+    std::cout << "  upper arm:      " << viper.GetUpperArm(WheelID::LF)->GetBody()->GetMass() << std::endl;
+    std::cout << "  lower arm:      " << viper.GetLowerArm(WheelID::LF)->GetBody()->GetMass() << std::endl;
+    std::cout << "  upright:        " << viper.GetUpright(WheelID::LF)->GetBody()->GetMass() << std::endl;
+    std::cout << "  wheel:          " << viper.GetWheel(WheelID::LF)->GetBody()->GetMass() << std::endl;
     std::cout << std::endl;
 
     // Complete construction of visual assets
@@ -156,9 +157,9 @@ int main(int argc, char* argv[]) {
     application.SetTimestep(time_step);
 
     // Simulation loop
-    double time = 0.0;
     while (application.GetDevice()->run()) {
         // Set current steering angle
+        double time = viper.GetSystem()->GetChTime();
         double max_steering = CH_C_PI / 6;
         double steering = 0;
         if (time > 2 && time < 7)
@@ -176,20 +177,18 @@ int main(int argc, char* argv[]) {
         ////driver->SetLifting(lifting);
 
         // Update Viper controls
-        viper->Update();
+        viper.Update();
 
         // Read rover chassis velocity
-        ////std::cout <<"Rover Chassis Speedo Reading: " << viper -> GetChassisVel() << std::endl;
+        ////std::cout <<"Rover speed: " << viper.GetChassisVel() << std::endl;
 
         // Read rover chassis acceleration
-        ////std::cout << "Rover Chassis Accelerometer Reading: "<< viper -> GetChassisAcc() << std::endl;
+        ////std::cout << "Rover acceleration: "<< viper.GetChassisAcc() << std::endl;
 
         application.BeginScene(true, true, SColor(255, 140, 161, 192));
         application.DrawAll();
         application.DoStep();
         application.EndScene();
-
-        time = time + time_step;
     }
 
     return 0;

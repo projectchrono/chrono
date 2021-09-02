@@ -143,13 +143,12 @@ int main(int argc, char* argv[]) {
     ////double body_range = 1.2;
 
     // Create a Chrono::Engine physical system
-    ChSystemSMC my_system;
-    my_system.Set_G_acc(ChVector<>(0, 0, -9.81));
+    ChSystemSMC sys;
+    sys.Set_G_acc(ChVector<>(0, 0, -9.81));
 
     // Create the Irrlicht visualization (open the Irrlicht device,
     // bind a simple user interface, etc. etc.)
-    ChIrrApp application(&my_system, L"Viper Rover on SCM", core::dimension2d<u32>(1280, 720), VerticalDir::Z, false,
-                         true);
+    ChIrrApp application(&sys, L"Viper Rover on SCM", core::dimension2d<u32>(1280, 720), VerticalDir::Z, false, true);
 
     // Easy shortcuts to add camera, lights, logo and sky in Irrlicht scene:
     application.AddTypicalLogo();
@@ -170,61 +169,62 @@ int main(int argc, char* argv[]) {
 
     // Create the rover
     auto driver = chrono_types::make_shared<ViperDCMotorControl>();
-    auto viper = chrono_types::make_shared<Viper>(&my_system, wheel_type);
 
-    viper->SetDriver(driver);
+    Viper viper(&sys, wheel_type);
+
+    viper.SetDriver(driver);
     if (use_custom_mat)
-        viper->SetWheelContactMaterial(CustomWheelMaterial(ChContactMethod::NSC));
+        viper.SetWheelContactMaterial(CustomWheelMaterial(ChContactMethod::NSC));
 
-    viper->Initialize(ChFrame<>(ChVector<>(-5, 0, -0.2), QUNIT));
+    viper.Initialize(ChFrame<>(ChVector<>(-5, 0, -0.2), QUNIT));
 
     // Get wheels and bodies to set up SCM patches
-    auto Wheel_1 = viper->GetWheel(WheelID::LF)->GetBody();
-    auto Wheel_2 = viper->GetWheel(WheelID::RF)->GetBody();
-    auto Wheel_3 = viper->GetWheel(WheelID::LB)->GetBody();
-    auto Wheel_4 = viper->GetWheel(WheelID::RB)->GetBody();
-    auto Body_1 = viper->GetChassis()->GetBody();
+    auto Wheel_1 = viper.GetWheel(WheelID::LF)->GetBody();
+    auto Wheel_2 = viper.GetWheel(WheelID::RF)->GetBody();
+    auto Wheel_3 = viper.GetWheel(WheelID::LB)->GetBody();
+    auto Wheel_4 = viper.GetWheel(WheelID::RB)->GetBody();
+    auto Body_1 = viper.GetChassis()->GetBody();
 
     //
     // THE DEFORMABLE TERRAIN
     //
 
     // Create the 'deformable terrain' object
-    vehicle::SCMDeformableTerrain mterrain(&my_system);
+    vehicle::SCMDeformableTerrain terrain(&sys);
 
     // Displace/rotate the terrain reference plane.
     // Note that SCMDeformableTerrain uses a default ISO reference frame (Z up). Since the mechanism is modeled here in
     // a Y-up global frame, we rotate the terrain plane by -90 degrees about the X axis.
     // Note: Irrlicht uses a Y-up frame
-    mterrain.SetPlane(ChCoordsys<>(ChVector<>(0, 0, -0.5)));
+    terrain.SetPlane(ChCoordsys<>(ChVector<>(0, 0, -0.5)));
 
     // Use a regular grid:
     double length = 14;
     double width = 4;
-    mterrain.Initialize(length, width, mesh_resolution);
+    terrain.Initialize(length, width, mesh_resolution);
 
     // Set the soil terramechanical parameters
     if (var_params) {
         // Here we use the soil callback defined at the beginning of the code
         auto my_params = chrono_types::make_shared<MySoilParams>();
-        mterrain.RegisterSoilParametersCallback(my_params);
+        terrain.RegisterSoilParametersCallback(my_params);
     } else {
         // If var_params is set to be false, these parameters will be used
-        mterrain.SetSoilParameters(0.2e6,  // Bekker Kphi
-                                   0,      // Bekker Kc
-                                   1.1,    // Bekker n exponent
-                                   0,      // Mohr cohesive limit (Pa)
-                                   30,     // Mohr friction limit (degrees)
-                                   0.01,   // Janosi shear coefficient (m)
-                                   4e7,    // Elastic stiffness (Pa/m), before plastic yield, must be > Kphi
-                                   3e4     // Damping (Pa s/m), proportional to negative vertical speed (optional)
+        terrain.SetSoilParameters(0.2e6,  // Bekker Kphi
+                                  0,      // Bekker Kc
+                                  1.1,    // Bekker n exponent
+                                  0,      // Mohr cohesive limit (Pa)
+                                  30,     // Mohr friction limit (degrees)
+                                  0.01,   // Janosi shear coefficient (m)
+                                  4e7,    // Elastic stiffness (Pa/m), before plastic yield, must be > Kphi
+                                  3e4     // Damping (Pa s/m), proportional to negative vertical speed (optional)
         );
     }
 
     // Set up bulldozing factors
     if (enable_bulldozing) {
-        mterrain.EnableBulldozing(true);  // inflate soil at the border of the rut
-        mterrain.SetBulldozingParameters(
+        terrain.EnableBulldozing(true);  // inflate soil at the border of the rut
+        terrain.SetBulldozingParameters(
             55,  // angle of friction for erosion of displaced material at the border of the rut
             1,   // displaced material vs downward pressed material.
             5,   // number of erosion refinements per timestep
@@ -234,16 +234,16 @@ int main(int argc, char* argv[]) {
     // We need to add a moving patch under every wheel
     // Or we can define a large moving patch at the pos of the rover body
     if (enable_moving_patch) {
-        mterrain.AddMovingPatch(Wheel_1, ChVector<>(0, 0, 0), ChVector<>(0.5, 2 * wheel_range, 2 * wheel_range));
-        mterrain.AddMovingPatch(Wheel_2, ChVector<>(0, 0, 0), ChVector<>(0.5, 2 * wheel_range, 2 * wheel_range));
-        mterrain.AddMovingPatch(Wheel_3, ChVector<>(0, 0, 0), ChVector<>(0.5, 2 * wheel_range, 2 * wheel_range));
-        mterrain.AddMovingPatch(Wheel_4, ChVector<>(0, 0, 0), ChVector<>(0.5, 2 * wheel_range, 2 * wheel_range));
+        terrain.AddMovingPatch(Wheel_1, ChVector<>(0, 0, 0), ChVector<>(0.5, 2 * wheel_range, 2 * wheel_range));
+        terrain.AddMovingPatch(Wheel_2, ChVector<>(0, 0, 0), ChVector<>(0.5, 2 * wheel_range, 2 * wheel_range));
+        terrain.AddMovingPatch(Wheel_3, ChVector<>(0, 0, 0), ChVector<>(0.5, 2 * wheel_range, 2 * wheel_range));
+        terrain.AddMovingPatch(Wheel_4, ChVector<>(0, 0, 0), ChVector<>(0.5, 2 * wheel_range, 2 * wheel_range));
     }
 
     // Set some visualization parameters: either with a texture, or with falsecolor plot, etc.
-    mterrain.SetPlotType(vehicle::SCMDeformableTerrain::PLOT_PRESSURE, 0, 20000);
+    terrain.SetPlotType(vehicle::SCMDeformableTerrain::PLOT_PRESSURE, 0, 20000);
 
-    mterrain.SetMeshWireframe(true);
+    terrain.SetMeshWireframe(true);
 
     // Use this function for adding a ChIrrNodeAsset to all items
     application.AssetBindAll();
@@ -258,10 +258,9 @@ int main(int argc, char* argv[]) {
 
     while (application.GetDevice()->run()) {
         if (output) {
-            // this example writeout will write drive torques of all four wheels into file
-            csv << my_system.GetChTime() << viper->GetWheelTracTorque(WheelID::LF)
-                << viper->GetWheelTracTorque(WheelID::RF) << viper->GetWheelTracTorque(WheelID::LB)
-                << viper->GetWheelTracTorque(WheelID::RB) << std::endl;
+            // write drive torques of all four wheels into file
+            csv << sys.GetChTime() << viper.GetWheelTracTorque(WheelID::LF) << viper.GetWheelTracTorque(WheelID::RF)
+                << viper.GetWheelTracTorque(WheelID::LB) << viper.GetWheelTracTorque(WheelID::RB) << std::endl;
         }
         application.BeginScene();
 
@@ -271,8 +270,8 @@ int main(int argc, char* argv[]) {
         application.DoStep();
         tools::drawColorbar(0, 20000, "Pressure yield [Pa]", application.GetDevice(), 1180);
         application.EndScene();
-        viper->Update();
-        ////mterrain.PrintStepStatistics(std::cout);
+        viper.Update();
+        ////terrain.PrintStepStatistics(std::cout);
     }
 
     if (output) {

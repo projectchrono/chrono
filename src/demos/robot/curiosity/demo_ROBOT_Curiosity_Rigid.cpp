@@ -110,7 +110,7 @@ int main(int argc, char* argv[]) {
     sys.Add(mbox_3);
    
 
-    // Create a Curiosity Rover and the asociated driver
+    // Create a Curiosity rover and the asociated driver
     ////auto driver = chrono_types::make_shared<CuriositySpeedDriver>(1.0, 5.0);
     auto driver = chrono_types::make_shared<CuriosityDCMotorControl>();
 
@@ -127,6 +127,11 @@ int main(int argc, char* argv[]) {
 
     rover.Initialize(ChFrame<>(ChVector<double>(0, 0, 0.2), QUNIT));
 
+    std::cout << "Curiosity total mass: " << rover.GetRoverMass() << std::endl;
+    std::cout << "  chassis:            " << rover.GetChassis()->GetBody()->GetMass() << std::endl;
+    std::cout << "  wheel:              " << rover.GetWheel(WheelID::LF)->GetBody()->GetMass() << std::endl;
+    std::cout << std::endl;
+
     // Complete visual asset construction
     application.AssetBindAll();
     application.AssetUpdateAll();
@@ -134,6 +139,13 @@ int main(int argc, char* argv[]) {
 
     // Simulation loop
     while (application.GetDevice()->run()) {
+        ////auto time = rover.GetSystem()->GetChTime();
+        ////if (time < 1)
+        ////    driver->SetSteering(0);
+        ////else
+        ////    driver->SetSteering(time * 0.2);
+
+        // Update Curiosity controls
         rover.Update();
 
         // Read rover chassis velocity
@@ -141,12 +153,6 @@ int main(int argc, char* argv[]) {
 
         // Read rover chassis acceleration
         ////std::cout << "Rover acceleration: "<< rover.GetChassisAcc() << std::endl;
-
-        ////auto time = rover.GetSystem()->GetChTime();
-        ////if (time < 1)
-        ////    driver->SetSteering(0);
-        ////else
-        ////    driver->SetSteering(time * 0.2);
 
         application.BeginScene(true, true, SColor(255, 140, 161, 192));
         application.DrawAll();
