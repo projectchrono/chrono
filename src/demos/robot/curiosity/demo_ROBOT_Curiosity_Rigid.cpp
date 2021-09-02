@@ -9,7 +9,7 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Authors: Jason Zhou
+// Authors: Jason Zhou, Radu Serban
 // =============================================================================
 //
 // Demo to show Curiosity rovering on rigid terrain
@@ -20,20 +20,12 @@
 #include "chrono_models/robot/curiosity/Curiosity.h"
 #include "chrono/physics/ChSystemNSC.h"
 #include "chrono/physics/ChBodyEasy.h"
-#include "chrono/physics/ChInertiaUtils.h"
 #include "chrono/assets/ChTexture.h"
-#include "chrono/assets/ChTriangleMeshShape.h"
-#include "chrono/geometry/ChTriangleMeshConnected.h"
 
 #include "chrono/utils/ChUtilsCreators.h"
-#include "chrono/utils/ChUtilsGenerators.h"
 #include "chrono/utils/ChUtilsGeometry.h"
 #include "chrono/utils/ChUtilsInputOutput.h"
 #include "chrono/assets/ChBoxShape.h"
-#include "chrono/physics/ChParticlesClones.h"
-#include "chrono/physics/ChLinkMotorRotationSpeed.h"
-#include "chrono/physics/ChLinkMotorRotationTorque.h"
-#include "chrono/physics/ChLinkDistance.h"
 
 #include "chrono_irrlicht/ChIrrApp.h"
 
@@ -63,12 +55,12 @@ double time_step = 1e-3;
 int main(int argc, char* argv[]) {
     GetLog() << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
     // Create a ChronoENGINE physical system
-    ChSystemNSC mphysicalSystem;
-    mphysicalSystem.Set_G_acc(ChVector<>(0, 0, -9.81));
+    ChSystemNSC sys;
+    sys.Set_G_acc(ChVector<>(0, 0, -9.81));
 
     // Create the Irrlicht visualization (open the Irrlicht device,
     // bind a simple user interface, etc. etc.)
-    ChIrrApp application(&mphysicalSystem, L"Curiosity Rover on Rigid Terrain", core::dimension2d<u32>(1280, 720),
+    ChIrrApp application(&sys, L"Curiosity Rover on Rigid Terrain", core::dimension2d<u32>(1280, 720),
                          VerticalDir::Z);
     application.AddTypicalLogo();
     application.AddTypicalSky();
@@ -88,41 +80,41 @@ int main(int argc, char* argv[]) {
 
     ground->SetPos(ChVector<>(0, 0, -0.5));
     ground->SetBodyFixed(true);
-    mphysicalSystem.Add(ground);
+    sys.Add(ground);
 
     auto texture = chrono_types::make_shared<ChTexture>();
     texture->SetTextureFilename(GetChronoDataFile("textures/concrete.jpg"));
     texture->SetTextureScale(60, 45);
     ground->AddAsset(texture);
 
-    /*
+   
     // Create the first step of the stair-shaped obstacle
-    auto mbox_1 = chrono_types::make_shared<ChBodyEasyBox>(0.6, 0.1, 1, 1000, true, true, floor_mat);
-    mbox_1->SetPos(ChVector<>(3, -0.4, 1));
+    auto mbox_1 = chrono_types::make_shared<ChBodyEasyBox>(2.4, 1.4, 0.1, 1000, true, true, ground_mat);
+    mbox_1->SetPos(ChVector<>(3, 1, 0.05));
     mbox_1->SetBodyFixed(true);
     mbox_1->SetCollide(true);
-    mphysicalSystem.Add(mbox_1);
+    sys.Add(mbox_1);
 
     // Create the second step of the stair-shaped obstacle
-    auto mbox_2 = chrono_types::make_shared<ChBodyEasyBox>(0.6, 0.2, 1, 1000, true, true, floor_mat);
-    mbox_2->SetPos(ChVector<>(3.3, -0.4, 1));
+    auto mbox_2 = chrono_types::make_shared<ChBodyEasyBox>(1.6, 1.2, 0.2, 1000, true, true, ground_mat);
+    mbox_2->SetPos(ChVector<>(3, 1, 0.1));
     mbox_2->SetBodyFixed(true);
     mbox_2->SetCollide(true);
-    mphysicalSystem.Add(mbox_2);
+    sys.Add(mbox_2);
 
     // Create the third step of the stair-shaped obstacle
-    auto mbox_3 = chrono_types::make_shared<ChBodyEasyBox>(0.6, 0.3, 1, 1000, true, true, floor_mat);
-    mbox_3->SetPos(ChVector<>(3.6, -0.4, 1));
+    auto mbox_3 = chrono_types::make_shared<ChBodyEasyBox>(0.8, 1.0, 0.3, 1000, true, true, ground_mat);
+    mbox_3->SetPos(ChVector<>(3, 1, 0.15));
     mbox_3->SetBodyFixed(true);
     mbox_3->SetCollide(true);
-    mphysicalSystem.Add(mbox_3);
-    */
+    sys.Add(mbox_3);
+   
 
     // Create a Curiosity Rover and the asociated driver
     ////auto driver = chrono_types::make_shared<CuriositySpeedDriver>(1.0, 5.0);
     auto driver = chrono_types::make_shared<CuriosityDCMotorControl>();
 
-    CuriosityRover rover(&mphysicalSystem, chassis_type, wheel_type);
+    Curiosity rover(&sys, chassis_type, wheel_type);
     rover.SetDriver(driver);
 
     ////rover.SetChassisFixed(true);

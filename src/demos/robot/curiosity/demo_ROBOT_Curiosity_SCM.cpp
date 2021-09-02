@@ -19,13 +19,9 @@
 
 #include "chrono_models/robot/curiosity/Curiosity.h"
 
-#include "chrono/geometry/ChTriangleMeshConnected.h"
-#include "chrono/physics/ChLinkMotorRotationAngle.h"
-#include "chrono/physics/ChLoadContainer.h"
 #include "chrono/physics/ChSystemSMC.h"
 #include "chrono/utils/ChUtilsInputOutput.h"
 
-#include "chrono/physics/ChSystemNSC.h"
 #include "chrono/physics/ChBodyEasy.h"
 #include "chrono/physics/ChInertiaUtils.h"
 #include "chrono/assets/ChTexture.h"
@@ -33,14 +29,8 @@
 #include "chrono/geometry/ChTriangleMeshConnected.h"
 
 #include "chrono/utils/ChUtilsCreators.h"
-#include "chrono/utils/ChUtilsGenerators.h"
-#include "chrono/utils/ChUtilsGeometry.h"
 #include "chrono/utils/ChUtilsInputOutput.h"
 #include "chrono/assets/ChBoxShape.h"
-#include "chrono/physics/ChParticlesClones.h"
-#include "chrono/physics/ChLinkMotorRotationSpeed.h"
-#include "chrono/physics/ChLinkMotorRotationTorque.h"
-#include "chrono/physics/ChLinkDistance.h"
 
 #include "chrono_irrlicht/ChIrrApp.h"
 
@@ -81,6 +71,9 @@ ChassisType chassis_type = ChassisType::FullRover;
 // The options are WheelType::RealWheel, WheelType::SimpleWheel, and WheelType::CylWheel
 WheelType wheel_type = WheelType::RealWheel;
 
+// Simulation time step
+double time_step = 1e-3;
+
 // -----------------------------------------------------------------------------
 
 // Custom callback for setting location-dependent soil properties.
@@ -113,11 +106,11 @@ int main(int argc, char* argv[]) {
     double wheel_range = 0.5;
 
     // Create a Chrono::Engine physical system
-    ChSystemSMC my_system;
+    ChSystemSMC sys;
 
     // Create the Irrlicht visualization (open the Irrlicht device,
     // bind a simple user interface, etc. etc.)
-    ChIrrApp application(&my_system, L"Curiosity Obstacle Crossing on SCM", core::dimension2d<u32>(1800, 1000),
+    ChIrrApp application(&sys, L"Curiosity Obstacle Crossing on SCM", core::dimension2d<u32>(1800, 1000),
                          VerticalDir::Y, false, true);
     application.AddTypicalLogo();
     application.AddTypicalSky();
@@ -125,6 +118,7 @@ int main(int argc, char* argv[]) {
     application.AddTypicalCamera(core::vector3df(2.0f, 1.4f, 0.0f), core::vector3df(0, (f32)wheel_range, 0));
     application.AddLightWithShadow(core::vector3df(-5.0f, 8.0f, -0.5f), core::vector3df(-1.0, 0, 0), 100, 1, 35, 85,
                                    512, video::SColorf(0.8f, 0.8f, 1.0f));
+    application.SetTimestep(time_step);
 
     // Initialize output
     if (output) {
@@ -140,13 +134,12 @@ int main(int argc, char* argv[]) {
     ChQuaternion<> body_rot = Q_from_AngX(-CH_C_PI / 2);
 
     // Create a Curiosity rover
-    std::shared_ptr<CuriosityRover> rover;
-    rover = chrono_types::make_shared<CuriosityRover>(&my_system, chassis_type, wheel_type);
+    Curiosity rover(&sys, chassis_type, wheel_type);
 
     // Create a CuriosityDriver to command the rover
     auto driver = chrono_types::make_shared<CuriositySpeedDriver>(1.0, CH_C_PI);
-    rover->SetDriver(driver);
-    rover->Initialize(ChFrame<>(body_pos, body_rot));
+    rover.SetDriver(driver);
+    rover.Initialize(ChFrame<>(body_pos, body_rot));
 
     std::shared_ptr<ChBodyAuxRef> rock_1;
     std::shared_ptr<ChBodyAuxRef> rock_2;
@@ -156,8 +149,7 @@ int main(int argc, char* argv[]) {
     std::shared_ptr<ChBodyAuxRef> rock_6;
 
     // create default SMC materials for the obstacles
-    std::shared_ptr<ChMaterialSurface> rockSufaceMaterial =
-        ChMaterialSurface::DefaultMaterial(my_system.GetContactMethod());
+    std::shared_ptr<ChMaterialSurface> rockSufaceMaterial = ChMaterialSurface::DefaultMaterial(sys.GetContactMethod());
 
     for (int i = 0; i < 2; i++) {
         // Create a rock
@@ -194,7 +186,7 @@ int main(int argc, char* argv[]) {
         rock1_Body->SetInertiaXX(mdensity * principal_I);
 
         rock1_Body->SetFrame_REF_to_abs(ChFrame<>(ChVector<>(rock1_pos), ChQuaternion<>(rock1_rot)));
-        my_system.Add(rock1_Body);
+        sys.Add(rock1_Body);
 
         rock1_Body->SetBodyFixed(false);
         rock1_Body->GetCollisionModel()->ClearModel();
@@ -250,7 +242,7 @@ int main(int argc, char* argv[]) {
         rock2_Body->SetInertiaXX(mdensity * principal_I);
 
         rock2_Body->SetFrame_REF_to_abs(ChFrame<>(ChVector<>(rock2_pos), ChQuaternion<>(rock2_rot)));
-        my_system.Add(rock2_Body);
+        sys.Add(rock2_Body);
 
         rock2_Body->SetBodyFixed(false);
         rock2_Body->GetCollisionModel()->ClearModel();
@@ -306,7 +298,7 @@ int main(int argc, char* argv[]) {
         rock3_Body->SetInertiaXX(mdensity * principal_I);
 
         rock3_Body->SetFrame_REF_to_abs(ChFrame<>(ChVector<>(rock3_pos), ChQuaternion<>(rock3_rot)));
-        my_system.Add(rock3_Body);
+        sys.Add(rock3_Body);
 
         rock3_Body->SetBodyFixed(false);
         rock3_Body->GetCollisionModel()->ClearModel();
@@ -332,41 +324,41 @@ int main(int argc, char* argv[]) {
     //
 
     // Create the 'deformable terrain' object
-    vehicle::SCMDeformableTerrain mterrain(&my_system);
+    vehicle::SCMDeformableTerrain terrain(&sys);
 
     // Displace/rotate the terrain reference plane.
     // Note that SCMDeformableTerrain uses a default ISO reference frame (Z up). Since the mechanism is modeled here in
     // a Y-up global frame, we rotate the terrain plane by -90 degrees about the X axis.
     // Note: Irrlicht uses a Y-up frame
-    mterrain.SetPlane(ChCoordsys<>(ChVector<>(0, -0.5, 0), Q_from_AngX(-CH_C_PI_2)));
+    terrain.SetPlane(ChCoordsys<>(ChVector<>(0, -0.5, 0), Q_from_AngX(-CH_C_PI_2)));
 
     // Use a regular grid:
     double length = 14;
     double width = 4;
-    mterrain.Initialize(length, width, mesh_resolution);
+    terrain.Initialize(length, width, mesh_resolution);
 
     // Set the soil terramechanical parameters
     if (var_params) {
         // Here we use the soil callback defined at the beginning of the code
         auto my_params = chrono_types::make_shared<MySoilParams>();
-        mterrain.RegisterSoilParametersCallback(my_params);
+        terrain.RegisterSoilParametersCallback(my_params);
     } else {
         // If var_params is set to be false, these parameters will be used
-        mterrain.SetSoilParameters(0.2e6,  // Bekker Kphi
-                                   0,      // Bekker Kc
-                                   1.1,    // Bekker n exponent
-                                   0,      // Mohr cohesive limit (Pa)
-                                   30,     // Mohr friction limit (degrees)
-                                   0.01,   // Janosi shear coefficient (m)
-                                   4e7,    // Elastic stiffness (Pa/m), before plastic yield, must be > Kphi
-                                   3e4     // Damping (Pa s/m), proportional to negative vertical speed (optional)
+        terrain.SetSoilParameters(0.2e6,  // Bekker Kphi
+                                  0,      // Bekker Kc
+                                  1.1,    // Bekker n exponent
+                                  0,      // Mohr cohesive limit (Pa)
+                                  30,     // Mohr friction limit (degrees)
+                                  0.01,   // Janosi shear coefficient (m)
+                                  4e7,    // Elastic stiffness (Pa/m), before plastic yield, must be > Kphi
+                                  3e4     // Damping (Pa s/m), proportional to negative vertical speed (optional)
         );
     }
 
     // Set up bulldozing factors
     if (enable_bulldozing) {
-        mterrain.EnableBulldozing(true);  // inflate soil at the border of the rut
-        mterrain.SetBulldozingParameters(
+        terrain.EnableBulldozing(true);  // inflate soil at the border of the rut
+        terrain.SetBulldozingParameters(
             55,  // angle of friction for erosion of displaced material at the border of the rut
             1,   // displaced material vs downward pressed material.
             5,   // number of erosion refinements per timestep
@@ -378,65 +370,58 @@ int main(int argc, char* argv[]) {
     if (enable_moving_patch) {
         // add moving patch for the SCM terrain
         // the bodies were retrieved from the rover instance
-        mterrain.AddMovingPatch(rover->GetWheel(WheelID::LF)->GetBody(), ChVector<>(0, 0, 0),
-                                ChVector<>(0.5, 2 * wheel_range, 2 * wheel_range));
-        mterrain.AddMovingPatch(rover->GetWheel(WheelID::RF)->GetBody(), ChVector<>(0, 0, 0),
-                                ChVector<>(0.5, 2 * wheel_range, 2 * wheel_range));
-        mterrain.AddMovingPatch(rover->GetWheel(WheelID::LM)->GetBody(), ChVector<>(0, 0, 0),
-                                ChVector<>(0.5, 2 * wheel_range, 2 * wheel_range));
-        mterrain.AddMovingPatch(rover->GetWheel(WheelID::RM)->GetBody(), ChVector<>(0, 0, 0),
-                                ChVector<>(0.5, 2 * wheel_range, 2 * wheel_range));
-        mterrain.AddMovingPatch(rover->GetWheel(WheelID::LB)->GetBody(), ChVector<>(0, 0, 0),
-                                ChVector<>(0.5, 2 * wheel_range, 2 * wheel_range));
-        mterrain.AddMovingPatch(rover->GetWheel(WheelID::RB)->GetBody(), ChVector<>(0, 0, 0),
-                                ChVector<>(0.5, 2 * wheel_range, 2 * wheel_range));
+        terrain.AddMovingPatch(rover.GetWheel(WheelID::LF)->GetBody(), ChVector<>(0, 0, 0),
+                               ChVector<>(0.5, 2 * wheel_range, 2 * wheel_range));
+        terrain.AddMovingPatch(rover.GetWheel(WheelID::RF)->GetBody(), ChVector<>(0, 0, 0),
+                               ChVector<>(0.5, 2 * wheel_range, 2 * wheel_range));
+        terrain.AddMovingPatch(rover.GetWheel(WheelID::LM)->GetBody(), ChVector<>(0, 0, 0),
+                               ChVector<>(0.5, 2 * wheel_range, 2 * wheel_range));
+        terrain.AddMovingPatch(rover.GetWheel(WheelID::RM)->GetBody(), ChVector<>(0, 0, 0),
+                               ChVector<>(0.5, 2 * wheel_range, 2 * wheel_range));
+        terrain.AddMovingPatch(rover.GetWheel(WheelID::LB)->GetBody(), ChVector<>(0, 0, 0),
+                               ChVector<>(0.5, 2 * wheel_range, 2 * wheel_range));
+        terrain.AddMovingPatch(rover.GetWheel(WheelID::RB)->GetBody(), ChVector<>(0, 0, 0),
+                               ChVector<>(0.5, 2 * wheel_range, 2 * wheel_range));
 
         // add moving patch for all obstacles
-        mterrain.AddMovingPatch(rock_1, ChVector<>(0, 0, 0), ChVector<>(0.5, 2 * wheel_range, 2 * wheel_range));
-        mterrain.AddMovingPatch(rock_2, ChVector<>(0, 0, 0), ChVector<>(0.5, 2 * wheel_range, 2 * wheel_range));
-        mterrain.AddMovingPatch(rock_3, ChVector<>(0, 0, 0), ChVector<>(0.5, 2 * wheel_range, 2 * wheel_range));
-        mterrain.AddMovingPatch(rock_4, ChVector<>(0, 0, 0), ChVector<>(0.5, 2 * wheel_range, 2 * wheel_range));
-        mterrain.AddMovingPatch(rock_5, ChVector<>(0, 0, 0), ChVector<>(0.5, 2 * wheel_range, 2 * wheel_range));
-        mterrain.AddMovingPatch(rock_6, ChVector<>(0, 0, 0), ChVector<>(0.5, 2 * wheel_range, 2 * wheel_range));
+        terrain.AddMovingPatch(rock_1, ChVector<>(0, 0, 0), ChVector<>(0.5, 2 * wheel_range, 2 * wheel_range));
+        terrain.AddMovingPatch(rock_2, ChVector<>(0, 0, 0), ChVector<>(0.5, 2 * wheel_range, 2 * wheel_range));
+        terrain.AddMovingPatch(rock_3, ChVector<>(0, 0, 0), ChVector<>(0.5, 2 * wheel_range, 2 * wheel_range));
+        terrain.AddMovingPatch(rock_4, ChVector<>(0, 0, 0), ChVector<>(0.5, 2 * wheel_range, 2 * wheel_range));
+        terrain.AddMovingPatch(rock_5, ChVector<>(0, 0, 0), ChVector<>(0.5, 2 * wheel_range, 2 * wheel_range));
+        terrain.AddMovingPatch(rock_6, ChVector<>(0, 0, 0), ChVector<>(0.5, 2 * wheel_range, 2 * wheel_range));
     }
 
     // Set some visualization parameters: either with a texture, or with falsecolor plot, etc.
-    mterrain.SetPlotType(vehicle::SCMDeformableTerrain::PLOT_PRESSURE, 0, 20000);
+    terrain.SetPlotType(vehicle::SCMDeformableTerrain::PLOT_PRESSURE, 0, 20000);
 
-    mterrain.GetMesh()->SetWireframe(true);
+    terrain.GetMesh()->SetWireframe(true);
 
-    // ==IMPORTANT!== Use this function for adding a ChIrrNodeAsset to all items
+    // Complete visual asset construction
     application.AssetBindAll();
-
-    // ==IMPORTANT!== Use this function for 'converting' into Irrlicht meshes the assets
     application.AssetUpdateAll();
-
-    // Use shadows in realtime view
     application.AddShadowAll();
-
-    application.SetTimestep(0.001);
 
     while (application.GetDevice()->run()) {
         if (output) {
-            // this example writeout will write drive torques of all six wheels into file
-            csv << my_system.GetChTime() << rover->GetWheelTracTorque(WheelID::LF)
-                << rover->GetWheelTracTorque(WheelID::RF) << rover->GetWheelTracTorque(WheelID::LM)
-                << rover->GetWheelTracTorque(WheelID::RM) << rover->GetWheelTracTorque(WheelID::LB)
-                << rover->GetWheelTracTorque(WheelID::RB) << std::endl;
+            // write drive torques of all six wheels into file
+            csv << sys.GetChTime() << rover.GetWheelTracTorque(WheelID::LF) << rover.GetWheelTracTorque(WheelID::RF)
+                << rover.GetWheelTracTorque(WheelID::LM) << rover.GetWheelTracTorque(WheelID::RM)
+                << rover.GetWheelTracTorque(WheelID::LB) << rover.GetWheelTracTorque(WheelID::RB) << std::endl;
         }
-        rover->Update();
+        rover.Update();
         application.BeginScene();
 
         application.GetSceneManager()->getActiveCamera()->setTarget(
-            core::vector3dfCH(rover->GetChassis()->GetBody()->GetPos()));
+            core::vector3dfCH(rover.GetChassis()->GetBody()->GetPos()));
         application.DrawAll();
 
         application.DoStep();
         tools::drawColorbar(0, 20000, "Pressure yield [Pa]", application.GetDevice(), 1600);
         application.EndScene();
 
-        ////std::cout << "--------- " << my_system.GetChTime() << std::endl;
-        ////mterrain.PrintStepStatistics(std::cout);
+        ////std::cout << "--------- " << sys.GetChTime() << std::endl;
+        ////terrain.PrintStepStatistics(std::cout);
     }
 
     if (output) {
