@@ -666,7 +666,7 @@ void Viper::Update() {
         m_steer_motor_funcs[i]->Set_yconst(steering);
         m_lift_motor_funcs[i]->Set_yconst(lifting);
         if (m_driver->GetDriveMotorType() == ViperDriver::DriveMotorType::SPEED)
-            m_drive_motor_funcs[i]->SetSetpoint(time, driving);
+            m_drive_motor_funcs[i]->SetSetpoint(driving, time);
     }
 }
 
@@ -675,19 +675,23 @@ void Viper::Update() {
 ViperDriver::ViperDriver()
     : drive_speeds({0, 0, 0, 0}), steer_angles({0, 0, 0, 0}), lift_angles({0, 0, 0, 0}), viper(nullptr) {}
 
-ViperDCMotorControl::ViperDCMotorControl()
-    : m_stall_torque({300, 300, 300, 300}), m_no_load_speed({CH_C_PI, CH_C_PI, CH_C_PI, CH_C_PI}) {}
-
-void ViperDCMotorControl::SetSteering(double angle) {
+void ViperDriver::SetSteering(double angle) {
     for (int i = 0; i < 4; i++)
         steer_angles[i] = angle;
 }
 
-/// Set current lift input (angular speed).
-void ViperDCMotorControl::SetLifting(double speed) {
-    for (int i = 0; i < 4; i++)
-        lift_angles[i] = speed;
+void ViperDriver::SetSteering(double angle, WheelID id) {
+    steer_angles[id] = angle;
 }
+
+/// Set current lift input angles.
+void ViperDriver::SetLifting(double angle) {
+    for (int i = 0; i < 4; i++)
+        lift_angles[i] = angle;
+}
+
+ViperDCMotorControl::ViperDCMotorControl()
+    : m_stall_torque({300, 300, 300, 300}), m_no_load_speed({CH_C_PI, CH_C_PI, CH_C_PI, CH_C_PI}) {}
 
 void ViperDCMotorControl::Update(double time) {
     double speed_reading;
@@ -705,6 +709,15 @@ void ViperDCMotorControl::Update(double time) {
 
         viper->m_drive_shafts[i]->SetAppliedTorque(-target_torque);
     }
+}
+
+ViperSpeedDriver::ViperSpeedDriver(double time_ramp, double speed) : m_ramp(time_ramp), m_speed(speed) {}
+
+void ViperSpeedDriver::Update(double time) {
+    double speed = m_speed;
+    if (time < m_ramp)
+        speed = m_speed * (time / m_ramp);
+    drive_speeds = {speed, speed, speed, speed};
 }
 
 }  // namespace viper

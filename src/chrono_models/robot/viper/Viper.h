@@ -344,14 +344,24 @@ class CH_MODELS_API ViperDriver {
     /// Indicate the control type for the drive motors.
     virtual DriveMotorType GetDriveMotorType() const = 0;
 
+    /// Set current steering input (angle: negative for left, positive for right).
+    void SetSteering(double angle);
+
+    /// Set current steering input (angle: negative for left turn, positive for right turn).
+    /// This function sets the steering angle for the specified wheel.
+    void SetSteering(double angle, WheelID id);
+
+    /// Set current lift input angle.
+    void SetLifting(double angle);
+
+  protected:
+    ViperDriver();
+
     /// Set the current rover driver inputs.
     /// This function is called by the associated Viper at each rover Update. A derived class must update the values for
     /// the angular speeds for the drive motors, as well as the angles for the steering motors and the lift motors at
     /// the specified time. A positive steering input corresponds to a left turn and a negative value to a right turn.
     virtual void Update(double time) = 0;
-
-  protected:
-    ViperDriver();
 
     Viper* viper;  ///< associated Viper rover
 
@@ -376,18 +386,27 @@ class CH_MODELS_API ViperDCMotorControl : public ViperDriver {
     /// Set DC motor no load speed (default: pi).
     void SetMotorNoLoadSpeed(double speed, WheelID id) { m_no_load_speed[id] = speed; }
 
-    /// Set current steering input (angle: negative for left, positive for right).
-    void SetSteering(double angle);
-
-    /// Set current lift input (angular speed).
-    void SetLifting(double speed);
-
   private:
     virtual DriveMotorType GetDriveMotorType() const override { return DriveMotorType::TORQUE; }
     virtual void Update(double time) override;
 
     std::array<double, 4> m_stall_torque;   ///< stall torque of the motors
     std::array<double, 4> m_no_load_speed;  ///< no load speed of the motors
+};
+
+/// Concrete Viper speed driver.
+/// This driver applies the same angular speed (ramped from 0 to a prescribed value) to all wheels.
+class CH_MODELS_API ViperSpeedDriver : public ViperDriver {
+  public:
+    ViperSpeedDriver(double time_ramp, double speed);
+    ~ViperSpeedDriver() {}
+
+  private:
+    virtual DriveMotorType GetDriveMotorType() const override { return DriveMotorType::SPEED; }
+    virtual void Update(double time) override;
+
+    double m_ramp;
+    double m_speed;
 };
 
 /// @} robot_models_viper
