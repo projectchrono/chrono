@@ -65,14 +65,14 @@ class ChApi ChLinkGear : public ChLinkLock {
     /// and the number of teeth (or radius) of 2nd gear
     void Set_tau(double mz1, double mz2) { tau = fabs(mz1 / mz2); }
 
-    /// Get the pressure angle (usually 20° for typical gears)
+    /// Get the pressure angle (usually 20?for typical gears)
     double Get_alpha() const { return alpha; }
-    /// Set the pressure angle (usually 20° for typical gears)
+    /// Set the pressure angle (usually 20?for typical gears)
     void Set_alpha(double mset) { alpha = mset; }
 
-    /// Get the angle of teeth in bevel gears (0° for spur gears)
+    /// Get the angle of teeth in bevel gears (0?for spur gears)
     double Get_beta() const { return beta; }
-    /// Set the angle of teeth in bevel gears (0° for spur gears)
+    /// Set the angle of teeth in bevel gears (0?for spur gears)
     void Set_beta(double mset) { beta = mset; }
 
     /// Get the initial phase of rotation of gear A respect to gear B

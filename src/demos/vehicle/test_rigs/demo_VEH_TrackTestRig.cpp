@@ -23,7 +23,7 @@
 #include "chrono_vehicle/tracked_vehicle/test_rig/ChDataDriverTTR.h"
 #include "chrono_vehicle/tracked_vehicle/test_rig/ChRoadDriverTTR.h"
 #include "chrono_vehicle/tracked_vehicle/test_rig/ChTrackTestRig.h"
-#include "chrono_vehicle/utils/ChVehicleIrrApp.h"
+#include "chrono_vehicle/tracked_vehicle/utils/ChTrackTestRigIrrApp.h"
 
 #include "chrono_models/vehicle/m113/M113_TrackAssemblyDoublePin.h"
 #include "chrono_models/vehicle/m113/M113_TrackAssemblySinglePin.h"
@@ -90,13 +90,6 @@ int main(int argc, char* argv[]) {
     bool create_track = true;
     ChContactMethod contact_method = ChContactMethod::SMC;
 
-    //// NOTE
-    //// When using SMC, a double-pin shoe type requires MKL or MUMPS.
-    //// However, there appear to still be redundant constraints in the double-pin assembly
-    //// resulting in solver failures with MKL and MUMPS (rank-deficient matrix).
-    ////
-    //// For now, use ChContactMethod::NSC for a double-pin track model
-
     ChTrackTestRig* rig = nullptr;
     if (use_JSON) {
         rig = new ChTrackTestRig(vehicle::GetDataFile(filename), create_track, contact_method);
@@ -113,7 +106,6 @@ int main(int argc, char* argv[]) {
                 break;
             }
             case TrackShoeType::DOUBLE_PIN: {
-                contact_method = ChContactMethod::NSC; // force NSC
                 auto assembly = chrono_types::make_shared<M113_TrackAssemblyDoublePin>(side, brake_type);
                 track_assembly = assembly;
                 break;
@@ -137,15 +129,14 @@ int main(int argc, char* argv[]) {
     ChVector<> target_point = 0.5 * (rig->GetTrackAssembly()->GetSprocket()->GetGearBody()->GetPos() +
                                      rig->GetTrackAssembly()->GetIdler()->GetWheelBody()->GetPos());
 
-    ChVehicleIrrApp app(rig, L"Suspension Test Rig");
+    ChTrackTestRigIrrApp app(rig, L"Track Test Rig");
     app.SetSkyBox();
     app.AddTypicalLights(irr::core::vector3df(30.f, -30.f, 100.f), irr::core::vector3df(30.f, 50.f, 100.f), 250, 130);
     app.SetChaseCamera(ChVector<>(0), 3.0, 0.0);
-    app.SetChaseCameraPosition(target_point + ChVector<>(0, 3, 0));
+    app.SetChaseCameraPosition(target_point + ChVector<>(0, 5, 0));
     app.SetChaseCameraState(utils::ChChaseCamera::Free);
     app.SetChaseCameraAngle(-CH_C_PI_2);
     app.SetChaseCameraMultipliers(1e-4, 10);
-    app.SetTimestep(step_size);
 
     // -----------------------------------
     // Create and attach the driver system
@@ -184,6 +175,11 @@ int main(int argc, char* argv[]) {
 
     ////rig->SetCollide(TrackedCollisionFlag::NONE);
     ////rig->SetCollide(TrackedCollisionFlag::SPROCKET_LEFT | TrackedCollisionFlag::SHOES_LEFT);
+    ////rig->SetPostCollide(false);
+
+    rig->MonitorContacts(TrackedCollisionFlag::SPROCKET_LEFT);
+    ////rig->SetRenderContactNormals(true);
+    rig->SetRenderContactForces(true, 1e-4);
 
     rig->SetSprocketVisualizationType(VisualizationType::PRIMITIVES);
     rig->SetIdlerVisualizationType(VisualizationType::PRIMITIVES);
@@ -196,7 +192,10 @@ int main(int argc, char* argv[]) {
     app.AssetBindAll();
     app.AssetUpdateAll();
 
+    // -----------------
     // Set up rig output
+    // -----------------
+
     if (output) {
         if (!filesystem::create_directory(filesystem::path(out_dir))) {
             std::cout << "Error creating directory " << out_dir << std::endl;
@@ -215,10 +214,18 @@ int main(int argc, char* argv[]) {
     // Solver and integrator settings
     // ------------------------------
 
-    // Cannot use HHT with MKL/MUMPS with NSC contact
-    if (contact_method == ChContactMethod::NSC) {
-        use_mkl = false;
-        use_mumps = false;
+    switch (contact_method) {
+        case ChContactMethod::NSC:
+            std::cout << "Use NSC" << std::endl;
+            // Cannot use HHT with MKL/MUMPS with NSC contact
+            use_mkl = false;
+            use_mumps = false;
+            step_size = 1e-3;
+            break;
+        case ChContactMethod::SMC:
+            std::cout << "Use SMC" << std::endl;
+            step_size = 5e-4;
+            break;
     }
 
 #ifndef CHRONO_PARDISO_MKL
@@ -296,8 +303,8 @@ int main(int argc, char* argv[]) {
         app.Synchronize(rig->GetDriverMessage(), {0, rig->GetThrottleInput(), 0});
         app.Advance(step_size);
 
-        if (driver->Ended())
-            break;
+        ////if (driver->Ended())
+        ////    break;
 
         // Increment frame number
         step_number++;

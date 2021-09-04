@@ -58,7 +58,7 @@ void M113_SprocketSinglePin::CreateContactMaterial(ChContactMethod contact_metho
     MaterialInfo minfo;
     minfo.mu = 0.4f;
     minfo.cr = 0.75f;
-    minfo.Y = 1e7f;
+    minfo.Y = 1e9f;
     m_material = minfo.CreateMaterial(contact_method);
 }
 

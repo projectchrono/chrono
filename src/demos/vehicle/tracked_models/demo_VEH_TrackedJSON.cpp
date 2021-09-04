@@ -69,7 +69,7 @@ std::string rigidterrain_file("terrain/RigidPlane.json");
 std::string driver_file("generic/driver/Sample_Maneuver.txt");
 
 // Simulation step size
-double step_size = 1e-3;
+double step_size = 5e-4;
 
 // Simulation length (Povray only)
 double tend = 10.0;
@@ -89,19 +89,12 @@ int main(int argc, char* argv[]) {
     // --------------------------
 
     // Contact formulation
-    ChContactMethod contact_method = ChContactMethod::NSC;
-
-    //// NOTE
-    //// When using SMC, a double-pin shoe type requires MKL or MUMPS.  
-    //// However, there appear to still be redundant constraints in the double-pin assembly
-    //// resulting in solver failures with MKL and MUMPS (rank-deficient matrix).
-    ////
-    //// For now, use ChContactMethod::NSC for a double-pin track model
+    ChContactMethod contact_method = ChContactMethod::SMC;
 
     // Create the vehicle system
     TrackedVehicle vehicle(vehicle::GetDataFile(vehicle_file), contact_method);
 
-    // Replace collision shapes from cylindrical to cylshell.
+    // Change collision shape for road wheels and idlers (true: cylinder; false: cylshell)
     ////vehicle.GetTrackAssembly(LEFT)->SetWheelCollisionType(false, false, false);
     ////vehicle.GetTrackAssembly(RIGHT)->SetWheelCollisionType(false, false, false);
 
@@ -124,6 +117,13 @@ int main(int argc, char* argv[]) {
 
     // Disable only contact between chassis and track shoes (if chassis collision was defined)
     ////vehicle.SetChassisVehicleCollide(false);
+
+    // Monitor contacts involving one of the sprockets.
+    vehicle.MonitorContacts(TrackedCollisionFlag::SPROCKET_LEFT | TrackedCollisionFlag::SPROCKET_RIGHT);
+
+    // Render contact normals and/or contact forces.
+    vehicle.SetRenderContactNormals(true);
+    ////vehicle.SetRenderContactForces(true, 1e-4);
 
     // Solver settings.
     auto solver = chrono_types::make_shared<ChSolverBB>();

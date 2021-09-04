@@ -52,7 +52,7 @@ DriverMode driver_mode = DEFAULT;
 VisualizationType chassis_vis_type = VisualizationType::PRIMITIVES;
 VisualizationType suspension_vis_type = VisualizationType::PRIMITIVES;
 VisualizationType steering_vis_type = VisualizationType::PRIMITIVES;
-VisualizationType wheel_vis_type = VisualizationType::PRIMITIVES;
+VisualizationType wheel_vis_type = VisualizationType::NONE;
 
 // Collision type for chassis (PRIMITIVES, MESH, or NONE)
 CollisionType chassis_collision_type = CollisionType::NONE;
@@ -113,8 +113,7 @@ int main(int argc, char* argv[]) {
     my_rccar.SetTireStepSize(tire_step_size);
     my_rccar.Initialize();
 
-    VisualizationType tire_vis_type =
-        (tire_model == TireModelType::RIGID_MESH) ? VisualizationType::MESH : VisualizationType::NONE;
+    VisualizationType tire_vis_type = VisualizationType::MESH;
 
     my_rccar.SetChassisVisualizationType(chassis_vis_type);
     my_rccar.SetSuspensionVisualizationType(suspension_vis_type);

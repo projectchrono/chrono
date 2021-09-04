@@ -28,6 +28,7 @@ namespace feda {
 const double FEDA_Powertrain::m_motorblock_inertia = 10.5;
 const double FEDA_Powertrain::m_crankshaft_inertia = 1.1;
 const double FEDA_Powertrain::m_ingear_shaft_inertia = 0.3;
+const double FEDA_Powertrain::m_power_shaft_inertia = 0.5;
 
 const double FEDA_Powertrain::m_upshift_RPM = 2300;
 const double FEDA_Powertrain::m_downshift_RPM = 1200;

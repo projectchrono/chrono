@@ -34,6 +34,7 @@
   "Transmission":
   {
     "Input Shaft Inertia":   0.3,
+    "Output Shaft Inertia":  0.5,
     "Reverse Gear Ratio":    -0.085,
     "Forward Gear Ratios":   [ 0.084, 0.182, 0.335, 0.448, 0.64, 0.865, 1.000 ],
     "Upshift RPM":           2400,
