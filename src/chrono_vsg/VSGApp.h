@@ -29,6 +29,7 @@
 #include "chrono/assets/ChBoxShape.h"
 #include "chrono/assets/ChCylinderShape.h"
 #include "chrono/assets/ChConeShape.h"
+#include "chrono/assets/ChCapsuleShape.h"
 
 #include <vsgImGui/RenderImGui.h>
 #include <vsgImGui/SendEventsToImGui.h>
@@ -76,7 +77,8 @@ class CH_VSG_API VSGApp {
     vsg::ref_ptr<vsg::Switch> m_line_subgraph;
     vsg::ref_ptr<vsg::Switch> m_polygon_subgraph;
 
-    vsg::ref_ptr<vsg::Builder> m_builder;
+    vsg::ref_ptr<vsg::Builder> m_builderWireFrame;
+    vsg::ref_ptr<vsg::Builder> m_builderLighting;
 
     vsg::ref_ptr<vsg::CommandGraph> m_commandGraph;
     vsg::ref_ptr<vsg::RenderGraph> m_renderGraph;
