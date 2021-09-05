@@ -110,6 +110,37 @@ private:
     VSGApp *m_appPtr;
 };
 
+
+vsg::ref_ptr<vsg::RenderPass> createRenderPassCompatibleWithReadingDepthBuffer(vsg::Device *device, VkFormat imageFormat, VkFormat depthFormat) {
+    auto colorAttachmet = vsg::defaultColorAttachment(imageFormat);
+    auto depthAttachment = vsg::defaultDepthAttachment(depthFormat);
+
+    // by deault storeOp is VK_ATTACHMENT_STORE_OP_DONT_CARE but we do care, so bake sure we store the depth value
+    depthAttachment.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
+
+    vsg::RenderPass::Attachments attachments{colorAttachmet, depthAttachment};
+
+    vsg::SubpassDescription subpass = {};
+    subpass.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
+    subpass.colorAttachments.emplace_back(VkAttachmentReference{0, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL});
+    subpass.depthStencilAttachments.emplace_back(VkAttachmentReference{1, VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL});
+
+    vsg::RenderPass::Subpasses subpasses{subpass};
+
+    VkSubpassDependency dependency = {};
+    dependency.srcSubpass = VK_SUBPASS_EXTERNAL;
+    dependency.dstSubpass = 0;
+    dependency.srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+    dependency.srcAccessMask = 0;
+    dependency.dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+    dependency.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_READ_BIT | VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+
+    vsg::RenderPass::Dependencies dependencies{dependency};
+
+    return vsg::RenderPass::create(device, attachments, subpasses, dependencies);
+}
+
+
 VSGApp::VSGApp() {
     m_up_vector = vsg::dvec3(0, 0, 1);
 }
@@ -129,6 +160,11 @@ bool VSGApp::Initialize(int windowWidth, int windowHeight, const char *windowTit
     windowTraits->width = windowWidth;
     windowTraits->height = windowHeight;
 
+    // enable transfer from the colour and depth buffer images
+    windowTraits->swapchainPreferences.imageUsage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_TRANSFER_SRC_BIT;
+    windowTraits->depthImageUsage = VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT | VK_IMAGE_USAGE_TRANSFER_SRC_BIT;
+
+
     // create the viewer and assign window(s) to it
     m_viewer = vsg::Viewer::create();
 
@@ -138,6 +174,12 @@ bool VSGApp::Initialize(int windowWidth, int windowHeight, const char *windowTit
         return 1;
     }
 
+    auto device = m_window->getOrCreateDevice();
+    // provide a custom RenderPass to ensure we can read from the depth buffer, only required by the 'd' dpeth screenshot code path
+    m_window->setRenderPass(createRenderPassCompatibleWithReadingDepthBuffer(device, m_window->surfaceFormat().format, m_window->depthFormat()));
+
+    m_builderBodyDots = vsg::Builder::create();
+    m_builderBodyDots->options = options;
     m_builderWireFrame = vsg::Builder::create();
     m_builderWireFrame->options = options;
     m_builderLighting = vsg::Builder::create();
@@ -204,6 +246,13 @@ bool VSGApp::Initialize(int windowWidth, int windowHeight, const char *windowTit
 
     m_viewer->addEventHandler(vsg::Trackball::create(m_camera));
 
+    auto event = vsg::Event::create(m_window->getOrCreateDevice()); // Vulkan creates vkEvent in an unsignled state
+    // Add ScreenshotHandler to respond to keyboard and mouse events.
+    m_screenshotHandler = VSGScreenshotHandler::create(event);
+    if (event) m_commandGraph->addChild(vsg::SetEvent::create(event, VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT));
+
+    m_viewer->addEventHandler(m_screenshotHandler);
+
     m_viewer->assignRecordAndSubmitTaskAndPresentation({m_commandGraph});
 
     m_viewer->compile();
@@ -224,6 +273,20 @@ void VSGApp::BuildSceneGraph() {
         double angle;
         Vector axis;
         rot.Q_to_AngAxis(angle, axis);
+        vsg::GeometryInfo geomDot;
+        float dotRadius = 0.1;
+        geomDot.dx.set(dotRadius, 0.0f, 0.0f);
+        geomDot.dy.set(0.0f, dotRadius, 0.0f);
+        geomDot.dz.set(0.0f, 0.0f, dotRadius);
+        geomDot.position = vsg::vec3(pos.x(), pos.y(), pos.z());
+        geomDot.transform = vsg::rotate(angle, axis.x(), axis.y(), axis.z());
+
+        vsg::StateInfo stateDot;
+        stateDot.lighting = true;
+
+        stateDot.wireframe = false;
+        m_dot_subgraph->addChild(false, m_builderBodyDots->createSphere(geomDot, stateDot));
+
         for (int i = 0; i < body->GetAssets().size(); i++) {
             auto asset = body->GetAssets().at(i);
 
@@ -253,9 +316,9 @@ void VSGApp::BuildSceneGraph() {
                  model_sphere.push_back(model);
                  */
                 vsg::GeometryInfo geomInfo;
-                geomInfo.dx.set(2.0f*radius, 0.0f, 0.0f);
-                geomInfo.dy.set(0.0f, 2.0f*radius, 0.0f);
-                geomInfo.dz.set(0.0f, 0.0f, 2.0f*radius);
+                geomInfo.dx.set(2.0f * radius, 0.0f, 0.0f);
+                geomInfo.dy.set(0.0f, 2.0f * radius, 0.0f);
+                geomInfo.dz.set(0.0f, 0.0f, 2.0f * radius);
                 geomInfo.position = vsg::vec3(pos_final.x(), pos_final.y(), pos_final.z());
                 geomInfo.transform = vsg::rotate(angle, axis.x(), axis.y(), axis.z());
                 vsg::StateInfo stateInfo;
@@ -276,9 +339,9 @@ void VSGApp::BuildSceneGraph() {
                  model_sphere.push_back(model);
                  */
                 vsg::GeometryInfo geomInfo;
-                geomInfo.dx.set(2.0f*radius.x(), 0.0f, 0.0f);
-                geomInfo.dy.set(0.0f, 2.0f*radius.y(), 0.0f);
-                geomInfo.dz.set(0.0f, 0.0f, 2.0f*radius.z());
+                geomInfo.dx.set(2.0f * radius.x(), 0.0f, 0.0f);
+                geomInfo.dy.set(0.0f, 2.0f * radius.y(), 0.0f);
+                geomInfo.dz.set(0.0f, 0.0f, 2.0f * radius.z());
                 geomInfo.position = vsg::vec3(pos_final.x(), pos_final.y(), pos_final.z());
                 geomInfo.transform = vsg::rotate(angle, axis.x(), axis.y(), axis.z());
                 vsg::StateInfo stateInfo;
@@ -298,9 +361,9 @@ void VSGApp::BuildSceneGraph() {
                  model_box.push_back(model);
                  */
                 vsg::GeometryInfo geomInfo;
-                geomInfo.dx.set(2.0f*radius.x(), 0.0f, 0.0f);
-                geomInfo.dy.set(0.0f, 2.0f*radius.y(), 0.0f);
-                geomInfo.dz.set(0.0f, 0.0f, 2.0f*radius.z());
+                geomInfo.dx.set(2.0f * radius.x(), 0.0f, 0.0f);
+                geomInfo.dy.set(0.0f, 2.0f * radius.y(), 0.0f);
+                geomInfo.dz.set(0.0f, 0.0f, 2.0f * radius.z());
                 geomInfo.position = vsg::vec3(pos_final.x(), pos_final.y(), pos_final.z());
                 geomInfo.transform = vsg::rotate(angle, axis.x(), axis.y(), axis.z());
                 vsg::StateInfo stateInfo;
@@ -333,9 +396,9 @@ void VSGApp::BuildSceneGraph() {
                  model_cylinder.push_back(model);
                  */
                 vsg::GeometryInfo geomInfo;
-                geomInfo.dx.set(2.0f*rad, 0.0f, 0.0f);
+                geomInfo.dx.set(2.0f * rad, 0.0f, 0.0f);
                 geomInfo.dy.set(0.0f, height, 0.0f);
-                geomInfo.dz.set(0.0f, 0.0f, 2.0f*rad);
+                geomInfo.dz.set(0.0f, 0.0f, 2.0f * rad);
                 geomInfo.position = vsg::vec3(pos_final.x(), pos_final.y(), pos_final.z());
                 geomInfo.transform =
                         vsg::rotate(CH_C_PI_2, 0.0, 0.0, 1.0) * vsg::rotate(angle, axis.x(), axis.y(), axis.z());
@@ -356,8 +419,8 @@ void VSGApp::BuildSceneGraph() {
                  model_cone.push_back(model);
                  */
                 vsg::GeometryInfo geomInfo;
-                geomInfo.dx.set(2.0f*rad.x(), 0.0f, 0.0f);
-                geomInfo.dy.set(0.0f, 2.0f*rad.z(), 0.0f);
+                geomInfo.dx.set(2.0f * rad.x(), 0.0f, 0.0f);
+                geomInfo.dy.set(0.0f, 2.0f * rad.z(), 0.0f);
                 geomInfo.dz.set(0.0f, 0.0f, rad.y());
                 geomInfo.position = vsg::vec3(pos_final.x(), pos_final.z(), pos_final.y());
                 geomInfo.transform =
@@ -369,7 +432,7 @@ void VSGApp::BuildSceneGraph() {
                 m_line_subgraph->addChild(false, m_builderWireFrame->createCone(geomInfo, stateInfo));
                 stateInfo.wireframe = false;
                 m_polygon_subgraph->addChild(true, m_builderLighting->createCone(geomInfo, stateInfo));
-            } else if (ChCapsuleShape* capsule_shape = dynamic_cast<ChCapsuleShape*>(asset.get())) {
+            } else if (ChCapsuleShape * capsule_shape = dynamic_cast<ChCapsuleShape *>(asset.get())) {
                 double rad = capsule_shape->GetCapsuleGeometry().rad;
                 double height = capsule_shape->GetCapsuleGeometry().hlen;
                 // Quaternion rott(1,0,0,0);
@@ -398,9 +461,9 @@ void VSGApp::BuildSceneGraph() {
                 model_sphere.push_back(model);
     */
                 vsg::GeometryInfo geomInfo;
-                geomInfo.dx.set(2.0f*rad, 0.0f, 0.0f);
-                geomInfo.dy.set(0.0f, 2.0f*rad, 0.0f);
-                geomInfo.dz.set(0.0f, 0.0f, 2.0f*height);
+                geomInfo.dx.set(2.0f * rad, 0.0f, 0.0f);
+                geomInfo.dy.set(0.0f, 2.0f * rad, 0.0f);
+                geomInfo.dz.set(0.0f, 0.0f, 2.0f * height);
                 geomInfo.position = vsg::vec3(pos_final.x(), pos_final.z(), pos_final.y());
                 geomInfo.transform =
                         vsg::rotate(-CH_C_PI_2, 1.0, 0.0, 0.0) * vsg::rotate(angle, axis.x(), axis.y(), axis.z());
@@ -448,5 +511,7 @@ void VSGApp::Render() {
         }
         m_drawModeChanged = false;
     }
+    if (m_screenshotHandler->do_image_capture) m_screenshotHandler->screenshot_image(m_window);
+    if (m_screenshotHandler->do_depth_capture) m_screenshotHandler->screenshot_depth(m_window);
     m_viewer->present();
 }

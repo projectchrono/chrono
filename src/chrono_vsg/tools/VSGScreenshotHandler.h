@@ -14,8 +14,8 @@
 // Header for an helper class defining materials for Phong shading
 // =============================================================================
 
-#ifndef CH_VSG_SCREENSHOT_HANDLER_H
-#define CH_VSG_SCREENSHOT_HANDLER_H
+#ifndef VSG_SCREENSHOT_HANDLER_H
+#define VSG_SCREENSHOT_HANDLER_H
 
 #include <iostream>
 #include "chrono/core/ChVector.h"
@@ -28,23 +28,23 @@
 namespace chrono {
     namespace vsg3d {
 
-        class ChVSGScreenshotHandler : public vsg::Inherit<vsg::Visitor, ChVSGScreenshotHandler> {
+        class VSGScreenshotHandler : public vsg::Inherit<vsg::Visitor, VSGScreenshotHandler> {
         public:
             bool do_image_capture = false;
             bool do_depth_capture = false;
             vsg::ref_ptr<vsg::Event> event;
             bool eventDebugTest = false;
 
-            ChVSGScreenshotHandler(vsg::ref_ptr<vsg::Event> in_event);
+            VSGScreenshotHandler(vsg::ref_ptr<vsg::Event> in_event);
 
             void apply(vsg::KeyPressEvent &keyPress) override {
 #ifdef _WIN32
                 if (keyPress.keyBase == 80) {
-                    do_image_capture = true;
-                }
-                if (keyPress.keyBase == 84) {
-                    do_depth_capture = true;
-                }
+            do_image_capture = true;
+        }
+        if (keyPress.keyBase == 84) {
+            do_depth_capture = true;
+        }
 #else
                 if (keyPress.keyBase == 'p') {
                     do_image_capture = true;

@@ -1,12 +1,12 @@
 #include "chrono_thirdparty/stb/stb_image_write.h"
-#include "chrono_vsg/tools/ChVSGScreenshotHandler.h"
+#include "chrono_vsg/tools/VSGScreenshotHandler.h"
 
 using namespace chrono::vsg3d;
 
-ChVSGScreenshotHandler::ChVSGScreenshotHandler(vsg::ref_ptr<vsg::Event> in_event) : event(in_event) {
+VSGScreenshotHandler::VSGScreenshotHandler(vsg::ref_ptr<vsg::Event> in_event) : event(in_event) {
 }
 
-void ChVSGScreenshotHandler::printInfo(vsg::ref_ptr<vsg::Window> window) {
+void VSGScreenshotHandler::printInfo(vsg::ref_ptr<vsg::Window> window) {
     auto device = window->getDevice();
     auto physicalDevice = window->getPhysicalDevice();
     auto swapchain = window->getSwapchain();
@@ -33,7 +33,7 @@ void ChVSGScreenshotHandler::printInfo(vsg::ref_ptr<vsg::Window> window) {
     std::cout << "    depthFormat() = " << window->depthFormat() << std::endl;
 }
 
-void ChVSGScreenshotHandler::screenshot_image(vsg::ref_ptr<vsg::Window> window) {
+void VSGScreenshotHandler::screenshot_image(vsg::ref_ptr<vsg::Window> window) {
     // printInfo(window);
 
     do_image_capture = false;
@@ -262,10 +262,15 @@ void ChVSGScreenshotHandler::screenshot_image(vsg::ref_ptr<vsg::Window> window) 
     if (pixels) {
         size_t k = 0;
         for (size_t j = 0; j < imageData->dataSize(); j += 4) {
-            // we have to swap RGB width BGR for output
+            // if we had to swap RGB width BGR for output
+            /*
             pixels[k++] = data[j + 2];
             pixels[k++] = data[j + 1];
             pixels[k++] = data[j];
+             */
+            pixels[k++] = data[j];
+            pixels[k++] = data[j + 1];
+            pixels[k++] = data[j + 2];
         }
 
         // int ans1 = stbi_write_bmp("screenshot.bmp", width, height, 3, pixels);
@@ -279,7 +284,7 @@ void ChVSGScreenshotHandler::screenshot_image(vsg::ref_ptr<vsg::Window> window) 
     }
 }
 
-void ChVSGScreenshotHandler::screenshot_depth(vsg::ref_ptr<vsg::Window> window) {
+void VSGScreenshotHandler::screenshot_depth(vsg::ref_ptr<vsg::Window> window) {
     do_depth_capture = false;
 
     // printInfo(window);

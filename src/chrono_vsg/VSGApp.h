@@ -20,6 +20,7 @@
 #include <iostream>
 #include "chrono_vsg/core/ChApiVSG.h"
 #include "chrono_vsg/resources/ChVSGSettings.h"
+#include "chrono_vsg/tools/VSGScreenshotHandler.h"
 #include "chrono/physics/ChSystem.h"
 #include "chrono/core/ChTimer.h"
 #include "chrono/core/ChVector.h"
@@ -38,55 +39,68 @@
 #include <vsg/all.h>
 
 namespace chrono {
-namespace vsg3d {
+    namespace vsg3d {
 
 /// @addtogroup vsg_module
 /// @{
 
-class CH_VSG_API VSGApp {
-  public:
-    VSGApp();
-    ~VSGApp();
+        class CH_VSG_API VSGApp {
+        public:
+            VSGApp();
 
-    bool Initialize(int windowWidth, int windowHeight, const char* windowTitle, ChSystem* system);
-    void Render();
-    void Quit() { m_viewer->close(); }
-    vsg::ref_ptr<vsg::Viewer> GetViewer() { return m_viewer; }
-    void UpdateDrawMode(int mode) {
-        m_drawMode = mode;
-        m_drawModeChanged = true;
-    }
+            ~VSGApp();
 
-  protected:
-    void BuildSceneGraph();
-    void UpdateSceneGraph();
+            bool Initialize(int windowWidth, int windowHeight, const char *windowTitle, ChSystem *system);
 
-  private:
-    int m_drawMode = 0;
-    bool m_drawModeChanged = true;
-    vsg::ref_ptr<vsg::Viewer> m_viewer;
-    vsg::ref_ptr<vsg::Window> m_window;
+            void Render();
 
-    vsg::ref_ptr<vsg::LookAt> m_lookAt;
-    vsg::ref_ptr<vsg::Camera> m_camera;
-    vsg::ref_ptr<vsg::ProjectionMatrix> m_perspective;
-    vsg::dvec3 m_up_vector;
+            void Quit() {
+                m_viewer->close();
+            }
 
-    vsg::ref_ptr<vsg::Group> m_scenegraph;
-    vsg::ref_ptr<vsg::Switch> m_dot_subgraph;
-    vsg::ref_ptr<vsg::Switch> m_line_subgraph;
-    vsg::ref_ptr<vsg::Switch> m_polygon_subgraph;
+            vsg::ref_ptr<vsg::Viewer> GetViewer() {
+                return m_viewer;
+            }
 
-    vsg::ref_ptr<vsg::Builder> m_builderWireFrame;
-    vsg::ref_ptr<vsg::Builder> m_builderLighting;
+            void UpdateDrawMode(int mode) {
+                m_drawMode = mode;
+                m_drawModeChanged = true;
+            }
 
-    vsg::ref_ptr<vsg::CommandGraph> m_commandGraph;
-    vsg::ref_ptr<vsg::RenderGraph> m_renderGraph;
+        protected:
+            void BuildSceneGraph();
 
-    ChSystem* m_system;
-};
+            void UpdateSceneGraph();
 
-}  // namespace vsg3d
+        private:
+            int m_drawMode = 0;
+            bool m_drawModeChanged = true;
+            vsg::ref_ptr<vsg::Viewer> m_viewer;
+            vsg::ref_ptr<vsg::Window> m_window;
+
+            vsg::ref_ptr<vsg::LookAt> m_lookAt;
+            vsg::ref_ptr<vsg::Camera> m_camera;
+            vsg::ref_ptr<vsg::ProjectionMatrix> m_perspective;
+            vsg::dvec3 m_up_vector;
+
+            vsg::ref_ptr<vsg::Group> m_scenegraph;
+            vsg::ref_ptr<vsg::Switch> m_dot_subgraph;
+            vsg::ref_ptr<vsg::Switch> m_line_subgraph;
+            vsg::ref_ptr<vsg::Switch> m_polygon_subgraph;
+
+            vsg::ref_ptr<vsg::Builder> m_builderBodyDots;
+            vsg::ref_ptr<vsg::Builder> m_builderWireFrame;
+            vsg::ref_ptr<vsg::Builder> m_builderLighting;
+
+            vsg::ref_ptr<vsg::CommandGraph> m_commandGraph;
+            vsg::ref_ptr<vsg::RenderGraph> m_renderGraph;
+
+            vsg::ref_ptr<chrono::vsg3d::VSGScreenshotHandler> m_screenshotHandler;
+
+            ChSystem *m_system;
+        };
+
+    }  // namespace vsg3d
 }  // namespace chrono
 
 #endif

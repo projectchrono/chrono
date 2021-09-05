@@ -26,7 +26,7 @@
 using namespace chrono;
 using namespace geometry;
 
-int main(int argc, char* argv[]) {
+int main(int argc, char *argv[]) {
     GetLog() << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
 
     ChSystemNSC sys;
@@ -39,10 +39,11 @@ int main(int argc, char* argv[]) {
     utils::AddBoxGeometry(bin.get(), mat, ChVector<>(1, 1, 1), ChVector<>(6, 0, 0));
     utils::AddCylinderGeometry(bin.get(), mat, 1, 1, ChVector<>(9, 0, 0));
     utils::AddConeGeometry(bin.get(), mat, 1, 3, ChVector<>(12, 0, 0));
+    utils::AddCapsuleGeometry(bin.get(), mat, 1, 1, ChVector<>(15, 0, 0));
     sys.AddBody(bin);
 
     // Render everything
-    opengl::ChOpenGLWindow& gl_window = opengl::ChOpenGLWindow::getInstance();
+    opengl::ChOpenGLWindow &gl_window = opengl::ChOpenGLWindow::getInstance();
     gl_window.Initialize(1280, 720, "OpenGL Shapes", &sys);
     gl_window.SetCamera(ChVector<>(6, -10, 0), ChVector<>(6, 0, 0), ChVector<>(0, 0, 1));
     gl_window.SetRenderMode(opengl::WIREFRAME);
