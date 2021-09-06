@@ -170,16 +170,29 @@ class CH_MODELS_API CuriosityWheel : public CuriosityPart {
     friend class Curiosity;
 };
 
-/// Curiosity rover connecting arm.
-class CH_MODELS_API CuriosityArm : public CuriosityPart {
+
+/// Curiosity rover suspension rocker.
+class CH_MODELS_API CuriosityRocker : public CuriosityPart {
   public:
-    CuriosityArm(const std::string& name,                 ///< part name
+    CuriosityRocker(const std::string& name,                 ///< part name
                  const ChFrame<>& rel_pos,                ///< position relative to chassis frame
                  std::shared_ptr<ChMaterialSurface> mat,  ///< contact material
-                 int which                                ///< 0: FL, 1: FR, 2: BL, 3: BR
+                 int side                                ///< rover side (0: L, 1: R)
     );
-    ~CuriosityArm() {}
+    ~CuriosityRocker() {}
 };
+
+/// Curiosity rover suspension bogie.
+class CH_MODELS_API CuriosityBogie : public CuriosityPart {
+  public:
+    CuriosityBogie(const std::string& name,                 ///< part name
+                    const ChFrame<>& rel_pos,                ///< position relative to chassis frame
+                    std::shared_ptr<ChMaterialSurface> mat,  ///< contact material
+                    int side                                 ///< rover side (0: L, 1: R)
+    );
+    ~CuriosityBogie() {}
+};
+
 
 /// Curiosity rover steering upright.
 class CH_MODELS_API CuriosityUpright : public CuriosityPart {
@@ -208,7 +221,7 @@ class CH_MODELS_API CuriosityDifferentialLink : public CuriosityPart {
     CuriosityDifferentialLink(const std::string& name,                 ///< part name
                               const ChFrame<>& rel_pos,                ///< position relative to chassis frame
                               std::shared_ptr<ChMaterialSurface> mat,  ///< contact material
-                              int side                                 ///< 0: L, 1: R
+                              int side                                 ///< rover side (0: L, 1: R)
     );
     ~CuriosityDifferentialLink() {}
 };
@@ -237,13 +250,12 @@ class CH_MODELS_API Curiosity {
     void SetWheelContactMaterial(std::shared_ptr<ChMaterialSurface> mat);
 
     /// Fix the chassis to ground.
-    void SetChassisFixed(bool fixed) { m_chassis_fixed = fixed; }
+    /// This function can only be invoked after the call to Initialize().
+    void FixChassis(bool fixed);
 
-    /// Fix the suspension arms (for debugging).
-    void SetSuspensionFixed(bool fixed) { m_suspension_fixed = fixed; }
-
-    /// Fix the steering uprights (for debugging).
-    void SetUprightsFixed(bool fixed) { m_uprights_fixed = fixed; }
+    /// Fix the suspension joints.
+    /// This function can only be invoked after the call to Initialize().
+    void FixSuspension(bool fixed);
 
     /// Enable/disable visualization of the rover chassis (default: true).
     void SetChassisVisualization(bool state);
@@ -313,15 +325,17 @@ class CH_MODELS_API Curiosity {
     std::shared_ptr<ChFunction_Setpoint> GetDriveMotorFunc(CuriosityWheelID id) const {
         return m_drive_motor_funcs[id];
     }
-
-    /// Get steer motor function.
-    std::shared_ptr<ChFunction_Const> GetSteerMotorFunc(CuriosityWheelID id) const { return m_steer_motor_funcs[id]; }
+    /// Get rocker steer motor function (side: 0 for left and 1 for right).
+    std::shared_ptr<ChFunction_Const> GetRockerSteerMotorFunc(int side) const { return m_rocker_motor_funcs[side]; }
+    /// Get bogie steer motor function (side: 0 for left and 1 for right).
+    std::shared_ptr<ChFunction_Const> GetBogieSteerMotorFunc(int side) const { return m_bogie_motor_funcs[side]; }
 
     /// Get drive motor.
     std::shared_ptr<ChLinkMotorRotation> GetDriveMotor(CuriosityWheelID id) const { return m_drive_motors[id]; }
-
-    /// Get steer motor.
-    std::shared_ptr<ChLinkMotorRotation> GetSteerMotor(CuriosityWheelID id) const { return m_steer_motors[id]; }
+    /// Get rocker steer motor (side: 0 for left and 1 for right).
+    std::shared_ptr<ChLinkMotorRotation> GetRockerSteerMotor(int side) const { return m_rocker_motors[side]; }
+    /// Get bogie steer motor (side: 0 for left and 1 for right).
+    std::shared_ptr<ChLinkMotorRotation> GetBogieSteerMotor(int side) const { return m_bogie_motors[side]; }
 
   private:
     /// Create the rover parts.
@@ -329,24 +343,28 @@ class CH_MODELS_API Curiosity {
 
     ChSystem* m_system;  ///< pointer to the Chrono system
 
-    bool m_chassis_fixed;     ///< fix chassis to ground
-    bool m_suspension_fixed;  ///< fix suspension arms to ground
-    bool m_uprights_fixed;    ///< fix uprights to ground
+    bool m_initialized;  ///< flag indicating whether or not the rover was initialized
 
     std::shared_ptr<CuriosityChassis> m_chassis;                             ///< chassis
     std::array<std::shared_ptr<CuriosityWheel>, 6> m_wheels;                 ///< wheels (see CuriosityWheelID)
-    std::array<std::shared_ptr<CuriosityArm>, 4> m_arms;                     ///< arms
-    std::array<std::shared_ptr<CuriosityUpright>, 4> m_uprights;             ///< steering uprights
+    std::array<std::shared_ptr<CuriosityRocker>, 2> m_rockers;               ///< suspension rockers (L/R)
+    std::array<std::shared_ptr<CuriosityBogie>, 2> m_bogies;                 ///< suspension bogies (L/R)
+    std::array<std::shared_ptr<CuriosityUpright>, 2> m_rocker_uprights;      ///< steering rocker uprights (L/R)
+    std::array<std::shared_ptr<CuriosityUpright>, 2> m_bogie_uprights;       ///< steering bogie uprights (L/R)
     std::shared_ptr<CuriosityDifferentialBar> m_diff_bar;                    ///< differential bar
-    std::array<std::shared_ptr<CuriosityDifferentialLink>, 3> m_diff_links;  ///< differential links; 0:L, 1:R
+    std::array<std::shared_ptr<CuriosityDifferentialLink>, 3> m_diff_links;  ///< differential links (L/R)
 
-    ChFrame<> m_rover_pos;  ///< rover placement position
+    std::shared_ptr<ChLinkLockRevolute> m_diff_joint;                    ///< joint connecting the differential bar
+    std::array<std::shared_ptr<ChLinkLockRevolute>, 2> m_rocker_joints;  ///< joints connecting suspension rockers (L/R)
+    std::array<std::shared_ptr<ChLinkLockRevolute>, 2> m_bogie_joints;   ///< joints connecting suspension bogies (L/R)
 
-    std::array<std::shared_ptr<ChLinkMotorRotation>, 6> m_drive_motors;  ///< drive motors
-    std::array<std::shared_ptr<ChLinkMotorRotation>, 6> m_steer_motors;  ///< steering motors
+    std::array<std::shared_ptr<ChLinkMotorRotation>, 2> m_rocker_motors;    ///< rocker steering motors
+    std::array<std::shared_ptr<ChLinkMotorRotation>, 2> m_bogie_motors;     ///< bogie steering motors
+    std::array<std::shared_ptr<ChFunction_Const>, 2> m_rocker_motor_funcs;  ///< rocker steering motor functions
+    std::array<std::shared_ptr<ChFunction_Const>, 2> m_bogie_motor_funcs;   ///< bogie steering motor functions
 
-    std::array<std::shared_ptr<ChFunction_Setpoint>, 6> m_drive_motor_funcs;  ///< cdrive motor functions
-    std::array<std::shared_ptr<ChFunction_Const>, 6> m_steer_motor_funcs;     ///< steering motor functions
+    std::array<std::shared_ptr<ChLinkMotorRotation>, 6> m_drive_motors;       ///< drive motors
+    std::array<std::shared_ptr<ChFunction_Setpoint>, 6> m_drive_motor_funcs;  ///< drive motor functions
 
     std::array<std::shared_ptr<ChShaft>, 6> m_drive_shafts;  ///< power shafts for torque-controlled drive mode
 
