@@ -34,11 +34,6 @@
 // Generalized Internal Forces and Jacobian of the Generalized Internal Forces for ANCF Continuum Mechanics Elements
 // with Linear Viscoelastic Materials, Simulation Based Engineering Lab, University of Wisconsin-Madison; 2021.
 // =============================================================================
-// This element class has been templatized by the number of Gauss quadrature points to use for the generalized internal
-// force calculations and its Jacobian with the recommended values as the default.  Using fewer than 2 Gauss quadrature
-// points along the beam axis (NP) or through each cross section direction (NT) will likely result in numerical issues
-// with the element.
-// =============================================================================
 
 #ifndef CHELEMENTBEAMANCF3243_H
 #define CHELEMENTBEAMANCF3243_H
@@ -69,9 +64,12 @@ namespace fea {
 ///             w
 /// </pre>
 
-template <int NP = 3, int NT = 2>
-class ChElementBeamANCF_3243 : public ChElementBeam, public ChLoadableU, public ChLoadableUVW {
+class ChApi ChElementBeamANCF_3243 : public ChElementBeam, public ChLoadableU, public ChLoadableUVW {
   public:
+    // Using fewer than 2 Gauss quadrature points along the beam axis (NP) or through each cross section direction (NT)
+    // will likely result in numerical issues with the element.
+    static const int NP = 3;                 ///< number of Gauss quadrature along beam axis
+    static const int NT = 2;                 ///< number of quadrature points through cross section
     static const int NIP_D0 = NP * NT * NT;  ///< number of Gauss quadrature points excluding the Poisson effect for the
                                              ///< Enhanced Continuum Mechanics method
     static const int NIP_Dv =
@@ -451,8 +449,6 @@ class ChElementBeamANCF_3243 : public ChElementBeam, public ChLoadableU, public 
 };
 
 /// @} fea_elements
-
-#include "ChElementBeamANCF_3243_impl.h"
 
 }  // end of namespace fea
 }  // end of namespace chrono

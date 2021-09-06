@@ -29,11 +29,6 @@
 // Generalized Internal Forces and Jacobian of the Generalized Internal Forces for ANCF Continuum Mechanics Elements
 // with Linear Viscoelastic Materials, Simulation Based Engineering Lab, University of Wisconsin-Madison; 2021.
 // =============================================================================
-// This element class has been templatized by the number of Gauss quadrature points to use for the generalized internal
-// force calculations and its Jacobian with the recommended values as the default.  Using fewer than 3 Gauss quadrature
-// points for each midsurface direction (NP) or 2 Gauss quadrature points through the thickness (NT) will likely result
-// in numerical issues with the element.  A slightly less stiff element can achieved by using NP=3, NT=2.
-// =============================================================================
 
 #ifndef CHELEMENTSHELLANCF3443_H
 #define CHELEMENTSHELLANCF3443_H
@@ -66,9 +61,13 @@ namespace fea {
 /// A o-----+-----o B
 /// </pre>
 
-template <int NP = 4, int NT = 2>
 class ChElementShellANCF_3443 : public ChElementShell, public ChLoadableUV, public ChLoadableUVW {
   public:
+    // Using fewer than 3 Gauss quadrature points for each midsurface direction (NP) or 2 Gauss quadrature points
+    // through the thickness (NT) will likely result in numerical issues with the element.  A slightly less stiff
+    // element can achieved by using NP=3, NT=2.
+    static const int NP = 4;              ///< number of Gauss quadrature points for each midsurface direction
+    static const int NT = 2;              ///< number of quadrature points through the thickness
     static const int NIP = NP * NP * NT;  ///< number of Gauss quadrature points
     static const int NSF = 16;            ///< number of shape functions
 
@@ -511,8 +510,6 @@ class ChElementShellANCF_3443 : public ChElementShell, public ChLoadableUV, publ
 };
 
 /// @} fea_elements
-
-#include "ChElementShellANCF_3443_impl.h"
 
 }  // end of namespace fea
 }  // end of namespace chrono

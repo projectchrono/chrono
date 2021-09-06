@@ -30,11 +30,6 @@
 // Generalized Internal Forces and Jacobian of the Generalized Internal Forces for ANCF Continuum Mechanics Elements
 // with Linear Viscoelastic Materials, Simulation Based Engineering Lab, University of Wisconsin-Madison; 2021.
 // =============================================================================
-// This element class has been templatized by the number of Gauss quadrature points to use for the generalized internal
-// force calculations and its Jacobian with the recommended values as the default.  Using fewer than 2 Gauss quadrature
-// points along the beam axis (NP) or through each cross section direction (NT) will likely result in numerical issues
-// with the element.
-// =============================================================================
 
 #ifndef CHELEMENTBEAMANCF3333_H
 #define CHELEMENTBEAMANCF3333_H
@@ -66,9 +61,12 @@ namespace fea {
 /// </pre>
 /// where C is the third and central node.
 
-template <int NP = 3, int NT = 2>
 class ChElementBeamANCF_3333 : public ChElementBeam, public ChLoadableU, public ChLoadableUVW {
   public:
+    // Using fewer than 2 Gauss quadrature points along the beam axis (NP) or through each cross section direction (NT)
+    // will likely result in numerical issues with the element.
+    static const int NP = 3;                 ///< number of Gauss quadrature along beam axis
+    static const int NT = 2;                 ///< number of quadrature points through cross section
     static const int NIP_D0 = NP * NT * NT;  ///< number of Gauss quadrature points excluding the Poisson effect for the
                                              ///< Enhanced Continuum Mechanics method
     static const int NIP_Dv =
@@ -112,7 +110,9 @@ class ChElementBeamANCF_3333 : public ChElementBeam, public ChLoadableU, public 
     virtual int GetNodeNdofs(int n) override { return 9; }
 
     /// Specify the nodes of this element.
-    void SetNodes(std::shared_ptr<ChNodeFEAxyzDD> nodeA, std::shared_ptr<ChNodeFEAxyzDD> nodeB, std::shared_ptr<ChNodeFEAxyzDD> nodeC);
+    void SetNodes(std::shared_ptr<ChNodeFEAxyzDD> nodeA,
+                  std::shared_ptr<ChNodeFEAxyzDD> nodeB,
+                  std::shared_ptr<ChNodeFEAxyzDD> nodeC);
 
     /// Specify the element dimensions.
     void SetDimensions(double lenX, double thicknessY, double thicknessZ);
@@ -408,13 +408,13 @@ class ChElementBeamANCF_3333 : public ChElementBeam, public ChLoadableU, public 
     IntFrcMethod m_method;                           ///< Generalized internal force and Jacobian calculation method
     std::shared_ptr<ChMaterialBeamANCF> m_material;  ///< material model
     std::vector<std::shared_ptr<ChNodeFEAxyzDD>> m_nodes;  ///< element nodes
-    double m_lenX;                                          ///< total element length along X
-    double m_thicknessY;                                    ///< total element length along Y
-    double m_thicknessZ;                                    ///< total element length along Z
-    double m_Alpha;                                         ///< structural damping
-    bool m_damping_enabled;                                 ///< Flag to run internal force damping calculations
-    bool m_gravity_on;                                      ///< enable/disable gravity calculation
-    Vector3N m_GravForce;                                   ///< Gravity Force
+    double m_lenX;                                         ///< total element length along X
+    double m_thicknessY;                                   ///< total element length along Y
+    double m_thicknessZ;                                   ///< total element length along Z
+    double m_Alpha;                                        ///< structural damping
+    bool m_damping_enabled;                                ///< Flag to run internal force damping calculations
+    bool m_gravity_on;                                     ///< enable/disable gravity calculation
+    Vector3N m_GravForce;                                  ///< Gravity Force
     Matrix3xN m_ebar0;  ///< Element Position Coordinate Vector for the Reference Configuration
     Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor>
         m_SD;  ///< Precomputed corrected normalized shape function derivative matrices ordered by columns instead of
@@ -451,8 +451,6 @@ class ChElementBeamANCF_3333 : public ChElementBeam, public ChLoadableU, public 
 };
 
 /// @} fea_elements
-
-#include "ChElementBeamANCF_3333_impl.h"
 
 }  // end of namespace fea
 }  // end of namespace chrono

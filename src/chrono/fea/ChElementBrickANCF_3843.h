@@ -29,10 +29,6 @@
 // Generalized Internal Forces and Jacobian of the Generalized Internal Forces for ANCF Continuum Mechanics Elements
 // with Linear Viscoelastic Materials, Simulation Based Engineering Lab, University of Wisconsin-Madison; 2021.
 // =============================================================================
-// This element class has been templatized by the number of Gauss quadrature points to use for the generalized internal
-// force calculations and its Jacobian with the recommended values as the default.  Using fewer than 3 Gauss quadrature
-// will likely result in numerical issues with the element.
-// =============================================================================
 
 #ifndef CHELEMENTBRICKANCF3843_H
 #define CHELEMENTBRICKANCF3843_H
@@ -77,9 +73,10 @@ namespace fea {
 /// E o-----+-----o F
 /// </pre>
 
-template <int NP = 4>
 class ChElementBrickANCF_3843 : public ChElementGeneric, public ChLoadableUVW {
   public:
+    // Using fewer than 3 Gauss quadrature will likely result in numerical issues with the element.
+    static const int NP = 4;              ///< number of Gauss quadrature along beam axis
     static const int NIP = NP * NP * NP;  ///< number of Gauss quadrature points
     static const int NSF = 32;            ///< number of shape functions
 
@@ -451,8 +448,6 @@ class ChElementBrickANCF_3843 : public ChElementGeneric, public ChLoadableUVW {
 };
 
 /// @} fea_elements
-
-#include "ChElementBrickANCF_3843_impl.h"
 
 }  // end of namespace fea
 }  // end of namespace chrono

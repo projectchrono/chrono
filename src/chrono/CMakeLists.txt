@@ -493,6 +493,11 @@ set(ChronoEngine_fea_elements_SOURCES
 	fea/ChElementShellBST.cpp
     fea/ChElementBrick.cpp
     fea/ChElementBrick_9.cpp
+    fea/ChElementBeamANCF_3243.cpp
+    fea/ChElementBeamANCF_3333.cpp
+    fea/ChElementBrickANCF_3843.cpp
+    fea/ChElementShellANCF_3833.cpp
+    fea/ChElementShellANCF_3443.cpp
 )
 
 set(ChronoEngine_fea_elements_HEADERS
@@ -504,9 +509,7 @@ set(ChronoEngine_fea_elements_HEADERS
     fea/ChElementBeam.h
     fea/ChElementBeamANCF.h
     fea/ChElementBeamANCF_3243.h
-    fea/ChElementBeamANCF_3243_impl.h
     fea/ChElementBeamANCF_3333.h
-    fea/ChElementBeamANCF_3333_impl.h
     fea/ChElementBeamEuler.h
     fea/ChElementBeamTaperedTimoshenko.h
     fea/ChElementBeamTaperedTimoshenkoFPM.h
@@ -521,14 +524,11 @@ set(ChronoEngine_fea_elements_HEADERS
     fea/ChElementHexa_8.h
     fea/ChElementHexa_20.h
     fea/ChElementBrickANCF_3843.h
-    fea/ChElementBrickANCF_3843_impl.h
     fea/ChElementShell.h
     fea/ChElementShellANCF.h
     fea/ChElementShellANCF_3443.h
-    fea/ChElementShellANCF_3443_impl.h
     fea/ChElementShellANCF_8.h
     fea/ChElementShellANCF_3833.h
-    fea/ChElementShellANCF_3833_impl.h
     fea/ChElementShellReissner4.h
 	fea/ChElementShellBST.h
 )

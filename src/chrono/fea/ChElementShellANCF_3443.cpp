@@ -11,10 +11,9 @@
 // =============================================================================
 // Authors: Michael Taylor, Antonio Recuero, Radu Serban
 // =============================================================================
-// Higher order ANCF shell element with 8 nodes. Description of this element (3833) and its internal forces may be
-// found in: Henrik Ebel, Marko K Matikainen, Vesa-Ville Hurskainen, and Aki Mikkola. Analysis of high-order
-// quadrilateral plate elements based on the absolute nodal coordinate formulation for three - dimensional
-// elasticity.Advances in Mechanical Engineering, 9(6) : 1687814017705069, 2017.
+// Fully Parameterized ANCF shell element with 4 nodes (48DOF). A Description of this element can be found in: Aki M
+// Mikkola and Ahmed A Shabana. A non-incremental finite element procedure for the analysis of large deformation of
+// plates and shells in mechanical system applications. Multibody System Dynamics, 9(3) : 283–309, 2003.
 // =============================================================================
 // The "Continuous Integration" style calculation for the generalized internal force is based on modifications to
 // (including a new analytical Jacobian):  Gerstmayr, J., Shabana, A.A.: Efficient integration of the elastic forces and
@@ -30,17 +29,18 @@
 // Generalized Internal Forces and Jacobian of the Generalized Internal Forces for ANCF Continuum Mechanics Elements
 // with Linear Viscoelastic Materials, Simulation Based Engineering Lab, University of Wisconsin-Madison; 2021.
 // =============================================================================
-// This element class has been templatized by the number of Gauss quadrature points to use for the generalized internal
-// force calculations and its Jacobian with the recommended values as the default.  Using fewer than 3 Gauss quadrature
-// points for each midsurface direction (NP) and 2 Gauss quadrature points through the thickness (NT) will likely result
-// in numerical issues with the element.
-// =============================================================================
+
+#include "chrono/fea/ChElementShellANCF_3443.h"
+#include "chrono/physics/ChSystem.h"
+
+namespace chrono {
+namespace fea {
 
 // ------------------------------------------------------------------------------
 // Constructor
 // ------------------------------------------------------------------------------
-template <int NP, int NT>
-ChElementShellANCF_3833<NP, NT>::ChElementShellANCF_3833()
+
+ChElementShellANCF_3443::ChElementShellANCF_3443()
     : m_method(IntFrcMethod::ContInt),
       m_gravity_on(false),
       m_numLayers(0),
@@ -50,64 +50,44 @@ ChElementShellANCF_3833<NP, NT>::ChElementShellANCF_3833()
       m_midsurfoffset(0),
       m_Alpha(0),
       m_damping_enabled(false) {
-    m_nodes.resize(8);
+    m_nodes.resize(4);
 }
 
 // ------------------------------------------------------------------------------
 // Set element nodes
 // ------------------------------------------------------------------------------
-template <int NP, int NT>
-void ChElementShellANCF_3833<NP, NT>::SetNodes(std::shared_ptr<ChNodeFEAxyzDD> nodeA,
-                                               std::shared_ptr<ChNodeFEAxyzDD> nodeB,
-                                               std::shared_ptr<ChNodeFEAxyzDD> nodeC,
-                                               std::shared_ptr<ChNodeFEAxyzDD> nodeD,
-                                               std::shared_ptr<ChNodeFEAxyzDD> nodeE,
-                                               std::shared_ptr<ChNodeFEAxyzDD> nodeF,
-                                               std::shared_ptr<ChNodeFEAxyzDD> nodeG,
-                                               std::shared_ptr<ChNodeFEAxyzDD> nodeH) {
+
+void ChElementShellANCF_3443::SetNodes(std::shared_ptr<ChNodeFEAxyzDDD> nodeA,
+                                       std::shared_ptr<ChNodeFEAxyzDDD> nodeB,
+                                       std::shared_ptr<ChNodeFEAxyzDDD> nodeC,
+                                       std::shared_ptr<ChNodeFEAxyzDDD> nodeD) {
     assert(nodeA);
     assert(nodeB);
     assert(nodeC);
     assert(nodeD);
-    assert(nodeE);
-    assert(nodeF);
-    assert(nodeG);
-    assert(nodeH);
 
     m_nodes[0] = nodeA;
     m_nodes[1] = nodeB;
     m_nodes[2] = nodeC;
     m_nodes[3] = nodeD;
-    m_nodes[4] = nodeE;
-    m_nodes[5] = nodeF;
-    m_nodes[6] = nodeG;
-    m_nodes[7] = nodeH;
 
     std::vector<ChVariables*> mvars;
     mvars.push_back(&m_nodes[0]->Variables());
     mvars.push_back(&m_nodes[0]->Variables_D());
     mvars.push_back(&m_nodes[0]->Variables_DD());
+    mvars.push_back(&m_nodes[0]->Variables_DDD());
     mvars.push_back(&m_nodes[1]->Variables());
     mvars.push_back(&m_nodes[1]->Variables_D());
     mvars.push_back(&m_nodes[1]->Variables_DD());
+    mvars.push_back(&m_nodes[1]->Variables_DDD());
     mvars.push_back(&m_nodes[2]->Variables());
     mvars.push_back(&m_nodes[2]->Variables_D());
     mvars.push_back(&m_nodes[2]->Variables_DD());
+    mvars.push_back(&m_nodes[2]->Variables_DDD());
     mvars.push_back(&m_nodes[3]->Variables());
     mvars.push_back(&m_nodes[3]->Variables_D());
     mvars.push_back(&m_nodes[3]->Variables_DD());
-    mvars.push_back(&m_nodes[4]->Variables());
-    mvars.push_back(&m_nodes[4]->Variables_D());
-    mvars.push_back(&m_nodes[4]->Variables_DD());
-    mvars.push_back(&m_nodes[5]->Variables());
-    mvars.push_back(&m_nodes[5]->Variables_D());
-    mvars.push_back(&m_nodes[5]->Variables_DD());
-    mvars.push_back(&m_nodes[6]->Variables());
-    mvars.push_back(&m_nodes[6]->Variables_D());
-    mvars.push_back(&m_nodes[6]->Variables_DD());
-    mvars.push_back(&m_nodes[7]->Variables());
-    mvars.push_back(&m_nodes[7]->Variables_D());
-    mvars.push_back(&m_nodes[7]->Variables_DD());
+    mvars.push_back(&m_nodes[3]->Variables_DDD());
 
     Kmatr.SetVariables(mvars);
 
@@ -126,10 +106,8 @@ void ChElementShellANCF_3833<NP, NT>::SetNodes(std::shared_ptr<ChNodeFEAxyzDD> n
 // -----------------------------------------------------------------------------
 // Add a layer.
 // -----------------------------------------------------------------------------
-template <int NP, int NT>
-void ChElementShellANCF_3833<NP, NT>::AddLayer(double thickness,
-                                               double theta,
-                                               std::shared_ptr<ChMaterialShellANCF> material) {
+
+void ChElementShellANCF_3443::AddLayer(double thickness, double theta, std::shared_ptr<ChMaterialShellANCF> material) {
     m_layers.push_back(Layer(thickness, theta, material));
     m_layer_zoffsets.push_back(m_thicknessZ);
     m_numLayers += 1;
@@ -148,8 +126,8 @@ void ChElementShellANCF_3833<NP, NT>::AddLayer(double thickness,
 // -----------------------------------------------------------------------------
 
 // Specify the element dimensions.
-template <int NP, int NT>
-void ChElementShellANCF_3833<NP, NT>::SetDimensions(double lenX, double lenY) {
+
+void ChElementShellANCF_3443::SetDimensions(double lenX, double lenY) {
     m_lenX = lenX;
     m_lenY = lenY;
 
@@ -163,8 +141,8 @@ void ChElementShellANCF_3833<NP, NT>::SetDimensions(double lenX, double lenY) {
 
 // Offset the midsurface of the composite shell element.  A positive value shifts the element's midsurface upward
 // along the elements zeta direction.  The offset should be provided in model units.
-template <int NP, int NT>
-void ChElementShellANCF_3833<NP, NT>::SetMidsurfaceOffset(const double offset) {
+
+void ChElementShellANCF_3443::SetMidsurfaceOffset(const double offset) {
     m_midsurfoffset = offset;
 
     // Check to see if SetupInitial has already been called (i.e. at least one set of precomputed matrices has been
@@ -176,8 +154,8 @@ void ChElementShellANCF_3833<NP, NT>::SetMidsurfaceOffset(const double offset) {
 }
 
 // Set the value for the single term structural damping coefficient.
-template <int NP, int NT>
-void ChElementShellANCF_3833<NP, NT>::SetAlphaDamp(double a) {
+
+void ChElementShellANCF_3443::SetAlphaDamp(double a) {
     m_Alpha = a;
     if (std::abs(m_Alpha) > 1e-10)
         m_damping_enabled = true;
@@ -186,8 +164,8 @@ void ChElementShellANCF_3833<NP, NT>::SetAlphaDamp(double a) {
 }
 
 // Change the method used to compute the generalized internal force vector and its Jacobian.
-template <int NP, int NT>
-void ChElementShellANCF_3833<NP, NT>::SetIntFrcCalcMethod(IntFrcMethod method) {
+
+void ChElementShellANCF_3443::SetIntFrcCalcMethod(IntFrcMethod method) {
     m_method = method;
 
     // Check to see if SetupInitial has already been called (i.e. at least one set of precomputed matrices has been
@@ -207,11 +185,11 @@ void ChElementShellANCF_3833<NP, NT>::SetIntFrcCalcMethod(IntFrcMethod method) {
 // -----------------------------------------------------------------------------
 
 // Get the Green-Lagrange strain tensor at the normalized element coordinates (xi, eta, zeta) [-1...1]
-template <int NP, int NT>
-void ChElementShellANCF_3833<NP, NT>::GetGreenLagrangeStrain(const double xi,
-                                                             const double eta,
-                                                             const double zeta,
-                                                             ChMatrix33<>& E) {
+
+void ChElementShellANCF_3443::GetGreenLagrangeStrain(const double xi,
+                                                     const double eta,
+                                                     const double zeta,
+                                                     ChMatrix33<>& E) {
     MatrixNx3c Sxi_D;  // Matrix of normalized shape function derivatives
     Calc_Sxi_D(Sxi_D, xi, eta, zeta, m_thicknessZ, m_midsurfoffset);
 
@@ -235,12 +213,12 @@ void ChElementShellANCF_3833<NP, NT>::GetGreenLagrangeStrain(const double xi,
 // Get the 2nd Piola-Kirchoff stress tensor at the normalized **layer** coordinates (xi, eta, layer_zeta) at the current
 // state of the element for the specified layer number (0 indexed) since the stress can be discontinuous at the layer
 // boundary.   "layer_zeta" spans -1 to 1 from the bottom surface to the top surface
-template <int NP, int NT>
-void ChElementShellANCF_3833<NP, NT>::GetPK2Stress(const double layer,
-                                                   const double xi,
-                                                   const double eta,
-                                                   const double layer_zeta,
-                                                   ChMatrix33<>& SPK2) {
+
+void ChElementShellANCF_3443::GetPK2Stress(const double layer,
+                                           const double xi,
+                                           const double eta,
+                                           const double layer_zeta,
+                                           ChMatrix33<>& SPK2) {
     MatrixNx3c Sxi_D;  // Matrix of normalized shape function derivatives
     double layer_midsurface_offset =
         -m_thicknessZ / 2 + m_layer_zoffsets[layer] + m_layers[layer].Get_thickness() / 2 + m_midsurfoffset;
@@ -307,11 +285,11 @@ void ChElementShellANCF_3833<NP, NT>::GetPK2Stress(const double layer,
 // Get the von Mises stress value at the normalized **layer** coordinates (xi, eta, layer_zeta) at the current state
 // of the element for the specified layer number (0 indexed) since the stress can be discontinuous at the layer
 // boundary.  "layer_zeta" spans -1 to 1 from the bottom surface to the top surface
-template <int NP, int NT>
-double ChElementShellANCF_3833<NP, NT>::GetVonMissesStress(const double layer,
-                                                           const double xi,
-                                                           const double eta,
-                                                           const double layer_zeta) {
+
+double ChElementShellANCF_3443::GetVonMissesStress(const double layer,
+                                                   const double xi,
+                                                   const double eta,
+                                                   const double layer_zeta) {
     MatrixNx3c Sxi_D;  // Matrix of normalized shape function derivatives
     double layer_midsurface_offset =
         -m_thicknessZ / 2 + m_layer_zoffsets[layer] + m_layers[layer].Get_thickness() / 2 + m_midsurfoffset;
@@ -390,8 +368,8 @@ double ChElementShellANCF_3833<NP, NT>::GetVonMissesStress(const double layer,
 // -----------------------------------------------------------------------------
 
 // Initial element setup.
-template <int NP, int NT>
-void ChElementShellANCF_3833<NP, NT>::SetupInitial(ChSystem* system) {
+
+void ChElementShellANCF_3443::SetupInitial(ChSystem* system) {
     // Store the initial nodal coordinates. These values define the reference configuration of the element.
     CalcCoordMatrix(m_ebar0);
 
@@ -403,43 +381,38 @@ void ChElementShellANCF_3833<NP, NT>::SetupInitial(ChSystem* system) {
 }
 
 // Fill the D vector with the current field values at the element nodes.
-template <int NP, int NT>
-void ChElementShellANCF_3833<NP, NT>::GetStateBlock(ChVectorDynamic<>& mD) {
+
+void ChElementShellANCF_3443::GetStateBlock(ChVectorDynamic<>& mD) {
     mD.segment(0, 3) = m_nodes[0]->GetPos().eigen();
     mD.segment(3, 3) = m_nodes[0]->GetD().eigen();
     mD.segment(6, 3) = m_nodes[0]->GetDD().eigen();
-    mD.segment(9, 3) = m_nodes[1]->GetPos().eigen();
-    mD.segment(12, 3) = m_nodes[1]->GetD().eigen();
-    mD.segment(15, 3) = m_nodes[1]->GetDD().eigen();
-    mD.segment(18, 3) = m_nodes[2]->GetPos().eigen();
-    mD.segment(21, 3) = m_nodes[2]->GetD().eigen();
-    mD.segment(24, 3) = m_nodes[2]->GetDD().eigen();
-    mD.segment(27, 3) = m_nodes[3]->GetPos().eigen();
-    mD.segment(30, 3) = m_nodes[3]->GetD().eigen();
-    mD.segment(33, 3) = m_nodes[3]->GetDD().eigen();
-    mD.segment(36, 3) = m_nodes[4]->GetPos().eigen();
-    mD.segment(39, 3) = m_nodes[4]->GetD().eigen();
-    mD.segment(42, 3) = m_nodes[4]->GetDD().eigen();
-    mD.segment(45, 3) = m_nodes[5]->GetPos().eigen();
-    mD.segment(48, 3) = m_nodes[5]->GetD().eigen();
-    mD.segment(51, 3) = m_nodes[5]->GetDD().eigen();
-    mD.segment(54, 3) = m_nodes[6]->GetPos().eigen();
-    mD.segment(57, 3) = m_nodes[6]->GetD().eigen();
-    mD.segment(60, 3) = m_nodes[6]->GetDD().eigen();
-    mD.segment(63, 3) = m_nodes[7]->GetPos().eigen();
-    mD.segment(66, 3) = m_nodes[7]->GetD().eigen();
-    mD.segment(69, 3) = m_nodes[7]->GetDD().eigen();
+    mD.segment(9, 3) = m_nodes[0]->GetDDD().eigen();
+
+    mD.segment(12, 3) = m_nodes[1]->GetPos().eigen();
+    mD.segment(15, 3) = m_nodes[1]->GetD().eigen();
+    mD.segment(18, 3) = m_nodes[1]->GetDD().eigen();
+    mD.segment(21, 3) = m_nodes[1]->GetDDD().eigen();
+
+    mD.segment(24, 3) = m_nodes[2]->GetPos().eigen();
+    mD.segment(27, 3) = m_nodes[2]->GetD().eigen();
+    mD.segment(30, 3) = m_nodes[2]->GetDD().eigen();
+    mD.segment(33, 3) = m_nodes[2]->GetDDD().eigen();
+
+    mD.segment(36, 3) = m_nodes[3]->GetPos().eigen();
+    mD.segment(39, 3) = m_nodes[3]->GetD().eigen();
+    mD.segment(42, 3) = m_nodes[3]->GetDD().eigen();
+    mD.segment(45, 3) = m_nodes[3]->GetDDD().eigen();
 }
 
 // State update.
-template <int NP, int NT>
-void ChElementShellANCF_3833<NP, NT>::Update() {
+
+void ChElementShellANCF_3443::Update() {
     ChElementGeneric::Update();
 }
 
 // Return the mass matrix in full sparse form.
-template <int NP, int NT>
-void ChElementShellANCF_3833<NP, NT>::ComputeMmatrixGlobal(ChMatrixRef M) {
+
+void ChElementShellANCF_3443::ComputeMmatrixGlobal(ChMatrixRef M) {
     M.setZero();
 
     // Mass Matrix is Stored in Compact Upper Triangular Form
@@ -461,29 +434,17 @@ void ChElementShellANCF_3833<NP, NT>::ComputeMmatrixGlobal(ChMatrixRef M) {
 }
 
 // This class computes and adds corresponding masses to ElementGeneric member m_TotalMass
-template <int NP, int NT>
-void ChElementShellANCF_3833<NP, NT>::ComputeNodalMass() {
-    m_nodes[0]->m_TotalMass += m_MassMatrix(0) + m_MassMatrix(3) + m_MassMatrix(6) + m_MassMatrix(9) +
-                               m_MassMatrix(12) + m_MassMatrix(15) + m_MassMatrix(18) + m_MassMatrix(21);
-    m_nodes[1]->m_TotalMass += m_MassMatrix(3) + m_MassMatrix(69) + m_MassMatrix(72) + m_MassMatrix(75) +
-                               m_MassMatrix(78) + m_MassMatrix(81) + m_MassMatrix(84) + m_MassMatrix(87);
-    m_nodes[2]->m_TotalMass += m_MassMatrix(6) + m_MassMatrix(72) + m_MassMatrix(129) + m_MassMatrix(132) +
-                               m_MassMatrix(135) + m_MassMatrix(138) + m_MassMatrix(141) + m_MassMatrix(144);
-    m_nodes[3]->m_TotalMass += m_MassMatrix(9) + m_MassMatrix(75) + m_MassMatrix(132) + m_MassMatrix(180) +
-                               m_MassMatrix(183) + m_MassMatrix(186) + m_MassMatrix(189) + m_MassMatrix(192);
-    m_nodes[4]->m_TotalMass += m_MassMatrix(12) + m_MassMatrix(78) + m_MassMatrix(135) + m_MassMatrix(183) +
-                               m_MassMatrix(222) + m_MassMatrix(225) + m_MassMatrix(228) + m_MassMatrix(231);
-    m_nodes[5]->m_TotalMass += m_MassMatrix(15) + m_MassMatrix(81) + m_MassMatrix(138) + m_MassMatrix(186) +
-                               m_MassMatrix(225) + m_MassMatrix(255) + m_MassMatrix(258) + m_MassMatrix(261);
-    m_nodes[6]->m_TotalMass += m_MassMatrix(18) + m_MassMatrix(84) + m_MassMatrix(141) + m_MassMatrix(189) +
-                               m_MassMatrix(228) + m_MassMatrix(258) + m_MassMatrix(279) + m_MassMatrix(282);
-    m_nodes[7]->m_TotalMass += m_MassMatrix(21) + m_MassMatrix(87) + m_MassMatrix(144) + m_MassMatrix(192) +
-                               m_MassMatrix(231) + m_MassMatrix(261) + m_MassMatrix(282) + m_MassMatrix(294);
+
+void ChElementShellANCF_3443::ComputeNodalMass() {
+    m_nodes[0]->m_TotalMass += m_MassMatrix(0) + m_MassMatrix(4) + m_MassMatrix(8) + m_MassMatrix(12);
+    m_nodes[1]->m_TotalMass += m_MassMatrix(4) + m_MassMatrix(58) + m_MassMatrix(62) + m_MassMatrix(66);
+    m_nodes[2]->m_TotalMass += m_MassMatrix(8) + m_MassMatrix(62) + m_MassMatrix(100) + m_MassMatrix(104);
+    m_nodes[3]->m_TotalMass += m_MassMatrix(12) + m_MassMatrix(66) + m_MassMatrix(104) + m_MassMatrix(126);
 }
 
 // Compute the generalized internal force vector for the current nodal coordinates and set the value in the Fi vector.
-template <int NP, int NT>
-void ChElementShellANCF_3833<NP, NT>::ComputeInternalForces(ChVectorDynamic<>& Fi) {
+
+void ChElementShellANCF_3443::ComputeInternalForces(ChVectorDynamic<>& Fi) {
     assert(Fi.size() == 3 * NSF);
 
     if (m_method == IntFrcMethod::ContInt) {
@@ -503,11 +464,8 @@ void ChElementShellANCF_3833<NP, NT>::ComputeInternalForces(ChVectorDynamic<>& F
 
 // Calculate the global matrix H as a linear combination of K, R, and M:
 //   H = Mfactor * [M] + Kfactor * [K] + Rfactor * [R]
-template <int NP, int NT>
-void ChElementShellANCF_3833<NP, NT>::ComputeKRMmatricesGlobal(ChMatrixRef H,
-                                                               double Kfactor,
-                                                               double Rfactor,
-                                                               double Mfactor) {
+
+void ChElementShellANCF_3443::ComputeKRMmatricesGlobal(ChMatrixRef H, double Kfactor, double Rfactor, double Mfactor) {
     assert((H.rows() == 3 * NSF) && (H.cols() == 3 * NSF));
 
     if (m_method == IntFrcMethod::ContInt) {
@@ -542,11 +500,10 @@ void ChElementShellANCF_3833<NP, NT>::ComputeKRMmatricesGlobal(ChMatrixRef H,
 // Interface to ChElementShell base class
 // -----------------------------------------------------------------------------
 
-template <int NP, int NT>
-void ChElementShellANCF_3833<NP, NT>::EvaluateSectionFrame(const double xi,
-                                                           const double eta,
-                                                           ChVector<>& point,
-                                                           ChQuaternion<>& rot) {
+void ChElementShellANCF_3443::EvaluateSectionFrame(const double xi,
+                                                   const double eta,
+                                                   ChVector<>& point,
+                                                   ChQuaternion<>& rot) {
     VectorN Sxi_compact;
     Calc_Sxi_compact(Sxi_compact, xi, eta, 0, m_thicknessZ, m_midsurfoffset);
     VectorN Sxi_xi_compact;
@@ -575,8 +532,7 @@ void ChElementShellANCF_3833<NP, NT>::EvaluateSectionFrame(const double xi,
     rot = msect.Get_A_quaternion();
 }
 
-template <int NP, int NT>
-void ChElementShellANCF_3833<NP, NT>::EvaluateSectionPoint(const double xi, const double eta, ChVector<>& point) {
+void ChElementShellANCF_3443::EvaluateSectionPoint(const double xi, const double eta, ChVector<>& point) {
     VectorN Sxi_compact;
     Calc_Sxi_compact(Sxi_compact, xi, eta, 0, m_thicknessZ, m_midsurfoffset);
 
@@ -587,8 +543,7 @@ void ChElementShellANCF_3833<NP, NT>::EvaluateSectionPoint(const double xi, cons
     point = e_bar * Sxi_compact;
 }
 
-template <int NP, int NT>
-void ChElementShellANCF_3833<NP, NT>::EvaluateSectionVelNorm(const double xi, const double eta, ChVector<>& Result) {
+void ChElementShellANCF_3443::EvaluateSectionVelNorm(const double xi, const double eta, ChVector<>& Result) {
     VectorN Sxi_compact;
     Calc_Sxi_compact(Sxi_compact, xi, eta, 0, m_thicknessZ, m_midsurfoffset);
 
@@ -604,103 +559,81 @@ void ChElementShellANCF_3833<NP, NT>::EvaluateSectionVelNorm(const double xi, co
 // -----------------------------------------------------------------------------
 
 // Gets all the DOFs packed in a single vector (position part).
-template <int NP, int NT>
-void ChElementShellANCF_3833<NP, NT>::LoadableGetStateBlock_x(int block_offset, ChState& mD) {
+
+void ChElementShellANCF_3443::LoadableGetStateBlock_x(int block_offset, ChState& mD) {
     mD.segment(block_offset + 0, 3) = m_nodes[0]->GetPos().eigen();
     mD.segment(block_offset + 3, 3) = m_nodes[0]->GetD().eigen();
     mD.segment(block_offset + 6, 3) = m_nodes[0]->GetDD().eigen();
+    mD.segment(block_offset + 9, 3) = m_nodes[0]->GetDDD().eigen();
 
-    mD.segment(block_offset + 9, 3) = m_nodes[1]->GetPos().eigen();
-    mD.segment(block_offset + 12, 3) = m_nodes[1]->GetD().eigen();
-    mD.segment(block_offset + 15, 3) = m_nodes[1]->GetDD().eigen();
+    mD.segment(block_offset + 12, 3) = m_nodes[1]->GetPos().eigen();
+    mD.segment(block_offset + 15, 3) = m_nodes[1]->GetD().eigen();
+    mD.segment(block_offset + 18, 3) = m_nodes[1]->GetDD().eigen();
+    mD.segment(block_offset + 21, 3) = m_nodes[1]->GetDDD().eigen();
 
-    mD.segment(block_offset + 18, 3) = m_nodes[2]->GetPos().eigen();
-    mD.segment(block_offset + 21, 3) = m_nodes[2]->GetD().eigen();
-    mD.segment(block_offset + 24, 3) = m_nodes[2]->GetDD().eigen();
+    mD.segment(block_offset + 24, 3) = m_nodes[2]->GetPos().eigen();
+    mD.segment(block_offset + 27, 3) = m_nodes[2]->GetD().eigen();
+    mD.segment(block_offset + 30, 3) = m_nodes[2]->GetDD().eigen();
+    mD.segment(block_offset + 33, 3) = m_nodes[2]->GetDDD().eigen();
 
-    mD.segment(block_offset + 27, 3) = m_nodes[3]->GetPos().eigen();
-    mD.segment(block_offset + 30, 3) = m_nodes[3]->GetD().eigen();
-    mD.segment(block_offset + 33, 3) = m_nodes[3]->GetDD().eigen();
-
-    mD.segment(block_offset + 36, 3) = m_nodes[4]->GetPos().eigen();
-    mD.segment(block_offset + 39, 3) = m_nodes[4]->GetD().eigen();
-    mD.segment(block_offset + 42, 3) = m_nodes[4]->GetDD().eigen();
-
-    mD.segment(block_offset + 45, 3) = m_nodes[5]->GetPos().eigen();
-    mD.segment(block_offset + 48, 3) = m_nodes[5]->GetD().eigen();
-    mD.segment(block_offset + 51, 3) = m_nodes[5]->GetDD().eigen();
-
-    mD.segment(block_offset + 54, 3) = m_nodes[6]->GetPos().eigen();
-    mD.segment(block_offset + 57, 3) = m_nodes[6]->GetD().eigen();
-    mD.segment(block_offset + 60, 3) = m_nodes[6]->GetDD().eigen();
-
-    mD.segment(block_offset + 63, 3) = m_nodes[7]->GetPos().eigen();
-    mD.segment(block_offset + 66, 3) = m_nodes[7]->GetD().eigen();
-    mD.segment(block_offset + 69, 3) = m_nodes[7]->GetDD().eigen();
+    mD.segment(block_offset + 36, 3) = m_nodes[3]->GetPos().eigen();
+    mD.segment(block_offset + 39, 3) = m_nodes[3]->GetD().eigen();
+    mD.segment(block_offset + 42, 3) = m_nodes[3]->GetDD().eigen();
+    mD.segment(block_offset + 45, 3) = m_nodes[3]->GetDDD().eigen();
 }
 
 // Gets all the DOFs packed in a single vector (velocity part).
-template <int NP, int NT>
-void ChElementShellANCF_3833<NP, NT>::LoadableGetStateBlock_w(int block_offset, ChStateDelta& mD) {
+
+void ChElementShellANCF_3443::LoadableGetStateBlock_w(int block_offset, ChStateDelta& mD) {
     mD.segment(block_offset + 0, 3) = m_nodes[0]->GetPos_dt().eigen();
     mD.segment(block_offset + 3, 3) = m_nodes[0]->GetD_dt().eigen();
     mD.segment(block_offset + 6, 3) = m_nodes[0]->GetDD_dt().eigen();
+    mD.segment(block_offset + 9, 3) = m_nodes[0]->GetDDD_dt().eigen();
 
-    mD.segment(block_offset + 9, 3) = m_nodes[1]->GetPos_dt().eigen();
-    mD.segment(block_offset + 12, 3) = m_nodes[1]->GetD_dt().eigen();
-    mD.segment(block_offset + 15, 3) = m_nodes[1]->GetDD_dt().eigen();
+    mD.segment(block_offset + 12, 3) = m_nodes[1]->GetPos_dt().eigen();
+    mD.segment(block_offset + 15, 3) = m_nodes[1]->GetD_dt().eigen();
+    mD.segment(block_offset + 18, 3) = m_nodes[1]->GetDD_dt().eigen();
+    mD.segment(block_offset + 21, 3) = m_nodes[1]->GetDDD_dt().eigen();
 
-    mD.segment(block_offset + 18, 3) = m_nodes[2]->GetPos_dt().eigen();
-    mD.segment(block_offset + 21, 3) = m_nodes[2]->GetD_dt().eigen();
-    mD.segment(block_offset + 24, 3) = m_nodes[2]->GetDD_dt().eigen();
+    mD.segment(block_offset + 24, 3) = m_nodes[2]->GetPos_dt().eigen();
+    mD.segment(block_offset + 27, 3) = m_nodes[2]->GetD_dt().eigen();
+    mD.segment(block_offset + 30, 3) = m_nodes[2]->GetDD_dt().eigen();
+    mD.segment(block_offset + 33, 3) = m_nodes[2]->GetDDD_dt().eigen();
 
-    mD.segment(block_offset + 27, 3) = m_nodes[3]->GetPos_dt().eigen();
-    mD.segment(block_offset + 30, 3) = m_nodes[3]->GetD_dt().eigen();
-    mD.segment(block_offset + 33, 3) = m_nodes[3]->GetDD_dt().eigen();
-
-    mD.segment(block_offset + 36, 3) = m_nodes[4]->GetPos_dt().eigen();
-    mD.segment(block_offset + 39, 3) = m_nodes[4]->GetD_dt().eigen();
-    mD.segment(block_offset + 42, 3) = m_nodes[4]->GetDD_dt().eigen();
-
-    mD.segment(block_offset + 45, 3) = m_nodes[5]->GetPos_dt().eigen();
-    mD.segment(block_offset + 48, 3) = m_nodes[5]->GetD_dt().eigen();
-    mD.segment(block_offset + 51, 3) = m_nodes[5]->GetDD_dt().eigen();
-
-    mD.segment(block_offset + 54, 3) = m_nodes[6]->GetPos_dt().eigen();
-    mD.segment(block_offset + 57, 3) = m_nodes[6]->GetD_dt().eigen();
-    mD.segment(block_offset + 60, 3) = m_nodes[6]->GetDD_dt().eigen();
-
-    mD.segment(block_offset + 63, 3) = m_nodes[7]->GetPos_dt().eigen();
-    mD.segment(block_offset + 66, 3) = m_nodes[7]->GetD_dt().eigen();
-    mD.segment(block_offset + 69, 3) = m_nodes[7]->GetDD_dt().eigen();
+    mD.segment(block_offset + 36, 3) = m_nodes[3]->GetPos_dt().eigen();
+    mD.segment(block_offset + 39, 3) = m_nodes[3]->GetD_dt().eigen();
+    mD.segment(block_offset + 42, 3) = m_nodes[3]->GetDD_dt().eigen();
+    mD.segment(block_offset + 45, 3) = m_nodes[3]->GetDDD_dt().eigen();
 }
 
 /// Increment all DOFs using a delta.
-template <int NP, int NT>
-void ChElementShellANCF_3833<NP, NT>::LoadableStateIncrement(const unsigned int off_x,
-                                                             ChState& x_new,
-                                                             const ChState& x,
-                                                             const unsigned int off_v,
-                                                             const ChStateDelta& Dv) {
-    for (int i = 0; i < 8; i++) {
-        this->m_nodes[i]->NodeIntStateIncrement(off_x + 9 * i, x_new, x, off_v + 9 * i, Dv);
-    }
+
+void ChElementShellANCF_3443::LoadableStateIncrement(const unsigned int off_x,
+                                                     ChState& x_new,
+                                                     const ChState& x,
+                                                     const unsigned int off_v,
+                                                     const ChStateDelta& Dv) {
+    m_nodes[0]->NodeIntStateIncrement(off_x, x_new, x, off_v, Dv);
+    m_nodes[1]->NodeIntStateIncrement(off_x + 12, x_new, x, off_v + 12, Dv);
+    m_nodes[2]->NodeIntStateIncrement(off_x + 24, x_new, x, off_v + 24, Dv);
+    m_nodes[3]->NodeIntStateIncrement(off_x + 36, x_new, x, off_v + 36, Dv);
 }
 
 // Get the pointers to the contained ChVariables, appending to the mvars vector.
-template <int NP, int NT>
-void ChElementShellANCF_3833<NP, NT>::LoadableGetVariables(std::vector<ChVariables*>& mvars) {
+
+void ChElementShellANCF_3443::LoadableGetVariables(std::vector<ChVariables*>& mvars) {
     for (int i = 0; i < m_nodes.size(); ++i) {
         mvars.push_back(&m_nodes[i]->Variables());
         mvars.push_back(&m_nodes[i]->Variables_D());
         mvars.push_back(&m_nodes[i]->Variables_DD());
+        mvars.push_back(&m_nodes[i]->Variables_DDD());
     }
 }
 
 // Evaluate N'*F, which is the projection of the applied point force and moment at the midsurface coordinates (xi,eta,0)
 // This calculation takes a slightly form for ANCF elements
-template <int NP, int NT>
-void ChElementShellANCF_3833<NP, NT>::ComputeNF(
+
+void ChElementShellANCF_3443::ComputeNF(
     const double xi,             // parametric coordinate in surface
     const double eta,            // parametric coordinate in surface
     ChVectorDynamic<>& Qi,       // Return result of Q = N'*F  here
@@ -714,8 +647,8 @@ void ChElementShellANCF_3833<NP, NT>::ComputeNF(
 
 // Evaluate N'*F, which is the projection of the applied point force and moment at the coordinates (xi,eta,zeta)
 // This calculation takes a slightly form for ANCF elements
-template <int NP, int NT>
-void ChElementShellANCF_3833<NP, NT>::ComputeNF(
+
+void ChElementShellANCF_3443::ComputeNF(
     const double xi,             // parametric coordinate in volume
     const double eta,            // parametric coordinate in volume
     const double zeta,           // parametric coordinate in volume
@@ -778,8 +711,8 @@ void ChElementShellANCF_3833<NP, NT>::ComputeNF(
 }
 
 // Calculate the average element density (needed for ChLoaderVolumeGravity).
-template <int NP, int NT>
-double ChElementShellANCF_3833<NP, NT>::GetDensity() {
+
+double ChElementShellANCF_3443::GetDensity() {
     double tot_density = 0;
     for (int kl = 0; kl < m_numLayers; kl++) {
         double rho = m_layers[kl].GetMaterial()->Get_rho();
@@ -790,8 +723,8 @@ double ChElementShellANCF_3833<NP, NT>::GetDensity() {
 }
 
 // Calculate normal to the midsurface at coordinates (xi, eta).
-template <int NP, int NT>
-ChVector<> ChElementShellANCF_3833<NP, NT>::ComputeNormal(const double xi, const double eta) {
+
+ChVector<> ChElementShellANCF_3443::ComputeNormal(const double xi, const double eta) {
     VectorN Sxi_zeta_compact;
     Calc_Sxi_zeta_compact(Sxi_zeta_compact, xi, eta, 0, m_thicknessZ, m_midsurfoffset);
 
@@ -807,16 +740,17 @@ ChVector<> ChElementShellANCF_3833<NP, NT>::ComputeNormal(const double xi, const
 // -----------------------------------------------------------------------------
 // Mass Matrix & Generalized Force Due to Gravity Calculation
 // -----------------------------------------------------------------------------
-template <int NP, int NT>
-void ChElementShellANCF_3833<NP, NT>::ComputeMassMatrixAndGravityForce(const ChVector<>& g_acc) {
-    // For this element, the mass matrix integrand is of order 9 in xi, 9 in eta, and 9 in zeta.
-    // 5 GQ Points are needed in the xi, eta, and zeta directions for exact integration of the element's mass matrix,
-    // even if the reference configuration is not straight Since the major pieces of the generalized force due to
-    // gravity can also be used to calculate the mass matrix, these calculations are performed at the same time.
+
+void ChElementShellANCF_3443::ComputeMassMatrixAndGravityForce(const ChVector<>& g_acc) {
+    // For this element, the mass matrix integrand is of order 12 in xi, 12 in eta, and 4 in zeta.
+    // 7 GQ Points are needed in the xi & eta directions and 3 GQ Points are needed in the zeta direction for
+    // exact integration of the element's mass matrix, even if the reference configuration is not straight Since the
+    // major pieces of the generalized force due to gravity can also be used to calculate the mass matrix, these
+    // calculations are performed at the same time.
 
     ChQuadratureTables* GQTable = GetStaticGQTables();
-    unsigned int GQ_idx_xi_eta = 4;  // 5 Point Gauss-Quadrature;
-    unsigned int GQ_idx_zeta = 4;    // 5 Point Gauss-Quadrature;
+    unsigned int GQ_idx_xi_eta = 6;  // 7 Point Gauss-Quadrature;
+    unsigned int GQ_idx_zeta = 2;    // 3 Point Gauss-Quadrature;
 
     // Mass Matrix in its compact matrix form.  Since the mass matrix is symmetric, just the upper diagonal entries will
     // be stored.
@@ -876,8 +810,8 @@ void ChElementShellANCF_3833<NP, NT>::ComputeMassMatrixAndGravityForce(const ChV
 }
 
 // Precalculate constant matrices and scalars for the internal force calculations
-template <int NP, int NT>
-void ChElementShellANCF_3833<NP, NT>::PrecomputeInternalForceMatricesWeights() {
+
+void ChElementShellANCF_3443::PrecomputeInternalForceMatricesWeights() {
     if (m_method == IntFrcMethod::ContInt)
         PrecomputeInternalForceMatricesWeightsContInt();
     else
@@ -886,8 +820,8 @@ void ChElementShellANCF_3833<NP, NT>::PrecomputeInternalForceMatricesWeights() {
 
 // Precalculate constant matrices for the internal force calculations when using the "Continuous Integration" style
 // method
-template <int NP, int NT>
-void ChElementShellANCF_3833<NP, NT>::PrecomputeInternalForceMatricesWeightsContInt() {
+
+void ChElementShellANCF_3443::PrecomputeInternalForceMatricesWeightsContInt() {
     ChQuadratureTables* GQTable = GetStaticGQTables();
     unsigned int GQ_idx_xi_eta = NP - 1;  // Gauss-Quadrature table index for xi and eta
     unsigned int GQ_idx_zeta = NT - 1;    // Gauss-Quadrature table index for zeta
@@ -938,8 +872,8 @@ void ChElementShellANCF_3833<NP, NT>::PrecomputeInternalForceMatricesWeightsCont
 
 // Precalculate constant matrices for the internal force calculations when using the "Pre-Integration" style
 // method
-template <int NP, int NT>
-void ChElementShellANCF_3833<NP, NT>::PrecomputeInternalForceMatricesWeightsPreInt() {
+
+void ChElementShellANCF_3443::PrecomputeInternalForceMatricesWeightsPreInt() {
     ChQuadratureTables* GQTable = GetStaticGQTables();
     unsigned int GQ_idx_xi_eta = NP - 1;  // Gauss-Quadrature table index for xi and eta
     unsigned int GQ_idx_zeta = NT - 1;    // Gauss-Quadrature table index for zeta
@@ -1076,17 +1010,16 @@ void ChElementShellANCF_3833<NP, NT>::PrecomputeInternalForceMatricesWeightsPreI
 // Elastic force calculation
 // -----------------------------------------------------------------------------
 
-template <int NP, int NT>
-void ChElementShellANCF_3833<NP, NT>::ComputeInternalForcesContIntDamping(ChVectorDynamic<>& Fi) {
+void ChElementShellANCF_3443::ComputeInternalForcesContIntDamping(ChVectorDynamic<>& Fi) {
     // Calculate the generalize internal force vector using the "Continuous Integration" style of method assuming a
     // linear viscoelastic material model (single term damping model).  For this style of method, the generalized
     // internal force vector is integrated across the volume of the element every time this calculation is performed.
     // For a small number of layers this method can be more efficient than the "Pre-Integration" style calculation
     // method.  Note that the integrand for the generalize internal force vector for a straight and normalized element
-    // is of order : 8 in xi, 8 in eta, and 8 in zeta. This requires GQ 5 points along the xi and eta directions and 5
-    // points along zeta direction for "Full Integration". However, very similar results can be obtained with fewer GQ
-    // point in each direction, resulting in significantly fewer calculations.  Based on testing, this could be as low
-    // as 3x3x2
+    // is of order : 12 in xi, 12 in eta, and 4 in zeta. This requires GQ 7 points along the xi and eta directions and 3
+    // points along the zeta direction for "Full Integration". However, very similar results can be obtained with fewer
+    // GQ point in each direction, resulting in significantly fewer calculations.  Based on testing, this could be as
+    // low as 4x4x2 or 3x3x2
 
     MatrixNx6 ebar_ebardot;
     CalcCombinedCoordMatrix(ebar_ebardot);
@@ -1296,16 +1229,16 @@ void ChElementShellANCF_3833<NP, NT>::ComputeInternalForcesContIntDamping(ChVect
     Fi = QiReshaped;
 }
 
-template <int NP, int NT>
-void ChElementShellANCF_3833<NP, NT>::ComputeInternalForcesContIntNoDamping(ChVectorDynamic<>& Fi) {
+void ChElementShellANCF_3443::ComputeInternalForcesContIntNoDamping(ChVectorDynamic<>& Fi) {
     // Calculate the generalize internal force vector using the "Continuous Integration" style of method assuming a
     // linear material model (no damping).  For this style of method, the generalized internal force vector is
     // integrated across the volume of the element every time this calculation is performed. For a small number of
     // layers this method can be more efficient than the "Pre-Integration" style calculation method.  Note that the
-    // integrand for the generalize internal force vector for a straight and normalized element is of order : 8 in xi,
-    // 8 in eta, and 8 in zeta. This requires GQ 5 points along the xi and eta directions and 5 points along the zeta
+    // integrand for the generalize internal force vector for a straight and normalized element is of order : 12 in xi,
+    // 12 in eta, and 4 in zeta. This requires GQ 7 points along the xi and eta directions and 3 points along the zeta
     // direction for "Full Integration". However, very similar results can be obtained with fewer GQ point in each
-    // direction, resulting in significantly fewer calculations.  Based on testing, this could be as low as 3x3x2
+    // direction, resulting in significantly fewer calculations.  Based on testing, this could be as low as 4x4x2 or
+    // 3x3x2
 
     Matrix3xN e_bar;
     CalcCoordMatrix(e_bar);
@@ -1467,8 +1400,7 @@ void ChElementShellANCF_3833<NP, NT>::ComputeInternalForcesContIntNoDamping(ChVe
     Fi = QiReshaped;
 }
 
-template <int NP, int NT>
-void ChElementShellANCF_3833<NP, NT>::ComputeInternalForcesContIntPreInt(ChVectorDynamic<>& Fi) {
+void ChElementShellANCF_3443::ComputeInternalForcesContIntPreInt(ChVectorDynamic<>& Fi) {
     // Calculate the generalize internal force vector using the "Pre-Integration" style of method assuming a
     // linear viscoelastic material model (single term damping model).  For this style of method, the components of the
     // generalized internal force vector and its Jacobian that need to be integrated across the volume are calculated
@@ -1517,10 +1449,7 @@ void ChElementShellANCF_3833<NP, NT>::ComputeInternalForcesContIntPreInt(ChVecto
 // Jacobians of internal forces
 // -----------------------------------------------------------------------------
 
-template <int NP, int NT>
-void ChElementShellANCF_3833<NP, NT>::ComputeInternalJacobianContIntDamping(ChMatrixRef& H,
-                                                                            double Kfactor,
-                                                                            double Rfactor) {
+void ChElementShellANCF_3443::ComputeInternalJacobianContIntDamping(ChMatrixRef& H, double Kfactor, double Rfactor) {
     // Calculate the Jacobian of the generalize internal force vector using the "Continuous Integration" style of method
     // assuming a linear viscoelastic material model (single term damping model).  For this style of method, the
     // Jacobian of the generalized internal force vector is integrated across the volume of the element every time this
@@ -1987,8 +1916,7 @@ void ChElementShellANCF_3833<NP, NT>::ComputeInternalJacobianContIntDamping(ChMa
     }
 }
 
-template <int NP, int NT>
-void ChElementShellANCF_3833<NP, NT>::ComputeInternalJacobianContIntNoDamping(ChMatrixRef& H, double Kfactor) {
+void ChElementShellANCF_3443::ComputeInternalJacobianContIntNoDamping(ChMatrixRef& H, double Kfactor) {
     // Calculate the Jacobian of the generalize internal force vector using the "Continuous Integration" style of method
     // assuming a linear material model (no damping).  For this style of method, the Jacobian of the generalized
     // internal force vector is integrated across the volume of the element every time this calculation is performed.
@@ -2391,8 +2319,7 @@ void ChElementShellANCF_3833<NP, NT>::ComputeInternalJacobianContIntNoDamping(Ch
     }
 }
 
-template <int NP, int NT>
-void ChElementShellANCF_3833<NP, NT>::ComputeInternalJacobianPreInt(ChMatrixRef& H, double Kfactor, double Rfactor) {
+void ChElementShellANCF_3443::ComputeInternalJacobianPreInt(ChMatrixRef& H, double Kfactor, double Rfactor) {
     // Calculate the Jacobian of the generalize internal force vector using the "Pre-Integration" style of method
     // assuming a linear viscoelastic material model (single term damping model).  For this style of method, the
     // components of the generalized internal force vector and its Jacobian that need to be integrated across the volume
@@ -2413,8 +2340,7 @@ void ChElementShellANCF_3833<NP, NT>::ComputeInternalJacobianPreInt(ChMatrixRef&
     ChMatrixNM<double, 1, NSF> tempRow0 = temp.template block<1, NSF>(0, 0);
     ChMatrixNM<double, 1, NSF> tempRow1 = temp.template block<1, NSF>(1, 0);
     ChMatrixNM<double, 1, NSF> tempRow2 = temp.template block<1, NSF>(2, 0);
-    Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic, Eigen::ColMajor> PI2;
-    PI2.resize(9, NSF * NSF);
+    ChMatrixNMc<double, 9, NSF * NSF> PI2;
 
     for (unsigned int v = 0; v < NSF; v++) {
         PI2.template block<3, NSF>(0, NSF * v) = e_bar.template block<3, 1>(0, v) * tempRow0;
@@ -2424,7 +2350,7 @@ void ChElementShellANCF_3833<NP, NT>::ComputeInternalJacobianPreInt(ChMatrixRef&
 
     // Calculate the matrix containing the dense part of the Jacobian matrix in a reordered form. This is then reordered
     // from its [9 x NSF^2] form into its required [3*NSF x 3*NSF] form
-    Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor> K2 = -PI2 * m_O2;
+    ChMatrixNM<double, 9, NSF* NSF> K2 = -PI2 * m_O2;
 
     for (unsigned int k = 0; k < NSF; k++) {
         for (unsigned int f = 0; f < NSF; f++) {
@@ -2452,208 +2378,133 @@ void ChElementShellANCF_3833<NP, NT>::ComputeInternalJacobianPreInt(ChMatrixRef&
 
 // Nx1 Vector Form of the Normalized Shape Functions
 // [s1; s2; s3; ...]
-template <int NP, int NT>
-void ChElementShellANCF_3833<NP, NT>::Calc_Sxi_compact(VectorN& Sxi_compact,
-                                                       double xi,
-                                                       double eta,
-                                                       double zeta,
-                                                       double thickness,
-                                                       double zoffset) {
-    Sxi_compact(0) = (-0.25) * (xi - 1) * (eta - 1) * (eta + xi + 1);
-    Sxi_compact(1) =
-        (0.125) * (xi - 1) * (eta - 1) * (eta + xi + 1) * (m_thicknessZ - 2 * zoffset - thickness - thickness * zeta);
-    Sxi_compact(2) = (-0.03125) * (xi - 1) * (eta - 1) * (eta + xi + 1) *
-                     (m_thicknessZ - 2 * zoffset - thickness - thickness * zeta) *
-                     (m_thicknessZ - 2 * zoffset - thickness - thickness * zeta);
-    Sxi_compact(3) = (0.25) * (xi + 1) * (eta - 1) * (eta - xi + 1);
-    Sxi_compact(4) =
-        (-0.125) * (xi + 1) * (eta - 1) * (eta - xi + 1) * (m_thicknessZ - 2 * zoffset - thickness - thickness * zeta);
-    Sxi_compact(5) = (0.03125) * (xi + 1) * (eta - 1) * (eta - xi + 1) *
-                     (m_thicknessZ - 2 * zoffset - thickness - thickness * zeta) *
-                     (m_thicknessZ - 2 * zoffset - thickness - thickness * zeta);
-    Sxi_compact(6) = (0.25) * (xi + 1) * (eta + 1) * (eta + xi - 1);
-    Sxi_compact(7) =
-        (-0.125) * (xi + 1) * (eta + 1) * (eta + xi - 1) * (m_thicknessZ - 2 * zoffset - thickness - thickness * zeta);
-    Sxi_compact(8) = (0.03125) * (xi + 1) * (eta + 1) * (eta + xi - 1) *
-                     (m_thicknessZ - 2 * zoffset - thickness - thickness * zeta) *
-                     (m_thicknessZ - 2 * zoffset - thickness - thickness * zeta);
-    Sxi_compact(9) = (-0.25) * (xi - 1) * (eta + 1) * (eta - xi - 1);
-    Sxi_compact(10) =
-        (0.125) * (xi - 1) * (eta + 1) * (eta - xi - 1) * (m_thicknessZ - 2 * zoffset - thickness - thickness * zeta);
-    Sxi_compact(11) = (-0.03125) * (xi - 1) * (eta + 1) * (eta - xi - 1) *
-                      (m_thicknessZ - 2 * zoffset - thickness - thickness * zeta) *
-                      (m_thicknessZ - 2 * zoffset - thickness - thickness * zeta);
-    Sxi_compact(12) = (0.5) * (xi - 1) * (xi + 1) * (eta - 1);
-    Sxi_compact(13) =
-        (-0.25) * (xi - 1) * (xi + 1) * (eta - 1) * (m_thicknessZ - 2 * zoffset - thickness - thickness * zeta);
-    Sxi_compact(14) = (0.0625) * (xi - 1) * (xi + 1) * (m_thicknessZ - 2 * zoffset - thickness - thickness * zeta) *
-                      (m_thicknessZ - 2 * zoffset - thickness - thickness * zeta) * (eta - 1);
-    Sxi_compact(15) = (-0.5) * (eta - 1) * (eta + 1) * (xi + 1);
-    Sxi_compact(16) =
-        (0.25) * (eta - 1) * (eta + 1) * (xi + 1) * (m_thicknessZ - 2 * zoffset - thickness - thickness * zeta);
-    Sxi_compact(17) = (-0.0625) * (eta - 1) * (eta + 1) * (m_thicknessZ - 2 * zoffset - thickness - thickness * zeta) *
-                      (m_thicknessZ - 2 * zoffset - thickness - thickness * zeta) * (xi + 1);
-    Sxi_compact(18) = (-0.5) * (xi - 1) * (xi + 1) * (eta + 1);
-    Sxi_compact(19) =
-        (0.25) * (xi - 1) * (xi + 1) * (eta + 1) * (m_thicknessZ - 2 * zoffset - thickness - thickness * zeta);
-    Sxi_compact(20) = (-0.0625) * (xi - 1) * (xi + 1) * (m_thicknessZ - 2 * zoffset - thickness - thickness * zeta) *
-                      (m_thicknessZ - 2 * zoffset - thickness - thickness * zeta) * (eta + 1);
-    Sxi_compact(21) = (0.5) * (eta - 1) * (eta + 1) * (xi - 1);
-    Sxi_compact(22) =
-        (-0.25) * (eta - 1) * (eta + 1) * (xi - 1) * (m_thicknessZ - 2 * zoffset - thickness - thickness * zeta);
-    Sxi_compact(23) = (0.0625) * (eta - 1) * (eta + 1) * (m_thicknessZ - 2 * zoffset - thickness - thickness * zeta) *
-                      (m_thicknessZ - 2 * zoffset - thickness - thickness * zeta) * (xi - 1);
+
+void ChElementShellANCF_3443::Calc_Sxi_compact(VectorN& Sxi_compact,
+                                               double xi,
+                                               double eta,
+                                               double zeta,
+                                               double thickness,
+                                               double zoffset) {
+    Sxi_compact(0) = -0.125 * (xi - 1) * (eta - 1) * (eta * eta + eta + xi * xi + xi - 2);
+    Sxi_compact(1) = -0.0625 * m_lenX * (xi + 1) * (xi - 1) * (xi - 1) * (eta - 1);
+    Sxi_compact(2) = -0.0625 * m_lenY * (eta + 1) * (eta - 1) * (eta - 1) * (xi - 1);
+    Sxi_compact(3) = -0.125 * (xi - 1) * (eta - 1) * (m_thicknessZ - 2 * zoffset - thickness - thickness * zeta);
+
+    Sxi_compact(4) = 0.125 * (xi + 1) * (eta - 1) * (eta * eta + eta + xi * xi - xi - 2);
+    Sxi_compact(5) = -0.0625 * m_lenX * (xi - 1) * (xi + 1) * (xi + 1) * (eta - 1);
+    Sxi_compact(6) = 0.0625 * m_lenY * (eta + 1) * (eta - 1) * (eta - 1) * (xi + 1);
+    Sxi_compact(7) = 0.125 * (xi + 1) * (eta - 1) * (m_thicknessZ - 2 * zoffset - thickness - thickness * zeta);
+
+    Sxi_compact(8) = -0.125 * (xi + 1) * (eta + 1) * (eta * eta - eta + xi * xi - xi - 2);
+    Sxi_compact(9) = 0.0625 * m_lenX * (xi - 1) * (xi + 1) * (xi + 1) * (eta + 1);
+    Sxi_compact(10) = 0.0625 * m_lenY * (eta - 1) * (eta + 1) * (eta + 1) * (xi + 1);
+    Sxi_compact(11) = -0.125 * (xi + 1) * (eta + 1) * (m_thicknessZ - 2 * zoffset - thickness - thickness * zeta);
+
+    Sxi_compact(12) = 0.125 * (xi - 1) * (eta + 1) * (eta * eta - eta + xi * xi + xi - 2);
+    Sxi_compact(13) = 0.0625 * m_lenX * (xi + 1) * (xi - 1) * (xi - 1) * (eta + 1);
+    Sxi_compact(14) = -0.0625 * m_lenY * (eta - 1) * (eta + 1) * (eta + 1) * (xi - 1);
+    Sxi_compact(15) = 0.125 * (xi - 1) * (eta + 1) * (m_thicknessZ - 2 * zoffset - thickness - thickness * zeta);
 }
 
 // Nx1 Vector Form of the partial derivatives of Normalized Shape Functions with respect to xi
 // [s1; s2; s3; ...]
-template <int NP, int NT>
-void ChElementShellANCF_3833<NP, NT>::Calc_Sxi_xi_compact(VectorN& Sxi_xi_compact,
-                                                          double xi,
-                                                          double eta,
-                                                          double zeta,
-                                                          double thickness,
-                                                          double zoffset) {
-    Sxi_xi_compact(0) = (-0.25) * (eta - 1) * (eta + 2 * xi);
-    Sxi_xi_compact(1) =
-        (0.125) * (eta - 1) * (eta + 2 * xi) * (m_thicknessZ - 2 * zoffset - thickness - thickness * zeta);
-    Sxi_xi_compact(2) = (-0.03125) * (m_thicknessZ - 2 * zoffset - thickness - thickness * zeta) *
-                        (m_thicknessZ - 2 * zoffset - thickness - thickness * zeta) * (eta - 1) * (eta + 2 * xi);
-    Sxi_xi_compact(3) = (0.25) * (eta - 1) * (eta - 2 * xi);
-    Sxi_xi_compact(4) =
-        (-0.125) * (eta - 1) * (eta - 2 * xi) * (m_thicknessZ - 2 * zoffset - thickness - thickness * zeta);
-    Sxi_xi_compact(5) = (0.03125) * (m_thicknessZ - 2 * zoffset - thickness - thickness * zeta) *
-                        (m_thicknessZ - 2 * zoffset - thickness - thickness * zeta) * (eta - 1) * (eta - 2 * xi);
-    Sxi_xi_compact(6) = (0.25) * (eta + 1) * (eta + 2 * xi);
-    Sxi_xi_compact(7) =
-        (-0.125) * (eta + 1) * (eta + 2 * xi) * (m_thicknessZ - 2 * zoffset - thickness - thickness * zeta);
-    Sxi_xi_compact(8) = (0.03125) * (m_thicknessZ - 2 * zoffset - thickness - thickness * zeta) *
-                        (m_thicknessZ - 2 * zoffset - thickness - thickness * zeta) * (eta + 1) * (eta + 2 * xi);
-    Sxi_xi_compact(9) = (-0.25) * (eta + 1) * (eta - 2 * xi);
-    Sxi_xi_compact(10) =
-        (0.125) * (eta + 1) * (eta - 2 * xi) * (m_thicknessZ - 2 * zoffset - thickness - thickness * zeta);
-    Sxi_xi_compact(11) = (-0.03125) * (m_thicknessZ - 2 * zoffset - thickness - thickness * zeta) *
-                         (m_thicknessZ - 2 * zoffset - thickness - thickness * zeta) * (eta + 1) * (eta - 2 * xi);
-    Sxi_xi_compact(12) = (xi) * (eta - 1);
-    Sxi_xi_compact(13) = (-0.5) * (xi) * (eta - 1) * (m_thicknessZ - 2 * zoffset - thickness - thickness * zeta);
-    Sxi_xi_compact(14) = (0.125) * (xi) * (m_thicknessZ - 2 * zoffset - thickness - thickness * zeta) *
-                         (m_thicknessZ - 2 * zoffset - thickness - thickness * zeta) * (eta - 1);
-    Sxi_xi_compact(15) = (-0.5) * (eta - 1) * (eta + 1);
-    Sxi_xi_compact(16) = (0.25) * (eta - 1) * (eta + 1) * (m_thicknessZ - 2 * zoffset - thickness - thickness * zeta);
-    Sxi_xi_compact(17) = (-0.0625) * (eta - 1) * (eta + 1) *
-                         (m_thicknessZ - 2 * zoffset - thickness - thickness * zeta) *
-                         (m_thicknessZ - 2 * zoffset - thickness - thickness * zeta);
-    Sxi_xi_compact(18) = (-1) * (xi) * (eta + 1);
-    Sxi_xi_compact(19) = (0.5) * (xi) * (eta + 1) * (m_thicknessZ - 2 * zoffset - thickness - thickness * zeta);
-    Sxi_xi_compact(20) = (-0.125) * (xi) * (m_thicknessZ - 2 * zoffset - thickness - thickness * zeta) *
-                         (m_thicknessZ - 2 * zoffset - thickness - thickness * zeta) * (eta + 1);
-    Sxi_xi_compact(21) = (0.5) * (eta - 1) * (eta + 1);
-    Sxi_xi_compact(22) = (-0.25) * (eta - 1) * (eta + 1) * (m_thicknessZ - 2 * zoffset - thickness - thickness * zeta);
-    Sxi_xi_compact(23) = (0.0625) * (eta - 1) * (eta + 1) *
-                         (m_thicknessZ - 2 * zoffset - thickness - thickness * zeta) *
-                         (m_thicknessZ - 2 * zoffset - thickness - thickness * zeta);
+
+void ChElementShellANCF_3443::Calc_Sxi_xi_compact(VectorN& Sxi_xi_compact,
+                                                  double xi,
+                                                  double eta,
+                                                  double zeta,
+                                                  double thickness,
+                                                  double zoffset) {
+    Sxi_xi_compact(0) = -0.125 * (eta - 1) * (eta * eta + eta + 3 * xi * xi - 3);
+    Sxi_xi_compact(1) = -0.0625 * m_lenX * (3 * xi + 1) * (xi - 1) * (eta - 1);
+    Sxi_xi_compact(2) = -0.0625 * m_lenY * (eta + 1) * (eta - 1) * (eta - 1);
+    Sxi_xi_compact(3) = -0.125 * (eta - 1) * (m_thicknessZ - 2 * zoffset - thickness - thickness * zeta);
+
+    Sxi_xi_compact(4) = 0.125 * (eta - 1) * (eta * eta + eta + 3 * xi * xi - 3);
+    Sxi_xi_compact(5) = -0.0625 * m_lenX * (xi + 1) * (3 * xi - 1) * (eta - 1);
+    Sxi_xi_compact(6) = 0.0625 * m_lenY * (eta + 1) * (eta - 1) * (eta - 1);
+    Sxi_xi_compact(7) = 0.125 * (eta - 1) * (m_thicknessZ - 2 * zoffset - thickness - thickness * zeta);
+
+    Sxi_xi_compact(8) = -0.125 * (eta + 1) * (eta * eta - eta + 3 * xi * xi - 3);
+    Sxi_xi_compact(9) = 0.0625 * m_lenX * (xi + 1) * (3 * xi - 1) * (eta + 1);
+    Sxi_xi_compact(10) = 0.0625 * m_lenY * (eta - 1) * (eta + 1) * (eta + 1);
+    Sxi_xi_compact(11) = -0.125 * (eta + 1) * (m_thicknessZ - 2 * zoffset - thickness - thickness * zeta);
+
+    Sxi_xi_compact(12) = 0.125 * (eta + 1) * (eta * eta - eta + 3 * xi * xi - 3);
+    Sxi_xi_compact(13) = 0.0625 * m_lenX * (3 * xi + 1) * (xi - 1) * (eta + 1);
+    Sxi_xi_compact(14) = -0.0625 * m_lenY * (eta - 1) * (eta + 1) * (eta + 1);
+    Sxi_xi_compact(15) = 0.125 * (eta + 1) * (m_thicknessZ - 2 * zoffset - thickness - thickness * zeta);
 }
 
 // Nx1 Vector Form of the partial derivatives of Normalized Shape Functions with respect to eta
 // [s1; s2; s3; ...]
-template <int NP, int NT>
-void ChElementShellANCF_3833<NP, NT>::Calc_Sxi_eta_compact(VectorN& Sxi_eta_compact,
-                                                           double xi,
-                                                           double eta,
-                                                           double zeta,
-                                                           double thickness,
-                                                           double zoffset) {
-    Sxi_eta_compact(0) = (-0.25) * (xi - 1) * (2 * eta + xi);
-    Sxi_eta_compact(1) =
-        (0.125) * (xi - 1) * (2 * eta + xi) * (m_thicknessZ - 2 * zoffset - thickness - thickness * zeta);
-    Sxi_eta_compact(2) = (-0.03125) * (m_thicknessZ - 2 * zoffset - thickness - thickness * zeta) *
-                         (m_thicknessZ - 2 * zoffset - thickness - thickness * zeta) * (xi - 1) * (2 * eta + xi);
-    Sxi_eta_compact(3) = (0.25) * (xi + 1) * (2 * eta - xi);
-    Sxi_eta_compact(4) =
-        (-0.125) * (xi + 1) * (2 * eta - xi) * (m_thicknessZ - 2 * zoffset - thickness - thickness * zeta);
-    Sxi_eta_compact(5) = (0.03125) * (m_thicknessZ - 2 * zoffset - thickness - thickness * zeta) *
-                         (m_thicknessZ - 2 * zoffset - thickness - thickness * zeta) * (xi + 1) * (2 * eta - xi);
-    Sxi_eta_compact(6) = (0.25) * (xi + 1) * (2 * eta + xi);
-    Sxi_eta_compact(7) =
-        (-0.125) * (xi + 1) * (2 * eta + xi) * (m_thicknessZ - 2 * zoffset - thickness - thickness * zeta);
-    Sxi_eta_compact(8) = (0.03125) * (m_thicknessZ - 2 * zoffset - thickness - thickness * zeta) *
-                         (m_thicknessZ - 2 * zoffset - thickness - thickness * zeta) * (xi + 1) * (2 * eta + xi);
-    Sxi_eta_compact(9) = (-0.25) * (xi - 1) * (2 * eta - xi);
-    Sxi_eta_compact(10) =
-        (0.125) * (xi - 1) * (2 * eta - xi) * (m_thicknessZ - 2 * zoffset - thickness - thickness * zeta);
-    Sxi_eta_compact(11) = (-0.03125) * (m_thicknessZ - 2 * zoffset - thickness - thickness * zeta) *
-                          (m_thicknessZ - 2 * zoffset - thickness - thickness * zeta) * (xi - 1) * (2 * eta - xi);
-    Sxi_eta_compact(12) = (0.5) * (xi - 1) * (xi + 1);
-    Sxi_eta_compact(13) = (-0.25) * (xi - 1) * (xi + 1) * (m_thicknessZ - 2 * zoffset - thickness - thickness * zeta);
-    Sxi_eta_compact(14) = (0.0625) * (xi - 1) * (xi + 1) * (m_thicknessZ - 2 * zoffset - thickness - thickness * zeta) *
-                          (m_thicknessZ - 2 * zoffset - thickness - thickness * zeta);
-    Sxi_eta_compact(15) = (-1) * (eta) * (xi + 1);
-    Sxi_eta_compact(16) = (0.5) * (eta) * (xi + 1) * (m_thicknessZ - 2 * zoffset - thickness - thickness * zeta);
-    Sxi_eta_compact(17) = (-0.125) * (eta) * (m_thicknessZ - 2 * zoffset - thickness - thickness * zeta) *
-                          (m_thicknessZ - 2 * zoffset - thickness - thickness * zeta) * (xi + 1);
-    Sxi_eta_compact(18) = (-0.5) * (xi - 1) * (xi + 1);
-    Sxi_eta_compact(19) = (0.25) * (xi - 1) * (xi + 1) * (m_thicknessZ - 2 * zoffset - thickness - thickness * zeta);
-    Sxi_eta_compact(20) = (-0.0625) * (xi - 1) * (xi + 1) *
-                          (m_thicknessZ - 2 * zoffset - thickness - thickness * zeta) *
-                          (m_thicknessZ - 2 * zoffset - thickness - thickness * zeta);
-    Sxi_eta_compact(21) = (eta) * (xi - 1);
-    Sxi_eta_compact(22) = (-0.5) * (eta) * (xi - 1) * (m_thicknessZ - 2 * zoffset - thickness - thickness * zeta);
-    Sxi_eta_compact(23) = (0.125) * (eta) * (m_thicknessZ - 2 * zoffset - thickness - thickness * zeta) *
-                          (m_thicknessZ - 2 * zoffset - thickness - thickness * zeta) * (xi - 1);
+
+void ChElementShellANCF_3443::Calc_Sxi_eta_compact(VectorN& Sxi_eta_compact,
+                                                   double xi,
+                                                   double eta,
+                                                   double zeta,
+                                                   double thickness,
+                                                   double zoffset) {
+    Sxi_eta_compact(0) = -0.125 * (xi - 1) * (3 * eta * eta + xi * xi + xi - 3);
+    Sxi_eta_compact(1) = -0.0625 * m_lenX * (xi + 1) * (xi - 1) * (xi - 1);
+    Sxi_eta_compact(2) = -0.0625 * m_lenY * (3 * eta + 1) * (eta - 1) * (xi - 1);
+    Sxi_eta_compact(3) = -0.125 * (xi - 1) * (m_thicknessZ - 2 * zoffset - thickness - thickness * zeta);
+
+    Sxi_eta_compact(4) = 0.125 * (xi + 1) * (3 * eta * eta + xi * xi - xi - 3);
+    Sxi_eta_compact(5) = -0.0625 * m_lenX * (xi - 1) * (xi + 1) * (xi + 1);
+    Sxi_eta_compact(6) = 0.0625 * m_lenY * (3 * eta + 1) * (eta - 1) * (xi + 1);
+    Sxi_eta_compact(7) = 0.125 * (xi + 1) * (m_thicknessZ - 2 * zoffset - thickness - thickness * zeta);
+
+    Sxi_eta_compact(8) = -0.125 * (xi + 1) * (3 * eta * eta + xi * xi - xi - 3);
+    Sxi_eta_compact(9) = 0.0625 * m_lenX * (xi - 1) * (xi + 1) * (xi + 1);
+    Sxi_eta_compact(10) = 0.0625 * m_lenY * (eta + 1) * (3 * eta - 1) * (xi + 1);
+    Sxi_eta_compact(11) = -0.125 * (xi + 1) * (m_thicknessZ - 2 * zoffset - thickness - thickness * zeta);
+
+    Sxi_eta_compact(12) = 0.125 * (xi - 1) * (3 * eta * eta + xi * xi + xi - 3);
+    Sxi_eta_compact(13) = 0.0625 * m_lenX * (xi + 1) * (xi - 1) * (xi - 1);
+    Sxi_eta_compact(14) = -0.0625 * m_lenY * (eta + 1) * (3 * eta - 1) * (xi - 1);
+    Sxi_eta_compact(15) = 0.125 * (xi - 1) * (m_thicknessZ - 2 * zoffset - thickness - thickness * zeta);
 }
 
 // Nx1 Vector Form of the partial derivatives of Normalized Shape Functions with respect to zeta
 // [s1; s2; s3; ...]
-template <int NP, int NT>
-void ChElementShellANCF_3833<NP, NT>::Calc_Sxi_zeta_compact(VectorN& Sxi_zeta_compact,
-                                                            double xi,
-                                                            double eta,
-                                                            double zeta,
-                                                            double thickness,
-                                                            double zoffset) {
-    Sxi_zeta_compact(0) = 0;
-    Sxi_zeta_compact(1) = (-0.125) * (thickness) * (xi - 1) * (eta - 1) * (eta + xi + 1);
-    Sxi_zeta_compact(2) = (0.0625) * (thickness) * (xi - 1) * (eta - 1) * (eta + xi + 1) *
-                          (m_thicknessZ - 2 * zoffset - thickness - thickness * zeta);
-    Sxi_zeta_compact(3) = 0;
-    Sxi_zeta_compact(4) = (0.125) * (thickness) * (xi + 1) * (eta - 1) * (eta - xi + 1);
-    Sxi_zeta_compact(5) = (-0.0625) * (thickness) * (xi + 1) * (eta - 1) * (eta - xi + 1) *
-                          (m_thicknessZ - 2 * zoffset - thickness - thickness * zeta);
-    Sxi_zeta_compact(6) = 0;
-    Sxi_zeta_compact(7) = (0.125) * (thickness) * (xi + 1) * (eta + 1) * (eta + xi - 1);
-    Sxi_zeta_compact(8) = (-0.0625) * (thickness) * (xi + 1) * (eta + 1) * (eta + xi - 1) *
-                          (m_thicknessZ - 2 * zoffset - thickness - thickness * zeta);
-    Sxi_zeta_compact(9) = 0;
-    Sxi_zeta_compact(10) = (-0.125) * (thickness) * (xi - 1) * (eta + 1) * (eta - xi - 1);
-    Sxi_zeta_compact(11) = (0.0625) * (thickness) * (xi - 1) * (eta + 1) * (eta - xi - 1) *
-                           (m_thicknessZ - 2 * zoffset - thickness - thickness * zeta);
-    Sxi_zeta_compact(12) = 0;
-    Sxi_zeta_compact(13) = (0.25) * (thickness) * (xi - 1) * (xi + 1) * (eta - 1);
-    Sxi_zeta_compact(14) = (-0.125) * (thickness) * (xi - 1) * (xi + 1) * (eta - 1) *
-                           (m_thicknessZ - 2 * zoffset - thickness - thickness * zeta);
-    Sxi_zeta_compact(15) = 0;
-    Sxi_zeta_compact(16) = (-0.25) * (thickness) * (eta - 1) * (eta + 1) * (xi + 1);
-    Sxi_zeta_compact(17) = (0.125) * (thickness) * (eta - 1) * (eta + 1) * (xi + 1) *
-                           (m_thicknessZ - 2 * zoffset - thickness - thickness * zeta);
-    Sxi_zeta_compact(18) = 0;
-    Sxi_zeta_compact(19) = (-0.25) * (thickness) * (xi - 1) * (xi + 1) * (eta + 1);
-    Sxi_zeta_compact(20) = (0.125) * (thickness) * (xi - 1) * (xi + 1) * (eta + 1) *
-                           (m_thicknessZ - 2 * zoffset - thickness - thickness * zeta);
-    Sxi_zeta_compact(21) = 0;
-    Sxi_zeta_compact(22) = (0.25) * (thickness) * (eta - 1) * (eta + 1) * (xi - 1);
-    Sxi_zeta_compact(23) = (-0.125) * (thickness) * (eta - 1) * (eta + 1) * (xi - 1) *
-                           (m_thicknessZ - 2 * zoffset - thickness - thickness * zeta);
+
+void ChElementShellANCF_3443::Calc_Sxi_zeta_compact(VectorN& Sxi_zeta_compact,
+                                                    double xi,
+                                                    double eta,
+                                                    double zeta,
+                                                    double thickness,
+                                                    double zoffset) {
+    Sxi_zeta_compact(0) = 0.0;
+    Sxi_zeta_compact(1) = 0.0;
+    Sxi_zeta_compact(2) = 0.0;
+    Sxi_zeta_compact(3) = 0.125 * thickness * (xi - 1) * (eta - 1);
+
+    Sxi_zeta_compact(4) = 0.0;
+    Sxi_zeta_compact(5) = 0.0;
+    Sxi_zeta_compact(6) = 0.0;
+    Sxi_zeta_compact(7) = -0.125 * thickness * (xi + 1) * (eta - 1);
+
+    Sxi_zeta_compact(8) = 0.0;
+    Sxi_zeta_compact(9) = 0.0;
+    Sxi_zeta_compact(10) = 0.0;
+    Sxi_zeta_compact(11) = 0.125 * thickness * (xi + 1) * (eta + 1);
+
+    Sxi_zeta_compact(12) = 0.0;
+    Sxi_zeta_compact(13) = 0.0;
+    Sxi_zeta_compact(14) = 0.0;
+    Sxi_zeta_compact(15) = -0.125 * thickness * (xi - 1) * (eta + 1);
 }
 
 // Nx3 compact form of the partial derivatives of Normalized Shape Functions with respect to xi, eta, and zeta by
 // columns
-template <int NP, int NT>
-void ChElementShellANCF_3833<NP, NT>::Calc_Sxi_D(MatrixNx3c& Sxi_D,
-                                                 double xi,
-                                                 double eta,
-                                                 double zeta,
-                                                 double thickness,
-                                                 double zoffset) {
+
+void ChElementShellANCF_3443::Calc_Sxi_D(MatrixNx3c& Sxi_D,
+                                         double xi,
+                                         double eta,
+                                         double zeta,
+                                         double thickness,
+                                         double zoffset) {
     VectorN Sxi_D_col;
     Calc_Sxi_xi_compact(Sxi_D_col, xi, eta, zeta, thickness, zoffset);
     Sxi_D.col(0) = Sxi_D_col;
@@ -2669,213 +2520,140 @@ void ChElementShellANCF_3833<NP, NT>::Calc_Sxi_D(MatrixNx3c& Sxi_D,
 // Helper functions
 // -----------------------------------------------------------------------------
 
-template <int NP, int NT>
-void ChElementShellANCF_3833<NP, NT>::CalcCoordVector(Vector3N& e) {
+void ChElementShellANCF_3443::CalcCoordVector(Vector3N& e) {
     e.segment(0, 3) = m_nodes[0]->GetPos().eigen();
     e.segment(3, 3) = m_nodes[0]->GetD().eigen();
     e.segment(6, 3) = m_nodes[0]->GetDD().eigen();
+    e.segment(9, 3) = m_nodes[0]->GetDDD().eigen();
 
-    e.segment(9, 3) = m_nodes[1]->GetPos().eigen();
-    e.segment(12, 3) = m_nodes[1]->GetD().eigen();
-    e.segment(15, 3) = m_nodes[1]->GetDD().eigen();
+    e.segment(12, 3) = m_nodes[1]->GetPos().eigen();
+    e.segment(15, 3) = m_nodes[1]->GetD().eigen();
+    e.segment(18, 3) = m_nodes[1]->GetDD().eigen();
+    e.segment(21, 3) = m_nodes[1]->GetDDD().eigen();
 
-    e.segment(18, 3) = m_nodes[2]->GetPos().eigen();
-    e.segment(21, 3) = m_nodes[2]->GetD().eigen();
-    e.segment(24, 3) = m_nodes[2]->GetDD().eigen();
+    e.segment(24, 3) = m_nodes[2]->GetPos().eigen();
+    e.segment(27, 3) = m_nodes[2]->GetD().eigen();
+    e.segment(30, 3) = m_nodes[2]->GetDD().eigen();
+    e.segment(33, 3) = m_nodes[2]->GetDDD().eigen();
 
-    e.segment(27, 3) = m_nodes[3]->GetPos().eigen();
-    e.segment(30, 3) = m_nodes[3]->GetD().eigen();
-    e.segment(33, 3) = m_nodes[3]->GetDD().eigen();
-
-    e.segment(36, 3) = m_nodes[4]->GetPos().eigen();
-    e.segment(39, 3) = m_nodes[4]->GetD().eigen();
-    e.segment(42, 3) = m_nodes[4]->GetDD().eigen();
-
-    e.segment(45, 3) = m_nodes[5]->GetPos().eigen();
-    e.segment(48, 3) = m_nodes[5]->GetD().eigen();
-    e.segment(51, 3) = m_nodes[5]->GetDD().eigen();
-
-    e.segment(54, 3) = m_nodes[6]->GetPos().eigen();
-    e.segment(57, 3) = m_nodes[6]->GetD().eigen();
-    e.segment(60, 3) = m_nodes[6]->GetDD().eigen();
-
-    e.segment(63, 3) = m_nodes[7]->GetPos().eigen();
-    e.segment(66, 3) = m_nodes[7]->GetD().eigen();
-    e.segment(69, 3) = m_nodes[7]->GetDD().eigen();
+    e.segment(36, 3) = m_nodes[3]->GetPos().eigen();
+    e.segment(39, 3) = m_nodes[3]->GetD().eigen();
+    e.segment(42, 3) = m_nodes[3]->GetDD().eigen();
+    e.segment(45, 3) = m_nodes[3]->GetDDD().eigen();
 }
 
-template <int NP, int NT>
-void ChElementShellANCF_3833<NP, NT>::CalcCoordMatrix(Matrix3xN& ebar) {
+void ChElementShellANCF_3443::CalcCoordMatrix(Matrix3xN& ebar) {
     ebar.col(0) = m_nodes[0]->GetPos().eigen();
     ebar.col(1) = m_nodes[0]->GetD().eigen();
     ebar.col(2) = m_nodes[0]->GetDD().eigen();
+    ebar.col(3) = m_nodes[0]->GetDDD().eigen();
 
-    ebar.col(3) = m_nodes[1]->GetPos().eigen();
-    ebar.col(4) = m_nodes[1]->GetD().eigen();
-    ebar.col(5) = m_nodes[1]->GetDD().eigen();
+    ebar.col(4) = m_nodes[1]->GetPos().eigen();
+    ebar.col(5) = m_nodes[1]->GetD().eigen();
+    ebar.col(6) = m_nodes[1]->GetDD().eigen();
+    ebar.col(7) = m_nodes[1]->GetDDD().eigen();
 
-    ebar.col(6) = m_nodes[2]->GetPos().eigen();
-    ebar.col(7) = m_nodes[2]->GetD().eigen();
-    ebar.col(8) = m_nodes[2]->GetDD().eigen();
+    ebar.col(8) = m_nodes[2]->GetPos().eigen();
+    ebar.col(9) = m_nodes[2]->GetD().eigen();
+    ebar.col(10) = m_nodes[2]->GetDD().eigen();
+    ebar.col(11) = m_nodes[2]->GetDDD().eigen();
 
-    ebar.col(9) = m_nodes[3]->GetPos().eigen();
-    ebar.col(10) = m_nodes[3]->GetD().eigen();
-    ebar.col(11) = m_nodes[3]->GetDD().eigen();
-
-    ebar.col(12) = m_nodes[4]->GetPos().eigen();
-    ebar.col(13) = m_nodes[4]->GetD().eigen();
-    ebar.col(14) = m_nodes[4]->GetDD().eigen();
-
-    ebar.col(15) = m_nodes[5]->GetPos().eigen();
-    ebar.col(16) = m_nodes[5]->GetD().eigen();
-    ebar.col(17) = m_nodes[5]->GetDD().eigen();
-
-    ebar.col(18) = m_nodes[6]->GetPos().eigen();
-    ebar.col(19) = m_nodes[6]->GetD().eigen();
-    ebar.col(20) = m_nodes[6]->GetDD().eigen();
-
-    ebar.col(21) = m_nodes[7]->GetPos().eigen();
-    ebar.col(22) = m_nodes[7]->GetD().eigen();
-    ebar.col(23) = m_nodes[7]->GetDD().eigen();
+    ebar.col(12) = m_nodes[3]->GetPos().eigen();
+    ebar.col(13) = m_nodes[3]->GetD().eigen();
+    ebar.col(14) = m_nodes[3]->GetDD().eigen();
+    ebar.col(15) = m_nodes[3]->GetDDD().eigen();
 }
 
-template <int NP, int NT>
-void ChElementShellANCF_3833<NP, NT>::CalcCoordDerivVector(Vector3N& edot) {
+void ChElementShellANCF_3443::CalcCoordDerivVector(Vector3N& edot) {
     edot.segment(0, 3) = m_nodes[0]->GetPos_dt().eigen();
     edot.segment(3, 3) = m_nodes[0]->GetD_dt().eigen();
     edot.segment(6, 3) = m_nodes[0]->GetDD_dt().eigen();
+    edot.segment(9, 3) = m_nodes[0]->GetDDD_dt().eigen();
 
-    edot.segment(9, 3) = m_nodes[1]->GetPos_dt().eigen();
-    edot.segment(12, 3) = m_nodes[1]->GetD_dt().eigen();
-    edot.segment(15, 3) = m_nodes[1]->GetDD_dt().eigen();
+    edot.segment(12, 3) = m_nodes[1]->GetPos_dt().eigen();
+    edot.segment(15, 3) = m_nodes[1]->GetD_dt().eigen();
+    edot.segment(18, 3) = m_nodes[1]->GetDD_dt().eigen();
+    edot.segment(21, 3) = m_nodes[1]->GetDDD_dt().eigen();
 
-    edot.segment(18, 3) = m_nodes[2]->GetPos_dt().eigen();
-    edot.segment(21, 3) = m_nodes[2]->GetD_dt().eigen();
-    edot.segment(24, 3) = m_nodes[2]->GetDD_dt().eigen();
+    edot.segment(24, 3) = m_nodes[2]->GetPos_dt().eigen();
+    edot.segment(27, 3) = m_nodes[2]->GetD_dt().eigen();
+    edot.segment(30, 3) = m_nodes[2]->GetDD_dt().eigen();
+    edot.segment(33, 3) = m_nodes[2]->GetDDD_dt().eigen();
 
-    edot.segment(27, 3) = m_nodes[3]->GetPos_dt().eigen();
-    edot.segment(30, 3) = m_nodes[3]->GetD_dt().eigen();
-    edot.segment(33, 3) = m_nodes[3]->GetDD_dt().eigen();
-
-    edot.segment(36, 3) = m_nodes[4]->GetPos_dt().eigen();
-    edot.segment(39, 3) = m_nodes[4]->GetD_dt().eigen();
-    edot.segment(42, 3) = m_nodes[4]->GetDD_dt().eigen();
-
-    edot.segment(45, 3) = m_nodes[5]->GetPos_dt().eigen();
-    edot.segment(48, 3) = m_nodes[5]->GetD_dt().eigen();
-    edot.segment(51, 3) = m_nodes[5]->GetDD_dt().eigen();
-
-    edot.segment(54, 3) = m_nodes[6]->GetPos_dt().eigen();
-    edot.segment(57, 3) = m_nodes[6]->GetD_dt().eigen();
-    edot.segment(60, 3) = m_nodes[6]->GetDD_dt().eigen();
-
-    edot.segment(63, 3) = m_nodes[7]->GetPos_dt().eigen();
-    edot.segment(66, 3) = m_nodes[7]->GetD_dt().eigen();
-    edot.segment(69, 3) = m_nodes[7]->GetDD_dt().eigen();
+    edot.segment(36, 3) = m_nodes[3]->GetPos_dt().eigen();
+    edot.segment(39, 3) = m_nodes[3]->GetD_dt().eigen();
+    edot.segment(42, 3) = m_nodes[3]->GetDD_dt().eigen();
+    edot.segment(45, 3) = m_nodes[3]->GetDDD_dt().eigen();
 }
 
-template <int NP, int NT>
-void ChElementShellANCF_3833<NP, NT>::CalcCoordDerivMatrix(Matrix3xN& ebardot) {
+void ChElementShellANCF_3443::CalcCoordDerivMatrix(Matrix3xN& ebardot) {
     ebardot.col(0) = m_nodes[0]->GetPos_dt().eigen();
     ebardot.col(1) = m_nodes[0]->GetD_dt().eigen();
     ebardot.col(2) = m_nodes[0]->GetDD_dt().eigen();
+    ebardot.col(3) = m_nodes[0]->GetDDD_dt().eigen();
 
-    ebardot.col(3) = m_nodes[1]->GetPos_dt().eigen();
-    ebardot.col(4) = m_nodes[1]->GetD_dt().eigen();
-    ebardot.col(5) = m_nodes[1]->GetDD_dt().eigen();
+    ebardot.col(4) = m_nodes[1]->GetPos_dt().eigen();
+    ebardot.col(5) = m_nodes[1]->GetD_dt().eigen();
+    ebardot.col(6) = m_nodes[1]->GetDD_dt().eigen();
+    ebardot.col(7) = m_nodes[1]->GetDDD_dt().eigen();
 
-    ebardot.col(6) = m_nodes[2]->GetPos_dt().eigen();
-    ebardot.col(7) = m_nodes[2]->GetD_dt().eigen();
-    ebardot.col(8) = m_nodes[2]->GetDD_dt().eigen();
+    ebardot.col(8) = m_nodes[2]->GetPos_dt().eigen();
+    ebardot.col(9) = m_nodes[2]->GetD_dt().eigen();
+    ebardot.col(10) = m_nodes[2]->GetDD_dt().eigen();
+    ebardot.col(11) = m_nodes[2]->GetDDD_dt().eigen();
 
-    ebardot.col(9) = m_nodes[3]->GetPos_dt().eigen();
-    ebardot.col(10) = m_nodes[3]->GetD_dt().eigen();
-    ebardot.col(11) = m_nodes[3]->GetDD_dt().eigen();
-
-    ebardot.col(12) = m_nodes[4]->GetPos_dt().eigen();
-    ebardot.col(13) = m_nodes[4]->GetD_dt().eigen();
-    ebardot.col(14) = m_nodes[4]->GetDD_dt().eigen();
-
-    ebardot.col(15) = m_nodes[5]->GetPos_dt().eigen();
-    ebardot.col(16) = m_nodes[5]->GetD_dt().eigen();
-    ebardot.col(17) = m_nodes[5]->GetDD_dt().eigen();
-
-    ebardot.col(18) = m_nodes[6]->GetPos_dt().eigen();
-    ebardot.col(19) = m_nodes[6]->GetD_dt().eigen();
-    ebardot.col(20) = m_nodes[6]->GetDD_dt().eigen();
-
-    ebardot.col(21) = m_nodes[7]->GetPos_dt().eigen();
-    ebardot.col(22) = m_nodes[7]->GetD_dt().eigen();
-    ebardot.col(23) = m_nodes[7]->GetDD_dt().eigen();
+    ebardot.col(12) = m_nodes[3]->GetPos_dt().eigen();
+    ebardot.col(13) = m_nodes[3]->GetD_dt().eigen();
+    ebardot.col(14) = m_nodes[3]->GetDD_dt().eigen();
+    ebardot.col(15) = m_nodes[3]->GetDDD_dt().eigen();
 }
 
-template <int NP, int NT>
-void ChElementShellANCF_3833<NP, NT>::CalcCombinedCoordMatrix(MatrixNx6& ebar_ebardot) {
+void ChElementShellANCF_3443::CalcCombinedCoordMatrix(MatrixNx6& ebar_ebardot) {
     ebar_ebardot.template block<1, 3>(0, 0) = m_nodes[0]->GetPos().eigen();
     ebar_ebardot.template block<1, 3>(0, 3) = m_nodes[0]->GetPos_dt().eigen();
     ebar_ebardot.template block<1, 3>(1, 0) = m_nodes[0]->GetD().eigen();
     ebar_ebardot.template block<1, 3>(1, 3) = m_nodes[0]->GetD_dt().eigen();
     ebar_ebardot.template block<1, 3>(2, 0) = m_nodes[0]->GetDD().eigen();
     ebar_ebardot.template block<1, 3>(2, 3) = m_nodes[0]->GetDD_dt().eigen();
+    ebar_ebardot.template block<1, 3>(3, 0) = m_nodes[0]->GetDDD().eigen();
+    ebar_ebardot.template block<1, 3>(3, 3) = m_nodes[0]->GetDDD_dt().eigen();
 
-    ebar_ebardot.template block<1, 3>(3, 0) = m_nodes[1]->GetPos().eigen();
-    ebar_ebardot.template block<1, 3>(3, 3) = m_nodes[1]->GetPos_dt().eigen();
-    ebar_ebardot.template block<1, 3>(4, 0) = m_nodes[1]->GetD().eigen();
-    ebar_ebardot.template block<1, 3>(4, 3) = m_nodes[1]->GetD_dt().eigen();
-    ebar_ebardot.template block<1, 3>(5, 0) = m_nodes[1]->GetDD().eigen();
-    ebar_ebardot.template block<1, 3>(5, 3) = m_nodes[1]->GetDD_dt().eigen();
+    ebar_ebardot.template block<1, 3>(4, 0) = m_nodes[1]->GetPos().eigen();
+    ebar_ebardot.template block<1, 3>(4, 3) = m_nodes[1]->GetPos_dt().eigen();
+    ebar_ebardot.template block<1, 3>(5, 0) = m_nodes[1]->GetD().eigen();
+    ebar_ebardot.template block<1, 3>(5, 3) = m_nodes[1]->GetD_dt().eigen();
+    ebar_ebardot.template block<1, 3>(6, 0) = m_nodes[1]->GetDD().eigen();
+    ebar_ebardot.template block<1, 3>(6, 3) = m_nodes[1]->GetDD_dt().eigen();
+    ebar_ebardot.template block<1, 3>(7, 0) = m_nodes[1]->GetDDD().eigen();
+    ebar_ebardot.template block<1, 3>(7, 3) = m_nodes[1]->GetDDD_dt().eigen();
 
-    ebar_ebardot.template block<1, 3>(6, 0) = m_nodes[2]->GetPos().eigen();
-    ebar_ebardot.template block<1, 3>(6, 3) = m_nodes[2]->GetPos_dt().eigen();
-    ebar_ebardot.template block<1, 3>(7, 0) = m_nodes[2]->GetD().eigen();
-    ebar_ebardot.template block<1, 3>(7, 3) = m_nodes[2]->GetD_dt().eigen();
-    ebar_ebardot.template block<1, 3>(8, 0) = m_nodes[2]->GetDD().eigen();
-    ebar_ebardot.template block<1, 3>(8, 3) = m_nodes[2]->GetDD_dt().eigen();
+    ebar_ebardot.template block<1, 3>(8, 0) = m_nodes[2]->GetPos().eigen();
+    ebar_ebardot.template block<1, 3>(8, 3) = m_nodes[2]->GetPos_dt().eigen();
+    ebar_ebardot.template block<1, 3>(9, 0) = m_nodes[2]->GetD().eigen();
+    ebar_ebardot.template block<1, 3>(9, 3) = m_nodes[2]->GetD_dt().eigen();
+    ebar_ebardot.template block<1, 3>(10, 0) = m_nodes[2]->GetDD().eigen();
+    ebar_ebardot.template block<1, 3>(10, 3) = m_nodes[2]->GetDD_dt().eigen();
+    ebar_ebardot.template block<1, 3>(11, 0) = m_nodes[2]->GetDDD().eigen();
+    ebar_ebardot.template block<1, 3>(11, 3) = m_nodes[2]->GetDDD_dt().eigen();
 
-    ebar_ebardot.template block<1, 3>(9, 0) = m_nodes[3]->GetPos().eigen();
-    ebar_ebardot.template block<1, 3>(9, 3) = m_nodes[3]->GetPos_dt().eigen();
-    ebar_ebardot.template block<1, 3>(10, 0) = m_nodes[3]->GetD().eigen();
-    ebar_ebardot.template block<1, 3>(10, 3) = m_nodes[3]->GetD_dt().eigen();
-    ebar_ebardot.template block<1, 3>(11, 0) = m_nodes[3]->GetDD().eigen();
-    ebar_ebardot.template block<1, 3>(11, 3) = m_nodes[3]->GetDD_dt().eigen();
-
-    ebar_ebardot.template block<1, 3>(12, 0) = m_nodes[4]->GetPos().eigen();
-    ebar_ebardot.template block<1, 3>(12, 3) = m_nodes[4]->GetPos_dt().eigen();
-    ebar_ebardot.template block<1, 3>(13, 0) = m_nodes[4]->GetD().eigen();
-    ebar_ebardot.template block<1, 3>(13, 3) = m_nodes[4]->GetD_dt().eigen();
-    ebar_ebardot.template block<1, 3>(14, 0) = m_nodes[4]->GetDD().eigen();
-    ebar_ebardot.template block<1, 3>(14, 3) = m_nodes[4]->GetDD_dt().eigen();
-
-    ebar_ebardot.template block<1, 3>(15, 0) = m_nodes[5]->GetPos().eigen();
-    ebar_ebardot.template block<1, 3>(15, 3) = m_nodes[5]->GetPos_dt().eigen();
-    ebar_ebardot.template block<1, 3>(16, 0) = m_nodes[5]->GetD().eigen();
-    ebar_ebardot.template block<1, 3>(16, 3) = m_nodes[5]->GetD_dt().eigen();
-    ebar_ebardot.template block<1, 3>(17, 0) = m_nodes[5]->GetDD().eigen();
-    ebar_ebardot.template block<1, 3>(17, 3) = m_nodes[5]->GetDD_dt().eigen();
-
-    ebar_ebardot.template block<1, 3>(18, 0) = m_nodes[6]->GetPos().eigen();
-    ebar_ebardot.template block<1, 3>(18, 3) = m_nodes[6]->GetPos_dt().eigen();
-    ebar_ebardot.template block<1, 3>(19, 0) = m_nodes[6]->GetD().eigen();
-    ebar_ebardot.template block<1, 3>(19, 3) = m_nodes[6]->GetD_dt().eigen();
-    ebar_ebardot.template block<1, 3>(20, 0) = m_nodes[6]->GetDD().eigen();
-    ebar_ebardot.template block<1, 3>(20, 3) = m_nodes[6]->GetDD_dt().eigen();
-
-    ebar_ebardot.template block<1, 3>(21, 0) = m_nodes[7]->GetPos().eigen();
-    ebar_ebardot.template block<1, 3>(21, 3) = m_nodes[7]->GetPos_dt().eigen();
-    ebar_ebardot.template block<1, 3>(22, 0) = m_nodes[7]->GetD().eigen();
-    ebar_ebardot.template block<1, 3>(22, 3) = m_nodes[7]->GetD_dt().eigen();
-    ebar_ebardot.template block<1, 3>(23, 0) = m_nodes[7]->GetDD().eigen();
-    ebar_ebardot.template block<1, 3>(23, 3) = m_nodes[7]->GetDD_dt().eigen();
+    ebar_ebardot.template block<1, 3>(12, 0) = m_nodes[3]->GetPos().eigen();
+    ebar_ebardot.template block<1, 3>(12, 3) = m_nodes[3]->GetPos_dt().eigen();
+    ebar_ebardot.template block<1, 3>(13, 0) = m_nodes[3]->GetD().eigen();
+    ebar_ebardot.template block<1, 3>(13, 3) = m_nodes[3]->GetD_dt().eigen();
+    ebar_ebardot.template block<1, 3>(14, 0) = m_nodes[3]->GetDD().eigen();
+    ebar_ebardot.template block<1, 3>(14, 3) = m_nodes[3]->GetDD_dt().eigen();
+    ebar_ebardot.template block<1, 3>(15, 0) = m_nodes[3]->GetDDD().eigen();
+    ebar_ebardot.template block<1, 3>(15, 3) = m_nodes[3]->GetDDD_dt().eigen();
 }
 
 // Calculate the 3x3 Element Jacobian at the given point (xi,eta,zeta) in the element
-template <int NP, int NT>
-void ChElementShellANCF_3833<NP, NT>::Calc_J_0xi(ChMatrix33<double>& J_0xi,
-                                                 double xi,
-                                                 double eta,
-                                                 double zeta,
-                                                 double thickness,
-                                                 double zoffset) {
+
+void ChElementShellANCF_3443::Calc_J_0xi(ChMatrix33<double>& J_0xi,
+                                         double xi,
+                                         double eta,
+                                         double zeta,
+                                         double thickness,
+                                         double zoffset) {
     MatrixNx3c Sxi_D;
     Calc_Sxi_D(Sxi_D, xi, eta, zeta, thickness, zoffset);
 
@@ -2883,20 +2661,15 @@ void ChElementShellANCF_3833<NP, NT>::Calc_J_0xi(ChMatrix33<double>& J_0xi,
 }
 
 // Calculate the determinant of the 3x3 Element Jacobian at the given point (xi,eta,zeta) in the element
-template <int NP, int NT>
-double ChElementShellANCF_3833<NP, NT>::Calc_det_J_0xi(double xi,
-                                                       double eta,
-                                                       double zeta,
-                                                       double thickness,
-                                                       double zoffset) {
+
+double ChElementShellANCF_3443::Calc_det_J_0xi(double xi, double eta, double zeta, double thickness, double zoffset) {
     ChMatrix33<double> J_0xi;
     Calc_J_0xi(J_0xi, xi, eta, zeta, thickness, zoffset);
 
     return (J_0xi.determinant());
 }
 
-template <int NP, int NT>
-void ChElementShellANCF_3833<NP, NT>::RotateReorderStiffnessMatrix(ChMatrixNM<double, 6, 6>& D, double theta) {
+void ChElementShellANCF_3443::RotateReorderStiffnessMatrix(ChMatrixNM<double, 6, 6>& D, double theta) {
     // Reorder the stiffness matrix from the order assumed in ChMaterialShellANCF.h
     //  E = [E11,E22,2*E12,E33,2*E13,2*E23]
     // to the order assumed in this element formulation
@@ -2927,23 +2700,23 @@ void ChElementShellANCF_3833<NP, NT>::RotateReorderStiffnessMatrix(ChMatrixNM<do
 
 //#ifndef CH_QUADRATURE_STATIC_TABLES
 #define CH_QUADRATURE_STATIC_TABLES 10
-ChQuadratureTables static_tables_3833(1, CH_QUADRATURE_STATIC_TABLES);
+ChQuadratureTables static_tables_3443(1, CH_QUADRATURE_STATIC_TABLES);
 //#endif // !CH_QUADRATURE_STATIC_TABLES
 
-template <int NP, int NT>
-ChQuadratureTables* ChElementShellANCF_3833<NP, NT>::GetStaticGQTables() {
-    return &static_tables_3833;
+ChQuadratureTables* ChElementShellANCF_3443::GetStaticGQTables() {
+    return &static_tables_3443;
 }
 
 ////////////////////////////////////////////////////////////////
 
 // ============================================================================
-// Implementation of ChElementShellANCF_3833<NP,NT>::Layer methods
+// Implementation of ChElementShellANCF_3443::Layer methods
 // ============================================================================
 
 // Private constructor (a layer can be created only by adding it to an element)
-template <int NP, int NT>
-ChElementShellANCF_3833<NP, NT>::Layer::Layer(double thickness,
-                                              double theta,
-                                              std::shared_ptr<ChMaterialShellANCF> material)
+
+ChElementShellANCF_3443::Layer::Layer(double thickness, double theta, std::shared_ptr<ChMaterialShellANCF> material)
     : m_thickness(thickness), m_theta(theta), m_material(material) {}
+
+}  // namespace fea
+}  // namespace chrono
