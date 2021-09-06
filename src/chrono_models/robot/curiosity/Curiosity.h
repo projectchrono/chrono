@@ -193,15 +193,24 @@ class CH_MODELS_API CuriosityUpright : public CuriosityPart {
     virtual void Initialize(std::shared_ptr<ChBodyAuxRef> chassis) override;
 };
 
-/// Curiosity rover balancer.
-class CH_MODELS_API CuriosityBalancer : public CuriosityPart {
+/// Curiosity rover differential bar.
+class CH_MODELS_API CuriosityDifferentialBar : public CuriosityPart {
   public:
-    CuriosityBalancer(const std::string& name,                 ///< part name
-                      const ChFrame<>& rel_pos,                ///< position relative to chassis frame
-                      std::shared_ptr<ChMaterialSurface> mat,  ///< contact material
-                      int which                                ///< 0: L, 1: R, 2: M
+    CuriosityDifferentialBar(const std::string& name,   ///< part name
+                             const ChFrame<>& rel_pos,  ///< position relative to chassis frame
+                             std::shared_ptr<ChMaterialSurface> mat);
+    ~CuriosityDifferentialBar() {}
+};
+
+/// Curiosity rover differential link.
+class CH_MODELS_API CuriosityDifferentialLink : public CuriosityPart {
+  public:
+    CuriosityDifferentialLink(const std::string& name,                 ///< part name
+                              const ChFrame<>& rel_pos,                ///< position relative to chassis frame
+                              std::shared_ptr<ChMaterialSurface> mat,  ///< contact material
+                              int side                                 ///< 0: L, 1: R
     );
-    ~CuriosityBalancer() {}
+    ~CuriosityDifferentialLink() {}
 };
 
 // -----------------------------------------------------------------------------
@@ -324,11 +333,12 @@ class CH_MODELS_API Curiosity {
     bool m_suspension_fixed;  ///< fix suspension arms to ground
     bool m_uprights_fixed;    ///< fix uprights to ground
 
-    std::shared_ptr<CuriosityChassis> m_chassis;                    ///< rover chassis
-    std::array<std::shared_ptr<CuriosityWheel>, 6> m_wheels;        ///< rover wheels 1:LF, 2:RF, 3:LM, 4:RM, 5:LB, 6:RB
-    std::array<std::shared_ptr<CuriosityArm>, 4> m_arms;            ///< rover arms
-    std::array<std::shared_ptr<CuriosityUpright>, 4> m_uprights;    ///< rover steering uprights
-    std::array<std::shared_ptr<CuriosityBalancer>, 3> m_balancers;  ///< rover balancers
+    std::shared_ptr<CuriosityChassis> m_chassis;                             ///< chassis
+    std::array<std::shared_ptr<CuriosityWheel>, 6> m_wheels;                 ///< wheels (see CuriosityWheelID)
+    std::array<std::shared_ptr<CuriosityArm>, 4> m_arms;                     ///< arms
+    std::array<std::shared_ptr<CuriosityUpright>, 4> m_uprights;             ///< steering uprights
+    std::shared_ptr<CuriosityDifferentialBar> m_diff_bar;                    ///< differential bar
+    std::array<std::shared_ptr<CuriosityDifferentialLink>, 3> m_diff_links;  ///< differential links; 0:L, 1:R
 
     ChFrame<> m_rover_pos;  ///< rover placement position
 
