@@ -52,6 +52,8 @@ double time_step = 1e-3;
 
 // -----------------------------------------------------------------------------
 
+void CreateTerrain(ChSystem& sys);
+
 int main(int argc, char* argv[]) {
     GetLog() << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
     // Create a ChronoENGINE physical system
@@ -66,13 +68,69 @@ int main(int argc, char* argv[]) {
     application.AddTypicalLights();
     application.AddTypicalCamera(core::vector3df(3, 3, 1));
     application.AddLightWithShadow(core::vector3df(2.5f, 7.0f, 0.0f), core::vector3df(0, 0, 0), 50, 4, 25, 130, 512,
-                                   video::SColorf(0.8f, 0.8f, 1.0f));
+                                   video::SColorf(0.8f, 0.8f, 0.8f));
     application.SetContactsDrawMode(IrrContactsDrawMode::CONTACT_DISTANCES);
     application.SetTimestep(time_step);
 
     collision::ChCollisionModel::SetDefaultSuggestedEnvelope(0.0025);
     collision::ChCollisionModel::SetDefaultSuggestedMargin(0.0025);
 
+    // Create terrain and obstacles
+    CreateTerrain(sys);
+
+    // Create a Curiosity rover and the asociated driver
+    ////auto driver = chrono_types::make_shared<CuriositySpeedDriver>(1.0, 5.0);
+    auto driver = chrono_types::make_shared<CuriosityDCMotorControl>();
+
+    Curiosity rover(&sys, chassis_type, wheel_type);
+    rover.SetDriver(driver);
+
+    ////rover.SetChassisVisualization(false);
+    ////rover.SetWheelVisualization(false);
+    ////rover.SetSuspensionVisualization(false);
+
+    rover.Initialize(ChFrame<>(ChVector<double>(0, 0, 0.2), QUNIT));
+
+    ////rover.FixChassis(true);
+    ////rover.FixSuspension(true);
+
+    std::cout << "Curiosity total mass: " << rover.GetRoverMass() << std::endl;
+    std::cout << "  chassis:            " << rover.GetChassis()->GetBody()->GetMass() << std::endl;
+    std::cout << "  wheel:              " << rover.GetWheel(CuriosityWheelID::C_LF)->GetBody()->GetMass() << std::endl;
+    std::cout << std::endl;
+
+    // Complete visual asset construction
+    application.AssetBindAll();
+    application.AssetUpdateAll();
+    application.AddShadowAll();
+
+    // Simulation loop
+    while (application.GetDevice()->run()) {
+        ////auto time = rover.GetSystem()->GetChTime();
+        ////if (time < 1)
+        ////    driver->SetSteering(0);
+        ////else
+        ////    driver->SetSteering((time - 1) * 0.2);
+
+        // Update Curiosity controls
+        rover.Update();
+
+        // Read rover chassis velocity
+        ////std::cout <<"Rover speed: " << rover.GetChassisVel() << std::endl;
+
+        // Read rover chassis acceleration
+        ////std::cout << "Rover acceleration: "<< rover.GetChassisAcc() << std::endl;
+
+        application.BeginScene(true, true, SColor(255, 140, 161, 192));
+        application.DrawAll();
+        application.DoStep();
+        application.EndScene();
+    }
+
+    return 0;
+}
+
+void CreateTerrain(ChSystem& sys) {
     // Create the ground and obstacles
     auto ground_mat = chrono_types::make_shared<ChMaterialSurfaceNSC>();
     auto ground = chrono_types::make_shared<ChBodyEasyBox>(30, 30, 1, 1000, true, true, ground_mat);
@@ -106,56 +164,4 @@ int main(int argc, char* argv[]) {
     mbox_3->SetBodyFixed(true);
     mbox_3->SetCollide(true);
     sys.Add(mbox_3);
-
-    // Create a Curiosity rover and the asociated driver
-    ////auto driver = chrono_types::make_shared<CuriositySpeedDriver>(1.0, 5.0);
-    auto driver = chrono_types::make_shared<CuriosityDCMotorControl>();
-
-    Curiosity rover(&sys, chassis_type, wheel_type);
-    rover.SetDriver(driver);
-
-    ////rover.SetChassisFixed(true);
-    ////rover.SetSuspensionFixed(true);
-    ////rover.SetUprightsFixed(true);
-
-    ////rover.SetChassisVisualization(false);
-    ////rover.SetWheelVisualization(false);
-    ////rover.SetSuspensionVisualization(false);
-
-    rover.Initialize(ChFrame<>(ChVector<double>(0, 0, 0.2), QUNIT));
-
-    std::cout << "Curiosity total mass: " << rover.GetRoverMass() << std::endl;
-    std::cout << "  chassis:            " << rover.GetChassis()->GetBody()->GetMass() << std::endl;
-    std::cout << "  wheel:              " << rover.GetWheel(CuriosityWheelID::C_LF)->GetBody()->GetMass() << std::endl;
-    std::cout << std::endl;
-
-    // Complete visual asset construction
-    application.AssetBindAll();
-    application.AssetUpdateAll();
-    application.AddShadowAll();
-
-    // Simulation loop
-    while (application.GetDevice()->run()) {
-        ////auto time = rover.GetSystem()->GetChTime();
-        ////if (time < 1)
-        ////    driver->SetSteering(0);
-        ////else
-        ////    driver->SetSteering(time * 0.2);
-
-        // Update Curiosity controls
-        rover.Update();
-
-        // Read rover chassis velocity
-        ////std::cout <<"Rover speed: " << rover.GetChassisVel() << std::endl;
-
-        // Read rover chassis acceleration
-        ////std::cout << "Rover acceleration: "<< rover.GetChassisAcc() << std::endl;
-
-        application.BeginScene(true, true, SColor(255, 140, 161, 192));
-        application.DrawAll();
-        application.DoStep();
-        application.EndScene();
-    }
-
-    return 0;
 }
