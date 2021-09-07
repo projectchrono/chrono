@@ -3,7 +3,6 @@ import pychrono.sensor as sens
 
 import numpy as np
 import time
-import math
 import random
 
 def main():
