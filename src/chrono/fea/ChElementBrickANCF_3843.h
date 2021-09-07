@@ -157,7 +157,10 @@ class ChElementBrickANCF_3843 : public ChElementGeneric, public ChLoadableUVW {
     /// Get a handle to the 8th node of this element.
     std::shared_ptr<ChNodeFEAxyzDDD> GetNodeH() const { return m_nodes[7]; }
 
-    /// Turn gravity on/off.
+    /// Turn the fast ANCF specific gravity calculations on/off.
+    /// NOTE: This switch does not affect the default method of calculating the effects due to gravity with a generic
+    /// method at the mesh level.   Therefore, gravity calculations at the mesh level should be manually disable if the
+    /// faster ANCF specific gravity calculations are enabled here.
     void SetGravityOn(bool val) { m_gravity_on = val; }
 
     /// Set the structural damping.
@@ -247,10 +250,7 @@ class ChElementBrickANCF_3843 : public ChElementGeneric, public ChLoadableUVW {
     virtual void EvaluateElementPoint(const double xi, const double eta, const double zeta, ChVector<>& point);
 
     /// Gets the absolute xyz velocity of a point in the element specified in normalized coordinates
-    virtual void EvaluateElementVel(const double xi,
-                                        const double eta,
-                                        const double zeta,
-                                        ChVector<>& Result);
+    virtual void EvaluateElementVel(const double xi, const double eta, const double zeta, ChVector<>& Result);
 
     // Functions for ChLoadable interface
     // ----------------------------------
@@ -321,7 +321,7 @@ class ChElementBrickANCF_3843 : public ChElementGeneric, public ChLoadableUVW {
 
     /// Compute the mass matrix & generalized gravity force of the element.
     /// Note: in this implementation, a constant density material is assumed
-    void ComputeMassMatrixAndGravityForce(const ChVector<>& g_acc);
+    void ComputeMassMatrixAndGravityForce();
 
     /// Precalculate constant matrices and scalars for the internal force calculations.  This selects and calls the
     /// method for the style of internal force calculations that is currently selected.
@@ -356,7 +356,7 @@ class ChElementBrickANCF_3843 : public ChElementGeneric, public ChLoadableUVW {
 
     /// Calculate the calculate the Jacobian of the internal force integrand using the "Continuous Integration" style
     /// method assuming damping is not included This function calculates just the stiffness (K) matrix,
-///     J = Kfactor * K + Mfactor * M
+    ///     J = Kfactor * K + Mfactor * M
     /// for given coefficients Kfactor and Mfactor.
     /// This Jacobian includes the global mass matrix M with the global stiffness in H.
     void ComputeInternalJacobianContIntNoDamping(ChMatrixRef& H, double Kfactor, double Mfactor);
@@ -411,8 +411,9 @@ class ChElementBrickANCF_3843 : public ChElementGeneric, public ChLoadableUVW {
     /// Access a statically-allocated set of tables, from 0 to a 10th order, with precomputed tables.
     static ChQuadratureTables* GetStaticGQTables();
 
+    ChSystem* m_system;     ///< System containing this element (used to get the current value of the gravity vector)
     IntFrcMethod m_method;  ///< Generalized internal force and Jacobian calculation method
-    std::shared_ptr<ChMaterialBrickANCF> m_material;   ///< material model
+    std::shared_ptr<ChMaterialBrickANCF> m_material;        ///< material model
     std::vector<std::shared_ptr<ChNodeFEAxyzDDD>> m_nodes;  ///< element nodes
     double m_lenX;                                          ///< total element length along X
     double m_lenY;                                          ///< total element length along Y
@@ -420,8 +421,8 @@ class ChElementBrickANCF_3843 : public ChElementGeneric, public ChLoadableUVW {
     double m_Alpha;                                         ///< structural damping
     bool m_damping_enabled;                                 ///< Flag to run internal force damping calculations
     bool m_gravity_on;                                      ///< enable/disable gravity calculation
-    Vector3N m_GravForce;                                   ///< Gravity Force
-    Matrix3xN m_ebar0;  ///< Element Position Coordinate Vector for the Reference Configuration
+    VectorN m_GravForceScale;  ///< Gravity scaling matrix used to get the generalized force due to gravity
+    Matrix3xN m_ebar0;         ///< Element Position Coordinate Vector for the Reference Configuration
     Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor>
         m_SD;  ///< Precomputed corrected normalized shape function derivative matrices ordered by columns instead of by
                ///< Gauss quadrature points used for the "Continuous Integration" style method

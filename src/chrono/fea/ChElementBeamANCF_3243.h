@@ -133,7 +133,10 @@ class ChApi ChElementBeamANCF_3243 : public ChElementBeam, public ChLoadableU, p
     /// Get a handle to the second node of this element.
     std::shared_ptr<ChNodeFEAxyzDDD> GetNodeB() const { return m_nodes[1]; }
 
-    /// Turn gravity on/off.
+    /// Turn the fast ANCF specific gravity calculations on/off.
+    /// NOTE: This switch does not affect the default method of calculating the effects due to gravity with a generic
+    /// method at the mesh level.   Therefore, gravity calculations at the mesh level should be manually disable if the
+    /// faster ANCF specific gravity calculations are enabled here.
     void SetGravityOn(bool val) { m_gravity_on = val; }
 
     /// Set the structural damping.
@@ -313,7 +316,7 @@ class ChApi ChElementBeamANCF_3243 : public ChElementBeam, public ChLoadableU, p
 
     /// Compute the mass matrix & generalized gravity force of the element.
     /// Note: in this implementation, a constant density material is assumed
-    void ComputeMassMatrixAndGravityForce(const ChVector<>& g_acc);
+    void ComputeMassMatrixAndGravityForce();
 
     /// Precalculate constant matrices and scalars for the internal force calculations.  This selects and calls the
     /// method for the style of internal force calculations that is currently selected.
@@ -403,8 +406,9 @@ class ChApi ChElementBeamANCF_3243 : public ChElementBeam, public ChLoadableU, p
     /// Access a statically-allocated set of tables, from 0 to a 10th order, with precomputed tables.
     static ChQuadratureTables* GetStaticGQTables();
 
-    IntFrcMethod m_method;                           ///< Generalized internal force and Jacobian calculation method
-    std::shared_ptr<ChMaterialBeamANCF> m_material;  ///< material model
+    ChSystem* m_system;     ///< System containing this element (used to get the current value of the gravity vector)
+    IntFrcMethod m_method;  ///< Generalized internal force and Jacobian calculation method
+    std::shared_ptr<ChMaterialBeamANCF> m_material;         ///< material model
     std::vector<std::shared_ptr<ChNodeFEAxyzDDD>> m_nodes;  ///< element nodes
     double m_lenX;                                          ///< total element length along X
     double m_thicknessY;                                    ///< total element length along Y
@@ -412,8 +416,8 @@ class ChApi ChElementBeamANCF_3243 : public ChElementBeam, public ChLoadableU, p
     double m_Alpha;                                         ///< structural damping
     bool m_damping_enabled;                                 ///< Flag to run internal force damping calculations
     bool m_gravity_on;                                      ///< enable/disable gravity calculation
-    Vector3N m_GravForce;                                   ///< Gravity Force
-    Matrix3xN m_ebar0;  ///< Element Position Coordinate Vector for the Reference Configuration
+    VectorN m_GravForceScale;  ///< Gravity scaling matrix used to get the generalized force due to gravity
+    Matrix3xN m_ebar0;         ///< Element Position Coordinate Vector for the Reference Configuration
     Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor>
         m_SD;  ///< Precomputed corrected normalized shape function derivative matrices ordered by columns instead of
                ///< by Gauss quadrature points used for the "Continuous Integration" style method for both the section
