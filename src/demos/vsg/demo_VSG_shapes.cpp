@@ -9,7 +9,7 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Authors: Hammad Mazhar
+// Authors: Rainer Gericke
 // =============================================================================
 //
 // Chrono::vsg3d test program.
@@ -46,8 +46,6 @@ int main(int argc, char *argv[]) {
     // Render everything
     VSGApp app;
     app.Initialize(1280, 720, "VSG Shapes", &sys);
-    // gl_window.SetCamera(ChVector<>(6, -10, 0), ChVector<>(6, 0, 0), ChVector<>(0, 0, 1));
-    // gl_window.SetRenderMode(opengl::WIREFRAME);
 
     while (app.GetViewer()->advanceToNextFrame()) {
         app.Render();

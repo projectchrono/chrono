@@ -274,7 +274,7 @@ void VSGApp::BuildSceneGraph() {
         Vector axis;
         rot.Q_to_AngAxis(angle, axis);
         vsg::GeometryInfo geomDot;
-        float dotRadius = 0.1;
+        float dotRadius = 0.1f;
         geomDot.dx.set(dotRadius, 0.0f, 0.0f);
         geomDot.dy.set(0.0f, dotRadius, 0.0f);
         geomDot.dz.set(0.0f, 0.0f, dotRadius);
@@ -377,15 +377,15 @@ void VSGApp::BuildSceneGraph() {
                 double rad = cylinder_shape->GetCylinderGeometry().rad;
                 ChVector<> dir = cylinder_shape->GetCylinderGeometry().p2 - cylinder_shape->GetCylinderGeometry().p1;
                 double height = dir.Length();
-                dir.Normalize();
+                dir /= height;
                 ChVector<> mx, my, mz;
-                dir.DirToDxDyDz(my, mz, mx);  // y is axis, in cylinder.obj frame
+                dir.DirToDxDyDz(mz, mx, my);  // z is axis, in cylinder.obj frame
                 ChMatrix33<> mrot;
                 mrot.Set_A_axis(mx, my, mz);
                 lrot = rot % (visual_asset->Rot.Get_A_quaternion() % mrot.Get_A_quaternion());
                 // position of cylinder based on two points
-                ChVector<> mpos =
-                        0.5 * (cylinder_shape->GetCylinderGeometry().p2 + cylinder_shape->GetCylinderGeometry().p1);
+                ChVector<> mpos = center + 0.5 * (cylinder_shape->GetCylinderGeometry().p2 +
+                                                  cylinder_shape->GetCylinderGeometry().p1);
 
                 lrot.Q_to_AngAxis(angle, axis);
                 ChVector<> pos_final = pos + rot.Rotate(mpos);
@@ -400,8 +400,7 @@ void VSGApp::BuildSceneGraph() {
                 geomInfo.dy.set(0.0f, height, 0.0f);
                 geomInfo.dz.set(0.0f, 0.0f, 2.0f * rad);
                 geomInfo.position = vsg::vec3(pos_final.x(), pos_final.y(), pos_final.z());
-                geomInfo.transform =
-                        vsg::rotate(CH_C_PI_2, 0.0, 0.0, 1.0) * vsg::rotate(angle, axis.x(), axis.y(), axis.z());
+                geomInfo.transform = vsg::rotate(angle, axis.x(), axis.y(), axis.z());
                 vsg::StateInfo stateInfo;
                 stateInfo.lighting = true;
 
