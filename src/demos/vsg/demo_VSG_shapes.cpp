@@ -40,7 +40,7 @@ int main(int argc, char *argv[]) {
     utils::AddBoxGeometry(bin.get(), mat, ChVector<>(1, 1, 1), ChVector<>(6, 0, 0));
     utils::AddCylinderGeometry(bin.get(), mat, 1, 1, ChVector<>(9, 0, 0));
     utils::AddConeGeometry(bin.get(), mat, 1, 3, ChVector<>(12, 0, 0));
-    utils::AddCapsuleGeometry(bin.get(), mat, 1, 1, ChVector<>(15,0,0));
+    utils::AddCapsuleGeometry(bin.get(), mat, 1, 1, ChVector<>(15, 0, 0));
     sys.AddBody(bin);
 
     // Render everything

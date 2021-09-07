@@ -385,7 +385,7 @@ void VSGApp::BuildSceneGraph() {
                 lrot = rot % (visual_asset->Rot.Get_A_quaternion() % mrot.Get_A_quaternion());
                 // position of cylinder based on two points
                 ChVector<> mpos = center + 0.5 * (cylinder_shape->GetCylinderGeometry().p2 +
-                                                  cylinder_shape->GetCylinderGeometry().p1);
+                        cylinder_shape->GetCylinderGeometry().p1);
 
                 lrot.Q_to_AngAxis(angle, axis);
                 ChVector<> pos_final = pos + rot.Rotate(mpos);
@@ -399,7 +399,7 @@ void VSGApp::BuildSceneGraph() {
                 geomInfo.dx.set(2.0f * rad, 0.0f, 0.0f);
                 geomInfo.dy.set(0.0f, height, 0.0f);
                 geomInfo.dz.set(0.0f, 0.0f, 2.0f * rad);
-                geomInfo.position = vsg::vec3(pos_final.x(), pos_final.y(), pos_final.z());
+                geomInfo.position = vsg::vec3(pos_final.x(), pos_final.z(), pos_final.y());
                 geomInfo.transform = vsg::rotate(angle, axis.x(), axis.y(), axis.z());
                 vsg::StateInfo stateInfo;
                 stateInfo.lighting = true;
@@ -410,6 +410,7 @@ void VSGApp::BuildSceneGraph() {
                 m_polygon_subgraph->addChild(true, m_builderLighting->createCylinder(geomInfo, stateInfo));
             } else if (ChConeShape * cone_shape = dynamic_cast<ChConeShape *>(asset.get())) {
                 Vector rad = cone_shape->GetConeGeometry().rad;
+                float coneOffset = 0.25f * rad.y();
                 ChVector<> pos_final = pos + center;
                 /*
                  model = glm::translate(glm::mat4(1), glm::vec3(pos_final.x(), pos_final.y(), pos_final.z()));
@@ -421,7 +422,7 @@ void VSGApp::BuildSceneGraph() {
                 geomInfo.dx.set(2.0f * rad.x(), 0.0f, 0.0f);
                 geomInfo.dy.set(0.0f, 2.0f * rad.z(), 0.0f);
                 geomInfo.dz.set(0.0f, 0.0f, rad.y());
-                geomInfo.position = vsg::vec3(pos_final.x(), pos_final.z(), pos_final.y());
+                geomInfo.position = vsg::vec3(pos_final.x(), -pos_final.z(), pos_final.y() - coneOffset);
                 geomInfo.transform =
                         vsg::rotate(-CH_C_PI_2, 1.0, 0.0, 0.0) * vsg::rotate(angle, axis.x(), axis.y(), axis.z());
                 vsg::StateInfo stateInfo;
@@ -463,9 +464,9 @@ void VSGApp::BuildSceneGraph() {
                 geomInfo.dx.set(2.0f * rad, 0.0f, 0.0f);
                 geomInfo.dy.set(0.0f, 2.0f * rad, 0.0f);
                 geomInfo.dz.set(0.0f, 0.0f, 2.0f * height);
-                geomInfo.position = vsg::vec3(pos_final.x(), pos_final.z(), pos_final.y());
+                geomInfo.position = vsg::vec3(pos_final.x(), pos_final.z(), -pos_final.y());
                 geomInfo.transform =
-                        vsg::rotate(-CH_C_PI_2, 1.0, 0.0, 0.0) * vsg::rotate(angle, axis.x(), axis.y(), axis.z());
+                        vsg::rotate(CH_C_PI_2, 1.0, 0.0, 0.0) * vsg::rotate(angle, axis.x(), axis.y(), axis.z());
                 vsg::StateInfo stateInfo;
                 stateInfo.lighting = true;
 
