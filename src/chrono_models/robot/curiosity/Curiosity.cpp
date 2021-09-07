@@ -9,7 +9,7 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Authors: Jason Zhou
+// Authors: Jason Zhou, Radu Serban
 // =============================================================================
 //
 // NASA Curiosity Mars Rover Model Class.
@@ -41,7 +41,45 @@ namespace chrono {
 namespace curiosity {
 
 // =============================================================================
-// Create default contact material for the rover
+
+// Maximum steering angle
+// hard limit: +- 95 deg, soft limit: +- 85 deg
+static const double max_steer_angle = 85 * CH_C_DEG_TO_RAD;
+
+// rover wheels positions
+static const ChVector<> wheel_rel_pos_lf = ChVector<>(1.095, 1.063, 0.249);
+static const ChVector<> wheel_rel_pos_rf = ChVector<>(1.095, -1.063, 0.249);
+static const ChVector<> wheel_rel_pos_lm = ChVector<>(-0.089, 1.194, 0.249);
+static const ChVector<> wheel_rel_pos_rm = ChVector<>(-0.089, -1.194, 0.249);
+static const ChVector<> wheel_rel_pos_lb = ChVector<>(-1.163, 1.063, 0.249);
+static const ChVector<> wheel_rel_pos_rb = ChVector<>(-1.163, -1.063, 0.249);
+
+static const ChVector<> wheel_pos[] = {
+    wheel_rel_pos_lf, wheel_rel_pos_rf,  // front (left/right)
+    wheel_rel_pos_lm, wheel_rel_pos_rm,  // middle (left/right)
+    wheel_rel_pos_lb, wheel_rel_pos_rb   // back (left/right)
+};
+
+// upright positions
+static const ChVector<> sr_rel_pos_lf = ChVector<>(1.095, 1.063, 0.64);
+static const ChVector<> sr_rel_pos_rf = ChVector<>(1.095, -1.063, 0.64);
+static const ChVector<> sr_rel_pos_lb = ChVector<>(-1.163, 1.063, 0.64);
+static const ChVector<> sr_rel_pos_rb = ChVector<>(-1.163, -1.063, 0.64);
+
+// rocker/bogie positions
+static const ChVector<> cr_rel_pos_lf = ChVector<>(0.214, 0.604, 0.8754);
+static const ChVector<> cr_rel_pos_rf = ChVector<>(0.214, -0.604, 0.8754);
+static const ChVector<> cr_rel_pos_lb = ChVector<>(-0.54, 0.845, 0.6433);
+static const ChVector<> cr_rel_pos_rb = ChVector<>(-0.54, -0.845, 0.6433);
+
+// differential components positions
+static const ChVector<> tr_rel_pos_l = ChVector<>(0.214, 0.672, 1.144);
+static const ChVector<> tr_rel_pos_r = ChVector<>(0.214, -0.672, 1.144);
+static const ChVector<> tr_rel_pos_t = ChVector<>(-0.142, 0.0, 1.172);
+
+// =============================================================================
+
+// Default contact material for rover parts
 std::shared_ptr<ChMaterialSurface> DefaultContactMaterial(ChContactMethod contact_method) {
     float mu = 0.4f;   // coefficient of friction
     float cr = 0.0f;   // coefficient of restitution
@@ -78,1203 +116,640 @@ std::shared_ptr<ChMaterialSurface> DefaultContactMaterial(ChContactMethod contac
 
 // Add a revolute joint between body_1 and body_2
 // rel_joint_pos and rel_joint_rot are the position and the rotation of the revolute point
-void AddRevoluteJoint(std::shared_ptr<ChBodyAuxRef> body_1,
+std::shared_ptr<ChLinkLockRevolute> AddRevoluteJoint(std::shared_ptr<ChBodyAuxRef> body_1,
                       std::shared_ptr<ChBodyAuxRef> body_2,
-                      std::shared_ptr<ChBodyAuxRef> chassis,
-                      ChSystem* system,
+                      std::shared_ptr<CuriosityChassis> chassis,
                       const ChVector<>& rel_joint_pos,
                       const ChQuaternion<>& rel_joint_rot) {
-    const ChFrame<>& X_GP = chassis->GetFrame_REF_to_abs();  // global -> parent
-    ChFrame<> X_PC(rel_joint_pos, rel_joint_rot);            // parent -> child
-    ChFrame<> X_GC = X_GP * X_PC;                            // global -> child
+    const ChFrame<>& X_GP = chassis->GetBody()->GetFrame_REF_to_abs();  // global -> parent
+    ChFrame<> X_PC(rel_joint_pos, rel_joint_rot);                       // parent -> child
+    ChFrame<> X_GC = X_GP * X_PC;                                       // global -> child
 
-    auto revo = chrono_types::make_shared<ChLinkLockRevolute>();
-    // auto revo = chrono_types::make_shared<ChLinkLockLock>();
-    revo->Initialize(body_1, body_2, ChCoordsys<>(X_GC.GetCoord().pos, X_GC.GetCoord().rot));
-    system->AddLink(revo);
+    auto joint = chrono_types::make_shared<ChLinkLockRevolute>();
+    joint->Initialize(body_1, body_2, ChCoordsys<>(X_GC.GetCoord().pos, X_GC.GetCoord().rot));
+    chassis->GetBody()->GetSystem()->AddLink(joint);
+
+    return joint;
 }
 
-// Add a revolute joint between body_1 and body_2
-// rel_joint_pos and rel_joint_rot are the position and the rotation of the revolute point
-void AddLockJoint(std::shared_ptr<ChBodyAuxRef> body_1,
-                  std::shared_ptr<ChBodyAuxRef> body_2,
-                  std::shared_ptr<ChBodyAuxRef> chassis,
-                  ChSystem* system,
-                  const ChVector<>& rel_joint_pos,
-                  const ChQuaternion<>& rel_joint_rot) {
-    const ChFrame<>& X_GP = chassis->GetFrame_REF_to_abs();  // global -> parent
-    ChFrame<> X_PC(rel_joint_pos, rel_joint_rot);            // parent -> child
-    ChFrame<> X_GC = X_GP * X_PC;                            // global -> child
+// Add a rotational speed motor between two bodies at the given position and orientation
+// (expressed in and relative to the chassis frame).
+std::shared_ptr<ChLinkMotorRotationSpeed> AddMotorSpeed(std::shared_ptr<ChBody> body1,
+                                                        std::shared_ptr<ChBody> body2,
+                                                        std::shared_ptr<CuriosityChassis> chassis,
+                                                        const ChVector<>& rel_pos,
+                                                        const ChQuaternion<>& rel_rot) {
+    // Express relative frame in global
+    ChFrame<> X_GC = chassis->GetBody()->GetFrame_REF_to_abs() * ChFrame<>(rel_pos, rel_rot);
 
-    // auto revo = chrono_types::make_shared<ChLinkLockRevolute>();
-    auto revo = chrono_types::make_shared<ChLinkLockLock>();
-    revo->Initialize(body_1, body_2, ChCoordsys<>(X_GC.GetCoord().pos, X_GC.GetCoord().rot));
-    system->AddLink(revo);
+    // Create motor (actuated DOF about Z axis of X_GC frame)
+    auto motor = chrono_types::make_shared<ChLinkMotorRotationSpeed>();
+    motor->Initialize(body1, body2, X_GC);
+    chassis->GetBody()->GetSystem()->AddLink(motor);
+
+    return motor;
 }
 
-// Add a rotational speed controlled motor between body 'body_A' and body 'body_B'
-// rel_joint_pos and rel_joint_rot are the position and the rotation of the motor
-std::shared_ptr<ChLinkMotorRotationSpeed> AddMotor(std::shared_ptr<ChBodyAuxRef> body_A,
-                                                   std::shared_ptr<ChBodyAuxRef> body_B,
-                                                   std::shared_ptr<ChBodyAuxRef> chassis,
-                                                   ChSystem* system,
-                                                   const ChVector<>& rel_joint_pos,
-                                                   const ChQuaternion<>& rel_joint_rot,
-                                                   std::shared_ptr<ChFunction_Const> speed_func) {
-    const ChFrame<>& X_GP = chassis->GetFrame_REF_to_abs();  // global -> parent
-    ChFrame<> X_PC(rel_joint_pos, rel_joint_rot);            // parent -> child
-    ChFrame<> X_GC = X_GP * X_PC;                            // global -> child
+// Add a rotational angle motor between two bodies at the given position and orientation
+// (expressed in and relative to the chassis frame).
+std::shared_ptr<ChLinkMotorRotationAngle> AddMotorAngle(std::shared_ptr<ChBody> body1,
+                                                        std::shared_ptr<ChBody> body2,
+                                                        std::shared_ptr<CuriosityChassis> chassis,
+                                                        const ChVector<>& rel_pos,
+                                                        const ChQuaternion<>& rel_rot) {
+    // Express relative frame in global
+    ChFrame<> X_GC = chassis->GetBody()->GetFrame_REF_to_abs() * ChFrame<>(rel_pos, rel_rot);
 
-    auto motor_angle = chrono_types::make_shared<ChLinkMotorRotationSpeed>();
-    motor_angle->Initialize(body_A, body_B, ChFrame<>(X_GC.GetCoord().pos, X_GC.GetCoord().rot));
-    system->AddLink(motor_angle);
-    motor_angle->SetSpeedFunction(speed_func);
-    return motor_angle;
+    // Create motor (actuated DOF about Z axis of X_GC frame)
+    auto motor = chrono_types::make_shared<ChLinkMotorRotationAngle>();
+    motor->Initialize(body1, body2, X_GC);
+    chassis->GetBody()->GetSystem()->AddLink(motor);
+
+    return motor;
 }
 
-// Add a spring between pos_1 and pos_2
-// the default length of the spring is auto-adjusted
-std::shared_ptr<ChLinkTSDA> AddSuspensionSpring(std::shared_ptr<ChBodyAuxRef> chassis,
-                                                std::shared_ptr<ChBodyAuxRef> steer,
-                                                ChSystem* system,
-                                                const ChVector<>& pos_1,
-                                                const ChVector<>& pos_2) {
-    ChQuaternion<> ori = ChQuaternion<>(1, 0, 0, 0);
-    const ChFrame<>& X_GP = chassis->GetFrame_REF_to_abs();  // global -> parent
+// Add a rotational torque motor between two bodies at the given position and orientation
+// (expressed in and relative to the chassis frame).
+std::shared_ptr<ChLinkMotorRotationTorque> AddMotorTorque(std::shared_ptr<ChBody> body1,
+                                                          std::shared_ptr<ChBody> body2,
+                                                          std::shared_ptr<CuriosityChassis> chassis,
+                                                          const ChVector<>& rel_pos,
+                                                          const ChQuaternion<>& rel_rot) {
+    // Express relative frame in global
+    ChFrame<> X_GC = chassis->GetBody()->GetFrame_REF_to_abs() * ChFrame<>(rel_pos, rel_rot);
 
-    ChFrame<> X_PC_1(pos_1, ori);      // parent -> child
-    ChFrame<> X_GC_1 = X_GP * X_PC_1;  // global -> child
+    // Create motor (actuated DOF about Z axis of X_GC frame)
+    auto motor = chrono_types::make_shared<ChLinkMotorRotationTorque>();
+    motor->Initialize(body1, body2, X_GC);
+    chassis->GetBody()->GetSystem()->AddLink(motor);
 
-    ChFrame<> X_PC_2(pos_2, ori);      // parent -> child
-    ChFrame<> X_GC_2 = X_GP * X_PC_2;  // global -> child
-
-    std::shared_ptr<ChLinkTSDA> spring;
-    spring = chrono_types::make_shared<ChLinkTSDA>();
-    spring->Initialize(chassis, steer, false, X_GC_1.GetCoord().pos, X_GC_2.GetCoord().pos, true, 0.0);
-    spring->SetSpringCoefficient(800000.0);
-    spring->SetDampingCoefficient(10000.0);
-    system->AddLink(spring);
-    return spring;
+    return motor;
 }
 
 // ===============================================================================
+//
 // Base class for all Curiosity Part
-Curiosity_Part::Curiosity_Part(const std::string& name,
-                               bool fixed,
-                               std::shared_ptr<ChMaterialSurface> mat,
-                               ChSystem* system,
-                               const ChVector<>& body_pos,
-                               const ChQuaternion<>& body_rot,
-                               std::shared_ptr<ChBodyAuxRef> chassis_body,
-                               bool collide) {
+CuriosityPart::CuriosityPart(const std::string& name,
+                             const ChFrame<>& rel_pos,
+                             std::shared_ptr<ChMaterialSurface> mat,
+                             bool collide)
+    : m_name(name), m_pos(rel_pos), m_density(200), m_mat(mat), m_collide(collide), m_visualize(true) {}
+
+void CuriosityPart::Construct(ChSystem* system) {
     m_body = std::shared_ptr<ChBodyAuxRef>(system->NewBodyAuxRef());
-    m_body->SetNameString(name + "_body");
-    m_chassis = chassis_body;
-    m_mat = mat;
-    m_pos = body_pos;
-    m_rot = body_rot;
-    m_system = system;
-    m_collide = collide;
-    m_fixed = fixed;
+    m_body->SetNameString(m_name + "_body");
+
+    // Load geometry meshes for visualization and collision
+    std::string vis_mesh_file = "robot/curiosity/obj/" + m_mesh_name + ".obj";
+    std::string col_mesh_file = "robot/curiosity/col/" + m_mesh_name + ".obj";
+
+    auto trimesh_vis = chrono_types::make_shared<geometry::ChTriangleMeshConnected>();
+    trimesh_vis->LoadWavefrontMesh(GetChronoDataFile(vis_mesh_file), false, false);
+    trimesh_vis->Transform(m_mesh_xform.GetPos(), m_mesh_xform.GetA());  // translate/rotate/scale mesh
+    trimesh_vis->RepairDuplicateVertexes(1e-9);                          // if meshes are not watertight
+
+    auto trimesh_col = chrono_types::make_shared<geometry::ChTriangleMeshConnected>();
+    trimesh_col->LoadWavefrontMesh(GetChronoDataFile(col_mesh_file), false, false);
+    trimesh_col->Transform(m_mesh_xform.GetPos(), m_mesh_xform.GetA());  // translate/rotate/scale mesh
+    trimesh_col->RepairDuplicateVertexes(1e-9);                          // if meshes are not watertight
+
+    // Calculate and set intertia properties (use collision mesh)
+    double vol;
+    ChVector<> cog;
+    ChMatrix33<> inertia;
+    trimesh_col->ComputeMassProperties(true, vol, cog, inertia);
+
+    ChVector<> principal_I;
+    ChMatrix33<> principal_inertia_rot;
+    ChInertiaUtils::PrincipalInertia(inertia, principal_I, principal_inertia_rot);
+
+    m_body->SetMass(vol * m_density);
+    m_body->SetInertiaXX(m_density * principal_I);
+    m_body->SetFrame_COG_to_REF(ChFrame<>(cog, principal_inertia_rot));
+
+    // Add visualization shape
+    if (m_visualize) {
+        auto trimesh_shape = chrono_types::make_shared<ChTriangleMeshShape>();
+        trimesh_shape->SetMesh(trimesh_vis);
+        trimesh_shape->SetName(m_mesh_name);
+        trimesh_shape->SetStatic(true);
+        m_body->AddAsset(trimesh_shape);
+        m_body->AddAsset(chrono_types::make_shared<ChColorAsset>(m_color));
+    }
+
+    // Add collision shape
+    if (m_collide) {
+        ////auto trimesh_c = chrono_types::make_shared<geometry::ChTriangleMeshConnected>();
+        ////trimesh_c->LoadWavefrontMesh(GetChronoDataFile(col_mesh_file), false, false);
+
+        m_body->GetCollisionModel()->ClearModel();
+        m_body->GetCollisionModel()->AddTriangleMesh(m_mat, trimesh_col, false, false, VNULL, ChMatrix33<>(1), 0.005);
+        m_body->GetCollisionModel()->BuildModel();
+        m_body->SetCollide(m_collide);
+    }
+
+    system->AddBody(m_body);
 }
 
-// Create Visulization assets -> Finer mesh
-void Curiosity_Part::AddVisualizationAssets() {
-    // Read mesh from the obj folder
-    std::string vis_mesh_file = "robot/curiosity/vis/" + m_mesh_name + ".obj";
-    auto trimesh = chrono_types::make_shared<geometry::ChTriangleMeshConnected>();
-    trimesh->LoadWavefrontMesh(GetChronoDataFile(vis_mesh_file), true, false);
-    trimesh->Transform(m_offset, ChMatrix33<>(1));
-    auto trimesh_shape = chrono_types::make_shared<ChTriangleMeshShape>();
-    trimesh_shape->SetMesh(trimesh);
-    trimesh_shape->SetName(m_mesh_name);
-    trimesh_shape->SetStatic(true);
-    m_body->AddAsset(trimesh_shape);
-    return;
-}
+void CuriosityPart::Initialize(std::shared_ptr<ChBodyAuxRef> chassis) {
+    Construct(chassis->GetSystem());
 
-void Curiosity_Part::SetCollide(bool state) {
-    m_collide = state;
-}
-
-// Add collision assets -> Rougher mesh
-void Curiosity_Part::AddCollisionShapes() {
-    // read mesh from the col folder
-    std::string vis_mesh_file = "robot/curiosity/col/" + m_mesh_name + ".obj";
-    auto trimesh = chrono_types::make_shared<geometry::ChTriangleMeshConnected>();
-    m_trimesh = trimesh;
-    trimesh->LoadWavefrontMesh(GetChronoDataFile(vis_mesh_file), true, false);
-    trimesh->Transform(m_offset, ChMatrix33<>(1));
-    auto trimesh_shape = chrono_types::make_shared<ChTriangleMeshShape>();
-    trimesh_shape->SetMesh(trimesh);
-    trimesh_shape->SetName(m_mesh_name);
-    trimesh_shape->SetStatic(true);
-
-    m_body->GetCollisionModel()->ClearModel();
-    m_body->GetCollisionModel()->AddTriangleMesh(m_mat, trimesh, false, false, VNULL, ChMatrix33<>(1), 0.005);
-    m_body->GetCollisionModel()->BuildModel();
-    m_body->SetCollide(m_collide);
+    // Set absolute position
+    ChFrame<> X_GC = chassis->GetFrame_REF_to_abs() * m_pos;
+    m_body->SetFrame_REF_to_abs(X_GC);
 }
 
 // =============================================================================
+//
 // Rover Chassis
-Curiosity_Chassis::Curiosity_Chassis(const std::string& name,
-                                     bool fixed,
-                                     std::shared_ptr<ChMaterialSurface> mat,
-                                     ChSystem* system,
-                                     const ChVector<>& body_pos,
-                                     const ChQuaternion<>& body_rot,
-                                     bool collide,
-                                     Chassis_Type chassis_type)
-    : Curiosity_Part(name, fixed, mat, system, body_pos, body_rot, NULL, collide) {
-    m_chassis_type = chassis_type;
+CuriosityChassis::CuriosityChassis(const std::string& name,
+                                   CuriosityChassisType chassis_type,
+                                   std::shared_ptr<ChMaterialSurface> mat)
+    : CuriosityPart(name, ChFrame<>(VNULL, QUNIT), mat, false), m_chassis_type(chassis_type) {
     switch (m_chassis_type) {
-        case Chassis_Type::FullRover:
+        case CuriosityChassisType::FullRover:
             m_mesh_name = "curiosity_chassis";
             break;
 
-        case Chassis_Type::Scarecrow:
+        case CuriosityChassisType::Scarecrow:
             m_mesh_name = "scarecrow_chassis";
             break;
-
-        default:
-            m_mesh_name = "curiosity_chassis";
-            break;
     }
-
-    m_offset = ChVector<>(0, 0, 0);
-    m_color = ChColor(0.4f, 0.4f, 0.7f);
-    m_density = 100;
+    m_density = 50;
+    m_color = ChColor(1.0f, 1.0f, 1.0f);
 }
 
-void Curiosity_Chassis::Initialize() {
-    std::string vis_mesh_file = "robot/curiosity/col/" + m_mesh_name + ".obj";
-    auto trimesh = chrono_types::make_shared<geometry::ChTriangleMeshConnected>();
-    trimesh->LoadWavefrontMesh(GetChronoDataFile(vis_mesh_file), false, false);
-    trimesh->Transform(ChVector<>(0, 0, 0), ChMatrix33<>(1));  // scale to a different size
-    trimesh->RepairDuplicateVertexes(1e-9);                    // if meshes are not watertight
+void CuriosityChassis::Initialize(ChSystem* system, const ChFrame<>& pos) {
+    Construct(system);
 
-    double mmass;
-    ChVector<> mcog;
-    ChMatrix33<> minertia;
-    trimesh->ComputeMassProperties(true, mmass, mcog, minertia);
+    double vol = 0;
+    ChVector<> inertia;
     switch (m_chassis_type) {
-        case Chassis_Type::FullRover:
-            mmass = 4.3;
-            mcog = ChVector<>(0, 0, 0);
-            minertia = ChMatrix33<>(2.0);
+        case CuriosityChassisType::FullRover:
+            vol = 8.3;
+            inertia = ChVector<>(0.2);
             break;
-
-        case Chassis_Type::Scarecrow:
-            mmass = 1.0;
-            mcog = ChVector<>(0, 0, 0);
-            minertia = ChMatrix33<>(0.5);
-            break;
-
-        default:
-            mmass = 4.3;
-            mcog = ChVector<>(0, 0, 0);
-            minertia = ChMatrix33<>(2.0);
+        case CuriosityChassisType::Scarecrow:
+            vol = 2.3;
+            inertia = ChVector<>(0.5);
             break;
     }
+    m_body->SetMass(vol * m_density);
+    m_body->SetInertiaXX(m_density * inertia);
+    m_body->SetFrame_COG_to_REF(ChFrame<>());
 
-    ChMatrix33<> principal_inertia_rot;
-    ChVector<> principal_I;
-    ChInertiaUtils::PrincipalInertia(minertia, principal_I, principal_inertia_rot);
-
-    m_body->SetFrame_COG_to_REF(ChFrame<>(mcog, principal_inertia_rot));
-
-    // Set inertia
-    m_body->SetMass(mmass * m_density);
-    m_body->SetInertiaXX(m_density * principal_I);
-    m_body->SetFrame_REF_to_abs(ChFrame<>(m_pos, m_rot));
-    m_body->SetBodyFixed(m_fixed);
-
-    AddCollisionShapes();
-    AddVisualizationAssets();
-
-    m_system->Add(m_body);
+    m_body->SetFrame_REF_to_abs(pos);
 }
 
-void Curiosity_Chassis::SetCollide(bool state) {
-    m_collide = state;
-    m_body->SetCollide(state);
-}
-
-void Curiosity_Chassis::Translate(const ChVector<>& shift) {
-    m_body->SetPos(m_body->GetPos() + shift);
-}
-
-// ==========================================================
 // Curiosity Wheel
-Curiosity_Wheel::Curiosity_Wheel(const std::string& name,
-                                 bool fixed,
-                                 std::shared_ptr<ChMaterialSurface> mat,
-                                 ChSystem* system,
-                                 const ChVector<>& body_pos,
-                                 const ChQuaternion<>& body_rot,
-                                 std::shared_ptr<ChBodyAuxRef> chassis,
-                                 bool collide,
-                                 Wheel_Type wheel_type)
-    : Curiosity_Part(name, fixed, mat, system, body_pos, body_rot, chassis, collide) {
+CuriosityWheel::CuriosityWheel(const std::string& name,
+                               const ChFrame<>& rel_pos,
+                               std::shared_ptr<ChMaterialSurface> mat,
+                               CuriosityWheelType wheel_type)
+    : CuriosityPart(name, rel_pos, mat, true) {
     switch (wheel_type) {
-        case Wheel_Type::RealWheel:
+        default:
+        case CuriosityWheelType::RealWheel:
             m_mesh_name = "curiosity_wheel";
             break;
-
-        case Wheel_Type::SimpleWheel:
+        case CuriosityWheelType::SimpleWheel:
             m_mesh_name = "curiosity_simplewheel";
             break;
-
-        case Wheel_Type::CylWheel:
+        case CuriosityWheelType::CylWheel:
             m_mesh_name = "curiosity_cylwheel";
             break;
-
-        default:
-            m_mesh_name = "curiosity_wheel";
-            break;
     }
-
-    m_offset = ChVector<>(0, 0, 0);
-    m_color = ChColor(0.4f, 0.4f, 0.7f);
-    m_density = 200;
+    m_color = ChColor(1.0f, 1.0f, 1.0f);
+    m_density = 2000;
 }
 
-void Curiosity_Wheel::Initialize() {
-    std::string vis_mesh_file = "robot/curiosity/col/" + m_mesh_name + ".obj";
-    auto trimesh = chrono_types::make_shared<geometry::ChTriangleMeshConnected>();
-    trimesh->LoadWavefrontMesh(GetChronoDataFile(vis_mesh_file), false, false);
-    trimesh->Transform(ChVector<>(0, 0, 0), ChMatrix33<>(1));  // scale to a different size
-    trimesh->RepairDuplicateVertexes(1e-9);                    // if meshes are not watertight
+void CuriosityWheel::Initialize(std::shared_ptr<ChBodyAuxRef> chassis) {
+    CuriosityPart::Initialize(chassis);
 
-    double mmass;
-    ChVector<> mcog;
-    ChMatrix33<> minertia;
-    trimesh->ComputeMassProperties(true, mmass, mcog, minertia);
-    mmass = 0.1;
-    ChMatrix33<> principal_inertia_rot;
-    ChVector<> principal_I;
-    ChInertiaUtils::PrincipalInertia(minertia, principal_I, principal_inertia_rot);
-
-    m_body->SetFrame_COG_to_REF(ChFrame<>(mcog, principal_inertia_rot));
-
-    // Set inertia
-    m_body->SetMass(mmass * m_density);
-    m_body->SetInertiaXX(m_density * principal_I);
-
-    // set relative position to chassis
-    const ChFrame<>& X_GP = m_chassis->GetFrame_REF_to_abs();  // global -> parent
-    ChFrame<> X_PC(m_pos, m_rot);                              // parent -> child
-    ChFrame<> X_GC = X_GP * X_PC;                              // global -> child
-    m_body->SetFrame_REF_to_abs(X_GC);
-    m_body->SetBodyFixed(m_fixed);
-
-    AddCollisionShapes();
-    AddVisualizationAssets();
-
-    m_system->Add(m_body);
+    double vol = 0.004;
+    ChVector<> inertia(0.01);
+    m_body->SetMass(vol * m_density);
+    m_body->SetInertiaXX(m_density * inertia);
+    m_body->SetFrame_COG_to_REF(ChFrame<>());
 }
 
-void Curiosity_Wheel::SetCollide(bool state) {
-    m_collide = state;
-    m_body->SetCollide(state);
+// Curiosity suspension rocker
+CuriosityRocker::CuriosityRocker(const std::string& name,
+                           const ChFrame<>& rel_pos,
+                           std::shared_ptr<ChMaterialSurface> mat,
+                           int side)
+    : CuriosityPart(name, rel_pos, mat, false) {
+    m_mesh_name = (side == 0) ? "curiosity_F_L_arm" : "curiosity_F_R_arm";
+    m_color = ChColor(1.0f, 0.4f, 0.0f);
+    m_density = 2000;
 }
 
-void Curiosity_Wheel::Translate(const ChVector<>& shift) {
-    m_body->SetPos(m_body->GetPos() + shift);
-}
-
-// ==========================================================
-// Curiosity suspension arm
-Curiosity_Arm::Curiosity_Arm(const std::string& name,
-                             bool fixed,
-                             std::shared_ptr<ChMaterialSurface> mat,
-                             ChSystem* system,
-                             const ChVector<>& body_pos,
-                             const ChQuaternion<>& body_rot,
-                             std::shared_ptr<ChBodyAuxRef> chassis,
-                             bool collide,
-                             const int& side)
-    : Curiosity_Part(name, fixed, mat, system, body_pos, body_rot, chassis, collide) {
-    if (side == 0) {
-        m_mesh_name = "curiosity_F_L_arm";
-    }
-    if (side == 1) {
-        m_mesh_name = "curiosity_F_R_arm";
-    }
-    if (side == 2) {
-        m_mesh_name = "curiosity_B_L_arm";
-    }
-    if (side == 3) {
-        m_mesh_name = "curiosity_B_R_arm";
-    }
-
-    m_offset = ChVector<>(0, 0, 0);
-    m_color = ChColor(0.4f, 0.4f, 0.7f);
-    m_density = 5;
-}
-
-void Curiosity_Arm::Initialize() {
-    std::string vis_mesh_file = "robot/curiosity/col/" + m_mesh_name + ".obj";
-    auto trimesh = chrono_types::make_shared<geometry::ChTriangleMeshConnected>();
-    trimesh->LoadWavefrontMesh(GetChronoDataFile(vis_mesh_file), false, false);
-    trimesh->Transform(ChVector<>(0, 0, 0), ChMatrix33<>(1));  // scale to a different size
-    trimesh->RepairDuplicateVertexes(1e-9);                    // if meshes are not watertight
-
-    double mmass;
-    ChVector<> mcog;
-    ChMatrix33<> minertia;
-    trimesh->ComputeMassProperties(true, mmass, mcog, minertia);
-    mmass = 4.3;
-    mcog = ChVector<>(0, 0, 0);
-    minertia = ChMatrix33<>(5.0);
-
-    ChMatrix33<> principal_inertia_rot;
-    ChVector<> principal_I;
-    ChInertiaUtils::PrincipalInertia(minertia, principal_I, principal_inertia_rot);
-
-    m_body->SetFrame_COG_to_REF(ChFrame<>(mcog, principal_inertia_rot));
-
-    // Set inertia
-    m_body->SetMass(mmass * m_density);
-    m_body->SetInertiaXX(m_density * principal_I);
-
-    // set relative position to chassis
-    const ChFrame<>& X_GP = m_chassis->GetFrame_REF_to_abs();  // global -> parent
-    ChFrame<> X_PC(m_pos, m_rot);                              // parent -> child
-    ChFrame<> X_GC = X_GP * X_PC;                              // global -> child
-    m_body->SetFrame_REF_to_abs(X_GC);
-    m_body->SetBodyFixed(m_fixed);
-
-    AddCollisionShapes();
-    AddVisualizationAssets();
-
-    m_system->Add(m_body);
-}
-
-void Curiosity_Arm::SetCollide(bool state) {
-    m_collide = state;
-    m_body->SetCollide(state);
-}
-
-void Curiosity_Arm::Translate(const ChVector<>& shift) {
-    m_body->SetPos(m_body->GetPos() + shift);
-}
-
-// ==========================================================
-// Curiosity steering rod
-Curiosity_Steer::Curiosity_Steer(const std::string& name,
-                                 bool fixed,
+// Curiosity suspension bogie
+CuriosityBogie::CuriosityBogie(const std::string& name,
+                                 const ChFrame<>& rel_pos,
                                  std::shared_ptr<ChMaterialSurface> mat,
-                                 ChSystem* system,
-                                 const ChVector<>& body_pos,
-                                 const ChQuaternion<>& body_rot,
-                                 std::shared_ptr<ChBodyAuxRef> chassis,
-                                 bool collide)
-    : Curiosity_Part(name, fixed, mat, system, body_pos, body_rot, chassis, collide) {
+                                 int side)
+    : CuriosityPart(name, rel_pos, mat, false) {
+    m_mesh_name = (side == 0) ? "curiosity_B_L_arm" : "curiosity_B_R_arm";
+    m_color = ChColor(0.4f, 1.0f, 0.0f);
+    m_density = 2000;
+}
+
+
+
+// Curiosity steering rod
+CuriosityUpright::CuriosityUpright(const std::string& name,
+                                   const ChFrame<>& rel_pos,
+                                   std::shared_ptr<ChMaterialSurface> mat)
+    : CuriosityPart(name, rel_pos, mat, false) {
     m_mesh_name = "curiosity_steer";
-
-    m_offset = ChVector<>(0, 0, 0);
     m_color = ChColor(0.4f, 0.4f, 0.7f);
-    m_density = 100;
+    m_density = 1000;
 }
 
-void Curiosity_Steer::Initialize() {
-    std::string vis_mesh_file = "robot/curiosity/col/" + m_mesh_name + ".obj";
-    auto trimesh = chrono_types::make_shared<geometry::ChTriangleMeshConnected>();
-    trimesh->LoadWavefrontMesh(GetChronoDataFile(vis_mesh_file), false, false);
-    trimesh->Transform(ChVector<>(0, 0, 0), ChMatrix33<>(1));  // scale to a different size
-    trimesh->RepairDuplicateVertexes(1e-9);                    // if meshes are not watertight
+void CuriosityUpright::Initialize(std::shared_ptr<ChBodyAuxRef> chassis) {
+    CuriosityPart::Initialize(chassis);
 
-    double mmass;
-    ChVector<> mcog;
-    ChMatrix33<> minertia;
-    trimesh->ComputeMassProperties(true, mmass, mcog, minertia);
-    ChMatrix33<> principal_inertia_rot;
-    ChVector<> principal_I;
-    ChInertiaUtils::PrincipalInertia(minertia, principal_I, principal_inertia_rot);
-
-    m_body->SetFrame_COG_to_REF(ChFrame<>(mcog, principal_inertia_rot));
-
-    // Set inertia
-    m_body->SetMass(mmass * m_density);
-    m_body->SetInertiaXX(m_density * principal_I);
-
-    // set relative position to chassis
-    const ChFrame<>& X_GP = m_chassis->GetFrame_REF_to_abs();  // global -> parent
-    ChFrame<> X_PC(m_pos, m_rot);                              // parent -> child
-    ChFrame<> X_GC = X_GP * X_PC;                              // global -> child
-    m_body->SetFrame_REF_to_abs(X_GC);
-    m_body->SetBodyFixed(m_fixed);
-
-    AddCollisionShapes();
-    AddVisualizationAssets();
-
-    m_system->Add(m_body);
+    double vol = 0.01;
+    ChVector<> inertia(0.01);
+    m_body->SetMass(vol * m_density);
+    m_body->SetInertiaXX(m_density * inertia);
+    m_body->SetFrame_COG_to_REF(ChFrame<>());
 }
 
-void Curiosity_Steer::SetCollide(bool state) {
-    m_collide = state;
-    m_body->SetCollide(state);
+// Curiosity differential bar
+CuriosityDifferentialBar::CuriosityDifferentialBar(const std::string& name,
+                                                   const ChFrame<>& rel_pos,
+                                                   std::shared_ptr<ChMaterialSurface> mat)
+    : CuriosityPart(name, rel_pos, mat, false) {
+    m_mesh_name = "curiosity_balancer";
+    m_color = ChColor(0.4f, 0.4f, 0.7f);
+    m_density = 1000;
 }
 
-void Curiosity_Steer::Translate(const ChVector<>& shift) {
-    m_body->SetPos(m_body->GetPos() + shift);
+// Curiosity differential links
+CuriosityDifferentialLink::CuriosityDifferentialLink(const std::string& name,
+                                     const ChFrame<>& rel_pos,
+                                     std::shared_ptr<ChMaterialSurface> mat,
+                                     int side)
+    : CuriosityPart(name, rel_pos, mat, false) {
+    m_mesh_name = (side == 0) ? "curiosity_bar_L" : "curiosity_bar_R";
+    m_color = ChColor(0.4f, 0.4f, 0.7f);
+    m_density = 1000;
 }
 
 // ==========================================================
-// Curiosity balancers
-Curiosity_Balancer::Curiosity_Balancer(const std::string& name,
-                                       bool fixed,
-                                       std::shared_ptr<ChMaterialSurface> mat,
-                                       ChSystem* system,
-                                       const ChVector<>& body_pos,
-                                       const ChQuaternion<>& body_rot,
-                                       std::shared_ptr<ChBodyAuxRef> chassis,
-                                       bool collide,
-                                       const int& side)
-    : Curiosity_Part(name, fixed, mat, system, body_pos, body_rot, chassis, collide) {
-    if (side == 0) {
-        m_mesh_name = "curiosity_bar_L";
-    }
-    if (side == 1) {
-        m_mesh_name = "curiosity_bar_R";
-    }
-    if (side == 2) {
-        m_mesh_name = "curiosity_balancer";
-    }
-    m_offset = ChVector<>(0, 0, 0);
-    m_color = ChColor(0.4f, 0.4f, 0.7f);
-    m_density = 200;
-}
 
-void Curiosity_Balancer::Initialize() {
-    std::string vis_mesh_file = "robot/curiosity/col/" + m_mesh_name + ".obj";
-    auto trimesh = chrono_types::make_shared<geometry::ChTriangleMeshConnected>();
-    trimesh->LoadWavefrontMesh(GetChronoDataFile(vis_mesh_file), false, false);
-    trimesh->Transform(ChVector<>(0, 0, 0), ChMatrix33<>(1));  // scale to a different size
-    trimesh->RepairDuplicateVertexes(1e-9);                    // if meshes are not watertight
-
-    double mmass;
-    ChVector<> mcog;
-    ChMatrix33<> minertia;
-    trimesh->ComputeMassProperties(true, mmass, mcog, minertia);
-    ChMatrix33<> principal_inertia_rot;
-    ChVector<> principal_I;
-    ChInertiaUtils::PrincipalInertia(minertia, principal_I, principal_inertia_rot);
-
-    m_body->SetFrame_COG_to_REF(ChFrame<>(mcog, principal_inertia_rot));
-
-    // Set inertia
-    m_body->SetMass(mmass * m_density);
-    m_body->SetInertiaXX(m_density * principal_I);
-
-    // set relative position to chassis
-    const ChFrame<>& X_GP = m_chassis->GetFrame_REF_to_abs();  // global -> parent
-    ChFrame<> X_PC(m_pos, m_rot);                              // parent -> child
-    ChFrame<> X_GC = X_GP * X_PC;                              // global -> child
-    m_body->SetFrame_REF_to_abs(X_GC);
-    m_body->SetBodyFixed(m_fixed);
-
-    AddCollisionShapes();
-    AddVisualizationAssets();
-
-    m_system->Add(m_body);
-}
-
-void Curiosity_Balancer::SetCollide(bool state) {
-    m_collide = state;
-    m_body->SetCollide(state);
-}
-
-void Curiosity_Balancer::Translate(const ChVector<>& shift) {
-    m_body->SetPos(m_body->GetPos() + shift);
-}
-
-// ==========================================================
-// Rover Class for the entire rover model
-CuriosityRover::CuriosityRover(ChSystem* system,
-                               const ChVector<>& rover_pos,
-                               const ChQuaternion<>& rover_rot,
-                               std::shared_ptr<ChMaterialSurface> wheel_mat,
-                               Chassis_Type chassis_type,
-                               Wheel_Type wheel_type)
-    : m_system(system),
-      m_rover_pos(rover_pos),
-      m_rover_rot(rover_rot),
-      m_wheel_material(wheel_mat),
-      m_custom_wheel_mat(true),
-      m_chassis_type(chassis_type),
-      m_wheel_type(wheel_type) {
-    Create();
-}
-
-CuriosityRover::CuriosityRover(ChSystem* system,
-                               const ChVector<>& rover_pos,
-                               const ChQuaternion<>& rover_rot,
-                               Chassis_Type chassis_type,
-                               Wheel_Type wheel_type)
-    : m_system(system),
-      m_rover_pos(rover_pos),
-      m_rover_rot(rover_rot),
-      m_custom_wheel_mat(false),
-      m_chassis_type(chassis_type),
-      m_wheel_type(wheel_type) {
-    Create();
-}
-
-CuriosityRover::~CuriosityRover() {}
-
-void CuriosityRover::Create() {
-    auto contact_method = m_system->GetContactMethod();
-
+Curiosity::Curiosity(ChSystem* system, CuriosityChassisType chassis_type, CuriosityWheelType wheel_type)
+    : m_system(system), m_initialized(false) {
     // Set default collision model envelope commensurate with model dimensions.
     // Note that an SMC system automatically sets envelope to 0.
+    auto contact_method = m_system->GetContactMethod();
     if (contact_method == ChContactMethod::NSC) {
         collision::ChCollisionModel::SetDefaultSuggestedEnvelope(0.01);
         collision::ChCollisionModel::SetDefaultSuggestedMargin(0.005);
     }
 
-    if (m_custom_wheel_mat == true) {
-        m_chassis_material = DefaultContactMaterial(contact_method);
-        m_arm_material = DefaultContactMaterial(contact_method);
-        m_steer_material = DefaultContactMaterial(contact_method);
-        m_balancer_material = DefaultContactMaterial(contact_method);
-    } else {
-        // Create the contact materials (all with default properties)
-        m_chassis_material = DefaultContactMaterial(contact_method);
-        m_wheel_material = DefaultContactMaterial(contact_method);
-        m_arm_material = DefaultContactMaterial(contact_method);
-        m_steer_material = DefaultContactMaterial(contact_method);
-        m_balancer_material = DefaultContactMaterial(contact_method);
-    }
+    // Create the contact materials
+    m_default_material = DefaultContactMaterial(contact_method);
+    m_wheel_material = DefaultContactMaterial(contact_method);
 
-    // initialize rover chassis
+    Create(chassis_type, wheel_type);
+}
+
+void Curiosity::Create(CuriosityChassisType chassis_type, CuriosityWheelType wheel_type) {
+    // create rover chassis
     ChQuaternion<> body_rot;
-    // TEMP TODO: move this body
-    m_chassis = chrono_types::make_shared<Curiosity_Chassis>("chassis", false, m_chassis_material, m_system,
-                                                             m_rover_pos, m_rover_rot, false, m_chassis_type);
-    // initilize rover wheels
-    ChVector<> wheel_rel_pos_lf = ChVector<>(1.095, 1.063, 0.249);
-    ChVector<> wheel_rel_pos_rf = ChVector<>(1.095, -1.063, 0.249);
-    ChVector<> wheel_rel_pos_lm = ChVector<>(-0.089, 1.194, 0.249);
-    ChVector<> wheel_rel_pos_rm = ChVector<>(-0.089, -1.194, 0.249);
-    ChVector<> wheel_rel_pos_lb = ChVector<>(-1.163, 1.063, 0.249);
-    ChVector<> wheel_rel_pos_rb = ChVector<>(-1.163, -1.063, 0.249);
+    m_chassis = chrono_types::make_shared<CuriosityChassis>("chassis", chassis_type, m_default_material);
 
-    {
-        ChVector<> wheel_pos;
-        ChQuaternion<> wheel_rot_ori = ChQuaternion<>(1, 0, 0, 0);
-        ChQuaternion<> wheel_rot_ori_pi;
-        wheel_rot_ori_pi = Q_from_Euler123(ChVector<double>(0, 0, CH_C_PI));
-
-        for (int i = 0; i < 6; i++) {
-            if (i == 0) {
-                wheel_pos = wheel_rel_pos_lf;
-            }
-            if (i == 1) {
-                wheel_pos = wheel_rel_pos_rf;
-            }
-            if (i == 2) {
-                wheel_pos = wheel_rel_pos_lm;
-            }
-            if (i == 3) {
-                wheel_pos = wheel_rel_pos_rm;
-            }
-            if (i == 4) {
-                wheel_pos = wheel_rel_pos_lb;
-            }
-            if (i == 5) {
-                wheel_pos = wheel_rel_pos_rb;
-            }
-            std::shared_ptr<Curiosity_Wheel> m_wheel;
-            if (i == 1 || i == 3 || i == 5) {
-                m_wheel = chrono_types::make_shared<Curiosity_Wheel>("wheel", false, m_wheel_material, m_system,
-                                                                     wheel_pos, wheel_rot_ori_pi, m_chassis->GetBody(),
-                                                                     true, m_wheel_type);
-            } else {
-                m_wheel =
-                    chrono_types::make_shared<Curiosity_Wheel>("wheel", false, m_wheel_material, m_system, wheel_pos,
-                                                               wheel_rot_ori, m_chassis->GetBody(), true, m_wheel_type);
-            }
-            m_wheels.push_back(m_wheel);
-        }
-    }
-
-    // connecting arm
-    ChVector<> cr_rel_pos_lf = ChVector<>(0.214, 0.604, 0.8754);
-    ChVector<> cr_rel_pos_rf = ChVector<>(0.214, -0.604, 0.8754);
-    ChVector<> cr_rel_pos_lb = ChVector<>(-0.54, 0.845, 0.6433);
-    ChVector<> cr_rel_pos_rb = ChVector<>(-0.54, -0.845, 0.6433);
-    {
-        ChVector<> rod_pos;
-        ChQuaternion<> rod_ori = ChQuaternion<>(1, 0, 0, 0);
-
-        for (int i = 0; i < 4; i++) {
-            if (i == 0) {
-                rod_pos = cr_rel_pos_lf;
-            }
-            if (i == 1) {
-                rod_pos = cr_rel_pos_rf;
-            }
-            if (i == 2) {
-                rod_pos = cr_rel_pos_lb;
-            }
-            if (i == 3) {
-                rod_pos = cr_rel_pos_rb;
-            }
-            std::shared_ptr<Curiosity_Arm> m_arm;
-
-            m_arm = chrono_types::make_shared<Curiosity_Arm>("arm", false, m_arm_material, m_system, rod_pos, rod_ori,
-                                                             m_chassis->GetBody(), false, i);
-
-            m_arms.push_back(m_arm);
-        }
-    }
-
-    ChVector<> sr_rel_pos_lf = ChVector<>(1.095, 1.063, 0.64);
-    ChVector<> sr_rel_pos_rf = ChVector<>(1.095, -1.063, 0.64);
-    ChVector<> sr_rel_pos_lb = ChVector<>(-1.163, 1.063, 0.64);
-    ChVector<> sr_rel_pos_rb = ChVector<>(-1.163, -1.063, 0.64);
-    {
-        ChVector<> steer_pos;
-        ChQuaternion<> steer_ori = ChQuaternion<>(1, 0, 0, 0);
-        ChQuaternion<> steer_ori_pi = Q_from_Euler123(ChVector<double>(0, 0, CH_C_PI));
-        for (int i = 0; i < 4; i++) {
-            if (i == 0) {
-                steer_pos = sr_rel_pos_lf;
-            }
-            if (i == 1) {
-                steer_pos = sr_rel_pos_rf;
-            }
-            if (i == 2) {
-                steer_pos = sr_rel_pos_lb;
-            }
-            if (i == 3) {
-                steer_pos = sr_rel_pos_rb;
-            }
-            std::shared_ptr<Curiosity_Steer> m_steer;
-
-            if (i == 1 || i == 3) {
-                m_steer = chrono_types::make_shared<Curiosity_Steer>(
-                    "steer", false, m_steer_material, m_system, steer_pos, steer_ori_pi, m_chassis->GetBody(), false);
-            } else {
-                m_steer = chrono_types::make_shared<Curiosity_Steer>("steer", false, m_steer_material, m_system,
-                                                                     steer_pos, steer_ori, m_chassis->GetBody(), false);
-            }
-
-            m_steers.push_back(m_steer);
-        }
-    }
-
-    ChVector<> tr_rel_pos_l = ChVector<>(0.214, 0.672, 1.144);
-    ChVector<> tr_rel_pos_r = ChVector<>(0.214, -0.672, 1.144);
-    ChVector<> tr_rel_pos_t = ChVector<>(-0.142, 0.0, 1.172);
-    {
-        ChVector<> bal_pos;
-        ChQuaternion<> bal_ori = ChQuaternion<>(1, 0, 0, 0);
-        for (int i = 0; i < 3; i++) {
-            if (i == 0) {
-                bal_pos = tr_rel_pos_l;
-            }
-            if (i == 1) {
-                bal_pos = tr_rel_pos_r;
-            }
-            if (i == 2) {
-                bal_pos = tr_rel_pos_t;
-            }
-            std::shared_ptr<Curiosity_Balancer> m_balancer;
-
-            m_balancer = chrono_types::make_shared<Curiosity_Balancer>(
-                "balancer", false, m_balancer_material, m_system, bal_pos, bal_ori, m_chassis->GetBody(), false, i);
-
-            m_balancers.push_back(m_balancer);
-        }
-    }
-
-    // DC Motor Test
+    // Create 6 Curiosity Rover wheels
     for (int i = 0; i < 6; i++) {
-        m_power_shafts.push_back(chrono_types::make_shared<ChShaft>());
-        m_driven_shafts.push_back(chrono_types::make_shared<ChShaft>());
-        m_shaft_gears.push_back(chrono_types::make_shared<ChShaftsGear>());
+        m_wheels[i] = chrono_types::make_shared<CuriosityWheel>("wheel", ChFrame<>(wheel_pos[i], QUNIT),
+                                                                m_wheel_material, wheel_type);
+    }
+    m_wheels[C_RF]->m_mesh_xform = ChFrame<>(VNULL, Q_from_AngZ(CH_C_PI));
+    m_wheels[C_RM]->m_mesh_xform = ChFrame<>(VNULL, Q_from_AngZ(CH_C_PI));
+    m_wheels[C_RB]->m_mesh_xform = ChFrame<>(VNULL, Q_from_AngZ(CH_C_PI));
+
+    // Create Curiosity suspension rockers and bogies
+    m_rockers[0] = chrono_types::make_shared<CuriosityRocker>(  //
+        "rocker_L", ChFrame<>(cr_rel_pos_lf, QUNIT), m_default_material, 0);
+    m_rockers[1] = chrono_types::make_shared<CuriosityRocker>(  //
+        "rocker_R", ChFrame<>(cr_rel_pos_rf, QUNIT), m_default_material, 1);
+
+    m_bogies[0] = chrono_types::make_shared<CuriosityBogie>(  //
+        "bogie_L", ChFrame<>(cr_rel_pos_lb, QUNIT), m_default_material, 0);
+    m_bogies[1] = chrono_types::make_shared<CuriosityBogie>(  //
+        "bogie_R", ChFrame<>(cr_rel_pos_rb, QUNIT), m_default_material, 1);
+
+    // Create the steering uprights
+    ChQuaternion<> steer_rot = Q_from_Euler123(ChVector<double>(0, 0, CH_C_PI));
+
+    m_rocker_uprights[0] = chrono_types::make_shared<CuriosityUpright>(  //
+        "upright_FL", ChFrame<>(sr_rel_pos_lf, QUNIT), m_default_material);
+    m_rocker_uprights[1] = chrono_types::make_shared<CuriosityUpright>(  //
+        "upright_FR", ChFrame<>(sr_rel_pos_rf, steer_rot), m_default_material);
+
+    m_bogie_uprights[0] = chrono_types::make_shared<CuriosityUpright>(  //
+        "upright_RL", ChFrame<>(sr_rel_pos_lb, QUNIT), m_default_material);
+    m_bogie_uprights[1] = chrono_types::make_shared<CuriosityUpright>(  //
+        "upright_RR", ChFrame<>(sr_rel_pos_rb, steer_rot), m_default_material);
+
+    // Create the differential components
+    m_diff_bar = chrono_types::make_shared<CuriosityDifferentialBar>(  //
+        "diff bar", ChFrame<>(tr_rel_pos_t, QUNIT), m_default_material);
+    m_diff_links[0] = chrono_types::make_shared<CuriosityDifferentialLink>(  //
+        "diff link L", ChFrame<>(tr_rel_pos_l, QUNIT), m_default_material, 0);
+    m_diff_links[1] = chrono_types::make_shared<CuriosityDifferentialLink>(  //
+        "diff link R", ChFrame<>(tr_rel_pos_r, QUNIT), m_default_material, 1);
+
+    // Create drive shafts
+    for (int i = 0; i < 6; i++) {
+        m_drive_shafts[i] = chrono_types::make_shared<ChShaft>();
     }
 }
 
-void CuriosityRover::Initialize() {
-    m_chassis->Initialize();
-    for (int i = 0; i < 6; i++) {
-        m_wheels[i]->Initialize();
-    }
-    for (int i = 0; i < 4; i++) {
-        m_arms[i]->Initialize();
-    }
-    for (int i = 0; i < 4; i++) {
-        m_steers[i]->Initialize();
-    }
-    for (int i = 0; i < 3; i++) {
-        m_balancers[i]->Initialize();
-    }
+void Curiosity::Initialize(const ChFrame<>& pos) {
+    assert(m_driver);
 
-    // redeclare position data
-    ChVector<> wheel_rel_pos_lf = ChVector<>(1.095, 1.063, 0.249);
-    ChVector<> wheel_rel_pos_rf = ChVector<>(1.095, -1.063, 0.249);
-    ChVector<> wheel_rel_pos_lm = ChVector<>(-0.089, 1.194, 0.249);
-    ChVector<> wheel_rel_pos_rm = ChVector<>(-0.089, -1.194, 0.249);
-    ChVector<> wheel_rel_pos_lb = ChVector<>(-1.163, 1.063, 0.249);
-    ChVector<> wheel_rel_pos_rb = ChVector<>(-1.163, -1.063, 0.249);
+    // Initialize rover parts, fixing bodies to ground as requested
+    m_chassis->Initialize(m_system, pos);
+    m_diff_bar->Initialize(m_chassis->GetBody());
 
-    ChVector<> cr_rel_pos_lf = ChVector<>(0.214, 0.604, 0.8754);
-    ChVector<> cr_rel_pos_rf = ChVector<>(0.214, -0.604, 0.8754);
-    ChVector<> cr_rel_pos_lb = ChVector<>(-0.54, 0.845, 0.6433);
-    ChVector<> cr_rel_pos_rb = ChVector<>(-0.54, -0.845, 0.6433);
-
-    ChVector<> sr_rel_pos_lf = ChVector<>(1.095, 1.063, 0.64);
-    ChVector<> sr_rel_pos_rf = ChVector<>(1.095, -1.063, 0.64);
-    ChVector<> sr_rel_pos_lb = ChVector<>(-1.163, 1.063, 0.64);
-    ChVector<> sr_rel_pos_rb = ChVector<>(-1.163, -1.063, 0.64);
-
-    ChVector<> tr_rel_pos_l = ChVector<>(0.214, 0.672, 1.144);
-    ChVector<> tr_rel_pos_r = ChVector<>(0.214, -0.672, 1.144);
-    ChVector<> tr_rel_pos_t = ChVector<>(-0.142, 0.0, 1.172);
-
-    ChQuaternion<> ori = ChQuaternion<>(1, 0, 0, 0);
-
-    // Add motors on all six wheels
-    for (int i = 0; i < 6; i++) {
-        ChVector<> motor_pos;
-        if (i == 0) {
-            motor_pos = wheel_rel_pos_lf;
-        }
-        if (i == 1) {
-            motor_pos = wheel_rel_pos_rf;
-        }
-        if (i == 2) {
-            motor_pos = wheel_rel_pos_lm;
-        }
-        if (i == 3) {
-            motor_pos = wheel_rel_pos_rm;
-        }
-        if (i == 4) {
-            motor_pos = wheel_rel_pos_lb;
-        }
-        if (i == 5) {
-            motor_pos = wheel_rel_pos_rb;
-        }
-
-        ChQuaternion<> z2y = Q_from_AngAxis(CH_C_PI / 2, ChVector<>(1, 0, 0));
-        auto const_speed_function = chrono_types::make_shared<ChFunction_Const>(CH_C_PI);  // speed w=3.145 rad/sec
-        if (i == 2 || i == 3) {
-            if (m_dc_motor_control == false) {
-                m_motors_func.push_back(const_speed_function);
-                m_motors.push_back(AddMotor(m_arms[i]->GetBody(), m_wheels[i]->GetBody(), m_chassis->GetBody(),
-                                            m_system, motor_pos, z2y, const_speed_function));
-            } else {
-                AddRevoluteJoint(m_arms[i]->GetBody(), m_wheels[i]->GetBody(), m_chassis->GetBody(), m_system,
-                                 motor_pos, z2y);
-            }
-
-        } else if (i == 0 || i == 1) {
-            if (m_dc_motor_control == false) {
-                m_motors_func.push_back(const_speed_function);
-                m_motors.push_back(AddMotor(m_steers[i]->GetBody(), m_wheels[i]->GetBody(), m_chassis->GetBody(),
-                                            m_system, motor_pos, z2y, const_speed_function));
-            } else {
-                AddRevoluteJoint(m_steers[i]->GetBody(), m_wheels[i]->GetBody(), m_chassis->GetBody(), m_system,
-                                 motor_pos, z2y);
-            }
-
-        } else {
-            if (m_dc_motor_control == false) {
-                m_motors_func.push_back(const_speed_function);
-                m_motors.push_back(AddMotor(m_steers[i - 2]->GetBody(), m_wheels[i]->GetBody(), m_chassis->GetBody(),
-                                            m_system, motor_pos, z2y, const_speed_function));
-            } else {
-                AddRevoluteJoint(m_steers[i - 2]->GetBody(), m_wheels[i]->GetBody(), m_chassis->GetBody(), m_system,
-                                 motor_pos, z2y);
-            }
-        }
-    }
-
-    if (m_dc_motor_control == true) {
-        // DC Motor Test
-        double J1 = 10;   // inertia of first shaft
-        double J2 = 100;  // inertia of second shaft
-        double r = -1;    // gear transmission ratio
-        double T = 500;   // torque applied to first shaft
-        for (int i = 0; i < 6; i++) {
-            m_power_shafts[i]->SetInertia(J1);
-            if (i == 0 || i == 2 || i == 4) {
-                m_power_shafts[i]->SetAppliedTorque(T);
-            } else {
-                m_power_shafts[i]->SetAppliedTorque(-T);
-            }
-
-            m_system->Add(m_power_shafts[i]);
-
-            m_driven_shafts[i]->SetInertia(J2);
-            m_system->Add(m_driven_shafts[i]);
-
-            m_shaft_gears[i]->Initialize(m_power_shafts[i], m_driven_shafts[i]);
-            m_shaft_gears[i]->SetTransmissionRatio(r);
-            m_system->Add(m_shaft_gears[i]);
-
-            auto shaftbody_connection = chrono_types::make_shared<ChShaftsBody>();
-            ChVector<> shaftdir(VECT_Z);
-            shaftbody_connection->Initialize(m_driven_shafts[i], m_wheels[i]->GetBody(), shaftdir);
-            m_system->Add(shaftbody_connection);
-        }
-    }
-
-    // Add revolute joints between steering rod and suspension arms
-    ChVector<> rev_steer_suspension;
-    for (int i = 0; i < 4; i++) {
-        if (i == 0) {
-            rev_steer_suspension = sr_rel_pos_lf;
-        }
-        if (i == 1) {
-            rev_steer_suspension = sr_rel_pos_rf;
-        }
-        if (i == 2) {
-            rev_steer_suspension = sr_rel_pos_lb;
-        }
-        if (i == 3) {
-            rev_steer_suspension = sr_rel_pos_rb;
-        }
-        // set up steering motors
-        // defaultly speed to 0
-        auto const_steer_function = chrono_types::make_shared<ChFunction_Const>(0);  // speed w=3.145 rad/sec
-
-        m_steer_motors.push_back(AddMotor(m_steers[i]->GetBody(), m_arms[i]->GetBody(), m_chassis->GetBody(), m_system,
-                                          rev_steer_suspension, ori, const_steer_function));
-        m_steer_motors_func.push_back(const_steer_function);
-    }
-
-    ChVector<> rev_balancer_body = tr_rel_pos_t;
-    ChQuaternion<> balancer_body_rot = ChQuaternion<>(1, 0, 0, 0);
-    // Add a revolute joint between the rover body and the top balancer
-    AddRevoluteJoint(m_balancers[2]->GetBody(), m_chassis->GetBody(), m_chassis->GetBody(), m_system, rev_balancer_body,
-                     balancer_body_rot);
-
-    // Add revolute joints (1) between top balancer and L/R balancer rods
-    //                     (2) between L/R balancer and front suspension arms
-    ChVector<> balancer_pos = ChVector<>(0, 0, 0);
-    ChQuaternion<> balancer_rot = ChQuaternion<>(1, 0, 0, 0);
     for (int i = 0; i < 2; i++) {
-        for (int j = 0; j < 2; j++) {
-            if (i == 0 && j == 0) {
-                balancer_pos = tr_rel_pos_l;
-                balancer_rot = Q_from_AngAxis(-CH_C_PI / 2, ChVector<>(1, 0, 0));
-                AddRevoluteJoint(m_arms[0]->GetBody(), m_balancers[0]->GetBody(), m_chassis->GetBody(), m_system,
-                                 balancer_pos, balancer_rot);
-            }
+        m_rockers[i]->Initialize(m_chassis->GetBody());
+        m_bogies[i]->Initialize(m_chassis->GetBody());
+        
+        m_diff_links[i]->Initialize(m_chassis->GetBody());
 
-            if (i == 0 && j == 1) {
-                balancer_pos = tr_rel_pos_l + ChVector<>(tr_rel_pos_t.x() - tr_rel_pos_l.x(), 0, 0);
-                balancer_rot = ChQuaternion<>(1, 0, 0, 0);
-                AddRevoluteJoint(m_balancers[0]->GetBody(), m_balancers[2]->GetBody(), m_chassis->GetBody(), m_system,
-                                 balancer_pos, balancer_rot);
-            }
+        m_rocker_uprights[i]->Initialize(m_chassis->GetBody());
+        m_bogie_uprights[i]->Initialize(m_chassis->GetBody());
+    }
+    for (int i = 0; i < 6; i++) {
+        m_wheels[i]->Initialize(m_chassis->GetBody());
+    }
 
-            if (i == 1 && j == 0) {
-                balancer_pos = tr_rel_pos_r;
-                balancer_rot = Q_from_AngAxis(-CH_C_PI / 2, ChVector<>(1, 0, 0));
-                AddRevoluteJoint(m_arms[1]->GetBody(), m_balancers[1]->GetBody(), m_chassis->GetBody(), m_system,
-                                 balancer_pos, balancer_rot);
-            }
+    // Add drive motors on all six wheels
+    ChQuaternion<> z2y = Q_from_AngX(CH_C_PI_2);  // align Z with (negative) Y
 
-            if (i == 1 && j == 1) {
-                balancer_pos = tr_rel_pos_r + ChVector<>(tr_rel_pos_t.x() - tr_rel_pos_r.x(), 0, 0);
-                balancer_rot = ChQuaternion<>(1, 0, 0, 0);
-                AddRevoluteJoint(m_balancers[1]->GetBody(), m_balancers[2]->GetBody(), m_chassis->GetBody(), m_system,
-                                 balancer_pos, balancer_rot);
-            }
+    // Front (wheels attached to rocker uprights)
+    for (int i = 0; i < 2; i++) {
+        switch (m_driver->GetDriveMotorType()) {
+            case CuriosityDriver::DriveMotorType::SPEED:
+                m_drive_motor_funcs[i] = chrono_types::make_shared<ChFunction_Setpoint>();
+                m_drive_motors[i] =
+                    AddMotorSpeed(m_rocker_uprights[i]->GetBody(), m_wheels[i]->GetBody(), m_chassis, wheel_pos[i], z2y);
+                m_drive_motors[i]->SetMotorFunction(m_drive_motor_funcs[i]);
+                break;
+            case CuriosityDriver::DriveMotorType::TORQUE:
+                AddRevoluteJoint(m_rocker_uprights[i]->GetBody(), m_wheels[i]->GetBody(), m_chassis, wheel_pos[i], z2y);
+                break;
         }
     }
 
-    // Add revolute joint for suspension arms
-    for (int i = 0; i < 4; i++) {
-        if (i == 0) {
-            ChVector<> rev_pos = cr_rel_pos_lf;
-            ChQuaternion<> rev_rot = Q_from_AngAxis(-CH_C_PI / 2, ChVector<>(1, 0, 0));
-            AddRevoluteJoint(m_arms[i]->GetBody(), m_chassis->GetBody(), m_chassis->GetBody(), m_system, rev_pos,
-                             rev_rot);
+    // Middle (wheeled attached to bogies)
+    for (int i = 2; i < 4; i++) {
+        switch (m_driver->GetDriveMotorType()) {
+            case CuriosityDriver::DriveMotorType::SPEED:
+                m_drive_motor_funcs[i] = chrono_types::make_shared<ChFunction_Setpoint>();
+                m_drive_motors[i] =
+                    AddMotorSpeed(m_bogies[i - 2]->GetBody(), m_wheels[i]->GetBody(), m_chassis, wheel_pos[i], z2y);
+                m_drive_motors[i]->SetMotorFunction(m_drive_motor_funcs[i]);
+                break;
+            case CuriosityDriver::DriveMotorType::TORQUE:
+                AddRevoluteJoint(m_bogies[i - 2]->GetBody(), m_wheels[i]->GetBody(), m_chassis, wheel_pos[i], z2y);
+                break;
         }
+    }
 
-        if (i == 1) {
-            ChVector<> rev_pos = cr_rel_pos_rf;
-            ChQuaternion<> rev_rot = Q_from_AngAxis(-CH_C_PI / 2, ChVector<>(1, 0, 0));
-            AddRevoluteJoint(m_arms[i]->GetBody(), m_chassis->GetBody(), m_chassis->GetBody(), m_system, rev_pos,
-                             rev_rot);
+    // Rear (wheels attached to bogie uprights)
+    for (int i = 4; i < 6; i++) {
+        switch (m_driver->GetDriveMotorType()) {
+            case CuriosityDriver::DriveMotorType::SPEED:
+                m_drive_motor_funcs[i] = chrono_types::make_shared<ChFunction_Setpoint>();
+                m_drive_motors[i] =
+                    AddMotorSpeed(m_bogie_uprights[i - 4]->GetBody(), m_wheels[i]->GetBody(), m_chassis, wheel_pos[i], z2y);
+                m_drive_motors[i]->SetMotorFunction(m_drive_motor_funcs[i]);
+                break;
+            case CuriosityDriver::DriveMotorType::TORQUE:
+                AddRevoluteJoint(m_bogie_uprights[i - 4]->GetBody(), m_wheels[i]->GetBody(), m_chassis, wheel_pos[i], z2y);
+                break;
         }
+    }
 
-        if (i == 2) {
-            ChVector<> rev_pos = cr_rel_pos_lb;
-            ChQuaternion<> rev_rot = Q_from_AngAxis(-CH_C_PI / 2, ChVector<>(1, 0, 0));
-            AddRevoluteJoint(m_arms[i]->GetBody(), m_arms[i - 2]->GetBody(), m_chassis->GetBody(), m_system, rev_pos,
-                             rev_rot);
-        }
+    double J = 0.1;  // shaft rotational inertia
+    for (int i = 0; i < 6; i++) {
+        m_drive_shafts[i]->SetInertia(J);
+        m_system->Add(m_drive_shafts[i]);
 
-        if (i == 3) {
-            ChVector<> rev_pos = cr_rel_pos_rb;
-            ChQuaternion<> rev_rot = Q_from_AngAxis(-CH_C_PI / 2, ChVector<>(1, 0, 0));
-            AddRevoluteJoint(m_arms[i]->GetBody(), m_arms[i - 2]->GetBody(), m_chassis->GetBody(), m_system, rev_pos,
-                             rev_rot);
-        }
+        // Connect shaft aligned with the wheel's axis of rotation (local wheel Y).
+        // Set connection such that a positive torque applied to the shaft results in forward rover motion.
+        auto shaftbody_connection = chrono_types::make_shared<ChShaftsBody>();
+        shaftbody_connection->Initialize(m_drive_shafts[i], m_wheels[i]->GetBody(), ChVector<>(0, -1, 0));
+        m_system->Add(shaftbody_connection);
+    }
+
+    // Add steering motors
+    ChVector<> rocker_motor_loc[] = {sr_rel_pos_lf, sr_rel_pos_rf};
+    for (int i = 0; i < 2; i++) {
+        m_rocker_motor_funcs[i] = chrono_types::make_shared<ChFunction_Const>(0.0);
+        m_rocker_motors[i] = AddMotorAngle(m_rocker_uprights[i]->GetBody(), m_rockers[i]->GetBody(), m_chassis,
+                                           rocker_motor_loc[i], Q_from_AngX(CH_C_PI));
+        m_rocker_motors[i]->SetMotorFunction(m_rocker_motor_funcs[i]);
+    }
+
+    ChVector<> bogie_motor_loc[] = {sr_rel_pos_lb, sr_rel_pos_rb};
+    for (int i = 0; i < 2; i++) {
+        m_bogie_motor_funcs[i] = chrono_types::make_shared<ChFunction_Const>(0.0);
+        m_bogie_motors[i] =
+            AddMotorAngle(m_bogie_uprights[i]->GetBody(), m_bogies[i]->GetBody(), m_chassis, bogie_motor_loc[i], QUNIT);
+        m_bogie_motors[i]->SetMotorFunction(m_bogie_motor_funcs[i]);
+    }
+
+    // Connect the differential bar to chassis
+    m_diff_joint = AddRevoluteJoint(m_diff_bar->GetBody(), m_chassis->GetBody(), m_chassis, tr_rel_pos_t, QUNIT);
+
+    // Connect differential links to differential bar and to the rockers
+    AddRevoluteJoint(m_rockers[0]->GetBody(), m_diff_links[0]->GetBody(), m_chassis, tr_rel_pos_l, z2y);
+    AddRevoluteJoint(m_rockers[1]->GetBody(), m_diff_links[1]->GetBody(), m_chassis, tr_rel_pos_r, z2y);
+    AddRevoluteJoint(m_diff_links[0]->GetBody(), m_diff_bar->GetBody(), m_chassis,
+                     tr_rel_pos_l + ChVector<>(tr_rel_pos_t.x() - tr_rel_pos_l.x(), 0, 0), QUNIT);
+    AddRevoluteJoint(m_diff_links[1]->GetBody(), m_diff_bar->GetBody(), m_chassis,
+                     tr_rel_pos_r + ChVector<>(tr_rel_pos_t.x() - tr_rel_pos_r.x(), 0, 0), QUNIT);
+
+    // Add revolute joint for suspension rockers and bogies
+    m_rocker_joints[0] = AddRevoluteJoint(m_rockers[0]->GetBody(), m_chassis->GetBody(), m_chassis, cr_rel_pos_lf, z2y);
+    m_rocker_joints[1] = AddRevoluteJoint(m_rockers[1]->GetBody(), m_chassis->GetBody(), m_chassis, cr_rel_pos_rf, z2y);
+    m_bogie_joints[0] = AddRevoluteJoint(m_bogies[0]->GetBody(), m_rockers[0]->GetBody(), m_chassis, cr_rel_pos_lb, z2y);
+    m_bogie_joints[1] = AddRevoluteJoint(m_bogies[1]->GetBody(), m_rockers[1]->GetBody(), m_chassis, cr_rel_pos_rb, z2y);
+
+    // Set initialization flag
+    m_initialized = true;
+}
+
+void Curiosity::SetWheelContactMaterial(std::shared_ptr<ChMaterialSurface> mat) {
+    for (auto& wheel : m_wheels)
+        wheel->m_mat = mat;
+}
+
+void Curiosity::SetDriver(std::shared_ptr<CuriosityDriver> driver) {
+    m_driver = driver;
+    m_driver->curiosity = this;
+}
+
+void Curiosity::SetChassisVisualization(bool state) {
+    m_chassis->SetVisualize(state);
+}
+
+void Curiosity::SetWheelVisualization(bool state) {
+    for (auto& wheel : m_wheels)
+        wheel->SetVisualize(state);
+}
+
+void Curiosity::SetSuspensionVisualization(bool state) {
+    m_diff_bar->SetVisualize(state);
+    for (int i = 0; i < 2; i++) {
+        m_rockers[i]->SetVisualize(state);
+        m_bogies[i]->SetVisualize(state);
+        m_diff_links[i]->SetVisualize(state);
+        m_rocker_uprights[i]->SetVisualize(state);
+        m_bogie_uprights[i]->SetVisualize(state);
     }
 }
 
-/// Get Chassis Type
-Chassis_Type CuriosityRover::GetChassisType() {
-    return m_chassis_type;
-}
-
-void CuriosityRover::SetMotorSpeed(double rad_speed, WheelID id) {
-    m_motors_func[id]->Set_yconst(rad_speed);
-    if (m_dc_motor_control == true) {
-        m_no_load_speed[id] = rad_speed;
-    }
-}
-
-void CuriosityRover::SetMotorStallTorque(double torque, WheelID id) {
-    if (m_dc_motor_control == true) {
-        m_stall_torque[id] = torque;
-    } else {
-        std::cout << "DC_Control set to false, torque set invalid" << std::endl;
-    }
-}
-
-void CuriosityRover::SetDCControl(bool dc_control) {
-    m_dc_motor_control = dc_control;
-    if (m_dc_motor_control == true) {
-        for (int i = 0; i < 6; i++) {
-            m_stall_torque.push_back(500);
-            m_no_load_speed.push_back(CH_C_PI);
-        }
-    }
-}
-
-void CuriosityRover::SetSteerSpeed(double speed, WheelID id) {
-    if (abs(speed) > CH_C_PI) {
-        std::cout << "invalid steering speed, max is w = pi rad/s" << std::endl;
+void Curiosity::FixChassis(bool fixed) {
+    if (!m_initialized)
         return;
-    }
-    if (id == WheelID::LM || id == WheelID::RM) {
-        std::cout << "Middle wheels don't have steering capability! Invalid SetSpeed() call" << std::endl;
+    m_chassis->GetBody()->SetBodyFixed(fixed);
+}
+
+void Curiosity::FixSuspension(bool fixed) {
+    if (!m_initialized)
         return;
-    }
 
-    switch (id) {
-        case WheelID::LF:
-            return m_steer_motors_func[0]->Set_yconst(speed);
-            break;
+    m_rocker_joints[0]->Lock(fixed);
+    m_rocker_joints[1]->Lock(fixed);
 
-        case WheelID::RF:
-            return m_steer_motors_func[1]->Set_yconst(speed);
-            break;
-
-        case WheelID::LB:
-            return m_steer_motors_func[2]->Set_yconst(speed);
-            break;
-
-        case WheelID::RB:
-            return m_steer_motors_func[3]->Set_yconst(speed);
-            break;
-
-        default:
-            break;
-    }
+    m_bogie_joints[0]->Lock(fixed);
+    m_bogie_joints[1]->Lock(fixed);
 }
 
-ChVector<> CuriosityRover::GetChassisVel() {
-    return m_chassis->GetBody()->GetPos_dt();
-}
-
-ChVector<> CuriosityRover::GetChassisAcc() {
-    return m_chassis->GetBody()->GetPos_dtdt();
-}
-
-ChQuaternion<> CuriosityRover::GetChassisRot() {
-    return m_chassis->GetBody()->GetRot();
-}
-
-ChVector<> CuriosityRover::GetWheelSpeed(WheelID id) {
-    return m_wheels[id]->GetBody()->GetPos_dt();
-}
-
-ChVector<> CuriosityRover::GetWheelAngVel(WheelID id) {
-    return m_wheels[id]->GetBody()->GetWvel_par();
-}
-
-ChVector<> CuriosityRover::GetWheelContactForce(WheelID id) {
+ChVector<> Curiosity::GetWheelContactForce(CuriosityWheelID id) const {
     return m_wheels[id]->GetBody()->GetContactForce();
 }
 
-ChVector<> CuriosityRover::GetWheelContactTorque(WheelID id) {
+ChVector<> Curiosity::GetWheelContactTorque(CuriosityWheelID id) const {
     return m_wheels[id]->GetBody()->GetContactTorque();
 }
 
-ChVector<> CuriosityRover::GetWheelAppliedForce(WheelID id) {
+ChVector<> Curiosity::GetWheelAppliedForce(CuriosityWheelID id) const {
     return m_wheels[id]->GetBody()->GetAppliedForce();
 }
 
-ChVector<> CuriosityRover::GetWheelAppliedTorque(WheelID id) {
+ChVector<> Curiosity::GetWheelAppliedTorque(CuriosityWheelID id) const {
     return m_wheels[id]->GetBody()->GetAppliedTorque();
 }
 
-double CuriosityRover::GetWheelTracTorque(WheelID id) {
-    if (m_dc_motor_control == false) {
-        return m_motors[id]->GetMotorTorque();
-    } else {
-        return 0.0;
-    }
+double Curiosity::GetWheelTracTorque(CuriosityWheelID id) const {
+    if (m_driver->GetDriveMotorType() == CuriosityDriver::DriveMotorType::TORQUE)
+        return 0;
+
+    return m_drive_motors[id]->GetMotorTorque();
 }
 
-double CuriosityRover::GetDCPowerShaftTorque(WheelID id) {
-    if (!m_dc_motor_control) {
-        std::cout << "DC motor control is set to false::Invalid GetDCPowerShaftTorque() call" << std::endl;
-        return -1;
-    }
-    return m_power_shafts[id]->GetAppliedTorque();
-}
-
-std::shared_ptr<ChBodyAuxRef> CuriosityRover::GetWheelBody(WheelID id) {
-    return m_wheels[id]->GetBody();
-}
-
-std::shared_ptr<geometry::ChTriangleMeshConnected> CuriosityRover::GetWheelTrimesh(WheelID id) {
-    return m_wheels[id]->GetTrimesh();
-}
-
-std::shared_ptr<Curiosity_Wheel> CuriosityRover::GetWheelPart(WheelID id) {
+std::shared_ptr<CuriosityWheel> Curiosity::GetWheel(CuriosityWheelID id) const {
     return m_wheels[id];
 }
 
-std::shared_ptr<ChBodyAuxRef> CuriosityRover::GetChassisBody() {
-    return m_chassis->GetBody();
-}
-
-double CuriosityRover::GetSteerAngle(WheelID id) {
-    if (id == WheelID::LM || id == WheelID::RM) {
-        std::cout << "Middle wheels don't have steering capability! Invalid GetAngle() call" << std::endl;
-        return 4 * CH_C_PI;
+double Curiosity::GetRoverMass() const {
+    double tot_mass = m_chassis->GetBody()->GetMass() + m_diff_bar->GetBody()->GetMass();
+    for (int i = 0; i < 2; i++) {
+        tot_mass = tot_mass + m_rockers[i]->GetBody()->GetMass();
+        tot_mass = tot_mass + m_bogies[i]->GetBody()->GetMass();
+        tot_mass = tot_mass + m_diff_links[i]->GetBody()->GetMass();
+        tot_mass = tot_mass + m_rocker_uprights[i]->GetBody()->GetMass();
+        tot_mass = tot_mass + m_bogie_uprights[i]->GetBody()->GetMass();
     }
-
-    switch (id) {
-        case WheelID::LF:
-            return m_steer_motors[0]->GetMotorRot();
-            break;
-
-        case WheelID::RF:
-            return m_steer_motors[1]->GetMotorRot();
-            break;
-
-        case WheelID::LB:
-            return m_steer_motors[2]->GetMotorRot();
-            break;
-
-        case WheelID::RB:
-            return m_steer_motors[3]->GetMotorRot();
-            break;
-
-        default:
-            break;
-    }
-
-    return 4 * CH_C_PI;
-}
-
-double CuriosityRover::GetSteerSpeed(WheelID id) {
-    if (id == WheelID::LM || id == WheelID::RM) {
-        std::cout << "Middle wheels don't have steering capability! Invalid GetSpeed() call" << std::endl;
-        return 4 * CH_C_PI;
-    }
-
-    switch (id) {
-        case WheelID::LF:
-            return m_steer_motors_func[0]->Get_yconst();
-            break;
-
-        case WheelID::RF:
-            return m_steer_motors_func[1]->Get_yconst();
-            break;
-
-        case WheelID::LB:
-            return m_steer_motors_func[2]->Get_yconst();
-            break;
-
-        case WheelID::RB:
-            return m_steer_motors_func[3]->Get_yconst();
-            break;
-
-        default:
-            break;
-    }
-
-    return 4 * CH_C_PI;
-}
-
-double CuriosityRover::GetRoverMass() {
-    double tot_mass = 0.0;
-    tot_mass = tot_mass + m_chassis->GetBody()->GetMass();
-
     for (int i = 0; i < 6; i++) {
         tot_mass = tot_mass + m_wheels[i]->GetBody()->GetMass();
-    }
-
-    for (int i = 0; i < 4; i++) {
-        tot_mass = tot_mass + m_arms[i]->GetBody()->GetMass();
-    }
-
-    for (int i = 0; i < 4; i++) {
-        tot_mass = tot_mass + m_steers[i]->GetBody()->GetMass();
-    }
-
-    for (int i = 0; i < 3; i++) {
-        tot_mass = tot_mass + m_balancers[i]->GetBody()->GetMass();
     }
     return tot_mass;
 }
 
-double CuriosityRover::GetWheelMass() {
+double Curiosity::GetWheelMass() const {
     return m_wheels[0]->GetBody()->GetMass();
 }
 
-void CuriosityRover::Update() {
-    UpdateDCMotorControl();
+void Curiosity::Update() {
+    double time = m_system->GetChTime();
+    m_driver->Update(time);
+
+    if (m_driver->GetDriveMotorType() == CuriosityDriver::DriveMotorType::SPEED) {
+        for (int i = 0; i < 6; i++) {
+            double driving = m_driver->drive_speeds[i];
+            m_drive_motor_funcs[i]->SetSetpoint(driving, time);
+        }
+    }
+
+    for (int i = 0; i < 2; i++) {
+        double steering = m_driver->steer_angles[i];
+        // Enforce maximum steering angle
+        ChClampValue(steering, -max_steer_angle, +max_steer_angle);
+        m_rocker_motor_funcs[i]->Set_yconst(steering);
+    }
+
+    for (int i = 0; i < 2; i++) {
+        double steering = m_driver->steer_angles[i+2];
+        // Enforce maximum steering angle
+        ChClampValue(steering, -max_steer_angle, +max_steer_angle);
+        m_bogie_motor_funcs[i]->Set_yconst(steering);
+    }
 }
 
-// Linear DC motor control -> uses a power shaft and a driven shaft for motor structure
-void CuriosityRover::UpdateDCMotorControl() {
-    if (m_dc_motor_control == false) {
+// =============================================================================
+
+CuriosityDriver::CuriosityDriver() : drive_speeds({0, 0, 0, 0, 0, 0}), steer_angles({0, 0, 0, 0}), curiosity(nullptr) {}
+
+void CuriosityDriver::SetSteering(double angle) {
+    steer_angles = {angle, angle, angle, angle};
+}
+
+void CuriosityDriver::SetSteering(double angle, CuriosityWheelID id) {
+    if (id == CuriosityWheelID::C_LM || id == CuriosityWheelID::C_RM)
         return;
-    }
+    steer_angles[id] = angle;
+}
 
-    std::vector<double> speed_reading;
-    std::vector<double> target_torque;
+// -----------------------------------------------------------------------------
+
+CuriosityDCMotorControl::CuriosityDCMotorControl()
+    : m_stall_torque({300, 300, 300, 300, 300, 300}),
+      m_no_load_speed({CH_C_PI, CH_C_PI, CH_C_PI, CH_C_PI, CH_C_PI, CH_C_PI}) {}
+
+void CuriosityDCMotorControl::Update(double time) {
+    double speed_reading;
+    double target_torque;
     for (int i = 0; i < 6; i++) {
-        if (i == 0 || i == 2 || i == 4) {
-            speed_reading.push_back(-m_driven_shafts[i]->GetPos_dt());
-        } else {
-            speed_reading.push_back(m_driven_shafts[i]->GetPos_dt());
-        }
+        speed_reading = -curiosity->m_drive_shafts[i]->GetPos_dt();
 
-        if (speed_reading[i] > m_no_load_speed[i]) {
-            target_torque.push_back(0);
-        } else if (speed_reading[i] < 0) {
-            target_torque.push_back(m_stall_torque[i]);
+        if (speed_reading > m_no_load_speed[i]) {
+            target_torque = 0;
+        } else if (speed_reading < 0) {
+            target_torque = m_stall_torque[i];
         } else {
-            double t = m_stall_torque[i] * ((m_no_load_speed[i] - speed_reading[i]) / m_no_load_speed[i]);
-            target_torque.push_back(t);
+            target_torque = m_stall_torque[i] * ((m_no_load_speed[i] - speed_reading) / m_no_load_speed[i]);
         }
+        curiosity->m_drive_shafts[i]->SetAppliedTorque(-target_torque);
     }
+}
 
-    for (int i = 0; i < 6; i++) {
-        if (i == 0 || i == 2 || i == 4) {
-            m_power_shafts[i]->SetAppliedTorque(target_torque[i]);
-        } else {
-            m_power_shafts[i]->SetAppliedTorque(-target_torque[i]);
-        }
-    }
+CuriositySpeedDriver::CuriositySpeedDriver(double time_ramp, double speed) : m_ramp(time_ramp), m_speed(speed) {}
+
+void CuriositySpeedDriver::Update(double time) {
+    double speed = m_speed;
+    if (time < m_ramp)
+        speed = m_speed * (time / m_ramp);
+    drive_speeds = {speed, speed, speed, speed, speed, speed};
 }
 
 }  // namespace curiosity

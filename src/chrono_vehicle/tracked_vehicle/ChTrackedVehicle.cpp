@@ -62,7 +62,7 @@ void ChTrackedVehicle::Initialize(const ChCoordsys<>& chassisPos, double chassis
 // -----------------------------------------------------------------------------
 void ChTrackedVehicle::InitializePowertrain(std::shared_ptr<ChPowertrain> powertrain) {
     m_powertrain = powertrain;
-    powertrain->Initialize(m_chassis, m_driveline);
+    powertrain->Initialize(m_chassis);
 }
 
 // -----------------------------------------------------------------------------
@@ -90,7 +90,7 @@ void ChTrackedVehicle::Synchronize(double time,
         // Extract the torque from the powertrain.
         powertrain_torque = m_powertrain->GetOutputTorque();
         // Synchronize the associated powertrain system (pass throttle input).
-        m_powertrain->Synchronize(time, driver_inputs.m_throttle);
+        m_powertrain->Synchronize(time, driver_inputs.m_throttle, m_driveline->GetDriveshaft()->GetPos_dt());
     }
 
     // Apply powertrain torque to the driveline's input shaft.

@@ -785,6 +785,8 @@ if(ENABLE_MODULE_IRRLICHT)
     set(CVIRR_TV_UTILS_FILES
         tracked_vehicle/utils/ChTrackedVehicleIrrApp.h
         tracked_vehicle/utils/ChTrackedVehicleIrrApp.cpp
+        tracked_vehicle/utils/ChTrackTestRigIrrApp.h
+        tracked_vehicle/utils/ChTrackTestRigIrrApp.cpp
     )
 else()
     set(CVIRR_TV_UTILS_FILES "")

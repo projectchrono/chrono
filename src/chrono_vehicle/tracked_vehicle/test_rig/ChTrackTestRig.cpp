@@ -81,7 +81,7 @@ ChTrackTestRigChassis::ChTrackTestRigChassis() : ChRigidChassis("Ground") {
 }
 
 // -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
+
 ChTrackTestRig::ChTrackTestRig(const std::string& filename,
                                bool create_track,
                                ChContactMethod contact_method,
@@ -123,6 +123,7 @@ ChTrackTestRig::ChTrackTestRig(const std::string& filename,
     GetLog() << "Loaded JSON: " << filename.c_str() << "\n";
 
     Create(create_track, detracking_control);
+    m_contact_manager = chrono_types::make_shared<ChTrackContactManager>();
 }
 
 ChTrackTestRig::ChTrackTestRig(std::shared_ptr<ChTrackAssembly> assembly,
@@ -146,6 +147,7 @@ ChTrackTestRig::ChTrackTestRig(std::shared_ptr<ChTrackAssembly> assembly,
       m_next_plot_output_time(0),
       m_csv(nullptr) {
     Create(create_track, detracking_control);
+    m_contact_manager = chrono_types::make_shared<ChTrackContactManager>();
 }
 
 ChTrackTestRig::~ChTrackTestRig() {
@@ -262,13 +264,18 @@ void ChTrackTestRig::Initialize() {
 }
 
 // -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
+
 void ChTrackTestRig::SetDriver(std::shared_ptr<ChDriverTTR> driver) {
     m_driver = std::move(driver);
 }
 
+void ChTrackTestRig::SetPostCollide(bool flag) {
+    for (auto& p : m_post)
+        p->SetCollide(flag);
+}
+
 // -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
+
 double ChTrackTestRig::GetActuatorDisp(int index) {
     double time = GetSystem()->GetChTime();
     return m_post_linact[index]->GetMotionFunction()->Get_y(time);
@@ -289,7 +296,7 @@ double ChTrackTestRig::GetRideHeight() const {
 }
 
 // -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
+
 void ChTrackTestRig::Advance(double step) {
     double time = GetChTime();
 
@@ -332,6 +339,9 @@ void ChTrackTestRig::Advance(double step) {
     // Advance state of entire system
     ChVehicle::Advance(step);
 
+    // Process contacts.
+    m_contact_manager->Process(this);
+
     // Generate output for plotting if requested
     time = GetChTime();
     if (!m_driver->Started()) {
@@ -343,7 +353,7 @@ void ChTrackTestRig::Advance(double step) {
 }
 
 // -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
+
 double ChTrackTestRig::GetMass() const {
     return m_track->GetMass();
 }
@@ -367,7 +377,7 @@ void ChTrackTestRig::LogConstraintViolations() {
 }
 
 // -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
+
 void ChTrackTestRig::AddPostVisualization(std::shared_ptr<ChBody> post,
                                           std::shared_ptr<ChBody> chassis,
                                           const ChColor& color) {

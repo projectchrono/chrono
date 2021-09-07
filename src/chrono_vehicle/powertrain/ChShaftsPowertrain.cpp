@@ -46,8 +46,8 @@ ChShaftsPowertrain::~ChShaftsPowertrain() {
 }
 
 // -----------------------------------------------------------------------------
-void ChShaftsPowertrain::Initialize(std::shared_ptr<ChChassis> chassis, std::shared_ptr<ChDriveline> driveline) {
-    ChPowertrain::Initialize(chassis, driveline);
+void ChShaftsPowertrain::Initialize(std::shared_ptr<ChChassis> chassis) {
+    ChPowertrain::Initialize(chassis);
 
     assert(chassis->GetBody()->GetSystem());
     ChSystem* my_system = chassis->GetBody()->GetSystem();
@@ -122,11 +122,16 @@ void ChShaftsPowertrain::Initialize(std::shared_ptr<ChChassis> chassis, std::sha
     SetTorqeConverterTorqueRatioMap(mT);
     m_torqueconverter->SetCurveTorqueRatio(mT);
 
+    // Create the final power shaft (interface to a driveline)
+    m_shaft = chrono_types::make_shared<ChShaft>();
+    m_shaft->SetInertia(GetPowershaftInertia());
+    my_system->Add(m_shaft);
+
     // CREATE a gearbox, i.e a transmission ratio constraint between two
     // shafts. Note that differently from the basic ChShaftsGear, this also provides
     // the possibility of transmitting a reaction torque to the box (the truss).
     m_gears = chrono_types::make_shared<ChShaftsGearbox>();
-    m_gears->Initialize(m_shaft_ingear, driveline->GetDriveshaft(), chassis->GetBody(), m_dir_motor_block);
+    m_gears->Initialize(m_shaft_ingear, m_shaft, chassis->GetBody(), m_dir_motor_block);
     m_gears->SetTransmissionRatio(m_current_gear_ratio);
     my_system->Add(m_gears);
 }
@@ -143,7 +148,10 @@ void ChShaftsPowertrain::OnNeutralShift() {
 }
 
 // -----------------------------------------------------------------------------
-void ChShaftsPowertrain::Synchronize(double time, double throttle) {
+void ChShaftsPowertrain::Synchronize(double time, double throttle, double shaft_speed) {
+    // Apply shaft speed 
+    m_shaft->SetPos_dt(shaft_speed);
+
     // Just update the throttle level in the thermal engine
     m_engine->SetThrottle(throttle);
 
@@ -168,6 +176,10 @@ void ChShaftsPowertrain::Synchronize(double time, double throttle) {
             }
         }
     }
+}
+
+double ChShaftsPowertrain::GetOutputTorque() const {
+    return m_gears->GetTorqueReactionOn2();
 }
 
 }  // end namespace vehicle

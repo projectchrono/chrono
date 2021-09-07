@@ -35,14 +35,13 @@ namespace rccar {
 static const double in2m = 0.0254;
 static const double lb2kg = 0.453592;
 
-const double RCCar_RigidTire::m_radius = in2m * 3.285;
-const double RCCar_RigidTire::m_width = in2m * 3.3;
+const double RCCar_RigidTire::m_radius = .170/2;
+const double RCCar_RigidTire::m_width = .0855;
 
-const double RCCar_RigidTire::m_mass = lb2kg * 1;
-const ChVector<> RCCar_RigidTire::m_inertia(0.001553, 0.002521, 0.001553);
+const double RCCar_RigidTire::m_mass = .200;
+const ChVector<> RCCar_RigidTire::m_inertia(.0008, 0.001, .0008);
 
 const std::string RCCar_RigidTire::m_meshName = "RCCar_tire_POV_geom";
-// const std::string RCCar_RigidTire::m_meshFile = "rccar/RCCar_tire.obj";
 const std::string RCCar_RigidTire::m_meshFile = "rccar/tire.obj";
 
 // -----------------------------------------------------------------------------
