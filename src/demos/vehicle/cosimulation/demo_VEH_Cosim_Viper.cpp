@@ -101,7 +101,7 @@ class MyDriver : public ViperDriver {
         if (eff_time < 4)
             steering = 0;
         else
-            steering = 0.4 * std::sin(CH_C_2PI * (eff_time - 4) / 8);
+            steering = 0.4 * std::sin(CH_C_2PI * (eff_time - 4) / 30);
 
         for (int i = 0; i < 4; i++) {
             drive_speeds[i] = driving;
@@ -288,8 +288,8 @@ int main(int argc, char** argv) {
             cout << "[Tire node   ] rank = " << rank << " running on: " << procname << endl;
 
         auto tire = new ChVehicleCosimTireNodeRigid(rank - 2);
-        ////tire->SetTireFromSpecfile(vehicle::GetDataFile("viper/Viper_RigidTire_real.json"));
-        tire->SetTireFromSpecfile(vehicle::GetDataFile("viper/Viper_RigidTire_cyl.json"));
+        ////tire->SetTireFromSpecfile(vehicle::GetDataFile("cosim/viper/Viper_RigidTire_real.json"));
+        tire->SetTireFromSpecfile(vehicle::GetDataFile("cosim/viper/Viper_RigidTire_cyl.json"));
         tire->SetVerbose(verbose);
         tire->SetStepSize(step_size);
         tire->SetNumThreads(1);
@@ -404,7 +404,6 @@ int main(int argc, char** argv) {
                 auto terrain = new ChVehicleCosimTerrainNodeGranularSPH(terrain_specfile);
                 terrain->SetDimensions(terrain_length, terrain_width);
                 terrain->SetVerbose(verbose);
-                std::string param_filename = GetChronoDataFile("fsi/input_json/demo_tire_rig.json");
                 terrain->SetStepSize(step_size);
                 terrain->SetOutDir(out_dir, suffix);
                 terrain->EnableRuntimeVisualization(render, render_fps);

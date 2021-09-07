@@ -28,13 +28,13 @@
 
   "Contact Mesh":
   {
-    "Mesh Filename":            "viper/viper_cylwheel.obj",
+    "Mesh Filename":            "cosim/viper/viper_realwheel.obj",
     "Sweep Sphere Radius":      0.005
   },
 
   "Visualization":
   {
-    "Mesh Filename Left":       "viper/viper_cylwheel.obj",
-    "Mesh Filename Right":      "viper/viper_cylwheel.obj"
+    "Mesh Filename Left":       "cosim/viper/viper_realwheel.obj",
+    "Mesh Filename Right":      "cosim/viper/viper_realwheel.obj"
   }
 }

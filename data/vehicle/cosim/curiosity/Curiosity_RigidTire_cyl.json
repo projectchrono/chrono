@@ -1,5 +1,5 @@
 {
-  "Name":                       "Viper Rigid Mesh Tire",
+  "Name":                       "Curiosity Rigid Mesh Tire",
   "Type":                       "Tire",
   "Template":                   "RigidTire",
 
@@ -28,13 +28,13 @@
 
   "Contact Mesh":
   {
-    "Mesh Filename":            "viper/viper_realwheel.obj",
+    "Mesh Filename":            "cosim/curiosity/curiosity_cylwheel.obj",
     "Sweep Sphere Radius":      0.005
   },
 
   "Visualization":
   {
-    "Mesh Filename Left":       "viper/viper_realwheel.obj",
-    "Mesh Filename Right":      "viper/viper_realwheel.obj"
+    "Mesh Filename Left":       "cosim/curiosity/curiosity_cylwheel.obj",
+    "Mesh Filename Right":      "cosim/curiosity/curiosity_cylwheel.obj"
   }
 }

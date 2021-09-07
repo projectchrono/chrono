@@ -290,8 +290,8 @@ int main(int argc, char** argv) {
             cout << "[Tire node   ] rank = " << rank << " running on: " << procname << endl;
 
         auto tire = new ChVehicleCosimTireNodeRigid(rank - 2);
-        ////tire->SetTireFromSpecfile(vehicle::GetDataFile("curiosity/Curiosity_RigidTire_real.json"));
-        tire->SetTireFromSpecfile(vehicle::GetDataFile("curiosity/Curiosity_RigidTire_cyl.json"));
+        ////tire->SetTireFromSpecfile(vehicle::GetDataFile("cosim/curiosity/Curiosity_RigidTire_real.json"));
+        tire->SetTireFromSpecfile(vehicle::GetDataFile("cosim/curiosity/Curiosity_RigidTire_cyl.json"));
         tire->SetVerbose(verbose);
         tire->SetStepSize(step_size);
         tire->SetNumThreads(1);
@@ -406,7 +406,6 @@ int main(int argc, char** argv) {
                 auto terrain = new ChVehicleCosimTerrainNodeGranularSPH(terrain_specfile);
                 terrain->SetDimensions(terrain_length, terrain_width);
                 terrain->SetVerbose(verbose);
-                std::string param_filename = GetChronoDataFile("fsi/input_json/demo_tire_rig.json");
                 terrain->SetStepSize(step_size);
                 terrain->SetOutDir(out_dir, suffix);
                 terrain->EnableRuntimeVisualization(render, render_fps);
