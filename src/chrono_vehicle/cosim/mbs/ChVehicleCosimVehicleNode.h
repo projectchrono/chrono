@@ -22,9 +22,6 @@
 #ifndef CH_VEHCOSIM_VEHICLE_NODE_H
 #define CH_VEHCOSIM_VEHICLE_NODE_H
 
-#include "chrono/utils/ChFilters.h"
-#include "chrono/utils/ChUtilsInputOutput.h"
-
 #include "chrono_vehicle/ChPowertrain.h"
 #include "chrono_vehicle/ChTerrain.h"
 #include "chrono_vehicle/ChDriver.h"

@@ -23,9 +23,7 @@
 #ifndef CH_VEHCOSIM_RIG_NODE_H
 #define CH_VEHCOSIM_RIG_NODE_H
 
-#include "chrono/physics/ChLinkLock.h"
 #include "chrono/physics/ChLinkMotorRotationSpeed.h"
-#include "chrono/utils/ChUtilsInputOutput.h"
 
 #include "chrono_vehicle/cosim/ChVehicleCosimMBSNode.h"
 

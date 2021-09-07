@@ -12,7 +12,7 @@
 // Authors: Radu Serban
 // =============================================================================
 //
-// Viper rover co-simulated with "tire" nodes and a terrain node.
+// Curiosity rover co-simulated with "tire" nodes and a terrain node.
 //
 // The global reference frame has Z up, X towards the front of the vehicle, and
 // Y pointing to the left.
@@ -29,7 +29,7 @@
 #include "chrono_vehicle/ChVehicleModelData.h"
 #include "chrono_vehicle/utils/ChUtilsJSON.h"
 
-#include "chrono_vehicle/cosim/mbs/ChVehicleCosimViperNode.h"
+#include "chrono_vehicle/cosim/mbs/ChVehicleCosimCuriosityNode.h"
 
 using std::cout;
 using std::endl;
@@ -37,42 +37,46 @@ using std::endl;
 namespace chrono {
 namespace vehicle {
 
-using namespace viper;
+using namespace curiosity;
 
 // -----------------------------------------------------------------------------
 
-static ViperWheelID wheel_id(unsigned int i) {
+static CuriosityWheelID wheel_id(unsigned int i) {
     switch (i) {
         default:
         case 0:
-            return ViperWheelID::V_LF;
+            return CuriosityWheelID::C_LF;
         case 1:
-            return ViperWheelID::V_RF;
+            return CuriosityWheelID::C_RF;
         case 2:
-            return ViperWheelID::V_LB;
+            return CuriosityWheelID::C_LM;
         case 3:
-            return ViperWheelID::V_RB;
+            return CuriosityWheelID::C_RM;
+        case 4:
+            return CuriosityWheelID::C_LB;
+        case 5:
+            return CuriosityWheelID::C_RB;
     }
 }
 
 // -----------------------------------------------------------------------------
 
-// Custom Viper driver class used when a DBP rig is attached.
-class ViperDBPDriver : public ViperDriver {
+// Custom Curiosity driver class used when a DBP rig is attached.
+class CuriosityDBPDriver : public CuriosityDriver {
   public:
-    ViperDBPDriver(std::shared_ptr<ChFunction> dbp_mot_func) : m_func(dbp_mot_func) {}
-    ~ViperDBPDriver() {}
+    CuriosityDBPDriver(std::shared_ptr<ChFunction> dbp_mot_func) : m_func(dbp_mot_func) {}
+    ~CuriosityDBPDriver() {}
 
     virtual DriveMotorType GetDriveMotorType() const override { return DriveMotorType::SPEED; }
 
     virtual void Update(double time) {
         double driving = m_func->Get_y(time);
         double steering = 0;
-        double lifting = 0;
-        for (int i = 0; i < 4; i++) {
+        for (int i = 0; i < 6; i++) {
             drive_speeds[i] = driving;
-            steer_angles[i] = steering;
-            lift_angles[i] = lifting;
+        }
+        for (int i = 0; i < 4; i++) {
+            steer_angles[i] = steering;        
         }
     }
 
@@ -81,73 +85,69 @@ class ViperDBPDriver : public ViperDriver {
 
 // -----------------------------------------------------------------------------
 
-ChVehicleCosimViperNode::ChVehicleCosimViperNode() : ChVehicleCosimMBSNode(), m_num_spindles(0) {
-    m_viper = chrono_types::make_shared<Viper>(m_system);
+ChVehicleCosimCuriosityNode::ChVehicleCosimCuriosityNode() : ChVehicleCosimMBSNode() {
+    m_curiosity = chrono_types::make_shared<Curiosity>(m_system);
 }
 
-ChVehicleCosimViperNode::~ChVehicleCosimViperNode() {}
+ChVehicleCosimCuriosityNode::~ChVehicleCosimCuriosityNode() {}
 
-void ChVehicleCosimViperNode::InitializeMBS(const std::vector<ChVector<>>& tire_info,
+void ChVehicleCosimCuriosityNode::InitializeMBS(const std::vector<ChVector<>>& tire_info,
                                             const ChVector2<>& terrain_size,
                                             double terrain_height) {
     // Initialize vehicle
     ChFrame<> init_pos(m_init_loc + ChVector<>(0, 0, terrain_height), Q_from_AngZ(m_init_yaw));
 
-    m_viper->SetDriver(m_driver);
-    m_viper->Initialize(init_pos);
+    m_curiosity->SetDriver(m_driver);
+    m_curiosity->Initialize(init_pos);
 
     // Extract and cache spindle bodies
-    m_num_spindles = 4;
-    assert(m_num_spindles == (int)m_num_tire_nodes);
+    assert(6 == (int)m_num_tire_nodes);
 
-    auto total_mass = m_viper->GetRoverMass();
-    for (int is = 0; is < m_num_spindles; is++) {
-        m_spindle_loads.push_back(total_mass / m_num_spindles);
+    auto total_mass = m_curiosity->GetRoverMass();
+    for (int is = 0; is < 6; is++) {
+        m_spindle_loads.push_back(total_mass / 6);
     }
 }
 
 // -----------------------------------------------------------------------------
-int ChVehicleCosimViperNode::GetNumSpindles() const {
-    return m_num_spindles;
+
+std::shared_ptr<ChBody> ChVehicleCosimCuriosityNode::GetSpindleBody(unsigned int i) const {
+    return m_curiosity->GetWheel(wheel_id(i))->GetBody();
 }
 
-std::shared_ptr<ChBody> ChVehicleCosimViperNode::GetSpindleBody(unsigned int i) const {
-    return m_viper->GetWheel(wheel_id(i))->GetBody();
-}
-
-double ChVehicleCosimViperNode::GetSpindleLoad(unsigned int i) const {
+double ChVehicleCosimCuriosityNode::GetSpindleLoad(unsigned int i) const {
     return m_spindle_loads[i];
 }
 
-BodyState ChVehicleCosimViperNode::GetSpindleState(unsigned int i) const {
+BodyState ChVehicleCosimCuriosityNode::GetSpindleState(unsigned int i) const {
     BodyState state;
 
-    state.pos = m_viper->GetWheel(wheel_id(i))->GetPos();
-    state.rot = m_viper->GetWheel(wheel_id(i))->GetRot();
-    state.lin_vel = m_viper->GetWheel(wheel_id(i))->GetLinVel();
-    state.ang_vel = m_viper->GetWheel(wheel_id(i))->GetAngVel();
+    state.pos = m_curiosity->GetWheel(wheel_id(i))->GetPos();
+    state.rot = m_curiosity->GetWheel(wheel_id(i))->GetRot();
+    state.lin_vel = m_curiosity->GetWheel(wheel_id(i))->GetLinVel();
+    state.ang_vel = m_curiosity->GetWheel(wheel_id(i))->GetAngVel();
 
     return state;
 }
 
-std::shared_ptr<ChBody> ChVehicleCosimViperNode::GetChassisBody() const {
-    return m_viper->GetChassis()->GetBody();
+std::shared_ptr<ChBody> ChVehicleCosimCuriosityNode::GetChassisBody() const {
+    return m_curiosity->GetChassis()->GetBody();
 }
 
-void ChVehicleCosimViperNode::OnInitializeDBPRig(std::shared_ptr<ChFunction> func) {
-    // Overwrite any driver attached to the underlying Viper rover with a custom driver which imposes zero steering and
+void ChVehicleCosimCuriosityNode::OnInitializeDBPRig(std::shared_ptr<ChFunction> func) {
+    // Overwrite any driver attached to the underlying Curiosity rover with a custom driver which imposes zero steering and
     // wheel angular speeds as returned by the provided motor function.
-    m_viper->SetDriver(chrono_types::make_shared<ViperDBPDriver>(func));
+    m_curiosity->SetDriver(chrono_types::make_shared<CuriosityDBPDriver>(func));
 }
 
 // -----------------------------------------------------------------------------
 
-void ChVehicleCosimViperNode::PreAdvance() {
-    m_viper->Update();
+void ChVehicleCosimCuriosityNode::PreAdvance() {
+    m_curiosity->Update();
 }
 
-void ChVehicleCosimViperNode::ApplySpindleForce(unsigned int i, const TerrainForce& spindle_force) {
-    auto spindle_body = m_viper->GetWheel(wheel_id(i))->GetBody();
+void ChVehicleCosimCuriosityNode::ApplySpindleForce(unsigned int i, const TerrainForce& spindle_force) {
+    auto spindle_body = m_curiosity->GetWheel(wheel_id(i))->GetBody();
     spindle_body->Empty_forces_accumulators();
     spindle_body->Accumulate_force(spindle_force.force, spindle_force.point, false);
     spindle_body->Accumulate_torque(spindle_force.moment, false);
@@ -155,12 +155,12 @@ void ChVehicleCosimViperNode::ApplySpindleForce(unsigned int i, const TerrainFor
 
 // -----------------------------------------------------------------------------
 
-void ChVehicleCosimViperNode::OnOutputData(int frame) {
+void ChVehicleCosimCuriosityNode::OnOutputData(int frame) {
     // Append to results output file
     if (m_outf.is_open()) {
         std::string del("  ");
 
-        const ChVector<>& pos = m_viper->GetChassis()->GetPos();
+        const ChVector<>& pos = m_curiosity->GetChassis()->GetPos();
 
         m_outf << m_system->GetChTime() << del;
         // Body states
@@ -187,22 +187,16 @@ void ChVehicleCosimViperNode::OnOutputData(int frame) {
         cout << "[Vehicle node] write output file ==> " << filename << endl;
 }
 
-void ChVehicleCosimViperNode::WriteBodyInformation(utils::CSV_writer& csv) {
+void ChVehicleCosimCuriosityNode::WriteBodyInformation(utils::CSV_writer& csv) {
     // Write number of bodies
-    csv << 1 + 4 * 4 << endl;
+    csv << 1 + 6 << endl;
 
     // Write body state information
-    auto ch = m_viper->GetChassis();
+    auto ch = m_curiosity->GetChassis();
     csv << ch->GetPos() << ch->GetRot() << endl;
-    for (unsigned int i = 0; i < 4; i++) {
+    for (unsigned int i = 0; i < 6; i++) {
         auto id = wheel_id(i);
-        auto ua = m_viper->GetUpperArm(id);
-        auto la = m_viper->GetLowerArm(id);
-        auto ur = m_viper->GetUpright(id);
-        auto wh = m_viper->GetWheel(id);
-        csv << ua->GetPos() << ua->GetRot() << endl;
-        csv << la->GetPos() << la->GetRot() << endl;
-        csv << ur->GetPos() << ur->GetRot() << endl;
+        auto wh = m_curiosity->GetWheel(id);
         csv << wh->GetPos() << wh->GetRot() << endl;
     }
 }

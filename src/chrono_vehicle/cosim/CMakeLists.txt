@@ -33,6 +33,8 @@ set(CV_COSIM_MBS_FILES
     mbs/ChVehicleCosimVehicleNode.cpp
     mbs/ChVehicleCosimViperNode.h
     mbs/ChVehicleCosimViperNode.cpp
+    mbs/ChVehicleCosimCuriosityNode.h
+    mbs/ChVehicleCosimCuriosityNode.cpp
 )
 
 set(CV_COSIM_TIRE_FILES

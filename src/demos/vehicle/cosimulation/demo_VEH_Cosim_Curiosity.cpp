@@ -12,7 +12,7 @@
 // Authors: Radu Serban
 // =============================================================================
 //
-// Demo for Viper rover cosimulation on different terrain types.
+// Demo for Curiosity rover cosimulation on different terrain types.
 // The robot is co-simulated with a terrain node and a number of tire nodes
 // equal to the number of wheels.
 //
@@ -32,7 +32,7 @@
 #include "chrono_thirdparty/cxxopts/ChCLI.h"
 #include "chrono_thirdparty/filesystem/path.h"
 
-#include "chrono_vehicle/cosim/mbs/ChVehicleCosimViperNode.h"
+#include "chrono_vehicle/cosim/mbs/ChVehicleCosimCuriosityNode.h"
 #include "chrono_vehicle/cosim/tire/ChVehicleCosimTireNodeRigid.h"
 #include "chrono_vehicle/cosim/terrain/ChVehicleCosimTerrainNodeSCM.h"
 #ifdef CHRONO_MULTICORE
@@ -52,7 +52,7 @@ using std::endl;
 
 using namespace chrono;
 using namespace chrono::vehicle;
-using namespace chrono::viper;
+using namespace chrono::curiosity;
 
 // =============================================================================
 
@@ -78,9 +78,9 @@ bool GetProblemSpecs(int argc,
 
 // =============================================================================
 
-class MyDriver : public ViperDriver {
+class MyDriver : public CuriosityDriver {
   public:
-    MyDriver(double delay) : ViperDriver(), m_delay(delay) {}
+    MyDriver(double delay) : CuriosityDriver(), m_delay(delay) {}
     ~MyDriver() {}
 
     virtual DriveMotorType GetDriveMotorType() const override { return DriveMotorType::SPEED; }
@@ -92,19 +92,21 @@ class MyDriver : public ViperDriver {
             return;
 
         double driving = 0;
-        double steering = 0;
         if (eff_time > 0.2)
             driving = 0.7;
         else
             driving = 3.5 * eff_time;
 
+        double steering = 0;
         if (eff_time < 4)
             steering = 0;
         else
-            steering = 0.4 * std::sin(CH_C_2PI * (eff_time - 4) / 8);
+            steering = 0.75 * std::sin(CH_C_2PI * (eff_time - 4) / 50);
 
-        for (int i = 0; i < 4; i++) {
+        for (int i = 0; i < 6; i++) {
             drive_speeds[i] = driving;
+        }
+        for (int i = 0; i < 4; i++) {
             steer_angles[i] = steering;
         }
     }
@@ -150,9 +152,9 @@ int main(int argc, char** argv) {
     MPI_Barrier(MPI_COMM_WORLD);
 #endif
 
-    if (num_procs != 6) {
+    if (num_procs != 8) {
         if (rank == 0)
-            std::cout << "\n\nViper cosimulation code must be run on exactly 6 ranks!\n\n" << std::endl;
+            std::cout << "\nCuriosity cosimulation code must be run on exactly 8 ranks!\n\n" << std::endl;
         MPI_Abort(MPI_COMM_WORLD, 1);
         return 1;
     }
@@ -231,7 +233,7 @@ int main(int argc, char** argv) {
 #endif
 
     // Prepare output directory.
-    std::string out_dir_top = GetChronoOutputPath() + "VIPER_COSIM";
+    std::string out_dir_top = GetChronoOutputPath() + "CURIOSITY_COSIM";
     std::string out_dir = out_dir_top + "/" + ChVehicleCosimTerrainNodeChrono::GetTypeAsString(terrain_type);
     if (rank == 0) {
         if (!filesystem::create_directory(filesystem::path(out_dir_top))) {
@@ -256,40 +258,40 @@ int main(int argc, char** argv) {
 
     if (rank == MBS_NODE_RANK) {
         if (verbose)
-            cout << "[Viper node  ] rank = " << rank << " running on: " << procname << endl;
+            cout << "[Curiosity node] rank = " << rank << " running on: " << procname << endl;
 
-        auto viper = new ChVehicleCosimViperNode();
-        ////viper->SetChassisFixed(true);
+        auto curiosity = new ChVehicleCosimCuriosityNode();
+        ////curiosity->SetChassisFixed(true);
         if (use_DBP_rig) {
             auto act_type = ChVehicleCosimDBPRigImposedSlip::ActuationType::SET_ANG_VEL;
             double base_vel = 1;
             double slip = 0;
             auto dbp_rig = chrono_types::make_shared<ChVehicleCosimDBPRigImposedSlip>(act_type, base_vel, slip);
-            viper->AttachDrawbarPullRig(dbp_rig);
+            curiosity->AttachDrawbarPullRig(dbp_rig);
         }
         auto driver = chrono_types::make_shared<MyDriver>(0.2);
-        viper->SetDriver(driver);
-        viper->SetIntegratorType(ChTimestepper::Type::EULER_IMPLICIT_LINEARIZED, ChSolver::Type::BARZILAIBORWEIN);
-        viper->SetVerbose(verbose);
-        viper->SetInitialLocation(ChVector<>(init_loc.x(), init_loc.y(), 0.5));
-        viper->SetInitialYaw(0);
-        viper->SetStepSize(step_size);
-        viper->SetNumThreads(1);
-        viper->SetOutDir(out_dir, suffix);
+        curiosity->SetDriver(driver);
+        curiosity->SetIntegratorType(ChTimestepper::Type::EULER_IMPLICIT_LINEARIZED, ChSolver::Type::BARZILAIBORWEIN);
+        curiosity->SetVerbose(verbose);
+        curiosity->SetInitialLocation(ChVector<>(init_loc.x(), init_loc.y(), 0.5));
+        curiosity->SetInitialYaw(0);
+        curiosity->SetStepSize(step_size);
+        curiosity->SetNumThreads(1);
+        curiosity->SetOutDir(out_dir, suffix);
         if (verbose)
-            cout << "[Viper node  ] output directory: " << viper->GetOutDirName() << endl;
+            cout << "[Curiosity node] output directory: " << curiosity->GetOutDirName() << endl;
 
-        node = viper;
+        node = curiosity;
 
     }  // if MBS_NODE_RANK
 
-    if (rank >= TIRE_NODE_RANK(0) && rank <= TIRE_NODE_RANK(3)) {
+    if (rank >= TIRE_NODE_RANK(0) && rank <= TIRE_NODE_RANK(5)) {
         if (verbose)
             cout << "[Tire node   ] rank = " << rank << " running on: " << procname << endl;
 
         auto tire = new ChVehicleCosimTireNodeRigid(rank - 2);
-        ////tire->SetTireFromSpecfile(vehicle::GetDataFile("viper/Viper_RigidTire_real.json"));
-        tire->SetTireFromSpecfile(vehicle::GetDataFile("viper/Viper_RigidTire_cyl.json"));
+        ////tire->SetTireFromSpecfile(vehicle::GetDataFile("curiosity/Curiosity_RigidTire_real.json"));
+        tire->SetTireFromSpecfile(vehicle::GetDataFile("curiosity/Curiosity_RigidTire_cyl.json"));
         tire->SetVerbose(verbose);
         tire->SetStepSize(step_size);
         tire->SetNumThreads(1);
@@ -481,7 +483,7 @@ bool GetProblemSpecs(int argc,
                      bool& verbose,
                      bool& use_DBP_rig,
                      bool& add_obstacles) {
-    ChCLI cli(argv[0], "Viper co-simulation (run on 6 MPI ranks)");
+    ChCLI cli(argv[0], "Curiosity co-simulation (run on 8 MPI ranks)");
 
     cli.AddOption<std::string>("Experiment", "terrain_specfile", "Terrain specification file [JSON format]");
     cli.AddOption<double>("Experiment", "terrain_length", "If positive, overwrite terrain length read from JSON file",
