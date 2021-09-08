@@ -166,7 +166,7 @@ int main(int argc, char** argv) {
     double terrain_width = -1;
     int nthreads_tire = 1;
     int nthreads_terrain = 1;
-    double step_size = 1e-3;
+    double step_size = 4e-4;
     bool fixed_settling_time = true;
     double KE_threshold = std::numeric_limits<double>::infinity();
     double settling_time = 0.4;
