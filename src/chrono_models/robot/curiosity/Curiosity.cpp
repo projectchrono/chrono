@@ -117,10 +117,10 @@ std::shared_ptr<ChMaterialSurface> DefaultContactMaterial(ChContactMethod contac
 // Add a revolute joint between body_1 and body_2
 // rel_joint_pos and rel_joint_rot are the position and the rotation of the revolute point
 std::shared_ptr<ChLinkLockRevolute> AddRevoluteJoint(std::shared_ptr<ChBodyAuxRef> body_1,
-                      std::shared_ptr<ChBodyAuxRef> body_2,
-                      std::shared_ptr<CuriosityChassis> chassis,
-                      const ChVector<>& rel_joint_pos,
-                      const ChQuaternion<>& rel_joint_rot) {
+                                                     std::shared_ptr<ChBodyAuxRef> body_2,
+                                                     std::shared_ptr<CuriosityChassis> chassis,
+                                                     const ChVector<>& rel_joint_pos,
+                                                     const ChQuaternion<>& rel_joint_rot) {
     const ChFrame<>& X_GP = chassis->GetBody()->GetFrame_REF_to_abs();  // global -> parent
     ChFrame<> X_PC(rel_joint_pos, rel_joint_rot);                       // parent -> child
     ChFrame<> X_GC = X_GP * X_PC;                                       // global -> child
@@ -193,54 +193,39 @@ CuriosityPart::CuriosityPart(const std::string& name,
                              const ChFrame<>& rel_pos,
                              std::shared_ptr<ChMaterialSurface> mat,
                              bool collide)
-    : m_name(name), m_pos(rel_pos), m_density(200), m_mat(mat), m_collide(collide), m_visualize(true) {}
+    : m_name(name), m_pos(rel_pos), m_mat(mat), m_collide(collide), m_visualize(true) {}
 
 void CuriosityPart::Construct(ChSystem* system) {
     m_body = std::shared_ptr<ChBodyAuxRef>(system->NewBodyAuxRef());
     m_body->SetNameString(m_name + "_body");
-
-    // Load geometry meshes for visualization and collision
-    std::string vis_mesh_file = "robot/curiosity/obj/" + m_mesh_name + ".obj";
-    std::string col_mesh_file = "robot/curiosity/col/" + m_mesh_name + ".obj";
-
-    auto trimesh_vis = chrono_types::make_shared<geometry::ChTriangleMeshConnected>();
-    trimesh_vis->LoadWavefrontMesh(GetChronoDataFile(vis_mesh_file), false, false);
-    trimesh_vis->Transform(m_mesh_xform.GetPos(), m_mesh_xform.GetA());  // translate/rotate/scale mesh
-    trimesh_vis->RepairDuplicateVertexes(1e-9);                          // if meshes are not watertight
-
-    auto trimesh_col = chrono_types::make_shared<geometry::ChTriangleMeshConnected>();
-    trimesh_col->LoadWavefrontMesh(GetChronoDataFile(col_mesh_file), false, false);
-    trimesh_col->Transform(m_mesh_xform.GetPos(), m_mesh_xform.GetA());  // translate/rotate/scale mesh
-    trimesh_col->RepairDuplicateVertexes(1e-9);                          // if meshes are not watertight
-
-    // Calculate and set intertia properties (use collision mesh)
-    double vol;
-    ChVector<> cog;
-    ChMatrix33<> inertia;
-    trimesh_col->ComputeMassProperties(true, vol, cog, inertia);
-
-    ChVector<> principal_I;
-    ChMatrix33<> principal_inertia_rot;
-    ChInertiaUtils::PrincipalInertia(inertia, principal_I, principal_inertia_rot);
-
-    m_body->SetMass(vol * m_density);
-    m_body->SetInertiaXX(m_density * principal_I);
-    m_body->SetFrame_COG_to_REF(ChFrame<>(cog, principal_inertia_rot));
+    m_body->SetMass(m_mass);
+    m_body->SetInertiaXX(m_inertia);
+    m_body->SetFrame_COG_to_REF(m_cog);
 
     // Add visualization shape
     if (m_visualize) {
+        std::string vis_mesh_file = "robot/curiosity/obj/" + m_mesh_name + ".obj";
+        auto trimesh_vis = chrono_types::make_shared<geometry::ChTriangleMeshConnected>();
+        trimesh_vis->LoadWavefrontMesh(GetChronoDataFile(vis_mesh_file), false, false);
+        trimesh_vis->Transform(m_mesh_xform.GetPos(), m_mesh_xform.GetA());  // translate/rotate/scale mesh
+        trimesh_vis->RepairDuplicateVertexes(1e-9);                          // if meshes are not watertight
+
         auto trimesh_shape = chrono_types::make_shared<ChTriangleMeshShape>();
         trimesh_shape->SetMesh(trimesh_vis);
         trimesh_shape->SetName(m_mesh_name);
         trimesh_shape->SetStatic(true);
+
         m_body->AddAsset(trimesh_shape);
         m_body->AddAsset(chrono_types::make_shared<ChColorAsset>(m_color));
     }
 
     // Add collision shape
     if (m_collide) {
-        ////auto trimesh_c = chrono_types::make_shared<geometry::ChTriangleMeshConnected>();
-        ////trimesh_c->LoadWavefrontMesh(GetChronoDataFile(col_mesh_file), false, false);
+        std::string col_mesh_file = "robot/curiosity/col/" + m_mesh_name + ".obj";
+        auto trimesh_col = chrono_types::make_shared<geometry::ChTriangleMeshConnected>();
+        trimesh_col->LoadWavefrontMesh(GetChronoDataFile(col_mesh_file), false, false);
+        trimesh_col->Transform(m_mesh_xform.GetPos(), m_mesh_xform.GetA());  // translate/rotate/scale mesh
+        trimesh_col->RepairDuplicateVertexes(1e-9);                          // if meshes are not watertight
 
         m_body->GetCollisionModel()->ClearModel();
         m_body->GetCollisionModel()->AddTriangleMesh(m_mat, trimesh_col, false, false, VNULL, ChMatrix33<>(1), 0.005);
@@ -249,6 +234,24 @@ void CuriosityPart::Construct(ChSystem* system) {
     }
 
     system->AddBody(m_body);
+}
+
+void CuriosityPart::CalcMassProperties(double density) {
+    std::string mesh_filename = "robot/curiosity/col/" + m_mesh_name + ".obj";
+    auto trimesh_col = chrono_types::make_shared<geometry::ChTriangleMeshConnected>();
+    trimesh_col->LoadWavefrontMesh(GetChronoDataFile(mesh_filename), false, false);
+    trimesh_col->Transform(m_mesh_xform.GetPos(), m_mesh_xform.GetA());  // translate/rotate/scale mesh
+    trimesh_col->RepairDuplicateVertexes(1e-9);                          // if meshes are not watertight
+
+    double vol;
+    ChVector<> cog_pos;
+    ChMatrix33<> cog_rot;
+    ChMatrix33<> inertia;
+    trimesh_col->ComputeMassProperties(true, vol, cog_pos, inertia);
+    ChInertiaUtils::PrincipalInertia(inertia, m_inertia, cog_rot);
+    m_mass = density * vol;
+    m_inertia *= density;
+    m_cog = ChFrame<>(cog_pos, cog_rot);
 }
 
 void CuriosityPart::Initialize(std::shared_ptr<ChBodyAuxRef> chassis) {
@@ -268,35 +271,24 @@ CuriosityChassis::CuriosityChassis(const std::string& name,
     : CuriosityPart(name, ChFrame<>(VNULL, QUNIT), mat, false), m_chassis_type(chassis_type) {
     switch (m_chassis_type) {
         case CuriosityChassisType::FullRover:
+            m_mass = 750;
+            m_inertia = ChVector<>(0.85, 0.85, 1.0) * m_mass;
+            m_cog = ChFrame<>();
             m_mesh_name = "curiosity_chassis";
             break;
 
         case CuriosityChassisType::Scarecrow:
+            m_mass = 200;
+            m_inertia = ChVector<>(0.4, 0.4, 0.5) * m_mass;
+            m_cog = ChFrame<>();
             m_mesh_name = "scarecrow_chassis";
             break;
     }
-    m_density = 50;
     m_color = ChColor(1.0f, 1.0f, 1.0f);
 }
 
 void CuriosityChassis::Initialize(ChSystem* system, const ChFrame<>& pos) {
     Construct(system);
-
-    double vol = 0;
-    ChVector<> inertia;
-    switch (m_chassis_type) {
-        case CuriosityChassisType::FullRover:
-            vol = 8.3;
-            inertia = ChVector<>(0.2);
-            break;
-        case CuriosityChassisType::Scarecrow:
-            vol = 2.3;
-            inertia = ChVector<>(0.5);
-            break;
-    }
-    m_body->SetMass(vol * m_density);
-    m_body->SetInertiaXX(m_density * inertia);
-    m_body->SetFrame_COG_to_REF(ChFrame<>());
 
     m_body->SetFrame_REF_to_abs(pos);
 }
@@ -320,42 +312,45 @@ CuriosityWheel::CuriosityWheel(const std::string& name,
             break;
     }
     m_color = ChColor(1.0f, 1.0f, 1.0f);
-    m_density = 2000;
-}
 
-void CuriosityWheel::Initialize(std::shared_ptr<ChBodyAuxRef> chassis) {
-    CuriosityPart::Initialize(chassis);
-
-    double vol = 0.004;
-    ChVector<> inertia(0.01);
-    m_body->SetMass(vol * m_density);
-    m_body->SetInertiaXX(m_density * inertia);
-    m_body->SetFrame_COG_to_REF(ChFrame<>());
+    double radius = 0.25;       // wheel radius
+    double width = 0.40;        // wheel width
+    double thickness = 0.8e-3;  // average thickness
+    double density = 2700;      // aluminum
+    double radius1 = radius - thickness;
+    double vol = (CH_C_2PI * radius * width + CH_C_PI * radius * radius) * thickness;
+    double gyration1 = (3 * (radius * radius + radius1 * radius1) + width * width) / 12.0;
+    double gyration2 = (radius * radius + radius1 * radius1) / 2.0;
+    m_mass = density * vol;
+    m_inertia = ChVector<>(gyration1, gyration2, gyration1) * m_mass;
+    m_cog = ChFrame<>();
 }
 
 // Curiosity suspension rocker
 CuriosityRocker::CuriosityRocker(const std::string& name,
-                           const ChFrame<>& rel_pos,
-                           std::shared_ptr<ChMaterialSurface> mat,
-                           int side)
-    : CuriosityPart(name, rel_pos, mat, false) {
-    m_mesh_name = (side == 0) ? "curiosity_F_L_arm" : "curiosity_F_R_arm";
-    m_color = ChColor(1.0f, 0.4f, 0.0f);
-    m_density = 2000;
-}
-
-// Curiosity suspension bogie
-CuriosityBogie::CuriosityBogie(const std::string& name,
                                  const ChFrame<>& rel_pos,
                                  std::shared_ptr<ChMaterialSurface> mat,
                                  int side)
     : CuriosityPart(name, rel_pos, mat, false) {
-    m_mesh_name = (side == 0) ? "curiosity_B_L_arm" : "curiosity_B_R_arm";
-    m_color = ChColor(0.4f, 1.0f, 0.0f);
-    m_density = 2000;
+    m_mesh_name = (side == 0) ? "curiosity_F_L_arm" : "curiosity_F_R_arm";
+    m_color = ChColor(1.0f, 0.4f, 0.0f);
+
+    // Titanium tubing (use an average density)
+    CalcMassProperties(2000);
 }
 
+// Curiosity suspension bogie
+CuriosityBogie::CuriosityBogie(const std::string& name,
+                               const ChFrame<>& rel_pos,
+                               std::shared_ptr<ChMaterialSurface> mat,
+                               int side)
+    : CuriosityPart(name, rel_pos, mat, false) {
+    m_mesh_name = (side == 0) ? "curiosity_B_L_arm" : "curiosity_B_R_arm";
+    m_color = ChColor(0.4f, 1.0f, 0.0f);
 
+    // Titanium tubing (use an average density)
+    CalcMassProperties(2000);
+}
 
 // Curiosity steering rod
 CuriosityUpright::CuriosityUpright(const std::string& name,
@@ -364,17 +359,10 @@ CuriosityUpright::CuriosityUpright(const std::string& name,
     : CuriosityPart(name, rel_pos, mat, false) {
     m_mesh_name = "curiosity_steer";
     m_color = ChColor(0.4f, 0.4f, 0.7f);
-    m_density = 1000;
-}
 
-void CuriosityUpright::Initialize(std::shared_ptr<ChBodyAuxRef> chassis) {
-    CuriosityPart::Initialize(chassis);
-
-    double vol = 0.01;
-    ChVector<> inertia(0.01);
-    m_body->SetMass(vol * m_density);
-    m_body->SetInertiaXX(m_density * inertia);
-    m_body->SetFrame_COG_to_REF(ChFrame<>());
+    m_mass = 6;
+    m_inertia = ChVector<>(0.007, 0.007, 0.004) * m_mass;
+    m_cog = ChFrame<>();
 }
 
 // Curiosity differential bar
@@ -384,18 +372,20 @@ CuriosityDifferentialBar::CuriosityDifferentialBar(const std::string& name,
     : CuriosityPart(name, rel_pos, mat, false) {
     m_mesh_name = "curiosity_balancer";
     m_color = ChColor(0.4f, 0.4f, 0.7f);
-    m_density = 1000;
+
+    CalcMassProperties(1000);
 }
 
 // Curiosity differential links
 CuriosityDifferentialLink::CuriosityDifferentialLink(const std::string& name,
-                                     const ChFrame<>& rel_pos,
-                                     std::shared_ptr<ChMaterialSurface> mat,
-                                     int side)
+                                                     const ChFrame<>& rel_pos,
+                                                     std::shared_ptr<ChMaterialSurface> mat,
+                                                     int side)
     : CuriosityPart(name, rel_pos, mat, false) {
     m_mesh_name = (side == 0) ? "curiosity_bar_L" : "curiosity_bar_R";
     m_color = ChColor(0.4f, 0.4f, 0.7f);
-    m_density = 1000;
+
+    CalcMassProperties(1000);
 }
 
 // ==========================================================
@@ -479,7 +469,7 @@ void Curiosity::Initialize(const ChFrame<>& pos) {
     for (int i = 0; i < 2; i++) {
         m_rockers[i]->Initialize(m_chassis->GetBody());
         m_bogies[i]->Initialize(m_chassis->GetBody());
-        
+
         m_diff_links[i]->Initialize(m_chassis->GetBody());
 
         m_rocker_uprights[i]->Initialize(m_chassis->GetBody());
@@ -497,8 +487,8 @@ void Curiosity::Initialize(const ChFrame<>& pos) {
         switch (m_driver->GetDriveMotorType()) {
             case CuriosityDriver::DriveMotorType::SPEED:
                 m_drive_motor_funcs[i] = chrono_types::make_shared<ChFunction_Setpoint>();
-                m_drive_motors[i] =
-                    AddMotorSpeed(m_rocker_uprights[i]->GetBody(), m_wheels[i]->GetBody(), m_chassis, wheel_pos[i], z2y);
+                m_drive_motors[i] = AddMotorSpeed(m_rocker_uprights[i]->GetBody(), m_wheels[i]->GetBody(), m_chassis,
+                                                  wheel_pos[i], z2y);
                 m_drive_motors[i]->SetMotorFunction(m_drive_motor_funcs[i]);
                 break;
             case CuriosityDriver::DriveMotorType::TORQUE:
@@ -527,12 +517,13 @@ void Curiosity::Initialize(const ChFrame<>& pos) {
         switch (m_driver->GetDriveMotorType()) {
             case CuriosityDriver::DriveMotorType::SPEED:
                 m_drive_motor_funcs[i] = chrono_types::make_shared<ChFunction_Setpoint>();
-                m_drive_motors[i] =
-                    AddMotorSpeed(m_bogie_uprights[i - 4]->GetBody(), m_wheels[i]->GetBody(), m_chassis, wheel_pos[i], z2y);
+                m_drive_motors[i] = AddMotorSpeed(m_bogie_uprights[i - 4]->GetBody(), m_wheels[i]->GetBody(), m_chassis,
+                                                  wheel_pos[i], z2y);
                 m_drive_motors[i]->SetMotorFunction(m_drive_motor_funcs[i]);
                 break;
             case CuriosityDriver::DriveMotorType::TORQUE:
-                AddRevoluteJoint(m_bogie_uprights[i - 4]->GetBody(), m_wheels[i]->GetBody(), m_chassis, wheel_pos[i], z2y);
+                AddRevoluteJoint(m_bogie_uprights[i - 4]->GetBody(), m_wheels[i]->GetBody(), m_chassis, wheel_pos[i],
+                                 z2y);
                 break;
         }
     }
@@ -580,8 +571,10 @@ void Curiosity::Initialize(const ChFrame<>& pos) {
     // Add revolute joint for suspension rockers and bogies
     m_rocker_joints[0] = AddRevoluteJoint(m_rockers[0]->GetBody(), m_chassis->GetBody(), m_chassis, cr_rel_pos_lf, z2y);
     m_rocker_joints[1] = AddRevoluteJoint(m_rockers[1]->GetBody(), m_chassis->GetBody(), m_chassis, cr_rel_pos_rf, z2y);
-    m_bogie_joints[0] = AddRevoluteJoint(m_bogies[0]->GetBody(), m_rockers[0]->GetBody(), m_chassis, cr_rel_pos_lb, z2y);
-    m_bogie_joints[1] = AddRevoluteJoint(m_bogies[1]->GetBody(), m_rockers[1]->GetBody(), m_chassis, cr_rel_pos_rb, z2y);
+    m_bogie_joints[0] =
+        AddRevoluteJoint(m_bogies[0]->GetBody(), m_rockers[0]->GetBody(), m_chassis, cr_rel_pos_lb, z2y);
+    m_bogie_joints[1] =
+        AddRevoluteJoint(m_bogies[1]->GetBody(), m_rockers[1]->GetBody(), m_chassis, cr_rel_pos_rb, z2y);
 
     // Set initialization flag
     m_initialized = true;
@@ -699,7 +692,7 @@ void Curiosity::Update() {
     }
 
     for (int i = 0; i < 2; i++) {
-        double steering = m_driver->steer_angles[i+2];
+        double steering = m_driver->steer_angles[i + 2];
         // Enforce maximum steering angle
         ChClampValue(steering, -max_steer_angle, +max_steer_angle);
         m_bogie_motor_funcs[i]->Set_yconst(steering);
