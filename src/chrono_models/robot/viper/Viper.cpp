@@ -574,8 +574,10 @@ void Viper::Initialize(const ChFrame<>& pos) {
         m_drive_shafts[i]->SetInertia(J);
         m_system->Add(m_drive_shafts[i]);
 
+        // Connect shaft aligned with the wheel's axis of rotation (local wheel Y).
+        // Set connection such that a positive torque applied to the shaft results in forward rover motion.
         auto shaftbody_connection = chrono_types::make_shared<ChShaftsBody>();
-        shaftbody_connection->Initialize(m_drive_shafts[i], m_wheels[i]->GetBody(), ChVector<>(0, 0, 1));
+        shaftbody_connection->Initialize(m_drive_shafts[i], m_wheels[i]->GetBody(), ChVector<>(0, 0, -1));
         m_system->Add(shaftbody_connection);
     }
 }
