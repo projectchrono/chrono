@@ -24,24 +24,49 @@
 #include "chrono_vsg/VSGApp.h"
 
 using namespace chrono;
-using namespace geometry;
-using namespace vsg3d;
+using namespace chrono::vsg3d;
 
-int main(int argc, char *argv[]) {
+int main(int argc, char* argv[]) {
     GetLog() << "Copyright (c) 2021 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
 
     ChSystemNSC sys;
-
     auto mat = chrono_types::make_shared<ChMaterialSurfaceNSC>();
-
     auto bin = chrono_types::make_shared<ChBody>();
-    utils::AddSphereGeometry(bin.get(), mat, 1, ChVector<>(0, 0, 0));
-    utils::AddEllipsoidGeometry(bin.get(), mat, ChVector<>(.5, 1, 1), ChVector<>(3, 0, 0));
-    utils::AddBoxGeometry(bin.get(), mat, ChVector<>(1, 1, 1), ChVector<>(6, 0, 0));
-    utils::AddCylinderGeometry(bin.get(), mat, 1, 1, ChVector<>(9, 0, 0));
-    utils::AddConeGeometry(bin.get(), mat, 1, 3, ChVector<>(12, 0, 0));
-    utils::AddCapsuleGeometry(bin.get(), mat, 1, 1, ChVector<>(15, 0, 0));
     sys.AddBody(bin);
+
+    double a = 0.5;
+    double b = 0.25;
+    double c = 0.1;
+    ChVector<> xdir(2.0, 0.0, 0.0);
+    ChVector<> ydir(0.0, 2.0, 0.0);
+    ChVector<> zdir(0.0, 0.0, 2.0);
+    ChQuaternion<> rot(1, 0, 0, 0);
+    rot = Q_from_AngX(CH_C_PI / 6);
+
+    utils::AddSphereGeometry(bin.get(), mat, 0.05, ChVector<>(0, 0, 0));
+    utils::AddSphereGeometry(bin.get(), mat, 0.05, xdir * 2, rot);
+    utils::AddSphereGeometry(bin.get(), mat, 0.05, ydir * 2, rot);
+    utils::AddSphereGeometry(bin.get(), mat, 0.05, zdir * 2, rot);
+
+    ////utils::AddEllipsoidGeometry(bin.get(), mat, ChVector<>(2 * a, a, a), xdir, rot);
+    ////utils::AddEllipsoidGeometry(bin.get(), mat, ChVector<>(b, 2 * b, b), ydir, rot);
+    ////utils::AddEllipsoidGeometry(bin.get(), mat, ChVector<>(c, c, 2 * c), zdir, rot);
+
+    ////utils::AddBoxGeometry(bin.get(), mat, ChVector<>(2 * a, a, a), xdir, rot);
+    ////utils::AddBoxGeometry(bin.get(), mat, ChVector<>(b, 2 * b, b), ydir, rot);
+    ////utils::AddBoxGeometry(bin.get(), mat, ChVector<>(c, c, 2 * c), zdir, rot);
+
+    utils::AddCylinderGeometry(bin.get(), mat, a, 0.5, xdir, rot);
+    utils::AddCylinderGeometry(bin.get(), mat, b, 0.5, ydir, rot);
+    utils::AddCylinderGeometry(bin.get(), mat, c, 0.5, zdir, rot);
+
+    ////utils::AddConeGeometry(bin.get(), mat, a, 1.5, xdir, rot);
+    ////utils::AddConeGeometry(bin.get(), mat, b, 1.5, ydir, rot);
+    ////utils::AddConeGeometry(bin.get(), mat, c, 1.5, zdir, rot);
+
+    ////utils::AddCapsuleGeometry(bin.get(), mat, a, 0.5, xdir, rot);
+    ////utils::AddCapsuleGeometry(bin.get(), mat, b, 0.5, ydir, rot);
+    ////utils::AddCapsuleGeometry(bin.get(), mat, c, 0.5, zdir, rot);
 
     // Render everything
     VSGApp app;
