@@ -21,7 +21,7 @@
 #include <vsgImGui/imgui.h>
 
 #include "chrono_vsg/VSGApp.h"
-
+#include "chrono_vsg/shapes/VSGCsys.h"
 #include "chrono/assets/ChVisualization.h"
 #include "chrono/assets/ChSphereShape.h"
 #include "chrono/assets/ChEllipsoidShape.h"
@@ -424,6 +424,10 @@ void VSGApp::BuildSceneGraph() {
             }
         }
     }
+    VSGCsys csys;
+    csys.genSubgraph(m_dot_subgraph);
+    csys.genSubgraph(m_line_subgraph);
+    csys.genSubgraph(m_polygon_subgraph);
     m_dot_subgraph->setAllChildren(false);
     m_line_subgraph->setAllChildren(false);
     m_polygon_subgraph->setAllChildren(true);

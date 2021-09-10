@@ -30,6 +30,7 @@ SET(ChronoEngine_VSG_SOURCES
     resources/ChVSGPbrMaterial.cpp
     resources/ChVSGPhongMaterial.cpp
     shapes/ChVSGIndexMesh.cpp
+    shapes/VSGCsys.cpp
     shapes/VSGBox.cpp
     shapes/VSGIndexBox.cpp
     shapes/VSGIndexSphere.cpp
@@ -52,12 +53,15 @@ SET(ChronoEngine_VSG_HEADERS
     core/vsg_vertex_shader.h
     core/vsg_phong_fragment_shader.h
     core/vsg_pbr_fragment_shader.h
+    core/lineShader_frag.h
+    core/lineShader_vert.h
     resources/ChVSGSettings.h
     resources/ChVSGPbrMaterial.h
     resources/ChVSGPhongMaterial.h
     resources/VSGPbrMaterial.h
     resources/VSGPhongMaterial.h
     shapes/ChVSGIndexMesh.h
+    shapes/VSGCsys.h
     shapes/VSGBox.h
     shapes/VSGIndexBox.h
     shapes/VSGIndexSphere.h
