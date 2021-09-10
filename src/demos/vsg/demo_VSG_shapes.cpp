@@ -37,36 +37,37 @@ int main(int argc, char* argv[]) {
     double a = 0.5;
     double b = 0.25;
     double c = 0.1;
-    ChVector<> xdir(2.0, 0.0, 0.0);
-    ChVector<> ydir(0.0, 2.0, 0.0);
-    ChVector<> zdir(0.0, 0.0, 2.0);
+    ChVector<> xdir(1.5, 0.0, 0.0);
+    ChVector<> ydir(0.0, 1.5, 0.0);
+    ChVector<> zdir(0.0, 0.0, 1.5);
     ChQuaternion<> rot(1, 0, 0, 0);
-    rot = Q_from_AngX(CH_C_PI / 6);
+    ////rot = Q_from_AngX(CH_C_PI / 6);
 
     utils::AddSphereGeometry(bin.get(), mat, 0.05, ChVector<>(0, 0, 0));
-    utils::AddSphereGeometry(bin.get(), mat, 0.05, xdir * 2, rot);
-    utils::AddSphereGeometry(bin.get(), mat, 0.05, ydir * 2, rot);
-    utils::AddSphereGeometry(bin.get(), mat, 0.05, zdir * 2, rot);
 
-    ////utils::AddEllipsoidGeometry(bin.get(), mat, ChVector<>(2 * a, a, a), xdir, rot);
-    ////utils::AddEllipsoidGeometry(bin.get(), mat, ChVector<>(b, 2 * b, b), ydir, rot);
-    ////utils::AddEllipsoidGeometry(bin.get(), mat, ChVector<>(c, c, 2 * c), zdir, rot);
+    utils::AddSphereGeometry(bin.get(), mat, a, xdir * 1, rot);
+    utils::AddSphereGeometry(bin.get(), mat, b, ydir * 1, rot);
+    utils::AddSphereGeometry(bin.get(), mat, c, zdir * 1, rot);
 
-    ////utils::AddBoxGeometry(bin.get(), mat, ChVector<>(2 * a, a, a), xdir, rot);
-    ////utils::AddBoxGeometry(bin.get(), mat, ChVector<>(b, 2 * b, b), ydir, rot);
-    ////utils::AddBoxGeometry(bin.get(), mat, ChVector<>(c, c, 2 * c), zdir, rot);
+    utils::AddEllipsoidGeometry(bin.get(), mat, ChVector<>(a, 2 * a, 2 * a), xdir * 2, rot);
+    utils::AddEllipsoidGeometry(bin.get(), mat, ChVector<>(2 * b, b, 2 * b), ydir * 2, rot);
+    utils::AddEllipsoidGeometry(bin.get(), mat, ChVector<>(2 * c, 2 * c, c), zdir * 2, rot);
 
-    utils::AddCylinderGeometry(bin.get(), mat, a, 0.5, xdir, rot);
-    utils::AddCylinderGeometry(bin.get(), mat, b, 0.5, ydir, rot);
-    utils::AddCylinderGeometry(bin.get(), mat, c, 0.5, zdir, rot);
+    utils::AddBoxGeometry(bin.get(), mat, ChVector<>(a, 2 * a, 2 * a), xdir * 3, rot);
+    utils::AddBoxGeometry(bin.get(), mat, ChVector<>(2 * b, b, 2 * b), ydir * 3, rot);
+    utils::AddBoxGeometry(bin.get(), mat, ChVector<>(2 * c, 2 * c, c), zdir * 3, rot);
 
-    ////utils::AddConeGeometry(bin.get(), mat, a, 1.5, xdir, rot);
-    ////utils::AddConeGeometry(bin.get(), mat, b, 1.5, ydir, rot);
-    ////utils::AddConeGeometry(bin.get(), mat, c, 1.5, zdir, rot);
+    utils::AddCylinderGeometry(bin.get(), mat, a, 0.5, xdir * 4, rot);
+    utils::AddCylinderGeometry(bin.get(), mat, b, 0.5, ydir * 4, rot);
+    utils::AddCylinderGeometry(bin.get(), mat, c, 0.5, zdir * 4, rot);
 
-    ////utils::AddCapsuleGeometry(bin.get(), mat, a, 0.5, xdir, rot);
-    ////utils::AddCapsuleGeometry(bin.get(), mat, b, 0.5, ydir, rot);
-    ////utils::AddCapsuleGeometry(bin.get(), mat, c, 0.5, zdir, rot);
+    utils::AddConeGeometry(bin.get(), mat, a, 1.5, xdir * 5, rot);
+    utils::AddConeGeometry(bin.get(), mat, b, 1.5, ydir * 5, rot);
+    utils::AddConeGeometry(bin.get(), mat, c, 1.5, zdir * 5, rot);
+
+    utils::AddCapsuleGeometry(bin.get(), mat, a, 0.5, xdir * 6, rot);
+    utils::AddCapsuleGeometry(bin.get(), mat, b, 0.5, ydir * 6, rot);
+    utils::AddCapsuleGeometry(bin.get(), mat, c, 0.5, zdir * 6, rot);
 
     // Render everything
     VSGApp app;
