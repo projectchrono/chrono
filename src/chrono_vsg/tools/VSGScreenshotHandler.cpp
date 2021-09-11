@@ -268,9 +268,15 @@ void VSGScreenshotHandler::screenshot_image(vsg::ref_ptr<vsg::Window> window) {
             pixels[k++] = data[j + 1];
             pixels[k++] = data[j];
              */
+            #ifdef _APPLE_
             pixels[k++] = data[j];
             pixels[k++] = data[j + 1];
             pixels[k++] = data[j + 2];
+            #else
+            pixels[k++] = data[j + 2];
+            pixels[k++] = data[j + 1];
+            pixels[k++] = data[j];
+#endif
         }
 
         // int ans1 = stbi_write_bmp("screenshot.bmp", width, height, 3, pixels);
