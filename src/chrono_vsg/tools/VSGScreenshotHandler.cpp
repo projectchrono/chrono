@@ -273,7 +273,6 @@ void VSGScreenshotHandler::screenshot_image(vsg::ref_ptr<vsg::Window> window) {
             pixels[k++] = data[j + 1];
             pixels[k++] = data[j + 2];
 #else
-            shitty gritty
             pixels[k++] = data[j + 2];
             pixels[k++] = data[j + 1];
             pixels[k++] = data[j];

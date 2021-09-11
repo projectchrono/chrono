@@ -40,6 +40,7 @@ using namespace chrono::vsg3d;
 
 struct GuiParams : public vsg::Inherit<vsg::Object, GuiParams> {
     bool showGui = true;  // you can toggle this with your own EventHandler and key
+    bool showGlobalCsys = false;
 };
 
 class SimpleGuiComponent {
@@ -63,7 +64,7 @@ class SimpleGuiComponent {
             ImGui::SetWindowSize(m_winTitle.c_str(), size);
             ImGui::Text("Chrono::VSG User Interface");  // Display some text (you can use a format strings too)
             static int e = 0;
-            ImGui::Text("3D Draw Mode (tbd): ");
+            ImGui::Text("3D Draw Mode: ");
             ImGui::SameLine();
             ImGui::RadioButton("Filled", &e, 0);
             ImGui::SameLine();
