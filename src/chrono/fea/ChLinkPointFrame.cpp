@@ -83,8 +83,7 @@ void ChLinkPointFrameGeneric::Update(double mytime, bool update_assets) {
     // ...
 }
 
-/*
-ChVectorN<double, 3> ChLinkPointFrameGeneric::GetC() const {
+ChVectorDynamic<> ChLinkPointFrameGeneric::GetConstraintViolation() const {
     ChMatrix33<> Arw(m_csys.rot >> m_body->GetRot());
     ChVector<> res = Arw.transpose() * (m_node->GetPos() - m_body->TransformPointLocalToParent(m_csys.pos));
     ChVectorN<double, 3> C;
@@ -93,7 +92,6 @@ ChVectorN<double, 3> ChLinkPointFrameGeneric::GetC() const {
     C(2) = res.z();
     return C;
 }
-*/
 
 //// STATE BOOKKEEPING FUNCTIONS
 
@@ -379,7 +377,7 @@ void ChLinkPointFrame::Update(double mytime, bool update_assets) {
     // ...
 }
 
-ChVectorN<double, 3> ChLinkPointFrame::GetC() const {
+ChVectorDynamic<> ChLinkPointFrame::GetConstraintViolation() const {
     ChMatrix33<> Arw(m_csys.rot >> m_body->GetRot());
     ChVector<> res = Arw.transpose() * (m_node->GetPos() - m_body->TransformPointLocalToParent(m_csys.pos));
     ChVectorN<double, 3> C;

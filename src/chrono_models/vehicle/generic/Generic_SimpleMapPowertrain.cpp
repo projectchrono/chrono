@@ -54,14 +54,7 @@ void Generic_SimpleMapPowertrain::SetGearRatios(std::vector<double>& fwd, double
     fwd.push_back(1.4815);
 }
 
-void Generic_SimpleMapPowertrain::Initialize(std::shared_ptr<ChChassis> chassis,
-                                             std::shared_ptr<ChDriveline> driveline) {
-    ChPowertrain::Initialize(chassis, driveline);
-}
-
-void Generic_SimpleMapPowertrain::Synchronize(double time, double throttle) {
-    double shaft_speed = m_driveline->GetDriveshaftSpeed();
-
+void Generic_SimpleMapPowertrain::Synchronize(double time, double throttle, double shaft_speed) {
     // The motor speed is the shaft speed multiplied by gear ratio inversed: (limited to 8000rpm)
     m_motorSpeed = shaft_speed / m_current_gear_ratio;
     m_motorSpeed = m_motorSpeed > (8000. * CH_C_PI / 30.) ? (8000. * CH_C_PI / 30.) : m_motorSpeed;

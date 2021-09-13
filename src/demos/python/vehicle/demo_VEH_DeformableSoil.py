@@ -31,25 +31,41 @@ var_params = True
 class MySoilParams (veh.SoilParametersCallback):
     def __init__(self):
         veh.SoilParametersCallback.__init__(self)
-    def Set(self, x, y):
-        if y > 0 :
-            self.m_Bekker_Kphi = 0.2e6
-            self.m_Bekker_Kc = 0
-            self.m_Bekker_n = 1.1
-            self.m_Mohr_cohesion = 0
-            self.m_Mohr_friction = 30
-            self.m_Janosi_shear = 0.01
-            self.m_elastic_K = 4e7
-            self.m_damping_R = 3e4
+    def Set(self, loc, Kphi, Kc, n, coh, mu_angle, shear, K, R):
+        Kphi_ = veh.doublep_value(Kphi)
+        Kc_ = veh.doublep_value(Kc)
+        n_ = veh.doublep_value(n)
+        coh_ = veh.doublep_value(coh)
+        mu_angle_ = veh.doublep_value(mu_angle)
+        shear_ = veh.doublep_value(shear)
+        K_ = veh.doublep_value(K)
+        R_ = veh.doublep_value(R)
+        if loc.y > 0 :
+            Kphi_ = 0.2e6
+            Kc_ = 0
+            n_ = 1.1
+            coh_ = 0
+            mu_angle_ = 30
+            shear_ = 0.01
+            K_ = 4e7
+            R_ = 3e4
         else:
-            self.m_Bekker_Kphi = 5301e3
-            self.m_Bekker_Kc = 102e3
-            self.m_Bekker_n = 0.793
-            self.m_Mohr_cohesion = 1.3e3
-            self.m_Mohr_friction = 31.1
-            self.m_Janosi_shear = 1.2e-2
-            self.m_elastic_K = 4e8
-            self.m_damping_R = 3e4
+            Kphi_ = 5301e3
+            Kc_ = 102e3
+            n_ = 0.793
+            coh_ = 1.3e3
+            mu_angle_ = 31.1
+            shear_ = 1.2e-2
+            K_ = 4e8
+            R_ = 3e4
+        veh.doublep_assign(Kphi, Kphi_)
+        veh.doublep_assign(Kc, Kc_)
+        veh.doublep_assign(n, n_)
+        veh.doublep_assign(coh, coh_)
+        veh.doublep_assign(mu_angle, mu_angle_)
+        veh.doublep_assign(shear, shear_)
+        veh.doublep_assign(K, K_)
+        veh.doublep_assign(R, R_)
         
 
 # Global parameters for tire

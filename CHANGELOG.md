@@ -5,6 +5,7 @@ Change Log
 ==========
 
 - [Unreleased (development version)](#unreleased-development-branch)
+  - [New Chrono::Vehicle features](#added-new-chronovehicle-features)
   - [New robot models](#added-new-robot-models)
   - [New multicore collision detection system](#added-new-multicore-collision-detection-system)
   - [Miscellaneous additions to Chrono::Gpu](#added-miscellaneous-additions-to-chronogpu)
@@ -46,6 +47,26 @@ Change Log
 - [Release 4.0.0](#release-400---2019-02-22)
 
 ## Unreleased (development branch)
+
+### [Added] New Chrono::Vehicle features
+
+1. A mechanism was added to allow replacing selected kinematic joints with bushings in various Chrono::Vehicle templates.  Several wheeled vehicle suspension templates, the `ChBalancer` subchassis template, as well as the tracked vehicle suspension and track shoe templates were updated to include this option.  
+
+   A particular joint connection with this new option will be modeled as a bushing if bushing data is provided and as a kinematic joint otherwise. For example, the connections of the upper control arms to the chassis in the double wishbone suspension will be modeled as revolute joints (as before) if the virtual method `getUCABushingData` return `nullptr` and as bushings otherwise.  Bushing information is passed as a structure which provides stiffness and damping in the "constrained" linear and rotational directions and stiffness and damping in the DOF directions of the corresponding kinematic joint (see `ChVehicleBushingData`).  When instantiating a vehicle subsystem template through a JSON specification file, a joint with this capability will be modeled as a bushing if a JSON key "Bushing Data" is included.
+
+2. All wheeled vehicle suspension templates that used to model their tierods using distance constraints were updated to optionally use rigid bodies for the tierods (these include the double and single wishbone, MacPherson, multi-link). A derived class specifies the type of tierod model by overriding the virtual function `UseTierodBodies`.  In a JSON file specification for such a suspension, the tierods will be modeled as bodies if the "Tierod" object includes the keys "Mass", "Inertia", and "Radius" and as distance constraints otherwise.
+
+   When tierods are modeled as rigid bodies they will be connected using a spherical and universal joint or using bushings, depending on whether or not bushing data is provided.
+
+3. JSON-based specification of a wheeled vehicle was enhanced to allow specification of rear chassis and associated chassis connectors, as well as subchassis subsystems.  An example set of JSON specification files for modelling an MTV truck with rear walking beam suspensions is available under the `data/vehicle/mtv/` directory.
+
+4. The interface between a Chrono::Vehicle and a powertrain was modified to completely decouple the two systems and use a force-displacement co-simulation approach for all possible combinations of powertrain and driveline templates. In particular, this now allows using a shafts-based powertrain to drive one of the “simple” drivelines.
+
+   Note also that a drivetrain's `GetDriveshaftSpeed` function now always reports a positive angular speed for a vehicle moving forward and a negative value for reverse (although internally these signs must be reversed due to the particular implementation of the shafts-body constraint in Chrono).
+
+5. The contact manager for tracked vehicles was extended to also allow use with a track test rig. Furthermore, new public methods on `ChTrackedVehicle` and `ChTrackTestRig` allow controlling rendering of contact information (normals and/or contact forces) for all monitored subsystems.
+
+6. A demonstration program (`demo_VEH_RenderJSON`) was created to illustrate visualization of a Chrono::Vehicle model based on JSON specificatin files.  Using the Chrono::OpenGL run-time visualization module, this demo program allows re-creating the vehicle model after a potential change to one or more JSON specification files (use key `U` to trigger).
 
 ### [Added] New robot models
 

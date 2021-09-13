@@ -56,7 +56,7 @@ class CH_VEHICLE_API ChPitmanArmShafts : public ChSteering {
         bool rigid_column = false            ///< [in] force a rigid steering column
     );
 
-    virtual ~ChPitmanArmShafts() {}
+    virtual ~ChPitmanArmShafts();
 
     /// Get the name of the vehicle subsystem template.
     virtual std::string GetTemplateName() const override { return "PitmanArmShafts"; }

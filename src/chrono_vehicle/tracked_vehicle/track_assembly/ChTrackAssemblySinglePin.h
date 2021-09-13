@@ -46,7 +46,7 @@ class CH_VEHICLE_API ChTrackAssemblySinglePin : public ChTrackAssemblySegmented 
                              VehicleSide side          ///< [in] assembly on left/right vehicle side
     );
 
-    virtual ~ChTrackAssemblySinglePin() {}
+    virtual ~ChTrackAssemblySinglePin();
 
     /// Get the name of the vehicle subsystem template.
     virtual std::string GetTemplateName() const override { return "TrackAssemblySinglePin"; }

@@ -38,8 +38,8 @@ MTV::MTV()
       m_brake_type(BrakeType::SIMPLE),
       m_powertrainType(PowertrainModelType::SHAFTS),
       m_tireType(TireModelType::RIGID),
+      m_use_walking_beam(false),
       m_tire_step_size(-1),
-      m_steeringType(SteeringTypeWV::PITMAN_ARM),
       m_initFwdVel(0),
       m_initPos(ChCoordsys<>(ChVector<>(0, 0, 1), QUNIT)),
       m_initOmega({0, 0, 0, 0, 0, 0}),
@@ -55,8 +55,8 @@ MTV::MTV(ChSystem* system)
       m_brake_type(BrakeType::SIMPLE),
       m_powertrainType(PowertrainModelType::SHAFTS),
       m_tireType(TireModelType::RIGID),
+      m_use_walking_beam(false),
       m_tire_step_size(-1),
-      m_steeringType(SteeringTypeWV::PITMAN_ARM),
       m_initFwdVel(0),
       m_initPos(ChCoordsys<>(ChVector<>(0, 0, 1), QUNIT)),
       m_initOmega({0, 0, 0, 0, 0, 0}),
@@ -78,9 +78,9 @@ void MTV::SetAerodynamicDrag(double Cd, double area, double air_density) {
 // -----------------------------------------------------------------------------
 void MTV::Initialize() {
     // Create and initialize the MTV vehicle
-    m_vehicle = m_system
-                    ? new MTV_Vehicle(m_system, m_fixed, m_brake_type, m_steeringType, m_chassisCollisionType)
-                    : new MTV_Vehicle(m_fixed, m_brake_type, m_steeringType, m_contactMethod, m_chassisCollisionType);
+    m_vehicle =
+        m_system ? new MTV_Vehicle(m_system, m_fixed, m_use_walking_beam, m_brake_type, m_chassisCollisionType)
+                 : new MTV_Vehicle(m_fixed, m_use_walking_beam, m_brake_type, m_contactMethod, m_chassisCollisionType);
 
     m_vehicle->SetInitWheelAngVel(m_initOmega);
     m_vehicle->Initialize(m_initPos, m_initFwdVel);

@@ -34,7 +34,7 @@ class CH_VEHICLE_API ChTrackBrakeShafts : public ChTrackBrake {
   public:
     ChTrackBrakeShafts(const std::string& name);
 
-    virtual ~ChTrackBrakeShafts() {}
+    virtual ~ChTrackBrakeShafts();
 
     /// Get the name of the vehicle subsystem template.
     virtual std::string GetTemplateName() const override { return "TrackBrakeShafts"; }

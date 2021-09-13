@@ -32,6 +32,8 @@ namespace vehicle {
 ChTrackAssemblySinglePin::ChTrackAssemblySinglePin(const std::string& name, VehicleSide side)
     : ChTrackAssemblySegmented(name, side) {}
 
+ChTrackAssemblySinglePin::~ChTrackAssemblySinglePin() {}
+
 // -----------------------------------------------------------------------------
 // Assemble track shoes over wheels.
 //

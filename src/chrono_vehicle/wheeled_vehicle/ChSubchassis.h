@@ -23,6 +23,7 @@
 
 #include "chrono_vehicle/ChApiVehicle.h"
 #include "chrono_vehicle/ChPart.h"
+#include "chrono_vehicle/ChChassis.h"
 
 namespace chrono {
 namespace vehicle {
@@ -36,7 +37,7 @@ class CH_VEHICLE_API ChSubchassis : public ChPart {
     ChSubchassis(const std::string& name  ///< [in] name of the subsystem
     );
 
-    virtual ~ChSubchassis() {}
+    virtual ~ChSubchassis();
 
     /// Get the location of the subchassis relative to the chassis reference frame.
     /// The subchassis reference frame is always aligned with the chassis reference frame.
@@ -52,12 +53,11 @@ class CH_VEHICLE_API ChSubchassis : public ChPart {
     virtual ChVector<> GetCOMPos() const = 0;
 
     /// Initialize this subchassis subsystem.
-    /// The subchassis is initialized by attaching it to the specified
-    /// chassis body at the specified location (with respect to and expressed in
-    /// the reference frame of the chassis). It is assumed that the subchassis
-    /// reference frame is always aligned with the chassis reference frame.
-    virtual void Initialize(std::shared_ptr<ChBodyAuxRef> chassis,  ///< [in] handle to the chassis body
-                            const ChVector<>& location              ///< [in] location relative to the chassis frame
+    /// The subchassis is initialized by attaching it to the specified chassis at the specified location (with respect
+    /// to and expressed in the reference frame of the chassis). It is assumed that the subchassis reference frame is
+    /// always aligned with the chassis reference frame.
+    virtual void Initialize(std::shared_ptr<ChChassis> chassis,  ///< [in] chassis
+                            const ChVector<>& location           ///< [in] location relative to the chassis frame
                             ) = 0;
 
   protected:

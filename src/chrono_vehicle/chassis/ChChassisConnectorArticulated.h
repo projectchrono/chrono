@@ -36,6 +36,7 @@ namespace vehicle {
 class CH_VEHICLE_API ChChassisConnectorArticulated : public ChChassisConnector {
   public:
     ChChassisConnectorArticulated(const std::string& name);
+    ~ChChassisConnectorArticulated();
 
     /// Get the name of the vehicle subsystem template.
     virtual std::string GetTemplateName() const override { return "ChassisConnectorArticulated"; }

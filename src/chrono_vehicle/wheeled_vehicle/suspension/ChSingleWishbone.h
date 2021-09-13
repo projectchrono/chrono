@@ -53,7 +53,7 @@ namespace vehicle {
 /// the right side.
 class CH_VEHICLE_API ChSingleWishbone : public ChSuspension {
   public:
-    virtual ~ChSingleWishbone() {}
+    virtual ~ChSingleWishbone();
 
     /// Get the name of the vehicle subsystem template.
     virtual std::string GetTemplateName() const override { return "SingleWishbone"; }
@@ -94,7 +94,7 @@ class CH_VEHICLE_API ChSingleWishbone : public ChSuspension {
 
     /// Get the wheel track for the suspension subsystem.
     virtual double GetTrack() override;
- 
+
     /// Get a handle to the specified shock (damper) element.
     std::shared_ptr<ChLinkTSDA> GetShock(VehicleSide side) const { return m_shock[side]; }
 
@@ -141,6 +141,12 @@ class CH_VEHICLE_API ChSingleWishbone : public ChSuspension {
     /// Protected constructor.
     ChSingleWishbone(const std::string& name);
 
+    /// Indicate whether or not tirod bodies are modelled (default: false).
+    /// If false, tierods are modelled using distance constraints.
+    /// If true, rigid tierod bodies are created (in which case a derived class must provide the mass and inertia) and
+    /// connected either with kinematic joints or bushings (depending on whether or not bushing data is defined).
+    virtual bool UseTierodBodies() const { return false; }
+
     /// Return the location of the specified hardpoint.
     /// The returned location must be expressed in the suspension reference frame.
     virtual const ChVector<> getLocation(PointId which) = 0;
@@ -151,19 +157,21 @@ class CH_VEHICLE_API ChSingleWishbone : public ChSuspension {
     virtual double getCAMass() const = 0;
     /// Return the mass of the upright body.
     virtual double getUprightMass() const = 0;
+    /// Return the mass of the tierod body.
+    virtual double getTierodMass() const { return 0; }
 
     /// Return the moments of inertia of the spindle body.
     virtual const ChVector<>& getSpindleInertia() const = 0;
-
     /// Return the moments of inertia of the control arm body.
     virtual const ChVector<>& getCAInertiaMoments() const = 0;
     /// Return the products of inertia of the control arm body.
     virtual const ChVector<>& getCAInertiaProducts() const = 0;
-
     /// Return the moments of inertia of the upright body.
     virtual const ChVector<>& getUprightInertiaMoments() const = 0;
     /// Return the products of inertia of the upright body.
     virtual const ChVector<>& getUprightInertiaProducts() const = 0;
+    /// Return the moments of inertia of the tierod body.
+    virtual const ChVector<> getTierodInertia() const { return ChVector<>(0); }
 
     /// Return the inertia of the axle shaft.
     virtual double getAxleInertia() const = 0;
@@ -172,20 +180,34 @@ class CH_VEHICLE_API ChSingleWishbone : public ChSuspension {
     virtual double getCARadius() const = 0;
     /// Return the radius of the upright body (visualization only).
     virtual double getUprightRadius() const = 0;
+    /// Return the radius of the tierod body (visualization only).
+    virtual double getTierodRadius() const { return 0; }
 
     /// Return the free (rest) length of the spring element.
     virtual double getSpringRestLength() const = 0;
     /// Return the functor object for spring-damper force.
     virtual std::shared_ptr<ChLinkTSDA::ForceFunctor> getShockForceFunctor() const = 0;
 
-    std::shared_ptr<ChBody> m_upright[2];      ///< handles to the upright bodies (left/right)
-    std::shared_ptr<ChBody> m_control_arm[2];  ///< handles to the control arm bodies (left/right)
+    /// Return stiffness and damping data for the chassis-CA bushing.
+    /// Returning nullptr (default) results in using a kinematic revolute joint.
+    virtual std::shared_ptr<ChVehicleBushingData> getCABushingData() const { return nullptr; }
+    /// Return stiffness and damping data for the tierod bushings.
+    /// Used only if tierod bodies are defined (see UseTierodBody).
+    /// Returning nullptr (default) results in using kinematic joints (spherical + universal).
+    virtual std::shared_ptr<ChVehicleBushingData> getTierodBushingData() const { return nullptr; }
 
-    std::shared_ptr<ChLinkLockRevolute> m_revoluteCA[2];  ///< handles to the chassis-CA revolute joints (left/right)
-    std::shared_ptr<ChLinkLockRevolute> m_revoluteUA[2];  ///< handles to the upright-CA revolute joints (left/right)
-    std::shared_ptr<ChLinkDistance> m_distTierod[2];      ///< handles to the tierod distance constraints (left/right)
+    std::shared_ptr<ChBody> m_upright[2];      ///< upright bodies (left/right)
+    std::shared_ptr<ChBody> m_control_arm[2];  ///< control arm bodies (left/right)
+    std::shared_ptr<ChBody> m_tierod[2];       ///< tierod bodies, if used (left/right)
 
-    std::shared_ptr<ChLinkTSDA> m_shock[2];   ///< handles to the spring-damper (left/right)
+    std::shared_ptr<ChVehicleJoint> m_revoluteCA[2];  ///< chassis-CA revolute joints (left/right)
+    std::shared_ptr<ChVehicleJoint> m_revoluteUA[2];  ///< upright-CA revolute joints (left/right)
+
+    std::shared_ptr<ChLinkDistance> m_distTierod[2];       ///< tierod distance constraints (left/right)
+    std::shared_ptr<ChVehicleJoint> m_sphericalTierod[2];  ///< tierod-upright spherical joints (left/right)
+    std::shared_ptr<ChVehicleJoint> m_universalTierod[2];  ///< tierod-chassis universal joints (left/right)
+
+    std::shared_ptr<ChLinkTSDA> m_shock[2];  ///< spring-damper (left/right)
 
   private:
     // Hardpoint absolute locations
@@ -193,9 +215,9 @@ class CH_VEHICLE_API ChSingleWishbone : public ChSuspension {
     std::vector<ChVector<>> m_pointsR;
 
     void InitializeSide(VehicleSide side,
-                        std::shared_ptr<ChBodyAuxRef> chassis,
+                        std::shared_ptr<ChChassis> chassis,
                         std::shared_ptr<ChBody> tierod_body,
-                        const std::vector<ChVector<> >& points,
+                        const std::vector<ChVector<>>& points,
                         double ang_vel);
 
     static void AddVisualizationControlArm(std::shared_ptr<ChBody> arm,
@@ -208,6 +230,10 @@ class CH_VEHICLE_API ChSingleWishbone : public ChSuspension {
                                         const ChVector<> pt_A,
                                         const ChVector<> pt_T,
                                         double radius);
+    static void AddVisualizationTierod(std::shared_ptr<ChBody> tierod,
+                                       const ChVector<> pt_C,
+                                       const ChVector<> pt_U,
+                                       double radius);
 
     virtual void ExportComponentList(rapidjson::Document& jsonDocument) const override;
 

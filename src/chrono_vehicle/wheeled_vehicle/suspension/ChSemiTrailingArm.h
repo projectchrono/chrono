@@ -56,7 +56,7 @@ class CH_VEHICLE_API ChSemiTrailingArm : public ChSuspension {
     ChSemiTrailingArm(const std::string& name  ///< [in] name of the subsystem
                       );
 
-    virtual ~ChSemiTrailingArm() {}
+    virtual ~ChSemiTrailingArm();
 
     /// Get the name of the vehicle subsystem template.
     virtual std::string GetTemplateName() const override { return "SemiTrailingArm"; }

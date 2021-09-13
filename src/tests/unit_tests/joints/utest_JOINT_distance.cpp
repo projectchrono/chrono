@@ -317,7 +317,7 @@ bool TestDistance(
             out_energy << simTime << transKE << rotKE << deltaPE << totalE - totalE0 << std::endl;
 
             // Constraint violations
-            out_cnstr << simTime << distanceConstraint->GetC() << std::endl;
+            out_cnstr << simTime << distanceConstraint->GetConstraintViolation()[0] << std::endl;
 
             // Increment output time
             outTime += outTimeStep;

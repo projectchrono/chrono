@@ -48,11 +48,6 @@ class CH_MODELS_API Generic_SimpleDriveline : public ChDrivelineWV {
                             const std::vector<int>& driven_axles  ///< indexes of the driven vehicle axles
                             ) override;
 
-    /// Get the angular speed of the driveshaft.
-    /// This represents the output from the driveline subsystem that is passed to
-    /// the powertrain system.
-    virtual double GetDriveshaftSpeed() const override;
-
     /// Update the driveline subsystem: apply the specified motor torque.
     /// This represents the input to the driveline subsystem from the powertrain
     /// system.

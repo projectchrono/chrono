@@ -40,6 +40,7 @@ namespace vehicle {
 /// @{
 
 class ChTrackedVehicle;
+class ChTrackTestRig;
 
 // -----------------------------------------------------------------------------
 
@@ -55,7 +56,14 @@ class CH_VEHICLE_API ChTrackContactManager : public ChContactContainer::ReportCo
     void SetTrackShoeIndexLeft(size_t idx) { m_shoe_index_L = idx; }
     void SetTrackShoeIndexRight(size_t idx) { m_shoe_index_R = idx; }
 
+    void SetRenderNormals(bool val) { m_render_normals = val; }
+    void SetRenderForces(bool val, double scale) {
+        m_render_forces = val;
+        m_scale_forces = scale;
+    }
+
     void Process(ChTrackedVehicle* vehicle);
+    void Process(ChTrackTestRig* rig);
 
     bool InContact(TrackedCollisionFlag::Enum part) const;
 
@@ -88,6 +96,10 @@ class CH_VEHICLE_API ChTrackContactManager : public ChContactContainer::ReportCo
     int m_flags;         ///< contact bit flags
     bool m_collect;      ///< flag indicating whether or not data is collected
 
+    bool m_render_normals;  ///< render contact normals
+    bool m_render_forces;   ///< render contact forces
+    double m_scale_forces;  ///< contact force rendering scale
+
     utils::CSV_writer m_csv;
 
     std::shared_ptr<ChChassis> m_chassis;
@@ -110,6 +122,7 @@ class CH_VEHICLE_API ChTrackContactManager : public ChContactContainer::ReportCo
     std::list<ContactInfo> m_idler_R_contacts;     ///< list of contacts on right idler wheel
 
     friend class ChTrackedVehicleIrrApp;
+    friend class ChTrackTestRigIrrApp;
 };
 
 // -----------------------------------------------------------------------------

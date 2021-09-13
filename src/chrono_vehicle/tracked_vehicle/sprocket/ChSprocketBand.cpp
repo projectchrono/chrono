@@ -76,11 +76,8 @@ class SprocketBandContactCB : public ChSystem::CustomCollisionCallback {
           m_lateral_contact(lateral_contact),
           m_lateral_backlash(lateral_backlash),
           m_shoe_pin(shoe_pin) {
-        m_sprocket = std::dynamic_pointer_cast<ChSprocketBand>(m_track->GetSprocket());
+        m_sprocket = static_cast<ChSprocketBand*>(m_track->GetSprocket().get());
         auto shoe = std::dynamic_pointer_cast<ChTrackShoeBand>(track->GetTrackShoe(0));
-
-        ////m_gear_nteeth = gear_nteeth;
-        ////m_separation = separation;
 
         // The angle between the centers of two sequential teeth on the sprocket
         m_beta = CH_C_2PI / m_sprocket->GetNumTeeth();
@@ -203,11 +200,9 @@ class SprocketBandContactCB : public ChSystem::CustomCollisionCallback {
                           const ChVector<>& dirS_abs              // sprocket Y direction (global frame)
     );
 
-    ChTrackAssembly* m_track;                    // pointer to containing track assembly
-    std::shared_ptr<ChSprocketBand> m_sprocket;  // handle to the sprocket
+    ChTrackAssembly* m_track;    // pointer to containing track assembly
+    ChSprocketBand* m_sprocket;  // pointer to the sprocket
 
-    ////int m_gear_nteeth;                            // sprocket gear, number of teeth
-    ////double m_separation;                          // separation distance between sprocket gears
     double m_gear_tread_broadphase_dist_squared;  // Tread body to Sprocket quick Broadphase distance squared check
 
     ChVector2<> m_gear_center_p;                 // center of (+x) arc, in sprocket body x-z plane
