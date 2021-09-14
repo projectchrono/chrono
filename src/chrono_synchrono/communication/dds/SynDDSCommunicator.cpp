@@ -248,7 +248,8 @@ std::shared_ptr<SynDDSSubscriber> SynDDSCommunicator::CreateSubscriber(const std
 }
 
 std::shared_ptr<SynDDSPublisher> SynDDSCommunicator::CreatePublisher(std::shared_ptr<SynDDSTopic> topic,
-                                                                     bool is_managed) {
+                                                                     bool is_managed,
+                                                                     eprosima::fastdds::dds::DataWriterQos* write_qos) {
     SynLog() << "Creating Publisher " << topic->GetFullTopicName() << "\n";
 
     if (!m_participant) {
@@ -263,17 +264,23 @@ std::shared_ptr<SynDDSPublisher> SynDDSCommunicator::CreatePublisher(std::shared
         return nullptr;
     }
 
-    // Create the data reader qos and allow for automattic reallocation on data reception
-    DataWriterQos qos;
-    qos.reliability().kind = RELIABLE_RELIABILITY_QOS;
-    qos.endpoint().history_memory_policy = PREALLOCATED_WITH_REALLOC_MEMORY_MODE;
-    qos.history().kind = KEEP_LAST_HISTORY_QOS;
+    std::shared_ptr<DataWriterQos> qos = nullptr;
+    if (write_qos != nullptr) {
+        qos = std::make_shared<DataWriterQos>(*write_qos);
+    }
+    // Create data reader qos and allow for automatic reallocation on data reception
+    else {
+        qos = std::make_shared<DataWriterQos>();
+        qos->reliability().kind = RELIABLE_RELIABILITY_QOS;
+        qos->endpoint().history_memory_policy = PREALLOCATED_WITH_REALLOC_MEMORY_MODE;
+        qos->history().kind = KEEP_LAST_HISTORY_QOS;
+    }
 
     // Create the listener
     auto listener = new SynDDSDataWriterListener();
 
     // Create the DataWriter
-    auto writer = publisher->create_datawriter(topic->GetDDSTopic(), qos, listener);
+    auto writer = publisher->create_datawriter(topic->GetDDSTopic(), *qos, listener);
     if (!writer) {
         SynLog() << "CreatePublisher: Writer Instantiation FAILED\n";
         return nullptr;

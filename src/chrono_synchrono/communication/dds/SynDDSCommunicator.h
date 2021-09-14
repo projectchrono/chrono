@@ -40,6 +40,7 @@ class DomainParticipant;
 class DomainParticipantQos;
 class TopicDataType;
 class DataReaderQos;
+class DataWriterQos;
 
 }  // namespace dds
 }  // namespace fastdds
@@ -144,7 +145,7 @@ class SYN_API SynDDSCommunicator : public SynCommunicator {
     ///@param message The message that is used to parse the returned message
     ///@param is_synchronous Whether the subscriber synchronously receives data (default: true)
     ///@param is_managed Whether the SynDDSCommunicator is responsible for using the sending/receiving function calls
-    ///@param read_qos Data Reader Quality of Service. Fallback to default if nullptr
+    ///@param read_qos Data Reader Quality of Service. Falls back to default if nullptr
     std::shared_ptr<SynDDSSubscriber> CreateSubscriber(std::shared_ptr<SynDDSTopic> topic,
                                                        std::function<void(void*)> callback,
                                                        void* message,
@@ -175,7 +176,10 @@ class SYN_API SynDDSCommunicator : public SynCommunicator {
     ///
     ///@param topic Topic object describing the DDS topic
     ///@param is_managed Whether the SynDDSCommunicator is responsible for using the sending/receiving function calls
-    std::shared_ptr<SynDDSPublisher> CreatePublisher(std::shared_ptr<SynDDSTopic> topic, bool is_managed = false);
+    ///@param read_qos Data Writer Quality of Service. Falls back to default if nullptr
+    std::shared_ptr<SynDDSPublisher> CreatePublisher(std::shared_ptr<SynDDSTopic> topic, 
+                                                     bool is_managed = false,
+                                                     eprosima::fastdds::dds::DataWriterQos* write_qos = nullptr);
 
     ///@brief Create a Publisher
     /// Returns a publisher handle to be used to publish information
