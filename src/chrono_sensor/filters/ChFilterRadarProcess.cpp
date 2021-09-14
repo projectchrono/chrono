@@ -54,7 +54,6 @@ CH_SENSOR_API void ChFilterRadarProcess::Initialize(std::shared_ptr<ChSensor> pS
     bufferInOut = m_buffer_out;
 }
 CH_SENSOR_API void ChFilterRadarProcess::Apply() {
-
     // converts azimuth and elevation to XYZ Coordinates in device
     cuda_radar_pointcloud_from_angles(m_buffer_in->Buffer.get(), m_buffer_out->Buffer.get(), (int)m_buffer_in->Width,
                                      (int)m_buffer_in->Height, m_hFOV, m_max_vert_angle, m_min_vert_angle,
@@ -122,7 +121,7 @@ CH_SENSOR_API void ChFilterRadarProcess::Apply() {
                                processed_buffer[i].xyz[2]});
     }
 
-    int minimum_points = 10;
+    int minimum_points = 3;
     float epsilon = 1;
 
 #if PROFILE
@@ -190,7 +189,18 @@ CH_SENSOR_API void ChFilterRadarProcess::Apply() {
     m_buffer_out->invalid_returns = m_buffer_out->Beam_return_count - valid_returns.size();
     m_buffer_out->Beam_return_count = valid_returns.size();
     m_buffer_out->Num_clusters = clusters.size();
-    printf("number of clusters: %f\n", clusters.size());
+
+    for (int i = 0; i < clusters.size(); i++){
+        valid_returns.data()[i].xyz[0] = m_buffer_out->centroids[i][0];
+        valid_returns.data()[i].xyz[1] = m_buffer_out->centroids[i][1];
+        valid_returns.data()[i].xyz[2] = m_buffer_out->centroids[i][2];
+        valid_returns.data()[i].vel[0] = m_buffer_out->avg_velocity[i][0];
+        valid_returns.data()[i].vel[1] = m_buffer_out->avg_velocity[i][1];
+        valid_returns.data()[i].vel[2] = m_buffer_out->avg_velocity[i][2];
+        valid_returns.data()[i].intensity = m_buffer_out->intensity[i];
+    }
+    m_buffer_out->Beam_return_count = clusters.size();
+//    printf("number of clusters: %f\n", clusters.size());
     memcpy(m_buffer_out->Buffer.get(), valid_returns.data(),
            m_buffer_out->Beam_return_count * sizeof(RadarTrack));
 

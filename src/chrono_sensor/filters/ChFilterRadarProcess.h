@@ -14,7 +14,7 @@
 //
 // =============================================================================
 
-#define PROFILE true
+#define PROFILE false
 
 #ifndef CHFILTERRADARPROCESS_H
     #define CHFILTERRADARPROCESS_H

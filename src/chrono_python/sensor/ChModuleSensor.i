@@ -379,13 +379,13 @@ void GetDIData(float** vec, int* h, int* w, int* c) {
     }
 }
 ////
-//// RadarTrack Extension
+//// RadarReturn Extension
 ////
-%extend chrono::sensor::RadarBufferT<std::shared_ptr<chrono::sensor::RadarTrack[]>>{
+%extend chrono::sensor::RadarBufferT<std::shared_ptr<chrono::sensor::RadarReturn[]>>{
     void GetRadarData(float** vec, int* h, int* w, int* c){
         *h = $self->Height;
         *w = $self->Width;
-        *c = sizeof(RadarTrack)/sizeof(float);
+        *c = sizeof(RadarReturn)/sizeof(float);
         *vec = reinterpret_cast<float*>($self->Buffer.get());
     }
 }
@@ -403,7 +403,7 @@ void GetDIData(float** vec, int* h, int* w, int* c) {
 //// RadarTrack Extension
 ////
 %extend chrono::sensor::RadarBufferT<std::shared_ptr<chrono::sensor::RadarTrack[]>>{
-    void GetRadarData(float** vec, int* h, int* w, int* c){
+    void GetProcessedRadarData(float** vec, int* h, int* w, int* c){
         *h = $self->Height;
         *w = $self->Width;
         *c = sizeof(RadarTrack)/sizeof(float);
