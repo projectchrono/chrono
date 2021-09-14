@@ -147,6 +147,20 @@ using SensorDeviceR8Buffer = SensorBufferT<DeviceR8BufferPtr>;
 /// pointer to a greyscale image on the host that has been moved for safety and can be given to the user
 using UserR8BufferPtr = std::shared_ptr<SensorHostR8Buffer>;
 
+/// A pixel as defined for semantic segmentation
+struct PixelSemantic {
+    unsigned int instance_id;  ///< class id
+    unsigned int class_id;     ///< class id
+};
+/// Semantic host buffer to be used for managing data on the host
+using SensorHostSemanticBuffer = SensorBufferT<std::shared_ptr<PixelSemantic[]>>;
+/// Semantic device buffer to be used by segmenation camera
+using DeviceSemanticBufferPtr = std::shared_ptr<PixelSemantic[]>;
+/// Sensor buffer wrapper of a DeviceSemanticBufferPtr
+using SensorDeviceSemanticBuffer = SensorBufferT<DeviceSemanticBufferPtr>;
+/// pointer to an semantic image on the host that has been moved for safety and can be given to the user
+using UserSemanticBufferPtr = std::shared_ptr<SensorHostSemanticBuffer>;
+
 //=====================================
 // Range Radar Data Formats and Buffers
 //=====================================
@@ -172,15 +186,15 @@ using UserRadarBufferPtr = std::shared_ptr<SensorHostRadarBuffer>;
 struct RadarTrack {
     float xyz[3];
     float vel[3];
-//    float acceleration[3];
-//    float size[3];
+    //    float acceleration[3];
+    //    float size[3];
     float intensity;
     float objectID;
 
-//    std::array<float, 6> position_covariance;
-//    std::array<float, 6> velocity_covariance;
-//    std::array<float, 6> acceleration_covariance;
-//    std::array<float, 6> size_covariance;
+    //    std::array<float, 6> position_covariance;
+    //    std::array<float, 6> velocity_covariance;
+    //    std::array<float, 6> acceleration_covariance;
+    //    std::array<float, 6> size_covariance;
 };
 /// processed radar host buffer to be used by radar filters in the graph
 using SensorHostProcessedRadarBuffer = RadarBufferT<std::shared_ptr<RadarTrack[]>>;

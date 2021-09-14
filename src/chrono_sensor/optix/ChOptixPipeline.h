@@ -43,11 +43,13 @@ struct Record {
 };
 
 enum class PipelineType {
-    CAMERA_PINHOLE,   // pinhole camera model
-    CAMERA_FOV_LENS,  // FOV lens model
-    LIDAR_SINGLE,     // single sample lidar
-    LIDAR_MULTI,      // multi sample lidar
-    RADAR             // radar model
+    CAMERA_PINHOLE,         // pinhole camera model
+    CAMERA_FOV_LENS,        // FOV lens model
+    SEGMENTATION_PINHOLE,   // pinhole segmentation camera
+    SEGMENTATION_FOV_LENS,  // FOV lens segmentation camera
+    LIDAR_SINGLE,           // single sample lidar
+    LIDAR_MULTI,            // multi sample lidar
+    RADAR                   // radar model
 };
 // TODO: how do we allow custom ray gen programs? (Is that every going to be a thing?)
 
@@ -80,7 +82,7 @@ class CH_SENSOR_API ChOptixPipeline {
     CUdeviceptr GetMeshPool();
     CUdeviceptr GetMaterialPool();
 
-    void AddBody(std::shared_ptr<ChBody> body){m_bodies.push_back(body);}
+    void AddBody(std::shared_ptr<ChBody> body) { m_bodies.push_back(body); }
 
     OptixPipeline& GetPipeline(unsigned int id);
     std::shared_ptr<OptixShaderBindingTable> GetSBT(unsigned int id);
@@ -130,6 +132,8 @@ class CH_SENSOR_API ChOptixPipeline {
     // program groups - we only make one of each - do not clear when rebuilding root
     OptixProgramGroup m_camera_pinhole_raygen_group = 0;
     OptixProgramGroup m_camera_fov_lens_raygen_group = 0;
+    OptixProgramGroup m_segmentation_pinhole_raygen_group = 0;
+    OptixProgramGroup m_segmentation_fov_lens_raygen_group = 0;
     OptixProgramGroup m_lidar_single_raygen_group = 0;
     OptixProgramGroup m_lidar_multi_raygen_group = 0;
     OptixProgramGroup m_radar_raygen_group = 0;

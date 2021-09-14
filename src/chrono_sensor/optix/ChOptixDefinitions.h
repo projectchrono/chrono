@@ -31,10 +31,11 @@ struct half4 {
 };
 
 enum RayType {
-    CAMERA_RAY_TYPE = 0,  // camera rays
-    SHADOW_RAY_TYPE = 1,  // shadow rays
-    LIDAR_RAY_TYPE = 2,   // lidar rays
-    RADAR_RAY_TYPE = 3    // radar rays
+    CAMERA_RAY_TYPE = 0,       // camera rays
+    SHADOW_RAY_TYPE = 1,       // shadow rays
+    LIDAR_RAY_TYPE = 2,        // lidar rays
+    RADAR_RAY_TYPE = 3,        // radar rays
+    SEGMENTATION_RAY_TYPE = 4  // semantic camera rays
 };
 
 struct PointLight {
@@ -70,6 +71,15 @@ struct CameraParameters {
     curandState_t* rng_buffer;  // only initialized if using global illumination
 };
 
+struct SemanticCameraParameters {
+    float hFOV;
+    uint2* frame_buffer;
+    bool use_gi;                // whether to use global illumination
+    half4* albedo_buffer;       // only initialized if using global illumination
+    half4* normal_buffer;       // only initialized if using global illumination (screenspace normal)
+    curandState_t* rng_buffer;  // only initialized if using global illumination
+};
+
 enum class LidarBeamShape {
     RECTANGULAR,  // rectangular beam
     ELLIPTICAL    // elliptical beam
@@ -88,10 +98,7 @@ struct LidarParameters {
     float2* frame_buffer;
 };
 
-enum class RadarReturnMode {
-    RETURN,
-    TRACK
-};
+enum class RadarReturnMode { RETURN, TRACK };
 
 struct RadarParameters {
     float max_vert_angle;
@@ -114,6 +121,7 @@ struct RaygenParameters {
     float4 rot1;
     union {
         CameraParameters camera;
+        SemanticCameraParameters segmentation;
         LidarParameters lidar;
         RadarParameters radar;
     } specific;
@@ -141,14 +149,16 @@ struct MaterialParameters {             // pad to align 16 (swig doesn't support
     float metallic;                     // size 4
     float lidar_intensity;              // size 4
     float radar_backscatter;            // size 4
-    int use_specular_workflow;         // size 4
+    int use_specular_workflow;          // size 4
     cudaTextureObject_t kd_tex;         // size 8
     cudaTextureObject_t kn_tex;         // size 8
     cudaTextureObject_t ks_tex;         // size 8
     cudaTextureObject_t metallic_tex;   // size 8
     cudaTextureObject_t roughness_tex;  // size 8
     cudaTextureObject_t opacity_tex;    // size 8
-    float pad;                          // size 4
+    unsigned int class_id;              // size 4
+    unsigned int instance_id;           // size 4
+    float3 pad;                         // size 12
 };
 
 struct ContextParameters {
@@ -179,6 +189,11 @@ struct PerRayData_camera {
     bool use_gi;
     float3 albedo;
     float3 normal;
+};
+
+struct PerRayData_semantic {
+    unsigned int class_id;
+    unsigned int instance_id;
 };
 
 struct PerRayData_shadow {

@@ -42,11 +42,10 @@ ChOptixPipeline::ChOptixPipeline(OptixDeviceContext context, unsigned int trace_
     if (m_debug) {
         m_pipeline_compile_options.exceptionFlags = OPTIX_EXCEPTION_FLAG_DEBUG;
     }
- 
+
     CompileBaseShaders();
     AssembleBaseProgramGroups();
     CreateBaseSBT();
-  
 }
 
 ChOptixPipeline::~ChOptixPipeline() {
@@ -101,6 +100,14 @@ void ChOptixPipeline::Cleanup() {
     if (m_camera_fov_lens_raygen_group) {
         OPTIX_ERROR_CHECK(optixProgramGroupDestroy(m_camera_fov_lens_raygen_group));
         m_camera_fov_lens_raygen_group = 0;
+    }
+    if (m_segmentation_pinhole_raygen_group) {
+        OPTIX_ERROR_CHECK(optixProgramGroupDestroy(m_segmentation_pinhole_raygen_group));
+        m_segmentation_pinhole_raygen_group = 0;
+    }
+    if (m_segmentation_fov_lens_raygen_group) {
+        OPTIX_ERROR_CHECK(optixProgramGroupDestroy(m_segmentation_fov_lens_raygen_group));
+        m_segmentation_fov_lens_raygen_group = 0;
     }
     if (m_lidar_single_raygen_group) {
         OPTIX_ERROR_CHECK(optixProgramGroupDestroy(m_lidar_single_raygen_group));
@@ -318,6 +325,12 @@ void ChOptixPipeline::AssembleBaseProgramGroups() {
     // camera fov lens raygen
     CreateOptixProgramGroup(m_camera_fov_lens_raygen_group, OPTIX_PROGRAM_GROUP_KIND_RAYGEN, nullptr, nullptr,
                             m_camera_raygen_module, "__raygen__camera_fov_lens");
+    // segmentation pinhole raygen
+    CreateOptixProgramGroup(m_segmentation_pinhole_raygen_group, OPTIX_PROGRAM_GROUP_KIND_RAYGEN, nullptr, nullptr,
+                            m_camera_raygen_module, "__raygen__segmentation_pinhole");
+    // segmentation fov lens raygen
+    CreateOptixProgramGroup(m_segmentation_fov_lens_raygen_group, OPTIX_PROGRAM_GROUP_KIND_RAYGEN, nullptr, nullptr,
+                            m_camera_raygen_module, "__raygen__segmentation_fov_lens");
     // lidar single raygen
     CreateOptixProgramGroup(m_lidar_single_raygen_group, OPTIX_PROGRAM_GROUP_KIND_RAYGEN, nullptr, nullptr,
                             m_lidar_raygen_module, "__raygen__lidar_single");
@@ -414,6 +427,22 @@ void ChOptixPipeline::SpawnPipeline(PipelineType type) {
             raygen_record->data.specific.camera.frame_buffer = {};  // default value
             raygen_record->data.specific.camera.use_gi = false;     // default value
             raygen_record->data.specific.camera.gamma = 2.2;        // default value
+            break;
+        }
+
+        case PipelineType::SEGMENTATION_PINHOLE: {
+            program_groups.push_back(m_segmentation_pinhole_raygen_group);
+            OPTIX_ERROR_CHECK(optixSbtRecordPackHeader(m_segmentation_pinhole_raygen_group, raygen_record.get()));
+            raygen_record->data.specific.segmentation.hFOV = 3.14 / 4.0;  // default value
+            raygen_record->data.specific.segmentation.frame_buffer = {};  // default value
+            break;
+        }
+
+        case PipelineType::SEGMENTATION_FOV_LENS: {
+            program_groups.push_back(m_segmentation_fov_lens_raygen_group);
+            OPTIX_ERROR_CHECK(optixSbtRecordPackHeader(m_segmentation_fov_lens_raygen_group, raygen_record.get()));
+            raygen_record->data.specific.segmentation.hFOV = 3.14 / 4.0;  // default value
+            raygen_record->data.specific.segmentation.frame_buffer = {};  // default value
             break;
         }
 
@@ -611,6 +640,8 @@ unsigned int ChOptixPipeline::GetMaterial(std::shared_ptr<ChVisualMaterial> mat)
         material.metallic_tex = 0;         // explicitely null as default
         material.roughness_tex = 0;        // explicitely null as default
         material.opacity_tex = 0;          // explicitely null as default
+        material.class_id = mat->GetClassID();
+        material.instance_id = mat->GetInstanceID();
 
         // normal texture
         if (mat->GetNormalMapTexture() != "") {
@@ -665,6 +696,9 @@ unsigned int ChOptixPipeline::GetMaterial(std::shared_ptr<ChVisualMaterial> mat)
             material.metallic_tex = 0;
             material.opacity_tex = 0;
             material.use_specular_workflow = 0;
+            material.class_id = 0;
+            material.instance_id = 0;
+
             m_material_pool.push_back(material);
             m_default_material_id = m_material_pool.size() - 1;
             m_default_material_inst = true;
@@ -951,25 +985,19 @@ void ChOptixPipeline::UpdateDeformableMeshes() {
     }
 }
 
-void ChOptixPipeline::UpdateObjectVelocity(){
-    for (int i = 0; i < m_bodies.size(); i++){
-        m_material_records[i].data.translational_velocity = 
-        {
-            (float)m_bodies[i]->GetPos_dt().x(),
-            (float)m_bodies[i]->GetPos_dt().y(),
-            (float)m_bodies[i]->GetPos_dt().z()
-        };
-        m_material_records[i].data.angular_velocity = 
-        {
-            (float)m_bodies[i]->GetWvel_par().x(),
-            (float)m_bodies[i]->GetWvel_par().y(),
-            (float)m_bodies[i]->GetWvel_par().z()
-        };
+void ChOptixPipeline::UpdateObjectVelocity() {
+    for (int i = 0; i < m_bodies.size(); i++) {
+        m_material_records[i].data.translational_velocity = {(float)m_bodies[i]->GetPos_dt().x(),
+                                                             (float)m_bodies[i]->GetPos_dt().y(),
+                                                             (float)m_bodies[i]->GetPos_dt().z()};
+        m_material_records[i].data.angular_velocity = {(float)m_bodies[i]->GetWvel_par().x(),
+                                                       (float)m_bodies[i]->GetWvel_par().y(),
+                                                       (float)m_bodies[i]->GetWvel_par().z()};
         m_material_records[i].data.objectID = i;
     }
     CUDA_ERROR_CHECK(cudaMemcpy(reinterpret_cast<void*>(md_material_records), m_material_records.data(),
-                            sizeof(Record<MaterialRecordParameters>) * m_material_records.size(),
-                            cudaMemcpyHostToDevice));
+                                sizeof(Record<MaterialRecordParameters>) * m_material_records.size(),
+                                cudaMemcpyHostToDevice));
 }
 
 void ChOptixPipeline::CreateDeviceTexture(cudaTextureObject_t& d_tex_sampler,

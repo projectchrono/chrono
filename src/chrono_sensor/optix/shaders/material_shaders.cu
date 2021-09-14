@@ -471,6 +471,18 @@ static __device__ __inline__ void ShadowShader(PerRayData_shadow* prd,
     }
 }
 
+static __device__ __inline__ void SemanticShader(PerRayData_semantic* prd,
+                                                 const MaterialParameters& mat,
+                                                 const float3& world_normal,
+                                                 const float2& uv,
+                                                 const float3& tangent,
+                                                 const float& ray_dist,
+                                                 const float3& ray_orig,
+                                                 const float3& ray_dir) {
+    prd->class_id = mat.class_id;
+    prd->instance_id = mat.instance_id;
+}
+
 extern "C" __global__ void __closesthit__material_shader() {
     // determine parameters that are shared across all ray types
     const MaterialRecordParameters* mat_params = (MaterialRecordParameters*)optixGetSbtDataPointer();
@@ -524,6 +536,9 @@ extern "C" __global__ void __closesthit__material_shader() {
             break;
         case SHADOW_RAY_TYPE:
             ShadowShader(getShadowPRD(), mat, world_normal, uv, tangent, ray_dist, ray_orig, ray_dir);
+            break;
+        case SEGMENTATION_RAY_TYPE:
+            SemanticShader(getSemanticPRD(), mat, world_normal, uv, tangent, ray_dist, ray_orig, ray_dir);
             break;
     }
 }
