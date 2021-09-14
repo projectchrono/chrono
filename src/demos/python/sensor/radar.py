@@ -5,6 +5,7 @@ import numpy as np
 import time
 import random
 import cv2
+import math
 
 class simulation:
 
@@ -13,7 +14,8 @@ class simulation:
         self.system.Set_G_acc(chrono.ChVectorD(0,0,0))
 
         green = self.init_vis_mat(chrono.ChVectorF(0,1,0))
-        red = self.init_vis_mat(chrono.ChVectorF(1,0,0))
+        black = self.init_vis_mat(chrono.ChVectorF(1,1,1))
+        yellow = self.init_vis_mat(chrono.ChVectorF(1,1,0))
 
         ground = chrono.ChBodyEasyBox(1000,20,1,1000,True,False)
         ground.SetPos(chrono.ChVectorD(0,0,-1))
@@ -24,20 +26,21 @@ class simulation:
         self.system.Add(ground)
 
         egocar = chrono.ChBodyEasyBox(5,2,2,1000,True,False)
-        egocar.SetPos(chrono.ChVectorD(0,1,0))
+        egocar.SetPos(chrono.ChVectorD(0,1,1))
         car_asset = egocar.GetAssets()[0]
         car_visual_asset = chrono.CastToChVisualization(car_asset)
-        car_visual_asset.material_list.append(red)
+        car_visual_asset.material_list.append(black)
         self.system.Add(egocar)
 
         frontcar = chrono.ChBodyEasyBox(5,2,2,1000,True,False)
-        frontcar.SetPos(chrono.ChVectorD(10,2,2))
+        frontcar.SetPos(chrono.ChVectorD(10,2,1))
+        frontcar.SetPos_dt(chrono.ChVectorD(1,0,0))
         frontcar_asset = frontcar.GetAssets()[0]
         frontcar_visual_asset = chrono.CastToChVisualization(frontcar_asset)
-        frontcar_visual_asset.material_list.append(red)
+        frontcar_visual_asset.material_list.append(yellow)
         self.system.Add(frontcar)
 
-        offset_pose = chrono.ChFrameD(chrono.ChVectorD(0,0,2), chrono.Q_from_AngZ(0))
+        offset_pose = chrono.ChFrameD(chrono.ChVectorD(3,0,0), chrono.Q_from_AngZ(0))
         self.adding_sensors(egocar, offset_pose)
 
         # incoming cars
@@ -67,9 +70,15 @@ class simulation:
         update_rate = 30
         lag = 0
         exposure_time = 0
-        image_width = 1280
-        image_height = 720
-        hfov = 1.408 # camera's horizontal field of view
+
+        self.hfov = math.pi / 3
+        self.vfov = math.pi / 9
+        hfov = self.hfov
+        vfov = self.vfov
+        self.image_width = 1280
+        image_width = self.image_width
+        self.image_height = int(image_width * vfov / hfov)
+        image_height = self.image_height
 
         self.cam = sens.ChCameraSensor(body, update_rate,offset_pose,image_width,image_height,hfov)
         self.cam.SetName("Camera Sensor")
@@ -78,12 +87,10 @@ class simulation:
         self.cam.PushFilter(sens.ChFilterRGBA8Access())
         self.manager.AddSensor(self.cam)
 
-        h_samples = 100
+        h_samples = 300
         v_samples = 100
-        max_vert_angle = chrono.CH_C_PI / 12
-        min_vert_angle = -chrono.CH_C_PI / 12
 
-        self.radar = sens.ChRadarSensor(body,update_rate,offset_pose,h_samples,v_samples,hfov, max_vert_angle, min_vert_angle,100.0)
+        self.radar = sens.ChRadarSensor(body,update_rate,offset_pose,h_samples,v_samples,hfov, vfov/2, -vfov/2,50.0)
         self.radar.PushFilter(sens.ChFilterRadarProcess())
         self.radar.PushFilter(sens.ChFilterProcessedRadarAccess())
         self.manager.AddSensor(self.radar)
@@ -94,23 +101,40 @@ class simulation:
         self.manager.Update()
         self.system.DoStepDynamics(step_size)
         self.display_image()
+
     def display_image(self):
         rgba8_buffer = self.cam.GetMostRecentRGBA8Buffer()
         if rgba8_buffer.HasData():
             rgba8_data = rgba8_buffer.GetRGBA8Data()
             print(type(rgba8_data))
-            print('RGBA8 buffer recieved from cam. Camera resolution: {0}x{1}'
-                  .format(rgba8_buffer.Width, rgba8_buffer.Height))
-            print('First Pixel: {0}'.format(rgba8_data[0, 0, :]))
+#            print('RGBA8 buffer recieved from cam. Camera resolution: {0}x{1}'
+#                  .format(rgba8_buffer.Width, rgba8_buffer.Height))
+#            print('First Pixel: {0}'.format(rgba8_data[0, 0, :]))
             np.flip(rgba8_data)
-            bgr = cv2.cvtColor(rgba8_data, cv2.COLOR_RGB2BGR)
+            bgr = cv2.cvtColor(rgba8_data[::-1], cv2.COLOR_RGB2BGR)
         radar_buffer = self.radar.GetMostRecentProcessedRadarBuffer()
         if radar_buffer.HasData():
-            radar_data = radar_buffer.GetProcessedRadarData()
-            print(radar_data)
+            radar_data = radar_buffer.GetProcessedRadarData()[0]
+            print(radar_data.shape)
+            for i in radar_data:
+                box_x = self.image_width - (int(self.image_width / self.hfov * math.atan2(i[1],i[0])) + int(self.image_width / 2))
+                box_y = self.image_height - (int(self.image_height / self.vfov * math.atan2(i[2],i[0])) + int(self.image_height / 2))
+                if i[3] > 0:
+                    # positive relative velocity -> blue
+                    cv2.rectangle(bgr,(box_x - 1, box_y - 1), (box_x+1,box_y+1),(0,0,1),1)
+                elif i[3] < 0:
+                    # negative relative velocity -> red
+                    cv2.rectangle(bgr,(box_x - 1, box_y - 1), (box_x+1,box_y+1),(1,0,0),1)
+                    pass
+                else:
+                    # neutral -> white
+                    cv2.rectangle(bgr,(box_x - 1, box_y - 1), (box_x+1,box_y+1),(0,0,0),1)
+                print(i)
+            
         if rgba8_buffer.HasData():
-            cv2.imshow("window", bgr[::-1])
-            cv2.waitKey()
+            cv2.imshow("window", bgr)
+            if cv2.waitKey(1):
+                return
 
 
 def main():
