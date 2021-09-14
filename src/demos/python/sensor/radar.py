@@ -30,6 +30,13 @@ class simulation:
         car_visual_asset.material_list.append(red)
         self.system.Add(egocar)
 
+        frontcar = chrono.ChBodyEasyBox(5,2,2,1000,True,False)
+        frontcar.SetPos(chrono.ChVectorD(10,2,2))
+        frontcar_asset = frontcar.GetAssets()[0]
+        frontcar_visual_asset = chrono.CastToChVisualization(frontcar_asset)
+        frontcar_visual_asset.material_list.append(red)
+        self.system.Add(frontcar)
+
         offset_pose = chrono.ChFrameD(chrono.ChVectorD(0,0,2), chrono.Q_from_AngZ(0))
         self.adding_sensors(egocar, offset_pose)
 
@@ -78,13 +85,10 @@ class simulation:
 
         self.radar = sens.ChRadarSensor(body,update_rate,offset_pose,h_samples,v_samples,hfov, max_vert_angle, min_vert_angle,100.0)
         self.radar.PushFilter(sens.ChFilterRadarProcess())
-        self.radar.PushFilter(sens.ChFilterRadarAccess())
+        self.radar.PushFilter(sens.ChFilterProcessedRadarAccess())
         self.manager.AddSensor(self.radar)
 
 
-
-
-    
     def sim_advance(self):
         step_size = 1e-3
         self.manager.Update()
@@ -100,15 +104,13 @@ class simulation:
             print('First Pixel: {0}'.format(rgba8_data[0, 0, :]))
             np.flip(rgba8_data)
             bgr = cv2.cvtColor(rgba8_data, cv2.COLOR_RGB2BGR)
+        radar_buffer = self.radar.GetMostRecentProcessedRadarBuffer()
+        if radar_buffer.HasData():
+            radar_data = radar_buffer.GetProcessedRadarData()
+            print(radar_data)
+        if rgba8_buffer.HasData():
             cv2.imshow("window", bgr[::-1])
             cv2.waitKey()
-        radar_buffer = self.radar.GetMostRecentRadarBuffer()
-        if radar_buffer.HasData():
-            print("radar buffer populated")
-
-
-
-
 
 
 def main():
