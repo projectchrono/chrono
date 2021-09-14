@@ -35,8 +35,8 @@ CH_SENSOR_API ChCameraSensor::ChCameraSensor(std::shared_ptr<chrono::ChBody> par
                                              unsigned int supersample_factor,  // super sampling factor
                                              CameraLensModelType lens_model,   // lens model to use
                                              bool use_gi,                      // 1 to use Global Illumination
-                                             float gamma                      // 1 for linear color space, 2.2 for sRGB
-                                            )
+                                             float gamma                       // 1 for linear color space, 2.2 for sRGB
+                                             )
     : m_hFOV(hFOV),
       m_supersample_factor(supersample_factor),
       m_lens_model_type(lens_model),

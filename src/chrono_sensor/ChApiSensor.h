@@ -27,9 +27,9 @@
 // link the library to your code, and the symbols will be imported.
 
 #if defined(CH_API_COMPILE_SENSOR)
-#define CH_SENSOR_API ChApiEXPORT
+    #define CH_SENSOR_API ChApiEXPORT
 #else
-#define CH_SENSOR_API ChApiIMPORT
+    #define CH_SENSOR_API ChApiIMPORT
 #endif
 
 /**

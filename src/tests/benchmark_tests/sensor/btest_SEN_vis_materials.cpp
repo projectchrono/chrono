@@ -63,10 +63,8 @@ int main(int argc, char* argv[]) {
             if (std::shared_ptr<ChVisualization> visual_asset =
                     std::dynamic_pointer_cast<ChVisualization>(sphere_asset1)) {
                 auto color = chrono_types::make_shared<ChVisualMaterial>();
-                color->SetDiffuseColor({.8, .2, .1});
-                // color->SetSpecularColor({j / (float)y_dim, 0.0, 1 - j / (float)y_dim});
-                // color->SetFresnelMax(i / (float)x_dim);
-                // color->SetFresnelMin((float)(.9 * i / x_dim));
+                color->SetDiffuseColor({.8f, 0.f, 0.f});
+                color->SetSpecularColor({(float)i / x_dim, (float)i / x_dim, (float)i / x_dim});
                 color->SetMetallic((float)i / x_dim);
                 color->SetRoughness(1 - (float)j / y_dim);
                 color->SetUseSpecularWorkflow(false);

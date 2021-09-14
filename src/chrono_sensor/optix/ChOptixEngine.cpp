@@ -98,7 +98,7 @@ void ChOptixEngine::Initialize() {
     // defaults to no lights
     m_params.lights = {};
     m_params.num_lights = 0;
-    m_params.ambient_light_color = make_float3(0.3f, 0.3f, 0.3f);  // default value
+    m_params.ambient_light_color =  make_float3(0.0f, 0.0f, 0.0f); //make_float3(0.1f, 0.1f, 0.1f);  // default value
     m_params.max_depth = m_recursions;
     m_params.scene_epsilon = 1.e-3f;    // TODO: determine a good value for this
     m_params.importance_cutoff = .01f;  /// TODO: determine a good value for this

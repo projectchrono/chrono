@@ -218,8 +218,8 @@ int main(int argc, char* argv[]) {
             patch->SetTexture(vehicle::GetDataFile("terrain/textures/tile4.jpg"), 200, 200);
             break;
         case RigidTerrain::PatchType::HEIGHT_MAP:
-            patch = terrain.AddPatch(patch_mat, CSYSNORM, vehicle::GetDataFile("terrain/height_maps/test64.bmp"),
-                                     128, 128, 0, 4);
+            patch = terrain.AddPatch(patch_mat, CSYSNORM, vehicle::GetDataFile("terrain/height_maps/test64.bmp"), 128,
+                                     128, 0, 4);
             patch->SetTexture(vehicle::GetDataFile("terrain/textures/grass.jpg"), 16, 16);
             break;
         case RigidTerrain::PatchType::MESH:
@@ -313,7 +313,8 @@ int main(int argc, char* argv[]) {
     cam2->SetName("Camera Sensor");
     cam2->SetCollectionWindow(exposure_time);
     if (sensor_vis)
-        cam2->PushFilter(chrono_types::make_shared<ChFilterVisualize>(image_width, image_height, "Front-facing Camera"));
+        cam2->PushFilter(
+            chrono_types::make_shared<ChFilterVisualize>(image_width, image_height, "Front-facing Camera"));
     if (sensor_save)
         cam2->PushFilter(chrono_types::make_shared<ChFilterSave>(sens_dir + "/cam2/"));
     cam2->PushFilter(chrono_types::make_shared<ChFilterRGBA8Access>());
