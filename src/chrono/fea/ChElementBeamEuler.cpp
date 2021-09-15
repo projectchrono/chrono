@@ -783,7 +783,7 @@ void ChElementBeamEuler::EvaluateSectionForceTorque(const double eta, ChVector<>
     double Sy = this->section->GetShearCenterY();
     double Sz = this->section->GetShearCenterZ();
 
-    // The shear center offset is respect to elastic cetner.
+    // The shear center offset is respect to the centerline.
     // In case the section has a shear center displacement:
     //Sy = Sy - Cy;   // Unnecessary to do this substraction
     //Sz = Sz - Cz;
