@@ -257,6 +257,15 @@ void ChElementBeamTaperedTimoshenkoFPM::ComputeDampingMatrix() {
     // ---> detJ = dx/Deta = L/2.;
     TempDampingMatrix *= this->length / 2.0;  // need to multiple detJ
     this->Rm = this->T.transpose() * TempDampingMatrix * this->T;
+
+    // The mass-proportional term
+    double rdamping_alpha = this->tapered_section->GetAverageSectionParameters()->rdamping_coeff.alpha;
+    if (this->tapered_section->GetLumpedMassMatrixType()) {
+        double node_multiplier_fact = 0.5 * this->length;
+        Rm += rdamping_alpha * this->M * node_multiplier_fact;
+    } else {
+        Rm += rdamping_alpha * this->M;
+    }
 }
 
 void ChElementBeamTaperedTimoshenkoFPM::ComputeConsistentMassMatrix() {
@@ -288,6 +297,8 @@ void ChElementBeamTaperedTimoshenkoFPM::ComputeMassMatrix() {
         // For consistent mass matrix, don't need to multiple anything.
         this->tapered_section_fpm->ComputeInertiaMatrix(this->M);
     } else {
+        // If the consistent mass matrix is used, you need to compute the ave_sec_par firstly.
+        this->tapered_section_fpm->ComputeAverageSectionParameters();
         ComputeConsistentMassMatrix();
     }
 }
@@ -384,8 +395,8 @@ void ChElementBeamTaperedTimoshenkoFPM::EvaluateSectionForceTorque(const double 
 }
 
 void ChElementBeamTaperedTimoshenkoFPM::EvaluateSectionStrain(const double eta,
-                                                           ChVector<>& StrainV_trans,
-                                                           ChVector<>& StrainV_rot) {
+                                                              ChVector<>& StrainV_trans,
+                                                              ChVector<>& StrainV_rot) {
     assert(tapered_section_fpm);
 
     ChVectorDynamic<> displ(this->GetNdofs());

@@ -596,9 +596,10 @@ void ChElementBeamTaperedTimoshenko::ComputeDampingMatrix() {
     double by2 = pow(this->tapered_section->GetAverageSectionParameters()->rdamping_coeff.by, 2.0);
     double bz2 = pow(this->tapered_section->GetAverageSectionParameters()->rdamping_coeff.bz, 2.0);
     double bt2 = pow(this->tapered_section->GetAverageSectionParameters()->rdamping_coeff.bt, 2.0);
+    double rdamping_alpha = this->tapered_section->GetAverageSectionParameters()->rdamping_coeff.alpha;
 
     // Correction for the structural damping in the shear deformation, to improve the numerical stability in long-time
-    // simulation
+    // simulation. It might be helpful, also possible to be useless at all.
     double cc2 = pow(this->tapered_section->GetAverageSectionParameters()->artificial_factor_for_shear_damping, 2.0);
     double ccphiy = (1 + phiy * cc2) / (1. + phiy);
     double ccphiz = (1 + phiz * cc2) / (1. + phiz);
@@ -658,7 +659,17 @@ void ChElementBeamTaperedTimoshenko::ComputeDampingMatrix() {
         for (int c = r + 1; c < 12; c++)
             Rm(c, r) = Rm(r, c);
 
+    // The stiffness-proportional term.
+    // The geometric stiffness Kg is NOT considered in the damping matrix Rm.
     Rm = this->T.transpose() * Rm * this->T;
+
+    // The mass-proportional term
+    if (this->tapered_section->GetLumpedMassMatrixType()) {
+        double node_multiplier_fact = 0.5 * this->length;
+        Rm += rdamping_alpha * this->M * node_multiplier_fact;
+    } else {
+        Rm += rdamping_alpha * this->M;
+    }
 }
 
 void ChElementBeamTaperedTimoshenko::ComputeGeometricStiffnessMatrix() {
@@ -1002,7 +1013,7 @@ void ChElementBeamTaperedTimoshenko::ComputeInternalForces(ChVectorDynamic<>& Fi
     this->GetStateBlock(displ);
 
     // [local Internal Forces] = [Klocal] * displ + [Rlocal] * displ_dt
-    ChVectorDynamic<> FiK_local = this->Km * displ;
+    ChVectorDynamic<> Fi_local = this->Km * displ;
 
     // set up vector of nodal velocities (in local element system)
     ChVectorDynamic<> displ_dt(12);
@@ -1011,8 +1022,8 @@ void ChElementBeamTaperedTimoshenko::ComputeInternalForces(ChVectorDynamic<>& Fi
     // ChMatrixDynamic<> FiR_local = this->tapered_section->GetBeamRaleyghDamping() * this->Km * displ_dt;
     ChMatrixDynamic<> FiR_local = this->Rm * displ_dt;
 
-    FiK_local += FiR_local;
-    FiK_local *= -1.0;
+    Fi_local += FiR_local;
+    Fi_local *= -1.0;
 
     //
     // Corotate local internal loads
@@ -1027,7 +1038,7 @@ void ChElementBeamTaperedTimoshenko::ComputeInternalForces(ChVectorDynamic<>& Fi
     R.push_back(&AtolocwelA);
     R.push_back(&Atoabs);
     R.push_back(&AtolocwelB);
-    ChMatrixCorotation::ComputeCK(FiK_local, R, 4, Fi);
+    ChMatrixCorotation::ComputeCK(Fi_local, R, 4, Fi);
 
     // Add also inertial quadratic terms: gyroscopic and centrifugal
 
