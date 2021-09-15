@@ -98,8 +98,8 @@ CH_SENSOR_API void ChFilterVisualize::Apply() {
         } else if (m_bufferSemantic) {
             printf("0,0=%ld,%ld\n", m_hostSemantic->Buffer.get()[0].class_id,
                    m_hostSemantic->Buffer.get()[0].instance_id);
-            glTexImage2D(GL_TEXTURE_2D, 0, GL_RG32UI, m_hostSemantic->Width, m_hostSemantic->Height, 0, GL_RG_INTEGER,
-                         GL_UNSIGNED_INT, m_hostSemantic->Buffer.get());
+            glTexImage2D(GL_TEXTURE_2D, 0, GL_RG16, m_hostSemantic->Width, m_hostSemantic->Height, 0, GL_RG,
+                         GL_UNSIGNED_SHORT, m_hostSemantic->Buffer.get());
         } else if (m_bufferDI) {
             glTexImage2D(GL_TEXTURE_2D, 0, GL_RG32F, m_hostDI->Width, m_hostDI->Height, 0, GL_RG, GL_FLOAT,
                          m_hostDI->Buffer.get());

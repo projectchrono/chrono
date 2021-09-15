@@ -86,7 +86,7 @@ double step_size = 1e-2;
 float end_time = 200.0f;
 
 // Save camera images
-bool save = false;
+bool save = true;
 
 // Render camera images
 bool vis = true;
@@ -125,8 +125,8 @@ int main(int argc, char* argv[]) {
     vis_mat3->SetDiffuseColor({.5, .5, .5});
     vis_mat3->SetSpecularColor({.0f, .0f, .0f});
     vis_mat3->SetUseSpecularWorkflow(true);
-    vis_mat3->SetClassID(294967295);
-    vis_mat3->SetInstanceID(1294967295);
+    vis_mat3->SetClassID(30000);
+    vis_mat3->SetInstanceID(30000);
 
     auto floor = chrono_types::make_shared<ChBodyEasyBox>(20, 20, .1, 1000, true, false);
     floor->SetPos({0, 0, -1});
@@ -145,8 +145,8 @@ int main(int argc, char* argv[]) {
     vis_mat->SetSpecularColor({1.f, 1.f, 1.f});
     vis_mat->SetUseSpecularWorkflow(true);
     vis_mat->SetRoughness(.5f);
-    vis_mat->SetClassID(1294967295);
-    vis_mat->SetInstanceID(1294967295);
+    vis_mat->SetClassID(30000);
+    vis_mat->SetInstanceID(50000);
 
     auto box_body = chrono_types::make_shared<ChBodyEasyBox>(1.0, 1.0, 1.0, 1000, true, false);
     box_body->SetPos({0, -2, 0});
@@ -165,8 +165,8 @@ int main(int argc, char* argv[]) {
     vis_mat2->SetSpecularColor({.0f, .0f, .0f});
     vis_mat2->SetUseSpecularWorkflow(true);
     vis_mat2->SetRoughness(0.5f);
-    vis_mat2->SetClassID(1294967295);
-    vis_mat2->SetInstanceID(1294967295);
+    vis_mat2->SetClassID(30000);
+    vis_mat2->SetInstanceID(20000);
 
     auto sphere_body = chrono_types::make_shared<ChBodyEasySphere>(.5, 1000, true, false);
     sphere_body->SetPos({0, 0, 0});
@@ -185,8 +185,8 @@ int main(int argc, char* argv[]) {
     vis_mat4->SetSpecularColor({.0f, .0f, .0f});
     vis_mat4->SetUseSpecularWorkflow(true);
     vis_mat4->SetRoughness(0.5f);
-    vis_mat4->SetClassID(100);
-    vis_mat4->SetInstanceID(150);
+    vis_mat4->SetClassID(30000);
+    vis_mat4->SetInstanceID(1000);
 
     auto cyl_body = chrono_types::make_shared<ChBodyEasyCylinder>(.25, 1, 1000, true, false);
     cyl_body->SetPos({0, 2, 0});
@@ -332,7 +332,7 @@ int main(int argc, char* argv[]) {
 
     // Save the semantic mask
     if (save)
-        seg->PushFilter(chrono_types::make_shared<ChFilterSave>(out_dir + "antialiased/"));
+        seg->PushFilter(chrono_types::make_shared<ChFilterSave>(out_dir + "segmentation/"));
 
     // Provide the host access to the RGBA8 buffer
     seg->PushFilter(chrono_types::make_shared<ChFilterSemanticAccess>());

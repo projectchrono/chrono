@@ -157,7 +157,8 @@ extern "C" __global__ void __raygen__segmentation_pinhole() {
     optixTrace(params.root, ray_origin, ray_direction, params.scene_epsilon, 1e16f, t_traverse, OptixVisibilityMask(1),
                OPTIX_RAY_FLAG_NONE, 0, 1, 0, opt1, opt2, raytype);
 
-    camera.frame_buffer[image_index] = make_uint2(prd.class_id, prd.instance_id);
+    camera.frame_buffer[image_index].x = prd.class_id;
+    camera.frame_buffer[image_index].y = prd.instance_id;
 }
 
 /// Camera ray generation program using an FOV lens model
@@ -200,6 +201,6 @@ extern "C" __global__ void __raygen__segmentation_fov_lens() {
     unsigned int raytype = (unsigned int)SEGMENTATION_RAY_TYPE;
     optixTrace(params.root, ray_origin, ray_direction, params.scene_epsilon, 1e16f, t_traverse, OptixVisibilityMask(1),
                OPTIX_RAY_FLAG_NONE, 0, 1, 0, opt1, opt2, raytype);
-
-    camera.frame_buffer[image_index] = make_uint2(prd.class_id, prd.instance_id);
+    camera.frame_buffer[image_index].x = prd.class_id;
+    camera.frame_buffer[image_index].y = prd.instance_id;
 }

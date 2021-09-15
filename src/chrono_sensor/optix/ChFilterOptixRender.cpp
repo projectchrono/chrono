@@ -119,7 +119,7 @@ CH_SENSOR_API void ChFilterOptixRender::Initialize(std::shared_ptr<ChSensor> pSe
                                   cudaFreeHelper<PixelSemantic>);
         bufferOut->Buffer = std::move(b);
         m_raygen_record->data.specific.segmentation.hFOV = segmenter->GetHFOV();
-        m_raygen_record->data.specific.segmentation.frame_buffer = reinterpret_cast<uint2*>(bufferOut->Buffer.get());
+        m_raygen_record->data.specific.segmentation.frame_buffer = reinterpret_cast<ushort2*>(bufferOut->Buffer.get());
         m_bufferOut = bufferOut;
     } else if (auto lidar = std::dynamic_pointer_cast<ChLidarSensor>(pSensor)) {
         auto bufferOut = chrono_types::make_shared<SensorDeviceDIBuffer>();

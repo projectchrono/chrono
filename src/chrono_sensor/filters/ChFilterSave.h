@@ -50,13 +50,19 @@ class CH_SENSOR_API ChFilterSave : public ChFilter {
     virtual void Initialize(std::shared_ptr<ChSensor> pSensor, std::shared_ptr<SensorBuffer>& bufferInOut);
 
   private:
-    std::string m_path;                                   ///< path to where data should be saved
-    unsigned int m_frame_number = 0;                      ///< frame counter to prevent overwriting data
+    std::string m_path;               ///< path to where data should be saved
+    unsigned int m_frame_number = 0;  ///< frame counter to prevent overwriting data
+
     std::shared_ptr<SensorDeviceRGBA8Buffer> m_rgba8_in;  ///< input buffer for rgba8 image
-    std::shared_ptr<SensorDeviceR8Buffer> m_r8_in;        ///< input buffer for rgba8 image
-    std::shared_ptr<SensorHostRGBA8Buffer> m_host_rgba8;  ///< input buffer for rgba8 image
-    std::shared_ptr<SensorHostR8Buffer> m_host_r8;        ///< input buffer for rgba8 image
-    CUstream m_cuda_stream;                               ///< reference to the cuda stream
+    std::shared_ptr<SensorHostRGBA8Buffer> m_host_rgba8;  ///< host buffer for rgba8 image
+
+    std::shared_ptr<SensorDeviceR8Buffer> m_r8_in;  ///< input buffer for r8 image
+    std::shared_ptr<SensorHostR8Buffer> m_host_r8;  ///< host buffer for r8 image
+
+    std::shared_ptr<SensorHostSemanticBuffer> m_semantic_in;    ///< input buffer for semantic image
+    std::shared_ptr<SensorHostSemanticBuffer> m_host_semantic;  ///< host buffer for semantic image
+
+    CUstream m_cuda_stream;  ///< reference to the cuda stream
 };
 
 /// @}

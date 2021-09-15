@@ -149,8 +149,8 @@ using UserR8BufferPtr = std::shared_ptr<SensorHostR8Buffer>;
 
 /// A pixel as defined for semantic segmentation
 struct PixelSemantic {
-    unsigned int instance_id;  ///< class id
-    unsigned int class_id;     ///< class id
+    unsigned short int class_id;     ///< class id
+    unsigned short int instance_id;  ///< instance id
 };
 /// Semantic host buffer to be used for managing data on the host
 using SensorHostSemanticBuffer = SensorBufferT<std::shared_ptr<PixelSemantic[]>>;

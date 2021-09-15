@@ -49,8 +49,8 @@ class ChApi ChVisualMaterial : public ChAsset {
     void SetRoughness(float r);
     void SetMetallic(float m);
     void SetUseSpecularWorkflow(bool s) { use_specular_workflow = s; }
-    void SetClassID(unsigned int id) { class_id = id; }
-    void SetInstanceID(unsigned int id) { instance_id = id; }
+    void SetClassID(unsigned short int id) { class_id = id; }
+    void SetInstanceID(unsigned short int id) { instance_id = id; }
 
     // accessor functions
     ChVector<float> GetAmbientColor() { return Ka; }
@@ -70,8 +70,8 @@ class ChApi ChVisualMaterial : public ChAsset {
     float GetRoughness() { return roughness; }
     float GetMetallic() { return metallic; }
     bool GetUseSpecularWorkflow() { return use_specular_workflow; }
-    unsigned int GetClassID() { return class_id; }
-    unsigned int GetInstanceID() { return instance_id; }
+    unsigned short int GetClassID() { return class_id; }
+    unsigned short int GetInstanceID() { return instance_id; }
 
   private:
     ChVector<float> Ka;  // ambient color 0-1
@@ -96,8 +96,8 @@ class ChApi ChVisualMaterial : public ChAsset {
     std::string roughness_texture;
     std::string opacity_texture;
 
-    unsigned int class_id;
-    unsigned int instance_id;
+    unsigned short int class_id;
+    unsigned short int instance_id;
 };
 
 }  // end namespace chrono

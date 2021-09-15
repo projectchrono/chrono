@@ -30,6 +30,11 @@ struct half4 {
     __half w;
 };
 
+// struct ushort2 {
+//     unsigned short x;
+//     unsigned short y;
+// };
+
 enum RayType {
     CAMERA_RAY_TYPE = 0,       // camera rays
     SHADOW_RAY_TYPE = 1,       // shadow rays
@@ -62,9 +67,9 @@ struct MissParameters {
 };
 
 struct CameraParameters {
-    float hFOV;
-    float gamma;
-    half4* frame_buffer;
+    float hFOV;                 ///< horizontal field of view
+    float gamma;                ///< camera's gamma value
+    half4* frame_buffer;        ///< buffer of camera pixels
     bool use_gi;                // whether to use global illumination
     half4* albedo_buffer;       // only initialized if using global illumination
     half4* normal_buffer;       // only initialized if using global illumination (screenspace normal)
@@ -72,12 +77,9 @@ struct CameraParameters {
 };
 
 struct SemanticCameraParameters {
-    float hFOV;
-    uint2* frame_buffer;
-    bool use_gi;                // whether to use global illumination
-    half4* albedo_buffer;       // only initialized if using global illumination
-    half4* normal_buffer;       // only initialized if using global illumination (screenspace normal)
-    curandState_t* rng_buffer;  // only initialized if using global illumination
+    float hFOV;                 ///< horizontal field of view
+    ushort2* frame_buffer;      ///< buffer of class and instance ids
+    curandState_t* rng_buffer;  ///< only initialized if using global illumination
 };
 
 enum class LidarBeamShape {
@@ -156,9 +158,9 @@ struct MaterialParameters {             // pad to align 16 (swig doesn't support
     cudaTextureObject_t metallic_tex;   // size 8
     cudaTextureObject_t roughness_tex;  // size 8
     cudaTextureObject_t opacity_tex;    // size 8
-    unsigned int class_id;              // size 4
-    unsigned int instance_id;           // size 4
-    float3 pad;                         // size 12
+    unsigned short int class_id;        // size 2
+    unsigned short int instance_id;     // size 2
+    // float3 pad;                         // size 12
 };
 
 struct ContextParameters {
@@ -192,8 +194,8 @@ struct PerRayData_camera {
 };
 
 struct PerRayData_semantic {
-    unsigned int class_id;
-    unsigned int instance_id;
+    unsigned short int class_id;
+    unsigned short int instance_id;
 };
 
 struct PerRayData_shadow {
