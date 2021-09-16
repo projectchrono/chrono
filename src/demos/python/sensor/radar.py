@@ -29,7 +29,7 @@ class simulation:
         egocar.SetPos(chrono.ChVectorD(0,1,1))
         car_asset = egocar.GetAssets()[0]
         car_visual_asset = chrono.CastToChVisualization(car_asset)
-        car_visual_asset.material_list.append(black)
+        car_visual_asset.material_list.append(yellow)
         self.system.Add(egocar)
 
         frontcar = chrono.ChBodyEasyBox(5,2,2,1000,True,False)
@@ -40,12 +40,22 @@ class simulation:
         frontcar_visual_asset.material_list.append(yellow)
         self.system.Add(frontcar)
 
+        # incoming cars on the left lane
+        for i in range(10):
+            leftcar = chrono.ChBodyEasyBox(5,2,2,1000,True,False)
+            leftcar.SetPos(chrono.ChVectorD(10 + i * 10 ,5,1))
+            leftcar.SetPos_dt(chrono.ChVectorD(-1,0,0))
+            leftcar_asset = frontcar.GetAssets()[0]
+            leftcar_visual_asset = chrono.CastToChVisualization(leftcar_asset)
+            leftcar_visual_asset.material_list.append(yellow)
+            self.system.Add(leftcar)
+
+
+        # cars in the right lane
+
+
         offset_pose = chrono.ChFrameD(chrono.ChVectorD(3,0,0), chrono.Q_from_AngZ(0))
         self.adding_sensors(egocar, offset_pose)
-
-        # incoming cars
-        # cars in same lane 
-        # cars in right lane moving in same direction
 
 
     # color should be a chrono.ChVectorF(float,float,float)
@@ -106,7 +116,6 @@ class simulation:
         rgba8_buffer = self.cam.GetMostRecentRGBA8Buffer()
         if rgba8_buffer.HasData():
             rgba8_data = rgba8_buffer.GetRGBA8Data()
-            print(type(rgba8_data))
 #            print('RGBA8 buffer recieved from cam. Camera resolution: {0}x{1}'
 #                  .format(rgba8_buffer.Width, rgba8_buffer.Height))
 #            print('First Pixel: {0}'.format(rgba8_data[0, 0, :]))
@@ -115,23 +124,24 @@ class simulation:
         radar_buffer = self.radar.GetMostRecentProcessedRadarBuffer()
         if radar_buffer.HasData():
             radar_data = radar_buffer.GetProcessedRadarData()[0]
-            print(radar_data.shape)
-            for i in radar_data:
-                box_x = self.image_width - (int(self.image_width / self.hfov * math.atan2(i[1],i[0])) + int(self.image_width / 2))
-                box_y = self.image_height - (int(self.image_height / self.vfov * math.atan2(i[2],i[0])) + int(self.image_height / 2))
-                if i[3] > 0:
-                    # positive relative velocity -> blue
-                    cv2.rectangle(bgr,(box_x - 1, box_y - 1), (box_x+1,box_y+1),(0,0,1),1)
-                elif i[3] < 0:
-                    # negative relative velocity -> red
-                    cv2.rectangle(bgr,(box_x - 1, box_y - 1), (box_x+1,box_y+1),(1,0,0),1)
-                    pass
-                else:
-                    # neutral -> white
-                    cv2.rectangle(bgr,(box_x - 1, box_y - 1), (box_x+1,box_y+1),(0,0,0),1)
-                print(i)
             
         if rgba8_buffer.HasData():
+            if radar_buffer.HasData():
+                for i in radar_data:
+                    box_x = self.image_width - (int(self.image_width / self.hfov * math.atan2(i[1],i[0])) + int(self.image_width / 2))
+                    box_y = self.image_height - (int(self.image_height / self.vfov * math.atan2(i[2],i[0])) + int(self.image_height / 2))
+                    intensity = i[6]
+                    if abs(i[3]) < 1e-2:
+                        # positive relative velocity -> blue
+                        cv2.rectangle(bgr,(box_x - 1, box_y - 1), (box_x+1,box_y+1),(0,0,0),int(2))
+                    elif i[3] < 0:
+                        # negative relative velocity -> red
+                        cv2.rectangle(bgr,(box_x - 1, box_y - 1), (box_x+1,box_y+1),(255,0,0),int(2))
+                        pass
+                    else:
+                        # neutral -> white
+                        cv2.rectangle(bgr,(box_x - 1, box_y + 1), (box_x+1,box_y-1),color=(0,0,255),thickness=int(2))
+
             cv2.imshow("window", bgr)
             if cv2.waitKey(1):
                 return
@@ -140,7 +150,6 @@ class simulation:
 def main():
     sim = simulation()
     while True:
-        print("simulating")
         sim.sim_advance()
 
 if __name__ == "__main__":

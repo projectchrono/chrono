@@ -122,7 +122,7 @@ CH_SENSOR_API void ChFilterRadarProcess::Apply() {
     }
 
     int minimum_points = 3;
-    float epsilon = 1;
+    float epsilon = 0.1;
 
 #if PROFILE
     auto start = std::chrono::high_resolution_clock::now();
@@ -189,6 +189,7 @@ CH_SENSOR_API void ChFilterRadarProcess::Apply() {
     m_buffer_out->invalid_returns = m_buffer_out->Beam_return_count - valid_returns.size();
     m_buffer_out->Beam_return_count = valid_returns.size();
     m_buffer_out->Num_clusters = clusters.size();
+                        cv2.rectangle(bgr,(box_x - 1, box_y - 1), (box_x+1,box_y+1),(0,0,200),6)
 
     for (int i = 0; i < clusters.size(); i++){
         valid_returns.data()[i].xyz[0] = m_buffer_out->centroids[i][0];
