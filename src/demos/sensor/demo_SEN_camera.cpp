@@ -86,7 +86,7 @@ double step_size = 1e-2;
 float end_time = 200.0f;
 
 // Save camera images
-bool save = true;
+bool save = false;
 
 // Render camera images
 bool vis = true;

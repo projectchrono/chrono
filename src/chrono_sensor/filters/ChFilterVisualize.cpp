@@ -97,8 +97,6 @@ CH_SENSOR_API void ChFilterVisualize::Apply() {
             glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, m_hostRGBA8->Width, m_hostRGBA8->Height, 0, GL_RGBA,
                          GL_UNSIGNED_BYTE, m_hostRGBA8->Buffer.get());
         } else if (m_bufferSemantic) {
-            printf("0,0=%ld,%ld\n", m_hostSemantic->Buffer.get()[0].class_id,
-                   m_hostSemantic->Buffer.get()[0].instance_id);
             glTexImage2D(GL_TEXTURE_2D, 0, GL_RG16, m_hostSemantic->Width, m_hostSemantic->Height, 0, GL_RG,
                          GL_UNSIGNED_SHORT, m_hostSemantic->Buffer.get());
         } else if (m_bufferDI) {
