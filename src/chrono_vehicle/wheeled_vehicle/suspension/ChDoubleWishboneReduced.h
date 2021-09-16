@@ -56,7 +56,7 @@ class CH_VEHICLE_API ChDoubleWishboneReduced : public ChSuspension {
     ChDoubleWishboneReduced(const std::string& name  ///< [in] name of the subsystem
                             );
 
-    virtual ~ChDoubleWishboneReduced() {}
+    virtual ~ChDoubleWishboneReduced();
 
     /// Get the name of the vehicle subsystem template.
     virtual std::string GetTemplateName() const override { return "DoubleWishboneReduced"; }

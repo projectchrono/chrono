@@ -32,6 +32,7 @@
 #include "chrono_vehicle/wheeled_vehicle/ChDrivelineWV.h"
 #include "chrono_vehicle/wheeled_vehicle/ChSteering.h"
 #include "chrono_vehicle/wheeled_vehicle/ChSuspension.h"
+#include "chrono_vehicle/wheeled_vehicle/ChSubchassis.h"
 #include "chrono_vehicle/wheeled_vehicle/ChTire.h"
 #include "chrono_vehicle/wheeled_vehicle/ChWheel.h"
 
@@ -64,6 +65,8 @@ CH_VEHICLE_API ChColor ReadColorJSON(const rapidjson::Value& a);
 
 CH_VEHICLE_API MaterialInfo ReadMaterialInfoJSON(const rapidjson::Value& mat);
 
+CH_VEHICLE_API std::shared_ptr<ChVehicleBushingData> ReadBushingDataJSON(const rapidjson::Value& bd);
+
 // -----------------------------------------------------------------------------
 
 /// Load and return a chassis subsystem from the specified JSON file.
@@ -94,6 +97,9 @@ CH_VEHICLE_API std::shared_ptr<ChAntirollBar> ReadAntirollbarJSON(const std::str
 
 ///  Load and return a steering subsystem from the specified JSON file.
 CH_VEHICLE_API std::shared_ptr<ChWheel> ReadWheelJSON(const std::string& filename);
+
+/// Load and return a subchassis subsystem from the specified JSON file.
+CH_VEHICLE_API std::shared_ptr<ChSubchassis> ReadSubchassisJSON(const std::string& filename);
 
 ///  Load and return a steering subsystem from the specified JSON file.
 CH_VEHICLE_API std::shared_ptr<ChBrake> ReadBrakeJSON(const std::string& filename);

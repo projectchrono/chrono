@@ -102,11 +102,9 @@ class CH_VEHICLE_API ChPowertrain : public ChPart {
   protected:
     ChPowertrain(const std::string& name);
 
-    /// Initialize this powertrain system by attaching it to an existing vehicle chassis and associating it with an
-    /// existing driveline subsystem. A derived class override must first call this base class version.
-    virtual void Initialize(std::shared_ptr<ChChassis> chassis,     ///< [in] chassis of the associated vehicle
-                            std::shared_ptr<ChDriveline> driveline  ///< [in] driveline of the associated vehicle
-    );
+    /// Initialize this powertrain system by attaching it to an existing vehicle chassis.
+    /// A derived class override must first call this base class version.
+    virtual void Initialize(std::shared_ptr<ChChassis> chassis);
 
     /// Set the transmission gear ratios (one or more forward gear ratios and a single reverse gear ratio).
     virtual void SetGearRatios(std::vector<double>& fwd, double& rev) = 0;
@@ -119,8 +117,9 @@ class CH_VEHICLE_API ChPowertrain : public ChPart {
 
     /// Synchronize the state of this powertrain system at the current time.
     /// The powertrain system is provided the current driver throttle input, a value in the range [0,1].
-    virtual void Synchronize(double time,     ///< [in] current time
-                             double throttle  ///< [in] current throttle input [0,1]
+    virtual void Synchronize(double time,        ///< [in] current time
+                             double throttle,    ///< [in] current throttle input [0,1]
+                             double shaft_speed  ///< [in] driveshaft speed
                              ) = 0;
 
     /// Advance the state of this powertrain system by the specified time step.

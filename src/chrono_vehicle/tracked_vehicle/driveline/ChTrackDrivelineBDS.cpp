@@ -34,6 +34,15 @@ namespace vehicle {
 ChTrackDrivelineBDS::ChTrackDrivelineBDS(const std::string& name)
     : ChDrivelineTV(name), m_dir_motor_block(ChVector<>(1, 0, 0)), m_dir_axle(ChVector<>(0, 1, 0)) {}
 
+ChTrackDrivelineBDS::~ChTrackDrivelineBDS() {
+    auto sys = m_differential->GetSystem();
+    if (sys) {
+        sys->Remove(m_differential);
+        sys->Remove(m_conicalgear);
+        sys->Remove(m_differentialbox);
+    }
+}
+
 // -----------------------------------------------------------------------------
 // Initialize the driveline subsystem.
 // This function connects this driveline subsystem to the axles of the specified

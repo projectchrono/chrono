@@ -28,6 +28,7 @@ namespace hmmwv {
 const double HMMWV_Powertrain::m_motorblock_inertia = 10.5;
 const double HMMWV_Powertrain::m_crankshaft_inertia = 1.1;
 const double HMMWV_Powertrain::m_ingear_shaft_inertia = 0.3;
+const double HMMWV_Powertrain::m_power_shaft_inertia = 0.5;
 
 const double HMMWV_Powertrain::m_upshift_RPM = 2500;
 const double HMMWV_Powertrain::m_downshift_RPM = 1200;

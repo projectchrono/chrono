@@ -171,6 +171,8 @@ class CH_VEHICLE_API ChSprocket : public ChPart {
     std::shared_ptr<ChLinkLockRevolute> m_revolute;   ///< handle to sprocket revolute joint
     std::shared_ptr<ChMaterialSurface> m_material;    ///< contact material;
 
+    std::shared_ptr<ChSystem::CustomCollisionCallback> m_callback;  ///< cached collision callback
+
     bool m_lateral_contact;  ///< if 'true', enable lateral conatact to prevent detracking
 
     friend class ChTrackAssembly;

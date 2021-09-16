@@ -41,12 +41,14 @@ const double HMMWV_DoubleWishboneFront::m_UCAMass = 5.813;
 const double HMMWV_DoubleWishboneFront::m_LCAMass = 23.965;
 const double HMMWV_DoubleWishboneFront::m_uprightMass = 19.450;
 const double HMMWV_DoubleWishboneFront::m_spindleMass = 14.705;
+const double HMMWV_DoubleWishboneFront::m_tierodMass = 6.0;
 
 const double HMMWV_DoubleWishboneFront::m_spindleRadius = 0.10;
 const double HMMWV_DoubleWishboneFront::m_spindleWidth = 0.06;
 const double HMMWV_DoubleWishboneFront::m_LCARadius = 0.03;
 const double HMMWV_DoubleWishboneFront::m_UCARadius = 0.02;
 const double HMMWV_DoubleWishboneFront::m_uprightRadius = 0.04;
+const double HMMWV_DoubleWishboneFront::m_tierodRadius = 0.02;
 
 // TODO: Fix these values
 const ChVector<> HMMWV_DoubleWishboneFront::m_spindleInertia(0.04117, 0.07352, 0.04117);
@@ -56,6 +58,7 @@ const ChVector<> HMMWV_DoubleWishboneFront::m_LCAInertiaMoments(0.4, 0.4, 0.8938
 const ChVector<> HMMWV_DoubleWishboneFront::m_LCAInertiaProducts(0.0, 0.0, 0.0);
 const ChVector<> HMMWV_DoubleWishboneFront::m_uprightInertiaMoments(0.1656, 0.1934, 0.04367);
 const ChVector<> HMMWV_DoubleWishboneFront::m_uprightInertiaProducts(0.0, 0.0, 0.0);
+const ChVector<> HMMWV_DoubleWishboneFront::m_tierodInertia(0.05, 0.05, 0.5);
 
 const double HMMWV_DoubleWishboneFront::m_axleInertia = 0.4;
 
@@ -68,12 +71,14 @@ const double HMMWV_DoubleWishboneRear::m_UCAMass = 5.813;
 const double HMMWV_DoubleWishboneRear::m_LCAMass = 23.965;
 const double HMMWV_DoubleWishboneRear::m_uprightMass = 19.450;
 const double HMMWV_DoubleWishboneRear::m_spindleMass = 14.705;
+const double HMMWV_DoubleWishboneRear::m_tierodMass = 6.0;
 
 const double HMMWV_DoubleWishboneRear::m_spindleRadius = 0.10;
 const double HMMWV_DoubleWishboneRear::m_spindleWidth = 0.06;
 const double HMMWV_DoubleWishboneRear::m_LCARadius = 0.03;
 const double HMMWV_DoubleWishboneRear::m_UCARadius = 0.02;
 const double HMMWV_DoubleWishboneRear::m_uprightRadius = 0.04;
+const double HMMWV_DoubleWishboneRear::m_tierodRadius = 0.02;
 
 // TODO: Fix these values
 const ChVector<> HMMWV_DoubleWishboneRear::m_spindleInertia(0.04117, 0.07352, 0.04117);
@@ -83,6 +88,7 @@ const ChVector<> HMMWV_DoubleWishboneRear::m_LCAInertiaMoments(0.4, 0.4, 0.8938)
 const ChVector<> HMMWV_DoubleWishboneRear::m_LCAInertiaProducts(0.0, 0.0, 0.0);
 const ChVector<> HMMWV_DoubleWishboneRear::m_uprightInertiaMoments(0.1656, 0.1934, 0.04367);
 const ChVector<> HMMWV_DoubleWishboneRear::m_uprightInertiaProducts(0.0, 0.0, 0.0);
+const ChVector<> HMMWV_DoubleWishboneRear::m_tierodInertia(0.05, 0.05, 0.5);
 
 const double HMMWV_DoubleWishboneRear::m_axleInertia = 0.4;
 
@@ -177,7 +183,8 @@ double HMMWV_ShockForce::operator()(double time, double rest_length, double leng
 // -----------------------------------------------------------------------------
 // Constructors
 // -----------------------------------------------------------------------------
-HMMWV_DoubleWishboneFront::HMMWV_DoubleWishboneFront(const std::string& name) : ChDoubleWishbone(name) {
+HMMWV_DoubleWishboneFront::HMMWV_DoubleWishboneFront(const std::string& name, bool use_tierod_bodies)
+    : ChDoubleWishbone(name), m_use_tierod_bodies(use_tierod_bodies) {
     m_springForceCB = chrono_types::make_shared<LinearSpringForce>(m_springCoefficient  // coefficient for linear spring
     );
 
@@ -194,7 +201,8 @@ HMMWV_DoubleWishboneFront::HMMWV_DoubleWishboneFront(const std::string& name) : 
     );
 }
 
-HMMWV_DoubleWishboneRear::HMMWV_DoubleWishboneRear(const std::string& name) : ChDoubleWishbone(name) {
+HMMWV_DoubleWishboneRear::HMMWV_DoubleWishboneRear(const std::string& name, bool use_tierod_bodies)
+    : ChDoubleWishbone(name), m_use_tierod_bodies(use_tierod_bodies) {
     m_springForceCB = chrono_types::make_shared<LinearSpringForce>(m_springCoefficient  // coefficient for linear spring
     );
 

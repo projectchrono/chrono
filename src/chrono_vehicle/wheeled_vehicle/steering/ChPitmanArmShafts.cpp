@@ -33,6 +33,26 @@ namespace vehicle {
 ChPitmanArmShafts::ChPitmanArmShafts(const std::string& name, bool vehicle_frame_inertia, bool rigid_column)
     : ChSteering(name), m_vehicle_frame_inertia(vehicle_frame_inertia), m_rigid(rigid_column) {}
 
+ChPitmanArmShafts::~ChPitmanArmShafts() {
+    auto sys = m_arm->GetSystem();
+    if (sys) {
+        sys->Remove(m_arm);
+        sys->Remove(m_revolute);
+        sys->Remove(m_revsph);
+        sys->Remove(m_universal);
+        sys->Remove(m_shaft_A);
+        sys->Remove(m_shaft_C);
+        sys->Remove(m_shaft_A1);
+        sys->Remove(m_shaft_C1);
+        sys->Remove(m_shaft_arm);
+        sys->Remove(m_shaft_chassis);
+        sys->Remove(m_shaft_gear);
+        sys->Remove(m_shaft_motor);
+        sys->Remove(m_rigid_connection);
+        sys->Remove(m_spring_connection);
+    }
+}
+
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 void ChPitmanArmShafts::Initialize(std::shared_ptr<ChChassis> chassis,
@@ -314,7 +334,7 @@ void ChPitmanArmShafts::RemoveVisualizationAssets() {
 void ChPitmanArmShafts::LogConstraintViolations() {
     // Revolute joint
     {
-        ChVectorDynamic<> C = m_revolute->GetC();
+        ChVectorDynamic<> C = m_revolute->GetConstraintViolation();
         GetLog() << "Revolute              ";
         GetLog() << "  " << C(0) << "  ";
         GetLog() << "  " << C(1) << "  ";
@@ -325,7 +345,7 @@ void ChPitmanArmShafts::LogConstraintViolations() {
 
     // Universal joint
     {
-        ChVectorDynamic<> C = m_universal->GetC();
+        ChVectorDynamic<> C = m_universal->GetConstraintViolation();
         GetLog() << "Universal             ";
         GetLog() << "  " << C(0) << "  ";
         GetLog() << "  " << C(1) << "  ";
@@ -335,7 +355,7 @@ void ChPitmanArmShafts::LogConstraintViolations() {
 
     // Revolute-spherical joint
     {
-        ChVectorDynamic<> C = m_revsph->GetC();
+        ChVectorDynamic<> C = m_revsph->GetConstraintViolation();
         GetLog() << "Revolute-spherical    ";
         GetLog() << "  " << C(0) << "  ";
         GetLog() << "  " << C(1) << "\n";

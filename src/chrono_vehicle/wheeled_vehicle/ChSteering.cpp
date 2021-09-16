@@ -23,5 +23,12 @@ namespace vehicle {
 
 ChSteering::ChSteering(const std::string& name) : ChPart(name) {}
 
+ChSteering::~ChSteering() {
+    auto sys = m_link->GetSystem();
+    if (sys) {
+        sys->Remove(m_link);
+    }
+}
+
 }  // end namespace vehicle
 }  // end namespace chrono

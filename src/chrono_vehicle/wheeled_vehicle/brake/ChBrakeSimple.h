@@ -41,7 +41,7 @@ class CH_VEHICLE_API ChBrakeSimple : public ChBrake {
   public:
     ChBrakeSimple(const std::string& name);
 
-    virtual ~ChBrakeSimple() {}
+    virtual ~ChBrakeSimple();
 
     /// Get the name of the vehicle subsystem template.
     virtual std::string GetTemplateName() const override { return "BrakeSimple"; }

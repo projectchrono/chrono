@@ -30,8 +30,8 @@ namespace vehicle {
 ChSimpleMapPowertrain::ChSimpleMapPowertrain(const std::string& name)
     : ChPowertrain(name), m_motor_speed(0), m_motor_torque(0), m_shaft_torque(0) {}
 
-void ChSimpleMapPowertrain::Initialize(std::shared_ptr<ChChassis> chassis, std::shared_ptr<ChDriveline> driveline) {
-    ChPowertrain::Initialize(chassis, driveline);
+void ChSimpleMapPowertrain::Initialize(std::shared_ptr<ChChassis> chassis) {
+    ChPowertrain::Initialize(chassis);
 
     // Let the derived class specify the shift bands
     SetShiftPoints(m_shift_points);
@@ -43,7 +43,7 @@ void ChSimpleMapPowertrain::Initialize(std::shared_ptr<ChChassis> chassis, std::
     assert(m_full_throttle_map.GetPoints().size() > 0);
 }
 
-void ChSimpleMapPowertrain::Synchronize(double time, double throttle) {
+void ChSimpleMapPowertrain::Synchronize(double time, double throttle, double shaft_speed) {
     // Automatic gear selection (based on ideal shift points)
     if (m_transmission_mode == TransmissionMode::AUTOMATIC && m_drive_mode == DriveMode::FORWARD) {
         if (m_motor_speed > m_shift_points[m_current_gear].second) {
@@ -59,10 +59,8 @@ void ChSimpleMapPowertrain::Synchronize(double time, double throttle) {
         }
     }
 
-    double shaft_speed = std::abs(m_driveline->GetDriveshaftSpeed());
-
     // Calculate engine speed and clamp to specified maximum:
-    m_motor_speed = shaft_speed / m_current_gear_ratio;
+    m_motor_speed = std::abs(shaft_speed) / m_current_gear_ratio;
     ChClampValue(m_motor_speed, 0.0, GetMaxEngineSpeed());
 
     // Motor torque is linearly interpolated by throttle value:

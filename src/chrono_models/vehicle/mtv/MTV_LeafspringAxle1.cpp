@@ -19,6 +19,7 @@
 // =============================================================================
 
 #include "chrono_models/vehicle/mtv/MTV_LeafspringAxle1.h"
+#include "chrono_models/vehicle/mtv/MTV_SpringDamper.h"
 
 namespace chrono {
 namespace vehicle {
@@ -48,110 +49,11 @@ const double MTV_LeafspringAxle1::m_damperDegressivityCompression = 3.0;
 const double MTV_LeafspringAxle1::m_damperDegressivityExpansion = 1.0;
 const double MTV_LeafspringAxle1::m_axleShaftInertia = 0.4;
 
-// ---------------------------------------------------------------------------------------
-class MTV_SpringForceRear1 : public ChLinkTSDA::ForceFunctor {
-  public:
-    MTV_SpringForceRear1(double spring_constant, double min_length, double max_length);
-
-    virtual double operator()(double time, double rest_length, double length, double vel, ChLinkTSDA* link) override;
-
-  private:
-    double m_spring_constant;
-    double m_min_length;
-    double m_max_length;
-
-    ChFunction_Recorder m_bump;
-};
-
-MTV_SpringForceRear1::MTV_SpringForceRear1(double spring_constant, double min_length, double max_length)
-    : m_spring_constant(spring_constant), m_min_length(min_length), m_max_length(max_length) {
-    // From ADAMS/Car
-    m_bump.AddPoint(0.0, 0.0);
-    m_bump.AddPoint(2.0e-3, 200.0);
-    m_bump.AddPoint(4.0e-3, 400.0);
-    m_bump.AddPoint(6.0e-3, 600.0);
-    m_bump.AddPoint(8.0e-3, 800.0);
-    m_bump.AddPoint(10.0e-3, 1000.0);
-    m_bump.AddPoint(20.0e-3, 2500.0);
-    m_bump.AddPoint(30.0e-3, 4500.0);
-    m_bump.AddPoint(40.0e-3, 7500.0);
-    m_bump.AddPoint(50.0e-3, 12500.0);
-}
-
-double MTV_SpringForceRear1::operator()(double time, double rest_length, double length, double vel, ChLinkTSDA* link) {
-    /*
-     *
-     */
-
-    double force = 0;
-
-    double defl_spring = rest_length - length;
-    double defl_bump = 0.0;
-    double defl_rebound = 0.0;
-
-    if (length < m_min_length) {
-        defl_bump = m_min_length - length;
-    }
-
-    if (length > m_max_length) {
-        defl_rebound = length - m_max_length;
-    }
-
-    force = defl_spring * m_spring_constant + m_bump.Get_y(defl_bump) - m_bump.Get_y(defl_rebound);
-
-    return force;
-}
-
-// -----------------------------------------------------------------------------
-// MTV shock functor class - implements a nonlinear damper
-// -----------------------------------------------------------------------------
-class MTV_ShockForceRear1 : public ChLinkTSDA::ForceFunctor {
-  public:
-    MTV_ShockForceRear1(double compression_slope,
-                        double compression_degressivity,
-                        double expansion_slope,
-                        double expansion_degressivity);
-
-    virtual double operator()(double time, double rest_length, double length, double vel, ChLinkTSDA* link) override;
-
-  private:
-    double m_slope_compr;
-    double m_slope_expand;
-    double m_degres_compr;
-    double m_degres_expand;
-};
-
-MTV_ShockForceRear1::MTV_ShockForceRear1(double compression_slope,
-                                         double compression_degressivity,
-                                         double expansion_slope,
-                                         double expansion_degressivity)
-    : m_slope_compr(compression_slope),
-      m_degres_compr(compression_degressivity),
-      m_slope_expand(expansion_slope),
-      m_degres_expand(expansion_degressivity) {}
-
-double MTV_ShockForceRear1::operator()(double time, double rest_length, double length, double vel, ChLinkTSDA* link) {
-    /*
-     * Simple model of a degressive damping characteristic
-     */
-
-    double force = 0;
-
-    // Calculate Damping Force
-    if (vel >= 0) {
-        force = -m_slope_expand / (1.0 + m_degres_expand * std::abs(vel)) * vel;
-    } else {
-        force = -m_slope_compr / (1.0 + m_degres_compr * std::abs(vel)) * vel;
-    }
-
-    return force;
-}
-
 MTV_LeafspringAxle1::MTV_LeafspringAxle1(const std::string& name) : ChLeafspringAxle(name) {
     m_springForceCB =
-        chrono_types::make_shared<MTV_SpringForceRear1>(m_springCoefficient, m_springMinLength, m_springMaxLength);
+        chrono_types::make_shared<MTV_SpringForceRear>(m_springCoefficient, m_springMinLength, m_springMaxLength);
 
-    m_shockForceCB = chrono_types::make_shared<MTV_ShockForceRear1>(
+    m_shockForceCB = chrono_types::make_shared<MTV_ShockForceRear>(
         m_damperCoefficient, m_damperDegressivityCompression, m_damperCoefficient, m_damperDegressivityExpansion);
 }
 

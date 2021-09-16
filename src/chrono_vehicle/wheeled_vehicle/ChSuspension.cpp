@@ -26,6 +26,20 @@ namespace vehicle {
 
 ChSuspension::ChSuspension(const std::string& name) : ChPart(name) {}
 
+ChSuspension::~ChSuspension() {
+    auto sys = m_spindle[0]->GetSystem();
+    if (sys) {
+        sys->Remove(m_spindle[0]);
+        sys->Remove(m_spindle[1]);
+        sys->Remove(m_axle[0]);
+        sys->Remove(m_axle[1]);
+        sys->Remove(m_axle_to_spindle[0]);
+        sys->Remove(m_axle_to_spindle[1]);
+        sys->Remove(m_revolute[0]);
+        sys->Remove(m_revolute[1]);
+    }
+}
+
 ChQuaternion<> ChSuspension::GetSpindleRot(VehicleSide side) const {
     return m_spindle[side]->GetRot() * ChWorldFrame::Quaternion();
 }

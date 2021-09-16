@@ -141,7 +141,8 @@ int main(int argc, char* argv[]) {
         msection->SetDensity(beam_density);
         msection->SetYoungModulus(beam_Young);
         msection->SetGwithPoissonRatio(0.31);
-        msection->SetBeamRaleyghDamping(0.000001);
+        msection->SetBeamRaleyghDampingBeta(0.0001);
+        msection->SetBeamRaleyghDampingAlpha(0);
         msection->SetAsRectangularSection(beam_wy, beam_wz);
         msection->compute_inertia_damping_matrix = true; //*** not much different
         msection->compute_inertia_stiffness_matrix = true; //*** not much differen

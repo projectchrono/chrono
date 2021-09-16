@@ -232,6 +232,19 @@ class ChApi ChElementBeamTaperedTimoshenko : public ChElementBeam,
     /* To be completed: Created to be consistent with base class implementation*/
     virtual void EvaluateSectionStrain(const double eta, ChVector<>& StrainV) override {}
 
+    /// Gets the strains(traction along x, shear along y, along shear z, torsion about x, bending about y, on bending
+    /// about z) at a section along the beam line, at abscissa 'eta'. It's evaluated at the elastic center. Note, eta=-1
+    /// at node1, eta=+1 at node2. Results are not corotated, and are expressed in the reference system of beam.
+    virtual void EvaluateSectionStrain(const double eta, ChVector<>& StrainV_trans, ChVector<>& StrainV_rot);
+
+    /// Gets the elastic strain energy(traction along x, shear along y, along shear z, torsion about x, bending about
+    /// y, on bending about z) in the element.
+    virtual void EvaluateElementStrainEnergy(ChVector<>& StrainEnergyV_trans, ChVector<>& StrainEnergyV_rot);
+
+    /// Gets the damping dissipated energy(traction along x, shear along y, along shear z, torsion about x, bending
+    /// about y, on bending about z) in the element.
+    virtual void EvaluateElementDampingEnergy(ChVector<>& DampingEnergyV_trans, ChVector<>& DampingEnergyV_rot);
+
     //
     // Functions for interfacing to the solver
     //            (***not needed, thank to bookkeeping in parent class ChElementGeneric)
@@ -263,14 +276,17 @@ class ChApi ChElementBeamTaperedTimoshenko : public ChElementBeam,
     /// tetrahedron finite element or a cable, = 1 for a thermal problem, etc.
     virtual int Get_field_ncoords() override { return 6; }
 
-    /// Tell the number of DOFs blocks (ex. =1 for a body, =4 for a tetrahedron, etc.)
+    /// Get the number of DOFs sub-blocks.
     virtual int GetSubBlocks() override { return 2; }
 
-    /// Get the offset of the i-th sub-block of DOFs in global vector
+    /// Get the offset of the specified sub-block of DOFs in global vector.
     virtual unsigned int GetSubBlockOffset(int nblock) override { return nodes[nblock]->NodeGetOffset_w(); }
 
-    /// Get the size of the i-th sub-block of DOFs in global vector
+    /// Get the size of the specified sub-block of DOFs in global vector.
     virtual unsigned int GetSubBlockSize(int nblock) override { return 6; }
+
+    /// Check if the specified sub-block of DOFs is active.
+    virtual bool IsSubBlockActive(int nblock) const override { return !nodes[nblock]->GetFixed(); }
 
     /// Get the pointers to the contained ChVariables, appending to the mvars vector.
     virtual void LoadableGetVariables(std::vector<ChVariables*>& mvars) override;

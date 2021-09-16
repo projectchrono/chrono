@@ -234,6 +234,15 @@ unsigned int ChContactTriangleXYZ::GetSubBlockOffset(int nblock) {
     return 0;
 }
 
+bool ChContactTriangleXYZ::IsSubBlockActive(int nblock) const {
+    if (nblock == 0)
+        return !GetNode1()->GetFixed();
+    if (nblock == 1)
+        return !GetNode2()->GetFixed();
+    if (nblock == 2)
+        return !GetNode3()->GetFixed();
+}
+
 // Evaluate N'*F , where N is the shape function evaluated at (U,V) coordinates of the surface.
 void ChContactTriangleXYZ::ComputeNF(
     const double U,              // parametric coordinate in surface
@@ -490,6 +499,15 @@ unsigned int ChContactTriangleXYZROT::GetSubBlockOffset(int nblock) {
     if (nblock == 2)
         return GetNode3()->NodeGetOffset_w();
     return 0;
+}
+
+bool ChContactTriangleXYZROT::IsSubBlockActive(int nblock) const {
+    if (nblock == 0)
+        return !GetNode1()->GetFixed();
+    if (nblock == 1)
+        return !GetNode2()->GetFixed();
+    if (nblock == 2)
+        return !GetNode3()->GetFixed();
 }
 
 // Evaluate N'*F , where N is the shape function evaluated at (U,V) coordinates of the surface.

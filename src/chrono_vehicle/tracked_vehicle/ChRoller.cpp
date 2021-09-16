@@ -29,6 +29,14 @@ namespace vehicle {
 // -----------------------------------------------------------------------------
 ChRoller::ChRoller(const std::string& name) : ChPart(name), m_track(nullptr) {}
 
+ChRoller::~ChRoller() {
+    auto sys = m_wheel->GetSystem();
+    if (sys) {
+        sys->Remove(m_wheel);
+        sys->Remove(m_revolute);
+    }
+}
+
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 void ChRoller::Initialize(std::shared_ptr<ChBodyAuxRef> chassis, const ChVector<>& location, ChTrackAssembly* track) {
@@ -60,7 +68,7 @@ void ChRoller::Initialize(std::shared_ptr<ChBodyAuxRef> chassis, const ChVector<
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 void ChRoller::LogConstraintViolations() {
-    ChVectorDynamic<> C = m_revolute->GetC();
+    ChVectorDynamic<> C = m_revolute->GetConstraintViolation();
     GetLog() << "  Road-wheel revolute\n";
     GetLog() << "  " << C(0) << "  ";
     GetLog() << "  " << C(1) << "  ";

@@ -85,7 +85,7 @@ my_truck.SetChassisFixed(False)
 my_truck.SetInitPosition(chrono.ChCoordsysD(initLoc, initRot))
 my_truck.SetTireType(tire_model)
 my_truck.SetTireStepSize(tire_step_size)
-my_truck.SetShaftBasedDrivetrain(True)
+my_truck.SetDriveline8WD(True)
 my_truck.Initialize()
 
 my_truck.SetChassisVisualizationType(chassis_vis_type)

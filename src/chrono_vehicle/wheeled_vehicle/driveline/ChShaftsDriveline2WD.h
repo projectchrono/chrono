@@ -43,7 +43,7 @@ class CH_VEHICLE_API ChShaftsDriveline2WD : public ChDrivelineWV {
   public:
     ChShaftsDriveline2WD(const std::string& name);
 
-    virtual ~ChShaftsDriveline2WD() {}
+    virtual ~ChShaftsDriveline2WD();
 
     /// Get the name of the vehicle subsystem template.
     virtual std::string GetTemplateName() const override { return "ShaftsDriveline2WD"; }

@@ -34,6 +34,30 @@ namespace vehicle {
 ChShaftsDriveline6WD::ChShaftsDriveline6WD(const std::string& name)
     : ChDrivelineWV(name), m_dir_motor_block(ChVector<>(1, 0, 0)), m_dir_axle(ChVector<>(0, 1, 0)) {}
 
+ChShaftsDriveline6WD::~ChShaftsDriveline6WD() {
+    auto sys = m_central_differential->GetSystem();
+    if (sys) {
+        sys->Remove(m_central_differential);
+        sys->Remove(m_central_clutch);
+        sys->Remove(m_hang_on_clutch);
+        sys->Remove(m_front_shaft);
+        sys->Remove(m_rear1_shaft);
+        sys->Remove(m_rear2_shaft);
+        sys->Remove(m_front_conicalgear);
+        sys->Remove(m_front_differential);
+        sys->Remove(m_front_differentialbox);
+        sys->Remove(m_front_clutch);
+        sys->Remove(m_rear1_conicalgear);
+        sys->Remove(m_rear1_differential);
+        sys->Remove(m_rear1_differentialbox);
+        sys->Remove(m_rear1_clutch);
+        sys->Remove(m_rear2_conicalgear);
+        sys->Remove(m_rear2_differential);
+        sys->Remove(m_rear2_differentialbox);
+        sys->Remove(m_rear2_clutch);
+    }
+}
+
 // -----------------------------------------------------------------------------
 // Initialize the driveline subsystem.
 // This function connects this driveline to the specified axles.

@@ -31,7 +31,10 @@ namespace rccar {
 
 const double rpm2rads = CH_C_PI / 30;
 
-const double max_rpm = 19240;
+const double Kv_rating = 1300;
+const double supply_voltage = 8.0;
+const double max_rpm = Kv_rating * supply_voltage;
+const double stall_torque = 1.0; // TODO, currently a guess
 
 RCCar_SimpleMapPowertrain::RCCar_SimpleMapPowertrain(const std::string& name) : ChSimpleMapPowertrain(name) {}
 
@@ -40,31 +43,25 @@ double RCCar_SimpleMapPowertrain::GetMaxEngineSpeed() {
 }
 
 void RCCar_SimpleMapPowertrain::SetEngineTorqueMaps(ChFunction_Recorder& map0, ChFunction_Recorder& mapF) {
-    double m = -2e-3;
-
-    double x1 = max_rpm * rpm2rads, y1 = 0;
-    double x0 = 0, y0 = -m * x1;
-    int r = 5;
-    for (int i = 0; i <= r; i++) {
-        double t = (double)i / r;
-        double x = (1.0 - t) * x0 + t * x1;
-        double y = (1.0 - t) * y0 + t * y1;
-        mapF.AddPoint(x, y);
-    }
+    // since this is a model of motor and ESC combination, we assume a linear relationship.
+    // while brushless motors dont follow linear torque-speed relationship, most hobby electronic
+    // speed controllers control the motor such that it approximately follows a linear relationship
+    mapF.AddPoint(0,stall_torque); //stall torque //TODO
+    mapF.AddPoint(max_rpm * rpm2rads, 0);  // no load speed
 
     // N-m and rad/s
-    map0.AddPoint(x0, 0);
-    map0.AddPoint(x1, 0);
+    map0.AddPoint(0, 0);
+    map0.AddPoint(.1 * max_rpm * rpm2rads, 0);
+    map0.AddPoint(max_rpm * rpm2rads, -stall_torque);  // TODO, currently a guess
 }
 
 void RCCar_SimpleMapPowertrain::SetGearRatios(std::vector<double>& fwd, double& rev) {
-    rev = -0.2;
-
+    rev = -1.0 / 3;
     fwd.push_back(1.0 / 3);
 }
 
 void RCCar_SimpleMapPowertrain::SetShiftPoints(std::vector<std::pair<double, double>>& shift_bands) {
-    shift_bands.push_back(std::pair<double, double>(0 * rpm2rads, 100000 * rpm2rads));
+    shift_bands.push_back(std::pair<double, double>(0, 10 * max_rpm * rpm2rads)); //never shifts
 }
 
 }  // end namespace rccar
