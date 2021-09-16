@@ -36,12 +36,16 @@
 namespace chrono {
 namespace sensor {
 
+/// @addtogroup sensor_optix
+/// @{
+
 template <typename T>
 struct Record {
     __align__(OPTIX_SBT_RECORD_ALIGNMENT) char header[OPTIX_SBT_RECORD_HEADER_SIZE];
     T data;
 };
 
+/// 
 enum class PipelineType {
     CAMERA_PINHOLE,         // pinhole camera model
     CAMERA_FOV_LENS,        // FOV lens model
@@ -191,6 +195,9 @@ class CH_SENSOR_API ChOptixPipeline {
     // bodies in simulation
     std::vector<std::shared_ptr<ChBody>> m_bodies;
 };
+
+/// @} sensor_optix
+
 }  // namespace sensor
 }  // namespace chrono
 

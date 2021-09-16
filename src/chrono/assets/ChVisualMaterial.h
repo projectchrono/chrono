@@ -31,7 +31,7 @@ class ChApi ChVisualMaterial : public ChAsset {
     /// Constructors
     ChVisualMaterial();
 
-    /// Setting function
+    // Setting functions
     void SetAmbientColor(ChVector<float> rgb);
     void SetDiffuseColor(ChVector<float> rgb);
     void SetSpecularColor(ChVector<float> rgb);
