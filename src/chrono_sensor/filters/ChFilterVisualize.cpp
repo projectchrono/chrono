@@ -26,7 +26,8 @@ namespace sensor {
 int ChFilterVisualize::s_windowCount = 0;
 std::mutex ChFilterVisualize::s_glfwMutex;
 
-CH_SENSOR_API ChFilterVisualize::ChFilterVisualize(int w, int h, std::string name) : m_w(w), m_h(h), ChFilter(name) {}
+CH_SENSOR_API ChFilterVisualize::ChFilterVisualize(int w, int h, std::string name, bool fullscreen)
+    : m_w(w), m_h(h), m_fullscreen(fullscreen), ChFilter(name) {}
 
 CH_SENSOR_API ChFilterVisualize::~ChFilterVisualize() {
     ChFilterVisualize::OnCloseWindow();
@@ -204,8 +205,12 @@ CH_SENSOR_API void ChFilterVisualize::CreateGlfwWindow(std::string window_name) 
     OnNewWindow();  // OnNewWindow will need to lock inside itself
 
     std::lock_guard<std::mutex> lck(s_glfwMutex);
-    m_window.reset(
-        glfwCreateWindow(static_cast<GLsizei>(m_w), static_cast<GLsizei>(m_h), window_name.c_str(), NULL, NULL));
+    if (m_fullscreen)
+        m_window.reset(glfwCreateWindow(static_cast<GLsizei>(m_w), static_cast<GLsizei>(m_h), window_name.c_str(),
+                                        glfwGetPrimaryMonitor(), NULL));
+    else
+        m_window.reset(
+            glfwCreateWindow(static_cast<GLsizei>(m_w), static_cast<GLsizei>(m_h), window_name.c_str(), NULL, NULL));
     if (m_window) {
         glfwMakeContextCurrent(m_window.get());
         glfwSwapInterval(0);  // disable vsync as we are "fast as possible"

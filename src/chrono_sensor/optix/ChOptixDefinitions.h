@@ -30,11 +30,6 @@ struct half4 {
     __half w;
 };
 
-// struct ushort2 {
-//     unsigned short x;
-//     unsigned short y;
-// };
-
 enum RayType {
     CAMERA_RAY_TYPE = 0,       // camera rays
     SHADOW_RAY_TYPE = 1,       // shadow rays

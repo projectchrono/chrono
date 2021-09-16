@@ -46,7 +46,7 @@ class CH_SENSOR_API ChFilterVisualize : public ChFilter {
     /// @param w Width of the window to create
     /// @param h Height of the window to create
     /// @param name String name of the filter
-    ChFilterVisualize(int w, int h, std::string name = "ChFilterVisualize");
+    ChFilterVisualize(int w, int h, std::string name = "ChFilterVisualize", bool fullscreen = false);
 
     /// Class destructor
     virtual ~ChFilterVisualize();
@@ -97,6 +97,7 @@ class CH_SENSOR_API ChFilterVisualize : public ChFilter {
     bool m_window_disabled = false;  ///< for checking if window is not allowed on sysmtem (e.g. headless rendering)
     int m_w;                         ///< width of the window
     int m_h;                         ///< height of the window
+    bool m_fullscreen;               ///< toggle for fullscreen mode
 };
 
 /// @}
