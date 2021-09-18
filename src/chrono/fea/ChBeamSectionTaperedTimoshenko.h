@@ -26,16 +26,21 @@ namespace fea {
 
 /// This damping model supports you to assign different Rayleigh damping coefficients for different dimensions,
 /// which would be helpful for those anisotropic material, such as wind turbine blade.
-/// Note, the square of these four parameters are the beta coefficient of Rayleigh damping model of beam element.
+/// Note, the square of these four parameters(bx/by/bz/bt) are the beta coefficient of Rayleigh damping model of beam
+/// element.
+/// alpha is the mass-proportional damping coefficient. Because the mass matrix might be lumped or consistent type,
+/// for the sake of simplification, the mass-proportional damping matrix is evaluated simply as Rm+=alpha*M, instead
+/// of four different values as stiffness-proportional term.
 /// This damping modal is used in ChElementBeamTaperedTimoshenko and ChElementBeamTaperedTimoshenkoFPM.
 /// For more background theory, please refer to:
 /// [1]. Hansen, M. H. (2001). Anisotropic damping of Timoshenko beam elements. (Denmark. Forskningscenter Risoe.
 ///      Risoe-R; No. 1267(EN)).
 struct DampingCoefficients {
-    double bx;  ///< damping coefficient along x axis (axial)
-    double by;  ///< damping coefficient along y axis (shear) and about z axis (bending)
-    double bz;  ///< damping coefficient along z axis (shear) and about y axis (bending)
-    double bt;  ///< damping coefficient about x axis (torsion)
+    double bx;           ///< damping coefficient along x axis (axial)
+    double by;           ///< damping coefficient along y axis (shear) and about z axis (bending)
+    double bz;           ///< damping coefficient along z axis (shear) and about y axis (bending)
+    double bt;           ///< damping coefficient about x axis (torsion)
+    double alpha = 0.0;  ///< mass-proportional damping coefficient, be zero as default
 };
 
 /// The aeverage section properties of tapered section could be stored in this struct.
@@ -116,11 +121,12 @@ class ChApi ChBeamSectionTimoshenkoAdvancedGeneric : public ChBeamSectionRayleig
 
   public:
     ChBeamSectionTimoshenkoAdvancedGeneric() : GAyy(0), GAzz(0), Qy(0), Qz(0) {
-        double bcoeff = 0.001;  // default damping coefficient
+        double bcoeff = 0.001;  // default damping coefficient for stiffness-proportional term
         rdamping_coeff.bx = bcoeff;
         rdamping_coeff.by = bcoeff;
         rdamping_coeff.bz = bcoeff;
         rdamping_coeff.bt = bcoeff;
+        rdamping_coeff.alpha = 0.0;  // default alpha damping coefficient for mass-proportional term
     }
 
     ChBeamSectionTimoshenkoAdvancedGeneric(
@@ -338,6 +344,9 @@ class ChApi ChBeamSectionTaperedTimoshenkoAdvancedGeneric {
     /// Get the average damping parameters of this tapered cross-section.
     virtual DampingCoefficients GetBeamRaleyghDamping() const;
 
+    /// Compute the average section parameters: mass, inertia and rigidity, etc.
+    virtual void ComputeAverageSectionParameters();
+
     /// Get the average sectional parameters(mass, inertia and rigidity, etc.) of this tapered cross-section.
     virtual std::shared_ptr<AverageSectionParameters> GetAverageSectionParameters() const { return this->avg_sec_par; };
 
@@ -372,6 +381,9 @@ class ChApi ChBeamSectionTaperedTimoshenkoAdvancedGeneric {
     // Some important average section parameters, to calculate only once, enable to access them conveniently.
     std::shared_ptr<AverageSectionParameters> avg_sec_par;
 
+    // A lock to avoid computing avg_sec_par several times, initialized as false by default.
+    bool compute_ave_sec_par = false;
+
     /// Compute the 12x12 sectional inertia matrix in lumped format, as in  {x_momentum,w_momentum}=[Mm]{xvel,wvel}
     /// The matrix is computed in the material reference (i.e. it is the sectional mass matrix)
     virtual void ComputeLumpedInertiaMatrix(ChMatrixNM<double, 12, 12>& M  ///< 12x12 sectional mass matrix values here
@@ -389,9 +401,6 @@ class ChApi ChBeamSectionTaperedTimoshenkoAdvancedGeneric {
     virtual void ComputeConsistentInertiaMatrix(
         ChMatrixNM<double, 12, 12>& M  ///< 12x12 sectional mass matrix values here
     );
-
-    // Compute the average section parameters: mass, inertia and rigidity, etc.
-    virtual void ComputeAverageSectionParameters();
 
   public:
     // If fixed-size matrix of EIGEN3 library is used, we need to add this macro

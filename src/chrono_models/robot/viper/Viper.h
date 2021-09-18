@@ -110,19 +110,24 @@ class CH_MODELS_API ViperPart {
     const ChVector<> GetAngAcc() const { return m_body->GetFrame_REF_to_abs().GetWacc_par(); }
 
   protected:
-    /// Complete construction of the part.
+    /// Utility function for calculating mass properties using the part's collision mesh.
+    void CalcMassProperties(double density);
+
+    /// Construct the part body.
     void Construct(ChSystem* system);
 
     std::string m_name;                        ///< part name
     std::shared_ptr<ChBodyAuxRef> m_body;      ///< part rigid body
-    std::shared_ptr<ChMaterialSurface> m_mat;  ///< contact material (shared among all shapes)
+    std::shared_ptr<ChMaterialSurface> m_mat;  ///< contact material
 
-    ChFrame<> m_mesh_xform;   ///< mesh transform (translate, rotate, scale)
     std::string m_mesh_name;  ///< visualization mesh name
+    ChFrame<> m_mesh_xform;   ///< mesh transform (translate, rotate, scale)
     ChColor m_color;          ///< visualization asset color
 
-    ChFrame<> m_pos;   ///< relative position wrt chassis
-    double m_density;  ///< part density
+    ChFrame<> m_pos;       ///< relative position wrt the chassis
+    double m_mass;         ///< mass
+    ChVector<> m_inertia;  ///< principal moments of inertia
+    ChFrame<> m_cog;       ///< COG frame (relative to body frame)
 
     bool m_visualize;  ///< part visualization flag
     bool m_collide;    ///< part collision flag

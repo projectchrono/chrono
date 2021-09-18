@@ -122,7 +122,6 @@ int main(int argc, char* argv[]) {
     my_rccar.SetTireVisualizationType(tire_vis_type);
 
     // Create the terrain
-    // Create the terrain
     RigidTerrain terrain(my_rccar.GetSystem());
 
     MaterialInfo minfo;
@@ -155,7 +154,7 @@ int main(int argc, char* argv[]) {
     ChWheeledVehicleIrrApp app(&my_rccar.GetVehicle(), L"RCCar Demo");
     app.SetSkyBox();
     app.AddTypicalLights(irr::core::vector3df(30.f, -30.f, 100.f), irr::core::vector3df(30.f, 50.f, 100.f), 250, 130);
-    app.SetChaseCamera(trackPoint, 1.5, 0.5);
+    app.SetChaseCamera(trackPoint, 1.5, 0.05);
     app.SetTimestep(step_size);
     app.AssetBindAll();
     app.AssetUpdateAll();

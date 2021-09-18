@@ -120,18 +120,24 @@ class CH_MODELS_API CuriosityPart {
     virtual void Initialize(std::shared_ptr<ChBodyAuxRef> chassis);
 
   protected:
+    /// Utility function for calculating mass properties using the part's collision mesh.
+    void CalcMassProperties(double density);
+
+    /// Construct the part body.
     void Construct(ChSystem* system);
 
     std::string m_name;                        ///< subsystem name
     std::shared_ptr<ChBodyAuxRef> m_body;      ///< rigid body
-    std::shared_ptr<ChMaterialSurface> m_mat;  ///< contact material (shared among all shapes)
+    std::shared_ptr<ChMaterialSurface> m_mat;  ///< contact material
 
-    ChFrame<> m_mesh_xform;   ///< mesh transform (translate, rotate, scale)
     std::string m_mesh_name;  ///< visualization mesh name
+    ChFrame<> m_mesh_xform;   ///< mesh transform (translate, rotate, scale)
     ChColor m_color;          ///< visualization asset color
 
-    ChFrame<> m_pos;   ///< Curiosity part's relative position wrt the chassis
-    double m_density;  ///< Curiosity part's density
+    ChFrame<> m_pos;       ///< relative position wrt the chassis
+    double m_mass;         ///< mass
+    ChVector<> m_inertia;  ///< principal moments of inertia
+    ChFrame<> m_cog;       ///< COG frame (relative to body frame)
 
     bool m_visualize;  ///< part visualization flag
     bool m_collide;    ///< Curiosity part's collision indicator
@@ -165,19 +171,16 @@ class CH_MODELS_API CuriosityWheel : public CuriosityPart {
     );
     ~CuriosityWheel() {}
 
-    virtual void Initialize(std::shared_ptr<ChBodyAuxRef> chassis) override;
-
     friend class Curiosity;
 };
-
 
 /// Curiosity rover suspension rocker.
 class CH_MODELS_API CuriosityRocker : public CuriosityPart {
   public:
     CuriosityRocker(const std::string& name,                 ///< part name
-                 const ChFrame<>& rel_pos,                ///< position relative to chassis frame
-                 std::shared_ptr<ChMaterialSurface> mat,  ///< contact material
-                 int side                                ///< rover side (0: L, 1: R)
+                    const ChFrame<>& rel_pos,                ///< position relative to chassis frame
+                    std::shared_ptr<ChMaterialSurface> mat,  ///< contact material
+                    int side                                 ///< rover side (0: L, 1: R)
     );
     ~CuriosityRocker() {}
 };
@@ -186,13 +189,12 @@ class CH_MODELS_API CuriosityRocker : public CuriosityPart {
 class CH_MODELS_API CuriosityBogie : public CuriosityPart {
   public:
     CuriosityBogie(const std::string& name,                 ///< part name
-                    const ChFrame<>& rel_pos,                ///< position relative to chassis frame
-                    std::shared_ptr<ChMaterialSurface> mat,  ///< contact material
-                    int side                                 ///< rover side (0: L, 1: R)
+                   const ChFrame<>& rel_pos,                ///< position relative to chassis frame
+                   std::shared_ptr<ChMaterialSurface> mat,  ///< contact material
+                   int side                                 ///< rover side (0: L, 1: R)
     );
     ~CuriosityBogie() {}
 };
-
 
 /// Curiosity rover steering upright.
 class CH_MODELS_API CuriosityUpright : public CuriosityPart {
@@ -202,8 +204,6 @@ class CH_MODELS_API CuriosityUpright : public CuriosityPart {
                      std::shared_ptr<ChMaterialSurface> mat  ///< contact material
     );
     ~CuriosityUpright() {}
-
-    virtual void Initialize(std::shared_ptr<ChBodyAuxRef> chassis) override;
 };
 
 /// Curiosity rover differential bar.

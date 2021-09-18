@@ -41,7 +41,7 @@ using namespace irr::video;
 
 // Specify rover chassis type
 // The options are Scarecrow and FullRover
-CuriosityChassisType chassis_type = CuriosityChassisType::Scarecrow;
+CuriosityChassisType chassis_type = CuriosityChassisType::FullRover;
 
 // Specify rover wheel type
 // The options are RealWheel, SimpleWheel, and CylWheel
