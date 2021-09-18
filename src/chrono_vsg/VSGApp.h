@@ -46,6 +46,7 @@ class CH_VSG_API VSGApp {
 
     void UpdateDrawMode(int mode);
     void UpdateGlobalFrame(bool v);
+    void UpdateFrameSize(float newSize);
 
   protected:
     void BuildSceneGraph();
@@ -55,6 +56,8 @@ class CH_VSG_API VSGApp {
   private:
     int m_drawMode = 0;
     bool m_drawModeChanged = true;
+    float m_symSize = 1.0;
+    vsg::ref_ptr<vsg::MatrixTransform> m_globalSymTransform;
     vsg::ref_ptr<vsg::Viewer> m_viewer;
     vsg::ref_ptr<vsg::Window> m_window;
 

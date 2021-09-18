@@ -44,14 +44,15 @@ struct GuiParams : public vsg::Inherit<vsg::Object, GuiParams> {
 };
 
 class SimpleGuiComponent {
-  public:
-    SimpleGuiComponent(vsg::ref_ptr<GuiParams> params, ChVSGApp* appPtr) : _params(params), m_appPtr(appPtr) {}
+public:
+    SimpleGuiComponent(vsg::ref_ptr<GuiParams> params, ChVSGApp *appPtr) : _params(params), m_appPtr(appPtr) {
+    }
 
     // Example here taken from the Dear imgui comments (mostly)
     bool operator()() {
         bool visibleComponents = false;
 
-        ImGuiIO& io = ImGui::GetIO();
+        ImGuiIO &io = ImGui::GetIO();
 #ifdef __APPLE__
         io.FontGlobalScale = 2.0;
 #else
@@ -78,7 +79,7 @@ class SimpleGuiComponent {
             }
 
             ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate,
-                        ImGui::GetIO().Framerate);
+                    ImGui::GetIO().Framerate);
 
             ImGui::End();
 
@@ -88,20 +89,20 @@ class SimpleGuiComponent {
         return visibleComponents;
     }
 
-  private:
+private:
     vsg::ref_ptr<GuiParams> _params;
     std::string m_winTitle;
-    ChVSGApp* m_appPtr;
+    ChVSGApp *m_appPtr;
 };
 
 ChVSGApp::ChVSGApp()
-    : m_horizonMountainHeight(0.0),
-      m_timeStep(0.001),
-      m_outputStep(0.001),
-      m_drawMode(DrawMode::Textured),
-      m_build_graph(true),
-      m_wait_counter(1),
-      m_wait_counter_max(1) {
+        : m_horizonMountainHeight(0.0),
+          m_timeStep(0.001),
+          m_outputStep(0.001),
+          m_drawMode(DrawMode::Textured),
+          m_build_graph(true),
+          m_wait_counter(1),
+          m_wait_counter_max(1) {
     setClearColor(1.0f, 1.0f, 1.0f);
     m_up_vector = vsg::dvec3(0.0, 0.0, 1.0);
     m_light_position = vsg::vec3(100, 100, 100);
@@ -142,7 +143,7 @@ void ChVSGApp::IncreaseWaitCounter() {
     }
 }
 
-void ChVSGApp::setupTexPool(vsg::ref_ptr<vsg::Window> window, vsg::ViewportState* viewport, uint32_t maxNumTextures) {
+void ChVSGApp::setupTexPool(vsg::ref_ptr<vsg::Window> window, vsg::ViewportState *viewport, uint32_t maxNumTextures) {
     auto device = window->getOrCreateDevice();
 
     _compile = vsg::CompileTraversal::create(window, viewport);
@@ -150,7 +151,7 @@ void ChVSGApp::setupTexPool(vsg::ref_ptr<vsg::Window> window, vsg::ViewportState
     // for now just allocated enough room for s
     uint32_t maxSets = maxNumTextures;
     vsg::DescriptorPoolSizes descriptorPoolSizes{
-        VkDescriptorPoolSize{VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, maxNumTextures}};
+            VkDescriptorPoolSize{VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, maxNumTextures}};
 
     _compile->context.descriptorPool = vsg::DescriptorPool::create(device, maxSets, descriptorPoolSizes);
 
@@ -167,7 +168,7 @@ void ChVSGApp::compile(vsg::ref_ptr<vsg::Node> subgraph) {
     }
 }
 
-bool ChVSGApp::Initialize(int windowWidth, int windowHeight, const char* windowTitle, ChSystem* system) {
+bool ChVSGApp::Initialize(int windowWidth, int windowHeight, const char *windowTitle, ChSystem *system) {
     if (!system) {
         return false;
     }
@@ -180,7 +181,7 @@ bool ChVSGApp::Initialize(int windowWidth, int windowHeight, const char* windowT
 
     // enable transfer from the colour and deth buffer images
     m_windowTraits->swapchainPreferences.imageUsage =
-        VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_TRANSFER_SRC_BIT;
+            VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_TRANSFER_SRC_BIT;
     m_windowTraits->depthImageUsage = VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT | VK_IMAGE_USAGE_TRANSFER_SRC_BIT;
 
     m_scenegraph = vsg::Group::create();
@@ -210,9 +211,9 @@ bool ChVSGApp::Initialize(int windowWidth, int windowHeight, const char* windowT
     // provide a custom RenderPass to ensure we can read from the depth buffer, only required by the 'd' dpeth
     // screenshot code path
     m_window->setRenderPass(createRenderPassCompatibleWithReadingDepthBuffer(device, m_window->surfaceFormat().format,
-                                                                             m_window->depthFormat()));
+            m_window->depthFormat()));
 
-    VkClearColorValue& clearColor = m_window->clearColor();
+    VkClearColorValue &clearColor = m_window->clearColor();
     for (int i = 0; i < 4; i++) {
         clearColor.float32[i] = m_clearColor[i];
     }
@@ -232,8 +233,8 @@ bool ChVSGApp::Initialize(int windowWidth, int windowHeight, const char* windowT
     auto lookAt = vsg::LookAt::create(-(centre + vsg::dvec3(0.0, -radius * 3.5, 0.0)), centre, m_up_vector);
 
     auto perspective = vsg::Perspective::create(
-        30.0, static_cast<double>(m_window->extent2D().width) / static_cast<double>(m_window->extent2D().height),
-        nearFarRatio * radius, radius * 4.5);
+            30.0, static_cast<double>(m_window->extent2D().width) / static_cast<double>(m_window->extent2D().height),
+            nearFarRatio * radius, radius * 4.5);
 
     auto camera = vsg::Camera::create(perspective, lookAt, vsg::ViewportState::create(m_window->extent2D()));
 
@@ -241,7 +242,7 @@ bool ChVSGApp::Initialize(int windowWidth, int windowHeight, const char* windowT
     // setupTexPool(m_window, camera->getViewportState(), 128);
     // compile(m_scenegraph);
     vsg::ref_ptr<vsg::Event> event =
-        vsg::Event::create(m_window->getOrCreateDevice());  // Vulkan creates vkEvent in an unsignled state
+            vsg::Event::create(m_window->getOrCreateDevice());  // Vulkan creates vkEvent in an unsignled state
 
     // Add ScreenshotHandler to respond to keyboard and mouse events.
 
@@ -296,7 +297,7 @@ void ChVSGApp::Render() {
 
 void ChVSGApp::BuildSceneGraph() {
     // analyse system, look for bodies and assets
-    for (auto body : m_system->Get_bodylist()) {
+    for (auto body: m_system->Get_bodylist()) {
         // position of the body
         const Vector pos = body->GetFrame_REF_to_abs().GetPos();
         // rotation of the body
@@ -315,7 +316,7 @@ void ChVSGApp::BuildSceneGraph() {
         for (int i = 0; i < body->GetAssets().size(); i++) {
             auto asset = body->GetAssets().at(i);
             if (std::dynamic_pointer_cast<ChColorAsset>(asset)) {
-                ChColorAsset* color_asset = (ChColorAsset*)(asset.get());
+                ChColorAsset *color_asset = (ChColorAsset * )(asset.get());
                 bodyColor.R = color_asset->GetColor().R;
                 bodyColor.G = color_asset->GetColor().G;
                 bodyColor.B = color_asset->GetColor().B;
@@ -323,12 +324,12 @@ void ChVSGApp::BuildSceneGraph() {
                 colorFound = true;
             }
             if (std::dynamic_pointer_cast<ChTexture>(asset)) {
-                ChTexture* texture_asset = (ChTexture*)(asset.get());
+                ChTexture *texture_asset = (ChTexture * )(asset.get());
                 bodyTexture.SetTextureFilename(texture_asset->GetTextureFilename());
                 textureFound = true;
             }
             if (std::dynamic_pointer_cast<ChPBRSetting>(asset)) {
-                ChPBRSetting* texture_asset = (ChPBRSetting*)(asset.get());
+                ChPBRSetting *texture_asset = (ChPBRSetting *) (asset.get());
                 bodyPBRSet.SetAlbedo(texture_asset->GetAlbedo());
                 bodyPBRSet.SetMetallic(texture_asset->GetMetallic());
                 bodyPBRSet.SetRoughness(texture_asset->GetRoughness());
@@ -336,7 +337,7 @@ void ChVSGApp::BuildSceneGraph() {
                 pbrSetFound = true;
             }
             if (std::dynamic_pointer_cast<ChPBRMaps>(asset)) {
-                ChPBRMaps* texture_asset = (ChPBRMaps*)(asset.get());
+                ChPBRMaps *texture_asset = (ChPBRMaps *) (asset.get());
                 bodyPBRMaps.SetAlbedoMapPath(texture_asset->GetAlbedoMapPath());
                 bodyPBRMaps.SetNormalMapPath(texture_asset->GetNormalMapPath());
                 bodyPBRMaps.SetMetallicMapPath(texture_asset->GetMetallicMapPath());
@@ -348,7 +349,7 @@ void ChVSGApp::BuildSceneGraph() {
         for (int i = 0; i < body->GetAssets().size(); i++) {
             auto asset = body->GetAssets().at(i);
 
-            ChVisualization* visual_asset = ((ChVisualization*)(asset.get()));
+            ChVisualization *visual_asset = ((ChVisualization * )(asset.get()));
             // position of the asset
             Vector center = visual_asset->Pos;
             // rotate asset pos into global frame
@@ -359,14 +360,14 @@ void ChVSGApp::BuildSceneGraph() {
             lrot = rot % lrot;
             lrot.Normalize();
             lrot.Q_to_AngAxis(angle, axis);
-            if (ChBoxShape* box_shape = dynamic_cast<ChBoxShape*>(asset.get())) {
+            if (ChBoxShape * box_shape = dynamic_cast<ChBoxShape *>(asset.get())) {
                 // GetLog() << "Found BoxShape!\n";
                 ChVector<> size = box_shape->GetBoxGeometry().GetSize();
                 ChVector<> pos_final = pos + center;
                 auto transform = vsg::MatrixTransform::create();
                 transform->matrix = vsg::translate(pos_final.x(), pos_final.y(), pos_final.z()) *
-                                    vsg::rotate(angle, axis.x(), axis.y(), axis.z()) *
-                                    vsg::scale(size.x(), size.y(), size.z());
+                        vsg::rotate(angle, axis.x(), axis.y(), axis.z()) *
+                        vsg::scale(size.x(), size.y(), size.z());
                 VSGIndexBox box(body, asset, transform);
                 if (textureFound) {
                     box.Initialize(bodyTexture);
@@ -380,7 +381,7 @@ void ChVSGApp::BuildSceneGraph() {
                 vsg::ref_ptr<vsg::Node> node = box.createVSGNode();
                 m_scenegraph->addChild(node);
             }
-            if (ChSphereShape* sphere_shape = dynamic_cast<ChSphereShape*>(asset.get())) {
+            if (ChSphereShape * sphere_shape = dynamic_cast<ChSphereShape *>(asset.get())) {
                 // GetLog() << "Found SphereShape!\n";
                 double radius = sphere_shape->GetSphereGeometry().rad;
                 ChVector<> size(radius, radius, radius);
@@ -388,8 +389,8 @@ void ChVSGApp::BuildSceneGraph() {
 
                 auto transform = vsg::MatrixTransform::create();
                 transform->matrix = vsg::translate(pos_final.x(), pos_final.y(), pos_final.z()) *
-                                    vsg::rotate(angle, axis.x(), axis.y(), axis.z()) *
-                                    vsg::scale(size.x(), size.y(), size.z());
+                        vsg::rotate(angle, axis.x(), axis.y(), axis.z()) *
+                        vsg::scale(size.x(), size.y(), size.z());
 
                 VSGIndexSphere sphere(body, asset, transform);
                 if (textureFound) {
@@ -404,7 +405,7 @@ void ChVSGApp::BuildSceneGraph() {
                 vsg::ref_ptr<vsg::Node> node = sphere.createVSGNode();
                 m_scenegraph->addChild(node);
             }
-            if (ChEllipsoidShape* ellipsoid_shape = dynamic_cast<ChEllipsoidShape*>(asset.get())) {
+            if (ChEllipsoidShape * ellipsoid_shape = dynamic_cast<ChEllipsoidShape *>(asset.get())) {
                 // GetLog() << "Found ElipsoidShape!\n";
                 Vector radius = ellipsoid_shape->GetEllipsoidGeometry().rad;
                 ChVector<> size(radius.x(), radius.y(), radius.z());
@@ -412,8 +413,8 @@ void ChVSGApp::BuildSceneGraph() {
                 auto transform = vsg::MatrixTransform::create();
 
                 transform->matrix = vsg::translate(pos_final.x(), pos_final.y(), pos_final.z()) *
-                                    vsg::rotate(angle, axis.x(), axis.y(), axis.z()) *
-                                    vsg::scale(size.x(), size.y(), size.z());
+                        vsg::rotate(angle, axis.x(), axis.y(), axis.z()) *
+                        vsg::scale(size.x(), size.y(), size.z());
 
                 VSGIndexSphere ellipsoid(body, asset, transform);
                 if (textureFound) {
@@ -428,7 +429,7 @@ void ChVSGApp::BuildSceneGraph() {
                 vsg::ref_ptr<vsg::Node> node = ellipsoid.createVSGNode();
                 m_scenegraph->addChild(node);
             }
-            if (ChCylinderShape* cylinder_shape = dynamic_cast<ChCylinderShape*>(asset.get())) {
+            if (ChCylinderShape * cylinder_shape = dynamic_cast<ChCylinderShape *>(asset.get())) {
                 // GetLog() << "Found CylinderShape!\n";
                 double radius = cylinder_shape->GetCylinderGeometry().rad;
                 ChVector<> dir = cylinder_shape->GetCylinderGeometry().p1 - cylinder_shape->GetCylinderGeometry().p2;
@@ -436,8 +437,8 @@ void ChVSGApp::BuildSceneGraph() {
                 ChVector<> pos_final = pos + center;
                 auto transform = vsg::MatrixTransform::create();
                 transform->matrix = vsg::translate(pos_final.x(), pos_final.y(), pos_final.z()) *
-                                    vsg::rotate(angle, axis.x(), axis.y(), axis.z()) *
-                                    vsg::scale(radius, radius, height);
+                        vsg::rotate(angle, axis.x(), axis.y(), axis.z()) *
+                        vsg::scale(radius, radius, height);
                 VSGIndexCylinder cylinder(body, asset, transform);
                 if (textureFound) {
                     cylinder.Initialize(bodyTexture);
@@ -457,7 +458,7 @@ void ChVSGApp::BuildSceneGraph() {
 }
 
 void ChVSGApp::UpdateSceneGraph() {
-    for (auto body : m_system->Get_bodylist()) {
+    for (auto body: m_system->Get_bodylist()) {
         // position of the body
         const Vector pos = body->GetFrame_REF_to_abs().GetPos();
         // rotation of the body
@@ -471,7 +472,7 @@ void ChVSGApp::UpdateSceneGraph() {
             if (!std::dynamic_pointer_cast<ChVisualization>(asset)) {
                 continue;
             }
-            ChVisualization* visual_asset = ((ChVisualization*)(asset.get()));
+            ChVisualization *visual_asset = ((ChVisualization * )(asset.get()));
             // position of the asset
             Vector center = visual_asset->Pos;
             // rotate asset pos into global frame
@@ -482,36 +483,36 @@ void ChVSGApp::UpdateSceneGraph() {
             lrot = rot % lrot;
             lrot.Normalize();
             lrot.Q_to_AngAxis(angle, axis);
-            if (ChBoxShape* box_shape = dynamic_cast<ChBoxShape*>(asset.get())) {
+            if (ChBoxShape * box_shape = dynamic_cast<ChBoxShape *>(asset.get())) {
                 // GetLog() << "Found BoxShape!\n";
                 ChVector<> size = box_shape->GetBoxGeometry().GetSize();
                 ChVector<> pos_final = pos + center;
                 auto tm = GetTransform(body, asset);
                 tm->matrix = vsg::translate(pos_final.x(), pos_final.y(), pos_final.z()) *
-                             vsg::rotate(angle, axis.x(), axis.y(), axis.z()) *
-                             vsg::scale(size.x(), size.y(), size.z());
+                        vsg::rotate(angle, axis.x(), axis.y(), axis.z()) *
+                        vsg::scale(size.x(), size.y(), size.z());
             }
-            if (ChSphereShape* sphere_shape = dynamic_cast<ChSphereShape*>(asset.get())) {
+            if (ChSphereShape * sphere_shape = dynamic_cast<ChSphereShape *>(asset.get())) {
                 // GetLog() << "Found SphereShape!\n";
                 double radius = sphere_shape->GetSphereGeometry().rad;
                 ChVector<> size(radius, radius, radius);
                 ChVector<> pos_final = pos + center;
                 auto tm = GetTransform(body, asset);
                 tm->matrix = vsg::translate(pos_final.x(), pos_final.y(), pos_final.z()) *
-                             vsg::rotate(angle, axis.x(), axis.y(), axis.z()) *
-                             vsg::scale(size.x(), size.y(), size.z());
+                        vsg::rotate(angle, axis.x(), axis.y(), axis.z()) *
+                        vsg::scale(size.x(), size.y(), size.z());
             }
-            if (ChEllipsoidShape* ellipsoid_shape = dynamic_cast<ChEllipsoidShape*>(asset.get())) {
+            if (ChEllipsoidShape * ellipsoid_shape = dynamic_cast<ChEllipsoidShape *>(asset.get())) {
                 // GetLog() << "Found ElipsoidShape!\n";
                 Vector radius = ellipsoid_shape->GetEllipsoidGeometry().rad;
                 ChVector<> size(radius.x(), radius.y(), radius.z());
                 ChVector<> pos_final = pos + center;
                 auto tm = GetTransform(body, asset);
                 tm->matrix = vsg::translate(pos_final.x(), pos_final.y(), pos_final.z()) *
-                             vsg::rotate(angle, axis.x(), axis.y(), axis.z()) *
-                             vsg::scale(size.x(), size.y(), size.z());
+                        vsg::rotate(angle, axis.x(), axis.y(), axis.z()) *
+                        vsg::scale(size.x(), size.y(), size.z());
             }
-            if (ChCylinderShape* cylinder_shape = dynamic_cast<ChCylinderShape*>(asset.get())) {
+            if (ChCylinderShape * cylinder_shape = dynamic_cast<ChCylinderShape *>(asset.get())) {
                 // GetLog() << "Found CylinderShape!\n";
                 double radius = cylinder_shape->GetCylinderGeometry().rad;
                 ChVector<> dir = cylinder_shape->GetCylinderGeometry().p1 - cylinder_shape->GetCylinderGeometry().p2;
@@ -519,14 +520,14 @@ void ChVSGApp::UpdateSceneGraph() {
                 ChVector<> pos_final = pos + center;
                 auto tm = GetTransform(body, asset);
                 tm->matrix = vsg::translate(pos_final.x(), pos_final.y(), pos_final.z()) *
-                             vsg::rotate(angle, axis.x(), axis.y(), axis.z()) * vsg::scale(radius, radius, height);
+                        vsg::rotate(angle, axis.x(), axis.y(), axis.z()) * vsg::scale(radius, radius, height);
             }
         }
     }
 }
 
 vsg::ref_ptr<vsg::MatrixTransform> ChVSGApp::GetTransform(std::shared_ptr<ChBody> body,
-                                                          std::shared_ptr<ChAsset> asset) {
+        std::shared_ptr<ChAsset> asset) {
     vsg::ref_ptr<vsg::MatrixTransform> transform;
     size_t numCh = m_scenegraph->children.size();
     for (size_t iChild = 0; iChild < numCh; iChild++) {
@@ -547,9 +548,9 @@ vsg::ref_ptr<vsg::MatrixTransform> ChVSGApp::GetTransform(std::shared_ptr<ChBody
     return transform;
 }
 
-vsg::ref_ptr<vsg::RenderPass> ChVSGApp::createRenderPassCompatibleWithReadingDepthBuffer(vsg::Device* device,
-                                                                                         VkFormat imageFormat,
-                                                                                         VkFormat depthFormat) {
+vsg::ref_ptr<vsg::RenderPass> ChVSGApp::createRenderPassCompatibleWithReadingDepthBuffer(vsg::Device *device,
+        VkFormat imageFormat,
+        VkFormat depthFormat) {
     auto colorAttachmet = vsg::defaultColorAttachment(imageFormat);
     auto depthAttachment = vsg::defaultDepthAttachment(depthFormat);
 
@@ -562,7 +563,7 @@ vsg::ref_ptr<vsg::RenderPass> ChVSGApp::createRenderPassCompatibleWithReadingDep
     subpass.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
     subpass.colorAttachments.emplace_back(VkAttachmentReference{0, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL});
     subpass.depthStencilAttachments.emplace_back(
-        VkAttachmentReference{1, VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL});
+            VkAttachmentReference{1, VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL});
 
     vsg::RenderPass::Subpasses subpasses{subpass};
 

@@ -36,6 +36,7 @@ namespace chrono {
         struct Params : public vsg::Inherit<vsg::Object, Params> {
             bool showGui = true;  // you can toggle this with your own EventHandler and key
             bool showGlobalCsys = false;
+            float symSize = 1.0;
             int drawMode = 0;
         };
 
@@ -113,6 +114,12 @@ namespace chrono {
                     if (ImGui::Checkbox("Global", &_params->showGlobalCsys)) {
                         m_appPtr->UpdateGlobalFrame(_params->showGlobalCsys);
                     }
+
+                    ImGui::Text("     Symbol Size: ");
+                    ImGui::SameLine();
+                    ImGui::SliderFloat("", &_params->symSize, 0.1, 10.0);
+                    m_appPtr->UpdateFrameSize(_params->symSize);
+
                     if (ImGui::Button(
                             "Quit"))  // Buttons return true when clicked (most widgets return true when edited/activated)
                         m_appPtr->Quit();
@@ -208,6 +215,8 @@ namespace chrono {
 
             m_viewer->addWindow(m_window);
 
+            m_globalSymTransform = vsg::MatrixTransform::create();
+
             // holds whole 3d stuff
             m_scenegraph = vsg::Group::create();
 
@@ -295,6 +304,13 @@ namespace chrono {
 
         void VSGApp::Quit() {
             m_viewer->close();
+        }
+
+        void VSGApp::UpdateFrameSize(float newSize) {
+            if (newSize != m_symSize) {
+                m_symSize = newSize;
+                m_globalSymTransform->matrix = vsg::scale(m_symSize, m_symSize, m_symSize);
+            }
         }
 
         static vsg::mat4 vsgXform(const ChFrame<> &X, const ChVector<> &s) {
@@ -441,7 +457,7 @@ namespace chrono {
                 }
             }
             VSGCsys csys;
-            csys.genSubgraph(m_global_sym_subgraph);
+            csys.genSubgraph(m_global_sym_subgraph, m_globalSymTransform);
             m_global_sym_subgraph->setAllChildren(false);
             m_dot_subgraph->setAllChildren(false);
             m_line_subgraph->setAllChildren(false);

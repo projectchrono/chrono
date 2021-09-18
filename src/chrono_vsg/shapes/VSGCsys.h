@@ -17,8 +17,9 @@ namespace chrono {
     namespace vsg3d {
         class CH_VSG_API VSGCsys {
         public:
-                VSGCsys();
-                void genSubgraph(vsg::ref_ptr<vsg::Switch> parentgraph);
+            VSGCsys();
+
+            void genSubgraph(vsg::ref_ptr<vsg::Switch> parentgraph, vsg::ref_ptr<vsg::MatrixTransform> tf);
         };
     }
 }

@@ -7,7 +7,7 @@ using namespace chrono::vsg3d;
 VSGCsys::VSGCsys() {
 }
 
-void VSGCsys::genSubgraph(vsg::ref_ptr<vsg::Switch> parentgraph) {
+void VSGCsys::genSubgraph(vsg::ref_ptr<vsg::Switch> parentgraph, vsg::ref_ptr<vsg::MatrixTransform> tf) {
     vsg::ref_ptr<vsg::ShaderStage> vertexShader = lineShader_vert();
     vsg::ref_ptr<vsg::ShaderStage> fragmentShader = lineShader_frag();
 
@@ -55,10 +55,10 @@ void VSGCsys::genSubgraph(vsg::ref_ptr<vsg::Switch> parentgraph) {
     scenegraph->add(bindGraphicsPipeline);
 
     // set up model transformation node
-    auto transform = vsg::MatrixTransform::create(); // VK_SHADER_STAGE_VERTEX_BIT
+    // auto transform = vsg::MatrixTransform::create(); // VK_SHADER_STAGE_VERTEX_BIT
 
     // add transform to root of the scene graph
-    scenegraph->addChild(transform);
+    scenegraph->addChild(tf);
 
     // set up vertex and index arrays
     auto vertices = vsg::vec3Array::create(
@@ -85,7 +85,7 @@ void VSGCsys::genSubgraph(vsg::ref_ptr<vsg::Switch> parentgraph) {
     drawCommands->addChild(vsg::Draw::create(vertices->size(), 1, 0, 0));
 
     // add drawCommands to transform
-    transform->addChild(drawCommands);
+    tf->addChild(drawCommands);
 
-    parentgraph->addChild(true,scenegraph);
+    parentgraph->addChild(true, scenegraph);
 }
