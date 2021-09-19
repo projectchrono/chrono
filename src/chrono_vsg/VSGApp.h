@@ -45,7 +45,8 @@ class CH_VSG_API VSGApp {
     vsg::ref_ptr<vsg::Viewer> GetViewer() const { return m_viewer; }
 
     void UpdateDrawMode(int mode);
-    void UpdateGlobalFrame(bool v);
+    void setGlobalFrameVisibility(bool v);
+    void setBodyFrameVisibility(bool v);
     void UpdateFrameSize(float newSize);
 
   protected:
@@ -72,6 +73,7 @@ class CH_VSG_API VSGApp {
     vsg::ref_ptr<vsg::Switch> m_polygon_subgraph;
 
     vsg::ref_ptr<vsg::Switch> m_global_sym_subgraph;
+    vsg::ref_ptr<vsg::Switch> m_body_sym_subgraph;
 
     vsg::ref_ptr<vsg::Builder> m_builderBodyDots;
     vsg::ref_ptr<vsg::Builder> m_builderWireFrame;

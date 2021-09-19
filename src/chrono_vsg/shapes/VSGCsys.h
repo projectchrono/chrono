@@ -13,6 +13,8 @@
 
 #include <vsg/all.h>
 
+// Line based shape to symbolize the global reference frame at {0;0;0}. It appears only once.
+
 namespace chrono {
     namespace vsg3d {
         class CH_VSG_API VSGCsys {
@@ -20,6 +22,9 @@ namespace chrono {
             VSGCsys();
 
             void genSubgraph(vsg::ref_ptr<vsg::Switch> parentgraph, vsg::ref_ptr<vsg::MatrixTransform> tf);
+        private:
+            float a = 0.05;
+            float b = 3.0;
         };
     }
 }

@@ -21,6 +21,7 @@
 #include <vsgImGui/imgui.h>
 
 #include "chrono_vsg/VSGApp.h"
+#include "chrono_vsg/shapes/VSGBsys.h"
 #include "chrono_vsg/shapes/VSGCsys.h"
 #include "chrono/assets/ChVisualization.h"
 #include "chrono/assets/ChSphereShape.h"
@@ -36,6 +37,7 @@ namespace chrono {
         struct Params : public vsg::Inherit<vsg::Object, Params> {
             bool showGui = true;  // you can toggle this with your own EventHandler and key
             bool showGlobalCsys = false;
+            bool showBodySys = false;
             float symSize = 1.0;
             int drawMode = 0;
         };
@@ -105,14 +107,18 @@ namespace chrono {
                         m_appPtr->UpdateDrawMode(_params->drawMode);
                     }
                     ImGui::SameLine();
-                    if (ImGui::RadioButton("Body CoG Dots", &_params->drawMode, 2)) {
+                    if (ImGui::RadioButton("Ref. Frames", &_params->drawMode, 2)) {
                         m_appPtr->UpdateDrawMode(_params->drawMode);
                     }
 
                     ImGui::Text("Show Ref. Frames: ");
                     ImGui::SameLine();
                     if (ImGui::Checkbox("Global", &_params->showGlobalCsys)) {
-                        m_appPtr->UpdateGlobalFrame(_params->showGlobalCsys);
+                        m_appPtr->setGlobalFrameVisibility(_params->showGlobalCsys);
+                    }
+                    ImGui::SameLine();
+                    if (ImGui::Checkbox("Bodies", &_params->showBodySys)) {
+                        m_appPtr->setBodyFrameVisibility(_params->showBodySys);
                     }
 
                     ImGui::Text("     Symbol Size: ");
@@ -225,12 +231,14 @@ namespace chrono {
             m_line_subgraph = vsg::Switch::create();
             m_polygon_subgraph = vsg::Switch::create();
             m_global_sym_subgraph = vsg::Switch::create();
+            m_body_sym_subgraph = vsg::Switch::create();
 
             // add switch nodes to m_scenegraph
             m_scenegraph->addChild(m_dot_subgraph);
             m_scenegraph->addChild(m_line_subgraph);
             m_scenegraph->addChild(m_polygon_subgraph);
             m_scenegraph->addChild(m_global_sym_subgraph);
+            m_scenegraph->addChild(m_body_sym_subgraph);
 
             // use chrono multibody system the generate 3d info
             BuildSceneGraph();
@@ -298,8 +306,12 @@ namespace chrono {
             m_drawModeChanged = true;
         }
 
-        void VSGApp::UpdateGlobalFrame(bool v) {
+        void VSGApp::setGlobalFrameVisibility(bool v) {
             m_global_sym_subgraph->setAllChildren(v);
+        }
+
+        void VSGApp::setBodyFrameVisibility(bool v) {
+            m_body_sym_subgraph->setAllChildren(v);
         }
 
         void VSGApp::Quit() {
@@ -310,6 +322,24 @@ namespace chrono {
             if (newSize != m_symSize) {
                 m_symSize = newSize;
                 m_globalSymTransform->matrix = vsg::scale(m_symSize, m_symSize, m_symSize);
+                for(size_t i=0; i < m_system->Get_bodylist().size(); i++) {
+                    auto body = m_system->Get_bodylist().at(i);
+                    // position of the body
+                    const Vector pos = body->GetFrame_REF_to_abs().GetPos();
+                    // rotation of the body
+                    Quaternion rot = body->GetFrame_REF_to_abs().GetRot();
+                    double angle;
+                    Vector axis;
+                    rot.Q_to_AngAxis(angle, axis);
+                    double s = m_symSize;
+                    vsg::ref_ptr<vsg::MatrixTransform> body_tf;
+                    bool tf_ok = m_body_sym_subgraph->children[i].node->getValue("transform", body_tf);
+                    if(tf_ok) {
+                        body_tf->matrix = vsg::translate(pos.x(), pos.y(), pos.z())
+                                * vsg::rotate(angle, axis.x(), axis.y(), axis.z())
+                                * vsg::scale(s, s, s);
+                    }
+                }
             }
         }
 
@@ -332,7 +362,7 @@ namespace chrono {
 
             for (auto body: m_system->Get_bodylist()) {
                 GetLog() << "processing body " << body.get()->GetId() << "\n";
-
+                // Provide 3D symbol for each body
                 // body position and rotation wrt global frame
                 ChFrame<> g_X_b(body->GetFrame_REF_to_abs().GetPos(), body->GetFrame_REF_to_abs().GetRot());
 
@@ -344,6 +374,21 @@ namespace chrono {
                 stateDot.wireframe = false;
                 m_dot_subgraph->addChild(false, m_builderBodyDots->createSphere(geomDot, stateDot));
 
+                // Provide reference frame symbol for each body
+                // position of the body
+                const Vector pos = body->GetFrame_REF_to_abs().GetPos();
+                // rotation of the body
+                Quaternion rot = body->GetFrame_REF_to_abs().GetRot();
+                double angle;
+                Vector axis;
+                rot.Q_to_AngAxis(angle, axis);
+                double s = m_symSize;
+                vsg::ref_ptr<vsg::MatrixTransform> body_tf = vsg::MatrixTransform::create();
+                body_tf->matrix = vsg::translate(pos.x(), pos.y(), pos.z())
+                        * vsg::rotate(angle, axis.x(), axis.y(), axis.z())
+                        * vsg::scale(s, s, s);
+                VSGBsys bsys(body);
+                bsys.genSubgraph(m_body_sym_subgraph, body_tf);
                 for (const auto &asset: body->GetAssets()) {
                     auto visual_asset = std::dynamic_pointer_cast<ChVisualization>(asset);
                     if (!visual_asset) {
@@ -459,6 +504,7 @@ namespace chrono {
             VSGCsys csys;
             csys.genSubgraph(m_global_sym_subgraph, m_globalSymTransform);
             m_global_sym_subgraph->setAllChildren(false);
+            m_body_sym_subgraph->setAllChildren(false);
             m_dot_subgraph->setAllChildren(false);
             m_line_subgraph->setAllChildren(false);
             m_polygon_subgraph->setAllChildren(true);

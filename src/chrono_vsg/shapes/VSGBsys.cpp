@@ -1,13 +1,10 @@
-#include "chrono_vsg/shapes/VSGCsys.h"
+#include "chrono_vsg/shapes/VSGBsys.h"
 #include "chrono_vsg/core/lineShader_vert.h"
 #include "chrono_vsg/core/lineShader_frag.h"
 
 using namespace chrono::vsg3d;
 
-VSGCsys::VSGCsys() {
-}
-
-void VSGCsys::genSubgraph(vsg::ref_ptr<vsg::Switch> parentgraph, vsg::ref_ptr<vsg::MatrixTransform> tf) {
+void VSGBsys::genSubgraph(vsg::ref_ptr<vsg::Switch> parentgraph, vsg::ref_ptr<vsg::MatrixTransform> tf) {
     vsg::ref_ptr<vsg::ShaderStage> vertexShader = lineShader_vert();
     vsg::ref_ptr<vsg::ShaderStage> fragmentShader = lineShader_frag();
 
@@ -52,6 +49,8 @@ void VSGCsys::genSubgraph(vsg::ref_ptr<vsg::Switch> parentgraph, vsg::ref_ptr<vs
 
     // create StateGroup as the root of the scene/command graph to hold the GraphicsProgram, and binding of Descriptors to decorate the whole graph
     auto scenegraph = vsg::StateGroup::create();
+    scenegraph->setValue("BodyPtr", m_body);
+    scenegraph->setValue("transform", tf);
     scenegraph->add(bindGraphicsPipeline);
 
     // set up model transformation node
@@ -62,99 +61,19 @@ void VSGCsys::genSubgraph(vsg::ref_ptr<vsg::Switch> parentgraph, vsg::ref_ptr<vs
 
     // set up vertex and index arrays
     auto vertices = vsg::vec3Array::create(
-            {
-                    // X-Arrow
-                    {0.0f, a/2.0f, 0.0f},
-                    {0.0f, -a/2.0f, 0.0f},
-                    {0.0f, -a/2.0f, 0.0f},
-                    {1.0f-b*a, -a/2.0f, 0.0f},
-                    {1.0f-b*a, -a/2.0f, 0.0f},
-                    {1.0f-b*a, -a, 0.0f},
-                    {1.0f-b*a, -a, 0.0f},
+            {{0.0f, 0.0f, 0.0f},
                     {1.0f, 0.0f, 0.0f},
-                    {1.0f-b*a, a, 0.0f},
-                    {1.0f, 0.0f, 0.0f},
-                    {1.0f-b*a, a/2.0f, 0.0f},
-                    {1.0f-b*a, a, 0.0f},
-                    {0.0f, a/2.0f, 0.0f},
-                    {1.0f-b*a, a/2.0f, 0.0f},
-                    // Y-Arrow
-                    {a/2.0f, 0.0f, 0.0f},
-                    {-a/2.0f, 0.0f, 0.0f},
-                    {-a/2.0f, 0.0f, 0.0f},
-                    {-a/2.0f, 1.0f-b*a, 0.0f},
-                    {-a/2.0f, 1.0f-b*a, 0.0f},
-                    {-a, 1.0f-b*a, 0.0f},
-                    {-a, 1.0f-b*a, 0.0f},
+                    {0.0f, 0.0f, 0.0f},
                     {0.0f, 1.0f, 0.0f},
-                    {a, 1.0f-b*a, 0.0f},
-                    {0.0f, 1.0f, 0.0f},
-                    {a, 1.0f-b*a, 0.0f},
-                    {a/2.0f, 1.0f-b*a, 0.0f},
-                    {a/2.0f, 1.0f-b*a, 0.0f},
-                    {a/2.0f, 0.0f, 0.0f},
-                    // Z-Arrow
-                    {-a/2.0f, 0.0f, 0.0f},
-                    {a/2.0f, 0.0f, 0.0f},
-                    {-a/2.0f, 0.0f, 0.0f},
-                    {-a/2.0f, 0.0f, 1.0f-b*a},
-                    {-a/2.0f, 0.0f, 1.0f-b*a},
-                    {-a, 0.0f, 1.0f-b*a},
-                    {-a, 0.0f, 1.0f-b*a},
-                    {0.0f, 0.0f, 1.0f},
-                    {a, 0.0f, 1.0f-b*a},
-                    {0.0f, 0.0f, 1.0f},
-                    {a, 0.0f, 1.0f-b*a},
-                    {a/2.0f, 0.0f, 1.0f-b*a},
-                    {a/2.0f, 0.0f, 1.0f-b*a},
-                    {a/2.0f, 0.0f, 0.0f}
-            }); // VK_FORMAT_R32G32B32_SFLOAT, VK_VERTEX_INPUT_RATE_INSTANCE, VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, VK_SHARING_MODE_EXCLUSIVE
+                    {0.0f, 0.0f, 0.0f},
+                    {0.0f, 0.0f, 1.0f}}); // VK_FORMAT_R32G32B32_SFLOAT, VK_VERTEX_INPUT_RATE_INSTANCE, VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, VK_SHARING_MODE_EXCLUSIVE
 
     auto colors = vsg::vec3Array::create(
             {
-                    // red
                     {1.0f, 0.0f, 0.0f},
                     {1.0f, 0.0f, 0.0f},
-                    {1.0f, 0.0f, 0.0f},
-                    {1.0f, 0.0f, 0.0f},
-                    {1.0f, 0.0f, 0.0f},
-                    {1.0f, 0.0f, 0.0f},
-                    {1.0f, 0.0f, 0.0f},
-                    {1.0f, 0.0f, 0.0f},
-                    {1.0f, 0.0f, 0.0f},
-                    {1.0f, 0.0f, 0.0f},
-                    {1.0f, 0.0f, 0.0f},
-                    {1.0f, 0.0f, 0.0f},
-                    {1.0f, 0.0f, 0.0f},
-                    {1.0f, 0.0f, 0.0f},
-                    // green
                     {0.0f, 1.0f, 0.0f},
                     {0.0f, 1.0f, 0.0f},
-                    {0.0f, 1.0f, 0.0f},
-                    {0.0f, 1.0f, 0.0f},
-                    {0.0f, 1.0f, 0.0f},
-                    {0.0f, 1.0f, 0.0f},
-                    {0.0f, 1.0f, 0.0f},
-                    {0.0f, 1.0f, 0.0f},
-                    {0.0f, 1.0f, 0.0f},
-                    {0.0f, 1.0f, 0.0f},
-                    {0.0f, 1.0f, 0.0f},
-                    {0.0f, 1.0f, 0.0f},
-                    {0.0f, 1.0f, 0.0f},
-                    {0.0f, 1.0f, 0.0f},
-                    // blue
-                    {0.0f, 0.0f, 1.0f},
-                    {0.0f, 0.0f, 1.0f},
-                    {0.0f, 0.0f, 1.0f},
-                    {0.0f, 0.0f, 1.0f},
-                    {0.0f, 0.0f, 1.0f},
-                    {0.0f, 0.0f, 1.0f},
-                    {0.0f, 0.0f, 1.0f},
-                    {0.0f, 0.0f, 1.0f},
-                    {0.0f, 0.0f, 1.0f},
-                    {0.0f, 0.0f, 1.0f},
-                    {0.0f, 0.0f, 1.0f},
-                    {0.0f, 0.0f, 1.0f},
                     {0.0f, 0.0f, 1.0f},
                     {0.0f, 0.0f, 1.0f}
             }); // VK_FORMAT_R32G32B32_SFLOAT, VK_VERTEX_INPUT_RATE_VERTEX, VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, VK_SHARING_MODE_EXCLUSIVE
