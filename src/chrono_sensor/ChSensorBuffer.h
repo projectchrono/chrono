@@ -249,9 +249,9 @@ using UserXYZIBufferPtr = std::shared_ptr<SensorHostXYZIBuffer>;
 
 /// Accelerometer data
 struct AccelData {
-    double X;  /// translational acceleration in local x-direction
-    double Y;  /// translational acceleration in local y-direction
-    double Z;  /// translational acceleration in local z-direction
+    double X;  ///< translational acceleration in local x-direction
+    double Y;  ///< translational acceleration in local y-direction
+    double Z;  ///< translational acceleration in local z-direction
 };
 /// acclerometer host buffer to be used by acclerometer filters in the graph
 using SensorHostAccelBuffer = SensorBufferT<std::shared_ptr<AccelData[]>>;
@@ -260,9 +260,9 @@ using UserAccelBufferPtr = std::shared_ptr<SensorHostAccelBuffer>;
 
 /// Gyroscope data
 struct GyroData {
-    double Roll;   /// angular velocity in local x-direction
-    double Pitch;  /// angular velocity in local y-direction
-    double Yaw;    /// angular velocity in local z-direction
+    double Roll;   ///< angular velocity in local x-direction
+    double Pitch;  ///< angular velocity in local y-direction
+    double Yaw;    ///< angular velocity in local z-direction
 };
 /// acclerometer host buffer to be used by acclerometer filters in the graph
 using SensorHostGyroBuffer = SensorBufferT<std::shared_ptr<GyroData[]>>;
@@ -271,9 +271,9 @@ using UserGyroBufferPtr = std::shared_ptr<SensorHostGyroBuffer>;
 
 /// Magnetometer data
 struct MagnetData {
-    double X;  /// x component of magnetic field
-    double Y;  /// y component of magnetic field
-    double Z;  /// z component of magnetic field
+    double X;  ///< x component of magnetic field
+    double Y;  ///< y component of magnetic field
+    double Z;  ///< z component of magnetic field
 };
 /// acclerometer host buffer to be used by acclerometer filters in the graph
 using SensorHostMagnetBuffer = SensorBufferT<std::shared_ptr<MagnetData[]>>;
@@ -284,7 +284,7 @@ using UserMagnetBufferPtr = std::shared_ptr<SensorHostMagnetBuffer>;
 // Tachometer Data Format and Buffers
 //===================================
 struct TachometerData {
-    float rpm;  /// rpm of motor shaft
+    float rpm;  ///< rpm of motor shaft
 };
 /// tachometer host buffer to be used by tachometer filters in the graph
 using SensorHostTachometerBuffer = SensorBufferT<std::shared_ptr<TachometerData[]>>;
@@ -295,7 +295,7 @@ using UserTachometerBufferPtr = std::shared_ptr<SensorHostTachometerBuffer>;
 // Speedometer Data Format and Buffers
 //================================
 struct EncoderData {
-    float speed;  /// speed of object
+    float speed;  ///< speed of object
 };
 /// speedometer host buffer to be used by speedometer filters in the graph
 using SensorHostEncoderBuffer = SensorBufferT<std::shared_ptr<EncoderData[]>>;

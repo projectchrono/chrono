@@ -45,60 +45,128 @@ struct Record {
     T data;
 };
 
-/// 
+/// The type of ray tracing used to model the sensor
 enum class PipelineType {
-    CAMERA_PINHOLE,         // pinhole camera model
-    CAMERA_FOV_LENS,        // FOV lens model
-    SEGMENTATION_PINHOLE,   // pinhole segmentation camera
-    SEGMENTATION_FOV_LENS,  // FOV lens segmentation camera
-    LIDAR_SINGLE,           // single sample lidar
-    LIDAR_MULTI,            // multi sample lidar
-    RADAR                   // radar model
+    CAMERA_PINHOLE,         ///< pinhole camera model
+    CAMERA_FOV_LENS,        ///< FOV lens model
+    SEGMENTATION_PINHOLE,   ///< pinhole segmentation camera
+    SEGMENTATION_FOV_LENS,  ///< FOV lens segmentation camera
+    LIDAR_SINGLE,           ///< single sample lidar
+    LIDAR_MULTI,            ///< multi sample lidar
+    RADAR                   ///< radar model
 };
-// TODO: how do we allow custom ray gen programs? (Is that every going to be a thing?)
+// TODO: how do we allow custom ray gen programs? (Is that ever going to be a thing?)
 
+/// Class to hold all the Shader Binding Table parameters adnd manage the ray tracing pipeline, materials, ray gen
+/// programs
 class CH_SENSOR_API ChOptixPipeline {
   public:
+    /// Class constructor. Creates a ChOptixPipeline that can manage sensors, materials, and SBT information
+    /// @param context The optix context to which this pipeline will be attached
+    /// @param trace_depth the maximum trace depth for ray recusions in this pipeline (contant for all sensors in the
+    /// pipeline)
+    /// @param debug whether the pipeline should be run in debug mode. Only use for development as this slows down the
+    /// ray tracing
     ChOptixPipeline(OptixDeviceContext context, unsigned int trace_depth, bool debug);
+
+    /// Class destructor. Cleans up all data associated with the pipeline
     ~ChOptixPipeline();
 
+    /// Create a new pipeline for a specific type of sensor
+    /// @param type the type of sensor/ray tracing to add to the pipeline manager
     void SpawnPipeline(PipelineType type);
+
+    /// Creates a new box material
+    /// @param mat the chrono material from which to create an optix material
+    /// @returns an id pointing to the material that was created
     unsigned int GetBoxMaterial(std::shared_ptr<ChVisualMaterial> mat = nullptr);
+
+    /// Creates a new sphere material
+    /// @param mat the chrono material from which to create an optix material
+    /// @returns an id pointing to the material that was created
     unsigned int GetSphereMaterial(std::shared_ptr<ChVisualMaterial> mat = nullptr);
+
+    /// Creates a new cylinder material
+    /// @param mat the chrono material from which to create an optix material
+    /// @returns an id pointing to the material that was created
     unsigned int GetCylinderMaterial(std::shared_ptr<ChVisualMaterial> mat = nullptr);
 
+    /// Creates a new rigid material/mesh in optix
+    /// @param[out] d_vertices a device pointer where the mesh's vertices will be stored
+    /// @param[out] d_indices a device pointer where the mesh's indices will be stored
+    /// @param[in] sphere_shape the chrono mesh to add to the optix scene
+    /// @param[in] mat_list the chrono materials from which to create an optix material
+    /// @returns an id pointing to the material that was created
     unsigned int GetRigidMeshMaterial(CUdeviceptr& d_vertices,
                                       CUdeviceptr& d_indices,
                                       std::shared_ptr<ChTriangleMeshShape> sphere_shape,
                                       std::vector<std::shared_ptr<ChVisualMaterial>> mat_list);
 
+    /// Creates a new deformable material/mesh in optix
+    /// @param[out] d_vertices a device pointer where the mesh's vertices will be stored
+    /// @param[out] d_indices a device pointer where the mesh's indices will be stored
+    /// @param[in] sphere_shape the chrono mesh to add to the optix scene
+    /// @param[in] mat_list the chrono materials from which to create an optix material
+    /// @returns an id pointing to the material that was created
     unsigned int GetDeformableMeshMaterial(CUdeviceptr& d_vertices,
                                            CUdeviceptr& d_indices,
                                            std::shared_ptr<ChTriangleMeshShape> sphere_shape,
                                            std::vector<std::shared_ptr<ChVisualMaterial>> mat_list);
 
+    /// Function to update all the deformable meshes in the optix scene based on their chrono meshes
     void UpdateDeformableMeshes();
 
+    /// Function to update all the shader binding tables associated with this optix scene
     void UpdateAllSBTs();
+
+    /// Function to update all the pipeline associated with this optix scene
     void UpdateAllPipelines();
+
+    /// Function to update all object velocities. Only required for sensors that measure velocity with is a dynamic
+    /// property
     void UpdateObjectVelocity();
 
+    /// Function to access the mesh pool on the device
+    /// @returns a device pointer to the collection of meshes
     CUdeviceptr GetMeshPool();
+
+    /// Function to access the material pool on the device
+    /// @returns a device pointer to the collection of materials
     CUdeviceptr GetMaterialPool();
 
+    /// Add a new body to the optix scene based on a chrono body
+    /// @param body the Chrono body from which to create an optix object
     void AddBody(std::shared_ptr<ChBody> body) { m_bodies.push_back(body); }
 
+    /// OptixPipeline accessor function
+    /// @param id the id of the desired pipeline
+    /// @returns a reference to the specified OptixPipeline
     OptixPipeline& GetPipeline(unsigned int id);
+
+    /// SBT accessor
+    /// @param id the id of the pipeline whose shader binding table should be returned
+    /// @returns a shared pointer to the specified shader binding table
     std::shared_ptr<OptixShaderBindingTable> GetSBT(unsigned int id);
+
+    /// Raygen record accessor
+    /// @param id the id of the pipline whose raygen record should be returned
+    /// @returns a shared pointer to the specified raygen record
     std::shared_ptr<Record<RaygenParameters>> GetRayGenRecord(unsigned int id);
 
+    /// Explicit cleanup function for freeing memory associated with this pipeline
+    /// which should be freed before reconstructing the pipeline. Any reusable varaibles
+    /// will not be cleaned up here
     void Cleanup();
+
+    /// Explicit material cleanup function for freeing all memory associate with materials
+    /// in the optix scene
     void CleanMaterials();
 
+    /// Updates the background of the scene. Only used for cameras
+    /// @param b a new background to use for the scene. The old background will be removed
     void UpdateBackground(Background b);
 
   private:
-    // private class functions
     void CompileBaseShaders();
     void AssembleBaseProgramGroups();
     void CreateBaseSBT();

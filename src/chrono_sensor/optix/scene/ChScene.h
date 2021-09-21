@@ -42,6 +42,8 @@ namespace sensor {
 /// @addtogroup sensor_scene
 /// @{
 
+/// Information about the background of the scene. Determines the color, gradient, or image that is spherically mapped
+/// to camera ray misses
 struct Background {
     BackgroundMode mode;            ///< 0=solid zenith color, 1=gradient, 2=environment map
     ChVector<float> color_zenith;   ///< color at zenith
