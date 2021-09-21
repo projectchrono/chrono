@@ -47,6 +47,7 @@ class CH_VSG_API VSGApp {
     void UpdateDrawMode(int mode);
     void setGlobalFrameVisibility(bool v);
     void setBodyFrameVisibility(bool v);
+    void setAssetFrameVisibility(bool v);
     void UpdateFrameSize(float newSize);
 
   protected:
@@ -74,6 +75,7 @@ class CH_VSG_API VSGApp {
 
     vsg::ref_ptr<vsg::Switch> m_global_sym_subgraph;
     vsg::ref_ptr<vsg::Switch> m_body_sym_subgraph;
+    vsg::ref_ptr<vsg::Switch> m_asset_sym_subgraph;
 
     vsg::ref_ptr<vsg::Builder> m_builderBodyDots;
     vsg::ref_ptr<vsg::Builder> m_builderWireFrame;

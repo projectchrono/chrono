@@ -21,6 +21,7 @@
 #include <vsgImGui/imgui.h>
 
 #include "chrono_vsg/VSGApp.h"
+#include "chrono_vsg/shapes/VSGAsys.h"
 #include "chrono_vsg/shapes/VSGBsys.h"
 #include "chrono_vsg/shapes/VSGCsys.h"
 #include "chrono/assets/ChVisualization.h"
@@ -38,6 +39,7 @@ namespace chrono {
             bool showGui = true;  // you can toggle this with your own EventHandler and key
             bool showGlobalCsys = false;
             bool showBodySys = false;
+            bool showAssetSys = false;
             float symSize = 1.0;
             int drawMode = 0;
         };
@@ -119,6 +121,10 @@ namespace chrono {
                     ImGui::SameLine();
                     if (ImGui::Checkbox("Bodies", &_params->showBodySys)) {
                         m_appPtr->setBodyFrameVisibility(_params->showBodySys);
+                    }
+                    ImGui::SameLine();
+                    if (ImGui::Checkbox("Assets", &_params->showAssetSys)) {
+                        m_appPtr->setAssetFrameVisibility(_params->showAssetSys);
                     }
 
                     ImGui::Text("     Symbol Size: ");
@@ -232,6 +238,7 @@ namespace chrono {
             m_polygon_subgraph = vsg::Switch::create();
             m_global_sym_subgraph = vsg::Switch::create();
             m_body_sym_subgraph = vsg::Switch::create();
+            m_asset_sym_subgraph = vsg::Switch::create();
 
             // add switch nodes to m_scenegraph
             m_scenegraph->addChild(m_dot_subgraph);
@@ -239,6 +246,7 @@ namespace chrono {
             m_scenegraph->addChild(m_polygon_subgraph);
             m_scenegraph->addChild(m_global_sym_subgraph);
             m_scenegraph->addChild(m_body_sym_subgraph);
+            m_scenegraph->addChild(m_asset_sym_subgraph);
 
             // use chrono multibody system the generate 3d info
             BuildSceneGraph();
@@ -314,6 +322,10 @@ namespace chrono {
             m_body_sym_subgraph->setAllChildren(v);
         }
 
+        void VSGApp::setAssetFrameVisibility(bool v) {
+            m_asset_sym_subgraph->setAllChildren(v);
+        }
+
         void VSGApp::Quit() {
             m_viewer->close();
         }
@@ -321,7 +333,9 @@ namespace chrono {
         void VSGApp::UpdateFrameSize(float newSize) {
             if (newSize != m_symSize) {
                 m_symSize = newSize;
+                // exactly one global symbol, always at {0;0;0}, never rotated
                 m_globalSymTransform->matrix = vsg::scale(m_symSize, m_symSize, m_symSize);
+                // exactly one body reference, can be at any position and rotation
                 for(size_t i=0; i < m_system->Get_bodylist().size(); i++) {
                     auto body = m_system->Get_bodylist().at(i);
                     // position of the body
@@ -336,6 +350,33 @@ namespace chrono {
                     bool tf_ok = m_body_sym_subgraph->children[i].node->getValue("transform", body_tf);
                     if(tf_ok) {
                         body_tf->matrix = vsg::translate(pos.x(), pos.y(), pos.z())
+                                * vsg::rotate(angle, axis.x(), axis.y(), axis.z())
+                                * vsg::scale(s, s, s);
+                    }
+                }
+                // each body can have an arbitrary number of assets (0 included) at any position and orientation
+                size_t kNode = 0;
+                size_t maxNode = m_asset_sym_subgraph->children.size() - 1;
+                for(size_t i=0; i<m_system->Get_bodylist().size(); i++) {
+                    auto body = m_system->Get_bodylist().at(i);
+                    for(size_t j=0; j<body->GetAssets().size(); j++) {
+                        if(kNode > maxNode) {
+                            GetLog() << "Asset Symbols Graph is inconsistent with MBS\n";
+                        }
+                        auto visual_asset = std::dynamic_pointer_cast<ChVisualization>(body->GetAssets().at(j));
+                        ChFrame<> g_X_b(body->GetFrame_REF_to_abs().GetPos(), body->GetFrame_REF_to_abs().GetRot());
+                        // asset position and rotation wrt body frame
+                        const ChFrame<> b_X_a(visual_asset->Pos, visual_asset->Rot);
+                        // asset position and rotation wrt global frame
+                        auto g_X_a = g_X_b * b_X_a;
+                        double angle;
+                        Vector axis;
+                        g_X_a.GetRot().Q_to_AngAxis(angle, axis);
+                        double s = m_symSize;
+                        bool tf_ok = false;
+                        vsg::ref_ptr<vsg::MatrixTransform> tf;
+                        tf_ok = m_asset_sym_subgraph->children[kNode++].node->getValue("transform", tf);
+                        tf->matrix = vsg::translate(g_X_a.GetPos().x(), g_X_a.GetPos().y(), g_X_a.GetPos().z())
                                 * vsg::rotate(angle, axis.x(), axis.y(), axis.z())
                                 * vsg::scale(s, s, s);
                     }
@@ -400,7 +441,18 @@ namespace chrono {
 
                     // asset position and rotation wrt global frame
                     auto g_X_a = g_X_b * b_X_a;
-
+                    const Vector apos = g_X_a.GetPos();
+                    Quaternion arot = g_X_a.GetRot();
+                    double a_angle;
+                    Vector a_axis;
+                    arot.Q_to_AngAxis(a_angle, a_axis);
+                    double as = m_symSize;
+                    vsg::ref_ptr<vsg::MatrixTransform> asset_tf = vsg::MatrixTransform::create();
+                    asset_tf->matrix = vsg::translate(apos.x(), apos.y(), apos.z())
+                            * vsg::rotate(a_angle, a_axis.x(), a_axis.y(), a_axis.z())
+                            * vsg::scale(as, as, as);
+                    VSGAsys asys(body, visual_asset);
+                    asys.genSubgraph(m_asset_sym_subgraph, asset_tf);
                     if (ChSphereShape *sphere_shape = dynamic_cast<ChSphereShape *>(asset.get())) {
                         vsg::GeometryInfo geomInfo;
                         geomInfo.transform = vsgXform(g_X_a, ChVector<>(2 * sphere_shape->GetSphereGeometry().rad));
@@ -505,6 +557,7 @@ namespace chrono {
             csys.genSubgraph(m_global_sym_subgraph, m_globalSymTransform);
             m_global_sym_subgraph->setAllChildren(false);
             m_body_sym_subgraph->setAllChildren(false);
+            m_asset_sym_subgraph->setAllChildren(false);
             m_dot_subgraph->setAllChildren(false);
             m_line_subgraph->setAllChildren(false);
             m_polygon_subgraph->setAllChildren(true);
