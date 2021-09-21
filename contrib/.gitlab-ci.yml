@@ -241,7 +241,7 @@ linux:ubuntu2004:build:
         -DPYTHON_EXECUTABLE=/usr/bin/python3
         -DEIGEN3_INCLUDE_DIR=/usr/include/eigen3
         -DCMAKE_VERBOSE_MAKEFILE=TRUE
-	-DENABLE_MODULE_SENSOR=ON
+        -DENABLE_MODULE_SENSOR=TRUE
         -DOptiX_INSTALL_DIR=/opt/optix/7.2.0
     - ninja -j 8
   artifacts:
