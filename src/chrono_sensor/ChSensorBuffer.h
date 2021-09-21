@@ -184,6 +184,20 @@ using SensorDeviceRadarBuffer = RadarBufferT<DeviceRadarBufferPtr>;
 /// pointer to a radar buffer on the host that has been moved for safety and can be given to the user
 using UserRadarBufferPtr = std::shared_ptr<SensorHostRadarBuffer>;
 
+struct RadarXYZReturn{
+    float x;
+    float y;
+    float z;
+    float velocity;
+    float amplitude;
+    float objectId;
+};
+
+using SensorHostRadarXYZBuffer = RadarBufferT<std::shared_ptr<RadarXYZReturn[]>>;
+using DeviceRadarXYZBufferPtr = std::shared_ptr<RadarXYZReturn[]>;
+using SensorDeviceRadarXYZBuffer = RadarBufferT<DeviceRadarXYZBufferPtr>;
+using UserRadarXYZBufferPtr = std::shared_ptr<SensorHostRadarXYZBuffer>;
+
 struct RadarTrack {
     float xyz[3];
     float vel[3];

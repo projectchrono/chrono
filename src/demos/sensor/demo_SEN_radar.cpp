@@ -38,6 +38,8 @@
 #include "chrono_sensor/filters/ChFilterPCfromDepth.h"
 #include "chrono_sensor/filters/ChFilterVisualizePointCloud.h"
 
+#include "chrono_sensor/filters/ChFilterRadarXYZReturn.h"
+
 #include "chrono_sensor/ChCameraSensor.h"
 #include "chrono_sensor/ChSensorManager.h"
 #include "chrono_sensor/filters/ChFilterAccess.h"

@@ -308,6 +308,7 @@ set(ChronoEngine_sensor_FILTERS_SOURCES
     filters/ChFilterImageOps.cpp
     filters/ChFilterLidarIntensityClip.cpp
     filters/ChFilterRadarProcess.cpp
+    filters/ChFilterRadarXYZReturn.cpp
     filters/ChFilterRadarSavePC.cpp
     filters/ChFilterRadarVisualizeCluster.cpp
     filters/ChFilterTachometerUpdate.cpp
@@ -330,6 +331,7 @@ set(ChronoEngine_sensor_FILTERS_HEADERS
     filters/ChFilterImageOps.h
     filters/ChFilterLidarIntensityClip.h
     filters/ChFilterRadarProcess.h
+    filters/ChFilterRadarXYZReturn.h
     filters/ChFilterRadarSavePC.h
     filters/ChFilterRadarVisualizeCluster.h
     filters/ChFilterTachometerUpdate.h
