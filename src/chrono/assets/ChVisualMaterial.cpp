@@ -27,7 +27,9 @@ ChVisualMaterial::ChVisualMaterial()
       fresnel_min(0.f),
       roughness(1),
       metallic(0),
-      use_specular_workflow(true) {}
+      use_specular_workflow(true),
+      class_id(0),
+      instance_id(0) {}
 
 void ChVisualMaterial::SetAmbientColor(ChVector<float> rgb) {
     // valid rgb range [0,1]

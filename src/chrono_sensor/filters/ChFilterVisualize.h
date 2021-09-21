@@ -46,7 +46,7 @@ class CH_SENSOR_API ChFilterVisualize : public ChFilter {
     /// @param w Width of the window to create
     /// @param h Height of the window to create
     /// @param name String name of the filter
-    ChFilterVisualize(int w, int h, std::string name = "ChFilterVisualize");
+    ChFilterVisualize(int w, int h, std::string name = "ChFilterVisualize", bool fullscreen = false);
 
     /// Class destructor
     virtual ~ChFilterVisualize();
@@ -71,11 +71,13 @@ class CH_SENSOR_API ChFilterVisualize : public ChFilter {
 
     std::shared_ptr<SensorDeviceR8Buffer> m_bufferR8;
     std::shared_ptr<SensorDeviceRGBA8Buffer> m_bufferRGBA8;
+    std::shared_ptr<SensorDeviceSemanticBuffer> m_bufferSemantic;
     std::shared_ptr<SensorDeviceDIBuffer> m_bufferDI;
     std::shared_ptr<SensorDeviceRadarBuffer> m_bufferRadar;
 
     std::shared_ptr<SensorHostR8Buffer> m_hostR8;
     std::shared_ptr<SensorHostRGBA8Buffer> m_hostRGBA8;
+    std::shared_ptr<SensorHostSemanticBuffer> m_hostSemantic;
     std::shared_ptr<SensorHostDIBuffer> m_hostDI;
     std::shared_ptr<SensorHostRadarBuffer> m_hostRadar;
 
@@ -95,6 +97,7 @@ class CH_SENSOR_API ChFilterVisualize : public ChFilter {
     bool m_window_disabled = false;  ///< for checking if window is not allowed on sysmtem (e.g. headless rendering)
     int m_w;                         ///< width of the window
     int m_h;                         ///< height of the window
+    bool m_fullscreen;               ///< toggle for fullscreen mode
 };
 
 /// @}

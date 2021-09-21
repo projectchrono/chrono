@@ -69,6 +69,12 @@ __device__ __inline__ PerRayData_camera* getCameraPRD() {
     return reinterpret_cast<PerRayData_camera*>(ints_as_pointer(opt0, opt1));
 }
 
+__device__ __inline__ PerRayData_semantic* getSemanticPRD() {
+    unsigned int opt0 = optixGetPayload_0();
+    unsigned int opt1 = optixGetPayload_1();
+    return reinterpret_cast<PerRayData_semantic*>(ints_as_pointer(opt0, opt1));
+}
+
 __device__ __inline__ PerRayData_lidar* getLidarPRD() {
     unsigned int opt0 = optixGetPayload_0();
     unsigned int opt1 = optixGetPayload_1();
@@ -96,6 +102,13 @@ __device__ __inline__ PerRayData_camera default_camera_prd() {
     prd.use_gi = false;
     prd.albedo = make_float3(0.f, 0.f, 0.f);
     prd.normal = make_float3(0.f, 0.f, 0.f);
+    return prd;
+};
+
+__device__ __inline__ PerRayData_semantic default_semantic_prd() {
+    PerRayData_semantic prd = {};
+    prd.class_id = 0;
+    prd.instance_id = 0;
     return prd;
 };
 
@@ -388,7 +401,6 @@ __device__ __inline__ void basis_from_quaternion(const float4& q, float3& f, flo
     h = make_float3((e1e3 + e0e2) * 2, (e2e3 - e0e1) * 2, (e0e0 + e3e3) * 2 - 1);
 }
 
-
 __device__ __inline__ float lerp(const float& a, const float& b, const float& t) {
     return a + t * (b - a);
 }
@@ -424,17 +436,16 @@ __device__ __inline__ float3 sample_hemisphere_dir(const float& z1, const float&
     float y = radius * sinf(theta);
     float z = sqrtf(fmaxf(0.f, 1.f - x * x - y * y));
     float3 binormal = make_float3(0);
-    
+
     // Prevent normal = (0, 0, 1)
-    if( fabs(normal.x) > fabs(normal.z) ) {
+    if (fabs(normal.x) > fabs(normal.z)) {
         binormal.x = -normal.y;
-        binormal.y =  normal.x;
-        binormal.z =  0;
-    }
-    else {
-        binormal.x =  0;
+        binormal.y = normal.x;
+        binormal.z = 0;
+    } else {
+        binormal.x = 0;
         binormal.y = -normal.z;
-        binormal.z =  normal.y;
+        binormal.z = normal.y;
     }
 
     // float3 binormal = make_float3(-normal.y, normal.x, 0);

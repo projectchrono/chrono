@@ -209,7 +209,8 @@ int main(int argc, char* argv[]) {
         return -1;
     } else {
         myFsiSystem.GetDataManager()->fsiGeneralData->referenceArray.push_back(chrono::fsi::mI4(0, numPart, -1, -1));
-        myFsiSystem.GetDataManager()->fsiGeneralData->referenceArray.push_back(chrono::fsi::mI4(numPart, numPart, 0, 0));
+        myFsiSystem.GetDataManager()->fsiGeneralData->referenceArray.push_back(
+            chrono::fsi::mI4(numPart, numPart, 0, 0));
     }
 
     /// Create MBD or FE model
@@ -338,16 +339,16 @@ void CreateSolidPhase(ChSystemNSC& mphysicalSystem,
     for (int i = 0; i < 4; i++) {
         std::shared_ptr<ChBodyAuxRef> wheel_body;
         if (i == 0) {
-            wheel_body = rover->GetWheel(WheelID::LF)->GetBody();
+            wheel_body = rover->GetWheel(ViperWheelID::V_LF)->GetBody();
         }
         if (i == 1) {
-            wheel_body = rover->GetWheel(WheelID::RF)->GetBody();
+            wheel_body = rover->GetWheel(ViperWheelID::V_RF)->GetBody();
         }
         if (i == 2) {
-            wheel_body = rover->GetWheel(WheelID::LB)->GetBody();
+            wheel_body = rover->GetWheel(ViperWheelID::V_LB)->GetBody();
         }
         if (i == 3) {
-            wheel_body = rover->GetWheel(WheelID::RB)->GetBody();
+            wheel_body = rover->GetWheel(ViperWheelID::V_RB)->GetBody();
         }
 
         myFsiSystem.AddFsiBody(wheel_body);
@@ -429,16 +430,16 @@ void SaveParaViewFiles(fsi::ChSystemFsi& myFsiSystem,
         for (int i = 0; i < 4; i++) {
             std::shared_ptr<ChBodyAuxRef> body;
             if (i == 0) {
-                body = rover->GetWheel(WheelID::LF)->GetBody();
+                body = rover->GetWheel(ViperWheelID::V_LF)->GetBody();
             }
             if (i == 1) {
-                body = rover->GetWheel(WheelID::RF)->GetBody();
+                body = rover->GetWheel(ViperWheelID::V_RF)->GetBody();
             }
             if (i == 2) {
-                body = rover->GetWheel(WheelID::LB)->GetBody();
+                body = rover->GetWheel(ViperWheelID::V_LB)->GetBody();
             }
             if (i == 3) {
-                body = rover->GetWheel(WheelID::RB)->GetBody();
+                body = rover->GetWheel(ViperWheelID::V_RB)->GetBody();
             }
 
             ChFrame<> body_ref_frame = body->GetFrame_REF_to_abs();
@@ -489,16 +490,16 @@ void SaveParaViewFiles(fsi::ChSystemFsi& myFsiSystem,
         for (int i = 0; i < 4; i++) {
             std::shared_ptr<ChBodyAuxRef> body;
             if (i == 0) {
-                body = rover->GetUpright(WheelID::LF)->GetBody();
+                body = rover->GetUpright(ViperWheelID::V_LF)->GetBody();
             }
             if (i == 1) {
-                body = rover->GetUpright(WheelID::RF)->GetBody();
+                body = rover->GetUpright(ViperWheelID::V_RF)->GetBody();
             }
             if (i == 2) {
-                body = rover->GetUpright(WheelID::LB)->GetBody();
+                body = rover->GetUpright(ViperWheelID::V_LB)->GetBody();
             }
             if (i == 3) {
-                body = rover->GetUpright(WheelID::RB)->GetBody();
+                body = rover->GetUpright(ViperWheelID::V_RB)->GetBody();
             }
             ChFrame<> body_ref_frame = body->GetFrame_REF_to_abs();
             ChVector<> body_pos = body_ref_frame.GetPos();      // body->GetPos();
@@ -554,16 +555,16 @@ void SaveParaViewFiles(fsi::ChSystemFsi& myFsiSystem,
         for (int i = 0; i < 4; i++) {
             std::shared_ptr<ChBodyAuxRef> body;
             if (i == 0) {
-                body = rover->GetLowerArm(WheelID::LF)->GetBody();
+                body = rover->GetLowerArm(ViperWheelID::V_LF)->GetBody();
             }
             if (i == 1) {
-                body = rover->GetLowerArm(WheelID::RF)->GetBody();
+                body = rover->GetLowerArm(ViperWheelID::V_RF)->GetBody();
             }
             if (i == 2) {
-                body = rover->GetLowerArm(WheelID::LB)->GetBody();
+                body = rover->GetLowerArm(ViperWheelID::V_LB)->GetBody();
             }
             if (i == 3) {
-                body = rover->GetLowerArm(WheelID::RB)->GetBody();
+                body = rover->GetLowerArm(ViperWheelID::V_RB)->GetBody();
             }
             ChFrame<> body_ref_frame = body->GetFrame_REF_to_abs();
             ChVector<> body_pos = body_ref_frame.GetPos();      // body->GetPos();
@@ -619,16 +620,16 @@ void SaveParaViewFiles(fsi::ChSystemFsi& myFsiSystem,
         for (int i = 0; i < 4; i++) {
             std::shared_ptr<ChBodyAuxRef> body;
             if (i == 0) {
-                body = rover->GetUpperArm(WheelID::LF)->GetBody();
+                body = rover->GetUpperArm(ViperWheelID::V_LF)->GetBody();
             }
             if (i == 1) {
-                body = rover->GetUpperArm(WheelID::RF)->GetBody();
+                body = rover->GetUpperArm(ViperWheelID::V_RF)->GetBody();
             }
             if (i == 2) {
-                body = rover->GetUpperArm(WheelID::LB)->GetBody();
+                body = rover->GetUpperArm(ViperWheelID::V_LB)->GetBody();
             }
             if (i == 3) {
-                body = rover->GetUpperArm(WheelID::RB)->GetBody();
+                body = rover->GetUpperArm(ViperWheelID::V_RB)->GetBody();
             }
             ChFrame<> body_ref_frame = body->GetFrame_REF_to_abs();
             ChVector<> body_pos = body_ref_frame.GetPos();      // body->GetPos();

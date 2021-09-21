@@ -26,7 +26,8 @@ namespace sensor {
 int ChFilterVisualize::s_windowCount = 0;
 std::mutex ChFilterVisualize::s_glfwMutex;
 
-CH_SENSOR_API ChFilterVisualize::ChFilterVisualize(int w, int h, std::string name) : m_w(w), m_h(h), ChFilter(name) {}
+CH_SENSOR_API ChFilterVisualize::ChFilterVisualize(int w, int h, std::string name, bool fullscreen)
+    : m_w(w), m_h(h), m_fullscreen(fullscreen), ChFilter(name) {}
 
 CH_SENSOR_API ChFilterVisualize::~ChFilterVisualize() {
     ChFilterVisualize::OnCloseWindow();
@@ -48,14 +49,18 @@ CH_SENSOR_API void ChFilterVisualize::Apply() {
             cudaMemcpyAsync(m_hostRGBA8->Buffer.get(), m_bufferRGBA8->Buffer.get(),
                             m_hostRGBA8->Width * m_hostRGBA8->Height * sizeof(PixelRGBA8), cudaMemcpyDeviceToHost,
                             m_cuda_stream);
+        } else if (m_bufferSemantic) {
+            cudaMemcpyAsync(m_hostSemantic->Buffer.get(), m_bufferSemantic->Buffer.get(),
+                            m_hostSemantic->Width * m_hostSemantic->Height * sizeof(PixelSemantic),
+                            cudaMemcpyDeviceToHost, m_cuda_stream);
         } else if (m_bufferDI) {
             cudaMemcpyAsync(m_hostDI->Buffer.get(), m_bufferDI->Buffer.get(),
                             m_hostDI->Width * m_hostDI->Height * sizeof(PixelDI), cudaMemcpyDeviceToHost,
                             m_cuda_stream);
         } else if (m_bufferRadar) {
             cudaMemcpyAsync(m_hostRadar->Buffer.get(), m_bufferRadar->Buffer.get(),
-                            m_hostRadar->Width * m_hostRadar->Height * sizeof(RadarReturn),
-                            cudaMemcpyDeviceToHost, m_cuda_stream);
+                            m_hostRadar->Width * m_hostRadar->Height * sizeof(RadarReturn), cudaMemcpyDeviceToHost,
+                            m_cuda_stream);
         } else {
             throw std::runtime_error("No buffer incoming for visualization");
         }
@@ -69,7 +74,6 @@ CH_SENSOR_API void ChFilterVisualize::Apply() {
             glGenTextures(1, &m_gl_tex_id);
             glBindTexture(GL_TEXTURE_2D, m_gl_tex_id);
 
-            // Change these to GL_LINEAR for super- or sub-sampling
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 
@@ -92,14 +96,15 @@ CH_SENSOR_API void ChFilterVisualize::Apply() {
         } else if (m_bufferRGBA8) {
             glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, m_hostRGBA8->Width, m_hostRGBA8->Height, 0, GL_RGBA,
                          GL_UNSIGNED_BYTE, m_hostRGBA8->Buffer.get());
+        } else if (m_bufferSemantic) {
+            glTexImage2D(GL_TEXTURE_2D, 0, GL_RG16, m_hostSemantic->Width, m_hostSemantic->Height, 0, GL_RG,
+                         GL_UNSIGNED_SHORT, m_hostSemantic->Buffer.get());
         } else if (m_bufferDI) {
             glTexImage2D(GL_TEXTURE_2D, 0, GL_RG32F, m_hostDI->Width, m_hostDI->Height, 0, GL_RG, GL_FLOAT,
                          m_hostDI->Buffer.get());
-            // TODO: support dual returns
         } else if (m_bufferRadar) {
             glTexImage2D(GL_TEXTURE_2D, 0, GL_RG32F, m_hostRadar->Width, m_hostRadar->Height, 0, GL_RG, GL_FLOAT,
                          m_hostRadar->Buffer.get());
-            // TODO: support dual returns
         } else {
             throw std::runtime_error("No buffer incoming for visualization");
         }
@@ -143,6 +148,7 @@ CH_SENSOR_API void ChFilterVisualize::Initialize(std::shared_ptr<ChSensor> pSens
     m_cuda_stream = pOptixSen->GetCudaStream();
     m_bufferR8 = std::dynamic_pointer_cast<SensorDeviceR8Buffer>(bufferInOut);
     m_bufferRGBA8 = std::dynamic_pointer_cast<SensorDeviceRGBA8Buffer>(bufferInOut);
+    m_bufferSemantic = std::dynamic_pointer_cast<SensorDeviceSemanticBuffer>(bufferInOut);
     m_bufferDI = std::dynamic_pointer_cast<SensorDeviceDIBuffer>(bufferInOut);
     m_bufferRadar = std::dynamic_pointer_cast<SensorDeviceRadarBuffer>(bufferInOut);
 
@@ -161,6 +167,14 @@ CH_SENSOR_API void ChFilterVisualize::Initialize(std::shared_ptr<ChSensor> pSens
         m_hostRGBA8->Buffer = std::move(b);
         m_hostRGBA8->Width = m_bufferRGBA8->Width;
         m_hostRGBA8->Height = m_bufferRGBA8->Height;
+    } else if (m_bufferSemantic) {
+        m_hostSemantic = chrono_types::make_shared<SensorHostSemanticBuffer>();
+        std::shared_ptr<PixelSemantic[]> b(
+            cudaHostMallocHelper<PixelSemantic>(m_bufferSemantic->Width * m_bufferSemantic->Height),
+            cudaHostFreeHelper<PixelSemantic>);
+        m_hostSemantic->Buffer = std::move(b);
+        m_hostSemantic->Width = m_bufferSemantic->Width;
+        m_hostSemantic->Height = m_bufferSemantic->Height;
     } else if (m_bufferDI) {
         m_hostDI = chrono_types::make_shared<SensorHostDIBuffer>();
         std::shared_ptr<PixelDI[]> b(cudaHostMallocHelper<PixelDI>(m_bufferDI->Width * m_bufferDI->Height),
@@ -189,8 +203,12 @@ CH_SENSOR_API void ChFilterVisualize::CreateGlfwWindow(std::string window_name) 
     OnNewWindow();  // OnNewWindow will need to lock inside itself
 
     std::lock_guard<std::mutex> lck(s_glfwMutex);
-    m_window.reset(
-        glfwCreateWindow(static_cast<GLsizei>(m_w), static_cast<GLsizei>(m_h), window_name.c_str(), NULL, NULL));
+    if (m_fullscreen)
+        m_window.reset(glfwCreateWindow(static_cast<GLsizei>(m_w), static_cast<GLsizei>(m_h), window_name.c_str(),
+                                        glfwGetPrimaryMonitor(), NULL));
+    else
+        m_window.reset(
+            glfwCreateWindow(static_cast<GLsizei>(m_w), static_cast<GLsizei>(m_h), window_name.c_str(), NULL, NULL));
     if (m_window) {
         glfwMakeContextCurrent(m_window.get());
         glfwSwapInterval(0);  // disable vsync as we are "fast as possible"

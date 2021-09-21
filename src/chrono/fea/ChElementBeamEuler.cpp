@@ -476,7 +476,9 @@ void ChElementBeamEuler::ComputeKRMmatricesGlobal(ChMatrixRef H, double Kfactor,
         ChMatrixDynamic<> CK(12, 12);
         ChMatrixDynamic<> CKCt(12, 12);  // the global, corotated, K matrix
 
-        
+
+        ChMatrixDynamic<> H_local;
+
         //
         // Corotate local stiffness matrix
         //
@@ -491,20 +493,25 @@ void ChElementBeamEuler::ComputeKRMmatricesGlobal(ChMatrixRef H, double Kfactor,
         R.push_back(&AtolocwelB);
 
         if (this->use_geometric_stiffness) {
-
-            // compute Px tension of the beam along centerline, using temporary but fast data structures:
+            // K = Km+Kg
+            
+            // For Kg, compute Px tension of the beam along centerline, using temporary but fast data structures:
             ChVectorDynamic<> displ(this->GetNdofs());
             this->GetStateBlock(displ);
             double Px = -this->Km.row(0) * displ;
 
-            // corotate Km + Kg  (where Kg = this->Kg * Px)
-            ChMatrixCorotation::ComputeCK(this->Km + Px*this->Kg, R, 4, CK);
+            // Rayleigh damping (stiffness proportional part)  [R] = beta*[Km] , so H = kf*[Km+Kg]+rf*[R] = (kf+rf*beta)*[Km] + kf*Kg
+            H_local = this->Km * (Kfactor + Rfactor * this->section->GetBeamRaleyghDampingBeta()) + this->Kg * Px * Kfactor;
         }
         else {
-            ChMatrixCorotation::ComputeCK(this->Km           , R, 4, CK);
+            // K = Km
+
+            // Rayleigh damping (stiffness proportional part)  [R] = beta*[Km] , so H = kf*[Km]+rf*[R] = (kf+rf*beta)*[K]
+            H_local = this->Km * (Kfactor + Rfactor * this->section->GetBeamRaleyghDampingBeta());
         }
-        ChMatrixCorotation::ComputeKCt(CK, R, 4, CKCt);
         
+        ChMatrixCorotation::ComputeCK(H_local, R, 4, CK);
+        ChMatrixCorotation::ComputeKCt(CK, R, 4, CKCt);
 
         // For strict symmetry, copy L=U because the computations above might
         // lead to small errors because of numerical roundoff even with force_symmetric_stiffness
@@ -517,10 +524,6 @@ void ChElementBeamEuler::ComputeKRMmatricesGlobal(ChMatrixRef H, double Kfactor,
         //// RADU
         //// Check if the above can be done with the one-liner:
         ////CKCt.triangularView<Eigen::Upper>() = CKCt.transpose();
-
-        // For K stiffness matrix and R matrix: scale by factors
-        // because [R] = r*[K] , so kf*[K]+rf*[R] = (kf+rf*r)*[K]
-        CKCt *= Kfactor + Rfactor * this->section->GetBeamRaleyghDamping();
 
         H.block(0, 0, 12, 12) = CKCt;  
 
@@ -560,7 +563,7 @@ void ChElementBeamEuler::ComputeKRMmatricesGlobal(ChMatrixRef H, double Kfactor,
     // The M mass matrix of this element:  
     //
 
-    if (Mfactor) {
+    if (Mfactor || (Rfactor && this->section->GetBeamRaleyghDampingAlpha()) ) {
 
         ChMatrixDynamic<> Mloc(12, 12);
         Mloc.setZero();
@@ -572,7 +575,9 @@ void ChElementBeamEuler::ComputeKRMmatricesGlobal(ChMatrixRef H, double Kfactor,
         ChMatrixNM<double, 6, 6> sectional_mass;
         this->section->ComputeInertiaMatrix(sectional_mass);
 
-        double node_multiplier_fact = 0.5 * length * Mfactor;
+        // Rayleigh damping (stiffness proportional part)  [Rm] = alpha*[M] , so H += km*[M]+rf*[Rm]  H += (km+rf*alpha)*[M]
+
+        double node_multiplier_fact = 0.5 * length * (Mfactor + Rfactor * this->section->GetBeamRaleyghDampingAlpha());
         for (int i = 0; i < nodes.size(); ++i) {
             int stride = i * 6;
             // if there is no mass center offset, the upper right and lower left blocks need not be rotated,
@@ -620,16 +625,42 @@ void ChElementBeamEuler::ComputeInternalForces(ChVectorDynamic<>& Fi) {
     this->GetStateBlock(displ);
 
     // [local Internal Forces] = [Klocal] * displ + [Rlocal] * displ_dt
-    ChVectorDynamic<> FiK_local = Km * displ;
+    ChVectorDynamic<> Fi_local = Km * displ;
 
     // set up vector of nodal velocities (in local element system)
     ChVectorDynamic<> displ_dt(12);
     this->GetField_dt(displ_dt);
 
-    ChMatrixDynamic<> FiR_local = section->GetBeamRaleyghDamping() * Km * displ_dt;
+    // Rayleigh damping - stiffness proportional
+    ChMatrixDynamic<> FiR_local = section->GetBeamRaleyghDampingBeta() * Km * displ_dt;
 
-    FiK_local += FiR_local;
-    FiK_local *= -1.0;
+    Fi_local += FiR_local;
+
+    // Rayleigh damping - mass proportional
+    if (this->section->GetBeamRaleyghDampingAlpha()) {
+        ChMatrixDynamic<> Mloc(12, 12);
+        Mloc.setZero();
+        ChMatrix33<> Mxw;
+
+        // the "lumped" M mass matrix must be computed
+        ChMatrixNM<double, 6, 6> sectional_mass;
+        this->section->ComputeInertiaMatrix(sectional_mass);
+
+        // Rayleigh damping (stiffness proportional part)  [Rm] = alpha*[M] 
+        double node_multiplier_fact = 0.5 * length * (this->section->GetBeamRaleyghDampingAlpha());
+        for (int i = 0; i < nodes.size(); ++i) {
+            int stride = i * 6;
+            Mloc.block<3, 3>(stride, stride) += sectional_mass.block<3, 3>(0, 0) * node_multiplier_fact;
+            Mloc.block<3, 3>(stride + 3, stride + 3) += sectional_mass.block<3, 3>(3, 3) * node_multiplier_fact;
+            Mxw = nodes[i]->GetA() * sectional_mass.block<3, 3>(0, 3) * node_multiplier_fact;
+            Mloc.block<3, 3>(stride, stride + 3) += Mxw;
+            Mloc.block<3, 3>(stride + 3, stride) += Mxw.transpose();
+        }
+        FiR_local = Mloc * displ_dt;
+        Fi_local += FiR_local;
+    }
+
+    Fi_local *= -1.0;
 
     //
     // Corotate local internal loads
@@ -644,7 +675,7 @@ void ChElementBeamEuler::ComputeInternalForces(ChVectorDynamic<>& Fi) {
     R.push_back(&AtolocwelA);
     R.push_back(&Atoabs);
     R.push_back(&AtolocwelB);
-    ChMatrixCorotation::ComputeCK(FiK_local, R, 4, Fi);
+    ChMatrixCorotation::ComputeCK(Fi_local, R, 4, Fi);
 
 
     // Add also inertial quadratic terms: gyroscopic and centrifugal
@@ -752,9 +783,10 @@ void ChElementBeamEuler::EvaluateSectionForceTorque(const double eta, ChVector<>
     double Sy = this->section->GetShearCenterY();
     double Sz = this->section->GetShearCenterZ();
 
-    // The shear center offset should be respect to elastic cetner.
-    Sy = Sy - Cy;
-    Sz = Sz - Cz;
+    // The shear center offset is respect to the centerline.
+    // In case the section has a shear center displacement:
+    //Sy = Sy - Cy;   // Unnecessary to do this substraction
+    //Sz = Sz - Cz;
 
     ChMatrix33<> Rotsect0;
     Rotsect0.Set_A_Rxyz(ChVector<>(alpha, 0, 0));

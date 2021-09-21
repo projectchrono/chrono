@@ -35,45 +35,38 @@ namespace rccar {
 static const double in2m = 0.0254;
 static const double lb2kg = 0.453592;
 
-const double RCCar_RigidTire::m_radius = in2m * 3.285;
-const double RCCar_RigidTire::m_width = in2m * 3.3;
+const double RCCar_RigidTire::m_radius = .170/2;
+const double RCCar_RigidTire::m_width = .0855;
 
-const double RCCar_RigidTire::m_mass = lb2kg * 1;
-const ChVector<> RCCar_RigidTire::m_inertia(0.001553, 0.002521, 0.001553);
+const double RCCar_RigidTire::m_mass = .200;
+const ChVector<> RCCar_RigidTire::m_inertia(.0008, 0.001, .0008);
 
 const std::string RCCar_RigidTire::m_meshName = "RCCar_tire_POV_geom";
-// const std::string RCCar_RigidTire::m_meshFile = "rccar/RCCar_tire.obj";
-const std::string RCCar_RigidTire::m_meshFile = "rccar/tire.obj";
+//const std::string RCCar_RigidTire::m_meshFile = "rccar/tire.obj";
+
+const std::string RCCar_RigidTire::m_meshFile_left = "rccar/rccar_tire_left.obj";
+const std::string RCCar_RigidTire::m_meshFile_right = "rccar/rccar_tire_left.obj";
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 
 void RCCar_RigidTire::CreateContactMaterial(ChContactMethod contact_method) {
     MaterialInfo minfo;
-    minfo.mu = 0.9f;
-    minfo.cr = 0.1f;
-    minfo.Y = 2e7f;
+    minfo.mu = 0.9f; //TODO
+    minfo.cr = 0.1f; //TODO
+    minfo.Y = 2e7f; //TODO
     m_material = minfo.CreateMaterial(contact_method);
 }
 
 RCCar_RigidTire::RCCar_RigidTire(const std::string& name, bool use_mesh) : ChRigidTire(name) {
-    if (use_mesh) {
-        // SetMeshFilename(GetDataFile("rccar/RCCar_tire.obj"), 0.005);
-        SetMeshFilename(GetDataFile(m_meshFile), 0.005);
-    }
 }
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 void RCCar_RigidTire::AddVisualizationAssets(VisualizationType vis) {
     if (vis == VisualizationType::MESH) {
-        auto trimesh = chrono_types::make_shared<geometry::ChTriangleMeshConnected>();
-        trimesh->LoadWavefrontMesh(vehicle::GetDataFile(m_meshFile), false, false);
-        m_trimesh_shape = chrono_types::make_shared<ChTriangleMeshShape>();
-        m_trimesh_shape->SetMesh(trimesh);
-        m_trimesh_shape->SetName(m_meshName);
-        m_trimesh_shape->SetStatic(true);
-        m_wheel->GetSpindle()->AddAsset(m_trimesh_shape);
+        m_trimesh_shape = AddVisualizationMesh(m_meshFile_left,    // left side
+                                               m_meshFile_right);  // right side
     } else {
         ChRigidTire::AddVisualizationAssets(vis);
     }

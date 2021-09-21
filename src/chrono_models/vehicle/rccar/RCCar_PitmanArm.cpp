@@ -32,17 +32,18 @@ namespace rccar {
 static const double in2m = 0.0254;
 static const double lb2kg = 0.453592;
 
-const double RCCar_PitmanArm::m_steeringLinkMass = lb2kg * 0.25;
-const double RCCar_PitmanArm::m_pitmanArmMass = lb2kg * 0.15;
+const double RCCar_PitmanArm::m_steeringLinkMass = 0.01101740;
+const double RCCar_PitmanArm::m_pitmanArmMass = 0.00524114;
 
-const double RCCar_PitmanArm::m_steeringLinkRadius = in2m * 0.1;
-const double RCCar_PitmanArm::m_pitmanArmRadius = in2m * 0.2;
+const double RCCar_PitmanArm::m_steeringLinkRadius = 0.005;
+const double RCCar_PitmanArm::m_pitmanArmRadius = 0.005;
 
-const double RCCar_PitmanArm::m_maxAngle = 0.3448;
+const double RCCar_PitmanArm::m_maxAngle = 1.2 / 2;  // TODO
 
-const ChVector<> RCCar_PitmanArm::m_steeringLinkInertiaMoments(0.00022, 0.00022, 0.0000029);
-const ChVector<> RCCar_PitmanArm::m_steeringLinkInertiaProducts(0.0, 0.0, 0.0);
-const ChVector<> RCCar_PitmanArm::m_pitmanArmInertiaMoments(0.00002, 0.00002, 0.00002);
+const ChVector<> RCCar_PitmanArm::m_steeringLinkInertiaMoments(0.00000560, 0.00000021, 0.00000569);
+const ChVector<> RCCar_PitmanArm::m_steeringLinkInertiaProducts(0.0, 0.00000002, 0.0);
+
+const ChVector<> RCCar_PitmanArm::m_pitmanArmInertiaMoments(0.00000041, 0.00000045, 0.00000032); 
 const ChVector<> RCCar_PitmanArm::m_pitmanArmInertiaProducts(0.0, 0.0, 0.0);
 
 // -----------------------------------------------------------------------------
@@ -54,22 +55,22 @@ RCCar_PitmanArm::RCCar_PitmanArm(const std::string& name) : ChPitmanArm(name) {}
 // -----------------------------------------------------------------------------
 const ChVector<> RCCar_PitmanArm::getLocation(PointId which) {
     switch (which) {
-        case STEERINGLINK:
-            return in2m * ChVector<>(-1.2015, 0, -.9225);
-        case PITMANARM:
-            return in2m * ChVector<>(-1.6460, -0.6395, -.9225);
-        case REV:
-            return in2m * ChVector<>(-2.0985, -0.6395, -.4205);
-        case UNIV:
-            return in2m * ChVector<>(-1.2015, -0.6395, -.8345);
-        case REVSPH_R:
-            return in2m * ChVector<>(-2.0985, 0.6395, -.4205);
-        case REVSPH_S:
-            return in2m * ChVector<>(-1.2015, 0.6395, -.8345);
+        case STEERINGLINK: //steering link COM
+            return ChVector<>(.0779, -.0164, -.0623);
+        case PITMANARM: // pitman arm COM
+            return ChVector<>(.0779, .0164, -.0623);
+        case REV: // pitman arm fixed point
+            return ChVector<>(.0673, .0164, -.0623);
+        case UNIV: //pitman arm moving end
+            return ChVector<>(.0884, .0164, -.0623);
+        case REVSPH_R: //idle arm fixed end
+            return ChVector<>(.0673, -.0164, -.0623); 
+        case REVSPH_S: //idle arm moving end
+            return ChVector<>(.0884, -.0164, -.0623); 
         case TIEROD_PA:
-            return in2m * ChVector<>(-1.0770, -1.2760, -.6855);
+            return ChVector<>(.0912, .0369, -.0552);
         case TIEROD_IA:
-            return in2m * ChVector<>(-1.0770, 1.2760, -.6855);
+            return ChVector<>(.0912, -.0369, -.0552);
         default:
             return ChVector<>(0, 0, 0);
     }

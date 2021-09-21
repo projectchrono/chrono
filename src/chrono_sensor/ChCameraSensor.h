@@ -44,12 +44,10 @@ class CH_SENSOR_API ChCameraSensor : public ChOptixSensor {
     /// @param w The width of the image the camera should generate.
     /// @param h The height of the image the camera should generate.
     /// @param hFOV The horizontal field of view of the camera lens.
-    // @param lag The lag between when data collection is stopped and when data should be available to the user.
-    // @param exposure_time The time the camera should be collecting data for each frame.
     /// @param supersample_factor The number of rays that should be sampled per pixel for antialiasing.
     /// @param lens_model A enum specifying the desired lens model.
     /// @param use_gi Enable the global illumination, with significant decrease in performace
-    /// @gamma Gamma correction of the image, 1 for linear color space, 2.2 for sRGB 
+    /// @param Gamma correction of the image, 1 for linear color space, 2.2 for sRGB
     ChCameraSensor(std::shared_ptr<chrono::ChBody> parent,  // object to which the sensor is attached
                    float updateRate,                        // rate at which the sensor updates
                    chrono::ChFrame<double> offsetPose,      // position of sensor relative to parent object
@@ -58,8 +56,8 @@ class CH_SENSOR_API ChCameraSensor : public ChOptixSensor {
                    float hFOV,                              // horizontal field of view
                    unsigned int supersample_factor = 1,     // number of samples per pixel for antialiasing
                    CameraLensModelType lens_model = CameraLensModelType::PINHOLE,
-                   bool use_gi = false,                     // camera model to use for rendering
-                   float gamma = 2.2 );                              // gamma correction value
+                   bool use_gi = false,  // camera model to use for rendering
+                   float gamma = 2.2);   // gamma correction value
 
     /// camera class destructor
     ~ChCameraSensor();
@@ -89,7 +87,7 @@ class CH_SENSOR_API ChCameraSensor : public ChOptixSensor {
     CameraLensModelType m_lens_model_type;  ///< lens model used by the camera
     bool m_use_gi;                          ///< to hold reference to whether user what to use GI or not
     float m_gamma;
- };
+};
 
 /// @} sensor_sensors
 

@@ -47,6 +47,9 @@
 %include "../../chrono_vehicle/terrain/RigidTerrain.h"
 
 %feature("director") SoilParametersCallback;
+%include "cpointer.i"
+%pointer_functions(int, intp)
+%pointer_functions(double, doublep)
 %include "../../chrono_vehicle/terrain/SCMDeformableTerrain.h"
 
 //%include "../../chrono_vehicle/terrain/CRGTerrain.h"

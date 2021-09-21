@@ -214,6 +214,7 @@ set(ChronoEngine_sensor_SOURCES
     ChNoiseModel.cpp
     ChOptixSensor.cpp
     ChCameraSensor.cpp
+    ChSegmentationCamera.cpp
     ChLidarSensor.cpp
     ChRadarSensor.cpp
     ChIMUSensor.cpp
@@ -230,6 +231,7 @@ set(ChronoEngine_sensor_HEADERS
     ChNoiseModel.h
     ChOptixSensor.h
     ChCameraSensor.h
+    ChSegmentationCamera.h
     ChLidarSensor.h
     ChRadarSensor.h
     ChIMUSensor.h

@@ -23,6 +23,8 @@
 #include "chrono_models/vehicle/mtv/MTV_Balancer.h"
 #include "chrono_models/vehicle/mtv/MTV_LeafspringAxle1.h"
 #include "chrono_models/vehicle/mtv/MTV_LeafspringAxle2.h"
+#include "chrono_models/vehicle/mtv/MTV_Solid3LinkAxle1.h"
+#include "chrono_models/vehicle/mtv/MTV_Solid3LinkAxle2.h"
 
 #include "chrono_models/vehicle/mtv/FMTV_ChassisFront.h"
 #include "chrono_models/vehicle/mtv/FMTV_BrakeSimple.h"
@@ -41,26 +43,26 @@ namespace fmtv {
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 MTV_Vehicle::MTV_Vehicle(const bool fixed,
+                         bool use_walking_beam,
                          BrakeType brake_type,
-                         SteeringTypeWV steering_model,
                          ChContactMethod contact_method,
                          CollisionType chassis_collision_type)
     : ChWheeledVehicle("MTV", contact_method), m_omega({0, 0, 0, 0, 0, 0}) {
-    Create(fixed, brake_type, steering_model, chassis_collision_type);
+    Create(fixed, use_walking_beam, brake_type, chassis_collision_type);
 }
 
 MTV_Vehicle::MTV_Vehicle(ChSystem* system,
                          const bool fixed,
+                         bool use_walking_beam,
                          BrakeType brake_type,
-                         SteeringTypeWV steering_model,
                          CollisionType chassis_collision_type)
     : ChWheeledVehicle("MTV", system), m_omega({0, 0, 0, 0, 0, 0}) {
-    Create(fixed, brake_type, steering_model, chassis_collision_type);
+    Create(fixed, use_walking_beam, brake_type, chassis_collision_type);
 }
 
 void MTV_Vehicle::Create(bool fixed,
+                         bool use_walking_beam,
                          BrakeType brake_type,
-                         SteeringTypeWV steering_model,
                          CollisionType chassis_collision_type) {
     // Create the front and rear chassis subsystems
     m_chassis = chrono_types::make_shared<FMTV_ChassisFront>("ChassisFront", fixed, chassis_collision_type);
@@ -86,8 +88,13 @@ void MTV_Vehicle::Create(bool fixed,
     m_axles[2] = chrono_types::make_shared<ChAxle>();
 
     m_axles[0]->m_suspension = chrono_types::make_shared<FMTV_ToebarLeafspringAxle>("FrontSusp");
-    m_axles[1]->m_suspension = chrono_types::make_shared<MTV_LeafspringAxle1>("RearSusp1");
-    m_axles[2]->m_suspension = chrono_types::make_shared<MTV_LeafspringAxle2>("RearSusp2");
+    if (use_walking_beam) {
+        m_axles[1]->m_suspension = chrono_types::make_shared<MTV_Solid3LinkAxle1>("RearSusp1");
+        m_axles[2]->m_suspension = chrono_types::make_shared<MTV_Solid3LinkAxle2>("RearSusp2");
+    } else {
+        m_axles[1]->m_suspension = chrono_types::make_shared<MTV_LeafspringAxle1>("RearSusp1");
+        m_axles[2]->m_suspension = chrono_types::make_shared<MTV_LeafspringAxle2>("RearSusp2");    
+    }
 
     m_axles[0]->m_wheels.resize(2);
     m_axles[0]->m_wheels[0] = chrono_types::make_shared<FMTV_Wheel>("Wheel_FL");
@@ -139,7 +146,7 @@ void MTV_Vehicle::Initialize(const ChCoordsys<>& chassisPos, double chassisFwdVe
     m_chassis_connectors[0]->Initialize(m_chassis, m_chassis_rear[0]);
 
     // Initialize the balancer subsystem
-    m_subchassis[0]->Initialize(m_chassis_rear[0]->GetBody(), ChVector<>(-4.1, 0.0, 0.26));
+    m_subchassis[0]->Initialize(m_chassis_rear[0], ChVector<>(-4.1, 0.0, 0.26));
 
     // Initialize the steering subsystem (specify the steering frame relative to the chassis reference frame)
     ChVector<> offset = ChVector<>(0, 0, 0);

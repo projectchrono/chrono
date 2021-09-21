@@ -29,9 +29,9 @@ cmake -G "Visual Studio 16 2019" ^
  -DBUILD_TESTING=OFF ^
  -DBUILD_GMOCK=OFF ^
  -DBUILD_BENCHMARKING=OFF ^
- -DIRRLICHT_ROOT="C:\Users\builder\Documents\irrlicht-1.8.4" ^
- -DIRRLICHT_LIBRARY="C:\Users\builder\Documents\irrlicht-1.8.4\lib\Win64-visualStudio\Irrlicht.lib" ^
- -DEIGEN3_INCLUDE_DIR="C:\Users\builder\Documents\eigen-3.3.9" ^
+ -DIRRLICHT_ROOT="C:\Users\SBEL CI\Documents\irrlicht-1.8.4" ^
+ -DIRRLICHT_LIBRARY="C:\Users\SBEL CI\Documents\irrlicht-1.8.4\lib\Win64-visualStudio\Irrlicht.lib" ^
+ -DEIGEN3_INCLUDE_DIR="C:\Users\SBEL CI\Documents\eigen-3.3.9" ^
  -DENABLE_MODULE_CASCADE=ON ^
  -DCASCADE_INCLUDE_DIR="%CONDA_INSTALL_LOCN%"\Library\include\opencascade ^
  -DCASCADE_LIBDIR="%CONDA_INSTALL_LOCN%"\Library\lib ^

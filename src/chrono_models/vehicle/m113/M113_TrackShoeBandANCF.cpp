@@ -98,7 +98,7 @@ void M113_TrackShoeBandANCF::CreateContactMaterials(ChContactMethod contact_meth
         MaterialInfo minfo;
         minfo.mu = 0.8f;
         minfo.cr = 0.75f;
-        minfo.Y = 1e7f;
+        minfo.Y = 1e9f;
         m_tooth_material = minfo.CreateMaterial(contact_method);
     }
 }

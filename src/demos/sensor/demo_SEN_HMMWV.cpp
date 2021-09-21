@@ -216,8 +216,9 @@ int main(int argc, char* argv[]) {
     auto visual_asset = std::dynamic_pointer_cast<ChVisualization>(ground_body->GetAssets()[0]);
     auto vis_mat = chrono_types::make_shared<ChVisualMaterial>();
     vis_mat->SetKdTexture(vehicle::GetDataFile("terrain/textures/grass.jpg"));
-    vis_mat->SetSpecularColor({.2f, .2f, .2f});
+    vis_mat->SetSpecularColor({.0f, .0f, .0f});
     vis_mat->SetRoughness(1.f);
+    vis_mat->SetUseSpecularWorkflow(false);
     visual_asset->material_list.push_back(vis_mat);
 
     terrain.Initialize();
@@ -310,6 +311,7 @@ int main(int argc, char* argv[]) {
     // ---------------------------------------------
     auto manager = chrono_types::make_shared<ChSensorManager>(my_hmmwv.GetSystem());
     manager->scene->AddPointLight({100, 100, 100}, {2, 2, 2}, 5000);
+    manager->scene->SetAmbientLight({0, 0, 0});
 
     // Set environment map
     Background b;

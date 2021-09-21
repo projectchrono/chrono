@@ -1,0 +1,26 @@
+{
+  "Name":     "MTV rear chassis",
+  "Type":     "ChassisRear",
+  "Template": "RigidChassisRear",
+
+  "Components":
+  [
+    {
+        "Centroidal Frame": {
+            "Location": [ -3.4919, 0, 0.8404 ],
+            "Orientation": [ 1, 0, 0, 0 ]
+        },
+        "Mass": 3338.33,
+        "Moments of Inertia": [ 2861, 2861, 3630 ],
+        "Products of Inertia": [ 0, -106, 0 ],
+        "Void": false
+    }
+  ],
+  
+  "Front Connector Location": [ -1.85, 0, 0.45 ],
+  "Rear Connector Location": [ -3.85, 0, 0.45 ],
+
+    "Visualization": {
+        "Mesh": "mtv/meshes/m1083_rear.obj"
+    }
+}

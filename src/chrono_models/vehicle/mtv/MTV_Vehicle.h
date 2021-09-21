@@ -35,15 +35,15 @@ namespace fmtv {
 class CH_MODELS_API MTV_Vehicle : public ChWheeledVehicle {
   public:
     MTV_Vehicle(const bool fixed,
+                bool use_walking_beam,
                 BrakeType brake_type,
-                SteeringTypeWV steering_model,
                 ChContactMethod contact_method = ChContactMethod::NSC,
                 CollisionType chassis_collision_type = CollisionType::NONE);
 
     MTV_Vehicle(ChSystem* system,
                 const bool fixed,
+                bool use_walking_beam,
                 BrakeType brake_type,
-                SteeringTypeWV steering_model,
                 CollisionType chassis_collision_type = CollisionType::NONE);
 
     ~MTV_Vehicle();
@@ -74,9 +74,7 @@ class CH_MODELS_API MTV_Vehicle : public ChWheeledVehicle {
     void DebugLog(int what);       /// shock forces and lengths, constraints, etc.
 
   private:
-    void Create(bool fixed,
-                BrakeType brake_type, SteeringTypeWV steering_model,
-                CollisionType chassis_collision_type);
+    void Create(bool fixed, bool use_walking_beam, BrakeType brake_type, CollisionType chassis_collision_type);
 
     std::vector<double> m_omega;
 };

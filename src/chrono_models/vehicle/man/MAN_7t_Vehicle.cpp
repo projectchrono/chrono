@@ -44,10 +44,10 @@ MAN_7t_Vehicle::MAN_7t_Vehicle(const bool fixed,
                                BrakeType brake_type,
                                ChContactMethod contact_method,
                                CollisionType chassis_collision_type,
-                               bool useShaftDrivetrain)
+                               bool use_6WD_drivetrain)
     : ChWheeledVehicle("MAN_7t", contact_method),
       m_omega({0, 0, 0, 0, 0, 0}),
-      m_use_shafts_drivetrain(useShaftDrivetrain) {
+      m_use_6WD_drivetrain(use_6WD_drivetrain) {
     Create(fixed, brake_type, chassis_collision_type);
 }
 
@@ -55,8 +55,8 @@ MAN_7t_Vehicle::MAN_7t_Vehicle(ChSystem* system,
                                const bool fixed,
                                BrakeType brake_type,
                                CollisionType chassis_collision_type,
-                               bool useShaftDrivetrain)
-    : ChWheeledVehicle("MAN_7t", system), m_omega({0, 0, 0, 0, 0, 0}), m_use_shafts_drivetrain(useShaftDrivetrain) {
+                               bool use_6WD_drivetrain)
+    : ChWheeledVehicle("MAN_7t", system), m_omega({0, 0, 0, 0, 0, 0}), m_use_6WD_drivetrain(use_6WD_drivetrain) {
     Create(fixed, brake_type, chassis_collision_type);
 }
 
@@ -117,10 +117,10 @@ void MAN_7t_Vehicle::Create(bool fixed, BrakeType brake_type, CollisionType chas
     m_steerings[0] = chrono_types::make_shared<MAN_5t_RotaryArm>("Steering");
 
     // Create the driveline
-    if (m_use_shafts_drivetrain) {
-        m_driveline = chrono_types::make_shared<MAN_5t_Driveline4WD>("Driveline");
-    } else {
+    if (m_use_6WD_drivetrain) {
         m_driveline = chrono_types::make_shared<MAN_5t_SimpleDrivelineXWD>("Driveline");
+    } else {
+        m_driveline = chrono_types::make_shared<MAN_5t_Driveline4WD>("Driveline");
     }
 }
 
@@ -149,16 +149,16 @@ void MAN_7t_Vehicle::Initialize(const ChCoordsys<>& chassisPos, double chassisFw
 
     // Initialize the driveline subsystem (RWD)
     std::vector<int> driven_susp_indexes;
-    if (m_use_shafts_drivetrain) {
-        driven_susp_indexes.resize(2);
-        driven_susp_indexes[0] = 0;
-        driven_susp_indexes[1] = 1;
-        m_driveline->Initialize(m_chassis, m_axles, driven_susp_indexes);
-    } else {
+    if (m_use_6WD_drivetrain) {
         driven_susp_indexes.resize(3);
         driven_susp_indexes[0] = 0;
         driven_susp_indexes[1] = 1;
         driven_susp_indexes[2] = 2;
+        m_driveline->Initialize(m_chassis, m_axles, driven_susp_indexes);
+    } else {
+        driven_susp_indexes.resize(2);
+        driven_susp_indexes[0] = 0;
+        driven_susp_indexes[1] = 1;
         m_driveline->Initialize(m_chassis, m_axles, driven_susp_indexes);
     }
 }

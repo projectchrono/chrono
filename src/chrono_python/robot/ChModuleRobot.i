@@ -66,6 +66,7 @@
 #include "chrono_models/ChApiModels.h"
 #include "chrono_models/robot/robosimian/RoboSimian.h"
 #include "chrono_models/robot/viper/Viper.h"
+#include "chrono_models/robot/curiosity/Curiosity.h"
 #include "chrono_models/robot/turtlebot/Turtlebot.h"
 #include "chrono_models/robot/copters/Copter.h"
 #include "chrono_models/robot/copters/Little_Hexy.h"
@@ -73,6 +74,7 @@
 using namespace chrono;
 using namespace chrono::robosimian;
 using namespace chrono::viper;
+using namespace chrono::curiosity;
 using namespace chrono::turtlebot;
 using namespace chrono::copter;
 
@@ -148,6 +150,19 @@ using namespace chrono::copter;
 %shared_ptr(chrono::viper::ViperUpright)
 %shared_ptr(chrono::viper::ViperDriver)
 %shared_ptr(chrono::viper::ViperDCMotorControl)
+%shared_ptr(chrono::viper::ViperSpeedDriver)
+
+%shared_ptr(chrono::curiosity::CuriosityPart)
+%shared_ptr(chrono::curiosity::CuriosityChassis)
+%shared_ptr(chrono::curiosity::CuriosityWheel)
+%shared_ptr(chrono::curiosity::CuriosityRocker)
+%shared_ptr(chrono::curiosity::CuriosityBogie)
+%shared_ptr(chrono::curiosity::CuriosityUpright)
+%shared_ptr(chrono::curiosity::CuriosityDifferentialBar)
+%shared_ptr(chrono::curiosity::CuriosityDifferentialLink)
+%shared_ptr(chrono::curiosity::CuriosityDriver)
+%shared_ptr(chrono::curiosity::CuriosityDCMotorControl)
+%shared_ptr(chrono::curiosity::CuriositySpeedDriver)
 
 %shared_ptr(chrono::turtlebot::Turtlebot_Part)
 %shared_ptr(chrono::turtlebot::Turtlebot_Chassis)
@@ -219,6 +234,7 @@ using namespace chrono::copter;
 
 %include "../chrono_models/robot/robosimian/RoboSimian.h"
 %include "../chrono_models/robot/viper/Viper.h"
+%include "../chrono_models/robot/curiosity/Curiosity.h"
 %include "../chrono_models/robot/turtlebot/Turtlebot.h"
 
 %include "../chrono_models/robot/copters/Copter.h"
@@ -260,7 +276,16 @@ using namespace chrono::copter;
 		public:
 			Viper(chrono::ChSystem* system){
 			   
-			   auto selfpoint = std::make_shared<chrono::viper::Viper>(system, WheelType::RealWheel);
+			   auto selfpoint = std::make_shared<chrono::viper::Viper>(system, ViperWheelType::RealWheel);
+			   return selfpoint.get();
+			   }
+		};
+
+%extend chrono::curiosity::Curiosity{
+		public:
+			Curiosity(chrono::ChSystem* system){
+			   
+			   auto selfpoint = std::make_shared<chrono::curiosity::Curiosity>(system, CuriosityChassisType::FullRover, CuriosityWheelType::RealWheel);
 			   return selfpoint.get();
 			   }
 		};

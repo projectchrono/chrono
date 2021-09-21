@@ -77,11 +77,6 @@ class CH_VEHICLE_API ChTrackedVehicle : public ChVehicle {
     /// Get a handle to the vehicle's driveshaft body.
     virtual std::shared_ptr<ChShaft> GetDriveshaft() const override { return m_driveline->GetDriveshaft(); }
 
-    /// Get the angular speed of the driveshaft.
-    /// This function provides the interface between a vehicle system and a
-    /// powertrain system.
-    virtual double GetDriveshaftSpeed() const override { return m_driveline->GetDriveshaftSpeed(); }
-
     /// Get the number of suspensions in the specified track assembly.
     size_t GetNumRoadWheelAssemblies(VehicleSide side) const { return m_tracks[side]->GetNumRoadWheelAssemblies(); }
 
@@ -161,6 +156,12 @@ class CH_VEHICLE_API ChTrackedVehicle : public ChVehicle {
     /// Set contacts to be monitored.
     /// Contact information will be tracked for the specified subsystems.
     void MonitorContacts(int flags) { m_contact_manager->MonitorContacts(flags); }
+
+    /// Render normals of all monitored contacts.
+    void SetRenderContactNormals(bool val) { m_contact_manager->SetRenderNormals(val); }
+
+    /// Render forces of all monitored contacts.
+    void SetRenderContactForces(bool val, double scale) { m_contact_manager->SetRenderForces(val, scale); }
 
     /// Turn on/off contact data collection.
     /// If enabled, contact information will be collected for all monitored subsystems.

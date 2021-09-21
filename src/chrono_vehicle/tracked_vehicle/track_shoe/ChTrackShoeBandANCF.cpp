@@ -49,6 +49,17 @@ namespace vehicle {
 ChTrackShoeBandANCF::ChTrackShoeBandANCF(const std::string& name, ElementType element_type)
     : ChTrackShoeBand(name), m_element_type(element_type) {}
 
+ChTrackShoeBandANCF::~ChTrackShoeBandANCF() {
+    if (!m_connections[0])
+        return;
+
+    auto sys = m_connections[0]->GetSystem();
+    if (sys) {
+        for (auto c : m_connections)
+            sys->Remove(c);
+    }
+}
+
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 void ChTrackShoeBandANCF::SetWebMesh(std::shared_ptr<fea::ChMesh> mesh) {
@@ -345,7 +356,10 @@ void ChTrackShoeBandANCF::RemoveVisualizationAssets() {
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-void ChTrackShoeBandANCF::Connect(std::shared_ptr<ChTrackShoe> next, ChTrackAssembly* assembly, bool ccw) {
+void ChTrackShoeBandANCF::Connect(std::shared_ptr<ChTrackShoe> next,
+                                  ChTrackAssembly* assembly,
+                                  ChChassis* chassis,
+                                  bool ccw) {
     ChSystem* system = m_shoe->GetSystem();
     ChQuaternion<> rot_cur_shoe = m_shoe->GetRot();
     ChQuaternion<> rot_next_shoe = next->GetShoeBody()->GetRot();
@@ -368,10 +382,12 @@ void ChTrackShoeBandANCF::Connect(std::shared_ptr<ChTrackShoe> next, ChTrackAsse
                 auto constraintxyz = chrono_types::make_shared<ChLinkPointFrame>();
                 constraintxyz->Initialize(node, m_shoe);
                 system->Add(constraintxyz);
+                m_connections.push_back(constraintxyz);
 
                 auto constraintD = chrono_types::make_shared<ChLinkDirFrame>();
                 constraintD->Initialize(node, m_shoe);
                 system->Add(constraintD);
+                m_connections.push_back(constraintD);
             }
 
             // Change the gradient on the boundary nodes that will connect to the second fixed body
@@ -385,10 +401,12 @@ void ChTrackShoeBandANCF::Connect(std::shared_ptr<ChTrackShoe> next, ChTrackAsse
                 auto constraintxyz = chrono_types::make_shared<ChLinkPointFrame>();
                 constraintxyz->Initialize(node, next->GetShoeBody());
                 system->Add(constraintxyz);
+                m_connections.push_back(constraintxyz);
 
                 auto constraintD = chrono_types::make_shared<ChLinkDirFrame>();
                 constraintD->Initialize(node, next->GetShoeBody());
                 system->Add(constraintD);
+                m_connections.push_back(constraintD);
             }
 
             break;
@@ -411,10 +429,12 @@ void ChTrackShoeBandANCF::Connect(std::shared_ptr<ChTrackShoe> next, ChTrackAsse
                 auto constraintxyz = chrono_types::make_shared<ChLinkPointFrame>();
                 constraintxyz->Initialize(node, m_shoe);
                 system->Add(constraintxyz);
+                m_connections.push_back(constraintxyz);
 
                 auto constraintD = chrono_types::make_shared<ChLinkDirFrame>();
                 constraintD->Initialize(node, m_shoe);
                 system->Add(constraintD);
+                m_connections.push_back(constraintD);
             }
 
             // Change the gradient on the boundary nodes that will connect to the second fixed body
@@ -428,10 +448,12 @@ void ChTrackShoeBandANCF::Connect(std::shared_ptr<ChTrackShoe> next, ChTrackAsse
                 auto constraintxyz = chrono_types::make_shared<ChLinkPointFrame>();
                 constraintxyz->Initialize(node, next->GetShoeBody());
                 system->Add(constraintxyz);
+                m_connections.push_back(constraintxyz);
 
                 auto constraintD = chrono_types::make_shared<ChLinkDirFrame>();
                 constraintD->Initialize(node, next->GetShoeBody());
                 system->Add(constraintD);
+                m_connections.push_back(constraintD);
             }
 
             break;

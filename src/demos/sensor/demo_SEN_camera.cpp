@@ -26,7 +26,7 @@
 #include "chrono/utils/ChUtilsCreators.h"
 #include "chrono_thirdparty/filesystem/path.h"
 
-#include "chrono_sensor/ChCameraSensor.h"
+#include "chrono_sensor/ChSegmentationCamera.h"
 #include "chrono_sensor/ChSensorManager.h"
 #include "chrono_sensor/filters/ChFilterAccess.h"
 #include "chrono_sensor/filters/ChFilterGrayscale.h"
@@ -83,7 +83,7 @@ bool use_gi = true;  // whether cameras should use global illumination
 double step_size = 1e-2;
 
 // Simulation end time
-float end_time = 20.0f;
+float end_time = 200.0f;
 
 // Save camera images
 bool save = false;
@@ -106,9 +106,8 @@ int main(int argc, char* argv[]) {
     // add a mesh to be visualized by a camera
     // ---------------------------------------
     auto mmesh = chrono_types::make_shared<ChTriangleMeshConnected>();
-    mmesh->LoadWavefrontMesh(GetChronoDataFile("vehicle/hmmwv/hmmwv_chassis.obj"), false, true);
-    // mmesh->LoadWavefrontMesh(GetChronoDataFile("sensor/cube_bumpy.obj"), false, true);
-    mmesh->Transform(ChVector<>(0, 0, 0), ChMatrix33<>(2));  // scale to a different size
+    mmesh->LoadWavefrontMesh(GetChronoDataFile("vehicle/audi/audi_chassis.obj"), false, true);
+    mmesh->Transform(ChVector<>(0, 0, 0), ChMatrix33<>(1));  // scale to a different size
 
     auto trimesh_shape = chrono_types::make_shared<ChTriangleMeshShape>();
     trimesh_shape->SetMesh(mmesh);
@@ -116,18 +115,40 @@ int main(int argc, char* argv[]) {
     trimesh_shape->SetStatic(true);
 
     auto mesh_body = chrono_types::make_shared<ChBody>();
-    mesh_body->SetPos({0, -4, 0});
+    mesh_body->SetPos({-6, 0, 0});
     mesh_body->AddAsset(trimesh_shape);
     mesh_body->SetBodyFixed(true);
     mphysicalSystem.Add(mesh_body);
 
+    auto vis_mat3 = chrono_types::make_shared<ChVisualMaterial>();
+    vis_mat3->SetAmbientColor({0.f, 0.f, 0.f});
+    vis_mat3->SetDiffuseColor({.5, .5, .5});
+    vis_mat3->SetSpecularColor({.0f, .0f, .0f});
+    vis_mat3->SetUseSpecularWorkflow(true);
+    vis_mat3->SetClassID(30000);
+    vis_mat3->SetInstanceID(30000);
+
+    auto floor = chrono_types::make_shared<ChBodyEasyBox>(20, 20, .1, 1000, true, false);
+    floor->SetPos({0, 0, -1});
+    floor->SetBodyFixed(true);
+    mphysicalSystem.Add(floor);
+    {
+        auto asset = floor->GetAssets()[0];
+        if (std::shared_ptr<ChVisualization> visual_asset = std::dynamic_pointer_cast<ChVisualization>(asset)) {
+            visual_asset->material_list.push_back(vis_mat3);
+        }
+    }
+
     auto vis_mat = chrono_types::make_shared<ChVisualMaterial>();
     vis_mat->SetAmbientColor({0.f, 0.f, 0.f});
-    vis_mat->SetDiffuseColor({0.0, 1.0, 0.5});
-    vis_mat->SetSpecularColor({.5f, .5f, .5f});
+    vis_mat->SetDiffuseColor({0.0, 1.0, 0.0});
+    vis_mat->SetSpecularColor({1.f, 1.f, 1.f});
+    vis_mat->SetUseSpecularWorkflow(true);
     vis_mat->SetRoughness(.5f);
+    vis_mat->SetClassID(30000);
+    vis_mat->SetInstanceID(50000);
 
-    auto box_body = chrono_types::make_shared<ChBodyEasyBox>(1, 1, 1, 1000, true, false);
+    auto box_body = chrono_types::make_shared<ChBodyEasyBox>(1.0, 1.0, 1.0, 1000, true, false);
     box_body->SetPos({0, -2, 0});
     box_body->SetBodyFixed(true);
     mphysicalSystem.Add(box_body);
@@ -138,6 +159,15 @@ int main(int argc, char* argv[]) {
         }
     }
 
+    auto vis_mat2 = chrono_types::make_shared<ChVisualMaterial>();
+    vis_mat2->SetAmbientColor({0.f, 0.f, 0.f});
+    vis_mat2->SetDiffuseColor({1.0, 0.0, 0.0});
+    vis_mat2->SetSpecularColor({.0f, .0f, .0f});
+    vis_mat2->SetUseSpecularWorkflow(true);
+    vis_mat2->SetRoughness(0.5f);
+    vis_mat2->SetClassID(30000);
+    vis_mat2->SetInstanceID(20000);
+
     auto sphere_body = chrono_types::make_shared<ChBodyEasySphere>(.5, 1000, true, false);
     sphere_body->SetPos({0, 0, 0});
     sphere_body->SetBodyFixed(true);
@@ -145,9 +175,18 @@ int main(int argc, char* argv[]) {
     {
         auto asset = sphere_body->GetAssets()[0];
         if (std::shared_ptr<ChVisualization> visual_asset = std::dynamic_pointer_cast<ChVisualization>(asset)) {
-            visual_asset->material_list.push_back(vis_mat);
+            visual_asset->material_list.push_back(vis_mat2);
         }
     }
+
+    auto vis_mat4 = chrono_types::make_shared<ChVisualMaterial>();
+    vis_mat4->SetAmbientColor({0.f, 0.f, 0.f});
+    vis_mat4->SetDiffuseColor({0.0, 0.0, 1.0});
+    vis_mat4->SetSpecularColor({.0f, .0f, .0f});
+    vis_mat4->SetUseSpecularWorkflow(true);
+    vis_mat4->SetRoughness(0.5f);
+    vis_mat4->SetClassID(30000);
+    vis_mat4->SetInstanceID(1000);
 
     auto cyl_body = chrono_types::make_shared<ChBodyEasyCylinder>(.25, 1, 1000, true, false);
     cyl_body->SetPos({0, 2, 0});
@@ -156,7 +195,7 @@ int main(int argc, char* argv[]) {
     {
         auto asset = cyl_body->GetAssets()[0];
         if (std::shared_ptr<ChVisualization> visual_asset = std::dynamic_pointer_cast<ChVisualization>(asset)) {
-            visual_asset->material_list.push_back(vis_mat);
+            visual_asset->material_list.push_back(vis_mat4);
         }
     }
 
@@ -168,12 +207,14 @@ int main(int argc, char* argv[]) {
     // -----------------------
     // Create a sensor manager
     // -----------------------
-    float intensity = .3;
+    float intensity = 1.0;
     auto manager = chrono_types::make_shared<ChSensorManager>(&mphysicalSystem);
     manager->scene->AddPointLight({100, 100, 100}, {intensity, intensity, intensity}, 500);
-    manager->scene->AddPointLight({-100, 100, 100}, {intensity, intensity, intensity}, 500);
-    manager->scene->AddPointLight({100, -100, 100}, {intensity, intensity, intensity}, 500);
-    manager->scene->AddPointLight({-100, -100, 100}, {intensity, intensity, intensity}, 500);
+    manager->scene->SetAmbientLight({.1, .1, .1});
+    Background b;
+    b.mode = BackgroundMode::ENVIRONMENT_MAP;
+    b.env_tex = GetChronoDataFile("sensor/textures/quarry_01_4k.hdr");
+    manager->scene->SetBackground(b);
 
     // ------------------------------------------------
     // Create a camera and add it to the sensor manager
@@ -187,7 +228,7 @@ int main(int argc, char* argv[]) {
                                                          fov,           // camera's horizontal field of view
                                                          alias_factor,  // super sampling factor
                                                          lens_model,    // lens model type
-                                                         use_gi);
+                                                         use_gi, 2.2);
     cam->SetName("Camera Sensor");
     cam->SetLag(lag);
     cam->SetCollectionWindow(exposure_time);
@@ -211,7 +252,7 @@ int main(int argc, char* argv[]) {
 
     // Renders the image at current point in the filter graph
     if (vis)
-        cam->PushFilter(chrono_types::make_shared<ChFilterVisualize>(image_width, image_height, "Global Illumination"));
+        cam->PushFilter(chrono_types::make_shared<ChFilterVisualize>(640, 360, "Global Illumination"));
 
     // Provides the host access to this RGBA8 buffer
     cam->PushFilter(chrono_types::make_shared<ChFilterRGBA8Access>());
@@ -221,31 +262,30 @@ int main(int argc, char* argv[]) {
         cam->PushFilter(chrono_types::make_shared<ChFilterSave>(out_dir + "rgb/"));
 
     // Filter the sensor to grayscale
-    // cam->PushFilter(chrono_types::make_shared<ChFilterGrayscale>());
+    cam->PushFilter(chrono_types::make_shared<ChFilterGrayscale>());
 
     // Render the buffer again to see the new grayscaled image
-    // if (vis)
-    //     cam->PushFilter(
-    //         chrono_types::make_shared<ChFilterVisualize>(image_width / 2, image_height / 2, "Final Visualization"));
-    //
-    // // Save the grayscaled image at the specified path
-    // if (save)
-    //     cam->PushFilter(chrono_types::make_shared<ChFilterSave>(out_dir + "gray/"));
-    //
-    // // Resizes the image to the provided width and height
-    // cam->PushFilter(chrono_types::make_shared<ChFilterImageResize>(image_width / 2, image_height / 2));
-    //
-    // // Access the grayscaled buffer as R8 pixels
-    // cam->PushFilter(chrono_types::make_shared<ChFilterR8Access>());
+    if (vis)
+        cam->PushFilter(chrono_types::make_shared<ChFilterVisualize>(640, 360, "Final Visualization"));
+
+    // Save the grayscaled image at the specified path
+    if (save)
+        cam->PushFilter(chrono_types::make_shared<ChFilterSave>(out_dir + "gray/"));
+
+    // Resizes the image to the provided width and height
+    cam->PushFilter(chrono_types::make_shared<ChFilterImageResize>(image_width / 2, image_height / 2));
+
+    // Access the grayscaled buffer as R8 pixels
+    cam->PushFilter(chrono_types::make_shared<ChFilterR8Access>());
 
     // add sensor to the manager
-    manager->AddSensor(cam);
+    // manager->AddSensor(cam);
 
     // -------------------------------------------------------
     // Create a second camera and add it to the sensor manager
     // -------------------------------------------------------
 
-    chrono::ChFrame<double> offset_pose2({10, 2, .5}, Q_from_AngAxis(CH_C_PI, {0, 0, 1}));
+    chrono::ChFrame<double> offset_pose2({5, 0, 0}, Q_from_AngAxis(CH_C_PI, {0, 0, 1}));
     auto cam2 = chrono_types::make_shared<ChCameraSensor>(ground_body,   // body camera is attached to
                                                           update_rate,   // update rate in Hz
                                                           offset_pose2,  // offset pose
@@ -253,15 +293,14 @@ int main(int argc, char* argv[]) {
                                                           image_height,  // image height
                                                           fov,           // camera's horizontal field of view
                                                           alias_factor,  // supersample factor for antialiasing
-                                                          lens_model,
-                                                          false);  // FOV
+                                                          lens_model, false, 2.2);  // FOV
     cam2->SetName("Antialiasing Camera Sensor");
     cam2->SetLag(lag);
     cam2->SetCollectionWindow(exposure_time);
 
     // Render the antialiased image
     if (vis)
-        cam2->PushFilter(chrono_types::make_shared<ChFilterVisualize>(1280, 720, "Whitted Ray Tracing"));
+        cam2->PushFilter(chrono_types::make_shared<ChFilterVisualize>(640, 360, "Whitted Ray Tracing"));
 
     // Save the antialiased image
     if (save)
@@ -273,13 +312,51 @@ int main(int argc, char* argv[]) {
     // Add the second camera to the sensor manager
     manager->AddSensor(cam2);
 
+    // -------------------------------------------------------
+    // Create a semantic segmentation camera that shadows camera2
+    // -------------------------------------------------------
+    auto seg = chrono_types::make_shared<ChSegmentationCamera>(ground_body,   // body camera is attached to
+                                                               update_rate,   // update rate in Hz
+                                                               offset_pose2,  // offset pose
+                                                               image_width,   // image width
+                                                               image_height,  // image height
+                                                               fov,           // camera's horizontal field of view
+                                                               lens_model);   // FOV
+    seg->SetName("Semantic Segmentation Camera");
+    seg->SetLag(lag);
+    seg->SetCollectionWindow(exposure_time);
+
+    // Render the semantic mask
+    if (vis)
+        seg->PushFilter(chrono_types::make_shared<ChFilterVisualize>(640, 360, "Semantic Segmentation"));
+
+    // Save the semantic mask
+    if (save)
+        seg->PushFilter(chrono_types::make_shared<ChFilterSave>(out_dir + "segmentation/"));
+
+    // Provide the host access to the RGBA8 buffer
+    seg->PushFilter(chrono_types::make_shared<ChFilterSemanticAccess>());
+
+    // Add the second camera to the sensor manager
+    manager->AddSensor(seg);
+
+    manager->Update();
+
+    if (std::shared_ptr<ChVisualization> visual_asset = std::dynamic_pointer_cast<ChVisualization>(trimesh_shape)) {
+        printf("assets: %d\n", visual_asset->material_list.size());
+        for (auto v : visual_asset->material_list) {
+            v->SetClassID(200);
+            v->SetInstanceID(200);
+        }
+    }
+
     // ---------------
     // Simulate system
     // ---------------
     // Demonstration shows cameras panning around a stationary mesh.
     // Each camera begins on opposite sides of the object, but rotate at the same speed
     float orbit_radius = 10.f;
-    float orbit_rate = 2.5;
+    float orbit_rate = 0.1;
     float ch_time = 0.0;
 
     std::chrono::high_resolution_clock::time_point t1 = std::chrono::high_resolution_clock::now();
@@ -289,16 +366,15 @@ int main(int argc, char* argv[]) {
 
     while (ch_time < end_time) {
         // Rotate the cameras around the mesh at a fixed rate
-
-        // mesh_body->SetRot(Q_from_AngAxis(ch_time * orbit_rate, {0, 0, 1}));
-        // box_body->SetRot(Q_from_AngAxis(ch_time * orbit_rate, {0, 0, 1}));
-        // box_body->SetPos({sin(ch_time * orbit_rate), 0, 0});
-
         cam->SetOffsetPose(chrono::ChFrame<double>(
             {orbit_radius * cos(ch_time * orbit_rate), orbit_radius * sin(ch_time * orbit_rate), 2},
             Q_from_AngAxis(ch_time * orbit_rate + CH_C_PI, {0, 0, 1})));
 
         cam2->SetOffsetPose(chrono::ChFrame<double>(
+            {orbit_radius * cos(ch_time * orbit_rate), orbit_radius * sin(ch_time * orbit_rate), 2},
+            Q_from_AngAxis(ch_time * orbit_rate + CH_C_PI, {0, 0, 1})));
+
+        seg->SetOffsetPose(chrono::ChFrame<double>(
             {orbit_radius * cos(ch_time * orbit_rate), orbit_radius * sin(ch_time * orbit_rate), 2},
             Q_from_AngAxis(ch_time * orbit_rate + CH_C_PI, {0, 0, 1})));
 

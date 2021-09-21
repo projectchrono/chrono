@@ -24,6 +24,13 @@ namespace vehicle {
 
 ChChassisConnectorHitch::ChChassisConnectorHitch(const std::string& name) : ChChassisConnector(name) {}
 
+ChChassisConnectorHitch::~ChChassisConnectorHitch() {
+    auto sys = m_joint->GetSystem();
+    if (sys) {
+        sys->Remove(m_joint);
+    }
+}
+
 void ChChassisConnectorHitch::Initialize(std::shared_ptr<ChChassis> front, std::shared_ptr<ChChassisRear> rear) {
     // Express the connector reference frame in the absolute coordinate system
     ChFrame<> to_abs(rear->GetLocalPosFrontConnector());

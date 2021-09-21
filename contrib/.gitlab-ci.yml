@@ -412,7 +412,7 @@ windows:vs2017:build:
     - export PATH=$HOME/miniconda/bin:$PATH
     - conda install --yes -c intel jinja2
     - conda config --set show_channel_urls true
-    - conda install conda-build=3.18.11 anaconda-client conda-verify --yes
+    - conda install conda-build anaconda-client conda-verify --yes
     - conda config --add channels https://conda.anaconda.org/conda-forge
     - conda config --add channels https://conda.anaconda.org/intel
     #- conda install -c dlr-sc opencascade --yes

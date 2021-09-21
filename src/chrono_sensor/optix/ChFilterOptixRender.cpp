@@ -18,6 +18,7 @@
 #include <assert.h>
 #include <algorithm>
 #include "chrono_sensor/ChCameraSensor.h"
+#include "chrono_sensor/ChSegmentationCamera.h"
 #include "chrono_sensor/ChLidarSensor.h"
 #include "chrono_sensor/ChRadarSensor.h"
 #include "chrono_sensor/ChSensor.h"
@@ -95,7 +96,8 @@ CH_SENSOR_API void ChFilterOptixRender::Initialize(std::shared_ptr<ChSensor> pSe
             half4* frame_buffer = cudaMallocHelper<half4>(pOptixSensor->GetWidth() * pOptixSensor->GetHeight());
             half4* albedo_buffer = cudaMallocHelper<half4>(pOptixSensor->GetWidth() * pOptixSensor->GetHeight());
             half4* normal_buffer = cudaMallocHelper<half4>(pOptixSensor->GetWidth() * pOptixSensor->GetHeight());
-            m_raygen_record->data.specific.camera.frame_buffer = frame_buffer;  // reinterpret_cast<half4*>(bufferOut->Buffer.get());
+            m_raygen_record->data.specific.camera.frame_buffer =
+                frame_buffer;  // reinterpret_cast<half4*>(bufferOut->Buffer.get());
             m_raygen_record->data.specific.camera.albedo_buffer = albedo_buffer;
             m_raygen_record->data.specific.camera.normal_buffer = normal_buffer;
 
@@ -111,6 +113,14 @@ CH_SENSOR_API void ChFilterOptixRender::Initialize(std::shared_ptr<ChSensor> pSe
             m_raygen_record->data.specific.camera.rng_buffer = m_rng.get();
         }
 
+    } else if (auto segmenter = std::dynamic_pointer_cast<ChSegmentationCamera>(pSensor)) {
+        auto bufferOut = chrono_types::make_shared<SensorDeviceSemanticBuffer>();
+        DeviceSemanticBufferPtr b(cudaMallocHelper<PixelSemantic>(pOptixSensor->GetWidth() * pOptixSensor->GetHeight()),
+                                  cudaFreeHelper<PixelSemantic>);
+        bufferOut->Buffer = std::move(b);
+        m_raygen_record->data.specific.segmentation.hFOV = segmenter->GetHFOV();
+        m_raygen_record->data.specific.segmentation.frame_buffer = reinterpret_cast<ushort2*>(bufferOut->Buffer.get());
+        m_bufferOut = bufferOut;
     } else if (auto lidar = std::dynamic_pointer_cast<ChLidarSensor>(pSensor)) {
         auto bufferOut = chrono_types::make_shared<SensorDeviceDIBuffer>();
         DeviceDIBufferPtr b(cudaMallocHelper<PixelDI>(pOptixSensor->GetWidth() * pOptixSensor->GetHeight()),
@@ -130,7 +140,7 @@ CH_SENSOR_API void ChFilterOptixRender::Initialize(std::shared_ptr<ChSensor> pSe
     } else if (auto radar = std::dynamic_pointer_cast<ChRadarSensor>(pSensor)) {
         auto bufferOut = chrono_types::make_shared<SensorDeviceRadarBuffer>();
         DeviceRadarBufferPtr b(cudaMallocHelper<RadarReturn>(pOptixSensor->GetWidth() * pOptixSensor->GetHeight()),
-                                  cudaFreeHelper<RadarReturn>);
+                               cudaFreeHelper<RadarReturn>);
         bufferOut->Buffer = std::move(b);
         m_raygen_record->data.specific.radar.max_vert_angle = radar->GetMaxVertAngle();
         m_raygen_record->data.specific.radar.min_vert_angle = radar->GetMinVertAngle();
@@ -248,7 +258,8 @@ CH_SENSOR_API void ChOptixDenoiser::Initialize(unsigned int w,
 CH_SENSOR_API void ChOptixDenoiser::Execute() {
     // will not compute intensity since we are assuming we don't have HDR images
     OPTIX_ERROR_CHECK(optixDenoiserInvoke(m_denoiser, m_cuda_stream, &m_params, md_state, m_state_size,
-                                          md_inputs.data(), static_cast<unsigned int>(md_inputs.size()), 0, 0, &md_output, md_scratch, m_scratch_size));
+                                          md_inputs.data(), static_cast<unsigned int>(md_inputs.size()), 0, 0,
+                                          &md_output, md_scratch, m_scratch_size));
 }
 
 }  // namespace sensor

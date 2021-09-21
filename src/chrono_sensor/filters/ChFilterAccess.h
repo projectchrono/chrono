@@ -138,6 +138,8 @@ class CH_SENSOR_API ChFilterAccess : public ChFilter {
 using ChFilterR8Access = ChFilterAccess<SensorHostR8Buffer, UserR8BufferPtr>;
 /// Access to RGBA8 data
 using ChFilterRGBA8Access = ChFilterAccess<SensorHostRGBA8Buffer, UserRGBA8BufferPtr>;
+/// Access to semantic image
+using ChFilterSemanticAccess = ChFilterAccess<SensorHostSemanticBuffer, UserSemanticBufferPtr>;
 /// Access to point cloud data
 using ChFilterXYZIAccess = ChFilterAccess<SensorHostXYZIBuffer, UserXYZIBufferPtr>;
 /// Access to depth/intensity data

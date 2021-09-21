@@ -56,6 +56,27 @@ const std::string ChToeBarLeafspringAxle::m_pointNames[] = {"SHOCK_A    ", "SHOC
 // -----------------------------------------------------------------------------
 ChToeBarLeafspringAxle::ChToeBarLeafspringAxle(const std::string& name) : ChSuspension(name) {}
 
+ChToeBarLeafspringAxle::~ChToeBarLeafspringAxle() {
+    auto sys = m_axleTube->GetSystem();
+    if (sys) {
+        sys->Remove(m_axleTube);
+        sys->Remove(m_tierod);
+        sys->Remove(m_draglink);
+        sys->Remove(m_axleTubeGuide);
+        sys->Remove(m_sphericalTierod);
+        sys->Remove(m_sphericalDraglink);
+        sys->Remove(m_universalDraglink);
+        sys->Remove(m_universalTierod);
+
+        for (int i = 0; i < 2; i++) {
+            sys->Remove(m_knuckle[i]);
+            sys->Remove(m_revoluteKingpin[i]);
+            sys->Remove(m_shock[i]);
+            sys->Remove(m_spring[i]);
+        }
+    }
+}
+
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 void ChToeBarLeafspringAxle::Initialize(std::shared_ptr<ChChassis> chassis,
@@ -373,7 +394,7 @@ void ChToeBarLeafspringAxle::LogConstraintViolations(VehicleSide side) {
     // TODO: Update this to reflect new suspension joints
     // Revolute joints
     {
-        ChVectorDynamic<> C = m_revoluteKingpin[side]->GetC();
+        ChVectorDynamic<> C = m_revoluteKingpin[side]->GetConstraintViolation();
         GetLog() << "Kingpin revolute      ";
         GetLog() << "  " << C(0) << "  ";
         GetLog() << "  " << C(1) << "  ";
@@ -383,14 +404,14 @@ void ChToeBarLeafspringAxle::LogConstraintViolations(VehicleSide side) {
     }
 
     {
-        ChVectorDynamic<> C = m_sphericalTierod->GetC();
+        ChVectorDynamic<> C = m_sphericalTierod->GetConstraintViolation();
         GetLog() << "Tierod spherical          ";
         GetLog() << "  " << C(0) << "  ";
         GetLog() << "  " << C(1) << "  ";
         GetLog() << "  " << C(2) << "\n";
     }
     {
-        ChVectorDynamic<> C = m_sphericalDraglink->GetC();
+        ChVectorDynamic<> C = m_sphericalDraglink->GetConstraintViolation();
         GetLog() << "Draglink spherical          ";
         GetLog() << "  " << C(0) << "  ";
         GetLog() << "  " << C(1) << "  ";
@@ -398,7 +419,7 @@ void ChToeBarLeafspringAxle::LogConstraintViolations(VehicleSide side) {
     }
 
     {
-        ChVectorDynamic<> C = m_universalTierod->GetC();
+        ChVectorDynamic<> C = m_universalTierod->GetConstraintViolation();
         GetLog() << "Tierod universal          ";
         GetLog() << "  " << C(0) << "  ";
         GetLog() << "  " << C(1) << "  ";
@@ -406,7 +427,7 @@ void ChToeBarLeafspringAxle::LogConstraintViolations(VehicleSide side) {
         GetLog() << "  " << C(3) << "\n";
     }
     {
-        ChVectorDynamic<> C = m_universalDraglink->GetC();
+        ChVectorDynamic<> C = m_universalDraglink->GetConstraintViolation();
         GetLog() << "Draglink universal          ";
         GetLog() << "  " << C(0) << "  ";
         GetLog() << "  " << C(1) << "  ";

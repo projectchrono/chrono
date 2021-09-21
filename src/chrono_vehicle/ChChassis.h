@@ -24,6 +24,7 @@
 
 #include "chrono/physics/ChSystem.h"
 #include "chrono/physics/ChBodyAuxRef.h"
+#include "chrono/physics/ChLoadContainer.h"
 
 #include "chrono_vehicle/ChApiVehicle.h"
 #include "chrono_vehicle/ChPart.h"
@@ -45,7 +46,7 @@ class CH_VEHICLE_API ChChassis : public ChPart {
               bool fixed = false        ///< [in] is the chassis body fixed to ground?
     );
 
-    virtual ~ChChassis() {}
+    virtual ~ChChassis();
 
     /// Get the chassis mass.
     virtual double GetMass() const = 0;
@@ -73,6 +74,9 @@ class CH_VEHICLE_API ChChassis : public ChPart {
 
     /// Get a handle to the vehicle's chassis body.
     std::shared_ptr<ChBodyAuxRef> GetBody() const { return m_body; }
+
+    /// Get a pointer to the containing system.
+    ChSystem* GetSystem() const { return m_body->GetSystem(); }
 
     /// Get the global location of the chassis reference frame origin.
     const ChVector<>& GetPos() const { return m_body->GetFrame_REF_to_abs().GetPos(); }
@@ -134,6 +138,9 @@ class CH_VEHICLE_API ChChassis : public ChPart {
     /// Return true if the chassis body is fixed to ground.
     bool IsFixed() const { return m_body->GetBodyFixed(); }
 
+    /// Return true if the vehicle model contains bushings.
+    bool HasBushings() const { return m_bushings->GetNumLoads() > 0; }
+
     /// Add a marker on the chassis body at the specified position (relative to the chassis reference frame).
     /// If called before initialization, this function has no effect.
     void AddMarker(const std::string& name,  ///< [in] marker name
@@ -150,12 +157,18 @@ class CH_VEHICLE_API ChChassis : public ChPart {
     );
 
     /// Update the state of the chassis subsystem.
-    /// The base class implementation applies aerodynamic drag forces to the
-    /// chassis body (if enabled).
+    /// The base class implementation applies aerodynamic drag forces to the chassis body (if enabled).
     virtual void Synchronize(double time);
+
+    /// Utility function to add a joint (kinematic or bushing) to the vehicle system.
+    void AddJoint(std::shared_ptr<ChVehicleJoint> joint);
+
+    /// Utility function to remove a joint (kinematic or bushing) from the vehicle system.
+    static void RemoveJoint(std::shared_ptr<ChVehicleJoint> joint);
 
   protected:
     std::shared_ptr<ChBodyAuxRef> m_body;              ///< handle to the chassis body
+    std::shared_ptr<ChLoadContainer> m_bushings;       ///< load container for vehicle bushings
     std::vector<std::shared_ptr<ChMarker>> m_markers;  ///< list of user-defined markers
     bool m_fixed;                                      ///< is the chassis body fixed to ground?
 

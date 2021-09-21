@@ -148,6 +148,8 @@ set(CV_BASE_FILES
     ChDriver.cpp
     ChPart.h
     ChPart.cpp
+    ChVehicleJoint.h
+    ChVehicleJoint.cpp
     ChDriveline.h
     ChDriveline.cpp
     ChPowertrain.h
@@ -396,8 +398,8 @@ set(CV_WV_SUBCHASSIS_FILES
     wheeled_vehicle/subchassis/ChBalancer.h
     wheeled_vehicle/subchassis/ChBalancer.cpp
 
-    #wheeled_vehicle/subchassis/Balancer.h
-    #wheeled_vehicle/subchassis/Balancer.cpp
+    wheeled_vehicle/subchassis/Balancer.h
+    wheeled_vehicle/subchassis/Balancer.cpp
 )
 source_group("wheeled_vehicle\\subchassis" FILES ${CV_WV_SUBCHASSIS_FILES})
 
@@ -441,8 +443,8 @@ set(CV_WV_SUSPENSION_FILES
     wheeled_vehicle/suspension/DoubleWishbone.cpp
     wheeled_vehicle/suspension/DoubleWishboneReduced.h
     wheeled_vehicle/suspension/DoubleWishboneReduced.cpp
-#    wheeled_vehicle/suspension/SingleWishbone.h
-#    wheeled_vehicle/suspension/SingleWishbone.cpp
+    wheeled_vehicle/suspension/SingleWishbone.h
+    wheeled_vehicle/suspension/SingleWishbone.cpp
     wheeled_vehicle/suspension/SolidAxle.h
     wheeled_vehicle/suspension/SolidAxle.cpp
     wheeled_vehicle/suspension/MultiLink.h
@@ -783,6 +785,8 @@ if(ENABLE_MODULE_IRRLICHT)
     set(CVIRR_TV_UTILS_FILES
         tracked_vehicle/utils/ChTrackedVehicleIrrApp.h
         tracked_vehicle/utils/ChTrackedVehicleIrrApp.cpp
+        tracked_vehicle/utils/ChTrackTestRigIrrApp.h
+        tracked_vehicle/utils/ChTrackTestRigIrrApp.cpp
     )
 else()
     set(CVIRR_TV_UTILS_FILES "")

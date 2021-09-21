@@ -578,6 +578,16 @@ ChSuspensionTestRigPlatform::ChSuspensionTestRigPlatform(
     Create();
 }
 
+ChSuspensionTestRigPlatform::~ChSuspensionTestRigPlatform() {
+    auto sys = m_post[0]->GetSystem();
+    if (sys) {
+        sys->Remove(m_post[0]);
+        sys->Remove(m_post[1]);
+        sys->Remove(m_post_linact[0]);
+        sys->Remove(m_post_linact[1]);
+    }
+}
+
 void ChSuspensionTestRigPlatform::Create() {
     // Create a contact material for the two posts (shared)
     //// TODO: are default material properties ok?
@@ -808,6 +818,16 @@ ChSuspensionTestRigPushrod::ChSuspensionTestRigPushrod(
     : ChSuspensionTestRig(filename, tire_left, tire_right, contact_method) {
     InitializeSubsystems();
     Create();
+}
+
+ChSuspensionTestRigPushrod::~ChSuspensionTestRigPushrod() {
+    auto sys = m_rod[0]->GetSystem();
+    if (sys) {
+        sys->Remove(m_rod[0]);
+        sys->Remove(m_rod[1]);
+        sys->Remove(m_rod_linact[0]);
+        sys->Remove(m_rod_linact[1]);
+    }
 }
 
 void ChSuspensionTestRigPushrod::Create() {

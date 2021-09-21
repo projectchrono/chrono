@@ -28,6 +28,7 @@
 
 #include "chrono_vehicle/ChApiVehicle.h"
 #include "chrono_vehicle/ChPart.h"
+#include "chrono_vehicle/ChChassis.h"
 
 namespace chrono {
 namespace vehicle {
@@ -43,7 +44,7 @@ class CH_VEHICLE_API ChTrackShoe : public ChPart {
     ChTrackShoe(const std::string& name  ///< [in] name of the subsystem
                 );
 
-    virtual ~ChTrackShoe() {}
+    virtual ~ChTrackShoe();
 
     /// Return the type of track shoe (guiding pin).
     /// A derived class must specify the type of track shoe (which must be
@@ -94,6 +95,7 @@ class CH_VEHICLE_API ChTrackShoe : public ChPart {
     /// This function must be called only after all track shoes have been initialized.
     virtual void Connect(std::shared_ptr<ChTrackShoe> next,  ///< [in] handle to the neighbor track shoe
                          ChTrackAssembly* assembly,          ///< [in] containing track assembly
+                         ChChassis* chassis,                 ///< [in] associated chassis
                          bool ccw                            ///< [in] track assembled in counter clockwise direction
                          ) = 0;
 

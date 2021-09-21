@@ -27,13 +27,7 @@ namespace vehicle {
 ChSimplePowertrain::ChSimplePowertrain(const std::string& name)
     : ChPowertrain(name), m_motorSpeed(0), m_motorTorque(0), m_shaftTorque(0) {}
 
-void ChSimplePowertrain::Initialize(std::shared_ptr<ChChassis> chassis, std::shared_ptr<ChDriveline> driveline) {
-    ChPowertrain::Initialize(chassis, driveline);
-}
-
-void ChSimplePowertrain::Synchronize(double time, double throttle) {
-    double shaft_speed = m_driveline->GetDriveshaftSpeed();
-
+void ChSimplePowertrain::Synchronize(double time, double throttle, double shaft_speed) {
     // The motor speed is the shaft speed multiplied by gear ratio inversed:
     m_motorSpeed = shaft_speed / m_current_gear_ratio;
 
