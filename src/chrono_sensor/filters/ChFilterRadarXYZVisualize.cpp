@@ -16,7 +16,7 @@
 
 #define PROFILE false
 
-#include "chrono_sensor/filters/ChFilterRadarVisualizeDetection.h"
+#include "chrono_sensor/filters/ChFilterRadarXYZVisualize.h"
 #include "chrono_sensor/ChOptixSensor.h"
 #include "chrono_sensor/utils/CudaMallocHelper.h"
 
@@ -25,16 +25,16 @@
 namespace chrono {
 namespace sensor {
 
-CH_SENSOR_API ChFilterRadarVisualizeDetection::ChFilterRadarVisualizeDetection(int w,
-                                                                               int h,
-                                                                               float zoom,
-                                                                               std::string name)
+CH_SENSOR_API ChFilterRadarXYZVisualize::ChFilterRadarXYZVisualize(int w,
+                                                                   int h,
+                                                                   float zoom,
+                                                                   std::string name)
     : m_zoom(zoom), ChFilterVisualize(w, h, name) {}
 
-CH_SENSOR_API ChFilterRadarVisualizeDetection::~ChFilterRadarVisualizeDetection() {}
+CH_SENSOR_API ChFilterRadarXYZVisualize::~ChFilterRadarXYZVisualize() {}
 
-CH_SENSOR_API void ChFilterRadarVisualizeDetection::Initialize(std::shared_ptr<ChSensor> pSensor,
-                                                             std::shared_ptr<SensorBuffer>& bufferInOut) {
+CH_SENSOR_API void ChFilterRadarXYZVisualize::Initialize(std::shared_ptr<ChSensor> pSensor,
+                                                         std::shared_ptr<SensorBuffer>& bufferInOut) {
     if (!bufferInOut)
         InvalidFilterGraphNullBuffer(pSensor);
     auto pOptixSen = std::dynamic_pointer_cast<ChOptixSensor>(pSensor);
@@ -42,12 +42,20 @@ CH_SENSOR_API void ChFilterRadarVisualizeDetection::Initialize(std::shared_ptr<C
         InvalidFilterGraphSensorTypeMismatch(pSensor);
     m_cuda_stream = pOptixSen->GetCudaStream();
     m_radar = std::dynamic_pointer_cast<ChRadarSensor>(pSensor);
-    m_buffer_in = std::dynamic_pointer_cast<SensorDeviceRadarBuffer>(bufferInOut);
+    m_buffer_in = std::dynamic_pointer_cast<SensorDeviceRadarXYZBuffer>(bufferInOut);
     if (!m_buffer_in)
         InvalidFilterGraphBufferTypeMismatch(pSensor);
+    
+    m_host_buffer = chrono_types::make_shared<SensorHostRadarXYZBuffer>();
+    std::shared_ptr<RadarXYZReturn[]> b(
+        cudaHostMallocHelper<RadarXYZReturn>(m_buffer_in->Height * m_buffer_in->Width * sizeof(RadarXYZReturn)),
+        cudaHostFreeHelper<RadarXYZReturn>);
+    m_host_buffer->Buffer = std::move(b);
+    m_host_buffer->Width = m_buffer_in->Width;
+    m_host_buffer->Height = m_buffer_in->Height;
 }
 
-CH_SENSOR_API void ChFilterRadarVisualizeCluster::Apply() {
+CH_SENSOR_API void ChFilterRadarXYZVisualize::Apply() {
     if (!m_window && !m_window_disabled) {
         CreateGlfwWindow(Name());
         float hfov = m_radar->GetHFOV();
@@ -59,7 +67,9 @@ CH_SENSOR_API void ChFilterRadarVisualizeCluster::Apply() {
     // only render if we have a window
     if (m_window) {
         // copy buffer to host
-
+        cudaMemcpyAsync(m_host_buffer->Buffer.get(), m_buffer_in->Buffer.get(), 
+                        sizeof(RadarXYZReturn) * m_buffer_in->Beam_return_count,
+                        cudaMemcpyDeviceToHost);
         // lock the glfw mutex because from here on out, we do not want to be interrupted
         std::lock_guard<std::mutex> lck(s_glfwMutex);
         // visualize data
@@ -104,15 +114,11 @@ CH_SENSOR_API void ChFilterRadarVisualizeCluster::Apply() {
         // display the points, synchronoizing the streamf first
         cudaStreamSynchronize(m_cuda_stream);
         // draw the vertices, color them by clusterID
-
-        if (m_buffer_in->Num_clusters > 0) {
-            for (int i = 0; i < m_buffer_in->Beam_return_count; i++) {
-                float inten = 1 / (float)m_buffer_in->Num_clusters;
-                glColor3f(1 - inten * m_buffer_in->Buffer[i].objectID, inten * m_buffer_in->Buffer[i].objectID,
-                          inten * 0.5 * m_buffer_in->Buffer[i].objectID);
-                //                glColor3f(1, 1, 1);
-                glVertex3f(-m_buffer_in->Buffer[i].y, m_buffer_in->Buffer[i].z, -m_buffer_in->Buffer[i].x);
-            }
+        for (int i = 0; i < m_buffer_in->Beam_return_count; i++) {
+            float inten = m_host_buffer->Buffer[i].amplitude;
+            glColor3f(1-inten, inten, 1);
+            glVertex3f(-m_host_buffer->Buffer[i].y, m_host_buffer->Buffer[i].z, -m_host_buffer->Buffer[i].x);
+//            printf("%f %f %f\n", m_buffer_in->Buffer[i].x, m_buffer_in->Buffer[i].y, m_buffer_in->Buffer[i].z);
         }
 
         // Done drawing points

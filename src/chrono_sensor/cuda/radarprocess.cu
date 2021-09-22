@@ -6,31 +6,31 @@ namespace chrono{
 namespace sensor{
 
 
-__global__ void radar_angle_kernel(float* imgIn,
-                                   float* imgOut,
-                                   int w,
-                                   int h,
-                                   float hfov,
-                                   float max_v_angle,
-                                   float min_v_angle){
-    int index = blockDim.x * blockIdx.x + threadIdx.x;                                    
-    if (index < w * h){
-        int hIndex = index % w;
-        int vIndex = index / w;
-
-        float azimuth = (hIndex / (float)(w)) * hfov - hfov /  2.;
-        float elevation = (vIndex / (float)(h)) * (max_v_angle - min_v_angle) + min_v_angle;
-
-        imgOut[8 * index] = imgIn[6 * index];
-        imgOut[8 * index + 1] = azimuth;
-        imgOut[8 * index + 2] = elevation;
-        imgOut[8 * index + 3] = imgIn[6 * index + 2];
-        imgOut[8 * index + 4] = imgIn[6 * index + 3];
-        imgOut[8 * index + 5] = imgIn[6 * index + 4];
-        imgOut[8 * index + 6] = imgIn[6 * index + 1];
-        imgOut[8 * index + 7] = imgIn[6 * index + 5];
-    }
-}
+//__global__ void radar_angle_kernel(float* imgIn,
+//                                   float* imgOut,
+//                                   int w,
+//                                   int h,
+//                                   float hfov,
+//                                   float max_v_angle,
+//                                   float min_v_angle){
+//    int index = blockDim.x * blockIdx.x + threadIdx.x;                                    
+//    if (index < w * h){
+//        int hIndex = index % w;
+//        int vIndex = index / w;
+//
+//        float azimuth = (hIndex / (float)(w)) * hfov - hfov /  2.;
+//        float elevation = (vIndex / (float)(h)) * (max_v_angle - min_v_angle) + min_v_angle;
+//
+//        imgOut[8 * index] = imgIn[6 * index];
+//        imgOut[8 * index + 1] = azimuth;
+//        imgOut[8 * index + 2] = elevation;
+//        imgOut[8 * index + 3] = imgIn[6 * index + 2];
+//        imgOut[8 * index + 4] = imgIn[6 * index + 3];
+//        imgOut[8 * index + 5] = imgIn[6 * index + 4];
+//        imgOut[8 * index + 6] = imgIn[6 * index + 1];
+//        imgOut[8 * index + 7] = imgIn[6 * index + 5];
+//    }
+//}
 
 // Converts a depth and intensity buffer to an XZY and intensity buffer
 __global__ void radar_pointcloud_from_angles_kernel(float* imgIn,

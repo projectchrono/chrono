@@ -34,11 +34,11 @@
 #include "chrono_sensor/filters/ChFilterRadarProcess.h"
 #include "chrono_sensor/filters/ChFilterRadarSavePC.h"
 #include "chrono_sensor/filters/ChFilterSavePtCloud.h"
-#include "chrono_sensor/filters/ChFilterRadarVisualizeCluster.h"
 #include "chrono_sensor/filters/ChFilterPCfromDepth.h"
-#include "chrono_sensor/filters/ChFilterVisualizePointCloud.h"
+#include "chrono_sensor/filters/ChFilterRadarVisualizeCluster.h"
 
 #include "chrono_sensor/filters/ChFilterRadarXYZReturn.h"
+#include "chrono_sensor/filters/ChFilterRadarXYZVisualize.h"
 
 #include "chrono_sensor/ChCameraSensor.h"
 #include "chrono_sensor/ChSensorManager.h"
@@ -71,13 +71,13 @@ CameraLensModelType lens_model = CameraLensModelType::PINHOLE;
 float exposure_time = 0.02f;
 
 // Number of horizontal and vertical samples
-unsigned int horizontal_samples = 100;
-unsigned int vertical_samples = 100;
+unsigned int horizontal_samples = 1000;
+unsigned int vertical_samples = 1000;
 
 // Field of View
-float horizontal_fov = CH_C_PI / 9;           // 20 degree scan
-float max_vert_angle = (float)CH_C_PI / 15;   // 12 degrees up
-float min_vert_angle = (float)-CH_C_PI / 15;  // 12 degrees down
+float horizontal_fov = CH_C_PI / 2;           // 20 degree scan
+float max_vert_angle = (float)CH_C_PI / 6;   // 12 degrees up
+float min_vert_angle = (float)-CH_C_PI / 6;  // 12 degrees down
 
 // camera can have same view as radar
 float aspect_ratio = horizontal_fov / (max_vert_angle - min_vert_angle);
@@ -191,8 +191,9 @@ int main(int argc, char* argv[]) {
     radar->SetLag(lag);
     radar->SetCollectionWindow(collection_time);
 
-    radar->PushFilter(chrono_types::make_shared<ChFilterRadarProcess>("PC from Range"));
-    radar->PushFilter(chrono_types::make_shared<ChFilterRadarVisualizeCluster>(640, 480, 1, "Radar Clusters"));
+    radar->PushFilter(chrono_types::make_shared<ChFilterRadarXYZReturn>("Radar XYZ"));
+//    radar->PushFilter(chrono_types::make_shared<ChFilterRadarVisualizeCluster>(640, 480, 1, "Radar Clusters"));
+//    radar->PushFilter(chrono_types::make_shared<ChFilterRadarXYZVisualize>(640, 480,1, "Radar XYZ Return"));
     const std::string out_dir = "RADAR_OUPUT/";
     manager->AddSensor(radar);
 

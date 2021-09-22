@@ -188,7 +188,9 @@ struct RadarXYZReturn{
     float x;
     float y;
     float z;
-    float velocity;
+    float vel_x;
+    float vel_y;
+    float vel_z;
     float amplitude;
     float objectId;
 };
