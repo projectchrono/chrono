@@ -27,6 +27,8 @@
 #include "chrono_sensor/ChOptixSensor.h"
 #include "chrono/physics/ChSystem.h"
 
+#include <typeinfo>
+
 namespace chrono {
 namespace sensor {
 
@@ -65,6 +67,8 @@ class CH_SENSOR_API ChFilterAccess : public ChFilter {
         if (auto pBuf = std::dynamic_pointer_cast<BufferType>(bufferInOut)) {
             m_bufferIn = pBuf;  // save handle to the incoming buffer
         } else {
+            std::cout<<typeid(pBuf).name()<<std::endl;
+            std::cout<<typeid(bufferInOut).name()<<std::endl;
             InvalidFilterGraphBufferTypeMismatch(pSensor);
         }
 
@@ -151,7 +155,7 @@ using ChFilterGPSAccess = ChFilterAccess<SensorHostGPSBuffer, UserGPSBufferPtr>;
 /// Access to Radar data
 using ChFilterRadarAccess = ChFilterAccess<SensorHostRadarBuffer, UserRadarBufferPtr>;
 /// Access to Processed Radar data
-using ChFilterProcessedRadarAccess = ChFilterAccess<SensorHostProcessedRadarBuffer, UserProcessedRadarBufferPtr>;
+using ChFilterRadarXYZAccess = ChFilterAccess<SensorHostRadarXYZBuffer, UserRadarXYZBufferPtr>;
 /// Access to Tachoemter data
 using ChFilterTachometerAccess = ChFilterAccess<SensorHostTachometerBuffer, UserTachometerBufferPtr>;
 /// Access to Encoder data

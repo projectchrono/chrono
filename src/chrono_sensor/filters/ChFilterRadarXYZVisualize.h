@@ -1,5 +1,5 @@
-#ifndef CHFILTERRADARVISUALIZEDETECTION_H
-#define CHFILTERRADARVISUALIZEDETECTION_H
+#ifndef CHFILTERRADARXYZVISUALIZE_H
+#define CHFILTERRADARXYZVISUALIZE_H
 
 #include "chrono_sensor/filters/ChFilterVisualize.h"
 #include "chrono_sensor/ChRadarSensor.h"
@@ -8,11 +8,11 @@ namespace chrono {
 namespace sensor {
 
 class ChSensor;
-class CH_SENSOR_API ChFilterRadarVisualizeDetection : public ChFilterVisualize {
+class CH_SENSOR_API ChFilterRadarXYZVisualize: public ChFilterVisualize {
   public:
-    ChFilterRadarVisualizeDetection(int w, int h, float zoom, std::string name = "ChFilterVisualizeRadarPC");
+    ChFilterRadarXYZVisualize(int w, int h, float zoom, std::string name = "ChFilterVisualizeRadarPC");
 
-    virtual ~ChFilterRadarVisualizeDetection();
+    virtual ~ChFilterRadarXYZVisualize();
 
     virtual void Apply();
 
@@ -21,9 +21,9 @@ class CH_SENSOR_API ChFilterRadarVisualizeDetection : public ChFilterVisualize {
   private:
     float m_zoom;
     std::shared_ptr<ChRadarSensor> m_radar;
-    std::shared_ptr<SensorDeviceRadarBuffer> m_buffer_in;
+    std::shared_ptr<SensorDeviceRadarXYZBuffer> m_buffer_in;
+    std::shared_ptr<SensorHostRadarXYZBuffer> m_host_buffer;
     CUstream m_cuda_stream;
-    std::shared_ptr<ChRadarSensor> m_radar;
 };
 
 }  // namespace sensor

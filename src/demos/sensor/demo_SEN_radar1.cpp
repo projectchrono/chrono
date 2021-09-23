@@ -34,11 +34,9 @@
 #include "chrono_sensor/filters/ChFilterRadarProcess.h"
 #include "chrono_sensor/filters/ChFilterRadarSavePC.h"
 #include "chrono_sensor/filters/ChFilterSavePtCloud.h"
-#include "chrono_sensor/filters/ChFilterPCfromDepth.h"
 #include "chrono_sensor/filters/ChFilterRadarVisualizeCluster.h"
-
-#include "chrono_sensor/filters/ChFilterRadarXYZReturn.h"
-#include "chrono_sensor/filters/ChFilterRadarXYZVisualize.h"
+#include "chrono_sensor/filters/ChFilterPCfromDepth.h"
+#include "chrono_sensor/filters/ChFilterVisualizePointCloud.h"
 
 #include "chrono_sensor/ChCameraSensor.h"
 #include "chrono_sensor/ChSensorManager.h"
@@ -52,10 +50,6 @@
 using namespace chrono;
 using namespace chrono::geometry;
 using namespace chrono::sensor;
-// using namespace irr;
-// using namespace irr::core;
-// using namespace irr::scene;
-// using namespace irr::video;
 
 // ------------------------------------
 // Radar Parameters
@@ -77,7 +71,7 @@ unsigned int vertical_samples = 100;
 // Field of View
 float horizontal_fov = CH_C_PI / 2;           // 20 degree scan
 float max_vert_angle = (float)CH_C_PI / 6;   // 12 degrees up
-float min_vert_angle = -(float)CH_C_PI / 6;  // 12 degrees down
+float min_vert_angle = (float)-CH_C_PI / 6;  // 12 degrees down
 
 // camera can have same view as radar
 float aspect_ratio = horizontal_fov / (max_vert_angle - min_vert_angle);
@@ -125,6 +119,7 @@ int main(int argc, char* argv[]) {
     auto green = chrono_types::make_shared<ChVisualMaterial>();
     green->SetDiffuseColor({0, 1, 0});
     green->SetSpecularColor({1.f, 1.f, 1.f});
+
     // -------------------------------------------
     // add a few box bodies to be sense by a radar
     // -------------------------------------------
@@ -185,51 +180,7 @@ int main(int argc, char* argv[]) {
         }
     }
 
-    // -------------------------------------------
-    // add a few box bodies to be sense by a radar
-    // -------------------------------------------
-//    auto floor = chrono_types::make_shared<ChBodyEasyBox>(1, 1, 1, 1000, true, false);
-//    floor->SetPos({0, 0, -1});
-//    floor->SetBodyFixed(true);
-//    mphysicalSystem.Add(floor);
-//    {
-//        auto asset = floor->GetAssets()[0];
-//        if (auto visual_asset = std::dynamic_pointer_cast<ChVisualization>(asset)) {
-//            visual_asset->material_list.push_back(green);
-//        }
-//    }
-//
-//    for (int i = 0; i < 10; i++) {
-//        float x = rand() % 50;
-//        float y = 1;
-//        float z = 0;
-//        auto box_body = chrono_types::make_shared<ChBodyEasyBox>(0.5, 0.5, 0.5, 1000, true, false);
-//        box_body->SetPos({5 + x, y, z});
-//        box_body->SetPos_dt({-0.5, 0, 0});
-//        mphysicalSystem.Add(box_body);
-//        {
-//            auto asset = box_body->GetAssets()[0];
-//            if (auto visual_asset = std::dynamic_pointer_cast<ChVisualization>(asset)) {
-//                visual_asset->material_list.push_back(red);
-//            }
-//        }
-//    }
-//
-//    for (int i = 0; i < 10; i++) {
-//        float x = rand() % 50;
-//        float y = -1;
-//        float z = 0;
-//        auto box_body = chrono_types::make_shared<ChBodyEasyBox>(0.5, 0.5, 0.5, 1000, true, false);
-//        box_body->SetPos({10 - x, y, z});
-//        box_body->SetPos_dt({0.5, 0, 0});
-//        mphysicalSystem.Add(box_body);
-//        {
-//            auto asset = box_body->GetAssets()[0];
-//            if (auto visual_asset = std::dynamic_pointer_cast<ChVisualization>(asset)) {
-//                visual_asset->material_list.push_back(red);
-//            }
-//        }
-//    }
+
 
     // -----------------------
     // Create a sensor manager
@@ -237,22 +188,24 @@ int main(int argc, char* argv[]) {
     auto manager = chrono_types::make_shared<ChSensorManager>(&mphysicalSystem);
     float intensity = 0.3;
     manager->scene->AddPointLight({100, 100, 100}, {intensity, intensity, intensity}, 500);
-
+    manager->scene->AddPointLight({-100, 100, 100}, {intensity, intensity, intensity}, 500);
+    manager->scene->AddPointLight({100, -100, 100}, {intensity, intensity, intensity}, 500);
+    manager->scene->AddPointLight({-100, -100, 100}, {intensity, intensity, intensity}, 500);
+    manager->SetVerbose(false);
     // -----------------------------------------------
     // Create a radar and add it to the sensor manager
     // -----------------------------------------------
     auto offset_pose = chrono::ChFrame<double>({0, 0, 1}, Q_from_AngZ(0));
 
-    auto radar = chrono_types::make_shared<ChRadarSensor>(floor, update_rate, offset_pose, horizontal_samples,
-                                                          vertical_samples, horizontal_fov, max_vert_angle,
-                                                          min_vert_angle, max_distance, RadarReturnMode::TRACK);
+    auto radar =
+        chrono_types::make_shared<ChRadarSensor>(floor, update_rate, offset_pose, horizontal_samples, vertical_samples,
+                                                 horizontal_fov, max_vert_angle, min_vert_angle, max_distance, RadarReturnMode::TRACK);
     radar->SetName("Radar Sensor");
     radar->SetLag(lag);
     radar->SetCollectionWindow(collection_time);
 
-    radar->PushFilter(chrono_types::make_shared<ChFilterRadarXYZReturn>("Radar XYZ"));
-//    radar->PushFilter(chrono_types::make_shared<ChFilterRadarVisualizeCluster>(640, 480, 1, "Radar Clusters"));
-    radar->PushFilter(chrono_types::make_shared<ChFilterRadarXYZVisualize>(640, 480,1, "Radar XYZ Return"));
+    radar->PushFilter(chrono_types::make_shared<ChFilterRadarProcess>("PC from Range"));
+    radar->PushFilter(chrono_types::make_shared<ChFilterRadarVisualizeCluster>(640, 480, 1, "Radar Clusters"));
     const std::string out_dir = "RADAR_OUPUT/";
     manager->AddSensor(radar);
 

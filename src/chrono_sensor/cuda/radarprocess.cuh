@@ -20,5 +20,15 @@ void cuda_radar_pointcloud_from_angles(void* bufIn,
                                       float min_v_angle,
                                       CUstream& stream);
 
+
+void cuda_radar_pointcloud_from_depth(void* bufDI,
+    void* bufOut,
+    int width,
+    int height,
+    float hfov,
+    float max_v_angle,
+    float min_v_angle,
+    CUstream& stream);
+
 }
 }

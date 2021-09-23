@@ -76,6 +76,7 @@ struct RadarBufferT : public SensorBufferT<B> {
     int Num_clusters;
     std::vector<std::array<float, 3>> avg_velocity;
     std::vector<std::array<float, 3>> centroids;
+    std::vector<float> amplitudes;
 };
 
 //================================
@@ -183,27 +184,21 @@ using SensorDeviceRadarBuffer = RadarBufferT<DeviceRadarBufferPtr>;
 /// pointer to a radar buffer on the host that has been moved for safety and can be given to the user
 using UserRadarBufferPtr = std::shared_ptr<SensorHostRadarBuffer>;
 
-struct RadarTrack {
-    float xyz[3];
-    float vel[3];
-    //    float acceleration[3];
-    //    float size[3];
-    float intensity;
-    float objectID;
-
-    //    std::array<float, 6> position_covariance;
-    //    std::array<float, 6> velocity_covariance;
-    //    std::array<float, 6> acceleration_covariance;
-    //    std::array<float, 6> size_covariance;
+struct RadarXYZReturn{
+    float x;
+    float y;
+    float z;
+    float vel_x;
+    float vel_y;
+    float vel_z;
+    float amplitude;
+    float objectId;
 };
-/// processed radar host buffer to be used by radar filters in the graph
-using SensorHostProcessedRadarBuffer = RadarBufferT<std::shared_ptr<RadarTrack[]>>;
-/// processed radar buffer to be used by radar filters in the graph
-using DeviceProcessedRadarBufferPtr = std::shared_ptr<RadarTrack[]>;
-/// Sensor buffer wrapper of a DeviceProcessedRadarBufferPtr
-using SensorDeviceProcessedRadarBuffer = RadarBufferT<DeviceProcessedRadarBufferPtr>;
-/// pointer to a processed radar buffer on the host that has been moved for safety and can be given to the user
-using UserProcessedRadarBufferPtr = std::shared_ptr<SensorHostProcessedRadarBuffer>;
+
+using SensorHostRadarXYZBuffer = RadarBufferT<std::shared_ptr<RadarXYZReturn[]>>;
+using DeviceRadarXYZBufferPtr = std::shared_ptr<RadarXYZReturn[]>;
+using SensorDeviceRadarXYZBuffer = RadarBufferT<DeviceRadarXYZBufferPtr>;
+using UserRadarXYZBufferPtr = std::shared_ptr<SensorHostRadarXYZBuffer>;
 
 //=====================================
 // Depth Lidar Data Formats and Buffers

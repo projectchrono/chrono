@@ -101,7 +101,7 @@ TEST(ChRadarSensor, check_velocity) {
 //    radar->SetName("Radar Sensor");
 //    radar->PushFilter(chrono_types::make_shared<ChFilterRadarAccess>());
 //    radar->PushFilter(chrono_types::make_shared<ChFilterRadarProcess>("PC from Range"));
-//    radar->PushFilter(chrono_types::make_shared<ChFilterProcessedRadarAccess>());
+//    radar->PushFilter(chrono_types::make_shared<ChFilterRadarXYZAccess>());
 //    manager->AddSensor(radar);
 //
 //    // -------------------
@@ -115,7 +115,7 @@ TEST(ChRadarSensor, check_velocity) {
 //        mphysicalSystem.DoStepDynamics(1e-3);
 //
 //        //        UserRadarBufferPtr raw_data = radar->GetMostRecentBuffer<UserRadarBufferPtr>();
-//        UserProcessedRadarBufferPtr raw_data = radar->GetMostRecentBuffer<UserProcessedRadarBufferPtr>();
+//        UserRadarXYZBufferPtr raw_data = radar->GetMostRecentBuffer<UserRadarXYZBufferPtr>();
 //        if (raw_data->Buffer) {
 //            ASSERT_LT(raw_data->Buffer[0].x_vel - 0.1, RADAR_TEST_EPSILLON);
 //        }

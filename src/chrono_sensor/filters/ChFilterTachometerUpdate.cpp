@@ -9,13 +9,13 @@ ChFilterTachometerUpdate::ChFilterTachometerUpdate() : ChFilter("Tachometer Upda
 CH_SENSOR_API void ChFilterTachometerUpdate::Apply() {
     if (m_tachSensor->m_axis == X){
         m_bufferOut->Buffer[0].rpm = m_tachSensor->m_parent->GetWvel_loc().x() * 60 / 2 / CH_C_PI;
-        printf("tachomter x axis\n");
+//        printf("tachomter x axis\n");
     } else if (m_tachSensor->m_axis == Y){
         m_bufferOut->Buffer[0].rpm = m_tachSensor->m_parent->GetWvel_loc().y() * 60 / 2 / CH_C_PI;
-        printf("tachomter y axis\n");
+//        printf("tachomter y axis\n");
     } else if (m_tachSensor->m_axis == Z){
         m_bufferOut->Buffer[0].rpm = m_tachSensor->m_parent->GetWvel_loc().z() * 60 / 2 / CH_C_PI;
-        printf("tachomter z axis\n");
+//        printf("tachomter z axis\n");
     } else{
         std::runtime_error("Axis has to be X Y Z");
     }

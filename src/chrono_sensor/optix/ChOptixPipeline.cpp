@@ -993,7 +993,7 @@ void ChOptixPipeline::UpdateObjectVelocity() {
         m_material_records[i].data.angular_velocity = {(float)m_bodies[i]->GetWvel_par().x(),
                                                        (float)m_bodies[i]->GetWvel_par().y(),
                                                        (float)m_bodies[i]->GetWvel_par().z()};
-        m_material_records[i].data.objectID = i;
+        m_material_records[i].data.objectId = i;
     }
     CUDA_ERROR_CHECK(cudaMemcpy(reinterpret_cast<void*>(md_material_records), m_material_records.data(),
                                 sizeof(Record<MaterialRecordParameters>) * m_material_records.size(),

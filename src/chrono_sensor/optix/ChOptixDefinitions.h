@@ -194,11 +194,11 @@ struct ContextParameters {
 
 /// Parameters associated with a single object in the scnee
 struct MaterialRecordParameters {
-    unsigned int material_pool_id;  ///< the id of the material to use
-    unsigned int mesh_pool_id;      ///< the id of the mesh to use (if applicable)
-    float3 translational_velocity;  ///< the velocity of the object
-    float3 angular_velocity;        ///< the angular velocity of the object
-    float objectID;                 ///< the id of the object, used for tracking
+    unsigned int material_pool_id;
+    unsigned int mesh_pool_id;
+    float3 translational_velocity;
+    float3 angular_velocity;
+    float objectId;
 };
 
 /// Data associated with a single camera ray
@@ -233,10 +233,10 @@ struct PerRayData_lidar {
 
 ///Data associated with a single radar ray
 struct PerRayData_radar {
-    float range; ///< the distance to the first hit
-    float rcs; ///< the radar cross section of the first hit (analog to intensity)
-    float3 velocity; ///< the velocity of the first hit
-    float objectID; ///< the object id of the first hit. Used for tracking
+    float range;
+    float rcs;
+    float3 velocity;
+    float objectId;
 };
 
 /// @} sensor_optix

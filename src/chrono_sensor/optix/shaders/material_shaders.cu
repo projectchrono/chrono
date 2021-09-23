@@ -420,7 +420,7 @@ static __device__ __inline__ void RadarShader(PerRayData_radar* prd_radar,
                                               const float3& ray_dir,
                                               const float3& translational_velocity,
                                               const float3& angular_velocity,
-                                              const float& objectID) {
+                                              const float& objectId) {
     prd_radar->range = ray_dist;
     prd_radar->rcs = mat.radar_backscatter * abs(Dot(world_normal, -ray_dir));
     float3 hit_point = ray_orig + ray_dir * ray_dist;
@@ -428,7 +428,7 @@ static __device__ __inline__ void RadarShader(PerRayData_radar* prd_radar,
     float3 r = hit_point - origin;
 
     prd_radar->velocity = translational_velocity + Cross(angular_velocity, r);
-    prd_radar->objectID = objectID;
+    prd_radar->objectId = objectId;
 }
 
 static __device__ __inline__ void ShadowShader(PerRayData_shadow* prd,
@@ -532,7 +532,7 @@ extern "C" __global__ void __closesthit__material_shader() {
             break;
         case RADAR_RAY_TYPE:
             RadarShader(getRadarPRD(), mat, world_normal, uv, tangent, ray_dist, ray_orig, ray_dir,
-                        mat_params->translational_velocity, mat_params->angular_velocity, mat_params->objectID);
+                        mat_params->translational_velocity, mat_params->angular_velocity, mat_params->objectId);
             break;
         case SHADOW_RAY_TYPE:
             ShadowShader(getShadowPRD(), mat, world_normal, uv, tangent, ray_dist, ray_orig, ray_dir);
