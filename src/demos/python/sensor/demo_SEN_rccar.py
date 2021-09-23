@@ -224,7 +224,7 @@ if (chrono.ChVectorD(0, 0, 1) ^ (v1 % v2) > 0.0):
     ang *= -1
 q = chrono.Q_from_AngZ(ang)
 
-initLoc = chrono.ChVectorD((l1 + r1) / 2) + chrono.ChVectorD(0, 0, 1.0)
+initLoc = chrono.ChVectorD((l1 + r1) / 2) + chrono.ChVectorD(0, 0, .20)
 initRot = q
 
 # Create the RCCar vehicle, set parameters, and initialize

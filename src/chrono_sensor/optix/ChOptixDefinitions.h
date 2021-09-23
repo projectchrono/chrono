@@ -30,146 +30,169 @@ struct half4 {
     __half w;
 };
 
+/// @addtogroup sensor_optix
+/// @{
+
+/// Ray types, used to determine the shading and miss functions for populating ray information
 enum RayType {
-    CAMERA_RAY_TYPE = 0,       // camera rays
-    SHADOW_RAY_TYPE = 1,       // shadow rays
-    LIDAR_RAY_TYPE = 2,        // lidar rays
-    RADAR_RAY_TYPE = 3,        // radar rays
-    SEGMENTATION_RAY_TYPE = 4  // semantic camera rays
+    CAMERA_RAY_TYPE = 0,       /// camera rays
+    SHADOW_RAY_TYPE = 1,       /// shadow rays
+    LIDAR_RAY_TYPE = 2,        /// lidar rays
+    RADAR_RAY_TYPE = 3,        /// radar rays
+    SEGMENTATION_RAY_TYPE = 4  /// semantic camera rays
 };
 
+/// Packed parameters of a point light
 struct PointLight {
-    float3 pos;
-    float3 color;
-    float max_range;
+    float3 pos;       ///< the light's global position
+    float3 color;     ///< the light's color and intensity
+    float max_range;  ///< the range at which 10% of the light's intensity remains
 };
 
+/// Type of background to be spherically mapped when rays miss all objects in the scene
 enum class BackgroundMode {
-    SOLID_COLOR,     // solid color
-    GRADIENT,        // gradient used for upper hemisphere
-    ENVIRONMENT_MAP  // image used for spherical sky map
+    SOLID_COLOR,     ///< single solid color defined by RGB
+    GRADIENT,        ///< color gradient used for upper hemisphere
+    ENVIRONMENT_MAP  ///< image used for spherical sky map
 };
 
+/// The parameters associated with camera miss data. A.K.A background data
 struct CameraMissParameters {
-    BackgroundMode mode;
-    float3 color_zenith;
-    float3 color_horizon;
-    cudaTextureObject_t env_map;
+    BackgroundMode mode;          ///< the mode to determine type of miss shading
+    float3 color_zenith;          ///< the color at the zenith (ignored when using a sky map)
+    float3 color_horizon;         ///< the color at the horizon (only used for GRADIENT)
+    cudaTextureObject_t env_map;  ///< the texture object of the sky map (ignored when using a color mode)
 };
 
+/// The parameters for a camera miss record
 struct MissParameters {
     CameraMissParameters camera_miss;
 };
 
+/// The parameters needed to define a camera
 struct CameraParameters {
-    float hFOV;                 ///< horizontal field of view
-    float gamma;                ///< camera's gamma value
-    half4* frame_buffer;        ///< buffer of camera pixels
-    bool use_gi;                // whether to use global illumination
-    half4* albedo_buffer;       // only initialized if using global illumination
-    half4* normal_buffer;       // only initialized if using global illumination (screenspace normal)
-    curandState_t* rng_buffer;  // only initialized if using global illumination
+    float hFOV;            ///< horizontal field of view
+    float gamma;           ///< camera's gamma value
+    half4* frame_buffer;   ///< buffer of camera pixels
+    bool use_gi;           ///< whether to use global illumination
+    half4* albedo_buffer;  ///< the material color of the first hit. Only initialized if using global illumination
+    half4* normal_buffer;  ///< The screen-space normal of the first hit. Only initialized if using global illumination
+                           ///< (screenspace normal)
+    curandState_t* rng_buffer;  ///< The random number generator object. Only initialized if using global illumination
 };
 
+/// Parameters need to define a camera that generates semantic segmentation data
 struct SemanticCameraParameters {
     float hFOV;                 ///< horizontal field of view
     ushort2* frame_buffer;      ///< buffer of class and instance ids
     curandState_t* rng_buffer;  ///< only initialized if using global illumination
 };
 
+/// The shape of a lidar beam
 enum class LidarBeamShape {
-    RECTANGULAR,  // rectangular beam
-    ELLIPTICAL    // elliptical beam
+    RECTANGULAR,  ///< rectangular beam (inclusive of square beam)
+    ELLIPTICAL    ///< elliptical beam (inclusive of circular beam)
 };
 
+/// Parameters used to define a lidar
 struct LidarParameters {
-    float max_vert_angle;
-    float min_vert_angle;
-    float hFOV;
-    float max_distance;
-    float clip_near;
-    unsigned short sample_radius;
-    LidarBeamShape beam_shape;
-    float horiz_div_angle;
-    float vert_div_angle;
-    float2* frame_buffer;
+    float max_vert_angle;          ///< angle of the top-most lidar channel
+    float min_vert_angle;          ///< angle of the bottom-most lidar channel
+    float hFOV;                    ///< horizontal field of view of the lidar
+    float max_distance;            ///< maximum distance measureable by the lidar
+    float clip_near;               ///< near clipping distance to geometric considerations
+    unsigned short sample_radius;  ///< radius of samples for discretizing the lidar beams
+    LidarBeamShape beam_shape;     ///< the beam shape
+    float horiz_div_angle;         ///< divergence angle of the beam horizontally (in radians)
+    float vert_div_angle;          ///< divergence angle of the beam vertically (in radians)
+    float2* frame_buffer;          ///< buffer where the lidar data will be placed when generated
 };
 
-enum class RadarReturnMode { RETURN, TRACK };
+/// The mode used when determining what data the radar should return
+enum class RadarReturnMode {
+    RETURN,  ///< raw data mode
+    TRACK    ///< object tracking mode
+};
 
+/// Parameters used to define a radar
 struct RadarParameters {
-    float max_vert_angle;
-    float min_vert_angle;
-    float hFOV;
-    float max_distance;
-    float clip_near;
+    float max_vert_angle;  ///< highest vertical angle visible to the radar
+    float min_vert_angle;  ///< lowest vertical angle visible to the radar
+    float hFOV;            ///< horizontal field of view of the radar
+    float max_distance;    ///< maximum detectable distance of the radar
+    float clip_near;       ///< clipping distance for ignoring radar housing
     float horiz_div_angle;
     float vert_div_angle;
-    float3 velocity;
-    float* frame_buffer;
+    float3 velocity;      ///< the velocity of the sensor
+    float* frame_buffer;  ///< buffer where the radar data will be placed when generated
 };
 
+/// Parameters for specifying raygen programs
 struct RaygenParameters {
-    float t0;
-    float t1;
-    float3 pos0;
-    float4 rot0;
-    float3 pos1;
-    float4 rot1;
+    float t0;     ///< time of the first ray
+    float t1;     ///< time of the last ray
+    float3 pos0;  ///< sensor position at t0
+    float4 rot0;  ///< sensor rotation at t0
+    float3 pos1;  ///< sensor position at t1
+    float4 rot1;  ///< sensor rotation at t1
     union {
-        CameraParameters camera;
-        SemanticCameraParameters segmentation;
-        LidarParameters lidar;
-        RadarParameters radar;
-    } specific;
+        CameraParameters camera;                ///< the specific data when modeling a camera
+        SemanticCameraParameters segmentation;  ///< the specific data when modeling a semantic segementation camera
+        LidarParameters lidar;                  ///< the specific data when modeling a lidar
+        RadarParameters radar;                  ///< the specific data when modeling a radar
+    } specific;                                 ///< the data for the specific sensor
 };
 
+/// All the data to specific a triangle mesh
 struct MeshParameters {              // pad to align 16 (swig doesn't support explicit alignment calls)
-    float4* vertex_buffer;           // size 8
-    float4* normal_buffer;           // size 8
-    float2* uv_buffer;               // size 8
-    uint4* vertex_index_buffer;      // size 8
-    uint4* normal_index_buffer;      // size 8
-    uint4* uv_index_buffer;          // size 8
-    unsigned int* mat_index_buffer;  // size 8
-    double pad;                      // size 8
+    float4* vertex_buffer;           ///< a device pointer to the mesh's vertices // size 8
+    float4* normal_buffer;           ///< a device pointer to the mesh's normals //size 8
+    float2* uv_buffer;               ///< a device pointer to the mesh's uv coordinates // size 8
+    uint4* vertex_index_buffer;      ///< a device pointer to the mesh's vertex indices // size 8
+    uint4* normal_index_buffer;      ///< a device pointer to the mesh's normal indices // size 8
+    uint4* uv_index_buffer;          ///< a device pointer to the mesh's uv indices // size 8
+    unsigned int* mat_index_buffer;  ///< a device pointer to the mesh's materials on a per face basis // size 8
+    double pad;                      ///< padding to ensure 16 byte alignment // size 8
 };
 
-struct MaterialParameters {             // pad to align 16 (swig doesn't support explicit alignment calls)
-    float3 Kd;                          // size 12
-    float3 Ks;                          // size 12
-    float fresnel_exp;                  // size 4
-    float fresnel_min;                  // size 4
-    float fresnel_max;                  // size 4
-    float transparency;                 // size 4
-    float roughness;                    // size 4
-    float metallic;                     // size 4
-    float lidar_intensity;              // size 4
-    float radar_backscatter;            // size 4
-    int use_specular_workflow;          // size 4
-    cudaTextureObject_t kd_tex;         // size 8
-    cudaTextureObject_t kn_tex;         // size 8
-    cudaTextureObject_t ks_tex;         // size 8
-    cudaTextureObject_t metallic_tex;   // size 8
-    cudaTextureObject_t roughness_tex;  // size 8
-    cudaTextureObject_t opacity_tex;    // size 8
-    unsigned short int class_id;        // size 2
-    unsigned short int instance_id;     // size 2
-    // float3 pad;                         // size 12
+/// All parameters for specifying a material in optix
+struct MaterialParameters {      // pad to align 16 (swig doesn't support explicit alignment calls)
+    float3 Kd;                   ///< the diffuse color // size 12
+    float3 Ks;                   ///< the specular color // size 12
+    float fresnel_exp;           ///< the fresnel exponent // size 4
+    float fresnel_min;           ///< the minimum fresnel value (0-1) // size 4
+    float fresnel_max;           ///< maximum fresnel value (0-1) // size 4
+    float transparency;          ///< transparency value (0-1) // size 4
+    float roughness;             ///< roughness value (0-1) // size 4
+    float metallic;              ///< metallic value (0-1) // size 4
+    float lidar_intensity;       ///< reflectivity in a lidar's wavelength (0-1) // size 4
+    float radar_backscatter;     ///< reflectivity in a radar's wavelength (0-1) // size 4
+    int use_specular_workflow;   ///< toggle between a specular workflow or a metallic/roughness PBR workflow // size 4
+    cudaTextureObject_t kd_tex;  ///< a diffuse color texture // size 8
+    cudaTextureObject_t kn_tex;  ///< a normal perterbation texture // size 8
+    cudaTextureObject_t ks_tex;  ///< a specular color texture // size 8
+    cudaTextureObject_t metallic_tex;   ///< a metalic color texture // size 8
+    cudaTextureObject_t roughness_tex;  ///< a roughness texture // size 8
+    cudaTextureObject_t opacity_tex;    ///< an opacity texture // size 8
+    unsigned short int class_id;        ///< a class id of an object // size 2
+    unsigned short int instance_id;     ///< an instance id of an object // size 2
+    // float3 pad;                      // padding to ensure 16 byte alignment
 };
 
+/// Parameters associated with the entire optix scene
 struct ContextParameters {
-    PointLight* lights;
-    int num_lights;
-    float3 ambient_light_color;
-    int max_depth;
-    float scene_epsilon;
-    float importance_cutoff;
-    OptixTraversableHandle root;
-    MaterialParameters* material_pool;
-    MeshParameters* mesh_pool;
+    PointLight* lights;                 ///< device pointer to set of point lights in the scene
+    int num_lights;                     ///< the number of point lights in the scene
+    float3 ambient_light_color;         ///< the ambient light color and intensity
+    int max_depth;                      ///< maximum traversable depth
+    float scene_epsilon;                ///< an epsilon value used for detecting self intersections
+    float importance_cutoff;            ///< mimumum value before killing rays
+    OptixTraversableHandle root;        ///< a handle to the root node in the scene
+    MaterialParameters* material_pool;  ///< device pointer to list of materials to use for shading
+    MeshParameters* mesh_pool;          ///< device pointer to list of meshes for instancing
 };
 
+/// Parameters associated with a single object in the scnee
 struct MaterialRecordParameters {
     unsigned int material_pool_id;
     unsigned int mesh_pool_id;
@@ -178,37 +201,44 @@ struct MaterialRecordParameters {
     float objectId;
 };
 
+/// Data associated with a single camera ray
 struct PerRayData_camera {
-    float3 color;
-    float3 contrib_to_pixel;
-    curandState_t rng;  // only valid if use_gi is true
-    int depth;
-    bool use_gi;
-    float3 albedo;
-    float3 normal;
+    float3 color;             ///< color packed on the ray
+    float3 contrib_to_pixel;  ///< the current contribution to the pixel
+    curandState_t rng;        ///< a random number generator. Only valid if use_gi is true
+    int depth;                ///< the current depth of the ray
+    bool use_gi;              ///< whether global illumination is on
+    float3 albedo;            ///< the albed of the first hit
+    float3 normal;            ///< the global normal of the first hit
 };
 
+/// Data associated with a single segmentation camera ray
 struct PerRayData_semantic {
-    unsigned short int class_id;
-    unsigned short int instance_id;
+    unsigned short int class_id;     ///< the class id of the first hit
+    unsigned short int instance_id;  ///< the instance id of the first hit
 };
 
+/// Data associated with a single shadow ray
 struct PerRayData_shadow {
-    float3 attenuation;
-    int depth;
-    float ramaining_dist;
+    float3 attenuation;    ///< the current attenuation of the light
+    int depth;             ///< the current traversal depth of the ray
+    float ramaining_dist;  ///< the remaining distance to the light
 };
 
+/// Data associated with a single lidar ray
 struct PerRayData_lidar {
-    float range;
-    float intensity;
+    float range; ///< the distance to the first hit
+    float intensity; ///< the intensity of the first hit
 };
 
+///Data associated with a single radar ray
 struct PerRayData_radar {
     float range;
     float rcs;
     float3 velocity;
     float objectId;
 };
+
+/// @} sensor_optix
 
 #endif
