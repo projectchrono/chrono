@@ -39,7 +39,7 @@ CH_SENSOR_API void ChFilterRadarVisualizeCluster::Initialize(std::shared_ptr<ChS
         InvalidFilterGraphSensorTypeMismatch(pSensor);
     m_cuda_stream = pOptixSen->GetCudaStream();
     m_radar = std::dynamic_pointer_cast<ChRadarSensor>(pSensor);
-    m_buffer_in = std::dynamic_pointer_cast<SensorDeviceProcessedRadarBuffer>(bufferInOut);
+    m_buffer_in = std::dynamic_pointer_cast<SensorDeviceRadarXYZBuffer>(bufferInOut);
     if (!m_buffer_in)
         InvalidFilterGraphBufferTypeMismatch(pSensor);
 }
@@ -105,10 +105,11 @@ CH_SENSOR_API void ChFilterRadarVisualizeCluster::Apply() {
         if (m_buffer_in->Num_clusters > 0) {
             for (int i = 0; i < m_buffer_in->Beam_return_count; i++) {
                 float inten = 1 / (float)m_buffer_in->Num_clusters;
-                glColor3f(1 - inten * m_buffer_in->Buffer[i].objectID, inten * m_buffer_in->Buffer[i].objectID,
-                          inten * 0.5 * m_buffer_in->Buffer[i].objectID);
+                glColor3f(1 - inten * m_buffer_in->Buffer[i].objectId, inten * m_buffer_in->Buffer[i].objectId,
+                          inten * 0.5 * m_buffer_in->Buffer[i].objectId);
                 //                glColor3f(1, 1, 1);
-                glVertex3f(-m_buffer_in->Buffer[i].xyz[1], m_buffer_in->Buffer[i].xyz[2], -m_buffer_in->Buffer[i].xyz[0]);
+                glVertex3f(-m_buffer_in->Buffer[i].y, m_buffer_in->Buffer[i].z, -m_buffer_in->Buffer[i].x);
+//                printf("%f %f %f\n",m_buffer_in->Buffer[i].xyz[0],m_buffer_in->Buffer[i].xyz[1],m_buffer_in->Buffer[i].xyz[2]);
             }
         }
 

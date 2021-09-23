@@ -70,8 +70,8 @@ unsigned int vertical_samples = 100;
 
 // Field of View
 float horizontal_fov = CH_C_PI / 2;           // 20 degree scan
-float max_vert_angle = (float)CH_C_PI / 4;   // 12 degrees up
-float min_vert_angle = (float)-CH_C_PI / 4;  // 12 degrees down
+float max_vert_angle = (float)CH_C_PI / 6;   // 12 degrees up
+float min_vert_angle = (float)-CH_C_PI / 6;  // 12 degrees down
 
 // camera can have same view as radar
 float aspect_ratio = horizontal_fov / (max_vert_angle - min_vert_angle);
@@ -136,16 +136,16 @@ int main(int argc, char* argv[]) {
         }
     }
 
-    auto wall = chrono_types::make_shared<ChBodyEasyBox>(1,30,30, 1000, true, false);
-    wall->SetPos({15,0,4});
-    wall->SetBodyFixed(true);
-    mphysicalSystem.Add(wall);
-    {
-        auto asset = wall->GetAssets()[0];
-        if(auto visual_asset = std::dynamic_pointer_cast<ChVisualization>(asset)){
-            visual_asset->material_list.push_back(red);
-        }
-    }
+//    auto wall = chrono_types::make_shared<ChBodyEasyBox>(1,30,30, 1000, true, false);
+//    wall->SetPos({15,0,4});
+//    wall->SetBodyFixed(true);
+//    mphysicalSystem.Add(wall);
+//    {
+//        auto asset = wall->GetAssets()[0];
+//        if(auto visual_asset = std::dynamic_pointer_cast<ChVisualization>(asset)){
+//            visual_asset->material_list.push_back(red);
+//        }
+//    }
 
     auto box = chrono_types::make_shared<ChBodyEasyBox>(1,1,1, 1000, true, false);
     box->SetPos({4,3,2});

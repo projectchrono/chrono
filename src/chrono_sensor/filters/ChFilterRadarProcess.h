@@ -51,7 +51,7 @@ class CH_SENSOR_API ChFilterRadarProcess : public ChFilter {
   private:
     std::shared_ptr<ChRadarSensor> m_radar;                        /// radar this filter is attached
     std::shared_ptr<SensorDeviceRadarBuffer> m_buffer_in;          /// holder of the input buffer
-    std::shared_ptr<SensorHostProcessedRadarBuffer> m_buffer_out;  /// holder of the output buffer
+    std::shared_ptr<SensorHostRadarXYZBuffer> m_buffer_out;  /// holder of the output buffer
     CUstream m_cuda_stream;                                        /// reference to the cuda stream
     float m_hFOV;                                                  /// horizontal field of view of the radar
     float m_max_vert_angle;                                        /// mimimum vertical angle of the radar

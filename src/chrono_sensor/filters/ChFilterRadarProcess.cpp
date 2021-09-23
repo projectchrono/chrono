@@ -44,10 +44,10 @@ CH_SENSOR_API void ChFilterRadarProcess::Initialize(std::shared_ptr<ChSensor> pS
         InvalidFilterGraphSensorTypeMismatch(pSensor);
     }
     m_radar = std::dynamic_pointer_cast<ChRadarSensor>(pSensor);
-    m_buffer_out = chrono_types::make_shared<SensorDeviceProcessedRadarBuffer>();
-    std::shared_ptr<RadarTrack[]> b(
-        cudaHostMallocHelper<RadarTrack>(m_buffer_in->Width * m_buffer_in->Height),
-        cudaHostFreeHelper<RadarTrack>);
+    m_buffer_out = chrono_types::make_shared<SensorDeviceRadarXYZBuffer>();
+    std::shared_ptr<RadarXYZReturn[]> b(
+        cudaHostMallocHelper<RadarXYZReturn>(m_buffer_in->Width * m_buffer_in->Height),
+        cudaHostFreeHelper<RadarXYZReturn>);
     m_buffer_out->Buffer = std::move(b);
     m_buffer_out->Width = bufferInOut->Width;
     m_buffer_out->Height = bufferInOut->Height;
@@ -57,30 +57,28 @@ CH_SENSOR_API void ChFilterRadarProcess::Initialize(std::shared_ptr<ChSensor> pS
 
 CH_SENSOR_API void ChFilterRadarProcess::Apply() {
     // converts azimuth and elevation to XYZ Coordinates in device
-    cuda_radar_pointcloud_from_angles(m_buffer_in->Buffer.get(), m_buffer_out->Buffer.get(), (int)m_buffer_in->Width,
-                                     (int)m_buffer_in->Height, m_hFOV, m_max_vert_angle, m_min_vert_angle,
-                                     m_cuda_stream);
+    cuda_radar_pointcloud_from_angles(m_buffer_in->Buffer.get(), m_buffer_out->Buffer.get(), 
+                                      (int)m_buffer_in->Width, (int)m_buffer_in->Height, m_hFOV, m_max_vert_angle, m_min_vert_angle,
+                                      m_cuda_stream);
 
     // Transfer pointcloud to host
-    auto buf = std::vector<RadarTrack>(m_buffer_out->Width * m_buffer_out->Height);
+    auto buf = std::vector<RadarXYZReturn>(m_buffer_out->Width * m_buffer_out->Height);
     cudaMemcpyAsync(buf.data(), m_buffer_out->Buffer.get(),
-                    m_buffer_out->Width * m_buffer_out->Height * sizeof(RadarTrack), cudaMemcpyDeviceToHost,
+                    m_buffer_out->Width * m_buffer_out->Height * sizeof(RadarXYZReturn), cudaMemcpyDeviceToHost,
                     m_cuda_stream);
     cudaStreamSynchronize(m_cuda_stream);
 
-    // Keeping track of number of beams with valid returns
 
-
-    // sort returns to bins by objectID
-    auto bins = std::vector<std::vector<RadarTrack>>();
-    for (RadarTrack point : buf){
+    // sort returns to bins by objectId
+    auto bins = std::vector<std::vector<RadarXYZReturn>>();
+    for (RadarXYZReturn point : buf){
         // remove rays with no returns
-        if (point.intensity > 0){
+        if (point.amplitude > 0){
             // tries to add the return to the bin, if bin doesnt exist, add the bin
-            while (bins.size() <= point.objectID){
-                bins.push_back(std::vector<RadarTrack>());
+            while (bins.size() <= point.objectId){
+                bins.push_back(std::vector<RadarXYZReturn>());
             }
-            bins[point.objectID].push_back(point);
+            bins[point.objectId].push_back(point);
         }
     }
 
@@ -94,22 +92,22 @@ CH_SENSOR_API void ChFilterRadarProcess::Apply() {
 #endif
 
     // Down sample each bin to 30 points if necessary
-    for (std::vector<RadarTrack>& bin : bins){
+    for (std::vector<RadarXYZReturn>& bin : bins){
         auto rng = std::default_random_engine{};
-        if (bin.size() > 30){
+        if (bin.size() > 10000){
             std::shuffle(std::begin(bin), std::end(bin), rng);
-            bin = std::vector<RadarTrack>(bin.begin(), bin.begin() + (int)(bin.size() * 0.1));
+            bin = std::vector<RadarXYZReturn>(bin.begin(), bin.begin() + (int)(bin.size() * 0.1));
         }
     }
 
     // buffer to store clustered radar data
     m_buffer_out->Beam_return_count = 0;
-    auto processed_buffer = std::vector<RadarTrack>(m_buffer_out->Width * m_buffer_out->Height);
+    auto processed_buffer = std::vector<RadarXYZReturn>(m_buffer_out->Width * m_buffer_out->Height);
 
     // cluster each bin 
     int i = 0;
-    for (std::vector<RadarTrack> bin : bins){
-        for (RadarTrack point : bin){
+    for (std::vector<RadarXYZReturn> bin : bins){
+        for (RadarXYZReturn point : bin){
             buf[m_buffer_out->Beam_return_count] = point;
             m_buffer_out->Beam_return_count+=1;
         }
@@ -118,12 +116,12 @@ CH_SENSOR_API void ChFilterRadarProcess::Apply() {
     std::vector<vec3f> points;
     for (unsigned int i = 0; i < m_buffer_out->Beam_return_count; i++) {
         processed_buffer[i] = buf[i];
-        points.push_back(vec3f{processed_buffer[i].xyz[0],
-                               processed_buffer[i].xyz[1],
-                               processed_buffer[i].xyz[2]});
+        points.push_back(vec3f{processed_buffer[i].x,
+                               processed_buffer[i].y,
+                               processed_buffer[i].z});
     }
 
-    int minimum_points = 3;
+    int minimum_points = 1;
     float epsilon = 1;
 
 #if PROFILE
@@ -147,34 +145,34 @@ CH_SENSOR_API void ChFilterRadarProcess::Apply() {
     // vectors are populated with last scans values, clear them out
     m_buffer_out->avg_velocity.clear();
     m_buffer_out->centroids.clear();
-    m_buffer_out->intensity.clear();
+    m_buffer_out->amplitudes.clear();
 
     // initialize values for each cluster
     for (int i = 0; i < clusters.size(); i++) {
         std::array<float,3> temp = {0,0,0};
         m_buffer_out->avg_velocity.push_back(temp);
         m_buffer_out->centroids.push_back(temp);
-        m_buffer_out->intensity.push_back(0);
+        m_buffer_out->amplitudes.push_back(0);
     }
 
     // summing positions, velocities, intensities to caculate average
-    std::vector<RadarTrack> valid_returns;
+    std::vector<RadarXYZReturn> valid_returns;
     for (int i = 0; i < clusters.size(); i++) {
         for (int j = 0; j < clusters[i].size(); j++) {
             // we are adding 1 so cluster ID starts at 1 instead of 0
             int idx = clusters[i][j];
-            processed_buffer[idx].objectID = i + 1;
+            processed_buffer[idx].objectId = i + 1;
             valid_returns.push_back(processed_buffer[idx]);
             // adding velocity and xyz and then dividing by size in next for loop
-            m_buffer_out->centroids[i][0] += processed_buffer[idx].xyz[0];
-            m_buffer_out->centroids[i][1] += processed_buffer[idx].xyz[1];
-            m_buffer_out->centroids[i][2] += processed_buffer[idx].xyz[2];
+            m_buffer_out->centroids[i][0] += processed_buffer[idx].x;
+            m_buffer_out->centroids[i][1] += processed_buffer[idx].y;
+            m_buffer_out->centroids[i][2] += processed_buffer[idx].z;
 
-            m_buffer_out->avg_velocity[i][0] += processed_buffer[idx].vel[0];
-            m_buffer_out->avg_velocity[i][1] += processed_buffer[idx].vel[1];
-            m_buffer_out->avg_velocity[i][2] += processed_buffer[idx].vel[2];
+            m_buffer_out->avg_velocity[i][0] += processed_buffer[idx].vel_x;
+            m_buffer_out->avg_velocity[i][1] += processed_buffer[idx].vel_y;
+            m_buffer_out->avg_velocity[i][2] += processed_buffer[idx].vel_z;
 
-            m_buffer_out->intensity[i] += processed_buffer[idx].intensity;
+            m_buffer_out->amplitudes[i] += processed_buffer[idx].amplitude;
         }
     }
 
@@ -204,7 +202,7 @@ CH_SENSOR_API void ChFilterRadarProcess::Apply() {
 //    m_buffer_out->Beam_return_count = clusters.size();
 //    printf("number of clusters: %f\n", clusters.size());
     memcpy(m_buffer_out->Buffer.get(), valid_returns.data(),
-           m_buffer_out->Beam_return_count * sizeof(RadarTrack));
+           m_buffer_out->Beam_return_count * sizeof(RadarXYZReturn));
 
 #if PROFILE
     printf("Scan %i\n", m_scan_number);
@@ -218,7 +216,7 @@ CH_SENSOR_API void ChFilterRadarProcess::Apply() {
         int count = 0;
         float3 avg_vel = {0, 0, 0};
         for (int j = 0; j < m_buffer_out->Beam_return_count; j++) {
-            if (m_buffer_out->Buffer[j].objectID == i) {
+            if (m_buffer_out->Buffer[j].objectId == i) {
                 count++;
             }
         }
@@ -232,45 +230,6 @@ CH_SENSOR_API void ChFilterRadarProcess::Apply() {
     }
     printf("--------------------------------------------------------\n");
 #endif
-
-    /*
-    GROUND TRUTH
-    */
-    // calculating centroid and avg velocity of clusters, currently not in output
-    //    std::vector<float3> centroids;
-    //    std::vector<float3> avg_vel;
-    //    std::vector<int> count;
-    //    for (int i = 0; i < processed_buffer.size(); i++){
-    //        while (processed_buffer[i].objectID + 1 > centroids.size()){
-    //            centroids.push_back(make_float3(0,0,0));
-    //            avg_vel.push_back(make_float3(0,0,0));
-    //            count.push_back(0);
-    //        }
-    //        centroids[(int)processed_buffer[i].objectID].x += processed_buffer[i].x;
-    //        centroids[(int)processed_buffer[i].objectID].y += processed_buffer[i].y;
-    //        centroids[(int)processed_buffer[i].objectID].z += processed_buffer[i].z;
-    //        avg_vel[(int)processed_buffer[i].objectID].x += processed_buffer[i].x_vel;
-    //        avg_vel[(int)processed_buffer[i].objectID].y += processed_buffer[i].y_vel;
-    //        avg_vel[(int)processed_buffer[i].objectID].z += processed_buffer[i].z_vel;
-    //        count[(int)processed_buffer[i].objectID] += 1;
-    //    }
-    //
-    //    for (int i = 0; i < centroids.size(); i++){
-    //        centroids[i].x /= count[i];
-    //        centroids[i].y /= count[i];
-    //        centroids[i].z /= count[i];
-    //        avg_vel[i].x /= count[i];
-    //        avg_vel[i].y /= count[i];
-    //        avg_vel[i].z /= count[i];
-    //    }
-    //
-    //    m_buffer_out->Num_clusters = centroids.size();
-    //
-    //    std::cout<<m_buffer_out->Beam_return_count<<std::endl;
-    //    cudaMemcpyAsync(m_buffer_out->Buffer.get(), processed_buffer.data(), m_buffer_out->Beam_return_count *
-    //    sizeof(RadarTrack),
-    //                    cudaMemcpyHostToDevice, m_cuda_stream);
-
     m_buffer_out->LaunchedCount = m_buffer_in->LaunchedCount;
     m_buffer_out->TimeStamp = m_buffer_in->TimeStamp;
 }

@@ -102,7 +102,7 @@ class simulation:
 
         self.radar = sens.ChRadarSensor(body,update_rate,offset_pose,h_samples,v_samples,hfov, vfov/2, -vfov/2,50.0)
         self.radar.PushFilter(sens.ChFilterRadarProcess())
-        self.radar.PushFilter(sens.ChFilterProcessedRadarAccess())
+        self.radar.PushFilter(sens.ChFilterRadarXYZAccess())
         self.manager.AddSensor(self.radar)
 
 
@@ -121,9 +121,9 @@ class simulation:
 #            print('First Pixel: {0}'.format(rgba8_data[0, 0, :]))
             np.flip(rgba8_data)
             bgr = cv2.cvtColor(rgba8_data[::-1], cv2.COLOR_RGB2BGR)
-        radar_buffer = self.radar.GetMostRecentProcessedRadarBuffer()
+        radar_buffer = self.radar.GetMostRecentRadarXYZBuffer()
         if radar_buffer.HasData():
-            radar_data = radar_buffer.GetProcessedRadarData()[0]
+            radar_data = radar_buffer.GetRadarXYZData()[0]
             
         if rgba8_buffer.HasData():
             if radar_buffer.HasData():

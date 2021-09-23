@@ -1,6 +1,8 @@
 #include "chrono_sensor/filters/ChFilterRadarXYZReturn.h"
 #include "chrono_sensor/utils/CudaMallocHelper.h"
 #include "chrono_sensor/cuda/radarprocess.cuh"
+#include "chrono_sensor/utils/Dbscan.h"
+#include <random>
 
 namespace chrono{
 namespace sensor{
@@ -38,37 +40,32 @@ CH_SENSOR_API void ChFilterRadarXYZReturn::Initialize(std::shared_ptr<ChSensor> 
 }
 
 CH_SENSOR_API void ChFilterRadarXYZReturn::Apply(){
-    // converts polar coord to cartesian
-    cuda_radar_pointcloud_from_angles(m_buffer_in->Buffer.get(), m_buffer_out->Buffer.get(),
-                                      (int)m_buffer_in->Width, (int)m_buffer_in->Height,
-                                      m_hFOV, m_max_vert_angle, m_min_vert_angle,
-                                      m_cuda_stream);
-    
-    // remove points with no return by transfering to host and filtering the points
-    int hit_count = 0;
-    auto buf = std::vector<RadarXYZReturn>(m_buffer_out->Width * m_buffer_out->Height);
-    auto filtered_buf = std::vector<RadarXYZReturn>();
 
-    cudaMemcpyAsync(buf.data(), m_buffer_out->Buffer.get(), 
-                    m_buffer_out->Width * m_buffer_out->Height * sizeof(RadarXYZReturn), 
-                    cudaMemcpyDeviceToHost, m_cuda_stream);
+    // converts azimuth and elevation to XYZ Coordinates in device
+    cuda_radar_pointcloud_from_angles(m_buffer_in->Buffer.get(), m_buffer_out->Buffer.get(), 
+                                      (int)m_buffer_in->Width, (int)m_buffer_in->Height, m_hFOV, m_max_vert_angle, m_min_vert_angle,
+                                      m_cuda_stream);
+
+    // Transfer pointcloud to host
+    auto buf = std::vector<RadarXYZReturn>(m_buffer_out->Width * m_buffer_out->Height);
+    cudaMemcpyAsync(buf.data(), m_buffer_out->Buffer.get(),
+                    m_buffer_out->Width * m_buffer_out->Height * sizeof(RadarXYZReturn), cudaMemcpyDeviceToHost,
+                    m_cuda_stream);
     cudaStreamSynchronize(m_cuda_stream);
 
+    auto filtered_buf = std::vector<RadarXYZReturn>();
+    m_buffer_out->Beam_return_count = 0;
     for (RadarXYZReturn point : buf){
+        // remove rays with no returns
         if (point.amplitude > 0){
             filtered_buf.push_back(point);
-            hit_count += 1;
+            m_buffer_out->Beam_return_count+=1;
         }
     }
-    m_buffer_out->Beam_return_count = hit_count;
 
-    for (RadarXYZReturn point : filtered_buf){
-        printf("%f %f %f\n", point.x, point.y, point.z);
-    }
-
-    // replace existing buffer with filtered buffer
-    cudaMemcpyAsync(m_buffer_out->Buffer.get(), filtered_buf.data(), hit_count, cudaMemcpyHostToDevice, m_cuda_stream);
-    cudaStreamSynchronize(m_cuda_stream);
+    cudaMemcpyAsync(m_buffer_out->Buffer.get(), filtered_buf.data(),
+           m_buffer_out->Beam_return_count * sizeof(RadarXYZReturn), cudaMemcpyHostToDevice,
+           m_cuda_stream);
 
     m_buffer_out->LaunchedCount = m_buffer_in->LaunchedCount;
     m_buffer_out->TimeStamp = m_buffer_in->TimeStamp;

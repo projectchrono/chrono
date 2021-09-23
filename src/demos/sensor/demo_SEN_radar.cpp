@@ -71,13 +71,13 @@ CameraLensModelType lens_model = CameraLensModelType::PINHOLE;
 float exposure_time = 0.02f;
 
 // Number of horizontal and vertical samples
-unsigned int horizontal_samples = 1000;
-unsigned int vertical_samples = 1000;
+unsigned int horizontal_samples = 100;
+unsigned int vertical_samples = 100;
 
 // Field of View
 float horizontal_fov = CH_C_PI / 2;           // 20 degree scan
 float max_vert_angle = (float)CH_C_PI / 6;   // 12 degrees up
-float min_vert_angle = (float)-CH_C_PI / 6;  // 12 degrees down
+float min_vert_angle = -(float)CH_C_PI / 6;  // 12 degrees down
 
 // camera can have same view as radar
 float aspect_ratio = horizontal_fov / (max_vert_angle - min_vert_angle);
@@ -125,13 +125,14 @@ int main(int argc, char* argv[]) {
     auto green = chrono_types::make_shared<ChVisualMaterial>();
     green->SetDiffuseColor({0, 1, 0});
     green->SetSpecularColor({1.f, 1.f, 1.f});
-
     // -------------------------------------------
     // add a few box bodies to be sense by a radar
     // -------------------------------------------
-    auto floor = chrono_types::make_shared<ChBodyEasyBox>(1, 1, 1, 1000, true, false);
+    auto floor = chrono_types::make_shared<ChBodyEasyBox>(0.1, 0.1, 0.1, 1000, true, false);
     floor->SetPos({0, 0, -1});
     floor->SetBodyFixed(true);
+    //    floor->SetWvel_par(ChVector<>(-0.2,-0.4,-0.3));
+    //    floor->SetPos_dt(ChVector<>(0.1, 0, 0));
     mphysicalSystem.Add(floor);
     {
         auto asset = floor->GetAssets()[0];
@@ -140,37 +141,95 @@ int main(int argc, char* argv[]) {
         }
     }
 
-    for (int i = 0; i < 10; i++) {
-        float x = rand() % 50;
-        float y = 1;
-        float z = 0;
-        auto box_body = chrono_types::make_shared<ChBodyEasyBox>(0.5, 0.5, 0.5, 1000, true, false);
-        box_body->SetPos({5 + x, y, z});
-        box_body->SetPos_dt({-0.5, 0, 0});
-        mphysicalSystem.Add(box_body);
-        {
-            auto asset = box_body->GetAssets()[0];
-            if (auto visual_asset = std::dynamic_pointer_cast<ChVisualization>(asset)) {
-                visual_asset->material_list.push_back(red);
-            }
+//    auto wall = chrono_types::make_shared<ChBodyEasyBox>(1,30,30, 1000, true, false);
+//    wall->SetPos({15,0,4});
+//    wall->SetBodyFixed(true);
+//    mphysicalSystem.Add(wall);
+//    {
+//        auto asset = wall->GetAssets()[0];
+//        if(auto visual_asset = std::dynamic_pointer_cast<ChVisualization>(asset)){
+//            visual_asset->material_list.push_back(red);
+//        }
+//    }
+
+    auto box = chrono_types::make_shared<ChBodyEasyBox>(1,1,1, 1000, true, false);
+    box->SetPos({4,3,2});
+    box->SetBodyFixed(true);
+    mphysicalSystem.Add(box);
+    {
+        auto asset = box->GetAssets()[0];
+        if (auto visual_asset = std::dynamic_pointer_cast<ChVisualization>(asset)){
+            visual_asset->material_list.push_back(green);
         }
     }
 
-    for (int i = 0; i < 10; i++) {
-        float x = rand() % 50;
-        float y = -1;
-        float z = 0;
-        auto box_body = chrono_types::make_shared<ChBodyEasyBox>(0.5, 0.5, 0.5, 1000, true, false);
-        box_body->SetPos({10 - x, y, z});
-        box_body->SetPos_dt({0.5, 0, 0});
-        mphysicalSystem.Add(box_body);
-        {
-            auto asset = box_body->GetAssets()[0];
-            if (auto visual_asset = std::dynamic_pointer_cast<ChVisualization>(asset)) {
-                visual_asset->material_list.push_back(red);
-            }
+    auto box1 = chrono_types::make_shared<ChBodyEasyBox>(1,1,1, 1000, true, false);
+    box1->SetPos({4,-3,2});
+    box1->SetBodyFixed(true);
+    mphysicalSystem.Add(box1);
+    {
+        auto asset = box->GetAssets()[0];
+        if (auto visual_asset = std::dynamic_pointer_cast<ChVisualization>(asset)){
+            visual_asset->material_list.push_back(green);
         }
     }
+
+    auto box2 = chrono_types::make_shared<ChBodyEasyBox>(1,1,1, 1000, true, false);
+    box2->SetPos({4,0,2});
+    box2->SetBodyFixed(true);
+    mphysicalSystem.Add(box2);
+    {
+        auto asset = box->GetAssets()[0];
+        if (auto visual_asset = std::dynamic_pointer_cast<ChVisualization>(asset)){
+            visual_asset->material_list.push_back(green);
+        }
+    }
+
+    // -------------------------------------------
+    // add a few box bodies to be sense by a radar
+    // -------------------------------------------
+//    auto floor = chrono_types::make_shared<ChBodyEasyBox>(1, 1, 1, 1000, true, false);
+//    floor->SetPos({0, 0, -1});
+//    floor->SetBodyFixed(true);
+//    mphysicalSystem.Add(floor);
+//    {
+//        auto asset = floor->GetAssets()[0];
+//        if (auto visual_asset = std::dynamic_pointer_cast<ChVisualization>(asset)) {
+//            visual_asset->material_list.push_back(green);
+//        }
+//    }
+//
+//    for (int i = 0; i < 10; i++) {
+//        float x = rand() % 50;
+//        float y = 1;
+//        float z = 0;
+//        auto box_body = chrono_types::make_shared<ChBodyEasyBox>(0.5, 0.5, 0.5, 1000, true, false);
+//        box_body->SetPos({5 + x, y, z});
+//        box_body->SetPos_dt({-0.5, 0, 0});
+//        mphysicalSystem.Add(box_body);
+//        {
+//            auto asset = box_body->GetAssets()[0];
+//            if (auto visual_asset = std::dynamic_pointer_cast<ChVisualization>(asset)) {
+//                visual_asset->material_list.push_back(red);
+//            }
+//        }
+//    }
+//
+//    for (int i = 0; i < 10; i++) {
+//        float x = rand() % 50;
+//        float y = -1;
+//        float z = 0;
+//        auto box_body = chrono_types::make_shared<ChBodyEasyBox>(0.5, 0.5, 0.5, 1000, true, false);
+//        box_body->SetPos({10 - x, y, z});
+//        box_body->SetPos_dt({0.5, 0, 0});
+//        mphysicalSystem.Add(box_body);
+//        {
+//            auto asset = box_body->GetAssets()[0];
+//            if (auto visual_asset = std::dynamic_pointer_cast<ChVisualization>(asset)) {
+//                visual_asset->material_list.push_back(red);
+//            }
+//        }
+//    }
 
     // -----------------------
     // Create a sensor manager
@@ -193,7 +252,7 @@ int main(int argc, char* argv[]) {
 
     radar->PushFilter(chrono_types::make_shared<ChFilterRadarXYZReturn>("Radar XYZ"));
 //    radar->PushFilter(chrono_types::make_shared<ChFilterRadarVisualizeCluster>(640, 480, 1, "Radar Clusters"));
-//    radar->PushFilter(chrono_types::make_shared<ChFilterRadarXYZVisualize>(640, 480,1, "Radar XYZ Return"));
+    radar->PushFilter(chrono_types::make_shared<ChFilterRadarXYZVisualize>(640, 480,1, "Radar XYZ Return"));
     const std::string out_dir = "RADAR_OUPUT/";
     manager->AddSensor(radar);
 

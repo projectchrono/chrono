@@ -78,7 +78,7 @@ extern "C" __global__ void __raygen__radar() {
     radar.frame_buffer[8 * image_index + 4] = vel_radar_frame.y; // z velocity
     radar.frame_buffer[8 * image_index + 5] = vel_radar_frame.z; // z velocity
     radar.frame_buffer[8 * image_index + 6] = prd_radar.rcs;
-    radar.frame_buffer[8 * image_index + 7] = prd_radar.objectID; // objectID
+    radar.frame_buffer[8 * image_index + 7] = prd_radar.objectId; // objectId
 //    printf("%f %f\n", prd_radar.range, azimuth);
 
 }

@@ -119,10 +119,10 @@ CH_SENSOR_API UserRadarBufferPtr ChSensor::GetMostRecentBuffer() {
 }
 
 template <>
-CH_SENSOR_API UserProcessedRadarBufferPtr ChSensor::GetMostRecentBuffer() {
+CH_SENSOR_API UserRadarXYZBufferPtr ChSensor::GetMostRecentBuffer() {
     // call the templated helper function
-    return GetMostRecentBufferHelper<UserProcessedRadarBufferPtr, ChFilterProcessedRadarAccess,
-                                     ChFilterProcessedRadarAccessName>();
+    return GetMostRecentBufferHelper<UserRadarXYZBufferPtr, ChFilterRadarXYZAccess,
+                                     ChFilterRadarXYZAccessName>();
 }
 
 template <>

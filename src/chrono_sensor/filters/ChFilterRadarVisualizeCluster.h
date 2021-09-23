@@ -20,7 +20,7 @@ class CH_SENSOR_API ChFilterRadarVisualizeCluster : public ChFilterVisualize {
 
   private:
     float m_zoom;
-    std::shared_ptr<SensorHostProcessedRadarBuffer> m_buffer_in;  ///< input buffer
+    std::shared_ptr<SensorHostRadarXYZBuffer> m_buffer_in;  ///< input buffer
     CUstream m_cuda_stream;
     std::shared_ptr<ChRadarSensor> m_radar;
 };

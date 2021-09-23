@@ -52,7 +52,7 @@ class CH_SENSOR_API ChFilterRadarSavePC : public ChFilter {
   private:
     std::string m_path;                                           ///< path to saved data
     unsigned int m_frame_number = 0;                              ///< frame counter for saving sequential frames
-    std::shared_ptr<SensorHostProcessedRadarBuffer> m_buffer_in;  ///< input buffer for point cloud
+    std::shared_ptr<SensorHostRadarXYZBuffer> m_buffer_in;  ///< input buffer for point cloud
     CUstream m_cuda_stream;
 };
 

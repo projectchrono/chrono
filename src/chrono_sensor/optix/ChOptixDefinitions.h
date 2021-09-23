@@ -175,7 +175,7 @@ struct MaterialRecordParameters {
     unsigned int mesh_pool_id;
     float3 translational_velocity;
     float3 angular_velocity;
-    float objectID;
+    float objectId;
 };
 
 struct PerRayData_camera {
@@ -208,7 +208,7 @@ struct PerRayData_radar {
     float range;
     float rcs;
     float3 velocity;
-    float objectID;
+    float objectId;
 };
 
 #endif

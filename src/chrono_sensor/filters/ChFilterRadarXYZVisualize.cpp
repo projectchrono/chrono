@@ -67,9 +67,7 @@ CH_SENSOR_API void ChFilterRadarXYZVisualize::Apply() {
     // only render if we have a window
     if (m_window) {
         // copy buffer to host
-        cudaMemcpyAsync(m_host_buffer->Buffer.get(), m_buffer_in->Buffer.get(), 
-                        sizeof(RadarXYZReturn) * m_buffer_in->Beam_return_count,
-                        cudaMemcpyDeviceToHost);
+
         // lock the glfw mutex because from here on out, we do not want to be interrupted
         std::lock_guard<std::mutex> lck(s_glfwMutex);
         // visualize data
@@ -114,12 +112,14 @@ CH_SENSOR_API void ChFilterRadarXYZVisualize::Apply() {
         // display the points, synchronoizing the streamf first
         cudaStreamSynchronize(m_cuda_stream);
         // draw the vertices, color them by clusterID
+
         for (int i = 0; i < m_buffer_in->Beam_return_count; i++) {
-            float inten = m_host_buffer->Buffer[i].amplitude;
-            glColor3f(1-inten, inten, 1);
-            glVertex3f(-m_host_buffer->Buffer[i].y, m_host_buffer->Buffer[i].z, -m_host_buffer->Buffer[i].x);
-//            printf("%f %f %f\n", m_buffer_in->Buffer[i].x, m_buffer_in->Buffer[i].y, m_buffer_in->Buffer[i].z);
-        }
+            glColor3f(1 - m_buffer_in->Buffer[i].amplitude, m_buffer_in->Buffer[i].amplitude,
+                          0);
+//            glColor3f(1, 1, 1);
+            glVertex3f(-m_buffer_in->Buffer[i].y, m_buffer_in->Buffer[i].z, -m_buffer_in->Buffer[i].x);
+//                printf("%f %f %f\n",m_buffer_in->Buffer[i].xyz[0],m_buffer_in->Buffer[i].xyz[1],m_buffer_in->Buffer[i].xyz[2]);
+            }
 
         // Done drawing points
         glEnd();
@@ -134,6 +134,5 @@ CH_SENSOR_API void ChFilterRadarXYZVisualize::Apply() {
         glfwPollEvents();
     }
 }
-
 }  // namespace sensor
 }  // namespace chrono
