@@ -98,8 +98,7 @@ struct LidarParameters {
 enum class RadarReturnMode { RETURN, TRACK };
 
 struct RadarParameters {
-    float max_vert_angle;
-    float min_vert_angle;
+    float vFOV;
     float hFOV;
     float max_distance;
     float clip_near;

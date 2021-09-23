@@ -54,8 +54,7 @@ class CH_SENSOR_API ChFilterRadarProcess : public ChFilter {
     std::shared_ptr<SensorHostRadarXYZBuffer> m_buffer_out;  /// holder of the output buffer
     CUstream m_cuda_stream;                                        /// reference to the cuda stream
     float m_hFOV;                                                  /// horizontal field of view of the radar
-    float m_max_vert_angle;                                        /// mimimum vertical angle of the radar
-    float m_min_vert_angle;                                        /// maximum vertical angle of the radar
+    float m_vFOV;                                        /// mimimum vertical angle of the radar
     #if PROFILE
     unsigned int m_scan_number = 0;
     #endif

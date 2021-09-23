@@ -482,8 +482,7 @@ void ChOptixPipeline::SpawnPipeline(PipelineType type) {
             program_groups.push_back(m_radar_raygen_group);
             OPTIX_ERROR_CHECK(optixSbtRecordPackHeader(m_radar_raygen_group, raygen_record.get()));
             raygen_record->data.specific.radar.frame_buffer = {};      // default value
-            raygen_record->data.specific.radar.max_vert_angle = 1.f;   // default value
-            raygen_record->data.specific.radar.min_vert_angle = -1.f;  // default value
+            raygen_record->data.specific.radar.vFOV = CH_C_PI;  // default value
             raygen_record->data.specific.radar.hFOV = CH_C_PI;         // default value
             raygen_record->data.specific.radar.max_distance = 200.f;   // default value
             raygen_record->data.specific.radar.clip_near = 0.f;        // default value

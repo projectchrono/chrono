@@ -36,8 +36,7 @@ class CH_SENSOR_API ChRadarSensor : public ChOptixSensor {
     /// @param clip_near Near clipping distance so that lidar sensor can be easily placed inside a visualization object
     /// (sensor housing)
     /// @param hfov Horizontal field of view of the lidar
-    /// @param max_vertical_angle Maximum vertical angle of the lidar
-    /// @param min_vertical_angle Minimum vertical angle of the lidar
+    /// @param vfov vertical angle of the lidar
 
   public:
     ChRadarSensor(std::shared_ptr<chrono::ChBody> parent,
@@ -46,10 +45,8 @@ class CH_SENSOR_API ChRadarSensor : public ChOptixSensor {
                   const unsigned int w,
                   const unsigned int h,
                   const float hfov,
-                  const float max_vertical_angle,
-                  const float min_vertical_angle,
+                  const float vfov,
                   const float max_distance,
-                  RadarReturnMode return_mode = RadarReturnMode::RETURN,
                   const float clip_near = 1e-3f);
 
     /// Class destructor
@@ -60,13 +57,10 @@ class CH_SENSOR_API ChRadarSensor : public ChOptixSensor {
     /// @return The horizontal field of view of the radar sensor
     float GetHFOV() const { return m_hFOV; }
 
-    /// Returns the highest vertical angle of any ray in the radar
-    /// @return The angle of the highest ray
-    float GetMaxVertAngle() const { return m_max_vert_angle; }
+    /// Returns the vertical field of view the radar
+    /// @return The vertical field of view the radar sensor
+    float GetVFOV() const { return m_vFOV; }
 
-    /// Returns the lowest vertical angle of any ray in the radar
-    /// @return The angle of the lowest ray
-    float GetMinVertAngle() const { return m_min_vert_angle; }
 
     /// Returns the maximum range of the radar
     /// @return The maximum distance for the radar
@@ -86,8 +80,7 @@ class CH_SENSOR_API ChRadarSensor : public ChOptixSensor {
 
   private:
     float m_hFOV;            ///< the horizontal field of view of the radar
-    float m_max_vert_angle;  ///< max vertical angle of the rays
-    float m_min_vert_angle;  ///< min vertical angle of the rays
+    float m_vFOV;            ///< vertical field of view of the radar
     float m_max_distance;    ///< max distance for radar
     float m_clip_near;       ///< near clipping distance so that radar sensor housings can be transparent to self
 };

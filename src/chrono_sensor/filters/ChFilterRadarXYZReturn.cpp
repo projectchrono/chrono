@@ -11,23 +11,27 @@ ChFilterRadarXYZReturn::ChFilterRadarXYZReturn(std::string name) : ChFilter(name
 
 CH_SENSOR_API void ChFilterRadarXYZReturn::Initialize(std::shared_ptr<ChSensor> pSensor, 
                                                       std::shared_ptr<SensorBuffer>& bufferInOut){
+    // throw error if null buffer
     if (!bufferInOut)
         InvalidFilterGraphNullBuffer(pSensor);
 
+    // check if the incoming buffer is the correct type
     m_buffer_in = std::dynamic_pointer_cast<SensorDeviceRadarBuffer>(bufferInOut);
-
     if (!m_buffer_in)
         InvalidFilterGraphBufferTypeMismatch(pSensor);
 
+    // grab radar parameters
     if (auto pRadar = std::dynamic_pointer_cast<ChRadarSensor>(pSensor)) {
         m_cuda_stream = pRadar->GetCudaStream();
         m_hFOV = pRadar->GetHFOV();
-        m_max_vert_angle = pRadar->GetMaxVertAngle();
-        m_min_vert_angle = pRadar->GetMinVertAngle();
+        m_vFOV = pRadar->GetVFOV();
     } else {
         InvalidFilterGraphSensorTypeMismatch(pSensor);
     }
+
     m_radar = std::dynamic_pointer_cast<ChRadarSensor>(pSensor);
+
+    // create output buffer
     m_buffer_out = chrono_types::make_shared<SensorDeviceRadarXYZBuffer>();
     std::shared_ptr<RadarXYZReturn[]> b(
         cudaHostMallocHelper<RadarXYZReturn>(m_buffer_in->Width * m_buffer_in->Height),
@@ -43,7 +47,7 @@ CH_SENSOR_API void ChFilterRadarXYZReturn::Apply(){
 
     // converts azimuth and elevation to XYZ Coordinates in device
     cuda_radar_pointcloud_from_angles(m_buffer_in->Buffer.get(), m_buffer_out->Buffer.get(), 
-                                      (int)m_buffer_in->Width, (int)m_buffer_in->Height, m_hFOV, m_max_vert_angle, m_min_vert_angle,
+                                      (int)m_buffer_in->Width, (int)m_buffer_in->Height, m_hFOV, m_vFOV,
                                       m_cuda_stream);
 
     // Transfer pointcloud to host
@@ -53,6 +57,7 @@ CH_SENSOR_API void ChFilterRadarXYZReturn::Apply(){
                     m_cuda_stream);
     cudaStreamSynchronize(m_cuda_stream);
 
+    // filter out no returns
     auto filtered_buf = std::vector<RadarXYZReturn>();
     m_buffer_out->Beam_return_count = 0;
     for (RadarXYZReturn point : buf){
@@ -63,10 +68,10 @@ CH_SENSOR_API void ChFilterRadarXYZReturn::Apply(){
         }
     }
 
+    // transfer pointcloud to device
     cudaMemcpyAsync(m_buffer_out->Buffer.get(), filtered_buf.data(),
            m_buffer_out->Beam_return_count * sizeof(RadarXYZReturn), cudaMemcpyHostToDevice,
            m_cuda_stream);
-
     m_buffer_out->LaunchedCount = m_buffer_in->LaunchedCount;
     m_buffer_out->TimeStamp = m_buffer_in->TimeStamp;
 }

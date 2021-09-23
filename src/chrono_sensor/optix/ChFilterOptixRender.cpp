@@ -142,8 +142,7 @@ CH_SENSOR_API void ChFilterOptixRender::Initialize(std::shared_ptr<ChSensor> pSe
         DeviceRadarBufferPtr b(cudaMallocHelper<RadarReturn>(pOptixSensor->GetWidth() * pOptixSensor->GetHeight()),
                                cudaFreeHelper<RadarReturn>);
         bufferOut->Buffer = std::move(b);
-        m_raygen_record->data.specific.radar.max_vert_angle = radar->GetMaxVertAngle();
-        m_raygen_record->data.specific.radar.min_vert_angle = radar->GetMinVertAngle();
+        m_raygen_record->data.specific.radar.vFOV = radar->GetVFOV();
         m_raygen_record->data.specific.radar.hFOV = radar->GetHFOV();
         m_raygen_record->data.specific.radar.max_distance = radar->GetMaxDistance();
         m_raygen_record->data.specific.radar.clip_near = radar->GetClipNear();

@@ -11,7 +11,8 @@
 // =============================================================================
 // Authors: Han Wang, Asher Elmquist
 // =============================================================================
-//
+// This filter converts radar polar coordinates to cartesian coordinates and 
+// removes beams with no returns
 // =============================================================================
 #ifndef CHFILTERRADARXYZRETURN_H
 #define CHFILTERRADARXYZRETURN_H
@@ -40,7 +41,7 @@ class CH_SENSOR_API ChFilterRadarXYZReturn : public ChFilter{
         std::shared_ptr<SensorDeviceRadarXYZBuffer> m_buffer_out;
         CUstream m_cuda_stream; 
         float m_hFOV;
-        float m_max_vert_angle;
+        float m_vFOV;
         float m_min_vert_angle;
 };
 

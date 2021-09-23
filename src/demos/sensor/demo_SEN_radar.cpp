@@ -76,11 +76,10 @@ unsigned int vertical_samples = 100;
 
 // Field of View
 float horizontal_fov = CH_C_PI / 2;           // 20 degree scan
-float max_vert_angle = (float)CH_C_PI / 6;   // 12 degrees up
-float min_vert_angle = -(float)CH_C_PI / 6;  // 12 degrees down
+float vertical_fov = CH_C_PI / 3;   // 12 degrees up
 
 // camera can have same view as radar
-float aspect_ratio = horizontal_fov / (max_vert_angle - min_vert_angle);
+float aspect_ratio = horizontal_fov / (vertical_fov);
 float width = 960;
 float height = width / aspect_ratio;
 
@@ -244,8 +243,8 @@ int main(int argc, char* argv[]) {
     auto offset_pose = chrono::ChFrame<double>({0, 0, 1}, Q_from_AngZ(0));
 
     auto radar = chrono_types::make_shared<ChRadarSensor>(floor, update_rate, offset_pose, horizontal_samples,
-                                                          vertical_samples, horizontal_fov, max_vert_angle,
-                                                          min_vert_angle, max_distance, RadarReturnMode::TRACK);
+                                                          vertical_samples, horizontal_fov, vertical_fov,
+                                                          max_distance);
     radar->SetName("Radar Sensor");
     radar->SetLag(lag);
     radar->SetCollectionWindow(collection_time);

@@ -38,8 +38,7 @@ CH_SENSOR_API void ChFilterRadarProcess::Initialize(std::shared_ptr<ChSensor> pS
     if (auto pRadar = std::dynamic_pointer_cast<ChRadarSensor>(pSensor)) {
         m_cuda_stream = pRadar->GetCudaStream();
         m_hFOV = pRadar->GetHFOV();
-        m_max_vert_angle = pRadar->GetMaxVertAngle();
-        m_min_vert_angle = pRadar->GetMinVertAngle();
+        m_vFOV = pRadar->GetVFOV();
     } else {
         InvalidFilterGraphSensorTypeMismatch(pSensor);
     }
@@ -58,7 +57,7 @@ CH_SENSOR_API void ChFilterRadarProcess::Initialize(std::shared_ptr<ChSensor> pS
 CH_SENSOR_API void ChFilterRadarProcess::Apply() {
     // converts azimuth and elevation to XYZ Coordinates in device
     cuda_radar_pointcloud_from_angles(m_buffer_in->Buffer.get(), m_buffer_out->Buffer.get(), 
-                                      (int)m_buffer_in->Width, (int)m_buffer_in->Height, m_hFOV, m_max_vert_angle, m_min_vert_angle,
+                                      (int)m_buffer_in->Width, (int)m_buffer_in->Height, m_hFOV, m_vFOV,
                                       m_cuda_stream);
 
     // Transfer pointcloud to host
