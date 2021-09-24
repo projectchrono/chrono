@@ -239,7 +239,7 @@ void ChVehicleIrrApp::Advance(double step) {
     if (m_car_sound && m_vehicle->GetPowertrain()) {
         stepsbetweensound++;
         double engine_rpm = m_vehicle->GetPowertrain()->GetMotorSpeed() * 60 / CH_C_2PI;
-        double soundspeed = engine_rpm / (8000.);  // denominator: to guess
+        double soundspeed = engine_rpm / (4000.);  // denominator: to guess
         if (soundspeed < 0.1)
             soundspeed = 0.1;
         if (stepsbetweensound > 20) {

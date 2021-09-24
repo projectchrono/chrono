@@ -33,6 +33,7 @@
 #include "chrono_vehicle/ChApiVehicle.h"
 #include "chrono_vehicle/ChVehicle.h"
 #include "chrono_vehicle/ChDriver.h"
+#include "chrono_vehicle/ChConfigVehicle.h"
 
 #ifdef CHRONO_IRRKLANG
 #include <irrKlang.h>
