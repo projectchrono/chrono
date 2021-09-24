@@ -31,6 +31,8 @@ CH_SENSOR_API ChScene::ChScene() {
     m_pointlights = std::vector<PointLight>();
     lights_changed = true;
     background_changed = true;
+
+    m_scene_epsilon = 1e-3;
 }
 
 CH_SENSOR_API ChScene::~ChScene() {}
@@ -60,6 +62,11 @@ CH_SENSOR_API void ChScene::ModifyPointLight(unsigned int id, PointLight p) {
 
 CH_SENSOR_API void ChScene::SetBackground(Background b) {
     m_background = b;
+    background_changed = true;
+}
+
+CH_SENSOR_API void ChScene::SetSceneEpsilon(float e) {
+    m_scene_epsilon = e;
     background_changed = true;
 }
 
