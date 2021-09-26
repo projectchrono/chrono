@@ -2410,7 +2410,7 @@ void ChElementShellANCF_3833::ComputeInternalJacobianPreInt(ChMatrixRef& H, doub
 
     // Calculate the matrix containing the dense part of the Jacobian matrix in a reordered form. This is then reordered
     // from its [9 x NSF^2] form into its required [3*NSF x 3*NSF] form
-    Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor> K2 = -PI2 * m_O2;
+    Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic, Eigen::ColMajor> K2 = -PI2 * m_O2;
 
     for (unsigned int k = 0; k < NSF; k++) {
         for (unsigned int f = 0; f < NSF; f++) {

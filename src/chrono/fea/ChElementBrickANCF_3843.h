@@ -279,7 +279,7 @@ class ChElementBrickANCF_3843 : public ChElementGeneric, public ChLoadableUVW {
     virtual int Get_field_ncoords() override { return 12; }
 
     /// Tell the number of DOFs blocks (ex. =1 for a body, =4 for a tetrahedron, etc.)
-    virtual int GetSubBlocks() override { return 4; }
+    virtual int GetSubBlocks() override { return 8; }
 
     /// Get the offset of the i-th sub-block of DOFs in global vector.
     virtual unsigned int GetSubBlockOffset(int nblock) override { return m_nodes[nblock]->NodeGetOffset_w(); }

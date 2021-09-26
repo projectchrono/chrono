@@ -402,9 +402,9 @@ void ChElementBeamANCF_3243::ComputeInternalForces(ChVectorDynamic<>& Fi) {
 
     // Calculate and add the generalized force due to gravity to the generalized internal force vector for the element.
     // The generalized force due to gravity could be computed once prior to the start of the simulation if gravity was
-    // assumed constant throughout the entire simulation.  However, this implementation assumes that the acceleration due
-    // to gravity, while a constant for the entire system, can change from step to step which could be useful for gravity
-    // loaded units tests as an example.
+    // assumed constant throughout the entire simulation.  However, this implementation assumes that the acceleration
+    // due to gravity, while a constant for the entire system, can change from step to step which could be useful for
+    // gravity loaded units tests as an example.
     if (m_gravity_on) {
         MatrixNx3 GravForceCompact = m_GravForceScale * m_system->Get_G_acc().eigen().transpose();
         Eigen::Map<Vector3N> GravForce(GravForceCompact.data(), GravForceCompact.size());
@@ -2827,7 +2827,7 @@ void ChElementBeamANCF_3243::ComputeInternalJacobianPreInt(ChMatrixRef& H,
 
     // Calculate the matrix containing the dense part of the Jacobian matrix in a reordered form. This is then reordered
     // from its [9 x NSF^2] form into its required [3*NSF x 3*NSF] form
-    ChMatrixNM<double, 9, NSF* NSF> K2 = -PI2 * m_O2;
+    ChMatrixNMc<double, 9, NSF* NSF> K2 = -PI2 * m_O2;
 
     for (unsigned int k = 0; k < NSF; k++) {
         for (unsigned int f = 0; f < NSF; f++) {
@@ -2838,13 +2838,26 @@ void ChElementBeamANCF_3243::ComputeInternalJacobianPreInt(ChMatrixRef& H,
     }
 
     // Add in the sparse (blocks times the 3x3 identity matrix) component of the Jacobian that was already calculated as
-    // part of the generalized internal force calculations
+    // part of the generalized internal force calculations as well as the Mass Matrix which is stored in compact upper
+    // triangular form
     MatrixNxN K_K13Compact = -Kfactor * m_K13Compact;
+    ChVectorN<double, (NSF * (NSF + 1)) / 2> ScaledMassMatrix = Mfactor * m_MassMatrix;
+
     for (unsigned int i = 0; i < NSF; i++) {
         for (unsigned int j = 0; j < NSF; j++) {
-            H(3 * i, 3 * j) += K_K13Compact(i, j);
-            H(3 * i + 1, 3 * j + 1) += K_K13Compact(i, j);
-            H(3 * i + 2, 3 * j + 2) += K_K13Compact(i, j);
+            unsigned int idx;
+            // Convert from a (i,j) index to a linear index into the Mass Matrix in Compact Upper Triangular Form
+            // https://math.stackexchange.com/questions/2134011/conversion-of-upper-triangle-linear-index-from-index-on-symmetrical-array
+            if (j >= i) {
+                idx = (NSF * (NSF - 1) - (NSF - i) * (NSF - i - 1)) / 2 + j;
+            } else {
+                idx = (NSF * (NSF - 1) - (NSF - j) * (NSF - j - 1)) / 2 + i;
+            }
+
+            double d = ScaledMassMatrix(idx) + K_K13Compact(i, j);
+            H(3 * i, 3 * j) += d;
+            H(3 * i + 1, 3 * j + 1) += d;
+            H(3 * i + 2, 3 * j + 2) += d;
         }
     }
 }
