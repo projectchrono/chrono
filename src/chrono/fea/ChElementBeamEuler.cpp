@@ -743,12 +743,8 @@ void ChElementBeamEuler::ComputeInternalForces(ChVectorDynamic<>& Fi) {
         // Rayleigh damping (stiffness proportional part)  [Rm] = alpha*[M] 
         double node_multiplier_fact = 0.5 * length * (this->section->GetBeamRaleyghDampingAlpha());
         for (int i = 0; i < nodes.size(); ++i) {
-            int stride = i * 6;
-            Mloc.block<3, 3>(stride, stride) += sectional_mass.block<3, 3>(0, 0) * node_multiplier_fact;
-            Mloc.block<3, 3>(stride + 3, stride + 3) += sectional_mass.block<3, 3>(3, 3) * node_multiplier_fact;
-            Mxw = nodes[i]->GetA() * sectional_mass.block<3, 3>(0, 3) * node_multiplier_fact;
-            Mloc.block<3, 3>(stride, stride + 3) += Mxw;
-            Mloc.block<3, 3>(stride + 3, stride) += Mxw.transpose();
+            int stride = i * 6; 
+            Mloc.block<6, 6>(stride, stride) += sectional_mass * node_multiplier_fact;
         }
         FiR_local = Mloc * displ_dt;
         Fi_local += FiR_local;
