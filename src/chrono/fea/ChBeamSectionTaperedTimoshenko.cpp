@@ -218,6 +218,10 @@ auto GetAverageValue5 = [](const double mv1, const double mv2) {
 };
 
 void ChBeamSectionTaperedTimoshenkoAdvancedGeneric::ComputeAverageSectionParameters() {
+    if (compute_ave_sec_par) {
+        return;
+    }
+
     double mu1 = this->sectionA->GetMassPerUnitLength();
     // double Jxx1 = this->sectionA->GetInertiaJxxPerUnitLength();
     double Jyy1 = this->sectionA->GetInertiaJyyPerUnitLength();
@@ -339,6 +343,7 @@ void ChBeamSectionTaperedTimoshenkoAdvancedGeneric::ComputeAverageSectionParamet
     this->avg_sec_par->rdamping_coeff.by = GetAverageValue(rdamping_coeff1.by, rdamping_coeff2.by);
     this->avg_sec_par->rdamping_coeff.bz = GetAverageValue(rdamping_coeff1.bz, rdamping_coeff2.bz);
     this->avg_sec_par->rdamping_coeff.bt = GetAverageValue(rdamping_coeff1.bt, rdamping_coeff2.bt);
+    this->avg_sec_par->rdamping_coeff.alpha = GetAverageValue(rdamping_coeff1.alpha, rdamping_coeff2.alpha);
     this->avg_sec_par->artificial_factor_for_shear_damping =
         GetAverageValue(artificial_factor_for_shear_damping1, artificial_factor_for_shear_damping2);
 
@@ -364,6 +369,9 @@ void ChBeamSectionTaperedTimoshenkoAdvancedGeneric::ComputeAverageSectionParamet
     if (abs(this->avg_sec_par->GAzz) > eps) {  // avoid dividing zero
         this->avg_sec_par->phiz = 12.0 * this->avg_sec_par->EIyy / (this->avg_sec_par->GAzz * LL);
     }
+    
+    // update the status of lock, to avoid computing again.
+    compute_ave_sec_par = true;
 }
 
 void ChBeamSectionTaperedTimoshenkoAdvancedGeneric::ComputeLumpedInertiaMatrix(ChMatrixNM<double, 12, 12>& M) {

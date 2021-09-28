@@ -205,37 +205,25 @@ ViperPart::ViperPart(const std::string& name,
                      const ChFrame<>& rel_pos,
                      std::shared_ptr<ChMaterialSurface> mat,
                      bool collide)
-    : m_name(name), m_pos(rel_pos), m_density(200), m_mat(mat), m_collide(collide), m_visualize(true) {}
+    : m_name(name), m_pos(rel_pos), m_mat(mat), m_collide(collide), m_visualize(true) {}
 
 void ViperPart::Construct(ChSystem* system) {
     m_body = std::shared_ptr<ChBodyAuxRef>(system->NewBodyAuxRef());
     m_body->SetNameString(m_name + "_body");
-
-    // Load geometry mesh
-    std::string vis_mesh_file = "robot/viper/obj/" + m_mesh_name + ".obj";
-    auto trimesh = chrono_types::make_shared<geometry::ChTriangleMeshConnected>();
-    trimesh->LoadWavefrontMesh(GetChronoDataFile(vis_mesh_file), false, false);
-    trimesh->Transform(m_mesh_xform.GetPos(), m_mesh_xform.GetA());  // translate/rotate/scale mesh
-    ////trimesh->RepairDuplicateVertexes(1e-9);                    // if meshes are not watertight
-
-    // Calculate and set intertia properties
-    double mmass;
-    ChVector<> mcog;
-    ChMatrix33<> minertia;
-    trimesh->ComputeMassProperties(true, mmass, mcog, minertia);
-
-    ChMatrix33<> principal_inertia_rot;
-    ChVector<> principal_I;
-    ChInertiaUtils::PrincipalInertia(minertia, principal_I, principal_inertia_rot);
-
-    m_body->SetMass(mmass * m_density);
-    m_body->SetInertiaXX(m_density * principal_I);
-    m_body->SetFrame_COG_to_REF(ChFrame<>(mcog, principal_inertia_rot));
+    m_body->SetMass(m_mass);
+    m_body->SetInertiaXX(m_inertia);
+    m_body->SetFrame_COG_to_REF(m_cog);
 
     // Add visualization shape
     if (m_visualize) {
+        std::string vis_mesh_file = "robot/viper/obj/" + m_mesh_name + ".obj";
+        auto trimesh_vis = chrono_types::make_shared<geometry::ChTriangleMeshConnected>();
+        trimesh_vis->LoadWavefrontMesh(GetChronoDataFile(vis_mesh_file), false, false);
+        trimesh_vis->Transform(m_mesh_xform.GetPos(), m_mesh_xform.GetA());  // translate/rotate/scale mesh
+        trimesh_vis->RepairDuplicateVertexes(1e-9);                          // if meshes are not watertight
+
         auto trimesh_shape = chrono_types::make_shared<ChTriangleMeshShape>();
-        trimesh_shape->SetMesh(trimesh);
+        trimesh_shape->SetMesh(trimesh_vis);
         trimesh_shape->SetName(m_mesh_name);
         trimesh_shape->SetStatic(true);
         m_body->AddAsset(trimesh_shape);
@@ -245,16 +233,36 @@ void ViperPart::Construct(ChSystem* system) {
     // Add collision shape
     if (m_collide) {
         std::string col_mesh_file = "robot/viper/col/" + m_mesh_name + ".obj";
-        auto trimesh_c = chrono_types::make_shared<geometry::ChTriangleMeshConnected>();
-        trimesh_c->LoadWavefrontMesh(GetChronoDataFile(col_mesh_file), true, false);
+        auto trimesh_col = chrono_types::make_shared<geometry::ChTriangleMeshConnected>();
+        trimesh_col->LoadWavefrontMesh(GetChronoDataFile(col_mesh_file), false, false);
+        trimesh_col->Transform(m_mesh_xform.GetPos(), m_mesh_xform.GetA());  // translate/rotate/scale mesh
+        trimesh_col->RepairDuplicateVertexes(1e-9);                          // if meshes are not watertight
 
         m_body->GetCollisionModel()->ClearModel();
-        m_body->GetCollisionModel()->AddTriangleMesh(m_mat, trimesh_c, false, false, VNULL, ChMatrix33<>(1), 0.005);
+        m_body->GetCollisionModel()->AddTriangleMesh(m_mat, trimesh_col, false, false, VNULL, ChMatrix33<>(1), 0.005);
         m_body->GetCollisionModel()->BuildModel();
         m_body->SetCollide(m_collide);
     }
 
     system->AddBody(m_body);
+}
+
+void ViperPart::CalcMassProperties(double density) {
+    std::string mesh_filename = "robot/viper/col/" + m_mesh_name + ".obj";
+    auto trimesh_col = chrono_types::make_shared<geometry::ChTriangleMeshConnected>();
+    trimesh_col->LoadWavefrontMesh(GetChronoDataFile(mesh_filename), false, false);
+    trimesh_col->Transform(m_mesh_xform.GetPos(), m_mesh_xform.GetA());  // translate/rotate/scale mesh
+    trimesh_col->RepairDuplicateVertexes(1e-9);                          // if meshes are not watertight
+
+    double vol;
+    ChVector<> cog_pos;
+    ChMatrix33<> cog_rot;
+    ChMatrix33<> inertia;
+    trimesh_col->ComputeMassProperties(true, vol, cog_pos, inertia);
+    ChInertiaUtils::PrincipalInertia(inertia, m_inertia, cog_rot);
+    m_mass = density * vol;
+    m_inertia *= density;
+    m_cog = ChFrame<>(cog_pos, cog_rot);
 }
 
 void ViperPart::Initialize(std::shared_ptr<ChBodyAuxRef> chassis) {
@@ -272,7 +280,7 @@ ViperChassis::ViperChassis(const std::string& name, std::shared_ptr<ChMaterialSu
     : ViperPart(name, ChFrame<>(VNULL, QUNIT), mat, false) {
     m_mesh_name = "viper_chassis";
     m_color = ChColor(1.0f, 1.0f, 1.0f);
-    m_density = 165;
+    CalcMassProperties(165);
 }
 
 void ViperChassis::Initialize(ChSystem* system, const ChFrame<>& pos) {
@@ -302,7 +310,7 @@ ViperWheel::ViperWheel(const std::string& name,
     }
 
     m_color = ChColor(0.4f, 0.7f, 0.4f);
-    m_density = 800;
+    CalcMassProperties(800);
 }
 
 // =============================================================================
@@ -320,7 +328,7 @@ ViperUpperArm::ViperUpperArm(const std::string& name,
     }
 
     m_color = ChColor(0.7f, 0.4f, 0.4f);
-    m_density = 2000;
+    CalcMassProperties(2000);
 }
 
 // =============================================================================
@@ -338,7 +346,7 @@ ViperLowerArm::ViperLowerArm(const std::string& name,
     }
 
     m_color = ChColor(0.7f, 0.4f, 0.4f);
-    m_density = 4500;
+    CalcMassProperties(4500);
 }
 
 // =============================================================================
@@ -356,7 +364,7 @@ ViperUpright::ViperUpright(const std::string& name,
     }
 
     m_color = ChColor(0.7f, 0.7f, 0.7f);
-    m_density = 4500;
+    CalcMassProperties(4500);
 }
 
 // =============================================================================
@@ -388,13 +396,13 @@ void Viper::Create(ViperWheelType wheel_type) {
     double wz = 0.0;
 
     m_wheels[V_LF] = chrono_types::make_shared<ViperWheel>("wheel_LF", ChFrame<>(ChVector<>(+wx, +wy, wz), QUNIT),
-                                                         m_wheel_material, wheel_type);
+                                                           m_wheel_material, wheel_type);
     m_wheels[V_RF] = chrono_types::make_shared<ViperWheel>("wheel_RF", ChFrame<>(ChVector<>(+wx, -wy, wz), QUNIT),
-                                                         m_wheel_material, wheel_type);
+                                                           m_wheel_material, wheel_type);
     m_wheels[V_LB] = chrono_types::make_shared<ViperWheel>("wheel_LB", ChFrame<>(ChVector<>(-wx, +wy, wz), QUNIT),
-                                                         m_wheel_material, wheel_type);
+                                                           m_wheel_material, wheel_type);
     m_wheels[V_RB] = chrono_types::make_shared<ViperWheel>("wheel_RB", ChFrame<>(ChVector<>(-wx, -wy, wz), QUNIT),
-                                                         m_wheel_material, wheel_type);
+                                                           m_wheel_material, wheel_type);
 
     m_wheels[V_LF]->m_mesh_xform = ChFrame<>(VNULL, Q_from_AngZ(CH_C_PI));
     m_wheels[V_LB]->m_mesh_xform = ChFrame<>(VNULL, Q_from_AngZ(CH_C_PI));
@@ -574,8 +582,10 @@ void Viper::Initialize(const ChFrame<>& pos) {
         m_drive_shafts[i]->SetInertia(J);
         m_system->Add(m_drive_shafts[i]);
 
+        // Connect shaft aligned with the wheel's axis of rotation (local wheel Y).
+        // Set connection such that a positive torque applied to the shaft results in forward rover motion.
         auto shaftbody_connection = chrono_types::make_shared<ChShaftsBody>();
-        shaftbody_connection->Initialize(m_drive_shafts[i], m_wheels[i]->GetBody(), ChVector<>(0, 0, 1));
+        shaftbody_connection->Initialize(m_drive_shafts[i], m_wheels[i]->GetBody(), ChVector<>(0, 0, -1));
         m_system->Add(shaftbody_connection);
     }
 }
