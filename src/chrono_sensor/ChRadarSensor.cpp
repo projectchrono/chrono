@@ -27,18 +27,15 @@ CH_SENSOR_API ChRadarSensor::ChRadarSensor(std::shared_ptr<chrono::ChBody> paren
                                            unsigned int w,  // image width (# of rays)
                                            unsigned int h,  // image height (# of rays)
                                            float hfov,
-                                           float max_vertical_angle,
-                                           float min_vertical_angle,
+                                           float vfov,
                                            float max_distance,
-                                           RadarReturnMode return_mode,
                                            float clip_near)
     : m_hFOV(hfov),
-      m_max_vert_angle(max_vertical_angle),
-      m_min_vert_angle(min_vertical_angle),
+      m_vFOV(vfov),
       m_max_distance(max_distance),
       m_clip_near(clip_near),
       ChOptixSensor(parent, updateRate, offsetPose, w, h) {
-    m_pipeline_type = PipelineType::RADAR;
+      m_pipeline_type = PipelineType::RADAR;
 
     SetCollectionWindow(0);
     SetLag(1 / updateRate);

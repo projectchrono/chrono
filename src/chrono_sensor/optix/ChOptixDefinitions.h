@@ -116,11 +116,10 @@ enum class RadarReturnMode {
 
 /// Parameters used to define a radar
 struct RadarParameters {
-    float max_vert_angle;  ///< highest vertical angle visible to the radar
-    float min_vert_angle;  ///< lowest vertical angle visible to the radar
-    float hFOV;            ///< horizontal field of view of the radar
-    float max_distance;    ///< maximum detectable distance of the radar
-    float clip_near;       ///< clipping distance for ignoring radar housing
+    float vFOV;
+    float hFOV;
+    float max_distance;
+    float clip_near;
     float horiz_div_angle;
     float vert_div_angle;
     float3 velocity;      ///< the velocity of the sensor

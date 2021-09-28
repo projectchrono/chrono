@@ -458,8 +458,7 @@ std::shared_ptr<ChRadarSensor> ReadRadarSensorJSON(const std::string& filename,
     unsigned int w = properties["Width"].GetUint();
     unsigned int h = properties["Height"].GetUint();
     float hfov = properties["Horizontal Field of View"].GetFloat();
-    float max_v_angle = properties["Max Vertical Angle"].GetFloat();
-    float min_v_angle = properties["Min Vertical Angle"].GetFloat();
+    float vfov = properties["Vertical Field of View"].GetFloat();
     float max_distance = properties["Max Distance"].GetFloat();
 
     float near_clip = 0.f;
@@ -469,7 +468,7 @@ std::shared_ptr<ChRadarSensor> ReadRadarSensorJSON(const std::string& filename,
     }
 
     auto radar = chrono_types::make_shared<ChRadarSensor>(
-        parent, updateRate, offsetPose, w, h, max_v_angle, min_v_angle, max_distance, near_clip
+        parent, updateRate, offsetPose, w, h, hfov, vfov, max_distance, near_clip
     );
 
     if (properties.HasMember("Collection Window")) {

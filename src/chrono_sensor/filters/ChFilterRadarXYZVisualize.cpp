@@ -9,13 +9,10 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Authors: Eric Brandt, Asher Elmquist
+// Authors: Eric Brandt, Asher Elmquist, Han Wang
 // =============================================================================
 //
 // =============================================================================
-
-#define PROFILE false
-
 #include "chrono_sensor/filters/ChFilterRadarXYZVisualize.h"
 #include "chrono_sensor/ChOptixSensor.h"
 #include "chrono_sensor/utils/CudaMallocHelper.h"
@@ -59,7 +56,7 @@ CH_SENSOR_API void ChFilterRadarXYZVisualize::Apply() {
     if (!m_window && !m_window_disabled) {
         CreateGlfwWindow(Name());
         float hfov = m_radar->GetHFOV();
-        float vfov = abs(m_radar->GetMinVertAngle()) + abs(m_radar->GetMaxVertAngle());
+        float vfov = m_radar->GetVFOV();
         if (m_window) {
             glfwSetWindowSize(m_window.get(), 960, 960 / hfov * vfov);
         }
@@ -85,7 +82,7 @@ CH_SENSOR_API void ChFilterRadarXYZVisualize::Apply() {
         glLoadIdentity();
 
         float hfov = m_radar->GetHFOV();
-        float vfov = abs(m_radar->GetMaxVertAngle()) + abs(m_radar->GetMinVertAngle());
+        float vfov = m_radar->GetVFOV();
         float near = m_radar->GetClipNear();
         float far = m_radar->GetMaxDistance();
         float right = tan(hfov / 2) * near;

@@ -30,7 +30,8 @@ extern "C" __global__ void __raygen__radar() {
     float2 d = (make_float2(idx.x, idx.y) + make_float2(0.5, 0.5)) / make_float2(screen.x, screen.y) * 2.f -
                make_float2(1.f);  //[-1,1]
     float theta = d.x * radar.hFOV / 2.0;
-    float phi = radar.min_vert_angle + (d.y * .5 + .5) * (radar.max_vert_angle - radar.min_vert_angle);
+    float phi = -radar.vFOV / 2 + (d.y * .5 + .5) * (radar.vFOV);
+    printf("%f\n",radar.vFOV);
     float xy_proj = cos(phi);
     float z = sin(phi);
     float y = xy_proj * sin(theta);
@@ -69,7 +70,7 @@ extern "C" __global__ void __raygen__radar() {
     int vIndex = image_index / screen.x;
 
     float azimuth = (hIndex / (float)(screen.x)) * radar.hFOV - radar.hFOV / 2.;
-    float elevation = (vIndex / (float)(screen.y)) * (radar.max_vert_angle - radar.min_vert_angle) + radar.min_vert_angle;
+    float elevation = (vIndex / (float)(screen.y)) * (radar.vFOV) - radar.vFOV / 2;
         
     radar.frame_buffer[8 * image_index] = prd_radar.range;
     radar.frame_buffer[8 * image_index + 1] = azimuth;

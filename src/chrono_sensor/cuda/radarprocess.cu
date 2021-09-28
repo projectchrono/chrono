@@ -38,8 +38,7 @@ __global__ void radar_pointcloud_from_angles_kernel(float* imgIn,
                                                    int w,
                                                    int h,
                                                    float hfov,
-                                                   float max_v_angle,
-                                                   float min_v_angle) {
+                                                   float vfov) {
     int index = blockDim.x * blockIdx.x + threadIdx.x;
     if (index < w * h) {
 //        int hIndex = index % w;
@@ -68,17 +67,16 @@ __global__ void radar_pointcloud_from_angles_kernel(float* imgIn,
 
 
 void cuda_radar_pointcloud_from_angles(void* bufIn,
-    void* bufOut,
-    int width,
-    int height,
-    float hfov,
-    float max_v_angle,
-    float min_v_angle,
-    CUstream& stream){
-const int nThreads = 512;
-int nBlocks = (width * height + nThreads - 1) / nThreads;
-radar_pointcloud_from_angles_kernel<<<nBlocks, nThreads, 0, stream>>>((float*)bufIn, (float*)bufOut, width, height,
-                                       hfov, max_v_angle, min_v_angle);
+                                       void* bufOut,
+                                       int width,
+                                       int height,
+                                       float hfov,
+                                       float vfov,
+                                       CUstream& stream){
+    const int nThreads = 512;
+    int nBlocks = (width * height + nThreads - 1) / nThreads;
+    radar_pointcloud_from_angles_kernel<<<nBlocks, nThreads, 0, stream>>>((float*)bufIn, (float*)bufOut, width, height,
+                                       hfov, vfov);
 }
 
 //void cuda_radar_pointcloud(void* bufIn,
