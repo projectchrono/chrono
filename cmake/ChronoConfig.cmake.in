@@ -7,8 +7,9 @@
 # information on how to link to the Chrono libraries.
 #
 # In the call to find_package(), the following Chrono components can be
-# requested (case insensitive): Cascade, Cosimulation, Irrlicht, Matlab,
-# Multicore, Gpu, PardisoMKL, PardisoProject, Postprocess, Python, Vehicle.  
+# requested (case insensitive): 
+#   Cascade, Cosimulation, Irrlicht, OpenGL, Matlab, Multicore, Gpu,
+#   PardisoMKL, PardisoProject, Postprocess, Python, Vehicle, VehicleCosim.  
 # A component can be requested either as required or optional
 # (see the CMake documentation for find_package).
 # 
@@ -32,6 +33,8 @@
 #       path to the Chrono::Vehicle data directory
 # CHRONO_FSI_DATA_DIR
 #       path to the Chrono::FSI data directory
+# SYNCHRONO_DATA_DIR
+#       path to the Chrono::Synchrono data directory
 #
 # In addition, for each requested component [COMPONENT], the following variable
 # is set to true (ON) or false (OFF):
@@ -39,11 +42,14 @@
 #
 # Other variables:
 # CHRONO_SSE_FOUND
-#       set to true is SSE support is available
+#       set to true if SSE support is available
 #       CHRONO_CXX_FLAGS includes all required flags
 # CHRONO_AVX_FOUND
-#       set to true is AVX support is available
+#       set to true if AVX support is available
 #       CHRONO_CXX_FLAGS includes all required flags
+# CHRONO_MPI_FOUND
+#       set to true if MPI support is available
+#       CHRONO_CXX_FLAGS, CHRONO_LINKER_FLAGS, and CHRONO_LIBRARIES include MPI
 #===============================================================================
 
 if (CHRONO_CONFIG_INCLUDED)
@@ -71,6 +77,8 @@ list(APPEND CHRONO_LIBRARIES "@OPENMP_LIBRARIES@")
 list(APPEND CHRONO_LIB_NAMES "ChronoEngine")
 list(APPEND CHRONO_DLLS "")
 list(APPEND CHRONO_DLL_NAMES "ChronoEngine.dll")
+list(APPEND CHRONO_LIB_NAMES "ChronoModels_robot")
+list(APPEND CHRONO_DLL_NAMES "ChronoModels_robot.dll")
 
 set(CHRONO_DATA_DIR "@CH_DATA_DIR@")
 set(CHRONO_VEHICLE_DATA_DIR "@CH_DATA_DIR@vehicle/")
@@ -79,6 +87,7 @@ set(SYNCHRONO_DATA_DIR "@CH_DATA_DIR@synchrono/")
 
 set(CHRONO_SSE_FOUND "@SSE_FOUND@")
 set(CHRONO_AVX_FOUND "@AVX_FOUND@")
+set(CHRONO_MPI_FOUND "@MPI_CXX_FOUND@")
 
 #-------------------------------------------------------------------------------
 # Local variables specifying which Chrono modules are enabled
@@ -100,6 +109,61 @@ set(Chrono_HAS_gpu @ENABLE_MODULE_GPU@)
 set(Chrono_HAS_sensor @ENABLE_MODULE_SENSOR@)
 set(Chrono_HAS_pardisoproject @ENABLE_MODULE_PARDISO_PROJECT@)
 set(Chrono_HAS_synchrono @ENABLE_MODULE_SYNCHRONO@)
+
+#-------------------------------------------------------------------------------
+# Vehicle cosimulation module
+#-------------------------------------------------------------------------------
+
+if(Chrono_HAS_vehicle AND ${CHRONO_MPI_FOUND})
+   set(Chrono_HAS_vehiclecosim TRUE)
+else()
+   set(Chrono_HAS_vehiclecosim FALSE)
+endif()
+
+set(VehicleCosim_REQUESTED FALSE)
+foreach(COMPONENT ${Chrono_FIND_COMPONENTS})
+    string(TOUPPER ${COMPONENT} COMPONENT_UPPER)
+    if(${COMPONENT_UPPER} MATCHES "VEHICLECOSIM")
+       # VehicleCosim is requested
+       set(VehicleCosim_REQUESTED TRUE)
+       if(NOT Chrono_HAS_vehiclecosim)
+           # VehicleCosim is not available
+           if(Chrono_FIND_REQUIRED_${COMPONENT})
+             # VehicleCosim is a required component
+             message("Chrono was not configured with support for the REQUIRED component ${COMPONENT}")
+             set(Chrono_FOUND OFF)
+             return()
+           else()
+             # VehicleCosim is an optional component
+             message("Chrono was not configured with support for the OPTIONAL component ${COMPONENT}")
+           endif()
+       else()
+           # VehicleCosim is available
+           set(Chrono_FIND_COMPONENTS "${Chrono_FIND_COMPONENTS};Vehicle")
+           if(Chrono_HAS_multicore)
+              set(Chrono_FIND_COMPONENTS "${Chrono_FIND_COMPONENTS};Multicore")
+           endif()
+           if(Chrono_HAS_gpu)
+              set(Chrono_FIND_COMPONENTS "${Chrono_FIND_COMPONENTS};GPU")
+           endif()
+           if(Chrono_HAS_fsi)
+              set(Chrono_FIND_COMPONENTS "${Chrono_FIND_COMPONENTS};FSI")
+           endif()
+           if(Chrono_HAS_pardisomkl)
+              set(Chrono_FIND_COMPONENTS "${Chrono_FIND_COMPONENTS};PardisoMKL")
+           endif()
+           if(Chrono_HAS_mumps)
+              set(Chrono_FIND_COMPONENTS "${Chrono_FIND_COMPONENTS};MUMPS")
+           endif()
+           if(Chrono_HAS_irrlicht)
+              set(Chrono_FIND_COMPONENTS "${Chrono_FIND_COMPONENTS};Irrlicht")
+           endif()
+           if(Chrono_HAS_opengl)
+              set(Chrono_FIND_COMPONENTS "${Chrono_FIND_COMPONENTS};OpenGL")
+           endif()
+       endif()
+    endif()
+endforeach()
 
 #-------------------------------------------------------------------------------
 # Loop over the list of requested components
@@ -184,6 +248,16 @@ foreach(COMPONENT ${Chrono_FIND_COMPONENTS})
       if(${Chrono_HAS_irrlicht})
         list(APPEND CHRONO_LIB_NAMES "ChronoEngine_vehicle_irrlicht")
         list(APPEND CHRONO_DLL_NAMES "ChronoEngine_vehicle_irrlicht.dll")
+      endif()
+
+      if(${VehicleCosim_REQUESTED} AND ${Chrono_HAS_vehiclecosim})
+        set(CHRONO_CXX_FLAGS "${CHRONO_CXX_FLAGS} @MPI_CXX_COMPILE_FLAGS@")
+        list(APPEND CHRONO_LINKER_FLAGS "@MPI_CXX_LINK_FLAGS@")
+        list(APPEND CHRONO_INCLUDE_DIRS "@MPI_CXX_INCLUDE_PATH@")
+        list(APPEND CHRONO_LIBRARIES "@MPI_CXX_LIBRARIES@")
+
+        list(APPEND CHRONO_LIB_NAMES "ChronoEngine_vehicle_cosim")
+        list(APPEND CHRONO_DLL_NAMES "ChronoEngine_vehicle_cosim.dll")
       endif()
 
     elseif(${COMPONENT_UPPER} MATCHES "FSI")
