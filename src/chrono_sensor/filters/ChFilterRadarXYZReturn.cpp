@@ -67,6 +67,46 @@ CH_SENSOR_API void ChFilterRadarXYZReturn::Apply(){
             m_buffer_out->Beam_return_count+=1;
         }
     }
+    printf("prefiltered points: %i\n", m_buffer_out->Beam_return_count);
+
+//    // sort to bins
+//    auto bins = std::vector<std::vector<RadarXYZReturn>>();
+//    for (RadarXYZReturn point : filtered_buf){
+//        while (bins.size() <= point.objectId){
+//            bins.push_back(std::vector<RadarXYZReturn>());
+//        }
+//        bins[point.objectId].push_back(point);
+//    }
+
+//    // down sample each bin to 10 points if necessary
+//    for (std::vector<RadarXYZReturn>& bin : bins){
+//        auto rng = std::default_random_engine();
+//        rng.seed(std::chrono::system_clock::now().time_since_epoch().count());
+//        if ( bin.size() > 10){
+//            std::shuffle(std::begin(bin), std::end(bin), rng);
+//            bin = std::vector<RadarXYZReturn>(bin.begin(), bin.begin() + (int)(bin.size() * 0.01));
+//        }
+//    }
+//
+//    // down sample each bin to 10 points if necessary
+//    for (std::vector<RadarXYZReturn>& bin : bins){
+//        auto rng = std::default_random_engine();
+//        rng.seed(std::chrono::system_clock::now().time_since_epoch().count());
+//        if ( bin.size() > 20){
+//            std::shuffle(std::begin(bin), std::end(bin), rng);
+//            bin = std::vector<RadarXYZReturn>(bin.begin(), bin.begin() + (int)(bin.size() * 0.3));
+//        }
+//    }
+//
+//    // return downsampled points to device buffer
+//    m_buffer_out->Beam_return_count = 0;
+//    for (std::vector<RadarXYZReturn> bin : bins){
+//        for (RadarXYZReturn point : bin){
+//            filtered_buf[m_buffer_out->Beam_return_count] = point;
+//            m_buffer_out->Beam_return_count += 1;
+//        }
+//    }
+//    printf("post filtered points %i\n", m_buffer_out->Beam_return_count);
 
     // transfer pointcloud to device
     cudaMemcpyAsync(m_buffer_out->Buffer.get(), filtered_buf.data(),

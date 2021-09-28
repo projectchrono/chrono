@@ -104,7 +104,6 @@ CH_SENSOR_API void ChFilterRadarProcess::Apply() {
     auto processed_buffer = std::vector<RadarXYZReturn>(m_buffer_out->Width * m_buffer_out->Height);
 
     // cluster each bin 
-    int i = 0;
     for (std::vector<RadarXYZReturn> bin : bins){
         for (RadarXYZReturn point : bin){
             buf[m_buffer_out->Beam_return_count] = point;
