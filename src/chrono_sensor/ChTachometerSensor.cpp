@@ -1,3 +1,23 @@
+// =============================================================================
+// PROJECT CHRONO - http://projectchrono.org
+//
+// Copyright (c) 2019 projectchrono.org
+// All rights reserved.
+//
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
+//
+// =============================================================================
+// Authors: Han Wang
+// =============================================================================
+//
+// Tachometer model is parameterized by :
+// 1. parent: the body the sensor is taking measurements
+// 2. updateRate: frequency of data acquisition
+// 3. axis: Axis of rotatioh to measure (X,Y,Z)
+//
+// =============================================================================
 #include "chrono_sensor/ChTachometerSensor.h"
 #include "chrono_sensor/filters/ChFilterTachometerUpdate.h"
 #include "chrono/physics/ChSystem.h"
