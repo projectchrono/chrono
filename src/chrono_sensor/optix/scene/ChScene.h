@@ -108,6 +108,14 @@ class CH_SENSOR_API ChScene {
     /// Function for getting the background changed variable
     bool GetBackgroundChanged() { return background_changed; }
 
+    /// Allows setting the scene epsilon used for traversal checks
+    /// @param e the epsilon value
+    void SetSceneEpsilon(float e);
+
+    /// Accessor to the scene epsilon value
+    /// @return the scene epsilon
+    float GetSceneEpsilon() { return m_scene_epsilon; }
+
   private:
     std::vector<PointLight> m_pointlights;  //< list of point lights in the scene
     Background m_background;                ///< The background object
@@ -115,6 +123,8 @@ class CH_SENSOR_API ChScene {
 
     bool lights_changed;      ///< for detecting if lights changed
     bool background_changed;  ///< for detecting if background changed
+
+    float m_scene_epsilon;  ///< smallest value used for checking traversal hits
 };
 
 /// @} sensor_scene

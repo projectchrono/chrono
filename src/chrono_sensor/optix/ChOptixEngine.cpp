@@ -98,7 +98,7 @@ void ChOptixEngine::Initialize() {
     // defaults to no lights
     m_params.lights = {};
     m_params.num_lights = 0;
-    m_params.ambient_light_color =  make_float3(0.0f, 0.0f, 0.0f); //make_float3(0.1f, 0.1f, 0.1f);  // default value
+    m_params.ambient_light_color = make_float3(0.0f, 0.0f, 0.0f);  // make_float3(0.1f, 0.1f, 0.1f);  // default value
     m_params.max_depth = m_recursions;
     m_params.scene_epsilon = 1.e-3f;    // TODO: determine a good value for this
     m_params.importance_cutoff = .01f;  /// TODO: determine a good value for this
@@ -377,8 +377,8 @@ void ChOptixEngine::RenderProcess(RenderThread& tself, std::shared_ptr<ChOptixSe
 #if PROFILE
         auto elapsed = std::chrono::high_resolution_clock::now() - start;
         auto milli = std::chrono::duration_cast<std::chrono::milliseconds>(elapsed).count();
-        std::cout << "Sensor = " << sensor->GetName() << ", Process time = " << milli <<"ms"<<std::endl;
-#endif 
+        std::cout << "Sensor = " << sensor->GetName() << ", Process time = " << milli << "ms" << std::endl;
+#endif
         tself.done = true;
         tmp_lock.unlock();  // explicitely release the lock on this render thread
         tself.cv.notify_all();
@@ -456,7 +456,8 @@ void ChOptixEngine::sphereVisualization(std::shared_ptr<ChBody> body,
                                         std::shared_ptr<ChVisualization> visual_asset) {
     ChVector<double> size = {sphere_shape->GetSphereGeometry().rad, sphere_shape->GetSphereGeometry().rad,
                              sphere_shape->GetSphereGeometry().rad};
-    ChFrame<double> asset_frame = ChFrame<double>(visual_asset->Pos + sphere_shape->GetSphereGeometry().center, visual_asset->Rot);
+    ChFrame<double> asset_frame =
+        ChFrame<double>(visual_asset->Pos + sphere_shape->GetSphereGeometry().center, visual_asset->Rot);
 
     unsigned int mat_id;
     if (sphere_shape->material_list.size() == 0) {
@@ -583,9 +584,8 @@ void ChOptixEngine::ConstructScene() {
                     } else if (std::shared_ptr<ChTriangleMeshShape> trimesh_shape =
                                    std::dynamic_pointer_cast<ChTriangleMeshShape>(asset)) {
                         if (trimesh_shape->IsStatic()) {
-                            
                             rigidMeshVisualization(body, trimesh_shape, visual_asset);
-                            
+
                             // added_asset_for_body = true;
                         } else {
                             deformableMeshVisualization(body, trimesh_shape, visual_asset);
@@ -672,12 +672,13 @@ void ChOptixEngine::UpdateCameraTransforms() {
     for (int i = 0; i < m_assignedSensor.size(); i++) {
         auto sensor = m_assignedSensor[i];
 
-        // update radar velocity 
-        if (auto radar = std::dynamic_pointer_cast<ChRadarSensor>(sensor)){
-            ChVector<float> origin(0,0,0);
+        // update radar velocity
+        if (auto radar = std::dynamic_pointer_cast<ChRadarSensor>(sensor)) {
+            ChVector<float> origin(0, 0, 0);
             auto r = radar->GetOffsetPose().GetPos() - origin;
             auto ang_vel = radar->GetAngularVelocity() % r;
-            auto vel_abs = radar->GetOffsetPose().TransformDirectionLocalToParent(ang_vel) + radar->GetTranslationalVelocity();
+            auto vel_abs =
+                radar->GetOffsetPose().TransformDirectionLocalToParent(ang_vel) + radar->GetTranslationalVelocity();
             m_assignedRenderers[i]->m_raygen_record->data.specific.radar.velocity.x = vel_abs.x();
             m_assignedRenderers[i]->m_raygen_record->data.specific.radar.velocity.y = vel_abs.y();
             m_assignedRenderers[i]->m_raygen_record->data.specific.radar.velocity.z = vel_abs.z();
@@ -717,6 +718,9 @@ void ChOptixEngine::UpdateDeformableMeshes() {
 void ChOptixEngine::UpdateSceneDescription(std::shared_ptr<ChScene> scene) {
     if (scene->GetBackgroundChanged()) {
         m_pipeline->UpdateBackground(scene->GetBackground());
+
+        m_params.scene_epsilon = scene->GetSceneEpsilon();
+        cudaMemcpy(reinterpret_cast<void*>(md_params), &m_params, sizeof(ContextParameters), cudaMemcpyHostToDevice);
         scene->ResetBackgroundChanged();
     }
 

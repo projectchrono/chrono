@@ -551,8 +551,8 @@ OptixTraversableHandle ChOptixGeometry::CreateRootStructure() {
     OptixAccelBuildOptions accel_options = {};
     // accel_options.buildFlags = OPTIX_BUILD_FLAG_NONE;
     // accel_options.buildFlags = OPTIX_BUILD_FLAG_ALLOW_UPDATE;
-    // accel_options.buildFlags = OPTIX_BUILD_FLAG_PREFER_FAST_TRACE || OPTIX_BUILD_FLAG_ALLOW_UPDATE;
-    accel_options.buildFlags = OPTIX_BUILD_FLAG_PREFER_FAST_TRACE;  // || OPTIX_BUILD_FLAG_ALLOW_UPDATE;
+    // accel_options.buildFlags = OPTIX_BUILD_FLAG_PREFER_FAST_TRACE | OPTIX_BUILD_FLAG_ALLOW_UPDATE;
+    accel_options.buildFlags = OPTIX_BUILD_FLAG_PREFER_FAST_TRACE;  // | OPTIX_BUILD_FLAG_ALLOW_UPDATE;
     accel_options.operation = OPTIX_BUILD_OPERATION_BUILD;
     accel_options.motionOptions.numKeys = 2;               // default at start
     accel_options.motionOptions.timeBegin = m_start_time;  // default at start
@@ -575,7 +575,8 @@ OptixTraversableHandle ChOptixGeometry::CreateRootStructure() {
                              0.f, 1.f, 0.f, 0.f,  //
                              0.f, 0.f, 1.f, 0.f};
         m_instances[i].traversableHandle = m_motion_handles[i];
-        m_instances[i].flags = OPTIX_INSTANCE_FLAG_DISABLE_TRANSFORM || OPTIX_INSTANCE_FLAG_DISABLE_ANYHIT;
+        m_instances[i].flags = OPTIX_INSTANCE_FLAG_DISABLE_TRANSFORM |
+                               OPTIX_INSTANCE_FLAG_DISABLE_ANYHIT;  // | OPTIX_INSTANCE_FLAG_FLIP_TRIANGLE_FACING;
         // m_instances[i].flags = OPTIX_INSTANCE_FLAG_NONE;
         m_instances[i].instanceId = i;
         m_instances[i].sbtOffset = m_obj_mat_ids[i];
@@ -642,8 +643,8 @@ void ChOptixGeometry::RebuildRootStructure() {
     instance_input.instanceArray.numInstances = m_instances.size();
     OptixAccelBuildOptions accel_options = {};
     // accel_options.buildFlags = OPTIX_BUILD_FLAG_NONE;
-    // accel_options.buildFlags = OPTIX_BUILD_FLAG_PREFER_FAST_TRACE || OPTIX_BUILD_FLAG_ALLOW_UPDATE;
-    accel_options.buildFlags = OPTIX_BUILD_FLAG_PREFER_FAST_TRACE;
+    accel_options.buildFlags = OPTIX_BUILD_FLAG_PREFER_FAST_TRACE | OPTIX_BUILD_FLAG_ALLOW_UPDATE;
+    // accel_options.buildFlags = OPTIX_BUILD_FLAG_PREFER_FAST_TRACE;
     // accel_options.buildFlags = OPTIX_BUILD_FLAG_PREFER_FAST_BUILD;
     // accel_options.buildFlags = OPTIX_BUILD_FLAG_ALLOW_UPDATE;
     // if (max_pos_diff > pos_diff_threshold) {
