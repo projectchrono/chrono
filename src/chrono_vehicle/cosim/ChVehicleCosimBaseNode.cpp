@@ -78,9 +78,8 @@ void ChVehicleCosimBaseNode::Initialize() {
         }
     }
 
-    if (m_verbose) {
-        cout << "[" << m_name << "]"                           //
-             << "  total: " << size                            //
+    if (m_verbose && m_rank == 0) {
+        cout << "Num nodes: " << size                        //
              << "  MBS nodes: " << m_num_mbs_nodes             //
              << "  TERRAIN nodes: " << m_num_terrain_nodes     //
              << "  TIRE nodes: " << m_num_tire_nodes << endl;  //
@@ -141,9 +140,6 @@ void ChVehicleCosimBaseNode::Initialize() {
         // Get MPI rank in sub-communicator
         if (GetNodeType() == NodeType::TERRAIN)
             MPI_Comm_rank(m_sub_communicator, &m_sub_rank);
-
-        cout << "[" << m_name << "]"
-             << "  rank = " << m_rank << "  sub-rank = " << m_sub_rank << endl;
     }
 }
 
@@ -175,6 +171,27 @@ std::string ChVehicleCosimBaseNode::OutputFilename(const std::string& dir,
     delete[] buf;
 
     return filename;
+}
+
+bool ChVehicleCosimBaseNode::IsCosimNode() const {
+    if (m_num_terrain_nodes == 1)
+        return true;
+    if (m_rank == TERRAIN_NODE_RANK)
+        return true;
+    return GetNodeType() != NodeType::TERRAIN;
+}
+
+std::string ChVehicleCosimBaseNode::GetNodeTypeString() const {
+    switch (GetNodeType()) {
+        case NodeType::MBS:
+            return "MBS";
+        case NodeType::TIRE:
+            return "Tire";
+        case NodeType::TERRAIN:
+            return "Terrain";
+        default:
+            return "Unknown";
+    }
 }
 
 }  // end namespace vehicle

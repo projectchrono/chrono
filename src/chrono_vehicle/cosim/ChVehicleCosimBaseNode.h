@@ -94,6 +94,12 @@ class CH_VEHICLE_API ChVehicleCosimBaseNode {
     /// Return the node type.
     virtual NodeType GetNodeType() const = 0;
 
+    /// Return the node type as a string.
+    std::string GetNodeTypeString() const;
+
+    /// Return true if this node is part of the co-simulation infrastructure.
+    bool IsCosimNode() const;
+
     /// Get the terrain MPI intracommunicator.
     /// This intra-communicator is created if more than one node is designated of type TERRAIN.
     /// On a TERRAIN node, the rank within the intra-communicator is accessible through TerrainRank().

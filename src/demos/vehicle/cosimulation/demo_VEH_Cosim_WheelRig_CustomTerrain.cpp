@@ -29,6 +29,7 @@
 #include "chrono_vehicle/ChVehicleModelData.h"
 
 #include "chrono_vehicle/cosim/ChVehicleCosimTerrainNode.h"
+#include "chrono_vehicle/cosim/ChVehicleCosimOtherNode.h"
 #include "chrono_vehicle/cosim/mbs/ChVehicleCosimRigNode.h"
 #include "chrono_vehicle/cosim/tire/ChVehicleCosimTireNodeBypass.h"
 
@@ -140,7 +141,7 @@ void MyTerrain::OnInitialize(unsigned int num_tires) {
     ground->GetCollisionModel()->BuildModel();
 
     // Shared proxy contact material
-        auto mat_proxy = chrono_types::make_shared<ChMaterialSurfaceSMC>();
+    auto mat_proxy = chrono_types::make_shared<ChMaterialSurfaceSMC>();
     mat_proxy->SetFriction(0.9f);
     mat_proxy->SetRestitution(0);
     mat_proxy->SetYoungModulus(2e7f);
@@ -233,9 +234,9 @@ int main(int argc, char** argv) {
     MPI_Barrier(MPI_COMM_WORLD);
 #endif
 
-    if (num_procs != 3) {
+    if (num_procs < 3) {
         if (rank == 0)
-            std::cout << "\n\nSingle wheel cosimulation code must be run on exactly 3 ranks!\n\n" << std::endl;
+            std::cout << "\n\nSingle wheel cosimulation code must be run on at least 3 ranks!\n\n" << std::endl;
         MPI_Abort(MPI_COMM_WORLD, 1);
         return 1;
     }
@@ -268,9 +269,6 @@ int main(int argc, char** argv) {
     ChVehicleCosimBaseNode* node = nullptr;
 
     if (rank == MBS_NODE_RANK) {
-        if (verbose)
-            cout << "[Rig node    ] rank = " << rank << " running on: " << procname << endl;
-
         auto rig_type = ChVehicleCosimDBPRig::Type::IMPOSED_SLIP;
         std::shared_ptr<ChVehicleCosimDBPRig> dbp_rig;
         switch (rig_type) {
@@ -297,16 +295,9 @@ int main(int argc, char** argv) {
         mbs->SetTotalMass(100);
         mbs->SetOutDir(out_dir, suffix);
         mbs->AttachDrawbarPullRig(dbp_rig);
-        if (verbose)
-            cout << "[Rig node    ] output directory: " << mbs->GetOutDirName() << endl;
 
         node = mbs;
-    }
-
-    if (rank == TIRE_NODE_RANK(0)) {
-        if (verbose)
-            cout << "[Tire node   ] rank = " << rank << " running on: " << procname << endl;
-
+    } else if (rank == TIRE_NODE_RANK(0)) {
         auto tire = new ChVehicleCosimTireNodeBypass(0, 37.6, 0.47, 0.25);
         tire->SetVerbose(verbose);
         tire->SetStepSize(step_size);
@@ -314,25 +305,35 @@ int main(int argc, char** argv) {
         tire->SetOutDir(out_dir, suffix);
 
         node = tire;
-    }
-
-    if (rank == TERRAIN_NODE_RANK) {
-        if (verbose)
-            cout << "[Terrain node] rank = " << rank << " running on: " << procname << endl;
-
+    } else if (rank == TERRAIN_NODE_RANK) {
         auto terrain = new MyTerrain(4.0, 1.0);
         terrain->SetVerbose(verbose);
         terrain->SetStepSize(step_size);
         terrain->SetOutDir(out_dir, suffix);
         terrain->EnableRuntimeVisualization(render, render_fps);
-        if (verbose)
-            cout << "[Terrain node] output directory: " << terrain->GetOutDirName() << endl;
 
         node = terrain;
+    } else {
+        node = new ChVehicleCosimOtherNode();
     }
 
     // Initialize systems.
     node->Initialize();
+
+    if (verbose) {
+        if (rank == 0)
+            cout << "---------------------------- " << endl;
+        for (int i = 0; i < num_procs; i++) {
+            if (rank == i) {
+                cout << "rank: " << rank << " running on: " << procname << endl;
+                cout << "   node type:    " << node->GetNodeTypeString() << endl;
+                cout << "   cosim node:   " << (node->IsCosimNode() ? "yes" : "no") << endl;
+                cout << "   terrain_rank: " << node->TerrainRank() << endl;
+                cout << "   output dir:   " << node->GetOutDirName() << endl;
+            }
+            MPI_Barrier(MPI_COMM_WORLD);
+        }
+    }
 
     // Perform co-simulation.
     int output_frame = 0;
@@ -344,15 +345,17 @@ int main(int argc, char** argv) {
             cout << is << " ---------------------------- " << endl;
         MPI_Barrier(MPI_COMM_WORLD);
 
-        node->Synchronize(is, time);
-        node->Advance(step_size);
-        if (verbose)
-            cout << "Node" << rank << " sim time = " << node->GetStepExecutionTime() << "  ["
-                 << node->GetTotalExecutionTime() << "]" << endl;
+        if (node->IsCosimNode()) {
+            node->Synchronize(is, time);
+            node->Advance(step_size);
+            if (verbose)
+                cout << "Node" << rank << " sim time = " << node->GetStepExecutionTime() << "  ["
+                     << node->GetTotalExecutionTime() << "]" << endl;
 
-        if (is % output_steps == 0) {
-            node->OutputData(output_frame);
-            output_frame++;
+            if (is % output_steps == 0) {
+                node->OutputData(output_frame);
+                output_frame++;
+            }
         }
     }
 

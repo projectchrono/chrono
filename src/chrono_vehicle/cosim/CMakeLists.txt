@@ -22,6 +22,7 @@ set(CV_COSIM_FILES
     ChVehicleCosimTireNode.cpp
     ChVehicleCosimTerrainNode.h
     ChVehicleCosimTerrainNode.cpp
+    ChVehicleCosimOtherNode.h
     ChVehicleCosimDBPRig.h
     ChVehicleCosimDBPRig.cpp
 )
@@ -119,12 +120,12 @@ if(ENABLE_MODULE_OPENGL)
   endif()
 endif()
 
-if(ENABLE_MODULE_DISTRIBUTED)
-  set(INCLUDES "${INCLUDES};${CH_DISTRIBUTED_INCLUDES}")
-  list(APPEND LIBRARIES ChronoEngine_distributed)
-  set(CXX_FLAGS "${CXX_FLAGS} ${CH_DISTRIBUTED_CXX_FLAGS}")
-  set(LINKER_FLAGS "${LINKER_FLAGS} ${CH_DISTRIBUTED_LINK_FLAGS}")
-endif()
+#if(ENABLE_MODULE_DISTRIBUTED)
+#  set(INCLUDES "${INCLUDES};${CH_DISTRIBUTED_INCLUDES}")
+#  list(APPEND LIBRARIES ChronoEngine_distributed)
+#  set(CXX_FLAGS "${CXX_FLAGS} ${CH_DISTRIBUTED_CXX_FLAGS}")
+#  set(LINKER_FLAGS "${LINKER_FLAGS} ${CH_DISTRIBUTED_LINK_FLAGS}")
+#endif()
 
 # ------------------------------------------------------------------------------
 # Make some variables visible from parent directory (for use in demo CMakeLists files)
