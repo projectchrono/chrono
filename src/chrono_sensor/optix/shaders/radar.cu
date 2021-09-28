@@ -31,7 +31,6 @@ extern "C" __global__ void __raygen__radar() {
                make_float2(1.f);  //[-1,1]
     float theta = d.x * radar.hFOV / 2.0;
     float phi = -radar.vFOV / 2 + (d.y * .5 + .5) * (radar.vFOV);
-    printf("%f\n",radar.vFOV);
     float xy_proj = cos(phi);
     float z = sin(phi);
     float y = xy_proj * sin(theta);

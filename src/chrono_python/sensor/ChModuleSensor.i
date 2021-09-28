@@ -90,8 +90,10 @@
 #include "chrono_sensor/filters/ChFilterAccess.h"
 #include "chrono_sensor/filters/ChFilter.h"
 #include "chrono_sensor/filters/ChFilterRadarProcess.h"
+#include "chrono_sensor/filters/ChFilterRadarXYZReturn.h"
 #include "chrono_sensor/filters/ChFilterRadarSavePC.h"
 #include "chrono_sensor/filters/ChFilterRadarVisualizeCluster.h"
+#include "chrono_sensor/filters/ChFilterRadarXYZVisualize.h"
 
 
 using namespace chrono;
@@ -203,7 +205,7 @@ using namespace chrono::sensor;
 %shared_ptr(chrono::sensor::ChFilterAccess< chrono::sensor::LidarBufferT< std::shared_ptr< chrono::sensor::PixelXYZI [] > >,std::shared_ptr< chrono::sensor::LidarBufferT< std::shared_ptr< chrono::sensor::PixelXYZI [] > > > > )
 %shared_ptr(chrono::sensor::ChFilterAccess< chrono::sensor::LidarBufferT< std::shared_ptr< chrono::sensor::PixelDI [] > >,std::shared_ptr< chrono::sensor::LidarBufferT< std::shared_ptr< chrono::sensor::PixelDI [] > > > > )
 %shared_ptr(chrono::sensor::ChFilterAccess< chrono::sensor::RadarBufferT< std::shared_ptr< chrono::sensor::RadarReturn [] > >,std::shared_ptr< chrono::sensor::RadarBufferT< std::shared_ptr< chrono::sensor::RadarReturn[] > > > > )
-%shared_ptr(chrono::sensor::ChFilterAccess< chrono::sensor::RadarBufferT< std::shared_ptr< chrono::sensor::RadarXYZReturn [] > >,std::shared_ptr< chrono::sensor::RadarBufferT< std::shared_ptr< chrono::sensor::XYZReturn[] > > > > )
+%shared_ptr( chrono::sensor::ChFilterAccess<chrono::sensor::RadarBufferT<std::shared_ptr<chrono::sensor::RadarXYZReturn[]>>, std::shared_ptr<chrono::sensor::RadarBufferT<std::shared_ptr<chrono::sensor::RadarXYZReturn[]>>>>)
 %shared_ptr(chrono::sensor::ChFilterAccess< chrono::sensor::SensorBufferT< std::shared_ptr< char [] > >,std::shared_ptr< chrono::sensor::SensorBufferT< std::shared_ptr< char [] > > > > )
 %shared_ptr(chrono::sensor::ChFilterAccess< chrono::sensor::SensorBufferT< std::shared_ptr< chrono::sensor::PixelRGBA8 [] > >,std::shared_ptr< chrono::sensor::SensorBufferT< std::shared_ptr< chrono::sensor::PixelRGBA8 [] > > > > )
 %shared_ptr(chrono::sensor::ChFilterAccess< chrono::sensor::SensorBufferT< std::shared_ptr< chrono::sensor::GPSData [] > >,std::shared_ptr< chrono::sensor::SensorBufferT< std::shared_ptr< chrono::sensor::GPSData [] > > > > )
@@ -224,6 +226,8 @@ using namespace chrono::sensor;
 %shared_ptr(chrono::sensor::ChFilterGrayscale)
 %shared_ptr(chrono::sensor::ChFilterGPSUpdate)
 %shared_ptr(chrono::sensor::ChFilterRadarProcess)
+%shared_ptr(chrono::sensor::ChFilterRadarXYZReturn)
+%shared_ptr(chrono::sensor::ChFilterRadarXYZVisualize)
 %shared_ptr(chrono::sensor::ChFilterRadarVisualizeCluster)
 %shared_ptr(chrono::sensor::ChFilterRadarSavePC)
 
@@ -300,6 +304,8 @@ using namespace chrono::sensor;
 %include "chrono_sensor/filters/ChFilterRadarProcess.h"
 %include "chrono_sensor/filters/ChFilterRadarSavePC.h"
 %include "chrono_sensor/filters/ChFilterRadarVisualizeCluster.h"
+%include "chrono_sensor/filters/ChFilterRadarXYZReturn.h"
+%include "chrono_sensor/filters/ChFilterRadarXYZVisualize.h"
 
 %include "chrono_sensor/optix/scene/ChScene.h"
 %include "chrono_sensor/optix/ChOptixDefinitions.h"
