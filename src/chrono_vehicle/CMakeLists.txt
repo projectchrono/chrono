@@ -911,13 +911,6 @@ list(APPEND LIBRARIES ChronoEngine_vehicle)
 list(APPEND LIBRARIES ChronoEngine_irrlicht) 
 include_directories(${CH_IRRLICHTINC})
 
-if(ENABLE_IRRKLANG)
-    include_directories(${CH_IRRKLANGINC})
-    list(APPEND LIBRARIES ${CH_IRRKLANGLIB})
-endif()
-
-message(STATUS "Add ChronoEngine_vehicle_irrlicht library")
-
 add_library(ChronoEngine_vehicle_irrlicht SHARED
     ${CVIRR_DRIVER_FILES}
     ${CVIRR_UTILS_FILES}
@@ -926,6 +919,12 @@ add_library(ChronoEngine_vehicle_irrlicht SHARED
     ${CVIRR_TV_TEST_RIG_FILES}
     ${CVIRR_TV_UTILS_FILES}
 )
+
+if(ENABLE_IRRKLANG)
+    target_include_directories(ChronoEngine_vehicle_irrlicht PUBLIC ${CH_IRRKLANGINC})
+    list(APPEND LIBRARIES ${CH_IRRKLANGLIB})
+    set(CH_IRRLICHTINC ${CH_IRRLICHTINC} ${CH_IRRKLANGINC} PARENT_SCOPE)
+endif()
 
 set_target_properties(ChronoEngine_vehicle_irrlicht PROPERTIES
                       COMPILE_FLAGS "${CXX_FLAGS}"
