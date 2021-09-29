@@ -595,11 +595,13 @@ OptixTraversableHandle ChOptixGeometry::CreateRootStructure() {
                                       nullptr,  // emitted property list
                                       0         // num emitted properties
                                       ));
+                                      
     return m_root;
 }
 
 // rebuilding the structure without creating anything new
 void ChOptixGeometry::RebuildRootStructure() {
+    
     // std::chrono::high_resolution_clock::time_point t0 = std::chrono::high_resolution_clock::now();
     // double max_pos_diff = 0;
     // double pos_diff_threshold = 1.0;
@@ -643,7 +645,7 @@ void ChOptixGeometry::RebuildRootStructure() {
     instance_input.instanceArray.numInstances = m_instances.size();
     OptixAccelBuildOptions accel_options = {};
     // accel_options.buildFlags = OPTIX_BUILD_FLAG_NONE;
-    accel_options.buildFlags = OPTIX_BUILD_FLAG_PREFER_FAST_TRACE | OPTIX_BUILD_FLAG_ALLOW_UPDATE;
+    accel_options.buildFlags = OPTIX_BUILD_FLAG_PREFER_FAST_TRACE;// | OPTIX_BUILD_FLAG_ALLOW_UPDATE;
     // accel_options.buildFlags = OPTIX_BUILD_FLAG_PREFER_FAST_TRACE;
     // accel_options.buildFlags = OPTIX_BUILD_FLAG_PREFER_FAST_BUILD;
     // accel_options.buildFlags = OPTIX_BUILD_FLAG_ALLOW_UPDATE;
