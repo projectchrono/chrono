@@ -37,7 +37,6 @@ class CH_SENSOR_API ChRadarSensor : public ChOptixSensor {
     /// (sensor housing)
     /// @param hfov Horizontal field of view of the lidar
     /// @param vfov vertical angle of the lidar
-
   public:
     ChRadarSensor(std::shared_ptr<chrono::ChBody> parent,
                   const float updateRate,
