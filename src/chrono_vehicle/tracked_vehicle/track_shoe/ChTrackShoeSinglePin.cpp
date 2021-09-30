@@ -93,7 +93,7 @@ void ChTrackShoeSinglePin::Connect(std::shared_ptr<ChTrackShoe> next,
 
     ChVector<> loc = m_shoe->TransformPointLocalToParent(ChVector<>(sign * GetPitch() / 2, 0, 0));
 
-    if (m_index == 0 && !GetBushingData()) {
+    if (m_index == 0 && !track->GetBushingData()) {
         // Create and initialize a point-line joint (sliding line along X)
         auto rot = m_shoe->GetRot() * Q_from_AngZ(CH_C_PI_2);
         auto pointline =
@@ -104,9 +104,9 @@ void ChTrackShoeSinglePin::Connect(std::shared_ptr<ChTrackShoe> next,
     } else {
         // Create and initialize the revolute joint (rotation axis along Z)
         auto rot = m_shoe->GetRot() * Q_from_AngX(CH_C_PI_2);
-        auto revolute =
-            chrono_types::make_shared<ChVehicleJoint>(ChVehicleJoint::Type::REVOLUTE, m_name + "_revolute", m_shoe,
-                                                      next->GetShoeBody(), ChCoordsys<>(loc, rot), GetBushingData());
+        auto revolute = chrono_types::make_shared<ChVehicleJoint>(ChVehicleJoint::Type::REVOLUTE, m_name + "_revolute",
+                                                                  m_shoe, next->GetShoeBody(), ChCoordsys<>(loc, rot),
+                                                                  track->GetBushingData());
         chassis->AddJoint(revolute);
         m_connection_joint = revolute;
     }

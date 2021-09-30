@@ -40,6 +40,7 @@ class CH_VEHICLE_API ChTrackAssemblySegmented : public ChTrackAssembly {
     virtual ~ChTrackAssemblySegmented() {}
 
     std::shared_ptr<ChLinkRotSpringCB::TorqueFunctor> GetTorqueFunctor() const { return m_torque_funct; }
+    std::shared_ptr<ChVehicleBushingData> GetBushingData() const { return m_bushing_data; }
 
   protected:
     ChTrackAssemblySegmented(const std::string& name,  ///< [in] name of the subsystem
@@ -47,6 +48,7 @@ class CH_VEHICLE_API ChTrackAssemblySegmented : public ChTrackAssembly {
     );
 
     std::shared_ptr<ChLinkRotSpringCB::TorqueFunctor> m_torque_funct;  ///< torque for track bending stiffness
+    std::shared_ptr<ChVehicleBushingData> m_bushing_data;              ///< track pin bushings
 };
 
 /// @} vehicle_tracked

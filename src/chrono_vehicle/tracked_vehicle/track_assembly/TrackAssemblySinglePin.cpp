@@ -200,6 +200,10 @@ void TrackAssemblySinglePin::Create(const rapidjson::Document& d) {
             double torsion_c = d["Track Shoes"]["RSDA Data"]["Damping Rotational"].GetDouble();
             m_torque_funct = chrono_types::make_shared<LinearSpringDamperTorque>(torsion_k, torsion_c);
         }
+
+        if (d["Track Shoes"].HasMember("Bushing Data")) {
+            m_bushing_data = ReadBushingDataJSON(d["Bushing Data"]);
+        }
     }
 }
 

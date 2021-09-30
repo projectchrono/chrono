@@ -30,8 +30,7 @@ namespace vehicle {
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-TrackShoeSinglePin::TrackShoeSinglePin(const std::string& filename)
-    : ChTrackShoeSinglePin(""), m_bushing_data(nullptr) {
+TrackShoeSinglePin::TrackShoeSinglePin(const std::string& filename) : ChTrackShoeSinglePin("") {
     Document d;
     ReadFileJSON(filename, d);
     if (d.IsNull())
@@ -42,8 +41,7 @@ TrackShoeSinglePin::TrackShoeSinglePin(const std::string& filename)
     GetLog() << "Loaded JSON: " << filename.c_str() << "\n";
 }
 
-TrackShoeSinglePin::TrackShoeSinglePin(const rapidjson::Document& d)
-    : ChTrackShoeSinglePin(""), m_bushing_data(nullptr) {
+TrackShoeSinglePin::TrackShoeSinglePin(const rapidjson::Document& d) : ChTrackShoeSinglePin("") {
     Create(d);
 }
 
@@ -61,16 +59,11 @@ void TrackShoeSinglePin::Create(const rapidjson::Document& d) {
     // Read location of guide pin center (for detracking control)
     m_pin_center = ReadVectorJSON(d["Guide Pin Center"]);
 
-    // Read bushing data (if present)
-    if (d.HasMember("Bushing Data")) {
-        m_bushing_data = ReadBushingDataJSON(d["Bushing Data"]);
-    }
-
     // Read contact data
     assert(d.HasMember("Contact"));
     assert(d["Contact"].HasMember("Cylinder Material"));
     assert(d["Contact"].HasMember("Shoe Materials"));
-    assert(d["Contact"].HasMember("Cylinder Shape"));    
+    assert(d["Contact"].HasMember("Cylinder Shape"));
     assert(d["Contact"].HasMember("Shoe Shapes"));
     assert(d["Contact"]["Shoe Materials"].IsArray());
     assert(d["Contact"]["Shoe Shapes"].IsArray());
