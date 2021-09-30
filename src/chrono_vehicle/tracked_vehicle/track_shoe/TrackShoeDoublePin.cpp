@@ -30,7 +30,8 @@ namespace vehicle {
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-TrackShoeDoublePin::TrackShoeDoublePin(const std::string& filename) : ChTrackShoeDoublePin("") {
+TrackShoeDoublePin::TrackShoeDoublePin(const std::string& filename)
+    : ChTrackShoeDoublePin(""), m_bushing_data(nullptr) {
     Document d; ReadFileJSON(filename, d);
     if (d.IsNull())
         return;
@@ -40,7 +41,8 @@ TrackShoeDoublePin::TrackShoeDoublePin(const std::string& filename) : ChTrackSho
     GetLog() << "Loaded JSON: " << filename.c_str() << "\n";
 }
 
-TrackShoeDoublePin::TrackShoeDoublePin(const rapidjson::Document& d) : ChTrackShoeDoublePin("") {
+TrackShoeDoublePin::TrackShoeDoublePin(const rapidjson::Document& d)
+    : ChTrackShoeDoublePin(""), m_bushing_data(nullptr) {
     Create(d);
 }
 
@@ -67,6 +69,11 @@ void TrackShoeDoublePin::Create(const rapidjson::Document& d) {
     m_connector_width = d["Connector"]["Width"].GetDouble();
     m_connector_mass = d["Connector"]["Mass"].GetDouble();
     m_connector_inertia = ReadVectorJSON(d["Connector"]["Inertia"]);
+
+    // Read bushing data (if present)
+    if (d.HasMember("Bushing Data")) {
+        m_bushing_data = ReadBushingDataJSON(d["Bushing Data"]);
+    }
 
     // Read contact geometry data
     assert(d.HasMember("Contact"));

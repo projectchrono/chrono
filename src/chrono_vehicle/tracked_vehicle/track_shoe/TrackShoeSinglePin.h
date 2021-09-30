@@ -61,6 +61,9 @@ class CH_VEHICLE_API TrackShoeSinglePin : public ChTrackShoeSinglePin {
     /// Return the location of the guiding pin center, expressed in the shoe reference frame.
     virtual ChVector<> GetLateralContactPoint() const override { return m_pin_center; }
 
+    /// Return stiffness and damping data for the shoe bushing.
+    virtual std::shared_ptr<ChVehicleBushingData> GetBushingData() const override { return m_bushing_data; }
+
   private:
     virtual void Create(const rapidjson::Document& d) override;
 
@@ -80,6 +83,8 @@ class CH_VEHICLE_API TrackShoeSinglePin : public ChTrackShoeSinglePin {
 
     std::vector<MaterialInfo> m_shoe_mat_info;
     MaterialInfo m_cyl_mat_info;
+
+    std::shared_ptr<ChVehicleBushingData> m_bushing_data;
 };
 
 /// @} vehicle_tracked_shoe

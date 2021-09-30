@@ -30,8 +30,10 @@ namespace vehicle {
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-TrackShoeSinglePin::TrackShoeSinglePin(const std::string& filename) : ChTrackShoeSinglePin("") {
-    Document d; ReadFileJSON(filename, d);
+TrackShoeSinglePin::TrackShoeSinglePin(const std::string& filename)
+    : ChTrackShoeSinglePin(""), m_bushing_data(nullptr) {
+    Document d;
+    ReadFileJSON(filename, d);
     if (d.IsNull())
         return;
 
@@ -40,7 +42,8 @@ TrackShoeSinglePin::TrackShoeSinglePin(const std::string& filename) : ChTrackSho
     GetLog() << "Loaded JSON: " << filename.c_str() << "\n";
 }
 
-TrackShoeSinglePin::TrackShoeSinglePin(const rapidjson::Document& d) : ChTrackShoeSinglePin("") {
+TrackShoeSinglePin::TrackShoeSinglePin(const rapidjson::Document& d)
+    : ChTrackShoeSinglePin(""), m_bushing_data(nullptr) {
     Create(d);
 }
 
@@ -49,7 +52,6 @@ void TrackShoeSinglePin::Create(const rapidjson::Document& d) {
     ChPart::Create(d);
 
     // Read shoe body geometry and mass properties
-
     assert(d.HasMember("Shoe"));
     m_shoe_height = d["Shoe"]["Height"].GetDouble();
     m_shoe_pitch = d["Shoe"]["Pitch"].GetDouble();
@@ -57,11 +59,14 @@ void TrackShoeSinglePin::Create(const rapidjson::Document& d) {
     m_shoe_inertia = ReadVectorJSON(d["Shoe"]["Inertia"]);
 
     // Read location of guide pin center (for detracking control)
-
     m_pin_center = ReadVectorJSON(d["Guide Pin Center"]);
 
-    // Read contact data
+    // Read bushing data (if present)
+    if (d.HasMember("Bushing Data")) {
+        m_bushing_data = ReadBushingDataJSON(d["Bushing Data"]);
+    }
 
+    // Read contact data
     assert(d.HasMember("Contact"));
     assert(d["Contact"].HasMember("Cylinder Material"));
     assert(d["Contact"].HasMember("Shoe Materials"));
@@ -71,7 +76,6 @@ void TrackShoeSinglePin::Create(const rapidjson::Document& d) {
     assert(d["Contact"]["Shoe Shapes"].IsArray());
 
     // Read contact material information (defer creating the materials until CreateContactMaterials)
-
     m_cyl_mat_info = ReadMaterialInfoJSON(d["Contact"]["Cylinder Material"]);
 
     int num_mats = d["Contact"]["Shoe Materials"].Size();
@@ -81,7 +85,6 @@ void TrackShoeSinglePin::Create(const rapidjson::Document& d) {
     }
 
     // Read geometric collison data
-
     m_cyl_radius = d["Contact"]["Cylinder Shape"]["Radius"].GetDouble();
     m_front_cyl_loc = d["Contact"]["Cylinder Shape"]["Front Offset"].GetDouble();
     m_rear_cyl_loc = d["Contact"]["Cylinder Shape"]["Rear Offset"].GetDouble();
@@ -124,7 +127,6 @@ void TrackShoeSinglePin::Create(const rapidjson::Document& d) {
     m_geometry.m_has_collision = true;
 
     // Read visualization data
-
     if (d.HasMember("Visualization")) {
         if (d["Visualization"].HasMember("Mesh")) {
             m_geometry.m_vis_mesh_file = d["Visualization"]["Mesh"].GetString();
