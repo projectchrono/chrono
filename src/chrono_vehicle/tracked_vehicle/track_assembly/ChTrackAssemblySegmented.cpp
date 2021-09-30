@@ -25,7 +25,7 @@ namespace chrono {
 namespace vehicle {
 
 ChTrackAssemblySegmented::ChTrackAssemblySegmented(const std::string& name, VehicleSide side)
-    : ChTrackAssembly(name, side), m_connection_type(ConnectionType::IDEAL_JOINT) {}
+    : ChTrackAssembly(name, side), m_torque_funct(nullptr) {}
 
 }  // end namespace vehicle
 }  // end namespace chrono

@@ -197,9 +197,6 @@ void ChTrackShoeDoublePin::Connect(std::shared_ptr<ChTrackShoe> next,
     ChSystem* system = m_shoe->GetSystem();
     double sign = ccw ? +1 : -1;
 
-    bool add_RSDA = (track->GetConnectionType() == ChTrackAssemblySegmented::ConnectionType::RSDA_JOINT);
-    assert(!add_RSDA || track->GetTorqueFunctor());
-
     // Create and initialize the revolute joints between shoe body and connector bodies.
     ChVector<> loc_L =
         m_shoe->TransformPointLocalToParent(ChVector<>(sign * GetShoeLength() / 2, +GetShoeWidth() / 2, 0));
@@ -216,7 +213,7 @@ void ChTrackShoeDoublePin::Connect(std::shared_ptr<ChTrackShoe> next,
     chassis->AddJoint(m_revolute_R);
 
     // Optionally, include rotational spring-dampers to model track bending stiffness
-    if (add_RSDA) {
+    if (track->GetTorqueFunctor()) {
         m_rsda_L = chrono_types::make_shared<ChLinkRotSpringCB>();
         m_rsda_L->SetNameString(m_name + "_rsda_rev_L");
         m_rsda_L->Initialize(m_shoe, m_connector_L, false, ChCoordsys<>(loc_L, m_shoe->GetRot()),
@@ -268,7 +265,7 @@ void ChTrackShoeDoublePin::Connect(std::shared_ptr<ChTrackShoe> next,
     }
 
     // Optionally, include rotational spring-dampers to model track bending stiffness
-    if (add_RSDA) {
+    if (track->GetTorqueFunctor()) {
         m_connection_rsda_L = chrono_types::make_shared<ChLinkRotSpringCB>();
         m_connection_rsda_L->SetNameString(m_name + "_rsda_sph_L");
         m_connection_rsda_L->Initialize(next->GetShoeBody(), m_connector_L, false,

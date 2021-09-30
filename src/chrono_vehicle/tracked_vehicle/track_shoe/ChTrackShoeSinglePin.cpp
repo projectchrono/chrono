@@ -91,9 +91,6 @@ void ChTrackShoeSinglePin::Connect(std::shared_ptr<ChTrackShoe> next,
     ChSystem* system = m_shoe->GetSystem();
     double sign = ccw ? +1 : -1;
 
-    bool add_RSDA = (track->GetConnectionType() == ChTrackAssemblySegmented::ConnectionType::RSDA_JOINT);
-    assert(!add_RSDA || track->GetTorqueFunctor());
-
     ChVector<> loc = m_shoe->TransformPointLocalToParent(ChVector<>(sign * GetPitch() / 2, 0, 0));
 
     if (m_index == 0 && !GetBushingData()) {
@@ -115,7 +112,7 @@ void ChTrackShoeSinglePin::Connect(std::shared_ptr<ChTrackShoe> next,
     }
 
     // Optionally, include rotational spring-damper to model track bending stiffness
-    if (add_RSDA) {
+    if (track->GetTorqueFunctor()) {
         m_connection_rsda = chrono_types::make_shared<ChLinkRotSpringCB>();
         m_connection_rsda->SetNameString(m_name + "_rsda");
         m_connection_rsda->Initialize(m_shoe, next->GetShoeBody(), false, ChCoordsys<>(loc, m_shoe->GetRot()),
