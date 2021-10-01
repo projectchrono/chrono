@@ -34,26 +34,32 @@ namespace vehicle {
 /// @{
 
 /// Base class for segmented track assemblies.
-/// Track shoes in such an assembly are modeled with one or more rigid bodies connected through joints and/or bushings.
+/// Track shoes in such an assembly are modeled with one or more rigid bodies connected through joints or bushings.
 class CH_VEHICLE_API ChTrackAssemblySegmented : public ChTrackAssembly {
   public:
-    enum class ConnectionType {
-        IDEAL_JOINT,  ///< ideal (kinematic) joints
-        RSDA_JOINT    ///< joints with torsional stiffness
-    };
-
     virtual ~ChTrackAssemblySegmented() {}
 
-    ConnectionType GetConnectionType() const { return m_connection_type; }
     std::shared_ptr<ChLinkRotSpringCB::TorqueFunctor> GetTorqueFunctor() const { return m_torque_funct; }
+    std::shared_ptr<ChVehicleBushingData> GetBushingData() const { return m_bushing_data; }
 
   protected:
+    /// Default torque functor for implementing track bending stiffness.
+    class CH_VEHICLE_API TrackBendingFunctor : public ChLinkRotSpringCB::TorqueFunctor {
+      public:
+        TrackBendingFunctor(double k, double c, double t = 0) : m_k(k), m_c(c), m_t(t) {}
+        virtual double operator()(double time, double angle, double vel, ChLinkRotSpringCB* link) override;
+      private:
+        double m_k;
+        double m_c;
+        double m_t;
+    };
+
     ChTrackAssemblySegmented(const std::string& name,  ///< [in] name of the subsystem
                              VehicleSide side          ///< [in] assembly on left/right vehicle side
     );
 
-    ConnectionType m_connection_type;                                  ///< track shoe connection type
-    std::shared_ptr<ChLinkRotSpringCB::TorqueFunctor> m_torque_funct;  ///< torque for RSDA_JOINT connection type
+    std::shared_ptr<ChLinkRotSpringCB::TorqueFunctor> m_torque_funct;  ///< torque for track bending stiffness
+    std::shared_ptr<ChVehicleBushingData> m_bushing_data;              ///< track pin bushings
 };
 
 /// @} vehicle_tracked

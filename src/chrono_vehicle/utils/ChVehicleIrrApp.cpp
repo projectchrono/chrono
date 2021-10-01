@@ -272,14 +272,15 @@ void ChVehicleIrrApp::RenderGrid(const ChVector<>& loc, int num_divs, double del
                                    irr::video::SColor(255, 255, 200, 0), true);
 }
 
-// Render a reference frame (aligned with the world frame) at the specified location
-void ChVehicleIrrApp::RenderFrame(const ChVector<>& loc, double axis_length) {
-    irrlicht::tools::drawSegment(GetVideoDriver(), loc, loc + ChVector<>(axis_length, 0, 0),
-                                      irr::video::SColor(255, 255, 0, 0));
-    irrlicht::tools::drawSegment(GetVideoDriver(), loc, loc + ChVector<>(0, axis_length, 0),
-                                      irr::video::SColor(255, 0, 255, 0));
-    irrlicht::tools::drawSegment(GetVideoDriver(), loc, loc + ChVector<>(0, 0, axis_length),
-                                      irr::video::SColor(255, 0, 0, 255));
+// Render the specified reference frame
+void ChVehicleIrrApp::RenderFrame(const ChFrame<>& frame, double axis_length) {
+    const auto& loc = frame.GetPos();
+    const auto& u = frame.GetA().Get_A_Xaxis();
+    const auto& v = frame.GetA().Get_A_Yaxis();
+    const auto& w = frame.GetA().Get_A_Zaxis();
+    irrlicht::tools::drawSegment(GetVideoDriver(), loc, loc + u * axis_length, irr::video::SColor(255, 255, 0, 0));
+    irrlicht::tools::drawSegment(GetVideoDriver(), loc, loc + v * axis_length, irr::video::SColor(255, 0, 255, 0));
+    irrlicht::tools::drawSegment(GetVideoDriver(), loc, loc + w * axis_length, irr::video::SColor(255, 0, 0, 255));
 }
 
 // Render a linear gauge in the HUD.
