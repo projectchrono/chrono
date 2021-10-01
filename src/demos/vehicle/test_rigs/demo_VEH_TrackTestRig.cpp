@@ -98,7 +98,7 @@ int main(int argc, char* argv[]) {
         VehicleSide side = LEFT;
         TrackShoeType type = TrackShoeType::SINGLE_PIN;
         BrakeType brake_type = BrakeType::SIMPLE;
-        bool add_track_RSDA = false;
+        bool add_track_RSDA = true;
         std::shared_ptr<ChTrackAssembly> track_assembly;
         switch (type) {
             case TrackShoeType::SINGLE_PIN: {
@@ -138,6 +138,7 @@ int main(int argc, char* argv[]) {
     app.SetChaseCameraState(utils::ChChaseCamera::Free);
     app.SetChaseCameraAngle(-CH_C_PI_2);
     app.SetChaseCameraMultipliers(1e-4, 10);
+    ////app.RenderTrackShoeFrames(true, 0.4);
 
     // -----------------------------------
     // Create and attach the driver system

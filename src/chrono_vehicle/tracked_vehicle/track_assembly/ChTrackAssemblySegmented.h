@@ -43,6 +43,17 @@ class CH_VEHICLE_API ChTrackAssemblySegmented : public ChTrackAssembly {
     std::shared_ptr<ChVehicleBushingData> GetBushingData() const { return m_bushing_data; }
 
   protected:
+    /// Default torque functor for implementing track bending stiffness.
+    class CH_VEHICLE_API TrackBendingFunctor : public ChLinkRotSpringCB::TorqueFunctor {
+      public:
+        TrackBendingFunctor(double k, double c, double t = 0) : m_k(k), m_c(c), m_t(t) {}
+        virtual double operator()(double time, double angle, double vel, ChLinkRotSpringCB* link) override;
+      private:
+        double m_k;
+        double m_c;
+        double m_t;
+    };
+
     ChTrackAssemblySegmented(const std::string& name,  ///< [in] name of the subsystem
                              VehicleSide side          ///< [in] assembly on left/right vehicle side
     );

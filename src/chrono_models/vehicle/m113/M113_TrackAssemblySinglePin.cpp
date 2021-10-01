@@ -93,7 +93,7 @@ M113_TrackAssemblySinglePin::M113_TrackAssemblySinglePin(VehicleSide side, Brake
     if (add_RSDA) {
         double k = 1000;
         double c = 10;
-        m_torque_funct = chrono_types::make_shared<LinearSpringDamperTorque>(k, c);
+        m_torque_funct = chrono_types::make_shared<ChTrackAssemblySegmented::TrackBendingFunctor>(k, c);
     }
 }
 
