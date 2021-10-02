@@ -123,7 +123,7 @@ class ParticleGenerator {
             auto cubeMap = chrono_types::make_shared<ChTexture>();
             cubeMap->SetTextureFilename(GetChronoDataFile("textures/concrete.jpg"));
             auto rockMap = chrono_types::make_shared<ChTexture>();
-            rockMap->SetTextureFilename(GetChronoDataFile("rock.jpg"));
+            rockMap->SetTextureFilename(GetChronoDataFile("textures/rock.jpg"));
 
             // I should really check these
             ChCollisionModel::SetDefaultSuggestedEnvelope(0.003);
