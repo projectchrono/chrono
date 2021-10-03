@@ -20,7 +20,7 @@
 #include "chrono/solver/ChIterativeSolverLS.h"
 
 #include "chrono/fea/ChElementSpring.h"
-#include "chrono/fea/ChElementShellANCF.h"
+#include "chrono/fea/ChElementShellANCF_3423.h"
 #include "chrono/fea/ChElementBrick.h"
 #include "chrono/fea/ChElementBar.h"
 #include "chrono/fea/ChElementTetra_4.h"
@@ -476,10 +476,10 @@ void test_4() {
 int main(int argc, char* argv[]) {
     GetLog() << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
 
-    //test_1();
-    //test_2();
+    // test_1();
+    // test_2();
     test_3();
-    //test_4();
+    // test_4();
 
     return 0;
 }

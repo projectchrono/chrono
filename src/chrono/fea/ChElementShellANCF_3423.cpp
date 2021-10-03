@@ -22,7 +22,7 @@
 
 #include <cmath>
 
-#include "chrono/fea/ChElementShellANCF.h"
+#include "chrono/fea/ChElementShellANCF_3423.h"
 #include "chrono/core/ChException.h"
 #include "chrono/core/ChQuadrature.h"
 #include "chrono/physics/ChSystem.h"
@@ -33,14 +33,14 @@ namespace fea {
 // ------------------------------------------------------------------------------
 // Static variables
 // ------------------------------------------------------------------------------
-const double ChElementShellANCF::m_toleranceEAS = 1e-5;
-const int ChElementShellANCF::m_maxIterationsEAS = 100;
+const double ChElementShellANCF_3423::m_toleranceEAS = 1e-5;
+const int ChElementShellANCF_3423::m_maxIterationsEAS = 100;
 
 // ------------------------------------------------------------------------------
 // Constructor
 // ------------------------------------------------------------------------------
 
-ChElementShellANCF::ChElementShellANCF()
+ChElementShellANCF_3423::ChElementShellANCF_3423()
     : m_numLayers(0), m_lenX(0), m_lenY(0), m_thickness(0), m_Alpha(0), m_gravity_on(false) {
     m_nodes.resize(4);
 }
@@ -49,10 +49,10 @@ ChElementShellANCF::ChElementShellANCF()
 // Set element nodes
 // ------------------------------------------------------------------------------
 
-void ChElementShellANCF::SetNodes(std::shared_ptr<ChNodeFEAxyzD> nodeA,
-                                  std::shared_ptr<ChNodeFEAxyzD> nodeB,
-                                  std::shared_ptr<ChNodeFEAxyzD> nodeC,
-                                  std::shared_ptr<ChNodeFEAxyzD> nodeD) {
+void ChElementShellANCF_3423::SetNodes(std::shared_ptr<ChNodeFEAxyzD> nodeA,
+                                       std::shared_ptr<ChNodeFEAxyzD> nodeB,
+                                       std::shared_ptr<ChNodeFEAxyzD> nodeC,
+                                       std::shared_ptr<ChNodeFEAxyzD> nodeD) {
     assert(nodeA);
     assert(nodeB);
     assert(nodeC);
@@ -82,7 +82,7 @@ void ChElementShellANCF::SetNodes(std::shared_ptr<ChNodeFEAxyzD> nodeA,
 // Add a layer.
 // -----------------------------------------------------------------------------
 
-void ChElementShellANCF::AddLayer(double thickness, double theta, std::shared_ptr<ChMaterialShellANCF> material) {
+void ChElementShellANCF_3423::AddLayer(double thickness, double theta, std::shared_ptr<ChMaterialShellANCF> material) {
     m_layers.push_back(Layer(this, thickness, theta, material));
 }
 
@@ -91,7 +91,7 @@ void ChElementShellANCF::AddLayer(double thickness, double theta, std::shared_pt
 // -----------------------------------------------------------------------------
 
 // Initial element setup.
-void ChElementShellANCF::SetupInitial(ChSystem* system) {
+void ChElementShellANCF_3423::SetupInitial(ChSystem* system) {
     // Perform layer initialization and accumulate element thickness.
     m_numLayers = m_layers.size();
     m_thickness = 0;
@@ -126,12 +126,12 @@ void ChElementShellANCF::SetupInitial(ChSystem* system) {
 }
 
 // State update.
-void ChElementShellANCF::Update() {
+void ChElementShellANCF_3423::Update() {
     ChElementGeneric::Update();
 }
 
 // Fill the D vector with the current field values at the element nodes.
-void ChElementShellANCF::GetStateBlock(ChVectorDynamic<>& mD) {
+void ChElementShellANCF_3423::GetStateBlock(ChVectorDynamic<>& mD) {
     mD.segment(0, 3) = m_nodes[0]->GetPos().eigen();
     mD.segment(3, 3) = m_nodes[0]->GetD().eigen();
     mD.segment(6, 3) = m_nodes[1]->GetPos().eigen();
@@ -144,7 +144,7 @@ void ChElementShellANCF::GetStateBlock(ChVectorDynamic<>& mD) {
 
 // Calculate the global matrix H as a linear combination of K, R, and M:
 //   H = Mfactor * [M] + Kfactor * [K] + Rfactor * [R]
-void ChElementShellANCF::ComputeKRMmatricesGlobal(ChMatrixRef H, double Kfactor, double Rfactor, double Mfactor) {
+void ChElementShellANCF_3423::ComputeKRMmatricesGlobal(ChMatrixRef H, double Kfactor, double Rfactor, double Mfactor) {
     assert((H.rows() == 24) && (H.cols() == 24));
 
     // Calculate the linear combination Kfactor*[K] + Rfactor*[R]
@@ -157,7 +157,7 @@ void ChElementShellANCF::ComputeKRMmatricesGlobal(ChMatrixRef H, double Kfactor,
 }
 
 // Return the mass matrix.
-void ChElementShellANCF::ComputeMmatrixGlobal(ChMatrixRef M) {
+void ChElementShellANCF_3423::ComputeMmatrixGlobal(ChMatrixRef M) {
     M = m_MassMatrix;
 }
 
@@ -168,17 +168,17 @@ void ChElementShellANCF::ComputeMmatrixGlobal(ChMatrixRef M) {
 /// This class defines the calculations for the integrand of the inertia matrix.
 class ShellANCF_Mass : public ChIntegrable3D<ChMatrixNM<double, 24, 24>> {
   public:
-    ShellANCF_Mass(ChElementShellANCF* element) : m_element(element) {}
+    ShellANCF_Mass(ChElementShellANCF_3423* element) : m_element(element) {}
     ~ShellANCF_Mass() {}
 
   private:
-    ChElementShellANCF* m_element;
+    ChElementShellANCF_3423* m_element;
 
     virtual void Evaluate(ChMatrixNM<double, 24, 24>& result, const double x, const double y, const double z) override;
 };
 
 void ShellANCF_Mass::Evaluate(ChMatrixNM<double, 24, 24>& result, const double x, const double y, const double z) {
-    ChElementShellANCF::ShapeVector N;
+    ChElementShellANCF_3423::ShapeVector N;
     m_element->ShapeFunctions(N, x, y, z);
 
     // S=[N1*eye(3) N2*eye(3) N3*eye(3) N4*eye(3) N5*eye(3) N6*eye(3) N7*eye(3) N8*eye(3)]
@@ -197,7 +197,7 @@ void ShellANCF_Mass::Evaluate(ChMatrixNM<double, 24, 24>& result, const double x
     result = detJ0 * m_element->m_GaussScaling * S.transpose() * S;
 };
 
-void ChElementShellANCF::ComputeMassMatrix() {
+void ChElementShellANCF_3423::ComputeMassMatrix() {
     m_MassMatrix.setZero();
 
     for (size_t kl = 0; kl < m_numLayers; kl++) {
@@ -217,7 +217,7 @@ void ChElementShellANCF::ComputeMassMatrix() {
     }
 }
 /// This class computes and adds corresponding masses to ElementGeneric member m_TotalMass
-void ChElementShellANCF::ComputeNodalMass() {
+void ChElementShellANCF_3423::ComputeNodalMass() {
     m_nodes[0]->m_TotalMass += m_MassMatrix(0, 0) + m_MassMatrix(0, 6) + m_MassMatrix(0, 12) + m_MassMatrix(0, 18);
     m_nodes[1]->m_TotalMass += m_MassMatrix(6, 6) + m_MassMatrix(6, 0) + m_MassMatrix(6, 12) + m_MassMatrix(6, 18);
     m_nodes[2]->m_TotalMass += m_MassMatrix(12, 12) + m_MassMatrix(12, 0) + m_MassMatrix(12, 6) + m_MassMatrix(12, 18);
@@ -230,18 +230,18 @@ void ChElementShellANCF::ComputeNodalMass() {
 /// This class defines the calculations for the integrand of the element gravity forces
 class ShellANCF_Gravity : public ChIntegrable3D<ChVectorN<double, 24>> {
   public:
-    ShellANCF_Gravity(ChElementShellANCF* element, const ChVector<> gacc) : m_element(element), m_gacc(gacc) {}
+    ShellANCF_Gravity(ChElementShellANCF_3423* element, const ChVector<> gacc) : m_element(element), m_gacc(gacc) {}
     ~ShellANCF_Gravity() {}
 
   private:
-    ChElementShellANCF* m_element;
+    ChElementShellANCF_3423* m_element;
     ChVector<> m_gacc;
 
     virtual void Evaluate(ChVectorN<double, 24>& result, const double x, const double y, const double z) override;
 };
 
 void ShellANCF_Gravity::Evaluate(ChVectorN<double, 24>& result, const double x, const double y, const double z) {
-    ChElementShellANCF::ShapeVector N;
+    ChElementShellANCF_3423::ShapeVector N;
     m_element->ShapeFunctions(N, x, y, z);
 
     double detJ0 = m_element->Calc_detJ0(x, y, z);
@@ -255,7 +255,7 @@ void ShellANCF_Gravity::Evaluate(ChVectorN<double, 24>& result, const double x, 
     result *= detJ0 * m_element->m_GaussScaling;
 };
 
-void ChElementShellANCF::ComputeGravityForce(const ChVector<>& g_acc) {
+void ChElementShellANCF_3423::ComputeGravityForce(const ChVector<>& g_acc) {
     m_GravForce.setZero();
 
     for (size_t kl = 0; kl < m_numLayers; kl++) {
@@ -292,15 +292,15 @@ void ChElementShellANCF::ComputeGravityForce(const ChVector<>& g_acc) {
 // has an independent, user-selected fiber angle (direction for orthotropic constitutive behavior)
 class ShellANCF_Force : public ChIntegrable3D<ChVectorN<double, 54>> {
   public:
-    ShellANCF_Force(ChElementShellANCF* element,     // Containing element
-                    size_t kl,                       // Current layer index
-                    ChVectorN<double, 5>* alpha_eas  // Vector of internal parameters for EAS formulation
+    ShellANCF_Force(ChElementShellANCF_3423* element,  // Containing element
+                    size_t kl,                         // Current layer index
+                    ChVectorN<double, 5>* alpha_eas    // Vector of internal parameters for EAS formulation
                     )
         : m_element(element), m_kl(kl), m_alpha_eas(alpha_eas) {}
     ~ShellANCF_Force() {}
 
   private:
-    ChElementShellANCF* m_element;
+    ChElementShellANCF_3423* m_element;
     size_t m_kl;
     ChVectorN<double, 5>* m_alpha_eas;
 
@@ -310,13 +310,13 @@ class ShellANCF_Force : public ChIntegrable3D<ChVectorN<double, 54>> {
 
 void ShellANCF_Force::Evaluate(ChVectorN<double, 54>& result, const double x, const double y, const double z) {
     // Element shape function
-    ChElementShellANCF::ShapeVector N;
+    ChElementShellANCF_3423::ShapeVector N;
     m_element->ShapeFunctions(N, x, y, z);
 
     // Determinant of position vector gradient matrix: Initial configuration
-    ChElementShellANCF::ShapeVector Nx;
-    ChElementShellANCF::ShapeVector Ny;
-    ChElementShellANCF::ShapeVector Nz;
+    ChElementShellANCF_3423::ShapeVector Nx;
+    ChElementShellANCF_3423::ShapeVector Ny;
+    ChElementShellANCF_3423::ShapeVector Nz;
     ChMatrixNM<double, 1, 3> Nx_d0;
     ChMatrixNM<double, 1, 3> Ny_d0;
     ChMatrixNM<double, 1, 3> Nz_d0;
@@ -560,7 +560,7 @@ void ShellANCF_Force::Evaluate(ChVectorN<double, 54>& result, const double x, co
     result.segment(29, 5 * 5) = Eigen::Map<ChVectorN<double, 5 * 5>>(KALPHA.data(), 5 * 5);
 }
 
-void ChElementShellANCF::ComputeInternalForces(ChVectorDynamic<>& Fi) {
+void ChElementShellANCF_3423::ComputeInternalForces(ChVectorDynamic<>& Fi) {
     // Current nodal coordinates and velocities
     CalcCoordMatrix(m_d);
     CalcCoordDerivMatrix(m_d_dt);
@@ -636,15 +636,15 @@ void ChElementShellANCF::ComputeInternalForces(ChVectorDynamic<>& Fi) {
 // The last 120 entries represent the 5x24 cross-dependency matrix.
 class ShellANCF_Jacobian : public ChIntegrable3D<ChVectorN<double, 696>> {
   public:
-    ShellANCF_Jacobian(ChElementShellANCF* element,  // Containing element
-                       double Kfactor,               // Scaling coefficient for stiffness component
-                       double Rfactor,               // Scaling coefficient for damping component
-                       size_t kl                     // Current layer index
+    ShellANCF_Jacobian(ChElementShellANCF_3423* element,  // Containing element
+                       double Kfactor,                    // Scaling coefficient for stiffness component
+                       double Rfactor,                    // Scaling coefficient for damping component
+                       size_t kl                          // Current layer index
                        )
         : m_element(element), m_Kfactor(Kfactor), m_Rfactor(Rfactor), m_kl(kl) {}
 
   private:
-    ChElementShellANCF* m_element;
+    ChElementShellANCF_3423* m_element;
     double m_Kfactor;
     double m_Rfactor;
     size_t m_kl;
@@ -655,13 +655,13 @@ class ShellANCF_Jacobian : public ChIntegrable3D<ChVectorN<double, 696>> {
 
 void ShellANCF_Jacobian::Evaluate(ChVectorN<double, 696>& result, const double x, const double y, const double z) {
     // Element shape function
-    ChElementShellANCF::ShapeVector N;
+    ChElementShellANCF_3423::ShapeVector N;
     m_element->ShapeFunctions(N, x, y, z);
 
     // Determinant of position vector gradient matrix: Initial configuration
-    ChElementShellANCF::ShapeVector Nx;
-    ChElementShellANCF::ShapeVector Ny;
-    ChElementShellANCF::ShapeVector Nz;
+    ChElementShellANCF_3423::ShapeVector Nx;
+    ChElementShellANCF_3423::ShapeVector Ny;
+    ChElementShellANCF_3423::ShapeVector Nz;
     ChMatrixNM<double, 1, 3> Nx_d0;
     ChMatrixNM<double, 1, 3> Ny_d0;
     ChMatrixNM<double, 1, 3> Nz_d0;
@@ -968,7 +968,7 @@ void ShellANCF_Jacobian::Evaluate(ChVectorN<double, 696>& result, const double x
     result.segment(576, 5 * 24) = Eigen::Map<ChVectorN<double, 5 * 24>>(GDEPSP.data(), 5 * 24);
 }
 
-void ChElementShellANCF::ComputeInternalJacobians(double Kfactor, double Rfactor) {
+void ChElementShellANCF_3423::ComputeInternalJacobians(double Kfactor, double Rfactor) {
     // Note that the matrices with current nodal coordinates and velocities are
     // already available in m_d and m_d_dt (as set in ComputeInternalForces).
     // Similarly, the ANS strain and strain derivatives are already available in
@@ -1006,7 +1006,7 @@ void ChElementShellANCF::ComputeInternalJacobians(double Kfactor, double Rfactor
 // Shape functions
 // -----------------------------------------------------------------------------
 
-void ChElementShellANCF::ShapeFunctions(ShapeVector& N, double x, double y, double z) {
+void ChElementShellANCF_3423::ShapeFunctions(ShapeVector& N, double x, double y, double z) {
     double c = m_thickness;
     N(0) = 0.25 * (1.0 - x) * (1.0 - y);
     N(1) = z * c / 2.0 * 0.25 * (1.0 - x) * (1.0 - y);
@@ -1018,7 +1018,7 @@ void ChElementShellANCF::ShapeFunctions(ShapeVector& N, double x, double y, doub
     N(7) = z * c / 2.0 * 0.25 * (1.0 - x) * (1.0 + y);
 }
 
-void ChElementShellANCF::ShapeFunctionsDerivativeX(ShapeVector& Nx, double x, double y, double z) {
+void ChElementShellANCF_3423::ShapeFunctionsDerivativeX(ShapeVector& Nx, double x, double y, double z) {
     double a = GetLengthX();
     double c = m_thickness;
 
@@ -1032,7 +1032,7 @@ void ChElementShellANCF::ShapeFunctionsDerivativeX(ShapeVector& Nx, double x, do
     Nx(7) = z * c / 2.0 * 0.25 * (-2.0 / a) * (1.0 + y);
 }
 
-void ChElementShellANCF::ShapeFunctionsDerivativeY(ShapeVector& Ny, double x, double y, double z) {
+void ChElementShellANCF_3423::ShapeFunctionsDerivativeY(ShapeVector& Ny, double x, double y, double z) {
     double b = GetLengthY();
     double c = m_thickness;
 
@@ -1046,7 +1046,7 @@ void ChElementShellANCF::ShapeFunctionsDerivativeY(ShapeVector& Ny, double x, do
     Ny(7) = z * c / 2.0 * 0.25 * (1.0 - x) * (2.0 / b);
 }
 
-void ChElementShellANCF::ShapeFunctionsDerivativeZ(ShapeVector& Nz, double x, double y, double z) {
+void ChElementShellANCF_3423::ShapeFunctionsDerivativeZ(ShapeVector& Nz, double x, double y, double z) {
     Nz(0) = 0.0;
     Nz(1) = 0.250 * (1.0 - x) * (1.0 - y);
     Nz(2) = 0.0;
@@ -1057,7 +1057,7 @@ void ChElementShellANCF::ShapeFunctionsDerivativeZ(ShapeVector& Nz, double x, do
     Nz(7) = 0.250 * (1.0 - x) * (1.0 + y);
 }
 
-void ChElementShellANCF::Basis_M(ChMatrixNM<double, 6, 5>& M, double x, double y, double z) {
+void ChElementShellANCF_3423::Basis_M(ChMatrixNM<double, 6, 5>& M, double x, double y, double z) {
     M.setZero();
     M(0, 0) = x;
     M(1, 1) = y;
@@ -1069,15 +1069,15 @@ void ChElementShellANCF::Basis_M(ChMatrixNM<double, 6, 5>& M, double x, double y
 // -----------------------------------------------------------------------------
 // Helper functions
 // -----------------------------------------------------------------------------
-double ChElementShellANCF::Calc_detJ0(double x,
-                                      double y,
-                                      double z,
-                                      ShapeVector& Nx,
-                                      ShapeVector& Ny,
-                                      ShapeVector& Nz,
-                                      ChMatrixNM<double, 1, 3>& Nx_d0,
-                                      ChMatrixNM<double, 1, 3>& Ny_d0,
-                                      ChMatrixNM<double, 1, 3>& Nz_d0) {
+double ChElementShellANCF_3423::Calc_detJ0(double x,
+                                           double y,
+                                           double z,
+                                           ShapeVector& Nx,
+                                           ShapeVector& Ny,
+                                           ShapeVector& Nz,
+                                           ChMatrixNM<double, 1, 3>& Nx_d0,
+                                           ChMatrixNM<double, 1, 3>& Ny_d0,
+                                           ChMatrixNM<double, 1, 3>& Nz_d0) {
     ShapeFunctionsDerivativeX(Nx, x, y, z);
     ShapeFunctionsDerivativeY(Ny, x, y, z);
     ShapeFunctionsDerivativeZ(Nz, x, y, z);
@@ -1093,7 +1093,7 @@ double ChElementShellANCF::Calc_detJ0(double x,
     return detJ0;
 }
 
-double ChElementShellANCF::Calc_detJ0(double x, double y, double z) {
+double ChElementShellANCF_3423::Calc_detJ0(double x, double y, double z) {
     ChMatrixNM<double, 1, 8> Nx;
     ChMatrixNM<double, 1, 8> Ny;
     ChMatrixNM<double, 1, 8> Nz;
@@ -1104,7 +1104,7 @@ double ChElementShellANCF::Calc_detJ0(double x, double y, double z) {
     return Calc_detJ0(x, y, z, Nx, Ny, Nz, Nx_d0, Ny_d0, Nz_d0);
 }
 
-void ChElementShellANCF::CalcCoordMatrix(ChMatrixNM<double, 8, 3>& d) {
+void ChElementShellANCF_3423::CalcCoordMatrix(ChMatrixNM<double, 8, 3>& d) {
     const ChVector<>& pA = m_nodes[0]->GetPos();
     const ChVector<>& dA = m_nodes[0]->GetD();
     const ChVector<>& pB = m_nodes[1]->GetPos();
@@ -1143,7 +1143,7 @@ void ChElementShellANCF::CalcCoordMatrix(ChMatrixNM<double, 8, 3>& d) {
     d(7, 2) = dD.z();
 }
 
-void ChElementShellANCF::CalcCoordDerivMatrix(ChVectorN<double, 24>& dt) {
+void ChElementShellANCF_3423::CalcCoordDerivMatrix(ChVectorN<double, 24>& dt) {
     const ChVector<>& pA_dt = m_nodes[0]->GetPos_dt();
     const ChVector<>& dA_dt = m_nodes[0]->GetD_dt();
     const ChVector<>& pB_dt = m_nodes[1]->GetPos_dt();
@@ -1187,7 +1187,7 @@ void ChElementShellANCF::CalcCoordDerivMatrix(ChVectorN<double, 24>& dt) {
 // -----------------------------------------------------------------------------
 
 // ANS shape function (interpolation of strain and strainD in thickness direction)
-void ChElementShellANCF::ShapeFunctionANSbilinearShell(ChMatrixNM<double, 1, 4>& S_ANS, double x, double y) {
+void ChElementShellANCF_3423::ShapeFunctionANSbilinearShell(ChMatrixNM<double, 1, 4>& S_ANS, double x, double y) {
     S_ANS(0, 0) = -0.5 * x + 0.5;
     S_ANS(0, 1) = 0.5 * x + 0.5;
     S_ANS(0, 2) = -0.5 * y + 0.5;
@@ -1195,7 +1195,7 @@ void ChElementShellANCF::ShapeFunctionANSbilinearShell(ChMatrixNM<double, 1, 4>&
 }
 
 // Calculate ANS strain and its Jacobian
-void ChElementShellANCF::CalcStrainANSbilinearShell() {
+void ChElementShellANCF_3423::CalcStrainANSbilinearShell() {
     std::vector<ChVector<>> knots(8);
 
     knots[0] = ChVector<>(-1, -1, 0);
@@ -1260,7 +1260,7 @@ void ChElementShellANCF::CalcStrainANSbilinearShell() {
 // -----------------------------------------------------------------------------
 // Interface to ChElementShell base class
 // -----------------------------------------------------------------------------
-void ChElementShellANCF::EvaluateDeflection(double& def) {
+void ChElementShellANCF_3423::EvaluateDeflection(double& def) {
     ChVector<> oldPos;
     ChVector<> newPos;
     ChVector<> defVec;
@@ -1281,7 +1281,7 @@ void ChElementShellANCF::EvaluateDeflection(double& def) {
     def = defVec.Length();
 }
 
-ChStrainStress3D ChElementShellANCF::EvaluateSectionStrainStress(const ChVector<>& loc, int layer_id) {
+ChStrainStress3D ChElementShellANCF_3423::EvaluateSectionStrainStress(const ChVector<>& loc, int layer_id) {
     // Element shape function
     ShapeVector N;
     ShapeFunctions(N, loc.x(), loc.y(), loc.z());
@@ -1298,7 +1298,7 @@ ChStrainStress3D ChElementShellANCF::EvaluateSectionStrainStress(const ChVector<
     // ANS shape function
     ChMatrixNM<double, 1, 4> S_ANS;  // Shape function vector for Assumed Natural Strain
     ChMatrixNM<double, 6, 5> M;      // Shape function vector for Enhanced Assumed Strain
-    this->ShapeFunctionANSbilinearShell(S_ANS,  loc.x(), loc.y());
+    this->ShapeFunctionANSbilinearShell(S_ANS, loc.x(), loc.y());
     this->Basis_M(M, loc.x(), loc.y(), loc.z());
 
     // Transformation : Orthogonal transformation (A and J)
@@ -1417,22 +1417,25 @@ ChStrainStress3D ChElementShellANCF::EvaluateSectionStrainStress(const ChVector<
 
     return strainStressOut;
 }
-void ChElementShellANCF::EvaluateSectionDisplacement(const double u,
-                                                     const double v,
-                                                     ChVector<>& u_displ,
-                                                     ChVector<>& u_rotaz) {
+void ChElementShellANCF_3423::EvaluateSectionDisplacement(const double u,
+                                                          const double v,
+                                                          ChVector<>& u_displ,
+                                                          ChVector<>& u_rotaz) {
     // this is not a corotational element, so just do:
     EvaluateSectionPoint(u, v, u_displ);
     u_rotaz = VNULL;  // no angles.. this is ANCF (or maybe return here the slope derivatives?)
 }
 
-void ChElementShellANCF::EvaluateSectionFrame(const double u, const double v, ChVector<>& point, ChQuaternion<>& rot) {
+void ChElementShellANCF_3423::EvaluateSectionFrame(const double u,
+                                                   const double v,
+                                                   ChVector<>& point,
+                                                   ChQuaternion<>& rot) {
     // this is not a corotational element, so just do:
     EvaluateSectionPoint(u, v, point);
     rot = QUNIT;  // or maybe use gram-schmidt to get csys of section from slopes?
 }
 
-void ChElementShellANCF::EvaluateSectionPoint(const double u, const double v, ChVector<>& point) {
+void ChElementShellANCF_3423::EvaluateSectionPoint(const double u, const double v, ChVector<>& point) {
     ChVector<> u_displ;
 
     double x = u;  // because ShapeFunctions() works in -1..1 range
@@ -1456,7 +1459,7 @@ void ChElementShellANCF::EvaluateSectionPoint(const double u, const double v, Ch
 // -----------------------------------------------------------------------------
 
 // Gets all the DOFs packed in a single vector (position part).
-void ChElementShellANCF::LoadableGetStateBlock_x(int block_offset, ChState& mD) {
+void ChElementShellANCF_3423::LoadableGetStateBlock_x(int block_offset, ChState& mD) {
     mD.segment(block_offset + 0, 3) = m_nodes[0]->GetPos().eigen();
     mD.segment(block_offset + 3, 3) = m_nodes[0]->GetD().eigen();
     mD.segment(block_offset + 6, 3) = m_nodes[1]->GetPos().eigen();
@@ -1468,7 +1471,7 @@ void ChElementShellANCF::LoadableGetStateBlock_x(int block_offset, ChState& mD) 
 }
 
 // Gets all the DOFs packed in a single vector (velocity part).
-void ChElementShellANCF::LoadableGetStateBlock_w(int block_offset, ChStateDelta& mD) {
+void ChElementShellANCF_3423::LoadableGetStateBlock_w(int block_offset, ChStateDelta& mD) {
     mD.segment(block_offset + 0, 3) = m_nodes[0]->GetPos_dt().eigen();
     mD.segment(block_offset + 3, 3) = m_nodes[0]->GetD_dt().eigen();
     mD.segment(block_offset + 6, 3) = m_nodes[1]->GetPos_dt().eigen();
@@ -1479,17 +1482,17 @@ void ChElementShellANCF::LoadableGetStateBlock_w(int block_offset, ChStateDelta&
     mD.segment(block_offset + 21, 3) = m_nodes[3]->GetD_dt().eigen();
 }
 
-void ChElementShellANCF::LoadableStateIncrement(const unsigned int off_x,
-                                                ChState& x_new,
-                                                const ChState& x,
-                                                const unsigned int off_v,
-                                                const ChStateDelta& Dv) {
+void ChElementShellANCF_3423::LoadableStateIncrement(const unsigned int off_x,
+                                                     ChState& x_new,
+                                                     const ChState& x,
+                                                     const unsigned int off_v,
+                                                     const ChStateDelta& Dv) {
     for (int i = 0; i < 4; i++) {
         this->m_nodes[i]->NodeIntStateIncrement(off_x + 6 * i, x_new, x, off_v + 6 * i, Dv);
     }
 }
 
-void ChElementShellANCF::EvaluateSectionVelNorm(double U, double V, ChVector<>& Result) {
+void ChElementShellANCF_3423::EvaluateSectionVelNorm(double U, double V, ChVector<>& Result) {
     ShapeVector N;
     ShapeFunctions(N, U, V, 0);
     for (unsigned int ii = 0; ii < 4; ii++) {
@@ -1499,7 +1502,7 @@ void ChElementShellANCF::EvaluateSectionVelNorm(double U, double V, ChVector<>& 
 }
 
 // Get the pointers to the contained ChVariables, appending to the mvars vector.
-void ChElementShellANCF::LoadableGetVariables(std::vector<ChVariables*>& mvars) {
+void ChElementShellANCF_3423::LoadableGetVariables(std::vector<ChVariables*>& mvars) {
     for (int i = 0; i < m_nodes.size(); ++i) {
         mvars.push_back(&m_nodes[i]->Variables());
         mvars.push_back(&m_nodes[i]->Variables_D());
@@ -1507,7 +1510,7 @@ void ChElementShellANCF::LoadableGetVariables(std::vector<ChVariables*>& mvars) 
 }
 
 // Evaluate N'*F , where N is the shape function evaluated at (U,V) coordinates of the surface.
-void ChElementShellANCF::ComputeNF(
+void ChElementShellANCF_3423::ComputeNF(
     const double U,              // parametric coordinate in surface
     const double V,              // parametric coordinate in surface
     ChVectorDynamic<>& Qi,       // Return result of Q = N'*F  here
@@ -1581,7 +1584,7 @@ void ChElementShellANCF::ComputeNF(
 }
 
 // Evaluate N'*F , where N is the shape function evaluated at (U,V,W) coordinates of the surface.
-void ChElementShellANCF::ComputeNF(
+void ChElementShellANCF_3423::ComputeNF(
     const double U,              // parametric coordinate in volume
     const double V,              // parametric coordinate in volume
     const double W,              // parametric coordinate in volume
@@ -1660,7 +1663,7 @@ void ChElementShellANCF::ComputeNF(
 // -----------------------------------------------------------------------------
 
 // Calculate average element density (needed for ChLoaderVolumeGravity).
-double ChElementShellANCF::GetDensity() {
+double ChElementShellANCF_3423::GetDensity() {
     double tot_density = 0;
     for (size_t kl = 0; kl < m_numLayers; kl++) {
         double rho = m_layers[kl].GetMaterial()->Get_rho();
@@ -1671,7 +1674,7 @@ double ChElementShellANCF::GetDensity() {
 }
 
 // Calculate normal to the surface at (U,V) coordinates.
-ChVector<> ChElementShellANCF::ComputeNormal(const double U, const double V) {
+ChVector<> ChElementShellANCF_3423::ComputeNormal(const double U, const double V) {
     ChMatrixNM<double, 8, 3> mD;
     ChMatrixNM<double, 1, 8> Nx;
     ChMatrixNM<double, 1, 8> Ny;
@@ -1708,18 +1711,18 @@ ChVector<> ChElementShellANCF::ComputeNormal(const double U, const double V) {
 }
 
 // ============================================================================
-// Implementation of ChElementShellANCF::Layer methods
+// Implementation of ChElementShellANCF_3423::Layer methods
 // ============================================================================
 
 // Private constructor (a layer can be created only by adding it to an element)
-ChElementShellANCF::Layer::Layer(ChElementShellANCF* element,
-                                 double thickness,
-                                 double theta,
-                                 std::shared_ptr<ChMaterialShellANCF> material)
+ChElementShellANCF_3423::Layer::Layer(ChElementShellANCF_3423* element,
+                                      double thickness,
+                                      double theta,
+                                      std::shared_ptr<ChMaterialShellANCF> material)
     : m_element(element), m_thickness(thickness), m_theta(theta), m_material(material) {}
 
 // Initial setup for this layer: calculate T0 and detJ0 at the element center.
-void ChElementShellANCF::Layer::SetupInitial() {
+void ChElementShellANCF_3423::Layer::SetupInitial() {
     // Evaluate shape functions at element center
     ChMatrixNM<double, 1, 8> Nx;
     ChMatrixNM<double, 1, 8> Ny;

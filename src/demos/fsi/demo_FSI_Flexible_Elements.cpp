@@ -35,7 +35,7 @@
 #include "chrono_fsi/utils/ChUtilsJSON.h"
 
 // Chrono fea includes
-#include "chrono/fea/ChElementShellANCF.h"
+#include "chrono/fea/ChElementShellANCF_3423.h"
 #include "chrono/fea/ChLinkDirFrame.h"
 #include "chrono/fea/ChLinkPointFrame.h"
 #include "chrono/fea/ChMesh.h"
@@ -362,7 +362,7 @@ void Create_MB_FE(ChSystemSMC& mphysicalSystem,
                 NodeNeighborElement_mesh[node2].push_back(num_elem);
                 NodeNeighborElement_mesh[node3].push_back(num_elem);
                 // Create the element and set its nodes.
-                auto element = chrono_types::make_shared<ChElementShellANCF>();
+                auto element = chrono_types::make_shared<ChElementShellANCF_3423>();
                 element->SetNodes(std::dynamic_pointer_cast<ChNodeFEAxyzD>(my_mesh->GetNode(node0)),
                                   std::dynamic_pointer_cast<ChNodeFEAxyzD>(my_mesh->GetNode(node1)),
                                   std::dynamic_pointer_cast<ChNodeFEAxyzD>(my_mesh->GetNode(node2)),

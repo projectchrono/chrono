@@ -202,7 +202,7 @@ void HMMWV_ANCFTire::CreateMesh(const ChFrameMoving<>& wheel_frame, VehicleSide 
             auto node3 = std::dynamic_pointer_cast<ChNodeFEAxyzD>(m_mesh->GetNode(inode3));
 
             // Create the element and set its nodes.
-            auto element = chrono_types::make_shared<ChElementShellANCF>();
+            auto element = chrono_types::make_shared<ChElementShellANCF_3423>();
             element->SetNodes(node0, node1, node2, node3);
 
             // Element dimensions

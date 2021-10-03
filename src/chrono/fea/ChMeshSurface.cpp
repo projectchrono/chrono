@@ -16,7 +16,7 @@
 #include "chrono/fea/ChMesh.h"
 #include "chrono/physics/ChSystem.h"
 #include "chrono/fea/ChElementTetra_4.h"
-#include "chrono/fea/ChElementShellANCF.h"
+#include "chrono/fea/ChElementShellANCF_3423.h"
 #include "chrono/fea/ChFaceTetra_4.h"
 
 #include <unordered_set>
@@ -62,7 +62,7 @@ void ChMeshSurface::AddFacesFromNodeSet(std::vector<std::shared_ptr<ChNodeFEAbas
             }
         }
 
-        if (auto mshell = std::dynamic_pointer_cast<ChElementShellANCF>(this->mmesh->GetElement(ie))) {
+        if (auto mshell = std::dynamic_pointer_cast<ChElementShellANCF_3423>(this->mmesh->GetElement(ie))) {
             this->AddFace(mshell);
         }
     }

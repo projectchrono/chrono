@@ -31,7 +31,6 @@ class ChMesh;
 /// The contact surface is a collection of pointers to  ChLoadableUV objects, those can
 /// be shells in the mesh, or proxies to faces of solid elements such as ChFaceTetra_4.
 class ChApi ChMeshSurface {
-
   public:
     ChMeshSurface(ChMesh* parentmesh = 0) { mmesh = parentmesh; }
 
@@ -58,7 +57,7 @@ class ChApi ChMeshSurface {
     /// It scans all the finite elements already added in the parent ChMesh, and
     /// see if someone has a face whose vertexes are all in the given node set;
     /// if so, adds it to this mesh surface, with these rules:
-    /// - surface elements inherited from ChLoadableUV such as ChElementShellANCF: the element is added
+    /// - surface elements inherited from ChLoadableUV such as ChElementShellANCF_3423: the element is added
     /// - face of ChElementTetra_4 : a ChFaceTetra_4 proxy is created and added
     /// - Support for other elements of solid type will follow in future.
     virtual void AddFacesFromNodeSet(std::vector<std::shared_ptr<ChNodeFEAbase> >& node_set);

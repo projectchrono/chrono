@@ -14,8 +14,8 @@
 // ANCF laminated shell element with four nodes.
 // =============================================================================
 
-#ifndef CHELEMENTSHELLANCF_H
-#define CHELEMENTSHELLANCF_H
+#ifndef CHELEMENTSHELLANCF3423_H
+#define CHELEMENTSHELLANCF3423_H
 
 #include <vector>
 
@@ -43,12 +43,12 @@ namespace fea {
 ///   |     |     |
 /// A o-----+-----o B
 /// </pre>
-class ChApi ChElementShellANCF : public ChElementShell, public ChLoadableUV, public ChLoadableUVW {
+class ChApi ChElementShellANCF_3423 : public ChElementShell, public ChLoadableUV, public ChLoadableUVW {
   public:
     using ShapeVector = ChMatrixNM<double, 1, 8>;
 
-    ChElementShellANCF();
-    ~ChElementShellANCF() {}
+    ChElementShellANCF_3423();
+    ~ChElementShellANCF_3423() {}
 
     /// Definition of a layer
     class Layer {
@@ -64,7 +64,7 @@ class ChApi ChElementShellANCF : public ChElementShell, public ChLoadableUV, pub
 
       private:
         /// Private constructor (a layer can be created only by adding it to an element)
-        Layer(ChElementShellANCF* element,                   ///< containing element
+        Layer(ChElementShellANCF_3423* element,              ///< containing element
               double thickness,                              ///< layer thickness
               double theta,                                  ///< fiber angle
               std::shared_ptr<ChMaterialShellANCF> material  ///< layer material
@@ -76,7 +76,7 @@ class ChApi ChElementShellANCF : public ChElementShell, public ChLoadableUV, pub
         /// Initial setup for this layer: calculate T0 and detJ0 at the element center.
         void SetupInitial();
 
-        ChElementShellANCF* m_element;                    ///< containing ANCF shell element
+        ChElementShellANCF_3423* m_element;               ///< containing ANCF shell element
         std::shared_ptr<ChMaterialShellANCF> m_material;  ///< layer material
         double m_thickness;                               ///< layer thickness
         double m_theta;                                   ///< fiber angle
@@ -87,7 +87,7 @@ class ChApi ChElementShellANCF : public ChElementShell, public ChLoadableUV, pub
       public:
         EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 
-        friend class ChElementShellANCF;
+        friend class ChElementShellANCF_3423;
         friend class ShellANCF_Force;
         friend class ShellANCF_Jacobian;
     };
@@ -181,7 +181,7 @@ class ChApi ChElementShellANCF : public ChElementShell, public ChLoadableUV, pub
     /// Return a struct with 6-component strain and stress vectors evaluated at a
     /// given quadrature point and layer number.
     ChStrainStress3D EvaluateSectionStrainStress(const ChVector<>& loc, int layer_id);
-	void EvaluateDeflection(double &defVec);
+    void EvaluateDeflection(double& defVec);
 
   public:
     // Interface to ChElementBase base class

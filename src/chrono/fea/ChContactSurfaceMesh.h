@@ -439,7 +439,9 @@ class ChApi ChContactSurfaceMesh : public ChContactSurface {
     ///     - ChElementTetra_4: tetrahedrons
     ///     - ChFaceBrick_9: solid hexahedrons
     /// - shells:
-    ///     - ChElementShellANCF ANCF: shells (only one side)
+    ///     - ChElementShellANCF_3423 ANCF: shells (only one side)
+    ///     - ChElementShellANCF_3443 ANCF: shells (only one side)
+    ///     - ChElementShellANCF_8 ANCF: shells (only one side)
     ///     - ChElementShellReissner: Reissner 4-nodes shells (only one side)
     /// - beams:
     ///     - ChElementCableANCF: ANCF beams (as sphere-swept lines, i.e. sequence of capsules)

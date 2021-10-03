@@ -71,7 +71,7 @@
 #include "chrono/fea/ChMaterialShellANCF.h"
 #include "chrono/fea/ChMaterialShellKirchhoff.h"
 #include "chrono/fea/ChElementShellReissner4.h"
-#include "chrono/fea/ChElementShellANCF.h"
+#include "chrono/fea/ChElementShellANCF_3423.h"
 #include "chrono/fea/ChElementShellANCF_8.h"
 #include "chrono/fea/ChElementShellBST.h"
 #include "chrono/fea/ChElementCableANCF.h"
@@ -285,7 +285,7 @@ using namespace chrono::fea;
 %shared_ptr(chrono::fea::ChDampingKirchhoffRayleigh)
 %shared_ptr(chrono::fea::ChElementShell)
 %shared_ptr(chrono::fea::ChElementShellReissner4)
-%shared_ptr(chrono::fea::ChElementShellANCF)
+%shared_ptr(chrono::fea::ChElementShellANCF_3423)
 %shared_ptr(chrono::fea::ChElementShellANCF_8)
 %shared_ptr(chrono::fea::ChElementShellBST)
 %shared_ptr(chrono::fea::ChElementCableANCF)
@@ -410,8 +410,8 @@ using namespace chrono::fea;
 %include "../../chrono/fea/ChElementShell.h"
 %rename(ShellReissner4Layer) chrono::fea::ChElementShellReissner4::Layer;
 %include "../../chrono/fea/ChElementShellReissner4.h"
-%rename(ShellANCF) chrono::fea::ChElementShellANCF::Layer;
-%include "../../chrono/fea/ChElementShellANCF.h"
+%rename(ShellANCF) chrono::fea::ChElementShellANCF_3423::Layer;
+%include "../../chrono/fea/ChElementShellANCF_3423.h"
 %rename(ShellANCF_8Layer) chrono::fea::ChElementShellANCF_8::Layer;
 %include "../../chrono/fea/ChElementShellANCF_8.h"
 %rename(ShellBSTLayer) chrono::fea::ChElementShellBST::Layer;
@@ -476,7 +476,7 @@ using namespace chrono::fea;
 %DefSharedPtrDynamicDowncast(chrono::fea,ChElementBase,ChElementBeamIGA)
 %DefSharedPtrDynamicDowncast(chrono::fea,ChElementBase,ChElementCableANCF)
 %DefSharedPtrDynamicDowncast(chrono::fea,ChElementBase,ChElementShellReissner4)
-%DefSharedPtrDynamicDowncast(chrono::fea,ChElementBase,ChElementShellANCF)
+%DefSharedPtrDynamicDowncast(chrono::fea,ChElementBase,ChElementShellANCF_3423)
 %DefSharedPtrDynamicDowncast(chrono::fea,ChElementBase,ChElementShellANCF_8)
 %DefSharedPtrDynamicDowncast(chrono::fea,ChElementBase,ChElementBrick)
 %DefSharedPtrDynamicDowncast(chrono::fea,ChElementBase,ChElementBrick_9)

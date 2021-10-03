@@ -27,7 +27,7 @@ namespace chrono {
 // Forward declaration
 namespace fea {
 class ChElementCableANCF;
-class ChElementShellANCF;
+class ChElementShellANCF_3423;
 class ChNodeFEAxyzD;
 class ChMesh;
 }  // namespace fea
@@ -158,7 +158,7 @@ CH_FSI_API void CreateBoxFSI(std::shared_ptr<ChFsiDataManager> fsiData,
 
 CH_FSI_API void AddBCE_ShellANCF(std::shared_ptr<ChFsiDataManager> fsiData,
                                  std::shared_ptr<SimParams> paramsH,
-                                 std::vector<std::shared_ptr<fea::ChElementShellANCF>>& fsiShells,
+                                 std::vector<std::shared_ptr<fea::ChElementShellANCF_3423>>& fsiShells,
                                  std::shared_ptr<fea::ChMesh> my_mesh,
                                  bool multiLayer = true,
                                  bool removeMiddleLayer = false,
@@ -166,7 +166,7 @@ CH_FSI_API void AddBCE_ShellANCF(std::shared_ptr<ChFsiDataManager> fsiData,
 
 CH_FSI_API void AddBCE_ShellFromMesh(std::shared_ptr<ChFsiDataManager> fsiData,
                                      std::shared_ptr<SimParams> paramsH,
-                                     std::vector<std::shared_ptr<fea::ChElementShellANCF>>& fsiShells,
+                                     std::vector<std::shared_ptr<fea::ChElementShellANCF_3423>>& fsiShells,
                                      std::vector<std::shared_ptr<fea::ChNodeFEAxyzD>>& fsiNodes,
                                      std::shared_ptr<fea::ChMesh> my_mesh,
                                      const std::vector<std::vector<int>>& elementsNodes,
@@ -180,7 +180,7 @@ CH_FSI_API void AddBCE_FromMesh(std::shared_ptr<ChFsiDataManager> fsiData,
                                 std::shared_ptr<fea::ChMesh> my_mesh,
                                 std::vector<std::shared_ptr<fea::ChNodeFEAxyzD>>& fsiNodes,
                                 std::vector<std::shared_ptr<fea::ChElementCableANCF>>& fsiCables,
-                                std::vector<std::shared_ptr<fea::ChElementShellANCF>>& fsiShells,
+                                std::vector<std::shared_ptr<fea::ChElementShellANCF_3423>>& fsiShells,
                                 const std::vector<std::vector<int>>& NodeNeighborElement,
                                 const std::vector<std::vector<int>>& _1D_elementsNodes,
                                 const std::vector<std::vector<int>>& _2D_elementsNodes,

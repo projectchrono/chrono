@@ -487,7 +487,7 @@ set(ChronoEngine_fea_elements_SOURCES
     fea/ChElementTetra_10.cpp
     fea/ChElementHexa_8.cpp
     fea/ChElementHexa_20.cpp
-    fea/ChElementShellANCF.cpp
+    fea/ChElementShellANCF_3423.cpp
     fea/ChElementShellANCF_8.cpp
     fea/ChElementShellReissner4.cpp
 	fea/ChElementShellBST.cpp
@@ -525,7 +525,7 @@ set(ChronoEngine_fea_elements_HEADERS
     fea/ChElementHexa_20.h
     fea/ChElementBrickANCF_3843.h
     fea/ChElementShell.h
-    fea/ChElementShellANCF.h
+    fea/ChElementShellANCF_3423.h
     fea/ChElementShellANCF_3443.h
     fea/ChElementShellANCF_8.h
     fea/ChElementShellANCF_3833.h

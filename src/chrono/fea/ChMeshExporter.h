@@ -16,7 +16,7 @@
 
 #include "chrono/fea/ChElementBrick.h"
 #include "chrono/fea/ChElementCableANCF.h"
-#include "chrono/fea/ChElementShellANCF.h"
+#include "chrono/fea/ChElementShellANCF_3423.h"
 #include "chrono/fea/ChMesh.h"
 #include "chrono/fea/ChNodeFEAxyz.h"
 
@@ -31,7 +31,7 @@ namespace fea {
 class ChApi ChMeshExporter {
   public:
     /// This function is used to write the connectivity and information of a ChMesh
-    /// Currently it only supports ChElementCableANCF, ChElementShellANCF, ChElementBrick
+    /// Currently it only supports ChElementCableANCF, ChElementShellANCF_3423, ChElementBrick
     /// This connectivity is usually constant throughout the simulation. Hence, it may be
     /// called once at the beginning of the simulation (or as many times as it is needed),
     /// and should be used in the later stage when the nodal/elemental informations are updated.

@@ -17,7 +17,8 @@
 #include "chrono/physics/ChSystem.h"
 
 #include "chrono/fea/ChContactSurfaceMesh.h"
-#include "chrono/fea/ChElementShellANCF.h"
+#include "chrono/fea/ChElementShellANCF_3423.h"
+#include "chrono/fea/ChElementShellANCF_3443.h"
 #include "chrono/fea/ChElementShellANCF_8.h"
 #include "chrono/fea/ChElementShellReissner4.h"
 #include "chrono/fea/ChElementTetra_4.h"
@@ -605,7 +606,27 @@ void ChContactSurfaceMesh::AddFacesFromBoundary(double sphere_swept, bool ccw) {
     // Case2. skin of ANCF SHELLS:
     //
     for (unsigned int ie = 0; ie < m_mesh->GetNelements(); ++ie) {
-        if (auto mshell = std::dynamic_pointer_cast<ChElementShellANCF>(m_mesh->GetElement(ie))) {
+        if (auto mshell = std::dynamic_pointer_cast<ChElementShellANCF_3423>(m_mesh->GetElement(ie))) {
+            std::shared_ptr<ChNodeFEAxyz> nA = mshell->GetNodeA();
+            std::shared_ptr<ChNodeFEAxyz> nB = mshell->GetNodeB();
+            std::shared_ptr<ChNodeFEAxyz> nC = mshell->GetNodeC();
+            std::shared_ptr<ChNodeFEAxyz> nD = mshell->GetNodeD();
+            if (ccw) {
+                triangles.push_back({{nA.get(), nD.get(), nB.get()}});
+                triangles.push_back({{nB.get(), nD.get(), nC.get()}});
+                triangles_ptrs.push_back({{nA, nD, nB}});
+                triangles_ptrs.push_back({{nB, nD, nC}});
+            } else {
+                triangles.push_back({{nA.get(), nB.get(), nD.get()}});
+                triangles.push_back({{nB.get(), nC.get(), nD.get()}});
+                triangles_ptrs.push_back({{nA, nB, nD}});
+                triangles_ptrs.push_back({{nB, nC, nD}});
+            }
+        }
+    }
+
+    for (unsigned int ie = 0; ie < m_mesh->GetNelements(); ++ie) {
+        if (auto mshell = std::dynamic_pointer_cast<ChElementShellANCF_3443>(m_mesh->GetElement(ie))) {
             std::shared_ptr<ChNodeFEAxyz> nA = mshell->GetNodeA();
             std::shared_ptr<ChNodeFEAxyz> nB = mshell->GetNodeB();
             std::shared_ptr<ChNodeFEAxyz> nC = mshell->GetNodeC();

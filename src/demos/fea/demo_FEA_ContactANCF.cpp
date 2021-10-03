@@ -29,7 +29,7 @@
 
 #include "chrono/fea/ChContactSurfaceMesh.h"
 #include "chrono/fea/ChContactSurfaceNodeCloud.h"
-#include "chrono/fea/ChElementShellANCF.h"
+#include "chrono/fea/ChElementShellANCF_3423.h"
 #include "chrono/fea/ChLinkDirFrame.h"
 #include "chrono/fea/ChLinkPointFrame.h"
 #include "chrono/fea/ChLinkPointFrame.h"
@@ -150,8 +150,8 @@ int main(int argc, char* argv[]) {
     auto TotalNumElements = my_mesh->GetNelements();
 
     for (unsigned int ele = 0; ele < TotalNumElements; ele++) {
-        auto element = chrono_types::make_shared<ChElementShellANCF>();
-        element = std::dynamic_pointer_cast<ChElementShellANCF>(my_mesh->GetElement(ele));
+        auto element = chrono_types::make_shared<ChElementShellANCF_3423>();
+        element = std::dynamic_pointer_cast<ChElementShellANCF_3423>(my_mesh->GetElement(ele));
         // Add a single layers with a fiber angle of 0 degrees.
         element->AddLayer(dz, 0 * CH_C_DEG_TO_RAD, material);
         // Set other element properties

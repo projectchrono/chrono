@@ -30,7 +30,7 @@
 #include "chrono/physics/ChBodyEasy.h"
 
 #include "chrono/fea/ChElementBrick_9.h"
-#include "chrono/fea/ChElementShellANCF.h"
+#include "chrono/fea/ChElementShellANCF_3423.h"
 #include "chrono/fea/ChMesh.h"
 #include "chrono/fea/ChVisualizationFEAmesh.h"
 #include "chrono/fea/ChContactSurfaceNodeCloud.h"
@@ -152,7 +152,7 @@ void DPCapPress() {
 
     for (int i = 0; i < TotalNumElements; i++) {
         auto node = chrono_types::make_shared<ChNodeFEAcurv>(ChVector<>(0.0, 0.0, 0.0), ChVector<>(0.0, 0.0, 0.0),
-                                                    ChVector<>(0.0, 0.0, 0.0));
+                                                             ChVector<>(0.0, 0.0, 0.0));
         node->SetMass(0);
         my_mesh->AddNode(node);
     }
@@ -488,7 +488,7 @@ void ShellBrickContact() {
 
     for (int i = 0; i < TotalNumElements; i++) {
         auto node = chrono_types::make_shared<ChNodeFEAcurv>(ChVector<>(0.0, 0.0, 0.0), ChVector<>(0.0, 0.0, 0.0),
-                                                    ChVector<>(0.0, 0.0, 0.0));
+                                                             ChVector<>(0.0, 0.0, 0.0));
         node->SetMass(0);
         my_mesh->AddNode(node);
     }
@@ -498,7 +498,8 @@ void ShellBrickContact() {
         double loc_x = (k % (SnumDiv_x + 1)) * Sdx + 0.15;
         double loc_y = (k / (SnumDiv_x + 1)) % (SnumDiv_y + 1) * Sdy + 0.15;
         double loc_z = 0.13;
-        auto nodeshell = chrono_types::make_shared<ChNodeFEAxyzD>(ChVector<>(loc_x, loc_y, loc_z), ChVector<>(0.0, 0.0, 1.0));
+        auto nodeshell =
+            chrono_types::make_shared<ChNodeFEAxyzD>(ChVector<>(loc_x, loc_y, loc_z), ChVector<>(0.0, 0.0, 1.0));
         nodeshell->SetMass(0);
         my_mesh->AddNode(nodeshell);
     }
@@ -604,7 +605,7 @@ void ShellBrickContact() {
         int node2 = (ii / (SnumDiv_x)) * (SN_x) + ii % SnumDiv_x + 1 + SN_x;
         int node3 = (ii / (SnumDiv_x)) * (SN_x) + ii % SnumDiv_x + SN_x;
 
-        auto elementshell = chrono_types::make_shared<ChElementShellANCF>();
+        auto elementshell = chrono_types::make_shared<ChElementShellANCF_3423>();
         elementshell->SetNodes(std::dynamic_pointer_cast<ChNodeFEAxyzD>(my_mesh->GetNode(TotalNumNodes + node0)),
                                std::dynamic_pointer_cast<ChNodeFEAxyzD>(my_mesh->GetNode(TotalNumNodes + node1)),
                                std::dynamic_pointer_cast<ChNodeFEAxyzD>(my_mesh->GetNode(TotalNumNodes + node2)),
@@ -815,7 +816,7 @@ void SimpleBoxContact() {
 
     for (int i = 0; i < TotalNumElements; i++) {
         auto node = chrono_types::make_shared<ChNodeFEAcurv>(ChVector<>(0.0, 0.0, 0.0), ChVector<>(0.0, 0.0, 0.0),
-                                                    ChVector<>(0.0, 0.0, 0.0));
+                                                             ChVector<>(0.0, 0.0, 0.0));
         node->SetMass(0);
         my_mesh->AddNode(node);
     }
@@ -1114,7 +1115,7 @@ void SoilBin() {
 
     for (int i = 0; i < TotalNumElements; i++) {
         auto node = chrono_types::make_shared<ChNodeFEAcurv>(ChVector<>(0.0, 0.0, 0.0), ChVector<>(0.0, 0.0, 0.0),
-                                                    ChVector<>(0.0, 0.0, 0.0));
+                                                             ChVector<>(0.0, 0.0, 0.0));
         node->SetMass(0);
         my_mesh->AddNode(node);
     }
@@ -1442,7 +1443,7 @@ void AxialDynamics() {
 
     for (int i = 0; i < TotalNumElements; i++) {
         auto node = chrono_types::make_shared<ChNodeFEAcurv>(ChVector<>(0.0, 0.0, 0.0), ChVector<>(0.0, 0.0, 0.0),
-                                                    ChVector<>(0.0, 0.0, 0.0));
+                                                             ChVector<>(0.0, 0.0, 0.0));
         node->SetMass(0);
         my_mesh->AddNode(node);
     }
@@ -1700,7 +1701,7 @@ void BendingQuasiStatic() {
 
     for (int i = 0; i < TotalNumElements; i++) {
         auto node = chrono_types::make_shared<ChNodeFEAcurv>(ChVector<>(0.0, 0.0, 0.0), ChVector<>(0.0, 0.0, 0.0),
-                                                    ChVector<>(0.0, 0.0, 0.0));
+                                                             ChVector<>(0.0, 0.0, 0.0));
         node->SetMass(0);
         my_mesh->AddNode(node);
     }
@@ -1929,7 +1930,7 @@ void SwingingShell() {
 
     for (int i = 0; i < TotalNumElements; i++) {
         auto node = chrono_types::make_shared<ChNodeFEAcurv>(ChVector<>(0.0, 0.0, 0.0), ChVector<>(0.0, 0.0, 0.0),
-                                                    ChVector<>(0.0, 0.0, 0.0));
+                                                             ChVector<>(0.0, 0.0, 0.0));
         node->SetMass(0);
         my_mesh->AddNode(node);
     }

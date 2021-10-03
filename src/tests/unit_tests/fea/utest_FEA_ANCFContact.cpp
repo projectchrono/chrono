@@ -26,7 +26,7 @@
 
 #include "chrono/solver/ChIterativeSolverLS.h"
 
-#include "chrono/fea/ChElementShellANCF.h"
+#include "chrono/fea/ChElementShellANCF_3423.h"
 #include "chrono/fea/ChMesh.h"
 #include "chrono/fea/ChContactSurfaceMesh.h"
 #include "chrono/fea/ChVisualizationFEAmesh.h"
@@ -213,10 +213,10 @@ bool EvaluateContact(std::shared_ptr<ChMaterialShellANCF> material,
 
     N2[0] = ChVector<>(-L_x, 0, -L_z) * scaleFactor + trans_elem2;
     N2[1] = ChVector<>(-L_x, 0, +L_z) * scaleFactor + trans_elem2;
-    N2[2] = ChVector<>(+L_x, 0, +L_z ) * scaleFactor + trans_elem2;
-    N2[3] = ChVector<>(+L_x, 0, -L_z ) * scaleFactor + trans_elem2;
+    N2[2] = ChVector<>(+L_x, 0, +L_z) * scaleFactor + trans_elem2;
+    N2[3] = ChVector<>(+L_x, 0, -L_z) * scaleFactor + trans_elem2;
 
-    ChVector<> direction1 (0, 1, 0);
+    ChVector<> direction1(0, 1, 0);
     ChVector<> direction2(0, -1, 0);
     auto my_meshes_1 = chrono_types::make_shared<ChMesh>();
     auto my_meshes_2 = chrono_types::make_shared<ChMesh>();
@@ -234,7 +234,7 @@ bool EvaluateContact(std::shared_ptr<ChMaterialShellANCF> material,
     }
 
     // Create the element 1 and 2 and add them to their relevant mesh.
-    auto Element1 = chrono_types::make_shared<ChElementShellANCF>();  // To add nodes of the first element
+    auto Element1 = chrono_types::make_shared<ChElementShellANCF_3423>();  // To add nodes of the first element
     Element1->SetNodes(std::dynamic_pointer_cast<ChNodeFEAxyzD>(my_meshes_1->GetNode(0)),
                        std::dynamic_pointer_cast<ChNodeFEAxyzD>(my_meshes_1->GetNode(1)),
                        std::dynamic_pointer_cast<ChNodeFEAxyzD>(my_meshes_1->GetNode(2)),
@@ -246,7 +246,7 @@ bool EvaluateContact(std::shared_ptr<ChMaterialShellANCF> material,
     Element1->SetGravityOn(false);  // turn internal gravitational force calculation off
     my_meshes_1->AddElement(Element1);
 
-    auto Element2 = chrono_types::make_shared<ChElementShellANCF>();  // To add nodes of the first element
+    auto Element2 = chrono_types::make_shared<ChElementShellANCF_3423>();  // To add nodes of the first element
 
     Element2->SetNodes(std::dynamic_pointer_cast<ChNodeFEAxyzD>(my_meshes_2->GetNode(0)),
                        std::dynamic_pointer_cast<ChNodeFEAxyzD>(my_meshes_2->GetNode(1)),
@@ -288,7 +288,7 @@ bool EvaluateContact(std::shared_ptr<ChMaterialShellANCF> material,
     my_system.SetSolver(solver);
     solver->SetMaxIterations(200);
     solver->SetTolerance(1e-10);
-    //solver->EnableDiagonalPreconditioner(false);
+    // solver->EnableDiagonalPreconditioner(false);
     solver->SetVerbose(false);
 
     my_system.SetTimestepperType(ChTimestepper::Type::HHT);
