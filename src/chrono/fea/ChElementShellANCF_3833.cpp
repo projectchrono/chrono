@@ -42,7 +42,6 @@ namespace fea {
 // ------------------------------------------------------------------------------
 ChElementShellANCF_3833::ChElementShellANCF_3833()
     : m_method(IntFrcMethod::ContInt),
-      m_gravity_on(false),
       m_numLayers(0),
       m_lenX(0),
       m_lenY(0),
@@ -51,7 +50,6 @@ ChElementShellANCF_3833::ChElementShellANCF_3833()
       m_Alpha(0),
       m_damping_enabled(false) {
     m_nodes.resize(8);
-    m_system = nullptr;
 }
 
 // ------------------------------------------------------------------------------
@@ -396,7 +394,6 @@ void ChElementShellANCF_3833::SetupInitial(ChSystem* system) {
 
     // Compute and store the constant mass matrix and the matrix used to multiply the acceleration due to gravity to get
     // the generalized gravitational force vector for the element
-    m_system = system;
     ComputeMassMatrixAndGravityForce();
 
     // Compute any required matrices and vectors for the generalized internal force and Jacobian calculations
@@ -496,17 +493,6 @@ void ChElementShellANCF_3833::ComputeInternalForces(ChVectorDynamic<>& Fi) {
     } else {
         ComputeInternalForcesContIntPreInt(Fi);
     }
-
-    // Calculate and add the generalized force due to gravity to the generalized internal force vector for the element.
-    // The generalized force due to gravity could be computed once prior to the start of the simulation if gravity was
-    // assumed constant throughout the entire simulation.  However, this implementation assumes that the acceleration
-    // due to gravity, while a constant for the entire system, can change from step to step which could be useful for
-    // gravity loaded units tests as an example.
-    if (m_gravity_on) {
-        MatrixNx3 GravForceCompact = m_GravForceScale * m_system->Get_G_acc().eigen().transpose();
-        Eigen::Map<Vector3N> GravForce(GravForceCompact.data(), GravForceCompact.size());
-        Fi += GravForce;
-    }
 }
 
 // Calculate the global matrix H as a linear combination of K, R, and M:
@@ -541,6 +527,20 @@ void ChElementShellANCF_3833::ComputeKRMmatricesGlobal(ChMatrixRef H, double Kfa
             idx++;
         }
     }
+}
+
+// Compute the generalized force vector due to gravity using the efficient ANCF specific method
+void ChElementShellANCF_3833::ComputeGravityForces(ChVectorDynamic<>& Fg, const ChVector<>& G_acc) {
+    assert(Fg.size() == 3 * NSF);
+
+    // Calculate and add the generalized force due to gravity to the generalized internal force vector for the element.
+    // The generalized force due to gravity could be computed once prior to the start of the simulation if gravity was
+    // assumed constant throughout the entire simulation.  However, this implementation assumes that the acceleration
+    // due to gravity, while a constant for the entire system, can change from step to step which could be useful for
+    // gravity loaded units tests as an example.  The generalized force due to gravity is calculated in compact matrix
+    // form and is pre-mapped to the desired vector format
+    Eigen::Map<MatrixNx3> GravForceCompact(Fg.data(), NSF, 3);
+    GravForceCompact = m_GravForceScale * G_acc.eigen().transpose();
 }
 
 // -----------------------------------------------------------------------------

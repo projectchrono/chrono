@@ -73,7 +73,7 @@ namespace fea {
 /// E o-----+-----o F
 /// </pre>
 
-class ChElementBrickANCF_3843 : public ChElementGeneric, public ChLoadableUVW {
+class ChApi ChElementBrickANCF_3843 : public ChElementGeneric, public ChLoadableUVW {
   public:
     // Using fewer than 3 Gauss quadrature will likely result in numerical issues with the element.
     static const int NP = 4;              ///< number of Gauss quadrature along beam axis
@@ -157,12 +157,6 @@ class ChElementBrickANCF_3843 : public ChElementGeneric, public ChLoadableUVW {
     /// Get a handle to the 8th node of this element.
     std::shared_ptr<ChNodeFEAxyzDDD> GetNodeH() const { return m_nodes[7]; }
 
-    /// Turn the fast ANCF specific gravity calculations on/off.
-    /// NOTE: This switch does not affect the default method of calculating the effects due to gravity with a generic
-    /// method at the mesh level.   Therefore, gravity calculations at the mesh level should be manually disable if the
-    /// faster ANCF specific gravity calculations are enabled here.
-    void SetGravityOn(bool val) { m_gravity_on = val; }
-
     /// Set the structural damping.
     void SetAlphaDamp(double a);
 
@@ -225,6 +219,9 @@ class ChElementBrickANCF_3843 : public ChElementGeneric, public ChLoadableUVW {
                                           double Kfactor,
                                           double Rfactor = 0,
                                           double Mfactor = 0) override;
+
+    /// Compute the generalized force vector due to gravity using the efficient ANCF specific method
+    virtual void ComputeGravityForces(ChVectorDynamic<>& Fg, const ChVector<>& G_acc) override;
 
     // --------------------------------------
 
@@ -411,16 +408,14 @@ class ChElementBrickANCF_3843 : public ChElementGeneric, public ChLoadableUVW {
     /// Access a statically-allocated set of tables, from 0 to a 10th order, with precomputed tables.
     static ChQuadratureTables* GetStaticGQTables();
 
-    ChSystem* m_system;     ///< System containing this element (used to get the current value of the gravity vector)
-    IntFrcMethod m_method;  ///< Generalized internal force and Jacobian calculation method
-    std::shared_ptr<ChMaterialBrickANCF> m_material;        ///< material model
+    IntFrcMethod m_method;                            ///< Generalized internal force and Jacobian calculation method
+    std::shared_ptr<ChMaterialBrickANCF> m_material;  ///< material model
     std::vector<std::shared_ptr<ChNodeFEAxyzDDD>> m_nodes;  ///< element nodes
     double m_lenX;                                          ///< total element length along X
     double m_lenY;                                          ///< total element length along Y
     double m_lenZ;                                          ///< total element length along Z
     double m_Alpha;                                         ///< structural damping
     bool m_damping_enabled;                                 ///< Flag to run internal force damping calculations
-    bool m_gravity_on;                                      ///< enable/disable gravity calculation
     VectorN m_GravForceScale;  ///< Gravity scaling matrix used to get the generalized force due to gravity
     Matrix3xN m_ebar0;         ///< Element Position Coordinate Vector for the Reference Configuration
     Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor>

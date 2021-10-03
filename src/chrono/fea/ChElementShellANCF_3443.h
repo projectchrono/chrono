@@ -61,7 +61,7 @@ namespace fea {
 /// A o-----+-----o B
 /// </pre>
 
-class ChElementShellANCF_3443 : public ChElementShell, public ChLoadableUV, public ChLoadableUVW {
+class ChApi ChElementShellANCF_3443 : public ChElementShell, public ChLoadableUV, public ChLoadableUVW {
   public:
     // Using fewer than 3 Gauss quadrature points for each midsurface direction (NP) or 2 Gauss quadrature points
     // through the thickness (NT) will likely result in numerical issues with the element.  A slightly less stiff
@@ -172,12 +172,6 @@ class ChElementShellANCF_3443 : public ChElementShell, public ChLoadableUV, publ
     /// along the elements zeta direction.  The offset should be provided in model units.
     void SetMidsurfaceOffset(const double offset);
 
-    /// Turn the fast ANCF specific gravity calculations on/off.
-    /// NOTE: This switch does not affect the default method of calculating the effects due to gravity with a generic
-    /// method at the mesh level.   Therefore, gravity calculations at the mesh level should be manually disable if the
-    /// faster ANCF specific gravity calculations are enabled here.
-    void SetGravityOn(bool val) { m_gravity_on = val; }
-
     /// Set the structural damping.
     void SetAlphaDamp(double a);
 
@@ -246,6 +240,9 @@ class ChElementShellANCF_3443 : public ChElementShell, public ChLoadableUV, publ
                                           double Kfactor,
                                           double Rfactor = 0,
                                           double Mfactor = 0) override;
+
+    /// Compute the generalized force vector due to gravity using the efficient ANCF specific method
+    virtual void ComputeGravityForces(ChVectorDynamic<>& Fg, const ChVector<>& G_acc) override;
 
     // Interface to ChElementShell base class
     // --------------------------------------
@@ -472,7 +469,6 @@ class ChElementShellANCF_3443 : public ChElementShell, public ChLoadableUV, publ
     /// Access a statically-allocated set of tables, from 0 to a 10th order, with precomputed tables.
     static ChQuadratureTables* GetStaticGQTables();
 
-    ChSystem* m_system;     ///< System containing this element (used to get the current value of the gravity vector)
     IntFrcMethod m_method;  ///< Generalized internal force and Jacobian calculation method
     std::vector<std::shared_ptr<ChNodeFEAxyzDDD>> m_nodes;         ///< element nodes
     std::vector<Layer, Eigen::aligned_allocator<Layer>> m_layers;  ///< element layers
@@ -485,7 +481,6 @@ class ChElementShellANCF_3443 : public ChElementShell, public ChLoadableUV, publ
     double m_midsurfoffset;    ///< Offset of the midsurface along Z
     double m_Alpha;            ///< structural damping
     bool m_damping_enabled;    ///< Flag to run internal force damping calculations
-    bool m_gravity_on;         ///< enable/disable gravity calculation
     VectorN m_GravForceScale;  ///< Gravity scaling matrix used to get the generalized force due to gravity
     Matrix3xN m_ebar0;         ///< Element Position Coordinate Vector for the Reference Configuration
     Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor>

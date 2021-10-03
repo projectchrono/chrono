@@ -61,7 +61,7 @@ namespace fea {
 /// </pre>
 /// where C is the third and central node.
 
-class ChElementBeamANCF_3333 : public ChElementBeam, public ChLoadableU, public ChLoadableUVW {
+class ChApi ChElementBeamANCF_3333 : public ChElementBeam, public ChLoadableU, public ChLoadableUVW {
   public:
     // Using fewer than 2 Gauss quadrature points along the beam axis (NP) or through each cross section direction (NT)
     // will likely result in numerical issues with the element.
@@ -135,12 +135,6 @@ class ChElementBeamANCF_3333 : public ChElementBeam, public ChLoadableU, public 
     /// Get a handle to the third (middle) node of this element.
     std::shared_ptr<ChNodeFEAxyzDD> GetNodeC() const { return m_nodes[2]; }
 
-    /// Turn the fast ANCF specific gravity calculations on/off.
-    /// NOTE: This switch does not affect the default method of calculating the effects due to gravity with a generic
-    /// method at the mesh level.   Therefore, gravity calculations at the mesh level should be manually disable if the
-    /// faster ANCF specific gravity calculations are enabled here.
-    void SetGravityOn(bool val) { m_gravity_on = val; }
-
     /// Set the structural damping.
     void SetAlphaDamp(double a);
 
@@ -203,6 +197,9 @@ class ChElementBeamANCF_3333 : public ChElementBeam, public ChLoadableU, public 
                                           double Kfactor,
                                           double Rfactor = 0,
                                           double Mfactor = 0) override;
+
+    /// Compute the generalized force vector due to gravity using the efficient ANCF specific method
+    virtual void ComputeGravityForces(ChVectorDynamic<>& Fg, const ChVector<>& G_acc) override;
 
     // Interface to ChElementBeam base class (and similar methods)
     // --------------------------------------
@@ -408,16 +405,14 @@ class ChElementBeamANCF_3333 : public ChElementBeam, public ChLoadableU, public 
     /// Access a statically-allocated set of tables, from 0 to a 10th order, with precomputed tables.
     static ChQuadratureTables* GetStaticGQTables();
 
-    ChSystem* m_system;     ///< System containing this element (used to get the current value of the gravity vector)
-    IntFrcMethod m_method;  ///< Generalized internal force and Jacobian calculation method
-    std::shared_ptr<ChMaterialBeamANCF> m_material;        ///< material model
+    IntFrcMethod m_method;                           ///< Generalized internal force and Jacobian calculation method
+    std::shared_ptr<ChMaterialBeamANCF> m_material;  ///< material model
     std::vector<std::shared_ptr<ChNodeFEAxyzDD>> m_nodes;  ///< element nodes
     double m_lenX;                                         ///< total element length along X
     double m_thicknessY;                                   ///< total element length along Y
     double m_thicknessZ;                                   ///< total element length along Z
     double m_Alpha;                                        ///< structural damping
     bool m_damping_enabled;                                ///< Flag to run internal force damping calculations
-    bool m_gravity_on;                                     ///< enable/disable gravity calculation
     VectorN m_GravForceScale;  ///< Gravity scaling matrix used to get the generalized force due to gravity
     Matrix3xN m_ebar0;         ///< Element Position Coordinate Vector for the Reference Configuration
     Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor>
