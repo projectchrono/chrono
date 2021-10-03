@@ -83,7 +83,7 @@ std::string steering_controller_file("marder/driver/SteeringController.json");
 std::string speed_controller_file("marder/driver/SpeedController.json");
 
 // Output directories
-const std::string out_top_dir = GetChronoOutputPath() + "MARDER";
+const std::string out_top_dir = GetChronoOutputPath() + "Marder";
 const std::string out_dir = out_top_dir + "/OBSTACLE";
 const std::string pov_dir = out_dir + "/POVRAY";
 const std::string img_dir = out_dir + "/IMG";
@@ -238,6 +238,11 @@ int main(int argc, char* argv[]) {
     // -----------------
     // Initialize output
     // -----------------
+
+    if (!filesystem::create_directory(filesystem::path(out_top_dir))) {
+        std::cout << "Error creating directory " << out_top_dir << std::endl;
+        return 1;
+    }
 
     if (!filesystem::create_directory(filesystem::path(out_dir))) {
         std::cout << "Error creating directory " << out_dir << std::endl;
