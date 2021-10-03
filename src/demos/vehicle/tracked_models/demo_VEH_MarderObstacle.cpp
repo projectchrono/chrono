@@ -239,21 +239,16 @@ int main(int argc, char* argv[]) {
     // Initialize output
     // -----------------
 
-    if (!filesystem::create_directory(filesystem::path(out_top_dir))) {
-        std::cout << "Error creating directory " << out_top_dir << std::endl;
-        return 1;
-    }
-
-    if (!filesystem::create_directory(filesystem::path(out_dir))) {
-        std::cout << "Error creating directory " << out_dir << std::endl;
-        return 1;
-    }
-
+    std::vector<std::string> dirs_to_create = {out_top_dir, out_dir};
     if (img_output) {
-        if (!filesystem::create_directory(filesystem::path(img_dir))) {
-            std::cout << "Error creating directory " << img_dir << std::endl;
-            return 1;
-        }
+      dirs_to_create.push_back(img_dir);
+    }
+
+    for (const auto& dir : dirs_to_create) {
+      if (!filesystem::create_directory(filesystem::path(dir))) {
+          std::cout << "Error creating directory " << dir << std::endl;
+          return 1;
+      }
     }
 
     // Set up vehicle output
