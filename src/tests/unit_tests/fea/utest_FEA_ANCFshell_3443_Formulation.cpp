@@ -2510,5 +2510,5 @@ int main(int argc, char* argv[]) {
         tests_passed = false;
     }
 
-    return tests_passed;
+    return !tests_passed;
 }
