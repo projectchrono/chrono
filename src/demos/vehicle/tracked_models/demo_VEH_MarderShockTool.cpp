@@ -77,8 +77,8 @@ ChVector<> trackPoint(0.0, 3.0, 0.0);
 
 // Driver input files
 std::string path_file("paths/straightOrigin.txt");
-std::string steering_controller_file("marder/driver/SteeringController.json");
-std::string speed_controller_file("marder/driver/SpeedController.json");
+std::string steering_controller_file("Marder/driver/SteeringController.json");
+std::string speed_controller_file("Marder/driver/SpeedController.json");
 
 // Output directories
 const std::string out_top_dir = GetChronoOutputPath() + "Marder";
