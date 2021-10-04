@@ -101,19 +101,12 @@ int main(int argc, char* argv[]) {
     bool create_track = true;
 
     ChContactMethod contact_method = ChContactMethod::SMC;
-    collision::ChCollisionSystemType collsys_type = collision::ChCollisionSystemType::CHRONO;
+    collision::ChCollisionSystemType collsys_type = collision::ChCollisionSystemType::BULLET;
     CollisionType chassis_collision_type = CollisionType::NONE;
     TrackShoeType shoe_type = TrackShoeType::SINGLE_PIN;
     BrakeType brake_type = BrakeType::SIMPLE;
     DrivelineTypeTV driveline_type = DrivelineTypeTV::BDS;
     PowertrainModelType powertrain_type = PowertrainModelType::SHAFTS;
-
-    //// TODO
-    //// When using SMC, a double-pin shoe type requires MKL or MUMPS.
-    //// However, there appear to still be redundant constraints in the double-pin assembly
-    //// resulting in solver failures with MKL and MUMPS (rank-deficient matrix).
-    if (shoe_type == TrackShoeType::DOUBLE_PIN)
-        contact_method = ChContactMethod::NSC;
 
     M113 m113;
     m113.SetContactMethod(contact_method);
@@ -181,11 +174,15 @@ int main(int argc, char* argv[]) {
     ////m113.GetVehicle().MonitorContacts(TrackedCollisionFlag::CHASSIS);
 
     // Monitor contacts involving one of the sprockets.
-    ////m113.GetVehicle().MonitorContacts(TrackedCollisionFlag::SPROCKET_LEFT | TrackedCollisionFlag::SPROCKET_RIGHT);
+    m113.GetVehicle().MonitorContacts(TrackedCollisionFlag::SPROCKET_LEFT | TrackedCollisionFlag::SPROCKET_RIGHT);
 
     // Monitor only contacts involving the left idler.
-    m113.GetVehicle().MonitorContacts(TrackedCollisionFlag::IDLER_LEFT);
+    ////m113.GetVehicle().MonitorContacts(TrackedCollisionFlag::IDLER_LEFT);
     
+    // Render contact normals and/or contact forces.
+    m113.GetVehicle().SetRenderContactNormals(true);
+    ////m113.GetVehicle().SetRenderContactForces(true, 1e-4);
+
     // Collect contact information.
     // If enabled, number of contacts and local contact point locations are collected for all
     // monitored parts.  Data can be written to a file by invoking ChTrackedVehicle::WriteContacts().
@@ -301,7 +298,7 @@ int main(int argc, char* argv[]) {
     app.SetChaseCamera(trackPoint, 6.0, 0.5);
     ////app.SetChaseCameraPosition(m113.GetVehicle().GetVehiclePos() + ChVector<>(0, 2, 0));
     app.SetChaseCameraMultipliers(1e-4, 10);
-    app.SetTimestep(step_size);
+
     app.AssetBindAll();
     app.AssetUpdateAll();
 
@@ -347,29 +344,37 @@ int main(int argc, char* argv[]) {
     }
 
     // Set up vehicle output
-    m113.GetVehicle().SetChassisOutput(true);
-    m113.GetVehicle().SetTrackAssemblyOutput(VehicleSide::LEFT, true);
-    m113.GetVehicle().SetOutput(ChVehicleOutput::ASCII, out_dir, "output", 0.1);
+    ////m113.GetVehicle().SetChassisOutput(true);
+    ////m113.GetVehicle().SetTrackAssemblyOutput(VehicleSide::LEFT, true);
+    ////m113.GetVehicle().SetOutput(ChVehicleOutput::ASCII, out_dir, "output", 0.1);
 
     // Generate JSON information with available output channels
-    m113.GetVehicle().ExportComponentList(out_dir + "/component_list.json");
+    ////m113.GetVehicle().ExportComponentList(out_dir + "/component_list.json");
 
     // ------------------------------
     // Solver and integrator settings
     // ------------------------------
 
-    // Cannot use HHT + MKL with NSC contact
-    if (contact_method == ChContactMethod::NSC) {
-        use_mkl = false;
+    switch (contact_method) {
+        case ChContactMethod::NSC:
+            std::cout << "Use NSC" << std::endl;
+            // Cannot use HHT + MKL with NSC contact
+            use_mkl = false;
+            break;
+        case ChContactMethod::SMC:
+            std::cout << "Use SMC" << std::endl;
+            break;
     }
 
 #ifndef CHRONO_PARDISO_MKL
-    // Cannot use HHT + PardisoMKL if Chrono::PardisoMKL not available
     use_mkl = false;
 #endif
 
     if (use_mkl) {
 #ifdef CHRONO_PARDISO_MKL
+        std::cout << "Solver: PardisoMKL" << std::endl;
+        std::cout << "Integrator: HHT" << std::endl;
+
         auto mkl_solver = chrono_types::make_shared<ChSolverPardisoMKL>();
         mkl_solver->LockSparsityPattern(true);
         m113.GetSystem()->SetSolver(mkl_solver);

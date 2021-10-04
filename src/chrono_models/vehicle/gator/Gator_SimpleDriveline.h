@@ -53,11 +53,6 @@ class CH_MODELS_API Gator_SimpleDriveline : public ChDrivelineWV {
     /// system.
     virtual void Synchronize(double torque) override;
 
-    /// Get the angular speed of the driveshaft.
-    /// This represents the output from the driveline subsystem that is passed to
-    /// the powertrain system.
-    virtual double GetDriveshaftSpeed() const override;
-
     /// Get the motor torque to be applied to the specified spindle.
     virtual double GetSpindleTorque(int axle, VehicleSide side) const override;
 

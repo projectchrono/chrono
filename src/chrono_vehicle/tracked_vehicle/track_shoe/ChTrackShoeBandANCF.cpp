@@ -50,6 +50,9 @@ ChTrackShoeBandANCF::ChTrackShoeBandANCF(const std::string& name, ElementType el
     : ChTrackShoeBand(name), m_element_type(element_type) {}
 
 ChTrackShoeBandANCF::~ChTrackShoeBandANCF() {
+    if (!m_connections[0])
+        return;
+
     auto sys = m_connections[0]->GetSystem();
     if (sys) {
         for (auto c : m_connections)

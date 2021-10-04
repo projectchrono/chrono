@@ -52,13 +52,13 @@ DriverMode driver_mode = DEFAULT;
 VisualizationType chassis_vis_type = VisualizationType::PRIMITIVES;
 VisualizationType suspension_vis_type = VisualizationType::PRIMITIVES;
 VisualizationType steering_vis_type = VisualizationType::PRIMITIVES;
-VisualizationType wheel_vis_type = VisualizationType::PRIMITIVES;
+VisualizationType wheel_vis_type = VisualizationType::NONE;
 
 // Collision type for chassis (PRIMITIVES, MESH, or NONE)
 CollisionType chassis_collision_type = CollisionType::NONE;
 
-// Type of tire model (RIGID)
-TireModelType tire_model = TireModelType::RIGID;
+// Type of tire model (RIGID, TMEASY)
+TireModelType tire_model = TireModelType::TMEASY;
 
 // Rigid terrain
 RigidTerrain::PatchType terrain_model = RigidTerrain::PatchType::BOX;
@@ -113,8 +113,7 @@ int main(int argc, char* argv[]) {
     my_rccar.SetTireStepSize(tire_step_size);
     my_rccar.Initialize();
 
-    VisualizationType tire_vis_type =
-        (tire_model == TireModelType::RIGID_MESH) ? VisualizationType::MESH : VisualizationType::NONE;
+    VisualizationType tire_vis_type = VisualizationType::MESH;
 
     my_rccar.SetChassisVisualizationType(chassis_vis_type);
     my_rccar.SetSuspensionVisualizationType(suspension_vis_type);
@@ -122,7 +121,6 @@ int main(int argc, char* argv[]) {
     my_rccar.SetWheelVisualizationType(wheel_vis_type);
     my_rccar.SetTireVisualizationType(tire_vis_type);
 
-    // Create the terrain
     // Create the terrain
     RigidTerrain terrain(my_rccar.GetSystem());
 
@@ -156,7 +154,7 @@ int main(int argc, char* argv[]) {
     ChWheeledVehicleIrrApp app(&my_rccar.GetVehicle(), L"RCCar Demo");
     app.SetSkyBox();
     app.AddTypicalLights(irr::core::vector3df(30.f, -30.f, 100.f), irr::core::vector3df(30.f, 50.f, 100.f), 250, 130);
-    app.SetChaseCamera(trackPoint, 1.5, 0.5);
+    app.SetChaseCamera(trackPoint, 1.5, 0.05);
     app.SetTimestep(step_size);
     app.AssetBindAll();
     app.AssetUpdateAll();

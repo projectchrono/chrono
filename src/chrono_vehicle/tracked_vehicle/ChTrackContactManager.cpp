@@ -20,6 +20,7 @@
 
 #include "chrono_vehicle/tracked_vehicle/ChTrackContactManager.h"
 #include "chrono_vehicle/tracked_vehicle/ChTrackedVehicle.h"
+#include "chrono_vehicle/tracked_vehicle/test_rig/ChTrackTestRig.h"
 
 namespace chrono {
 namespace vehicle {
@@ -27,8 +28,14 @@ namespace vehicle {
 // -----------------------------------------------------------------------------
 
 ChTrackContactManager::ChTrackContactManager()
-    : m_initialized(false), m_flags(0), m_collect(false), m_shoe_index_L(0), m_shoe_index_R(0) {
-}
+    : m_initialized(false),
+      m_flags(0),
+      m_collect(false),
+      m_shoe_index_L(0),
+      m_shoe_index_R(0),
+      m_render_normals(false),
+      m_render_forces(false),
+      m_scale_forces(1e-3) {}
 
 void ChTrackContactManager::Process(ChTrackedVehicle* vehicle) {
     // Initialize the manager if not already done.
@@ -103,6 +110,134 @@ void ChTrackContactManager::Process(ChTrackedVehicle* vehicle) {
 
             for (const auto& c : m_sprocket_L_contacts) {
                 m_csv << m_sprocket_L->GetGearBody()->TransformPointParentToLocal(c.m_point);            
+            }
+
+            // Right sprocket contact points
+            for (const auto& c : m_sprocket_R_contacts) {
+                m_csv << m_sprocket_R->GetGearBody()->TransformPointParentToLocal(c.m_point);
+            }
+
+            // Left idler contact points
+            for (const auto& c : m_idler_L_contacts) {
+                m_csv << m_idler_L->GetWheelBody()->TransformPointParentToLocal(c.m_point);
+            }
+
+            // Right idler contact points
+            for (const auto& c : m_idler_R_contacts) {
+                m_csv << m_idler_R->GetWheelBody()->TransformPointParentToLocal(c.m_point);
+            }
+
+            // Left track shoe contact points
+            if (m_shoe_L) {
+                for (const auto& c : m_shoe_L_contacts) {
+                    m_csv << m_shoe_L->GetShoeBody()->TransformPointParentToLocal(c.m_point);
+                }
+            }
+
+            // Right track shoe contact points
+            if (m_shoe_R) {
+                for (const auto& c : m_shoe_R_contacts) {
+                    m_csv << m_shoe_R->GetShoeBody()->TransformPointParentToLocal(c.m_point);
+                }
+            }
+
+            m_csv << std::endl;
+        }
+    }
+}
+
+void ChTrackContactManager::Process(ChTrackTestRig* rig) {
+    auto side = rig->GetTrackAssembly()->GetVehicleSide();
+
+    // Initialize the manager if not already done.
+    if (!m_initialized) {
+        m_chassis = rig->GetChassis();
+
+        if (side == VehicleSide::LEFT) {
+            m_sprocket_L = rig->GetTrackAssembly()->GetSprocket();
+            if (rig->GetTrackAssembly()->GetNumTrackShoes() > m_shoe_index_L) {
+                m_shoe_L = rig->GetTrackAssembly()->GetTrackShoe(m_shoe_index_L);
+            }
+            m_idler_L = rig->GetTrackAssembly()->GetIdler();
+        } else {
+            m_sprocket_R = rig->GetTrackAssembly()->GetSprocket();
+            if (rig->GetTrackAssembly()->GetNumTrackShoes() > m_shoe_index_R) {
+                m_shoe_R = rig->GetTrackAssembly()->GetTrackShoe(m_shoe_index_R);
+            }
+            m_idler_R = rig->GetTrackAssembly()->GetIdler();        
+        }
+
+        m_initialized = true;
+    }
+
+    if (m_flags == 0)
+        return;
+
+    // Make sure the flags are consistent with the track assembly side of the test rig.
+    // Clear all collision flags related to the chassis and to components on the side different from the rig.
+    m_flags = m_flags & ~(TrackedCollisionFlag::CHASSIS);
+    if (side == VehicleSide::LEFT) {
+        // Clear any flags related to the right side
+        m_flags = m_flags & (~TrackedCollisionFlag::SPROCKET_RIGHT) & (~TrackedCollisionFlag::IDLER_RIGHT) &
+                  (~TrackedCollisionFlag::WHEELS_RIGHT) & (~TrackedCollisionFlag::SHOES_RIGHT) &
+                  (~TrackedCollisionFlag::ROLLERS_RIGHT);
+    } else {
+        // Clear any flags related to the left side
+        m_flags = m_flags & (~TrackedCollisionFlag::SPROCKET_LEFT) & (~TrackedCollisionFlag::IDLER_LEFT) &
+                  (~TrackedCollisionFlag::WHEELS_LEFT) & (~TrackedCollisionFlag::SHOES_LEFT) &
+                  (~TrackedCollisionFlag::ROLLERS_LEFT);    
+    }
+
+    // Clear lists
+    m_chassis_contacts.clear();
+    m_sprocket_L_contacts.clear();
+    m_sprocket_R_contacts.clear();
+    m_shoe_L_contacts.clear();
+    m_shoe_R_contacts.clear();
+    m_idler_L_contacts.clear();
+    m_idler_R_contacts.clear();
+
+    // Traverse all system contacts and extract information.
+    std::shared_ptr<ChTrackContactManager> shared_this(this, [](ChTrackContactManager*) {});
+    rig->GetSystem()->GetContactContainer()->ReportAllContacts(shared_this);
+
+    // Collect contact information data.
+    // Print current time, and number of contacts involving the chassis, left/right sprockets,
+    // left/right idlers, left/right track shoes, followed by the location of the contacts, in the
+    // same order as above, expressed in the local frame of the respective body.
+    if (m_collect) {
+        // Get number of contacts in all lists;
+        size_t n_chassis = m_chassis_contacts.size();
+        size_t n_sprocket_L = m_sprocket_L_contacts.size();
+        size_t n_sprocket_R = m_sprocket_R_contacts.size();
+        size_t n_idler_L = m_idler_L_contacts.size();
+        size_t n_idler_R = m_idler_R_contacts.size();
+        size_t n_shoe_L = m_shoe_L_contacts.size();
+        size_t n_shoe_R = m_shoe_R_contacts.size();
+
+        // Only collect data at this time if there is at least one monitored contact
+        size_t n_contacts = n_chassis + n_sprocket_L + n_sprocket_R + n_idler_L + n_idler_R + n_shoe_L + n_shoe_R;
+
+        if (n_contacts != 0) {
+            // Current simulation time
+            m_csv << rig->GetChTime();
+
+            // Number of contacts on vehicle parts
+            m_csv << m_chassis_contacts.size();
+            m_csv << m_sprocket_L_contacts.size();
+            m_csv << m_sprocket_R_contacts.size();
+            m_csv << m_idler_L_contacts.size();
+            m_csv << m_idler_R_contacts.size();
+            m_csv << m_shoe_L_contacts.size();
+            m_csv << m_shoe_R_contacts.size();
+
+            // Chassis contact points
+            for (const auto& c : m_chassis_contacts) {
+                m_csv << m_chassis->GetBody()->TransformPointParentToLocal(c.m_point);
+            }
+
+            for (const auto& c : m_sprocket_L_contacts) {
+                m_csv << m_sprocket_L->GetGearBody()->TransformPointParentToLocal(c.m_point);
             }
 
             // Right sprocket contact points

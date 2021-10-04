@@ -273,6 +273,8 @@ class ChFrameMoving : public ChFrame<Real> {
 
     /// Set the rotation acceleration from given angular acceleration
     /// (expressed in local csys)
+    /// Note: even when the local angular acceleration is zero, you are still encouraged to
+    /// call this method bacause q_dtdt might be nonzero due to nonzero q_dt in case of rotational motion.
     virtual void SetWacc_loc(const ChVector<Real>& al) {
         // q_dtdt = q_dt * q' * q_dt + 1/2 * q * (0,al)
         coord_dtdt.rot = (coord_dt.rot % this->coord.rot.GetConjugate() % coord_dt.rot) +
@@ -360,6 +362,9 @@ class ChFrameMoving : public ChFrame<Real> {
 
     /// Given the position of a point in local frame coords, and
     /// assuming it is sticky to frame, return the acceleration in parent coords.
+    /// Note: please ensure all the first and second derivatives of pos and rot are assigned as the precondition.
+    /// A special occasion: when the local angular acceleration is zero, it's still necessary to call SetWacc_loc(VNULL)
+    /// bacause the q_dtdt may be nonzero due to nonzero q_dt in case of rotational motion.
     ChVector<Real> PointAccelerationLocalToParent(const ChVector<Real>& localpos) const {
         return coord_dtdt.pos +
                ((coord_dtdt.rot % ChQuaternion<Real>(0, localpos) % this->coord.rot.GetConjugate()).GetVector() * 2) +
@@ -409,7 +414,7 @@ class ChFrameMoving : public ChFrame<Real> {
     void TransformLocalToParent(
         const ChFrameMoving<Real>& local,  ///< frame to transform, given in local frame coordinates
         ChFrameMoving<Real>& parent        ///< transformed frame, in parent coordinates, will be stored here
-        ) const {
+    ) const {
         // pos & rot
         ChFrame<Real>::TransformLocalToParent(local, parent);
 
@@ -433,7 +438,7 @@ class ChFrameMoving : public ChFrame<Real> {
     void TransformParentToLocal(
         const ChFrameMoving<Real>& parent,  ///< frame to transform, given in parent coordinates
         ChFrameMoving<Real>& local          ///< transformed frame, in local coordinates, will be stored here
-        ) const {
+    ) const {
         // pos & rot
         ChFrame<Real>::TransformParentToLocal(parent, local);
 
@@ -498,7 +503,7 @@ class ChFrameMoving : public ChFrame<Real> {
     /// Method to allow de serialization of transient data from archives.
     virtual void ArchiveIN(ChArchiveIn& marchive) override {
         // version number
-        /*int version =*/ marchive.VersionRead<ChFrameMoving>();
+        /*int version =*/marchive.VersionRead<ChFrameMoving>();
 
         // deserialize parent class
         ChFrame<Real>::ArchiveIN(marchive);

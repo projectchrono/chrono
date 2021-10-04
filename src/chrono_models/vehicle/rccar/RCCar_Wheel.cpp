@@ -33,14 +33,14 @@ namespace rccar {
 // Static variables
 // -----------------------------------------------------------------------------
 
-static const double in2m = 0.0254;
+static const double in2m = 0.0254; 
 static const double lb2kg = 0.453592;
 
-const double RCCar_Wheel::m_mass = lb2kg * 1.0;
-const ChVector<> RCCar_Wheel::m_inertia(0.001366, 0.001561, 0.001366);
+const double RCCar_Wheel::m_mass = .07;
+const ChVector<> RCCar_Wheel::m_inertia(.00007, 0.000136, .00007);
 
-const double RCCar_Wheel::m_radius = in2m * 2.22525;
-const double RCCar_Wheel::m_width = in2m * 3.3;
+const double RCCar_Wheel::m_radius = .103/2;
+const double RCCar_Wheel::m_width = .0855;
 
 const std::string RCCar_WheelLeft::m_meshName = "wheel_L_POV_geom";
 // const std::string RCCar_WheelLeft::m_meshFile = "rccar/wheel_L.obj";

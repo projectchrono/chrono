@@ -348,7 +348,7 @@ void ChOpenGLViewer::DrawObject(std::shared_ptr<ChBody> abody) {
 			mrot.Set_A_axis(mx, my, mz);
             lrot =rot % (visual_asset->Rot.Get_A_quaternion() % mrot.Get_A_quaternion());
 			//position of cylinder based on two points
-			ChVector<> mpos = 0.5 * (cylinder_shape->GetCylinderGeometry().p2 + cylinder_shape->GetCylinderGeometry().p1);
+			ChVector<> mpos = center + 0.5 * (cylinder_shape->GetCylinderGeometry().p2 + cylinder_shape->GetCylinderGeometry().p1);
 
             lrot.Q_to_AngAxis(angle, axis);
 			ChVector<> pos_final = pos  + rot.Rotate(mpos);
