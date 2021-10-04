@@ -3,7 +3,7 @@
 
 set(TESTS
     utest_FEA_ANCFCable
-    utest_FEA_ANCFBeam
+    utest_FEA_ANCFbeam_3333
     utest_FEA_ANCFbeam_Twist
     utest_FEA_IGABeam
     utest_FEA_ANCFShell_Iso
