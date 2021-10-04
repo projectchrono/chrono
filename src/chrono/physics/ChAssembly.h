@@ -293,7 +293,7 @@ class ChApi ChAssembly : public ChPhysicsItem {
     /// implementing their own swap.
     friend void swap(ChAssembly& first, ChAssembly& second);
 
-  private:
+  protected:
     virtual void SetupInitial() override;
 
     std::vector<std::shared_ptr<ChBody>> bodylist;                 ///< list of rigid bodies

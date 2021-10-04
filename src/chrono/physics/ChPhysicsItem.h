@@ -406,6 +406,7 @@ class ChApi ChPhysicsItem : public ChObj {
 
     friend class ChSystem;
     friend class ChAssembly;
+    friend class ChModalAssembly;
 };
 
 CH_CLASS_VERSION(ChPhysicsItem, 0)

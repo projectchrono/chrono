@@ -720,6 +720,7 @@ class ChApi ChBody : public ChPhysicsItem, public ChBodyFrame, public ChContacta
     friend class ChSystemMulticore;
     friend class ChSystemMulticoreNSC;
     friend class ChAssembly;
+    friend class ChModalAssembly;
     friend class ChConveyor;
 };
 

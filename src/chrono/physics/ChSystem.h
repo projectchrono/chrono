@@ -30,6 +30,7 @@
 #include "chrono/core/ChTimer.h"
 #include "chrono/parallel/ChOpenMP.h"
 #include "chrono/physics/ChAssembly.h"
+#include "chrono/physics/ChModalAssembly.h"
 #include "chrono/physics/ChBodyAuxRef.h"
 #include "chrono/physics/ChContactContainer.h"
 #include "chrono/physics/ChLinksAll.h"
@@ -967,6 +968,7 @@ class ChApi ChSystem : public ChIntegrableIIorder {
     // Friend class declarations
 
     friend class ChAssembly;
+    friend class ChModalAssembly;
     friend class ChBody;
     friend class fea::ChMesh;
 
