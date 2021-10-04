@@ -180,11 +180,11 @@ class ChApi ChElementBrickANCF_3843 : public ChElementGeneric, public ChLoadable
 
     /// Get the Green-Lagrange strain tensor at the normalized element coordinates (xi, eta, zeta) at the current state
     /// of the element.  Normalized element coordinates span from -1 to 1.
-    void GetGreenLagrangeStrain(const double xi, const double eta, const double zeta, ChMatrix33<>& E);
+    ChMatrix33<> GetGreenLagrangeStrain(const double xi, const double eta, const double zeta);
 
     /// Get the 2nd Piola-Kirchoff stress tensor at the normalized element coordinates (xi, eta, zeta) at the current
     /// state of the element.  Normalized element coordinates span from -1 to 1.
-    void GetPK2Stress(const double xi, const double eta, const double zeta, ChMatrix33<>& SPK2);
+    ChMatrix33<> GetPK2Stress(const double xi, const double eta, const double zeta);
 
     /// Get the von Mises stress value at the normalized element coordinates (xi, eta, zeta) at the current state
     /// of the element.  Normalized element coordinates span from -1 to 1.

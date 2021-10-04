@@ -194,10 +194,9 @@ void ChElementBrickANCF_3843::SetIntFrcCalcMethod(IntFrcMethod method) {
 
 // Get the Green-Lagrange strain tensor at the normalized element coordinates (xi, eta, zeta) [-1...1]
 
-void ChElementBrickANCF_3843::GetGreenLagrangeStrain(const double xi,
+ChMatrix33<> ChElementBrickANCF_3843::GetGreenLagrangeStrain(const double xi,
                                                      const double eta,
-                                                     const double zeta,
-                                                     ChMatrix33<>& E) {
+                                                     const double zeta) {
     MatrixNx3c Sxi_D;  // Matrix of normalized shape function derivatives
     Calc_Sxi_D(Sxi_D, xi, eta, zeta);
 
@@ -215,13 +214,15 @@ void ChElementBrickANCF_3843::GetGreenLagrangeStrain(const double xi,
 
     ChMatrix33<> I3x3;
     I3x3.setIdentity();
-    E = 0.5 * (F.transpose() * F - I3x3);
+    return 0.5 * (F.transpose() * F - I3x3);
 }
 
 // Get the 2nd Piola-Kirchoff stress tensor at the normalized element coordinates (xi, eta, zeta) [-1...1] at the
 // current state of the element.
 
-void ChElementBrickANCF_3843::GetPK2Stress(const double xi, const double eta, const double zeta, ChMatrix33<>& SPK2) {
+ChMatrix33<> ChElementBrickANCF_3843::GetPK2Stress(const double xi,
+                                                   const double eta,
+                                                   const double zeta) {
     MatrixNx3c Sxi_D;  // Matrix of normalized shape function derivatives
     Calc_Sxi_D(Sxi_D, xi, eta, zeta);
 
@@ -267,6 +268,7 @@ void ChElementBrickANCF_3843::GetPK2Stress(const double xi, const double eta, co
 
     ChVectorN<double, 6> sigmaPK2 = D * epsilon_combined;  // 2nd Piola Kirchhoff Stress tensor in Voigt notation
 
+    ChMatrix33<> SPK2;
     SPK2(0, 0) = sigmaPK2(0);
     SPK2(1, 1) = sigmaPK2(1);
     SPK2(2, 2) = sigmaPK2(2);
@@ -276,6 +278,8 @@ void ChElementBrickANCF_3843::GetPK2Stress(const double xi, const double eta, co
     SPK2(2, 0) = sigmaPK2(4);
     SPK2(0, 1) = sigmaPK2(5);
     SPK2(1, 0) = sigmaPK2(5);
+
+    return SPK2;
 }
 
 // Get the von Mises stress value at the normalized element coordinates (xi, eta, zeta) [-1...1] at the current

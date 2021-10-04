@@ -205,10 +205,9 @@ void ChElementShellANCF_3833::SetIntFrcCalcMethod(IntFrcMethod method) {
 
 // Get the Green-Lagrange strain tensor at the normalized element coordinates (xi, eta, zeta) [-1...1]
 
-void ChElementShellANCF_3833::GetGreenLagrangeStrain(const double xi,
+ChMatrix33<> ChElementShellANCF_3833::GetGreenLagrangeStrain(const double xi,
                                                      const double eta,
-                                                     const double zeta,
-                                                     ChMatrix33<>& E) {
+                                                     const double zeta) {
     MatrixNx3c Sxi_D;  // Matrix of normalized shape function derivatives
     Calc_Sxi_D(Sxi_D, xi, eta, zeta, m_thicknessZ, m_midsurfoffset);
 
@@ -226,18 +225,17 @@ void ChElementShellANCF_3833::GetGreenLagrangeStrain(const double xi,
 
     ChMatrix33<> I3x3;
     I3x3.setIdentity();
-    E = 0.5 * (F.transpose() * F - I3x3);
+    return 0.5 * (F.transpose() * F - I3x3);
 }
 
 // Get the 2nd Piola-Kirchoff stress tensor at the normalized **layer** coordinates (xi, eta, layer_zeta) at the current
 // state of the element for the specified layer number (0 indexed) since the stress can be discontinuous at the layer
 // boundary.   "layer_zeta" spans -1 to 1 from the bottom surface to the top surface
 
-void ChElementShellANCF_3833::GetPK2Stress(const double layer,
+ChMatrix33<> ChElementShellANCF_3833::GetPK2Stress(const double layer,
                                            const double xi,
                                            const double eta,
-                                           const double layer_zeta,
-                                           ChMatrix33<>& SPK2) {
+                                           const double layer_zeta) {
     MatrixNx3c Sxi_D;  // Matrix of normalized shape function derivatives
     double layer_midsurface_offset =
         -m_thicknessZ / 2 + m_layer_zoffsets[layer] + m_layers[layer].Get_thickness() / 2 + m_midsurfoffset;
@@ -290,6 +288,7 @@ void ChElementShellANCF_3833::GetPK2Stress(const double layer,
 
     ChVectorN<double, 6> sigmaPK2 = D * epsilon_combined;  // 2nd Piola Kirchhoff Stress tensor in Voigt notation
 
+    ChMatrix33<> SPK2;
     SPK2(0, 0) = sigmaPK2(0);
     SPK2(1, 1) = sigmaPK2(1);
     SPK2(2, 2) = sigmaPK2(2);
@@ -299,6 +298,8 @@ void ChElementShellANCF_3833::GetPK2Stress(const double layer,
     SPK2(2, 0) = sigmaPK2(4);
     SPK2(0, 1) = sigmaPK2(5);
     SPK2(1, 0) = sigmaPK2(5);
+
+    return SPK2;
 }
 
 // Get the von Mises stress value at the normalized **layer** coordinates (xi, eta, layer_zeta) at the current state

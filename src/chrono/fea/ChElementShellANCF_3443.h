@@ -195,16 +195,15 @@ class ChApi ChElementShellANCF_3443 : public ChElementShell, public ChLoadableUV
 
     /// Get the Green-Lagrange strain tensor at the normalized element coordinates (xi, eta, zeta) at the current state
     /// of the element.  Normalized element coordinates span from -1 to 1.
-    void GetGreenLagrangeStrain(const double xi, const double eta, const double zeta, ChMatrix33<>& E);
+    ChMatrix33<> GetGreenLagrangeStrain(const double xi, const double eta, const double zeta);
 
     /// Get the 2nd Piola-Kirchoff stress tensor at the normalized **layer** coordinates (xi, eta, layer_zeta) at the
     /// current state of the element for the specified layer number (0 indexed) since the stress can be discontinuous at
     /// the layer boundary.   "layer_zeta" spans -1 to 1 from the bottom surface to the top surface
-    void GetPK2Stress(const double layer,
+    ChMatrix33<> GetPK2Stress(const double layer,
                       const double xi,
                       const double eta,
-                      const double layer_zeta,
-                      ChMatrix33<>& SPK2);
+                      const double layer_zeta);
 
     /// Get the von Mises stress value at the normalized **layer** coordinates (xi, eta, layer_zeta) at the current
     /// state of the element for the specified layer number (0 indexed) since the stress can be discontinuous at the
