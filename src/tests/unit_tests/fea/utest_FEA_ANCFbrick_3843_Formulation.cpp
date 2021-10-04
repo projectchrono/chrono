@@ -209,23 +209,23 @@ ANCFBrickTest::ANCFBrickTest(bool useContInt) {
 
 bool ANCFBrickTest::RunElementChecks(int msglvl) {
     bool tests_passed = true;
-    tests_passed = (tests_passed & MassMatrixCheck(msglvl));
-    tests_passed = (tests_passed & GeneralizedGravityForceCheck(msglvl));
+    tests_passed = (tests_passed && MassMatrixCheck(msglvl));
+    tests_passed = (tests_passed && GeneralizedGravityForceCheck(msglvl));
 
-    tests_passed = (tests_passed & GeneralizedInternalForceNoDispNoVelCheck(msglvl));
-    tests_passed = (tests_passed & GeneralizedInternalForceSmallDispNoVelCheck(msglvl));
-    tests_passed = (tests_passed & GeneralizedInternalForceNoDispSmallVelCheck(msglvl));
+    tests_passed = (tests_passed && GeneralizedInternalForceNoDispNoVelCheck(msglvl));
+    tests_passed = (tests_passed && GeneralizedInternalForceSmallDispNoVelCheck(msglvl));
+    tests_passed = (tests_passed && GeneralizedInternalForceNoDispSmallVelCheck(msglvl));
 
-    tests_passed = (tests_passed & JacobianNoDispNoVelNoDampingCheck(msglvl));
-    tests_passed = (tests_passed & JacobianSmallDispNoVelNoDampingCheck(msglvl));
-    tests_passed = (tests_passed & JacobianNoDispNoVelWithDampingCheck(msglvl));
-    tests_passed = (tests_passed & JacobianSmallDispNoVelWithDampingCheck(msglvl));
-    tests_passed = (tests_passed & JacobianNoDispSmallVelWithDampingCheck(msglvl));
+    tests_passed = (tests_passed && JacobianNoDispNoVelNoDampingCheck(msglvl));
+    tests_passed = (tests_passed && JacobianSmallDispNoVelNoDampingCheck(msglvl));
+    tests_passed = (tests_passed && JacobianNoDispNoVelWithDampingCheck(msglvl));
+    tests_passed = (tests_passed && JacobianSmallDispNoVelWithDampingCheck(msglvl));
+    tests_passed = (tests_passed && JacobianNoDispSmallVelWithDampingCheck(msglvl));
 
-    tests_passed = (tests_passed & AxialDisplacementCheck(msglvl));
-    tests_passed = (tests_passed & CantileverTipLoadCheck(msglvl));
-    tests_passed = (tests_passed & CantileverGravityCheck(msglvl));
-    tests_passed = (tests_passed & AxialTwistCheck(msglvl));
+    tests_passed = (tests_passed && AxialDisplacementCheck(msglvl));
+    tests_passed = (tests_passed && CantileverTipLoadCheck(msglvl));
+    tests_passed = (tests_passed && CantileverGravityCheck(msglvl));
+    tests_passed = (tests_passed && AxialTwistCheck(msglvl));
 
     return (tests_passed);
 }
@@ -512,7 +512,7 @@ bool ANCFBrickTest::JacobianNoDispNoVelNoDampingCheck(int msglvl) {
         zeros_max_error_JacK / JacobianK_NoDispNoVelNoDamping.cwiseAbs().maxCoeff() < 1e-4;
     bool passed_JacobianK_LargeTems = max_percent_error_JacK < Jac_Error;
     bool passed_JacobianR = MaxAbsError_JacR / JacobianK_NoDispNoVelNoDamping.cwiseAbs().maxCoeff() < 1e-6;
-    bool passed_tests = passed_JacobianK_LargeTems & passed_JacobianK_SmallTems & passed_JacobianR;
+    bool passed_tests = passed_JacobianK_LargeTems && passed_JacobianK_SmallTems && passed_JacobianR;
 
     // Print the results for the K terms (partial derivatives with respect to the nodal coordinates)
     if (msglvl >= 2) {
@@ -636,7 +636,7 @@ bool ANCFBrickTest::JacobianSmallDispNoVelNoDampingCheck(int msglvl) {
         zeros_max_error_JacK / JacobianK_SmallDispNoVelNoDamping.cwiseAbs().maxCoeff() < 1e-4;
     bool passed_JacobianK_LargeTems = max_percent_error_JacK < Jac_Error;
     bool passed_JacobianR = MaxAbsError_JacR / JacobianK_SmallDispNoVelNoDamping.cwiseAbs().maxCoeff() < 1e-6;
-    bool passed_tests = passed_JacobianK_LargeTems & passed_JacobianK_SmallTems & passed_JacobianR;
+    bool passed_tests = passed_JacobianK_LargeTems && passed_JacobianK_SmallTems && passed_JacobianR;
 
     // Print the results for the K terms (partial derivatives with respect to the nodal coordinates)
     if (msglvl >= 2) {
@@ -789,7 +789,7 @@ bool ANCFBrickTest::JacobianNoDispNoVelWithDampingCheck(int msglvl) {
     bool passed_JacobianR_SmallTems =
         zeros_max_error_JacR / JacobianR_NoDispNoVelWithDamping.cwiseAbs().maxCoeff() < 1e-4;
     bool passed_JacobianR_LargeTems = max_percent_error_JacR < Jac_Error;
-    bool passed_tests = passed_JacobianK_LargeTems & passed_JacobianK_SmallTems & passed_JacobianR_SmallTems &
+    bool passed_tests = passed_JacobianK_LargeTems && passed_JacobianK_SmallTems && passed_JacobianR_SmallTems &&
                         passed_JacobianR_LargeTems;
 
     // Print the results for the K terms (partial derivatives with respect to the nodal coordinates)
@@ -965,7 +965,7 @@ bool ANCFBrickTest::JacobianSmallDispNoVelWithDampingCheck(int msglvl) {
     bool passed_JacobianR_SmallTems =
         zeros_max_error_JacR / JacobianR_SmallDispNoVelWithDamping.cwiseAbs().maxCoeff() < 1e-4;
     bool passed_JacobianR_LargeTems = max_percent_error_JacR < Jac_Error;
-    bool passed_tests = passed_JacobianK_LargeTems & passed_JacobianK_SmallTems & passed_JacobianR_SmallTems &
+    bool passed_tests = passed_JacobianK_LargeTems && passed_JacobianK_SmallTems && passed_JacobianR_SmallTems &&
                         passed_JacobianR_LargeTems;
 
     // Print the results for the K terms (partial derivatives with respect to the nodal coordinates)
@@ -1143,7 +1143,7 @@ bool ANCFBrickTest::JacobianNoDispSmallVelWithDampingCheck(int msglvl) {
     bool passed_JacobianR_SmallTems =
         zeros_max_error_JacR / JacobianR_NoDispSmallVelWithDamping.cwiseAbs().maxCoeff() < 1e-4;
     bool passed_JacobianR_LargeTems = max_percent_error_JacR < Jac_Error;
-    bool passed_tests = passed_JacobianK_LargeTems & passed_JacobianK_SmallTems & passed_JacobianR_SmallTems &
+    bool passed_tests = passed_JacobianK_LargeTems && passed_JacobianK_SmallTems && passed_JacobianR_SmallTems &&
                         passed_JacobianR_LargeTems;
 
     // Print the results for the K terms (partial derivatives with respect to the nodal coordinates)
@@ -1384,10 +1384,10 @@ bool ANCFBrickTest::AxialDisplacementCheck(int msglvl) {
     double Percent_Error = (Displacement_Model - Displacement_Theory) / Displacement_Theory * 100;
 
     bool passed_displacement = abs(Percent_Error) < 2.0;
-    bool passed_angles = (abs(Tip_Angles.x() * CH_C_RAD_TO_DEG) < 0.001) &
-                         (abs(Tip_Angles.y() * CH_C_RAD_TO_DEG) < 0.001) &
+    bool passed_angles = (abs(Tip_Angles.x() * CH_C_RAD_TO_DEG) < 0.001) &&
+                         (abs(Tip_Angles.y() * CH_C_RAD_TO_DEG) < 0.001) &&
                          (abs(Tip_Angles.z() * CH_C_RAD_TO_DEG) < 0.001);
-    bool passed_tests = passed_displacement & passed_angles;
+    bool passed_tests = passed_displacement && passed_angles;
 
     if (msglvl >= 2) {
         std::cout << "Axial Pull Test - ANCF Tip Position: " << point << "m" << std::endl;
@@ -1580,8 +1580,8 @@ bool ANCFBrickTest::CantileverTipLoadCheck(int msglvl) {
     bool passed_displacement = abs(Percent_Error) < 5.0;
     // check the off-axis angles which should be zeros
     bool passed_angles =
-        (abs(Tip_Angles.x() * CH_C_RAD_TO_DEG) < 0.001) & (abs(Tip_Angles.z() * CH_C_RAD_TO_DEG) < 0.001);
-    bool passed_tests = passed_displacement & passed_angles;
+        (abs(Tip_Angles.x() * CH_C_RAD_TO_DEG) < 0.001) && (abs(Tip_Angles.z() * CH_C_RAD_TO_DEG) < 0.001);
+    bool passed_tests = passed_displacement && passed_angles;
 
     if (msglvl >= 2) {
         std::cout << "Cantilever Beam (Tip Load) - ANCF Tip Position: " << point << "m" << std::endl;
@@ -1732,8 +1732,8 @@ bool ANCFBrickTest::CantileverGravityCheck(int msglvl) {
     bool passed_displacement = abs(Percent_Error) < 5.0;
     // check the off-axis angles which should be zeros
     bool passed_angles =
-        (abs(Tip_Angles.x() * CH_C_RAD_TO_DEG) < 0.001) & (abs(Tip_Angles.z() * CH_C_RAD_TO_DEG) < 0.001);
-    bool passed_tests = passed_displacement & passed_angles;
+        (abs(Tip_Angles.x() * CH_C_RAD_TO_DEG) < 0.001) && (abs(Tip_Angles.z() * CH_C_RAD_TO_DEG) < 0.001);
+    bool passed_tests = passed_displacement && passed_angles;
 
     if (msglvl >= 2) {
         std::cout << "Cantilever Beam (Gravity Load) - ANCF Tip Position: " << point << "m" << std::endl;
@@ -1930,8 +1930,8 @@ bool ANCFBrickTest::AxialTwistCheck(int msglvl) {
     bool passed_twist = abs(Percent_Error) < 2.0;
     // check the off-axis angles which should be zeros
     bool passed_angles =
-        (abs(Tip_Angles.y() * CH_C_RAD_TO_DEG) < 0.001) & (abs(Tip_Angles.z() * CH_C_RAD_TO_DEG) < 0.001);
-    bool passed_tests = passed_twist & passed_angles;
+        (abs(Tip_Angles.y() * CH_C_RAD_TO_DEG) < 0.001) && (abs(Tip_Angles.z() * CH_C_RAD_TO_DEG) < 0.001);
+    bool passed_tests = passed_twist && passed_angles;
 
     if (msglvl >= 2) {
         std::cout << "Axial Twist - ANCF Tip Position: " << point << "m" << std::endl;
