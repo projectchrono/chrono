@@ -22,7 +22,7 @@
 
 #include "chrono/physics/ChBodyEasy.h"
 #include "chrono/physics/ChSystemSMC.h"
-#include "chrono/fea/ChElementShellANCF_8.h"
+#include "chrono/fea/ChElementShellANCF_3833.h"
 #include "chrono/fea/ChLinkDirFrame.h"
 #include "chrono/fea/ChLinkPointFrame.h"
 #include "chrono/fea/ChMesh.h"
@@ -172,7 +172,7 @@ int main(int argc, char* argv[]) {
         GetLog() << "Node 3 Location: " << nodetip3->GetPos().x() << " " << nodetip3->GetPos().y() << "  " << nodetip3->GetPos().z() << "\n";
 
         // Create the element and set its nodes.
-        auto element = chrono_types::make_shared<ChElementShellANCF_8>();
+        auto element = chrono_types::make_shared<ChElementShellANCF_3833>();
         element->SetNodes(std::dynamic_pointer_cast<ChNodeFEAxyzDD>(my_mesh->GetNode(node0)),
                           std::dynamic_pointer_cast<ChNodeFEAxyzDD>(my_mesh->GetNode(node1)),
                           std::dynamic_pointer_cast<ChNodeFEAxyzDD>(my_mesh->GetNode(node2)),
@@ -188,9 +188,8 @@ int main(int argc, char* argv[]) {
         // Add a single layers with a fiber angle of 0 degrees.
         element->AddLayer(dz, 0 * CH_C_DEG_TO_RAD, mat);
 
-        // Set other element properties
-        element->SetAlphaDamp(0.005);  // Structural damping for this element
-        element->SetGravityOn(false);  // turn internal gravitational force calculation off
+        // Set structural damping for this element
+        element->SetAlphaDamp(0.005);
 
         // Add element to mesh
         my_mesh->AddElement(element);
@@ -268,21 +267,7 @@ int main(int argc, char* argv[]) {
 			nodetip3->SetForce(ChVector<>(0, 0, -2 / 3.0));
 		}
 
-        GetLog() << "Node tip vertical position: " << nodetip1->GetPos().z()
-				<< "\n";
-
-		auto element = std::dynamic_pointer_cast<ChElementShellANCF_8>(
-				my_mesh->GetElement(TotalNumElements - 1));
-		const ChStrainStress3D strainStressOut =
-				element->EvaluateSectionStrainStress(ChVector<double> (0, 0, 0), 0);
-
-		std::cout << "Strain xx: " << strainStressOut.strain[0] << " \n";
-		std::cout << "Strain yy: " << strainStressOut.strain[1] << " \n";
-		std::cout << "Strain xy: " << strainStressOut.strain[2] << " \n";
-
-		std::cout << "Stress xx: " << strainStressOut.stress[0] << " \n";
-		std::cout << "Stress yy: " << strainStressOut.stress[1] << " \n";
-		std::cout << "Stress xy: " << strainStressOut.stress[2] << " \n";
+        GetLog() << "Node tip vertical position: " << nodetip1->GetPos().z() << "\n";
 
         application.BeginScene();
         application.DrawAll();

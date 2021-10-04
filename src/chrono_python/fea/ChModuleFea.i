@@ -58,7 +58,7 @@
 #include "chrono/fea/ChElementBar.h"
 #include "chrono/fea/ChElementBeam.h"
 #include "chrono/fea/ChElementBeamEuler.h"
-#include "chrono/fea/ChElementBeamANCF.h"
+#include "chrono/fea/ChElementBeamANCF_3333.h"
 #include "chrono/fea/ChElementBeamIGA.h"
 #include "chrono/fea/ChElementTetra_4.h"
 #include "chrono/fea/ChElementTetra_10.h"
@@ -72,7 +72,7 @@
 #include "chrono/fea/ChMaterialShellKirchhoff.h"
 #include "chrono/fea/ChElementShellReissner4.h"
 #include "chrono/fea/ChElementShellANCF_3423.h"
-#include "chrono/fea/ChElementShellANCF_8.h"
+#include "chrono/fea/ChElementShellANCF_3833.h"
 #include "chrono/fea/ChElementShellBST.h"
 #include "chrono/fea/ChElementCableANCF.h"
 #include "chrono/fea/ChBuilderBeam.h"
@@ -140,7 +140,7 @@ using namespace chrono::fea;
 %template(vector_ChElementBeamEuler)    std::vector< std::shared_ptr<chrono::fea::ChElementBeamEuler> >;
 %template(vector_ChElementBeamIGA)    std::vector< std::shared_ptr<chrono::fea::ChElementBeamIGA> >;
 %template(vector_ChElementCableANCF)    std::vector< std::shared_ptr<chrono::fea::ChElementCableANCF> >;
-%template(vector_ChElementBeamANCF)    std::vector< std::shared_ptr<chrono::fea::ChElementBeamANCF> >;
+%template(vector_ChElementBeamANCF_3333)    std::vector< std::shared_ptr<chrono::fea::ChElementBeamANCF_3333> >;
 
 //
 // For each class, keep updated the  A, B, C sections: 
@@ -218,7 +218,7 @@ using namespace chrono::fea;
 %shared_ptr(chrono::fea::ChInertiaCosseratMassref)
 %shared_ptr(chrono::fea::ChElementBeam)
 %shared_ptr(chrono::fea::ChElementBeamEuler)
-%shared_ptr(chrono::fea::ChElementBeamANCF)
+%shared_ptr(chrono::fea::ChElementBeamANCF_3333)
 %shared_ptr(chrono::fea::ChElementBeamIGA)
 %shared_ptr(chrono::fea::ChContinuumMaterial)
 %shared_ptr(chrono::fea::ChContinuumElastic)
@@ -286,7 +286,7 @@ using namespace chrono::fea;
 %shared_ptr(chrono::fea::ChElementShell)
 %shared_ptr(chrono::fea::ChElementShellReissner4)
 %shared_ptr(chrono::fea::ChElementShellANCF_3423)
-%shared_ptr(chrono::fea::ChElementShellANCF_8)
+%shared_ptr(chrono::fea::ChElementShellANCF_3833)
 %shared_ptr(chrono::fea::ChElementShellBST)
 %shared_ptr(chrono::fea::ChElementCableANCF)
 %shared_ptr(chrono::fea::ChBuilderBeamEuler)
@@ -379,7 +379,7 @@ using namespace chrono::fea;
 %include "../../chrono/fea/ChBeamSectionCable.h"
 %include "../../chrono/fea/ChElementBeam.h"
 %include "../../chrono/fea/ChElementBeamEuler.h"
-%include "../../chrono/fea/ChElementBeamANCF.h"
+%include "../../chrono/fea/ChElementBeamANCF_3333.h"
 %include "../../chrono/fea/ChElementBeamIGA.h"
 %include "../../chrono/fea/ChContinuumPoisson3D.h"
 %include "../../chrono/fea/ChContinuumElectrostatics.h"
@@ -412,8 +412,8 @@ using namespace chrono::fea;
 %include "../../chrono/fea/ChElementShellReissner4.h"
 %rename(ShellANCF) chrono::fea::ChElementShellANCF_3423::Layer;
 %include "../../chrono/fea/ChElementShellANCF_3423.h"
-%rename(ShellANCF_8Layer) chrono::fea::ChElementShellANCF_8::Layer;
-%include "../../chrono/fea/ChElementShellANCF_8.h"
+%rename(ShellANCF_8Layer) chrono::fea::ChElementShellANCF_3833::Layer;
+%include "../../chrono/fea/ChElementShellANCF_3833.h"
 %rename(ShellBSTLayer) chrono::fea::ChElementShellBST::Layer;
 %include "../../chrono/fea/ChElementShellBST.h"
 %include "../../chrono/fea/ChElementCableANCF.h"
@@ -472,12 +472,12 @@ using namespace chrono::fea;
 %DefSharedPtrDynamicDowncast(chrono::fea,ChElementBase,ChElementHexa_8)
 %DefSharedPtrDynamicDowncast(chrono::fea,ChElementBase,ChElementHexa_20)
 %DefSharedPtrDynamicDowncast(chrono::fea,ChElementBase,ChElementBeamEuler)
-%DefSharedPtrDynamicDowncast(chrono::fea,ChElementBase,ChElementBeamANCF)
+%DefSharedPtrDynamicDowncast(chrono::fea,ChElementBase,ChElementBeamANCF_3333)
 %DefSharedPtrDynamicDowncast(chrono::fea,ChElementBase,ChElementBeamIGA)
 %DefSharedPtrDynamicDowncast(chrono::fea,ChElementBase,ChElementCableANCF)
 %DefSharedPtrDynamicDowncast(chrono::fea,ChElementBase,ChElementShellReissner4)
 %DefSharedPtrDynamicDowncast(chrono::fea,ChElementBase,ChElementShellANCF_3423)
-%DefSharedPtrDynamicDowncast(chrono::fea,ChElementBase,ChElementShellANCF_8)
+%DefSharedPtrDynamicDowncast(chrono::fea,ChElementBase,ChElementShellANCF_3833)
 %DefSharedPtrDynamicDowncast(chrono::fea,ChElementBase,ChElementBrick)
 %DefSharedPtrDynamicDowncast(chrono::fea,ChElementBase,ChElementBrick_9)
 %DefSharedPtrDynamicDowncast2NS(chrono,chrono::fea,ChNodeBase,ChNodeFEAbase)

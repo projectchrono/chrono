@@ -26,7 +26,7 @@
 
 #include "chrono/physics/ChSystemNSC.h"
 #include "chrono/solver/ChIterativeSolverLS.h"
-#include "chrono/fea/ChElementBeamANCF.h"
+#include "chrono/fea/ChElementBeamANCF_3333.h"
 #include "chrono/fea/ChMesh.h"
 
 #ifdef CHRONO_PARDISO_MKL
@@ -97,43 +97,35 @@ int main(int argc, char* argv[]) {
     my_mesh->AddNode(hnodeancfm4);
 
     // Create the element 1
-    auto belementancf1 = chrono_types::make_shared<ChElementBeamANCF>();
+    auto belementancf1 = chrono_types::make_shared<ChElementBeamANCF_3333>();
     belementancf1->SetNodes(hnodeancf1, hnodeancf2, hnodeancfm1);
     belementancf1->SetDimensions(beam_l / 4, beam_h, beam_w);
     belementancf1->SetMaterial(m_beamMaterial);
     belementancf1->SetAlphaDamp(0.0004);
-    belementancf1->SetGravityOn(false);
-    belementancf1->SetStrainFormulation(ChElementBeamANCF::StrainFormulation::CMPoisson);  // Neglect Poisson effect
     my_mesh->AddElement(belementancf1);
 
     // Create the element 2
-    auto belementancf2 = chrono_types::make_shared<ChElementBeamANCF>();
+    auto belementancf2 = chrono_types::make_shared<ChElementBeamANCF_3333>();
     belementancf2->SetNodes(hnodeancf2, hnodeancf3, hnodeancfm2);
     belementancf2->SetDimensions(beam_l / 4, beam_h, beam_w);
     belementancf2->SetMaterial(m_beamMaterial);
     belementancf2->SetAlphaDamp(0.0004);
-    belementancf2->SetGravityOn(false);
-    belementancf2->SetStrainFormulation(ChElementBeamANCF::StrainFormulation::CMPoisson);  // Neglect Poisson effect
     my_mesh->AddElement(belementancf2);
 
     // Create the element 3
-    auto belementancf3 = chrono_types::make_shared<ChElementBeamANCF>();
+    auto belementancf3 = chrono_types::make_shared<ChElementBeamANCF_3333>();
     belementancf3->SetNodes(hnodeancf3, hnodeancf4, hnodeancfm3);
     belementancf3->SetDimensions(beam_l / 4, beam_h, beam_w);
     belementancf3->SetMaterial(m_beamMaterial);
     belementancf3->SetAlphaDamp(0.0004);
-    belementancf3->SetGravityOn(false);
-    belementancf3->SetStrainFormulation(ChElementBeamANCF::StrainFormulation::CMPoisson);  // Neglect Poisson effect
     my_mesh->AddElement(belementancf3);
 
     // Create the element 4
-    auto belementancf4 = chrono_types::make_shared<ChElementBeamANCF>();
+    auto belementancf4 = chrono_types::make_shared<ChElementBeamANCF_3333>();
     belementancf4->SetNodes(hnodeancf4, hnodeancf5, hnodeancfm4);
     belementancf4->SetDimensions(beam_l / 4, beam_h, beam_w);
     belementancf4->SetMaterial(m_beamMaterial);
     belementancf4->SetAlphaDamp(0.0004);
-    belementancf4->SetGravityOn(false);
-    belementancf4->SetStrainFormulation(ChElementBeamANCF::StrainFormulation::CMPoisson);  // Neglect Poisson effect
     my_mesh->AddElement(belementancf4);
 
     // Cancel automatic gravity

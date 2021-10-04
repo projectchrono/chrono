@@ -18,7 +18,7 @@
 #include "chrono/fea/ChContactSurfaceMesh.h"
 #include "chrono/fea/ChContactSurfaceNodeCloud.h"
 #include "chrono/fea/ChElementCableANCF.h"
-#include "chrono/fea/ChElementBeamANCF.h"
+#include "chrono/fea/ChElementBeamANCF_3333.h"
 #include "chrono/fea/ChElementBeamEuler.h"
 #include "chrono/fea/ChElementBeamTaperedTimoshenko.h"
 #include "chrono/fea/ChElementBeamTaperedTimoshenkoFPM.h"
@@ -363,7 +363,7 @@ void ChVisualizationFEAmesh::Update(ChPhysicsItem* updater, const ChCoordsys<>& 
                 } else if (auto mybeamtimoshenkofpm =
                                std::dynamic_pointer_cast<ChElementBeamTaperedTimoshenkoFPM>(mybeam)) {
                     sectionshape = mybeamtimoshenkofpm->GetTaperedSection()->GetSectionA()->GetDrawShape();
-                } else if (auto mybeamancf = std::dynamic_pointer_cast<ChElementBeamANCF>(mybeam)) {
+                } else if (auto mybeamancf = std::dynamic_pointer_cast<ChElementBeamANCF_3333>(mybeam)) {
                     sectionshape = chrono_types::make_shared<ChBeamSectionShapeRectangular>(
                         mybeamancf->GetThicknessY(),
                         mybeamancf->GetThicknessZ());  // TO DO use ChBeamSection also in ANCF beam
@@ -640,7 +640,7 @@ void ChVisualizationFEAmesh::Update(ChPhysicsItem* updater, const ChCoordsys<>& 
                 } else if (auto mybeamtimoshenkofpm =
                                std::dynamic_pointer_cast<ChElementBeamTaperedTimoshenkoFPM>(mybeam)) {
                     sectionshape = mybeamtimoshenkofpm->GetTaperedSection()->GetSectionA()->GetDrawShape();
-                } else if (auto mybeamancf = std::dynamic_pointer_cast<ChElementBeamANCF>(mybeam)) {
+                } else if (auto mybeamancf = std::dynamic_pointer_cast<ChElementBeamANCF_3333>(mybeam)) {
                     sectionshape = chrono_types::make_shared<ChBeamSectionShapeRectangular>(
                         mybeamancf->GetThicknessY(), mybeamancf->GetThicknessZ());
                 }

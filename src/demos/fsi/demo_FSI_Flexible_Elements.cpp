@@ -269,8 +269,8 @@ void Create_MB_FE(ChSystemSMC& mphysicalSystem,
         double loc_x = -0.3;  //+bxDim / 8 + 3 * initSpace0;
         builder.BuildBeam_FSI(
             my_mesh,         // the mesh where to put the created nodes and elements
-            msection_cable,  // the ChBeamSectionCable to use for the ChElementBeamANCF elements
-            15,              // the number of ChElementBeamANCF to create
+            msection_cable,  // the ChBeamSectionCable to use for the ChElementBeamANCF_3333 elements
+            15,              // the number of ChElementBeamANCF_3333 to create
             ChVector<>(loc_x, 0.0, initSpace0 * 15),  // the 'A' point in space (beginning of beam)
             ChVector<>(loc_x, 0.0, initSpace0),  // the 'B' point in space (end of beam) _1D__2D_elementsNodes_mesh,
             _1D_elementsNodes_mesh, NodeNeighborElement_mesh);

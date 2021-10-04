@@ -474,7 +474,6 @@ source_group(fea\\nodes FILES
     ${ChronoEngine_fea_nodes_HEADERS})
 
 set(ChronoEngine_fea_elements_SOURCES
-    fea/ChElementBeamANCF.cpp
     fea/ChElementBeamEuler.cpp
     fea/ChElementBeamTaperedTimoshenko.cpp
     fea/ChElementBeamTaperedTimoshenkoFPM.cpp
@@ -488,7 +487,6 @@ set(ChronoEngine_fea_elements_SOURCES
     fea/ChElementHexa_8.cpp
     fea/ChElementHexa_20.cpp
     fea/ChElementShellANCF_3423.cpp
-    fea/ChElementShellANCF_8.cpp
     fea/ChElementShellReissner4.cpp
 	fea/ChElementShellBST.cpp
     fea/ChElementBrick.cpp
@@ -507,7 +505,6 @@ set(ChronoEngine_fea_elements_HEADERS
     fea/ChElementSpring.h
     fea/ChElementBar.h
     fea/ChElementBeam.h
-    fea/ChElementBeamANCF.h
     fea/ChElementBeamANCF_3243.h
     fea/ChElementBeamANCF_3333.h
     fea/ChElementBeamEuler.h
@@ -527,7 +524,6 @@ set(ChronoEngine_fea_elements_HEADERS
     fea/ChElementShell.h
     fea/ChElementShellANCF_3423.h
     fea/ChElementShellANCF_3443.h
-    fea/ChElementShellANCF_8.h
     fea/ChElementShellANCF_3833.h
     fea/ChElementShellReissner4.h
 	fea/ChElementShellBST.h

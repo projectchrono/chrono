@@ -19,7 +19,7 @@
 #include "chrono/fea/ChContactSurfaceMesh.h"
 #include "chrono/fea/ChElementShellANCF_3423.h"
 #include "chrono/fea/ChElementShellANCF_3443.h"
-#include "chrono/fea/ChElementShellANCF_8.h"
+#include "chrono/fea/ChElementShellANCF_3833.h"
 #include "chrono/fea/ChElementShellReissner4.h"
 #include "chrono/fea/ChElementTetra_4.h"
 #include "chrono/fea/ChElementBrick_9.h"
@@ -646,7 +646,7 @@ void ChContactSurfaceMesh::AddFacesFromBoundary(double sphere_swept, bool ccw) {
     }
 
     for (unsigned int ie = 0; ie < m_mesh->GetNelements(); ++ie) {
-        if (auto mshell = std::dynamic_pointer_cast<ChElementShellANCF_8>(m_mesh->GetElement(ie))) {
+        if (auto mshell = std::dynamic_pointer_cast<ChElementShellANCF_3833>(m_mesh->GetElement(ie))) {
             auto nA = mshell->GetNodeA();
             auto nB = mshell->GetNodeB();
             auto nC = mshell->GetNodeC();
