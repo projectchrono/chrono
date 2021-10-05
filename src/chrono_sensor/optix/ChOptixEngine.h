@@ -31,7 +31,7 @@
 
 #include <optix.h>
 
-#include "chrono_sensor/ChOptixSensor.h"
+#include "chrono_sensor/sensors/ChOptixSensor.h"
 #include "chrono_sensor/optix/scene/ChScene.h"
 #include "chrono_sensor/optix/ChOptixGeometry.h"
 #include "chrono_sensor/optix/ChOptixPipeline.h"

@@ -26,7 +26,7 @@
 #include "chrono/utils/ChUtilsCreators.h"
 #include "chrono_thirdparty/filesystem/path.h"
 
-#include "chrono_sensor/ChSegmentationCamera.h"
+#include "chrono_sensor/sensors/ChSegmentationCamera.h"
 #include "chrono_sensor/ChSensorManager.h"
 #include "chrono_sensor/filters/ChFilterAccess.h"
 #include "chrono_sensor/filters/ChFilterGrayscale.h"
@@ -343,7 +343,7 @@ int main(int argc, char* argv[]) {
     manager->Update();
 
     if (std::shared_ptr<ChVisualization> visual_asset = std::dynamic_pointer_cast<ChVisualization>(trimesh_shape)) {
-        printf("assets: %d\n", visual_asset->material_list.size());
+        // printf("assets: %d\n", visual_asset->material_list.size());
         for (auto v : visual_asset->material_list) {
             v->SetClassID(200);
             v->SetInstanceID(200);

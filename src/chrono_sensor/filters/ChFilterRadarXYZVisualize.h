@@ -19,7 +19,7 @@
 #define CHFILTERRADARXYZVISUALIZE_H
 
 #include "chrono_sensor/filters/ChFilterVisualize.h"
-#include "chrono_sensor/ChRadarSensor.h"
+#include "chrono_sensor/sensors/ChRadarSensor.h"
 
 namespace chrono {
 namespace sensor {

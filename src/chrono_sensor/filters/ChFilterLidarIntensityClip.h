@@ -18,7 +18,7 @@
 #define CHFILTERLIDARPOWERCLIP_H
 
 #include "chrono_sensor/filters/ChFilter.h"
-#include "chrono_sensor/ChLidarSensor.h"
+#include "chrono_sensor/sensors/ChLidarSensor.h"
 
 namespace chrono {
 namespace sensor {

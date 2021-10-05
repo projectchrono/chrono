@@ -30,7 +30,7 @@
 #include "chrono/utils/ChUtilsCreators.h"
 #include "chrono_thirdparty/filesystem/path.h"
 
-#include "chrono_sensor/ChLidarSensor.h"
+#include "chrono_sensor/sensors/ChLidarSensor.h"
 #include "chrono_sensor/ChSensorManager.h"
 #include "chrono_sensor/filters/ChFilterAccess.h"
 #include "chrono_sensor/filters/ChFilterPCfromDepth.h"
@@ -39,7 +39,7 @@
 #include "chrono_sensor/filters/ChFilterLidarReduce.h"
 #include "chrono_sensor/filters/ChFilterLidarNoise.h"
 #include "chrono_sensor/filters/ChFilterSavePtCloud.h"
-#include "chrono_sensor/Sensor.h"
+#include "chrono_sensor/sensors/Sensor.h"
 
 using namespace chrono;
 using namespace chrono::geometry;

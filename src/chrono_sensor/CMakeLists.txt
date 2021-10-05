@@ -210,36 +210,36 @@ source_group("Cuda" FILES
 # LIST THE FILES THAT MAKE THE CORE SENSOR LIBRARY
 #-----------------------------------------------------------------------------
 set(ChronoEngine_sensor_SOURCES
-    ChSensor.cpp
-    ChNoiseModel.cpp
-    ChOptixSensor.cpp
-    ChCameraSensor.cpp
-    ChSegmentationCamera.cpp
-    ChLidarSensor.cpp
-    ChRadarSensor.cpp
-    ChIMUSensor.cpp
-    ChGPSSensor.cpp
-    ChTachometerSensor.cpp
+    sensors/ChSensor.cpp
+    sensors/ChNoiseModel.cpp
+    sensors/ChOptixSensor.cpp
+    sensors/ChCameraSensor.cpp
+    sensors/ChSegmentationCamera.cpp
+    sensors/ChLidarSensor.cpp
+    sensors/ChRadarSensor.cpp
+    sensors/ChIMUSensor.cpp
+    sensors/ChGPSSensor.cpp
+    sensors/ChTachometerSensor.cpp
     ChSensorManager.cpp
     ChDynamicsManager.cpp
-    Sensor.cpp
+    sensors/Sensor.cpp
 )
 set(ChronoEngine_sensor_HEADERS
   	ChApiSensor.h
-    ChSensor.h
-    ChNoiseModel.h
-    ChOptixSensor.h
-    ChCameraSensor.h
-    ChSegmentationCamera.h
-    ChLidarSensor.h
-    ChRadarSensor.h
-    ChIMUSensor.h
-    ChGPSSensor.h
-    ChTachometerSensor.h
+    sensors/ChSensor.h
+    sensors/ChNoiseModel.h
+    sensors/ChOptixSensor.h
+    sensors/ChCameraSensor.h
+    sensors/ChSegmentationCamera.h
+    sensors/ChLidarSensor.h
+    sensors/ChRadarSensor.h
+    sensors/ChIMUSensor.h
+    sensors/ChGPSSensor.h
+    sensors/ChTachometerSensor.h
     ChSensorManager.h
     ChDynamicsManager.h
-  	ChSensorBuffer.h
-    Sensor.h
+  	sensors/ChSensorBuffer.h
+    sensors/Sensor.h
 )
 
 source_group("Source" FILES

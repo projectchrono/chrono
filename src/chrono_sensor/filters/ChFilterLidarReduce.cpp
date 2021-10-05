@@ -15,7 +15,7 @@
 // =============================================================================
 
 #include "chrono_sensor/filters/ChFilterLidarReduce.h"
-#include "chrono_sensor/ChLidarSensor.h"
+#include "chrono_sensor/sensors/ChLidarSensor.h"
 #include "chrono_sensor/cuda/lidar_reduce.cuh"
 #include "chrono_sensor/utils/CudaMallocHelper.h"
 

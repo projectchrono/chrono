@@ -26,9 +26,9 @@
 #include <optix_stubs.h>
 #include <optix_function_table_definition.h>
 
-#include "chrono_sensor/ChCameraSensor.h"
-#include "chrono_sensor/ChLidarSensor.h"
-#include "chrono_sensor/ChRadarSensor.h"
+#include "chrono_sensor/sensors/ChCameraSensor.h"
+#include "chrono_sensor/sensors/ChLidarSensor.h"
+#include "chrono_sensor/sensors/ChRadarSensor.h"
 #include "chrono_sensor/optix/ChOptixUtils.h"
 #include "chrono_sensor/utils/ChVisualMaterialUtils.h"
 
@@ -631,8 +631,8 @@ void ChOptixEngine::ConstructScene() {
         if (item->GetAssets().size() > 0) {
             for (auto asset : item->GetAssets()) {
                 if (std::shared_ptr<ChVisualization> visual_asset = std::dynamic_pointer_cast<ChVisualization>(asset)) {
-                    ChVector<double> asset_pos = visual_asset->Pos;
-                    ChMatrix33<double> asset_rot_mat = visual_asset->Rot;
+                    // ChVector<double> asset_pos = visual_asset->Pos;
+                    // ChMatrix33<double> asset_rot_mat = visual_asset->Rot;
 
                     auto dummy_body = chrono_types::make_shared<ChBody>();
 

@@ -35,7 +35,7 @@
 #include "chrono_sensor/filters/ChFilterPCfromDepth.h"
 #include "chrono_sensor/filters/ChFilterVisualizePointCloud.h"
 #include "chrono_sensor/filters/ChFilterImageOps.h"
-#include "chrono_sensor/ChNoiseModel.h"
+#include "chrono_sensor/sensors/ChNoiseModel.h"
 //
 #include "chrono_thirdparty/rapidjson/filereadstream.h"
 #include "chrono_thirdparty/rapidjson/istreamwrapper.h"

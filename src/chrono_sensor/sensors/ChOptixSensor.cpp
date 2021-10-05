@@ -16,7 +16,7 @@
 //
 // =============================================================================
 
-#include "chrono_sensor/ChOptixSensor.h"
+#include "chrono_sensor/sensors/ChOptixSensor.h"
 
 namespace chrono {
 namespace sensor {

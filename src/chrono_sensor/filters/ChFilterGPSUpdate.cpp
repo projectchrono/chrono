@@ -16,9 +16,9 @@
 
 #include "chrono_sensor/filters/ChFilterGPSUpdate.h"
 #include "chrono/physics/ChSystem.h"
-#include "chrono_sensor/ChSensor.h"
-#include "chrono_sensor/ChNoiseModel.h"
-#include "chrono_sensor/ChGPSSensor.h"
+#include "chrono_sensor/sensors/ChSensor.h"
+#include "chrono_sensor/sensors/ChNoiseModel.h"
+#include "chrono_sensor/sensors/ChGPSSensor.h"
 
 #include <chrono>
 

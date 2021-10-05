@@ -15,7 +15,7 @@
 // =============================================================================
 
 #include "chrono_sensor/filters/ChFilterGrayscale.h"
-#include "chrono_sensor/ChOptixSensor.h"
+#include "chrono_sensor/sensors/ChOptixSensor.h"
 #include "chrono_sensor/cuda/grayscale.cuh"
 #include "chrono_sensor/utils/CudaMallocHelper.h"
 

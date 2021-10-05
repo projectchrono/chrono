@@ -24,7 +24,7 @@
 #include <list>
 #include <mutex>
 
-#include "ChSensorBuffer.h"
+#include "chrono_sensor/sensors/ChSensorBuffer.h"
 #include "chrono/physics/ChBody.h"
 #include "chrono_sensor/filters/ChFilter.h"
 #include "chrono_sensor/optix/ChOptixUtils.h"

@@ -15,7 +15,7 @@
 // =============================================================================
 
 #include "chrono_sensor/filters/ChFilterAccess.h"
-#include "chrono_sensor/ChSensor.h"
+#include "chrono_sensor/sensors/ChSensor.h"
 #include "chrono_sensor/utils/CudaMallocHelper.h"
 
 #include <cuda.h>

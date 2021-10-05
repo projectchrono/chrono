@@ -32,9 +32,9 @@
 
 #include "chrono_thirdparty/filesystem/path.h"
 
-#include "chrono_sensor/ChCameraSensor.h"
-// #include "chrono_sensor/ChLidarSensor.h"
-#include "chrono_sensor/ChIMUSensor.h"
+#include "chrono_sensor/sensors/ChCameraSensor.h"
+// #include "chrono_sensor/sensors/ChLidarSensor.h"
+#include "chrono_sensor/sensors/ChIMUSensor.h"
 #include "chrono_sensor/ChSensorManager.h"
 #include "chrono_sensor/filters/ChFilterAccess.h"
 #include "chrono_sensor/filters/ChFilterPCfromDepth.h"

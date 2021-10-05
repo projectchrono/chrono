@@ -13,7 +13,7 @@
 // =============================================================================
 //
 // =============================================================================
-#include "chrono_sensor/ChNoiseModel.h"
+#include "chrono_sensor/sensors/ChNoiseModel.h"
 #include <chrono>
 
 namespace chrono {

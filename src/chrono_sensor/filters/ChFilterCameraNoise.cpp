@@ -15,7 +15,7 @@
 // =============================================================================
 
 #include "chrono_sensor/filters/ChFilterCameraNoise.h"
-#include "chrono_sensor/ChOptixSensor.h"
+#include "chrono_sensor/sensors/ChOptixSensor.h"
 #include "chrono_sensor/cuda/camera_noise.cuh"
 #include "chrono_sensor/cuda/curand_utils.cuh"
 #include "chrono_sensor/utils/CudaMallocHelper.h"

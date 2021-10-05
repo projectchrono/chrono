@@ -4,8 +4,8 @@
 #include "chrono/physics/ChSystemNSC.h"
 #include "chrono/geometry/ChTriangleMeshConnected.h"
 
-#include "chrono_sensor/ChRadarSensor.h"
-#include "chrono_sensor/ChLidarSensor.h"
+#include "chrono_sensor/sensors/ChRadarSensor.h"
+#include "chrono_sensor/sensors/ChLidarSensor.h"
 #include "chrono_sensor/filters/ChFilterRadarProcess.h"
 #include "chrono_sensor/ChSensorManager.h"
 #include "chrono_sensor/filters/ChFilterAccess.h"

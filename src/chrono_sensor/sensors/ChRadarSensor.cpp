@@ -16,7 +16,7 @@
 //
 // ============================================================================
 
-#include "chrono_sensor/ChRadarSensor.h"
+#include "chrono_sensor/sensors/ChRadarSensor.h"
 
 namespace chrono {
 namespace sensor {

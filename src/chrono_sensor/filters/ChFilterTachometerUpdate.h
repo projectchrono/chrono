@@ -2,7 +2,7 @@
 #define CHFILTERTACHOMETERUPDATE_H
 
 #include "chrono_sensor/filters/ChFilter.h"
-#include "chrono_sensor/ChTachometerSensor.h"
+#include "chrono_sensor/sensors/ChTachometerSensor.h"
 
 namespace chrono {
 namespace sensor {

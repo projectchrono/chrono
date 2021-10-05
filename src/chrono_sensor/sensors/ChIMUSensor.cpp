@@ -12,14 +12,13 @@
 // Authors: Asher Elmquist
 // =============================================================================
 //
-// Container class for an IMU sensor
+// Container classes for sensors that make up an IMU (accelerometer, gyroscope, 
+// magnetometer)
 //
 // =============================================================================
 
-#include "chrono_sensor/ChIMUSensor.h"
+#include "chrono_sensor/sensors/ChIMUSensor.h"
 #include "chrono/physics/ChSystem.h"
-// #include "chrono_sensor/filters/ChFilterIMUUpdate.h"
-// #include "chrono_sensor/ChNoiseModel.h"
 
 namespace chrono {
 namespace sensor {

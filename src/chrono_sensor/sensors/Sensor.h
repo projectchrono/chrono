@@ -19,7 +19,7 @@
 #ifndef SENSOR_H
 #define SENSOR_H
 
-#include "chrono_sensor/ChSensor.h"
+#include "chrono_sensor/sensors/ChSensor.h"
 
 namespace chrono {
 namespace sensor {

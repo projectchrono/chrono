@@ -16,7 +16,7 @@
 //
 // =============================================================================
 
-#include "chrono_sensor/ChLidarSensor.h"
+#include "chrono_sensor/sensors/ChLidarSensor.h"
 #include "chrono_sensor/filters/ChFilterLidarReduce.h"
 #include "chrono_sensor/optix/ChFilterOptixRender.h"
 

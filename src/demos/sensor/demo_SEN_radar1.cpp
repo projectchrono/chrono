@@ -25,10 +25,10 @@
 #include "chrono/geometry/ChTriangleMeshConnected.h"
 #include "chrono/assets/ChTriangleMeshShape.h"
 
-#include "chrono_sensor/Sensor.h"
+#include "chrono_sensor/sensors/Sensor.h"
 #include "chrono_sensor/ChSensorManager.h"
-#include "chrono_sensor/ChRadarSensor.h"
-#include "chrono_sensor/ChLidarSensor.h"
+#include "chrono_sensor/sensors/ChRadarSensor.h"
+#include "chrono_sensor/sensors/ChLidarSensor.h"
 #include "chrono_sensor/filters/ChFilterAccess.h"
 #include "chrono_sensor/filters/ChFilterVisualize.h"
 #include "chrono_sensor/filters/ChFilterRadarProcess.h"
@@ -38,9 +38,7 @@
 #include "chrono_sensor/filters/ChFilterPCfromDepth.h"
 #include "chrono_sensor/filters/ChFilterVisualizePointCloud.h"
 
-#include "chrono_sensor/ChCameraSensor.h"
-#include "chrono_sensor/ChSensorManager.h"
-#include "chrono_sensor/filters/ChFilterAccess.h"
+#include "chrono_sensor/sensors/ChCameraSensor.h"
 #include "chrono_sensor/filters/ChFilterGrayscale.h"
 #include "chrono_sensor/filters/ChFilterSave.h"
 #include "chrono_sensor/filters/ChFilterVisualize.h"
@@ -227,7 +225,7 @@ int main(int argc, char* argv[]) {
     // -------------------
     // Simulate the system
     // -------------------
-    double render_time = 0;
+    // double render_time = 0;
     float ch_time = 0.0;
 
     while (ch_time < end_time) {

@@ -17,7 +17,6 @@
 #ifndef CHFILTERUFF_H
 #define CHFILTERUFF_H
 
-// #include "chrono_sensor/ChSensorBuffer.h"
 #include "chrono_sensor/filters/ChFilter.h"
 #include "NvInfer.h"
 #include "NvUffParser.h"

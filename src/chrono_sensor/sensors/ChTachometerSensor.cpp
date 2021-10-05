@@ -18,7 +18,7 @@
 // 3. axis: Axis of rotatioh to measure (X,Y,Z)
 //
 // =============================================================================
-#include "chrono_sensor/ChTachometerSensor.h"
+#include "chrono_sensor/sensors/ChTachometerSensor.h"
 #include "chrono_sensor/filters/ChFilterTachometerUpdate.h"
 #include "chrono/physics/ChSystem.h"
 

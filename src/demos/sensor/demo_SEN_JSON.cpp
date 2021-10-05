@@ -30,8 +30,8 @@
 #include "chrono/utils/ChUtilsCreators.h"
 #include "chrono_thirdparty/filesystem/path.h"
 
-#include "chrono_sensor/Sensor.h"
-#include "chrono_sensor/ChCameraSensor.h"
+#include "chrono_sensor/sensors/Sensor.h"
+#include "chrono_sensor/sensors/ChCameraSensor.h"
 #include "chrono_sensor/ChSensorManager.h"
 
 using namespace chrono;

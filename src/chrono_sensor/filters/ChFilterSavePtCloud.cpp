@@ -16,7 +16,7 @@
 // =============================================================================
 
 #include "chrono_sensor/filters/ChFilterSavePtCloud.h"
-#include "chrono_sensor/ChOptixSensor.h"
+#include "chrono_sensor/sensors/ChOptixSensor.h"
 
 #include "chrono_thirdparty/filesystem/path.h"
 #include "chrono/utils/ChUtilsInputOutput.h"

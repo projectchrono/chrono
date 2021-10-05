@@ -20,9 +20,9 @@
 #include "chrono/physics/ChSystemNSC.h"
 #include "chrono/physics/ChBodyEasy.h"
 
-#include "chrono_sensor/ChTachometerSensor.h"
+#include "chrono_sensor/sensors/ChTachometerSensor.h"
 #include "chrono_sensor/ChSensorManager.h"
-#include "chrono_sensor/ChCameraSensor.h"
+#include "chrono_sensor/sensors/ChCameraSensor.h"
 #include "chrono_sensor/filters/ChFilterVisualize.h"
 #include "chrono_sensor/filters/ChFilterTachometerUpdate.h"
 #include "chrono_sensor/filters/ChFilterAccess.h"

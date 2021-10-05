@@ -18,7 +18,7 @@
 
 #include "chrono_sensor/ChSensorManager.h"
 
-#include "chrono_sensor/ChOptixSensor.h"
+#include "chrono_sensor/sensors/ChOptixSensor.h"
 #include <iomanip>
 #include <iostream>
 

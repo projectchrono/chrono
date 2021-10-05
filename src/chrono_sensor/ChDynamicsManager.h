@@ -24,9 +24,8 @@
 
 #include "chrono/physics/ChSystem.h"
 
-// #include "chrono_sensor/ChSensor.h"
-#include "chrono_sensor/ChGPSSensor.h"
-#include "chrono_sensor/ChIMUSensor.h"
+#include "chrono_sensor/sensors/ChGPSSensor.h"
+#include "chrono_sensor/sensors/ChIMUSensor.h"
 
 #include <fstream>
 #include <sstream>

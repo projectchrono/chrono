@@ -16,7 +16,7 @@
 //
 // =============================================================================
 
-#include "chrono_sensor/ChSegmentationCamera.h"
+#include "chrono_sensor/sensors/ChSegmentationCamera.h"
 
 namespace chrono {
 namespace sensor {

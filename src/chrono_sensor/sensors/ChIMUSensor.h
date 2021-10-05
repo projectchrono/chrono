@@ -19,9 +19,9 @@
 #ifndef CHIMUSENSOR_H
 #define CHIMUSENSOR_H
 
-#include "chrono_sensor/ChSensor.h"
+#include "chrono_sensor/sensors/ChSensor.h"
 #include "chrono_sensor/filters/ChFilterIMUUpdate.h"
-#include "chrono_sensor/ChNoiseModel.h"
+#include "chrono_sensor/sensors/ChNoiseModel.h"
 
 namespace chrono {
 namespace sensor {

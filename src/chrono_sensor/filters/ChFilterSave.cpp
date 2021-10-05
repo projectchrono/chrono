@@ -16,7 +16,7 @@
 // =============================================================================
 
 #include "chrono_sensor/filters/ChFilterSave.h"
-#include "chrono_sensor/ChOptixSensor.h"
+#include "chrono_sensor/sensors/ChOptixSensor.h"
 #include "chrono_sensor/utils/CudaMallocHelper.h"
 
 #include "chrono_thirdparty/stb/stb_image_write.h"

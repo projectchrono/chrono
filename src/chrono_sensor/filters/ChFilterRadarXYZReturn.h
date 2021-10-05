@@ -18,7 +18,7 @@
 #define CHFILTERRADARXYZRETURN_H
 
 #include "chrono_sensor/filters/ChFilter.h"
-#include "chrono_sensor/ChRadarSensor.h"
+#include "chrono_sensor/sensors/ChRadarSensor.h"
 #include <cuda.h>
 
 

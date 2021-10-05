@@ -1,5 +1,5 @@
 #include "chrono_sensor/filters/ChFilterTachometerUpdate.h"
-#include "chrono_sensor/ChTachometerSensor.h"
+#include "chrono_sensor/sensors/ChTachometerSensor.h"
 
 namespace chrono {
 namespace sensor {

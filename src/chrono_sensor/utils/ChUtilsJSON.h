@@ -24,12 +24,12 @@
 #include "chrono/core/ChVector.h"
 #include "chrono/physics/ChBody.h"
 //
-#include "chrono_sensor/ChSensor.h"
-#include "chrono_sensor/ChCameraSensor.h"
-#include "chrono_sensor/ChGPSSensor.h"
-#include "chrono_sensor/ChIMUSensor.h"
-#include "chrono_sensor/ChLidarSensor.h"
-#include "chrono_sensor/ChRadarSensor.h"
+#include "chrono_sensor/sensors/ChSensor.h"
+#include "chrono_sensor/sensors/ChCameraSensor.h"
+#include "chrono_sensor/sensors/ChGPSSensor.h"
+#include "chrono_sensor/sensors/ChIMUSensor.h"
+#include "chrono_sensor/sensors/ChLidarSensor.h"
+#include "chrono_sensor/sensors/ChRadarSensor.h"
 //
 #include "chrono_sensor/filters/ChFilter.h"
 //
@@ -158,7 +158,7 @@ CH_SENSOR_API std::shared_ptr<ChFilter> CreateFilterJSON(const rapidjson::Value&
 CH_SENSOR_API std::shared_ptr<ChNoiseModel> CreateNoiseJSON(const rapidjson::Value& value);
 
 /// Load and return a std::string from the specified JSON value
-/// Will check if member exists and returns if it does, def if not\
+/// Will check if member exists and returns if it does, def if not
 /// @param value The JSON value to be parsed
 /// @param member A member from the file to be read
 /// @param def A default value to use if not definted in JSON file

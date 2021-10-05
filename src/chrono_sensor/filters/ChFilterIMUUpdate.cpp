@@ -16,9 +16,9 @@
 
 #include "chrono_sensor/filters/ChFilterIMUUpdate.h"
 #include "chrono/physics/ChSystem.h"
-#include "chrono_sensor/ChNoiseModel.h"
+#include "chrono_sensor/sensors/ChNoiseModel.h"
 #include "chrono_sensor/utils/ChGPSUtils.h"
-#include "chrono_sensor/ChIMUSensor.h"
+#include "chrono_sensor/sensors/ChIMUSensor.h"
 
 #include <chrono>
 

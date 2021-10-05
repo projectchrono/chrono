@@ -26,7 +26,7 @@
 #include "chrono/utils/ChUtilsCreators.h"
 #include "chrono_thirdparty/filesystem/path.h"
 
-#include "chrono_sensor/ChCameraSensor.h"
+#include "chrono_sensor/sensors/ChCameraSensor.h"
 #include "chrono_sensor/ChSensorManager.h"
 #include "chrono_sensor/filters/ChFilterAccess.h"
 #include "chrono_sensor/filters/ChFilterGrayscale.h"
@@ -277,8 +277,8 @@ int main(int argc, char* argv[]) {
     // ---------------
     // Demonstration shows cameras panning around a stationary mesh.
     // Each camera begins on opposite sides of the object, but rotate at the same speed
-    float orbit_radius = 10.f;
-    float orbit_rate = 2.5;
+    // float orbit_radius = 10.f;
+    // float orbit_rate = 2.5;
     float ch_time = 0.0;
 
     std::chrono::high_resolution_clock::time_point t1 = std::chrono::high_resolution_clock::now();

@@ -15,7 +15,7 @@
 // =============================================================================
 
 #include "chrono_sensor/filters/ChFilterPCfromDepth.h"
-#include "chrono_sensor/ChLidarSensor.h"
+#include "chrono_sensor/sensors/ChLidarSensor.h"
 #include "chrono_sensor/cuda/pointcloud.cuh"
 #include "chrono_sensor/utils/CudaMallocHelper.h"
 

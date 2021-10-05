@@ -21,7 +21,7 @@
 #include "chrono_sensor/filters/ChFilter.h"
 #include "chrono_sensor/filters/ChFilterVisualize.h"
 #include "chrono_sensor/optix/ChOptixUtils.h"
-#include "chrono_sensor/ChOptixSensor.h"
+#include "chrono_sensor/sensors/ChOptixSensor.h"
 #include "chrono_sensor/optix/ChOptixPipeline.h"
 #include "chrono_sensor/optix/ChOptixDefinitions.h"
 

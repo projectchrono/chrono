@@ -17,7 +17,6 @@
 #ifndef CHFILTERONNX_H
 #define CHFILTERONNX_H
 
-// #include "chrono_sensor/ChSensorBuffer.h"
 #include "chrono_sensor/filters/ChFilter.h"
 #include "NvInfer.h"
 #include "NvOnnxParser.h"

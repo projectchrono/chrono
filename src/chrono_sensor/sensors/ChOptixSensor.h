@@ -20,7 +20,7 @@
 #ifndef CHOPTIXSENSOR_H
 #define CHOPTIXSENSOR_H
 
-#include "chrono_sensor/ChSensor.h"
+#include "chrono_sensor/sensors/ChSensor.h"
 
 #include "chrono_sensor/optix/ChOptixPipeline.h"
 

@@ -22,9 +22,9 @@
 #include <queue>
 #include <stack>
 #include <mutex>
-#include "chrono_sensor/ChSensorBuffer.h"
+#include "chrono_sensor/sensors/ChSensorBuffer.h"
 #include "chrono_sensor/filters/ChFilter.h"
-#include "chrono_sensor/ChOptixSensor.h"
+#include "chrono_sensor/sensors/ChOptixSensor.h"
 #include "chrono/physics/ChSystem.h"
 
 #include <typeinfo>

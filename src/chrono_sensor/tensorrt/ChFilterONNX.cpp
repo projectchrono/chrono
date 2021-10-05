@@ -15,7 +15,7 @@
 // =============================================================================
 
 #include "chrono_sensor/tensorrt/ChFilterONNX.h"
-#include "chrono_sensor/ChSensor.h"
+#include "chrono_sensor/sensors/ChSensor.h"
 #include "chrono_sensor/utils/CudaMallocHelper.h"
 #include "chrono_sensor/cuda/nn_prep.cuh"
 

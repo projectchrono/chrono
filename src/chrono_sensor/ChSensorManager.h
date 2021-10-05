@@ -24,7 +24,7 @@
 
 #include "chrono/physics/ChSystem.h"
 
-#include "chrono_sensor/ChSensor.h"
+#include "chrono_sensor/sensors/ChSensor.h"
 #include "chrono_sensor/optix/ChOptixEngine.h"
 #include "chrono_sensor/ChDynamicsManager.h"
 #include "chrono_sensor/optix/scene/ChScene.h"

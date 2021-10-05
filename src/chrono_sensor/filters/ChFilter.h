@@ -19,7 +19,7 @@
 
 #include <memory>
 #include <string>
-#include "chrono_sensor/ChSensorBuffer.h"
+#include "chrono_sensor/sensors/ChSensorBuffer.h"
 #include "chrono_sensor/ChApiSensor.h"
 #include "chrono/core/ChTypes.h"
 

@@ -60,18 +60,18 @@
 
 //#include <irrlicht.h>
 #include "chrono_sensor/ChApiSensor.h"
-#include "chrono_sensor/ChSensor.h"
-#include "chrono_sensor/Sensor.h"
-#include "chrono_sensor/ChOptixSensor.h"
-#include "chrono_sensor/ChCameraSensor.h"
+#include "chrono_sensor/sensors/ChSensor.h"
+#include "chrono_sensor/sensors/Sensor.h"
+#include "chrono_sensor/sensors/ChOptixSensor.h"
+#include "chrono_sensor/sensors/ChCameraSensor.h"
 #include "chrono_sensor/ChConfigSensor.h.in"
-#include "chrono_sensor/ChGPSSensor.h"
-#include "chrono_sensor/ChIMUSensor.h"
-#include "chrono_sensor/ChLidarSensor.h"
-#include "chrono_sensor/ChRadarSensor.h"
+#include "chrono_sensor/sensors/ChGPSSensor.h"
+#include "chrono_sensor/sensors/ChIMUSensor.h"
+#include "chrono_sensor/sensors/ChLidarSensor.h"
+#include "chrono_sensor/sensors/ChRadarSensor.h"
 #include "chrono_sensor/ChSensorManager.h"
-#include "chrono_sensor/ChSensorBuffer.h"
-#include "chrono_sensor/ChNoiseModel.h"
+#include "chrono_sensor/sensors/ChSensorBuffer.h"
+#include "chrono_sensor/sensors/ChNoiseModel.h"
 #include "chrono_sensor/optix/scene/ChScene.h"
 #include "chrono_sensor/optix/ChOptixDefinitions.h"
 /// FILTERS
@@ -263,7 +263,7 @@ using namespace chrono::sensor;
 %template(vector_ChFrameD) std::vector< chrono::ChFrame<double> >;
 
 
-%include "chrono_sensor/ChSensorBuffer.h"
+%include "chrono_sensor/sensors/ChSensorBuffer.h"
 /// BufferT Templates
 //camera
 %template(UserR8Buffer) chrono::sensor::SensorBufferT<std::shared_ptr<char[]>>;
@@ -311,17 +311,17 @@ using namespace chrono::sensor;
 %include "chrono_sensor/optix/ChOptixDefinitions.h"
 %include "chrono_sensor/utils/ChGPSUtils.h"
 
-%include "chrono_sensor/ChSensor.h"
-%include "chrono_sensor/Sensor.h"
-%include "chrono_sensor/ChOptixSensor.h"
-%include "chrono_sensor/ChCameraSensor.h"
+%include "chrono_sensor/sensors/ChSensor.h"
+%include "chrono_sensor/sensors/Sensor.h"
+%include "chrono_sensor/sensors/ChOptixSensor.h"
+%include "chrono_sensor/sensors/ChCameraSensor.h"
 %include "chrono_sensor/ChConfigSensor.h.in"
-%include "chrono_sensor/ChGPSSensor.h"
-%include "chrono_sensor/ChIMUSensor.h"
-%include "chrono_sensor/ChLidarSensor.h"
-%include "chrono_sensor/ChRadarSensor.h"
+%include "chrono_sensor/sensors/ChGPSSensor.h"
+%include "chrono_sensor/sensors/ChIMUSensor.h"
+%include "chrono_sensor/sensors/ChLidarSensor.h"
+%include "chrono_sensor/sensors/ChRadarSensor.h"
 %include "chrono_sensor/ChSensorManager.h"
-%include "chrono_sensor/ChNoiseModel.h"
+%include "chrono_sensor/sensors/ChNoiseModel.h"
 
 
 /// Filter acces templates instances

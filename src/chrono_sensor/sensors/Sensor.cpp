@@ -16,7 +16,7 @@
 //
 // =============================================================================
 
-#include "chrono_sensor/Sensor.h"
+#include "chrono_sensor/sensors/Sensor.h"
 
 #include "chrono_sensor/utils/ChUtilsJSON.h"
 

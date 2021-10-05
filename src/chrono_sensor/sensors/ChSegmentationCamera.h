@@ -19,7 +19,7 @@
 #define CHSEGMENTATIONCAMERA_H
 
 // will use same parameters as camera
-#include "chrono_sensor/ChCameraSensor.h"
+#include "chrono_sensor/sensors/ChCameraSensor.h"
 
 namespace chrono {
 namespace sensor {

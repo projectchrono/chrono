@@ -21,7 +21,7 @@
 
 // #include "ChApiSensor.h"
 
-#include "chrono_sensor/ChSensor.h"
+#include "chrono_sensor/sensors/ChSensor.h"
 #include "chrono_sensor/filters/ChFilterGPSUpdate.h"
 #include "chrono/physics/ChSystem.h"
 #include "chrono_sensor/utils/ChGPSUtils.h"
