@@ -24,6 +24,8 @@ endif()
 
 set(CH_C_FLAGS "${CMAKE_C_FLAGS}")
 set(CH_CXX_FLAGS "${CMAKE_CXX_FLAGS}")
+set(CH_LINKERFLAG_EXE "${CMAKE_EXE_LINKER_FLAGS}")
+set(CH_LINKERFLAG_SHARED "")
 
 #-----------------------------------------------------------------------------
 # Enable C++11 support.  Check for C++14 support
@@ -95,7 +97,7 @@ set(CH_C_FLAGS "${CH_C_FLAGS} ${CMAKE_THREAD_LIBS_INIT}")
 # main ChronoEngine library, regardless on whether or not OpenMP is found.
 
 message(STATUS "Searching for OpenMP...")
-find_package("OpenMP")
+find_package(OpenMP)
 
 # Determine OpenMP version. Prepare substitution variables that can be used in
 # generating configuration header files.
@@ -200,12 +202,24 @@ if(USE_SIMD)
    endif()
 
    # Figure out FMA level support
-   message(STATUS "Searching for FMA...")
-   find_package(FMA)
+   if(MSVC AND NOT DETECTED_AVX_20)
+      set(CHECK_FMA FALSE)
+   else()
+      set(CHECK_FMA TRUE)
+   endif()
    
-   # Set substitution variables for configuration file
-   if(FMA_FOUND)
-     set(CHRONO_HAS_FMA "#define CHRONO_HAS_FMA")
+   if(CHECK_FMA)    
+     message(STATUS "Searching for FMA...")
+     find_package(FMA)
+   
+     # Set substitution variables for configuration file
+     if(FMA_FOUND)
+       set(CHRONO_HAS_FMA "#define CHRONO_HAS_FMA")
+       if(MSVC)
+         set(CH_LINKERFLAG_EXE "${CH_LINKERFLAG_EXE} /LTCG")
+         set(CH_LINKERFLAG_SHARED "${CH_LINKERFLAG_SHARED} /LTCG")
+       endif()
+     endif()
    endif()
    
    # Add SSE, AVX, and FMA flags to Chrono compiler flags
@@ -232,10 +246,6 @@ else()
    message(STATUS "SIMD support disabled")
 
 endif() 
-
-message(STATUS "C++ compiler flags: ${CH_CXX_FLAGS}")
-message(STATUS "C compile flags:    ${CH_C_FLAGS}")
-
 
 #-----------------------------------------------------------------------------
 # Eigen library
@@ -389,8 +399,8 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
     if(MINGW OR CMAKE_COMPILER_IS_GNUCC OR CMAKE_COMPILER_IS_GNUCXX)
         set(CH_CXX_FLAGS "${CH_CXX_FLAGS} -D_MINGW -D_WINDOWS")
         set(CH_C_FLAGS "${CH_C_FLAGS} -D_MINGW -D_WINDOWS")
-        set(CH_LINKERFLAG_EXE "-Wl,--enable-runtime-pseudo-reloc")
-        set(CH_LINKERFLAG_SHARED "-Wl,--export-all-symbols -Wl,--enable-auto-import -Wl,--enable-runtime-pseudo-reloc")
+        set(CH_LINKERFLAG_EXE "${CH_LINKERFLAG_EXE} -Wl,--enable-runtime-pseudo-reloc")
+        set(CH_LINKERFLAG_SHARED "${CH_LINKERFLAG_SHARED} -Wl,--export-all-symbols -Wl,--enable-auto-import -Wl,--enable-runtime-pseudo-reloc")
 
         if(CMAKE_SIZEOF_VOID_P MATCHES 8)
             set(CH_CXX_FLAGS "${CH_CXX_FLAGS} -m64")
@@ -489,6 +499,11 @@ endif()
 # Set the base compilation flags
 #-----------------------------------------------------------------------------
 
+message(STATUS "Compiler and linker flags:")
+message(STATUS "  C++ compiler flags: ${CH_CXX_FLAGS}")
+message(STATUS "  C compiler flags:   ${CH_C_FLAGS}")
+message(STATUS "  Linker flags:       ${CH_LINKERFLAG_EXE}")
+
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${CH_CXX_FLAGS}")
 set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} ${CH_CXX_FLAGS} -D_DEBUG -DDEBUG")
 set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} ${CH_CXX_FLAGS} -DNDEBUG")
@@ -516,7 +531,9 @@ include_directories(${THRUST_INCLUDE_DIR})
 # Build submodules
 #------------------------------------------------------------
 
-message(STATUS "==== Submodules ====")
+message(STATUS "")
+message(STATUS "==== Chrono Modules ====")
+message(STATUS "")
 
 if(BUILD_TESTING)
   message(STATUS "Build Google test framework")
