@@ -142,7 +142,7 @@ void create_some_falling_items(ChSystemNSC& mphysicalSystem) {
 
         // optional, attach a texture for better visualization
         auto mtexture = chrono_types::make_shared<ChTexture>();
-        mtexture->SetTextureFilename(GetChronoDataFile("rock.jpg"));
+        mtexture->SetTextureFilename(GetChronoDataFile("textures/rock.jpg"));
         mrigidBody->AddAsset(mtexture);
     }
 

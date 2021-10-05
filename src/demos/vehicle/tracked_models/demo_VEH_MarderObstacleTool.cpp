@@ -82,11 +82,11 @@ ChVector<> trackPoint(0.0, 2.0, 0.0);
 
 // Driver input files
 std::string path_file("paths/straightOrigin.txt");
-std::string steering_controller_file("marder/driver/SteeringController.json");
-std::string speed_controller_file("marder/driver/SpeedController.json");
+std::string steering_controller_file("Marder/driver/SteeringController.json");
+std::string speed_controller_file("Marder/driver/SpeedController.json");
 
 // Output directories
-const std::string out_top_dir = GetChronoOutputPath() + "MARDER";
+const std::string out_top_dir = GetChronoOutputPath() + "Marder";
 const std::string out_dir = out_top_dir + "/OBSTACLE_TOOL";
 const std::string pov_dir = out_dir + "/POVRAY";
 const std::string img_dir = out_dir + "/IMG";
@@ -293,16 +293,16 @@ int main(int argc, char* argv[]) {
                 // Initialize output
                 // -----------------
 
-                if (!filesystem::create_directory(filesystem::path(out_dir))) {
-                    std::cout << "Error creating directory " << out_dir << std::endl;
-                    return 1;
+                std::vector<std::string> dirs_to_create = {out_top_dir, out_dir};
+                if (img_output) {
+                  dirs_to_create.push_back(img_dir);
                 }
 
-                if (img_output) {
-                    if (!filesystem::create_directory(filesystem::path(img_dir))) {
-                        std::cout << "Error creating directory " << img_dir << std::endl;
-                        return 1;
-                    }
+                for (const auto& dir : dirs_to_create) {
+                  if (!filesystem::create_directory(filesystem::path(dir))) {
+                    std::cout << "Error creating directory " << dir << std::endl;
+                    return 1;
+                  }
                 }
 
                 // Set up vehicle output
