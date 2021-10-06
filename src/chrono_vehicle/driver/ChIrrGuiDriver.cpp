@@ -89,10 +89,7 @@ ChIrrGuiDriver::ChIrrGuiDriver(ChVehicleIrrApp& app)
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 bool ChIrrGuiDriver::OnEvent(const SEvent& event) {
-    // joystick callback, outside of condition because it might be used to switch to joystick
-    if (callbackButton > -1 && cb_fun != nullptr && event.JoystickEvent.IsButtonPressed(callbackButton) ) {
-            cb_fun();
-        }
+    
     if (m_mode == JOYSTICK) {
         /// Only handles joystick events
         if (event.EventType != EET_JOYSTICK_INPUT_EVENT)
@@ -134,6 +131,10 @@ bool ChIrrGuiDriver::OnEvent(const SEvent& event) {
                 }
             }
         }
+        // joystick callback, outside of condition because it might be used to switch to joystick
+        if (callbackButton > -1 && cb_fun != nullptr && event.JoystickEvent.IsButtonPressed(callbackButton) ) {
+                cb_fun();
+            }
 
         return true;
     }
