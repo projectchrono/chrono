@@ -52,9 +52,9 @@ const std::string RCCar_RigidTire::m_meshFile_right = "rccar/rccar_tire_left.obj
 
 void RCCar_RigidTire::CreateContactMaterial(ChContactMethod contact_method) {
     MaterialInfo minfo;
-    minfo.mu = 0.9f; //TODO
-    minfo.cr = 0.1f; //TODO
-    minfo.Y = 2e7f; //TODO
+    minfo.mu = 0.9f;
+    minfo.cr = 0.1f;
+    minfo.Y = 2e7f;
     m_material = minfo.CreateMaterial(contact_method);
 }
 

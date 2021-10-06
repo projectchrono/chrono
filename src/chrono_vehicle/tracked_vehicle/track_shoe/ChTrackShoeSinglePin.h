@@ -74,10 +74,6 @@ class CH_VEHICLE_API ChTrackShoeSinglePin : public ChTrackShoeSegmented {
     /// Return the radius of the contact cylinders.
     virtual double GetCylinderRadius() const = 0;
 
-    /// Return stiffness and damping data for the shoe bushing.
-    /// Returning nullptr (default) results in using a kinematic revolute joint.
-    virtual std::shared_ptr<ChVehicleBushingData> GetBushingData() const { return nullptr; }
-
     virtual void ExportComponentList(rapidjson::Document& jsonDocument) const override;
 
     virtual void Output(ChVehicleOutput& database) const override;
