@@ -75,6 +75,21 @@ if (CMAKE_CXX_COMPILER_ID MATCHES "PGI")
   endif()
 endif()
 
+# Allow user to enable whole program optimization (MSVC only)
+if (MSVC)
+  option(CH_WHOLE_PROG_OPT "Enable whole program optimization" OFF)
+
+  if(CH_WHOLE_PROG_OPT)
+     set(CH_CXX_FLAGS "${CH_CXX_FLAGS} /GL")
+     set(CH_C_FLAGS "${CH_C_FLAGS} /GL")
+     set(CH_LINKERFLAG_EXE "${CH_LINKERFLAG_EXE} /LTCG")
+     set(CH_LINKERFLAG_SHARED "${CH_LINKERFLAG_SHARED} /LTCG")
+     message(STATUS "Enabling whole program optimization...")
+     message(STATUS "  Compiler flag: /GL")
+     message(STATUS "  Linker flag: /LTGL")
+  endif()
+endif()
+
 #-----------------------------------------------------------------------------
 # Threads and OpenMP support
 #-----------------------------------------------------------------------------
@@ -202,12 +217,18 @@ if(USE_SIMD)
    endif()
 
    # Figure out FMA level support
-   if(MSVC AND NOT DETECTED_AVX_20)
-      set(CHECK_FMA FALSE)
-   else()
-      set(CHECK_FMA TRUE)
+   set(CHECK_FMA TRUE)
+   if(MSVC)
+     if(NOT CH_WHOLE_PROG_OPT)
+        message(STATUS "FMA requires enabling whole program optimization. FMA check disabled.")
+        set(CHECK_FMA FALSE)
+     endif()
+     if(NOT DETECTED_AVX_20)
+        message(STATU "FMA requires AVX2 support. FMA check disabled.")
+        set(CHECK_FMA FALSE)
+     endif()
    endif()
-   
+     
    if(CHECK_FMA)    
      message(STATUS "Searching for FMA...")
      find_package(FMA)
@@ -215,10 +236,6 @@ if(USE_SIMD)
      # Set substitution variables for configuration file
      if(FMA_FOUND)
        set(CHRONO_HAS_FMA "#define CHRONO_HAS_FMA")
-       if(MSVC)
-         set(CH_LINKERFLAG_EXE "${CH_LINKERFLAG_EXE} /LTCG")
-         set(CH_LINKERFLAG_SHARED "${CH_LINKERFLAG_SHARED} /LTCG")
-       endif()
      endif()
    endif()
    
