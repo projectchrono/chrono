@@ -42,6 +42,15 @@ class CH_VEHICLE_API ChTrackTestRigIrrApp : public ChVehicleIrrApp {
 
     ~ChTrackTestRigIrrApp() {}
 
+    /// Enable/disable rendering of track shoe body frames.
+    void RenderTrackShoeFrames(bool state, double axis_length = 1);
+
+    /// Enable/disable rendering of sprocket body frame.
+    void RenderSprocketFrame(bool state, double axis_length = 1);
+
+    /// Enable/disable rendering of idler body frame.
+    void RenderIdlerFrame(bool state, double axis_length = 1);
+
   private:
     virtual void renderOtherGraphics() override;
     void renderContacts(const std::list<ChTrackContactManager::ContactInfo>& lst,
@@ -52,6 +61,12 @@ class CH_VEHICLE_API ChTrackTestRigIrrApp : public ChVehicleIrrApp {
                         double scale_forces);
 
     ChTrackTestRig* m_rig;
+    bool m_render_frame_shoes;
+    bool m_render_frame_sprocket;
+    bool m_render_frame_idler;
+    double m_axis_shoes;
+    double m_axis_sprocket;
+    double m_axis_idler;
 };
 
 /// @} vehicle_tracked_utils
