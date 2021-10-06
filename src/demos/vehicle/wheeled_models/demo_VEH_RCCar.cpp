@@ -57,8 +57,8 @@ VisualizationType wheel_vis_type = VisualizationType::NONE;
 // Collision type for chassis (PRIMITIVES, MESH, or NONE)
 CollisionType chassis_collision_type = CollisionType::NONE;
 
-// Type of tire model (RIGID)
-TireModelType tire_model = TireModelType::RIGID;
+// Type of tire model (RIGID, TMEASY)
+TireModelType tire_model = TireModelType::TMEASY;
 
 // Rigid terrain
 RigidTerrain::PatchType terrain_model = RigidTerrain::PatchType::BOX;

@@ -335,6 +335,7 @@ void ChSystemGpu_impl::WriteChPFParticles(std::ofstream& ptFile) const {
     std::vector<float> v_x_UU(sphere_local_pos_X.size());
     std::vector<float> v_y_UU(sphere_local_pos_Y.size());
     std::vector<float> v_z_UU(sphere_local_pos_Z.size());
+    std::vector<float> sphere_radius(gran_params->nSpheres);
 
     for (unsigned int n = 0; n < nSpheres; n++) {
         unsigned int ownerSD = sphere_owner_SDs.at(n);
@@ -354,9 +355,10 @@ void ChSystemGpu_impl::WriteChPFParticles(std::ofstream& ptFile) const {
         v_x_UU[n] = x_UU;
         v_y_UU[n] = y_UU;
         v_z_UU[n] = z_UU;
+        sphere_radius[n] = gran_params->sphereRadius_SU * LENGTH_SU2UU;
     }
 
-    pw.write(ptFile, ParticleFormatWriter::CompressionType::NONE, v_x_UU, v_y_UU, v_z_UU);
+    pw.write(ptFile, ParticleFormatWriter::CompressionType::NONE, v_x_UU, v_y_UU, v_z_UU, sphere_radius);
 }
 
 #ifdef USE_HDF5

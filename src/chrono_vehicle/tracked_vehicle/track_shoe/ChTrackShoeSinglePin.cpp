@@ -91,12 +91,9 @@ void ChTrackShoeSinglePin::Connect(std::shared_ptr<ChTrackShoe> next,
     ChSystem* system = m_shoe->GetSystem();
     double sign = ccw ? +1 : -1;
 
-    bool add_RSDA = (track->GetConnectionType() == ChTrackAssemblySegmented::ConnectionType::RSDA_JOINT);
-    assert(!add_RSDA || track->GetTorqueFunctor());
-
     ChVector<> loc = m_shoe->TransformPointLocalToParent(ChVector<>(sign * GetPitch() / 2, 0, 0));
 
-    if (m_index == 0 && !GetBushingData()) {
+    if (m_index == 0 && !track->GetBushingData()) {
         // Create and initialize a point-line joint (sliding line along X)
         auto rot = m_shoe->GetRot() * Q_from_AngZ(CH_C_PI_2);
         auto pointline =
@@ -107,15 +104,15 @@ void ChTrackShoeSinglePin::Connect(std::shared_ptr<ChTrackShoe> next,
     } else {
         // Create and initialize the revolute joint (rotation axis along Z)
         auto rot = m_shoe->GetRot() * Q_from_AngX(CH_C_PI_2);
-        auto revolute =
-            chrono_types::make_shared<ChVehicleJoint>(ChVehicleJoint::Type::REVOLUTE, m_name + "_revolute", m_shoe,
-                                                      next->GetShoeBody(), ChCoordsys<>(loc, rot), GetBushingData());
+        auto revolute = chrono_types::make_shared<ChVehicleJoint>(ChVehicleJoint::Type::REVOLUTE, m_name + "_revolute",
+                                                                  m_shoe, next->GetShoeBody(), ChCoordsys<>(loc, rot),
+                                                                  track->GetBushingData());
         chassis->AddJoint(revolute);
         m_connection_joint = revolute;
     }
 
     // Optionally, include rotational spring-damper to model track bending stiffness
-    if (add_RSDA) {
+    if (track->GetTorqueFunctor()) {
         m_connection_rsda = chrono_types::make_shared<ChLinkRotSpringCB>();
         m_connection_rsda->SetNameString(m_name + "_rsda");
         m_connection_rsda->Initialize(m_shoe, next->GetShoeBody(), false, ChCoordsys<>(loc, m_shoe->GetRot()),

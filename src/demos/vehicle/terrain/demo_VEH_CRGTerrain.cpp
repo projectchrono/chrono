@@ -395,11 +395,11 @@ int main(int argc, char* argv[]) {
         app.DrawAll();
 
         // Draw the world reference frame at the sentinel location
-        app.RenderFrame(driver.GetSentinelLocation());
+        app.RenderFrame(ChFrame<>(driver.GetSentinelLocation()));
 
         if (output_images && sim_frame % render_steps == 0) {
             char filename[200];
-            sprintf(filename, "%s/image_%05d.bmp", out_dir.c_str(), render_frame++);
+            sprintf(filename, "%s/image_%05d.bmp", out_dir.c_str(), render_frame);
             app.WriteImageToFile(filename);
             render_frame++;
         }
