@@ -58,7 +58,7 @@ int count_Y = 2;
 void OutputData(ChSystemMulticore* sys, int out_frame, double time) {
     char filename[100];
     sprintf(filename, "%s/data_%03d.dat", out_folder, out_frame);
-    utils::WriteShapesPovray(sys, filename);
+    utils::WriteVisualizationAssets(sys, filename);
     std::cout << "time = " << time << std::flush << std::endl;
 }
 

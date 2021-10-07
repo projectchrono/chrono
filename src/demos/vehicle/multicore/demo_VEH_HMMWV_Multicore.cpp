@@ -430,7 +430,7 @@ int main(int argc, char* argv[]) {
         if (povray && sim_frame == next_povray_frame) {
             char filename[100];
             sprintf(filename, "%s/data_%03d.dat", pov_dir.c_str(), povray_frame + 1);
-            utils::WriteShapesPovray(system, filename);
+            utils::WriteVisualizationAssets(system, filename);
 
             std::cout << "Povray output at time " << time << "  " << filename << std::endl;
             povray_frame++;
