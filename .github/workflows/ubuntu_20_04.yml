@@ -1,0 +1,80 @@
+name: ROS CI
+
+on: [push]
+
+jobs:
+  build:
+    runs-on: ubuntu-20.04
+    # env:
+    steps:
+
+      - name: git clone git@github.com:lucasw/chrono
+        uses: actions/checkout@v2
+        with:
+          path: chrono
+          submodules: true
+
+      - name: install cuda
+        run: |
+            sudo apt-get install -y nvidia-cuda-toolkit
+            sudo apt-get install -y nvidia-cuda-dev
+            # nvidia-smi
+
+      - name: install dependencies
+        run: |
+            sudo apt-get update -qq
+            sudo apt-get install -y dpkg
+            sudo apt-get install -y freeglut3-dev
+            sudo apt-get install -y g++-8
+            sudo apt-get install -y gcc-8
+            sudo apt-get install -y libboost-dev
+            sudo apt-get install -y libeigen3-dev
+            sudo apt-get install -y libglew-dev
+            sudo apt-get install -y libglfw3-dev
+            sudo apt-get install -y libglm-dev
+            sudo apt-get install -y libhdf5-dev
+            sudo apt-get install -y libirrlicht-dev
+            sudo apt-get install -y libopenmpi-dev
+            sudo apt-get install -y libthrust-dev
+            sudo apt-get install -y libxxf86vm-dev
+            sudo apt-get install -y swig
+
+      - name: make install dir
+        run: |
+          mkdir -p $HOME/other/install
+
+      - name: build blaze
+        run: |
+          git clone https://bitbucket.org/blaze-lib/blaze.git
+          mkdir -p build/blaze
+          cd build/blaze
+          cmake -DCMAKE_INSTALL_PREFIX=$HOME/other/install ../../blaze/
+          make
+          make install
+          ls -l $HOME/other/install
+
+      - name: build chrono
+        run: |
+          mkdir -p build/chrono
+          cd build/chrono
+          cmake ../../chrono -DCMAKE_BUILD_TYPE=Release -DCMAKE_CXX_COMPILER=g++-8 -DCMAKE_C_COMPILER=gcc-8 -DENABLE_MODULE_VEHICLE=1 -DENABLE_MODULE_PYTHON=1 -DENABLE_MODULE_OPENGL=1 -DENABLE_MODULE_GPU=1 -DENABLE_MODULE_IRRLICHT=1 -DENABLE_MODULE_MULTICORE=1 -DUSE_MULTICORE_CUDA=1 -DBLAZE_DIR=$HOME/other/install/include -DENABLE_MODULE_SENSOR=0 -DCMAKE_INSTALL_PREFIX=$HOME/other/install
+          # TODO(lucasw) avoid hard-coding, if the real number is more or less would like to use that
+          make -j2
+          make install
+
+      - name: compress output
+        run: |
+          # Trying to upload the dir results in error, so tar it up
+          # Warning: No files were found with the provided path: other/install/. No artifacts will be uploaded.
+          cur=$PWD
+          cd $HOME
+          tar cvzf $cur/install.tgz other/install
+          cd $cur
+          pwd
+          ls -l
+
+      - name: update build artifacts
+        uses: actions/upload-artifact@v2
+        with:
+          name: chrono_build
+          path: install.tgz
