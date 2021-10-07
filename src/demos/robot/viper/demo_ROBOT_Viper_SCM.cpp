@@ -23,7 +23,7 @@
 #include "chrono/physics/ChLoadContainer.h"
 #include "chrono/physics/ChSystemSMC.h"
 #include "chrono/utils/ChUtilsInputOutput.h"
-#include "chrono/physics/ChSystemPBD.h"
+
 #include "chrono/physics/ChSystemNSC.h"
 #include "chrono/physics/ChBodyEasy.h"
 #include "chrono/physics/ChInertiaUtils.h"
@@ -140,7 +140,7 @@ int main(int argc, char* argv[]) {
     ////double body_range = 1.2;
 
     // Create a Chrono::Engine physical system
-    ChSystemPBD my_system;
+    ChSystemSMC my_system;
     my_system.Set_G_acc(ChVector<>(0, 0, -9.81));
 
     // Create the Irrlicht visualization (open the Irrlicht device,
@@ -280,8 +280,7 @@ int main(int argc, char* argv[]) {
     // Use shadows in realtime view
     application.AddShadowAll();
 
-    application.SetTimestep(0.003);
-	my_system.SetSubsteps(300);
+    application.SetTimestep(0.0005);
 
     while (application.GetDevice()->run()) {
         if (output) {
