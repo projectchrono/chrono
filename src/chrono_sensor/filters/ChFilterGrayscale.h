@@ -19,6 +19,8 @@
 
 #include "chrono_sensor/filters/ChFilter.h"
 
+#include <cuda.h>
+
 namespace chrono {
 namespace sensor {
 
@@ -36,17 +38,18 @@ class CH_SENSOR_API ChFilterGrayscale : public ChFilter {
     ChFilterGrayscale(std::string name = {});
 
     /// Apply function. Converts RGB to Greyscale data.
+    virtual void Apply();
+
+    /// Initializes all data needed by the filter apply function.
     /// @param pSensor A pointer to the sensor on which the filter is attached.
     /// @param bufferInOut A buffer that is passed into the filter. This data is what will be made available for the
     /// user.
-    virtual void Apply(std::shared_ptr<ChSensor> pSensor, std::shared_ptr<SensorBuffer>& bufferInOut);
-
-    /// Initializes all data needed by the filter apply function.
-    /// @param pSensor A pointer to the sensor.
-    virtual void Initialize(std::shared_ptr<ChSensor> pSensor) {}
+    virtual void Initialize(std::shared_ptr<ChSensor> pSensor, std::shared_ptr<SensorBuffer>& bufferInOut);
 
   private:
-    std::shared_ptr<SensorDeviceR8Buffer> m_buffer;  ///< Buffer for holding the greyscale data
+    std::shared_ptr<SensorDeviceRGBA8Buffer> m_buffer_in;  ///< input buffer
+    std::shared_ptr<SensorDeviceR8Buffer> m_buffer_out;    ///< Buffer for holding the greyscale data
+    CUstream m_cuda_stream;                                ///< reference to the cuda stream
 };
 
 /// @}

@@ -15,7 +15,7 @@
 // =============================================================================
 
 #include "chrono_sensor/filters/ChFilterLidarIntensityClip.h"
-#include "chrono_sensor/ChSensor.h"
+#include "chrono_sensor/sensors/ChSensor.h"
 #include "chrono_sensor/cuda/lidar_clip.cuh"
 #include "chrono_sensor/utils/CudaMallocHelper.h"
 
@@ -25,50 +25,27 @@ namespace sensor {
 ChFilterLidarIntensityClip::ChFilterLidarIntensityClip(float intensity_thresh, float default_value, std::string name)
     : m_intensity_thresh(intensity_thresh), m_default_dist(default_value), ChFilter(name) {}
 
-CH_SENSOR_API void ChFilterLidarIntensityClip::Apply(std::shared_ptr<ChSensor> pSensor,
-                                                     std::shared_ptr<SensorBuffer>& bufferInOut) {
-    // this filter CANNOT be the first filter in a sensor's filter list, so the bufferIn CANNOT null.
-    assert(bufferInOut != nullptr);
+CH_SENSOR_API void ChFilterLidarIntensityClip::Initialize(std::shared_ptr<ChSensor> pSensor,
+                                                          std::shared_ptr<SensorBuffer>& bufferInOut) {
     if (!bufferInOut)
-        throw std::runtime_error("The lidar clip filter was not supplied an input buffer");
-
-    // to grayscale (for now), the incoming buffer must be an optix buffer
-    auto pOpx = std::dynamic_pointer_cast<SensorOptixBuffer>(bufferInOut);
+        InvalidFilterGraphNullBuffer(pSensor);
     auto pDI = std::dynamic_pointer_cast<SensorDeviceDIBuffer>(bufferInOut);
-    if (!pOpx && !pDI) {
-        throw std::runtime_error(
-            "The lidar clip filter requires that the incoming buffer must be an optix buffer or DI buffer");
+    if (!pDI)
+        InvalidFilterGraphBufferTypeMismatch(pSensor);
+    m_bufferInOut = pDI;
+
+    if (auto pOpx = std::dynamic_pointer_cast<ChOptixSensor>(pSensor)) {
+        m_cuda_stream = pOpx->GetCudaStream();
+    } else {
+        InvalidFilterGraphSensorTypeMismatch(pSensor);
     }
 
-    unsigned int width;
-    unsigned int height;
-    void* ptr;
+    m_bufferInOut = pDI;
+}
 
-    if (pOpx) {  // optix buffer for Depth+Intensity
-
-        RTsize rwidth;
-        RTsize rheight;
-        pOpx->Buffer->getSize(rwidth, rheight);
-        width = (unsigned int)rwidth;
-        height = (unsigned int)rheight;
-
-        // we only know how to convert RGBA8 to grayscale (not any other input format (yet))
-        if (pOpx->Buffer->getFormat() != RT_FORMAT_FLOAT2) {
-            throw std::runtime_error("The only format that can be reduced by lidar is FLOAT2/DI (depth,intensity)");
-        }
-
-        // we need id of first device for this context (should only have 1 anyway)
-        int device_id = pOpx->Buffer->getContext()->getEnabledDevices()[0];
-        ptr = pOpx->Buffer->getDevicePointer(device_id);
-    }
-
-    else if (pDI) {  // sensor buffer for Depth+Intensity
-        width = pDI->Width;
-        height = pDI->Height;
-        ptr = pDI->Buffer.get();
-    }
-
-    cuda_lidar_clip((float*)ptr, (int)width, (int)height, m_intensity_thresh, m_default_dist);
+CH_SENSOR_API void ChFilterLidarIntensityClip::Apply() {
+    cuda_lidar_clip((float*)m_bufferInOut->Buffer.get(), (int)m_bufferInOut->Width, (int)m_bufferInOut->Height,
+                    m_intensity_thresh, m_default_dist, m_cuda_stream);
 }
 
 }  // namespace sensor

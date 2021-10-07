@@ -68,6 +68,9 @@ class ChApi ChTimestepperHHT : public ChTimestepperIIorder, public ChImplicitIte
     ChVectorDynamic<> ewtS;  ///< vector of error weights (states)
     ChVectorDynamic<> ewtL;  ///< vector of error weights (Lagrange multipliers)
 
+    bool convergence_trend_flag = true; ///< A flag to indicate the trend of convergence
+    double threshold_R = 1e12; ///< A threshold for R to judge the trend of convergence
+
   public:
     ChTimestepperHHT(ChIntegrableIIorder* intgr = nullptr);
 
@@ -121,6 +124,22 @@ class ChApi ChTimestepperHHT : public ChTimestepperIIorder, public ChImplicitIte
     /// Perform an integration timestep.
     virtual void Advance(const double dt  ///< timestep to advance
                          ) override;
+
+    /// Get an indicator to tell whether the iteration in current step tends to convergence or divergence.
+    /// This could be helpful if you want to fall back to iterate again via using more rigorous stepper settings, 
+    /// such as smaller fixed time stepper, turning off ModifiedNerton,etc, 
+    /// WHEN you are not satisfied by current iteration result.
+    bool GetConvergenceFlag() const { return convergence_trend_flag; }
+
+    /// Set the threshold of norm of R, which is used to judge the trend of convergency.
+    /// For different systems, this threshold may be much different, such as a mini robot and a huge wind turbine.
+    /// You could turn on 'verbose' of HHT stepper and look at the norm of R for your system firstly, 
+    /// and then set a suitable threshold of norm of R. 
+    /// This threshold should always be larger than the normal norm of R for your system.
+    void SetThreshold_R(double mv) { threshold_R = mv; }
+
+    /// Get the threshold of norm of R, which is used to judge the trend of convergency.
+    double GetThreshold_R() const { return threshold_R; }
 
     /// Method to allow serialization of transient data to archives.
     virtual void ArchiveOUT(ChArchiveOut& archive) override;

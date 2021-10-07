@@ -39,69 +39,50 @@ class ChApi ChBeamMaterialInternalData {
     double p_strain_acc;  // accumulated flow,  \overbar\eps^p  in Neto-Owen book
 };
 
-
-
-
-
-
 /// Base class for properties of beam sections.
 /// A beam section can be shared between multiple beams.
 /// A beam section contains the models for elasticity, plasticity, damping, etc.
 class ChApi ChBeamSection {
   public:
-
-
-    ChBeamSection()  {
+    ChBeamSection() {
         // default visualization as 1cm square tube
         this->draw_shape = chrono_types::make_shared<ChBeamSectionShapeRectangular>(0.01, 0.01);
     }
 
     virtual ~ChBeamSection() {}
 
-
     /// Set the graphical representation for this section. Might be used for collision too.
     /// This is a 2D profile used for 3D tesselation and visualization of the beam, but NOT used for physical
     /// properties, that you should rather define with other components of more specialized ChBeamSection,
     /// such as for example adding ChBeamSectionCosseratElasticity to a ChBeamSectionCosserat, etc.
-    void SetDrawShape(std::shared_ptr<ChBeamSectionShape> mshape) {
-        this->draw_shape = mshape;
-    }
+    void SetDrawShape(std::shared_ptr<ChBeamSectionShape> mshape) { this->draw_shape = mshape; }
 
     /// Get the drawing shape of this section (i.e.a 2D profile used for drawing 3D tesselation and visualization)
     /// By default a thin square section, use SetDrawShape() to change it.
-    std::shared_ptr<ChBeamSectionShape> GetDrawShape() const { 
-        return this->draw_shape; 
-    }
-
+    std::shared_ptr<ChBeamSectionShape> GetDrawShape() const { return this->draw_shape; }
 
     /// Shortcut: adds a ChBeamSectionShapeRectangular for visualization as a centered rectangular beam,
-    /// and sets its width/height. 
-    /// NOTE: only for visualization - these thickness values do NOT have any meaning at a physical level, that is set in other ways.
+    /// and sets its width/height.
+    /// NOTE: only for visualization - these thickness values do NOT have any meaning at a physical level, that is set
+    /// in other ways.
     void SetDrawThickness(double thickness_y, double thickness_z) {
         this->draw_shape = chrono_types::make_shared<ChBeamSectionShapeRectangular>(thickness_y, thickness_z);
     }
 
     /// Shortcut: adds a ChBeamSectionShapeCircular for visualization as a centered circular beam,
-    /// and sets its radius. 
-    /// NOTE: only for visualization - this radius do NOT have any meaning at a physical level, that is set in other ways.
-    void SetDrawCircularRadius(double draw_rad) { 
+    /// and sets its radius.
+    /// NOTE: only for visualization - this radius do NOT have any meaning at a physical level, that is set in other
+    /// ways.
+    void SetDrawCircularRadius(double draw_rad) {
         this->draw_shape = chrono_types::make_shared<ChBeamSectionShapeCircular>(draw_rad);
     }
 
     ///***OBSOLETE*** only for backward compability
-    void SetCircular(bool ic) { 
-        ///***OBSOLETE*** 
-    }
+    void SetCircular(bool ic) {}
 
-private:
-    std::shared_ptr< ChBeamSectionShape > draw_shape;
+  private:
+    std::shared_ptr<ChBeamSectionShape> draw_shape;
 };
-
-
-
-
-
-
 
 /// @} fea_utils
 

@@ -60,38 +60,40 @@
 
 //#include <irrlicht.h>
 #include "chrono_sensor/ChApiSensor.h"
-#include "chrono_sensor/ChSensor.h"
-#include "chrono_sensor/Sensor.h"
-#include "chrono_sensor/ChOptixSensor.h"
-#include "chrono_sensor/ChCameraSensor.h"
+#include "chrono_sensor/sensors/ChSensor.h"
+#include "chrono_sensor/sensors/Sensor.h"
+#include "chrono_sensor/sensors/ChOptixSensor.h"
+#include "chrono_sensor/sensors/ChCameraSensor.h"
 #include "chrono_sensor/ChConfigSensor.h.in"
-#include "chrono_sensor/ChGPSSensor.h"
-#include "chrono_sensor/ChIMUSensor.h"
-#include "chrono_sensor/ChLidarSensor.h"
+#include "chrono_sensor/sensors/ChGPSSensor.h"
+#include "chrono_sensor/sensors/ChIMUSensor.h"
+#include "chrono_sensor/sensors/ChLidarSensor.h"
+#include "chrono_sensor/sensors/ChRadarSensor.h"
 #include "chrono_sensor/ChSensorManager.h"
-#include "chrono_sensor/ChSensorBuffer.h"
-#include "chrono_sensor/scene/ChScene.h"
+#include "chrono_sensor/sensors/ChSensorBuffer.h"
+#include "chrono_sensor/sensors/ChNoiseModel.h"
+#include "chrono_sensor/optix/scene/ChScene.h"
+#include "chrono_sensor/optix/ChOptixDefinitions.h"
 /// FILTERS
 #include "chrono_sensor/filters/ChFilter.h"
 #include "chrono_sensor/filters/ChFilterAccess.h"
 #include "chrono_sensor/filters/ChFilterGPSUpdate.h"
 #include "chrono_sensor/filters/ChFilterGrayscale.h"
 #include "chrono_sensor/filters/ChFilterIMUUpdate.h"
-#include "chrono_sensor/filters/ChFilterOptixRender.h"
+#include "chrono_sensor/optix/ChFilterOptixRender.h"
 #include "chrono_sensor/filters/ChFilterPCfromDepth.h"
 #include "chrono_sensor/filters/ChFilterSave.h"
 #include "chrono_sensor/filters/ChFilterSavePtCloud.h"
 #include "chrono_sensor/filters/ChFilterVisualize.h"
 #include "chrono_sensor/filters/ChFilterImageOps.h"
 #include "chrono_sensor/filters/ChFilterVisualizePointCloud.h"
-#include "chrono_sensor/ChSensor.h"
-#include "chrono_sensor/Sensor.h"
-#include "chrono_sensor/ChLidarSensor.h"
-#include "chrono_sensor/ChIMUSensor.h"
-#include "chrono_sensor/ChGPSSensor.h"
-#include "chrono_sensor/ChCameraSensor.h"
 #include "chrono_sensor/filters/ChFilterAccess.h"
 #include "chrono_sensor/filters/ChFilter.h"
+#include "chrono_sensor/filters/ChFilterRadarProcess.h"
+#include "chrono_sensor/filters/ChFilterRadarXYZReturn.h"
+#include "chrono_sensor/filters/ChFilterRadarSavePC.h"
+#include "chrono_sensor/filters/ChFilterRadarVisualizeCluster.h"
+#include "chrono_sensor/filters/ChFilterRadarXYZVisualize.h"
 
 
 using namespace chrono;
@@ -159,39 +161,54 @@ using namespace chrono::sensor;
 %shared_ptr(chrono::sensor::ChSensor)
 %shared_ptr(chrono::sensor::ChScene)
 %shared_ptr(chrono::sensor::ChOptixSensor)
+%shared_ptr(chrono::sensor::ChDynamicSensor)
 %shared_ptr(chrono::sensor::ChLidarSensor)
-%shared_ptr(chrono::sensor::ChIMUSensor)
+%shared_ptr(chrono::sensor::ChRadarSensor)
+%shared_ptr(chrono::sensor::ChAccelerometerSensor)
+%shared_ptr(chrono::sensor::ChGyroscopeSensor)
+%shared_ptr(chrono::sensor::ChMagnetometerSensor)
 %shared_ptr(chrono::sensor::ChGPSSensor)
 %shared_ptr(chrono::sensor::ChCameraSensor)
-
 %shared_ptr(chrono::ChTriangleMeshShape)
-
-%shared_ptr(chrono::sensor::IMUData)
+%shared_ptr(chrono::sensor::AccelData)
+%shared_ptr(chrono::sensor::GyroData)
+%shared_ptr(chrono::sensor::MagnetData)
 %shared_ptr(chrono::sensor::PixelDI)
 %shared_ptr(chrono::sensor::PixelXYZI)
-
 %shared_ptr(chrono::sensor::PixelRGBA8)
 %shared_ptr(chrono::sensor::GPSData)
 
 %shared_ptr(chrono::sensor::SensorBuffer)
+%shared_ptr(chrono::sensor::SensorBufferT)
+%shared_ptr(chrono::sensor::LidarBufferT)
+%shared_ptr(chrono::sensor::RadarBufferT)
 /// Since BufferT inherits from SensorBuffer define as shared_ptrs all BufferT instances
-%shared_ptr(chrono::sensor::SensorBufferT<std::shared_ptr<chrono::sensor::IMUData[]>>)
+%shared_ptr(chrono::sensor::SensorBufferT<std::shared_ptr<chrono::sensor::AccelData[]>>)
+%shared_ptr(chrono::sensor::SensorBufferT<std::shared_ptr<chrono::sensor::GyroData[]>>)
+%shared_ptr(chrono::sensor::SensorBufferT<std::shared_ptr<chrono::sensor::MagnetData[]>>)
+
 %shared_ptr(chrono::sensor::SensorBufferT<std::shared_ptr<chrono::sensor::PixelXYZI[]>>)
 %shared_ptr(chrono::sensor::SensorBufferT<std::shared_ptr<chrono::sensor::PixelDI[]>>)
-
+%shared_ptr(chrono::sensor::LidarBufferT<std::shared_ptr<chrono::sensor::PixelXYZI[]>>)
+%shared_ptr(chrono::sensor::LidarBufferT<std::shared_ptr<chrono::sensor::PixelDI[]>>)
+%shared_ptr(chrono::sensor::RadarBufferT<std::shared_ptr<chrono::sensor::RadarReturn[]>>)
+%shared_ptr(chrono::sensor::RadarBufferT<std::shared_ptr<chrono::sensor::RadarXYZReturn[]>>)
 %shared_ptr(chrono::sensor::SensorBufferT<std::shared_ptr<char[]>>)
 %shared_ptr(chrono::sensor::SensorBufferT<std::shared_ptr<chrono::sensor::PixelRGBA8[]>>)
+%shared_ptr(chrono::sensor::SensorBufferT<std::shared_ptr<chrono::sensor::PixelHalf4[]>>)
 %shared_ptr(chrono::sensor::SensorBufferT<std::shared_ptr<chrono::sensor::GPSData[]>>)
 
 %shared_ptr(chrono::sensor::ChFilter)
-%shared_ptr(chrono::sensor::ChFilterAccess< chrono::sensor::SensorBufferT< std::shared_ptr< chrono::sensor::IMUData [] > >,std::shared_ptr< chrono::sensor::SensorBufferT< std::shared_ptr< chrono::sensor::IMUData [] > > > > )
-%shared_ptr(chrono::sensor::ChFilterAccess< chrono::sensor::SensorBufferT< std::shared_ptr< chrono::sensor::PixelXYZI [] > >,std::shared_ptr< chrono::sensor::SensorBufferT< std::shared_ptr< chrono::sensor::PixelXYZI [] > > > > )
-%shared_ptr(chrono::sensor::ChFilterAccess< chrono::sensor::SensorBufferT< std::shared_ptr< chrono::sensor::PixelDI [] > >,std::shared_ptr< chrono::sensor::SensorBufferT< std::shared_ptr< chrono::sensor::PixelDI [] > > > > )
-
+%shared_ptr(chrono::sensor::ChFilterAccess< chrono::sensor::SensorBufferT< std::shared_ptr< chrono::sensor::AccelData [] > >,std::shared_ptr< chrono::sensor::SensorBufferT< std::shared_ptr< chrono::sensor::AccelData [] > > > > )
+%shared_ptr(chrono::sensor::ChFilterAccess< chrono::sensor::SensorBufferT< std::shared_ptr< chrono::sensor::GyroData [] > >,std::shared_ptr< chrono::sensor::SensorBufferT< std::shared_ptr< chrono::sensor::GyroData [] > > > > )
+%shared_ptr(chrono::sensor::ChFilterAccess< chrono::sensor::SensorBufferT< std::shared_ptr< chrono::sensor::MagnetData [] > >,std::shared_ptr< chrono::sensor::SensorBufferT< std::shared_ptr< chrono::sensor::MagnetData [] > > > > )
+%shared_ptr(chrono::sensor::ChFilterAccess< chrono::sensor::LidarBufferT< std::shared_ptr< chrono::sensor::PixelXYZI [] > >,std::shared_ptr< chrono::sensor::LidarBufferT< std::shared_ptr< chrono::sensor::PixelXYZI [] > > > > )
+%shared_ptr(chrono::sensor::ChFilterAccess< chrono::sensor::LidarBufferT< std::shared_ptr< chrono::sensor::PixelDI [] > >,std::shared_ptr< chrono::sensor::LidarBufferT< std::shared_ptr< chrono::sensor::PixelDI [] > > > > )
+%shared_ptr(chrono::sensor::ChFilterAccess< chrono::sensor::RadarBufferT< std::shared_ptr< chrono::sensor::RadarReturn [] > >,std::shared_ptr< chrono::sensor::RadarBufferT< std::shared_ptr< chrono::sensor::RadarReturn[] > > > > )
+%shared_ptr( chrono::sensor::ChFilterAccess<chrono::sensor::RadarBufferT<std::shared_ptr<chrono::sensor::RadarXYZReturn[]>>, std::shared_ptr<chrono::sensor::RadarBufferT<std::shared_ptr<chrono::sensor::RadarXYZReturn[]>>>>)
 %shared_ptr(chrono::sensor::ChFilterAccess< chrono::sensor::SensorBufferT< std::shared_ptr< char [] > >,std::shared_ptr< chrono::sensor::SensorBufferT< std::shared_ptr< char [] > > > > )
 %shared_ptr(chrono::sensor::ChFilterAccess< chrono::sensor::SensorBufferT< std::shared_ptr< chrono::sensor::PixelRGBA8 [] > >,std::shared_ptr< chrono::sensor::SensorBufferT< std::shared_ptr< chrono::sensor::PixelRGBA8 [] > > > > )
 %shared_ptr(chrono::sensor::ChFilterAccess< chrono::sensor::SensorBufferT< std::shared_ptr< chrono::sensor::GPSData [] > >,std::shared_ptr< chrono::sensor::SensorBufferT< std::shared_ptr< chrono::sensor::GPSData [] > > > > )
-
 
 %shared_ptr(chrono::sensor::ChFilterVisualizePointCloud)
 %shared_ptr(chrono::sensor::ChFilterVisualize)
@@ -199,19 +216,25 @@ using namespace chrono::sensor;
 %shared_ptr(chrono::sensor::ChFilterSavePtCloud)
 %shared_ptr(chrono::sensor::ChFilterOptixRender)
 %shared_ptr(chrono::sensor::ChFilterPCfromDepth)
-%shared_ptr(chrono::sensor::ChFilterIMUUpdate)
-%shared_ptr(chrono::sensor::ChIMUNoiseModel)
-%shared_ptr(chrono::sensor::ChIMUNoiseNone)
-%shared_ptr(chrono::sensor::ChIMUNoiseNormalDrift)
-
+%shared_ptr(chrono::sensor::ChFilterAccelerometerUpdate)
+%shared_ptr(chrono::sensor::ChFilterGyroscopeUpdate)
+%shared_ptr(chrono::sensor::ChFilterMagnetometerUpdate)
+%shared_ptr(chrono::sensor::ChNoiseModel)
+%shared_ptr(chrono::sensor::ChNoiseNone)
+%shared_ptr(chrono::sensor::ChNoiseNormal)
+%shared_ptr(chrono::sensor::ChNoiseNormalDrift)
 %shared_ptr(chrono::sensor::ChFilterGrayscale)
 %shared_ptr(chrono::sensor::ChFilterGPSUpdate)
-%shared_ptr(chrono::sensor::ChGPSNoiseModel)
-%shared_ptr(chrono::sensor::ChGPSNoiseNone)
-%shared_ptr(chrono::sensor::ChGPSNoiseNormal)
+%shared_ptr(chrono::sensor::ChFilterRadarProcess)
+%shared_ptr(chrono::sensor::ChFilterRadarXYZReturn)
+%shared_ptr(chrono::sensor::ChFilterRadarXYZVisualize)
+%shared_ptr(chrono::sensor::ChFilterRadarVisualizeCluster)
+%shared_ptr(chrono::sensor::ChFilterRadarSavePC)
 
 %shared_ptr(chrono::sensor::ChFilterImgAlias)
 %shared_ptr(chrono::sensor::ChFilterImageResize)
+%shared_ptr(chrono::sensor::ChFilterImageHalf4ToRGBA8)
+
 //
 // B- INCLUDE HEADERS
 //
@@ -240,24 +263,28 @@ using namespace chrono::sensor;
 %template(vector_ChFrameD) std::vector< chrono::ChFrame<double> >;
 
 
-%include "chrono_sensor/ChSensorBuffer.h"
+%include "chrono_sensor/sensors/ChSensorBuffer.h"
 /// BufferT Templates
+//camera
+%template(UserR8Buffer) chrono::sensor::SensorBufferT<std::shared_ptr<char[]>>;
+%template(UserRGBA8Buffer) chrono::sensor::SensorBufferT<std::shared_ptr<chrono::sensor::PixelRGBA8[]>>;
 
-%template(SensorHostIMUBuffer) chrono::sensor::SensorBufferT<std::shared_ptr<chrono::sensor::IMUData[]>>;
-//%template(UserIMUBufferPtr) std::shared_ptr<chrono::sensor::SensorBufferT<std::shared_ptr<chrono::sensor::IMUData[]>>>;
-%template(SensorHostXYZIBuffer) chrono::sensor::SensorBufferT<std::shared_ptr<chrono::sensor::PixelXYZI[]>>;
-%template(PixelDIBuffer) std::shared_ptr<chrono::sensor::PixelXYZI[]>;
-%template(SensorHostDIBuffer) chrono::sensor::SensorBufferT<std::shared_ptr<chrono::sensor::PixelDI[]>>;
+//lidar
+%template(UserDISensorBuffer) chrono::sensor::SensorBufferT<std::shared_ptr<chrono::sensor::PixelDI[]>>;
+%template(UserXYZISensorBuffer) chrono::sensor::SensorBufferT<std::shared_ptr<chrono::sensor::PixelXYZI[]>>;
+%template(UserDIBuffer) chrono::sensor::LidarBufferT<std::shared_ptr<chrono::sensor::PixelDI[]>>;
+%template(UserXYZIBuffer) chrono::sensor::LidarBufferT<std::shared_ptr<chrono::sensor::PixelXYZI[]>>;
 
-%template(DeviceRGBA8BufferPtr) chrono::sensor::SensorBufferT<std::shared_ptr<chrono::sensor::PixelRGBA8[]>>;
-%template(SensorDeviceRGBA8Buffer) std::shared_ptr<chrono::sensor::PixelRGBA8[]>;
+//radar
+%template(UserRadarBuffer) chrono::sensor::RadarBufferT<std::shared_ptr<chrono::sensor::RadarReturn[]>>;
+%template(UserRadarXYZBuffer) chrono::sensor::RadarBufferT<std::shared_ptr<chrono::sensor::RadarXYZReturn[]>>;
 
-%template(SensorDeviceR8Buffer) chrono::sensor::SensorBufferT<std::shared_ptr<char[]>>;
-%template(DeviceR8BufferPtr) std::shared_ptr<char[]>;
+//dynamic
+%template(UserAccelBuffer) chrono::sensor::SensorBufferT<std::shared_ptr<chrono::sensor::AccelData[]>>;
+%template(UserGyroBuffer) chrono::sensor::SensorBufferT<std::shared_ptr<chrono::sensor::GyroData[]>>;
+%template(UserMagnetBuffer) chrono::sensor::SensorBufferT<std::shared_ptr<chrono::sensor::MagnetData[]>>;
+%template(UserGPSBuffer) chrono::sensor::SensorBufferT<std::shared_ptr<chrono::sensor::GPSData[]>>;
 
-%template(SensorHostGPSBuffer) chrono::sensor::SensorBufferT<std::shared_ptr<chrono::sensor::GPSData[]>>;
-
-//%template(m_filters) std::list<std::shared_ptr<chrono::sensor::ChFilter> > ;
 %template(doublevec) std::vector<double> ;
 
 /// FILTERS
@@ -267,48 +294,63 @@ using namespace chrono::sensor;
 %include "chrono_sensor/filters/ChFilterGPSUpdate.h"
 %include "chrono_sensor/filters/ChFilterGrayscale.h"
 %include "chrono_sensor/filters/ChFilterIMUUpdate.h"
-%include "chrono_sensor/filters/ChFilterOptixRender.h"
+%include "chrono_sensor/optix/ChFilterOptixRender.h"
 %include "chrono_sensor/filters/ChFilterPCfromDepth.h"
 %include "chrono_sensor/filters/ChFilterSave.h"
 %include "chrono_sensor/filters/ChFilterSavePtCloud.h"
 %include "chrono_sensor/filters/ChFilterVisualize.h"
 %include "chrono_sensor/filters/ChFilterVisualizePointCloud.h"
 %include "chrono_sensor/filters/ChFilterImageOps.h"
+%include "chrono_sensor/filters/ChFilterRadarProcess.h"
+%include "chrono_sensor/filters/ChFilterRadarSavePC.h"
+%include "chrono_sensor/filters/ChFilterRadarVisualizeCluster.h"
+%include "chrono_sensor/filters/ChFilterRadarXYZReturn.h"
+%include "chrono_sensor/filters/ChFilterRadarXYZVisualize.h"
 
-%include "chrono_sensor/scene/ChScene.h"
+%include "chrono_sensor/optix/scene/ChScene.h"
+%include "chrono_sensor/optix/ChOptixDefinitions.h"
+%include "chrono_sensor/utils/ChGPSUtils.h"
 
-%include "chrono_sensor/ChSensor.h"
-%include "chrono_sensor/Sensor.h"
-%include "chrono_sensor/ChOptixSensor.h"
-%include "chrono_sensor/ChCameraSensor.h"
+%include "chrono_sensor/sensors/ChSensor.h"
+%include "chrono_sensor/sensors/Sensor.h"
+%include "chrono_sensor/sensors/ChOptixSensor.h"
+%include "chrono_sensor/sensors/ChCameraSensor.h"
 %include "chrono_sensor/ChConfigSensor.h.in"
-%include "chrono_sensor/ChGPSSensor.h"
-%include "chrono_sensor/ChIMUSensor.h"
-%include "chrono_sensor/ChLidarSensor.h"
+%include "chrono_sensor/sensors/ChGPSSensor.h"
+%include "chrono_sensor/sensors/ChIMUSensor.h"
+%include "chrono_sensor/sensors/ChLidarSensor.h"
+%include "chrono_sensor/sensors/ChRadarSensor.h"
 %include "chrono_sensor/ChSensorManager.h"
+%include "chrono_sensor/sensors/ChNoiseModel.h"
 
 
 /// Filter acces templates instances
-/// Using shared ptr so far
-%template(ChFilterIMUAccess) chrono::sensor::ChFilterAccess<chrono::sensor::SensorBufferT<std::shared_ptr<chrono::sensor::IMUData[]>>, std::shared_ptr<chrono::sensor::SensorBufferT<std::shared_ptr<chrono::sensor::IMUData[]>>>>;
-%template(ChFilterDIAccess) chrono::sensor::ChFilterAccess<chrono::sensor::SensorBufferT<std::shared_ptr<chrono::sensor::PixelDI[]>>, std::shared_ptr<chrono::sensor::SensorBufferT<std::shared_ptr<chrono::sensor::PixelDI[]>>>>;
-%template(ChFilterXYZIAccess) chrono::sensor::ChFilterAccess<chrono::sensor::SensorBufferT<std::shared_ptr<chrono::sensor::PixelXYZI[]>>, std::shared_ptr<chrono::sensor::SensorBufferT<std::shared_ptr<chrono::sensor::PixelXYZI[]>>>>;
-
-
+// camera
 %template(ChFilterRGBA8Access) chrono::sensor::ChFilterAccess<chrono::sensor::SensorBufferT<std::shared_ptr<chrono::sensor::PixelRGBA8[]>>, std::shared_ptr<chrono::sensor::SensorBufferT<std::shared_ptr<chrono::sensor::PixelRGBA8[]>>>>;
-
 %template(ChFilterR8Access) chrono::sensor::ChFilterAccess<chrono::sensor::SensorBufferT<std::shared_ptr<char[]>>, std::shared_ptr<chrono::sensor::SensorBufferT<std::shared_ptr<char[]>>>>;
-
-%template(ChFilterGPSAccess) chrono::sensor::ChFilterAccess<chrono::sensor::SensorBufferT<std::shared_ptr<chrono::sensor::GPSData[]>>, std::shared_ptr<chrono::sensor::SensorBufferT<std::shared_ptr<chrono::sensor::GPSData[]>>>>;
-
-
-%template(GetMostRecentDIBuffer) chrono::sensor::ChSensor::GetMostRecentBuffer< std::shared_ptr < chrono::sensor::SensorBufferT<std::shared_ptr<chrono::sensor::PixelDI[]>>> > ;
 %template(GetMostRecentRGBA8Buffer) chrono::sensor::ChSensor::GetMostRecentBuffer< std::shared_ptr < chrono::sensor::SensorBufferT<std::shared_ptr<chrono::sensor::PixelRGBA8[]>>> > ;
 %template(GetMostRecentR8Buffer) chrono::sensor::ChSensor::GetMostRecentBuffer< std::shared_ptr < chrono::sensor::SensorBufferT<std::shared_ptr<char[]>>> > ;
-%template(GetMostRecentXYZIBuffer) chrono::sensor::ChSensor::GetMostRecentBuffer< std::shared_ptr < chrono::sensor::SensorBufferT<std::shared_ptr<chrono::sensor::PixelXYZI[]>>> > ;
-%template(GetMostRecentIMUBuffer) chrono::sensor::ChSensor::GetMostRecentBuffer< std::shared_ptr < chrono::sensor::SensorBufferT<std::shared_ptr<chrono::sensor::IMUData[]>>> > ;
-%template(GetMostRecentGPSBuffer) chrono::sensor::ChSensor::GetMostRecentBuffer< std::shared_ptr < chrono::sensor::SensorBufferT<std::shared_ptr<chrono::sensor::GPSData[]>>> > ;
 
+//lidar 
+%template(ChFilterDIAccess) chrono::sensor::ChFilterAccess<chrono::sensor::LidarBufferT<std::shared_ptr<chrono::sensor::PixelDI[]>>, std::shared_ptr<chrono::sensor::LidarBufferT<std::shared_ptr<chrono::sensor::PixelDI[]>>>>;
+%template(ChFilterXYZIAccess) chrono::sensor::ChFilterAccess<chrono::sensor::LidarBufferT<std::shared_ptr<chrono::sensor::PixelXYZI[]>>, std::shared_ptr<chrono::sensor::LidarBufferT<std::shared_ptr<chrono::sensor::PixelXYZI[]>>>>;
+%template(GetMostRecentDIBuffer) chrono::sensor::ChSensor::GetMostRecentBuffer< std::shared_ptr < chrono::sensor::LidarBufferT<std::shared_ptr<chrono::sensor::PixelDI[]>>> > ;
+%template(GetMostRecentXYZIBuffer) chrono::sensor::ChSensor::GetMostRecentBuffer< std::shared_ptr < chrono::sensor::LidarBufferT<std::shared_ptr<chrono::sensor::PixelXYZI[]>>> > ;
+
+//radar
+%template(ChFilterRadarAccess) chrono::sensor::ChFilterAccess<chrono::sensor::RadarBufferT<std::shared_ptr<chrono::sensor::RadarReturn[]>>, std::shared_ptr<chrono::sensor::RadarBufferT<std::shared_ptr<chrono::sensor::RadarReturn[]>>>>;
+%template(ChFilterRadarXYZAccess) chrono::sensor::ChFilterAccess<chrono::sensor::RadarBufferT<std::shared_ptr<chrono::sensor::RadarXYZReturn[]>>, std::shared_ptr<chrono::sensor::RadarBufferT<std::shared_ptr<chrono::sensor::RadarXYZReturn[]>>>>;
+%template(GetMostRecentRadarBuffer) chrono::sensor::ChSensor::GetMostRecentBuffer<std::shared_ptr<chrono::sensor::RadarBufferT<std::shared_ptr<chrono::sensor::RadarReturn[]>>>>;
+%template(GetMostRecentRadarXYZBuffer) chrono::sensor::ChSensor::GetMostRecentBuffer<std::shared_ptr<chrono::sensor::RadarBufferT<std::shared_ptr<chrono::sensor::RadarXYZReturn[]>>>>;
+//dynamic 
+%template(ChFilterAccelAccess) chrono::sensor::ChFilterAccess<chrono::sensor::SensorBufferT<std::shared_ptr<chrono::sensor::AccelData[]>>, std::shared_ptr<chrono::sensor::SensorBufferT<std::shared_ptr<chrono::sensor::AccelData[]>>>>;
+%template(ChFilterGyroAccess) chrono::sensor::ChFilterAccess<chrono::sensor::SensorBufferT<std::shared_ptr<chrono::sensor::GyroData[]>>, std::shared_ptr<chrono::sensor::SensorBufferT<std::shared_ptr<chrono::sensor::GyroData[]>>>>;
+%template(ChFilterMagnetAccess) chrono::sensor::ChFilterAccess<chrono::sensor::SensorBufferT<std::shared_ptr<chrono::sensor::MagnetData[]>>, std::shared_ptr<chrono::sensor::SensorBufferT<std::shared_ptr<chrono::sensor::MagnetData[]>>>>;
+%template(ChFilterGPSAccess) chrono::sensor::ChFilterAccess<chrono::sensor::SensorBufferT<std::shared_ptr<chrono::sensor::GPSData[]>>, std::shared_ptr<chrono::sensor::SensorBufferT<std::shared_ptr<chrono::sensor::GPSData[]>>>>;
+%template(GetMostRecentAccelBuffer) chrono::sensor::ChSensor::GetMostRecentBuffer< std::shared_ptr < chrono::sensor::SensorBufferT<std::shared_ptr<chrono::sensor::AccelData[]>>> > ;
+%template(GetMostRecentGyroBuffer) chrono::sensor::ChSensor::GetMostRecentBuffer< std::shared_ptr < chrono::sensor::SensorBufferT<std::shared_ptr<chrono::sensor::GyroData[]>>> > ;
+%template(GetMostRecentMagnetBuffer) chrono::sensor::ChSensor::GetMostRecentBuffer< std::shared_ptr < chrono::sensor::SensorBufferT<std::shared_ptr<chrono::sensor::MagnetData[]>>> > ;
+%template(GetMostRecentGPSBuffer) chrono::sensor::ChSensor::GetMostRecentBuffer< std::shared_ptr < chrono::sensor::SensorBufferT<std::shared_ptr<chrono::sensor::GPSData[]>>> > ;
 
 //
 // ADDITIONAL C++ FUNCTIONS / CLASSES THAT ARE USED ONLY FOR PYTHON WRAPPER
@@ -316,7 +358,7 @@ using namespace chrono::sensor;
 ////
 ////    PixelDI Extension
 ////
-%extend chrono::sensor::SensorBufferT<std::shared_ptr<chrono::sensor::PixelDI[]>> {
+%extend chrono::sensor::LidarBufferT<std::shared_ptr<chrono::sensor::PixelDI[]>> {
         public:
         bool HasData() {
             return !($self->Buffer==NULL);
@@ -324,7 +366,7 @@ using namespace chrono::sensor;
 };
 
 
-%extend chrono::sensor::SensorBufferT<std::shared_ptr<chrono::sensor::PixelDI[]>> {
+%extend chrono::sensor::LidarBufferT<std::shared_ptr<chrono::sensor::PixelDI[]>> {
 public:
 void GetDIData(float** vec, int* h, int* w, int* c) {
     *h = $self->Height;
@@ -333,6 +375,48 @@ void GetDIData(float** vec, int* h, int* w, int* c) {
     *vec = reinterpret_cast<float*>($self->Buffer.get());
 }
 };
+////
+//// RadarReturn Extension
+////
+%extend chrono::sensor::RadarBufferT<std::shared_ptr<chrono::sensor::RadarReturn[]>>{
+    public:
+    bool HasData(){
+        return !($self->Buffer==NULL);
+    }
+}
+////
+//// RadarReturn Extension
+////
+%extend chrono::sensor::RadarBufferT<std::shared_ptr<chrono::sensor::RadarReturn[]>>{
+    void GetRadarData(float** vec, int* h, int* w, int* c){
+        *h = $self->Height;
+        *w = $self->Width;
+        *c = sizeof(RadarReturn)/sizeof(float);
+        *vec = reinterpret_cast<float*>($self->Buffer.get());
+    }
+}
+
+////
+//// RadarXYZReturn Extension
+////
+%extend chrono::sensor::RadarBufferT<std::shared_ptr<chrono::sensor::RadarXYZReturn[]>>{
+    public:
+    bool HasData(){
+        return !($self->Buffer==NULL);
+    }
+}
+////
+//// RadarXYZReturn Extension
+////
+%extend chrono::sensor::RadarBufferT<std::shared_ptr<chrono::sensor::RadarXYZReturn[]>>{
+    void GetRadarXYZData(float** vec, int* h, int* w, int* c){
+        *h = $self->Height;
+        *w = $self->Width;
+        *c = sizeof(RadarXYZReturn)/sizeof(float);
+        *vec = reinterpret_cast<float*>($self->Buffer.get());
+    }
+}
+
 ////
 ////    PixelRGBA8 Extension
 ////
@@ -356,7 +440,7 @@ void GetRGBA8Data(uint8_t** vec, int* h, int* w, int* c) {
 ////
 ////    PixelXYZI Extension
 ////
-%extend chrono::sensor::SensorBufferT<std::shared_ptr<chrono::sensor::PixelXYZI[]>> {
+%extend chrono::sensor::LidarBufferT<std::shared_ptr<chrono::sensor::PixelXYZI[]>> {
 public:
 bool HasData() {
     return !($self->Buffer==NULL);
@@ -364,7 +448,7 @@ bool HasData() {
 };
 
 
-%extend chrono::sensor::SensorBufferT<std::shared_ptr<chrono::sensor::PixelXYZI[]>> {
+%extend chrono::sensor::LidarBufferT<std::shared_ptr<chrono::sensor::PixelXYZI[]>> {
 public:
 void GetXYZIData(float** vec, int* h, int* w, int* c) {
     *h = $self->Height;
@@ -374,9 +458,29 @@ void GetXYZIData(float** vec, int* h, int* w, int* c) {
 }
 };
 ////
-////    IMUData Extension
+////    AccelData Extension
 ////
-%extend chrono::sensor::SensorBufferT<std::shared_ptr<chrono::sensor::IMUData[]>> {
+%extend chrono::sensor::SensorBufferT<std::shared_ptr<chrono::sensor::AccelData[]>> {
+public:
+bool HasData() {
+    return !($self->Buffer==NULL);
+}
+};
+
+////
+////    GyroData Extension
+////
+%extend chrono::sensor::SensorBufferT<std::shared_ptr<chrono::sensor::GyroData[]>> {
+public:
+bool HasData() {
+    return !($self->Buffer==NULL);
+}
+};
+
+////
+////    MagnetData Extension
+////
+%extend chrono::sensor::SensorBufferT<std::shared_ptr<chrono::sensor::MagnetData[]>> {
 public:
 bool HasData() {
     return !($self->Buffer==NULL);
@@ -384,10 +488,26 @@ bool HasData() {
 };
 
 
-%extend chrono::sensor::SensorBufferT<std::shared_ptr<chrono::sensor::IMUData[]>> {
+%extend chrono::sensor::SensorBufferT<std::shared_ptr<chrono::sensor::AccelData[]>> {
 public:
-void GetIMUData(double** vec, int* n) {
-    *n = sizeof(IMUData)/sizeof(double);
+void GetAccelData(double** vec, int* n) {
+    *n = sizeof(AccelData)/sizeof(double);
+    *vec = reinterpret_cast<double*>($self->Buffer.get());
+}
+};
+
+%extend chrono::sensor::SensorBufferT<std::shared_ptr<chrono::sensor::GyroData[]>> {
+public:
+void GetGyroData(double** vec, int* n) {
+    *n = sizeof(GyroData)/sizeof(double);
+    *vec = reinterpret_cast<double*>($self->Buffer.get());
+}
+};
+
+%extend chrono::sensor::SensorBufferT<std::shared_ptr<chrono::sensor::MagnetData[]>> {
+public:
+void GetMagnetData(double** vec, int* n) {
+    *n = sizeof(MagnetData)/sizeof(double);
     *vec = reinterpret_cast<double*>($self->Buffer.get());
 }
 };

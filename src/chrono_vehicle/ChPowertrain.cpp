@@ -28,9 +28,7 @@ ChPowertrain::ChPowertrain(const std::string& name)
       m_current_gear(-1),
       m_current_gear_ratio(1e20) {}
 
-void ChPowertrain::Initialize(std::shared_ptr<ChChassis> chassis, std::shared_ptr<ChDriveline> driveline) {
-    m_driveline = driveline;
-
+void ChPowertrain::Initialize(std::shared_ptr<ChChassis> chassis) {
     // Let the derived class specify the gear ratios
     std::vector<double> fwd;
     double rev;

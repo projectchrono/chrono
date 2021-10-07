@@ -490,13 +490,11 @@ void RigidTerrain::Initialize() {
     if (m_patches.empty())
         return;
 
-    if (m_patches.size() > 1) {
-        for (auto patch : m_patches) {
-            // Add all patches to the same collision family
-            // and disable collision with other collision models in this family.
-            patch->m_body->GetCollisionModel()->SetFamily(m_collision_family);
-            patch->m_body->GetCollisionModel()->SetFamilyMaskNoCollisionWithFamily(m_collision_family);        
-        }
+    for (auto& patch : m_patches) {
+        // Add all patches to the same collision family
+        // and disable collision with other collision models in this family.
+        patch->m_body->GetCollisionModel()->SetFamily(m_collision_family);
+        patch->m_body->GetCollisionModel()->SetFamilyMaskNoCollisionWithFamily(m_collision_family);
     }
 
     if (!m_friction_fun)

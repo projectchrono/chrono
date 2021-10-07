@@ -53,7 +53,7 @@ namespace vehicle {
 /// the right side.
 class CH_VEHICLE_API ChDoubleWishbone : public ChSuspension {
   public:
-    virtual ~ChDoubleWishbone() {}
+    virtual ~ChDoubleWishbone();
 
     /// Get the name of the vehicle subsystem template.
     virtual std::string GetTemplateName() const override { return "DoubleWishbone"; }
@@ -123,10 +123,10 @@ class CH_VEHICLE_API ChDoubleWishbone : public ChSuspension {
     double GetShockVelocity(VehicleSide side) const { return m_shock[side]->GetVelocity(); }
 
     /// Global coordinates, LCA ball joint position
-    ChVector<> Get_LCA_sph_pos(VehicleSide side) { return m_sphericalLCA[side]->GetMarker2()->GetAbsCoord().pos; }
+    ChVector<> Get_LCA_sph_pos(VehicleSide side) { return m_sphericalLCA[side]->GetPos(); }
 
     /// Global coordinates, UCA ball joint position
-    ChVector<> Get_UCA_sph_pos(VehicleSide side) { return m_sphericalUCA[side]->GetMarker2()->GetAbsCoord().pos; }
+    ChVector<> Get_UCA_sph_pos(VehicleSide side) { return m_sphericalUCA[side]->GetPos(); }
 
     /// Log current constraint violations.
     virtual void LogConstraintViolations(VehicleSide side) override;
@@ -175,6 +175,12 @@ class CH_VEHICLE_API ChDoubleWishbone : public ChSuspension {
     /// before Initialize().
     void SetVehicleFrameInertiaFlag(bool val) { m_vehicle_frame_inertia = val; }
 
+    /// Indicate whether or not tirod bodies are modelled (default: false).
+    /// If false, tierods are modelled using distance constraints.
+    /// If true, rigid tierod bodies are created (in which case a derived class must provide the mass and inertia) and
+    /// connected either with kinematic joints or bushings (depending on whether or not bushing data is defined).
+    virtual bool UseTierodBodies() const { return false; }
+
     /// Return the location of the specified hardpoint.
     /// The returned location must be expressed in the suspension reference frame.
     virtual const ChVector<> getLocation(PointId which) = 0;
@@ -187,6 +193,8 @@ class CH_VEHICLE_API ChDoubleWishbone : public ChSuspension {
     virtual double getLCAMass() const = 0;
     /// Return the mass of the upright body.
     virtual double getUprightMass() const = 0;
+    /// Return the mass of the tierod body.
+    virtual double getTierodMass() const { return 0; }
 
     /// Return the moments of inertia of the spindle body.
     virtual const ChVector<>& getSpindleInertia() const = 0;
@@ -206,6 +214,9 @@ class CH_VEHICLE_API ChDoubleWishbone : public ChSuspension {
     /// Return the products of inertia of the upright body.
     virtual const ChVector<>& getUprightInertiaProducts() const = 0;
 
+    /// Return the moments of inertia of the tierod body.
+    virtual const ChVector<> getTierodInertia() const { return ChVector<>(0); }
+
     /// Return the inertia of the axle shaft.
     virtual double getAxleInertia() const = 0;
 
@@ -215,6 +226,8 @@ class CH_VEHICLE_API ChDoubleWishbone : public ChSuspension {
     virtual double getLCARadius() const = 0;
     /// Return the radius of the upright body (visualization only).
     virtual double getUprightRadius() const = 0;
+    /// Return the radius of the tierod body (visualization only).
+    virtual double getTierodRadius() const { return 0; }
 
     /// Return the free (rest) length of the spring element.
     virtual double getSpringRestLength() const = 0;
@@ -223,19 +236,33 @@ class CH_VEHICLE_API ChDoubleWishbone : public ChSuspension {
     /// Return the functor object for shock force.
     virtual std::shared_ptr<ChLinkTSDA::ForceFunctor> getShockForceFunctor() const = 0;
 
-    std::shared_ptr<ChBody> m_upright[2];  ///< handles to the upright bodies (left/right)
-    std::shared_ptr<ChBody> m_UCA[2];      ///< handles to the upper control arm bodies (left/right)
-    std::shared_ptr<ChBody> m_LCA[2];      ///< handles to the lower control arm bodies (left/right)
+    /// Return stiffness and damping data for the UCA bushing.
+    /// Returning nullptr (default) results in using a kinematic revolute joint.
+    virtual std::shared_ptr<ChVehicleBushingData> getUCABushingData() const { return nullptr; }
+    /// Return stiffness and damping data for the LCA bushing.
+    /// Returning nullptr (default) results in using a kinematic revolute joint.
+    virtual std::shared_ptr<ChVehicleBushingData> getLCABushingData() const { return nullptr; }
+    /// Return stiffness and damping data for the tierod bushings.
+    /// Used only if tierod bodies are defined (see UseTierodBody).
+    /// Returning nullptr (default) results in using kinematic joints (spherical + universal).
+    virtual std::shared_ptr<ChVehicleBushingData> getTierodBushingData() const { return nullptr; }
 
-    std::shared_ptr<ChLinkLockRevolute> m_revoluteUCA[2];    ///< handles to the chassis-UCA revolute joints (left/right)
-    std::shared_ptr<ChLinkLockSpherical> m_sphericalUCA[2];  ///< handles to the upright-UCA spherical joints (left/right)
-    std::shared_ptr<ChLinkLockRevolute> m_revoluteLCA[2];    ///< handles to the chassis-LCA revolute joints (left/right)
-    std::shared_ptr<ChLinkLockSpherical> m_sphericalLCA[2];  ///< handles to the upright-LCA spherical joints (left/right)
-    std::shared_ptr<ChLinkDistance> m_distTierod[2];         ///< handles to the tierod distance constraints (left/right)
+    std::shared_ptr<ChBody> m_upright[2];  ///< upright bodies (left/right)
+    std::shared_ptr<ChBody> m_UCA[2];      ///< upper control arm bodies (left/right)
+    std::shared_ptr<ChBody> m_LCA[2];      ///< lower control arm bodies (left/right)
+    std::shared_ptr<ChBody> m_tierod[2];   ///< tierod bodies, if used (left/right)
 
-    std::shared_ptr<ChLinkTSDA> m_shock[2];   ///< handles to the spring links (left/right)
-    std::shared_ptr<ChLinkTSDA> m_spring[2];  ///< handles to the shock links (left/right)
+    std::shared_ptr<ChVehicleJoint> m_revoluteUCA[2];   ///< chassis-UCA revolute joints (left/right)
+    std::shared_ptr<ChVehicleJoint> m_sphericalUCA[2];  ///< upright-UCA spherical joints (left/right)
+    std::shared_ptr<ChVehicleJoint> m_revoluteLCA[2];   ///< chassis-LCA revolute joints (left/right)
+    std::shared_ptr<ChVehicleJoint> m_sphericalLCA[2];  ///< upright-LCA spherical joints (left/right)
 
+    std::shared_ptr<ChLinkDistance> m_distTierod[2];        ///< tierod distance constraints (left/right)
+    std::shared_ptr<ChVehicleJoint> m_sphericalTierod[2];   ///< tierod-upright spherical joints (left/right)
+    std::shared_ptr<ChVehicleJoint> m_universalTierod[2];   ///< tierod-chassis universal joints (left/right)
+
+    std::shared_ptr<ChLinkTSDA> m_shock[2];   ///< spring links (left/right)
+    std::shared_ptr<ChLinkTSDA> m_spring[2];  ///< shock links (left/right)
 
   private:
     // Flag indicating that the inertia matrices for the upright and control arms
@@ -247,7 +274,7 @@ class CH_VEHICLE_API ChDoubleWishbone : public ChSuspension {
     std::vector<ChVector<>> m_pointsR;
 
     void InitializeSide(VehicleSide side,
-                        std::shared_ptr<ChBodyAuxRef> chassis,
+                        std::shared_ptr<ChChassis> chassis,
                         std::shared_ptr<ChBody> tierod_body,
                         const std::vector<ChVector<> >& points,
                         double ang_vel);
@@ -263,6 +290,10 @@ class CH_VEHICLE_API ChDoubleWishbone : public ChSuspension {
                                         const ChVector<> pt_L,
                                         const ChVector<> pt_T,
                                         double radius);
+    static void AddVisualizationTierod(std::shared_ptr<ChBody> tierod,
+                                       const ChVector<> pt_C,
+                                       const ChVector<> pt_U,
+                                       double radius);
 
     virtual void ExportComponentList(rapidjson::Document& jsonDocument) const override;
 

@@ -146,7 +146,7 @@ int main(int argc, char* argv[]) {
     msystem.GetSettings()->solver.cache_step_length = true;
 
     msystem.ChangeSolverType(SolverType::BB);
-    msystem.GetSettings()->collision.narrowphase_algorithm = NarrowPhaseType::NARROWPHASE_HYBRID_MPR;
+    msystem.GetSettings()->collision.narrowphase_algorithm = ChNarrowphase::Algorithm::HYBRID;
 
     AddFluid(&msystem);
 

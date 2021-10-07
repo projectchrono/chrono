@@ -25,6 +25,14 @@ namespace vehicle {
 
 ChChassisConnectorTorsion::ChChassisConnectorTorsion(const std::string& name) : ChChassisConnector(name) {}
 
+ChChassisConnectorTorsion::~ChChassisConnectorTorsion() {
+    auto sys = m_joint->GetSystem();
+    if (sys) {
+        sys->Remove(m_joint);
+        sys->Remove(m_spring);
+    }
+}
+
 void ChChassisConnectorTorsion::Initialize(std::shared_ptr<ChChassis> front, std::shared_ptr<ChChassisRear> rear) {
     // Express the connector reference frame in the absolute coordinate system
     ChFrame<> to_abs(rear->GetLocalPosFrontConnector());

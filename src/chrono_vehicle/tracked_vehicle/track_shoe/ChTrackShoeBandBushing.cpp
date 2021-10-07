@@ -23,8 +23,6 @@
 #include "chrono/assets/ChTexture.h"
 #include "chrono/core/ChGlobal.h"
 
-#include "chrono/physics/ChLoadContainer.h"
-
 #include "chrono_vehicle/ChSubsysDefs.h"
 #include "chrono_vehicle/tracked_vehicle/track_shoe/ChTrackShoeBandBushing.h"
 
@@ -41,6 +39,16 @@ ChTrackShoeBandBushing::ChTrackShoeBandBushing(const std::string& name)
       m_Dlin(0.05 * 7e7),
       m_Drot_dof(0.05 * 500),
       m_Drot_other(0.05 * 1e5) {}
+
+ChTrackShoeBandBushing::~ChTrackShoeBandBushing() {
+    if (!m_loadcontainer)
+        return;
+
+    auto sys = m_loadcontainer->GetSystem();
+    if (sys) {
+        sys->Remove(m_loadcontainer);
+    }
+}
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
@@ -163,10 +171,13 @@ void ChTrackShoeBandBushing::AddWebVisualization(std::shared_ptr<ChBody> segment
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-void ChTrackShoeBandBushing::Connect(std::shared_ptr<ChTrackShoe> next, ChTrackAssembly* assembly, bool ccw) {
+void ChTrackShoeBandBushing::Connect(std::shared_ptr<ChTrackShoe> next,
+                                     ChTrackAssembly* assembly,
+                                     ChChassis* chassis,
+                                     bool ccw) {
     // Bushings are inherited from ChLoad, so they require a 'load container'
-    auto loadcontainer = chrono_types::make_shared<ChLoadContainer>();
-    m_shoe->GetSystem()->Add(loadcontainer);
+    m_loadcontainer = chrono_types::make_shared<ChLoadContainer>();
+    m_shoe->GetSystem()->Add(m_loadcontainer);
 
     // Stiffness and Damping matrix values
     ChMatrixNM<double, 6, 6> K_matrix;
@@ -205,7 +216,7 @@ void ChTrackShoeBandBushing::Connect(std::shared_ptr<ChTrackShoe> next, ChTrackA
         loadbushing->SetNameString(m_name + "_bushing_" + std::to_string(index++));
         loadbushing->SetApplicationFrameA(ChFrame<>(ChVector<>(GetToothBaseLength() / 2, 0, 0)));
         loadbushing->SetApplicationFrameB(ChFrame<>(ChVector<>(-m_seg_length / 2, 0, 0)));
-        loadcontainer->Add(loadbushing);
+        m_loadcontainer->Add(loadbushing);
         m_web_bushings.push_back(loadbushing);
     }
 
@@ -223,7 +234,7 @@ void ChTrackShoeBandBushing::Connect(std::shared_ptr<ChTrackShoe> next, ChTrackA
         loadbushing->SetNameString(m_name + "_bushing_" + std::to_string(index++));
         loadbushing->SetApplicationFrameA(ChFrame<>(ChVector<>(m_seg_length / 2, 0, 0)));
         loadbushing->SetApplicationFrameB(ChFrame<>(ChVector<>(-m_seg_length / 2, 0, 0)));
-        loadcontainer->Add(loadbushing);
+        m_loadcontainer->Add(loadbushing);
         m_web_bushings.push_back(loadbushing);
     }
 
@@ -242,7 +253,7 @@ void ChTrackShoeBandBushing::Connect(std::shared_ptr<ChTrackShoe> next, ChTrackA
         loadbushing->SetNameString(m_name + "_bushing_" + std::to_string(index++));
         loadbushing->SetApplicationFrameA(ChFrame<>(ChVector<>(m_seg_length / 2, 0, 0)));
         loadbushing->SetApplicationFrameB(ChFrame<>(ChVector<>(-GetToothBaseLength() / 2, 0, 0)));
-        loadcontainer->Add(loadbushing);
+        m_loadcontainer->Add(loadbushing);
         m_web_bushings.push_back(loadbushing);
     }
 }

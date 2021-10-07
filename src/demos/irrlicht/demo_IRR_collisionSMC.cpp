@@ -31,10 +31,8 @@ using namespace chrono::irrlicht;
 // Use the main namespaces of Irrlicht
 using namespace irr;
 using namespace irr::core;
-using namespace irr::scene;
-using namespace irr::video;
-using namespace irr::io;
-using namespace irr::gui;
+
+collision::ChCollisionSystemType collision_type = collision::ChCollisionSystemType::BULLET;
 
 void AddFallingItems(ChSystemSMC& sys) {
     // Shared contact material for falling objects
@@ -46,7 +44,7 @@ void AddFallingItems(ChSystemSMC& sys) {
             {
                 double mass = 1;
                 double radius = 1.1;
-                auto body = chrono_types::make_shared<ChBody>();
+                auto body = chrono_types::make_shared<ChBody>(collision_type);
                 body->SetInertiaXX((2.0 / 5.0) * mass * pow(radius, 2) * ChVector<>(1, 1, 1));
                 body->SetMass(mass);
                 body->SetPos(ChVector<>(4.0 * ix + 0.1, 4.0, 4.0 * iz));
@@ -71,7 +69,7 @@ void AddFallingItems(ChSystemSMC& sys) {
             {
                 double mass = 1;
                 ChVector<> hsize(0.75, 0.75, 0.75);
-                auto body = chrono_types::make_shared<ChBody>();
+                auto body = chrono_types::make_shared<ChBody>(collision_type);
 
                 body->SetMass(mass);
                 body->SetPos(ChVector<>(4.0 * ix, 6.0, 4.0 * iz));
@@ -114,7 +112,7 @@ void AddContainerWall(std::shared_ptr<ChBody> body,
 
 std::shared_ptr<ChBody> AddContainer(ChSystemSMC& sys) {
     // The fixed body (5 walls)
-    auto fixedBody = chrono_types::make_shared<ChBody>();
+    auto fixedBody = chrono_types::make_shared<ChBody>(collision_type);
 
     fixedBody->SetMass(1.0);
     fixedBody->SetBodyFixed(true);
@@ -139,7 +137,7 @@ std::shared_ptr<ChBody> AddContainer(ChSystemSMC& sys) {
     sys.AddBody(fixedBody);
 
     // The rotating mixer body
-    auto rotatingBody = chrono_types::make_shared<ChBody>();
+    auto rotatingBody = chrono_types::make_shared<ChBody>(collision_type);
 
     rotatingBody->SetMass(10.0);
     rotatingBody->SetInertiaXX(ChVector<>(50, 50, 50));
@@ -184,6 +182,7 @@ int main(int argc, char* argv[]) {
 
     // Create the physical system
     ChSystemSMC sys;
+    sys.SetCollisionSystemType(collision_type);
 
     // Create the Irrlicht visualization
     ChIrrApp application(&sys, L"SMC collision demo", core::dimension2d<u32>(800, 600));

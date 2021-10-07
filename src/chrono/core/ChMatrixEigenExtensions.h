@@ -89,13 +89,13 @@ void ArchiveOUT(chrono::ChArchiveOut& marchive) {
 		size_t m_col = derived().cols();
         marchive << chrono::make_ChNameValue("rows", m_row);
         marchive << chrono::make_ChNameValue("columns", m_col);
-
+         
         // NORMAL array-based serialization:
         size_t tot_elements = derived().rows() *  derived().cols();
 		double* foo = 0;
         chrono::ChValueSpecific< double* > specVal(foo, "data", 0);
         marchive.out_array_pre(specVal, tot_elements);
-		char idname[20]; // only for xml, xml serialization needs unique element name
+		char idname[21]; // only for xml, xml serialization needs unique element name
         for (size_t i = 0; i < tot_elements; i++) {
 			sprintf(idname, "%lu", (unsigned long)i);
             marchive << chrono::CHNVP(derived()((Eigen::Index)i), idname);
@@ -106,7 +106,6 @@ void ArchiveOUT(chrono::ChArchiveOut& marchive) {
 }
 
 void ArchiveIN(chrono::ChArchiveIn& marchive) {
-	
     // suggested: use versioning
     /*int version =*/ marchive.VersionRead<chrono::ChMatrix_dense_version_tag>(); // btw use the ChMatrixDynamic version tag also for all other templates.
 	

@@ -53,7 +53,7 @@ class CH_VEHICLE_API GranularTerrain : public ChTerrain {
     GranularTerrain(ChSystem* system  ///< [in] pointer to the containing multibody system
                     );
 
-    ~GranularTerrain() {}
+    ~GranularTerrain();
 
     /// Set contact material (must be consistent with the containing system).
     void SetContactMaterial(std::shared_ptr<ChMaterialSurface> material) { m_material = material; }
@@ -191,7 +191,9 @@ class CH_VEHICLE_API GranularTerrain : public ChTerrain {
     std::shared_ptr<ChBody> m_ground;       ///< ground body
     std::shared_ptr<ChColorAsset> m_color;  ///< color of boundary visualization asset
 
-    std::shared_ptr<ChMaterialSurface> m_material; ///< contact material properties    
+    std::shared_ptr<ChMaterialSurface> m_material;  ///< contact material properties
+
+    std::shared_ptr<ChSystem::CustomCollisionCallback> m_collision_callback;  ///< custom collision callback
 
     bool m_verbose;  ///< verbose output
 

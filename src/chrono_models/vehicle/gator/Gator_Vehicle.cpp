@@ -97,9 +97,7 @@ void Gator_Vehicle::Create(bool fixed,
 
     // Create the driveline
     switch (driveline_type) {
-        case DrivelineTypeWV::FWD:
-        case DrivelineTypeWV::AWD:
-            // fall through
+        default:
         case DrivelineTypeWV::SIMPLE:
             m_driveline = chrono_types::make_shared<Gator_SimpleDriveline>("Driveline");
             break;

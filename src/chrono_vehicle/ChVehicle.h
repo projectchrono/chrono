@@ -119,13 +119,13 @@ class CH_VEHICLE_API ChVehicle {
     /// Get a handle to the vehicle's driveshaft body.
     virtual std::shared_ptr<ChShaft> GetDriveshaft() const = 0;
 
-    /// Get the angular speed of the driveshaft.
-    /// This function provides the interface between a vehicle system and a
-    /// powertrain system.
-    virtual double GetDriveshaftSpeed() const = 0;
-
     /// Get the global location of the driver.
     ChVector<> GetDriverPos() const { return m_chassis->GetDriverPos(); }
+
+    /// Change the default collision detection system.
+    /// Note that this function should be called *before* initialization of the vehicle system in order to create
+    /// consistent collision models.
+    void SetCollisionSystemType(collision::ChCollisionSystemType collsys_type);
 
     /// Enable output for this vehicle system.
     void SetOutput(ChVehicleOutput::Type type,   ///< [int] type of output DB
@@ -156,6 +156,9 @@ class CH_VEHICLE_API ChVehicle {
 
     /// Enable/disable output from the chassis subsystem.
     void SetChassisOutput(bool state);
+
+    /// Return true if the vehicle model contains bushings.
+    bool HasBushings() const { return m_chassis->HasBushings(); }
 
     /// Advance the state of this vehicle by the specified time step.
     /// A call to ChSystem::DoStepDynamics is done only if the vehicle owns the underlying Chrono system.

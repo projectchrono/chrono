@@ -25,7 +25,7 @@
 #include "chrono/utils/ChUtilsCreators.h"
 #include "chrono_thirdparty/filesystem/path.h"
 
-#include "chrono_sensor/ChCameraSensor.h"
+#include "chrono_sensor/sensors/ChCameraSensor.h"
 #include "chrono_sensor/ChSensorManager.h"
 #include "chrono_sensor/filters/ChFilterAccess.h"
 #include "chrono_sensor/filters/ChFilterGrayscale.h"
@@ -117,10 +117,11 @@ int main(int argc, char* argv[]) {
     // manager->scene->AddPointLight({-100, 0, -100}, {1, 1, 1}, 1000);
     // manager->scene->AddPointLight({-10, 0, 100}, {1, 1, 1}, 1000);
 
-    // manager->scene->GetBackground().has_texture = true;
-    // manager->scene->GetBackground().env_tex = "sensor/textures/cloud_layers_8k.hdr";
-    manager->scene->GetBackground().color = {1, 1, 1};
-    manager->scene->GetBackground().has_changed = true;
+    Background b;
+    b.mode = BackgroundMode::GRADIENT;
+    b.color_horizon = {.6, .7, .8};
+    b.color_zenith = {.4, .5, .6};
+    manager->scene->SetBackground(b);
     // ------------------------------------------------
     // Create a camera and add it to the sensor manager
     // ------------------------------------------------

@@ -65,6 +65,7 @@ void ShaftsPowertrain::Create(const rapidjson::Document& d) {
     assert(d.HasMember("Transmission"));
 
     m_ingear_shaft_inertia = d["Transmission"]["Input Shaft Inertia"].GetDouble();
+    m_power_shaft_inertia = d["Transmission"]["Output Shaft Inertia"].GetDouble();
     m_rev_gear = d["Transmission"]["Reverse Gear Ratio"].GetDouble();
     unsigned int np = d["Transmission"]["Forward Gear Ratios"].Size();
     m_fwd_gear.resize(np);

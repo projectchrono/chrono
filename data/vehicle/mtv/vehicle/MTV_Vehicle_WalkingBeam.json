@@ -1,0 +1,72 @@
+{
+  "Name": "MTV walking beam",
+  "Type": "Vehicle",
+  "Template": "WheeledVehicle",
+
+  "Chassis": {
+    "Input File": "mtv/chassis/FMTV_Chassis.json"
+  },
+
+  "Rear Chassis" : [
+    {
+        "Input File": "mtv/chassis/MTV_RearChassis.json",
+        "Connector Input File": "mtv/chassis/MTV_ChassisConnector.json",
+        "Chassis Index": -1    // attached to main chassis
+    }
+  ],
+
+  "Subchassis": [
+    {
+        "Input File": "mtv/chassis/MTV_Balancer.json",
+        "Subchassis Location": [-4.1, 0.0, 0.26],
+        "Chassis Index": 0    // attached to first rear chassis
+    }
+  ],
+
+  "Axles": [
+    {
+      "Suspension Input File": "mtv/suspension/FMTV_ToebarLeafSpringAxle.json",
+      "Suspension Location": [ 0, 0, 0 ],
+      "Steering Index": 0,
+      "Left Wheel Input File": "mtv/wheel/FMTV_Wheel.json",
+      "Right Wheel Input File": "mtv/wheel/FMTV_Wheel.json",
+      "Left Brake Input File": "mtv/brake/FMTV_BrakeShafts.json",
+      "Right Brake Input File": "mtv/brake/FMTV_BrakeShafts.json"
+    },
+
+    {
+      "Suspension Input File": "mtv/suspension/MTV_SolidThreeLinkAxleF.json",
+      "Suspension Location": [ -3.4, 0, 0 ],
+      "Left Wheel Input File": "mtv/wheel/FMTV_Wheel.json",
+      "Right Wheel Input File": "mtv/wheel/FMTV_Wheel.json",
+      "Left Brake Input File": "mtv/brake/FMTV_BrakeShafts.json",
+      "Right Brake Input File": "mtv/brake/FMTV_BrakeShafts.json"
+    },
+
+    {
+      "Suspension Input File": "mtv/suspension/MTV_SolidThreeLinkAxleR.json",
+      "Suspension Location": [ -4.8, 0, 0 ],
+      "Left Wheel Input File": "mtv/wheel/FMTV_Wheel.json",
+      "Right Wheel Input File": "mtv/wheel/FMTV_Wheel.json",
+      "Left Brake Input File": "mtv/brake/FMTV_BrakeShafts.json",
+      "Right Brake Input File": "mtv/brake/FMTV_BrakeShafts.json"
+    }
+  ],
+
+  "Steering Subsystems": [
+    {
+      "Input File": "mtv/steering/FMTV_RotaryArm.json",
+      "Location": [ 0, 0, 0 ],
+      "Orientation": [ 1, 0, 0, 0 ]
+    }
+  ],
+
+  "Wheelbase": 4.1,
+  "Minimum Turning Radius": 11.0,
+  "Maximum Steering Angle": 0.43,
+
+  "Driveline": {
+    "Input File": "mtv/driveline/FMTV_Driveline4WD.json",
+    "Suspension Indexes": [ 1, 2 ]
+  }
+}

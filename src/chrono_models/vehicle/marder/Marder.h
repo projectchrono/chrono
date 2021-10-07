@@ -47,14 +47,21 @@ class CH_MODELS_API Marder {
 
     void SetChassisFixed(bool val) { m_fixed = val; }
     void SetChassisCollisionType(CollisionType val) { m_chassisCollisionType = val; }
+    void SetWheelCollisionType(bool roadwheel_as_cylinder, bool idler_as_cylinder, bool roller_as_cylinder) {
+        m_wheel_cyl = roadwheel_as_cylinder;
+        m_idler_cyl = idler_as_cylinder;
+        m_roller_cyl = roller_as_cylinder;
+    }
 
     void SetBrakeType(BrakeType brake_type) { m_brake_type = brake_type; }
-    void SetTrackShoeType(TrackShoeType shoe_type) { m_shoe_type = shoe_type; }
-    void SetDrivelineType(DrivelineTypeTV driveline_type) { m_driveline_type = driveline_type; }
+    ////void SetTrackShoeType(TrackShoeType shoe_type) { m_shoe_type = shoe_type; }
+    ////void SetDrivelineType(DrivelineTypeTV driveline_type) { m_driveline_type = driveline_type; }
     void SetPowertrainType(PowertrainModelType powertrain_type) { m_powertrain_type = powertrain_type; }
 
     void SetInitPosition(const ChCoordsys<>& pos) { m_initPos = pos; }
     void SetInitFwdVel(double fwdVel) { m_initFwdVel = fwdVel; }
+
+    void SetCollisionSystemType(collision::ChCollisionSystemType collsys_type) { m_collsys_type = collsys_type; }
 
     void CreateTrack(bool val) { m_create_track = val; }
 
@@ -93,6 +100,11 @@ class CH_MODELS_API Marder {
     CollisionType m_chassisCollisionType;
     bool m_fixed;
     bool m_create_track;
+    bool m_wheel_cyl;
+    bool m_idler_cyl;
+    bool m_roller_cyl;
+
+    collision::ChCollisionSystemType m_collsys_type;
 
     BrakeType m_brake_type;
     TrackShoeType m_shoe_type;

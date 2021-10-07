@@ -908,6 +908,7 @@ __global__ void UpdateDensity(Real3* vis_vel,
     Real dT = paramsD.dT;
     Real rho_plus = 0;
     Real3 Vel_i = sortedVelMas[i_idx];
+
     Real3 posi = mR3(sortedPosRad[i_idx]);
     if ((sortedRhoPreMu[i_idx].x > 2 * paramsD.rho0 || sortedRhoPreMu[i_idx].x < 0) && sortedRhoPreMu[i_idx].w < 0)
         printf("(UpdateDensity-0)too large/small density marker %d, type=%f\n", i_idx, sortedRhoPreMu[i_idx].w);

@@ -25,7 +25,8 @@ namespace sensor {
 /// @param bufOut A pointer to the output buffer where greyscale data will be held (8 bpp)
 /// @param width The width of the image
 /// @param height The height of the image
-void cuda_grayscale(void* bufRGBA, void* bufOut, int width, int height);
+/// @param stream The cuda stream for the kernel
+void cuda_grayscale(void* bufRGBA, void* bufOut, int width, int height, CUstream& stream);
 
 /// @}
 

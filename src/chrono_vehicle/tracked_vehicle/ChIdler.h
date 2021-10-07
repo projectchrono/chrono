@@ -56,7 +56,7 @@ class CH_VEHICLE_API ChIdler : public ChPart {
     ChIdler(const std::string& name  ///< [in] name of the subsystem
             );
 
-    virtual ~ChIdler() {}
+    virtual ~ChIdler();
 
     /// Return the type of track shoe consistent with this idler.
     virtual GuidePinType GetType() const = 0;

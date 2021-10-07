@@ -240,7 +240,7 @@ int main(int argc, char* argv[]) {
     sys->GetSettings()->solver.use_full_inertia_tensor = false;
     sys->GetSettings()->solver.bilateral_clamp_speed = 1e8;
 
-    sys->GetSettings()->collision.narrowphase_algorithm = NarrowPhaseType::NARROWPHASE_HYBRID_MPR;
+    sys->GetSettings()->collision.narrowphase_algorithm = ChNarrowphase::Algorithm::HYBRID;
 
     // -----------------------
     // Create RoboSimian robot
@@ -408,7 +408,7 @@ int main(int argc, char* argv[]) {
         if (pov_output && sim_frame % pov_steps == 0) {
             char filename[100];
             sprintf(filename, "%s/data_%04d.dat", pov_dir.c_str(), pov_frame + 1);
-            utils::WriteShapesPovray(sys, filename);
+            utils::WriteVisualizationAssets(sys, filename);
             pov_frame++;
         }
 

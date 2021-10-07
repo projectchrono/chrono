@@ -83,14 +83,14 @@ class JointsDVI : public ::testing::TestWithParam<Options> {
         system->ChangeSolverType(opts.type);
 
         // Create the ground body
-        auto ground = chrono_types::make_shared<ChBody>(chrono_types::make_shared<collision::ChCollisionModelMulticore>());
+        auto ground = std::shared_ptr<ChBody>(system->NewBody());
         ground->SetIdentifier(-1);
         ground->SetBodyFixed(true);
         ground->SetCollide(false);
         system->AddBody(ground);
 
         // Create the sled body
-        auto sled = chrono_types::make_shared<ChBody>(chrono_types::make_shared<collision::ChCollisionModelMulticore>());
+        auto sled = std::shared_ptr<ChBody>(system->NewBody());
         sled->SetIdentifier(1);
         sled->SetMass(550);
         sled->SetInertiaXX(ChVector<>(100, 100, 100));
@@ -108,7 +108,7 @@ class JointsDVI : public ::testing::TestWithParam<Options> {
         system->AddBody(sled);
 
         // Create the wheel body
-        auto wheel = chrono_types::make_shared<ChBody>(chrono_types::make_shared<collision::ChCollisionModelMulticore>());
+        auto wheel = std::shared_ptr<ChBody>(system->NewBody());
         wheel->SetIdentifier(2);
         wheel->SetMass(350);
         wheel->SetInertiaXX(ChVector<>(50, 138, 138));
@@ -175,13 +175,13 @@ TEST_P(JointsDVI, simulate) {
             system->DoStepDynamics(time_step);
 
             // Check constraints for prismatic joint
-            ChVectorDynamic<> pC = prismatic->GetC();
+            ChVectorDynamic<> pC = prismatic->GetConstraintViolation();
             for (int i = 0; i < 5; i++) {
                 ASSERT_NEAR(pC(i), 0.0, max_cnstr_violation);
             }
 
             // Check constraints for revolute joint
-            ChVectorDynamic<> rC = revolute->GetC();
+            ChVectorDynamic<> rC = revolute->GetConstraintViolation();
             for (int i = 0; i < 5; i++) {
                 ASSERT_NEAR(rC(i), 0.0, max_cnstr_violation);
             }
@@ -201,4 +201,4 @@ std::vector<Options> options{
     ////{SolverMode::SLIDING, SolverType::APGD, 0, 0, 1000}
 };
 
-INSTANTIATE_TEST_CASE_P(ChronoMulticore, JointsDVI, ::testing::ValuesIn(options));
+INSTANTIATE_TEST_SUITE_P(ChronoMulticore, JointsDVI, ::testing::ValuesIn(options));

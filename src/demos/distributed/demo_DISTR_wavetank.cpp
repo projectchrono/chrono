@@ -45,7 +45,6 @@ using namespace chrono::collision;
 
 int num_ranks;
 int my_rank;
-std::string outdir;
 
 // Granular Properties
 float Y = 2e7f;
@@ -65,7 +64,7 @@ double out_fps = 60;
 double tolerance = 1e-4;
 
 // TODO: binary output
-void WriteCSV(ChSystemDistributed& m_sys, size_t frame) {
+void WriteCSV(const ChSystemDistributed& m_sys, const std::string& outdir, size_t frame) {
     std::stringstream ss_particles;
     ss_particles << "x,y,z,U\n" << std::flush;
 
@@ -121,7 +120,7 @@ std::shared_ptr<ChBoundary> AddContainer(ChSystemDistributed* sys,
     mat->SetRestitution(cr);
     mat->SetPoissonRatio(nu);
 
-    auto bin = chrono_types::make_shared<ChBody>(chrono_types::make_shared<ChCollisionModelMulticore>());
+    auto bin = chrono_types::make_shared<ChBody>(chrono_types::make_shared<ChCollisionModelDistributed>());
     bin->SetIdentifier(binId);
     bin->SetMass(1);
     bin->SetPos(ChVector<>(0, 0, 0));
@@ -333,7 +332,7 @@ int main(int argc, char* argv[]) {
     my_sys.GetSettings()->solver.contact_force_model = ChSystemSMC::ContactForceModel::Hooke;
     my_sys.GetSettings()->solver.adhesion_force_model = ChSystemSMC::AdhesionForceModel::Constant;
 
-    my_sys.GetSettings()->collision.narrowphase_algorithm = NarrowPhaseType::NARROWPHASE_HYBRID_MPR;
+    my_sys.GetSettings()->collision.narrowphase_algorithm = ChNarrowphase::Algorithm::HYBRID;
 
     int binX;
     int binY;
@@ -386,7 +385,7 @@ int main(int argc, char* argv[]) {
             if (my_rank == MASTER)
                 std::cout << "Time: " << time << "    elapsed: " << MPI_Wtime() - t_start << std::endl;
             if (output_data) {
-                WriteCSV(my_sys, out_frame);
+                WriteCSV(my_sys, outdir, out_frame);
                 out_frame++;
             }
         }

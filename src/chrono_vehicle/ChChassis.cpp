@@ -29,7 +29,19 @@ namespace vehicle {
 
 // -----------------------------------------------------------------------------
 
-ChChassis::ChChassis(const std::string& name, bool fixed) : ChPart(name), m_fixed(fixed), m_apply_drag(false) {}
+ChChassis::ChChassis(const std::string& name, bool fixed) : ChPart(name), m_fixed(fixed), m_apply_drag(false) {
+    m_bushings = chrono_types::make_shared<ChLoadContainer>();
+}
+
+ChChassis::~ChChassis() {
+    auto sys = m_body->GetSystem();
+    if (sys) {
+        sys->Remove(m_body);
+        sys->Remove(m_bushings);
+    }
+}
+
+// -----------------------------------------------------------------------------
 
 ChQuaternion<> ChChassis::GetRot() const {
     return m_body->GetFrame_REF_to_abs().GetRot() * ChWorldFrame::Quaternion();
@@ -76,6 +88,9 @@ void ChChassis::Initialize(ChSystem* system,
     m_body->SetPos_dt(chassisFwdVel * chassis_pos.TransformDirectionLocalToParent(ChVector<>(1, 0, 0)));
 
     system->Add(m_body);
+
+    // Add container for bushing elements.
+    system->Add(m_bushings);
 
     // Add pre-defined markers (driver position and COM) on the chassis body.
     AddMarker("driver position", GetLocalDriverCoordsys());
@@ -124,6 +139,26 @@ void ChChassis::Synchronize(double time) {
     m_body->Empty_forces_accumulators();
     m_body->Accumulate_force(F, ChVector<>(0), true);
 }
+
+void ChChassis::AddJoint(std::shared_ptr<ChVehicleJoint> joint) {
+    if (joint->m_joint.index() == 0) {
+        m_body->GetSystem()->AddLink(mpark::get<ChVehicleJoint::Link>(joint->m_joint));
+    } else {
+        m_bushings->Add(mpark::get<ChVehicleJoint::Bushing>(joint->m_joint));
+    }
+}
+
+void ChChassis::RemoveJoint(std::shared_ptr<ChVehicleJoint> joint) {
+    if (joint->m_joint.index() == 0) {
+        ChVehicleJoint::Link& link = mpark::get<ChVehicleJoint::Link>(joint->m_joint);
+        auto sys = link->GetSystem();  
+        if (sys) {
+            sys->Remove(link);
+        }
+    }
+    // Note: bushing are removed when the load container is removed
+}
+
 
 // -----------------------------------------------------------------------------
 

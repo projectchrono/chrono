@@ -148,6 +148,8 @@ set(CV_BASE_FILES
     ChDriver.cpp
     ChPart.h
     ChPart.cpp
+    ChVehicleJoint.h
+    ChVehicleJoint.cpp
     ChDriveline.h
     ChDriveline.cpp
     ChPowertrain.h
@@ -353,6 +355,10 @@ set(CV_WV_DRIVELINE_FILES
     wheeled_vehicle/driveline/ChShaftsDriveline2WD.cpp
     wheeled_vehicle/driveline/ChShaftsDriveline4WD.h
     wheeled_vehicle/driveline/ChShaftsDriveline4WD.cpp
+    wheeled_vehicle/driveline/ChShaftsDriveline6WD.h
+    wheeled_vehicle/driveline/ChShaftsDriveline6WD.cpp
+    wheeled_vehicle/driveline/ChShaftsDriveline8WD.h
+    wheeled_vehicle/driveline/ChShaftsDriveline8WD.cpp
     wheeled_vehicle/driveline/ChSimpleDrivelineXWD.h
     wheeled_vehicle/driveline/ChSimpleDrivelineXWD.cpp
     wheeled_vehicle/driveline/ChSimpleDriveline.h
@@ -392,8 +398,8 @@ set(CV_WV_SUBCHASSIS_FILES
     wheeled_vehicle/subchassis/ChBalancer.h
     wheeled_vehicle/subchassis/ChBalancer.cpp
 
-    #wheeled_vehicle/subchassis/Balancer.h
-    #wheeled_vehicle/subchassis/Balancer.cpp
+    wheeled_vehicle/subchassis/Balancer.h
+    wheeled_vehicle/subchassis/Balancer.cpp
 )
 source_group("wheeled_vehicle\\subchassis" FILES ${CV_WV_SUBCHASSIS_FILES})
 
@@ -437,8 +443,8 @@ set(CV_WV_SUSPENSION_FILES
     wheeled_vehicle/suspension/DoubleWishbone.cpp
     wheeled_vehicle/suspension/DoubleWishboneReduced.h
     wheeled_vehicle/suspension/DoubleWishboneReduced.cpp
-#    wheeled_vehicle/suspension/SingleWishbone.h
-#    wheeled_vehicle/suspension/SingleWishbone.cpp
+    wheeled_vehicle/suspension/SingleWishbone.h
+    wheeled_vehicle/suspension/SingleWishbone.cpp
     wheeled_vehicle/suspension/SolidAxle.h
     wheeled_vehicle/suspension/SolidAxle.cpp
     wheeled_vehicle/suspension/MultiLink.h
@@ -779,6 +785,8 @@ if(ENABLE_MODULE_IRRLICHT)
     set(CVIRR_TV_UTILS_FILES
         tracked_vehicle/utils/ChTrackedVehicleIrrApp.h
         tracked_vehicle/utils/ChTrackedVehicleIrrApp.cpp
+        tracked_vehicle/utils/ChTrackTestRigIrrApp.h
+        tracked_vehicle/utils/ChTrackTestRigIrrApp.cpp
     )
 else()
     set(CVIRR_TV_UTILS_FILES "")
@@ -901,11 +909,6 @@ list(APPEND LIBRARIES ChronoEngine_vehicle)
 list(APPEND LIBRARIES ChronoEngine_irrlicht) 
 include_directories(${CH_IRRLICHTINC})
 
-if(ENABLE_IRRKLANG)
-    include_directories(${CH_IRRKLANGINC})
-    list(APPEND LIBRARIES ${CH_IRRKLANGLIB})
-endif()
-
 add_library(ChronoEngine_vehicle_irrlicht SHARED
     ${CVIRR_DRIVER_FILES}
     ${CVIRR_UTILS_FILES}
@@ -914,6 +917,13 @@ add_library(ChronoEngine_vehicle_irrlicht SHARED
     ${CVIRR_TV_TEST_RIG_FILES}
     ${CVIRR_TV_UTILS_FILES}
 )
+
+if(ENABLE_IRRKLANG)
+    target_include_directories(ChronoEngine_vehicle_irrlicht PUBLIC ${CH_IRRKLANGINC})
+    list(APPEND LIBRARIES ${CH_IRRKLANGLIB})
+    set(CH_IRRLICHTINC ${CH_IRRLICHTINC} ${CH_IRRKLANGINC} PARENT_SCOPE)
+    set(IRRLICHT_LIBRARY ${IRRLICHT_LIBRARY} ${CH_IRRKLANGLIB} PARENT_SCOPE)
+endif()
 
 set_target_properties(ChronoEngine_vehicle_irrlicht PROPERTIES
                       COMPILE_FLAGS "${CXX_FLAGS}"

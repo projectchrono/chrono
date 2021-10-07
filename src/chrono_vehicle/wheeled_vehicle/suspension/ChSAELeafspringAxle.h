@@ -118,7 +118,7 @@ class CH_VEHICLE_API ChSAELeafspringAxle : public ChSuspension {
     ChSAELeafspringAxle(const std::string& name  ///< [in] name of the subsystem
     );
 
-    virtual ~ChSAELeafspringAxle() {}
+    virtual ~ChSAELeafspringAxle();
 
     /// Get the name of the vehicle subsystem template.
     virtual std::string GetTemplateName() const override { return "SAELeafspringAxle"; }

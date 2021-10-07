@@ -267,7 +267,7 @@ void ChLinActuatorTest::VerifySolution(double time) {
     // Constraint violations in prismatic joint
     // ----------------------------------------
 
-    ChVectorDynamic<> CP = prismatic->GetC();
+    ChVectorDynamic<> CP = prismatic->GetConstraintViolation();
     for (int i = 0; i < 5; i++) {
         ASSERT_NEAR(CP(i), 0.0, cnstr_tol);
         ////if (std::abs(CP(i)) > cnstr_tol) {
@@ -279,7 +279,7 @@ void ChLinActuatorTest::VerifySolution(double time) {
     // Constraint violations in linear actuator
     // ----------------------------------------
 
-    ChVectorDynamic<> CA = actuator->GetC();
+    ChVectorDynamic<> CA = actuator->GetConstraintViolation();
     ASSERT_NEAR(CA(0), 0.0, cnstr_tol);
     ////if (std::abs(CA(00)) > cnstr_tol) {
     ////    std::cout << "   at t = " << time << "  constraint violation (actuator) = " << CA(0)
@@ -324,8 +324,8 @@ TEST_P(ChLinActuatorTest, simulate) {
     }
 }
 
-INSTANTIATE_TEST_CASE_P(ChronoMulticore,
-                        ChLinActuatorTest,
-                        ::testing::Combine(::testing::Values(ChContactMethod::NSC, ChContactMethod::SMC),
-                                           ::testing::Values(1.0, 0.5),
-                                           ::testing::Values(QUNIT, Q_from_AngY(CH_C_PI / 4))));
+INSTANTIATE_TEST_SUITE_P(ChronoMulticore,
+                         ChLinActuatorTest,
+                         ::testing::Combine(::testing::Values(ChContactMethod::NSC, ChContactMethod::SMC),
+                                            ::testing::Values(1.0, 0.5),
+                                            ::testing::Values(QUNIT, Q_from_AngY(CH_C_PI / 4))));

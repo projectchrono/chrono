@@ -113,7 +113,8 @@ using ChMatrixRef = Eigen::Ref<Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dyna
 
 /// Constant reference to a dense matrix expression, with double coefficients.
 /// This allows writing non-template functions that can accept either a ChMatrixDynamic or a ChMatrixNM.
-using ChMatrixConstRef = const Eigen::Ref<const Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor>>&;
+using ChMatrixConstRef =
+    const Eigen::Ref<const Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor>>&;
 
 /// Reference to a column vector expression, with double coefficients.
 /// This allows writing non-template functions that can accept either a ChVectorDynamic or a ChVectorN.
@@ -168,13 +169,17 @@ inline void StreamOUTdenseMatlabFormat(ChMatrixConstRef A, ChStreamOutAscii& str
 
 /// Paste a given matrix into a sparse matrix at position (\a insrow, \a inscol).
 /// The matrix \a matrFrom will be copied into \a matrTo[insrow : insrow + \a matrFrom.GetRows()][inscol : inscol +
-/// matrFrom.GetColumns()] 
+/// matrFrom.GetColumns()]
 /// \param[out] matrTo The output sparse matrix
 /// \param[in] matrFrom The source matrix that will be copied
 /// \param[in] insrow The row index where the first element will be copied
 /// \param[in] inscol The column index where the first element will be copied
 /// \param[in] overwrite Indicate if the copied elements will overwrite existing elements or be summed to them
-inline void PasteMatrix(ChSparseMatrix& matrTo, ChMatrixConstRef matrFrom, int insrow, int inscol, bool overwrite = true) {
+inline void PasteMatrix(ChSparseMatrix& matrTo,
+                        ChMatrixConstRef matrFrom,
+                        int insrow,
+                        int inscol,
+                        bool overwrite = true) {
     if (overwrite) {
         for (auto i = 0; i < matrFrom.rows(); i++) {
             for (auto j = 0; j < matrFrom.cols(); j++) {
@@ -205,11 +210,11 @@ inline void StreamOUTsparseMatlabFormat(ChSparseMatrix& matr, ChStreamOutAscii& 
 
 /// Serialization of a sparse matrix to an ASCII stream (for debugging; only the top-left 8x8 corner is printed).
 inline void StreamOUT(ChSparseMatrix& matr, ChStreamOutAscii& stream) {
-	int mrows = static_cast<int>(matr.rows());
-	int mcols = static_cast<int>(matr.cols());
+    int mrows = static_cast<int>(matr.rows());
+    int mcols = static_cast<int>(matr.cols());
     stream << "\n"
-        << "Matrix " << mrows << " rows, " << mcols << " columns."
-        << "\n";
+           << "Matrix " << mrows << " rows, " << mcols << " columns."
+           << "\n";
     for (int i = 0; i < std::min(mrows, 8); i++) {
         for (int j = 0; j < std::min(mcols, 8); j++)
             stream << static_cast<double>(matr.coeff(i, j)) << "  ";
@@ -222,10 +227,6 @@ inline void StreamOUT(ChSparseMatrix& matr, ChStreamOutAscii& stream) {
 }
 
 /// @} chrono_linalg
-
-
-
-
 
 }  // end namespace chrono
 

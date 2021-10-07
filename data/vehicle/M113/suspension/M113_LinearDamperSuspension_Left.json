@@ -15,6 +15,7 @@
 
   "Torsional Spring":
   {
+      "Free Angle":                 0,
       "Spring Constant":            2.5e4,
       "Damping Coefficient":        5e2,
       "Preload":                    -1e4

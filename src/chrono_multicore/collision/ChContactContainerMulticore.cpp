@@ -63,22 +63,20 @@ void ChContactContainerMulticore::EndAddContact() {
     }
 }
 
-static inline chrono::ChVector<> ToChVector(const real3& a) {
-    return chrono::ChVector<>(a.x, a.y, a.z);
-}
-
 void ChContactContainerMulticore::ReportAllContacts(std::shared_ptr<ReportContactCallback> callback) {
     // Readibility
-    const auto& ptA = data_manager->host_data.cpta_rigid_rigid;
-    const auto& ptB = data_manager->host_data.cptb_rigid_rigid;
-    const auto& nrm = data_manager->host_data.norm_rigid_rigid;
-    const auto& depth = data_manager->host_data.dpth_rigid_rigid;
-    const auto& erad = data_manager->host_data.erad_rigid_rigid;
-    const auto& bids = data_manager->host_data.bids_rigid_rigid;
+    auto& cd_data = data_manager->cd_data;
+    const auto& ptA = cd_data->cpta_rigid_rigid;
+    const auto& ptB = cd_data->cptb_rigid_rigid;
+    const auto& nrm = cd_data->norm_rigid_rigid;
+    const auto& depth = cd_data->dpth_rigid_rigid;
+    const auto& erad = cd_data->erad_rigid_rigid;
+    const auto& bids = cd_data->bids_rigid_rigid;
 
     // NSC-specific
     auto mode = data_manager->settings.solver.local_solver_mode;
-    const DynamicVector<real>& gamma_u = blaze::subvector(data_manager->host_data.gamma, 0, data_manager->num_unilaterals);
+    const DynamicVector<real>& gamma_u =
+        blaze::subvector(data_manager->host_data.gamma, 0, data_manager->num_unilaterals);
 
     // SMC-specific
     const auto& ct_force = data_manager->host_data.ct_force;
@@ -96,7 +94,7 @@ void ChContactContainerMulticore::ReportAllContacts(std::shared_ptr<ReportContac
     ChVector<> plane_x, plane_y, plane_z;
     ChMatrix33<> contact_plane;
 
-    for (uint i = 0; i < data_manager->num_rigid_contacts; i++) {
+    for (uint i = 0; i < cd_data->num_rigid_contacts; i++) {
         auto bodyA = bodylist[bids[i].x].get();
         auto bodyB = bodylist[bids[i].y].get();
 
@@ -114,21 +112,19 @@ void ChContactContainerMulticore::ReportAllContacts(std::shared_ptr<ReportContac
                 double f_u = 0;
                 double f_v = 0;
                 if (mode == SolverMode::SLIDING || mode == SolverMode::SPINNING) {
-                    f_u = (double)(gamma_u[data_manager->num_rigid_contacts + 2 * i + 0] /
-                                    data_manager->settings.step_size);
-                    f_v = (double)(gamma_u[data_manager->num_rigid_contacts + 2 * i + 1] /
-                                    data_manager->settings.step_size);
+                    f_u = (double)(gamma_u[cd_data->num_rigid_contacts + 2 * i + 0] / data_manager->settings.step_size);
+                    f_v = (double)(gamma_u[cd_data->num_rigid_contacts + 2 * i + 1] / data_manager->settings.step_size);
                 }
                 force = ChVector<>(f_n, f_u, f_v);
                 double t_n = 0;
                 double t_u = 0;
                 double t_v = 0;
                 if (mode == SolverMode::SPINNING) {
-                    t_n = (double)(gamma_u[3 * data_manager->num_rigid_contacts + 3 * i + 0] /
+                    t_n = (double)(gamma_u[3 * cd_data->num_rigid_contacts + 3 * i + 0] /
                                    data_manager->settings.step_size);
-                    t_u = (double)(gamma_u[3 * data_manager->num_rigid_contacts + 3 * i + 1] /
+                    t_u = (double)(gamma_u[3 * cd_data->num_rigid_contacts + 3 * i + 1] /
                                    data_manager->settings.step_size);
-                    t_v = (double)(gamma_u[3 * data_manager->num_rigid_contacts + 3 * i + 2] /
+                    t_v = (double)(gamma_u[3 * cd_data->num_rigid_contacts + 3 * i + 2] /
                                    data_manager->settings.step_size);
                 }
                 torque = ChVector<>(t_n, t_u, t_v);

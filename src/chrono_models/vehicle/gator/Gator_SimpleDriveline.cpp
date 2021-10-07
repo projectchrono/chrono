@@ -28,13 +28,18 @@ namespace gator {
 const double Gator_SimpleDriveline::m_diff_bias = 2.0;
 
 // -----------------------------------------------------------------------------
-Gator_SimpleDriveline::Gator_SimpleDriveline(const std::string& name) : ChDrivelineWV(name) {}
+Gator_SimpleDriveline::Gator_SimpleDriveline(const std::string& name) : ChDrivelineWV(name), m_connected(true) {}
 
 void Gator_SimpleDriveline::Initialize(std::shared_ptr<ChChassis> chassis,
                                        const ChAxleList& axles,
                                        const std::vector<int>& driven_axles) {
     assert(axles.size() == 2);
     assert(driven_axles.size() == 1);
+
+    // Create the driveshaft
+    m_driveshaft = chrono_types::make_shared<ChShaft>();
+    m_driveshaft->SetInertia(0.5);
+    chassis->GetSystem()->Add(m_driveshaft);
 
     m_driven_axles = driven_axles;
 
@@ -45,6 +50,13 @@ void Gator_SimpleDriveline::Initialize(std::shared_ptr<ChChassis> chassis,
 
 // -----------------------------------------------------------------------------
 void Gator_SimpleDriveline::Synchronize(double torque) {
+    if (!m_connected)
+        return;
+
+    // Enforce driveshaft speed
+    double driveshaft_speed = 0.5 * (m_left->GetPos_dt() + m_right->GetPos_dt());
+    m_driveshaft->SetPos_dt(driveshaft_speed);
+
     // Split the driveshaft torque for the corresponding left/right wheels.
     // Use a siple model of a Torsten limited-slip differential with a max_bias:1 torque bias ratio.
     double speed_left = m_left->GetPos_dt();
@@ -79,12 +91,10 @@ void Gator_SimpleDriveline::Synchronize(double torque) {
 }
 
 // -----------------------------------------------------------------------------
-double Gator_SimpleDriveline::GetDriveshaftSpeed() const {
-    return 0.5 * (m_left->GetPos_dt() + m_right->GetPos_dt());
-}
-
-// -----------------------------------------------------------------------------
 double Gator_SimpleDriveline::GetSpindleTorque(int axle, VehicleSide side) const {
+    if (!m_connected)
+        return 0;
+
     if (axle != m_driven_axles[0])
         return 0;
 
@@ -92,6 +102,11 @@ double Gator_SimpleDriveline::GetSpindleTorque(int axle, VehicleSide side) const
         return -m_left->GetAppliedTorque();
 
     return -m_right->GetAppliedTorque();
+}
+
+// -----------------------------------------------------------------------------
+void Gator_SimpleDriveline::Disconnect() {
+    m_connected = false;
 }
 
 }  // end namespace gator

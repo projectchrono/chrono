@@ -45,7 +45,6 @@ class SprocketDoublePinContactCB : public ChSystem::CustomCollisionCallback {
                                const ChVector<>& shoe_pin  ///< location of shoe guide pin center
                                )
         : m_track(track),
-          m_sprocket(m_track->GetSprocket()),
           m_gear_nteeth(gear_nteeth),
           m_gear_RT(gear_RT),
           m_gear_R(gear_R),
@@ -56,6 +55,8 @@ class SprocketDoublePinContactCB : public ChSystem::CustomCollisionCallback {
           m_lateral_contact(lateral_contact),
           m_lateral_backlash(lateral_backlash),
           m_shoe_pin(shoe_pin) {
+        m_sprocket = static_cast<ChSprocketDoublePin*>(m_track->GetSprocket().get());
+
         ////m_gear_Rhat = gear_R - envelope;
         ////m_shoe_Rhat = shoe_R + envelope;
         m_R_sum = (m_shoe_len + 2 * m_shoe_R) + m_gear_RT;
@@ -121,8 +122,8 @@ class SprocketDoublePinContactCB : public ChSystem::CustomCollisionCallback {
                           const ChVector<>& dirS_abs                   // sprocket Y direction (global frame)
     );
 
-    ChTrackAssembly* m_track;                // pointer to containing track assembly
-    std::shared_ptr<ChSprocket> m_sprocket;  // handle to the sprocket
+    ChTrackAssembly* m_track;         // pointer to containing track assembly
+    ChSprocketDoublePin* m_sprocket;  // pointer to the sprocket
 
     int m_gear_nteeth;    // sprocket gear, number of teeth
     double m_gear_RT;     // sprocket gear, outer tooth radius (radius of addendum circle)

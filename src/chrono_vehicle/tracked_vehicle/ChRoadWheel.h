@@ -44,7 +44,7 @@ class CH_VEHICLE_API ChRoadWheel : public ChPart {
     ChRoadWheel(const std::string& name  ///< [in] name of the subsystem
                 );
 
-    virtual ~ChRoadWheel() {}
+    virtual ~ChRoadWheel();
 
     /// Return the type of track shoe consistent with this road wheel.
     virtual GuidePinType GetType() const = 0;

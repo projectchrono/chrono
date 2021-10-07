@@ -24,6 +24,8 @@ endif()
 
 set(CH_C_FLAGS "${CMAKE_C_FLAGS}")
 set(CH_CXX_FLAGS "${CMAKE_CXX_FLAGS}")
+set(CH_LINKERFLAG_EXE "${CMAKE_EXE_LINKER_FLAGS}")
+set(CH_LINKERFLAG_SHARED "")
 
 #-----------------------------------------------------------------------------
 # Enable C++11 support.  Check for C++14 support
@@ -32,12 +34,13 @@ set(CH_CXX_FLAGS "${CMAKE_CXX_FLAGS}")
 # Allow user to enforce strict C++11 standard
 option(CH_ENFORCE_CXX11 "Enforce strict C++11 standard" OFF)
 
-find_package(ModernCXX)
 
 if (CH_ENFORCE_CXX11)
-  set(CH_CXX_FLAGS "${CH_CXX_FLAGS} ${CMAKE_CXX11_STANDARD_COMPILE_OPTION}")
+	#  set(CH_CXX_FLAGS "${CH_CXX_FLAGS} ${CMAKE_CXX11_STANDARD_COMPILE_OPTION}")
+	set(CMAKE_CXX_STANDARD 11)
 else()
-  set(CH_CXX_FLAGS "${CH_CXX_FLAGS} ${CMAKE_CXX14_STANDARD_COMPILE_OPTION}")
+	#  set(CH_CXX_FLAGS "${CH_CXX_FLAGS} ${CMAKE_CXX14_STANDARD_COMPILE_OPTION}")
+	set(CMAKE_CXX_STANDARD 14)
 endif()
 
 # This is a hack -- look for a more robust solution
@@ -61,7 +64,7 @@ elseif(CMAKE_CXX_COMPILER_ID MATCHES "MSVC")
 endif()
 message(STATUS "Compiler supports C++14:  ${CH_CXX14}")
 
-# cmake/FindModernCXX.cmake behaves strangely with PGI compilers, don't trust it
+# CMake's standard support flags behave strangely with PGI compilers, don't trust them
 if (CMAKE_CXX_COMPILER_ID MATCHES "PGI")
   set(CH_CXX_FLAGS "")
   message(STATUS "PGI version: ${CMAKE_CXX_COMPILER_VERSION}")
@@ -69,6 +72,21 @@ if (CMAKE_CXX_COMPILER_ID MATCHES "PGI")
     message(STATUS "CMAKE_CXX14_STANDARD_COMPILE_OPTION can't be trusted for PGI, manually adding C++14 support")
     set(CH_CXX14 TRUE)
     set(CH_CXX_FLAGS "-std=c++14")
+  endif()
+endif()
+
+# Allow user to enable whole program optimization (MSVC only)
+if (MSVC)
+  option(CH_WHOLE_PROG_OPT "Enable whole program optimization" OFF)
+
+  if(CH_WHOLE_PROG_OPT)
+     set(CH_CXX_FLAGS "${CH_CXX_FLAGS} /GL")
+     set(CH_C_FLAGS "${CH_C_FLAGS} /GL")
+     set(CH_LINKERFLAG_EXE "${CH_LINKERFLAG_EXE} /LTCG")
+     set(CH_LINKERFLAG_SHARED "${CH_LINKERFLAG_SHARED} /LTCG")
+     message(STATUS "Enabling whole program optimization...")
+     message(STATUS "  Compiler flag: /GL")
+     message(STATUS "  Linker flag: /LTGL")
   endif()
 endif()
 
@@ -94,7 +112,7 @@ set(CH_C_FLAGS "${CH_C_FLAGS} ${CMAKE_THREAD_LIBS_INIT}")
 # main ChronoEngine library, regardless on whether or not OpenMP is found.
 
 message(STATUS "Searching for OpenMP...")
-find_package("OpenMP")
+find_package(OpenMP)
 
 # Determine OpenMP version. Prepare substitution variables that can be used in
 # generating configuration header files.
@@ -158,7 +176,7 @@ option(USE_SIMD "Enable use of SIMD if supported (SSE, AVX, NEON)" ON)
 if(USE_SIMD)
 
    # Figure out SIMD level support
-   message(STATUS "Seaching for SSE...")
+   message(STATUS "Searching for SSE...")
    find_package(SSE)
    
    # Set substitution variables for configuration file
@@ -199,12 +217,26 @@ if(USE_SIMD)
    endif()
 
    # Figure out FMA level support
-   message(STATUS "Searching for FMA...")
-   find_package(FMA)
+   set(CHECK_FMA TRUE)
+   if(MSVC)
+     if(NOT CH_WHOLE_PROG_OPT)
+        message(STATUS "FMA requires enabling whole program optimization. FMA check disabled.")
+        set(CHECK_FMA FALSE)
+     endif()
+     if(NOT DETECTED_AVX_20)
+        message(STATU "FMA requires AVX2 support. FMA check disabled.")
+        set(CHECK_FMA FALSE)
+     endif()
+   endif()
+     
+   if(CHECK_FMA)    
+     message(STATUS "Searching for FMA...")
+     find_package(FMA)
    
-   # Set substitution variables for configuration file
-   if(FMA_FOUND)
-     set(CHRONO_HAS_FMA "#define CHRONO_HAS_FMA")
+     # Set substitution variables for configuration file
+     if(FMA_FOUND)
+       set(CHRONO_HAS_FMA "#define CHRONO_HAS_FMA")
+     endif()
    endif()
    
    # Add SSE, AVX, and FMA flags to Chrono compiler flags
@@ -232,10 +264,6 @@ else()
 
 endif() 
 
-message(STATUS "C++ compiler flags: ${CH_CXX_FLAGS}")
-message(STATUS "C compile flags:    ${CH_C_FLAGS}")
-
-
 #-----------------------------------------------------------------------------
 # Eigen library
 #-----------------------------------------------------------------------------
@@ -246,7 +274,7 @@ if(EIGEN3_FOUND)
   message(STATUS "  Eigen3 version: ${EIGEN3_VERSION}")
   message(STATUS "  Eigen3 include directory: ${EIGEN3_INCLUDE_DIR}")
 else()
-  mark_as_advanced(CLEAR EIGEN3_INCLUDE_DIR)
+  # mark_as_advanced(CLEAR EIGEN3_INCLUDE_DIR)
   mark_as_advanced(FORCE Eigen3_DIR)
   message(FATAL_ERROR "  Eigen3 not found. Specify EIGEN3_INCLUDE_DIR")
 endif()
@@ -343,6 +371,35 @@ if(CUDA_FOUND)
 endif()
 
 #-----------------------------------------------------------------------------
+# Thrust library
+#-----------------------------------------------------------------------------
+
+message(STATUS "Searching for Thrust...")
+
+if (${CMAKE_SYSTEM_NAME} MATCHES "FreeBSD")
+  find_path(THRUST_INCLUDE_DIR NAMES thrust/version.h PATHS "/usr/local" "/usr/local/include")
+  if (THRUST_INCLUDE_DIR)
+    set(${THRUST_FOUND} TRUE)
+  else()
+    message("THRUST_INCLUDE_DIR is not set, but it is required.")
+    set(${THRUST_FOUND} FALSE)
+  endif()
+else()
+  find_package(Thrust)
+endif()
+
+if(THRUST_FOUND)
+  message(STATUS "  Thrust version:     ${THRUST_VERSION}")
+  message(STATUS "  Thrust include dir: ${THRUST_INCLUDE_DIR}")
+  mark_as_advanced(FORCE THRUST_INCLUDE_DIR)
+else()
+  message(STATUS "  Thrust not found (consider manually setting THRUST_INCLUDE_DIR)")
+  set(THRUST_INCLUDE_DIR "")
+  mark_as_advanced(CLEAR THRUST_INCLUDE_DIR)
+endif()
+
+
+#-----------------------------------------------------------------------------
 # Miscellaneous compiler flags
 #-----------------------------------------------------------------------------
 
@@ -359,8 +416,8 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
     if(MINGW OR CMAKE_COMPILER_IS_GNUCC OR CMAKE_COMPILER_IS_GNUCXX)
         set(CH_CXX_FLAGS "${CH_CXX_FLAGS} -D_MINGW -D_WINDOWS")
         set(CH_C_FLAGS "${CH_C_FLAGS} -D_MINGW -D_WINDOWS")
-        set(CH_LINKERFLAG_EXE "-Wl,--enable-runtime-pseudo-reloc")
-        set(CH_LINKERFLAG_SHARED "-Wl,--export-all-symbols -Wl,--enable-auto-import -Wl,--enable-runtime-pseudo-reloc")
+        set(CH_LINKERFLAG_EXE "${CH_LINKERFLAG_EXE} -Wl,--enable-runtime-pseudo-reloc")
+        set(CH_LINKERFLAG_SHARED "${CH_LINKERFLAG_SHARED} -Wl,--export-all-symbols -Wl,--enable-auto-import -Wl,--enable-runtime-pseudo-reloc")
 
         if(CMAKE_SIZEOF_VOID_P MATCHES 8)
             set(CH_CXX_FLAGS "${CH_CXX_FLAGS} -m64")
@@ -427,7 +484,7 @@ if(ENABLE_HDF5)
 
         if (HDF5_FOUND)
             set(HDF5_INCLUDE_DIRS ${HDF5_INCLUDE_DIR})
-            set(HDF5_C_LIBRARIES ${HDF5_C_${LIB_TYPE{_LIBRARY})
+            set(HDF5_C_LIBRARIES ${HDF5_C_${LIB_TYPE}_LIBRARY})
             set(HDF5_CXX_LIBRARIES ${HDF5_CXX_${LIB_TYPE}_LIBRARY)
         endif()
     endif()
@@ -459,6 +516,11 @@ endif()
 # Set the base compilation flags
 #-----------------------------------------------------------------------------
 
+message(STATUS "Compiler and linker flags:")
+message(STATUS "  C++ compiler flags: ${CH_CXX_FLAGS}")
+message(STATUS "  C compiler flags:   ${CH_C_FLAGS}")
+message(STATUS "  Linker flags:       ${CH_LINKERFLAG_EXE}")
+
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${CH_CXX_FLAGS}")
 set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} ${CH_CXX_FLAGS} -D_DEBUG -DDEBUG")
 set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} ${CH_CXX_FLAGS} -DNDEBUG")
@@ -480,12 +542,15 @@ include_directories(${CMAKE_CURRENT_SOURCE_DIR})
 include_directories(${PROJECT_BINARY_DIR})
 include_directories(${EIGEN3_INCLUDE_DIR})
 include_directories(${OPENMP_INCLUDE_DIR})
+include_directories(${THRUST_INCLUDE_DIR})
 
 #------------------------------------------------------------
 # Build submodules
 #------------------------------------------------------------
 
-message(STATUS "==== Submodules ====")
+message(STATUS "")
+message(STATUS "==== Chrono Modules ====")
+message(STATUS "")
 
 if(BUILD_TESTING)
   message(STATUS "Build Google test framework")
@@ -754,6 +819,12 @@ else()
   set(CHRONO_SYNCHRONO "#undef CHRONO_SYNCHRONO")
 endif()
 
+if (USE_SIMD)
+   set(CHRONO_SIMD_ENABLED "#define CHRONO_SIMD_ENABLED")
+else()
+   set(CHRONO_SIMD_ENABLED "#undef CHRONO_SIMD_ENABLED")
+endif()
+
 if(ENABLE_OPENMP)
   set(CHRONO_OPENMP_ENABLED "#define CHRONO_OPENMP_ENABLED")
 else()
@@ -767,11 +838,21 @@ else()
 endif()
 
 if(CUDA_FOUND)
-  set(CHRONO_CUDA_FOUND "#define CHRONO_CUDA_FOUND")
+  set(CHRONO_HAS_CUDA "#define CHRONO_HAS_CUDA")
   set(CHRONO_CUDA_VERSION "#define CHRONO_CUDA_VERSION \"${CUDA_VERSION_STRING}\"")
 else()
-  set(CHRONO_CUDA_FOUND "#undef CHRONO_CUDA_FOUND")
+  set(CHRONO_HAS_CUDA "#undef CHRONO_HAS_CUDA")
   set(CHRONO_CUDA_VERSION "#undef CHRONO_CUDA_VERSION")
+endif()
+
+if(THRUST_FOUND)
+  set(CHRONO_HAS_THRUST "#define CHRONO_HAS_THRUST")
+  set(CHRONO_THRUST_VERSION "#define CHRONO_THRUST_VERSION \"${THRUST_VERSION}\"")
+  set(CHRONO_COLLISION "#define CHRONO_COLLISION")
+else()
+  set(CHRONO_HAS_THRUST "#undef CHRONO_HAS_THRUST")
+  set(CHRONO_THRUST_VERSION "#undef CHRONO_THRUST_VERSION")
+  set(CHRONO_COLLISION "#undef CHRONO_COLLISION")
 endif()
 
 configure_file("${CMAKE_CURRENT_SOURCE_DIR}/chrono/ChConfig.h.in"
@@ -806,6 +887,7 @@ set(CH_INCLUDE_DIRS ${CH_INCLUDE_DIRS} "${PROJECT_SOURCE_DIR}/src/chrono_thirdpa
 set(CH_INCLUDE_DIRS ${CH_INCLUDE_DIRS} "${PROJECT_BINARY_DIR}")
 set(CH_INCLUDE_DIRS ${CH_INCLUDE_DIRS} "${EIGEN3_INCLUDE_DIR}")
 set(CH_INCLUDE_DIRS ${CH_INCLUDE_DIRS} "${OPENMP_INCLUDE_DIR}")
+set(CH_INCLUDE_DIRS ${CH_INCLUDE_DIRS} "${THRUST_INCLUDE_DIR}")
 
 set(CH_BINARY_DIR "${PROJECT_BINARY_DIR}")
 set(CH_DATA_DIR "${PROJECT_SOURCE_DIR}/data/")
@@ -823,6 +905,7 @@ set(CH_INCLUDE_DIRS ${CH_INCLUDE_DIRS} "${CMAKE_INSTALL_PREFIX}/include/chrono_t
 set(CH_INCLUDE_DIRS ${CH_INCLUDE_DIRS} "${CMAKE_INSTALL_PREFIX}/include/chrono_thirdparty/HACDv2")
 set(CH_INCLUDE_DIRS ${CH_INCLUDE_DIRS} "${EIGEN3_INCLUDE_DIR}")
 set(CH_INCLUDE_DIRS ${CH_INCLUDE_DIRS} "${OPENMP_INCLUDE_DIR}")
+set(CH_INCLUDE_DIRS ${CH_INCLUDE_DIRS} "${THRUST_INCLUDE_DIR}")
 
 set(CH_BINARY_DIR ${CMAKE_INSTALL_PREFIX})
 set(CH_DATA_DIR "${CMAKE_INSTALL_PREFIX}/${CH_INSTALL_DATA}/")

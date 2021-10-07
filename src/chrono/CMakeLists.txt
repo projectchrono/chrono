@@ -382,6 +382,8 @@ set(ChronoEngine_fea_SOURCES
     fea/ChBeamSectionShape.cpp
     fea/ChBeamSectionCosserat.cpp
     fea/ChBeamSectionEuler.cpp
+    fea/ChBeamSectionTaperedTimoshenko.cpp
+    fea/ChBeamSectionTaperedTimoshenkoFPM.cpp
     fea/ChBeamSectionCable.cpp
     fea/ChContinuumMaterial.cpp
     fea/ChGaussIntegrationRule.cpp
@@ -414,6 +416,8 @@ set(ChronoEngine_fea_HEADERS
     fea/ChBeamSectionShape.h
     fea/ChBeamSectionCosserat.h
     fea/ChBeamSectionEuler.h
+    fea/ChBeamSectionTaperedTimoshenko.h
+    fea/ChBeamSectionTaperedTimoshenkoFPM.h
     fea/ChBeamSectionCable.h
     fea/ChBuilderBeam.h
     fea/ChContinuumMaterial.h
@@ -482,6 +486,8 @@ source_group(fea\\nodes FILES
 set(ChronoEngine_fea_elements_SOURCES
     fea/ChElementBeamANCF.cpp
     fea/ChElementBeamEuler.cpp
+    fea/ChElementBeamTaperedTimoshenko.cpp
+    fea/ChElementBeamTaperedTimoshenkoFPM.cpp
     fea/ChElementBeamIGA.cpp
     fea/ChElementCableANCF.cpp
     fea/ChElementGeneric.cpp
@@ -508,6 +514,8 @@ set(ChronoEngine_fea_elements_HEADERS
     fea/ChElementBeam.h
     fea/ChElementBeamANCF.h
     fea/ChElementBeamEuler.h
+    fea/ChElementBeamTaperedTimoshenko.h
+    fea/ChElementBeamTaperedTimoshenkoFPM.h
     fea/ChElementBeamIGA.h
     fea/ChElementCableANCF.h
     fea/ChElementBrick.h
@@ -660,6 +668,38 @@ source_group(assets FILES
     ${ChronoEngine_assets_SOURCES}
     ${ChronoEngine_assets_HEADERS})
 
+
+# Multicore types and math 
+
+if (THRUST_FOUND)
+    set(ChronoEngine_MulticoreMath_SOURCES
+        multicore_math/ChMulticoreMath.h
+        multicore_math/ChCudaDefines.h
+        multicore_math/matrix.cpp
+        multicore_math/matrix.h
+        multicore_math/other_types.h
+        multicore_math/real.h
+        multicore_math/real_double.h
+        multicore_math/real_single.h
+        multicore_math/real2.h
+        multicore_math/real2.cpp
+        multicore_math/real3.cpp
+        multicore_math/real3.h
+        multicore_math/real4.cpp
+        multicore_math/real4.h
+        multicore_math/simd_avx.h
+        multicore_math/simd_non.h
+        multicore_math/simd_sse.h
+        multicore_math/simd.h
+        multicore_math/utility.h
+        multicore_math/vec3.cpp
+        )
+    
+    source_group(multicore_math FILES ${ChronoEngine_MulticoreMath_SOURCES})
+elseif()
+    set(ChronoEngine_MulticoreMath_SOURCES "")
+endif()
+
 # Collision group
 
 set(ChronoEngine_collision_SOURCES
@@ -688,6 +728,19 @@ set(ChronoEngine_collision_HEADERS
     collision/ChCollisionUtils.h
     collision/ChCollisionUtilsBullet.h
     )
+
+if (THRUST_FOUND)
+   set (ChronoEngine_collision_SOURCES ${ChronoEngine_collision_SOURCES}
+       collision/ChCollisionModelChrono.cpp
+       collision/ChCollisionSystemChrono.cpp
+       )
+   
+   set (ChronoEngine_collision_HEADERS ${ChronoEngine_collision_HEADERS}
+       collision/ChCollisionShapeChrono.h
+       collision/ChCollisionModelChrono.h
+       collision/ChCollisionSystemChrono.h
+       )
+endif()
 
 source_group(collision FILES
     ${ChronoEngine_collision_SOURCES}
@@ -985,6 +1038,30 @@ set(ChronoEngine_solver_constraints_HEADERS
 source_group(solver\\constraints FILES
     ${ChronoEngine_solver_constraints_SOURCES}
     ${ChronoEngine_solver_constraints_HEADERS})
+
+# Chrono collision group
+
+if (THRUST_FOUND)
+   set(ChronoEngine_collision_chrono_SOURCES
+       collision/chrono/ChCollisionData.h
+       collision/chrono/ChConvexShape.h
+       collision/chrono/ChBroadphase.h
+       collision/chrono/ChBroadphase.cpp
+       collision/chrono/ChNarrowphase.h
+       collision/chrono/ChNarrowphase.cpp
+       collision/chrono/ChNarrowphaseMPR.cpp
+       collision/chrono/ChNarrowphasePRIMS.cpp
+       collision/chrono/ChRayTest.h
+       collision/chrono/ChRayTest.cpp
+       collision/chrono/ChCollisionUtils.h
+       collision/chrono/ChCollisionUtilsBroadphase.cpp
+       collision/chrono/ChCollisionUtilsMPR.cpp
+       collision/chrono/ChCollisionUtilsPRIMS.cpp
+   )
+   
+   source_group("collision\\chrono" FILES
+       ${ChronoEngine_collision_chrono_SOURCES})
+endif()
 
 # Bullet collision group
 
@@ -1285,6 +1362,7 @@ set(ChronoEngine_FILES
     ${ChronoEngine_solver_constraints_HEADERS}
     ${ChronoEngine_solver_variables_SOURCES}
     ${ChronoEngine_solver_variables_HEADERS}
+    ${ChronoEngine_MulticoreMath_SOURCES}
     ${ChronoEngine_collision_SOURCES}
     ${ChronoEngine_collision_HEADERS}
     ${ChronoEngine_geometry_SOURCES}
@@ -1303,10 +1381,9 @@ set(ChronoEngine_FILES
     ${ChronoEngine_motion_functions_HEADERS}
     ${ChronoEngine_parallel_SOURCES}
     ${ChronoEngine_parallel_HEADERS}
+    ${ChronoEngine_collision_chrono_SOURCES}
     ${ChronoEngine_collision_bullet_SOURCES}
-    ${ChronoEngine_collision_bullet_HEADERS}
     ${ChronoEngine_collision_gimpact_SOURCES}
-    ${ChronoEngine_collision_gimpact_HEADERS}
     ${ChronoEngine_utils_SOURCES}
     ${ChronoEngine_utils_HEADERS}
     ${ChronoEngine_tiny_obj_FILES}

@@ -46,6 +46,28 @@ const std::string ChSolidThreeLinkAxle::m_pointNames[] = {"SHOCK_A    ", "SHOCK_
 // -----------------------------------------------------------------------------
 ChSolidThreeLinkAxle::ChSolidThreeLinkAxle(const std::string& name) : ChSuspension(name) {}
 
+ChSolidThreeLinkAxle::~ChSolidThreeLinkAxle() {
+    auto sys = m_axleTube->GetSystem();
+    if (sys) {
+        sys->Remove(m_axleTube);
+        ////sys->Remove(m_tierod);
+        ////sys->Remove(m_axleTubeGuide);
+
+        sys->Remove(m_triangleBody);
+        sys->Remove(m_triangleRev);
+        sys->Remove(m_triangleSph);
+
+        for (int i = 0; i < 2; i++) {
+            sys->Remove(m_linkBody[i]);
+            sys->Remove(m_linkBodyToChassis[i]);
+            sys->Remove(m_linkBodyToAxleTube[i]);
+
+            sys->Remove(m_shock[i]);
+            sys->Remove(m_spring[i]);
+        }
+    }
+}
+
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 void ChSolidThreeLinkAxle::Initialize(std::shared_ptr<ChChassis> chassis,
@@ -133,12 +155,15 @@ void ChSolidThreeLinkAxle::Initialize(std::shared_ptr<ChChassis> chassis,
     m_link_chassisR = m_pointsR[LINK_C];
 
     // Initialize left and right sides.
-    InitializeSide(LEFT, chassis->GetBody(), m_pointsL, left_ang_vel);
-    InitializeSide(RIGHT, chassis->GetBody(), m_pointsR, right_ang_vel);
+    std::shared_ptr<ChBody> scbeamL = (subchassis == nullptr) ? chassis->GetBody() : subchassis->GetBeam(LEFT);
+    std::shared_ptr<ChBody> scbeamR = (subchassis == nullptr) ? chassis->GetBody() : subchassis->GetBeam(RIGHT);
+    InitializeSide(LEFT, chassis->GetBody(), scbeamL, m_pointsL, left_ang_vel);
+    InitializeSide(RIGHT, chassis->GetBody(), scbeamL, m_pointsR, right_ang_vel);
 }
 
 void ChSolidThreeLinkAxle::InitializeSide(VehicleSide side,
                                           std::shared_ptr<ChBodyAuxRef> chassis,
+                                          std::shared_ptr<ChBody> scbeam,
                                           const std::vector<ChVector<>>& points,
                                           double ang_vel) {
     std::string suffix = (side == LEFT) ? "_L" : "_R";
@@ -170,16 +195,17 @@ void ChSolidThreeLinkAxle::InitializeSide(VehicleSide side,
     m_revolute[side]->Initialize(m_spindle[side], m_axleTube, rev_csys);
     chassis->GetSystem()->AddLink(m_revolute[side]);
 
-    // Create and initialize the spring/damper
+    // Create and initialize the shock damper
     m_shock[side] = chrono_types::make_shared<ChLinkTSDA>();
     m_shock[side]->SetNameString(m_name + "_shock" + suffix);
     m_shock[side]->Initialize(chassis, m_axleTube, false, points[SHOCK_C], points[SHOCK_A]);
     m_shock[side]->RegisterForceFunctor(getShockForceFunctor());
     chassis->GetSystem()->AddLink(m_shock[side]);
 
+    // Create and initialize the spring
     m_spring[side] = chrono_types::make_shared<ChLinkTSDA>();
     m_spring[side]->SetNameString(m_name + "_spring" + suffix);
-    m_spring[side]->Initialize(chassis, m_axleTube, false, points[SPRING_C], points[SPRING_A], false,
+    m_spring[side]->Initialize(scbeam, m_axleTube, false, points[SPRING_C], points[SPRING_A], false,
                                getSpringRestLength());
     m_spring[side]->RegisterForceFunctor(getSpringForceFunctor());
     chassis->GetSystem()->AddLink(m_spring[side]);

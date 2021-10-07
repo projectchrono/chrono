@@ -92,7 +92,7 @@ class CH_VEHICLE_API ChTMeasyTire : public ChTire {
     void SetGammaLimit(double gamma_limit) { m_gamma_limit = gamma_limit; }
 
     /// Get the width of the tire.
-    double GetWidth() const { return m_width; }
+    virtual double GetWidth() const override { return m_width; }
 
     /// Get visualization width.
     virtual double GetVisualizationWidth() const { return m_width; }

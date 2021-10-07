@@ -34,7 +34,7 @@ class CH_VEHICLE_API ChSteering : public ChPart {
     ChSteering(const std::string& name  ///< [in] name of the subsystem
                );
 
-    virtual ~ChSteering() {}
+    virtual ~ChSteering();
 
     /// Get the position (location and orientation) of the steering subsystem
     ///  relative to the chassis reference frame.

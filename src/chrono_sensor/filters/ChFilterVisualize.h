@@ -24,12 +24,16 @@
 #include "chrono_sensor/filters/ChFilter.h"
 
 #include <iostream>
+#include <mutex>
+
+#include <cuda.h>
 
 namespace chrono {
 namespace sensor {
 
 // forward declaration
 class ChSensor;
+class ChOptixSensor;
 
 /// @addtogroup sensor_filters
 /// @{
@@ -42,31 +46,42 @@ class CH_SENSOR_API ChFilterVisualize : public ChFilter {
     /// @param w Width of the window to create
     /// @param h Height of the window to create
     /// @param name String name of the filter
-    ChFilterVisualize(int w, int h, std::string name = {});
+    ChFilterVisualize(int w, int h, std::string name = "ChFilterVisualize", bool fullscreen = false);
 
     /// Class destructor
     virtual ~ChFilterVisualize();
 
     /// Apply function. Visualizes data as an image.
-    /// @param pSensor A pointer to the sensor on which the filter is attached.
-    /// @param bufferInOut A buffer that is passed into the filter.
-    virtual void Apply(std::shared_ptr<ChSensor> pSensor, std::shared_ptr<SensorBuffer>& bufferInOut);
+
+    virtual void Apply();
 
     /// Initializes all data needed by the filter access apply function.
-    /// @param pSensor A pointer to the sensor.
-    virtual void Initialize(std::shared_ptr<ChSensor> pSensor) {}
+    /// @param pSensor A pointer to the sensor on which the filter is attached.
+    /// @param bufferInOut A buffer that is passed into the filter.
+    virtual void Initialize(std::shared_ptr<ChSensor> pSensor, std::shared_ptr<SensorBuffer>& bufferInOut);
 
   protected:
     /// Creates a GLFW window for this filter
-    void CreateGlfwWindow(std::shared_ptr<ChSensor> pSensor);
-
-    /// Makes this filter's GLFW window active so it can be drawn to
-    void MakeGlContextActive();
+    void CreateGlfwWindow(std::string m_name);
 
     /// Helper to allow GLFWwindow to be in a unique_ptr
     struct DestroyglfwWin {
         void operator()(GLFWwindow* ptr) { glfwDestroyWindow(ptr); }
     };
+
+    std::shared_ptr<SensorDeviceR8Buffer> m_bufferR8;
+    std::shared_ptr<SensorDeviceRGBA8Buffer> m_bufferRGBA8;
+    std::shared_ptr<SensorDeviceSemanticBuffer> m_bufferSemantic;
+    std::shared_ptr<SensorDeviceDIBuffer> m_bufferDI;
+    std::shared_ptr<SensorDeviceRadarBuffer> m_bufferRadar;
+
+    std::shared_ptr<SensorHostR8Buffer> m_hostR8;
+    std::shared_ptr<SensorHostRGBA8Buffer> m_hostRGBA8;
+    std::shared_ptr<SensorHostSemanticBuffer> m_hostSemantic;
+    std::shared_ptr<SensorHostDIBuffer> m_hostDI;
+    std::shared_ptr<SensorHostRadarBuffer> m_hostRadar;
+
+    CUstream m_cuda_stream;  ///< reference to the cuda stream
 
     std::unique_ptr<GLFWwindow, DestroyglfwWin> m_window;  ///< pointer to the window
     unsigned int m_gl_tex_id = 0;                          ///< reference data for the GL context and texture
@@ -76,10 +91,13 @@ class CH_SENSOR_API ChFilterVisualize : public ChFilter {
 
     /// Helper function for when window is closed.
     static void OnCloseWindow();
-    static int s_windowCount;        ///< keeps track of the window count
+    static int s_windowCount;       ///< keeps track of the window count
+    static std::mutex s_glfwMutex;  ///< mutex to prevent us making two windows at the exact same time
+
     bool m_window_disabled = false;  ///< for checking if window is not allowed on sysmtem (e.g. headless rendering)
     int m_w;                         ///< width of the window
     int m_h;                         ///< height of the window
+    bool m_fullscreen;               ///< toggle for fullscreen mode
 };
 
 /// @}
