@@ -1556,16 +1556,16 @@ bool ChNarrowphase::PRIMSCollision(const ConvexBase* shapeA,  // first candidate
     if (shapeA->Type() == ChCollisionShape::Type::BOX && shapeB->Type() == ChCollisionShape::Type::TRIANGLE) {
         nC = triangle_box(shapeA->A(), shapeA->R(), shapeA->Box(), shapeB->Triangles(), separation, ct_norm, ct_depth,
                           ct_pt1, ct_pt2, ct_eff_rad);
-        return true;
+        return false;
     }
 
     if (shapeA->Type() == ChCollisionShape::Type::TRIANGLE && shapeB->Type() == ChCollisionShape::Type::BOX) {
         nC = triangle_box(shapeB->A(), shapeB->R(), shapeB->Box(), shapeA->Triangles(), separation, ct_norm, ct_depth,
-                          ct_pt1, ct_pt2, ct_eff_rad);
+                          ct_pt2, ct_pt1, ct_eff_rad);
         for (int i = 0; i < nC; i++) {
             *(ct_norm + i) = -(*(ct_norm + i));
         }
-        return true;
+        return false;
     }
 
 
