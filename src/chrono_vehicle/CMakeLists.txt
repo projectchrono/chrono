@@ -924,6 +924,7 @@ if(ENABLE_IRRKLANG)
     target_include_directories(ChronoEngine_vehicle_irrlicht PUBLIC ${CH_IRRKLANGINC})
     list(APPEND LIBRARIES ${CH_IRRKLANGLIB})
     set(CH_IRRLICHTINC ${CH_IRRLICHTINC} ${CH_IRRKLANGINC} PARENT_SCOPE)
+    set(IRRLICHT_LIBRARY ${IRRLICHT_LIBRARY} ${CH_IRRKLANGLIB} PARENT_SCOPE)
 endif()
 
 set_target_properties(ChronoEngine_vehicle_irrlicht PROPERTIES

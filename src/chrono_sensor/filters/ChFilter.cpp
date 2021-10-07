@@ -14,4 +14,28 @@
 //
 // =============================================================================
 
-#include "ChFilter.h"
+#include "chrono_sensor/filters/ChFilter.h"
+#include "chrono_sensor/sensors/ChSensor.h"
+
+namespace chrono {
+namespace sensor {
+
+void ChFilter::InvalidFilterGraphNullBuffer(std::shared_ptr<ChSensor> pSensor) {
+    throw std::runtime_error("Invalid filter graph on sensor [" + pSensor->GetName() + "]. Filter [" + Name() +
+                             "] cannot be supplied a null input buffer.");
+}
+
+/// Error function for invalid filter graph: type mismatch in graph
+void ChFilter::InvalidFilterGraphBufferTypeMismatch(std::shared_ptr<ChSensor> pSensor) {
+    throw std::runtime_error("Invalid filter graph on sensor [" + pSensor->GetName() + "]. Filter [" + Name() +
+                             "] has incompatible input buffer type.");
+}
+
+/// Error function for invalid filter graph: type mismatch in graph
+void ChFilter::InvalidFilterGraphSensorTypeMismatch(std::shared_ptr<ChSensor> pSensor) {
+    throw std::runtime_error("Invalid filter graph on sensor [" + pSensor->GetName() + "]. Filter [" + Name() +
+                             "] was applied to incompatible sensor type.");
+}
+
+}  // namespace sensor
+}  // namespace chrono

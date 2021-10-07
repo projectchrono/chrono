@@ -296,10 +296,22 @@ void ReadCheckpoint(ChSystem* system, const std::string& filename) {
 }
 
 // -----------------------------------------------------------------------------
-// WriteShapesPovray
-//
+// Write CSV output file with current camera information
+// -----------------------------------------------------------------------------
+void WriteCamera(const std::string& filename,
+                 const ChVector<>& cam_location,
+                 const ChVector<>& cam_target,
+                 const ChVector<>& camera_upvec,
+                 const std::string& delim) {
+    CSV_writer csv(delim);
+    csv << cam_location << std::endl;
+    csv << cam_target << std::endl;
+    csv << camera_upvec << std::endl;
+    csv.write_to_file(filename);
+}
+
+// -----------------------------------------------------------------------------
 // Write CSV output file for PovRay.
-// First line contains the number of visual assets and links to follow.
 // A line with information about a visualization asset contains:
 //    bodyId, bodyActive, x, y, z, e0, e1, e2, e3, shapeType, [shape Data]
 // A line with information about a link contains:
@@ -339,7 +351,7 @@ enum POVRayLinkType {
 
 enum POVRayLineType { SEGMENT = 0, COIL = 1 };
 
-void WriteShapesPovray(ChSystem* system, const std::string& filename, bool body_info, const std::string& delim) {
+void WriteVisualizationAssets(ChSystem* system, const std::string& filename, bool body_info, const std::string& delim) {
     CSV_writer csv(delim);
 
     // If requested, Loop over all bodies and write out their position and

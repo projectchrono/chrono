@@ -22,8 +22,8 @@ For more detail, read the [Chrono::Sensor](@ref manual_sensor) section of the re
   * NVIDIA GPU, Maxwell or later - capable of running OptiX
 
 - To **build** applications based on this module, the following are required:
-  * [CUDA](https://developer.nvidia.com/cuda-downloads) - tested with version 10.0
-  * [OptiX](https://developer.nvidia.com/designworks/optix/download) - version 6.5 only (will not work with 7.0 or later)
+  * [CUDA](https://developer.nvidia.com/cuda-downloads) - tested with version 11.3
+  * [OptiX](https://developer.nvidia.com/designworks/optix/download) - version 7.2 only (will not work with 6.X or 7.3!)
   * [GLFW](https://www.glfw.org/) - version 3.0 or later
   * [GLEW](http://glew.sourceforge.net/) - version 1.0 or later
   * OpenGL
@@ -35,9 +35,9 @@ For more detail, read the [Chrono::Sensor](@ref manual_sensor) section of the re
 
 2. Set the `ENABLE_MODULE_SENSOR` as 'on', then press 'Configure' (to refresh the variable list)
 
-3. Set the `OPTIX_INSTALL_DIR` variable to the root of the OptiX directory installed on the system (directory that includes `lib/` `bin/` `include/`) and press 'Configure' to refresh the variable list. If a refresh does not correctly set the following variables: `OptiX_Include`,`optix_LIBRARY`,`optix_prime_LIBRARY`, and `optixu_LIBRARY`, manually set them accordingly.
+3. Set the `OPTIX_INSTALL_DIR` variable to the root of the OptiX directory installed on the system (directory that includes `include/`) and press 'Configure' to refresh the variable list. If a refresh does not correctly set the following variable: `OptiX_Include` manually set it accordingly (e.g. `OPTIX_INSTALL_DIR/include`).
 
-5. Set all the values for `GLEW_...`, `GLFW_...` to proper directory / file values.
+5. Set all the values for `GLEW_...`, `GLFW_...` to proper directory or file values if not automatically found by cmake.
 
 6. Optionally set `USE_CUDA_NVRTC` to 'on' to enable runtime compilation of the Optix RT Kernels. Press 'Configure' to refresh the variable list. If set to 'off', the RT Kernels will be compiled at runtime. Depending on the system, you may need to set `CUDA_ARCH_NAME` to the specific target architecture since this will result in RT Kernels being compiled to PTX.
 

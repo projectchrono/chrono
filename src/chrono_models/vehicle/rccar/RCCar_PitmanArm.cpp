@@ -38,7 +38,7 @@ const double RCCar_PitmanArm::m_pitmanArmMass = 0.00524114;
 const double RCCar_PitmanArm::m_steeringLinkRadius = 0.005;
 const double RCCar_PitmanArm::m_pitmanArmRadius = 0.005;
 
-const double RCCar_PitmanArm::m_maxAngle = 1.2 / 2;  // TODO
+const double RCCar_PitmanArm::m_maxAngle = 0.523599; 
 
 const ChVector<> RCCar_PitmanArm::m_steeringLinkInertiaMoments(0.00000560, 0.00000021, 0.00000569);
 const ChVector<> RCCar_PitmanArm::m_steeringLinkInertiaProducts(0.0, 0.00000002, 0.0);
@@ -56,21 +56,21 @@ RCCar_PitmanArm::RCCar_PitmanArm(const std::string& name) : ChPitmanArm(name) {}
 const ChVector<> RCCar_PitmanArm::getLocation(PointId which) {
     switch (which) {
         case STEERINGLINK: //steering link COM
-            return ChVector<>(.0779, -.0164, -.0623);
+            return ChVector<>(.10163,-.01632,-.03162);
         case PITMANARM: // pitman arm COM
-            return ChVector<>(.0779, .0164, -.0623);
+            return ChVector<>(.10163,.01632,-.03162);
         case REV: // pitman arm fixed point
-            return ChVector<>(.0673, .0164, -.0623);
+            return ChVector<>(.09163,.01632,-.03162);
         case UNIV: //pitman arm moving end
-            return ChVector<>(.0884, .0164, -.0623);
+            return ChVector<>(.1128,.01632,-.03162);
         case REVSPH_R: //idle arm fixed end
-            return ChVector<>(.0673, -.0164, -.0623); 
+            return ChVector<>(.09163,-.01632,-.03162);
         case REVSPH_S: //idle arm moving end
-            return ChVector<>(.0884, -.0164, -.0623); 
+            return ChVector<>(.1128,-.01632,-.03162);
         case TIEROD_PA:
-            return ChVector<>(.0912, .0369, -.0552);
+            return ChVector<>(.1155, .033, -.027);
         case TIEROD_IA:
-            return ChVector<>(.0912, -.0369, -.0552);
+            return ChVector<>(.1155, -.033, -.027);
         default:
             return ChVector<>(0, 0, 0);
     }

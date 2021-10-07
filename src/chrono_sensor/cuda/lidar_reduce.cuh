@@ -27,7 +27,8 @@ namespace sensor {
 /// @param width Width of the input data.
 /// @param height Height of the inpute data.
 /// @param radius Radius in samples of the beam to be reduced.
-void cuda_lidar_mean_reduce(void* bufIn, void* bufOut, int width, int height, int radius);
+/// @param stream Cuda stream for launching the kernel
+void cuda_lidar_mean_reduce(void* bufIn, void* bufOut, int width, int height, int radius, CUstream& stream);
 
 /// Function for reduction of data when multiple samples are used per beam. The calculates the strongest return within
 /// the sample radius of the beam.
@@ -36,7 +37,28 @@ void cuda_lidar_mean_reduce(void* bufIn, void* bufOut, int width, int height, in
 /// @param width Width of the input data.
 /// @param height Height of the inpute data.
 /// @param radius Radius in samples of the beam to be reduced.
-void cuda_lidar_strong_reduce(void* bufIn, void* bufOut, int width, int height, int radius);
+/// @param stream Cuda stream for launching the kernel
+void cuda_lidar_strong_reduce(void* bufIn, void* bufOut, int width, int height, int radius, CUstream& stream);
+
+/// Function for reduction of data when multiple samples are used per beam. The calculates the first return within
+/// the sample radius of the beam.
+/// @param bufIn Input device pointed to raw lidar data.
+/// @param bufOut Outout device pointer for processed lidar data.
+/// @param width Width of the input data.
+/// @param height Height of the inpute data.
+/// @param radius Radius in samples of the beam to be reduced.
+/// @param stream Cuda stream for launching the kernel
+void cuda_lidar_first_reduce(void* bufIn, void* bufOut, int width, int height, int radius, CUstream& stream);
+
+/// Function for reduction of data when multiple samples are used per beam. The calculates the strongest and first
+/// return the data structure is [[strongest, first], [strongest, first], [strongest, first]....]
+/// @param bufIn Input device pointed to raw lidar data.
+/// @param bufOut Outout device pointer for processed lidar data.
+/// @param width Width of the input data.
+/// @param height Height of the inpute data.
+/// @param radius Radius in samples of the beam to be reduced.
+/// @param stream Cuda stream for launching the kernel
+void cuda_lidar_dual_reduce(void* bufIn, void* bufOut, int width, int height, int radius, CUstream& stream);
 
 /// @}
 

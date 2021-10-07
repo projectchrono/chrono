@@ -57,8 +57,8 @@ VisualizationType wheel_vis_type = VisualizationType::NONE;
 // Collision type for chassis (PRIMITIVES, MESH, or NONE)
 CollisionType chassis_collision_type = CollisionType::NONE;
 
-// Type of tire model (RIGID)
-TireModelType tire_model = TireModelType::RIGID;
+// Type of tire model (RIGID, TMEASY)
+TireModelType tire_model = TireModelType::TMEASY;
 
 // Rigid terrain
 RigidTerrain::PatchType terrain_model = RigidTerrain::PatchType::BOX;
@@ -244,7 +244,7 @@ int main(int argc, char* argv[]) {
             if (povray_output) {
                 char filename[100];
                 sprintf(filename, "%s/data_%03d.dat", pov_dir.c_str(), render_frame + 1);
-                utils::WriteShapesPovray(my_rccar.GetSystem(), filename);
+                utils::WriteVisualizationAssets(my_rccar.GetSystem(), filename);
             }
 
             render_frame++;

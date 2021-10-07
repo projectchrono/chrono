@@ -2,7 +2,6 @@
   "Name": "Velodyne HDL-32E",
   "Type": "Sensor",
   "Template": "Lidar",
-
   "Properties": {
     "Update Rate": 20,
     "Width": 1080,
@@ -14,14 +13,13 @@
     "Lag": 0.01,
     "Collection Window": 0.05,
     "Divergence Angle": 0.003,
-    "Sample Radius": 2
+    "Sample Radius": 2,
+    "Return Mode": "STRONGEST_RETURN"
   },
-
-  "Filters":
-  [
+  "Filters": [
     {
       "Filter": "ChFilterPCfromDepth",
-      "Name":"PC from depth"
+      "Name": "PC from depth"
     },
     {
       "Filter": "ChFilterLidarNoiseXYZI",
@@ -29,18 +27,18 @@
       "Standard Deviation Vertical Angle": 0.001,
       "Standard Deviation Horizontal Angle": 0.001,
       "Standard Deviation Intensity": 0.01,
-      "Name":"Noise"
+      "Name": "Noise"
     },
     {
       "Filter": "ChFilterVisualizePointCloud",
       "Width": 640,
       "Height": 480,
-      "Zoom": 2.0,
-      "Name":"Vis"
+      "Zoom": 1.0,
+      "Name": "Vis"
     },
     {
       "Filter": "ChFilterXYZIAccess",
-      "Name":"XYZI Access"
+      "Name": "XYZI Access"
     }
   ]
 }

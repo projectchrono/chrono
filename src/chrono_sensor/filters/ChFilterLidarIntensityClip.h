@@ -18,7 +18,7 @@
 #define CHFILTERLIDARPOWERCLIP_H
 
 #include "chrono_sensor/filters/ChFilter.h"
-#include "chrono_sensor/ChLidarSensor.h"
+#include "chrono_sensor/sensors/ChLidarSensor.h"
 
 namespace chrono {
 namespace sensor {
@@ -36,23 +36,25 @@ class CH_SENSOR_API ChFilterLidarIntensityClip : public ChFilter {
     /// @param intensity_thresh Intensity threshold under which points will be removed
     /// @param default_value default value for distance when intensity is below threshold
     /// @param name The string name of the filter
-    ChFilterLidarIntensityClip(float intensity_thresh, float default_value, std::string name = {});
+    ChFilterLidarIntensityClip(float intensity_thresh,
+                               float default_value,
+                               std::string name = "ChFilterLidarIntensityClip");
 
     /// Apply function. Reduces lidar data from raw to processed.
-    /// @param pSensor A pointer to the sensor on which the filter is attached.
-    /// @param bufferInOut A buffer that is passed into the filter.
-    virtual void Apply(std::shared_ptr<ChSensor> pSensor, std::shared_ptr<SensorBuffer>& bufferInOut);
+    virtual void Apply();
 
     /// Initializes all data needed by the filter access apply function.
-    /// @param pSensor A pointer to the sensor.
-    virtual void Initialize(std::shared_ptr<ChSensor> pSensor) {}
+    /// @param pSensor A pointer to the sensor on which the filter is attached.
+    /// @param bufferInOut A buffer that is passed into the filter.
+    virtual void Initialize(std::shared_ptr<ChSensor> pSensor, std::shared_ptr<SensorBuffer>& bufferInOut);
 
   private:
     std::shared_ptr<SensorDeviceDIBuffer>
-        m_buffer;              ///< for holding the output buffer -> computations here can be performed in place though
+        m_bufferInOut;  ///< for holding the input/output buffer -> computations here can be performed in place though
     float m_intensity_thresh;  ///< intensity threshold for clipping data. Can be determined by max distance of lidar
                                ///< for object with 90% return -> see ChLidarSensor.cpp
     float m_default_dist;      ///< default distance value used when intensity fall below threshold
+    CUstream m_cuda_stream;    ///< cuda stream for the filter graph
 };
 
 /// @}

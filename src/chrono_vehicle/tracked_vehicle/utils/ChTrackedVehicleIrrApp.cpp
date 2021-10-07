@@ -32,9 +32,27 @@ ChTrackedVehicleIrrApp::ChTrackedVehicleIrrApp(ChVehicle* vehicle,
                                                const std::wstring& title,
                                                const irr::core::dimension2d<irr::u32>& dims,
                                                irr::ELOG_LEVEL log_level)
-    : ChVehicleIrrApp(vehicle, title, dims, log_level) {
+    : ChVehicleIrrApp(vehicle, title, dims, log_level),
+      m_render_frame_idlers{false, false},
+      m_render_frame_shoes{false, false},
+      m_render_frame_sprockets{false, false} {
     m_tvehicle = dynamic_cast<ChTrackedVehicle*>(vehicle);
     assert(m_tvehicle);
+}
+
+void ChTrackedVehicleIrrApp::RenderTrackShoeFrames(VehicleSide side, bool state, double axis_length) {
+    m_render_frame_shoes[side] = state;
+    m_axis_shoes[side] = axis_length;
+}
+
+void ChTrackedVehicleIrrApp::RenderSprocketFrame(VehicleSide side, bool state, double axis_length) {
+    m_render_frame_sprockets[side] = state;
+    m_axis_sprockets[side] = axis_length;
+}
+
+void ChTrackedVehicleIrrApp::RenderIdlerFrame(VehicleSide side, bool state, double axis_length) {
+    m_render_frame_idlers[side] = state;
+    m_axis_idlers[side] = axis_length;
 }
 
 // -----------------------------------------------------------------------------
@@ -76,6 +94,34 @@ void ChTrackedVehicleIrrApp::renderOtherGraphics() {
     double scale_normals = 0.4;
     double scale_forces = m_tvehicle->m_contact_manager->m_scale_forces;
 
+    // Track shoe frames
+    if (m_render_frame_shoes[LEFT]) {
+        for (size_t i = 0; i < m_tvehicle->GetTrackAssembly(LEFT)->GetNumTrackShoes(); i++) {
+            RenderFrame(*m_tvehicle->GetTrackAssembly(LEFT)->GetTrackShoe(i)->GetShoeBody(), m_axis_shoes[LEFT]);
+        }
+    }
+    if (m_render_frame_shoes[RIGHT]) {
+        for (size_t i = 0; i < m_tvehicle->GetTrackAssembly(RIGHT)->GetNumTrackShoes(); i++) {
+            RenderFrame(*m_tvehicle->GetTrackAssembly(RIGHT)->GetTrackShoe(i)->GetShoeBody(), m_axis_shoes[RIGHT]);
+        }
+    }
+
+    // Sprocket frames
+    if (m_render_frame_sprockets[LEFT]) {
+        RenderFrame(*m_tvehicle->GetTrackAssembly(LEFT)->GetSprocket()->GetGearBody(), m_axis_sprockets[LEFT]);
+    }
+    if (m_render_frame_sprockets[RIGHT]) {
+        RenderFrame(*m_tvehicle->GetTrackAssembly(RIGHT)->GetSprocket()->GetGearBody(), m_axis_sprockets[RIGHT]);
+    }
+
+    // Idler frames
+    if (m_render_frame_idlers[LEFT]) {
+        RenderFrame(*m_tvehicle->GetTrackAssembly(LEFT)->GetIdler()->GetWheelBody(), m_axis_idlers[LEFT]);
+    }
+    if (m_render_frame_idlers[RIGHT]) {
+        RenderFrame(*m_tvehicle->GetTrackAssembly(RIGHT)->GetIdler()->GetWheelBody(), m_axis_idlers[RIGHT]);
+    }     
+    
     // Contact normals and/or forces on left sprocket.
     // Note that we only render information for contacts on the outside gear profile
     for (const auto& c : m_tvehicle->m_contact_manager->m_sprocket_L_contacts) {
@@ -83,45 +129,45 @@ void ChTrackedVehicleIrrApp::renderOtherGraphics() {
         if (normals) {
             ChVector<> v2 = v1 + c.m_csys.Get_A_Xaxis() * scale_normals;
             if (v1.y() > m_tvehicle->GetTrackAssembly(LEFT)->GetSprocket()->GetGearBody()->GetPos().y())
-                irrlicht::tools::drawSegment(GetVideoDriver(), v1, v2, video::SColor(255, 180, 0, 0), false);
+                irrlicht::tools::drawSegment(GetVideoDriver(), v1, v2, video::SColor(255, 80, 0, 0), false);
         }
         if (forces) {
             ChVector<> v2 = v1 + c.m_force * scale_forces;
             if (v1.y() > m_tvehicle->GetTrackAssembly(LEFT)->GetSprocket()->GetGearBody()->GetPos().y())
-                irrlicht::tools::drawSegment(GetVideoDriver(), v1, v2, video::SColor(255, 180, 0, 0), false);      
+                irrlicht::tools::drawSegment(GetVideoDriver(), v1, v2, video::SColor(255, 80, 0, 0), false);
         }
     }
 
-    // Contact normals on rear sprocket.
+    // Contact normals on right sprocket.
     // Note that we only render information for contacts on the outside gear profile
     for (const auto& c : m_tvehicle->m_contact_manager->m_sprocket_R_contacts) {
         ChVector<> v1 = c.m_point;
         if (normals) {
             ChVector<> v2 = v1 + c.m_csys.Get_A_Xaxis() * scale_normals;
             if (v1.y() < m_tvehicle->GetTrackAssembly(RIGHT)->GetSprocket()->GetGearBody()->GetPos().y())
-                irrlicht::tools::drawSegment(GetVideoDriver(), v1, v2, video::SColor(255, 180, 0, 0), false);
+                irrlicht::tools::drawSegment(GetVideoDriver(), v1, v2, video::SColor(255, 80, 0, 0), false);
         }
         if (forces) {
             ChVector<> v2 = v1 + c.m_force * scale_forces;
             if (v1.y() > m_tvehicle->GetTrackAssembly(RIGHT)->GetSprocket()->GetGearBody()->GetPos().y())
-                irrlicht::tools::drawSegment(GetVideoDriver(), v1, v2, video::SColor(255, 180, 0, 0), false);
+                irrlicht::tools::drawSegment(GetVideoDriver(), v1, v2, video::SColor(255, 80, 0, 0), false);
         }
     }
 
     // Contact normals on monitored track shoes.
-    renderContacts(m_tvehicle->m_contact_manager->m_shoe_L_contacts, video::SColor(255, 180, 180, 0), normals, forces,
+    renderContacts(m_tvehicle->m_contact_manager->m_shoe_L_contacts, video::SColor(255, 80, 80, 0), normals, forces,
                    scale_normals, scale_forces);
-    renderContacts(m_tvehicle->m_contact_manager->m_shoe_R_contacts, video::SColor(255, 180, 180, 0), normals, forces,
+    renderContacts(m_tvehicle->m_contact_manager->m_shoe_R_contacts, video::SColor(255, 80, 80, 0), normals, forces,
                    scale_normals, scale_forces);
 
     // Contact normals on idler wheels.
-    renderContacts(m_tvehicle->m_contact_manager->m_idler_L_contacts, video::SColor(255, 0, 0, 180), normals, forces,
+    renderContacts(m_tvehicle->m_contact_manager->m_idler_L_contacts, video::SColor(255, 0, 0, 80), normals, forces,
                    scale_normals, scale_forces);
-    renderContacts(m_tvehicle->m_contact_manager->m_idler_R_contacts, video::SColor(255, 0, 0, 180), normals, forces,
+    renderContacts(m_tvehicle->m_contact_manager->m_idler_R_contacts, video::SColor(255, 0, 0, 80), normals, forces,
                    scale_normals, scale_forces);
 
     // Contact normals on chassis.
-    renderContacts(m_tvehicle->m_contact_manager->m_chassis_contacts, video::SColor(255, 0, 180, 0), normals, forces,
+    renderContacts(m_tvehicle->m_contact_manager->m_chassis_contacts, video::SColor(255, 0, 80, 0), normals, forces,
                    scale_normals, scale_forces);
 }
 

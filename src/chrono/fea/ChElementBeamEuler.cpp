@@ -471,87 +471,181 @@ void ChElementBeamEuler::ComputeKRMmatricesGlobal(ChMatrixRef H, double Kfactor,
 
     if (Kfactor || Rfactor) {
 
+        if (use_numerical_diff_for_KR) {
 
-        // Corotational K stiffness:
-        ChMatrixDynamic<> CK(12, 12);
-        ChMatrixDynamic<> CKCt(12, 12);  // the global, corotated, K matrix
+            // numerical evaluation of the K R  matrices
+            double delta_p = 1e-5;
+            double delta_r = 1e-3;
 
+            ChVectorDynamic<> Fi0(12);
+            ChVectorDynamic<> FiD(12);
+            this->ComputeInternalForces(Fi0);
+            ChMatrixDynamic<> H_num(12, 12);
 
-        ChMatrixDynamic<> H_local;
+            // K
+            ChVector<>     pa0 = this->GetNodeA()->GetPos();
+            ChQuaternion<> qa0 = this->GetNodeA()->GetRot();
+            ChVector<>     pb0 = this->GetNodeB()->GetPos();
+            ChQuaternion<> qb0 = this->GetNodeB()->GetRot();
+            for (int i = 0; i < 3; ++i) {
+                ChVector<> paD = pa0; 
+                paD[i] += delta_p;
+                this->GetNodeA()->SetPos(paD);
+                this->ComputeInternalForces(FiD);
+                H_num.block<12,1>(0, i) = (FiD - Fi0) / delta_p;
+                this->GetNodeA()->SetPos(pa0);
+            }
+            for (int i = 0; i < 3; ++i) {
+                ChVector<> rotator(VNULL);  rotator[i] = delta_r;
+                ChQuaternion<> mdeltarotL;  mdeltarotL.Q_from_Rotv(rotator); // rot.in local basis - as in system wide vectors
+                ChQuaternion<> qaD = qa0 * mdeltarotL;
+                this->GetNodeA()->SetRot(qaD);
+                this->ComputeInternalForces(FiD);
+                H_num.block<12,1>(0, i+3) = (FiD - Fi0) / delta_r;
+                this->GetNodeA()->SetRot(qa0);
+            }
+            for (int i = 0; i < 3; ++i) {
+                ChVector<> pbD = pb0; 
+                pbD[i] += delta_p;
+                this->GetNodeB()->SetPos(pbD);
+                this->ComputeInternalForces(FiD);
+                H_num.block<12,1>(0, i+6) = (FiD - Fi0) / delta_p;
+                this->GetNodeB()->SetPos(pb0);
+            }
+            for (int i = 0; i < 3; ++i) {
+                ChVector<> rotator(VNULL);  rotator[i] = delta_r;
+                ChQuaternion<> mdeltarotL;  mdeltarotL.Q_from_Rotv(rotator); // rot.in local basis - as in system wide vectors
+                ChQuaternion<> qbD = qb0 * mdeltarotL;
+                this->GetNodeB()->SetRot(qbD);
+                this->ComputeInternalForces(FiD);
+                H_num.block<12,1>(0, i+9) = (FiD - Fi0) / delta_r;
+                this->GetNodeB()->SetRot(qb0);
+            }
+            H.block(0, 0, 12, 12) = - H_num * Kfactor;
 
-        //
-        // Corotate local stiffness matrix
-        //
+            // R
+            ChVector<> va0 = this->GetNodeA()->GetPos_dt();
+            ChVector<> wa0 = this->GetNodeA()->GetWvel_loc();
+            ChVector<> vb0 = this->GetNodeB()->GetPos_dt();
+            ChVector<> wb0 = this->GetNodeB()->GetWvel_loc();
+            for (int i = 0; i < 3; ++i) {
+                ChVector<> vaD = va0; 
+                vaD[i] += delta_p;
+                this->GetNodeA()->SetPos_dt(vaD);
+                this->ComputeInternalForces(FiD);
+                H_num.block<12,1>(0, i) = (FiD - Fi0) / delta_p;
+                this->GetNodeA()->SetPos_dt(va0);
+            }
+            for (int i = 0; i < 3; ++i) {
+                ChVector<> waD = wa0; 
+                waD[i] += delta_r;
+                this->GetNodeA()->SetWvel_loc(waD);
+                this->ComputeInternalForces(FiD);
+                H_num.block<12,1>(0, i+3) = (FiD - Fi0) / delta_r;
+                this->GetNodeA()->SetWvel_loc(wa0);
+            }
+            for (int i = 0; i < 3; ++i) {
+                ChVector<> vbD = vb0; 
+                vbD[i] += delta_p;
+                this->GetNodeB()->SetPos_dt(vbD);
+                this->ComputeInternalForces(FiD);
+                H_num.block<12,1>(0, i+6) = (FiD - Fi0) / delta_p;
+                this->GetNodeB()->SetPos_dt(vb0);
+            }
+            for (int i = 0; i < 3; ++i) {
+                ChVector<> wbD = wb0; 
+                wbD[i] += delta_r;
+                this->GetNodeB()->SetWvel_loc(wbD);
+                this->ComputeInternalForces(FiD);
+                H_num.block<12,1>(0, i+9) = (FiD - Fi0) / delta_r;
+                this->GetNodeB()->SetWvel_loc(wb0);
+            }
+            H.block(0, 0, 12, 12) += - H_num * Rfactor;
 
-        ChMatrix33<> Atoabs(this->q_element_abs_rot);
-        ChMatrix33<> AtolocwelA(this->GetNodeA()->Frame().GetRot().GetConjugate() % this->q_element_abs_rot);
-        ChMatrix33<> AtolocwelB(this->GetNodeB()->Frame().GetRot().GetConjugate() % this->q_element_abs_rot);
-        std::vector<ChMatrix33<>*> R;
-        R.push_back(&Atoabs);
-        R.push_back(&AtolocwelA);
-        R.push_back(&Atoabs);
-        R.push_back(&AtolocwelB);
-
-        if (this->use_geometric_stiffness) {
-            // K = Km+Kg
-            
-            // For Kg, compute Px tension of the beam along centerline, using temporary but fast data structures:
-            ChVectorDynamic<> displ(this->GetNdofs());
-            this->GetStateBlock(displ);
-            double Px = -this->Km.row(0) * displ;
-
-            // Rayleigh damping (stiffness proportional part)  [R] = beta*[Km] , so H = kf*[Km+Kg]+rf*[R] = (kf+rf*beta)*[Km] + kf*Kg
-            H_local = this->Km * (Kfactor + Rfactor * this->section->GetBeamRaleyghDampingBeta()) + this->Kg * Px * Kfactor;
         }
         else {
-            // K = Km
 
-            // Rayleigh damping (stiffness proportional part)  [R] = beta*[Km] , so H = kf*[Km]+rf*[R] = (kf+rf*beta)*[K]
-            H_local = this->Km * (Kfactor + Rfactor * this->section->GetBeamRaleyghDampingBeta());
-        }
-        
-        ChMatrixCorotation::ComputeCK(H_local, R, 4, CK);
-        ChMatrixCorotation::ComputeKCt(CK, R, 4, CKCt);
+            // Corotational K stiffness:
+            ChMatrixDynamic<> CK(12, 12);
+            ChMatrixDynamic<> CKCt(12, 12);  // the global, corotated, K matrix
 
-        // For strict symmetry, copy L=U because the computations above might
-        // lead to small errors because of numerical roundoff even with force_symmetric_stiffness
-        if (force_symmetric_stiffness) {
-            for (int row = 0; row < CKCt.rows() - 1; ++row)
-                for (int col = row + 1; col < CKCt.cols(); ++col)
-                    CKCt(row, col) = CKCt(col, row);
-        }
 
-        //// RADU
-        //// Check if the above can be done with the one-liner:
-        ////CKCt.triangularView<Eigen::Upper>() = CKCt.transpose();
+            ChMatrixDynamic<> H_local;
 
-        H.block(0, 0, 12, 12) = CKCt;  
+            //
+            // Corotate local stiffness matrix
+            //
 
-        // Add inertial stiffness matrix and inertial damping matrix (gyroscopic damping), 
-        // if enabled in section material.
-        // These matrices are not symmetric. Also note
-        if (this->section->compute_inertia_damping_matrix || this->section->compute_inertia_stiffness_matrix)  {
-            ChMatrixNM<double, 6,6> matr_loc;
-            ChMatrixNM<double, 6,6> KRi_loc;
-            KRi_loc.setZero();
-            // A lumped version of the inertial damping/stiffness matrix computation is used here, on a per-node basis:
-            double node_multiplier_fact_R = 0.5 * length * Rfactor;
-            double node_multiplier_fact_K = 0.5 * length * Kfactor;
-            for (int i = 0; i < nodes.size(); ++i) {
-                int stride = i * 6;
-                if (this->section->compute_inertia_damping_matrix) {
-                    this->section->ComputeInertiaDampingMatrix(matr_loc, nodes[i]->GetWvel_loc());
-                    KRi_loc += matr_loc * node_multiplier_fact_R;
+            ChMatrix33<> Atoabs(this->q_element_abs_rot);
+            ChMatrix33<> AtolocwelA(this->GetNodeA()->Frame().GetRot().GetConjugate() % this->q_element_abs_rot);
+            ChMatrix33<> AtolocwelB(this->GetNodeB()->Frame().GetRot().GetConjugate() % this->q_element_abs_rot);
+            std::vector<ChMatrix33<>*> R;
+            R.push_back(&Atoabs);
+            R.push_back(&AtolocwelA);
+            R.push_back(&Atoabs);
+            R.push_back(&AtolocwelB);
+
+            if (this->use_geometric_stiffness) {
+                // K = Km+Kg
+
+                // For Kg, compute Px tension of the beam along centerline, using temporary but fast data structures:
+                ChVectorDynamic<> displ(this->GetNdofs());
+                this->GetStateBlock(displ);
+                double Px = -this->Km.row(0) * displ;
+
+                // Rayleigh damping (stiffness proportional part)  [R] = beta*[Km] , so H = kf*[Km+Kg]+rf*[R] = (kf+rf*beta)*[Km] + kf*Kg
+                H_local = this->Km * (Kfactor + Rfactor * this->section->GetBeamRaleyghDampingBeta()) + this->Kg * Px * Kfactor;
+            }
+            else {
+                // K = Km
+
+                // Rayleigh damping (stiffness proportional part)  [R] = beta*[Km] , so H = kf*[Km]+rf*[R] = (kf+rf*beta)*[K]
+                H_local = this->Km * (Kfactor + Rfactor * this->section->GetBeamRaleyghDampingBeta());
+            }
+
+            ChMatrixCorotation::ComputeCK(H_local, R, 4, CK);
+            ChMatrixCorotation::ComputeKCt(CK, R, 4, CKCt);
+
+            // For strict symmetry, copy L=U because the computations above might
+            // lead to small errors because of numerical roundoff even with force_symmetric_stiffness
+            if (force_symmetric_stiffness) {
+                for (int row = 0; row < CKCt.rows() - 1; ++row)
+                    for (int col = row + 1; col < CKCt.cols(); ++col)
+                        CKCt(row, col) = CKCt(col, row);
+            }
+
+            //// RADU
+            //// Check if the above can be done with the one-liner:
+            ////CKCt.triangularView<Eigen::Upper>() = CKCt.transpose();
+
+            H.block(0, 0, 12, 12) = CKCt;
+
+            // Add inertial stiffness matrix and inertial damping matrix (gyroscopic damping), 
+            // if enabled in section material.
+            // These matrices are not symmetric. Also note
+            if (this->section->compute_inertia_damping_matrix || this->section->compute_inertia_stiffness_matrix) {
+                ChMatrixNM<double, 6, 6> matr_loc;
+                ChMatrixNM<double, 6, 6> KRi_loc;
+                KRi_loc.setZero();
+                // A lumped version of the inertial damping/stiffness matrix computation is used here, on a per-node basis:
+                double node_multiplier_fact_R = 0.5 * length * Rfactor;
+                double node_multiplier_fact_K = 0.5 * length * Kfactor;
+                for (int i = 0; i < nodes.size(); ++i) {
+                    int stride = i * 6;
+                    if (this->section->compute_inertia_damping_matrix) {
+                        this->section->ComputeInertiaDampingMatrix(matr_loc, nodes[i]->GetWvel_loc());
+                        KRi_loc += matr_loc * node_multiplier_fact_R;
+                    }
+                    if (this->section->compute_inertia_stiffness_matrix) {
+                        this->section->ComputeInertiaStiffnessMatrix(matr_loc, nodes[i]->GetWvel_loc(), nodes[i]->GetWacc_loc(), (nodes[i]->GetA().transpose()) * nodes[i]->GetPos_dtdt()); // assume x_dtdt in local frame!
+                        KRi_loc += matr_loc * node_multiplier_fact_K;
+                    }
+                    // corotate the local damping and stiffness matrices (at once, already scaled) into absolute one
+                    //H.block<3, 3>(stride,   stride  ) += nodes[i]->GetA() * KRi_loc.block<3, 3>(0,0) * (nodes[i]->GetA().transpose()); // NOTE: not needed as KRi_loc.block<3, 3>(0,0) is null by construction
+                    H.block<3, 3>(stride + 3, stride + 3) += KRi_loc.block<3, 3>(3, 3);
+                    H.block<3, 3>(stride, stride + 3) += nodes[i]->GetA() * KRi_loc.block<3, 3>(0, 3);
+                    // H.block<3, 3>(stride+3, stride)   +=                    KRi_loc.block<3, 3>(3,0) * (nodes[i]->GetA().transpose()); // NOTE: not needed as KRi_loc.block<3, 3>(3,0) is null by construction
                 }
-                if (this->section->compute_inertia_stiffness_matrix) {
-                    this->section->ComputeInertiaStiffnessMatrix(matr_loc, nodes[i]->GetWvel_loc(), nodes[i]->GetWacc_loc(), (nodes[i]->GetA().transpose())*nodes[i]->GetPos_dtdt()); // assume x_dtdt in local frame!
-                    KRi_loc += matr_loc * node_multiplier_fact_K;
-                }
-                // corotate the local damping and stiffness matrices (at once, already scaled) into absolute one
-                //H.block<3, 3>(stride,   stride  ) += nodes[i]->GetA() * KRi_loc.block<3, 3>(0,0) * (nodes[i]->GetA().transpose()); // NOTE: not needed as KRi_loc.block<3, 3>(0,0) is null by construction
-                H.block<3, 3>(stride+3, stride+3) +=                    KRi_loc.block<3, 3>(3,3);
-                H.block<3, 3>(stride,   stride+3) += nodes[i]->GetA() * KRi_loc.block<3, 3>(0,3);
-               // H.block<3, 3>(stride+3, stride)   +=                    KRi_loc.block<3, 3>(3,0) * (nodes[i]->GetA().transpose()); // NOTE: not needed as KRi_loc.block<3, 3>(3,0) is null by construction
             }
         }
 
@@ -649,12 +743,8 @@ void ChElementBeamEuler::ComputeInternalForces(ChVectorDynamic<>& Fi) {
         // Rayleigh damping (stiffness proportional part)  [Rm] = alpha*[M] 
         double node_multiplier_fact = 0.5 * length * (this->section->GetBeamRaleyghDampingAlpha());
         for (int i = 0; i < nodes.size(); ++i) {
-            int stride = i * 6;
-            Mloc.block<3, 3>(stride, stride) += sectional_mass.block<3, 3>(0, 0) * node_multiplier_fact;
-            Mloc.block<3, 3>(stride + 3, stride + 3) += sectional_mass.block<3, 3>(3, 3) * node_multiplier_fact;
-            Mxw = nodes[i]->GetA() * sectional_mass.block<3, 3>(0, 3) * node_multiplier_fact;
-            Mloc.block<3, 3>(stride, stride + 3) += Mxw;
-            Mloc.block<3, 3>(stride + 3, stride) += Mxw.transpose();
+            int stride = i * 6; 
+            Mloc.block<6, 6>(stride, stride) += sectional_mass * node_multiplier_fact;
         }
         FiR_local = Mloc * displ_dt;
         Fi_local += FiR_local;
