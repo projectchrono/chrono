@@ -8,7 +8,7 @@ import chpf
 
 
 #Creates a Blender particle system. We need the camera pose to place the
-def renderPsys(particle_path, camPos=None):
+def renderPsys(particle_path, cam):
 
     # read the particle data from the .chpf file
     particle_data = chpf.read(particle_path)
@@ -52,14 +52,15 @@ def renderPsys(particle_path, camPos=None):
 
     # Clear the post frame handler
     bpy.app.handlers.frame_change_post.clear()
-
     # Register our particleSetter with the post frame handler
     bpy.app.handlers.frame_change_post.append(particle_handler)
-
     # Trigger frame update
     bpy.context.scene.frame_current = 2
 
-
-
-
+    # Move base object and the emitter BEHIND the camera. The camera looks towards the -Z axis
+    dist = mathutils.Vector((0,0,10))
+    dist.rotate(cam.rotation_euler)
+    dump_pos = dist + cam.location
+    ico.location = dump_pos
+    cube.location = dump_pos
 

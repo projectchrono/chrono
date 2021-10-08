@@ -110,33 +110,32 @@ def find_camera_target(exported_shapes, body_id, type_id, shape_name = ''):
                 return True, [shapedata[3],shapedata[4],shapedata[5]], [shapedata[6],shapedata[7],shapedata[8], shapedata[9]]
 
 
-def render_image(filepath,file_index, out_dir, meshes_prefixes,res,  targ,
+def render_image(dirpaths, filepath,file_index, out_dir, meshes_prefixes,res,  targ,
                  camera_mode, camera_pos, use_sky, a_up, light_loc, light_energy):
 
     # path to the chrono and chrono-particle systems outputs. Processed only if they exists
-    dat_path = filepath + ".dat"
-    particle_path = filepath + ".chpf"
+    dat_path = dirpaths[0] + filepath + ".dat"
+    #particle_path = dirpaths[0] + filepath + ".chpf"
 
     # optional: delete cached objects
     #for oldobj in bpy.data.objects :
     #    bpy.data.objects.remove(oldobj)
 
     # IF there is a chrono .dat output, it gets processed
+    expshapes = []
+    for dir in dirpaths:
+        if (os.path.exists(dir + filepath + ".dat")):
+            expshapes += reader.import_shapes(dir + filepath + ".dat")
+    for shapedata in expshapes:
+        isconv = convertshape(shapedata, meshes_prefixes)
+        if not isconv:
+            print('Error while importing meshes')
+
     if (os.path.exists(dat_path)):
-        expshapes = reader.import_shapes(dat_path)
-        for shapedata in expshapes:
-            isconv = convertshape(shapedata, meshes_prefixes)
-            if not isconv:
-                print('Error while importing meshes')
-
-
         targetfound, targ_pos, targ_or = find_camera_target(expshapes, targ["bodyid"], targ["shapetypeid"], targ["name"])
         if not targetfound:
                 print('Could not find target object')
 
-    # IF there is a chrono .chpf output, it gets processed
-    if (os.path.exists(particle_path)):
-        renderPsys(particle_path)
 
     scene = bpy.context.scene
     scene.objects.keys()
@@ -163,6 +162,13 @@ def render_image(filepath,file_index, out_dir, meshes_prefixes,res,  targ,
         obj_camera = bpy.data.objects["Camera"]
         obj_camera.location = camera_pos
         look_at(obj_camera, mathutils.Vector(targ["position"]), a_up)
+
+
+    # IF there is a chrono .chpf output, it gets processed
+    for dirpath in dirpaths:
+        partpath = dirpath + filepath + ".chpf"
+        if (os.path.exists(partpath)):
+            renderPsys(partpath, bpy.data.objects["Camera"])
 
     # distance above which objects are not rendered
     #TODO: make this settable!!
@@ -221,18 +227,18 @@ def render_image(filepath,file_index, out_dir, meshes_prefixes,res,  targ,
     bpy.ops.render.render(write_still=True)
     print('Rendered frame')
 
-def bl_render(meshes_prefixes, out_dir, datadir, res, camera_mode, use_sky, camera_pos, targ, up='Z', light_loc=(10, 10, 15), light_energy=13000 ):
+def bl_render(meshes_prefixes, out_dir, datadirs, res, camera_mode, use_sky, camera_pos, targ, up='Z', light_loc=(10, 10, 15), light_energy=13000 ):
     if up == 'Z':
         a_up = 'Y'
     elif up == 'Y':
         a_up = 'Z'
     else:
-        print('Unvalid up-axis choice')
+        print('Invalid up-axis choice')
 
     # populates the list with all the chrono output files, truncating the suffix (since there might be both .dat and .chpf)
     datafiles = []
     #for file in os.listdir(datadir):
-    for root, dirs, files in os.walk(datadir):
+    for root, dirs, files in os.walk(datadirs[0]):
         for file in files:
             if file.endswith(".dat") or file.endswith(".chpf"):
                 datafiles.append(file[:file.rfind(".")])
@@ -240,5 +246,5 @@ def bl_render(meshes_prefixes, out_dir, datadir, res, camera_mode, use_sky, came
     #p = multiprocessing.Pool(processes = multiprocessing.cpu_count()-1)
     for file_ind, datafile in enumerate(datafiles):
         #p.apply_async(render_image, [datadir+datafile, file_ind, out_dir, meshes_prefixes, res, targ_bodyid, targ_shapetypeid, targ_name, camera_mode, camera_dist, camera_pos, use_sky, a_up, light_loc, light_energy])
-        render_image(datadir+datafile, file_ind, out_dir, meshes_prefixes, res, targ,
+        render_image(datadirs, datafile, file_ind, out_dir, meshes_prefixes, res, targ,
                      camera_mode, camera_pos, use_sky, a_up, light_loc, light_energy)
