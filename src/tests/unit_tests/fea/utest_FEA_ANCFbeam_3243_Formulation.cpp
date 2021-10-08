@@ -1286,6 +1286,12 @@ bool ANCFBeamTest::AxialDisplacementCheck(int msglvl) {
         element->SetDimensions(dx, width, height);
         element->SetMaterial(material);
         element->SetAlphaDamp(0.0);
+
+        // By default the "continuous" integration style of calculation method is used since it is typically faster.
+        // Switch to the alternative "pre-integration" style of internal force calculation if selected by the user.
+        if (!m_useContInt)
+            element->SetIntFrcCalcMethod(ChElementBeamANCF_3243::IntFrcMethod::PreInt);
+
         mesh->AddElement(element);
 
         nodeA = nodeB;
@@ -1454,6 +1460,12 @@ bool ANCFBeamTest::CantileverTipLoadCheck(int msglvl) {
         element->SetDimensions(dx, width, height);
         element->SetMaterial(material);
         element->SetAlphaDamp(0.0);
+
+        // By default the "continuous" integration style of calculation method is used since it is typically faster.
+        // Switch to the alternative "pre-integration" style of internal force calculation if selected by the user.
+        if (!m_useContInt)
+            element->SetIntFrcCalcMethod(ChElementBeamANCF_3243::IntFrcMethod::PreInt);
+
         mesh->AddElement(element);
 
         nodeA = nodeB;
@@ -1626,6 +1638,12 @@ bool ANCFBeamTest::CantileverGravityCheck(int msglvl) {
         element->SetDimensions(dx, width, height);
         element->SetMaterial(material);
         element->SetAlphaDamp(0.0);
+
+        // By default the "continuous" integration style of calculation method is used since it is typically faster.
+        // Switch to the alternative "pre-integration" style of internal force calculation if selected by the user.
+        if (!m_useContInt)
+            element->SetIntFrcCalcMethod(ChElementBeamANCF_3243::IntFrcMethod::PreInt);
+
         mesh->AddElement(element);
 
         nodeA = nodeB;
@@ -1758,6 +1776,12 @@ bool ANCFBeamTest::AxialTwistCheck(int msglvl) {
         element->SetDimensions(dx, width, width);
         element->SetMaterial(material);
         element->SetAlphaDamp(0.0);
+
+        // By default the "continuous" integration style of calculation method is used since it is typically faster.
+        // Switch to the alternative "pre-integration" style of internal force calculation if selected by the user.
+        if (!m_useContInt)
+            element->SetIntFrcCalcMethod(ChElementBeamANCF_3243::IntFrcMethod::PreInt);
+
         mesh->AddElement(element);
 
         nodeA = nodeB;

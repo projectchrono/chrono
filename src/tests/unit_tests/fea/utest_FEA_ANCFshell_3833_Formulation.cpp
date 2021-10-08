@@ -1317,6 +1317,13 @@ bool ANCFShellTest::AxialDisplacementCheck(int msglvl) {
         element->SetDimensions(dx, width);
         element->AddLayer(height, 0 * CH_C_DEG_TO_RAD, material);
         element->SetAlphaDamp(0.0);
+
+        // By default the "continuous" integration style of calculation method is used since it is typically faster.
+        // Switch
+        // to the alternative "pre-integration" style of internal force calculation if selected by the user.
+        if (!m_useContInt)
+            element->SetIntFrcCalcMethod(ChElementShellANCF_3833::IntFrcMethod::PreInt);
+
         mesh->AddElement(element);
 
         nodeA = nodeB;
@@ -1499,6 +1506,13 @@ bool ANCFShellTest::CantileverTipLoadCheck(int msglvl) {
         element->SetDimensions(dx, width);
         element->AddLayer(height, 0 * CH_C_DEG_TO_RAD, material);
         element->SetAlphaDamp(0.0);
+
+        // By default the "continuous" integration style of calculation method is used since it is typically faster.
+        // Switch
+        // to the alternative "pre-integration" style of internal force calculation if selected by the user.
+        if (!m_useContInt)
+            element->SetIntFrcCalcMethod(ChElementShellANCF_3833::IntFrcMethod::PreInt);
+
         mesh->AddElement(element);
 
         nodeA = nodeB;
@@ -1685,6 +1699,13 @@ bool ANCFShellTest::CantileverGravityCheck(int msglvl) {
         element->SetDimensions(dx, width);
         element->AddLayer(height, 0 * CH_C_DEG_TO_RAD, material);
         element->SetAlphaDamp(0.0);
+
+        // By default the "continuous" integration style of calculation method is used since it is typically faster.
+        // Switch
+        // to the alternative "pre-integration" style of internal force calculation if selected by the user.
+        if (!m_useContInt)
+            element->SetIntFrcCalcMethod(ChElementShellANCF_3833::IntFrcMethod::PreInt);
+
         mesh->AddElement(element);
 
         nodeA = nodeB;
@@ -1830,6 +1851,13 @@ bool ANCFShellTest::AxialTwistCheck(int msglvl) {
         element->SetDimensions(dx, width);
         element->AddLayer(height, 0 * CH_C_DEG_TO_RAD, material);
         element->SetAlphaDamp(0.0);
+
+        // By default the "continuous" integration style of calculation method is used since it is typically faster.
+        // Switch
+        // to the alternative "pre-integration" style of internal force calculation if selected by the user.
+        if (!m_useContInt)
+            element->SetIntFrcCalcMethod(ChElementShellANCF_3833::IntFrcMethod::PreInt);
+
         mesh->AddElement(element);
 
         nodeA = nodeB;
@@ -2034,6 +2062,13 @@ bool ANCFShellTest::MLCantileverCheck1A(int msglvl) {
             element->AddLayer(layer_thickness, 0 * CH_C_DEG_TO_RAD, material);
             element->AddLayer(layer_thickness, 0 * CH_C_DEG_TO_RAD, material);
             element->SetAlphaDamp(0.0);
+
+            // By default the "continuous" integration style of calculation method is used since it is typically faster.
+            // Switch
+            // to the alternative "pre-integration" style of internal force calculation if selected by the user.
+            if (!m_useContInt)
+                element->SetIntFrcCalcMethod(ChElementShellANCF_3833::IntFrcMethod::PreInt);
+
             mesh->AddElement(element);
 
             elementlast = element;
@@ -2191,6 +2226,13 @@ bool ANCFShellTest::MLCantileverCheck1B(int msglvl) {
             element->AddLayer(layer_thickness, 0 * CH_C_DEG_TO_RAD, material);
             element->AddLayer(layer_thickness, 0 * CH_C_DEG_TO_RAD, material);
             element->SetAlphaDamp(0.0);
+
+            // By default the "continuous" integration style of calculation method is used since it is typically faster.
+            // Switch
+            // to the alternative "pre-integration" style of internal force calculation if selected by the user.
+            if (!m_useContInt)
+                element->SetIntFrcCalcMethod(ChElementShellANCF_3833::IntFrcMethod::PreInt);
+
             mesh->AddElement(element);
 
             elementlast = element;
@@ -2213,8 +2255,7 @@ bool ANCFShellTest::MLCantileverCheck1B(int msglvl) {
     double Percent_Error = (Displacement_Model - Displacement_Expected) / Displacement_Expected * 100.0;
 
     bool passed_displacement = abs(Percent_Error) < 5.0;
-    bool passed_angles =
-        (abs(Tip_Angles.y() * CH_C_RAD_TO_DEG) < 0.01) && (abs(Tip_Angles.z() * CH_C_RAD_TO_DEG) < 0.01);
+    bool passed_angles = (abs(Tip_Angles.y() * CH_C_RAD_TO_DEG) < 0.1) && (abs(Tip_Angles.z() * CH_C_RAD_TO_DEG) < 0.1);
     bool passed_tests = passed_displacement && passed_angles;
 
     if (msglvl >= 2) {
@@ -2234,7 +2275,7 @@ bool ANCFShellTest::MLCantileverCheck1B(int msglvl) {
         else
             print_red(" - Test FAILED\n");
 
-        std::cout << "Multilayer Plate Layup 1B - Angular misalignment Checks (all angles less than 0.01 deg)";
+        std::cout << "Multilayer Plate Layup 1B - Angular misalignment Checks (all angles less than 0.1 deg)";
         if (passed_angles)
             print_green(" - Test PASSED\n\n");
         else
@@ -2348,6 +2389,13 @@ bool ANCFShellTest::MLCantileverCheck2A(int msglvl) {
             element->AddLayer(layer_thickness, 90 * CH_C_DEG_TO_RAD, material);
             element->AddLayer(layer_thickness, 0 * CH_C_DEG_TO_RAD, material);
             element->SetAlphaDamp(0.0);
+
+            // By default the "continuous" integration style of calculation method is used since it is typically faster.
+            // Switch
+            // to the alternative "pre-integration" style of internal force calculation if selected by the user.
+            if (!m_useContInt)
+                element->SetIntFrcCalcMethod(ChElementShellANCF_3833::IntFrcMethod::PreInt);
+
             mesh->AddElement(element);
 
             elementlast = element;
@@ -2505,6 +2553,13 @@ bool ANCFShellTest::MLCantileverCheck2B(int msglvl) {
             element->AddLayer(layer_thickness, 90 * CH_C_DEG_TO_RAD, material);
             element->AddLayer(layer_thickness, 0 * CH_C_DEG_TO_RAD, material);
             element->SetAlphaDamp(0.0);
+
+            // By default the "continuous" integration style of calculation method is used since it is typically faster.
+            // Switch
+            // to the alternative "pre-integration" style of internal force calculation if selected by the user.
+            if (!m_useContInt)
+                element->SetIntFrcCalcMethod(ChElementShellANCF_3833::IntFrcMethod::PreInt);
+
             mesh->AddElement(element);
 
             elementlast = element;
@@ -2527,8 +2582,7 @@ bool ANCFShellTest::MLCantileverCheck2B(int msglvl) {
     double Percent_Error = (Displacement_Model - Displacement_Expected) / Displacement_Expected * 100.0;
 
     bool passed_displacement = abs(Percent_Error) < 5.0;
-    bool passed_angles =
-        (abs(Tip_Angles.y() * CH_C_RAD_TO_DEG) < 0.01) && (abs(Tip_Angles.z() * CH_C_RAD_TO_DEG) < 0.01);
+    bool passed_angles = (abs(Tip_Angles.y() * CH_C_RAD_TO_DEG) < 1.0) && (abs(Tip_Angles.z() * CH_C_RAD_TO_DEG) < 1.0);
     bool passed_tests = passed_displacement && passed_angles;
 
     if (msglvl >= 2) {
@@ -2548,7 +2602,7 @@ bool ANCFShellTest::MLCantileverCheck2B(int msglvl) {
         else
             print_red(" - Test FAILED\n");
 
-        std::cout << "Multilayer Plate Layup 2B - Angular misalignment Checks (all angles less than 0.01 deg)";
+        std::cout << "Multilayer Plate Layup 2B - Angular misalignment Checks (all angles less than 1.0 deg)";
         if (passed_angles)
             print_green(" - Test PASSED\n\n");
         else

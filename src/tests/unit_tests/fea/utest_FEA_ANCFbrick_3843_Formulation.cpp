@@ -1312,6 +1312,12 @@ bool ANCFBrickTest::AxialDisplacementCheck(int msglvl) {
         element->SetDimensions(dx, width, height);
         element->SetMaterial(material);
         element->SetAlphaDamp(0.0);
+
+        // By default the "continuous" integration style of calculation method is used since it is typically faster.
+        // Switch to the alternative "pre-integration" style of internal force calculation if selected by the user.
+        if (!m_useContInt)
+            element->SetIntFrcCalcMethod(ChElementBrickANCF_3843::IntFrcMethod::PreInt);
+
         mesh->AddElement(element);
 
         nodeA = nodeB;
@@ -1384,9 +1390,9 @@ bool ANCFBrickTest::AxialDisplacementCheck(int msglvl) {
     double Percent_Error = (Displacement_Model - Displacement_Theory) / Displacement_Theory * 100;
 
     bool passed_displacement = abs(Percent_Error) < 2.0;
-    bool passed_angles = (abs(Tip_Angles.x() * CH_C_RAD_TO_DEG) < 0.001) &&
-                         (abs(Tip_Angles.y() * CH_C_RAD_TO_DEG) < 0.001) &&
-                         (abs(Tip_Angles.z() * CH_C_RAD_TO_DEG) < 0.001);
+    bool passed_angles = (abs(Tip_Angles.x() * CH_C_RAD_TO_DEG) < 0.01) &&
+                         (abs(Tip_Angles.y() * CH_C_RAD_TO_DEG) < 0.01) &&
+                         (abs(Tip_Angles.z() * CH_C_RAD_TO_DEG) < 0.01);
     bool passed_tests = passed_displacement && passed_angles;
 
     if (msglvl >= 2) {
@@ -1404,7 +1410,7 @@ bool ANCFBrickTest::AxialDisplacementCheck(int msglvl) {
         else
             print_red(" - Test FAILED\n");
 
-        std::cout << "Axial Pull Test - Angular misalignment Checks (all angles less than 0.001 deg)";
+        std::cout << "Axial Pull Test - Angular misalignment Checks (all angles less than 0.01 deg)";
         if (passed_angles)
             print_green(" - Test PASSED\n\n");
         else
@@ -1504,6 +1510,12 @@ bool ANCFBrickTest::CantileverTipLoadCheck(int msglvl) {
         element->SetDimensions(dx, width, height);
         element->SetMaterial(material);
         element->SetAlphaDamp(0.0);
+
+        // By default the "continuous" integration style of calculation method is used since it is typically faster.
+        // Switch to the alternative "pre-integration" style of internal force calculation if selected by the user.
+        if (!m_useContInt)
+            element->SetIntFrcCalcMethod(ChElementBrickANCF_3843::IntFrcMethod::PreInt);
+
         mesh->AddElement(element);
 
         nodeA = nodeB;
@@ -1580,7 +1592,7 @@ bool ANCFBrickTest::CantileverTipLoadCheck(int msglvl) {
     bool passed_displacement = abs(Percent_Error) < 5.0;
     // check the off-axis angles which should be zeros
     bool passed_angles =
-        (abs(Tip_Angles.x() * CH_C_RAD_TO_DEG) < 0.001) && (abs(Tip_Angles.z() * CH_C_RAD_TO_DEG) < 0.001);
+        (abs(Tip_Angles.x() * CH_C_RAD_TO_DEG) < 0.01) && (abs(Tip_Angles.z() * CH_C_RAD_TO_DEG) < 0.01);
     bool passed_tests = passed_displacement && passed_angles;
 
     if (msglvl >= 2) {
@@ -1601,7 +1613,7 @@ bool ANCFBrickTest::CantileverTipLoadCheck(int msglvl) {
             print_red(" - Test FAILED\n");
 
         std::cout
-            << "Cantilever Beam (Tip Load) - Off-axis Angular misalignment Checks (all angles less than 0.001 deg)";
+            << "Cantilever Beam (Tip Load) - Off-axis Angular misalignment Checks (all angles less than 0.01 deg)";
         if (passed_angles)
             print_green(" - Test PASSED\n\n");
         else
@@ -1701,6 +1713,12 @@ bool ANCFBrickTest::CantileverGravityCheck(int msglvl) {
         element->SetDimensions(dx, width, height);
         element->SetMaterial(material);
         element->SetAlphaDamp(0.0);
+
+        // By default the "continuous" integration style of calculation method is used since it is typically faster.
+        // Switch to the alternative "pre-integration" style of internal force calculation if selected by the user.
+        if (!m_useContInt)
+            element->SetIntFrcCalcMethod(ChElementBrickANCF_3843::IntFrcMethod::PreInt);
+
         mesh->AddElement(element);
 
         nodeA = nodeB;
@@ -1856,6 +1874,12 @@ bool ANCFBrickTest::AxialTwistCheck(int msglvl) {
         element->SetDimensions(dx, width, width);
         element->SetMaterial(material);
         element->SetAlphaDamp(0.0);
+
+        // By default the "continuous" integration style of calculation method is used since it is typically faster.
+        // Switch to the alternative "pre-integration" style of internal force calculation if selected by the user.
+        if (!m_useContInt)
+            element->SetIntFrcCalcMethod(ChElementBrickANCF_3843::IntFrcMethod::PreInt);
+
         mesh->AddElement(element);
 
         nodeA = nodeB;
