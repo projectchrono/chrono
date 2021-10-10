@@ -3,63 +3,133 @@ IMU Sensor Model {#IMU_sensor}
 
 \tableofcontents
 
-The IMU in Chrono consists of a gyroscope and accelerometer. These sensors query the dynamics of the underlying Chrono system to compute their ground-truth information.
+Chrono::Sensor supports three sensors commonly used collectively as an IMU. These are accelerometer, gyroscope, and magnetometer.
 
-#### IMU Creation
+#### Accelerometer Creation
 ~~~{.cpp}
 // create a noise model
 auto
-imu_noise_model=chrono_types::make_shared<ChIMUNoiseNormalDrift>(
+noise_model=chrono_types::make_shared<ChNoiseNormalDrift>(
     100.f,   // float updateRate,
-    0.f,     // float g_mean,
-    .001f,   // float g_stdev,
-    .0f,     // float g_bias_drift,
-    .1f,     // float g_tau_drift,
-    .0f,     // float a_mean,
-    .0075f,  // float a_stdev,
-    .001f,   // float a_bias_drift,
-    .1f      // floata_tau_drift);
+    {0,0,0},     // float mean,
+    {0.001,0.001,0.001},   // float stdev,
+    .01f,     // float bias_drift,
+    .1f     // float tau_drift
 );
 
-auto imu= chrono_types::make_shared<ChIMUSensor>(
+auto acc= chrono_types::make_shared<ChAccelerometerSensor>(
     my_body,          // body to which the IMU is attached
     imu_update_rate,  // update rate
-    imu_offset_pose,  // offset pose from bodyimu_noise_model
+    imu_offset_pose,  // offset pose from body
+    noise_model //noise model
 );
 
-// IMU noise model
-imu->SetName("IMU");
+acc->SetName("Accelerometer");
 
-imu->SetLag(imu_lag);
-imu->SetCollectionWindow(imu_collection_time);
+acc->SetLag(.001); //1 millisecond lag
+acc->SetCollectionWindow(.001);  //1 millisecond collection time
 
-// IMU data accessfilter
-imu->PushFilter(chrono_types::make_shared<ChFilterIMUAccess>());
+// Accelerometer data access filter
+acc->PushFilter(chrono_types::make_shared<ChFilterAccelAccess>());
 
 // Addsensorto manager
-manager->AddSensor(imu);
+manager->AddSensor(acc);
 ~~~
+
+#### Gyroscope Creation
+~~~{.cpp}
+// create a noise model
+auto
+noise_model=chrono_types::make_shared<ChNoiseNormalDrift>(
+    100.f,   // float updateRate,
+    {0,0,0},     // float mean,
+    {0.001,0.001,0.001},   // float stdev,
+    .01f,     // float bias_drift,
+    .1f     // float tau_drift
+);
+
+auto gyro= chrono_types::make_shared<ChGyroscopeSensor>(
+    my_body,          // body to which the IMU is attached
+    imu_update_rate,  // update rate
+    imu_offset_pose,  // offset pose from body
+    noise_model //noise model
+);
+
+gyro->SetName("Gyroscope");
+
+gyro->SetLag(.001); //1 millisecond lag
+gyro->SetCollectionWindow(.001);  //1 millisecond collection time
+
+// Gyroscope data access filter
+gyro->PushFilter(chrono_types::make_shared<ChFilterGyroAccess>());
+
+// Addsensorto manager
+manager->AddSensor(gyro);
+~~~
+
+#### Magnetometer Creation
+~~~{.cpp}
+// create a noise model
+auto
+noise_model=chrono_types::make_shared<ChNoiseNormal>(
+    {0,0,0},     // float mean,
+    {0.001,0.001,0.001},   // float stdev
+);
+
+auto mag= chrono_types::make_shared<ChMagnetometerSensor>(
+    my_body,          // body to which the IMU is attached
+    100.f,  // update rate of 100 Hz
+    imu_offset_pose,  // offset pose from body
+    noise_model //noise model
+);
+
+mag->SetName("Magnetometer");
+
+mag->SetLag(.001); //1 millisecond lag
+mag->SetCollectionWindow(.001);  //1 millisecond collection time
+
+// Gyroscope data access filter
+mag->PushFilter(chrono_types::make_shared<ChFilterMagnetAccess>());
+
+// Addsensorto manager
+manager->AddSensor(mag);
+~~~
+
+
 
 <br>
 
 #### IMU Data Access
 ~~~{.cpp}
 utils::CSV_writer imu_csv(" ");
-UserIMUBufferPtr bufferIMU;
+UserAccelBufferPtr bufferAcc;
+UserGyroBufferPtr bufferGyro;
+UserMagnetBufferPtr bufferMag;
+int imu_last_launch = 0;
 while () {
-    bufferIMU=imu->GetMostRecentBuffer<UserIMUBufferPtr>();       
-    if(bufferIMU->Buffer) {
-        // Save the imudata to file
-        IMUDataimu_data = bufferIMU->Buffer[0];
-        imu_csv<<std::fixed <<std::setprecision(6);
-        imu_csv<<imu_data.Accel[0];  // Acc X
-        imu_csv<<imu_data.Accel[1];  // Acc Y
-        imu_csv<<imu_data.Accel[2];  // Acc Z
-        imu_csv<<imu_data.Roll;      // Roll
-        imu_csv<<imu_data.Pitch;     // Pitch
-        imu_csv<<imu_data.Yaw;       // Yaw
-        imu_csv<<std::endl;
-    }
+  bufferAcc = acc->GetMostRecentBuffer<UserAccelBufferPtr>();
+  bufferGyro = gyro->GetMostRecentBuffer<UserGyroBufferPtr>();
+  bufferMag = mag->GetMostRecentBuffer<UserMagnetBufferPtr>();
+  if (bufferAcc->Buffer && bufferGyro->Buffer && bufferMag->Buffer &&
+      bufferMag->LaunchedCount > imu_last_launch) {
+      // Save the imu data to file
+      AccelData acc_data = bufferAcc->Buffer[0];
+      GyroData gyro_data = bufferGyro->Buffer[0];
+      MagnetData mag_data = bufferMag->Buffer[0];
+      imu_csv << std::fixed << std::setprecision(6);
+      imu_csv << acc_data.X;
+      imu_csv << acc_data.Y;
+      imu_csv << acc_data.Z;
+      imu_csv << gyro_data.Roll;
+      imu_csv << gyro_data.Pitch;
+      imu_csv << gyro_data.Yaw;
+      imu_csv << mag_data.H;
+      imu_csv << mag_data.X;
+      imu_csv << mag_data.Y;
+      imu_csv << mag_data.Z;
+      imu_csv << std::endl;
+      imu_last_launch = bufferMag->LaunchedCount;
+  }
 }
 imu_csv.write_to_file(imu_file);
 ~~~
