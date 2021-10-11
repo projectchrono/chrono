@@ -18,6 +18,7 @@
 #include "chrono/fea/ChContactSurfaceMesh.h"
 #include "chrono/fea/ChContactSurfaceNodeCloud.h"
 #include "chrono/fea/ChElementCableANCF.h"
+#include "chrono/fea/ChElementBeamANCF_3243.h"
 #include "chrono/fea/ChElementBeamANCF_3333.h"
 #include "chrono/fea/ChElementBeamEuler.h"
 #include "chrono/fea/ChElementBeamTaperedTimoshenko.h"
@@ -27,6 +28,7 @@
 #include "chrono/fea/ChElementBrick_9.h"
 #include "chrono/fea/ChElementHexa_20.h"
 #include "chrono/fea/ChElementHexa_8.h"
+#include "chrono/fea/ChElementBrickANCF_3843.h"
 #include "chrono/fea/ChElementShell.h"
 #include "chrono/fea/ChElementShellReissner4.h"
 #include "chrono/fea/ChElementShellBST.h"
@@ -341,7 +343,8 @@ void ChVisualizationFEAmesh::Update(ChPhysicsItem* updater, const ChCoordsys<>& 
                 n_triangles += 4;  // n. triangle faces
             } else if (std::dynamic_pointer_cast<ChElementHexa_8>(FEMmesh->GetElement(iel)) ||
                        std::dynamic_pointer_cast<ChElementBrick>(FEMmesh->GetElement(iel)) ||
-                       std::dynamic_pointer_cast<ChElementBrick_9>(FEMmesh->GetElement(iel))) {
+                       std::dynamic_pointer_cast<ChElementBrick_9>(FEMmesh->GetElement(iel)) ||
+                       std::dynamic_pointer_cast<ChElementBrickANCF_3843>(FEMmesh->GetElement(iel))) {
                 // ELEMENT IS A HEXAHEDRON
                 n_verts += 8;
                 n_vcols += 8;
@@ -363,6 +366,10 @@ void ChVisualizationFEAmesh::Update(ChPhysicsItem* updater, const ChCoordsys<>& 
                 } else if (auto mybeamtimoshenkofpm =
                                std::dynamic_pointer_cast<ChElementBeamTaperedTimoshenkoFPM>(mybeam)) {
                     sectionshape = mybeamtimoshenkofpm->GetTaperedSection()->GetSectionA()->GetDrawShape();
+                } else if (auto mybeamancf = std::dynamic_pointer_cast<ChElementBeamANCF_3243>(mybeam)) {
+                    sectionshape = chrono_types::make_shared<ChBeamSectionShapeRectangular>(
+                        mybeamancf->GetThicknessY(),
+                        mybeamancf->GetThicknessZ());  // TO DO use ChBeamSection also in ANCF beam
                 } else if (auto mybeamancf = std::dynamic_pointer_cast<ChElementBeamANCF_3333>(mybeam)) {
                     sectionshape = chrono_types::make_shared<ChBeamSectionShapeRectangular>(
                         mybeamancf->GetThicknessY(),
@@ -622,7 +629,8 @@ void ChVisualizationFEAmesh::Update(ChPhysicsItem* updater, const ChCoordsys<>& 
             // ------------ELEMENT IS A HEXAHEDRON 8 NODES?
             if (std::dynamic_pointer_cast<ChElementHexa_8>(FEMmesh->GetElement(iel)) ||
                 std::dynamic_pointer_cast<ChElementBrick>(FEMmesh->GetElement(iel)) ||
-                std::dynamic_pointer_cast<ChElementBrick_9>(FEMmesh->GetElement(iel))) {
+                std::dynamic_pointer_cast<ChElementBrick_9>(FEMmesh->GetElement(iel)) ||
+                std::dynamic_pointer_cast<ChElementBrickANCF_3843>(FEMmesh->GetElement(iel))) {
                 UpdateBuffers_Hex(FEMmesh->GetElement(iel), *trianglemesh, i_verts, i_vnorms, i_vcols, i_triindex);
             }
 
@@ -640,6 +648,9 @@ void ChVisualizationFEAmesh::Update(ChPhysicsItem* updater, const ChCoordsys<>& 
                 } else if (auto mybeamtimoshenkofpm =
                                std::dynamic_pointer_cast<ChElementBeamTaperedTimoshenkoFPM>(mybeam)) {
                     sectionshape = mybeamtimoshenkofpm->GetTaperedSection()->GetSectionA()->GetDrawShape();
+                } else if (auto mybeamancf = std::dynamic_pointer_cast<ChElementBeamANCF_3243>(mybeam)) {
+                    sectionshape = chrono_types::make_shared<ChBeamSectionShapeRectangular>(
+                        mybeamancf->GetThicknessY(), mybeamancf->GetThicknessZ());
                 } else if (auto mybeamancf = std::dynamic_pointer_cast<ChElementBeamANCF_3333>(mybeam)) {
                     sectionshape = chrono_types::make_shared<ChBeamSectionShapeRectangular>(
                         mybeamancf->GetThicknessY(), mybeamancf->GetThicknessZ());
