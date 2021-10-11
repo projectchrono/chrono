@@ -275,6 +275,8 @@ class ChApi ChElementBeamANCF_3333 : public ChElementBeam, public ChLoadableU, p
     /// evaluated at xi coordinate of the beam line, each ranging in -1..+1
     /// F is a load, N'*F is the resulting generalized load
     /// Returns also det[J] with J=[dx/du,..], that might be useful in gauss quadrature.
+    /// For this ANCF element, only the first 6 entries in F are used in the calculation.  The first three entries is
+    /// the applied force in global coordinates and the second 3 entries is the applied moment in global space.
     virtual void ComputeNF(const double xi,             ///< parametric coordinate along the beam axis
                            ChVectorDynamic<>& Qi,       ///< Return result of Q = N'*F  here
                            double& detJ,                ///< Return det[J] here
@@ -287,6 +289,8 @@ class ChApi ChElementBeamANCF_3333 : public ChElementBeam, public ChLoadableU, p
     /// evaluated at xi,eta,zeta coordinates of the volume, each ranging in -1..+1
     /// F is a load, N'*F is the resulting generalized load
     /// Returns also det[J] with J=[dx/du,..], that might be useful in gauss quadrature.
+    /// For this ANCF element, only the first 6 entries in F are used in the calculation.  The first three entries is
+    /// the applied force in global coordinates and the second 3 entries is the applied moment in global space.
     virtual void ComputeNF(const double xi,             ///< parametric coordinate in volume
                            const double eta,            ///< parametric coordinate in volume
                            const double zeta,           ///< parametric coordinate in volume

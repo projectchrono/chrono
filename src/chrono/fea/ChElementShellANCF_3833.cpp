@@ -205,9 +205,7 @@ void ChElementShellANCF_3833::SetIntFrcCalcMethod(IntFrcMethod method) {
 
 // Get the Green-Lagrange strain tensor at the normalized element coordinates (xi, eta, zeta) [-1...1]
 
-ChMatrix33<> ChElementShellANCF_3833::GetGreenLagrangeStrain(const double xi,
-                                                     const double eta,
-                                                     const double zeta) {
+ChMatrix33<> ChElementShellANCF_3833::GetGreenLagrangeStrain(const double xi, const double eta, const double zeta) {
     MatrixNx3c Sxi_D;  // Matrix of normalized shape function derivatives
     Calc_Sxi_D(Sxi_D, xi, eta, zeta, m_thicknessZ, m_midsurfoffset);
 
@@ -233,9 +231,9 @@ ChMatrix33<> ChElementShellANCF_3833::GetGreenLagrangeStrain(const double xi,
 // boundary.   "layer_zeta" spans -1 to 1 from the bottom surface to the top surface
 
 ChMatrix33<> ChElementShellANCF_3833::GetPK2Stress(const double layer,
-                                           const double xi,
-                                           const double eta,
-                                           const double layer_zeta) {
+                                                   const double xi,
+                                                   const double eta,
+                                                   const double layer_zeta) {
     MatrixNx3c Sxi_D;  // Matrix of normalized shape function derivatives
     double layer_midsurface_offset =
         -m_thicknessZ / 2 + m_layer_zoffsets[layer] + m_layers[layer].Get_thickness() / 2 + m_midsurfoffset;
@@ -567,8 +565,8 @@ void ChElementShellANCF_3833::EvaluateSectionFrame(const double xi,
 
     // Since ANCF does not use rotations, calculate an approximate
     // rotation based off the position vector gradients
-    ChVector<double> MidsurfaceX = e_bar * Sxi_xi_compact;
-    ChVector<double> MidsurfaceY = e_bar * Sxi_eta_compact;
+    ChVector<double> MidsurfaceX = e_bar * Sxi_xi_compact * 2 / m_lenX;
+    ChVector<double> MidsurfaceY = e_bar * Sxi_eta_compact * 2 / m_lenY;
 
     // Since the position vector gradients are not in general orthogonal,
     // set the Dx direction tangent to the shell xi axis and
@@ -701,7 +699,9 @@ void ChElementShellANCF_3833::LoadableGetVariables(std::vector<ChVariables*>& mv
 }
 
 // Evaluate N'*F, which is the projection of the applied point force and moment at the midsurface coordinates (xi,eta,0)
-// This calculation takes a slightly form for ANCF elements
+// This calculation takes a slightly different form for ANCF elements
+// For this ANCF element, only the first 6 entries in F are used in the calculation.  The first three entries is
+// the applied force in global coordinates and the second 3 entries is the applied moment in global space.
 
 void ChElementShellANCF_3833::ComputeNF(
     const double xi,             // parametric coordinate in surface
@@ -712,11 +712,64 @@ void ChElementShellANCF_3833::ComputeNF(
     ChVectorDynamic<>* state_x,  // if != 0, update state (pos. part) to this, then evaluate Q
     ChVectorDynamic<>* state_w   // if != 0, update state (speed part) to this, then evaluate Q
 ) {
-    ComputeNF(xi, eta, 0, Qi, detJ, F, state_x, state_w);
+    // Compute the generalized force vector for the applied force component using the compact form of the shape
+    // functions.  This requires a reshaping of the calculated matrix to get it into the correct vector order (just a
+    // reinterpretation of the data since the matrix is in row-major format)
+    VectorN Sxi_compact;
+    Calc_Sxi_compact(Sxi_compact, xi, eta, 0, m_thicknessZ, m_midsurfoffset);
+    MatrixNx3 QiCompact;
+
+    QiCompact = Sxi_compact * F.segment(0, 3).transpose();
+
+    Eigen::Map<Vector3N> QiReshaped(QiCompact.data(), QiCompact.size());
+    Qi = QiReshaped;
+
+    // Compute the generalized force vector for the applied moment component
+    // See: Antonio M Recuero, Javier F Aceituno, Jose L Escalona, and Ahmed A Shabana.
+    // A nonlinear approach for modeling rail flexibility using the absolute nodal coordinate
+    // formulation. Nonlinear Dynamics, 83(1-2):463-481, 2016.
+
+    Matrix3xN e_bar;
+    CalcCoordMatrix(e_bar);
+
+    MatrixNx3c Sxi_D;
+    Calc_Sxi_D(Sxi_D, xi, eta, 0, m_thicknessZ, m_midsurfoffset);
+
+    ChMatrix33<double> J_Cxi;
+    ChMatrix33<double> J_Cxi_Inv;
+
+    J_Cxi.noalias() = e_bar * Sxi_D;
+    J_Cxi_Inv = J_Cxi.inverse();
+
+    // Compute the unique pieces that make up the moment projection matrix "G"
+    VectorN G_A = Sxi_D.col(0).transpose() * J_Cxi_Inv(0, 0) + Sxi_D.col(1).transpose() * J_Cxi_Inv(1, 0) +
+                  Sxi_D.col(2).transpose() * J_Cxi_Inv(2, 0);
+    VectorN G_B = Sxi_D.col(0).transpose() * J_Cxi_Inv(0, 1) + Sxi_D.col(1).transpose() * J_Cxi_Inv(1, 1) +
+                  Sxi_D.col(2).transpose() * J_Cxi_Inv(2, 1);
+    VectorN G_C = Sxi_D.col(0).transpose() * J_Cxi_Inv(0, 2) + Sxi_D.col(1).transpose() * J_Cxi_Inv(1, 2) +
+                  Sxi_D.col(2).transpose() * J_Cxi_Inv(2, 2);
+
+    ChVectorN<double, 3> M_scaled = 0.5 * F.segment(3, 3);
+
+    // Compute G'M without actually forming the complete matrix "G" (since it has a sparsity pattern to it)
+    for (unsigned int i = 0; i < NSF; i++) {
+        Qi(3 * i) += M_scaled(1) * G_C(i) - M_scaled(2) * G_B(i);
+        Qi((3 * i) + 1) += M_scaled(2) * G_A(i) - M_scaled(0) * G_C(i);
+        Qi((3 * i) + 2) += M_scaled(0) * G_B(i) - M_scaled(1) * G_A(i);
+    }
+
+    // Compute the element Jacobian between the current configuration and the normalized configuration
+    // This is different than the element Jacobian between the reference configuration and the normalized
+    //  configuration used in the internal force calculations.  For this calculation, this is the ratio between the
+    //  actual differential area and the normalized differential area.  The cross product is
+    //  used to calculate this area ratio for potential use in Gauss-Quadrature or similar numeric integration.
+    detJ = J_Cxi.col(0).cross(J_Cxi.col(1)).norm();
 }
 
 // Evaluate N'*F, which is the projection of the applied point force and moment at the coordinates (xi,eta,zeta)
-// This calculation takes a slightly form for ANCF elements
+// This calculation takes a slightly different form for ANCF elements
+// For this ANCF element, only the first 6 entries in F are used in the calculation.  The first three entries is
+// the applied force in global coordinates and the second 3 entries is the applied moment in global space.
 
 void ChElementShellANCF_3833::ComputeNF(
     const double xi,             // parametric coordinate in volume
@@ -776,7 +829,9 @@ void ChElementShellANCF_3833::ComputeNF(
 
     // Compute the element Jacobian between the current configuration and the normalized configuration
     // This is different than the element Jacobian between the reference configuration and the normalized
-    //  configuration used in the internal force calculations
+    //  configuration used in the internal force calculations.  For this calculation, this is the ratio between the
+    //  actual differential volume and the normalized differential volume.  The determinate of the element Jacobian is
+    //  used to calculate this volume ratio for potential use in Gauss-Quadrature or similar numeric integration.
     detJ = J_Cxi.determinant();
 }
 

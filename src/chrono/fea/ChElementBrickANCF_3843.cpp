@@ -194,9 +194,7 @@ void ChElementBrickANCF_3843::SetIntFrcCalcMethod(IntFrcMethod method) {
 
 // Get the Green-Lagrange strain tensor at the normalized element coordinates (xi, eta, zeta) [-1...1]
 
-ChMatrix33<> ChElementBrickANCF_3843::GetGreenLagrangeStrain(const double xi,
-                                                     const double eta,
-                                                     const double zeta) {
+ChMatrix33<> ChElementBrickANCF_3843::GetGreenLagrangeStrain(const double xi, const double eta, const double zeta) {
     MatrixNx3c Sxi_D;  // Matrix of normalized shape function derivatives
     Calc_Sxi_D(Sxi_D, xi, eta, zeta);
 
@@ -220,9 +218,7 @@ ChMatrix33<> ChElementBrickANCF_3843::GetGreenLagrangeStrain(const double xi,
 // Get the 2nd Piola-Kirchoff stress tensor at the normalized element coordinates (xi, eta, zeta) [-1...1] at the
 // current state of the element.
 
-ChMatrix33<> ChElementBrickANCF_3843::GetPK2Stress(const double xi,
-                                                   const double eta,
-                                                   const double zeta) {
+ChMatrix33<> ChElementBrickANCF_3843::GetPK2Stress(const double xi, const double eta, const double zeta) {
     MatrixNx3c Sxi_D;  // Matrix of normalized shape function derivatives
     Calc_Sxi_D(Sxi_D, xi, eta, zeta);
 
@@ -534,15 +530,15 @@ void ChElementBrickANCF_3843::EvaluateElementFrame(const double xi,
 
     // Since ANCF does not use rotations, calculate an approximate
     // rotation based off the position vector gradients
-    ChVector<double> MidsurfaceX = e_bar * Sxi_xi_compact;
-    ChVector<double> MidsurfaceY = e_bar * Sxi_eta_compact;
+    ChVector<double> Xdir = e_bar * Sxi_xi_compact * 2 / m_lenX;
+    ChVector<double> Ydir = e_bar * Sxi_eta_compact * 2 / m_lenY;
 
     // Since the position vector gradients are not in general orthogonal,
     // set the Dx direction tangent to the brick xi axis and
     // compute the Dy and Dz directions by using a
     // Gram-Schmidt orthonormalization, guided by the brick eta axis
     ChMatrix33<> msect;
-    msect.Set_A_Xdir(MidsurfaceX, MidsurfaceY);
+    msect.Set_A_Xdir(Xdir, Ydir);
 
     rot = msect.Get_A_quaternion();
 }
@@ -693,7 +689,9 @@ void ChElementBrickANCF_3843::LoadableGetVariables(std::vector<ChVariables*>& mv
 }
 
 // Evaluate N'*F, which is the projection of the applied point force and moment at the coordinates (xi,eta,zeta)
-// This calculation takes a slightly form for ANCF elements
+// This calculation takes a slightly different form for ANCF elements
+// For this ANCF element, only the first 6 entries in F are used in the calculation.  The first three entries is
+// the applied force in global coordinates and the second 3 entries is the applied moment in global space.
 
 void ChElementBrickANCF_3843::ComputeNF(
     const double xi,             // parametric coordinate in volume
@@ -753,7 +751,9 @@ void ChElementBrickANCF_3843::ComputeNF(
 
     // Compute the element Jacobian between the current configuration and the normalized configuration
     // This is different than the element Jacobian between the reference configuration and the normalized
-    //  configuration used in the internal force calculations
+    //  configuration used in the internal force calculations.  For this calculation, this is the ratio between the
+    //  actual differential volume and the normalized differential volume.  The determinate of the element Jacobian is
+    //  used to calculate this volume ratio for potential use in Gauss-Quadrature or similar numeric integration.
     detJ = J_Cxi.determinant();
 }
 

@@ -200,10 +200,7 @@ class ChApi ChElementShellANCF_3443 : public ChElementShell, public ChLoadableUV
     /// Get the 2nd Piola-Kirchoff stress tensor at the normalized **layer** coordinates (xi, eta, layer_zeta) at the
     /// current state of the element for the specified layer number (0 indexed) since the stress can be discontinuous at
     /// the layer boundary.   "layer_zeta" spans -1 to 1 from the bottom surface to the top surface
-    ChMatrix33<> GetPK2Stress(const double layer,
-                      const double xi,
-                      const double eta,
-                      const double layer_zeta);
+    ChMatrix33<> GetPK2Stress(const double layer, const double xi, const double eta, const double layer_zeta);
 
     /// Get the von Mises stress value at the normalized **layer** coordinates (xi, eta, layer_zeta) at the current
     /// state of the element for the specified layer number (0 indexed) since the stress can be discontinuous at the
@@ -315,6 +312,8 @@ class ChApi ChElementShellANCF_3443 : public ChElementShell, public ChLoadableUV
     /// evaluated at xi,eta coordinates of the midsurface, each ranging in -1..+1
     /// F is a load, N'*F is the resulting generalized load
     /// Returns also det[J] with J=[dx/du,..], that might be useful in gauss quadrature.
+    /// For this ANCF element, only the first 6 entries in F are used in the calculation.  The first three entries is
+    /// the applied force in global coordinates and the second 3 entries is the applied moment in global space.
     virtual void ComputeNF(const double xi,             ///< parametric coordinate in surface
                            const double eta,            ///< parametric coordinate in surface
                            ChVectorDynamic<>& Qi,       ///< Return result of Q = N'*F  here
@@ -328,6 +327,8 @@ class ChApi ChElementShellANCF_3443 : public ChElementShell, public ChLoadableUV
     /// evaluated at xi,eta,zeta coordinates of the volume, each ranging in -1..+1
     /// F is a load, N'*F is the resulting generalized load
     /// Returns also det[J] with J=[dx/du,..], that might be useful in gauss quadrature.
+    /// For this ANCF element, only the first 6 entries in F are used in the calculation.  The first three entries is
+    /// the applied force in global coordinates and the second 3 entries is the applied moment in global space.
     virtual void ComputeNF(const double xi,             ///< parametric coordinate in volume
                            const double eta,            ///< parametric coordinate in volume
                            const double zeta,           ///< parametric coordinate in volume
