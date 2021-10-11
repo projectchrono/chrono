@@ -239,15 +239,11 @@ void HMMWV_ANCFTire::CreateMesh(const ChFrameMoving<>& wheel_frame, VehicleSide 
 
             // Set other element properties
             element->SetAlphaDamp(m_alpha);
-            element->SetGravityOn(true);
 
             // Add element to mesh
             m_mesh->AddElement(element);
         }
     }
-
-    // Switch off automatic gravity
-    m_mesh->SetAutomaticGravity(false);
 }
 
 std::vector<std::shared_ptr<fea::ChNodeFEAbase>> HMMWV_ANCFTire::GetConnectedNodes() const {

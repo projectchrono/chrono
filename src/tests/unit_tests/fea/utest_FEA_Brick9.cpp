@@ -226,8 +226,7 @@ bool BendingQuasiStatic(ChMatrixDynamic<> FileInputMat) {
         element->SetMaterial(material);
 
         // Set other element properties
-        element->SetAlphaDamp(0.1);    // Structural damping for this element
-        element->SetGravityOn(false);  // Turn internal gravitational force calculation off
+        element->SetAlphaDamp(0.1);  // Structural damping for this element
 
         element->SetStrainFormulation(ChElementBrick_9::Hencky);
         element->SetPlasticity(false);
@@ -420,7 +419,6 @@ bool SwingingShell(ChMatrixDynamic<> FileInputMat) {
 
         // Set other element properties
         element->SetAlphaDamp(0.005);  // Structural damping for this element
-        element->SetGravityOn(true);   // turn internal gravitational force calculation off
 
         element->SetStrainFormulation(ChElementBrick_9::Hencky);
         element->SetPlasticity(false);
@@ -437,7 +435,6 @@ bool SwingingShell(ChMatrixDynamic<> FileInputMat) {
     // -------------------------------------
 
     my_system.Set_G_acc(ChVector<>(0.0, 0.0, -9.81));
-    my_mesh->SetAutomaticGravity(false);
 
     // ----------------------------------
     // Perform a dynamic time integration
@@ -622,8 +619,7 @@ bool J2Plastic(ChMatrixDynamic<> FileInputMat) {
         element->SetMaterial(material);
 
         // Set other element properties
-        element->SetAlphaDamp(0.0);    // Structural damping for this element
-        element->SetGravityOn(false);  // Turn internal gravitational force calculation off
+        element->SetAlphaDamp(0.0);  // Structural damping for this element
 
         element->SetStrainFormulation(ChElementBrick_9::Hencky);
         element->SetPlasticity(true);
@@ -826,8 +822,7 @@ bool DruckerPragerPlastic(ChMatrixDynamic<> FileInputMat) {
         element->SetMaterial(material);
 
         // Set other element properties
-        element->SetAlphaDamp(0.0);    // Structural damping for this element
-        element->SetGravityOn(false);  // Turn internal gravitational force calculation off
+        element->SetAlphaDamp(0.0);  // Structural damping for this element
 
         element->SetStrainFormulation(ChElementBrick_9::Hencky);
         element->SetPlasticity(true);

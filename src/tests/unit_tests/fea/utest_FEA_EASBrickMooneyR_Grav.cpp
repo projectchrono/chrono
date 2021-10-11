@@ -209,7 +209,6 @@ int main(int argc, char* argv[]) {
 
         element->SetMaterial(mmaterial);
         element->SetElemNum(elemcount);
-        element->SetGravityOn(true);                     // Turn gravity on/off from within the element
         element->SetMooneyRivlin(true);                  // Turn on/off Mooney Rivlin (Linear Isotropic by default)
         element->SetMRCoefficients(551584.0, 137896.0);  // Set two coefficients for Mooney-Rivlin
         ChVectorN<double, 9> stock_alpha_EAS;
@@ -221,8 +220,6 @@ int main(int argc, char* argv[]) {
         elemcount++;
     }
 
-    // Deactivate automatic gravity in mesh
-    my_mesh->SetAutomaticGravity(false);
     // Remember to add the mesh to the system!
     my_system.Add(my_mesh);
 

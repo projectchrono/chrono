@@ -212,7 +212,6 @@ int main(int argc, char* argv[]) {
                           std::dynamic_pointer_cast<ChNodeFEAxyz>(my_mesh->GetNode(NumNodes(elemcount, 7))));
         element->SetMaterial(mmaterial);
         element->SetElemNum(elemcount);
-        element->SetGravityOn(true);      // Turn gravity on/off from within the element
         element->SetMooneyRivlin(false);  // Turn on/off Mooney Rivlin (Linear Isotropic by default)
         // element->SetMRCoefficients(551584.0, 137896.0); // Set two coefficients for Mooney-Rivlin
 
@@ -225,8 +224,6 @@ int main(int argc, char* argv[]) {
         elemcount++;
     }
 
-    // Deactivate automatic gravity in mesh
-    my_mesh->SetAutomaticGravity(false);
     // Remember to add the mesh to the system!
     my_system.Add(my_mesh);
 

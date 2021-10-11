@@ -28,7 +28,7 @@ namespace fea {
 
 // -----------------------------------------------------------------------------
 
-ChElementBrick::ChElementBrick() : m_flag_HE(ANALYTICAL), m_gravity_on(false) {
+ChElementBrick::ChElementBrick() : m_flag_HE(ANALYTICAL) {
     m_nodes.resize(8);
 }
 
@@ -1371,10 +1371,6 @@ void ChElementBrick::ComputeInternalForces(ChVectorDynamic<>& Fi) {
             m_stock_jac_EAS = stock_jac_EAS_elem;
         }
     }  // end of else for numerical or analytical
-
-    if (m_gravity_on) {
-        Fi += m_GravForce;
-    }
 }
 
 // -----------------------------------------------------------------------------
@@ -1560,9 +1556,9 @@ void ChElementBrick::ComputeMassMatrix() {
 // -----------------------------------------------------------------------------
 
 // Class to calculate the gravity forces of a brick element
-class BrickGravity : public ChIntegrable3D<ChVectorN<double, 24>> {
+class BrickGravity : public ChIntegrable3D<ChVectorN<double, 8>> {
   public:
-    BrickGravity(ChMatrixNM<double, 8, 3>* d0_, ChElementBrick* element_, const ChVector<> g_acc);
+    BrickGravity(ChMatrixNM<double, 8, 3>* d0_, ChElementBrick* element_);
     ~BrickGravity() {}
 
   private:
@@ -1573,15 +1569,13 @@ class BrickGravity : public ChIntegrable3D<ChVectorN<double, 24>> {
     ChElementBrick::ShapeVector Nx;  // Dense shape function vector, X derivative
     ChElementBrick::ShapeVector Ny;  // Dense shape function vector, Y derivative
     ChElementBrick::ShapeVector Nz;  // Dense shape function vector, Z derivative
-    ChVector<> gacc;                 // gravitational acceleration
 
-    virtual void Evaluate(ChVectorN<double, 24>& result, const double x, const double y, const double z) override;
+    virtual void Evaluate(ChVectorN<double, 8>& result, const double x, const double y, const double z) override;
 };
 
-BrickGravity::BrickGravity(ChMatrixNM<double, 8, 3>* d0_, ChElementBrick* element_, const ChVector<> g_acc)
-    : element(element_), d0(d0_), gacc(g_acc) {}
+BrickGravity::BrickGravity(ChMatrixNM<double, 8, 3>* d0_, ChElementBrick* element_) : element(element_), d0(d0_) {}
 
-void BrickGravity::Evaluate(ChVectorN<double, 24>& result, const double x, const double y, const double z) {
+void BrickGravity::Evaluate(ChVectorN<double, 8>& result, const double x, const double y, const double z) {
     element->ShapeFunctions(N, x, y, z);
     element->ShapeFunctionsDerivativeX(Nx, x, y, z);
     element->ShapeFunctionsDerivativeY(Ny, x, y, z);
@@ -1598,34 +1592,42 @@ void BrickGravity::Evaluate(ChVectorN<double, 24>& result, const double x, const
     rd0.col(2) = (*d0).transpose() * Nz.transpose();
     double detJ0 = rd0.determinant();
 
-    for (int i = 0; i < 8; i++) {
-        result(i * 3 + 0, 0) = N(i) * gacc.x();
-        result(i * 3 + 1, 0) = N(i) * gacc.y();
-        result(i * 3 + 2, 0) = N(i) * gacc.z();
-    }
-
-    result *= detJ0 * wx2 * wy2 * wz2;
+    result = detJ0 * wx2 * wy2 * wz2 * N.transpose();
 }
 
-void ChElementBrick::ComputeGravityForce(const ChVector<>& g_acc) {
-    BrickGravity myformula1(&m_d0, this, g_acc);
-    m_GravForce.setZero();
-    ChQuadrature::Integrate3D<ChVectorN<double, 24>>(m_GravForce,  // result of integration will go there
-                                                     myformula1,   // formula to integrate
-                                                     -1, 1,        // limits in x direction
-                                                     -1, 1,        // limits in y direction
-                                                     -1, 1,        // limits in z direction
-                                                     2             // order of integration
+void ChElementBrick::ComputeGravityForceScale() {
+    BrickGravity myformula1(&m_d0, this);
+    m_GravForceScale.setZero();
+    ChQuadrature::Integrate3D<ChVectorN<double, 8>>(m_GravForceScale,  // result of integration will go there
+                                                    myformula1,        // formula to integrate
+                                                    -1, 1,             // limits in x direction
+                                                    -1, 1,             // limits in y direction
+                                                    -1, 1,             // limits in z direction
+                                                    2                  // order of integration
     );
 
-    m_GravForce *= m_Material->Get_density();
+    m_GravForceScale *= m_Material->Get_density();
+}
+
+// Compute the generalized force vector due to gravity
+void ChElementBrick::ComputeGravityForces(ChVectorDynamic<>& Fg, const ChVector<>& G_acc) {
+    assert(Fg.size() == 24);
+
+    // Calculate and add the generalized force due to gravity to the generalized internal force vector for the element.
+    // The generalized force due to gravity could be computed once prior to the start of the simulation if gravity was
+    // assumed constant throughout the entire simulation.  However, this implementation assumes that the acceleration
+    // due to gravity, while a constant for the entire system, can change from step to step which could be useful for
+    // gravity loaded units tests as an example.  The generalized force due to gravity is calculated in compact matrix
+    // form and is pre-mapped to the desired vector format
+    Eigen::Map<ChMatrixNM<double, 8, 3>> GravForceCompact(Fg.data(), 8, 3);
+    GravForceCompact = m_GravForceScale * G_acc.eigen().transpose();
 }
 
 // -----------------------------------------------------------------------------
 
 void ChElementBrick::SetupInitial(ChSystem* system) {
     // Compute gravitational forces
-    ComputeGravityForce(system->Get_G_acc());
+    ComputeGravityForceScale();
     // Compute mass matrix
     ComputeMassMatrix();
     // initial EAS parameters

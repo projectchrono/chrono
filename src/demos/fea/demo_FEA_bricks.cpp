@@ -163,7 +163,8 @@ int main(int argc, char* argv[]) {
     // Adding the nodes to the mesh
     int i = 0;
     while (i < TotalNumNodes) {
-        auto node = chrono_types::make_shared<ChNodeFEAxyz>(ChVector<>(COORDFlex(i, 0), COORDFlex(i, 1), COORDFlex(i, 2)));
+        auto node =
+            chrono_types::make_shared<ChNodeFEAxyz>(ChVector<>(COORDFlex(i, 0), COORDFlex(i, 1), COORDFlex(i, 2)));
         node->SetMass(0.0);
         my_mesh->AddNode(node);
         if (NDR(i, 0) == 1 && NDR(i, 1) == 1 && NDR(i, 2) == 1) {
@@ -189,19 +190,17 @@ int main(int argc, char* argv[]) {
                           std::dynamic_pointer_cast<ChNodeFEAxyz>(my_mesh->GetNode(NumNodes(elemcount, 7))));
 
         element->SetMaterial(mmaterial);
-        element->SetElemNum(elemcount);            // for EAS
-        element->SetGravityOn(true);               // turn gravity on/off from within the element
-        element->SetMooneyRivlin(false);           // turn on/off Mooney Rivlin (Linear Isotropic by default)
+        element->SetElemNum(elemcount);        // for EAS
+        element->SetMooneyRivlin(false);       // turn on/off Mooney Rivlin (Linear Isotropic by default)
         ChVectorN<double, 9> stock_alpha_EAS;  //
         stock_alpha_EAS.setZero();
-        element->SetStockAlpha(stock_alpha_EAS(0), stock_alpha_EAS(1), stock_alpha_EAS(2),
-                               stock_alpha_EAS(3), stock_alpha_EAS(4), stock_alpha_EAS(5),
-                               stock_alpha_EAS(6), stock_alpha_EAS(7), stock_alpha_EAS(8));
+        element->SetStockAlpha(stock_alpha_EAS(0), stock_alpha_EAS(1), stock_alpha_EAS(2), stock_alpha_EAS(3),
+                               stock_alpha_EAS(4), stock_alpha_EAS(5), stock_alpha_EAS(6), stock_alpha_EAS(7),
+                               stock_alpha_EAS(8));
         my_mesh->AddElement(element);
         elemcount++;
     }
-    // Deactivate automatic gravity in mesh
-    my_mesh->SetAutomaticGravity(false);
+
     my_system.Set_G_acc(ChVector<>(0, 0, -9.81));
     // Remember to add the mesh to the system!
     my_system.Add(my_mesh);

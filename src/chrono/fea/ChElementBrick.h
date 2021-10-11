@@ -88,8 +88,6 @@ class ChApi ChElementBrick : public ChElementGeneric, public ChLoadableUVW {
 
     void SetMaterial(std::shared_ptr<ChContinuumElastic> my_material) { m_Material = my_material; }
     std::shared_ptr<ChContinuumElastic> GetMaterial() const { return m_Material; }
-    /// Turn gravity on/off.
-    void SetGravityOn(bool val) { m_gravity_on = val; }
     /// Set whether material is Mooney-Rivlin (Otherwise linear elastic isotropic)
     void SetMooneyRivlin(bool val) { m_isMooney = val; }
     /// Set Mooney-Rivlin coefficients
@@ -168,22 +166,21 @@ class ChApi ChElementBrick : public ChElementGeneric, public ChLoadableUVW {
 
     ChMatrixNM<double, 24, 24> m_StiffnessMatrix;  ///< Stiffness matrix
     ChMatrixNM<double, 24, 24> m_MassMatrix;       ///< Mass matrix
-    ChVector<double> m_InertFlexVec;           ///< for element size (EL,EW,EH)
+    ChVectorN<double, 8> m_GravForceScale;  ///< Gravity scaling matrix used to get the generalized force due to gravity
+    ChVector<double> m_InertFlexVec;        ///< for element size (EL,EW,EH)
     // EAS
     int m_elementnumber;                         ///< Element number, for EAS
     ChMatrixNM<double, 24, 24> m_stock_jac_EAS;  ///< EAS Jacobian matrix
     ChVectorN<double, 9> m_stock_alpha_EAS;      ///< EAS previous step internal parameters
     ChMatrixNM<double, 24, 24> m_stock_KTE;      ///< Analytical Jacobian
     ChMatrixNM<double, 8, 3> m_d0;               ///< Initial Coordinate per element
-    ChVectorN<double, 24> m_GravForce;           ///< Gravity Force
     JacobianType m_flag_HE;
-    bool m_gravity_on;  ///< Flag indicating whether or not gravity is included
-    bool m_isMooney;    ///< Flag indicating whether the material is Mooney Rivlin
-    double CCOM1;       ///< First coefficient for Mooney-Rivlin
-    double CCOM2;       ///< Second coefficient for Mooney-Rivlin
-                        // Private Methods
+    bool m_isMooney;  ///< Flag indicating whether the material is Mooney Rivlin
+    double CCOM1;     ///< First coefficient for Mooney-Rivlin
+    double CCOM2;     ///< Second coefficient for Mooney-Rivlin
+                      // Private Methods
 
-	virtual void Update() override;
+    virtual void Update() override;
 
     /// Fills the D vector with the current field values at the nodes of the element, with proper ordering.
     /// If the D vector has not the size of this->GetNdofs(), it will be resized.
@@ -199,12 +196,16 @@ class ChApi ChElementBrick : public ChElementGeneric, public ChLoadableUVW {
     /// Note: in this 'basic' implementation, constant section and
     /// constant material are assumed
     void ComputeMassMatrix();
-    /// Compute the gravitational forces.
-    void ComputeGravityForce(const ChVector<>& g_acc);
+    /// Compute the matrix to scale gravity by to get the generalized gravitational force.
+    void ComputeGravityForceScale();
     /// Initial setup. Precompute mass and matrices that do not change during the simulation.
     virtual void SetupInitial(ChSystem* system) override;
     /// Sets M as the global mass matrix.
     virtual void ComputeMmatrixGlobal(ChMatrixRef M) override { M = m_MassMatrix; }
+
+    /// Compute the generalized force vector due to gravity using the efficient element specific method
+    virtual void ComputeGravityForces(ChVectorDynamic<>& Fg, const ChVector<>& G_acc) override;
+
     /// Sets H as the global stiffness matrix K, scaled  by Kfactor. Optionally, also
     /// superimposes global damping matrix R, scaled by Rfactor, and global mass matrix M multiplied by Mfactor.
     virtual void ComputeKRMmatricesGlobal(ChMatrixRef H,

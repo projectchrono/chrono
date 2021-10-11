@@ -45,7 +45,11 @@ namespace fea {
 /// </pre>
 class ChApi ChElementShellANCF_3423 : public ChElementShell, public ChLoadableUV, public ChLoadableUVW {
   public:
-    using ShapeVector = ChMatrixNM<double, 1, 8>;
+    static const int NSF = 8;  ///< number of shape functions
+
+    using ShapeVector = ChMatrixNM<double, 1, NSF>;
+    using VectorN = ChVectorN<double, NSF>;
+    using MatrixNx3 = ChMatrixNM<double, NSF, 3>;
 
     ChElementShellANCF_3423();
     ~ChElementShellANCF_3423() {}
@@ -140,9 +144,6 @@ class ChApi ChElementShellANCF_3423 : public ChElementShell, public ChLoadableUV
     /// Get a handle to the specified layer.
     const Layer& GetLayer(size_t i) const { return m_layers[i]; }
 
-    /// Turn gravity on/off.
-    void SetGravityOn(bool val) { m_gravity_on = val; }
-
     /// Set the structural damping.
     void SetAlphaDamp(double a) { m_Alpha = a; }
 
@@ -206,6 +207,9 @@ class ChApi ChElementShellANCF_3423 : public ChElementShell, public ChLoadableUV
     /// Add contribution of element inertia to total nodal masses
     virtual void ComputeNodalMass() override;
 
+    /// Compute the generalized force vector due to gravity using the efficient ANCF specific method
+    virtual void ComputeGravityForces(ChVectorDynamic<>& Fg, const ChVector<>& G_acc) override;
+
     /// Computes the internal forces.
     /// (E.g. the actual position of nodes is not in relaxed reference position) and set values in the Fi vector.
     virtual void ComputeInternalForces(ChVectorDynamic<>& Fi) override;
@@ -241,8 +245,8 @@ class ChApi ChElementShellANCF_3423 : public ChElementShell, public ChLoadableUV
     /// constant material are assumed
     void ComputeMassMatrix();
 
-    /// Compute the gravitational forces.
-    void ComputeGravityForce(const ChVector<>& g_acc);
+    /// Compute the matrix to scale gravity by to get the generalized gravitational force.
+    void ComputeGravityForceScale();
 
     // [ANS] Shape function for Assumed Naturals Strain (Interpolation of strain and strainD in a thickness direction)
     void ShapeFunctionANSbilinearShell(ChMatrixNM<double, 1, 4>& S_ANS, double x, double y);
@@ -321,6 +325,8 @@ class ChApi ChElementShellANCF_3423 : public ChElementShell, public ChLoadableUV
     /// evaluated at U,V coordinates of the surface, each ranging in -1..+1
     /// F is a load, N'*F is the resulting generalized load
     /// Returns also det[J] with J=[dx/du,..], that might be useful in gauss quadrature.
+    /// For this ANCF element, only the first 6 entries in F are used in the calculation.  The first three entries is
+    /// the applied force in global coordinates and the second 3 entries is the applied moment in global space.
     virtual void ComputeNF(const double U,              ///< parametric coordinate in surface
                            const double V,              ///< parametric coordinate in surface
                            ChVectorDynamic<>& Qi,       ///< Return result of Q = N'*F  here
@@ -334,6 +340,8 @@ class ChApi ChElementShellANCF_3423 : public ChElementShell, public ChLoadableUV
     /// evaluated at U,V,W coordinates of the volume, each ranging in -1..+1
     /// F is a load, N'*F is the resulting generalized load
     /// Returns also det[J] with J=[dx/du,..], that might be useful in gauss quadrature.
+    /// For this ANCF element, only the first 6 entries in F are used in the calculation.  The first three entries is
+    /// the applied force in global coordinates and the second 3 entries is the applied moment in global space.
     virtual void ComputeNF(const double U,              ///< parametric coordinate in volume
                            const double V,              ///< parametric coordinate in volume
                            const double W,              ///< parametric coordinate in volume
@@ -367,10 +375,9 @@ class ChApi ChElementShellANCF_3423 : public ChElementShell, public ChLoadableUV
     double m_lenY;                                                 ///< element length in Y direction
     double m_thickness;                                            ///< total element thickness
     std::vector<double> m_GaussZ;                                  ///< layer separation z values (scaled to [-1,1])
-    double m_GaussScaling;                              ///< scaling factor due to change of integration intervals
-    double m_Alpha;                                     ///< structural damping
-    bool m_gravity_on;                                  ///< enable/disable gravity calculation
-    ChVectorN<double, 24> m_GravForce;                  ///< Gravity Force
+    double m_GaussScaling;     ///< scaling factor due to change of integration intervals
+    double m_Alpha;            ///< structural damping
+    VectorN m_GravForceScale;  ///< Gravity scaling matrix used to get the generalized force due to gravity
     ChMatrixNM<double, 24, 24> m_MassMatrix;            ///< mass matrix
     ChMatrixNM<double, 24, 24> m_JacobianMatrix;        ///< Jacobian matrix (Kfactor*[K] + Rfactor*[R])
     ChMatrixNM<double, 8, 3> m_d0;                      ///< initial nodal coordinates

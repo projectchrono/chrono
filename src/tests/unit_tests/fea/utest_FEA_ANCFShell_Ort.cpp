@@ -172,8 +172,7 @@ int main(int argc, char* argv[]) {
         element->AddLayer(dz, -20 * CH_C_DEG_TO_RAD, mat);
 
         // Set other element properties
-        element->SetAlphaDamp(0.25);   // Structural damping for this element
-        element->SetGravityOn(false);  // no gravitational forces
+        element->SetAlphaDamp(0.25);  // Structural damping for this element
 
         // Add element to mesh
         my_mesh->AddElement(element);

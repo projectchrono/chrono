@@ -173,14 +173,10 @@ void AddMesh(ChSystemNSC& my_system) {
 
         // Set other element properties
         element->SetAlphaDamp(0.08);  // structural damping for this element
-        element->SetGravityOn(true);  // gravitational forces
 
         // Add element to mesh
         mesh->AddElement(element);
     }
-
-    // Switch off mesh class gravity
-    mesh->SetAutomaticGravity(false);
 
     // Add the mesh to the system
     my_system.Add(mesh);

@@ -31,9 +31,9 @@ namespace fea {
 // Constructor
 // -----------------------------------------------------------------------------
 
-ChElementBrick_9::ChElementBrick_9() : m_gravity_on(false) {
+ChElementBrick_9::ChElementBrick_9() {
     m_nodes.resize(8);
-    
+
     m_ddT.setZero();
     m_d_dt.setZero();
 
@@ -103,7 +103,7 @@ void ChElementBrick_9::SetupInitial(ChSystem* system) {
     m_GaussScaling = (GetDimensions().x() * GetDimensions().y() * GetDimensions().z()) / 8;
 
     ComputeMassMatrix();
-    ComputeGravityForce(system->Get_G_acc());
+    ComputeGravityForceScale();
 }
 
 // -----------------------------------------------------------------------------
@@ -230,48 +230,53 @@ void ChElementBrick_9::ComputeMassMatrix() {
 // -----------------------------------------------------------------------------
 
 // Private class for quadrature of gravitational forces.
-class Brick9_Gravity : public ChIntegrable3D<ChVectorN<double, 33>> {
+class Brick9_Gravity : public ChIntegrable3D<ChVectorN<double, 11>> {
   public:
-    Brick9_Gravity(ChElementBrick_9* element, const ChVector<>& gacc) : m_element(element), m_gacc(gacc) {}
+    Brick9_Gravity(ChElementBrick_9* element) : m_element(element) {}
     ~Brick9_Gravity() {}
 
   private:
     ChElementBrick_9* m_element;
-    ChVector<> m_gacc;
 
-    virtual void Evaluate(ChVectorN<double, 33>& result, const double x, const double y, const double z) override;
+    virtual void Evaluate(ChVectorN<double, 11>& result, const double x, const double y, const double z) override;
 };
 
 // Evaluate integrand at the specified point
-void Brick9_Gravity::Evaluate(ChVectorN<double, 33>& result, const double x, const double y, const double z) {
+void Brick9_Gravity::Evaluate(ChVectorN<double, 11>& result, const double x, const double y, const double z) {
     ChElementBrick_9::ShapeVector N;
     m_element->ShapeFunctions(N, x, y, z);
 
-    double detJ0 = m_element->Calc_detJ0(x, y, z);
-
-    for (int i = 0; i < 11; i++) {
-        result(i * 3 + 0) = N(0, i) * m_gacc.x();
-        result(i * 3 + 1) = N(0, i) * m_gacc.y();
-        result(i * 3 + 2) = N(0, i) * m_gacc.z();
-    }
-
-    result *= detJ0 * m_element->m_GaussScaling;
+    result = m_element->Calc_detJ0(x, y, z) * m_element->m_GaussScaling * N.transpose();
 }
 
 // Compute the gravitational forces.
-void ChElementBrick_9::ComputeGravityForce(const ChVector<>& g_acc) {
-    Brick9_Gravity myformula(this, g_acc);
+void ChElementBrick_9::ComputeGravityForceScale() {
+    Brick9_Gravity myformula(this);
 
-    m_GravForce.setZero();
-    ChQuadrature::Integrate3D<ChVectorN<double, 33>>(m_GravForce,  // result of integration will go there
-                                                     myformula,    // formula to integrate
-                                                     -1, 1,        // limits in x direction
-                                                     -1, 1,        // limits in y direction
-                                                     -1, 1,        // limits in z direction
-                                                     2             // order of integration
+    m_GravForceScale.setZero();
+    ChQuadrature::Integrate3D<ChVectorN<double, 11>>(m_GravForceScale,  // result of integration will go there
+                                                     myformula,         // formula to integrate
+                                                     -1, 1,             // limits in x direction
+                                                     -1, 1,             // limits in y direction
+                                                     -1, 1,             // limits in z direction
+                                                     2                  // order of integration
     );
 
-    m_GravForce *= m_material->Get_density();
+    m_GravForceScale *= m_material->Get_density();
+}
+
+// Compute the generalized force vector due to gravity
+void ChElementBrick_9::ComputeGravityForces(ChVectorDynamic<>& Fg, const ChVector<>& G_acc) {
+    assert(Fg.size() == 33);
+
+    // Calculate and add the generalized force due to gravity to the generalized internal force vector for the element.
+    // The generalized force due to gravity could be computed once prior to the start of the simulation if gravity was
+    // assumed constant throughout the entire simulation.  However, this implementation assumes that the acceleration
+    // due to gravity, while a constant for the entire system, can change from step to step which could be useful for
+    // gravity loaded units tests as an example.  The generalized force due to gravity is calculated in compact matrix
+    // form and is pre-mapped to the desired vector format
+    Eigen::Map<ChMatrixNM<double, 11, 3>> GravForceCompact(Fg.data(), 11, 3);
+    GravForceCompact = m_GravForceScale * G_acc.eigen().transpose();
 }
 
 // -----------------------------------------------------------------------------
@@ -1267,9 +1272,6 @@ void ChElementBrick_9::ComputeInternalForces(ChVectorDynamic<>& Fi) {
                                                      2         // order of integration
     );
     Fi -= result;
-    if (m_gravity_on) {
-        Fi += m_GravForce;
-    }
 }
 
 // -----------------------------------------------------------------------------

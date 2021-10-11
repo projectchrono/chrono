@@ -158,7 +158,6 @@ void ChTrackShoeBandANCF::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,
 
                     // Set other element properties
                     element->SetAlphaDamp(m_alpha);
-                    element->SetGravityOn(false);  // turn internal gravitational force calculation off
 
                     // Add element to mesh
                     m_web_mesh->AddElement(element);

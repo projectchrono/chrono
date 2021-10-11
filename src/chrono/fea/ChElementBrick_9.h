@@ -107,10 +107,6 @@ class ChApi ChElementBrick_9 : public ChElementGeneric, public ChLoadableUVW {
     /// Get a handle to the continuum material used by this element.
     std::shared_ptr<ChContinuumElastic> GetMaterial() const { return m_material; }
 
-    /// Enable/disable internal gravity calculation.
-    void SetGravityOn(bool val) { m_gravity_on = val; }
-    /// Check if internal gravity calculation is enabled/disabled.
-    bool IsGravityOn() const { return m_gravity_on; }
     /// Set the structural damping.
     void SetAlphaDamp(double a) { m_Alpha = a; }
     /// Set the strain formulation.
@@ -234,12 +230,12 @@ class ChApi ChElementBrick_9 : public ChElementGeneric, public ChLoadableUVW {
     std::shared_ptr<ChContinuumElastic> m_material;  ///< elastic naterial
 
     ChVector<> m_dimensions;                      ///< element dimensions (x, y, z components)
-    bool m_gravity_on;                            ///< enable/disable internal gravity calculation
-    ChVectorN<double, 33> m_GravForce;            ///< gravitational force
     ChMatrixNM<double, 33, 33> m_MassMatrix;      ///< mass matrix
     ChMatrixNM<double, 33, 33> m_JacobianMatrix;  ///< Jacobian matrix (Kfactor*[K] + Rfactor*[R])
     double m_GaussScaling;
-    double m_Alpha;                      ///< structural damping
+    double m_Alpha;  ///< structural damping
+    ChVectorN<double, 11>
+        m_GravForceScale;                ///< Gravity scaling matrix used to get the generalized force due to gravity
     ChMatrixNM<double, 11, 3> m_d0;      ///< initial nodal coordinates (in matrix form)
     ChMatrixNM<double, 11, 3> m_d;       ///< current nodal coordinates
     ChMatrixNM<double, 11, 11> m_ddT;    ///< matrix m_d * m_d^T
@@ -288,14 +284,17 @@ class ChApi ChElementBrick_9 : public ChElementGeneric, public ChLoadableUVW {
     /// Compute internal forces and load them in the Fi vector.
     virtual void ComputeInternalForces(ChVectorDynamic<>& Fi) override;
 
+    /// Compute the generalized force vector due to gravity using the efficient element specific method
+    virtual void ComputeGravityForces(ChVectorDynamic<>& Fg, const ChVector<>& G_acc) override;
+
     // -----------------------------------
     // Functions for internal computations
     // -----------------------------------
 
     /// Compute the mass matrix of the element.
     void ComputeMassMatrix();
-    /// Compute the gravitational forces.
-    void ComputeGravityForce(const ChVector<>& g_acc);
+    /// Compute the matrix to scale gravity by to get the generalized gravitational force.
+    void ComputeGravityForceScale();
 
     /// Compute Jacobians of the internal forces.
     /// This function calculates a linear combination of the stiffness (K) and damping (R) matrices,

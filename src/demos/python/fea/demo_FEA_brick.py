@@ -180,7 +180,6 @@ while elemcount < TotalNumElements :
 
     element.SetMaterial(mmaterial)
     element.SetElemNum(elemcount)            # for EAS
-    element.SetGravityOn(True)               # turn gravity on/off from within the element
     element.SetMooneyRivlin(False)           # turn on/off Mooney Rivlin (Linear Isotropic by default)
     stock_alpha_EAS = np.zeros(9) 
     element.SetStockAlpha(stock_alpha_EAS[0], stock_alpha_EAS[1], stock_alpha_EAS[2],
@@ -189,8 +188,6 @@ while elemcount < TotalNumElements :
     my_mesh.AddElement(element)
     elemcount += 1
 
-# Deactivate automatic gravity in mesh
-my_mesh.SetAutomaticGravity(False)
 my_system.Set_G_acc(chrono.ChVectorD(0, 0, -9.81))
 # Remember to add the mesh to the system!
 my_system.Add(my_mesh)

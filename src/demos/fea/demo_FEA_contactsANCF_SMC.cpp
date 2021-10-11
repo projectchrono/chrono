@@ -155,8 +155,7 @@ int main(int argc, char* argv[]) {
         // Add a single layers with a fiber angle of 0 degrees.
         element->AddLayer(dz, 0 * CH_C_DEG_TO_RAD, material);
         // Set other element properties
-        element->SetAlphaDamp(0.08);   // Structural damping for this element
-        element->SetGravityOn(false);  // gravitational forces
+        element->SetAlphaDamp(0.08);  // Structural damping for this element
     }
 
     // Switch off mesh class gravity

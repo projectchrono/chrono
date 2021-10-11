@@ -137,7 +137,6 @@ for i in range(TotalNumElements):
 
     # Set other element properties
     element.SetAlphaDamp(0.0)    # Structural damping for this element
-    element.SetGravityOn(False)  # turn internal gravitational force calculation off
     
     # Add element to mesh
     my_mesh.AddElement(element)

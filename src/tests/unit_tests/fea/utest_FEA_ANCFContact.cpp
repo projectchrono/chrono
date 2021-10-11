@@ -242,8 +242,7 @@ bool EvaluateContact(std::shared_ptr<ChMaterialShellANCF> material,
 
     Element1->SetDimensions(L_x, L_z);
     Element1->AddLayer(L_y, 0 * CH_C_DEG_TO_RAD, material);
-    Element1->SetAlphaDamp(0.02);   // Structural damping for this element
-    Element1->SetGravityOn(false);  // turn internal gravitational force calculation off
+    Element1->SetAlphaDamp(0.02);  // Structural damping for this element
     my_meshes_1->AddElement(Element1);
 
     auto Element2 = chrono_types::make_shared<ChElementShellANCF_3423>();  // To add nodes of the first element
@@ -254,8 +253,7 @@ bool EvaluateContact(std::shared_ptr<ChMaterialShellANCF> material,
                        std::dynamic_pointer_cast<ChNodeFEAxyzD>(my_meshes_2->GetNode(3)));
     Element2->SetDimensions(L_x, L_z);
     Element2->AddLayer(L_y, 0 * CH_C_DEG_TO_RAD, material);
-    Element2->SetAlphaDamp(0.02);   // Structural damping for this element
-    Element2->SetGravityOn(false);  // turn internal gravitational force calculation off
+    Element2->SetAlphaDamp(0.02);  // Structural damping for this element
     my_meshes_2->AddElement(Element2);
     std::dynamic_pointer_cast<ChNodeFEAxyzD>(my_meshes_1->GetNode(0))->SetFixed(true);
 

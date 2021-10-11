@@ -40,8 +40,7 @@ const int ChElementShellANCF_3423::m_maxIterationsEAS = 100;
 // Constructor
 // ------------------------------------------------------------------------------
 
-ChElementShellANCF_3423::ChElementShellANCF_3423()
-    : m_numLayers(0), m_lenX(0), m_lenY(0), m_thickness(0), m_Alpha(0), m_gravity_on(false) {
+ChElementShellANCF_3423::ChElementShellANCF_3423() : m_numLayers(0), m_lenX(0), m_lenY(0), m_thickness(0), m_Alpha(0) {
     m_nodes.resize(4);
 }
 
@@ -120,9 +119,9 @@ void ChElementShellANCF_3423::SetupInitial(ChSystem* system) {
     // Cache the scaling factor (due to change of integration intervals)
     m_GaussScaling = (m_lenX * m_lenY * m_thickness) / 8;
 
-    // Compute mass matrix and gravitational forces (constant)
+    // Compute mass matrix and gravitational force scaling term (constant)
     ComputeMassMatrix();
-    ComputeGravityForce(system->Get_G_acc());
+    ComputeGravityForceScale();
 }
 
 // State update.
@@ -228,52 +227,62 @@ void ChElementShellANCF_3423::ComputeNodalMass() {
 // -----------------------------------------------------------------------------
 
 /// This class defines the calculations for the integrand of the element gravity forces
-class ShellANCF_Gravity : public ChIntegrable3D<ChVectorN<double, 24>> {
+class ShellANCF_Gravity : public ChIntegrable3D<ChElementShellANCF_3423::VectorN> {
   public:
-    ShellANCF_Gravity(ChElementShellANCF_3423* element, const ChVector<> gacc) : m_element(element), m_gacc(gacc) {}
+    ShellANCF_Gravity(ChElementShellANCF_3423* element) : m_element(element) {}
     ~ShellANCF_Gravity() {}
 
   private:
     ChElementShellANCF_3423* m_element;
-    ChVector<> m_gacc;
 
-    virtual void Evaluate(ChVectorN<double, 24>& result, const double x, const double y, const double z) override;
+    virtual void Evaluate(ChElementShellANCF_3423::VectorN& result,
+                          const double x,
+                          const double y,
+                          const double z) override;
 };
 
-void ShellANCF_Gravity::Evaluate(ChVectorN<double, 24>& result, const double x, const double y, const double z) {
+void ShellANCF_Gravity::Evaluate(ChElementShellANCF_3423::VectorN& result,
+                                 const double x,
+                                 const double y,
+                                 const double z) {
     ChElementShellANCF_3423::ShapeVector N;
     m_element->ShapeFunctions(N, x, y, z);
 
-    double detJ0 = m_element->Calc_detJ0(x, y, z);
-
-    for (int i = 0; i < 8; i++) {
-        result(i * 3 + 0, 0) = N(i) * m_gacc.x();
-        result(i * 3 + 1, 0) = N(i) * m_gacc.y();
-        result(i * 3 + 2, 0) = N(i) * m_gacc.z();
-    }
-
-    result *= detJ0 * m_element->m_GaussScaling;
+    result = m_element->Calc_detJ0(x, y, z) * m_element->m_GaussScaling * N.transpose();
 };
 
-void ChElementShellANCF_3423::ComputeGravityForce(const ChVector<>& g_acc) {
-    m_GravForce.setZero();
+void ChElementShellANCF_3423::ComputeGravityForceScale() {
+    m_GravForceScale.setZero();
 
     for (size_t kl = 0; kl < m_numLayers; kl++) {
         double rho = m_layers[kl].GetMaterial()->Get_rho();
-        ShellANCF_Gravity myformula(this, g_acc);
-        ChVectorN<double, 24> Fgravity;
+        ShellANCF_Gravity myformula(this);
+        VectorN Fgravity;
         Fgravity.setZero();
-        ChQuadrature::Integrate3D<ChVectorN<double, 24>>(Fgravity,   // result of integration will go there
-                                                         myformula,  // formula to integrate
-                                                         -1, 1,      // x limits
-                                                         -1, 1,      // y limits
-                                                         m_GaussZ[kl], m_GaussZ[kl + 1],  // z limits
-                                                         2                                // order of integration
+        ChQuadrature::Integrate3D<VectorN>(Fgravity,                        // result of integration will go there
+                                           myformula,                       // formula to integrate
+                                           -1, 1,                           // x limits
+                                           -1, 1,                           // y limits
+                                           m_GaussZ[kl], m_GaussZ[kl + 1],  // z limits
+                                           2                                // order of integration
         );
 
-        Fgravity *= rho;
-        m_GravForce += Fgravity;
+        m_GravForceScale += rho * Fgravity;
     }
+}
+
+// Compute the generalized force vector due to gravity using the efficient ANCF specific method
+void ChElementShellANCF_3423::ComputeGravityForces(ChVectorDynamic<>& Fg, const ChVector<>& G_acc) {
+    assert(Fg.size() == 3 * NSF);
+
+    // Calculate and add the generalized force due to gravity to the generalized internal force vector for the element.
+    // The generalized force due to gravity could be computed once prior to the start of the simulation if gravity was
+    // assumed constant throughout the entire simulation.  However, this implementation assumes that the acceleration
+    // due to gravity, while a constant for the entire system, can change from step to step which could be useful for
+    // gravity loaded units tests as an example.  The generalized force due to gravity is calculated in compact matrix
+    // form and is pre-mapped to the desired vector format
+    Eigen::Map<MatrixNx3> GravForceCompact(Fg.data(), NSF, 3);
+    GravForceCompact = m_GravForceScale * G_acc.eigen().transpose();
 }
 
 // -----------------------------------------------------------------------------
@@ -617,10 +626,6 @@ void ChElementShellANCF_3423::ComputeInternalForces(ChVectorDynamic<>& Fi) {
         m_KalphaEAS[kl] = KALPHA;
 
     }  // Layer Loop
-
-    if (m_gravity_on) {
-        Fi += m_GravForce;
-    }
 }
 
 // -----------------------------------------------------------------------------
@@ -1432,7 +1437,28 @@ void ChElementShellANCF_3423::EvaluateSectionFrame(const double u,
                                                    ChQuaternion<>& rot) {
     // this is not a corotational element, so just do:
     EvaluateSectionPoint(u, v, point);
-    rot = QUNIT;  // or maybe use gram-schmidt to get csys of section from slopes?
+
+    MatrixNx3 e_bar;
+    CalcCoordMatrix(e_bar);
+
+    ShapeVector Nx;
+    ShapeVector Ny;
+    ShapeFunctionsDerivativeX(Nx, u, v, 0);
+    ShapeFunctionsDerivativeY(Ny, u, v, 0);
+
+    // Since ANCF does not use rotations, calculate an approximate
+    // rotation based off the position vector gradients
+    ChVector<double> MidsurfaceX = e_bar.transpose() * Nx.transpose();
+    ChVector<double> MidsurfaceY = e_bar.transpose() * Ny.transpose();
+
+    // Since the position vector gradients are not in general orthogonal,
+    // set the Dx direction tangent to the shell xi axis and
+    // compute the Dy and Dz directions by using a
+    // Gram-Schmidt orthonormalization, guided by the shell eta axis
+    ChMatrix33<> msect;
+    msect.Set_A_Xdir(MidsurfaceX, MidsurfaceY);
+
+    rot = msect.Get_A_quaternion();
 }
 
 void ChElementShellANCF_3423::EvaluateSectionPoint(const double u, const double v, ChVector<>& point) {
@@ -1510,6 +1536,9 @@ void ChElementShellANCF_3423::LoadableGetVariables(std::vector<ChVariables*>& mv
 }
 
 // Evaluate N'*F , where N is the shape function evaluated at (U,V) coordinates of the surface.
+// This calculation takes a slightly different form for ANCF elements
+// For this ANCF element, only the first 6 entries in F are used in the calculation.  The first three entries is
+// the applied force in global coordinates and the second 3 entries is the applied moment in global space.
 void ChElementShellANCF_3423::ComputeNF(
     const double U,              // parametric coordinate in surface
     const double V,              // parametric coordinate in surface
@@ -1522,68 +1551,63 @@ void ChElementShellANCF_3423::ComputeNF(
     ShapeVector N;
     ShapeFunctions(N, U, V, 0);
 
-    detJ = Calc_detJ0(U, V, 0);
-    detJ *= GetLengthX() * GetLengthY() / 4.0;
+    Eigen::Map<MatrixNx3> QiCompact(Qi.data(), NSF, 3);
+    QiCompact = N.transpose() * F.segment(0, 3).transpose();
 
-    Qi.segment(0, 3) = N(0) * F.segment(0, 3);
-    Qi.segment(3, 3) = N(1) * F.segment(0, 3);
-    Qi.segment(6, 3) = N(2) * F.segment(0, 3);
-    Qi.segment(9, 3) = N(3) * F.segment(0, 3);
-    Qi.segment(12, 3) = N(4) * F.segment(0, 3);
-    Qi.segment(15, 3) = N(5) * F.segment(0, 3);
-    Qi.segment(18, 3) = N(6) * F.segment(0, 3);
-    Qi.segment(21, 3) = N(7) * F.segment(0, 3);
-
-    //// RADU: Under development; requires additional testing
-    /*
-    // Compute the generalized force vector for the applied moment
-    ShapeVector Nx;
-    ShapeVector Ny;
-    ShapeVector Nz;
-    ChMatrixNM<double, 8, 3> e_bar;
-    ChMatrixNM<double, 3, 8> Sxi_D_transpose;
-    ChMatrix33<double> J_Cxi;
-    ChMatrix33<double> J_Cxi_Inv;
-    ChVectorN<double, 8> G_A;
-    ChVectorN<double, 8> G_B;
-    ChVectorN<double, 8> G_C;
-    ChVectorN<double, 3> M_scaled = 0.5 * F.segment(3, 3);
-
-    ShapeFunctionsDerivativeX(Nx, U, V, 0);
-    ShapeFunctionsDerivativeY(Ny, U, V, 0);
-    ShapeFunctionsDerivativeZ(Nz, U, V, 0);
-    Sxi_D_transpose.row(0) = Nx;
-    Sxi_D_transpose.row(1) = Ny;
-    Sxi_D_transpose.row(2) = Nz;
-
-    CalcCoordMatrix(e_bar);
-
-    // Calculate the element Jacobian between the current configuration and the normalized configuration
-    J_Cxi.noalias() = e_bar.transpose() * Sxi_D_transpose.transpose();
-    J_Cxi_Inv = J_Cxi.inverse();
-
-    // Compute the unique pieces that make up the moment projection matrix "G"
+    // Compute the generalized force vector for the applied moment component
     // See: Antonio M Recuero, Javier F Aceituno, Jose L Escalona, and Ahmed A Shabana.
     // A nonlinear approach for modeling rail flexibility using the absolute nodal coordinate
     // formulation. Nonlinear Dynamics, 83(1-2):463-481, 2016.
-    G_A = Sxi_D_transpose.row(0) * J_Cxi_Inv(0, 0) + Sxi_D_transpose.row(1) * J_Cxi_Inv(1, 0) +
-        Sxi_D_transpose.row(2) * J_Cxi_Inv(2, 0);
-    G_B = Sxi_D_transpose.row(0) * J_Cxi_Inv(0, 1) + Sxi_D_transpose.row(1) * J_Cxi_Inv(1, 1) +
-        Sxi_D_transpose.row(2) * J_Cxi_Inv(2, 1);
-    G_C = Sxi_D_transpose.row(0) * J_Cxi_Inv(0, 2) + Sxi_D_transpose.row(1) * J_Cxi_Inv(1, 2) +
-        Sxi_D_transpose.row(2) * J_Cxi_Inv(2, 2);
+    ShapeVector Nx;
+    ShapeVector Ny;
+    ShapeVector Nz;
+    ShapeFunctionsDerivativeX(Nx, U, V, 0);
+    ShapeFunctionsDerivativeY(Ny, U, V, 0);
+    ShapeFunctionsDerivativeZ(Nz, U, V, 0);
+
+    // Change the shape function derivatives with respect to the element local "x", "y", or "z" coordinates to be with
+    // respect to the normalized coordinates "xi", "eta", and "zeta" when loading the results into the Sxi_D matrix
+    MatrixNx3 Sxi_D;
+    Sxi_D.col(0) = Nx * m_lenX / 2;
+    Sxi_D.col(1) = Ny * m_lenY / 2;
+    Sxi_D.col(2) = Nz * m_thickness / 2;
+
+    MatrixNx3 e_bar;
+    CalcCoordMatrix(e_bar);
+
+    // Calculate the element Jacobian between the current configuration and the normalized configuration
+    ChMatrix33<double> J_Cxi = e_bar.transpose() * Sxi_D;
+    ChMatrix33<double> J_Cxi_Inv = J_Cxi.inverse();
+
+    // Compute the unique pieces that make up the moment projection matrix "G"
+    VectorN G_A = Sxi_D.col(0).transpose() * J_Cxi_Inv(0, 0) + Sxi_D.col(1).transpose() * J_Cxi_Inv(1, 0) +
+                  Sxi_D.col(2).transpose() * J_Cxi_Inv(2, 0);
+    VectorN G_B = Sxi_D.col(0).transpose() * J_Cxi_Inv(0, 1) + Sxi_D.col(1).transpose() * J_Cxi_Inv(1, 1) +
+                  Sxi_D.col(2).transpose() * J_Cxi_Inv(2, 1);
+    VectorN G_C = Sxi_D.col(0).transpose() * J_Cxi_Inv(0, 2) + Sxi_D.col(1).transpose() * J_Cxi_Inv(1, 2) +
+                  Sxi_D.col(2).transpose() * J_Cxi_Inv(2, 2);
+
+    ChVectorN<double, 3> M_scaled = 0.5 * F.segment(3, 3);
 
     // Compute G'M without actually forming the complete matrix "G" (since it has a sparsity pattern to it)
-    //// MIKE Clean-up when slicing becomes available in Eigen 3.4
-    for (unsigned int i = 0; i < 8; i++) {
+    for (unsigned int i = 0; i < NSF; i++) {
         Qi(3 * i + 0) += M_scaled(1) * G_C(i) - M_scaled(2) * G_B(i);
         Qi(3 * i + 1) += M_scaled(2) * G_A(i) - M_scaled(0) * G_C(i);
         Qi(3 * i + 2) += M_scaled(0) * G_B(i) - M_scaled(1) * G_A(i);
     }
-    */
+
+    // Compute the element Jacobian between the current configuration and the normalized configuration
+    // This is different than the element Jacobian between the reference configuration and the normalized
+    //  configuration used in the internal force calculations.  For this calculation, this is the ratio between the
+    //  actual differential area and the normalized differential area.  The cross product is
+    //  used to calculate this area ratio for potential use in Gauss-Quadrature or similar numeric integration.
+    detJ = J_Cxi.col(0).cross(J_Cxi.col(1)).norm();
 }
 
 // Evaluate N'*F , where N is the shape function evaluated at (U,V,W) coordinates of the surface.
+// This calculation takes a slightly different form for ANCF elements
+// For this ANCF element, only the first 6 entries in F are used in the calculation.  The first three entries is
+// the applied force in global coordinates and the second 3 entries is the applied moment in global space.
 void ChElementShellANCF_3423::ComputeNF(
     const double U,              // parametric coordinate in volume
     const double V,              // parametric coordinate in volume
@@ -1597,65 +1621,57 @@ void ChElementShellANCF_3423::ComputeNF(
     ShapeVector N;
     ShapeFunctions(N, U, V, W);
 
-    detJ = Calc_detJ0(U, V, W);
-    detJ *= m_GaussScaling;
+    Eigen::Map<MatrixNx3> QiCompact(Qi.data(), NSF, 3);
+    QiCompact = N.transpose() * F.segment(0, 3).transpose();
 
-    Qi.segment(0, 3) = N(0) * F.segment(0, 3);
-    Qi.segment(3, 3) = N(1) * F.segment(0, 3);
-    Qi.segment(6, 3) = N(2) * F.segment(0, 3);
-    Qi.segment(9, 3) = N(3) * F.segment(0, 3);
-    Qi.segment(12, 3) = N(4) * F.segment(0, 3);
-    Qi.segment(15, 3) = N(5) * F.segment(0, 3);
-    Qi.segment(18, 3) = N(6) * F.segment(0, 3);
-    Qi.segment(21, 3) = N(7) * F.segment(0, 3);
-
-    //// RADU: Under development; requires additional testing
-    /*
-    // Compute the generalized force vector for the applied moment
-    ShapeVector Nx;
-    ShapeVector Ny;
-    ShapeVector Nz;
-    ChMatrixNM<double, 8, 3> e_bar;
-    ChMatrixNM<double, 3, 8> Sxi_D_transpose;
-    ChMatrix33<double> J_Cxi;
-    ChMatrix33<double> J_Cxi_Inv;
-    ChVectorN<double, 8> G_A;
-    ChVectorN<double, 8> G_B;
-    ChVectorN<double, 8> G_C;
-    ChVectorN<double, 3> M_scaled = 0.5 * F.segment(3, 3);
-
-    ShapeFunctionsDerivativeX(Nx, U, V, W);
-    ShapeFunctionsDerivativeY(Ny, U, V, W);
-    ShapeFunctionsDerivativeZ(Nz, U, V, W);
-    Sxi_D_transpose.row(0) = Nx;
-    Sxi_D_transpose.row(1) = Ny;
-    Sxi_D_transpose.row(2) = Nz;
-
-    CalcCoordMatrix(e_bar);
-
-    // Calculate the element Jacobian between the current configuration and the normalized configuration
-    J_Cxi.noalias() = e_bar.transpose() * Sxi_D_transpose.transpose();
-    J_Cxi_Inv = J_Cxi.inverse();
-
-    // Compute the unique pieces that make up the moment projection matrix "G"
+    // Compute the generalized force vector for the applied moment component
     // See: Antonio M Recuero, Javier F Aceituno, Jose L Escalona, and Ahmed A Shabana.
     // A nonlinear approach for modeling rail flexibility using the absolute nodal coordinate
     // formulation. Nonlinear Dynamics, 83(1-2):463-481, 2016.
-    G_A = Sxi_D_transpose.row(0) * J_Cxi_Inv(0, 0) + Sxi_D_transpose.row(1) * J_Cxi_Inv(1, 0) +
-        Sxi_D_transpose.row(2) * J_Cxi_Inv(2, 0);
-    G_B = Sxi_D_transpose.row(0) * J_Cxi_Inv(0, 1) + Sxi_D_transpose.row(1) * J_Cxi_Inv(1, 1) +
-        Sxi_D_transpose.row(2) * J_Cxi_Inv(2, 1);
-    G_C = Sxi_D_transpose.row(0) * J_Cxi_Inv(0, 2) + Sxi_D_transpose.row(1) * J_Cxi_Inv(1, 2) +
-        Sxi_D_transpose.row(2) * J_Cxi_Inv(2, 2);
+    ShapeVector Nx;
+    ShapeVector Ny;
+    ShapeVector Nz;
+    ShapeFunctionsDerivativeX(Nx, U, V, W);
+    ShapeFunctionsDerivativeY(Ny, U, V, W);
+    ShapeFunctionsDerivativeZ(Nz, U, V, W);
+
+    // Change the shape function derivatives with respect to the element local "x", "y", or "z" coordinates to be with
+    // respect to the normalized coordinates "xi", "eta", and "zeta" when loading the results into the Sxi_D matrix
+    MatrixNx3 Sxi_D;
+    Sxi_D.col(0) = Nx * m_lenX / 2;
+    Sxi_D.col(1) = Ny * m_lenY / 2;
+    Sxi_D.col(2) = Nz * m_thickness / 2;
+
+    MatrixNx3 e_bar;
+    CalcCoordMatrix(e_bar);
+
+    // Calculate the element Jacobian between the current configuration and the normalized configuration
+    ChMatrix33<double> J_Cxi = e_bar.transpose() * Sxi_D;
+    ChMatrix33<double> J_Cxi_Inv = J_Cxi.inverse();
+
+    // Compute the unique pieces that make up the moment projection matrix "G"
+    VectorN G_A = Sxi_D.col(0).transpose() * J_Cxi_Inv(0, 0) + Sxi_D.col(1).transpose() * J_Cxi_Inv(1, 0) +
+                  Sxi_D.col(2).transpose() * J_Cxi_Inv(2, 0);
+    VectorN G_B = Sxi_D.col(0).transpose() * J_Cxi_Inv(0, 1) + Sxi_D.col(1).transpose() * J_Cxi_Inv(1, 1) +
+                  Sxi_D.col(2).transpose() * J_Cxi_Inv(2, 1);
+    VectorN G_C = Sxi_D.col(0).transpose() * J_Cxi_Inv(0, 2) + Sxi_D.col(1).transpose() * J_Cxi_Inv(1, 2) +
+                  Sxi_D.col(2).transpose() * J_Cxi_Inv(2, 2);
+
+    ChVectorN<double, 3> M_scaled = 0.5 * F.segment(3, 3);
 
     // Compute G'M without actually forming the complete matrix "G" (since it has a sparsity pattern to it)
-    //// MIKE Clean-up when slicing becomes available in Eigen 3.4
-    for (unsigned int i = 0; i < 8; i++) {
+    for (unsigned int i = 0; i < NSF; i++) {
         Qi(3 * i + 0) += M_scaled(1) * G_C(i) - M_scaled(2) * G_B(i);
         Qi(3 * i + 1) += M_scaled(2) * G_A(i) - M_scaled(0) * G_C(i);
         Qi(3 * i + 2) += M_scaled(0) * G_B(i) - M_scaled(1) * G_A(i);
     }
-    */
+
+    // Compute the element Jacobian between the current configuration and the normalized configuration
+    // This is different than the element Jacobian between the reference configuration and the normalized
+    //  configuration used in the internal force calculations.  For this calculation, this is the ratio between the
+    //  actual differential volume and the normalized differential volume.  The determinate of the element Jacobian is
+    //  used to calculate this volume ratio for potential use in Gauss-Quadrature or similar numeric integration.
+    detJ = J_Cxi.determinant();
 }
 
 // -----------------------------------------------------------------------------

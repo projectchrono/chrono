@@ -75,7 +75,7 @@ void FEADeformableTerrain::SetSoilParametersFEA(double rho,              ///< So
                                                 double hardening_slope,  ///< Soil hardening slope, for plasticity
                                                 double friction_angle,   ///< Soil internal friction angle
                                                 double dilatancy_angle   ///< Soil dilatancy angle
-                                                ) {
+) {
     m_rho = rho;
     m_E = Emod;
     m_nu = nu;
@@ -152,7 +152,7 @@ void FEADeformableTerrain::Initialize(const ChVector<>& start_point,
     // Initialize coordinates for curvature (central) node
     for (int i = 0; i < TotalNumElements; i++) {
         auto node = chrono_types::make_shared<ChNodeFEAcurv>(ChVector<>(0.0, 0.0, 0.0), ChVector<>(0.0, 0.0, 0.0),
-                                                    ChVector<>(0.0, 0.0, 0.0));
+                                                             ChVector<>(0.0, 0.0, 0.0));
         node->SetMass(0);
         m_mesh->AddNode(node);
     }
@@ -212,7 +212,6 @@ void FEADeformableTerrain::Initialize(const ChVector<>& start_point,
 
         // Set other element properties
         element->SetAlphaDamp(5e-4);    // Structural damping for this element
-        element->SetGravityOn(true);    // Turn internal gravitational force calculation
         element->SetDPIterationNo(50);  // Set maximum number of iterations for Drucker-Prager Newton-Raphson
         element->SetDPYieldTol(1e-8);   // Set stop tolerance for Drucker-Prager Newton-Raphson
         element->SetStrainFormulation(ChElementBrick_9::Hencky);
@@ -246,9 +245,6 @@ void FEADeformableTerrain::Initialize(const ChVector<>& start_point,
     mvisualizemesh->SetShrinkElements(true, 0.995);
     mvisualizemesh->SetSmoothFaces(false);
     m_mesh->AddAsset(mvisualizemesh);
-
-    // Deactivate mesh gravity (added through system)
-    m_mesh->SetAutomaticGravity(false);
 }
 }  // end namespace vehicle
 }  // end namespace chrono

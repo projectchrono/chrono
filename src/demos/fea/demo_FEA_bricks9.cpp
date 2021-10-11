@@ -252,7 +252,6 @@ void DPCapPress() {
 
         // Set other element properties
         element->SetAlphaDamp(0.0);     // Structural damping for this element
-        element->SetGravityOn(false);   // turn internal gravitational force calculation off
         element->SetDPIterationNo(50);  // Set maximum number of iterations for Drucker-Prager Newton-Raphson
         element->SetDPYieldTol(1e-5);   // Set stop tolerance for Drucker-Prager Newton-Raphson
         element->SetStrainFormulation(ChElementBrick_9::Hencky);
@@ -426,6 +425,8 @@ void ShellBrickContact() {
 
     // Create a mesh, that is a container for groups of elements and their referenced nodes.
     auto my_mesh = chrono_types::make_shared<ChMesh>();
+    // Create a separate mesh for the shell elements so that gravity can be disabled only for the shells
+    auto my_shell_mesh = chrono_types::make_shared<ChMesh>();
 
     // Geometry of the bricked plate.
     double plate_lenght_x = 0.5;
@@ -501,7 +502,7 @@ void ShellBrickContact() {
         auto nodeshell =
             chrono_types::make_shared<ChNodeFEAxyzD>(ChVector<>(loc_x, loc_y, loc_z), ChVector<>(0.0, 0.0, 1.0));
         nodeshell->SetMass(0);
-        my_mesh->AddNode(nodeshell);
+        my_shell_mesh->AddNode(nodeshell);
     }
 
     // Get a handle to the tip node.
@@ -576,7 +577,6 @@ void ShellBrickContact() {
 
         // Set other element properties
         element->SetAlphaDamp(0.0);     // Structural damping for this element
-        element->SetGravityOn(true);    // turn internal gravitational force calculation off
         element->SetDPIterationNo(50);  // Set maximum number of iterations for Drucker-Prager Newton-Raphson
         element->SetDPYieldTol(1e-8);   // Set stop tolerance for Drucker-Prager Newton-Raphson
         element->SetStrainFormulation(ChElementBrick_9::Hencky);
@@ -599,24 +599,6 @@ void ShellBrickContact() {
         my_mesh->AddElement(element);
         kk++;
     }
-    for (int ii = 0; ii < SnumDiv_x * SnumDiv_y; ii++) {
-        int node0 = (ii / (SnumDiv_x)) * (SN_x) + ii % SnumDiv_x;
-        int node1 = (ii / (SnumDiv_x)) * (SN_x) + ii % SnumDiv_x + 1;
-        int node2 = (ii / (SnumDiv_x)) * (SN_x) + ii % SnumDiv_x + 1 + SN_x;
-        int node3 = (ii / (SnumDiv_x)) * (SN_x) + ii % SnumDiv_x + SN_x;
-
-        auto elementshell = chrono_types::make_shared<ChElementShellANCF_3423>();
-        elementshell->SetNodes(std::dynamic_pointer_cast<ChNodeFEAxyzD>(my_mesh->GetNode(TotalNumNodes + node0)),
-                               std::dynamic_pointer_cast<ChNodeFEAxyzD>(my_mesh->GetNode(TotalNumNodes + node1)),
-                               std::dynamic_pointer_cast<ChNodeFEAxyzD>(my_mesh->GetNode(TotalNumNodes + node2)),
-                               std::dynamic_pointer_cast<ChNodeFEAxyzD>(my_mesh->GetNode(TotalNumNodes + node3)));
-
-        elementshell->SetDimensions(Sdx, Sdy);
-        elementshell->AddLayer(dz, 0 * CH_C_DEG_TO_RAD, mat);
-        elementshell->SetAlphaDamp(0.0);    // Structural damping for this element
-        elementshell->SetGravityOn(false);  // turn internal gravitational force calculation off
-        my_mesh->AddElement(elementshell);
-    }
 
     // Add the mesh to the system.
     my_system.Add(my_mesh);
@@ -625,8 +607,34 @@ void ShellBrickContact() {
     my_mesh->AddContactSurface(my_contactsurface);
     my_contactsurface->AddFacesFromBoundary(0.005);
 
+    for (int ii = 0; ii < SnumDiv_x * SnumDiv_y; ii++) {
+        int node0 = (ii / (SnumDiv_x)) * (SN_x) + ii % SnumDiv_x;
+        int node1 = (ii / (SnumDiv_x)) * (SN_x) + ii % SnumDiv_x + 1;
+        int node2 = (ii / (SnumDiv_x)) * (SN_x) + ii % SnumDiv_x + 1 + SN_x;
+        int node3 = (ii / (SnumDiv_x)) * (SN_x) + ii % SnumDiv_x + SN_x;
+
+        auto elementshell = chrono_types::make_shared<ChElementShellANCF_3423>();
+        elementshell->SetNodes(std::dynamic_pointer_cast<ChNodeFEAxyzD>(my_shell_mesh->GetNode(node0)),
+                               std::dynamic_pointer_cast<ChNodeFEAxyzD>(my_shell_mesh->GetNode(node1)),
+                               std::dynamic_pointer_cast<ChNodeFEAxyzD>(my_shell_mesh->GetNode(node2)),
+                               std::dynamic_pointer_cast<ChNodeFEAxyzD>(my_shell_mesh->GetNode(node3)));
+
+        elementshell->SetDimensions(Sdx, Sdy);
+        elementshell->AddLayer(dz, 0 * CH_C_DEG_TO_RAD, mat);
+        elementshell->SetAlphaDamp(0.0);  // Structural damping for this element
+        my_shell_mesh->AddElement(elementshell);
+    }
+
+    // Add the mesh to the system.
+    my_system.Add(my_shell_mesh);
+
+    auto my_contactsurface_shell = chrono_types::make_shared<ChContactSurfaceMesh>(my_surfacematerial);
+    my_shell_mesh->AddContactSurface(my_contactsurface_shell);
+    my_contactsurface_shell->AddFacesFromBoundary(0.005);
+
     my_system.Set_G_acc(ChVector<>(0.0, 0.0, -9.81));
-    my_mesh->SetAutomaticGravity(false);
+    // Turn off gravity for only the shell elements
+    my_shell_mesh->SetAutomaticGravity(false);
 
     // -------------------------------------
     // Options for visualization in irrlicht
@@ -666,6 +674,42 @@ void ShellBrickContact() {
     mvisualizemeshcoll->SetDefaultMeshColor(ChColor(1, 0.5, 0));
     my_mesh->AddAsset(mvisualizemeshcoll);
 
+    // Duplicate irrlicht settings for the shell mesh
+
+    auto mvisualizemesh_shell = chrono_types::make_shared<ChVisualizationFEAmesh>(*(my_shell_mesh.get()));
+    mvisualizemesh_shell->SetFEMdataType(ChVisualizationFEAmesh::E_PLOT_NODE_SPEED_NORM);
+    mvisualizemesh_shell->SetColorscaleMinMax(0.0, 5.50);
+    mvisualizemesh_shell->SetShrinkElements(true, 0.85);
+    mvisualizemesh_shell->SetSmoothFaces(true);
+    my_shell_mesh->AddAsset(mvisualizemesh_shell);
+
+    auto mvisualizemeshref_shell = chrono_types::make_shared<ChVisualizationFEAmesh>(*(my_shell_mesh.get()));
+    mvisualizemeshref_shell->SetFEMdataType(ChVisualizationFEAmesh::E_PLOT_SURFACE);
+    mvisualizemeshref_shell->SetWireframe(true);
+    mvisualizemeshref_shell->SetDrawInUndeformedReference(true);
+    my_shell_mesh->AddAsset(mvisualizemeshref_shell);
+
+    auto mvisualizemeshC_shell = chrono_types::make_shared<ChVisualizationFEAmesh>(*(my_shell_mesh.get()));
+    mvisualizemeshC_shell->SetFEMglyphType(ChVisualizationFEAmesh::E_GLYPH_NODE_DOT_POS);
+    mvisualizemeshC_shell->SetFEMdataType(ChVisualizationFEAmesh::E_PLOT_NONE);
+    mvisualizemeshC_shell->SetSymbolsThickness(0.004);
+    my_shell_mesh->AddAsset(mvisualizemeshC_shell);
+
+    auto mvisualizemeshD_shell = chrono_types::make_shared<ChVisualizationFEAmesh>(*(my_shell_mesh.get()));
+    mvisualizemeshD_shell->SetFEMglyphType(ChVisualizationFEAmesh::E_GLYPH_NODE_VECT_SPEED);
+    mvisualizemeshD_shell->SetFEMglyphType(ChVisualizationFEAmesh::E_GLYPH_ELEM_TENS_STRAIN);
+    mvisualizemeshD_shell->SetFEMdataType(ChVisualizationFEAmesh::E_PLOT_NONE);
+    mvisualizemeshD_shell->SetSymbolsScale(1);
+    mvisualizemeshD_shell->SetColorscaleMinMax(-0.5, 5);
+    mvisualizemeshD_shell->SetZbufferHide(false);
+    my_shell_mesh->AddAsset(mvisualizemeshD_shell);
+
+    auto mvisualizemeshcoll_shell = chrono_types::make_shared<ChVisualizationFEAmesh>(*(my_shell_mesh.get()));
+    mvisualizemeshcoll_shell->SetFEMdataType(ChVisualizationFEAmesh::E_PLOT_CONTACTSURFACES);
+    mvisualizemeshcoll_shell->SetWireframe(true);
+    mvisualizemeshcoll_shell->SetDefaultMeshColor(ChColor(1, 0.5, 0));
+    my_shell_mesh->AddAsset(mvisualizemeshcoll_shell);
+
     application.AssetBindAll();
     application.AssetUpdateAll();
 
@@ -702,12 +746,12 @@ void ShellBrickContact() {
     while (application.GetDevice()->run() && (my_system.GetChTime() <= 1.0)) {
         if (my_system.GetChTime() < 0.5) {
             for (int ii = 0; ii < 25; ii++) {
-                auto Snode = std::dynamic_pointer_cast<ChNodeFEAxyzD>(my_mesh->GetNode(TotalNumNodes + ii));
+                auto Snode = std::dynamic_pointer_cast<ChNodeFEAxyzD>(my_shell_mesh->GetNode(ii));
                 Snode->SetForce(ChVector<>(0.0, 0.0, -100.0 * timecount * timestep));
             }
         } else {
             for (int ii = 0; ii < 25; ii++) {
-                auto Snode = std::dynamic_pointer_cast<ChNodeFEAxyzD>(my_mesh->GetNode(TotalNumNodes + ii));
+                auto Snode = std::dynamic_pointer_cast<ChNodeFEAxyzD>(my_shell_mesh->GetNode(ii));
                 Snode->SetForce(ChVector<>(0.0, 0.0, 10.0 * timecount * timestep));
             }
         }
@@ -887,7 +931,6 @@ void SimpleBoxContact() {
 
         // Set other element properties
         element->SetAlphaDamp(0.0);     // Structural damping for this element
-        element->SetGravityOn(true);    // turn internal gravitational force calculation off
         element->SetDPIterationNo(50);  // Set maximum number of iterations for Drucker-Prager Newton-Raphson
         element->SetDPYieldTol(1e-8);   // Set stop tolerance for Drucker-Prager Newton-Raphson
         element->SetStrainFormulation(ChElementBrick_9::Hencky);
@@ -930,7 +973,6 @@ void SimpleBoxContact() {
     // Plate->SetPos_dt(ChVector<>(0.0, 0.0, -0.1));
 
     my_system.Set_G_acc(ChVector<>(0.0, 0.0, -9.81));
-    my_mesh->SetAutomaticGravity(false);
 
     // -------------------------------------
     // Options for visualization in irrlicht
@@ -1185,7 +1227,6 @@ void SoilBin() {
 
         // Set other element properties
         element->SetAlphaDamp(5e-4);    // Structural damping for this element
-        element->SetGravityOn(false);   // turn internal gravitational force calculation off
         element->SetDPIterationNo(50);  // Set maximum number of iterations for Drucker-Prager Newton-Raphson
         element->SetDPYieldTol(1e-8);   // Set stop tolerance for Drucker-Prager Newton-Raphson
         element->SetStrainFormulation(ChElementBrick_9::Hencky);
@@ -1509,7 +1550,6 @@ void AxialDynamics() {
 
         // Set other element properties
         element->SetAlphaDamp(0.0);     // Structural damping for this element
-        element->SetGravityOn(false);   // turn internal gravitational force calculation off
         element->SetDPIterationNo(50);  // Set maximum number of iterations for Drucker-Prager Newton-Raphson
         element->SetDPYieldTol(1e-8);   // Set stop tolerance for Drucker-Prager Newton-Raphson
         element->SetStrainFormulation(ChElementBrick_9::Hencky);
@@ -1754,8 +1794,7 @@ void BendingQuasiStatic() {
         element->SetMaterial(material);
 
         // Set other element properties
-        element->SetAlphaDamp(0.25);   // Structural damping for this element
-        element->SetGravityOn(false);  // Turn internal gravitational force calculation off
+        element->SetAlphaDamp(0.25);  // Structural damping for this element
 
         element->SetStrainFormulation(ChElementBrick_9::Hencky);
         element->SetPlasticity(false);
@@ -1985,7 +2024,6 @@ void SwingingShell() {
 
         // Set other element properties
         element->SetAlphaDamp(0.005);  // Structural damping for this element
-        element->SetGravityOn(true);   // turn internal gravitational force calculation off
         element->SetStrainFormulation(ChElementBrick_9::Hencky);
         element->SetPlasticity(false);
 
@@ -2001,7 +2039,6 @@ void SwingingShell() {
     // -------------------------------------
 
     my_system.Set_G_acc(ChVector<>(0.0, 0.0, -9.81));
-    my_mesh->SetAutomaticGravity(false);
 
     auto mvisualizemesh = chrono_types::make_shared<ChVisualizationFEAmesh>(*(my_mesh.get()));
     mvisualizemesh->SetFEMdataType(ChVisualizationFEAmesh::E_PLOT_NODE_SPEED_NORM);

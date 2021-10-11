@@ -375,8 +375,7 @@ void Create_MB_FE(ChSystemSMC& mphysicalSystem,
                 element->AddLayer(dx, 0 * CH_C_DEG_TO_RAD, mat);
 
                 // Set other element properties
-                element->SetAlphaDamp(0.05);   // Structural damping for this element
-                element->SetGravityOn(false);  // turn internal gravitational force calculation off
+                element->SetAlphaDamp(0.05);  // Structural damping for this element
 
                 // Add element to mesh
                 my_mesh->AddElement(element);

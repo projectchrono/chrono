@@ -211,7 +211,6 @@ int main(int argc, char* argv[]) {
 
         element->SetMaterial(mmaterial);
         element->SetElemNum(elemcount);   // for EAS
-        element->SetGravityOn(false);     // turn gravity on/off from within the element
         element->SetMooneyRivlin(false);  // turn on/off Mooney Rivlin (Linear Isotropic by default)
         ChVectorN<double, 9> stock_alpha_EAS;
         stock_alpha_EAS.setZero();

@@ -161,15 +161,11 @@ int main(int argc, char* argv[]) {
         element->AddLayer(dz, -20 * CH_C_DEG_TO_RAD, mat);
 
         // Set other element properties
-        element->SetAlphaDamp(0.0);   // Structural damping for this
-        element->SetGravityOn(true);  // element calculates its own gravitational load
+        element->SetAlphaDamp(0.0);  // Structural damping for this
 
         // Add element to mesh
         my_mesh->AddElement(element);
     }
-
-    // Switch off mesh class gravity (ANCF shell elements have a custom implementation)
-    my_mesh->SetAutomaticGravity(false);
 
     // Add the mesh to the system
     my_system.Add(my_mesh);
