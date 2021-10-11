@@ -23,7 +23,11 @@
 #include "chrono/fea/ChElementShellReissner4.h"
 #include "chrono/fea/ChElementTetra_4.h"
 #include "chrono/fea/ChElementBrick_9.h"
+#include "chrono/fea/ChElementBrick.h"
+#include "chrono/fea/ChElementBrickANCF_3843.h"
 #include "chrono/fea/ChElementCableANCF.h"
+#include "chrono/fea/ChElementBeamANCF_3243.h"
+#include "chrono/fea/ChElementBeamANCF_3333.h"
 #include "chrono/fea/ChElementBeamEuler.h"
 #include "chrono/fea/ChFaceTetra_4.h"
 #include "chrono/fea/ChFaceBrick_9.h"
@@ -751,6 +755,52 @@ void ChContactSurfaceMesh::AddFacesFromBoundary(double sphere_swept, bool ccw) {
                                    false, false, false,           // are vertexes owned by this triangle?
                                    true, false, true,             // are edges owned by this triangle?
                                    capsule_radius);
+            contact_triangle->GetCollisionModel()->BuildModel();
+        }
+        else if (auto mbeam = std::dynamic_pointer_cast<ChElementBeamANCF_3243>(m_mesh->GetElement(ie))) {
+            std::shared_ptr<ChNodeFEAxyzD> nA = mbeam->GetNodeA();
+            std::shared_ptr<ChNodeFEAxyzD> nB = mbeam->GetNodeB();
+
+            auto contact_triangle = chrono_types::make_shared<ChContactTriangleXYZ>();
+            contact_triangle->SetNode1(nA);
+            contact_triangle->SetNode2(nB);
+            contact_triangle->SetNode3(nB);
+            vfaces.push_back(contact_triangle);
+            contact_triangle->SetContactSurface(this);
+            
+            double capsule_radius = 0.5 * sqrt(pow(mbeam->GetThicknessY(), 2) + pow(mbeam->GetThicknessZ(), 2));
+            
+            contact_triangle->GetCollisionModel()->ClearModel();
+            ((collision::ChCollisionModelBullet*)contact_triangle->GetCollisionModel())
+                ->AddTriangleProxy(m_material,                    // contact materials
+                    &nA->pos, &nB->pos, &nB->pos,  // vertices
+                    0, 0, 0,                       // no wing vertexes
+                    false, false, false,           // are vertexes owned by this triangle?
+                    true, false, true,             // are edges owned by this triangle?
+                    capsule_radius);
+            contact_triangle->GetCollisionModel()->BuildModel();
+        }
+        else if (auto mbeam = std::dynamic_pointer_cast<ChElementBeamANCF_3333>(m_mesh->GetElement(ie))) {
+            std::shared_ptr<ChNodeFEAxyzD> nA = mbeam->GetNodeA();
+            std::shared_ptr<ChNodeFEAxyzD> nB = mbeam->GetNodeB();
+
+            auto contact_triangle = chrono_types::make_shared<ChContactTriangleXYZ>();
+            contact_triangle->SetNode1(nA);
+            contact_triangle->SetNode2(nB);
+            contact_triangle->SetNode3(nB);
+            vfaces.push_back(contact_triangle);
+            contact_triangle->SetContactSurface(this);
+
+            double capsule_radius = 0.5 * sqrt(pow(mbeam->GetThicknessY(), 2) + pow(mbeam->GetThicknessZ(), 2));
+
+            contact_triangle->GetCollisionModel()->ClearModel();
+            ((collision::ChCollisionModelBullet*)contact_triangle->GetCollisionModel())
+                ->AddTriangleProxy(m_material,                    // contact materials
+                    &nA->pos, &nB->pos, &nB->pos,  // vertices
+                    0, 0, 0,                       // no wing vertexes
+                    false, false, false,           // are vertexes owned by this triangle?
+                    true, false, true,             // are edges owned by this triangle?
+                    capsule_radius);
             contact_triangle->GetCollisionModel()->BuildModel();
         }
     }
