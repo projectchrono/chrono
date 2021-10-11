@@ -47,7 +47,7 @@ In this page you can find a description of their properties.
 - Useful for defining simple beams of cable type, where information about torsion is not useful
 - Ex. used by these elements:
   - ChElementCableANCF 
-  - ChElementShellANCF
+  - ChElementShellANCF_3423
 
  
 # ChNodeFEAxyzDD {#manual_ChNodeFEAxyzDD}
@@ -56,9 +56,21 @@ In this page you can find a description of their properties.
 
 - 9 coordinates (x y z translations and two directions)
 - Ex. used by these elements:
-  - ChElementBeamANCF 
+  - ChElementBeamANCF_3333 
+  - ChElementShellANCF_3833
 
-  
+
+# ChNodeFEAxyzDDD {#manual_ChNodeFEAxyzDDD}
+
+![](http://www.projectchrono.org/assets/manual/fea_ChNodeFEAxyzDDD.png)
+
+- 12 coordinates (x y z translations and three directions)
+- Ex. used by these elements:
+  - ChElementBeamANCF_3243 
+  - ChElementShellANCF_3443
+  - ChElementBrickANCF_3843
+
+
 # ChNodeFEAxyzP   {#manual_ChNodeFEAxyzP}
 
 ![](http://www.projectchrono.org/assets/manual/fea_ChNodeFEAxyzP.png)

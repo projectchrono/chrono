@@ -148,6 +148,19 @@ The chrono::fea::ChElementBrick_9 is a brick element implemented using the ANCF 
 - Useful for solids, with structured grids
 
 
+
+# ChElementBrickANCF_3843    {#manual_ChElementBrickANCF_3843}
+
+![](http://www.projectchrono.org/assets/manual/fea_ChElementBrickANCF_3843.png)
+
+The chrono::fea::ChElementBrickANCF_3843 is a 8 node brick element based on the ANCF approach with a full set of position vector gradient coordinates at each node.
+
+- 8 nodes of ChNodeFEAxyzDDD type
+- 64 integration points
+- ANCF formulation for large displacements
+- Useful for solids, with structured grids
+
+
   
 # ChElementCableANCF   {#manual_ChElementCableANCF}
 
@@ -164,12 +177,25 @@ The chrono::fea::ChElementCableANCF is a fast element for the simulation of thin
 
 
 
-# ChElementBeamANCF   {#manual_ChElementBeamANCF}
+# ChElementBeamANCF_3243   {#manual_ChElementBeamANCF_3243}
+
+![](http://www.projectchrono.org/assets/manual/fea_ChElementBeamANCF_3243.png)
+
+The chrono::fea::ChElementBeamANCF_3243 is a thick beam element implemented using the ANCF formulation with a full set of position vector gradient coordinates at each node. 
+As an alternative, we also provide a chrono::fea::ChElementBeamIGA with more advanced functionality in the field of Geometrically Exact Beam theory.
+
+- 2 nodes of chrono::fea::ChNodeFEAxyzDDD type
+- ANCF formulation for large displacements
+- Section property: rectangular width-height, E, Poisson ratio, shear correction factors, density
+
+
+
+# ChElementBeamANCF_3333   {#manual_ChElementBeamANCF_3333}
 
 ![](http://www.projectchrono.org/assets/manual/fea_ChElementBeamANCF.png)
 
-The chrono::fea::ChElementBeamANCF is a thick beam element implemented using the ANCF formulation. 
-As an alternative, we also provide a chrono::fea::ChElementBeamIGA with more advanced functionality in the field of  Geometrically Exact Beam theory.
+The chrono::fea::ChElementBeamANCF_3333 is a thick beam element implemented using the ANCF formulation. 
+As an alternative, we also provide a chrono::fea::ChElementBeamIGA with more advanced functionality in the field of Geometrically Exact Beam theory.
 
 - 3 nodes of chrono::fea::ChNodeFEAxyzDD type
 - ANCF formulation for large displacements
@@ -269,11 +295,11 @@ The chrono::fea::ChElementShellReissner is a quadrilateral thick shell element.
   
 
   
-# ChElementShellANCF   {#manual_ChElementShellANCF}
+# ChElementShellANCF_3423   {#manual_ChElementShellANCF_3423}
 
 ![](http://www.projectchrono.org/assets/manual/fea_ChElementShellANCF.png)
 
-The chrono::fea::ChElementShellReissner is a quadrilateral thick shell element based on the ANCF approach.
+The chrono::fea::ChElementShellANCF_3423 is a quadrilateral thick shell element based on the ANCF approach.
 
 - 4 nodes of chrono::fea::ChNodeFEAxyzD type
 - Bi-linear interpolation
@@ -285,19 +311,33 @@ The chrono::fea::ChElementShellReissner is a quadrilateral thick shell element b
 - Nodes D must be aligned to shell normal at initialization
 
 
+
+# ChElementShellANCF_3443   {#manual_ChElementShellANCF_3443}
+
+![](http://www.projectchrono.org/assets/manual/fea_ChElementShellANCF_3443.png)
+
+The chrono::fea::ChElementShellANCF_3443 is a quadrilateral thick shell element based on the ANCF approach with a full set of position vector gradient coordinates at each node.
+
+- 4 nodes of chrono::fea::ChNodeFEAxyzDDD type
+- Allows large displacements, using ANCF formulation
+- Thick shells allowed
+- Can have multi-layered materials
+- Locking is a concern with this element as it is currently formulated
+
+
   
-# ChElementShellANCF_8   {#manual_ChElementShellANCF_8}
+# ChElementShellANCF_3833   {#manual_ChElementShellANCF_3833}
 
 ![](http://www.projectchrono.org/assets/manual/fea_ChElementShellANCF_8.png)
 
-The chrono::fea::ChElementShellANCF_8 is a quadrilateral thick shell element based on the ANCF approach.
+The chrono::fea::ChElementShellANCF_3833 is a quadrilateral thick shell element based on the ANCF approach.
 
 - 8 nodes of chrono::fea::ChNodeFEAxyzDD type
 - Higher order interpolation
 - Allows large displacements, using ANCF formulation
 - Thick shells allowed
 - Can have multi-layered materials
-- ANS-EAS, shear-lock free
+- Formulated to be shear-lock free
 - Nodes D must be aligned to shell normal at initialization
 
 
