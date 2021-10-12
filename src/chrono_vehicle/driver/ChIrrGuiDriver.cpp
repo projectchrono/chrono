@@ -115,7 +115,7 @@ bool ChIrrGuiDriver::OnEvent(const SEvent& event) {
         if (m_braking != new_braking)
             SetBraking(new_braking);
 
-        if (event.JoystickEvent.Axis[clutch_axis] != SHRT_MAX) {
+        if (event.JoystickEvent.Axis[clutch_axis] != SHRT_MAX && clutch_axis!=NONE) {
             SetThrottle(0);
             if (m_app.m_vehicle->GetPowertrain()) {
                 if (event.JoystickEvent.IsButtonPressed(22)) {
