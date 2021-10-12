@@ -71,6 +71,7 @@ bool GetProblemSpecs(int argc,
                      double& settling_time,
                      double& sim_time,
                      double& output_fps,
+                     double& vis_output_fps,
                      double& render_fps,
                      bool& verbose,
                      bool& use_DBP_rig,
@@ -172,13 +173,14 @@ int main(int argc, char** argv) {
     double settling_time = 0.4;
     double sim_time = 20;
     double output_fps = 100;
+    double vis_output_fps = 100;
     double render_fps = 100;
     bool verbose = true;
     bool use_DBP_rig = false;
     bool add_obstacles = false;
     if (!GetProblemSpecs(argc, argv, rank, terrain_specfile, init_loc, terrain_length, terrain_width, nthreads_tire,
                          nthreads_terrain, step_size, fixed_settling_time, KE_threshold, settling_time, sim_time,
-                         output_fps, render_fps, verbose, use_DBP_rig, add_obstacles)) {
+                         output_fps, vis_output_fps, render_fps, verbose, use_DBP_rig, add_obstacles)) {
         MPI_Finalize();
         return 1;
     }
@@ -252,6 +254,7 @@ int main(int argc, char** argv) {
     // Number of simulation steps between miscellaneous events.
     int sim_steps = (int)std::ceil(sim_time / step_size);
     int output_steps = (int)std::ceil(1 / (output_fps * step_size));
+    int vis_output_steps = (int)std::ceil(1 / (vis_output_fps * step_size));
 
     // Create the node (rover, tire, or terrain node, depending on rank).
     ChVehicleCosimBaseNode* node = nullptr;
@@ -273,7 +276,7 @@ int main(int argc, char** argv) {
         curiosity->SetDriver(driver);
         curiosity->SetIntegratorType(ChTimestepper::Type::EULER_IMPLICIT_LINEARIZED, ChSolver::Type::BARZILAIBORWEIN);
         curiosity->SetVerbose(verbose);
-        curiosity->SetInitialLocation(ChVector<>(init_loc.x(), init_loc.y(), 0.5));
+        curiosity->SetInitialLocation(ChVector<>(init_loc.x(), init_loc.y(), 0.2));
         curiosity->SetInitialYaw(0);
         curiosity->SetStepSize(step_size);
         curiosity->SetNumThreads(1);
@@ -435,6 +438,7 @@ int main(int argc, char** argv) {
     // Perform co-simulation
     // (perform synchronization inter-node data exchange)
     int output_frame = 0;
+    int vis_output_frame = 0;
 
     for (int is = 0; is < sim_steps; is++) {
         double time = is * step_size;
@@ -452,6 +456,10 @@ int main(int argc, char** argv) {
         if (is % output_steps == 0) {
             node->OutputData(output_frame);
             output_frame++;
+        }
+        if (is % vis_output_steps == 0) {
+            node->OutputVisualizationData(vis_output_frame);
+            vis_output_frame++;
         }
     }
 
@@ -478,6 +486,7 @@ bool GetProblemSpecs(int argc,
                      double& settling_time,
                      double& sim_time,
                      double& output_fps,
+                     double& vis_output_fps,
                      double& render_fps,
                      bool& verbose,
                      bool& use_DBP_rig,
@@ -507,6 +516,8 @@ bool GetProblemSpecs(int argc,
 
     cli.AddOption<bool>("Output", "quiet", "Disable verbose messages");
     cli.AddOption<double>("Output", "output_fps", "Output frequency [fps]", std::to_string(output_fps));
+    cli.AddOption<double>("Output", "vis_output_fps", "Visualization output frequency [fps]",
+                          std::to_string(vis_output_fps));
 
     cli.AddOption<double>("Visualization", "render_fps", "Render frequency [fps]", std::to_string(render_fps));
 
@@ -557,6 +568,7 @@ bool GetProblemSpecs(int argc,
     verbose = !cli.GetAsType<bool>("quiet");
 
     output_fps = cli.GetAsType<double>("output_fps");
+    vis_output_fps = cli.GetAsType<double>("vis_output_fps");
     render_fps = cli.GetAsType<double>("render_fps");
 
     nthreads_tire = cli.GetAsType<int>("threads_tire");

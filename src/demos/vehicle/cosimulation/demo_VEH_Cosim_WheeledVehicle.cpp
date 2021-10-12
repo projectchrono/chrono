@@ -176,7 +176,7 @@ int main(int argc, char** argv) {
         if (verbose)
             cout << "[Terrain node] rank = " << rank << " running on: " << procname << endl;
 
-        auto terrain = new ChVehicleCosimTerrainNodeSCM(vehicle::GetDataFile("cosim/scm.json"));
+        auto terrain = new ChVehicleCosimTerrainNodeSCM(vehicle::GetDataFile("cosim/terrain/scm.json"));
         terrain->SetDimensions(terrain_length, terrain_width);
         terrain->SetVerbose(verbose);
         terrain->SetStepSize(step_size);
@@ -225,6 +225,7 @@ int main(int argc, char** argv) {
 
         if (is % output_steps == 0) {
             node->OutputData(output_frame);
+            node->OutputVisualizationData(output_frame);
             output_frame++;
         }
     }

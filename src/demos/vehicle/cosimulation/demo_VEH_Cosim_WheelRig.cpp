@@ -74,9 +74,11 @@ bool GetProblemSpecs(int argc,
                      double& dbp_filter_window,
                      bool& use_checkpoint,
                      double& output_fps,
+                     double& vis_output_fps,
                      double& render_fps,
                      bool& sim_output,
                      bool& settling_output,
+                     bool& vis_output,
                      bool& render,
                      bool& verbose,
                      std::string& suffix);
@@ -126,9 +128,11 @@ int main(int argc, char** argv) {
     double slip = 0;
     bool use_checkpoint = false;
     double output_fps = 100;
+    double vis_output_fps = 100;
     double render_fps = 100;
     bool sim_output = true;
     bool settling_output = true;
+    bool vis_output = true;
     bool render = true;
     double total_mass = 200;
     double toe_angle = 0;
@@ -137,8 +141,8 @@ int main(int argc, char** argv) {
     bool verbose = true;
     if (!GetProblemSpecs(argc, argv, rank, terrain_specfile, tire_specfile, nthreads_tire, nthreads_terrain, step_size,
                          fixed_settling_time, KE_threshold, settling_time, sim_time, act_type, base_vel, slip,
-                         total_mass, toe_angle, dbp_filter_window, use_checkpoint, output_fps, render_fps, sim_output,
-                         settling_output, render, verbose, suffix)) {
+                         total_mass, toe_angle, dbp_filter_window, use_checkpoint, output_fps, vis_output_fps,
+                         render_fps, sim_output, settling_output, vis_output, render, verbose, suffix)) {
         MPI_Finalize();
         return 1;
     }
@@ -206,6 +210,7 @@ int main(int argc, char** argv) {
     // Number of simulation steps between miscellaneous events.
     int sim_steps = (int)std::ceil(sim_time / step_size);
     int output_steps = (int)std::ceil(1 / (output_fps * step_size));
+    int vis_output_steps = (int)std::ceil(1 / (vis_output_fps * step_size));
 
     // Create the node (a rig, tire, or terrain node, depending on rank).
     ChVehicleCosimBaseNode* node = nullptr;
@@ -391,6 +396,7 @@ int main(int argc, char** argv) {
     // Perform co-simulation
     // (perform synchronization inter-node data exchange)
     int output_frame = 0;
+    int vis_output_frame = 0;
 
     for (int is = 0; is < sim_steps; is++) {
         double time = is * step_size;
@@ -408,6 +414,11 @@ int main(int argc, char** argv) {
         if (sim_output && is % output_steps == 0) {
             node->OutputData(output_frame);
             output_frame++;
+        }
+
+        if (vis_output && is % vis_output_steps == 0) {
+            node->OutputVisualizationData(vis_output_frame);
+            vis_output_frame++;
         }
     }
 
@@ -441,9 +452,11 @@ bool GetProblemSpecs(int argc,
                      double& dbp_filter_window,
                      bool& use_checkpoint,
                      double& output_fps,
+                     double& vis_output_fps,
                      double& render_fps,
                      bool& sim_output,
                      bool& settling_output,
+                     bool& vis_output,
                      bool& render,
                      bool& verbose,
                      std::string& suffix) {
@@ -478,7 +491,10 @@ bool GetProblemSpecs(int argc,
     cli.AddOption<bool>("Output", "quiet", "Disable verbose messages");
     cli.AddOption<bool>("Output", "no_output", "Disable generation of simulation output files");
     cli.AddOption<bool>("Output", "no_settling_output", "Disable generation of settling output files");
+    cli.AddOption<bool>("Output", "no_vis_output", "Disable generation of post-processing visualization output files");
     cli.AddOption<double>("Output", "output_fps", "Output frequency [fps]", std::to_string(output_fps));
+    cli.AddOption<double>("Output", "vis_output_fps", "Visualization output frequency [fps]",
+                          std::to_string(vis_output_fps));
     cli.AddOption<std::string>("Output", "suffix", "Suffix for output directory names", suffix);
 
     cli.AddOption<bool>("Visualization", "no_render", "Disable run-time rendering");
@@ -553,8 +569,10 @@ bool GetProblemSpecs(int argc,
     render = !cli.GetAsType<bool>("no_render");
     sim_output = !cli.GetAsType<bool>("no_output");
     settling_output = !cli.GetAsType<bool>("no_settling_output");
+    vis_output = !cli.GetAsType<bool>("no_vis_output");
 
     output_fps = cli.GetAsType<double>("output_fps");
+    vis_output_fps = cli.GetAsType<double>("vis_output_fps");
     render_fps = cli.GetAsType<double>("render_fps");
 
     use_checkpoint = cli.GetAsType<bool>("use_checkpoint");
