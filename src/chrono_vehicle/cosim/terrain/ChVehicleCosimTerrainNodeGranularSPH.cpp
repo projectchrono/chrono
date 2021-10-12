@@ -49,6 +49,9 @@ using namespace rapidjson;
 namespace chrono {
 namespace vehicle {
 
+// Obstacle bodies have identifier larger than this value
+static const int body_id_obstacles = 100000;
+
 // -----------------------------------------------------------------------------
 // Construction of the terrain node:
 // - create the Chrono system and set solver parameters
@@ -353,6 +356,7 @@ void ChVehicleCosimTerrainNodeGranularSPH::Construct() {
     fsi::utils::AddBoxBce(m_systemFSI->GetDataManager(), m_params, container, pos_yn, chrono::QUNIT, size_XZ, 13);
 
     // Add all rigid obstacles
+    int id = body_id_obstacles;
     for (auto& b : m_obstacles) {
         auto mat = b.m_contact_mat.CreateMaterial(m_system->GetContactMethod());
         auto trimesh = chrono_types::make_shared<geometry::ChTriangleMeshConnected>();
@@ -364,6 +368,7 @@ void ChVehicleCosimTerrainNodeGranularSPH::Construct() {
 
         auto body = std::shared_ptr<ChBody>(m_system->NewBody());
         body->SetNameString("obstacle");
+        body->SetIdentifier(id++);
         body->SetPos(b.m_init_pos);
         body->SetRot(b.m_init_rot);
         body->SetMass(mass * b.m_density);
@@ -533,6 +538,19 @@ void ChVehicleCosimTerrainNodeGranularSPH::OnOutputData(int frame) {
         m_systemFSI->GetDataManager()->fsiGeneralData->sr_tau_I_mu_i,
         m_systemFSI->GetDataManager()->fsiGeneralData->referenceArray,
         m_systemFSI->GetDataManager()->fsiGeneralData->referenceArray_FEA, m_node_out_dir + "/simulation", true);
+}
+
+void ChVehicleCosimTerrainNodeGranularSPH::OutputVisualizationData(int frame) {
+    auto filename = OutputFilename(m_node_out_dir + "/visualization", "vis", "chpf", frame, 5);
+    m_systemFSI->SetParticleOutputMode(CHFSI_OUTPUT_MODE::CHPF);
+    m_systemFSI->WriteParticleFile(filename);
+    if (m_obstacles.size() > 0) {
+        filename = OutputFilename(m_node_out_dir + "/visualization", "vis", "dat", frame, 5);
+        // Include only obstacle bodies
+        utils::WriteVisualizationAssets(
+            m_system, filename, [](const ChBody& b) -> bool { return b.GetIdentifier() >= body_id_obstacles; }, true,
+            " ");
+    }
 }
 
 }  // end namespace vehicle

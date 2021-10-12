@@ -87,6 +87,10 @@ class CH_VEHICLE_API ChVehicleCosimTerrainNode : public ChVehicleCosimBaseNode {
     /// Output logging and debugging data.
     virtual void OutputData(int frame) override final;
 
+    /// Output post-processing visualization data.
+    /// If implemented, this function should write a file in the "visualization" subdirectory of m_node_out_dir.
+    virtual void OutputVisualizationData(int frame) override {}
+
     /// Return current number of contacts.
     /// (concrete terrain specific)
     virtual int GetNumContacts() const { return 0; }
@@ -128,7 +132,6 @@ class CH_VEHICLE_API ChVehicleCosimTerrainNode : public ChVehicleCosimBaseNode {
     virtual void OnAdvance(double step_size) = 0;
 
     /// Perform additional output at the specified frame (called from within OutputData).
-    /// For example, output terrain-specific data for post-procesing.
     virtual void OnOutputData(int frame) {}
 
     /// Render simulation.

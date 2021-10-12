@@ -83,12 +83,6 @@ void ChVehicleCosimTerrainNode::Initialize() {
     m_spindle_state.resize(m_num_tire_nodes);
     m_wheel_contact.resize(m_num_tire_nodes);
 
-    // Create subdirectory for output from simulation
-    if (!filesystem::create_directory(filesystem::path(m_node_out_dir + "/simulation"))) {
-        std::cout << "Error creating directory " << m_node_out_dir + "/simulation" << std::endl;
-        return;
-    }
-
     // -----------------------------------------
     // Send terrain patch dimensions to MBS node
     // -----------------------------------------

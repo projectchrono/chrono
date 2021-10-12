@@ -147,11 +147,23 @@ void ChVehicleCosimBaseNode::SetOutDir(const std::string& dir_name, const std::s
     m_out_dir = dir_name;
     m_node_out_dir = dir_name + "/" + m_name + suffix;
 
+    // Create node-specific output directory
     if (!filesystem::create_directory(filesystem::path(m_node_out_dir))) {
         std::cout << "Error creating directory " << m_node_out_dir << std::endl;
         return;
     }
 
+    // Create subdirectories for simulation and visualization outputs
+    if (!filesystem::create_directory(filesystem::path(m_node_out_dir + "/simulation"))) {
+        std::cout << "Error creating directory " << m_node_out_dir + "/simulation" << std::endl;
+        return;
+    }
+    if (!filesystem::create_directory(filesystem::path(m_node_out_dir + "/visualization"))) {
+        std::cout << "Error creating directory " << m_node_out_dir + "/visualization" << std::endl;
+        return;
+    }
+
+    // Create results output file
     m_outf.open(m_node_out_dir + "/results.dat", std::ios::out);
     m_outf.precision(7);
     m_outf << std::scientific;

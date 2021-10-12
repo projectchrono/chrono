@@ -104,6 +104,9 @@ class CH_VEHICLE_API ChVehicleCosimTireNode : public ChVehicleCosimBaseNode {
     /// Output logging and debugging data.
     virtual void OutputData(int frame) override final;
 
+    /// Output post-processing visualization data.
+    virtual void OutputVisualizationData(int frame) override final {}
+
   protected:
     ChVehicleCosimTireNode(int index);
 

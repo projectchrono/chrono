@@ -180,7 +180,7 @@ void ChVehicleCosimViperNode::OnOutputData(int frame) {
     csv << m_system->GetChTime() << endl;  // current time
     WriteBodyInformation(csv);             // vehicle body states
 
-    std::string filename = OutputFilename(m_node_out_dir, "data", "dat", frame + 1, 5);
+    std::string filename = OutputFilename(m_node_out_dir + "/simulation", "data", "dat", frame + 1, 5);
     csv.write_to_file(filename);
 
     if (m_verbose)

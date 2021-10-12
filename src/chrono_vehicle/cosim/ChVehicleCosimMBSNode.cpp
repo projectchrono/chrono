@@ -27,6 +27,7 @@
 #include "chrono/ChConfig.h"
 #include "chrono/solver/ChIterativeSolver.h"
 #include "chrono/solver/ChDirectSolverLS.h"
+#include "chrono/utils/ChUtilsInputOutput.h"
 
 #ifdef CHRONO_PARDISO_MKL
     #include "chrono_pardisomkl/ChSolverPardisoMKL.h"
@@ -301,6 +302,11 @@ void ChVehicleCosimMBSNode::OutputData(int frame) {
 
     // Let derived classes perform specific output
     OnOutputData(frame);
+}
+
+void ChVehicleCosimMBSNode::OutputVisualizationData(int frame) {
+    auto filename = OutputFilename(m_node_out_dir + "/visualization", "vis", "dat", frame, 5);
+    utils::WriteVisualizationAssets(m_system, filename, true, " ");
 }
 
 }  // end namespace vehicle

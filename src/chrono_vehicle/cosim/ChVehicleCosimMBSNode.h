@@ -94,6 +94,9 @@ class CH_VEHICLE_API ChVehicleCosimMBSNode : public ChVehicleCosimBaseNode {
     /// Output logging and debugging data.
     virtual void OutputData(int frame) override final;
 
+    /// Output post-processing visualization data.
+    virtual void OutputVisualizationData(int frame) override final;
+
   protected:
     /// Construct a base class MBS node.
     ChVehicleCosimMBSNode();

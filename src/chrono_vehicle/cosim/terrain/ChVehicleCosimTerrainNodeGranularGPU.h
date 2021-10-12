@@ -111,6 +111,9 @@ class CH_VEHICLE_API ChVehicleCosimTerrainNodeGranularGPU : public ChVehicleCosi
     /// The function also returns the current depth of granular material.
     double CalculatePackingDensity(double& depth);
 
+    /// Output post-processing visualization data.
+    virtual void OutputVisualizationData(int frame) override final;
+
   private:
     ChSystemSMC* m_system;              ///< system for proxy bodies
     gpu::ChSystemGpuMesh* m_systemGPU;  ///< Chrono::Gpu system

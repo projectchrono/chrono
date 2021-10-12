@@ -61,6 +61,9 @@ class CH_VEHICLE_API ChVehicleCosimTerrainNodeGranularSPH : public ChVehicleCosi
     void SetGranularMaterial(double radius,    ///< particle radius (default: 0.01)
                              double density);  ///< particle material density (default: 2000)
 
+    /// Output post-processing visualization data.
+    virtual void OutputVisualizationData(int frame) override final;
+
   private:
     ChSystemSMC* m_system;          ///< containing system
     fsi::ChSystemFsi* m_systemFSI;  ///< containing FSI system

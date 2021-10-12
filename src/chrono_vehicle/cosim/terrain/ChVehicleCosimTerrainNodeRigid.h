@@ -71,6 +71,9 @@ class CH_VEHICLE_API ChVehicleCosimTerrainNodeRigid : public ChVehicleCosimTerra
     /// spheres attached to each FEA mesh node.
     void SetProxyContactRadius(double radius) { m_radius_p = radius; }
 
+    /// Output post-processing visualization data.
+    virtual void OutputVisualizationData(int frame) override final;
+
   private:
     ChSystemMulticore* m_system;  ///< containing system
     double m_radius_p;            ///< radius for a proxy body

@@ -126,6 +126,9 @@ class CH_VEHICLE_API ChVehicleCosimTerrainNodeGranularOMP : public ChVehicleCosi
     /// The function also returns the current depth of granular material.
     double CalculatePackingDensity(double& depth);
 
+    /// Output post-processing visualization data.
+    virtual void OutputVisualizationData(int frame) override final;
+
   private:
     ChSystemMulticore* m_system;  ///< containing system
     bool m_constructed;           ///< system construction completed?
@@ -142,7 +145,6 @@ class CH_VEHICLE_API ChVehicleCosimTerrainNodeGranularOMP : public ChVehicleCosi
     bool m_use_checkpoint;              ///< initialize granular terrain from checkpoint file
     std::string m_checkpoint_filename;  ///< name of input checkpoint file
 
-    int m_Id_g;                    ///< first identifier for granular material bodies
     unsigned int m_num_particles;  ///< number of granular material bodies
     double m_radius_g;             ///< radius of one particle of granular material
     double m_rho_g;                ///< particle material density

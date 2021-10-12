@@ -48,6 +48,9 @@ class ChVehicleCosimOtherNode : public ChVehicleCosimBaseNode {
 
     /// Output logging and debugging data.
     virtual void OutputData(int frame) override final {}
+
+    /// Output post-processing visualization data.
+    virtual void OutputVisualizationData(int frame) override final {}
 };
 
 /// @} vehicle_cosim

@@ -45,6 +45,11 @@ using namespace rapidjson;
 namespace chrono {
 namespace vehicle {
 
+// Ensure that all bodies other than the rigid terrain and obstacles are created with a smaller identifier.
+// This allows filtering terrain+obstacle bodies.
+static const int body_id_terrain = 100000;
+static const int body_id_obstacles = 100001;
+
 // -----------------------------------------------------------------------------
 // Construction of the terrain node:
 // - create the Chrono system and set solver parameters
@@ -220,7 +225,7 @@ void ChVehicleCosimTerrainNodeRigid::Construct() {
     // Create container body
     auto container = std::shared_ptr<ChBody>(m_system->NewBody());
     m_system->AddBody(container);
-    container->SetIdentifier(-1);
+    container->SetIdentifier(body_id_terrain);
     container->SetNameString("container");
     container->SetMass(1);
     container->SetBodyFixed(true);
@@ -250,6 +255,7 @@ void ChVehicleCosimTerrainNodeRigid::Construct() {
     }
 
     // Add all rigid obstacles
+    int id = body_id_obstacles;
     for (auto& b : m_obstacles) {
         auto mat = b.m_contact_mat.CreateMaterial(m_system->GetContactMethod());
         auto trimesh = chrono_types::make_shared<geometry::ChTriangleMeshConnected>();
@@ -261,6 +267,7 @@ void ChVehicleCosimTerrainNodeRigid::Construct() {
 
         auto body = std::shared_ptr<ChBody>(m_system->NewBody());
         body->SetNameString("obstacle");
+        body->SetIdentifier(id++);
         body->SetPos(b.m_init_pos);
         body->SetRot(b.m_init_rot);
         body->SetMass(mass * b.m_density);
@@ -472,6 +479,13 @@ void ChVehicleCosimTerrainNodeRigid::Render(double time) {
 }
 
 // -----------------------------------------------------------------------------
+
+void ChVehicleCosimTerrainNodeRigid::OutputVisualizationData(int frame) {
+    auto filename = OutputFilename(m_node_out_dir + "/visualization", "vis", "dat", frame, 5);
+    // Include only main body and obstacles
+    utils::WriteVisualizationAssets(
+        m_system, filename, [](const ChBody& b) -> bool { return b.GetIdentifier() > body_id_terrain; }, true, " ");
+}
 
 void ChVehicleCosimTerrainNodeRigid::PrintMeshProxiesUpdateData(unsigned int i, const MeshState& mesh_state) {
     auto lowest = std::min_element(

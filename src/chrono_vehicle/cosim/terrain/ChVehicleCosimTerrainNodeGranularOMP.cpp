@@ -51,6 +51,11 @@ using namespace rapidjson;
 namespace chrono {
 namespace vehicle {
 
+// Ensure that all bodies other than obstacles or granular particles are created with a smaller identifier.
+// This allows filtering particle bodies or particle+obstacle bodies.
+static const int body_id_obstacles = 100000;  // start identifier for obstacle bodies
+static const int body_id_particles = 110000;  // start identifier for particle bodies
+
 // -----------------------------------------------------------------------------
 // Construction of the terrain node:
 // - create the (multicore) Chrono system and set solver parameters
@@ -65,7 +70,6 @@ ChVehicleCosimTerrainNodeGranularOMP::ChVehicleCosimTerrainNodeGranularOMP(doubl
       m_init_depth(0.2),
       m_separation_factor(1.001),
       m_in_layers(false),
-      m_Id_g(10000),
       m_constructed(false),
       m_use_checkpoint(false),
       m_settling_output(false),
@@ -121,7 +125,6 @@ ChVehicleCosimTerrainNodeGranularOMP::ChVehicleCosimTerrainNodeGranularOMP(doubl
 ChVehicleCosimTerrainNodeGranularOMP::ChVehicleCosimTerrainNodeGranularOMP(ChContactMethod method,
                                                                            const std::string& specfile)
     : ChVehicleCosimTerrainNodeChrono(Type::GRANULAR_OMP, 0, 0, method),
-      m_Id_g(10000),
       m_constructed(false),
       m_use_checkpoint(false),
       m_settling_output(false),
@@ -408,7 +411,7 @@ void ChVehicleCosimTerrainNodeGranularOMP::Construct() {
     m1->setDefaultSize(m_radius_g);
 
     // Set starting value for body identifiers
-    gen.setBodyIdentifier(m_Id_g);
+    gen.setBodyIdentifier(body_id_particles);
 
     // Create particles using the specified volume sampling type
     utils::Sampler<double>* sampler;
@@ -502,6 +505,7 @@ void ChVehicleCosimTerrainNodeGranularOMP::Construct() {
         cout << "[Terrain node] initial height = " << m_init_height << endl;
 
     // Add all rigid obstacles
+    int id = body_id_obstacles;
     for (auto& b : m_obstacles) {
         auto mat = b.m_contact_mat.CreateMaterial(m_system->GetContactMethod());
         auto trimesh = chrono_types::make_shared<geometry::ChTriangleMeshConnected>();
@@ -513,6 +517,7 @@ void ChVehicleCosimTerrainNodeGranularOMP::Construct() {
 
         auto body = std::shared_ptr<ChBody>(m_system->NewBody());
         body->SetNameString("obstacle");
+        body->SetIdentifier(id++);
         body->SetPos(b.m_init_pos);
         body->SetRot(b.m_init_rot);
         body->SetMass(mass * b.m_density);
@@ -1014,7 +1019,7 @@ void ChVehicleCosimTerrainNodeGranularOMP::WriteParticleInformation(utils::CSV_w
 
     // Write particle positions and linear velocities
     for (auto body : m_system->Get_bodylist()) {
-        if (body->GetIdentifier() < m_Id_g)
+        if (body->GetIdentifier() < body_id_particles)
             continue;
         ////csv << body->GetIdentifier() << body->GetPos() << body->GetPos_dt() << endl;
         csv << body->GetPos() << body->GetPos_dt() << endl;
@@ -1031,7 +1036,7 @@ void ChVehicleCosimTerrainNodeGranularOMP::WriteCheckpoint(const std::string& fi
     // Loop over all bodies in the system and write state for granular material bodies.
     // Filter granular material using the body identifier.
     for (auto& body : m_system->Get_bodylist()) {
-        if (body->GetIdentifier() < m_Id_g)
+        if (body->GetIdentifier() < body_id_particles)
             continue;
         csv << body->GetIdentifier() << body->GetPos() << body->GetRot() << body->GetPos_dt() << body->GetRot_dt()
             << endl;
@@ -1044,6 +1049,13 @@ void ChVehicleCosimTerrainNodeGranularOMP::WriteCheckpoint(const std::string& fi
 }
 
 // -----------------------------------------------------------------------------
+
+void ChVehicleCosimTerrainNodeGranularOMP::OutputVisualizationData(int frame) {
+    auto filename = OutputFilename(m_node_out_dir + "/visualization", "vis", "dat", frame, 5);
+    // Include only obstacles and particles
+    utils::WriteVisualizationAssets(
+        m_system, filename, [](const ChBody& b) -> bool { return b.GetIdentifier() > body_id_obstacles; }, true, " ");
+}
 
 void ChVehicleCosimTerrainNodeGranularOMP::PrintMeshProxiesUpdateData(unsigned int i, const MeshState& mesh_state) {
     {

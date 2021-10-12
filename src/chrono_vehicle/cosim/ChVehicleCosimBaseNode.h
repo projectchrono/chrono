@@ -155,6 +155,10 @@ class CH_VEHICLE_API ChVehicleCosimBaseNode {
     /// Output logging and debugging data.
     virtual void OutputData(int frame) = 0;
 
+    /// Output post-processing visualization data.
+    /// If implemented, this function should write a file in the "visualization" subdirectory of m_node_out_dir.
+    virtual void OutputVisualizationData(int frame) = 0;
+
     /// Write checkpoint to the specified file (which will be created in the output directory).
     virtual void WriteCheckpoint(const std::string& filename) const {}
 

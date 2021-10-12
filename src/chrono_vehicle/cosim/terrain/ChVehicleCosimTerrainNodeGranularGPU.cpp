@@ -48,6 +48,9 @@ namespace vehicle {
 //// TODO: eliminate when Chrono::Gpu can use a domain that is *not* centered at origin!
 const double EXTRA_HEIGHT = 1.0;
 
+// Obstacle bodies have identifier larger than this value
+static const int body_id_obstacles = 100000;
+
 // -----------------------------------------------------------------------------
 
 ChVehicleCosimTerrainNodeGranularGPU::ChVehicleCosimTerrainNodeGranularGPU(double length,
@@ -364,6 +367,7 @@ void ChVehicleCosimTerrainNodeGranularGPU::Construct() {
     }
 
     // Add all rigid obstacles
+    int id = body_id_obstacles;
     for (auto& b : m_obstacles) {
         auto mat = b.m_contact_mat.CreateMaterial(m_system->GetContactMethod());
         auto trimesh = chrono_types::make_shared<geometry::ChTriangleMeshConnected>();
@@ -375,6 +379,7 @@ void ChVehicleCosimTerrainNodeGranularGPU::Construct() {
 
         auto body = std::shared_ptr<ChBody>(m_system->NewBody());
         body->SetNameString("obstacle");
+        body->SetIdentifier(id++);
         body->SetPos(b.m_init_pos);
         body->SetRot(b.m_init_rot);
         body->SetMass(mass * b.m_density);
@@ -781,10 +786,24 @@ void ChVehicleCosimTerrainNodeGranularGPU::OnOutputData(int frame) {
     // Create and write frame output file.
     std::string filename = OutputFilename(m_node_out_dir + "/simulation", "simulation", "csv", frame + 1, 5);
 
+    m_systemGPU->SetParticleOutputMode(gpu::CHGPU_OUTPUT_MODE::CSV);
     m_systemGPU->SetParticleOutputFlags(gpu::CHGPU_OUTPUT_FLAGS::VEL_COMPONENTS |
                                         gpu::CHGPU_OUTPUT_FLAGS::ANG_VEL_COMPONENTS |
                                         gpu::CHGPU_OUTPUT_FLAGS::FORCE_COMPONENTS);
     m_systemGPU->WriteParticleFile(filename);
+}
+
+void ChVehicleCosimTerrainNodeGranularGPU::OutputVisualizationData(int frame) {
+    auto filename = OutputFilename(m_node_out_dir + "/visualization", "vis", "chpf", frame, 5);
+    m_systemGPU->SetParticleOutputMode(gpu::CHGPU_OUTPUT_MODE::CHPF);
+    m_systemGPU->WriteParticleFile(filename);
+    if (m_obstacles.size() > 0) {
+        filename = OutputFilename(m_node_out_dir + "/visualization", "vis", "dat", frame, 5);
+        // Include only obstacle bodies
+        utils::WriteVisualizationAssets(
+            m_system, filename, [](const ChBody& b) -> bool { return b.GetIdentifier() >= body_id_obstacles; }, true,
+            " ");
+    }
 }
 
 }  // end namespace vehicle
