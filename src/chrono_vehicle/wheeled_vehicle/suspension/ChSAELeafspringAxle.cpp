@@ -85,24 +85,24 @@ ChSAELeafspringAxle::~ChSAELeafspringAxle() {
     auto sys = m_axleTube->GetSystem();
     if (sys) {
         sys->Remove(m_axleTube);
-        sys->Remove(m_tierod);
 
         for (int i = 0; i < 2; i++) {
             sys->Remove(m_shock[i]);
             sys->Remove(m_spring[i]);
 
             sys->Remove(m_shackle[i]);
-            sys->Remove(m_shackleRev[i]);
             sys->Remove(m_frontleaf[i]);
             sys->Remove(m_frontleafSph[i]);
-            sys->Remove(m_frontleafRev[i]);
             sys->Remove(m_rearleaf[i]);
             sys->Remove(m_rearleafSph[i]);
-            sys->Remove(m_rearleafRev[i]);
             sys->Remove(m_clampA[i]);
-            sys->Remove(m_clampARev[i]);
             sys->Remove(m_clampB[i]);
-            sys->Remove(m_clampBRev[i]);
+
+            ChChassis::RemoveJoint(m_shackleRev[i]);
+            ChChassis::RemoveJoint(m_frontleafRev[i]);
+            ChChassis::RemoveJoint(m_rearleafRev[i]);
+            ChChassis::RemoveJoint(m_clampARev[i]);
+            ChChassis::RemoveJoint(m_clampBRev[i]);
 
             sys->Remove(m_latRotSpringA[i]);
             sys->Remove(m_latRotSpringB[i]);
@@ -165,12 +165,12 @@ void ChSAELeafspringAxle::Initialize(std::shared_ptr<ChChassis> chassis,
     }
 
     // Initialize left and right sides.
-    InitializeSide(LEFT, chassis->GetBody(), m_pointsL, left_ang_vel);
-    InitializeSide(RIGHT, chassis->GetBody(), m_pointsR, right_ang_vel);
+    InitializeSide(LEFT, chassis, m_pointsL, left_ang_vel);
+    InitializeSide(RIGHT, chassis, m_pointsR, right_ang_vel);
 }
 
 void ChSAELeafspringAxle::InitializeSide(VehicleSide side,
-                                         std::shared_ptr<ChBodyAuxRef> chassis,
+                                         std::shared_ptr<ChChassis> chassis,
                                          const std::vector<ChVector<>>& points,
                                          double ang_vel) {
     std::string suffix = (side == LEFT) ? "_L" : "_R";
@@ -183,7 +183,7 @@ void ChSAELeafspringAxle::InitializeSide(VehicleSide side,
 
     // Chassis orientation (expressed in absolute frame)
     // Recall that the suspension reference frame is aligned with the chassis.
-    ChQuaternion<> chassisRot = chassis->GetFrame_REF_to_abs().GetRot();
+    ChQuaternion<> chassisRot = chassis->GetBody()->GetFrame_REF_to_abs().GetRot();
 
     // Create and initialize spindle body (same orientation as the chassis)
     m_spindle[side] = std::shared_ptr<ChBody>(chassis->GetSystem()->NewBody());
@@ -205,13 +205,13 @@ void ChSAELeafspringAxle::InitializeSide(VehicleSide side,
     // Create and initialize the spring/damper
     m_shock[side] = chrono_types::make_shared<ChLinkTSDA>();
     m_shock[side]->SetNameString(m_name + "_shock" + suffix);
-    m_shock[side]->Initialize(chassis, m_axleTube, false, points[SHOCK_C], points[SHOCK_A]);
+    m_shock[side]->Initialize(chassis->GetBody(), m_axleTube, false, points[SHOCK_C], points[SHOCK_A]);
     m_shock[side]->RegisterForceFunctor(getShockForceFunctor());
     chassis->GetSystem()->AddLink(m_shock[side]);
 
     m_spring[side] = chrono_types::make_shared<ChLinkTSDA>();
     m_spring[side]->SetNameString(m_name + "_spring" + suffix);
-    m_spring[side]->Initialize(chassis, m_axleTube, false, points[SPRING_C], points[SPRING_A], false,
+    m_spring[side]->Initialize(chassis->GetBody(), m_axleTube, false, points[SPRING_C], points[SPRING_A], false,
                                getSpringRestLength());
     m_spring[side]->RegisterForceFunctor(getSpringForceFunctor());
     chassis->GetSystem()->AddLink(m_spring[side]);
@@ -234,23 +234,23 @@ void ChSAELeafspringAxle::InitializeSide(VehicleSide side,
     m_shackle[side] = std::shared_ptr<ChBody>(chassis->GetSystem()->NewBody());
     m_shackle[side]->SetNameString(m_name + "_shackle" + suffix);
     m_shackle[side]->SetPos((points[REAR_HANGER] + points[SHACKLE]) / 2.0);
-    m_shackle[side]->SetRot(chassis->GetFrame_REF_to_abs().GetRot());
+    m_shackle[side]->SetRot(chassis->GetBody()->GetFrame_REF_to_abs().GetRot());
     m_shackle[side]->SetMass(getShackleMass());
     m_shackle[side]->SetInertiaXX(getShackleInertia());
     chassis->GetSystem()->AddBody(m_shackle[side]);
 
     // chassis-shackle rev joint
     ChCoordsys<> rev_csys_shackle(points[REAR_HANGER], chassisRot * Q_from_AngAxis(CH_C_PI / 2.0, VECT_X));
-    m_shackleRev[side] = chrono_types::make_shared<ChLinkLockRevolute>();
-    m_shackleRev[side]->SetNameString(m_name + "_shackleRev" + suffix);
-    m_shackleRev[side]->Initialize(m_shackle[side], chassis, rev_csys_shackle);
-    chassis->GetSystem()->AddLink(m_shackleRev[side]);
+    m_shackleRev[side] = chrono_types::make_shared<ChVehicleJoint>(
+        ChVehicleJoint::Type::REVOLUTE, m_name + "_shackleRev" + suffix, m_shackle[side], chassis->GetBody(),
+        rev_csys_shackle, getShackleBushingData());
+    chassis->AddJoint(m_shackleRev[side]);
 
     // Create and initialize the frontleaf body.
     m_frontleaf[side] = std::shared_ptr<ChBody>(chassis->GetSystem()->NewBody());
     m_frontleaf[side]->SetNameString(m_name + "_frontleaf" + suffix);
     m_frontleaf[side]->SetPos((points[FRONT_HANGER] + points[CLAMP_A]) / 2.0);
-    m_frontleaf[side]->SetRot(chassis->GetFrame_REF_to_abs().GetRot());
+    m_frontleaf[side]->SetRot(chassis->GetBody()->GetFrame_REF_to_abs().GetRot());
     m_frontleaf[side]->SetMass(getFrontLeafMass());
     m_frontleaf[side]->SetInertiaXX(getFrontLeafInertia());
     chassis->GetSystem()->AddBody(m_frontleaf[side]);
@@ -258,14 +258,14 @@ void ChSAELeafspringAxle::InitializeSide(VehicleSide side,
     // Create and initialize the spherical joint between frontleaf and chassis
     m_frontleafSph[side] = chrono_types::make_shared<ChLinkLockSpherical>();
     m_frontleafSph[side]->SetNameString(m_name + "_frontleafSpherical" + suffix);
-    m_frontleafSph[side]->Initialize(m_frontleaf[side], chassis, ChCoordsys<>(points[FRONT_HANGER], QUNIT));
+    m_frontleafSph[side]->Initialize(m_frontleaf[side], chassis->GetBody(), ChCoordsys<>(points[FRONT_HANGER], QUNIT));
     chassis->GetSystem()->AddLink(m_frontleafSph[side]);
 
     // Create and initialize the rearleaf body.
     m_rearleaf[side] = std::shared_ptr<ChBody>(chassis->GetSystem()->NewBody());
     m_rearleaf[side]->SetNameString(m_name + "_rearleaf" + suffix);
     m_rearleaf[side]->SetPos((points[SHACKLE] + points[CLAMP_B]) / 2.0);
-    m_rearleaf[side]->SetRot(chassis->GetFrame_REF_to_abs().GetRot());
+    m_rearleaf[side]->SetRot(chassis->GetBody()->GetFrame_REF_to_abs().GetRot());
     m_rearleaf[side]->SetMass(getRearLeafMass());
     m_rearleaf[side]->SetInertiaXX(getRearLeafInertia());
     chassis->GetSystem()->AddBody(m_rearleaf[side]);
@@ -281,17 +281,17 @@ void ChSAELeafspringAxle::InitializeSide(VehicleSide side,
     m_clampA[side] = std::shared_ptr<ChBody>(chassis->GetSystem()->NewBody());
     m_clampA[side]->SetNameString(m_name + "_clampA" + suffix);
     m_clampA[side]->SetPos((points[CLAMP_A] + mid) / 2.0);
-    m_clampA[side]->SetRot(chassis->GetFrame_REF_to_abs().GetRot());
+    m_clampA[side]->SetRot(chassis->GetBody()->GetFrame_REF_to_abs().GetRot());
     m_clampA[side]->SetMass(getClampMass());
     m_clampA[side]->SetInertiaXX(getClampInertia());
     chassis->GetSystem()->AddBody(m_clampA[side]);
 
     // clampA-axleTube rev joint (Z)
     ChCoordsys<> rev_csys_clampA(points[CLAMP_A], chassisRot);
-    m_clampARev[side] = chrono_types::make_shared<ChLinkLockRevolute>();
-    m_clampARev[side]->SetNameString(m_name + "_clampARev" + suffix);
-    m_clampARev[side]->Initialize(m_clampA[side], m_axleTube, rev_csys_clampA);
-    chassis->GetSystem()->AddLink(m_clampARev[side]);
+    m_clampARev[side] =
+        chrono_types::make_shared<ChVehicleJoint>(ChVehicleJoint::Type::REVOLUTE, m_name + "_clampARev" + suffix,
+                                                  m_clampA[side], m_axleTube, rev_csys_clampA, getClampBushingData());
+    chassis->AddJoint(m_clampARev[side]);
 
     m_latRotSpringA[side] = chrono_types::make_shared<ChLinkRotSpringCB>();
     m_latRotSpringA[side]->Initialize(m_clampA[side], m_axleTube, rev_csys_clampA);
@@ -303,17 +303,17 @@ void ChSAELeafspringAxle::InitializeSide(VehicleSide side,
     m_clampB[side] = std::shared_ptr<ChBody>(chassis->GetSystem()->NewBody());
     m_clampB[side]->SetNameString(m_name + "_clampB" + suffix);
     m_clampB[side]->SetPos((points[CLAMP_B] + mid) / 2.0);
-    m_clampB[side]->SetRot(chassis->GetFrame_REF_to_abs().GetRot());
+    m_clampB[side]->SetRot(chassis->GetBody()->GetFrame_REF_to_abs().GetRot());
     m_clampB[side]->SetMass(getClampMass());
     m_clampB[side]->SetInertiaXX(getClampInertia());
     chassis->GetSystem()->AddBody(m_clampB[side]);
 
     // clampB-axleTube rev joint (Z)
     ChCoordsys<> rev_csys_clampB(points[CLAMP_B], chassisRot);
-    m_clampBRev[side] = chrono_types::make_shared<ChLinkLockRevolute>();
-    m_clampBRev[side]->SetNameString(m_name + "_clampBRev" + suffix);
-    m_clampBRev[side]->Initialize(m_clampB[side], m_axleTube, rev_csys_clampB);
-    chassis->GetSystem()->AddLink(m_clampBRev[side]);
+    m_clampBRev[side] =
+        chrono_types::make_shared<ChVehicleJoint>(ChVehicleJoint::Type::REVOLUTE, m_name + "_clampBRev" + suffix,
+                                                  m_clampB[side], m_axleTube, rev_csys_clampB, getClampBushingData());
+    chassis->AddJoint(m_clampBRev[side]);
 
     m_latRotSpringB[side] = chrono_types::make_shared<ChLinkRotSpringCB>();
     m_latRotSpringB[side]->Initialize(m_clampB[side], m_axleTube, rev_csys_clampB);
@@ -322,10 +322,10 @@ void ChSAELeafspringAxle::InitializeSide(VehicleSide side,
 
     // clampB-rearleaf rev joint (Y)
     ChCoordsys<> rev_csys_rearleaf(points[CLAMP_B], chassisRot * Q_from_AngAxis(CH_C_PI / 2.0, VECT_X));
-    m_rearleafRev[side] = chrono_types::make_shared<ChLinkLockRevolute>();
-    m_rearleafRev[side]->SetNameString(m_name + "_rearleafRev" + suffix);
-    m_rearleafRev[side]->Initialize(m_clampB[side], m_rearleaf[side], rev_csys_rearleaf);
-    chassis->GetSystem()->AddLink(m_rearleafRev[side]);
+    m_rearleafRev[side] = chrono_types::make_shared<ChVehicleJoint>(
+        ChVehicleJoint::Type::REVOLUTE, m_name + "_rearleafRev" + suffix, m_clampB[side], m_rearleaf[side],
+        rev_csys_rearleaf, getLeafspringBushingData());
+    chassis->AddJoint(m_rearleafRev[side]);
 
     m_vertRotSpringB[side] = chrono_types::make_shared<ChLinkRotSpringCB>();
     m_vertRotSpringB[side]->Initialize(m_clampB[side], m_rearleaf[side], rev_csys_clampB);
@@ -334,10 +334,10 @@ void ChSAELeafspringAxle::InitializeSide(VehicleSide side,
 
     // clampA-frontleaf rev joint (Y)
     ChCoordsys<> rev_csys_frontleaf(points[CLAMP_A], chassisRot * Q_from_AngAxis(CH_C_PI / 2.0, VECT_X));
-    m_frontleafRev[side] = chrono_types::make_shared<ChLinkLockRevolute>();
-    m_frontleafRev[side]->SetNameString(m_name + "_frontleafRev" + suffix);
-    m_frontleafRev[side]->Initialize(m_clampA[side], m_frontleaf[side], rev_csys_frontleaf);
-    chassis->GetSystem()->AddLink(m_frontleafRev[side]);
+    m_frontleafRev[side] = chrono_types::make_shared<ChVehicleJoint>(
+        ChVehicleJoint::Type::REVOLUTE, m_name + "_frontleafRev" + suffix, m_clampA[side], m_frontleaf[side],
+        rev_csys_frontleaf, getLeafspringBushingData());
+    chassis->AddJoint(m_frontleafRev[side]);
 
     m_vertRotSpringA[side] = chrono_types::make_shared<ChLinkRotSpringCB>();
     m_vertRotSpringA[side]->Initialize(m_clampA[side], m_frontleaf[side], rev_csys_frontleaf);
@@ -544,24 +544,35 @@ void ChSAELeafspringAxle::ExportComponentList(rapidjson::Document& jsonDocument)
     ChPart::ExportShaftList(jsonDocument, shafts);
 
     std::vector<std::shared_ptr<ChLink>> joints;
-    joints.push_back(m_shackleRev[0]);
-    joints.push_back(m_shackleRev[1]);
-    joints.push_back(m_clampARev[0]);
-    joints.push_back(m_clampARev[1]);
-    joints.push_back(m_clampBRev[0]);
-    joints.push_back(m_clampBRev[1]);
+    std::vector<std::shared_ptr<ChLoadBodyBody>> bushings;
     joints.push_back(m_frontleafSph[0]);
     joints.push_back(m_frontleafSph[1]);
-    joints.push_back(m_frontleafRev[0]);
-    joints.push_back(m_frontleafRev[1]);
     joints.push_back(m_rearleafSph[0]);
     joints.push_back(m_rearleafSph[1]);
-    joints.push_back(m_rearleafRev[0]);
-    joints.push_back(m_rearleafRev[1]);
-    joints.push_back(m_revolute[1]);
+    m_shackleRev[0]->IsKinematic() ? joints.push_back(m_shackleRev[0]->GetAsLink())
+                                   : bushings.push_back(m_shackleRev[0]->GetAsBushing());
+    m_shackleRev[1]->IsKinematic() ? joints.push_back(m_shackleRev[1]->GetAsLink())
+                                   : bushings.push_back(m_shackleRev[1]->GetAsBushing());
+    m_clampARev[0]->IsKinematic() ? joints.push_back(m_clampARev[0]->GetAsLink())
+                                  : bushings.push_back(m_clampARev[0]->GetAsBushing());
+    m_clampARev[1]->IsKinematic() ? joints.push_back(m_clampARev[1]->GetAsLink())
+                                  : bushings.push_back(m_clampARev[1]->GetAsBushing());
+    m_clampBRev[0]->IsKinematic() ? joints.push_back(m_clampBRev[0]->GetAsLink())
+                                  : bushings.push_back(m_clampBRev[0]->GetAsBushing());
+    m_clampBRev[1]->IsKinematic() ? joints.push_back(m_clampBRev[1]->GetAsLink())
+                                  : bushings.push_back(m_clampBRev[1]->GetAsBushing());
+    m_frontleafRev[0]->IsKinematic() ? joints.push_back(m_frontleafRev[0]->GetAsLink())
+                                     : bushings.push_back(m_frontleafRev[0]->GetAsBushing());
+    m_frontleafRev[1]->IsKinematic() ? joints.push_back(m_frontleafRev[1]->GetAsLink())
+                                     : bushings.push_back(m_frontleafRev[1]->GetAsBushing());
+    m_rearleafRev[0]->IsKinematic() ? joints.push_back(m_rearleafRev[0]->GetAsLink())
+                                    : bushings.push_back(m_rearleafRev[0]->GetAsBushing());
+    m_rearleafRev[1]->IsKinematic() ? joints.push_back(m_rearleafRev[1]->GetAsLink())
+                                    : bushings.push_back(m_rearleafRev[1]->GetAsBushing());
     joints.push_back(m_revolute[0]);
     joints.push_back(m_revolute[1]);
     ChPart::ExportJointList(jsonDocument, joints);
+    ChPart::ExportBodyLoadList(jsonDocument, bushings);
 
     std::vector<std::shared_ptr<ChLinkTSDA>> springs;
     springs.push_back(m_spring[0]);
@@ -587,9 +598,35 @@ void ChSAELeafspringAxle::Output(ChVehicleOutput& database) const {
     database.WriteShafts(shafts);
 
     std::vector<std::shared_ptr<ChLink>> joints;
+    std::vector<std::shared_ptr<ChLoadBodyBody>> bushings;
+    joints.push_back(m_frontleafSph[0]);
+    joints.push_back(m_frontleafSph[1]);
+    joints.push_back(m_rearleafSph[0]);
+    joints.push_back(m_rearleafSph[1]);
+    m_shackleRev[0]->IsKinematic() ? joints.push_back(m_shackleRev[0]->GetAsLink())
+                                   : bushings.push_back(m_shackleRev[0]->GetAsBushing());
+    m_shackleRev[1]->IsKinematic() ? joints.push_back(m_shackleRev[1]->GetAsLink())
+                                   : bushings.push_back(m_shackleRev[1]->GetAsBushing());
+    m_clampARev[0]->IsKinematic() ? joints.push_back(m_clampARev[0]->GetAsLink())
+                                  : bushings.push_back(m_clampARev[0]->GetAsBushing());
+    m_clampARev[1]->IsKinematic() ? joints.push_back(m_clampARev[1]->GetAsLink())
+                                  : bushings.push_back(m_clampARev[1]->GetAsBushing());
+    m_clampBRev[0]->IsKinematic() ? joints.push_back(m_clampBRev[0]->GetAsLink())
+                                  : bushings.push_back(m_clampBRev[0]->GetAsBushing());
+    m_clampBRev[1]->IsKinematic() ? joints.push_back(m_clampBRev[1]->GetAsLink())
+                                  : bushings.push_back(m_clampBRev[1]->GetAsBushing());
+    m_frontleafRev[0]->IsKinematic() ? joints.push_back(m_frontleafRev[0]->GetAsLink())
+                                     : bushings.push_back(m_frontleafRev[0]->GetAsBushing());
+    m_frontleafRev[1]->IsKinematic() ? joints.push_back(m_frontleafRev[1]->GetAsLink())
+                                     : bushings.push_back(m_frontleafRev[1]->GetAsBushing());
+    m_rearleafRev[0]->IsKinematic() ? joints.push_back(m_rearleafRev[0]->GetAsLink())
+                                    : bushings.push_back(m_rearleafRev[0]->GetAsBushing());
+    m_rearleafRev[1]->IsKinematic() ? joints.push_back(m_rearleafRev[1]->GetAsLink())
+                                    : bushings.push_back(m_rearleafRev[1]->GetAsBushing());
     joints.push_back(m_revolute[0]);
     joints.push_back(m_revolute[1]);
     database.WriteJoints(joints);
+    database.WriteBodyLoads(bushings);
 
     std::vector<std::shared_ptr<ChLinkTSDA>> springs;
     springs.push_back(m_spring[0]);

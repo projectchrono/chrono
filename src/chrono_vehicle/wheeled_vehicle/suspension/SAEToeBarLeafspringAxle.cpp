@@ -30,7 +30,13 @@ namespace vehicle {
 // Construct a solid axle suspension using data from the specified JSON file.
 // -----------------------------------------------------------------------------
 SAEToeBarLeafspringAxle::SAEToeBarLeafspringAxle(const std::string& filename)
-    : ChSAEToeBarLeafspringAxle(""), m_springForceCB(NULL), m_shockForceCB(NULL), m_use_left_knuckle(true) {
+    : ChSAEToeBarLeafspringAxle(""),
+      m_springForceCB(NULL),
+      m_shockForceCB(NULL),
+      m_use_left_knuckle(true),
+      m_shackleBushingData(nullptr),
+      m_clampBushingData(nullptr),
+      m_leafspringBushingData(nullptr) {
     Document d; ReadFileJSON(filename, d);
     if (d.IsNull())
         return;
@@ -41,7 +47,13 @@ SAEToeBarLeafspringAxle::SAEToeBarLeafspringAxle(const std::string& filename)
 }
 
 SAEToeBarLeafspringAxle::SAEToeBarLeafspringAxle(const rapidjson::Document& d)
-    : ChSAEToeBarLeafspringAxle(""), m_springForceCB(NULL), m_shockForceCB(NULL), m_use_left_knuckle(true) {
+    : ChSAEToeBarLeafspringAxle(""),
+      m_springForceCB(NULL),
+      m_shockForceCB(NULL),
+      m_use_left_knuckle(true),
+      m_shackleBushingData(nullptr),
+      m_clampBushingData(nullptr),
+      m_leafspringBushingData(nullptr) {
     Create(d);
 }
 
@@ -230,6 +242,17 @@ void SAEToeBarLeafspringAxle::Create(const rapidjson::Document& d) {
     m_shackleInertia = ReadVectorJSON(d["Leafspring"]["Shackle"]["Inertia"]);
     GetLog() << "m_shackleMass " << m_shackleMass << "\n";
     GetLog() << "m_shackleInertia " << m_shackleInertia << "\n";
+
+    // Bushing data (optional)
+    if (d["Leafspring"].HasMember("Shackle Bushing Data")) {
+        m_shackleBushingData = ReadBushingDataJSON(d["Leafspring"]["Shackle Bushing Data"]);
+    }
+    if (d["Leafspring"].HasMember("Clamp Bushing Data")) {
+        m_clampBushingData = ReadBushingDataJSON(d["Leafspring"]["Clamp Bushing Data"]);
+    }
+    if (d["Leafspring"].HasMember("Leafspring Bushing Data")) {
+        m_shackleBushingData = ReadBushingDataJSON(d["Leafspring"]["Leafspring Bushing Data"]);
+    }
 
     ChVector<> ra = getLocation(CLAMP_A) - getLocation(FRONT_HANGER);
     ChVector<> rb = getLocation(CLAMP_B) - getLocation(SHACKLE);
