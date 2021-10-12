@@ -109,14 +109,23 @@ void RigidTerrain::LoadPatch(const rapidjson::Value& d) {
         patch = AddPatch(material, loc, ChMatrix33<>(rot).Get_A_Zaxis(), size.x(), size.y(), size.z());
     } else if (d["Geometry"].HasMember("Mesh Filename")) {
         std::string mesh_file = d["Geometry"]["Mesh Filename"].GetString();
-        patch = AddPatch(material, ChCoordsys<>(loc, rot), vehicle::GetDataFile(mesh_file));
+        bool connected_mesh = true;
+        if (d["Geometry"].HasMember("Connected Mesh")) {
+            connected_mesh = d["Geometry"]["Connected Mesh"].GetBool();
+        }
+        patch = AddPatch(material, ChCoordsys<>(loc, rot), vehicle::GetDataFile(mesh_file), connected_mesh);
     } else if (d["Geometry"].HasMember("Height Map Filename")) {
         std::string bmp_file = d["Geometry"]["Height Map Filename"].GetString();
         double sx = d["Geometry"]["Size"][0u].GetDouble();
         double sy = d["Geometry"]["Size"][1u].GetDouble();
         double hMin = d["Geometry"]["Height Range"][0u].GetDouble();
         double hMax = d["Geometry"]["Height Range"][1u].GetDouble();
-        patch = AddPatch(material, ChCoordsys<>(loc, rot), vehicle::GetDataFile(bmp_file), sx, sy, hMin, hMax);
+        bool connected_mesh = true;
+        if (d["Geometry"].HasMember("Connected Mesh")) {
+            connected_mesh = d["Geometry"]["Connected Mesh"].GetBool();
+        }
+        patch = AddPatch(material, ChCoordsys<>(loc, rot), vehicle::GetDataFile(bmp_file), sx, sy, hMin, hMax,
+                         connected_mesh);
     }
 
     // Set visualization data
@@ -228,6 +237,7 @@ std::shared_ptr<RigidTerrain::Patch> RigidTerrain::AddPatch(std::shared_ptr<ChMa
 std::shared_ptr<RigidTerrain::Patch> RigidTerrain::AddPatch(std::shared_ptr<ChMaterialSurface> material,
                                                             const ChCoordsys<>& position,
                                                             const std::string& mesh_file,
+                                                            bool connected_mesh,
                                                             double sweep_sphere_radius,
                                                             bool visualization) {
     auto patch = chrono_types::make_shared<MeshPatch>();
@@ -239,8 +249,15 @@ std::shared_ptr<RigidTerrain::Patch> RigidTerrain::AddPatch(std::shared_ptr<ChMa
 
     // Create the collision model
     patch->m_body->GetCollisionModel()->ClearModel();
-    patch->m_body->GetCollisionModel()->AddTriangleMesh(material, patch->m_trimesh, true, false, VNULL, ChMatrix33<>(1),
-                                                        sweep_sphere_radius);
+    if (connected_mesh) {
+        patch->m_body->GetCollisionModel()->AddTriangleMesh(material, patch->m_trimesh, true, false, VNULL,
+                                                            ChMatrix33<>(1), sweep_sphere_radius);
+    } else {
+        patch->m_trimesh_s = chrono_types::make_shared<geometry::ChTriangleMeshSoup>();
+        patch->m_trimesh_s->LoadWavefrontMesh(mesh_file);
+        patch->m_body->GetCollisionModel()->AddTriangleMesh(material, patch->m_trimesh_s, true, false, VNULL,
+                                                            ChMatrix33<>(1), sweep_sphere_radius);
+    }
     patch->m_body->GetCollisionModel()->BuildModel();
 
     auto mesh_name = filesystem::path(mesh_file).stem();
@@ -276,6 +293,7 @@ std::shared_ptr<RigidTerrain::Patch> RigidTerrain::AddPatch(std::shared_ptr<ChMa
                                                             double width,
                                                             double hMin,
                                                             double hMax,
+                                                            bool connected_mesh,
                                                             double sweep_sphere_radius,
                                                             bool visualization) {
     auto patch = chrono_types::make_shared<MeshPatch>();
@@ -384,8 +402,20 @@ std::shared_ptr<RigidTerrain::Patch> RigidTerrain::AddPatch(std::shared_ptr<ChMa
 
     // Create contact geometry.
     patch->m_body->GetCollisionModel()->ClearModel();
-    patch->m_body->GetCollisionModel()->AddTriangleMesh(material, patch->m_trimesh, true, false, VNULL, ChMatrix33<>(1),
-                                                        sweep_sphere_radius);
+    if (connected_mesh) {
+        patch->m_body->GetCollisionModel()->AddTriangleMesh(material, patch->m_trimesh, true, false, VNULL,
+                                                            ChMatrix33<>(1), sweep_sphere_radius);
+    } else {
+        patch->m_trimesh_s = chrono_types::make_shared<geometry::ChTriangleMeshSoup>();
+        std::vector<geometry::ChTriangle>& triangles = patch->m_trimesh_s->getTriangles();
+        triangles.resize(n_faces);
+        for (int it = 0; it < n_faces; it++) {
+            const ChVector<int>& idx = idx_vertices[it];
+            triangles[it] = geometry::ChTriangle(vertices[idx[0]], vertices[idx[1]], vertices[idx[2]]);
+        }
+        patch->m_body->GetCollisionModel()->AddTriangleMesh(material, patch->m_trimesh_s, true, false, VNULL,
+                                                            ChMatrix33<>(1), sweep_sphere_radius);
+    }
     patch->m_body->GetCollisionModel()->BuildModel();
 
     auto mesh_name = filesystem::path(heightmap_file).stem();
