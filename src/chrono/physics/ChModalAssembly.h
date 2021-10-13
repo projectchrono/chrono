@@ -139,6 +139,43 @@ class ChApi ChModalAssembly : public ChAssembly {
 
 
     //
+    // OTHER FUNCTIONS
+    //
+
+    /// Dump the  M mass matrix, K damping matrix, R damping matrix, Cq constraint jacobian
+    /// matrix (at the current configuration) for this subassembly,
+    /// Assumes the rows/columns of the matrices are ordered as the ChVariable objects used in this assembly, 
+    /// first the all the "outer" variables then all the "inner" variables (or modal variables if switched to modal assembly).
+    /// The name of the files will be [path]_M.dat [path]_K.dat [path]_R.dat [path]_Cq.dat 
+    /// Might throw ChException if file can't be saved.
+    void DumpSubassemblyMatrices(bool save_M, bool save_K, bool save_R, bool save_Cq, const char* path);
+
+    /// Compute the mass matrix of the subassembly. 
+    /// Assumes the rows/columns of the matrix are ordered as the ChVariable objects used in this assembly, 
+    /// first the all the "outer" itvariablesems then all the "inner" variables (or modal variables if switched to modal assembly).
+    void GetSubassemblyMassMatrix(ChSparseMatrix* M);    ///< fill this system mass matrix
+
+    /// Compute the stiffness matrix of the subassembly, i.e. the jacobian -dF/dq where F are stiff loads.
+    /// Assumes the rows/columns of the matrix are ordered as the ChVariable objects used in this assembly, 
+    /// first the all the "outer" variables then all the "inner" variables (or modal variables if switched to modal assembly).
+    /// Note that not all loads provide a jacobian, as this is optional in their implementation.
+    void GetSubassemblyStiffnessMatrix(ChSparseMatrix* K);    ///< fill this system stiffness matrix
+
+    /// Compute the stiffness matrix of the subassembly, i.e. the jacobian -dF/dv where F are stiff loads.
+    /// Assumes the rows/columns of the matrix are ordered as the ChVariable objects used in this assembly, 
+    /// first the all the "outer" variables then all the "inner" variables (or modal variables if switched to modal assembly).
+    /// Note that not all loads provide a jacobian, as this is optional in their implementation.
+    void GetSubassemblyDampingMatrix(ChSparseMatrix* R);    ///< fill this system damping matrix
+
+    /// Compute the constraint jacobian matrix of the subassembly, i.e. the jacobian
+    /// Cq=-dC/dq where C are constraints (the lower left part of the KKT matrix).
+    /// Assumes the columns of the matrix are ordered as the ChVariable objects used in this assembly, 
+    /// i.e. first the all the "outer" variables then all the "inner" variables (or modal variables if switched to modal assembly),
+    /// and assumes the rows of the matrix are ordered as the constraints used in this assembly, i.e. first the outer and then the inner.
+    void GetSubassemblyConstraintJacobianMatrix(ChSparseMatrix* Cq);  ///< fill this system damping matrix
+
+
+    //
     // PHYSICS ITEM INTERFACE
     //
 

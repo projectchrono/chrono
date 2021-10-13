@@ -245,9 +245,129 @@ void ChModalAssembly::RemoveAllInternalOtherPhysicsItems() {
         system->is_updated = false;
 }
 
+
+// -----------------------------------------------------------------------------
+
+
+void ChModalAssembly::GetSubassemblyMassMatrix(ChSparseMatrix* M) {
+
+    this->SetupInitial();
+    this->Setup();
+    this->Update();
+
+    ChSystemDescriptor temp_descriptor;
+
+    this->InjectVariables(temp_descriptor);
+    this->InjectKRMmatrices(temp_descriptor);
+    this->InjectConstraints(temp_descriptor);
+
+    // Load all KRM matrices with the M part only
+    KRMmatricesLoad(0, 0, 1.0);
+    // For ChVariable objects without a ChKblock, but still with a mass:
+    temp_descriptor.SetMassFactor(1.0);
+
+    // Fill system-level M matrix
+    temp_descriptor.ConvertToMatrixForm(nullptr, M, nullptr, nullptr, nullptr, nullptr, false, false);
 }
 
+void ChModalAssembly::GetSubassemblyStiffnessMatrix(ChSparseMatrix* K) {
+    
+    this->SetupInitial();
+    this->Setup();
+    this->Update();
 
+    ChSystemDescriptor temp_descriptor;
+
+    this->InjectVariables(temp_descriptor);
+    this->InjectKRMmatrices(temp_descriptor);
+    this->InjectConstraints(temp_descriptor);
+
+    // Load all KRM matrices with the K part only
+    this->KRMmatricesLoad(1.0, 0, 0);
+    // For ChVariable objects without a ChKblock, but still with a mass:
+    temp_descriptor.SetMassFactor(0.0);
+
+    // Fill system-level K matrix
+    temp_descriptor.ConvertToMatrixForm(nullptr, K, nullptr, nullptr, nullptr, nullptr, false, false);
+}
+
+void ChModalAssembly::GetSubassemblyDampingMatrix(ChSparseMatrix* R) {
+    
+    this->SetupInitial();
+    this->Setup();
+    this->Update();
+
+    ChSystemDescriptor temp_descriptor;
+
+    this->InjectVariables(temp_descriptor);
+    this->InjectKRMmatrices(temp_descriptor);
+    this->InjectConstraints(temp_descriptor);
+
+    // Load all KRM matrices with the R part only
+    this->KRMmatricesLoad(0, 1.0, 0);
+    // For ChVariable objects without a ChKblock, but still with a mass:
+    temp_descriptor.SetMassFactor(0.0);
+
+    // Fill system-level R matrix
+    temp_descriptor.ConvertToMatrixForm(nullptr, R, nullptr, nullptr, nullptr, nullptr, false, false);
+}
+
+void ChModalAssembly::GetSubassemblyConstraintJacobianMatrix(ChSparseMatrix* Cq) {
+    
+    this->SetupInitial();
+    this->Setup();
+    this->Update();
+
+    ChSystemDescriptor temp_descriptor;
+
+    this->InjectVariables(temp_descriptor);
+    this->InjectKRMmatrices(temp_descriptor);
+    this->InjectConstraints(temp_descriptor);
+
+    // Load all jacobian matrices
+    this->ConstraintsLoadJacobians();
+
+    // Fill system-level R matrix
+    temp_descriptor.ConvertToMatrixForm(Cq, nullptr, nullptr, nullptr, nullptr, nullptr, false, false);
+}
+
+void ChModalAssembly::DumpSubassemblyMatrices(bool save_M, bool save_K, bool save_R, bool save_Cq, const char* path) {
+    char filename[300];
+    const char* numformat = "%.12g";
+
+    if (save_M) {
+        ChSparseMatrix mM;
+        this->GetSubassemblyMassMatrix(&mM);
+        sprintf(filename, "%s%s", path, "_M.dat");
+        ChStreamOutAsciiFile file_M(filename);
+        file_M.SetNumFormat(numformat);
+        StreamOUTsparseMatlabFormat(mM, file_M);
+    }
+    if (save_K) {
+        ChSparseMatrix mK;
+        this->GetSubassemblyStiffnessMatrix(&mK);
+        sprintf(filename, "%s%s", path, "_K.dat");
+        ChStreamOutAsciiFile file_K(filename);
+        file_K.SetNumFormat(numformat);
+        StreamOUTsparseMatlabFormat(mK, file_K);
+    }
+    if (save_R) {
+        ChSparseMatrix mR;
+        this->GetSubassemblyDampingMatrix(&mR);
+        sprintf(filename, "%s%s", path, "_R.dat");
+        ChStreamOutAsciiFile file_R(filename);
+        file_R.SetNumFormat(numformat);
+        StreamOUTsparseMatlabFormat(mR, file_R);
+    }
+    if (save_Cq) {
+        ChSparseMatrix mCq;
+        this->GetSubassemblyConstraintJacobianMatrix(&mCq);
+        sprintf(filename, "%s%s", path, "_Cq.dat");
+        ChStreamOutAsciiFile file_Cq(filename);
+        file_Cq.SetNumFormat(numformat);
+        StreamOUTsparseMatlabFormat(mCq, file_Cq);
+    }
+}
 
 // -----------------------------------------------------------------------------
 
