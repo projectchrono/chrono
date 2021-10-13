@@ -17,7 +17,8 @@
 
 #include <cmath>
 
-#include "chrono/fea/ChElementTetrahedron.h"
+#include "chrono/fea/ChElementGeneric.h"
+#include "chrono/fea/ChElementCorotational.h"
 #include "chrono/fea/ChNodeFEAxyz.h"
 
 namespace chrono {
@@ -29,7 +30,7 @@ namespace fea {
 /// Tetrahedron FEA element with 10 nodes.
 /// This is a quadratic element for displacements; stress and strain
 /// are interpolated depending on Gauss points.
-class ChApi ChElementTetra_10 : public ChElementTetrahedron, public ChLoadableUVW {
+class ChApi ChElementTetra_10 : public ChElementGeneric, public ChElementCorotational, public ChLoadableUVW {
   public:
     using ShapeVector = ChMatrixNM<double, 1, 10>;
 
@@ -39,6 +40,8 @@ class ChApi ChElementTetra_10 : public ChElementTetrahedron, public ChLoadableUV
     virtual int GetNnodes() override { return 10; }
     virtual int GetNdofs() override { return 10 * 3; }
     virtual int GetNodeNdofs(int n) override { return 3; }
+
+    double GetVolume() { return Volume; }
 
     virtual std::shared_ptr<ChNodeFEAbase> GetNodeN(int n) override { return nodes[n]; }
 
@@ -56,6 +59,9 @@ class ChApi ChElementTetra_10 : public ChElementTetrahedron, public ChLoadableUV
     //
     // FEM functions
     //
+
+    /// Update element at each time step.
+    virtual void Update() override;
 
     /// Fills the N shape function matrix with the
     /// values of shape functions at zi parametric coordinates, where
@@ -205,8 +211,8 @@ class ChApi ChElementTetra_10 : public ChElementTetrahedron, public ChLoadableUV
     // we use a vector to keep in memory all the four matrices (-> 4 integr. point)
     std::vector<ChMatrixDynamic<> > MatrB;
     ChMatrixDynamic<> StiffnessMatrix;
-
     ChMatrixNM<double, 4, 4> mM;  // for speeding up corotational approach
+    double Volume;
 
   public:
     EIGEN_MAKE_ALIGNED_OPERATOR_NEW

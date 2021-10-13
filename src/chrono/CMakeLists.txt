@@ -514,10 +514,8 @@ set(ChronoEngine_fea_elements_HEADERS
     fea/ChElementCableANCF.h
     fea/ChElementBrick.h
     fea/ChElementBrick_9.h
-    fea/ChElementTetrahedron.h
     fea/ChElementTetra_4.h
     fea/ChElementTetra_10.h
-    fea/ChElementHexahedron.h
     fea/ChElementHexa_8.h
     fea/ChElementHexa_20.h
     fea/ChElementBrickANCF_3843.h

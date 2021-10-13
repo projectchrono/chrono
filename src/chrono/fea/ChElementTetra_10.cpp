@@ -17,7 +17,7 @@
 namespace chrono {
 namespace fea {
 
-ChElementTetra_10::ChElementTetra_10() {
+ChElementTetra_10::ChElementTetra_10() : Volume(0) {
     nodes.resize(10);
     MatrB.resize(4);  // standard: 4 integration points
     MatrB[0].setZero(6, 30);
@@ -61,6 +61,13 @@ void ChElementTetra_10::SetNodes(std::shared_ptr<ChNodeFEAxyz> nodeA,
     mvars.push_back(&nodes[8]->Variables());
     mvars.push_back(&nodes[9]->Variables());
     Kmatr.SetVariables(mvars);
+}
+
+void ChElementTetra_10::Update() {
+    // parent class update:
+    ChElementGeneric::Update();
+    // always keep updated the rotation matrix A:
+    this->UpdateRotation();
 }
 
 void ChElementTetra_10::ShapeFunctions(ShapeVector& N, double r, double s, double t) {
@@ -598,7 +605,8 @@ void ChElementTetra_10::ComputeInternalForces(ChVectorDynamic<>& Fi) {
     displ.segment(27, 3) = A.transpose() * nodes[9]->pos_dt.eigen();
 
     double lumped_node_mass = (GetVolume() * Material->Get_density()) / GetNnodes();
-    ChVectorDynamic<> FiR_local = Material->Get_RayleighDampingK() * (StiffnessMatrix * displ + lumped_node_mass * displ);
+    ChVectorDynamic<> FiR_local =
+        Material->Get_RayleighDampingK() * (StiffnessMatrix * displ + lumped_node_mass * displ);
     //***TO DO*** better per-node lumping, or 12x12 consistent mass matrix.
 
     FiK_local += FiR_local;

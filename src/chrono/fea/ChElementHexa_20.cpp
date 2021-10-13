@@ -17,14 +17,19 @@
 namespace chrono {
 namespace fea {
 
-ChElementHexa_20::ChElementHexa_20() {
+ChElementHexa_20::ChElementHexa_20() : ir(nullptr), Volume(0) {
     nodes.resize(20);
     this->StiffnessMatrix.setZero(60, 60);
     this->ir = new ChGaussIntegrationRule;
     this->SetDefaultIntegrationRule();
 }
 
-ChElementHexa_20::~ChElementHexa_20() {}
+ChElementHexa_20::~ChElementHexa_20() {
+    delete ir;
+    for (auto gpoint : GpVector)
+        delete gpoint;
+    GpVector.clear();
+}
 
 void ChElementHexa_20::SetNodes(std::shared_ptr<ChNodeFEAxyz> nodeA,
                                 std::shared_ptr<ChNodeFEAxyz> nodeB,
@@ -301,7 +306,7 @@ void ChElementHexa_20::ComputeMatrB(ChMatrixDynamic<>& MatrB,
     MatrB(0, 51) = Btemp(0, 17);
     MatrB(0, 54) = Btemp(0, 18);
     MatrB(0, 57) = Btemp(0, 19);
-        
+
     MatrB(1, 1) = Btemp(1, 0);
     MatrB(1, 4) = Btemp(1, 1);
     MatrB(1, 7) = Btemp(1, 2);
@@ -322,7 +327,7 @@ void ChElementHexa_20::ComputeMatrB(ChMatrixDynamic<>& MatrB,
     MatrB(1, 52) = Btemp(1, 17);
     MatrB(1, 55) = Btemp(1, 18);
     MatrB(1, 58) = Btemp(1, 19);
-        
+
     MatrB(2, 2) = Btemp(2, 0);
     MatrB(2, 5) = Btemp(2, 1);
     MatrB(2, 8) = Btemp(2, 2);
@@ -343,7 +348,7 @@ void ChElementHexa_20::ComputeMatrB(ChMatrixDynamic<>& MatrB,
     MatrB(2, 53) = Btemp(2, 17);
     MatrB(2, 56) = Btemp(2, 18);
     MatrB(2, 59) = Btemp(2, 19);
-        
+
     MatrB(3, 0) = Btemp(1, 0);
     MatrB(3, 1) = Btemp(0, 0);
     MatrB(3, 3) = Btemp(1, 1);
@@ -384,7 +389,7 @@ void ChElementHexa_20::ComputeMatrB(ChMatrixDynamic<>& MatrB,
     MatrB(3, 55) = Btemp(0, 18);
     MatrB(3, 57) = Btemp(1, 19);
     MatrB(3, 58) = Btemp(0, 19);
-        
+
     MatrB(4, 1) = Btemp(2, 0);
     MatrB(4, 2) = Btemp(1, 0);
     MatrB(4, 4) = Btemp(2, 1);
@@ -492,6 +497,13 @@ void ChElementHexa_20::ComputeStiffnessMatrix() {
         this->Volume += GpVector[i]->GetWeight() * Jdet;
     }
     delete temp;
+}
+
+void ChElementHexa_20::Update() {
+    // parent class update:
+    ChElementGeneric::Update();
+    // always keep updated the rotation matrix A:
+    this->UpdateRotation();
 }
 
 void ChElementHexa_20::UpdateRotation() {

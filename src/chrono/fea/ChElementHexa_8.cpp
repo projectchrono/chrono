@@ -17,14 +17,19 @@
 namespace chrono {
 namespace fea {
 
-ChElementHexa_8::ChElementHexa_8() {
+ChElementHexa_8::ChElementHexa_8() : ir(nullptr), Volume(0) {
     nodes.resize(8);
     StiffnessMatrix.setZero(24, 24);
     this->ir = new ChGaussIntegrationRule;
     this->SetDefaultIntegrationRule();
 }
 
-ChElementHexa_8::~ChElementHexa_8() {}
+ChElementHexa_8::~ChElementHexa_8() {
+    delete ir;
+    for (auto gpoint : GpVector)
+        delete gpoint;
+    GpVector.clear();
+}
 
 void ChElementHexa_8::SetNodes(std::shared_ptr<ChNodeFEAxyz> nodeA,
                                std::shared_ptr<ChNodeFEAxyz> nodeB,
@@ -254,6 +259,13 @@ void ChElementHexa_8::ComputeStiffnessMatrix() {
     delete temp;
 }
 
+void ChElementHexa_8::Update() {
+    // parent class update:
+    ChElementGeneric::Update();
+    // always keep updated the rotation matrix A:
+    this->UpdateRotation();
+}
+
 void ChElementHexa_8::UpdateRotation() {
     ChVector<> avgX1;
     avgX1 = nodes[0]->GetX0() + nodes[1]->GetX0() + nodes[2]->GetX0() + nodes[3]->GetX0();
@@ -337,7 +349,7 @@ void ChElementHexa_8::ComputeInternalForces(ChVectorDynamic<>& Fi) {
     ChVectorDynamic<> FiK_local = StiffnessMatrix * displ;
 
     for (int in = 0; in < 8; ++in) {
-        displ.segment(in * 3, 3) = (A.transpose() * nodes[in]->pos_dt).eigen(); // nodal speeds, local
+        displ.segment(in * 3, 3) = (A.transpose() * nodes[in]->pos_dt).eigen();  // nodal speeds, local
     }
     ChMatrixDynamic<> FiR_local = Material->Get_RayleighDampingK() * StiffnessMatrix * displ;
 

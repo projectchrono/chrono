@@ -17,7 +17,7 @@
 namespace chrono {
 namespace fea {
 
-ChElementTetra_4::ChElementTetra_4() {
+ChElementTetra_4::ChElementTetra_4() : Volume(0) {
     nodes.resize(4);
     this->MatrB.setZero(6, 12);
     this->StiffnessMatrix.setZero(12, 12);
@@ -39,6 +39,13 @@ void ChElementTetra_4::SetNodes(std::shared_ptr<ChNodeFEAxyz> nodeA,
     mvars.push_back(&nodes[2]->Variables());
     mvars.push_back(&nodes[3]->Variables());
     Kmatr.SetVariables(mvars);
+}
+
+void ChElementTetra_4::Update() {
+    // parent class update:
+    ChElementGeneric::Update();
+    // always keep updated the rotation matrix A:
+    this->UpdateRotation();
 }
 
 void ChElementTetra_4::ShapeFunctions(ShapeVector& N, double r, double s, double t) {
@@ -249,10 +256,10 @@ void ChElementTetra_4::ComputeInternalForces(ChVectorDynamic<>& Fi) {
     // [local Internal Forces] = [Klocal] * displ + [Rlocal] * displ_dt
     ChVectorDynamic<> FiK_local = StiffnessMatrix * displ;
 
-    displ.segment(0,3) = (A.transpose() * nodes[0]->pos_dt).eigen();  // nodal speeds, local
-    displ.segment(3,3) = (A.transpose() * nodes[1]->pos_dt).eigen();
-    displ.segment(6,3) = (A.transpose() * nodes[2]->pos_dt).eigen();
-    displ.segment(9,3) = (A.transpose() * nodes[3]->pos_dt).eigen();
+    displ.segment(0, 3) = (A.transpose() * nodes[0]->pos_dt).eigen();  // nodal speeds, local
+    displ.segment(3, 3) = (A.transpose() * nodes[1]->pos_dt).eigen();
+    displ.segment(6, 3) = (A.transpose() * nodes[2]->pos_dt).eigen();
+    displ.segment(9, 3) = (A.transpose() * nodes[3]->pos_dt).eigen();
     ChMatrixDynamic<> FiR_local = Material->Get_RayleighDampingK() * StiffnessMatrix * displ;
 
     double lumped_node_mass = (this->GetVolume() * this->Material->Get_density()) / 4.0;
@@ -349,7 +356,7 @@ void ChElementTetra_4::ComputeNF(const double U,
 
 // -----------------------------------------------------------------------------
 
-ChElementTetra_4_P::ChElementTetra_4_P() {
+ChElementTetra_4_P::ChElementTetra_4_P() : Volume(0) {
     nodes.resize(4);
     this->MatrB.setZero(3, 4);
     this->StiffnessMatrix.setZero(4, 4);
@@ -369,6 +376,13 @@ void ChElementTetra_4_P::SetNodes(std::shared_ptr<ChNodeFEAxyzP> nodeA,
     mvars.push_back(&nodes[2]->Variables());
     mvars.push_back(&nodes[3]->Variables());
     Kmatr.SetVariables(mvars);
+}
+
+void ChElementTetra_4_P::Update() {
+    // parent class update:
+    ChElementGeneric::Update();
+    // always keep updated the rotation matrix A:
+    this->UpdateRotation();
 }
 
 void ChElementTetra_4_P::ShapeFunctions(ShapeVector& N, double z0, double z1, double z2) {

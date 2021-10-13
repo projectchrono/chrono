@@ -15,7 +15,9 @@
 #ifndef CHELEMENTHEXA20_H
 #define CHELEMENTHEXA20_H
 
-#include "chrono/fea/ChElementHexahedron.h"
+#include "chrono/fea/ChElementGeneric.h"
+#include "chrono/fea/ChElementCorotational.h"
+#include "chrono/fea/ChGaussIntegrationRule.h"
 #include "chrono/fea/ChNodeFEAxyz.h"
 
 namespace chrono {
@@ -25,7 +27,7 @@ namespace fea {
 /// @{
 
 /// Class for FEA elements of hexahedron type (isoparametric 3D bricks) with 20 nodes.
-class ChApi ChElementHexa_20 : public ChElementHexahedron, public ChLoadableUVW {
+class ChApi ChElementHexa_20 : public ChElementGeneric, public ChElementCorotational, public ChLoadableUVW {
   public:
     using ShapeVector = ChMatrixNM<double, 1, 20>;
 
@@ -35,6 +37,8 @@ class ChApi ChElementHexa_20 : public ChElementHexahedron, public ChLoadableUVW 
     virtual int GetNnodes() override { return 20; }
     virtual int GetNdofs() override { return 20 * 3; }
     virtual int GetNodeNdofs(int n) override { return 3; }
+
+    double GetVolume() { return Volume; }
 
     virtual std::shared_ptr<ChNodeFEAbase> GetNodeN(int n) override { return nodes[n]; }
 
@@ -103,7 +107,10 @@ class ChApi ChElementHexa_20 : public ChElementHexahedron, public ChLoadableUVW 
     /// The number of Gauss Point is defined by SetIntegrationRule function (default: 27 Gp)
     virtual void ComputeStiffnessMatrix();
 
-    // compute large rotation of element for corotational approach
+    /// Update element at each time step.
+    virtual void Update() override;
+
+    // Compute large rotation of element for corotational approach
     virtual void UpdateRotation() override;
 
     /// Returns the strain tensor at given parameters.
@@ -206,11 +213,11 @@ class ChApi ChElementHexa_20 : public ChElementHexahedron, public ChLoadableUVW 
 
     std::vector<std::shared_ptr<ChNodeFEAxyz> > nodes;
     std::shared_ptr<ChContinuumElastic> Material;
-    // std::vector< ChMatrixDynamic<> > MatrB;		// matrices of shape function's partial derivatives (one for each
-    // integration point)
-    // we use a vector to keep in memory all the 27 matrices (-> 27 integr. point)
-    // NO! each matrix is stored in the respective gauss point
     ChMatrixDynamic<> StiffnessMatrix;
+
+    ChGaussIntegrationRule* ir;
+    std::vector<ChGaussPoint*> GpVector;
+    double Volume;
 };
 
 /// @} fea_elements

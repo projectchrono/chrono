@@ -18,7 +18,8 @@
 #include <cmath>
 
 #include "chrono/fea/ChContinuumPoisson3D.h"
-#include "chrono/fea/ChElementTetrahedron.h"
+#include "chrono/fea/ChElementGeneric.h"
+#include "chrono/fea/ChElementCorotational.h"
 #include "chrono/fea/ChNodeFEAxyz.h"
 #include "chrono/fea/ChNodeFEAxyzP.h"
 #include "chrono/core/ChTensors.h"
@@ -32,7 +33,7 @@ namespace fea {
 /// Tetrahedron FEA element with 4 nodes.
 /// This is a classical element with linear displacement, hence with constant stress
 /// and constant strain. It can be easily used for 3D FEA problems.
-class ChApi ChElementTetra_4 : public ChElementTetrahedron, public ChLoadableUVW {
+class ChApi ChElementTetra_4 : public ChElementGeneric, public ChElementCorotational, public ChLoadableUVW {
   public:
     using ShapeVector = ChMatrixNM<double, 1, 4>;
 
@@ -42,6 +43,8 @@ class ChApi ChElementTetra_4 : public ChElementTetrahedron, public ChLoadableUVW
     virtual int GetNnodes() override { return 4; }
     virtual int GetNdofs() override { return 4 * 3; }
     virtual int GetNodeNdofs(int n) override { return 3; }
+
+    double GetVolume() { return Volume; }
 
     virtual std::shared_ptr<ChNodeFEAbase> GetNodeN(int n) override { return nodes[n]; }
 
@@ -53,6 +56,9 @@ class ChApi ChElementTetra_4 : public ChElementTetrahedron, public ChLoadableUVW
     //
     // FEM functions
     //
+
+    /// Update element at each time step.
+    virtual void Update() override;
 
     /// Fills the N shape function matrix with the
     /// values of shape functions at r,s,t 'volume' coordinates, where
@@ -188,8 +194,8 @@ class ChApi ChElementTetra_4 : public ChElementTetrahedron, public ChLoadableUVW
     std::shared_ptr<ChContinuumElastic> Material;
     ChMatrixDynamic<> MatrB;            // matrix of shape function's partial derivatives
     ChMatrixDynamic<> StiffnessMatrix;  // undeformed local stiffness matrix
-
-    ChMatrixNM<double, 4, 4> mM;  // for speeding up corotational approach
+    ChMatrixNM<double, 4, 4> mM;        // for speeding up corotational approach
+    double Volume;
 
   public:
     EIGEN_MAKE_ALIGNED_OPERATOR_NEW
@@ -200,17 +206,18 @@ class ChApi ChElementTetra_4 : public ChElementTetrahedron, public ChLoadableUVW
 /// Tetrahedron FEM element with 4 nodes for scalar fields (for Poisson-like problems).
 /// This is a classical element with linear displacement.
 /// ***EXPERIMENTAL***
-class ChApi ChElementTetra_4_P : public ChElementTetrahedron, public ChLoadableUVW {
+class ChApi ChElementTetra_4_P : public ChElementGeneric, public ChElementCorotational, public ChLoadableUVW {
   public:
     using ShapeVector = ChMatrixNM<double, 1, 4>;
 
     ChElementTetra_4_P();
-
     ~ChElementTetra_4_P() {}
 
     virtual int GetNnodes() override { return 4; }
     virtual int GetNdofs() override { return 4 * 1; }
     virtual int GetNodeNdofs(int n) override { return 1; }
+
+    double GetVolume() { return Volume; }
 
     virtual std::shared_ptr<ChNodeFEAbase> GetNodeN(int n) override { return nodes[n]; }
 
@@ -222,6 +229,9 @@ class ChApi ChElementTetra_4_P : public ChElementTetrahedron, public ChLoadableU
     //
     // FEM functions
     //
+
+    /// Update element at each time step.
+    virtual void Update() override;
 
     /// Fills the N shape function matrix with the
     /// values of shape functions at zi parametric coordinates, where
@@ -349,8 +359,8 @@ class ChApi ChElementTetra_4_P : public ChElementTetrahedron, public ChLoadableU
     std::shared_ptr<ChContinuumPoisson3D> Material;
     ChMatrixDynamic<> MatrB;            // matrix of shape function's partial derivatives
     ChMatrixDynamic<> StiffnessMatrix;  // local stiffness matrix
-
-    ChMatrixNM<double, 4, 4> mM;  // for speeding up corotational approach
+    ChMatrixNM<double, 4, 4> mM;        // for speeding up corotational approach
+    double Volume;
 
   public:
     EIGEN_MAKE_ALIGNED_OPERATOR_NEW
