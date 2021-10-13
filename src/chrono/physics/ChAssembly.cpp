@@ -275,7 +275,8 @@ void ChAssembly::RemoveAllBodies() {
     }
     bodylist.clear();
 
-    system->is_updated = false;
+    if (system)
+        system->is_updated = false;
 }
 
 void ChAssembly::RemoveAllLinks() {
@@ -284,7 +285,8 @@ void ChAssembly::RemoveAllLinks() {
     }
     linklist.clear();
 
-    system->is_updated = false;
+    if (system)
+        system->is_updated = false;
 }
 
 void ChAssembly::RemoveAllMeshes() {
@@ -293,7 +295,8 @@ void ChAssembly::RemoveAllMeshes() {
     }
     meshlist.clear();
 
-    system->is_updated = false;
+    if (system)
+        system->is_updated = false;
 }
 
 void ChAssembly::RemoveAllOtherPhysicsItems() {
@@ -302,7 +305,8 @@ void ChAssembly::RemoveAllOtherPhysicsItems() {
     }
     otherphysicslist.clear();
 
-    system->is_updated = false;
+    if (system)
+        system->is_updated = false;
 }
 
 std::shared_ptr<ChBody> ChAssembly::SearchBody(const char* name) {

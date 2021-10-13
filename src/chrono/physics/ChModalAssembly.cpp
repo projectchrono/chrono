@@ -209,7 +209,8 @@ void ChModalAssembly::RemoveAllInternalBodies() {
     }
     internal_bodylist.clear();
 
-    system->is_updated = false;
+    if (system)
+        system->is_updated = false;
 }
 
 void ChModalAssembly::RemoveAllInternalLinks() {
@@ -218,7 +219,8 @@ void ChModalAssembly::RemoveAllInternalLinks() {
     }
     internal_linklist.clear();
 
-    system->is_updated = false;
+    if (system)
+        system->is_updated = false;
 }
 
 void ChModalAssembly::RemoveAllInternalMeshes() {
@@ -227,7 +229,8 @@ void ChModalAssembly::RemoveAllInternalMeshes() {
     }
     internal_meshlist.clear();
 
-    system->is_updated = false;
+    if (system)
+        system->is_updated = false;
 }
 
 void ChModalAssembly::RemoveAllInternalOtherPhysicsItems() {
