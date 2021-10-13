@@ -2092,7 +2092,7 @@ bool ANCFShellTest::MLCantileverCheck1A(int msglvl) {
 
     bool passed_displacement = abs(Percent_Error) < 5.0;
     bool passed_angles =
-        (abs(Tip_Angles.x() * CH_C_RAD_TO_DEG) < 0.01) && (abs(Tip_Angles.z() * CH_C_RAD_TO_DEG) < 0.01);
+        (abs(Tip_Angles.x() * CH_C_RAD_TO_DEG) < 0.1) && (abs(Tip_Angles.z() * CH_C_RAD_TO_DEG) < 0.1);
     bool passed_tests = passed_displacement && passed_angles;
 
     if (msglvl >= 2) {
@@ -2112,7 +2112,7 @@ bool ANCFShellTest::MLCantileverCheck1A(int msglvl) {
         else
             print_red(" - Test FAILED\n");
 
-        std::cout << "Multilayer Plate Layup 1A - Angular misalignment Checks (all angles less than 0.01 deg)";
+        std::cout << "Multilayer Plate Layup 1A - Angular misalignment Checks (all angles less than 0.1 deg)";
         if (passed_angles)
             print_green(" - Test PASSED\n\n");
         else
@@ -2419,7 +2419,7 @@ bool ANCFShellTest::MLCantileverCheck2A(int msglvl) {
 
     bool passed_displacement = abs(Percent_Error) < 5.0;
     bool passed_angles =
-        (abs(Tip_Angles.x() * CH_C_RAD_TO_DEG) < 0.01) && (abs(Tip_Angles.z() * CH_C_RAD_TO_DEG) < 0.01);
+        (abs(Tip_Angles.x() * CH_C_RAD_TO_DEG) < 0.1) && (abs(Tip_Angles.z() * CH_C_RAD_TO_DEG) < 0.1);
     bool passed_tests = passed_displacement && passed_angles;
 
     if (msglvl >= 2) {
@@ -2439,7 +2439,7 @@ bool ANCFShellTest::MLCantileverCheck2A(int msglvl) {
         else
             print_red(" - Test FAILED\n");
 
-        std::cout << "Multilayer Plate Layup 2A - Angular misalignment Checks (all angles less than 0.01 deg)";
+        std::cout << "Multilayer Plate Layup 2A - Angular misalignment Checks (all angles less than 0.1 deg)";
         if (passed_angles)
             print_green(" - Test PASSED\n\n");
         else
