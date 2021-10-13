@@ -67,6 +67,7 @@ endif()
 if(ENABLE_MODULE_IRRLICHT AND ENABLE_MODULE_PARDISO_MKL AND ENABLE_MODULE_POSTPROCESS)
 set(FEA_DEMOS ${FEA_DEMOS}
     demo_FEA_beams_rotor
+    demo_FEA_modal_assembly
 )
 endif()
 
