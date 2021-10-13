@@ -11,11 +11,11 @@
 // =============================================================================
 // Authors: Radu Serban
 // =============================================================================
-// Base class for a FEA element with tetrahedral shape.
+// Base class for a FEA element with hexahedral shape.
 // =============================================================================
 
-#ifndef CH_TERAHEDRON_H
-#define CH_TERAHEDRON_H
+#ifndef CH_HEXAHEDRON_H
+#define CH_HEXAHEDRON_H
 
 #include "chrono/fea/ChNodeFEAxyz.h"
 
@@ -25,14 +25,14 @@ namespace fea {
 /// @addtogroup fea_elements
 /// @{
 
-/// Base class for a FEA element with tetrahedral shape.
-class ChApi ChTetrahedron {
+/// Base class for a FEA element with hexahedral shape.
+class ChApi ChElementHexahedron {
   public:
-    ChTetrahedron() {}
-    virtual ~ChTetrahedron() {}
+    ChElementHexahedron() {}
+    virtual ~ChElementHexahedron() {}
 
-    /// Return the specified tetrahedron node (0 <= n <= 3).
-    virtual std::shared_ptr<ChNodeFEAxyz> GetTetrahedronNode(int n) = 0;
+    /// Return the specified hexahedron node (0 <= n <= 7).
+    virtual std::shared_ptr<ChNodeFEAxyz> GetHexahedronNode(int n) = 0;
 };
 
 /// @} fea_elements

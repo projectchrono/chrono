@@ -410,8 +410,6 @@ set(ChronoEngine_fea_HEADERS
     fea/ChContinuumPoisson3D.h
     fea/ChContinuumThermal.h
     fea/ChContinuumElectrostatics.h
-    fea/ChHexahedron.h
-    fea/ChTetrahedron.h
     fea/ChHexahedronFace.h
     fea/ChTetrahedronFace.h
     fea/ChLoadsBeam.h
@@ -513,10 +511,12 @@ set(ChronoEngine_fea_elements_HEADERS
     fea/ChElementBeamTaperedTimoshenkoFPM.h
     fea/ChElementBeamIGA.h
     fea/ChElementCableANCF.h
-    fea/ChElementBrick.h
-    fea/ChElementBrick_9.h
+    fea/ChElementTetrahedron.h
     fea/ChElementTetra_4.h
     fea/ChElementTetra_10.h
+    fea/ChElementHexahedron.h
+    fea/ChElementBrick.h
+    fea/ChElementBrick_9.h
     fea/ChElementHexa_8.h
     fea/ChElementHexa_20.h
     fea/ChElementBrickANCF_3843.h

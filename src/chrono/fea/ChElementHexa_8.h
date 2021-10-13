@@ -15,7 +15,7 @@
 #ifndef CHELEMENTHEXA8_H
 #define CHELEMENTHEXA8_H
 
-#include "chrono/fea/ChHexahedron.h"
+#include "chrono/fea/ChElementHexahedron.h"
 #include "chrono/fea/ChElementGeneric.h"
 #include "chrono/fea/ChElementCorotational.h"
 #include "chrono/fea/ChGaussIntegrationRule.h"
@@ -29,7 +29,7 @@ namespace fea {
 
 /// Class for FEA elements of hexahedron type (isoparametric 3D bricks) with 8 nodes.
 /// This element has a linear displacement field.
-class ChApi ChElementHexa_8 : public ChHexahedron,
+class ChApi ChElementHexa_8 : public ChElementHexahedron,
                               public ChElementGeneric,
                               public ChElementCorotational,
                               public ChLoadableUVW {

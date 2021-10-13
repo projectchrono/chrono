@@ -52,8 +52,8 @@ class ChApi ChMeshSurface {
     /// Scan all the finite elements already added in the parent ChMesh, and check if any has a face whose vertexes are
     /// all in the given node set; if so, add it to this mesh surface, with these rules:
     /// - surface elements inherited from ChLoadableUV: the element is added
-    /// - face of ChTetrahedron : a ChTetrahedronFace proxy is created and added
-    /// - face of ChHexahedron : a ChHexahedronFace proxy is created and added
+    /// - face of ChElementTetrahedron : a ChTetrahedronFace proxy is created and added
+    /// - face of ChElementHexahedron : a ChHexahedronFace proxy is created and added
     virtual void AddFacesFromNodeSet(std::vector<std::shared_ptr<ChNodeFEAbase> >& node_set);
 
     /// Find faces on the outer boundary of a solid mesh.

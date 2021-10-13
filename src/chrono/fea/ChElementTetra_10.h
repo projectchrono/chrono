@@ -17,7 +17,7 @@
 
 #include <cmath>
 
-#include "chrono/fea/ChTetrahedron.h"
+#include "chrono/fea/ChElementTetrahedron.h"
 #include "chrono/fea/ChElementGeneric.h"
 #include "chrono/fea/ChElementCorotational.h"
 #include "chrono/fea/ChNodeFEAxyz.h"
@@ -31,7 +31,7 @@ namespace fea {
 /// Tetrahedron FEA element with 10 nodes.
 /// This is a quadratic element for displacements; stress and strain
 /// are interpolated depending on Gauss points.
-class ChApi ChElementTetra_10 : public ChTetrahedron,
+class ChApi ChElementTetra_10 : public ChElementTetrahedron,
                                 public ChElementGeneric,
                                 public ChElementCorotational,
                                 public ChLoadableUVW {

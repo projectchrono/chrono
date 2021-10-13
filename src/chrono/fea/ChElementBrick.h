@@ -16,7 +16,7 @@
 #ifndef CHELEMENTBRICK_H
 #define CHELEMENTBRICK_H
 
-#include "chrono/fea/ChHexahedron.h"
+#include "chrono/fea/ChElementHexahedron.h"
 #include "chrono/fea/ChElementGeneric.h"
 #include "chrono/fea/ChNodeFEAxyz.h"
 #include "chrono/fea/ChContinuumMaterial.h"
@@ -30,7 +30,7 @@ namespace fea {
 /// @{
 
 /// Brick element with 8 nodes (with EAS).
-class ChApi ChElementBrick : public ChHexahedron, public ChElementGeneric, public ChLoadableUVW {
+class ChApi ChElementBrick : public ChElementHexahedron, public ChElementGeneric, public ChLoadableUVW {
   public:
     using ShapeVector = ChMatrixNM<double, 1, 8>;
 

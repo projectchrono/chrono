@@ -37,7 +37,7 @@ void ChMeshSurface::AddFacesFromNodeSet(std::vector<std::shared_ptr<ChNodeFEAbas
     for (unsigned int ie = 0; ie < this->mmesh->GetNelements(); ++ie) {
         auto element = mmesh->GetElement(ie);
 
-        if (auto tet = std::dynamic_pointer_cast<ChTetrahedron>(element)) {
+        if (auto tet = std::dynamic_pointer_cast<ChElementTetrahedron>(element)) {
             unsigned char nodes = 0;  // if the i-th bit is 1, the corressponding hex node is in the set
             for (int in = 0; in < 4; in++) {
                 if (node_set_map.find((size_t)tet->GetTetrahedronNode(in).get()) != node_set_map.end())
@@ -55,7 +55,7 @@ void ChMeshSurface::AddFacesFromNodeSet(std::vector<std::shared_ptr<ChNodeFEAbas
             }
         }
 
-        if (auto hex = std::dynamic_pointer_cast<ChHexahedron>(element)) {
+        if (auto hex = std::dynamic_pointer_cast<ChElementHexahedron>(element)) {
             unsigned char nodes = 0;  // if the i-th bit is 1, the corressponding hex node is in the set
             for (int in = 0; in < 7; in++) {
                 if (node_set_map.find((size_t)hex->GetHexahedronNode(in).get()) != node_set_map.end())
@@ -86,7 +86,7 @@ void ChMeshSurface::AddFacesFromBoundary() {
     std::multimap<std::array<ChNodeFEAxyz*, 3>, ChTetrahedronFace> face_map_tet;
 
     for (unsigned int ie = 0; ie < this->mmesh->GetNelements(); ++ie) {
-        if (auto mtetra = std::dynamic_pointer_cast<ChTetrahedron>(mmesh->GetElement(ie))) {
+        if (auto mtetra = std::dynamic_pointer_cast<ChElementTetrahedron>(mmesh->GetElement(ie))) {
             for (int nface = 0; nface < 4; ++nface) {
                 ChTetrahedronFace mface(mtetra, nface);
                 std::array<ChNodeFEAxyz*, 3> mface_key = {mface.GetNodeN(0).get(), mface.GetNodeN(1).get(),
@@ -97,7 +97,7 @@ void ChMeshSurface::AddFacesFromBoundary() {
         }
     }
     for (unsigned int ie = 0; ie < this->mmesh->GetNelements(); ++ie) {
-        if (auto mtetra = std::dynamic_pointer_cast<ChTetrahedron>(mmesh->GetElement(ie))) {
+        if (auto mtetra = std::dynamic_pointer_cast<ChElementTetrahedron>(mmesh->GetElement(ie))) {
             for (int nface = 0; nface < 4; ++nface) {
                 ChTetrahedronFace mface(mtetra, nface);
                 std::array<ChNodeFEAxyz*, 3> mface_key = {mface.GetNodeN(0).get(), mface.GetNodeN(1).get(),
@@ -117,7 +117,7 @@ void ChMeshSurface::AddFacesFromBoundary() {
     std::multimap<std::array<ChNodeFEAxyz*, 4>, ChHexahedronFace> face_map_hex;
 
     for (unsigned int ie = 0; ie < mmesh->GetNelements(); ++ie) {
-        if (auto mbrick = std::dynamic_pointer_cast<ChHexahedron>(mmesh->GetElement(ie))) {
+        if (auto mbrick = std::dynamic_pointer_cast<ChElementHexahedron>(mmesh->GetElement(ie))) {
             for (int nface = 0; nface < 6; ++nface) {
                 ChHexahedronFace mface(mbrick, nface);
                 std::array<ChNodeFEAxyz*, 4> mface_key = {mface.GetNodeN(0).get(), mface.GetNodeN(1).get(),
@@ -128,7 +128,7 @@ void ChMeshSurface::AddFacesFromBoundary() {
         }
     }
     for (unsigned int ie = 0; ie < mmesh->GetNelements(); ++ie) {
-        if (auto mbrick = std::dynamic_pointer_cast<ChHexahedron>(mmesh->GetElement(ie))) {
+        if (auto mbrick = std::dynamic_pointer_cast<ChElementHexahedron>(mmesh->GetElement(ie))) {
             for (int nface = 0; nface < 6; ++nface) {
                 ChHexahedronFace mface(mbrick, nface);
                 std::array<ChNodeFEAxyz*, 4> mface_key = {mface.GetNodeN(0).get(), mface.GetNodeN(1).get(),

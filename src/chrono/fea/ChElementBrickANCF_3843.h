@@ -35,7 +35,7 @@
 
 #include <vector>
 
-#include "chrono/fea/ChHexahedron.h"
+#include "chrono/fea/ChElementHexahedron.h"
 #include "chrono/fea/ChMaterialBrickANCF.h"
 #include "chrono/core/ChQuadrature.h"
 #include "chrono/fea/ChElementGeneric.h"
@@ -74,7 +74,7 @@ namespace fea {
 /// E o-----+-----o F
 /// </pre>
 
-class ChApi ChElementBrickANCF_3843 : public ChHexahedron, public ChElementGeneric, public ChLoadableUVW {
+class ChApi ChElementBrickANCF_3843 : public ChElementHexahedron, public ChElementGeneric, public ChLoadableUVW {
   public:
     // Using fewer than 3 Gauss quadrature will likely result in numerical issues with the element.
     static const int NP = 4;              ///< number of Gauss quadrature along beam axis

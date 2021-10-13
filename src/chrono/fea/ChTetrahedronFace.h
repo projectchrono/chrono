@@ -17,7 +17,7 @@
 #ifndef CH_TETRAHEDRON_FACE_H
 #define CH_TETRAHEDRON_FACE_H
 
-#include "chrono/fea/ChTetrahedron.h"
+#include "chrono/fea/ChElementTetrahedron.h"
 
 namespace chrono {
 namespace fea {
@@ -31,7 +31,7 @@ namespace fea {
 class ChApi ChTetrahedronFace : public ChLoadableUV {
   public:
     /// Construct the specified face (0 <= id <= 3) on the given tetrahedral element.
-    ChTetrahedronFace(std::shared_ptr<ChTetrahedron> element, char id) : m_face_id(id), m_element(element) {}
+    ChTetrahedronFace(std::shared_ptr<ChElementTetrahedron> element, char id) : m_face_id(id), m_element(element) {}
 
     ~ChTetrahedronFace() {}
 
@@ -163,8 +163,8 @@ class ChApi ChTetrahedronFace : public ChLoadableUV {
     }
 
   private:
-    char m_face_id;                            ///< id of the face on the tetrahedron
-    std::shared_ptr<ChTetrahedron> m_element;  ///< associated tetrahedron element
+    char m_face_id;                                   ///< id of the face on the tetrahedron
+    std::shared_ptr<ChElementTetrahedron> m_element;  ///< associated tetrahedron element
 };
 
 /// @} fea_elements

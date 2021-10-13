@@ -17,7 +17,7 @@
 #ifndef CH_HEXAHEDRON_FACE_H
 #define CH_HEXAHEDRON_FACE_H
 
-#include "chrono/fea/ChHexahedron.h"
+#include "chrono/fea/ChElementHexahedron.h"
 
 namespace chrono {
 namespace fea {
@@ -39,7 +39,7 @@ namespace fea {
 class ChApi ChHexahedronFace : public ChLoadableUV {
   public:
     /// Construct the specified face (0 <= id <= 5) on the given hexahedral element.
-    ChHexahedronFace(std::shared_ptr<ChHexahedron> element, char id) : m_face_id(id), m_element(element) {}
+    ChHexahedronFace(std::shared_ptr<ChElementHexahedron> element, char id) : m_face_id(id), m_element(element) {}
 
     ~ChHexahedronFace() {}
 
@@ -172,8 +172,8 @@ class ChApi ChHexahedronFace : public ChLoadableUV {
     }
 
   private:
-    char m_face_id;                           ///< id of the face on the hexahedron
-    std::shared_ptr<ChHexahedron> m_element;  ///< associated hexahedron element
+    char m_face_id;                                  ///< id of the face on the hexahedron
+    std::shared_ptr<ChElementHexahedron> m_element;  ///< associated hexahedron element
 };
 
 /// @} fea_elements

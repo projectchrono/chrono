@@ -577,7 +577,7 @@ void ChContactSurfaceMesh::AddFacesFromBoundary(double sphere_swept, bool ccw) {
     std::multimap<std::array<ChNodeFEAxyz*, 3>, ChTetrahedronFace> face_map;
 
     for (unsigned int ie = 0; ie < m_mesh->GetNelements(); ++ie) {
-        if (auto mtetra = std::dynamic_pointer_cast<ChTetrahedron>(m_mesh->GetElement(ie))) {
+        if (auto mtetra = std::dynamic_pointer_cast<ChElementTetrahedron>(m_mesh->GetElement(ie))) {
             for (int nface = 0; nface < 4; ++nface) {
                 ChTetrahedronFace mface(mtetra, nface);
                 std::array<ChNodeFEAxyz*, 3> mface_key = {mface.GetNodeN(0).get(), mface.GetNodeN(1).get(),
@@ -588,7 +588,7 @@ void ChContactSurfaceMesh::AddFacesFromBoundary(double sphere_swept, bool ccw) {
         }
     }
     for (unsigned int ie = 0; ie < m_mesh->GetNelements(); ++ie) {
-        if (auto mtetra = std::dynamic_pointer_cast<ChTetrahedron>(m_mesh->GetElement(ie))) {
+        if (auto mtetra = std::dynamic_pointer_cast<ChElementTetrahedron>(m_mesh->GetElement(ie))) {
             for (int nface = 0; nface < 4; ++nface) {
                 ChTetrahedronFace mface(mtetra, nface);
                 std::array<ChNodeFEAxyz*, 3> mface_key = {mface.GetNodeN(0).get(), mface.GetNodeN(1).get(),
@@ -607,7 +607,7 @@ void ChContactSurfaceMesh::AddFacesFromBoundary(double sphere_swept, bool ccw) {
     std::multimap<std::array<ChNodeFEAxyz*, 4>, ChHexahedronFace> face_map_brick;
 
     for (unsigned int ie = 0; ie < m_mesh->GetNelements(); ++ie) {
-        if (auto mbrick = std::dynamic_pointer_cast<ChHexahedron>(m_mesh->GetElement(ie))) {
+        if (auto mbrick = std::dynamic_pointer_cast<ChElementHexahedron>(m_mesh->GetElement(ie))) {
             for (int nface = 0; nface < 6; ++nface) {
                 ChHexahedronFace mface(mbrick, nface);
                 std::array<ChNodeFEAxyz*, 4> mface_key = {mface.GetNodeN(0).get(), mface.GetNodeN(1).get(),
@@ -618,7 +618,7 @@ void ChContactSurfaceMesh::AddFacesFromBoundary(double sphere_swept, bool ccw) {
         }
     }
     for (unsigned int ie = 0; ie < m_mesh->GetNelements(); ++ie) {
-        if (auto mbrick = std::dynamic_pointer_cast<ChHexahedron>(m_mesh->GetElement(ie))) {
+        if (auto mbrick = std::dynamic_pointer_cast<ChElementHexahedron>(m_mesh->GetElement(ie))) {
             for (int nface = 0; nface < 6; ++nface) {   // Each of the 6 faces of a brick
                 ChHexahedronFace mface(mbrick, nface);  // Create a face of the element
                 std::array<ChNodeFEAxyz*, 4> mface_key = {mface.GetNodeN(0).get(), mface.GetNodeN(1).get(),

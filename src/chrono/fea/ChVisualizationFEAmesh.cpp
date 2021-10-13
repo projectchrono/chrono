@@ -324,13 +324,13 @@ void ChVisualizationFEAmesh::Update(ChPhysicsItem* updater, const ChCoordsys<>& 
     if (this->fem_data_type != E_PLOT_NONE && this->fem_data_type != E_PLOT_LOADSURFACES &&
         this->fem_data_type != E_PLOT_CONTACTSURFACES) {
         for (unsigned int iel = 0; iel < FEMmesh->GetNelements(); ++iel) {
-            if (std::dynamic_pointer_cast<ChTetrahedron>(FEMmesh->GetElement(iel)) ||
+            if (std::dynamic_pointer_cast<ChElementTetrahedron>(FEMmesh->GetElement(iel)) ||
                 std::dynamic_pointer_cast<ChElementTetra_4_P>(FEMmesh->GetElement(iel))) {
                 n_verts += 4;
                 n_vcols += 4;
                 n_vnorms += 4;     // flat faces
                 n_triangles += 4;  // n. triangle faces
-            } else if (std::dynamic_pointer_cast<ChHexahedron>(FEMmesh->GetElement(iel))) {
+            } else if (std::dynamic_pointer_cast<ChElementHexahedron>(FEMmesh->GetElement(iel))) {
                 n_verts += 8;
                 n_vcols += 8;
                 n_vnorms += 24;
@@ -401,8 +401,8 @@ void ChVisualizationFEAmesh::Update(ChPhysicsItem* updater, const ChCoordsys<>& 
                     // FACE ELEMENT IS A TETRAHEDRON FACE
                     n_verts += 3;
                     n_vcols += 3;
-                    n_vnorms += 1;      // flat face
-                    n_triangles += 1;   // n. triangle faces
+                    n_vnorms += 1;     // flat face
+                    n_triangles += 1;  // n. triangle faces
                 } else if (std::dynamic_pointer_cast<ChElementTetra_4_P>(mface)) {  //// RADU ?!?!?
                     // FACE ELEMENT IS A SHELL
                     n_verts += shell_resolution * shell_resolution;
@@ -467,7 +467,7 @@ void ChVisualizationFEAmesh::Update(ChPhysicsItem* updater, const ChCoordsys<>& 
         for (unsigned int iel = 0; iel < this->FEMmesh->GetNelements(); ++iel) {
             // ------------ELEMENT IS A TETRAHEDRON 4 NODES?
 
-            if (auto mytetra = std::dynamic_pointer_cast<ChTetrahedron>(this->FEMmesh->GetElement(iel))) {
+            if (auto mytetra = std::dynamic_pointer_cast<ChElementTetrahedron>(this->FEMmesh->GetElement(iel))) {
                 auto node0 = std::dynamic_pointer_cast<ChNodeFEAxyz>(mytetra->GetTetrahedronNode(0));
                 auto node1 = std::dynamic_pointer_cast<ChNodeFEAxyz>(mytetra->GetTetrahedronNode(1));
                 auto node2 = std::dynamic_pointer_cast<ChNodeFEAxyz>(mytetra->GetTetrahedronNode(2));
@@ -610,7 +610,7 @@ void ChVisualizationFEAmesh::Update(ChPhysicsItem* updater, const ChCoordsys<>& 
             }
 
             // ------------ELEMENT IS A HEXAHEDRON 8 NODES?
-            if (std::dynamic_pointer_cast<ChHexahedron>(FEMmesh->GetElement(iel))) {
+            if (std::dynamic_pointer_cast<ChElementHexahedron>(FEMmesh->GetElement(iel))) {
                 UpdateBuffers_Hex(FEMmesh->GetElement(iel), *trianglemesh, i_verts, i_vnorms, i_vcols, i_triindex);
             }
 

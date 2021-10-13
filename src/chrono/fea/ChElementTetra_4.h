@@ -17,7 +17,7 @@
 
 #include <cmath>
 
-#include "chrono/fea/ChTetrahedron.h"
+#include "chrono/fea/ChElementTetrahedron.h"
 #include "chrono/fea/ChElementGeneric.h"
 #include "chrono/fea/ChElementCorotational.h"
 #include "chrono/fea/ChContinuumPoisson3D.h"
@@ -34,7 +34,7 @@ namespace fea {
 /// Tetrahedron FEA element with 4 nodes.
 /// This is a classical element with linear displacement, hence with constant stress
 /// and constant strain. It can be easily used for 3D FEA problems.
-class ChApi ChElementTetra_4 : public ChTetrahedron,
+class ChApi ChElementTetra_4 : public ChElementTetrahedron,
                                public ChElementGeneric,
                                public ChElementCorotational,
                                public ChLoadableUVW {
