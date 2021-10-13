@@ -26,7 +26,9 @@ using namespace geometry;
 CH_FACTORY_REGISTER(ChModalAssembly)
 
 ChModalAssembly::ChModalAssembly()
-     : modal_variables(nullptr) 
+    : modal_variables(nullptr),
+    n_modes_coords_w(0),
+    is_modal(false)
 {}
 
 ChModalAssembly::ChModalAssembly(const ChModalAssembly& other) : ChAssembly(other) {
@@ -239,7 +241,10 @@ void ChModalAssembly::RemoveAllInternalOtherPhysicsItems() {
     }
     internal_otherphysicslist.clear();
 
-    system->is_updated = false;
+    if (system)
+        system->is_updated = false;
+}
+
 }
 
 
@@ -443,19 +448,38 @@ void ChModalAssembly::Setup() {
         ncoords_w += this->n_modes_coords_w;
 
         if (!modal_variables || (modal_variables->Get_ndof() != this->n_modes_coords_w)) {
+            
+            // Initialize ChVariable object used for modal variables
             if (modal_variables)
                 delete modal_variables;
             modal_variables = new ChVariablesGenericDiagonalMass(this->n_modes_coords_w);
+
+            // Initialize the modal_Hblock, which is a ChKblockGeneric referencing all ChVariable items:
+            std::vector<ChVariables*> mvars;
+            // - for BOUNDARY variables: trick to collect all ChVariable references..
+            ChSystemDescriptor temporary_descriptor;
+            for (auto& body : bodylist)
+                body->InjectVariables(temporary_descriptor);
+            for (auto& link : linklist)
+                link->InjectVariables(temporary_descriptor);
+            for (auto& mesh : meshlist)
+                mesh->InjectVariables(temporary_descriptor);
+            for (auto& item : otherphysicslist)
+                item->InjectVariables(temporary_descriptor);
+            mvars = temporary_descriptor.GetVariablesList();
+            // - for the MODAL variables:
+            mvars.push_back(this->modal_variables);
+            this->modal_Hblock.SetVariables(mvars);
+
+            // Initialize vectors to be used with modal coordinates:
             this->modal_q.setZero(this->n_modes_coords_w);
             this->modal_q_dt.setZero(this->n_modes_coords_w);
             this->modal_q_dtdt.setZero(this->n_modes_coords_w);
             this->modal_F.setZero(this->n_modes_coords_w);
-            std::vector<ChVariables*> mvars; 
-            mvars.push_back(this->modal_variables);
-            this->modal_Hblock.SetVariables(mvars);
-            this->modal_M.setZero(this->ncoords,this->ncoords);
-            this->modal_K.setZero(this->ncoords,this->ncoords);
-            this->modal_R.setZero(this->ncoords,this->ncoords);
+
+            this->modal_M.setZero(this->ncoords_w,this->ncoords_w);
+            this->modal_K.setZero(this->ncoords_w,this->ncoords_w);
+            this->modal_R.setZero(this->ncoords_w,this->ncoords_w);
         }
         // for the entire assembly:
         ndoc       = n_boundary_doc;
