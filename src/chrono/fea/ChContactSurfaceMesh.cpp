@@ -21,11 +21,6 @@
 #include "chrono/fea/ChElementShellANCF_3443.h"
 #include "chrono/fea/ChElementShellANCF_3833.h"
 #include "chrono/fea/ChElementShellReissner4.h"
-#include "chrono/fea/ChElementTetra_4.h"
-#include "chrono/fea/ChElementBrick_9.h"
-#include "chrono/fea/ChElementBrick.h"
-#include "chrono/fea/ChElementBrickANCF_3843.h"
-#include "chrono/fea/ChElementHexa_8.h"
 #include "chrono/fea/ChElementCableANCF.h"
 #include "chrono/fea/ChElementBeamANCF_3243.h"
 #include "chrono/fea/ChElementBeamANCF_3333.h"
@@ -578,13 +573,11 @@ void ChContactSurfaceMesh::AddFacesFromBoundary(double sphere_swept, bool ccw) {
     std::vector<std::array<ChNodeFEAxyzrot*, 3>> triangles_rot;
     std::vector<std::array<std::shared_ptr<ChNodeFEAxyzrot>, 3>> triangles_rot_ptrs;
 
-    //
-    // Case1. Outer skin boundary of meshes of TETRAHEDRONS:
-    //
+    // Boundary faces of TETRAHEDRONS
     std::multimap<std::array<ChNodeFEAxyz*, 3>, ChTetrahedronFace> face_map;
 
     for (unsigned int ie = 0; ie < m_mesh->GetNelements(); ++ie) {
-        if (auto mtetra = std::dynamic_pointer_cast<ChElementTetra_4>(m_mesh->GetElement(ie))) {
+        if (auto mtetra = std::dynamic_pointer_cast<ChTetrahedron>(m_mesh->GetElement(ie))) {
             for (int nface = 0; nface < 4; ++nface) {
                 ChTetrahedronFace mface(mtetra, nface);
                 std::array<ChNodeFEAxyz*, 3> mface_key = {mface.GetNodeN(0).get(), mface.GetNodeN(1).get(),
@@ -595,7 +588,7 @@ void ChContactSurfaceMesh::AddFacesFromBoundary(double sphere_swept, bool ccw) {
         }
     }
     for (unsigned int ie = 0; ie < m_mesh->GetNelements(); ++ie) {
-        if (auto mtetra = std::dynamic_pointer_cast<ChElementTetra_4>(m_mesh->GetElement(ie))) {
+        if (auto mtetra = std::dynamic_pointer_cast<ChTetrahedron>(m_mesh->GetElement(ie))) {
             for (int nface = 0; nface < 4; ++nface) {
                 ChTetrahedronFace mface(mtetra, nface);
                 std::array<ChNodeFEAxyz*, 3> mface_key = {mface.GetNodeN(0).get(), mface.GetNodeN(1).get(),
@@ -610,9 +603,39 @@ void ChContactSurfaceMesh::AddFacesFromBoundary(double sphere_swept, bool ccw) {
         }
     }
 
-    //
-    // Case2. skin of ANCF SHELLS:
-    //
+    // Boundary faces of HEXAHEDRONS
+    std::multimap<std::array<ChNodeFEAxyz*, 4>, ChHexahedronFace> face_map_brick;
+
+    for (unsigned int ie = 0; ie < m_mesh->GetNelements(); ++ie) {
+        if (auto mbrick = std::dynamic_pointer_cast<ChHexahedron>(m_mesh->GetElement(ie))) {
+            for (int nface = 0; nface < 6; ++nface) {
+                ChHexahedronFace mface(mbrick, nface);
+                std::array<ChNodeFEAxyz*, 4> mface_key = {mface.GetNodeN(0).get(), mface.GetNodeN(1).get(),
+                                                          mface.GetNodeN(2).get(), mface.GetNodeN(3).get()};
+                std::sort(mface_key.begin(), mface_key.end());
+                face_map_brick.insert({mface_key, mface});
+            }
+        }
+    }
+    for (unsigned int ie = 0; ie < m_mesh->GetNelements(); ++ie) {
+        if (auto mbrick = std::dynamic_pointer_cast<ChHexahedron>(m_mesh->GetElement(ie))) {
+            for (int nface = 0; nface < 6; ++nface) {   // Each of the 6 faces of a brick
+                ChHexahedronFace mface(mbrick, nface);  // Create a face of the element
+                std::array<ChNodeFEAxyz*, 4> mface_key = {mface.GetNodeN(0).get(), mface.GetNodeN(1).get(),
+                                                          mface.GetNodeN(2).get(), mface.GetNodeN(3).get()};
+                std::sort(mface_key.begin(), mface_key.end());
+                if (face_map_brick.count(mface_key) == 1) {
+                    // Found a face that is not shared.. so it is a boundary face: Make two triangles out of that face
+                    triangles.push_back({{mface.GetNodeN(0).get(), mface.GetNodeN(1).get(), mface.GetNodeN(2).get()}});
+                    triangles.push_back({{mface.GetNodeN(0).get(), mface.GetNodeN(2).get(), mface.GetNodeN(3).get()}});
+                    triangles_ptrs.push_back({{mface.GetNodeN(0), mface.GetNodeN(1), mface.GetNodeN(2)}});
+                    triangles_ptrs.push_back({{mface.GetNodeN(0), mface.GetNodeN(2), mface.GetNodeN(3)}});
+                }
+            }
+        }
+    }
+
+    // Skin of ANCF SHELLS:
     for (unsigned int ie = 0; ie < m_mesh->GetNelements(); ++ie) {
         if (auto mshell = std::dynamic_pointer_cast<ChElementShellANCF_3423>(m_mesh->GetElement(ie))) {
             std::shared_ptr<ChNodeFEAxyz> nA = mshell->GetNodeA();
@@ -693,9 +716,28 @@ void ChContactSurfaceMesh::AddFacesFromBoundary(double sphere_swept, bool ccw) {
         }
     }
 
-    //
-    // Case3. EULER BEAMS (handles as a skinny triangle, with sphere swept radii, i.e. a capsule):
-    //
+    // Skin of REISSNER SHELLS:
+    for (unsigned int ie = 0; ie < m_mesh->GetNelements(); ++ie) {
+        if (auto mshell = std::dynamic_pointer_cast<ChElementShellReissner4>(m_mesh->GetElement(ie))) {
+            std::shared_ptr<ChNodeFEAxyzrot> nA = mshell->GetNodeA();
+            std::shared_ptr<ChNodeFEAxyzrot> nB = mshell->GetNodeB();
+            std::shared_ptr<ChNodeFEAxyzrot> nC = mshell->GetNodeC();
+            std::shared_ptr<ChNodeFEAxyzrot> nD = mshell->GetNodeD();
+            if (ccw) {
+                triangles_rot.push_back({{nA.get(), nD.get(), nB.get()}});
+                triangles_rot.push_back({{nB.get(), nD.get(), nC.get()}});
+                triangles_rot_ptrs.push_back({{nA, nD, nB}});
+                triangles_rot_ptrs.push_back({{nB, nD, nC}});
+            } else {
+                triangles_rot.push_back({{nA.get(), nB.get(), nD.get()}});
+                triangles_rot.push_back({{nB.get(), nC.get(), nD.get()}});
+                triangles_rot_ptrs.push_back({{nA, nB, nD}});
+                triangles_rot_ptrs.push_back({{nB, nC, nD}});
+            }
+        }
+    }
+
+    // EULER BEAMS (handles as a skinny triangle, with sphere swept radii, i.e. a capsule):
     for (unsigned int ie = 0; ie < m_mesh->GetNelements(); ++ie) {
         if (auto mbeam = std::dynamic_pointer_cast<ChElementBeamEuler>(m_mesh->GetElement(ie))) {
             std::shared_ptr<ChNodeFEAxyzrot> nA = mbeam->GetNodeA();
@@ -729,7 +771,7 @@ void ChContactSurfaceMesh::AddFacesFromBoundary(double sphere_swept, bool ccw) {
     }
 
     //
-    // Case4. ANCF BEAMS (handles as a skinny triangle, with sphere swept radii, i.e. a capsule):
+    // ANCF BEAMS (handles as a skinny triangle, with sphere swept radii, i.e. a capsule):
     //
     for (unsigned int ie = 0; ie < m_mesh->GetNelements(); ++ie) {
         if (auto mbeam = std::dynamic_pointer_cast<ChElementCableANCF>(m_mesh->GetElement(ie))) {
@@ -807,101 +849,7 @@ void ChContactSurfaceMesh::AddFacesFromBoundary(double sphere_swept, bool ccw) {
         }
     }
 
-    //
-    // Case5. Outer surface boundaries of 9-node brick meshes:
-    //
-
-    std::multimap<std::array<ChNodeFEAxyz*, 4>, ChHexahedronFace> face_map_brick;
-
-    for (unsigned int ie = 0; ie < m_mesh->GetNelements(); ++ie) {
-        if (auto mbrick = std::dynamic_pointer_cast<ChElementBrick_9>(m_mesh->GetElement(ie))) {
-            for (int nface = 0; nface < 6; ++nface) {
-                ChHexahedronFace mface(mbrick, nface);
-                std::array<ChNodeFEAxyz*, 4> mface_key = {mface.GetNodeN(0).get(), mface.GetNodeN(1).get(),
-                                                          mface.GetNodeN(2).get(), mface.GetNodeN(3).get()};
-                std::sort(mface_key.begin(), mface_key.end());
-                face_map_brick.insert({mface_key, mface});
-            }
-        }
-    }
-    for (unsigned int ie = 0; ie < m_mesh->GetNelements(); ++ie) {
-        if (auto mbrick = std::dynamic_pointer_cast<ChElementBrick_9>(m_mesh->GetElement(ie))) {
-            for (int nface = 0; nface < 6; ++nface) {  // Each of the 6 faces of a brick
-                ChHexahedronFace mface(mbrick, nface);  // Create a face of the element
-                std::array<ChNodeFEAxyz*, 4> mface_key = {mface.GetNodeN(0).get(), mface.GetNodeN(1).get(),
-                                                          mface.GetNodeN(2).get(), mface.GetNodeN(3).get()};
-                std::sort(mface_key.begin(), mface_key.end());
-                if (face_map_brick.count(mface_key) == 1) {
-                    // Found a face that is not shared.. so it is a boundary face: Make two triangles out of that face
-                    triangles.push_back({{mface.GetNodeN(0).get(), mface.GetNodeN(1).get(), mface.GetNodeN(2).get()}});
-                    triangles.push_back({{mface.GetNodeN(0).get(), mface.GetNodeN(2).get(), mface.GetNodeN(3).get()}});
-                    triangles_ptrs.push_back({{mface.GetNodeN(0), mface.GetNodeN(1), mface.GetNodeN(2)}});
-                    triangles_ptrs.push_back({{mface.GetNodeN(0), mface.GetNodeN(2), mface.GetNodeN(3)}});
-                }
-            }
-        }
-    }
-
-    //
-    // Case6. skin of REISSNER SHELLS:
-    //
-    for (unsigned int ie = 0; ie < m_mesh->GetNelements(); ++ie) {
-        if (auto mshell = std::dynamic_pointer_cast<ChElementShellReissner4>(m_mesh->GetElement(ie))) {
-            std::shared_ptr<ChNodeFEAxyzrot> nA = mshell->GetNodeA();
-            std::shared_ptr<ChNodeFEAxyzrot> nB = mshell->GetNodeB();
-            std::shared_ptr<ChNodeFEAxyzrot> nC = mshell->GetNodeC();
-            std::shared_ptr<ChNodeFEAxyzrot> nD = mshell->GetNodeD();
-            if (ccw) {
-                triangles_rot.push_back({{nA.get(), nD.get(), nB.get()}});
-                triangles_rot.push_back({{nB.get(), nD.get(), nC.get()}});
-                triangles_rot_ptrs.push_back({{nA, nD, nB}});
-                triangles_rot_ptrs.push_back({{nB, nD, nC}});
-            } else {
-                triangles_rot.push_back({{nA.get(), nB.get(), nD.get()}});
-                triangles_rot.push_back({{nB.get(), nC.get(), nD.get()}});
-                triangles_rot_ptrs.push_back({{nA, nB, nD}});
-                triangles_rot_ptrs.push_back({{nB, nC, nD}});
-            }
-        }
-    }
-
-    //
-    // Case7. Outer surface boundaries of 8-node hexahedron brick meshes:
-    //
-    std::multimap<std::array<ChNodeFEAxyz*, 4>, ChHexahedronFace> face_map_hexa;
-
-    for (unsigned int ie = 0; ie < m_mesh->GetNelements(); ++ie) {
-        if (auto mbrick = std::dynamic_pointer_cast<ChElementHexa_8>(m_mesh->GetElement(ie))) {
-            for (int nface = 0; nface < 6; ++nface) {
-                ChHexahedronFace mface(mbrick, nface);
-                std::array<ChNodeFEAxyz*, 4> mface_key = {mface.GetNodeN(0).get(), mface.GetNodeN(1).get(),
-                                                          mface.GetNodeN(2).get(), mface.GetNodeN(3).get()};
-                std::sort(mface_key.begin(), mface_key.end());
-                face_map_hexa.insert({mface_key, mface});
-            }
-        }
-    }
-    for (unsigned int ie = 0; ie < m_mesh->GetNelements(); ++ie) {
-        if (auto mbrick = std::dynamic_pointer_cast<ChElementHexa_8>(m_mesh->GetElement(ie))) {
-            for (int nface = 0; nface < 6; ++nface) {  // Each of the 6 faces of a brick
-                ChHexahedronFace mface(mbrick, nface);  // Create a face of the element
-                std::array<ChNodeFEAxyz*, 4> mface_key = {mface.GetNodeN(0).get(), mface.GetNodeN(1).get(),
-                                                          mface.GetNodeN(2).get(), mface.GetNodeN(3).get()};
-                std::sort(mface_key.begin(), mface_key.end());
-                if (face_map_hexa.count(mface_key) == 1) {
-                    // Found a face that is not shared.. so it is a boundary face: Make two triangles out of that face
-                    triangles.push_back({{mface.GetNodeN(0).get(), mface.GetNodeN(1).get(), mface.GetNodeN(2).get()}});
-                    triangles.push_back({{mface.GetNodeN(0).get(), mface.GetNodeN(2).get(), mface.GetNodeN(3).get()}});
-                    triangles_ptrs.push_back({{mface.GetNodeN(0), mface.GetNodeN(1), mface.GetNodeN(2)}});
-                    triangles_ptrs.push_back({{mface.GetNodeN(0), mface.GetNodeN(2), mface.GetNodeN(3)}});
-                }
-            }
-        }
-    }
-
-    //
     // Compute triangles connectivity
-    //
     std::multimap<std::pair<ChNodeFEAxyz*, ChNodeFEAxyz*>, int> edge_map;
 
     for (int it = 0; it < triangles.size(); ++it) {
@@ -1090,9 +1038,7 @@ void ChContactSurfaceMesh::AddFacesFromBoundary(double sphere_swept, bool ccw) {
         }
     }
 
-    //
-    // Now create triangles with collision models:
-    //
+    // Create triangles with collision models
     std::set<ChNodeFEAxyz*> added_vertexes;
 
     // iterate on triangles
