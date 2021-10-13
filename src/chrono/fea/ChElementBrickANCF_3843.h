@@ -35,6 +35,7 @@
 
 #include <vector>
 
+#include "chrono/fea/ChHexahedron.h"
 #include "chrono/fea/ChMaterialBrickANCF.h"
 #include "chrono/core/ChQuadrature.h"
 #include "chrono/fea/ChElementGeneric.h"
@@ -73,7 +74,7 @@ namespace fea {
 /// E o-----+-----o F
 /// </pre>
 
-class ChApi ChElementBrickANCF_3843 : public ChElementGeneric, public ChLoadableUVW {
+class ChApi ChElementBrickANCF_3843 : public ChHexahedron, public ChElementGeneric, public ChLoadableUVW {
   public:
     // Using fewer than 3 Gauss quadrature will likely result in numerical issues with the element.
     static const int NP = 4;              ///< number of Gauss quadrature along beam axis
@@ -132,6 +133,9 @@ class ChApi ChElementBrickANCF_3843 : public ChElementGeneric, public ChLoadable
 
     /// Access the n-th node of this element.
     virtual std::shared_ptr<ChNodeFEAbase> GetNodeN(int n) override { return m_nodes[n]; }
+
+    /// Return the specified hexahedron node (0 <= n <= 7).
+    virtual std::shared_ptr<ChNodeFEAxyz> GetHexahedronNode(int n) override { return m_nodes[n]; }
 
     /// Get a handle to the first node of this element.
     std::shared_ptr<ChNodeFEAxyzDDD> GetNodeA() const { return m_nodes[0]; }

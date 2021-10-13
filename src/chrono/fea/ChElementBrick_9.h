@@ -16,11 +16,12 @@
 #ifndef CHELEMENTBRICK9_H
 #define CHELEMENTBRICK9_H
 
-#include "chrono/physics/ChSystem.h"
-#include "chrono/fea/ChContinuumMaterial.h"
+#include "chrono/fea/ChHexahedron.h"
 #include "chrono/fea/ChElementGeneric.h"
 #include "chrono/fea/ChNodeFEAcurv.h"
 #include "chrono/fea/ChNodeFEAxyz.h"
+#include "chrono/fea/ChContinuumMaterial.h"
+#include "chrono/physics/ChSystem.h"
 
 namespace chrono {
 namespace fea {
@@ -29,7 +30,7 @@ namespace fea {
 /// @{
 
 /// Brick element with 9 nodes.
-class ChApi ChElementBrick_9 : public ChElementGeneric, public ChLoadableUVW {
+class ChApi ChElementBrick_9 : public ChHexahedron, public ChElementGeneric, public ChLoadableUVW {
   public:
     using ShapeVector = ChMatrixNM<double, 1, 11>;
 
@@ -57,6 +58,9 @@ class ChApi ChElementBrick_9 : public ChElementGeneric, public ChLoadableUVW {
 
         return m_central_node;
     }
+
+    /// Return the specified hexahedron node (0 <= n <= 7).
+    virtual std::shared_ptr<ChNodeFEAxyz> GetHexahedronNode(int n) override { return m_nodes[n]; }
 
     /// Specify the nodes of this element.
     void SetNodes(std::shared_ptr<ChNodeFEAxyz> node1,

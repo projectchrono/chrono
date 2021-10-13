@@ -16,11 +16,12 @@
 #ifndef CHELEMENTBRICK_H
 #define CHELEMENTBRICK_H
 
-#include "chrono/core/ChQuadrature.h"
-#include "chrono/physics/ChLoadable.h"
-#include "chrono/fea/ChContinuumMaterial.h"
+#include "chrono/fea/ChHexahedron.h"
 #include "chrono/fea/ChElementGeneric.h"
 #include "chrono/fea/ChNodeFEAxyz.h"
+#include "chrono/fea/ChContinuumMaterial.h"
+#include "chrono/core/ChQuadrature.h"
+#include "chrono/physics/ChLoadable.h"
 
 namespace chrono {
 namespace fea {
@@ -29,7 +30,7 @@ namespace fea {
 /// @{
 
 /// Brick element with 8 nodes (with EAS).
-class ChApi ChElementBrick : public ChElementGeneric, public ChLoadableUVW {
+class ChApi ChElementBrick : public ChHexahedron, public ChElementGeneric, public ChLoadableUVW {
   public:
     using ShapeVector = ChMatrixNM<double, 1, 8>;
 
@@ -47,6 +48,9 @@ class ChApi ChElementBrick : public ChElementGeneric, public ChLoadableUVW {
 
     /// Access the n-th node of this element.
     virtual std::shared_ptr<ChNodeFEAbase> GetNodeN(int n) override { return m_nodes[n]; }
+
+    /// Return the specified hexahedron node (0 <= n <= 7).
+    virtual std::shared_ptr<ChNodeFEAxyz> GetHexahedronNode(int n) override { return m_nodes[n]; }
 
     /// Specify the nodes of this element.
     void SetNodes(std::shared_ptr<ChNodeFEAxyz> nodeA,

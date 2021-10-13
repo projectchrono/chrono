@@ -34,7 +34,7 @@
 #include "chrono/fea/ChElementShellBST.h"
 #include "chrono/fea/ChElementTetra_10.h"
 #include "chrono/fea/ChElementTetra_4.h"
-#include "chrono/fea/ChFaceTetra_4.h"
+#include "chrono/fea/ChTetrahedronFace.h"
 #include "chrono/fea/ChVisualizationFEAmesh.h"
 
 namespace chrono {
@@ -414,7 +414,7 @@ void ChVisualizationFEAmesh::Update(ChPhysicsItem* updater, const ChCoordsys<>& 
             std::shared_ptr<ChMeshSurface> msurface = this->FEMmesh->GetMeshSurface(isu);
             for (unsigned int ifa = 0; ifa < msurface->GetFacesList().size(); ++ifa) {
                 std::shared_ptr<ChLoadableUV> mface = msurface->GetFacesList()[ifa];
-                if (std::dynamic_pointer_cast<ChFaceTetra_4>(mface)) {
+                if (std::dynamic_pointer_cast<ChTetrahedronFace>(mface)) {
                     // FACE ELEMENT IS A TETRAHEDRON FACE
                     n_verts += 3;
                     n_vcols += 3;
@@ -952,7 +952,7 @@ void ChVisualizationFEAmesh::Update(ChPhysicsItem* updater, const ChCoordsys<>& 
             for (unsigned int ifa = 0; ifa < msurface->GetFacesList().size(); ++ifa) {
                 std::shared_ptr<ChLoadableUV> mface = msurface->GetFacesList()[ifa];
                 // FACE ELEMENT IS A TETRAHEDRON FACE
-                if (auto mfacetetra = std::dynamic_pointer_cast<ChFaceTetra_4>(mface)) {
+                if (auto mfacetetra = std::dynamic_pointer_cast<ChTetrahedronFace>(mface)) {
                     auto node0 = std::static_pointer_cast<ChNodeFEAxyz>(mfacetetra->GetNodeN(0));
                     auto node1 = std::static_pointer_cast<ChNodeFEAxyz>(mfacetetra->GetNodeN(1));
                     auto node2 = std::static_pointer_cast<ChNodeFEAxyz>(mfacetetra->GetNodeN(2));

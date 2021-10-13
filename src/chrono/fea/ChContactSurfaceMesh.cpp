@@ -25,13 +25,13 @@
 #include "chrono/fea/ChElementBrick_9.h"
 #include "chrono/fea/ChElementBrick.h"
 #include "chrono/fea/ChElementBrickANCF_3843.h"
+#include "chrono/fea/ChElementHexa_8.h"
 #include "chrono/fea/ChElementCableANCF.h"
 #include "chrono/fea/ChElementBeamANCF_3243.h"
 #include "chrono/fea/ChElementBeamANCF_3333.h"
 #include "chrono/fea/ChElementBeamEuler.h"
-#include "chrono/fea/ChFaceTetra_4.h"
-#include "chrono/fea/ChFaceBrick_9.h"
-#include "chrono/fea/ChFaceHexa_8.h"
+#include "chrono/fea/ChHexahedronFace.h"
+#include "chrono/fea/ChTetrahedronFace.h"
 #include "chrono/fea/ChMesh.h"
 
 #include <unordered_map>
@@ -246,6 +246,8 @@ bool ChContactTriangleXYZ::IsSubBlockActive(int nblock) const {
         return !GetNode2()->GetFixed();
     if (nblock == 2)
         return !GetNode3()->GetFixed();
+
+    return false;
 }
 
 // Evaluate N'*F , where N is the shape function evaluated at (U,V) coordinates of the surface.
@@ -513,6 +515,8 @@ bool ChContactTriangleXYZROT::IsSubBlockActive(int nblock) const {
         return !GetNode2()->GetFixed();
     if (nblock == 2)
         return !GetNode3()->GetFixed();
+
+    return false;
 }
 
 // Evaluate N'*F , where N is the shape function evaluated at (U,V) coordinates of the surface.
@@ -577,12 +581,12 @@ void ChContactSurfaceMesh::AddFacesFromBoundary(double sphere_swept, bool ccw) {
     //
     // Case1. Outer skin boundary of meshes of TETRAHEDRONS:
     //
-    std::multimap<std::array<ChNodeFEAxyz*, 3>, ChFaceTetra_4> face_map;
+    std::multimap<std::array<ChNodeFEAxyz*, 3>, ChTetrahedronFace> face_map;
 
     for (unsigned int ie = 0; ie < m_mesh->GetNelements(); ++ie) {
         if (auto mtetra = std::dynamic_pointer_cast<ChElementTetra_4>(m_mesh->GetElement(ie))) {
             for (int nface = 0; nface < 4; ++nface) {
-                ChFaceTetra_4 mface(mtetra, nface);
+                ChTetrahedronFace mface(mtetra, nface);
                 std::array<ChNodeFEAxyz*, 3> mface_key = {mface.GetNodeN(0).get(), mface.GetNodeN(1).get(),
                                                           mface.GetNodeN(2).get()};
                 std::sort(mface_key.begin(), mface_key.end());
@@ -593,7 +597,7 @@ void ChContactSurfaceMesh::AddFacesFromBoundary(double sphere_swept, bool ccw) {
     for (unsigned int ie = 0; ie < m_mesh->GetNelements(); ++ie) {
         if (auto mtetra = std::dynamic_pointer_cast<ChElementTetra_4>(m_mesh->GetElement(ie))) {
             for (int nface = 0; nface < 4; ++nface) {
-                ChFaceTetra_4 mface(mtetra, nface);
+                ChTetrahedronFace mface(mtetra, nface);
                 std::array<ChNodeFEAxyz*, 3> mface_key = {mface.GetNodeN(0).get(), mface.GetNodeN(1).get(),
                                                           mface.GetNodeN(2).get()};
                 std::sort(mface_key.begin(), mface_key.end());
@@ -756,8 +760,7 @@ void ChContactSurfaceMesh::AddFacesFromBoundary(double sphere_swept, bool ccw) {
                                    true, false, true,             // are edges owned by this triangle?
                                    capsule_radius);
             contact_triangle->GetCollisionModel()->BuildModel();
-        }
-        else if (auto mbeam = std::dynamic_pointer_cast<ChElementBeamANCF_3243>(m_mesh->GetElement(ie))) {
+        } else if (auto mbeam = std::dynamic_pointer_cast<ChElementBeamANCF_3243>(m_mesh->GetElement(ie))) {
             std::shared_ptr<ChNodeFEAxyzD> nA = mbeam->GetNodeA();
             std::shared_ptr<ChNodeFEAxyzD> nB = mbeam->GetNodeB();
 
@@ -767,20 +770,19 @@ void ChContactSurfaceMesh::AddFacesFromBoundary(double sphere_swept, bool ccw) {
             contact_triangle->SetNode3(nB);
             vfaces.push_back(contact_triangle);
             contact_triangle->SetContactSurface(this);
-            
+
             double capsule_radius = 0.5 * sqrt(pow(mbeam->GetThicknessY(), 2) + pow(mbeam->GetThicknessZ(), 2));
-            
+
             contact_triangle->GetCollisionModel()->ClearModel();
             ((collision::ChCollisionModelBullet*)contact_triangle->GetCollisionModel())
                 ->AddTriangleProxy(m_material,                    // contact materials
-                    &nA->pos, &nB->pos, &nB->pos,  // vertices
-                    0, 0, 0,                       // no wing vertexes
-                    false, false, false,           // are vertexes owned by this triangle?
-                    true, false, true,             // are edges owned by this triangle?
-                    capsule_radius);
+                                   &nA->pos, &nB->pos, &nB->pos,  // vertices
+                                   0, 0, 0,                       // no wing vertexes
+                                   false, false, false,           // are vertexes owned by this triangle?
+                                   true, false, true,             // are edges owned by this triangle?
+                                   capsule_radius);
             contact_triangle->GetCollisionModel()->BuildModel();
-        }
-        else if (auto mbeam = std::dynamic_pointer_cast<ChElementBeamANCF_3333>(m_mesh->GetElement(ie))) {
+        } else if (auto mbeam = std::dynamic_pointer_cast<ChElementBeamANCF_3333>(m_mesh->GetElement(ie))) {
             std::shared_ptr<ChNodeFEAxyzD> nA = mbeam->GetNodeA();
             std::shared_ptr<ChNodeFEAxyzD> nB = mbeam->GetNodeB();
 
@@ -796,11 +798,11 @@ void ChContactSurfaceMesh::AddFacesFromBoundary(double sphere_swept, bool ccw) {
             contact_triangle->GetCollisionModel()->ClearModel();
             ((collision::ChCollisionModelBullet*)contact_triangle->GetCollisionModel())
                 ->AddTriangleProxy(m_material,                    // contact materials
-                    &nA->pos, &nB->pos, &nB->pos,  // vertices
-                    0, 0, 0,                       // no wing vertexes
-                    false, false, false,           // are vertexes owned by this triangle?
-                    true, false, true,             // are edges owned by this triangle?
-                    capsule_radius);
+                                   &nA->pos, &nB->pos, &nB->pos,  // vertices
+                                   0, 0, 0,                       // no wing vertexes
+                                   false, false, false,           // are vertexes owned by this triangle?
+                                   true, false, true,             // are edges owned by this triangle?
+                                   capsule_radius);
             contact_triangle->GetCollisionModel()->BuildModel();
         }
     }
@@ -809,12 +811,12 @@ void ChContactSurfaceMesh::AddFacesFromBoundary(double sphere_swept, bool ccw) {
     // Case5. Outer surface boundaries of 9-node brick meshes:
     //
 
-    std::multimap<std::array<ChNodeFEAxyz*, 4>, ChFaceBrick_9> face_map_brick;
+    std::multimap<std::array<ChNodeFEAxyz*, 4>, ChHexahedronFace> face_map_brick;
 
     for (unsigned int ie = 0; ie < m_mesh->GetNelements(); ++ie) {
         if (auto mbrick = std::dynamic_pointer_cast<ChElementBrick_9>(m_mesh->GetElement(ie))) {
             for (int nface = 0; nface < 6; ++nface) {
-                ChFaceBrick_9 mface(mbrick, nface);
+                ChHexahedronFace mface(mbrick, nface);
                 std::array<ChNodeFEAxyz*, 4> mface_key = {mface.GetNodeN(0).get(), mface.GetNodeN(1).get(),
                                                           mface.GetNodeN(2).get(), mface.GetNodeN(3).get()};
                 std::sort(mface_key.begin(), mface_key.end());
@@ -825,7 +827,7 @@ void ChContactSurfaceMesh::AddFacesFromBoundary(double sphere_swept, bool ccw) {
     for (unsigned int ie = 0; ie < m_mesh->GetNelements(); ++ie) {
         if (auto mbrick = std::dynamic_pointer_cast<ChElementBrick_9>(m_mesh->GetElement(ie))) {
             for (int nface = 0; nface < 6; ++nface) {  // Each of the 6 faces of a brick
-                ChFaceBrick_9 mface(mbrick, nface);    // Create a face of the element
+                ChHexahedronFace mface(mbrick, nface);  // Create a face of the element
                 std::array<ChNodeFEAxyz*, 4> mface_key = {mface.GetNodeN(0).get(), mface.GetNodeN(1).get(),
                                                           mface.GetNodeN(2).get(), mface.GetNodeN(3).get()};
                 std::sort(mface_key.begin(), mface_key.end());
@@ -866,12 +868,12 @@ void ChContactSurfaceMesh::AddFacesFromBoundary(double sphere_swept, bool ccw) {
     //
     // Case7. Outer surface boundaries of 8-node hexahedron brick meshes:
     //
-    std::multimap<std::array<ChNodeFEAxyz*, 4>, ChFaceHexa_8> face_map_hexa;
+    std::multimap<std::array<ChNodeFEAxyz*, 4>, ChHexahedronFace> face_map_hexa;
 
     for (unsigned int ie = 0; ie < m_mesh->GetNelements(); ++ie) {
         if (auto mbrick = std::dynamic_pointer_cast<ChElementHexa_8>(m_mesh->GetElement(ie))) {
             for (int nface = 0; nface < 6; ++nface) {
-                ChFaceHexa_8 mface(mbrick, nface);
+                ChHexahedronFace mface(mbrick, nface);
                 std::array<ChNodeFEAxyz*, 4> mface_key = {mface.GetNodeN(0).get(), mface.GetNodeN(1).get(),
                                                           mface.GetNodeN(2).get(), mface.GetNodeN(3).get()};
                 std::sort(mface_key.begin(), mface_key.end());
@@ -882,7 +884,7 @@ void ChContactSurfaceMesh::AddFacesFromBoundary(double sphere_swept, bool ccw) {
     for (unsigned int ie = 0; ie < m_mesh->GetNelements(); ++ie) {
         if (auto mbrick = std::dynamic_pointer_cast<ChElementHexa_8>(m_mesh->GetElement(ie))) {
             for (int nface = 0; nface < 6; ++nface) {  // Each of the 6 faces of a brick
-                ChFaceHexa_8 mface(mbrick, nface);     // Create a face of the element
+                ChHexahedronFace mface(mbrick, nface);  // Create a face of the element
                 std::array<ChNodeFEAxyz*, 4> mface_key = {mface.GetNodeN(0).get(), mface.GetNodeN(1).get(),
                                                           mface.GetNodeN(2).get(), mface.GetNodeN(3).get()};
                 std::sort(mface_key.begin(), mface_key.end());

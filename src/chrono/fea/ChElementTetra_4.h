@@ -17,9 +17,10 @@
 
 #include <cmath>
 
-#include "chrono/fea/ChContinuumPoisson3D.h"
+#include "chrono/fea/ChTetrahedron.h"
 #include "chrono/fea/ChElementGeneric.h"
 #include "chrono/fea/ChElementCorotational.h"
+#include "chrono/fea/ChContinuumPoisson3D.h"
 #include "chrono/fea/ChNodeFEAxyz.h"
 #include "chrono/fea/ChNodeFEAxyzP.h"
 #include "chrono/core/ChTensors.h"
@@ -33,7 +34,10 @@ namespace fea {
 /// Tetrahedron FEA element with 4 nodes.
 /// This is a classical element with linear displacement, hence with constant stress
 /// and constant strain. It can be easily used for 3D FEA problems.
-class ChApi ChElementTetra_4 : public ChElementGeneric, public ChElementCorotational, public ChLoadableUVW {
+class ChApi ChElementTetra_4 : public ChTetrahedron,
+                               public ChElementGeneric,
+                               public ChElementCorotational,
+                               public ChLoadableUVW {
   public:
     using ShapeVector = ChMatrixNM<double, 1, 4>;
 
@@ -47,6 +51,9 @@ class ChApi ChElementTetra_4 : public ChElementGeneric, public ChElementCorotati
     double GetVolume() { return Volume; }
 
     virtual std::shared_ptr<ChNodeFEAbase> GetNodeN(int n) override { return nodes[n]; }
+
+    /// Return the specified tetrahedron node (0 <= n <= 3).
+    virtual std::shared_ptr<ChNodeFEAxyz> GetTetrahedronNode(int n) override { return nodes[n]; }
 
     virtual void SetNodes(std::shared_ptr<ChNodeFEAxyz> nodeA,
                           std::shared_ptr<ChNodeFEAxyz> nodeB,

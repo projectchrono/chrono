@@ -17,6 +17,7 @@
 
 #include <cmath>
 
+#include "chrono/fea/ChTetrahedron.h"
 #include "chrono/fea/ChElementGeneric.h"
 #include "chrono/fea/ChElementCorotational.h"
 #include "chrono/fea/ChNodeFEAxyz.h"
@@ -30,7 +31,10 @@ namespace fea {
 /// Tetrahedron FEA element with 10 nodes.
 /// This is a quadratic element for displacements; stress and strain
 /// are interpolated depending on Gauss points.
-class ChApi ChElementTetra_10 : public ChElementGeneric, public ChElementCorotational, public ChLoadableUVW {
+class ChApi ChElementTetra_10 : public ChTetrahedron,
+                                public ChElementGeneric,
+                                public ChElementCorotational,
+                                public ChLoadableUVW {
   public:
     using ShapeVector = ChMatrixNM<double, 1, 10>;
 
@@ -44,6 +48,9 @@ class ChApi ChElementTetra_10 : public ChElementGeneric, public ChElementCorotat
     double GetVolume() { return Volume; }
 
     virtual std::shared_ptr<ChNodeFEAbase> GetNodeN(int n) override { return nodes[n]; }
+
+    /// Return the specified tetrahedron node (0 <= n <= 3).
+    virtual std::shared_ptr<ChNodeFEAxyz> GetTetrahedronNode(int n) override { return nodes[n]; }
 
     virtual void SetNodes(std::shared_ptr<ChNodeFEAxyz> nodeA,
                           std::shared_ptr<ChNodeFEAxyz> nodeB,

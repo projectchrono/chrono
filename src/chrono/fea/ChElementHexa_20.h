@@ -15,10 +15,11 @@
 #ifndef CHELEMENTHEXA20_H
 #define CHELEMENTHEXA20_H
 
+#include "chrono/fea/ChHexahedron.h"
 #include "chrono/fea/ChElementGeneric.h"
 #include "chrono/fea/ChElementCorotational.h"
-#include "chrono/fea/ChGaussIntegrationRule.h"
 #include "chrono/fea/ChNodeFEAxyz.h"
+#include "chrono/fea/ChGaussIntegrationRule.h"
 
 namespace chrono {
 namespace fea {
@@ -27,7 +28,10 @@ namespace fea {
 /// @{
 
 /// Class for FEA elements of hexahedron type (isoparametric 3D bricks) with 20 nodes.
-class ChApi ChElementHexa_20 : public ChElementGeneric, public ChElementCorotational, public ChLoadableUVW {
+class ChApi ChElementHexa_20 : public ChHexahedron,
+                               public ChElementGeneric,
+                               public ChElementCorotational,
+                               public ChLoadableUVW {
   public:
     using ShapeVector = ChMatrixNM<double, 1, 20>;
 
@@ -41,6 +45,9 @@ class ChApi ChElementHexa_20 : public ChElementGeneric, public ChElementCorotati
     double GetVolume() { return Volume; }
 
     virtual std::shared_ptr<ChNodeFEAbase> GetNodeN(int n) override { return nodes[n]; }
+
+    /// Return the specified hexahedron node (0 <= n <= 7).
+    virtual std::shared_ptr<ChNodeFEAxyz> GetHexahedronNode(int n) override { return nodes[n]; }
 
     virtual void SetNodes(std::shared_ptr<ChNodeFEAxyz> nodeA,
                           std::shared_ptr<ChNodeFEAxyz> nodeB,

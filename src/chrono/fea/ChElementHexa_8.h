@@ -15,6 +15,7 @@
 #ifndef CHELEMENTHEXA8_H
 #define CHELEMENTHEXA8_H
 
+#include "chrono/fea/ChHexahedron.h"
 #include "chrono/fea/ChElementGeneric.h"
 #include "chrono/fea/ChElementCorotational.h"
 #include "chrono/fea/ChGaussIntegrationRule.h"
@@ -28,7 +29,10 @@ namespace fea {
 
 /// Class for FEA elements of hexahedron type (isoparametric 3D bricks) with 8 nodes.
 /// This element has a linear displacement field.
-class ChApi ChElementHexa_8 : public ChElementGeneric, public ChElementCorotational, public ChLoadableUVW {
+class ChApi ChElementHexa_8 : public ChHexahedron,
+                              public ChElementGeneric,
+                              public ChElementCorotational,
+                              public ChLoadableUVW {
   public:
     using ShapeVector = ChMatrixNM<double, 1, 8>;
 
@@ -42,6 +46,9 @@ class ChApi ChElementHexa_8 : public ChElementGeneric, public ChElementCorotatio
     double GetVolume() { return Volume; }
 
     virtual std::shared_ptr<ChNodeFEAbase> GetNodeN(int n) override { return nodes[n]; }
+
+    /// Return the specified hexahedron node (0 <= n <= 7).
+    virtual std::shared_ptr<ChNodeFEAxyz> GetHexahedronNode(int n) override { return nodes[n]; }
 
     virtual void SetNodes(std::shared_ptr<ChNodeFEAxyz> nodeA,
                           std::shared_ptr<ChNodeFEAxyz> nodeB,

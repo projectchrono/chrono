@@ -410,9 +410,10 @@ set(ChronoEngine_fea_HEADERS
     fea/ChContinuumPoisson3D.h
     fea/ChContinuumThermal.h
     fea/ChContinuumElectrostatics.h
-    fea/ChFaceTetra_4.h
-    fea/ChFaceBrick_9.h
-    fea/ChFaceHexa_8.h
+    fea/ChHexahedron.h
+    fea/ChTetrahedron.h
+    fea/ChHexahedronFace.h
+    fea/ChTetrahedronFace.h
     fea/ChLoadsBeam.h
     fea/ChGaussIntegrationRule.h
     fea/ChGaussPoint.h

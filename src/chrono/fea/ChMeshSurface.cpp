@@ -17,7 +17,7 @@
 #include "chrono/physics/ChSystem.h"
 #include "chrono/fea/ChElementTetra_4.h"
 #include "chrono/fea/ChElementShellANCF_3423.h"
-#include "chrono/fea/ChFaceTetra_4.h"
+#include "chrono/fea/ChTetrahedronFace.h"
 
 #include <unordered_set>
 #include <map>
@@ -32,6 +32,8 @@ namespace fea {
 CH_FACTORY_REGISTER(ChMeshSurface)
 
 void ChMeshSurface::AddFacesFromNodeSet(std::vector<std::shared_ptr<ChNodeFEAbase> >& node_set) {
+    //// TODO treat hexahedron elements!
+
     std::unordered_set<size_t> node_set_map;
 
     for (int i = 0; i < node_set.size(); ++i)
@@ -45,19 +47,19 @@ void ChMeshSurface::AddFacesFromNodeSet(std::vector<std::shared_ptr<ChNodeFEAbas
             bool n3 = (node_set_map.find((size_t)mtetra->GetNodeN(3).get()) != node_set_map.end());
 
             if (n0 && n1 && n2) {
-                auto mface = chrono_types::make_shared<ChFaceTetra_4>(mtetra, 3);
+                auto mface = chrono_types::make_shared<ChTetrahedronFace>(mtetra, 3);
                 this->AddFace(mface);
             }
             if (n1 && n2 && n3) {
-                auto mface = chrono_types::make_shared<ChFaceTetra_4>(mtetra, 0);
+                auto mface = chrono_types::make_shared<ChTetrahedronFace>(mtetra, 0);
                 this->AddFace(mface);
             }
             if (n0 && n2 && n3) {
-                auto mface = chrono_types::make_shared<ChFaceTetra_4>(mtetra, 1);
+                auto mface = chrono_types::make_shared<ChTetrahedronFace>(mtetra, 1);
                 this->AddFace(mface);
             }
             if (n0 && n1 && n3) {
-                auto mface = chrono_types::make_shared<ChFaceTetra_4>(mtetra, 2);
+                auto mface = chrono_types::make_shared<ChTetrahedronFace>(mtetra, 2);
                 this->AddFace(mface);
             }
         }
@@ -70,14 +72,15 @@ void ChMeshSurface::AddFacesFromNodeSet(std::vector<std::shared_ptr<ChNodeFEAbas
 }
 
 void ChMeshSurface::AddFacesFromBoundary() {
-    /// Case1. Outer skin boundary of meshes of TETRAHEDRONS:
-    ///
-    std::multimap<std::array<ChNodeFEAxyz*, 3>, ChFaceTetra_4> face_map;
+    //// TODO treat hexahedron elements!
+
+    // Case1. Outer skin boundary of meshes of TETRAHEDRONS:
+    std::multimap<std::array<ChNodeFEAxyz*, 3>, ChTetrahedronFace> face_map;
 
     for (unsigned int ie = 0; ie < this->mmesh->GetNelements(); ++ie) {
         if (auto mtetra = std::dynamic_pointer_cast<ChElementTetra_4>(mmesh->GetElement(ie))) {
             for (int nface = 0; nface < 4; ++nface) {
-                ChFaceTetra_4 mface(mtetra, nface);
+                ChTetrahedronFace mface(mtetra, nface);
                 std::array<ChNodeFEAxyz*, 3> mface_key = {mface.GetNodeN(0).get(), mface.GetNodeN(1).get(),
                                                           mface.GetNodeN(2).get()};
                 std::sort(mface_key.begin(), mface_key.end());
@@ -88,14 +91,14 @@ void ChMeshSurface::AddFacesFromBoundary() {
     for (unsigned int ie = 0; ie < this->mmesh->GetNelements(); ++ie) {
         if (auto mtetra = std::dynamic_pointer_cast<ChElementTetra_4>(mmesh->GetElement(ie))) {
             for (int nface = 0; nface < 4; ++nface) {
-                ChFaceTetra_4 mface(mtetra, nface);
+                ChTetrahedronFace mface(mtetra, nface);
                 std::array<ChNodeFEAxyz*, 3> mface_key = {mface.GetNodeN(0).get(), mface.GetNodeN(1).get(),
                                                           mface.GetNodeN(2).get()};
                 std::sort(mface_key.begin(), mface_key.end());
                 if (face_map.count(mface_key) == 1) {
                     // Found a face that is not shared.. so it is a boundary face.
                     // Instance it to be handled via shared ptr, and add it to list...
-                    auto boundary_face = chrono_types::make_shared<ChFaceTetra_4>(mtetra, nface);
+                    auto boundary_face = chrono_types::make_shared<ChTetrahedronFace>(mtetra, nface);
                     this->AddFace(boundary_face);
                 }
             }
