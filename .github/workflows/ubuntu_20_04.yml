@@ -14,6 +14,11 @@ jobs:
           path: chrono
           submodules: true
 
+      - name: apt update
+        run: |
+            sudo apt-get update -qq
+            sudo apt-get install -y dpkg
+
       - name: install cuda
         run: |
             sudo apt-get install -y nvidia-cuda-toolkit
@@ -22,8 +27,6 @@ jobs:
 
       - name: install dependencies
         run: |
-            sudo apt-get update -qq
-            sudo apt-get install -y dpkg
             sudo apt-get install -y freeglut3-dev
             sudo apt-get install -y g++-8
             sudo apt-get install -y gcc-8
