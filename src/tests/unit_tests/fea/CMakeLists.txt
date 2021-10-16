@@ -19,6 +19,7 @@ set(TESTS
     utest_FEA_beams_static
 	utest_FEA_ANCFbeam_3243_Formulation
 	utest_FEA_ANCFbeam_3333_Formulation
+	utest_FEA_ANCFshell_3423_Formulation
 	utest_FEA_ANCFshell_3443_Formulation
 	utest_FEA_ANCFshell_3833_Formulation
 	utest_FEA_ANCFbrick_3843_Formulation
