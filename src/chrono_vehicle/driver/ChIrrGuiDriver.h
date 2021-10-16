@@ -62,7 +62,8 @@ class CH_VEHICLE_API ChIrrGuiDriver : public ChDriver, public irr::IEventReceive
         AXIS_Z = irr::SEvent::SJoystickEvent::AXIS_Z,		
         AXIS_R = irr::SEvent::SJoystickEvent::AXIS_R,		
         AXIS_U = irr::SEvent::SJoystickEvent::AXIS_U,
-        AXIS_V = irr::SEvent::SJoystickEvent::AXIS_V
+        AXIS_V = irr::SEvent::SJoystickEvent::AXIS_V,
+        NONE
     };
 
     /// Construct an Irrlicht GUI driver.
