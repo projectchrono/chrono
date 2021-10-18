@@ -88,8 +88,10 @@ CH_SENSOR_API void ChFilterOptixRender::Initialize(std::shared_ptr<ChSensor> pSe
         bufferOut->Buffer = std::move(b);
         m_raygen_record->data.specific.camera.hFOV = cam->GetHFOV();
         m_raygen_record->data.specific.camera.gamma = cam->GetGamma();
+        m_raygen_record->data.specific.camera.super_sample_factor = cam->GetSampleFactor();
         m_raygen_record->data.specific.camera.frame_buffer = reinterpret_cast<half4*>(bufferOut->Buffer.get());
         m_raygen_record->data.specific.camera.use_gi = cam->GetUseGI();
+        m_raygen_record->data.specific.camera.use_fog = cam->GetUseFog();
         m_bufferOut = bufferOut;
 
         if (cam->GetUseGI() && m_denoiser) {

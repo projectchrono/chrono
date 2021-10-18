@@ -392,6 +392,12 @@ static __device__ __inline__ void CameraShader(PerRayData_camera* prd_camera,
 
     prd_camera->color += prd_camera->use_gi ? gi_reflection_color : ambient_light;
 
+    // apply fog model
+    if (prd_camera->use_fog && params.fog_scattering > 0.f) {
+        float blend_alpha = expf(-params.fog_scattering * ray_dist);
+        prd_camera->color = blend_alpha * prd_camera->color + (1 - blend_alpha) * params.fog_color;
+    }
+
     if (prd_camera->depth == 2) {
         prd_camera->albedo = subsurface_albedo;
         prd_camera->normal = world_normal;

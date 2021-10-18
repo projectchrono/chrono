@@ -102,6 +102,7 @@ __device__ __inline__ PerRayData_camera default_camera_prd() {
     prd.use_gi = false;
     prd.albedo = make_float3(0.f, 0.f, 0.f);
     prd.normal = make_float3(0.f, 0.f, 0.f);
+    prd.use_fog = true;
     return prd;
 };
 

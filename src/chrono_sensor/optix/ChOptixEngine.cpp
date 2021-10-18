@@ -720,6 +720,9 @@ void ChOptixEngine::UpdateSceneDescription(std::shared_ptr<ChScene> scene) {
         m_pipeline->UpdateBackground(scene->GetBackground());
 
         m_params.scene_epsilon = scene->GetSceneEpsilon();
+        m_params.fog_color = {scene->GetFogColor().x(), scene->GetFogColor().y(), scene->GetFogColor().z()};
+        m_params.fog_scattering = scene->GetFogScattering();
+
         cudaMemcpy(reinterpret_cast<void*>(md_params), &m_params, sizeof(ContextParameters), cudaMemcpyHostToDevice);
         scene->ResetBackgroundChanged();
     }

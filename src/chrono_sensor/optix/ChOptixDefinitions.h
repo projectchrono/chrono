@@ -71,10 +71,12 @@ struct MissParameters {
 
 /// The parameters needed to define a camera
 struct CameraParameters {
-    float hFOV;            ///< horizontal field of view
-    float gamma;           ///< camera's gamma value
-    half4* frame_buffer;   ///< buffer of camera pixels
-    bool use_gi;           ///< whether to use global illumination
+    float hFOV;                        ///< horizontal field of view
+    float gamma;                       ///< camera's gamma value
+    half4* frame_buffer;               ///< buffer of camera pixels
+    unsigned int super_sample_factor;  ///< number of samples per pixel in each dimension
+    bool use_gi;                       ///< whether to use global illumination
+    bool use_fog;                      ///< whether to use the scene fog model
     half4* albedo_buffer;  ///< the material color of the first hit. Only initialized if using global illumination
     half4* normal_buffer;  ///< The screen-space normal of the first hit. Only initialized if using global illumination
                            ///< (screenspace normal)
@@ -183,6 +185,8 @@ struct ContextParameters {
     PointLight* lights;                 ///< device pointer to set of point lights in the scene
     int num_lights;                     ///< the number of point lights in the scene
     float3 ambient_light_color;         ///< the ambient light color and intensity
+    float3 fog_color;                   ///< color of fog in the scene
+    float fog_scattering;               ///< scattering coefficient of fog in the scene
     int max_depth;                      ///< maximum traversable depth
     float scene_epsilon;                ///< an epsilon value used for detecting self intersections
     float importance_cutoff;            ///< mimumum value before killing rays
@@ -209,6 +213,7 @@ struct PerRayData_camera {
     bool use_gi;              ///< whether global illumination is on
     float3 albedo;            ///< the albed of the first hit
     float3 normal;            ///< the global normal of the first hit
+    bool use_fog;             ///< whether to use fog on this prd
 };
 
 /// Data associated with a single segmentation camera ray
@@ -226,11 +231,11 @@ struct PerRayData_shadow {
 
 /// Data associated with a single lidar ray
 struct PerRayData_lidar {
-    float range; ///< the distance to the first hit
-    float intensity; ///< the intensity of the first hit
+    float range;      ///< the distance to the first hit
+    float intensity;  ///< the intensity of the first hit
 };
 
-///Data associated with a single radar ray
+/// Data associated with a single radar ray
 struct PerRayData_radar {
     float range;
     float rcs;

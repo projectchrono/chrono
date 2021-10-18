@@ -32,6 +32,9 @@ CH_SENSOR_API ChScene::ChScene() {
     lights_changed = true;
     background_changed = true;
 
+    m_fog_color = ChVector<float>(1.f,1.f,1.f);
+    m_fog_scattering = 0.f;
+
     m_scene_epsilon = 1e-3;
 }
 
@@ -69,6 +72,26 @@ CH_SENSOR_API void ChScene::SetSceneEpsilon(float e) {
     m_scene_epsilon = e;
     background_changed = true;
 }
+
+/// Function to set the fog color
+CH_SENSOR_API void ChScene::SetFogColor(ChVector<float> color) {
+    m_fog_color = ChClamp(color, ChVector<float>(0.f, 0.f, 0.f), ChVector<float>(1.f, 1.f, 1.f));
+    background_changed = true;
+}
+
+/// Function to set the fog scattering coefficient
+CH_SENSOR_API void ChScene::SetFogScattering(float coefficient) {
+    m_fog_scattering = ChClamp(coefficient,0.f,1.f);
+    background_changed = true;
+}
+
+/// Function to set the fog scattering coefficient
+CH_SENSOR_API void ChScene::SetFogScatteringFromDistance(float distance) {
+    distance = ChClamp(distance,1e-3f,1e16f);
+    m_fog_scattering = log(256.0) / distance;
+    background_changed = true;
+}
+
 
 }  // namespace sensor
 }  // namespace chrono

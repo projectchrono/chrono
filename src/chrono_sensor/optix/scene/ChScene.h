@@ -108,6 +108,21 @@ class CH_SENSOR_API ChScene {
     /// Function for getting the background changed variable
     bool GetBackgroundChanged() { return background_changed; }
 
+    /// Function to set the fog color
+    void SetFogColor(ChVector<float> color);
+
+    /// Function to get the fog color
+    ChVector<float> GetFogColor() { return m_fog_color; }
+
+    /// Function to set the fog scattering coefficient
+    void SetFogScattering(float coefficient);
+
+    /// Function to set the fog scattering coefficient from max visible distance
+    void SetFogScatteringFromDistance(float distance);
+
+    /// Function to get the fog scattering coefficient
+    float GetFogScattering() { return m_fog_scattering; }
+
     /// Allows setting the scene epsilon used for traversal checks
     /// @param e the epsilon value
     void SetSceneEpsilon(float e);
@@ -125,6 +140,9 @@ class CH_SENSOR_API ChScene {
     bool background_changed;  ///< for detecting if background changed
 
     float m_scene_epsilon;  ///< smallest value used for checking traversal hits
+
+    float m_fog_scattering;       ///< scattering coefficient of fog in the scene
+    ChVector<float> m_fog_color;  ///< color of the fog in the scene
 };
 
 /// @} sensor_scene

@@ -416,6 +416,7 @@ void ChOptixPipeline::SpawnPipeline(PipelineType type) {
             raygen_record->data.specific.camera.hFOV = 3.14 / 4.0;  // default value
             raygen_record->data.specific.camera.frame_buffer = {};  // default value
             raygen_record->data.specific.camera.use_gi = false;     // default value
+            raygen_record->data.specific.camera.use_fog = true;     // default value
             raygen_record->data.specific.camera.gamma = 2.2;        // default value
             break;
         }
@@ -426,6 +427,7 @@ void ChOptixPipeline::SpawnPipeline(PipelineType type) {
             raygen_record->data.specific.camera.hFOV = 3.14 / 4.0;  // default value
             raygen_record->data.specific.camera.frame_buffer = {};  // default value
             raygen_record->data.specific.camera.use_gi = false;     // default value
+            raygen_record->data.specific.camera.use_fog = true;     // default value
             raygen_record->data.specific.camera.gamma = 2.2;        // default value
             break;
         }
@@ -481,11 +483,11 @@ void ChOptixPipeline::SpawnPipeline(PipelineType type) {
         case PipelineType::RADAR: {
             program_groups.push_back(m_radar_raygen_group);
             OPTIX_ERROR_CHECK(optixSbtRecordPackHeader(m_radar_raygen_group, raygen_record.get()));
-            raygen_record->data.specific.radar.frame_buffer = {};      // default value
-            raygen_record->data.specific.radar.vFOV = CH_C_PI;  // default value
-            raygen_record->data.specific.radar.hFOV = CH_C_PI;         // default value
-            raygen_record->data.specific.radar.max_distance = 200.f;   // default value
-            raygen_record->data.specific.radar.clip_near = 0.f;        // default value
+            raygen_record->data.specific.radar.frame_buffer = {};     // default value
+            raygen_record->data.specific.radar.vFOV = CH_C_PI;        // default value
+            raygen_record->data.specific.radar.hFOV = CH_C_PI;        // default value
+            raygen_record->data.specific.radar.max_distance = 200.f;  // default value
+            raygen_record->data.specific.radar.clip_near = 0.f;       // default value
             break;
         }
         default:

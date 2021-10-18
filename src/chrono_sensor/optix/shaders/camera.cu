@@ -30,6 +30,23 @@ extern "C" __global__ void __raygen__camera_pinhole() {
         (make_float2(idx.x, idx.y) + make_float2(0.5, 0.5)) / make_float2(screen.x, screen.y) * 2.f - make_float2(1.f);
     d.y *= (float)(screen.y) / (float)(screen.x);  // correct for the aspect ratio
 
+    if (camera.super_sample_factor > 1) {
+        unsigned int local_idx = idx.x % camera.super_sample_factor;
+        unsigned int local_idy = idx.y % camera.super_sample_factor;
+
+        float d_local_x = (local_idx + .5) / camera.super_sample_factor - (camera.super_sample_factor / 2);
+        float d_local_y = (local_idy + .5) / camera.super_sample_factor - (camera.super_sample_factor / 2);
+
+        float2 dir_change = make_float2(-d_local_y, d_local_x);
+        float2 pixel_dist =
+            make_float2(2 * camera.super_sample_factor / screen.x, 2 * camera.super_sample_factor / screen.y);
+        float2 dist_change =
+            pixel_dist *
+            sin(.4636);  // * sin(.4636);  // approximately a 26.6 degree roation about the center of the pixel
+
+        d = d + make_float2(dist_change.x * dir_change.x, dist_change.y * dir_change.y);
+    }
+
     const float t_frac = 0;  // 0-1 between start and end time of the camera (chosen here)
     const float t_traverse = raygen->t0 + t_frac * (raygen->t1 - raygen->t0);  // simulation time when ray is sent
     float3 ray_origin = lerp(raygen->pos0, raygen->pos1, t_frac);
@@ -47,12 +64,21 @@ extern "C" __global__ void __raygen__camera_pinhole() {
     if (camera.use_gi) {
         prd.rng = camera.rng_buffer[image_index];
     }
+
+    float max_ray_distance = 1e16f;
+    if (camera.use_fog && params.fog_scattering > 0.f) {
+        max_ray_distance = logf(256.0) / params.fog_scattering;
+    }
+    prd.use_fog = camera.use_fog;
+
     unsigned int opt1;
     unsigned int opt2;
     pointer_as_ints(&prd, opt1, opt2);
     unsigned int raytype = (unsigned int)CAMERA_RAY_TYPE;
-    optixTrace(params.root, ray_origin, ray_direction, params.scene_epsilon, 1e16f, t_traverse, OptixVisibilityMask(1),
-               OPTIX_RAY_FLAG_NONE, 0, 1, 0, opt1, opt2, raytype);
+
+    optixTrace(params.root, ray_origin, ray_direction, params.scene_epsilon, max_ray_distance, t_traverse,
+               OptixVisibilityMask(1), OPTIX_RAY_FLAG_NONE, 0, 1, 0, opt1, opt2, raytype);
+
 
     // Gamma correct the output color into sRGB color space
     float recip_gamma = 1 / camera.gamma;
@@ -86,6 +112,23 @@ extern "C" __global__ void __raygen__camera_fov_lens() {
         float scaled_extent = tanf(tanf(camera.hFOV / 2.0)) / tanf(camera.hFOV / 2.0);
         d.x = d.x * (r2 / r1) / scaled_extent;
         d.y = d.y * (r2 / r1) / scaled_extent;
+    }
+
+    if (camera.super_sample_factor > 1) {
+        unsigned int local_idx = idx.x % camera.super_sample_factor;
+        unsigned int local_idy = idx.y % camera.super_sample_factor;
+
+        float d_local_x = (local_idx + .5) / camera.super_sample_factor - (camera.super_sample_factor / 2);
+        float d_local_y = (local_idy + .5) / camera.super_sample_factor - (camera.super_sample_factor / 2);
+
+        float2 dir_change = make_float2(-d_local_y, d_local_x);
+        float2 pixel_dist =
+            make_float2(2 * camera.super_sample_factor / screen.x, 2 * camera.super_sample_factor / screen.y);
+        float2 dist_change =
+            pixel_dist *
+            sin(.4636);  // * sin(.4636);  // approximately a 26.6 degree roation about the center of the pixel
+
+        d = d + make_float2(dist_change.x * dir_change.x, dist_change.y * dir_change.y);
     }
 
     const float t_frac = 0;  // 0-1 between start and end time of the camera (chosen here)
