@@ -17,7 +17,6 @@
 #ifndef CHFILTERONNX_H
 #define CHFILTERONNX_H
 
-// #include "chrono_sensor/ChSensorBuffer.h"
 #include "chrono_sensor/filters/ChFilter.h"
 #include "NvInfer.h"
 #include "NvOnnxParser.h"
@@ -37,16 +36,15 @@ namespace sensor {
 class CH_SENSOR_API ChFilterONNX : public ChFilter {
   public:
     /// Class constructor
-    ChFilterONNX(std::string name = {});
+    ChFilterONNX(std::string name = "ChFilterONNX");
 
     /// Apply function runs data through neural network
-    /// @param pSensor The sensor used for processing
-    /// @param bufferInOut A shared pointer for passing data between filters
-    virtual void Apply(std::shared_ptr<ChSensor> pSensor, std::shared_ptr<SensorBuffer>& bufferInOut);
+    virtual void Apply();
 
     /// Initialize function for generating any information or structures needed once
     /// @param pSensor The sensor used for processing
-    virtual void Initialize(std::shared_ptr<ChSensor> pSensor);
+    /// @param bufferInOut A shared pointer for passing data between filters
+    virtual void Initialize(std::shared_ptr<ChSensor> pSensor, std::shared_ptr<SensorBuffer>& bufferInOut);
 
   private:
     std::unique_ptr<nvinfer1::ICudaEngine, TRTDestroyer> m_inference_engine;  ///< object used for inference
@@ -56,6 +54,8 @@ class CH_SENSOR_API ChFilterONNX : public ChFilter {
     std::shared_ptr<float> m_input;        ///< input buffers for processing
     std::shared_ptr<float> m_output;       ///< output buffers for processing
     std::vector<void*> m_process_buffers;  ///< vector for pointers which inlcude input and output buffers
+
+    std::shared_ptr<SensorDeviceRGBA8Buffer> m_buffer_in;
 };
 
 /// @} sensor_tensorrt

@@ -30,8 +30,9 @@ namespace vehicle {
 // Construct a trailing arm suspension using data from the specified JSON file.
 // -----------------------------------------------------------------------------
 SemiTrailingArm::SemiTrailingArm(const std::string& filename)
-    : ChSemiTrailingArm(""), m_springForceCB(NULL), m_shockForceCB(NULL) {
-    Document d; ReadFileJSON(filename, d);
+    : ChSemiTrailingArm(""), m_springForceCB(NULL), m_shockForceCB(NULL), m_armBushingData(nullptr) {
+    Document d;
+    ReadFileJSON(filename, d);
     if (d.IsNull())
         return;
 
@@ -41,7 +42,7 @@ SemiTrailingArm::SemiTrailingArm(const std::string& filename)
 }
 
 SemiTrailingArm::SemiTrailingArm(const rapidjson::Document& d)
-    : ChSemiTrailingArm(""), m_springForceCB(NULL), m_shockForceCB(NULL) {
+    : ChSemiTrailingArm(""), m_springForceCB(NULL), m_shockForceCB(NULL), m_armBushingData(nullptr) {
     Create(d);
 }
 
@@ -78,6 +79,10 @@ void SemiTrailingArm::Create(const rapidjson::Document& d) {
     m_points[TA_O] = ReadVectorJSON(d["Trailing Arm"]["Location Chassis Outer"]);
     m_points[TA_I] = ReadVectorJSON(d["Trailing Arm"]["Location Chassis Inner"]);
     m_points[TA_S] = ReadVectorJSON(d["Trailing Arm"]["Location Spindle"]);
+
+    if (d["Trailing Arm"].HasMember("Bushing Data")) {
+        m_armBushingData = ReadBushingDataJSON(d["Trailing Arm"]["Bushing Data"]);
+    }
 
     // Read spring data and create force callback
     assert(d.HasMember("Spring"));

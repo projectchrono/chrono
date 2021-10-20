@@ -266,6 +266,8 @@ class ChApi ChElementBeamEuler : public ChElementBeam,
     /// This is needed so that it can be accessed by ChLoaderVolumeGravity
     virtual double GetDensity() override;
 
+    bool use_numerical_diff_for_KR = false;
+
   private:
     /// Initial setup. Precompute mass and matrices that do not change during the simulation, such as the local tangent
     /// stiffness Kl of each element, if needed, etc.

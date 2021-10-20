@@ -30,7 +30,29 @@ ChTrackTestRigIrrApp::ChTrackTestRigIrrApp(ChTrackTestRig* rig,
                                            const std::wstring& title,
                                            const irr::core::dimension2d<irr::u32>& dims,
                                            irr::ELOG_LEVEL log_level)
-    : ChVehicleIrrApp(rig, title, dims, log_level), m_rig(rig) {}
+    : ChVehicleIrrApp(rig, title, dims, log_level),
+      m_rig(rig),
+      m_render_frame_idler(false),
+      m_render_frame_shoes(false),
+      m_render_frame_sprocket(false),
+      m_axis_shoes(1),
+      m_axis_sprocket(1),
+      m_axis_idler(1) {}
+
+void ChTrackTestRigIrrApp::RenderTrackShoeFrames(bool state, double axis_length) {
+    m_render_frame_shoes = state;
+    m_axis_shoes = axis_length;
+}
+
+void ChTrackTestRigIrrApp::RenderSprocketFrame(bool state, double axis_length) {
+    m_render_frame_sprocket = state;
+    m_axis_sprocket = axis_length;
+}
+
+void ChTrackTestRigIrrApp::RenderIdlerFrame(bool state, double axis_length) {
+    m_render_frame_idler = state;
+    m_axis_idler = axis_length;
+}
 
 // Render contact normals for monitored subsystems
 void ChTrackTestRigIrrApp::renderOtherGraphics() {
@@ -39,19 +61,36 @@ void ChTrackTestRigIrrApp::renderOtherGraphics() {
     double scale_normals = 0.4;
     double scale_forces = m_rig->m_contact_manager->m_scale_forces;
 
+    // Track shoe frames
+    if (m_render_frame_shoes) {
+        for (size_t i = 0; i < m_rig->GetTrackAssembly()->GetNumTrackShoes(); i++) {
+            RenderFrame(*m_rig->GetTrackAssembly()->GetTrackShoe(i)->GetShoeBody(), m_axis_shoes);
+        }
+    }
+
+    // Sprocket frame
+    if (m_render_frame_sprocket) {
+        RenderFrame(*m_rig->GetTrackAssembly()->GetSprocket()->GetGearBody(), m_axis_sprocket);
+    }
+
+    // Idler frame
+    if (m_render_frame_idler) {
+        RenderFrame(*m_rig->GetTrackAssembly()->GetIdler()->GetWheelBody(), m_axis_idler);
+    }
+
     // Contact normals on left sprocket.
     // Note that we only render information for contacts on the outside gear profile
     for (const auto& c : m_rig->m_contact_manager->m_sprocket_L_contacts) {
         ChVector<> v1 = c.m_point;
         if (normals) {
-        ChVector<> v2 = v1 + c.m_csys.Get_A_Xaxis() * scale_normals;
-        if (v1.y() > m_rig->GetTrackAssembly()->GetSprocket()->GetGearBody()->GetPos().y())
-            irrlicht::tools::drawSegment(GetVideoDriver(), v1, v2, video::SColor(255, 180, 0, 0), false);
+            ChVector<> v2 = v1 + c.m_csys.Get_A_Xaxis() * scale_normals;
+            if (v1.y() > m_rig->GetTrackAssembly()->GetSprocket()->GetGearBody()->GetPos().y())
+                irrlicht::tools::drawSegment(GetVideoDriver(), v1, v2, video::SColor(255, 80, 0, 0), false);
         }
         if (forces) {
             ChVector<> v2 = v1 + c.m_force * scale_forces;
             if (v1.y() > m_rig->GetTrackAssembly()->GetSprocket()->GetGearBody()->GetPos().y())
-                irrlicht::tools::drawSegment(GetVideoDriver(), v1, v2, video::SColor(255, 180, 0, 0), false);
+                irrlicht::tools::drawSegment(GetVideoDriver(), v1, v2, video::SColor(255, 80, 0, 0), false);
         }
     }
 
@@ -60,27 +99,27 @@ void ChTrackTestRigIrrApp::renderOtherGraphics() {
     for (const auto& c : m_rig->m_contact_manager->m_sprocket_R_contacts) {
         ChVector<> v1 = c.m_point;
         if (normals) {
-        ChVector<> v2 = v1 + c.m_csys.Get_A_Xaxis() * scale_normals;
-        if (v1.y() < m_rig->GetTrackAssembly()->GetSprocket()->GetGearBody()->GetPos().y())
-            irrlicht::tools::drawSegment(GetVideoDriver(), v1, v2, video::SColor(255, 180, 0, 0), false);
+            ChVector<> v2 = v1 + c.m_csys.Get_A_Xaxis() * scale_normals;
+            if (v1.y() < m_rig->GetTrackAssembly()->GetSprocket()->GetGearBody()->GetPos().y())
+                irrlicht::tools::drawSegment(GetVideoDriver(), v1, v2, video::SColor(255, 80, 0, 0), false);
         }
         if (forces) {
             ChVector<> v2 = v1 + c.m_force * scale_forces;
             if (v1.y() > m_rig->GetTrackAssembly()->GetSprocket()->GetGearBody()->GetPos().y())
-                irrlicht::tools::drawSegment(GetVideoDriver(), v1, v2, video::SColor(255, 180, 0, 0), false);
+                irrlicht::tools::drawSegment(GetVideoDriver(), v1, v2, video::SColor(255, 80, 0, 0), false);
         }
     }
 
     // Contact normals on monitored track shoes.
-    renderContacts(m_rig->m_contact_manager->m_shoe_L_contacts, video::SColor(255, 180, 180, 0), normals, forces,
+    renderContacts(m_rig->m_contact_manager->m_shoe_L_contacts, video::SColor(255, 80, 80, 0), normals, forces,
                    scale_normals, scale_forces);
-    renderContacts(m_rig->m_contact_manager->m_shoe_R_contacts, video::SColor(255, 180, 180, 0), normals, forces,
+    renderContacts(m_rig->m_contact_manager->m_shoe_R_contacts, video::SColor(255, 80, 80, 0), normals, forces,
                    scale_normals, scale_forces);
 
     // Contact normals on idler wheels.
-    renderContacts(m_rig->m_contact_manager->m_idler_L_contacts, video::SColor(255, 0, 0, 180), normals, forces,
+    renderContacts(m_rig->m_contact_manager->m_idler_L_contacts, video::SColor(255, 0, 0, 80), normals, forces,
                    scale_normals, scale_forces);
-    renderContacts(m_rig->m_contact_manager->m_idler_R_contacts, video::SColor(255, 0, 0, 180), normals, forces,
+    renderContacts(m_rig->m_contact_manager->m_idler_R_contacts, video::SColor(255, 0, 0, 80), normals, forces,
                    scale_normals, scale_forces);
 }
 

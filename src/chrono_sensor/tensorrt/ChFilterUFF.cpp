@@ -15,7 +15,7 @@
 // =============================================================================
 
 #include "chrono_sensor/tensorrt/ChFilterUFF.h"
-#include "chrono_sensor/ChSensor.h"
+#include "chrono_sensor/sensors/ChSensor.h"
 #include "chrono_sensor/utils/CudaMallocHelper.h"
 #include "chrono_sensor/cuda/nn_prep.cuh"
 
@@ -26,69 +26,23 @@ using namespace nvuffparser;
 using namespace nvinfer1;
 
 ChFilterUFF::ChFilterUFF(std::string name) : ChFilter(name) {}
-void ChFilterUFF::Apply(std::shared_ptr<ChSensor> pSensor, std::shared_ptr<SensorBuffer>& bufferInOut) {
-    // make sure buffer is the correct type
-    std::shared_ptr<SensorOptixBuffer> pOpx = std::dynamic_pointer_cast<SensorOptixBuffer>(bufferInOut);
-    std::shared_ptr<SensorDeviceRGBA8Buffer> pBuf = std::dynamic_pointer_cast<SensorDeviceRGBA8Buffer>(bufferInOut);
-    if (!pOpx && !pBuf) {
-        throw std::runtime_error("UFF parser filter only accepts RGBA8 buffer as input");
-    }
-
-    unsigned int width;
-    unsigned int height;
-
-    void* device_ptr;
-
-    if (pOpx) {
-        RTsize rwidth;
-        RTsize rheight;
-        pOpx->Buffer->getSize(rwidth, rheight);
-        width = (unsigned int)rwidth;
-        height = (unsigned int)rheight;
-
-        if (pOpx->Buffer->getFormat() != RT_FORMAT_UNSIGNED_BYTE4) {
-            throw std::runtime_error(
-                "The only optix format that can be resized is  by lidar is RT_FORMAT_UNSIGNED_BYTE4");
-        }
-
-        // we need id of first device for this context (should only have 1 anyway)
-        int device_id = pOpx->Buffer->getContext()->getEnabledDevices()[0];
-        device_ptr = pOpx->Buffer->getDevicePointer(device_id);  // hard coded to grab from device 0
-
-    } else if (pBuf) {
-        width = pBuf->Width;
-        height = pBuf->Height;
-        device_ptr = pBuf.get();
-    }
-
-    // if (!m_buffer) {
-    //     m_buffer = chrono_types::make_shared<SensorDeviceRGBA8Buffer>();
-    //     DeviceRGBA8BufferPtr b(cudaMallocHelper<PixelRGBA8>(width * height), cudaFreeHelper<PixelRGBA8>);
-    //     m_buffer->Buffer = std::move(b);
-    //     m_buffer->Width = width;
-    //     m_buffer->Height = height;
-    // }
-    if (!m_input) {
-        m_input =
-            std::shared_ptr<float>(cudaMallocHelper<float>(width * height * 4 * sizeof(float)), cudaFreeHelper<float>);
-        m_process_buffers[0] = m_input.get();
-    }
-    if (!m_output) {
-        m_output =
-            std::shared_ptr<float>(cudaMallocHelper<float>(width * height * 4 * sizeof(float)), cudaFreeHelper<float>);
-        m_process_buffers[1] = m_output.get();
-    }
-
-    // m_buffer->LaunchedCount = pSensor->GetNumLaunches();
-
+void ChFilterUFF::Apply() {
     // run inference pass
-    preprocess_RGBA8_to_FLOAT4(device_ptr, m_process_buffers[0], width * height * 4);
+    preprocess_RGBA8_to_FLOAT4(m_buffer_in->Buffer.get(), m_process_buffers[0],
+                               m_buffer_in->Width * m_buffer_in->Height * 4);
     m_inference_context->execute(1, &m_process_buffers[0]);
-    postprocess_FLOAT4_to_RGBA8(m_process_buffers[1], device_ptr, width * height * 4);
-    // set the output buffer
-    // bufferInOut = m_buffer;
+    postprocess_FLOAT4_to_RGBA8(m_process_buffers[1], m_buffer_in->Buffer.get(),
+                                m_buffer_in->Width * m_buffer_in->Height * 4);
 }
-void ChFilterUFF::Initialize(std::shared_ptr<ChSensor> pSensor) {
+void ChFilterUFF::Initialize(std::shared_ptr<ChSensor> pSensor, std::shared_ptr<SensorBuffer>& bufferInOut) {
+    if (!bufferInOut)
+        InvalidFilterGraphNullBuffer(pSensor);
+
+    m_buffer_in = std::dynamic_pointer_cast<SensorDeviceRGBA8Buffer>(bufferInOut);
+    if (!m_buffer_in) {
+        InvalidFilterGraphBufferTypeMismatch(pSensor);
+    }
+
     std::string network_model = "../data/sensor/neural_nets/identity_2layer_1920x1080";
 
     Logger l(NONE);
@@ -118,7 +72,7 @@ void ChFilterUFF::Initialize(std::shared_ptr<ChSensor> pSensor) {
     }
 
     // register the input and output layers
-    parser->registerInput("input", nvinfer1::Dims3(1080, 1920, 4),
+    parser->registerInput("input", nvinfer1::Dims3(m_buffer_in->Height, m_buffer_in->Width, 4),
                           UffInputOrder::kNHWC);   // TODO: dynamic input name
     parser->registerOutput("output/convolution");  // TODO: dynamic output name
 
@@ -136,6 +90,12 @@ void ChFilterUFF::Initialize(std::shared_ptr<ChSensor> pSensor) {
 
     // initialize the buffer vector -> should be two vectors (input, output)
     m_process_buffers = std::vector<void*>(2);
+    m_input = std::shared_ptr<float>(
+        cudaMallocHelper<float>(m_buffer_in->Width * m_buffer_in->Height * 4 * sizeof(float)), cudaFreeHelper<float>);
+    m_process_buffers[0] = m_input.get();
+    m_output = std::shared_ptr<float>(
+        cudaMallocHelper<float>(m_buffer_in->Width * m_buffer_in->Height * 4 * sizeof(float)), cudaFreeHelper<float>);
+    m_process_buffers[1] = m_output.get();
 }
 
 }  // namespace sensor

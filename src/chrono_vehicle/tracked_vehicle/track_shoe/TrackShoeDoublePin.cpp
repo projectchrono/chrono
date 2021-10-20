@@ -31,7 +31,8 @@ namespace vehicle {
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 TrackShoeDoublePin::TrackShoeDoublePin(const std::string& filename) : ChTrackShoeDoublePin("") {
-    Document d; ReadFileJSON(filename, d);
+    Document d;
+    ReadFileJSON(filename, d);
     if (d.IsNull())
         return;
 

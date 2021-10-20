@@ -85,6 +85,10 @@ class CH_VEHICLE_API SAELeafspringAxle : public ChSAELeafspringAxle {
     virtual std::shared_ptr<ChLinkRotSpringCB::TorqueFunctor> getVertTorqueFunctorA() const override { return m_vertRotSpringCBA; }
     virtual std::shared_ptr<ChLinkRotSpringCB::TorqueFunctor> getVertTorqueFunctorB() const override { return m_vertRotSpringCBB; }
 
+    virtual std::shared_ptr<ChVehicleBushingData> getShackleBushingData() const override { return m_shackleBushingData; }
+    virtual std::shared_ptr<ChVehicleBushingData> getClampBushingData() const override { return m_clampBushingData; }
+    virtual std::shared_ptr<ChVehicleBushingData> getLeafspringBushingData() const override { return m_leafspringBushingData; }
+
   private:
     virtual const ChVector<> getLocation(PointId which) override { return m_points[which]; }
 
@@ -127,6 +131,10 @@ class CH_VEHICLE_API SAELeafspringAxle : public ChSAELeafspringAxle {
     ChVector<> m_rearleafInertia;
     ChVector<> m_clampInertia;
     ChVector<> m_shackleInertia;
+
+    std::shared_ptr<ChVehicleBushingData> m_shackleBushingData;
+    std::shared_ptr<ChVehicleBushingData> m_clampBushingData;
+    std::shared_ptr<ChVehicleBushingData> m_leafspringBushingData;
 };
 
 /// @} vehicle_wheeled_suspension

@@ -29,6 +29,7 @@
 #include "chrono_models/vehicle/rccar/RCCar_Vehicle.h"
 #include "chrono_models/vehicle/rccar/RCCar_SimpleMapPowertrain.h"
 #include "chrono_models/vehicle/rccar/RCCar_RigidTire.h"
+#include "chrono_models/vehicle/rccar/RCCar_TMeasyTire.h"
 
 using namespace chrono;
 using namespace chrono::vehicle;

@@ -24,9 +24,8 @@
 
 #include "chrono/physics/ChSystem.h"
 
-// #include "chrono_sensor/ChSensor.h"
-#include "chrono_sensor/ChGPSSensor.h"
-#include "chrono_sensor/ChIMUSensor.h"
+#include "chrono_sensor/sensors/ChGPSSensor.h"
+#include "chrono_sensor/sensors/ChIMUSensor.h"
 
 #include <fstream>
 #include <sstream>
@@ -60,16 +59,7 @@ class CH_SENSOR_API ChDynamicsManager {
   private:
     ChSystem* m_system;  ///< system in which the manager lives
 
-    std::vector<std::shared_ptr<ChGPSSensor>>
-        m_gps_list;  ///< list of GPS receivers for which the manager is responsible
-    std::vector<std::shared_ptr<ChIMUSensor>> m_imu_list;  ///< list of IMU sensors for which the manager is responsible
-
-    std::vector<std::vector<std::tuple<float, ChVector<double>>>>
-        m_gps_collection_data;  ///< list used for all GPS keyframes (sim location of receiver) when sensor updates at
-                                ///< lower rate than ChSystem
-    std::vector<std::vector<std::tuple<ChVector<float>, ChVector<float>>>>
-        m_imu_collection_data;  ///< list used for all IMU keyframes (Ground truth accel and ang vel) when sensor
-                                ///< updates at lower rate than ChSystem
+    std::vector<std::shared_ptr<ChDynamicSensor>> m_sensor_list;  ///< list of dynamic sensors
 };
 
 /// @} sensor_sensors

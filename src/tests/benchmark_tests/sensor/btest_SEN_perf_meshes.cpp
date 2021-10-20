@@ -24,8 +24,9 @@
 #include "chrono/physics/ChSystemNSC.h"
 #include "chrono/utils/ChUtilsCreators.h"
 #include "chrono_thirdparty/filesystem/path.h"
+#include "chrono_sensor/utils/ChVisualMaterialUtils.h"
 
-#include "chrono_sensor/ChCameraSensor.h"
+#include "chrono_sensor/sensors/ChCameraSensor.h"
 #include "chrono_sensor/ChSensorManager.h"
 #include "chrono_sensor/filters/ChFilterAccess.h"
 #include "chrono_sensor/filters/ChFilterGrayscale.h"
@@ -36,11 +37,19 @@ using namespace chrono;
 using namespace chrono::geometry;
 using namespace chrono::sensor;
 
-float end_time = 10.0f;
-bool vis = false;
+float end_time = 2.0f;
+bool vis = true;
+
+int start_q_per_dim = 9;
+int end_q_per_dim = 9;
+
+float randf() {
+    return static_cast<float>(rand()) / static_cast<float>(RAND_MAX);
+}
 
 int main(int argc, char* argv[]) {
-    for (int q = 0; q <= 5; q++) {
+    srand(0);
+    for (int q = start_q_per_dim; q <= end_q_per_dim; q++) {
         GetLog() << "Copyright (c) 2019 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
 
         // -----------------
@@ -52,26 +61,43 @@ int main(int argc, char* argv[]) {
         // add a mesh to be visualized by a camera
         // ---------------------------------------
         auto mmesh = std::make_shared<ChTriangleMeshConnected>();
+        // mmesh->LoadWavefrontMesh(GetChronoDataFile("models/ob_chess_table.obj"), false, true);
         mmesh->LoadWavefrontMesh(GetChronoDataFile("vehicle/hmmwv/hmmwv_chassis.obj"), false, true);
         mmesh->Transform(ChVector<>(0, 0, 0), ChMatrix33<>(1));  // scale to a different size
 
-        auto trimesh_shape = std::make_shared<ChTriangleMeshShape>();
-        trimesh_shape->SetMesh(mmesh);
-        trimesh_shape->SetName("HMMWV Chassis Mesh");
-        trimesh_shape->SetStatic(true);
+        auto base_trimesh_shape = std::make_shared<ChTriangleMeshShape>();
+        base_trimesh_shape->SetMesh(mmesh);
+        if (base_trimesh_shape->material_list.size() == 0) {
+            // Create a "proper" set of materials if they don't already exist
+            CreateModernMeshAssets(base_trimesh_shape);
+        }
 
-        int x_instances = q + 1;
-        int y_instances = q + 1;
-        int z_instances = q + 1;
-        float x_spread = 5.f;
-        float y_spread = 3.f;
-        float z_spread = 2.f;
+        int x_instances = q;
+        int y_instances = q;
+        int z_instances = q;
+        float x_spread = 1.f;
+        float y_spread = 1.f;
+        float z_spread = 1.f;
         for (int i = 0; i < x_instances; i++) {
             for (int j = 0; j < y_instances; j++) {
                 for (int k = 0; k < z_instances; k++) {
+                    auto trimesh_shape = std::make_shared<ChTriangleMeshShape>();
+                    trimesh_shape->SetMesh(mmesh);
+                    // trimesh_shape->SetName("HMMWV Chassis Mesh");
+                    trimesh_shape->SetStatic(true);
+                    float scale = .5 * randf() + .1;
+                    trimesh_shape->SetScale({scale, scale, scale});
+                    // trimesh_shape->SetScale({.8, .8, .8});
+                    trimesh_shape->material_list = base_trimesh_shape->material_list;
+
                     auto mesh_body = std::make_shared<ChBody>();
+                    // auto mesh_body = std::make_shared<ChBodyEasyBox>(2 * randf() + .1, 2 * randf() + .1,
+                    //                                                  2 * randf() + .1, 1000, true, false);
                     mesh_body->SetPos({x_spread * (i + .5 - x_instances / 2.), y_spread * (j + .5 - y_instances / 2.),
                                        z_spread * (k + .5 - z_instances / 2.)});
+                    ChQuaternion<> q = {randf(), randf(), randf(), randf()};
+                    q.Normalize();
+                    mesh_body->SetRot(q);
                     mesh_body->AddAsset(trimesh_shape);
                     mesh_body->SetBodyFixed(true);
                     mphysicalSystem.Add(mesh_body);
@@ -88,24 +114,24 @@ int main(int argc, char* argv[]) {
         // -----------------------
         auto manager = std::make_shared<ChSensorManager>(&mphysicalSystem);
         manager->scene->AddPointLight({100, 100, 100}, {1, 1, 1}, 5000);
-        manager->scene->AddPointLight({-100, 100, 100}, {1, 1, 1}, 5000);
-        manager->scene->AddPointLight({100, -100, 100}, {1, 1, 1}, 5000);
-        manager->scene->AddPointLight({-100, -100, 100}, {1, 1, 1}, 5000);
+        // manager->scene->AddPointLight({-100, 100, 100}, {1, 1, 1}, 5000);
+        // manager->scene->AddPointLight({100, -100, 100}, {1, 1, 1}, 5000);
+        // manager->scene->AddPointLight({-100, -100, 100}, {1, 1, 1}, 5000);
 
         // ------------------------------------------------
         // Create a camera and add it to the sensor manager
         // ------------------------------------------------
         auto cam = std::make_shared<ChCameraSensor>(
             cam_body,                                                           // body camera is attached to
-            50.0f,                                                              // update rate in Hz
+            60.0f,                                                              // update rate in Hz
             chrono::ChFrame<double>({-8, 0, 1}, Q_from_AngAxis(0, {0, 1, 0})),  // offset pose
             1920,                                                               // image width
             1080,                                                               // image height
             (float)CH_C_PI / 3                                                  // FOV
         );
         cam->SetName("Camera Sensor");
-        if (vis)
-            cam->PushFilter(std::make_shared<ChFilterVisualize>(1280, 720));
+        // if (vis)
+        //     cam->PushFilter(std::make_shared<ChFilterVisualize>(1280, 720));
 
         manager->AddSensor(cam);
 
@@ -130,7 +156,7 @@ int main(int argc, char* argv[]) {
                 Q_from_AngAxis(ch_time * orbit_rate, {0, 0, 1})));
 
             manager->Update();
-            mphysicalSystem.DoStepDynamics(0.001);
+            mphysicalSystem.DoStepDynamics(0.01);
 
             ch_time = (float)mphysicalSystem.GetChTime();
         }

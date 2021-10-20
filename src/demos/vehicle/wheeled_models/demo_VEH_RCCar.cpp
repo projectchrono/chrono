@@ -57,8 +57,8 @@ VisualizationType wheel_vis_type = VisualizationType::NONE;
 // Collision type for chassis (PRIMITIVES, MESH, or NONE)
 CollisionType chassis_collision_type = CollisionType::NONE;
 
-// Type of tire model (RIGID)
-TireModelType tire_model = TireModelType::RIGID;
+// Type of tire model (RIGID, TMEASY)
+TireModelType tire_model = TireModelType::TMEASY;
 
 // Rigid terrain
 RigidTerrain::PatchType terrain_model = RigidTerrain::PatchType::BOX;
@@ -122,7 +122,6 @@ int main(int argc, char* argv[]) {
     my_rccar.SetTireVisualizationType(tire_vis_type);
 
     // Create the terrain
-    // Create the terrain
     RigidTerrain terrain(my_rccar.GetSystem());
 
     MaterialInfo minfo;
@@ -155,7 +154,7 @@ int main(int argc, char* argv[]) {
     ChWheeledVehicleIrrApp app(&my_rccar.GetVehicle(), L"RCCar Demo");
     app.SetSkyBox();
     app.AddTypicalLights(irr::core::vector3df(30.f, -30.f, 100.f), irr::core::vector3df(30.f, 50.f, 100.f), 250, 130);
-    app.SetChaseCamera(trackPoint, 1.5, 0.5);
+    app.SetChaseCamera(trackPoint, 1.5, 0.05);
     app.SetTimestep(step_size);
     app.AssetBindAll();
     app.AssetUpdateAll();
@@ -245,7 +244,7 @@ int main(int argc, char* argv[]) {
             if (povray_output) {
                 char filename[100];
                 sprintf(filename, "%s/data_%03d.dat", pov_dir.c_str(), render_frame + 1);
-                utils::WriteShapesPovray(my_rccar.GetSystem(), filename);
+                utils::WriteVisualizationAssets(my_rccar.GetSystem(), filename);
             }
 
             render_frame++;

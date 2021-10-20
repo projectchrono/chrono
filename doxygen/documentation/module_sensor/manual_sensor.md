@@ -8,6 +8,8 @@ Chrono::Sensor Reference Manual {#manual_sensor}
 * @subpage lidar_sensor
 * @subpage GPS_sensor
 * @subpage IMU_sensor
+* @subpage radar_sensor
+* @subpage tachometer_sensor
 
 
 **Additional documentation pages**

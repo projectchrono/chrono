@@ -20,7 +20,7 @@
 namespace chrono {
 namespace sensor {
 
-// Converts 32bpp ARGB imgIn pixels to 8bpp Grayscale imgOut pixels
+// Converts 32bpp RGBA imgIn pixels to 8bpp Grayscale imgOut pixels
 __global__ void grayscale_kernel(int* imgIn, char* imgOut, int numPixels) {
     int index = blockDim.x * blockIdx.x + threadIdx.x;
     if (index < numPixels) {
@@ -33,12 +33,11 @@ __global__ void grayscale_kernel(int* imgIn, char* imgOut, int numPixels) {
     }
 }
 
-void cuda_grayscale(void* bufRGBA, void* bufOut, int width, int height) {
+void cuda_grayscale(void* bufRGBA, void* bufOut, int width, int height, CUstream& stream) {
     int numPixels = width * height;
     const int nThreads = 512;
     int nBlocks = (numPixels + nThreads - 1) / nThreads;
-
-    grayscale_kernel<<<nBlocks, nThreads>>>((int*)bufRGBA, (char*)bufOut, numPixels);
+    grayscale_kernel<<<nBlocks, nThreads, 0, stream>>>((int*)bufRGBA, (char*)bufOut, numPixels);
 }
 
 }  // namespace sensor

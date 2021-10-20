@@ -28,18 +28,18 @@ namespace rccar {
 // -----------------------------------------------------------------------------
 // Static variables
 // -----------------------------------------------------------------------------
-const double RCCar_Driveline4WD::m_central_differentialbox_inertia = 0.06; //TODO
-const double RCCar_Driveline4WD::m_front_differentialbox_inertia = 0.06;//TODO
-const double RCCar_Driveline4WD::m_rear_differentialbox_inertia = 0.06;//TODO
-const double RCCar_Driveline4WD::m_driveshaft_inertia = 0.05;//TODO
-const double RCCar_Driveline4WD::m_frontshaft_inertia = 0.05;//TODO
-const double RCCar_Driveline4WD::m_rearshaft_inertia = 0.05;//TODO
+const double RCCar_Driveline4WD::m_central_differentialbox_inertia = 0.00000797;  // estimate
+const double RCCar_Driveline4WD::m_front_differentialbox_inertia = 0.00000797;    // estimate
+const double RCCar_Driveline4WD::m_rear_differentialbox_inertia = 0.00000797;     // estimate
+const double RCCar_Driveline4WD::m_driveshaft_inertia = 0.000001;               // estimate
+const double RCCar_Driveline4WD::m_frontshaft_inertia = 0.000001;               // estimate
+const double RCCar_Driveline4WD::m_rearshaft_inertia = 0.000001;                // estimate
 
-const double RCCar_Driveline4WD::m_front_conicalgear_ratio = 1;//TODO
-const double RCCar_Driveline4WD::m_rear_conicalgear_ratio = 1;//TODO
+const double RCCar_Driveline4WD::m_front_conicalgear_ratio = .5; //TODO
+const double RCCar_Driveline4WD::m_rear_conicalgear_ratio = .5; //TODO
 
-const double RCCar_Driveline4WD::m_axle_differential_locking_limit = 100;//TODO
-const double RCCar_Driveline4WD::m_central_differential_locking_limit = 100;//TODO
+const double RCCar_Driveline4WD::m_axle_differential_locking_limit = 1000; //no locking on axle diffs
+const double RCCar_Driveline4WD::m_central_differential_locking_limit = 1; //no central diff
 
 // -----------------------------------------------------------------------------
 // Constructor of the RCCar_Driveline4WD.
@@ -47,8 +47,8 @@ const double RCCar_Driveline4WD::m_central_differential_locking_limit = 100;//TO
 // the axles is along the Y axis (relative to the chassis coordinate frame),
 // -----------------------------------------------------------------------------
 RCCar_Driveline4WD::RCCar_Driveline4WD(const std::string& name) : ChShaftsDriveline4WD(name) {
-    SetMotorBlockDirection(ChVector<>(1, 0, 0));//TODO
-    SetAxleDirection(ChVector<>(0, 1, 0));//TODO
+    SetMotorBlockDirection(ChVector<>(1, 0, 0));
+    SetAxleDirection(ChVector<>(0, 1, 0));
 }
 
 }  // end namespace rccar

@@ -20,6 +20,7 @@
 #include <cmath>
 #include <cstdio>
 #include <iomanip>
+#include <memory>
 
 #include "chrono/assets/ChTriangleMeshShape.h"
 #include "chrono/assets/ChVisualMaterial.h"
@@ -31,8 +32,10 @@
 #include "chrono_thirdparty/filesystem/path.h"
 #include "chrono/utils/ChUtilsInputOutput.h"
 
-#include "chrono_sensor/ChGPSSensor.h"
-#include "chrono_sensor/ChIMUSensor.h"
+#include "chrono_sensor/sensors/ChNoiseModel.h"
+#include "chrono_sensor/sensors/ChGPSSensor.h"
+#include "chrono_sensor/sensors/ChIMUSensor.h"
+
 #include "chrono_sensor/ChSensorManager.h"
 #include "chrono_sensor/filters/ChFilterAccess.h"
 #include "chrono_sensor/filters/ChFilterVisualize.h"
@@ -129,6 +132,11 @@ int main(int argc, char* argv[]) {
     pendulum_leg_2->SetBodyFixed(false);
     mphysicalSystem.Add(pendulum_leg_2);
 
+    auto plate = chrono_types::make_shared<ChBodyEasyBox>(.4, .2, .2, 1000, true, false);
+    plate->SetPos(ChVector<>(0, 0, 4));
+    plate->SetBodyFixed(true);
+    mphysicalSystem.Add(plate);
+
     auto link1 = chrono_types::make_shared<ChLinkLockRevolute>();
     link1->Initialize(base, pendulum_leg_1, ChCoordsys<>({0, 0, 1}, chrono::Q_from_AngAxis(CH_C_PI / 2, VECT_Y)));
     mphysicalSystem.AddLink(link1);
@@ -147,58 +155,85 @@ int main(int argc, char* argv[]) {
     // Create a IMU and add it to the sensor manager
     // ---------------------------------------------
     // Create the imu noise model
-    std::shared_ptr<ChIMUNoiseModel> imu_noise_model;
+    std::shared_ptr<ChNoiseModel> acc_noise_model;
+    std::shared_ptr<ChNoiseModel> gyro_noise_model;
+    std::shared_ptr<ChNoiseModel> mag_noise_model;
     switch (imu_noise_type) {
         case NORMAL_DRIFT:
             // Set the imu noise model to a gaussian model
-            imu_noise_model = chrono_types::make_shared<ChIMUNoiseNormalDrift>(100.f,   // float updateRate,
-                                                                               0.f,     // float g_mean,
-                                                                               .001f,   // float g_stdev,
-                                                                               .0f,     // float g_bias_drift,
-                                                                               .1f,     // float g_tau_drift,
-                                                                               .0f,     // float a_mean,
-                                                                               .0075f,  // float a_stdev,
-                                                                               .001f,   // float a_bias_drift,
-                                                                               .1f      // float a_tau_drift);
-            );
+            acc_noise_model =
+                chrono_types::make_shared<ChNoiseNormalDrift>(imu_update_rate,                          //
+                                                              ChVector<double>({0., 0., 0.}),           // mean,
+                                                              ChVector<double>({0.001, 0.001, 0.001}),  // stdev,
+                                                              .0001,                                    // bias_drift,
+                                                              .1);                                      // tau_drift,
+            gyro_noise_model =
+                chrono_types::make_shared<ChNoiseNormalDrift>(imu_update_rate,                 // float updateRate,
+                                                              ChVector<double>({0., 0., 0.}),  // float mean,
+                                                              ChVector<double>({0.001, 0.001, 0.001}),  // float
+                                                              .001,  // double bias_drift,
+                                                              .1);   // double tau_drift,
+            mag_noise_model =
+                chrono_types::make_shared<ChNoiseNormal>(ChVector<double>({0., 0., 0.}),            // float mean,
+                                                         ChVector<double>({0.001, 0.001, 0.001}));  // float stdev,
             break;
         case IMU_NONE:
             // Set the imu noise model to none (does not affect the data)
-            imu_noise_model = chrono_types::make_shared<ChIMUNoiseNone>();
+            acc_noise_model = chrono_types::make_shared<ChNoiseNone>();
+            gyro_noise_model = chrono_types::make_shared<ChNoiseNone>();
+            mag_noise_model = chrono_types::make_shared<ChNoiseNone>();
             break;
     }
 
-    // add an IMU sensor to one of the pendulum legs
+    // add an accelerometer, gyroscope, and magnetometer to one of the pendulum legs
     auto imu_offset_pose = chrono::ChFrame<double>({0, 0, 0}, Q_from_AngAxis(0, {1, 0, 0}));
-    auto imu = chrono_types::make_shared<ChIMUSensor>(pendulum_leg_1,    // body to which the IMU is attached
-                                                      imu_update_rate,   // update rate
-                                                      imu_offset_pose,   // offset pose from body
-                                                      imu_noise_model);  // IMU noise model
-    imu->SetName("IMU");
-    imu->SetLag(imu_lag);
-    imu->SetCollectionWindow(imu_collection_time);
-    // Add a filter to access the imu data
-    imu->PushFilter(chrono_types::make_shared<ChFilterIMUAccess>());
+    auto acc = chrono_types::make_shared<ChAccelerometerSensor>(pendulum_leg_1,    // body to which the IMU is attached
+                                                                imu_update_rate,   // update rate
+                                                                imu_offset_pose,   // offset pose from body
+                                                                acc_noise_model);  // IMU noise model
+    acc->SetName("IMU - Accelerometer");
+    acc->SetLag(imu_lag);
+    acc->SetCollectionWindow(imu_collection_time);
+    acc->PushFilter(chrono_types::make_shared<ChFilterAccelAccess>());  // Add a filter to access the imu data
+    manager->AddSensor(acc);                                            // Add the IMU sensor to the sensor manager
 
-    // Add the IMU sensor to the sensor manager
-    manager->AddSensor(imu);
+    auto gyro = chrono_types::make_shared<ChGyroscopeSensor>(pendulum_leg_1,     // body to which the IMU is attached
+                                                             imu_update_rate,    // update rate
+                                                             imu_offset_pose,    // offset pose from body
+                                                             gyro_noise_model);  // IMU noise model
+    gyro->SetName("IMU - Accelerometer");
+    gyro->SetLag(imu_lag);
+    gyro->SetCollectionWindow(imu_collection_time);
+    gyro->PushFilter(chrono_types::make_shared<ChFilterGyroAccess>());  // Add a filter to access the imu data
+    manager->AddSensor(gyro);                                           // Add the IMU sensor to the sensor manager
+
+    auto mag = chrono_types::make_shared<ChMagnetometerSensor>(plate,            // body to which the IMU is attached
+                                                               imu_update_rate,  // update rate
+                                                               imu_offset_pose,  // offset pose from body
+                                                               mag_noise_model,  // IMU noise model
+                                                               gps_reference);
+    mag->SetName("IMU - Accelerometer");
+    mag->SetLag(imu_lag);
+    mag->SetCollectionWindow(imu_collection_time);
+    mag->PushFilter(chrono_types::make_shared<ChFilterMagnetAccess>());  // Add a filter to access the imu data
+    manager->AddSensor(mag);                                             // Add the IMU sensor to the sensor manager
 
     // ---------------------------------------------
     // Create a GPS and add it to the sensor manager
     // ---------------------------------------------
     // Create the gps noise model
-    std::shared_ptr<ChGPSNoiseModel> gps_noise_model;
+    std::shared_ptr<ChNoiseModel> gps_noise_model;
     switch (gps_noise_type) {
         case NORMAL:
             // Set the gps noise model to a gaussian model
             gps_noise_model =
-                chrono_types::make_shared<ChGPSNoiseNormal>(ChVector<float>(1.f, 1.f, 1.f),  // Mean
-                                                            ChVector<float>(2.f, 3.f, 1.f)   // Standard Deviation
+                chrono_types::make_shared<ChNoiseNormal>(ChVector<double>(1.f, 1.f, 1.f),  // Mean
+                                                         ChVector<double>(2.f, 3.f, 1.f)   // Standard Deviation
                 );
             break;
         case GPS_NONE:
             // Set the gps noise model to none (does not affect the data)
-            gps_noise_model = chrono_types::make_shared<ChGPSNoiseNone>();
+            gps_noise_model = chrono_types::make_shared<ChNoiseNone>();
             break;
     }
 
@@ -214,11 +249,8 @@ int main(int argc, char* argv[]) {
     gps->SetName("GPS");
     gps->SetLag(gps_lag);
     gps->SetCollectionWindow(gps_collection_time);
-    // Add a filter to access the gps data
-    gps->PushFilter(chrono_types::make_shared<ChFilterGPSAccess>());
-
-    // Add GPS sensor to the sensor manager
-    manager->AddSensor(gps);
+    gps->PushFilter(chrono_types::make_shared<ChFilterGPSAccess>());  // Add a filter to access the gps data
+    manager->AddSensor(gps);                                          // Add GPS sensor to the sensor manager
 
     // -----------------
     // Initialize output
@@ -251,28 +283,50 @@ int main(int argc, char* argv[]) {
     float ch_time = 0;
 
     std::chrono::high_resolution_clock::time_point t1 = std::chrono::high_resolution_clock::now();
-    UserIMUBufferPtr bufferIMU;
+    UserAccelBufferPtr bufferAcc;
+    UserGyroBufferPtr bufferGyro;
+    UserMagnetBufferPtr bufferMag;
     UserGPSBufferPtr bufferGPS;
 
+    int imu_last_launch = 0;
+    int gps_last_launch = 0;
+
+    double rot_rate = 1;
+    double ang;
+    ChVector<double> axis;
+
     while (ch_time < end_time) {
+        plate->SetRot(Q_from_AngZ(rot_rate * ch_time));
         // Get the most recent imu data
-        bufferIMU = imu->GetMostRecentBuffer<UserIMUBufferPtr>();
-        if (bufferIMU->Buffer) {
+        bufferAcc = acc->GetMostRecentBuffer<UserAccelBufferPtr>();
+        bufferGyro = gyro->GetMostRecentBuffer<UserGyroBufferPtr>();
+        bufferMag = mag->GetMostRecentBuffer<UserMagnetBufferPtr>();
+        if (bufferAcc->Buffer && bufferGyro->Buffer && bufferMag->Buffer &&
+            bufferMag->LaunchedCount > imu_last_launch) {
             // Save the imu data to file
-            IMUData imu_data = bufferIMU->Buffer[0];
+            AccelData acc_data = bufferAcc->Buffer[0];
+            GyroData gyro_data = bufferGyro->Buffer[0];
+            MagnetData mag_data = bufferMag->Buffer[0];
+
+            plate->GetRot().Q_to_AngAxis(ang, axis);
+
             imu_csv << std::fixed << std::setprecision(6);
-            imu_csv << imu_data.Accel[0];  // Acc X
-            imu_csv << imu_data.Accel[1];  // Acc Y
-            imu_csv << imu_data.Accel[2];  // Acc Z
-            imu_csv << imu_data.Roll;      // Roll
-            imu_csv << imu_data.Pitch;     // Pitch
-            imu_csv << imu_data.Yaw;       // Yaw
+            imu_csv << acc_data.X;
+            imu_csv << acc_data.Y;
+            imu_csv << acc_data.Z;
+            imu_csv << gyro_data.Roll;
+            imu_csv << gyro_data.Pitch;
+            imu_csv << gyro_data.Yaw;
+            imu_csv << mag_data.X;
+            imu_csv << mag_data.Y;
+            imu_csv << mag_data.Z;
             imu_csv << std::endl;
+            imu_last_launch = bufferMag->LaunchedCount;
         }
 
         // Get the most recent gps data
         bufferGPS = gps->GetMostRecentBuffer<UserGPSBufferPtr>();
-        if (bufferGPS->Buffer) {
+        if (bufferGPS->Buffer && bufferGPS->LaunchedCount > gps_last_launch) {
             // Save the gps data to file
             GPSData gps_data = bufferGPS->Buffer[0];
             gps_csv << std::fixed << std::setprecision(6);
@@ -281,6 +335,7 @@ int main(int argc, char* argv[]) {
             gps_csv << gps_data.Altitude;   // Altitude
             gps_csv << gps_data.Time;       // Time
             gps_csv << std::endl;
+            gps_last_launch = bufferGPS->LaunchedCount;
         }
 
         // Update sensor manager

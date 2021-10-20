@@ -31,7 +31,7 @@
 #include "chrono_synchrono/agent/SynAgent.h"
 
 #ifdef CHRONO_SENSOR
-#include "chrono_sensor/ChGPSSensor.h"
+#include "chrono_sensor/sensors/ChGPSSensor.h"
 #else
 #define EARTH_RADIUS 6371000.0  // [meters]
 #endif                          // SENSOR

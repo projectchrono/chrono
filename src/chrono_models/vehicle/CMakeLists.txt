@@ -571,6 +571,8 @@ set(CVM_RCCAR_FILES
   rccar/RCCar_PitmanArm.h
   rccar/RCCar_RigidTire.cpp
   rccar/RCCar_RigidTire.h
+  rccar/RCCar_TMeasyTire.cpp
+  rccar/RCCar_TMeasyTire.h
   rccar/RCCar_SimpleMapPowertrain.cpp
   rccar/RCCar_SimpleMapPowertrain.h
   rccar/RCCar_Vehicle.cpp

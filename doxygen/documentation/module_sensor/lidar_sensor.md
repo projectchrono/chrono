@@ -3,7 +3,7 @@ Lidar Sensor Model {#lidar_sensor}
 
 \tableofcontents
 
-In Chrono:Sensor:ChCameraSensor, the synthetic data is generated via GPU-based ray-tracing. By leveraging hardware acclereated support and the headless rendering capablities provided by Nvidia Optix Library. For each lidar beam, a group of rays are traced that sample that lidar beam. The number of samples, along with beam divergence angle, are set by the user. The entire frame/scan of the lidar is processed in a single render step. To account for the time difference of rays across the scan, keyframes and motion blur techniques are used. With these keyframes, each beam in the scan traces the scene at a specific time, reproducing the motion of objects and the lidar. The intensity returned by the lidar beams is based on diffuse reflectance.
+In Chrono:Sensor:ChLidarSensor, the synthetic data is generated via GPU-based ray-tracing. By leveraging hardware acclereated support and the headless rendering capablities provided by Nvidia Optix Library. For each lidar beam, a group of rays are traced that sample that lidar beam. The number of samples, along with beam divergence angle, are set by the user. The entire frame/scan of the lidar is processed in a single render step. To account for the time difference of rays across the scan, keyframes and motion blur techniques are used. With these keyframes, each beam in the scan traces the scene at a specific time, reproducing the motion of objects and the lidar. The intensity returned by the lidar beams is based on diffuse reflectance.
 
 #### Creating a Lidar
 ~~~{.cpp}
@@ -42,8 +42,8 @@ lidar->PushFilter(chrono_types::make_shared<ChFilterXYZIAccess>());
 // visualize point cloud (<height, width, zoom, name> of visual window)
 lidar->PushFilter(chrono_types::make_shared<ChFilterVisualizePointCloud>(640, 480, 2, "Lidar Point Cloud"));
 
-// Addsensorto manager
-manager->AddSensor(cam);
+// Add sensor to manager
+manager->AddSensor(lidar);
 ~~~
 
 <br>
@@ -55,7 +55,7 @@ while () {
     xyzi_ptr=lidar->GetMostRecentBuffer<UserXYZIBufferPtr>();
     if(xyzi_ptr->Buffer) {
         // Retrieve and print the first point in the point cloud
-        PixelXYZIfirst_point= xyzi_ptr->Buffer[0];
+        PixelXYZI first_point= xyzi_ptr->Buffer[0];
         std::cout<<"First Point: [ "<<unsigned(first_point.x) <<", "<<
         unsigned(first_point.y) <<", “ <<unsigned(first_point.z) <<", "<<
         unsigned(first_point.intensity) <<" ]"<<std::endl;

@@ -18,7 +18,7 @@
 #define CHFILTERLIDARREDUCE_H
 
 #include "chrono_sensor/filters/ChFilter.h"
-#include "chrono_sensor/ChLidarSensor.h"
+#include "chrono_sensor/sensors/ChLidarSensor.h"
 
 namespace chrono {
 namespace sensor {
@@ -36,21 +36,22 @@ class CH_SENSOR_API ChFilterLidarReduce : public ChFilter {
     /// @param ret The return mode of the lidar sensor (STRONGEST, FIRST, LAST, etc)
     /// @param reduce_radius The radius of samples per beam
     /// @param name The string name of the filter
-    ChFilterLidarReduce(LidarReturnMode ret, int reduce_radius, std::string name = {});
+    ChFilterLidarReduce(LidarReturnMode ret, int reduce_radius, std::string name = "ChFilterLidarReduce");
 
     /// Apply function. Reduces lidar data from raw to processed.
-    /// @param pSensor A pointer to the sensor on which the filter is attached.
-    /// @param bufferInOut A buffer that is passed into the filter.
-    virtual void Apply(std::shared_ptr<ChSensor> pSensor, std::shared_ptr<SensorBuffer>& bufferInOut);
+    virtual void Apply();
 
     /// Initializes all data needed by the filter access apply function.
-    /// @param pSensor A pointer to the sensor.
-    virtual void Initialize(std::shared_ptr<ChSensor> pSensor) {}
+    /// @param pSensor A pointer to the sensor on which the filter is attached.
+    /// @param bufferInOut A buffer that is passed into the filter.
+    virtual void Initialize(std::shared_ptr<ChSensor> pSensor, std::shared_ptr<SensorBuffer>& bufferInOut);
 
   private:
-    std::shared_ptr<SensorDeviceDIBuffer> m_buffer;  ///< for holding the output buffer
-    LidarReturnMode m_ret;                           ///< for holding the return mode
-    int m_reduce_radius;                             ///< for holding the sample radius
+    std::shared_ptr<SensorDeviceDIBuffer> m_buffer_in;   ///< for holding the input buffer
+    std::shared_ptr<SensorDeviceDIBuffer> m_buffer_out;  ///< for holding the output buffer
+    LidarReturnMode m_ret;                               ///< for holding the return mode
+    int m_reduce_radius;                                 ///< for holding the sample radius
+    CUstream m_cuda_stream;                              ///< reference to the cuda stream
 };
 
 /// @}

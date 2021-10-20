@@ -39,59 +39,57 @@ using namespace chrono::vehicle;
 static const double in2m = 0.0254;
 static const double lb2kg = 0.453592;
 
-const double RCCar_DoubleWishboneFront::m_UCAMass = lb2kg * 0.15; //TODO
-const double RCCar_DoubleWishboneFront::m_LCAMass = lb2kg * 0.25; //TODO
-const double RCCar_DoubleWishboneFront::m_uprightMass = lb2kg * 0.1; //TODO
-const double RCCar_DoubleWishboneFront::m_spindleMass = lb2kg * 0.1; //TODO
+const double RCCar_DoubleWishboneFront::m_UCAMass = 0.01583115;
+const double RCCar_DoubleWishboneFront::m_LCAMass = 0.08629433;
+const double RCCar_DoubleWishboneFront::m_uprightMass = 0.08666171;
+const double RCCar_DoubleWishboneFront::m_spindleMass = 0.0137509;
 
-const double RCCar_DoubleWishboneFront::m_spindleRadius = in2m * 0.2; //TODO
-const double RCCar_DoubleWishboneFront::m_spindleWidth = in2m * 0.2; //TODO
-const double RCCar_DoubleWishboneFront::m_LCARadius = in2m * 0.2; //TODO
-const double RCCar_DoubleWishboneFront::m_UCARadius = in2m * 0.2; //TODO
-const double RCCar_DoubleWishboneFront::m_uprightRadius = in2m * 0.2; //TODO
+const double RCCar_DoubleWishboneFront::m_spindleRadius = 0.005;
+const double RCCar_DoubleWishboneFront::m_spindleWidth = 0.01;
+const double RCCar_DoubleWishboneFront::m_LCARadius = 0.005;
+const double RCCar_DoubleWishboneFront::m_UCARadius = 0.005;
+const double RCCar_DoubleWishboneFront::m_uprightRadius = 0.005;
 
-// TODO: Fix these values
-const ChVector<> RCCar_DoubleWishboneFront::m_spindleInertia(0.0000079, 0.0000079, 0.00001172); //TODO
-const ChVector<> RCCar_DoubleWishboneFront::m_UCAInertiaMoments(0.001136, 0.001136, 0.00001465); //TODO
-const ChVector<> RCCar_DoubleWishboneFront::m_UCAInertiaProducts(0.0, 0.0, 0.0); //TODO
-const ChVector<> RCCar_DoubleWishboneFront::m_LCAInertiaMoments(0.001136, 0.001136, 0.00001465); //TODO
-const ChVector<> RCCar_DoubleWishboneFront::m_LCAInertiaProducts(0.0, 0.0, 0.0); //TODO
-const ChVector<> RCCar_DoubleWishboneFront::m_uprightInertiaMoments(0.00009523, 0.00009523, 0.00001456); //TODO
-const ChVector<> RCCar_DoubleWishboneFront::m_uprightInertiaProducts(0.0, 0.0, 0.0); //TODO
+const ChVector<> RCCar_DoubleWishboneFront::m_spindleInertia(0.00000184, 0.00000032, 0.00000184);
+const ChVector<> RCCar_DoubleWishboneFront::m_UCAInertiaMoments(0.00002208, 0.00000258, 0.00002352);
+const ChVector<> RCCar_DoubleWishboneFront::m_UCAInertiaProducts(0.00000216, 0.00000033, 0.00000324);
+const ChVector<> RCCar_DoubleWishboneFront::m_LCAInertiaMoments(0.00012785, 0.00002197, 0.00014179);
+const ChVector<> RCCar_DoubleWishboneFront::m_LCAInertiaProducts(-0.00000886, -0.00000064, 0.00001841);
+const ChVector<> RCCar_DoubleWishboneFront::m_uprightInertiaMoments(0.00001691, 0.00001433, 0.00001402);
+const ChVector<> RCCar_DoubleWishboneFront::m_uprightInertiaProducts(-0.00000039, -0.00000008, -0.00000090);
 
-const double RCCar_DoubleWishboneFront::m_axleInertia = 0.00035; //TODO
+const double RCCar_DoubleWishboneFront::m_axleInertia = 0.00000016;
 
-const double RCCar_DoubleWishboneFront::m_springCoefficient = 5000; //TODO
-const double RCCar_DoubleWishboneFront::m_dampingCoefficient = 450; //TODO
-const double RCCar_DoubleWishboneFront::m_springRestLength = in2m * 4.95; //TODO
+const double RCCar_DoubleWishboneFront::m_springCoefficient = 8000;
+const double RCCar_DoubleWishboneFront::m_dampingCoefficient = 450;
+const double RCCar_DoubleWishboneFront::m_springRestLength = .1363;
 
 // -----------------------------------------------------------------------------
 
-const double RCCar_DoubleWishboneRear::m_UCAMass = lb2kg * 0.15; //TODO
-const double RCCar_DoubleWishboneRear::m_LCAMass = lb2kg * 0.25; //TODO
-const double RCCar_DoubleWishboneRear::m_uprightMass = lb2kg * 0.1; //TODO
-const double RCCar_DoubleWishboneRear::m_spindleMass = lb2kg * 0.1; //TODO
+const double RCCar_DoubleWishboneRear::m_UCAMass = 0.01583115;
+const double RCCar_DoubleWishboneRear::m_LCAMass = 0.08622608;
+const double RCCar_DoubleWishboneRear::m_uprightMass = 0.07137211;
+const double RCCar_DoubleWishboneRear::m_spindleMass = 0.01375090;
 
-const double RCCar_DoubleWishboneRear::m_spindleRadius = in2m * 0.2; //TODO
-const double RCCar_DoubleWishboneRear::m_spindleWidth = in2m * 0.2; //TODO
-const double RCCar_DoubleWishboneRear::m_LCARadius = in2m * 0.2; //TODO
-const double RCCar_DoubleWishboneRear::m_UCARadius = in2m * 0.2; //TODO
-const double RCCar_DoubleWishboneRear::m_uprightRadius = in2m * 0.2; //TODO
+const double RCCar_DoubleWishboneRear::m_spindleRadius = 0.005;
+const double RCCar_DoubleWishboneRear::m_spindleWidth = 0.01;
+const double RCCar_DoubleWishboneRear::m_LCARadius = 0.005;
+const double RCCar_DoubleWishboneRear::m_UCARadius = 0.005;
+const double RCCar_DoubleWishboneRear::m_uprightRadius = 0.005;
 
-// TODO: Fix these values
-const ChVector<> RCCar_DoubleWishboneRear::m_spindleInertia(0.0000079, 0.0000079, 0.00001172); //TODO
-const ChVector<> RCCar_DoubleWishboneRear::m_UCAInertiaMoments(0.001136, 0.001136, 0.00001465); //TODO
-const ChVector<> RCCar_DoubleWishboneRear::m_UCAInertiaProducts(0.0, 0.0, 0.0); //TODO
-const ChVector<> RCCar_DoubleWishboneRear::m_LCAInertiaMoments(0.001136, 0.001136, 0.00001465); //TODO
-const ChVector<> RCCar_DoubleWishboneRear::m_LCAInertiaProducts(0.0, 0.0, 0.0); //TODO
-const ChVector<> RCCar_DoubleWishboneRear::m_uprightInertiaMoments(0.00009523, 0.00009523, 0.00001456); //TODO
-const ChVector<> RCCar_DoubleWishboneRear::m_uprightInertiaProducts(0.0, 0.0, 0.0); //TODO
+const ChVector<> RCCar_DoubleWishboneRear::m_spindleInertia(0.00000184, 0.00000032, 0.00000184);
+const ChVector<> RCCar_DoubleWishboneRear::m_UCAInertiaMoments(0.00002208, 0.00000252, 0.00002358);
+const ChVector<> RCCar_DoubleWishboneRear::m_UCAInertiaProducts(-0.00000217, -0.00000031, 0.00000305);
+const ChVector<> RCCar_DoubleWishboneRear::m_LCAInertiaMoments(0.00012731, 0.00002163, 0.00014159);
+const ChVector<> RCCar_DoubleWishboneRear::m_LCAInertiaProducts(0.00000893, 0.00000057, 0.00002163);
+const ChVector<> RCCar_DoubleWishboneRear::m_uprightInertiaMoments(0.00001507, 0.00001253, 0.00001141);
+const ChVector<> RCCar_DoubleWishboneRear::m_uprightInertiaProducts(0.0, 0.0, -0.00000117);
 
-const double RCCar_DoubleWishboneRear::m_axleInertia = 0.00035; //TODO
+const double RCCar_DoubleWishboneRear::m_axleInertia = 0.00000016;
 
-const double RCCar_DoubleWishboneRear::m_springCoefficient = 5000; //TODO
-const double RCCar_DoubleWishboneRear::m_dampingCoefficient = 450; //TODO
-const double RCCar_DoubleWishboneRear::m_springRestLength = in2m * 4.95; //TODO
+const double RCCar_DoubleWishboneRear::m_springCoefficient = 8000;  // TODO
+const double RCCar_DoubleWishboneRear::m_dampingCoefficient = 450;  // TODO
+const double RCCar_DoubleWishboneRear::m_springRestLength = .1363;  // TODO
 
 // -----------------------------------------------------------------------------
 // RCCar shock functor class - implements a nonlinear damper
@@ -234,79 +232,116 @@ RCCar_DoubleWishboneRear::~RCCar_DoubleWishboneRear() {}
 const ChVector<> RCCar_DoubleWishboneFront::getLocation(PointId which) {
     switch (which) {
         case SPINDLE:
-            return in2m * ChVector<>(0, 6.3, 0); //TODO
+            return ChVector<>(.1426, .16599, -.03725);
         case UPRIGHT:
-            return in2m * ChVector<>(0.0, 6.0, 0.0);//TODO
+            return ChVector<>(.1426, .162, -.03725);
         case UCA_F:
-            return in2m * ChVector<>(0.5, 0.9, 0.6);//TODO
+            return ChVector<>(.17134, .0235, 0);
         case UCA_B:
-            return in2m * ChVector<>(-0.5, 0.9, 0.6);//TODO
+            return ChVector<>(.12334, .0235, 0);
         case UCA_U:
-            return in2m * ChVector<>(0.0, 5.5, 0.6);//TODO
+            return ChVector<>(.14424, .15348, -.01169);
         case UCA_CM:
-            return in2m * ChVector<>(0.0, 3.1, -0.6);//TODO
+            return ChVector<>(.14284, .08306, -.00536);
         case LCA_F:
-            return in2m * ChVector<>(0.5, 0.9, -0.6);//TODO
+            return ChVector<>(.16547, .01998, -.039);
         case LCA_B:
-            return in2m * ChVector<>(-0.5, 0.9, -0.6);//TODO
+            return ChVector<>(.10948, .01998, -.039);
         case LCA_U:
-            return in2m * ChVector<>(0.0, 5.5, -0.6);//TODO
+            return ChVector<>(.14224, .15744, -.05599);
         case LCA_CM:
-            return in2m * ChVector<>(0.0, 3.1, -0.6);//TODO
+            return ChVector<>(.14318, .07774, -.04044);
         case SHOCK_C:
-            return in2m * ChVector<>(-0.5, 0.8, 3.0);//TODO
+            return ChVector<>(.1421, .03108, 0.07157);
         case SHOCK_A:
-            return in2m * ChVector<>(-0.5, 3.4, -0.6);//TODO
+            return ChVector<>(.15318, .098, -.043);
         case SPRING_C:
-            return in2m * ChVector<>(-0.5, 1.0, 3.0);//TODO
+            return ChVector<>(.1421, .03108, 0.07157);
         case SPRING_A:
-            return in2m * ChVector<>(-0.5, 3.6, -0.6);//TODO
+            return ChVector<>(.15318, .098, -.043);
         case TIEROD_C:
-            return in2m * ChVector<>(-1, 1.6, 0);//TODO
+            return ChVector<>(.1155, .033, -.027);
         case TIEROD_U:
-            return in2m * ChVector<>(-1, 5.5, 0);//TODO
+            return ChVector<>(.11716, .14677, -.041);
         default:
             return ChVector<>(0, 0, 0);
     }
 }
 
 const ChVector<> RCCar_DoubleWishboneRear::getLocation(PointId which) {
+    const double front_to_rear = -(.321 + .14424);
     switch (which) {
         case SPINDLE:
-            return in2m * ChVector<>(0, 6.3, 0);//TODO
+            return ChVector<>(.1426 + front_to_rear, .16599, -.03725);
         case UPRIGHT:
-            return in2m * ChVector<>(0.0, 6.0, 0.0);//TODO
+            return ChVector<>(.1426 + front_to_rear, .162, -.03725);
         case UCA_F:
-            return in2m * ChVector<>(0.5, 1.0, 0.6);//TODO
+            return ChVector<>(.17134 + front_to_rear, .0235, 0);
         case UCA_B:
-            return in2m * ChVector<>(-0.5, 1.0, 0.6);//TODO
+            return ChVector<>(.12334 + front_to_rear, .0235, 0);
         case UCA_U:
-            return in2m * ChVector<>(0.0, 5.5, 0.6);//TODO
+            return ChVector<>(.14424 + front_to_rear, .15348, -.01169);
         case UCA_CM:
-            return in2m * ChVector<>(0.0, 3.1, -0.6);//TODO
+            return ChVector<>(.14284 + front_to_rear, .08306, -.00536);
         case LCA_F:
-            return in2m * ChVector<>(0.5, 1.0, -0.6);//TODO
+            return ChVector<>(.16547 + front_to_rear, .01998, -.039);
         case LCA_B:
-            return in2m * ChVector<>(-0.5, 1.0, -0.6);//TODO
+            return ChVector<>(.10948 + front_to_rear, .01998, -.039);
         case LCA_U:
-            return in2m * ChVector<>(0.0, 5.5, -0.6);//TODO
+            return ChVector<>(.14224 + front_to_rear, .15744, -.05599);
         case LCA_CM:
-            return in2m * ChVector<>(0.0, 3.1, -0.6);//TODO
+            return ChVector<>(.14318 + front_to_rear, .07774, -.04044);
         case SHOCK_C:
-            return in2m * ChVector<>(-0.5, 0.8, 3.0);//TODO
+            return ChVector<>(.1421 + front_to_rear, .03108, 0.07157);
         case SHOCK_A:
-            return in2m * ChVector<>(-0.5, 3.4, -0.6);//TODO
+            return ChVector<>(.15318 + front_to_rear, .098, -.043);
         case SPRING_C:
-            return in2m * ChVector<>(-0.5, 0.8, 3.0);//TODO
+            return ChVector<>(.1421 + front_to_rear, .03108, 0.07157);
         case SPRING_A:
-            return in2m * ChVector<>(-0.5, 3.4, -0.6);//TODO
+            return ChVector<>(.15318 + front_to_rear, .098, -.043);
         case TIEROD_C:
-            return in2m * ChVector<>(-1, 1.6, 0);//TODO
+            return ChVector<>(.1155 + front_to_rear, .033, -.027);
         case TIEROD_U:
-            return in2m * ChVector<>(-1, 5.5, 0);//TODO
+            return ChVector<>(.11716 + front_to_rear, .14677, -.041);
         default:
             return ChVector<>(0, 0, 0);
     }
+    // switch (which) {
+    //     case SPINDLE:
+    //         return ChVector<>(-.3586, .1656, -.0731);
+    //     case UPRIGHT:
+    //         return ChVector<>(-.3586, .1556, -.0731);
+    //     case UCA_F:
+    //         return ChVector<>(-0.343, .023, -.0278);
+    //     case UCA_B:
+    //         return ChVector<>(-0.391, .023, -.0278);
+    //     case UCA_U:
+    //         return ChVector<>(-.3522, .1591, -.0472); //x=-.321
+    //     case UCA_CM:
+    //         return ChVector<>(-.3567, .0817, -.0361);
+    //     case LCA_F:
+    //         return ChVector<>(-.3274, .0217, -.0668);
+    //     case LCA_B:
+    //         return ChVector<>(-.3785, .0217, -.0668);
+    //     case LCA_U:
+    //         return ChVector<>(-.3538, .1591, -.0916);
+    //     case LCA_CM:
+    //         return ChVector<>(-.3611, .0771, -.0739);
+    //     case SHOCK_C:
+    //         return ChVector<>(-.3752, .0311, .0448);
+    //     case SHOCK_A:
+    //         return ChVector<>(-.3752, .0858, -.069);
+    //     case SPRING_C:
+    //         return ChVector<>(-.3752, .0311, .0448);
+    //     case SPRING_A:
+    //         return ChVector<>(-.3752, .0858, -.069);
+    //     case TIEROD_C:
+    //         return ChVector<>(-.3924, .0217, -.0668);
+    //     case TIEROD_U:
+    //         return ChVector<>(-.3798, .1591, -.0916);
+    //     default:
+    //         return ChVector<>(0, 0, 0);
+    // }
 }
 
 }  // namespace rccar
