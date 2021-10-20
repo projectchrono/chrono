@@ -257,7 +257,8 @@ __global__ void interactionGranMat_TriangleSoup(ChSystemGpuMesh_impl::TriangleSo
     float3 sphere_force = {0.f, 0.f, 0.f};
     float3 sphere_AngAcc = {0.f, 0.f, 0.f};
     if (sphereIDLocal < spheresTouchingThisSD) {
-        bool sphere_inside_mesh = true;
+        bool sphere_inside_mesh = false;
+        bool first_volume_triangle = true;
         // loop over each triangle in the SD and compute the force this sphere (thread) exerts on it
         for (unsigned int triangleLocalID = 0; triangleLocalID < numSDTriangles; triangleLocalID++) {
             /// we have a valid sphere and a valid triganle; check if in contact
@@ -292,12 +293,14 @@ __global__ void interactionGranMat_TriangleSoup(ChSystemGpuMesh_impl::TriangleSo
                 double3 fromCenter_double = pt1 - meshCenter_double;
                 
                 fromCenter = make_float3(fromCenter_double.x, fromCenter_double.y, fromCenter_double.z);
-
-                sphere_inside_mesh = false;
             } else {
                 double3 sphCntr =
                     int64_t3_to_double3(convertPosLocalToGlobal(thisSD, sphere_pos_local[sphereIDLocal], gran_params));
 
+                if (first_volume_triangle) {
+                    sphere_inside_mesh = true;
+                    first_volume_triangle = false;
+                }
                 sphere_inside_mesh = sphere_inside_mesh && sphere_behind_face(
                         node1[triangleLocalID], node2[triangleLocalID], node3[triangleLocalID],
                         sphCntr, gran_params->sphereRadius_SU);

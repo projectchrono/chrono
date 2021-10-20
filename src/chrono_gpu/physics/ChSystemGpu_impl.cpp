@@ -262,6 +262,9 @@ void ChSystemGpu_impl::WriteFile(std::string ofile) const {
         if (GET_OUTPUT_SETTING(FIXITY)) {
             outstrstream << ",fixed";
         }
+        if (GET_OUTPUT_SETTING(MARKED)) {
+            outstrstream << ",marked";
+        }
 
         if (gran_params->friction_mode != CHGPU_FRICTION_MODE::FRICTIONLESS && GET_OUTPUT_SETTING(ANG_VEL_COMPONENTS)) {
             outstrstream << ",wx,wy,wz";
@@ -307,6 +310,11 @@ void ChSystemGpu_impl::WriteFile(std::string ofile) const {
             if (GET_OUTPUT_SETTING(FIXITY)) {
                 int fixed = (int)sphere_fixed[n];
                 outstrstream << "," << fixed;
+            }
+
+            if (GET_OUTPUT_SETTING(MARKED)) {
+                int marked = (int)sphere_marked[n];
+                outstrstream << "," << marked;
             }
 
             if (gran_params->friction_mode != CHGPU_FRICTION_MODE::FRICTIONLESS &&
@@ -414,6 +422,17 @@ void ChSystemGpu_impl::WriteFile(std::string ofile) const {
             ds_fixed.write(fixed, H5::PredType::NATIVE_UCHAR);
 
             delete[] fixed;
+        }
+
+        if (GET_OUTPUT_SETTING(MARKED)) {
+            unsigned char* marked = new unsigned char[nSpheres];
+            for (size_t n = 0; n < nSpheres; n++) {
+                marked[n] = (unsigned char)sphere_marked[n];
+            }
+            H5::DataSet ds_marked = file.createDataSet("marked", H5::PredType::NATIVE_UCHAR, dataspace);
+            ds_marked.write(marked, H5::PredType::NATIVE_UCHAR);
+
+            delete[] marked;
         }
 
         if (gran_params->friction_mode != CHGPU_FRICTION_MODE::FRICTIONLESS && GET_OUTPUT_SETTING(ANG_VEL_COMPONENTS)) {
