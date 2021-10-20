@@ -176,6 +176,12 @@ class CH_GPU_API ChSystemGpu {
     /// Return the maximum Z position over all particles.
     double GetMaxParticleZ() const;
 
+    /// Get map of the max z positions of the spheres
+    std::vector<float3> get_max_z_map(unsigned int x_size, unsigned int y_size) const;
+
+    /// Reset all particles to be ground group
+    void reset_ground_group();
+
     /// Return particle position.
     ChVector<float> GetParticlePosition(int nSphere) const;
 
@@ -205,8 +211,12 @@ class CH_GPU_API ChSystemGpu {
     /// Requires Initialize() to have been called.
     virtual double AdvanceSimulation(float duration);
 
-    /// Write particle positions according to the system output mode.
-    void WriteFile(std::string ofile) const;
+    /// Writes out particle positions according to the system output mode.
+    void WriteFile(
+        std::string ofile,
+        const Vector& global_translation = {0.0, 0.0, 0.0},
+        const Quaternion& global_rotation = {1.0, 0.0, 0.0, 0.0}
+    ) const;
 
     /// Write contact info file.
     void WriteContactInfoFile(std::string ofile) const;
@@ -296,8 +306,16 @@ class CH_GPU_API ChSystemGpuMesh : public ChSystemGpu {
     /// Collect contact forces exerted on the specified meshe by the granular system.
     void CollectMeshContactForces(int mesh, ChVector<>& force, ChVector<>& torque);
 
-    /// Write visualization files for triangle meshes with current positions.
-    void WriteMeshes(std::string outfilename) const;
+    /// Write visualization files for triangle meshes with current positions
+    void WriteMeshes(std::string outfilename,
+                     const Vector& global_translation = {0.0, 0.0, 0.0},
+                     const Quaternion& global_rotation = {1.0, 0.0, 0.0, 0.0}) const;
+
+    /// Enable contact with individual families
+    void disable_collision_with_family(unsigned int fam);
+
+    /// Calculate volume of granular material confied by one family of mesh soup
+    double volume_inside_mesh();
 
   private:
     CHGPU_MESH_VERBOSITY mesh_verbosity;  ///< mesh operations verbosity level
