@@ -114,7 +114,11 @@ void ChSystemGpuMesh_impl::ApplyFrameTransform(float3& p, float* pos, float* rot
     p = result;
 }
 
-void ChSystemGpuMesh_impl::WriteMeshes(std::string filename) const {
+void ChSystemGpuMesh_impl::WriteMeshes(
+    std::string filename,
+    const Vector& global_translation,
+    const Quaternion& global_rotation
+) const {
     if (file_write_mode == CHGPU_OUTPUT_MODE::NONE) {
         return;
     }
@@ -141,9 +145,17 @@ void ChSystemGpuMesh_impl::WriteMeshes(std::string filename) const {
         ApplyFrameTransform(p2, tri_params->fam_frame_broad[fam].pos, tri_params->fam_frame_broad[fam].rot_mat);
         ApplyFrameTransform(p3, tri_params->fam_frame_broad[fam].pos, tri_params->fam_frame_broad[fam].rot_mat);
 
-        ostream << p1.x << " " << p1.y << " " << p1.z << "\n";
-        ostream << p2.x << " " << p2.y << " " << p2.z << "\n";
-        ostream << p3.x << " " << p3.y << " " << p3.z << "\n";
+        Vector point1 = {p1.x, p1.y, p1.z};
+        Vector point2 = {p2.x, p2.y, p2.z};
+        Vector point3 = {p3.x, p3.y, p3.z};
+
+        point1 = global_translation + global_rotation.Rotate(point1);
+        point2 = global_translation + global_rotation.Rotate(point2);
+        point3 = global_translation + global_rotation.Rotate(point3);
+
+        ostream << point1.x() << " " << point1.y() << " " << point1.z() << "\n";
+        ostream << point2.x() << " " << point2.y() << " " << point2.z() << "\n";
+        ostream << point3.x() << " " << point3.y() << " " << point3.z() << "\n";
     }
 
     ostream << "\n\n";

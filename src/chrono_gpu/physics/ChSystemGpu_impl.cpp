@@ -192,7 +192,11 @@ void ChSystemGpu_impl::packSphereDataPointers() {
     }
 }
 
-void ChSystemGpu_impl::WriteFile(std::string ofile) const {
+void ChSystemGpu_impl::WriteFile(
+    std::string ofile,
+    const Vector& global_translation,
+    const Quaternion& global_rotation
+) const {
     // The file writes are a pretty big slowdown in CSV mode
     if (file_write_mode == CHGPU_OUTPUT_MODE::BINARY) {
         // Write the data as binary to a file, requires later postprocessing that can be done in parallel, this is a
@@ -290,14 +294,20 @@ void ChSystemGpu_impl::WriteFile(std::string ofile) const {
             y_UU += (float)(((int64_t)ownerSD_trip.y * gran_params->SD_size_Y_SU) * LENGTH_SU2UU);
             z_UU += (float)(((int64_t)ownerSD_trip.z * gran_params->SD_size_Z_SU) * LENGTH_SU2UU);
 
-            outstrstream << x_UU << "," << y_UU << "," << z_UU;
+            Vector point = {x_UU, y_UU, z_UU};
+            point = global_translation + global_rotation.Rotate(point);
+
+            outstrstream << point.x() << "," << point.y() << "," << point.z();
 
             if (GET_OUTPUT_SETTING(VEL_COMPONENTS)) {
                 float vx_UU = (float)(pos_X_dt[n] * LENGTH_SU2UU / TIME_SU2UU);
                 float vy_UU = (float)(pos_Y_dt[n] * LENGTH_SU2UU / TIME_SU2UU);
                 float vz_UU = (float)(pos_Z_dt[n] * LENGTH_SU2UU / TIME_SU2UU);
 
-                outstrstream << "," << vx_UU << "," << vy_UU << "," << vz_UU;
+                Vector velocity = {vx_UU, vy_UU, vz_UU};
+                velocity = global_rotation.Rotate(velocity);
+
+                outstrstream << "," << velocity.x() << "," << velocity.y() << "," << velocity.z();
             }
 
             if (GET_OUTPUT_SETTING(ABSV)) {
@@ -319,8 +329,15 @@ void ChSystemGpu_impl::WriteFile(std::string ofile) const {
 
             if (gran_params->friction_mode != CHGPU_FRICTION_MODE::FRICTIONLESS &&
                 GET_OUTPUT_SETTING(ANG_VEL_COMPONENTS)) {
-                outstrstream << "," << sphere_Omega_X.at(n) / TIME_SU2UU << "," << sphere_Omega_Y.at(n) / TIME_SU2UU
-                             << "," << sphere_Omega_Z.at(n) / TIME_SU2UU;
+                float avx_UU = sphere_Omega_X.at(n) / TIME_SU2UU;
+                float avy_UU = sphere_Omega_Y.at(n) / TIME_SU2UU;
+                float avz_UU = sphere_Omega_Z.at(n) / TIME_SU2UU;
+
+                Vector angular_velocity = {avx_UU, avy_UU, avz_UU};
+                angular_velocity = global_rotation.Rotate(angular_velocity);
+
+                outstrstream << "," << angular_velocity.x() << "," << angular_velocity.y()
+                             << "," << angular_velocity.z();
             }
 
             if (GET_OUTPUT_SETTING(FORCE_COMPONENTS)) {

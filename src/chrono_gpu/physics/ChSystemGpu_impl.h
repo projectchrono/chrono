@@ -20,7 +20,8 @@
 #include <vector>
 #include <algorithm>
 #include <cmath>
-
+#include "chrono/core/ChVector.h"
+#include "chrono/core/ChQuaternion.h"
 #include "chrono_gpu/ChApiGpu.h"
 #include "chrono_gpu/ChGpuDefines.h"
 #include "chrono_gpu/physics/ChGpuBoundaryConditions.h"
@@ -409,7 +410,11 @@ class ChSystemGpu_impl {
     void updateBCPositions();
 
     /// Writes out particle positions according to the system output mode.
-    void WriteFile(std::string ofile) const;
+    void WriteFile(
+        std::string ofile,
+        const Vector& global_translation = {0.0, 0.0, 0.0},
+        const Quaternion& global_rotation = {1.0, 0.0, 0.0, 0.0}
+    ) const;
 
     /// Write contact info file
     void WriteContactInfoFile(std::string ofile) const;

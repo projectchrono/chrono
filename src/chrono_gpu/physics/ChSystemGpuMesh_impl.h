@@ -16,6 +16,9 @@
 
 #include "chrono_gpu/physics/ChSystemGpu_impl.h"
 
+#include "chrono/core/ChVector.h"
+#include "chrono/core/ChQuaternion.h"
+
 namespace chrono {
 namespace gpu {
 // Underlying implementation of the Chrono::Gpu mesh system.
@@ -124,7 +127,9 @@ class ChSystemGpuMesh_impl : public ChSystemGpu_impl {
                          const double* ang_vel);
 
     /// Write visualization files for triangle meshes with current positions
-    void WriteMeshes(std::string outfilename) const;
+    void WriteMeshes(std::string outfilename,
+                     const Vector& global_translation = {0.0, 0.0, 0.0},
+                     const Quaternion& global_rotation = {1.0, 0.0, 0.0, 0.0}) const;
 
     /// Initialize trimeshes before starting simulation (typically called by initialize).
     void initializeTriangles();
