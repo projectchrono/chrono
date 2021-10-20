@@ -85,6 +85,12 @@ __host__ std::vector<float3> ChSystemGpu_impl::get_max_z_map(unsigned int x_size
     return max_z_map;
 }
 
+__host__ void ChSystemGpu_impl::reset_ground_group() {
+    for (size_t index = 0; index < nSpheres; index++) {
+        sphere_data->sphere_group[index] = SPHERE_GROUP::GROUND;
+    }
+}
+
 // Reset broadphase data structures
 void ChSystemGpu_impl::resetBroadphaseInformation() {
     // Set all the offsets to zero
@@ -525,6 +531,11 @@ __host__ double ChSystemGpu_impl::AdvanceSimulation(float duration) {
                    gran_params->friction_mode == CHGPU_FRICTION_MODE::MULTI_STEP) {
             // figure out who is contacting
             determineContactPairs<<<nSDs, MAX_COUNT_OF_SPHERES_PER_SD>>>(sphere_data, gran_params);
+            gpuErrchk(cudaPeekAtLastError());
+            gpuErrchk(cudaDeviceSynchronize());
+
+            update_ground_group<<<nBlocks, CUDA_THREADS_PER_BLOCK>>>(
+                    sphere_data, gran_params, nSpheres);
             gpuErrchk(cudaPeekAtLastError());
             gpuErrchk(cudaDeviceSynchronize());
 

@@ -343,6 +343,9 @@ class ChSystemGpu_impl {
     /// Get map of the max z positions of the spheres
     std::vector<float3> get_max_z_map(unsigned int x_size, unsigned int y_size) const;
 
+    /// Reset ground group
+    void reset_ground_group();
+
     /// Advance simulation by duration in user units, return actual duration elapsed
     /// Requires initialize() to have been called
     virtual double AdvanceSimulation(float duration);
