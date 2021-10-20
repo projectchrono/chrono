@@ -39,6 +39,51 @@ __host__ double ChSystemGpu_impl::GetMaxParticleZ() const {
     return max_z_UU;
 }
 
+__host__ std::vector<float3> ChSystemGpu_impl::get_max_z_map(unsigned int x_size,
+                                                             unsigned int y_size) const {
+    std::vector<float3> max_z_map(x_size * y_size,
+                                  make_float3(0.0, 0.0, 0.0));
+    for (int x_index = 0; x_index < x_size; x_index++) {
+        for (int y_index = 0; y_index < y_size; y_index++) {
+            float x = (box_size_X / x_size) * (x_index + 0.5) - box_size_X / 2;
+            float y = (box_size_Y / y_size) * (y_index + 0.5) - box_size_Y / 2;
+            float default_z = -box_size_Z / 2;
+
+            max_z_map[y_index * x_size + x_index] = make_float3(x, y, default_z);
+        }
+    }
+
+    size_t nSpheres = sphere_local_pos_Z.size();
+    for (size_t index = 0; index < nSpheres; index++) {
+        if (!sphere_data->sphere_marked[index]) {
+            unsigned int ownerSD = sphere_data->sphere_owner_SDs[index];
+            unsigned int spheresTouchingThisSD = sphere_data->SD_NumSpheresTouching[ownerSD];
+            if (spheresTouchingThisSD < 5) {
+                // Ignore oulier small domains
+                continue;
+            }
+            int3 sphere_pos_local = make_int3(sphere_data->sphere_local_pos_X[index],
+                                              sphere_data->sphere_local_pos_Y[index],
+                                              sphere_data->sphere_local_pos_Z[index]);
+            int64_t3 global_pos = convertPosLocalToGlobal(ownerSD,
+                                                          sphere_pos_local,
+                                                          gran_params);
+
+            int x_bin = (gran_params->max_x_pos_unsigned / 2 + global_pos.x) /
+                        (gran_params->max_x_pos_unsigned / x_size);
+            int y_bin = (gran_params->max_y_pos_unsigned / 2 + global_pos.y) /
+                        (gran_params->max_y_pos_unsigned / y_size);
+            float z = global_pos.z * LENGTH_SU2UU;
+
+            if (max_z_map[y_bin * x_size + x_bin].z < z) {
+                max_z_map[y_bin * x_size + x_bin].z = z;
+            }
+        }
+    }
+
+    return max_z_map;
+}
+
 // Reset broadphase data structures
 void ChSystemGpu_impl::resetBroadphaseInformation() {
     // Set all the offsets to zero

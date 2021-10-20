@@ -339,6 +339,9 @@ class ChSystemGpu_impl {
                               const std::vector<float3>& vels = std::vector<float3>(),
                               const std::vector<float3>& ang_vels = std::vector<float3>());
 
+    /// Get map of the max z positions of the spheres
+    std::vector<float3> get_max_z_map(unsigned int x_size, unsigned int y_size) const;
+
     /// Advance simulation by duration in user units, return actual duration elapsed
     /// Requires initialize() to have been called
     virtual double AdvanceSimulation(float duration);
