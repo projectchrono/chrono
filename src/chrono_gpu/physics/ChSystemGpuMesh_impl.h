@@ -138,6 +138,9 @@ class ChSystemGpuMesh_impl : public ChSystemGpu_impl {
     /// Clean up data structures associated with triangle mesh
     void cleanupTriMesh();
 
+    /// Calculate volume of granular material confied by one family of mesh soup
+    double volume_inside_mesh();
+
     /// Broadphase CD for triangles
     void runTriangleBroadphase();
 

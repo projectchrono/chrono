@@ -161,4 +161,32 @@ __device__ bool face_sphere_cd(const double3& A,           ///< First vertex of 
     }
 }
 
+/**
+/brief SPHERE BEHIND TRIANGLE DETECTION
+
+The triangular face is defined by points A, B, C. The sequence is important as it defines the positive face via a
+right-hand rule.
+The sphere is centered at sphere_pos and has radius.
+The coordinates of the face and sphere are assumed to be provided in the same reference frame.
+
+A return value of "true" means sphere is behind triangle and therefore can be inside mesh.
+*/
+
+__device__ bool sphere_behind_face(const double3& A,           //!< First vertex of the triangle
+                                   const double3& B,           //!< Second vertex of the triangle
+                                   const double3& C,           //!< Third vertex of the triangle
+                                   const double3& sphere_pos,  //!< Location of the center of the sphere
+                                   const int radius) {         //!< Sphere radius
+    // Calculate face normal using RHR
+    double3 face_n = face_normal(A, B, C);
+
+    // Calculate signed height of sphere center above face plane
+    float h = Dot(sphere_pos - A, face_n);
+
+    if (h < 0) {
+        return true;
+    } else {
+        return false;
+    }
+}
 /// @} gpu_cuda
