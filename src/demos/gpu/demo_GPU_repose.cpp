@@ -9,9 +9,9 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Authors: Nic Olsen
+// Authors: Ruochun Zhang
 // =============================================================================
-// A column of granular material forms a mound
+// A column of granular material forms a mound after flowing through a funnel
 // =============================================================================
 
 #include <iostream>
@@ -48,28 +48,47 @@ int main(int argc, char* argv[]) {
     filesystem::create_directory(filesystem::path(out_dir));
 
     // Setup simulation
-    ChSystemGpu gpu_sys(params.sphere_radius, params.sphere_density,
-                        ChVector<float>(params.box_X, params.box_Y, params.box_Z));
+    ChSystemGpuMesh gpu_sys(params.sphere_radius, params.sphere_density,
+                            ChVector<float>(params.box_X, params.box_Y, params.box_Z));
+
+    // Insert the funnel
+    float funnel_bottom = 0.f;
+    gpu_sys.AddMesh(GetChronoDataFile("models/funnel.obj"), 
+                    ChVector<float>(0, 0, funnel_bottom),  
+                    ChMatrix33<float>(0.15f), 1e10);
+    gpu_sys.EnableMeshCollision(true);
 
     gpu_sys.SetKn_SPH2SPH(params.normalStiffS2S);
     gpu_sys.SetKn_SPH2WALL(params.normalStiffS2W);
+    gpu_sys.SetKn_SPH2MESH(params.normalStiffS2M);
     gpu_sys.SetGn_SPH2SPH(params.normalDampS2S);
     gpu_sys.SetGn_SPH2WALL(params.normalDampS2W);
+    gpu_sys.SetGn_SPH2MESH(params.normalDampS2M);
 
     // gpu_sys.SetFrictionMode(CHGPU_FRICTION_MODE::FRICTIONLESS);
     gpu_sys.SetFrictionMode(CHGPU_FRICTION_MODE::MULTI_STEP);
     gpu_sys.SetKt_SPH2SPH(params.tangentStiffS2S);
     gpu_sys.SetKt_SPH2WALL(params.tangentStiffS2W);
+    gpu_sys.SetKt_SPH2MESH(params.tangentStiffS2M);
     gpu_sys.SetGt_SPH2SPH(params.tangentDampS2S);
     gpu_sys.SetGt_SPH2WALL(params.tangentDampS2W);
+    gpu_sys.SetGt_SPH2MESH(params.tangentDampS2M);
+
     gpu_sys.SetStaticFrictionCoeff_SPH2SPH(params.static_friction_coeffS2S);
     gpu_sys.SetStaticFrictionCoeff_SPH2WALL(params.static_friction_coeffS2W);
+    gpu_sys.SetStaticFrictionCoeff_SPH2MESH(params.static_friction_coeffS2M);
 
-    // gpu_sys.SetRollingMode(CHGPU_ROLLING_MODE::NO_RESISTANCE);
     gpu_sys.SetRollingMode(CHGPU_ROLLING_MODE::SCHWARTZ);
+
+    // In this test, the rolling friction affects the final repose angle
+    // by a lot. Test different values, such as 1, to see how it affects. 
     gpu_sys.SetRollingCoeff_SPH2SPH(params.rolling_friction_coeffS2S);
     gpu_sys.SetRollingCoeff_SPH2WALL(params.rolling_friction_coeffS2W);
+    gpu_sys.SetRollingCoeff_SPH2MESH(params.rolling_friction_coeffS2M);
 
+    // In this test, the cohesion is also influential.
+    // You can test different scenarios with much larger cohesion ratio (around 50)
+    // to greatly increase the repose angle.
     gpu_sys.SetCohesionRatio(params.cohesion_ratio);
     gpu_sys.SetAdhesionRatio_SPH2WALL(params.adhesion_ratio_s2w);
     gpu_sys.SetGravitationalAcceleration(ChVector<float>(params.grav_X, params.grav_Y, params.grav_Z));
@@ -80,27 +99,31 @@ int main(int argc, char* argv[]) {
     // padding in sampler
     float fill_epsilon = 2.02f;
     // padding at top of fill
-    ////float drop_height = 0.f;
     float spacing = fill_epsilon * params.sphere_radius;
     chrono::utils::PDSampler<float> sampler(spacing);
-
-    // Fixed points on the bottom for roughness
-    float bottom_z = -params.box_Z / 2.f + params.sphere_radius;
-    ChVector<> bottom_center(0, 0, bottom_z);
-    std::vector<ChVector<float>> roughness_points = sampler.SampleBox(
-        bottom_center,
-        ChVector<float>(params.box_X / 2.f - params.sphere_radius, params.box_Y / 2.f - params.sphere_radius, 0.f));
+    chrono::utils::HCPSampler<float> HCPsampler(spacing);
 
     // Create column of material
     std::vector<ChVector<float>> material_points;
 
-    float fill_bottom = bottom_z + spacing;
     float fill_width = 5.f;
     float fill_height = 2.f * fill_width;
-    ////float fill_top = fill_bottom + fill_height;
+    float fill_bottom = funnel_bottom + fill_width + spacing;
 
-    ChVector<float> center(0.f, 0.f, fill_bottom + fill_height / 2.f);
-    material_points = sampler.SampleCylinderZ(center, fill_width, fill_height / 2.f);
+    // add granular material particles layer by layer
+    ChVector<float> center(0, 0, fill_bottom + params.sphere_radius);
+    // fill up each layer
+    while (center.z() + params.sphere_radius < fill_bottom + fill_height) {
+        auto points = sampler.SampleCylinderZ(center, fill_width, 0);
+        material_points.insert(material_points.end(), points.begin(), points.end());
+        center.z() += 2.02f * params.sphere_radius;
+    }
+
+    // Fixed (ground) points on the bottom for roughness
+    ChVector<> bottom_center(0, 0, funnel_bottom - 10.f);
+    std::vector<ChVector<float>> roughness_points = HCPsampler.SampleBox(
+        bottom_center,
+        ChVector<float>(params.box_X / 2.f - params.sphere_radius, params.box_Y / 2.f - params.sphere_radius, 0.f));
 
     std::vector<ChVector<float>> body_points;
     std::vector<bool> body_points_fixed;
@@ -113,17 +136,15 @@ int main(int argc, char* argv[]) {
     gpu_sys.SetParticles(body_points);
     gpu_sys.SetParticleFixed(body_points_fixed);
 
-    std::cout << "Added " << roughness_points.size() << " fixed points" << std::endl;
-    std::cout << "Added " << material_points.size() << " material points" << std::endl;
-
-    std::cout << "Actually added " << body_points.size() << std::endl;
+    std::cout << "Added " << material_points.size() << " granular material points" << std::endl;
+    std::cout << "Added " << roughness_points.size() << " fixed (ground) points" << std::endl;
+    std::cout << "In total, added " << body_points.size() << std::endl;
 
     gpu_sys.SetTimeIntegrator(CHGPU_TIME_INTEGRATOR::EXTENDED_TAYLOR);
     gpu_sys.SetFixedStepSize(params.step_size);
 
     gpu_sys.SetVerbosity(params.verbose);
-    std::cout << "verbose: " << static_cast<int>(params.verbose) << std::endl;
-    gpu_sys.SetRecordingContactInfo(true);
+    // std::cout << "verbose: " << static_cast<int>(params.verbose) << std::endl;
 
     gpu_sys.Initialize();
 
@@ -135,7 +156,7 @@ int main(int argc, char* argv[]) {
         gpu_vis.Initialize();
     }
 
-    int fps = 60;
+    int fps = 30;
     float frame_step = 1.f / fps;
     float curr_time = 0.f;
     int currframe = 0;
@@ -146,9 +167,9 @@ int main(int argc, char* argv[]) {
     sprintf(filename, "%s/step%06d.csv", out_dir.c_str(), currframe);
     gpu_sys.WriteParticleFile(std::string(filename));
 
-    char contactFilename[100];
-    sprintf(contactFilename, "%s/contact%06d.csv", out_dir.c_str(), currframe);
-    gpu_sys.WriteContactInfoFile(std::string(contactFilename));
+    char mesh_filename[100];
+    sprintf(mesh_filename, "%s/step%06d_mesh", out_dir.c_str(), currframe);
+    gpu_sys.WriteMeshes(std::string(mesh_filename));
 
     currframe++;
 
@@ -162,9 +183,11 @@ int main(int argc, char* argv[]) {
         printf("Output frame %u of %u\n", currframe, total_frames);
         sprintf(filename, "%s/step%06d.csv", out_dir.c_str(), currframe);
         gpu_sys.WriteParticleFile(std::string(filename));
-
-        sprintf(contactFilename, "%s/contact%06d.csv", out_dir.c_str(), currframe);
-        gpu_sys.WriteContactInfoFile(std::string(contactFilename));
+        sprintf(mesh_filename, "%s/step%06d_mesh", out_dir.c_str(), currframe);
+        gpu_sys.WriteMeshes(std::string(mesh_filename));
+        
+        float KE = gpu_sys.GetParticlesKineticEnergy();
+        std::cout << "Total kinetic energy: " << KE << std::endl;
 
         curr_time += frame_step;
         currframe++;
