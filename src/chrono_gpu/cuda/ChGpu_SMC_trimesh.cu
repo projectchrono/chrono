@@ -461,10 +461,10 @@ __host__ double ChSystemGpuMesh_impl::AdvanceSimulation(float duration) {
             gpuErrchk(cudaPeekAtLastError());
             gpuErrchk(cudaDeviceSynchronize());
 
-            update_ground_group<<<nBlocks, CUDA_THREADS_PER_BLOCK>>>(
-                    sphere_data, gran_params, nSpheres);
-            gpuErrchk(cudaPeekAtLastError());
-            gpuErrchk(cudaDeviceSynchronize());
+            // update_ground_group<<<nBlocks, CUDA_THREADS_PER_BLOCK>>>(
+            //         sphere_data, gran_params, nSpheres);
+            // gpuErrchk(cudaPeekAtLastError());
+            // gpuErrchk(cudaDeviceSynchronize());
 
             computeSphereContactForces<<<nBlocks, CUDA_THREADS_PER_BLOCK>>>(
                 sphere_data, gran_params, BC_type_list.data(), BC_params_list_SU.data(),

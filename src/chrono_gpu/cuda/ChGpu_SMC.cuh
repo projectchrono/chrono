@@ -470,7 +470,10 @@ inline __device__ void applyExternalForces(unsigned int currSphereID,
 }
 
 static __global__ void determineContactPairs(ChSystemGpu_impl::GranSphereDataPtr sphere_data,
-                                             ChSystemGpu_impl::GranParamsPtr gran_params) {
+                                             ChSystemGpu_impl::GranParamsPtr gran_params,
+					     unsigned int * vertex_adjacency_number,
+					     unsigned int * vertex_adjacency_start) {
+	
     // Cache positions of spheres local to this SD
     __shared__ int3 sphere_pos_local[MAX_COUNT_OF_SPHERES_PER_SD];
     __shared__ unsigned int sphIDs[MAX_COUNT_OF_SPHERES_PER_SD];
@@ -539,6 +542,19 @@ static __global__ void determineContactPairs(ChSystemGpu_impl::GranSphereDataPtr
                 ncontacts++;                    // Increment the contact counter
             }
         }
+       
+       	vertex_adjacency_number[mySphereID] = ncontacts;
+	vertex_adjacency_start[mySphereID] += ncontacts;
+	/// perform an inclusive sum. start index of subsequent vertices depend on all previous indices.
+        void * d_temp_storage = NULL;
+       	size_t temp_storage_bytesize = 0;
+	cub::DeviceScan::InclusiveSum(d_temp_storage, temp_storage_bytesize, vertex_adjacency_start + i,
+		       	vertex_adjacency_start + i, nSpheres - i);
+	gpuErrchk(cudaMalloc(&d_temp_storage, temp_storage_bytesize));
+	cub::DeviceScan::InclusiveSum(d_temp_storage, temp_storage_bytesize, vertex_adjacency_start + i,
+		       	vertex_adjacency_start + i, nSpheres - i);
+	gpuErrchk(cudaFree(d_temp_storage));
+
         // for each contact we just found, mark it in the global map
         for (unsigned char contact_id = 0; contact_id < ncontacts; contact_id++) {
             // find and mark a spot in the contact map
@@ -547,65 +563,241 @@ static __global__ void determineContactPairs(ChSystemGpu_impl::GranSphereDataPtr
     }
 }
 
-/// Update sphere group information, in particular ground group
-static __global__ void update_ground_group(ChSystemGpu_impl::GranSphereDataPtr sphere_data,
+/// counts number of adjacent spheres by connectivity. Must be called before adjacency_list
+static __global__ void clustering_proximity_adjacency_numbers(ChSystemGpu_impl::GranSphereDataPtr sphere_data,
                                            ChSystemGpu_impl::GranParamsPtr gran_params,
-                                           unsigned int nSpheres) {
+                                           unsigned int nSpheres, float radius, 
+					   unsigned int * vertex_adjacency_number
+					   unsigned int * vertex_adjacency_start) {
+
     // my sphere ID, we're using a 1D thread->sphere map
     unsigned int mySphereID = threadIdx.x + blockIdx.x * blockDim.x;
+    unsigned int otherSphereID;
 
-    // don't overrun the array
+    unsigned int thisSD = blockIdx.x; // sphere_pos_local is relative to this SD
+    unsigned int mySD = sphere_data->sphere_owner_SDs[mySphereID];
+    unsigned int otherSD;
+
     if (mySphereID < nSpheres) {
-        bool mark_as_ground = false;
+        vertex_adjacency_number[mySphereID] = ;
+		vertex_adjacency_start[i+1]++;
+		/// perform an inclusive sum. start index of subsequent vertices depend on all previous indices.
+                void * d_temp_storage = NULL;
+		size_t temp_storage_bytesize = 0;
+		cub::DeviceScan::InclusiveSum(d_temp_storage, temp_storage_bytesize, vertex_adjacency_start + i, vertex_adjacency_start + i, nSpheres - i);
+		cudaMalloc(&d_temp_storage, temp_storage_bytesize);
+		cub::DeviceScan::InclusiveSum(d_temp_storage, temp_storage_bytesize, vertex_adjacency_start + i, vertex_adjacency_start + i, nSpheres - i);
+	    }
+	}
+    }
+}
 
+/// counts number of adjacent spheres by proximity. Must be called before adjacency_list
+static __global__ void clustering_proximity_adjacency_numbers(ChSystemGpu_impl::GranSphereDataPtr sphere_data,
+                                           ChSystemGpu_impl::GranParamsPtr gran_params,
+                                           unsigned int nSpheres, float radius, 
+					   unsigned int * vertex_adjacency_number
+					   unsigned int * vertex_adjacency_start) {
 
-        //unsigned int myOwnerSD = sphere_data->sphere_owner_SDs[mySphereID];
-        //int3 ownerSD_triplet = SDIDTriplet(myOwnerSD, gran_params);
+    // my sphere ID, we're using a 1D thread->sphere map
+    unsigned int mySphereID = threadIdx.x + blockIdx.x * blockDim.x;
+    unsigned int otherSphereID;
 
-        //// check if we are at the ground small domain
-        //if (ownerSD_triplet.z == 0) { // TODO this is not a good condition
-        //    mark_as_ground = true;
-        //}
+    unsigned int thisSD = blockIdx.x; // sphere_pos_local is relative to this SD
+    unsigned int mySD = sphere_data->sphere_owner_SDs[mySphereID];
+    unsigned int otherSD;
 
-        // check if there are ground spheres that contact me
-        if (!mark_as_ground) {
-            size_t body_A_offset = MAX_SPHERES_TOUCHED_BY_SPHERE * mySphereID;
+    int3 mySphere_pos_local, otherSphere_pos_local;
+    double3 mySphere_pos_global, otherSphere_pos_local, distance;
 
-            unsigned char ground_contacts = 0;
-            for (unsigned char contact_id = 0; contact_id < MAX_SPHERES_TOUCHED_BY_SPHERE; contact_id++) {
-                bool active_contact = sphere_data->contact_active_map[body_A_offset + contact_id];
+    mySphere_pos_local = make_int3(sphere_data->sphere_local_pos_X[mySphereID], 
+		    sphere_data->sphere_local_pos_Y[mySphereID], sphere_data->sphere_local_pos_Z[mySphereID]);
+    mySphere_pos_global = int64_t3_to_double3(convertPosLocalToGlobal(thisSD, mySphere_pos_local, gran_params));   
 
-                if (active_contact) {
-                    unsigned int theirSphereID = sphere_data->contact_partners_map[body_A_offset + contact_id];
+    if (mySphereID < nSpheres) {
+	/// find all spheres inside the radius around mySphere
+    	for (size_t i = 0; (i < nSpheres); i++) {
+            otherSphere_pos_local = make_int3(sphere_data->sphere_local_pos_X[i], 
+		    sphere_data->sphere_local_pos_Y[i], sphere_data->sphere_local_pos_Z[i]);
+            otherSphere_pos_global = int64_t3_to_double3(convertPosLocalToGlobal(thisSD, otherSphere_pos_local, gran_params));   
+	    distance = mySphere_pos_global - otherSphere_pos_global;
+            if ((i != mySphereID) && (Dot(distance, distance) < (radius*radius))) {
+                vertex_adjacency_number[i]++;
+                vertex_adjacency_number[mySphereID]++;
+		vertex_adjacency_start[i+1]++;
+		/// perform an inclusive sum. start index of subsequent vertices depend on all previous indices.
+                void * d_temp_storage = NULL;
+		size_t temp_storage_bytesize = 0;
+		cub::DeviceScan::InclusiveSum(d_temp_storage, temp_storage_bytesize, vertex_adjacency_start + i, vertex_adjacency_start + i, nSpheres - i);
+		cudaMalloc(&d_temp_storage, temp_storage_bytesize);
+		cub::DeviceScan::InclusiveSum(d_temp_storage, temp_storage_bytesize, vertex_adjacency_start + i, vertex_adjacency_start + i, nSpheres - i);
+	    }
+	}
+    }
+}
 
-                    if (theirSphereID >= nSpheres) {
-                        ABORTABORTABORT("Invalid other sphere id found for sphere %u at slot %u, other is %u. Maximum is %u\n",
-                                        mySphereID,
-                                        contact_id,
-                                        theirSphereID,
-                                        nSpheres);
-                    }
+/// computes adjacency_list from proximity using known adjacency numbers 
+static __global__ void clustering_proximity_adjacency_list(ChSystemGpu_impl::GranSphereDataPtr sphere_data,
+                                           ChSystemGpu_impl::GranParamsPtr gran_params,
+                                           unsigned int nSpheres, float radius,
+					   unsigned int * vertex_adjacency_number
+					   unsigned int * vertex_adjacency_start
+					   unsigned int * adjacency_list) {
+    // my sphere ID, we're using a 1D thread->sphere map
+    unsigned int mySphereID = threadIdx.x + blockIdx.x * blockDim.x;
+    unsigned int otherSphereID;
 
-                    if (sphere_data->sphere_group[theirSphereID] == SPHERE_GROUP::GROUND) {
-                        ground_contacts += 1;
-                    }
-                }
-            }
+    unsigned int thisSD = blockIdx.x; // sphere_pos_local is relative to this SD
+    unsigned int mySD = sphere_data->sphere_owner_SDs[mySphereID];
+    unsigned int otherSD;
 
-        // // TO DO better criteria for airborne.
-        // // mark depending on the number of ground contacts
-        //    if (ground_contacts > 2) {
-        //        mark_as_ground = true;
-        //     }
-        }
+    unsigned int vertex_start = vertex_adjacency_start[mySphereID];
+    unsigned int adjacency_num = 0;
 
-        // mark or unmark as ground
-        if (mark_as_ground) {
-            sphere_data->sphere_group[mySphereID] = SPHERE_GROUP::GROUND;
-        //} else {
-        //    sphere_data->sphere_group[mySphereID] = SPHERE_GROUP::AIRBORNE;
+    int3 mySphere_pos_local, otherSphere_pos_local;
+    double3 mySphere_pos_global, otherSphere_pos_local;
+
+    mySphere_pos_local = make_int3(sphere_data->sphere_local_pos_X[mySphereID], 
+		    sphere_data->sphere_local_pos_Y[mySphereID], sphere_data->sphere_local_pos_Z[mySphereID]);
+    mySphere_pos_global = int64_t3_to_double3(convertPosLocalToGlobal(thisSD, mySphere_pos_local, gran_params));   
+
+    if (mySphereID < nSpheres) {
+    	for (size_t i = 0; (i < nSpheres); i++) {
+            otherSphere_pos_local = make_int3(sphere_data->sphere_local_pos_X[i], 
+		    sphere_data->sphere_local_pos_Y[i], sphere_data->sphere_local_pos_Z[i]);
+            otherSphere_pos_global = int64_t3_to_double3(convertPosLocalToGlobal(thisSD, otherSphere_pos_local, gran_params));   
+            distance = mySphere_pos_global - otherSphere_pos_global;
+            if ((i != mySphereID) && (Dot(distance, distance) < (radius*radius))) {
+                adjacency_list[vertex_start + adjacency_num] = i;
+	    }
+        } 				   
+    }
+    assert(adjacency_num == vertex_adjacency_num[mySphereID]);
+}
+
+/// computes cluster by breadth first search 
+static __host__ unsigned int * clustering_search_BFS(ChSystemGpu_impl::GranSphereDataPtr sphere_data,
+                                           ChSystemGpu_impl::GranParamsPtr gran_params,
+                                           unsigned int nSpheres, float radius,
+					   unsigned int * vertex_adjacency_number,
+					   unsigned int * vertex_adjacency_start,
+					   unsigned int * cluster) { 
+    // Breadth-First search arrays
+    bool * borders; // [mySphereID] -> is vertex a border?
+    bool * visited; // [mySphereID] -> was vertex visited?
+	
+    unsigned int * adjacency_list) {
+    cudaMalloc((void **)borders, sizeof(*borders) * nSpheres); 
+    cudaMalloc((void **)visited, sizeof(visited) * nSpheres); 
+    cudaMemset(borders, false, sizeof(*borders) * nSPheres);
+    cudaMemset(visited, false, sizeof(*visited) * nSPheres);
+    
+    bool visited_host = malloc(sizeof(*visited_host) * nSpheres); 
+    // number of points in cluster is at cluster[0]. rest are sphereIDs.
+    
+    clustering_search_BFS_kernel<<<nBLocks, CUDA_THREADS_PER_BLOCK>>>(sphere_data, gran_params, nSPheres,
+		    radius, vertex_adjacency_number, vertex_adjacency_start, adjacency_list,
+		    borders, visited);
+
+    cudaMemcpy(visited_host, visited, sizeof(*visited_host) * nSpheres, cudaMemcpyDeviceToHost);
+    for (size_t i = 0; i < nSpheres; i++) {
+        if (visited_host[i]) {
+           cluster[cluster[0]++] = i;
+	}
+    }
+    return(cluster);
+}
+
+/// computes cluster by breadth first search 
+static __global__ void clustering_search_BFS_kernel(ChSystemGpu_impl::GranSphereDataPtr sphere_data,
+                                           ChSystemGpu_impl::GranParamsPtr gran_params,
+                                           unsigned int nSpheres, float radius,
+					   unsigned int * vertex_adjacency_number
+					   unsigned int * vertex_adjacency_start
+					   unsigned int * adjacency_list,
+					   bool * borders, bool * visited) {
+
+    // my sphere ID, we're using a 1D thread->sphere map
+    unsigned int mySphereID = threadIdx.x + blockIdx.x * blockDim.x;
+    unsigned int neighborSphereID;
+
+    if (visited[mySphereID]) {
+    	visited[mySphereID] = true;
+	borders[mySphereID] = false;
+	unsigned int start = vertex_adjacency_start[mySphereID];
+	unsigned int end = vertex_adjacency_start[mySphereID] + vertex_adjacency_num[mySphereID];
+	for (size_t i = start; i < end; i++);
+	    unsigned int neighborSphereID = adjacency_list[i];
+	    border[neighborSphereID] = !visited[neighborSphereID];
         }
     }
+}
+
+/// G-DBSCAN; density-based clustering algorithm. Identifies core, border and noise points in clusters.
+/// min_pts: minimal number of points for a cluster
+/// radius: proximity radius, points inside can form a cluster
+static __host__ void clustering_gdbscan(ChSystemGpu_impl::GranSphereDataPtr sphere_data,
+                                           ChSystemGpu_impl::GranParamsPtr gran_params,
+                                           unsigned int nSpheres, size_t min_pts, float radius) {
+    /// Graph arrays
+    unsigned int * vertex_adjacency_number; // [mySphereID] -> num_adjacencies to mySphereID
+    unsigned int * vertex_adjacency_start; // [mySphereID] -> start_index of adjacencies to mySphereID in adjacency_list
+    unsigned int * adjacency_list; // [start_index + N] -> Nth SphereID adjacent to mySphereID (n < num_adjacencies)
+
+    unsigned int nBlocks = (nSpheres + CUDA_THREADS_PER_BLOCK - 1) / CUDA_THREADS_PER_BLOCK;
+
+    unsigned int cluster = 1; /// cluster 0 is reserved for ground.
+
+    cudaMalloc((void **)&vertex_adjacency_number, sizeof(*vertex_adjacency_list) * nSpheres); 
+    cudaMalloc((void **)&vertex_adjacency_start, sizeof(*vertex_adjacency_start) * nSpheres); 
+    cudaMemset(vertex_adjacency_number, 0, sizeof(*vertex_adjacency_number) * nSPheres);
+    cudaMemset(vertex_adjacency_start, 0, sizeof(*vertex_adjacency_start) * nSPheres);
+
+    /// 3 steps:
+    ///     1- compute all adjacent spheres inside radius
+    clustering_proximity_adjacency_numbers<<<nBLocks, CUDA_THREADS_PER_BLOCK>>>(sphere_data, gran_params, nSPheres,
+		    radius, vertex_adjacency_number, vertex_adjacency_start);
+
+    ///     2- compute adjacency list
+    size_t adjacency_list_size = vertex_adjacency_start[nSpheres] + vertex_adjacency_number[nSpheres];
+    cudaMalloc((void **)&adjacency_list, sizeof(*adjacency_list), adjacency_list_size); 
+    cudaMemset(adjacency_list, 0, sizeof(*adjacency_list) * adjacency_list_size);
+
+    clustering_proximity_adjacency_list<<<nBLocks, CUDA_THREADS_PER_BLOCK>>>(sphere_data, gran_params, nSPheres,
+		    radius, vertex_adjacency_number, vertex_adjacency_start, adjacency_list);
+
+
+    ///     3- build clusters by breadth-first search (BFS)
+    unsigned int cluster = malloc((nSpheres + 1) * sizeof(*cluster)); 
+    bool point_visited = calloc(snSpheres, sizeof(*point_visited)); 
+    unsigned int * cluster;
+    for (size_t i = 0; i < nSpheres; i++) {
+    	  if (!point_visited[i]) {
+	    memset(cluster, 0, sizeof(*cluster) * (nSPheres + 1));
+	    cluster = clustering_search_BFS(sphere_data, gran_params, nSPheres,
+		    radius, vertex_adjacency_number, vertex_adjacency_start, adjacency_list, cluster);
+            if (cluster[0] < min_pts) {
+	        sphere_data->sphere_group[cluster[j]] = SPHERE_GROUP::NOISE;
+	    } else {
+                for (size_t j = 0; j < cluster[0]; j++) {
+	    	    points_visited[cluster[j]] = true;
+	    	    if (vertex_adjacency_number[cluster[j]] >= min_pts) {
+	                sphere_data->sphere_group[cluster[j]] = SPHERE_GROUP::CORE;
+		    } else {
+	                sphere_data->sphere_group[cluster[j]] = SPHERE_GROUP::BORDER;
+		    }
+	        }
+	    }
+	points_visited[i] = true;
+			
+	  }
+    }
+    free(cluster);
+    cudaFree(vertex_adjacency_number);
+    cudaFree(vertex_adjacency_start);
+    cudaFree(adjacency_number);
+    cudaFree(borders);
+    cudaFree(visited);
 }
 
 /// Compute normal forces for a contacting pair
@@ -668,7 +860,10 @@ static __global__ void computeSphereContactForces(ChSystemGpu_impl::GranSphereDa
                                                   BC_type* bc_type_list,
                                                   BC_params_t<int64_t, int64_t3>* bc_params_list,
                                                   unsigned int nBCs,
-                                                  unsigned int nSpheres) {
+                                                  unsigned int nSpheres,
+						  unsigned int * vertex_adjacency_number, 
+						  unsigned int * vertex_adjacency_start,
+						  unsigned int * adjacency_list) {
     // grab the sphere radius
     unsigned int sphereRadius_SU = gran_params->sphereRadius_SU;
 
@@ -715,7 +910,7 @@ static __global__ void computeSphereContactForces(ChSystemGpu_impl::GranSphereDa
             }
         }
 
-        // Sort. Simple but should be effective since we have 12 contacts max
+	// Sort. Simple but should be effective since we have 12 contacts max
         for (unsigned char ii = 0; ii < numActiveContacts; ii++) {
             for (unsigned char jj = ii + 1; jj < numActiveContacts; jj++) {
                 if (theirIDList[ii] > theirIDList[jj]) {

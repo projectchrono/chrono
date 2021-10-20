@@ -169,6 +169,14 @@ class ChSystemGpu_impl {
         bool recording_contactInfo;  ///< recording contact info
     };
 
+    /// Graph representation of sphere connectivity
+    /// used to differentiate clusters of particles
+    struct ConnectivityGraph {
+        unsigned int * vertex_adjacency_number;
+        unsigned int * vertex_adjacency_start;
+        unsigned int * adjacency_list;
+
+    }
     /// Structure of pointers to kinematic quantities of the ChSystemGpu_impl.
     /// These pointers must be in device-accessible memory.
     struct SphereData {
@@ -454,6 +462,9 @@ class ChSystemGpu_impl {
 
     /// Holds system degrees of freedom
     SphereData* sphere_data;
+
+    /// Holds system degrees of freedom
+    ConnectivityGraph * con_graph;
 
     /// Contains information about the status of the granular simulator (solver)
     ChSolverStateData stateOfSolver_resources;

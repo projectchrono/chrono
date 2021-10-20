@@ -529,22 +529,37 @@ __host__ double ChSystemGpu_impl::AdvanceSimulation(float duration) {
             gpuErrchk(cudaDeviceSynchronize());
         } else if (gran_params->friction_mode == CHGPU_FRICTION_MODE::SINGLE_STEP ||
                    gran_params->friction_mode == CHGPU_FRICTION_MODE::MULTI_STEP) {
-            // figure out who is contacting
-            determineContactPairs<<<nSDs, MAX_COUNT_OF_SPHERES_PER_SD>>>(sphere_data, gran_params);
+
+             unsigned int * vertex_adjacency_number; // [mySphereID] -> num_adjacencies to mySphereID
+             unsigned int * vertex_adjacency_start; // [mySphereID] -> start_index of adjacencies to mySphereID in adjacency_list
+             unsigned int * adjacency_list; // [start_index + N] -> Nth SphereID adjacent to mySphereID (n < num_adjacencies)
+             gpuErrchk(cudaMalloc((void **)&vertex_adjacency_number, sizeof(*vertex_adjacency_list) * nSpheres));
+             gpuErrchk(cudaMalloc((void **)&vertex_adjacency_start, sizeof(*vertex_adjacency_start) * nSpheres));
+             cudaMemset(vertex_adjacency_number, 0, sizeof(*vertex_adjacency_number) * nSPheres);
+             cudaMemset(vertex_adjacency_start, 0, sizeof(*vertex_adjacency_start) * nSPheres);
+
+    	    // figure out who is contacting + compute vertex adjacencies number + start index in adjacency_list
+            determineContactPairs<<<nSDs, MAX_COUNT_OF_SPHERES_PER_SD>>>(sphere_data, gran_params,
+			    vertex_adjacency_number, vertex_adjacency_start);
             gpuErrchk(cudaPeekAtLastError());
             gpuErrchk(cudaDeviceSynchronize());
 
-            update_ground_group<<<nBlocks, CUDA_THREADS_PER_BLOCK>>>(
-                    sphere_data, gran_params, nSpheres);
-            gpuErrchk(cudaPeekAtLastError());
-            gpuErrchk(cudaDeviceSynchronize());
-
+            // compute contact forces + compute adjacency_list
             computeSphereContactForces<<<nBlocks, CUDA_THREADS_PER_BLOCK>>>(
                 sphere_data, gran_params, BC_type_list.data(), BC_params_list_SU.data(),
-                (unsigned int)BC_params_list_SU.size(), nSpheres);
+                (unsigned int)BC_params_list_SU.size(), nSpheres, vertex_adjacency_number,
+	       	vertex_adjacency_start, adjacency_list);
             gpuErrchk(cudaPeekAtLastError());
             gpuErrchk(cudaDeviceSynchronize());
+           
+	    // update_ground_group<<<nBlocks, CUDA_THREADS_PER_BLOCK>>>(
+            //       sphere_data, gran_params, nSpheres);
+            // gpuErrchk(cudaPeekAtLastError());
+            // gpuErrchk(cudaDeviceSynchronize());
         }
+	size_t min_pts = 6; // minimal number of points that form a cluster
+       	float radius = 0.1f; // [m]
+	clustering_gdbscan( sphere_data, gran_params, nSpheres, min_pts, radius);
 
         METRICS_PRINTF("Starting integrateSpheres!\n");
         integrateSpheres<<<nBlocks, CUDA_THREADS_PER_BLOCK>>>(stepSize_SU, sphere_data, nSpheres, gran_params);
