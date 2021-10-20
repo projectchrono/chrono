@@ -269,7 +269,7 @@ __global__ void interactionGranMat_TriangleSoup(ChSystemGpuMesh_impl::TriangleSo
             // vector from center of mesh body to contact point, assume this can be held in a float
             float3 fromCenter;
 
-            {
+            if (mesh_params->fam_collision_enabled[fam]) {
                 double3 pt1;  // Contact point on triangle
                 // NOTE sphere_pos_local is relative to THIS SD, not its owner SD
                 double3 sphCntr =

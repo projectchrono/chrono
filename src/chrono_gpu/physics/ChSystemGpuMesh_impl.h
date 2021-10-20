@@ -18,7 +18,6 @@
 
 namespace chrono {
 namespace gpu {
-
 // Underlying implementation of the Chrono::Gpu mesh system.
 // Implements functionality required to handle the interaction between a mesh soup and granular material.
 //
@@ -65,6 +64,9 @@ class ChSystemGpuMesh_impl : public ChSystemGpu_impl {
         /// Number of triangle families
         unsigned int num_triangle_families;
 
+        /// Enable or disable collisions with individual families
+        bool* fam_collision_enabled;
+
         /// Reference frames of the triangle families in single precision
         MeshFrame<float>* fam_frame_broad;
 
@@ -101,6 +103,9 @@ class ChSystemGpuMesh_impl : public ChSystemGpu_impl {
         /// in the global reference frame. Size: 6 * numTriangleFamilies.
         float* generalizedForcesPerFamily;
     };
+
+    /// Enable contact with individual families
+    void disable_collision_with_family(unsigned int fam) {tri_params->fam_collision_enabled[fam] = false; }
 
     TriangleSoup* getMeshSoup() { return meshSoup; }
     MeshParams* getTriParams() { return tri_params; }

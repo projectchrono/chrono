@@ -444,6 +444,14 @@ void ChSystemGpuMesh::SetMeshes(const std::vector<geometry::ChTriangleMeshConnec
             pMeshSoup->familyMass_SU[i] = masses[i];
         }
 
+        // Allocate memory for the collision checks per family
+        gpuErrchk(cudaMallocManaged(&sys_trimesh->getTriParams()->fam_collision_enabled,
+                                    pMeshSoup->numTriangleFamilies * sizeof(bool), cudaMemAttachGlobal));
+
+        for (unsigned int i = 0; i < family; i++) {
+            sys_trimesh->getTriParams()->fam_collision_enabled[i] = true;
+        }
+
         gpuErrchk(cudaMallocManaged(&pMeshSoup->generalizedForcesPerFamily,
                                     6 * pMeshSoup->numTriangleFamilies * sizeof(float), cudaMemAttachGlobal));
         // Allocate memory for the float and double frames

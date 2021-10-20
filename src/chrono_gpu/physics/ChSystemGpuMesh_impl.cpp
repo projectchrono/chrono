@@ -173,6 +173,7 @@ void ChSystemGpuMesh_impl::cleanupTriMesh() {
     cudaFree(meshSoup->omega);
 
     cudaFree(meshSoup->generalizedForcesPerFamily);
+    cudaFree(tri_params->fam_collision_enabled);
     cudaFree(tri_params->fam_frame_broad);
     cudaFree(tri_params->fam_frame_narrow);
     cudaFree(meshSoup);
