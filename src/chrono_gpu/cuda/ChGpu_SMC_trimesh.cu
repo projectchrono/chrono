@@ -13,6 +13,7 @@
 // =============================================================================
 
 #include "chrono/core/ChMathematics.h"
+#include "chrono_gpu/ChGpuDefines.h"
 #include "chrono_gpu/cuda/ChGpu_SMC_trimesh.cuh"
 #include "chrono_gpu/cuda/ChGpu_SMC.cuh"
 #include "chrono_gpu/physics/ChSystemGpuMesh_impl.h"
@@ -399,7 +400,11 @@ __global__ void interactionGranMat_TriangleSoup(ChSystemGpuMesh_impl::TriangleSo
                 atomicAdd(d_triangleSoup->generalizedForcesPerFamily + fam * 6 + 5, torque.z);
             }
         }  // end of per-triangle loop
-        sphere_data->sphere_marked[sphereIDGlobal] = sphere_inside_mesh;
+        if (sphere_inside_mesh) {
+            sphere_data->sphere_group[sphereIDGlobal] = SPHERE_GROUP::VOLUME;
+        } else {
+            sphere_data->sphere_group[sphereIDGlobal] = SPHERE_GROUP::GROUND; // TODO add proper logic
+        }
 
         // write back sphere forces
         atomicAdd(sphere_data->sphere_acc_X + sphereIDGlobal, sphere_force.x / gran_params->sphere_mass_SU);
@@ -506,11 +511,11 @@ __host__ double ChSystemGpuMesh_impl::AdvanceSimulation(float duration) {
 }
 
 __global__ void count_spheres_in_mesh(const unsigned int nSpheres,
-                                      const not_stupid_bool* sphere_marked,
+                                      SPHERE_GROUP* sphere_group,
                                       unsigned int* d_sphere_count) {
     unsigned int my_sphere = blockIdx.x * blockDim.x + threadIdx.x;
     if (my_sphere < nSpheres) {
-        if (sphere_marked[my_sphere]) {
+        if (sphere_group[my_sphere] == SPHERE_GROUP::VOLUME) {
             d_sphere_count[my_sphere] = 1;
         } else {
             d_sphere_count[my_sphere] = 0;
@@ -527,7 +532,7 @@ __host__ double ChSystemGpuMesh_impl::volume_inside_mesh() {
     gpuErrchk(cudaMalloc(&d_sphere_count, nSpheres * sizeof(unsigned int)));
 
     count_spheres_in_mesh<<<(nSpheres + 255) / 256, 256>>>(
-            nSpheres, sphere_data->sphere_marked, d_sphere_count);
+            nSpheres, sphere_data->sphere_group, d_sphere_count);
 
     void     *d_temp_storage = NULL;
     size_t   temp_storage_bytes = 0;

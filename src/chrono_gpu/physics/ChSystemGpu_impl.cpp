@@ -162,7 +162,7 @@ void ChSystemGpu_impl::packSphereDataPointers() {
     }
 
     sphere_data->sphere_fixed = sphere_fixed.data();
-    sphere_data->sphere_marked = sphere_marked.data();
+    sphere_data->sphere_group = sphere_group.data();
 
     sphere_data->SD_NumSpheresTouching = SD_NumSpheresTouching.data();
     sphere_data->SD_SphereCompositeOffsets = SD_SphereCompositeOffsets.data();
@@ -266,8 +266,8 @@ void ChSystemGpu_impl::WriteFile(
         if (GET_OUTPUT_SETTING(FIXITY)) {
             outstrstream << ",fixed";
         }
-        if (GET_OUTPUT_SETTING(MARKED)) {
-            outstrstream << ",marked";
+        if (GET_OUTPUT_SETTING(GROUP)) {
+            outstrstream << ",group";
         }
 
         if (gran_params->friction_mode != CHGPU_FRICTION_MODE::FRICTIONLESS && GET_OUTPUT_SETTING(ANG_VEL_COMPONENTS)) {
@@ -322,9 +322,9 @@ void ChSystemGpu_impl::WriteFile(
                 outstrstream << "," << fixed;
             }
 
-            if (GET_OUTPUT_SETTING(MARKED)) {
-                int marked = (int)sphere_marked[n];
-                outstrstream << "," << marked;
+            if (GET_OUTPUT_SETTING(GROUP)) {
+                int group = (int)sphere_group[n];
+                outstrstream << "," << group;
             }
 
             if (gran_params->friction_mode != CHGPU_FRICTION_MODE::FRICTIONLESS &&
@@ -441,15 +441,15 @@ void ChSystemGpu_impl::WriteFile(
             delete[] fixed;
         }
 
-        if (GET_OUTPUT_SETTING(MARKED)) {
-            unsigned char* marked = new unsigned char[nSpheres];
+        if (GET_OUTPUT_SETTING(GROUP)) {
+            unsigned char* group = new unsigned char[nSpheres];
             for (size_t n = 0; n < nSpheres; n++) {
-                marked[n] = (unsigned char)sphere_marked[n];
+                group[n] = sphere_group[n];
             }
-            H5::DataSet ds_marked = file.createDataSet("marked", H5::PredType::NATIVE_UCHAR, dataspace);
-            ds_marked.write(marked, H5::PredType::NATIVE_UCHAR);
+            H5::DataSet ds_group = file.createDataSet("group", H5::PredType::NATIVE_UCHAR, dataspace);
+            ds_group.write(group, H5::PredType::NATIVE_UCHAR);
 
-            delete[] marked;
+            delete[] group;
         }
 
         if (gran_params->friction_mode != CHGPU_FRICTION_MODE::FRICTIONLESS && GET_OUTPUT_SETTING(ANG_VEL_COMPONENTS)) {

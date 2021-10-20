@@ -202,7 +202,7 @@ class ChSystemGpu_impl {
 
         not_stupid_bool* sphere_fixed;  ///< Flags indicating whether or not a sphere is fixed
 
-        not_stupid_bool* sphere_marked;  ///< User marked
+        SPHERE_GROUP* sphere_group;  ///< Group to which the sphere belongs
 
         unsigned int* contact_partners_map;   ///< Contact partners for each sphere. Only in frictional simulations
         not_stupid_bool* contact_active_map;  ///< Whether the frictional contact at an index is active
@@ -528,8 +528,8 @@ class ChSystemGpu_impl {
     /// Fixity of each sphere
     std::vector<not_stupid_bool, cudallocator<not_stupid_bool>> sphere_fixed;
 
-    /// User marked
-    std::vector<not_stupid_bool, cudallocator<not_stupid_bool>> sphere_marked;
+    /// Sphere group
+    std::vector<SPHERE_GROUP, cudallocator<SPHERE_GROUP>> sphere_group;
 
     /// Set of contact partners for each sphere. Only used in frictional simulations
     std::vector<unsigned int, cudallocator<unsigned int>> contact_partners_map;
