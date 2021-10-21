@@ -56,7 +56,7 @@ __host__ std::vector<float3> ChSystemGpu_impl::get_max_z_map(unsigned int x_size
 
     size_t nSpheres = sphere_local_pos_Z.size();
     for (size_t index = 0; index < nSpheres; index++) {
-        if (sphere_data->sphere_group[index] == SPHERE_GROUP::GROUND) {
+        if (sphere_data->sphere_group[index] == SPHERE_GROUP::CORE) {
             unsigned int ownerSD = sphere_data->sphere_owner_SDs[index];
             unsigned int spheresTouchingThisSD = sphere_data->SD_NumSpheresTouching[ownerSD];
             if (spheresTouchingThisSD < 5) {
@@ -87,7 +87,7 @@ __host__ std::vector<float3> ChSystemGpu_impl::get_max_z_map(unsigned int x_size
 
 __host__ void ChSystemGpu_impl::reset_ground_group() {
     for (size_t index = 0; index < nSpheres; index++) {
-        sphere_data->sphere_group[index] = SPHERE_GROUP::GROUND;
+        sphere_data->sphere_group[index] = SPHERE_GROUP::CORE;
     }
 }
 
@@ -251,16 +251,21 @@ __host__ void ChSystemGpu_impl::setupSphereDataStructures() {
     nSpheres = (unsigned int)user_sphere_positions.size();
     INFO_PRINTF("%u balls added!\n", nSpheres);
     gran_params->nSpheres = nSpheres;
+    contact_total = 0;
+    
+    // Allocate space for connectivity graph
+    TRACK_VECTOR_RESIZE(adj_num, nSpheres, "adj_num", 0);
+    TRACK_VECTOR_RESIZE(adj_start, nSpheres, "adj_start", 0);
+    TRACK_VECTOR_RESIZE(adj_list, nSpheres * MAX_SPHERES_TOUCHED_BY_SPHERE, "adj_list", 0);
 
     TRACK_VECTOR_RESIZE(sphere_owner_SDs, nSpheres, "sphere_owner_SDs", NULL_CHGPU_ID);
-
     // Allocate space for new bodies
     TRACK_VECTOR_RESIZE(sphere_local_pos_X, nSpheres, "sphere_local_pos_X", 0);
     TRACK_VECTOR_RESIZE(sphere_local_pos_Y, nSpheres, "sphere_local_pos_Y", 0);
     TRACK_VECTOR_RESIZE(sphere_local_pos_Z, nSpheres, "sphere_local_pos_Z", 0);
 
     TRACK_VECTOR_RESIZE(sphere_fixed, nSpheres, "sphere_fixed", 0);
-    TRACK_VECTOR_RESIZE(sphere_group, nSpheres, "sphere_group", SPHERE_GROUP::GROUND);
+    TRACK_VECTOR_RESIZE(sphere_group, nSpheres, "sphere_group", SPHERE_GROUP::CORE);
 
     TRACK_VECTOR_RESIZE(pos_X_dt, nSpheres, "pos_X_dt", 0);
     TRACK_VECTOR_RESIZE(pos_Y_dt, nSpheres, "pos_Y_dt", 0);
@@ -294,7 +299,7 @@ __host__ void ChSystemGpu_impl::setupSphereDataStructures() {
 
             // Convert to not_stupid_bool
             sphere_fixed.at(i) = (not_stupid_bool)((user_provided_fixed) ? user_sphere_fixed[i] : false);
-            sphere_group.at(i) = SPHERE_GROUP::GROUND;
+            sphere_group.at(i) = SPHERE_GROUP::CORE;
             if (user_provided_vel) {
                 auto vel = user_sphere_vel.at(i);
                 pos_X_dt.at(i) = (float)(vel.x / VEL_SU2UU);
@@ -530,36 +535,24 @@ __host__ double ChSystemGpu_impl::AdvanceSimulation(float duration) {
         } else if (gran_params->friction_mode == CHGPU_FRICTION_MODE::SINGLE_STEP ||
                    gran_params->friction_mode == CHGPU_FRICTION_MODE::MULTI_STEP) {
 
-             unsigned int * vertex_adjacency_number; // [mySphereID] -> num_adjacencies to mySphereID
-             unsigned int * vertex_adjacency_start; // [mySphereID] -> start_index of adjacencies to mySphereID in adjacency_list
-             unsigned int * adjacency_list; // [start_index + N] -> Nth SphereID adjacent to mySphereID (n < num_adjacencies)
-             gpuErrchk(cudaMalloc((void **)&vertex_adjacency_number, sizeof(*vertex_adjacency_list) * nSpheres));
-             gpuErrchk(cudaMalloc((void **)&vertex_adjacency_start, sizeof(*vertex_adjacency_start) * nSpheres));
-             cudaMemset(vertex_adjacency_number, 0, sizeof(*vertex_adjacency_number) * nSPheres);
-             cudaMemset(vertex_adjacency_start, 0, sizeof(*vertex_adjacency_start) * nSPheres);
-
-    	    // figure out who is contacting + compute vertex adjacencies number + start index in adjacency_list
-            determineContactPairs<<<nSDs, MAX_COUNT_OF_SPHERES_PER_SD>>>(sphere_data, gran_params,
-			    vertex_adjacency_number, vertex_adjacency_start);
+            // figure out who is contacting + graph construction if CLUSTER_ enums enabled
+            determineContactPairs<<<nSDs, MAX_COUNT_OF_SPHERES_PER_SD>>>(sphere_data, gran_params);
             gpuErrchk(cudaPeekAtLastError());
             gpuErrchk(cudaDeviceSynchronize());
 
-            // compute contact forces + compute adjacency_list
+            // compute contact forces + graph construction if CLUSTER_ enums enabled
             computeSphereContactForces<<<nBlocks, CUDA_THREADS_PER_BLOCK>>>(
                 sphere_data, gran_params, BC_type_list.data(), BC_params_list_SU.data(),
-                (unsigned int)BC_params_list_SU.size(), nSpheres, vertex_adjacency_number,
-	       	vertex_adjacency_start, adjacency_list);
+                (unsigned int)BC_params_list_SU.size());
             gpuErrchk(cudaPeekAtLastError());
             gpuErrchk(cudaDeviceSynchronize());
-           
-	    // update_ground_group<<<nBlocks, CUDA_THREADS_PER_BLOCK>>>(
-            //       sphere_data, gran_params, nSpheres);
-            // gpuErrchk(cudaPeekAtLastError());
-            // gpuErrchk(cudaDeviceSynchronize());
         }
-	size_t min_pts = 6; // minimal number of points that form a cluster
-       	float radius = 0.1f; // [m]
-	clustering_gdbscan( sphere_data, gran_params, nSpheres, min_pts, radius);
+
+        if ((gran_params->cluster_graph_method > 0) && (gran_params->cluster_search_method > 0)) {
+            // TODO: graph construction method switch
+
+            // TODO: search method switch
+        }
 
         METRICS_PRINTF("Starting integrateSpheres!\n");
         integrateSpheres<<<nBlocks, CUDA_THREADS_PER_BLOCK>>>(stepSize_SU, sphere_data, nSpheres, gran_params);

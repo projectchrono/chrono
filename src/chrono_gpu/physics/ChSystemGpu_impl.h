@@ -227,6 +227,7 @@ class ChSystemGpu_impl {
         unsigned int* adj_num; // [mySphereID] -> number of adj
         unsigned int* adj_start; // [mySphereID] -> start of adjs in adj_list
         unsigned int* adj_list; // [start + N] -> Nth adj SphereID (n < adj_num[myShpereID])
+        unsigned int contact_total;
     };
 
     // The system is not default-constructible
