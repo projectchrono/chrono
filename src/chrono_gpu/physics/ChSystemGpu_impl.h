@@ -99,7 +99,6 @@ class ChSystemGpu_impl {
         CHGPU_FRICTION_MODE friction_mode;      ///< Which friction mode is active for the simulation
         CHGPU_ROLLING_MODE rolling_mode;        ///< Which rolling resistance model is active
         CHGPU_TIME_INTEGRATOR time_integrator;  ///< Which time integrator is active
-
         
         CLUSTER_GRAPH_METHOD cluster_graph_method; /// graph construction for clustering
         CLUSTER_SEARCH_METHOD cluster_search_method; /// search algorithm used for clustering
@@ -575,6 +574,11 @@ class ChSystemGpu_impl {
 
     /// List of owner subdomains for each sphere
     std::vector<unsigned int, cudallocator<unsigned int>> sphere_owner_SDs;
+
+    // Adjacency lists for clustering
+    std::vector<unsigned int, cudallocator<unsigned int>> adj_num;
+    std::vector<unsigned int, cudallocator<unsigned int>> adj_start;
+    std::vector<unsigned int, cudallocator<unsigned int>> adj_list;
 
     /// User provided timestep in UU
     float stepSize_UU;
