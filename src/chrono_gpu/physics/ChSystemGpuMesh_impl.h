@@ -16,9 +16,11 @@
 
 #include "chrono_gpu/physics/ChSystemGpu_impl.h"
 
+#include "chrono/core/ChVector.h"
+#include "chrono/core/ChQuaternion.h"
+
 namespace chrono {
 namespace gpu {
-
 // Underlying implementation of the Chrono::Gpu mesh system.
 // Implements functionality required to handle the interaction between a mesh soup and granular material.
 //
@@ -65,6 +67,9 @@ class ChSystemGpuMesh_impl : public ChSystemGpu_impl {
         /// Number of triangle families
         unsigned int num_triangle_families;
 
+        /// Enable or disable collisions with individual families
+        bool* fam_collision_enabled;
+
         /// Reference frames of the triangle families in single precision
         MeshFrame<float>* fam_frame_broad;
 
@@ -102,6 +107,9 @@ class ChSystemGpuMesh_impl : public ChSystemGpu_impl {
         float* generalizedForcesPerFamily;
     };
 
+    /// Enable contact with individual families
+    void disable_collision_with_family(unsigned int fam) {tri_params->fam_collision_enabled[fam] = false; }
+
     TriangleSoup* getMeshSoup() { return meshSoup; }
     MeshParams* getTriParams() { return tri_params; }
 
@@ -119,7 +127,9 @@ class ChSystemGpuMesh_impl : public ChSystemGpu_impl {
                          const double* ang_vel);
 
     /// Write visualization files for triangle meshes with current positions
-    void WriteMeshes(std::string outfilename) const;
+    void WriteMeshes(std::string outfilename,
+                     const Vector& global_translation = {0.0, 0.0, 0.0},
+                     const Quaternion& global_rotation = {1.0, 0.0, 0.0, 0.0}) const;
 
     /// Initialize trimeshes before starting simulation (typically called by initialize).
     void initializeTriangles();
@@ -132,6 +142,9 @@ class ChSystemGpuMesh_impl : public ChSystemGpu_impl {
 
     /// Clean up data structures associated with triangle mesh
     void cleanupTriMesh();
+
+    /// Calculate volume of granular material confied by one family of mesh soup
+    double volume_inside_mesh();
 
     /// Broadphase CD for triangles
     void runTriangleBroadphase();

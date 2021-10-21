@@ -15,6 +15,7 @@
 #include <cmath>
 #include <numeric>
 
+#include "chrono_gpu/ChGpuDefines.h"
 #include "chrono_gpu/cuda/ChGpu_SMC.cuh"
 #include "chrono_gpu/utils/ChGpuUtilities.h"
 
@@ -37,6 +38,57 @@ __host__ double ChSystemGpu_impl::GetMaxParticleZ() const {
     double max_z_UU = max_z_SU * LENGTH_SU2UU;
 
     return max_z_UU;
+}
+
+__host__ std::vector<float3> ChSystemGpu_impl::get_max_z_map(unsigned int x_size,
+                                                             unsigned int y_size) const {
+    std::vector<float3> max_z_map(x_size * y_size,
+                                  make_float3(0.0, 0.0, 0.0));
+    for (int x_index = 0; x_index < x_size; x_index++) {
+        for (int y_index = 0; y_index < y_size; y_index++) {
+            float x = (box_size_X / x_size) * (x_index + 0.5) - box_size_X / 2;
+            float y = (box_size_Y / y_size) * (y_index + 0.5) - box_size_Y / 2;
+            float default_z = -box_size_Z / 2;
+
+            max_z_map[y_index * x_size + x_index] = make_float3(x, y, default_z);
+        }
+    }
+
+    size_t nSpheres = sphere_local_pos_Z.size();
+    for (size_t index = 0; index < nSpheres; index++) {
+        if (sphere_data->sphere_group[index] == SPHERE_GROUP::GROUND) {
+            unsigned int ownerSD = sphere_data->sphere_owner_SDs[index];
+            unsigned int spheresTouchingThisSD = sphere_data->SD_NumSpheresTouching[ownerSD];
+            if (spheresTouchingThisSD < 5) {
+                // Ignore oulier small domains
+                continue;
+            }
+            int3 sphere_pos_local = make_int3(sphere_data->sphere_local_pos_X[index],
+                                              sphere_data->sphere_local_pos_Y[index],
+                                              sphere_data->sphere_local_pos_Z[index]);
+            int64_t3 global_pos = convertPosLocalToGlobal(ownerSD,
+                                                          sphere_pos_local,
+                                                          gran_params);
+
+            int x_bin = (gran_params->max_x_pos_unsigned / 2 + global_pos.x) /
+                        (gran_params->max_x_pos_unsigned / x_size);
+            int y_bin = (gran_params->max_y_pos_unsigned / 2 + global_pos.y) /
+                        (gran_params->max_y_pos_unsigned / y_size);
+            float z = global_pos.z * LENGTH_SU2UU;
+
+            if (max_z_map[y_bin * x_size + x_bin].z < z) {
+                max_z_map[y_bin * x_size + x_bin].z = z;
+            }
+        }
+    }
+
+    return max_z_map;
+}
+
+__host__ void ChSystemGpu_impl::reset_ground_group() {
+    for (size_t index = 0; index < nSpheres; index++) {
+        sphere_data->sphere_group[index] = SPHERE_GROUP::GROUND;
+    }
 }
 
 // Reset broadphase data structures
@@ -146,6 +198,7 @@ __host__ void ChSystemGpu_impl::defragment_initial_positions() {
     std::vector<float, cudallocator<float>> sphere_vel_z_tmp;
 
     std::vector<not_stupid_bool, cudallocator<not_stupid_bool>> sphere_fixed_tmp;
+    std::vector<SPHERE_GROUP, cudallocator<SPHERE_GROUP>> sphere_group_tmp;
     std::vector<unsigned int, cudallocator<unsigned int>> sphere_owner_SDs_tmp;
 
     sphere_pos_x_tmp.resize(nSpheres);
@@ -157,6 +210,7 @@ __host__ void ChSystemGpu_impl::defragment_initial_positions() {
     sphere_vel_z_tmp.resize(nSpheres);
 
     sphere_fixed_tmp.resize(nSpheres);
+    sphere_group_tmp.resize(nSpheres);
     sphere_owner_SDs_tmp.resize(nSpheres);
 
     // reorder values into new sorted
@@ -170,6 +224,7 @@ __host__ void ChSystemGpu_impl::defragment_initial_positions() {
         sphere_vel_z_tmp.at(i) = (float)pos_Z_dt.at(sphere_ids.at(i));
 
         sphere_fixed_tmp.at(i) = sphere_fixed.at(sphere_ids.at(i));
+        sphere_group_tmp.at(i) = sphere_group.at(sphere_ids.at(i));
         sphere_owner_SDs_tmp.at(i) = sphere_owner_SDs.at(sphere_ids.at(i));
     }
 
@@ -183,6 +238,7 @@ __host__ void ChSystemGpu_impl::defragment_initial_positions() {
     pos_Z_dt.swap(sphere_vel_z_tmp);
 
     sphere_fixed.swap(sphere_fixed_tmp);
+    sphere_group.swap(sphere_group_tmp);
     sphere_owner_SDs.swap(sphere_owner_SDs_tmp);
 }
 __host__ void ChSystemGpu_impl::setupSphereDataStructures() {
@@ -204,6 +260,7 @@ __host__ void ChSystemGpu_impl::setupSphereDataStructures() {
     TRACK_VECTOR_RESIZE(sphere_local_pos_Z, nSpheres, "sphere_local_pos_Z", 0);
 
     TRACK_VECTOR_RESIZE(sphere_fixed, nSpheres, "sphere_fixed", 0);
+    TRACK_VECTOR_RESIZE(sphere_group, nSpheres, "sphere_group", SPHERE_GROUP::GROUND);
 
     TRACK_VECTOR_RESIZE(pos_X_dt, nSpheres, "pos_X_dt", 0);
     TRACK_VECTOR_RESIZE(pos_Y_dt, nSpheres, "pos_Y_dt", 0);
@@ -237,6 +294,7 @@ __host__ void ChSystemGpu_impl::setupSphereDataStructures() {
 
             // Convert to not_stupid_bool
             sphere_fixed.at(i) = (not_stupid_bool)((user_provided_fixed) ? user_sphere_fixed[i] : false);
+            sphere_group.at(i) = SPHERE_GROUP::GROUND;
             if (user_provided_vel) {
                 auto vel = user_sphere_vel.at(i);
                 pos_X_dt.at(i) = (float)(vel.x / VEL_SU2UU);
@@ -473,6 +531,11 @@ __host__ double ChSystemGpu_impl::AdvanceSimulation(float duration) {
                    gran_params->friction_mode == CHGPU_FRICTION_MODE::MULTI_STEP) {
             // figure out who is contacting
             determineContactPairs<<<nSDs, MAX_COUNT_OF_SPHERES_PER_SD>>>(sphere_data, gran_params);
+            gpuErrchk(cudaPeekAtLastError());
+            gpuErrchk(cudaDeviceSynchronize());
+
+            update_ground_group<<<nBlocks, CUDA_THREADS_PER_BLOCK>>>(
+                    sphere_data, gran_params, nSpheres);
             gpuErrchk(cudaPeekAtLastError());
             gpuErrchk(cudaDeviceSynchronize());
 

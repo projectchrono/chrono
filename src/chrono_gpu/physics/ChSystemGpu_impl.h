@@ -20,7 +20,8 @@
 #include <vector>
 #include <algorithm>
 #include <cmath>
-
+#include "chrono/core/ChVector.h"
+#include "chrono/core/ChQuaternion.h"
 #include "chrono_gpu/ChApiGpu.h"
 #include "chrono_gpu/ChGpuDefines.h"
 #include "chrono_gpu/physics/ChGpuBoundaryConditions.h"
@@ -201,6 +202,8 @@ class ChSystemGpu_impl {
 
         not_stupid_bool* sphere_fixed;  ///< Flags indicating whether or not a sphere is fixed
 
+        SPHERE_GROUP* sphere_group;  ///< Group to which the sphere belongs
+
         unsigned int* contact_partners_map;   ///< Contact partners for each sphere. Only in frictional simulations
         not_stupid_bool* contact_active_map;  ///< Whether the frictional contact at an index is active
         float3* contact_history_map;  ///< Tangential history for a given contact pair. Only for multistep friction
@@ -337,6 +340,12 @@ class ChSystemGpu_impl {
                               const std::vector<float3>& vels = std::vector<float3>(),
                               const std::vector<float3>& ang_vels = std::vector<float3>());
 
+    /// Get map of the max z positions of the spheres
+    std::vector<float3> get_max_z_map(unsigned int x_size, unsigned int y_size) const;
+
+    /// Reset ground group
+    void reset_ground_group();
+
     /// Advance simulation by duration in user units, return actual duration elapsed
     /// Requires initialize() to have been called
     virtual double AdvanceSimulation(float duration);
@@ -404,7 +413,11 @@ class ChSystemGpu_impl {
     void updateBCPositions();
 
     /// Writes out particle positions according to the system output mode.
-    void WriteFile(std::string ofile) const;
+    void WriteFile(
+        std::string ofile,
+        const Vector& global_translation = {0.0, 0.0, 0.0},
+        const Quaternion& global_rotation = {1.0, 0.0, 0.0, 0.0}
+    ) const;
 
     /// Write contact info file
     void WriteContactInfoFile(std::string ofile) const;
@@ -517,6 +530,9 @@ class ChSystemGpu_impl {
 
     /// Fixity of each sphere
     std::vector<not_stupid_bool, cudallocator<not_stupid_bool>> sphere_fixed;
+
+    /// Sphere group
+    std::vector<SPHERE_GROUP, cudallocator<SPHERE_GROUP>> sphere_group;
 
     /// Set of contact partners for each sphere. Only used in frictional simulations
     std::vector<unsigned int, cudallocator<unsigned int>> contact_partners_map;

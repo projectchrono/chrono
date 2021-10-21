@@ -321,6 +321,14 @@ double ChSystemGpu::GetMaxParticleZ() const {
     return m_sys->GetMaxParticleZ();
 }
 
+std::vector<float3> ChSystemGpu::get_max_z_map(unsigned int x_size, unsigned int y_size) const {
+    return m_sys->get_max_z_map(x_size, y_size);
+}
+
+void ChSystemGpu::reset_ground_group() {
+    m_sys->reset_ground_group();
+}
+
 size_t ChSystemGpu::EstimateMemUsage() const {
     return m_sys->EstimateMemUsage();
 }
@@ -444,6 +452,14 @@ void ChSystemGpuMesh::SetMeshes(const std::vector<geometry::ChTriangleMeshConnec
             pMeshSoup->familyMass_SU[i] = masses[i];
         }
 
+        // Allocate memory for the collision checks per family
+        gpuErrchk(cudaMallocManaged(&sys_trimesh->getTriParams()->fam_collision_enabled,
+                                    pMeshSoup->numTriangleFamilies * sizeof(bool), cudaMemAttachGlobal));
+
+        for (unsigned int i = 0; i < family; i++) {
+            sys_trimesh->getTriParams()->fam_collision_enabled[i] = true;
+        }
+
         gpuErrchk(cudaMallocManaged(&pMeshSoup->generalizedForcesPerFamily,
                                     6 * pMeshSoup->numTriangleFamilies * sizeof(float), cudaMemAttachGlobal));
         // Allocate memory for the float and double frames
@@ -546,17 +562,33 @@ double ChSystemGpu::AdvanceSimulation(float duration) {
 
 // -----------------------------------------------------------------------------
 
-void ChSystemGpu::WriteFile(std::string ofile) const {
-    m_sys->WriteFile(ofile);
+void ChSystemGpu::WriteFile(std::string ofile,
+                            const Vector& global_translation,
+                            const Quaternion& global_rotation) const {
+    m_sys->WriteFile(ofile, global_translation, global_rotation);
 }
 
 void ChSystemGpu::WriteContactInfoFile(std::string ofile) const {
     m_sys->WriteContactInfoFile(ofile);
 }
 
-void ChSystemGpuMesh::WriteMeshes(std::string outfilename) const {
+void ChSystemGpuMesh::WriteMeshes(std::string outfilename,
+                                  const Vector& global_translation,
+                                  const Quaternion& global_rotation) const {
     ChSystemGpuMesh_impl* sys_trimesh = static_cast<ChSystemGpuMesh_impl*>(m_sys);
-    sys_trimesh->WriteMeshes(outfilename);
+    sys_trimesh->WriteMeshes(outfilename, global_translation, global_rotation);
+}
+
+// -----------------------------------------------------------------------------
+
+void ChSystemGpuMesh::disable_collision_with_family(unsigned int fam) {
+    ChSystemGpuMesh_impl* sys_trimesh = static_cast<ChSystemGpuMesh_impl*>(m_sys);
+    sys_trimesh->disable_collision_with_family(fam);
+}
+
+double ChSystemGpuMesh::volume_inside_mesh() {
+    ChSystemGpuMesh_impl* sys_trimesh = static_cast<ChSystemGpuMesh_impl*>(m_sys);
+    return sys_trimesh->volume_inside_mesh();
 }
 
 // -----------------------------------------------------------------------------

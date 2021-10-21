@@ -12,9 +12,12 @@
 // Authors: Conlain Kelly, Nic Olsen, Dan Negrut
 // =============================================================================
 
+#include "chrono/core/ChMathematics.h"
+#include "chrono_gpu/ChGpuDefines.h"
 #include "chrono_gpu/cuda/ChGpu_SMC_trimesh.cuh"
 #include "chrono_gpu/cuda/ChGpu_SMC.cuh"
 #include "chrono_gpu/physics/ChSystemGpuMesh_impl.h"
+#include "chrono_thirdparty/cub/device/device_reduce.cuh"
 
 namespace chrono {
 namespace gpu {
@@ -255,6 +258,8 @@ __global__ void interactionGranMat_TriangleSoup(ChSystemGpuMesh_impl::TriangleSo
     float3 sphere_force = {0.f, 0.f, 0.f};
     float3 sphere_AngAcc = {0.f, 0.f, 0.f};
     if (sphereIDLocal < spheresTouchingThisSD) {
+        bool sphere_inside_mesh = false;
+        bool first_volume_triangle = true;
         // loop over each triangle in the SD and compute the force this sphere (thread) exerts on it
         for (unsigned int triangleLocalID = 0; triangleLocalID < numSDTriangles; triangleLocalID++) {
             /// we have a valid sphere and a valid triganle; check if in contact
@@ -269,7 +274,7 @@ __global__ void interactionGranMat_TriangleSoup(ChSystemGpuMesh_impl::TriangleSo
             // vector from center of mesh body to contact point, assume this can be held in a float
             float3 fromCenter;
 
-            {
+            if (mesh_params->fam_collision_enabled[fam]) {
                 double3 pt1;  // Contact point on triangle
                 // NOTE sphere_pos_local is relative to THIS SD, not its owner SD
                 double3 sphCntr =
@@ -289,6 +294,17 @@ __global__ void interactionGranMat_TriangleSoup(ChSystemGpuMesh_impl::TriangleSo
                 double3 fromCenter_double = pt1 - meshCenter_double;
                 
                 fromCenter = make_float3(fromCenter_double.x, fromCenter_double.y, fromCenter_double.z);
+            } else {
+                double3 sphCntr =
+                    int64_t3_to_double3(convertPosLocalToGlobal(thisSD, sphere_pos_local[sphereIDLocal], gran_params));
+
+                if (first_volume_triangle) {
+                    sphere_inside_mesh = true;
+                    first_volume_triangle = false;
+                }
+                sphere_inside_mesh = sphere_inside_mesh && sphere_behind_face(
+                        node1[triangleLocalID], node2[triangleLocalID], node3[triangleLocalID],
+                        sphCntr, gran_params->sphereRadius_SU);
             }
 
             // If there is a collision, add an impulse to the sphere
@@ -384,6 +400,12 @@ __global__ void interactionGranMat_TriangleSoup(ChSystemGpuMesh_impl::TriangleSo
                 atomicAdd(d_triangleSoup->generalizedForcesPerFamily + fam * 6 + 5, torque.z);
             }
         }  // end of per-triangle loop
+        if (sphere_inside_mesh) {
+            sphere_data->sphere_group[sphereIDGlobal] = SPHERE_GROUP::VOLUME;
+        } else {
+            sphere_data->sphere_group[sphereIDGlobal] = SPHERE_GROUP::GROUND; // TODO add proper logic
+        }
+
         // write back sphere forces
         atomicAdd(sphere_data->sphere_acc_X + sphereIDGlobal, sphere_force.x / gran_params->sphere_mass_SU);
         atomicAdd(sphere_data->sphere_acc_Y + sphereIDGlobal, sphere_force.y / gran_params->sphere_mass_SU);
@@ -439,6 +461,11 @@ __host__ double ChSystemGpuMesh_impl::AdvanceSimulation(float duration) {
             gpuErrchk(cudaPeekAtLastError());
             gpuErrchk(cudaDeviceSynchronize());
 
+            update_ground_group<<<nBlocks, CUDA_THREADS_PER_BLOCK>>>(
+                    sphere_data, gran_params, nSpheres);
+            gpuErrchk(cudaPeekAtLastError());
+            gpuErrchk(cudaDeviceSynchronize());
+
             computeSphereContactForces<<<nBlocks, CUDA_THREADS_PER_BLOCK>>>(
                 sphere_data, gran_params, BC_type_list.data(), BC_params_list_SU.data(),
                 (unsigned int)BC_params_list_SU.size(), nSpheres);
@@ -487,5 +514,50 @@ __host__ double ChSystemGpuMesh_impl::AdvanceSimulation(float duration) {
 
     return time_elapsed_SU * TIME_SU2UU;  // return elapsed UU time
 }
+
+__global__ void count_spheres_in_mesh(const unsigned int nSpheres,
+                                      SPHERE_GROUP* sphere_group,
+                                      unsigned int* d_sphere_count) {
+    unsigned int my_sphere = blockIdx.x * blockDim.x + threadIdx.x;
+    if (my_sphere < nSpheres) {
+        if (sphere_group[my_sphere] == SPHERE_GROUP::VOLUME) {
+            d_sphere_count[my_sphere] = 1;
+        } else {
+            d_sphere_count[my_sphere] = 0;
+        }
+    }
+}
+
+// Implemetation is not efficient, but we won't call this function a lot anyway
+__host__ double ChSystemGpuMesh_impl::volume_inside_mesh() {
+    unsigned int* d_sphere_count;
+    unsigned int* d_sum_sphere_count;
+    unsigned int h_sum_sphere_count;
+    gpuErrchk(cudaMalloc(&d_sum_sphere_count, sizeof(unsigned int)));
+    gpuErrchk(cudaMalloc(&d_sphere_count, nSpheres * sizeof(unsigned int)));
+
+    count_spheres_in_mesh<<<(nSpheres + 255) / 256, 256>>>(
+            nSpheres, sphere_data->sphere_group, d_sphere_count);
+
+    void     *d_temp_storage = NULL;
+    size_t   temp_storage_bytes = 0;
+    cub::DeviceReduce::Sum(d_temp_storage, temp_storage_bytes,
+            d_sphere_count, d_sum_sphere_count, nSpheres);
+    gpuErrchk(cudaMalloc(&d_temp_storage, temp_storage_bytes));
+
+    cub::DeviceReduce::Sum(d_temp_storage, temp_storage_bytes,
+            d_sphere_count, d_sum_sphere_count, nSpheres);
+    gpuErrchk(cudaMemcpy(&h_sum_sphere_count, d_sum_sphere_count, sizeof(unsigned int),
+                cudaMemcpyDeviceToHost));
+
+    double sphere_volume = (4. / 3.) * CH_C_PI * sphere_radius_UU * sphere_radius_UU * sphere_radius_UU;
+    sphere_volume = sphere_volume * h_sum_sphere_count;
+
+    gpuErrchk(cudaFree(d_sum_sphere_count));
+    gpuErrchk(cudaFree(d_sphere_count));
+
+    return sphere_volume;
+}
+
 }  // namespace gpu
 }  // namespace chrono

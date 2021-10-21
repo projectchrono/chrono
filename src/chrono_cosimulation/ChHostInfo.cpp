@@ -76,13 +76,13 @@ ChHostInfo::ChHostInfo(const std::string& hostName, hostType type) {
             }
         } else if (type == ADDRESS) {
             // Retrieve host by address
-            unsigned long netAddr = inet_addr(hostName.c_str());
-            if (netAddr == -1) {
-                ChExceptionSocket* inet_addrException = new ChExceptionSocket(0, "Error calling inet_addr()");
-                throw inet_addrException;
+            struct in_addr netAddr;
+            if (!inet_aton(hostName.c_str(), &netAddr)) {
+                ChExceptionSocket* inet_atonException = new ChExceptionSocket(0, "Error calling inet_aton()");
+                throw inet_atonException;
             }
 
-            hostPtr = gethostbyaddr((char*)&netAddr, sizeof(netAddr), AF_INET);
+            hostPtr = gethostbyaddr((const void*)&netAddr, sizeof(netAddr), AF_INET);
             if (hostPtr == NULL) {
 #ifdef WINDOWS_XP
                 int errorCode;
@@ -94,7 +94,7 @@ ChHostInfo::ChHostInfo(const std::string& hostName, hostType type) {
 
 #ifdef UNIX
                 ChExceptionSocket* gethostbynameException =
-                    new ChExceptionSocket(0, "unix: error getting host by name");
+                    new ChExceptionSocket(0, "unix: error getting host by address");
                 throw gethostbynameException;
 #endif
             }
