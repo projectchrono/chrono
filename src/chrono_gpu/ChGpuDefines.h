@@ -49,8 +49,14 @@ enum class CHGPU_ROLLING_MODE { NO_RESISTANCE, SCHWARTZ, ELASTIC_PLASTIC };
 
 enum CHGPU_OUTPUT_FLAGS { ABSV = 1, VEL_COMPONENTS = 2, FIXITY = 4, ANG_VEL_COMPONENTS = 8, FORCE_COMPONENTS = 16, GROUP = 32};
 
+/// Clustering algorithm switches
+enum CLUSTER_GRAPH_METHOD {NONE = 0, CONTACT = 1}
+enum CLUSTER_SEARCH_METHOD {NONE = 0, BFS = 1} /* BFS -> Breadth-First search */
+// 0 on ANY cluster related switch means no clustering done, all particles group 0.
+// TO DO: Have a different search algorithm than BFS
+
 /// Sphere clustering groups
-enum SPHERE_GROUP {GROUND = 0, VOLUME = 1, AIRBORNE = 2};
+enum SPHERE_GROUP {CORE = 0, BORDER = 1, VOLUME = 2};
 
 #define GET_OUTPUT_SETTING(setting) (this->output_flags & setting)
 
