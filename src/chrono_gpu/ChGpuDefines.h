@@ -56,7 +56,7 @@ enum CLUSTER_SEARCH_METHOD {NONE = 0, BFS = 1} /* BFS -> Breadth-First search */
 // TO DO: Have a different search algorithm than BFS
 
 /// Sphere clustering groups
-enum SPHERE_GROUP {CORE = 0, BORDER = 1, VOLUME = 2};
+enum SPHERE_GROUP {CORE = 0, BORDER = 1, NOISE = 2, VOLUME = 3};
 
 #define GET_OUTPUT_SETTING(setting) (this->output_flags & setting)
 

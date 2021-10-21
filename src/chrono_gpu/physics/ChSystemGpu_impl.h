@@ -100,6 +100,10 @@ class ChSystemGpu_impl {
         CHGPU_ROLLING_MODE rolling_mode;        ///< Which rolling resistance model is active
         CHGPU_TIME_INTEGRATOR time_integrator;  ///< Which time integrator is active
 
+        
+        CLUSTER_GRAPH_METHOD cluster_graph_method; /// graph construction for clustering
+        CLUSTER_SEARCH_METHOD cluster_search_method; /// search algorithm used for clustering
+
         /// Ratio of normal force to peak tangent force, also arctan(theta) where theta is the friction angle
         /// sphere-to-sphere
         float static_friction_coeff_s2s;
@@ -169,14 +173,6 @@ class ChSystemGpu_impl {
         bool recording_contactInfo;  ///< recording contact info
     };
 
-    /// Graph representation of sphere connectivity
-    /// used to differentiate clusters of particles
-    struct ConnectivityGraph {
-        unsigned int * vertex_adjacency_number;
-        unsigned int * vertex_adjacency_start;
-        unsigned int * adjacency_list;
-
-    }
     /// Structure of pointers to kinematic quantities of the ChSystemGpu_impl.
     /// These pointers must be in device-accessible memory.
     struct SphereData {
@@ -226,6 +222,12 @@ class ChSystemGpu_impl {
         unsigned int* spheres_in_SD_composite;       ///< Big composite array of sphere-subdomain membership
 
         unsigned int* sphere_owner_SDs;  ///< List of owner subdomains for each sphere
+
+        /// Graph representation of sphere connectivity
+        /// used to differentiate clusters of particles
+        unsigned int* adj_num; // [mySphereID] -> number of adj
+        unsigned int* adj_start; // [mySphereID] -> start of adjs in adj_list
+        unsigned int* adj_list; // [start + N] -> Nth adj SphereID (n < adj_num[myShpereID])
     };
 
     // The system is not default-constructible
@@ -462,9 +464,6 @@ class ChSystemGpu_impl {
 
     /// Holds system degrees of freedom
     SphereData* sphere_data;
-
-    /// Holds system degrees of freedom
-    ConnectivityGraph * con_graph;
 
     /// Contains information about the status of the granular simulator (solver)
     ChSolverStateData stateOfSolver_resources;
