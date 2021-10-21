@@ -74,6 +74,10 @@ ChSystemGpu_impl::ChSystemGpu_impl(float sphere_rad, float density, float3 boxDi
     gran_params->friction_mode = CHGPU_FRICTION_MODE::FRICTIONLESS;
     gran_params->rolling_mode = CHGPU_ROLLING_MODE::NO_RESISTANCE;
     gran_params->time_integrator = CHGPU_TIME_INTEGRATOR::EXTENDED_TAYLOR;
+
+    gran_params->cluster_graph_method = CLUSTER_GRAPH_METHOD::CONTACT;
+    gran_params->cluster_search_method = CLUSTER_GRAPH_METHOD::BFS;
+
     this->time_integrator = CHGPU_TIME_INTEGRATOR::EXTENDED_TAYLOR;
     this->output_flags = ABSV | ANG_VEL_COMPONENTS;
 
@@ -177,6 +181,13 @@ void ChSystemGpu_impl::packSphereDataPointers() {
 
     if (gran_params->friction_mode == CHGPU_FRICTION_MODE::MULTI_STEP) {
         sphere_data->contact_history_map = contact_history_map.data();
+    }
+
+    if ((gran_params->cluster_graph_method > CLUSTER_GRAPH_METHOD::NONE) &&
+            (gran_params->cluster_search_method > CLUSTER_SEARCH_METHOD::NONE)) {
+        sphere_data->adj_num = adj_num.data();
+        sphere_data->adj_start = adj_start.data();
+        sphere_data->adj_list = adj_list.data();
     }
 
     if (gran_params->recording_contactInfo == true) {

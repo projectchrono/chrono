@@ -252,7 +252,7 @@ __host__ void ChSystemGpu_impl::setupSphereDataStructures() {
     INFO_PRINTF("%u balls added!\n", nSpheres);
     gran_params->nSpheres = nSpheres;
     contact_total = 0;
-    
+
     // Allocate space for connectivity graph
     TRACK_VECTOR_RESIZE(adj_num, nSpheres, "adj_num", 0);
     TRACK_VECTOR_RESIZE(adj_start, nSpheres, "adj_start", 0);

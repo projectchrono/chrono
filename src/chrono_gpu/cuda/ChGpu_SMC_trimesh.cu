@@ -456,11 +456,12 @@ __host__ double ChSystemGpuMesh_impl::AdvanceSimulation(float duration) {
                 (unsigned int)BC_params_list_SU.size());
         } else if (gran_params->friction_mode == CHGPU_FRICTION_MODE::SINGLE_STEP ||
                    gran_params->friction_mode == CHGPU_FRICTION_MODE::MULTI_STEP) {
-            // figure out who is contacting
+            // figure out who is contacting + graph construction if CLUSTER_ enums enabled
             determineContactPairs<<<nSDs, MAX_COUNT_OF_SPHERES_PER_SD>>>(sphere_data, gran_params);
             gpuErrchk(cudaPeekAtLastError());
             gpuErrchk(cudaDeviceSynchronize());
 
+            // compute contact forces + graph construction if CLUSTER_ enums enabled
             computeSphereContactForces<<<nBlocks, CUDA_THREADS_PER_BLOCK>>>(
                 sphere_data, gran_params, BC_type_list.data(), BC_params_list_SU.data(),
                 (unsigned int)BC_params_list_SU.size(), nSpheres);
