@@ -158,7 +158,7 @@ static __host__ unsigned int * cluster_search_BFS(unsigned int nSpheres,
     unsigned int * h_border_num; // number of remaining border vertices to search in BFS_kernl
     gpuErrchk(cudaMalloc((void**)&d_borders, sizeof(*d_borders) * nSpheres));
     gpuErrchk(cudaMalloc((void**)&d_visited, sizeof(*d_visited) * nSpheres));
-    gpuErrchk(cudaMalloc((void**)&d_border_num, sizeof(*d_border_num));
+    gpuErrchk(cudaMalloc((void**)&d_border_num, sizeof(*d_border_num)));
     h_visited = (bool *)calloc(sizeof(*h_visited), nSpheres);
     h_searched = (bool *)calloc(sizeof(*h_searched), nSpheres);
     SPHERE_GROUP h_current_group;
@@ -173,14 +173,15 @@ static __host__ unsigned int * cluster_search_BFS(unsigned int nSpheres,
             gpuErrchk(cudaMemset(&(d_borders + i), true, sizeof(*d_borders)));
             h_searched[i] = true;
 
+            // find and visit border points, establishing the cluster
             do {
             h_clustering_search_BFS_kernel<<<nBLocks, CUDA_THREADS_PER_BLOCK>>>(nSpheres,
                 radius, adj_num, adj_start, adj_list,
                 d_borders, d_visited, d_border_num);
-                gpuErrchk(cudaMemcpy(h_border_num, d_border_num, sizeof(*d_border_num)), cudaMemcpyDeviceToHost);
+                gpuErrchk(cudaMemcpy(h_border_num, d_border_num, sizeof(*d_border_num), cudaMemcpyDeviceToHost));
             } while (h_border_num > 0);
             
-            gpuErrchk(cudaMemcpy(h_visited, d_visited, sizeof(*d_visited)* nSpheres, cudaMemcpyDeviceToHost);
+            gpuErrchk(cudaMemcpy(h_visited, d_visited, sizeof(*d_visited)* nSpheres, cudaMemcpyDeviceToHost));
             h_cluster = (unsigned int *)malloc(sizeof(*h_cluster) * (nSpheres + 1));
             // h_cluster[0] is its size, so it length nSpheres + 1
             for (size_t j = 0; i < nSpheres; j++) {
@@ -210,34 +211,42 @@ static __host__ unsigned int * cluster_search_BFS(unsigned int nSpheres,
     return(h_clusters);
 }
 
-// /// computes h_cluster by breadth first search
-// static __global__ void cluster_search_BFS_kernel(unsigned int nSpheres,
-//                         unsigned int * adj_num
-//                         unsigned int * adj_start
-//                         unsigned int * adj_list,
-//                         bool * d_borders, 
-//                         bool * d_visited,
-//                         unsigned int * d_border_num) {
+/// computes h_cluster by breadth first search
+static __global__ void cluster_search_BFS_kernel(unsigned int nSpheres,
+                        unsigned int * adj_num,
+                        unsigned int * adj_start,
+                        unsigned int * adj_list,
+                        bool * d_borders, 
+                        bool * d_visited,
+                        unsigned int * d_border_num) {
 
-//     // my sphere ID, we're using a 1D thread->sphere map
-//     unsigned int mySphereID = threadIdx.x + blockIdx.x * blockDim.x;
-//     unsigned int neighborSphereID;
+    // my sphere ID, we're using a 1D thread->sphere map
+    unsigned int mySphereID = threadIdx.x + blockIdx.x * blockDim.x;
+    if (d_visited[mySphereID]) {
+        d_visited[mySphereID] = true;
+        d_borders[mySphereID] = false;
 
-//     if (d_visited[mySphereID]) {
-//         d_visited[mySphereID] = true;
-//         d_borders[mySphereID] = false;
-//         atomicAdd(d_border_num, -1);
-//         unsigned int start = adj_start[mySphereID];
-//         unsigned int end = adj_start[mySphereID] + vertex_adjacency_num[mySphereID];
-//         for (size_t i = start; i < end; i++) {
-//             unsigned int neighborSphereID = adj_list[i];
-//             if (!d_visited[neighborSphereID]) {
-//                 border[neighborSphereID] = true;
-//                 atomicAdd(d_border_num, 1);
-//             }
-//         }
-//     }
-// }
+
+        unsigned int start = adj_start[mySphereID];
+        unsigned int end = adj_start[mySphereID] + vertex_adjacency_num[mySphereID];
+        for (size_t i = start; i < end; i++) {
+            unsigned int neighborSphereID = adj_list[i];
+            if (!d_visited[neighborSphereID]) {
+                d_borders[neighborSphereID] = true;
+            }
+        }
+        // Determine temporary device storage requirements
+        void *d_temp_storage = NULL;
+        size_t temp_storage_bytes = 0;
+        cub::DeviceReduce::Sum(d_temp_storage, temp_storage_bytes, d_borders, d_border_num, nSpheres);
+        // Allocate temporary storage
+        gpuErrchk(cudaMalloc(&d_temp_storage, temp_storage_bytes));
+        // Run sum-reduction
+        cub::DeviceReduce::Sum(d_temp_storage, temp_storage_bytes, d_borders, d_border_num, nSpheres);
+        gpuErrchk(cudaFree(d_temp_storage));
+
+    }
+}
 
 // /// UNTESTED
 // /// G-DBSCAN; density-based h_clustering algorithm. Identifies core, border and noise points in h_clusters.
