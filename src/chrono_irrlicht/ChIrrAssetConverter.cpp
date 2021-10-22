@@ -20,6 +20,7 @@
 #include "chrono/assets/ChSurfaceShape.h"
 #include "chrono/assets/ChBarrelShape.h"
 #include "chrono/assets/ChCapsuleShape.h"
+#include "chrono/physics/ChModalAssembly.h"
 
 #include "chrono_irrlicht/ChIrrAssetConverter.h"
 #include "chrono_irrlicht/ChIrrTools.h"
@@ -495,6 +496,27 @@ void ChIrrAssetConverter::BindAllContentsOfAssembly(const ChAssembly* massy, std
     for (auto link : massy->Get_linklist()) {
         Bind(link);
     }
+
+    // Modal assemblies contain custom internal items that might be useful to visualize
+    if (auto myassy_modal = dynamic_cast<const chrono::ChModalAssembly*>(massy)) {
+        for (auto body : myassy_modal->Get_internal_bodylist()) {
+            Bind(body);
+        }
+        for (auto& mesh : myassy_modal->Get_internal_meshlist()) {
+            Bind(mesh);
+        }
+        for (auto ph : myassy_modal->Get_internal_otherphysicslist()) {
+            Bind(ph);
+            // If the assembly holds another assemblies, also bind their contents.
+            if (auto myassy = std::dynamic_pointer_cast<ChAssembly>(ph)) {
+                BindAllContentsOfAssembly(myassy.get(), mtrace);
+            }
+        }
+        for (auto link : myassy_modal->Get_internal_linklist()) {
+            Bind(link);
+        }
+    }
+
 }
 
 void ChIrrAssetConverter::UpdateAllContentsOfAssembly(const ChAssembly* massy, std::unordered_set<const ChAssembly*>& mtrace) {
@@ -523,6 +545,27 @@ void ChIrrAssetConverter::UpdateAllContentsOfAssembly(const ChAssembly* massy, s
     for (auto link : massy->Get_linklist()) {
         Update(link);
     }
+
+    // Modal assemblies contain custom internal items that might be useful to visualize
+    if (auto myassy_modal = dynamic_cast<const chrono::ChModalAssembly*>(massy)) {
+        for (auto body : myassy_modal->Get_internal_bodylist()) {
+            Update(body);
+        }
+        for (auto& mesh : myassy_modal->Get_internal_meshlist()) {
+            Update(mesh);
+        }
+        for (auto ph : myassy_modal->Get_internal_otherphysicslist()) {
+            Update(ph);
+            // If the assembly holds another assemblies, also bind their contents.
+            if (auto myassy = std::dynamic_pointer_cast<ChAssembly>(ph)) {
+                UpdateAllContentsOfAssembly(myassy.get(), mtrace);
+            }
+        }
+        for (auto link : myassy_modal->Get_internal_linklist()) {
+            Update(link);
+        }
+    }
+
 }
 
 }  // end namespace irrlicht
