@@ -194,7 +194,7 @@ static __global__ void init_sphere_group_gdbscan(unsigned int nSpheres,
 //             h_searched[i] = true;
 
 //             do {
-//             h_clustering_search_BFS_kernel<<<nBLocks, CUDA_THREADS_PER_BLOCK>>>(nSpheres,
+//             h_clustering_search_BFS_kernel<<<nBlocks, CUDA_THREADS_PER_BLOCK>>>(nSpheres,
 //                 radius, adj_num, adj_start, adj_list,
 //                 d_borders, d_visited, d_border_num);
 //                 gpuErrchk(cudaMemcpy(h_border_num, d_border_num, sizeof(*d_border_num)), cudaMemcpyDeviceToHost);
@@ -232,8 +232,8 @@ static __global__ void init_sphere_group_gdbscan(unsigned int nSpheres,
 
 /// computes h_cluster by breadth first search
 static __global__ void cluster_search_BFS_kernel(unsigned int nSpheres,
-                        unsigned int * adj_num
-                        unsigned int * adj_start
+                        unsigned int * adj_num,
+                        unsigned int * adj_start,
                         unsigned int * adj_list,
                         bool * d_borders, 
                         bool * d_visited,
@@ -241,8 +241,6 @@ static __global__ void cluster_search_BFS_kernel(unsigned int nSpheres,
 
     // my sphere ID, we're using a 1D thread->sphere map
     unsigned int mySphereID = threadIdx.x + blockIdx.x * blockDim.x;
-    unsigned int neighborSphereID;
-
     if (d_visited[mySphereID]) {
         d_visited[mySphereID] = true;
         d_borders[mySphereID] = false;
@@ -252,7 +250,7 @@ static __global__ void cluster_search_BFS_kernel(unsigned int nSpheres,
         for (size_t i = start; i < end; i++) {
             unsigned int neighborSphereID = adj_list[i];
             if (!d_visited[neighborSphereID]) {
-                border[neighborSphereID] = true;
+                d_borders[neighborSphereID] = true;
                 atomicAdd(d_border_num, 1);
             }
         }
@@ -269,14 +267,14 @@ static __host__ void gdbscan_construct_graph(ChSystemGpu_impl::GranSphereDataPtr
                                            unsigned int nSpheres, size_t min_pts, float radius) {
     unsigned int nBlocks = (nSpheres + CUDA_THREADS_PER_BLOCK - 1) / CUDA_THREADS_PER_BLOCK;
 
-    /// 2 steps:
-    ///     1- compute all adjacent spheres inside radius
-    construct_adj_num_start_by_proximity<<<nBLocks, CUDA_THREADS_PER_BLOCK>>>(sphere_data, gran_params, nSpheres,
-            radius, adj_num, adj_start);
+    // /// 2 steps:
+    // ///     1- compute all adjacent spheres inside radius
+    // construct_adj_num_start_by_proximity<<<nBlocks, CUDA_THREADS_PER_BLOCK>>>(sphere_data, gran_params, nSpheres,
+    //         radius, adj_num, adj_start);
 
-    ///     2- compute adjacency list
-    construct_adj_list_by_proximity<<<nBLocks, CUDA_THREADS_PER_BLOCK>>>(sphere_data, gran_params, nSpheres,
-            radius, adj_num, adj_start, adj_list);
+    // ///     2- compute adjacency list
+    // construct_adj_list_by_proximity<<<nBlocks, CUDA_THREADS_PER_BLOCK>>>(sphere_data, gran_params, nSpheres,
+    //         radius, adj_num, adj_start, adj_list);
 }
 
 static __global__ void update_cluster_group(ChSystemGpu_impl::GranSphereDataPtr sphere_data,
@@ -299,7 +297,7 @@ static __global__ void update_cluster_group(ChSystemGpu_impl::GranSphereDataPtr 
 //                                            unsigned int nSpheres, size_t min_pts) {
 //     unsigned int nBlocks = (nSpheres + CUDA_THREADS_PER_BLOCK - 1) / CUDA_THREADS_PER_BLOCK;
 
-//     init_sphere_group_gdbscan<<<nBLocks, CUDA_THREADS_PER_BLOCK>>>(nSpheres,
+//     init_sphere_group_gdbscan<<<nBlocks, CUDA_THREADS_PER_BLOCK>>>(nSpheres,
 //                 sphere_data->adj_num, sphere_data->sphere_group, minPts);
 
 //     unsigned int h_clusters * cluster_search_BFS(nSpheres, sphere_data->adj_num,
@@ -328,7 +326,7 @@ static __global__ void update_cluster_group(ChSystemGpu_impl::GranSphereDataPtr 
 //         gpuErrchk(cudaMalloc(&d_cluster, h_clusters[i][0]));
 //         gpuErrchk(cudaMemcpy(d_cluster, h_clusters[i] + 1, sizeof(*d_cluster) * h_clusters[i][0]));
 //         sphere_num_in_cluster = h_clusters[i][0];
-//         update_cluster_group<<<nBLocks, CUDA_THREADS_PER_BLOCK>>>(sphere_data,
+//         update_cluster_group<<<nBlocks, CUDA_THREADS_PER_BLOCK>>>(sphere_data,
 //                                             gran_params, sphere_num_in_cluster,
 //                                             cluster_id, d_cluster);
 //         gpuErrchk(cudaFree(d_cluster));
