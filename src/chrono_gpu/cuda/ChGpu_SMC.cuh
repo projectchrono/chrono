@@ -473,8 +473,7 @@ inline __device__ void applyExternalForces(unsigned int currSphereID,
 }
 
 static __global__ void determineContactPairs(ChSystemGpu_impl::GranSphereDataPtr sphere_data,
-                                             ChSystemGpu_impl::GranParamsPtr gran_params,
-                                             ChSystemGpu_impl:: gran_params) {
+                                             ChSystemGpu_impl::GranParamsPtr gran_params) {
     
     // Cache positions of spheres local to this SD
     __shared__ int3 sphere_pos_local[MAX_COUNT_OF_SPHERES_PER_SD];
@@ -556,25 +555,11 @@ static __global__ void determineContactPairs(ChSystemGpu_impl::GranSphereDataPtr
         /// i.e. construct_adj_num_start_by_contact 
         /// computes adj_num and adj_start
         if ((gran_params->cluster_graph_method > CLUSTER_GRAPH_METHOD::NONE) &&
-            (gran_params->cluster_search_method > CLUSTER_GRAPH_METHOD::NONE) &&
+            (gran_params->cluster_search_method > CLUSTER_SEARCH_METHOD::NONE) &&
             (gran_params->cluster_graph_method == CLUSTER_GRAPH_METHOD::CONTACT)) {
 
-            sphere_data->adj_num[mySphereID] = ncontacts;
-            sphere_data->adj_start[mySphereID] += ncontacts;
-            sphere_data->contact_total += ncontacts;
-
-            /// Compute subsequent adj_start indices.
-            /// all start indices after mySphereID depend on it -> inclusive sum
-            void * d_temp_storage = NULL;
-            size_t bytesize = 0;
-            /// with d_temp_storage = NULL, InclusiveSum computes necessary bytesize
-            cub::DeviceScan::InclusiveSum(d_temp_storage, bytesize,
-                sphere_data->adj_start + i, sphere_data->adj_start + i, nSpheres - i);
-            gpuErrchk(cudaMalloc(&d_temp_storage, bytesize));
-            /// Actually perform IncluseSum
-            cub::DeviceScan::InclusiveSum(d_temp_storage, bytesize,
-                sphere_data->adj_start + i, sphere_data->adj_start + i, nSpheres - i);
-            gpuErrchk(cudaFree(d_temp_storage));
+            sphere_data->adj_num[sphIDs[bodyA]] = ncontacts;
+            sphere_data->adj_start[sphIDs[bodyA]] = ncontacts;
         }
     }
 }
@@ -691,12 +676,11 @@ static __global__ void computeSphereContactForces(ChSystemGpu_impl::GranSphereDa
         /// copies active contacts to adj_list
         /// equivalent to construct_adj_list_by_contact 
         if ((gran_params->cluster_graph_method > CLUSTER_GRAPH_METHOD::NONE) &&
-            (gran_params->cluster_search_method > CLUSTER_GRAPH_METHOD::NONE) &&
+            (gran_params->cluster_search_method > CLUSTER_SEARCH_METHOD::NONE) &&
             (gran_params->cluster_graph_method == CLUSTER_GRAPH_METHOD::CONTACT)) {
-            gpuErrchk(cudaMemcpy(sphere_data->adj_list + sphere_data->adj_start[mySphereID],
+            memcpy(sphere_data->adj_list + sphere_data->adj_start[mySphereID],
                     theirIDList,
-                    numActiveContacts,
-                    cudaMemcpyHostToDevice));
+                    numActiveContacts);
         }
 
         // Sort. Simple but should be effective since we have 12 contacts max

@@ -221,19 +221,7 @@ __host__ void ChSystemGpu_impl::defragment_initial_positions() {
     sphere_cluster_tmp.resize(nSpheres);
     sphere_owner_SDs_tmp.resize(nSpheres);
 
-    adj_num_tmp.resize(nSpheres);
-    adj_start_tmp.resize(nSpheres);
-    adj_list_tmp.resize(nSpheres * MAX_SPHERES_TOUCHED_BY_SPHERE);
-
-    // reorder values into new sorted
-    for (unsigned int i = 0; i < (nSpheres * MAX_SPHERES_TOUCHED_BY_SPHERE); i++) {
-        adj_list_tmp.at(i) = adj_list.at(sphere_ids.at(i));
-    }
-
     for (unsigned int i = 0; i < nSpheres; i++) {
-        adj_num_tmp.at(i) = adj_num.at(sphere_ids.at(i));
-        adj_start_tmp.at(i) = adj_start.at(sphere_ids.at(i));
-
         sphere_pos_x_tmp.at(i) = sphere_local_pos_X.at(sphere_ids.at(i));
         sphere_pos_y_tmp.at(i) = sphere_local_pos_Y.at(sphere_ids.at(i));
         sphere_pos_z_tmp.at(i) = sphere_local_pos_Z.at(sphere_ids.at(i));
@@ -257,10 +245,6 @@ __host__ void ChSystemGpu_impl::defragment_initial_positions() {
     pos_Y_dt.swap(sphere_vel_y_tmp);
     pos_Z_dt.swap(sphere_vel_z_tmp);
 
-    adj_num.swap(adj_num_tmp);
-    adj_start.swap(adj_start_tmp);
-    adj_list.swap(adj_list_tmp);
-
     sphere_fixed.swap(sphere_fixed_tmp);
     sphere_group.swap(sphere_group_tmp);
     sphere_cluster.swap(sphere_cluster_tmp);
@@ -276,12 +260,11 @@ __host__ void ChSystemGpu_impl::setupSphereDataStructures() {
     nSpheres = (unsigned int)user_sphere_positions.size();
     INFO_PRINTF("%u balls added!\n", nSpheres);
     gran_params->nSpheres = nSpheres;
-    contact_total = 0;
 
     // Allocate space for connectivity graph
     TRACK_VECTOR_RESIZE(adj_num, nSpheres, "adj_num", 0);
     TRACK_VECTOR_RESIZE(adj_start, nSpheres, "adj_start", 0);
-    TRACK_VECTOR_RESIZE(adj_list, nSpheres * MAX_SPHERES_TOUCHED_BY_SPHERE, "adj_list", 0);
+    TRACK_VECTOR_RESIZE(adj_list, (nSpheres * MAX_SPHERES_TOUCHED_BY_SPHERE), "adj_list", 0);
 
     TRACK_VECTOR_RESIZE(sphere_owner_SDs, nSpheres, "sphere_owner_SDs", NULL_CHGPU_ID);
     // Allocate space for new bodies
@@ -327,7 +310,7 @@ __host__ void ChSystemGpu_impl::setupSphereDataStructures() {
             sphere_fixed.at(i) = (not_stupid_bool)((user_provided_fixed) ? user_sphere_fixed[i] : false);
             // default sphere group/cluster
             sphere_group.at(i) = SPHERE_GROUP::CORE;
-            sphere_group.at(i) = CLUSTER_INDEX::START;
+            sphere_cluster.at(i) = (unsigned int)CLUSTER_INDEX::START;
             if (user_provided_vel) {
                 auto vel = user_sphere_vel.at(i);
                 pos_X_dt.at(i) = (float)(vel.x / VEL_SU2UU);
@@ -568,10 +551,10 @@ __host__ double ChSystemGpu_impl::AdvanceSimulation(float duration) {
             gpuErrchk(cudaPeekAtLastError());
             gpuErrchk(cudaDeviceSynchronize());
 
-            // compute contact forces + graph construction if CLUSTER_ enums enabled
+            // compute contact forces
             computeSphereContactForces<<<nBlocks, CUDA_THREADS_PER_BLOCK>>>(
                 sphere_data, gran_params, BC_type_list.data(), BC_params_list_SU.data(),
-                (unsigned int)BC_params_list_SU.size());
+                (unsigned int)BC_params_list_SU.size(), nSpheres);
             gpuErrchk(cudaPeekAtLastError());
             gpuErrchk(cudaDeviceSynchronize());
         }
@@ -579,25 +562,43 @@ __host__ double ChSystemGpu_impl::AdvanceSimulation(float duration) {
         // clustering mostly takes place here. 
         if ((gran_params->cluster_graph_method > CLUSTER_GRAPH_METHOD::NONE) 
             && (gran_params->cluster_search_method > CLUSTER_SEARCH_METHOD::NONE)) {
+            unsigned int min_pts = 4;
+            float radius = 1.0f;
             // step 1- Graph construction
             switch(gran_params->cluster_graph_method) {
-                case CLUSTER_GRAPH_METHOD::CONTACT:
-                    // graph construction done in determineContactPairs and computeSphereContactForces
+                case CLUSTER_GRAPH_METHOD::CONTACT: {
+                    /// adj_num computed before. adj_start not summed yet
+                    /// Compute subsequent adj_start indices.
+                    /// all start indices after mySphereID depend on it -> inclusive sum
+                    void * d_temp_storage = NULL;
+                    size_t bytesize = 0;
+                    /// with d_temp_storage = NULL, InclusiveSum computes necessary bytesize
+                    cub::DeviceScan::InclusiveSum(d_temp_storage, bytesize,
+                        sphere_data->adj_start,
+                        sphere_data->adj_start, gran_params->nSpheres);
+                    gpuErrchk(cudaMalloc(&d_temp_storage, bytesize));
+                    /// Actually perform IncluseSum
+                    cub::DeviceScan::InclusiveSum(d_temp_storage, bytesize,
+                        sphere_data->adj_start,
+                        sphere_data->adj_start, gran_params->nSpheres);
+                    gpuErrchk(cudaFree(d_temp_storage));
                     break;
+                }
 
-                case CLUSTER_GRAPH_METHOD::PROXIMITY:
+                case CLUSTER_GRAPH_METHOD::PROXIMITY: {
                     gdbscan_construct_graph(sphere_data, gran_params, nSpheres, min_pts, radius);
-                default:
                     break;
+                }
+                default: {break;}
             }
 
             // step 2- Search the graph, find the clusters.
             switch(gran_params->cluster_search_method) {
-                case CLUSTER_SEARCH_METHOD::BFS:
+                case CLUSTER_SEARCH_METHOD::BFS: {
                     gdbscan_search_graph(sphere_data, gran_params, nSpheres, min_pts);
                     break;
-                default:
-                    break;
+                }
+                default: {break;}
             }
         }
 

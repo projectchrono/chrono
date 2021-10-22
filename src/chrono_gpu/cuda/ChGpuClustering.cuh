@@ -230,6 +230,8 @@ static __global__ void init_sphere_group_gdbscan(unsigned int nSpheres,
 //     return(h_clusters);
 // }
 
+
+
 // /// computes h_cluster by breadth first search
 // static __global__ void cluster_search_BFS_kernel(unsigned int nSpheres,
 //                         unsigned int * adj_num,
@@ -296,10 +298,23 @@ static __global__ void update_cluster_group(ChSystemGpu_impl::GranSphereDataPtr 
     unsigned int mySphereID = threadIdx.x + blockIdx.x * blockDim.x;
     for (size_t i = 0; i < sphere_num_in_cluster; i++) { 
         if (cluster[i] == mySphereID) {
-            sphere_data->sphere_cluster = cluster_id;
+            sphere_data->sphere_cluster[mySphereID] = cluster_id;
         }
     }
 }
+
+__host__ void gdbscan_search_graph(ChSystemGpu_impl::GranSphereDataPtr sphere_data,
+                                           ChSystemGpu_impl::GranParamsPtr gran_params,
+                                           unsigned int nSpheres, size_t min_pts);
+
+
+// __global__ void cluster_search_BFS_kernel(unsigned int nSpheres,
+//                         unsigned int * adj_num,
+//                         unsigned int * adj_start,
+//                         unsigned int * adj_list,
+//                         bool * d_borders, 
+//                         bool * d_visited);
+
 
 // /// G-DBSCAN; density-based h_clustering algorithm. Identifies core, border and noise points in h_clusters.
 // /// min_pts: minimal number of points for a cluster

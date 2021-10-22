@@ -64,6 +64,14 @@ void ChSystemGpu::SetOutputFlags(unsigned char flags) {
     m_sys->output_flags = flags;
 }
 
+void ChSystemGpu::SetClusterSearchMethod(CLUSTER_SEARCH_METHOD flag) {
+    m_sys->gran_params->cluster_search_method = flag;
+}
+
+void ChSystemGpu::SetClusterGraphMethod(CLUSTER_GRAPH_METHOD flag) {
+    m_sys->gran_params->cluster_graph_method = flag;
+}
+
 void ChSystemGpu::SetFixedStepSize(float size_UU) {
     m_sys->stepSize_UU = size_UU;
 }

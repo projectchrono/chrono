@@ -50,19 +50,19 @@ enum class CHGPU_ROLLING_MODE { NO_RESISTANCE, SCHWARTZ, ELASTIC_PLASTIC };
 enum CHGPU_OUTPUT_FLAGS { ABSV = 1, VEL_COMPONENTS = 2, FIXITY = 4, ANG_VEL_COMPONENTS = 8, FORCE_COMPONENTS = 16, GROUP = 32, CLUSTER = 64};
 
 /// Clustering algorithm switches
-enum CLUSTER_GRAPH_METHOD {NONE = 0, CONTACT = 1};
-enum CLUSTER_SEARCH_METHOD {NONE = 0, BFS = 1};/* BFS -> Breadth-First search */
+enum class CLUSTER_GRAPH_METHOD {NONE = 0, CONTACT = 1, PROXIMITY = 2};
+enum class CLUSTER_SEARCH_METHOD {NONE = 0, BFS = 1};/* BFS -> Breadth-First search */
 
 /// Clustering algorithm switches
-enum CLUSTER_INDEX {GROUND = 0, START = 1};/* number of clusters go up to nSpheres */
+enum class CLUSTER_INDEX {GROUND = 0, START = 1};/* number of clusters go up to nSpheres */
 
 // 0 on ANY cluster related switch means no clustering done, all particles group 0.
 // TO DO: Have a different search algorithm than BFS
 
 /// Sphere groups, core border or noise for clustering, volume inside bucket
-enum SPHERE_GROUP {CORE = 0, BORDER = 1, NOISE = 2, VOLUME = 3};
+enum class SPHERE_GROUP {CORE = 0, BORDER = 1, NOISE = 2, VOLUME = 3};
 
-#define GET_OUTPUT_SETTING(setting) (this->output_flags & setting)
+#define GET_OUTPUT_SETTING(setting) (this->output_flags & static_cast<unsigned int>(setting))
 
 }  // namespace gpu
 }  // namespace chrono

@@ -228,7 +228,6 @@ class ChSystemGpu_impl {
         unsigned int* adj_num; // [mySphereID] -> number of adj
         unsigned int* adj_start; // [mySphereID] -> start of adjs in adj_list
         unsigned int* adj_list; // [start + N] -> Nth adj SphereID (n < adj_num[myShpereID])
-        unsigned int contact_total;
     };
 
     // The system is not default-constructible
@@ -546,7 +545,7 @@ class ChSystemGpu_impl {
     std::vector<SPHERE_GROUP, cudallocator<SPHERE_GROUP>> sphere_group;
     /// Sphere cluster
     std::vector<unsigned int, cudallocator<unsigned int>> sphere_cluster;
-
+    
     /// Set of contact partners for each sphere. Only used in frictional simulations
     std::vector<unsigned int, cudallocator<unsigned int>> contact_partners_map;
     /// Whether the frictional contact at an index is active
