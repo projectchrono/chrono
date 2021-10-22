@@ -51,7 +51,7 @@ double beam_Rmin = 0.2;
 double rad_s = 0.2;
 
 
-void BuildAssembly( std::shared_ptr<ChAssembly> my_assembly,  
+void BuildAssembly( std::shared_ptr<ChModalAssembly> my_assembly,  
                     std::vector<std::shared_ptr<ChNodeFEAxyzrot>>& nodes  ) // just for returning some info on the assembly
 {
     // BODY: the base & tower:
@@ -85,13 +85,13 @@ void BuildAssembly( std::shared_ptr<ChAssembly> my_assembly,
     my_motor->Initialize(my_body_hub, my_body_A, ChFrame<>(ChVector<>(0, 0, 1)));
     auto my_angle = chrono_types::make_shared<ChFunction_Ramp>(0, rad_s); // alpha_0, dalpha/dt (in rad/s)
     my_motor->SetAngleFunction(my_angle);
-    my_assembly->Add(my_motor);
+    my_assembly->AddInternal(my_motor);
 
     // MESH:  Create a FEM mesh, that is a container for groups
     //        of elements and their referenced nodes.
 
     auto my_mesh = chrono_types::make_shared<ChMesh>();
-    my_assembly->Add(my_mesh);
+    my_assembly->AddInternal(my_mesh);
 
     my_mesh->SetAutomaticGravity(false);
     
@@ -107,8 +107,8 @@ void BuildAssembly( std::shared_ptr<ChAssembly> my_assembly,
     msection->SetDensity(beam_density);
     msection->SetYoungModulus(beam_Young);
     msection->SetGwithPoissonRatio(0.31);
-    msection->SetBeamRaleyghDampingBeta(0 * 0.00001);
-    msection->SetBeamRaleyghDampingAlpha(0 * 0.001);
+    msection->SetBeamRaleyghDampingBeta(0.00001);
+    msection->SetBeamRaleyghDampingAlpha(0.001);
     msection->SetAsRectangularSection(beam_wy, beam_wz);
     msection->compute_inertia_damping_matrix = true; //*** not much different
     msection->compute_inertia_stiffness_matrix = true; //*** not much differen
@@ -133,7 +133,7 @@ void BuildAssembly( std::shared_ptr<ChAssembly> my_assembly,
     my_root->Initialize(nodes.front(), my_body_hub, ChFrame<>(ChVector<>(0, 0.5, 1), Q_from_AngAxis(CH_C_PI_2, VECT_X)));
     auto my_angle2 = chrono_types::make_shared<ChFunction_Const>(0); // rad 
     my_root->SetMotorFunction(my_angle2);
-    my_assembly->Add(my_root);
+    my_assembly->AddInternal(my_root);
 
     //
     // VISUALIZATION ASSETS:
@@ -181,10 +181,12 @@ int main(int argc, char* argv[]) {
 
    // CREATE THE ASSEMBLY HERE
 
-    auto my_assembly1 = chrono_types::make_shared<ChAssembly>();
+    /*
+    auto my_assembly1 = chrono_types::make_shared<ChModalAssembly>();
     my_system.Add(my_assembly1);
 
     BuildAssembly(my_assembly1, nodes);
+    */
 
     auto my_assembly2 = chrono_types::make_shared<ChModalAssembly>();
     my_system.Add(my_assembly2);
@@ -192,6 +194,10 @@ int main(int argc, char* argv[]) {
     BuildAssembly(my_assembly2, nodes);
     
     my_assembly2->DumpSubassemblyMatrices(true, true, true, true, (out_dir+"/dump").c_str());
+
+    my_assembly2->ComputeModes(5);
+
+    GetLog() << "Frequencies [Hz]: " << my_assembly2->Get_modes_frequencies() << "\n";
 
     //
     // VISUALIZATION
@@ -290,8 +296,16 @@ int main(int argc, char* argv[]) {
     std::vector<double> rec_tip_edge_d;
     std::vector<double> rec_tip_flap_d;
     int elapsed_frames_start_dynamics = 200;
+    
+    double phi = 0;
+    int nmode = 0;
+    double ampli = 0.5;
 
     while (application.GetDevice()->run()) {
+
+        phi += 0.06;
+        my_assembly2->ModeIncrementState(nmode, phi, ampli);
+
         application.BeginScene();
 
         application.DrawAll();
@@ -300,7 +314,14 @@ int main(int argc, char* argv[]) {
                              ChCoordsys<>(ChVector<>(0, 0, 0), CH_C_PI_2, VECT_Z),
                              video::SColor(100, 120, 120, 120), true);
 
-        application.DoStep();
+        //application.DoStep();
+        
+        // restore original
+        my_assembly2->ModeIncrementState(nmode, -phi, ampli);
+
+        if (phi > 2 * CH_C_2PI) nmode = 1;
+        if (phi > 4 * CH_C_2PI) nmode = 2;
+        if (phi > 6 * CH_C_2PI) nmode = 3;
 
         // for plotting the tip oscillations, in the blade root coordinate:
         if (!application.GetPaused()) {
