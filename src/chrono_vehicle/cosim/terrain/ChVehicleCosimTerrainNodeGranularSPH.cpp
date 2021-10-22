@@ -548,8 +548,7 @@ void ChVehicleCosimTerrainNodeGranularSPH::OutputVisualizationData(int frame) {
         filename = OutputFilename(m_node_out_dir + "/visualization", "vis", "dat", frame, 5);
         // Include only obstacle bodies
         utils::WriteVisualizationAssets(
-            m_system, filename, [](const ChBody& b) -> bool { return b.GetIdentifier() >= body_id_obstacles; }, true,
-            " ");
+            m_system, filename, [](const ChBody& b) -> bool { return b.GetIdentifier() >= body_id_obstacles; }, true);
     }
 }
 

@@ -1054,7 +1054,7 @@ void ChVehicleCosimTerrainNodeGranularOMP::OutputVisualizationData(int frame) {
     auto filename = OutputFilename(m_node_out_dir + "/visualization", "vis", "dat", frame, 5);
     // Include only obstacles and particles
     utils::WriteVisualizationAssets(
-        m_system, filename, [](const ChBody& b) -> bool { return b.GetIdentifier() > body_id_obstacles; }, true, " ");
+        m_system, filename, [](const ChBody& b) -> bool { return b.GetIdentifier() > body_id_obstacles; }, true);
 }
 
 void ChVehicleCosimTerrainNodeGranularOMP::PrintMeshProxiesUpdateData(unsigned int i, const MeshState& mesh_state) {

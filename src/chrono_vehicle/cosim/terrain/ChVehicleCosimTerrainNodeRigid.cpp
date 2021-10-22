@@ -484,7 +484,7 @@ void ChVehicleCosimTerrainNodeRigid::OutputVisualizationData(int frame) {
     auto filename = OutputFilename(m_node_out_dir + "/visualization", "vis", "dat", frame, 5);
     // Include only main body and obstacles
     utils::WriteVisualizationAssets(
-        m_system, filename, [](const ChBody& b) -> bool { return b.GetIdentifier() > body_id_terrain; }, true, " ");
+        m_system, filename, [](const ChBody& b) -> bool { return b.GetIdentifier() > body_id_terrain; }, true);
 }
 
 void ChVehicleCosimTerrainNodeRigid::PrintMeshProxiesUpdateData(unsigned int i, const MeshState& mesh_state) {

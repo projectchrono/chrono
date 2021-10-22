@@ -146,7 +146,7 @@ void ChVehicleCosimTireNodeRigid::WriteTireMeshInformation(utils::CSV_writer& cs
 
 void ChVehicleCosimTireNodeRigid::OutputVisualizationData(int frame) {
     auto filename = OutputFilename(m_node_out_dir + "/visualization", "vis", "dat", frame, 5);
-    utils::WriteVisualizationAssets(m_system, filename, true, " ");
+    utils::WriteVisualizationAssets(m_system, filename, true);
 }
 
 }  // namespace vehicle

@@ -306,7 +306,7 @@ void ChVehicleCosimMBSNode::OutputData(int frame) {
 
 void ChVehicleCosimMBSNode::OutputVisualizationData(int frame) {
     auto filename = OutputFilename(m_node_out_dir + "/visualization", "vis", "dat", frame, 5);
-    utils::WriteVisualizationAssets(m_system, filename, true, " ");
+    utils::WriteVisualizationAssets(m_system, filename, true);
 }
 
 }  // end namespace vehicle
