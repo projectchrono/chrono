@@ -30,7 +30,7 @@ def convertshape(shapedata, meshespaths):
     # Triangular Mesh
     if shapedata[0] == 5:
         for dirpath in meshespaths:
-            file_path = dirpath + shapedata[-1] + '.obj'
+            file_path = dirpath + "/" + shapedata[-1] + '.obj'
             if os.path.isfile(file_path ):
                 imported_object_3 = bpy.ops.import_scene.obj(filepath=file_path )
                 obj_object = bpy.context.object
@@ -117,9 +117,8 @@ def render_image(dirpaths, filepath,file_index, out_dir, meshes_prefixes,res,  t
     dat_path = dirpaths[0] + filepath + ".dat"
     #particle_path = dirpaths[0] + filepath + ".chpf"
 
-    # optional: delete cached objects
-    #for oldobj in bpy.data.objects :
-    #    bpy.data.objects.remove(oldobj)
+    # optional: delete default cube
+    bpy.data.objects.remove(bpy.data.objects['Cube'])
 
     # IF there is a chrono .dat output, it gets processed
     expshapes = []
