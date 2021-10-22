@@ -17,8 +17,52 @@
 
 #include "chrono/physics/ChAssembly.h"
 #include "chrono/solver/ChVariablesGeneric.h"
+#include <complex>
 
 namespace chrono {
+
+
+/// Base interface class for eigensolvers for the dynamic problem 
+/// ie. the quadratic eigenvalue problem  (lambda^2*M + lambda*R + K)*x = 0
+/// Children classes can implement this in different ways, overridding Solve()
+class ChApi ChQuadraticEigenvalueSolver {
+public:
+    virtual ~ChQuadraticEigenvalueSolver() {};
+
+    /// Solve the quadratic eigenvalue problem (lambda^2*M + lambda*R + K)*x = 0 s.t. Cq*x = 0
+    /// If n_modes=0, return all eigenvalues, otherwise only the first lower n_modes. 
+    virtual bool Solve(
+        const ChSparseMatrix& M,  ///< input M matrix
+        const ChSparseMatrix& R,  ///< input R matrix
+        const ChSparseMatrix& K,  ///< input K matrix
+        const ChSparseMatrix& Cq, ///< input Cq matrix of constraint jacobians
+        ChMatrixDynamic<std::complex<double>>& V,    ///< output matrix with eigenvectors as columns, will be resized
+        ChVectorDynamic<std::complex<double>>& eig,  ///< output vector with eigenvalues (real part not zero if some damping), will be resized
+        int n_modes = 0             ///< optional: n. of desired lower eigenvalues. If =0, return all eigenvalues.
+    ) = 0;
+};
+
+/// Solves the eigenvalue problem with a direct method: first does LU factorization of Cq jacobians
+/// to find the null space, then solves the problem using the direct  Eigen::EigenSolver.
+/// Note: since intermediate dense matrices are built, the performance is acceptable only for small-sized problems.
+/// Note: since the method is direct, all eigenvalues are computed, regardless of n_modes, but only lower n_modes are returned.
+class ChApi ChQuadraticEigenvalueSolverNullspaceDirect : public ChQuadraticEigenvalueSolver {
+public:
+    virtual ~ChQuadraticEigenvalueSolverNullspaceDirect() {};
+
+    /// Solve the quadratic eigenvalue problem (lambda^2*M + lambda*R + K)*x = 0 s.t. Cq*x = 0
+    /// If n_modes=0, return all eigenvalues, otherwise only the first lower n_modes. 
+    virtual bool Solve(
+        const ChSparseMatrix& M, ///< input M matrix
+        const ChSparseMatrix& R, ///< input R matrix
+        const ChSparseMatrix& K, ///< input K matrix
+        const ChSparseMatrix& Cq,   ///< input Cq matrix of constraint jacobians
+        ChMatrixDynamic<std::complex<double>>& V,    ///< output matrix with eigenvectors as columns, will be resized
+        ChVectorDynamic<std::complex<double>>& eig,  ///< output vector with eigenvalues (real part not zero if some damping), will be resized
+        int n_modes = 0             ///< optional: n. of desired lower eigenvalues. If =0, return all eigenvalues.
+    );
+};
+
 
 /// Class for assemblies of items, for example ChBody, ChLink, ChMesh, etc.
 /// This supports component mode synthesis (CMS) to do substructuring, hence an assembly becomes a "modal body"
@@ -43,12 +87,76 @@ class ChApi ChModalAssembly : public ChAssembly {
     /// Set false to consider all internal bodies, meshes etc. as normal items in a normal assembly. 
     void SetModalMode(bool mmodal) {
         this->is_modal = mmodal; 
+
         this->Setup();
     }
 
     bool IsModalMode() {
         return this->is_modal;
     }
+
+    /// Compute the modes for the "internal" bodies, meshes etc. 
+    void ComputeModes(int nmodes); ///< the n. of lower modes to keep 
+    
+    /// Compute modes by providing pre-computed M, R, K matrices and pre-computed modes V.
+    /// The size of the M R K matrices must be this->GetN_coords_w (ie all coords of "boundary" items plus this->n_modes_coords_w)
+    /// where all the rows are ordered to have first all the coordinates of the boundary items, then all modal coordinates.
+    void ComputeModes(  ChMatrixRef my_modal_M, 
+                        ChMatrixRef my_modal_R, 
+                        ChMatrixRef my_modal_K,
+                        ChMatrixRef my_modes_V   ///< columns: arbitrary n of eigenvectors, rows: first "boundary" then "inner" dofs.
+    );
+
+    /// Compute modes by providing pre-computed modes V.
+    /// The row size of V must be n_boundary_coords_w + n_internal_coords_w, 
+    /// with coordinates arranged as all coords of "boundary" items then all "inner" items.
+    /// This function also computes the M, R, K matrices. 
+    void ComputeModes( ChMatrixRef my_modes_V   ///< columns: arbitrary n of eigenvectors, rows: first "boundary" then "inner" dofs.
+    );
+
+
+    /// For displaying modes, you can use the following function. It increments the current state of this subassembly
+    /// (both boundary and inner items) using the n-th eigenvector multiplied by a "amplitude" factor * sin(phase). To rewind to original state, 
+    /// use negative amplitude. If you increment the phase during an animation, you will see the n-ht mode 
+    /// oscillating on the screen. 
+    void ModeIncrementState(int n_mode, double phase, double amplitude);
+
+protected:
+    /// Resize modal matrices and hook up the variables to the  M K R block for the solver. To be used all times
+    /// the n. of modes (n_modes_coords_w) is changed. Use after a Setup() and after n_modes_coords_w is set.
+    void SetupModalData();
+
+public:
+    /// Get the number of modal coordinates. Use one of the ComputeModes() to change it.
+    int Get_n_modes_coords_w() { return n_modes_coords_w; }
+
+    /// Access the vector of modal coordinates
+    ChVectorDynamic<>& Get_modal_q() { return modal_q; }
+    /// Access the vector of time derivative of modal coordinates (speeds)
+    ChVectorDynamic<>& Get_modal_q_dt()  { return modal_q_dt; }
+    /// Access the vector of 2nd time derivative of modal coordinates (accelerations)
+    ChVectorDynamic<>& Get_modal_q_dtdt()  { return modal_q_dtdt; }
+    /// Access the vector of applied forces to modal coordinates
+    ChVectorDynamic<>& Get_modal_F()  { return modal_F; }
+
+    /// Access the modal mass matrix - read only
+    const ChMatrixDynamic<>& Get_modal_M() const { return modal_M; }
+    /// Access the modal stiffness matrix - read only
+    const ChMatrixDynamic<>& Get_modal_K() const { return modal_K; }
+    /// Access the modal damping matrix - read only
+    const ChMatrixDynamic<>& Get_modal_R() const { return modal_R; }
+
+    /// Access the modal eigenvectors for the "inner" part of the assembly, if previously computed. 
+    /// Read only. Use one of the ComputeModes() functions to set it.
+    const ChMatrixDynamic<std::complex<double>>& Get_modes_V() const { return modes_V; }
+
+    /// Access the modal eigenvalues, if previously computed. Ex. the imaginary part is omega [rad/s].
+    /// Read only. Use one of the ComputeModes() functions to set it.
+    const ChVectorDynamic<std::complex<double>>& Get_modes_eig() const { return modes_eig; }
+
+    /// Get a vector of modal natural frequencies [Hz], if previously computed.
+    /// Read only. Use one of the ComputeModes() functions to set it.
+    const ChVectorDynamic<> Get_modes_frequencies() const { return (1.0/CH_C_2PI) * modes_eig.imag(); }
 
 
     //
@@ -145,33 +253,33 @@ class ChApi ChModalAssembly : public ChAssembly {
     /// Dump the  M mass matrix, K damping matrix, R damping matrix, Cq constraint jacobian
     /// matrix (at the current configuration) for this subassembly,
     /// Assumes the rows/columns of the matrices are ordered as the ChVariable objects used in this assembly, 
-    /// first the all the "outer" variables then all the "inner" variables (or modal variables if switched to modal assembly).
+    /// first the all the "boundary" variables then all the "inner" variables (or modal variables if switched to modal assembly).
     /// The name of the files will be [path]_M.dat [path]_K.dat [path]_R.dat [path]_Cq.dat 
     /// Might throw ChException if file can't be saved.
     void DumpSubassemblyMatrices(bool save_M, bool save_K, bool save_R, bool save_Cq, const char* path);
 
     /// Compute the mass matrix of the subassembly. 
     /// Assumes the rows/columns of the matrix are ordered as the ChVariable objects used in this assembly, 
-    /// first the all the "outer" itvariablesems then all the "inner" variables (or modal variables if switched to modal assembly).
+    /// first the all the "boundary" itvariablesems then all the "inner" variables (or modal variables if switched to modal assembly).
     void GetSubassemblyMassMatrix(ChSparseMatrix* M);    ///< fill this system mass matrix
 
     /// Compute the stiffness matrix of the subassembly, i.e. the jacobian -dF/dq where F are stiff loads.
     /// Assumes the rows/columns of the matrix are ordered as the ChVariable objects used in this assembly, 
-    /// first the all the "outer" variables then all the "inner" variables (or modal variables if switched to modal assembly).
+    /// first the all the "boundary" variables then all the "inner" variables (or modal variables if switched to modal assembly).
     /// Note that not all loads provide a jacobian, as this is optional in their implementation.
     void GetSubassemblyStiffnessMatrix(ChSparseMatrix* K);    ///< fill this system stiffness matrix
 
     /// Compute the stiffness matrix of the subassembly, i.e. the jacobian -dF/dv where F are stiff loads.
     /// Assumes the rows/columns of the matrix are ordered as the ChVariable objects used in this assembly, 
-    /// first the all the "outer" variables then all the "inner" variables (or modal variables if switched to modal assembly).
+    /// first the all the "boundary" variables then all the "inner" variables (or modal variables if switched to modal assembly).
     /// Note that not all loads provide a jacobian, as this is optional in their implementation.
     void GetSubassemblyDampingMatrix(ChSparseMatrix* R);    ///< fill this system damping matrix
 
     /// Compute the constraint jacobian matrix of the subassembly, i.e. the jacobian
     /// Cq=-dC/dq where C are constraints (the lower left part of the KKT matrix).
     /// Assumes the columns of the matrix are ordered as the ChVariable objects used in this assembly, 
-    /// i.e. first the all the "outer" variables then all the "inner" variables (or modal variables if switched to modal assembly),
-    /// and assumes the rows of the matrix are ordered as the constraints used in this assembly, i.e. first the outer and then the inner.
+    /// i.e. first the all the "boundary" variables then all the "inner" variables (or modal variables if switched to modal assembly),
+    /// and assumes the rows of the matrix are ordered as the constraints used in this assembly, i.e. first the boundary and then the inner.
     void GetSubassemblyConstraintJacobianMatrix(ChSparseMatrix* Cq);  ///< fill this system damping matrix
 
 
@@ -323,6 +431,11 @@ class ChApi ChModalAssembly : public ChAssembly {
     ChMatrixDynamic<> modal_M;
     ChMatrixDynamic<> modal_K;
     ChMatrixDynamic<> modal_R;
+
+    ChMatrixDynamic<std::complex<double>> modes_V;    // eigenvectors
+    ChVectorDynamic<std::complex<double>> modes_eig;  // eigenvalues
+
+
 
     // Statistics:
     

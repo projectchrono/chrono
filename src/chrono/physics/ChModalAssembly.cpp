@@ -1,4 +1,4 @@
-// =============================================================================
+﻿// =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
 // Copyright (c) 2014 projectchrono.org
@@ -76,6 +76,181 @@ void ChModalAssembly::Clear() {
     if (modal_variables) 
         delete modal_variables;
 }
+
+//---------------------------------------------------------------------------------------
+   
+
+void ChModalAssembly::SetupModalData() {
+
+    if (!modal_variables || (modal_variables->Get_ndof() != this->n_modes_coords_w)) {
+            
+        int bou_int_coords_w = this->n_boundary_coords_w + this->n_internal_coords_w;
+        int bou_mod_coords_w = this->n_boundary_coords_w + this->n_modes_coords_w;
+
+        // Initialize ChVariable object used for modal variables
+        if (modal_variables)
+            delete modal_variables;
+        modal_variables = new ChVariablesGenericDiagonalMass(this->n_modes_coords_w);
+
+        // Initialize the modal_Hblock, which is a ChKblockGeneric referencing all ChVariable items:
+        std::vector<ChVariables*> mvars;
+        // - for BOUNDARY variables: trick to collect all ChVariable references..
+        ChSystemDescriptor temporary_descriptor;
+        for (auto& body : bodylist)
+            body->InjectVariables(temporary_descriptor);
+        for (auto& link : linklist)
+            link->InjectVariables(temporary_descriptor);
+        for (auto& mesh : meshlist)
+            mesh->InjectVariables(temporary_descriptor);
+        for (auto& item : otherphysicslist)
+            item->InjectVariables(temporary_descriptor);
+        mvars = temporary_descriptor.GetVariablesList();
+        // - for the MODAL variables:
+        mvars.push_back(this->modal_variables);
+        this->modal_Hblock.SetVariables(mvars);
+
+        // Initialize vectors to be used with modal coordinates:
+        this->modal_q.setZero(this->n_modes_coords_w);
+        this->modal_q_dt.setZero(this->n_modes_coords_w);
+        this->modal_q_dtdt.setZero(this->n_modes_coords_w);
+        this->modal_F.setZero(this->n_modes_coords_w);
+
+        this->modal_M.setZero(bou_mod_coords_w, bou_mod_coords_w);
+        this->modal_K.setZero(bou_mod_coords_w, bou_mod_coords_w);
+        this->modal_R.setZero(bou_mod_coords_w, bou_mod_coords_w);
+
+        this->modes_V.setZero(bou_mod_coords_w, this->n_modes_coords_w);
+    }
+}
+
+void ChModalAssembly::ComputeModes(int nmodes) {
+    
+    // cannot use less modes than n. of internal coords, if so, clamp to internal coords
+    this->n_modes_coords_w = ChMin(nmodes, this->n_internal_coords_w);
+
+    this->Setup();
+    this->SetupModalData();
+
+    ChSparseMatrix full_M;
+    ChSparseMatrix full_R;
+    ChSparseMatrix full_K;
+    ChSparseMatrix full_Cq;
+
+    this->GetSubassemblyMassMatrix(&full_M);
+    this->GetSubassemblyDampingMatrix(&full_R);
+    this->GetSubassemblyStiffnessMatrix(&full_K);
+    this->GetSubassemblyConstraintJacobianMatrix(&full_Cq);
+
+    // TEST use the nullspace method just for golden reference
+    ChQuadraticEigenvalueSolverNullspaceDirect eigsolver;
+    eigsolver.Solve(full_M, full_R, full_K, full_Cq, this->modes_V, this->modes_eig, 5);
+
+    // TEST
+    auto V_real = this->modes_V.real();
+    this->modal_M = V_real.transpose() * full_M * V_real;
+    this->modal_R = V_real.transpose() * full_R * V_real;
+    this->modal_K = V_real.transpose() * full_K * V_real;
+
+    this->Setup();
+}
+    
+void ChModalAssembly::ComputeModes(ChMatrixRef my_modal_M, ChMatrixRef my_modal_R, ChMatrixRef my_modal_K, ChMatrixRef my_modes_V) {
+
+    this->n_modes_coords_w = my_modes_V.cols();
+
+    this->Setup();
+    this->SetupModalData();
+
+    int bou_int_coords_w = this->n_boundary_coords_w + this->n_internal_coords_w;
+    int bou_mod_coords_w = this->n_boundary_coords_w + this->n_modes_coords_w;
+    assert((my_modal_M.rows() == bou_mod_coords_w) && (my_modal_M.cols() == bou_mod_coords_w));
+    assert((my_modal_R.rows() == bou_mod_coords_w) && (my_modal_R.cols() == bou_mod_coords_w));
+    assert((my_modal_K.rows() == bou_mod_coords_w) && (my_modal_K.cols() == bou_mod_coords_w));
+    assert((my_modes_V.rows() == bou_int_coords_w) );
+
+
+
+    this->modes_V = my_modes_V;
+
+    this->modal_M = my_modal_M;
+    this->modal_R = my_modal_R;
+    this->modal_K = my_modal_K;
+
+    this->Setup();
+}
+
+void ChModalAssembly::ComputeModes(ChMatrixRef my_modes_V) {
+
+    this->n_modes_coords_w = my_modes_V.cols();
+
+    this->Setup();
+    this->SetupModalData();
+  
+    int bou_int_coords_w = this->n_boundary_coords_w + this->n_internal_coords_w;
+    int bou_mod_coords_w = this->n_boundary_coords_w + this->n_modes_coords_w;
+    assert((my_modes_V.rows() == bou_int_coords_w) );
+
+
+    this->modes_V = my_modes_V; 
+
+
+    ChSparseMatrix full_M;
+    ChSparseMatrix full_R;
+    ChSparseMatrix full_K;
+
+    this->GetSubassemblyMassMatrix(&full_M);
+    this->GetSubassemblyDampingMatrix(&full_R);
+    this->GetSubassemblyStiffnessMatrix(&full_K);
+
+    this->modal_M = my_modes_V.transpose() * full_M * my_modes_V;
+    this->modal_R = my_modes_V.transpose() * full_R * my_modes_V;
+    this->modal_K = my_modes_V.transpose() * full_K * my_modes_V;
+}
+
+
+void ChModalAssembly::ModeIncrementState(int n_mode, double phase, double amplitude) {
+    
+    bool needs_temporary_bou_int = this->is_modal;
+    if (needs_temporary_bou_int) 
+        this->is_modal = false; // to have IntStateGather returning all boundary and internal
+
+    if (n_mode >= this->modes_V.cols())
+        throw ChException("Error: mode " + std::to_string(n_mode) + " is beyond the " + std::to_string(this->modes_V.cols()) + " computed eigenvectors.");
+    
+    int bou_int_coords   = this->n_boundary_coords   + this->n_internal_coords;
+    int bou_int_coords_w = this->n_boundary_coords_w + this->n_internal_coords_w;
+    assert(this->modes_V.rows() == bou_int_coords_w);
+
+    double fooT;
+    ChState assembly_x;
+    ChState assembly_x_new;
+    ChStateDelta assembly_v;
+    ChStateDelta assembly_Dx;
+    
+    assembly_x.setZero(bou_int_coords, nullptr);
+    assembly_x_new.setZero(bou_int_coords, nullptr);
+    assembly_v.setZero(bou_int_coords_w, nullptr);
+    assembly_Dx.setZero(bou_int_coords_w, nullptr);
+
+    this->IntStateGather(0, assembly_x, 0, assembly_v, fooT);
+    
+    // pick the nth eigenvector
+    assembly_Dx = sin(phase) * amplitude * this->modes_V.col(n_mode).real();   //***TODO***: .. + cos(phase) * amplitude * this->modes_V.col(n_mode).imag()
+    
+    this->IntStateIncrement(0, assembly_x_new, assembly_x, 0, assembly_Dx); // x += amplitude * eigenvector
+
+    this->IntStateScatter(0, assembly_x_new, 0, assembly_v, fooT, true);
+
+    this->Update();
+
+    if (needs_temporary_bou_int) 
+        this->is_modal = true;
+}
+
+
+
+
+//---------------------------------------------------------------------------------------
 
 // Note: removing items from the assembly incurs linear time cost
 
@@ -310,6 +485,7 @@ void ChModalAssembly::GetSubassemblyDampingMatrix(ChSparseMatrix* R) {
 
     // Fill system-level R matrix
     temp_descriptor.ConvertToMatrixForm(nullptr, R, nullptr, nullptr, nullptr, nullptr, false, false);
+
 }
 
 void ChModalAssembly::GetSubassemblyConstraintJacobianMatrix(ChSparseMatrix* Cq) {
@@ -440,14 +616,14 @@ void ChModalAssembly::Setup() {
     n_boundary_meshes = nmeshes;
     n_boundary_physicsitems = nphysicsitems;
     n_boundary_coords = ncoords;
-    n_boundary_doc = ndoc;
-    n_boundary_sysvars = nsysvars;
     n_boundary_coords_w = ncoords_w;
+    n_boundary_doc = ndoc;
     n_boundary_doc_w = ndoc_w;
-    n_boundary_sysvars_w = nsysvars_w;
-    n_boundary_dof = ndof;
     n_boundary_doc_w_C = ndoc_w_C;
     n_boundary_doc_w_D = ndoc_w_D;
+    n_boundary_sysvars   = nsysvars;
+    n_boundary_sysvars_w = nsysvars_w;
+    n_boundary_dof       = ndof;
 
     n_internal_bodies = 0;
     n_internal_links = 0;
@@ -460,149 +636,120 @@ void ChModalAssembly::Setup() {
     n_internal_doc_w_C = 0;
     n_internal_doc_w_D = 0;
 
+    // For the "internal" items:
+    //
+
+    for (auto& body : internal_bodylist) {
+        if (body->GetBodyFixed())
+        {
+            //throw ChException("Cannot use a fixed body as internal");
+        }
+        else if (body->GetSleeping())
+        {
+            //throw ChException("Cannot use a sleeping body as internal");
+        }
+        else {
+            n_internal_bodies++;
+
+            body->SetOffset_x(this->offset_x + n_boundary_coords   + n_internal_coords);
+            body->SetOffset_w(this->offset_w + n_boundary_coords_w + n_internal_coords_w);
+            body->SetOffset_L(this->offset_L + n_boundary_doc_w    + n_internal_doc_w);
+
+            body->Setup();  // currently, no-op
+
+            n_internal_coords += body->GetDOF();
+            n_internal_coords_w += body->GetDOF_w();
+            n_internal_doc_w += body->GetDOC();      // not really needed since ChBody introduces no constraints
+        }
+    }
+
+    for (auto& link : internal_linklist) {
+        if (link->IsActive()) {
+            n_internal_links++;
+
+            link->SetOffset_x(this->offset_x + n_boundary_coords   + n_internal_coords);
+            link->SetOffset_w(this->offset_w + n_boundary_coords_w + n_internal_coords_w);
+            link->SetOffset_L(this->offset_L + n_boundary_doc_w    + n_internal_doc_w);
+
+            link->Setup();  // compute DOFs etc. and sets the offsets also in child items, if any
+
+            n_internal_coords += link->GetDOF();
+            n_internal_coords_w += link->GetDOF_w();
+            n_internal_doc_w += link->GetDOC();
+            n_internal_doc_w_C += link->GetDOC_c();
+            n_internal_doc_w_D += link->GetDOC_d();
+        }
+    }
+
+    for (auto& mesh : internal_meshlist) {
+        n_internal_meshes++;
+
+        mesh->SetOffset_x(this->offset_x + n_boundary_coords   + n_internal_coords);
+        mesh->SetOffset_w(this->offset_w + n_boundary_coords_w + n_internal_coords_w);
+        mesh->SetOffset_L(this->offset_L + n_boundary_doc_w    + n_internal_doc_w);
+
+        mesh->Setup();  // compute DOFs and iteratively call Setup for child items
+
+        n_internal_coords += mesh->GetDOF();
+        n_internal_coords_w += mesh->GetDOF_w();
+        n_internal_doc_w += mesh->GetDOC();
+        n_internal_doc_w_C += mesh->GetDOC_c();
+        n_internal_doc_w_D += mesh->GetDOC_d();
+    }
+
+    for (auto& item : internal_otherphysicslist) {
+        n_internal_physicsitems++;
+
+        item->SetOffset_x(this->offset_x + n_boundary_coords   + n_internal_coords);
+        item->SetOffset_w(this->offset_w + n_boundary_coords_w + n_internal_coords_w);
+        item->SetOffset_L(this->offset_L + n_boundary_doc_w    + n_internal_doc_w);
+
+        item->Setup();
+
+        n_internal_coords += item->GetDOF();
+        n_internal_coords_w += item->GetDOF_w();
+        n_internal_doc_w += item->GetDOC();
+        n_internal_doc_w_C += item->GetDOC_c();
+        n_internal_doc_w_D += item->GetDOC_d();
+    }
+
+    n_internal_doc = n_internal_doc_w + n_internal_bodies;          // number of constraints including quaternion constraints.
+    n_internal_sysvars = n_internal_coords + n_internal_doc;        // total number of variables (coordinates + lagrangian multipliers)
+    n_internal_sysvars_w = n_internal_coords_w + n_internal_doc_w;  // total number of variables (with 6 dof per body)
+    n_internal_dof = n_internal_coords_w - n_internal_doc_w;
+
+
+    // For the modal part:
+    //
+
+    // (nothing to count)
+
+
+    // For the entire assembly:
+    //
+
     if (this->is_modal == false) {
-        for (auto& body : internal_bodylist) {
-            if (body->GetBodyFixed())
-            {
-                //throw ChException("Cannot use a fixed body as internal");
-            }
-            else if (body->GetSleeping())
-            {
-                //throw ChException("Cannot use a sleeping body as internal");
-            }
-            else {
-                n_internal_bodies++;
-
-                body->SetOffset_x(this->offset_x + ncoords);
-                body->SetOffset_w(this->offset_w + ncoords_w);
-                body->SetOffset_L(this->offset_L + ndoc_w);
-
-                body->Setup();  // currently, no-op
-
-                ncoords += body->GetDOF();
-                ncoords_w += body->GetDOF_w();
-                n_internal_coords += body->GetDOF();
-                n_internal_coords_w += body->GetDOF_w();
-            }
-        }
-
-        for (auto& link : internal_linklist) {
-            if (link->IsActive()) {
-                nlinks++;
-
-                link->SetOffset_x(this->offset_x + ncoords);
-                link->SetOffset_w(this->offset_w + ncoords_w);
-                link->SetOffset_L(this->offset_L + ndoc_w);
-
-                link->Setup();  // compute DOFs etc. and sets the offsets also in child items, if any
-
-                ncoords += link->GetDOF();
-                ncoords_w += link->GetDOF_w();
-                ndoc_w += link->GetDOC();
-                ndoc_w_C += link->GetDOC_c();
-                ndoc_w_D += link->GetDOC_d();
-                n_internal_coords += link->GetDOF();
-                n_internal_coords_w += link->GetDOF_w();
-                n_internal_doc_w += link->GetDOC();
-                n_internal_doc_w_C += link->GetDOC_c();
-                n_internal_doc_w_D += link->GetDOC_d();
-            }
-        }
-
-        for (auto& mesh : internal_meshlist) {
-            nmeshes++;
-
-            mesh->SetOffset_x(this->offset_x + ncoords);
-            mesh->SetOffset_w(this->offset_w + ncoords_w);
-            mesh->SetOffset_L(this->offset_L + ndoc_w);
-
-            mesh->Setup();  // compute DOFs and iteratively call Setup for child items
-
-            ncoords += mesh->GetDOF();
-            ncoords_w += mesh->GetDOF_w();
-            ndoc_w += mesh->GetDOC();
-            ndoc_w_C += mesh->GetDOC_c();
-            ndoc_w_D += mesh->GetDOC_d();
-            n_internal_coords += mesh->GetDOF();
-            n_internal_coords_w += mesh->GetDOF_w();
-            n_internal_doc_w += mesh->GetDOC();
-            n_internal_doc_w_C += mesh->GetDOC_c();
-            n_internal_doc_w_D += mesh->GetDOC_d();
-        }
-
-        for (auto& item : internal_otherphysicslist) {
-            nphysicsitems++;
-
-            item->SetOffset_x(this->offset_x + ncoords);
-            item->SetOffset_w(this->offset_w + ncoords_w);
-            item->SetOffset_L(this->offset_L + ndoc_w);
-
-            item->Setup();
-
-            ncoords += item->GetDOF();
-            ncoords_w += item->GetDOF_w();
-            ndoc_w += item->GetDOC();
-            ndoc_w_C += item->GetDOC_c();
-            ndoc_w_D += item->GetDOC_d();
-            n_internal_coords += item->GetDOF();
-            n_internal_coords_w += item->GetDOF_w();
-            n_internal_doc_w += item->GetDOC();
-            n_internal_doc_w_C += item->GetDOC_c();
-            n_internal_doc_w_D += item->GetDOC_d();
-        }
-
-        n_internal_doc = n_internal_doc_w + n_internal_bodies;          // number of constraints including quaternion constraints.
-        n_internal_sysvars = n_internal_coords + n_internal_doc;        // total number of variables (coordinates + lagrangian multipliers)
-        n_internal_sysvars_w = n_internal_coords_w + n_internal_doc_w;  // total number of variables (with 6 dof per body)
-        n_internal_dof = n_internal_coords_w - n_internal_doc_w;
-
-        // for the entire assembly:
+        ncoords    = n_boundary_coords    + n_internal_coords;
+        ncoords_w  = n_boundary_coords_w  + n_internal_coords_w;
         ndoc       = n_boundary_doc       + n_internal_doc;
+        ndoc_w     = n_boundary_doc_w     + n_internal_doc_w;
+        ndoc_w_C   = n_boundary_doc_w_C   + n_internal_doc_w_C;
+        ndoc_w_D   = n_boundary_doc_w_D   + n_internal_doc_w_D;
         nsysvars   = n_boundary_sysvars   + n_internal_sysvars;
         nsysvars_w = n_boundary_sysvars_w + n_internal_sysvars_w;
         ndof       = n_boundary_dof       + n_internal_dof;
+        nbodies += n_internal_bodies;
+        nlinks  += n_internal_links;
+        nmeshes += n_internal_meshes;
+        nphysicsitems += n_internal_physicsitems;
     }
     else {
-
-        ncoords   += this->n_modes_coords_w;
-        ncoords_w += this->n_modes_coords_w;
-
-        if (!modal_variables || (modal_variables->Get_ndof() != this->n_modes_coords_w)) {
-            
-            // Initialize ChVariable object used for modal variables
-            if (modal_variables)
-                delete modal_variables;
-            modal_variables = new ChVariablesGenericDiagonalMass(this->n_modes_coords_w);
-
-            // Initialize the modal_Hblock, which is a ChKblockGeneric referencing all ChVariable items:
-            std::vector<ChVariables*> mvars;
-            // - for BOUNDARY variables: trick to collect all ChVariable references..
-            ChSystemDescriptor temporary_descriptor;
-            for (auto& body : bodylist)
-                body->InjectVariables(temporary_descriptor);
-            for (auto& link : linklist)
-                link->InjectVariables(temporary_descriptor);
-            for (auto& mesh : meshlist)
-                mesh->InjectVariables(temporary_descriptor);
-            for (auto& item : otherphysicslist)
-                item->InjectVariables(temporary_descriptor);
-            mvars = temporary_descriptor.GetVariablesList();
-            // - for the MODAL variables:
-            mvars.push_back(this->modal_variables);
-            this->modal_Hblock.SetVariables(mvars);
-
-            // Initialize vectors to be used with modal coordinates:
-            this->modal_q.setZero(this->n_modes_coords_w);
-            this->modal_q_dt.setZero(this->n_modes_coords_w);
-            this->modal_q_dtdt.setZero(this->n_modes_coords_w);
-            this->modal_F.setZero(this->n_modes_coords_w);
-
-            this->modal_M.setZero(this->ncoords_w,this->ncoords_w);
-            this->modal_K.setZero(this->ncoords_w,this->ncoords_w);
-            this->modal_R.setZero(this->ncoords_w,this->ncoords_w);
-        }
-        // for the entire assembly:
+        ncoords    = n_boundary_coords    + n_modes_coords_w; // no need for a n_modes_coords, same as n_modes_coords_w
+        ncoords_w  = n_boundary_coords_w  + n_modes_coords_w;
         ndoc       = n_boundary_doc;
+        ndoc_w     = n_boundary_doc_w;
+        ndoc_w_C   = n_boundary_doc_w_C;
+        ndoc_w_D   = n_boundary_doc_w_D;
         nsysvars   = n_boundary_sysvars   + n_modes_coords_w; // no need for a n_modes_coords, same as n_modes_coords_w
         nsysvars_w = n_boundary_sysvars_w + n_modes_coords_w;
         ndof       = n_boundary_dof       + n_modes_coords_w;
@@ -1272,6 +1419,105 @@ void ChModalAssembly::ArchiveIN(ChArchiveIn& marchive) {
 
     // Recompute statistics, offsets, etc.
     Setup();
+}
+
+
+bool ChQuadraticEigenvalueSolverNullspaceDirect::Solve(const ChSparseMatrix& M, const ChSparseMatrix& R, const ChSparseMatrix& K, const ChSparseMatrix& Cq, 
+                                                        ChMatrixDynamic<std::complex<double>>& V,    ///< output matrix with eigenvectors as columns, will be resized
+                                                        ChVectorDynamic<std::complex<double>>& eig,  ///< output vector with eigenvalues (real part not zero if some damping), will be resized 
+                                                        int n_modes)
+{
+    // The folowing is adapted from the former implementation of Peng Chao
+
+	// Compute the null space of the Cq matrix
+    ChMatrixDynamic<> Cq_full = Cq; // because the fullPivLu is not available for sparse matrix in Eigen
+	Eigen::MatrixXd Cq_null_space = Cq_full.fullPivLu().kernel();
+	Eigen::MatrixXd M_hat = Cq_null_space.transpose() * M * Cq_null_space;
+	Eigen::MatrixXd K_hat = Cq_null_space.transpose() * K * Cq_null_space;
+	Eigen::MatrixXd R_hat = Cq_null_space.transpose() * R * Cq_null_space;
+	
+	// frequency-shift，Solve the matrix singular problem - it is not needed now, you can set it to 0
+    double freq_shift = 0; // shift value, can take any value 
+	Eigen::MatrixXd M_bar = M_hat;
+	Eigen::MatrixXd K_bar = pow(freq_shift, 2) * M_hat + freq_shift * R_hat + K_hat;
+	Eigen::MatrixXd R_bar = 2 * freq_shift * M_hat + R_hat;
+	Eigen::MatrixXd M_bar_inv = M_bar.inverse();  // performance warning! dense inverse matrix! Only small sizes should be used.
+	
+	// Generate the A matrix of the state equation, whose eigenvalues ​​are the modal frequencies
+	int dim = M_bar.rows();
+	Eigen::MatrixXd A_tilde(2 * dim, 2 * dim);  
+	A_tilde << Eigen::MatrixXd::Zero(dim, dim), Eigen::MatrixXd::Identity(dim, dim),
+		       -M_bar_inv * K_bar             , -M_bar_inv * R_bar;
+	
+	// Call EIGEN3, dense matrix to directly solve the eigenvalues ​​and eigenvectors
+	// NOTE：EIGEN3 has a very fast calculation speed in release mode, and a very slow calculation speed in debug mode
+	Eigen::EigenSolver<Eigen::MatrixXd> eigen_solver(A_tilde);
+	Eigen::VectorXcd eigen_values = eigen_solver.eigenvalues() + freq_shift;
+	Eigen::MatrixXcd eigen_vectors = eigen_solver.eigenvectors();
+ 
+    class eig_vect_and_val
+    {
+    public:
+        Eigen::VectorXcd eigen_vect;
+        std::complex<double> eigen_val;
+
+        bool operator < (const eig_vect_and_val& str) const {
+            return (eigen_val.imag() < str.eigen_val.imag());
+        }
+    };
+
+	std::vector<eig_vect_and_val> all_eigen_values_and_vectors;
+	for (int i = 0; i < eigen_values.size(); i++) {
+        eig_vect_and_val vec_and_val{ eigen_vectors.col(i), eigen_values(i) };
+        all_eigen_values_and_vectors.push_back(vec_and_val);
+	}
+
+	// sort
+	std::sort(all_eigen_values_and_vectors.begin(), all_eigen_values_and_vectors.end());   // sort by imaginary part
+
+	// organize and return results
+	int middle_number = (int)(all_eigen_values_and_vectors.size() / 2);  // The eigenvalues ​​filtered out are conjugate complex roots, just take half
+	int DOF_counts = (int)((all_eigen_values_and_vectors.at(0)).eigen_vect.rows()/2);  // The number of degrees of freedom in the model, used when extracting the mode shape. 
+
+    /*
+	OutputEigenResults output_temp;
+	Eigen::VectorXcd vector_temp;
+	REAL damping_ratio;
+	int jj = 0; int i = 0; int index_mode = 0;
+	while (i < mode_count) {  
+		index_mode = jj + middle_number;
+		damping_ratio = std::get<2>(all_eigen_values_and_vectors.at(index_mode));
+		if (damping_ratio < 0.95) { // filter by damping ratio 
+			std::get<0>(output_temp) = std::get<0>(all_eigen_values_and_vectors.at(index_mode));  // undamped modal freq.
+			std::get<1>(output_temp) = std::get<1>(all_eigen_values_and_vectors.at(index_mode));  // damped modal freq.
+			std::get<2>(output_temp) = std::get<2>(all_eigen_values_and_vectors.at(index_mode));  // damping ratio
+			std::get<3>(output_temp) = std::get<3>(all_eigen_values_and_vectors.at(index_mode));  // plural eigenvalues
+			vector_temp = std::get<4>(all_eigen_values_and_vectors.at(index_mode));
+			std::get<4>(output_temp) = Cq_null_space * vector_temp.head(DOF_counts);// Mode shape, displacement term
+			std::get<5>(output_temp) = Cq_null_space * vector_temp.tail(DOF_counts);// Mode shape, velocity term
+			res_eigen_values_and_vectors.push_back(output_temp);
+			
+			i++;
+		} 
+		jj++;
+	}
+    */
+    
+    // Return values
+    V.setZero(M.rows(), n_modes);
+    eig.setZero(n_modes);
+
+    for (int i = 0; i < n_modes; i++) {
+        int i_half = middle_number + i; // because the n.of eigenvalues is double (conjugate pairs), so just use the 2nd half after sorting
+        auto mv = all_eigen_values_and_vectors.at(i_half).eigen_vect.head(DOF_counts);
+        auto mvhns = Cq_null_space * mv;
+
+        V.col(i) = mvhns; 
+        V.col(i).normalize(); // check if necessary or already normalized
+        eig(i) = all_eigen_values_and_vectors.at(i_half).eigen_val;
+    }
+
+    return true;
 }
 
 }  // end namespace chrono
