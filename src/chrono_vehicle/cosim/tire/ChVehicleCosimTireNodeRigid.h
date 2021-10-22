@@ -78,6 +78,9 @@ class CH_VEHICLE_API ChVehicleCosimTireNodeRigid : public ChVehicleCosimTireNode
     /// Perform additional output at the specified frame (called once per integration step).
     virtual void OnOutputData(int frame) override;
 
+    /// Output post-processing visualization data.
+    virtual void OutputVisualizationData(int frame) override;
+
   private:
     /// Write mesh vertex positions and velocities.
     void WriteTireStateInformation(utils::CSV_writer& csv);

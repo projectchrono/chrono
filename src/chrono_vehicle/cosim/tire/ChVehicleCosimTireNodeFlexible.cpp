@@ -143,6 +143,10 @@ void ChVehicleCosimTireNodeFlexible::OnOutputData(int frame) {
         cout << "[Tire node   ] write output file ==> " << filename << endl;
 }
 
+void ChVehicleCosimTireNodeFlexible::OutputVisualizationData(int frame) {
+    //// TODO (format?)
+}
+
 void ChVehicleCosimTireNodeFlexible::WriteTireStateInformation(utils::CSV_writer& csv) {
     // Extract vertex states from mesh
     auto mesh = m_tire->GetMesh();

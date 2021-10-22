@@ -87,6 +87,10 @@ class CH_VEHICLE_API ChVehicleCosimTireNodeFlexible : public ChVehicleCosimTireN
     /// Perform additional output at the specified frame (called once per integration step).
     virtual void OnOutputData(int frame) override;
 
+    /// Output post-processing visualization data.
+    virtual void OutputVisualizationData(int frame) override;
+
+  private:
     /// Write mesh vertex positions and velocities.
     void WriteTireStateInformation(utils::CSV_writer& csv);
     /// Write mesh connectivity and strain information.
@@ -96,7 +100,6 @@ class CH_VEHICLE_API ChVehicleCosimTireNodeFlexible : public ChVehicleCosimTireN
     /// Print current contact forces.
     void PrintContactData(const std::vector<ChVector<>>& forces, const std::vector<int>& indices);
 
-  private:
     std::shared_ptr<ChDeformableTire> m_tire;                       ///< deformable tire
     std::shared_ptr<fea::ChLoadContactSurfaceMesh> m_contact_load;  ///< tire contact surface
     std::vector<std::vector<unsigned int>> m_adjElements;  ///< list of neighboring elements for each mesh vertex

@@ -68,6 +68,9 @@ class CH_VEHICLE_API ChVehicleCosimTireNodeBypass : public ChVehicleCosimTireNod
     /// A bypass tire requires no construction.
     virtual void InitializeTire(std::shared_ptr<ChWheel> wheel) override {}
 
+    /// Output post-processing visualization data.
+    virtual void OutputVisualizationData(int frame) override {}
+
   private:
     double m_mass;
     double m_radius;

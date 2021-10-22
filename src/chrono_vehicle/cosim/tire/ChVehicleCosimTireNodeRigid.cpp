@@ -22,6 +22,7 @@
 // =============================================================================
 
 #include "chrono_vehicle/cosim/tire/ChVehicleCosimTireNodeRigid.h"
+#include "chrono/utils/ChUtilsInputOutput.h"
 
 using std::cout;
 using std::endl;
@@ -38,8 +39,9 @@ void ChVehicleCosimTireNodeRigid::ConstructTire() {
 
 void ChVehicleCosimTireNodeRigid::InitializeTire(std::shared_ptr<ChWheel> wheel) {
     // Initialize the rigid tire
-    wheel->SetTire(m_tire);                                       // technically not really needed here
+    wheel->SetTire(m_tire);                                       
     std::static_pointer_cast<ChTire>(m_tire)->Initialize(wheel);  // hack to call protected virtual method
+    m_tire->SetVisualizationType(VisualizationType::MESH);
 
     // Set mesh data (vertex positions in local frame)
     m_mesh_data.nv = m_tire->GetNumVertices();
@@ -140,6 +142,11 @@ void ChVehicleCosimTireNodeRigid::WriteTireMeshInformation(utils::CSV_writer& cs
     for (unsigned int ie = 0; ie < m_tire->GetNumTriangles(); ie++) {
         csv << triangles[ie] << endl;
     }
+}
+
+void ChVehicleCosimTireNodeRigid::OutputVisualizationData(int frame) {
+    auto filename = OutputFilename(m_node_out_dir + "/visualization", "vis", "dat", frame, 5);
+    utils::WriteVisualizationAssets(m_system, filename, true, " ");
 }
 
 }  // namespace vehicle
