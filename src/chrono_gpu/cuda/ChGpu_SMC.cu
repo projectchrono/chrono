@@ -325,6 +325,7 @@ __host__ void ChSystemGpu_impl::setupSphereDataStructures() {
 
             // Convert to not_stupid_bool
             sphere_fixed.at(i) = (not_stupid_bool)((user_provided_fixed) ? user_sphere_fixed[i] : false);
+            // default sphere group/cluster
             sphere_group.at(i) = SPHERE_GROUP::CORE;
             sphere_group.at(i) = CLUSTER_INDEX::START;
             if (user_provided_vel) {

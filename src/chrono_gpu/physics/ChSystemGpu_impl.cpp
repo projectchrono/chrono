@@ -281,6 +281,9 @@ void ChSystemGpu_impl::WriteFile(
         if (GET_OUTPUT_SETTING(GROUP)) {
             outstrstream << ",group";
         }
+        if (GET_OUTPUT_SETTING(CLUSTER)) {
+            outstrstream << ",cluster";
+        }
 
         if (gran_params->friction_mode != CHGPU_FRICTION_MODE::FRICTIONLESS && GET_OUTPUT_SETTING(ANG_VEL_COMPONENTS)) {
             outstrstream << ",wx,wy,wz";
@@ -337,6 +340,11 @@ void ChSystemGpu_impl::WriteFile(
             if (GET_OUTPUT_SETTING(GROUP)) {
                 int group = (int)sphere_group[n];
                 outstrstream << "," << group;
+            }
+
+            if (GET_OUTPUT_SETTING(CLUSTER)) {
+                int group = (int)sphere_cluster[n];
+                outstrstream << "," << cluster;
             }
 
             if (gran_params->friction_mode != CHGPU_FRICTION_MODE::FRICTIONLESS &&

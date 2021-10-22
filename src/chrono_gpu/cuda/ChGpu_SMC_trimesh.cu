@@ -467,12 +467,31 @@ __host__ double ChSystemGpuMesh_impl::AdvanceSimulation(float duration) {
         gpuErrchk(cudaPeekAtLastError());
         gpuErrchk(cudaDeviceSynchronize());
 
+        // clustering mostly takes place here. 
         if ((gran_params->cluster_graph_method > CLUSTER_GRAPH_METHOD::NONE) 
             && (gran_params->cluster_search_method > CLUSTER_SEARCH_METHOD::NONE)) {
-            // TODO: graph construction method switch
+            // step 1- Graph construction
+            switch(gran_params->cluster_graph_method) {
+                case CLUSTER_GRAPH_METHOD::CONTACT:
+                    // graph construction done in determineContactPairs and computeSphereContactForces
+                    break;
 
-            // TODO: search method switch
+                case CLUSTER_GRAPH_METHOD::PROXIMITY:
+                    gdbscan_construct_graph(sphere_data, gran_params, nSpheres, min_pts, radius);
+                default:
+                    break;
+            }
+
+            // step 2- Search the graph, find the clusters.
+            switch(gran_params->cluster_search_method) {
+                case CLUSTER_SEARCH_METHOD::BFS:
+                    gdbscan_search_graph(sphere_data, gran_params, nSpheres, min_pts);
+                    break;
+                default:
+                    break;
+            }
         }
+
         gpuErrchk(cudaPeekAtLastError());
         gpuErrchk(cudaDeviceSynchronize());
 
