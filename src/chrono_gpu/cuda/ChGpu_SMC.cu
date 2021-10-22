@@ -17,6 +17,7 @@
 
 #include "chrono_gpu/ChGpuDefines.h"
 #include "chrono_gpu/cuda/ChGpu_SMC.cuh"
+#include "chrono_gpu/cuda/ChGpuClustering.cuh"
 #include "chrono_gpu/utils/ChGpuUtilities.h"
 
 namespace chrono {
@@ -574,10 +575,29 @@ __host__ double ChSystemGpu_impl::AdvanceSimulation(float duration) {
             gpuErrchk(cudaDeviceSynchronize());
         }
 
-        if ((gran_params->cluster_graph_method > 0) && (gran_params->cluster_search_method > 0)) {
-            // TODO: graph construction method switch
+        // clustering mostly takes place here. 
+        if ((gran_params->cluster_graph_method > CLUSTER_GRAPH_METHOD::NONE) 
+            && (gran_params->cluster_search_method > CLUSTER_SEARCH_METHOD::NONE)) {
+            // step 1- Graph construction
+            switch(gran_params->cluster_graph_method) {
+                case CLUSTER_GRAPH_METHOD::CONTACT:
+                    // graph construction done in determineContactPairs and computeSphereContactForces
+                    break;
 
-            // TODO: search method switch
+                case CLUSTER_GRAPH_METHOD::PROXIMITY:
+                    gdbscan_construct_graph(sphere_data, gran_params, nSpheres, min_pts, radius);
+                default:
+                    break;
+            }
+
+            // step 2- Search the graph, find the clusters.
+            switch(gran_params->cluster_search_method) {
+                case CLUSTER_SEARCH_METHOD::BFS:
+                    gdbscan_search_graph(sphere_data, gran_params, nSpheres, min_pts);
+                    break;
+                default:
+                    break;
+            }
         }
 
         METRICS_PRINTF("Starting integrateSpheres!\n");

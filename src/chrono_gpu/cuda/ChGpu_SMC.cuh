@@ -693,7 +693,7 @@ static __global__ void computeSphereContactForces(ChSystemGpu_impl::GranSphereDa
         if ((gran_params->cluster_graph_method > CLUSTER_GRAPH_METHOD::NONE) &&
             (gran_params->cluster_search_method > CLUSTER_GRAPH_METHOD::NONE) &&
             (gran_params->cluster_graph_method == CLUSTER_GRAPH_METHOD::CONTACT)) {
-            gpuErrchk(cudaMemcpy(&sphere_data->adj_list + sphere_data->adj_start[mySphereID],
+            gpuErrchk(cudaMemcpy(sphere_data->adj_list + sphere_data->adj_start[mySphereID],
                     theirIDList,
                     numActiveContacts,
                     cudaMemcpyHostToDevice));

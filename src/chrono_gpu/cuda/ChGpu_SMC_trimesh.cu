@@ -402,8 +402,6 @@ __global__ void interactionGranMat_TriangleSoup(ChSystemGpuMesh_impl::TriangleSo
         }  // end of per-triangle loop
         if (sphere_inside_mesh) {
             sphere_data->sphere_group[sphereIDGlobal] = SPHERE_GROUP::VOLUME;
-        } else {
-            sphere_data->sphere_group[sphereIDGlobal] = SPHERE_GROUP::GROUND; // TODO add proper logic
         }
 
         // write back sphere forces
@@ -465,6 +463,15 @@ __host__ double ChSystemGpuMesh_impl::AdvanceSimulation(float duration) {
             computeSphereContactForces<<<nBlocks, CUDA_THREADS_PER_BLOCK>>>(
                 sphere_data, gran_params, BC_type_list.data(), BC_params_list_SU.data(),
                 (unsigned int)BC_params_list_SU.size(), nSpheres);
+        }
+        gpuErrchk(cudaPeekAtLastError());
+        gpuErrchk(cudaDeviceSynchronize());
+
+        if ((gran_params->cluster_graph_method > CLUSTER_GRAPH_METHOD::NONE) 
+            && (gran_params->cluster_search_method > CLUSTER_SEARCH_METHOD::NONE)) {
+            // TODO: graph construction method switch
+
+            // TODO: search method switch
         }
         gpuErrchk(cudaPeekAtLastError());
         gpuErrchk(cudaDeviceSynchronize());
