@@ -85,6 +85,7 @@ __host__ std::vector<float3> ChSystemGpu_impl::get_max_z_map(unsigned int x_size
     return max_z_map;
 }
 
+// TODO: Parallellize
 __host__ void ChSystemGpu_impl::reset_ground_group() {
     for (size_t index = 0; index < nSpheres; index++) {
         sphere_data->sphere_group[index] = SPHERE_GROUP::CORE;
@@ -197,8 +198,13 @@ __host__ void ChSystemGpu_impl::defragment_initial_positions() {
     std::vector<float, cudallocator<float>> sphere_vel_y_tmp;
     std::vector<float, cudallocator<float>> sphere_vel_z_tmp;
 
+    std::vector<unsigned int, cudallocator<unsigned int>> adj_num_tmp;
+    std::vector<unsigned int, cudallocator<unsigned int>> adj_start_tmp;
+    std::vector<unsigned int, cudallocator<unsigned int>> adj_list_tmp;
+
     std::vector<not_stupid_bool, cudallocator<not_stupid_bool>> sphere_fixed_tmp;
     std::vector<SPHERE_GROUP, cudallocator<SPHERE_GROUP>> sphere_group_tmp;
+    std::vector<unsigned int, cudallocator<unsigned int>> sphere_cluster_tmp;
     std::vector<unsigned int, cudallocator<unsigned int>> sphere_owner_SDs_tmp;
 
     sphere_pos_x_tmp.resize(nSpheres);
@@ -211,10 +217,22 @@ __host__ void ChSystemGpu_impl::defragment_initial_positions() {
 
     sphere_fixed_tmp.resize(nSpheres);
     sphere_group_tmp.resize(nSpheres);
+    sphere_cluster_tmp.resize(nSpheres);
     sphere_owner_SDs_tmp.resize(nSpheres);
 
+    adj_num_tmp.resize(nSpheres);
+    adj_start_tmp.resize(nSpheres);
+    adj_list_tmp.resize(nSpheres * MAX_SPHERES_TOUCHED_BY_SPHERE);
+
     // reorder values into new sorted
+    for (unsigned int i = 0; i < (nSpheres * MAX_SPHERES_TOUCHED_BY_SPHERE); i++) {
+        adj_list_tmp.at(i) = adj_list.at(sphere_ids.at(i));
+    }
+
     for (unsigned int i = 0; i < nSpheres; i++) {
+        adj_num_tmp.at(i) = adj_num.at(sphere_ids.at(i));
+        adj_start_tmp.at(i) = adj_start.at(sphere_ids.at(i));
+
         sphere_pos_x_tmp.at(i) = sphere_local_pos_X.at(sphere_ids.at(i));
         sphere_pos_y_tmp.at(i) = sphere_local_pos_Y.at(sphere_ids.at(i));
         sphere_pos_z_tmp.at(i) = sphere_local_pos_Z.at(sphere_ids.at(i));
@@ -225,6 +243,7 @@ __host__ void ChSystemGpu_impl::defragment_initial_positions() {
 
         sphere_fixed_tmp.at(i) = sphere_fixed.at(sphere_ids.at(i));
         sphere_group_tmp.at(i) = sphere_group.at(sphere_ids.at(i));
+        sphere_cluster_tmp.at(i) = sphere_cluster.at(sphere_ids.at(i));
         sphere_owner_SDs_tmp.at(i) = sphere_owner_SDs.at(sphere_ids.at(i));
     }
 
@@ -237,8 +256,13 @@ __host__ void ChSystemGpu_impl::defragment_initial_positions() {
     pos_Y_dt.swap(sphere_vel_y_tmp);
     pos_Z_dt.swap(sphere_vel_z_tmp);
 
+    adj_num.swap(adj_num_tmp);
+    adj_start.swap(adj_start_tmp);
+    adj_list.swap(adj_list_tmp);
+
     sphere_fixed.swap(sphere_fixed_tmp);
     sphere_group.swap(sphere_group_tmp);
+    sphere_cluster.swap(sphere_cluster_tmp);
     sphere_owner_SDs.swap(sphere_owner_SDs_tmp);
 }
 __host__ void ChSystemGpu_impl::setupSphereDataStructures() {
@@ -266,6 +290,7 @@ __host__ void ChSystemGpu_impl::setupSphereDataStructures() {
 
     TRACK_VECTOR_RESIZE(sphere_fixed, nSpheres, "sphere_fixed", 0);
     TRACK_VECTOR_RESIZE(sphere_group, nSpheres, "sphere_group", SPHERE_GROUP::CORE);
+    TRACK_VECTOR_RESIZE(sphere_cluster, nSpheres, "sphere_cluster", 1);
 
     TRACK_VECTOR_RESIZE(pos_X_dt, nSpheres, "pos_X_dt", 0);
     TRACK_VECTOR_RESIZE(pos_Y_dt, nSpheres, "pos_Y_dt", 0);
@@ -300,6 +325,7 @@ __host__ void ChSystemGpu_impl::setupSphereDataStructures() {
             // Convert to not_stupid_bool
             sphere_fixed.at(i) = (not_stupid_bool)((user_provided_fixed) ? user_sphere_fixed[i] : false);
             sphere_group.at(i) = SPHERE_GROUP::CORE;
+            sphere_group.at(i) = CLUSTER_INDEX::START;
             if (user_provided_vel) {
                 auto vel = user_sphere_vel.at(i);
                 pos_X_dt.at(i) = (float)(vel.x / VEL_SU2UU);

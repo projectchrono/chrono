@@ -50,8 +50,10 @@ enum class CHGPU_ROLLING_MODE { NO_RESISTANCE, SCHWARTZ, ELASTIC_PLASTIC };
 enum CHGPU_OUTPUT_FLAGS { ABSV = 1, VEL_COMPONENTS = 2, FIXITY = 4, ANG_VEL_COMPONENTS = 8, FORCE_COMPONENTS = 16, GROUP = 32};
 
 /// Clustering algorithm switches
-enum CLUSTER_GRAPH_METHOD {NONE = 0, CONTACT = 1}
-enum CLUSTER_SEARCH_METHOD {NONE = 0, BFS = 1} /* BFS -> Breadth-First search */
+enum CLUSTER_GRAPH_METHOD {NONE = 0, CONTACT = 1};
+enum CLUSTER_SEARCH_METHOD {NONE = 0, BFS = 1};/* BFS -> Breadth-First search */
+enum CLUSTER_INDEX {GROUND = 0, START = 1};/* number of clusters go up to nSpheres */
+
 // 0 on ANY cluster related switch means no clustering done, all particles group 0.
 // TO DO: Have a different search algorithm than BFS
 

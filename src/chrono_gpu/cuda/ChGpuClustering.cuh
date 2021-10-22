@@ -45,7 +45,7 @@ using chrono::gpu::CLUSTER_SEARCH_METHOD;
 /// @addtogroup gpu_cuda
 /// @{
 
-
+/// UNTESTED
 /// counts number of adjacent spheres by proximity.
 static __global__ void construct_adj_num_start_by_proximity(
                         ChSystemGpu_impl::GranSphereDataPtr sphere_data,
@@ -89,6 +89,7 @@ static __global__ void construct_adj_num_start_by_proximity(
     }
 }
 
+/// UNTESTED
 /// computes adj_list from proximity using known adj_num and adj_start
 static __global__ void construct_adj_list_by_proximity(ChSystemGpu_impl::GranSphereDataPtr sphere_data,
                                            ChSystemGpu_impl::GranParamsPtr gran_params,
@@ -208,11 +209,12 @@ static __global__ void cluster_search_BFS_kernel(unsigned int nSpheres,
     }
 }
 
-
+/// UNTESTED
 /// G-DBSCAN; density-based clustering algorithm. Identifies core, border and noise points in clusters.
+/// SEARCH STEP
 /// min_pts: minimal number of points for a cluster
 /// radius: proximity radius, points inside can form a cluster
-static __host__ void clustering_gdbscan(ChSystemGpu_impl::GranSphereDataPtr sphere_data,
+static __host__ void gdbscan_construct_graph(ChSystemGpu_impl::GranSphereDataPtr sphere_data,
                                            ChSystemGpu_impl::GranParamsPtr gran_params,
                                            unsigned int nSpheres, size_t min_pts, float radius) {
     unsigned int nBlocks = (nSpheres + CUDA_THREADS_PER_BLOCK - 1) / CUDA_THREADS_PER_BLOCK;
@@ -220,7 +222,7 @@ static __host__ void clustering_gdbscan(ChSystemGpu_impl::GranSphereDataPtr sphe
     initial_sphere_group_gdbscan<<<nBLocks, CUDA_THREADS_PER_BLOCK>>>(nSPheres,
                 radius, adj_num, adj_start, adj_list,
                 borders, visited);
-    /// 3 steps:
+    /// 2 steps:
     ///     1- compute all adjacent spheres inside radius
     construct_adj_num_start_by_proximity<<<nBLocks, CUDA_THREADS_PER_BLOCK>>>(sphere_data, gran_params, nSPheres,
             radius, adj_num, adj_start);
@@ -228,33 +230,47 @@ static __host__ void clustering_gdbscan(ChSystemGpu_impl::GranSphereDataPtr sphe
     ///     2- compute adjacency list
     construct_adj_list_by_proximity<<<nBLocks, CUDA_THREADS_PER_BLOCK>>>(sphere_data, gran_params, nSPheres,
             radius, adj_num, adj_start, adj_list);
+}
 
+
+/// G-DBSCAN; density-based clustering algorithm. Identifies core, border and noise points in clusters.
+/// min_pts: minimal number of points for a cluster
+/// radius: proximity radius, points inside can form a cluster
+/// return clusters array of pointers to arrays of different sizes 
+static __host__ unsigned int* gdbscan_search_graph(ChSystemGpu_impl::GranSphereDataPtr sphere_data,
+                                           ChSystemGpu_impl::GranParamsPtr gran_params,
+                                           unsigned int nSpheres, size_t min_pts, float radius) {
+    unsigned int nBlocks = (nSpheres + CUDA_THREADS_PER_BLOCK - 1) / CUDA_THREADS_PER_BLOCK;
+
+    initial_sphere_group_gdbscan<<<nBLocks, CUDA_THREADS_PER_BLOCK>>>(nSPheres,
+                radius, adj_num, adj_start, adj_list,
+                borders, visited);
 
     ///     3- build clusters by breadth-first search (BFS)
-    unsigned int cluster = malloc((nSpheres + 1) * sizeof(*cluster)); 
-    bool * points_visited = calloc(snSpheres, sizeof(*point_visited)); 
-    unsigned int * cluster;
-    for (size_t i = 0; i < nSpheres; i++) {
-        if (!point_visited[i]) {
-            memset(cluster, 0, sizeof(*cluster) * (nSPheres + 1));
-            cluster = clustering_search_BFS(sphere_data, gran_params, nSPheres,
-                radius, adj_num, adj_start, adj_list, cluster);
-            if (cluster[0] < min_pts) {
-                sphere_data->sphere_group[cluster[j]] = SPHERE_GROUP::NOISE;
-            } else {
-                for (size_t j = 0; j < cluster[0]; j++) {
-                    points_visited[cluster[j]] = true;
-                    if (adj_num[cluster[j]] >= min_pts) {
-                        sphere_data->sphere_group[cluster[j]] = SPHERE_GROUP::CORE;
-                    } else {
-                        sphere_data->sphere_group[cluster[j]] = SPHERE_GROUP::BORDER;
-                    }
-                }
-            }
-            points_visited[i] = true;
-        }
-    }
-    free(cluster);
+    // unsigned int cluster = malloc((nSpheres + 1) * sizeof(*cluster)); 
+    // bool * points_visited = calloc(snSpheres, sizeof(*point_visited)); 
+    // unsigned int * cluster;
+    // for (size_t i = 0; i < nSpheres; i++) {
+    //     if (!point_visited[i]) {
+    //         memset(cluster, 0, sizeof(*cluster) * (nSPheres + 1));
+    //         cluster = clustering_search_BFS(sphere_data, gran_params, nSPheres,
+    //             radius, adj_num, adj_start, adj_list, cluster);
+    //         if (cluster[0] < min_pts) {
+    //             sphere_data->sphere_group[cluster[j]] = SPHERE_GROUP::NOISE;
+    //         } else {
+    //             for (size_t j = 0; j < cluster[0]; j++) {
+    //                 points_visited[cluster[j]] = true;
+    //                 if (adj_num[cluster[j]] >= min_pts) {
+    //                     sphere_data->sphere_group[cluster[j]] = SPHERE_GROUP::CORE;
+    //                 } else {
+    //                     sphere_data->sphere_group[cluster[j]] = SPHERE_GROUP::BORDER;
+    //                 }
+    //             }
+    //         }
+    //         points_visited[i] = true;
+    //     }
+    // }
+    // free(cluster);
 }
 
 /// @} gpu_cuda

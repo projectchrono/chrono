@@ -167,6 +167,7 @@ void ChSystemGpu_impl::packSphereDataPointers() {
 
     sphere_data->sphere_fixed = sphere_fixed.data();
     sphere_data->sphere_group = sphere_group.data();
+    sphere_data->sphere_cluster = sphere_cluster.data();
 
     sphere_data->SD_NumSpheresTouching = SD_NumSpheresTouching.data();
     sphere_data->SD_SphereCompositeOffsets = SD_SphereCompositeOffsets.data();
