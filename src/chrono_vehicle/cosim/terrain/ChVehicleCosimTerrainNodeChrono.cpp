@@ -160,11 +160,11 @@ void ChVehicleCosimTerrainNodeChrono::OnInitialize(unsigned int num_tires) {
     m_material_tire.resize(num_tires);
     m_proxies.resize(num_tires);
 
-    // Reset system time
-    GetSystem()->SetChTime(0);
-
     // Construct the terrain
     Construct();
+
+    // Reset system time
+    GetSystem()->SetChTime(0);
 
     for (unsigned int i = 0; i < num_tires; i++) {
         // Create the "tire" contact material, but defer using it until the proxy bodies are created.
