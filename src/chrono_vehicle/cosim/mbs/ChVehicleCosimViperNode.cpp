@@ -94,6 +94,7 @@ void ChVehicleCosimViperNode::InitializeMBS(const std::vector<ChVector<>>& tire_
     ChFrame<> init_pos(m_init_loc + ChVector<>(0, 0, terrain_height), Q_from_AngZ(m_init_yaw));
 
     m_viper->SetDriver(m_driver);
+    m_viper->SetWheelVisualization(false);
     m_viper->Initialize(init_pos);
 
     // Extract and cache spindle bodies

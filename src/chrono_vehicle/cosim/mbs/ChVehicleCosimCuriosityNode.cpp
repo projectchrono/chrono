@@ -98,6 +98,7 @@ void ChVehicleCosimCuriosityNode::InitializeMBS(const std::vector<ChVector<>>& t
     ChFrame<> init_pos(m_init_loc + ChVector<>(0, 0, terrain_height), Q_from_AngZ(m_init_yaw));
 
     m_curiosity->SetDriver(m_driver);
+    m_curiosity->SetWheelVisualization(false);
     m_curiosity->Initialize(init_pos);
 
     // Extract and cache spindle bodies
