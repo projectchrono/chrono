@@ -18,7 +18,7 @@
 #ifndef CH_UTILSGENERATORFLUID_H
 #define CH_UTILSGENERATORFLUID_H
 
-#include "chrono_fsi/ChFsiDataManager.cuh"
+#include "chrono_fsi/ChSystemFsi_impl.cuh"
 #include "chrono_fsi/math/custom_math.h"
 
 namespace chrono {

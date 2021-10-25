@@ -21,7 +21,7 @@
 #include <thrust/host_vector.h>
 #include <string>
 #include "chrono/ChConfig.h"
-#include "chrono_fsi/physics/ChParams.cuh"
+#include "chrono_fsi/physics/ChParams.h"
 #include "chrono_fsi/math/custom_math.h"
 
 namespace chrono {

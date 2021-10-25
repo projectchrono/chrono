@@ -477,39 +477,39 @@ __global__ void ReCalcDensityD_F1(Real4* dummySortedRhoPreMu,
 // -----------------------------------------------------------------------------
 
 ChFluidDynamics::ChFluidDynamics(std::shared_ptr<ChBce> otherBceWorker,
-                                 std::shared_ptr<ChFsiDataManager> otherFsiData,
+                                 std::shared_ptr<ChSystemFsi_impl> otherFsiSystem,
                                  std::shared_ptr<SimParams> otherParamsH,
                                  std::shared_ptr<NumberOfObjects> otherNumObjects,
-                                 ChFluidDynamics::Integrator type)
-    : fsiData(otherFsiData), paramsH(otherParamsH), numObjectsH(otherNumObjects) {
+                                 CHFSI_TIME_INTEGRATOR type)
+    : fsiSystem(otherFsiSystem), paramsH(otherParamsH), numObjectsH(otherNumObjects) {
     myIntegrator = type;
     switch (myIntegrator) {
-        case ChFluidDynamics::Integrator::I2SPH:
-            forceSystem = chrono_types::make_shared<ChFsiForceI2SPH>(otherBceWorker, fsiData->sortedSphMarkersD,
-                                                                     fsiData->markersProximityD,
-                                                                     fsiData->fsiGeneralData, paramsH, numObjectsH);
+        case CHFSI_TIME_INTEGRATOR::I2SPH:
+            forceSystem = chrono_types::make_shared<ChFsiForceI2SPH>(otherBceWorker, fsiSystem->sortedSphMarkersD,
+                                                                     fsiSystem->markersProximityD,
+                                                                     fsiSystem->fsiGeneralData, paramsH, numObjectsH);
             printf("Created an I2SPH frame work.\n");
             break;
 
-        case ChFluidDynamics::Integrator::IISPH:
-            forceSystem = chrono_types::make_shared<ChFsiForceIISPH>(otherBceWorker, fsiData->sortedSphMarkersD,
-                                                                     fsiData->markersProximityD,
-                                                                     fsiData->fsiGeneralData, paramsH, numObjectsH);
+        case CHFSI_TIME_INTEGRATOR::IISPH:
+            forceSystem = chrono_types::make_shared<ChFsiForceIISPH>(otherBceWorker, fsiSystem->sortedSphMarkersD,
+                                                                     fsiSystem->markersProximityD,
+                                                                     fsiSystem->fsiGeneralData, paramsH, numObjectsH);
             printf("Created an IISPH framework.\n");
             break;
 
-        case ChFluidDynamics::Integrator::ExplicitSPH:
+        case CHFSI_TIME_INTEGRATOR::ExplicitSPH:
             forceSystem = chrono_types::make_shared<ChFsiForceExplicitSPH>(
-                otherBceWorker, fsiData->sortedSphMarkersD, fsiData->markersProximityD, fsiData->fsiGeneralData,
+                otherBceWorker, fsiSystem->sortedSphMarkersD, fsiSystem->markersProximityD, fsiSystem->fsiGeneralData,
                 paramsH, numObjectsH);
             printf("Created an ExplicitSPHframe work.\n");
             break;
 
             /// Extend this function with your own linear solvers
         default:
-            forceSystem = chrono_types::make_shared<ChFsiForceIISPH>(otherBceWorker, fsiData->sortedSphMarkersD,
-                                                                     fsiData->markersProximityD,
-                                                                     fsiData->fsiGeneralData, paramsH, numObjectsH);
+            forceSystem = chrono_types::make_shared<ChFsiForceIISPH>(otherBceWorker, fsiSystem->sortedSphMarkersD,
+                                                                     fsiSystem->markersProximityD,
+                                                                     fsiSystem->fsiGeneralData, paramsH, numObjectsH);
             std::cout << "The ChFsiForce you chose has not been implemented, reverting back to "
                          "ChFsiForceIISPH\n";
     }
@@ -535,14 +535,14 @@ void ChFluidDynamics::IntegrateSPH(std::shared_ptr<SphMarkerDataD> sphMarkersD2,
                                    std::shared_ptr<FsiBodiesDataD> fsiBodiesD,
                                    std::shared_ptr<FsiMeshDataD> fsiMeshD,
                                    Real dT) {
-    if (GetIntegratorType() == ChFluidDynamics::Integrator::ExplicitSPH)
+    if (GetIntegratorType() == CHFSI_TIME_INTEGRATOR::ExplicitSPH)
         forceSystem->ForceSPH(sphMarkersD2, fsiBodiesD, fsiMeshD);
     else
         forceSystem->ForceSPH(sphMarkersD1, fsiBodiesD, fsiMeshD);
 
-    if (myIntegrator == ChFluidDynamics::Integrator::IISPH)
+    if (myIntegrator == CHFSI_TIME_INTEGRATOR::IISPH)
         this->UpdateFluid_Implicit(sphMarkersD2);
-    else if (GetIntegratorType() == ChFluidDynamics::Integrator::ExplicitSPH)
+    else if (GetIntegratorType() == CHFSI_TIME_INTEGRATOR::ExplicitSPH)
         this->UpdateFluid(sphMarkersD1, dT);
 
     this->ApplyBoundarySPH_Markers(sphMarkersD2);
@@ -552,7 +552,7 @@ void ChFluidDynamics::IntegrateSPH(std::shared_ptr<SphMarkerDataD> sphMarkersD2,
 
 void ChFluidDynamics::UpdateFluid(std::shared_ptr<SphMarkerDataD> sphMarkersD, Real dT) {
     int2 updatePortion =
-        mI2(0, fsiData->fsiGeneralData->referenceArray[fsiData->fsiGeneralData->referenceArray.size() - 1].y);
+        mI2(0, fsiSystem->fsiGeneralData->referenceArray[fsiSystem->fsiGeneralData->referenceArray.size() - 1].y);
     bool *isErrorH, *isErrorD;
     isErrorH = (bool*)malloc(sizeof(bool));
     cudaMalloc((void**)&isErrorD, sizeof(bool));
@@ -562,11 +562,11 @@ void ChFluidDynamics::UpdateFluid(std::shared_ptr<SphMarkerDataD> sphMarkersD, R
     uint nBlock_UpdateFluid, nThreads;
     computeGridSize(updatePortion.y - updatePortion.x, 256, nBlock_UpdateFluid, nThreads);
     UpdateFluidD<<<nBlock_UpdateFluid, nThreads>>>(
-        mR4CAST(sphMarkersD->posRadD), mR3CAST(sphMarkersD->velMasD), mR3CAST(fsiData->fsiGeneralData->vel_XSPH_D),
-        mR4CAST(sphMarkersD->rhoPresMuD), mR4CAST(fsiData->fsiGeneralData->derivVelRhoD_old),
+        mR4CAST(sphMarkersD->posRadD), mR3CAST(sphMarkersD->velMasD), mR3CAST(fsiSystem->fsiGeneralData->vel_XSPH_D),
+        mR4CAST(sphMarkersD->rhoPresMuD), mR4CAST(fsiSystem->fsiGeneralData->derivVelRhoD_old),
         mR3CAST(sphMarkersD->tauXxYyZzD), mR3CAST(sphMarkersD->tauXyXzYzD),
-        mR3CAST(fsiData->fsiGeneralData->derivTauXxYyZzD), mR3CAST(fsiData->fsiGeneralData->derivTauXyXzYzD),
-        mR4CAST(fsiData->fsiGeneralData->sr_tau_I_mu_i), updatePortion, dT, isErrorD);
+        mR3CAST(fsiSystem->fsiGeneralData->derivTauXxYyZzD), mR3CAST(fsiSystem->fsiGeneralData->derivTauXyXzYzD),
+        mR4CAST(fsiSystem->fsiGeneralData->sr_tau_I_mu_i), updatePortion, dT, isErrorD);
     cudaDeviceSynchronize();
     cudaCheckError();
     //------------------------
@@ -585,10 +585,10 @@ void ChFluidDynamics::UpdateFluid_Implicit(std::shared_ptr<SphMarkerDataD> sphMa
     int haveGhost = (numObjectsH->numGhostMarkers > 0) ? 1 : 0;
     int haveHelper = (numObjectsH->numHelperMarkers > 0) ? 1 : 0;
 
-    int4 updatePortion = mI4(fsiData->fsiGeneralData->referenceArray[haveHelper].x,
-                             fsiData->fsiGeneralData->referenceArray[haveHelper + haveGhost].y, 0, 0);
+    int4 updatePortion = mI4(fsiSystem->fsiGeneralData->referenceArray[haveHelper].x,
+                             fsiSystem->fsiGeneralData->referenceArray[haveHelper + haveGhost].y, 0, 0);
     //    std::cout << "Skipping the markers greater than "
-    //              << fsiData->fsiGeneralData->referenceArray[haveHelper + haveGhost].y << " in position update\n";
+    //              << fsiSystem->fsiGeneralData->referenceArray[haveHelper + haveGhost].y << " in position update\n";
 
     std::cout << "time step in UpdateFluid_Implicit " << paramsH->dT << std::endl;
     bool *isErrorH, *isErrorD;
@@ -597,7 +597,7 @@ void ChFluidDynamics::UpdateFluid_Implicit(std::shared_ptr<SphMarkerDataD> sphMa
     *isErrorH = false;
     cudaMemcpy(isErrorD, isErrorH, sizeof(bool), cudaMemcpyHostToDevice);
     Update_Fluid_State<<<numBlocks, numThreads>>>(
-        mR3CAST(fsiData->fsiGeneralData->vel_XSPH_D), mR3CAST(fsiData->fsiGeneralData->vis_vel_SPH_D),
+        mR3CAST(fsiSystem->fsiGeneralData->vel_XSPH_D), mR3CAST(fsiSystem->fsiGeneralData->vis_vel_SPH_D),
         mR4CAST(sphMarkersD->posRadD), mR3CAST(sphMarkersD->velMasD), mR4CAST(sphMarkersD->rhoPresMuD), updatePortion,
         numObjectsH->numAllMarkers, paramsH->dT, isErrorD);
     cudaDeviceSynchronize();
@@ -676,17 +676,17 @@ void ChFluidDynamics::DensityReinitialization() {
     thrust::fill(dummySortedRhoPreMu.begin(), dummySortedRhoPreMu.end(), mR4(0.0));
 
     ReCalcDensityD_F1<<<nBlock_NumSpheres, nThreads_SphMarkers>>>(
-        mR4CAST(dummySortedRhoPreMu), mR4CAST(fsiData->sortedSphMarkersD->posRadD),
-        mR3CAST(fsiData->sortedSphMarkersD->velMasD), mR4CAST(fsiData->sortedSphMarkersD->rhoPresMuD),
-        U1CAST(fsiData->markersProximityD->gridMarkerIndexD), U1CAST(fsiData->markersProximityD->cellStartD),
-        U1CAST(fsiData->markersProximityD->cellEndD), numObjectsH->numAllMarkers);
+        mR4CAST(dummySortedRhoPreMu), mR4CAST(fsiSystem->sortedSphMarkersD->posRadD),
+        mR3CAST(fsiSystem->sortedSphMarkersD->velMasD), mR4CAST(fsiSystem->sortedSphMarkersD->rhoPresMuD),
+        U1CAST(fsiSystem->markersProximityD->gridMarkerIndexD), U1CAST(fsiSystem->markersProximityD->cellStartD),
+        U1CAST(fsiSystem->markersProximityD->cellEndD), numObjectsH->numAllMarkers);
 
     cudaDeviceSynchronize();
     cudaCheckError();
-    ChFsiForce::CopySortedToOriginal_NonInvasive_R4(fsiData->sphMarkersD1->rhoPresMuD, dummySortedRhoPreMu,
-                                                    fsiData->markersProximityD->gridMarkerIndexD);
-    ChFsiForce::CopySortedToOriginal_NonInvasive_R4(fsiData->sphMarkersD2->rhoPresMuD, dummySortedRhoPreMu,
-                                                    fsiData->markersProximityD->gridMarkerIndexD);
+    ChFsiForce::CopySortedToOriginal_NonInvasive_R4(fsiSystem->sphMarkersD1->rhoPresMuD, dummySortedRhoPreMu,
+                                                    fsiSystem->markersProximityD->gridMarkerIndexD);
+    ChFsiForce::CopySortedToOriginal_NonInvasive_R4(fsiSystem->sphMarkersD2->rhoPresMuD, dummySortedRhoPreMu,
+                                                    fsiSystem->markersProximityD->gridMarkerIndexD);
     dummySortedRhoPreMu.clear();
 }
 

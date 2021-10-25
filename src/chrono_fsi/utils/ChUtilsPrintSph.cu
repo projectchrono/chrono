@@ -20,7 +20,6 @@
 #include <fstream>
 #include <sstream>
 #include "chrono_fsi/utils/ChUtilsDevice.cuh"
-#include "chrono_fsi/physics/ChParams.cuh"
 #include "chrono_fsi/utils/ChUtilsPrintSph.cuh"
 
 namespace chrono {

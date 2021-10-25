@@ -20,8 +20,8 @@
 #include "chrono/ChConfig.h"
 #include "chrono/physics/ChSystem.h"
 #include "chrono_fsi/ChApiFsi.h"
-#include "chrono_fsi/ChFsiDataManager.cuh"
-#include "chrono_fsi/physics/ChFsiGeneral.cuh"
+#include "chrono_fsi/ChSystemFsi_impl.cuh"
+#include "chrono_fsi/physics/ChFsiGeneral.h"
 
 namespace chrono {
 
@@ -37,7 +37,7 @@ namespace fsi {
 /// @addtogroup fsi_physics
 /// @{
 /// Base class for processing the interface between chrono and fsi modules
-class CH_FSI_API ChFsiInterface : public ChFsiGeneral {
+class ChFsiInterface : public ChFsiGeneral {
   public:
     ChFsiInterface(chrono::ChSystem& other_mphysicalSystem,
                    std::shared_ptr<fea::ChMesh> other_fsiMesh,

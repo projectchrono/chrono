@@ -82,7 +82,7 @@ install(FILES "${PROJECT_BINARY_DIR}/chrono_fsi/ChConfigFSI.h"
 set(ChronoEngine_FSI_SOURCES
     ChSystemFsi.cpp
     ChFsiInterface.cpp
-    ChFsiDataManager.cu
+    ChSystemFsi_impl.cu
     utils/ChUtilsDevice.cu
     utils/ChUtilsTypeConvert.cpp
     
@@ -93,7 +93,7 @@ set(ChronoEngine_FSI_SOURCES
     physics/ChFsiForceExplicitSPH.cu
     physics/ChFsiForceI2SPH.cu
     physics/ChFsiForceIISPH.cu
-    physics/ChFsiGeneral.cu
+    physics/ChFsiGeneral.cpp
     physics/ChSphGeneral.cu
     
     math/ChFsiLinearSolverBiCGStab.cpp
@@ -102,9 +102,10 @@ set(ChronoEngine_FSI_SOURCES
 
 set(ChronoEngine_FSI_HEADERS
     ChApiFsi.h
+    ChFsiDefines.h
     ChSystemFsi.h
+    ChSystemFsi_impl.cuh
     ChFsiInterface.h
-    ChFsiDataManager.cuh
  	utils/ChUtilsDevice.cuh
     utils/ChUtilsTypeConvert.h
 
@@ -115,9 +116,9 @@ set(ChronoEngine_FSI_HEADERS
     physics/ChFsiForceExplicitSPH.cuh
     physics/ChFsiForceI2SPH.cuh
     physics/ChFsiForceIISPH.cuh
-    physics/ChFsiGeneral.cuh
+    physics/ChFsiGeneral.h
     physics/ChSphGeneral.cuh
-    physics/ChParams.cuh
+    physics/ChParams.h
 
     math/custom_math.h
     math/ExactLinearSolvers.cuh

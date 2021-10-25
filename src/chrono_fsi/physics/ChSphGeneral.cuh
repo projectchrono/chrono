@@ -25,8 +25,8 @@
 #include <device_launch_parameters.h>
 #include "chrono_fsi/ChApiFsi.h"
 #include "chrono_fsi/utils/ChUtilsDevice.cuh"
-#include "chrono_fsi/ChFsiDataManager.cuh"
-#include "chrono_fsi/physics/ChParams.cuh"
+#include "chrono_fsi/ChSystemFsi_impl.cuh"
+#include "chrono_fsi/physics/ChParams.h"
 #include "chrono_fsi/math/ChFsiLinearSolver.h"
 #include "chrono_fsi/math/ExactLinearSolvers.cuh"
 #include "chrono_fsi/math/custom_math.h"

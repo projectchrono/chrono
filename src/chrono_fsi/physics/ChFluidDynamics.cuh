@@ -29,7 +29,10 @@
 #include "chrono_fsi/physics/ChFsiForceI2SPH.cuh"
 #include "chrono_fsi/physics/ChFsiForceIISPH.cuh"
 
-#include "chrono_fsi/ChFsiDataManager.cuh"
+#include "chrono_fsi/ChSystemFsi_impl.cuh"
+#include "chrono_fsi/ChFsiDefines.h"
+
+using chrono::fsi::CHFSI_TIME_INTEGRATOR;
 
 namespace chrono {
 namespace fsi {
@@ -47,10 +50,10 @@ namespace fsi {
 /// It also include a forceSystem, which takes care of the
 /// computation of force between markers. The forceSystem is owned
 /// by the class.
-class CH_FSI_API ChFluidDynamics : public ChFsiGeneral {
+class ChFluidDynamics : public ChFsiGeneral {
   public:
     /// SPH implementation
-    enum class Integrator { IISPH, ExplicitSPH, I2SPH };
+    // enum class Integrator { IISPH, ExplicitSPH, I2SPH };
 
     /// Fluid dynamics class constructor.
     /// The class constructor performs the following operations:
@@ -58,10 +61,10 @@ class CH_FSI_API ChFluidDynamics : public ChFsiGeneral {
     /// Copy the pointer to fluid data, parameters, and number of objects
     /// to member variables.
     ChFluidDynamics(std::shared_ptr<ChBce> otherBceWorker,
-                    std::shared_ptr<ChFsiDataManager> otherFsiData,
+                    std::shared_ptr<ChSystemFsi_impl> otherFsiSystem,
                     std::shared_ptr<SimParams> otherParamsH,
                     std::shared_ptr<NumberOfObjects> otherNumObjects,
-                    ChFluidDynamics::Integrator type);
+                    CHFSI_TIME_INTEGRATOR otherIntegrator);
 
     /// Class destructor. Deletes the force system.
     ~ChFluidDynamics();
@@ -90,15 +93,15 @@ class CH_FSI_API ChFluidDynamics : public ChFsiGeneral {
     /// between device (GPU) and host (CPU).
     /// This function needs to be called once the host data are modified
     void Finalize();
-    ChFluidDynamics::Integrator GetIntegratorType() { return myIntegrator; }
+    CHFSI_TIME_INTEGRATOR GetIntegratorType() { return myIntegrator; }
 
     std::shared_ptr<ChFsiForce> GetForceSystem() { return forceSystem; }
 
   protected:
-    std::shared_ptr<ChFsiDataManager> fsiData;  ///< pointer to the fsi data. The values are maintained externally
+    std::shared_ptr<ChSystemFsi_impl> fsiSystem;  ///< pointer to the fsi data. The values are maintained externally
 
     std::shared_ptr<ChFsiForce> forceSystem;   ///< force system object. It calculates the force between markers.
-    ChFluidDynamics::Integrator myIntegrator;  ///< IISPH by default
+    CHFSI_TIME_INTEGRATOR myIntegrator;  ///< IISPH by default
 
     std::shared_ptr<SimParams> paramsH;  ///< pointer to parameters. The values are mainained externally.
 

@@ -27,7 +27,6 @@
 #include "ChUtilsJSON.h"
 #include "chrono_fsi/utils/ChUtilsDevice.cuh"
 #include "chrono_fsi/math/ChFsiLinearSolver.h"
-#include "chrono_fsi/physics/ChParams.cuh"
 #include "chrono_fsi/physics/ChSphGeneral.cuh"
 #include "chrono_fsi/utils/ChUtilsPrintStruct.h"
 // Chrono general utils

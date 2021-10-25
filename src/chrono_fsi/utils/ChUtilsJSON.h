@@ -20,6 +20,7 @@
 #include <memory>
 #include "chrono_fsi/ChApiFsi.h"
 #include "chrono_fsi/math/custom_math.h"
+#include "chrono_fsi/physics/ChParams.h"
 #include "chrono_thirdparty/rapidjson/document.h"
 #include "chrono_thirdparty/rapidjson/filereadstream.h"
 using namespace rapidjson;
