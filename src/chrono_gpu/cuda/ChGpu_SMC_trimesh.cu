@@ -490,7 +490,7 @@ __host__ double ChSystemGpuMesh_impl::AdvanceSimulation(float duration) {
                     cub::DeviceScan::InclusiveSum(d_temp_storage, bytesize,
                         sphere_data->adj_start,
                         sphere_data->adj_start, gran_params->nSpheres);
-                    gpuErrchk(cudaFree(d_temp_storage));
+                    // gpuErrchk(cudaFree(d_temp_storage));
                     break;
                 }
 
