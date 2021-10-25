@@ -584,7 +584,7 @@ void AddBCE_FromFile(std::shared_ptr<ChSystemFsi_impl> fsiSystem,
 // =============================================================================
 void CreateSphereFSI(std::shared_ptr<ChSystemFsi_impl> fsiSystem,
                      ChSystem& mphysicalSystem,
-                     std::vector<std::shared_ptr<ChBody>>& fsiBodeis,
+                     std::vector<std::shared_ptr<ChBody>>& fsiBodies,
                      std::shared_ptr<fsi::SimParams> paramsH,
                      std::shared_ptr<ChMaterialSurface> mat_prop,
                      Real density,
@@ -607,14 +607,14 @@ void CreateSphereFSI(std::shared_ptr<ChSystemFsi_impl> fsiSystem,
     chrono::utils::AddSphereGeometry(body.get(), mat_prop, radius);
     body->GetCollisionModel()->BuildModel();
     mphysicalSystem.AddBody(body);
-    fsiBodeis.push_back(body);
+    fsiBodies.push_back(body);
 
     AddSphereBce(fsiSystem, paramsH, body, ChVector<>(0, 0, 0), ChQuaternion<>(1, 0, 0, 0), radius);
 }
 // =============================================================================
 void CreateCylinderFSI(std::shared_ptr<ChSystemFsi_impl> fsiSystem,
                        ChSystem& mphysicalSystem,
-                       std::vector<std::shared_ptr<ChBody>>& fsiBodeis,
+                       std::vector<std::shared_ptr<ChBody>>& fsiBodies,
                        std::shared_ptr<fsi::SimParams> paramsH,
                        std::shared_ptr<ChMaterialSurface> mat_prop,
                        Real density,
@@ -638,7 +638,7 @@ void CreateCylinderFSI(std::shared_ptr<ChSystemFsi_impl> fsiSystem,
     body->GetCollisionModel()->BuildModel();
     mphysicalSystem.AddBody(body);
 
-    fsiBodeis.push_back(body);
+    fsiBodies.push_back(body);
     AddCylinderBce(fsiSystem, paramsH, body, ChVector<>(0, 0, 0), ChQuaternion<>(1, 0, 0, 0), radius, length,
                    paramsH->HSML * paramsH->MULT_INITSPACE);
 }
@@ -646,7 +646,7 @@ void CreateCylinderFSI(std::shared_ptr<ChSystemFsi_impl> fsiSystem,
 // =============================================================================
 void CreateBoxFSI(std::shared_ptr<ChSystemFsi_impl> fsiSystem,
                   ChSystem& mphysicalSystem,
-                  std::vector<std::shared_ptr<ChBody>>& fsiBodeis,
+                  std::vector<std::shared_ptr<ChBody>>& fsiBodies,
                   std::shared_ptr<fsi::SimParams> paramsH,
                   std::shared_ptr<ChMaterialSurface> mat_prop,
                   Real density,
@@ -669,7 +669,7 @@ void CreateBoxFSI(std::shared_ptr<ChSystemFsi_impl> fsiSystem,
     body->GetCollisionModel()->BuildModel();
     mphysicalSystem.AddBody(body);
 
-    fsiBodeis.push_back(body);
+    fsiBodies.push_back(body);
     AddBoxBce(fsiSystem, paramsH, body, ChVector<>(0, 0, 0), ChQuaternion<>(1, 0, 0, 0), hsize);
 }
 // =============================================================================

@@ -31,7 +31,7 @@ ChFsiInterface::ChFsiInterface(chrono::ChSystem& other_mphysicalSystem,
                                std::shared_ptr<SimParams> other_paramsH,
                                std::shared_ptr<FsiBodiesDataH> other_fsiBodiesH,
                                std::shared_ptr<FsiMeshDataH> other_fsiMeshH,
-                               std::vector<std::shared_ptr<chrono::ChBody>>& other_fsiBodeis,
+                               std::vector<std::shared_ptr<chrono::ChBody>>& other_fsiBodies,
                                std::vector<std::shared_ptr<fea::ChNodeFEAxyzD>>& other_fsiNodes,
                                std::vector<std::shared_ptr<fea::ChElementCableANCF>>& other_fsiCables,
                                std::vector<std::shared_ptr<fea::ChElementShellANCF>>& other_fsiShells,
@@ -47,7 +47,7 @@ ChFsiInterface::ChFsiInterface(chrono::ChSystem& other_mphysicalSystem,
       paramsH(other_paramsH),
       fsiBodiesH(other_fsiBodiesH),
       fsiMeshH(other_fsiMeshH),
-      fsiBodeis(other_fsiBodeis),
+      fsiBodies(other_fsiBodies),
       fsiNodes(other_fsiNodes),
       fsiCables(other_fsiCables),
       fsiShells(other_fsiShells),
@@ -77,7 +77,7 @@ ChFsiInterface::~ChFsiInterface() {}
 //------------------------------------------------------------------------------------
 
 void ChFsiInterface::Add_Rigid_ForceTorques_To_ChSystem() {
-    size_t numRigids = fsiBodeis.size();
+    size_t numRigids = fsiBodies.size();
     std::string delim = ",";
     char filename[4096];
     ChVector<> totalForce(0);
@@ -91,7 +91,7 @@ void ChFsiInterface::Add_Rigid_ForceTorques_To_ChSystem() {
 
         totalForce += mforce;
         totalTorque + mtorque;
-        std::shared_ptr<chrono::ChBody> body = fsiBodeis[i];
+        std::shared_ptr<chrono::ChBody> body = fsiBodies[i];
         ChVector<> pos = body->GetPos();
         ChVector<> vel = body->GetPos_dt();
         ChQuaternion<> rot = body->GetRot();
@@ -186,9 +186,9 @@ void ChFsiInterface::Copy_ChSystem_to_External() {
 }
 //------------------------------------------------------------------------------------
 void ChFsiInterface::Copy_fsiBodies_ChSystem_to_FluidSystem(std::shared_ptr<FsiBodiesDataD> fsiBodiesD) {
-    size_t num_fsiBodies_Rigids = fsiBodeis.size();
+    size_t num_fsiBodies_Rigids = fsiBodies.size();
     for (size_t i = 0; i < num_fsiBodies_Rigids; i++) {
-        std::shared_ptr<ChBody> bodyPtr = fsiBodeis[i];
+        std::shared_ptr<ChBody> bodyPtr = fsiBodies[i];
         fsiBodiesH->posRigid_fsiBodies_H[i] = ChUtilsTypeConvert::ChVectorToReal3(bodyPtr->GetPos());
         fsiBodiesH->velMassRigid_fsiBodies_H[i] =
             ChUtilsTypeConvert::ChVectorRToReal4(bodyPtr->GetPos_dt(), bodyPtr->GetMass());

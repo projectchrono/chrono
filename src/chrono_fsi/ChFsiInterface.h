@@ -44,7 +44,7 @@ class ChFsiInterface : public ChFsiGeneral {
                    std::shared_ptr<SimParams> other_paramsH,
                    std::shared_ptr<FsiBodiesDataH> other_fsiBodiesH,
                    std::shared_ptr<FsiMeshDataH> other_fsiMeshH,
-                   std::vector<std::shared_ptr<chrono::ChBody>>& other_fsiBodeis,
+                   std::vector<std::shared_ptr<chrono::ChBody>>& other_fsiBodies,
                    std::vector<std::shared_ptr<fea::ChNodeFEAxyzD>>& other_fsiNodes,
                    std::vector<std::shared_ptr<fea::ChElementCableANCF>>& other_fsiCables,
                    std::vector<std::shared_ptr<fea::ChElementShellANCF>>& other_fsiShells,
@@ -96,7 +96,7 @@ class ChFsiInterface : public ChFsiGeneral {
         Flex_FSI_ForcesD;  ///< Surface-integrated forces from the fluid dynamics system to flexible bodies.
 
     std::shared_ptr<fea::ChMesh> fsi_mesh;
-    std::vector<std::shared_ptr<ChBody>>& fsiBodeis;  ///< List of ChBody shared pointers handled by the FSI system.
+    std::vector<std::shared_ptr<ChBody>>& fsiBodies;  ///< List of ChBody shared pointers handled by the FSI system.
     std::vector<std::shared_ptr<fea::ChNodeFEAxyzD>>& fsiNodes;        ///< List of FE nodes available in fsi system.
     std::vector<std::shared_ptr<fea::ChElementCableANCF>>& fsiCables;  ///< List of FE cable elements in fsi system.
     std::vector<std::shared_ptr<fea::ChElementShellANCF>>& fsiShells;  ///< List of FE shell elements in fsi system.

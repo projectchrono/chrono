@@ -246,7 +246,7 @@ namespace fsi {
         // ----------------
         //  host
         // ----------------
-        // fluidfsiBodeisIndex
+        // fluidfsiBodiesIndex
         thrust::host_vector<int4> referenceArray;  ///< Holds information of each phase in the array of sph markers
         thrust::host_vector<int4> referenceArray_FEA;  ///< Holds information of each phase in the array of sph markers for Flexible elements
         // ----------------
