@@ -132,6 +132,7 @@ size_t ChSystemGpu_impl::EstimateMemUsage() const {
 
 void ChSystemGpu_impl::packSphereDataPointers() {
     // Set data from system
+    printf("packSphereDataPointers\n");
     sphere_data->sphere_local_pos_X = sphere_local_pos_X.data();
     sphere_data->sphere_local_pos_Y = sphere_local_pos_Y.data();
     sphere_data->sphere_local_pos_Z = sphere_local_pos_Z.data();
@@ -202,6 +203,7 @@ void ChSystemGpu_impl::packSphereDataPointers() {
             sphere_data->rolling_friction_torque = rolling_friction_torque.data();
         }
     }
+    printf("OUT OF packSphereDataPointers\n");
 }
 
 void ChSystemGpu_impl::WriteFile(

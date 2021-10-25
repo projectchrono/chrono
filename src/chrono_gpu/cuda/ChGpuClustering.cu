@@ -126,17 +126,19 @@ static __global__ void cluster_search_BFS_kernel(unsigned int nSpheres,
 
     // my sphere ID, we're using a 1D thread->sphere map
     unsigned int mySphereID = threadIdx.x + blockIdx.x * blockDim.x;
-    if (d_visited[mySphereID]) {
-        d_visited[mySphereID] = true;
-        d_borders[mySphereID] = false;
+    if (mySphereID < nSpheres) { 
+        if (d_borders[mySphereID]) {
+            d_visited[mySphereID] = true;
+            d_borders[mySphereID] = false;
 
 
-        unsigned int start = adj_start[mySphereID];
-        unsigned int end = adj_start[mySphereID] + adj_num[mySphereID];
-        for (size_t i = start; i < end; i++) {
-            unsigned int neighborSphereID = adj_list[i];
-            if (!d_visited[neighborSphereID]) {
-                d_borders[neighborSphereID] = true;
+            unsigned int start = adj_start[mySphereID];
+            unsigned int end = adj_start[mySphereID] + adj_num[mySphereID];
+            for (size_t i = start; i < end; i++) {
+                unsigned int neighborSphereID = adj_list[i];
+                if (!d_visited[neighborSphereID]) {
+                    d_borders[neighborSphereID] = true;
+                }
             }
         }
     }
@@ -155,10 +157,11 @@ static __host__ unsigned int ** cluster_search_BFS(unsigned int nSpheres,
     /// ALTERNATIVE 1:
     /// clusters, array of points to arrays of variable lengths, with lengths at [0]
     unsigned int * h_cluster;
-    unsigned int h_cluster_num = 1;
+    unsigned int h_cluster_num = 0;
     unsigned int ** h_clusters;
     h_clusters = (unsigned int **)malloc(sizeof(*h_clusters) * (nSpheres+1)); // at worst, there will be nSpheres h_clusters
     h_clusters[0] = (unsigned int *)malloc(sizeof(**h_clusters)); // number of h_clusters at h_clusters[0][0]
+    h_clusters[0][0] = h_cluster_num;
     /// h_clusters[0][0] -> number of pointers/h_clusters
     /// h_clusters[M][0] -> size of the Mth h_cluster
     /// h_clusters[M][N] -> Nth point in Mth h_cluster
@@ -172,68 +175,86 @@ static __host__ unsigned int ** cluster_search_BFS(unsigned int nSpheres,
     // unsigned int * h_cluster_start; /// index where cluster list starts in h_cluster_list
     // h_cluster_list = (unsigned int *)malloc(sizeof(*h_cluster_list) * nSpheres); // there is only nSpheres in ALL clusters
     // h_cluster_start = (unsigned int *)malloc(sizeof(*h_cluster_start) * nSpheres); // at worst, there will be nSpheres h_clusters
-    // h_sphere_num_in_cluster = (unsigned int *)malloc(sizeof(*h_sphere_num_in_cluster) * nSpheres); // aast worst, there will be nSpheres h_clusters
-
+    // h_sphere_num_in_cluster = (unsigned int *)malloc(sizeof(*h_sphere_num_in_cluster) * nSpheres); // at worst, there will be nSpheres h_clusters
+    unsigned int * d_adj_num, * d_adj_start, * d_adj_list;
     bool * d_borders; // [mySphereID] -> is vertex a border?
     bool * d_visited; // [mySphereID] -> was vertex d_visited during BFS_kernel?
     bool * h_visited; // [mySphereID] -> host of d_visited
     bool * h_searched; // [mySphereID] -> was vertex searched before?
     unsigned int * d_border_num; // number of remaining border vertices to search in BFS_kernel
     unsigned int * h_border_num = (unsigned int *)malloc(sizeof(*h_border_num)); // number of remaining border vertices to search in BFS_kernl
+    gpuErrchk(cudaMalloc((void**)&d_adj_num, sizeof(*d_adj_num) * nSpheres));
+    gpuErrchk(cudaMalloc((void**)&d_adj_start, sizeof(*d_adj_start) * nSpheres));
+    gpuErrchk(cudaMalloc((void**)&d_adj_list, sizeof(*d_adj_list) * nSpheres * MAX_SPHERES_TOUCHED_BY_SPHERE));
+    cudaMemcpy(d_adj_num, adj_num, sizeof(*d_adj_num) * nSpheres, cudaMemcpyHostToDevice);
+    cudaMemcpy(d_adj_start, adj_start, sizeof(*d_adj_start) * nSpheres, cudaMemcpyHostToDevice);
+    cudaMemcpy(d_adj_list, adj_list, sizeof(*d_adj_list) * nSpheres, cudaMemcpyHostToDevice);
+    gpuErrchk(cudaPeekAtLastError());
+    gpuErrchk(cudaDeviceSynchronize());
+
     gpuErrchk(cudaMalloc((void**)&d_borders, sizeof(*d_borders) * nSpheres));
     gpuErrchk(cudaMalloc((void**)&d_visited, sizeof(*d_visited) * nSpheres));
     gpuErrchk(cudaMalloc((void**)&d_border_num, sizeof(*d_border_num)));
+
     h_visited = (bool *)calloc(sizeof(*h_visited), nSpheres);
     h_searched = (bool *)calloc(sizeof(*h_searched), nSpheres);
     SPHERE_GROUP h_current_group;
 
-    for (size_t i = 0; i < nSpheres; i++) {
-        cudaMemcpy(&h_current_group, &sphere_group + i, sizeof(*sphere_group), cudaMemcpyDeviceToHost);
+    for (size_t i = 1; i < nSpheres; i++) { // SphereIDs start at 1 if 0 is not a positive integer
+        h_current_group = sphere_group[i];
         /// find the next h_cluster, at the first sphere not yet searched.
         if ((!h_searched[i]) && (h_current_group == SPHERE_GROUP::CORE)) {
-            cudaMemset(&d_borders, false, sizeof(*d_borders) * nSpheres);
-            cudaMemset(&d_visited, false, sizeof(*d_visited) * nSpheres);
-            cudaMemset(&(d_border_num), 1, sizeof(*d_border_num));
-            cudaMemset(&d_borders + i, true, sizeof(*d_borders));
-            h_searched[i] = true;
+            cudaMemset(d_borders, false, sizeof(*d_borders) * nSpheres);
+            cudaMemcpy(d_visited, h_searched, sizeof(*d_visited) * nSpheres, cudaMemcpyHostToDevice);
+            cudaMemset(&d_borders[i], true, sizeof(*d_borders));
+            gpuErrchk(cudaPeekAtLastError());
+            gpuErrchk(cudaDeviceSynchronize());
+            h_cluster_num++;
 
-
+            // Allocate temporary storage
+            void *d_temp_storage = NULL;
+            size_t temp_storage_bytes = 0;
+            // Determine temporary device storage requirements
+            cub::DeviceReduce::Sum(d_temp_storage, temp_storage_bytes, d_borders, d_border_num, nSpheres);
             // find and visit border points, establishing the cluster
             do {
                 cluster_search_BFS_kernel<<<nBlocks, CUDA_THREADS_PER_BLOCK>>>(nSpheres,
-                adj_num, adj_start, adj_list,
+                d_adj_num, d_adj_start, d_adj_list,
                 d_borders, d_visited);
-
-                void *d_temp_storage = NULL;
-                size_t temp_storage_bytes = 0;
-                // Determine temporary device storage requirements
-                cub::DeviceReduce::Sum(d_temp_storage, temp_storage_bytes, d_borders, d_border_num, nSpheres);
-                // Allocate temporary storage
+                gpuErrchk(cudaPeekAtLastError());
+                gpuErrchk(cudaDeviceSynchronize());
                 gpuErrchk(cudaMalloc(&d_temp_storage, temp_storage_bytes));
                 cub::DeviceReduce::Sum(d_temp_storage, temp_storage_bytes, d_borders, d_border_num, nSpheres);
                 cudaMemcpy(h_border_num, d_border_num, sizeof(*d_border_num), cudaMemcpyDeviceToHost);
-            } while (h_border_num > 0);
+            } while (*h_border_num > 0) ;
+            gpuErrchk(cudaFree(d_temp_storage));
 
             cudaMemcpy(h_visited, d_visited, sizeof(*d_visited)* nSpheres, cudaMemcpyDeviceToHost);
-            h_cluster = (unsigned int *)malloc(sizeof(*h_cluster) * (nSpheres + 1));
+            h_cluster = (unsigned int *)calloc((nSpheres + 1), sizeof(*h_cluster));
 
             // h_cluster[0] is its size, so it length nSpheres + 1
-            for (size_t j = 0; i < nSpheres; j++) {
+            for (size_t j = 0; j < nSpheres; j++) {
                 if (h_visited[j]) {
                     h_searched[j] = true;
-                    h_cluster[h_cluster[0]++] = j;
-                    cudaMemcpy(&h_current_group, &sphere_group + j, sizeof(*sphere_group), cudaMemcpyDeviceToHost);
-                    if (h_current_group != SPHERE_GROUP::CORE) {
-                       cudaMemset(&sphere_group + j, static_cast<int>(SPHERE_GROUP::BORDER), sizeof(*sphere_group));
+                    h_cluster[++h_cluster[0]] = j;
+                    // cudaMemcpy(&h_current_group, &sphere_group + j, sizeof(*sphere_group), cudaMemcpyDeviceToHost);
+                    if (sphere_group[j] != SPHERE_GROUP::CORE) {
+                        sphere_group[j] = SPHERE_GROUP::BORDER;
+                       // cudaMemset(&sphere_group + j, static_cast<int>(SPHERE_GROUP::BORDER), sizeof(*sphere_group));
                     }
                 }
             }
-            h_cluster = (unsigned int *)realloc(h_cluster, sizeof(*h_cluster) * (h_cluster[0]));
+            assert(h_cluster[0] <= nSpheres);
+            h_cluster = (unsigned int *)realloc(h_cluster, sizeof(*h_cluster) * (h_cluster[0] + 1));
+            assert(h_cluster[0] <= nSpheres);
             h_clusters[h_cluster_num] = h_cluster;
-            h_clusters[0][0] = ++h_cluster_num; // h_clusters size is number of clusters + 1 cause it includes its length 
+            assert(h_clusters[h_cluster_num][0] <= nSpheres);
+            h_clusters[0][0] = h_cluster_num; // h_clusters size is number of clusters + 1 cause it includes its length 
+            h_searched[i] = true;
         }
     }
-    h_clusters = (unsigned int **)realloc(h_clusters, sizeof(*h_clusters) * (h_clusters[0][0]));
+
+    h_clusters = (unsigned int **)realloc(h_clusters, sizeof(*h_clusters) * (h_clusters[0][0]+1));
 
     free(h_visited);
     free(h_searched);
@@ -241,6 +262,13 @@ static __host__ unsigned int ** cluster_search_BFS(unsigned int nSpheres,
     gpuErrchk(cudaFree(d_borders));
     gpuErrchk(cudaFree(d_border_num));
     gpuErrchk(cudaFree(d_visited));
+    gpuErrchk(cudaFree(d_adj_num));
+    gpuErrchk(cudaFree(d_adj_list));
+    gpuErrchk(cudaFree(d_adj_start));
+    assert(h_clusters[0][0] == h_cluster_num);
+    assert(h_clusters[0][0] <= nSpheres);
+    gpuErrchk(cudaPeekAtLastError());
+    gpuErrchk(cudaDeviceSynchronize());
     return(h_clusters);
 }
 
@@ -291,6 +319,9 @@ __host__ void gdbscan_search_graph(ChSystemGpu_impl::GranSphereDataPtr sphere_da
     chrono::gpu::init_sphere_group_gdbscan<<<nBlocks, CUDA_THREADS_PER_BLOCK>>>(nSpheres,
                 sphere_data->adj_num, sphere_data->sphere_group, min_pts);
 
+    gpuErrchk(cudaPeekAtLastError());
+    gpuErrchk(cudaDeviceSynchronize());
+
     unsigned int ** h_clusters = cluster_search_BFS(nSpheres, sphere_data->adj_num,
                                         sphere_data->adj_start,
                                         sphere_data->adj_list,
@@ -301,30 +332,45 @@ __host__ void gdbscan_search_graph(ChSystemGpu_impl::GranSphereDataPtr sphere_da
     unsigned int biggest_cluster_size = 1;
     unsigned int biggest_cluster_id = 1;
 
-    // find biggest cluster id
-    for (size_t i = 0; i < cluster_num; i++) {// expect low number of clusters, 1 most of the time, maybe 2-3 otherwise.
-        sphere_num_in_cluster = h_clusters[i][0];
-        if (sphere_num_in_cluster > biggest_cluster_size) {
-            biggest_cluster_size = sphere_num_in_cluster;
-            biggest_cluster_id = i;
-        }
-    }    
+    if (cluster_num > 0) {
+        // find biggest cluster id
+        for (size_t i = 1; i < cluster_num; i++) {// expect low number of clusters, 1 most of the time, maybe 2-3 otherwise.
+            sphere_num_in_cluster = h_clusters[i][0];
+            assert(sphere_num_in_cluster <= nSpheres);
+            if (sphere_num_in_cluster > biggest_cluster_size) {
+                biggest_cluster_size = sphere_num_in_cluster;
+                biggest_cluster_id = i;
+            }
+        }    
 
-    // tag each sphere to a cluster_group
-    for (size_t i = 1; i < cluster_num; i++) {// expect low number of clusters, 1 most of the time, maybe 2-3 otherwise.
-        unsigned int cluster_id = (static_cast<unsigned int>(biggest_cluster_id) == i) ? static_cast<unsigned int>(chrono::gpu::CLUSTER_INDEX::GROUND) : i;
-        gpuErrchk(cudaMalloc(&d_cluster, h_clusters[i][0]));
-        gpuErrchk(cudaMemcpy(d_cluster, h_clusters[i] + 1, sizeof(*d_cluster) * h_clusters[i][0], cudaMemcpyHostToDevice));
-        sphere_num_in_cluster = h_clusters[i][0];
+        // tag each sphere to a cluster_group
+        for (size_t i = 1; i < cluster_num; i++) {// expect low number of clusters, 1 most of the time, maybe 2-3 otherwise.
+            unsigned int cluster_id = (static_cast<unsigned int>(biggest_cluster_id) == i) ? static_cast<unsigned int>(chrono::gpu::CLUSTER_INDEX::GROUND) : i;
+            assert(h_clusters[i][0] <= nSpheres);
+            gpuErrchk(cudaMalloc(&d_cluster,  sizeof(*d_cluster) * h_clusters[i][0]));
+            cudaMemcpy(d_cluster, h_clusters[i] + 1, sizeof(*d_cluster) * h_clusters[i][0], cudaMemcpyHostToDevice);
+            sphere_num_in_cluster = h_clusters[i][0];
+            update_cluster_group<<<nBlocks, CUDA_THREADS_PER_BLOCK>>>(sphere_data,
+                                                gran_params, sphere_num_in_cluster,
+                                                cluster_id, d_cluster);
+            gpuErrchk(cudaPeekAtLastError());
+            gpuErrchk(cudaDeviceSynchronize());
+            gpuErrchk(cudaFree(d_cluster));
+        }
+    }  else {
+        // If no clusters are found, just make everything be the ground.
         update_cluster_group<<<nBlocks, CUDA_THREADS_PER_BLOCK>>>(sphere_data,
-                                            gran_params, sphere_num_in_cluster,
-                                            cluster_id, d_cluster);
-        gpuErrchk(cudaFree(d_cluster));
+            gran_params, nSpheres,
+            0, NULL);
+        gpuErrchk(cudaPeekAtLastError());
+        gpuErrchk(cudaDeviceSynchronize());
     }
 
     for (size_t i = 0; i < cluster_num; i++) {
         free(h_clusters[i]);
     }
     free(h_clusters);
+    gpuErrchk(cudaPeekAtLastError());
+    gpuErrchk(cudaDeviceSynchronize());
 }
 

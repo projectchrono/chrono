@@ -554,10 +554,8 @@ static __global__ void determineContactPairs(ChSystemGpu_impl::GranSphereDataPtr
         /// This is the CLUSTER_GRAPH_METHOD::CONTACT
         /// i.e. construct_adj_num_start_by_contact 
         /// computes adj_num and adj_start
-        if ((gran_params->cluster_graph_method > CLUSTER_GRAPH_METHOD::NONE) &&
-            (gran_params->cluster_search_method > CLUSTER_SEARCH_METHOD::NONE) &&
-            (gran_params->cluster_graph_method == CLUSTER_GRAPH_METHOD::CONTACT)) {
-
+        if ((gran_params->cluster_graph_method == CLUSTER_GRAPH_METHOD::CONTACT) &&
+            (gran_params->cluster_search_method > CLUSTER_SEARCH_METHOD::NONE)) {
             sphere_data->adj_num[sphIDs[bodyA]] = ncontacts;
             sphere_data->adj_start[sphIDs[bodyA]] = ncontacts;
         }

@@ -278,6 +278,7 @@ static __global__ void init_sphere_group_gdbscan(unsigned int nSpheres,
 static __host__ void gdbscan_construct_graph(ChSystemGpu_impl::GranSphereDataPtr sphere_data,
                                            ChSystemGpu_impl::GranParamsPtr gran_params,
                                            unsigned int nSpheres, size_t min_pts, float radius) {
+    printf("gdbscan_construct_graph");
     unsigned int nBlocks = (nSpheres + CUDA_THREADS_PER_BLOCK - 1) / CUDA_THREADS_PER_BLOCK;
 
     // /// 2 steps:
@@ -290,16 +291,21 @@ static __host__ void gdbscan_construct_graph(ChSystemGpu_impl::GranSphereDataPtr
     //         radius, adj_num, adj_start, adj_list);
 }
 
+/// if cluster is NULL, just update all spheres to cluster.
 static __global__ void update_cluster_group(ChSystemGpu_impl::GranSphereDataPtr sphere_data,
                                            ChSystemGpu_impl::GranParamsPtr gran_params,
                                            unsigned int sphere_num_in_cluster,
                                            unsigned int cluster_id,
                                            unsigned int * cluster) {
     unsigned int mySphereID = threadIdx.x + blockIdx.x * blockDim.x;
-    for (size_t i = 0; i < sphere_num_in_cluster; i++) { 
-        if (cluster[i] == mySphereID) {
-            sphere_data->sphere_cluster[mySphereID] = cluster_id;
+    if (cluster!= NULL)  {
+        for (size_t i = 0; i < sphere_num_in_cluster; i++) { 
+            if (cluster[i] == mySphereID) {
+                sphere_data->sphere_cluster[mySphereID] = cluster_id;
+            }
         }
+    } else {
+        sphere_data->sphere_cluster[mySphereID] = cluster_id;
     }
 }
 
