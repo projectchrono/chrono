@@ -85,7 +85,7 @@ class CH_FSI_API ChSystemFsi : public ChFsiGeneral {
     virtual void FinalizeData();
 
     /// Get a pointer to the data manager.
-    // std::shared_ptr<ChFsiDataManager> GetDataManager() { return fsiData; }
+    std::shared_ptr<ChSystemFsi_impl> GetFsiData() { return fsiData; }
 
     /// Set the linear system solver for implicit methods
     void SetFluidSystemLinearSolver(ChFsiLinearSolver::SolverType other_solverType) {
@@ -169,6 +169,8 @@ class CH_FSI_API ChSystemFsi : public ChFsiGeneral {
     void SetFluidIntegratorType(fluid_dynamics params_type);
 
     CHFSI_OUTPUT_MODE file_write_mode;  ///< FSI particle output type::CSV | ChPF | None, default is NONE
+
+    std::shared_ptr<ChSystemFsi_impl> fsiData;       ///< Pointer to all FSI data
 
     std::vector<std::shared_ptr<ChBody>> fsiBodies;  ///< Vector of a pointers to fsi bodies. fsi bodies
                                                      /// are those that interact with fluid

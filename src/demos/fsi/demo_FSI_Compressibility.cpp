@@ -110,17 +110,17 @@ void CreateSolidPhase(ChSystemSMC& mphysicalSystem,
     ground->GetCollisionModel()->BuildModel();
     mphysicalSystem.AddBody(ground);
 
-    fsi::utils::AddBoxBce(myFsiSystem.GetDataManager(), paramsH, ground, posBottom, QUNIT, sizeBottom);
-    // fsi::utils::AddBoxBce(myFsiSystem.GetDataManager(), paramsH, ground, posTop, QUNIT, sizeBottom);
+    fsi::utils::AddBoxBce(myFsiSystem.GetFsiData(), paramsH, ground, posBottom, QUNIT, sizeBottom);
+    // fsi::utils::AddBoxBce(myFsiSystem.GetFsiData(), paramsH, ground, posTop, QUNIT, sizeBottom);
 
-    fsi::utils::AddBoxBce(myFsiSystem.GetDataManager(), paramsH, ground, pos_xp, QUNIT, size_YZ, 23);
-    fsi::utils::AddBoxBce(myFsiSystem.GetDataManager(), paramsH, ground, pos_xn, QUNIT, size_YZ, 23);
-    fsi::utils::AddBoxBce(myFsiSystem.GetDataManager(), paramsH, ground, pos_yp, QUNIT, size_XZ, 13);
-    fsi::utils::AddBoxBce(myFsiSystem.GetDataManager(), paramsH, ground, pos_yn, QUNIT, size_XZ, 13);
-    size_t L = myFsiSystem.GetDataManager()->sphMarkersH->rhoPresMuH.size();
+    fsi::utils::AddBoxBce(myFsiSystem.GetFsiData(), paramsH, ground, pos_xp, QUNIT, size_YZ, 23);
+    fsi::utils::AddBoxBce(myFsiSystem.GetFsiData(), paramsH, ground, pos_xn, QUNIT, size_YZ, 23);
+    fsi::utils::AddBoxBce(myFsiSystem.GetFsiData(), paramsH, ground, pos_yp, QUNIT, size_XZ, 13);
+    fsi::utils::AddBoxBce(myFsiSystem.GetFsiData(), paramsH, ground, pos_yn, QUNIT, size_XZ, 13);
+    size_t L = myFsiSystem.GetFsiData()->sphMarkersH->rhoPresMuH.size();
     for (int i = 0; i < L; i++) {
-        double z = myFsiSystem.GetDataManager()->sphMarkersH->posRadH[i].z;
-        myFsiSystem.GetDataManager()->sphMarkersH->rhoPresMuH[i].y =
+        double z = myFsiSystem.GetFsiData()->sphMarkersH->posRadH[i].z;
+        myFsiSystem.GetFsiData()->sphMarkersH->rhoPresMuH[i].y =
             -paramsH->rho0 * paramsH->gravity.z * paramsH->gravity.z * (z - fzDim);
     }
 }
@@ -166,68 +166,68 @@ int main(int argc, char* argv[]) {
                      paramsH->HSML, -1);
     }
 
-    // myFsiSystem.GetDataManager()->fsiGeneralData->referenceArray.push_back(fsi::mI4(0, (int)numPart, -1, -1));
-    // // ******************************* Create Solid region ****************************************
-    // CreateSolidPhase(mphysicalSystem, myFsiSystem, paramsH);
+    myFsiSystem.GetFsiData()->fsiGeneralData->referenceArray.push_back(fsi::mI4(0, (int)numPart, -1, -1));
+    // ******************************* Create Solid region ****************************************
+    CreateSolidPhase(mphysicalSystem, myFsiSystem, paramsH);
 
-    // /// Construction of the FSI system must be finalized
-    // myFsiSystem.Finalize();
+    /// Construction of the FSI system must be finalized
+    myFsiSystem.Finalize();
 
-    // int stepEnd = int(paramsH->tFinal / paramsH->dT);
-    // stepEnd = 50000;
-    // fsi::ChUtilsDevice fsiUtils;
+    int stepEnd = int(paramsH->tFinal / paramsH->dT);
+    stepEnd = 50000;
+    fsi::ChUtilsDevice fsiUtils;
 
-    // SaveParaViewFilesMBD(myFsiSystem, mphysicalSystem, paramsH, 0, 0);
+    SaveParaViewFilesMBD(myFsiSystem, mphysicalSystem, paramsH, 0, 0);
 
-    // Real time = 0;
-    // Real Global_max_dT = paramsH->dT_Max;
-    // double TIMING = clock();
+    Real time = 0;
+    Real Global_max_dT = paramsH->dT_Max;
+    double TIMING = clock();
 
-    // for (int tStep = 0; tStep < stepEnd + 1; tStep++) {
-    //     printf("\nstep : %d, time= : %f (s) \n", tStep, time);
-    //     double frame_time = 1.0 / paramsH->out_fps;
-    //     int next_frame = (int)floor((time + 1e-6) / frame_time) + 1;
-    //     double next_frame_time = next_frame * frame_time;
-    //     double max_allowable_dt = next_frame_time - time;
-    //     if (max_allowable_dt > 1e-6)
-    //         paramsH->dT_Max = std::min(Global_max_dT, max_allowable_dt);
-    //     else
-    //         paramsH->dT_Max = Global_max_dT;
+    for (int tStep = 0; tStep < stepEnd + 1; tStep++) {
+        printf("\nstep : %d, time= : %f (s) \n", tStep, time);
+        double frame_time = 1.0 / paramsH->out_fps;
+        int next_frame = (int)floor((time + 1e-6) / frame_time) + 1;
+        double next_frame_time = next_frame * frame_time;
+        double max_allowable_dt = next_frame_time - time;
+        if (max_allowable_dt > 1e-6)
+            paramsH->dT_Max = std::min(Global_max_dT, max_allowable_dt);
+        else
+            paramsH->dT_Max = Global_max_dT;
 
-    //     //        printf("next_frame is:%d,  max dt is set to %f\n", next_frame, paramsH->dT_Max);
+        //        printf("next_frame is:%d,  max dt is set to %f\n", next_frame, paramsH->dT_Max);
 
-    //     myFsiSystem.DoStepDynamics_FSI();
-    //     fsiUtils.CopyD2H(myFsiSystem.GetDataManager()->sphMarkersD2->rhoPresMuD,
-    //                      myFsiSystem.GetDataManager()->sphMarkersH->rhoPresMuH);
-    //     fsiUtils.CopyD2H(myFsiSystem.GetDataManager()->sphMarkersD2->velMasD,
-    //                      myFsiSystem.GetDataManager()->sphMarkersH->velMasH);
-    //     thrust::host_vector<fsi::Real4> rhoPresMuH = myFsiSystem.GetDataManager()->sphMarkersH->rhoPresMuH;
-    //     thrust::host_vector<fsi::Real4> velMasH = myFsiSystem.GetDataManager()->sphMarkersH->rhoPresMuH;
+        myFsiSystem.DoStepDynamics_FSI();
+        fsiUtils.CopyD2H(myFsiSystem.GetFsiData()->sphMarkersD2->rhoPresMuD,
+                         myFsiSystem.GetFsiData()->sphMarkersH->rhoPresMuH);
+        fsiUtils.CopyD2H(myFsiSystem.GetFsiData()->sphMarkersD2->velMasD,
+                         myFsiSystem.GetFsiData()->sphMarkersH->velMasH);
+        thrust::host_vector<fsi::Real4> rhoPresMuH = myFsiSystem.GetFsiData()->sphMarkersH->rhoPresMuH;
+        thrust::host_vector<fsi::Real4> velMasH = myFsiSystem.GetFsiData()->sphMarkersH->rhoPresMuH;
 
-    //     std::ofstream output;
-    //     std::string delim = ",";
-    //     output.open((demo_dir + "/Analysis.txt"), std::ios::app);
-    //     if (tStep == 0)
-    //         output << "Time" << delim << "Rho_fluid" << delim << "k_fluid" << std::endl;
+        std::ofstream output;
+        std::string delim = ",";
+        output.open((demo_dir + "/Analysis.txt"), std::ios::app);
+        if (tStep == 0)
+            output << "Time" << delim << "Rho_fluid" << delim << "k_fluid" << std::endl;
 
-    //     Real KE = 0;
-    //     Real Rho = 0;
-    //     int numFluidMarkers = myFsiSystem.GetDataManager()->fsiGeneralData->referenceArray[0].y;
-    //     for (int i = 0; i < numFluidMarkers; i++) {
-    //         KE += 0.5 * length(velMasH[i]);
-    //         Rho += rhoPresMuH[i].x;
-    //     }
+        Real KE = 0;
+        Real Rho = 0;
+        int numFluidMarkers = myFsiSystem.GetFsiData()->fsiGeneralData->referenceArray[0].y;
+        for (int i = 0; i < numFluidMarkers; i++) {
+            KE += 0.5 * length(velMasH[i]);
+            Rho += rhoPresMuH[i].x;
+        }
 
-    //     output << time << delim << Rho / numFluidMarkers << delim << paramsH->markerMass * KE / numFluidMarkers << endl;
-    //     output.close();
-    //     time += paramsH->dT;
-    //     SaveParaViewFilesMBD(myFsiSystem, mphysicalSystem, paramsH, next_frame, time);
-    //     if (time > paramsH->tFinal)
-    //         break;
-    // }
+        output << time << delim << Rho / numFluidMarkers << delim << paramsH->markerMass * KE / numFluidMarkers << endl;
+        output.close();
+        time += paramsH->dT;
+        SaveParaViewFilesMBD(myFsiSystem, mphysicalSystem, paramsH, next_frame, time);
+        if (time > paramsH->tFinal)
+            break;
+    }
 
-    // double test = (clock() - TIMING) / (double)CLOCKS_PER_SEC;
-    // printf("Finished in %f\n", test);
+    double test = (clock() - TIMING) / (double)CLOCKS_PER_SEC;
+    printf("Finished in %f\n", test);
     return 0;
 }
 
@@ -249,10 +249,10 @@ void SaveParaViewFilesMBD(fsi::ChSystemFsi& myFsiSystem,
 
     if (save_output && std::abs(mTime - (next_frame)*frame_time) < 0.00001) {
         fsi::utils::PrintToFile(
-            myFsiSystem.GetDataManager()->sphMarkersD2->posRadD, myFsiSystem.GetDataManager()->sphMarkersD2->velMasD,
-            myFsiSystem.GetDataManager()->sphMarkersD2->rhoPresMuD,
-            myFsiSystem.GetDataManager()->fsiGeneralData->sr_tau_I_mu_i,
-            myFsiSystem.GetDataManager()->fsiGeneralData->referenceArray, thrust::host_vector<int4>(), demo_dir, true);
+            myFsiSystem.GetFsiData()->sphMarkersD2->posRadD, myFsiSystem.GetFsiData()->sphMarkersD2->velMasD,
+            myFsiSystem.GetFsiData()->sphMarkersD2->rhoPresMuD,
+            myFsiSystem.GetFsiData()->fsiGeneralData->sr_tau_I_mu_i,
+            myFsiSystem.GetFsiData()->fsiGeneralData->referenceArray, thrust::host_vector<int4>(), demo_dir, true);
 
         cout << "-------------------------------------\n" << endl;
         cout << "             Output frame:   " << next_frame << endl;
