@@ -503,6 +503,32 @@ void ChSystemGpu_impl::WriteFile(
     }
 }
 
+void ChSystemGpu_impl::WriteAdjacencyFiles(std::string ofile) const {
+    if (gran_params->cluster_graph_method == CLUSTER_GRAPH_METHOD::NONE) {
+        printf("ERROR: no cluster search method set, no adjacency!\n");
+        exit(1);
+    } else {
+        std::ofstream ptFilenum(ofile + "_adj_num_start.csv", std::ios::out);
+        std::ostringstream adj_num_strstream;
+        adj_num_strstream << "adj_num, adj_start \n";
+        for (unsigned int n = 0; n < nSpheres; n++) {
+            adj_num_strstream
+                << sphere_data->adj_num[n] << ", "
+                << sphere_data->adj_start[n] << "\n";
+        }
+        ptFilenum << adj_num_strstream.str();
+
+        std::ostringstream adj_list_strstream;
+        unsigned int adj_list_len = sphere_data->adj_num[nSpheres - 1] + sphere_data->adj_start[nSpheres - 1];
+        std::ofstream ptFilelist(ofile + "_adj_list.csv", std::ios::out);
+        for (unsigned int m = 0; m < adj_list_len; m++) {
+            adj_list_strstream
+                << sphere_data->adj_list[m] << "\n";
+        }
+        ptFilelist << adj_list_strstream.str();
+    }
+}
+
 void ChSystemGpu_impl::WriteContactInfoFile(std::string ofile) const {
     if (gran_params->recording_contactInfo == false) {
         printf("ERROR: recording_contactInfo set to false!\n");

@@ -432,6 +432,9 @@ class ChSystemGpu_impl {
     /// Write contact info file
     void WriteContactInfoFile(std::string ofile) const;
 
+    /// Write adjacency info file
+    void WriteAdjacencyFiles(std::string ofile) const;
+
     /// Rough estimate of the total amount of memory used by the system.
     size_t EstimateMemUsage() const;
 

@@ -540,6 +540,7 @@ static __global__ void determineContactPairs(ChSystemGpu_impl::GranSphereDataPtr
                                     sphIDs[bodyA]);
                 }
                 bodyB_list[ncontacts] = bodyB;  // Save the collision pair
+                // sphere_data->adj_list[MAX_SPHERES_TOUCHED_BY_SPHERE * sphIDs[bodyA] + ncontacts] = sphIDs[bodyB];
                 ncontacts++;                    // Increment the contact counter
             }
         }
@@ -557,7 +558,6 @@ static __global__ void determineContactPairs(ChSystemGpu_impl::GranSphereDataPtr
         if ((gran_params->cluster_graph_method == CLUSTER_GRAPH_METHOD::CONTACT) &&
             (gran_params->cluster_search_method > CLUSTER_SEARCH_METHOD::NONE)) {
             sphere_data->adj_num[sphIDs[bodyA]] = ncontacts;
-            sphere_data->adj_start[sphIDs[bodyA]] = ncontacts;
         }
     }
 }
@@ -665,20 +665,12 @@ static __global__ void computeSphereContactForces(ChSystemGpu_impl::GranSphereDa
             if (active_contact) {
                 theirIDList[numActiveContacts] = sphere_data->contact_partners_map[body_A_offset + body_B_offset];
                 contactIDList[numActiveContacts] = body_B_offset;
+                if ((gran_params->cluster_graph_method == CLUSTER_GRAPH_METHOD::CONTACT) &&
+                    (gran_params->cluster_search_method > CLUSTER_SEARCH_METHOD::NONE)) {
+                    sphere_data->adj_list[sphere_data->adj_start[mySphereID] + numActiveContacts] = theirIDList[numActiveContacts];
+                }
                 numActiveContacts++;
             }
-        }
-
-        /// Clustering requires choosing both a graph and search method
-        /// for CLUSTER_GRAPH_METHOD::CONTACT
-        /// copies active contacts to adj_list
-        /// equivalent to construct_adj_list_by_contact 
-        if ((gran_params->cluster_graph_method > CLUSTER_GRAPH_METHOD::NONE) &&
-            (gran_params->cluster_search_method > CLUSTER_SEARCH_METHOD::NONE) &&
-            (gran_params->cluster_graph_method == CLUSTER_GRAPH_METHOD::CONTACT)) {
-            memcpy(sphere_data->adj_list + sphere_data->adj_start[mySphereID],
-                    theirIDList,
-                    numActiveContacts);
         }
 
         // Sort. Simple but should be effective since we have 12 contacts max
