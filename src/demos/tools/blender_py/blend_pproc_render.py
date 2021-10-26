@@ -117,8 +117,11 @@ def render_image(dirpaths, filepath,file_index, out_dir, meshes_prefixes,res,  t
     dat_path = dirpaths[0] + filepath + ".dat"
     #particle_path = dirpaths[0] + filepath + ".chpf"
 
-    # optional: delete default cube
-    bpy.data.objects.remove(bpy.data.objects['Cube'])
+
+    # delete cached objects (initial cube and shapes from previous frames
+    for oldobj in bpy.data.objects:
+        if oldobj != bpy.data.objects['Camera']:
+            bpy.data.objects.remove(oldobj)
 
     # IF there is a chrono .dat output, it gets processed
     expshapes = []
@@ -138,9 +141,6 @@ def render_image(dirpaths, filepath,file_index, out_dir, meshes_prefixes,res,  t
 
     scene = bpy.context.scene
     scene.objects.keys()
-
-    bpy.ops.object.camera_add(enter_editmode=False, align='WORLD', location=(1,1,1),
-                                  rotation=(1.2548917, 0.0139800873, -0.6300638))
 
     if camera_mode == 'Lookat':
         obj_camera = bpy.data.objects["Camera"]

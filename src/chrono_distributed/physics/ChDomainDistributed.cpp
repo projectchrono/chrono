@@ -46,11 +46,11 @@ void ChDomainDistributed::SetSplitAxis(int i) {
     }
 }
 
-void ChDomainDistributed::SetSimDomain(double xlo, double xhi, double ylo, double yhi, double zlo, double zhi) {
+void ChDomainDistributed::SetSimDomain(const ChVector<>& lo, const ChVector<>& hi) {
     assert(!split);
 
-    boxlo.Set(xlo, ylo, zlo);
-    boxhi.Set(xhi, yhi, zhi);
+    boxlo = lo;
+    boxhi = hi;
 
     double len_x = boxhi.x() - boxlo.x();
     double len_y = boxhi.y() - boxlo.y();
@@ -84,14 +84,14 @@ void ChDomainDistributed::SplitDomain() {
     split = true;
 }
 
-int ChDomainDistributed::GetRank(ChVector<double> pos) {
+int ChDomainDistributed::GetRank(const ChVector<double>& pos) const {
     double sub_len = subhi[split_axis] - sublo[split_axis];
     double pt = pos[split_axis] - boxlo[split_axis];
 
     return (int)(pt / sub_len);
 }
 
-distributed::COMM_STATUS ChDomainDistributed::GetRegion(double pos) {
+distributed::COMM_STATUS ChDomainDistributed::GetRegion(double pos) const {
     int num_ranks = my_sys->num_ranks;
     if (num_ranks == 1) {
         return distributed::OWNED;
@@ -151,11 +151,11 @@ distributed::COMM_STATUS ChDomainDistributed::GetRegion(double pos) {
     return distributed::UNDEFINED;
 }
 
-distributed::COMM_STATUS ChDomainDistributed::GetBodyRegion(int index) {
+distributed::COMM_STATUS ChDomainDistributed::GetBodyRegion(int index) const {
     return GetRegion(my_sys->data_manager->host_data.pos_rigid[index][split_axis]);
 }
 
-distributed::COMM_STATUS ChDomainDistributed::GetBodyRegion(std::shared_ptr<ChBody> body) {
+distributed::COMM_STATUS ChDomainDistributed::GetBodyRegion(std::shared_ptr<ChBody> body) const {
     return GetRegion(body->GetPos()[split_axis]);
 }
 
