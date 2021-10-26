@@ -515,6 +515,7 @@ __host__ void ChSystemGpu_impl::updateBCPositions() {
 }
 
 __host__ double ChSystemGpu_impl::AdvanceSimulation(float duration) {
+    printf("AdvanceSimulation SMC");
     // Figure our the number of blocks that need to be launched to cover the box
     unsigned int nBlocks = (nSpheres + CUDA_THREADS_PER_BLOCK - 1) / CUDA_THREADS_PER_BLOCK;
 
@@ -528,6 +529,7 @@ __host__ double ChSystemGpu_impl::AdvanceSimulation(float duration) {
 
     // Run the simulation, there are aggressive synchronizations because we want to have no race conditions
     for (unsigned int n = 0; n < nsteps; n++) {
+        printf("steps %d", n);
         updateBCPositions();
         runSphereBroadphase();
         packSphereDataPointers();
@@ -581,7 +583,7 @@ __host__ double ChSystemGpu_impl::AdvanceSimulation(float duration) {
                     cub::DeviceScan::InclusiveSum(d_temp_storage, bytesize,
                         sphere_data->adj_start,
                         sphere_data->adj_start, gran_params->nSpheres);
-                    // gpuErrchk(cudaFree(d_temp_storage));
+                    gpuErrchk(cudaFree(d_temp_storage));
                     break;
                 }
 
@@ -601,7 +603,9 @@ __host__ double ChSystemGpu_impl::AdvanceSimulation(float duration) {
                 default: {break;}
             }
         }
-
+        gpuErrchk(cudaPeekAtLastError());
+        gpuErrchk(cudaDeviceSynchronize());
+        
         METRICS_PRINTF("Starting integrateSpheres!\n");
         integrateSpheres<<<nBlocks, CUDA_THREADS_PER_BLOCK>>>(stepSize_SU, sphere_data, nSpheres, gran_params);
         gpuErrchk(cudaPeekAtLastError());

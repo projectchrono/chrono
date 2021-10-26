@@ -292,21 +292,11 @@ static __host__ void gdbscan_construct_graph(ChSystemGpu_impl::GranSphereDataPtr
 }
 
 /// if cluster is NULL, just update all spheres to cluster.
-static __global__ void update_cluster_group(ChSystemGpu_impl::GranSphereDataPtr sphere_data,
+static __global__ void init_sphere_cluster(ChSystemGpu_impl::GranSphereDataPtr sphere_data,
                                            ChSystemGpu_impl::GranParamsPtr gran_params,
-                                           unsigned int sphere_num_in_cluster,
-                                           unsigned int cluster_id,
-                                           unsigned int * cluster) {
+                                           unsigned int cluster_id) {
     unsigned int mySphereID = threadIdx.x + blockIdx.x * blockDim.x;
-    if (cluster!= NULL)  {
-        for (size_t i = 0; i < sphere_num_in_cluster; i++) { 
-            if (cluster[i] == mySphereID) {
-                sphere_data->sphere_cluster[mySphereID] = cluster_id;
-            }
-        }
-    } else {
-        sphere_data->sphere_cluster[mySphereID] = cluster_id;
-    }
+    sphere_data->sphere_cluster[mySphereID] = cluster_id;
 }
 
 __host__ void gdbscan_search_graph(ChSystemGpu_impl::GranSphereDataPtr sphere_data,
