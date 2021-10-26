@@ -28,12 +28,10 @@
 
 // Chrono namespaces
 using namespace chrono;
-using namespace collision;
-using namespace fsi;
-typedef fsi::Real Real;
+using namespace chrono::collision;
+using namespace chrono::fsi;
+typedef chrono::fsi::Real Real;
 
-using std::cout;
-using std::endl;
 std::ofstream simParams;
 // =============================================================================
 
@@ -45,29 +43,50 @@ std::string demo_dir;
 // Save data as csv files, turn it on to be able to see the results off-line using paraview
 bool save_output = true;
 
+// Size of the box
 Real bxDim = 1.0;
 Real byDim = 1.0;
 Real bzDim = 1.4;
 
+// Size of the fluid domain
 Real fxDim = bxDim;
 Real fyDim = byDim;
 Real fzDim = 1.0;
 
+// -----------------------------------------------------------------
+// Show command line usage
+// -----------------------------------------------------------------
+void ShowUsage() {
+    std::cout << "usage: ./demo_FSI_Compressibility <json_file>" << std::endl;
+}
+
+//------------------------------------------------------------------
+// Function to save the paraview files
+//------------------------------------------------------------------
 void SaveParaViewFilesMBD(fsi::ChSystemFsi& myFsiSystem,
                           ChSystemSMC& mphysicalSystem,
                           std::shared_ptr<fsi::SimParams> paramsH,
-                          int tStep,
-                          double mTime);
+                          int next_frame,
+                          double mTime) {
+    double frame_time = 1.0 / paramsH->out_fps;
+    static int out_frame = 0;
 
-void ShowUsage() {
-    cout << "usage: ./demo_FSI_Compressibility <json_file>" << endl;
+    if (save_output && std::abs(mTime - (next_frame)*frame_time) < 0.00001) {
+        myFsiSystem.PrintParticleToFile(demo_dir);
+
+        std::cout << "-------------------------------------\n" << std::endl;
+        std::cout << "             Output frame:   " << next_frame << std::endl;
+        std::cout << "             Time:           " << mTime << std::endl;
+        std::cout << "-------------------------------------\n" << std::endl;
+
+        out_frame++;
+    }
 }
 
 //------------------------------------------------------------------
 // Create the objects of the MBD system. Rigid bodies, and if fsi, their
 // bce representation are created and added to the systems
 //------------------------------------------------------------------
-
 void CreateSolidPhase(ChSystemSMC& mphysicalSystem,
                       fsi::ChSystemFsi& myFsiSystem,
                       std::shared_ptr<fsi::SimParams> paramsH) {
@@ -128,22 +147,29 @@ void CreateSolidPhase(ChSystemSMC& mphysicalSystem,
 // =============================================================================
 
 int main(int argc, char* argv[]) {
+    // Create a physic system to handle multibody dynamics
     ChSystemSMC mphysicalSystem;
-    fsi::ChSystemFsi myFsiSystem(mphysicalSystem);
+
+    // Create an FSI system to handle fluid dynamics
+    ChSystemFsi myFsiSystem(mphysicalSystem);
+
     // Get the pointer to the system parameter and use a JSON file to fill it out with the user parameters
     std::shared_ptr<fsi::SimParams> paramsH = myFsiSystem.GetSimParams();
+
     // Use the default input file or you may enter your input parameters as a command line argument
-    std::string inputJson = GetChronoDataFile("fsi/input_json/demo_FSI_Compressibility_I2SPH.json");
+    std::string inputJson = GetChronoDataFile("fsi/input_json/demo_FSI_Compressibility_ WCSPH.json");
     if (argc == 1) {
-        fsi::utils::ParseJSON(inputJson, paramsH, fsi::mR3(bxDim, byDim, bzDim));
+        // fsi::utils::ParseJSON(inputJson, paramsH, fsi::mR3(bxDim, byDim, bzDim));
     } else if (argc == 2) {
-        std::string input_json = std::string(argv[1]);
-        inputJson = GetChronoDataFile(input_json);
-        fsi::utils::ParseJSON(inputJson, paramsH, fsi::mR3(bxDim, byDim, bzDim));
+        std::string my_inputJson = std::string(argv[1]);
+        inputJson = GetChronoDataFile(my_inputJson);
+        // fsi::utils::ParseJSON(inputJson, paramsH, fsi::mR3(bxDim, byDim, bzDim));
     } else {
         ShowUsage();
         return 1;
     }
+    myFsiSystem.SetSimParameter(inputJson, paramsH, ChVector<>(bxDim, byDim, bzDim));
+
     myFsiSystem.SetFluidDynamics(paramsH->fluid_dynamic_type);
     myFsiSystem.SetFluidSystemLinearSolver(paramsH->LinearSolver);
     paramsH->cMin = fsi::mR3(-bxDim / 2, -byDim / 2, 0.0) - fsi::mR3(paramsH->HSML * 20);
@@ -162,8 +188,8 @@ int main(int argc, char* argv[]) {
     size_t numPart = points.size();
     for (int i = 0; i < numPart; i++) {
         myFsiSystem.AddSphMarker(ChVector<>(points[i].x(), points[i].y(), points[i].z()),
-                     ChVector<>(paramsH->rho0, paramsH->BASEPRES, paramsH->mu0),
-                     paramsH->HSML, -1);
+                                 ChVector<>(paramsH->rho0, paramsH->BASEPRES, paramsH->mu0),
+                                 paramsH->HSML, -1);
     }
 
     myFsiSystem.GetFsiData()->fsiGeneralData->referenceArray.push_back(fsi::mI4(0, (int)numPart, -1, -1));
@@ -218,7 +244,7 @@ int main(int argc, char* argv[]) {
             Rho += rhoPresMuH[i].x;
         }
 
-        output << time << delim << Rho / numFluidMarkers << delim << paramsH->markerMass * KE / numFluidMarkers << endl;
+        output << time << delim << Rho / numFluidMarkers << delim << paramsH->markerMass * KE / numFluidMarkers << std::endl;
         output.close();
         time += paramsH->dT;
         SaveParaViewFilesMBD(myFsiSystem, mphysicalSystem, paramsH, next_frame, time);
@@ -229,36 +255,4 @@ int main(int argc, char* argv[]) {
     double test = (clock() - TIMING) / (double)CLOCKS_PER_SEC;
     printf("Finished in %f\n", test);
     return 0;
-}
-
-//------------------------------------------------------------------
-// Function to save the paraview files
-//------------------------------------------------------------------
-
-void SaveParaViewFilesMBD(fsi::ChSystemFsi& myFsiSystem,
-                          ChSystemSMC& mphysicalSystem,
-                          std::shared_ptr<fsi::SimParams> paramsH,
-                          int next_frame,
-                          double mTime) {
-    static double exec_time = 0;
-    exec_time += mphysicalSystem.GetTimerStep();
-    ////int out_steps = (int)ceil((1.0 / paramsH->dT) / paramsH->out_fps);
-    ////int num_contacts = mphysicalSystem.GetNcontacts();
-    double frame_time = 1.0 / paramsH->out_fps;
-    static int out_frame = 0;
-
-    if (save_output && std::abs(mTime - (next_frame)*frame_time) < 0.00001) {
-        fsi::utils::PrintToFile(
-            myFsiSystem.GetFsiData()->sphMarkersD2->posRadD, myFsiSystem.GetFsiData()->sphMarkersD2->velMasD,
-            myFsiSystem.GetFsiData()->sphMarkersD2->rhoPresMuD,
-            myFsiSystem.GetFsiData()->fsiGeneralData->sr_tau_I_mu_i,
-            myFsiSystem.GetFsiData()->fsiGeneralData->referenceArray, thrust::host_vector<int4>(), demo_dir, true);
-
-        cout << "-------------------------------------\n" << endl;
-        cout << "             Output frame:   " << next_frame << endl;
-        cout << "             Time:           " << mTime << endl;
-        cout << "-------------------------------------\n" << endl;
-
-        out_frame++;
-    }
 }

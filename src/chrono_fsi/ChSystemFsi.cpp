@@ -226,29 +226,46 @@ void ChSystemFsi::FinalizeData() {
 //--------------------------------------------------------------------------------------------------------------------------------
 void ChSystemFsi::WriteParticleFile(const std::string& outfilename) const {
     if (file_write_mode == CHFSI_OUTPUT_MODE::CSV) {
-        utils::WriteCsvParticlesToFile(fsiSystem->sphMarkersD2->posRadD, fsiSystem->sphMarkersD2->velMasD,
-                                       fsiSystem->sphMarkersD2->rhoPresMuD, fsiSystem->fsiGeneralData->referenceArray,
+        utils::WriteCsvParticlesToFile(fsiSystem->sphMarkersD2->posRadD, 
+                                       fsiSystem->sphMarkersD2->velMasD,
+                                       fsiSystem->sphMarkersD2->rhoPresMuD, 
+                                       fsiSystem->fsiGeneralData->referenceArray,
                                        outfilename);
     } else if (file_write_mode == CHFSI_OUTPUT_MODE::CHPF) {
-        utils::WriteChPFParticlesToFile(fsiSystem->sphMarkersD2->posRadD, fsiSystem->fsiGeneralData->referenceArray,
+        utils::WriteChPFParticlesToFile(fsiSystem->sphMarkersD2->posRadD, 
+                                        fsiSystem->fsiGeneralData->referenceArray,
                                         outfilename);
     }
 }
 
-void ChSystemFsi::AddSphMarker(
-    const ChVector<>& points,
-    const ChVector<>& properties,
-    const double h,
-    const double particle_type,
-    const ChVector<>& velocity,
-    const ChVector<>& tauXxYyZz,
-    const ChVector<>& tauXyXzYz) {
+void ChSystemFsi::PrintParticleToFile(const std::string& out_dir) const {
+    utils::PrintToFile(fsiSystem->sphMarkersD2->posRadD, 
+                       fsiSystem->sphMarkersD2->velMasD,
+                       fsiSystem->sphMarkersD2->rhoPresMuD,
+                       fsiSystem->fsiGeneralData->sr_tau_I_mu_i,
+                       fsiSystem->fsiGeneralData->referenceArray, 
+                       thrust::host_vector<int4>(), out_dir, true);
+}
+
+void ChSystemFsi::AddSphMarker(const ChVector<>& points,
+                               const ChVector<>& properties,
+                               const double h,
+                               const double particle_type,
+                               const ChVector<>& velocity,
+                               const ChVector<>& tauXxYyZz,
+                               const ChVector<>& tauXyXzYz) {
 
     fsiSystem->AddSphMarker(ChUtilsTypeConvert::ChVectorRToReal4(points, h),
                             ChUtilsTypeConvert::ChVectorRToReal4(properties, particle_type),
                             ChUtilsTypeConvert::ChVectorToReal3(velocity),
                             ChUtilsTypeConvert::ChVectorToReal3(tauXxYyZz),
                             ChUtilsTypeConvert::ChVectorToReal3(tauXyXzYz));
+}
+
+void ChSystemFsi::SetSimParameter(const std::string& inputJson,
+                                  std::shared_ptr<SimParams> simParams,
+                                  const ChVector<>& box_size){
+    utils::ParseJSON(inputJson, simParams, ChUtilsTypeConvert::ChVectorToReal3(box_size));
 }
 
 //--------------------------------------------------------------------------------------------------------------------------------

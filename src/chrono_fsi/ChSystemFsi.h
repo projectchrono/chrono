@@ -29,6 +29,7 @@
 #include "chrono_fsi/ChFsiInterface.h"
 #include "chrono_fsi/ChFsiDefines.h"
 #include "chrono_fsi/utils/ChUtilsPrintSph.cuh"
+#include "chrono_fsi/utils/ChUtilsJSON.h"
 
 namespace chrono {
 
@@ -147,14 +148,22 @@ class CH_FSI_API ChSystemFsi : public ChFsiGeneral {
     /// Write FSI system particle output
     void WriteParticleFile(const std::string& outfilename) const;
 
-    void AddSphMarker(
-        const ChVector<>& points,
-        const ChVector<>& properties,
-        const double h,
-        const double particle_type,
-        const ChVector<>& velocity = ChVector<>(),
-        const ChVector<>& tauXxYyZz = ChVector<>(),
-        const ChVector<>& tauXyXzYz = ChVector<>());
+    /// Function to save the SPH particle information into files,
+    /// when called, this function creates three files to write fluid,
+    /// fluid-boundary and BCE markers data into file
+    void PrintParticleToFile(const std::string& out_dir) const;
+
+    void AddSphMarker(const ChVector<>& points,
+                      const ChVector<>& properties,
+                      const double h,
+                      const double particle_type,
+                      const ChVector<>& velocity = ChVector<>(),
+                      const ChVector<>& tauXxYyZz = ChVector<>(),
+                      const ChVector<>& tauXyXzYz = ChVector<>());
+
+    void SetSimParameter(const std::string& inputJson,
+                         std::shared_ptr<SimParams> simParams,
+                         const ChVector<>& box_size);
 
     /// Gets the FSI mesh for flexible elements.
     std::shared_ptr<fea::ChMesh> GetFsiMesh() { return fsi_mesh; }

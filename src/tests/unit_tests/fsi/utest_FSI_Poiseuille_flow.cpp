@@ -21,6 +21,7 @@
 #include <stdlib.h>
 #include <ctime>
 
+// Chrono includes
 #include "chrono/physics/ChSystemSMC.h"
 #include "chrono/utils/ChUtilsCreators.h"
 #include "chrono/utils/ChUtilsGenerators.h"
@@ -109,8 +110,8 @@ void CreateSolidPhase(ChSystemSMC& mphysicalSystem,
     ground->GetCollisionModel()->BuildModel();
     mphysicalSystem.AddBody(ground);
 
-    fsi::utils::AddBoxBce(myFsiSystem.GetDataManager(), paramsH, ground, posBottom, chrono::QUNIT, sizeBottom);
-    fsi::utils::AddBoxBce(myFsiSystem.GetDataManager(), paramsH, ground, posTop, chrono::QUNIT, sizeBottom);
+    fsi::utils::AddBoxBce(myFsiSystem.GetFsiData(), paramsH, ground, posBottom, chrono::QUNIT, sizeBottom);
+    fsi::utils::AddBoxBce(myFsiSystem.GetFsiData(), paramsH, ground, posTop, chrono::QUNIT, sizeBottom);
 }
 
 // ===============================
@@ -144,15 +145,16 @@ int main(int argc, char* argv[]) {
     utils::GridSampler<> sampler(initSpace0);
     ChVector<> boxCenter(-bxDim / 2 + fxDim / 2 , 0, fzDim * 0.5);
     ChVector<> boxHalfDim(fxDim / 2, fyDim / 2, fzDim / 2);
-    utils::Generator::PointVector points = sampler.SampleBox(boxCenter, boxHalfDim);
+    std::vector<ChVector<>> points = sampler.SampleBox(boxCenter, boxHalfDim);
     size_t numPart = points.size();
     for (int i = 0; i < numPart; i++) {
         Real v_x = PoiseuilleAnalytical(points[i].z(), bzDim, 0.5, paramsH);
-        myFsiSystem.GetDataManager()->AddSphMarker(fsi::mR4(points[i].x(), points[i].y(), points[i].z(), paramsH->HSML),
-                                                   fsi::mR3(v_x, 0.0, 0.0),
-                                                   fsi::mR4(paramsH->rho0, paramsH->BASEPRES, paramsH->mu0, -1));
+        myFsiSystem.AddSphMarker(ChVector<>(points[i].x(), points[i].y(), points[i].z()),
+                                 ChVector<>(paramsH->rho0, paramsH->BASEPRES, paramsH->mu0),
+                                 paramsH->HSML, -1,
+                                 ChVector<>(v_x, 0.0, 0.0));
     }
-    myFsiSystem.GetDataManager()->fsiGeneralData->referenceArray.push_back(mI4(0, (int)numPart, -1, -1));
+    myFsiSystem.GetFsiData()->fsiGeneralData->referenceArray.push_back(mI4(0, (int)numPart, -1, -1));
 
     // Create SPH particles for the solid domain
     CreateSolidPhase(mphysicalSystem, myFsiSystem, paramsH);
@@ -167,10 +169,10 @@ int main(int argc, char* argv[]) {
     
         // Copy data from device to host
         fsi::ChUtilsDevice fsiUtils;
-        fsiUtils.CopyD2H(myFsiSystem.GetDataManager()->sphMarkersD2->posRadD, myFsiSystem.GetDataManager()->sphMarkersH->posRadH);
-        fsiUtils.CopyD2H(myFsiSystem.GetDataManager()->sphMarkersD2->velMasD, myFsiSystem.GetDataManager()->sphMarkersH->velMasH);
-        thrust::host_vector<fsi::Real4> posRadH = myFsiSystem.GetDataManager()->sphMarkersH->posRadH;
-        thrust::host_vector<fsi::Real3> velMasH = myFsiSystem.GetDataManager()->sphMarkersH->velMasH;
+        fsiUtils.CopyD2H(myFsiSystem.GetFsiData()->sphMarkersD2->posRadD, myFsiSystem.GetFsiData()->sphMarkersH->posRadH);
+        fsiUtils.CopyD2H(myFsiSystem.GetFsiData()->sphMarkersD2->velMasD, myFsiSystem.GetFsiData()->sphMarkersH->velMasH);
+        thrust::host_vector<fsi::Real4> posRadH = myFsiSystem.GetFsiData()->sphMarkersH->posRadH;
+        thrust::host_vector<fsi::Real3> velMasH = myFsiSystem.GetFsiData()->sphMarkersH->velMasH;
         
         // Calculate the relative error of the solution
         Real error = 0.0;
