@@ -31,8 +31,14 @@ namespace vehicle {
 // file.
 // -----------------------------------------------------------------------------
 SAELeafspringAxle::SAELeafspringAxle(const std::string& filename)
-    : ChSAELeafspringAxle(""), m_springForceCB(NULL), m_shockForceCB(NULL) {
-    Document d; ReadFileJSON(filename, d);
+    : ChSAELeafspringAxle(""),
+      m_springForceCB(NULL),
+      m_shockForceCB(NULL),
+      m_shackleBushingData(nullptr),
+      m_clampBushingData(nullptr),
+      m_leafspringBushingData(nullptr) {
+    Document d;
+    ReadFileJSON(filename, d);
     if (d.IsNull())
         return;
 
@@ -42,7 +48,12 @@ SAELeafspringAxle::SAELeafspringAxle(const std::string& filename)
 }
 
 SAELeafspringAxle::SAELeafspringAxle(const rapidjson::Document& d)
-    : ChSAELeafspringAxle(""), m_springForceCB(nullptr), m_shockForceCB(nullptr) {
+    : ChSAELeafspringAxle(""),
+      m_springForceCB(nullptr),
+      m_shockForceCB(nullptr),
+      m_shackleBushingData(nullptr),
+      m_clampBushingData(nullptr),
+      m_leafspringBushingData(nullptr) {
     Create(d);
 }
 
@@ -188,6 +199,17 @@ void SAELeafspringAxle::Create(const rapidjson::Document& d) {
 
     m_shackleMass = d["Leafspring"]["Shackle"]["Mass"].GetDouble();
     m_shackleInertia = ReadVectorJSON(d["Leafspring"]["Shackle"]["Inertia"]);
+
+    // Bushing data (optional)
+    if (d["Leafspring"].HasMember("Shackle Bushing Data")) {
+        m_shackleBushingData = ReadBushingDataJSON(d["Leafspring"]["Shackle Bushing Data"]);
+    }
+    if (d["Leafspring"].HasMember("Clamp Bushing Data")) {
+        m_clampBushingData = ReadBushingDataJSON(d["Leafspring"]["Clamp Bushing Data"]);
+    }
+    if (d["Leafspring"].HasMember("Leafspring Bushing Data")) {
+        m_shackleBushingData = ReadBushingDataJSON(d["Leafspring"]["Leafspring Bushing Data"]);
+    }
 
     ChVector<> ra = getLocation(CLAMP_A) - getLocation(FRONT_HANGER);
     ChVector<> rb = getLocation(CLAMP_B) - getLocation(SHACKLE);

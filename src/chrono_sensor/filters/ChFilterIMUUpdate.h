@@ -22,102 +22,90 @@
 #include <queue>
 #include "chrono_sensor/filters/ChFilter.h"
 #include "chrono/core/ChVector.h"
+#include "chrono/core/ChMathematics.h"
 
 namespace chrono {
 namespace sensor {
 
 // forward declaration
 class ChSensor;
+class ChNoiseModel;
+class ChAccelerometerSensor;
+class ChGyroscopeSensor;
+class ChMagnetometerSensor;
 
 /// @addtogroup sensor_filters
 /// @{
 
-/// IMU Noise Model base class
-class CH_SENSOR_API ChIMUNoiseModel {
-  public:
-    /// Class constructor
-    ChIMUNoiseModel(){};
-
-    /// Class destructor
-    ~ChIMUNoiseModel(){};
-
-    /// Function for adding noise to the IMU
-    /// @param gyro Gyroscope data to augment
-    /// @param acc Acceleratometer data to augment
-    virtual void AddNoise(chrono::ChVector<float>& gyro, chrono::ChVector<float>& acc) = 0;
-};
-
-/// IMU Noise model: no noise
-class CH_SENSOR_API ChIMUNoiseNone : public ChIMUNoiseModel {
-  public:
-    /// Class constructor
-    ChIMUNoiseNone() {}
-    /// Class destructor
-    ~ChIMUNoiseNone() {}
-
-    /// Function for adding noise to the IMU. This is empty and adds no noise.
-    /// @param gyro Gyroscope data to augment
-    /// @param acc Acceleratometer data to augment
-    virtual void AddNoise(chrono::ChVector<float>& gyro, chrono::ChVector<float>& acc) {}
-};
-
-/// IMU Noise model: gaussian drifting noise with noncorrelated equal distributions
-class CH_SENSOR_API ChIMUNoiseNormalDrift : public ChIMUNoiseModel {
-  public:
-    /// Class constructor
-    ChIMUNoiseNormalDrift(float updateRate,
-                          float g_mean,
-                          float g_stdev,
-                          float g_bias_drift,
-                          float g_tau_drift,
-                          float a_mean,
-                          float a_stdev,
-                          float a_bias_drift,
-                          float a_tau_drift);
-
-    /// Class destructor
-    ~ChIMUNoiseNormalDrift(){};
-
-    /// Function for adding drifting noise to the IMU
-    /// @param gyro Gyroscope data to augment
-    /// @param acc Acceleratometer data to augment
-    virtual void AddNoise(chrono::ChVector<float>& gyro, chrono::ChVector<float>& acc);
-
-  private:
-    std::minstd_rand m_generator;                        ///< random number generator
-    ChVector<float> m_gyro_bias_prev = {0.f, 0.f, 0.f};  ///< for holding the previous step data
-    ChVector<float> m_acc_bias_prev = {0.f, 0.f, 0.f};   ///< for hold the previous step data
-
-    float m_updateRate;    ///< holding the sensor update rate for use in drift
-    float m_g_mean;        ///< mean of normal distribution for gyroscope
-    float m_g_stdev;       ///< standard deviation of normal distribution for gyroscope
-    float m_g_bias_drift;  ///< bias component of gyroscope drift
-    float m_g_tau_drift;   ///< time constant for gyroscope drift
-    float m_a_mean;        ///< mean of normal distribution for accelerometer
-    float m_a_stdev;       ///< standard deviation of normal distribution for accelerometer
-    float m_a_bias_drift;  ///< bias component of accelerometer drift
-    float m_a_tau_drift;   ///< time constant for accelerometer drift
-};
-
 /// Class for generating IMU data
-class CH_SENSOR_API ChFilterIMUUpdate : public ChFilter {
+class CH_SENSOR_API ChFilterAccelerometerUpdate : public ChFilter {
   public:
     /// Class constructor
     /// @param noise_model The noise model to use when augmenting the IMU data
-    ChFilterIMUUpdate(std::shared_ptr<ChIMUNoiseModel> noise_model);
+    ChFilterAccelerometerUpdate(std::shared_ptr<ChNoiseModel> noise_model);
 
     /// Apply function. Generates IMU data.
     /// @param pSensor A pointer to the sensor on which the filter is attached.
     /// @param bufferInOut A buffer that is passed into the filter.
-    virtual void Apply(std::shared_ptr<ChSensor> pSensor, std::shared_ptr<SensorBuffer>& bufferInOut);
+    virtual void Apply();
 
     /// Initializes all data needed by the filter access apply function.
     /// @param pSensor A pointer to the sensor.
-    virtual void Initialize(std::shared_ptr<ChSensor> pSensor) {}
+    virtual void Initialize(std::shared_ptr<ChSensor> pSensor, std::shared_ptr<SensorBuffer>& bufferInOut);
 
   private:
-    std::shared_ptr<SensorHostIMUBuffer> m_buffer;   ///< For holding generated IMU data
-    std::shared_ptr<ChIMUNoiseModel> m_noise_model;  ///< The noise model for augmenting data
+    std::shared_ptr<ChAccelerometerSensor> m_accSensor;
+    std::shared_ptr<SensorHostAccelBuffer> m_bufferOut;  ///< For holding generated IMU data
+    std::shared_ptr<ChNoiseModel> m_noise_model;      ///< The noise model for augmenting data
+};
+
+/// Class for generating IMU data
+class CH_SENSOR_API ChFilterGyroscopeUpdate : public ChFilter {
+  public:
+    /// Class constructor
+    /// @param noise_model The noise model to use when augmenting the IMU data
+    ChFilterGyroscopeUpdate(std::shared_ptr<ChNoiseModel> noise_model);
+
+    /// Apply function. Generates IMU data.
+    /// @param pSensor A pointer to the sensor on which the filter is attached.
+    /// @param bufferInOut A buffer that is passed into the filter.
+    virtual void Apply();
+
+    /// Initializes all data needed by the filter access apply function.
+    /// @param pSensor A pointer to the sensor.
+    virtual void Initialize(std::shared_ptr<ChSensor> pSensor, std::shared_ptr<SensorBuffer>& bufferInOut);
+
+  private:
+    std::shared_ptr<ChGyroscopeSensor> m_gyroSensor;
+    std::shared_ptr<SensorHostGyroBuffer> m_bufferOut;  ///< For holding generated IMU data
+    std::shared_ptr<ChNoiseModel> m_noise_model;     ///< The noise model for augmenting data
+};
+
+/// Class for generating IMU data
+class CH_SENSOR_API ChFilterMagnetometerUpdate : public ChFilter {
+  public:
+    /// Class constructor
+    /// @param noise_model The noise model to use when augmenting the IMU data
+    ChFilterMagnetometerUpdate(std::shared_ptr<ChNoiseModel> noise_model, ChVector<double> gps_reference);
+
+    /// Apply function. Generates IMU data.
+    /// @param pSensor A pointer to the sensor on which the filter is attached.
+    /// @param bufferInOut A buffer that is passed into the filter.
+    virtual void Apply();
+
+    /// Initializes all data needed by the filter access apply function.
+    /// @param pSensor A pointer to the sensor.
+    virtual void Initialize(std::shared_ptr<ChSensor> pSensor, std::shared_ptr<SensorBuffer>& bufferInOut);
+
+  private:
+    std::shared_ptr<ChMagnetometerSensor> m_magSensor;
+    std::shared_ptr<SensorHostMagnetBuffer> m_bufferOut;  ///< For holding generated IMU data
+    std::shared_ptr<ChNoiseModel> m_noise_model;          ///< The noise model for augmenting data
+    ChVector<double> m_gps_reference;                     ///< gps reference location
+
+    const double theta_0 = 80.65 * CH_C_DEG_TO_RAD;  // latitude of magnetic pole
+    const double phi_0 = -72.68 * CH_C_DEG_TO_RAD;   // longitude of magnetic pole
+    const double B_0 = 0.305;                        // mean magnetic field at magnetic equator (in Gauss)
 };
 
 /// @}

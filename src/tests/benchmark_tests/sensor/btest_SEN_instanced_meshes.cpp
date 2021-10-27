@@ -25,7 +25,7 @@
 #include "chrono/utils/ChUtilsCreators.h"
 #include "chrono_thirdparty/filesystem/path.h"
 
-#include "chrono_sensor/ChCameraSensor.h"
+#include "chrono_sensor/sensors/ChCameraSensor.h"
 #include "chrono_sensor/ChSensorManager.h"
 #include "chrono_sensor/filters/ChFilterAccess.h"
 #include "chrono_sensor/filters/ChFilterGrayscale.h"
@@ -37,10 +37,10 @@ using namespace chrono::geometry;
 using namespace chrono::sensor;
 
 float end_time = 10.0f;
-bool vis = false;
+bool vis = true;
 
 int main(int argc, char* argv[]) {
-    for (int iq = 0; iq <= 3; iq++) {
+    for (int q = 1; q <= 3; q++) {
         GetLog() << "Copyright (c) 2019 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
 
         // -----------------
@@ -55,16 +55,9 @@ int main(int argc, char* argv[]) {
         mmesh->LoadWavefrontMesh(GetChronoDataFile("vehicle/hmmwv/hmmwv_chassis.obj"), false, true);
         mmesh->Transform(ChVector<>(0, 0, 0), ChMatrix33<>(1));  // scale to a different size
 
-        auto trimesh_shape = std::make_shared<ChTriangleMeshShape>();
-        trimesh_shape->SetMesh(mmesh);
-        trimesh_shape->SetName("HMMWV Chassis Mesh");
-        trimesh_shape->SetStatic(true);
-
-        std::vector<ChFrame<>> frame_list;
-
-        int x_instances = iq + 1;
-        int y_instances = iq + 1;
-        int z_instances = iq + 1;
+        int x_instances = q;
+        int y_instances = q;
+        int z_instances = q;
         float x_spread = 2.5f;
         float y_spread = 1.5f;
         float z_spread = 1.f;
@@ -72,7 +65,6 @@ int main(int argc, char* argv[]) {
         for (int i = 0; i < x_instances; i++) {
             for (int j = 0; j < y_instances; j++) {
                 for (int k = 0; k < z_instances; k++) {
-                    auto mesh_body = std::make_shared<ChBody>();
                     ChVector<> p = {x_spread * (i + .5 - x_instances / 2.), y_spread * (j + .5 - y_instances / 2.),
                                     z_spread * (k + .5 - z_instances / 2.)};
 
@@ -82,14 +74,19 @@ int main(int argc, char* argv[]) {
 
                     ChFrame<> f = ChFrame<>(p, q);
 
+                    auto trimesh_shape = std::make_shared<ChTriangleMeshShape>();
+                    trimesh_shape->SetMesh(mmesh);
+                    trimesh_shape->SetName("HMMWV Chassis Mesh");
+                    trimesh_shape->SetStatic(true);
                     float scale = 1 * (float)rand() / (float)RAND_MAX + .01f;
-                    for (int a = 0; a < 9; a++) {
-                        f.Amatrix(a) *= scale;
-                        // f.Amatrix(4) *= scale;
-                        // f.Amatrix(8) *= scale;
-                    }
+                    trimesh_shape->SetScale({scale, scale, scale});
 
-                    frame_list.push_back(f);
+                    auto mesh_body = chrono_types::make_shared<ChBody>();
+                    mesh_body->SetPos(p);
+                    mesh_body->SetRot(q);
+                    mesh_body->SetBodyFixed(true);
+                    mesh_body->AddAsset(trimesh_shape);
+                    mphysicalSystem.Add(mesh_body);
                 }
             }
         }
@@ -117,7 +114,7 @@ int main(int argc, char* argv[]) {
             chrono::ChFrame<double>({-10, 0, 0}, Q_from_AngAxis(0, {0, 1, 0})),  // offset pose
             1920,                                                                // image width
             1080,                                                                // image height
-            (float)CH_C_PI / 3                                                   // FOV
+            (float)CH_C_PI / 3, 1, CameraLensModelType::PINHOLE, true            // FOV
         );
         cam->SetName("Camera Sensor");
         if (vis)
@@ -125,14 +122,14 @@ int main(int argc, char* argv[]) {
 
         manager->AddSensor(cam);
 
-        manager->AddInstancedStaticSceneMeshes(frame_list, trimesh_shape);
-
         // ---------------
         // Simulate system
         // ---------------
         float orbit_radius = (x_instances / 2.0f) * x_spread + 5.0f;
         float orbit_rate = 0.5f;
         float ch_time = 0.0f;
+
+        // double render_time = 0;
 
         std::chrono::high_resolution_clock::time_point t1 = std::chrono::high_resolution_clock::now();
 

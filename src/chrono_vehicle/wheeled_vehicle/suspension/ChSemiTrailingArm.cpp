@@ -51,7 +51,7 @@ ChSemiTrailingArm::~ChSemiTrailingArm() {
     if (sys) {
         for (int i = 0; i < 2; i++) {
             sys->Remove(m_arm[i]);
-            sys->Remove(m_revoluteArm[i]);
+            ChChassis::RemoveJoint(m_revoluteArm[i]);
             sys->Remove(m_shock[i]);
             sys->Remove(m_spring[i]);
         }
@@ -83,19 +83,19 @@ void ChSemiTrailingArm::Initialize(std::shared_ptr<ChChassis> chassis,
     }
 
     // Initialize left and right sides.
-    InitializeSide(LEFT, chassis->GetBody(), m_pointsL, left_ang_vel);
-    InitializeSide(RIGHT, chassis->GetBody(), m_pointsR, right_ang_vel);
+    InitializeSide(LEFT, chassis, m_pointsL, left_ang_vel);
+    InitializeSide(RIGHT, chassis, m_pointsR, right_ang_vel);
 }
 
 void ChSemiTrailingArm::InitializeSide(VehicleSide side,
-                                       std::shared_ptr<ChBodyAuxRef> chassis,
+                                       std::shared_ptr<ChChassis> chassis,
                                        const std::vector<ChVector<> >& points,
                                        double ang_vel) {
     std::string suffix = (side == LEFT) ? "_L" : "_R";
 
     // Chassis orientation (expressed in absolute frame)
     // Recall that the suspension reference frame is aligned with the chassis.
-    ChQuaternion<> chassisRot = chassis->GetFrame_REF_to_abs().GetRot();
+    ChQuaternion<> chassisRot = chassis->GetBody()->GetFrame_REF_to_abs().GetRot();
 
     // Create and initialize spindle body (same orientation as the chassis)
     m_spindle[side] = std::shared_ptr<ChBody>(chassis->GetSystem()->NewBody());
@@ -149,22 +149,21 @@ void ChSemiTrailingArm::InitializeSide(VehicleSide side,
     u = Vcross(v, w);
     rot.Set_A_axis(u, v, w);
 
-    m_revoluteArm[side] = chrono_types::make_shared<ChLinkLockRevolute>();
-    m_revoluteArm[side]->SetNameString(m_name + "_revoluteArm" + suffix);
-    m_revoluteArm[side]->Initialize(chassis, m_arm[side],
-                                    ChCoordsys<>((points[TA_O] + points[TA_I]) / 2, rot.Get_A_quaternion()));
-    chassis->GetSystem()->AddLink(m_revoluteArm[side]);
+    m_revoluteArm[side] = chrono_types::make_shared<ChVehicleJoint>(
+        ChVehicleJoint::Type::REVOLUTE, m_name + "_revoluteArm" + suffix, chassis->GetBody(), m_arm[side],
+        ChCoordsys<>((points[TA_O] + points[TA_I]) / 2, rot.Get_A_quaternion()), getCABushingData());
+    chassis->AddJoint(m_revoluteArm[side]);
 
     // Create and initialize the spring/damper
     m_shock[side] = chrono_types::make_shared<ChLinkTSDA>();
     m_shock[side]->SetNameString(m_name + "_shock" + suffix);
-    m_shock[side]->Initialize(chassis, m_arm[side], false, points[SHOCK_C], points[SHOCK_A]);
+    m_shock[side]->Initialize(chassis->GetBody(), m_arm[side], false, points[SHOCK_C], points[SHOCK_A]);
     m_shock[side]->RegisterForceFunctor(getShockForceFunctor());
     chassis->GetSystem()->AddLink(m_shock[side]);
 
     m_spring[side] = chrono_types::make_shared<ChLinkTSDA>();
     m_spring[side]->SetNameString(m_name + "_spring" + suffix);
-    m_spring[side]->Initialize(chassis, m_arm[side], false, points[SPRING_C], points[SPRING_A], false,
+    m_spring[side]->Initialize(chassis->GetBody(), m_arm[side], false, points[SPRING_C], points[SPRING_A], false,
                                getSpringRestLength());
     m_spring[side]->RegisterForceFunctor(getSpringForceFunctor());
     chassis->GetSystem()->AddLink(m_spring[side]);
@@ -357,11 +356,15 @@ void ChSemiTrailingArm::ExportComponentList(rapidjson::Document& jsonDocument) c
     ChPart::ExportShaftList(jsonDocument, shafts);
 
     std::vector<std::shared_ptr<ChLink>> joints;
+    std::vector<std::shared_ptr<ChLoadBodyBody>> bushings;
     joints.push_back(m_revolute[0]);
     joints.push_back(m_revolute[1]);
-    joints.push_back(m_revoluteArm[0]);
-    joints.push_back(m_revoluteArm[1]);
+    m_revoluteArm[0]->IsKinematic() ? joints.push_back(m_revoluteArm[0]->GetAsLink())
+                                    : bushings.push_back(m_revoluteArm[0]->GetAsBushing());
+    m_revoluteArm[1]->IsKinematic() ? joints.push_back(m_revoluteArm[1]->GetAsLink())
+                                    : bushings.push_back(m_revoluteArm[1]->GetAsBushing());
     ChPart::ExportJointList(jsonDocument, joints);
+    ChPart::ExportBodyLoadList(jsonDocument, bushings);
 
     std::vector<std::shared_ptr<ChLinkTSDA>> springs;
     springs.push_back(m_spring[0]);
@@ -388,11 +391,15 @@ void ChSemiTrailingArm::Output(ChVehicleOutput& database) const {
     database.WriteShafts(shafts);
 
     std::vector<std::shared_ptr<ChLink>> joints;
+    std::vector<std::shared_ptr<ChLoadBodyBody>> bushings;
     joints.push_back(m_revolute[0]);
     joints.push_back(m_revolute[1]);
-    joints.push_back(m_revoluteArm[0]);
-    joints.push_back(m_revoluteArm[1]);
+    m_revoluteArm[0]->IsKinematic() ? joints.push_back(m_revoluteArm[0]->GetAsLink())
+                                    : bushings.push_back(m_revoluteArm[0]->GetAsBushing());
+    m_revoluteArm[1]->IsKinematic() ? joints.push_back(m_revoluteArm[1]->GetAsLink())
+                                    : bushings.push_back(m_revoluteArm[1]->GetAsBushing());
     database.WriteJoints(joints);
+    database.WriteBodyLoads(bushings);
 
     std::vector<std::shared_ptr<ChLinkTSDA>> springs;
     springs.push_back(m_spring[0]);

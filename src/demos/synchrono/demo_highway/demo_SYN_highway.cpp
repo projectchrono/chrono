@@ -37,7 +37,7 @@
 
 #ifdef CHRONO_SENSOR
 #include "chrono_sensor/ChSensorManager.h"
-#include "chrono_sensor/ChCameraSensor.h"
+#include "chrono_sensor/sensors/ChCameraSensor.h"
 #include "chrono_sensor/filters/ChFilterAccess.h"
 #include "chrono_sensor/filters/ChFilterSave.h"
 #include "chrono_sensor/filters/ChFilterVisualize.h"
@@ -277,7 +277,7 @@ int main(int argc, char* argv[]) {
             cam_res_height,                                 // image height
             (float)CH_C_PI / 3,                             // FOV
             1,                                              // samples per pixel for antialiasing
-            PINHOLE);                                       // camera type
+            CameraLensModelType::PINHOLE);                                       // camera type
 
         intersection_camera->SetName("Intersection Cam");
         intersection_camera->PushFilter(chrono_types::make_shared<ChFilterRGBA8Access>());

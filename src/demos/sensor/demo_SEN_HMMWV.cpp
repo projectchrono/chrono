@@ -31,15 +31,15 @@
 
 #include "chrono_thirdparty/filesystem/path.h"
 
-#include "chrono_sensor/ChCameraSensor.h"
-#include "chrono_sensor/ChLidarSensor.h"
+#include "chrono_sensor/sensors/ChCameraSensor.h"
+// #include "chrono_sensor/sensors/ChLidarSensor.h"
 #include "chrono_sensor/ChSensorManager.h"
-#include "chrono_sensor/filters/ChFilterAccess.h"
-#include "chrono_sensor/filters/ChFilterPCfromDepth.h"
+// #include "chrono_sensor/filters/ChFilterAccess.h"
+// #include "chrono_sensor/filters/ChFilterPCfromDepth.h"
 #include "chrono_sensor/filters/ChFilterVisualize.h"
-#include "chrono_sensor/filters/ChFilterSave.h"
-#include "chrono_sensor/filters/ChFilterSavePtCloud.h"
-#include "chrono_sensor/filters/ChFilterVisualizePointCloud.h"
+// #include "chrono_sensor/filters/ChFilterSave.h"
+// #include "chrono_sensor/filters/ChFilterSavePtCloud.h"
+// #include "chrono_sensor/filters/ChFilterVisualizePointCloud.h"
 #include "chrono_sensor/utils/ChVisualMaterialUtils.h"
 
 using namespace chrono;
@@ -118,9 +118,9 @@ unsigned int vertical_samples = 32;
 float cam_fov = 1.408f;
 
 // Lidar's horizontal and vertical fov
-float lidar_hfov = (float) (2 * CH_C_PI);   // 360 degrees
-float lidar_vmax = (float) CH_C_PI / 12;  // 15 degrees up
-float lidar_vmin = (float) -CH_C_PI / 6;  // 30 degrees down
+float lidar_hfov = (float)(2 * CH_C_PI);  // 360 degrees
+float lidar_vmax = (float)CH_C_PI / 12;   // 15 degrees up
+float lidar_vmin = (float)-CH_C_PI / 6;   // 30 degrees down
 float lidar_max_distance = 100.0f;
 
 // -----------------------------------------------------------------------------
@@ -216,8 +216,9 @@ int main(int argc, char* argv[]) {
     auto visual_asset = std::dynamic_pointer_cast<ChVisualization>(ground_body->GetAssets()[0]);
     auto vis_mat = chrono_types::make_shared<ChVisualMaterial>();
     vis_mat->SetKdTexture(vehicle::GetDataFile("terrain/textures/grass.jpg"));
-    vis_mat->SetSpecularColor({.2f, .2f, .2f});
+    vis_mat->SetSpecularColor({.0f, .0f, .0f});
     vis_mat->SetRoughness(1.f);
+    vis_mat->SetUseSpecularWorkflow(false);
     visual_asset->material_list.push_back(vis_mat);
 
     terrain.Initialize();
@@ -310,13 +311,14 @@ int main(int argc, char* argv[]) {
     // ---------------------------------------------
     auto manager = chrono_types::make_shared<ChSensorManager>(my_hmmwv.GetSystem());
     manager->scene->AddPointLight({100, 100, 100}, {2, 2, 2}, 5000);
-
-    manager->SetKeyframeSizeFromTimeStep((float)step_size, (float)exposure_time);
+    manager->scene->SetAmbientLight({0, 0, 0});
 
     // Set environment map
-    // manager->scene->GetBackground().has_texture = true;
-    // manager->scene->GetBackground().env_tex = "sensor/textures/cloud_layers_8k.hdr";
-    // manager->scene->GetBackground().has_changed = true;
+    Background b;
+    b.mode = BackgroundMode::GRADIENT;
+    b.color_horizon = {.6, .7, .8};
+    b.color_zenith = {.4, .5, .6};
+    manager->scene->SetBackground(b);
 
     // ------------------------------------------------
     // Create a camera and add it to the sensor manager
@@ -332,17 +334,18 @@ int main(int argc, char* argv[]) {
     cam->SetName("Camera Sensor");
     // cam->SetLag(0);
     cam->SetCollectionWindow(exposure_time);
+    cam->SetCollectionWindow(0);
 
     if (sensor_vis)
         // Renders the image
         cam->PushFilter(chrono_types::make_shared<ChFilterVisualize>(image_width, image_height));
 
-    if (sensor_save)
-        // Save the current image to a png file at the specified path
-        cam->PushFilter(chrono_types::make_shared<ChFilterSave>(sens_dir + "/cam1/"));
+    // if (sensor_save)
+    //     // Save the current image to a png file at the specified path
+    //     cam->PushFilter(chrono_types::make_shared<ChFilterSave>(sens_dir + "/cam1/"));
 
     // Provides the host access to this RGBA8 buffer
-    cam->PushFilter(chrono_types::make_shared<ChFilterRGBA8Access>());
+    // cam->PushFilter(chrono_types::make_shared<ChFilterRGBA8Access>());
 
     // add sensor to the manager
     manager->AddSensor(cam);
@@ -366,12 +369,12 @@ int main(int argc, char* argv[]) {
         // Renders the image
         cam2->PushFilter(chrono_types::make_shared<ChFilterVisualize>(image_width, image_height));
 
-    if (sensor_save)
-        // Save the current image to a png file at the specified path
-        cam2->PushFilter(chrono_types::make_shared<ChFilterSave>(sens_dir + "/cam2/"));
+    // if (sensor_save)
+    //     // Save the current image to a png file at the specified path
+    //     cam2->PushFilter(chrono_types::make_shared<ChFilterSave>(sens_dir + "/cam2/"));
 
     // Provides the host access to this RGBA8 buffer
-    cam2->PushFilter(chrono_types::make_shared<ChFilterRGBA8Access>());
+    // cam2->PushFilter(chrono_types::make_shared<ChFilterRGBA8Access>());
 
     // add sensor to the manager
     manager->AddSensor(cam2);
@@ -379,40 +382,41 @@ int main(int argc, char* argv[]) {
     // -----------------------------------------------
     // Create a lidar and add it to the sensor manager
     // -----------------------------------------------
-    auto lidar = chrono_types::make_shared<ChLidarSensor>(
-        my_hmmwv.GetChassisBody(),                                         // body to which the IMU is attached
-        lidar_update_rate,                                                 // update rate
-        chrono::ChFrame<double>({0, 0, 2}, Q_from_AngAxis(0, {1, 0, 0})),  // offset pose from body
-        horizontal_samples,                                                // horizontal samples
-        vertical_samples,                                                  // vertical samples/channels
-        lidar_hfov,                                                        // horizontal field of view
-        lidar_vmax, lidar_vmin, lidar_max_distance                         // vertical field of view
-    );
-    lidar->SetName("Lidar Sensor");
-    lidar->SetLag(1 / lidar_update_rate);
-    lidar->SetCollectionWindow(0);
+    // auto lidar = chrono_types::make_shared<ChLidarSensor>(
+    //     my_hmmwv.GetChassisBody(),                                         // body to which the IMU is attached
+    //     lidar_update_rate,                                                 // update rate
+    //     chrono::ChFrame<double>({0, 0, 2}, Q_from_AngAxis(0, {1, 0, 0})),  // offset pose from body
+    //     horizontal_samples,                                                // horizontal samples
+    //     vertical_samples,                                                  // vertical samples/channels
+    //     lidar_hfov,                                                        // horizontal field of view
+    //     lidar_vmax, lidar_vmin, lidar_max_distance                         // vertical field of view
+    // );
+    // lidar->SetName("Lidar Sensor");
+    // lidar->SetLag(1 / lidar_update_rate);
+    // lidar->SetCollectionWindow(0);
 
-    if (sensor_vis)
-        // Renders the raw lidar data
-        lidar->PushFilter(
-            chrono_types::make_shared<ChFilterVisualize>(horizontal_samples, vertical_samples, "Raw Lidar Data"));
+    // if (sensor_vis)
+    //     // Renders the raw lidar data
+    //     lidar->PushFilter(
+    //         chrono_types::make_shared<ChFilterVisualize>(horizontal_samples, vertical_samples, "Raw Lidar Data"));
 
-    // Convert the range,intensity data to a point cloud (XYZI)
-    lidar->PushFilter(chrono_types::make_shared<ChFilterPCfromDepth>());
+    // // Convert the range,intensity data to a point cloud (XYZI)
+    // lidar->PushFilter(chrono_types::make_shared<ChFilterPCfromDepth>());
 
-    if (sensor_vis)
-        // Renders the point cloud
-        lidar->PushFilter(chrono_types::make_shared<ChFilterVisualizePointCloud>(640, 480, 3.0f, "Lidar Point Cloud"));
+    // if (sensor_vis)
+    //     // Renders the point cloud
+    //     lidar->PushFilter(chrono_types::make_shared<ChFilterVisualizePointCloud>(640, 480, 3.0f, "Lidar Point
+    //     Cloud"));
 
-    if (sensor_save)
-        // Save the XYZI data
-        lidar->PushFilter(chrono_types::make_shared<ChFilterSavePtCloud>(sens_dir + "/lidar/"));
+    // if (sensor_save)
+    //     // Save the XYZI data
+    //     lidar->PushFilter(chrono_types::make_shared<ChFilterSavePtCloud>(sens_dir + "/lidar/"));
 
-    // Provides the host access to this XYZI buffer
-    lidar->PushFilter(chrono_types::make_shared<ChFilterXYZIAccess>());
+    // // Provides the host access to this XYZI buffer
+    // lidar->PushFilter(chrono_types::make_shared<ChFilterXYZIAccess>());
 
-    // add sensor to the manager
-    manager->AddSensor(lidar);
+    // // add sensor to the manager
+    // manager->AddSensor(lidar);
 
     // ---------------
     // Simulate system
@@ -440,7 +444,7 @@ int main(int argc, char* argv[]) {
             if (povray_output) {
                 char filename[100];
                 sprintf(filename, "%s/data_%03d.dat", pov_dir.c_str(), render_frame + 1);
-                utils::WriteShapesPovray(my_hmmwv.GetSystem(), filename);
+                utils::WriteVisualizationAssets(my_hmmwv.GetSystem(), filename);
             }
 
             render_frame++;

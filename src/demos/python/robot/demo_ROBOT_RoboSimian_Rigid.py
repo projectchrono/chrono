@@ -342,7 +342,7 @@ while (application.GetDevice().run()) :
     if sim_frame % render_steps == 0 :
         if (povray_output) :
             filename = pov_dir + '/data_' + str(render_frame + 1) +'04d.dat' 
-            chrono.WriteShapesPovray(my_sys, filename)
+            chrono.WriteVisualizationAssets(my_sys, filename)
 
         if image_output :
             filename = img_dir + '/img_' + str(render_frame + 1) +'04d.jpg' 

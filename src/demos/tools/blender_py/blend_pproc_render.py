@@ -4,6 +4,8 @@ import os
 import glob
 import reader
 import mathutils
+from blend_ChParticle_utils import renderPsys
+
 #import multiprocessing
 
 
@@ -13,6 +15,7 @@ res_reduction = {
     'MID' : 4,
     'LOW' : 16}
 
+# function to orient a camera to look at a point
 def look_at(obj_camera, point, up):
     loc_camera = obj_camera.location
     direction = point - loc_camera
@@ -22,17 +25,15 @@ def look_at(obj_camera, point, up):
     # assume we're using euler rotation
     obj_camera.rotation_euler = rot_quat.to_euler()
 
+# converts creates Blender objects from .dat chrono output format
 def convertshape(shapedata, meshespaths):
     # Triangular Mesh
     if shapedata[0] == 5:
         for dirpath in meshespaths:
-            file_path = dirpath + shapedata[-1] + '.obj'
+            file_path = dirpath + "/" + shapedata[-1] + '.obj'
             if os.path.isfile(file_path ):
                 imported_object_3 = bpy.ops.import_scene.obj(filepath=file_path )
                 obj_object = bpy.context.object
-                #bpy.ops.transform.rotate(value=(math.pi * 0.5), orient_axis='X')  # value = Angle
-                #bpy.ops.transform.translate(value=(float(shapedata[3]), float(shapedata[4]), float(shapedata[5])))
-                new_numob = len(bpy.context.selected_objects)
                 olist =bpy.context.selected_objects
                 for o in olist:
                     o.location.x = shapedata[3] 
@@ -44,6 +45,7 @@ def convertshape(shapedata, meshespaths):
                 return True
             
         return False
+    # sphere, box cylinder
     elif shapedata[0]==0 or shapedata[0]==2 or shapedata[0]==3:
         obj = None
         # Sphere
@@ -108,29 +110,38 @@ def find_camera_target(exported_shapes, body_id, type_id, shape_name = ''):
                 return True, [shapedata[3],shapedata[4],shapedata[5]], [shapedata[6],shapedata[7],shapedata[8], shapedata[9]]
 
 
-def render_image(filepath,file_index, out_dir, meshes_prefixes,res,  targ_bodyid, targ_shapetypeid, targ_name, camera_mode, camera_dist, camera_pos, use_sky, a_up, light_loc, light_energy):
-    expshapes = reader.import_shapes(filepath)
-    # optional: delete cahed objects
-    for oldobj in bpy.data.objects : 
-        bpy.data.objects.remove(oldobj)
+def render_image(dirpaths, filepath,file_index, out_dir, meshes_prefixes,res,  targ,
+                 camera_mode, camera_pos, use_sky, a_up, light_loc, light_energy):
 
+    # path to the chrono and chrono-particle systems outputs. Processed only if they exists
+    dat_path = dirpaths[0] + filepath + ".dat"
+    #particle_path = dirpaths[0] + filepath + ".chpf"
+
+
+    # delete cached objects (initial cube and shapes from previous frames
+    for oldobj in bpy.data.objects:
+        if oldobj != bpy.data.objects['Camera']:
+            bpy.data.objects.remove(oldobj)
+
+    # IF there is a chrono .dat output, it gets processed
+    expshapes = []
+    for dir in dirpaths:
+        if (os.path.exists(dir + filepath + ".dat")):
+            expshapes += reader.import_shapes(dir + filepath + ".dat")
     for shapedata in expshapes:
         isconv = convertshape(shapedata, meshes_prefixes)
         if not isconv:
             print('Error while importing meshes')
-    
 
-    targetfound, targ_pos, targ_or = find_camera_target(expshapes, targ_bodyid, targ_shapetypeid, targ_name)
-    if not targetfound:
-            print('Could not find target object')
-    
+    if (os.path.exists(dat_path)):
+        targetfound, targ_pos, targ_or = find_camera_target(expshapes, targ["bodyid"], targ["shapetypeid"], targ["name"])
+        if not targetfound:
+                print('Could not find target object')
+
+
     scene = bpy.context.scene
     scene.objects.keys()
-    
-    bpy.ops.object.camera_add(enter_editmode=False, align='WORLD', location=(1,1,1),
-                                  rotation=(1.2548917, 0.0139800873, -0.6300638))
-    scene.camera = bpy.context.object
-    
+
     if camera_mode == 'Lookat':
         obj_camera = bpy.data.objects["Camera"]
         obj_camera.location = camera_pos
@@ -141,15 +152,26 @@ def render_image(filepath,file_index, out_dir, meshes_prefixes,res,  targ_bodyid
         print('Follow camera mode')
         obj_camera = bpy.data.objects["Camera"]
         # get the distance in the global ref frame:
-        global_dist = mathutils.Vector(camera_dist)
+        global_dist = mathutils.Vector(targ["distfrom"])
         global_dist.rotate(mathutils.Quaternion(targ_or))
         moving_camera_pos = mathutils.Vector(targ_pos) + global_dist
-        obj_camera.location = moving_camera_pos 
-        #obj_camera.location = mathutils.Vector((1,2,3))
-        print(moving_camera_pos )
+        obj_camera.location = moving_camera_pos
         look_at(obj_camera, mathutils.Vector(targ_pos), a_up)
-    
-    
+    else:
+        obj_camera = bpy.data.objects["Camera"]
+        obj_camera.location = camera_pos
+        look_at(obj_camera, mathutils.Vector(targ["position"]), a_up)
+
+
+    # IF there is a chrono .chpf output, it gets processed
+    for dirpath in dirpaths:
+        partpath = dirpath + filepath + ".chpf"
+        if (os.path.exists(partpath)):
+            renderPsys(partpath, bpy.data.objects["Camera"])
+
+    # distance above which objects are not rendered
+    #TODO: make this settable!!
+    bpy.context.scene.camera.data.clip_end = 1000
     scene.cycles.device = 'GPU'
     prefs = bpy.context.preferences
     cprefs = prefs.addons['cycles'].preferences
@@ -200,27 +222,28 @@ def render_image(filepath,file_index, out_dir, meshes_prefixes,res,  targ_bodyid
     bpy.context.scene.render.image_settings.color_mode = 'RGBA'
     bpy.context.scene.render.image_settings.file_format = 'PNG'
     #bpy.ops.render.render(write_still=True)
-    
+
     bpy.ops.render.render(write_still=True)
     print('Rendered frame')
 
-def bl_render(meshes_prefixes, out_dir, datadir, res, camera_mode, use_sky, camera_pos, targ_bodyid, targ_shapetypeid, targ_name, camera_dist, up='Z', light_loc=(10, 10, 15), light_energy=13000 ):
+def bl_render(meshes_prefixes, out_dir, datadirs, res, camera_mode, use_sky, camera_pos, targ, up='Z', light_loc=(10, 10, 15), light_energy=13000 ):
     if up == 'Z':
         a_up = 'Y'
     elif up == 'Y':
         a_up = 'Z'
     else:
-        print('Unvalid up-axis choice')
-    
+        print('Invalid up-axis choice')
+
+    # populates the list with all the chrono output files, truncating the suffix (since there might be both .dat and .chpf)
     datafiles = []
     #for file in os.listdir(datadir):
-    for root, dirs, files in os.walk(datadir):
+    for root, dirs, files in os.walk(datadirs[0]):
         for file in files:
-            if file.endswith(".dat"):
-                datafiles.append(file)
-            
+            if file.endswith(".dat") or file.endswith(".chpf"):
+                datafiles.append(file[:file.rfind(".")])
+
     #p = multiprocessing.Pool(processes = multiprocessing.cpu_count()-1)
     for file_ind, datafile in enumerate(datafiles):
         #p.apply_async(render_image, [datadir+datafile, file_ind, out_dir, meshes_prefixes, res, targ_bodyid, targ_shapetypeid, targ_name, camera_mode, camera_dist, camera_pos, use_sky, a_up, light_loc, light_energy])
-        render_image(datadir+datafile, file_ind, out_dir, meshes_prefixes, res, targ_bodyid, targ_shapetypeid, targ_name, camera_mode, camera_dist, camera_pos, use_sky, a_up, light_loc, light_energy) 
-    
+        render_image(datadirs, datafile, file_ind, out_dir, meshes_prefixes, res, targ,
+                     camera_mode, camera_pos, use_sky, a_up, light_loc, light_energy)

@@ -25,7 +25,7 @@
 
   "Axles": [
     {
-      "Suspension Input File": "mtv/suspension/FMTV_ToebarLeafSpringAxle.json",
+      "Suspension Input File": "mtv/suspension/FMTV_ToeBarLeafSpringAxle.json",
       "Suspension Location": [ 0, 0, 0 ],
       "Steering Index": 0,
       "Left Wheel Input File": "mtv/wheel/FMTV_Wheel.json",

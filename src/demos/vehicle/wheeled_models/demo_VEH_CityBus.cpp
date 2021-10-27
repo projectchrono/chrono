@@ -243,7 +243,7 @@ int main(int argc, char* argv[]) {
             if (povray_output) {
                 char filename[100];
                 sprintf(filename, "%s/data_%03d.dat", pov_dir.c_str(), render_frame + 1);
-                utils::WriteShapesPovray(my_bus.GetSystem(), filename);
+                utils::WriteVisualizationAssets(my_bus.GetSystem(), filename);
             }
 
             render_frame++;

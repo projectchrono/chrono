@@ -19,7 +19,7 @@
 #include "gtest/gtest.h"
 
 #include "chrono/core/ChLog.h"
-#include "chrono_sensor/ChGPSSensor.h"
+#include "chrono_sensor/utils/ChGPSUtils.h"
 
 using namespace chrono;
 using namespace sensor;

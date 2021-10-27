@@ -89,22 +89,49 @@ void CreateModernMeshAssets(std::shared_ptr<ChTriangleMeshShape> mesh_shape) {
 
         mat->SetDiffuseColor({materials[i].diffuse[0], materials[i].diffuse[1], materials[i].diffuse[2]});
         mat->SetSpecularColor({materials[i].specular[0], materials[i].specular[1], materials[i].specular[2]});
-        // mat->SetSpecularExponent(float exponent);
+        mat->SetMetallic(materials[i].metallic);
         mat->SetTransparency(materials[i].dissolve);
+        mat->SetRoughness(materials[i].roughness);
+
+        // If metallic and roughness is set to default, use 
+        // specular workflow
+        if (materials[i].metallic == 0 && materials[i].roughness == 0.5) {
+            mat->SetUseSpecularWorkflow(true);
+        } else {
+            mat->SetUseSpecularWorkflow(false);
+        }
 
         if (materials[i].diffuse_texname != "") {
             mat->SetKdTexture(mtl_base + materials[i].diffuse_texname);
-            // std::cout << "Kd Map: " << mtl_base + materials[i].diffuse_texname << std::endl;
         }
 
+        if (materials[i].specular_texname != "") {
+            mat->SetKsTexture(mtl_base + materials[i].specular_texname);
+            mat->SetUseSpecularWorkflow(true);
+        }
+        // set normal map when called "bump_texname"
         if (materials[i].bump_texname != "") {
             mat->SetNormalMapTexture(mtl_base + materials[i].bump_texname);
-            // std::cout << "Normal Map: " << mtl_base + materials[i].bump_texname << std::endl;
         }
-        // mat->SetFresnelExp(float exp);
-        // mat->SetFresnelMax(float max);
-        // mat->SetFresnelMin(float min);
-        mat->SetRoughness(materials[i].roughness);
+        // set normal map when called "normal_texname"
+        if (materials[i].normal_texname != "") {
+            mat->SetNormalMapTexture(mtl_base + materials[i].normal_texname);
+        }
+        // set roughness texture if it exists
+        if (materials[i].roughness_texname != "") {
+            mat->SetRoughnessTexture(mtl_base + materials[i].roughness_texname);
+            mat->SetUseSpecularWorkflow(false);
+        }
+        // set metallic texture if it exists
+        if (materials[i].metallic_texname != "") {
+            mat->SetMetallicTexture(mtl_base + materials[i].metallic_texname);
+        }
+        // set opacity texture if it exists
+        // NOTE: need to make sure alpha and diffuse names are different to prevent 4 channel opacity textures in
+        // Chrono::Sensor
+        if (materials[i].alpha_texname != "" && materials[i].alpha_texname != materials[i].diffuse_texname) {
+            mat->SetOpacityTexture(mtl_base + materials[i].alpha_texname);
+        }
 
         material_list.push_back(mat);
     }
@@ -130,7 +157,11 @@ void CreateModernMeshAssets(std::shared_ptr<ChTriangleMeshShape> mesh_shape) {
                                                               shapes[i].mesh.indices[3 * j + 1].texcoord_index,
                                                               shapes[i].mesh.indices[3 * j + 2].texcoord_index));
             }
-            material_index_buffer.push_back(ChVector<int>(shapes[i].mesh.material_ids[j], 0, 0));
+            if (shapes[i].mesh.material_ids[j] < 0 || shapes[i].mesh.material_ids[j] >= material_list.size()) {
+                material_index_buffer.push_back(ChVector<int>(0, 0, 0));
+            } else {
+                material_index_buffer.push_back(ChVector<int>(shapes[i].mesh.material_ids[j], 0, 0));
+            }
         }
     }
 

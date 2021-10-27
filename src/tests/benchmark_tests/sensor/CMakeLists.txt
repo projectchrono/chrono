@@ -18,6 +18,8 @@ set(TESTS
     btest_SEN_lidar_beam
     btest_SEN_scene_scale
     btest_SEN_lidar_spin
+    btest_SEN_cornell_box
+    btest_SEN_vis_materials
     )
 
 # ------------------------------------------------------------------------------
