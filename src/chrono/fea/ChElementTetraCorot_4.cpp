@@ -12,23 +12,23 @@
 // Authors: Andrea Favali, Alessandro Tasora, Radu Serban
 // =============================================================================
 
-#include "chrono/fea/ChElementTetra_4.h"
+#include "chrono/fea/ChElementTetraCorot_4.h"
 
 namespace chrono {
 namespace fea {
 
-ChElementTetra_4::ChElementTetra_4() : Volume(0) {
+ChElementTetraCorot_4::ChElementTetraCorot_4() : Volume(0) {
     nodes.resize(4);
     this->MatrB.setZero(6, 12);
     this->StiffnessMatrix.setZero(12, 12);
 }
 
-ChElementTetra_4::~ChElementTetra_4() {}
+ChElementTetraCorot_4::~ChElementTetraCorot_4() {}
 
-void ChElementTetra_4::SetNodes(std::shared_ptr<ChNodeFEAxyz> nodeA,
-                                std::shared_ptr<ChNodeFEAxyz> nodeB,
-                                std::shared_ptr<ChNodeFEAxyz> nodeC,
-                                std::shared_ptr<ChNodeFEAxyz> nodeD) {
+void ChElementTetraCorot_4::SetNodes(std::shared_ptr<ChNodeFEAxyz> nodeA,
+                                     std::shared_ptr<ChNodeFEAxyz> nodeB,
+                                     std::shared_ptr<ChNodeFEAxyz> nodeC,
+                                     std::shared_ptr<ChNodeFEAxyz> nodeD) {
     nodes[0] = nodeA;
     nodes[1] = nodeB;
     nodes[2] = nodeC;
@@ -41,21 +41,21 @@ void ChElementTetra_4::SetNodes(std::shared_ptr<ChNodeFEAxyz> nodeA,
     Kmatr.SetVariables(mvars);
 }
 
-void ChElementTetra_4::Update() {
+void ChElementTetraCorot_4::Update() {
     // parent class update:
     ChElementGeneric::Update();
     // always keep updated the rotation matrix A:
     this->UpdateRotation();
 }
 
-void ChElementTetra_4::ShapeFunctions(ShapeVector& N, double r, double s, double t) {
+void ChElementTetraCorot_4::ShapeFunctions(ShapeVector& N, double r, double s, double t) {
     N(0) = 1.0 - r - s - t;
     N(1) = r;
     N(2) = s;
     N(3) = t;
 }
 
-void ChElementTetra_4::GetStateBlock(ChVectorDynamic<>& mD) {
+void ChElementTetraCorot_4::GetStateBlock(ChVectorDynamic<>& mD) {
     mD.setZero(this->GetNdofs());
     mD.segment(0, 3) = (A.transpose() * nodes[0]->pos - nodes[0]->GetX0()).eigen();
     mD.segment(3, 3) = (A.transpose() * nodes[1]->pos - nodes[1]->GetX0()).eigen();
@@ -63,7 +63,7 @@ void ChElementTetra_4::GetStateBlock(ChVectorDynamic<>& mD) {
     mD.segment(9, 3) = (A.transpose() * nodes[3]->pos - nodes[3]->GetX0()).eigen();
 }
 
-double ChElementTetra_4::ComputeVolume() {
+double ChElementTetraCorot_4::ComputeVolume() {
     ChVector<> B1, C1, D1;
     B1.Sub(nodes[1]->pos, nodes[0]->pos);
     C1.Sub(nodes[2]->pos, nodes[0]->pos);
@@ -77,7 +77,7 @@ double ChElementTetra_4::ComputeVolume() {
     return Volume;
 }
 
-void ChElementTetra_4::ComputeStiffnessMatrix() {
+void ChElementTetraCorot_4::ComputeStiffnessMatrix() {
     // M = [ X0_0 X0_1 X0_2 X0_3 ] ^-1
     //     [ 1    1    1    1    ]
     ChMatrixNM<double, 4, 4> tmp;
@@ -149,12 +149,12 @@ void ChElementTetra_4::ComputeStiffnessMatrix() {
         GetLog() << "NONSYMMETRIC local stiffness matrix! err " << max_err << " at " << err_r << "," << err_c << "\n";
 }
 
-void ChElementTetra_4::SetupInitial(ChSystem* system) {
+void ChElementTetraCorot_4::SetupInitial(ChSystem* system) {
     ComputeVolume();
     ComputeStiffnessMatrix();
 }
 
-void ChElementTetra_4::UpdateRotation() {
+void ChElementTetraCorot_4::UpdateRotation() {
     // P = [ p_0  p_1  p_2  p_3 ]
     //     [ 1    1    1    1   ]
     ChMatrixNM<double, 4, 4> P;
@@ -182,7 +182,7 @@ void ChElementTetra_4::UpdateRotation() {
     // GetLog() << "FEM rotation: \n" << A << "\n" ;
 }
 
-void ChElementTetra_4::ComputeKRMmatricesGlobal(ChMatrixRef H, double Kfactor, double Rfactor, double Mfactor) {
+void ChElementTetraCorot_4::ComputeKRMmatricesGlobal(ChMatrixRef H, double Kfactor, double Rfactor, double Mfactor) {
     assert((H.rows() == 12) && (H.cols() == 12));
 
     // warp the local stiffness matrix K in order to obtain global
@@ -246,7 +246,7 @@ void ChElementTetra_4::ComputeKRMmatricesGlobal(ChMatrixRef H, double Kfactor, d
     //***TO DO*** better per-node lumping, or 12x12 consistent mass matrix.
 }
 
-void ChElementTetra_4::ComputeInternalForces(ChVectorDynamic<>& Fi) {
+void ChElementTetraCorot_4::ComputeInternalForces(ChVectorDynamic<>& Fi) {
     assert(Fi.size() == 12);
 
     // set up vector of nodal displacements (in local element system) u_l = R*p - p0
@@ -275,7 +275,7 @@ void ChElementTetra_4::ComputeInternalForces(ChVectorDynamic<>& Fi) {
     ChMatrixCorotation::ComputeCK(FiK_local, this->A, 4, Fi);
 }
 
-ChStrainTensor<> ChElementTetra_4::GetStrain() {
+ChStrainTensor<> ChElementTetraCorot_4::GetStrain() {
     // set up vector of nodal displacements (in local element system) u_l = R*p - p0
     ChVectorDynamic<> displ(12);
     this->GetStateBlock(displ);  // nodal displacements, local
@@ -284,55 +284,55 @@ ChStrainTensor<> ChElementTetra_4::GetStrain() {
     return mstrain;
 }
 
-ChStressTensor<> ChElementTetra_4::GetStress() {
+ChStressTensor<> ChElementTetraCorot_4::GetStress() {
     ChStressTensor<> mstress = this->Material->Get_StressStrainMatrix() * this->GetStrain();
     return mstress;
 }
 
-void ChElementTetra_4::ComputeNodalMass() {
+void ChElementTetraCorot_4::ComputeNodalMass() {
     nodes[0]->m_TotalMass += this->GetVolume() * this->Material->Get_density() / 4.0;
     nodes[1]->m_TotalMass += this->GetVolume() * this->Material->Get_density() / 4.0;
     nodes[2]->m_TotalMass += this->GetVolume() * this->Material->Get_density() / 4.0;
     nodes[3]->m_TotalMass += this->GetVolume() * this->Material->Get_density() / 4.0;
 }
 
-void ChElementTetra_4::LoadableGetStateBlock_x(int block_offset, ChState& mD) {
+void ChElementTetraCorot_4::LoadableGetStateBlock_x(int block_offset, ChState& mD) {
     mD.segment(block_offset + 0, 3) = nodes[0]->GetPos().eigen();
     mD.segment(block_offset + 3, 3) = nodes[1]->GetPos().eigen();
     mD.segment(block_offset + 6, 3) = nodes[2]->GetPos().eigen();
     mD.segment(block_offset + 9, 3) = nodes[3]->GetPos().eigen();
 }
 
-void ChElementTetra_4::LoadableGetStateBlock_w(int block_offset, ChStateDelta& mD) {
+void ChElementTetraCorot_4::LoadableGetStateBlock_w(int block_offset, ChStateDelta& mD) {
     mD.segment(block_offset + 0, 3) = nodes[0]->GetPos_dt().eigen();
     mD.segment(block_offset + 3, 3) = nodes[1]->GetPos_dt().eigen();
     mD.segment(block_offset + 6, 3) = nodes[2]->GetPos_dt().eigen();
     mD.segment(block_offset + 9, 3) = nodes[3]->GetPos_dt().eigen();
 }
 
-void ChElementTetra_4::LoadableStateIncrement(const unsigned int off_x,
-                                              ChState& x_new,
-                                              const ChState& x,
-                                              const unsigned int off_v,
-                                              const ChStateDelta& Dv) {
+void ChElementTetraCorot_4::LoadableStateIncrement(const unsigned int off_x,
+                                                   ChState& x_new,
+                                                   const ChState& x,
+                                                   const unsigned int off_v,
+                                                   const ChStateDelta& Dv) {
     for (int i = 0; i < 4; ++i) {
         nodes[i]->NodeIntStateIncrement(off_x + i * 3, x_new, x, off_v + i * 3, Dv);
     }
 }
 
-void ChElementTetra_4::LoadableGetVariables(std::vector<ChVariables*>& mvars) {
+void ChElementTetraCorot_4::LoadableGetVariables(std::vector<ChVariables*>& mvars) {
     for (int i = 0; i < nodes.size(); ++i)
         mvars.push_back(&this->nodes[i]->Variables());
 }
 
-void ChElementTetra_4::ComputeNF(const double U,
-                                 const double V,
-                                 const double W,
-                                 ChVectorDynamic<>& Qi,
-                                 double& detJ,
-                                 const ChVectorDynamic<>& F,
-                                 ChVectorDynamic<>* state_x,
-                                 ChVectorDynamic<>* state_w) {
+void ChElementTetraCorot_4::ComputeNF(const double U,
+                                      const double V,
+                                      const double W,
+                                      ChVectorDynamic<>& Qi,
+                                      double& detJ,
+                                      const ChVectorDynamic<>& F,
+                                      ChVectorDynamic<>* state_x,
+                                      ChVectorDynamic<>* state_w) {
     // evaluate shape functions (in compressed vector), btw. not dependent on state
     // note: U,V,W in 0..1 range, thanks to IsTetrahedronIntegrationNeeded() {return true;}
     ShapeVector N;
@@ -356,16 +356,16 @@ void ChElementTetra_4::ComputeNF(const double U,
 
 // -----------------------------------------------------------------------------
 
-ChElementTetra_4_P::ChElementTetra_4_P() : Volume(0) {
+ChElementTetraCorot_4_P::ChElementTetraCorot_4_P() : Volume(0) {
     nodes.resize(4);
     this->MatrB.setZero(3, 4);
     this->StiffnessMatrix.setZero(4, 4);
 }
 
-void ChElementTetra_4_P::SetNodes(std::shared_ptr<ChNodeFEAxyzP> nodeA,
-                                  std::shared_ptr<ChNodeFEAxyzP> nodeB,
-                                  std::shared_ptr<ChNodeFEAxyzP> nodeC,
-                                  std::shared_ptr<ChNodeFEAxyzP> nodeD) {
+void ChElementTetraCorot_4_P::SetNodes(std::shared_ptr<ChNodeFEAxyzP> nodeA,
+                                       std::shared_ptr<ChNodeFEAxyzP> nodeB,
+                                       std::shared_ptr<ChNodeFEAxyzP> nodeC,
+                                       std::shared_ptr<ChNodeFEAxyzP> nodeD) {
     nodes[0] = nodeA;
     nodes[1] = nodeB;
     nodes[2] = nodeC;
@@ -378,21 +378,21 @@ void ChElementTetra_4_P::SetNodes(std::shared_ptr<ChNodeFEAxyzP> nodeA,
     Kmatr.SetVariables(mvars);
 }
 
-void ChElementTetra_4_P::Update() {
+void ChElementTetraCorot_4_P::Update() {
     // parent class update:
     ChElementGeneric::Update();
     // always keep updated the rotation matrix A:
     this->UpdateRotation();
 }
 
-void ChElementTetra_4_P::ShapeFunctions(ShapeVector& N, double z0, double z1, double z2) {
+void ChElementTetraCorot_4_P::ShapeFunctions(ShapeVector& N, double z0, double z1, double z2) {
     N(0) = z0;
     N(1) = z1;
     N(2) = z2;
     N(3) = 1.0 - z0 - z1 - z2;
 }
 
-void ChElementTetra_4_P::GetStateBlock(ChVectorDynamic<>& mD) {
+void ChElementTetraCorot_4_P::GetStateBlock(ChVectorDynamic<>& mD) {
     mD.setZero(this->GetNdofs());
     mD(0) = nodes[0]->GetP();
     mD(1) = nodes[1]->GetP();
@@ -400,7 +400,7 @@ void ChElementTetra_4_P::GetStateBlock(ChVectorDynamic<>& mD) {
     mD(3) = nodes[3]->GetP();
 }
 
-double ChElementTetra_4_P::ComputeVolume() {
+double ChElementTetraCorot_4_P::ComputeVolume() {
     ChVector<> B1, C1, D1;
     B1.Sub(nodes[1]->GetPos(), nodes[0]->GetPos());
     C1.Sub(nodes[2]->GetPos(), nodes[0]->GetPos());
@@ -414,7 +414,7 @@ double ChElementTetra_4_P::ComputeVolume() {
     return Volume;
 }
 
-void ChElementTetra_4_P::ComputeStiffnessMatrix() {
+void ChElementTetraCorot_4_P::ComputeStiffnessMatrix() {
     // M = [ X0_0 X0_1 X0_2 X0_3 ] ^-1
     //     [ 1    1    1    1    ]
     ChMatrixNM<double, 4, 4> tmp;
@@ -442,12 +442,12 @@ void ChElementTetra_4_P::ComputeStiffnessMatrix() {
     StiffnessMatrix = Volume * MatrB.transpose() * Material->Get_ConstitutiveMatrix() * MatrB;
 }
 
-void ChElementTetra_4_P::SetupInitial(ChSystem* system) {
+void ChElementTetraCorot_4_P::SetupInitial(ChSystem* system) {
     ComputeVolume();
     ComputeStiffnessMatrix();
 }
 
-void ChElementTetra_4_P::UpdateRotation() {
+void ChElementTetraCorot_4_P::UpdateRotation() {
     // P = [ p_0  p_1  p_2  p_3 ]
     //     [ 1    1    1    1   ]
     ChMatrixNM<double, 4, 4> P;
@@ -473,7 +473,7 @@ void ChElementTetra_4_P::UpdateRotation() {
         this->A *= -1.0;
 }
 
-void ChElementTetra_4_P::ComputeKRMmatricesGlobal(ChMatrixRef H, double Kfactor, double Rfactor, double Mfactor) {
+void ChElementTetraCorot_4_P::ComputeKRMmatricesGlobal(ChMatrixRef H, double Kfactor, double Rfactor, double Mfactor) {
     assert((H.rows() == 4) && (H.cols() == 4));
 
     // For K  matrix (jacobian d/dT of  c dT/dt + div [C] grad T = f )
@@ -493,7 +493,7 @@ void ChElementTetra_4_P::ComputeKRMmatricesGlobal(ChMatrixRef H, double Kfactor,
     // For M mass matrix: NONE in Poisson equation c dT/dt + div [C] grad T = f
 }
 
-void ChElementTetra_4_P::ComputeInternalForces(ChVectorDynamic<>& Fi) {
+void ChElementTetraCorot_4_P::ComputeInternalForces(ChVectorDynamic<>& Fi) {
     assert(Fi.size() == 4);
 
     // set up vector of nodal fields
@@ -512,7 +512,7 @@ void ChElementTetra_4_P::ComputeInternalForces(ChVectorDynamic<>& Fi) {
     Fi = FiK_local;
 }
 
-ChVectorN<double, 3> ChElementTetra_4_P::GetPgradient() {
+ChVectorN<double, 3> ChElementTetraCorot_4_P::GetPgradient() {
     // set up vector of nodal displacements (in local element system) u_l = R*p - p0
     ChVectorDynamic<> displ(4);
     this->GetStateBlock(displ);
@@ -520,43 +520,43 @@ ChVectorN<double, 3> ChElementTetra_4_P::GetPgradient() {
     return MatrB * displ;
 }
 
-void ChElementTetra_4_P::LoadableGetStateBlock_x(int block_offset, ChState& mD) {
+void ChElementTetraCorot_4_P::LoadableGetStateBlock_x(int block_offset, ChState& mD) {
     mD(block_offset) = this->nodes[0]->GetP();
     mD(block_offset + 1) = this->nodes[1]->GetP();
     mD(block_offset + 2) = this->nodes[2]->GetP();
     mD(block_offset + 3) = this->nodes[3]->GetP();
 }
 
-void ChElementTetra_4_P::LoadableGetStateBlock_w(int block_offset, ChStateDelta& mD) {
+void ChElementTetraCorot_4_P::LoadableGetStateBlock_w(int block_offset, ChStateDelta& mD) {
     mD(block_offset) = this->nodes[0]->GetP_dt();
     mD(block_offset + 1) = this->nodes[1]->GetP_dt();
     mD(block_offset + 2) = this->nodes[2]->GetP_dt();
     mD(block_offset + 3) = this->nodes[3]->GetP_dt();
 }
 
-void ChElementTetra_4_P::LoadableStateIncrement(const unsigned int off_x,
-                                                ChState& x_new,
-                                                const ChState& x,
-                                                const unsigned int off_v,
-                                                const ChStateDelta& Dv) {
+void ChElementTetraCorot_4_P::LoadableStateIncrement(const unsigned int off_x,
+                                                     ChState& x_new,
+                                                     const ChState& x,
+                                                     const unsigned int off_v,
+                                                     const ChStateDelta& Dv) {
     for (int i = 0; i < 4; ++i) {
         nodes[i]->NodeIntStateIncrement(off_x + i * 1, x_new, x, off_v + i * 1, Dv);
     }
 }
 
-void ChElementTetra_4_P::LoadableGetVariables(std::vector<ChVariables*>& mvars) {
+void ChElementTetraCorot_4_P::LoadableGetVariables(std::vector<ChVariables*>& mvars) {
     for (int i = 0; i < nodes.size(); ++i)
         mvars.push_back(&this->nodes[i]->Variables());
 }
 
-void ChElementTetra_4_P::ComputeNF(const double U,
-                                   const double V,
-                                   const double W,
-                                   ChVectorDynamic<>& Qi,
-                                   double& detJ,
-                                   const ChVectorDynamic<>& F,
-                                   ChVectorDynamic<>* state_x,
-                                   ChVectorDynamic<>* state_w) {
+void ChElementTetraCorot_4_P::ComputeNF(const double U,
+                                        const double V,
+                                        const double W,
+                                        ChVectorDynamic<>& Qi,
+                                        double& detJ,
+                                        const ChVectorDynamic<>& F,
+                                        ChVectorDynamic<>* state_x,
+                                        ChVectorDynamic<>* state_w) {
     // evaluate shape functions (in compressed vector), btw. not dependant on state
     ShapeVector N;
     this->ShapeFunctions(N, U, V,

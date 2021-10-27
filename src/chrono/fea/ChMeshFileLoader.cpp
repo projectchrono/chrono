@@ -27,7 +27,7 @@
 
 #include <array>
 #include "chrono/fea/ChElementShellANCF_3423.h"
-#include "chrono/fea/ChElementTetra_4.h"
+#include "chrono/fea/ChElementTetraCorot_4.h"
 #include "chrono/fea/ChMeshFileLoader.h"
 #include "chrono/fea/ChNodeFEAxyz.h"
 
@@ -169,7 +169,7 @@ void ChMeshFileLoader::FromTetGenFile(std::shared_ptr<ChMesh> mesh,
                 if (n4 > totnodes)
                     throw ChException("ERROR in TetGen .node file, ID of 4th node is out of range: \n" + line + "\n");
                 if (std::dynamic_pointer_cast<ChContinuumElastic>(my_material)) {
-                    auto mel = chrono_types::make_shared<ChElementTetra_4>();
+                    auto mel = chrono_types::make_shared<ChElementTetraCorot_4>();
                     mel->SetNodes(std::dynamic_pointer_cast<ChNodeFEAxyz>(mesh->GetNode(nodes_offset + n1 - 1)),
                                   std::dynamic_pointer_cast<ChNodeFEAxyz>(mesh->GetNode(nodes_offset + n3 - 1)),
                                   std::dynamic_pointer_cast<ChNodeFEAxyz>(mesh->GetNode(nodes_offset + n2 - 1)),
@@ -177,7 +177,7 @@ void ChMeshFileLoader::FromTetGenFile(std::shared_ptr<ChMesh> mesh,
                     mel->SetMaterial(std::static_pointer_cast<ChContinuumElastic>(my_material));
                     mesh->AddElement(mel);
                 } else if (std::dynamic_pointer_cast<ChContinuumPoisson3D>(my_material)) {
-                    auto mel = chrono_types::make_shared<ChElementTetra_4_P>();
+                    auto mel = chrono_types::make_shared<ChElementTetraCorot_4_P>();
                     mel->SetNodes(std::dynamic_pointer_cast<ChNodeFEAxyzP>(mesh->GetNode(nodes_offset + n1 - 1)),
                                   std::dynamic_pointer_cast<ChNodeFEAxyzP>(mesh->GetNode(nodes_offset + n3 - 1)),
                                   std::dynamic_pointer_cast<ChNodeFEAxyzP>(mesh->GetNode(nodes_offset + n2 - 1)),
@@ -393,7 +393,7 @@ void ChMeshFileLoader::FromAbaqusFile(std::shared_ptr<ChMesh> mesh,
                 }
 
                 if (std::dynamic_pointer_cast<ChContinuumElastic>(my_material)) {
-                    auto mel = chrono_types::make_shared<ChElementTetra_4>();
+                    auto mel = chrono_types::make_shared<ChElementTetraCorot_4>();
                     mel->SetNodes(std::static_pointer_cast<ChNodeFEAxyz>(element_nodes[3]),
                                   std::static_pointer_cast<ChNodeFEAxyz>(element_nodes[1]),
                                   std::static_pointer_cast<ChNodeFEAxyz>(element_nodes[2]),
@@ -402,7 +402,7 @@ void ChMeshFileLoader::FromAbaqusFile(std::shared_ptr<ChMesh> mesh,
                     mesh->AddElement(mel);
 
                 } else if (std::dynamic_pointer_cast<ChContinuumPoisson3D>(my_material)) {
-                    auto mel = chrono_types::make_shared<ChElementTetra_4_P>();
+                    auto mel = chrono_types::make_shared<ChElementTetraCorot_4_P>();
                     mel->SetNodes(std::static_pointer_cast<ChNodeFEAxyzP>(element_nodes[0]),
                                   std::static_pointer_cast<ChNodeFEAxyzP>(element_nodes[1]),
                                   std::static_pointer_cast<ChNodeFEAxyzP>(element_nodes[2]),

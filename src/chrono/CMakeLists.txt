@@ -481,10 +481,10 @@ set(ChronoEngine_fea_elements_SOURCES
     fea/ChElementGeneric.cpp
     fea/ChElementSpring.cpp
     fea/ChElementBar.cpp
-    fea/ChElementTetra_4.cpp
-    fea/ChElementTetra_10.cpp
-    fea/ChElementHexa_8.cpp
-    fea/ChElementHexa_20.cpp
+    fea/ChElementTetraCorot_4.cpp
+    fea/ChElementTetraCorot_10.cpp
+    fea/ChElementHexaCorot_8.cpp
+    fea/ChElementHexaCorot_20.cpp
     fea/ChElementShellANCF_3423.cpp
     fea/ChElementShellReissner4.cpp
 	fea/ChElementShellBST.cpp
@@ -512,13 +512,13 @@ set(ChronoEngine_fea_elements_HEADERS
     fea/ChElementBeamIGA.h
     fea/ChElementCableANCF.h
     fea/ChElementTetrahedron.h
-    fea/ChElementTetra_4.h
-    fea/ChElementTetra_10.h
+    fea/ChElementTetraCorot_4.h
+    fea/ChElementTetraCorot_10.h
     fea/ChElementHexahedron.h
     fea/ChElementBrick.h
     fea/ChElementBrick_9.h
-    fea/ChElementHexa_8.h
-    fea/ChElementHexa_20.h
+    fea/ChElementHexaCorot_8.h
+    fea/ChElementHexaCorot_20.h
     fea/ChElementBrickANCF_3843.h
     fea/ChElementShell.h
     fea/ChElementShellANCF_3423.h

@@ -60,10 +60,10 @@
 #include "chrono/fea/ChElementBeamEuler.h"
 #include "chrono/fea/ChElementBeamANCF_3333.h"
 #include "chrono/fea/ChElementBeamIGA.h"
-#include "chrono/fea/ChElementTetra_4.h"
-#include "chrono/fea/ChElementTetra_10.h"
-#include "chrono/fea/ChElementHexa_8.h"
-#include "chrono/fea/ChElementHexa_20.h"
+#include "chrono/fea/ChElementTetraCorot_4.h"
+#include "chrono/fea/ChElementTetraCorot_10.h"
+#include "chrono/fea/ChElementHexaCorot_8.h"
+#include "chrono/fea/ChElementHexaCorot_20.h"
 #include "chrono/fea/ChElementBrick.h"
 #include "chrono/fea/ChElementBrick_9.h"
 #include "chrono/fea/ChElementShell.h"
@@ -238,12 +238,12 @@ using namespace chrono::fea;
 %shared_ptr(chrono::fea::ChElementBar)
 %shared_ptr(chrono::fea::ChElementCorotational)
 %shared_ptr(chrono::fea::ChElementTetrahedron)
-%shared_ptr(chrono::fea::ChElementTetra_4)
-%shared_ptr(chrono::fea::ChElementTetra_4_P)
-%shared_ptr(chrono::fea::ChElementTetra_10)
+%shared_ptr(chrono::fea::ChElementTetraCorot_4)
+%shared_ptr(chrono::fea::ChElementTetraCorot_4_P)
+%shared_ptr(chrono::fea::ChElementTetraCorot_10)
 %shared_ptr(chrono::fea::ChElementHexahedron)
-%shared_ptr(chrono::fea::ChElementHexa_8)
-%shared_ptr(chrono::fea::ChElementHexa_20)
+%shared_ptr(chrono::fea::ChElementHexaCorot_8)
+%shared_ptr(chrono::fea::ChElementHexaCorot_20)
 %shared_ptr(chrono::fea::ChElementBrick)
 %shared_ptr(chrono::fea::ChElementBrick_9)
 %shared_ptr(chrono::fea::ChNodeFEAbase)
@@ -385,11 +385,11 @@ using namespace chrono::fea;
 %include "../../chrono/fea/ChContinuumElectrostatics.h"
 %include "../../chrono/fea/ChContinuumThermal.h"
 %include "../../chrono/fea/ChElementTetrahedron.h"  	
-%include "../../chrono/fea/ChElementTetra_4.h"
-%include "../../chrono/fea/ChElementTetra_10.h"
+%include "../../chrono/fea/ChElementTetraCorot_4.h"
+%include "../../chrono/fea/ChElementTetraCorot_10.h"
 %include "../../chrono/fea/ChElementHexahedron.h"		
-%include "../../chrono/fea/ChElementHexa_8.h"
-%include "../../chrono/fea/ChElementHexa_20.h"
+%include "../../chrono/fea/ChElementHexaCorot_8.h"
+%include "../../chrono/fea/ChElementHexaCorot_20.h"
 %include "../../chrono/fea/ChElementBrick.h"
 %include "../../chrono/fea/ChElementBrick_9.h"
 %include "../../chrono/fea/ChMaterialShellANCF.h"
@@ -467,10 +467,11 @@ using namespace chrono::fea;
 %DefSharedPtrDynamicDowncast(chrono::fea,ChElasticityKirchhoff,ChElasticityKirchhoffGeneric)
 %DefSharedPtrDynamicDowncast(chrono::fea,ChElementBase,ChElementBar)
 %DefSharedPtrDynamicDowncast(chrono::fea,ChElementBase,ChElementSpring)
-%DefSharedPtrDynamicDowncast(chrono::fea,ChElementBase,ChElementTetra_4)
-%DefSharedPtrDynamicDowncast(chrono::fea,ChElementBase,ChElementTetra_10)
-%DefSharedPtrDynamicDowncast(chrono::fea,ChElementBase,ChElementHexa_8)
-%DefSharedPtrDynamicDowncast(chrono::fea,ChElementBase,ChElementHexa_20)
+%DefSharedPtrDynamicDowncast(chrono::fea,ChElementBase,ChElementTetraCorot_4)
+%DefSharedPtrDynamicDowncast(chrono::fea,ChElementBase,ChElementTetraCorot_4_P)
+%DefSharedPtrDynamicDowncast(chrono::fea,ChElementBase,ChElementTetraCorot_10)
+%DefSharedPtrDynamicDowncast(chrono::fea,ChElementBase,ChElementHexaCorot_8)
+%DefSharedPtrDynamicDowncast(chrono::fea,ChElementBase,ChElementHexaCorot_20)
 %DefSharedPtrDynamicDowncast(chrono::fea,ChElementBase,ChElementBeamEuler)
 %DefSharedPtrDynamicDowncast(chrono::fea,ChElementBase,ChElementBeamANCF_3333)
 %DefSharedPtrDynamicDowncast(chrono::fea,ChElementBase,ChElementBeamIGA)

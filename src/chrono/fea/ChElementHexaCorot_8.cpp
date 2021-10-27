@@ -12,33 +12,33 @@
 // Authors: Andrea Favali, Radu Serban
 // =============================================================================
 
-#include "chrono/fea/ChElementHexa_8.h"
+#include "chrono/fea/ChElementHexaCorot_8.h"
 
 namespace chrono {
 namespace fea {
 
-ChElementHexa_8::ChElementHexa_8() : ir(nullptr), Volume(0) {
+ChElementHexaCorot_8::ChElementHexaCorot_8() : ir(nullptr), Volume(0) {
     nodes.resize(8);
     StiffnessMatrix.setZero(24, 24);
     this->ir = new ChGaussIntegrationRule;
     this->SetDefaultIntegrationRule();
 }
 
-ChElementHexa_8::~ChElementHexa_8() {
+ChElementHexaCorot_8::~ChElementHexaCorot_8() {
     delete ir;
     for (auto gpoint : GpVector)
         delete gpoint;
     GpVector.clear();
 }
 
-void ChElementHexa_8::SetNodes(std::shared_ptr<ChNodeFEAxyz> nodeA,
-                               std::shared_ptr<ChNodeFEAxyz> nodeB,
-                               std::shared_ptr<ChNodeFEAxyz> nodeC,
-                               std::shared_ptr<ChNodeFEAxyz> nodeD,
-                               std::shared_ptr<ChNodeFEAxyz> nodeE,
-                               std::shared_ptr<ChNodeFEAxyz> nodeF,
-                               std::shared_ptr<ChNodeFEAxyz> nodeG,
-                               std::shared_ptr<ChNodeFEAxyz> nodeH) {
+void ChElementHexaCorot_8::SetNodes(std::shared_ptr<ChNodeFEAxyz> nodeA,
+                                    std::shared_ptr<ChNodeFEAxyz> nodeB,
+                                    std::shared_ptr<ChNodeFEAxyz> nodeC,
+                                    std::shared_ptr<ChNodeFEAxyz> nodeD,
+                                    std::shared_ptr<ChNodeFEAxyz> nodeE,
+                                    std::shared_ptr<ChNodeFEAxyz> nodeF,
+                                    std::shared_ptr<ChNodeFEAxyz> nodeG,
+                                    std::shared_ptr<ChNodeFEAxyz> nodeH) {
     nodes[0] = nodeA;
     nodes[1] = nodeB;
     nodes[2] = nodeC;
@@ -59,7 +59,7 @@ void ChElementHexa_8::SetNodes(std::shared_ptr<ChNodeFEAxyz> nodeA,
     Kmatr.SetVariables(mvars);
 }
 
-void ChElementHexa_8::ShapeFunctions(ShapeVector& N, double z0, double z1, double z2) {
+void ChElementHexaCorot_8::ShapeFunctions(ShapeVector& N, double z0, double z1, double z2) {
     double sc = 1. / 8.;
     N(0) = sc * (1 - z0) * (1 - z1) * (1 - z2);
     N(1) = sc * (1 + z0) * (1 - z1) * (1 - z2);
@@ -71,14 +71,14 @@ void ChElementHexa_8::ShapeFunctions(ShapeVector& N, double z0, double z1, doubl
     N(7) = sc * (1 - z0) * (1 + z1) * (1 + z2);
 }
 
-void ChElementHexa_8::GetStateBlock(ChVectorDynamic<>& mD) {
+void ChElementHexaCorot_8::GetStateBlock(ChVectorDynamic<>& mD) {
     mD.setZero(this->GetNdofs());
 
     for (int i = 0; i < GetNnodes(); i++)
         mD.segment(i * 3, 3) = (A.transpose() * this->nodes[i]->GetPos() - nodes[i]->GetX0()).eigen();
 }
 
-void ChElementHexa_8::ComputeJacobian(ChMatrixDynamic<>& Jacobian, ChMatrixDynamic<>& J1, ChVector<> coord) {
+void ChElementHexaCorot_8::ComputeJacobian(ChMatrixDynamic<>& Jacobian, ChMatrixDynamic<>& J1, ChVector<> coord) {
     ChMatrixDynamic<> J2(8, 3);
 
     J1(0, 0) = -(1 - coord.y()) * (1 - coord.z()) / 8;
@@ -138,11 +138,11 @@ void ChElementHexa_8::ComputeJacobian(ChMatrixDynamic<>& Jacobian, ChMatrixDynam
     Jacobian = J1 * J2;
 }
 
-void ChElementHexa_8::ComputeMatrB(ChMatrixDynamic<>& MatrB,
-                                   double zeta1,
-                                   double zeta2,
-                                   double zeta3,
-                                   double& JacobianDet) {
+void ChElementHexaCorot_8::ComputeMatrB(ChMatrixDynamic<>& MatrB,
+                                        double zeta1,
+                                        double zeta2,
+                                        double zeta3,
+                                        double& JacobianDet) {
     ChMatrixDynamic<> Jacobian(3, 3);
     ChMatrixDynamic<> J1(3, 8);
     ComputeJacobian(Jacobian, J1, ChVector<>(zeta1, zeta2, zeta3));
@@ -235,12 +235,12 @@ void ChElementHexa_8::ComputeMatrB(ChMatrixDynamic<>& MatrB,
     MatrB(5, 23) = Btemp(0, 7);
 }
 
-void ChElementHexa_8::ComputeMatrB(ChGaussPoint* GaussPt, double& JacobianDet) {
+void ChElementHexaCorot_8::ComputeMatrB(ChGaussPoint* GaussPt, double& JacobianDet) {
     this->ComputeMatrB(*(GaussPt->MatrB), (*GaussPt).GetLocalCoordinates().x(), (*GaussPt).GetLocalCoordinates().y(),
                        (*GaussPt).GetLocalCoordinates().z(), JacobianDet);
 }
 
-void ChElementHexa_8::ComputeStiffnessMatrix() {
+void ChElementHexaCorot_8::ComputeStiffnessMatrix() {
     double Jdet;
     ChMatrixDynamic<>* temp = new ChMatrixDynamic<>;
     ChMatrixDynamic<> BT;
@@ -259,14 +259,14 @@ void ChElementHexa_8::ComputeStiffnessMatrix() {
     delete temp;
 }
 
-void ChElementHexa_8::Update() {
+void ChElementHexaCorot_8::Update() {
     // parent class update:
     ChElementGeneric::Update();
     // always keep updated the rotation matrix A:
     this->UpdateRotation();
 }
 
-void ChElementHexa_8::UpdateRotation() {
+void ChElementHexaCorot_8::UpdateRotation() {
     ChVector<> avgX1;
     avgX1 = nodes[0]->GetX0() + nodes[1]->GetX0() + nodes[2]->GetX0() + nodes[3]->GetX0();
     ChVector<> avgX2;
@@ -294,7 +294,7 @@ void ChElementHexa_8::UpdateRotation() {
     this->A = rotXcurrent * rotX0.transpose();
 }
 
-ChStrainTensor<> ChElementHexa_8::GetStrain(double z1, double z2, double z3) {
+ChStrainTensor<> ChElementHexaCorot_8::GetStrain(double z1, double z2, double z3) {
     // set up vector of nodal displacements (in local element system) u_l = R*p - p0
     ChVectorDynamic<> displ(GetNdofs());
     this->GetStateBlock(displ);
@@ -307,12 +307,12 @@ ChStrainTensor<> ChElementHexa_8::GetStrain(double z1, double z2, double z3) {
     return mstrain;
 }
 
-ChStressTensor<> ChElementHexa_8::GetStress(double z1, double z2, double z3) {
+ChStressTensor<> ChElementHexaCorot_8::GetStress(double z1, double z2, double z3) {
     ChStressTensor<> mstress = this->Material->Get_StressStrainMatrix() * this->GetStrain(z1, z2, z3);
     return mstress;
 }
 
-void ChElementHexa_8::ComputeKRMmatricesGlobal(ChMatrixRef H, double Kfactor, double Rfactor, double Mfactor) {
+void ChElementHexaCorot_8::ComputeKRMmatricesGlobal(ChMatrixRef H, double Kfactor, double Rfactor, double Mfactor) {
     assert((H.rows() == GetNdofs()) && (H.cols() == GetNdofs()));
 
     // warp the local stiffness matrix K in order to obtain global
@@ -338,7 +338,7 @@ void ChElementHexa_8::ComputeKRMmatricesGlobal(ChMatrixRef H, double Kfactor, do
     //***TO DO*** better per-node lumping, or 12x12 consistent mass matrix.
 }
 
-void ChElementHexa_8::ComputeInternalForces(ChVectorDynamic<>& Fi) {
+void ChElementHexaCorot_8::ComputeInternalForces(ChVectorDynamic<>& Fi) {
     assert(Fi.size() == GetNdofs());
 
     // set up vector of nodal displacements (in local element system) u_l = R*p - p0
@@ -366,7 +366,7 @@ void ChElementHexa_8::ComputeInternalForces(ChVectorDynamic<>& Fi) {
     ChMatrixCorotation::ComputeCK(FiK_local, this->A, 8, Fi);
 }
 
-void ChElementHexa_8::LoadableGetStateBlock_x(int block_offset, ChState& mD) {
+void ChElementHexaCorot_8::LoadableGetStateBlock_x(int block_offset, ChState& mD) {
     mD.segment(block_offset + 0, 3) = nodes[0]->GetPos().eigen();
     mD.segment(block_offset + 3, 3) = nodes[1]->GetPos().eigen();
     mD.segment(block_offset + 6, 3) = nodes[2]->GetPos().eigen();
@@ -377,7 +377,7 @@ void ChElementHexa_8::LoadableGetStateBlock_x(int block_offset, ChState& mD) {
     mD.segment(block_offset + 21, 3) = nodes[7]->GetPos().eigen();
 }
 
-void ChElementHexa_8::LoadableGetStateBlock_w(int block_offset, ChStateDelta& mD) {
+void ChElementHexaCorot_8::LoadableGetStateBlock_w(int block_offset, ChStateDelta& mD) {
     mD.segment(block_offset + 0, 3) = nodes[0]->GetPos_dt().eigen();
     mD.segment(block_offset + 3, 3) = nodes[1]->GetPos_dt().eigen();
     mD.segment(block_offset + 6, 3) = nodes[2]->GetPos_dt().eigen();
@@ -388,29 +388,29 @@ void ChElementHexa_8::LoadableGetStateBlock_w(int block_offset, ChStateDelta& mD
     mD.segment(block_offset + 21, 3) = nodes[7]->GetPos_dt().eigen();
 }
 
-void ChElementHexa_8::LoadableStateIncrement(const unsigned int off_x,
-                                             ChState& x_new,
-                                             const ChState& x,
-                                             const unsigned int off_v,
-                                             const ChStateDelta& Dv) {
+void ChElementHexaCorot_8::LoadableStateIncrement(const unsigned int off_x,
+                                                  ChState& x_new,
+                                                  const ChState& x,
+                                                  const unsigned int off_v,
+                                                  const ChStateDelta& Dv) {
     for (int i = 0; i < 8; ++i) {
         nodes[i]->NodeIntStateIncrement(off_x + i * 3, x_new, x, off_v + i * 3, Dv);
     }
 }
 
-void ChElementHexa_8::LoadableGetVariables(std::vector<ChVariables*>& mvars) {
+void ChElementHexaCorot_8::LoadableGetVariables(std::vector<ChVariables*>& mvars) {
     for (int i = 0; i < nodes.size(); ++i)
         mvars.push_back(&this->nodes[i]->Variables());
 }
 
-void ChElementHexa_8::ComputeNF(const double U,
-                                const double V,
-                                const double W,
-                                ChVectorDynamic<>& Qi,
-                                double& detJ,
-                                const ChVectorDynamic<>& F,
-                                ChVectorDynamic<>* state_x,
-                                ChVectorDynamic<>* state_w) {
+void ChElementHexaCorot_8::ComputeNF(const double U,
+                                     const double V,
+                                     const double W,
+                                     ChVectorDynamic<>& Qi,
+                                     double& detJ,
+                                     const ChVectorDynamic<>& F,
+                                     ChVectorDynamic<>* state_x,
+                                     ChVectorDynamic<>* state_w) {
     // evaluate shape functions (in compressed vector), btw. not dependant on state
     ShapeVector N;
     ShapeFunctions(N, U, V, W);  // note: U,V,W in -1..1 range

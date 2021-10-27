@@ -9,17 +9,18 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Authors: Andrea Favali, Radu Serban
+// Authors: Andrea Favali, Alessandro Tasora
 // =============================================================================
 
-#ifndef CHELEMENTHEXA20_H
-#define CHELEMENTHEXA20_H
+#ifndef CH_ELEMENT_TETRA_COROT_10_H
+#define CH_ELEMENT_TETRA_COROT_10_H
 
-#include "chrono/fea/ChElementHexahedron.h"
+#include <cmath>
+
+#include "chrono/fea/ChElementTetrahedron.h"
 #include "chrono/fea/ChElementGeneric.h"
 #include "chrono/fea/ChElementCorotational.h"
 #include "chrono/fea/ChNodeFEAxyz.h"
-#include "chrono/fea/ChGaussIntegrationRule.h"
 
 namespace chrono {
 namespace fea {
@@ -27,27 +28,28 @@ namespace fea {
 /// @addtogroup fea_elements
 /// @{
 
-/// Class for FEA elements of hexahedron type (isoparametric 3D bricks) with 20 nodes.
-class ChApi ChElementHexa_20 : public ChElementHexahedron,
-                               public ChElementGeneric,
-                               public ChElementCorotational,
-                               public ChLoadableUVW {
+/// Tetrahedron FEA element with 10 nodes.
+/// This is a quadratic element for displacements; stress and strain are interpolated depending on Gauss points.
+class ChApi ChElementTetraCorot_10 : public ChElementTetrahedron,
+                                     public ChElementGeneric,
+                                     public ChElementCorotational,
+                                     public ChLoadableUVW {
   public:
-    using ShapeVector = ChMatrixNM<double, 1, 20>;
+    using ShapeVector = ChMatrixNM<double, 1, 10>;
 
-    ChElementHexa_20();
-    ~ChElementHexa_20();
+    ChElementTetraCorot_10();
+    ~ChElementTetraCorot_10();
 
-    virtual int GetNnodes() override { return 20; }
-    virtual int GetNdofs() override { return 20 * 3; }
+    virtual int GetNnodes() override { return 10; }
+    virtual int GetNdofs() override { return 10 * 3; }
     virtual int GetNodeNdofs(int n) override { return 3; }
 
     double GetVolume() { return Volume; }
 
     virtual std::shared_ptr<ChNodeFEAbase> GetNodeN(int n) override { return nodes[n]; }
 
-    /// Return the specified hexahedron node (0 <= n <= 7).
-    virtual std::shared_ptr<ChNodeFEAxyz> GetHexahedronNode(int n) override { return nodes[n]; }
+    /// Return the specified tetrahedron node (0 <= n <= 3).
+    virtual std::shared_ptr<ChNodeFEAxyz> GetTetrahedronNode(int n) override { return nodes[n]; }
 
     virtual void SetNodes(std::shared_ptr<ChNodeFEAxyz> nodeA,
                           std::shared_ptr<ChNodeFEAxyz> nodeB,
@@ -58,36 +60,20 @@ class ChApi ChElementHexa_20 : public ChElementHexahedron,
                           std::shared_ptr<ChNodeFEAxyz> nodeG,
                           std::shared_ptr<ChNodeFEAxyz> nodeH,
                           std::shared_ptr<ChNodeFEAxyz> nodeI,
-                          std::shared_ptr<ChNodeFEAxyz> nodeJ,
-                          std::shared_ptr<ChNodeFEAxyz> nodeK,
-                          std::shared_ptr<ChNodeFEAxyz> nodeL,
-                          std::shared_ptr<ChNodeFEAxyz> nodeM,
-                          std::shared_ptr<ChNodeFEAxyz> nodeN,
-                          std::shared_ptr<ChNodeFEAxyz> nodeO,
-                          std::shared_ptr<ChNodeFEAxyz> nodeP,
-                          std::shared_ptr<ChNodeFEAxyz> nodeQ,
-                          std::shared_ptr<ChNodeFEAxyz> nodeR,
-                          std::shared_ptr<ChNodeFEAxyz> nodeS,
-                          std::shared_ptr<ChNodeFEAxyz> nodeT);
+                          std::shared_ptr<ChNodeFEAxyz> nodeJ);
 
     //
-    // QUADRATURE functions
+    // FEM functions
     //
 
-    virtual void SetDefaultIntegrationRule() { this->ir->SetIntOnCube(27, &this->GpVector); }
-
-    virtual void SetReducedIntegrationRule() { this->ir->SetIntOnCube(8, &this->GpVector); }
-
-    virtual void SetIntegrationRule(int nPoints) { this->ir->SetIntOnCube(nPoints, &this->GpVector); }
-
-    //
-    // FEA functions
-    //
+    /// Update element at each time step.
+    virtual void Update() override;
 
     /// Fills the N shape function matrix with the
-    /// values of shape functions at r,s,t parametric coordinates, where
-    /// each parameter is in [-1...+1] range.
-    /// It stores the Ni(r,s,t) values in a 1 row, 20 columns matrix N.
+    /// values of shape functions at zi parametric coordinates, where
+    /// r=1 at 2nd vertex, s=1 at 3rd, t=1 at 4th. All ranging in [0...1].
+    /// The last, u (=1 at 1st vertex) is computed form the first 3.
+    /// It stores the Ni(r,s,t) values in a 1 row, 10 columns matrix.
     void ShapeFunctions(ShapeVector& N, double r, double s, double t);
 
     /// Fills the D vector (displacement) with the current field values at the nodes of the element, with proper
@@ -95,38 +81,43 @@ class ChApi ChElementHexa_20 : public ChElementHexahedron,
     /// field is assumed in local reference!
     virtual void GetStateBlock(ChVectorDynamic<>& mD) override;
 
-    /// Puts inside 'Jacobian' and 'J1' the Jacobian matrix and the shape functions derivatives matrix of the element
-    /// The vector "coord" contains the natural coordinates of the integration point
-    /// in case of hexahedral elements natural coords vary in the classical range -1 ... +1
-    virtual void ComputeJacobian(ChMatrixDynamic<>& Jacobian, ChMatrixDynamic<>& J1, ChVector<> coord);
+    /// Approximation!! not the exact volume
+    /// This returns an exact value only in case of Constant Metric Tetrahedron
+    double ComputeVolume();
 
-    /// Computes the matrix of partial derivatives and puts data in "MatrB"
-    ///	evaluated at natural coordinates zeta1,...,zeta4 . Also computes determinant of jacobian.
-    /// note: in case of hexahedral elements natural coord. vary in the range -1 ... +1
-    virtual void ComputeMatrB(ChMatrixDynamic<>& MatrB, double zeta1, double zeta2, double zeta3, double& JacobianDet);
+    /// Puts inside 'Jacobian' the Jacobian matrix of the element
+    /// zeta1,...,zeta4 are the four natural coordinates of the integration point
+    /// note: in case of tetrahedral elements natural coord. vary in the range 0 ... +1
+    virtual void ComputeJacobian(ChMatrixDynamic<>& Jacobian, double zeta1, double zeta2, double zeta3, double zeta4);
 
-    /// Computes the matrix of partial derivatives and puts data in "GaussPt"
-    ///	Stores the determinant of the jacobian in "JacobianDet"
-    virtual void ComputeMatrB(ChGaussPoint* GaussPt, double& JacobianDet);
+    /// Computes the matrix of partial derivatives and puts data in "mmatrB"
+    ///	evaluated at natural coordinates zeta1,...,zeta4
+    /// note: in case of tetrahedral elements natural coord. vary in the range 0 ... +1
+    virtual void ComputeMatrB(ChMatrixDynamic<>& mmatrB,
+                              double zeta1,
+                              double zeta2,
+                              double zeta3,
+                              double zeta4,
+                              double& JacobianDet);
 
-    /// Computes the global STIFFNESS MATRIX of the element:
-    /// K = Volume * [B]' * [D] * [B]
-    /// The number of Gauss Point is defined by SetIntegrationRule function (default: 27 Gp)
+    /// Computes the local STIFFNESS MATRIX of the element:
+    /// K = sum (w_i * [B]' * [D] * [B])
+    ///
     virtual void ComputeStiffnessMatrix();
 
-    /// Update element at each time step.
-    virtual void Update() override;
-
-    // Compute large rotation of element for corotational approach
-    virtual void UpdateRotation() override;
+    /// Given the node ID, gets the 4 parameters of the shape function
+    void GetParameterForNodeID(const int nodeID, double& z1, double& z2, double& z3, double& z4);
 
     /// Returns the strain tensor at given parameters.
     /// The tensor is in the original undeformed unrotated reference.
-    ChStrainTensor<> GetStrain(double z1, double z2, double z3);
+    ChStrainTensor<> GetStrain(double z1, double z2, double z3, double z4);
 
     /// Returns the stress tensor at given parameters.
     /// The tensor is in the original undeformed unrotated reference.
-    ChStressTensor<> GetStress(double z1, double z2, double z3);
+    ChStressTensor<> GetStress(double z1, double z2, double z3, double z4);
+
+    // compute large rotation of element for corotational approach
+    virtual void UpdateRotation() override;
 
     /// Sets H as the global stiffness matrix K, scaled  by Kfactor. Optionally, also
     /// superimposes global damping matrix R, scaled by Rfactor, and global mass matrix M multiplied by Mfactor.
@@ -147,11 +138,9 @@ class ChApi ChElementHexa_20 : public ChElementHexahedron,
     void SetMaterial(std::shared_ptr<ChContinuumElastic> my_material) { Material = my_material; }
     std::shared_ptr<ChContinuumElastic> GetMaterial() { return Material; }
 
-    /// Get the StiffnessMatrix
+    /// Get the partial derivatives matrix MatrB and the StiffnessMatrix
+    const ChMatrixDynamic<>& GetMatrB(int n) const { return MatrB[n]; }
     const ChMatrixDynamic<>& GetStiffnessMatrix() const { return StiffnessMatrix; }
-
-    /// Get the Nth gauss point
-    ChGaussPoint* GetGaussPoint(int N) { return GpVector[N]; }
 
     //
     // Functions for interfacing to the solver
@@ -162,10 +151,10 @@ class ChApi ChElementHexa_20 : public ChElementHexahedron,
     //
 
     /// Gets the number of DOFs affected by this element (position part)
-    virtual int LoadableGet_ndof_x() override { return 20 * 3; }
+    virtual int LoadableGet_ndof_x() override { return 10 * 3; }
 
     /// Gets the number of DOFs affected by this element (speed part)
-    virtual int LoadableGet_ndof_w() override { return 20 * 3; }
+    virtual int LoadableGet_ndof_w() override { return 10 * 3; }
 
     /// Gets all the DOFs packed in a single vector (position part)
     virtual void LoadableGetStateBlock_x(int block_offset, ChState& mD) override;
@@ -184,7 +173,7 @@ class ChApi ChElementHexa_20 : public ChElementHexahedron,
     virtual int Get_field_ncoords() override { return 3; }
 
     /// Get the number of DOFs sub-blocks.
-    virtual int GetSubBlocks() override { return 20; }
+    virtual int GetSubBlocks() override { return 10; }
 
     /// Get the offset of the specified sub-block of DOFs in global vector.
     virtual unsigned int GetSubBlockOffset(int nblock) override { return nodes[nblock]->NodeGetOffset_w(); }
@@ -215,16 +204,24 @@ class ChApi ChElementHexa_20 : public ChElementHexahedron,
     /// This is needed so that it can be accessed by ChLoaderVolumeGravity
     virtual double GetDensity() override { return this->Material->Get_density(); }
 
+    /// If true, use quadrature over u,v,w in [0..1] range as tetrahedron volumetric coords, with z=1-u-v-w
+    /// otherwise use quadrature over u,v,w in [-1..+1] as box isoparametric coords.
+    virtual bool IsTetrahedronIntegrationNeeded() override { return true; }
+
   private:
-    virtual void SetupInitial(ChSystem* system) override { ComputeStiffnessMatrix(); }
+    virtual void SetupInitial(ChSystem* system) override;
 
     std::vector<std::shared_ptr<ChNodeFEAxyz> > nodes;
     std::shared_ptr<ChContinuumElastic> Material;
+    // matrices of shape function's partial derivatives (one for each integration point)
+    // we use a vector to keep in memory all the four matrices (-> 4 integr. point)
+    std::vector<ChMatrixDynamic<> > MatrB;
     ChMatrixDynamic<> StiffnessMatrix;
-
-    ChGaussIntegrationRule* ir;
-    std::vector<ChGaussPoint*> GpVector;
+    ChMatrixNM<double, 4, 4> mM;  // for speeding up corotational approach
     double Volume;
+
+  public:
+    EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 };
 
 /// @} fea_elements

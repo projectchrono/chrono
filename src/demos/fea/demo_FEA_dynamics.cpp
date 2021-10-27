@@ -23,10 +23,10 @@
 #include "chrono/fea/ChElementShellANCF_3423.h"
 #include "chrono/fea/ChElementBrick.h"
 #include "chrono/fea/ChElementBar.h"
-#include "chrono/fea/ChElementTetra_4.h"
-#include "chrono/fea/ChElementTetra_10.h"
-#include "chrono/fea/ChElementHexa_8.h"
-#include "chrono/fea/ChElementHexa_20.h"
+#include "chrono/fea/ChElementTetraCorot_4.h"
+#include "chrono/fea/ChElementTetraCorot_10.h"
+#include "chrono/fea/ChElementHexaCorot_8.h"
+#include "chrono/fea/ChElementHexaCorot_20.h"
 #include "chrono/fea/ChMesh.h"
 #include "chrono/fea/ChLinkPointFrame.h"
 #include "chrono/fea/ChLinkDirFrame.h"
@@ -325,7 +325,7 @@ void test_3() {
 
     // Create the tetrahedron element, and assign
     // nodes and material
-    auto melement1 = chrono_types::make_shared<ChElementTetra_4>();
+    auto melement1 = chrono_types::make_shared<ChElementTetraCorot_4>();
     melement1->SetNodes(mnode1, mnode2, mnode3, mnode4);
     melement1->SetMaterial(mmaterial);
 

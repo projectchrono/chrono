@@ -12,8 +12,8 @@
 // Authors: Andrea Favali, Alessandro Tasora
 // =============================================================================
 
-#ifndef CHELEMENTTETRA4_H
-#define CHELEMENTTETRA4_H
+#ifndef CH_ELEMENT_TETRA_COROT_4_H
+#define CH_ELEMENT_TETRA_COROT_4_H
 
 #include <cmath>
 
@@ -32,17 +32,17 @@ namespace fea {
 /// @{
 
 /// Tetrahedron FEA element with 4 nodes.
-/// This is a classical element with linear displacement, hence with constant stress
-/// and constant strain. It can be easily used for 3D FEA problems.
-class ChApi ChElementTetra_4 : public ChElementTetrahedron,
-                               public ChElementGeneric,
-                               public ChElementCorotational,
-                               public ChLoadableUVW {
+/// This is a classical element with linear displacement, hence with constant stress and constant strain. It can be
+/// easily used for 3D FEA problems.
+class ChApi ChElementTetraCorot_4 : public ChElementTetrahedron,
+                                    public ChElementGeneric,
+                                    public ChElementCorotational,
+                                    public ChLoadableUVW {
   public:
     using ShapeVector = ChMatrixNM<double, 1, 4>;
 
-    ChElementTetra_4();
-    ~ChElementTetra_4();
+    ChElementTetraCorot_4();
+    ~ChElementTetraCorot_4();
 
     virtual int GetNnodes() override { return 4; }
     virtual int GetNdofs() override { return 4 * 3; }
@@ -213,12 +213,12 @@ class ChApi ChElementTetra_4 : public ChElementTetrahedron,
 /// Tetrahedron FEM element with 4 nodes for scalar fields (for Poisson-like problems).
 /// This is a classical element with linear displacement.
 /// ***EXPERIMENTAL***
-class ChApi ChElementTetra_4_P : public ChElementGeneric, public ChElementCorotational, public ChLoadableUVW {
+class ChApi ChElementTetraCorot_4_P : public ChElementGeneric, public ChElementCorotational, public ChLoadableUVW {
   public:
     using ShapeVector = ChMatrixNM<double, 1, 4>;
 
-    ChElementTetra_4_P();
-    ~ChElementTetra_4_P() {}
+    ChElementTetraCorot_4_P();
+    ~ChElementTetraCorot_4_P() {}
 
     virtual int GetNnodes() override { return 4; }
     virtual int GetNdofs() override { return 4 * 1; }

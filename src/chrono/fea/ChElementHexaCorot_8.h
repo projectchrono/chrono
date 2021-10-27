@@ -12,8 +12,8 @@
 // Authors: Andrea Favali, Radu Serban
 // =============================================================================
 
-#ifndef CHELEMENTHEXA8_H
-#define CHELEMENTHEXA8_H
+#ifndef CH_ELEMENT_HEXA_COROT_8_H
+#define CH_ELEMENT_HEXA_COROT_8_H
 
 #include "chrono/fea/ChElementHexahedron.h"
 #include "chrono/fea/ChElementGeneric.h"
@@ -29,15 +29,15 @@ namespace fea {
 
 /// Class for FEA elements of hexahedron type (isoparametric 3D bricks) with 8 nodes.
 /// This element has a linear displacement field.
-class ChApi ChElementHexa_8 : public ChElementHexahedron,
-                              public ChElementGeneric,
-                              public ChElementCorotational,
-                              public ChLoadableUVW {
+class ChApi ChElementHexaCorot_8 : public ChElementHexahedron,
+                                   public ChElementGeneric,
+                                   public ChElementCorotational,
+                                   public ChLoadableUVW {
   public:
     using ShapeVector = ChMatrixNM<double, 1, 8>;
 
-    ChElementHexa_8();
-    ~ChElementHexa_8();
+    ChElementHexaCorot_8();
+    ~ChElementHexaCorot_8();
 
     virtual int GetNnodes() override { return 8; }
     virtual int GetNdofs() override { return 8 * 3; }

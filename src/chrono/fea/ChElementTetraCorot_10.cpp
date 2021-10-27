@@ -12,12 +12,12 @@
 // Authors: Alessandro Tasora, Radu Serban
 // =============================================================================
 
-#include "chrono/fea/ChElementTetra_10.h"
+#include "chrono/fea/ChElementTetraCorot_10.h"
 
 namespace chrono {
 namespace fea {
 
-ChElementTetra_10::ChElementTetra_10() : Volume(0) {
+ChElementTetraCorot_10::ChElementTetraCorot_10() : Volume(0) {
     nodes.resize(10);
     MatrB.resize(4);  // standard: 4 integration points
     MatrB[0].setZero(6, 30);
@@ -27,18 +27,18 @@ ChElementTetra_10::ChElementTetra_10() : Volume(0) {
     this->StiffnessMatrix.setZero(30, 30);
 }
 
-ChElementTetra_10::~ChElementTetra_10() {}
+ChElementTetraCorot_10::~ChElementTetraCorot_10() {}
 
-void ChElementTetra_10::SetNodes(std::shared_ptr<ChNodeFEAxyz> nodeA,
-                                 std::shared_ptr<ChNodeFEAxyz> nodeB,
-                                 std::shared_ptr<ChNodeFEAxyz> nodeC,
-                                 std::shared_ptr<ChNodeFEAxyz> nodeD,
-                                 std::shared_ptr<ChNodeFEAxyz> nodeE,
-                                 std::shared_ptr<ChNodeFEAxyz> nodeF,
-                                 std::shared_ptr<ChNodeFEAxyz> nodeG,
-                                 std::shared_ptr<ChNodeFEAxyz> nodeH,
-                                 std::shared_ptr<ChNodeFEAxyz> nodeI,
-                                 std::shared_ptr<ChNodeFEAxyz> nodeJ) {
+void ChElementTetraCorot_10::SetNodes(std::shared_ptr<ChNodeFEAxyz> nodeA,
+                                      std::shared_ptr<ChNodeFEAxyz> nodeB,
+                                      std::shared_ptr<ChNodeFEAxyz> nodeC,
+                                      std::shared_ptr<ChNodeFEAxyz> nodeD,
+                                      std::shared_ptr<ChNodeFEAxyz> nodeE,
+                                      std::shared_ptr<ChNodeFEAxyz> nodeF,
+                                      std::shared_ptr<ChNodeFEAxyz> nodeG,
+                                      std::shared_ptr<ChNodeFEAxyz> nodeH,
+                                      std::shared_ptr<ChNodeFEAxyz> nodeI,
+                                      std::shared_ptr<ChNodeFEAxyz> nodeJ) {
     nodes[0] = nodeA;
     nodes[1] = nodeB;
     nodes[2] = nodeC;
@@ -63,14 +63,14 @@ void ChElementTetra_10::SetNodes(std::shared_ptr<ChNodeFEAxyz> nodeA,
     Kmatr.SetVariables(mvars);
 }
 
-void ChElementTetra_10::Update() {
+void ChElementTetraCorot_10::Update() {
     // parent class update:
     ChElementGeneric::Update();
     // always keep updated the rotation matrix A:
     this->UpdateRotation();
 }
 
-void ChElementTetra_10::ShapeFunctions(ShapeVector& N, double r, double s, double t) {
+void ChElementTetraCorot_10::ShapeFunctions(ShapeVector& N, double r, double s, double t) {
     double u = 1.0 - r - s - t;
 
     // at corners
@@ -87,14 +87,14 @@ void ChElementTetra_10::ShapeFunctions(ShapeVector& N, double r, double s, doubl
     N(9) = 4.0 * s * t;
 }
 
-void ChElementTetra_10::GetStateBlock(ChVectorDynamic<>& mD) {
+void ChElementTetraCorot_10::GetStateBlock(ChVectorDynamic<>& mD) {
     mD.setZero(this->GetNdofs());
 
     for (int i = 0; i < GetNnodes(); i++)
         mD.segment(i * 3, 3) = (A.transpose() * this->nodes[i]->GetPos() - nodes[i]->GetX0()).eigen();
 }
 
-double ChElementTetra_10::ComputeVolume() {
+double ChElementTetraCorot_10::ComputeVolume() {
     ChVector<> B1, C1, D1;
     B1.Sub(nodes[1]->pos, nodes[0]->pos);
     C1.Sub(nodes[2]->pos, nodes[0]->pos);
@@ -108,11 +108,11 @@ double ChElementTetra_10::ComputeVolume() {
     return Volume;
 }
 
-void ChElementTetra_10::ComputeJacobian(ChMatrixDynamic<>& Jacobian,
-                                        double zeta1,
-                                        double zeta2,
-                                        double zeta3,
-                                        double zeta4) {
+void ChElementTetraCorot_10::ComputeJacobian(ChMatrixDynamic<>& Jacobian,
+                                             double zeta1,
+                                             double zeta2,
+                                             double zeta3,
+                                             double zeta4) {
     Jacobian.setConstant(1);
 
     Jacobian(1, 0) = 4 * (nodes[0]->pos.x() * (zeta1 - 1 / 4) + nodes[4]->pos.x() * zeta2 + nodes[6]->pos.x() * zeta3 +
@@ -141,12 +141,12 @@ void ChElementTetra_10::ComputeJacobian(ChMatrixDynamic<>& Jacobian,
                           nodes[3]->pos.z() * (zeta4 - 1 / 4));
 }
 
-void ChElementTetra_10::ComputeMatrB(ChMatrixDynamic<>& mmatrB,
-                                     double zeta1,
-                                     double zeta2,
-                                     double zeta3,
-                                     double zeta4,
-                                     double& JacobianDet) {
+void ChElementTetraCorot_10::ComputeMatrB(ChMatrixDynamic<>& mmatrB,
+                                          double zeta1,
+                                          double zeta2,
+                                          double zeta3,
+                                          double zeta4,
+                                          double& JacobianDet) {
     ChMatrixDynamic<> Jacobian(4, 4);
     ComputeJacobian(Jacobian, zeta1, zeta2, zeta3, zeta4);
 
@@ -378,7 +378,7 @@ void ChElementTetra_10::ComputeMatrB(ChMatrixDynamic<>& mmatrB,
     mmatrB *= 2;
 }
 
-void ChElementTetra_10::ComputeStiffnessMatrix() {
+void ChElementTetraCorot_10::ComputeStiffnessMatrix() {
     // for speeding up corotational, used later:
     // M = [ X0_0 X0_1 X0_2 X0_3 ] ^-1
     //     [ 1    1    1    1    ]
@@ -436,7 +436,7 @@ void ChElementTetra_10::ComputeStiffnessMatrix() {
                            //		 in 0 ... +1 -> we have to multiply by: b-a/2 ( = (1-0)/2 = 1/2)
 }
 
-void ChElementTetra_10::GetParameterForNodeID(const int nodeID, double& z1, double& z2, double& z3, double& z4) {
+void ChElementTetraCorot_10::GetParameterForNodeID(const int nodeID, double& z1, double& z2, double& z3, double& z4) {
     switch (nodeID) {
         case 0:
             z1 = 1;
@@ -503,7 +503,7 @@ void ChElementTetra_10::GetParameterForNodeID(const int nodeID, double& z1, doub
     }
 }
 
-ChStrainTensor<> ChElementTetra_10::GetStrain(double z1, double z2, double z3, double z4) {
+ChStrainTensor<> ChElementTetraCorot_10::GetStrain(double z1, double z2, double z3, double z4) {
     // set up vector of nodal displacements (in local element system) u_l = R*p - p0
     ChVectorDynamic<> displ(GetNdofs());
     this->GetStateBlock(displ);
@@ -517,17 +517,17 @@ ChStrainTensor<> ChElementTetra_10::GetStrain(double z1, double z2, double z3, d
     return mstrain;
 }
 
-ChStressTensor<> ChElementTetra_10::GetStress(double z1, double z2, double z3, double z4) {
+ChStressTensor<> ChElementTetraCorot_10::GetStress(double z1, double z2, double z3, double z4) {
     ChStressTensor<> mstress = this->Material->Get_StressStrainMatrix() * this->GetStrain(z1, z2, z3, z4);
     return mstress;
 }
 
-void ChElementTetra_10::SetupInitial(ChSystem* system) {
+void ChElementTetraCorot_10::SetupInitial(ChSystem* system) {
     ComputeVolume();
     ComputeStiffnessMatrix();
 }
 
-void ChElementTetra_10::UpdateRotation() {
+void ChElementTetraCorot_10::UpdateRotation() {
     // P = [ p_0  p_1  p_2  p_3 ]
     //     [ 1    1    1    1   ]
     ChMatrixNM<double, 4, 4> P;
@@ -558,7 +558,7 @@ void ChElementTetra_10::UpdateRotation() {
     // GetLog() << "FEM rotation: \n" << A << "\n"
 }
 
-void ChElementTetra_10::ComputeKRMmatricesGlobal(ChMatrixRef H, double Kfactor, double Rfactor, double Mfactor) {
+void ChElementTetraCorot_10::ComputeKRMmatricesGlobal(ChMatrixRef H, double Kfactor, double Rfactor, double Mfactor) {
     assert((H.rows() == GetNdofs()) && (H.cols() == GetNdofs()));
 
     // warp the local stiffness matrix K in order to obtain global tangent stiffness CKCt:
@@ -582,7 +582,7 @@ void ChElementTetra_10::ComputeKRMmatricesGlobal(ChMatrixRef H, double Kfactor, 
     //***TO DO*** better per-node lumping, or 30x30 consistent mass matrix.
 }
 
-void ChElementTetra_10::ComputeInternalForces(ChVectorDynamic<>& Fi) {
+void ChElementTetraCorot_10::ComputeInternalForces(ChVectorDynamic<>& Fi) {
     assert(Fi.size() == GetNdofs());
 
     // set up vector of nodal displacements (in local element system) u_l = R*p - p0
@@ -616,7 +616,7 @@ void ChElementTetra_10::ComputeInternalForces(ChVectorDynamic<>& Fi) {
     ChMatrixCorotation::ComputeCK(FiK_local, this->A, 10, Fi);
 }
 
-void ChElementTetra_10::LoadableGetStateBlock_x(int block_offset, ChState& mD) {
+void ChElementTetraCorot_10::LoadableGetStateBlock_x(int block_offset, ChState& mD) {
     mD.segment(block_offset + 0, 3) = this->nodes[0]->GetPos().eigen();
     mD.segment(block_offset + 3, 3) = this->nodes[1]->GetPos().eigen();
     mD.segment(block_offset + 6, 3) = this->nodes[2]->GetPos().eigen();
@@ -629,7 +629,7 @@ void ChElementTetra_10::LoadableGetStateBlock_x(int block_offset, ChState& mD) {
     mD.segment(block_offset + 27, 3) = this->nodes[9]->GetPos().eigen();
 }
 
-void ChElementTetra_10::LoadableGetStateBlock_w(int block_offset, ChStateDelta& mD) {
+void ChElementTetraCorot_10::LoadableGetStateBlock_w(int block_offset, ChStateDelta& mD) {
     mD.segment(block_offset + 0, 3) = this->nodes[0]->GetPos_dt().eigen();
     mD.segment(block_offset + 3, 3) = this->nodes[1]->GetPos_dt().eigen();
     mD.segment(block_offset + 6, 3) = this->nodes[2]->GetPos_dt().eigen();
@@ -642,29 +642,29 @@ void ChElementTetra_10::LoadableGetStateBlock_w(int block_offset, ChStateDelta& 
     mD.segment(block_offset + 27, 3) = this->nodes[9]->GetPos_dt().eigen();
 }
 
-void ChElementTetra_10::LoadableStateIncrement(const unsigned int off_x,
-                                               ChState& x_new,
-                                               const ChState& x,
-                                               const unsigned int off_v,
-                                               const ChStateDelta& Dv) {
+void ChElementTetraCorot_10::LoadableStateIncrement(const unsigned int off_x,
+                                                    ChState& x_new,
+                                                    const ChState& x,
+                                                    const unsigned int off_v,
+                                                    const ChStateDelta& Dv) {
     for (int i = 0; i < 10; ++i) {
         nodes[i]->NodeIntStateIncrement(off_x + i * 3, x_new, x, off_v + i * 3, Dv);
     }
 }
 
-void ChElementTetra_10::LoadableGetVariables(std::vector<ChVariables*>& mvars) {
+void ChElementTetraCorot_10::LoadableGetVariables(std::vector<ChVariables*>& mvars) {
     for (int i = 0; i < nodes.size(); ++i)
         mvars.push_back(&this->nodes[i]->Variables());
 }
 
-void ChElementTetra_10::ComputeNF(const double U,
-                                  const double V,
-                                  const double W,
-                                  ChVectorDynamic<>& Qi,
-                                  double& detJ,
-                                  const ChVectorDynamic<>& F,
-                                  ChVectorDynamic<>* state_x,
-                                  ChVectorDynamic<>* state_w) {
+void ChElementTetraCorot_10::ComputeNF(const double U,
+                                       const double V,
+                                       const double W,
+                                       ChVectorDynamic<>& Qi,
+                                       double& detJ,
+                                       const ChVectorDynamic<>& F,
+                                       ChVectorDynamic<>* state_x,
+                                       ChVectorDynamic<>* state_w) {
     // evaluate shape functions (in compressed vector), btw. not dependant on state
     // note: U,V,W in 0..1 range, thanks to IsTetrahedronIntegrationNeeded() {return true;}
     ShapeVector N;

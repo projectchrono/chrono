@@ -22,7 +22,7 @@
 #include "chrono/geometry/ChTriangleMeshConnected.h"
 #include "chrono/solver/ChIterativeSolverLS.h"
 
-#include "chrono/fea/ChElementTetra_4.h"
+#include "chrono/fea/ChElementTetraCorot_4.h"
 #include "chrono/fea/ChMesh.h"
 #include "chrono/fea/ChMeshFileLoader.h"
 #include "chrono/fea/ChContactSurfaceMesh.h"
@@ -170,7 +170,7 @@ int main(int argc, char* argv[]) {
                     my_mesh->AddNode(mnode3);
                     my_mesh->AddNode(mnode4);
 
-                    auto melement1 = chrono_types::make_shared<ChElementTetra_4>();
+                    auto melement1 = chrono_types::make_shared<ChElementTetraCorot_4>();
                     melement1->SetNodes(mnode1, mnode2, mnode3, mnode4);
                     melement1->SetMaterial(mmaterial);
 
