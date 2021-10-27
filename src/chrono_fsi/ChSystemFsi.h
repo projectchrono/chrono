@@ -153,6 +153,7 @@ class CH_FSI_API ChSystemFsi : public ChFsiGeneral {
     /// fluid-boundary and BCE markers data into file
     void PrintParticleToFile(const std::string& out_dir) const;
 
+    /// Add SPH particle's information into the FSI system
     void AddSphMarker(const ChVector<>& points,
                       const ChVector<>& properties,
                       const double h,
@@ -161,12 +162,40 @@ class CH_FSI_API ChSystemFsi : public ChFsiGeneral {
                       const ChVector<>& tauXxYyZz = ChVector<>(),
                       const ChVector<>& tauXyXzYz = ChVector<>());
 
+    /// Add reference array for SPH particles
+    void AddRefArray(const int start, const int numPart, const int typeA, const int typeB);
+
+    /// Add BCE particle for a box
+    void AddBceBox(std::shared_ptr<SimParams> paramsH,
+                    std::shared_ptr<ChBody>& body,
+                    const ChVector<>& relPos,
+                    const ChQuaternion<>& relRot,
+                    const ChVector<>& size);
+
+    /// Set FSI parameters from a JSON file
     void SetSimParameter(const std::string& inputJson,
-                         std::shared_ptr<SimParams> simParams,
+                         std::shared_ptr<SimParams> paramsH,
                          const ChVector<>& box_size);
+
+    /// Set Periodic boundary condition for fluid
+    void SetPeriodicBC(const ChVector<>& cMin,
+                       const ChVector<>& cMax,
+                       std::shared_ptr<SimParams> paramsH);
 
     /// Gets the FSI mesh for flexible elements.
     std::shared_ptr<fea::ChMesh> GetFsiMesh() { return fsi_mesh; }
+
+    /// Return the SPH initial spacing between particles.
+    float GetIniSpace() const;
+
+    /// Return the SPH kernel length of kernel function.
+    float GetKernelLength() const;
+
+    /// Set subdomains so that we find neighbor particles faster
+    void SetSubDomain(std::shared_ptr<SimParams> paramsH);
+
+    void GetParticlePos();
+    void GetParticleVel();
 
   protected:
     std::shared_ptr<ChSystemFsi_impl> fsiSystem; 

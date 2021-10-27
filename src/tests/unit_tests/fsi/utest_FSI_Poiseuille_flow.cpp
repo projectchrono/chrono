@@ -23,9 +23,7 @@
 
 // Chrono includes
 #include "chrono/physics/ChSystemSMC.h"
-#include "chrono/utils/ChUtilsCreators.h"
 #include "chrono/utils/ChUtilsGenerators.h"
-#include "chrono/utils/ChUtilsGeometry.h"
 
 // Chrono fsi includes
 #include "chrono_fsi/ChSystemFsi.h"
@@ -34,42 +32,40 @@
 
 // Chrono namespaces
 using namespace chrono;
-using namespace collision;
+using namespace chrono::collision;
+using namespace chrono::fsi;
 
-using std::cout;
-using std::endl;
-typedef fsi::Real Real;
-
-//--------------------------------
-// dimension of the fluid domain
-//--------------------------------
-Real bxDim = 0.2;
-Real byDim = 0.1;
-Real bzDim = 0.2;
-
-Real fxDim = bxDim;
-Real fyDim = byDim;
-Real fzDim = bzDim;
-
+// Set a tolerance to control the test
 const double rel_Tol = 1.0e-2;
-Real error_rel;
+float error_rel;
+
+//------------------------------------------------------------------
+// dimension of the fluid domain
+//------------------------------------------------------------------
+float bxDim = 0.2;
+float byDim = 0.1;
+float bzDim = 0.2;
+
+float fxDim = bxDim;
+float fyDim = byDim;
+float fzDim = bzDim;
 
 //------------------------------------------------------------------
 // Analytical solution of the poiseuille flow
 //------------------------------------------------------------------
-Real PoiseuilleAnalytical(Real Z,
-                          Real L,
-                          Real time,
-                          std::shared_ptr<fsi::SimParams> paramsH){
-    Real nu   = paramsH->mu0/paramsH->rho0;
-    Real F    = paramsH->bodyForce3.x;
-    Real initSpace0 = paramsH->MULT_INITSPACE * paramsH->HSML;
-    Real pi = 3.1415926;
+float PoiseuilleAnalytical(float Z,
+                           float L,
+                           float time,
+                           std::shared_ptr<fsi::SimParams> paramsH){
+    float nu   = paramsH->mu0/paramsH->rho0;
+    float F    = paramsH->bodyForce3.x;
+    float initSpace0 = paramsH->MULT_INITSPACE * paramsH->HSML;
+    float pi = 3.1415926;
 
-    Real L_modify = L + initSpace0;
-    Real Z_modify = Z + 0.5*initSpace0;
+    float L_modify = L + initSpace0;
+    float Z_modify = Z + 0.5*initSpace0;
 
-    Real theory = 1.0/(2.0*nu)*F*Z_modify*(L_modify-Z_modify);
+    float theory = 1.0/(2.0*nu)*F*Z_modify*(L_modify-Z_modify);
 
     for (int n=0; n<50; n++){
         theory = theory - 
@@ -83,7 +79,7 @@ Real PoiseuilleAnalytical(Real Z,
 // Create the wall boundary and the BCE particles
 //------------------------------------------------------------------
 void CreateSolidPhase(ChSystemSMC& mphysicalSystem,
-                      fsi::ChSystemFsi& myFsiSystem,
+                      ChSystemFsi& myFsiSystem,
                       std::shared_ptr<fsi::SimParams> paramsH) {
     auto mysurfmaterial = chrono_types::make_shared<ChMaterialSurfaceSMC>();
 
@@ -99,26 +95,27 @@ void CreateSolidPhase(ChSystemSMC& mphysicalSystem,
     ground->SetBodyFixed(true);
     ground->SetCollide(true);
     ground->GetCollisionModel()->ClearModel();
-    Real initSpace0 = paramsH->MULT_INITSPACE * paramsH->HSML;
+
+    float initSpace0 = myFsiSystem.GetIniSpace();
 
     // Bottom and Top wall
-    ChVector<> sizeBottom(bxDim / 2, byDim / 2 + 0 * initSpace0, 2 * initSpace0);
+    ChVector<> sizeWall(bxDim / 2, byDim / 2 + 0 * initSpace0, 2 * initSpace0);
     ChVector<> posBottom(0, 0, -3 * initSpace0);
     ChVector<> posTop(0, 0, bzDim + 1 * initSpace0);
 
-    chrono::utils::AddBoxGeometry(ground.get(), mysurfmaterial, sizeBottom, posBottom, chrono::QUNIT, true);
+    chrono::utils::AddBoxGeometry(ground.get(), mysurfmaterial, sizeWall, posBottom, chrono::QUNIT, true);
     ground->GetCollisionModel()->BuildModel();
     mphysicalSystem.AddBody(ground);
 
-    fsi::utils::AddBoxBce(myFsiSystem.GetFsiData(), paramsH, ground, posBottom, chrono::QUNIT, sizeBottom);
-    fsi::utils::AddBoxBce(myFsiSystem.GetFsiData(), paramsH, ground, posTop, chrono::QUNIT, sizeBottom);
+    // Add BCE particles to the bottom and top wall boundary
+    myFsiSystem.AddBceBox(paramsH, ground, posBottom, chrono::QUNIT, sizeWall);
 }
 
 // ===============================
 int main(int argc, char* argv[]) {
     // Create a physical system and a corresponding FSI system
     ChSystemSMC mphysicalSystem;
-    fsi::ChSystemFsi myFsiSystem(mphysicalSystem);
+    ChSystemFsi myFsiSystem(mphysicalSystem);
 
     // Get the pointer to the system parameter and use a 
     // JSON file to fill it out with the user parameters
@@ -127,60 +124,65 @@ int main(int argc, char* argv[]) {
     // Use the default input file or you may enter 
     // your input parameters as a command line argument
     std::string inputJson = GetChronoDataFile("fsi/input_json/demo_FSI_Poiseuille_flow_Explicit.json");
-    fsi::utils::ParseJSON(inputJson, paramsH, fsi::mR3(bxDim, byDim, bzDim));
+    // fsi::utils::ParseJSON(inputJson, paramsH, fsi::mR3(bxDim, byDim, bzDim));
+    myFsiSystem.SetSimParameter(inputJson, paramsH, ChVector<>(bxDim, byDim, bzDim));
+
+    // Reset the domain size to handle periodic boundary condition
+    float initSpace0 = paramsH->MULT_INITSPACE * paramsH->HSML;
+    ChVector<> cMin(-bxDim / 2 - initSpace0 / 2, -byDim / 2 - initSpace0 / 2, - 5.0 * initSpace0);
+    ChVector<> cMax( bxDim / 2 + initSpace0 / 2,  byDim / 2 + initSpace0 / 2, bzDim + 5.0 * initSpace0);
+    myFsiSystem.SetPeriodicBC(cMin, cMax, paramsH);
 
     // Set up the solver based on the input value of the prameters
     myFsiSystem.SetFluidDynamics(paramsH->fluid_dynamic_type);
     myFsiSystem.SetFluidSystemLinearSolver(paramsH->LinearSolver);// this is only for ISPH
 
-    // Set up the periodic boundary condition if needed
-    Real initSpace0 = paramsH->MULT_INITSPACE * paramsH->HSML;
-    paramsH->cMin = fsi::mR3(-bxDim / 2 - initSpace0 / 2, -byDim / 2 - initSpace0 / 2, 0.0 - 5.0 * initSpace0);
-    paramsH->cMax = fsi::mR3( bxDim / 2 + initSpace0 / 2,  byDim / 2 + initSpace0 / 2, bzDim + 5.0 * initSpace0);
-
-    // Setup the binning for neighbor search
-    fsi::utils::FinalizeDomain(paramsH);
+    // Setup sub doamins for a faster neighbor search
+    myFsiSystem.SetSubDomain(paramsH);
 
     // Create SPH particles for the fluid domain
-    utils::GridSampler<> sampler(initSpace0);
+    chrono::utils::GridSampler<> sampler(initSpace0);
     ChVector<> boxCenter(-bxDim / 2 + fxDim / 2 , 0, fzDim * 0.5);
     ChVector<> boxHalfDim(fxDim / 2, fyDim / 2, fzDim / 2);
     std::vector<ChVector<>> points = sampler.SampleBox(boxCenter, boxHalfDim);
     size_t numPart = points.size();
     for (int i = 0; i < numPart; i++) {
-        Real v_x = PoiseuilleAnalytical(points[i].z(), bzDim, 0.5, paramsH);
+        float v_x = PoiseuilleAnalytical(points[i].z(), bzDim, 0.5, paramsH);
         myFsiSystem.AddSphMarker(ChVector<>(points[i].x(), points[i].y(), points[i].z()),
                                  ChVector<>(paramsH->rho0, paramsH->BASEPRES, paramsH->mu0),
                                  paramsH->HSML, -1,
                                  ChVector<>(v_x, 0.0, 0.0));
     }
-    myFsiSystem.GetFsiData()->fsiGeneralData->referenceArray.push_back(mI4(0, (int)numPart, -1, -1));
+    myFsiSystem.AddRefArray(0, (int)numPart, -1, -1);
 
     // Create SPH particles for the solid domain
     CreateSolidPhase(mphysicalSystem, myFsiSystem, paramsH);
 
+    // Finalize the setup before the simulation
     myFsiSystem.Finalize();
 
-    Real time = 0;
+    float time = 0;
     int stepEnd = 200;
     for (int tStep = 0; tStep < stepEnd + 1; tStep++) {
         myFsiSystem.DoStepDynamics_FSI();
         time += paramsH->dT;
     
         // Copy data from device to host
-        fsi::ChUtilsDevice fsiUtils;
-        fsiUtils.CopyD2H(myFsiSystem.GetFsiData()->sphMarkersD2->posRadD, myFsiSystem.GetFsiData()->sphMarkersH->posRadH);
-        fsiUtils.CopyD2H(myFsiSystem.GetFsiData()->sphMarkersD2->velMasD, myFsiSystem.GetFsiData()->sphMarkersH->velMasH);
-        thrust::host_vector<fsi::Real4> posRadH = myFsiSystem.GetFsiData()->sphMarkersH->posRadH;
-        thrust::host_vector<fsi::Real3> velMasH = myFsiSystem.GetFsiData()->sphMarkersH->velMasH;
+        thrust::host_vector<fsi::Real4> posRadH = myFsiSystem.GetFsiData()->sphMarkersD2->posRadD;
+        thrust::host_vector<fsi::Real3> velMasH = myFsiSystem.GetFsiData()->sphMarkersD2->velMasD;
+
+        // std::vector<ChVector<>> ParPos;
+        // myFsiSystem.GetParticlePos(ParPos);
+        // std::vector<ChVector<>> ParVel;
+        // myFsiSystem.GetParticleVel(ParVel);
         
         // Calculate the relative error of the solution
-        Real error = 0.0;
-        Real abs_val = 0.0;
+        float error = 0.0;
+        float abs_val = 0.0;
         for (int i = 0; i < numPart; i++) {
-            Real pos_Z = posRadH[i].z;
-            Real vel_X = velMasH[i].x;
-            Real vel_X_ana = PoiseuilleAnalytical(pos_Z, bzDim, time + 0.5, paramsH);
+            float pos_Z = posRadH[i].z;
+            float vel_X = velMasH[i].x;
+            float vel_X_ana = PoiseuilleAnalytical(pos_Z, bzDim, time + 0.5, paramsH);
             error = error + pow(vel_X - vel_X_ana, 2);
             abs_val = abs_val + pow(vel_X_ana, 2);
         }

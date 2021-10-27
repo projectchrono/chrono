@@ -211,7 +211,8 @@ int main(int argc, char* argv[]) {
         return -1;
     } else {
         myFsiSystem.GetFsiData()->fsiGeneralData->referenceArray.push_back(chrono::fsi::mI4(0, numPart, -1, -1));
-        myFsiSystem.GetFsiData()->fsiGeneralData->referenceArray.push_back(chrono::fsi::mI4(numPart, numPart, 0, 0));
+        myFsiSystem.GetFsiData()->fsiGeneralData->referenceArray.push_back(
+            chrono::fsi::mI4(numPart, numPart, 0, 0));
     }
 
     /// Create MBD or FE model

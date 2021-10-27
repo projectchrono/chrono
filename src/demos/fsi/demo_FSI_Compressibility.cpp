@@ -11,14 +11,15 @@
 // =============================================================================
 // Author: Milad Rakhsha, Arman Pazouki
 // =============================================================================
+
+// General Includes
 #include <assert.h>
 #include <stdlib.h>
 #include <ctime>
 
+// Chrono includes
 #include "chrono/physics/ChSystemSMC.h"
-#include "chrono/utils/ChUtilsCreators.h"
 #include "chrono/utils/ChUtilsGenerators.h"
-#include "chrono/utils/ChUtilsGeometry.h"
 
 // Chrono fsi includes
 #include "chrono_fsi/ChSystemFsi.h"

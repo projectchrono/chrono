@@ -24,12 +24,12 @@
 #include "chrono/fea/ChMesh.h"
 #include "chrono/fea/ChNodeFEAxyzD.h"
 #include "chrono_fsi/utils/ChUtilsTypeConvert.h"
+#include "chrono_fsi/utils/ChUtilsGeneratorFsi.h"
 
 namespace chrono {
 namespace fsi {
 
 //--------------------------------------------------------------------------------------------------------------------------------
-
 ChSystemFsi::ChSystemFsi(ChSystem& other_physicalSystem, CHFSI_TIME_INTEGRATOR other_integrator)
     : mphysicalSystem(other_physicalSystem), mTime(0), fluidIntegrator(other_integrator), file_write_mode(CHFSI_OUTPUT_MODE::NONE) {
     fsiSystem = chrono_types::make_shared<ChSystemFsi_impl>();
@@ -73,7 +73,6 @@ void ChSystemFsi::SetFluidDynamics(fluid_dynamics params_type) {
         chrono_types::make_shared<ChFluidDynamics>(bceWorker, fsiSystem, paramsH, numObjectsH, fluidIntegrator);
 }
 //--------------------------------------------------------------------------------------------------------------------------------
-
 void ChSystemFsi::Finalize() {
     printf("\n\nChSystemFsi::Finalize 1-FinalizeData\n");
     FinalizeData();
@@ -85,7 +84,6 @@ void ChSystemFsi::Finalize() {
               << fsiSystem->fsiGeneralData->referenceArray.size() << "\n";
 }
 //--------------------------------------------------------------------------------------------------------------------------------
-
 ChSystemFsi::~ChSystemFsi() {}
 //--------------------------------------------------------------------------------------------------------------------------------
 void ChSystemFsi::CopyDeviceDataToHalfStep() {
@@ -100,9 +98,7 @@ void ChSystemFsi::CopyDeviceDataToHalfStep() {
     thrust::copy(fsiSystem->sphMarkersD2->tauXyXzYzD.begin(), fsiSystem->sphMarkersD2->tauXyXzYzD.end(),
                  fsiSystem->sphMarkersD1->tauXyXzYzD.begin());
 }
-
 //--------------------------------------------------------------------------------------------------------------------------------
-
 void ChSystemFsi::DoStepDynamics_FSI() {
     /// The following is used to execute the Explicit WCSPH
     if (fluidDynamics->GetIntegratorType() == CHFSI_TIME_INTEGRATOR::ExplicitSPH) {
@@ -199,7 +195,6 @@ void ChSystemFsi::DoStepDynamics_ChronoRK2() {
     mTime += paramsH->dT;
     mphysicalSystem.DoStepDynamics(1.0 * paramsH->dT);
 }
-
 //--------------------------------------------------------------------------------------------------------------------------------
 void ChSystemFsi::FinalizeData() {
     printf("\n\nfsiInterface->ResizeChronoBodiesData()\n");
@@ -222,7 +217,6 @@ void ChSystemFsi::FinalizeData() {
               << "\n";
     fsiSystem->fsiBodiesD2 = fsiSystem->fsiBodiesD1;  //(2) construct midpoint rigid data
 }
-
 //--------------------------------------------------------------------------------------------------------------------------------
 void ChSystemFsi::WriteParticleFile(const std::string& outfilename) const {
     if (file_write_mode == CHFSI_OUTPUT_MODE::CSV) {
@@ -237,7 +231,7 @@ void ChSystemFsi::WriteParticleFile(const std::string& outfilename) const {
                                         outfilename);
     }
 }
-
+//--------------------------------------------------------------------------------------------------------------------------------
 void ChSystemFsi::PrintParticleToFile(const std::string& out_dir) const {
     utils::PrintToFile(fsiSystem->sphMarkersD2->posRadD, 
                        fsiSystem->sphMarkersD2->velMasD,
@@ -246,7 +240,7 @@ void ChSystemFsi::PrintParticleToFile(const std::string& out_dir) const {
                        fsiSystem->fsiGeneralData->referenceArray, 
                        thrust::host_vector<int4>(), out_dir, true);
 }
-
+//--------------------------------------------------------------------------------------------------------------------------------
 void ChSystemFsi::AddSphMarker(const ChVector<>& points,
                                const ChVector<>& properties,
                                const double h,
@@ -254,20 +248,72 @@ void ChSystemFsi::AddSphMarker(const ChVector<>& points,
                                const ChVector<>& velocity,
                                const ChVector<>& tauXxYyZz,
                                const ChVector<>& tauXyXzYz) {
-
     fsiSystem->AddSphMarker(ChUtilsTypeConvert::ChVectorRToReal4(points, h),
                             ChUtilsTypeConvert::ChVectorRToReal4(properties, particle_type),
                             ChUtilsTypeConvert::ChVectorToReal3(velocity),
                             ChUtilsTypeConvert::ChVectorToReal3(tauXxYyZz),
                             ChUtilsTypeConvert::ChVectorToReal3(tauXyXzYz));
 }
-
-void ChSystemFsi::SetSimParameter(const std::string& inputJson,
-                                  std::shared_ptr<SimParams> simParams,
-                                  const ChVector<>& box_size){
-    utils::ParseJSON(inputJson, simParams, ChUtilsTypeConvert::ChVectorToReal3(box_size));
+//--------------------------------------------------------------------------------------------------------------------------------
+void ChSystemFsi::AddRefArray(const int start,
+                              const int numPart,
+                              const int typeA,
+                              const int typeB) {
+    fsiData->fsiGeneralData->referenceArray.push_back(fsi::mI4(start, numPart, typeA, typeB));
 }
+//--------------------------------------------------------------------------------------------------------------------------------
+void ChSystemFsi::AddBceBox(std::shared_ptr<SimParams> paramsH,
+                            std::shared_ptr<ChBody>& body,
+                            const ChVector<>& relPos,
+                            const ChQuaternion<>& relRot,
+                            const ChVector<>& size) {
+    utils::AddBoxBce(fsiData, paramsH, body, relPos, relRot, size);
+}
+//--------------------------------------------------------------------------------------------------------------------------------
+void ChSystemFsi::SetSimParameter(const std::string& inputJson,
+                                  std::shared_ptr<SimParams> paramsH,
+                                  const ChVector<>& box_size){
+    utils::ParseJSON(inputJson, paramsH, ChUtilsTypeConvert::ChVectorToReal3(box_size));
+}
+//--------------------------------------------------------------------------------------------------------------------------------
+void ChSystemFsi::SetPeriodicBC(const ChVector<>& cMin,
+                                const ChVector<>& cMax,
+                                std::shared_ptr<SimParams> paramsH){
+    paramsH->cMin = ChUtilsTypeConvert::ChVectorToReal3(cMin);
+    paramsH->cMax = ChUtilsTypeConvert::ChVectorToReal3(cMax);
+}
+//--------------------------------------------------------------------------------------------------------------------------------
+float ChSystemFsi::GetIniSpace() const {
+    return paramsH->MULT_INITSPACE * paramsH->HSML;
+}
+//--------------------------------------------------------------------------------------------------------------------------------
+float ChSystemFsi::GetKernelLength() const {
+    return paramsH->HSML;
+}
+//--------------------------------------------------------------------------------------------------------------------------------
+void ChSystemFsi::SetSubDomain(std::shared_ptr<SimParams> paramsH) {
+    utils::FinalizeDomain(paramsH);
+}
+//--------------------------------------------------------------------------------------------------------------------------------
+void ChSystemFsi::GetParticlePos() {
+    std::vector<ChVector<>> Pos;
+    thrust::host_vector<fsi::Real4> PosH = fsiData->sphMarkersD2->posRadD;
+    size_t numPart = PosH.size();
 
+    for(int i = 0; i < numPart; i++){
+        Pos[i] = ChUtilsTypeConvert::Real4ToChVector(PosH[i]);
+    }
+}
+//--------------------------------------------------------------------------------------------------------------------------------
+void ChSystemFsi::GetParticleVel() {
+    std::vector<ChVector<>> Vel;
+    thrust::host_vector<fsi::Real3> VelH = fsiData->sphMarkersD2->velMasD;
+    size_t numPart = VelH.size();
+
+    for(int i = 0; i < numPart; i++){
+        Vel[i] = ChUtilsTypeConvert::Real3ToChVector(VelH[i]);
+    }
+}
 //--------------------------------------------------------------------------------------------------------------------------------
 
 }  // end namespace fsi

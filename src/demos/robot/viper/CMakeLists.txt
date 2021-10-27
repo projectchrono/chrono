@@ -33,7 +33,7 @@ set(DEMOS
 
 if(ENABLE_MODULE_FSI)
   set(DEMOS ${DEMOS}
-      demo_ROBOT_Viper_SPH
+#      demo_ROBOT_Viper_SPH
   )
   include_directories(${CH_FSI_INCLUDES})
   list(APPEND LIBRARIES ChronoEngine_fsi)
