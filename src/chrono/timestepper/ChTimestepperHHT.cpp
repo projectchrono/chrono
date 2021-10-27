@@ -111,12 +111,12 @@ void ChTimestepperHHT::Advance(const double dt) {
     call_setup = true;
 
     // Loop until reaching final time
-    while (T < tfinal) {
+    while (true) {
         double scaling_factor = scaling ? beta * h * h : 1;
         Prepare(mintegrable, scaling_factor);
 
         // Newton-Raphson for state at T+h
-        bool converged;
+        bool converged = false;
         int it;
 
         for (it = 0; it < maxiters; it++) {
@@ -136,11 +136,24 @@ void ChTimestepperHHT::Advance(const double dt) {
             // If using modified Newton, do not call Setup again
             call_setup = !modified_Newton;
 
+            // A flag to indicate the trend of convergence
+            if ((Rold.norm() < R.norm()) && (R.norm() > threshold_R)) {
+                convergence_trend_flag = false; // very dangerous, seems to diverge
+                break;
+            } else {
+                convergence_trend_flag = true;  // normal, seems to converge
+            }
+
             // Check convergence
             converged = CheckConvergence(scaling_factor);
             if (converged)
                 break;
         }
+
+        if (!converged) { // ------ NR did not converge
+            convergence_trend_flag = false;
+        }
+
 
         if (converged) {
             // ------ NR converged
@@ -225,14 +238,19 @@ void ChTimestepperHHT::Advance(const double dt) {
             call_setup = true;
         }
 
-        // Scatter state -> system
-        mintegrable->StateScatter(X, V, T);
+        if (T >= tfinal) {
+            break;
+        }
 
-        // In case we go back in the loop
-        //// TODO: this is wasted work if we DO NOT go back
+        // Go back in the loop: scatter state and reset temporary vector
+        // Scatter state -> system
+        mintegrable->StateScatter(X, V, T, false);
         Rold.setZero();
         Anew.setZero(mintegrable->GetNcoords_a(), mintegrable);
     }
+
+    // Scatter state -> system doing a full update
+    mintegrable->StateScatter(X, V, T, true);
 
     // Scatter auxiliary data (A and L) -> system
     mintegrable->StateScatterAcceleration(A);
@@ -288,7 +306,7 @@ void ChTimestepperHHT::Prepare(ChIntegrableIIorder* integrable, double scaling_f
 //
 void ChTimestepperHHT::Increment(ChIntegrableIIorder* integrable, double scaling_factor) {
     // Scatter the current estimate of state at time T+h
-    integrable->StateScatter(Xnew, Vnew, T + h);
+    integrable->StateScatter(Xnew, Vnew, T + h, false);
 
     // Initialize the two segments of the RHS
     R = Rold;      // terms related to state at time T
@@ -309,6 +327,7 @@ void ChTimestepperHHT::Increment(ChIntegrableIIorder* integrable, double scaling
                                              -h * h * beta,      // factor for  dF/dx
                                              Xnew, Vnew, T + h,  // not used here (force_scatter = false)
                                              false,              // do not scatter states
+                                             false,              // full update? (not used, since no scatter)
                                              call_setup          // call Setup?
             );
 
@@ -334,6 +353,7 @@ void ChTimestepperHHT::Increment(ChIntegrableIIorder* integrable, double scaling
                                              -scaling_factor,                                // factor for  dF/dx
                                              Xnew, Vnew, T + h,  // not used here(force_scatter = false)
                                              false,              // do not scatter states
+                                             false,              // full update? (not used, since no scatter)
                                              call_setup          // call Setup?
             );
 
@@ -438,7 +458,7 @@ void ChTimestepperHHT::ArchiveOUT(ChArchiveOut& archive) {
 
 void ChTimestepperHHT::ArchiveIN(ChArchiveIn& archive) {
     // version number
-    int version = archive.VersionRead<ChTimestepperHHT>();
+    /*int version =*/ archive.VersionRead<ChTimestepperHHT>();
     // deserialize parent class:
     ChTimestepperIIorder::ArchiveIN(archive);
     ChImplicitIterativeTimestepper::ArchiveIN(archive);

@@ -31,8 +31,8 @@
 #include "chrono/physics/ChSystem.h"
 #include "chrono/core/ChTimer.h"
 
-//#include "chrono_parallel/physics/ChSystemParallel.h"
-#include <glfw3.h>
+//#include "chrono_multicore/physics/ChSystemMulticore.h"
+#include <GLFW/glfw3.h>
 
 namespace chrono {
 namespace opengl {
@@ -50,9 +50,9 @@ class CH_OPENGL_API ChOpenGLViewer : public ChOpenGLBase {
     void TakeDown();
     bool Initialize();
     bool Update(double time_step);
-    void Render();
+    void Render(bool render_hud);
     void DrawObject(std::shared_ptr<ChBody> abody);
-    void DisplayHUD();
+    void DisplayHUD(bool render_hud);
     void RenderContacts();
     void RenderAABB();
     void RenderGrid();

@@ -279,12 +279,10 @@ std::shared_ptr<MixtureIngredient> Generator::AddMixtureIngredient(MixtureType t
     return m_mixture.back();
 }
 
-// Create objects in a box domain using the specified type of point
-// sampler and separation distance and the current mixture settings.
+// Create objects in a box domain using the given point sampler and separation distance and the current mixture settings.
 // The types of objects created are selected randomly with probability
 // proportional to the ratio of that ingredient in the mixture.
-void Generator::createObjectsBox(SamplingType sType,
-                                 double dist,
+void Generator::CreateObjectsBox(Sampler<double>& sampler,
                                  const ChVector<>& pos,
                                  const ChVector<>& hdims,
                                  const ChVector<>& vel) {
@@ -292,25 +290,12 @@ void Generator::createObjectsBox(SamplingType sType,
     normalizeMixture();
 
     // Generate the object locations
+    double sep = sampler.GetSeparation();
     if (m_system->GetContactMethod() == ChContactMethod::SMC)
-        dist = calcMinSeparation(dist);
+        sep = calcMinSeparation(sep);
+    sampler.SetSeparation(sep);
 
-    PointVector points;
-    switch (sType) {
-        case SamplingType::REGULAR_GRID : {
-            GridSampler<> sampler(dist);
-            points = sampler.SampleBox(pos, hdims);
-        } break;
-        case SamplingType::POISSON_DISK: {
-            PDSampler<> sampler(dist);
-            points = sampler.SampleBox(pos, hdims);
-        } break;
-        case SamplingType::HCP_PACK: {
-            HCPSampler<> sampler(dist);
-            points = sampler.SampleBox(pos, hdims);
-        } break;
-    }
-
+    PointVector points = sampler.SampleBox(pos, hdims);
     createObjects(points, vel);
 }
 
@@ -318,7 +303,7 @@ void Generator::createObjectsBox(SamplingType sType,
 // specified separation distances and using the current mixture settings.
 // The types of objects created are selected randomly with probability
 // proportional to the ratio of that ingredient in the mixture.
-void Generator::createObjectsBox(const ChVector<>& dist,
+void Generator::CreateObjectsBox(const ChVector<>& dist,
                                  const ChVector<>& pos,
                                  const ChVector<>& hdims,
                                  const ChVector<>& vel) {
@@ -344,8 +329,7 @@ void Generator::createObjectsBox(const ChVector<>& dist,
 // sampler and separation distance and the current mixture settings.
 // The types of objects created are selected randomly with probability
 // proportional to the ratio of that ingredient in the mixture.
-void Generator::createObjectsCylinderX(SamplingType sType,
-                                       double dist,
+void Generator::CreateObjectsCylinderX(Sampler<double>& sampler,
                                        const ChVector<>& pos,
                                        float radius,
                                        float halfHeight,
@@ -354,30 +338,16 @@ void Generator::createObjectsCylinderX(SamplingType sType,
     normalizeMixture();
 
     // Generate the object locations
+    double sep = sampler.GetSeparation();
     if (m_system->GetContactMethod() == ChContactMethod::SMC)
-        dist = calcMinSeparation(dist);
+        sep = calcMinSeparation(sep);
+    sampler.SetSeparation(sep);
 
-    PointVector points;
-    switch (sType) {
-        case SamplingType::REGULAR_GRID: {
-            GridSampler<> sampler(dist);
-            points = sampler.SampleCylinderX(pos, radius, halfHeight);
-        } break;
-        case SamplingType::POISSON_DISK: {
-            PDSampler<> sampler(dist);
-            points = sampler.SampleCylinderX(pos, radius, halfHeight);
-        } break;
-        case SamplingType::HCP_PACK: {
-            HCPSampler<> sampler(dist);
-            points = sampler.SampleCylinderX(pos, radius, halfHeight);
-        } break;
-    }
-
+    PointVector points = sampler.SampleCylinderX(pos, radius, halfHeight);
     createObjects(points, vel);
 }
 
-void Generator::createObjectsCylinderY(SamplingType sType,
-                                       double dist,
+void Generator::CreateObjectsCylinderY(Sampler<double>& sampler,
                                        const ChVector<>& pos,
                                        float radius,
                                        float halfHeight,
@@ -386,30 +356,16 @@ void Generator::createObjectsCylinderY(SamplingType sType,
     normalizeMixture();
 
     // Generate the object locations
+    double sep = sampler.GetSeparation();
     if (m_system->GetContactMethod() == ChContactMethod::SMC)
-        dist = calcMinSeparation(dist);
+        sep = calcMinSeparation(sep);
+    sampler.SetSeparation(sep);
 
-    PointVector points;
-    switch (sType) {
-        case SamplingType::REGULAR_GRID: {
-            GridSampler<> sampler(dist);
-            points = sampler.SampleCylinderY(pos, radius, halfHeight);
-        } break;
-        case SamplingType::POISSON_DISK: {
-            PDSampler<> sampler(dist);
-            points = sampler.SampleCylinderY(pos, radius, halfHeight);
-        } break;
-        case SamplingType::HCP_PACK: {
-            HCPSampler<> sampler(dist);
-            points = sampler.SampleCylinderY(pos, radius, halfHeight);
-        } break;
-    }
-
+    PointVector points = sampler.SampleCylinderY(pos, radius, halfHeight);
     createObjects(points, vel);
 }
 
-void Generator::createObjectsCylinderZ(SamplingType sType,
-                                       double dist,
+void Generator::CreateObjectsCylinderZ(Sampler<double>& sampler,
                                        const ChVector<>& pos,
                                        float radius,
                                        float halfHeight,
@@ -418,25 +374,29 @@ void Generator::createObjectsCylinderZ(SamplingType sType,
     normalizeMixture();
 
     // Generate the object locations
+    double sep = sampler.GetSeparation();
     if (m_system->GetContactMethod() == ChContactMethod::SMC)
-        dist = calcMinSeparation(dist);
+        sep = calcMinSeparation(sep);
+    sampler.SetSeparation(sep);
 
-    PointVector points;
-    switch (sType) {
-        case SamplingType::REGULAR_GRID: {
-            GridSampler<> sampler(dist);
-            points = sampler.SampleCylinderZ(pos, radius, halfHeight);
-        } break;
-        case SamplingType::POISSON_DISK: {
-            PDSampler<> sampler(dist);
-            points = sampler.SampleCylinderZ(pos, radius, halfHeight);
-        } break;
-        case SamplingType::HCP_PACK: {
-            HCPSampler<> sampler(dist);
-            points = sampler.SampleCylinderZ(pos, radius, halfHeight);
-        } break;
-    }
+    PointVector points = sampler.SampleCylinderZ(pos, radius, halfHeight);
+    createObjects(points, vel);
+}
 
+void Generator::CreateObjectsSphere(Sampler<double>& sampler,
+                                    const ChVector<>& pos,
+                                    float radius,
+                                    const ChVector<>& vel) {
+    // Normalize the mixture ratios
+    normalizeMixture();
+
+    // Generate the object locations
+    double sep = sampler.GetSeparation();
+    if (m_system->GetContactMethod() == ChContactMethod::SMC)
+        sep = calcMinSeparation(sep);
+    sampler.SetSeparation(sep);
+
+    PointVector points = sampler.SampleSphere(pos, radius);
     createObjects(points, vel);
 }
 

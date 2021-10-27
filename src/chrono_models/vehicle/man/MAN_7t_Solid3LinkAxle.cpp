@@ -26,13 +26,10 @@ namespace man {
 // Static variables
 // -----------------------------------------------------------------------------
 
-static const double in2m = 0.0254;
-static const double lb2kg = 0.453592;
-static const double lbf2N = 4.44822162;
-static const double lbfpin2Npm = 175.12677;
-
 const double MAN_7t_Solid3LinkAxle::m_axleTubeMass = 709;
 const double MAN_7t_Solid3LinkAxle::m_spindleMass = 14.705 * 4.1;
+const double MAN_7t_Solid3LinkAxle::m_triangleMass = 50.0;
+const double MAN_7t_Solid3LinkAxle::m_linkMass = 25.0;
 
 const double MAN_7t_Solid3LinkAxle::m_axleTubeRadius = 0.0476;
 const double MAN_7t_Solid3LinkAxle::m_spindleRadius = 0.10;
@@ -40,6 +37,8 @@ const double MAN_7t_Solid3LinkAxle::m_spindleWidth = 0.06;
 
 const ChVector<> MAN_7t_Solid3LinkAxle::m_axleTubeInertia(329.00, 16.46, 330.00);
 const ChVector<> MAN_7t_Solid3LinkAxle::m_spindleInertia(0.04117 * 6.56, 0.07352 * 6.56, 0.04117 * 6.56);
+const ChVector<> MAN_7t_Solid3LinkAxle::m_triangleInertia(0.2, 0.2, 0.2);
+const ChVector<> MAN_7t_Solid3LinkAxle::m_linkInertia(0.05, 0.1, 0.1);
 
 const double MAN_7t_Solid3LinkAxle::m_springDesignLength = 0.499924994;
 const double MAN_7t_Solid3LinkAxle::m_springCoefficient1 = 178892.0;  // linear
@@ -126,27 +125,17 @@ double MAN_7t_SpringForceRear::operator()(double time,
 }
 
 MAN_7t_Solid3LinkAxle::MAN_7t_Solid3LinkAxle(const std::string& name) : ChSolidThreeLinkAxle(name) {
-    /*
-        m_springForceCB = new LinearSpringForce(m_springCoefficient  // coefficient for linear spring
-                                                );
+    m_springForceCB = chrono_types::make_shared<MAN_7t_SpringForceRear>(m_springCoefficient1, m_springCoefficient2,
+                                                                        m_springMinLength, m_springMaxLength);
 
-        m_shockForceCB = new LinearDamperForce(m_damperCoefficient  // coefficient for linear damper
-                        );
-    */
-    m_springForceCB =
-        new MAN_7t_SpringForceRear(m_springCoefficient1, m_springCoefficient2, m_springMinLength, m_springMaxLength);
-
-    m_shockForceCB = new DegressiveDamperForce(m_damperCoefCompression, m_damperDegresCompression,
-                                               m_damperCoefExpansion, m_damperDegresExpansion);
+    m_shockForceCB = chrono_types::make_shared<DegressiveDamperForce>(
+        m_damperCoefCompression, m_damperDegresCompression, m_damperCoefExpansion, m_damperDegresExpansion);
 }
 
 // -----------------------------------------------------------------------------
 // Destructors
 // -----------------------------------------------------------------------------
-MAN_7t_Solid3LinkAxle::~MAN_7t_Solid3LinkAxle() {
-    delete m_springForceCB;
-    delete m_shockForceCB;
-}
+MAN_7t_Solid3LinkAxle::~MAN_7t_Solid3LinkAxle() {}
 
 const ChVector<> MAN_7t_Solid3LinkAxle::getLocation(PointId which) {
     switch (which) {

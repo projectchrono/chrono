@@ -29,12 +29,14 @@
 #include "chrono/physics/ChLinkLock.h"
 
 #include "chrono_vehicle/ChApiVehicle.h"
-#include "chrono_vehicle/ChPart.h"
+#include "chrono_vehicle/ChChassis.h"
 
 #include "chrono_vehicle/tracked_vehicle/ChRoadWheel.h"
 
 namespace chrono {
 namespace vehicle {
+
+class ChTrackAssembly;
 
 /// @addtogroup vehicle_tracked_suspension
 /// @{
@@ -83,9 +85,10 @@ class CH_VEHICLE_API ChRoadWheelAssembly : public ChPart {
     /// aligned with the chassis reference frame.
     /// Derived classes must call this base class implementation (which only
     /// initializes the road wheel).
-    virtual void Initialize(std::shared_ptr<ChBodyAuxRef> chassis,  ///< [in] handle to the chassis body
-                            const ChVector<>& location              ///< [in] location relative to the chassis frame
-                            );
+    virtual void Initialize(std::shared_ptr<ChChassis> chassis,  ///< [in] associated chassis subsystem
+                            const ChVector<>& location,          ///< [in] location relative to the chassis frame
+                            ChTrackAssembly* track               ///< [in] containing track assembly
+    );
 
     /// Enable/disable output for this subsystem.
     /// This function overrides the output setting for all components of this suspension assembly.
@@ -100,6 +103,7 @@ class CH_VEHICLE_API ChRoadWheelAssembly : public ChPart {
     GuidePinType m_type;                        ///< type of the track shoe matching this road wheel
     bool m_has_shock;                           ///< specifies whether or not the suspension has a damper
     std::shared_ptr<ChRoadWheel> m_road_wheel;  ///< road-wheel subsystem
+    ChTrackAssembly* m_track;                   ///< containing track assembly
 
     friend class ChTrackAssembly;
 };

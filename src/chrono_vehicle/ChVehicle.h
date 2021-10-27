@@ -59,11 +59,20 @@ class CH_VEHICLE_API ChVehicle {
     /// Get the current simulation time of the underlying ChSystem.
     double GetChTime() const { return m_system->GetChTime(); }
 
-    /// Get a handle to the vehicle's chassis subsystem.
+    /// Get a handle to the vehicle's main chassis subsystem.
     std::shared_ptr<ChChassis> GetChassis() const { return m_chassis; }
+
+    /// Get the specified specified rear chassis subsystem.
+    std::shared_ptr<ChChassisRear> GetChassisRear(int id) const { return m_chassis_rear[id]; }
+
+    /// Get a handle to the specified chassis connector.
+    std::shared_ptr<ChChassisConnector> GetChassisConnector(int id) const { return m_chassis_connectors[id]; }
 
     /// Get a handle to the vehicle's chassis body.
     std::shared_ptr<ChBodyAuxRef> GetChassisBody() const { return m_chassis->GetBody(); }
+
+    /// Get a handle to the specified rear chassis body.
+    std::shared_ptr<ChBodyAuxRef> GetChassisRearBody(int id) const { return m_chassis_rear[id]->GetBody(); }
 
     /// Get the powertrain attached to this vehicle.
     virtual std::shared_ptr<ChPowertrain> GetPowertrain() const { return nullptr; }
@@ -76,47 +85,47 @@ class CH_VEHICLE_API ChVehicle {
     virtual ChVector<> GetVehicleCOMPos() const = 0;
 
     /// Get the vehicle location.
-    /// This is the global location of the chassis reference frame origin.
+    /// This is the global location of the main chassis reference frame origin.
     const ChVector<>& GetVehiclePos() const { return m_chassis->GetPos(); }
     
     /// Get the vehicle orientation.
-    /// This is the chassis orientation, returned as a quaternion representing a
+    /// This is the main chassis orientation, returned as a quaternion representing a
     /// rotation with respect to the global reference frame.
-    const ChQuaternion<>& GetVehicleRot() const { return m_chassis->GetRot(); }
+    ChQuaternion<> GetVehicleRot() const { return m_chassis->GetRot(); }
 
     /// Get the vehicle speed.
-    /// Return the speed measured at the origin of the chassis reference frame.
+    /// Return the speed measured at the origin of the main chassis reference frame.
     double GetVehicleSpeed() const { return m_chassis->GetSpeed(); }
 
     /// Get the speed of the chassis COM.
-    /// Return the speed measured at the chassis center of mass.
+    /// Return the speed measured at the main chassis center of mass.
     double GetVehicleSpeedCOM() const { return m_chassis->GetCOMSpeed(); }
 
     /// Get the global position of the specified point.
-    /// The point is assumed to be given relative to the chassis reference frame.
+    /// The point is assumed to be given relative to the main chassis reference frame.
     /// The returned location is expressed in the global reference frame.
     ChVector<> GetVehiclePointLocation(const ChVector<>& locpos) const { return m_chassis->GetPointLocation(locpos); }
 
     /// Get the global velocity of the specified point.
-    /// The point is assumed to be given relative to the chassis reference frame.
+    /// The point is assumed to be given relative to the main chassis reference frame.
     /// The returned velocity is expressed in the global reference frame.
     ChVector<> GetVehiclePointVelocity(const ChVector<>& locpos) const { return m_chassis->GetPointVelocity(locpos); }
 
     /// Get the acceleration at the specified point.
-    /// The point is assumed to be given relative to the chassis reference frame.
+    /// The point is assumed to be given relative to the main chassis reference frame.
     /// The returned acceleration is expressed in the chassis reference frame.
-    ChVector<> GetVehicleAcceleration(const ChVector<>& locpos) const { return m_chassis->GetPointAcceleration(locpos); }
+    ChVector<> GetVehiclePointAcceleration(const ChVector<>& locpos) const { return m_chassis->GetPointAcceleration(locpos); }
 
     /// Get a handle to the vehicle's driveshaft body.
     virtual std::shared_ptr<ChShaft> GetDriveshaft() const = 0;
 
-    /// Get the angular speed of the driveshaft.
-    /// This function provides the interface between a vehicle system and a
-    /// powertrain system.
-    virtual double GetDriveshaftSpeed() const = 0;
-
     /// Get the global location of the driver.
     ChVector<> GetDriverPos() const { return m_chassis->GetDriverPos(); }
+
+    /// Change the default collision detection system.
+    /// Note that this function should be called *before* initialization of the vehicle system in order to create
+    /// consistent collision models.
+    void SetCollisionSystemType(collision::ChCollisionSystemType collsys_type);
 
     /// Enable output for this vehicle system.
     void SetOutput(ChVehicleOutput::Type type,   ///< [int] type of output DB
@@ -133,6 +142,9 @@ class CH_VEHICLE_API ChVehicle {
     /// Set visualization mode for the chassis subsystem.
     void SetChassisVisualizationType(VisualizationType vis);
 
+    /// Set visualization mode for the rear chassis subsystems.
+    void SetChassisRearVisualizationType(VisualizationType vis);
+
     /// Enable/disable collision for the chassis subsystem. This function controls
     /// contact of the chassis with all other collision shapes in the simulation.
     void SetChassisCollide(bool state);
@@ -144,6 +156,9 @@ class CH_VEHICLE_API ChVehicle {
 
     /// Enable/disable output from the chassis subsystem.
     void SetChassisOutput(bool state);
+
+    /// Return true if the vehicle model contains bushings.
+    bool HasBushings() const { return m_chassis->HasBushings(); }
 
     /// Advance the state of this vehicle by the specified time step.
     /// A call to ChSystem::DoStepDynamics is done only if the vehicle owns the underlying Chrono system.
@@ -194,7 +209,9 @@ class CH_VEHICLE_API ChVehicle {
     double m_next_output_time;     ///< time for next output
     int m_output_frame;            ///< current output frame
 
-    std::shared_ptr<ChChassis> m_chassis;  ///< handle to the chassis subsystem
+    std::shared_ptr<ChChassis> m_chassis;         ///< handle to the main chassis subsystem
+    ChChassisRearList m_chassis_rear;             ///< list of rear chassis subsystems (can be empty)
+    ChChassisConnectorList m_chassis_connectors;  ///< list of chassis connector (must match m_chassis_rear)
 };
 
 /// @} vehicle

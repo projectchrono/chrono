@@ -80,27 +80,28 @@ TestRigChassis::TestRigChassis() : ChRigidChassis("Ground") {
 
 // =============================================================================
 // Definition of a terrain object for use by a suspension test rig.
+// Note that this assumes an ISO world frame.
 class TestRigTerrain : public ChTerrain {
   public:
     TestRigTerrain();
-    virtual double GetHeight(double x, double y) const override;
-    virtual ChVector<> GetNormal(double x, double y) const override;
-    virtual float GetCoefficientFriction(double x, double y) const override;
+    virtual double GetHeight(const ChVector<>& loc) const override;
+    virtual ChVector<> GetNormal(const ChVector<>& loc) const override;
+    virtual float GetCoefficientFriction(const ChVector<>& loc) const override;
     double m_height_L;
     double m_height_R;
 };
 
 TestRigTerrain::TestRigTerrain() : m_height_L(-1000), m_height_R(-1000) {}
 
-double TestRigTerrain::GetHeight(double x, double y) const {
-    return (y < 0) ? m_height_R : m_height_L;
+double TestRigTerrain::GetHeight(const ChVector<>& loc) const {
+    return (loc.y() < 0) ? m_height_R : m_height_L;
 }
 
-ChVector<> TestRigTerrain::GetNormal(double x, double y) const {
+ChVector<> TestRigTerrain::GetNormal(const ChVector<>& loc) const {
     return ChVector<>(0, 0, 1);
 }
 
-float TestRigTerrain::GetCoefficientFriction(double x, double y) const {
+float TestRigTerrain::GetCoefficientFriction(const ChVector<>& loc) const {
     return 0.8f;
 }
 
@@ -117,6 +118,7 @@ const double ChSuspensionTestRigPushrod::m_rod_radius = 0.02;
 // =============================================================================
 ChSuspensionTestRig::ChSuspensionTestRig(ChWheeledVehicle& vehicle,
                                          int axle_index,
+                                         int steering_index,
                                          double displ_limit,
                                          std::shared_ptr<ChTire> tire_left,
                                          std::shared_ptr<ChTire> tire_right,
@@ -143,7 +145,6 @@ ChSuspensionTestRig::ChSuspensionTestRig(ChWheeledVehicle& vehicle,
     m_wheel[RIGHT] = vehicle.GetAxle(axle_index)->m_wheels[1];
 
     // Load steering subsystem (if needed)
-    int steering_index = m_suspension->GetSteeringIndex();
     if (steering_index >= 0) {
         m_steering = vehicle.GetSteering(steering_index);
         m_steeringLoc = m_steering->GetPosition().pos;
@@ -172,7 +173,7 @@ ChSuspensionTestRig::ChSuspensionTestRig(const std::string& filename,
       m_next_plot_output_time(0),
       m_csv(nullptr) {
     // Open and parse the input file (vehicle JSON specification file)
-    Document d = ReadFileJSON(filename);
+    Document d; ReadFileJSON(filename, d);
     if (d.IsNull())
         return;
 
@@ -184,8 +185,7 @@ ChSuspensionTestRig::ChSuspensionTestRig(const std::string& filename,
     // Extract the specified axle from the vehicle's list of suspension subsystems.
     // Note that we ignore antiroll bar and brake subsystems.
     // Create the suspension and wheel subsystems.
-    int num_axles = d["Axles"].Size();
-    assert(axle_index >= 0 && axle_index < num_axles);
+    assert(axle_index >= 0 && axle_index < d["Axles"].Size());
 
     std::string file_name = d["Axles"][axle_index]["Suspension Input File"].GetString();
     m_suspension = ReadSuspensionJSON(vehicle::GetDataFile(file_name));
@@ -203,7 +203,7 @@ ChSuspensionTestRig::ChSuspensionTestRig(const std::string& filename,
 
     // Create the steering subsystem, if needed.
     if (steering_index >= 0) {
-        std::string file_name = d["Steering Subsystems"][steering_index]["Input File"].GetString();
+        file_name = d["Steering Subsystems"][steering_index]["Input File"].GetString();
         m_steering = ReadSteeringJSON(vehicle::GetDataFile(file_name));
         m_steeringLoc = ReadVectorJSON(d["Steering Subsystems"][steering_index]["Location"]);
         m_steeringRot = ReadQuaternionJSON(d["Steering Subsystems"][steering_index]["Orientation"]);
@@ -211,7 +211,7 @@ ChSuspensionTestRig::ChSuspensionTestRig(const std::string& filename,
 
     // Create the anti-roll bar subsystem, if one exists.
     if (d["Axles"][axle_index].HasMember("Antirollbar Input File")) {
-        std::string file_name = d["Axles"][axle_index]["Antirollbar Input File"].GetString();
+        file_name = d["Axles"][axle_index]["Antirollbar Input File"].GetString();
         m_antirollbar = ReadAntirollbarJSON(vehicle::GetDataFile(file_name));
         m_antirollbarLoc = ReadVectorJSON(d["Axles"][axle_index]["Antirollbar Location"]);
     }
@@ -236,7 +236,7 @@ ChSuspensionTestRig::ChSuspensionTestRig(const std::string& filename,
       m_next_plot_output_time(0),
       m_csv(nullptr) {
     // Open and parse the input file (rig JSON specification file)
-    Document d = ReadFileJSON(filename);
+    Document d; ReadFileJSON(filename, d);
     if (d.IsNull())
         return;
 
@@ -270,7 +270,7 @@ ChSuspensionTestRig::ChSuspensionTestRig(const std::string& filename,
 
     // Create the steering subsystem, if specified
     if (d.HasMember("Steering")) {
-        std::string file_name = d["Steering"]["Input File"].GetString();
+        file_name = d["Steering"]["Input File"].GetString();
         m_steering = ReadSteeringJSON(vehicle::GetDataFile(file_name));
         m_steeringLoc = ReadVectorJSON(d["Steering"]["Location"]);
         m_steeringRot = ReadQuaternionJSON(d["Steering"]["Orientation"]);
@@ -278,7 +278,7 @@ ChSuspensionTestRig::ChSuspensionTestRig(const std::string& filename,
 
     // Create the anti-roll bar subsystem, if one exists.
     if (d["Suspension"].HasMember("Antirollbar Input File")) {
-        std::string file_name = d["Suspension"]["Antirollbar Input File"].GetString();
+        file_name = d["Suspension"]["Antirollbar Input File"].GetString();
         m_antirollbar = ReadAntirollbarJSON(vehicle::GetDataFile(file_name));
         m_antirollbarLoc = ReadVectorJSON(d["Suspension"]["Antirollbar Location"]);
     }
@@ -302,19 +302,16 @@ void ChSuspensionTestRig::InitializeSubsystems() {
     // Create the terrain system
     m_terrain = std::unique_ptr<ChTerrain>(new TestRigTerrain);
 
-    // Initialize the suspension and steering subsystems.
-    if (m_steering) {
-        m_steering->Initialize(m_chassis->GetBody(), m_steeringLoc, m_steeringRot);
-        m_suspension->Initialize(m_chassis->GetBody(), m_suspLoc, m_steering->GetSteeringLink(), 0);
-    } else {
-        m_suspension->Initialize(m_chassis->GetBody(), m_suspLoc, m_chassis->GetBody(), -1);
-    }
+    // Initialize the steering subsystem.
+    if (m_steering)
+        m_steering->Initialize(m_chassis, m_steeringLoc, m_steeringRot);
+
+    // Initialize the suspension subsystem.
+    m_suspension->Initialize(m_chassis, nullptr, m_steering, m_suspLoc);
 
     // Initialize the antirollbar subsystem.
-    if (HasAntirollbar()) {
-        m_antirollbar->Initialize(m_chassis->GetBody(), m_antirollbarLoc, m_suspension->GetLeftBody(),
-                                  m_suspension->GetRightBody());
-    }
+    if (m_antirollbar)
+        m_antirollbar->Initialize(m_chassis, m_suspension, m_antirollbarLoc);
 
     // Initialize the two wheels
     m_wheel[LEFT]->Initialize(m_suspension->GetSpindle(LEFT), LEFT);
@@ -543,14 +540,16 @@ void ChSuspensionTestRig::SetPlotOutput(double output_step) {
 // =============================================================================
 // ChSuspensionTestRigPlatform class implementation
 // =============================================================================
-ChSuspensionTestRigPlatform::ChSuspensionTestRigPlatform(ChWheeledVehicle& vehicle,  // vehicle source
-                                                         int axle_index,             // index of test suspension
-                                                         double displ_limit,         // limits for post displacement
-                                                         std::shared_ptr<ChTire> tire_left,   // left tire
-                                                         std::shared_ptr<ChTire> tire_right,  // right tire
-                                                         ChContactMethod contact_method       // contact method
-                                                         )
-    : ChSuspensionTestRig(vehicle, axle_index, displ_limit, tire_left, tire_right, contact_method) {
+ChSuspensionTestRigPlatform::ChSuspensionTestRigPlatform(
+    ChWheeledVehicle& vehicle,           // vehicle source
+    int axle_index,                      // index of test suspension
+    int steering_index,                  // index of associated steering subsystem (-1 for no steering)
+    double displ_limit,                  // limits for post displacement
+    std::shared_ptr<ChTire> tire_left,   // left tire
+    std::shared_ptr<ChTire> tire_right,  // right tire
+    ChContactMethod contact_method       // contact method
+    )
+    : ChSuspensionTestRig(vehicle, axle_index, steering_index, displ_limit, tire_left, tire_right, contact_method) {
     InitializeSubsystems();
     Create();
 }
@@ -577,6 +576,16 @@ ChSuspensionTestRigPlatform::ChSuspensionTestRigPlatform(
     : ChSuspensionTestRig(filename, tire_left, tire_right, contact_method) {
     InitializeSubsystems();
     Create();
+}
+
+ChSuspensionTestRigPlatform::~ChSuspensionTestRigPlatform() {
+    auto sys = m_post[0]->GetSystem();
+    if (sys) {
+        sys->Remove(m_post[0]);
+        sys->Remove(m_post[1]);
+        sys->Remove(m_post_linact[0]);
+        sys->Remove(m_post_linact[1]);
+    }
 }
 
 void ChSuspensionTestRigPlatform::Create() {
@@ -678,7 +687,6 @@ void ChSuspensionTestRigPlatform::UpdateActuators(double displ_left,
                                                   double displ_speed_left,
                                                   double displ_right,
                                                   double displ_speed_right) {
-    double time = GetSystem()->GetChTime();
     auto func_L = std::static_pointer_cast<ChFunction_Setpoint>(m_post_linact[LEFT]->GetMotionFunction());
     auto func_R = std::static_pointer_cast<ChFunction_Setpoint>(m_post_linact[RIGHT]->GetMotionFunction());
     func_L->SetSetpointAndDerivatives(displ_left, displ_speed_left, 0.0);
@@ -774,14 +782,16 @@ void ChSuspensionTestRigPlatform::PlotOutput(const std::string& out_dir, const s
 // =============================================================================
 // ChSuspensionTestRigPushrod class implementation
 // =============================================================================
-ChSuspensionTestRigPushrod::ChSuspensionTestRigPushrod(ChWheeledVehicle& vehicle,  // vehicle source
-                                                       int axle_index,             // index of test suspension
-                                                       double displ_limit,         // limits for post displacement
-                                                       std::shared_ptr<ChTire> tire_left,   // left tire
-                                                       std::shared_ptr<ChTire> tire_right,  // right tire
-                                                       ChContactMethod contact_method       // contact method
-                                                       )
-    : ChSuspensionTestRig(vehicle, axle_index, displ_limit, tire_left, tire_right, contact_method) {
+ChSuspensionTestRigPushrod::ChSuspensionTestRigPushrod(
+    ChWheeledVehicle& vehicle,           // vehicle source
+    int axle_index,                      // index of test suspension
+    int steering_index,                  // index of associated steering subsystem (-1 for no steering)
+    double displ_limit,                  // limits for post displacement
+    std::shared_ptr<ChTire> tire_left,   // left tire
+    std::shared_ptr<ChTire> tire_right,  // right tire
+    ChContactMethod contact_method       // contact method
+    )
+    : ChSuspensionTestRig(vehicle, axle_index, steering_index, displ_limit, tire_left, tire_right, contact_method) {
     InitializeSubsystems();
     Create();
 }
@@ -808,6 +818,16 @@ ChSuspensionTestRigPushrod::ChSuspensionTestRigPushrod(
     : ChSuspensionTestRig(filename, tire_left, tire_right, contact_method) {
     InitializeSubsystems();
     Create();
+}
+
+ChSuspensionTestRigPushrod::~ChSuspensionTestRigPushrod() {
+    auto sys = m_rod[0]->GetSystem();
+    if (sys) {
+        sys->Remove(m_rod[0]);
+        sys->Remove(m_rod[1]);
+        sys->Remove(m_rod_linact[0]);
+        sys->Remove(m_rod_linact[1]);
+    }
 }
 
 void ChSuspensionTestRigPushrod::Create() {
@@ -876,7 +896,6 @@ void ChSuspensionTestRigPushrod::UpdateActuators(double displ_left,
                                                  double displ_speed_left,
                                                  double displ_right,
                                                  double displ_speed_right) {
-    double time = GetSystem()->GetChTime();
     auto func_L = std::static_pointer_cast<ChFunction_Setpoint>(m_rod_linact[LEFT]->Get_dist_funct());
     auto func_R = std::static_pointer_cast<ChFunction_Setpoint>(m_rod_linact[RIGHT]->Get_dist_funct());
     func_L->SetSetpointAndDerivatives(displ_left, displ_speed_left, 0.0);

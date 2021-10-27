@@ -65,6 +65,9 @@ class CH_VEHICLE_API ChTire : public ChPart {
     /// Get the tire radius.
     virtual double GetRadius() const = 0;
 
+    /// Get the tire width.
+    virtual double GetWidth() const = 0;
+
     /// Get the tire mass.
     /// Note that this should not include the mass of the wheel (rim).
     virtual double GetMass() const = 0;
@@ -110,6 +113,10 @@ class CH_VEHICLE_API ChTire : public ChPart {
 
     /// Report the tire deflection.
     virtual double GetDeflection() const { return 0; }
+
+    /// Get the name of the Wavefront file with tire visualization mesh.
+    /// An empty string is returned if no mesh was specified.
+    const std::string& GetMeshFilename() const { return m_vis_mesh_file; }
 
   public:
     // NOTE: Typically, users should not directly call these functions. They are public for use in special cases and to
@@ -221,6 +228,8 @@ class CH_VEHICLE_API ChTire : public ChPart {
     std::shared_ptr<ChWheel> m_wheel;  ///< associated wheel subsystem
     double m_stepsize;                 ///< tire integration step size (if applicable)
     CollisionType m_collision_type;    ///< method used for tire-terrain collision
+
+    std::string m_vis_mesh_file;  ///< name of OBJ file for visualization of this tire (may be empty)
 
   private:
     double m_slip_angle;

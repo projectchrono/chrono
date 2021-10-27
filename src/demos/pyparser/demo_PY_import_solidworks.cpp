@@ -110,7 +110,8 @@ int main(int argc, char* argv[]) {
 
     if (mescape_wheel && mtruss && mbalance && manchor) {
         // Set a constant torque to escape wheel, in a very simple way:
-        mescape_wheel->Set_Scr_torque(ChVector<>(0, -0.03, 0));
+        mescape_wheel->Empty_forces_accumulators();
+        mescape_wheel->Accumulate_torque(ChVector<>(0, -0.03, 0), false);
 
         // Add a torsional spring
         std::shared_ptr<ChLinkLockFree> mspring(new ChLinkLockFree);
@@ -141,7 +142,7 @@ int main(int argc, char* argv[]) {
 
     // Create the Irrlicht visualization (open the Irrlicht device,
     // bind a simple user interface, etc. etc.)
-    ChIrrApp application(&mphysicalSystem, L"Import a SolidWorks system", core::dimension2d<u32>(800, 600), false);
+    ChIrrApp application(&mphysicalSystem, L"Import a SolidWorks system", core::dimension2d<u32>(800, 600));
 
     // Easy shortcuts to add camera, lights, logo and sky in Irrlicht scene:
     application.AddTypicalLogo();

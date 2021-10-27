@@ -15,15 +15,42 @@
 #ifndef CHMATRIX_H
 #define CHMATRIX_H
 
-// Include this before ChMatrixEigenExtensions, that draws on it
+// Include these before ChMatrixEigenExtensions
 #include "chrono/serialization/ChArchive.h"
 #include "chrono/serialization/ChArchiveAsciiDump.h"
 
+// -----------------------------------------------------------------------------
+
 namespace chrono {
-	// A collective tag for storing version in ArchiveIN / ArchiveOUT:
-	class ChMatrix_dense_version_tag { }; 
-	CH_CLASS_VERSION(ChMatrix_dense_version_tag, 1)
-}
+// A collective tag for storing version in ArchiveIN / ArchiveOUT:
+class ChMatrix_dense_version_tag {};
+CH_CLASS_VERSION(ChMatrix_dense_version_tag, 1)
+}  // end namespace chrono
+
+// -----------------------------------------------------------------------------
+
+// Define Eigen::eigen_assert_exception. Note that this must precede inclusion of Eigen headers.
+// Required for Eigen 3.3.8 (bug in Eigen?)
+namespace Eigen {
+static const bool should_raise_an_assert = false;
+
+// Used to avoid to raise two exceptions at a time in which case the exception is not properly caught.
+// This may happen when a second exceptions is triggered in a destructor.
+static bool no_more_assert = false;
+////static bool report_on_cerr_on_assert_failure = true;
+
+struct eigen_assert_exception {
+    eigen_assert_exception(void) {}
+    ~eigen_assert_exception() { Eigen::no_more_assert = false; }
+};
+
+struct eigen_static_assert_exception {
+    eigen_static_assert_exception(void) {}
+    ~eigen_static_assert_exception() { Eigen::no_more_assert = false; }
+};
+}  // end namespace Eigen
+
+// -----------------------------------------------------------------------------
 
 #define EIGEN_MATRIXBASE_PLUGIN "chrono/core/ChMatrixEigenExtensions.h"
 #define EIGEN_SPARSEMATRIX_PLUGIN "chrono/core/ChSparseMatrixEigenExtensions.h"
@@ -32,7 +59,6 @@ namespace chrono {
 
 #include "chrono/ChConfig.h"
 #include "chrono/core/ChTypes.h"
-
 
 namespace chrono {
 
@@ -87,7 +113,8 @@ using ChMatrixRef = Eigen::Ref<Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dyna
 
 /// Constant reference to a dense matrix expression, with double coefficients.
 /// This allows writing non-template functions that can accept either a ChMatrixDynamic or a ChMatrixNM.
-using ChMatrixConstRef = const Eigen::Ref<const Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor>>&;
+using ChMatrixConstRef =
+    const Eigen::Ref<const Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor>>&;
 
 /// Reference to a column vector expression, with double coefficients.
 /// This allows writing non-template functions that can accept either a ChVectorDynamic or a ChVectorN.
@@ -142,13 +169,17 @@ inline void StreamOUTdenseMatlabFormat(ChMatrixConstRef A, ChStreamOutAscii& str
 
 /// Paste a given matrix into a sparse matrix at position (\a insrow, \a inscol).
 /// The matrix \a matrFrom will be copied into \a matrTo[insrow : insrow + \a matrFrom.GetRows()][inscol : inscol +
-/// matrFrom.GetColumns()] 
+/// matrFrom.GetColumns()]
 /// \param[out] matrTo The output sparse matrix
 /// \param[in] matrFrom The source matrix that will be copied
 /// \param[in] insrow The row index where the first element will be copied
 /// \param[in] inscol The column index where the first element will be copied
 /// \param[in] overwrite Indicate if the copied elements will overwrite existing elements or be summed to them
-inline void PasteMatrix(ChSparseMatrix& matrTo, ChMatrixConstRef matrFrom, int insrow, int inscol, bool overwrite = true) {
+inline void PasteMatrix(ChSparseMatrix& matrTo,
+                        ChMatrixConstRef matrFrom,
+                        int insrow,
+                        int inscol,
+                        bool overwrite = true) {
     if (overwrite) {
         for (auto i = 0; i < matrFrom.rows(); i++) {
             for (auto j = 0; j < matrFrom.cols(); j++) {
@@ -179,11 +210,11 @@ inline void StreamOUTsparseMatlabFormat(ChSparseMatrix& matr, ChStreamOutAscii& 
 
 /// Serialization of a sparse matrix to an ASCII stream (for debugging; only the top-left 8x8 corner is printed).
 inline void StreamOUT(ChSparseMatrix& matr, ChStreamOutAscii& stream) {
-	int mrows = static_cast<int>(matr.rows());
-	int mcols = static_cast<int>(matr.cols());
+    int mrows = static_cast<int>(matr.rows());
+    int mcols = static_cast<int>(matr.cols());
     stream << "\n"
-        << "Matrix " << mrows << " rows, " << mcols << " columns."
-        << "\n";
+           << "Matrix " << mrows << " rows, " << mcols << " columns."
+           << "\n";
     for (int i = 0; i < std::min(mrows, 8); i++) {
         for (int j = 0; j < std::min(mcols, 8); j++)
             stream << static_cast<double>(matr.coeff(i, j)) << "  ";
@@ -196,10 +227,6 @@ inline void StreamOUT(ChSparseMatrix& matr, ChStreamOutAscii& stream) {
 }
 
 /// @} chrono_linalg
-
-
-
-
 
 }  // end namespace chrono
 

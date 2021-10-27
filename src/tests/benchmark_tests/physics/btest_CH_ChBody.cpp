@@ -17,7 +17,6 @@
 #include "chrono/physics/ChSystemNSC.h"
 
 using namespace chrono;
-using namespace std;
 
 // Benchmarking fixture: create system and add bodies
 class SystemFixture : public ::benchmark::Fixture {

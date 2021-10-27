@@ -44,8 +44,7 @@ CityBus_TMeasyTire::CityBus_TMeasyTire(const std::string& name) : ChTMeasyTire(n
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 void CityBus_TMeasyTire::SetTMeasyParams() {
-    const double lbs2N = 4.4482216153;
-    unsigned int li = 152;
+    ////unsigned int li = 152;
     const double in2m = 0.0254;
     double h = (1.05 - 16 * in2m) / 2.0;
     double w = 0.295;
@@ -74,8 +73,8 @@ void CityBus_TMeasyTire::GenerateCharacteristicPlots(const std::string& dirname)
 // -----------------------------------------------------------------------------
 void CityBus_TMeasyTire::AddVisualizationAssets(VisualizationType vis) {
     if (vis == VisualizationType::MESH) {
-        m_trimesh_shape = AddVisualizationMesh(vehicle::GetDataFile(m_meshFile),   // left side
-                                               vehicle::GetDataFile(m_meshFile));  // right side
+        m_trimesh_shape = AddVisualizationMesh(m_meshFile,   // left side
+                                               m_meshFile);  // right side
     } else {
         ChTMeasyTire::AddVisualizationAssets(vis);
     }

@@ -28,7 +28,7 @@ namespace vehicle {
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 TrackDrivelineBDS::TrackDrivelineBDS(const std::string& filename) : ChTrackDrivelineBDS("") {
-    Document d = ReadFileJSON(filename);
+    Document d; ReadFileJSON(filename, d);
     if (d.IsNull())
         return;
 
@@ -54,7 +54,6 @@ void TrackDrivelineBDS::Create(const rapidjson::Document& d) {
     m_differentialbox_inertia = d["Differential Box Inertia"].GetDouble();
 
     m_conicalgear_ratio = d["Conical Gear Ratio"].GetDouble();
-    m_differential_ratio = d["Differential Ratio"].GetDouble();
 }
 
 }  // end namespace vehicle

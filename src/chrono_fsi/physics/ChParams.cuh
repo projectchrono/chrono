@@ -53,6 +53,7 @@ struct SimParams {
     uint numBodies;       ///<
     Real3 boxDims;        ///<  Dimensions of the domain. How big is the box that the domain is in.
     Real HSML;            ///<  Interaction Radius. (or h)
+    Real INVHSML;         ///<  1.0/h
     Real MULT_INITSPACE;  ///<  Multiplier to hsml to determine the initial separation of the fluid particles and the
                           ///<  fixed
                           ///<     separation for the boundary particles. This means that the separation will always be
@@ -88,7 +89,9 @@ struct SimParams {
                        ///<    directly, but instead they are affected indirectly through the fluid.
 
     Real rho0;       ///<  Density
+    Real invrho0;    ///<  Density's inverse
     Real rho_solid;  ///<  Solid Density
+    Real volume0;    ///<  Volume
 
     Real markerMass;  ///<  marker mass
     Real mu0;         ///<  Viscosity
@@ -212,14 +215,15 @@ struct SimParams {
     Real K_bulk;        ///< bulk modulus
     Real Nu_poisson;    ///< Poisson’s ratio
     Real Ar_stress;     ///< Artifical stress
-    Real Ar_vis_alpha;  ///< Artifical viscosity
-    Real Ar_vis_beta;   ///< Artifical viscosity
+    Real Ar_vis_alpha;  ///< Artifical viscosity coefficient
+    Real Ar_vis_beta;   ///< Artifical viscosity coefficient
     Real Fri_angle;     ///< frictional angle of granular material
     Real Dil_angle;     ///< dilate angle of granular material
     Real Coh_coeff;     ///< cohesion coefficient
     Real Q_FA;          ///< material constants calculate from frictional angle
     Real Q_DA;          ///< material constants calculate from dilate angle
     Real K_FA;          ///< material constants calculate from frictional angle and cohesion coefficient
+    Real C_Wi;          ///< threshold of the integration of the kernel function
 
     ////< Dimension of the space domain
     Real boxDimX;
@@ -229,6 +233,22 @@ struct SimParams {
     Real fluidDimX;
     Real fluidDimY;
     Real fluidDimZ;
+
+    ///< information of the body in fluid/granular material
+    Real bodyDimX;
+    Real bodyDimY;
+    Real bodyDimZ;
+    Real bodyRad;
+    Real bodyLength;
+    Real bodyIniPosX;
+    Real bodyIniPosY;
+    Real bodyIniPosZ;
+    Real bodyIniVelX;
+    Real bodyIniVelY;
+    Real bodyIniVelZ;
+    Real bodyIniAngVel;
+    Real bodyMass;
+    Real bodyDensity;
 };  // namespace fsi
 
 }  // namespace fsi

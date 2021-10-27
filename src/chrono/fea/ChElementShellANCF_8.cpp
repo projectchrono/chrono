@@ -40,7 +40,7 @@ namespace fea {
 // ------------------------------------------------------------------------------
 
 ChElementShellANCF_8::ChElementShellANCF_8()
-    : m_gravity_on(false), m_numLayers(0), m_thickness(0), m_lenX(0), m_lenY(0), m_Alpha(0) {
+    : m_numLayers(0), m_lenX(0), m_lenY(0), m_thickness(0), m_Alpha(0), m_gravity_on(false) {
     m_nodes.resize(8);
 }
 
@@ -438,9 +438,6 @@ void ShellANCF8_Force::Evaluate(ChVectorN<double, 72>& result, const double x, c
     beta(8) = Vdot(AA3, j03);
 
     // Transformation matrix, function of fiber angle
-    const ChMatrixNM<double, 6, 6>& T0 = m_element->GetLayer(m_kl).Get_T0();
-    // Determinant of the initial position vector gradient at the element center
-    double detJ0C = m_element->GetLayer(m_kl).Get_detJ0C();
 
     ChVectorN<double, 24> ddNx = m_element->m_ddT * Nx.transpose();
     ChVectorN<double, 24> ddNy = m_element->m_ddT * Ny.transpose();
@@ -732,9 +729,6 @@ void ShellANCF8_Jacobian::Evaluate(ChVectorN<double, 5184>& result, const double
     beta(8) = Vdot(AA3, j03);
 
     // Transformation matrix, function of fiber angle
-    const ChMatrixNM<double, 6, 6>& T0 = m_element->GetLayer(m_kl).Get_T0();
-    // Determinant of the initial position vector gradient at the element center
-    double detJ0C = m_element->GetLayer(m_kl).Get_detJ0C();
 
     ChVectorN<double, 24> ddNx = m_element->m_ddT * Nx.transpose();
     ChVectorN<double, 24> ddNy = m_element->m_ddT * Ny.transpose();
@@ -984,8 +978,6 @@ void ChElementShellANCF_8::ComputeInternalJacobians(double Kfactor, double Rfact
 // -----------------------------------------------------------------------------
 
 void ChElementShellANCF_8::ShapeFunctions(ShapeVector& N, double x, double y, double z) {
-    double a = GetLengthX();
-    double b = GetLengthY();
     double c = m_thickness;
 
     N(0) = -(-1 + y) * (-1 + x) * (x + y + 1) / 4;
@@ -1016,7 +1008,6 @@ void ChElementShellANCF_8::ShapeFunctions(ShapeVector& N, double x, double y, do
 
 void ChElementShellANCF_8::ShapeFunctionsDerivativeX(ShapeVector& Nx, double x, double y, double z) {
     double a = GetLengthX();
-    double b = GetLengthY();
     double c = m_thickness;
 
     Nx(0) = -((2 * x + y) * (y - 1)) / (2 * a);
@@ -1046,7 +1037,6 @@ void ChElementShellANCF_8::ShapeFunctionsDerivativeX(ShapeVector& Nx, double x, 
 }
 
 void ChElementShellANCF_8::ShapeFunctionsDerivativeY(ShapeVector& Ny, double x, double y, double z) {
-    double a = GetLengthX();
     double b = GetLengthY();
     double c = m_thickness;
 
@@ -1077,8 +1067,6 @@ void ChElementShellANCF_8::ShapeFunctionsDerivativeY(ShapeVector& Ny, double x, 
 }
 
 void ChElementShellANCF_8::ShapeFunctionsDerivativeZ(ShapeVector& Nz, double x, double y, double z) {
-    double a = GetLengthX();
-    double b = GetLengthY();
     double c = m_thickness;
     Nz(0) = 0.0;
     Nz(1) = -((x - 1) * (y - 1) * (x + y + 1)) / 4;
@@ -1395,7 +1383,6 @@ ChStrainStress3D ChElementShellANCF_8::EvaluateSectionStrainStress(const ChVecto
     A2.Cross(A3, A1);
 
     // Direction for orthotropic material
-    double theta = 0.0;  // Fiber angle
     ChVector<double> AA1;
     ChVector<double> AA2;
     ChVector<double> AA3;
@@ -1443,9 +1430,6 @@ ChStrainStress3D ChElementShellANCF_8::EvaluateSectionStrainStress(const ChVecto
     beta(8) = Vdot(AA3, j03);
 
     // Transformation matrix, function of fiber angle
-    const ChMatrixNM<double, 6, 6>& T0 = this->GetLayer(layer_id).Get_T0();
-    // Determinant of the initial position vector gradient at the element center
-    double detJ0C = this->GetLayer(layer_id).Get_detJ0C();
 
     ChVectorN<double, 24> ddNx = m_ddT * Nx.transpose();
     ChVectorN<double, 24> ddNy = m_ddT * Ny.transpose();

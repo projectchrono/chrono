@@ -133,7 +133,8 @@ class ChApi ChShaft : public ChPhysicsItem, public ChLoadable {
                                  const ChState& x,
                                  const unsigned int off_v,
                                  const ChStateDelta& v,
-                                 const double T) override;
+                                 const double T,
+                                 bool full_update) override;
     virtual void IntStateGatherAcceleration(const unsigned int off_a, ChStateDelta& a) override;
     virtual void IntStateScatterAcceleration(const unsigned int off_a, const ChStateDelta& a) override;
     virtual void IntLoadResidual_F(const unsigned int off, ChVectorDynamic<>& R, const double c) override;
@@ -206,6 +207,7 @@ class ChApi ChShaft : public ChPhysicsItem, public ChLoadable {
     virtual int GetSubBlocks() override { return 1; }
     virtual unsigned int GetSubBlockOffset(int nblock) override { return this->GetOffset_w(); }
     virtual unsigned int GetSubBlockSize(int nblock) override { return 1; }
+    virtual bool IsSubBlockActive(int nblock) const override { return true; }
     virtual void LoadableGetVariables(std::vector<ChVariables*>& mvars) override { mvars.push_back(&this->Variables()); };
 
 

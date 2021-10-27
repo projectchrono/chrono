@@ -1,6 +1,6 @@
 #=============================================================================
 # CMake configuration file for the Chrono Python module
-# 
+#
 # Cannot be used stand-alone (it's loaded by CMake config. file in parent dir.)
 #=============================================================================
 
@@ -58,7 +58,7 @@ message(STATUS "...find Python")
 
 set(Python_ADDITIONAL_VERSIONS 3.4)
 find_package(PythonInterp REQUIRED)
-find_package(PythonLibs ${PYTHON_VERSION_STRING} EXACT) 
+find_package(PythonLibs ${PYTHON_VERSION_STRING} EXACT)
 
 get_filename_component(CH_PYTHONDIR "${PYTHON_EXECUTABLE}" PATH)
 set(CH_PYTHONINC "${PYTHON_INCLUDE_DIR}")
@@ -88,18 +88,33 @@ include(${SWIG_USE_FILE})
 if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
   set(CMAKE_CXX_FLAGS_DEBUG   "${CMAKE_CXX_FLAGS_DEBUG}   /bigobj")
   set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} /bigobj")
+  set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "${CMAKE_CXX_FLAGS_RELWITHDEBINFO} /bigobj")
 endif()
-
+ 
 # Set location of SWIG-generated files.
 # Note that *.py files are also generated in this location.
-set(CMAKE_SWIG_OUTDIR "${PROJECT_BINARY_DIR}/swig")
-SET(CMAKE_SWIG_FLAGS "-c++")
+set(CMAKE_SWIG_OUTDIR "${PROJECT_BINARY_DIR}/chrono_python")
+
+# Set SWIG flags.  Disable selected SWIG warnings 
+set(CMAKE_SWIG_FLAGS "-c++;-w302,362,389,401,509")
 
 if(DBG_SCRIPT)
   message("SWIG_USE_FILE:      ${SWIG_USE_FILE}")
   message("CMAKE_SWIG_OUTDIR:  ${CMAKE_SWIG_OUTDIR}")
   message("Installation path:  ${CMAKE_INSTALL_PREFIX}/${CH_INSTALL_PYTHON}")
   message("Installation prefix path:  ${CMAKE_INSTALL_PREFIX}")
+endif()
+
+# Disable additional warnings for generated C++ code
+if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+elseif(MSVC)
+   add_compile_options(/wd4189)  # local variable is initialized but not referenced
+   add_compile_options(/wd4275)  # non-DLL-interface class used as base for DLL-interface class
+   add_compile_options(/wd4456)  # declaration hides previous local declaration
+   add_compile_options(/wd4702)  # unreachable code
+   add_compile_options(/wd4706)  # assignment within conditional expression
+else()
+   add_compile_options(-Wno-unused-variable)
 endif()
 
 #-----------------------------------------------------------------------------
@@ -122,13 +137,13 @@ source_group(""  FILES  ${ChronoEngine_PYPARSER_SOURCES} ${ChronoEngine_PYPARSER
 
 include_directories(${CH_PYTHONINC})
 
-add_library(ChronoEngine_pyparser SHARED 
+add_library(ChronoEngine_pyparser SHARED
             ${ChronoEngine_PYPARSER_SOURCES}
             ${ChronoEngine_PYPARSER_HEADERS})
 
-set_target_properties(ChronoEngine_pyparser PROPERTIES 
+set_target_properties(ChronoEngine_pyparser PROPERTIES
                       LINK_FLAGS "${CH_LINKERFLAG_SHARED}")
-                          
+
 target_compile_definitions(ChronoEngine_pyparser PRIVATE "CH_API_COMPILE_PYPARSER")
 target_compile_definitions(ChronoEngine_pyparser PRIVATE "CH_IGNORE_DEPRECATED")
 
@@ -141,6 +156,8 @@ install(TARGETS ChronoEngine_pyparser
         LIBRARY DESTINATION lib
         ARCHIVE DESTINATION lib)
 
+INSTALL(FILES ${ChronoEngine_PYPARSER_HEADERS} DESTINATION include/chrono_python)
+
 #-----------------------------------------------------------------------------
 # MODULE for the core wrapper, including most of the C::E
 #-----------------------------------------------------------------------------
@@ -152,13 +169,13 @@ set(CHPY_CORE core)
 
 # Interface files
 set(CHPY_CORE_MODULE_FILE
-    ChModuleCore.i
+    core/ChModuleCore.i
     )
 set(CHPY_CORE_WRAPPER_FILES
-    ChException.i
-    ChCoordsys.i
-    ChVector.i
-    ChQuaternion.i
+    core/ChException.i
+    core/ChCoordsys.i
+    core/ChVector.i
+    core/ChQuaternion.i
     )
 
 if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
@@ -170,14 +187,14 @@ source_group("wrappers" FILES  ${CHPY_CORE_WRAPPER_FILES})
 
 # Create the SWIG module.
 if(${CMAKE_VERSION} VERSION_LESS "3.8.0")
-  SWIG_ADD_MODULE(${CHPY_CORE} python ${CHPY_CORE_MODULE_FILE}) 
+  SWIG_ADD_MODULE(${CHPY_CORE} python ${CHPY_CORE_MODULE_FILE})
 else()
   SWIG_ADD_LIBRARY(${CHPY_CORE} LANGUAGE python SOURCES ${CHPY_CORE_MODULE_FILE})
 endif()
 SWIG_LINK_LIBRARIES(${CHPY_CORE} ${PYTHON_LIBRARY} ChronoEngine)
 
 # Ensure that the PYD library file is generated in the bin/ directory.
-set_target_properties(${SWIG_MODULE_${CHPY_CORE}_REAL_NAME} PROPERTIES 
+set_target_properties(${SWIG_MODULE_${CHPY_CORE}_REAL_NAME} PROPERTIES
                       PROJECT_LABEL "ChronoEngine_python_${CHPY_CORE}"
                       OUTPUT_NAME   "${SWIG_MODULE_${CHPY_CORE}_REAL_NAME}"
                       LIBRARY_OUTPUT_DIRECTORY "${EXECUTABLE_OUTPUT_PATH}"
@@ -199,7 +216,7 @@ add_custom_command(TARGET ${SWIG_MODULE_${CHPY_CORE}_REAL_NAME}
                    COMMAND ${CMAKE_COMMAND} -E copy ${CHPY_CORE_PY_FILE} ${CHPY_CORE_PYD_PATH}/${CHPY_PACKAGENAME})
 
 # Set default path for Chrono data files relative to python demos in source tree
-set(PYCHRONO_DATA_PATH "../../../data" CACHE STRING "Path to Chrono data files (for Python demos)")
+set(PYCHRONO_DATA_PATH "../../../../data" CACHE STRING "Path to Chrono data files (for Python demos)")
 
 # Generate the __init__.py file using substitution variables and place it in a temporary place
 configure_file(${CMAKE_SOURCE_DIR}/contrib/packaging-python/__init__.py.in
@@ -216,7 +233,7 @@ install(TARGETS ${SWIG_MODULE_${CHPY_CORE}_REAL_NAME}
         LIBRARY DESTINATION "${CH_INSTALL_PYTHON}/${CHPY_PACKAGENAME}"
         ARCHIVE DESTINATION "${CH_INSTALL_PYTHON}/${CHPY_PACKAGENAME}")
 
-# Install .py module wrapper 
+# Install .py module wrapper
 install(FILES "${CHPY_CORE_PY_FILE}" DESTINATION "${CH_INSTALL_PYTHON}/${CHPY_PACKAGENAME}")
 
 # Install __init__.py to signal the directory is a python package
@@ -242,13 +259,13 @@ endif()
 if(ENABLE_MODULE_POSTPROCESS)
 
   message(STATUS "...add Chrono::Python POSTPROCESS module")
-  
+
   # Python module name
   set(CHPY_POSTPROCESS postprocess)
 
   # Interface files
-  set(CHPY_POSTPROCESS_MODULE_FILE 
-      ChModulePostprocess.i
+  set(CHPY_POSTPROCESS_MODULE_FILE
+      postprocess/ChModulePostprocess.i
       )
 
   if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
@@ -265,7 +282,7 @@ if(ENABLE_MODULE_POSTPROCESS)
   SWIG_LINK_LIBRARIES(${CHPY_POSTPROCESS} ${PYTHON_LIBRARY} ChronoEngine ChronoEngine_postprocess)
 
   # Ensure that the PYD library file is generated in the bin/ directory.
-  set_target_properties(${SWIG_MODULE_${CHPY_POSTPROCESS}_REAL_NAME} PROPERTIES 
+  set_target_properties(${SWIG_MODULE_${CHPY_POSTPROCESS}_REAL_NAME} PROPERTIES
                         PROJECT_LABEL "ChronoEngine_python_${CHPY_POSTPROCESS}"
                         OUTPUT_NAME   "${SWIG_MODULE_${CHPY_POSTPROCESS}_REAL_NAME}"
                         LIBRARY_OUTPUT_DIRECTORY "${EXECUTABLE_OUTPUT_PATH}"
@@ -277,7 +294,7 @@ if(ENABLE_MODULE_POSTPROCESS)
   ADD_DEPENDENCIES(${SWIG_MODULE_${CHPY_POSTPROCESS}_REAL_NAME} ChronoEngine_postprocess)
   ADD_DEPENDENCIES(${SWIG_MODULE_${CHPY_POSTPROCESS}_REAL_NAME} ${SWIG_MODULE_${CHPY_CORE}_REAL_NAME})
 
-  # Copy PY file in a package dir 
+  # Copy PY file in a package dir
   set(CHPY_POSTPROCESS_PY_FILE "${CMAKE_SWIG_OUTDIR}/${CHPY_POSTPROCESS}.py")
   get_target_property(CHPY_POSTPROCESS_PYD_FILE ${SWIG_MODULE_${CHPY_POSTPROCESS}_REAL_NAME} LOCATION)
   get_filename_component(CHPY_POSTPROCESS_PYD_PATH "${CHPY_POSTPROCESS_PYD_FILE}" PATH)
@@ -311,13 +328,13 @@ endif()
 #-----------------------------------------------------------------------------
 
   message(STATUS "...add Chrono::Python FEA module")
-  
+
   # Python module name
   set(CHPY_FEA fea)
 
   # Interface files
-  set(CHPY_FEA_MODULE_FILE 
-      ChModuleFea.i
+  set(CHPY_FEA_MODULE_FILE
+      fea/ChModuleFea.i
       )
 
   if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
@@ -334,7 +351,7 @@ endif()
 SWIG_LINK_LIBRARIES(${CHPY_FEA} ${PYTHON_LIBRARY} ChronoEngine)
 
   # Ensure that the PYD library file is generated in the bin/ directory.
-  set_target_properties(${SWIG_MODULE_${CHPY_FEA}_REAL_NAME} PROPERTIES 
+  set_target_properties(${SWIG_MODULE_${CHPY_FEA}_REAL_NAME} PROPERTIES
                         PROJECT_LABEL "ChronoEngine_python_${CHPY_FEA}"
                         OUTPUT_NAME   "${SWIG_MODULE_${CHPY_FEA}_REAL_NAME}"
                         LIBRARY_OUTPUT_DIRECTORY "${EXECUTABLE_OUTPUT_PATH}"
@@ -345,7 +362,7 @@ SWIG_LINK_LIBRARIES(${CHPY_FEA} ${PYTHON_LIBRARY} ChronoEngine)
   ADD_DEPENDENCIES(${SWIG_MODULE_${CHPY_FEA}_REAL_NAME} ChronoEngine)
   ADD_DEPENDENCIES(${SWIG_MODULE_${CHPY_FEA}_REAL_NAME} ${SWIG_MODULE_${CHPY_CORE}_REAL_NAME})
 
-  # Copy PY file in a package dir 
+  # Copy PY file in a package dir
   set(CHPY_FEA_PY_FILE "${CMAKE_SWIG_OUTDIR}/${CHPY_FEA}.py")
   get_target_property(CHPY_FEA_PYD_FILE ${SWIG_MODULE_${CHPY_FEA}_REAL_NAME} LOCATION)
   get_filename_component(CHPY_FEA_PYD_PATH "${CHPY_FEA_PYD_FILE}" PATH)
@@ -379,22 +396,19 @@ SWIG_LINK_LIBRARIES(${CHPY_FEA} ${PYTHON_LIBRARY} ChronoEngine)
 if(ENABLE_MODULE_IRRLICHT)
 
   message(STATUS "...add Chrono::Python IRRLICHT module")
-  
+
   # Python module name
   set(CHPY_IRRLICHT irrlicht)
 
   # Interface files
-  set(CHPY_IRRLICHT_MODULE_FILE 
-      ChModuleIrrlicht.i
+  set(CHPY_IRRLICHT_MODULE_FILE
+      irrlicht/ChModuleIrrlicht.i
       )
 
   include_directories(${CH_IRRLICHTINC})
 
   if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
     set_source_files_properties(${CHPY_IRRLICHT_MODULE_FILE} PROPERTIES COMPILE_FLAGS "-D_WIN32")
-    if(CMAKE_CXX_COMPILER_ID MATCHES "MSVC")
-      add_compile_options(/wd4275)
-    endif()
   endif()
   set_source_files_properties(${CHPY_IRRLICHT_MODULE_FILE} PROPERTIES CPLUSPLUS ON)
 
@@ -407,7 +421,7 @@ if(ENABLE_MODULE_IRRLICHT)
   SWIG_LINK_LIBRARIES(${CHPY_IRRLICHT} ${PYTHON_LIBRARY} ChronoEngine ChronoEngine_irrlicht)
 
   # Ensure that the PYD library file is generated in the bin/ directory.
-  set_target_properties(${SWIG_MODULE_${CHPY_IRRLICHT}_REAL_NAME} PROPERTIES 
+  set_target_properties(${SWIG_MODULE_${CHPY_IRRLICHT}_REAL_NAME} PROPERTIES
                         PROJECT_LABEL "ChronoEngine_python_${CHPY_IRRLICHT}"
                         OUTPUT_NAME   "${SWIG_MODULE_${CHPY_IRRLICHT}_REAL_NAME}"
                         LIBRARY_OUTPUT_DIRECTORY "${EXECUTABLE_OUTPUT_PATH}"
@@ -420,7 +434,7 @@ if(ENABLE_MODULE_IRRLICHT)
   ADD_DEPENDENCIES(${SWIG_MODULE_${CHPY_IRRLICHT}_REAL_NAME} ChronoEngine_irrlicht)
   ADD_DEPENDENCIES(${SWIG_MODULE_${CHPY_IRRLICHT}_REAL_NAME} ${SWIG_MODULE_${CHPY_CORE}_REAL_NAME})
 
-  # Copy PY file in a package dir 
+  # Copy PY file in a package dir
   set(CHPY_IRRLICHT_PY_FILE "${CMAKE_SWIG_OUTDIR}/${CHPY_IRRLICHT}.py")
   get_target_property(CHPY_IRRLICHT_PYD_FILE ${SWIG_MODULE_${CHPY_IRRLICHT}_REAL_NAME} LOCATION)
   get_filename_component(CHPY_IRRLICHT_PYD_PATH "${CHPY_IRRLICHT_PYD_FILE}" PATH)
@@ -451,19 +465,19 @@ endif()
 
 
 #-----------------------------------------------------------------------------
-# MODULE for the mkl python wrapper.
+# MODULE for the Pardiso mkl python wrapper.
 #-----------------------------------------------------------------------------
 
-if(ENABLE_MODULE_MKL)
+if(ENABLE_MODULE_PARDISO_MKL)
 
-  message(STATUS "...add python MKL module:  pychrono.mkl")
-  
+  message(STATUS "...add python Pardiso MKL module:  pychrono.pardisomkl")
+
   # Python module name
-  set(CHPY_MKL mkl)
+  set(CHPY_MKL pardisomkl)
 
   # Interface files
-  set(CHPY_MKL_MODULE_FILE 
-      ChModuleMkl.i
+  set(CHPY_MKL_MODULE_FILE
+      pardisomkl/ChModulePardisoMkl.i
       )
 
   include_directories(${CH_MKL_INCLUDES})
@@ -479,10 +493,10 @@ if(ENABLE_MODULE_MKL)
   else()
     SWIG_ADD_LIBRARY(${CHPY_MKL} LANGUAGE python SOURCES ${CHPY_MKL_MODULE_FILE})
   endif()
-  SWIG_LINK_LIBRARIES(${CHPY_MKL} ${PYTHON_LIBRARY} ChronoEngine ChronoEngine_mkl)
+  SWIG_LINK_LIBRARIES(${CHPY_MKL} ${PYTHON_LIBRARY} ChronoEngine ChronoEngine_pardisomkl)
 
   # Ensure that the PYD library file is generated in the bin/ directory.
-  set_target_properties(${SWIG_MODULE_${CHPY_MKL}_REAL_NAME} PROPERTIES 
+  set_target_properties(${SWIG_MODULE_${CHPY_MKL}_REAL_NAME} PROPERTIES
                         PROJECT_LABEL "ChronoEngine_python_${CHPY_MKL}"
                         OUTPUT_NAME   "${SWIG_MODULE_${CHPY_MKL}_REAL_NAME}"
                         LIBRARY_OUTPUT_DIRECTORY "${EXECUTABLE_OUTPUT_PATH}"
@@ -491,10 +505,10 @@ if(ENABLE_MODULE_MKL)
   target_compile_definitions(${SWIG_MODULE_${CHPY_MKL}_REAL_NAME} PRIVATE "CH_IGNORE_DEPRECATED")
 
   ADD_DEPENDENCIES(${SWIG_MODULE_${CHPY_MKL}_REAL_NAME} ChronoEngine)
-  ADD_DEPENDENCIES(${SWIG_MODULE_${CHPY_MKL}_REAL_NAME} ChronoEngine_mkl)
+  ADD_DEPENDENCIES(${SWIG_MODULE_${CHPY_MKL}_REAL_NAME} ChronoEngine_pardisomkl)
   ADD_DEPENDENCIES(${SWIG_MODULE_${CHPY_MKL}_REAL_NAME} ${SWIG_MODULE_${CHPY_CORE}_REAL_NAME})
 
-  # Copy PY file in a package dir 
+  # Copy PY file in a package dir
   set(CHPY_MKL_PY_FILE "${CMAKE_SWIG_OUTDIR}/${CHPY_MKL}.py")
   get_target_property(CHPY_MKL_PYD_FILE ${SWIG_MODULE_${CHPY_MKL}_REAL_NAME} LOCATION)
   get_filename_component(CHPY_MKL_PYD_PATH "${CHPY_MKL_PYD_FILE}" PATH)
@@ -523,13 +537,13 @@ endif()
 if(ENABLE_MODULE_CASCADE)
 
   message(STATUS "...add python CASCADE module:  pychrono.cascade")
-  
+
   # Python module name
   set(CHPY_CASCADE cascade)
 
   # Interface files
-  set(CHPY_CASCADE_MODULE_FILE 
-      ChModuleCascade.i
+  set(CHPY_CASCADE_MODULE_FILE
+      cascade/ChModuleCascade.i
       )
 
   include_directories(${CASCADE_INCLUDE_DIR})
@@ -554,9 +568,9 @@ if(ENABLE_MODULE_CASCADE)
   #if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
   #  set_target_properties(${SWIG_MODULE_${CHPY_CASCADE}_REAL_NAME} PROPERTIES SWIG_COMPILE_OPTIONS "-D_WIN32 -DWNT")
   #endif()
-  
+
   # Ensure that the PYD library file is generated in the bin/ directory.
-  set_target_properties(${SWIG_MODULE_${CHPY_CASCADE}_REAL_NAME} PROPERTIES 
+  set_target_properties(${SWIG_MODULE_${CHPY_CASCADE}_REAL_NAME} PROPERTIES
                         PROJECT_LABEL "ChronoEngine_python_${CHPY_CASCADE}"
                         OUTPUT_NAME   "${SWIG_MODULE_${CHPY_CASCADE}_REAL_NAME}"
                         LIBRARY_OUTPUT_DIRECTORY "${EXECUTABLE_OUTPUT_PATH}"
@@ -568,7 +582,7 @@ if(ENABLE_MODULE_CASCADE)
   ADD_DEPENDENCIES(${SWIG_MODULE_${CHPY_CASCADE}_REAL_NAME} ChronoEngine_cascade)
   ADD_DEPENDENCIES(${SWIG_MODULE_${CHPY_CASCADE}_REAL_NAME} ${SWIG_MODULE_${CHPY_CORE}_REAL_NAME})
 
-  # Copy PY file in a package dir 
+  # Copy PY file in a package dir
   set(CHPY_CASCADE_PY_FILE "${CMAKE_SWIG_OUTDIR}/${CHPY_CASCADE}.py")
   get_target_property(CHPY_CASCADE_PYD_FILE ${SWIG_MODULE_${CHPY_CASCADE}_REAL_NAME} LOCATION)
   get_filename_component(CHPY_CASCADE_PYD_PATH "${CHPY_CASCADE_PYD_FILE}" PATH)
@@ -597,13 +611,13 @@ endif()
 if(ENABLE_MODULE_VEHICLE)
 
   message(STATUS "...add python vehicle module:  pychrono.vehicle")
-  
+
   # Python module name
   set(CHPY_VEHICLE vehicle)
 
   # Interface files
-  set(CHPY_VEHICLE_MODULE_FILE 
-      ChModuleVehicle.i
+  set(CHPY_VEHICLE_MODULE_FILE
+      vehicle/ChModuleVehicle.i
       )
 
   include_directories(${VEHICLE_INCLUDE_DIR})
@@ -614,7 +628,7 @@ if(ENABLE_MODULE_VEHICLE)
 
   # Make sure CHRONO_IRRLICHT is defined for the SWIG processor
   if (ENABLE_MODULE_IRRLICHT)
-    set(CMAKE_SWIG_FLAGS -DCHRONO_IRRLICHT)
+    set(CMAKE_SWIG_FLAGS "${CMAKE_SWIG_FLAGS};-DCHRONO_IRRLICHT")
   endif()
 
   if(${CMAKE_VERSION} VERSION_LESS "3.8.0")
@@ -623,6 +637,9 @@ if(ENABLE_MODULE_VEHICLE)
     SWIG_ADD_LIBRARY(${CHPY_VEHICLE} LANGUAGE python SOURCES ${CHPY_VEHICLE_MODULE_FILE})
   endif()
   SWIG_LINK_LIBRARIES(${CHPY_VEHICLE} ${PYTHON_LIBRARY} ChronoEngine ChronoEngine_vehicle)
+  if(ENABLE_MODULE_IRRLICHT)
+    SWIG_LINK_LIBRARIES(${CHPY_VEHICLE} ${PYTHON_LIBRARY} ChronoEngine ChronoEngine_vehicle_irrlicht)
+  endif()
   SWIG_LINK_LIBRARIES(${CHPY_VEHICLE} ${PYTHON_LIBRARY} ChronoEngine ChronoModels_vehicle)
 
   IF(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
@@ -635,9 +652,9 @@ if(ENABLE_MODULE_VEHICLE)
   #if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
   #  set_target_properties(${SWIG_MODULE_${CHPY_VEHICLE}_REAL_NAME} PROPERTIES SWIG_COMPILE_OPTIONS "-D_WIN32 -DWNT")
   #endif()
-  
+
   # Ensure that the PYD library file is generated in the bin/ directory.
-  set_target_properties(${SWIG_MODULE_${CHPY_VEHICLE}_REAL_NAME} PROPERTIES 
+  set_target_properties(${SWIG_MODULE_${CHPY_VEHICLE}_REAL_NAME} PROPERTIES
                         PROJECT_LABEL "ChronoEngine_python_${CHPY_VEHICLE}"
                         OUTPUT_NAME   "${SWIG_MODULE_${CHPY_VEHICLE}_REAL_NAME}"
                         LIBRARY_OUTPUT_DIRECTORY "${EXECUTABLE_OUTPUT_PATH}"
@@ -647,10 +664,13 @@ if(ENABLE_MODULE_VEHICLE)
 
   ADD_DEPENDENCIES(${SWIG_MODULE_${CHPY_VEHICLE}_REAL_NAME} ChronoEngine)
   ADD_DEPENDENCIES(${SWIG_MODULE_${CHPY_VEHICLE}_REAL_NAME} ChronoEngine_vehicle)
+  if(ENABLE_MODULE_IRRLICHT)
+    ADD_DEPENDENCIES(${SWIG_MODULE_${CHPY_VEHICLE}_REAL_NAME} ChronoEngine_irrlicht)
+  endif()
   ADD_DEPENDENCIES(${SWIG_MODULE_${CHPY_VEHICLE}_REAL_NAME} ChronoModels_vehicle)
   ADD_DEPENDENCIES(${SWIG_MODULE_${CHPY_VEHICLE}_REAL_NAME} ${SWIG_MODULE_${CHPY_CORE}_REAL_NAME})
 
-  # Copy PY file in a package dir 
+  # Copy PY file in a package dir
   set(CHPY_VEHICLE_PY_FILE "${CMAKE_SWIG_OUTDIR}/${CHPY_VEHICLE}.py")
   get_target_property(CHPY_VEHICLE_PYD_FILE ${SWIG_MODULE_${CHPY_VEHICLE}_REAL_NAME} LOCATION)
   get_filename_component(CHPY_VEHICLE_PYD_PATH "${CHPY_VEHICLE_PYD_FILE}" PATH)
@@ -670,6 +690,156 @@ if(ENABLE_MODULE_VEHICLE)
   install(FILES "${CHPY_VEHICLE_PY_FILE}" DESTINATION "${CH_INSTALL_PYTHON}/${CHPY_PACKAGENAME}")
 
 endif()
+
+#-----------------------------------------------------------------------------
+# MODULE for the sensor python wrapper.
+#-----------------------------------------------------------------------------
+
+if(ENABLE_MODULE_SENSOR)
+  message(STATUS "...add Chrono::Python SENSOR module")
+
+  set(NUMPY_INCLUDE_DIR "${NUMPY_INCLUDE_DIR}" CACHE PATH "")
+
+  if(NUMPY_INCLUDE_DIR)
+      message(STATUS "NUMPY_INCLUDE_DIR:   ${NUMPY_INCLUDE_DIR}")
+  else()
+      message("Warning: Numpy include add_subdirectory not set.  The PyChrono sensor module will not be built!")
+  endif()
+endif()
+
+if(ENABLE_MODULE_SENSOR AND NUMPY_INCLUDE_DIR)
+
+  # Python module name
+  set(CHPY_SENSOR sensor)
+
+  # Interface files
+  set(CHPY_SENSOR_MODULE_FILE
+          sensor/ChModuleSensor.i
+          )
+
+  include_directories(${NUMPY_INCLUDE_DIR})
+  include_directories(${CH_SENSOR_INCLUDES})
+
+  if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
+    set_source_files_properties(${CHPY_SENSOR_MODULE_FILE} PROPERTIES COMPILE_FLAGS "-D_WIN32")
+  endif()
+  set_source_files_properties(${CHPY_SENSOR_MODULE_FILE} PROPERTIES CPLUSPLUS ON)
+
+  # Create the SWIG module.
+  if(${CMAKE_VERSION} VERSION_LESS "3.8.0")
+    SWIG_ADD_MODULE(${CHPY_SENSOR} python ${CHPY_SENSOR_MODULE_FILE})
+  else()
+    SWIG_ADD_LIBRARY(${CHPY_SENSOR} LANGUAGE python SOURCES ${CHPY_SENSOR_MODULE_FILE})
+  endif()
+  SWIG_LINK_LIBRARIES(${CHPY_SENSOR} ${PYTHON_LIBRARY} ChronoEngine ChronoEngine_sensor ${SENSOR_LIBRARIES})
+
+  # Ensure that the PYD library file is generated in the bin/ directory.
+  set_target_properties(${SWIG_MODULE_${CHPY_SENSOR}_REAL_NAME} PROPERTIES
+          PROJECT_LABEL "ChronoEngine_python_${CHPY_SENSOR}"
+          OUTPUT_NAME   "${SWIG_MODULE_${CHPY_SENSOR}_REAL_NAME}"
+          LIBRARY_OUTPUT_DIRECTORY "${EXECUTABLE_OUTPUT_PATH}"
+          )
+
+  ADD_DEPENDENCIES(${SWIG_MODULE_${CHPY_SENSOR}_REAL_NAME} ChronoEngine)
+  ADD_DEPENDENCIES(${SWIG_MODULE_${CHPY_SENSOR}_REAL_NAME} ChronoEngine_sensor)
+  ADD_DEPENDENCIES(${SWIG_MODULE_${CHPY_SENSOR}_REAL_NAME} ${SWIG_MODULE_${CHPY_CORE}_REAL_NAME})
+
+  # Copy PY file in a package dir
+  set(CHPY_SENSOR_PY_FILE "${CMAKE_SWIG_OUTDIR}/${CHPY_SENSOR}.py")
+  get_target_property(CHPY_SENSOR_PYD_FILE ${SWIG_MODULE_${CHPY_SENSOR}_REAL_NAME} LOCATION)
+  get_filename_component(CHPY_SENSOR_PYD_PATH "${CHPY_SENSOR_PYD_FILE}" PATH)
+  add_custom_command(TARGET ${SWIG_MODULE_${CHPY_SENSOR}_REAL_NAME}
+          POST_BUILD
+          COMMAND ${CMAKE_COMMAND} -E make_directory ${CHPY_SENSOR_PYD_PATH}/${CHPY_PACKAGENAME})
+  add_custom_command(TARGET ${SWIG_MODULE_${CHPY_SENSOR}_REAL_NAME}
+          POST_BUILD
+          COMMAND ${CMAKE_COMMAND} -E copy ${CHPY_SENSOR_PY_FILE} ${CHPY_SENSOR_PYD_PATH}/${CHPY_PACKAGENAME})
+
+  # Install .pyd binary module (.so on linux)
+  install(TARGETS ${SWIG_MODULE_${CHPY_SENSOR}_REAL_NAME}
+          RUNTIME DESTINATION "${CH_INSTALL_PYTHON}/${CHPY_PACKAGENAME}"
+          LIBRARY DESTINATION "${CH_INSTALL_PYTHON}/${CHPY_PACKAGENAME}"
+          ARCHIVE DESTINATION "${CH_INSTALL_PYTHON}/${CHPY_PACKAGENAME}")
+  # Install .py module wrapper
+  install(FILES "${CHPY_SENSOR_PY_FILE}" DESTINATION "${CH_INSTALL_PYTHON}/${CHPY_PACKAGENAME}")
+
+  if (DBG_SCRIPT)
+    message("Module name:     ${CHPY_SENSOR}")
+    message("SWIG_REAL_NAME:  ${SWIG_MODULE_${CHPY_SENSOR}_REAL_NAME}")
+    message("PY file:         ${CHPY_SENSOR_PY_FILE}")
+    message("PYD file:        ${CHPY_SENSOR_PYD_FILE}")
+    message("PYD path:        ${CHPY_SENSOR_PYD_PATH}")
+  endif()
+
+endif()
+
+
+#-----------------------------------------------------------------------------
+# Module for the robot models
+#-----------------------------------------------------------------------------
+
+  message(STATUS "...add python robot module:  pychrono.robot")
+
+  # Python module name
+  set(CHPY_RS robot)
+
+  # Interface files
+  set(CHPY_ROBOT_MODULE_FILE 
+      robot/ChModuleRobot.i
+      )
+
+  #include_directories(${VEHICLE_INCLUDE_DIR})
+
+  set_source_files_properties(${CHPY_ROBOT_MODULE_FILE} PROPERTIES CPLUSPLUS ON)
+
+  # Create the SWIG module.
+  if(${CMAKE_VERSION} VERSION_LESS "3.8.0")
+    SWIG_ADD_MODULE(${CHPY_RS} python ${CHPY_ROBOT_MODULE_FILE})
+  else()
+    SWIG_ADD_LIBRARY(${CHPY_RS} LANGUAGE python SOURCES ${CHPY_ROBOT_MODULE_FILE})
+  endif()
+  SWIG_LINK_LIBRARIES(${CHPY_RS} ${PYTHON_LIBRARY} ChronoEngine ChronoModels_robot)
+
+  IF(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
+    ADD_DEFINITIONS( "/DWNT" )
+  ELSEIF(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
+    ADD_DEFINITIONS(-DHAVE_IOSTREAM)
+    ADD_DEFINITIONS(-DHAVE_LIMITS_H)
+  ENDIF()
+
+  #if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
+  #  set_target_properties(${SWIG_MODULE_${CHPY_RS}_REAL_NAME} PROPERTIES SWIG_COMPILE_OPTIONS "-D_WIN32 -DWNT")
+  #endif()
+  
+  # Ensure that the PYD library file is generated in the bin/ directory.
+  set_target_properties(${SWIG_MODULE_${CHPY_RS}_REAL_NAME} PROPERTIES 
+                        PROJECT_LABEL "ChronoEngine_python_${CHPY_RS}"
+                        OUTPUT_NAME   "${SWIG_MODULE_${CHPY_RS}_REAL_NAME}"
+                        LIBRARY_OUTPUT_DIRECTORY "${EXECUTABLE_OUTPUT_PATH}"
+                        )
+
+  ADD_DEPENDENCIES(${SWIG_MODULE_${CHPY_RS}_REAL_NAME} ChronoEngine)
+  ADD_DEPENDENCIES(${SWIG_MODULE_${CHPY_RS}_REAL_NAME} ChronoModels_robot)
+  ADD_DEPENDENCIES(${SWIG_MODULE_${CHPY_RS}_REAL_NAME} ${SWIG_MODULE_${CHPY_CORE}_REAL_NAME})
+
+  # Copy PY file in a package dir 
+  set(CHPY_VEHICLE_PY_FILE "${CMAKE_SWIG_OUTDIR}/${CHPY_RS}.py")
+  get_target_property(CHPY_RS_PYD_FILE ${SWIG_MODULE_${CHPY_RS}_REAL_NAME} LOCATION)
+  get_filename_component(CHPY_VEHICLE_PYD_PATH "${CHPY_RS_PYD_FILE}" PATH)
+  add_custom_command(TARGET ${SWIG_MODULE_${CHPY_RS}_REAL_NAME}
+                   POST_BUILD
+                   COMMAND ${CMAKE_COMMAND} -E make_directory ${CHPY_VEHICLE_PYD_PATH}/${CHPY_PACKAGENAME})
+  add_custom_command(TARGET ${SWIG_MODULE_${CHPY_RS}_REAL_NAME}
+                     POST_BUILD
+                     COMMAND ${CMAKE_COMMAND} -E copy ${CHPY_VEHICLE_PY_FILE} ${CHPY_VEHICLE_PYD_PATH}/${CHPY_PACKAGENAME})
+
+  # Install .pyd binary module (.so on linux)
+  install(TARGETS ${SWIG_MODULE_${CHPY_RS}_REAL_NAME}
+          RUNTIME DESTINATION "${CH_INSTALL_PYTHON}/${CHPY_PACKAGENAME}"
+      LIBRARY DESTINATION "${CH_INSTALL_PYTHON}/${CHPY_PACKAGENAME}"
+          ARCHIVE DESTINATION "${CH_INSTALL_PYTHON}/${CHPY_PACKAGENAME}")
+  # Install .py module wrapper
+  install(FILES "${CHPY_VEHICLE_PY_FILE}" DESTINATION "${CH_INSTALL_PYTHON}/${CHPY_PACKAGENAME}")
 
 #-----------------------------------------------------------------------------
 # Display information about setting the PYTHONPATH environment variable

@@ -109,7 +109,7 @@ int main(int argc, char* argv[]) {
     // Sine function
     double freq = 1;
     double ampl = 4;
-    double omg = 2 * CH_C_PI * freq;
+    ////double omg = 2 * CH_C_PI * freq;
     auto mod = chrono_types::make_shared<ChFunction_Sine>(0.0, freq, ampl);
 
     // Actuate first slider using a link force
@@ -123,7 +123,7 @@ int main(int argc, char* argv[]) {
     slider2->AddForce(frc2);
 
     // Create the Irrlicht application
-    ChIrrApp application(&system, L"Actuated prismatic joint", irr::core::dimension2d<irr::u32>(800, 600), false, true);
+    ChIrrApp application(&system, L"Actuated prismatic joint", irr::core::dimension2d<irr::u32>(800, 600));
     application.AddTypicalLogo();
     application.AddTypicalSky();
     application.AddTypicalLights();
@@ -135,9 +135,9 @@ int main(int argc, char* argv[]) {
     application.SetTimestep(1e-3);
 
     // Simulation loop
-    double x0 = slider1->GetPos().x();
+    ////double x0 = slider1->GetPos().x();
     while (application.GetDevice()->run()) {
-        double time = system.GetChTime();
+        ////double time = system.GetChTime();
 
         // Output slider x position/velocity and analytical solution
         ////double x = slider1->GetPos().x();
@@ -148,7 +148,7 @@ int main(int argc, char* argv[]) {
 
         application.BeginScene();
         application.DrawAll();
-        ChIrrTools::drawAllLinkframes(system, application.GetVideoDriver(), 1.0);
+        tools::drawAllLinkframes(system, application.GetVideoDriver(), 1.0);
         application.DoStep();
         application.EndScene();
     }

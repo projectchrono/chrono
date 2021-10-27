@@ -65,9 +65,9 @@ class CH_MODELS_API Generic_SimpleMapPowertrain : public ChPowertrain {
     /// This simplified model does not have a torque converter.
     virtual double GetTorqueConverterOutputTorque() const override { return 0; }
 
-    /// Return the current transmission gear
-    /// This simplified model does not have a transmission box.
-    virtual int GetCurrentTransmissionGear() const override { return 1; }
+    /// Return the torque converter output shaft speed.
+    /// This simplified model does not have a torque converter.
+    virtual double GetTorqueConverterOutputSpeed() const override { return 0; }
 
     /// Return the output torque from the powertrain.
     /// This is the torque that is passed to a vehicle system, thus providing the
@@ -76,38 +76,24 @@ class CH_MODELS_API Generic_SimpleMapPowertrain : public ChPowertrain {
     /// this function returns 0.
     virtual double GetOutputTorque() const override { return m_shaftTorque; }
 
-    /// Use this function to set the mode of automatic transmission.
-    /// This simplified model does not have a transmission box.
-    virtual void SetDriveMode(ChPowertrain::DriveMode mmode) override;
-
-    /// Use this function to shift from one gear to another.
-    /// A zero latency shift is assumed.
-    /// Note, index starts from 0.
-    void SetSelectedGear(int igear);
-
   private:
-    /// Initialize the powertrain system.
-    virtual void Initialize(std::shared_ptr<ChChassis> chassis,     ///< [in] chassis of the associated vehicle
-                            std::shared_ptr<ChDriveline> driveline  ///< [in] driveline of the associated vehicle
-                            ) override;
-
     /// Update the state of this powertrain system at the current time.
     /// The powertrain system is provided the current driver throttle input, a value in the range [0,1].
-    virtual void Synchronize(double time,     ///< [in] current time
-                             double throttle  ///< [in] current throttle input [0,1]
+    virtual void Synchronize(double time,        ///< [in] current time
+                             double throttle,    ///< [in] current throttle input [0,1]
+                             double shaft_speed  ///< [in] driveshaft speed
                              ) override;
 
     /// Advance the state of this powertrain system by the specified time step.
     /// This function does nothing for this simplified powertrain model.
     virtual void Advance(double step) override {}
 
-    double m_current_gear_ratio;
+    /// Set the transmission gear ratios (one or more forward gear ratios and a single reverse gear ratio).
+    virtual void SetGearRatios(std::vector<double>& fwd, double& rev) override;
+
     double m_motorSpeed;
     double m_motorTorque;
     double m_shaftTorque;
-
-    int m_current_gear;
-    std::vector<double> m_gear_ratios;
 
     ChCubicSpline m_zeroThrottleMap;
     ChCubicSpline m_fullThrottleMap;

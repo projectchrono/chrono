@@ -64,13 +64,19 @@ static ChVector2<> CalcCircleCenter(const ChVector2<>& A, const ChVector2<>& B, 
 class SprocketBandContactCB : public ChSystem::CustomCollisionCallback {
   public:
     //// TODO Add in a collision envelope to the contact algorithm for NSC
-    SprocketBandContactCB(ChTrackAssembly* track,  ///< containing track assembly
-                          double envelope,         ///< collision detection envelope
-                          int gear_nteeth,         ///< number of teeth of the sprocket gear
-                          double separation        ///< separation between sprocket gears
+    SprocketBandContactCB(ChTrackAssembly* track,     ///< containing track assembly
+                          double envelope,            ///< collision detection envelope
+                          int gear_nteeth,            ///< number of teeth of the sprocket gear
+                          double separation,          ///< separation between sprocket gears
+                          bool lateral_contact,       ///< if true, enable lateral contact
+                          double lateral_backlash,    ///< play relative to shoe guiding pin
+                          const ChVector<>& shoe_pin  ///< location of shoe guide pin center
                           )
-        : m_track(track), m_envelope(envelope), m_gear_nteeth(gear_nteeth), m_separation(separation) {
-        m_sprocket = std::dynamic_pointer_cast<ChSprocketBand>(m_track->GetSprocket());
+        : m_track(track),
+          m_lateral_contact(lateral_contact),
+          m_lateral_backlash(lateral_backlash),
+          m_shoe_pin(shoe_pin) {
+        m_sprocket = static_cast<ChSprocketBand*>(m_track->GetSprocket().get());
         auto shoe = std::dynamic_pointer_cast<ChTrackShoeBand>(track->GetTrackShoe(0));
 
         // The angle between the centers of two sequential teeth on the sprocket
@@ -145,6 +151,14 @@ class SprocketBandContactCB : public ChSystem::CustomCollisionCallback {
             m_gear_center_m_end_angle = temp;
         }
 
+        // Create contact material for sprocket - guiding pin contacts (to prevent detracking)
+        // Note: zero friction
+        MaterialInfo minfo;
+        minfo.mu = 0;
+        minfo.cr = 0.1f;
+        minfo.Y = 1e7f;
+        m_material = minfo.CreateMaterial(m_sprocket->GetGearBody()->GetSystem()->GetContactMethod());
+
         // Since the shoe has not been initalized yet, set a flag to cache all of the parameters that depend on the shoe
         // being initalized
         m_update_tread = true;
@@ -179,13 +193,16 @@ class SprocketBandContactCB : public ChSystem::CustomCollisionCallback {
                             const ChVector<>& p2                    // segment end point 2
     );
 
-    ChTrackAssembly* m_track;                    // pointer to containing track assembly
-    std::shared_ptr<ChSprocketBand> m_sprocket;  // handle to the sprocket
+    // Test collision of a shoe guiding pin with the sprocket gear.
+    // This may introduce one contact.
+    void CheckPinSprocket(std::shared_ptr<ChTrackShoeBand> shoe,  // track shoe
+                          const ChVector<>& locPin_abs,           // center of guiding pin (global frame)
+                          const ChVector<>& dirS_abs              // sprocket Y direction (global frame)
+    );
 
-    double m_envelope;  // collision detection envelope
+    ChTrackAssembly* m_track;    // pointer to containing track assembly
+    ChSprocketBand* m_sprocket;  // pointer to the sprocket
 
-    int m_gear_nteeth;                            // sprocket gear, number of teeth
-    double m_separation;                          // separation distance between sprocket gears
     double m_gear_tread_broadphase_dist_squared;  // Tread body to Sprocket quick Broadphase distance squared check
 
     ChVector2<> m_gear_center_p;                 // center of (+x) arc, in sprocket body x-z plane
@@ -206,6 +223,12 @@ class SprocketBandContactCB : public ChSystem::CustomCollisionCallback {
     double m_tread_arc_radius;            // radius of the tooth arc profile
     double m_tread_tip_halfwidth;         // half of the length (x direction) of the tread tooth tip
     double m_tread_tip_height;            // the height (z direction) of the trad tooth from its base line to its tip
+
+    bool m_lateral_contact;     // if true, generate lateral contacts
+    double m_lateral_backlash;  // backlash relative to shoe guiding pin
+    ChVector<> m_shoe_pin;      // single-pin shoe, center of guiding pin
+
+    std::shared_ptr<ChMaterialSurface> m_material;  // material for sprocket-pin contact (detracking)
 
     bool m_update_tread;  // flag to update the remaining cached contact properties on the first contact callback
 
@@ -248,14 +271,25 @@ void SprocketBandContactCB::OnCustomCollision(ChSystem* system) {
     if (!m_sprocket->GetGearBody()->GetCollide())
         return;
 
-    // Sprocket gear center location (expressed in global frame)
+    // Sprocket gear center location, expressed in global frame
     ChVector<> locS_abs = m_sprocket->GetGearBody()->GetPos();
+
+    // Sprocket "normal" (Y axis), expressed in global frame
+    ChVector<> dirS_abs = m_sprocket->GetGearBody()->GetA().Get_A_Yaxis();
 
     // Loop over all track shoes in the associated track
     for (size_t is = 0; is < m_track->GetNumTrackShoes(); ++is) {
         auto shoe = std::static_pointer_cast<ChTrackShoeBand>(m_track->GetTrackShoe(is));
 
         CheckTreadSegmentSprocket(shoe, locS_abs);
+
+        if (m_lateral_contact) {
+            // Express guiding pin center in the global frame
+            ChVector<> locPin_abs = shoe->GetShoeBody()->TransformPointLocalToParent(m_shoe_pin);
+
+            // Perform collision detection with the central pin
+            CheckPinSprocket(shoe, locPin_abs, dirS_abs);
+        }
     }
 }
 
@@ -333,7 +367,6 @@ void SprocketBandContactCB::CheckTreadSegmentSprocket(std::shared_ptr<ChTrackSho
         tooth_center_p_end_angle += CH_C_2PI;
     }
 
-    double temp = m_sprocket->GetArcRadius();
     CheckTreadArcSprocketArc(shoe, sprocket_center_p, gear_center_p_start_angle, gear_center_p_end_angle,
                              m_sprocket->GetArcRadius(), tooth_center_p, tooth_center_p_start_angle,
                              tooth_center_p_end_angle, m_tread_arc_radius);
@@ -423,8 +456,8 @@ void SprocketBandContactCB::CheckTreadTipSprocketTip(std::shared_ptr<ChTrackShoe
               (tooth_tip_p_angle <= m_gear_outer_radius_arc_angle_end))) {
             // Clip tooth_tip_p so that it lies within the outer arc section of the sprocket profile since there is no
             // contact after this point
-            double clip_angle_start = m_gear_outer_radius_arc_angle_start +
-                                      tooth_tip_m_angle_adjust;  // Use m tip point, since that is in the correct arc
+            ////double clip_angle_start = m_gear_outer_radius_arc_angle_start +
+            ////                          tooth_tip_m_angle_adjust;  // Use m tip point, since that is in the correct arc
             double clip_angle_end = m_gear_outer_radius_arc_angle_end + tooth_tip_m_angle_adjust;
 
             ChVector<> vec_tooth = tooth_tip_p - tooth_tip_m;
@@ -445,7 +478,7 @@ void SprocketBandContactCB::CheckTreadTipSprocketTip(std::shared_ptr<ChTrackShoe
             // contact after this point
             double clip_angle_start = m_gear_outer_radius_arc_angle_start +
                                       tooth_tip_p_angle_adjust;  // Use p tip point, since that is in the correct arc
-            double clip_angle_end = m_gear_outer_radius_arc_angle_end + tooth_tip_p_angle_adjust;
+            ////double clip_angle_end = m_gear_outer_radius_arc_angle_end + tooth_tip_p_angle_adjust;
 
             ChVector<> vec_tooth = tooth_tip_m - tooth_tip_p;
 
@@ -605,86 +638,69 @@ void SprocketBandContactCB::CheckSegmentCircle(std::shared_ptr<ChTrackShoeBand> 
                                                                               shoe->m_tooth_material);
 }
 
+void SprocketBandContactCB::CheckPinSprocket(std::shared_ptr<ChTrackShoeBand> shoe,
+                                             const ChVector<>& locPin_abs,
+                                             const ChVector<>& dirS_abs) {
+    // Express pin center in the sprocket frame
+    ChVector<> locPin = m_sprocket->GetGearBody()->TransformPointParentToLocal(locPin_abs);
+
+    // No contact if the pin is close enough to the sprocket's center
+    if (std::abs(locPin.y()) < m_lateral_backlash)
+        return;
+
+    // No contact if pin is too far from sprocket center
+    double OutRad = m_sprocket->GetOuterRadius();
+    if (locPin.x() * locPin.x() + locPin.z() * locPin.z() > OutRad * OutRad)
+        return;
+
+    // Fill in contact information and add the contact to the system.
+    // Express all vectors in the global frame
+    collision::ChCollisionInfo contact;
+    contact.modelA = m_sprocket->GetGearBody()->GetCollisionModel().get();
+    contact.modelB = shoe->GetShoeBody()->GetCollisionModel().get();
+    contact.shapeA = nullptr;
+    contact.shapeB = nullptr;
+    if (locPin.y() < 0) {
+        contact.distance = m_lateral_backlash + locPin.y();
+        contact.vN = dirS_abs;
+    } else {
+        contact.distance = m_lateral_backlash - locPin.y();
+        contact.vN = -dirS_abs;
+    }
+    contact.vpA = locPin_abs - contact.distance * contact.vN;
+    contact.vpB = locPin_abs;
+
+    ////std::cout << "CONTACT";
+    ////std::cout << "  pin: " << locPin.y();
+    ////std::cout << "  delta: " << contact.distance;
+    ////std::cout << "  normal: " << contact.vN;
+    ////std::cout << std::endl;
+
+    m_sprocket->GetGearBody()->GetSystem()->GetContactContainer()->AddContact(contact, m_material, m_material);
+}
+
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 ChSprocketBand::ChSprocketBand(const std::string& name) : ChSprocket(name) {}
 
 // -----------------------------------------------------------------------------
-// Initialize this sprocket subsystem.
 // -----------------------------------------------------------------------------
-void ChSprocketBand::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,
-                                const ChVector<>& location,
-                                ChTrackAssembly* track) {
-    // Invoke the base class method
-    ChSprocket::Initialize(chassis, location, track);
-
-    double radius = GetOuterRadius();
-    double width = 0.5 * (GetGuideWheelWidth() - GetGuideWheelGap());
-    double offset = 0.25 * (GetGuideWheelWidth() + GetGuideWheelGap());
-
-    m_gear->GetCollisionModel()->ClearModel();
-
-    m_gear->GetCollisionModel()->SetFamily(TrackedCollisionFamily::WHEELS);
-    m_gear->GetCollisionModel()->SetFamilyMaskNoCollisionWithFamily(TrackedCollisionFamily::IDLERS);
-
-    m_gear->GetCollisionModel()->AddCylinder(m_material, radius, radius, width / 2, ChVector<>(0, offset, 0));
-    m_gear->GetCollisionModel()->AddCylinder(m_material, radius, radius, width / 2, ChVector<>(0, -offset, 0));
-
-    m_gear->GetCollisionModel()->BuildModel();
-}
-
-// -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
-void ChSprocketBand::AddVisualizationAssets(VisualizationType vis) {
-    if (vis == VisualizationType::NONE)
-        return;
-
-    ChSprocket::AddVisualizationAssets(vis);
-
-    double radius = GetOuterRadius();
-    double width = GetGuideWheelWidth();
-    double gap = GetGuideWheelGap();
-
-    auto cyl_1 = chrono_types::make_shared<ChCylinderShape>();
-    cyl_1->GetCylinderGeometry().p1 = ChVector<>(0, width / 2, 0);
-    cyl_1->GetCylinderGeometry().p2 = ChVector<>(0, gap / 2, 0);
-    cyl_1->GetCylinderGeometry().rad = radius;
-    m_gear->AddAsset(cyl_1);
-
-    auto cyl_2 = chrono_types::make_shared<ChCylinderShape>();
-    cyl_2->GetCylinderGeometry().p1 = ChVector<>(0, -width / 2, 0);
-    cyl_2->GetCylinderGeometry().p2 = ChVector<>(0, -gap / 2, 0);
-    cyl_2->GetCylinderGeometry().rad = radius;
-    m_gear->AddAsset(cyl_2);
-
-    auto tex = chrono_types::make_shared<ChTexture>();
-    tex->SetTextureFilename(chrono::GetChronoDataFile("greenwhite.png"));
-    m_gear->AddAsset(tex);
-}
-
-void ChSprocketBand::RemoveVisualizationAssets() {
-    m_gear->GetAssets().clear();
-}
-
-// -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
-ChSystem::CustomCollisionCallback* ChSprocketBand::GetCollisionCallback(ChTrackAssembly* track) {
+std::shared_ptr<ChSystem::CustomCollisionCallback> ChSprocketBand::GetCollisionCallback(ChTrackAssembly* track) {
     // Check compatibility between this type of sprocket and the track shoes.
     // We expect track shoes of type ChTrackShoeBand.
     auto shoe = std::dynamic_pointer_cast<ChTrackShoeBand>(track->GetTrackShoe(0));
     assert(shoe);
 
-    // Extract parameterization of sprocket profile
-    int sprocket_nteeth = GetNumTeeth();
-
     // Create and return the callback object. Note: this pointer will be freed by the base class.
-    return new SprocketBandContactCB(track, 0.005, GetNumTeeth(), GetSeparation());
+    return chrono_types::make_shared<SprocketBandContactCB>(track, 0.005, GetNumTeeth(), GetSeparation(),
+                                                            m_lateral_contact, GetLateralBacklash(),
+                                                            shoe->GetLateralContactPoint());
 }
 
 // -----------------------------------------------------------------------------
 // Create and return the sprocket gear profile.
 // -----------------------------------------------------------------------------
-std::shared_ptr<geometry::ChLinePath> ChSprocketBand::GetProfile() {
+std::shared_ptr<geometry::ChLinePath> ChSprocketBand::GetProfile() const {
     auto profile = chrono_types::make_shared<geometry::ChLinePath>();
 
     int num_teeth = GetNumTeeth();

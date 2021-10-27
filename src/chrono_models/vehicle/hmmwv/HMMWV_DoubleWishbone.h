@@ -41,19 +41,23 @@ namespace hmmwv {
 /// The control arms are modeled using rigid bodies.
 class CH_MODELS_API HMMWV_DoubleWishboneFront : public ChDoubleWishbone {
   public:
-    HMMWV_DoubleWishboneFront(const std::string& name);
+    HMMWV_DoubleWishboneFront(const std::string& name, bool use_tierod_bodies);
     ~HMMWV_DoubleWishboneFront();
+
+    virtual bool UseTierodBodies() const override { return m_use_tierod_bodies; }
 
     virtual double getSpindleMass() const override { return m_spindleMass; }
     virtual double getUCAMass() const override { return m_UCAMass; }
     virtual double getLCAMass() const override { return m_LCAMass; }
     virtual double getUprightMass() const override { return m_uprightMass; }
+    virtual double getTierodMass() const override { return m_tierodMass; }
 
     virtual double getSpindleRadius() const override { return m_spindleRadius; }
     virtual double getSpindleWidth() const override { return m_spindleWidth; }
     virtual double getUCARadius() const override { return m_UCARadius; }
     virtual double getLCARadius() const override { return m_LCARadius; }
     virtual double getUprightRadius() const override { return m_uprightRadius; }
+    virtual double getTierodRadius() const override { return m_tierodRadius; }
 
     virtual const ChVector<>& getSpindleInertia() const override { return m_spindleInertia; }
     virtual const ChVector<>& getUCAInertiaMoments() const override { return m_UCAInertiaMoments; }
@@ -62,29 +66,34 @@ class CH_MODELS_API HMMWV_DoubleWishboneFront : public ChDoubleWishbone {
     virtual const ChVector<>& getLCAInertiaProducts() const override { return m_LCAInertiaProducts; }
     virtual const ChVector<>& getUprightInertiaMoments() const override { return m_uprightInertiaMoments; }
     virtual const ChVector<>& getUprightInertiaProducts() const override { return m_uprightInertiaProducts; }
+    virtual const ChVector<> getTierodInertia() const override { return m_tierodInertia; }
 
     virtual double getAxleInertia() const override { return m_axleInertia; }
 
     virtual double getSpringRestLength() const override { return m_springRestLength; }
-    virtual ChLinkTSDA::ForceFunctor* getSpringForceFunctor() const override { return m_springForceCB; }
-    virtual ChLinkTSDA::ForceFunctor* getShockForceFunctor() const override { return m_shockForceCB; }
+    virtual std::shared_ptr<ChLinkTSDA::ForceFunctor> getSpringForceFunctor() const override { return m_springForceCB; }
+    virtual std::shared_ptr<ChLinkTSDA::ForceFunctor> getShockForceFunctor() const override { return m_shockForceCB; }
 
   private:
     virtual const ChVector<> getLocation(PointId which) override;
 
-    ChLinkTSDA::ForceFunctor* m_springForceCB;
-    ChLinkTSDA::ForceFunctor* m_shockForceCB;
+    std::shared_ptr<ChLinkTSDA::ForceFunctor> m_springForceCB;
+    std::shared_ptr<ChLinkTSDA::ForceFunctor> m_shockForceCB;
+
+    bool m_use_tierod_bodies;
 
     static const double m_spindleMass;
     static const double m_UCAMass;
     static const double m_LCAMass;
     static const double m_uprightMass;
+    static const double m_tierodMass;
 
     static const double m_spindleRadius;
     static const double m_spindleWidth;
     static const double m_UCARadius;
     static const double m_LCARadius;
     static const double m_uprightRadius;
+    static const double m_tierodRadius;
 
     static const ChVector<> m_spindleInertia;
     static const ChVector<> m_UCAInertiaMoments;
@@ -93,6 +102,7 @@ class CH_MODELS_API HMMWV_DoubleWishboneFront : public ChDoubleWishbone {
     static const ChVector<> m_LCAInertiaProducts;
     static const ChVector<> m_uprightInertiaMoments;
     static const ChVector<> m_uprightInertiaProducts;
+    static const ChVector<> m_tierodInertia;
 
     static const double m_axleInertia;
 
@@ -106,19 +116,23 @@ class CH_MODELS_API HMMWV_DoubleWishboneFront : public ChDoubleWishbone {
 /// The control arms are modeled using rigid bodies.
 class CH_MODELS_API HMMWV_DoubleWishboneRear : public ChDoubleWishbone {
   public:
-    HMMWV_DoubleWishboneRear(const std::string& name);
+    HMMWV_DoubleWishboneRear(const std::string& name, bool use_tierod_bodies);
     ~HMMWV_DoubleWishboneRear();
+
+    virtual bool UseTierodBodies() const override { return m_use_tierod_bodies; }
 
     virtual double getSpindleMass() const override { return m_spindleMass; }
     virtual double getUCAMass() const override { return m_UCAMass; }
     virtual double getLCAMass() const override { return m_LCAMass; }
     virtual double getUprightMass() const override { return m_uprightMass; }
+    virtual double getTierodMass() const override { return m_tierodMass; }
 
     virtual double getSpindleRadius() const override { return m_spindleRadius; }
     virtual double getSpindleWidth() const override { return m_spindleWidth; }
     virtual double getUCARadius() const override { return m_UCARadius; }
     virtual double getLCARadius() const override { return m_LCARadius; }
     virtual double getUprightRadius() const override { return m_uprightRadius; }
+    virtual double getTierodRadius() const override { return m_tierodRadius; }
 
     virtual const ChVector<>& getSpindleInertia() const override { return m_spindleInertia; }
     virtual const ChVector<>& getUCAInertiaMoments() const override { return m_UCAInertiaMoments; }
@@ -127,29 +141,34 @@ class CH_MODELS_API HMMWV_DoubleWishboneRear : public ChDoubleWishbone {
     virtual const ChVector<>& getLCAInertiaProducts() const override { return m_LCAInertiaProducts; }
     virtual const ChVector<>& getUprightInertiaMoments() const override { return m_uprightInertiaMoments; }
     virtual const ChVector<>& getUprightInertiaProducts() const override { return m_uprightInertiaProducts; }
+    virtual const ChVector<> getTierodInertia() const override { return m_tierodInertia; }
 
     virtual double getAxleInertia() const override { return m_axleInertia; }
 
     virtual double getSpringRestLength() const override { return m_springRestLength; }
-    virtual ChLinkTSDA::ForceFunctor* getSpringForceFunctor() const override { return m_springForceCB; }
-    virtual ChLinkTSDA::ForceFunctor* getShockForceFunctor() const override { return m_shockForceCB; }
+    virtual std::shared_ptr<ChLinkTSDA::ForceFunctor> getSpringForceFunctor() const override { return m_springForceCB; }
+    virtual std::shared_ptr<ChLinkTSDA::ForceFunctor> getShockForceFunctor() const override { return m_shockForceCB; }
 
   private:
     virtual const ChVector<> getLocation(PointId which) override;
 
-    ChLinkTSDA::ForceFunctor* m_springForceCB;
-    ChLinkTSDA::ForceFunctor* m_shockForceCB;
+    std::shared_ptr<ChLinkTSDA::ForceFunctor> m_springForceCB;
+    std::shared_ptr<ChLinkTSDA::ForceFunctor> m_shockForceCB;
+
+    bool m_use_tierod_bodies;
 
     static const double m_spindleMass;
     static const double m_UCAMass;
     static const double m_LCAMass;
     static const double m_uprightMass;
+    static const double m_tierodMass;
 
     static const double m_spindleRadius;
     static const double m_spindleWidth;
     static const double m_UCARadius;
     static const double m_LCARadius;
     static const double m_uprightRadius;
+    static const double m_tierodRadius;
 
     static const ChVector<> m_spindleInertia;
     static const ChVector<> m_UCAInertiaMoments;
@@ -158,6 +177,7 @@ class CH_MODELS_API HMMWV_DoubleWishboneRear : public ChDoubleWishbone {
     static const ChVector<> m_LCAInertiaProducts;
     static const ChVector<> m_uprightInertiaMoments;
     static const ChVector<> m_uprightInertiaProducts;
+    static const ChVector<> m_tierodInertia;
 
     static const double m_axleInertia;
 

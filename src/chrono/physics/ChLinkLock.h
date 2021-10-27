@@ -102,14 +102,13 @@ class ChApi ChLinkLock : public ChLinkMarkers {
 
     // LINK VIOLATIONS
 
-    // Get the constraint violations, i.e. the residual of the constraint equations and their time derivatives
-
     /// Link violation (residuals of the link constraint equations).
-    const ChConstraintVectorX& GetC() const { return C; }
+    virtual ChVectorDynamic<> GetConstraintViolation() const override { return C; }
+
     /// Time derivatives of link violation.
-    const ChConstraintVectorX& GetC_dt() const { return C_dt; }
+    const ChConstraintVectorX& GetConstraintViolation_dt() const { return C_dt; }
     /// Second time derivatives of link violation.
-    const ChConstraintVectorX& GetC_dtdt() const { return C_dtdt; }
+    const ChConstraintVectorX& GetConstraintViolation_dtdt() const { return C_dtdt; }
 
     // LINK STATE MATRICES
 
@@ -381,6 +380,11 @@ class ChApi ChLinkLockRevolute : public ChLinkLock {
 
     /// "Virtual" copy constructor (covariant return type).
     virtual ChLinkLockRevolute* Clone() const override { return new ChLinkLockRevolute(*this); }
+
+    /// Lock the joint.
+    /// If enabled (lock = true) this effectively converts this joint into a weld joint.
+    /// If lock = false, the joint reverts to its original degrees of freedom.
+    void Lock(bool lock);
 };
 
 /// Spherical joint, with the 'ChLinkLock' formulation.
@@ -391,6 +395,11 @@ class ChApi ChLinkLockSpherical : public ChLinkLock {
 
     /// "Virtual" copy constructor (covariant return type).
     virtual ChLinkLockSpherical* Clone() const override { return new ChLinkLockSpherical(*this); }
+
+    /// Lock the joint.
+    /// If enabled (lock = true) this effectively converts this joint into a weld joint.
+    /// If lock = false, the joint reverts to its original degrees of freedom.
+    void Lock(bool lock);
 };
 
 /// Cylindrical joint, with the 'ChLinkLock' formulation.
@@ -401,6 +410,11 @@ class ChApi ChLinkLockCylindrical : public ChLinkLock {
 
     /// "Virtual" copy constructor (covariant return type).
     virtual ChLinkLockCylindrical* Clone() const override { return new ChLinkLockCylindrical(*this); }
+
+    /// Lock the joint.
+    /// If enabled (lock = true) this effectively converts this joint into a weld joint.
+    /// If lock = false, the joint reverts to its original degrees of freedom.
+    void Lock(bool lock);
 };
 
 /// Prismatic joint, with the 'ChLinkLock' formulation.
@@ -411,6 +425,11 @@ class ChApi ChLinkLockPrismatic : public ChLinkLock {
 
     /// "Virtual" copy constructor (covariant return type).
     virtual ChLinkLockPrismatic* Clone() const override { return new ChLinkLockPrismatic(*this); }
+
+    /// Lock the joint.
+    /// If enabled (lock = true) this effectively converts this joint into a weld joint.
+    /// If lock = false, the joint reverts to its original degrees of freedom.
+    void Lock(bool lock);
 };
 
 /// Point-plane joint, with the 'ChLinkLock' formulation.
@@ -421,6 +440,11 @@ class ChApi ChLinkLockPointPlane : public ChLinkLock {
 
     /// "Virtual" copy constructor (covariant return type).
     virtual ChLinkLockPointPlane* Clone() const override { return new ChLinkLockPointPlane(*this); }
+
+    /// Lock the joint.
+    /// If enabled (lock = true) this effectively converts this joint into a weld joint.
+    /// If lock = false, the joint reverts to its original degrees of freedom.
+    void Lock(bool lock);
 };
 
 /// Point-line joint, with the 'ChLinkLock' formulation.
@@ -431,6 +455,11 @@ class ChApi ChLinkLockPointLine : public ChLinkLock {
 
     /// "Virtual" copy constructor (covariant return type).
     virtual ChLinkLockPointLine* Clone() const override { return new ChLinkLockPointLine(*this); }
+
+    /// Lock the joint.
+    /// If enabled (lock = true) this effectively converts this joint into a weld joint.
+    /// If lock = false, the joint reverts to its original degrees of freedom.
+    void Lock(bool lock);
 };
 
 /// Plane-plane joint, with the 'ChLinkLock' formulation.
@@ -441,6 +470,11 @@ class ChApi ChLinkLockPlanePlane : public ChLinkLock {
 
     /// "Virtual" copy constructor (covariant return type).
     virtual ChLinkLockPlanePlane* Clone() const override { return new ChLinkLockPlanePlane(*this); }
+
+    /// Lock the joint.
+    /// If enabled (lock = true) this effectively converts this joint into a weld joint.
+    /// If lock = false, the joint reverts to its original degrees of freedom.
+    void Lock(bool lock);
 };
 
 /// Oldham joint, with the 'ChLinkLock' formulation.
@@ -451,6 +485,11 @@ class ChApi ChLinkLockOldham : public ChLinkLock {
 
     /// "Virtual" copy constructor (covariant return type).
     virtual ChLinkLockOldham* Clone() const override { return new ChLinkLockOldham(*this); }
+
+    /// Lock the joint.
+    /// If enabled (lock = true) this effectively converts this joint into a weld joint.
+    /// If lock = false, the joint reverts to its original degrees of freedom.
+    void Lock(bool lock);
 };
 
 /// Free joint, with the 'ChLinkLock' formulation.
@@ -461,6 +500,11 @@ class ChApi ChLinkLockFree : public ChLinkLock {
 
     /// "Virtual" copy constructor (covariant return type).
     virtual ChLinkLockFree* Clone() const override { return new ChLinkLockFree(*this); }
+
+    /// Lock the joint.
+    /// If enabled (lock = true) this effectively converts this joint into a weld joint.
+    /// If lock = false, the joint reverts to its original degrees of freedom.
+    void Lock(bool lock);
 };
 
 /// Align joint, with the 'ChLinkLock' formulation.
@@ -471,6 +515,11 @@ class ChApi ChLinkLockAlign : public ChLinkLock {
 
     /// "Virtual" copy constructor (covariant return type).
     virtual ChLinkLockAlign* Clone() const override { return new ChLinkLockAlign(*this); }
+
+    /// Lock the joint.
+    /// If enabled (lock = true) this effectively converts this joint into a weld joint.
+    /// If lock = false, the joint reverts to its original degrees of freedom.
+    void Lock(bool lock);
 };
 
 /// Parallel joint, with the 'ChLinkLock' formulation.
@@ -481,6 +530,11 @@ class ChApi ChLinkLockParallel : public ChLinkLock {
 
     /// "Virtual" copy constructor (covariant return type).
     virtual ChLinkLockParallel* Clone() const override { return new ChLinkLockParallel(*this); }
+
+    /// Lock the joint.
+    /// If enabled (lock = true) this effectively converts this joint into a weld joint.
+    /// If lock = false, the joint reverts to its original degrees of freedom.
+    void Lock(bool lock);
 };
 
 /// Perpendicularity joint, with the 'ChLinkLock' formulation.
@@ -491,6 +545,11 @@ class ChApi ChLinkLockPerpend : public ChLinkLock {
 
     /// "Virtual" copy constructor (covariant return type).
     virtual ChLinkLockPerpend* Clone() const override { return new ChLinkLockPerpend(*this); }
+
+    /// Lock the joint.
+    /// If enabled (lock = true) this effectively converts this joint into a weld joint.
+    /// If lock = false, the joint reverts to its original degrees of freedom.
+    void Lock(bool lock);
 };
 
 /// RevolutePrismatic joint, with the 'ChLinkLock' formulation.
@@ -501,6 +560,11 @@ class ChApi ChLinkLockRevolutePrismatic : public ChLinkLock {
 
     /// "Virtual" copy constructor (covariant return type).
     virtual ChLinkLockRevolutePrismatic* Clone() const override { return new ChLinkLockRevolutePrismatic(*this); }
+
+    /// Lock the joint.
+    /// If enabled (lock = true) this effectively converts this joint into a weld joint.
+    /// If lock = false, the joint reverts to its original degrees of freedom.
+    void Lock(bool lock);
 };
 
 }  // end namespace chrono

@@ -41,7 +41,7 @@ class CH_VEHICLE_API ChShaftsDriveline4WD : public ChDrivelineWV {
   public:
     ChShaftsDriveline4WD(const std::string& name);
 
-    virtual ~ChShaftsDriveline4WD() {}
+    virtual ~ChShaftsDriveline4WD();
 
     /// Get the name of the vehicle subsystem template.
     virtual std::string GetTemplateName() const override { return "ShaftsDriveline4WD"; }
@@ -76,13 +76,16 @@ class CH_VEHICLE_API ChShaftsDriveline4WD : public ChDrivelineWV {
 
     /// Initialize the driveline subsystem.
     /// This function connects this driveline subsystem to the specified axle subsystems.
-    virtual void Initialize(std::shared_ptr<ChBody> chassis,      ///< handle to the chassis body
-                            const ChAxleList& axles,              ///< list of all vehicle axles subsystems
+    virtual void Initialize(std::shared_ptr<ChChassis> chassis,   ///< associated chassis subsystem
+                            const ChAxleList& axles,              ///< list of all vehicle axle subsystems
                             const std::vector<int>& driven_axles  ///< indexes of the driven vehicle axles
                             ) override;
 
     /// Get the motor torque to be applied to the specified spindle.
     virtual double GetSpindleTorque(int axle, VehicleSide side) const override;
+
+    /// Disconnect driveline from driven wheels.
+    virtual void Disconnect() override;
 
   protected:
     /// Return the inertia of the driveshaft.
@@ -102,12 +105,6 @@ class CH_VEHICLE_API ChShaftsDriveline4WD : public ChDrivelineWV {
     virtual double GetRearConicalGearRatio() const = 0;
     /// Return the gear ratio for the front conical gear.
     virtual double GetFrontConicalGearRatio() const = 0;
-    /// Return the gear ratio for the rear differential.
-    virtual double GetRearDifferentialRatio() const = 0;
-    /// Return the gear ratio for the front differential.
-    virtual double GetFrontDifferentialRatio() const = 0;
-    /// Return the gear ratio for the central differential.
-    virtual double GetCentralDifferentialRatio() const = 0;
 
     /// Return the limit for the axle differential locking torque.
     virtual double GetAxleDifferentialLockingLimit() const = 0;

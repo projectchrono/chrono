@@ -424,7 +424,7 @@ __global__ void calcBceAcceleration_kernel(Real3* bceAcc,
 __global__ void UpdateRigidMarkersPositionVelocityD(Real4* posRadD,
                                                     Real3* velMasD,
                                                     Real3* rigidSPH_MeshPos_LRF_D,
-                                                    uint* rigidIdentifierD,
+                                                    uint*  rigidIdentifierD,
                                                     Real3* posRigidD,
                                                     Real4* velMassRigidD,
                                                     Real3* omegaLRF_D,
@@ -446,8 +446,7 @@ __global__ void UpdateRigidMarkersPositionVelocityD(Real4* posRadD,
     // position
     Real h = posRadD[rigidMarkerIndex].w;
     Real3 p_Rigid = posRigidD[rigidBodyIndex];
-    Real3 pos =
-        p_Rigid + mR3(dot(a1, rigidSPH_MeshPos_LRF), dot(a2, rigidSPH_MeshPos_LRF), dot(a3, rigidSPH_MeshPos_LRF));
+    Real3 pos = p_Rigid + mR3(dot(a1, rigidSPH_MeshPos_LRF), dot(a2, rigidSPH_MeshPos_LRF), dot(a3, rigidSPH_MeshPos_LRF));
     posRadD[rigidMarkerIndex] = mR4(pos, h);
 
     // velocity
@@ -614,19 +613,12 @@ __global__ void Calc_Rigid_FSI_ForcesD_TorquesD(Real3* rigid_FSI_ForcesD,
     }
     int RigidIndex = rigidIdentifierD[index];
     uint rigidMarkerIndex = index + numObjectsD.startRigidMarkers;  // updatePortion = [start, end]
-    derivVelRhoD[rigidMarkerIndex] =
-        derivVelRhoD[rigidMarkerIndex] * paramsD.Beta + derivVelRhoD_old[rigidMarkerIndex] * (1 - paramsD.Beta);
+    derivVelRhoD[rigidMarkerIndex] = derivVelRhoD[rigidMarkerIndex] * paramsD.Beta 
+                                   + derivVelRhoD_old[rigidMarkerIndex] * (1 - paramsD.Beta);
 
     atomicAdd(&(rigid_FSI_ForcesD[RigidIndex].x), (double)derivVelRhoD[rigidMarkerIndex].x);
     atomicAdd(&(rigid_FSI_ForcesD[RigidIndex].y), (double)derivVelRhoD[rigidMarkerIndex].y);
     atomicAdd(&(rigid_FSI_ForcesD[RigidIndex].z), (double)derivVelRhoD[rigidMarkerIndex].z);
-
-    //    Real3 p_loc = rigidSPH_MeshPos_LRF_D[rigidMarkerIndex];
-    //    Real4 q4 = qD[rigidIndex];
-    //    Real3 a1, a2, a3;
-    //    RotationMatirixFromQuaternion(a1, a2, a3, q4);
-    //    Real3 f_loc = mR3(dot(a1, omegaCrossS), dot(a2, omegaCrossS), dot(a3, omegaCrossS));
-    //    Real3 mtorque = cross(p_loc, mR3(derivVelRhoD[rigidMarkerIndex]));
 
     Real3 dist3 = Distance(mR3(posRadD[rigidMarkerIndex]), posRigidD[RigidIndex]);
     Real3 mtorque = cross(dist3, mR3(derivVelRhoD[rigidMarkerIndex]));
@@ -979,18 +971,9 @@ void ChBce::UpdateRigidMarkersPositionVelocity(std::shared_ptr<SphMarkerDataD> s
     if (numObjectsH->numRigidBodies == 0) {
         return;
     }
-
     uint nBlocks_numRigid_SphMarkers;
     uint nThreads_SphMarkers;
     computeGridSize((int)numObjectsH->numRigid_SphMarkers, 256, nBlocks_numRigid_SphMarkers, nThreads_SphMarkers);
-
-    // Arman: InitSystem has to be called before this lunch to set numObjectsD
-
-    //################################################### update BCE markers
-    // position
-    //** "posRadD2"/"velMasD2" associated to BCE markers are updated based on new
-    // rigid body (position,
-    // orientation)/(velocity, angular velocity)
     UpdateRigidMarkersPositionVelocityD<<<nBlocks_numRigid_SphMarkers, nThreads_SphMarkers>>>(
         mR4CAST(sphMarkersD->posRadD), mR3CAST(sphMarkersD->velMasD), mR3CAST(fsiGeneralData->rigidSPH_MeshPos_LRF_D),
         U1CAST(fsiGeneralData->rigidIdentifierD), mR3CAST(fsiBodiesD->posRigid_fsiBodies_D),

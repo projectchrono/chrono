@@ -114,7 +114,7 @@ ChApi void AddConeGeometry(ChBody* body,
                            bool visualization = true);
 
 /// Add a triangular mesh collision shape and optionally a corresponding visualization asset to the specified body.
-ChApi void AddTriangleMeshGeometry(ChBody* body,
+ChApi bool AddTriangleMeshGeometry(ChBody* body,
                                    std::shared_ptr<ChMaterialSurface> material,
                                    const std::string& obj_filename,
                                    const std::string& name,
@@ -123,7 +123,7 @@ ChApi void AddTriangleMeshGeometry(ChBody* body,
                                    bool visualization = true);
 
 /// Add convex hull collision shapes and optionally a corresponding visualization asset to the specified body.
-ChApi void AddTriangleMeshConvexDecomposition(ChBody* body,
+ChApi bool AddTriangleMeshConvexDecomposition(ChBody* body,
                                               std::shared_ptr<ChMaterialSurface> material,
                                               const std::string& obj_filename,
                                               const std::string& name,
@@ -133,7 +133,7 @@ ChApi void AddTriangleMeshConvexDecomposition(ChBody* body,
                                               bool use_original_asset = true);
 
 /// Add convex hull collision shapes and optionally a corresponding visualization asset to the specified body.
-ChApi void AddTriangleMeshConvexDecompositionV2(ChBody* body,
+ChApi bool AddTriangleMeshConvexDecompositionV2(ChBody* body,
                                                 std::shared_ptr<ChMaterialSurface> material,
                                                 const std::string& obj_filename,
                                                 const std::string& name,
@@ -142,7 +142,7 @@ ChApi void AddTriangleMeshConvexDecompositionV2(ChBody* body,
                                                 bool use_original_asset = true);
 
 /// Add convex hull collision shapes and optionally a corresponding visualization asset to the specified body.
-ChApi void AddTriangleMeshConvexDecompositionSplit(ChSystem* system,
+ChApi bool AddTriangleMeshConvexDecompositionSplit(ChSystem* system,
                                                    std::shared_ptr<ChMaterialSurface> material,
                                                    const std::string& obj_filename,
                                                    const std::string& name,
@@ -226,7 +226,7 @@ ChApi std::shared_ptr<ChBody> CreateCylindricalContainerFromBoxes(
     bool partialVisualization = true);
 
 /// Load an object from a Wavefront OBJ file and generate its convex decomposition.
-ChApi void LoadConvexMesh(const std::string& file_name,
+ChApi bool LoadConvexMesh(const std::string& file_name,
                           geometry::ChTriangleMeshConnected& convex_mesh,
                           collision::ChConvexDecompositionHACDv2& convex_shape,
                           const ChVector<>& pos = ChVector<>(0, 0, 0),
@@ -240,7 +240,7 @@ ChApi void LoadConvexMesh(const std::string& file_name,
 
 /// Given a path to an obj file, loads the obj assuming that the individual objects in the obj are convex hulls, useful
 /// when loading a precomputed set of convex hulls. The output of this function is used with AddConvexCollisionModel
-ChApi void LoadConvexHulls(const std::string& file_name,
+ChApi bool LoadConvexHulls(const std::string& file_name,
                            geometry::ChTriangleMeshConnected& convex_mesh,
                            std::vector<std::vector<ChVector<double>>>& convex_hulls);
 

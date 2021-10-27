@@ -64,25 +64,27 @@ class CH_MODELS_API UAZBUS_SAELeafspringAxle : public ChSAELeafspringAxle {
 
     virtual double getSpringRestLength() const override { return m_auxSpringRestLength; }
     /// Return the functor object for spring force.
-    virtual ChLinkTSDA::ForceFunctor* getSpringForceFunctor() const override { return m_auxSpringForceCB; }
+    virtual std::shared_ptr<ChLinkTSDA::ForceFunctor> getSpringForceFunctor() const override {
+        return m_auxSpringForceCB;
+    }
     /// Return the functor object for shock force.
-    virtual ChLinkTSDA::ForceFunctor* getShockForceFunctor() const override { return m_shockForceCB; }
+    virtual std::shared_ptr<ChLinkTSDA::ForceFunctor> getShockForceFunctor() const override { return m_shockForceCB; }
 
-    virtual ChLinkRotSpringCB::TorqueFunctor* getLatTorqueFunctorA() const override { return m_latRotSpringCBA; }
-    virtual ChLinkRotSpringCB::TorqueFunctor* getLatTorqueFunctorB() const override { return m_latRotSpringCBB; }
-
-    virtual ChLinkRotSpringCB::TorqueFunctor* getVertTorqueFunctorA() const override { return m_vertRotSpringCBA; }
-    virtual ChLinkRotSpringCB::TorqueFunctor* getVertTorqueFunctorB() const override { return m_vertRotSpringCBB; }
+    virtual std::shared_ptr<ChLinkRotSpringCB::TorqueFunctor> getLatTorqueFunctorA() const override { return m_latRotSpringCBA; }
+    virtual std::shared_ptr<ChLinkRotSpringCB::TorqueFunctor> getLatTorqueFunctorB() const override { return m_latRotSpringCBB; }
+ 
+    virtual std::shared_ptr<ChLinkRotSpringCB::TorqueFunctor> getVertTorqueFunctorA() const override { return m_vertRotSpringCBA; }
+    virtual std::shared_ptr<ChLinkRotSpringCB::TorqueFunctor> getVertTorqueFunctorB() const override { return m_vertRotSpringCBB; }
 
   private:
-    ChLinkTSDA::ForceFunctor* m_auxSpringForceCB;
-    ChLinkTSDA::ForceFunctor* m_shockForceCB;
+    std::shared_ptr<ChLinkTSDA::ForceFunctor> m_auxSpringForceCB;
+    std::shared_ptr<ChLinkTSDA::ForceFunctor> m_shockForceCB;
 
-    ChLinkRotSpringCB::TorqueFunctor* m_latRotSpringCBA;
-    ChLinkRotSpringCB::TorqueFunctor* m_latRotSpringCBB;
+    std::shared_ptr<ChLinkRotSpringCB::TorqueFunctor> m_latRotSpringCBA;
+    std::shared_ptr<ChLinkRotSpringCB::TorqueFunctor> m_latRotSpringCBB;
 
-    ChLinkRotSpringCB::TorqueFunctor* m_vertRotSpringCBA;
-    ChLinkRotSpringCB::TorqueFunctor* m_vertRotSpringCBB;
+    std::shared_ptr<ChLinkRotSpringCB::TorqueFunctor> m_vertRotSpringCBA;
+    std::shared_ptr<ChLinkRotSpringCB::TorqueFunctor> m_vertRotSpringCBB;
 
     static const double m_axleShaftInertia;
 

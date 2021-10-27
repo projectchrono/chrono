@@ -161,12 +161,9 @@ class ChApi ChElementShellReissner4 : public ChElementShell, public ChLoadableUV
     /// Get a handle to the specified layer.
     const Layer& GetLayer(size_t i) const { return m_layers[i]; }
 
-    /// Set the structural damping: this is the Rayleigh "alpha" for the
-    /// stiffness-proportional damping. This assumes damping forces as F=alpha*[Km]*v
-    /// where [Km] is the stiffness matrix (material part, i.e.excluding geometric stiffness)
-    /// and v is a vector of node speeds. Usually, alpha in the range 0.0 - 0.1
-    /// Note that the mass-proportional term of classical Rayleigh damping is not supported.
-    void SetAlphaDamp(double a) { m_Alpha = a; }
+    /// Set the structural damping: this is the Rayleigh "alpha"
+	/// ***OBSOLETE*** create a ChDampingReissnerRayleigh object and add to layer material to have the same effect
+    ///void SetAlphaDamp(double a) { m_Alpha = a; } 
 
     /// Get the element length in the X direction.
     double GetLengthX() const { return m_lenX; }
@@ -219,7 +216,7 @@ class ChApi ChElementShellReissner4 : public ChElementShell, public ChLoadableUV
     double tot_thickness;                         ///< total element thickness
     double m_lenX;                                ///< element length in X direction
     double m_lenY;                                ///< element length in Y direction
-    double m_Alpha;                               ///< structural damping
+
     ChMatrixNM<double, 24, 24> m_MassMatrix;      ///< mass matrix
     ChMatrixNM<double, 24, 24> m_JacobianMatrix;  ///< Jacobian matrix (Kfactor*[K] + Rfactor*[R])
 
@@ -470,14 +467,17 @@ class ChApi ChElementShellReissner4 : public ChElementShell, public ChLoadableUV
     /// tetrahedron finite element or a cable, = 1 for a thermal problem, etc.
     virtual int Get_field_ncoords() override { return 6; }
 
-    /// Tell the number of DOFs blocks (ex. =1 for a body, =4 for a tetrahedron, etc.)
+    /// Get the number of DOFs sub-blocks.
     virtual int GetSubBlocks() override { return 4; }
 
-    /// Get the offset of the i-th sub-block of DOFs in global vector.
+    /// Get the offset of the specified sub-block of DOFs in global vector.
     virtual unsigned int GetSubBlockOffset(int nblock) override { return m_nodes[nblock]->NodeGetOffset_w(); }
 
-    /// Get the size of the i-th sub-block of DOFs in global vector.
+    /// Get the size of the specified sub-block of DOFs in global vector.
     virtual unsigned int GetSubBlockSize(int nblock) override { return 6; }
+
+    /// Check if the specified sub-block of DOFs is active.
+    virtual bool IsSubBlockActive(int nblock) const override { return !m_nodes[nblock]->GetFixed(); }
 
     virtual void EvaluateSectionVelNorm(double U, double V, ChVector<>& Result) override;
 

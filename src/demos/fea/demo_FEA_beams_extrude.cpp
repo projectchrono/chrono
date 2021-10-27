@@ -16,7 +16,6 @@
 //
 // =============================================================================
 
-#include "chrono/physics/ChSystemNSC.h"
 #include "chrono/physics/ChSystemSMC.h"
 #include "chrono/physics/ChLinkMate.h"
 #include "chrono/physics/ChBodyEasy.h"
@@ -35,7 +34,7 @@
 #include "chrono/fea/ChContactSurfaceNodeCloud.h"
 #include "chrono_irrlicht/ChIrrApp.h"
 
-#include "chrono_mkl/ChSolverMKL.h"
+#include "chrono_pardisomkl/ChSolverPardisoMKL.h"
 
 using namespace chrono;
 using namespace chrono::fea;
@@ -125,9 +124,13 @@ int main(int argc, char* argv[]) {
 
     double wire_diameter = 0.010;
 
+	auto minertia = chrono_types::make_shared<ChInertiaCosseratSimple>();
+	minertia->SetAsCircularSection(wire_diameter, 2700);  // automatically sets A etc., from width, height, density 
+
 	auto melasticity = chrono_types::make_shared<ChElasticityCosseratSimple>();
 	melasticity->SetYoungModulus(0.5e9);
 	melasticity->SetGshearModulus(0.5e9 * 0.7);
+    melasticity->SetAsCircularSection(wire_diameter);
 
 	auto mdamping = chrono_types::make_shared<ChDampingCosseratLinear>();
 	mdamping->SetDampingCoefficientsRe((1e-3)*ChVector<>(1, 1, 1)); 
@@ -138,9 +141,10 @@ int main(int argc, char* argv[]) {
 	mplasticity->n_yeld_My = chrono_types::make_shared<ChFunction_Ramp>(0.2, 0.001);
 	mplasticity->n_yeld_Mz = chrono_types::make_shared<ChFunction_Ramp>(0.2, 0.001);
 
-	auto msection = chrono_types::make_shared<ChBeamSectionCosserat>(melasticity, mplasticity, mdamping);
-	msection->SetDensity(1000);
-	msection->SetAsCircularSection(wire_diameter);
+	auto msection = chrono_types::make_shared<ChBeamSectionCosserat>(minertia, melasticity, mplasticity, mdamping);
+
+	msection->SetCircular(true);
+	msection->SetDrawCircularRadius(wire_diameter/2.);
 
     // Create the surface material for the contacts; this contains information about friction etc.
     // It is a SMC (penalty) material: interpenetration might happen for low Young stiffness,
@@ -233,7 +237,7 @@ int main(int argc, char* argv[]) {
     mgear_motorLOW->Initialize(gearLOW, mground, ChFrame<>(gear_centerLOW));
     my_system.Add(mgear_motorLOW);
 
-    auto mgear_speedLOW = chrono_types::make_shared<ChFunction_Const>(-0.2); // [rad/s]
+    auto mgear_speedLOW = chrono_types::make_shared<ChFunction_Const>(-0.18); // [rad/s]
     mgear_motorLOW->SetSpeedFunction(mgear_speedLOW);
 
     auto gearHI =  CreateLobedGear (gear_centerHI, lobe_copies, lobe_width, lobe_primitive_rad, 
@@ -244,15 +248,14 @@ int main(int argc, char* argv[]) {
     mgear_motorHI->Initialize(gearHI, mground, ChFrame<>(gear_centerHI));
     my_system.Add(mgear_motorHI);
 
-    auto mgear_speedHI = chrono_types::make_shared<ChFunction_Const>( 0.2); // [rad/s]
+    auto mgear_speedHI = chrono_types::make_shared<ChFunction_Const>( 0.18); // [rad/s]
     mgear_motorHI->SetSpeedFunction(mgear_speedHI);
 
 
 
     // Create the Irrlicht visualization (open the Irrlicht device,
     // bind a simple user interface, etc. etc.)
-    ChIrrApp application(&my_system, L"Beam continuous extrusion and FEA contacts", core::dimension2d<u32>(800, 600),
-                         false, true);
+    ChIrrApp application(&my_system, L"Beam continuous extrusion and FEA contacts", core::dimension2d<u32>(800, 600));
 
     // Easy shortcuts to add camera, lights, logo and sky in Irrlicht scene:
     application.AddTypicalLogo();
@@ -275,7 +278,7 @@ int main(int argc, char* argv[]) {
 
     // SIMULATION LOOP
 
-    auto mkl_solver = chrono_types::make_shared<ChSolverMKL>();
+    auto mkl_solver = chrono_types::make_shared<ChSolverPardisoMKL>();
     mkl_solver->LockSparsityPattern(true);
     my_system.SetSolver(mkl_solver);
             
@@ -285,7 +288,7 @@ int main(int argc, char* argv[]) {
         application.BeginScene();
 
         application.DrawAll();
-        ChIrrTools::drawGrid(application.GetVideoDriver(), 0.1, 0.1,20,20,CSYSNORM, irr::video::SColor(255,100,100,100),true);
+        tools::drawGrid(application.GetVideoDriver(), 0.1, 0.1,20,20,CSYSNORM, irr::video::SColor(255,100,100,100),true);
 
         application.DoStep();
 

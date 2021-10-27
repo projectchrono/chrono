@@ -45,6 +45,13 @@ ChApiIrr irr::scene::IMesh* createCubeMesh(const irr::core::vector3df& size);
 /// Cylinder tot length is 2*height, ranging from y=-height to y=+height.
 ChApiIrr irr::scene::IMesh* createCylinderMesh(irr::f32 radius, irr::f32 height, irr::u32 tesselation);
 
+/// Create an Irrlicht mesh representing a capsule.
+/// Capsule axis is in Y direction, centered at origin.
+/// Capsule total length is radius + 2*hlen + radius.
+/// The hemispherical caps and cylindrical segment are all tesselated using numSegR radial segments.
+/// The hemispherical caps use numSegV vertical segments each. 
+ChApiIrr irr::scene::IMesh* createCapsuleMesh(irr::f32 radius, irr::f32 hlen, irr::u32 numSegV, irr::u32 numSegR);
+
 /// Create an Irrlicht mesh representing a truncated cone.
 /// Truncated cone axis is in Y direction, centered in origin. 
 /// Truncated cone tot length is 2*height, ranging from y=-height to y=+height.

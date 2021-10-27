@@ -49,11 +49,13 @@ class CH_MODELS_API HMMWV {
     virtual ~HMMWV();
 
     void SetContactMethod(ChContactMethod val) { m_contactMethod = val; }
+    void SetCollisionSystemType(collision::ChCollisionSystemType collsys_type) { m_collsysType = collsys_type; }
 
     void SetChassisFixed(bool val) { m_fixed = val; }
-    void SetChassisCollisionType(ChassisCollisionType val) { m_chassisCollisionType = val; }
+    void SetChassisCollisionType(CollisionType val) { m_chassisCollisionType = val; }
 
-    void SetDriveType(DrivelineType val) { m_driveType = val; }
+    void SetDriveType(DrivelineTypeWV val) { m_driveType = val; }
+    void SetBrakeType(BrakeType brake_type) { m_brake_type = brake_type; }
     void SetPowertrainType(PowertrainModelType val) { m_powertrainType = val; }
     void SetTireType(TireModelType val) { m_tireType = val; }
 
@@ -64,6 +66,8 @@ class CH_MODELS_API HMMWV {
     void SetInitWheelAngVel(const std::vector<double>& omega) { m_initOmega = omega; }
 
     void SetTireStepSize(double step_size) { m_tire_step_size = step_size; }
+
+    void EnableBrakeLocking(bool lock) { m_brake_locking = lock; }
 
     ChSystem* GetSystem() const { return m_vehicle->GetSystem(); }
     ChWheeledVehicle& GetVehicle() const { return *m_vehicle; }
@@ -96,11 +100,14 @@ class CH_MODELS_API HMMWV {
     virtual HMMWV_Vehicle* CreateVehicle() = 0;
 
     ChContactMethod m_contactMethod;
-    ChassisCollisionType m_chassisCollisionType;
+    collision::ChCollisionSystemType m_collsysType;
+    CollisionType m_chassisCollisionType;
     bool m_fixed;
+    bool m_brake_locking;
 
-    DrivelineType m_driveType;
+    DrivelineTypeWV m_driveType;
     PowertrainModelType m_powertrainType;
+    BrakeType m_brake_type;
     TireModelType m_tireType;
     ChTire::CollisionType m_tire_collision_type;
 
@@ -126,16 +133,21 @@ class CH_MODELS_API HMMWV {
 /// and lower control arms) and a Pitman arm steering mechanism.
 class CH_MODELS_API HMMWV_Full : public HMMWV {
   public:
-    HMMWV_Full() : m_steeringType(SteeringType::PITMAN_ARM), m_rigidColumn(false) {}
-    HMMWV_Full(ChSystem* system) : HMMWV(system), m_steeringType(SteeringType::PITMAN_ARM), m_rigidColumn(false) {}
+    HMMWV_Full() : m_steeringType(SteeringTypeWV::PITMAN_ARM), m_rigidColumn(false), m_use_tierod_bodies(false) {}
+    HMMWV_Full(ChSystem* system)
+        : HMMWV(system), m_steeringType(SteeringTypeWV::PITMAN_ARM), m_rigidColumn(false), m_use_tierod_bodies(false) {}
 
     /// Set the type of steering mechanism (PITMAN_ARM or PITMAN_ARM_SHAFTS.
     /// Default: PITMAN_ARM
-    void SetSteeringType(SteeringType val) { m_steeringType = val; }
+    void SetSteeringType(SteeringTypeWV val) { m_steeringType = val; }
 
     /// Force a rigid steering column (PITMAN_ARM_SHAFTS only).
     /// Default: false (compliant column).
     void SetRigidSteeringColumn(bool val) { m_rigidColumn = val; }
+
+    /// Use rigid bodies and joints to model the tierods.
+    /// Default: false (tierods modelled with distance constraints).
+    void UseTierodBodies(bool val) { m_use_tierod_bodies = val; }
 
     void LogHardpointLocations() { ((HMMWV_VehicleFull*)m_vehicle)->LogHardpointLocations(); }
     void DebugLog(int what) { ((HMMWV_VehicleFull*)m_vehicle)->DebugLog(what); }
@@ -143,8 +155,9 @@ class CH_MODELS_API HMMWV_Full : public HMMWV {
   private:
     virtual HMMWV_Vehicle* CreateVehicle() override;
 
-    SteeringType m_steeringType;  ///< type of steering mechanism
-    bool m_rigidColumn;           ///< only used with PITMAN_ARM_SHAFT
+    SteeringTypeWV m_steeringType;  ///< type of steering mechanism
+    bool m_use_tierod_bodies;       ///< tierod bodies + joints (true) or distance constraints (false)
+    bool m_rigidColumn;             ///< only used with PITMAN_ARM_SHAFT
 };
 
 /// Definition of a HMMWV vehicle assembly (vehicle, powertrain, and tires), using reduced

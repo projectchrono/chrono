@@ -48,19 +48,37 @@ const std::string ChThreeLinkIRS::m_pointNames[] = {"SPINDLE ", "TA_CM",    "TA_
 // -----------------------------------------------------------------------------
 ChThreeLinkIRS::ChThreeLinkIRS(const std::string& name) : ChSuspension(name) {}
 
+ChThreeLinkIRS::~ChThreeLinkIRS() {
+    auto sys = m_arm[0]->GetSystem();
+    if (sys) {
+        for (int i = 0; i < 2; i++) {
+            sys->Remove(m_arm[i]);
+            sys->Remove(m_upper[i]);
+            sys->Remove(m_lower[i]);
+            sys->Remove(m_sphericalArm[i]);
+            sys->Remove(m_sphericalUpper[i]);
+            sys->Remove(m_sphericalLower[i]);
+            sys->Remove(m_universalUpper[i]);
+            sys->Remove(m_universalLower[i]);
+            sys->Remove(m_shock[i]);
+            sys->Remove(m_spring[i]);
+        }
+    }
+}
+
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-void ChThreeLinkIRS::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,
+void ChThreeLinkIRS::Initialize(std::shared_ptr<ChChassis> chassis,
+                                std::shared_ptr<ChSubchassis> subchassis,
+                                std::shared_ptr<ChSteering> steering,
                                 const ChVector<>& location,
-                                std::shared_ptr<ChBody> tierod_body,
-                                int steering_index,
                                 double left_ang_vel,
                                 double right_ang_vel) {
     m_location = location;
 
     // Express the suspension reference frame in the absolute coordinate system.
     ChFrame<> suspension_to_abs(location);
-    suspension_to_abs.ConcatenatePreTransformation(chassis->GetFrame_REF_to_abs());
+    suspension_to_abs.ConcatenatePreTransformation(chassis->GetBody()->GetFrame_REF_to_abs());
 
     // Transform all hardpoints and directions to absolute frame.
     m_pointsL.resize(NUM_POINTS);
@@ -84,8 +102,8 @@ void ChThreeLinkIRS::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,
     }
 
     // Initialize left and right sides.
-    InitializeSide(LEFT, chassis, m_pointsL, m_dirsL, left_ang_vel);
-    InitializeSide(RIGHT, chassis, m_pointsR, m_dirsR, right_ang_vel);
+    InitializeSide(LEFT, chassis->GetBody(), m_pointsL, m_dirsL, left_ang_vel);
+    InitializeSide(RIGHT, chassis->GetBody(), m_pointsR, m_dirsR, right_ang_vel);
 }
 
 void ChThreeLinkIRS::InitializeSide(VehicleSide side,
@@ -304,28 +322,28 @@ void ChThreeLinkIRS::LogHardpointLocations(const ChVector<>& ref, bool inches) {
 // -----------------------------------------------------------------------------
 void ChThreeLinkIRS::LogConstraintViolations(VehicleSide side) {
     {
-        ChVectorDynamic<> C = m_sphericalArm[side]->GetC();
+        ChVectorDynamic<> C = m_sphericalArm[side]->GetConstraintViolation();
         GetLog() << "Arm spherical         ";
         GetLog() << "  " << C(0) << "  ";
         GetLog() << "  " << C(1) << "  ";
         GetLog() << "  " << C(2) << "\n";
     }
     {
-        ChVectorDynamic<> C = m_sphericalUpper[side]->GetC();
+        ChVectorDynamic<> C = m_sphericalUpper[side]->GetConstraintViolation();
         GetLog() << "Upper spherical       ";
         GetLog() << "  " << C(0) << "  ";
         GetLog() << "  " << C(1) << "  ";
         GetLog() << "  " << C(2) << "\n";
     }
     {
-        ChVectorDynamic<> C = m_sphericalLower[side]->GetC();
+        ChVectorDynamic<> C = m_sphericalLower[side]->GetConstraintViolation();
         GetLog() << "Lower spherical       ";
         GetLog() << "  " << C(0) << "  ";
         GetLog() << "  " << C(1) << "  ";
         GetLog() << "  " << C(2) << "\n";
     }
     {
-        ChVectorDynamic<> C = m_universalUpper[side]->GetC();
+        ChVectorDynamic<> C = m_universalUpper[side]->GetConstraintViolation();
         GetLog() << "Upper universal       ";
         GetLog() << "  " << C(0) << "  ";
         GetLog() << "  " << C(1) << "  ";
@@ -333,7 +351,7 @@ void ChThreeLinkIRS::LogConstraintViolations(VehicleSide side) {
         GetLog() << "  " << C(3) << "\n";
     }
     {
-        ChVectorDynamic<> C = m_universalLower[side]->GetC();
+        ChVectorDynamic<> C = m_universalLower[side]->GetConstraintViolation();
         GetLog() << "Lower universal       ";
         GetLog() << "  " << C(0) << "  ";
         GetLog() << "  " << C(1) << "  ";
@@ -341,7 +359,7 @@ void ChThreeLinkIRS::LogConstraintViolations(VehicleSide side) {
         GetLog() << "  " << C(3) << "\n";
     }
     {
-        ChVectorDynamic<> C = m_revolute[side]->GetC();
+        ChVectorDynamic<> C = m_revolute[side]->GetConstraintViolation();
         GetLog() << "Spindle revolute      ";
         GetLog() << "  " << C(0) << "  ";
         GetLog() << "  " << C(1) << "  ";

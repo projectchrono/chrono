@@ -18,7 +18,7 @@
 #include "chrono_distributed/ChTypesDistributed.h"
 #include "chrono_distributed/physics/ChSystemDistributed.h"
 
-#include "chrono_parallel/ChDataManager.h"
+#include "chrono_multicore/ChDataManager.h"
 
 #include <vector>
 
@@ -47,7 +47,7 @@ struct LocalShapeNode {
 };
 
 /// A class for storing data for maintaining a consistent view of a distributed
-/// simulation consisting of multiple wrapped instances of ChSystemParallelSMC.
+/// simulation consisting of multiple wrapped instances of ChSystemMulticoreSMC.
 class CH_DISTR_API ChDistributedDataManager {
   public:
     ChDistributedDataManager(ChSystemDistributed* my_sys);
@@ -64,7 +64,7 @@ class CH_DISTR_API ChDistributedDataManager {
     std::unordered_map<uint, int> gid_to_localid;  ///< Maps gloabl id to local id on this rank
 
     /* Pointers to the rest of the system's data */
-    ChParallelDataManager* data_manager;  ///< Pointer to the main Chrono::Parallel Data Manager
+    ChMulticoreDataManager* data_manager;  ///< Pointer to the main Chrono::Multicore Data Manager
     ChSystemDistributed* my_sys;          ///< Pointer to the main dynamical system
 
     /* Collision system tracking */
@@ -98,9 +98,9 @@ class CH_DISTR_API ChDistributedDataManager {
 
     std::vector<bool> dm_free_shapes;  ///< Indicates that the space in the data_manager->shape_data is available
 
-    int first_empty;  ///< Index of the first unused body in the bodylist (internal)
+    uint first_empty;  ///< Index of the first unused body in the bodylist (internal)
 
-    int first_cosim, last_cosim;  // Global ID range [first, last] of co-simulation triangles
+    uint first_cosim, last_cosim;  // Global ID range [first, last] of co-simulation triangles
 
     /// Returns the local index of a body, given its global id.
     /// Returns -1 if the body is not found on this rank.

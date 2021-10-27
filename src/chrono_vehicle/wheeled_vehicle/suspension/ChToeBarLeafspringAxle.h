@@ -69,7 +69,7 @@ class CH_VEHICLE_API ChToeBarLeafspringAxle : public ChSuspension {
     ChToeBarLeafspringAxle(const std::string& name  ///< [in] name of the subsystem
     );
 
-    virtual ~ChToeBarLeafspringAxle() {}
+    virtual ~ChToeBarLeafspringAxle();
 
     /// Get the name of the vehicle subsystem template.
     virtual std::string GetTemplateName() const override { return "ToeBarLeafspringAxle"; }
@@ -81,22 +81,19 @@ class CH_VEHICLE_API ChToeBarLeafspringAxle : public ChSuspension {
     virtual bool IsIndependent() const final override { return false; }
 
     /// Initialize this suspension subsystem.
-    /// The suspension subsystem is initialized by attaching it to the specified
-    /// chassis body at the specified location (with respect to and expressed in
-    /// the reference frame of the chassis). It is assumed that the suspension
-    /// reference frame is always aligned with the chassis reference frame.
-    /// 'tierod_body' is a handle to the body to which the suspension tierods
-    /// are to be attached. For a steered suspension, this will be the steering
-    /// (central) link of a suspension subsystem.  Otherwise, this is the chassis.
-    /// If this suspension is steered, 'steering_index' indicates the index of the
-    /// associated steering mechanism in the vehicle's list (-1 for a non-steered suspension).
-    virtual void Initialize(std::shared_ptr<ChBodyAuxRef> chassis,  ///< [in] handle to the chassis body
-                            const ChVector<>& location,             ///< [in] location relative to the chassis frame
-                            std::shared_ptr<ChBody> tierod_body,    ///< [in] body to which tireods are connected
-                            int steering_index,                     ///< [in] index of the associated steering mechanism
-                            double left_ang_vel = 0,                ///< [in] initial angular velocity of left wheel
-                            double right_ang_vel = 0                ///< [in] initial angular velocity of right wheel
-                            ) override;
+    /// The suspension subsystem is initialized by attaching it to the specified chassis and (if provided) to the
+    /// specified subchassis, at the specified location (with respect to and expressed in the reference frame of the
+    /// chassis). It is assumed that the suspension reference frame is always aligned with the chassis reference frame.
+    /// If a steering subsystem is provided, the suspension tierods are to be attached to the steering's central link
+    /// body (steered suspension); otherwise they are to be attached to the chassis (non-steered suspension).
+    virtual void Initialize(
+        std::shared_ptr<ChChassis> chassis,        ///< [in] associated chassis subsystem
+        std::shared_ptr<ChSubchassis> subchassis,  ///< [in] associated subchassis subsystem (may be null)
+        std::shared_ptr<ChSteering> steering,      ///< [in] associated steering subsystem (may be null)
+        const ChVector<>& location,                ///< [in] location relative to the chassis frame
+        double left_ang_vel = 0,                   ///< [in] initial angular velocity of left wheel
+        double right_ang_vel = 0                   ///< [in] initial angular velocity of right wheel
+        ) override;
 
     /// Add visualization assets for the suspension subsystem.
     /// This default implementation uses primitives.
@@ -211,9 +208,9 @@ class CH_VEHICLE_API ChToeBarLeafspringAxle : public ChSuspension {
     /// Return the free (rest) length of the spring element.
     virtual double getSpringRestLength() const = 0;
     /// Return the functor object for spring force.
-    virtual ChLinkTSDA::ForceFunctor* getSpringForceFunctor() const = 0;
+    virtual std::shared_ptr<ChLinkTSDA::ForceFunctor> getSpringForceFunctor() const = 0;
     /// Return the functor object for shock force.
-    virtual ChLinkTSDA::ForceFunctor* getShockForceFunctor() const = 0;
+    virtual std::shared_ptr<ChLinkTSDA::ForceFunctor> getShockForceFunctor() const = 0;
     /// Returns toplology flag for knuckle/draglink connection
     virtual bool isLeftKnuckleActuated() { return true; }
 

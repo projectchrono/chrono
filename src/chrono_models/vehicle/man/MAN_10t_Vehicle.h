@@ -19,27 +19,10 @@
 #ifndef MAN10T_VEHICLE_H
 #define MAN10T_VEHICLE_H
 
-#include <vector>
-
 #include "chrono_models/ChApiModels.h"
 #include "chrono_models/vehicle/ChVehicleModelDefs.h"
 
-#include "chrono/core/ChCoordsys.h"
-#include "chrono/physics/ChMaterialSurface.h"
-#include "chrono/physics/ChSystem.h"
-
 #include "chrono_vehicle/wheeled_vehicle/ChWheeledVehicle.h"
-
-#include "chrono_models/vehicle/man/MAN_10t_Chassis.h"
-#include "chrono_models/vehicle/man/MAN_5t_BrakeSimple.h"
-#include "chrono_models/vehicle/man/MAN_7t_Solid3LinkAxle.h"
-#include "chrono_models/vehicle/man/MAN_10t_Front1Axle.h"
-#include "chrono_models/vehicle/man/MAN_10t_Front2Axle.h"
-#include "chrono_models/vehicle/man/MAN_5t_RotaryArm.h"
-#include "chrono_models/vehicle/man/MAN_10t_RotaryArm2.h"
-#include "chrono_models/vehicle/man/MAN_5t_Driveline4WD.h"
-#include "chrono_models/vehicle/man/MAN_5t_SimpleDrivelineXWD.h"
-#include "chrono_models/vehicle/man/MAN_5t_Wheel.h"
 
 namespace chrono {
 namespace vehicle {
@@ -50,15 +33,17 @@ namespace man {
 
 class CH_MODELS_API MAN_10t_Vehicle : public ChWheeledVehicle {
   public:
-    MAN_10t_Vehicle(const bool fixed = false,
+    MAN_10t_Vehicle(const bool fixed,
+                    BrakeType brake_type,
                     ChContactMethod contact_method = ChContactMethod::NSC,
-                    ChassisCollisionType chassis_collision_type = ChassisCollisionType::NONE,
-                    bool useShaftDrivetrain = true);
+                    CollisionType chassis_collision_type = CollisionType::NONE,
+                    bool use_8WD_drivetrain = false);
 
     MAN_10t_Vehicle(ChSystem* system,
-                    const bool fixed = false,
-                    ChassisCollisionType chassis_collision_type = ChassisCollisionType::NONE,
-                    bool useShaftDrivetrain = true);
+                    const bool fixed,
+                    BrakeType brake_type,
+                    CollisionType chassis_collision_type = CollisionType::NONE,
+                    bool use_8WD_drivetrain = false);
 
     ~MAN_10t_Vehicle();
 
@@ -87,11 +72,11 @@ class CH_MODELS_API MAN_10t_Vehicle : public ChWheeledVehicle {
     void DebugLog(int what);       /// shock forces and lengths, constraints, etc.
 
   private:
-    void Create(bool fixed, ChassisCollisionType chassis_collision_type);
+    void Create(bool fixed, BrakeType brake_type, CollisionType chassis_collision_type);
 
     std::vector<double> m_omega;
 
-    bool m_use_shafts_drivetrain;
+    bool m_use_8WD_drivetrain;
 };
 
 /// @} vehicle_models_man

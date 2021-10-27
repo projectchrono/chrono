@@ -44,12 +44,12 @@ namespace vehicle {
 class CH_VEHICLE_API ChDeformableTire : public ChTire {
   public:
     /// Type of the mesh contact surface.
-    enum ContactSurfaceType { NODE_CLOUD, TRIANGLE_MESH };
+    enum class ContactSurfaceType { NODE_CLOUD, TRIANGLE_MESH };
 
     /// Construct a deformable tire with the specified name.
     ChDeformableTire(const std::string& name);
 
-    virtual ~ChDeformableTire() {}
+    virtual ~ChDeformableTire();
 
     /// Set the type of contact surface.
     void SetContactSurfaceType(ContactSurfaceType type) { m_contact_type = type; }
@@ -103,9 +103,6 @@ class CH_VEHICLE_API ChDeformableTire : public ChTire {
     /// Get the rim radius (inner tire radius).
     virtual double GetRimRadius() const = 0;
 
-    /// Get the tire width.
-    virtual double GetWidth() const = 0;
-
     /// Calculate and return the tire mass.
     /// The return value is the mass of the underlying FEA mesh.
     double GetTireMass() const;
@@ -125,22 +122,6 @@ class CH_VEHICLE_API ChDeformableTire : public ChTire {
 
     /// Remove visualization assets for the rigid tire subsystem.
     virtual void RemoveVisualizationAssets() override final;
-
-  private:
-    /// The following two functions are marked as final.
-    /// The mass properties of a deformable tire are implicitly included through
-    /// the FEA mesh.  To prevent double counting the mass and inertia of a
-    /// deformable tire, these functions must always return 0.
-    virtual double GetMass() const final { return 0; }
-    virtual ChVector<> GetInertia() const final { return ChVector<>(0, 0, 0); }
-
-    /// Initialize this tire by associating it to the specified wheel.
-    virtual void Initialize(std::shared_ptr<ChWheel> wheel) override;
-
-    /// Get the tire force and moment.
-    /// A ChDeformableTire always returns zero forces and moments since tire forces
-    /// are implicitly applied to the associated wheel through the tire-wheel connections.
-    virtual TerrainForce GetTireForce() const override;
 
   protected:
     /// Return the default tire pressure.
@@ -190,6 +171,22 @@ class CH_VEHICLE_API ChDeformableTire : public ChTire {
 
     std::shared_ptr<ChMaterialSurfaceSMC> m_contact_mat;           ///< tire contact material
     std::shared_ptr<fea::ChVisualizationFEAmesh> m_visualization;  ///< tire mesh visualization
+
+  //private:
+    // The following two functions are marked as final.
+    // The mass properties of a deformable tire are implicitly included through
+    // the FEA mesh.  To prevent double counting the mass and inertia of a
+    // deformable tire, these functions must always return 0.
+    virtual double GetMass() const final { return 0; }
+    virtual ChVector<> GetInertia() const final { return ChVector<>(0, 0, 0); }
+
+    /// Initialize this tire by associating it to the specified wheel.
+    virtual void Initialize(std::shared_ptr<ChWheel> wheel) override;
+
+    /// Get the tire force and moment.
+    /// A ChDeformableTire always returns zero forces and moments since tire forces
+    /// are implicitly applied to the associated wheel through the tire-wheel connections.
+    virtual TerrainForce GetTireForce() const override;
 };
 
 /// @} vehicle_wheeled_tire

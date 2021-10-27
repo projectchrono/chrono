@@ -27,6 +27,7 @@
 #include "chrono_vehicle/ChVehicle.h"
 #include "chrono_vehicle/ChDriver.h"
 #include "chrono_vehicle/ChTerrain.h"
+#include "chrono_vehicle/wheeled_vehicle/ChSubchassis.h"
 #include "chrono_vehicle/wheeled_vehicle/ChAxle.h"
 #include "chrono_vehicle/wheeled_vehicle/ChAntirollBar.h"
 #include "chrono_vehicle/wheeled_vehicle/ChBrake.h"
@@ -86,8 +87,21 @@ class CH_VEHICLE_API ChWheeledVehicle : public ChVehicle {
     /// right wheel; for a double-wheel axle, the order is inner left, inner right, outer left, outer right.
     std::shared_ptr<ChWheel> GetWheel(int axle, VehicleSide side, WheelLocation location = SINGLE) const;
 
+    /// Get the specified vehicle tire, by specifying the axle, side, and wheel location.
+    /// Axles are assumed to be indexed starting from the front of the vehicle. On each axle, wheels are assumed to be
+    /// ordered from inner to outer wheels, first left then right: for a single-wheel axle the order is left wheel,
+    /// right wheel; for a double-wheel axle, the order is inner left, inner right, outer left, outer right.
+    std::shared_ptr<ChTire> GetTire(int axle, VehicleSide side, WheelLocation location = SINGLE) const;
+
+    /// Get the specified vehicle brake, by specifying the axle and side.
+    /// Axles are assumed to be indexed starting from the front of the vehicle.
+    std::shared_ptr<ChBrake> GetBrake(int axle, VehicleSide side) const;
+
     /// Get a handle to the vehicle's driveline subsystem.
     std::shared_ptr<ChDrivelineWV> GetDriveline() const { return m_driveline; }
+
+    /// Get the subchassis system (if none present, returns an empty pointer).
+    std::shared_ptr<ChSubchassis> GetSubchassis(int id) const { return m_subchassis[id]; }
 
     /// Get the vehicle total mass.
     /// This includes the mass of the chassis and all vehicle subsystems, but not the mass of tires.
@@ -99,11 +113,6 @@ class CH_VEHICLE_API ChWheeledVehicle : public ChVehicle {
     /// Get a handle to the vehicle's driveshaft body.
     virtual std::shared_ptr<ChShaft> GetDriveshaft() const override { return m_driveline->GetDriveshaft(); }
 
-    /// Get the angular speed of the driveshaft.
-    /// This function provides the interface between a vehicle system and a
-    /// powertrain system.
-    virtual double GetDriveshaftSpeed() const override;
-
     /// Return the number of axles for this vehicle.
     virtual int GetNumberAxles() const = 0;
 
@@ -112,7 +121,7 @@ class CH_VEHICLE_API ChWheeledVehicle : public ChVehicle {
 
     /// Get the orientation of the specified spindle.
     /// Return a quaternion representing a rotation with respect to the global reference frame.
-    const ChQuaternion<>& GetSpindleRot(int axle, VehicleSide side) const;
+    ChQuaternion<> GetSpindleRot(int axle, VehicleSide side) const;
 
     /// Get the linear velocity of the specified spindle.
     /// Return the linear velocity of the spindle center, expressed in the global reference frame.
@@ -141,17 +150,8 @@ class CH_VEHICLE_API ChWheeledVehicle : public ChVehicle {
     /// and the vehicle minimum turning radius.
     virtual double GetMaxSteeringAngle() const;
 
-    /// Initialize the given tire and attach it to the specified wheel.
-    /// Optionally, specify tire visualization mode and tire-terrain collision detection method.
-    /// This function should be called only after vehicle initialization.
-    void InitializeTire(std::shared_ptr<ChTire> tire,
-                        std::shared_ptr<ChWheel> wheel,
-                        VisualizationType tire_vis = VisualizationType::PRIMITIVES,
-                        ChTire::CollisionType tire_coll = ChTire::CollisionType::SINGLE_POINT);
-
-    /// Initialize the given powertrain system and associate it to this vehicle.
-    /// The powertrain is initialized by connecting it to this vehicle's chassis and driveline shaft.
-    void InitializePowertrain(std::shared_ptr<ChPowertrain> powertrain);
+    /// Set visualization mode for the sub-chassis subsystems.
+    void SetSubchassisVisualizationType(VisualizationType vis);
 
     /// Set visualization type for the suspension subsystems.
     /// This function should be called only after vehicle initialization.
@@ -185,6 +185,26 @@ class CH_VEHICLE_API ChWheeledVehicle : public ChVehicle {
     /// See also ChVehicle::SetOuput.
     void SetDrivelineOutput(bool state);
 
+    /// Initialize this vehicle at the specified global location and orientation.
+    /// This base class implementation only initializes the main chassis subsystem.
+    /// Derived classes must extend this function to initialize all other wheeled
+    /// vehicle subsystems (axles, steerings, driveline).
+    virtual void Initialize(const ChCoordsys<>& chassisPos,  ///< [in] initial global position and orientation
+                            double chassisFwdVel = 0         ///< [in] initial chassis forward velocity
+                            ) override;
+
+    /// Initialize the given tire and attach it to the specified wheel.
+    /// Optionally, specify tire visualization mode and tire-terrain collision detection method.
+    /// This function should be called only after vehicle initialization.
+    void InitializeTire(std::shared_ptr<ChTire> tire,
+                        std::shared_ptr<ChWheel> wheel,
+                        VisualizationType tire_vis = VisualizationType::PRIMITIVES,
+                        ChTire::CollisionType tire_coll = ChTire::CollisionType::SINGLE_POINT);
+
+    /// Initialize the given powertrain system and associate it to this vehicle.
+    /// The powertrain is initialized by connecting it to this vehicle's chassis and driveline shaft.
+    void InitializePowertrain(std::shared_ptr<ChPowertrain> powertrain);
+
     /// Update the state of this vehicle at the current time.
     /// The vehicle system is provided the current driver inputs (throttle between 0 and 1, steering between -1 and +1,
     /// braking between 0 and 1), and a reference to the terrain system.
@@ -207,8 +227,27 @@ class CH_VEHICLE_API ChWheeledVehicle : public ChVehicle {
     /// the central differential between the two front-most axles.
     void LockCentralDifferential(int which, bool lock);
 
+    /// Enable/disable brake locking.
+    /// If supported by the concrete brake type used on this vehicle, the brakes will be locked for large enough braking
+    /// inputs. By default, brakes do not lock.
+    void EnableBrakeLocking(bool lock);
+
+    /// Engage/disengage parking brake.
+    /// If engaged and supported by the concrete brake type on this vehicle, this locks all vehicle brakes.
+    void ApplyParkingBrake(bool lock);
+
+    /// Returns the state of the parking brake (true if enagaged, false otherwise).
+    bool ParkingBrake() const { return m_parking_on; }
+
+    /// Disconnect driveline.
+    /// This function has no effect if called before vehicle initialization.
+    void DisconnectDriveline();
+
     /// Log current constraint violations.
     virtual void LogConstraintViolations() override;
+
+    /// Log the types (template names) of current vehicle subsystems.
+    void LogSubsystemTypes();
 
     /// Return a JSON string with information on all modeling components in the vehicle system.
     /// These include bodies, shafts, joints, spring-damper elements, markers, etc.
@@ -222,10 +261,12 @@ class CH_VEHICLE_API ChWheeledVehicle : public ChVehicle {
     /// Output data for all modeling components in the vehicle system.
     virtual void Output(int frame, ChVehicleOutput& database) const override;
 
+    ChSubchassisList m_subchassis;               ///< list of subchassis subsystems (typically empty)
     ChAxleList m_axles;                          ///< list of axle subsystems
     ChSteeringList m_steerings;                  ///< list of steering subsystems
     std::shared_ptr<ChDrivelineWV> m_driveline;  ///< driveline subsystem
     std::shared_ptr<ChPowertrain> m_powertrain;  ///< associated powertrain system
+    bool m_parking_on;                           ///< indicates whether or not parking brake is engaged
 };
 
 /// @} vehicle_wheeled

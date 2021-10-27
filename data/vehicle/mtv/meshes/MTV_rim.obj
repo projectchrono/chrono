@@ -1,4 +1,4 @@
-# Blender v2.81 (sub 16) OBJ File: ''
+# Blender v2.82 (sub 7) OBJ File: ''
 # www.blender.org
 mtllib MTV_rim.mtl
 o test.001
@@ -1698,7 +1698,7 @@ vn -0.9937 0.0000 -0.1119
 vn -0.9937 0.0000 0.1119
 vn 0.9937 0.0000 -0.1119
 vn 0.8135 0.5717 0.1071
-usemtl Material.001
+usemtl Exterior_Tan
 s 1
 f 1//1 2//1 3//1
 f 4//2 5//2 6//2

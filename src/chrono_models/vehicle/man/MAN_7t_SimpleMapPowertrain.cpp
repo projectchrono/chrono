@@ -80,18 +80,18 @@ void MAN_7t_SimpleMapPowertrain::SetEngineTorqueMaps(ChFunction_Recorder& map0, 
     mapF.AddPoint(2350.00 * rpm2rads, -100.0);
 }
 
-void MAN_7t_SimpleMapPowertrain::SetGearRatios(std::vector<double>& fwd_gear_ratios, double& reverse_gear_ratio) {
-    reverse_gear_ratio = -0.089525515;
+void MAN_7t_SimpleMapPowertrain::SetGearRatios(std::vector<double>& fwd, double& rev) {
+    rev = -0.089525515;
 
-    fwd_gear_ratios.push_back(0.077);
-    fwd_gear_ratios.push_back(0.118);
-    fwd_gear_ratios.push_back(0.162);
-    fwd_gear_ratios.push_back(0.221);
-    fwd_gear_ratios.push_back(0.283);
-    fwd_gear_ratios.push_back(0.416);
-    fwd_gear_ratios.push_back(0.573);
-    fwd_gear_ratios.push_back(0.780);
-    fwd_gear_ratios.push_back(1.0);
+    fwd.push_back(0.077);
+    fwd.push_back(0.118);
+    fwd.push_back(0.162);
+    fwd.push_back(0.221);
+    fwd.push_back(0.283);
+    fwd.push_back(0.416);
+    fwd.push_back(0.573);
+    fwd.push_back(0.780);
+    fwd.push_back(1.0);
 }
 
 void MAN_7t_SimpleMapPowertrain::SetShiftPoints(std::vector<std::pair<double, double>>& shift_bands) {

@@ -50,14 +50,14 @@ namespace uaz {
 class CH_MODELS_API UAZBUS_SAEVehicle : public ChWheeledVehicle {
   public:
     UAZBUS_SAEVehicle(const bool fixed = false,
-                      SteeringType steering_model = SteeringType::PITMAN_ARM,
+                      SteeringTypeWV steering_model = SteeringTypeWV::PITMAN_ARM,
                       ChContactMethod contact_method = ChContactMethod::NSC,
-                      ChassisCollisionType chassis_collision_type = ChassisCollisionType::NONE);
+                      CollisionType chassis_collision_type = CollisionType::NONE);
 
     UAZBUS_SAEVehicle(ChSystem* system,
                       const bool fixed = false,
-                      SteeringType steering_model = SteeringType::PITMAN_ARM,
-                      ChassisCollisionType chassis_collision_type = ChassisCollisionType::NONE);
+                      SteeringTypeWV steering_model = SteeringTypeWV::PITMAN_ARM,
+                      CollisionType chassis_collision_type = CollisionType::NONE);
 
     ~UAZBUS_SAEVehicle();
 
@@ -87,7 +87,7 @@ class CH_MODELS_API UAZBUS_SAEVehicle : public ChWheeledVehicle {
     void DebugLog(int what);       /// shock forces and lengths, constraints, etc.
 
   private:
-    void Create(bool fixed, SteeringType steering_model, ChassisCollisionType chassis_collision_type);
+    void Create(bool fixed, SteeringTypeWV steering_model, CollisionType chassis_collision_type);
 
     std::vector<double> m_omega;
 };

@@ -27,6 +27,8 @@ namespace particlefactory {
 /// or inherit your own class with custom event processing.
 class ChParticleProcessEvent {
   public:
+    virtual ~ChParticleProcessEvent() {}
+
     /// Children class MUST implement this function according to their
     /// desired behavior. For example, one class might be used to delete the
     /// particles when event is triggered, so here it will remove the particle, etc.

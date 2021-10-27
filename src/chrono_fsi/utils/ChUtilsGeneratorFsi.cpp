@@ -224,8 +224,8 @@ void CreateBceGlobalMarkersFromBceLocalPos_CableANCF(std::shared_ptr<ChFsiDataMa
     chrono::ChVector<> nAv = cable->GetNodeA()->GetPos_dt();
     chrono::ChVector<> nBv = cable->GetNodeB()->GetPos_dt();
 
-    chrono::ChVector<> nAa = cable->GetNodeA()->GetPos_dtdt();
-    chrono::ChVector<> nBa = cable->GetNodeB()->GetPos_dtdt();
+    //    chrono::ChVector<> nAa = cable->GetNodeA()->GetPos_dtdt();
+    //    chrono::ChVector<> nBa = cable->GetNodeB()->GetPos_dtdt();
 
     int posRadSizeModified = 0;
 
@@ -236,16 +236,16 @@ void CreateBceGlobalMarkersFromBceLocalPos_CableANCF(std::shared_ptr<ChFsiDataMa
 
         chrono::ChVector<> pos_natural = pos_physical * physic_to_natural;
 
-        //    cable->ShapeFunctions(N, pos_natural.x);
+        cable->ShapeFunctions(N, pos_natural.x());
 
-        Real2 Nnew = Cables_ShapeFunctions(pos_natural.x());
+        Real2 NFSI = Cables_ShapeFunctions(pos_natural.x());
 
-        chrono::ChVector<> x_dir = (nBp - nAp);
+        //        chrono::ChVector<> x_dir = (nBp - nAp);
         chrono::ChVector<> Normal;
         //    printf(" N0 =%f, nAp.z= %f, N2=%f, nAp.z=%f\n", N(0), nAp.z, N(2), nBp.z);
 
         chrono::ChVector<> Correct_Pos =
-            Nnew.x * nAp + Nnew.y * nBp + new_y_axis * pos_physical.y() + new_z_axis * pos_physical.z();
+            NFSI.x * nAp + NFSI.y * nBp + new_y_axis * pos_physical.y() + new_z_axis * pos_physical.z();
 
         printf(" physic_to_natural is = (%f,%f,%f)\n", physic_to_natural.x(), physic_to_natural.y(),
                physic_to_natural.z());
@@ -301,7 +301,7 @@ void CreateBceGlobalMarkersFromBceLocalPos_CableANCF(std::shared_ptr<ChFsiDataMa
     fsiData->numObjects->numFlex_SphMarkers += numBce;
     fsiData->numObjects->numFlexBodies1D += 1;
     fsiData->numObjects->startFlexMarkers = fsiData->fsiGeneralData->referenceArray[numRigid + 1].y;
-    int start_flex = (int)fsiData->numObjects->startFlexMarkers;
+    ////int start_flex = (int)fsiData->numObjects->startFlexMarkers;
 
     int4 last = fsiData->fsiGeneralData->referenceArray[fsiData->fsiGeneralData->referenceArray.size() - 1];
     fsiData->fsiGeneralData->referenceArray.push_back(
@@ -350,10 +350,10 @@ void CreateBceGlobalMarkersFromBceLocalPos_ShellANCF(std::shared_ptr<ChFsiDataMa
     chrono::ChVector<> nCv = shell->GetNodeC()->GetPos_dt();
     chrono::ChVector<> nDv = shell->GetNodeD()->GetPos_dt();
 
-    chrono::ChVector<> nAa = shell->GetNodeA()->GetPos_dtdt();
-    chrono::ChVector<> nBa = shell->GetNodeB()->GetPos_dtdt();
-    chrono::ChVector<> nCa = shell->GetNodeC()->GetPos_dtdt();
-    chrono::ChVector<> nDa = shell->GetNodeD()->GetPos_dtdt();
+    //    chrono::ChVector<> nAa = shell->GetNodeA()->GetPos_dtdt();
+    //    chrono::ChVector<> nBa = shell->GetNodeB()->GetPos_dtdt();
+    //    chrono::ChVector<> nCa = shell->GetNodeC()->GetPos_dtdt();
+    //    chrono::ChVector<> nDa = shell->GetNodeD()->GetPos_dtdt();
     printf(" posRadBCE.size()= :%zd\n", posRadBCE.size());
     for (size_t i = 0; i < posRadBCE.size(); i++) {
         //    chrono::ChVector<> posGlob =
@@ -422,7 +422,7 @@ void CreateBceGlobalMarkersFromBceLocalPos_ShellANCF(std::shared_ptr<ChFsiDataMa
     fsiData->numObjects->numFlex_SphMarkers += numBce;
     fsiData->numObjects->numFlexBodies2D += 1;
     fsiData->numObjects->startFlexMarkers = fsiData->fsiGeneralData->referenceArray[numRigid + 1].y;
-    int start_flex = (int)fsiData->numObjects->startFlexMarkers;
+    ////int start_flex = (int)fsiData->numObjects->startFlexMarkers;
 
     int4 last = fsiData->fsiGeneralData->referenceArray[fsiData->fsiGeneralData->referenceArray.size() - 1];
     fsiData->fsiGeneralData->referenceArray.push_back(
@@ -466,18 +466,7 @@ void AddSphereBce(std::shared_ptr<ChFsiDataManager> fsiData,
                   Real radius) {
     thrust::host_vector<Real4> posRadBCE;
     CreateBCE_On_Sphere(posRadBCE, radius, paramsH);
-
-    //	if (fsiData->sphMarkersH->posRadH.size() !=
-    // fsiData->numObjects->numAllMarkers) {
-    //		printf("Error! numMarkers, %d, does not match posRadH.size(),
-    //%d\n",
-    //				fsiData->numObjects->numAllMarkers,
-    // fsiData->sphMarkersH->posRadH.size());
-    //		std::cin.get();
-    //	}
-
     CreateBceGlobalMarkersFromBceLocalPos(fsiData, paramsH, posRadBCE, body);
-
     posRadBCE.clear();
 }
 // =============================================================================
@@ -545,15 +534,8 @@ void AddSphereSurfaceBce(std::shared_ptr<ChFsiDataManager> fsiData,
     posRadBCE.clear();
     normals.clear();
 }
+
 // =============================================================================
-// Arman note, the function in the current implementation creates boundary bce
-// (accesses only referenceArray[1])
-
-// Arman thrust::host_vector<uint>& bodyIndex,
-
-// Arman later on, you can remove numObjects since the Finalize function will
-// take care of setting up the numObjects
-
 void AddBoxBce(std::shared_ptr<ChFsiDataManager> fsiData,
                std::shared_ptr<fsi::SimParams> paramsH,
                std::shared_ptr<ChBody> body,
@@ -564,50 +546,38 @@ void AddBoxBce(std::shared_ptr<ChFsiDataManager> fsiData,
                bool isSolid,
                bool add_to_previous) {
     thrust::host_vector<Real4> posRadBCE;
-
     CreateBCE_On_Box(posRadBCE, ChUtilsTypeConvert::ChVectorToReal3(size), plane, paramsH);
-    //	if (fsiData->sphMarkersH->posRadH.size() !=
-    // fsiData->numObjects->numAllMarkers) {
-    //		printf("Error! numMarkers, %d, does not match posRadH.size(),
-    //%d\n",
-    //				fsiData->numObjects->numAllMarkers,
-    // fsiData->sphMarkersH->posRadH.size());
-    //		std::cin.get();
-    //	}
-    //    printf("in AddBoxBce Ref size=%d,posRadBCE.size()=%d\n", fsiData->fsiGeneralData->referenceArray.size(),
-    //           posRadBCE.size());
-
     CreateBceGlobalMarkersFromBceLocalPosBoundary(fsiData, paramsH, posRadBCE, body, relPos, relRot, isSolid,
                                                   add_to_previous);
     posRadBCE.clear();
 }
 
 // =============================================================================
+void AddBCE_FromPoints(std::shared_ptr<ChFsiDataManager> fsiData,
+                       std::shared_ptr<SimParams> paramsH,
+                       std::shared_ptr<ChBody> body,
+                       const std::vector<chrono::ChVector<>>& points,
+                       chrono::ChVector<> collisionShapeRelativePos,
+                       chrono::ChQuaternion<> collisionShapeRelativeRot) {
+    thrust::host_vector<Real4> posRadBCE;
+    for (auto& p : points)
+        posRadBCE.push_back(mR4(p.x(), p.y(), p.z(), paramsH->HSML));
+    CreateBceGlobalMarkersFromBceLocalPos(fsiData, paramsH, posRadBCE, body, collisionShapeRelativePos,
+                                          collisionShapeRelativeRot);
+}
+
 void AddBCE_FromFile(std::shared_ptr<ChFsiDataManager> fsiData,
                      std::shared_ptr<fsi::SimParams> paramsH,
                      std::shared_ptr<ChBody> body,
                      std::string dataPath,
                      ChVector<> collisionShapeRelativePos,
                      ChQuaternion<> collisionShapeRelativeRot,
-                     double scale) {
-    //----------------------------
-    //  chassis
-    //----------------------------
+                     double scale,
+                     bool isSolid) {
     thrust::host_vector<Real4> posRadBCE;
-
-    LoadBCE_fromFile(posRadBCE, dataPath, scale);
-
-    //	if (fsiData->sphMarkersH->posRadH.size() !=
-    // fsiData->numObjects->numAllMarkers) {
-    //		printf("Error! numMarkers, %d, does not match posRadH.size(),
-    //%d\n",
-    //				fsiData->numObjects->numAllMarkers,
-    // fsiData->sphMarkersH->posRadH.size());
-    //		std::cin.get();
-    //	}
-
+    LoadBCE_fromFile(posRadBCE, dataPath, scale, paramsH->HSML);
     CreateBceGlobalMarkersFromBceLocalPos(fsiData, paramsH, posRadBCE, body, collisionShapeRelativePos,
-                                          collisionShapeRelativeRot);
+                                          collisionShapeRelativeRot, isSolid);
     posRadBCE.clear();
 }
 
@@ -823,7 +793,8 @@ void AddBCE_FromMesh(std::shared_ptr<ChFsiDataManager> fsiData,
         ///////////////////////////
         // Check for Cable Elements
         if (_1D_elementsNodes.size() > 0) {
-            if (auto thisCable = std::dynamic_pointer_cast<fea::ChElementCableANCF>(my_mesh->GetElement((unsigned int)i))) {
+            if (auto thisCable =
+                    std::dynamic_pointer_cast<fea::ChElementCableANCF>(my_mesh->GetElement((unsigned int)i))) {
                 remove1D.resize(2);
                 std::fill(remove1D.begin(), remove1D.end(), 0);
                 fsiCables.push_back(thisCable);
@@ -859,7 +830,8 @@ void AddBCE_FromMesh(std::shared_ptr<ChFsiDataManager> fsiData,
         ///////////////////////////
         // Check for Shell Elements
         if (_2D_elementsNodes.size() > 0) {
-            if (auto thisShell = std::dynamic_pointer_cast<fea::ChElementShellANCF>(my_mesh->GetElement((unsigned int) i))) {
+            if (auto thisShell =
+                    std::dynamic_pointer_cast<fea::ChElementShellANCF>(my_mesh->GetElement((unsigned int)i))) {
                 remove2D.resize(4);
                 std::fill(remove2D.begin(), remove2D.begin() + 4, 0);
 
@@ -886,8 +858,8 @@ void AddBCE_FromMesh(std::shared_ptr<ChFsiDataManager> fsiData,
                             continue;
 
                         size_t JNumNodes = (_2D_elementsNodes[neighborElement].size() > 4)
-                                            ? 4
-                                            : _2D_elementsNodes[neighborElement].size();
+                                               ? 4
+                                               : _2D_elementsNodes[neighborElement].size();
 
                         for (size_t inode = 0; inode < myNumNodes; inode++) {
                             for (size_t jnode = 0; jnode < JNumNodes; jnode++) {

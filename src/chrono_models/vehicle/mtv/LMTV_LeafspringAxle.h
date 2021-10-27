@@ -25,9 +25,9 @@
 
 namespace chrono {
 namespace vehicle {
-namespace mtv {
+namespace fmtv {
 
-/// @addtogroup vehicle_models_mtv
+/// @addtogroup vehicle_models_fmtv
 /// @{
 
 /// Leafspring axle subsystem for the LMTV vehicle.
@@ -56,16 +56,13 @@ class CH_MODELS_API LMTV_LeafspringAxle : public ChLeafspringAxle {
 
     virtual double getSpringRestLength() const override { return m_springRestLength; }
     /// Return the functor object for spring force.
-    virtual ChLinkTSDA::ForceFunctor* getSpringForceFunctor() const override { return m_springForceCB; }
+    virtual std::shared_ptr<ChLinkTSDA::ForceFunctor> getSpringForceFunctor() const override { return m_springForceCB; }
     /// Return the functor object for shock force.
-    virtual ChLinkTSDA::ForceFunctor* getShockForceFunctor() const override { return m_shockForceCB; }
-
-    virtual std::shared_ptr<ChBody> GetLeftBody() const override { return m_axleTube; }
-    virtual std::shared_ptr<ChBody> GetRightBody() const override { return m_axleTube; }
+    virtual std::shared_ptr<ChLinkTSDA::ForceFunctor> getShockForceFunctor() const override { return m_shockForceCB; }
 
   private:
-    ChLinkTSDA::ForceFunctor* m_springForceCB;
-    ChLinkTSDA::ForceFunctor* m_shockForceCB;
+    std::shared_ptr<ChLinkTSDA::ForceFunctor> m_springForceCB;
+    std::shared_ptr<ChLinkTSDA::ForceFunctor> m_shockForceCB;
 
     static const double m_axleShaftInertia;
 
@@ -90,9 +87,9 @@ class CH_MODELS_API LMTV_LeafspringAxle : public ChLeafspringAxle {
     static const double m_damperDegressivityCompression;
 };
 
-/// @} vehicle_models_mtv
+/// @} vehicle_models_fmtv
 
-}  // namespace mtv
+}  // namespace fmtv
 }  // end namespace vehicle
 }  // end namespace chrono
 

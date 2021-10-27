@@ -20,7 +20,7 @@ namespace chrono {
 CH_FACTORY_REGISTER(ChLinkSpringCB)
 
 ChLinkSpringCB::ChLinkSpringCB()
-    : m_rest_length(0), m_force(0), m_nstates(0), m_variables(nullptr), m_force_fun(nullptr), m_ode_fun(nullptr) {}
+    : m_force_fun(nullptr), m_ode_fun(nullptr), m_nstates(0), m_rest_length(0), m_force(0), m_variables(nullptr) {}
 
 ChLinkSpringCB::ChLinkSpringCB(const ChLinkSpringCB& other) : ChLinkMarkers(other) {
     m_rest_length = other.m_rest_length;
@@ -121,9 +121,10 @@ void ChLinkSpringCB::IntStateScatter(const unsigned int off_x,  // offset in x s
                                      const ChState& x,          // state vector, position part
                                      const unsigned int off_v,  // offset in v state vector
                                      const ChStateDelta& v,     // state vector, speed part
-                                     const double T             // time
+                                     const double T,            // time
+                                     bool full_update           // perform complete update
 ) {
-    Update(T);
+    Update(T, full_update);
 
     if (!m_variables)
         return;
@@ -257,7 +258,7 @@ void ChLinkSpringCB::ArchiveOUT(ChArchiveOut& marchive) {
 
 void ChLinkSpringCB::ArchiveIN(ChArchiveIn& marchive) {
     // version number
-    int version = marchive.VersionRead<ChLinkSpringCB>();
+    /*int version =*/ marchive.VersionRead<ChLinkSpringCB>();
 
     // deserialize parent class
     ChLinkMarkers::ArchiveIN(marchive);

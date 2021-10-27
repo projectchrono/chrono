@@ -19,7 +19,7 @@ namespace chrono {
 // Register into the object factory, to enable run-time dynamic creation and persistence
 CH_FACTORY_REGISTER(ChLinkRotSpringCB)
 
-ChLinkRotSpringCB::ChLinkRotSpringCB() : m_torque(0), m_torque_fun(NULL) {}
+ChLinkRotSpringCB::ChLinkRotSpringCB() : m_torque_fun(nullptr), m_torque(0) {}
 
 ChLinkRotSpringCB::ChLinkRotSpringCB(const ChLinkRotSpringCB& other) : ChLinkMarkers(other) {
     m_torque = other.m_torque;
@@ -31,12 +31,8 @@ void ChLinkRotSpringCB::UpdateForces(double time) {
     ChLinkMarkers::UpdateForces(time);
 
     // Invoke the provided functor to evaluate torque.
-    // NOTE: we implicitly assume that the kinematics are CONSISTENT with this
-    // type of link!
-    double angle = relAngle;
-    double angle_dt = Vdot(relWvel, relAxis);
-
-    m_torque = m_torque_fun ? (*m_torque_fun)(time, relAngle, angle_dt, this) : 0;
+    double relAngle_dt = Vdot(relWvel, relAxis);
+    m_torque = m_torque_fun ? (*m_torque_fun)(time, relAngle, relAngle_dt, this) : 0;
 
     // Add to existing torque.
     C_torque += Vmul(relAxis, m_torque);
@@ -53,7 +49,7 @@ void ChLinkRotSpringCB::ArchiveOUT(ChArchiveOut& marchive) {
 /// Method to allow de serialization of transient data from archives.
 void ChLinkRotSpringCB::ArchiveIN(ChArchiveIn& marchive) {
     // version number
-    int version = marchive.VersionRead<ChLinkRotSpringCB>();
+    /*int version =*/ marchive.VersionRead<ChLinkRotSpringCB>();
 
     // deserialize parent class
     ChLinkMarkers::ArchiveIN(marchive);

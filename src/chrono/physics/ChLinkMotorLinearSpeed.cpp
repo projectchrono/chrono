@@ -90,12 +90,13 @@ void ChLinkMotorLinearSpeed::IntStateScatter(const unsigned int off_x,  // offse
                                              const ChState& x,          // state vector, position part
                                              const unsigned int off_v,  // offset in v state vector
                                              const ChStateDelta& v,     // state vector, speed part
-                                             const double T             // time
+                                             const double T,            // time
+                                             bool full_update           // perform complete update
 ) {
     // aux = x(off_x);
     aux_dt = v(off_v);
 
-    Update(T);
+    Update(T, full_update);
 }
 
 void ChLinkMotorLinearSpeed::IntStateGatherAcceleration(const unsigned int off_a, ChStateDelta& a) {
@@ -171,8 +172,6 @@ void ChLinkMotorLinearSpeed::VariablesQbLoadSpeed() {
 }
 
 void ChLinkMotorLinearSpeed::VariablesQbSetSpeed(double step) {
-    double old_dt = aux_dt;
-
     // from 'qb' vector, sets body speed, and updates auxiliary data
     aux_dt = variable.Get_qb()(0);
 
@@ -194,7 +193,7 @@ void ChLinkMotorLinearSpeed::ArchiveOUT(ChArchiveOut& marchive) {
 /// Method to allow de serialization of transient data from archives.
 void ChLinkMotorLinearSpeed::ArchiveIN(ChArchiveIn& marchive) {
     // version number
-    int version = marchive.VersionRead<ChLinkMotorLinearSpeed>();
+    /*int version =*/ marchive.VersionRead<ChLinkMotorLinearSpeed>();
 
     // deserialize parent class
     ChLinkMotorLinear::ArchiveIN(marchive);

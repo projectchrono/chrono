@@ -13,6 +13,12 @@ HMMWV stands for the High Mobility Multipurpose Wheeled Vehicle familiy. The Chr
 
 <img src="http://www.projectchrono.org/assets/manual/vehicle/models/HMMWV_suspension.png" width="600" />
 
+### FEDA {#vehicle_models_feda}
+
+The FED ALPHA is a concept vehicle developed by the engineering firm Ricardo in collaboration with the U.S. military.  
+
+The Chrono::Vehicle FEDA is a 4WD model with double wishbone front and rear suspension, an anti-roll bar, and Pitman-arm steering mechanism.  Currently, only a Pacejka 2002 and rigid tire models are implemented.
+
 ### Sedan {#vehicle_models_sedan}
 
 The Sedan examples shows a generic average passenger car. It uses a double wishbone suspension on the front and a multilink suspension on the rear axle. The steering system is of type rack-and-pinion.
@@ -28,6 +34,16 @@ As the name suggests the Citybus is a typical bus you can find in every city of 
 <img src="http://www.projectchrono.org/assets/manual/vehicle/models/CityBus.png" width="600" />
 
 <img src="http://www.projectchrono.org/assets/manual/vehicle/models/CityBus_suspension.png" width="600" />
+
+### FMTV {#vehicle_models_fmtv}
+
+The Family of Medium Tactical Vehicles (FMTV) is a series of trucks currently manufactured by the Oshkosh Corporation.
+
+The Chrono vehcle models library provides models for two variants of these vehicles:
+- the LMTV (Light Medium Tactical Vehicle), a 2.5-ton, 4x4 truck 
+- the MTV (Medium Tactical Vehicle), a 5-ton, 6x4 truck
+
+Both vehicle models use leaf-spring rear axles and a leaf-spring with toe-bar steerable front axle and include a model of the torsional compliance between the cabin and cargo.  The MTV model has a balancer beam rear bogie.
 
 ### MAN {#vehicle_models_man}
 
@@ -55,7 +71,7 @@ The 10t truck was the very first model to go in service in the late 70s. Most of
 
 ### UAZ {#vehicle_models_uaz}
 
-UAZ stands for Ulyanovski Avtomobilny Zavod. The UAZ 452 Bus/Van/Lorry is popular in Russia since 1965. It has a all-wheel-drive and two leaf-sprung axles. The front axle has a toebar steering mechanism.
+UAZ stands for Ulyanovski Avtomobilny Zavod. The UAZ 452 Bus/Van/Lorry has been popular in Russia since 1965. It has an all-wheel-drive and two leaf-spring axles. The front axle has a toebar steering mechanism.
 
 <img src="http://www.projectchrono.org/assets/manual/vehicle/models/UAZBUS.png" width="600" />
 
@@ -66,6 +82,14 @@ The UAZ 469 jeep-like vehicle has been used since 1965 in the Soviet Army. It sh
 <img src="http://www.projectchrono.org/assets/manual/vehicle/models/UAZ469.png" width="600" />
 
 <img src="http://www.projectchrono.org/assets/manual/vehicle/models/UAZ469_suspension.png" width="600" />
+
+### Gator {#vehicle_models_gator}
+
+Tha Gator is a model of a John Deere electric utility vehicle instrumented for autonomous driving.  The Gator model uses a single-wishbone suspension in the front and a rigid axle in the rear.  It has a rack-and-pinion steering mechanism and brakes only on the rear wheels.  The electric motor is connected through a differential to the rear wheels.
+
+### KRAZ {#vehicle_models_kraz}
+
+This model, based on the Ukrainian Kraz 64431, is a semi-trailer truck. The tractor has a toebar leaf-spring front suspension, steered through a rotary arm mechanism and two leaf-spring rear suspensions. The tractor is in a 6x4 configuration with the two rear axles driven. The trailer, connected to the tractor through a hitch, has three axles all of leaf-spring type.
 
 ### Generic wheeld vehicle {#vehicle_models_generic}
 
@@ -83,3 +107,8 @@ The running gear consists of ten road wheels, two sprockets and two idler wheels
 
 <img src="http://www.projectchrono.org/assets/manual/vehicle/models/M113_suspension.png" width="600" />
 
+### Marder {#vehicle_models_marder}
+
+The Marder ("marten" in German) is a tracked infantry fighting vehicle used by the German Bundeswehr since 1969. It has a running gear with 12 road wheels, sprocket, idler and 3 support rollers. The first two and the last two road wheels on every side are damped by telescopic dampers. It is driven by a 444 kW Diesel engine, torque converter with lockup and 4 gear automatic gearbox. It carries up to nine soldiers (commander, gunner, driver and six infantrymen). 
+
+Our model is based only on public data available online and information found in literature. Although the original vehicle emplys double-pin tracks, the current Chrono model only implements a single-pin track.

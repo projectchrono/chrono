@@ -98,7 +98,7 @@ class MySimpleForklift {
         double RAD_back_wheel = 0.28;
         double RAD_front_wheel = 0.28;
 
-        forkliftTiremap = app->GetVideoDriver()->getTexture(GetChronoDataFile("tire_truck.png").c_str());
+        forkliftTiremap = app->GetVideoDriver()->getTexture(GetChronoDataFile("textures/tire_truck.png").c_str());
 
         // --- The car body ---
 
@@ -123,9 +123,9 @@ class MySimpleForklift {
         truss_asset_assembly->GetFrame().SetPos(-COG_truss);
         truss->AddAsset(truss_asset_assembly);
         auto truss_mesh = chrono_types::make_shared<ChObjShapeFile>();
-        truss_mesh->SetFilename(GetChronoDataFile("forklift_body.obj"));
+        truss_mesh->SetFilename(GetChronoDataFile("models/forklift/body.obj"));
         truss_asset_assembly->AddAsset(truss_mesh);
-        auto truss_texture = chrono_types::make_shared<ChTexture>(GetChronoDataFile("tire_truck.png"));
+        auto truss_texture = chrono_types::make_shared<ChTexture>(GetChronoDataFile("textures/tire_truck.png"));
         truss_asset_assembly->AddAsset(truss_texture);
 
         // contact material shared among all wheels
@@ -149,9 +149,9 @@ class MySimpleForklift {
         wheelRF_asset_assembly->GetFrame().SetPos(-COG_wheelRF);
         wheelRF->AddAsset(wheelRF_asset_assembly);
         auto wheelRF_mesh = chrono_types::make_shared<ChObjShapeFile>();
-        wheelRF_mesh->SetFilename(GetChronoDataFile("wheel.obj"));
+        wheelRF_mesh->SetFilename(GetChronoDataFile("models/forklift/wheel.obj"));
         wheelRF_asset_assembly->AddAsset(wheelRF_mesh);
-        auto wheelRF_texture = chrono_types::make_shared<ChTexture>(GetChronoDataFile("tire_truck.png"));
+        auto wheelRF_texture = chrono_types::make_shared<ChTexture>(GetChronoDataFile("textures/tire_truck.png"));
         wheelRF_asset_assembly->AddAsset(wheelRF_texture);
 
         // .. create the revolute joint between the wheel and the truss
@@ -179,9 +179,9 @@ class MySimpleForklift {
         wheelLF_asset_assembly->GetFrame().SetPos(-COG_wheelRF);
         wheelLF->AddAsset(wheelLF_asset_assembly);
         auto wheelLF_mesh = chrono_types::make_shared<ChObjShapeFile>();
-        wheelLF_mesh->SetFilename(GetChronoDataFile("wheel.obj"));
+        wheelLF_mesh->SetFilename(GetChronoDataFile("models/forklift/wheel.obj"));
         wheelLF_asset_assembly->AddAsset(wheelLF_mesh);
-        auto wheelLF_texture = chrono_types::make_shared<ChTexture>(GetChronoDataFile("tire_truck.png"));
+        auto wheelLF_texture = chrono_types::make_shared<ChTexture>(GetChronoDataFile("textures/tire_truck.png"));
         wheelLF_asset_assembly->AddAsset(wheelLF_texture);
 
         // .. create the revolute joint between the wheel and the truss
@@ -223,9 +223,9 @@ class MySimpleForklift {
         wheelB_asset_assembly->GetFrame().SetPos(-COG_wheelRF);
         wheelB->AddAsset(wheelB_asset_assembly);
         auto wheelB_mesh = chrono_types::make_shared<ChObjShapeFile>();
-        wheelB_mesh->SetFilename(GetChronoDataFile("wheel.obj"));
+        wheelB_mesh->SetFilename(GetChronoDataFile("models/forklift/wheel.obj"));
         wheelB_asset_assembly->AddAsset(wheelB_mesh);
-        auto wheelB_texture = chrono_types::make_shared<ChTexture>(GetChronoDataFile("tire_truck.png"));
+        auto wheelB_texture = chrono_types::make_shared<ChTexture>(GetChronoDataFile("textures/tire_truck.png"));
         wheelB_asset_assembly->AddAsset(wheelB_texture);
 
         // .. create the motor between the back wheel and the steering spindle structure
@@ -245,7 +245,7 @@ class MySimpleForklift {
         arm_asset_assembly->GetFrame().SetPos(-COG_arm);
         arm->AddAsset(arm_asset_assembly);
         auto arm_mesh = chrono_types::make_shared<ChObjShapeFile>();
-        arm_mesh->SetFilename(GetChronoDataFile("forklift_arm.obj"));
+        arm_mesh->SetFilename(GetChronoDataFile("models/forklift/arm.obj"));
         arm_asset_assembly->AddAsset(arm_mesh);
 
         // .. create the revolute joint between the arm and the truss
@@ -275,7 +275,7 @@ class MySimpleForklift {
         fork_asset_assembly->GetFrame().SetPos(-COG_fork);
         fork->AddAsset(fork_asset_assembly);
         auto fork_mesh = chrono_types::make_shared<ChObjShapeFile>();
-        fork_mesh->SetFilename(GetChronoDataFile("forklift_forks.obj"));
+        fork_mesh->SetFilename(GetChronoDataFile("models/forklift/forks.obj"));
         fork_asset_assembly->AddAsset(fork_mesh);
 
         // .. create the prismatic joint between the fork and arm
@@ -299,7 +299,7 @@ class MySimpleForklift {
         // In order to automatically infer mass and inertia properties, the mesh must be closed and watertight!
         // Specify an inflation radius which can improve robustness of the collision detection.
         auto pallet = chrono_types::make_shared<ChBodyEasyMesh>(  //
-            GetChronoDataFile("pallet.obj"),                      // mesh .OBJ file
+            GetChronoDataFile("models/pallet.obj"),               // mesh .OBJ file
             300,                                                  // density
             true,                                                 // automatic evaluation of inertia propserties
             true,                                                 // enable visualization
@@ -311,7 +311,7 @@ class MySimpleForklift {
 
         // apply also a texture to the pallet:
         auto pallet_texture = chrono_types::make_shared<ChTexture>();
-        pallet_texture->SetTextureFilename(GetChronoDataFile("cubetexture.png"));
+        pallet_texture->SetTextureFilename(GetChronoDataFile("textures/cubetexture.png"));
         pallet->AddAsset(pallet_texture);
 
         //
@@ -430,17 +430,15 @@ int main(int argc, char* argv[]) {
 
     // Create the Irrlicht visualization (open the Irrlicht device,
     // bind a simple user interface, etc. etc.)
-    ChIrrApp application(&my_system, L"Drive a forklift", core::dimension2d<u32>(800, 600), false);
+    ChIrrApp application(&my_system, L"Drive a forklift", core::dimension2d<u32>(800, 600));
+    application.AddTypicalLogo();
+    application.AddTypicalSky();
+    application.AddTypicalLights();
+    application.AddTypicalCamera(core::vector3df(-6, 3, -6));
 
     // add text with info
-    IGUIStaticText* textFPS = application.GetIGUIEnvironment()->addStaticText(
-        L"Keys: steer=Q,W; throttle=A,Z; lift=S,X; bank=D,C", rect<s32>(150, 10, 430, 40), true);
-
-    // Easy shortcuts to add logo, camera, lights and sky in Irrlicht scene:
-    ChIrrWizard::add_typical_Logo(application.GetDevice());
-    ChIrrWizard::add_typical_Sky(application.GetDevice());
-    ChIrrWizard::add_typical_Lights(application.GetDevice());
-    ChIrrWizard::add_typical_Camera(application.GetDevice(), core::vector3df(-6, 3, -6));
+    application.GetIGUIEnvironment()->addStaticText(L"Keys: steer=Q,W; throttle=A,Z; lift=S,X; bank=D,C",
+                                                    rect<s32>(150, 10, 430, 40), true);
 
     // Contact material for ground
     auto ground_mat = chrono_types::make_shared<ChMaterialSurfaceNSC>();
@@ -451,16 +449,14 @@ int main(int argc, char* argv[]) {
     my_system.Add(my_ground);
     my_ground->SetBodyFixed(true);
     my_ground->SetPos(ChVector<>(0, -1, 0));
-    auto mtexture = chrono_types::make_shared<ChTexture>(GetChronoDataFile("concrete.jpg"));
-    my_ground->AddAsset(mtexture);
+    my_ground->AddAsset(chrono_types::make_shared<ChTexture>(GetChronoDataFile("textures/concrete.jpg")));
 
     // ..some obstacles on the ground:
     for (int i = 0; i < 6; i++) {
         auto my_obstacle = chrono_types::make_shared<ChBodyEasyBox>(1, 0.5, 1, 200, true, true, ground_mat);
         my_system.Add(my_obstacle);
         my_obstacle->SetPos(ChVector<>(20 * ChRandom(), 2, 20 * ChRandom()));
-        auto mtexture = chrono_types::make_shared<ChTexture>(GetChronoDataFile("cubetexture_wood.png"));
-        my_obstacle->AddAsset(mtexture);
+        my_obstacle->AddAsset(chrono_types::make_shared<ChTexture>(GetChronoDataFile("textures/cubetexture_wood.png")));
     }
 
     // ..the forklift (this class - see above - is a 'set' of bodies and links, automatically added at creation)

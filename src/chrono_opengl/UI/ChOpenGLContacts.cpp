@@ -19,9 +19,9 @@
 #include "chrono_opengl/UI/ChOpenGLContacts.h"
 #include "chrono_opengl/ChOpenGLMaterials.h"
 
-#ifdef CHRONO_PARALLEL
-#include "chrono_parallel/physics/ChSystemParallel.h"
-#include "chrono_parallel/ChDataManager.h"
+#ifdef CHRONO_MULTICORE
+#include "chrono_multicore/physics/ChSystemMulticore.h"
+#include "chrono_multicore/ChDataManager.h"
 #endif
 
 namespace chrono {
@@ -57,11 +57,13 @@ void ChOpenGLContacts::UpdateChrono(ChSystem* system) {
     //    counter++;
     //  }
 }
-void ChOpenGLContacts::UpdateChronoParallel(ChSystemParallel* system) {
-#ifdef CHRONO_PARALLEL
-    ChParallelDataManager* data_manager = system->data_manager;
-    int num_contacts = data_manager->num_rigid_contacts + data_manager->num_rigid_fluid_contacts +
-                       data_manager->num_rigid_tet_contacts + data_manager->num_rigid_tet_node_contacts;
+
+void ChOpenGLContacts::UpdateChronoMulticore(ChSystemMulticore* system) {
+#ifdef CHRONO_MULTICORE
+    ChMulticoreDataManager* data_manager = system->data_manager;
+    const auto num_rigid_contacts = data_manager->cd_data->num_rigid_contacts;
+    const auto num_rigid_fluid_contacts = data_manager->cd_data->num_rigid_fluid_contacts;
+    int num_contacts = num_rigid_contacts + num_rigid_fluid_contacts;
 
     // std::cout << "CONTACT RENDER: " << num_contacts << std::endl;
 
@@ -69,63 +71,25 @@ void ChOpenGLContacts::UpdateChronoParallel(ChSystemParallel* system) {
         return;
     }
 
-    contact_data.resize(data_manager->num_rigid_contacts * 2 + data_manager->num_rigid_tet_contacts * 2 +
-                        data_manager->num_rigid_tet_node_contacts + data_manager->num_rigid_fluid_contacts);
+    contact_data.resize(num_rigid_contacts * 2 + num_rigid_fluid_contacts);
 
     //#pragma omp parallel for
-    for (int i = 0; i < (signed)data_manager->num_rigid_contacts; i++) {
-        real3 cpta = data_manager->host_data.cpta_rigid_rigid[i];
-        real3 cptb = data_manager->host_data.cptb_rigid_rigid[i];
+    for (int i = 0; i < (signed)num_rigid_contacts; i++) {
+        real3 cpta = data_manager->cd_data->cpta_rigid_rigid[i];
+        real3 cptb = data_manager->cd_data->cptb_rigid_rigid[i];
 
         contact_data[i] = glm::vec3(cpta.x, cpta.y, cpta.z);
-        contact_data[i + data_manager->num_rigid_contacts] = glm::vec3(cptb.x, cptb.y, cptb.z);
-    }
-    int offset = data_manager->num_rigid_contacts * 2;
-    int index = 0;
-    if (data_manager->num_rigid_tet_contacts > 0) {
-        for (int p = 0; p < data_manager->host_data.boundary_element_fea.size(); p++) {
-            int start = data_manager->host_data.c_counts_rigid_tet[p];
-            int end = data_manager->host_data.c_counts_rigid_tet[p + 1];
-            for (int index = start; index < end; index++) {
-                int i = index - start;  // index that goes from 0
-                int rigid = data_manager->host_data.neighbor_rigid_tet[p * max_rigid_neighbors + i];
-                int node = p;  // node body is in second index
-                real3 cpta = data_manager->host_data.cpta_rigid_tet[p * max_rigid_neighbors + i];
-                real3 cptb = data_manager->host_data.cptb_rigid_tet[p * max_rigid_neighbors + i];
-
-                contact_data[index + offset] = glm::vec3(cpta.x, cpta.y, cpta.z);
-                contact_data[index + offset + data_manager->num_rigid_tet_contacts] = glm::vec3(cptb.x, cptb.y, cptb.z);
-                index++;
-            }
-        }
+        contact_data[i + num_rigid_contacts] = glm::vec3(cptb.x, cptb.y, cptb.z);
     }
 
-    offset += (data_manager->num_rigid_tet_contacts) * 2;
-    index = 0;
-    for (int p = 0; p < (signed)data_manager->num_fea_nodes; p++) {
-        int start = data_manager->host_data.c_counts_rigid_tet_node[p];
-        int end = data_manager->host_data.c_counts_rigid_tet_node[p + 1];
-        for (int index = start; index < end; index++) {
-            int i = index - start;  // index that goes from 0
-            int rigid = data_manager->host_data.neighbor_rigid_tet_node[p * max_rigid_neighbors + i];
-            int node = p;  // node body is in second index
-            real3 cpta = data_manager->host_data.cpta_rigid_tet_node[p * max_rigid_neighbors + i];
-
-            contact_data[index + offset] = glm::vec3(cpta.x, cpta.y, cpta.z);
-            index++;
-        }
-    }
-
-    offset += (data_manager->num_rigid_tet_node_contacts);
-    index = 0;
+    int offset = num_rigid_contacts * 2;
     for (int p = 0; p < (signed)data_manager->num_fluid_bodies; p++) {
-        int start = data_manager->host_data.c_counts_rigid_fluid[p];
-        int end = data_manager->host_data.c_counts_rigid_fluid[p + 1];
+        int start = data_manager->cd_data->c_counts_rigid_fluid[p];
+        int end = data_manager->cd_data->c_counts_rigid_fluid[p + 1];
         for (int index = start; index < end; index++) {
             int i = index - start;
-            real3 cpta = data_manager->host_data.cpta_rigid_fluid[p * max_rigid_neighbors + i];
+            real3 cpta = data_manager->cd_data->cpta_rigid_fluid[p * ChNarrowphase::max_rigid_neighbors + i];
             contact_data[index + offset] = glm::vec3(cpta.x, cpta.y, cpta.z);
-            index++;
         }
     }
 #endif
@@ -133,9 +97,9 @@ void ChOpenGLContacts::UpdateChronoParallel(ChSystemParallel* system) {
 
 void ChOpenGLContacts::Update(ChSystem* physics_system) {
     contact_data.clear();
-#ifdef CHRONO_PARALLEL
-    if (ChSystemParallel* system_parallel = dynamic_cast<ChSystemParallel*>(physics_system)) {
-        UpdateChronoParallel(system_parallel);
+#ifdef CHRONO_MULTICORE
+    if (ChSystemMulticore* system_mc = dynamic_cast<ChSystemMulticore*>(physics_system)) {
+        UpdateChronoMulticore(system_mc);
     } else
 #endif
     {

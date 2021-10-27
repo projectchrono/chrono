@@ -23,19 +23,19 @@ CH_FACTORY_REGISTER(ChLinkTSDA)
 const double ChLinkTSDA::m_FD_delta = 1e-8;
 
 ChLinkTSDA::ChLinkTSDA()
-    : m_length(0),
+    : m_rest_length(0),
+      m_length(0),
       m_length_dt(0),
-      m_rest_length(0),
       m_stiff(false),
-      m_jacobians(nullptr),
-      m_f(0),
       m_k(0),
       m_r(0),
+      m_f(0),
+      m_force_fun(nullptr),
       m_force(0),
+      m_ode_fun(nullptr),
       m_nstates(0),
       m_variables(nullptr),
-      m_force_fun(nullptr),
-      m_ode_fun(nullptr) {}
+      m_jacobians(nullptr) {}
 
 ChLinkTSDA::ChLinkTSDA(const ChLinkTSDA& other) : ChLink(other) {
     m_rest_length = other.m_rest_length;
@@ -314,14 +314,15 @@ void ChLinkTSDA::IntStateScatter(const unsigned int off_x,  // offset in x state
                                  const ChState& x,          // state vector, position part
                                  const unsigned int off_v,  // offset in v state vector
                                  const ChStateDelta& v,     // state vector, speed part
-                                 const double T             // time
+                                 const double T,            // time
+                                 bool full_update           // perform complete update
 ) {
     // Important: set the internal states first, as they will be used in Update.
     if (m_variables) {
         m_states = v.segment(off_v, m_nstates);
     }
 
-    Update(T);  //// RADU: we don't need to update assets here, do we?
+    Update(T, full_update);
 }
 
 void ChLinkTSDA::IntStateGatherAcceleration(const unsigned int off_a, ChStateDelta& a) {
@@ -455,7 +456,7 @@ void ChLinkTSDA::ArchiveOUT(ChArchiveOut& marchive) {
 
 void ChLinkTSDA::ArchiveIN(ChArchiveIn& marchive) {
     // version number
-    int version = marchive.VersionRead<ChLinkTSDA>();
+    /*int version =*/ marchive.VersionRead<ChLinkTSDA>();
 
     // deserialize parent class
     ChLink::ArchiveIN(marchive);

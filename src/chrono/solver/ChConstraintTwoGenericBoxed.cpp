@@ -74,7 +74,7 @@ void ChConstraintTwoGenericBoxed::ArchiveOUT(ChArchiveOut& marchive) {
 
 void ChConstraintTwoGenericBoxed::ArchiveIN(ChArchiveIn& marchive) {
     // version number
-    int version = marchive.VersionRead<ChConstraintTwoGenericBoxed>();
+    /*int version =*/ marchive.VersionRead<ChConstraintTwoGenericBoxed>();
 
     // deserialize the parent class data too
     ChConstraintTwoGeneric::ArchiveIN(marchive);

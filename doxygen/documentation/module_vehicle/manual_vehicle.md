@@ -7,6 +7,8 @@ Chrono::Vehicle Reference Manual {#manual_vehicle}
     * [Reference frames](@ref vehicle_ISO_frame)
     * [Simulation loop](@ref vehicle_simulation_loop)
 
+* @subpage vehicle_chassis    
+
 * @subpage wheeled_vehicle
     * @subpage wheeled_suspension
     * @subpage wheeled_steering

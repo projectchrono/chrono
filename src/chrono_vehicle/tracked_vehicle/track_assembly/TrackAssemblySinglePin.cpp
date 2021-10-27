@@ -41,7 +41,7 @@ namespace vehicle {
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 void TrackAssemblySinglePin::ReadSprocket(const std::string& filename, int output) {
-    Document d = ReadFileJSON(filename);
+    Document d; ReadFileJSON(filename, d);
     if (d.IsNull())
         return;
 
@@ -69,7 +69,7 @@ void TrackAssemblySinglePin::ReadSprocket(const std::string& filename, int outpu
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 void TrackAssemblySinglePin::ReadTrackShoes(const std::string& filename, int num_shoes, int output) {
-    Document d = ReadFileJSON(filename);
+    Document d; ReadFileJSON(filename, d);
     if (d.IsNull())
         return;
 
@@ -99,7 +99,7 @@ void TrackAssemblySinglePin::ReadTrackShoes(const std::string& filename, int num
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 TrackAssemblySinglePin::TrackAssemblySinglePin(const std::string& filename) : ChTrackAssemblySinglePin("", LEFT) {
-    Document d = ReadFileJSON(filename);
+    Document d; ReadFileJSON(filename, d);
     if (d.IsNull())
         return;
 
@@ -111,6 +111,8 @@ TrackAssemblySinglePin::TrackAssemblySinglePin(const std::string& filename) : Ch
 TrackAssemblySinglePin::TrackAssemblySinglePin(const rapidjson::Document& d) : ChTrackAssemblySinglePin("", LEFT) {
     Create(d);
 }
+
+TrackAssemblySinglePin::~TrackAssemblySinglePin() {}
 
 void TrackAssemblySinglePin::Create(const rapidjson::Document& d) {
     // Invoke base class method.
@@ -192,6 +194,16 @@ void TrackAssemblySinglePin::Create(const rapidjson::Document& d) {
         }
         m_num_track_shoes = d["Track Shoes"]["Number Shoes"].GetInt();
         ReadTrackShoes(vehicle::GetDataFile(file_name), m_num_track_shoes, output);
+
+        if (d["Track Shoes"].HasMember("RSDA Data")) {
+            double k = d["Track Shoes"]["RSDA Data"]["Stiffness Rotational"].GetDouble();
+            double c = d["Track Shoes"]["RSDA Data"]["Damping Rotational"].GetDouble();
+            m_torque_funct = chrono_types::make_shared<ChTrackAssemblySegmented::TrackBendingFunctor>(k, c);
+        }
+
+        if (d["Track Shoes"].HasMember("Bushing Data")) {
+            m_bushing_data = ReadBushingDataJSON(d["Bushing Data"]);
+        }
     }
 }
 

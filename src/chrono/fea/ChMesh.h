@@ -28,6 +28,8 @@
 
 namespace chrono {
 
+class ChAssembly;
+
 namespace fea {
 
 /// @addtogroup chrono_fea
@@ -191,7 +193,8 @@ class ChApi ChMesh : public ChIndexedNodes {
                                  const ChState& x,
                                  const unsigned int off_v,
                                  const ChStateDelta& v,
-                                 const double T) override;
+                                 const double T,
+                                 bool full_update) override;
     virtual void IntStateGatherAcceleration(const unsigned int off_a, ChStateDelta& a) override;
     virtual void IntStateScatterAcceleration(const unsigned int off_a, const ChStateDelta& a) override;
     virtual void IntStateIncrement(const unsigned int off_x,
@@ -278,6 +281,7 @@ class ChApi ChMesh : public ChIndexedNodes {
     virtual void SetupInitial() override;
 
     friend class chrono::ChSystem;
+    friend class chrono::ChAssembly;
 };
 
 /// @} chrono_fea

@@ -61,12 +61,12 @@ class CH_MODELS_API M113_TrackShoeSinglePin : public ChTrackShoeSinglePin {
     /// Return the radius of the contact cylinders.
     virtual double GetCylinderRadius() const override { return m_cyl_radius; }
 
+    /// Return the location of the guiding pin center, expressed in the shoe reference frame.
+    virtual ChVector<> GetLateralContactPoint() const override { return m_pin_center; }
+
   private:
     /// Create the contact materials.
     void CreateContactMaterials(ChContactMethod contact_method) override;
-
-    /// Add visualization assets for the track shoe subsystem.
-    virtual void AddVisualizationAssets(VisualizationType vis) override;
 
     static const double m_shoe_height;
     static const double m_shoe_pitch;
@@ -77,7 +77,7 @@ class CH_MODELS_API M113_TrackShoeSinglePin : public ChTrackShoeSinglePin {
     static const double m_front_cyl_loc;
     static const double m_rear_cyl_loc;
 
-    static const std::string m_meshFile;
+    static const ChVector<> m_pin_center;
 };
 
 /// @} vehicle_models_m113

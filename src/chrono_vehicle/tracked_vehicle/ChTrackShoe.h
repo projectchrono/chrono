@@ -28,9 +28,12 @@
 
 #include "chrono_vehicle/ChApiVehicle.h"
 #include "chrono_vehicle/ChPart.h"
+#include "chrono_vehicle/ChChassis.h"
 
 namespace chrono {
 namespace vehicle {
+
+class ChTrackAssembly;
 
 /// @addtogroup vehicle_tracked_shoe
 /// @{
@@ -41,12 +44,15 @@ class CH_VEHICLE_API ChTrackShoe : public ChPart {
     ChTrackShoe(const std::string& name  ///< [in] name of the subsystem
                 );
 
-    virtual ~ChTrackShoe() {}
+    virtual ~ChTrackShoe();
 
     /// Return the type of track shoe (guiding pin).
     /// A derived class must specify the type of track shoe (which must be
     /// consistent with the idler and road wheels in the containing track assembly.
     virtual GuidePinType GetType() const = 0;
+
+    /// Get the index of this track shoe within its containing track assembly.
+    size_t GetIndex() const { return m_index; }
 
     /// Get a handle to the shoe body.
     std::shared_ptr<ChBody> GetShoeBody() const { return m_shoe; }
@@ -58,11 +64,14 @@ class CH_VEHICLE_API ChTrackShoe : public ChPart {
     /// This quantity must agree with the pitch of the sprocket gear.
     virtual double GetPitch() const = 0;
 
-    /// Get the index of this track shoe within its containing track assembly.
-    size_t GetIndex() const { return m_index; }
-
     /// Get the mass of the track shoe assembly.
     virtual double GetMass() const = 0;
+
+    /// Return the location for lateral contact with the sprocket, expressed in the shoe reference frame.
+    /// This point, which must be in the median plane of the track shoe, is used to enforce lateral contact with the
+    /// sprocket as a detracking prevention mechanism. For track shoes with a central guiding pin, this can be the
+    /// center of the guiding pin collision shape.
+    virtual ChVector<> GetLateralContactPoint() const = 0;
 
     /// Turn on/off collision flag for the shoe body.
     void SetCollide(bool val) { m_shoe->SetCollide(val); }
@@ -71,20 +80,24 @@ class CH_VEHICLE_API ChTrackShoe : public ChPart {
     /// The track shoe is created within the specified system and initialized
     /// at the specified location and orientation (expressed in the global frame).
     /// All actual work is deferred to derived classes (subsystem templates) which
-    /// must create the bodies, joints, etc.
+    /// must create the bodies, joints, etc.  In addition, a derived class must set
+    /// the track shoe body's identifier to BodyID::SHOES.
     virtual void Initialize(std::shared_ptr<ChBodyAuxRef> chassis,  ///< [in] handle to the chassis body
                             const ChVector<>& location,             ///< [in] location relative to the chassis frame
                             const ChQuaternion<>& rotation          ///< [in] orientation relative to the chassis frame
                             ) = 0;
 
-    /// Connect this track shoe to the specified neighbor.
-    /// This function must be called only after all track shoes have been initialized.
-    virtual void Connect(std::shared_ptr<ChTrackShoe> next  ///< [in] handle to the neighbor track shoe
-                         ) = 0;
-
   protected:
     /// Set the index of this track shoe within its containing track assembly.
     void SetIndex(size_t index) { m_index = index; }
+
+    /// Connect this track shoe to the specified neighbor.
+    /// This function must be called only after all track shoes have been initialized.
+    virtual void Connect(std::shared_ptr<ChTrackShoe> next,  ///< [in] handle to the neighbor track shoe
+                         ChTrackAssembly* assembly,          ///< [in] containing track assembly
+                         ChChassis* chassis,                 ///< [in] associated chassis
+                         bool ccw                            ///< [in] track assembled in counter clockwise direction
+                         ) = 0;
 
     size_t m_index;                  ///< index of this track shoe within its containing track assembly
     std::shared_ptr<ChBody> m_shoe;  ///< handle to the shoe body

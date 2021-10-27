@@ -37,7 +37,7 @@ const int M113_SprocketDoublePin::m_num_teeth = 10;
 
 const double M113_SprocketDoublePin::m_gear_mass = 27.68;
 const ChVector<> M113_SprocketDoublePin::m_gear_inertia(0.646, 0.883, 0.646);
-const double M113_SprocketDoublePin::m_axle_inertia = 0.02;
+const double M113_SprocketDoublePin::m_axle_inertia = 0.4;
 const double M113_SprocketDoublePin::m_separation = 0.278;
 
 const double M113_SprocketDoublePin::m_gear_RT = 0.2715;  // 10.69''
@@ -46,6 +46,8 @@ const double M113_SprocketDoublePin::m_gear_RA = 0.242;   // 9.53''
 
 const double M113_SprocketDoublePin::m_gear_C = 0.2371;  // 9.334''
 const double M113_SprocketDoublePin::m_gear_W = 0.0464;  // 1.825''
+
+const double M113_SprocketDoublePin::m_lateral_backlash = 0.02;
 
 const std::string M113_SprocketDoublePinLeft::m_meshFile = "M113/Sprocket2_L.obj";
 const std::string M113_SprocketDoublePinRight::m_meshFile = "M113/Sprocket2_R.obj";
@@ -57,8 +59,8 @@ M113_SprocketDoublePin::M113_SprocketDoublePin(const std::string& name) : ChSpro
 void M113_SprocketDoublePin::CreateContactMaterial(ChContactMethod contact_method) {
     MaterialInfo minfo;
     minfo.mu = 0.4f;
-    minfo.cr = 0.1f;
-    minfo.Y = 1e7f;
+    minfo.cr = 0.75f;
+    minfo.Y = 1e9f;
     m_material = minfo.CreateMaterial(contact_method);
 }
 

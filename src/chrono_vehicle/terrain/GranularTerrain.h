@@ -53,7 +53,7 @@ class CH_VEHICLE_API GranularTerrain : public ChTerrain {
     GranularTerrain(ChSystem* system  ///< [in] pointer to the containing multibody system
                     );
 
-    ~GranularTerrain() {}
+    ~GranularTerrain();
 
     /// Set contact material (must be consistent with the containing system).
     void SetContactMaterial(std::shared_ptr<ChMaterialSurface> material) { m_material = material; }
@@ -136,21 +136,21 @@ class CH_VEHICLE_API GranularTerrain : public ChTerrain {
     /// Get the number of particles.
     unsigned int GetNumParticles() const { return m_num_particles; }
 
-    /// Get the terrain height at the specified (x,y) location.
+    /// Get the terrain height below the specified location.
     /// This function returns the highest point over all granular particles.
-    virtual double GetHeight(double x, double y) const override;
+    virtual double GetHeight(const ChVector<>& loc) const override;
 
-    /// Get the terrain normal at the specified (x,y) location.
-    virtual chrono::ChVector<> GetNormal(double x, double y) const override { return ChVector<>(1, 0, 0); }
+    /// Get the terrain normal at the point below the specified location.
+    virtual chrono::ChVector<> GetNormal(const ChVector<>& loc) const override;
 
-    /// Get the terrain coefficient of friction at the specified (x,y) location.
+    /// Get the terrain coefficient of friction at the point below the specified location.
     /// This coefficient of friction value may be used by certain tire models to modify
     /// the tire characteristics, but it will have no effect on the interaction of the terrain
     /// with other objects (including tire models that do not explicitly use it).
     /// For GranularTerrain, this function defers to the user-provided functor object of type
     /// ChTerrain::FrictionFunctor, if one was specified.
     /// Otherwise, it returns the constant value specified through SetContactFrictionCoefficient.
-    virtual float GetCoefficientFriction(double x, double y) const override;
+    virtual float GetCoefficientFriction(const ChVector<>& loc) const override;
 
   private:
     unsigned int m_min_num_particles;  ///< requested minimum number of particles
@@ -191,7 +191,9 @@ class CH_VEHICLE_API GranularTerrain : public ChTerrain {
     std::shared_ptr<ChBody> m_ground;       ///< ground body
     std::shared_ptr<ChColorAsset> m_color;  ///< color of boundary visualization asset
 
-    std::shared_ptr<ChMaterialSurface> m_material; ///< contact material properties    
+    std::shared_ptr<ChMaterialSurface> m_material;  ///< contact material properties
+
+    std::shared_ptr<ChSystem::CustomCollisionCallback> m_collision_callback;  ///< custom collision callback
 
     bool m_verbose;  ///< verbose output
 

@@ -34,9 +34,8 @@
 #include "chrono_distributed/physics/ChDomainDistributed.h"
 #include "chrono_distributed/physics/ChSystemDistributed.h"
 
-#include "chrono_parallel/ChDataManager.h"
-#include "chrono_parallel/ChParallelDefines.h"
-#include "chrono_parallel/collision/ChCollisionSystemParallel.h"
+#include "chrono_multicore/ChDataManager.h"
+#include "chrono_multicore/ChMulticoreDefines.h"
 
 using namespace chrono;
 using namespace collision;
@@ -69,7 +68,7 @@ ChSystemDistributed::ChSystemDistributed(MPI_Comm communicator, double ghostlaye
 
     // Reserve starting space
     int init = maxobjects;  // / num_ranks;
-    bodylist.reserve(init);
+    assembly.bodylist.reserve(init);
 
     ddm->global_id.reserve(init);
     ddm->comm_status.reserve(init);
@@ -83,15 +82,15 @@ ChSystemDistributed::ChSystemDistributed(MPI_Comm communicator, double ghostlaye
     data_manager->host_data.collide_rigid.reserve(init);
     data_manager->host_data.mass_rigid.reserve(init);
 
-    data_manager->shape_data.fam_rigid.reserve(init);
-    data_manager->shape_data.id_rigid.reserve(init);
-    data_manager->shape_data.typ_rigid.reserve(init);
-    data_manager->shape_data.start_rigid.reserve(init);
-    data_manager->shape_data.length_rigid.reserve(init);
-    data_manager->shape_data.ObR_rigid.reserve(init);
-    data_manager->shape_data.ObA_rigid.reserve(init);
+    data_manager->cd_data->shape_data.fam_rigid.reserve(init);
+    data_manager->cd_data->shape_data.id_rigid.reserve(init);
+    data_manager->cd_data->shape_data.typ_rigid.reserve(init);
+    data_manager->cd_data->shape_data.start_rigid.reserve(init);
+    data_manager->cd_data->shape_data.length_rigid.reserve(init);
+    data_manager->cd_data->shape_data.ObR_rigid.reserve(init);
+    data_manager->cd_data->shape_data.ObA_rigid.reserve(init);
 
-    data_manager->shape_data.sphere_rigid.reserve(init);
+    data_manager->cd_data->shape_data.sphere_rigid.reserve(init);
 
     collision_system = chrono_types::make_shared<ChCollisionSystemDistributed>(data_manager, ddm);
 
@@ -125,7 +124,7 @@ bool ChSystemDistributed::Integrate_Y() {
     assert(domain->IsSplit());
     ddm->initial_add = false;
 
-    bool ret = ChSystemParallelSMC::Integrate_Y();
+    bool ret = ChSystemMulticoreSMC::Integrate_Y();
     if (num_ranks != 1) {
         data_manager->system_timer.start("Exchange");
         comm->Exchange();
@@ -138,11 +137,11 @@ bool ChSystemDistributed::Integrate_Y() {
 }
 
 void ChSystemDistributed::UpdateRigidBodies() {
-    this->ChSystemParallel::UpdateRigidBodies();
+    this->ChSystemMulticore::UpdateRigidBodies();
 
 #pragma omp parallel for
-    for (int i = 0; i < bodylist.size(); i++) {
-        ddm->global_id[i] = bodylist[i]->GetGid();
+    for (int i = 0; i < assembly.bodylist.size(); i++) {
+        ddm->global_id[i] = assembly.bodylist[i]->GetGid();
     }
 }
 
@@ -167,7 +166,7 @@ void ChSystemDistributed::AddBodyAllRanks(std::shared_ptr<ChBody> newbody) {
     ddm->global_id.push_back(newbody->GetGid());
 
     newbody->SetId(data_manager->num_rigid_bodies);
-    bodylist.push_back(newbody);
+    assembly.bodylist.push_back(newbody);
 
     ddm->gid_to_localid[newbody->GetGid()] = newbody->GetId();
 
@@ -181,7 +180,7 @@ void ChSystemDistributed::AddBodyAllRanks(std::shared_ptr<ChBody> newbody) {
     data_manager->host_data.collide_rigid.push_back(true);
 
     // Let derived classes reserve space for specific material surface data
-    ChSystemParallelSMC::AddMaterialSurfaceData(newbody);
+    ChSystemMulticoreSMC::AddMaterialSurfaceData(newbody);
 }
 
 void ChSystemDistributed::AddBody(std::shared_ptr<ChBody> newbody) {
@@ -231,7 +230,7 @@ void ChSystemDistributed::AddBody(std::shared_ptr<ChBody> newbody) {
     ddm->global_id.push_back(newbody->GetGid());
 
     newbody->SetId(data_manager->num_rigid_bodies);
-    bodylist.push_back(newbody);
+    assembly.bodylist.push_back(newbody);
 
     ddm->gid_to_localid[newbody->GetGid()] = newbody->GetId();
 
@@ -245,7 +244,7 @@ void ChSystemDistributed::AddBody(std::shared_ptr<ChBody> newbody) {
     data_manager->host_data.collide_rigid.push_back(true);
 
     // Let derived classes reserve space for specific material surface data
-    ChSystemParallelSMC::AddMaterialSurfaceData(newbody);
+    ChSystemMulticoreSMC::AddMaterialSurfaceData(newbody);
 }
 
 // Should only be called to add a body when there are no free spaces to insert it into
@@ -253,7 +252,7 @@ void ChSystemDistributed::AddBodyExchange(std::shared_ptr<ChBody> newbody, distr
     ddm->comm_status.push_back(status);
     ddm->global_id.push_back(newbody->GetGid());
     newbody->SetId(data_manager->num_rigid_bodies);
-    bodylist.push_back(newbody);
+    assembly.bodylist.push_back(newbody);
 
     ddm->body_shape_start.push_back(0);
     ddm->body_shape_count.push_back(0);
@@ -275,26 +274,26 @@ void ChSystemDistributed::AddBodyExchange(std::shared_ptr<ChBody> newbody, distr
 
     ddm->gid_to_localid[newbody->GetGid()] = newbody->GetId();
     // Let derived classes reserve space for specific material surface data
-    ChSystemParallelSMC::AddMaterialSurfaceData(newbody);
+    ChSystemMulticoreSMC::AddMaterialSurfaceData(newbody);
 }
 
 void ChSystemDistributed::RemoveBodyExchange(int index) {
     ddm->comm_status[index] = distributed::EMPTY;
-    bodylist[index]->SetBodyFixed(true);
-    bodylist[index]->SetCollide(false);                  // NOTE: Calls collisionsystem::remove
-    bodylist[index]->GetCollisionModel()->ClearModel();  // NOTE: Ensures new model is clear
+    assembly.bodylist[index]->SetBodyFixed(true);
+    assembly.bodylist[index]->SetCollide(false);                  // NOTE: Calls collisionsystem::remove
+    assembly.bodylist[index]->GetCollisionModel()->ClearModel();  // NOTE: Ensures new model is clear
     ddm->gid_to_localid.erase(ddm->global_id[index]);
 }
 
 // Trusts the ID to be correct on the body
 void ChSystemDistributed::RemoveBody(std::shared_ptr<ChBody> body) {
-    int index = body->GetId();
-    if (bodylist.size() <= index || body.get() != bodylist[index].get())
+    uint index = body->GetId();
+    if (assembly.bodylist.size() <= index || body.get() != assembly.bodylist[index].get())
         return;
 
     ddm->comm_status[index] = distributed::EMPTY;
-    bodylist[index]->SetBodyFixed(true);
-    bodylist[index]->SetCollide(false);  // NOTE: Calls collisionsystem::remove
+    assembly.bodylist[index]->SetBodyFixed(true);
+    assembly.bodylist[index]->SetCollide(false);  // NOTE: Calls collisionsystem::remove
     if (index < ddm->first_empty)
         ddm->first_empty = index;
     ddm->gid_to_localid.erase(body->GetGid());
@@ -310,9 +309,9 @@ void ChSystemDistributed::ErrorAbort(std::string msg) {
 void ChSystemDistributed::PrintBodyStatus() {
     GetLog() << "Rank: " << my_rank << "\n";
     GetLog() << "\tBodylist:\n";
-    std::vector<std::shared_ptr<ChBody>>::iterator bl_itr = bodylist.begin();
-    int i = 0;
-    for (; bl_itr != bodylist.end(); bl_itr++, i++) {
+    std::vector<std::shared_ptr<ChBody>>::iterator bl_itr = assembly.bodylist.begin();
+    uint i = 0;
+    for (; bl_itr != assembly.bodylist.end(); bl_itr++, i++) {
         ChVector<double> pos = (*bl_itr)->GetPos();
         ChVector<double> vel = (*bl_itr)->GetPos_dt();
         if (ddm->comm_status[i] != distributed::EMPTY) {
@@ -323,7 +322,7 @@ void ChSystemDistributed::PrintBodyStatus() {
     }
 
     GetLog() << "\tData Manager:\n";
-    for (uint i = 0; i < data_manager->num_rigid_bodies; i++) {
+    for (i = 0; i < data_manager->num_rigid_bodies; i++) {
         int status = ddm->comm_status[i];
         unsigned int gid = ddm->global_id[i];
 
@@ -351,9 +350,11 @@ void ChSystemDistributed::PrintBodyStatus() {
 }
 
 void ChSystemDistributed::PrintShapeData() {
-    std::vector<std::shared_ptr<ChBody>>::iterator bl_itr = bodylist.begin();
+    const auto& shape_data = data_manager->cd_data->shape_data;
+
+    std::vector<std::shared_ptr<ChBody>>::iterator bl_itr = assembly.bodylist.begin();
     int i = 0;
-    for (; bl_itr != bodylist.end(); bl_itr++, i++) {
+    for (; bl_itr != assembly.bodylist.end(); bl_itr++, i++) {
         if (ddm->comm_status[i] != distributed::EMPTY) {
             int body_start = ddm->body_shape_start[i];
             printf("Body %d: ", ddm->global_id[i]);
@@ -361,11 +362,11 @@ void ChSystemDistributed::PrintShapeData() {
                 std::string msg;
                 int shape_index = ddm->body_shapes[body_start + j];
 
-                switch (data_manager->shape_data.typ_rigid[shape_index]) {
+                switch (shape_data.typ_rigid[shape_index]) {
                     case ChCollisionShape::Type::SPHERE:
                         printf(
                             "%d | Sphere: r %.3f, ", my_rank,
-                            data_manager->shape_data.sphere_rigid[data_manager->shape_data.start_rigid[shape_index]]);
+                            shape_data.sphere_rigid[shape_data.start_rigid[shape_index]]);
                         break;
                     case ChCollisionShape::Type::BOX:
                         printf("%d | Box: ", my_rank);
@@ -378,28 +379,30 @@ void ChSystemDistributed::PrintShapeData() {
         }
     }
 
-    printf("%d | NumShapes: %lu NumBodies: %d\n", my_rank, (unsigned long)ddm->data_manager->shape_data.id_rigid.size(), i);
-    printf("%d | num_rigid_shapes: %d, num_rigid_bodies: %d\n", my_rank, ddm->data_manager->num_rigid_shapes,
+    printf("%d | NumShapes: %lu NumBodies: %d\n", my_rank, (unsigned long)shape_data.id_rigid.size(), i);
+    printf("%d | num_rigid_shapes: %d, num_rigid_bodies: %d\n", my_rank, data_manager->cd_data->num_rigid_shapes,
            ddm->data_manager->num_rigid_bodies);
 }
 
 void ChSystemDistributed::PrintEfficiency() {
+    const auto& shape_data = data_manager->cd_data->shape_data;
+
     double used = 0.0;
-    for (int i = 0; i < bodylist.size(); i++) {
+    for (int i = 0; i < assembly.bodylist.size(); i++) {
         if (ddm->comm_status[i] != distributed::EMPTY) {
             used += 1.0;
         }
     }
-    used = used / bodylist.size();
+    used = used / assembly.bodylist.size();
 
     double shapes_used = 0.0;
-    for (int i = 0; i < data_manager->shape_data.id_rigid.size(); i++) {
-        if (data_manager->shape_data.id_rigid[i] != UINT_MAX) {
+    for (int i = 0; i < shape_data.id_rigid.size(); i++) {
+        if (shape_data.id_rigid[i] != UINT_MAX) {
             shapes_used += 1.0;
         }
     }
 
-    shapes_used = shapes_used / data_manager->shape_data.id_rigid.size();
+    shapes_used = shapes_used / shape_data.id_rigid.size();
 
     FILE* fp;
     std::string filename = std::to_string(my_rank) + "Efficency.txt";
@@ -435,15 +438,17 @@ double ChSystemDistributed::GetHighestZ() {
 
 void ChSystemDistributed::CheckIds() {
     for (uint i = 0; i < data_manager->num_rigid_bodies; i++) {
-        if (bodylist[i]->GetId() != i) {
+        if (assembly.bodylist[i]->GetId() != i) {
             GetLog() << "Mismatched ID " << i << " Ranks " << my_rank << "\n";
         }
     }
 }
 
 void ChSystemDistributed::SanityCheck() {
+    const auto& shape_data = data_manager->cd_data->shape_data;
+
     // Check all shapes
-    for (auto itr = data_manager->shape_data.id_rigid.begin(); itr != data_manager->shape_data.id_rigid.end(); itr++) {
+    for (auto itr = shape_data.id_rigid.begin(); itr != shape_data.id_rigid.end(); itr++) {
         if (*itr != UINT_MAX) {
             int local_id = *itr;
             distributed::COMM_STATUS stat = ddm->comm_status[local_id];
@@ -490,7 +495,7 @@ int ChSystemDistributed::RemoveBodiesBelow(double z) {
     for (uint i = 0; i < data_manager->num_rigid_bodies; i++) {
         auto status = ddm->comm_status[i];
         if (status != distributed::EMPTY && data_manager->host_data.pos_rigid[i][2] < z) {
-            RemoveBody(bodylist[i]);
+            RemoveBody(assembly.bodylist[i]);
             if (status == distributed::OWNED || status == distributed::SHARED_DOWN ||
                 status == distributed::SHARED_UP) {
                 count++;
@@ -511,10 +516,10 @@ void ChSystemDistributed::SetBodyStates(const std::vector<uint>& gids, const std
 void ChSystemDistributed::SetBodyState(uint gid, const BodyState& state) {
     int local_id = ddm->GetLocalIndex(gid);
     if (local_id != -1 && ddm->comm_status[local_id] != distributed::EMPTY) {
-        bodylist[local_id]->SetPos(state.pos);
-        bodylist[local_id]->SetRot(state.rot);
-        bodylist[local_id]->SetPos_dt(state.pos_dt);
-        bodylist[local_id]->SetRot_dt(state.rot_dt);
+        assembly.bodylist[local_id]->SetPos(state.pos);
+        assembly.bodylist[local_id]->SetRot(state.rot);
+        assembly.bodylist[local_id]->SetPos_dt(state.pos_dt);
+        assembly.bodylist[local_id]->SetRot_dt(state.rot_dt);
     }
 }
 
@@ -527,12 +532,14 @@ void ChSystemDistributed::SetSphereShapes(const std::vector<uint>& gids,
 }
 
 void ChSystemDistributed::SetSphereShape(uint gid, int shape_idx, double radius) {
+    auto& shape_data = data_manager->cd_data->shape_data;
+
     int local_id = ddm->GetLocalIndex(gid);
     if (local_id != -1 && ddm->comm_status[local_id] != distributed::EMPTY) {
         int ddm_start = ddm->body_shape_start[local_id];
         int dm_start = ddm->body_shapes[ddm_start + shape_idx];  // index in data_manager of the desired shape
-        int sphere_start = data_manager->shape_data.start_rigid[dm_start];
-        data_manager->shape_data.sphere_rigid[sphere_start] = radius;
+        int sphere_start = shape_data.start_rigid[dm_start];
+        shape_data.sphere_rigid[sphere_start] = radius;
     }
 }
 
@@ -545,17 +552,16 @@ void ChSystemDistributed::SetTriangleShapes(const std::vector<uint>& gids,
 }
 
 void ChSystemDistributed::SetTriangleShape(uint gid, int shape_idx, const TriData& new_shape) {
+    auto& shape_data = data_manager->cd_data->shape_data;
+
     int local_id = ddm->GetLocalIndex(gid);
     if (local_id != -1 && ddm->comm_status[local_id] != distributed::EMPTY) {
         int ddm_start = ddm->body_shape_start[local_id];
         int dm_start = ddm->body_shapes[ddm_start + shape_idx];  // index in data_manager of the desired shape
-        int triangle_start = data_manager->shape_data.start_rigid[dm_start];
-        data_manager->shape_data.triangle_rigid[triangle_start] =
-            real3(new_shape.v1.x(), new_shape.v1.y(), new_shape.v1.z());
-        data_manager->shape_data.triangle_rigid[triangle_start + 1] =
-            real3(new_shape.v2.x(), new_shape.v2.y(), new_shape.v2.z());
-        data_manager->shape_data.triangle_rigid[triangle_start + 2] =
-            real3(new_shape.v3.x(), new_shape.v3.y(), new_shape.v3.z());
+        int triangle_start = shape_data.start_rigid[dm_start];
+        shape_data.triangle_rigid[triangle_start] = real3(new_shape.v1.x(), new_shape.v1.y(), new_shape.v1.z());
+        shape_data.triangle_rigid[triangle_start + 1] = real3(new_shape.v2.x(), new_shape.v2.y(), new_shape.v2.z());
+        shape_data.triangle_rigid[triangle_start + 2] = real3(new_shape.v3.x(), new_shape.v3.y(), new_shape.v3.z());
     }
 }
 
@@ -716,7 +722,6 @@ real3 ChSystemDistributed::GetBodyContactForce(uint gid) const {
     // Master rank receives from owning rank
     MPI_Request r_bar;
     MPI_Status s_bar;
-    int num_gids = 0;
     if (my_rank == master_rank) {
         MPI_Ibarrier(world, &r_bar);
         MPI_Status s_prob;

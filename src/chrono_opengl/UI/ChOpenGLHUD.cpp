@@ -19,10 +19,10 @@
 
 #include "chrono/ChConfig.h"
 
-#ifdef CHRONO_PARALLEL
-#include "chrono_parallel/physics/ChSystemParallel.h"
-#include "chrono_parallel/ChDataManager.h"
-#include "chrono_parallel/physics/Ch3DOFContainer.h"
+#ifdef CHRONO_MULTICORE
+#include "chrono_multicore/physics/ChSystemMulticore.h"
+#include "chrono_multicore/ChDataManager.h"
+#include "chrono_multicore/physics/Ch3DOFContainer.h"
 #endif
 
 // Includes that are generated at compile time
@@ -105,13 +105,6 @@ void ChOpenGLHUD::Update(const glm::ivec2& window_size,
     sx = SCALE;           // * (float)((float)(screen_width) / (float)virtual_width);
     sy = SCALE * aspect;  //(float)((float)(screen_height) / (float)virtual_height) ;
 
-    //  z_x = vp_x/float(width)-1;
-    //  z_y = vp_y/float(height)-1;
-    //
-    //
-    //  std::cout<<window_size.x<<" "<<window_size.y<<" "<<vp_x<<" "<<vp_y<<" "<<z_x<<" "<<z_y<<" "<<height<<"
-    //  "<<width<<std::endl;
-
     text.Update();
     bars.Clear();
 
@@ -177,9 +170,9 @@ void ChOpenGLHUD::GenerateSystem(ChSystem* physics_system) {
     double timer_collision_narrow = physics_system->GetTimerCollisionNarrow();
     double timer_lcp = physics_system->GetTimerAdvance();
     double timer_update = physics_system->GetTimerUpdate();
-#ifdef CHRONO_PARALLEL
-    if (ChSystemParallel* parallel_system = dynamic_cast<ChSystemParallel*>(physics_system)) {
-        num_shapes = parallel_system->data_manager->num_rigid_shapes + parallel_system->data_manager->num_fluid_bodies;
+#ifdef CHRONO_MULTICORE
+    if (ChSystemMulticore* parallel_system = dynamic_cast<ChSystemMulticore*>(physics_system)) {
+        num_shapes = parallel_system->data_manager->cd_data->num_rigid_shapes + parallel_system->data_manager->num_fluid_bodies;
         num_rigid_bodies = parallel_system->data_manager->num_rigid_bodies + parallel_system->GetNphysicsItems();
         num_fluid_bodies = parallel_system->data_manager->num_fluid_bodies;
         num_contacts = parallel_system->GetNcontacts();
@@ -203,13 +196,13 @@ void ChOpenGLHUD::GenerateSystem(ChSystem* physics_system) {
     bars.AddBar(narrow_v, lcp_v, BOTTOM + thick, BOTTOM, ColorConverter(0xA0D468));
     bars.AddBar(lcp_v, right_b, BOTTOM + thick, BOTTOM, ColorConverter(0xFFCE54));
 
-    if (ChSystemParallel* parallel_system = dynamic_cast<ChSystemParallel*>(physics_system)) {
-        real build_m = parallel_system->data_manager->system_timer.GetTime("ChIterativeSolverParallel_M");
-        real build_d = parallel_system->data_manager->system_timer.GetTime("ChIterativeSolverParallel_D");
-        real build_e = parallel_system->data_manager->system_timer.GetTime("ChIterativeSolverParallel_E");
-        real build_r = parallel_system->data_manager->system_timer.GetTime("ChIterativeSolverParallel_R");
-        real build_n = parallel_system->data_manager->system_timer.GetTime("ChIterativeSolverParallel_N");
-        real stab = parallel_system->data_manager->system_timer.GetTime("ChIterativeSolverParallel_Stab");
+    if (ChSystemMulticore* parallel_system = dynamic_cast<ChSystemMulticore*>(physics_system)) {
+        real build_m = parallel_system->data_manager->system_timer.GetTime("ChIterativeSolverMulticore_M");
+        real build_d = parallel_system->data_manager->system_timer.GetTime("ChIterativeSolverMulticore_D");
+        real build_e = parallel_system->data_manager->system_timer.GetTime("ChIterativeSolverMulticore_E");
+        real build_r = parallel_system->data_manager->system_timer.GetTime("ChIterativeSolverMulticore_R");
+        real build_n = parallel_system->data_manager->system_timer.GetTime("ChIterativeSolverMulticore_N");
+        real stab = parallel_system->data_manager->system_timer.GetTime("ChIterativeSolverMulticore_Stab");
         real shur = parallel_system->data_manager->system_timer.GetTime("ShurProduct");
 
         real number = build_m;
@@ -244,7 +237,6 @@ void ChOpenGLHUD::GenerateSystem(ChSystem* physics_system) {
         // bars.AddBar(stab_v, right_b, BOTTOM + thick * 3, BOTTOM + thick * 2, normalize(glm::vec3(149, 165, 166)));
     }
 
-    int average_contacts_per_body = num_rigid_bodies > 0 ? num_contacts / num_rigid_bodies : 0;
 #endif
     sprintf(buffer, "MODEL INFO");
     text.Render(buffer, LEFT, TOP - SPACING * 5, sx, sy);
@@ -298,13 +290,12 @@ void ChOpenGLHUD::GenerateSolver(ChSystem* physics_system) {
 }
 
 void ChOpenGLHUD::GenerateCD(ChSystem* physics_system) {
-#ifdef CHRONO_PARALLEL
-    if (ChSystemParallel* parallel_sys = dynamic_cast<ChSystemParallel*>(physics_system)) {
+#ifdef CHRONO_MULTICORE
+    if (ChSystemMulticore* parallel_sys = dynamic_cast<ChSystemMulticore*>(physics_system)) {
         vec3 bins_per_axis = parallel_sys->data_manager->settings.collision.bins_per_axis;
         real3 bin_size_vec = 1.0 / parallel_sys->data_manager->measures.collision.bin_size;
         real3 min_pt = parallel_sys->data_manager->measures.collision.min_bounding_point;
         real3 max_pt = parallel_sys->data_manager->measures.collision.max_bounding_point;
-        real3 center = (min_pt + max_pt) * .5;
         sprintf(buffer, "COLLISION INFO");
         text.Render(buffer, LEFT, TOP - SPACING * 16, sx, sy);
         sprintf(buffer, "DIMS  [%d,%d,%d]", bins_per_axis.x, bins_per_axis.y, bins_per_axis.z);
@@ -312,8 +303,9 @@ void ChOpenGLHUD::GenerateCD(ChSystem* physics_system) {
         sprintf(buffer, "SIZE  [%07.5f,%07.5f,%07.5f]", bin_size_vec.x, bin_size_vec.y, bin_size_vec.z);
         text.Render(buffer, LEFT, TOP - SPACING * 18, sx, sy);
 
-        sprintf(buffer, "R: %d B: %d F: %d", parallel_sys->data_manager->num_rigid_contacts,
-                parallel_sys->data_manager->num_rigid_fluid_contacts, parallel_sys->data_manager->num_fluid_contacts);
+        sprintf(buffer, "R: %d B: %d F: %d", parallel_sys->data_manager->cd_data->num_rigid_contacts,
+                parallel_sys->data_manager->cd_data->num_rigid_fluid_contacts,
+                parallel_sys->data_manager->cd_data->num_fluid_contacts);
         text.Render(buffer, LEFT, TOP - SPACING * 20, sx, sy);
         sprintf(buffer, "--------------------------------");
         text.Render(buffer, LEFT, TOP - SPACING * 21, sx, sy);
@@ -352,61 +344,61 @@ void ChOpenGLHUD::GenerateStats(ChSystem* physics_system) {
     GenerateRenderer();
 }
 void ChOpenGLHUD::GenerateExtraStats(ChSystem* physics_system) {
-    // if (ChSystemParallelNSC* parallel_sys = dynamic_cast<ChSystemParallelNSC*>(physics_system)) {
-    //  ChTimerParallel& system_timer = parallel_sys->data_manager->system_timer;
+    // if (ChSystemMulticoreNSC* parallel_sys = dynamic_cast<ChSystemMulticoreNSC*>(physics_system)) {
+    //  ChTimerMulticore& system_timer = parallel_sys->data_manager->system_timer;
 
-    //  sprintf(buffer, "Compute N:  %04f", system_timer.GetTime("ChIterativeSolverParallel_N"));
+    //  sprintf(buffer, "Compute N:  %04f", system_timer.GetTime("ChIterativeSolverMulticore_N"));
     //  text.Render(buffer, LEFT, BOTTOM + SPACING * 6, sx, sy);
 
-    //  sprintf(buffer, "Compute R:  %04f", system_timer.GetTime("ChIterativeSolverParallel_R"));
+    //  sprintf(buffer, "Compute R:  %04f", system_timer.GetTime("ChIterativeSolverMulticore_R"));
     //  text.Render(buffer, LEFT, BOTTOM + SPACING * 5, sx, sy);
 
-    //  sprintf(buffer, "Compute E:  %04f", system_timer.GetTime("ChIterativeSolverParallel_E"));
+    //  sprintf(buffer, "Compute E:  %04f", system_timer.GetTime("ChIterativeSolverMulticore_E"));
     //  text.Render(buffer, LEFT, BOTTOM + SPACING * 4, sx, sy);
 
-    //  sprintf(buffer, "Compute D:  %04f", system_timer.GetTime("ChIterativeSolverParallel_D"));
+    //  sprintf(buffer, "Compute D:  %04f", system_timer.GetTime("ChIterativeSolverMulticore_D"));
     //  text.Render(buffer, LEFT, BOTTOM + SPACING * 3, sx, sy);
 
-    //  sprintf(buffer, "Solve:  %04f", system_timer.GetTime("ChSolverParallel_Solve"));
+    //  sprintf(buffer, "Solve:  %04f", system_timer.GetTime("ChSolverMulticore_Solve"));
     //  text.Render(buffer, LEFT, BOTTOM + SPACING * 2, sx, sy);
 
     //  sprintf(buffer, "ShurProduct:  %04f [%d]", system_timer.GetTime("ShurProduct"),
     //          system_timer.GetRuns("ShurProduct"));
     //  text.Render(buffer, LEFT, BOTTOM + SPACING * 1, sx, sy);
 
-    //  sprintf(buffer, "Project:  %04f [%d]", system_timer.GetTime("ChSolverParallel_Project"),
-    //          system_timer.GetRuns("ChSolverParallel_Project"));
+    //  sprintf(buffer, "Project:  %04f [%d]", system_timer.GetTime("ChSolverMulticore_Project"),
+    //          system_timer.GetRuns("ChSolverMulticore_Project"));
     //  text.Render(buffer, LEFT, BOTTOM + SPACING * 0, sx, sy);
 
     //  //    sprintf(buffer, "TimerA:  %04f",
-    //  //    parallel_sys->data_manager->system_timer.GetTime("ChSolverParallel_solverA"));
+    //  //    parallel_sys->data_manager->system_timer.GetTime("ChSolverMulticore_solverA"));
     //  //    text.Render(buffer, -.95, -0.925 + SPACING * 9, sx, sy);
     //  //    sprintf(buffer, "TimerB:  %04f",
-    //  //    parallel_sys->data_manager->system_timer.GetTime("ChSolverParallel_solverB"));
+    //  //    parallel_sys->data_manager->system_timer.GetTime("ChSolverMulticore_solverB"));
     //  //    text.Render(buffer, -.95, -0.925 + SPACING * 8, sx, sy);
     //  //    sprintf(buffer, "TimerC:  %04f",
-    //  //    parallel_sys->data_manager->system_timer.GetTime("ChSolverParallel_solverC"));
+    //  //    parallel_sys->data_manager->system_timer.GetTime("ChSolverMulticore_solverC"));
     //  //    text.Render(buffer, -.95, -0.925 + SPACING * 7, sx, sy);
     //  //    sprintf(buffer, "TimerD:  %04f",
-    //  //    parallel_sys->data_manager->system_timer.GetTime("ChSolverParallel_solverD"));
+    //  //    parallel_sys->data_manager->system_timer.GetTime("ChSolverMulticore_solverD"));
     //  //    text.Render(buffer, -.95, -0.925 + SPACING * 6, sx, sy);
     //  //    sprintf(buffer, "TimerE:  %04f",
-    //  //    parallel_sys->data_manager->system_timer.GetTime("ChSolverParallel_solverE"));
+    //  //    parallel_sys->data_manager->system_timer.GetTime("ChSolverMulticore_solverE"));
     //  //    text.Render(buffer, -.95, -0.925 + SPACING * 5, sx, sy);
     //  //    sprintf(buffer, "TimerF:  %04f",
-    //  //    parallel_sys->data_manager->system_timer.GetTime("ChSolverParallel_solverF"));
+    //  //    parallel_sys->data_manager->system_timer.GetTime("ChSolverMulticore_solverF"));
     //  //    text.Render(buffer, -.95, -0.925 + SPACING * 4, sx, sy);
     //  //    sprintf(buffer, "TimerG:  %04f",
-    //  //    parallel_sys->data_manager->system_timer.GetTime("ChSolverParallel_solverG"));
+    //  //    parallel_sys->data_manager->system_timer.GetTime("ChSolverMulticore_solverG"));
     //  //    text.Render(buffer, -.95, -0.925 + SPACING * 3, sx, sy);
     //  //    sprintf(buffer, "Shur A:  %04f",
-    //  parallel_sys->data_manager->system_timer.GetTime("ChSolverParallel_shurA"));
+    //  parallel_sys->data_manager->system_timer.GetTime("ChSolverMulticore_shurA"));
     //  //    text.Render(buffer, -.95, -0.925 + SPACING * 2, sx, sy);
     //  //    sprintf(buffer, "Shur B:  %04f",
-    //  parallel_sys->data_manager->system_timer.GetTime("ChSolverParallel_shurB"));
+    //  parallel_sys->data_manager->system_timer.GetTime("ChSolverMulticore_shurB"));
     //  //    text.Render(buffer, -.95, -0.925 + SPACING * 1, sx, sy);
     //  //    sprintf(buffer, "Proj  :  %04f",
-    //  //    parallel_sys->data_manager->system_timer.GetTime("ChSolverParallel_Project"));
+    //  //    parallel_sys->data_manager->system_timer.GetTime("ChSolverMulticore_Project"));
     //  //    text.Render(buffer, -.95, -0.925 + SPACING * 0, sx, sy);
     //  //    float posx = -.6;
     //  //    sprintf(buffer, "B_Initial : %04f", parallel_sys->data_manager->system_timer.GetTime("Broadphase_Init"));

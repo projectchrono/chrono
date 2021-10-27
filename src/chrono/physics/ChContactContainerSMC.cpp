@@ -412,17 +412,17 @@ void _ReportAllContacts(std::list<Tcont*>& contactlist, ChContactContainer::Repo
     }
 }
 
-void ChContactContainerSMC::ReportAllContacts(ReportContactCallback* mcallback) {
-    _ReportAllContacts(contactlist_3_3, mcallback);
-    _ReportAllContacts(contactlist_6_3, mcallback);
-    _ReportAllContacts(contactlist_6_6, mcallback);
-    _ReportAllContacts(contactlist_333_3, mcallback);
-    _ReportAllContacts(contactlist_333_6, mcallback);
-    _ReportAllContacts(contactlist_333_333, mcallback);
-    _ReportAllContacts(contactlist_666_3, mcallback);
-    _ReportAllContacts(contactlist_666_6, mcallback);
-    _ReportAllContacts(contactlist_666_333, mcallback);
-    _ReportAllContacts(contactlist_666_666, mcallback);
+void ChContactContainerSMC::ReportAllContacts(std::shared_ptr<ReportContactCallback> callback) {
+    _ReportAllContacts(contactlist_3_3, callback.get());
+    _ReportAllContacts(contactlist_6_3, callback.get());
+    _ReportAllContacts(contactlist_6_6, callback.get());
+    _ReportAllContacts(contactlist_333_3, callback.get());
+    _ReportAllContacts(contactlist_333_6, callback.get());
+    _ReportAllContacts(contactlist_333_333, callback.get());
+    _ReportAllContacts(contactlist_666_3, callback.get());
+    _ReportAllContacts(contactlist_666_6, callback.get());
+    _ReportAllContacts(contactlist_666_333, callback.get());
+    _ReportAllContacts(contactlist_666_666, callback.get());
     //***TODO*** rolling cont.
 }
 
@@ -511,7 +511,7 @@ void ChContactContainerSMC::ArchiveOUT(ChArchiveOut& marchive) {
 /// Method to allow de serialization of transient data from archives.
 void ChContactContainerSMC::ArchiveIN(ChArchiveIn& marchive) {
     // version number
-    int version = marchive.VersionRead<ChContactContainerSMC>();
+    /*int version =*/ marchive.VersionRead<ChContactContainerSMC>();
     // deserialize parent class
     ChContactContainer::ArchiveIN(marchive);
     // stream in all member data:

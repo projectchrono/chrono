@@ -31,13 +31,30 @@ using namespace chrono::fea;
 // -----------------------------------------------------------------------------
 ChDeformableTire::ChDeformableTire(const std::string& name)
     : ChTire(name),
+      m_connection_enabled(true),
       m_pressure_enabled(true),
       m_contact_enabled(true),
-      m_connection_enabled(true),
-      m_contact_type(NODE_CLOUD),
+      m_pressure(-1),
+      m_contact_type(ContactSurfaceType::NODE_CLOUD),
       m_contact_node_radius(0.001),
-      m_contact_face_thickness(0.0),
-      m_pressure(-1) {}
+      m_contact_face_thickness(0.0) {}
+
+ChDeformableTire::~ChDeformableTire() {
+    auto sys = m_mesh->GetSystem();
+    if (sys) {
+        sys->Remove(m_mesh);
+        sys->Remove(m_load_container);
+        for (size_t i = 0; i < m_connections.size(); i++) {
+            sys->Remove(m_connections[i]);
+        }
+        for (size_t i = 0; i < m_connectionsD.size(); i++) {
+            sys->Remove(m_connectionsD[i]);
+        }
+        for (size_t i = 0; i < m_connectionsF.size(); i++) {
+            sys->Remove(m_connectionsF[i]);
+        }
+    }
+}
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
@@ -151,8 +168,7 @@ TerrainForce ChDeformableTire::ReportTireForce(ChTerrain* terrain) const {
 
     for (size_t ic = 0; ic < m_connectionsD.size(); ic++) {
         ChCoordsys<> csys = m_connectionsD[ic]->GetLinkAbsoluteCoords();
-        ChVector<> react = csys.TransformDirectionLocalToParent(m_connectionsD[ic]->GetReactionOnBody());
-        m_wheel->GetSpindle()->To_abs_torque(react, false, moment);
+        moment = csys.TransformDirectionLocalToParent(m_connectionsD[ic]->GetReactionOnBody());
         tire_force.moment += moment;
     }
 

@@ -45,12 +45,8 @@ class CH_VEHICLE_API SimpleMapPowertrain : public ChSimpleMapPowertrain {
     /// Specify maximum engine speed.
     virtual double GetMaxEngineSpeed() override { return m_max_engine_speed; }
 
-    /// Set the gears, i.e. the transmission ratios of the various gears.
-    /// A concrete class must populate the vector of forward gear ratios, ordered as 1st, 2nd, etc.
-    /// and provide a value for the single reverse gear ratio.
-    virtual void SetGearRatios(std::vector<double>& fwd_gear_ratios,  ///< [out] list of forward gear ratios
-                               double& reverse_gear_ratio             ///< [out] single reverse gear ratio
-                               ) override;
+    /// Set the transmission gear ratios (one or more forward gear ratios and a single reverse gear ratio).
+    virtual void SetGearRatios(std::vector<double>& fwd, double& rev) override;
 
     /// Set the ideal shift points for automatic gear shifting.
     /// For each forward gear, specify a pair (min, max) with the minimum and
@@ -81,8 +77,8 @@ class CH_VEHICLE_API SimpleMapPowertrain : public ChSimpleMapPowertrain {
     double m_rev_gear;
     std::vector<double> m_fwd_gear;
 
-    MapData m_engine_torque;
-    MapData m_engine_losses;
+    MapData m_engine_map_full;
+    MapData m_engine_map_zero;
     MapData m_shift_bands;
 };
 

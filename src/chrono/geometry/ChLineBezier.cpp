@@ -63,7 +63,7 @@ void ChLineBezier::ArchiveOUT(ChArchiveOut& marchive) {
 
 void ChLineBezier::ArchiveIN(ChArchiveIn& marchive) {
     // version number
-    int version = marchive.VersionRead<ChLineBezier>();
+    /*int version =*/ marchive.VersionRead<ChLineBezier>();
     // deserialize parent class
     ChLine::ArchiveIN(marchive);
     // stream in all member data:

@@ -36,7 +36,7 @@
 #include "chrono/fea/ChContactSurfaceNodeCloud.h"
 #include "chrono/fea/ChContactSurfaceMesh.h"
 
-#include "chrono_mkl/ChSolverMKL.h"
+#include "chrono_pardisomkl/ChSolverPardisoMKL.h"
 
 #include "chrono_irrlicht/ChIrrApp.h"
 #include "chrono_irrlicht/ChIrrAppInterface.h"
@@ -89,8 +89,7 @@ void DPCapPress() {
     my_system.Set_G_acc(ChVector<>(0, 0, 0));
 
     // Create the Irrlicht visualization (open the Irrlicht device, bind a simple user interface, etc.)
-    ChIrrApp application(&my_system, L"9-Node, Large Deformation Brick Element", core::dimension2d<u32>(800, 600),
-                         false, true);
+    ChIrrApp application(&my_system, L"9-Node, Large Deformation Brick Element", core::dimension2d<u32>(800, 600));
 
     // Easy shortcuts to add camera, lights, logo and sky in Irrlicht scene:
     application.AddTypicalLogo();
@@ -119,12 +118,10 @@ void DPCapPress() {
 
     int N_x = numDiv_x + 1;
     int N_y = numDiv_y + 1;
-    int N_z = numDiv_z + 1;
 
     // Number of elements in the z direction is considered as 1
     int TotalNumElements = numDiv_x * numDiv_y * numDiv_z;
     int XYNumNodes = (numDiv_x + 1) * (numDiv_y + 1);
-    int TotalNumNodes = (numDiv_z + 1) * XYNumNodes + TotalNumElements;
 
     // For uniform mesh
     double dx = plate_lenght_x / numDiv_x;
@@ -217,7 +214,7 @@ void DPCapPress() {
         CCPInitial(8, k) = 1;
     }
     int jj = -1;
-    int kk;
+    int kk = -1;
     // Create the elements
     for (int i = 0; i < TotalNumElements; i++) {
         if (i % (numDiv_x * numDiv_y) == 0) {
@@ -333,7 +330,7 @@ void DPCapPress() {
     application.AssetUpdateAll();
 
     // Use the MKL Solver
-    auto mkl_solver = chrono_types::make_shared<ChSolverMKL>();
+    auto mkl_solver = chrono_types::make_shared<ChSolverPardisoMKL>();
     my_system.SetSolver(mkl_solver);
     mkl_solver->LockSparsityPattern(true);
 
@@ -353,7 +350,6 @@ void DPCapPress() {
     std::string filename = out_dir + "/DPCapPress.txt";
     outputfile = fopen(filename.c_str(), "w");
 
-    double ChTime = 0.0;
     double start = std::clock();
     int Iter = 0;
     application.SetPaused(true);
@@ -400,7 +396,7 @@ void DPCapPress() {
     GetLog() << "Simulation Time: " << duration << "\n";
     GetLog() << "Force Time: " << my_mesh->GetTimeInternalForces() << "\n";
     GetLog() << "Jacobian Time: " << my_mesh->GetTimeJacobianLoad() << "\n";
-    GetLog() << "Solver Time: " << my_system.GetTimerSolver() << "\n";
+    GetLog() << "Solver Time: " << my_system.GetTimerLSsolve() << "\n";
     GetLog() << Iter << "\n";
 }
 
@@ -414,8 +410,7 @@ void ShellBrickContact() {
     my_system.Set_G_acc(ChVector<>(0, 0, 0));
 
     // Create the Irrlicht visualization (open the Irrlicht device, bind a simple user interface, etc.)
-    ChIrrApp application(&my_system, L"9-Node, Large Deformation Brick Element", core::dimension2d<u32>(800, 600),
-                         false, true);
+    ChIrrApp application(&my_system, L"9-Node, Large Deformation Brick Element", core::dimension2d<u32>(800, 600));
 
     // Easy shortcuts to add camera, lights, logo and sky in Irrlicht scene:
     application.AddTypicalLogo();
@@ -440,24 +435,20 @@ void ShellBrickContact() {
     // Geometry of the ANCF shell.
     double shell_lenght_x = 0.1;
     double shell_lenght_y = 0.1;
-    double shell_lenght_z = 0.01;
 
     // Specification of the mesh for bricked plate.
     int numDiv_x = 8;
     int numDiv_y = 8;
     int numDiv_z = 2;
+
     // Specification of the mesh for ANCF shell.
     int SnumDiv_x = 4;
     int SnumDiv_y = 4;
-    int SnumDiv_z = 1;
 
     int N_x = numDiv_x + 1;
     int N_y = numDiv_y + 1;
-    int N_z = numDiv_z + 1;
 
     int SN_x = SnumDiv_x + 1;
-    int SN_y = SnumDiv_y + 1;
-    int SN_z = SnumDiv_z + 1;
 
     // Number of elements in the z direction is considered as 1.
     int TotalNumElements = numDiv_x * numDiv_y * numDiv_z;
@@ -471,7 +462,6 @@ void ShellBrickContact() {
 
     double Sdx = shell_lenght_x / SnumDiv_x;
     double Sdy = shell_lenght_y / SnumDiv_y;
-    double Sdz = shell_lenght_z / SnumDiv_z;
 
     bool Plasticity = true;
     double timestep = 1e-4;
@@ -546,7 +536,7 @@ void ShellBrickContact() {
         CCPInitial(8, k) = 1;
     }
     int jj = -1;
-    int kk;
+    int kk = 0;
 
     // Create the elements for the bricked plate (made up of 9-node brick elements).
     for (int i = 0; i < TotalNumElements; i++) {
@@ -679,7 +669,7 @@ void ShellBrickContact() {
     application.AssetUpdateAll();
 
     // Use the MKL Solver
-    auto mkl_solver = chrono_types::make_shared<ChSolverMKL>();
+    auto mkl_solver = chrono_types::make_shared<ChSolverPardisoMKL>();
     my_system.SetSolver(mkl_solver);
     mkl_solver->LockSparsityPattern(true);
 
@@ -704,7 +694,6 @@ void ShellBrickContact() {
     fprintf(outputfile, "%15.7e  ", nodetip1->GetPos().z());
     fprintf(outputfile, "\n  ");
 
-    double ChTime = 0.0;
     double start = std::clock();
     int Iter = 0;
     int timecount = 0;
@@ -752,7 +741,7 @@ void ShellBrickContact() {
     GetLog() << "Simulation Time: " << duration << "\n";
     GetLog() << "Force Time: " << my_mesh->GetTimeInternalForces() << "\n";
     GetLog() << "Jacobian Time: " << my_mesh->GetTimeJacobianLoad() << "\n";
-    GetLog() << "Solver Time: " << my_system.GetTimerSolver() << "\n";
+    GetLog() << "Solver Time: " << my_system.GetTimerLSsolve() << "\n";
     GetLog() << Iter << "\n";
 }
 
@@ -766,8 +755,7 @@ void SimpleBoxContact() {
     my_system.Set_G_acc(ChVector<>(0, 0, 0));
 
     // Create the Irrlicht visualization (open the Irrlicht device, bind a simple user interface, etc.)
-    ChIrrApp application(&my_system, L"9-Node, Large Deformation Brick Element", core::dimension2d<u32>(800, 600),
-                         false, true);
+    ChIrrApp application(&my_system, L"9-Node, Large Deformation Brick Element", core::dimension2d<u32>(800, 600));
 
     // Easy shortcuts to add camera, lights, logo and sky in Irrlicht scene:
     application.AddTypicalLogo();
@@ -796,12 +784,10 @@ void SimpleBoxContact() {
 
     int N_x = numDiv_x + 1;
     int N_y = numDiv_y + 1;
-    int N_z = numDiv_z + 1;
 
     // Number of elements in the z direction is considered as 1
     int TotalNumElements = numDiv_x * numDiv_y * numDiv_z;
     int XYNumNodes = (numDiv_x + 1) * (numDiv_y + 1);
-    int TotalNumNodes = (numDiv_z + 1) * XYNumNodes + TotalNumElements;
 
     // For uniform mesh
     double dx = plate_lenght_x / numDiv_x;
@@ -862,7 +848,7 @@ void SimpleBoxContact() {
         CCPInitial(8, k) = 1;
     }
     int jj = -1;
-    int kk;
+    int kk = -1;
     // Create the elements
     for (int i = 0; i < TotalNumElements; i++) {
         if (i % (numDiv_x * numDiv_y) == 0) {
@@ -987,7 +973,7 @@ void SimpleBoxContact() {
     application.AssetUpdateAll();
 
     // Use the MKL Solver
-    auto mkl_solver = chrono_types::make_shared<ChSolverMKL>();
+    auto mkl_solver = chrono_types::make_shared<ChSolverPardisoMKL>();
     my_system.SetSolver(mkl_solver);
     mkl_solver->LockSparsityPattern(true);
 
@@ -1012,7 +998,6 @@ void SimpleBoxContact() {
     fprintf(outputfile, "%15.7e  ", nodetip1->GetPos().z());
     fprintf(outputfile, "\n  ");
 
-    double ChTime = 0.0;
     double start = std::clock();
     int Iter = 0;
     int timecount = 0;
@@ -1051,7 +1036,7 @@ void SimpleBoxContact() {
     GetLog() << "Simulation Time: " << duration << "\n";
     GetLog() << "Force Time: " << my_mesh->GetTimeInternalForces() << "\n";
     GetLog() << "Jacobian Time: " << my_mesh->GetTimeJacobianLoad() << "\n";
-    GetLog() << "Solver Time: " << my_system.GetTimerSolver() << "\n";
+    GetLog() << "Solver Time: " << my_system.GetTimerLSsolve() << "\n";
     GetLog() << Iter << "\n";
 }
 
@@ -1066,8 +1051,7 @@ void SoilBin() {
     my_system.Set_G_acc(ChVector<>(0, 0, 0));
 
     // Create the Irrlicht visualization (open the Irrlicht device, bind a simple user interface, etc.)
-    ChIrrApp application(&my_system, L"9-Node, Large Deformation Brick Element", core::dimension2d<u32>(800, 600),
-                         false, true);
+    ChIrrApp application(&my_system, L"9-Node, Large Deformation Brick Element", core::dimension2d<u32>(800, 600));
 
     // Easy shortcuts to add camera, lights, logo and sky in Irrlicht scene:
     application.AddTypicalLogo();
@@ -1096,12 +1080,10 @@ void SoilBin() {
 
     int N_x = numDiv_x + 1;
     int N_y = numDiv_y + 1;
-    int N_z = numDiv_z + 1;
 
     // Number of elements in the z direction is considered as 1
     int TotalNumElements = numDiv_x * numDiv_y * numDiv_z;
     int XYNumNodes = (numDiv_x + 1) * (numDiv_y + 1);
-    int TotalNumNodes = (numDiv_z + 1) * XYNumNodes + TotalNumElements;
 
     // For uniform mesh
     double dx = plate_lenght_x / numDiv_x;
@@ -1164,7 +1146,7 @@ void SoilBin() {
         CCPInitial(8, k) = 1;
     }
     int jj = -1;
-    int kk;
+    int kk = -1;
     // Create the elements
     for (int i = 0; i < TotalNumElements; i++) {
         if (i % (numDiv_x * numDiv_y) == 0) {
@@ -1311,7 +1293,7 @@ void SoilBin() {
     application.AssetUpdateAll();
 
     // Use the MKL Solver
-    auto mkl_solver = chrono_types::make_shared<ChSolverMKL>();
+    auto mkl_solver = chrono_types::make_shared<ChSolverPardisoMKL>();
     my_system.SetSolver(mkl_solver);
     mkl_solver->LockSparsityPattern(true);
 
@@ -1340,7 +1322,6 @@ void SoilBin() {
     }
     fprintf(outputfile, "\n  ");
 
-    double ChTime = 0.0;
     double start = std::clock();
     int Iter = 0;
     application.SetPaused(true);
@@ -1387,7 +1368,7 @@ void SoilBin() {
     GetLog() << "Simulation Time: " << duration << "\n";
     GetLog() << "Force Time: " << my_mesh->GetTimeInternalForces() << "\n";
     GetLog() << "Jacobian Time: " << my_mesh->GetTimeJacobianLoad() << "\n";
-    GetLog() << "Solver Time: " << my_system.GetTimerSolver() << "\n";
+    GetLog() << "Solver Time: " << my_system.GetTimerLSsolve() << "\n";
     GetLog() << Iter << "\n";
 }
 
@@ -1427,13 +1408,10 @@ void AxialDynamics() {
     int numDiv_z = 1;
 
     int N_x = numDiv_x + 1;
-    int N_y = numDiv_y + 1;
-    int N_z = numDiv_z + 1;
 
     // Number of elements in the z direction is considered as 1
     int TotalNumElements = numDiv_x * numDiv_y;
     int XYNumNodes = (numDiv_x + 1) * (numDiv_y + 1);
-    int TotalNumNodes = 2 * XYNumNodes + TotalNumElements;
 
     // For uniform mesh
     double dx = plate_lenght_x / numDiv_x;
@@ -1595,7 +1573,7 @@ void AxialDynamics() {
     // application.AssetUpdateAll();
 
     // Use the MKL Solver
-    auto mkl_solver = chrono_types::make_shared<ChSolverMKL>();
+    auto mkl_solver = chrono_types::make_shared<ChSolverPardisoMKL>();
     my_system.SetSolver(mkl_solver);
     mkl_solver->LockSparsityPattern(true);
 
@@ -1620,7 +1598,6 @@ void AxialDynamics() {
     fprintf(outputfile, "%15.7e  ", nodetip1->GetPos().z());
     fprintf(outputfile, "\n  ");
 
-    double ChTime = 0.0;
     double start = std::clock();
     int Iter = 0;
     while (/*application.GetDevice()->run() && */ (my_system.GetChTime() <= 1.0)) {
@@ -1650,7 +1627,7 @@ void AxialDynamics() {
     GetLog() << "Simulation Time: " << duration << "\n";
     GetLog() << "Force Time: " << my_mesh->GetTimeInternalForces() << "\n";
     GetLog() << "Jacobian Time: " << my_mesh->GetTimeJacobianLoad() << "\n";
-    GetLog() << "Solver Time: " << my_system.GetTimerSolver() << "\n";
+    GetLog() << "Solver Time: " << my_system.GetTimerLSsolve() << "\n";
     GetLog() << Iter << "\n";
 }
 
@@ -1662,7 +1639,7 @@ void BendingQuasiStatic() {
 
     // Create the Irrlicht visualization (open the Irrlicht device, bind a simple user interface, etc.)
     ChIrrApp application(&my_system, L"9-Node, Large Deformation Brick Element: Bending Problem",
-                         core::dimension2d<u32>(800, 600), false, true);
+                         core::dimension2d<u32>(800, 600));
 
     // Easy shortcuts to add camera, lights, logo and sky in Irrlicht scene:
     application.AddTypicalLogo();
@@ -1678,22 +1655,22 @@ void BendingQuasiStatic() {
 
     // Create a mesh, that is a container for groups of elements and their referenced nodes.
     auto my_mesh = chrono_types::make_shared<ChMesh>();
-    int numFlexBody = 1;
+
     // Geometry of the plate
     double plate_lenght_x = 1;
     double plate_lenght_y = 1;
     double plate_lenght_z = 0.01;
+
     // Specification of the mesh
     int numDiv_x = 8;
     int numDiv_y = 8;
     int numDiv_z = 1;
     int N_x = numDiv_x + 1;
-    int N_y = numDiv_y + 1;
-    int N_z = numDiv_z + 1;
+
     // Number of elements in the z direction is considered as 1
     int TotalNumElements = numDiv_x * numDiv_y;
     int XYNumNodes = (numDiv_x + 1) * (numDiv_y + 1);
-    int TotalNumNodes = 2 * XYNumNodes + TotalNumElements;
+
     // For uniform mesh
     double dx = plate_lenght_x / numDiv_x;
     double dy = plate_lenght_y / numDiv_y;
@@ -1831,7 +1808,7 @@ void BendingQuasiStatic() {
     // ----------------------------------
 
     // Use the MKL Solver
-    auto mkl_solver = chrono_types::make_shared<ChSolverMKL>();
+    auto mkl_solver = chrono_types::make_shared<ChSolverPardisoMKL>();
     my_system.SetSolver(mkl_solver);
     mkl_solver->LockSparsityPattern(true);
 
@@ -1892,7 +1869,7 @@ void SwingingShell() {
 
     // Create the Irrlicht visualization (open the Irrlicht device, bind a simple user interface, etc.)
     ChIrrApp application(&my_system, L"9-Node, Large Deformation Brick Element: Swinging (Bricked) Shell",
-                         core::dimension2d<u32>(800, 600), false, true);
+                         core::dimension2d<u32>(800, 600));
 
     // Easy shortcuts to add camera, lights, logo and sky in Irrlicht scene:
     application.AddTypicalLogo();
@@ -1919,13 +1896,10 @@ void SwingingShell() {
     int numDiv_y = 16;
     int numDiv_z = 1;
     int N_x = numDiv_x + 1;
-    int N_y = numDiv_y + 1;
-    int N_z = numDiv_z + 1;
 
     // Number of elements in the z direction is considered as 1
     int TotalNumElements = numDiv_x * numDiv_y;
     int XYNumNodes = (numDiv_x + 1) * (numDiv_y + 1);
-    int TotalNumNodes = 2 * XYNumNodes + TotalNumElements;
 
     // For uniform mesh
     double dx = plate_lenght_x / numDiv_x;
@@ -1960,7 +1934,6 @@ void SwingingShell() {
         my_mesh->AddNode(node);
     }
 
-    double force = 0.0;
     // Get a handle to the tip node.
     auto nodetip = std::dynamic_pointer_cast<ChNodeFEAxyz>(my_mesh->GetNode(2 * XYNumNodes - 1));
     nodetip->SetForce(ChVector<>(0.0, 0.0, -0.0));
@@ -2065,7 +2038,7 @@ void SwingingShell() {
     // ----------------------------------
 
     // Use the MKL Solver
-    auto mkl_solver = chrono_types::make_shared<ChSolverMKL>();
+    auto mkl_solver = chrono_types::make_shared<ChSolverPardisoMKL>();
     my_system.SetSolver(mkl_solver);
     mkl_solver->LockSparsityPattern(true);
 
@@ -2090,7 +2063,6 @@ void SwingingShell() {
     fprintf(outputfile, "%15.7e  ", nodetip->GetPos().z());
     fprintf(outputfile, "\n  ");
 
-    double ChTime = 0.0;
     while (application.GetDevice()->run() && (my_system.GetChTime() < 2.01)) {
         application.BeginScene();
         application.DrawAll();

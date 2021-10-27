@@ -49,15 +49,10 @@ class CH_VEHICLE_API ChSimpleDrivelineXWD : public ChDrivelineWV {
 
     /// Initialize the driveline subsystem.
     /// This function connects this driveline subsystem to the specified axle subsystems.
-    virtual void Initialize(std::shared_ptr<ChBody> chassis,      ///< handle to the chassis body
+    virtual void Initialize(std::shared_ptr<ChChassis> chassis,   ///< associated chassis subsystem
                             const ChAxleList& axles,              ///< list of all vehicle axle subsystems
                             const std::vector<int>& driven_axles  ///< indexes of the driven vehicle axles
                             ) override;
-
-    /// Get the angular speed of the driveshaft.
-    /// This represents the output from the driveline subsystem that is passed to
-    /// the powertrain system.
-    virtual double GetDriveshaftSpeed() const override;
 
     /// Update the driveline subsystem: apply the specified motor torque.
     /// This represents the input to the driveline subsystem from the powertrain
@@ -67,12 +62,17 @@ class CH_VEHICLE_API ChSimpleDrivelineXWD : public ChDrivelineWV {
     /// Get the motor torque to be applied to the specified spindle.
     virtual double GetSpindleTorque(int axle, VehicleSide side) const override;
 
+    /// Disconnect driveline from driven wheels.
+    virtual void Disconnect() override;
+
   protected:
     /// Return the torque bias ratio every axlewise differential.
     /// This is a simple model of a Torsen limited-slip differential.
     virtual double GetDifferentialMaxBias() const = 0;
 
   private:
+    bool m_connected;
+
     std::vector<std::shared_ptr<ChShaft> > m_shaft_left;
     std::vector<std::shared_ptr<ChShaft> > m_shaft_right;
 };

@@ -31,6 +31,7 @@ SET(ChronoEngine_CASCADE_SOURCES
 
 SET(ChronoEngine_CASCADE_HEADERS
     ChApiCASCADE.h
+	ChCascadeTriangulate.h
     ChCascadeMeshTools.h
     ChCascadeDoc.h
     ChCascadeShapeAsset.h
@@ -59,7 +60,7 @@ IF(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
       HINTS ${CASCADE_INCLUDE_DIR} "${CASCADE_ROOT}/inc" "${CASCADE_ROOT}/include" "${CASCADE_ROOT}/include/oce"
     )
     FILE(GLOB CASCADE_LIBRARIES "${CASCADE_LIBDIR}/TK*.lib")
-ELSEIF(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
+ELSEIF(${CMAKE_SYSTEM_NAME} MATCHES "Linux" OR ${CMAKE_SYSTEM_NAME} MATCHES "FreeBSD")
     FIND_PATH(CASCADE_INCLUDE_DIR Standard_Version.hxx
       HINTS ${CASCADE_INCLUDE_DIR} "${CASCADE_ROOT}/inc" "${CASCADE_ROOT}/include"
       PATHS
@@ -88,7 +89,7 @@ ELSEIF(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
     #add_definitions( -DHAVE_LIMITS_H -DHAVE_IOSTREAM )
 ENDIF()
 
-IF(NOT EXISTS ${CASCADE_INCLUDE_DIR} OR NOT EXISTS ${CASCADE_LIBDIR})
+IF(NOT EXISTS "${CASCADE_INCLUDE_DIR}" OR NOT EXISTS "${CASCADE_LIBDIR}")
     message("Cannot find OpenCASCADE directories.")
 ENDIF()
 

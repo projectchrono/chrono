@@ -16,9 +16,6 @@
 //
 // =============================================================================
 
-//// RADU
-//// Todo: extend to allow axles with double wheels
-
 #include "chrono_vehicle/wheeled_vehicle/vehicle/WheeledVehicle.h"
 
 #include "chrono_vehicle/ChVehicleModelData.h"
@@ -44,7 +41,7 @@ WheeledVehicle::WheeledVehicle(ChSystem* system, const std::string& filename) : 
 // -----------------------------------------------------------------------------
 void WheeledVehicle::Create(const std::string& filename) {
     // Open and parse the input file
-    Document d = ReadFileJSON(filename);
+    Document d; ReadFileJSON(filename, d);
     if (d.IsNull())
         return;
 
@@ -72,6 +69,22 @@ void WheeledVehicle::Create(const std::string& filename) {
     assert(d["Axles"].IsArray());
     assert(d["Steering Subsystems"].IsArray());
 
+    // Extract number of rear chassis subsystems
+    if (d.HasMember("Rear Chassis")) {
+        assert(d["Rear Chassis"].IsArray());
+        m_num_rear_chassis = d["Rear Chassis"].Size();
+    } else {
+        m_num_rear_chassis = 0;
+    }
+
+    // Extract number of subchassis subsystems
+    if (d.HasMember("Subchassis")) {
+        assert(d["Subchassis"].IsArray());
+        m_num_subch = d["Subchassis"].Size();
+    } else {
+        m_num_subch = 0;
+    }
+
     // Extract the number of axles.
     m_num_axles = d["Axles"].Size();
 
@@ -79,14 +92,29 @@ void WheeledVehicle::Create(const std::string& filename) {
     m_num_strs = d["Steering Subsystems"].Size();
 
     // Resize arrays
+    if (m_num_rear_chassis > 0) {
+        m_chassis_rear.resize(m_num_rear_chassis);
+        m_chassis_connectors.resize(m_num_rear_chassis);
+        m_rearchChassis.resize(m_num_rear_chassis);
+    }
+
+    if (m_num_subch > 0) {
+        m_subchassis.resize(m_num_subch);
+        m_subchLocations.resize(m_num_subch);
+        m_subchChassis.resize(m_num_subch);
+    }
+
     m_axles.resize(m_num_axles);
     m_suspLocations.resize(m_num_axles);
     m_suspSteering.resize(m_num_axles, -1);
+    m_suspSubchassis.resize(m_num_axles, -1);
     m_arbLocations.resize(m_num_axles);
 
     m_steerings.resize(m_num_strs);
     m_strLocations.resize(m_num_strs);
     m_strRotations.resize(m_num_strs);
+
+    m_wheelSeparations.resize(m_num_axles, 0.0);
 
     // -------------------------------------------
     // Create the chassis system
@@ -98,6 +126,32 @@ void WheeledVehicle::Create(const std::string& filename) {
         if (d["Chassis"].HasMember("Output")) {
             m_chassis->SetOutput(d["Chassis"]["Output"].GetBool());
         }
+    }
+
+    // ---------------------------------------------------------
+    // Create rear chassis and corresponding connectors (if any)
+    // ---------------------------------------------------------
+
+    for (int i = 0; i < m_num_rear_chassis; i++) {
+        std::string file_name = d["Rear Chassis"][i]["Input File"].GetString();
+        m_chassis_rear[i] = ReadChassisRearJSON(vehicle::GetDataFile(file_name));
+        if (d["Rear Chassis"][i].HasMember("Output")) {
+            m_chassis->SetOutput(d["Rear Chassis"][i]["Output"].GetBool());
+        }
+        file_name = d["Rear Chassis"][i]["Connector Input File"].GetString();
+        m_chassis_connectors[i] = ReadChassisConnectorJSON(vehicle::GetDataFile(file_name));
+        m_rearchChassis[i] = d["Rear Chassis"][i]["Chassis Index"].GetInt();
+    }
+
+    // -------------------------------------
+    // Create subchassis subsystems (if any)
+    // -------------------------------------
+
+    for (int i = 0; i < m_num_subch; i++) {
+        std::string file_name = d["Subchassis"][i]["Input File"].GetString();
+        m_subchassis[i] = ReadSubchassisJSON(vehicle::GetDataFile(file_name));
+        m_subchLocations[i] = ReadVectorJSON(d["Subchassis"][i]["Subchassis Location"]);
+        m_subchChassis[i] = d["Subchassis"][i]["Chassis Index"].GetInt();
     }
 
     // ------------------------------
@@ -148,6 +202,11 @@ void WheeledVehicle::Create(const std::string& filename) {
             m_suspSteering[i] = d["Axles"][i]["Steering Index"].GetInt();
         }
 
+        // Index of subchassis subsystem (if applicable)
+        if (d["Axles"][i].HasMember("Subchassis Index")) {
+            m_suspSubchassis[i] = d["Axles"][i]["Subchassis Index"].GetInt();
+        }
+
         // Antirollbar (if applicable)
         if (d["Axles"][i].HasMember("Antirollbar Input File")) {
             assert(m_axles[i]->m_suspension->IsIndependent());
@@ -157,21 +216,42 @@ void WheeledVehicle::Create(const std::string& filename) {
             m_arbLocations[i] = ReadVectorJSON(d["Axles"][i]["Antirollbar Location"]);
         }
 
-        // Left and right wheels
-        int num_wheels = 2;
-        m_axles[i]->m_wheels.resize(num_wheels);
-        file_name = d["Axles"][i]["Left Wheel Input File"].GetString();
-        m_axles[i]->m_wheels[0] = ReadWheelJSON(vehicle::GetDataFile(file_name));
+        // Check if there are double wheels
+        // Otherwise, assume only two
+        if (d["Axles"][i].HasMember("Wheel Separation")) {
+            m_wheelSeparations[i] = d["Axles"][i]["Wheel Separation"].GetDouble();
 
-        file_name = d["Axles"][i]["Right Wheel Input File"].GetString();
-        m_axles[i]->m_wheels[1] = ReadWheelJSON(vehicle::GetDataFile(file_name));
+            int num_wheels = 4;
+            m_axles[i]->m_wheels.resize(num_wheels);
+            file_name = d["Axles"][i]["Left Inside Wheel Input File"].GetString();
+            m_axles[i]->m_wheels[0] = ReadWheelJSON(vehicle::GetDataFile(file_name));
 
-        // Left and right brakes
-        file_name = d["Axles"][i]["Left Brake Input File"].GetString();
-        m_axles[i]->m_brake_left = ReadBrakeJSON(vehicle::GetDataFile(file_name));
+            file_name = d["Axles"][i]["Right Inside Wheel Input File"].GetString();
+            m_axles[i]->m_wheels[1] = ReadWheelJSON(vehicle::GetDataFile(file_name));
 
-        file_name = d["Axles"][i]["Right Brake Input File"].GetString();
-        m_axles[i]->m_brake_right = ReadBrakeJSON(vehicle::GetDataFile(file_name));
+            file_name = d["Axles"][i]["Left Outside Wheel Input File"].GetString();
+            m_axles[i]->m_wheels[2] = ReadWheelJSON(vehicle::GetDataFile(file_name));
+
+            file_name = d["Axles"][i]["Right Outside Wheel Input File"].GetString();
+            m_axles[i]->m_wheels[3] = ReadWheelJSON(vehicle::GetDataFile(file_name));
+        } else {
+            int num_wheels = 2;
+            m_axles[i]->m_wheels.resize(num_wheels);
+            file_name = d["Axles"][i]["Left Wheel Input File"].GetString();
+            m_axles[i]->m_wheels[0] = ReadWheelJSON(vehicle::GetDataFile(file_name));
+
+            file_name = d["Axles"][i]["Right Wheel Input File"].GetString();
+            m_axles[i]->m_wheels[1] = ReadWheelJSON(vehicle::GetDataFile(file_name));
+        }
+
+        // Left and right brakes (may be absent)
+        if (d["Axles"][i].HasMember("Left Brake Input File")) {
+            file_name = d["Axles"][i]["Left Brake Input File"].GetString();
+            m_axles[i]->m_brake_left = ReadBrakeJSON(vehicle::GetDataFile(file_name));
+
+            file_name = d["Axles"][i]["Right Brake Input File"].GetString();
+            m_axles[i]->m_brake_right = ReadBrakeJSON(vehicle::GetDataFile(file_name));
+        }
 
         if (d["Axles"][i].HasMember("Output")) {
             bool output = d["Axles"][i]["Output"].GetBool();
@@ -213,25 +293,38 @@ void WheeledVehicle::Initialize(const ChCoordsys<>& chassisPos, double chassisFw
     // Initialize the chassis subsystem.
     m_chassis->Initialize(m_system, chassisPos, chassisFwdVel, WheeledCollisionFamily::CHASSIS);
 
+    // Initialize any rear chassis subsystems and their connectors.
+    for (int i = 0; i < m_num_rear_chassis; i++) {
+        int front_index = m_rearchChassis[i];
+        std::shared_ptr<ChChassis> front = (front_index == -1) ? m_chassis : m_chassis_rear[front_index];
+        m_chassis_rear[i]->Initialize(front, WheeledCollisionFamily::CHASSIS);
+        m_chassis_connectors[i]->Initialize(front, m_chassis_rear[i]);
+    }
+
+    // Initialize any subchassis subsystems.
+    for (int i = 0; i < m_num_subch; i++) {
+        int chassis_index = m_subchChassis[i];
+        std::shared_ptr<ChChassis> chassis = (chassis_index == -1) ? m_chassis : m_chassis_rear[chassis_index];
+        m_subchassis[i]->Initialize(chassis, m_subchLocations[i]);
+    }
+
     // Initialize the steering subsystems.
     for (int i = 0; i < m_num_strs; i++) {
-        m_steerings[i]->Initialize(m_chassis->GetBody(), m_strLocations[i], m_strRotations[i]);
+        m_steerings[i]->Initialize(m_chassis, m_strLocations[i], m_strRotations[i]);
     }
 
     // Initialize the axles (suspension + brakes + wheels + antirollbar)
     for (int i = 0; i < m_num_axles; i++) {
         int str_index = m_suspSteering[i];
-        if (str_index == -1) {
-            m_axles[i]->Initialize(m_chassis->GetBody(), m_suspLocations[i], m_arbLocations[i], m_chassis->GetBody(),
-                                   -1, 0.0);
-        } else {
-            m_axles[i]->Initialize(m_chassis->GetBody(), m_suspLocations[i], m_arbLocations[i],
-                                   m_steerings[str_index]->GetSteeringLink(), str_index, 0.0);
-        }
+        std::shared_ptr<ChSteering> steering = (str_index == -1) ? nullptr : m_steerings[str_index];
+        int subch_index = m_suspSubchassis[i];
+        std::shared_ptr<ChSubchassis> subchassis = (subch_index == -1) ? nullptr : m_subchassis[subch_index];
+        m_axles[i]->Initialize(m_chassis, subchassis, steering, m_suspLocations[i], m_arbLocations[i],
+                               m_wheelSeparations[i]);
     }
 
     // Initialize the driveline
-    m_driveline->Initialize(m_chassis->GetBody(), m_axles, m_driven_axles);
+    m_driveline->Initialize(m_chassis, m_axles, m_driven_axles);
 
     // Sanity check: make sure the driveline can accommodate the number of driven axles.
     assert(m_driveline->GetNumDrivenAxles() == m_driven_axles.size());

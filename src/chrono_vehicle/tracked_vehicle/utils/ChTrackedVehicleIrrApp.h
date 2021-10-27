@@ -33,21 +33,41 @@ namespace vehicle {
 class CH_VEHICLE_API ChTrackedVehicleIrrApp : public ChVehicleIrrApp {
   public:
     /// Construct a tracked vehicle Irrlicht application.
-    ChTrackedVehicleIrrApp(
-        ChVehicle* vehicle,        ///< pointer to the associated vehicle system
-        const wchar_t* title = 0,  ///< window title
-        irr::core::dimension2d<irr::u32> dims = irr::core::dimension2d<irr::u32>(1000, 800),  ///< window dimensions
-        irr::ELOG_LEVEL log_level = irr::ELL_INFORMATION  ///< Irrlicht logging level
+    ChTrackedVehicleIrrApp(ChVehicle* vehicle,  ///< pointer to the associated vehicle system
+                           const std::wstring& title = L"Chrono::Vehicle",  ///< window title
+                           const irr::core::dimension2d<irr::u32>& dims =
+                               irr::core::dimension2d<irr::u32>(1000, 800),  ///< window dimensions
+                           irr::ELOG_LEVEL log_level = irr::ELL_INFORMATION  ///< Irrlicht logging level
     );
 
     ~ChTrackedVehicleIrrApp() {}
 
+    /// Enable/disable rendering of track shoe body frames.
+    void RenderTrackShoeFrames(VehicleSide side, bool state, double axis_length = 1);
+
+    /// Enable/disable rendering of sprocket body frame.
+    void RenderSprocketFrame(VehicleSide side, bool state, double axis_length = 1);
+
+    /// Enable/disable rendering of idler body frame.
+    void RenderIdlerFrame(VehicleSide side, bool state, double axis_length = 1);
+
   private:
     virtual void renderOtherGraphics() override;
     virtual void renderOtherStats(int left, int top) override;
-    void renderContactNormals(const std::list<ChTrackContactInfo>& lst, const irr::video::SColor& col);
+    void renderContacts(const std::list<ChTrackContactManager::ContactInfo>& lst,
+                        const irr::video::SColor& col,
+                        bool normals,
+                        bool forces,
+                        double scale_normals,
+                        double scale_forces);
 
     ChTrackedVehicle* m_tvehicle;
+    bool m_render_frame_shoes[2];
+    bool m_render_frame_sprockets[2];
+    bool m_render_frame_idlers[2];
+    double m_axis_shoes[2];
+    double m_axis_sprockets[2];
+    double m_axis_idlers[2];
 };
 
 /// @} vehicle_tracked_utils

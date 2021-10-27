@@ -30,8 +30,14 @@ namespace vehicle {
 // Construct a solid axle suspension using data from the specified JSON file.
 // -----------------------------------------------------------------------------
 SAEToeBarLeafspringAxle::SAEToeBarLeafspringAxle(const std::string& filename)
-    : ChSAEToeBarLeafspringAxle(""), m_springForceCB(NULL), m_shockForceCB(NULL), m_use_left_knuckle(true) {
-    Document d = ReadFileJSON(filename);
+    : ChSAEToeBarLeafspringAxle(""),
+      m_springForceCB(NULL),
+      m_shockForceCB(NULL),
+      m_use_left_knuckle(true),
+      m_shackleBushingData(nullptr),
+      m_clampBushingData(nullptr),
+      m_leafspringBushingData(nullptr) {
+    Document d; ReadFileJSON(filename, d);
     if (d.IsNull())
         return;
 
@@ -41,16 +47,19 @@ SAEToeBarLeafspringAxle::SAEToeBarLeafspringAxle(const std::string& filename)
 }
 
 SAEToeBarLeafspringAxle::SAEToeBarLeafspringAxle(const rapidjson::Document& d)
-    : ChSAEToeBarLeafspringAxle(""), m_springForceCB(NULL), m_shockForceCB(NULL), m_use_left_knuckle(true) {
+    : ChSAEToeBarLeafspringAxle(""),
+      m_springForceCB(NULL),
+      m_shockForceCB(NULL),
+      m_use_left_knuckle(true),
+      m_shackleBushingData(nullptr),
+      m_clampBushingData(nullptr),
+      m_leafspringBushingData(nullptr) {
     Create(d);
 }
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-SAEToeBarLeafspringAxle::~SAEToeBarLeafspringAxle() {
-    delete m_springForceCB;
-    delete m_shockForceCB;
-}
+SAEToeBarLeafspringAxle::~SAEToeBarLeafspringAxle() {}
 
 // -----------------------------------------------------------------------------
 // Worker function for creating a SAEToeBarLeafspringAxle suspension using data in the
@@ -123,14 +132,15 @@ void SAEToeBarLeafspringAxle::Create(const rapidjson::Document& d) {
 
     if (d["Auxiliary Spring"].HasMember("Minimum Length") && d["Auxiliary Spring"].HasMember("Maximum Length")) {
         if (d["Auxiliary Spring"].HasMember("Spring Coefficient")) {
-            m_springForceCB = new LinearSpringBistopForce(d["Auxiliary Spring"]["Spring Coefficient"].GetDouble(),
-                                                          d["Auxiliary Spring"]["Minimum Length"].GetDouble(),
-                                                          d["Auxiliary Spring"]["Maximum Length"].GetDouble());
+            m_springForceCB = chrono_types::make_shared<LinearSpringBistopForce>(
+                d["Auxiliary Spring"]["Spring Coefficient"].GetDouble(),
+                d["Auxiliary Spring"]["Minimum Length"].GetDouble(),
+                d["Auxiliary Spring"]["Maximum Length"].GetDouble());
         } else if (d["Auxiliary Spring"].HasMember("Curve Data")) {
             int num_points = d["Auxiliary Spring"]["Curve Data"].Size();
-            MapSpringBistopForce* springForceCB =
-                new MapSpringBistopForce(d["Auxiliary Spring"]["Minimum Length"].GetDouble(),
-                                         d["Auxiliary Spring"]["Maximum Length"].GetDouble());
+            auto springForceCB =
+                chrono_types::make_shared<MapSpringBistopForce>(d["Auxiliary Spring"]["Minimum Length"].GetDouble(),
+                                                                d["Auxiliary Spring"]["Maximum Length"].GetDouble());
             for (int i = 0; i < num_points; i++) {
                 springForceCB->add_point(d["Auxiliary Spring"]["Curve Data"][i][0u].GetDouble(),
                                          d["Auxiliary Spring"]["Curve Data"][i][1u].GetDouble());
@@ -139,10 +149,11 @@ void SAEToeBarLeafspringAxle::Create(const rapidjson::Document& d) {
         }
     } else {
         if (d["Auxiliary Spring"].HasMember("Spring Coefficient")) {
-            m_springForceCB = new LinearSpringForce(d["Auxiliary Spring"]["Spring Coefficient"].GetDouble());
+            m_springForceCB =
+                chrono_types::make_shared<LinearSpringForce>(d["Auxiliary Spring"]["Spring Coefficient"].GetDouble());
         } else if (d["Auxiliary Spring"].HasMember("Curve Data")) {
             int num_points = d["Auxiliary Spring"]["Curve Data"].Size();
-            MapSpringForce* springForceCB = new MapSpringForce();
+            auto springForceCB = chrono_types::make_shared<MapSpringForce>();
             for (int i = 0; i < num_points; i++) {
                 springForceCB->add_point(d["Auxiliary Spring"]["Curve Data"][i][0u].GetDouble(),
                                          d["Auxiliary Spring"]["Curve Data"][i][1u].GetDouble());
@@ -160,15 +171,16 @@ void SAEToeBarLeafspringAxle::Create(const rapidjson::Document& d) {
 
     if (d["Shock"].HasMember("Damping Coefficient")) {
         if (d["Shock"].HasMember("Degressivity Compression") && d["Shock"].HasMember("Degressivity Expansion")) {
-            m_shockForceCB = new DegressiveDamperForce(d["Shock"]["Damping Coefficient"].GetDouble(),
-                                                       d["Shock"]["Degressivity Compression"].GetDouble(),
-                                                       d["Shock"]["Degressivity Expansion"].GetDouble());
+            m_shockForceCB = chrono_types::make_shared<DegressiveDamperForce>(
+                d["Shock"]["Damping Coefficient"].GetDouble(), d["Shock"]["Degressivity Compression"].GetDouble(),
+                d["Shock"]["Degressivity Expansion"].GetDouble());
         } else {
-            m_shockForceCB = new LinearDamperForce(d["Shock"]["Damping Coefficient"].GetDouble());
+            m_shockForceCB =
+                chrono_types::make_shared<LinearDamperForce>(d["Shock"]["Damping Coefficient"].GetDouble());
         }
     } else if (d["Shock"].HasMember("Curve Data")) {
         int num_points = d["Shock"]["Curve Data"].Size();
-        MapDamperForce* shockForceCB = new MapDamperForce();
+        auto shockForceCB = chrono_types::make_shared<MapDamperForce>();
         for (int i = 0; i < num_points; i++) {
             shockForceCB->add_point(d["Shock"]["Curve Data"][i][0u].GetDouble(),
                                     d["Shock"]["Curve Data"][i][1u].GetDouble());
@@ -231,6 +243,17 @@ void SAEToeBarLeafspringAxle::Create(const rapidjson::Document& d) {
     GetLog() << "m_shackleMass " << m_shackleMass << "\n";
     GetLog() << "m_shackleInertia " << m_shackleInertia << "\n";
 
+    // Bushing data (optional)
+    if (d["Leafspring"].HasMember("Shackle Bushing Data")) {
+        m_shackleBushingData = ReadBushingDataJSON(d["Leafspring"]["Shackle Bushing Data"]);
+    }
+    if (d["Leafspring"].HasMember("Clamp Bushing Data")) {
+        m_clampBushingData = ReadBushingDataJSON(d["Leafspring"]["Clamp Bushing Data"]);
+    }
+    if (d["Leafspring"].HasMember("Leafspring Bushing Data")) {
+        m_shackleBushingData = ReadBushingDataJSON(d["Leafspring"]["Leafspring Bushing Data"]);
+    }
+
     ChVector<> ra = getLocation(CLAMP_A) - getLocation(FRONT_HANGER);
     ChVector<> rb = getLocation(CLAMP_B) - getLocation(SHACKLE);
 
@@ -248,30 +271,26 @@ void SAEToeBarLeafspringAxle::Create(const rapidjson::Document& d) {
     double KBvert = stiffness_bias * KAvert;
 
     double KrotLatA = KAlat * pow(ra.Length(), 2.0);
-    double KrotLatB = KAlat * pow(rb.Length(), 2.0);
+    double KrotLatB = KBlat * pow(rb.Length(), 2.0);
 
     double KrotVertA = KAvert * pow(ra.Length(), 2.0);
-    double KrotVertB = KAvert * pow(rb.Length(), 2.0);
+    double KrotVertB = KBvert * pow(rb.Length(), 2.0);
 
     double rest_angle_A = Ma.y() / KrotVertA;
     double rest_angle_B = Mb.y() / KrotVertB;
 
     double damping_factor = 0.01;
 
-    m_latRotSpringCBA = new LinearSpringDamperTorque(KrotLatA, KrotLatA * damping_factor, 0);
-    m_latRotSpringCBB = new LinearSpringDamperTorque(KrotLatB, KrotLatB * damping_factor, 0);
+    m_latRotSpringCBA = chrono_types::make_shared<LinearSpringDamperTorque>(KrotLatA, KrotLatA * damping_factor, 0);
+    m_latRotSpringCBB = chrono_types::make_shared<LinearSpringDamperTorque>(KrotLatB, KrotLatB * damping_factor, 0);
 
-    GetLog() << "m_latRotSpringCBA " << m_latRotSpringCBA;
-    GetLog() << "m_latRotSpringCBB " << m_latRotSpringCBB;
+    m_vertRotSpringCBA =
+        chrono_types::make_shared<LinearSpringDamperTorque>(KrotVertA, KrotVertA * damping_factor, rest_angle_A);
+    m_vertRotSpringCBB =
+        chrono_types::make_shared<LinearSpringDamperTorque>(KrotVertB, KrotVertB * damping_factor, rest_angle_B);
 
-    m_vertRotSpringCBA = new LinearSpringDamperTorque(KrotVertA, KrotVertA * damping_factor, rest_angle_A);
-    m_vertRotSpringCBB = new LinearSpringDamperTorque(KrotVertB, KrotVertB * damping_factor, rest_angle_B);
-
-    GetLog() << "m_vertRotSpringCBA " << m_vertRotSpringCBA;
-    GetLog() << "m_vertRotSpringCBB " << m_vertRotSpringCBB;
-
-    GetLog() << "rest_angle_A " << rest_angle_A << "\n";
-    GetLog() << "rest_angle_B " << rest_angle_B << "\n";
+    ////GetLog() << "rest_angle_A " << rest_angle_A << "\n";
+    ////GetLog() << "rest_angle_B " << rest_angle_B << "\n";
 }
 
 }  // end namespace vehicle

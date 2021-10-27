@@ -23,6 +23,7 @@
 
 #include "chrono_vehicle/ChSubsysDefs.h"
 #include "chrono_vehicle/tracked_vehicle/roller/ChDoubleRoller.h"
+#include "chrono_vehicle/tracked_vehicle/ChTrackAssembly.h"
 
 namespace chrono {
 namespace vehicle {
@@ -33,9 +34,11 @@ ChDoubleRoller::ChDoubleRoller(const std::string& name) : ChRoller(name) {}
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-void ChDoubleRoller::Initialize(std::shared_ptr<ChBodyAuxRef> chassis, const ChVector<>& location) {
+void ChDoubleRoller::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,
+                                const ChVector<>& location,
+                                ChTrackAssembly* track) {
     // Invoke the base class method
-    ChRoller::Initialize(chassis, location);
+    ChRoller::Initialize(chassis, location, track);
 
     CreateContactMaterial(m_wheel->GetSystem()->GetContactMethod());
     assert(m_material && m_material->GetContactMethod() == m_wheel->GetSystem()->GetContactMethod());
@@ -53,9 +56,14 @@ void ChDoubleRoller::Initialize(std::shared_ptr<ChBodyAuxRef> chassis, const ChV
     m_wheel->GetCollisionModel()->SetFamilyMaskNoCollisionWithFamily(TrackedCollisionFamily::WHEELS);
     m_wheel->GetCollisionModel()->SetFamilyMaskNoCollisionWithFamily(TrackedCollisionFamily::IDLERS);
 
-    m_wheel->GetCollisionModel()->AddCylinder(m_material, radius, radius, width / 2, ChVector<>(0, offset, 0));
-    m_wheel->GetCollisionModel()->AddCylinder(m_material, radius, radius, width / 2, ChVector<>(0, -offset, 0));
-    
+    if (track->IsIdlerCylinder()) {
+        m_wheel->GetCollisionModel()->AddCylinder(m_material, radius, radius, width / 2, ChVector<>(0, +offset, 0));
+        m_wheel->GetCollisionModel()->AddCylinder(m_material, radius, radius, width / 2, ChVector<>(0, -offset, 0));
+    } else {
+        m_wheel->GetCollisionModel()->AddCylindricalShell(m_material, radius, width / 2, ChVector<>(0, +offset, 0));
+        m_wheel->GetCollisionModel()->AddCylindricalShell(m_material, radius, width / 2, ChVector<>(0, -offset, 0));
+    }
+
     m_wheel->GetCollisionModel()->BuildModel();
 }
 
@@ -82,7 +90,7 @@ void ChDoubleRoller::AddVisualizationAssets(VisualizationType vis) {
     m_wheel->AddAsset(cyl_2);
 
     auto tex = chrono_types::make_shared<ChTexture>();
-    tex->SetTextureFilename(chrono::GetChronoDataFile("redwhite.png"));
+    tex->SetTextureFilename(chrono::GetChronoDataFile("textures/redwhite.png"));
     m_wheel->AddAsset(tex);
 }
 

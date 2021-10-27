@@ -20,17 +20,28 @@
 // =============================================================================
 
 #include "chrono_vehicle/tracked_vehicle/ChRoller.h"
+#include "chrono_vehicle/tracked_vehicle/ChTrackAssembly.h"
 
 namespace chrono {
 namespace vehicle {
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-ChRoller::ChRoller(const std::string& name) : ChPart(name) {}
+ChRoller::ChRoller(const std::string& name) : ChPart(name), m_track(nullptr) {}
+
+ChRoller::~ChRoller() {
+    auto sys = m_wheel->GetSystem();
+    if (sys) {
+        sys->Remove(m_wheel);
+        sys->Remove(m_revolute);
+    }
+}
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-void ChRoller::Initialize(std::shared_ptr<ChBodyAuxRef> chassis, const ChVector<>& location) {
+void ChRoller::Initialize(std::shared_ptr<ChBodyAuxRef> chassis, const ChVector<>& location, ChTrackAssembly* track) {
+    m_track = track;
+
     // Express the roller reference frame in the absolute coordinate system.
     ChFrame<> roller_to_abs(location);
     roller_to_abs.ConcatenatePreTransformation(chassis->GetFrame_REF_to_abs());
@@ -38,6 +49,7 @@ void ChRoller::Initialize(std::shared_ptr<ChBodyAuxRef> chassis, const ChVector<
     // Create and initialize the roller body.
     m_wheel = std::shared_ptr<ChBody>(chassis->GetSystem()->NewBody());
     m_wheel->SetNameString(m_name + "_wheel");
+    m_wheel->SetIdentifier(BodyID::ROLER_BODY);
     m_wheel->SetPos(roller_to_abs.GetPos());
     m_wheel->SetRot(roller_to_abs.GetRot());
     m_wheel->SetMass(GetMass());
@@ -56,7 +68,7 @@ void ChRoller::Initialize(std::shared_ptr<ChBodyAuxRef> chassis, const ChVector<
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 void ChRoller::LogConstraintViolations() {
-    ChVectorDynamic<> C = m_revolute->GetC();
+    ChVectorDynamic<> C = m_revolute->GetConstraintViolation();
     GetLog() << "  Road-wheel revolute\n";
     GetLog() << "  " << C(0) << "  ";
     GetLog() << "  " << C(1) << "  ";

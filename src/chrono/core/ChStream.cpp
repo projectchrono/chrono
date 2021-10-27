@@ -304,7 +304,7 @@ ChStreamInAscii& ChStreamInAscii::operator>>(char* str) {
     {
 
         try {Input(loa, 1);}
-        catch (std::exception mfoo)
+        catch (const std::exception&)
         {
             if (!(this->End_of_stream() && cnt>0))
                 throw (ChException("Cannot read from stream"));
@@ -337,7 +337,7 @@ ChStreamInAscii& ChStreamInAscii::operator>>(std::string& str) {
     while (true) {
         try {
             Input(loa, 1);
-        } catch (std::exception mfoo) {
+        } catch (const std::exception&) {
             if (!(this->End_of_stream() && cnt > 0))
                 throw(ChException("Cannot read from stream"));
         }
@@ -375,8 +375,6 @@ bool ChBinaryArchive::IsBigEndianMachine() {
     endian_test.word = 1;
     if (endian_test.byte != 1)
         return true;
-    else
-        return false;
 
     return false;
 }
@@ -651,7 +649,7 @@ ChStreamFile::ChStreamFile(const char* filename, std::ios::openmode mmode) {
         // file.exceptions(std::ios::failbit | std::ios::badbit);
         file.exceptions(std::ios::failbit | std::ios::badbit | std::ios::eofbit);
         file.open(filename, mmode);
-    } catch (std::exception) {
+    } catch (const std::exception&) {
         throw ChException("Cannot open stream");
     };
     strncpy(name, filename, sizeof(name) - 1);
@@ -670,7 +668,7 @@ void ChStreamFile::Flush() {
 void ChStreamFile::Write(const char* data, size_t n) {
     try {
         file.write(data, n);
-    } catch (std::exception) {
+    } catch (const std::exception&) {
         throw ChException("Cannot write to stream");
     };
 }
@@ -678,7 +676,7 @@ void ChStreamFile::Write(const char* data, size_t n) {
 void ChStreamFile::Read(char* data, size_t n) {
     try {
         file.read(data, n);
-    } catch (std::exception) {
+    } catch (const std::exception&) {
         throw ChException("Cannot read from stream");
     };
 }
@@ -695,7 +693,7 @@ ChStreamOstreamWrapper::~ChStreamOstreamWrapper() {
 void ChStreamOstreamWrapper::Write(const char* data, size_t n) {
     try {
         afile->write(data, n);
-    } catch (std::exception) {
+    } catch (const std::exception&) {
         throw ChException("Cannot write to wrapped stream");
     };
 }
@@ -712,7 +710,7 @@ ChStreamIstreamWrapper::~ChStreamIstreamWrapper() {
 void ChStreamIstreamWrapper::Read(char* data, size_t n) {
     try {
         afile->read(data, n);
-    } catch (std::exception) {
+    } catch (const std::exception&) {
         throw ChException("Cannot read from wrapped stream");
     };
 }
@@ -739,7 +737,7 @@ void ChStreamVectorWrapper::Read(char* data, size_t n) {
         pos++;
     }
 }
-bool ChStreamVectorWrapper::End_of_stream() {
+bool ChStreamVectorWrapper::End_of_stream() const {
     if (pos >= vbuffer->size())
         return true;
     return false;

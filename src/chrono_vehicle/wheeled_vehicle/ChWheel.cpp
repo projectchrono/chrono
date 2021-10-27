@@ -26,8 +26,11 @@
 #include "chrono/core/ChGlobal.h"
 #include "chrono/assets/ChTexture.h"
 
+#include "chrono_vehicle/ChVehicleModelData.h"
 #include "chrono_vehicle/wheeled_vehicle/ChWheel.h"
 #include "chrono_vehicle/wheeled_vehicle/ChTire.h"
+
+#include "chrono_thirdparty/filesystem/path.h"
 
 namespace chrono {
 namespace vehicle {
@@ -83,6 +86,21 @@ void ChWheel::AddVisualizationAssets(VisualizationType vis) {
     if (vis == VisualizationType::NONE)
         return;
 
+    if (vis == VisualizationType::MESH && !m_vis_mesh_file.empty()) {
+        ChQuaternion<> rot = (m_side == VehicleSide::LEFT) ? Q_from_AngZ(0) : Q_from_AngZ(CH_C_PI);
+        auto trimesh = chrono_types::make_shared<geometry::ChTriangleMeshConnected>();
+        trimesh->LoadWavefrontMesh(vehicle::GetDataFile(m_vis_mesh_file), false, false);
+        trimesh->Transform(ChVector<>(0, m_offset, 0), ChMatrix33<>(rot));
+        m_trimesh_shape = chrono_types::make_shared<ChTriangleMeshShape>();
+        m_trimesh_shape->Pos = ChVector<>(0, m_offset, 0);
+        m_trimesh_shape->Rot = ChMatrix33<>(rot);
+        m_trimesh_shape->SetMesh(trimesh);
+        m_trimesh_shape->SetName(filesystem::path(m_vis_mesh_file).stem());
+        m_trimesh_shape->SetStatic(true);
+        m_spindle->AddAsset(m_trimesh_shape);
+        return;
+    }
+
     if (GetRadius() == 0 || GetWidth() == 0)
         return;
 
@@ -98,9 +116,14 @@ void ChWheel::RemoveVisualizationAssets() {
     // This is important for the ChWheel object because a tire may add its own assets
     // to the same body (the spindle).
     auto& assets = m_spindle->GetAssets();
-    auto it = std::find(assets.begin(), assets.end(), m_cyl_shape);
-    if (it != assets.end())
-        assets.erase(it);
+
+    auto it_cyl = std::find(assets.begin(), assets.end(), m_cyl_shape);
+    if (it_cyl != assets.end())
+        assets.erase(it_cyl);
+
+    auto it_mesh = std::find(assets.begin(), assets.end(), m_trimesh_shape);
+    if (it_mesh != assets.end())
+        assets.erase(it_mesh);
 }
 
 }  // end namespace vehicle

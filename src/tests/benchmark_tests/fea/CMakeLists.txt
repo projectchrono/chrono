@@ -3,7 +3,7 @@ set(TESTS
     btest_FEA_contact
     )
 
-set(TESTS_MKL_MUMPS
+set(TESTS_MKL_MUMPS_PARPROJ
    btest_FEA_sparse_solver
    )
 
@@ -20,11 +20,11 @@ if(ENABLE_MODULE_IRRLICHT)
   list(APPEND LIBS "ChronoEngine_irrlicht")
 endif()
 
-if(ENABLE_MODULE_MKL)
+if(ENABLE_MODULE_PARDISO_MKL)
   include_directories(${CH_MKL_INCLUDES})
   set(COMPILER_FLAGS "${COMPILER_FLAGS} ${CH_MKL_CXX_FLAGS}")
   set(LINKER_FLAGS "${LINKER_FLAGS} ${CH_MKL_LINK_FLAGS}")
-  list(APPEND LIBS "ChronoEngine_mkl")
+  list(APPEND LIBS "ChronoEngine_pardisomkl")
 endif()
 
 if(ENABLE_MODULE_MUMPS)
@@ -32,8 +32,14 @@ if(ENABLE_MODULE_MUMPS)
   list(APPEND LIBS "ChronoEngine_mumps")
 endif()
 
-if(ENABLE_MODULE_MKL OR ENABLE_MODULE_MUMPS)
-  set(TESTS ${TESTS} ${TESTS_MKL_MUMPS})
+if(ENABLE_MODULE_PARDISO_PROJECT)
+  include_directories(${CH_PARDISOPROJECT_INCLUDES})
+  list(APPEND LIBS "ChronoEngine_pardisoproject")
+  list(APPEND LIBS ${PARDISOPROJECT_LIBRARIES})
+endif()
+
+if(ENABLE_MODULE_PARDISO_MKL OR ENABLE_MODULE_MUMPS OR ENABLE_MODULE_PARDISO_PROJECT)
+  set(TESTS ${TESTS} ${TESTS_MKL_MUMPS_PARPROJ})
 endif()
 
 # ------------------------------------------------------------------------------
@@ -52,4 +58,5 @@ foreach(PROGRAM ${TESTS})
         LINK_FLAGS "${LINKER_FLAGS}")
     set_property(TARGET ${PROGRAM} PROPERTY VS_DEBUGGER_WORKING_DIRECTORY "$<TARGET_FILE_DIR:${PROGRAM}>")
     target_link_libraries(${PROGRAM} ${LIBS} benchmark_main)
+    install(TARGETS ${PROGRAM} DESTINATION ${CH_INSTALL_DEMO})
 endforeach(PROGRAM)

@@ -38,8 +38,8 @@
 #include "chrono_irrlicht/ChIrrApp.h"
 #endif
 
-#ifdef CHRONO_MKL
-#include "chrono_mkl/ChSolverMKL.h"
+#ifdef CHRONO_PARDISO_MKL
+#include "chrono_pardisomkl/ChSolverPardisoMKL.h"
 #endif
 
 #ifdef CHRONO_MUMPS
@@ -90,7 +90,7 @@ FEAcontactTest::FEAcontactTest(SolverType solver_type) {
     m_system = new ChSystemSMC();
 
     // Set solver parameters
-#ifndef CHRONO_MKL
+#ifndef CHRONO_PARDISO_MKL
     if (solver_type == SolverType::MKL) {
         solver_type = SolverType::MINRES;
         std::cout << "WARNING! Chrono::MKL not enabled. Forcing use of MINRES solver" << std::endl;
@@ -118,8 +118,8 @@ FEAcontactTest::FEAcontactTest(SolverType solver_type) {
             m_system->SetTimestepperType(ChTimestepper::Type::EULER_IMPLICIT_LINEARIZED);
         }
         case SolverType::MKL: {
-#ifdef CHRONO_MKL
-            auto solver = chrono_types::make_shared<ChSolverMKL>();
+#ifdef CHRONO_PARDISO_MKL
+            auto solver = chrono_types::make_shared<ChSolverPardisoMKL>();
             solver->UseSparsityPatternLearner(false);
             solver->LockSparsityPattern(true);
             solver->SetVerbose(false);
@@ -159,7 +159,7 @@ void FEAcontactTest::CreateFloor(std::shared_ptr<ChMaterialSurfaceSMC> cmat) {
     m_system->Add(mfloor);
 
     auto masset_texture = chrono_types::make_shared<ChTexture>();
-    masset_texture->SetTextureFilename(GetChronoDataFile("concrete.jpg"));
+    masset_texture->SetTextureFilename(GetChronoDataFile("textures/concrete.jpg"));
     mfloor->AddAsset(masset_texture);
 }
 
@@ -229,7 +229,8 @@ void FEAcontactTest::CreateCables(std::shared_ptr<ChMaterialSurfaceSMC> cmat) {
 
 void FEAcontactTest::SimulateVis() {
 #ifdef CHRONO_IRRLICHT
-    irrlicht::ChIrrApp application(m_system, L"FEA contacts", irr::core::dimension2d<irr::u32>(800, 600), false, true);
+    irrlicht::ChIrrApp application(m_system, L"FEA contacts", irr::core::dimension2d<irr::u32>(800, 600),
+                                   irrlicht::VerticalDir::Y, false, true);
     application.AddTypicalLogo();
     application.AddTypicalSky();
     application.AddTypicalLights();
@@ -257,7 +258,7 @@ void FEAcontactTest::SimulateVis() {
 
 CH_BM_SIMULATION_ONCE(FEAcontact_MINRES, FEAcontactTest_MINRES, NUM_SKIP_STEPS, NUM_SIM_STEPS, 10);
 
-#ifdef CHRONO_MKL
+#ifdef CHRONO_PARDISO_MKL
 CH_BM_SIMULATION_ONCE(FEAcontact_MKL, FEAcontactTest_MKL, NUM_SKIP_STEPS, NUM_SIM_STEPS, 10);
 #endif
 

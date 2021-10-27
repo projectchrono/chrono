@@ -48,6 +48,8 @@ class CH_VEHICLE_API ChTireTestRig {
                   ChSystem* system                 ///< containing mechanical system
     );
 
+    ~ChTireTestRig();
+
     /// Set gravitational acceleration (default: 9.81 m/s2).
     void SetGravitationalAcceleration(double grav) { m_grav = grav; }
 
@@ -119,7 +121,7 @@ class CH_VEHICLE_API ChTireTestRig {
     void Initialize(double long_slip, double base_speed = 1);
 
     /// Get suggested collision settings.
-    /// These values are meaningful only when using granular terrain and Chrono::Parallel.
+    /// These values are meaningful only when using granular terrain and Chrono::Multicore.
     void GetSuggestedCollisionSettings(
         double& collision_envelope,    ///< suggested envelope based on particle radius
         ChVector<int>& collision_bins  ///< suggested number of bins for broad-pahse collision detection

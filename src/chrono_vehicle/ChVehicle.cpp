@@ -23,11 +23,12 @@
 #include "chrono/physics/ChSystemNSC.h"
 #include "chrono/physics/ChSystemSMC.h"
 
+#include "chrono_vehicle/ChWorldFrame.h"
 #include "chrono_vehicle/ChVehicle.h"
 
 #include "chrono_vehicle/output/ChVehicleOutputASCII.h"
 #ifdef CHRONO_HAS_HDF5
-#include "chrono_vehicle/output/ChVehicleOutputHDF5.h"
+    #include "chrono_vehicle/output/ChVehicleOutputHDF5.h"
 #endif
 
 namespace chrono {
@@ -41,13 +42,14 @@ ChVehicle::ChVehicle(const std::string& name, ChContactMethod contact_method)
     : m_name(name),
       m_ownsSystem(true),
       m_output(false),
+      m_output_step(0),
       m_output_db(nullptr),
       m_next_output_time(0),
       m_output_frame(0) {
     m_system = (contact_method == ChContactMethod::NSC) ? static_cast<ChSystem*>(new ChSystemNSC)
                                                         : static_cast<ChSystem*>(new ChSystemSMC);
 
-    m_system->Set_G_acc(ChVector<>(0, 0, -9.81));
+    m_system->Set_G_acc(-9.81 * ChWorldFrame::Vertical());
 
     // Integration and Solver settings
     switch (contact_method) {
@@ -70,6 +72,7 @@ ChVehicle::ChVehicle(const std::string& name, ChSystem* system)
       m_system(system),
       m_ownsSystem(false),
       m_output(false),
+      m_output_step(0),
       m_output_db(nullptr),
       m_next_output_time(0),
       m_output_frame(0) {}
@@ -81,6 +84,14 @@ ChVehicle::~ChVehicle() {
     delete m_output_db;
     if (m_ownsSystem)
         delete m_system;
+}
+
+// -----------------------------------------------------------------------------
+// Change the default collision system type
+// -----------------------------------------------------------------------------
+void ChVehicle::SetCollisionSystemType(collision::ChCollisionSystemType collsys_type) {
+    if (m_ownsSystem)
+        m_system->SetCollisionSystemType(collsys_type);
 }
 
 // -----------------------------------------------------------------------------
@@ -129,12 +140,21 @@ void ChVehicle::SetChassisVisualizationType(VisualizationType vis) {
     m_chassis->SetVisualizationType(vis);
 }
 
+void ChVehicle::SetChassisRearVisualizationType(VisualizationType vis) {
+    for (auto& c : m_chassis_rear)
+        c->SetVisualizationType(vis);
+}
+
 void ChVehicle::SetChassisCollide(bool state) {
     m_chassis->SetCollide(state);
+    for (auto& c : m_chassis_rear)
+        c->SetCollide(state);
 }
 
 void ChVehicle::SetChassisOutput(bool state) {
     m_chassis->SetOutput(state);
+    for (auto& c : m_chassis_rear)
+        c->SetOutput(state);
 }
 
 }  // end namespace vehicle

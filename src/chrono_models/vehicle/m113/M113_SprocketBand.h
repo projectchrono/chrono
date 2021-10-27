@@ -69,11 +69,8 @@ class CH_MODELS_API M113_SprocketBand : public ChSprocketBand {
     /// Return the radius of the (concave) tooth circular arc.
     virtual double GetArcRadius() const override { return m_gear_arc_radius; }
 
-    /// Return the total width of the sprocket guiding wheel that acts similar to another road wheel
-    virtual double GetGuideWheelWidth() const override { return m_gear_guide_wheel_width; }
-
-    /// Return the gap width of the sprocket guiding wheel that acts similar to another road wheel
-    virtual double GetGuideWheelGap() const override { return m_gear_guide_wheel_gap; }
+    /// Return the allowed backlash (play) before lateral contact with track shoes is enabled (to prevent detracking).
+    virtual double GetLateralBacklash() const override { return m_lateral_backlash; }
 
   protected:
     M113_SprocketBand(const std::string& name);
@@ -101,8 +98,7 @@ class CH_MODELS_API M113_SprocketBand : public ChSprocketBand {
     static const double m_gear_arc_radius;
     static const double m_gear_RA;
 
-    static const double m_gear_guide_wheel_width;
-    static const double m_gear_guide_wheel_gap;
+    static const double m_lateral_backlash;
 };
 
 /// M113 sprocket subsystem for continuous band track (left side).

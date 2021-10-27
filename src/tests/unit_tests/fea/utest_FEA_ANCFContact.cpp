@@ -167,8 +167,6 @@ class MyContactContainer : public ChContactContainerSMC {
         auto iter = contactlist_333_333.begin();
         int num_contact = 0;
         while (iter != contactlist_333_333.end()) {
-            ChContactable* objA = (*iter)->GetObjA();
-            ChContactable* objB = (*iter)->GetObjB();
             ChVector<> p1 = (*iter)->GetContactP1();
             ChVector<> p2 = (*iter)->GetContactP2();
             double CD = (*iter)->GetContactDistance();
@@ -196,7 +194,7 @@ bool EvaluateContact(std::shared_ptr<ChMaterialShellANCF> material,
                      ChVector<> trans_elem2,
                      ChMatrix33<> rot_elem2,
                      bool AlsoPrint) {
-    ChSystemSMC my_system(false, 16000, 500);
+    ChSystemSMC my_system(false);
 
     collision::ChCollisionModel::SetDefaultSuggestedMargin(0.001);
     my_system.SetContactForceModel(ChSystemSMC::Hooke);
@@ -306,7 +304,6 @@ bool EvaluateContact(std::shared_ptr<ChMaterialShellANCF> material,
 
     my_system.SetContactContainer(container);
     bool thereIsContact;
-    bool printContactPoints = true;
     auto myANCF = std::dynamic_pointer_cast<ChElementBase>(my_meshes_2->GetElement(0));
     my_system.DoStepDynamics(time_step);
     thereIsContact = container->isThereContacts(myANCF, AlsoPrint);

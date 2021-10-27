@@ -10,6 +10,7 @@
 //
 // =============================================================================
 
+#include <iostream>
 #include "chrono_irrlicht/ChIrrCamera.h"
 
 namespace chrono {
@@ -36,6 +37,7 @@ RTSCamera::RTSCamera(IrrlichtDevice* devicepointer,
     BBox.reset(0, 0, 0);
 
     UpVector.set(0.0f, 1.0f, 0.0f);
+    y_up = true;
 
     Fovy = core::PI / 2.5f;
     Aspect = 4.0f / 3.0f;
@@ -224,8 +226,9 @@ void RTSCamera::setViewMatrixAffector(const core::matrix4& affector) {
     Affector = affector;
 }
 
-void RTSCamera::setUpVector(const core::vector3df& pos) {
-    UpVector = pos;
+void RTSCamera::setZUp() {
+    UpVector.set(0.0f, 0.0f, 1.0f);
+    y_up = false;
 }
 
 void RTSCamera::setProjectionMatrix(const core::matrix4& projection, bool isOrthogonal) {
@@ -354,12 +357,18 @@ void RTSCamera::animate() {
             nRotX = rotX;
             nRotY = rotY;
         } else {
-            nRotX += (rotateStartX - MousePos.X) * rotateSpeed;
+            if (y_up)
+                nRotX += (rotateStartX - MousePos.X) * rotateSpeed;
+            else
+                nRotX -= (rotateStartX - MousePos.X) * rotateSpeed;
             nRotY += (rotateStartY - MousePos.Y) * rotateSpeed;
         }
     } else {
         if (rotating) {
-            rotX = rotX + (rotateStartX - MousePos.X) * rotateSpeed;
+            if (y_up)
+                rotX = rotX + (rotateStartX - MousePos.X) * rotateSpeed;
+            else
+                rotX = rotX - (rotateStartX - MousePos.X) * rotateSpeed;
             rotY = rotY + (rotateStartY - MousePos.Y) * rotateSpeed;
             nRotX = rotX;
             nRotY = rotY;
@@ -388,7 +397,10 @@ void RTSCamera::animate() {
             translating = true;
         else {
             core::vector3df movevector = getPosition() - getTarget();
-            movevector.Y = 0;
+            if (y_up)
+                movevector.Y = 0;
+            else
+                movevector.Z = 0;
             movevector.normalize();
 
             setPosition(getPosition() - movevector * translateSpeed);
@@ -400,7 +412,10 @@ void RTSCamera::animate() {
             translating = true;
         else {
             core::vector3df movevector = getPosition() - getTarget();
-            movevector.Y = 0;
+            if (y_up)
+                movevector.Y = 0;
+            else
+                movevector.Z = 0;
             movevector.normalize();
 
             setPosition(getPosition() + movevector * translateSpeed);
@@ -439,7 +454,10 @@ void RTSCamera::animate() {
             translating = true;
         else {
             core::vector3df movevector;
-            movevector.Y = 1;
+            if (y_up)
+                movevector.Y = 1;
+            else
+                movevector.Z = 1;
 
             setPosition(getPosition() + movevector * translateSpeed);
             setTarget(getTarget() + movevector * translateSpeed);
@@ -451,7 +469,10 @@ void RTSCamera::animate() {
             translating = true;
         else {
             core::vector3df movevector;
-            movevector.Y = -1;
+            if (y_up)
+                movevector.Y = -1;
+            else
+                movevector.Z = -1;
 
             setPosition(getPosition() + movevector * translateSpeed);
             setTarget(getTarget() + movevector * translateSpeed);
@@ -466,26 +487,48 @@ void RTSCamera::animate() {
     Pos.Y = Target.Y;
     Pos.Z = Target.Z;
 
-    Pos.rotateXYBy(nRotY, Target);
-    Pos.rotateXZBy(-nRotX, Target);
+    if (y_up) {
+        Pos.rotateXYBy(nRotY, Target);
+        Pos.rotateXZBy(-nRotX, Target);
+    } else {
+        Pos.rotateXZBy(nRotY, Target);
+        Pos.rotateXYBy(-nRotX, Target);
+    }
 
     // Correct Rotation Error
-    UpVector.set(0, 1, 0);
-    UpVector.rotateXYBy(-nRotY, core::vector3df(0, 0, 0));
-    UpVector.rotateXZBy(-nRotX + 180.f, core::vector3df(0, 0, 0));
+    if (y_up) {
+        UpVector.set(0, 1, 0);
+        UpVector.rotateXYBy(-nRotY, core::vector3df(0, 0, 0));
+        UpVector.rotateXZBy(-nRotX + 180.f, core::vector3df(0, 0, 0));
+    } else {
+        UpVector.set(0, 0, 1);
+        UpVector.rotateXZBy(-nRotY, core::vector3df(0, 0, 0));
+        UpVector.rotateXYBy(-nRotX + 180.f, core::vector3df(0, 0, 0));
+    }
 }
 
 void RTSCamera::updateAnimationState() {
     core::vector3df pos(Pos - Target);
 
-    // X rotation
-    core::vector2df vec2d(pos.X, pos.Z);
-    rotX = (f32)vec2d.getAngle();
+    if (y_up) {
+        // X rotation
+        core::vector2df vec2d(pos.X, pos.Z);
+        rotX = (f32)vec2d.getAngle();
 
-    // Y rotation
-    pos.rotateXZBy(rotX, core::vector3df());
-    vec2d.set(pos.X, pos.Y);
-    rotY = -(f32)vec2d.getAngle();
+        // Y rotation
+        pos.rotateXZBy(rotX, core::vector3df());
+        vec2d.set(pos.X, pos.Y);
+        rotY = -(f32)vec2d.getAngle();
+    } else {
+        // X rotation
+        core::vector2df vec2d(pos.X, pos.Y);
+        rotX = (f32)vec2d.getAngle();
+
+        // Y rotation
+        pos.rotateXYBy(rotX, core::vector3df());
+        vec2d.set(pos.X, pos.Z);
+        rotY = -(f32)vec2d.getAngle();
+    }
 
     // Zoom
     currentZoom = (f32)Pos.getDistanceFrom(Target);

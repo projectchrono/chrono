@@ -43,7 +43,7 @@ void ChRunningAverage::Reset() {
 }
 
 // -----------------------------------------------------------------------------
-ChMovingAverage::ChMovingAverage(const std::valarray<double>& data, int n) : m_n(n) {
+ChMovingAverage::ChMovingAverage(const std::valarray<double>& data, int n) {
     int np = (int)data.size();
     m_out.resize(np);
 
@@ -1176,7 +1176,6 @@ double ChISO2631_Shock_SeatCushionLogger::GetSe() {
     m_out_z.resize(nInDat);
 
     for (size_t i = 0; i < nInDat; i++) {
-        double t = m_step * i;
         m_out_x[i] = m_weighting_x.Filter(m_inp_x[i]);
         m_out_y[i] = m_weighting_y.Filter(m_inp_y[i]);
     }

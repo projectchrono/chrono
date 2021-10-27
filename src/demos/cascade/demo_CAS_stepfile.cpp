@@ -51,14 +51,11 @@ int main(int argc, char* argv[]) {
 
     // Create the Irrlicht visualization (open the Irrlicht device,
     // bind a simple user interface, etc. etc.)
-    ChIrrApp application(&my_system, L"Load a STEP model from file", core::dimension2d<u32>(800, 600), false, true);
-
-    // Easy shortcuts to add logo, camera, lights and sky in Irrlicht scene:
-    ChIrrWizard::add_typical_Logo(application.GetDevice());
-    ChIrrWizard::add_typical_Sky(application.GetDevice());
-    ChIrrWizard::add_typical_Lights(application.GetDevice(), core::vector3df(30, 100, 30),
-                                    core::vector3df(30, -80, -30), 200, 130);
-    ChIrrWizard::add_typical_Camera(application.GetDevice(), core::vector3df(0.2f, 0.2f, -0.3f));
+    ChIrrApp application(&my_system, L"Load a STEP model from file", core::dimension2d<u32>(800, 600));
+    application.AddTypicalLogo();
+    application.AddTypicalSky();
+    application.AddTypicalLights(core::vector3df(30, 100, 30), core::vector3df(30, -80, -30), 200, 130);
+    application.AddTypicalCamera(core::vector3df(0.2f, 0.2f, -0.3f));
 
     //
     // Load a STEP file, containing a mechanism. The demo STEP file has been
@@ -70,8 +67,8 @@ int main(int argc, char* argv[]) {
     ChCascadeDoc mydoc;
 
     // load the STEP model using this command:
-    bool load_ok = mydoc.Load_STEP(GetChronoDataFile("cascade/assembly.stp")
-                                       .c_str());  // or specify abs.path: ("C:\\data\\cascade\\assembly.stp");
+    bool load_ok = mydoc.Load_STEP(GetChronoDataFile("cascade/assembly.stp").c_str());
+    // or specify abs.path: ("C:\\data\\cascade\\assembly.stp");
 
     // print the contained shapes
     mydoc.Dump(GetLog());
@@ -98,7 +95,12 @@ int main(int argc, char* argv[]) {
     if (load_ok) {
         TopoDS_Shape shape1;
         if (mydoc.GetNamedShape(shape1, "Assem1/body1")) {
-            auto mbody1 = chrono_types::make_shared<ChBodyEasyCascade>(shape1, 1000, true, false);
+			// Create the ChBody using the ChBodyEasyCascade helper:
+            auto mbody1 = chrono_types::make_shared<ChBodyEasyCascade>(shape1, 
+																		1000, // density
+																		true, // add a visualization 
+																		false // add a collision model
+																		);
             my_system.Add(mbody1);
             mbody1->SetBodyFixed(true);
             // Move the body as for global displacement/rotation (also mbody1 %= root_frame; )
@@ -109,7 +111,16 @@ int main(int argc, char* argv[]) {
 
         TopoDS_Shape shape2;
         if (mydoc.GetNamedShape(shape2, "Assem1/body2")) {
-            auto mbody2 = chrono_types::make_shared<ChBodyEasyCascade>(shape2, 1000, true, false);
+			// Create the ChBody using the ChBodyEasyCascade helper (with more detailed info on visualization tesselation):
+			ChCascadeTriangulateTolerances mvisualtolerances (  0.02,  // chordal deflection for triangulation 
+																false, // chordal deflection is relative
+																0.5    // angular deflection for triangulation
+															);
+            auto mbody2 = chrono_types::make_shared<ChBodyEasyCascade>(shape2, 
+																		1000, // density
+																		mvisualtolerances, // add a visualization  
+																		false // add a collision model
+																		);
             my_system.Add(mbody2);
             // Move the body as for global displacement/rotation  (also mbody2 %= root_frame; )
             mbody2->ConcatenatePreTransformation(root_frame);

@@ -29,7 +29,7 @@ void ChConeShape::ArchiveOUT(ChArchiveOut& marchive) {
 
 void ChConeShape::ArchiveIN(ChArchiveIn& marchive) {
     // version number
-    int version = marchive.VersionRead<ChConeShape>();
+    /*int version =*/ marchive.VersionRead<ChConeShape>();
     // deserialize parent class
     ChVisualization::ArchiveIN(marchive);
     // stream in all member data:

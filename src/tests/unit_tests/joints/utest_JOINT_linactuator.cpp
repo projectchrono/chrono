@@ -314,11 +314,11 @@ bool TestLinActuator(const ChQuaternion<>& rot,    // translation along Z axis
             out_rtrqA << simTime << reactTorqueGlobalA << std::endl;
 
             // Constraint violations in prismatic joint
-            ChVectorDynamic<> CP = prismatic->GetC();
+            ChVectorDynamic<> CP = prismatic->GetConstraintViolation();
             out_cnstrP << simTime << CP(0) << CP(1) << CP(2) << CP(3) << CP(4) << std::endl;
 
             // Constraint violations in linear actuator
-            ChVectorDynamic<> CA = actuator->GetC();
+            ChVectorDynamic<> CA = actuator->GetConstraintViolation();
             out_cnstrA << simTime << CA(0) << std::endl;
 
             // Increment output time

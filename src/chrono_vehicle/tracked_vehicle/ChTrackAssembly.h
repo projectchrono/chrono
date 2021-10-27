@@ -140,13 +140,13 @@ class CH_VEHICLE_API ChTrackAssembly : public ChPart {
     virtual const ChVector<> GetRollerLocation(int which) const { return ChVector<>(0, 0, 0); }
 
     /// Initialize this track assembly subsystem.
-    /// The subsystem is initialized by attaching it to the specified chassis body
+    /// The subsystem is initialized by attaching it to the specified chassis
     /// at the specified location (with respect to and expressed in the reference
     /// frame of the chassis). It is assumed that the track assembly reference frame
     /// is always aligned with the chassis reference frame.
-    void Initialize(std::shared_ptr<ChBodyAuxRef> chassis,  ///< [in] handle to the chassis body
-                    const ChVector<>& location,             ///< [in] location relative to the chassis frame
-                    bool create_shoes = true                ///< [in] control creation of the actual track
+    void Initialize(std::shared_ptr<ChChassis> chassis,  ///< [in] chassis subsystem
+                    const ChVector<>& location,          ///< [in] location relative to the chassis frame
+                    bool create_shoes = true             ///< [in] control creation of the actual track
     );
 
     /// Set visualization type for the sprocket subsystem.
@@ -167,6 +167,9 @@ class CH_VEHICLE_API ChTrackAssembly : public ChPart {
     /// Set visualization type for the track shoe subsystems.
     void SetTrackShoeVisualizationType(VisualizationType vis);
 
+    /// Set collision shape type for wheels.
+    void SetWheelCollisionType(bool roadwheel_as_cylinder, bool idler_as_cylinder, bool roller_as_cylinder);
+
     /// Update the state of this track assembly at the current time.
     void Synchronize(double time,                      ///< [in] current time
                      double braking,                   ///< [in] braking driver input
@@ -180,11 +183,14 @@ class CH_VEHICLE_API ChTrackAssembly : public ChPart {
     /// Log current constraint violations.
     void LogConstraintViolations();
 
+    bool IsRoadwheelCylinder() const { return m_roadwheel_as_cylinder; }
+    bool IsIdlerCylinder() const { return m_idler_as_cylinder; }
+    bool IsRolerCylinder() const { return m_roller_as_cylinder; }
+
   protected:
     ChTrackAssembly(const std::string& name,  ///< [in] name of the subsystem
                     VehicleSide side          ///< [in] assembly on left/right vehicle side
-                    )
-        : ChPart(name), m_side(side) {}
+    );
 
     /// Assemble track shoes over wheels.
     /// Return true if the track shoes were initialized in a counter clockwise
@@ -203,6 +209,10 @@ class CH_VEHICLE_API ChTrackAssembly : public ChPart {
     std::shared_ptr<ChTrackBrake> m_brake;  ///< sprocket brake
     ChRoadWheelAssemblyList m_suspensions;  ///< road-wheel assemblies
     ChRollerList m_rollers;                 ///< roller subsystems
+
+    bool m_roadwheel_as_cylinder;
+    bool m_idler_as_cylinder; 
+    bool m_roller_as_cylinder;
 
     friend class ChTrackedVehicle;
     friend class ChTrackTestRig;

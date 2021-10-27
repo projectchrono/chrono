@@ -128,6 +128,13 @@ HMMWV_ReissnerTire::HMMWV_ReissnerTire(const std::string& name) : ChReissnerTire
     m_materials[1] = chrono_types::make_shared<ChMaterialShellReissnerOrthotropic>(m_rho_1, m_E_1.x(), m_E_1.y(), m_nu_1, m_G_1.x(), m_G_1.y(), m_G_1.z());
     m_materials[2] = chrono_types::make_shared<ChMaterialShellReissnerOrthotropic>(m_rho_2, m_E_2.x(), m_E_2.y(), m_nu_2, m_G_2.x(), m_G_2.y(), m_G_2.z());
 
+	auto mdamping = chrono_types::make_shared<ChDampingReissnerRayleigh>(m_materials[0]->GetElasticity(),m_alpha);
+	m_materials[0]->SetDamping(mdamping);
+	mdamping = chrono_types::make_shared<ChDampingReissnerRayleigh>(m_materials[1]->GetElasticity(),m_alpha);
+	m_materials[1]->SetDamping(mdamping);
+	mdamping = chrono_types::make_shared<ChDampingReissnerRayleigh>(m_materials[2]->GetElasticity(),m_alpha);
+	m_materials[2]->SetDamping(mdamping);
+
     // Set the profile
     m_profile_t.resize(m_num_points);
     m_profile_x.resize(m_num_points);
@@ -170,7 +177,6 @@ void HMMWV_ReissnerTire::CreateMesh(const ChFrameMoving<>& wheel_frame, VehicleS
             // Node direction
             ChVector<> tan_prf(std::cos(phi) * xp_prf, yp_prf, std::sin(phi) * xp_prf);
             ChVector<> nrm_prf = Vcross(tan_prf, nrm).GetNormalized();
-            ChVector<> dir = wheel_frame.TransformDirectionLocalToParent(nrm_prf);
             ChMatrix33<> mrot; mrot.Set_A_Xdir(tan_prf,nrm_prf);
             auto node = chrono_types::make_shared<ChNodeFEAxyzrot>(ChFrame<>(loc, mrot));
 
@@ -206,11 +212,6 @@ void HMMWV_ReissnerTire::CreateMesh(const ChFrameMoving<>& wheel_frame, VehicleS
             auto element = chrono_types::make_shared<ChElementShellReissner4>();
             element->SetNodes(node0, node1, node2, node3);
 
-            // Element dimensions
-            double len_circumference =
-                0.5 * ((node1->GetPos() - node0->GetPos()).Length() + (node3->GetPos() - node2->GetPos()).Length());
-            double len_width = (node2->GetPos() - node0->GetPos()).Length();
-
             // Figure out the section for this element
             int b1 = m_num_elements_bead;
             int b2 = m_div_width - m_num_elements_bead;
@@ -235,9 +236,6 @@ void HMMWV_ReissnerTire::CreateMesh(const ChFrameMoving<>& wheel_frame, VehicleS
                                       m_materials[m_material_id_tread[im]]);
                 }
             }
-
-            // Set other element properties
-            element->SetAlphaDamp(m_alpha);
 
             // Add element to mesh
             m_mesh->AddElement(element);

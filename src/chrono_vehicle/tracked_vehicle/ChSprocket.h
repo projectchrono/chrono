@@ -41,6 +41,7 @@
 #include "chrono/geometry/ChLinePath.h"
 #include "chrono/geometry/ChLineSegment.h"
 #include "chrono/geometry/ChLineArc.h"
+#include "chrono/geometry/ChTriangleMeshConnected.h"
 
 #include "chrono_vehicle/ChApiVehicle.h"
 #include "chrono_vehicle/ChPart.h"
@@ -93,6 +94,9 @@ class CH_VEHICLE_API ChSprocket : public ChPart {
     /// Get the sprocket contact material.
     std::shared_ptr<ChMaterialSurface> GetContactMaterial() const { return m_material; }
 
+    /// Disable lateral contact for preventing detracking (default: enabled).
+    void DisableLateralContact() { m_lateral_contact = false; }
+
     /// Initialize this sprocket subsystem.
     /// The sprocket subsystem is initialized by attaching it to the specified
     /// chassis body at the specified location (with respect to and expressed in
@@ -102,11 +106,18 @@ class CH_VEHICLE_API ChSprocket : public ChPart {
                             ChTrackAssembly* track                  ///< [in] pointer to containing track assembly
     );
 
-    /// Apply the provided motor torque.
-    /// The given torque is applied to the axle. This function provides the interface
-    /// to the drivetrain subsystem (intermediated by the vehicle system).
-    void ApplyAxleTorque(double torque  ///< [in] value of applied torque
-                         );
+    /// Apply the provided torque to the sprocket's axle (for debugging and testing).
+    /// Note that this torque is added to any torque applied by the driveline. As such, this function should be called
+    /// only after a call to the vehicle Synchronize function. A positive value corresponds to forward motion.
+    void ApplyAxleTorque(double torque);
+
+    /// Utility function to create a sprocket visualization mesh.
+    std::shared_ptr<geometry::ChTriangleMeshConnected> CreateVisualizationMesh(
+        double radius,                                    ///< inner radius
+        double width,                                     ///< gear width
+        double delta,                                     ///< arclength between points
+        ChVector<float> color = ChVector<float>(1, 1, 1)  ///< mesh color
+    ) const;
 
     /// Add visualization assets for the sprocket subsystem.
     virtual void AddVisualizationAssets(VisualizationType vis) override;
@@ -130,25 +141,28 @@ class CH_VEHICLE_API ChSprocket : public ChPart {
     /// Return the distance between the two gear profiles.
     virtual double GetSeparation() const = 0;
 
+    /// Return the allowed backlash (play) before lateral contact with track shoes is enabled (to prevent detracking).
+    virtual double GetLateralBacklash() const = 0;
+
     /// Return the 2D gear profile.
     /// The gear profile, a ChLinePath geometric object, is made up of an arbitrary number
     /// of sub-paths of type ChLineArc or ChLineSegment sub-lines. These must be added in
     /// clockwise order, and the end of sub-path i must be coincident with beginning of
     /// sub-path i+1.
-    virtual std::shared_ptr<geometry::ChLinePath> GetProfile() = 0;
+    virtual std::shared_ptr<geometry::ChLinePath> GetProfile() const = 0;
 
     /// Create the contact material consistent with the specified contact method.
     virtual void CreateContactMaterial(ChContactMethod contact_method) = 0;
 
     /// Return the custom collision callback object.
-    /// Note that the derived need not delete this object (it is deleted in the
-    /// destructor of this base class).
-    virtual ChSystem::CustomCollisionCallback* GetCollisionCallback(
+    virtual std::shared_ptr<ChSystem::CustomCollisionCallback> GetCollisionCallback(
         ChTrackAssembly* track  ///< [in] pointer to containing track assembly
         ) = 0;
 
+    /// Export this subsystem's component list to the specified JSON object.
     virtual void ExportComponentList(rapidjson::Document& jsonDocument) const override;
 
+    /// Output data for this subsystem's component list to the specified database.
     virtual void Output(ChVehicleOutput& database) const override;
 
     std::shared_ptr<ChBody> m_gear;                   ///< handle to the sprocket gear body
@@ -157,7 +171,9 @@ class CH_VEHICLE_API ChSprocket : public ChPart {
     std::shared_ptr<ChLinkLockRevolute> m_revolute;   ///< handle to sprocket revolute joint
     std::shared_ptr<ChMaterialSurface> m_material;    ///< contact material;
 
-    ChSystem::CustomCollisionCallback* m_callback;  ///< custom collision functor object
+    std::shared_ptr<ChSystem::CustomCollisionCallback> m_callback;  ///< cached collision callback
+
+    bool m_lateral_contact;  ///< if 'true', enable lateral conatact to prevent detracking
 
     friend class ChTrackAssembly;
 };

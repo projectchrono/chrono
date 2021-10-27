@@ -27,23 +27,23 @@
 
 #include "chrono_models/ChApiModels.h"
 #include "chrono_models/vehicle/mtv/LMTV_Vehicle.h"
-#include "chrono_models/vehicle/mtv/LMTV_SimpleCVTPowertrain.h"
-#include "chrono_models/vehicle/mtv/LMTV_SimpleMapPowertrain.h"
-#include "chrono_models/vehicle/mtv/LMTV_SimplePowertrain.h"
-#include "chrono_models/vehicle/mtv/LMTV_Powertrain.h"
-#include "chrono_models/vehicle/mtv/LMTV_RigidTire.h"
-#include "chrono_models/vehicle/mtv/LMTV_TMeasyTire.h"
+#include "chrono_models/vehicle/mtv/FMTV_SimpleCVTPowertrain.h"
+#include "chrono_models/vehicle/mtv/FMTV_SimpleMapPowertrain.h"
+#include "chrono_models/vehicle/mtv/FMTV_SimplePowertrain.h"
+#include "chrono_models/vehicle/mtv/FMTV_Powertrain.h"
+#include "chrono_models/vehicle/mtv/FMTV_RigidTire.h"
+#include "chrono_models/vehicle/mtv/FMTV_TMeasyTire.h"
 
 namespace chrono {
 namespace vehicle {
-namespace mtv {
+namespace fmtv {
 
-/// @addtogroup vehicle_models_mtv
+/// @addtogroup vehicle_models_fmtv
 /// @{
 
-/// Definition of the UAZ assembly.
+/// Definition of the LMTV assembly.
 /// This class encapsulates a concrete wheeled vehicle model with parameters corresponding to
-/// a UAZ vehicle, the powertrain model, and the 4 tires.
+/// an LMTV vehicle, the powertrain model, and the 4 tires.
 class CH_MODELS_API LMTV {
   public:
     LMTV();
@@ -54,18 +54,21 @@ class CH_MODELS_API LMTV {
     void SetContactMethod(ChContactMethod val) { m_contactMethod = val; }
 
     void SetChassisFixed(bool val) { m_fixed = val; }
-    void SetChassisCollisionType(ChassisCollisionType val) { m_chassisCollisionType = val; }
+    void SetChassisCollisionType(CollisionType val) { m_chassisCollisionType = val; }
 
+     void SetBrakeType(BrakeType brake_type) { m_brake_type = brake_type; }
     void SetTireType(TireModelType val) { m_tireType = val; }
     void SetPowertrainType(PowertrainModelType val) { m_powertrainType = val; }
 
-    // void setSteeringType(SteeringType val) { m_steeringType = val; }
+    // void setSteeringType(SteeringTypeWV val) { m_steeringType = val; }
 
     void SetInitPosition(const ChCoordsys<>& pos) { m_initPos = pos; }
     void SetInitFwdVel(double fwdVel) { m_initFwdVel = fwdVel; }
     void SetInitWheelAngVel(const std::vector<double>& omega) { m_initOmega = omega; }
 
     void SetTireStepSize(double step_size) { m_tire_step_size = step_size; }
+
+    void EnableBrakeLocking(bool lock) { m_brake_locking = lock; }
 
     ChSystem* GetSystem() const { return m_vehicle->GetSystem(); }
     ChWheeledVehicle& GetVehicle() const { return *m_vehicle; }
@@ -82,6 +85,7 @@ class CH_MODELS_API LMTV {
     void SetAerodynamicDrag(double Cd, double area, double air_density);
 
     void SetChassisVisualizationType(VisualizationType vis) { m_vehicle->SetChassisVisualizationType(vis); }
+    void SetChassisRearVisualizationType(VisualizationType vis) { m_vehicle->SetChassisRearVisualizationType(vis); }
     void SetSuspensionVisualizationType(VisualizationType vis) { m_vehicle->SetSuspensionVisualizationType(vis); }
     void SetSteeringVisualizationType(VisualizationType vis) { m_vehicle->SetSteeringVisualizationType(vis); }
     void SetWheelVisualizationType(VisualizationType vis) { m_vehicle->SetWheelVisualizationType(vis); }
@@ -95,15 +99,17 @@ class CH_MODELS_API LMTV {
 
   protected:
     ChContactMethod m_contactMethod;
-    ChassisCollisionType m_chassisCollisionType;
+    CollisionType m_chassisCollisionType;
     bool m_fixed;
+    bool m_brake_locking;
 
+    BrakeType m_brake_type;
     TireModelType m_tireType;
     PowertrainModelType m_powertrainType;
 
     double m_tire_step_size;
 
-    SteeringType m_steeringType;
+    SteeringTypeWV m_steeringType;
 
     ChCoordsys<> m_initPos;
     double m_initFwdVel;
@@ -120,9 +126,9 @@ class CH_MODELS_API LMTV {
     double m_tire_mass;
 };
 
-/// @} vehicle_models_mtv
+/// @} vehicle_models_fmtv
 
-}  // namespace mtv
+}  // namespace fmtv
 }  // end namespace vehicle
 }  // end namespace chrono
 

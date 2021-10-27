@@ -53,7 +53,7 @@ __global__ void calc_A_tensor(Real* A_tensor,
     uint csrEndIdx = numContacts[i_idx + 1];  //- paramsD.Pressure_Constraint;
     Real3 posRadA = mR3(sortedPosRad[i_idx]);
     Real h_i = sortedPosRad[i_idx].w;
-    Real m_i = pow(h_i * paramsD.MULT_INITSPACE, 3) * paramsD.rho0;
+    Real m_i = cube(h_i * paramsD.MULT_INITSPACE) * paramsD.rho0;
     //    Real sum_mW = 0;
     Real A_ijk[27] = {0.0};
 
@@ -72,7 +72,7 @@ __global__ void calc_A_tensor(Real* A_tensor,
         if (d > RESOLUTION_LENGTH_MULT * h_i || sortedRhoPreMu[j].w <= -2)
             continue;
         Real h_j = sortedPosRad[j].w;
-        Real m_j = pow(h_j * paramsD.MULT_INITSPACE, 3) * paramsD.rho0;
+        Real m_j = cube(h_j * paramsD.MULT_INITSPACE) * paramsD.rho0;
         Real h_ij = 0.5 * (h_j + h_i);
         Real3 grad_ij = GradWh(rij, h_ij);
         Real V_j = sumWij_inv[j];
@@ -146,7 +146,7 @@ __global__ void calc_L_tensor(Real* A_tensor,
     uint csrEndIdx = numContacts[i_idx + 1];  // - paramsD.Pressure_Constraint;
     Real3 posRadA = mR3(sortedPosRad[i_idx]);
     Real h_i = sortedPosRad[i_idx].w;
-    Real m_i = pow(h_i * paramsD.MULT_INITSPACE, 3) * paramsD.rho0;
+    Real m_i = cube(h_i * paramsD.MULT_INITSPACE) * paramsD.rho0;
     Real B[36] = {0.0};
 
     //    Real Gi[9] = {0.0};
@@ -170,7 +170,7 @@ __global__ void calc_L_tensor(Real* A_tensor,
         Real3 eij = rij / d;
 
         Real h_j = sortedPosRad[j].w;
-        Real m_j = pow(h_j * paramsD.MULT_INITSPACE, 3) * paramsD.rho0;
+        Real m_j = cube(h_j * paramsD.MULT_INITSPACE) * paramsD.rho0;
         Real h_ij = 0.5 * (h_j + h_i);
         Real3 grad_ij = GradWh(rij, h_ij);
         Real V_j = sumWij_inv[j];
@@ -275,7 +275,7 @@ __global__ void calcRho_kernel(Real4* sortedPosRad,
 
     Real3 posRadA = mR3(sortedPosRad[i_idx]);
     Real h_i = sortedPosRad[i_idx].w;
-    Real m_i = pow((h_i * paramsD.MULT_INITSPACE), 3) * paramsD.rho0;
+    Real m_i = cube((h_i * paramsD.MULT_INITSPACE)) * paramsD.rho0;
     //    printf("paramsD.MULT_INITSPACE=%f, h_i,m_i ", paramsD.MULT_INITSPACE, h_i, m_i);
 
     Real sum_mW = 0;
@@ -304,7 +304,7 @@ __global__ void calcRho_kernel(Real4* sortedPosRad,
                         if (i_idx != j)
                             mcon++;
                         Real h_j = sortedPosRad[j].w;
-                        Real m_j = pow(h_j * paramsD.MULT_INITSPACE, 3) * paramsD.rho0;
+                        Real m_j = cube(h_j * paramsD.MULT_INITSPACE) * paramsD.rho0;
                         Real W3 = W3h(d, 0.5 * (h_j + h_i));
                         //                        Real W3 = 0.5 * (W3h(d, h_i) + W3h(d, h_j));
                         sum_mW += m_j * W3;
@@ -347,7 +347,7 @@ __global__ void calcNormalizedRho_kernel(Real4* sortedPosRad,  // input: sorted 
         return;
     Real3 posRadA = mR3(sortedPosRad[i_idx]);
     Real h_i = sortedPosRad[i_idx].w;
-    //    Real m_i = pow(h_i * paramsD.MULT_INITSPACE, 3) * paramsD.rho0;
+    //    Real m_i = cube(h_i * paramsD.MULT_INITSPACE) * paramsD.rho0;
     Real sum_mW = 0;
     Real sum_Wij_inv = 0;
     Real C = 0;
@@ -381,7 +381,7 @@ __global__ void calcNormalizedRho_kernel(Real4* sortedPosRad,  // input: sorted 
                         Real3 dv3 = Distance(sortedVelMas[i_idx], sortedVelMas[j]);
                         Real d = length(dist3);
                         Real h_j = sortedPosRad[j].w;
-                        Real m_j = pow(h_j * 1, 3) * paramsD.rho0;
+                        Real m_j = cube(h_j * 1) * paramsD.rho0;
                         C += m_j * Color[i_idx] / sortedRhoPreMu[i_idx].x * W3h(d, 0.5 * (h_j + h_i));
 
                         if (d > RESOLUTION_LENGTH_MULT * h_i || sortedRhoPreMu[j].w <= -2)
@@ -525,7 +525,7 @@ __global__ void calcNormalizedRho_Gi_fillInMatrixIndices(Real4* sortedPosRad,  /
                         Real3 dv3 = Distance(sortedVelMas[i_idx], sortedVelMas[j]);
                         Real d = length(rij);
                         Real h_j = sortedPosRad[j].w;
-                        Real m_j = pow(h_j * paramsD.MULT_INITSPACE, 3) * paramsD.rho0;
+                        Real m_j = cube(h_j * paramsD.MULT_INITSPACE) * paramsD.rho0;
                         Real h_ij = 0.5 * (h_j + h_i);
                         Real W3 = W3h(d, h_ij);
                         Real3 grad_i_wij = GradWh(rij, h_ij);
@@ -671,7 +671,7 @@ __global__ void Function_Gradient_Laplacian_Operator(Real4* sortedPosRad,  // in
     }
 
     Real V_i = sumWij_inv[i_idx];
-    Real m_i = pow(h_i * paramsD.MULT_INITSPACE, 3) * paramsD.rho0;
+    Real m_i = cube(h_i * paramsD.MULT_INITSPACE) * paramsD.rho0;
     Real rhoi = sortedRhoPreMu[i_idx].x;
     for (int count = csrStartIdx; count < csrEndIdx; count++) {
         int j = csrColInd[count];
@@ -680,7 +680,7 @@ __global__ void Function_Gradient_Laplacian_Operator(Real4* sortedPosRad,  // in
         Real d = length(rij);
         Real3 eij = rij / d;
         Real h_j = sortedPosRad[j].w;
-        Real m_j = pow(h_j * paramsD.MULT_INITSPACE, 3) * paramsD.rho0;
+        Real m_j = cube(h_j * paramsD.MULT_INITSPACE) * paramsD.rho0;
         //        Real h_ij = 0.5 * (h_j + h_i);
         //        Real W3 = W3h(d, h_ij);
         //        Real3 grad_i_wij = GradWh(rij, h_ij);
@@ -729,7 +729,7 @@ __global__ void Function_Gradient_Laplacian_Operator(Real4* sortedPosRad,  // in
         Real d = length(rij);
         Real3 eij = rij / d;
         Real h_j = sortedPosRad[j].w;
-        Real m_j = pow(h_j * paramsD.MULT_INITSPACE, 3) * paramsD.rho0;
+        Real m_j = cube(h_j * paramsD.MULT_INITSPACE) * paramsD.rho0;
         Real h_ij = 0.5 * (h_j + h_i);
         Real W3 = W3h(d, h_ij);
         Real3 grad_ij = GradWh(rij, h_ij);
@@ -908,11 +908,12 @@ __global__ void UpdateDensity(Real3* vis_vel,
     Real dT = paramsD.dT;
     Real rho_plus = 0;
     Real3 Vel_i = sortedVelMas[i_idx];
+
     Real3 posi = mR3(sortedPosRad[i_idx]);
     if ((sortedRhoPreMu[i_idx].x > 2 * paramsD.rho0 || sortedRhoPreMu[i_idx].x < 0) && sortedRhoPreMu[i_idx].w < 0)
         printf("(UpdateDensity-0)too large/small density marker %d, type=%f\n", i_idx, sortedRhoPreMu[i_idx].w);
     Real h_i = sortedPosRad[i_idx].w;
-    //    Real m_i = pow(h_i * paramsD.MULT_INITSPACE, 3) * paramsD.rho0;
+    //    Real m_i = cube(h_i * paramsD.MULT_INITSPACE) * paramsD.rho0;
     int3 gridPos = calcGridPos(posi);
 
     Real3 normalizedV_n = mR3(0);
@@ -936,7 +937,7 @@ __global__ void UpdateDensity(Real3* vis_vel,
                         continue;
                     Real3 Vel_j = sortedVelMas[j];
                     Real h_j = sortedPosRad[j].w;
-                    Real m_j = pow(h_j * paramsD.MULT_INITSPACE, 3) * paramsD.rho0;
+                    Real m_j = cube(h_j * paramsD.MULT_INITSPACE) * paramsD.rho0;
                     Real h_ij = 0.5 * (h_j + h_i);
                     Real3 grad_i_wij = GradWh(dist3, h_ij);
                     rho_plus += m_j * dot((Vel_i - Vel_j), grad_i_wij) * sumWij_inv[j];

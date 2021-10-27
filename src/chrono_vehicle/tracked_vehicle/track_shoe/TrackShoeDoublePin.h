@@ -63,14 +63,14 @@ class CH_VEHICLE_API TrackShoeDoublePin : public ChTrackShoeDoublePin {
     /// Return the width of a connector body (visualization only).
     virtual double GetConnectorWidth() const override { return m_connector_width; }
 
+    /// Return the location of the guiding pin center, expressed in the shoe reference frame.
+    virtual ChVector<> GetLateralContactPoint() const override { return m_pin_center; }
+
   private:
     virtual void Create(const rapidjson::Document& d) override;
 
     /// Create the contact materials.
     void CreateContactMaterials(ChContactMethod contact_method) override;
-
-    /// Add visualization assets for the idler subsystem.
-    virtual void AddVisualizationAssets(VisualizationType vis) override;
 
     double m_shoe_mass;
     ChVector<> m_shoe_inertia;
@@ -84,8 +84,7 @@ class CH_VEHICLE_API TrackShoeDoublePin : public ChTrackShoeDoublePin {
     double m_connector_length;
     double m_connector_width;
 
-    bool m_has_mesh;
-    std::string m_meshFile;
+    ChVector<> m_pin_center;
 
     std::vector<MaterialInfo> m_shoe_mat_info;
     MaterialInfo m_cyl_mat_info;

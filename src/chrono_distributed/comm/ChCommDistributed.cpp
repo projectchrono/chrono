@@ -25,7 +25,7 @@
 #include "chrono_distributed/comm/ChCommDistributed.h"
 #include "chrono_distributed/physics/ChSystemDistributed.h"
 
-#include "chrono_parallel/ChDataManager.h"
+#include "chrono_multicore/ChDataManager.h"
 
 #include "chrono/core/ChMatrix33.h"
 #include "chrono/core/ChQuaternion.h"
@@ -214,10 +214,12 @@ void ChCommDistributed::ProcessShapes(int num_recv, Shape* buf) {
             auto material = chrono_types::make_shared<ChMaterialSurfaceSMC>();
             material->SetFriction((buf + n)->mu);
             switch (adhesion_model) {
-                case ChSystemSMC::Constant:
+                case ChSystemSMC::AdhesionForceModel::Perko:
+                    // Not yet implemented. Falls through.
+                case ChSystemSMC::AdhesionForceModel::Constant:
                     material->SetAdhesion((buf + n)->cohesion);
                     break;
-                case ChSystemSMC::DMT:
+                case ChSystemSMC::AdhesionForceModel::DMT:
                     material->SetAdhesionMultDMT((buf + n)->cohesion);
                     break;
             }
@@ -384,14 +386,14 @@ void ChCommDistributed::Exchange() {
                 else if ((location == distributed::UNOWNED_UP || location == distributed::UNOWNED_DOWN) &&
                          (ddm->comm_status[i] == distributed::SHARED_UP ||
                           ddm->comm_status[i] == distributed::SHARED_DOWN)) {
-                    int up;
+                    ////int up;
                     if (location == distributed::UNOWNED_UP && my_rank != num_ranks - 1) {
                         GetLog() << "GIVE " << ddm->global_id[i] << " from rank " << my_rank << "\n";
                         BodyUpdate b_upd = {};
                         PackUpdate(&b_upd, i, distributed::FINAL_UPDATE_GIVE);
                         update_up_buf.push_back(b_upd);
                         num_update_up++;  // TODO might be able to eliminate
-                        up = 1;
+                        ////up = 1;
                     } else if (location == distributed::UNOWNED_DOWN && my_rank != 0) {
                         GetLog() << "GIVE " << ddm->global_id[i] << " from rank " << my_rank << "\n";
                         BodyUpdate b_upd = {};
@@ -399,7 +401,7 @@ void ChCommDistributed::Exchange() {
                         update_down_buf.push_back(b_upd);
 
                         num_update_down++;  // TODO might be able to eliminate
-                        up = -1;
+                        ////up = -1;
                     }
 
                     my_sys->RemoveBodyExchange(i);
@@ -473,8 +475,8 @@ void ChCommDistributed::Exchange() {
     int num_recv_update_down;
     int num_recv_take_up;
     int num_recv_take_down;
-    int num_recv_shapes_up;
-    int num_recv_shapes_down;
+    int num_recv_shapes_up = 0;
+    int num_recv_shapes_down = 0;
 
     BodyExchange* recv_exchange_down = NULL;
     BodyExchange* recv_exchange_up = NULL;
@@ -716,8 +718,10 @@ void ChCommDistributed::PackExchange(BodyExchange* buf, int index) {
     // Global Id
     buf->gid = ddm->global_id[index];
 
+    auto& body = my_sys->Get_bodylist()[index];
+
     // User-controlled identifier
-    buf->identifier = my_sys->bodylist[index]->GetIdentifier();
+    buf->identifier = body->GetIdentifier();
 
     // Position and rotation
     real3 pos = data_manager->host_data.pos_rigid[index];
@@ -747,12 +751,12 @@ void ChCommDistributed::PackExchange(BodyExchange* buf, int index) {
     buf->mass = data_manager->host_data.mass_rigid[index];
 
     // Inertia
-    ChVector<double> inertiaXX = my_sys->bodylist[index]->GetInertiaXX();
+    ChVector<double> inertiaXX = body->GetInertiaXX();
     buf->inertiaXX[0] = inertiaXX.x();
     buf->inertiaXX[1] = inertiaXX.y();
     buf->inertiaXX[2] = inertiaXX.z();
 
-    ChVector<double> inertiaXY = my_sys->bodylist[index]->GetInertiaXY();
+    ChVector<double> inertiaXY = body->GetInertiaXY();
     buf->inertiaXY[0] = inertiaXY.x();
     buf->inertiaXY[1] = inertiaXY.y();
     buf->inertiaXY[2] = inertiaXY.z();
@@ -837,9 +841,10 @@ void ChCommDistributed::UnpackUpdate(BodyUpdate* buf, std::shared_ptr<ChBody> bo
 // Packs all shapes for a single body into the buffer
 int ChCommDistributed::PackShapes(std::vector<Shape>* buf, int index) {
     int shape_count = ddm->body_shape_count[index];
-    shape_container& shape_data = data_manager->shape_data;
+    shape_container& shape_data = data_manager->cd_data->shape_data;
 
-    auto body = my_sys->bodylist[index];
+    auto& body = my_sys->Get_bodylist()[index];
+
     ChSystemSMC::AdhesionForceModel adhesion_model = ddm->data_manager->settings.solver.adhesion_force_model;
     bool use_material_properties = ddm->data_manager->settings.solver.use_material_properties;
 
@@ -903,10 +908,12 @@ int ChCommDistributed::PackShapes(std::vector<Shape>* buf, int index) {
             std::static_pointer_cast<ChMaterialSurfaceSMC>(body->GetCollisionModel()->GetShape(i)->GetMaterial());
         shape.mu = material->GetSfriction();
         switch (adhesion_model) {
-            case ChSystemSMC::Constant:
+            case ChSystemSMC::AdhesionForceModel::Perko:
+                // Not yet implemented. Falls through.
+            case ChSystemSMC::AdhesionForceModel::Constant:
                 shape.cohesion = material->GetAdhesion();
                 break;
-            case ChSystemSMC::DMT:
+            case ChSystemSMC::AdhesionForceModel::DMT:
                 shape.cohesion = material->GetAdhesionMultDMT();
                 break;
         }

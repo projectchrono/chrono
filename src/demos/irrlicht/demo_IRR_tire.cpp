@@ -54,7 +54,7 @@ std::shared_ptr<ChBody> create_wheel(ChVector<> mposition, ChIrrAppInterface& ma
 
     // now attach a visualization shape, as a mesh from disk
     auto tireMesh = chrono_types::make_shared<ChObjShapeFile>();
-    tireMesh->SetFilename(GetChronoDataFile("tractor_wheel.obj").c_str());
+    tireMesh->SetFilename(GetChronoDataFile("models/tractor_wheel/tractor_wheel.obj").c_str());
     mrigidBody->AddAsset(tireMesh);
 
     // contact material shared by all collision shapes of the wheel
@@ -67,8 +67,8 @@ std::shared_ptr<ChBody> create_wheel(ChVector<> mposition, ChIrrAppInterface& ma
     // 'knobs'. Since these decompositions are only for 1/15th of the wheel, use for() to pattern them:
     for (double mangle = 0; mangle < 360.; mangle += (360. / 15.)) {
         ChQuaternion<> myrot;
-        ChStreamInAsciiFile myknobs(GetChronoDataFile("tractor_wheel_knobs.chulls").c_str());
-        ChStreamInAsciiFile myslice(GetChronoDataFile("tractor_wheel_slice.chulls").c_str());
+        ChStreamInAsciiFile myknobs(GetChronoDataFile("models/tractor_wheel/tractor_wheel_knobs.chulls").c_str());
+        ChStreamInAsciiFile myslice(GetChronoDataFile("models/tractor_wheel/tractor_wheel_slice.chulls").c_str());
         myrot.Q_from_AngAxis(mangle * (CH_C_PI / 180.), VECT_X);
         ChMatrix33<> mm(myrot);
         mrigidBody->GetCollisionModel()->AddConvexHullsFromFile(mat, myknobs, ChVector<>(0, 0, 0), mm);
@@ -83,10 +83,6 @@ std::shared_ptr<ChBody> create_wheel(ChVector<> mposition, ChIrrAppInterface& ma
 }
 
 void create_some_falling_items(ChSystemNSC& mphysicalSystem, ISceneManager* msceneManager, IVideoDriver* driver) {
-    // Make some pebbles, just for fun, under the wheel
-    video::ITexture* cubeMap = driver->getTexture(GetChronoDataFile("concrete.jpg").c_str());
-    video::ITexture* rockMap = driver->getTexture(GetChronoDataFile("rock.jpg").c_str());
-
     ChCollisionModel::SetDefaultSuggestedEnvelope(0.003);
     ChCollisionModel::SetDefaultSuggestedMargin(0.002);
 
@@ -103,8 +99,6 @@ void create_some_falling_items(ChSystemNSC& mphysicalSystem, ISceneManager* msce
     for (int bi = 0; bi < n_pebbles; bi++) {
         double sphrad = 0.02 + 0.02 * ChRandom();
         double sphdens = 1;
-        double sphmass = (4 / 3) * CH_C_PI * pow(sphrad, 3) * sphdens;
-        double sphinertia = pow(sphrad, 2) * sphmass;
         ChQuaternion<> randrot(ChRandom(), ChRandom(), ChRandom(), ChRandom());
         randrot.Normalize();
 
@@ -137,14 +131,11 @@ int main(int argc, char* argv[]) {
 
     // Create the Irrlicht visualization (open the Irrlicht device,
     // bind a simple user interface, etc. etc.)
-    ChIrrApp application(&mphysicalSystem, L"Convex decomposed wheel", core::dimension2d<u32>(800, 600),
-                                  false);
-
-    // Easy shortcuts to add camera, lights, logo and sky in Irrlicht scene:
-    ChIrrWizard::add_typical_Logo(application.GetDevice());
-    ChIrrWizard::add_typical_Sky(application.GetDevice());
-    ChIrrWizard::add_typical_Lights(application.GetDevice());
-    ChIrrWizard::add_typical_Camera(application.GetDevice(), core::vector3df(3.5f, 2.5f, -2.4f));
+    ChIrrApp application(&mphysicalSystem, L"Convex decomposed wheel", core::dimension2d<u32>(800, 600));
+    application.AddTypicalLogo();
+    application.AddTypicalSky();
+    application.AddTypicalLights();
+    application.AddTypicalCamera(core::vector3df(3.5f, 2.5f, -2.4f));
 
     // Create some debris
 

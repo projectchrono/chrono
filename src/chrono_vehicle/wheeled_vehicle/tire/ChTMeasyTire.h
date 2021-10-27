@@ -12,17 +12,26 @@
 // Authors: Rainer Gericke
 // =============================================================================
 //
-// Template for the "Tire Model made Easy"
+// Template for the "Tire Model made Easy". Our implementation is a basic version
+// of the algorithms in http://www.tmeasy.de/, a comercial tire simulation code
+// developed by Prof. Dr. Georg Rill.
+//
 //
 // Ref: Georg Rill, "Road Vehicle Dynamics - Fundamentals and Modelling",
-//          @2012 CRC Press, ISBN 978-1-4398-3898-3
+//          https://www.routledge.com/Road-Vehicle-Dynamics-Fundamentals-and-Modeling-with-MATLAB/Rill-Castro/p/book/9780367199739
 //      Georg Rill, "An Engineer's Guess On Tyre Model Parameter Made Possible With TMeasy",
-//          https://hps.hs-regensburg.de/rig39165/Rill_Tyre_Coll_2015.pdf
+//          https://www.researchgate.net/publication/317036908_An_Engineer's_Guess_on_Tyre_Parameter_made_possible_with_TMeasy
 //      Georg Rill, "Simulation von Kraftfahrzeugen",
-//          @1994 Vieweg-Verlag, ISBN: 978-3-52808-931-3
-//          https://hps.hs-regensburg.de/rig39165/Simulation_von_Kraftfahrzeugen.pdf
+//          https://www.researchgate.net/publication/317037037_Simulation_von_Kraftfahrzeugen
 //
-// No parking slip calculations.
+// Known differences to the comercial version:
+//  - No parking slip calculations
+//  - No dynamic parking torque
+//  - No dynamic tire inflation pressure
+//  - No belt dynamics
+//  - Simplified stand still handling
+//  - Optional tire contact smoothing based on "A New Analytical Tire Model for Vehicle Dynamic Analysis" by
+//      J. Shane Sui & John A Hirshey II
 //
 // Changes:
 // 2017-12-21 - There is a simple form of contact smoothing now. It works on flat
@@ -56,6 +65,8 @@ namespace vehicle {
 /// @{
 
 /// TMeasy tire model.
+/// The Chrono implementation is a basic version of the commercial models available at
+/// <a href="http://www.tmeasy.de/">www.tmeasy.de</a>.
 class CH_VEHICLE_API ChTMeasyTire : public ChTire {
   public:
     ChTMeasyTire(const std::string& name);
@@ -81,7 +92,7 @@ class CH_VEHICLE_API ChTMeasyTire : public ChTire {
     void SetGammaLimit(double gamma_limit) { m_gamma_limit = gamma_limit; }
 
     /// Get the width of the tire.
-    double GetWidth() const { return m_width; }
+    virtual double GetWidth() const override { return m_width; }
 
     /// Get visualization width.
     virtual double GetVisualizationWidth() const { return m_width; }
@@ -102,37 +113,41 @@ class CH_VEHICLE_API ChTMeasyTire : public ChTire {
     static double GetTireMaxLoad(unsigned int li);
 
     /// Guess Tire Parameters from characteristic truck tire parameter pattern (Ratio = 80%)
-    void GuessTruck80Par(unsigned int li,        ///< tire load index
-                         double tireWidth,       ///< tire width [m]
-                         double ratio,           ///< use 0.75 meaning 75%
-                         double rimDia,          ///< rim diameter [m]
-                         double pinfl_li = 1.0,  ///< inflation pressure at load index
-                         double pinfl_use = 1.0  ///< inflation pressure in this configuration
-                         );
+    void GuessTruck80Par(unsigned int li,            ///< tire load index
+                         double tireWidth,           ///< tire width [m]
+                         double ratio,               ///< use 0.75 meaning 75%
+                         double rimDia,              ///< rim diameter [m]
+                         double pinfl_li = 1.0,      ///< inflation pressure at load index
+                         double pinfl_use = 1.0,     ///< inflation pressure in this configuration
+                         double damping_ratio = 0.5  ///< scaling factor for normal damping coefficient
+    );
 
-    void GuessTruck80Par(double loadForce,       ///< tire nominal load force [N]
-                         double tireWidth,       ///< tire width [m]
-                         double ratio,           ///< use 0.75 meaning 75%
-                         double rimDia,          ///< rim diameter [m]
-                         double pinfl_li = 1.0,  ///< inflation pressure at load index
-                         double pinfl_use = 1.0  ///< inflation pressure in this configuration
-                         );
+    void GuessTruck80Par(double loadForce,           ///< tire nominal load force [N]
+                         double tireWidth,           ///< tire width [m]
+                         double ratio,               ///< use 0.75 meaning 75%
+                         double rimDia,              ///< rim diameter [m]
+                         double pinfl_li = 1.0,      ///< inflation pressure at load index
+                         double pinfl_use = 1.0,     ///< inflation pressure in this configuration
+                         double damping_ratio = 0.5  ///< scaling factor for normal damping coefficient
+    );
 
     /// Guess Tire Parameters from characteristic passenger car tire parameter pattern (Ratio = 70%)
-    void GuessPassCar70Par(unsigned int li,        ///< tire load index
-                           double tireWidth,       ///< tire width [m]
-                           double ratio,           ///< use 0.75 meaning 75%
-                           double rimDia,          ///< rim diameter [m]
-                           double pinfl_li = 1.0,  ///< inflation pressure at load index
-                           double pinfl_use = 1.0  ///< inflation pressure in this configuration
-                           );
-    void GuessPassCar70Par(double loadForce,       ///< tire nominal load force [N]
-                           double tireWidth,       ///< tire width [m]
-                           double ratio,           ///< use 0.75 meaning 75%
-                           double rimDia,          ///< rim diameter [m]
-                           double pinfl_li = 1.0,  ///< inflation pressure at load index
-                           double pinfl_use = 1.0  ///< inflation pressure in this configuration
-                           );
+    void GuessPassCar70Par(unsigned int li,            ///< tire load index
+                           double tireWidth,           ///< tire width [m]
+                           double ratio,               ///< use 0.75 meaning 75%
+                           double rimDia,              ///< rim diameter [m]
+                           double pinfl_li = 1.0,      ///< inflation pressure at load index
+                           double pinfl_use = 1.0,     ///< inflation pressure in this configuration
+                           double damping_ratio = 0.5  ///< scaling factor for normal damping coefficient
+    );
+    void GuessPassCar70Par(double loadForce,           ///< tire nominal load force [N]
+                           double tireWidth,           ///< tire width [m]
+                           double ratio,               ///< use 0.75 meaning 75%
+                           double rimDia,              ///< rim diameter [m]
+                           double pinfl_li = 1.0,      ///< inflation pressure at load index
+                           double pinfl_use = 1.0,     ///< inflation pressure in this configuration
+                           double damping_ratio = 0.5  ///< scaling factor for normal damping coefficient
+    );
 
     /// Set vertical tire stiffness as linear function by coefficient [N/m].
     void SetVerticalStiffness(double Cz) { SetVerticalStiffness(Cz, Cz); }
@@ -260,7 +275,7 @@ class CH_VEHICLE_API ChTMeasyTire : public ChTire {
         return (fz / m_TMeasyCoeff.pn) * (2.0 * w1 - 0.5 * w2 - (w1 - 0.5 * w2) * (fz / m_TMeasyCoeff.pn));
     };
 
-  private:
+    // private:
     void UpdateVerticalStiffness();
 
     /// Get the tire force and moment.
@@ -303,11 +318,15 @@ class CH_VEHICLE_API ChTMeasyTire : public ChTire {
         double vsy;              // Lateral slip velocity = Lateral velocity
         double omega;            // Wheel angular velocity about its spin axis
         double R_eff;            // Effective Rolling Radius
-        double Fx_dyn;           // Dynamic longitudinal fire force
+        double Fx_dyn;           // Dynamic longitudinal tire force
         double Fy_dyn;           // Dynamic lateral tire force
         double Mb_dyn;           // Dynamic bore torque
         double xe;               // Longitudinal tire deflection
         double ye;               // Lateral tire deflection
+        double xe_dot;           // Longitudinal tire deflection velocity
+        double ye_dot;           // Lateral tire deflection velocity
+        double Fx_struct;        // Longitudinal tire force from structural deformation
+        double Fy_struct;        // Lateral tire force from structural deformation
         double Fx;               // Steady state longitudinal tire force
         double Fy;               // Steady state lateral tire force
         double Mb;               // Steady state bore torque

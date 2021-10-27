@@ -32,7 +32,7 @@ const double rpm2rads = CH_C_PI / 30;
 // Constructor a shafts powertrain using data from the specified JSON file.
 // -----------------------------------------------------------------------------
 ShaftsPowertrain::ShaftsPowertrain(const std::string& filename) : ChShaftsPowertrain("") {
-    Document d = ReadFileJSON(filename);
+    Document d; ReadFileJSON(filename, d);
     if (d.IsNull())
         return;
 
@@ -65,6 +65,7 @@ void ShaftsPowertrain::Create(const rapidjson::Document& d) {
     assert(d.HasMember("Transmission"));
 
     m_ingear_shaft_inertia = d["Transmission"]["Input Shaft Inertia"].GetDouble();
+    m_power_shaft_inertia = d["Transmission"]["Output Shaft Inertia"].GetDouble();
     m_rev_gear = d["Transmission"]["Reverse Gear Ratio"].GetDouble();
     unsigned int np = d["Transmission"]["Forward Gear Ratios"].Size();
     m_fwd_gear.resize(np);
@@ -86,10 +87,9 @@ void ShaftsPowertrain::Create(const rapidjson::Document& d) {
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-void ShaftsPowertrain::SetGearRatios(std::vector<double>& gear_ratios) {
-    gear_ratios.push_back(m_rev_gear);
-    for (unsigned int i = 0; i < m_fwd_gear.size(); i++)
-        gear_ratios.push_back(m_fwd_gear[i]);
+void ShaftsPowertrain::SetGearRatios(std::vector<double>& fwd, double& rev) {
+    rev = m_rev_gear;
+    fwd = m_fwd_gear;
 }
 
 // -----------------------------------------------------------------------------

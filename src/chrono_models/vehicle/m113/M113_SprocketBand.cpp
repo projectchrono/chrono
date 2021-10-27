@@ -35,7 +35,7 @@ namespace m113 {
 // -----------------------------------------------------------------------------
 const double M113_SprocketBand::m_gear_mass = 27.68;
 const ChVector<> M113_SprocketBand::m_gear_inertia(0.646, 0.883, 0.646);
-const double M113_SprocketBand::m_axle_inertia = 0.02;
+const double M113_SprocketBand::m_axle_inertia = 0.4;
 const double M113_SprocketBand::m_separation = 0.278;
 
 // Gear profile data
@@ -47,8 +47,7 @@ const double M113_SprocketBand::m_gear_tooth_depth = 0.0387 * 1.04;
 const double M113_SprocketBand::m_gear_arc_radius = 0.0542 * 1.04;
 const double M113_SprocketBand::m_gear_RA = 0.2307 * 1.04;
 
-const double M113_SprocketBand::m_gear_guide_wheel_width = 0.181;
-const double M113_SprocketBand::m_gear_guide_wheel_gap = 0.051;
+const double M113_SprocketBand::m_lateral_backlash = 0.02;
 
 const std::string M113_SprocketBandLeft::m_meshFile = "M113/Sprocket2_L.obj";
 const std::string M113_SprocketBandRight::m_meshFile = "M113/Sprocket2_R.obj";
@@ -60,8 +59,8 @@ M113_SprocketBand::M113_SprocketBand(const std::string& name) : ChSprocketBand(n
 void M113_SprocketBand::CreateContactMaterial(ChContactMethod contact_method) {
     MaterialInfo minfo;
     minfo.mu = 0.4f;
-    minfo.cr = 0.1f;
-    minfo.Y = 1e7f;
+    minfo.cr = 0.75f;
+    minfo.Y = 1e9f;
     m_material = minfo.CreateMaterial(contact_method);
 }
 

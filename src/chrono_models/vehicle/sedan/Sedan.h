@@ -52,8 +52,9 @@ class CH_MODELS_API Sedan {
     void SetContactMethod(ChContactMethod val) { m_contactMethod = val; }
 
     void SetChassisFixed(bool val) { m_fixed = val; }
-    void SetChassisCollisionType(ChassisCollisionType val) { m_chassisCollisionType = val; }
+    void SetChassisCollisionType(CollisionType val) { m_chassisCollisionType = val; }
 
+    void SetBrakeType(BrakeType brake_type) { m_brake_type = brake_type; }
     void SetTireType(TireModelType val) { m_tireType = val; }
 
     void SetInitPosition(const ChCoordsys<>& pos) { m_initPos = pos; }
@@ -61,6 +62,8 @@ class CH_MODELS_API Sedan {
     void SetInitWheelAngVel(const std::vector<double>& omega) { m_initOmega = omega; }
 
     void SetTireStepSize(double step_size) { m_tire_step_size = step_size; }
+
+    void EnableBrakeLocking(bool lock) { m_brake_locking = lock; }
 
     ChSystem* GetSystem() const { return m_vehicle->GetSystem(); }
     ChWheeledVehicle& GetVehicle() const { return *m_vehicle; }
@@ -88,10 +91,15 @@ class CH_MODELS_API Sedan {
     void DebugLog(int what) { m_vehicle->DebugLog(what); }
 
   protected:
-    ChContactMethod m_contactMethod;
-    ChassisCollisionType m_chassisCollisionType;
-    bool m_fixed;
+    ChSystem* m_system;
+    Sedan_Vehicle* m_vehicle;
 
+    ChContactMethod m_contactMethod;
+    CollisionType m_chassisCollisionType;
+    bool m_fixed;
+    bool m_brake_locking;
+
+    BrakeType m_brake_type;
     TireModelType m_tireType;
 
     double m_tire_step_size;
@@ -104,9 +112,6 @@ class CH_MODELS_API Sedan {
     double m_Cd;
     double m_area;
     double m_air_density;
-
-    ChSystem* m_system;
-    Sedan_Vehicle* m_vehicle;
 
     double m_tire_mass;
 };

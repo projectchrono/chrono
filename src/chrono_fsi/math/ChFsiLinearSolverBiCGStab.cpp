@@ -20,6 +20,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <algorithm>
 #include <typeinfo>
 #include "cublas_v2.h"
 #include "cusparse_v2.h"
@@ -35,273 +36,341 @@ void ChFsiLinearSolverBiCGStab::Solve(int SIZE,
                                       unsigned int* AcolIdx,
                                       double* x,
                                       double* b) {
-    cublasHandle_t cublasHandle = 0;
-    cusparseHandle_t cusparseHandle = 0;
-    cusparseMatDescr_t descrA = 0;
-    cusparseMatDescr_t descrM = 0;
-    cudaStream_t stream = 0;
-    cusparseSolveAnalysisInfo_t info_l = 0;
-    cusparseSolveAnalysisInfo_t info_u = 0;
+#ifndef CUDART_VERSION
+#error CUDART_VERSION Undefined!
+#elif (CUDART_VERSION == 11000)
 
-    double *r, *r_old, *rh, *p, *Mp, *AMp, *s, *Ms, *AMs;
-    double* M = 0;
+    double *r, *rh, *p, *ph, *v, *s, *t, *Ac;
 
     cudaMalloc((void**)&r, sizeof(double) * SIZE);
-    cudaMalloc((void**)&r_old, sizeof(double) * SIZE);
     cudaMalloc((void**)&rh, sizeof(double) * SIZE);
     cudaMalloc((void**)&p, sizeof(double) * SIZE);
-    cudaMalloc((void**)&Mp, sizeof(double) * SIZE);
-    cudaMalloc((void**)&AMp, sizeof(double) * SIZE);
+    cudaMalloc((void**)&ph, sizeof(double) * SIZE);
+    cudaMalloc((void**)&v, sizeof(double) * SIZE);
     cudaMalloc((void**)&s, sizeof(double) * SIZE);
-    cudaMalloc((void**)&Ms, sizeof(double) * SIZE);
-    cudaMalloc((void**)&AMs, sizeof(double) * SIZE);
-    cudaMalloc((void**)&M, sizeof(double) * NNZ);
+    cudaMalloc((void**)&t, sizeof(double) * SIZE);
+
+    cudaMalloc((void**)&Ac, sizeof(double) * NNZ);
     cudaDeviceSynchronize();
 
-    //    cudaMemset((void*)x, 0, sizeof(double) * SIZE);
-
     cudaMemset((void*)r, 0, sizeof(double) * SIZE);
-    cudaMemset((void*)r_old, 0, sizeof(double) * SIZE);
     cudaMemset((void*)rh, 0, sizeof(double) * SIZE);
     cudaMemset((void*)p, 0, sizeof(double) * SIZE);
-    cudaMemset((void*)Mp, 0, sizeof(double) * SIZE);
-    cudaMemset((void*)AMp, 0, sizeof(double) * SIZE);
+    cudaMemset((void*)ph, 0, sizeof(double) * SIZE);
+    cudaMemset((void*)v, 0, sizeof(double) * SIZE);
     cudaMemset((void*)s, 0, sizeof(double) * SIZE);
-    cudaMemset((void*)Ms, 0, sizeof(double) * SIZE);
-    cudaMemset((void*)AMs, 0, sizeof(double) * SIZE);
+    cudaMemset((void*)t, 0, sizeof(double) * SIZE);
+
+    cudaMemset((void*)Ac, 0, sizeof(double) * NNZ);
     cudaDeviceSynchronize();
 
     //====== Get handle to the CUBLAS context ========
+    cublasHandle_t cublasHandle = 0;
+    cusparseHandle_t cusparseHandle = 0;
+
     cublasStatus_t cublasStatus;
-    cublasStatus = cublasCreate(&cublasHandle);
+    cublasCreate(&cublasHandle);
     cudaDeviceSynchronize();
 
     //====== Get handle to the CUSPARSE context ======
-    cusparseStatus_t cusparseStatus1, cusparseStatus2;
-    cusparseStatus1 = cusparseCreate(&cusparseHandle);
-    cusparseStatus2 = cusparseCreate(&cusparseHandle);
+    cusparseStatus_t cusparseStatus;
+    cusparseCreate(&cusparseHandle);
     cudaDeviceSynchronize();
+    
+    //===========================Incomplete-LU-Preconditioner=================================
+    // Suppose that A is m x m sparse matrix represented by CSR format,
+    // Assumption:
+    // - (d_csrRowPtr, d_csrColInd, d_csrVal) is CSR of A on device memory,
+    // copy A into Ac before factorizing A in place
+    cublasDcopy(cublasHandle, NNZ, A, 1, Ac, 1);
 
-    //============ initialize CUBLAS ===============================================
-    if (cublasCreate(&cublasHandle) != CUBLAS_STATUS_SUCCESS) {
-        fprintf(stderr, "!!!! CUBLAS initialization error\n");
+    cusparseSpMatDescr_t descrA;
+    cusparseDnVecDescr_t vecX, vecPh, vecS, vecV, vecT, vecR;
+    cusparseMatDescr_t descr_M = 0;
+    cusparseMatDescr_t descr_L = 0;
+    cusparseMatDescr_t descr_U = 0;
+    csrilu02Info_t info_M  = 0;
+    csrsv2Info_t  info_L  = 0;
+    csrsv2Info_t  info_U  = 0;
+    int pBufferSize_M;
+    int pBufferSize_L;
+    int pBufferSize_U;
+    int pBufferSize;
+    size_t bufferSize = 0;
+    void *pBuffer = NULL;
+    void *bufferX = NULL;
+    void *bufferP = NULL;
+    void *bufferS = NULL;
+    int structural_zero;
+    int numerical_zero;
+    const cusparseSolvePolicy_t policy_M = CUSPARSE_SOLVE_POLICY_USE_LEVEL;
+    const cusparseSolvePolicy_t policy_L = CUSPARSE_SOLVE_POLICY_USE_LEVEL;
+    const cusparseSolvePolicy_t policy_U = CUSPARSE_SOLVE_POLICY_USE_LEVEL;
+    const cusparseOperation_t trans_A  = CUSPARSE_OPERATION_NON_TRANSPOSE;
+    const cusparseOperation_t trans_L  = CUSPARSE_OPERATION_NON_TRANSPOSE;
+    const cusparseOperation_t trans_U  = CUSPARSE_OPERATION_NON_TRANSPOSE;
+
+    // step 1: create a descriptor which contains
+    // - matrix M is base-1
+    // - matrix L is base-1
+    // - matrix L is lower triangular
+    // - matrix L has unit diagonal
+    // - matrix U is base-1
+    // - matrix U is upper triangular
+    // - matrix U has non-unit diagonal
+    cusparseCreateCsr(&descrA, SIZE, SIZE, NNZ, (int*)ArowIdx, (int*)AcolIdx, A,
+                      CUSPARSE_INDEX_32I, CUSPARSE_INDEX_32I, CUSPARSE_INDEX_BASE_ZERO, CUDA_R_64F);
+
+    cusparseCreateMatDescr(&descr_M);
+    cusparseSetMatIndexBase(descr_M, CUSPARSE_INDEX_BASE_ZERO);
+    cusparseSetMatType(descr_M, CUSPARSE_MATRIX_TYPE_GENERAL);
+    
+    cusparseCreateMatDescr(&descr_L);
+    cusparseSetMatIndexBase(descr_L, CUSPARSE_INDEX_BASE_ZERO);
+    cusparseSetMatType(descr_L, CUSPARSE_MATRIX_TYPE_GENERAL);
+    cusparseSetMatFillMode(descr_L, CUSPARSE_FILL_MODE_LOWER);
+    cusparseSetMatDiagType(descr_L, CUSPARSE_DIAG_TYPE_UNIT);
+    
+    cusparseCreateMatDescr(&descr_U);
+    cusparseSetMatIndexBase(descr_U, CUSPARSE_INDEX_BASE_ZERO);
+    cusparseSetMatType(descr_U, CUSPARSE_MATRIX_TYPE_GENERAL);
+    cusparseSetMatFillMode(descr_U, CUSPARSE_FILL_MODE_UPPER);
+    cusparseSetMatDiagType(descr_U, CUSPARSE_DIAG_TYPE_UNIT);
+    
+    // step 2: create an empty info structure
+    // we need one info for csrilu02 and two info's for csrsv2
+    cusparseCreateCsrilu02Info(&info_M);
+    cusparseCreateCsrsv2Info(&info_L);
+    cusparseCreateCsrsv2Info(&info_U);
+    
+    // step 3: query how much memory used in csrilu02 and csrsv2, and allocate the buffer
+    cusparseDcsrilu02_bufferSize(cusparseHandle, SIZE, NNZ,
+        descr_M, Ac, (int*)ArowIdx, (int*)AcolIdx, info_M, &pBufferSize_M);
+    cusparseDcsrsv2_bufferSize(cusparseHandle, trans_L, SIZE, NNZ,
+        descr_L, Ac, (int*)ArowIdx, (int*)AcolIdx, info_L, &pBufferSize_L);
+    cusparseDcsrsv2_bufferSize(cusparseHandle, trans_U, SIZE, NNZ,
+        descr_U, Ac, (int*)ArowIdx, (int*)AcolIdx, info_U, &pBufferSize_U);
+
+    pBufferSize = std::max(pBufferSize_M, std::max(pBufferSize_L, pBufferSize_U));
+    // pBuffer returned by cudaMalloc is automatically aligned to 128 bytes.
+    cudaMalloc((void**)&pBuffer, pBufferSize);
+    
+    // step 4: perform analysis of incomplete Cholesky on M
+    //         perform analysis of triangular solve on L
+    //         perform analysis of triangular solve on U
+    // The lower(upper) triangular part of M has the same sparsity pattern as L(U),
+    // we can do analysis of csrilu0 and csrsv2 simultaneously.
+    
+    // analysis phase
+    cusparseDcsrilu02_analysis(cusparseHandle, SIZE, NNZ, descr_M,
+        Ac, (int*)ArowIdx, (int*)AcolIdx, info_M,
+        policy_M, pBuffer);
+    cusparseStatus = cusparseXcsrilu02_zeroPivot(cusparseHandle, info_M, &structural_zero);
+    if (CUSPARSE_STATUS_ZERO_PIVOT == cusparseStatus){
+       printf("A(%d,%d) is missing\n", structural_zero, structural_zero);
+       exit(0);
+    }
+    cusparseStatus = cusparseXcsrilu02_zeroPivot(cusparseHandle, info_M, &numerical_zero);
+    if (CUSPARSE_STATUS_ZERO_PIVOT == cusparseStatus){
+       printf("U(%d,%d) is zero\n", numerical_zero, numerical_zero);
+    }
+    // analysis phase for L and U solve
+    cusparseDcsrsv2_analysis(cusparseHandle, trans_L, SIZE, NNZ, descr_L,
+        Ac, (int*)ArowIdx, (int*)AcolIdx, info_L, policy_L, pBuffer);
+
+    cusparseDcsrsv2_analysis(cusparseHandle, trans_U, SIZE, NNZ, descr_U,
+        Ac, (int*)ArowIdx, (int*)AcolIdx, info_U, policy_U, pBuffer);    
+    cusparseStatus = cusparseXcsrsv2_zeroPivot(cusparseHandle, info_U, &numerical_zero);
+    if (CUSPARSE_STATUS_ZERO_PIVOT == cusparseStatus){
+        printf("U(%d,%d) is zero\n", numerical_zero, numerical_zero);
+    }
+    // step 5: M = L * U
+    cusparseStatus = cusparseDcsrilu02(cusparseHandle, SIZE, NNZ, descr_M,
+        Ac, (int*)ArowIdx, (int*)AcolIdx, info_M, policy_M, pBuffer);
+    if (cusparseStatus != CUSPARSE_STATUS_SUCCESS) {
+        printf("look into ilu\n");
+        if (cusparseStatus == CUSPARSE_STATUS_NOT_INITIALIZED)
+            printf("not initialized\n");
+        if (cusparseStatus == CUSPARSE_STATUS_ALLOC_FAILED)
+            printf("alloc failed\n");
+        if (cusparseStatus == CUSPARSE_STATUS_INVALID_VALUE)
+            printf("invalid value\n");
+        if (cusparseStatus == CUSPARSE_STATUS_INTERNAL_ERROR)
+            printf("internal error\n");
+        if (cusparseStatus == CUSPARSE_STATUS_MATRIX_TYPE_NOT_SUPPORTED)
+            printf("matrix type\n");
         exit(0);
     }
-    //============ initialize CUSPARSE ===============================================
-    if (cusparseCreate(&cusparseHandle) != CUSPARSE_STATUS_SUCCESS) {
-        fprintf(stderr, "CUSPARSE initialization failed\n");
-        exit(0);
-    }
-
-    //============ create three matrix descriptors =======================================
-    cusparseStatus1 = cusparseCreateMatDescr(&descrA);
-    cusparseStatus2 = cusparseCreateMatDescr(&descrM);
-    if ((cusparseStatus1 != CUSPARSE_STATUS_SUCCESS) || (cusparseStatus2 != CUSPARSE_STATUS_SUCCESS)) {
-        fprintf(stderr, "!!!! CUSPARSE cusparseCreateMatDescr (coefficient matrix or preconditioner) error\n");
-    }
+    else
+        printf("ilu success\n");
     cudaDeviceSynchronize();
-
-    //    ==========create three matrix descriptors ===========================================
-    cusparseSetMatType(descrA, CUSPARSE_MATRIX_TYPE_GENERAL);
-    cusparseSetMatIndexBase(descrA, CUSPARSE_INDEX_BASE_ZERO);
-    cusparseSetMatType(descrM, CUSPARSE_MATRIX_TYPE_GENERAL);
-    cusparseSetMatIndexBase(descrM, CUSPARSE_INDEX_BASE_ZERO);
-    cudaDeviceSynchronize();
-
-    //==========create the analysis info (for lower and upper triangular factors)==========
-    //    cusparseCreateSolveAnalysisInfo(&info_l);
-    //    cusparseCreateSolveAnalysisInfo(&info_u);
-    //    cusparseSetMatFillMode(descrM, CUSPARSE_FILL_MODE_LOWER);
-    //    cusparseSetMatDiagType(descrM, CUSPARSE_DIAG_TYPE_UNIT);
-    //    cusparseDcsrsv_analysis(cusparseHandle, CUSPARSE_OPERATION_NON_TRANSPOSE, SIZE, NNZ, descrM, A, (int*)ArowIdx,
-    //                            (int*)AcolIdx, info_l);
-    //    cusparseSetMatFillMode(descrM, CUSPARSE_FILL_MODE_UPPER);
-    //    cusparseSetMatDiagType(descrM, CUSPARSE_DIAG_TYPE_NON_UNIT);
-    //    cusparseDcsrsv_analysis(cusparseHandle, CUSPARSE_OPERATION_NON_TRANSPOSE, SIZE, NNZ, descrM, A, (int*)ArowIdx,
-    //                            (int*)AcolIdx, info_u);
-    //    cudaDeviceSynchronize();
-    //
-    //    //=======Compute the lower and upper triangular factors using CUSPARSE csrilu0 routine
-    //    int* MrowIdx = (int*)ArowIdx;
-    //    int* McolIdx = (int*)AcolIdx;
-    //    cusparseDcsrilu0(cusparseHandle, CUSPARSE_OPERATION_NON_TRANSPOSE, SIZE, descrM, M, (int*)ArowIdx,
-    //    (int*)AcolIdx,
-    //                     info_l);
-    //    cudaDeviceSynchronize();
-
+    if (CUSPARSE_STATUS_ZERO_PIVOT == cusparseStatus){
+        printf("U(%d,%d) is zero\n", numerical_zero, numerical_zero);
+    }
+  
     //===========================Solution=====================================================
     double rho = 1, rho_old = 1, beta = 1, alpha = 1, negalpha = -1, omega = 1, negomega = -1, temp = 1, temp2 = 1;
-    double nrmr, nrmr0;
+    double nrmr = 0.0, nrmr0 = 0.0;
     double zero = 0.0;
     double one = 1.0;
-    double mone = -1.0;
-    //    rho = 1;
-    //    alpha = 1;
-    //    omega = 1;
+    // negative one
+    double none = -1.0;
 
     // compute initial residual r0=b-Ax0 (using initial guess in x)
-    cusparseDcsrmv(cusparseHandle, CUSPARSE_OPERATION_NON_TRANSPOSE, SIZE, SIZE, NNZ, &mone, descrA, A, (int*)ArowIdx,
-                   (int*)AcolIdx, x, &zero, r);
-    cudaDeviceSynchronize();
-    cublasDaxpy(cublasHandle, SIZE, &one, b, 1, r, 1);
-    cudaDeviceSynchronize();
-    cublasDnrm2(cublasHandle, SIZE, r, 1, &nrmr0);
-    cudaDeviceSynchronize();
-    nrmr = nrmr0;
-    // copy residual r into r^{\hat} and p
+    // 1. get Ax0 - Dcsrmv, can be mitigated to cusparseSpMV() later
+    // 2. get -Ax0 - scal by -1.0
+    // 3. get b + (-Ax0) - axpy by 1.0
+    // 4. get norm of r0 as a base line for determining convergence
+    cusparseCreateDnVec(&vecX, SIZE, x, CUDA_R_64F);
+    cusparseCreateDnVec(&vecR, SIZE, r, CUDA_R_64F);
+    cusparseCreateDnVec(&vecPh, SIZE, ph, CUDA_R_64F);
+    cusparseCreateDnVec(&vecV, SIZE, v, CUDA_R_64F);
+    cusparseCreateDnVec(&vecS, SIZE, s, CUDA_R_64F);
+    cusparseCreateDnVec(&vecT, SIZE, t, CUDA_R_64F);
+    cusparseStatus = cusparseSpMV_bufferSize(cusparseHandle, trans_A, &one, descrA, vecX, &zero, vecR,
+                     CUDA_R_64F, CUSPARSE_MV_ALG_DEFAULT, &bufferSize);
+    cudaMalloc((void**)&bufferX, bufferSize);
+    cusparseStatus = cusparseSpMV(cusparseHandle, trans_A, &one, descrA, vecX, &zero, vecR, 
+                     CUDA_R_64F, CUSPARSE_MV_ALG_DEFAULT, bufferX);
+    cublasStatus = cublasDscal(cublasHandle, SIZE, &none, r, 1);
+    
+    cublasStatus = cublasDaxpy(cublasHandle, SIZE, &one, b, 1, r, 1);
+    cublasStatus = cublasDnrm2(cublasHandle, SIZE, r, 1, &nrmr0);
+    // copy residual r into rh
     cublasDcopy(cublasHandle, SIZE, r, 1, rh, 1);
-    cudaDeviceSynchronize();
-    cublasDcopy(cublasHandle, SIZE, r, 1, r_old, 1);
-    cudaDeviceSynchronize();
-    cublasDdot(cublasHandle, SIZE, rh, 1, r, 1, &rho_old);
-    cudaDeviceSynchronize();
 
-    //    printf("nrmr0=%f\n", nrmr0);
+    printf("nrmr0=%e\n", nrmr0);
+    solver_status = 0;
 
     for (Iterations = 0; Iterations < max_iter; Iterations++) {
-        cublasDdot(cublasHandle, SIZE, rh, 1, r_old, 1, &rho);
-        cudaDeviceSynchronize();
-
-        // beta_j = (r_{j+1}, r_star) / (r_j, r_star) * (alpha/omega)
-        beta = rho / rho_old * alpha / omega;
-        // p_{j+1} = r_{j+1} + beta*(p_j - omega*A*M*p)
-
-        double nbo = -beta * omega;
-
-        cublasDscal(cublasHandle, SIZE, &beta, p, 1);
-        cudaDeviceSynchronize();
-
-        cublasDaxpy(cublasHandle, SIZE, &one, r_old, 1, p, 1);
-        cudaDeviceSynchronize();
-        cublasDaxpy(cublasHandle, SIZE, &nbo, AMp, 1, p, 1);
-        cudaDeviceSynchronize();
-        // Mp=M*p
-        cublasDcopy(cublasHandle, SIZE, p, 1, Mp, 1);
-        cudaDeviceSynchronize();
-
-        //        //        // Mp=M^(-1)*p
-        //        cusparseSetMatFillMode(descrM, CUSPARSE_FILL_MODE_LOWER);
-        //        cusparseSetMatDiagType(descrM, CUSPARSE_DIAG_TYPE_UNIT);
-        //        cusparseDcsrsv_solve(cusparseHandle, CUSPARSE_OPERATION_NON_TRANSPOSE, SIZE, &one, descrM, M,
-        //        (int*)ArowIdx,
-        //                             (int*)AcolIdx, info_l, p,
-        //                             AMp);  // AMp is just dummy vector to save (Ml^-1*p)
-        //        cudaDeviceSynchronize();
-        //        cusparseSetMatFillMode(descrM, CUSPARSE_FILL_MODE_UPPER);
-        //        cusparseSetMatDiagType(descrM, CUSPARSE_DIAG_TYPE_NON_UNIT);
-        //        cusparseDcsrsv_solve(cusparseHandle, CUSPARSE_OPERATION_NON_TRANSPOSE, SIZE, &one, descrM, M,
-        //        (int*)ArowIdx,
-        //                             (int*)AcolIdx, info_u, AMp,
-        //                             Mp);  // AMp is just dummy vector to save (Ml ^ -1 * p), Mu ^ -1 * AMp = Mp
-        //
-        //        cudaDeviceSynchronize();
-
-        // AMp=A*Mp
-        cusparseDcsrmv(cusparseHandle, CUSPARSE_OPERATION_NON_TRANSPOSE, SIZE, SIZE, NNZ, &one, descrA, A,
-                       (int*)ArowIdx, (int*)AcolIdx, Mp, &zero, AMp);
-        cudaDeviceSynchronize();
-
-        // alpha=rho/(rh'*AMp)
-        cublasDdot(cublasHandle, SIZE, rh, 1, AMp, 1, &temp);
-        cudaDeviceSynchronize();
-        if (abs(temp) < 1e-6) {
-            residual = nrmr;
-            solver_status = 0;
+        if (nrmr > nrmr0)
             break;
-        }
-        alpha = rho / temp;
-        negalpha = -(alpha);
-        cublasDnrm2(cublasHandle, SIZE, Mp, 1, &nrmr);
-        cudaDeviceSynchronize();
-        //            nrmr *= alpha;
+        rho_old = rho;
+        // compute rho_i
+        cublasDdot(cublasHandle, SIZE, rh, 1, r, 1, &rho);
 
+        // compute beta
+        // double rho_old_m = (rho_old < 1e-15) ? rho_old * 1e6 : rho_old;
+        // double rho_m = (rho_old < 1e-15) ? rho * 1e6 : rho;
+        // double omega_m = (omega < 1e-15) ? omega * 1e6 : omega;
+        // double alpha_m = (omega < 1e-15) ? alpha * 1e6 : alpha;
+
+        beta = (rho / rho_old) * (alpha / omega);
+        // p_i = r_{i-1} + beta * (p_{i-1} - omega_{i-1} * v_{i-1}) 
+        cublasDaxpy(cublasHandle, SIZE, &negomega, v, 1, p, 1);
+        cublasDscal(cublasHandle, SIZE, &beta, p, 1);
+        cublasDaxpy(cublasHandle, SIZE, &one, r, 1, p, 1);
+        // cublasDnrm2(cublasHandle, SIZE, p, 1, &nrmr);
+        // printf("p is: %e\n", nrmr);
+        // M p^hat = p
+        cusparseDcsrsv2_solve(cusparseHandle, trans_L, SIZE, NNZ, &one, descr_L, Ac,
+                       (int*)ArowIdx, (int*)AcolIdx, info_L, p, t, policy_L, pBuffer);
+        cusparseDcsrsv2_solve(cusparseHandle, trans_U, SIZE, NNZ, &one, descr_U, Ac,
+                       (int*)ArowIdx, (int*)AcolIdx, info_U, t, ph, policy_U, pBuffer);
+        cudaDeviceSynchronize();
+
+        // v = A p^hat
+        cusparseStatus = cusparseSpMV_bufferSize(cusparseHandle, trans_A, &one, descrA, vecPh, &zero, vecV,
+                         CUDA_R_64F, CUSPARSE_MV_ALG_DEFAULT, &bufferSize);
+        cudaMalloc((void**)&bufferP, bufferSize);
+        cusparseStatus = cusparseSpMV(cusparseHandle, trans_A, &one, descrA, vecPh, &zero, vecV, 
+                         CUDA_R_64F, CUSPARSE_MV_ALG_DEFAULT, bufferP);
+
+        // cublasDnrm2(cublasHandle, SIZE, t, 1, &nrmr);
+        // printf("t is: %e\n", nrmr);
+        // alpha = rho_i / (rh * v_i)
+        cublasDdot(cublasHandle, SIZE, rh, 1, v, 1, &temp);
+        if (isnan(temp))
+            break;
+
+        alpha = rho / temp;
+        negalpha = -alpha;
+    
+        // compute x_i = x_{i-1} + alpha * p_i
+        cublasDaxpy(cublasHandle, SIZE, &alpha, ph, 1, x, 1);
+
+        // compute s = r_{i-1} - alpha * v_i, here can overwrite r_{i-1} by s
+        // since it's an intermediate result
+        cublasDaxpy(cublasHandle, SIZE, &negalpha, v, 1, r, 1);
+        cublasDnrm2(cublasHandle, SIZE, r, 1, &nrmr);
+        // if h is accurate enough, set x=h and exit
         if (nrmr < rel_res * nrmr0 || nrmr < abs_res) {
-            // x = x+ alpha*Mp
-            cublasDaxpy(cublasHandle, SIZE, &alpha, Mp, 1, x, 1);
-            cudaDeviceSynchronize();
             residual = nrmr;
             solver_status = 1;
+            printf("abs_res is %e, 2-norm of r is %e\n", abs_res, nrmr);
+            // printf("relative residual is %f, absolute residual is %f\n", rel_res, residual);
             break;
+        } else {
+            solver_status = 0;
         }
-        //        printf("alpha=%.3e, temp=%.3e, beta=%.3e, rho_old=%.3e, rho=%.3e ", alpha, temp, beta, rho_old, rho);
-
-        // s = r_old-alpha*AMp
-        cublasDcopy(cublasHandle, SIZE, r_old, 1, s, 1);
-        cudaDeviceSynchronize();
-        cublasDaxpy(cublasHandle, SIZE, &negalpha, AMp, 1, s, 1);
-        cudaDeviceSynchronize();
-
-        cublasDcopy(cublasHandle, SIZE, s, 1, Ms, 1);
-        cudaDeviceSynchronize();
-
-        //        // Ms=M^(-1)*s
-        //        cusparseSetMatFillMode(descrM, CUSPARSE_FILL_MODE_LOWER);
-        //        cusparseSetMatDiagType(descrM, CUSPARSE_DIAG_TYPE_UNIT);
-        //        cusparseDcsrsv_solve(cusparseHandle, CUSPARSE_OPERATION_NON_TRANSPOSE, SIZE, &one, descrM, M,
-        //        (int*)ArowIdx,
-        //                             (int*)AcolIdx, info_l, AMs,
-        //                             Ms);  // AMs is just dummy vector to save
-        //                                   //        (Ml ^ -1 * s)
-        //
-        //        cusparseSetMatFillMode(descrM, CUSPARSE_FILL_MODE_UPPER);
-        //        cusparseSetMatDiagType(descrM, CUSPARSE_DIAG_TYPE_NON_UNIT);
-        //        cusparseDcsrsv_solve(cusparseHandle, CUSPARSE_OPERATION_NON_TRANSPOSE, SIZE, &one, descrM, M,
-        //        (int*)ArowIdx,
-        //                             (int*)AcolIdx, info_u, AMs,
-        //                             Ms);  // AMs is just dummy vector to save (Ml ^ -1 * s),Mu ^ -1 * AMs = Ms
-
-        // AMs=A*Ms
-        cusparseDcsrmv(cusparseHandle, CUSPARSE_OPERATION_NON_TRANSPOSE, SIZE, SIZE, NNZ, &one, descrA, A,
-                       (int*)ArowIdx, (int*)AcolIdx, Ms, &zero, AMs);
-        cudaDeviceSynchronize();
-
-        // w_new
-        cublasDdot(cublasHandle, SIZE, AMs, 1, Ms, 1, &temp);
-        cudaDeviceSynchronize();
-
-        cublasDdot(cublasHandle, SIZE, AMs, 1, AMs, 1, &temp2);
-        cudaDeviceSynchronize();
+        // M s^hat = r
+        cusparseDcsrsv2_solve(cusparseHandle, trans_L, SIZE, NNZ, &one, descr_L, Ac,
+                       (int*)ArowIdx, (int*)AcolIdx, info_L, r, t, policy_L, pBuffer);
+        cusparseDcsrsv2_solve(cusparseHandle, trans_U, SIZE, NNZ, &one, descr_U, Ac,
+                       (int*)ArowIdx, (int*)AcolIdx, info_U, t, s, policy_U, pBuffer);
+        // t = A*s
+        cusparseStatus = cusparseSpMV_bufferSize(cusparseHandle, trans_A, &one, descrA, vecS, &zero, vecT,
+                         CUDA_R_64F, CUSPARSE_MV_ALG_DEFAULT, &bufferSize);
+        cudaMalloc((void**)&bufferS, bufferSize);
+        cusparseStatus = cusparseSpMV(cusparseHandle, trans_A, &one, descrA, vecS, &zero, vecT,
+                         CUDA_R_64F, CUSPARSE_MV_ALG_DEFAULT, bufferS);
+        
+        // cublasStatus = cublasDnrm2(cublasHandle, NNZ, Ac, 1, &nrmr);
+        // omega_i = t * s / (t * t)
+        cublasDdot(cublasHandle, SIZE, t, 1, r, 1, &temp);
+        cublasDdot(cublasHandle, SIZE, t, 1, t, 1, &temp2);
 
         omega = temp / temp2;
+        negomega = -omega;
 
-        // x_{j+1} = x_j + alpha*Mp + omega*Ms
-        cublasDaxpy(cublasHandle, SIZE, &alpha, Mp, 1, x, 1);
-        cudaDeviceSynchronize();
-        cublasDaxpy(cublasHandle, SIZE, &omega, Ms, 1, x, 1);
-        cudaDeviceSynchronize();
+        // x_i = x_{i-1} + omega_i * s^hat
+        cublasDaxpy(cublasHandle, SIZE, &omega, s, 1, x, 1);
 
-        // r_{j+1} = s_j - omega*AMs
-        negomega = -(omega);
-        cublasDcopy(cublasHandle, SIZE, s, 1, r, 1);
-        cudaDeviceSynchronize();
-        cublasDaxpy(cublasHandle, SIZE, &negomega, AMs, 1, r, 1);
-        cudaDeviceSynchronize();
+        // r_i = r_{i-1} - omega_i * t
+        cublasDaxpy(cublasHandle, SIZE, &negomega, t, 1, r, 1);
         cublasDnrm2(cublasHandle, SIZE, r, 1, &nrmr);
-        cudaDeviceSynchronize();
 
-        cublasDcopy(cublasHandle, SIZE, r, 1, r_old, 1);
-        cudaDeviceSynchronize();
+        // if h is accurate enough, set x=h and exit
+        if (nrmr < rel_res * nrmr0 || nrmr < abs_res) {
+            residual = nrmr;
+            solver_status = 1;
+            printf("abs_res is %e, 2-norm of r is %e\n", abs_res, nrmr);
+            // printf("relative residual is %f, absolute residual is %f\n", rel_res, residual);
+            break;
+        } else {
+            solver_status = 0;
+        }
 
-        rho_old = rho;
         residual = nrmr;
 
         if (verbose)
             printf("Iterations=%d\t ||b-A*x||=%.4e\n", Iterations, nrmr);
+        if (temp2 == 0.0) {
+            printf("Zero (t * t)\n");
+            break;
+        }
     }
 
-    cusparseDestroySolveAnalysisInfo(info_l);
-    cusparseDestroySolveAnalysisInfo(info_u);
     cudaFree(r);
-    cudaFree(r_old);
     cudaFree(rh);
     cudaFree(p);
-    cudaFree(Mp);
-    cudaFree(AMp);
+    cudaFree(ph);
     cudaFree(s);
-    cudaFree(Ms);
-    cudaFree(AMs);
-    cudaFree(M);
+    cudaFree(v);
+    cudaFree(t);
+    cudaFree(Ac);
+    // step 6: free resources
+    cudaFree(pBuffer);
+    cudaFree(bufferX);
+    cudaFree(bufferP);
+    cudaFree(bufferS);
+    cusparseDestroyMatDescr(descr_M);
+    cusparseDestroyMatDescr(descr_L);
+    cusparseDestroyMatDescr(descr_U);
+    cusparseDestroyCsrilu02Info(info_M);
+    cusparseDestroyCsrsv2Info(info_L);
+    cusparseDestroyCsrsv2Info(info_U);
+#endif
 }
-
 }  // end namespace fsi
 }  // end namespace chrono

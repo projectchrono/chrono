@@ -23,6 +23,9 @@
 #include "chrono/physics/ChSystem.h"
 
 #include "chrono/collision/ChCollisionModelBullet.h"
+#ifdef CHRONO_COLLISION
+    #include "chrono/collision/ChCollisionModelChrono.h"
+#endif
 
 namespace chrono {
 
@@ -32,7 +35,7 @@ using namespace geometry;
 // Register into the object factory, to enable run-time dynamic creation and persistence
 CH_FACTORY_REGISTER(ChBody)
 
-ChBody::ChBody() {
+ChBody::ChBody(collision::ChCollisionSystemType collision_type) {
     marklist.clear();
     forcelist.clear();
 
@@ -43,10 +46,24 @@ ChBody::ChBody() {
 
     Force_acc = VNULL;
     Torque_acc = VNULL;
-    Scr_force = VNULL;
-    Scr_torque = VNULL;
 
-    collision_model = InstanceCollisionModel();
+#ifndef CHRONO_COLLISION
+    collision_type = ChCollisionSystemType::BULLET;
+#endif
+
+    switch (collision_type) {
+        default:
+        case ChCollisionSystemType::BULLET:
+            collision_model = chrono_types::make_shared<ChCollisionModelBullet>();
+            collision_model->SetContactable(this);
+            break;
+        case ChCollisionSystemType::CHRONO:
+#ifdef CHRONO_COLLISION
+            collision_model = chrono_types::make_shared<ChCollisionModelChrono>();
+            collision_model->SetContactable(this);
+#endif
+            break;
+    }
 
     density = 1000.0f;
 
@@ -75,8 +92,6 @@ ChBody::ChBody(std::shared_ptr<collision::ChCollisionModel> new_collision_model)
 
     Force_acc = VNULL;
     Torque_acc = VNULL;
-    Scr_force = VNULL;
-    Scr_torque = VNULL;
 
     collision_model = new_collision_model;
     collision_model->SetContactable(this);
@@ -103,7 +118,7 @@ ChBody::ChBody(const ChBody& other) : ChPhysicsItem(other), ChBodyFrame(other) {
     variables = other.variables;
     variables.SetUserData((void*)this);
 
-    gyro = other.Get_gyro();
+    gyro = other.gyro;
 
     RemoveAllForces();   // also copy-duplicate the forces? Let the user handle this..
     RemoveAllMarkers();  // also copy-duplicate the markers? Let the user handle this..
@@ -111,12 +126,10 @@ ChBody::ChBody(const ChBody& other) : ChPhysicsItem(other), ChBodyFrame(other) {
     ChTime = other.ChTime;
 
     // also copy-duplicate the collision model? Let the user handle this..
-    collision_model = InstanceCollisionModel();
+    collision_model = chrono_types::make_shared<ChCollisionModelBullet>();
+    collision_model->SetContactable(this);
 
     density = other.density;
-
-    Scr_force = other.Scr_force;
-    Scr_torque = other.Scr_torque;
 
     max_speed = other.max_speed;
     max_wvel = other.max_wvel;
@@ -130,12 +143,6 @@ ChBody::ChBody(const ChBody& other) : ChPhysicsItem(other), ChBodyFrame(other) {
 ChBody::~ChBody() {
     RemoveAllForces();
     RemoveAllMarkers();
-}
-
-std::shared_ptr<collision::ChCollisionModel> ChBody::InstanceCollisionModel() {
-    auto collision_model_t = chrono_types::make_shared<ChCollisionModelBullet>();
-    collision_model_t->SetContactable(this);
-    return collision_model_t;
 }
 
 //// STATE BOOKKEEPING FUNCTIONS
@@ -157,13 +164,14 @@ void ChBody::IntStateScatter(const unsigned int off_x,  // offset in x state vec
                              const ChState& x,          // state vector, position part
                              const unsigned int off_v,  // offset in v state vector
                              const ChStateDelta& v,     // state vector, speed part
-                             const double T             // time
+                             const double T,            // time
+                             bool full_update           // perform complete update
 ) {
     this->SetCoord(x.segment(off_x, 7));
     this->SetPos_dt(v.segment(off_v + 0, 3));
     this->SetWvel_loc(v.segment(off_v + 3, 3));
     this->SetChTime(T);
-    this->Update(T);
+    this->Update(T, full_update);
 }
 
 void ChBody::IntStateGatherAcceleration(const unsigned int off_a, ChStateDelta& a) {
@@ -349,12 +357,12 @@ ChVector<> ChBody::Point_Body2World(const ChVector<>& mpoint) {
     return ChFrame<double>::TransformLocalToParent(mpoint);
 }
 
-ChVector<> ChBody::Dir_World2Body(const ChVector<>& mpoint) {
-    return Amatrix.transpose() * mpoint;
+ChVector<> ChBody::Dir_World2Body(const ChVector<>& dir) {
+    return Amatrix.transpose() * dir;
 }
 
-ChVector<> ChBody::Dir_Body2World(const ChVector<>& mpoint) {
-    return Amatrix * mpoint;
+ChVector<> ChBody::Dir_Body2World(const ChVector<>& dir) {
+    return Amatrix * dir;
 }
 
 ChVector<> ChBody::RelPoint_AbsSpeed(const ChVector<>& mrelpoint) {
@@ -388,7 +396,7 @@ void ChBody::SetInertiaXY(const ChVector<>& iner) {
     variables.GetBodyInvInertia() = variables.GetBodyInertia().inverse();
 }
 
-ChVector<> ChBody::GetInertiaXX() {
+ChVector<> ChBody::GetInertiaXX() const {
     ChVector<> iner;
     iner.x() = variables.GetBodyInertia()(0, 0);
     iner.y() = variables.GetBodyInertia()(1, 1);
@@ -396,7 +404,7 @@ ChVector<> ChBody::GetInertiaXX() {
     return iner;
 }
 
-ChVector<> ChBody::GetInertiaXY() {
+ChVector<> ChBody::GetInertiaXY() const {
     ChVector<> iner;
     iner.x() = variables.GetBodyInertia()(0, 1);
     iner.y() = variables.GetBodyInertia()(0, 2);
@@ -412,24 +420,10 @@ void ChBody::ComputeQInertia(ChMatrix44<>& mQInertia) {
 
 //////
 
-void ChBody::Add_as_lagrangian_force(const ChVector<>& force,
-                                     const ChVector<>& appl_point,
-                                     bool local,
-                                     ChVectorN<double, 7>& mQf) {
-    ChVector<> mabsforce;
-    ChVector<> mabstorque;
-    To_abs_forcetorque(force, appl_point, local, mabsforce, mabstorque);
-    mQf.segment(0, 3) += mabsforce.eigen();
-    mQf.segment(3, 4) += ChGlMatrix34<>::GlT_times_v(coord.rot, Dir_World2Body(mabstorque)).eigen();
+void ChBody::Empty_forces_accumulators() {
+    Force_acc = VNULL;
+    Torque_acc = VNULL;
 }
-
-void ChBody::Add_as_lagrangian_torque(const ChVector<>& torque, bool local, ChVectorN<double, 7>& mQf) {
-    ChVector<> mabstorque;
-    To_abs_torque(torque, local, mabstorque);
-    mQf.segment(3, 4) += ChGlMatrix34<>::GlT_times_v(coord.rot, Dir_World2Body(mabstorque)).eigen();
-}
-
-//////
 
 void ChBody::Accumulate_force(const ChVector<>& force, const ChVector<>& appl_point, bool local) {
     ChVector<> mabsforce;
@@ -441,28 +435,14 @@ void ChBody::Accumulate_force(const ChVector<>& force, const ChVector<>& appl_po
 }
 
 void ChBody::Accumulate_torque(const ChVector<>& torque, bool local) {
-    ChVector<> mabstorque;
-    To_abs_torque(torque, local, mabstorque);
-    Torque_acc += mabstorque;
+    if (local) {
+        Torque_acc += torque;
+    } else {
+        Torque_acc += Dir_World2Body(torque);
+    }
 }
 
-void ChBody::Accumulate_script_force(const ChVector<>& force, const ChVector<>& appl_point, bool local) {
-    ChVector<> mabsforce;
-    ChVector<> mabstorque;
-    To_abs_forcetorque(force, appl_point, local, mabsforce, mabstorque);
-
-    Scr_force += mabsforce;
-    Scr_torque += mabstorque;
-}
-
-void ChBody::Accumulate_script_torque(const ChVector<>& torque, bool local) {
-    ChVector<> mabstorque;
-    To_abs_torque(torque, local, mabstorque);
-
-    Scr_torque += mabstorque;
-}
-
-////////
+//////
 
 void ChBody::ComputeGyro() {
     ChVector<> Wvel = this->GetWvel_loc();
@@ -590,19 +570,12 @@ void ChBody::UpdateMarkers(double mytime) {
 }
 
 void ChBody::UpdateForces(double mytime) {
-    // COMPUTE LAGRANGIAN FORCES APPLIED TO BODY
-
-    // 1a- force caused by accumulation of forces in body's accumulator Force_acc
+    // Initialize body force (in abs. coords) and torque (in local coords)
+    // with current values from the accumulators.
     Xforce = Force_acc;
+    Xtorque = Torque_acc;
 
-    // 1b- force caused by accumulation of torques in body's accumulator Force_acc
-    if (Vnotnull(Torque_acc)) {
-        Xtorque = Dir_World2Body(Torque_acc);
-    } else {
-        Xtorque = VNULL;
-    }
-
-    // 2 - accumulation of other applied forces
+    // Accumulate other applied forces
     ChVector<> mforce;
     ChVector<> mtorque;
 
@@ -615,15 +588,9 @@ void ChBody::UpdateForces(double mytime) {
         Xtorque += mtorque;
     }
 
-    // 3 - accumulation of script forces
-    Xforce += Scr_force;
-
-    if (Vnotnull(Scr_torque)) {
-        Xtorque += Dir_World2Body(Scr_torque);
-    }
-
-    if (GetSystem()) {
-        Xforce += GetSystem()->Get_G_acc() * this->GetMass();
+    // Add gravitational forces
+    if (system) {
+        Xforce += system->Get_G_acc() * GetMass();
     }
 }
 
@@ -1010,6 +977,14 @@ void ChBody::ComputeJacobianForRollingContactPart(
     jacobian_tuple_V.Get_Cq().segment(3, 3) = Jr1.row(2);
 }
 
+ChVector<> ChBody::GetAppliedForce() {
+    return GetSystem()->GetBodyAppliedForce(this);
+}
+
+ChVector<> ChBody::GetAppliedTorque() {
+    return GetSystem()->GetBodyAppliedTorque(this);
+}
+
 ChVector<> ChBody::GetContactForce() {
     return GetSystem()->GetContactContainer()->GetContactableForce(this);
 }
@@ -1110,8 +1085,6 @@ void ChBody::ArchiveOUT(ChArchiveOut& marchive) {
     marchive << CHNVP(Xtorque);
     // marchive << CHNVP(Force_acc); // not useful in serialization
     // marchive << CHNVP(Torque_acc);// not useful in serialization
-    // marchive << CHNVP(Scr_force); // not useful in serialization
-    // marchive << CHNVP(Scr_torque);// not useful in serialization
     marchive << CHNVP(density);
     marchive << CHNVP(variables);
     marchive << CHNVP(max_speed);
@@ -1125,7 +1098,7 @@ void ChBody::ArchiveOUT(ChArchiveOut& marchive) {
 /// Method to allow de serialization of transient data from archives.
 void ChBody::ArchiveIN(ChArchiveIn& marchive) {
     // version number
-    int version = marchive.VersionRead<ChBody>();
+    /*int version =*/ marchive.VersionRead<ChBody>();
 
     // deserialize parent class
     ChPhysicsItem::ArchiveIN(marchive);
@@ -1171,8 +1144,6 @@ void ChBody::ArchiveIN(ChArchiveIn& marchive) {
     marchive >> CHNVP(Xtorque);
     // marchive << CHNVP(Force_acc); // not useful in serialization
     // marchive << CHNVP(Torque_acc);// not useful in serialization
-    // marchive << CHNVP(Scr_force); // not useful in serialization
-    // marchive << CHNVP(Scr_torque);// not useful in serialization
     marchive >> CHNVP(density);
     marchive >> CHNVP(variables);
     marchive >> CHNVP(max_speed);

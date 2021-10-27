@@ -89,6 +89,7 @@ ChIrrGuiDriver::ChIrrGuiDriver(ChVehicleIrrApp& app)
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 bool ChIrrGuiDriver::OnEvent(const SEvent& event) {
+    
     if (m_mode == JOYSTICK) {
         /// Only handles joystick events
         if (event.EventType != EET_JOYSTICK_INPUT_EVENT)
@@ -101,9 +102,9 @@ bool ChIrrGuiDriver::OnEvent(const SEvent& event) {
 
         m_dT = 0;
 
-        double th = event.JoystickEvent.Axis[SEvent::SJoystickEvent::AXIS_Z] + SHRT_MAX;
-        double br = event.JoystickEvent.Axis[SEvent::SJoystickEvent::AXIS_R] + SHRT_MAX;
-        double new_steering = (double)event.JoystickEvent.Axis[SEvent::SJoystickEvent::AXIS_X] / SHRT_MAX;
+        double th = event.JoystickEvent.Axis[throttle_axis] + SHRT_MAX;
+        double br = event.JoystickEvent.Axis[brake_axis] + SHRT_MAX;
+        double new_steering = (double)event.JoystickEvent.Axis[steer_axis] / SHRT_MAX;
         double new_throttle = (2 * SHRT_MAX - th) / (2 * SHRT_MAX);
         double new_braking = (2 * SHRT_MAX - br) / (2 * SHRT_MAX);
 
@@ -114,22 +115,26 @@ bool ChIrrGuiDriver::OnEvent(const SEvent& event) {
         if (m_braking != new_braking)
             SetBraking(new_braking);
 
-        if (event.JoystickEvent.Axis[SEvent::SJoystickEvent::AXIS_Y] != SHRT_MAX) {
+        if (event.JoystickEvent.Axis[clutch_axis] != SHRT_MAX && clutch_axis!=NONE) {
             SetThrottle(0);
             if (m_app.m_vehicle->GetPowertrain()) {
                 if (event.JoystickEvent.IsButtonPressed(22)) {
                     /// Gear is set to reverse
-                    m_app.m_vehicle->GetPowertrain()->SetDriveMode(ChPowertrain::REVERSE);
+                    m_app.m_vehicle->GetPowertrain()->SetDriveMode(ChPowertrain::DriveMode::REVERSE);
                 } else if (event.JoystickEvent.IsButtonPressed(12) || event.JoystickEvent.IsButtonPressed(13) ||
                            event.JoystickEvent.IsButtonPressed(14) || event.JoystickEvent.IsButtonPressed(15) ||
                            event.JoystickEvent.IsButtonPressed(16) || event.JoystickEvent.IsButtonPressed(17)) {
                     // All 'forward' gears set drive mode to forward, regardless of gear
-                    m_app.m_vehicle->GetPowertrain()->SetDriveMode(ChPowertrain::FORWARD);
+                    m_app.m_vehicle->GetPowertrain()->SetDriveMode(ChPowertrain::DriveMode::FORWARD);
                 } else {
-                    m_app.m_vehicle->GetPowertrain()->SetDriveMode(ChPowertrain::NEUTRAL);
+                    m_app.m_vehicle->GetPowertrain()->SetDriveMode(ChPowertrain::DriveMode::NEUTRAL);
                 }
             }
         }
+        // joystick callback, outside of condition because it might be used to switch to joystick
+        if (callbackButton > -1 && cb_fun != nullptr && event.JoystickEvent.IsButtonPressed(callbackButton) ) {
+                cb_fun();
+            }
 
         return true;
     }
@@ -187,16 +192,40 @@ bool ChIrrGuiDriver::OnEvent(const SEvent& event) {
 
             case KEY_KEY_Z:
                 if (m_mode == KEYBOARD && m_app.m_vehicle->GetPowertrain())
-                    m_app.m_vehicle->GetPowertrain()->SetDriveMode(ChPowertrain::FORWARD);
+                    m_app.m_vehicle->GetPowertrain()->SetDriveMode(ChPowertrain::DriveMode::FORWARD);
                 return true;
             case KEY_KEY_X:
                 if (m_mode == KEYBOARD && m_app.m_vehicle->GetPowertrain())
-                    m_app.m_vehicle->GetPowertrain()->SetDriveMode(ChPowertrain::NEUTRAL);
+                    m_app.m_vehicle->GetPowertrain()->SetDriveMode(ChPowertrain::DriveMode::NEUTRAL);
                 return true;
             case KEY_KEY_C:
                 if (m_mode == KEYBOARD && m_app.m_vehicle->GetPowertrain())
-                    m_app.m_vehicle->GetPowertrain()->SetDriveMode(ChPowertrain::REVERSE);
+                    m_app.m_vehicle->GetPowertrain()->SetDriveMode(ChPowertrain::DriveMode::REVERSE);
                 return true;
+
+            case KEY_KEY_T:
+                if (m_mode == KEYBOARD && m_app.m_vehicle->GetPowertrain()) {
+                    switch (m_app.m_vehicle->GetPowertrain()->GetTransmissionMode()) {
+                        case ChPowertrain::TransmissionMode::MANUAL:
+                            m_app.m_vehicle->GetPowertrain()->SetTransmissionMode(
+                                ChPowertrain::TransmissionMode::AUTOMATIC);
+                            break;
+                        case ChPowertrain::TransmissionMode::AUTOMATIC:
+                            m_app.m_vehicle->GetPowertrain()->SetTransmissionMode(
+                                ChPowertrain::TransmissionMode::MANUAL);
+                            break;
+                    }
+                }
+                return true;
+            case KEY_PERIOD:
+                if (m_mode == KEYBOARD && m_app.m_vehicle->GetPowertrain())
+                    m_app.m_vehicle->GetPowertrain()->ShiftUp();
+                return true;
+            case KEY_COMMA:
+                if (m_mode == KEYBOARD && m_app.m_vehicle->GetPowertrain())
+                    m_app.m_vehicle->GetPowertrain()->ShiftDown();
+                return true;
+
             default:
                 break;
         }
@@ -251,6 +280,14 @@ void ChIrrGuiDriver::SetInputMode(InputMode mode) {
             m_mode = JOYSTICK;
             break;
     }
+}
+
+void ChIrrGuiDriver::SetJoystickAxes(JoystickAxes tr_ax, JoystickAxes br_ax, JoystickAxes st_ax, JoystickAxes cl_ax){
+
+    throttle_axis = tr_ax;
+    brake_axis = br_ax; 
+    steer_axis = st_ax;
+    clutch_axis = cl_ax;
 }
 
 // -----------------------------------------------------------------------------

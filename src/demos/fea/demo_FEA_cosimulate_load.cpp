@@ -89,7 +89,7 @@ void draw_affected_triangles(ChIrrApp& application,
         if (vert_hit == true) {
             std::vector<chrono::ChVector<>> fourpoints = {vert_pos[triangles[it].x()], vert_pos[triangles[it].y()],
                                                           vert_pos[triangles[it].z()], vert_pos[triangles[it].x()]};
-            ChIrrTools::drawPolyline(application.GetVideoDriver(), fourpoints, irr::video::SColor(255, 240, 200, 0),
+            tools::drawPolyline(application.GetVideoDriver(), fourpoints, irr::video::SColor(255, 240, 200, 0),
                                      true);
         }
     }
@@ -97,7 +97,7 @@ void draw_affected_triangles(ChIrrApp& application,
         for (int io = 0; io < vert_indexes.size(); ++io) {
             std::vector<chrono::ChVector<>> forceline = {vert_pos[vert_indexes[io]],
                                                          vert_pos[vert_indexes[io]] + vert_forces[io] * forcescale};
-            ChIrrTools::drawPolyline(application.GetVideoDriver(), forceline, irr::video::SColor(100, 240, 0, 0), true);
+            tools::drawPolyline(application.GetVideoDriver(), forceline, irr::video::SColor(100, 240, 0, 0), true);
         }
 }
 
@@ -106,18 +106,15 @@ int main(int argc, char* argv[]) {
 
     // Global parameter for tire:
     double tire_rad = 0.8;
-    double tire_vel_z0 = -3;
     ChVector<> tire_center(0, 0.02 + tire_rad, 0.5);
     ChMatrix33<> tire_alignment(Q_from_AngAxis(CH_C_PI, VECT_Y));  // create rotated 180° on y
-
-    double tire_w0 = tire_vel_z0 / tire_rad;
 
     // Create a Chrono::Engine physical system
     ChSystemSMC my_system;
 
     // Create the Irrlicht visualization (open the Irrlicht device,
     // bind a simple user interface, etc. etc.)
-    ChIrrApp application(&my_system, L"demo_FEA_cosimulate_load", core::dimension2d<u32>(1280, 720), false, true);
+    ChIrrApp application(&my_system, L"demo_FEA_cosimulate_load", core::dimension2d<u32>(1280, 720), VerticalDir::Y, false, true);
 
     // Easy shortcuts to add camera, lights, logo and sky in Irrlicht scene:
     application.AddTypicalLogo();
@@ -163,9 +160,10 @@ int main(int argc, char* argv[]) {
     std::map<std::string, std::vector<std::shared_ptr<ChNodeFEAbase>>> node_sets;
 
     try {
-        ChMeshFileLoader::FromAbaqusFile(my_mesh, GetChronoDataFile("fea/tractor_wheel_coarse.INP").c_str(), mmaterial,
-                                         node_sets, tire_center, tire_alignment);
-    } catch (ChException myerr) {
+        ChMeshFileLoader::FromAbaqusFile(my_mesh,
+                                         GetChronoDataFile("models/tractor_wheel/tractor_wheel_coarse.INP").c_str(),
+                                         mmaterial, node_sets, tire_center, tire_alignment);
+    } catch (const ChException &myerr) {
         GetLog() << myerr.what();
         return 0;
     }
@@ -216,7 +214,7 @@ int main(int argc, char* argv[]) {
     mrigidbody->SetPos(tire_center + ChVector<>(-1, 0, 0));
 
     auto mrigidmesh = chrono_types::make_shared<ChTriangleMeshShape>();
-    mrigidmesh->GetMesh()->LoadWavefrontMesh(GetChronoDataFile("tractor_wheel_fine.obj"));
+    mrigidmesh->GetMesh()->LoadWavefrontMesh(GetChronoDataFile("models/tractor_wheel/tractor_wheel_fine.obj"));
     mrigidmesh->GetMesh()->Transform(VNULL, Q_from_AngAxis(CH_C_PI, VECT_Y));
     mrigidbody->AddAsset(mrigidmesh);
 
@@ -313,7 +311,7 @@ int main(int argc, char* argv[]) {
         // End of cosimulation block
         // -------------------------------------------------------------------------
 
-        ChIrrTools::drawGrid(application.GetVideoDriver(), 0.1, 0.1, 20, 20, ChCoordsys<>(VNULL, CH_C_PI_2, VECT_X),
+        tools::drawGrid(application.GetVideoDriver(), 0.1, 0.1, 20, 20, ChCoordsys<>(VNULL, CH_C_PI_2, VECT_X),
                              video::SColor(50, 90, 90, 90), true);
 
         application.EndScene();

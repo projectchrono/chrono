@@ -39,7 +39,7 @@ int main(int argc, char* argv[]) {
     if (argc > 1) {
         filename = std::string(argv[1]);
     } else {
-        filename = "adams/test_Revolute_Case01.adm";
+        filename = "testing/joints/adams_models/test_Revolute_Case01.adm";
     }
     filename = GetChronoDataFile(filename);
 
@@ -65,10 +65,10 @@ int main(int argc, char* argv[]) {
     my_ground->SetBodyFixed(true);
     my_ground->SetPos(ChVector<>(0, -2.9, 0));
     my_ground->SetNameString(std::string("ground"));
-    my_ground->AddAsset(chrono_types::make_shared<ChTexture>(GetChronoDataFile("concrete.jpg")));
+    my_ground->AddAsset(chrono_types::make_shared<ChTexture>(GetChronoDataFile("textures/concrete.jpg")));
 
     // Set up Irrlicht
-    ChIrrApp application(&my_system, L"Model loaded from ADAMS file", core::dimension2d<u32>(800, 600), false, true);
+    ChIrrApp application(&my_system, L"Model loaded from ADAMS file", core::dimension2d<u32>(800, 600));
     application.AddTypicalLogo();
     application.AddTypicalSky();
     application.AddTypicalLights();

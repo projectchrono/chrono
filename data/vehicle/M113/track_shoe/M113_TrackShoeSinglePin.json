@@ -10,13 +10,16 @@
         "Inertia": [ 0.22, 0.04, 0.25 ]
     },
 
+    // Contact point on track shoe for detracking control
+    "Guide Pin Center": [ 0.045, 0, 0.0375 ],
+
     "Contact": {
         "Cylinder Material": {
             // Material for sprocket contact surfaces
             "Coefficient of Friction": 0.8,
-            "Coefficient of Restitution": 0.1,
+            "Coefficient of Restitution": 0.75,
             "Properties": {
-                "Young Modulus": 1e7,
+                "Young Modulus": 1e9,
                 "Poisson Ratio": 0.3
             },
             "Coefficients": {
@@ -31,7 +34,7 @@
             {
                 // Material 0: pad bottom (ground contact)
                 "Coefficient of Friction": 0.8,
-                "Coefficient of Restitution": 0.1,
+                "Coefficient of Restitution": 0.75,
                 "Properties": {
                     "Young Modulus": 1e7,
                     "Poisson Ratio": 0.3
@@ -46,7 +49,7 @@
             {
                 // Material 1: pad top (wheel contact)
                 "Coefficient of Friction": 0.8,
-                "Coefficient of Restitution": 0.1,
+                "Coefficient of Restitution": 0.75,
                 "Properties": {
                     "Young Modulus": 1e7,
                     "Poisson Ratio": 0.3
@@ -62,7 +65,7 @@
             {
                 // Material 2: guide pin (wheel contact)
                 "Coefficient of Friction": 0.8,
-                "Coefficient of Restitution": 0.1,
+                "Coefficient of Restitution": 0.75,
                 "Properties": {
                     "Young Modulus": 1e7,
                     "Poisson Ratio": 0.3

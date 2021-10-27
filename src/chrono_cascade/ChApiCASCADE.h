@@ -15,8 +15,6 @@
 #ifndef CHAPI_CASCADE_H
 #define CHAPI_CASCADE_H
 
-//#pragma warning(disable: 4251)
-
 #include "chrono/core/ChPlatform.h"
 
 // When compiling this library, remember to define CH_API_COMPILE_CASCADE
@@ -47,7 +45,7 @@ namespace chrono {
 /// @addtogroup cascade_module
 /// @{
 
-/// \brief Namespace with classes for the OpenCASCADE unit.
+/// \brief Namespace with classes for the CASCADE module.
 /// The "cascade" namespace contains tools for interoperation with CAD
 /// files. The OpenCASCADE open-source library is used to this end:
 /// it can load STEP files saved from most 3D CADs.

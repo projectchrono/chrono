@@ -62,17 +62,14 @@ const double Generic_MultiLink::m_springRestLength = 0.339;
 // Constructor
 // -----------------------------------------------------------------------------
 Generic_MultiLink::Generic_MultiLink(const std::string& name) : ChMultiLink(name) {
-    m_springForceCB = new LinearSpringForce(m_springCoefficient);
-    m_shockForceCB = new LinearDamperForce(m_dampingCoefficient);
+    m_springForceCB = chrono_types::make_shared<LinearSpringForce>(m_springCoefficient);
+    m_shockForceCB = chrono_types::make_shared<LinearDamperForce>(m_dampingCoefficient);
 }
 
 // -----------------------------------------------------------------------------
 // Destructor
 // -----------------------------------------------------------------------------
-Generic_MultiLink::~Generic_MultiLink() {
-    delete m_springForceCB;
-    delete m_shockForceCB;
-}
+Generic_MultiLink::~Generic_MultiLink() {}
 
 // -----------------------------------------------------------------------------
 // Implementation of the getLocation() virtual methods.

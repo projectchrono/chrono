@@ -20,6 +20,7 @@
 #include "chrono/assets/ChBoxShape.h"
 #include "chrono/assets/ChCylinderShape.h"
 #include "chrono/assets/ChSphereShape.h"
+#include "chrono/assets/ChCapsuleShape.h"
 #include "chrono/assets/ChObjShapeFile.h"
 #include "chrono/assets/ChTexture.h"
 #include "chrono/assets/ChVisualization.h"
@@ -47,6 +48,7 @@ class ChApiIrr ChIrrAssetConverter {
     irr::scene::IAnimatedMesh* sphereMesh;
     irr::scene::IMesh* cubeMesh;
     irr::scene::IMesh* cylinderMesh;
+    irr::scene::IMesh* capsuleMesh;
 
     irr::scene::ISceneManager* scenemanager;
     irr::IrrlichtDevice* mdevice;
@@ -112,8 +114,8 @@ class ChApiIrr ChIrrAssetConverter {
                                   ChFrame<> parentframe,
                                   irr::scene::ISceneNode* mnode);
 
-    void BindAllContentsOfAssembly(ChAssembly* massy, std::unordered_set<ChAssembly*>& mtrace);
-    void UpdateAllContentsOfAssembly(ChAssembly* massy, std::unordered_set<ChAssembly*>& mtrace);
+    void BindAllContentsOfAssembly(const ChAssembly* massy, std::unordered_set<const ChAssembly*>& mtrace);
+    void UpdateAllContentsOfAssembly(const ChAssembly* massy, std::unordered_set<const ChAssembly*>& mtrace);
 };
 
 /// @} irrlicht_module

@@ -37,22 +37,21 @@ namespace man {
 /// Simple MAN 5t powertrain subsystem (purely kinematic).
 class CH_MODELS_API MAN_5t_SimpleCVTPowertrain : public ChSimpleCVTPowertrain {
   public:
-    MAN_5t_SimpleCVTPowertrain(const std::string& name, double maxSpeed);
+    MAN_5t_SimpleCVTPowertrain(const std::string& name);
 
     ~MAN_5t_SimpleCVTPowertrain() {}
 
-    virtual double GetForwardGearRatio() const override { return m_fwd_gear_ratio; }
-    virtual double GetReverseGearRatio() const override { return m_rev_gear_ratio; }
+    virtual void SetGearRatios(std::vector<double>& fwd, double& rev) override;
     virtual double GetMaxTorque() const override { return m_max_torque; }
     virtual double GetMaxPower() const override { return m_max_power; }
-    virtual double GetCriticalSpeed() const override { return m_critical_speed; }
+    virtual double GetMaxSpeed() const override { return m_max_speed; }
 
   private:
     static const double m_fwd_gear_ratio;  // forward gear ratio (single gear transmission)
     static const double m_rev_gear_ratio;  // reverse gear ratio
     static const double m_max_torque;      // maximum motor torque
     static const double m_max_power;       // maximum motor power
-    static const double m_critical_speed;  // critical motor speed for torque limiting
+    static const double m_max_speed;       // maximum engine speed
 };
 
 /// @} vehicle_models_man

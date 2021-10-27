@@ -118,7 +118,6 @@ bool TestRackPinion(const ChVector<>& jointLoc,      // absolute location of joi
     ChVector<> inertiaXX_Pinion(0.1, 0.1, 0.04);  // mass moments of inertia of pinion (centroidal frame)
 
     double massRack = 1.0;                      // mass of pendulum
-    double lengthRack = 8.0;                    // length of pendulum
     ChVector<> inertiaXX_Rack(0.1, 0.1, 0.04);  // mass moments of inertia of pendulum (centroidal frame)
     double g = 9.80665;
 
@@ -317,19 +316,15 @@ bool TestRackPinion(const ChVector<>& jointLoc,      // absolute location of joi
             // Translational Kinetic Energy (1/2*m*||v||^2)
             // Rotational Kinetic Energy (1/2 w'*I*w)
             // Delta Potential Energy (m*g*dz)
-            ChMatrix33<> inertiaPinion = pinion->GetInertia();
-            ChVector<> angVelLocPinion = pinion->GetWvel_loc();
-            ChMatrix33<> inertiaRack = rack->GetInertia();
-            ChVector<> angVelLocRack = rack->GetWvel_loc();
-            double transKE =
-                0.5 * massPinion * pinion->GetPos_dt().Length2() + 0.5 * massRack * rack->GetPos_dt().Length2();
-            double rotKE = 0.5 * Vdot(angVelLocPinion, inertiaPinion * angVelLocPinion) +
-                           0.5 * Vdot(angVelLocRack, inertiaRack * angVelLocRack);
-            double deltaPE = massPinion * g * (pinion->GetPos().z() - jointLoc.z()) +
-                             massRack * g * (rack->GetPos().z() - jointLoc.z());
+            angVelLocPinion = pinion->GetWvel_loc();
+            angVelLocRack = rack->GetWvel_loc();
+            transKE = 0.5 * massPinion * pinion->GetPos_dt().Length2() + 0.5 * massRack * rack->GetPos_dt().Length2();
+            rotKE = 0.5 * Vdot(angVelLocPinion, inertiaPinion * angVelLocPinion) +
+                    0.5 * Vdot(angVelLocRack, inertiaRack * angVelLocRack);
+            deltaPE = massPinion * g * (pinion->GetPos().z() - jointLoc.z()) +
+                      massRack * g * (rack->GetPos().z() - jointLoc.z());
             double totalE = transKE + rotKE + deltaPE;
             out_energy << simTime << transKE << rotKE << deltaPE << totalE - totalE0 << std::endl;
-            ;
 
             // Increment output time
             outTime += outTimeStep;

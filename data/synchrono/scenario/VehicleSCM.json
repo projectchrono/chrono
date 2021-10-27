@@ -1,0 +1,27 @@
+{
+  "Name": "Simple Vehicle Scenario",
+  "Type": "Scenario",
+
+  "Ranks": [{
+      "Rank": 0
+    },
+    {
+      "Rank": 1,
+      "Agent": {
+        "Type": "VehicleAgent",
+        "Input File": "agent/HMMWVAgent.json",
+        "Location": [0, 0, 0.75],
+        "Orientation": [1, 0, 0, 0]
+      }
+    },
+    {
+      "Rank": 2,
+      "Agent": {
+        "Type": "VehicleAgent",
+        "Input File": "agent/CityBusAgent.json",
+        "Location": [0, 2.5, 0.75],
+        "Orientation": [1, 0, 0, 0]
+      }
+    }
+  ]
+}

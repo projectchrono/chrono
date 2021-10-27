@@ -47,6 +47,7 @@
         
         @defgroup vehicle_wheeled Wheeled vehicles
         @{
+            @defgroup vehicle_wheeled_subchassis Subchassis subsystem
             @defgroup vehicle_wheeled_suspension Suspension subsystem
             @defgroup vehicle_wheeled_steering Steering subsystem
             @defgroup vehicle_wheeled_tire Tire subsystem

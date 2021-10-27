@@ -16,13 +16,12 @@
 #include <array>
 
 #include "chrono/collision/ChCollisionSystemBullet.h"
-#include "chrono/collision/ChCollisionUtils.h"
+#include "chrono/collision/ChCollisionUtilsBullet.h"
 #include "chrono/collision/ChConvexDecomposition.h"
 #include "chrono/collision/ChCollisionModelBullet.h"
 #include "chrono/collision/bullet/BulletCollision/CollisionShapes/bt2DShape.h"
 #include "chrono/collision/bullet/BulletCollision/CollisionShapes/btBarrelShape.h"
 #include "chrono/collision/bullet/BulletCollision/CollisionShapes/btCEtriangleShape.h"
-#include "chrono/collision/bullet/BulletWorldImporter/btBulletWorldImporter.h"
 #include "chrono/collision/bullet/btBulletCollisionCommon.h"
 #include "chrono/collision/gimpact/GIMPACT/Bullet/btGImpactCollisionAlgorithm.h"
 #include "chrono/collision/gimpact/GIMPACTUtils/btGImpactConvexDecompositionShape.h"
@@ -93,15 +92,15 @@ static void ChPosMatrToBullet(const ChVector<>& pos, const ChMatrix33<>& rA, btT
     mtransform.setOrigin(btVector3((btScalar)pos.x(), (btScalar)pos.y(), (btScalar)pos.z()));
 }
 
-static void ChCoordsToBullet(const ChCoordsys<>& mcoords, btTransform& mtransform) {
-    ChMatrix33<> rA;
-    rA.Set_A_quaternion(mcoords.rot);
-    btMatrix3x3 basisA((btScalar)rA(0, 0), (btScalar)rA(0, 1), (btScalar)rA(0, 2), (btScalar)rA(1, 0),
-                       (btScalar)rA(1, 1), (btScalar)rA(1, 2), (btScalar)rA(2, 0), (btScalar)rA(2, 1),
-                       (btScalar)rA(2, 2));
-    mtransform.setBasis(basisA);
-    mtransform.setOrigin(btVector3((btScalar)mcoords.pos.x(), (btScalar)mcoords.pos.y(), (btScalar)mcoords.pos.z()));
-}
+////static void ChCoordsToBullet(const ChCoordsys<>& mcoords, btTransform& mtransform) {
+////    ChMatrix33<> rA;
+////    rA.Set_A_quaternion(mcoords.rot);
+////    btMatrix3x3 basisA((btScalar)rA(0, 0), (btScalar)rA(0, 1), (btScalar)rA(0, 2), (btScalar)rA(1, 0),
+////                       (btScalar)rA(1, 1), (btScalar)rA(1, 2), (btScalar)rA(2, 0), (btScalar)rA(2, 1),
+////                       (btScalar)rA(2, 2));
+////    mtransform.setBasis(basisA);
+////    mtransform.setOrigin(btVector3((btScalar)mcoords.pos.x(), (btScalar)mcoords.pos.y(), (btScalar)mcoords.pos.z()));
+////}
 
 static void ChBulletToCoords(const btTransform& mtransform, ChCoordsys<>& mcoords) {
     const btVector3& p = mtransform.getOrigin();
@@ -128,6 +127,7 @@ void ChCollisionModelBullet::injectShape(const ChVector<>& pos,
             // shape vector: {centered shape}
         } else {
             bt_compound_shape = chrono_types::make_shared<btCompoundShape>(true);
+            bt_compound_shape->setMargin(GetSuggestedFullMargin());
             btTransform mtransform;
             ChPosMatrToBullet(pos, rot, mtransform);
             bt_compound_shape->addChildShape(mtransform, shape->m_bt_shape);
@@ -142,6 +142,7 @@ void ChCollisionModelBullet::injectShape(const ChVector<>& pos,
         // shape vector: {centered shape}
         m_shapes.push_back(std::shared_ptr<ChCollisionShape>(shape));
         bt_compound_shape = chrono_types::make_shared<btCompoundShape>(true);
+        bt_compound_shape->setMargin(GetSuggestedFullMargin());
         btTransform mtransform;
         mtransform.setIdentity();
         bt_compound_shape->addChildShape(mtransform, ((ChCollisionShapeBullet*)m_shapes[0].get())->m_bt_shape);
@@ -240,6 +241,42 @@ bool ChCollisionModelBullet::AddCylinder(std::shared_ptr<ChMaterialSurface> mate
     return true;
 }
 
+bool ChCollisionModelBullet::AddCapsule(std::shared_ptr<ChMaterialSurface> material,
+                                        double radius,
+                                        double hlen,
+                                        const ChVector<>& pos,
+                                        const ChMatrix33<>& rot) {
+    // adjust default inward margin (if object too thin)
+    SetSafeMargin(ChMin(GetSafeMargin(), 0.2 * ChMin(radius, hlen)));
+
+    auto shape = new ChCollisionShapeBullet(ChCollisionShape::Type::CAPSULE, material);
+
+    btScalar ar = (btScalar)(radius + GetEnvelope());
+    btScalar ah = (btScalar)(hlen + GetEnvelope());
+    shape->m_bt_shape = new btCapsuleShape(ar, 2 * ah);
+    shape->m_bt_shape->setMargin((btScalar)GetSuggestedFullMargin());
+
+    injectShape(pos, rot, shape);
+    return true;
+}
+
+bool ChCollisionModelBullet::AddCylindricalShell(std::shared_ptr<ChMaterialSurface> material,
+                                         double radius,
+                                         double hlen,
+                                         const ChVector<>& pos,
+                                         const ChMatrix33<>& rot) {
+    // adjust default inward margin (if object too thin)
+    SetSafeMargin(ChMin(GetSafeMargin(), 0.2 * ChMin(radius, 0.5 * hlen)));
+
+    auto shape = new ChCollisionShapeBullet(ChCollisionShape::Type::CYLSHELL, material);
+    shape->m_bt_shape =
+        new btCylindricalShellShape((btScalar)(radius + GetEnvelope()), (btScalar)(hlen + GetEnvelope()));
+    shape->m_bt_shape->setMargin((btScalar)GetSuggestedFullMargin());
+
+    injectShape(pos, rot, shape);
+    return true;
+}
+
 bool ChCollisionModelBullet::AddBarrel(std::shared_ptr<ChMaterialSurface> material,
                                        double Y_low,
                                        double Y_high,
@@ -278,8 +315,8 @@ bool ChCollisionModelBullet::Add2Dpath(std::shared_ptr<ChMaterialSurface> materi
 
     for (size_t i = 0; i < mpath->GetSubLinesCount(); ++i) {
         if (auto msegment = std::dynamic_pointer_cast<geometry::ChLineSegment>(mpath->GetSubLineN(i))) {
-            if ((msegment->pA.z() != 0) || (msegment->pB.z() != 0))
-                throw ChException("Error! Add2Dpath: sub segment of ChLinePath has non-zero z coordinate!");
+            if (msegment->pA.z() != msegment->pB.z())
+                throw ChException("Error! Add2Dpath: sub segment of ChLinePath not parallel to XY plane!");
 
             btVector3 pa((btScalar)msegment->pA.x(), (btScalar)msegment->pA.y(), (btScalar)0);
             btVector3 pb((btScalar)msegment->pB.x(), (btScalar)msegment->pB.y(), (btScalar)0);
@@ -289,8 +326,8 @@ bool ChCollisionModelBullet::Add2Dpath(std::shared_ptr<ChMaterialSurface> materi
             shape->m_bt_shape->setMargin((btScalar)GetSuggestedFullMargin());
             injectShape(pos, rot, shape);
         } else if (auto marc = std::dynamic_pointer_cast<geometry::ChLineArc>(mpath->GetSubLineN(i))) {
-            if ((marc->origin.pos.z() != 0))
-                throw ChException("Error! Add2Dpath: a sub arc of ChLinePath has center with non-zero z coordinate!");
+            if ((marc->origin.rot.e1() != 0) ||  (marc->origin.rot.e2() != 0))
+                throw ChException("Error! Add2Dpath: a sub arc of ChLinePath not parallel to XY plane!");
             double mangle1 = marc->angle1;
             double mangle2 = marc->angle2;
             if (mangle1 - mangle2 == CH_C_2PI)
@@ -412,7 +449,7 @@ bool ChCollisionModelBullet::AddConvexHull(std::shared_ptr<ChMaterialSurface> ma
     SetSafeMargin((btScalar)ChMin(GetSafeMargin(), approx_chord * 0.2));
 
     // shrink the convex hull by GetSafeMargin()
-    collision::ChConvexHullLibraryWrapper lh;
+    bt_utils::ChConvexHullLibraryWrapper lh;
     geometry::ChTriangleMeshConnected mmesh;
     lh.ComputeHull(pointlist, mmesh);
     mmesh.MakeOffset(-GetSafeMargin());
@@ -624,6 +661,7 @@ bool ChCollisionModelBullet::AddTriangleMesh(std::shared_ptr<ChMaterialSurface> 
         } else {
             // Note: currently there's no 'perfect' convex decomposition method, so code here is a bit experimental...
 
+            /*
             // using the HACD convex decomposition
             auto mydecompositionHACD = chrono_types::make_shared<ChConvexDecompositionHACD>();
             mydecompositionHACD->AddTriangleMesh(*trimesh);
@@ -640,6 +678,22 @@ bool ChCollisionModelBullet::AddTriangleMesh(std::shared_ptr<ChMaterialSurface> 
             );
             mydecompositionHACD->ComputeConvexDecomposition();
             AddTriangleMeshConcaveDecomposed(material, mydecompositionHACD, pos, rot);
+            */
+
+            // using HACDv2 convex decomposition
+            auto mydecompositionHACDv2 = chrono_types::make_shared<ChConvexDecompositionHACDv2>();
+            mydecompositionHACDv2->Reset();
+            mydecompositionHACDv2->AddTriangleMesh(*trimesh);
+            mydecompositionHACDv2->SetParameters(  //
+                512,                               // max hull count
+                256,                               // max hull merge
+                64,                                // max hull vettices
+                0.2f,                              // concavity
+                0.0f,                              // small cluster threshold
+                1e-9f                              // fuse tolerance
+            );
+            mydecompositionHACDv2->ComputeConvexDecomposition();
+            AddTriangleMeshConcaveDecomposed(material, mydecompositionHACDv2, pos, rot);
         }
     }
 
@@ -846,6 +900,12 @@ std::vector<double> ChCollisionModelBullet::GetShapeDimensions(int index) const 
             auto bt_cyl = static_cast<btCylinderShape*>(shape->m_bt_shape);
             auto hdims = ChBulletToVect(bt_cyl->getHalfExtentsWithoutMargin());
             dims = {hdims.x(), hdims.z(), hdims.y()};
+            break;
+        }
+        case ChCollisionShape::Type::CYLSHELL: {
+            auto bt_cyl = static_cast<btCylindricalShellShape*>(shape->m_bt_shape);
+            auto hdims = ChBulletToVect(bt_cyl->getHalfExtentsWithoutMargin());
+            dims = {hdims.x(), hdims.y()};
             break;
         }
         default:

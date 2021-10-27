@@ -19,6 +19,7 @@ set(DEMOS_CAS
 	demo_CAS_converter
 	demo_CAS_stepfile
 	demo_CAS_robot
+	demo_CAS_profile
 )
 
 message(STATUS "Demo programs for CASCADE module...")

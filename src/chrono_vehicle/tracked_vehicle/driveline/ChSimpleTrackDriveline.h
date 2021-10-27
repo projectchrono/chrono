@@ -43,17 +43,11 @@ class CH_VEHICLE_API ChSimpleTrackDriveline : public ChDrivelineTV {
     virtual std::string GetTemplateName() const override { return "SimpleTrackDriveline"; }
 
     /// Initialize the driveline subsystem.
-    /// This function connects this driveline subsystem to the sprockets of the
-    /// two track assembly subsystems.
-    virtual void Initialize(std::shared_ptr<ChBody> chassis,              ///< handle to the chassis body
-                            std::shared_ptr<ChTrackAssembly> track_left,  ///< handle to the left track assembly
-                            std::shared_ptr<ChTrackAssembly> track_right  ///< handle to the right track assembly
+    /// This function connects this driveline subsystem to the sprockets of the two track assembly subsystems.
+    virtual void Initialize(std::shared_ptr<ChChassis> chassis,           ///< associated chassis subsystem
+                            std::shared_ptr<ChTrackAssembly> track_left,  ///< left track assembly
+                            std::shared_ptr<ChTrackAssembly> track_right  ///< right track assembly
                             ) override;
-
-    /// Get the angular speed of the driveshaft.
-    /// This represents the output from the driveline subsystem that is passed to
-    /// the powertrain system.
-    virtual double GetDriveshaftSpeed() const override;
 
     /// Update the driveline subsystem.
     /// The motor torque represents the input to the driveline subsystem from the
@@ -72,8 +66,8 @@ class CH_VEHICLE_API ChSimpleTrackDriveline : public ChDrivelineTV {
     virtual double GetDifferentialMaxBias() const = 0;
 
   private:
-      std::shared_ptr<ChShaft> m_shaft_left;
-      std::shared_ptr<ChShaft> m_shaft_right;
+    std::shared_ptr<ChShaft> m_shaft_left;   ///< associated left sprocket shaft
+    std::shared_ptr<ChShaft> m_shaft_right;  ///< associated right sprocket shaft
 };
 
 /// @} vehicle_tracked_driveline

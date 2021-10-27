@@ -16,10 +16,9 @@
 
 #include "chrono_distributed/ChApiDistributed.h"
 
-#include "chrono_parallel/collision/ChCollisionModelParallel.h"
+#include "chrono/collision/ChCollisionModelChrono.h"
 
 namespace chrono {
-
 namespace collision {
 
 /// @addtogroup distributed_collision
@@ -27,7 +26,7 @@ namespace collision {
 
 /// This class adds the ability to track the axis-aligned bounding box for the entire model
 /// so that an entire body can be classified by which sub-domains it intersects.
-class CH_DISTR_API ChCollisionModelDistributed : public ChCollisionModelParallel {
+class CH_DISTR_API ChCollisionModelDistributed : public ChCollisionModelChrono {
   public:
     ChCollisionModelDistributed();
     virtual ~ChCollisionModelDistributed();
@@ -36,43 +35,43 @@ class CH_DISTR_API ChCollisionModelDistributed : public ChCollisionModelParallel
     virtual int ClearModel() override;
 
     /// Adds a box collision shape to the model and calculates the model's new AABB
-    virtual bool AddBox(std::shared_ptr<ChMaterialSurface> material,
-                        double hx,
-                        double hy,
-                        double hz,
-                        const ChVector<>& pos = ChVector<>(),
-                        const ChMatrix33<>& rot = ChMatrix33<>(1)) override;
+    virtual bool AddBox(std::shared_ptr<ChMaterialSurface> material,  ///< Contact material
+                        double hx,                                    ///< Half-dimension in X direction
+                        double hy,                                    ///< Half-dimension in Y direction
+                        double hz,                                    ///< Half-dimension in Z direction
+                        const ChVector<>& pos = ChVector<>(),         ///< Box center location
+                        const ChMatrix33<>& rot = ChMatrix33<>(1)     ///< Box orientation
+                        ) override;
 
     /// Adds a sphere collision shape to the model and calculates the model's new AABB
-    virtual bool AddSphere(std::shared_ptr<ChMaterialSurface> material,
-                           double radius,
-                           const ChVector<>& pos = ChVector<>()) override;
+    virtual bool AddSphere(std::shared_ptr<ChMaterialSurface> material,  ///< Contact material
+                           double radius,                                ///< Sphere radius
+                           const ChVector<>& pos = ChVector<>()          ///< Sphere center location
+                           ) override;
 
     /// Adds a triangle collision shape to the model
-    virtual bool AddTriangle(std::shared_ptr<ChMaterialSurface> material,
-                             ChVector<> A,                              ///< Vertex of triangle
-                             ChVector<> B,                              ///< Vertex of triangle
-                             ChVector<> C,                              ///< Vertex of triangle
-                             const ChVector<>& pos = ChVector<>(),      ///< Triangle position
-                             const ChMatrix33<>& rot = ChMatrix33<>(1)  ///< Triangle orientation
+    virtual bool AddTriangle(std::shared_ptr<ChMaterialSurface> material,  ///< Contact material
+                             ChVector<> A,                                 ///< Vertex of triangle
+                             ChVector<> B,                                 ///< Vertex of triangle
+                             ChVector<> C,                                 ///< Vertex of triangle
+                             const ChVector<>& pos = ChVector<>(),         ///< Triangle position
+                             const ChMatrix33<>& rot = ChMatrix33<>(1)     ///< Triangle orientation
                              ) override;
 
     /// Gets the axis-aligned bounding box for the entire model
     /// Only valid at beginning of simulation
     virtual void GetAABB(ChVector<>& bbmin, ChVector<>& bbmax) const override;
 
-    /// Upper and lower corners of AABB for each shape in the model
-    std::vector<real3> shape_aabb_max;
-    std::vector<real3> shape_aabb_min;
+    std::vector<real3> shape_aabb_max;  ///< Upper AABB corners for each shape in model
+    std::vector<real3> shape_aabb_min;  ///< Lower AABB corners for each shape in model
 
   protected:
-    /// Upper and lower vertices of the AABB
-    ChVector<double> aabb_max;
-    ChVector<double> aabb_min;
+    ChVector<double> aabb_max;  ///< Upper corner of model AABB
+    ChVector<double> aabb_min;  ///< Lower corner of model AABB
 
-    /// Indicates that the bounding box has been computed
-    bool aabb_valid;
+    bool aabb_valid;  ///< Indicates that the bounding box has been computed
 };
+
 /// @} distributed_collision
 
 }  // namespace collision

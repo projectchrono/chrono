@@ -1,0 +1,24 @@
+{
+  "Name": "Generic sensor",
+  "Type": "Sensor",
+  "Template": "Magnetometer",
+
+  "Properties": {
+    "Update Rate": 100,
+    "Lag": 0.01,
+    "Collection Time": 0.01,
+    "GPS Reference": [-89.400, 43.070, 260.0],
+    "Noise Model": {
+      "Noise Type": "ChNoiseNormal",
+      "Mean": [0.0,0.0,0.0],
+      "Standard Deviation": [0.001,0.001,0.001]
+    }
+  },
+
+  "Filters":
+  [
+    {
+      "Filter": "ChFilterMagnetAccess"
+    }
+  ]
+}

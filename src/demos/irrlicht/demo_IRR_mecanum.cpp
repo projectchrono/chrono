@@ -126,7 +126,7 @@ std::shared_ptr<ChBody> create_mecanum_wheel(ChSystemNSC& mphysicalSystem,
 	mphysicalSystem.Add(mCentralWheel);
 
 	auto mtexturepw = chrono_types::make_shared<ChTexture>();
-    mtexturepw->SetTextureFilename(GetChronoDataFile("pinkwhite.png"));
+    mtexturepw->SetTextureFilename(GetChronoDataFile("textures/pinkwhite.png"));
     mCentralWheel->AddAsset(mtexturepw);
 
     auto wheel_mat = chrono_types::make_shared<ChMaterialSurfaceNSC>();
@@ -194,17 +194,15 @@ int main(int argc, char* argv[]) {
 
     // Create the Irrlicht visualization (open the Irrlicht device,
     // bind a simple user interface, etc. etc.)
-    ChIrrApp application(&mphysicalSystem, L"Mecanum robot simulator", core::dimension2d<u32>(800, 600), false);
+    ChIrrApp application(&mphysicalSystem, L"Mecanum robot simulator", core::dimension2d<u32>(800, 600));
+    application.AddTypicalLogo();
+    application.AddTypicalSky();
+    application.AddTypicalLights();
+    application.AddTypicalCamera(core::vector3df(0, 14, -20));
 
     // create text with info
-    IGUIStaticText* textFPS = application.GetIGUIEnvironment()->addStaticText(
-        L"Use keys Q,W, A,Z, E,R to move the robot", rect<s32>(150, 10, 430, 40), true);
-
-    // Easy shortcuts to add camera, lights, logo and sky in Irrlicht scene:
-    ChIrrWizard::add_typical_Logo(application.GetDevice());
-    ChIrrWizard::add_typical_Sky(application.GetDevice());
-    ChIrrWizard::add_typical_Lights(application.GetDevice());
-    ChIrrWizard::add_typical_Camera(application.GetDevice(), core::vector3df(0, 14, -20));
+    application.GetIGUIEnvironment()->addStaticText(L"Use keys Q,W, A,Z, E,R to move the robot",
+                                                    rect<s32>(150, 10, 430, 40), true);
 
     // This is for GUI tweaking of system parameters..
     MyEventReceiver receiver(&application);
@@ -304,7 +302,7 @@ int main(int argc, char* argv[]) {
 	mphysicalSystem.Add(ground);
 
 	auto mtexture = chrono_types::make_shared<ChTexture>();
-    mtexture->SetTextureFilename(GetChronoDataFile("concrete.jpg"));
+    mtexture->SetTextureFilename(GetChronoDataFile("textures/concrete.jpg"));
     mtexture->SetTextureScale(100, 100);
 
     ground->AddAsset(mtexture);

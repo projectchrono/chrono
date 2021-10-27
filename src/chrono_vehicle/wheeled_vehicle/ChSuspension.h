@@ -23,13 +23,14 @@
 #include <vector>
 
 #include "chrono/physics/ChSystem.h"
-#include "chrono/physics/ChBodyAuxRef.h"
 #include "chrono/physics/ChShaft.h"
 #include "chrono/physics/ChShaftsBody.h"
 #include "chrono/assets/ChCylinderShape.h"
 
 #include "chrono_vehicle/ChApiVehicle.h"
-#include "chrono_vehicle/ChPart.h"
+#include "chrono_vehicle/ChChassis.h"
+#include "chrono_vehicle/wheeled_vehicle/ChSubchassis.h"
+#include "chrono_vehicle/wheeled_vehicle/ChSteering.h"
 
 namespace chrono {
 namespace vehicle {
@@ -51,7 +52,7 @@ class CH_VEHICLE_API ChSuspension : public ChPart {
 
     ChSuspension(const std::string& name);
 
-    virtual ~ChSuspension() {}
+    virtual ~ChSuspension();
 
     /// Specify whether or not this suspension can be steered.
     virtual bool IsSteerable() const = 0;
@@ -78,7 +79,7 @@ class CH_VEHICLE_API ChSuspension : public ChPart {
     /// Get the orientation of the spindle body on the specified side.
     /// The spindle body orientation is returned as a quaternion representing a
     /// rotation with respect to the global reference frame.
-    const ChQuaternion<>& GetSpindleRot(VehicleSide side) const { return m_spindle[side]->GetRot(); }
+    ChQuaternion<> GetSpindleRot(VehicleSide side) const;
 
     /// Get the linear velocity of the spindle body on the specified side.
     /// Return the linear velocity of the spindle center, expressed in the global
@@ -93,9 +94,6 @@ class CH_VEHICLE_API ChSuspension : public ChPart {
     /// Get the angular speed of the axle on the specified side.
     double GetAxleSpeed(VehicleSide side) const { return m_axle[side]->GetPos_dt(); }
 
-    /// Get the index of the associated steering index (-1 if non-steered).
-    int GetSteeringIndex() const { return m_steering_index; }
-
     /// Synchronize this suspension subsystem.
     /// This function must be called before synchronizing any wheels associated with this suspension.
     void Synchronize();
@@ -109,22 +107,19 @@ class CH_VEHICLE_API ChSuspension : public ChPart {
     );
 
     /// Initialize this suspension subsystem.
-    /// The suspension subsystem is initialized by attaching it to the specified
-    /// chassis body at the specified location (with respect to and expressed in
-    /// the reference frame of the chassis). It is assumed that the suspension
-    /// reference frame is always aligned with the chassis reference frame.
-    /// 'tierod_body' is a handle to the body to which the suspension tierods
-    /// are to be attached. For a steered suspension, this will be the steering
-    /// (central) link of a suspension subsystem.  Otherwise, this is the chassis.
-    /// If this suspension is steered, 'steering_index' indicates the index of the
-    /// associated steering mechanism in the vehicle's list (-1 for a non-steered suspension).
-    virtual void Initialize(std::shared_ptr<ChBodyAuxRef> chassis,  ///< [in] handle to the chassis body
-                            const ChVector<>& location,             ///< [in] location relative to the chassis frame
-                            std::shared_ptr<ChBody> tierod_body,    ///< [in] body to which tireods are connected
-                            int steering_index,                     ///< [in] index of the associated steering mechanism
-                            double left_ang_vel = 0,                ///< [in] initial angular velocity of left wheel
-                            double right_ang_vel = 0                ///< [in] initial angular velocity of right wheel
-                            ) = 0;
+    /// The suspension subsystem is initialized by attaching it to the specified chassis and (if provided) to the
+    /// specified subchassis, at the specified location (with respect to and expressed in the reference frame of the
+    /// chassis). It is assumed that the suspension reference frame is always aligned with the chassis reference frame.
+    /// If a steering subsystem is provided, the suspension tierods are to be attached to the steering's central link
+    /// body (steered suspension); otherwise they are to be attached to the chassis (non-steered suspension).
+    virtual void Initialize(
+        std::shared_ptr<ChChassis> chassis,        ///< [in] associated chassis subsystem
+        std::shared_ptr<ChSubchassis> subchassis,  ///< [in] associated subchassis subsystem (may be null)
+        std::shared_ptr<ChSteering> steering,      ///< [in] associated steering subsystem (may be null)
+        const ChVector<>& location,                ///< [in] location relative to the chassis frame
+        double left_ang_vel = 0,                   ///< [in] initial angular velocity of left wheel
+        double right_ang_vel = 0                   ///< [in] initial angular velocity of right wheel
+        ) = 0;
 
     /// Return the radius of the spindle body (visualization only).
     virtual double getSpindleRadius() const = 0;
@@ -139,13 +134,13 @@ class CH_VEHICLE_API ChSuspension : public ChPart {
     /// Remove visualization assets for the suspension subsystem.
     virtual void RemoveVisualizationAssets() override;
 
-    /// Specify the left body for a possible antirollbar subsystem.
+    /// Specify the suspension body on the specified side to attach a possible antirollbar subsystem.
     /// The default implementation returns a NULL pointer.
-    virtual std::shared_ptr<ChBody> GetLeftBody() const { return std::shared_ptr<ChBody>(); }
+    virtual std::shared_ptr<ChBody> GetAntirollBody(VehicleSide side) const { return nullptr; }
 
-    /// Specify the right body for a possible antirollbar subsystem.
-    /// The default implementation returns a NULL pointer.
-    virtual std::shared_ptr<ChBody> GetRightBody() const { return std::shared_ptr<ChBody>(); }
+    /// Specify the body on the specified side for a possible connection to brake subsystem.
+    /// The default implementation returns a NULL pointer (indicating that a brake should connect to the chassis).
+    virtual std::shared_ptr<ChBody> GetBrakeBody(VehicleSide side) const { return nullptr; }
 
     /// Get the total mass of the suspension subsystem.
     virtual double GetMass() const = 0;
@@ -163,9 +158,11 @@ class CH_VEHICLE_API ChSuspension : public ChPart {
     /// Log current constraint violations.
     virtual void LogConstraintViolations(VehicleSide side) {}
 
+    /// Simple model of a parking brake.
+    void ApplyParkingBrake(bool brake);
+
   protected:
     ChVector<> m_location;                               ///< location relative to chassis
-    int m_steering_index;                                ///< index of associated steering mechanism
     std::shared_ptr<ChBody> m_spindle[2];                ///< handles to spindle bodies
     std::shared_ptr<ChShaft> m_axle[2];                  ///< handles to axle shafts
     std::shared_ptr<ChShaftsBody> m_axle_to_spindle[2];  ///< handles to spindle-shaft connectors

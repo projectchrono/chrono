@@ -24,14 +24,12 @@
 #include <TopoDS_Shape.hxx>
 #include <TopoDS.hxx>
 #include <TopoDS_HShape.hxx>
-#include <Handle_TopoDS_TShape.hxx>
 #include <TopoDS_Edge.hxx>
 #include <TopoDS_Face.hxx>
 #include <TopoDS_Compound.hxx>
 #include <BRep_Builder.hxx>
 #include <BRepTools.hxx>
 #include <BRep_Tool.hxx>
-#include <BRepMesh.hxx>
 #include <BRepBuilderAPI_MakeEdge.hxx>
 #include <BRepBuilderAPI_MakeVertex.hxx>
 #include <TopExp_Explorer.hxx>
@@ -68,14 +66,10 @@ class ChIrrCascadeMeshTools {
                                                 video::SColor clr = video::SColor(255, 255, 255, 255)) {
         BRepAdaptor_Surface BS(F, Standard_False);
         Handle(BRepAdaptor_HSurface) gFace = new BRepAdaptor_HSurface(BS);
-        GeomAbs_SurfaceType thetype = BS.GetType();
 
         Handle(Poly_Triangulation) T;
         TopLoc_Location theLocation;
         T = BRep_Tool::Triangulation(F, theLocation);
-
-        int vertface = 0;
-        int vertshift = 1;
 
         if (!T.IsNull()) {
 

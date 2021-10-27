@@ -15,7 +15,7 @@
 #ifndef CHELEMENTBEAMEULER_H
 #define CHELEMENTBEAMEULER_H
 
-#include "chrono/fea/ChBeamSection.h"
+#include "chrono/fea/ChBeamSectionEuler.h"
 #include "chrono/fea/ChElementBeam.h"
 #include "chrono/fea/ChElementCorotational.h"
 #include "chrono/fea/ChNodeFEAxyzrot.h"
@@ -61,9 +61,9 @@ class ChApi ChElementBeamEuler : public ChElementBeam,
 
     /// Set the section & material of beam element .
     /// It is a shared property, so it can be shared between other beams.
-    void SetSection(std::shared_ptr<ChBeamSectionAdvanced> my_material) { section = my_material; }
+    void SetSection(std::shared_ptr<ChBeamSectionEuler> my_material) { section = my_material; }
     /// Get the section & material of the element
-    std::shared_ptr<ChBeamSectionAdvanced> GetSection() { return section; }
+    std::shared_ptr<ChBeamSectionEuler> GetSection() { return section; }
 
     /// Get the first node (beginning)
     std::shared_ptr<ChNodeFEAxyzrot> GetNodeA() { return nodes[0]; }
@@ -88,19 +88,19 @@ class ChApi ChElementBeamEuler : public ChElementBeam,
     ChQuaternion<> GetRefRotation() { return q_element_ref_rot; }
 
     /// Set this as true to have the beam behave like a non-corotated beam
-    /// (i.e. only for small deformations).
+    /// hence do not update the corotated reference. Just for benchmarks!
     void SetDisableCorotate(bool md) { disable_corotate = md; }
 
-    /// Set this as true to disable the projectors for computing the
-    /// tangent matrix in the corotational formulation
-    /// (see C.A.Felippa, B.Haugen, N.Omid, C.Rankin et al. for details).
-    /// Disabling the projectors leads to a faster code, but convergence might be more difficult.
-    void SetDisableProjector(bool md) { disable_projector = md; }
 
     /// Set this as true to force the tangent stiffness matrix to be
     /// inexact, but symmetric. This allows the use of faster solvers. For systems close to
     /// the equilibrium, the tangent stiffness would be symmetric anyway.
     void SetForceSymmetricStiffness(bool md) { force_symmetric_stiffness = md; }
+
+    /// Set this as false to disable the contribution of geometric stiffness 
+    /// to the total tangent stiffness. By default it is on.
+    void SetUseGeometricStiffness(bool md) { this->use_geometric_stiffness = md; }
+
 
     /// Fills the N matrix (compressed! single row, 12 columns) with the
     /// values of shape functions at abscissa 'eta'.
@@ -136,11 +136,20 @@ class ChApi ChElementBeamEuler : public ChElementBeam,
     ///  {v_a v_a v_a wx_a wy_a wz_a v_b v_b v_b wx_b wy_b wz_b}
     void GetField_dt(ChVectorDynamic<>& mD_dt);
 
-    /// Computes the local STIFFNESS MATRIX of the element:
+    /// Computes the local (material) stiffness matrix of the element:
     /// K = integral( [B]' * [D] * [B] ),
     /// Note: in this 'basic' implementation, constant section and
     /// constant material are assumed, so the explicit result of quadrature is used.
+    /// Also, this local material stiffness matrix is constant, computed only at the beginning 
+    /// for performance reasons; if you later change some material property, call this or InitialSetup().
     void ComputeStiffnessMatrix();
+
+    /// Computes the local geometric stiffness Kg of the element.
+    /// Note: this->Kg will be set as the geometric stiffness EXCLUDING the multiplication by the P pull force,
+    /// in fact P multiplication happens in all terms, thus this allows making the Kg as a constant matrix that
+    /// is computed only at the beginning, and later it is multiplied by P all times the real Kg is needed.
+    /// If you later change some material property, call this or InitialSetup().
+    void ComputeGeometricStiffnessMatrix();
 
     /// Sets H as the global stiffness matrix K, scaled  by Kfactor. Optionally, also
     /// superimposes global damping matrix R, scaled by Rfactor, and global mass matrix M multiplied by Mfactor.
@@ -152,6 +161,9 @@ class ChApi ChElementBeamEuler : public ChElementBeam,
     /// Computes the internal forces (e.g. the actual position of nodes is not in relaxed reference position) and set
     /// values in the Fi vector.
     virtual void ComputeInternalForces(ChVectorDynamic<>& Fi) override;
+
+    /// Compute gravity forces, grouped in the Fg vector, one node after the other
+    virtual void ComputeGravityForces(ChVectorDynamic<>& Fg, const ChVector<>& G_acc) override;
 
     //
     // Beam-specific functions
@@ -210,14 +222,17 @@ class ChApi ChElementBeamEuler : public ChElementBeam,
     /// tetrahedron finite element or a cable, = 1 for a thermal problem, etc.
     virtual int Get_field_ncoords() override { return 6; }
 
-    /// Tell the number of DOFs blocks (ex. =1 for a body, =4 for a tetrahedron, etc.)
+    /// Get the number of DOFs sub-blocks.
     virtual int GetSubBlocks() override { return 2; }
 
-    /// Get the offset of the i-th sub-block of DOFs in global vector
+    /// Get the offset of the specified sub-block of DOFs in global vector.
     virtual unsigned int GetSubBlockOffset(int nblock) override { return nodes[nblock]->NodeGetOffset_w(); }
 
-    /// Get the size of the i-th sub-block of DOFs in global vector
+    /// Get the size of the specified sub-block of DOFs in global vector.
     virtual unsigned int GetSubBlockSize(int nblock) override { return 6; }
+
+    /// Check if the specified sub-block of DOFs is active.
+    virtual bool IsSubBlockActive(int nblock) const override { return !nodes[nblock]->GetFixed(); }
 
     /// Get the pointers to the contained ChVariables, appending to the mvars vector.
     virtual void LoadableGetVariables(std::vector<ChVariables*>& mvars) override;
@@ -251,6 +266,8 @@ class ChApi ChElementBeamEuler : public ChElementBeam,
     /// This is needed so that it can be accessed by ChLoaderVolumeGravity
     virtual double GetDensity() override;
 
+    bool use_numerical_diff_for_KR = false;
+
   private:
     /// Initial setup. Precompute mass and matrices that do not change during the simulation, such as the local tangent
     /// stiffness Kl of each element, if needed, etc.
@@ -258,9 +275,10 @@ class ChApi ChElementBeamEuler : public ChElementBeam,
 
     std::vector<std::shared_ptr<ChNodeFEAxyzrot> > nodes;
 
-    std::shared_ptr<ChBeamSectionAdvanced> section;
+    std::shared_ptr<ChBeamSectionEuler> section;
 
-    ChMatrixDynamic<> StiffnessMatrix;  ///< undeformed local stiffness matrix
+    ChMatrixDynamic<> Km;  ///< local material  stiffness matrix
+    ChMatrixDynamic<> Kg;  ///< local geometric stiffness matrix NORMALIZED by P
 
     ChQuaternion<> q_refrotA;
     ChQuaternion<> q_refrotB;
@@ -269,8 +287,9 @@ class ChApi ChElementBeamEuler : public ChElementBeam,
     ChQuaternion<> q_element_ref_rot;
 
     bool disable_corotate;
-    bool disable_projector;
     bool force_symmetric_stiffness;
+
+    bool use_geometric_stiffness;
 
 	friend class ChExtruderBeamEuler;
 };

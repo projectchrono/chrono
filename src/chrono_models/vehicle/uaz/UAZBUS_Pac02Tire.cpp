@@ -192,8 +192,8 @@ double UAZBUS_Pac02Tire::GetNormalStiffnessForce(double depth) const {
 // -----------------------------------------------------------------------------
 void UAZBUS_Pac02Tire::AddVisualizationAssets(VisualizationType vis) {
     if (vis == VisualizationType::MESH) {
-        m_trimesh_shape = AddVisualizationMesh(vehicle::GetDataFile(m_meshFile),   // left side
-                                               vehicle::GetDataFile(m_meshFile));  // right side
+        m_trimesh_shape = AddVisualizationMesh(m_meshFile,   // left side
+                                               m_meshFile);  // right side
     } else {
         ChPac02Tire::AddVisualizationAssets(vis);
     }

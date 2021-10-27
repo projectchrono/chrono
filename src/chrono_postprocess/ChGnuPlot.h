@@ -158,6 +158,25 @@ class ChGnuPlot {
     }
 
     /// Shortcut to easy 2D plot of x,y data
+    /// from two std::vector<double> 
+    void Plot(const std::vector<double>& vals_x, const std::vector<double>& vals_y,const char* title, const char* customsettings = " with lines ") {
+        ChVectorDynamic<> mx(vals_x.size());
+        ChVectorDynamic<> my(vals_y.size());
+
+        int i = 0;
+        for (auto iter : vals_x) {
+            mx(i) = iter;
+            ++i;
+        }
+        i = 0;
+        for (auto iter : vals_y) {
+            my(i) = iter;
+            ++i;
+        }
+        Plot(mx, my, title, customsettings);
+    }
+
+    /// Shortcut to easy 2D plot of x,y data
     /// from a ChFunction_recorder
     void Plot(ChFunction_Oscilloscope& mrecorder, const char* title, const char* customsettings = " with lines ") {
         ChVectorDynamic<> mx(mrecorder.GetPointList().size());
@@ -380,13 +399,13 @@ class ChGnuPlot {
 
 // Launch the GNUplot from shell:
 #ifdef _WIN32
-        // ex. of launched sys command: "start gnuplot __tmp_gnuplot.gpl -persist"
-        syscmd += "start gnuplot \"";
+        // ex. of launched sys command: "start /b gnuplot __tmp_gnuplot.gpl -persist"  where /b avoids showing the black cmd window
+        syscmd += "start /b gnuplot \"";
         syscmd += this->gpl_filename;
         syscmd += "\"";
         if (persist)
             syscmd += " -persist";
-        int err = system(syscmd.c_str());
+        /*int err =*/system(syscmd.c_str());
 #else
         // Unix like systems:
         // ex. of launched sys command: "gnuplot __tmp_gnuplot.gpl -persist &"
@@ -396,7 +415,7 @@ class ChGnuPlot {
         if (persist)
             syscmd += " -persist";
         syscmd += " &";  // to launch and forget
-        int err = system(syscmd.c_str());
+        /*int err =*/system(syscmd.c_str());
 #endif
     }
 

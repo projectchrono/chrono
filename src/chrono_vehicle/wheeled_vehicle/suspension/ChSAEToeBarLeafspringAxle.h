@@ -115,7 +115,7 @@ class CH_VEHICLE_API ChSAEToeBarLeafspringAxle : public ChSuspension {
     ChSAEToeBarLeafspringAxle(const std::string& name  ///< [in] name of the subsystem
     );
 
-    virtual ~ChSAEToeBarLeafspringAxle() {}
+    virtual ~ChSAEToeBarLeafspringAxle();
 
     /// Get the name of the vehicle subsystem template.
     virtual std::string GetTemplateName() const override { return "SAEToeBarLeafspringAxle"; }
@@ -127,22 +127,19 @@ class CH_VEHICLE_API ChSAEToeBarLeafspringAxle : public ChSuspension {
     virtual bool IsIndependent() const final override { return false; }
 
     /// Initialize this suspension subsystem.
-    /// The suspension subsystem is initialized by attaching it to the specified
-    /// chassis body at the specified location (with respect to and expressed in
-    /// the reference frame of the chassis). It is assumed that the suspension
-    /// reference frame is always aligned with the chassis reference frame.
-    /// 'tierod_body' is a handle to the body to which the suspension tierods
-    /// are to be attached. For a steered suspension, this will be the steering
-    /// (central) link of a suspension subsystem.  Otherwise, this is the chassis.
-    /// If this suspension is steered, 'steering_index' indicates the index of the
-    /// associated steering mechanism in the vehicle's list (-1 for a non-steered suspension).
-    virtual void Initialize(std::shared_ptr<ChBodyAuxRef> chassis,  ///< [in] handle to the chassis body
-                            const ChVector<>& location,             ///< [in] location relative to the chassis frame
-                            std::shared_ptr<ChBody> tierod_body,    ///< [in] body to which tireods are connected
-                            int steering_index,                     ///< [in] index of the associated steering mechanism
-                            double left_ang_vel = 0,                ///< [in] initial angular velocity of left wheel
-                            double right_ang_vel = 0                ///< [in] initial angular velocity of right wheel
-                            ) override;
+    /// The suspension subsystem is initialized by attaching it to the specified chassis and (if provided) to the
+    /// specified subchassis, at the specified location (with respect to and expressed in the reference frame of the
+    /// chassis). It is assumed that the suspension reference frame is always aligned with the chassis reference frame.
+    /// If a steering subsystem is provided, the suspension tierods are to be attached to the steering's central link
+    /// body (steered suspension); otherwise they are to be attached to the chassis (non-steered suspension).
+    virtual void Initialize(
+        std::shared_ptr<ChChassis> chassis,        ///< [in] associated chassis subsystem
+        std::shared_ptr<ChSubchassis> subchassis,  ///< [in] associated subchassis subsystem (may be null)
+        std::shared_ptr<ChSteering> steering,      ///< [in] associated steering subsystem (may be null)
+        const ChVector<>& location,                ///< [in] location relative to the chassis frame
+        double left_ang_vel = 0,                   ///< [in] initial angular velocity of left wheel
+        double right_ang_vel = 0                   ///< [in] initial angular velocity of right wheel
+        ) override;
 
     /// Add visualization assets for the suspension subsystem.
     /// This default implementation uses primitives.
@@ -287,51 +284,60 @@ class CH_VEHICLE_API ChSAEToeBarLeafspringAxle : public ChSuspension {
     /// Return the free (rest) length of the spring element.
     virtual double getSpringRestLength() const = 0;
     /// Return the functor object for spring force.
-    virtual ChLinkTSDA::ForceFunctor* getSpringForceFunctor() const = 0;
+    virtual std::shared_ptr<ChLinkTSDA::ForceFunctor> getSpringForceFunctor() const = 0;
     /// Return the functor object for shock force.
-    virtual ChLinkTSDA::ForceFunctor* getShockForceFunctor() const = 0;
+    virtual std::shared_ptr<ChLinkTSDA::ForceFunctor> getShockForceFunctor() const = 0;
 
-    virtual ChLinkRotSpringCB::TorqueFunctor* getLatTorqueFunctorA() const = 0;
-    virtual ChLinkRotSpringCB::TorqueFunctor* getLatTorqueFunctorB() const = 0;
+    virtual std::shared_ptr<ChLinkRotSpringCB::TorqueFunctor> getLatTorqueFunctorA() const = 0;
+    virtual std::shared_ptr<ChLinkRotSpringCB::TorqueFunctor> getLatTorqueFunctorB() const = 0;
 
-    virtual ChLinkRotSpringCB::TorqueFunctor* getVertTorqueFunctorA() const = 0;
-    virtual ChLinkRotSpringCB::TorqueFunctor* getVertTorqueFunctorB() const = 0;
+    virtual std::shared_ptr<ChLinkRotSpringCB::TorqueFunctor> getVertTorqueFunctorA() const = 0;
+    virtual std::shared_ptr<ChLinkRotSpringCB::TorqueFunctor> getVertTorqueFunctorB() const = 0;
 
     /// Returns topolology flag for knuckle/draglink connection
     virtual bool isLeftKnuckleActuated() { return true; }
 
-    std::shared_ptr<ChBody> m_axleTube;    ///< handles to the axle tube body
-    std::shared_ptr<ChBody> m_tierod;      ///< handles to the tierod body
-    std::shared_ptr<ChBody> m_draglink;    ///< handles to the draglink body
-    std::shared_ptr<ChBody> m_knuckle[2];  ///< handles to the knuckle bodies (L/R)
+    /// Return stiffness and damping data for the shackle bushing.
+    /// Returning nullptr (default) results in using a kinematic revolute joint.
+    virtual std::shared_ptr<ChVehicleBushingData> getShackleBushingData() const { return nullptr; }
+    /// Return stiffness and damping data for the clamp bushing.
+    /// Returning nullptr (default) results in using a kinematic revolute joint.
+    virtual std::shared_ptr<ChVehicleBushingData> getClampBushingData() const { return nullptr; }
+    /// Return stiffness and damping data for the leafspring bushing.
+    /// Returning nullptr (default) results in using a kinematic revolute joint.
+    virtual std::shared_ptr<ChVehicleBushingData> getLeafspringBushingData() const { return nullptr; }
 
-    std::shared_ptr<ChLinkLockRevolutePrismatic> m_axleTubeGuide;  ///< allows translation Z and rotation X
+    std::shared_ptr<ChBody> m_axleTube;    ///< axle tube body
+    std::shared_ptr<ChBody> m_tierod;      ///< tierod body
+    std::shared_ptr<ChBody> m_draglink;    ///< draglink body
+    std::shared_ptr<ChBody> m_knuckle[2];  ///< knuckle bodies (L/R)
+
     std::shared_ptr<ChLinkLockSpherical> m_sphericalTierod;        ///< knuckle-tierod spherical joint (left)
     std::shared_ptr<ChLinkLockSpherical> m_sphericalDraglink;      ///< draglink-chassis spherical joint (left)
     std::shared_ptr<ChLinkUniversal> m_universalDraglink;          ///< draglink-bellCrank universal joint (left)
     std::shared_ptr<ChLinkUniversal> m_universalTierod;            ///< knuckle-tierod universal joint (right)
     std::shared_ptr<ChLinkLockRevolute> m_revoluteKingpin[2];      ///< knuckle-axle tube revolute joints (L/R)
 
-    std::shared_ptr<ChLinkTSDA> m_shock[2];   ///< handles to the spring links (L/R)
-    std::shared_ptr<ChLinkTSDA> m_spring[2];  ///< handles to the shock links (L/R)
+    std::shared_ptr<ChLinkTSDA> m_shock[2];   ///< spring links (L/R)
+    std::shared_ptr<ChLinkTSDA> m_spring[2];  ///< shock links (L/R)
 
     // Leafspring related elements
-    std::shared_ptr<ChBody> m_shackle[2];                 ///< handles to the shackle bodies
-    std::shared_ptr<ChLinkLockRevolute> m_shackleRev[2];  ///< chassis-shackle rotational joint
+    std::shared_ptr<ChBody> m_shackle[2];             ///< shackle bodies
+    std::shared_ptr<ChVehicleJoint> m_shackleRev[2];  ///< chassis-shackle rotational joint
 
-    std::shared_ptr<ChBody> m_frontleaf[2];                  ///< handles to the frontleaf bodies
+    std::shared_ptr<ChBody> m_frontleaf[2];                  ///< frontleaf bodies
     std::shared_ptr<ChLinkLockSpherical> m_frontleafSph[2];  ///< frontleaf-chassis spherical joint
-    std::shared_ptr<ChLinkLockRevolute> m_frontleafRev[2];   ///< frontleaf-clampA rotational joint
+    std::shared_ptr<ChVehicleJoint> m_frontleafRev[2];       ///< frontleaf-clampA rotational joint
 
-    std::shared_ptr<ChBody> m_rearleaf[2];                  ///< handles to the rearleaf bodies
+    std::shared_ptr<ChBody> m_rearleaf[2];                  ///< rearleaf bodies
     std::shared_ptr<ChLinkLockSpherical> m_rearleafSph[2];  ///< rearleaf-chassis spherical joint
-    std::shared_ptr<ChLinkLockRevolute> m_rearleafRev[2];   ///< rearleaf-clampB rotational joint
+    std::shared_ptr<ChVehicleJoint> m_rearleafRev[2];       ///< rearleaf-clampB rotational joint
 
-    std::shared_ptr<ChBody> m_clampA[2];                 ///< handles to the clampA bodies
-    std::shared_ptr<ChLinkLockRevolute> m_clampARev[2];  ///< clampA-axleTube rotational joint Z
+    std::shared_ptr<ChBody> m_clampA[2];             ///< clampA bodies
+    std::shared_ptr<ChVehicleJoint> m_clampARev[2];  ///< clampA-axleTube rotational joint Z
 
-    std::shared_ptr<ChBody> m_clampB[2];                 ///< handles to the clampB bodies
-    std::shared_ptr<ChLinkLockRevolute> m_clampBRev[2];  ///< clampB-axleTube rotational joint Z
+    std::shared_ptr<ChBody> m_clampB[2];             ///< clampB bodies
+    std::shared_ptr<ChVehicleJoint> m_clampBRev[2];  ///< clampB-axleTube rotational joint Z
 
     std::shared_ptr<ChLinkRotSpringCB> m_latRotSpringA[2];  ///< mimics lateral stiffness of frontleaf
     std::shared_ptr<ChLinkRotSpringCB> m_latRotSpringB[2];  ///< mimics lateral stiffness of rearleaf
@@ -356,7 +362,7 @@ class CH_VEHICLE_API ChSAEToeBarLeafspringAxle : public ChSuspension {
     bool m_left_knuckle_steers;
 
     void InitializeSide(VehicleSide side,
-                        std::shared_ptr<ChBodyAuxRef> chassis,
+                        std::shared_ptr<ChChassis> chassis,
                         const std::vector<ChVector<>>& points,
                         double ang_vel);
 

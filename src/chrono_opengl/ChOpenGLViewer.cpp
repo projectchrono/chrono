@@ -16,10 +16,10 @@
 
 #include "chrono/ChConfig.h"
 
-#ifdef CHRONO_PARALLEL
-#include "chrono_parallel/physics/ChSystemParallel.h"
-#include "chrono_parallel/ChDataManager.h"
-#include "chrono_parallel/physics/Ch3DOFContainer.h"
+#ifdef CHRONO_MULTICORE
+#include "chrono_multicore/physics/ChSystemMulticore.h"
+#include "chrono_multicore/ChDataManager.h"
+#include "chrono_multicore/physics/Ch3DOFContainer.h"
 #endif
 
 #include "chrono/assets/ChBoxShape.h"
@@ -177,7 +177,7 @@ bool ChOpenGLViewer::Update(double time_step) {
     single_step = false;
     return true;
 }
-void ChOpenGLViewer::Render() {
+void ChOpenGLViewer::Render(bool render_hud) {
     timer_render.reset();
     timer_text.reset();
     timer_geometry.reset();
@@ -268,7 +268,7 @@ void ChOpenGLViewer::Render() {
         time_geometry = .5 * timer_geometry() + .5 * time_geometry;
 
         timer_text.start();
-        DisplayHUD();
+        DisplayHUD(render_hud);
         timer_text.stop();
         time_text = .5 * timer_text() + .5 * time_text;
     }
@@ -348,7 +348,7 @@ void ChOpenGLViewer::DrawObject(std::shared_ptr<ChBody> abody) {
 			mrot.Set_A_axis(mx, my, mz);
             lrot =rot % (visual_asset->Rot.Get_A_quaternion() % mrot.Get_A_quaternion());
 			//position of cylinder based on two points
-			ChVector<> mpos = 0.5 * (cylinder_shape->GetCylinderGeometry().p2 + cylinder_shape->GetCylinderGeometry().p1);
+			ChVector<> mpos = center + 0.5 * (cylinder_shape->GetCylinderGeometry().p2 + cylinder_shape->GetCylinderGeometry().p1);
 
             lrot.Q_to_AngAxis(angle, axis);
 			ChVector<> pos_final = pos  + rot.Rotate(mpos);
@@ -427,7 +427,7 @@ void ChOpenGLViewer::DrawObject(std::shared_ptr<ChBody> abody) {
             double rad = capsule_shape->GetCapsuleGeometry().rad;
             double height = capsule_shape->GetCapsuleGeometry().hlen;
             // Quaternion rott(1,0,0,0);
-            Quaternion lrot = visual_asset->Rot.Get_A_quaternion();
+            lrot = visual_asset->Rot.Get_A_quaternion();
             // lrot = lrot % rott;
             lrot = rot % lrot;
 
@@ -470,7 +470,7 @@ void ChOpenGLViewer::DrawObject(std::shared_ptr<ChBody> abody) {
             std::shared_ptr<geometry::ChLine> mline;
             mline = line_shape->GetLineGeometry();
 
-            Quaternion lrot = visual_asset->Rot.Get_A_quaternion();
+            lrot = visual_asset->Rot.Get_A_quaternion();
             lrot = rot % lrot;
             lrot.Q_to_AngAxis(angle, axis);
 
@@ -495,7 +495,10 @@ void ChOpenGLViewer::DrawObject(std::shared_ptr<ChBody> abody) {
     }
 }
 
-void ChOpenGLViewer::DisplayHUD() {
+void ChOpenGLViewer::DisplayHUD(bool render_hud) {
+    if (!render_hud && !view_help)
+        return;
+
     GLReturnedError("Start text");
     HUD_renderer.Update(window_size, dpi, fps, time_geometry, time_text, time_total);
     if (view_help) {
@@ -523,17 +526,17 @@ void ChOpenGLViewer::RenderAABB() {
     if (view_aabb == false) {
         return;
     }
-#ifdef CHRONO_PARALLEL
-    if (ChSystemParallel* system = dynamic_cast<ChSystemParallel*>(physics_system)) {
-        ChParallelDataManager* data_manager = system->data_manager;
+#ifdef CHRONO_MULTICORE
+    if (ChSystemMulticore* system = dynamic_cast<ChSystemMulticore*>(physics_system)) {
+        ChMulticoreDataManager* data_manager = system->data_manager;
         model_box.clear();
 
-        custom_vector<real3>& aabb_min = data_manager->host_data.aabb_min;
-        custom_vector<real3>& aabb_max = data_manager->host_data.aabb_max;
+        custom_vector<real3>& aabb_min = data_manager->cd_data->aabb_min;
+        custom_vector<real3>& aabb_max = data_manager->cd_data->aabb_max;
 
-        model_box.resize(data_manager->num_rigid_shapes);
+        model_box.resize(data_manager->cd_data->num_rigid_shapes);
 #pragma omp parallel for
-        for (int i = 0; i < (signed)data_manager->num_rigid_shapes; i++) {
+        for (int i = 0; i < (signed)data_manager->cd_data->num_rigid_shapes; i++) {
             real3 min_p = aabb_min[i] + data_manager->measures.collision.global_origin;
             real3 max_p = aabb_max[i] + data_manager->measures.collision.global_origin;
 
@@ -553,8 +556,8 @@ void ChOpenGLViewer::RenderAABB() {
 #endif
 }
 void ChOpenGLViewer::RenderFluid() {
-#ifdef CHRONO_PARALLEL
-    ChSystemParallel* parallel_system = dynamic_cast<ChSystemParallel*>(physics_system);
+#ifdef CHRONO_MULTICORE
+    ChSystemMulticore* parallel_system = dynamic_cast<ChSystemMulticore*>(physics_system);
     if (!parallel_system || parallel_system->data_manager->num_fluid_bodies <= 0) {
         return;
     }
@@ -587,8 +590,9 @@ void ChOpenGLViewer::RenderFluid() {
 }
 
 void ChOpenGLViewer::RenderFEA() {
-#ifdef CHRONO_PARALLEL
-    ChSystemParallel* parallel_system = dynamic_cast<ChSystemParallel*>(physics_system);
+/*
+#ifdef CHRONO_MULTICORE
+    ChSystemMulticore* parallel_system = dynamic_cast<ChSystemMulticore*>(physics_system);
     if (!parallel_system || parallel_system->data_manager->num_fea_nodes <= 0) {
         return;
     }
@@ -613,6 +617,7 @@ void ChOpenGLViewer::RenderFEA() {
     glm::mat4 model(1);
     fea_elements.Draw(projection, view * model);
 #endif
+*/
 }
 
 void ChOpenGLViewer::RenderGrid() {
@@ -620,8 +625,8 @@ void ChOpenGLViewer::RenderGrid() {
         return;
     }
     grid_data.clear();
-#ifdef CHRONO_PARALLEL
-    if (ChSystemParallel* parallel_sys = dynamic_cast<ChSystemParallel*>(physics_system)) {
+#ifdef CHRONO_MULTICORE
+    if (ChSystemMulticore* parallel_sys = dynamic_cast<ChSystemMulticore*>(physics_system)) {
         vec3 bins_per_axis = parallel_sys->data_manager->settings.collision.bins_per_axis;
         real3 bin_size_vec = parallel_sys->data_manager->measures.collision.bin_size;
         real3 min_pt = parallel_sys->data_manager->measures.collision.min_bounding_point;
@@ -662,10 +667,10 @@ void ChOpenGLViewer::RenderGrid() {
     grid.Draw(projection, view * model);
 
 ///======
-#ifdef CHRONO_PARALLEL
+#ifdef CHRONO_MULTICORE
 /*mpm_grid_data.clear();
 mpm_node_data.clear();
-if (ChSystemParallelNSC* parallel_sys = dynamic_cast<ChSystemParallelNSC*>(physics_system)) {
+if (ChSystemMulticoreNSC* parallel_sys = dynamic_cast<ChSystemMulticoreNSC*>(physics_system)) {
     vec3 bins_per_axis;
     real3 bin_size_vec;
     real3 min_pt;

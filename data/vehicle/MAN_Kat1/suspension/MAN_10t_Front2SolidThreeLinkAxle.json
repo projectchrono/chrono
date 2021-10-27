@@ -48,14 +48,24 @@
 
   "Triangular Link" :
   {
+      "Mass":                           50.0,
+    "Inertia":                        [0.2, 0.2, 0.2],
     "Location Chassis":          [0.871, 0.420, 0.165],
     "Location Axle":                [0.125, 0.000, 0.260]
   }, 
 
   "Longitudinal Link" :
   {
+      "Mass":                           25.0,
+    "Inertia":                           [0.05, 0.1, 0.1],
     "Location Chassis":          [-1.138, 0.270, 0.115],
     "Location Axle":                [-0.115, 0.490, -0.090]
+  }, 
+
+ "Tierod" :
+  {
+      "Mass":                           10.0,
+    "Inertia":                        [0.05, 0.1, 0.105]
   }, 
 
   "Spring":

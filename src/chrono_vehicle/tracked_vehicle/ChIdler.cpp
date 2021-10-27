@@ -29,17 +29,31 @@
 #include "chrono/assets/ChColorAsset.h"
 
 #include "chrono_vehicle/tracked_vehicle/ChIdler.h"
+#include "chrono_vehicle/tracked_vehicle/ChTrackAssembly.h"
 
 namespace chrono {
 namespace vehicle {
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-ChIdler::ChIdler(const std::string& name) : ChPart(name) {}
+ChIdler::ChIdler(const std::string& name) : ChPart(name), m_track(nullptr) {}
+
+ChIdler::~ChIdler() {
+    auto sys = m_wheel->GetSystem();
+    if (sys) {
+        sys->Remove(m_wheel);
+        sys->Remove(m_carrier);
+        sys->Remove(m_revolute);
+        sys->Remove(m_prismatic);
+        sys->Remove(m_tensioner);
+    }
+}
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-void ChIdler::Initialize(std::shared_ptr<ChBodyAuxRef> chassis, const ChVector<>& location) {
+void ChIdler::Initialize(std::shared_ptr<ChBodyAuxRef> chassis, const ChVector<>& location, ChTrackAssembly* track) {
+    m_track = track;
+
     // Express the idler reference frame in the absolute coordinate system.
     ChFrame<> idler_to_abs(location);
     idler_to_abs.ConcatenatePreTransformation(chassis->GetFrame_REF_to_abs());
@@ -55,6 +69,7 @@ void ChIdler::Initialize(std::shared_ptr<ChBodyAuxRef> chassis, const ChVector<>
     // Create and initialize the wheel body.
     m_wheel = std::shared_ptr<ChBody>(chassis->GetSystem()->NewBody());
     m_wheel->SetNameString(m_name + "_wheel");
+    m_wheel->SetIdentifier(BodyID::IDLER_BODY);
     m_wheel->SetPos(points[WHEEL]);
     m_wheel->SetRot(idler_to_abs.GetRot());
     m_wheel->SetMass(GetWheelMass());
@@ -155,7 +170,7 @@ void ChIdler::RemoveVisualizationAssets() {
 // -----------------------------------------------------------------------------
 void ChIdler::LogConstraintViolations() {
     {
-        ChVectorDynamic<> C = m_revolute->GetC();
+        ChVectorDynamic<> C = m_revolute->GetConstraintViolation();
         GetLog() << "  Idler-carrier revolute\n";
         GetLog() << "  " << C(0) << "  ";
         GetLog() << "  " << C(1) << "  ";
@@ -164,7 +179,7 @@ void ChIdler::LogConstraintViolations() {
         GetLog() << "  " << C(4) << "\n";
     }
     {
-        ChVectorDynamic<> C = m_prismatic->GetC();
+        ChVectorDynamic<> C = m_prismatic->GetConstraintViolation();
         GetLog() << "  Carrier-chassis prismatic\n";
         GetLog() << "  " << C(0) << "  ";
         GetLog() << "  " << C(1) << "  ";

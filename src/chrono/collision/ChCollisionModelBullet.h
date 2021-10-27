@@ -39,6 +39,9 @@ namespace collision {
 
 class ChConvexDecomposition;
 
+/// @addtogroup collision_bullet
+/// @{
+
 /// Class defining the Bullet geometric model for collision detection.
 class ChApi ChCollisionModelBullet : public ChCollisionModel {
   protected:
@@ -47,8 +50,10 @@ class ChApi ChCollisionModelBullet : public ChCollisionModel {
 
   public:
     ChCollisionModelBullet();
-
     virtual ~ChCollisionModelBullet();
+
+    /// Return the type of this collision model.
+    virtual ChCollisionSystemType GetType() const override { return ChCollisionSystemType::BULLET; }
 
     /// Delete all inserted geometries.
     /// Addition of collision shapes must be done between calls to ClearModel() and BuildModel().
@@ -103,6 +108,15 @@ class ChApi ChCollisionModelBullet : public ChCollisionModel {
         const ChMatrix33<>& rot = ChMatrix33<>(1)     ///< rotation in model coordinates
         ) override;
 
+    /// Add a cylindrical shell to this collision model (default axis in Y direction).
+    virtual bool AddCylindricalShell(                 //
+        std::shared_ptr<ChMaterialSurface> material,  ///< surface contact material
+        double radius,                                ///< cylinder radius
+        double hlen,                                  ///< cylinder half length
+        const ChVector<>& pos = ChVector<>(),         ///< center position in model coordinates
+        const ChMatrix33<>& rot = ChMatrix33<>(1)     ///< rotation in model coordinates
+        ) override;
+
     /// Add a cone to this collision model (default axis on Y direction).
     virtual bool AddCone(                             //
         std::shared_ptr<ChMaterialSurface> material,  ///< surface contact material
@@ -122,9 +136,7 @@ class ChApi ChCollisionModelBullet : public ChCollisionModel {
         double hlen,                                  ///< half-length of capsule axis
         const ChVector<>& pos = ChVector<>(),         ///< center position in model coordinates
         const ChMatrix33<>& rot = ChMatrix33<>(1)     ///< rotation in model coordinates
-        ) override {
-        return false;
-    }
+        ) override;
 
     /// Add a rounded box shape to this collision model.
     virtual bool AddRoundedBox(                       //
@@ -223,11 +235,11 @@ class ChApi ChCollisionModelBullet : public ChCollisionModel {
     /// the bottom, at levels Y_low and Y_high.
     virtual bool AddBarrel(                           //
         std::shared_ptr<ChMaterialSurface> material,  ///< surface contact material
-        double Y_low,                                 ///<
-        double Y_high,                                ///<
-        double R_vert,                                ///<
-        double R_hor,                                 ///<
-        double R_offset,                              ///<
+        double Y_low,                                 ///< bottom level
+        double Y_high,                                ///< top level
+        double R_vert,                                ///< ellipse semi-axis in vertical direction
+        double R_hor,                                 ///< ellipse semi-axis in horizontal direction
+        double R_offset,                              ///< lateral offset (radius at top and bottom)
         const ChVector<>& pos = ChVector<>(),         ///< center position in model coordinates
         const ChMatrix33<>& rot = ChMatrix33<>(1)     ///< rotation in model coordinates
         ) override;
@@ -321,6 +333,7 @@ class ChApi ChCollisionModelBullet : public ChCollisionModel {
     /// BOX          x-halfdim y-halfdim z-halfdim
     /// ELLIPSOID    x-radius y-radius z-radius
     /// CYLINDER     x-radius z-radius halflength
+    /// CYLSHELL     radius halflength
     /// </pre>
     virtual std::vector<double> GetShapeDimensions(int index) const override;
 
@@ -340,8 +353,10 @@ class ChApi ChCollisionModelBullet : public ChCollisionModel {
     std::vector<std::shared_ptr<geometry::ChTriangleMesh>> m_trimeshes;
 
     friend class ChCollisionSystemBullet;
-    friend class ChCollisionSystemBulletParallel;
+    friend class ChCollisionSystemBulletMulticore;
 };
+
+/// @} collision_bullet
 
 }  // end namespace collision
 

@@ -13,8 +13,14 @@
 // =============================================================================
 
 #include "chrono_mumps/ChSolverMumps.h"
+#include "chrono/parallel/ChOpenMP.h"
 
 namespace chrono {
+
+ChSolverMumps::ChSolverMumps(int num_threads) {
+    int nthreads = (num_threads <= 0) ? ChOMP::GetNumProcs() : num_threads;
+    ChOMP::SetNumThreads(nthreads);
+}
 
 void ChSolverMumps::EnableNullPivotDetection(bool val, double threshold) {
     m_null_pivot_detection = val;

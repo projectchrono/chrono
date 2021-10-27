@@ -43,13 +43,15 @@ namespace vehicle {
 // Forward reference
 class ChVehicle;
 
-/// Template for a powertrain model using shaft elements. 
+/// Template for a powertrain model using shaft elements.
+/// This powertrain template includes a torque converter and a manumatic transmission.
 class CH_VEHICLE_API ChShaftsPowertrain : public ChPowertrain {
   public:
     /// Construct a shafts-based powertrain model.
-    ChShaftsPowertrain(const std::string& name, const ChVector<>& dir_motor_block = ChVector<>(1, 0, 0));
+    ChShaftsPowertrain(const std::string& name,
+                       const ChVector<>& dir_motor_block = ChVector<>(1, 0, 0));
 
-    virtual ~ChShaftsPowertrain() {}
+    virtual ~ChShaftsPowertrain();
 
     /// Get the name of the vehicle subsystem template.
     virtual std::string GetTemplateName() const override { return "ShaftsPowertrain"; }
@@ -69,23 +71,13 @@ class CH_VEHICLE_API ChShaftsPowertrain : public ChPowertrain {
     /// Return the output torque from the torque converter.
     virtual double GetTorqueConverterOutputTorque() const override { return m_torqueconverter->GetTorqueReactionOnOutput(); }
 
-    /// Return the current transmission gear.
-    virtual int GetCurrentTransmissionGear() const override { return m_current_gear; }
+    /// Return the torque converter output shaft speed.
+    virtual double GetTorqueConverterOutputSpeed() const override { return m_shaft_ingear->GetPos_dt(); }
 
     /// Return the output torque from the powertrain.
-    /// This is the torque that is passed to a vehicle system, thus providing the
-    /// interface between the powertrain and vehicle co-simulation modules.
-    /// Since a ShaftsPowertrain is directly connected to the vehicle's driveline,
-    /// this function returns 0.
-    virtual double GetOutputTorque() const override { return 0; }
-
-    /// Use this function to set the mode of automatic transmission.
-    virtual void SetDriveMode(ChPowertrain::DriveMode mmode) override;
-
-    /// Use this function to shift from one gear to another.
-    /// A zero latency shift is assumed.
-    /// Note, index starts from 0.
-    void SetSelectedGear(int igear);
+    /// This is the torque that is passed to a vehicle system, thus providing the interface between the powertrain and
+    /// vehicle co-simulation modules.
+    virtual double GetOutputTorque() const override;
 
     /// Use this to define the gear shift latency, in seconds.
     void SetGearShiftLatency(double ml) { m_gear_shift_latency = ml; }
@@ -94,15 +86,11 @@ class CH_VEHICLE_API ChShaftsPowertrain : public ChPowertrain {
     double GetGearShiftLatency(double ml) { return m_gear_shift_latency; }
 
   protected:
-    /// Set up the gears, i.e. the transmission ratios of the various gears.
-    /// A derived class must populate the vector gear_ratios, using the 0 index
-    /// for reverse and 1,2,3,etc. for the forward gears.
-    virtual void SetGearRatios(std::vector<double>& gear_ratios) = 0;
-
     /// Inertias of the component ChShaft objects.
     virtual double GetMotorBlockInertia() const = 0;
     virtual double GetCrankshaftInertia() const = 0;
     virtual double GetIngearShaftInertia() const = 0;
+    virtual double GetPowershaftInertia() const = 0;
 
     /// Upshift and downshift rotation speeds (in RPM)
     virtual double GetUpshiftRPM() const = 0;
@@ -125,20 +113,25 @@ class CH_VEHICLE_API ChShaftsPowertrain : public ChPowertrain {
     /// Initialize this powertrain system.
     /// This creates all the wrapped ChShaft objects and their constraints, torques etc.
     /// and connects the powertrain to the vehicle.
-    virtual void Initialize(std::shared_ptr<ChChassis> chassis,     ///< [in] chassis of the associated vehicle
-                            std::shared_ptr<ChDriveline> driveline  ///< [in] driveline of the associated vehicle
-                            ) override;
+    virtual void Initialize(std::shared_ptr<ChChassis> chassis) override;
 
     /// Update the state of this powertrain system at the current time.
     /// The powertrain system is provided the current driver throttle input, a value in the range [0,1].
-    virtual void Synchronize(double time,     ///< [in] current time
-                             double throttle  ///< [in] current throttle input [0,1]
+    virtual void Synchronize(double time,        ///< [in] current time
+                             double throttle,    ///< [in] current throttle input [0,1]
+                             double shaft_speed  ///< [in] driveshaft speed
                              ) override;
 
     /// Advance the state of this powertrain system by the specified time step.
     /// Since the state of a ShaftsPowertrain is advanced as part of the vehicle
     /// state, this function does nothing.
     virtual void Advance(double step) override {}
+
+    /// Perform any action required on a gear shift (the new gear and gear ratio are available).
+    virtual void OnGearShift() override;
+
+    /// Perform any action required on placing the transmission in neutral.
+    virtual void OnNeutralShift() override;
 
     std::shared_ptr<ChShaftsBody> m_motorblock_to_body;
     std::shared_ptr<ChShaft> m_motorblock;
@@ -148,9 +141,7 @@ class CH_VEHICLE_API ChShaftsPowertrain : public ChPowertrain {
     std::shared_ptr<ChShaftsTorqueConverter> m_torqueconverter;
     std::shared_ptr<ChShaft> m_shaft_ingear;
     std::shared_ptr<ChShaftsGearbox> m_gears;
-
-    int m_current_gear;
-    std::vector<double> m_gear_ratios;
+    std::shared_ptr<ChShaft> m_shaft;  ///< connection to driveline
 
     ChVector<> m_dir_motor_block;
 

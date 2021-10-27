@@ -33,7 +33,7 @@ using namespace geometry;
 // Register into the object factory, to enable run-time dynamic creation and persistence
 CH_FACTORY_REGISTER(ChNodeSPH)
 
-ChNodeSPH::ChNodeSPH() : container(NULL), UserForce(VNULL), h_rad(0.1), coll_rad(0.001), volume(0.01), pressure(0) {
+ChNodeSPH::ChNodeSPH() : container(nullptr), UserForce(VNULL), volume(0.01), h_rad(0.1), coll_rad(0.001), pressure(0) {
     collision_model = new ChCollisionModelBullet;
     collision_model->SetContactable(this);
 
@@ -139,7 +139,7 @@ void ChNodeSPH::ArchiveOUT(ChArchiveOut& marchive) {
 // Method to allow de serialization of transient data from archives.
 void ChNodeSPH::ArchiveIN(ChArchiveIn& marchive) {
     // version number
-    int version = marchive.VersionRead<ChNodeSPH>();
+    /*int version =*/ marchive.VersionRead<ChNodeSPH>();
 
     // deserialize parent class
     ChNodeXYZ::ArchiveIN(marchive);
@@ -184,7 +184,7 @@ void ChContinuumSPH::ArchiveOUT(ChArchiveOut& marchive) {
 // Method to allow de serialization of transient data from archives.
 void ChContinuumSPH::ArchiveIN(ChArchiveIn& marchive) {
     // version number
-    int version = marchive.VersionRead<ChContinuumSPH>();
+    /*int version =*/ marchive.VersionRead<ChContinuumSPH>();
 
     // deserialize parent class
     ChContinuumMaterial::ArchiveIN(marchive);
@@ -334,14 +334,15 @@ void ChMatterSPH::IntStateScatter(const unsigned int off_x,  // offset in x stat
                                   const ChState& x,          // state vector, position part
                                   const unsigned int off_v,  // offset in v state vector
                                   const ChStateDelta& v,     // state vector, speed part
-                                  const double T)            // time
-{
+                                  const double T,            // time
+                                  bool full_update           // perform complete update
+) {
     for (unsigned int j = 0; j < nodes.size(); j++) {
         nodes[j]->pos = x.segment(off_x + 3 * j, 3);
         nodes[j]->pos_dt = v.segment(off_v + 3 * j, 3);
     }
     SetChTime(T);
-    Update(T);
+    Update(T, full_update);
 }
 
 void ChMatterSPH::IntStateGatherAcceleration(const unsigned int off_a, ChStateDelta& a) {
@@ -666,7 +667,7 @@ void ChMatterSPH::ArchiveOUT(ChArchiveOut& marchive) {
 /// Method to allow de serialization of transient data from archives.
 void ChMatterSPH::ArchiveIN(ChArchiveIn& marchive) {
     // version number
-    int version = marchive.VersionRead<ChMatterSPH>();
+    /*int version =*/ marchive.VersionRead<ChMatterSPH>();
 
     // deserialize parent class
     ChIndexedNodes::ArchiveIN(marchive);

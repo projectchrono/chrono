@@ -50,7 +50,7 @@ class CH_VEHICLE_API DoubleIdler : public ChDoubleIdler {
 
     virtual double GetPrismaticPitchAngle() const override { return m_pitch_angle; }
 
-    virtual ChLinkTSDA::ForceFunctor* GetTensionerForceCallback() const override { return m_tensionerForceCB; }
+    virtual std::shared_ptr<ChLinkTSDA::ForceFunctor> GetTensionerForceCallback() const override { return m_tensionerForceCB; }
     virtual double GetTensionerFreeLength() const override { return m_tensioner_l0; }
 
   private:
@@ -76,7 +76,7 @@ class CH_VEHICLE_API DoubleIdler : public ChDoubleIdler {
 
     double m_pitch_angle;
 
-    ChLinkTSDA::ForceFunctor* m_tensionerForceCB;
+    std::shared_ptr<ChLinkTSDA::ForceFunctor> m_tensionerForceCB;
     double m_tensioner_l0;
 
     bool m_has_mesh;

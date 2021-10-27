@@ -71,17 +71,16 @@ const double Generic_HendricksonPRIMAXX::m_shockLB_restLength = 0.3948;
 // Constructor
 // -----------------------------------------------------------------------------
 Generic_HendricksonPRIMAXX::Generic_HendricksonPRIMAXX(const std::string& name) : ChHendricksonPRIMAXX(name) {
-    m_shockAHForceCB = new LinearSpringDamperForce(m_shockAH_springCoefficient, m_shockAH_dampingCoefficient);
-    m_shockLBForceCB = new LinearSpringDamperForce(m_shockLB_springCoefficient, m_shockLB_dampingCoefficient);
+    m_shockAHForceCB =
+        chrono_types::make_shared<LinearSpringDamperForce>(m_shockAH_springCoefficient, m_shockAH_dampingCoefficient);
+    m_shockLBForceCB =
+        chrono_types::make_shared<LinearSpringDamperForce>(m_shockLB_springCoefficient, m_shockLB_dampingCoefficient);
 }
 
 // -----------------------------------------------------------------------------
 // Destructor
 // -----------------------------------------------------------------------------
-Generic_HendricksonPRIMAXX::~Generic_HendricksonPRIMAXX() {
-    delete m_shockAHForceCB;
-    delete m_shockLBForceCB;
-}
+Generic_HendricksonPRIMAXX::~Generic_HendricksonPRIMAXX() {}
 
 // -----------------------------------------------------------------------------
 // Implementation of the getLocation() virtual method.

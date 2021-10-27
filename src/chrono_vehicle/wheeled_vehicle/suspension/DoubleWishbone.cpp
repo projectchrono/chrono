@@ -31,8 +31,13 @@ namespace vehicle {
 // file.
 // -----------------------------------------------------------------------------
 DoubleWishbone::DoubleWishbone(const std::string& filename)
-    : ChDoubleWishbone(""), m_springForceCB(NULL), m_shockForceCB(NULL) {
-    Document d = ReadFileJSON(filename);
+    : ChDoubleWishbone(""),
+      m_springForceCB(nullptr),
+      m_shockForceCB(nullptr),
+      m_UCABushingData(nullptr),
+      m_LCABushingData(nullptr) {
+    Document d;
+    ReadFileJSON(filename, d);
     if (d.IsNull())
         return;
 
@@ -42,16 +47,17 @@ DoubleWishbone::DoubleWishbone(const std::string& filename)
 }
 
 DoubleWishbone::DoubleWishbone(const rapidjson::Document& d)
-    : ChDoubleWishbone(""), m_springForceCB(NULL), m_shockForceCB(NULL) {
+    : ChDoubleWishbone(""),
+      m_springForceCB(nullptr),
+      m_shockForceCB(nullptr),
+      m_UCABushingData(nullptr),
+      m_LCABushingData(nullptr) {
     Create(d);
 }
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-DoubleWishbone::~DoubleWishbone() {
-    delete m_springForceCB;
-    delete m_shockForceCB;
-}
+DoubleWishbone::~DoubleWishbone() {}
 
 // -----------------------------------------------------------------------------
 // Worker function for creating a DoubleWishbone suspension using data in the
@@ -100,6 +106,9 @@ void DoubleWishbone::Create(const rapidjson::Document& d) {
     m_points[UCA_F] = ReadVectorJSON(d["Upper Control Arm"]["Location Chassis Front"]);
     m_points[UCA_B] = ReadVectorJSON(d["Upper Control Arm"]["Location Chassis Back"]);
     m_points[UCA_U] = ReadVectorJSON(d["Upper Control Arm"]["Location Upright"]);
+    if (d["Upper Control Arm"].HasMember("Bushing Data")) {
+        m_UCABushingData = ReadBushingDataJSON(d["Upper Control Arm"]["Bushing Data"]);
+    }
 
     // Read LCA data
     assert(d.HasMember("Lower Control Arm"));
@@ -113,10 +122,30 @@ void DoubleWishbone::Create(const rapidjson::Document& d) {
     m_points[LCA_F] = ReadVectorJSON(d["Lower Control Arm"]["Location Chassis Front"]);
     m_points[LCA_B] = ReadVectorJSON(d["Lower Control Arm"]["Location Chassis Back"]);
     m_points[LCA_U] = ReadVectorJSON(d["Lower Control Arm"]["Location Upright"]);
+    if (d["Lower Control Arm"].HasMember("Bushing Data")) {
+        m_LCABushingData = ReadBushingDataJSON(d["Lower Control Arm"]["Bushing Data"]);
+    }
 
     // Read Tierod data
     assert(d.HasMember("Tierod"));
     assert(d["Tierod"].IsObject());
+
+    if (d["Tierod"].HasMember("Mass")) {
+        assert(d["Tierod"].HasMember("Inertia"));
+        assert(d["Tierod"].HasMember("Radius"));
+        m_tierodMass = d["Tierod"]["Mass"].GetDouble();
+        m_tierodRadius = d["Tierod"]["Radius"].GetDouble();
+        m_tierodInertia = ReadVectorJSON(d["Tierod"]["Inertia"]);
+        m_use_tierod_bodies = true;
+        if (d["Tierod"].HasMember("Bushing Data")) {
+            m_tierodBushingData = ReadBushingDataJSON(d["Tierod"]["Bushing Data"]);
+        }
+    } else {
+        m_tierodMass = 0;
+        m_tierodRadius = 0;
+        m_tierodInertia = ChVector<>(0);
+        m_use_tierod_bodies = false;
+    }
 
     m_points[TIEROD_C] = ReadVectorJSON(d["Tierod"]["Location Chassis"]);
     m_points[TIEROD_U] = ReadVectorJSON(d["Tierod"]["Location Upright"]);
@@ -131,13 +160,13 @@ void DoubleWishbone::Create(const rapidjson::Document& d) {
 
     if (d["Spring"].HasMember("Minimum Length") && d["Spring"].HasMember("Maximum Length")) {
         if (d["Spring"].HasMember("Spring Coefficient")) {
-            m_springForceCB = new LinearSpringBistopForce(d["Spring"]["Spring Coefficient"].GetDouble(),
-                                                          d["Spring"]["Minimum Length"].GetDouble(),
-                                                          d["Spring"]["Maximum Length"].GetDouble());
+            m_springForceCB = chrono_types::make_shared<LinearSpringBistopForce>(
+                d["Spring"]["Spring Coefficient"].GetDouble(), d["Spring"]["Minimum Length"].GetDouble(),
+                d["Spring"]["Maximum Length"].GetDouble());
         } else if (d["Spring"].HasMember("Curve Data")) {
             int num_points = d["Spring"]["Curve Data"].Size();
-            MapSpringBistopForce* springForceCB = new MapSpringBistopForce(d["Spring"]["Minimum Length"].GetDouble(),
-                                                                           d["Spring"]["Maximum Length"].GetDouble());
+            auto springForceCB = chrono_types::make_shared<MapSpringBistopForce>(
+                d["Spring"]["Minimum Length"].GetDouble(), d["Spring"]["Maximum Length"].GetDouble());
             for (int i = 0; i < num_points; i++) {
                 springForceCB->add_point(d["Spring"]["Curve Data"][i][0u].GetDouble(),
                                          d["Spring"]["Curve Data"][i][1u].GetDouble());
@@ -146,10 +175,11 @@ void DoubleWishbone::Create(const rapidjson::Document& d) {
         }
     } else {
         if (d["Spring"].HasMember("Spring Coefficient")) {
-            m_springForceCB = new LinearSpringForce(d["Spring"]["Spring Coefficient"].GetDouble());
+            m_springForceCB =
+                chrono_types::make_shared<LinearSpringForce>(d["Spring"]["Spring Coefficient"].GetDouble());
         } else if (d["Spring"].HasMember("Curve Data")) {
             int num_points = d["Spring"]["Curve Data"].Size();
-            MapSpringForce* springForceCB = new MapSpringForce();
+            auto springForceCB = chrono_types::make_shared<MapSpringForce>();
             for (int i = 0; i < num_points; i++) {
                 springForceCB->add_point(d["Spring"]["Curve Data"][i][0u].GetDouble(),
                                          d["Spring"]["Curve Data"][i][1u].GetDouble());
@@ -166,10 +196,10 @@ void DoubleWishbone::Create(const rapidjson::Document& d) {
     m_points[SHOCK_A] = ReadVectorJSON(d["Shock"]["Location Arm"]);
 
     if (d["Shock"].HasMember("Damping Coefficient")) {
-        m_shockForceCB = new LinearDamperForce(d["Shock"]["Damping Coefficient"].GetDouble());
+        m_shockForceCB = chrono_types::make_shared<LinearDamperForce>(d["Shock"]["Damping Coefficient"].GetDouble());
     } else if (d["Shock"].HasMember("Curve Data")) {
         int num_points = d["Shock"]["Curve Data"].Size();
-        MapDamperForce* shockForceCB = new MapDamperForce();
+        auto shockForceCB = chrono_types::make_shared<MapDamperForce>();
         for (int i = 0; i < num_points; i++) {
             shockForceCB->add_point(d["Shock"]["Curve Data"][i][0u].GetDouble(),
                                     d["Shock"]["Curve Data"][i][1u].GetDouble());

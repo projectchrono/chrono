@@ -33,11 +33,6 @@ namespace citybus {
 // Static variables
 // -----------------------------------------------------------------------------
 
-static const double in2m = 0.0254;
-static const double lb2kg = 0.453592;
-static const double lbf2N = 4.44822162;
-static const double lbfpin2Npm = 175.12677;
-
 const double CityBus_LeafspringAxle::m_axleTubeMass = 124.0 * 4.1;
 const double CityBus_LeafspringAxle::m_spindleMass = 14.705 * 4.1;
 
@@ -170,26 +165,17 @@ double CityBus_ShockForceRear::operator()(double time,
 }
 
 CityBus_LeafspringAxle::CityBus_LeafspringAxle(const std::string& name) : ChLeafspringAxle(name) {
-    /*
-        m_springForceCB = new LinearSpringForce(m_springCoefficient  // coefficient for linear spring
-                                                );
+    m_springForceCB =
+        chrono_types::make_shared<CityBus_SpringForceRear>(m_springCoefficient, m_springMinLength, m_springMaxLength);
 
-        m_shockForceCB = new LinearDamperForce(m_damperCoefficient  // coefficient for linear damper
-                        );
-    */
-    m_springForceCB = new CityBus_SpringForceRear(m_springCoefficient, m_springMinLength, m_springMaxLength);
-
-    m_shockForceCB = new CityBus_ShockForceRear(m_damperCoefficient, m_damperDegressivityCompression,
-                                                m_damperCoefficient, m_damperDegressivityExpansion);
+    m_shockForceCB = chrono_types::make_shared<CityBus_ShockForceRear>(
+        m_damperCoefficient, m_damperDegressivityCompression, m_damperCoefficient, m_damperDegressivityExpansion);
 }
 
 // -----------------------------------------------------------------------------
 // Destructors
 // -----------------------------------------------------------------------------
-CityBus_LeafspringAxle::~CityBus_LeafspringAxle() {
-    delete m_springForceCB;
-    delete m_shockForceCB;
-}
+CityBus_LeafspringAxle::~CityBus_LeafspringAxle() {}
 
 const ChVector<> CityBus_LeafspringAxle::getLocation(PointId which) {
     switch (which) {

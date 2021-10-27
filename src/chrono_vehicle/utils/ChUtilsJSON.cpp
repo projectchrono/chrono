@@ -19,11 +19,20 @@
 #include <fstream>
 
 #include "chrono_vehicle/utils/ChUtilsJSON.h"
-//
+
 #include "chrono_vehicle/chassis/RigidChassis.h"
-//
+#include "chrono_vehicle/chassis/ChassisConnectorHitch.h"
+#include "chrono_vehicle/chassis/ChassisConnectorArticulated.h"
+#include "chrono_vehicle/chassis/ChassisConnectorTorsion.h"
+
+#include "chrono_vehicle/powertrain/ShaftsPowertrain.h"
+#include "chrono_vehicle/powertrain/SimpleCVTPowertrain.h"
+#include "chrono_vehicle/powertrain/SimpleMapPowertrain.h"
+#include "chrono_vehicle/powertrain/SimplePowertrain.h"
+
 #include "chrono_vehicle/wheeled_vehicle/antirollbar/AntirollBarRSD.h"
 #include "chrono_vehicle/wheeled_vehicle/brake/BrakeSimple.h"
+#include "chrono_vehicle/wheeled_vehicle/brake/BrakeShafts.h"
 #include "chrono_vehicle/wheeled_vehicle/driveline/ShaftsDriveline2WD.h"
 #include "chrono_vehicle/wheeled_vehicle/driveline/ShaftsDriveline4WD.h"
 #include "chrono_vehicle/wheeled_vehicle/driveline/SimpleDriveline.h"
@@ -47,6 +56,7 @@
 #include "chrono_vehicle/wheeled_vehicle/suspension/ThreeLinkIRS.h"
 #include "chrono_vehicle/wheeled_vehicle/suspension/ToeBarLeafspringAxle.h"
 #include "chrono_vehicle/wheeled_vehicle/suspension/SAEToeBarLeafspringAxle.h"
+#include "chrono_vehicle/wheeled_vehicle/subchassis/Balancer.h"
 #include "chrono_vehicle/wheeled_vehicle/tire/ANCFTire.h"
 #include "chrono_vehicle/wheeled_vehicle/tire/FEATire.h"
 #include "chrono_vehicle/wheeled_vehicle/tire/FialaTire.h"
@@ -58,8 +68,9 @@
 #include "chrono_vehicle/wheeled_vehicle/tire/Pac89Tire.h"
 #include "chrono_vehicle/wheeled_vehicle/tire/Pac02Tire.h"
 #include "chrono_vehicle/wheeled_vehicle/wheel/Wheel.h"
-//
+
 #include "chrono_vehicle/tracked_vehicle/brake/TrackBrakeSimple.h"
+#include "chrono_vehicle/tracked_vehicle/brake/TrackBrakeShafts.h"
 #include "chrono_vehicle/tracked_vehicle/driveline/SimpleTrackDriveline.h"
 #include "chrono_vehicle/tracked_vehicle/driveline/TrackDrivelineBDS.h"
 #include "chrono_vehicle/tracked_vehicle/idler/DoubleIdler.h"
@@ -73,7 +84,7 @@
 #include "chrono_vehicle/tracked_vehicle/track_assembly/TrackAssemblyBandBushing.h"
 #include "chrono_vehicle/tracked_vehicle/track_assembly/TrackAssemblyDoublePin.h"
 #include "chrono_vehicle/tracked_vehicle/track_assembly/TrackAssemblySinglePin.h"
-//
+
 #include "chrono_thirdparty/rapidjson/filereadstream.h"
 #include "chrono_thirdparty/rapidjson/istreamwrapper.h"
 
@@ -84,8 +95,7 @@ namespace vehicle {
 
 // -----------------------------------------------------------------------------
 
-Document ReadFileJSON(const std::string& filename) {
-    Document d;
+void ReadFileJSON(const std::string& filename, Document& d) {
     std::ifstream ifs(filename);
     if (!ifs.good()) {
         GetLog() << "ERROR: Could not open JSON file: " << filename << "\n";
@@ -96,7 +106,6 @@ Document ReadFileJSON(const std::string& filename) {
             GetLog() << "ERROR: Invalid JSON file: " << filename << "\n";
         }
     }
-    return d;
 }
 
 // -----------------------------------------------------------------------------
@@ -140,12 +149,31 @@ MaterialInfo ReadMaterialInfoJSON(const rapidjson::Value& mat) {
     return minfo;
 }
 
+std::shared_ptr<ChVehicleBushingData> ReadBushingDataJSON(const rapidjson::Value& bd) {
+    auto bushing_data = chrono_types::make_shared<ChVehicleBushingData>();
+
+    bushing_data->K_lin = bd["Stiffness Linear"].GetDouble();
+    bushing_data->D_lin = bd["Damping Linear"].GetDouble();
+    bushing_data->K_rot = bd["Stiffness Rotational"].GetDouble();
+    bushing_data->D_rot = bd["Damping Rotational"].GetDouble();
+
+    if (bd.HasMember("DOF")) {
+        bushing_data->K_lin_dof = bd["DOF"]["Stiffness Linear"].GetDouble();
+        bushing_data->D_lin_dof = bd["DOF"]["Damping Linear"].GetDouble();
+        bushing_data->K_rot_dof = bd["DOF"]["Stiffness Rotational"].GetDouble();
+        bushing_data->D_rot_dof = bd["DOF"]["Damping Rotational"].GetDouble();    
+    }
+
+    return bushing_data;
+}
+
+
 // -----------------------------------------------------------------------------
 
 std::shared_ptr<ChChassis> ReadChassisJSON(const std::string& filename) {
     std::shared_ptr<ChChassis> chassis;
 
-    Document d = ReadFileJSON(filename);
+    Document d;ReadFileJSON(filename, d);
     if (d.IsNull())
         return nullptr;
 
@@ -168,10 +196,101 @@ std::shared_ptr<ChChassis> ReadChassisJSON(const std::string& filename) {
     return chassis;
 }
 
+std::shared_ptr<ChChassisRear> ReadChassisRearJSON(const std::string& filename) {
+    std::shared_ptr<ChChassisRear> chassis;
+
+    Document d;ReadFileJSON(filename, d);
+    if (d.IsNull())
+        return nullptr;
+
+    // Check that the given file is a rear chassis specification file.
+    assert(d.HasMember("Type"));
+    std::string type = d["Type"].GetString();
+    assert(type.compare("ChassisRear") == 0);
+
+    // Extract the chassis type.
+    assert(d.HasMember("Template"));
+    std::string subtype = d["Template"].GetString();
+
+    // Create the chassis using the appropriate template.
+    if (subtype.compare("RigidChassisRear") == 0) {
+        chassis = chrono_types::make_shared<RigidChassisRear>(d);
+    } else {
+        throw ChException("Chassis type not supported in ReadChassisRearJSON.");
+    }
+
+    return chassis;
+}
+
+std::shared_ptr<ChChassisConnector> ReadChassisConnectorJSON(const std::string& filename) {
+    std::shared_ptr<ChChassisConnector> connector;
+
+    Document d;ReadFileJSON(filename, d);
+    if (d.IsNull())
+        return nullptr;
+
+    // Check that the given file is a chassis connector specification file.
+    assert(d.HasMember("Type"));
+    std::string type = d["Type"].GetString();
+    assert(type.compare("ChassisConnector") == 0);
+
+    // Extract the connector type.
+    assert(d.HasMember("Template"));
+    std::string subtype = d["Template"].GetString();
+
+    // Create the connector using the appropriate template.
+    if (subtype.compare("ChassisConnectorHitch") == 0) {
+        connector = chrono_types::make_shared<ChassisConnectorHitch>(d);
+    } else if (subtype.compare("ChassisConnectorArticulated") == 0) {
+        connector = chrono_types::make_shared<ChassisConnectorArticulated>(d);
+    } else if (subtype.compare("ChassisConnectorTorsion") == 0) {
+        connector = chrono_types::make_shared<ChassisConnectorTorsion>(d);
+    } else {
+        throw ChException("Chassis type not supported in ReadChassisConnectorJSON.");
+    }
+
+    return connector;
+}
+
+std::shared_ptr<ChPowertrain> ReadPowertrainJSON(const std::string& filename) {
+    std::shared_ptr<ChPowertrain> powertrain;
+
+    Document d;
+    ReadFileJSON(filename, d);
+    if (d.IsNull())
+        return nullptr;
+
+    // Check that the given file is a powertrain specification file.
+    assert(d.HasMember("Type"));
+    std::string type = d["Type"].GetString();
+    assert(type.compare("Powertrain") == 0);
+
+    // Extract the powertrain type.
+    assert(d.HasMember("Template"));
+    std::string subtype = d["Template"].GetString();
+
+    // Create the powertrain using the appropriate template.
+    if (subtype.compare("ShaftsPowertrain") == 0) {
+        powertrain = chrono_types::make_shared<ShaftsPowertrain>(d);
+    } else if (subtype.compare("SimpleCVTPowertrain") == 0) {
+        powertrain = chrono_types::make_shared<SimpleCVTPowertrain>(d);
+    } else if (subtype.compare("SimpleMapPowertrain") == 0) {
+        powertrain = chrono_types::make_shared<SimpleMapPowertrain>(d);
+    } else if (subtype.compare("SimplePowertrain") == 0) {
+        powertrain = chrono_types::make_shared<SimplePowertrain>(d);
+    } else {
+        throw ChException("Powertrain type not supported in ReadChassisJSON.");
+    }
+
+    return powertrain;
+}
+
+// -----------------------------------------------------------------------------
+
 std::shared_ptr<ChSuspension> ReadSuspensionJSON(const std::string& filename) {
     std::shared_ptr<ChSuspension> suspension;
 
-    Document d = ReadFileJSON(filename);
+    Document d;ReadFileJSON(filename, d);
     if (d.IsNull())
         return nullptr;
 
@@ -227,7 +346,7 @@ std::shared_ptr<ChSuspension> ReadSuspensionJSON(const std::string& filename) {
 std::shared_ptr<ChSteering> ReadSteeringJSON(const std::string& filename) {
     std::shared_ptr<ChSteering> steering;
 
-    Document d = ReadFileJSON(filename);
+    Document d;ReadFileJSON(filename, d);
     if (d.IsNull())
         return nullptr;
 
@@ -257,7 +376,7 @@ std::shared_ptr<ChSteering> ReadSteeringJSON(const std::string& filename) {
 std::shared_ptr<ChDrivelineWV> ReadDrivelineWVJSON(const std::string& filename) {
     std::shared_ptr<ChDrivelineWV> driveline;
 
-    Document d = ReadFileJSON(filename);
+    Document d;ReadFileJSON(filename, d);
     if (d.IsNull())
         return nullptr;
 
@@ -289,7 +408,7 @@ std::shared_ptr<ChDrivelineWV> ReadDrivelineWVJSON(const std::string& filename) 
 std::shared_ptr<ChAntirollBar> ReadAntirollbarJSON(const std::string& filename) {
     std::shared_ptr<ChAntirollBar> antirollbar;
 
-    Document d = ReadFileJSON(filename);
+    Document d;ReadFileJSON(filename, d);
     if (d.IsNull())
         return nullptr;
 
@@ -315,7 +434,7 @@ std::shared_ptr<ChAntirollBar> ReadAntirollbarJSON(const std::string& filename) 
 std::shared_ptr<ChWheel> ReadWheelJSON(const std::string& filename) {
     std::shared_ptr<ChWheel> wheel;
 
-    Document d = ReadFileJSON(filename);
+    Document d;ReadFileJSON(filename, d);
     if (d.IsNull())
         return nullptr;
 
@@ -338,10 +457,37 @@ std::shared_ptr<ChWheel> ReadWheelJSON(const std::string& filename) {
     return wheel;
 }
 
+std::shared_ptr<ChSubchassis> ReadSubchassisJSON(const std::string& filename) {
+    std::shared_ptr<ChSubchassis> chassis;
+
+    Document d;
+    ReadFileJSON(filename, d);
+    if (d.IsNull())
+        return nullptr;
+
+    // Check that the given file is a wheel specification file.
+    assert(d.HasMember("Type"));
+    std::string type = d["Type"].GetString();
+    assert(type.compare("Subchassis") == 0);
+
+    // Extract the wheel type.
+    assert(d.HasMember("Template"));
+    std::string subtype = d["Template"].GetString();
+
+    // Create the wheel using the appropriate template.
+    if (subtype.compare("Balancer") == 0) {
+        chassis = chrono_types::make_shared<Balancer>(d);
+    } else {
+        throw ChException("Subchassis type not supported in ReadSubchassisJSON.");
+    }
+
+    return chassis;
+}
+
 std::shared_ptr<ChBrake> ReadBrakeJSON(const std::string& filename) {
     std::shared_ptr<ChBrake> brake;
 
-    Document d = ReadFileJSON(filename);
+    Document d;ReadFileJSON(filename, d);
     if (d.IsNull())
         return nullptr;
 
@@ -357,6 +503,8 @@ std::shared_ptr<ChBrake> ReadBrakeJSON(const std::string& filename) {
     // Create the brake using the appropriate template.
     if (subtype.compare("BrakeSimple") == 0) {
         brake = chrono_types::make_shared<BrakeSimple>(d);
+    } else if (subtype.compare("BrakeShafts") == 0) {
+        brake = chrono_types::make_shared<BrakeShafts>(d);
     } else {
         throw ChException("Brake type not supported in ReadBrakeJSON.");
     }
@@ -367,7 +515,7 @@ std::shared_ptr<ChBrake> ReadBrakeJSON(const std::string& filename) {
 std::shared_ptr<ChTire> ReadTireJSON(const std::string& filename) {
     std::shared_ptr<ChTire> tire;
 
-    Document d = ReadFileJSON(filename);
+    Document d;ReadFileJSON(filename, d);
     if (d.IsNull())
         return nullptr;
 
@@ -410,10 +558,10 @@ std::shared_ptr<ChTire> ReadTireJSON(const std::string& filename) {
 
 // -----------------------------------------------------------------------------
 
-std::shared_ptr<ChTrackAssembly> ReadTrackAssemblySON(const std::string& filename) {
+std::shared_ptr<ChTrackAssembly> ReadTrackAssemblyJSON(const std::string& filename) {
     std::shared_ptr<ChTrackAssembly> track;
 
-    Document d = ReadFileJSON(filename);
+    Document d;ReadFileJSON(filename, d);
     if (d.IsNull())
         return nullptr;
 
@@ -436,7 +584,7 @@ std::shared_ptr<ChTrackAssembly> ReadTrackAssemblySON(const std::string& filenam
     } else if (subtype.compare("TrackAssemblyBandANCF") == 0) {
         track = chrono_types::make_shared<TrackAssemblyBandANCF>(d);
     } else {
-        throw ChException("TrackAssembly type not supported in ReadTrackAssemblySON.");
+        throw ChException("TrackAssembly type not supported in ReadTrackAssemblyJSON.");
     }
 
     return track;
@@ -445,7 +593,7 @@ std::shared_ptr<ChTrackAssembly> ReadTrackAssemblySON(const std::string& filenam
 std::shared_ptr<ChDrivelineTV> ReadDrivelineTVJSON(const std::string& filename) {
     std::shared_ptr<ChDrivelineTV> driveline;
 
-    Document d = ReadFileJSON(filename);
+    Document d;ReadFileJSON(filename, d);
     if (d.IsNull())
         return nullptr;
 
@@ -473,7 +621,7 @@ std::shared_ptr<ChDrivelineTV> ReadDrivelineTVJSON(const std::string& filename) 
 std::shared_ptr<ChTrackBrake> ReadTrackBrakeJSON(const std::string& filename) {
     std::shared_ptr<ChTrackBrake> brake;
 
-    Document d = ReadFileJSON(filename);
+    Document d;ReadFileJSON(filename, d);
     if (d.IsNull())
         return nullptr;
 
@@ -489,6 +637,8 @@ std::shared_ptr<ChTrackBrake> ReadTrackBrakeJSON(const std::string& filename) {
     // Create the brake using the appropriate template.
     if (subtype.compare("TrackBrakeSimple") == 0) {
         brake = chrono_types::make_shared<TrackBrakeSimple>(d);
+    } else if (subtype.compare("TrackBrakeShafts") == 0) {
+        brake = chrono_types::make_shared<TrackBrakeShafts>(d);
     } else {
         throw ChException("Brake type not supported in ReadTrackBrakeJSON.");
     }
@@ -499,7 +649,7 @@ std::shared_ptr<ChTrackBrake> ReadTrackBrakeJSON(const std::string& filename) {
 std::shared_ptr<ChIdler> ReadIdlerJSON(const std::string& filename) {
     std::shared_ptr<ChIdler> idler;
 
-    Document d = ReadFileJSON(filename);
+    Document d;ReadFileJSON(filename, d);
     if (d.IsNull())
         return nullptr;
 
@@ -527,7 +677,7 @@ std::shared_ptr<ChIdler> ReadIdlerJSON(const std::string& filename) {
 std::shared_ptr<ChRoadWheelAssembly> ReadRoadWheelAssemblyJSON(const std::string& filename, bool has_shock) {
     std::shared_ptr<ChRoadWheelAssembly> suspension;
 
-    Document d = ReadFileJSON(filename);
+    Document d;ReadFileJSON(filename, d);
     if (d.IsNull())
         return nullptr;
 
@@ -555,7 +705,7 @@ std::shared_ptr<ChRoadWheelAssembly> ReadRoadWheelAssemblyJSON(const std::string
 std::shared_ptr<ChRoller> ReadRollerJSON(const std::string& filename) {
     std::shared_ptr<ChRoller> roller;
 
-    Document d = ReadFileJSON(filename);
+    Document d;ReadFileJSON(filename, d);
     if (d.IsNull())
         return nullptr;
 
@@ -581,7 +731,7 @@ std::shared_ptr<ChRoller> ReadRollerJSON(const std::string& filename) {
 std::shared_ptr<ChRoadWheel> ReadRoadWheelJSON(const std::string& filename) {
     std::shared_ptr<ChRoadWheel> wheel;
 
-    Document d = ReadFileJSON(filename);
+    Document d;ReadFileJSON(filename, d);
     if (d.IsNull())
         return nullptr;
 

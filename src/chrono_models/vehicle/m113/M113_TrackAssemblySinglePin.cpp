@@ -17,6 +17,7 @@
 // =============================================================================
 
 #include "chrono_models/vehicle/m113/M113_BrakeSimple.h"
+#include "chrono_models/vehicle/m113/M113_BrakeShafts.h"
 #include "chrono_models/vehicle/m113/M113_Idler.h"
 #include "chrono_models/vehicle/m113/M113_RoadWheel.h"
 #include "chrono_models/vehicle/m113/M113_SprocketSinglePin.h"
@@ -52,8 +53,9 @@ const ChVector<> M113_TrackAssemblySinglePin::m_susp_locs_R[5] = {
 // Constructor for the M113 track assembly using single-pin track shoes.
 // Create the suspensions, idler, brake, sprocket, and track shoes.
 // -----------------------------------------------------------------------------
-M113_TrackAssemblySinglePin::M113_TrackAssemblySinglePin(VehicleSide side) : ChTrackAssemblySinglePin("", side) {
-    size_t num_shoes;
+M113_TrackAssemblySinglePin::M113_TrackAssemblySinglePin(VehicleSide side, BrakeType brake_type, bool add_RSDA)
+    : ChTrackAssemblySinglePin("", side) {
+    size_t num_shoes = 0;
     std::string suspName("M113_Suspension");
     std::string shoeName("M113_TrackShoe");
     switch (side) {
@@ -86,6 +88,12 @@ M113_TrackAssemblySinglePin::M113_TrackAssemblySinglePin(VehicleSide side) : ChT
 
     for (size_t it = 0; it < num_shoes; it++) {
         m_shoes.push_back(chrono_types::make_shared<M113_TrackShoeSinglePin>(shoeName + std::to_string(it)));
+    }
+
+    if (add_RSDA) {
+        double k = 1000;
+        double c = 10;
+        m_torque_funct = chrono_types::make_shared<ChTrackAssemblySegmented::TrackBendingFunctor>(k, c);
     }
 }
 

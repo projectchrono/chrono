@@ -30,7 +30,7 @@ using namespace geometry;
 CH_FACTORY_REGISTER(ChMatterMeshless)
 
 ChNodeMeshless::ChNodeMeshless()
-    : pos_ref(VNULL), UserForce(VNULL), h_rad(0.1), coll_rad(0.001), volume(0.01), hardening(0), container(NULL) {
+    : container(nullptr), pos_ref(VNULL), UserForce(VNULL), volume(0.01), h_rad(0.1), coll_rad(0.001), hardening(0) {
     collision_model = new ChCollisionModelBullet;
     collision_model->SetContactable(this);
 
@@ -139,7 +139,7 @@ ChPhysicsItem* ChNodeMeshless::GetPhysicsItem() {
 
 /// CLASS FOR Meshless NODE CLUSTER
 
-ChMatterMeshless::ChMatterMeshless() : do_collide(false), viscosity(0) {
+ChMatterMeshless::ChMatterMeshless() : viscosity(0), do_collide(false) {
     // Default: VonMises material
     material = chrono_types::make_shared<ChContinuumPlasticVonMises>();
 
@@ -277,14 +277,15 @@ void ChMatterMeshless::IntStateScatter(const unsigned int off_x,  // offset in x
                                        const ChState& x,          // state vector, position part
                                        const unsigned int off_v,  // offset in v state vector
                                        const ChStateDelta& v,     // state vector, speed part
-                                       const double T             // time
-                                       ) {
+                                       const double T,            // time
+                                       bool full_update           // perform complete update
+) {
     for (unsigned int j = 0; j < nodes.size(); j++) {
         nodes[j]->pos = x.segment(off_x + 3 * j, 3);
         nodes[j]->pos_dt = v.segment(off_v + 3 * j, 3);
     }
     SetChTime(T);
-    Update(T);
+    Update(T, full_update);
 }
 
 void ChMatterMeshless::IntStateGatherAcceleration(const unsigned int off_a, ChStateDelta& a) {
@@ -723,7 +724,7 @@ void ChMatterMeshless::ArchiveOUT(ChArchiveOut& marchive) {
 
 void ChMatterMeshless::ArchiveIN(ChArchiveIn& marchive) {
     // version number
-    int version = marchive.VersionRead<ChMatterMeshless>();
+    /*int version =*/ marchive.VersionRead<ChMatterMeshless>();
 
     // deserialize the parent class data too
     ChIndexedNodes::ArchiveIN(marchive);

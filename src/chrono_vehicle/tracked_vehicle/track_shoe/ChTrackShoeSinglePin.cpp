@@ -23,7 +23,9 @@
 #include "chrono/assets/ChBoxShape.h"
 #include "chrono/assets/ChColorAsset.h"
 #include "chrono/assets/ChTexture.h"
+#include "chrono/physics/ChLinkRotSpringCB.h"
 
+#include "chrono_vehicle/tracked_vehicle/track_assembly/ChTrackAssemblySinglePin.h"
 #include "chrono_vehicle/tracked_vehicle/track_shoe/ChTrackShoeSinglePin.h"
 
 namespace chrono {
@@ -31,7 +33,19 @@ namespace vehicle {
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-ChTrackShoeSinglePin::ChTrackShoeSinglePin(const std::string& name) : ChTrackShoe(name) {}
+ChTrackShoeSinglePin::ChTrackShoeSinglePin(const std::string& name) : ChTrackShoeSegmented(name) {}
+
+ChTrackShoeSinglePin::~ChTrackShoeSinglePin() {
+    if (!m_shoe)
+        return;
+
+    auto sys = m_shoe->GetSystem();
+    if (sys) {
+        ChChassis::RemoveJoint(m_connection_joint);
+        if (m_connection_rsda)
+            sys->Remove(m_connection_rsda);
+    }
+}
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
@@ -45,6 +59,7 @@ void ChTrackShoeSinglePin::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,
     ChQuaternion<> rot = chassis->GetRot() * rotation;
     m_shoe = std::shared_ptr<ChBody>(sys->NewBody());
     m_shoe->SetNameString(m_name + "_shoe");
+    m_shoe->SetIdentifier(BodyID::SHOE_BODY);
     m_shoe->SetPos(loc);
     m_shoe->SetRot(rot);
     m_shoe->SetMass(GetShoeMass());
@@ -56,7 +71,8 @@ void ChTrackShoeSinglePin::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,
     CreateContactMaterials(sys->GetContactMethod());
 
     // Add contact geometry on shoe body
-    AddShoeContact();
+    m_geometry.AddCollisionShapes(m_shoe, TrackedCollisionFamily::SHOES);
+    m_shoe->GetCollisionModel()->SetFamilyMaskNoCollisionWithFamily(TrackedCollisionFamily::SHOES);
 }
 
 // -----------------------------------------------------------------------------
@@ -67,102 +83,42 @@ double ChTrackShoeSinglePin::GetMass() const {
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-void ChTrackShoeSinglePin::AddShoeContact() {
-    m_shoe->GetCollisionModel()->ClearModel();
+void ChTrackShoeSinglePin::Connect(std::shared_ptr<ChTrackShoe> next,
+                                   ChTrackAssembly* assembly,
+                                   ChChassis* chassis,
+                                   bool ccw) {
+    auto track = static_cast<ChTrackAssemblySinglePin*>(assembly);
+    ChSystem* system = m_shoe->GetSystem();
+    double sign = ccw ? +1 : -1;
 
-    m_shoe->GetCollisionModel()->SetFamily(TrackedCollisionFamily::SHOES);
+    ChVector<> loc = m_shoe->TransformPointLocalToParent(ChVector<>(sign * GetPitch() / 2, 0, 0));
 
-    for (auto box : m_coll_boxes) {
-        assert(m_shoe_materials[box.m_matID] &&
-               m_shoe_materials[box.m_matID]->GetContactMethod() == m_shoe->GetSystem()->GetContactMethod());
-        ChVector<> hdims = box.m_dims / 2;
-        m_shoe->GetCollisionModel()->AddBox(m_shoe_materials[box.m_matID], hdims.x(), hdims.y(), hdims.z(), box.m_pos,
-                                            box.m_rot);
-    }
-    for (auto cyl : m_coll_cylinders) {
-        assert(m_shoe_materials[cyl.m_matID] &&
-               m_shoe_materials[cyl.m_matID]->GetContactMethod() == m_shoe->GetSystem()->GetContactMethod());
-        m_shoe->GetCollisionModel()->AddCylinder(m_shoe_materials[cyl.m_matID], cyl.m_radius, cyl.m_radius,
-                                                 cyl.m_length / 2, cyl.m_pos, cyl.m_rot);
-    }
-
-    m_shoe->GetCollisionModel()->BuildModel();
-}
-
-// -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
-void ChTrackShoeSinglePin::AddVisualizationAssets(VisualizationType vis) {
-    if (vis == VisualizationType::NONE)
-        return;
-
-    // Create colors for the track shoe (based on shoe index)
-    ChColor box_col;
-    ChColor cyl_col;
-    if (m_index == 0) {
-        box_col = {0.6f, 0.3f, 0.3f};
-        cyl_col = {0.4f, 0.1f, 0.1f};
-    } else if (m_index % 2 == 0) {
-        box_col = {0.3f, 0.6f, 0.3f};
-        cyl_col = {0.1f, 0.4f, 0.1f};
-    } else {
-        box_col = {0.3f, 0.3f, 0.6f};
-        cyl_col = {0.1f, 0.1f, 0.4f};
-    }
-
-    // Render boxes 
-    auto box_level = chrono_types::make_shared<ChAssetLevel>();
-    for (auto box : m_vis_boxes) {
-        auto box_shape = chrono_types::make_shared<ChBoxShape>();
-        box_shape->GetBoxGeometry().SetLengths(box.m_dims);
-        box_shape->Pos = box.m_pos;
-        box_shape->Rot = box.m_rot;
-        box_level->AddAsset(box_shape);
-    }
-    box_level->AddAsset(chrono_types::make_shared<ChColorAsset>(box_col));
-
-    // Render cylinders
-    auto cyl_level = chrono_types::make_shared<ChAssetLevel>();
-    for (auto cyl : m_vis_cylinders) {
-        auto cyl_shape = chrono_types::make_shared<ChCylinderShape>();
-        cyl_shape->GetCylinderGeometry().rad = cyl.m_radius;
-        cyl_shape->GetCylinderGeometry().p1 = ChVector<>(0, cyl.m_length / 2, 0);
-        cyl_shape->GetCylinderGeometry().p2 = ChVector<>(0, -cyl.m_length / 2, 0);
-        cyl_shape->Pos = cyl.m_pos;
-        cyl_shape->Rot = cyl.m_rot;
-        cyl_level->AddAsset(cyl_shape);
-    }
-    cyl_level->AddAsset(chrono_types::make_shared<ChColorAsset>(cyl_col));
-
-    // Attach asset levels
-    m_shoe->AddAsset(box_level);
-    m_shoe->AddAsset(cyl_level);
-}
-
-void ChTrackShoeSinglePin::RemoveVisualizationAssets() {
-    m_shoe->GetAssets().clear();
-}
-
-// -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
-void ChTrackShoeSinglePin::Connect(std::shared_ptr<ChTrackShoe> next) {
-    ChVector<> loc = m_shoe->TransformPointLocalToParent(ChVector<>(GetPitch() / 2, 0, 0));
-
-    if (m_index == 0) {
+    if (m_index == 0 && !track->GetBushingData()) {
         // Create and initialize a point-line joint (sliding line along X)
-        ChQuaternion<> rot = m_shoe->GetRot() * Q_from_AngZ(CH_C_PI_2);
-
-        auto pointline = chrono_types::make_shared<ChLinkLockPointLine>();
-        pointline->SetNameString(m_name + "_pointline");
-        pointline->Initialize(m_shoe, next->GetShoeBody(), ChCoordsys<>(loc, rot));
-        m_shoe->GetSystem()->AddLink(pointline);
+        auto rot = m_shoe->GetRot() * Q_from_AngZ(CH_C_PI_2);
+        auto pointline =
+            chrono_types::make_shared<ChVehicleJoint>(ChVehicleJoint::Type::POINTLINE, m_name + "_pointline", m_shoe,
+                                                      next->GetShoeBody(), ChCoordsys<>(loc, rot));
+        chassis->AddJoint(pointline);
+        m_connection_joint = pointline;
     } else {
         // Create and initialize the revolute joint (rotation axis along Z)
-        ChQuaternion<> rot = m_shoe->GetRot() * Q_from_AngX(CH_C_PI_2);
+        auto rot = m_shoe->GetRot() * Q_from_AngX(CH_C_PI_2);
+        auto revolute = chrono_types::make_shared<ChVehicleJoint>(ChVehicleJoint::Type::REVOLUTE, m_name + "_revolute",
+                                                                  m_shoe, next->GetShoeBody(), ChCoordsys<>(loc, rot),
+                                                                  track->GetBushingData());
+        chassis->AddJoint(revolute);
+        m_connection_joint = revolute;
+    }
 
-        auto revolute = chrono_types::make_shared<ChLinkLockRevolute>();
-        revolute->SetNameString(m_name + "_revolute");
-        revolute->Initialize(m_shoe, next->GetShoeBody(), ChCoordsys<>(loc, rot));
-        m_shoe->GetSystem()->AddLink(revolute);
+    // Optionally, include rotational spring-damper to model track bending stiffness
+    if (track->GetTorqueFunctor()) {
+        m_connection_rsda = chrono_types::make_shared<ChLinkRotSpringCB>();
+        m_connection_rsda->SetNameString(m_name + "_rsda");
+        m_connection_rsda->Initialize(m_shoe, next->GetShoeBody(), false, ChCoordsys<>(loc, m_shoe->GetRot()),
+                                      ChCoordsys<>(loc, next->GetShoeBody()->GetRot()));
+        m_connection_rsda->RegisterTorqueFunctor(track->GetTorqueFunctor());
+        system->AddLink(m_connection_rsda);
     }
 }
 

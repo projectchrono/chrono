@@ -21,8 +21,6 @@
 
 #include "chrono_irrlicht/ChIrrApp.h"
 
-#include <irrlicht.h>
-
 // Use the namespaces of Chrono
 using namespace chrono;
 using namespace chrono::irrlicht;
@@ -30,10 +28,6 @@ using namespace chrono::irrlicht;
 // Use the main namespaces of Irrlicht
 using namespace irr;
 using namespace irr::core;
-using namespace irr::scene;
-using namespace irr::video;
-using namespace irr::io;
-using namespace irr::gui;
 
 void AddWall(std::shared_ptr<ChBody> body, const ChVector<>& dim, const ChVector<>& loc, std::shared_ptr<ChMaterialSurface> mat) {
     body->GetCollisionModel()->AddBox(mat, dim.x(), dim.y(), dim.z(), loc);
@@ -66,24 +60,28 @@ int main(int argc, char* argv[]) {
     int binId = 200;
     double width = 2;
     double length = 2;
-    double height = 1;
+    ////double height = 1;
     double thickness = 0.1;
+
+    // Collision system type
+    auto collision_type = collision::ChCollisionSystemType::BULLET;
 
     // Create the system
     ChSystemSMC msystem;
+
+    msystem.Set_G_acc(ChVector<>(0, gravity, 0));
+    msystem.SetCollisionSystemType(collision_type);
 
     // The following two lines are optional, since they are the default options. They are added for future reference,
     // i.e. when needed to change those models.
     msystem.SetContactForceModel(ChSystemSMC::ContactForceModel::Hertz);
     msystem.SetAdhesionForceModel(ChSystemSMC::AdhesionForceModel::Constant);
 
-    msystem.Set_G_acc(ChVector<>(0, gravity, 0));
-
     // Change the default collision effective radius of curvature 
     collision::ChCollisionInfo::SetDefaultEffectiveCurvatureRadius(1);
 
     // Create the Irrlicht visualization
-    ChIrrApp application(&msystem, L"SMC demo", core::dimension2d<u32>(800, 600), false, true);
+    ChIrrApp application(&msystem, L"SMC demo", core::dimension2d<u32>(800, 600));
 
     // Easy shortcuts to add camera, lights, logo and sky in Irrlicht scene
     application.AddTypicalLogo();
@@ -93,7 +91,7 @@ int main(int argc, char* argv[]) {
 
     // This means that contactforces will be shown in Irrlicht application
     application.SetSymbolscale(1e-4);
-    application.SetContactsDrawMode(ChIrrTools::eCh_ContactsDrawMode::CONTACT_FORCES);
+    application.SetContactsDrawMode(IrrContactsDrawMode::CONTACT_FORCES);
 
     // Create a material (will be used by both objects)
     auto material = chrono_types::make_shared<ChMaterialSurfaceSMC>();
@@ -102,7 +100,7 @@ int main(int argc, char* argv[]) {
     material->SetAdhesion(0);  // Magnitude of the adhesion in Constant adhesion model
 
     // Create the falling ball
-    auto ball = chrono_types::make_shared<ChBody>();
+    auto ball = chrono_types::make_shared<ChBody>(collision_type);
 
     ball->SetIdentifier(ballId);
     ball->SetMass(mass);
@@ -125,13 +123,13 @@ int main(int argc, char* argv[]) {
     ball->AddAsset(sphere);
 
     auto mtexture = chrono_types::make_shared<ChTexture>();
-    mtexture->SetTextureFilename(GetChronoDataFile("bluwhite.png"));
+    mtexture->SetTextureFilename(GetChronoDataFile("textures/bluewhite.png"));
     ball->AddAsset(mtexture);
 
     msystem.AddBody(ball);
 
     // Create container
-    auto bin = chrono_types::make_shared<ChBody>();
+    auto bin = chrono_types::make_shared<ChBody>(collision_type);
 
     bin->SetIdentifier(binId);
     bin->SetMass(1);
@@ -163,7 +161,7 @@ int main(int argc, char* argv[]) {
 
         application.DrawAll();
 
-        ChIrrTools::drawGrid(application.GetVideoDriver(), 0.2, 0.2, 20, 20,
+        tools::drawGrid(application.GetVideoDriver(), 0.2, 0.2, 20, 20,
                              ChCoordsys<>(ChVector<>(0, 0, 0), Q_from_AngX(CH_C_PI_2)),
                              video::SColor(255, 80, 100, 100), true);
 

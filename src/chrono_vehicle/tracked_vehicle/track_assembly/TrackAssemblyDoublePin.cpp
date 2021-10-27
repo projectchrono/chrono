@@ -41,7 +41,7 @@ namespace vehicle {
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 void TrackAssemblyDoublePin::ReadSprocket(const std::string& filename, int output) {
-    Document d = ReadFileJSON(filename);
+    Document d; ReadFileJSON(filename, d);
     if (d.IsNull())
         return;
 
@@ -69,7 +69,7 @@ void TrackAssemblyDoublePin::ReadSprocket(const std::string& filename, int outpu
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 void TrackAssemblyDoublePin::ReadTrackShoes(const std::string& filename, int num_shoes, int output) {
-    Document d = ReadFileJSON(filename);
+    Document d; ReadFileJSON(filename, d);
     if (d.IsNull())
         return;
 
@@ -99,7 +99,7 @@ void TrackAssemblyDoublePin::ReadTrackShoes(const std::string& filename, int num
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 TrackAssemblyDoublePin::TrackAssemblyDoublePin(const std::string& filename) : ChTrackAssemblyDoublePin("", LEFT) {
-    Document d = ReadFileJSON(filename);
+    Document d; ReadFileJSON(filename, d);
     if (d.IsNull())
         return;
 
@@ -192,6 +192,16 @@ void TrackAssemblyDoublePin::Create(const rapidjson::Document& d) {
         }
         m_num_track_shoes = d["Track Shoes"]["Number Shoes"].GetInt();
         ReadTrackShoes(vehicle::GetDataFile(file_name), m_num_track_shoes, output);
+
+        if (d["Track Shoes"].HasMember("RSDA Data")) {
+            double k = d["Track Shoes"]["RSDA Data"]["Stiffness Rotational"].GetDouble();
+            double c = d["Track Shoes"]["RSDA Data"]["Damping Rotational"].GetDouble();
+            m_torque_funct = chrono_types::make_shared<ChTrackAssemblySegmented::TrackBendingFunctor>(k, c);
+        }
+
+        if (d["Track Shoes"].HasMember("Bushing Data")) {
+            m_bushing_data = ReadBushingDataJSON(d["Bushing Data"]);
+        }
     }
 }
 

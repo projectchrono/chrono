@@ -62,6 +62,9 @@ class CH_MODELS_API M113_SprocketSinglePin : public ChSprocketSinglePin {
     /// Return the radius of the tooth arc centers.
     virtual double GetArcCentersRadius() const override { return m_gear_RC; }
 
+    /// Return the allowed backlash (play) before lateral contact with track shoes is enabled (to prevent detracking).
+    virtual double GetLateralBacklash() const override { return m_lateral_backlash; }
+
   protected:
     M113_SprocketSinglePin(const std::string& name);
 
@@ -85,6 +88,8 @@ class CH_MODELS_API M113_SprocketSinglePin : public ChSprocketSinglePin {
     static const double m_gear_RC;
     static const double m_gear_R;
     static const double m_gear_RA;
+
+    static const double m_lateral_backlash;
 };
 
 /// M113 sprocket subsystem, suitable for interaction with single-pin track shoes (left side).

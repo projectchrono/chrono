@@ -64,6 +64,9 @@ class CH_MODELS_API M113_SprocketDoublePin : public ChSprocketDoublePin {
     /// Return offset of arc center.
     virtual double GetArcCenterOffset() const override { return m_gear_W; }
 
+    /// Return the allowed backlash (play) before lateral contact with track shoes is enabled (to prevent detracking).
+    virtual double GetLateralBacklash() const override { return m_lateral_backlash; }
+
   protected:
     M113_SprocketDoublePin(const std::string& name);
 
@@ -88,6 +91,8 @@ class CH_MODELS_API M113_SprocketDoublePin : public ChSprocketDoublePin {
     static const double m_gear_C;
     static const double m_gear_W;
     static const double m_gear_RA;
+
+    static const double m_lateral_backlash;
 };
 
 /// M113 sprocket subsystem, suitable for interaction with double-pin track shoes (left side).

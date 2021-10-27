@@ -58,14 +58,15 @@ class CH_VEHICLE_API ChRigidTire : public ChTire {
     /// Check whether or not this tire uses a contact mesh.
     bool UseContactMesh() const { return m_use_contact_mesh; }
 
-    /// Get the tire width.
-    virtual double GetWidth() const = 0;
-
     /// Report the tire force and moment.
     /// This generalized force encapsulates the tire-terrain forces (i.e. the resultant
     /// of all contact forces acting on the tire). The force and moment are expressed
     /// in global frame, as applied to the center of the associated wheel.
     virtual TerrainForce ReportTireForce(ChTerrain* terrain) const override;
+
+    /// Get the tire contact material.
+    /// Note that this is not set until after tire initialization.
+    std::shared_ptr<ChMaterialSurface> GetContactMaterial() const { return m_material; }
 
     /// Add visualization assets for the rigid tire subsystem.
     virtual void AddVisualizationAssets(VisualizationType vis) override;
@@ -76,11 +77,17 @@ class CH_VEHICLE_API ChRigidTire : public ChTire {
     /// Return the number of vertices in the contact mesh.
     unsigned int GetNumVertices() const;
 
+    /// Return the number of normals in the contact mesh.
+    unsigned int GetNumNormals() const;
+
     /// Return the number of faces in the contact mesh.
     unsigned int GetNumTriangles() const;
 
     /// Get the contact mesh connectivity.
     const std::vector<ChVector<int>>& GetMeshConnectivity() const;
+
+    /// Get the mesh normal indices.
+    const std::vector<ChVector<int>>& GetMeshNormalIndices() const;
 
     /// Get the contact mesh vertices (in local frame).
     const std::vector<ChVector<>>& GetMeshVertices() const;
@@ -100,7 +107,7 @@ class CH_VEHICLE_API ChRigidTire : public ChTire {
 
     std::shared_ptr<ChMaterialSurface> m_material;  ///< contact material;
 
-  private:
+  //private:
     /// Get the tire force and moment.
     /// A ChRigidTire always returns zero force and moment since tire
     /// forces are automatically applied to the associated wheel through Chrono's

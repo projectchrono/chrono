@@ -38,7 +38,7 @@ void ChVolume::ArchiveOUT(ChArchiveOut& marchive) {
 
 void ChVolume::ArchiveIN(ChArchiveIn& marchive) {
     // version number
-    int version = marchive.VersionRead<ChVolume>();
+    /*int version =*/ marchive.VersionRead<ChVolume>();
     // deserialize parent class
     ChGeometry::ArchiveIN(marchive);
     // stream in all member data:

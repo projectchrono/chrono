@@ -43,7 +43,7 @@ class ChOpenGLOBJLoader : public ChOpenGLBase {
 
 /// @} opengl_module
 
-}
-}
+}  // namespace opengl
+}  // namespace chrono
 
 #endif

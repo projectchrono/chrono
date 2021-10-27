@@ -100,11 +100,11 @@ void ChTrackShoeBand::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,
     // Express the tread body location and orientation in global frame.
     ChVector<> loc = chassis->TransformPointLocalToParent(location);
     ChQuaternion<> rot = chassis->GetRot() * rotation;
-    ChVector<> xdir = rot.GetXaxis();
 
     // Create the tread body
     m_shoe = std::shared_ptr<ChBody>(chassis->GetSystem()->NewBody());
     m_shoe->SetNameString(m_name + "_tread");
+    m_shoe->SetIdentifier(BodyID::SHOE_BODY);
     m_shoe->SetPos(loc);
     m_shoe->SetRot(rot);
     m_shoe->SetMass(GetTreadMass());
@@ -125,6 +125,10 @@ double ChTrackShoeBand::GetMass() const {
 
 double ChTrackShoeBand::GetPitch() const {
     return GetToothBaseLength() + GetWebLength();
+}
+
+ChVector<> ChTrackShoeBand::GetLateralContactPoint() const {
+    return ChVector<>(GetGuideBoxOffsetX(), 0, GetWebThickness() / 2 + GetGuideBoxDimensions().z() / 2);
 }
 
 // -----------------------------------------------------------------------------

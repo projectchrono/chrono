@@ -164,7 +164,7 @@ void test_1(const std::string& out_dir) {
         ChStreamOutAsciiFile fileCq(filename.c_str());
         StreamOUTsparseMatlabFormat(matrM, fileM);
         StreamOUTsparseMatlabFormat(matrCq, fileCq);
-    } catch (ChException myex) {
+    } catch (const ChException &myex) {
         GetLog() << "FILE ERROR: " << myex.what();
     }
 
@@ -260,7 +260,7 @@ void test_2(const std::string& out_dir) {
         filename = out_dir + "/dump_fric_2.dat";
         chrono::ChStreamOutAsciiFile file_fric(filename.c_str());
         StreamOUTdenseMatlabFormat(mdfric, file_fric);
-    } catch (chrono::ChException myexc) {
+    } catch (const chrono::ChException &myexc) {
         chrono::GetLog() << myexc.what();
     }
 

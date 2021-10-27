@@ -50,9 +50,9 @@ namespace chrono {
 // Initialize static members
 // -----------------------------------------------------------------------------
 const size_t ChBezierCurve::m_maxNumIters = 50;
-const double ChBezierCurve::m_sqrDistTol = 1e-4;
+const double ChBezierCurve::m_sqrDistTol = 1e-6;
 const double ChBezierCurve::m_cosAngleTol = 1e-4;
-const double ChBezierCurve::m_paramTol = 1e-4;
+const double ChBezierCurve::m_paramTol = 1e-8;
 
 // -----------------------------------------------------------------------------
 // ChBezierCurve::ChBezierCurve()
@@ -189,7 +189,7 @@ std::shared_ptr<ChBezierCurve> ChBezierCurve::read(const std::string& filename) 
     try {
         ifile.exceptions(std::ios::failbit | std::ios::badbit | std::ios::eofbit);
         ifile.open(filename.c_str());
-    } catch (std::exception) {
+    } catch (const std::exception &) {
         throw ChException("Cannot open input file");
     }
 
@@ -209,8 +209,8 @@ std::shared_ptr<ChBezierCurve> ChBezierCurve::read(const std::string& filename) 
             double x, y, z;
 
             std::getline(ifile, line);
-            std::istringstream iss(line);
-            iss >> x >> y >> z;
+            std::istringstream jss(line);
+            jss >> x >> y >> z;
 
             points.push_back(ChVector<>(x, y, z));
         }
@@ -231,8 +231,8 @@ std::shared_ptr<ChBezierCurve> ChBezierCurve::read(const std::string& filename) 
             double outX, outY, outZ;
 
             std::getline(ifile, line);
-            std::istringstream iss(line);
-            iss >> x >> y >> z >> inX >> inY >> inZ >> outX >> outY >> outZ;
+            std::istringstream jss(line);
+            jss >> x >> y >> z >> inX >> inY >> inZ >> outX >> outY >> outZ;
 
             points.push_back(ChVector<>(x, y, z));
             inCV.push_back(ChVector<>(inX, inY, inZ));
@@ -376,7 +376,7 @@ ChVector<> ChBezierCurve::calcClosestPoint(const ChVector<>& loc, size_t i, doub
         Qd = evalD(i, t);
 
         double dot = Vdot(vec, Qd);
-        double cosAngle = dot / (vec.Length() * Qd.Length());
+        double cosAngle = dot / (std::sqrt(d2) * Qd.Length());
 
         if (fabs(cosAngle) < m_cosAngleTol)
             break;
@@ -398,6 +398,23 @@ ChVector<> ChBezierCurve::calcClosestPoint(const ChVector<>& loc, size_t i, doub
         if ((dt * Qd).Length2() < m_sqrDistTol)
             break;
     };
+
+    ChVector<> Q_0 = eval(i, 0.0);
+    ChVector<> Q_1 = eval(i, 1.0);
+
+    double d2 = (Q - loc).Length2();
+    double d2_0 = (Q_0 - loc).Length2();
+    double d2_1 = (Q_1 - loc).Length2();
+
+    if (d2_0 < d2) {
+        t = 0;
+        Q = Q_0;
+        d2 = d2_0;
+    }
+    if (d2_1 < d2) {
+        t = 1;
+        Q = Q_1;
+    }
 
     return Q;
 }
@@ -422,7 +439,7 @@ void ChBezierCurve::ArchiveOUT(ChArchiveOut& marchive)
 void ChBezierCurve::ArchiveIN(ChArchiveIn& marchive)
 {
     // version number
-    int version = marchive.VersionRead<ChBezierCurve>();
+    /*int version =*/ marchive.VersionRead<ChBezierCurve>();
 
     // stream in all member data:
     marchive >> CHNVP(m_points);
@@ -561,7 +578,6 @@ int ChBezierCurveTracker::calcClosestPoint(const ChVector<>& loc, ChFrame<>& tnb
 
     // Calculate TNB frame
     ChVector<> rp_rpp = Vcross(rp, rpp);
-    ChVector<> rp_rpp_rp = Vcross(rp_rpp, rp);
     double rp_norm = rp.Length();
     double rp_rpp_norm = rp_rpp.Length();
 

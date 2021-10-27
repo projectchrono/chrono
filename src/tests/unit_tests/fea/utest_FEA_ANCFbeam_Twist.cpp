@@ -137,7 +137,6 @@ int main(int argc, char* argv[]) {
             ChVectorDynamic<>* state_w   ///< if != 0, update state (speed part) to this, then evaluate F
             ) override {
             assert(auxsystem);
-            double T = auxsystem->GetChTime();
 
             F.setZero();
             F(3) = TIP_MOMENT;  // Apply the moment along the global X axis

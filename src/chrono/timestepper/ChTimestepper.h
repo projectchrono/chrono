@@ -163,6 +163,9 @@ class ChApi ChTimestepperIIorder : public ChTimestepper {
         V.setZero(1, intgr);
         A.setZero(1, intgr);
     }
+
+  private:
+    using ChTimestepper::SetIntegrable;
 };
 
 /// Base class for implicit solvers (double inheritance)
@@ -239,7 +242,7 @@ class ChApi ChImplicitIterativeTimestepper : public ChImplicitTimestepper {
     /// Method to allow de-serialization of transient data from archives.
     virtual void ArchiveIN(ChArchiveIn& archive) {
         // version number
-        int version = archive.VersionRead();
+        /*int version =*/ archive.VersionRead();
         // stream in all member data:
         archive >> CHNVP(maxiters);
         archive >> CHNVP(reltol);
@@ -506,12 +509,14 @@ class ChApi ChTimestepperNewmark : public ChTimestepperIIorder, public ChImplici
     ChVectorDynamic<> R;
     ChVectorDynamic<> Rold;
     ChVectorDynamic<> Qc;
+    bool modified_Newton;
 
   public:
     /// Constructors (default empty)
     ChTimestepperNewmark(ChIntegrableIIorder* intgr = nullptr)
         : ChTimestepperIIorder(intgr), ChImplicitIterativeTimestepper() {
         SetGammaBeta(0.6, 0.3);  // default values with some damping, and that works also with DAE constraints
+        modified_Newton = true; // default use modified Newton with jacobian factorization only at beginning
     }
 
     virtual Type GetType() const override { return Type::NEWMARK; }
@@ -529,6 +534,12 @@ class ChApi ChTimestepperNewmark : public ChTimestepperIIorder, public ChImplici
     double GetGamma() { return gamma; }
 
     double GetBeta() { return beta; }
+
+    /// Enable/disable modified Newton.
+    /// If enabled, the Newton matrix is evaluated, assembled, and factorized only once per step.
+    /// If disabled, the Newton matrix is evaluated at every iteration of the nonlinear solver.
+    /// Modified Newton iteration is enabled by default.
+    void SetModifiedNewton(bool val) { modified_Newton = val; }
 
     /// Performs an integration timestep
     virtual void Advance(const double dt  ///< timestep to advance

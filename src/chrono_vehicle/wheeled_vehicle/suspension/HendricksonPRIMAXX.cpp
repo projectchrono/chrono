@@ -33,7 +33,8 @@ namespace vehicle {
 // file.
 // -----------------------------------------------------------------------------
 HendricksonPRIMAXX::HendricksonPRIMAXX(const std::string& filename) : ChHendricksonPRIMAXX("") {
-    Document d = ReadFileJSON(filename);
+    Document d;
+    ReadFileJSON(filename, d);
     if (d.IsNull())
         return;
 
@@ -124,6 +125,23 @@ void HendricksonPRIMAXX::Create(const rapidjson::Document& d) {
     assert(d.HasMember("Tierod"));
     assert(d["Tierod"].IsObject());
 
+    if (d["Tierod"].HasMember("Mass")) {
+        assert(d["Tierod"].HasMember("Inertia"));
+        assert(d["Tierod"].HasMember("Radius"));
+        m_tierodMass = d["Tierod"]["Mass"].GetDouble();
+        m_tierodRadius = d["Tierod"]["Radius"].GetDouble();
+        m_tierodInertia = ReadVectorJSON(d["Tierod"]["Inertia"]);
+        m_use_tierod_bodies = true;
+        if (d["Tierod"].HasMember("Bushing Data")) {
+            m_tierodBushingData = ReadBushingDataJSON(d["Tierod"]["Bushing Data"]);
+        }
+    } else {
+        m_tierodMass = 0;
+        m_tierodRadius = 0;
+        m_tierodInertia = ChVector<>(0);
+        m_use_tierod_bodies = false;
+    }
+
     m_points[TIEROD_C] = ReadVectorJSON(d["Tierod"]["Location Chassis"]);
     m_points[TIEROD_K] = ReadVectorJSON(d["Tierod"]["Location Knuckle"]);
 
@@ -136,8 +154,9 @@ void HendricksonPRIMAXX::Create(const rapidjson::Document& d) {
     m_points[SHOCKAH_C] = ReadVectorJSON(d["Shock Axle Housing"]["Location Chassis"]);
     m_points[SHOCKAH_AH] = ReadVectorJSON(d["Shock Axle Housing"]["Location Axle Housing"]);
     m_shockAH_restLength = d["Shock Axle Housing"]["Free Length"].GetDouble();
-    m_shockAHForceCB = new LinearSpringDamperForce(d["Shock Axle Housing"]["Spring Coefficient"].GetDouble(),
-                                                   d["Shock Axle Housing"]["Damping Coefficient"].GetDouble());
+    m_shockAHForceCB =
+        chrono_types::make_shared<LinearSpringDamperForce>(d["Shock Axle Housing"]["Spring Coefficient"].GetDouble(),
+                                                           d["Shock Axle Housing"]["Damping Coefficient"].GetDouble());
 
     assert(d.HasMember("Shock Lower Beam"));
     assert(d["Shock Lower Beam"].IsObject());
@@ -145,8 +164,9 @@ void HendricksonPRIMAXX::Create(const rapidjson::Document& d) {
     m_points[SHOCKLB_C] = ReadVectorJSON(d["Shock Lower Beam"]["Location Chassis"]);
     m_points[SHOCKLB_LB] = ReadVectorJSON(d["Shock Lower Beam"]["Location Lower Beam"]);
     m_shockLB_restLength = d["Shock Lower Beam"]["Free Length"].GetDouble();
-    m_shockLBForceCB = new LinearSpringDamperForce(d["Shock Lower Beam"]["Spring Coefficient"].GetDouble(),
-                                                   d["Shock Lower Beam"]["Damping Coefficient"].GetDouble());
+    m_shockLBForceCB =
+        chrono_types::make_shared<LinearSpringDamperForce>(d["Shock Lower Beam"]["Spring Coefficient"].GetDouble(),
+                                                           d["Shock Lower Beam"]["Damping Coefficient"].GetDouble());
 
     // Read axle inertia
     assert(d.HasMember("Axle"));

@@ -32,7 +32,7 @@ namespace vehicle {
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 SprocketSinglePin::SprocketSinglePin(const std::string& filename) : ChSprocketSinglePin(""), m_has_mesh(false) {
-    Document d = ReadFileJSON(filename);
+    Document d; ReadFileJSON(filename, d);
     if (d.IsNull())
         return;
 
@@ -55,6 +55,9 @@ void SprocketSinglePin::Create(const rapidjson::Document& d) {
     m_gear_inertia = ReadVectorJSON(d["Gear Inertia"]);
     m_axle_inertia = d["Axle Inertia"].GetDouble();
     m_separation = d["Gear Separation"].GetDouble();
+
+    // Read lateral backlash (for contact against detracking)
+    m_lateral_backlash = d["Lateral Backlash"].GetDouble();
 
     // Read profile information
     assert(d.HasMember("Profile"));

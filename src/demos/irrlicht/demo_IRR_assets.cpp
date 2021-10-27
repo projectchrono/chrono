@@ -50,8 +50,7 @@ int main(int argc, char* argv[]) {
 
     // Create the Irrlicht visualization (open the Irrlicht device,
     // bind a simple user interface, etc. etc.)
-    ChIrrApp application(&mphysicalSystem, L"Assets for Irrlicht visualization", core::dimension2d<u32>(800, 600),
-                         false, true);
+    ChIrrApp application(&mphysicalSystem, L"Assets for Irrlicht visualization", core::dimension2d<u32>(800, 600));
 
     // Easy shortcuts to add camera, lights, logo and sky in Irrlicht scene:
     application.AddTypicalLogo();
@@ -194,13 +193,13 @@ int main(int argc, char* argv[]) {
     // ==Asset== Attach, in this level, a 'Wavefront mesh' asset,
     // referencing a .obj file:
     auto mobjmesh = chrono_types::make_shared<ChObjShapeFile>();
-    mobjmesh->SetFilename(GetChronoDataFile("forklift_body.obj"));
+    mobjmesh->SetFilename(GetChronoDataFile("models/forklift/body.obj"));
     mlevelA->AddAsset(mobjmesh);
 
     // ==Asset== Attach also a texture, that will affect only the
     // assets in mlevelA:
     auto mtexture = chrono_types::make_shared<ChTexture>();
-    mtexture->SetTextureFilename(GetChronoDataFile("bluwhite.png"));
+    mtexture->SetTextureFilename(GetChronoDataFile("textures/bluewhite.png"));
     mlevelA->AddAsset(mtexture);
 
     // Change the position of mlevelA, thus moving also its sub-assets:
@@ -220,6 +219,9 @@ int main(int argc, char* argv[]) {
         msmallbox->GetBoxGeometry().Pos = ChVector<>(0.4, 0, 0);
         msmallbox->GetBoxGeometry().Size = ChVector<>(0.1, 0.1, 0.01);
         mlevelC->AddAsset(msmallbox);
+
+        auto boxcol = chrono_types::make_shared<ChColorAsset>(j * 0.05f, 1 - j * 0.05f, 0.0f);
+        mlevelC->AddAsset(boxcol);
 
         ChQuaternion<> mrot;
         mrot.Q_from_AngAxis(j * 21 * CH_C_DEG_TO_RAD, ChVector<>(0, 1, 0));

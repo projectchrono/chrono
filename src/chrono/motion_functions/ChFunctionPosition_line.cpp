@@ -95,7 +95,7 @@ void ChFunctionPosition_line::ArchiveOUT(ChArchiveOut& marchive) {
 
 void ChFunctionPosition_line::ArchiveIN(ChArchiveIn& marchive) {
     // version number
-    int version = marchive.VersionRead<ChFunctionPosition_line>();
+    /*int version =*/ marchive.VersionRead<ChFunctionPosition_line>();
 	// deserialize parent class
     ChFunctionPosition::ArchiveIN(marchive);
     // deserialize all member data:

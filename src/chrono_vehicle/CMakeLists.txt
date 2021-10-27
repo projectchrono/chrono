@@ -54,7 +54,7 @@ if (ENABLE_OPENCRG)
 
    if(EXISTS "${OPENCRG_INCLUDE_DIR}/crgBaseLib.h" AND EXISTS "${OPENCRG_LIBRARY}")
      set(HAVE_OPENCRG ON)
-  else()
+   else()
      set(HAVE_OPENCRG OFF)
    endif()
 
@@ -148,11 +148,14 @@ set(CV_BASE_FILES
     ChDriver.cpp
     ChPart.h
     ChPart.cpp
+    ChVehicleJoint.h
+    ChVehicleJoint.cpp
     ChDriveline.h
     ChDriveline.cpp
     ChPowertrain.h
     ChPowertrain.cpp
     ChSubsysDefs.h
+    ChSubsysDefs.cpp
     ChTerrain.h
     ChTerrain.cpp
     ChVehicle.h
@@ -160,17 +163,31 @@ set(CV_BASE_FILES
     ChVehicleModelData.h
     ChVehicleModelData.cpp
     ChVehicleOutput.h
+    ChWorldFrame.cpp
+    ChWorldFrame.h
 )
 source_group("base" FILES ${CV_BASE_FILES})
 
 set(CV_CHASSIS_FILES
     chassis/ChRigidChassis.h
     chassis/ChRigidChassis.cpp
-    chassis/ChTorsionChassis.h
-    chassis/ChTorsionChassis.cpp
+
+    chassis/ChChassisConnectorArticulated.h
+    chassis/ChChassisConnectorArticulated.cpp
+    chassis/ChChassisConnectorHitch.h
+    chassis/ChChassisConnectorHitch.cpp
+    chassis/ChChassisConnectorTorsion.h
+    chassis/ChChassisConnectorTorsion.cpp
 
     chassis/RigidChassis.h
     chassis/RigidChassis.cpp
+
+    chassis/ChassisConnectorHitch.h
+    chassis/ChassisConnectorHitch.cpp
+    chassis/ChassisConnectorArticulated.h
+    chassis/ChassisConnectorArticulated.cpp
+    chassis/ChassisConnectorTorsion.h
+    chassis/ChassisConnectorTorsion.cpp    
 )
 source_group("chassis" FILES ${CV_CHASSIS_FILES})
 
@@ -179,10 +196,15 @@ set(CV_DRIVER_FILES
     driver/ChDataDriver.cpp
     driver/ChHumanDriver.h
     driver/ChHumanDriver.cpp
+    driver/ChAIDriver.h
+    driver/ChAIDriver.cpp
     driver/ChPathFollowerDriver.h
     driver/ChPathFollowerDriver.cpp
     driver/ChPathFollowerACCDriver.h
     driver/ChPathFollowerACCDriver.cpp
+
+    driver/AIDriver.h
+    driver/AIDriver.cpp
 )
 if(ENABLE_MODULE_IRRLICHT)
     set(CVIRR_DRIVER_FILES
@@ -218,8 +240,12 @@ source_group("powertrain" FILES ${CV_POVERTRAIN_FILES})
 set(CV_TERRAIN_FILES
     terrain/FlatTerrain.h
     terrain/FlatTerrain.cpp
+    terrain/ObsModTerrain.h
+    terrain/ObsModTerrain.cpp
     terrain/RigidTerrain.h
     terrain/RigidTerrain.cpp
+    terrain/RandomSurfaceTerrain.h
+    terrain/RandomSurfaceTerrain.cpp
     terrain/SCMDeformableTerrain.h
     terrain/SCMDeformableTerrain.cpp
     terrain/GranularTerrain.h
@@ -289,6 +315,10 @@ set(CV_WV_BASE_FILES
     wheeled_vehicle/ChSuspension.cpp
     wheeled_vehicle/ChSteering.h
     wheeled_vehicle/ChSteering.cpp
+    wheeled_vehicle/ChSubchassis.h
+    wheeled_vehicle/ChSubchassis.cpp
+    wheeled_vehicle/ChWheeledTrailer.h
+    wheeled_vehicle/ChWheeledTrailer.cpp
     wheeled_vehicle/ChWheeledVehicle.h
     wheeled_vehicle/ChWheeledVehicle.cpp
     wheeled_vehicle/ChWheel.h
@@ -310,9 +340,13 @@ source_group("wheeled_vehicle\\antirollbar" FILES ${CV_WV_ANTIROLL_FILES})
 set(CV_WV_BRAKE_FILES
     wheeled_vehicle/brake/ChBrakeSimple.h
     wheeled_vehicle/brake/ChBrakeSimple.cpp
+    wheeled_vehicle/brake/ChBrakeShafts.h
+    wheeled_vehicle/brake/ChBrakeShafts.cpp
 
     wheeled_vehicle/brake/BrakeSimple.h
     wheeled_vehicle/brake/BrakeSimple.cpp
+    wheeled_vehicle/brake/BrakeShafts.h
+    wheeled_vehicle/brake/BrakeShafts.cpp
 )
 source_group("wheeled_vehicle\\brake" FILES ${CV_WV_BRAKE_FILES})
 
@@ -321,6 +355,10 @@ set(CV_WV_DRIVELINE_FILES
     wheeled_vehicle/driveline/ChShaftsDriveline2WD.cpp
     wheeled_vehicle/driveline/ChShaftsDriveline4WD.h
     wheeled_vehicle/driveline/ChShaftsDriveline4WD.cpp
+    wheeled_vehicle/driveline/ChShaftsDriveline6WD.h
+    wheeled_vehicle/driveline/ChShaftsDriveline6WD.cpp
+    wheeled_vehicle/driveline/ChShaftsDriveline8WD.h
+    wheeled_vehicle/driveline/ChShaftsDriveline8WD.cpp
     wheeled_vehicle/driveline/ChSimpleDrivelineXWD.h
     wheeled_vehicle/driveline/ChSimpleDrivelineXWD.cpp
     wheeled_vehicle/driveline/ChSimpleDriveline.h
@@ -356,11 +394,22 @@ set(CV_WV_STEERING_FILES
 )
 source_group("wheeled_vehicle\\steering" FILES ${CV_WV_STEERING_FILES})
 
+set(CV_WV_SUBCHASSIS_FILES
+    wheeled_vehicle/subchassis/ChBalancer.h
+    wheeled_vehicle/subchassis/ChBalancer.cpp
+
+    wheeled_vehicle/subchassis/Balancer.h
+    wheeled_vehicle/subchassis/Balancer.cpp
+)
+source_group("wheeled_vehicle\\subchassis" FILES ${CV_WV_SUBCHASSIS_FILES})
+
 set(CV_WV_SUSPENSION_FILES
     wheeled_vehicle/suspension/ChDoubleWishbone.h
     wheeled_vehicle/suspension/ChDoubleWishbone.cpp
     wheeled_vehicle/suspension/ChDoubleWishboneReduced.h
     wheeled_vehicle/suspension/ChDoubleWishboneReduced.cpp
+    wheeled_vehicle/suspension/ChSingleWishbone.h
+    wheeled_vehicle/suspension/ChSingleWishbone.cpp
     wheeled_vehicle/suspension/ChSolidAxle.h
     wheeled_vehicle/suspension/ChSolidAxle.cpp
     wheeled_vehicle/suspension/ChMultiLink.h
@@ -394,6 +443,8 @@ set(CV_WV_SUSPENSION_FILES
     wheeled_vehicle/suspension/DoubleWishbone.cpp
     wheeled_vehicle/suspension/DoubleWishboneReduced.h
     wheeled_vehicle/suspension/DoubleWishboneReduced.cpp
+    wheeled_vehicle/suspension/SingleWishbone.h
+    wheeled_vehicle/suspension/SingleWishbone.cpp
     wheeled_vehicle/suspension/SolidAxle.h
     wheeled_vehicle/suspension/SolidAxle.cpp
     wheeled_vehicle/suspension/MultiLink.h
@@ -509,6 +560,8 @@ endif()
 source_group("wheeled_vehicle\\utils" FILES ${CV_WV_UTILS_FILES} ${CVIRR_WV_UTILS_FILES})
 
 set(CV_WV_VEHICLE_FILES
+    wheeled_vehicle/vehicle/WheeledTrailer.h
+    wheeled_vehicle/vehicle/WheeledTrailer.cpp
     wheeled_vehicle/vehicle/WheeledVehicle.h
     wheeled_vehicle/vehicle/WheeledVehicle.cpp
 )
@@ -519,23 +572,6 @@ set(CV_WV_WHEEL_FILES
     wheeled_vehicle/wheel/Wheel.cpp
 )
 source_group("wheeled_vehicle\\wheel" FILES ${CV_WV_WHEEL_FILES})
-
-#if(MPI_CXX_FOUND)
-#    set(CV_WV_COSIM_FILES
-#        wheeled_vehicle/cosim/ChCosimManager.h
-#        wheeled_vehicle/cosim/ChCosimManager.cpp
-#        wheeled_vehicle/cosim/ChCosimNode.h
-#        wheeled_vehicle/cosim/ChCosimVehicleNode.h
-#        wheeled_vehicle/cosim/ChCosimVehicleNode.cpp
-#        wheeled_vehicle/cosim/ChCosimTireNode.h
-#        wheeled_vehicle/cosim/ChCosimTireNode.cpp
-#        wheeled_vehicle/cosim/ChCosimTerrainNode.h
-#        wheeled_vehicle/cosim/ChCosimTerrainNode.cpp
-#    )
-#    source_group("wheeled_vehicle\\cosim" FILES ${CV_WV_COSIM_FILES})
-#else()
-    set(CV_WV_COSIM_FILES "")
-#endif()
 
 # --------------- TRACKED VEHICLE FILES
 
@@ -568,9 +604,13 @@ source_group("tracked_vehicle\\base" FILES ${CV_TV_BASE_FILES})
 set(CV_TV_BRAKE_FILES
     tracked_vehicle/brake/ChTrackBrakeSimple.h
     tracked_vehicle/brake/ChTrackBrakeSimple.cpp
+    tracked_vehicle/brake/ChTrackBrakeShafts.h
+    tracked_vehicle/brake/ChTrackBrakeShafts.cpp
 
     tracked_vehicle/brake/TrackBrakeSimple.h
     tracked_vehicle/brake/TrackBrakeSimple.cpp
+    tracked_vehicle/brake/TrackBrakeShafts.h
+    tracked_vehicle/brake/TrackBrakeShafts.cpp
 )
 source_group("tracked_vehicle\\brake" FILES ${CV_TV_BRAKE_FILES})
 
@@ -653,6 +693,8 @@ set(CV_TV_SUSPENSION_FILES
 source_group("tracked_vehicle\\suspension" FILES ${CV_TV_SUSPENSION_FILES})
 
 set(CV_TV_TRACKSHOE_FILES
+    tracked_vehicle/track_shoe/ChTrackShoeSegmented.h
+    tracked_vehicle/track_shoe/ChTrackShoeSegmented.cpp
     tracked_vehicle/track_shoe/ChTrackShoeSinglePin.h
     tracked_vehicle/track_shoe/ChTrackShoeSinglePin.cpp
     tracked_vehicle/track_shoe/ChTrackShoeDoublePin.h
@@ -676,6 +718,8 @@ set(CV_TV_TRACKSHOE_FILES
 source_group("tracked_vehicle\\track_shoe" FILES ${CV_TV_TRACKSHOE_FILES})
 
 set(CV_TV_TRACKASSEMBLY_FILES
+    tracked_vehicle/track_assembly/ChTrackAssemblySegmented.h
+    tracked_vehicle/track_assembly/ChTrackAssemblySegmented.cpp
     tracked_vehicle/track_assembly/ChTrackAssemblySinglePin.h
     tracked_vehicle/track_assembly/ChTrackAssemblySinglePin.cpp
     tracked_vehicle/track_assembly/ChTrackAssemblyDoublePin.h
@@ -724,6 +768,8 @@ if(ENABLE_MODULE_IRRLICHT)
     set(CVIRR_TV_UTILS_FILES
         tracked_vehicle/utils/ChTrackedVehicleIrrApp.h
         tracked_vehicle/utils/ChTrackedVehicleIrrApp.cpp
+        tracked_vehicle/utils/ChTrackTestRigIrrApp.h
+        tracked_vehicle/utils/ChTrackTestRigIrrApp.cpp
     )
 else()
     set(CVIRR_TV_UTILS_FILES "")
@@ -738,14 +784,14 @@ source_group("tracked_vehicle\\vehicle" FILES ${CV_TV_VEHICLE_FILES})
 
 # --------------- THIRD-PARTY FILES
 
-set(CV_EASYBMP_FILES
-    ${CMAKE_SOURCE_DIR}/src/chrono_thirdparty/Easy_BMP/EasyBMP.h
-    ${CMAKE_SOURCE_DIR}/src/chrono_thirdparty/Easy_BMP/EasyBMP.cpp
-    ${CMAKE_SOURCE_DIR}/src/chrono_thirdparty/Easy_BMP/EasyBMP_BMP.h
-    ${CMAKE_SOURCE_DIR}/src/chrono_thirdparty/Easy_BMP/EasyBMP_DataStructures.h
-    ${CMAKE_SOURCE_DIR}/src/chrono_thirdparty/Easy_BMP/EasyBMP_VariousBMPutilities.h
+set(CV_STB_FILES
+    ${CMAKE_SOURCE_DIR}/src/chrono_thirdparty/stb/stb.h
+    ${CMAKE_SOURCE_DIR}/src/chrono_thirdparty/stb/stb_image.h
+    ${CMAKE_SOURCE_DIR}/src/chrono_thirdparty/stb/stb_image.cpp
+    ${CMAKE_SOURCE_DIR}/src/chrono_thirdparty/stb/stb_image_write.h
+    ${CMAKE_SOURCE_DIR}/src/chrono_thirdparty/stb/stb_image_write.cpp
 )
-source_group("easyBMP" FILES ${CV_EASYBMP_FILES})
+source_group("utils\\stb" FILES ${CV_STB_FILES})
 
 # ----------------------------------------------------------------------------
 # Add the ChronoEngine_vehicle library
@@ -755,19 +801,6 @@ set(CXX_FLAGS ${CH_CXX_FLAGS})
 set(COMPILE_DEFS "CH_API_COMPILE_VEHICLE")
 set(LINK_FLAGS ${CH_LINKERFLAG_SHARED})
 set(LIBRARIES "ChronoEngine")
-
-if(ENABLE_MODULE_IRRLICHT)
-    set(CXX_FLAGS "${CXX_FLAGS} ${CH_IRRLICHT_CXX_FLAGS}")
-    list(APPEND LIBRARIES ChronoEngine_irrlicht) 
-    include_directories(${CH_IRRLICHTINC})
-endif()
-
-if(MPI_CXX_FOUND)
-    set(CXX_FLAGS "${CXX_FLAGS} ${MPI_CXX_COMPILE_FLAGS}")
-    set(LINK_FLAGS "${LINK_FLAGS} ${MPI_CXX_LINK_FLAGS}")
-    include_directories(${MPI_CXX_INCLUDE_PATH})
-    list(APPEND LIBRARIES ${MPI_CXX_LIBRARIES})
-endif()
 
 if(HDF5_FOUND)
     set(COMPILE_DEFS "${COMPILE_DEFS} ${H5_BUILT_AS_DYNAMIC_LIB}")
@@ -780,22 +813,15 @@ if(HAVE_OPENCRG)
     list(APPEND LIBRARIES ${OPENCRG_LIBRARY})
 endif()
 
-if(ENABLE_IRRKLANG)
-    include_directories(${CH_IRRKLANGINC})
-    list(APPEND LIBRARIES ${CH_IRRKLANGLIB})
-endif()
-
 add_library(ChronoEngine_vehicle SHARED
 #
     ${CV_BASE_FILES}
     ${CV_CHASSIS_FILES}
     ${CV_DRIVER_FILES}
-    ${CVIRR_DRIVER_FILES}
     ${CV_POVERTRAIN_FILES}
     ${CV_TERRAIN_FILES}
     ${CV_OPENCRG_FILES}
     ${CV_UTILS_FILES}
-    ${CVIRR_UTILS_FILES}
     ${CV_OUTPUT_FILES}
     ${CVHDF5_OUTPUT_FILES}
 #
@@ -804,15 +830,13 @@ add_library(ChronoEngine_vehicle SHARED
     ${CV_WV_BRAKE_FILES}
     ${CV_WV_DRIVELINE_FILES}
     ${CV_WV_STEERING_FILES}
+    ${CV_WV_SUBCHASSIS_FILES}
     ${CV_WV_SUSPENSION_FILES}
     ${CV_WV_TEST_RIG_FILES}
-    ${CVIRR_WV_TEST_RIG_FILES}
     ${CV_WV_TIRE_FILES}
     ${CV_WV_UTILS_FILES}
-    ${CVIRR_WV_UTILS_FILES}
     ${CV_WV_VEHICLE_FILES}
     ${CV_WV_WHEEL_FILES}
-    ${CV_WV_COSIM_FILES}
 #
     ${CV_TV_BASE_FILES}
     ${CV_TV_BRAKE_FILES}
@@ -825,12 +849,10 @@ add_library(ChronoEngine_vehicle SHARED
     ${CV_TV_TRACKSHOE_FILES}
     ${CV_TV_TRACKASSEMBLY_FILES}
     ${CV_TV_TEST_RIG_FILES}
-    ${CVIRR_TV_TEST_RIG_FILES}
     ${CV_TV_UTILS_FILES}
-    ${CVIRR_TV_UTILS_FILES}
     ${CV_TV_VEHICLE_FILES}
 #
-    ${CV_EASYBMP_FILES}
+    ${CV_STB_FILES}
 )
 
 set_target_properties(ChronoEngine_vehicle PROPERTIES
@@ -850,9 +872,66 @@ install(TARGETS ChronoEngine_vehicle
         LIBRARY DESTINATION lib
         ARCHIVE DESTINATION lib)
 
+
+#-------------------------------------------------------------------------------
+# Add the ChronoEngine_vehicle_irrlicht library
+#-------------------------------------------------------------------------------
+
+if(ENABLE_MODULE_IRRLICHT)
+
+set(CXX_FLAGS "${CXX_FLAGS} ${CH_IRRLICHT_CXX_FLAGS}")
+list(APPEND LIBRARIES ChronoEngine_vehicle)
+list(APPEND LIBRARIES ChronoEngine_irrlicht) 
+include_directories(${CH_IRRLICHTINC})
+
+add_library(ChronoEngine_vehicle_irrlicht SHARED
+    ${CVIRR_DRIVER_FILES}
+    ${CVIRR_UTILS_FILES}
+    ${CVIRR_WV_TEST_RIG_FILES}
+    ${CVIRR_WV_UTILS_FILES}
+    ${CVIRR_TV_TEST_RIG_FILES}
+    ${CVIRR_TV_UTILS_FILES}
+)
+
+if(ENABLE_IRRKLANG)
+    target_include_directories(ChronoEngine_vehicle_irrlicht PUBLIC ${CH_IRRKLANGINC})
+    list(APPEND LIBRARIES ${CH_IRRKLANGLIB})
+    set(CH_IRRLICHTINC ${CH_IRRLICHTINC} ${CH_IRRKLANGINC} PARENT_SCOPE)
+    set(IRRLICHT_LIBRARY ${IRRLICHT_LIBRARY} ${CH_IRRKLANGLIB} PARENT_SCOPE)
+endif()
+
+set_target_properties(ChronoEngine_vehicle_irrlicht PROPERTIES
+                      COMPILE_FLAGS "${CXX_FLAGS}"
+                      LINK_FLAGS "${CH_LINKERFLAG_SHARED}")
+
+target_compile_definitions(ChronoEngine_vehicle_irrlicht PRIVATE "CH_API_COMPILE_VEHICLE")
+target_compile_definitions(ChronoEngine_vehicle_irrlicht PRIVATE "CH_IGNORE_DEPRECATED")
+
+target_link_libraries(ChronoEngine_vehicle_irrlicht ${LIBRARIES})
+
+install(TARGETS ChronoEngine_vehicle_irrlicht
+        RUNTIME DESTINATION bin
+        LIBRARY DESTINATION lib
+        ARCHIVE DESTINATION lib)
+
+endif()
+
+#-------------------------------------------------------------------------------
+# Install Chrono::Vehicle headers
+#-------------------------------------------------------------------------------
+
 install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/
         DESTINATION include/chrono_vehicle
         FILES_MATCHING PATTERN "*.h")
+
+# Install required chrono_thirdparty headers
+install(DIRECTORY ${CMAKE_SOURCE_DIR}/src/chrono_thirdparty/Easy_BMP
+        DESTINATION include/chrono_thirdparty
+        FILES_MATCHING PATTERN "*.h" PATTERN "*.cuh" PATTERN "*.hpp" PATTERN "*.inl")
+
+install(DIRECTORY ${CMAKE_SOURCE_DIR}/src/chrono_thirdparty/stb
+        DESTINATION include/chrono_thirdparty
+        FILES_MATCHING PATTERN "*.h" PATTERN "*.cuh" PATTERN "*.hpp" PATTERN "*.inl")
 
 #-------------------------------------------------------------------------------
 # On Windows, copy DLLs (if specified)
@@ -860,14 +939,14 @@ install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/
 
 if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
 
-    if(EXISTS ${CH_IRRKLANG_DLL})
-        add_custom_command(TARGET ChronoEngine_vehicle POST_BUILD
+    if(ENABLE_MODULE_IRRLICHT AND EXISTS "${CH_IRRKLANG_DLL}")
+        add_custom_command(TARGET ChronoEngine_vehicle_irrlicht POST_BUILD
             COMMAND ${CMAKE_COMMAND} -E copy_if_different
             "${CH_IRRKLANG_DLL}"
             "${PROJECT_BINARY_DIR}/bin/$<CONFIGURATION>")
     endif()
 
-    if(EXISTS ${OPENCRG_DLL})
+    if(EXISTS "${OPENCRG_DLL}")
         add_custom_command(TARGET ChronoEngine_vehicle POST_BUILD
             COMMAND ${CMAKE_COMMAND} -E copy_if_different
             "${OPENCRG_DLL}"

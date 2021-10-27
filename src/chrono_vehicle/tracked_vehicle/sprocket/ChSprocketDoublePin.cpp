@@ -30,36 +30,49 @@ namespace vehicle {
 // -----------------------------------------------------------------------------
 class SprocketDoublePinContactCB : public ChSystem::CustomCollisionCallback {
   public:
-    SprocketDoublePinContactCB(ChTrackAssembly* track,  ///< containing track assembly
-                               double envelope,         ///< collision detection envelope
-                               int gear_nteeth,         ///< number of teeth of the sprocket gear
-                               double gear_RT,          ///< radius if the addendum circle
-                               double gear_R,           ///< radius of the tooth arc profile
-                               double gear_C,           ///< height of profile arcs
-                               double gear_W,           ///< offset of profile arcs
-                               double separation,       ///< separation between sprocket gears
-                               double shoe_len,         ///< length of track shoe connector
-                               double shoe_R            ///< radius of track shoe connector
+    SprocketDoublePinContactCB(ChTrackAssembly* track,     ///< containing track assembly
+                               double envelope,            ///< collision detection envelope
+                               int gear_nteeth,            ///< number of teeth of the sprocket gear
+                               double gear_RT,             ///< radius if the addendum circle
+                               double gear_R,              ///< radius of the tooth arc profile
+                               double gear_C,              ///< height of profile arcs
+                               double gear_W,              ///< offset of profile arcs
+                               double separation,          ///< separation between sprocket gears
+                               double shoe_len,            ///< length of track shoe connector
+                               double shoe_R,              ///< radius of track shoe connector
+                               bool lateral_contact,       ///< if true, enable lateral contact
+                               double lateral_backlash,    ///< play relative to shoe guiding pin
+                               const ChVector<>& shoe_pin  ///< location of shoe guide pin center
                                )
         : m_track(track),
-          m_envelope(envelope),
-          m_sprocket(m_track->GetSprocket()),
           m_gear_nteeth(gear_nteeth),
           m_gear_RT(gear_RT),
           m_gear_R(gear_R),
           m_gear_C(gear_C),
           m_gear_W(gear_W),
-          m_gear_Rhat(gear_R - envelope),
-          m_separation(separation),
           m_shoe_len(shoe_len),
           m_shoe_R(shoe_R),
-          m_shoe_Rhat(shoe_R + envelope) {
+          m_lateral_contact(lateral_contact),
+          m_lateral_backlash(lateral_backlash),
+          m_shoe_pin(shoe_pin) {
+        m_sprocket = static_cast<ChSprocketDoublePin*>(m_track->GetSprocket().get());
+
+        ////m_gear_Rhat = gear_R - envelope;
+        ////m_shoe_Rhat = shoe_R + envelope;
         m_R_sum = (m_shoe_len + 2 * m_shoe_R) + m_gear_RT;
         m_gear_RC = std::sqrt(m_gear_C * m_gear_C + m_gear_W * m_gear_W);
         m_gear_D = m_gear_W - m_gear_R;
         m_beta = CH_C_2PI / m_gear_nteeth;
         m_sbeta = std::sin(m_beta / 2);
         m_cbeta = std::cos(m_beta / 2);
+
+        // Create contact material for sprocket - guiding pin contacts (to prevent detracking)
+        // Note: zero friction
+        MaterialInfo minfo;
+        minfo.mu = 0;
+        minfo.cr = 0.1f;
+        minfo.Y = 1e7f;
+        m_material = minfo.CreateMaterial(m_sprocket->GetGearBody()->GetSystem()->GetContactMethod());
     }
 
     virtual void OnCustomCollision(ChSystem* system) override;
@@ -102,17 +115,21 @@ class SprocketDoublePinContactCB : public ChSystem::CustomCollisionCallback {
                             const ChVector<>& p2                               // segment end point 2
                             );
 
-    ChTrackAssembly* m_track;                // pointer to containing track assembly
-    std::shared_ptr<ChSprocket> m_sprocket;  // handle to the sprocket
+    // Test collision of a shoe guiding pin with the sprocket gear.
+    // This may introduce one contact.
+    void CheckPinSprocket(std::shared_ptr<ChTrackShoeDoublePin> shoe,  // track shoe
+                          const ChVector<>& locPin_abs,                // center of guiding pin (global frame)
+                          const ChVector<>& dirS_abs                   // sprocket Y direction (global frame)
+    );
 
-    double m_envelope;  // collision detection envelope
+    ChTrackAssembly* m_track;         // pointer to containing track assembly
+    ChSprocketDoublePin* m_sprocket;  // pointer to the sprocket
 
     int m_gear_nteeth;    // sprocket gear, number of teeth
     double m_gear_RT;     // sprocket gear, outer tooth radius (radius of addendum circle)
     double m_gear_R;      // sprocket gear, arc radius
     double m_gear_C;      // sprocket gear, arc center height
     double m_gear_W;      // sprocket gear, arc center offset
-    double m_separation;  // separation distance between sprocket gears
 
     double m_gear_D;   // tooth width (D = W - R)
     double m_gear_RC;  // radius of arc centers circle (RC^2 = C^2 + W^2)
@@ -124,10 +141,16 @@ class SprocketDoublePinContactCB : public ChSystem::CustomCollisionCallback {
     double m_shoe_len;  // length of track shoe connector
     double m_shoe_R;    // radius of track shoe connector
 
-    double m_gear_Rhat;  // adjusted gear arc radius
-    double m_shoe_Rhat;  // adjusted shoe cylinder radius
+    bool m_lateral_contact;     // if true, generate lateral contacts
+    double m_lateral_backlash;  // backlash relative to shoe guiding pin
+    ChVector<> m_shoe_pin;      // single-pin shoe, center of guiding pin
+
+    ////double m_gear_Rhat;  // adjusted gear arc radius
+    ////double m_shoe_Rhat;  // adjusted shoe cylinder radius
 
     double m_R_sum;  // test quantity for broadphase check
+
+    std::shared_ptr<ChMaterialSurface> m_material;  // material for sprocket-pin contact (detracking)
 };
 
 // Add contacts between the sprocket and track shoes.
@@ -138,18 +161,29 @@ void SprocketDoublePinContactCB::OnCustomCollision(ChSystem* system) {
     if (!m_sprocket->GetGearBody()->GetCollide() || !m_track->GetTrackShoe(0)->GetShoeBody()->GetCollide())
         return;
 
-    // Sprocket gear center location (expressed in global frame)
+    // Sprocket gear center location, expressed in global frame
     ChVector<> locS_abs = m_sprocket->GetGearBody()->GetPos();
+
+    // Sprocket "normal" (Y axis), expressed in global frame
+    ChVector<> dirS_abs = m_sprocket->GetGearBody()->GetA().Get_A_Yaxis();
 
     // Loop over all track shoes in the associated track
     for (size_t is = 0; is < m_track->GetNumTrackShoes(); ++is) {
         auto shoe = std::static_pointer_cast<ChTrackShoeDoublePin>(m_track->GetTrackShoe(is));
 
         // Perform collision test for the "left" connector body
-        CheckConnectorSprocket(shoe->m_connector_L, shoe->m_conn_material, locS_abs);
+        CheckConnectorSprocket(shoe->m_connector_L, shoe->GetSprocketContactMaterial(), locS_abs);
 
         // Perform collision test for the "right" connector body
-        CheckConnectorSprocket(shoe->m_connector_R, shoe->m_conn_material, locS_abs);
+        CheckConnectorSprocket(shoe->m_connector_R, shoe->GetSprocketContactMaterial(), locS_abs);
+
+        if (m_lateral_contact) {
+            // Express guiding pin center in the global frame
+            ChVector<> locPin_abs = shoe->GetShoeBody()->TransformPointLocalToParent(m_shoe_pin);
+
+            // Perform collision detection with the central pin
+            CheckPinSprocket(shoe, locPin_abs, dirS_abs);
+        }
     }
 }
 
@@ -172,8 +206,6 @@ void SprocketDoublePinContactCB::CheckConnectorSprocket(std::shared_ptr<ChBody> 
     double angle = std::atan2(loc.x(), loc.z());
     // Find angle of closest tooth space
     double alpha = m_beta * std::round(angle / m_beta);
-    // Convert to degrees
-    double alpha_deg = alpha * 180 / CH_C_PI;
 
     // (4) Calculate the points that define the current tooth space.
     // Note that all these points will have Y = locC.y
@@ -350,13 +382,53 @@ void SprocketDoublePinContactCB::CheckCircleSegment(
                                                                               mat_connector);
 }
 
+void SprocketDoublePinContactCB::CheckPinSprocket(std::shared_ptr<ChTrackShoeDoublePin> shoe,
+                                                  const ChVector<>& locPin_abs,
+                                                  const ChVector<>& dirS_abs) {
+    // Express pin center in the sprocket frame
+    ChVector<> locPin = m_sprocket->GetGearBody()->TransformPointParentToLocal(locPin_abs);
+
+    // No contact if the pin is close enough to the sprocket's center
+    if (std::abs(locPin.y()) < m_lateral_backlash)
+        return;
+
+    // No contact if pin is too far from sprocket center
+    if (locPin.x() * locPin.x() + locPin.z() * locPin.z() > m_gear_RT * m_gear_RT)
+        return;
+
+    // Fill in contact information and add the contact to the system.
+    // Express all vectors in the global frame
+    collision::ChCollisionInfo contact;
+    contact.modelA = m_sprocket->GetGearBody()->GetCollisionModel().get();
+    contact.modelB = shoe->GetShoeBody()->GetCollisionModel().get();
+    contact.shapeA = nullptr;
+    contact.shapeB = nullptr;
+    if (locPin.y() < 0) {
+        contact.distance = m_lateral_backlash + locPin.y();
+        contact.vN = dirS_abs;
+    } else {
+        contact.distance = m_lateral_backlash - locPin.y();
+        contact.vN = -dirS_abs;
+    }
+    contact.vpA = locPin_abs - contact.distance * contact.vN;
+    contact.vpB = locPin_abs;
+
+    ////std::cout << "CONTACT";
+    ////std::cout << "  pin: " << locPin.y();
+    ////std::cout << "  delta: " << contact.distance;
+    ////std::cout << "  normal: " << contact.vN;
+    ////std::cout << std::endl;
+
+    m_sprocket->GetGearBody()->GetSystem()->GetContactContainer()->AddContact(contact, m_material, m_material);
+}
+
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 ChSprocketDoublePin::ChSprocketDoublePin(const std::string& name) : ChSprocket(name) {}
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-ChSystem::CustomCollisionCallback* ChSprocketDoublePin::GetCollisionCallback(ChTrackAssembly* track) {
+std::shared_ptr<ChSystem::CustomCollisionCallback> ChSprocketDoublePin::GetCollisionCallback(ChTrackAssembly* track) {
     // Check compatibility between this type of sprocket and the track shoes.
     // We expect track shoes of type ChSinglePinShoe.
     auto shoe = std::dynamic_pointer_cast<ChTrackShoeDoublePin>(track->GetTrackShoe(0));
@@ -368,27 +440,29 @@ ChSystem::CustomCollisionCallback* ChSprocketDoublePin::GetCollisionCallback(ChT
     double gear_R = GetArcRadius();
     double gear_C = GetArcCenterHeight();
     double gear_W = GetArcCenterOffset();
+    double lateral_backlash = GetLateralBacklash();
 
     // Extract parameterization of the shoe connector contact geometry.
     double shoe_len = shoe->GetConnectorLength();
     double shoe_R = shoe->GetConnectorRadius();
+    ChVector<> shoe_locPin = shoe->GetLateralContactPoint();
 
     // Create and return the callback object. Note: this pointer will be freed by the base class.
-    return new SprocketDoublePinContactCB(track, 0.005, gear_nteeth, gear_RT, gear_R, gear_C, gear_W, GetSeparation(),
-                                          shoe_len, shoe_R);
+    return chrono_types::make_shared<SprocketDoublePinContactCB>(track, 0.005, gear_nteeth, gear_RT, gear_R, gear_C,
+                                                                 gear_W, GetSeparation(), shoe_len, shoe_R,
+                                                                 m_lateral_contact, lateral_backlash, shoe_locPin);
 }
 
 // -----------------------------------------------------------------------------
 // Create and return the sprocket gear profile.
 // -----------------------------------------------------------------------------
-std::shared_ptr<geometry::ChLinePath> ChSprocketDoublePin::GetProfile() {
+std::shared_ptr<geometry::ChLinePath> ChSprocketDoublePin::GetProfile() const {
     auto profile = chrono_types::make_shared<geometry::ChLinePath>();
 
     int num_teeth = GetNumTeeth();
     double R_T = GetOuterRadius();
     double C = GetArcCenterHeight();
     double W = GetArcCenterOffset();
-    double R_C = std::sqrt(C * C + W * W);
     double R = GetArcRadius();
     double D = W - R;
 

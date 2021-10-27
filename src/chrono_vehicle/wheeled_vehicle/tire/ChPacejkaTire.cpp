@@ -193,7 +193,7 @@ void ChPacejkaTire::AddVisualizationAssets(VisualizationType vis) {
     m_wheel->GetSpindle()->AddAsset(m_cyl_shape);
 
     m_texture = chrono_types::make_shared<ChTexture>();
-    m_texture->SetTextureFilename(GetChronoDataFile("greenwhite.png"));
+    m_texture->SetTextureFilename(GetChronoDataFile("textures/greenwhite.png"));
     m_wheel->GetSpindle()->AddAsset(m_texture);
 }
 
@@ -436,7 +436,7 @@ void ChPacejkaTire::update_W_frame(const ChTerrain& terrain) {
     // Check contact with terrain, using a disc of radius R0.
     ChCoordsys<> contact_frame;
 
-    m_mu = terrain.GetCoefficientFriction(m_tireState.pos.x(), m_tireState.pos.y());
+    m_mu = terrain.GetCoefficientFriction(m_tireState.pos);
 
     double depth;
     double dum_cam;
@@ -453,6 +453,10 @@ void ChPacejkaTire::update_W_frame(const ChTerrain& terrain) {
             m_in_contact = DiscTerrainCollisionEnvelope(terrain, m_tireState.pos, m_tireState.rot.GetYaxis(), m_R0,
                                                         m_areaDep, contact_frame, depth);
             break;
+        default:
+            m_in_contact = false;
+            depth = 0;
+            break;
     }
 
     // set the depth if there is contact with terrain
@@ -462,7 +466,11 @@ void ChPacejkaTire::update_W_frame(const ChTerrain& terrain) {
     ChVector<> wheel_normal = m_tireState.rot.GetYaxis();
 
     // Terrain normal at wheel center location (expressed in global frame)
-    ChVector<> Z_dir = terrain.GetNormal(m_tireState.pos.x(), m_tireState.pos.y());
+
+    //// RADU: what frame is m_tireState in?!?   Will this work with a non-ISO world frame?
+    ////       why don't we use the wheel's normal direction?!?!
+
+    ChVector<> Z_dir = terrain.GetNormal(m_tireState.pos);
 
     // Longitudinal (heading) and lateral directions, in the terrain plane.
     ChVector<> X_dir = Vcross(wheel_normal, Z_dir);
@@ -775,15 +783,12 @@ void ChPacejkaTire::evaluate_slips() {
 // after calculating all the reactions, evaluate output for any fishy business
 void ChPacejkaTire::evaluate_reactions(bool write_violations, bool enforce_threshold) {
     // any thresholds exceeded? then print some details about slip state
-    bool output_slip_to_console = false;
 
     if (std::abs(m_FM_combined.force.x()) > Fx_thresh) {
-        output_slip_to_console = true;
         if (enforce_threshold)
             m_FM_combined.force.x() = m_FM_combined.force.x() * (Fx_thresh / std::abs(m_FM_combined.force.x()));
     }
     if (std::abs(m_FM_combined.force.y()) > Fy_thresh) {
-        output_slip_to_console = true;
         if (enforce_threshold)
             m_FM_combined.force.y() = m_FM_combined.force.y() * (Fy_thresh / std::abs(m_FM_combined.force.y()));
     }
@@ -792,19 +797,16 @@ void ChPacejkaTire::evaluate_reactions(bool write_violations, bool enforce_thres
     // e.g., should never need t;his
     if (std::abs(m_Fz) > Fz_thresh) {
         ////GetLog() << "\n ***  !!!  ***  Fz exceeded threshold:, tire " << m_name << ", = " << m_Fz << "\n";
-        output_slip_to_console = true;
     }
 
     if (std::abs(m_FM_combined.moment.x()) > Mx_thresh) {
         if (enforce_threshold)
             m_FM_combined.moment.x() = m_FM_combined.moment.x() * (Mx_thresh / std::abs(m_FM_combined.moment.x()));
-        output_slip_to_console = true;
     }
 
     if (std::abs(m_FM_combined.moment.y()) > My_thresh) {
         if (enforce_threshold)
             m_FM_combined.moment.y() = m_FM_combined.moment.y() * (My_thresh / std::abs(m_FM_combined.moment.y()));
-        output_slip_to_console = true;
     }
 
     if (std::abs(m_FM_combined.moment.z()) > Mz_thresh) {
@@ -813,7 +815,6 @@ void ChPacejkaTire::evaluate_reactions(bool write_violations, bool enforce_thres
 
         ////GetLog() << " ***  !!!  ***  Mz exceeded threshold, tire " << m_name << ", = " << m_FM_combined.moment.z()
         ////         << "\n";
-        output_slip_to_console = true;
     }
 
     if (write_violations) {
@@ -1021,7 +1022,6 @@ void ChPacejkaTire::combinedSlipReactions() {
 
 void ChPacejkaTire::relaxationLengths() {
     double p_Ky4 = 2;  // according to Pac2002 model
-    double p_Ky5 = 0;
     double p_Ky6 = 2.5;  // 0.92;
     double p_Ky7 = 0.24;
 

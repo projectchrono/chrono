@@ -1,0 +1,41 @@
+{
+  "Name": "Generic sensor",
+  "Type": "Sensor",
+  "Template": "Camera",
+
+  "Properties": {
+    "Update Rate": 30,
+    "Width": 1280,
+    "Height": 720,
+    "Horizontal Field of View": 1.408,
+    "Lag": 0.02,
+    "Exposure Time": 0,
+    "Supersample Factor": 2,
+    "Lens Model": "SPHERICAL"
+  },
+
+  "Filters":
+  [
+    {
+    "Filter": "ChFilterVisualize",
+    "Width": 1280,
+    "Height": 720
+    },
+    {
+      "Filter": "ChFilterCameraNoisePixDep",
+      "Gain": 0.0,
+      "Sigma Read": 0.02,
+      "Sigma ADC": 0.03
+    },
+    {
+      "Filter": "ChFilterRGBA8Access"
+    },
+    {
+      "Filter": "ChFilterGrayscale",
+      "Name": "Grayscale Filter"
+    },
+    {
+      "Filter": "ChFilterR8Access"
+    }
+  ]
+}

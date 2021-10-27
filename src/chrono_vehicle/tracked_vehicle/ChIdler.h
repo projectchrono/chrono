@@ -42,6 +42,8 @@
 namespace chrono {
 namespace vehicle {
 
+class ChTrackAssembly;
+
 /// @addtogroup vehicle_tracked_idler
 /// @{
 
@@ -54,7 +56,7 @@ class CH_VEHICLE_API ChIdler : public ChPart {
     ChIdler(const std::string& name  ///< [in] name of the subsystem
             );
 
-    virtual ~ChIdler() {}
+    virtual ~ChIdler();
 
     /// Return the type of track shoe consistent with this idler.
     virtual GuidePinType GetType() const = 0;
@@ -82,8 +84,9 @@ class CH_VEHICLE_API ChIdler : public ChPart {
     /// A derived idler subsystem template class must extend this default implementation
     /// and specify contact geometry for the idler wheel.
     virtual void Initialize(std::shared_ptr<ChBodyAuxRef> chassis,  ///< [in] handle to the chassis body
-                            const ChVector<>& location              ///< [in] location relative to the chassis frame
-                            );
+                            const ChVector<>& location,             ///< [in] location relative to the chassis frame
+                            ChTrackAssembly* track                  ///< [in] containing track assembly
+    );
 
     /// Add visualization assets for the idler subsystem.
     /// This default implementation adds assets to the carrier body.
@@ -127,7 +130,7 @@ class CH_VEHICLE_API ChIdler : public ChPart {
     virtual double GetPrismaticPitchAngle() const = 0;
 
     /// Return the functor object for spring force.
-    virtual ChLinkTSDA::ForceFunctor* GetTensionerForceCallback() const = 0;
+    virtual std::shared_ptr<ChLinkTSDA::ForceFunctor> GetTensionerForceCallback() const = 0;
 
     /// Return the free length for the tensioner spring.
     virtual double GetTensionerFreeLength() const = 0;
@@ -145,6 +148,7 @@ class CH_VEHICLE_API ChIdler : public ChPart {
     std::shared_ptr<ChLinkLockPrismatic> m_prismatic;  ///< handle to carrier-chassis translational joint
     std::shared_ptr<ChLinkTSDA> m_tensioner;           ///< handle to the TSDA tensioner element
     std::shared_ptr<ChMaterialSurface> m_material;     ///< contact material;
+    ChTrackAssembly* m_track;                          ///< containing track assembly
 
   private:
     // Points for carrier visualization

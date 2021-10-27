@@ -46,13 +46,11 @@ int main(int argc, char* argv[]) {
 
     // Create the Irrlicht visualization (open the Irrlicht device,
     // bind a simple user interface, etc. etc.)
-    ChIrrApp application(&mphysicalSystem, L"Gears and pulleys", core::dimension2d<u32>(800, 600), false);
-
-    // Easy shortcuts to add camera, lights, logo and sky in Irrlicht scene:
-    ChIrrWizard::add_typical_Logo(application.GetDevice());
-    ChIrrWizard::add_typical_Sky(application.GetDevice());
-    ChIrrWizard::add_typical_Lights(application.GetDevice());
-    ChIrrWizard::add_typical_Camera(application.GetDevice(), core::vector3df(12, 15, -20));
+    ChIrrApp application(&mphysicalSystem, L"Gears and pulleys", core::dimension2d<u32>(800, 600));
+    application.AddTypicalLogo();
+    application.AddTypicalSky();
+    application.AddTypicalLights();
+    application.AddTypicalCamera(core::vector3df(12, 15, -20));
 
     // Contact material shared among all bodies
     auto mat = chrono_types::make_shared<ChMaterialSurfaceNSC>();
@@ -63,16 +61,16 @@ int main(int argc, char* argv[]) {
     double radB = 4;
 
     // ...the truss
-    auto mbody_truss = chrono_types::make_shared<ChBodyEasyBox>(20, 10, 2, 1000, true, true, mat);
+    auto mbody_truss = chrono_types::make_shared<ChBodyEasyBox>(20, 10, 2, 1000, true, false, mat);
     mphysicalSystem.Add(mbody_truss);
     mbody_truss->SetBodyFixed(true);
     mbody_truss->SetPos(ChVector<>(0, 0, 3));
 
     // ...a texture asset that will be shared among the four wheels
-    auto cylinder_texture = chrono_types::make_shared<ChTexture>(GetChronoDataFile("pinkwhite.png"));
+    auto cylinder_texture = chrono_types::make_shared<ChTexture>(GetChronoDataFile("textures/pinkwhite.png"));
 
     // ...the rotating bar support for the two epicycloidal wheels
-    auto mbody_train = chrono_types::make_shared<ChBodyEasyBox>(8, 1.5, 1.0, 1000, true, true, mat);
+    auto mbody_train = chrono_types::make_shared<ChBodyEasyBox>(8, 1.5, 1.0, 1000, true, false, mat);
     mphysicalSystem.Add(mbody_train);
     mbody_train->SetPos(ChVector<>(3, 0, 0));
 
@@ -83,7 +81,7 @@ int main(int argc, char* argv[]) {
     mphysicalSystem.AddLink(link_revoluteTT);
 
     // ...the first gear
-    auto mbody_gearA = chrono_types::make_shared<ChBodyEasyCylinder>(radA, 0.5, 1000, true, true, mat);
+    auto mbody_gearA = chrono_types::make_shared<ChBodyEasyCylinder>(radA, 0.5, 1000, true, false, mat);
     mphysicalSystem.Add(mbody_gearA);
     mbody_gearA->SetPos(ChVector<>(0, 0, -1));
     mbody_gearA->SetRot(Q_from_AngAxis(CH_C_PI / 2, VECT_X));
@@ -103,7 +101,7 @@ int main(int argc, char* argv[]) {
 
     // ...the second gear
     double interaxis12 = radA + radB;
-    auto mbody_gearB = chrono_types::make_shared<ChBodyEasyCylinder>(radB, 0.4, 1000, true, true, mat);
+    auto mbody_gearB = chrono_types::make_shared<ChBodyEasyCylinder>(radB, 0.4, 1000, true, false, mat);
     mphysicalSystem.Add(mbody_gearB);
     mbody_gearB->SetPos(ChVector<>(interaxis12, 0, -1));
     mbody_gearB->SetRot(Q_from_AngAxis(CH_C_PI / 2, VECT_X));
@@ -148,7 +146,7 @@ int main(int argc, char* argv[]) {
 
     // ...the bevel gear at the side,
     double radD = 5;
-    auto mbody_gearD = chrono_types::make_shared<ChBodyEasyCylinder>(radD, 0.8, 1000, true, true, mat);
+    auto mbody_gearD = chrono_types::make_shared<ChBodyEasyCylinder>(radD, 0.8, 1000, true, false, mat);
     mphysicalSystem.Add(mbody_gearD);
     mbody_gearD->SetPos(ChVector<>(-10, 0, -9));
     mbody_gearD->SetRot(Q_from_AngAxis(CH_C_PI / 2, VECT_Z));
@@ -172,7 +170,7 @@ int main(int argc, char* argv[]) {
 
     // ...the pulley at the side,
     double radE = 2;
-    auto mbody_pulleyE = chrono_types::make_shared<ChBodyEasyCylinder>(radE, 0.8, 1000, true, true, mat);
+    auto mbody_pulleyE = chrono_types::make_shared<ChBodyEasyCylinder>(radE, 0.8, 1000, true, false, mat);
     mphysicalSystem.Add(mbody_pulleyE);
     mbody_pulleyE->SetPos(ChVector<>(-10, -11, -9));
     mbody_pulleyE->SetRot(Q_from_AngAxis(CH_C_PI / 2, VECT_Z));
@@ -213,7 +211,7 @@ int main(int argc, char* argv[]) {
     // THE SOFT-REAL-TIME CYCLE
     //
 
-    application.SetTimestep(0.01);
+    application.SetTimestep(0.001);
     application.SetTryRealtime(true);
 
     while (application.GetDevice()->run()) {
@@ -223,27 +221,27 @@ int main(int argc, char* argv[]) {
 
         // .. draw also some circle lines representing gears - just for aesthetical reasons
 
-        ChIrrTools::drawCircle(application.GetVideoDriver(), link_gearBC->Get_r2(),
+        tools::drawCircle(application.GetVideoDriver(), link_gearBC->Get_r2(),
                                (link_gearBC->Get_local_shaft2() >> *link_gearBC->GetBody2()).GetCoord(),
                                video::SColor(255, 255, 0, 0), 50, true);
-        ChIrrTools::drawCircle(application.GetVideoDriver(), link_gearAD->Get_r1(),
+        tools::drawCircle(application.GetVideoDriver(), link_gearAD->Get_r1(),
                                (link_gearAD->Get_local_shaft1() >> *link_gearAD->GetBody1()).GetCoord(),
                                video::SColor(255, 255, 0, 0), 30, true);
-        ChIrrTools::drawCircle(application.GetVideoDriver(), link_gearAD->Get_r2(),
+        tools::drawCircle(application.GetVideoDriver(), link_gearAD->Get_r2(),
                                (link_gearAD->Get_local_shaft2() >> *link_gearAD->GetBody2()).GetCoord(),
                                video::SColor(255, 255, 0, 0), 30, true);
 
-        ChIrrTools::drawCircle(application.GetVideoDriver(), 0.1,
+        tools::drawCircle(application.GetVideoDriver(), 0.1,
                                ChCoordsys<>(link_gearAB->GetMarker2()->GetAbsCoord().pos, QUNIT));
-        ChIrrTools::drawCircle(application.GetVideoDriver(), 0.1,
+        tools::drawCircle(application.GetVideoDriver(), 0.1,
                                ChCoordsys<>(link_gearAD->GetMarker2()->GetAbsCoord().pos, QUNIT));
-        ChIrrTools::drawCircle(application.GetVideoDriver(), 0.1,
+        tools::drawCircle(application.GetVideoDriver(), 0.1,
                                ChCoordsys<>(link_gearBC->GetMarker2()->GetAbsCoord().pos, QUNIT));
 
         // ..draw also some segments for a simplified representation of pulley
-        ChIrrTools::drawSegment(application.GetVideoDriver(), link_pulleyDE->Get_belt_up1(),
+        tools::drawSegment(application.GetVideoDriver(), link_pulleyDE->Get_belt_up1(),
                                 link_pulleyDE->Get_belt_up2(), video::SColor(255, 0, 255, 0), true);
-        ChIrrTools::drawSegment(application.GetVideoDriver(), link_pulleyDE->Get_belt_low1(),
+        tools::drawSegment(application.GetVideoDriver(), link_pulleyDE->Get_belt_low1(),
                                 link_pulleyDE->Get_belt_low2(), video::SColor(255, 0, 255, 0), true);
 
         // ADVANCE THE SIMULATION FOR ONE STEP

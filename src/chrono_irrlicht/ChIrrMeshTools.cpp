@@ -343,18 +343,206 @@ IMesh* createCylinderMesh(f32 radius, f32 length, u32 tesselation) {
 }
 
 // -----------------------------------------------------------------------------
+// Create capsule
+// -----------------------------------------------------------------------------
+IMesh* createCapsuleMesh(f32 radius, f32 hlen, u32 numSegV, u32 numSegR) {
+    SMeshBuffer* buffer = new SMeshBuffer();
+
+    video::SColor color(255, 255, 255, 255);
+
+    video::S3DVertex v;
+    v.Color = color;
+
+    const auto f_PI = f32(CH_C_PI);
+    const auto f_PI2 = f32(CH_C_PI_2); 
+    const auto f_2PI = f32(CH_C_2PI);
+
+    // Calculate a ratio for mapping the texture v-coordinate.
+    auto vRatio = (f_PI2 * radius) / (f_PI * radius + 2 * hlen);
+
+    // Create south cap starting at the pole
+    for (u32 i = 0; i <= numSegV; i++) {
+        auto vVal = i / f32(numSegV);
+        auto sinV = sinf(vVal * f_PI2);
+        auto cosV = cosf(vVal * f_PI2);
+        auto yVal = radius * cosV;
+        auto rad = radius * sinV;
+
+        for (u32 j = 0; j <= numSegR; j++) {
+            auto uVal = j / f32(numSegR);
+            auto sinU = sinf(uVal * f_2PI);
+            auto cosU = cosf(uVal * f_2PI);
+            auto xVal = rad * cosU;
+            auto zVal = rad * sinU;
+            v.Pos.X = xVal;
+            v.Pos.Y = - yVal - hlen;
+            v.Pos.Z = zVal;
+            v.Normal.X = xVal;
+            v.Normal.Y = -yVal;
+            v.Normal.Z = zVal;
+            v.Normal.normalize();
+            v.TCoords.X = uVal;
+            v.TCoords.Y = vRatio * vVal;
+            buffer->Vertices.push_back(v);
+        }
+    }
+
+	// Create north cap starting opposite the pole.
+    for (u32 i = 0; i <= numSegV; i++) {
+        auto vVal = (numSegV - i) / f32(numSegV);
+        auto sinV = sinf(vVal * f_PI2);
+        auto cosV = cosf(vVal * f_PI2);
+        auto yVal = radius * cosV;
+        auto rad = radius * sinV;
+
+        for (u32 j = 0; j <= numSegR; j++) {
+            auto uVal = j / f32(numSegR);
+            auto sinU = sinf(uVal * f_2PI);
+            auto cosU = cosf(uVal * f_2PI);
+            auto xVal = rad * cosU;
+            auto zVal = rad * sinU;
+            v.Pos.X = xVal;
+            v.Pos.Y = yVal + hlen;
+            v.Pos.Z = zVal;
+            v.Normal.X = xVal;
+            v.Normal.Y = yVal;
+            v.Normal.Z = zVal;
+            v.Normal.normalize();
+            v.TCoords.X = uVal;
+            v.TCoords.Y = 1 - vRatio * vVal;
+            buffer->Vertices.push_back(v);
+        }
+    }
+
+    // Create the indices to represent the faces. The capsule is rendered using 2*numSegV+1 strips, one for the
+    // cylindrical segment and 'numSegV' for each hemispheric cap.
+    for (u32 i = 0; i < numSegV * 2 + 1; i++) {
+        u32 start1 = i * (numSegR + 1);
+        u32 start2 = (i + 1) * (numSegR + 1);
+
+        for (u32 j = 0; j < numSegR; j++) {
+            buffer->Indices.push_back(start1 + j);
+            buffer->Indices.push_back(start2 + j);
+            buffer->Indices.push_back(start2 + j + 1);
+
+            buffer->Indices.push_back(start1 + j);
+            buffer->Indices.push_back(start2 + j + 1);
+            buffer->Indices.push_back(start1 + j + 1);
+        }
+    }
+
+    buffer->recalculateBoundingBox();
+    SMesh* mesh = new SMesh();
+    mesh->addMeshBuffer(buffer);
+    mesh->setHardwareMappingHint(EHM_STATIC);
+    mesh->recalculateBoundingBox();
+    buffer->drop();
+    return mesh;
+}
+
+/*
+IMesh* createCapsuleMesh(irr::f32 radius, irr::f32 hlen, irr::u32 numSegV, irr::u32 numSegR) {
+    SMeshBuffer* buffer = new SMeshBuffer();
+
+    irr::video::SColor color(255, 255, 255, 255);
+
+    irr::video::S3DVertex v;
+    v.Color = color;
+
+    // Calculate a ratio for mapping the texture v-coordinate.
+    float vRatio = (CH_C_PI_2 * radius) / (CH_C_PI * radius + 2 * hlen);
+
+    // Create south cap starting at the pole
+    for (u32 i = 0; i <= numSegV; i++) {
+        float vVal = i / float(numSegV);
+        float sinV = sinf(vVal * CH_C_PI_2);
+        float cosV = cosf(vVal * CH_C_PI_2);
+        float zVal = radius * cosV;
+        float rad = radius * sinV;
+
+        for (u32 j = 0; j <= numSegR; j++) {
+            float uVal = j / float(numSegR);
+            float sinU = sinf(uVal * CH_C_2PI);
+            float cosU = cosf(uVal * CH_C_2PI);
+            float xVal = rad * cosU;
+            float yVal = rad * sinU;
+            v.Pos.X = xVal;
+            v.Pos.Y = yVal;
+            v.Pos.Z = -zVal - hlen;
+            v.Normal.X = xVal;
+            v.Normal.Y = yVal;
+            v.Normal.Z = -zVal;
+            v.Normal.normalize();
+            v.TCoords.X = uVal;
+            v.TCoords.Y = vRatio * vVal;
+            buffer->Vertices.push_back(v);
+        }
+    }
+
+    // Create north cap starting opposite the pole.
+    for (u32 i = 0; i <= numSegV; i++) {
+        float vVal = (numSegV - i) / float(numSegV);
+        float sinV = sinf(vVal * CH_C_PI_2);
+        float cosV = cosf(vVal * CH_C_PI_2);
+        float zVal = radius * cosV;
+        float rad = radius * sinV;
+
+        for (u32 j = 0; j <= numSegR; j++) {
+            float uVal = j / float(numSegR);
+            float sinU = sinf(uVal * CH_C_2PI);
+            float cosU = cosf(uVal * CH_C_2PI);
+            float xVal = rad * cosU;
+            float yVal = rad * sinU;
+            v.Pos.X = xVal;
+            v.Pos.Y = yVal;
+            v.Pos.Z = zVal + hlen;
+            v.Normal.X = xVal;
+            v.Normal.Y = yVal;
+            v.Normal.Z = zVal;
+            v.Normal.normalize();
+            v.TCoords.X = uVal;
+            v.TCoords.Y = 1 - vRatio * vVal;
+            buffer->Vertices.push_back(v);
+        }
+    }
+
+    // Create the indices to represent the faces. The capsule is rendered using 2*numSegV+1 strips, one for the
+    // cylindrical segment and 'numSegV' for each hemispheric cap.
+    for (u32 i = 0; i < numSegV * 2 + 1; i++) {
+        u32 start1 = i * (numSegR + 1);
+        u32 start2 = (i + 1) * (numSegR + 1);
+
+        for (u32 j = 0; j < numSegR; j++) {
+            buffer->Indices.push_back(start1 + j);
+            buffer->Indices.push_back(start2 + j + 1);
+            buffer->Indices.push_back(start2 + j);
+
+            buffer->Indices.push_back(start1 + j);
+            buffer->Indices.push_back(start1 + j + 1);
+            buffer->Indices.push_back(start2 + j + 1);
+        }
+    }
+
+    buffer->recalculateBoundingBox();
+    SMesh* mesh = new SMesh();
+    mesh->addMeshBuffer(buffer);
+    mesh->setHardwareMappingHint(EHM_STATIC);
+    mesh->recalculateBoundingBox();
+    buffer->drop();
+    return mesh;
+}
+*/
+
+// -----------------------------------------------------------------------------
 // No shared normals between caps and hull
 // -----------------------------------------------------------------------------
 IMesh* createTruncatedConeMesh(f32 radius_top, f32 radius_low, f32 length, u32 tesselation) {
-    f32 oblique = 0;
     irr::video::SColor color(255, 255, 255, 255);
 
     SMeshBuffer* buffer = new SMeshBuffer();
 
     const f32 recTesselation = irr::core::reciprocal((f32)tesselation);
-    const f32 recTesselationHalf = recTesselation * 0.5f;
     const f32 angleStep = (irr::core::PI * 2.f) * recTesselation;
-    const f32 angleStepHalf = angleStep * 0.5f;
 
     // HULL
 
@@ -508,11 +696,11 @@ void fillChTrimeshFromIrlichtMesh(chrono::geometry::ChTriangleMesh* chTrimesh, I
         } else if (mb->getVertexType() == irr::video::EVT_2TCOORDS) {
             // same but for S3DVertex2TCoords data
             irr::video::S3DVertex2TCoords* mb_vertices = (irr::video::S3DVertex2TCoords*)mb->getVertices();
-            u16* mb_indices = mb->getIndices();
-            s32 numVertices = mb->getVertexCount();
+            mb_indices = mb->getIndices();
+            numVertices = mb->getVertexCount();
             for (j = 0; j < mb->getIndexCount(); j += 3) {  // index into irrlicht data
                 for (k = 0; k < 3; k++) {
-                    s32 index = mb_indices[j + k];
+                    index = mb_indices[j + k];
                     if (index > numVertices)
                         throw(chrono::ChException(
                             "Cannot convert corrupted Irrlicht mesh in ChronoEngine ChTriangleMesh."));

@@ -37,35 +37,8 @@
 using namespace std;
 namespace chrono {
 namespace fsi {
-
 namespace utils {
 
-//#define W_KERNEL W3h_Spline
-
-// Real W2h(Real d, Real h) {
-//    Real q = fabs(d) / h;
-//    if (q < 1) {
-//        return (0.25f / (PI * h * h * h) * (pow(2 - q, Real(3)) - 4 * pow(1 - q, Real(3))));
-//    }
-//    if (q < 2) {
-//        return (0.25f / (PI * h * h * h) * pow(2 - q, Real(3)));
-//    }
-//    return 0;
-//}
-// Real W3h(Real d, Real h) {
-//    Real q = fabs(d) / h;
-//    if (q < 1) {
-//        return (3.0 / (359 * PI * h * h * h) *
-//                (pow(3 - q, Real(5)) - 6 * pow(2 - q, Real(5)) + 15 * pow(1 - q, Real(5))));
-//    }
-//    if (q < 2) {
-//        return (3.0 / (359 * PI * h * h * h) * (pow(3 - q, Real(5)) - 6 * pow(2 - q, Real(5))));
-//    }
-//    if (q < 3) {
-//        return (3.0 / (359 * PI * h * h * h) * (pow(3 - q, Real(5))));
-//    }
-//    return 0;
-//}
 
 Real3 LoadVectorJSON(const Value& a) {
     assert(a.IsArray());
@@ -74,24 +47,20 @@ Real3 LoadVectorJSON(const Value& a) {
 }
 
 Real massCalculator(int& num_nei, Real Kernel_h, Real InitialSpacing, Real rho0) {
-    int IDX = 5;
+    int IDX = 10;
     Real sum_wij = 0;
     int count = 0;
     for (int i = -IDX; i <= IDX; i++)
         for (int j = -IDX; j <= IDX; j++)
             for (int k = -IDX; k <= IDX; k++) {
                 Real3 pos = mR3(i, j, k) * InitialSpacing;
-
                 Real W = W3h_Spline(length(pos), Kernel_h);
-                //                Real W = W2h(length(pos), Kernel_h);
-
-                if (W > 0) {
-                    //                    printf("%f,%f,%f,   %f\n", pos.x, pos.y, pos.z, W3);
+                if (W > 0) {              
                     count++;
                 }
                 sum_wij += W;
             }
-    printf("Kernel_h=%f, InitialSpacing=%f, number of Neighbors=%d, m_i= %f, w_i= %f\n", Kernel_h, InitialSpacing,
+    printf("Kernel_h=%f, InitialSpacing=%f, Number of Neighbors=%d, Mass_i= %f, Sum_wi= %f\n", Kernel_h, InitialSpacing,
            count, rho0 / sum_wij, sum_wij);
     num_nei = count;
     return rho0 / sum_wij;
@@ -101,8 +70,8 @@ void InvalidArg(std::string arg) {
     std::cout << "Invalid arg: " << arg << std::endl;
 }
 
-bool ParseJSON(std::string json_file, std::shared_ptr<SimParams> paramsH, Real3 Domain) {
-    cout << "Reading parameters: " << json_file << endl;
+bool ParseJSON(const std::string& json_file, std::shared_ptr<SimParams> paramsH, Real3 Domain) {
+    std::cout << "Reading parameters: " << json_file << std::endl;
     FILE* fp = fopen(json_file.c_str(), "r");
     if (!fp) {
         std::cout << "Invalid JSON file!" << std::endl;
@@ -121,7 +90,7 @@ bool ParseJSON(std::string json_file, std::shared_ptr<SimParams> paramsH, Real3 
         return false;
     }
 
-    std::cout << "--- Parsing JSON ---" << endl;
+    std::cout << "--- Parsing JSON ---" << std::endl;
     if (doc.HasMember("Output Folder"))
         strcpy(paramsH->out_name, doc["Output Folder"].GetString());
     else
@@ -182,12 +151,13 @@ bool ParseJSON(std::string json_file, std::shared_ptr<SimParams> paramsH, Real3 
         } else
             paramsH->fluid_dynamic_type = fluid_dynamics::I2SPH;
 
-        if (doc["SPH Parameters"].HasMember("Kernel h"))
+        if (doc["SPH Parameters"].HasMember("Kernel h")){
             paramsH->HSML = doc["SPH Parameters"]["Kernel h"].GetDouble();
-        else
+            paramsH->INVHSML = 1.0 / paramsH->HSML;}
+        else{
             paramsH->HSML = 0.02;
-
-        cout << "paramsH->HSML: " << paramsH->HSML << endl;
+            paramsH->INVHSML = 1.0 / paramsH->HSML;
+        }
 
         if (doc["SPH Parameters"].HasMember("Initial Spacing"))
             paramsH->MULT_INITSPACE = doc["SPH Parameters"]["Initial Spacing"].GetDouble() / paramsH->HSML;
@@ -204,13 +174,12 @@ bool ParseJSON(std::string json_file, std::shared_ptr<SimParams> paramsH, Real3 
         else
             paramsH->epsMinMarkersDis = 0.01;
 
-        if (doc["SPH Parameters"].HasMember("Maximum Velocity")) {
+        if (doc["SPH Parameters"].HasMember("Maximum Velocity")){
             paramsH->v_Max = doc["SPH Parameters"]["Maximum Velocity"].GetDouble();
-            paramsH->Cs = 10.0 * paramsH->v_Max;
-        } else {
+            paramsH->Cs = 10.0*paramsH->v_Max;}
+        else{
             paramsH->v_Max = 1.0;
-            paramsH->Cs = 10.0 * paramsH->v_Max;
-        }
+            paramsH->Cs = 10.0*paramsH->v_Max;}
 
         if (doc["SPH Parameters"].HasMember("XSPH Coefficient"))
             paramsH->EPS_XSPH = doc["SPH Parameters"]["XSPH Coefficient"].GetDouble();
@@ -378,45 +347,123 @@ bool ParseJSON(std::string json_file, std::shared_ptr<SimParams> paramsH, Real3 
     // this part is for modeling granular material dynamics using elastic SPH
     if (doc.HasMember("Elastic SPH")) {
         paramsH->elastic_SPH = true;
-        paramsH->Nu_poisson = doc["Elastic SPH"]["Poisson ratio"].GetDouble();
-        paramsH->E_young = doc["Elastic SPH"]["Young modulus"].GetDouble();              // Young's modulus
-        paramsH->G_shear = paramsH->E_young / (2.0 * (1.0 + paramsH->Nu_poisson));       // shear modulus
-        paramsH->K_bulk = paramsH->E_young / (3.0 * (1.0 - 2.0 * paramsH->Nu_poisson));  // bulk modulus
-        paramsH->Cs = sqrt(paramsH->K_bulk / paramsH->rho0);
-        paramsH->Ar_stress = doc["Elastic SPH"]["Artificial stress"].GetDouble();
-        paramsH->Ar_vis_alpha = doc["Elastic SPH"]["Artificial viscosity alpha"].GetDouble();
-        paramsH->Ar_vis_beta = doc["Elastic SPH"]["Artificial viscosity beta"].GetDouble();
-
-        paramsH->mu_I0 = doc["Elastic SPH"]["I0"].GetDouble();
-        paramsH->mu_fric_s = doc["Elastic SPH"]["mu_s"].GetDouble();
-        paramsH->mu_fric_2 = doc["Elastic SPH"]["mu_2"].GetDouble();
-        paramsH->ave_diam = doc["Elastic SPH"]["particle diameter"].GetDouble();  // average particle diameter
-        paramsH->Fri_angle =
-            doc["Elastic SPH"]["frictional angle"].GetDouble();               // frictional angle of granular material
-        paramsH->Dil_angle = doc["Elastic SPH"]["dilate angle"].GetDouble();  // dilate angle of granular material
-        paramsH->Coh_coeff = doc["Elastic SPH"]["cohesion coefficient"].GetDouble();  // cohesion coefficient
-        paramsH->Q_FA =
-            6 * sin(paramsH->Fri_angle) /
-            (sqrt(3) * (3 + sin(paramsH->Fri_angle)));  // material constants calculate from frictional angle
-        paramsH->Q_DA = 6 * sin(paramsH->Dil_angle) /
-                        (sqrt(3) * (3 + sin(paramsH->Dil_angle)));  // material constants calculate from dilate angle
-        paramsH->K_FA =
-            6 * paramsH->Coh_coeff * cos(paramsH->Fri_angle) /
-            (sqrt(3) *
-             (3 +
-              sin(paramsH->Fri_angle)));  // material constants calculate from frictional angle and cohesion coefficient
+        if (doc["Elastic SPH"].HasMember("Poisson ratio")) {
+            paramsH->Nu_poisson = doc["Elastic SPH"]["Poisson ratio"].GetDouble();
+        }
+        if (doc["Elastic SPH"].HasMember("Young modulus")) {
+            paramsH->E_young = doc["Elastic SPH"]["Young modulus"].GetDouble();              // Young's modulus
+            paramsH->G_shear = paramsH->E_young / (2.0 * (1.0 + paramsH->Nu_poisson));       // shear modulus
+            paramsH->K_bulk = paramsH->E_young / (3.0 * (1.0 - 2.0 * paramsH->Nu_poisson));  // bulk modulus
+            paramsH->Cs = sqrt(paramsH->K_bulk / paramsH->rho0);
+        }
+        if (doc["Elastic SPH"].HasMember("Artificial stress")) {
+            paramsH->Ar_stress = doc["Elastic SPH"]["Artificial stress"].GetDouble();
+        }
+        if (doc["Elastic SPH"].HasMember("Artificial viscosity alpha")) {
+            paramsH->Ar_vis_alpha = doc["Elastic SPH"]["Artificial viscosity alpha"].GetDouble();
+        }
+        if (doc["Elastic SPH"].HasMember("Artificial viscosity beta")) {
+            paramsH->Ar_vis_beta = doc["Elastic SPH"]["Artificial viscosity beta"].GetDouble();
+        }
+        if (doc["Elastic SPH"].HasMember("I0")) {
+            paramsH->mu_I0 = doc["Elastic SPH"]["I0"].GetDouble();
+        }
+        if (doc["Elastic SPH"].HasMember("mu_s")) {
+            paramsH->mu_fric_s = doc["Elastic SPH"]["mu_s"].GetDouble();
+        }
+        if (doc["Elastic SPH"].HasMember("mu_2")) {
+            paramsH->mu_fric_2 = doc["Elastic SPH"]["mu_2"].GetDouble();
+        }
+        if (doc["Elastic SPH"].HasMember("particle diameter")) {
+            paramsH->ave_diam = doc["Elastic SPH"]["particle diameter"].GetDouble();  // average particle diameter
+        }
+        if (doc["Elastic SPH"].HasMember("frictional angle")) {
+            paramsH->Fri_angle = doc["Elastic SPH"]["frictional angle"].GetDouble();  // frictional angle of granular material
+        }
+        if (doc["Elastic SPH"].HasMember("dilate angle")) {
+            paramsH->Dil_angle = doc["Elastic SPH"]["dilate angle"].GetDouble();  // dilate angle of granular material
+        }
+        if (doc["Elastic SPH"].HasMember("cohesion coefficient")) {
+            paramsH->Coh_coeff = doc["Elastic SPH"]["cohesion coefficient"].GetDouble();  // cohesion coefficient
+            paramsH->Q_FA = 6 * sin(paramsH->Fri_angle) / (sqrt(3) * (3 + sin(paramsH->Fri_angle)));  // material constants calculate from frictional angle
+            paramsH->Q_DA = 6 * sin(paramsH->Dil_angle) / (sqrt(3) * (3 + sin(paramsH->Dil_angle)));  // material constants calculate from dilate angle
+            paramsH->K_FA = 6 * paramsH->Coh_coeff * cos(paramsH->Fri_angle) / (sqrt(3) * (3 + sin(paramsH->Fri_angle)));  // material constants calculate from frictional angle and cohesion coefficient
+        }
+        if (doc["Elastic SPH"].HasMember("kernel threshold")) {
+            paramsH->C_Wi = doc["Elastic SPH"]["kernel threshold"].GetDouble(); 
+        } else{
+            paramsH->C_Wi = 0.8;
+        }
     } else {
         paramsH->elastic_SPH = false;
     }
 
     // Geometry Information
     if (doc.HasMember("Geometry Inf")) {
-        paramsH->boxDimX = doc["Geometry Inf"]["BoxDimensionX"].GetDouble();
-        paramsH->boxDimY = doc["Geometry Inf"]["BoxDimensionY"].GetDouble();
-        paramsH->boxDimZ = doc["Geometry Inf"]["BoxDimensionZ"].GetDouble();
-        paramsH->fluidDimX = doc["Geometry Inf"]["FluidDimensionX"].GetDouble();
-        paramsH->fluidDimY = doc["Geometry Inf"]["FluidDimensionY"].GetDouble();
-        paramsH->fluidDimZ = doc["Geometry Inf"]["FluidDimensionZ"].GetDouble();
+        if (doc["Geometry Inf"].HasMember("BoxDimensionX")) {
+            paramsH->boxDimX = doc["Geometry Inf"]["BoxDimensionX"].GetDouble();
+        }
+        if (doc["Geometry Inf"].HasMember("BoxDimensionY")) {
+            paramsH->boxDimY = doc["Geometry Inf"]["BoxDimensionY"].GetDouble();
+        }
+        if (doc["Geometry Inf"].HasMember("BoxDimensionZ")) {
+            paramsH->boxDimZ = doc["Geometry Inf"]["BoxDimensionZ"].GetDouble();
+        }
+        if (doc["Geometry Inf"].HasMember("FluidDimensionX")) {
+            paramsH->fluidDimX = doc["Geometry Inf"]["FluidDimensionX"].GetDouble();
+        }
+        if (doc["Geometry Inf"].HasMember("FluidDimensionY")) {
+            paramsH->fluidDimY = doc["Geometry Inf"]["FluidDimensionY"].GetDouble();
+        }
+        if (doc["Geometry Inf"].HasMember("FluidDimensionZ")) {
+            paramsH->fluidDimZ = doc["Geometry Inf"]["FluidDimensionZ"].GetDouble();
+        }
+    }
+
+    // Body Information
+    if (doc.HasMember("Body Inf")) {
+        if (doc["Body Inf"].HasMember("BodyDimensionX")) {
+            paramsH->bodyDimX = doc["Body Inf"]["BodyDimensionX"].GetDouble();
+        }
+        if (doc["Body Inf"].HasMember("BodyDimensionY")) {
+            paramsH->bodyDimY = doc["Body Inf"]["BodyDimensionY"].GetDouble();
+        }
+        if (doc["Body Inf"].HasMember("BodyDimensionZ")) {
+            paramsH->bodyDimZ = doc["Body Inf"]["BodyDimensionZ"].GetDouble();
+        }
+        if (doc["Body Inf"].HasMember("BodyRadius")) {
+            paramsH->bodyRad = doc["Body Inf"]["BodyRadius"].GetDouble();
+        }
+        if (doc["Body Inf"].HasMember("BodyLength")) {
+            paramsH->bodyLength = doc["Body Inf"]["BodyLength"].GetDouble();
+        }
+        if (doc["Body Inf"].HasMember("BodyIniPosX")) {
+            paramsH->bodyIniPosX = doc["Body Inf"]["BodyIniPosX"].GetDouble();
+        }
+        if (doc["Body Inf"].HasMember("BodyIniPosY")) {
+            paramsH->bodyIniPosY = doc["Body Inf"]["BodyIniPosY"].GetDouble();
+        }
+        if (doc["Body Inf"].HasMember("BodyIniPosZ")) {
+            paramsH->bodyIniPosZ = doc["Body Inf"]["BodyIniPosZ"].GetDouble();
+        }
+        if (doc["Body Inf"].HasMember("BodyIniVelX")) {
+            paramsH->bodyIniVelX = doc["Body Inf"]["BodyIniVelX"].GetDouble();
+        }
+        if (doc["Body Inf"].HasMember("BodyIniVelY")) {
+            paramsH->bodyIniVelY = doc["Body Inf"]["BodyIniVelY"].GetDouble();
+        }
+        if (doc["Body Inf"].HasMember("BodyIniVelZ")) {
+            paramsH->bodyIniVelZ = doc["Body Inf"]["BodyIniVelZ"].GetDouble();
+        }
+        if (doc["Body Inf"].HasMember("BodyIniAngVel")) {
+            paramsH->bodyIniAngVel = doc["Body Inf"]["BodyIniAngVel"].GetDouble();
+        }
+        if (doc["Body Inf"].HasMember("BodyMass")) {
+            paramsH->bodyMass = doc["Body Inf"]["BodyMass"].GetDouble();
+        }
+        if (doc["Body Inf"].HasMember("BodyDensity")) {
+            paramsH->bodyDensity = doc["Body Inf"]["BodyDensity"].GetDouble();
+        }
     }
 
     //===============================================================
@@ -440,7 +487,7 @@ bool ParseJSON(std::string json_file, std::shared_ptr<SimParams> paramsH, Real3 
                     else
                         paramsH->HB_sr0 = 0.0;
                 } else {
-                    cout << "Constants of Herschel–Bulkley are not found. Using the default Newtonian values" << endl;
+                    std::cout << "Constants of Herschel–Bulkley are not found. Using the default Newtonian values" << std::endl;
                     paramsH->HB_k = paramsH->mu0;
                     paramsH->HB_n = 1;
                     paramsH->HB_tau0 = 0;
@@ -480,7 +527,7 @@ bool ParseJSON(std::string json_file, std::shared_ptr<SimParams> paramsH, Real3 
                 /// mu(I) functionality
                 //===============================================================
                 if (doc["Material Model"]["granular model"].HasMember("mu(I)")) {
-                    string type = doc["Material Model"]["granular model"]["mu(I)"]["type"].GetString();
+                    std::string type = doc["Material Model"]["granular model"]["mu(I)"]["type"].GetString();
                     if (type == "constant") {
                         paramsH->mu_of_I = friction_law::constant;
                         paramsH->mu_fric_s =
@@ -515,78 +562,82 @@ bool ParseJSON(std::string json_file, std::shared_ptr<SimParams> paramsH, Real3 
     } else {
         paramsH->non_newtonian = false;
     }
-    //    paramsH->markerMass = pow(paramsH->MULT_INITSPACE * paramsH->HSML, 3) * paramsH->rho0;
+    
     int NN = 0;
     paramsH->markerMass = massCalculator(NN, paramsH->HSML, paramsH->MULT_INITSPACE * paramsH->HSML, paramsH->rho0);
+    paramsH->markerMass = cube(paramsH->MULT_INITSPACE * paramsH->HSML) * paramsH->rho0;
+    paramsH->volume0 = paramsH->markerMass / paramsH->rho0;
+    paramsH->invrho0 = 1.0 / paramsH->rho0;
     paramsH->num_neighbors = NN;
+    
 
     paramsH->Max_Pressure = 1e20;
     paramsH->cMin = mR3(-Domain.x * 2, -Domain.y * 2, -2 * Domain.z) - 10 * mR3(paramsH->HSML);
     paramsH->cMax = mR3(Domain.x * 2, Domain.y * 2, 2 * Domain.z) + 10 * mR3(paramsH->HSML);
 
-    cout << "parameters of the simulation" << endl;
+    std::cout << "parameters of the simulation" << std::endl;
 
-    cout << "paramsH->num_neighbors: " << paramsH->num_neighbors << endl;
-    cout << "paramsH->rho0: " << paramsH->rho0 << endl;
-    cout << "paramsH->mu0: " << paramsH->mu0 << endl;
-    cout << "paramsH->bodyForce3: ";
+    std::cout << "paramsH->num_neighbors: " << paramsH->num_neighbors << std::endl;
+    std::cout << "paramsH->rho0: " << paramsH->rho0 << std::endl;
+    std::cout << "paramsH->mu0: " << paramsH->mu0 << std::endl;
+    std::cout << "paramsH->bodyForce3: ";
     utils::printStruct(paramsH->bodyForce3);
-    cout << "paramsH->gravity: ";
+    std::cout << "paramsH->gravity: ";
     utils::printStruct(paramsH->gravity);
 
-    cout << "paramsH->HSML: " << paramsH->HSML << endl;
+    std::cout << "paramsH->HSML: " << paramsH->HSML << std::endl;
 
-    cout << "paramsH->MULT_INITSPACE: " << paramsH->MULT_INITSPACE << endl;
-    cout << "paramsH->NUM_BOUNDARY_LAYERS: " << paramsH->NUM_BOUNDARY_LAYERS << endl;
-    cout << "paramsH->epsMinMarkersDis: " << paramsH->epsMinMarkersDis << endl;
-    cout << "paramsH->markerMass: " << paramsH->markerMass << endl;
-    cout << "paramsH->gradient_type: " << paramsH->gradient_type << endl;
+    std::cout << "paramsH->MULT_INITSPACE: " << paramsH->MULT_INITSPACE << std::endl;
+    std::cout << "paramsH->NUM_BOUNDARY_LAYERS: " << paramsH->NUM_BOUNDARY_LAYERS << std::endl;
+    std::cout << "paramsH->epsMinMarkersDis: " << paramsH->epsMinMarkersDis << std::endl;
+    std::cout << "paramsH->markerMass: " << paramsH->markerMass << std::endl;
+    std::cout << "paramsH->gradient_type: " << paramsH->gradient_type << std::endl;
 
-    cout << "paramsH->v_Max: " << paramsH->v_Max << endl;
-    cout << "paramsH->EPS_XSPH: " << paramsH->EPS_XSPH << endl;
-    cout << "paramsH->beta_shifting: " << paramsH->beta_shifting << endl;
-    cout << "paramsH->densityReinit: " << paramsH->densityReinit << endl;
+    std::cout << "paramsH->v_Max: " << paramsH->v_Max << std::endl;
+    std::cout << "paramsH->EPS_XSPH: " << paramsH->EPS_XSPH << std::endl;
+    std::cout << "paramsH->beta_shifting: " << paramsH->beta_shifting << std::endl;
+    std::cout << "paramsH->densityReinit: " << paramsH->densityReinit << std::endl;
 
-    cout << "paramsH->Adaptive_time_stepping: " << paramsH->Adaptive_time_stepping << endl;
-    cout << "paramsH->Co_number: " << paramsH->Co_number << endl;
-    cout << "paramsH->dT: " << paramsH->dT << endl;
-    cout << "paramsH->dT_Max: " << paramsH->dT_Max << endl;
-    cout << "paramsH->dT_Flex: " << paramsH->dT_Flex << endl;
+    std::cout << "paramsH->Adaptive_time_stepping: " << paramsH->Adaptive_time_stepping << std::endl;
+    std::cout << "paramsH->Co_number: " << paramsH->Co_number << std::endl;
+    std::cout << "paramsH->dT: " << paramsH->dT << std::endl;
+    std::cout << "paramsH->dT_Max: " << paramsH->dT_Max << std::endl;
+    std::cout << "paramsH->dT_Flex: " << paramsH->dT_Flex << std::endl;
 
-    cout << "paramsH->non_newtonian: " << paramsH->non_newtonian << endl;
-    cout << "paramsH->granular_material: " << paramsH->granular_material << endl;
-    cout << "paramsH->mu_of_I : " << paramsH->mu_of_I << endl;
-    cout << "paramsH->rheology_model: " << paramsH->rheology_model << endl;
-    cout << "paramsH->ave_diam: " << paramsH->ave_diam << endl;
-    cout << "paramsH->mu_max: " << paramsH->mu_max << endl;
-    cout << "paramsH->mu_fric_s: " << paramsH->mu_fric_s << endl;
-    cout << "paramsH->mu_fric_2: " << paramsH->mu_fric_2 << endl;
-    cout << "paramsH->mu_I0: " << paramsH->mu_I0 << endl;
-    cout << "paramsH->mu_I_b: " << paramsH->mu_I_b << endl;
-    cout << "paramsH->HB_k: " << paramsH->HB_k << endl;
-    cout << "paramsH->HB_n: " << paramsH->HB_n << endl;
-    cout << "paramsH->HB_tau0: " << paramsH->HB_tau0 << endl;
+    std::cout << "paramsH->non_newtonian: " << paramsH->non_newtonian << std::endl;
+    std::cout << "paramsH->granular_material: " << paramsH->granular_material << std::endl;
+    std::cout << "paramsH->mu_of_I : " << paramsH->mu_of_I << std::endl;
+    std::cout << "paramsH->rheology_model: " << paramsH->rheology_model << std::endl;
+    std::cout << "paramsH->ave_diam: " << paramsH->ave_diam << std::endl;
+    std::cout << "paramsH->mu_max: " << paramsH->mu_max << std::endl;
+    std::cout << "paramsH->mu_fric_s: " << paramsH->mu_fric_s << std::endl;
+    std::cout << "paramsH->mu_fric_2: " << paramsH->mu_fric_2 << std::endl;
+    std::cout << "paramsH->mu_I0: " << paramsH->mu_I0 << std::endl;
+    std::cout << "paramsH->mu_I_b: " << paramsH->mu_I_b << std::endl;
+    std::cout << "paramsH->HB_k: " << paramsH->HB_k << std::endl;
+    std::cout << "paramsH->HB_n: " << paramsH->HB_n << std::endl;
+    std::cout << "paramsH->HB_tau0: " << paramsH->HB_tau0 << std::endl;
 
-    cout << "paramsH->cMin: ";
+    std::cout << "paramsH->cMin: ";
     utils::printStruct(paramsH->cMin);
-    cout << "paramsH->cMax: ";
+    std::cout << "paramsH->cMax: ";
     utils::printStruct(paramsH->cMax);
 
-    cout << "paramsH->bceType: " << paramsH->bceType << endl;
-    cout << "paramsH->USE_NonIncrementalProjection : " << paramsH->USE_NonIncrementalProjection << endl;
-    //    cout << "paramsH->LinearSolver: " << paramsH->LinearSolver << endl;
-    cout << "paramsH->PPE_relaxation: " << paramsH->PPE_relaxation << endl;
-    cout << "paramsH->Conservative_Form: " << paramsH->Conservative_Form << endl;
-    cout << "paramsH->Pressure_Constraint: " << paramsH->Pressure_Constraint << endl;
+    std::cout << "paramsH->bceType: " << paramsH->bceType << std::endl;
+    std::cout << "paramsH->USE_NonIncrementalProjection : " << paramsH->USE_NonIncrementalProjection << std::endl;
+    //    std::cout << "paramsH->LinearSolver: " << paramsH->LinearSolver << std::endl;
+    std::cout << "paramsH->PPE_relaxation: " << paramsH->PPE_relaxation << std::endl;
+    std::cout << "paramsH->Conservative_Form: " << paramsH->Conservative_Form << std::endl;
+    std::cout << "paramsH->Pressure_Constraint: " << paramsH->Pressure_Constraint << std::endl;
 
-    cout << "paramsH->deltaPress: ";
+    std::cout << "paramsH->deltaPress: ";
     utils::printStruct(paramsH->deltaPress);
-    cout << "paramsH->binSize0: " << paramsH->binSize0 << endl;
-    cout << "paramsH->boxDims: ";
+    std::cout << "paramsH->binSize0: " << paramsH->binSize0 << std::endl;
+    std::cout << "paramsH->boxDims: ";
     utils::printStruct(paramsH->boxDims);
-    cout << "paramsH->gridSize: ";
+    std::cout << "paramsH->gridSize: ";
     utils::printStruct(paramsH->gridSize);
-    cout << "********************" << endl;
+    std::cout << "********************" << std::endl;
     return true;
 }  // namespace utils
 void PrepareOutputDir(std::shared_ptr<fsi::SimParams> paramsH,
@@ -597,7 +648,7 @@ void PrepareOutputDir(std::shared_ptr<fsi::SimParams> paramsH,
     struct tm* timeinfo;
     time(&rawtime);
     timeinfo = localtime(&rawtime);
-    cout << asctime(timeinfo);
+    std::cout << asctime(timeinfo);
     char buffer[80];
 
     strftime(buffer, 80, "%F_%T", timeinfo);

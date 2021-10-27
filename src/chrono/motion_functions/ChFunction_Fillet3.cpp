@@ -37,7 +37,6 @@ double ChFunction_Fillet3::Get_y(double x) const {
         return y1;
     if (x >= end)
         return y2;
-    double a = x / end;
     ret = c1 * pow(x, 3) + c2 * pow(x, 2) + c3 * x + c4;
     return ret;
 }
@@ -48,7 +47,6 @@ double ChFunction_Fillet3::Get_y_dx(double x) const {
         return 0;
     if (x >= end)
         return 0;
-    double a = x / end;
     ret = 3 * c1 * pow(x, 2) + 2 * c2 * x + c3;
     return ret;
 }
@@ -59,7 +57,6 @@ double ChFunction_Fillet3::Get_y_dxdx(double x) const {
         return 0;
     if (x >= end)
         return 0;
-    double a = x / end;
     ret = 6 * c1 * x + 2 * c2;
     return ret;
 }
@@ -110,7 +107,7 @@ void ChFunction_Fillet3::ArchiveOUT(ChArchiveOut& marchive) {
 
 void ChFunction_Fillet3::ArchiveIN(ChArchiveIn& marchive) {
     // version number
-    int version = marchive.VersionRead<ChFunction_Fillet3>();
+    /*int version =*/ marchive.VersionRead<ChFunction_Fillet3>();
     // deserialize parent class
     ChFunction::ArchiveIN(marchive);
     // stream in all member data:

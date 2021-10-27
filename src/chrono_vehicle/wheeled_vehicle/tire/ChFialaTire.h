@@ -58,7 +58,7 @@ class CH_VEHICLE_API ChFialaTire : public ChTire {
     virtual TerrainForce ReportTireForce(ChTerrain* terrain) const override { return m_tireforce; }
 
     /// Get the width of the tire.
-    double GetWidth() const { return m_width; }
+    virtual double GetWidth() const override { return m_width; }
 
     /// Get visualization width.
     virtual double GetVisualizationWidth() const { return m_width; }
@@ -115,7 +115,7 @@ class CH_VEHICLE_API ChFialaTire : public ChTire {
     double m_time;        // actual system time
     double m_time_trans;  // end of start transient
 
-  private:
+  //private:
     /// Get the tire force and moment.
     /// This represents the output from this tire system that is passed to the
     /// vehicle system.  Typically, the vehicle subsystem will pass the tire force

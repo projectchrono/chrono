@@ -144,13 +144,13 @@ ChQuaternion<double> Q_from_Vect_to_Vect(const ChVector<double>& fr_vect, const 
     } else {
         // fr_vect & to_vect are not co-linear case
         axis.Normalize();
-        halfang = 0.5 * ChAtan2(sinangle, cosangle);
+        halfang = 0.5 * ChAtan2(cosangle, sinangle);
         sinhalf = sin(halfang);
 
         quat.e0() = cos(halfang);
-        quat.e1() = ChClamp(axis.x(), -1.0, +1.0);
-        quat.e2() = ChClamp(axis.y(), -1.0, +1.0);
-        quat.e3() = ChClamp(axis.z(), -1.0, +1.0);
+        quat.e1() = sinhalf* axis.x();
+        quat.e2() = sinhalf* axis.y();
+        quat.e3() = sinhalf* axis.z();
     }
     return (quat);
 }
@@ -231,7 +231,7 @@ ChVector<double> Q_to_Euler123(const ChQuaternion<double>& mq) {
 }
 
 void Q_to_AngAxis(const ChQuaternion<double>& quat, double& angle, ChVector<double>& axis) {
-    if (fabs(quat.e0()) < 0.99999999) {
+    if (std::abs(quat.e0()) < 0.99999999) {
         double arg = acos(quat.e0());
         double invsine = 1 / sin(arg);
         ChVector<double> vtemp;

@@ -47,13 +47,11 @@ int main(int argc, char* argv[]) {
 
     // Create the Irrlicht visualization (open the Irrlicht device,
     // bind a simple user interface, etc. etc.)
-    ChIrrApp application(&mphysicalSystem, L"Particle emitter", core::dimension2d<u32>(800, 600), false);
-
-    // Easy shortcuts to add camera, lights, logo and sky in Irrlicht scene:
-    ChIrrWizard::add_typical_Logo(application.GetDevice());
-    ChIrrWizard::add_typical_Sky(application.GetDevice());
-    ChIrrWizard::add_typical_Lights(application.GetDevice());
-    ChIrrWizard::add_typical_Camera(application.GetDevice(), core::vector3df(5, 7, -10));
+    ChIrrApp application(&mphysicalSystem, L"Particle emitter", core::dimension2d<u32>(800, 600));
+    application.AddTypicalLogo();
+    application.AddTypicalSky();
+    application.AddTypicalLights();
+    application.AddTypicalCamera(core::vector3df(5, 7, -10));
 
     //
     // CREATE THE SYSTEM OBJECTS
@@ -67,7 +65,7 @@ int main(int argc, char* argv[]) {
     floorBody->SetBodyFixed(true);
 
     auto mtexture = chrono_types::make_shared<ChTexture>();
-    mtexture->SetTextureFilename(GetChronoDataFile("concrete.jpg"));
+    mtexture->SetTextureFilename(GetChronoDataFile("textures/concrete.jpg"));
     floorBody->AddAsset(mtexture);
 
     mphysicalSystem.Add(floorBody);
@@ -147,7 +145,7 @@ int main(int argc, char* argv[]) {
             mbody->AddAsset(mvisual);
         }
     };
-    MyCreator_boxes* callback_boxes = new MyCreator_boxes;
+    auto callback_boxes = chrono_types::make_shared<MyCreator_boxes>();
     mcreator_boxes->RegisterAddBodyCallback(callback_boxes);
 
     // Finally, tell to the emitter that it must use the 'mixer' above:
@@ -173,7 +171,7 @@ int main(int argc, char* argv[]) {
         ChIrrApp* airrlicht_application;
     };
     // b- create the callback object...
-    MyCreatorForAll* mcreation_callback = new MyCreatorForAll;
+    auto mcreation_callback = chrono_types::make_shared<MyCreatorForAll>();
     // c- set callback own data that he might need...
     mcreation_callback->airrlicht_application = &application;
     // d- attach the callback to the emitter!

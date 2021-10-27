@@ -47,19 +47,18 @@ namespace vehicle {
 /// are provided.
 class CH_VEHICLE_API ChRotaryArm : public ChSteering {
   public:
-    virtual ~ChRotaryArm() {}
+    virtual ~ChRotaryArm();
 
     /// Get the name of the vehicle subsystem template.
     virtual std::string GetTemplateName() const override { return "RotaryArm"; }
 
     /// Initialize this steering subsystem.
-    /// The steering subsystem is initialized by attaching it to the specified
-    /// chassis body at the specified location (with respect to and expressed in
-    /// the reference frame of the chassis) and with specified orientation (with
-    /// respect to the chassis reference frame).
-    virtual void Initialize(std::shared_ptr<ChBodyAuxRef> chassis,  ///< [in] handle to the chassis body
-                            const ChVector<>& location,             ///< [in] location relative to the chassis frame
-                            const ChQuaternion<>& rotation          ///< [in] orientation relative to the chassis frame
+    /// The steering subsystem is initialized by attaching it to the specified chassis at the specified location (with
+    /// respect to and expressed in the reference frame of the chassis) and with specified orientation (with respect to
+    /// the chassis reference frame).
+    virtual void Initialize(std::shared_ptr<ChChassis> chassis,  ///< [in] associated chassis subsystem
+                            const ChVector<>& location,          ///< [in] location relative to the chassis frame
+                            const ChQuaternion<>& rotation       ///< [in] orientation relative to the chassis frame
                             ) override;
 
     /// Add visualization assets for the steering subsystem.
@@ -142,9 +141,6 @@ class CH_VEHICLE_API ChRotaryArm : public ChSteering {
     // Flag indicating that the inertia matrices for the upright and control arms
     // are provided in vehicle-aligned centroidal frames
     bool m_vehicle_frame_inertia;
-
-    bool m_pitman_arm_on_left_side;
-    bool m_steering_knuckle_on_left_side;
 
     // Points for arm visualization
     ChVector<> m_pC;

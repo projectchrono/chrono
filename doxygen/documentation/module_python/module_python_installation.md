@@ -5,7 +5,7 @@ Install the PYTHON module {#module_python_installation}
 
 This is an optional module that adds Python support in Chrono.
 
-##Features
+## Features
 
 The **PYTHON module** allows users to use [Python](http://www.python.org)  
 for creating simulations. As with any scripting language, this allows for immediate execution, no compilers involved, simple to use, etc.
@@ -15,14 +15,14 @@ This module consists of *two* main sets of build targets:
 
 - The Python modules for [PyChrono](@ref pychrono_introduction). 
   Currently, the PyChrono Python modules that are built are:
-    - *pychrono*, that wraps most Chrono classes, equivalent to the chrono:: namespace
-	- *pychrono.fea*, that wraps FEA classes, equivalent to the chrono::fea:: namespace.
-    - *pychrono.postprocess*, that wraps the POSTPROCESS module.
-    - *pychrono.irrlicht*, that wraps the IRRLICHT module.
-    - *pychrono.mkl*, that wraps the MKL module.
-	- *pychrono.cascade*, that wraps the CASCADE module (doesn't work on the Mac).
+    - *pychrono*, which wraps most Chrono classes, equivalent to the chrono namespace
+    - *pychrono.fea*, which wraps FEA classes, equivalent to the chrono::fea namespace.
+    - *pychrono.postprocess*, which wraps the POSTPROCESS module.
+    - *pychrono.irrlicht*, which wraps the IRRLICHT module.
+    - *pychrono.pardisomkl*, which wraps the Pardiso MKL module.
+    - *pychrono.cascade*, which wraps the CASCADE module (doesn't work on the Mac).
 
-- A *PYPARSER module* is built, that is a C++ module for parsing / executing / interpreting 
+- A *PYPARSER module*, which is a C++ module for parsing / executing / interpreting 
   Python instructions from C++ programs.
 
   
@@ -35,12 +35,13 @@ This module consists of *two* main sets of build targets:
     - you must have the [SWIG](http://www.swig.org/) wrapper generator installed. On the Mac type <tt>brew install swig</tt>.
 
 <div class="ce-warning">
-Some previous SWIG versions have a bug related to processing private and protected C++11 enum classes. This bug has been fixed in recent releases.  Use **SWIG-3.0.12**. On the Mac **SWIG-4.0.1** is known to work. It is installed by homebrew.
+PyChrono requires SWIG version **4.0.0* or newer.
+On the Mac **SWIG v. 4.0.1** is known to work. It is installed by homebrew.
 </div>
 
 ## Building instructions
 
-1. Install SWIG on your system. Version 3.0.12 or higher is required. (on Windows, just unzip where you want).
+1. Install SWIG on your system. Version 4.0.0 or newer is required. (on Windows, just unzip where you want).
 
 2. Repeat the instructions for the [full installation](@ref tutorial_install_chrono), but when you see 
    the CMake window, you must add the following steps:
@@ -52,7 +53,7 @@ Some previous SWIG versions have a bug related to processing private and protect
 
 5. When you pressed 'Configure', CMake should have detected your SWIG tools. This should create two variables in CMake called <tt>SWIG_DIR</tt> and <tt>SWIG_EXECUTABLE</tt>. 
    If all is fine, they should automatically contain meaningful values, 
-   for example <tt>C:/swigwin-3.0.12/Lib</tt> and <tt>C:/swigwin-3.0.12/swig.exe</tt> , 
+   for example <tt>C:/swigwin-4.0.0/Lib</tt> and <tt>C:/swigwin-4.0.0/swig.exe</tt> , 
    so you do not need to touch them. (On Windows, you may need to set them by hand).
 
 6. Press 'Configure' again, then 'Generate', and proceed as usual in the installation instructions.
@@ -128,24 +129,22 @@ Chrono in 32 bit mode. If you installed
 Python for 64bit, you must compile Chrono in 64 bit mode. 
 </div>
 
-
 <div class="ce-warning">
 In some distributions of Python, the debug library 'python33_d.lib' (the debug version of the python33.lib library) is not included by default. 
 If you need it because you recompile the python module in debug mode, either you recompile the entire Python source, or you modify pyconfig.h to force the use of python33.lib by following these steps:
-<br>
 1. Comment out the line:
-
-        //#define Py_DEBUG
-
+   ~~~{.py}
+   //#define Py_DEBUG
+   ~~~
 2. Modify
-
-        #if defined(_DEBUG)
-        #pragma comment(lib,"python33_d.lib")
-
+   ~~~{.py}
+   #if defined(_DEBUG)
+   #pragma comment(lib,"python33_d.lib")
+   ~~~
    to
-
-        #if defined(_DEBUG)
-        #pragma comment(lib,"python33.lib")
-
+   ~~~{.py}
+   #if defined(_DEBUG)
+   #pragma comment(lib,"python33.lib")
+   ~~~
 3. Press 'Advanced' in CMake, set the PYTHON_DEBUG_LIBRARY to the same lib that you have in PYTHON_LIBRARY, and press 'Generate' so that your project will link 'python33.lib' instead than 'python33_d.lib'.
 </div>

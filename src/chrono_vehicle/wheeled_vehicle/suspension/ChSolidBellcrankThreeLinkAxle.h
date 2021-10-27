@@ -63,7 +63,7 @@ class CH_VEHICLE_API ChSolidBellcrankThreeLinkAxle : public ChSuspension {
     ChSolidBellcrankThreeLinkAxle(const std::string& name  ///< [in] name of the subsystem
     );
 
-    virtual ~ChSolidBellcrankThreeLinkAxle() {}
+    virtual ~ChSolidBellcrankThreeLinkAxle();
 
     /// Get the name of the vehicle subsystem template.
     virtual std::string GetTemplateName() const override { return "SolidBellcrankThreeLinkAxle"; }
@@ -75,17 +75,19 @@ class CH_VEHICLE_API ChSolidBellcrankThreeLinkAxle : public ChSuspension {
     virtual bool IsIndependent() const final override { return false; }
 
     /// Initialize this suspension subsystem.
-    /// The suspension subsystem is initialized by attaching it to the specified
-    /// chassis body at the specified location (with respect to and expressed in
-    /// the reference frame of the chassis). It is assumed that the suspension
-    /// reference frame is always aligned with the chassis reference frame.
-    virtual void Initialize(std::shared_ptr<ChBodyAuxRef> chassis,  ///< [in] handle to the chassis body
-                            const ChVector<>& location,             ///< [in] location relative to the chassis frame
-                            std::shared_ptr<ChBody> tierod_body,    ///< [in] body to which tireods are connected
-                            int steering_index,                     ///< [in] index of the associated steering mechanism
-                            double left_ang_vel = 0,                ///< [in] initial angular velocity of left wheel
-                            double right_ang_vel = 0                ///< [in] initial angular velocity of right wheel
-                            ) override;
+    /// The suspension subsystem is initialized by attaching it to the specified chassis and (if provided) to the
+    /// specified subchassis, at the specified location (with respect to and expressed in the reference frame of the
+    /// chassis). It is assumed that the suspension reference frame is always aligned with the chassis reference frame.
+    /// If a steering subsystem is provided, the suspension tierods are to be attached to the steering's central link
+    /// body (steered suspension); otherwise they are to be attached to the chassis (non-steered suspension).
+    virtual void Initialize(
+        std::shared_ptr<ChChassis> chassis,        ///< [in] associated chassis subsystem
+        std::shared_ptr<ChSubchassis> subchassis,  ///< [in] associated subchassis subsystem (may be null)
+        std::shared_ptr<ChSteering> steering,      ///< [in] associated steering subsystem (may be null)
+        const ChVector<>& location,                ///< [in] location relative to the chassis frame
+        double left_ang_vel = 0,                   ///< [in] initial angular velocity of left wheel
+        double right_ang_vel = 0                   ///< [in] initial angular velocity of right wheel
+        ) override;
 
     /// Add visualization assets for the suspension subsystem.
     /// This default implementation uses primitives.
@@ -175,6 +177,12 @@ class CH_VEHICLE_API ChSolidBellcrankThreeLinkAxle : public ChSuspension {
     virtual double getDraglinkMass() const = 0;
     /// Return the mass of the knuckle body.
     virtual double getKnuckleMass() const = 0;
+    /// Return the mass of the triangle body.
+    virtual double getTriangleMass() const = 0;
+    /// Return the mass of the link body.
+    virtual double getLinkMass() const = 0;
+    /// Return the mass of the tierod body.
+    virtual double getTierodMass() const = 0;
 
     /// Return the radius of the axle tube body (visualization only).
     virtual double getAxleTubeRadius() const = 0;
@@ -189,6 +197,12 @@ class CH_VEHICLE_API ChSolidBellcrankThreeLinkAxle : public ChSuspension {
     virtual const ChVector<>& getDraglinkInertia() const = 0;
     /// Return the moments of inertia of the spindle body.
     virtual const ChVector<>& getKnuckleInertia() const = 0;
+    /// Return the moments of inertia of the triangle body.
+    virtual const ChVector<>& getTriangleInertia() const = 0;
+    /// Return the moments of inertia of the link body.
+    virtual const ChVector<>& getLinkInertia() const = 0;
+    /// Return the moments of inertia of the tierod body.
+    virtual const ChVector<>& getTierodInertia() const = 0;
 
     /// Return the inertia of the axle shaft.
     virtual double getAxleInertia() const = 0;
@@ -196,26 +210,34 @@ class CH_VEHICLE_API ChSolidBellcrankThreeLinkAxle : public ChSuspension {
     /// Return the free (rest) length of the spring element.
     virtual double getSpringRestLength() const = 0;
     /// Return the functor object for spring force.
-    virtual ChLinkTSDA::ForceFunctor* getSpringForceFunctor() const = 0;
+    virtual std::shared_ptr<ChLinkTSDA::ForceFunctor> getSpringForceFunctor() const = 0;
     /// Return the functor object for shock force.
-    virtual ChLinkTSDA::ForceFunctor* getShockForceFunctor() const = 0;
+    virtual std::shared_ptr<ChLinkTSDA::ForceFunctor> getShockForceFunctor() const = 0;
 
-    std::shared_ptr<ChBody> m_axleTube;    ///< handles to the axle tube body
-    std::shared_ptr<ChBody> m_bellcrank;   ///< handles to the bellcrank body
-    std::shared_ptr<ChBody> m_knuckle[2];  ///< handles to the knuckle body
-    std::shared_ptr<ChBody> m_draglink;    ///< handles to the draglink body
+    std::shared_ptr<ChBody> m_axleTube;    ///< axle tube body
+    std::shared_ptr<ChBody> m_bellcrank;   ///< bellcrank body
+    std::shared_ptr<ChBody> m_knuckle[2];  ///< knuckle body
+    std::shared_ptr<ChBody> m_draglink;    ///< draglink body
 
     std::shared_ptr<ChLinkLockRevolute> m_revBellcrank;        ///< rotation about z-axis
     std::shared_ptr<ChLinkLockSpherical> m_sphericalDraglink;  ///< connection draglink/steering
     std::shared_ptr<ChLinkUniversal> m_universalDraglink;      ///< connection draglink/bellcrank
     std::shared_ptr<ChLinkLockRevolute> m_revKingpin[2];       ///< kingpin rotational axis joint
 
-    std::shared_ptr<ChLinkDistance> m_triangle[2];  ///< longitudinal & lateral axle guides
-    std::shared_ptr<ChLinkDistance> m_link[2];      ///< longitudinal axle guides
-    std::shared_ptr<ChLinkDistance> m_tierod[2];    ///< connects knuckle and bellcrank
+    std::shared_ptr<ChBody> m_triangleBody;              ///< axle guide body with spherical link and rotary link
+    std::shared_ptr<ChLinkLockRevolute> m_triangleRev;   ///< triangle to chassis revolute joint
+    std::shared_ptr<ChLinkLockSpherical> m_triangleSph;  ///< triangle to axle tube spherical joint
 
-    std::shared_ptr<ChLinkTSDA> m_shock[2];   ///< handles to the spring links (L/R)
-    std::shared_ptr<ChLinkTSDA> m_spring[2];  ///< handles to the shock links (L/R)
+    std::shared_ptr<ChBody> m_linkBody[2];  ///< axle guide body with spherical link and universal link
+    std::shared_ptr<ChLinkUniversal> m_linkBodyToChassis[2];
+    std::shared_ptr<ChLinkLockSpherical> m_linkBodyToAxleTube[2];
+
+    std::shared_ptr<ChBody> m_tierodBody[2];                          ///< tierod bodies
+    std::shared_ptr<ChLinkLockSpherical> m_tierodBodyToKnuckle[2];    ///< tierod-knuckle connection
+    std::shared_ptr<ChLinkLockSpherical> m_tierodBodyToBellcrank[2];  ///< tierod-bellcranck connection
+
+    std::shared_ptr<ChLinkTSDA> m_shock[2];   ///< spring links (L/R)
+    std::shared_ptr<ChLinkTSDA> m_spring[2];  ///< shock links (L/R)
 
   private:
     // Hardpoint absolute locations
@@ -226,9 +248,22 @@ class CH_VEHICLE_API ChSolidBellcrankThreeLinkAxle : public ChSuspension {
     ChVector<> m_axleOuterL;
     ChVector<> m_axleOuterR;
 
+    // Points for triangle visualization
+    ChVector<> m_triangle_sph_point;
+    ChVector<> m_triangle_left_point;
+    ChVector<> m_triangle_right_point;
+
+    // Points for link visualization
+    ChVector<> m_link_axleL;
+    ChVector<> m_link_axleR;
+    ChVector<> m_link_chassisL;
+    ChVector<> m_link_chassisR;
+
     // Points for tierod visualization
     ChVector<> m_tierodOuterL;
     ChVector<> m_tierodOuterR;
+    ChVector<> m_tierodInnerL;
+    ChVector<> m_tierodInnerR;
 
     void InitializeSide(VehicleSide side,
                         std::shared_ptr<ChBodyAuxRef> chassis,

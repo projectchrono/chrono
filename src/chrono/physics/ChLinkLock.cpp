@@ -16,6 +16,7 @@
 ////    Serialization/deserialization of unique_ptr members is currently commented
 ////    out until support for unique_ptr is implemented in ChArchive.
 
+#include "chrono/physics/ChSystem.h"
 #include "chrono/physics/ChLinkLock.h"
 
 namespace chrono {
@@ -23,7 +24,7 @@ namespace chrono {
 // Register into the object factory, to enable run-time dynamic creation and persistence
 CH_FACTORY_REGISTER(ChLinkLock)
 
-ChLinkLock::ChLinkLock() : type(LinkType::FREE), ndoc_d(0), ndoc_c(0), ndoc(0), d_restlength(0) {
+ChLinkLock::ChLinkLock() : type(LinkType::FREE), ndoc(0), ndoc_c(0), ndoc_d(0), d_restlength(0) {
     // Need to zero out the bottom-right 4x3 block
     Cq1_temp.setZero();
     Cq2_temp.setZero();
@@ -317,6 +318,7 @@ void ChLinkLock::BuildLinkType(LinkType link_type) {
             break;
         case LinkType::ALIGN:
             BuildLink(false, false, false, false, true, true, true);
+            break;
         case LinkType::PARALLEL:
             BuildLink(false, false, false, false, true, true, false);
             break;
@@ -923,7 +925,7 @@ void ChLinkLock::IntStateScatterReactions(const unsigned int off_L, const ChVect
 void ChLinkLock::IntStateGatherReactions(const unsigned int off_L, ChVectorDynamic<>& L) {
     L.segment(off_L, react.size()) = react;
 
-    int local_off = this->GetDOC_c();
+    ////int local_off = this->GetDOC_c();
 
     // gather also the contribution from link limits
     // TODO not yet implemented
@@ -1915,7 +1917,7 @@ void ChLinkLock::ArchiveOUT(ChArchiveOut& marchive) {
 
 void ChLinkLock::ArchiveIN(ChArchiveIn& marchive) {
     // version number
-    int version = marchive.VersionRead<ChLinkLock>();
+    /*int version =*/ marchive.VersionRead<ChLinkLock>();
 
     // deserialize parent class
     ChLinkMarkers::ArchiveIN(marchive);
@@ -1952,6 +1954,99 @@ void ChLinkLock::ArchiveIN(ChArchiveIn& marchive) {
     ////marchive >> CHNVP(limit_Rz);
     ////marchive >> CHNVP(limit_Rp);
     ////marchive >> CHNVP(limit_D);
+}
+
+// =======================================================================================
+
+void ChLinkLockRevolute::Lock(bool lock) {
+    BuildLink(true, true, true, false, true, true, lock);
+    if (system) {
+        system->ForceUpdate();
+    }
+}
+
+void ChLinkLockSpherical::Lock(bool lock) {
+    BuildLink(true, true, true, false, lock, lock, lock);
+    if (system) {
+        system->ForceUpdate();
+    }
+}
+
+void ChLinkLockCylindrical::Lock(bool lock) {
+    BuildLink(true, true, lock, false, true, true, lock);
+    if (system) {
+        system->ForceUpdate();
+    }
+}
+
+void ChLinkLockPrismatic::Lock(bool lock) {
+    BuildLink(true, true, lock, false, true, true, true);
+    if (system) {
+        system->ForceUpdate();
+    }
+}
+
+void ChLinkLockPointPlane::Lock(bool lock) {
+    BuildLink(lock, lock, true, false, lock, lock, lock);
+    if (system) {
+        system->ForceUpdate();
+    }
+}
+
+void ChLinkLockPointLine::Lock(bool lock) {
+    BuildLink(lock, true, true, false, lock, lock, lock);
+    if (system) {
+        system->ForceUpdate();
+    }
+}
+
+void ChLinkLockPlanePlane::Lock(bool lock) {
+    BuildLink(lock, lock, true, false, true, true, lock);
+    if (system) {
+        system->ForceUpdate();
+    }
+}
+
+void ChLinkLockOldham::Lock(bool lock) {
+    BuildLink(lock, lock, true, false, true, true, true);
+    if (system) {
+        system->ForceUpdate();
+    }
+}
+
+void ChLinkLockFree::Lock(bool lock) {
+    BuildLink(lock, lock, lock, false, lock, lock, lock);
+    if (system) {
+        system->ForceUpdate();
+    }
+}
+
+void ChLinkLockAlign::Lock(bool lock) {
+    BuildLink(lock, lock, lock, false, true, true, true);
+    if (system) {
+        system->ForceUpdate();
+    }
+}
+
+void ChLinkLockParallel::Lock(bool lock) {
+    BuildLink(lock, lock, lock, false, true, true, lock);
+    if (system) {
+        system->ForceUpdate();
+    }
+}
+
+void ChLinkLockPerpend::Lock(bool lock) {
+    BuildLink(lock, lock, lock, false, true, lock, true);
+    if (system) {
+        system->ForceUpdate();
+    }
+}
+
+void ChLinkLockRevolutePrismatic::Lock(bool lock) {
+    BuildLink(lock, true, true, false, true, true, lock);
+    if (system) {
+        system->ForceUpdate();
+    }
 }
 
 // =======================================================================================
@@ -2393,7 +2488,7 @@ void ChLinkLockLock::ArchiveOUT(ChArchiveOut& marchive) {
 
 void ChLinkLockLock::ArchiveIN(ChArchiveIn& marchive) {
     // version number
-    int version = marchive.VersionRead<ChLinkLockLock>();
+    /*int version =*/ marchive.VersionRead<ChLinkLockLock>();
 
     // deserialize parent class
     ChLinkMarkers::ArchiveIN(marchive);

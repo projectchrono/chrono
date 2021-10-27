@@ -55,13 +55,11 @@ int main(int argc, char* argv[]) {
     // Create the Irrlicht visualization (open the Irrlicht device,
     // bind a simple user interface, etc. etc.)
     ChIrrApp application(&mphysicalSystem, L"Particle emitter: creation from various distributions",
-                         core::dimension2d<u32>(800, 600), false);
-
-    // Easy shortcuts to add camera, lights, logo and sky in Irrlicht scene:
-    ChIrrWizard::add_typical_Logo(application.GetDevice());
-    ChIrrWizard::add_typical_Sky(application.GetDevice());
-    ChIrrWizard::add_typical_Lights(application.GetDevice());
-    ChIrrWizard::add_typical_Camera(application.GetDevice(), core::vector3df(0, 4, -6), core::vector3df(0, -2, 0));
+                         core::dimension2d<u32>(800, 600));
+    application.AddTypicalLogo();
+    application.AddTypicalSky();
+    application.AddTypicalLights();
+    application.AddTypicalCamera(core::vector3df(0, 4, -6), core::vector3df(0, -2, 0));
 
     // CREATE THE SYSTEM OBJECTS
 
@@ -80,9 +78,7 @@ int main(int argc, char* argv[]) {
     //    floorBody->GetCollisionModel()->AddBox(floor_mat, 10,12,1,ChVector<>( 0,0,5));
     floorBody->GetCollisionModel()->BuildModel();
 
-    auto mvisual = chrono_types::make_shared<ChColorAsset>();
-    mvisual->SetColor(ChColor(0.0f, 1.0f, (float)ChRandom()));
-    floorBody->AddAsset(mvisual);
+    floorBody->AddAsset(chrono_types::make_shared<ChColorAsset>(0.0f, 1.0f, (float)ChRandom()));
 
     // Custom rendering in POVray:
     auto mPOVcustom = chrono_types::make_shared<ChPovRayAssetCustom>();
@@ -115,9 +111,7 @@ int main(int argc, char* argv[]) {
         movingBody->SetWvel_par(ChVector<>(2 * cos(phase), 2, 2 * sin(phase)));
         mphysicalSystem.Add(movingBody);
 
-        auto mvisual = chrono_types::make_shared<ChColorAsset>();
-        mvisual->SetColor(ChColor(1.0f, 0.5f, 0.1f));
-        movingBody->AddAsset(mvisual);
+        movingBody->AddAsset(chrono_types::make_shared<ChColorAsset>(1.0f, 0.5f, 0.1f));
 
         // Create a  emitter asset, that contains a ChParticleEmitter, and that will follow the body:
         auto emitter_asset = chrono_types::make_shared<ChEmitterAsset>();
@@ -186,7 +180,7 @@ int main(int argc, char* argv[]) {
             irrlicht::ChIrrApp* airrlicht_application;
         };
         // b- create the callback object...
-        MyCreatorForAll* mcreation_callback = new MyCreatorForAll;
+        auto mcreation_callback = chrono_types::make_shared<MyCreatorForAll>();
         // c- set callback own data that he might need...
         mcreation_callback->airrlicht_application = &application;
         // d- attach the callback to the emitter!
@@ -222,9 +216,7 @@ int main(int argc, char* argv[]) {
         boxbody->SetPos(ChVector<>(xpos, -4.1, 0));
         boxbody->SetBodyFixed(true);
         mphysicalSystem.Add(boxbody);
-        auto mvisual = chrono_types::make_shared<ChColorAsset>();
-        mvisual->SetColor(ChColor(1.0f, 0.5f, 0.1f));
-        boxbody->AddAsset(mvisual);
+        boxbody->AddAsset(chrono_types::make_shared<ChColorAsset>(1.0f, 0.5f, 0.1f));
 
         // ---Initialize the randomizer for alignments
         auto emitter_rotations = chrono_types::make_shared<ChRandomParticleAlignmentUniform>();
@@ -252,16 +244,14 @@ int main(int argc, char* argv[]) {
                                    ChCoordsys<> mcoords,
                                    ChRandomShapeCreator& mcreator) override {
                 // Ex.: attach some optional assets, ex for visualization
-                auto mvisual = chrono_types::make_shared<ChColorAsset>();
-                mvisual->SetColor(ChColor(0.4f, 0.4f, 0.4f));
-                mbody->AddAsset(mvisual);
+                mbody->AddAsset(chrono_types::make_shared<ChColorAsset>(0.4f, 0.4f, 0.4f));
 
                 auto mPOVcustom = chrono_types::make_shared<ChPovRayAssetCustom>();
                 mPOVcustom->SetCommands(" texture {finish { specular 0.9 } pigment{ color rgb<0.8,0.5,0.3>} }  \n");
                 mbody->AddAsset(mPOVcustom);
             }
         };
-        MyCreator_spheres* callback_spheres = new MyCreator_spheres;
+        auto callback_spheres = chrono_types::make_shared<MyCreator_spheres>();
         mcreator_spheres->RegisterAddBodyCallback(callback_spheres);
 
         // B)
@@ -279,16 +269,14 @@ int main(int argc, char* argv[]) {
                                    ChCoordsys<> mcoords,
                                    ChRandomShapeCreator& mcreator) override {
                 // Ex.: attach some optional assets, ex for visualization
-                auto mvisual = chrono_types::make_shared<ChColorAsset>();
-                mvisual->SetColor(ChColor(0.4f, 0.4f, 0.4f));
-                mbody->AddAsset(mvisual);
+                mbody->AddAsset(chrono_types::make_shared<ChColorAsset>(0.4f, 0.4f, 0.4f));
 
                 auto mPOVcustom = chrono_types::make_shared<ChPovRayAssetCustom>();
                 mPOVcustom->SetCommands(" texture {finish { specular 0.9 } pigment{ color rgb<0.3,0.4,0.6>} }  \n");
                 mbody->AddAsset(mPOVcustom);
             }
         };
-        MyCreator_hulls* callback_hulls = new MyCreator_hulls;
+        auto callback_hulls = chrono_types::make_shared<MyCreator_hulls>();
         mcreator_hulls->RegisterAddBodyCallback(callback_hulls);
 
         // Create a parent ChRandomShapeCreator that 'mixes' some generators above,
@@ -328,7 +316,7 @@ int main(int argc, char* argv[]) {
             ChIrrApp* airrlicht_application;
         };
         // b- create the callback object...
-        MyCreatorForAll* mcreation_callback = new MyCreatorForAll;
+        auto mcreation_callback = chrono_types::make_shared<MyCreatorForAll>();
         // c- set callback own data that he might need...
         mcreation_callback->airrlicht_application = &application;
         // d- attach the callback to the emitter!
@@ -342,32 +330,15 @@ int main(int argc, char* argv[]) {
     // Use this function for 'converting' assets into Irrlicht meshes
     application.AssetUpdateAll();
 
-    // Create (if needed) the output directory
-    const std::string demo_dir = GetChronoOutputPath() + "DEMO_EMITTER";
-    if (!filesystem::create_directory(filesystem::path(demo_dir))) {
-        std::cout << "Error creating directory " << demo_dir << std::endl;
-        return 1;
-    }
 
     // Create an exporter to POVray !!
     ChPovRay pov_exporter = ChPovRay(&mphysicalSystem);
 
-    // Sets some file names for in-out processes.
+    // Important: set the path to the template:
     pov_exporter.SetTemplateFile(GetChronoDataFile("_template_POV.pov"));
-    pov_exporter.SetOutputScriptFile(demo_dir + "/rendering_frames.pov");
-    pov_exporter.SetOutputDataFilebase("my_state");
-    pov_exporter.SetPictureFilebase("picture");
 
-    // Even better: save the .dat files and the .bmp files
-    // in two subdirectories, to avoid cluttering the current
-    // directory...
-    const std::string out_dir = demo_dir + "/output";
-    const std::string anim_dir = demo_dir + "/anim";
-    filesystem::create_directory(filesystem::path(out_dir));
-    filesystem::create_directory(filesystem::path(anim_dir));
-
-    pov_exporter.SetOutputDataFilebase(out_dir + "/my_state");
-    pov_exporter.SetPictureFilebase(anim_dir + "/picture");
+    // Set the path where it will save all .pov, .ini, .asset and .dat files, a directory will be created if not existing
+    pov_exporter.SetBasePath(GetChronoOutputPath() + "DEMO_EMITTER");
 
     pov_exporter.SetLight(VNULL, ChColor(0, 0, 0), false);
     pov_exporter.SetCustomPOVcommandsScript(

@@ -93,7 +93,7 @@ class CH_VEHICLE_API ChSuspensionTestRig : public ChVehicle {
     const ChVector<>& GetSpindlePos(VehicleSide side) const { return m_suspension->GetSpindlePos(side); }
 
     /// Get the global rotation of the specified spindle.
-    const ChQuaternion<>& GetSpindleRot(VehicleSide side) const { return m_suspension->GetSpindleRot(side); }
+    ChQuaternion<> GetSpindleRot(VehicleSide side) const { return m_suspension->GetSpindleRot(side); }
 
     /// Get the linear velocity of the specified spindle (expressed in the global reference frame).
     const ChVector<>& GetSpindleLinVel(VehicleSide side) const { return m_suspension->GetSpindleLinVel(side); }
@@ -162,9 +162,10 @@ class CH_VEHICLE_API ChSuspensionTestRig : public ChVehicle {
   protected:
     /// Construct a test rig for a specified axle of a given vehicle.
     /// This version uses a concrete vehicle object.
-    ChSuspensionTestRig(ChWheeledVehicle& vehicle,                             ///< vehicle source
-                        int axle_index,                                        ///< index of the suspension to be tested
-                        double displ_limit,                                    ///< limits for post displacement
+    ChSuspensionTestRig(ChWheeledVehicle& vehicle,  ///< vehicle source
+                        int axle_index,             ///< index of the suspension to be tested
+                        int steering_index,         ///< index of associated steering subsystem (-1 for no steering)
+                        double displ_limit,         ///< limits for post displacement
                         std::shared_ptr<ChTire> tire_left,                     ///< left tire
                         std::shared_ptr<ChTire> tire_right,                    ///< right tire
                         ChContactMethod contact_method = ChContactMethod::NSC  ///< contact method
@@ -229,7 +230,6 @@ class CH_VEHICLE_API ChSuspensionTestRig : public ChVehicle {
     // Overrides of ChVehicle methods
     virtual std::string GetTemplateName() const override { return "SuspensionTestRig"; }
     virtual std::shared_ptr<ChShaft> GetDriveshaft() const override { return m_dummy_shaft; }
-    virtual double GetDriveshaftSpeed() const override { return 0; }
     virtual ChVector<> GetVehicleCOMPos() const override { return ChVector<>(0, 0, 0); }
     virtual std::string ExportComponentList() const override { return ""; }
     virtual void ExportComponentList(const std::string& filename) const override {}
@@ -263,11 +263,12 @@ class CH_VEHICLE_API ChSuspensionTestRigPlatform : public ChSuspensionTestRig {
   public:
     /// Construct a test rig for a specified axle of a given vehicle.
     /// This version uses a concrete vehicle object.
-    ChSuspensionTestRigPlatform(ChWheeledVehicle& vehicle,           ///< vehicle source
-                                int axle_index,                      ///< index of the suspension to be tested
-                                double displ_limit,                  ///< limits for post displacement
-                                std::shared_ptr<ChTire> tire_left,   ///< left tire
-                                std::shared_ptr<ChTire> tire_right,  ///< right tire
+    ChSuspensionTestRigPlatform(ChWheeledVehicle& vehicle,  ///< vehicle source
+                                int axle_index,             ///< index of the suspension to be tested
+                                int steering_index,  ///< index of associated steering subsystem (-1 for no steering)
+                                double displ_limit,  ///< limits for post displacement
+                                std::shared_ptr<ChTire> tire_left,                     ///< left tire
+                                std::shared_ptr<ChTire> tire_right,                    ///< right tire
                                 ChContactMethod contact_method = ChContactMethod::NSC  ///< contact method
     );
 
@@ -287,6 +288,8 @@ class CH_VEHICLE_API ChSuspensionTestRigPlatform : public ChSuspensionTestRig {
                                 std::shared_ptr<ChTire> tire_right,  ///< right tire
                                 ChContactMethod contact_method = ChContactMethod::NSC  ///< contact method
     );
+
+    ~ChSuspensionTestRigPlatform();
 
     virtual double GetActuatorDisp(VehicleSide side) override;
     virtual double GetActuatorForce(VehicleSide side) override;
@@ -343,11 +346,12 @@ class CH_VEHICLE_API ChSuspensionTestRigPushrod : public ChSuspensionTestRig {
   public:
     /// Construct a test rig for a specified axle of a given vehicle.
     /// This version uses a concrete vehicle object.
-    ChSuspensionTestRigPushrod(ChWheeledVehicle& vehicle,           ///< vehicle source
-                               int axle_index,                      ///< index of the suspension to be tested
-                               double displ_limit,                  ///< limits for post displacement
-                               std::shared_ptr<ChTire> tire_left,   ///< left tire
-                               std::shared_ptr<ChTire> tire_right,  ///< right tire
+    ChSuspensionTestRigPushrod(ChWheeledVehicle& vehicle,  ///< vehicle source
+                               int axle_index,             ///< index of the suspension to be tested
+                               int steering_index,  ///< index of associated steering subsystem (-1 for no steering)
+                               double displ_limit,  ///< limits for post displacement
+                               std::shared_ptr<ChTire> tire_left,                     ///< left tire
+                               std::shared_ptr<ChTire> tire_right,                    ///< right tire
                                ChContactMethod contact_method = ChContactMethod::NSC  ///< contact method
     );
 
@@ -367,6 +371,8 @@ class CH_VEHICLE_API ChSuspensionTestRigPushrod : public ChSuspensionTestRig {
                                std::shared_ptr<ChTire> tire_right,  ///< right tire
                                ChContactMethod contact_method = ChContactMethod::NSC  ///< contact method
     );
+    
+    ~ChSuspensionTestRigPushrod();
 
     virtual double GetActuatorDisp(VehicleSide side) override;
     virtual double GetActuatorForce(VehicleSide side) override;
