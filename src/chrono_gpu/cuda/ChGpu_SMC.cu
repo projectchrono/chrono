@@ -610,16 +610,9 @@ __host__ double ChSystemGpu_impl::AdvanceSimulation(float duration) {
 
     packSphereDataPointers();
 
-    // float computeForce_totalTime = 0;
-    // float updateFriction_totalTime = 0;
     // Run the simulation, there are aggressive synchronizations because we want to have no race conditions
     for (unsigned int n = 0; n < nsteps; n++) {
         updateBCPositions();
-        // cudaEventSynchronize(updateBC_end);
-        // cudaEventRecord(updateBC_end, 0);
-        // cudaEventElapsedTime(&updateBC_elapsedTime, updateBC_start, updateBC_end);
-        // printf("updateBC time taken: %f ms\n", updateBC_elapsedTime);
-
         runSphereBroadphase();
         resetSphereAccelerations();
         resetBCForces();
@@ -641,20 +634,9 @@ __host__ double ChSystemGpu_impl::AdvanceSimulation(float duration) {
             gpuErrchk(cudaDeviceSynchronize());
 
             if (gran_params->use_mat_based == true) {
-                // cudaEvent_t compForce_start, compForce_end;
-                // float compForce_time;
-                // cudaEventCreate(&compForce_start);
-                // cudaEventCreate(&compForce_end);
-                // cudaEventRecord(compForce_start, 0);
-
                 computeSphereContactForces_matBased<<<nBlocks, CUDA_THREADS_PER_BLOCK>>>(
                     sphere_data, gran_params, BC_type_list.data(), BC_params_list_SU.data(),
                     (unsigned int)BC_params_list_SU.size(), nSpheres);
-
-                // cudaEventRecord(compForce_end, 0);
-                // cudaEventSynchronize(compForce_end);
-                // cudaEventElapsedTime(&compForce_time, compForce_start, compForce_end);
-                // computeForce_totalTime = computeForce_totalTime + compForce_time;
 
             } else {
                 computeSphereContactForces<<<nBlocks, CUDA_THREADS_PER_BLOCK>>>(
@@ -678,19 +660,8 @@ __host__ double ChSystemGpu_impl::AdvanceSimulation(float duration) {
 
             METRICS_PRINTF("Update Friction Data!\n");
 
-            // cudaEvent_t updFric_start, updFric_end;
-            // float updFric_time;
-            // cudaEventCreate(&updFric_start);
-            // cudaEventCreate(&updFric_end);
-            // cudaEventRecord(updFric_start, 0);
-
             updateFrictionData<<<nBlocksFricHistoryPostProcess, nThreadsUpdateHist>>>(fricMapSize, sphere_data,
                                                                                       gran_params);
-
-            // cudaEventRecord(updFric_end, 0);
-            // cudaEventSynchronize(updFric_end);
-            // cudaEventElapsedTime(&updFric_time, updFric_start, updFric_end);
-            // updateFriction_totalTime = updateFriction_totalTime + updFric_time;
 
             gpuErrchk(cudaPeekAtLastError());
             gpuErrchk(cudaDeviceSynchronize());
@@ -703,9 +674,6 @@ __host__ double ChSystemGpu_impl::AdvanceSimulation(float duration) {
         elapsedSimTime += (float)(stepSize_SU * TIME_SU2UU);  // Advance current time
         time_elapsed_SU += stepSize_SU;
     }
-
-    // printf("compute contact force time: %.2f ms\n", computeForce_totalTime);
-    // printf("update friction data time: %.2f ms\n", updateFriction_totalTime);
 
     return time_elapsed_SU * TIME_SU2UU;  // return elapsed UU time
 }
