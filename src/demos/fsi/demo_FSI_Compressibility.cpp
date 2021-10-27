@@ -9,7 +9,7 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Author: Milad Rakhsha, Arman Pazouki
+// Author: Milad Rakhsha, Arman Pazouki, Wei Hu
 // =============================================================================
 
 // General Includes
@@ -33,7 +33,7 @@ using namespace chrono::collision;
 using namespace chrono::fsi;
 typedef chrono::fsi::Real Real;
 
-std::ofstream simParams;
+// std::ofstream simParams;
 // =============================================================================
 
 //----------------------------

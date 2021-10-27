@@ -37,35 +37,35 @@ using namespace chrono::fsi;
 
 // Set a tolerance to control the test
 const double rel_Tol = 1.0e-2;
-float error_rel;
+double error_rel;
 
 //------------------------------------------------------------------
 // dimension of the fluid domain
 //------------------------------------------------------------------
-float bxDim = 0.2;
-float byDim = 0.1;
-float bzDim = 0.2;
+double bxDim = 0.2;
+double byDim = 0.1;
+double bzDim = 0.2;
 
-float fxDim = bxDim;
-float fyDim = byDim;
-float fzDim = bzDim;
+double fxDim = bxDim;
+double fyDim = byDim;
+double fzDim = bzDim;
 
 //------------------------------------------------------------------
 // Analytical solution of the poiseuille flow
 //------------------------------------------------------------------
-float PoiseuilleAnalytical(float Z,
-                           float L,
-                           float time,
+double PoiseuilleAnalytical(double Z,
+                           double L,
+                           double time,
                            std::shared_ptr<fsi::SimParams> paramsH){
-    float nu   = paramsH->mu0/paramsH->rho0;
-    float F    = paramsH->bodyForce3.x;
-    float initSpace0 = paramsH->MULT_INITSPACE * paramsH->HSML;
-    float pi = 3.1415926;
+    double nu   = paramsH->mu0/paramsH->rho0;
+    double F    = paramsH->bodyForce3.x;
+    double initSpace0 = paramsH->MULT_INITSPACE * paramsH->HSML;
+    double pi = 3.1415926;
 
-    float L_modify = L + initSpace0;
-    float Z_modify = Z + 0.5*initSpace0;
+    double L_modify = L + initSpace0;
+    double Z_modify = Z + 0.5*initSpace0;
 
-    float theory = 1.0/(2.0*nu)*F*Z_modify*(L_modify-Z_modify);
+    double theory = 1.0/(2.0*nu)*F*Z_modify*(L_modify-Z_modify);
 
     for (int n=0; n<50; n++){
         theory = theory - 
@@ -96,7 +96,7 @@ void CreateSolidPhase(ChSystemSMC& mphysicalSystem,
     ground->SetCollide(true);
     ground->GetCollisionModel()->ClearModel();
 
-    float initSpace0 = myFsiSystem.GetIniSpace();
+    double initSpace0 = myFsiSystem.GetIniSpace();
 
     // Bottom and Top wall
     ChVector<> sizeWall(bxDim / 2, byDim / 2 + 0 * initSpace0, 2 * initSpace0);
@@ -128,7 +128,7 @@ int main(int argc, char* argv[]) {
     myFsiSystem.SetSimParameter(inputJson, paramsH, ChVector<>(bxDim, byDim, bzDim));
 
     // Reset the domain size to handle periodic boundary condition
-    float initSpace0 = paramsH->MULT_INITSPACE * paramsH->HSML;
+    double initSpace0 = paramsH->MULT_INITSPACE * paramsH->HSML;
     ChVector<> cMin(-bxDim / 2 - initSpace0 / 2, -byDim / 2 - initSpace0 / 2, - 5.0 * initSpace0);
     ChVector<> cMax( bxDim / 2 + initSpace0 / 2,  byDim / 2 + initSpace0 / 2, bzDim + 5.0 * initSpace0);
     myFsiSystem.SetPeriodicBC(cMin, cMax, paramsH);
@@ -147,7 +147,7 @@ int main(int argc, char* argv[]) {
     std::vector<ChVector<>> points = sampler.SampleBox(boxCenter, boxHalfDim);
     size_t numPart = points.size();
     for (int i = 0; i < numPart; i++) {
-        float v_x = PoiseuilleAnalytical(points[i].z(), bzDim, 0.5, paramsH);
+        double v_x = PoiseuilleAnalytical(points[i].z(), bzDim, 0.5, paramsH);
         myFsiSystem.AddSphMarker(ChVector<>(points[i].x(), points[i].y(), points[i].z()),
                                  ChVector<>(paramsH->rho0, paramsH->BASEPRES, paramsH->mu0),
                                  paramsH->HSML, -1,
@@ -161,7 +161,7 @@ int main(int argc, char* argv[]) {
     // Finalize the setup before the simulation
     myFsiSystem.Finalize();
 
-    float time = 0;
+    double time = 0;
     int stepEnd = 200;
     for (int tStep = 0; tStep < stepEnd + 1; tStep++) {
         myFsiSystem.DoStepDynamics_FSI();
@@ -177,12 +177,12 @@ int main(int argc, char* argv[]) {
         // myFsiSystem.GetParticleVel(ParVel);
         
         // Calculate the relative error of the solution
-        float error = 0.0;
-        float abs_val = 0.0;
+        double error = 0.0;
+        double abs_val = 0.0;
         for (int i = 0; i < numPart; i++) {
-            float pos_Z = posRadH[i].z;
-            float vel_X = velMasH[i].x;
-            float vel_X_ana = PoiseuilleAnalytical(pos_Z, bzDim, time + 0.5, paramsH);
+            double pos_Z = posRadH[i].z;
+            double vel_X = velMasH[i].x;
+            double vel_X_ana = PoiseuilleAnalytical(pos_Z, bzDim, time + 0.5, paramsH);
             error = error + pow(vel_X - vel_X_ana, 2);
             abs_val = abs_val + pow(vel_X_ana, 2);
         }

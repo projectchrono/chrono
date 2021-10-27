@@ -15,14 +15,15 @@
 // Implementation of fsi system that includes all subclasses for proximity and
 // force calculation, and time integration
 // =============================================================================
-#include "chrono/core/ChTypes.h"
 
-#include "chrono_fsi/ChSystemFsi.h"
+#include "chrono/core/ChTypes.h"
 
 #include "chrono/fea/ChElementCableANCF.h"
 #include "chrono/fea/ChElementShellANCF.h"
 #include "chrono/fea/ChMesh.h"
 #include "chrono/fea/ChNodeFEAxyzD.h"
+
+#include "chrono_fsi/ChSystemFsi.h"
 #include "chrono_fsi/utils/ChUtilsTypeConvert.h"
 #include "chrono_fsi/utils/ChUtilsGeneratorFsi.h"
 
@@ -259,7 +260,7 @@ void ChSystemFsi::AddRefArray(const int start,
                               const int numPart,
                               const int typeA,
                               const int typeB) {
-    fsiData->fsiGeneralData->referenceArray.push_back(fsi::mI4(start, numPart, typeA, typeB));
+    fsiSystem->fsiGeneralData->referenceArray.push_back(fsi::mI4(start, numPart, typeA, typeB));
 }
 //--------------------------------------------------------------------------------------------------------------------------------
 void ChSystemFsi::AddBceBox(std::shared_ptr<SimParams> paramsH,
@@ -267,7 +268,7 @@ void ChSystemFsi::AddBceBox(std::shared_ptr<SimParams> paramsH,
                             const ChVector<>& relPos,
                             const ChQuaternion<>& relRot,
                             const ChVector<>& size) {
-    utils::AddBoxBce(fsiData, paramsH, body, relPos, relRot, size);
+    utils::AddBoxBce(fsiSystem, paramsH, body, relPos, relRot, size);
 }
 //--------------------------------------------------------------------------------------------------------------------------------
 void ChSystemFsi::SetSimParameter(const std::string& inputJson,

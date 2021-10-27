@@ -62,7 +62,7 @@ class CH_FSI_API ChSystemFsi : public ChFsiGeneral {
     /// instantiation is handled by sending a pointer to other objects or data.
     /// Therefore, the sub-classes have pointers to the same data.
     ChSystemFsi(ChSystem& other_physicalSystem, 
-                CHFSI_TIME_INTEGRATOR time_integrator = CHFSI_TIME_INTEGRATOR::IISPH);
+                CHFSI_TIME_INTEGRATOR time_integrator = CHFSI_TIME_INTEGRATOR::ExplicitSPH);
 
     /// Destructor for the FSI system.
     virtual ~ChSystemFsi();
@@ -86,7 +86,7 @@ class CH_FSI_API ChSystemFsi : public ChFsiGeneral {
     virtual void FinalizeData();
 
     /// Get a pointer to the data manager.
-    std::shared_ptr<ChSystemFsi_impl> GetFsiData() { return fsiData; }
+    std::shared_ptr<ChSystemFsi_impl> GetFsiData() { return fsiSystem; }
 
     /// Set the linear system solver for implicit methods
     void SetFluidSystemLinearSolver(ChFsiLinearSolver::SolverType other_solverType) {

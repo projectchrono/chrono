@@ -488,7 +488,7 @@ ChFluidDynamics::ChFluidDynamics(std::shared_ptr<ChBce> otherBceWorker,
             forceSystem = chrono_types::make_shared<ChFsiForceI2SPH>(otherBceWorker, fsiSystem->sortedSphMarkersD,
                                                                      fsiSystem->markersProximityD,
                                                                      fsiSystem->fsiGeneralData, paramsH, numObjectsH);
-            printf("Created an I2SPH frame work.\n");
+            printf("Created an I2SPH framework.\n");
             break;
 
         case CHFSI_TIME_INTEGRATOR::IISPH:
@@ -502,7 +502,7 @@ ChFluidDynamics::ChFluidDynamics(std::shared_ptr<ChBce> otherBceWorker,
             forceSystem = chrono_types::make_shared<ChFsiForceExplicitSPH>(
                 otherBceWorker, fsiSystem->sortedSphMarkersD, fsiSystem->markersProximityD, fsiSystem->fsiGeneralData,
                 paramsH, numObjectsH);
-            printf("Created an ExplicitSPHframe work.\n");
+            printf("Created an ExplicitSPH framework.\n");
             break;
 
             /// Extend this function with your own linear solvers
