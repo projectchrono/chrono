@@ -13,7 +13,7 @@ ENDIF()
 message(STATUS "==== SynChrono module ====")
 
 # Return now if MPI is not available
-if(NOT MPI_CXX_FOUND)
+if(NOT MPI_FOUND)
 	message(WARNING "Chrono::SynChrono requires MPI, but MPI not found; disabling Chrono::SynChrono")
 	set(ENABLE_MODULE_SYNCHRONO OFF CACHE BOOL "Enable the SynChrono module" FORCE)
 	return()
