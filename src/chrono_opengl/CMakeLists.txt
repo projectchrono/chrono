@@ -267,10 +267,14 @@ ADD_LIBRARY(ChronoEngine_opengl SHARED
   ${CE_OpenGL_BULLET_FILES}
 ) 
 
+SET(CE_OpenGL_FLAGS "${CH_CXX_FLAGS}")
+
+
 IF(${CMAKE_SYSTEM_NAME} MATCHES "Emscripten")
   SET(CE_OpenGL_LIBRARIES 
     # ${OPENGL_LIBRARIES}
     ChronoEngine)
+  set (CE_OpenGL_LINK_FLAGS "-s FULL_ES3=1 -s USE_GLFW=3")
 ELSE()
   SET(CE_OpenGL_LIBRARIES 
     ${GLEW_LIBRARY}
@@ -279,7 +283,6 @@ ELSE()
     ChronoEngine)
 ENDIF()
 
-SET(CE_OpenGL_FLAGS "${CH_CXX_FLAGS}")
 
 
 if(ENABLE_MODULE_MULTICORE)
@@ -290,7 +293,7 @@ endif()
 
 SET_TARGET_PROPERTIES(ChronoEngine_opengl PROPERTIES 
   COMPILE_FLAGS "${CE_OpenGL_FLAGS}"
-  LINK_FLAGS "${CH_LINKERFLAG_SHARED}")
+  LINK_FLAGS "${CE_OpenGL_LINK_FLAGS} ${CH_LINKERFLAG_SHARED}")
 
 target_compile_definitions(ChronoEngine_opengl PRIVATE "CH_API_COMPILE_OPENGL")
 target_compile_definitions(ChronoEngine_opengl PRIVATE "GLM_ENABLE_EXPERIMENTAL")
