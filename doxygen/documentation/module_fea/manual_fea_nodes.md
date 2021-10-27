@@ -21,10 +21,10 @@ In this page you can find a description of their properties.
 
 - 3 coordinates (p, ie. x y z translation in 3D)
 - Ex. Used by solid elements:
-  - ChElementTetra_4 
-  - ChElementTetra_10 
-  - ChElementHexa_8
-  - ChElementHexa_20  etc. 
+  - ChElementTetraCorot_4 
+  - ChElementTetraCorot_10 
+  - ChElementHexaCorot_8
+  - ChElementHexaCorot_20  etc. 
 
 
 
@@ -68,7 +68,7 @@ In this page you can find a description of their properties.
 - Ex. used by these elements:
   - ChElementBeamANCF_3243 
   - ChElementShellANCF_3443
-  - ChElementBrickANCF_3843
+  - ChElementHexaANCF_3843
 
 
 # ChNodeFEAxyzP   {#manual_ChNodeFEAxyzP}
@@ -78,7 +78,7 @@ In this page you can find a description of their properties.
 - 1 coordinates (a scalar P, in a 3D space)
 - Used for thermal and electrostatic analysis
 - Ex. used by these elements:
-  - ChElementTetra_4_P 
+  - ChElementTetraCorot_4_P 
 
   
   

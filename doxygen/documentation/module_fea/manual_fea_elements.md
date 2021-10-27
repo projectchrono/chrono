@@ -54,11 +54,11 @@ The chrono::fea::ChElementBar is quite similar to the ChElementSpring, but adds 
 - Stiffness matrix computed analytically for high performance (both material and geometric stiffness are supported).
 
 
-# ChElementTetra_4    {#manual_ChElementTetra_4}
+# ChElementTetraCorot_4    {#manual_ChElementTetraCorot_4}
 
 ![](http://www.projectchrono.org/assets/manual/fea_ChElementTetra_4.png)
 
-The chrono::fea::ChElementTetra_4 is the simplest volume element for simulating 3D problems.
+The chrono::fea::ChElementTetraCorot_4 is the simplest volume element for simulating 3D problems.
 
 - 4 nodes of ChNodeFEAxyz type
 - Linear interpolation, constant stress
@@ -71,11 +71,11 @@ The chrono::fea::ChElementTetra_4 is the simplest volume element for simulating 
 
   
   
-# ChElementTetra_10    {#manual_ChElementTetra_10}
+# ChElementTetraCorot_10    {#manual_ChElementTetraCorot_10}
 
 ![](http://www.projectchrono.org/assets/manual/fea_ChElementTetra_10.png)
 
-The chrono::fea::ChElementTetra_10 is a quadratic volume element based on tetahedrons with intermediate nodes along edges, as in figure.
+The chrono::fea::ChElementTetraCorot_10 is a quadratic volume element based on tetahedrons with intermediate nodes along edges, as in figure.
 
 - 10 nodes of ChNodeFEAxyz type
 - Quadratic interpolation, linear stress 
@@ -88,11 +88,11 @@ The chrono::fea::ChElementTetra_10 is a quadratic volume element based on tetahe
 
   
   
-# ChElementHexa_8    {#manual_ChElementHexa_8}
+# ChElementHexaCorot_8    {#manual_ChElementHexaCorot_8}
 
 ![](http://www.projectchrono.org/assets/manual/fea_ChElementHexa_8.png)
 
-The chrono::fea::ChElementHexa_8 is a linear isoparametric element of brick type.
+The chrono::fea::ChElementHexaCorot_8 is a linear isoparametric element of brick type.
 
 - 8 nodes of ChNodeFEAxyz type
 - Linear interpolation
@@ -102,11 +102,11 @@ The chrono::fea::ChElementHexa_8 is a linear isoparametric element of brick type
 - Stiffness matrix computed analytically for high performance (note, geometric stiffness term not added at the moment).
 
   
-# ChElementHexa_20   {#manual_ChElementHexa_20}
+# ChElementHexaCorot_20   {#manual_ChElementHexaCorot_20}
 
 ![](http://www.projectchrono.org/assets/manual/fea_ChElementHexa_20.png)
 
-The chrono::fea::ChElementHexa_20 is a quadratic isoparametric element of brick type.
+The chrono::fea::ChElementHexaCorot_20 is a quadratic isoparametric element of brick type.
 
 - 20 nodes of ChNodeFEAxyz type 
 - 8 at vertexes, 12 at edges midpoints
@@ -116,11 +116,11 @@ The chrono::fea::ChElementHexa_20 is a quadratic isoparametric element of brick 
 - Useful for solids, with structured grids
 - Stiffness matrix computed analytically for high performance (note, geometric stiffness term not added at the moment).
 
-# ChElementBrick    {#manual_ChElementBrick}
+# ChElementHexaANCF_3813    {#manual_CChElementHexaANCF_3813}
 
 ![](http://www.projectchrono.org/assets/manual/fea_ChElementHexa_8.png)
 
-The chrono::fea::ChElementBrick is a brick element implemented using the ANCF formulation.
+The chrono::fea::ChElementHexaANCF_3813 is a brick element implemented using the ANCF formulation.
 
 - 8 nodes of ChNodeFEAxyz type
 - Linear interpolation
@@ -131,9 +131,9 @@ The chrono::fea::ChElementBrick is a brick element implemented using the ANCF fo
 - Useful for solids, with structured grids
 
 
-# ChElementBrick_9    {#manual_ChElementBrick_9}
+# ChElementHexaANCF_3813_9    {#manual_ChElementHexaANCF_3813_9}
 
-The chrono::fea::ChElementBrick_9 is a brick element implemented using the ANCF formulation.
+The chrono::fea::ChElementHexaANCF_3813_9 is a brick element implemented using the ANCF formulation.
 
 - 9 nodes of ChNodeFEAxyz type (8 at the corners, 1 at the center)
 - Linear interpolation
@@ -149,11 +149,11 @@ The chrono::fea::ChElementBrick_9 is a brick element implemented using the ANCF 
 
 
 
-# ChElementBrickANCF_3843    {#manual_ChElementBrickANCF_3843}
+# ChElementHexaANCF_3843    {#manual_ChElementHexaANCF_3843}
 
 ![](http://www.projectchrono.org/assets/manual/fea_ChElementBrickANCF_3843.png)
 
-The chrono::fea::ChElementBrickANCF_3843 is a 8 node brick element based on the ANCF approach with a full set of position vector gradient coordinates at each node.
+The chrono::fea::ChElementHexaANCF_3843 is a 8 node brick element based on the ANCF approach with a full set of position vector gradient coordinates at each node.
 
 - 8 nodes of ChNodeFEAxyzDDD type
 - 64 integration points
