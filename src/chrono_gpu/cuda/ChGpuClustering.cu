@@ -107,18 +107,17 @@ namespace gpu {
 //     assert(adjacency_num == vertex_adjacency_num[mySphereID]);
 // }
 
-/// All spheres with > min_pts contacts are core, other points maybe be border points.
-static __global__ void init_sphere_group(unsigned int nSpheres,
-                                           unsigned int* adj_num,
-                                           SPHERE_GROUP* sphere_group,
-                                           unsigned int min_pts) {
-    unsigned int mySphereID = threadIdx.x + blockIdx.x * blockDim.x;
-    sphere_group[mySphereID] = (adj_num[mySphereID] > min_pts) ? SPHERE_GROUP::CORE : SPHERE_GROUP::NOISE;
-}
+// /// All spheres with > min_pts contacts are core, other points maybe be border points.
+// static __global__ void InitSphereGroup(unsigned int nSpheres,
+//                                            unsigned int* adj_num,
+//                                            SPHERE_GROUP* sphere_group,
+//                                            unsigned int min_pts) {
+//     unsigned int mySphereID = threadIdx.x + blockIdx.x * blockDim.x;
+//     sphere_group[mySphereID] = (adj_num[mySphereID] > min_pts) ? SPHERE_GROUP::CORE : SPHERE_GROUP::NOISE;
+// }
 
 /// computes h_cluster by breadth first search
-/// ClusterSearchBFSKernel
-static __global__ void cluster_search_BFS_kernel(unsigned int nSpheres,
+static __global__ void ClusterSearchBFSKernel(unsigned int nSpheres,
                         unsigned int * adj_num,
                         unsigned int * adj_start,
                         unsigned int * adj_list,
@@ -146,8 +145,7 @@ static __global__ void cluster_search_BFS_kernel(unsigned int nSpheres,
 
 /// computes h_cluster by breadth first search
 /// return pointer to h_clusters: array of pointers to arrays of variable length
-/// ClusterSearchBFS
-static __host__ unsigned int ** cluster_search_BFS(unsigned int nSpheres,
+static __host__ unsigned int ** ClusterSearchBFS(unsigned int nSpheres,
                         ChSystemGpu_impl::GranSphereDataPtr sphere_data,
                         unsigned int* adj_num,
                         unsigned int* adj_start,
@@ -197,7 +195,7 @@ static __host__ unsigned int ** cluster_search_BFS(unsigned int nSpheres,
             h_cluster_num++;
 
             do {
-                cluster_search_BFS_kernel<<<nBlocks, CUDA_THREADS_PER_BLOCK>>>(nSpheres,
+                ClusterSearchBFSKernel<<<nBlocks, CUDA_THREADS_PER_BLOCK>>>(nSpheres,
                 adj_num, adj_start, adj_list,
                 d_borders, d_visited);
                 gpuErrchk(cudaPeekAtLastError());
@@ -261,27 +259,25 @@ static __host__ unsigned int ** cluster_search_BFS(unsigned int nSpheres,
 /// G-DBSCAN; density-based h_clustering algorithm. Identifies core, border and noise points in h_clusters.<
 /// Searches using a parallel Breadth-First search
 /// min_pts: minimal number of points for a cluster
-/// GdbscanSearch
-__host__ void gdbscan_search_graph(ChSystemGpu_impl::GranSphereDataPtr sphere_data,
+__host__ void GdbscanSearchGraph(ChSystemGpu_impl::GranSphereDataPtr sphere_data,
                                            ChSystemGpu_impl::GranParamsPtr gran_params,
                                            unsigned int nSpheres, size_t min_pts) {
     unsigned int nBlocks = (nSpheres + CUDA_THREADS_PER_BLOCK - 1) / CUDA_THREADS_PER_BLOCK;
 
-    chrono::gpu::init_sphere_group<<<nBlocks, CUDA_THREADS_PER_BLOCK>>>(nSpheres,
+    GdbscanInitSphereGroup<<<nBlocks, CUDA_THREADS_PER_BLOCK>>>(nSpheres,
                 sphere_data->adj_num, sphere_data->sphere_group, min_pts);
     gpuErrchk(cudaPeekAtLastError());
     gpuErrchk(cudaDeviceSynchronize());
 
-    init_sphere_cluster<<<nBlocks, CUDA_THREADS_PER_BLOCK>>>(sphere_data, gran_params, static_cast<unsigned int>(chrono::gpu::CLUSTER_INDEX::GROUND));
+    GdbscanInitSphereCluster<<<nBlocks, CUDA_THREADS_PER_BLOCK>>>(nSpheres, sphere_data->sphere_cluster, static_cast<unsigned int>(chrono::gpu::CLUSTER_INDEX::GROUND));
     gpuErrchk(cudaPeekAtLastError());
     gpuErrchk(cudaDeviceSynchronize());
 
-    unsigned int ** h_clusters = cluster_search_BFS(nSpheres, sphere_data,
+    unsigned int ** h_clusters = ClusterSearchBFS(nSpheres, sphere_data,
                                         sphere_data->adj_num,
                                         sphere_data->adj_start,
                                         sphere_data->adj_list,
                                         sphere_data->sphere_group);
-    unsigned int * d_cluster;
     unsigned int cluster_num = h_clusters[0][0];
     unsigned int sphere_num_in_cluster;
     unsigned int biggest_cluster_size = 1;
@@ -304,11 +300,15 @@ __host__ void gdbscan_search_graph(ChSystemGpu_impl::GranSphereDataPtr sphere_da
         assert(h_clusters[biggest_cluster_id][0] <= nSpheres);
         for (size_t j = 1; j < (sphere_num_in_cluster + 1); j++) {
             unsigned int CurrentSphereID = h_clusters[biggest_cluster_id][j];
-            sphere_data->sphere_cluster[CurrentSphereID] = static_cast<unsigned int> (chrono::gpu::CLUSTER_INDEX::GROUND);
+            sphere_data->sphere_cluster[CurrentSphereID] = static_cast<unsigned int>(chrono::gpu::CLUSTER_INDEX::GROUND);
         }
         gpuErrchk(cudaPeekAtLastError());
         gpuErrchk(cudaDeviceSynchronize());
     }
+
+    GdbscanFinalClusterFromGroup<<<nBlocks, CUDA_THREADS_PER_BLOCK>>>(nSpheres, sphere_data->sphere_cluster, sphere_data->sphere_group);
+    gpuErrchk(cudaPeekAtLastError());
+    gpuErrchk(cudaDeviceSynchronize());
 
     for (size_t i = 0; i < cluster_num; i++) {
         free(h_clusters[i]);

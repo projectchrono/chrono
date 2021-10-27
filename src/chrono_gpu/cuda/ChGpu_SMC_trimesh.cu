@@ -464,12 +464,12 @@ __host__ double ChSystemGpuMesh_impl::AdvanceSimulation(float duration) {
             // computing adj_num and adj_start
             if ((gran_params->cluster_graph_method == CLUSTER_GRAPH_METHOD::CONTACT) 
                 && (gran_params->cluster_search_method > CLUSTER_SEARCH_METHOD::NONE)) {
-                cluster_contact_adj_num<<<nBlocks, CUDA_THREADS_PER_BLOCK>>>(sphere_data,
+                ComputeAdjNumByContact<<<nBlocks, CUDA_THREADS_PER_BLOCK>>>(sphere_data,
                                                                  gran_params, nSpheres);
                 gpuErrchk(cudaPeekAtLastError());
                 gpuErrchk(cudaDeviceSynchronize());
 
-                cluster_adj_num2start(nSpheres, sphere_data->adj_num, sphere_data->adj_start);
+                ComputeAdjStartFromAdjNum(nSpheres, sphere_data->adj_num, sphere_data->adj_start);
             }
             gpuErrchk(cudaPeekAtLastError());
             gpuErrchk(cudaDeviceSynchronize());
@@ -537,7 +537,7 @@ __host__ double ChSystemGpuMesh_impl::AdvanceSimulation(float duration) {
         // step 1- Graph construction
         switch(gran_params->cluster_graph_method) {
             case CLUSTER_GRAPH_METHOD::PROXIMITY: {
-                gdbscan_construct_graph(sphere_data, gran_params, nSpheres, min_pts, radius);
+                GdbscanConstructGraph(sphere_data, gran_params, nSpheres, min_pts, radius);
                 break;
             }
             default: {break;}
@@ -545,7 +545,7 @@ __host__ double ChSystemGpuMesh_impl::AdvanceSimulation(float duration) {
         // step 2- Search the graph, find the clusters.
         switch(gran_params->cluster_search_method) {
             case CLUSTER_SEARCH_METHOD::BFS: {
-                gdbscan_search_graph(sphere_data, gran_params, nSpheres, min_pts);
+                GdbscanSearchGraph(sphere_data, gran_params, nSpheres, min_pts);
                 break;
             }
             default: {break;}

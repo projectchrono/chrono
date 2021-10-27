@@ -59,7 +59,7 @@ enum class CLUSTER_SEARCH_METHOD {NONE = 0, BFS = 1}; // TO DO: implement other 
 // BFS -> Breadth-First search
 
 /// Cluster index. Ground cluster has most spheres.
-enum class CLUSTER_INDEX {GROUND = 0, NOCLUSTER = 1, START = 2};/* number of clusters go up to nSpheres */
+enum class CLUSTER_INDEX {GROUND = 0, INVALID = 1, START = 2};/* number of clusters go up to nSpheres */
 
 /// Sphere groups, core border or noise for clustering, volume inside bucket
 enum class SPHERE_GROUP {CORE = 0, BORDER = 1, NOISE = 2, VOLUME = 3};
