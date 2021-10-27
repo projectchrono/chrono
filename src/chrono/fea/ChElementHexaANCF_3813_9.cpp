@@ -22,7 +22,7 @@
 
 #include "chrono/core/ChException.h"
 #include "chrono/core/ChQuadrature.h"
-#include "chrono/fea/ChElementBrick_9.h"
+#include "chrono/fea/ChElementHexaANCF_3813_9.h"
 
 namespace chrono {
 namespace fea {
@@ -31,7 +31,7 @@ namespace fea {
 // Constructor
 // -----------------------------------------------------------------------------
 
-ChElementBrick_9::ChElementBrick_9() {
+ChElementHexaANCF_3813_9::ChElementHexaANCF_3813_9() {
     m_nodes.resize(8);
 
     m_ddT.setZero();
@@ -49,15 +49,15 @@ ChElementBrick_9::ChElementBrick_9() {
 // -----------------------------------------------------------------------------
 
 // Specify the nodes for this element
-void ChElementBrick_9::SetNodes(std::shared_ptr<ChNodeFEAxyz> node1,
-                                std::shared_ptr<ChNodeFEAxyz> node2,
-                                std::shared_ptr<ChNodeFEAxyz> node3,
-                                std::shared_ptr<ChNodeFEAxyz> node4,
-                                std::shared_ptr<ChNodeFEAxyz> node5,
-                                std::shared_ptr<ChNodeFEAxyz> node6,
-                                std::shared_ptr<ChNodeFEAxyz> node7,
-                                std::shared_ptr<ChNodeFEAxyz> node8,
-                                std::shared_ptr<ChNodeFEAcurv> nodeC) {
+void ChElementHexaANCF_3813_9::SetNodes(std::shared_ptr<ChNodeFEAxyz> node1,
+                                        std::shared_ptr<ChNodeFEAxyz> node2,
+                                        std::shared_ptr<ChNodeFEAxyz> node3,
+                                        std::shared_ptr<ChNodeFEAxyz> node4,
+                                        std::shared_ptr<ChNodeFEAxyz> node5,
+                                        std::shared_ptr<ChNodeFEAxyz> node6,
+                                        std::shared_ptr<ChNodeFEAxyz> node7,
+                                        std::shared_ptr<ChNodeFEAxyz> node8,
+                                        std::shared_ptr<ChNodeFEAcurv> nodeC) {
     assert(node1);
     assert(node2);
     assert(node3);
@@ -97,7 +97,7 @@ void ChElementBrick_9::SetNodes(std::shared_ptr<ChNodeFEAxyz> node1,
 }
 
 // Initial element setup
-void ChElementBrick_9::SetupInitial(ChSystem* system) {
+void ChElementHexaANCF_3813_9::SetupInitial(ChSystem* system) {
     //// TODO any other initializations go here
 
     m_GaussScaling = (GetDimensions().x() * GetDimensions().y() * GetDimensions().z()) / 8;
@@ -110,7 +110,7 @@ void ChElementBrick_9::SetupInitial(ChSystem* system) {
 // Calculation of shape functions and their derivatives
 // -----------------------------------------------------------------------------
 
-void ChElementBrick_9::ShapeFunctions(ShapeVector& N, double x, double y, double z) {
+void ChElementHexaANCF_3813_9::ShapeFunctions(ShapeVector& N, double x, double y, double z) {
     double a = GetDimensions().x();
     double b = GetDimensions().y();
     double c = GetDimensions().z();
@@ -127,7 +127,7 @@ void ChElementBrick_9::ShapeFunctions(ShapeVector& N, double x, double y, double
     N(10) = (c * c) * (-1.0 / 8.0) + (c * c) * (z * z) * (1.0 / 8.0);
 }
 
-void ChElementBrick_9::ShapeFunctionsDerivativeX(ShapeVector& Nx, double x, double y, double z) {
+void ChElementHexaANCF_3813_9::ShapeFunctionsDerivativeX(ShapeVector& Nx, double x, double y, double z) {
     double a = GetDimensions().x();
     Nx(0) = 0.25 / a * (-1) * (1 - y) * (1 - z);
     Nx(1) = 0.25 / a * (+1) * (1 - y) * (1 - z);
@@ -143,7 +143,7 @@ void ChElementBrick_9::ShapeFunctionsDerivativeX(ShapeVector& Nx, double x, doub
     Nx(10) = 0;
 }
 
-void ChElementBrick_9::ShapeFunctionsDerivativeY(ShapeVector& Ny, double x, double y, double z) {
+void ChElementHexaANCF_3813_9::ShapeFunctionsDerivativeY(ShapeVector& Ny, double x, double y, double z) {
     double b = GetDimensions().y();
     Ny(0) = 0.25 / b * (1 - x) * (-1) * (1 - z);
     Ny(1) = 0.25 / b * (1 + x) * (-1) * (1 - z);
@@ -159,7 +159,7 @@ void ChElementBrick_9::ShapeFunctionsDerivativeY(ShapeVector& Ny, double x, doub
     Ny(10) = 0;
 }
 
-void ChElementBrick_9::ShapeFunctionsDerivativeZ(ShapeVector& Nz, double x, double y, double z) {
+void ChElementHexaANCF_3813_9::ShapeFunctionsDerivativeZ(ShapeVector& Nz, double x, double y, double z) {
     double c = GetDimensions().z();
     Nz(0) = 0.25 / c * (1 - x) * (1 - y) * (-1);
     Nz(1) = 0.25 / c * (1 + x) * (1 - y) * (-1);
@@ -182,17 +182,17 @@ void ChElementBrick_9::ShapeFunctionsDerivativeZ(ShapeVector& Nz, double x, doub
 // Private class for quadrature of the mass matrix.
 class Brick9_Mass : public ChIntegrable3D<ChMatrixNM<double, 33, 33>> {
   public:
-    Brick9_Mass(ChElementBrick_9* element) : m_element(element) {}
+    Brick9_Mass(ChElementHexaANCF_3813_9* element) : m_element(element) {}
     ~Brick9_Mass() {}
 
   private:
-    ChElementBrick_9* m_element;
+    ChElementHexaANCF_3813_9* m_element;
 
     virtual void Evaluate(ChMatrixNM<double, 33, 33>& result, const double x, const double y, const double z) override;
 };
 
 void Brick9_Mass::Evaluate(ChMatrixNM<double, 33, 33>& result, const double x, const double y, const double z) {
-    ChElementBrick_9::ShapeVector N;
+    ChElementHexaANCF_3813_9::ShapeVector N;
     m_element->ShapeFunctions(N, x, y, z);
 
     ChMatrixNM<double, 3, 33> S;
@@ -211,7 +211,7 @@ void Brick9_Mass::Evaluate(ChMatrixNM<double, 33, 33>& result, const double x, c
 }
 
 // Compute the mass matrix of the element.
-void ChElementBrick_9::ComputeMassMatrix() {
+void ChElementHexaANCF_3813_9::ComputeMassMatrix() {
     Brick9_Mass myformula(this);
     m_MassMatrix.setZero();
     ChQuadrature::Integrate3D<ChMatrixNM<double, 33, 33>>(m_MassMatrix,  // result of integration will go there
@@ -232,25 +232,25 @@ void ChElementBrick_9::ComputeMassMatrix() {
 // Private class for quadrature of gravitational forces.
 class Brick9_Gravity : public ChIntegrable3D<ChVectorN<double, 11>> {
   public:
-    Brick9_Gravity(ChElementBrick_9* element) : m_element(element) {}
+    Brick9_Gravity(ChElementHexaANCF_3813_9* element) : m_element(element) {}
     ~Brick9_Gravity() {}
 
   private:
-    ChElementBrick_9* m_element;
+    ChElementHexaANCF_3813_9* m_element;
 
     virtual void Evaluate(ChVectorN<double, 11>& result, const double x, const double y, const double z) override;
 };
 
 // Evaluate integrand at the specified point
 void Brick9_Gravity::Evaluate(ChVectorN<double, 11>& result, const double x, const double y, const double z) {
-    ChElementBrick_9::ShapeVector N;
+    ChElementHexaANCF_3813_9::ShapeVector N;
     m_element->ShapeFunctions(N, x, y, z);
 
     result = m_element->Calc_detJ0(x, y, z) * m_element->m_GaussScaling * N.transpose();
 }
 
 // Compute the gravitational forces.
-void ChElementBrick_9::ComputeGravityForceScale() {
+void ChElementHexaANCF_3813_9::ComputeGravityForceScale() {
     Brick9_Gravity myformula(this);
 
     m_GravForceScale.setZero();
@@ -266,7 +266,7 @@ void ChElementBrick_9::ComputeGravityForceScale() {
 }
 
 // Compute the generalized force vector due to gravity
-void ChElementBrick_9::ComputeGravityForces(ChVectorDynamic<>& Fg, const ChVector<>& G_acc) {
+void ChElementHexaANCF_3813_9::ComputeGravityForces(ChVectorDynamic<>& Fg, const ChVector<>& G_acc) {
     assert(Fg.size() == 33);
 
     // Calculate and add the generalized force due to gravity to the generalized internal force vector for the element.
@@ -286,23 +286,23 @@ void ChElementBrick_9::ComputeGravityForces(ChVectorDynamic<>& Fg, const ChVecto
 // Private class for quadrature of internal forces
 class Brick9_Force : public ChIntegrable3D<ChVectorN<double, 33>> {
   public:
-    Brick9_Force(ChElementBrick_9* element) : m_element(element) {}
+    Brick9_Force(ChElementHexaANCF_3813_9* element) : m_element(element) {}
     ~Brick9_Force() {}
 
   private:
-    ChElementBrick_9* m_element;
+    ChElementHexaANCF_3813_9* m_element;
     virtual void Evaluate(ChVectorN<double, 33>& result, const double x, const double y, const double z) override;
 };
 
 // Evaluate integrand at the specified point
 void Brick9_Force::Evaluate(ChVectorN<double, 33>& result, const double x, const double y, const double z) {
-    ChElementBrick_9::ShapeVector N;
+    ChElementHexaANCF_3813_9::ShapeVector N;
     m_element->ShapeFunctions(N, x, y, z);
 
     // Determinant of position vector gradient matrix: Initial configuration
-    ChElementBrick_9::ShapeVector Nx;
-    ChElementBrick_9::ShapeVector Ny;
-    ChElementBrick_9::ShapeVector Nz;
+    ChElementHexaANCF_3813_9::ShapeVector Nx;
+    ChElementHexaANCF_3813_9::ShapeVector Ny;
+    ChElementHexaANCF_3813_9::ShapeVector Nz;
     ChMatrixNM<double, 1, 3> Nx_d0;
     ChMatrixNM<double, 1, 3> Ny_d0;
     ChMatrixNM<double, 1, 3> Nz_d0;
@@ -367,11 +367,11 @@ void Brick9_Force::Evaluate(ChVectorN<double, 33>& result, const double x, const
     E_eps(4, 4) = C2;
     E_eps(5, 5) = C2;
 
-    // element->SetStrainFormulation(ChElementBrick_9::Hencky);
-    // element->SetPlasticityFormulation(ChElementBrick_9::DruckerPrager);
-    // if (ChElementBrick_9::Hencky == element->GetStrainFormulation) {
+    // element->SetStrainFormulation(ChElementHexaANCF_3813_9::Hencky);
+    // element->SetPlasticityFormulation(ChElementHexaANCF_3813_9::DruckerPrager);
+    // if (ChElementHexaANCF_3813_9::Hencky == element->GetStrainFormulation) {
     switch (m_element->GetStrainFormulation()) {
-        case ChElementBrick_9::GreenLagrange: {
+        case ChElementHexaANCF_3813_9::GreenLagrange: {
             // ddNx = e^{T}*Nx^{T}*Nx, ddNy = e^{T}*Ny^{T}*Ny, ddNz = e^{T}*Nz^{T}*Nz
             ChVectorN<double, 11> ddNx = m_element->m_ddT * Nx.transpose();
             ChVectorN<double, 11> ddNy = m_element->m_ddT * Ny.transpose();
@@ -464,7 +464,7 @@ void Brick9_Force::Evaluate(ChVectorN<double, 33>& result, const double x, const
             // Internal force calculation
             result = (detJ0 * m_element->m_GaussScaling) * strainD.transpose() * E_eps * strain;
         } break;
-        case ChElementBrick_9::Hencky: {
+        case ChElementHexaANCF_3813_9::Hencky: {
             ChMatrixNM<double, 3, 3> CCPinv;  // Inverse of F^{pT}*F^{p}, where F^{p} is the plastic deformation
                                               // gradient stemming from multiplicative decomposition
             ChMatrix33<double> BETRI;         // Left Cauchy-Green tensor for elastic deformation
@@ -560,7 +560,7 @@ void Brick9_Force::Evaluate(ChVectorN<double, 33>& result, const double x, const
                 // Vector of eigenvalues of current logarithmic strain
                 ChVector<double> lambda;
                 switch (m_element->GetPlasticityFormulation()) {
-                    case ChElementBrick_9::J2: {
+                    case ChElementHexaANCF_3813_9::J2: {
                         // Hydrostatic pressure , i.e. volumetric stress (from principal stresses)
                         hydroP = (StressK_eig(0) + StressK_eig(1) + StressK_eig(2)) / 3.0;
                         // Deviatoric stress
@@ -634,7 +634,7 @@ void Brick9_Force::Evaluate(ChVectorN<double, 33>& result, const double x, const
                         }
                     } break;
 
-                    case ChElementBrick_9::DruckerPrager: {
+                    case ChElementHexaANCF_3813_9::DruckerPrager: {
                         double EDNInv;  // Inverse of norm of deviatoric Hencky strain
 
                         // Evaluate norm of deviatoric Hencky strain
@@ -798,7 +798,7 @@ void Brick9_Force::Evaluate(ChVectorN<double, 33>& result, const double x, const
                         }
                     } break;
 
-                    case ChElementBrick_9::DruckerPrager_Cap: {
+                    case ChElementHexaANCF_3813_9::DruckerPrager_Cap: {
                         // Hydrostatic pressure (Cap)
                         double hydroPt;
                         // Current value of yield function (Cap)
@@ -1253,7 +1253,7 @@ void Brick9_Force::Evaluate(ChVectorN<double, 33>& result, const double x, const
 }
 
 // Compute internal forces and load them in the Fi vector.
-void ChElementBrick_9::ComputeInternalForces(ChVectorDynamic<>& Fi) {
+void ChElementHexaANCF_3813_9::ComputeInternalForces(ChVectorDynamic<>& Fi) {
     CalcCoordMatrix(m_d);
     CalcCoordDerivMatrix(m_d_dt);
     m_ddT = m_d * m_d.transpose();
@@ -1281,14 +1281,14 @@ void ChElementBrick_9::ComputeInternalForces(ChVectorDynamic<>& Fi) {
 // Private class for quadrature of the Jacobian of internal forces
 class Brick9_Jacobian : public ChIntegrable3D<ChMatrixNM<double, 33, 33>> {
   public:
-    Brick9_Jacobian(ChElementBrick_9* element,  // Associated element
-                    double Kfactor,             // Scaling coefficient for stiffness component
-                    double Rfactor              // Scaling coefficient for damping component
+    Brick9_Jacobian(ChElementHexaANCF_3813_9* element,  // Associated element
+                    double Kfactor,                     // Scaling coefficient for stiffness component
+                    double Rfactor                      // Scaling coefficient for damping component
                     )
         : m_element(element), m_Kfactor(Kfactor), m_Rfactor(Rfactor) {}
 
   private:
-    ChElementBrick_9* m_element;
+    ChElementHexaANCF_3813_9* m_element;
     double m_Kfactor;
     double m_Rfactor;
     ChMatrixNM<double, 33, 33> m_KTE1;
@@ -1299,13 +1299,13 @@ class Brick9_Jacobian : public ChIntegrable3D<ChMatrixNM<double, 33, 33>> {
 
 // Evaluate integrand at the specified point
 void Brick9_Jacobian::Evaluate(ChMatrixNM<double, 33, 33>& result, const double x, const double y, const double z) {
-    ChElementBrick_9::ShapeVector N;
+    ChElementHexaANCF_3813_9::ShapeVector N;
     m_element->ShapeFunctions(N, x, y, z);
 
     // Determinant of position vector gradient matrix: Initial configuration
-    ChElementBrick_9::ShapeVector Nx;
-    ChElementBrick_9::ShapeVector Ny;
-    ChElementBrick_9::ShapeVector Nz;
+    ChElementHexaANCF_3813_9::ShapeVector Nx;
+    ChElementHexaANCF_3813_9::ShapeVector Ny;
+    ChElementHexaANCF_3813_9::ShapeVector Nz;
     ChMatrixNM<double, 1, 3> Nx_d0;
     ChMatrixNM<double, 1, 3> Ny_d0;
     ChMatrixNM<double, 1, 3> Nz_d0;
@@ -1370,8 +1370,8 @@ void Brick9_Jacobian::Evaluate(ChMatrixNM<double, 33, 33>& result, const double 
     E_eps(4, 4) = C2;
     E_eps(5, 5) = C2;
     switch (m_element->GetStrainFormulation()) {
-        case ChElementBrick_9::GreenLagrange: {  // ddNx = e^{T}*Nx^{T}*Nx, ddNy = e^{T}*Ny^{T}*Ny, ddNz =
-                                                 // e^{T}*Nz^{T}*Nz
+        case ChElementHexaANCF_3813_9::GreenLagrange: {  // ddNx = e^{T}*Nx^{T}*Nx, ddNy = e^{T}*Ny^{T}*Ny, ddNz =
+                                                         // e^{T}*Nz^{T}*Nz
             ChVectorN<double, 11> ddNx = m_element->m_ddT * Nx.transpose();
             ChVectorN<double, 11> ddNy = m_element->m_ddT * Ny.transpose();
             ChVectorN<double, 11> ddNz = m_element->m_ddT * Nz.transpose();
@@ -1532,7 +1532,7 @@ void Brick9_Jacobian::Evaluate(ChMatrixNM<double, 33, 33>& result, const double 
             result = m_KTE1 * (m_Kfactor + m_Rfactor * m_element->m_Alpha) + m_KTE2 * m_Kfactor;
             result *= detJ0 * m_element->m_GaussScaling;
         } break;
-        case ChElementBrick_9::Hencky: {
+        case ChElementHexaANCF_3813_9::Hencky: {
             ChMatrixNM<double, 3, 3> CCPinv;  // Inverse of F^{pT}*F^{p}, where F^{p} is the plastic deformation
             ChMatrix33<double> BETRI;         // Left Cauchy-Green tensor for elastic deformation
             ChVectorN<double, 3> BETRI_eig;   // Eigenvalues of spatial stretch tensor
@@ -1633,8 +1633,9 @@ void Brick9_Jacobian::Evaluate(ChMatrixNM<double, 33, 33>& result, const double 
                 ChVector<double> lambda;
 
                 switch (m_element->GetPlasticityFormulation()) {
-                    case ChElementBrick_9::J2: {  // Hydrostatic pressure , i.e. volumetric stress (from principal
-                                                  // stresses)
+                    case ChElementHexaANCF_3813_9::J2: {  // Hydrostatic pressure , i.e. volumetric stress (from
+                                                          // principal
+                                                          // stresses)
                         hydroP = (StressK_eig(0) + StressK_eig(1) + StressK_eig(2)) / 3.0;
 
                         // Deviatoric stress
@@ -1717,7 +1718,7 @@ void Brick9_Jacobian::Evaluate(ChMatrixNM<double, 33, 33>& result, const double 
                         }
                     } break;
 
-                    case ChElementBrick_9::DruckerPrager: {
+                    case ChElementHexaANCF_3813_9::DruckerPrager: {
                         double EDNInv;  // Inverse of norm of deviatoric Hencky strain
                         // Evaluate norm of deviatoric Hencky strain
                         if (ETDNorm != 0.0) {
@@ -1886,7 +1887,7 @@ void Brick9_Jacobian::Evaluate(ChMatrixNM<double, 33, 33>& result, const double 
                             }
                         }  // End Yield Criteria
                     } break;
-                    case ChElementBrick_9::DruckerPrager_Cap: {
+                    case ChElementHexaANCF_3813_9::DruckerPrager_Cap: {
                         // Hydrostatic pressure (Cap)
                         double hydroPt;
                         // Current value of yield function (Cap)
@@ -2564,7 +2565,7 @@ void Brick9_Jacobian::Evaluate(ChMatrixNM<double, 33, 33>& result, const double 
 }
 
 // Compute the Jacobian of the internal forces
-void ChElementBrick_9::ComputeInternalJacobians(double Kfactor, double Rfactor) {
+void ChElementHexaANCF_3813_9::ComputeInternalJacobians(double Kfactor, double Rfactor) {
     m_JacobianMatrix.setZero();
     m_InteCounter = 0;
     Brick9_Jacobian formula(this, Kfactor, Rfactor);
@@ -2586,12 +2587,12 @@ void ChElementBrick_9::ComputeInternalJacobians(double Kfactor, double Rfactor) 
 // -----------------------------------------------------------------------------
 
 // Update element at new time
-void ChElementBrick_9::Update() {
+void ChElementHexaANCF_3813_9::Update() {
     ChElementGeneric::Update();
 }
 
 // Fill the D vector (column matrix) with the current states at the nodes of the element, with proper ordering.
-void ChElementBrick_9::GetStateBlock(ChVectorDynamic<>& mD) {
+void ChElementHexaANCF_3813_9::GetStateBlock(ChVectorDynamic<>& mD) {
     for (int i = 0; i < 8; i++) {
         mD.segment(3 * i, 3) = m_nodes[i]->GetPos().eigen();
     }
@@ -2601,13 +2602,13 @@ void ChElementBrick_9::GetStateBlock(ChVectorDynamic<>& mD) {
 }
 
 // Return the mass matrix.
-void ChElementBrick_9::ComputeMmatrixGlobal(ChMatrixRef M) {
+void ChElementHexaANCF_3813_9::ComputeMmatrixGlobal(ChMatrixRef M) {
     M = m_MassMatrix;
 }
 
 // Calculate the global matrix H as a linear combination of K, R, and M:
 //   H = Mfactor * (M) + Kfactor * (K) + Rfactor * (R)
-void ChElementBrick_9::ComputeKRMmatricesGlobal(ChMatrixRef H, double Kfactor, double Rfactor, double Mfactor) {
+void ChElementHexaANCF_3813_9::ComputeKRMmatricesGlobal(ChMatrixRef H, double Kfactor, double Rfactor, double Mfactor) {
     assert((H.rows() == 33) && (H.cols() == 33));
 
     // Calculate the linear combination Kfactor*(K) + Rfactor*(R)
@@ -2624,7 +2625,7 @@ void ChElementBrick_9::ComputeKRMmatricesGlobal(ChMatrixRef H, double Kfactor, d
 // -----------------------------------------------------------------------------
 
 // Get all the DOFs packed in a single vector (position part).
-void ChElementBrick_9::LoadableGetStateBlock_x(int block_offset, ChState& mD) {
+void ChElementHexaANCF_3813_9::LoadableGetStateBlock_x(int block_offset, ChState& mD) {
     for (int i = 0; i < 8; i++) {
         mD.segment(block_offset + 3 * i, 3) = m_nodes[i]->GetPos().eigen();
     }
@@ -2634,7 +2635,7 @@ void ChElementBrick_9::LoadableGetStateBlock_x(int block_offset, ChState& mD) {
 }
 
 // Get all the DOFs packed in a single vector (speed part).
-void ChElementBrick_9::LoadableGetStateBlock_w(int block_offset, ChStateDelta& mD) {
+void ChElementHexaANCF_3813_9::LoadableGetStateBlock_w(int block_offset, ChStateDelta& mD) {
     for (int i = 0; i < 8; i++) {
         mD.segment(block_offset + 3 * i, 3) = m_nodes[i]->GetPos_dt().eigen();
     }
@@ -2643,11 +2644,11 @@ void ChElementBrick_9::LoadableGetStateBlock_w(int block_offset, ChStateDelta& m
     mD.segment(block_offset + 30, 3) = m_central_node->GetCurvatureZZ_dt().eigen();
 }
 
-void ChElementBrick_9::LoadableStateIncrement(const unsigned int off_x,
-                                              ChState& x_new,
-                                              const ChState& x,
-                                              const unsigned int off_v,
-                                              const ChStateDelta& Dv) {
+void ChElementHexaANCF_3813_9::LoadableStateIncrement(const unsigned int off_x,
+                                                      ChState& x_new,
+                                                      const ChState& x,
+                                                      const unsigned int off_v,
+                                                      const ChStateDelta& Dv) {
     for (int i = 0; i < 8; i++) {
         this->m_nodes[i]->NodeIntStateIncrement(off_x + 3 * i, x_new, x, off_v + 3 * i, Dv);
     }
@@ -2655,7 +2656,7 @@ void ChElementBrick_9::LoadableStateIncrement(const unsigned int off_x,
 }
 
 // Get the pointers to the contained ChLcpVariables, appending to the mvars vector.
-void ChElementBrick_9::LoadableGetVariables(std::vector<ChVariables*>& mvars) {
+void ChElementHexaANCF_3813_9::LoadableGetVariables(std::vector<ChVariables*>& mvars) {
     for (int i = 0; i < 8; ++i) {
         mvars.push_back(&m_nodes[i]->Variables());
     }
@@ -2666,7 +2667,7 @@ void ChElementBrick_9::LoadableGetVariables(std::vector<ChVariables*>& mvars) {
 // Here, U,V,W are coordinates of the volume, each ranging in -1..+1
 // F is a load, N'*F is the resulting generalized load
 // Returns also det(J) with J=(dx/du,..), that might be useful in gauss quadrature.
-void ChElementBrick_9::ComputeNF(
+void ChElementHexaANCF_3813_9::ComputeNF(
     const double U,              // parametric coordinate in volume
     const double V,              // parametric coordinate in volume
     const double W,              // parametric coordinate in volume
@@ -2687,12 +2688,12 @@ void ChElementBrick_9::ComputeNF(
     }
 }
 
-void ChElementBrick_9::ComputeStrainD_Brick9(ChMatrixNM<double, 6, 33>& strainD,
-                                             ChMatrixNM<double, 1, 11> Nx,
-                                             ChMatrixNM<double, 1, 11> Ny,
-                                             ChMatrixNM<double, 1, 11> Nz,
-                                             ChMatrixNM<double, 3, 3> FI,
-                                             ChMatrixNM<double, 3, 3> J0I) {
+void ChElementHexaANCF_3813_9::ComputeStrainD_Brick9(ChMatrixNM<double, 6, 33>& strainD,
+                                                     ChMatrixNM<double, 1, 11> Nx,
+                                                     ChMatrixNM<double, 1, 11> Ny,
+                                                     ChMatrixNM<double, 1, 11> Nz,
+                                                     ChMatrixNM<double, 3, 3> FI,
+                                                     ChMatrixNM<double, 3, 3> J0I) {
     strainD.setZero();
 
     double Tempx = FI(0, 0) * J0I(0, 0) + FI(1, 0) * J0I(0, 1) + FI(2, 0) * J0I(0, 2);
@@ -2806,15 +2807,15 @@ void ChElementBrick_9::ComputeStrainD_Brick9(ChMatrixNM<double, 6, 33>& strainD,
     strainD(5, 32) = Nx(0, 10) * (Tempx1) + Ny(0, 10) * (Tempy1) + Nz(0, 10) * (Tempz1);
 }
 
-double ChElementBrick_9::Calc_detJ0(double x,
-                                    double y,
-                                    double z,
-                                    ShapeVector& Nx,
-                                    ShapeVector& Ny,
-                                    ShapeVector& Nz,
-                                    ChMatrixNM<double, 1, 3>& Nx_d0,
-                                    ChMatrixNM<double, 1, 3>& Ny_d0,
-                                    ChMatrixNM<double, 1, 3>& Nz_d0) {
+double ChElementHexaANCF_3813_9::Calc_detJ0(double x,
+                                            double y,
+                                            double z,
+                                            ShapeVector& Nx,
+                                            ShapeVector& Ny,
+                                            ShapeVector& Nz,
+                                            ChMatrixNM<double, 1, 3>& Nx_d0,
+                                            ChMatrixNM<double, 1, 3>& Ny_d0,
+                                            ChMatrixNM<double, 1, 3>& Nz_d0) {
     ShapeFunctionsDerivativeX(Nx, x, y, z);
     ShapeFunctionsDerivativeY(Ny, x, y, z);
     ShapeFunctionsDerivativeZ(Nz, x, y, z);
@@ -2830,7 +2831,7 @@ double ChElementBrick_9::Calc_detJ0(double x,
     return detJ0;
 }
 
-double ChElementBrick_9::Calc_detJ0(double x, double y, double z) {
+double ChElementHexaANCF_3813_9::Calc_detJ0(double x, double y, double z) {
     ChMatrixNM<double, 1, 11> Nx;
     ChMatrixNM<double, 1, 11> Ny;
     ChMatrixNM<double, 1, 11> Nz;
@@ -2841,7 +2842,7 @@ double ChElementBrick_9::Calc_detJ0(double x, double y, double z) {
     return Calc_detJ0(x, y, z, Nx, Ny, Nz, Nx_d0, Ny_d0, Nz_d0);
 }
 
-void ChElementBrick_9::CalcCoordMatrix(ChMatrixNM<double, 11, 3>& d) {
+void ChElementHexaANCF_3813_9::CalcCoordMatrix(ChMatrixNM<double, 11, 3>& d) {
     for (int i = 0; i < 8; i++) {
         const ChVector<>& pos = m_nodes[i]->GetPos();
         d(i, 0) = pos.x();
@@ -2866,7 +2867,7 @@ void ChElementBrick_9::CalcCoordMatrix(ChMatrixNM<double, 11, 3>& d) {
     d(10, 2) = rzz.z();
 }
 
-void ChElementBrick_9::CalcCoordDerivMatrix(ChVectorN<double, 33>& dt) {
+void ChElementHexaANCF_3813_9::CalcCoordDerivMatrix(ChVectorN<double, 33>& dt) {
     for (int i = 0; i < 8; i++) {
         const ChVector<>& vel = m_nodes[i]->GetPos_dt();
         dt(3 * i + 0) = vel.x();
@@ -2884,12 +2885,12 @@ void ChElementBrick_9::CalcCoordDerivMatrix(ChVectorN<double, 33>& dt) {
     dt(31) = m_central_node->GetCurvatureZZ_dt().y();
     dt(32) = m_central_node->GetCurvatureZZ_dt().z();
 }
-void ChElementBrick_9::ComputeHardening_a(double& MeanEffP,
-                                          double& Hi,
-                                          double alphUp,
-                                          ChVectorDynamic<double> m_DPVector1,
-                                          ChVectorDynamic<double> m_DPVector2,
-                                          int m_DPVector_size) {
+void ChElementHexaANCF_3813_9::ComputeHardening_a(double& MeanEffP,
+                                                  double& Hi,
+                                                  double alphUp,
+                                                  ChVectorDynamic<double> m_DPVector1,
+                                                  ChVectorDynamic<double> m_DPVector2,
+                                                  int m_DPVector_size) {
     // Given a value of alphUp return a value of MeanEffP based on interpolation
     // within a table of m_DPVector2 values(ytab) corresponding to the m_DPVector1 values
     // contained in the array xtab.The subroutine assumes that the

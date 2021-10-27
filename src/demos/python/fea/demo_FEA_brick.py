@@ -166,8 +166,8 @@ nodetip = fea.CastToChNodeFEAxyz(fea.CastToChNodeFEAbase(my_mesh.GetNode(TotalNu
 
 elemcount = 0
 while elemcount < TotalNumElements : 
-    element = fea.ChElementBrick()
-    InertFlexVec  = chrono.ChVectorD(ElemLengthXY[elemcount, 0], ElemLengthXY[elemcount, 1], ElemLengthXY[elemcount, 2]) # read element length, used in ChElementBrick
+    element = fea.ChElementHexaANCF_3813()
+    InertFlexVec  = chrono.ChVectorD(ElemLengthXY[elemcount, 0], ElemLengthXY[elemcount, 1], ElemLengthXY[elemcount, 2]) # read element length
     element.SetInertFlexVec(InertFlexVec)
     element.SetNodes(fea.CastToChNodeFEAxyz(fea.CastToChNodeFEAbase(my_mesh.GetNode(int(NumNodes[elemcount, 0])))),
 					  fea.CastToChNodeFEAxyz(fea.CastToChNodeFEAbase(my_mesh.GetNode(int(NumNodes[elemcount, 1])))),

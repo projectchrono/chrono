@@ -10,11 +10,11 @@
 // =============================================================================
 // Authors: Bryan Peterson, Antonio Recuero, Radu Serban
 // =============================================================================
-// Brick element with 8 nodes (with EAS)
+// Hexahedronal element with 8 nodes (with EAS)
 // =============================================================================
 
-#ifndef CHELEMENTBRICK_H
-#define CHELEMENTBRICK_H
+#ifndef CH_ELEMENT_HEXA_ANCF_3813_H
+#define CH_ELEMENT_HEXA_ANCF_3813_H
 
 #include "chrono/fea/ChElementHexahedron.h"
 #include "chrono/fea/ChElementGeneric.h"
@@ -29,13 +29,15 @@ namespace fea {
 /// @addtogroup fea_elements
 /// @{
 
-/// Brick element with 8 nodes (with EAS).
-class ChApi ChElementBrick : public ChElementHexahedron, public ChElementGeneric, public ChLoadableUVW {
+/// Hexahedronal solid element with 8 nodes (with EAS).
+/// While technically not an ANCF element, the name is justified because the implementation can use the same ANCF
+/// machinery.
+class ChApi ChElementHexaANCF_3813 : public ChElementHexahedron, public ChElementGeneric, public ChLoadableUVW {
   public:
     using ShapeVector = ChMatrixNM<double, 1, 8>;
 
-    ChElementBrick();
-    ~ChElementBrick() {}
+    ChElementHexaANCF_3813();
+    ~ChElementHexaANCF_3813() {}
 
     /// Get number of nodes of this element
     virtual int GetNnodes() override { return 8; }

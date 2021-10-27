@@ -30,8 +30,8 @@
 // with Linear Viscoelastic Materials, Simulation Based Engineering Lab, University of Wisconsin-Madison; 2021.
 // =============================================================================
 
-#ifndef CHELEMENTBRICKANCF3843_H
-#define CHELEMENTBRICKANCF3843_H
+#ifndef CH_ELEMENT_HEXA_ANCF_3843_H
+#define CH_ELEMENT_HEXA_ANCF_3843_H
 
 #include <vector>
 
@@ -74,7 +74,7 @@ namespace fea {
 /// E o-----+-----o F
 /// </pre>
 
-class ChApi ChElementBrickANCF_3843 : public ChElementHexahedron, public ChElementGeneric, public ChLoadableUVW {
+class ChApi ChElementHexaANCF_3843 : public ChElementHexahedron, public ChElementGeneric, public ChLoadableUVW {
   public:
     // Using fewer than 3 Gauss quadrature will likely result in numerical issues with the element.
     static const int NP = 4;              ///< number of Gauss quadrature along beam axis
@@ -100,8 +100,8 @@ class ChApi ChElementBrickANCF_3843 : public ChElementHexahedron, public ChEleme
         PreInt    ///< "Pre-Integration" style method
     };
 
-    ChElementBrickANCF_3843();
-    ~ChElementBrickANCF_3843() {}
+    ChElementHexaANCF_3843();
+    ~ChElementHexaANCF_3843() {}
 
     /// Get the number of nodes used by this element.
     virtual int GetNnodes() override { return 8; }

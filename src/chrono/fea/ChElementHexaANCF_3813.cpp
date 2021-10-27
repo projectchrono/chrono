@@ -11,7 +11,7 @@
 // =============================================================================
 // Authors: Bryan Peterson, Antonio Recuero, Radu Serban
 // =============================================================================
-// Brick element with 8 nodes (with EAS)
+// Hexahedronal element with 8 nodes (with EAS)
 // =============================================================================
 
 //// RADU
@@ -21,26 +21,26 @@
 
 #include "chrono/core/ChException.h"
 #include "chrono/physics/ChSystem.h"
-#include "chrono/fea/ChElementBrick.h"
+#include "chrono/fea/ChElementHexaANCF_3813.h"
 
 namespace chrono {
 namespace fea {
 
 // -----------------------------------------------------------------------------
 
-ChElementBrick::ChElementBrick() : m_flag_HE(ANALYTICAL) {
+ChElementHexaANCF_3813::ChElementHexaANCF_3813() : m_flag_HE(ANALYTICAL) {
     m_nodes.resize(8);
 }
 
 // -----------------------------------------------------------------------------
-void ChElementBrick::SetNodes(std::shared_ptr<ChNodeFEAxyz> nodeA,
-                              std::shared_ptr<ChNodeFEAxyz> nodeB,
-                              std::shared_ptr<ChNodeFEAxyz> nodeC,
-                              std::shared_ptr<ChNodeFEAxyz> nodeD,
-                              std::shared_ptr<ChNodeFEAxyz> nodeE,
-                              std::shared_ptr<ChNodeFEAxyz> nodeF,
-                              std::shared_ptr<ChNodeFEAxyz> nodeG,
-                              std::shared_ptr<ChNodeFEAxyz> nodeH) {
+void ChElementHexaANCF_3813::SetNodes(std::shared_ptr<ChNodeFEAxyz> nodeA,
+                                      std::shared_ptr<ChNodeFEAxyz> nodeB,
+                                      std::shared_ptr<ChNodeFEAxyz> nodeC,
+                                      std::shared_ptr<ChNodeFEAxyz> nodeD,
+                                      std::shared_ptr<ChNodeFEAxyz> nodeE,
+                                      std::shared_ptr<ChNodeFEAxyz> nodeF,
+                                      std::shared_ptr<ChNodeFEAxyz> nodeG,
+                                      std::shared_ptr<ChNodeFEAxyz> nodeH) {
     assert(nodeA);
     assert(nodeB);
     assert(nodeC);
@@ -107,15 +107,15 @@ void ChElementBrick::SetNodes(std::shared_ptr<ChNodeFEAxyz> nodeA,
 
 // -----------------------------------------------------------------------------
 
-void ChElementBrick::SetStockAlpha(double a1,
-                                   double a2,
-                                   double a3,
-                                   double a4,
-                                   double a5,
-                                   double a6,
-                                   double a7,
-                                   double a8,
-                                   double a9) {
+void ChElementHexaANCF_3813::SetStockAlpha(double a1,
+                                           double a2,
+                                           double a3,
+                                           double a4,
+                                           double a5,
+                                           double a6,
+                                           double a7,
+                                           double a8,
+                                           double a9) {
     m_stock_alpha_EAS(0) = a1;
     m_stock_alpha_EAS(1) = a2;
     m_stock_alpha_EAS(2) = a3;
@@ -134,14 +134,14 @@ class Brick_ForceAnalytical : public ChIntegrable3D<ChVectorN<double, 906>> {
   public:
     Brick_ForceAnalytical(ChMatrixNM<double, 8, 3>* d_,
                           ChMatrixNM<double, 8, 3>* d0_,
-                          ChElementBrick* element_,
+                          ChElementHexaANCF_3813* element_,
                           ChMatrixNM<double, 6, 6>* T0_,
                           double* detJ0C_,
                           ChVectorN<double, 9>* alpha_eas_);
 
     Brick_ForceAnalytical(ChMatrixNM<double, 8, 3>* d_,
                           ChMatrixNM<double, 8, 3>* d0_,
-                          ChElementBrick* element_,
+                          ChElementHexaANCF_3813* element_,
                           ChMatrixNM<double, 6, 6>* T0_,
                           double* detJ0C_,
                           ChVectorN<double, 9>* alpha_eas_,
@@ -150,7 +150,7 @@ class Brick_ForceAnalytical : public ChIntegrable3D<ChVectorN<double, 906>> {
     ~Brick_ForceAnalytical() {}
 
   private:
-    ChElementBrick* element;
+    ChElementHexaANCF_3813* element;
     ChMatrixNM<double, 8, 3>* d;      // Pointer to a matrix containing the element coordinates
     ChMatrixNM<double, 8, 3>* d0;     // Pointer to a matrix containing the element initial coordinates
     ChMatrixNM<double, 6, 6>* T0;     // Pointer to transformation matrix for Enhanced Assumed Strain (EAS)
@@ -159,21 +159,21 @@ class Brick_ForceAnalytical : public ChIntegrable3D<ChVectorN<double, 906>> {
     double* E;                        // Pointer to Young modulus
     double* v;                        // Pointer to Poisson ratio
 
-    ChVectorN<double, 24> Fint;         // Generalized internal (elastic) force vector
-    ChMatrixNM<double, 24, 24> JAC11;   // Jacobian of internal forces for implicit numerical integration
-    ChMatrixNM<double, 9, 24> Gd;       // Jacobian (w.r.t. coordinates) of the initial pos. vector gradient matrix
-    ChVectorN<double, 6> stress;        // stress tensor in vector form
-    ChMatrixNM<double, 9, 9> Sigm;      // stress tensor in sparse form
-    ChMatrixNM<double, 6, 6> E_eps;     // Matrix of elastic coefficients (features orthotropy)
-    ChMatrixNM<double, 3, 24> Sx;       // Sparse shape function matrix, X derivative
-    ChMatrixNM<double, 3, 24> Sy;       // Sparse shape function matrix, Y derivative
-    ChMatrixNM<double, 3, 24> Sz;       // Sparse shape function matrix, Z derivative
-    ChElementBrick::ShapeVector Nx;     // Dense shape function vector, X derivative
-    ChElementBrick::ShapeVector Ny;     // Dense shape function vector, Y derivative
-    ChElementBrick::ShapeVector Nz;     // Dense shape function vector, Z derivative
-    ChMatrixNM<double, 6, 24> strainD;  // Derivative of the strains w.r.t. the coordinates. Includes orthotropy
-    ChVectorN<double, 6> strain;        // Vector of strains
-    double detJ0;                       // Determinant of the initial position vector gradient matrix
+    ChVectorN<double, 24> Fint;              // Generalized internal (elastic) force vector
+    ChMatrixNM<double, 24, 24> JAC11;        // Jacobian of internal forces for implicit numerical integration
+    ChMatrixNM<double, 9, 24> Gd;            // Jacobian (w.r.t. coordinates) of the initial pos. vector gradient matrix
+    ChVectorN<double, 6> stress;             // stress tensor in vector form
+    ChMatrixNM<double, 9, 9> Sigm;           // stress tensor in sparse form
+    ChMatrixNM<double, 6, 6> E_eps;          // Matrix of elastic coefficients (features orthotropy)
+    ChMatrixNM<double, 3, 24> Sx;            // Sparse shape function matrix, X derivative
+    ChMatrixNM<double, 3, 24> Sy;            // Sparse shape function matrix, Y derivative
+    ChMatrixNM<double, 3, 24> Sz;            // Sparse shape function matrix, Z derivative
+    ChElementHexaANCF_3813::ShapeVector Nx;  // Dense shape function vector, X derivative
+    ChElementHexaANCF_3813::ShapeVector Ny;  // Dense shape function vector, Y derivative
+    ChElementHexaANCF_3813::ShapeVector Nz;  // Dense shape function vector, Z derivative
+    ChMatrixNM<double, 6, 24> strainD;       // Derivative of the strains w.r.t. the coordinates. Includes orthotropy
+    ChVectorN<double, 6> strain;             // Vector of strains
+    double detJ0;                            // Determinant of the initial position vector gradient matrix
     // EAS
     ChMatrixNM<double, 6, 9> M;       // Shape function matrix for Enhanced Assumed Strain
     ChMatrixNM<double, 6, 9> G;       // Matrix G interpolates the internal parameters of EAS
@@ -185,7 +185,7 @@ class Brick_ForceAnalytical : public ChIntegrable3D<ChVectorN<double, 906>> {
 
 Brick_ForceAnalytical::Brick_ForceAnalytical(ChMatrixNM<double, 8, 3>* d_,
                                              ChMatrixNM<double, 8, 3>* d0_,
-                                             ChElementBrick* element_,
+                                             ChElementHexaANCF_3813* element_,
                                              ChMatrixNM<double, 6, 6>* T0_,
                                              double* detJ0C_,
                                              ChVectorN<double, 9>* alpha_eas_)
@@ -201,7 +201,7 @@ Brick_ForceAnalytical::Brick_ForceAnalytical(ChMatrixNM<double, 8, 3>* d_,
 
 Brick_ForceAnalytical::Brick_ForceAnalytical(ChMatrixNM<double, 8, 3>* d_,
                                              ChMatrixNM<double, 8, 3>* d0_,
-                                             ChElementBrick* element_,
+                                             ChElementHexaANCF_3813* element_,
                                              ChMatrixNM<double, 6, 6>* T0_,
                                              double* detJ0C_,
                                              ChVectorN<double, 9>* alpha_eas_,
@@ -677,14 +677,14 @@ class Brick_ForceNumerical : public ChIntegrable3D<ChVectorN<double, 330>> {
   public:
     Brick_ForceNumerical(ChMatrixNM<double, 8, 3>* d_,
                          ChMatrixNM<double, 8, 3>* d0_,
-                         ChElementBrick* element_,
+                         ChElementHexaANCF_3813* element_,
                          ChMatrixNM<double, 6, 6>* T0_,
                          double* detJ0C_,
                          ChVectorN<double, 9>* alpha_eas_);
 
     Brick_ForceNumerical(ChMatrixNM<double, 8, 3>* d_,
                          ChMatrixNM<double, 8, 3>* d0_,
-                         ChElementBrick* element_,
+                         ChElementHexaANCF_3813* element_,
                          ChMatrixNM<double, 6, 6>* T0_,
                          double* detJ0C_,
                          ChVectorN<double, 9>* alpha_eas_,
@@ -693,26 +693,26 @@ class Brick_ForceNumerical : public ChIntegrable3D<ChVectorN<double, 330>> {
     ~Brick_ForceNumerical() {}
 
   private:
-    ChElementBrick* element;
+    ChElementHexaANCF_3813* element;
     // Pointers used for external values
-    ChMatrixNM<double, 8, 3>* d;        // Pointer to a matrix containing the element coordinates
-    ChMatrixNM<double, 8, 3>* d0;       // Pointer to a matrix containing the element initial coordinates
-    ChMatrixNM<double, 6, 6>* T0;       // Pointer to transformation matrix for Enhanced Assumed Strain (EAS)
-    ChVectorN<double, 9>* alpha_eas;    // Pointer to the 9 internal parameters for EAS
-    double* detJ0C;                     // Pointer to determinant of the initial Jacobian at the element center
-    double* E;                          // Pointer to Young modulus
-    double* v;                          // Pointer to Poisson ratio
-    ChVectorN<double, 24> Fint;         // Generalized internal (elastic) force vector
-    ChMatrixNM<double, 6, 6> E_eps;     // Matrix of elastic coefficients (features orthotropy)
-    ChMatrixNM<double, 3, 24> Sx;       // Sparse shape function matrix, X derivative
-    ChMatrixNM<double, 3, 24> Sy;       // Sparse shape function matrix, Y derivative
-    ChMatrixNM<double, 3, 24> Sz;       // Sparse shape function matrix, Z derivative
-    ChElementBrick::ShapeVector Nx;     // Dense shape function vector, X derivative
-    ChElementBrick::ShapeVector Ny;     // Dense shape function vector, Y derivative
-    ChElementBrick::ShapeVector Nz;     // Dense shape function vector, Z derivative
-    ChMatrixNM<double, 6, 24> strainD;  // Derivative of the strains w.r.t. the coordinates. Includes orthotropy
-    ChVectorN<double, 6> strain;        // Vector of strains
-    double detJ0;                       // Determinant of the initial position vector gradient matrix
+    ChMatrixNM<double, 8, 3>* d;             // Pointer to a matrix containing the element coordinates
+    ChMatrixNM<double, 8, 3>* d0;            // Pointer to a matrix containing the element initial coordinates
+    ChMatrixNM<double, 6, 6>* T0;            // Pointer to transformation matrix for Enhanced Assumed Strain (EAS)
+    ChVectorN<double, 9>* alpha_eas;         // Pointer to the 9 internal parameters for EAS
+    double* detJ0C;                          // Pointer to determinant of the initial Jacobian at the element center
+    double* E;                               // Pointer to Young modulus
+    double* v;                               // Pointer to Poisson ratio
+    ChVectorN<double, 24> Fint;              // Generalized internal (elastic) force vector
+    ChMatrixNM<double, 6, 6> E_eps;          // Matrix of elastic coefficients (features orthotropy)
+    ChMatrixNM<double, 3, 24> Sx;            // Sparse shape function matrix, X derivative
+    ChMatrixNM<double, 3, 24> Sy;            // Sparse shape function matrix, Y derivative
+    ChMatrixNM<double, 3, 24> Sz;            // Sparse shape function matrix, Z derivative
+    ChElementHexaANCF_3813::ShapeVector Nx;  // Dense shape function vector, X derivative
+    ChElementHexaANCF_3813::ShapeVector Ny;  // Dense shape function vector, Y derivative
+    ChElementHexaANCF_3813::ShapeVector Nz;  // Dense shape function vector, Z derivative
+    ChMatrixNM<double, 6, 24> strainD;       // Derivative of the strains w.r.t. the coordinates. Includes orthotropy
+    ChVectorN<double, 6> strain;             // Vector of strains
+    double detJ0;                            // Determinant of the initial position vector gradient matrix
     // EAS
     ChMatrixNM<double, 6, 9> M;       // Shape function matrix for Enhanced Assumed Strain
     ChMatrixNM<double, 6, 9> G;       // Matrix G interpolates the internal parameters of EAS
@@ -724,7 +724,7 @@ class Brick_ForceNumerical : public ChIntegrable3D<ChVectorN<double, 330>> {
 
 Brick_ForceNumerical::Brick_ForceNumerical(ChMatrixNM<double, 8, 3>* d_,
                                            ChMatrixNM<double, 8, 3>* d0_,
-                                           ChElementBrick* element_,
+                                           ChElementHexaANCF_3813* element_,
                                            ChMatrixNM<double, 6, 6>* T0_,
                                            double* detJ0C_,
                                            ChVectorN<double, 9>* alpha_eas_)
@@ -738,7 +738,7 @@ Brick_ForceNumerical::Brick_ForceNumerical(ChMatrixNM<double, 8, 3>* d_,
 
 Brick_ForceNumerical::Brick_ForceNumerical(ChMatrixNM<double, 8, 3>* d_,
                                            ChMatrixNM<double, 8, 3>* d0_,
-                                           ChElementBrick* element_,
+                                           ChElementHexaANCF_3813* element_,
                                            ChMatrixNM<double, 6, 6>* T0_,
                                            double* detJ0C_,
                                            ChVectorN<double, 9>* alpha_eas_,
@@ -1086,7 +1086,7 @@ void Brick_ForceNumerical::Evaluate(ChVectorN<double, 330>& result, const double
 
 // -----------------------------------------------------------------------------
 
-void ChElementBrick::ComputeInternalForces(ChVectorDynamic<>& Fi) {
+void ChElementHexaANCF_3813::ComputeInternalForces(ChVectorDynamic<>& Fi) {
     int ie = GetElemNum();
 
     ChVector<> pA = m_nodes[0]->GetPos();
@@ -1375,7 +1375,7 @@ void ChElementBrick::ComputeInternalForces(ChVectorDynamic<>& Fi) {
 
 // -----------------------------------------------------------------------------
 
-void ChElementBrick::ShapeFunctions(ShapeVector& N, double x, double y, double z) {
+void ChElementHexaANCF_3813::ShapeFunctions(ShapeVector& N, double x, double y, double z) {
     N(0) = 0.125 * (1.0 - x) * (1.0 - y) * (1.0 - z);
     N(1) = 0.125 * (1.0 + x) * (1.0 - y) * (1.0 - z);
     N(2) = 0.125 * (1.0 + x) * (1.0 + y) * (1.0 - z);
@@ -1388,7 +1388,7 @@ void ChElementBrick::ShapeFunctions(ShapeVector& N, double x, double y, double z
 
 // -----------------------------------------------------------------------------
 
-void ChElementBrick::ShapeFunctionsDerivativeX(ShapeVector& Nx, double x, double y, double z) {
+void ChElementHexaANCF_3813::ShapeFunctionsDerivativeX(ShapeVector& Nx, double x, double y, double z) {
     double a = GetLengthX();
 
     Nx(0) = 2.0 / a * 0.125 * (-1.0) * (1.0 - y) * (1.0 - z);
@@ -1403,7 +1403,7 @@ void ChElementBrick::ShapeFunctionsDerivativeX(ShapeVector& Nx, double x, double
 
 // -----------------------------------------------------------------------------
 
-void ChElementBrick::ShapeFunctionsDerivativeY(ShapeVector& Ny, double x, double y, double z) {
+void ChElementHexaANCF_3813::ShapeFunctionsDerivativeY(ShapeVector& Ny, double x, double y, double z) {
     double b = GetLengthY();
 
     Ny(0) = 2.0 / b * 0.125 * (1.0 - x) * (-1.0) * (1.0 - z);
@@ -1418,7 +1418,7 @@ void ChElementBrick::ShapeFunctionsDerivativeY(ShapeVector& Ny, double x, double
 
 // -----------------------------------------------------------------------------
 
-void ChElementBrick::ShapeFunctionsDerivativeZ(ShapeVector& Nz, double x, double y, double z) {
+void ChElementHexaANCF_3813::ShapeFunctionsDerivativeZ(ShapeVector& Nz, double x, double y, double z) {
     double c = GetLengthZ();
 
     Nz(0) = 2.0 / c * 0.125 * (1.0 - x) * (1.0 - y) * (-1.0);
@@ -1433,14 +1433,14 @@ void ChElementBrick::ShapeFunctionsDerivativeZ(ShapeVector& Nz, double x, double
 
 // ----------------------------------------------------------------------------
 
-void ChElementBrick::Update() {
+void ChElementHexaANCF_3813::Update() {
     // parent class update:
     ChElementGeneric::Update();
 }
 
 // -----------------------------------------------------------------------------
 
-void ChElementBrick::GetStateBlock(ChVectorDynamic<>& mD) {
+void ChElementHexaANCF_3813::GetStateBlock(ChVectorDynamic<>& mD) {
     mD.segment(0, 3) = m_nodes[0]->GetPos().eigen();
     mD.segment(3, 3) = m_nodes[1]->GetPos().eigen();
     mD.segment(6, 3) = m_nodes[2]->GetPos().eigen();
@@ -1453,7 +1453,7 @@ void ChElementBrick::GetStateBlock(ChVectorDynamic<>& mD) {
 
 // -----------------------------------------------------------------------------
 
-void ChElementBrick::ComputeStiffnessMatrix() {
+void ChElementHexaANCF_3813::ComputeStiffnessMatrix() {
     bool use_numerical_differentiation = false;
 
     if (use_numerical_differentiation) {
@@ -1491,23 +1491,23 @@ void ChElementBrick::ComputeStiffnessMatrix() {
 
 class Brick_Mass : public ChIntegrable3D<ChMatrixNM<double, 24, 24>> {
   public:
-    Brick_Mass(ChMatrixNM<double, 8, 3>* d0_, ChElementBrick* element_);
+    Brick_Mass(ChMatrixNM<double, 8, 3>* d0_, ChElementHexaANCF_3813* element_);
     ~Brick_Mass() {}
 
   private:
-    ChElementBrick* element;
-    ChMatrixNM<double, 8, 3>* d0;    ///< Pointer to a matrix containing the element initial coordinates
-    ChMatrixNM<double, 3, 24> S;     ///< Sparse shape function matrix
-    ChElementBrick::ShapeVector N;   ///< Dense shape function vector
-    ChElementBrick::ShapeVector Nx;  ///< Dense shape function vector, X derivative
-    ChElementBrick::ShapeVector Ny;  ///< Dense shape function vector, Y derivative
-    ChElementBrick::ShapeVector Nz;  ///< Dense shape function vector, Z derivative
+    ChElementHexaANCF_3813* element;
+    ChMatrixNM<double, 8, 3>* d0;            ///< Pointer to a matrix containing the element initial coordinates
+    ChMatrixNM<double, 3, 24> S;             ///< Sparse shape function matrix
+    ChElementHexaANCF_3813::ShapeVector N;   ///< Dense shape function vector
+    ChElementHexaANCF_3813::ShapeVector Nx;  ///< Dense shape function vector, X derivative
+    ChElementHexaANCF_3813::ShapeVector Ny;  ///< Dense shape function vector, Y derivative
+    ChElementHexaANCF_3813::ShapeVector Nz;  ///< Dense shape function vector, Z derivative
 
     /// Evaluate the S'*S  at point x
     virtual void Evaluate(ChMatrixNM<double, 24, 24>& result, const double x, const double y, const double z) override;
 };
 
-Brick_Mass::Brick_Mass(ChMatrixNM<double, 8, 3>* d0_, ChElementBrick* element_) : element(element_), d0(d0_) {
+Brick_Mass::Brick_Mass(ChMatrixNM<double, 8, 3>* d0_, ChElementHexaANCF_3813* element_) : element(element_), d0(d0_) {
     S.setZero();
 }
 
@@ -1535,7 +1535,7 @@ void Brick_Mass::Evaluate(ChMatrixNM<double, 24, 24>& result, const double x, co
     result = factor * S.transpose() * S;
 }
 
-void ChElementBrick::ComputeMassMatrix() {
+void ChElementHexaANCF_3813::ComputeMassMatrix() {
     double rho = m_Material->Get_density();
     Brick_Mass myformula(&m_d0, this);
     m_MassMatrix.setZero();
@@ -1558,22 +1558,23 @@ void ChElementBrick::ComputeMassMatrix() {
 // Class to calculate the gravity forces of a brick element
 class BrickGravity : public ChIntegrable3D<ChVectorN<double, 8>> {
   public:
-    BrickGravity(ChMatrixNM<double, 8, 3>* d0_, ChElementBrick* element_);
+    BrickGravity(ChMatrixNM<double, 8, 3>* d0_, ChElementHexaANCF_3813* element_);
     ~BrickGravity() {}
 
   private:
-    ChElementBrick* element;
-    ChMatrixNM<double, 8, 3>* d0;    // Pointer to a matrix containing the element initial coordinates
-    ChMatrixNM<double, 3, 24> S;     // Sparse shape function matrix
-    ChElementBrick::ShapeVector N;   // Dense shape function vector
-    ChElementBrick::ShapeVector Nx;  // Dense shape function vector, X derivative
-    ChElementBrick::ShapeVector Ny;  // Dense shape function vector, Y derivative
-    ChElementBrick::ShapeVector Nz;  // Dense shape function vector, Z derivative
+    ChElementHexaANCF_3813* element;
+    ChMatrixNM<double, 8, 3>* d0;            // Pointer to a matrix containing the element initial coordinates
+    ChMatrixNM<double, 3, 24> S;             // Sparse shape function matrix
+    ChElementHexaANCF_3813::ShapeVector N;   // Dense shape function vector
+    ChElementHexaANCF_3813::ShapeVector Nx;  // Dense shape function vector, X derivative
+    ChElementHexaANCF_3813::ShapeVector Ny;  // Dense shape function vector, Y derivative
+    ChElementHexaANCF_3813::ShapeVector Nz;  // Dense shape function vector, Z derivative
 
     virtual void Evaluate(ChVectorN<double, 8>& result, const double x, const double y, const double z) override;
 };
 
-BrickGravity::BrickGravity(ChMatrixNM<double, 8, 3>* d0_, ChElementBrick* element_) : element(element_), d0(d0_) {}
+BrickGravity::BrickGravity(ChMatrixNM<double, 8, 3>* d0_, ChElementHexaANCF_3813* element_)
+    : element(element_), d0(d0_) {}
 
 void BrickGravity::Evaluate(ChVectorN<double, 8>& result, const double x, const double y, const double z) {
     element->ShapeFunctions(N, x, y, z);
@@ -1595,7 +1596,7 @@ void BrickGravity::Evaluate(ChVectorN<double, 8>& result, const double x, const 
     result = detJ0 * wx2 * wy2 * wz2 * N.transpose();
 }
 
-void ChElementBrick::ComputeGravityForceScale() {
+void ChElementHexaANCF_3813::ComputeGravityForceScale() {
     BrickGravity myformula1(&m_d0, this);
     m_GravForceScale.setZero();
     ChQuadrature::Integrate3D<ChVectorN<double, 8>>(m_GravForceScale,  // result of integration will go there
@@ -1610,7 +1611,7 @@ void ChElementBrick::ComputeGravityForceScale() {
 }
 
 // Compute the generalized force vector due to gravity
-void ChElementBrick::ComputeGravityForces(ChVectorDynamic<>& Fg, const ChVector<>& G_acc) {
+void ChElementHexaANCF_3813::ComputeGravityForces(ChVectorDynamic<>& Fg, const ChVector<>& G_acc) {
     assert(Fg.size() == 24);
 
     // Calculate and add the generalized force due to gravity to the generalized internal force vector for the element.
@@ -1625,7 +1626,7 @@ void ChElementBrick::ComputeGravityForces(ChVectorDynamic<>& Fg, const ChVector<
 
 // -----------------------------------------------------------------------------
 
-void ChElementBrick::SetupInitial(ChSystem* system) {
+void ChElementHexaANCF_3813::SetupInitial(ChSystem* system) {
     // Compute gravitational forces
     ComputeGravityForceScale();
     // Compute mass matrix
@@ -1640,7 +1641,7 @@ void ChElementBrick::SetupInitial(ChSystem* system) {
 
 // -----------------------------------------------------------------------------
 
-void ChElementBrick::ComputeKRMmatricesGlobal(ChMatrixRef H, double Kfactor, double Rfactor, double Mfactor) {
+void ChElementHexaANCF_3813::ComputeKRMmatricesGlobal(ChMatrixRef H, double Kfactor, double Rfactor, double Mfactor) {
     assert((H.rows() == 24) && (H.cols() == 24));
 
     // Compute global stiffness matrix:
@@ -1656,9 +1657,9 @@ void ChElementBrick::ComputeKRMmatricesGlobal(ChMatrixRef H, double Kfactor, dou
 
 // -----------------------------------------------------------------------------
 
-void ChElementBrick::T0DetJElementCenterForEAS(ChMatrixNM<double, 8, 3>& d0,
-                                               ChMatrixNM<double, 6, 6>& T0,
-                                               double& detJ0C) {
+void ChElementHexaANCF_3813::T0DetJElementCenterForEAS(ChMatrixNM<double, 8, 3>& d0,
+                                                       ChMatrixNM<double, 6, 6>& T0,
+                                                       double& detJ0C) {
     ShapeVector Nx;
     ShapeVector Ny;
     ShapeVector Nz;
@@ -1765,7 +1766,7 @@ void ChElementBrick::T0DetJElementCenterForEAS(ChMatrixNM<double, 8, 3>& d0,
     T0(5, 5) = beta(4) * beta(8) + beta(5) * beta(7);
 }
 
-void ChElementBrick::Basis_M(ChMatrixNM<double, 6, 9>& M, double x, double y, double z) {
+void ChElementHexaANCF_3813::Basis_M(ChMatrixNM<double, 6, 9>& M, double x, double y, double z) {
     M.setZero();
     M(0, 0) = x;
     M(1, 1) = y;
@@ -1780,7 +1781,7 @@ void ChElementBrick::Basis_M(ChMatrixNM<double, 6, 9>& M, double x, double y, do
 
 // -----------------------------------------------------------------------------
 
-void ChElementBrick::LoadableGetStateBlock_x(int block_offset, ChState& mD) {
+void ChElementHexaANCF_3813::LoadableGetStateBlock_x(int block_offset, ChState& mD) {
     mD.segment(block_offset + 0, 3) = m_nodes[0]->GetPos().eigen();
     mD.segment(block_offset + 3, 3) = m_nodes[1]->GetPos().eigen();
     mD.segment(block_offset + 6, 3) = m_nodes[2]->GetPos().eigen();
@@ -1791,7 +1792,7 @@ void ChElementBrick::LoadableGetStateBlock_x(int block_offset, ChState& mD) {
     mD.segment(block_offset + 21, 3) = m_nodes[7]->GetPos().eigen();
 }
 
-void ChElementBrick::LoadableGetStateBlock_w(int block_offset, ChStateDelta& mD) {
+void ChElementHexaANCF_3813::LoadableGetStateBlock_w(int block_offset, ChStateDelta& mD) {
     mD.segment(block_offset + 0, 3) = m_nodes[0]->GetPos_dt().eigen();
     mD.segment(block_offset + 3, 3) = m_nodes[1]->GetPos_dt().eigen();
     mD.segment(block_offset + 6, 3) = m_nodes[2]->GetPos_dt().eigen();
@@ -1802,24 +1803,24 @@ void ChElementBrick::LoadableGetStateBlock_w(int block_offset, ChStateDelta& mD)
     mD.segment(block_offset + 21, 3) = m_nodes[7]->GetPos_dt().eigen();
 }
 
-void ChElementBrick::LoadableStateIncrement(const unsigned int off_x,
-                                            ChState& x_new,
-                                            const ChState& x,
-                                            const unsigned int off_v,
-                                            const ChStateDelta& Dv) {
+void ChElementHexaANCF_3813::LoadableStateIncrement(const unsigned int off_x,
+                                                    ChState& x_new,
+                                                    const ChState& x,
+                                                    const unsigned int off_v,
+                                                    const ChStateDelta& Dv) {
     for (int i = 0; i < 8; ++i) {
         this->m_nodes[i]->NodeIntStateIncrement(off_x + 3 * 1, x_new, x, off_v + 3 * i, Dv);
     }
 }
 
-void ChElementBrick::LoadableGetVariables(std::vector<ChVariables*>& mvars) {
+void ChElementHexaANCF_3813::LoadableGetVariables(std::vector<ChVariables*>& mvars) {
     for (int i = 0; i < m_nodes.size(); ++i)
         mvars.push_back(&this->m_nodes[i]->Variables());
 }
 
 // -----------------------------------------------------------------------------
 
-void ChElementBrick::ComputeNF(
+void ChElementHexaANCF_3813::ComputeNF(
     const double U,              // parametric coordinate in volume
     const double V,              // parametric coordinate in volume
     const double W,              // parametric coordinate in volume

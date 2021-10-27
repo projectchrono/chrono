@@ -38,7 +38,7 @@
 #include "chrono/physics/ChSystemSMC.h"
 #include "chrono/solver/ChDirectSolverLS.h"
 
-#include "chrono/fea/ChElementBrickANCF_3843.h"
+#include "chrono/fea/ChElementHexaANCF_3843.h"
 
 #include "chrono/fea/ChMesh.h"
 #include "chrono/physics/ChLoadContainer.h"
@@ -119,7 +119,7 @@ class ANCFBrickTest {
 
   protected:
     ChSystemSMC* m_system;
-    std::shared_ptr<ChElementBrickANCF_3843> m_element;
+    std::shared_ptr<ChElementHexaANCF_3843> m_element;
     std::shared_ptr<ChNodeFEAxyzDDD> m_nodeB;
     bool m_useContInt;
 };
@@ -186,7 +186,7 @@ ANCFBrickTest::ANCFBrickTest(bool useContInt) {
     auto nodeH = chrono_types::make_shared<ChNodeFEAxyzDDD>(ChVector<>(0, width, height), dir1, dir2, dir3);
     mesh->AddNode(nodeH);
 
-    auto element = chrono_types::make_shared<ChElementBrickANCF_3843>();
+    auto element = chrono_types::make_shared<ChElementHexaANCF_3843>();
     element->SetNodes(nodeA, nodeB, nodeC, nodeD, nodeE, nodeF, nodeG, nodeH);
     element->SetDimensions(length, width, height);
     element->SetMaterial(material);
@@ -195,7 +195,7 @@ ANCFBrickTest::ANCFBrickTest(bool useContInt) {
     // By default the "continuous" integration style of calculation method is used since it is typically faster.  Switch
     // to the alternative "pre-integration" style of internal force calculation if selected by the user.
     if (!m_useContInt)
-        element->SetIntFrcCalcMethod(ChElementBrickANCF_3843::IntFrcMethod::PreInt);
+        element->SetIntFrcCalcMethod(ChElementHexaANCF_3843::IntFrcMethod::PreInt);
     mesh->AddElement(element);
 
     m_element = element;
@@ -1290,7 +1290,7 @@ bool ANCFBrickTest::AxialDisplacementCheck(int msglvl) {
     mesh->AddNode(nodeH);
     nodeH->SetFixed(true);
 
-    auto elementlast = chrono_types::make_shared<ChElementBrickANCF_3843>();
+    auto elementlast = chrono_types::make_shared<ChElementHexaANCF_3843>();
     std::shared_ptr<ChNodeFEAxyzDDD> nodeEndPoint;
 
     for (int i = 1; i <= num_elements; i++) {
@@ -1307,7 +1307,7 @@ bool ANCFBrickTest::AxialDisplacementCheck(int msglvl) {
             chrono_types::make_shared<ChNodeFEAxyzDDD>(ChVector<>(dx * i, 0.5 * width, 0.5 * height), dir1, dir2, dir3);
         mesh->AddNode(nodeG);
 
-        auto element = chrono_types::make_shared<ChElementBrickANCF_3843>();
+        auto element = chrono_types::make_shared<ChElementHexaANCF_3843>();
         element->SetNodes(nodeA, nodeB, nodeC, nodeD, nodeE, nodeF, nodeG, nodeH);
         element->SetDimensions(dx, width, height);
         element->SetMaterial(material);
@@ -1316,7 +1316,7 @@ bool ANCFBrickTest::AxialDisplacementCheck(int msglvl) {
         // By default the "continuous" integration style of calculation method is used since it is typically faster.
         // Switch to the alternative "pre-integration" style of internal force calculation if selected by the user.
         if (!m_useContInt)
-            element->SetIntFrcCalcMethod(ChElementBrickANCF_3843::IntFrcMethod::PreInt);
+            element->SetIntFrcCalcMethod(ChElementHexaANCF_3843::IntFrcMethod::PreInt);
 
         mesh->AddElement(element);
 
@@ -1488,7 +1488,7 @@ bool ANCFBrickTest::CantileverTipLoadCheck(int msglvl) {
     mesh->AddNode(nodeH);
     nodeH->SetFixed(true);
 
-    auto elementlast = chrono_types::make_shared<ChElementBrickANCF_3843>();
+    auto elementlast = chrono_types::make_shared<ChElementHexaANCF_3843>();
     std::shared_ptr<ChNodeFEAxyzDDD> nodeEndPoint;
 
     for (int i = 1; i <= num_elements; i++) {
@@ -1505,7 +1505,7 @@ bool ANCFBrickTest::CantileverTipLoadCheck(int msglvl) {
             chrono_types::make_shared<ChNodeFEAxyzDDD>(ChVector<>(dx * i, 0.5 * width, 0.5 * height), dir1, dir2, dir3);
         mesh->AddNode(nodeG);
 
-        auto element = chrono_types::make_shared<ChElementBrickANCF_3843>();
+        auto element = chrono_types::make_shared<ChElementHexaANCF_3843>();
         element->SetNodes(nodeA, nodeB, nodeC, nodeD, nodeE, nodeF, nodeG, nodeH);
         element->SetDimensions(dx, width, height);
         element->SetMaterial(material);
@@ -1514,7 +1514,7 @@ bool ANCFBrickTest::CantileverTipLoadCheck(int msglvl) {
         // By default the "continuous" integration style of calculation method is used since it is typically faster.
         // Switch to the alternative "pre-integration" style of internal force calculation if selected by the user.
         if (!m_useContInt)
-            element->SetIntFrcCalcMethod(ChElementBrickANCF_3843::IntFrcMethod::PreInt);
+            element->SetIntFrcCalcMethod(ChElementHexaANCF_3843::IntFrcMethod::PreInt);
 
         mesh->AddElement(element);
 
@@ -1691,7 +1691,7 @@ bool ANCFBrickTest::CantileverGravityCheck(int msglvl) {
     mesh->AddNode(nodeH);
     nodeH->SetFixed(true);
 
-    auto elementlast = chrono_types::make_shared<ChElementBrickANCF_3843>();
+    auto elementlast = chrono_types::make_shared<ChElementHexaANCF_3843>();
     std::shared_ptr<ChNodeFEAxyzDDD> nodeEndPoint;
 
     for (int i = 1; i <= num_elements; i++) {
@@ -1708,7 +1708,7 @@ bool ANCFBrickTest::CantileverGravityCheck(int msglvl) {
             chrono_types::make_shared<ChNodeFEAxyzDDD>(ChVector<>(dx * i, 0.5 * width, 0.5 * height), dir1, dir2, dir3);
         mesh->AddNode(nodeG);
 
-        auto element = chrono_types::make_shared<ChElementBrickANCF_3843>();
+        auto element = chrono_types::make_shared<ChElementHexaANCF_3843>();
         element->SetNodes(nodeA, nodeB, nodeC, nodeD, nodeE, nodeF, nodeG, nodeH);
         element->SetDimensions(dx, width, height);
         element->SetMaterial(material);
@@ -1717,7 +1717,7 @@ bool ANCFBrickTest::CantileverGravityCheck(int msglvl) {
         // By default the "continuous" integration style of calculation method is used since it is typically faster.
         // Switch to the alternative "pre-integration" style of internal force calculation if selected by the user.
         if (!m_useContInt)
-            element->SetIntFrcCalcMethod(ChElementBrickANCF_3843::IntFrcMethod::PreInt);
+            element->SetIntFrcCalcMethod(ChElementHexaANCF_3843::IntFrcMethod::PreInt);
 
         mesh->AddElement(element);
 
@@ -1852,7 +1852,7 @@ bool ANCFBrickTest::AxialTwistCheck(int msglvl) {
     mesh->AddNode(nodeH);
     nodeH->SetFixed(true);
 
-    auto elementlast = chrono_types::make_shared<ChElementBrickANCF_3843>();
+    auto elementlast = chrono_types::make_shared<ChElementHexaANCF_3843>();
     std::shared_ptr<ChNodeFEAxyzDDD> nodeEndPoint;
 
     for (int i = 1; i <= num_elements; i++) {
@@ -1869,7 +1869,7 @@ bool ANCFBrickTest::AxialTwistCheck(int msglvl) {
             chrono_types::make_shared<ChNodeFEAxyzDDD>(ChVector<>(dx * i, 0.5 * width, 0.5 * height), dir1, dir2, dir3);
         mesh->AddNode(nodeG);
 
-        auto element = chrono_types::make_shared<ChElementBrickANCF_3843>();
+        auto element = chrono_types::make_shared<ChElementHexaANCF_3843>();
         element->SetNodes(nodeA, nodeB, nodeC, nodeD, nodeE, nodeF, nodeG, nodeH);
         element->SetDimensions(dx, width, width);
         element->SetMaterial(material);
@@ -1878,7 +1878,7 @@ bool ANCFBrickTest::AxialTwistCheck(int msglvl) {
         // By default the "continuous" integration style of calculation method is used since it is typically faster.
         // Switch to the alternative "pre-integration" style of internal force calculation if selected by the user.
         if (!m_useContInt)
-            element->SetIntFrcCalcMethod(ChElementBrickANCF_3843::IntFrcMethod::PreInt);
+            element->SetIntFrcCalcMethod(ChElementHexaANCF_3843::IntFrcMethod::PreInt);
 
         mesh->AddElement(element);
 
@@ -2004,18 +2004,18 @@ int main(int argc, char* argv[]) {
     std::cout << "-------------------------------------" << std::endl;
     ANCFBrickTest ChElementBrickANCF_3843_ContInt_test(true);
     if (ChElementBrickANCF_3843_ContInt_test.RunElementChecks(1))
-        print_green("ChElementBrickANCF_3843 Element (ContInt Method) Checks = PASSED\n");
+        print_green("ChElementHexaANCF_3843 Element (ContInt Method) Checks = PASSED\n");
     else {
-        print_red("ChElementBrickANCF_3843 Element (ContInt Method) Checks = FAILED\n");
+        print_red("ChElementHexaANCF_3843 Element (ContInt Method) Checks = FAILED\n");
         tests_passed = false;
     }
 
     std::cout << "-------------------------------------" << std::endl;
     ANCFBrickTest ChElementBrickANCF_3843_PreInt_test(false);
     if (ChElementBrickANCF_3843_PreInt_test.RunElementChecks(1))
-        print_green("ChElementBrickANCF_3843 Element (PreInt Method) Checks = PASSED\n");
+        print_green("ChElementHexaANCF_3843 Element (PreInt Method) Checks = PASSED\n");
     else {
-        print_red("ChElementBrickANCF_3843 Element (PreInt Method) Checks = FAILED\n");
+        print_red("ChElementHexaANCF_3843 Element (PreInt Method) Checks = FAILED\n");
         tests_passed = false;
     }
 

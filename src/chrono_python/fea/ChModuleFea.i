@@ -64,8 +64,8 @@
 #include "chrono/fea/ChElementTetraCorot_10.h"
 #include "chrono/fea/ChElementHexaCorot_8.h"
 #include "chrono/fea/ChElementHexaCorot_20.h"
-#include "chrono/fea/ChElementBrick.h"
-#include "chrono/fea/ChElementBrick_9.h"
+#include "chrono/fea/ChElementHexaANCF_3813.h"
+#include "chrono/fea/ChElementHexaANCF_3813_9.h"
 #include "chrono/fea/ChElementShell.h"
 #include "chrono/fea/ChMaterialShellReissner.h"
 #include "chrono/fea/ChMaterialShellANCF.h"
@@ -244,8 +244,8 @@ using namespace chrono::fea;
 %shared_ptr(chrono::fea::ChElementHexahedron)
 %shared_ptr(chrono::fea::ChElementHexaCorot_8)
 %shared_ptr(chrono::fea::ChElementHexaCorot_20)
-%shared_ptr(chrono::fea::ChElementBrick)
-%shared_ptr(chrono::fea::ChElementBrick_9)
+%shared_ptr(chrono::fea::ChElementHexaANCF_3813)
+%shared_ptr(chrono::fea::ChElementHexaANCF_3813_9)
 %shared_ptr(chrono::fea::ChNodeFEAbase)
 %shared_ptr(chrono::fea::ChNodeFEAxyz)
 %shared_ptr(chrono::fea::ChNodeFEAxyzP)
@@ -390,8 +390,8 @@ using namespace chrono::fea;
 %include "../../chrono/fea/ChElementHexahedron.h"		
 %include "../../chrono/fea/ChElementHexaCorot_8.h"
 %include "../../chrono/fea/ChElementHexaCorot_20.h"
-%include "../../chrono/fea/ChElementBrick.h"
-%include "../../chrono/fea/ChElementBrick_9.h"
+%include "../../chrono/fea/ChElementHexaANCF_3813.h"
+%include "../../chrono/fea/ChElementHexaANCF_3813_9.h"
 %include "../../chrono/fea/ChMaterialShellANCF.h"
 // TODO: if eigen::ref can be wrapped, unignore these,
 %ignore chrono::fea::ChElasticityReissner::ComputeStiffnessMatrix;
@@ -479,8 +479,8 @@ using namespace chrono::fea;
 %DefSharedPtrDynamicDowncast(chrono::fea,ChElementBase,ChElementShellReissner4)
 %DefSharedPtrDynamicDowncast(chrono::fea,ChElementBase,ChElementShellANCF_3423)
 %DefSharedPtrDynamicDowncast(chrono::fea,ChElementBase,ChElementShellANCF_3833)
-%DefSharedPtrDynamicDowncast(chrono::fea,ChElementBase,ChElementBrick)
-%DefSharedPtrDynamicDowncast(chrono::fea,ChElementBase,ChElementBrick_9)
+%DefSharedPtrDynamicDowncast(chrono::fea,ChElementBase,ChElementHexaANCF_3813)
+%DefSharedPtrDynamicDowncast(chrono::fea,ChElementBase,ChElementHexaANCF_3813_9)
 %DefSharedPtrDynamicDowncast2NS(chrono,chrono::fea,ChNodeBase,ChNodeFEAbase)
 %DefSharedPtrDynamicDowncast(chrono::fea,ChNodeFEAbase,ChNodeFEAxyz)
 %DefSharedPtrDynamicDowncast(chrono::fea,ChNodeFEAbase,ChNodeFEAxyzP)

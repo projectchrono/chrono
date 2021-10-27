@@ -10,11 +10,11 @@
 // =============================================================================
 // Authors: Radu Serban
 // =============================================================================
-// Brick element with 9 nodes (central node for curvature)
+// Hexahedral element with 9 nodes (central node for curvature)
 // =============================================================================
 
-#ifndef CHELEMENTBRICK9_H
-#define CHELEMENTBRICK9_H
+#ifndef CH_ELEMENT_HEXA_ANCF_3813_9_H
+#define CH_ELEMENT_HEXA_ANCF_3813_9_H
 
 #include "chrono/fea/ChElementHexahedron.h"
 #include "chrono/fea/ChElementGeneric.h"
@@ -29,13 +29,15 @@ namespace fea {
 /// @addtogroup fea_elements
 /// @{
 
-/// Brick element with 9 nodes.
-class ChApi ChElementBrick_9 : public ChElementHexahedron, public ChElementGeneric, public ChLoadableUVW {
+/// Hexahedronal solid element with 8 nodes and a central curvature node.
+/// While technically not an ANCF element, the name is justified because the implementation can use the same ANCF
+/// machinery.
+class ChApi ChElementHexaANCF_3813_9 : public ChElementHexahedron, public ChElementGeneric, public ChLoadableUVW {
   public:
     using ShapeVector = ChMatrixNM<double, 1, 11>;
 
-    ChElementBrick_9();
-    ~ChElementBrick_9() {}
+    ChElementHexaANCF_3813_9();
+    ~ChElementHexaANCF_3813_9() {}
 
     /// Get number of nodes of this element.
     virtual int GetNnodes() override { return 9; }

@@ -22,7 +22,7 @@
 #include "chrono/physics/ChMaterialSurfaceNSC.h"
 #include "chrono/physics/ChMaterialSurfaceSMC.h"
 
-#include "chrono/fea/ChElementBrick_9.h"
+#include "chrono/fea/ChElementHexaANCF_3813_9.h"
 #include "chrono/fea/ChContactSurfaceMesh.h"
 #include "chrono/fea/ChVisualizationFEAmesh.h"
 
@@ -193,7 +193,7 @@ void FEADeformableTerrain::Initialize(const ChVector<>& start_point,
         int node8 = (numDiv_z + 1) * XYNumNodes + i;
 
         // Create the element and set its nodes.
-        auto element = chrono_types::make_shared<ChElementBrick_9>();
+        auto element = chrono_types::make_shared<ChElementHexaANCF_3813_9>();
         element->SetNodes(std::dynamic_pointer_cast<ChNodeFEAxyz>(m_mesh->GetNode(node0)),
                           std::dynamic_pointer_cast<ChNodeFEAxyz>(m_mesh->GetNode(node1)),
                           std::dynamic_pointer_cast<ChNodeFEAxyz>(m_mesh->GetNode(node2)),
@@ -214,15 +214,15 @@ void FEADeformableTerrain::Initialize(const ChVector<>& start_point,
         element->SetAlphaDamp(5e-4);    // Structural damping for this element
         element->SetDPIterationNo(50);  // Set maximum number of iterations for Drucker-Prager Newton-Raphson
         element->SetDPYieldTol(1e-8);   // Set stop tolerance for Drucker-Prager Newton-Raphson
-        element->SetStrainFormulation(ChElementBrick_9::Hencky);
-        element->SetPlasticityFormulation(ChElementBrick_9::DruckerPrager);
-        if (element->GetStrainFormulation() == ChElementBrick_9::Hencky) {
+        element->SetStrainFormulation(ChElementHexaANCF_3813_9::Hencky);
+        element->SetPlasticityFormulation(ChElementHexaANCF_3813_9::DruckerPrager);
+        if (element->GetStrainFormulation() == ChElementHexaANCF_3813_9::Hencky) {
             element->SetPlasticity(Plasticity);
             if (Plasticity) {
                 element->SetYieldStress(m_yield_stress);
                 element->SetHardeningSlope(m_hardening_slope);
                 element->SetCCPInitial(CCPInitial);
-                if (element->GetPlasticityFormulation() == ChElementBrick_9::DruckerPrager) {
+                if (element->GetPlasticityFormulation() == ChElementHexaANCF_3813_9::DruckerPrager) {
                     element->SetFriction(m_friction_angle);
                     element->SetDilatancy(m_dilatancy_angle);
                     element->SetDPType(3);

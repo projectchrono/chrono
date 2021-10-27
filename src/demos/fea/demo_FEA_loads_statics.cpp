@@ -23,7 +23,7 @@
 
 #include "chrono/fea/ChElementBar.h"
 #include "chrono/fea/ChElementBeamEuler.h"
-#include "chrono/fea/ChElementBrick.h"
+#include "chrono/fea/ChElementHexaANCF_3813.h"
 #include "chrono/fea/ChElementHexaCorot_20.h"
 #include "chrono/fea/ChElementHexaCorot_8.h"
 #include "chrono/fea/ChElementShellANCF_3423.h"

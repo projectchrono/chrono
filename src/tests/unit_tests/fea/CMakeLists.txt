@@ -12,7 +12,6 @@ set(TESTS
     utest_FEA_EASBrickIso
     utest_FEA_EASBrickIso_Grav
     utest_FEA_EASBrickMooneyR_Grav
-    utest_FEA_Brick9
     utest_FEA_ANCFConstraints
     utest_FEA_ANCFContact
     utest_FEA_compute_contact_mesh
@@ -22,7 +21,8 @@ set(TESTS
 	utest_FEA_ANCFshell_3423_Formulation
 	utest_FEA_ANCFshell_3443_Formulation
 	utest_FEA_ANCFshell_3833_Formulation
-	utest_FEA_ANCFbrick_3843_Formulation
+	utest_FEA_ANCFhexa_3843_Formulation
+    utest_FEA_ANCFhexa_3813_9
 )
 
 # Tests that REQUIRE Chrono::MKL

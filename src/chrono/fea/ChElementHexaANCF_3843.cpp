@@ -34,7 +34,7 @@
 // will likely result in numerical issues with the element.
 // =============================================================================
 
-#include "chrono/fea/ChElementBrickANCF_3843.h"
+#include "chrono/fea/ChElementHexaANCF_3843.h"
 #include "chrono/physics/ChSystem.h"
 
 namespace chrono {
@@ -44,7 +44,7 @@ namespace fea {
 // Constructor
 // ------------------------------------------------------------------------------
 
-ChElementBrickANCF_3843::ChElementBrickANCF_3843()
+ChElementHexaANCF_3843::ChElementHexaANCF_3843()
     : m_method(IntFrcMethod::ContInt), m_lenX(0), m_lenY(0), m_lenZ(0), m_Alpha(0), m_damping_enabled(false) {
     m_nodes.resize(8);
 }
@@ -53,14 +53,14 @@ ChElementBrickANCF_3843::ChElementBrickANCF_3843()
 // Set element nodes
 // ------------------------------------------------------------------------------
 
-void ChElementBrickANCF_3843::SetNodes(std::shared_ptr<ChNodeFEAxyzDDD> nodeA,
-                                       std::shared_ptr<ChNodeFEAxyzDDD> nodeB,
-                                       std::shared_ptr<ChNodeFEAxyzDDD> nodeC,
-                                       std::shared_ptr<ChNodeFEAxyzDDD> nodeD,
-                                       std::shared_ptr<ChNodeFEAxyzDDD> nodeE,
-                                       std::shared_ptr<ChNodeFEAxyzDDD> nodeF,
-                                       std::shared_ptr<ChNodeFEAxyzDDD> nodeG,
-                                       std::shared_ptr<ChNodeFEAxyzDDD> nodeH) {
+void ChElementHexaANCF_3843::SetNodes(std::shared_ptr<ChNodeFEAxyzDDD> nodeA,
+                                      std::shared_ptr<ChNodeFEAxyzDDD> nodeB,
+                                      std::shared_ptr<ChNodeFEAxyzDDD> nodeC,
+                                      std::shared_ptr<ChNodeFEAxyzDDD> nodeD,
+                                      std::shared_ptr<ChNodeFEAxyzDDD> nodeE,
+                                      std::shared_ptr<ChNodeFEAxyzDDD> nodeF,
+                                      std::shared_ptr<ChNodeFEAxyzDDD> nodeG,
+                                      std::shared_ptr<ChNodeFEAxyzDDD> nodeH) {
     assert(nodeA);
     assert(nodeB);
     assert(nodeC);
@@ -133,7 +133,7 @@ void ChElementBrickANCF_3843::SetNodes(std::shared_ptr<ChNodeFEAxyzDDD> nodeA,
 
 // Specify the element dimensions.
 
-void ChElementBrickANCF_3843::SetDimensions(double lenX, double lenY, double lenZ) {
+void ChElementHexaANCF_3843::SetDimensions(double lenX, double lenY, double lenZ) {
     m_lenX = lenX;
     m_lenY = lenY;
     m_lenZ = lenZ;
@@ -148,7 +148,7 @@ void ChElementBrickANCF_3843::SetDimensions(double lenX, double lenY, double len
 
 // Specify the element material.
 
-void ChElementBrickANCF_3843::SetMaterial(std::shared_ptr<ChMaterialBrickANCF> brick_mat) {
+void ChElementHexaANCF_3843::SetMaterial(std::shared_ptr<ChMaterialBrickANCF> brick_mat) {
     m_material = brick_mat;
 
     // Check to see if the Pre-Integration method is selected and if the precomputed matrices have already been
@@ -163,7 +163,7 @@ void ChElementBrickANCF_3843::SetMaterial(std::shared_ptr<ChMaterialBrickANCF> b
 
 // Set the value for the single term structural damping coefficient.
 
-void ChElementBrickANCF_3843::SetAlphaDamp(double a) {
+void ChElementHexaANCF_3843::SetAlphaDamp(double a) {
     m_Alpha = a;
     if (std::abs(m_Alpha) > 1e-10)
         m_damping_enabled = true;
@@ -173,7 +173,7 @@ void ChElementBrickANCF_3843::SetAlphaDamp(double a) {
 
 // Change the method used to compute the generalized internal force vector and its Jacobian.
 
-void ChElementBrickANCF_3843::SetIntFrcCalcMethod(IntFrcMethod method) {
+void ChElementHexaANCF_3843::SetIntFrcCalcMethod(IntFrcMethod method) {
     m_method = method;
 
     // Check to see if SetupInitial has already been called (i.e. at least one set of precomputed matrices has been
@@ -194,7 +194,7 @@ void ChElementBrickANCF_3843::SetIntFrcCalcMethod(IntFrcMethod method) {
 
 // Get the Green-Lagrange strain tensor at the normalized element coordinates (xi, eta, zeta) [-1...1]
 
-ChMatrix33<> ChElementBrickANCF_3843::GetGreenLagrangeStrain(const double xi, const double eta, const double zeta) {
+ChMatrix33<> ChElementHexaANCF_3843::GetGreenLagrangeStrain(const double xi, const double eta, const double zeta) {
     MatrixNx3c Sxi_D;  // Matrix of normalized shape function derivatives
     Calc_Sxi_D(Sxi_D, xi, eta, zeta);
 
@@ -218,7 +218,7 @@ ChMatrix33<> ChElementBrickANCF_3843::GetGreenLagrangeStrain(const double xi, co
 // Get the 2nd Piola-Kirchoff stress tensor at the normalized element coordinates (xi, eta, zeta) [-1...1] at the
 // current state of the element.
 
-ChMatrix33<> ChElementBrickANCF_3843::GetPK2Stress(const double xi, const double eta, const double zeta) {
+ChMatrix33<> ChElementHexaANCF_3843::GetPK2Stress(const double xi, const double eta, const double zeta) {
     MatrixNx3c Sxi_D;  // Matrix of normalized shape function derivatives
     Calc_Sxi_D(Sxi_D, xi, eta, zeta);
 
@@ -281,7 +281,7 @@ ChMatrix33<> ChElementBrickANCF_3843::GetPK2Stress(const double xi, const double
 // Get the von Mises stress value at the normalized element coordinates (xi, eta, zeta) [-1...1] at the current
 // state of the element.
 
-double ChElementBrickANCF_3843::GetVonMissesStress(const double xi, const double eta, const double zeta) {
+double ChElementHexaANCF_3843::GetVonMissesStress(const double xi, const double eta, const double zeta) {
     MatrixNx3c Sxi_D;  // Matrix of normalized shape function derivatives
     Calc_Sxi_D(Sxi_D, xi, eta, zeta);
 
@@ -354,7 +354,7 @@ double ChElementBrickANCF_3843::GetVonMissesStress(const double xi, const double
 
 // Initial element setup.
 
-void ChElementBrickANCF_3843::SetupInitial(ChSystem* system) {
+void ChElementHexaANCF_3843::SetupInitial(ChSystem* system) {
     // Store the initial nodal coordinates. These values define the reference configuration of the element.
     CalcCoordMatrix(m_ebar0);
 
@@ -368,7 +368,7 @@ void ChElementBrickANCF_3843::SetupInitial(ChSystem* system) {
 
 // Fill the D vector with the current field values at the element nodes.
 
-void ChElementBrickANCF_3843::GetStateBlock(ChVectorDynamic<>& mD) {
+void ChElementHexaANCF_3843::GetStateBlock(ChVectorDynamic<>& mD) {
     mD.segment(0, 3) = m_nodes[0]->GetPos().eigen();
     mD.segment(3, 3) = m_nodes[0]->GetD().eigen();
     mD.segment(6, 3) = m_nodes[0]->GetDD().eigen();
@@ -412,13 +412,13 @@ void ChElementBrickANCF_3843::GetStateBlock(ChVectorDynamic<>& mD) {
 
 // State update.
 
-void ChElementBrickANCF_3843::Update() {
+void ChElementHexaANCF_3843::Update() {
     ChElementGeneric::Update();
 }
 
 // Return the mass matrix in full sparse form.
 
-void ChElementBrickANCF_3843::ComputeMmatrixGlobal(ChMatrixRef M) {
+void ChElementHexaANCF_3843::ComputeMmatrixGlobal(ChMatrixRef M) {
     M.setZero();
 
     // Mass Matrix is Stored in Compact Upper Triangular Form
@@ -441,7 +441,7 @@ void ChElementBrickANCF_3843::ComputeMmatrixGlobal(ChMatrixRef M) {
 
 // This class computes and adds corresponding masses to ElementGeneric member m_TotalMass
 
-void ChElementBrickANCF_3843::ComputeNodalMass() {
+void ChElementHexaANCF_3843::ComputeNodalMass() {
     m_nodes[0]->m_TotalMass += m_MassMatrix(0) + m_MassMatrix(4) + m_MassMatrix(8) + m_MassMatrix(12) +
                                m_MassMatrix(16) + m_MassMatrix(20) + m_MassMatrix(24) + m_MassMatrix(28);
     m_nodes[1]->m_TotalMass += m_MassMatrix(4) + m_MassMatrix(122) + m_MassMatrix(126) + m_MassMatrix(130) +
@@ -462,7 +462,7 @@ void ChElementBrickANCF_3843::ComputeNodalMass() {
 
 // Compute the generalized internal force vector for the current nodal coordinates and set the value in the Fi vector.
 
-void ChElementBrickANCF_3843::ComputeInternalForces(ChVectorDynamic<>& Fi) {
+void ChElementHexaANCF_3843::ComputeInternalForces(ChVectorDynamic<>& Fi) {
     assert(Fi.size() == 3 * NSF);
 
     if (m_method == IntFrcMethod::ContInt) {
@@ -479,7 +479,7 @@ void ChElementBrickANCF_3843::ComputeInternalForces(ChVectorDynamic<>& Fi) {
 // Calculate the global matrix H as a linear combination of K, R, and M:
 //   H = Mfactor * [M] + Kfactor * [K] + Rfactor * [R]
 
-void ChElementBrickANCF_3843::ComputeKRMmatricesGlobal(ChMatrixRef H, double Kfactor, double Rfactor, double Mfactor) {
+void ChElementHexaANCF_3843::ComputeKRMmatricesGlobal(ChMatrixRef H, double Kfactor, double Rfactor, double Mfactor) {
     assert((H.rows() == 3 * NSF) && (H.cols() == 3 * NSF));
 
     if (m_method == IntFrcMethod::ContInt) {
@@ -494,7 +494,7 @@ void ChElementBrickANCF_3843::ComputeKRMmatricesGlobal(ChMatrixRef H, double Kfa
 }
 
 // Compute the generalized force vector due to gravity using the efficient ANCF specific method
-void ChElementBrickANCF_3843::ComputeGravityForces(ChVectorDynamic<>& Fg, const ChVector<>& G_acc) {
+void ChElementHexaANCF_3843::ComputeGravityForces(ChVectorDynamic<>& Fg, const ChVector<>& G_acc) {
     assert(Fg.size() == 3 * NSF);
 
     // Calculate and add the generalized force due to gravity to the generalized internal force vector for the element.
@@ -510,11 +510,11 @@ void ChElementBrickANCF_3843::ComputeGravityForces(ChVectorDynamic<>& Fg, const 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 
-void ChElementBrickANCF_3843::EvaluateElementFrame(const double xi,
-                                                   const double eta,
-                                                   const double zeta,
-                                                   ChVector<>& point,
-                                                   ChQuaternion<>& rot) {
+void ChElementHexaANCF_3843::EvaluateElementFrame(const double xi,
+                                                  const double eta,
+                                                  const double zeta,
+                                                  ChVector<>& point,
+                                                  ChQuaternion<>& rot) {
     VectorN Sxi_compact;
     Calc_Sxi_compact(Sxi_compact, xi, eta, zeta);
     VectorN Sxi_xi_compact;
@@ -543,10 +543,10 @@ void ChElementBrickANCF_3843::EvaluateElementFrame(const double xi,
     rot = msect.Get_A_quaternion();
 }
 
-void ChElementBrickANCF_3843::EvaluateElementPoint(const double xi,
-                                                   const double eta,
-                                                   const double zeta,
-                                                   ChVector<>& point) {
+void ChElementHexaANCF_3843::EvaluateElementPoint(const double xi,
+                                                  const double eta,
+                                                  const double zeta,
+                                                  ChVector<>& point) {
     VectorN Sxi_compact;
     Calc_Sxi_compact(Sxi_compact, xi, eta, zeta);
 
@@ -557,7 +557,7 @@ void ChElementBrickANCF_3843::EvaluateElementPoint(const double xi,
     point = e_bar * Sxi_compact;
 }
 
-void ChElementBrickANCF_3843::EvaluateElementVel(double xi, double eta, const double zeta, ChVector<>& Result) {
+void ChElementHexaANCF_3843::EvaluateElementVel(double xi, double eta, const double zeta, ChVector<>& Result) {
     VectorN Sxi_compact;
     Calc_Sxi_compact(Sxi_compact, xi, eta, zeta);
 
@@ -574,7 +574,7 @@ void ChElementBrickANCF_3843::EvaluateElementVel(double xi, double eta, const do
 
 // Gets all the DOFs packed in a single vector (position part).
 
-void ChElementBrickANCF_3843::LoadableGetStateBlock_x(int block_offset, ChState& mD) {
+void ChElementHexaANCF_3843::LoadableGetStateBlock_x(int block_offset, ChState& mD) {
     mD.segment(block_offset + 0, 3) = m_nodes[0]->GetPos().eigen();
     mD.segment(block_offset + 3, 3) = m_nodes[0]->GetD().eigen();
     mD.segment(block_offset + 6, 3) = m_nodes[0]->GetDD().eigen();
@@ -618,7 +618,7 @@ void ChElementBrickANCF_3843::LoadableGetStateBlock_x(int block_offset, ChState&
 
 // Gets all the DOFs packed in a single vector (velocity part).
 
-void ChElementBrickANCF_3843::LoadableGetStateBlock_w(int block_offset, ChStateDelta& mD) {
+void ChElementHexaANCF_3843::LoadableGetStateBlock_w(int block_offset, ChStateDelta& mD) {
     mD.segment(block_offset + 0, 3) = m_nodes[0]->GetPos_dt().eigen();
     mD.segment(block_offset + 3, 3) = m_nodes[0]->GetD_dt().eigen();
     mD.segment(block_offset + 6, 3) = m_nodes[0]->GetDD_dt().eigen();
@@ -662,11 +662,11 @@ void ChElementBrickANCF_3843::LoadableGetStateBlock_w(int block_offset, ChStateD
 
 /// Increment all DOFs using a delta.
 
-void ChElementBrickANCF_3843::LoadableStateIncrement(const unsigned int off_x,
-                                                     ChState& x_new,
-                                                     const ChState& x,
-                                                     const unsigned int off_v,
-                                                     const ChStateDelta& Dv) {
+void ChElementHexaANCF_3843::LoadableStateIncrement(const unsigned int off_x,
+                                                    ChState& x_new,
+                                                    const ChState& x,
+                                                    const unsigned int off_v,
+                                                    const ChStateDelta& Dv) {
     m_nodes[0]->NodeIntStateIncrement(off_x, x_new, x, off_v, Dv);
     m_nodes[1]->NodeIntStateIncrement(off_x + 12, x_new, x, off_v + 12, Dv);
     m_nodes[2]->NodeIntStateIncrement(off_x + 24, x_new, x, off_v + 24, Dv);
@@ -679,7 +679,7 @@ void ChElementBrickANCF_3843::LoadableStateIncrement(const unsigned int off_x,
 
 // Get the pointers to the contained ChVariables, appending to the mvars vector.
 
-void ChElementBrickANCF_3843::LoadableGetVariables(std::vector<ChVariables*>& mvars) {
+void ChElementHexaANCF_3843::LoadableGetVariables(std::vector<ChVariables*>& mvars) {
     for (int i = 0; i < m_nodes.size(); ++i) {
         mvars.push_back(&m_nodes[i]->Variables());
         mvars.push_back(&m_nodes[i]->Variables_D());
@@ -693,7 +693,7 @@ void ChElementBrickANCF_3843::LoadableGetVariables(std::vector<ChVariables*>& mv
 // For this ANCF element, only the first 6 entries in F are used in the calculation.  The first three entries is
 // the applied force in global coordinates and the second 3 entries is the applied moment in global space.
 
-void ChElementBrickANCF_3843::ComputeNF(
+void ChElementHexaANCF_3843::ComputeNF(
     const double xi,             // parametric coordinate in volume
     const double eta,            // parametric coordinate in volume
     const double zeta,           // parametric coordinate in volume
@@ -759,7 +759,7 @@ void ChElementBrickANCF_3843::ComputeNF(
 
 // Return the element density (needed for ChLoaderVolumeGravity).
 
-double ChElementBrickANCF_3843::GetDensity() {
+double ChElementHexaANCF_3843::GetDensity() {
     return GetMaterial()->Get_rho();
 }
 
@@ -767,7 +767,7 @@ double ChElementBrickANCF_3843::GetDensity() {
 // Mass Matrix & Generalized Force Due to Gravity Calculation
 // -----------------------------------------------------------------------------
 
-void ChElementBrickANCF_3843::ComputeMassMatrixAndGravityForce() {
+void ChElementHexaANCF_3843::ComputeMassMatrixAndGravityForce() {
     // For this element, the mass matrix integrand is of order 7 in xi, 7 in eta, and 7 in zeta.
     // 4 GQ Points are needed in the xi, eta, and zeta directions for exact integration of the element's mass matrix,
     // even if the reference configuration is not straight. Since the major pieces of the generalized force due to
@@ -823,7 +823,7 @@ void ChElementBrickANCF_3843::ComputeMassMatrixAndGravityForce() {
 
 // Precalculate constant matrices and scalars for the internal force calculations
 
-void ChElementBrickANCF_3843::PrecomputeInternalForceMatricesWeights() {
+void ChElementHexaANCF_3843::PrecomputeInternalForceMatricesWeights() {
     if (m_method == IntFrcMethod::ContInt)
         PrecomputeInternalForceMatricesWeightsContInt();
     else
@@ -833,7 +833,7 @@ void ChElementBrickANCF_3843::PrecomputeInternalForceMatricesWeights() {
 // Precalculate constant matrices for the internal force calculations when using the "Continuous Integration" style
 // method
 
-void ChElementBrickANCF_3843::PrecomputeInternalForceMatricesWeightsContInt() {
+void ChElementHexaANCF_3843::PrecomputeInternalForceMatricesWeightsContInt() {
     ChQuadratureTables* GQTable = GetStaticGQTables();
     unsigned int GQ_idx_xi_eta_zeta = NP - 1;  // Gauss-Quadrature table index for xi, eta, and zeta
 
@@ -879,7 +879,7 @@ void ChElementBrickANCF_3843::PrecomputeInternalForceMatricesWeightsContInt() {
 // Precalculate constant matrices for the internal force calculations when using the "Pre-Integration" style
 // method
 
-void ChElementBrickANCF_3843::PrecomputeInternalForceMatricesWeightsPreInt() {
+void ChElementHexaANCF_3843::PrecomputeInternalForceMatricesWeightsPreInt() {
     ChQuadratureTables* GQTable = GetStaticGQTables();
     unsigned int GQ_idx_xi_eta_zeta = NP - 1;  // Gauss-Quadrature table index for xi, eta, and zeta
 
@@ -1006,7 +1006,7 @@ void ChElementBrickANCF_3843::PrecomputeInternalForceMatricesWeightsPreInt() {
 // Elastic force calculation
 // -----------------------------------------------------------------------------
 
-void ChElementBrickANCF_3843::ComputeInternalForcesContIntDamping(ChVectorDynamic<>& Fi) {
+void ChElementHexaANCF_3843::ComputeInternalForcesContIntDamping(ChVectorDynamic<>& Fi) {
     // Calculate the generalize internal force vector using the "Continuous Integration" style of method assuming a
     // linear viscoelastic material model (single term damping model).  For this style of method, the generalized
     // internal force vector is integrated across the volume of the element every time this calculation is performed.
@@ -1212,7 +1212,7 @@ void ChElementBrickANCF_3843::ComputeInternalForcesContIntDamping(ChVectorDynami
     Fi = QiReshaped;
 }
 
-void ChElementBrickANCF_3843::ComputeInternalForcesContIntNoDamping(ChVectorDynamic<>& Fi) {
+void ChElementHexaANCF_3843::ComputeInternalForcesContIntNoDamping(ChVectorDynamic<>& Fi) {
     // Calculate the generalize internal force vector using the "Continuous Integration" style of method assuming a
     // linear material model (no damping).  For this style of method, the generalized internal force vector is
     // integrated across the volume of the element every time this calculation is performed.  For this element, this is
@@ -1371,7 +1371,7 @@ void ChElementBrickANCF_3843::ComputeInternalForcesContIntNoDamping(ChVectorDyna
     Fi = QiReshaped;
 }
 
-void ChElementBrickANCF_3843::ComputeInternalForcesContIntPreInt(ChVectorDynamic<>& Fi) {
+void ChElementHexaANCF_3843::ComputeInternalForcesContIntPreInt(ChVectorDynamic<>& Fi) {
     // Calculate the generalize internal force vector using the "Pre-Integration" style of method assuming a
     // linear viscoelastic material model (single term damping model).  For this style of method, the components of the
     // generalized internal force vector and its Jacobian that need to be integrated across the volume are calculated
@@ -1419,10 +1419,10 @@ void ChElementBrickANCF_3843::ComputeInternalForcesContIntPreInt(ChVectorDynamic
 // Jacobians of internal forces
 // -----------------------------------------------------------------------------
 
-void ChElementBrickANCF_3843::ComputeInternalJacobianContIntDamping(ChMatrixRef& H,
-                                                                    double Kfactor,
-                                                                    double Rfactor,
-                                                                    double Mfactor) {
+void ChElementHexaANCF_3843::ComputeInternalJacobianContIntDamping(ChMatrixRef& H,
+                                                                   double Kfactor,
+                                                                   double Rfactor,
+                                                                   double Mfactor) {
     // Calculate the Jacobian of the generalize internal force vector using the "Continuous Integration" style of method
     // assuming a linear viscoelastic material model (single term damping model).  For this style of method, the
     // Jacobian of the generalized internal force vector is integrated across the volume of the element every time this
@@ -1846,7 +1846,7 @@ void ChElementBrickANCF_3843::ComputeInternalJacobianContIntDamping(ChMatrixRef&
     }
 }
 
-void ChElementBrickANCF_3843::ComputeInternalJacobianContIntNoDamping(ChMatrixRef& H, double Kfactor, double Mfactor) {
+void ChElementHexaANCF_3843::ComputeInternalJacobianContIntNoDamping(ChMatrixRef& H, double Kfactor, double Mfactor) {
     // Calculate the Jacobian of the generalize internal force vector using the "Continuous Integration" style of method
     // assuming a linear material model (no damping).  For this style of method, the Jacobian of the generalized
     // internal force vector is integrated across the volume of the element every time this calculation is performed.
@@ -2207,10 +2207,10 @@ void ChElementBrickANCF_3843::ComputeInternalJacobianContIntNoDamping(ChMatrixRe
     }
 }
 
-void ChElementBrickANCF_3843::ComputeInternalJacobianPreInt(ChMatrixRef& H,
-                                                            double Kfactor,
-                                                            double Rfactor,
-                                                            double Mfactor) {
+void ChElementHexaANCF_3843::ComputeInternalJacobianPreInt(ChMatrixRef& H,
+                                                           double Kfactor,
+                                                           double Rfactor,
+                                                           double Mfactor) {
     // Calculate the Jacobian of the generalize internal force vector using the "Pre-Integration" style of method
     // assuming a linear viscoelastic material model (single term damping model).  For this style of method, the
     // components of the generalized internal force vector and its Jacobian that need to be integrated across the volume
@@ -2282,7 +2282,7 @@ void ChElementBrickANCF_3843::ComputeInternalJacobianPreInt(ChMatrixRef& H,
 // Nx1 Vector Form of the Normalized Shape Functions
 // [s1; s2; s3; ...]
 
-void ChElementBrickANCF_3843::Calc_Sxi_compact(VectorN& Sxi_compact, double xi, double eta, double zeta) {
+void ChElementHexaANCF_3843::Calc_Sxi_compact(VectorN& Sxi_compact, double xi, double eta, double zeta) {
     Sxi_compact(0) =
         0.0625 * (zeta - 1) * (xi - 1) * (eta - 1) * (eta * eta + eta + xi * xi + xi + zeta * zeta + zeta - 2);
     Sxi_compact(1) = 0.03125 * m_lenX * (xi + 1) * (xi - 1) * (xi - 1) * (zeta - 1) * (eta - 1);
@@ -2328,7 +2328,7 @@ void ChElementBrickANCF_3843::Calc_Sxi_compact(VectorN& Sxi_compact, double xi, 
 // Nx1 Vector Form of the partial derivatives of Normalized Shape Functions with respect to xi
 // [s1; s2; s3; ...]
 
-void ChElementBrickANCF_3843::Calc_Sxi_xi_compact(VectorN& Sxi_xi_compact, double xi, double eta, double zeta) {
+void ChElementHexaANCF_3843::Calc_Sxi_xi_compact(VectorN& Sxi_xi_compact, double xi, double eta, double zeta) {
     Sxi_xi_compact(0) = 0.0625 * (zeta - 1) * (eta - 1) * (eta * eta + eta + 3 * xi * xi + zeta * zeta + zeta - 3);
     Sxi_xi_compact(1) = 0.03125 * m_lenX * (3 * xi + 1) * (xi - 1) * (zeta - 1) * (eta - 1);
     Sxi_xi_compact(2) = 0.03125 * m_lenY * (eta + 1) * (eta - 1) * (eta - 1) * (zeta - 1);
@@ -2366,7 +2366,7 @@ void ChElementBrickANCF_3843::Calc_Sxi_xi_compact(VectorN& Sxi_xi_compact, doubl
 // Nx1 Vector Form of the partial derivatives of Normalized Shape Functions with respect to eta
 // [s1; s2; s3; ...]
 
-void ChElementBrickANCF_3843::Calc_Sxi_eta_compact(VectorN& Sxi_eta_compact, double xi, double eta, double zeta) {
+void ChElementHexaANCF_3843::Calc_Sxi_eta_compact(VectorN& Sxi_eta_compact, double xi, double eta, double zeta) {
     Sxi_eta_compact(0) = 0.0625 * (zeta - 1) * (xi - 1) * (3 * eta * eta + xi * xi + xi + zeta * zeta + zeta - 3);
     Sxi_eta_compact(1) = 0.03125 * m_lenX * (xi + 1) * (xi - 1) * (xi - 1) * (zeta - 1);
     Sxi_eta_compact(2) = 0.03125 * m_lenY * (3 * eta + 1) * (eta - 1) * (zeta - 1) * (xi - 1);
@@ -2404,7 +2404,7 @@ void ChElementBrickANCF_3843::Calc_Sxi_eta_compact(VectorN& Sxi_eta_compact, dou
 // Nx1 Vector Form of the partial derivatives of Normalized Shape Functions with respect to zeta
 // [s1; s2; s3; ...]
 
-void ChElementBrickANCF_3843::Calc_Sxi_zeta_compact(VectorN& Sxi_zeta_compact, double xi, double eta, double zeta) {
+void ChElementHexaANCF_3843::Calc_Sxi_zeta_compact(VectorN& Sxi_zeta_compact, double xi, double eta, double zeta) {
     Sxi_zeta_compact(0) = 0.0625 * (xi - 1) * (eta - 1) * (eta * eta + eta + xi * xi + xi + 3 * zeta * zeta - 3);
     Sxi_zeta_compact(1) = 0.03125 * m_lenX * (xi + 1) * (xi - 1) * (xi - 1) * (eta - 1);
     Sxi_zeta_compact(2) = 0.03125 * m_lenY * (eta + 1) * (eta - 1) * (eta - 1) * (xi - 1);
@@ -2442,7 +2442,7 @@ void ChElementBrickANCF_3843::Calc_Sxi_zeta_compact(VectorN& Sxi_zeta_compact, d
 // Nx3 compact form of the partial derivatives of Normalized Shape Functions with respect to xi, eta, and zeta by
 // columns
 
-void ChElementBrickANCF_3843::Calc_Sxi_D(MatrixNx3c& Sxi_D, double xi, double eta, double zeta) {
+void ChElementHexaANCF_3843::Calc_Sxi_D(MatrixNx3c& Sxi_D, double xi, double eta, double zeta) {
     VectorN Sxi_D_col;
     Calc_Sxi_xi_compact(Sxi_D_col, xi, eta, zeta);
     Sxi_D.col(0) = Sxi_D_col;
@@ -2458,7 +2458,7 @@ void ChElementBrickANCF_3843::Calc_Sxi_D(MatrixNx3c& Sxi_D, double xi, double et
 // Helper functions
 // -----------------------------------------------------------------------------
 
-void ChElementBrickANCF_3843::CalcCoordVector(Vector3N& e) {
+void ChElementHexaANCF_3843::CalcCoordVector(Vector3N& e) {
     e.segment(0, 3) = m_nodes[0]->GetPos().eigen();
     e.segment(3, 3) = m_nodes[0]->GetD().eigen();
     e.segment(6, 3) = m_nodes[0]->GetDD().eigen();
@@ -2500,7 +2500,7 @@ void ChElementBrickANCF_3843::CalcCoordVector(Vector3N& e) {
     e.segment(93, 3) = m_nodes[7]->GetDDD().eigen();
 }
 
-void ChElementBrickANCF_3843::CalcCoordMatrix(Matrix3xN& ebar) {
+void ChElementHexaANCF_3843::CalcCoordMatrix(Matrix3xN& ebar) {
     ebar.col(0) = m_nodes[0]->GetPos().eigen();
     ebar.col(1) = m_nodes[0]->GetD().eigen();
     ebar.col(2) = m_nodes[0]->GetDD().eigen();
@@ -2542,7 +2542,7 @@ void ChElementBrickANCF_3843::CalcCoordMatrix(Matrix3xN& ebar) {
     ebar.col(31) = m_nodes[7]->GetDDD().eigen();
 }
 
-void ChElementBrickANCF_3843::CalcCoordDerivVector(Vector3N& edot) {
+void ChElementHexaANCF_3843::CalcCoordDerivVector(Vector3N& edot) {
     edot.segment(0, 3) = m_nodes[0]->GetPos_dt().eigen();
     edot.segment(3, 3) = m_nodes[0]->GetD_dt().eigen();
     edot.segment(6, 3) = m_nodes[0]->GetDD_dt().eigen();
@@ -2584,7 +2584,7 @@ void ChElementBrickANCF_3843::CalcCoordDerivVector(Vector3N& edot) {
     edot.segment(93, 3) = m_nodes[7]->GetDDD_dt().eigen();
 }
 
-void ChElementBrickANCF_3843::CalcCoordDerivMatrix(Matrix3xN& ebardot) {
+void ChElementHexaANCF_3843::CalcCoordDerivMatrix(Matrix3xN& ebardot) {
     ebardot.col(0) = m_nodes[0]->GetPos_dt().eigen();
     ebardot.col(1) = m_nodes[0]->GetD_dt().eigen();
     ebardot.col(2) = m_nodes[0]->GetDD_dt().eigen();
@@ -2626,7 +2626,7 @@ void ChElementBrickANCF_3843::CalcCoordDerivMatrix(Matrix3xN& ebardot) {
     ebardot.col(31) = m_nodes[7]->GetDDD_dt().eigen();
 }
 
-void ChElementBrickANCF_3843::CalcCombinedCoordMatrix(MatrixNx6& ebar_ebardot) {
+void ChElementHexaANCF_3843::CalcCombinedCoordMatrix(MatrixNx6& ebar_ebardot) {
     ebar_ebardot.template block<1, 3>(0, 0) = m_nodes[0]->GetPos().eigen();
     ebar_ebardot.template block<1, 3>(0, 3) = m_nodes[0]->GetPos_dt().eigen();
     ebar_ebardot.template block<1, 3>(1, 0) = m_nodes[0]->GetD().eigen();
@@ -2702,7 +2702,7 @@ void ChElementBrickANCF_3843::CalcCombinedCoordMatrix(MatrixNx6& ebar_ebardot) {
 
 // Calculate the 3x3 Element Jacobian at the given point (xi,eta,zeta) in the element
 
-void ChElementBrickANCF_3843::Calc_J_0xi(ChMatrix33<double>& J_0xi, double xi, double eta, double zeta) {
+void ChElementHexaANCF_3843::Calc_J_0xi(ChMatrix33<double>& J_0xi, double xi, double eta, double zeta) {
     MatrixNx3c Sxi_D;
     Calc_Sxi_D(Sxi_D, xi, eta, zeta);
 
@@ -2711,7 +2711,7 @@ void ChElementBrickANCF_3843::Calc_J_0xi(ChMatrix33<double>& J_0xi, double xi, d
 
 // Calculate the determinant of the 3x3 Element Jacobian at the given point (xi,eta,zeta) in the element
 
-double ChElementBrickANCF_3843::Calc_det_J_0xi(double xi, double eta, double zeta) {
+double ChElementHexaANCF_3843::Calc_det_J_0xi(double xi, double eta, double zeta) {
     ChMatrix33<double> J_0xi;
     Calc_J_0xi(J_0xi, xi, eta, zeta);
 
@@ -2725,7 +2725,7 @@ double ChElementBrickANCF_3843::Calc_det_J_0xi(double xi, double eta, double zet
 ChQuadratureTables static_tables_3843(1, CH_QUADRATURE_STATIC_TABLES);
 //#endif // !CH_QUADRATURE_STATIC_TABLES
 
-ChQuadratureTables* ChElementBrickANCF_3843::GetStaticGQTables() {
+ChQuadratureTables* ChElementHexaANCF_3843::GetStaticGQTables() {
     return &static_tables_3843;
 }
 

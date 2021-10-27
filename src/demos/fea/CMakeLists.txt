@@ -16,7 +16,7 @@ set(FEA_DEMOS ${FEA_DEMOS}
     demo_FEA_cables
     demo_FEA_shellsANCF_3423
     demo_FEA_shellsANCF_3833
-    demo_FEA_bricks
+    demo_FEA_hexaANCF_3813
     demo_FEA_cosimulate_load
     demo_FEA_loads_dynamics
     demo_FEA_truss
@@ -50,7 +50,7 @@ set(FEA_DEMOS ${FEA_DEMOS}
     demo_FEA_shellsBST
     demo_FEA_contacts_NSC
     demo_FEA_contactsANCF_SMC
-    demo_FEA_bricks9
+    demo_FEA_hexaANCF_3813_9
     demo_FEA_beamsIGA
     demo_FEA_beamsANCF_3333
 )

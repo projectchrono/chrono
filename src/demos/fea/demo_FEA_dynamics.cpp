@@ -21,7 +21,7 @@
 
 #include "chrono/fea/ChElementSpring.h"
 #include "chrono/fea/ChElementShellANCF_3423.h"
-#include "chrono/fea/ChElementBrick.h"
+#include "chrono/fea/ChElementHexaANCF_3813.h"
 #include "chrono/fea/ChElementBar.h"
 #include "chrono/fea/ChElementTetraCorot_4.h"
 #include "chrono/fea/ChElementTetraCorot_10.h"

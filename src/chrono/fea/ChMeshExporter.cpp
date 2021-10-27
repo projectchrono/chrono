@@ -40,7 +40,7 @@ void ChMeshExporter::writeMesh(std::shared_ptr<ChMesh> my_mesh, std::string Save
             numCables++;
         if (std::dynamic_pointer_cast<ChElementShellANCF_3423>(my_mesh->GetElement(iele)))
             numShells++;
-        if (std::dynamic_pointer_cast<ChElementBrick>(my_mesh->GetElement(iele)))
+        if (std::dynamic_pointer_cast<ChElementHexaANCF_3813>(my_mesh->GetElement(iele)))
             numBricks++;
     }
     MESH << "\nCELLS " << my_mesh->GetNelements() << " "
@@ -89,7 +89,7 @@ void ChMeshExporter::writeMesh(std::shared_ptr<ChMesh> my_mesh, std::string Save
                 }
             }
             MESH << "\n";
-        } else if (auto elementB = std::dynamic_pointer_cast<ChElementBrick>(my_mesh->GetElement(iele))) {
+        } else if (auto elementB = std::dynamic_pointer_cast<ChElementHexaANCF_3813>(my_mesh->GetElement(iele))) {
             mynodes.resize(8);
             MESH << "8 ";
             int nodeOrder[] = {0, 1, 2, 3, 4, 5, 6, 7};
@@ -124,7 +124,7 @@ void ChMeshExporter::writeMesh(std::shared_ptr<ChMesh> my_mesh, std::string Save
             MESH << "3\n";
         else if (std::dynamic_pointer_cast<ChElementShellANCF_3423>(my_mesh->GetElement(iele)))
             MESH << "9\n";
-        else if (std::dynamic_pointer_cast<ChElementBrick>(my_mesh->GetElement(iele)))
+        else if (std::dynamic_pointer_cast<ChElementHexaANCF_3813>(my_mesh->GetElement(iele)))
             MESH << "12\n";
     }
 

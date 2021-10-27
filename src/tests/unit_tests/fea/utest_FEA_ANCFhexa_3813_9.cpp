@@ -19,7 +19,7 @@
 
 #include "chrono/physics/ChSystemNSC.h"
 #include "chrono/solver/ChIterativeSolverLS.h"
-#include "chrono/fea/ChElementBrick_9.h"
+#include "chrono/fea/ChElementHexaANCF_3813_9.h"
 #include "chrono/fea/ChMesh.h"
 
 using namespace chrono;
@@ -208,7 +208,7 @@ bool BendingQuasiStatic(ChMatrixDynamic<> FileInputMat) {
         int node8 = 2 * XYNumNodes + i;
 
         // Create the element and set its nodes.
-        auto element = chrono_types::make_shared<ChElementBrick_9>();
+        auto element = chrono_types::make_shared<ChElementHexaANCF_3813_9>();
         element->SetNodes(std::dynamic_pointer_cast<ChNodeFEAxyz>(my_mesh->GetNode(node0)),
                           std::dynamic_pointer_cast<ChNodeFEAxyz>(my_mesh->GetNode(node1)),
                           std::dynamic_pointer_cast<ChNodeFEAxyz>(my_mesh->GetNode(node2)),
@@ -228,7 +228,7 @@ bool BendingQuasiStatic(ChMatrixDynamic<> FileInputMat) {
         // Set other element properties
         element->SetAlphaDamp(0.1);  // Structural damping for this element
 
-        element->SetStrainFormulation(ChElementBrick_9::Hencky);
+        element->SetStrainFormulation(ChElementHexaANCF_3813_9::Hencky);
         element->SetPlasticity(false);
 
         // Add element to mesh
@@ -400,7 +400,7 @@ bool SwingingShell(ChMatrixDynamic<> FileInputMat) {
         int node8 = 2 * XYNumNodes + i;
 
         // Create the element and set its nodes.
-        auto element = chrono_types::make_shared<ChElementBrick_9>();
+        auto element = chrono_types::make_shared<ChElementHexaANCF_3813_9>();
         element->SetNodes(std::dynamic_pointer_cast<ChNodeFEAxyz>(my_mesh->GetNode(node0)),
                           std::dynamic_pointer_cast<ChNodeFEAxyz>(my_mesh->GetNode(node1)),
                           std::dynamic_pointer_cast<ChNodeFEAxyz>(my_mesh->GetNode(node2)),
@@ -420,7 +420,7 @@ bool SwingingShell(ChMatrixDynamic<> FileInputMat) {
         // Set other element properties
         element->SetAlphaDamp(0.005);  // Structural damping for this element
 
-        element->SetStrainFormulation(ChElementBrick_9::Hencky);
+        element->SetStrainFormulation(ChElementHexaANCF_3813_9::Hencky);
         element->SetPlasticity(false);
 
         // Add element to mesh
@@ -601,7 +601,7 @@ bool J2Plastic(ChMatrixDynamic<> FileInputMat) {
         int node8 = 2 * XYNumNodes + i;
 
         // Create the element and set its nodes.
-        auto element = chrono_types::make_shared<ChElementBrick_9>();
+        auto element = chrono_types::make_shared<ChElementHexaANCF_3813_9>();
         element->SetNodes(std::dynamic_pointer_cast<ChNodeFEAxyz>(my_mesh->GetNode(node0)),
                           std::dynamic_pointer_cast<ChNodeFEAxyz>(my_mesh->GetNode(node1)),
                           std::dynamic_pointer_cast<ChNodeFEAxyz>(my_mesh->GetNode(node2)),
@@ -621,9 +621,9 @@ bool J2Plastic(ChMatrixDynamic<> FileInputMat) {
         // Set other element properties
         element->SetAlphaDamp(0.0);  // Structural damping for this element
 
-        element->SetStrainFormulation(ChElementBrick_9::Hencky);
+        element->SetStrainFormulation(ChElementHexaANCF_3813_9::Hencky);
         element->SetPlasticity(true);
-        element->SetPlasticityFormulation(ChElementBrick_9::J2);
+        element->SetPlasticityFormulation(ChElementHexaANCF_3813_9::J2);
         element->SetYieldStress(1.0);  // Very low Yield Stress to ensure plastic deformation
         element->SetHardeningSlope(5e5);
         element->SetCCPInitial(CCPInitial);
@@ -804,7 +804,7 @@ bool DruckerPragerPlastic(ChMatrixDynamic<> FileInputMat) {
         int node8 = 2 * XYNumNodes + i;
 
         // Create the element and set its nodes.
-        auto element = chrono_types::make_shared<ChElementBrick_9>();
+        auto element = chrono_types::make_shared<ChElementHexaANCF_3813_9>();
         element->SetNodes(std::dynamic_pointer_cast<ChNodeFEAxyz>(my_mesh->GetNode(node0)),
                           std::dynamic_pointer_cast<ChNodeFEAxyz>(my_mesh->GetNode(node1)),
                           std::dynamic_pointer_cast<ChNodeFEAxyz>(my_mesh->GetNode(node2)),
@@ -824,9 +824,9 @@ bool DruckerPragerPlastic(ChMatrixDynamic<> FileInputMat) {
         // Set other element properties
         element->SetAlphaDamp(0.0);  // Structural damping for this element
 
-        element->SetStrainFormulation(ChElementBrick_9::Hencky);
+        element->SetStrainFormulation(ChElementHexaANCF_3813_9::Hencky);
         element->SetPlasticity(true);
-        element->SetPlasticityFormulation(ChElementBrick_9::DruckerPrager);
+        element->SetPlasticityFormulation(ChElementHexaANCF_3813_9::DruckerPrager);
         element->SetDPIterationNo(50);
         element->SetDPYieldTol(1e-8);
         element->SetYieldStress(1.0);  // Very low Yield Stress to ensure plastic deformation

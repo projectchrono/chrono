@@ -17,7 +17,7 @@
 // =============================================================================
 
 #include "chrono/physics/ChSystemSMC.h"
-#include "chrono/fea/ChElementBrick.h"
+#include "chrono/fea/ChElementHexaANCF_3813.h"
 #include "chrono/fea/ChElementBar.h"
 #include "chrono/fea/ChLinkPointFrame.h"
 #include "chrono/fea/ChLinkDirFrame.h"
@@ -176,9 +176,10 @@ int main(int argc, char* argv[]) {
 
     int elemcount = 0;
     while (elemcount < TotalNumElements) {
-        auto element = chrono_types::make_shared<ChElementBrick>();
-        ChVector<double> InertFlexVec(ElemLengthXY(elemcount, 0), ElemLengthXY(elemcount, 1),
-                                      ElemLengthXY(elemcount, 2));  // read element length, used in ChElementBrick
+        auto element = chrono_types::make_shared<ChElementHexaANCF_3813>();
+        ChVector<double> InertFlexVec(
+            ElemLengthXY(elemcount, 0), ElemLengthXY(elemcount, 1),
+            ElemLengthXY(elemcount, 2));  // read element length, used in ChElementHexaANCF_3813
         element->SetInertFlexVec(InertFlexVec);
         element->SetNodes(std::dynamic_pointer_cast<ChNodeFEAxyz>(my_mesh->GetNode(NumNodes(elemcount, 0))),
                           std::dynamic_pointer_cast<ChNodeFEAxyz>(my_mesh->GetNode(NumNodes(elemcount, 1))),
