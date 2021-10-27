@@ -366,18 +366,6 @@ inline __device__ float3 computeFrictionForces(ChSystemGpu_impl::GranParamsPtr g
         }
     }
 
-    // float velo_unit = gran_params->LENGTH_UNIT/gran_params->TIME_UNIT;
-    // float len_unit = gran_params->LENGTH_UNIT;
-    // float force_unit = gran_params->MASS_UNIT * gran_params->LENGTH_UNIT/(gran_params->TIME_UNIT * gran_params->TIME_UNIT);
-    // float stiffness_unit = gran_params->MASS_UNIT/(gran_params->TIME_UNIT * gran_params->TIME_UNIT);
-    // float damp_unit = gran_params->MASS_UNIT/gran_params->TIME_UNIT;
-
-    // printf("%e, %e, %e, %e, %e, %e, %e, %e, %e, %e, %e, %e\n", ft_max * force_unit,
-    // tangent_force.x * force_unit, tangent_force.y * force_unit, tangent_force.z * force_unit, k_t * stiffness_unit, 
-    // delta_t.x * len_unit, delta_t.y * len_unit, delta_t.z * len_unit, gamma_t * damp_unit, 
-    // vrel_t.x * velo_unit, vrel_t.y * velo_unit, vrel_t.z * velo_unit);
-
-
     return tangent_force;
 }
 

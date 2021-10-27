@@ -191,8 +191,6 @@ __global__ void interactionGranMat_TriangleSoup_matBased(ChSystemGpuMesh_impl::T
     unsigned int sphereIDLocal = threadIdx.x;
     unsigned int sphereIDGlobal = NULL_CHGPU_ID;
 
-    // printf("get called? sphere ID local: %d, spheres touching this SD: %d\n", sphereIDLocal, spheresTouchingThisSD);
-
     // Bring in data from global into shmem. Only a subset of threads get to do this.
     // Note that we're not using shared memory very heavily, so our bandwidth is pretty low
     if (sphereIDLocal < spheresTouchingThisSD) {
@@ -303,12 +301,10 @@ __global__ void interactionGranMat_TriangleSoup_matBased(ChSystemGpuMesh_impl::T
 
             // If there is a collision, add an impulse to the sphere
             if (valid_contact) {
-                // printf("depth: %e\n", depth * gran_params->LENGTH_UNIT);
                 // TODO contact models
                 // Use the CD information to compute the force on the grElement
                 // normal points from triangle to sphere
                 float3 delta = -depth * normal;
-                // printf("normal = %e, %e, %e\n", normal.x, normal.y, normal.z);
 
                 // effective radius is just sphere radius -- assume meshes are locally flat (a safe assumption?)
                 // float hertz_force_factor = sqrt(abs(depth) / gran_params->sphereRadius_SU);
@@ -328,7 +324,6 @@ __global__ void interactionGranMat_TriangleSoup_matBased(ChSystemGpuMesh_impl::T
                 // stiffness and damping coefficient
                 float kn = (2.0 / 3.0) * Sn;
                 float gn = 2 * sqrt(5.0 / 6.0) * beta * sqrt(Sn * m_eff);
-                // printf("kn = %e, gn = %e\n", kn, gn);
                 // relative velocity = v_sphere - v_mesh
                 float3 v_rel = sphere_vel[sphereIDLocal] - d_triangleSoup->vel[fam];
 
@@ -361,7 +356,6 @@ __global__ void interactionGranMat_TriangleSoup_matBased(ChSystemGpuMesh_impl::T
                 float forceN_mag = -kn * depth + gn * projection;
 
                 float3 force_accum = forceN_mag * normal;
-                // printf("force_accum = %e, %e, %e\n", force_accum.x, force_accum.y, force_accum.z);
 
                 // Compute force updates for adhesion term, opposite the spring term
                 // NOTE ratio is wrt the weight of a sphere of mass 1
@@ -390,15 +384,6 @@ __global__ void interactionGranMat_TriangleSoup_matBased(ChSystemGpuMesh_impl::T
                                        (gran_params->TIME_UNIT * gran_params->TIME_UNIT);
 
                     float velocity_unit = gran_params->LENGTH_UNIT / gran_params->TIME_UNIT;
-
-                    // printf("triangle %d, normal: %e, %e, %e\n", triangleLocalID, normal.x, normal.y, normal.z);
-                    // printf("triangle %d, after projection vrel_t: %e, %e, %e\n", triangleLocalID, vrel_t.x *
-                    // velocity_unit, vrel_t.y * velocity_unit, vrel_t.z * velocity_unit);
-
-                    // printf("triangle %d, tangent force: %e, %e, %e\n", triangleLocalID, tangent_force.x * force_unit,
-                    // tangent_force.y * force_unit, tangent_force.z * force_unit);
-
-                    // printf("triangle %d, abs(Depth): %e\n", triangleLocalID, abs(depth));
 
                     force_accum = force_accum + tangent_force;
                     sphere_AngAcc =
@@ -484,8 +469,6 @@ __global__ void interactionGranMat_TriangleSoup(ChSystemGpuMesh_impl::TriangleSo
     unsigned int numSDTriangles = SD_numTrianglesTouching[thisSD];
     unsigned int sphereIDLocal = threadIdx.x;
     unsigned int sphereIDGlobal = NULL_CHGPU_ID;
-
-    // printf("get called? sphere ID local: %d, numSDTriangles: %d\n", sphereIDLocal, numSDTriangles);
 
     // Bring in data from global into shmem. Only a subset of threads get to do this.
     // Note that we're not using shared memory very heavily, so our bandwidth is pretty low

@@ -900,21 +900,22 @@ size_t ChSystemGpu_impl::CreateBCCylinderZ(float center[3], float radius, bool o
 }
 
 double ChSystemGpu_impl::get_max_K() const {
+    double maxK;
     if (gran_params->use_mat_based == true) {
         // material pparameter sigma for different surface
         // see reference eq 2.13, 2.14 in Book Contact Force Model, Flores and Lankarani
         double sigma_sphere = (1 - std::pow(PoissonRatio_sphere_UU, 2)) / YoungsModulus_sphere_UU;
         double sigma_wall = (1 - std::pow(PoissonRatio_sphere_UU, 2)) / YoungsModulus_wall_UU;
 
-        double maxK = 4.0 / (3.0 * (sigma_sphere + std::min(sigma_sphere, sigma_wall))) * std::sqrt(sphere_radius_UU);
+        maxK = 4.0 / (3.0 * (sigma_sphere + std::min(sigma_sphere, sigma_wall))) * std::sqrt(sphere_radius_UU);
 
-        INFO_PRINTF("use material based K: \n", gran_params->use_mat_based);
+        INFO_PRINTF("Use material based contact force model, maximum effective stiffnes is %e\n", maxK);
         return maxK;
 
     } else {
-        INFO_PRINTF("use user defined  K: \n", gran_params->use_mat_based);
-
-        return std::max(K_n_s2s_UU, K_n_s2w_UU);
+        maxK = std::max(K_n_s2s_UU, K_n_s2w_UU);
+        INFO_PRINTF("Use user defined contact force model, maximum effective stiffnes is %e\n", maxK);
+        return maxK;
     }
 }
 

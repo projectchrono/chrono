@@ -59,20 +59,23 @@ ChSystemGpuMesh_impl::~ChSystemGpuMesh_impl() {
     cleanupTriMesh();
 }
 double ChSystemGpuMesh_impl::get_max_K() const {
+    double maxK;
     if (tri_params->use_mat_based == true) {
+        // material pparameter sigma for different surface
+        // see reference eq 2.13, 2.14 in Book Contact Force Model, Flores and Lankarani
         double sigma_sphere = (1 - std::pow(PoissonRatio_sphere_UU, 2)) / YoungsModulus_sphere_UU;
         double sigma_wall = (1 - std::pow(PoissonRatio_wall_UU, 2)) / YoungsModulus_wall_UU;
         double sigma_mesh = (1 - std::pow(PoissonRatio_mesh_UU, 2)) / YoungsModulus_mesh_UU;
 
-        double maxK = 4.0 / (3.0 * (sigma_sphere + std::min(std::min(sigma_sphere, sigma_wall), sigma_mesh))) *
+        maxK = 4.0 / (3.0 * (sigma_sphere + std::min(std::min(sigma_sphere, sigma_wall), sigma_mesh))) *
                       std::sqrt(sphere_radius_UU);
-        printf("get_max_K %e, material based model\n", maxK);
+        INFO_PRINTF("Use material based contact force model, maximum effective stiffnes is %e\n", maxK);
         return maxK;
 
     } else {
-        printf("use user defined  K: \n");
-
-        return std::max(std::max(K_n_s2s_UU, K_n_s2w_UU), K_n_s2m_UU);
+        maxK = std::max(std::max(K_n_s2s_UU, K_n_s2w_UU), K_n_s2m_UU);
+        INFO_PRINTF("Use user defined contact force model, maximum effective stiffnes is %e\n", maxK);
+        return maxK;
     }
 }
 

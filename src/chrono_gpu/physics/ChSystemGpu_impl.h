@@ -446,7 +446,6 @@ class ChSystemGpu_impl {
     template <typename T1, typename T2>
     T1 convertToPosSU(T2 val) {
         return (T1)(val / gran_params->LENGTH_UNIT);
-        printf("LENGTH_UNIT: %e\n", gran_params->LENGTH_UNIT);
     }
 
     /// convert all BCs from UU to SU
