@@ -515,7 +515,6 @@ __host__ void ChSystemGpu_impl::updateBCPositions() {
 }
 
 __host__ double ChSystemGpu_impl::AdvanceSimulation(float duration) {
-    printf("AdvanceSimulation SMC");
     // Figure our the number of blocks that need to be launched to cover the box
     unsigned int nBlocks = (nSpheres + CUDA_THREADS_PER_BLOCK - 1) / CUDA_THREADS_PER_BLOCK;
 
@@ -529,7 +528,6 @@ __host__ double ChSystemGpu_impl::AdvanceSimulation(float duration) {
 
     // Run the simulation, there are aggressive synchronizations because we want to have no race conditions
     for (unsigned int n = 0; n < nsteps; n++) {
-        printf("steps %d", n);
         updateBCPositions();
         runSphereBroadphase();
         packSphereDataPointers();
@@ -560,51 +558,6 @@ __host__ double ChSystemGpu_impl::AdvanceSimulation(float duration) {
             gpuErrchk(cudaPeekAtLastError());
             gpuErrchk(cudaDeviceSynchronize());
         }
-
-        // clustering mostly takes place here. 
-        if ((gran_params->cluster_graph_method > CLUSTER_GRAPH_METHOD::NONE) 
-            && (gran_params->cluster_search_method > CLUSTER_SEARCH_METHOD::NONE)) {
-            unsigned int min_pts = 4;
-            float radius = 1.0f;
-            // step 1- Graph construction
-            switch(gran_params->cluster_graph_method) {
-                case CLUSTER_GRAPH_METHOD::CONTACT: {
-                    /// adj_num computed before. adj_start not summed yet
-                    /// Compute subsequent adj_start indices.
-                    /// all start indices after mySphereID depend on it -> inclusive sum
-                    void * d_temp_storage = NULL;
-                    size_t bytesize = 0;
-                    /// with d_temp_storage = NULL, InclusiveSum computes necessary bytesize
-                    cub::DeviceScan::InclusiveSum(d_temp_storage, bytesize,
-                        sphere_data->adj_start,
-                        sphere_data->adj_start, gran_params->nSpheres);
-                    gpuErrchk(cudaMalloc(&d_temp_storage, bytesize));
-                    /// Actually perform IncluseSum
-                    cub::DeviceScan::InclusiveSum(d_temp_storage, bytesize,
-                        sphere_data->adj_start,
-                        sphere_data->adj_start, gran_params->nSpheres);
-                    gpuErrchk(cudaFree(d_temp_storage));
-                    break;
-                }
-
-                case CLUSTER_GRAPH_METHOD::PROXIMITY: {
-                    gdbscan_construct_graph(sphere_data, gran_params, nSpheres, min_pts, radius);
-                    break;
-                }
-                default: {break;}
-            }
-
-            // step 2- Search the graph, find the clusters.
-            switch(gran_params->cluster_search_method) {
-                case CLUSTER_SEARCH_METHOD::BFS: {
-                    gdbscan_search_graph(sphere_data, gran_params, nSpheres, min_pts);
-                    break;
-                }
-                default: {break;}
-            }
-        }
-        gpuErrchk(cudaPeekAtLastError());
-        gpuErrchk(cudaDeviceSynchronize());
         
         METRICS_PRINTF("Starting integrateSpheres!\n");
         integrateSpheres<<<nBlocks, CUDA_THREADS_PER_BLOCK>>>(stepSize_SU, sphere_data, nSpheres, gran_params);

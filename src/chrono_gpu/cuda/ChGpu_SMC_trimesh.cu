@@ -420,7 +420,6 @@ __global__ void interactionGranMat_TriangleSoup(ChSystemGpuMesh_impl::TriangleSo
 }  // end kernel
 
 __host__ double ChSystemGpuMesh_impl::AdvanceSimulation(float duration) {
-    // printf("AdvanceSimulation trimesh\n");
     // Figure our the number of blocks that need to be launched to cover the box
     unsigned int nBlocks = (nSpheres + CUDA_THREADS_PER_BLOCK - 1) / CUDA_THREADS_PER_BLOCK;
 
@@ -439,7 +438,6 @@ __host__ double ChSystemGpuMesh_impl::AdvanceSimulation(float duration) {
     float time_elapsed_SU = 0.f;  // time elapsed in this call (SU)
     // Run the simulation, there are aggressive synchronizations because we want to have no race conditions
     for (; time_elapsed_SU < stepSize_SU * nsteps; time_elapsed_SU += stepSize_SU) {
-        // printf("time_elapsed_SU %f %f \n", time_elapsed_SU, stepSize_SU * nsteps);
         updateBCPositions();
         resetSphereAccelerations();
         resetBCForces();
@@ -457,14 +455,20 @@ __host__ double ChSystemGpuMesh_impl::AdvanceSimulation(float duration) {
                 (unsigned int)BC_params_list_SU.size());
         } else if (gran_params->friction_mode == CHGPU_FRICTION_MODE::SINGLE_STEP ||
                    gran_params->friction_mode == CHGPU_FRICTION_MODE::MULTI_STEP) {
-            // figure out who is contacting + adj_num if CLUSTER_GRAPH_METHOD::CONTACT 
+
+            // figure out who is contacting
             determineContactPairs<<<nSDs, MAX_COUNT_OF_SPHERES_PER_SD>>>(sphere_data, gran_params);
             gpuErrchk(cudaPeekAtLastError());
             gpuErrchk(cudaDeviceSynchronize());
 
-            // computing adj_start from adj_num
+            // computing adj_num and adj_start
             if ((gran_params->cluster_graph_method == CLUSTER_GRAPH_METHOD::CONTACT) 
                 && (gran_params->cluster_search_method > CLUSTER_SEARCH_METHOD::NONE)) {
+                cluster_contact_adj_num<<<nBlocks, CUDA_THREADS_PER_BLOCK>>>(sphere_data,
+                                                                 gran_params, nSpheres);
+                gpuErrchk(cudaPeekAtLastError());
+                gpuErrchk(cudaDeviceSynchronize());
+
                 cluster_adj_num2start(nSpheres, sphere_data->adj_num, sphere_data->adj_start);
             }
             gpuErrchk(cudaPeekAtLastError());
@@ -476,7 +480,6 @@ __host__ double ChSystemGpuMesh_impl::AdvanceSimulation(float duration) {
                 (unsigned int)BC_params_list_SU.size(), nSpheres);
             gpuErrchk(cudaPeekAtLastError());
             gpuErrchk(cudaDeviceSynchronize());
-
         }
         gpuErrchk(cudaPeekAtLastError());
         gpuErrchk(cudaDeviceSynchronize());
@@ -529,7 +532,7 @@ __host__ double ChSystemGpuMesh_impl::AdvanceSimulation(float duration) {
     // Clustering is slow in general, so should be done after all steps.
     if ((gran_params->cluster_graph_method > CLUSTER_GRAPH_METHOD::NONE) 
         && (gran_params->cluster_search_method > CLUSTER_SEARCH_METHOD::NONE)) {
-        unsigned int min_pts = 6;
+        unsigned int min_pts = 1;
         float radius = 1.0f;
         // step 1- Graph construction
         switch(gran_params->cluster_graph_method) {
