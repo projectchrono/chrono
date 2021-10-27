@@ -132,7 +132,6 @@ size_t ChSystemGpu_impl::EstimateMemUsage() const {
 
 void ChSystemGpu_impl::packSphereDataPointers() {
     // Set data from system
-    printf("packSphereDataPointers\n");
     sphere_data->sphere_local_pos_X = sphere_local_pos_X.data();
     sphere_data->sphere_local_pos_Y = sphere_local_pos_Y.data();
     sphere_data->sphere_local_pos_Z = sphere_local_pos_Z.data();
@@ -203,7 +202,6 @@ void ChSystemGpu_impl::packSphereDataPointers() {
             sphere_data->rolling_friction_torque = rolling_friction_torque.data();
         }
     }
-    printf("OUT OF packSphereDataPointers\n");
 }
 
 void ChSystemGpu_impl::WriteFile(
@@ -286,6 +284,9 @@ void ChSystemGpu_impl::WriteFile(
         if (GET_OUTPUT_SETTING(CHGPU_OUTPUT_FLAGS::CLUSTER)) {
             outstrstream << ",cluster";
         }
+        if (GET_OUTPUT_SETTING(CHGPU_OUTPUT_FLAGS::ADJACENCY)) {
+            outstrstream << ",adj_num";
+        }
 
         if (gran_params->friction_mode != CHGPU_FRICTION_MODE::FRICTIONLESS && GET_OUTPUT_SETTING(CHGPU_OUTPUT_FLAGS::ANG_VEL_COMPONENTS)) {
             outstrstream << ",wx,wy,wz";
@@ -347,6 +348,10 @@ void ChSystemGpu_impl::WriteFile(
             if (GET_OUTPUT_SETTING(CHGPU_OUTPUT_FLAGS::CLUSTER)) {
                 int cluster = (int)sphere_cluster[n];
                 outstrstream << "," << cluster;
+            }
+            if (GET_OUTPUT_SETTING(CHGPU_OUTPUT_FLAGS::ADJACENCY)) {
+                int adjacency = (int)adj_num[n];
+                outstrstream << "," << adjacency;
             }
 
             if (gran_params->friction_mode != CHGPU_FRICTION_MODE::FRICTIONLESS &&

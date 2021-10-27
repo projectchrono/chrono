@@ -47,7 +47,7 @@ enum class CHGPU_FRICTION_MODE { FRICTIONLESS, SINGLE_STEP, MULTI_STEP };
 /// Rolling resistance models -- ELASTIC_PLASTIC not implemented yet.
 enum class CHGPU_ROLLING_MODE { NO_RESISTANCE, SCHWARTZ, ELASTIC_PLASTIC };
 
-enum CHGPU_OUTPUT_FLAGS { ABSV = 1, VEL_COMPONENTS = 2, FIXITY = 4, ANG_VEL_COMPONENTS = 8, FORCE_COMPONENTS = 16, GROUP = 32, CLUSTER = 64};
+enum CHGPU_OUTPUT_FLAGS { ABSV = 1, VEL_COMPONENTS = 2, FIXITY = 4, ANG_VEL_COMPONENTS = 8, FORCE_COMPONENTS = 16, GROUP = 32, CLUSTER = 64, ADJACENCY = 128 };
 
 /// Clustering algorithm switches
 // 0 on ANY cluster related switch means no clustering done, all particles group 0.
@@ -59,7 +59,7 @@ enum class CLUSTER_SEARCH_METHOD {NONE = 0, BFS = 1}; // TO DO: implement other 
 // BFS -> Breadth-First search
 
 /// Cluster index. Ground cluster has most spheres.
-enum class CLUSTER_INDEX {GROUND = 0, START = 1};/* number of clusters go up to nSpheres */
+enum class CLUSTER_INDEX {GROUND = 0, NOCLUSTER = 1, START = 2};/* number of clusters go up to nSpheres */
 
 /// Sphere groups, core border or noise for clustering, volume inside bucket
 enum class SPHERE_GROUP {CORE = 0, BORDER = 1, NOISE = 2, VOLUME = 3};

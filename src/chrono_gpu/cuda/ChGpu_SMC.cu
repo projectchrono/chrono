@@ -548,7 +548,7 @@ __host__ double ChSystemGpu_impl::AdvanceSimulation(float duration) {
         } else if (gran_params->friction_mode == CHGPU_FRICTION_MODE::SINGLE_STEP ||
                    gran_params->friction_mode == CHGPU_FRICTION_MODE::MULTI_STEP) {
 
-            // figure out who is contacting + graph construction if CLUSTER_ enums enabled
+            // figure out who is contacting
             determineContactPairs<<<nSDs, MAX_COUNT_OF_SPHERES_PER_SD>>>(sphere_data, gran_params);
             gpuErrchk(cudaPeekAtLastError());
             gpuErrchk(cudaDeviceSynchronize());

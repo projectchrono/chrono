@@ -278,7 +278,7 @@ static __global__ void init_sphere_group_gdbscan(unsigned int nSpheres,
 static __host__ void gdbscan_construct_graph(ChSystemGpu_impl::GranSphereDataPtr sphere_data,
                                            ChSystemGpu_impl::GranParamsPtr gran_params,
                                            unsigned int nSpheres, size_t min_pts, float radius) {
-    printf("gdbscan_construct_graph");
+    // printf("gdbscan_construct_graph");
     unsigned int nBlocks = (nSpheres + CUDA_THREADS_PER_BLOCK - 1) / CUDA_THREADS_PER_BLOCK;
 
     // /// 2 steps:
@@ -290,6 +290,23 @@ static __host__ void gdbscan_construct_graph(ChSystemGpu_impl::GranSphereDataPtr
     // construct_adj_list_by_proximity<<<nBlocks, CUDA_THREADS_PER_BLOCK>>>(sphere_data, gran_params, nSpheres,
     //         radius, adj_num, adj_start, adj_list);
 }
+
+// compute adj_start from adj_num. assumes memory was allocated
+static __host__ void cluster_adj_num2start(unsigned int nSpheres, unsigned int * adj_num, unsigned int * adj_start) {
+    memcpy(adj_start, adj_num, sizeof(*adj_start) * nSpheres);
+    /// all start indices after mySphereID depend on it -> inclusive sum
+    void * d_temp_storage = NULL;
+    size_t bytesize = 0;
+    /// with d_temp_storage = NULL, InclusiveSum computes necessary bytesize
+    cub::DeviceScan::ExclusiveSum(d_temp_storage, bytesize,
+    adj_start, adj_start, nSpheres);
+    gpuErrchk(cudaMalloc(&d_temp_storage, bytesize));
+    /// Actually perform IncluseSum
+    cub::DeviceScan::ExclusiveSum(d_temp_storage, bytesize,
+    adj_start, adj_start, nSpheres);
+    gpuErrchk(cudaFree(d_temp_storage));
+}
+
 
 /// if cluster is NULL, just update all spheres to cluster.
 static __global__ void init_sphere_cluster(ChSystemGpu_impl::GranSphereDataPtr sphere_data,
