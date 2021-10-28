@@ -82,7 +82,7 @@ ChSystemGpu_impl::ChSystemGpu_impl(float sphere_rad, float density, float3 boxDi
     gran_params->gdbscan_min_pts = 3;
 
     this->time_integrator = CHGPU_TIME_INTEGRATOR::EXTENDED_TAYLOR;
-    this->output_flags = CHGPU_OUTPUT_FLAGS::ABSV |  CHGPU_OUTPUT_FLAGS::ANG_VEL_COMPONENTS;
+    this->output_flags = ABSV | ANG_VEL_COMPONENTS | CLUSTER | ADJACENCY;
 
     gran_params->max_safe_vel = (float)UINT_MAX;
 
@@ -238,7 +238,7 @@ void ChSystemGpu_impl::WriteFile(
             ptFile.write((const char*)&y_UU, sizeof(float));
             ptFile.write((const char*)&z_UU, sizeof(float));
 
-            if (GET_OUTPUT_SETTING(CHGPU_OUTPUT_FLAGS::VEL_COMPONENTS)) {
+            if (GET_OUTPUT_SETTING(VEL_COMPONENTS)) {
                 float vx_UU = (float)(pos_X_dt[n] * LENGTH_SU2UU / TIME_SU2UU);
                 float vy_UU = (float)(pos_Y_dt[n] * LENGTH_SU2UU / TIME_SU2UU);
                 float vz_UU = (float)(pos_Z_dt[n] * LENGTH_SU2UU / TIME_SU2UU);
@@ -248,7 +248,7 @@ void ChSystemGpu_impl::WriteFile(
                 ptFile.write((const char*)&vz_UU, sizeof(float));
             }
 
-            if (GET_OUTPUT_SETTING(CHGPU_OUTPUT_FLAGS::ABSV)) {
+            if (GET_OUTPUT_SETTING(ABSV)) {
                 float absv = (float)(std::sqrt(pos_X_dt.at(n) * pos_X_dt.at(n) + pos_Y_dt.at(n) * pos_Y_dt.at(n) +
                                                pos_Z_dt.at(n) * pos_Z_dt.at(n)) *
                                      VEL_SU2UU);
@@ -257,7 +257,7 @@ void ChSystemGpu_impl::WriteFile(
             }
 
             if (gran_params->friction_mode != CHGPU_FRICTION_MODE::FRICTIONLESS &&
-                GET_OUTPUT_SETTING(CHGPU_OUTPUT_FLAGS::ANG_VEL_COMPONENTS)) {
+                GET_OUTPUT_SETTING(ANG_VEL_COMPONENTS)) {
                 float omega_x_UU = (float)(sphere_Omega_X.at(n) / TIME_SU2UU);
                 float omega_y_UU = (float)(sphere_Omega_Y.at(n) / TIME_SU2UU);
                 float omega_z_UU = (float)(sphere_Omega_Z.at(n) / TIME_SU2UU);
@@ -273,30 +273,30 @@ void ChSystemGpu_impl::WriteFile(
         // Dump to a stream, write to file only at end
         std::ostringstream outstrstream;
         outstrstream << "x,y,z";
-        if (GET_OUTPUT_SETTING(CHGPU_OUTPUT_FLAGS::VEL_COMPONENTS)) {
+        if (GET_OUTPUT_SETTING(VEL_COMPONENTS)) {
             outstrstream << ",vx,vy,vz";
         }
-        if (GET_OUTPUT_SETTING(CHGPU_OUTPUT_FLAGS::ABSV)) {
+        if (GET_OUTPUT_SETTING(ABSV)) {
             outstrstream << ",absv";
         }
-        if (GET_OUTPUT_SETTING(CHGPU_OUTPUT_FLAGS::FIXITY)) {
+        if (GET_OUTPUT_SETTING(FIXITY)) {
             outstrstream << ",fixed";
         }
-        if (GET_OUTPUT_SETTING(CHGPU_OUTPUT_FLAGS::GROUP)) {
+        if (GET_OUTPUT_SETTING(GROUP)) {
             outstrstream << ",group";
         }
-        if (GET_OUTPUT_SETTING(CHGPU_OUTPUT_FLAGS::CLUSTER)) {
+        if (GET_OUTPUT_SETTING(CLUSTER)) {
             outstrstream << ",cluster";
         }
-        if (GET_OUTPUT_SETTING(CHGPU_OUTPUT_FLAGS::ADJACENCY)) {
+        if (GET_OUTPUT_SETTING(ADJACENCY)) {
             outstrstream << ",adj_num";
         }
 
-        if (gran_params->friction_mode != CHGPU_FRICTION_MODE::FRICTIONLESS && GET_OUTPUT_SETTING(CHGPU_OUTPUT_FLAGS::ANG_VEL_COMPONENTS)) {
+        if (gran_params->friction_mode != CHGPU_FRICTION_MODE::FRICTIONLESS && GET_OUTPUT_SETTING(ANG_VEL_COMPONENTS)) {
             outstrstream << ",wx,wy,wz";
         }
 
-        if (GET_OUTPUT_SETTING(CHGPU_OUTPUT_FLAGS::FORCE_COMPONENTS)) {
+        if (GET_OUTPUT_SETTING(FORCE_COMPONENTS)) {
             outstrstream << ",fx,fy,fz";
         }
 
@@ -321,7 +321,7 @@ void ChSystemGpu_impl::WriteFile(
 
             outstrstream << point.x() << "," << point.y() << "," << point.z();
 
-            if (GET_OUTPUT_SETTING(CHGPU_OUTPUT_FLAGS::VEL_COMPONENTS)) {
+            if (GET_OUTPUT_SETTING(VEL_COMPONENTS)) {
                 float vx_UU = (float)(pos_X_dt[n] * LENGTH_SU2UU / TIME_SU2UU);
                 float vy_UU = (float)(pos_Y_dt[n] * LENGTH_SU2UU / TIME_SU2UU);
                 float vz_UU = (float)(pos_Z_dt[n] * LENGTH_SU2UU / TIME_SU2UU);
@@ -332,35 +332,35 @@ void ChSystemGpu_impl::WriteFile(
                 outstrstream << "," << velocity.x() << "," << velocity.y() << "," << velocity.z();
             }
 
-            if (GET_OUTPUT_SETTING(CHGPU_OUTPUT_FLAGS::ABSV)) {
+            if (GET_OUTPUT_SETTING(ABSV)) {
                 float absv = (float)(std::sqrt(pos_X_dt.at(n) * pos_X_dt.at(n) + pos_Y_dt.at(n) * pos_Y_dt.at(n) +
                                                pos_Z_dt.at(n) * pos_Z_dt.at(n)) *
                                      VEL_SU2UU);
                 outstrstream << "," << absv;
             }
 
-            if (GET_OUTPUT_SETTING(CHGPU_OUTPUT_FLAGS::FIXITY)) {
+            if (GET_OUTPUT_SETTING(FIXITY)) {
                 int fixed = (int)sphere_fixed[n];
                 outstrstream << "," << fixed;
             }
 
-            if (GET_OUTPUT_SETTING(CHGPU_OUTPUT_FLAGS::GROUP)) {
+            if (GET_OUTPUT_SETTING(GROUP)) {
                 int group = (int)sphere_group[n];
                 outstrstream << "," << group;
             }
 
-            if (GET_OUTPUT_SETTING(CHGPU_OUTPUT_FLAGS::CLUSTER)) {
+            if (GET_OUTPUT_SETTING(CLUSTER)) {
                 int cluster = (int)sphere_cluster[n];
                 outstrstream << "," << cluster;
             }
 
-            if (GET_OUTPUT_SETTING(CHGPU_OUTPUT_FLAGS::ADJACENCY)) {
+            if (GET_OUTPUT_SETTING(ADJACENCY)) {
                 int adjacency = (int)adj_num[n];
                 outstrstream << "," << adjacency;
             }
 
             if (gran_params->friction_mode != CHGPU_FRICTION_MODE::FRICTIONLESS &&
-                GET_OUTPUT_SETTING(CHGPU_OUTPUT_FLAGS::ANG_VEL_COMPONENTS)) {
+                GET_OUTPUT_SETTING(ANG_VEL_COMPONENTS)) {
                 float avx_UU = sphere_Omega_X.at(n) / TIME_SU2UU;
                 float avy_UU = sphere_Omega_Y.at(n) / TIME_SU2UU;
                 float avz_UU = sphere_Omega_Z.at(n) / TIME_SU2UU;
@@ -372,7 +372,7 @@ void ChSystemGpu_impl::WriteFile(
                              << "," << angular_velocity.z();
             }
 
-            if (GET_OUTPUT_SETTING(CHGPU_OUTPUT_FLAGS::FORCE_COMPONENTS)) {
+            if (GET_OUTPUT_SETTING(FORCE_COMPONENTS)) {
                 double fx =
                     (sphere_acc_X.at(n) - gran_params->gravAcc_X_SU) * gran_params->sphere_mass_SU * FORCE_SU2UU;
                 double fy =
@@ -449,7 +449,7 @@ void ChSystemGpu_impl::WriteFile(
             delete[] vx, vy, vz;
         }
 
-        if (GET_OUTPUT_SETTING(CHGPU_OUTPUT_FLAGS::ABSV)) {
+        if (GET_OUTPUT_SETTING(ABSV)) {
             float* absv = new float[nSpheres];
             for (size_t n = 0; n < nSpheres; n++) {
                 absv[n] = sqrt(pos_X_dt.at(n) * pos_X_dt.at(n) + pos_Y_dt.at(n) * pos_Y_dt.at(n) +
@@ -462,7 +462,7 @@ void ChSystemGpu_impl::WriteFile(
             delete[] absv;
         }
 
-        if (GET_OUTPUT_SETTING(CHGPU_OUTPUT_FLAGS::FIXITY)) {
+        if (GET_OUTPUT_SETTING(FIXITY)) {
             unsigned char* fixed = new unsigned char[nSpheres];
             for (size_t n = 0; n < nSpheres; n++) {
                 fixed[n] = (unsigned char)sphere_fixed[n];
@@ -473,7 +473,7 @@ void ChSystemGpu_impl::WriteFile(
             delete[] fixed;
         }
 
-        if (GET_OUTPUT_SETTING(CHGPU_OUTPUT_FLAGS::GROUP)) {
+        if (GET_OUTPUT_SETTING(GROUP)) {
             unsigned char* group = new unsigned char[nSpheres];
             for (size_t n = 0; n < nSpheres; n++) {
                 group[n] = sphere_group[n];
