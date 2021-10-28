@@ -68,6 +68,18 @@ static __global__ void GdbscanInitSphereCluster(unsigned int nSpheres,
     }
 }
 
+// set spheres found inside mesh to group VOLUME
+// must de run AFTER interactionGranMat_TriangleSoup()
+static __global__ void SetVolumeSphereGroup(ChSystemGpu_impl::GranSphereDataPtr sphere_data,
+                                            unsigned int nSpheres) {
+    unsigned int mySphereID = threadIdx.x + blockIdx.x * blockDim.x;
+    // don't overrun the array
+    if (mySphereID < nSpheres) {
+        if (sphere_data->sphere_inside_mesh[mySphereID]) {
+           sphere_data->sphere_group[mySphereID] = SPHERE_GROUP::VOLUME;
+    }
+}
+
 static __global__ void GdbscanFinalClusterFromGroup(unsigned int nSpheres,
                                            unsigned int* sphere_cluster,
                                            SPHERE_GROUP* sphere_group) {
@@ -79,6 +91,19 @@ static __global__ void GdbscanFinalClusterFromGroup(unsigned int nSpheres,
         }
     }
 }
+
+static __global__ void GdbscanFinalClusterFromGroup(unsigned int nSpheres,
+                                           unsigned int* sphere_cluster,
+                                           SPHERE_GROUP* sphere_group) {
+    unsigned int mySphereID = threadIdx.x + blockIdx.x * blockDim.x;
+    // don't overrun the array
+    if (mySphereID < nSpheres) {
+        if (sphere_group[mySphereID] == SPHERE_GROUP::NOISE) {
+            sphere_cluster[mySphereID] = static_cast<unsigned int>(chrono::gpu::CLUSTER_INDEX::INVALID);
+        }
+    }
+}
+
 
 /// G-DBSCAN; density-based h_clustering algorithm. Identifies core, border and noise points in h_clusters.
 /// SEARCH STEP

@@ -78,6 +78,9 @@ ChSystemGpu_impl::ChSystemGpu_impl(float sphere_rad, float density, float3 boxDi
     gran_params->cluster_graph_method = CLUSTER_GRAPH_METHOD::CONTACT;
     gran_params->cluster_search_method = CLUSTER_SEARCH_METHOD::BFS;
 
+    gran_params->gdbscan_radius = 0.1f; // [m] ?
+    gran_params->gdbscan_min_pts = 6;
+
     this->time_integrator = CHGPU_TIME_INTEGRATOR::EXTENDED_TAYLOR;
     this->output_flags = CHGPU_OUTPUT_FLAGS::ABSV |  CHGPU_OUTPUT_FLAGS::ANG_VEL_COMPONENTS;
 
@@ -168,6 +171,7 @@ void ChSystemGpu_impl::packSphereDataPointers() {
     sphere_data->sphere_fixed = sphere_fixed.data();
     sphere_data->sphere_group = sphere_group.data();
     sphere_data->sphere_cluster = sphere_cluster.data();
+    sphere_data->sphere_inside_mesh = sphere_inside_mesh.data();
 
     sphere_data->SD_NumSpheresTouching = SD_NumSpheresTouching.data();
     sphere_data->SD_SphereCompositeOffsets = SD_SphereCompositeOffsets.data();
@@ -349,6 +353,7 @@ void ChSystemGpu_impl::WriteFile(
                 int cluster = (int)sphere_cluster[n];
                 outstrstream << "," << cluster;
             }
+
             if (GET_OUTPUT_SETTING(CHGPU_OUTPUT_FLAGS::ADJACENCY)) {
                 int adjacency = (int)adj_num[n];
                 outstrstream << "," << adjacency;

@@ -259,7 +259,6 @@ __global__ void interactionGranMat_TriangleSoup(ChSystemGpuMesh_impl::TriangleSo
     float3 sphere_force = {0.f, 0.f, 0.f};
     float3 sphere_AngAcc = {0.f, 0.f, 0.f};
     if (sphereIDLocal < spheresTouchingThisSD) {
-        bool sphere_inside_mesh = false;
         bool first_volume_triangle = true;
         // loop over each triangle in the SD and compute the force this sphere (thread) exerts on it
         for (unsigned int triangleLocalID = 0; triangleLocalID < numSDTriangles; triangleLocalID++) {
@@ -300,10 +299,10 @@ __global__ void interactionGranMat_TriangleSoup(ChSystemGpuMesh_impl::TriangleSo
                     int64_t3_to_double3(convertPosLocalToGlobal(thisSD, sphere_pos_local[sphereIDLocal], gran_params));
 
                 if (first_volume_triangle) {
-                    sphere_inside_mesh = true;
+                    sphere_data->sphere_inside_mesh[sphereIDGlobal] = true;
                     first_volume_triangle = false;
                 }
-                sphere_inside_mesh = sphere_inside_mesh && sphere_behind_face(
+                sphere_data->sphere_inside_mesh[sphereIDGlobal] = sphere_data->sphere_inside_mesh[sphereIDGlobal] && sphere_behind_face(
                         node1[triangleLocalID], node2[triangleLocalID], node3[triangleLocalID],
                         sphCntr, gran_params->sphereRadius_SU);
             }
@@ -401,9 +400,6 @@ __global__ void interactionGranMat_TriangleSoup(ChSystemGpuMesh_impl::TriangleSo
                 atomicAdd(d_triangleSoup->generalizedForcesPerFamily + fam * 6 + 5, torque.z);
             }
         }  // end of per-triangle loop
-        if (sphere_inside_mesh) {
-            sphere_data->sphere_group[sphereIDGlobal] = SPHERE_GROUP::VOLUME;
-        }
 
         // write back sphere forces
         atomicAdd(sphere_data->sphere_acc_X + sphereIDGlobal, sphere_force.x / gran_params->sphere_mass_SU);
@@ -529,15 +525,13 @@ __host__ double ChSystemGpuMesh_impl::AdvanceSimulation(float duration) {
     // WriteAdjacencyFiles("test");
     // getchar();
 
-    // Clustering is slow in general, so should be done after all steps.
+    // Clustering is not that fast in general, so should be done after all steps.
     if ((gran_params->cluster_graph_method > CLUSTER_GRAPH_METHOD::NONE) 
         && (gran_params->cluster_search_method > CLUSTER_SEARCH_METHOD::NONE)) {
-        unsigned int min_pts = 1;
-        float radius = 1.0f;
         // step 1- Graph construction
         switch(gran_params->cluster_graph_method) {
             case CLUSTER_GRAPH_METHOD::PROXIMITY: {
-                GdbscanConstructGraph(sphere_data, gran_params, nSpheres, min_pts, radius);
+                GdbscanConstructGraph(sphere_data, gran_params, nSpheres, gran_params->gdbscan_min_pts, gran_params->gdbscan_radius);
                 break;
             }
             default: {break;}
@@ -545,13 +539,12 @@ __host__ double ChSystemGpuMesh_impl::AdvanceSimulation(float duration) {
         // step 2- Search the graph, find the clusters.
         switch(gran_params->cluster_search_method) {
             case CLUSTER_SEARCH_METHOD::BFS: {
-                GdbscanSearchGraph(sphere_data, gran_params, nSpheres, min_pts);
+                GdbscanSearchGraph(sphere_data, gran_params, nSpheres, gran_params->gdbscan_min_pts);
                 break;
             }
             default: {break;}
         }
     }
-
 
     gpuErrchk(cudaPeekAtLastError());
     gpuErrchk(cudaDeviceSynchronize());

@@ -310,6 +310,10 @@ __host__ void GdbscanSearchGraph(ChSystemGpu_impl::GranSphereDataPtr sphere_data
     gpuErrchk(cudaPeekAtLastError());
     gpuErrchk(cudaDeviceSynchronize());
 
+    SetVolumeSphereGroup<<<nBlocks, CUDA_THREADS_PER_BLOCK>>>(sphere_data,nSpheres);
+    gpuErrchk(cudaPeekAtLastError());
+    gpuErrchk(cudaDeviceSynchronize());
+
     for (size_t i = 0; i < cluster_num; i++) {
         free(h_clusters[i]);
     }

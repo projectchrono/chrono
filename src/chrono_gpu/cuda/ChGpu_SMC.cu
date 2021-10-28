@@ -206,6 +206,7 @@ __host__ void ChSystemGpu_impl::defragment_initial_positions() {
     std::vector<not_stupid_bool, cudallocator<not_stupid_bool>> sphere_fixed_tmp;
     std::vector<SPHERE_GROUP, cudallocator<SPHERE_GROUP>> sphere_group_tmp;
     std::vector<unsigned int, cudallocator<unsigned int>> sphere_cluster_tmp;
+    std::vector<bool, cudallocator<bool>> sphere_inside_mesh_tmp;
     std::vector<unsigned int, cudallocator<unsigned int>> sphere_owner_SDs_tmp;
 
     sphere_pos_x_tmp.resize(nSpheres);
@@ -219,6 +220,7 @@ __host__ void ChSystemGpu_impl::defragment_initial_positions() {
     sphere_fixed_tmp.resize(nSpheres);
     sphere_group_tmp.resize(nSpheres);
     sphere_cluster_tmp.resize(nSpheres);
+    sphere_inside_mesh_tmp.resize(nSpheres);
     sphere_owner_SDs_tmp.resize(nSpheres);
 
     for (unsigned int i = 0; i < nSpheres; i++) {
@@ -233,6 +235,7 @@ __host__ void ChSystemGpu_impl::defragment_initial_positions() {
         sphere_fixed_tmp.at(i) = sphere_fixed.at(sphere_ids.at(i));
         sphere_group_tmp.at(i) = sphere_group.at(sphere_ids.at(i));
         sphere_cluster_tmp.at(i) = sphere_cluster.at(sphere_ids.at(i));
+        sphere_inside_mesh_tmp.at(i) = sphere_inside_mesh.at(sphere_ids.at(i));
         sphere_owner_SDs_tmp.at(i) = sphere_owner_SDs.at(sphere_ids.at(i));
     }
 
@@ -248,6 +251,7 @@ __host__ void ChSystemGpu_impl::defragment_initial_positions() {
     sphere_fixed.swap(sphere_fixed_tmp);
     sphere_group.swap(sphere_group_tmp);
     sphere_cluster.swap(sphere_cluster_tmp);
+    sphere_inside_mesh.swap(sphere_inside_mesh_tmp);
     sphere_owner_SDs.swap(sphere_owner_SDs_tmp);
 }
 __host__ void ChSystemGpu_impl::setupSphereDataStructures() {
@@ -275,6 +279,7 @@ __host__ void ChSystemGpu_impl::setupSphereDataStructures() {
     TRACK_VECTOR_RESIZE(sphere_fixed, nSpheres, "sphere_fixed", 0);
     TRACK_VECTOR_RESIZE(sphere_group, nSpheres, "sphere_group", SPHERE_GROUP::CORE);
     TRACK_VECTOR_RESIZE(sphere_cluster, nSpheres, "sphere_cluster", 1);
+    TRACK_VECTOR_RESIZE(sphere_inside_mesh, nSpheres, "sphere_inside_mesh", false);
 
     TRACK_VECTOR_RESIZE(pos_X_dt, nSpheres, "pos_X_dt", 0);
     TRACK_VECTOR_RESIZE(pos_Y_dt, nSpheres, "pos_Y_dt", 0);

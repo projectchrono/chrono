@@ -93,6 +93,7 @@ class ChSystemGpu_impl {
   protected:
     /// Structure with simulation parameters for sphere-based granular dynamics.
     /// This structure is stored in CUDA unified memory so that it can be accessed from both host and device.
+
     struct GranParams {
         float stepSize_SU;  ///< Timestep in SU
 
@@ -170,6 +171,13 @@ class ChSystemGpu_impl {
         float max_safe_vel = (float)UINT_MAX;
 
         bool recording_contactInfo;  ///< recording contact info
+
+        // GDBSCAN clustering parameters.
+        float gdbscan_radius; // ignored if CLUSTER_GRAPH_METHOD::CONTACT
+        unsigned int gdbscan_min_pts; // used if CLUSTER_GRAPH_METHOD::CONTACT
+
+        // k Nearest Neighbor parameters.
+        unsigned int kNN_neighbors_num;
     };
 
     /// Structure of pointers to kinematic quantities of the ChSystemGpu_impl.
@@ -207,6 +215,7 @@ class ChSystemGpu_impl {
 
         SPHERE_GROUP* sphere_group;  ///< Group to which the sphere belongs
         unsigned int* sphere_cluster; ///< Cluster to which the sphere belongs
+        bool* sphere_inside_mesh; ///< Is the sphere inside the bucket
 
         unsigned int* contact_partners_map;   ///< Contact partners for each sphere. Only in frictional simulations
         not_stupid_bool* contact_active_map;  ///< Whether the frictional contact at an index is active
@@ -548,6 +557,8 @@ class ChSystemGpu_impl {
     std::vector<SPHERE_GROUP, cudallocator<SPHERE_GROUP>> sphere_group;
     /// Sphere cluster
     std::vector<unsigned int, cudallocator<unsigned int>> sphere_cluster;
+    /// Sphere cluster
+    std::vector<bool, cudallocator<bool>> sphere_inside_mesh;
     
     /// Set of contact partners for each sphere. Only used in frictional simulations
     std::vector<unsigned int, cudallocator<unsigned int>> contact_partners_map;
