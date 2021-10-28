@@ -5,8 +5,7 @@ import glob
 import reader
 import mathutils
 from blend_ChParticle_utils import renderPsys
-
-#import multiprocessing
+import multiprocessing
 
 
 # resolution reduction for the rendered image, LOW speeds up things for development, HIGH is slow but produces HD images
@@ -247,3 +246,14 @@ def bl_render(meshes_prefixes, out_dir, datadirs, res, camera_mode, use_sky, cam
         #p.apply_async(render_image, [datadir+datafile, file_ind, out_dir, meshes_prefixes, res, targ_bodyid, targ_shapetypeid, targ_name, camera_mode, camera_dist, camera_pos, use_sky, a_up, light_loc, light_energy])
         render_image(datadirs, datafile, file_ind, out_dir, meshes_prefixes, res, targ,
                      camera_mode, camera_pos, use_sky, a_up, light_loc, light_energy)
+    if os.name == 'nt':
+        for file_ind, datafile in enumerate(datafiles):
+            render_image(datadirs, datafile, file_ind, out_dir, meshes_prefixes, res, targ,
+                         camera_mode, camera_pos, use_sky, a_up, light_loc, light_energy)
+
+    elif os.name == 'posix':
+        pool = multiprocessing.Pool(processes=multiprocessing.cpu_count()-1)
+        pool.starmap(render_image, [(datadirs, datafile, file_ind, out_dir, meshes_prefixes, res, targ,
+                         camera_mode, camera_pos, use_sky, a_up, light_loc, light_energy)
+                                for file_ind, datafile in enumerate(datafiles)])
+        pool.terminate()
