@@ -183,9 +183,6 @@ class CH_GPU_API ChSystemGpu {
     /// Get map of the max z positions of the spheres
     std::vector<float3> get_max_z_map(unsigned int x_size, unsigned int y_size) const;
 
-    /// Reset all particles to be ground group
-    void reset_ground_group();
-
     /// Return particle position.
     ChVector<float> GetParticlePosition(int nSphere) const;
 

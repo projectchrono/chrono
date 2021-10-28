@@ -333,10 +333,6 @@ std::vector<float3> ChSystemGpu::get_max_z_map(unsigned int x_size, unsigned int
     return m_sys->get_max_z_map(x_size, y_size);
 }
 
-void ChSystemGpu::reset_ground_group() {
-    m_sys->reset_ground_group();
-}
-
 size_t ChSystemGpu::EstimateMemUsage() const {
     return m_sys->EstimateMemUsage();
 }

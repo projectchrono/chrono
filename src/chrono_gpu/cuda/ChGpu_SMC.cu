@@ -86,13 +86,6 @@ __host__ std::vector<float3> ChSystemGpu_impl::get_max_z_map(unsigned int x_size
     return max_z_map;
 }
 
-// TODO: Parallellize
-__host__ void ChSystemGpu_impl::reset_ground_group() {
-    for (size_t index = 0; index < nSpheres; index++) {
-        sphere_data->sphere_group[index] = SPHERE_GROUP::CORE;
-    }
-}
-
 // Reset broadphase data structures
 void ChSystemGpu_impl::resetBroadphaseInformation() {
     // Set all the offsets to zero
