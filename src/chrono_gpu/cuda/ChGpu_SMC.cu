@@ -206,7 +206,7 @@ __host__ void ChSystemGpu_impl::defragment_initial_positions() {
     std::vector<not_stupid_bool, cudallocator<not_stupid_bool>> sphere_fixed_tmp;
     std::vector<SPHERE_GROUP, cudallocator<SPHERE_GROUP>> sphere_group_tmp;
     std::vector<unsigned int, cudallocator<unsigned int>> sphere_cluster_tmp;
-    std::vector<bool, cudallocator<bool>> sphere_inside_mesh_tmp;
+    std::vector<not_stupid_bool, cudallocator<not_stupid_bool>> sphere_inside_mesh_tmp;
     std::vector<unsigned int, cudallocator<unsigned int>> sphere_owner_SDs_tmp;
 
     sphere_pos_x_tmp.resize(nSpheres);
@@ -316,6 +316,7 @@ __host__ void ChSystemGpu_impl::setupSphereDataStructures() {
             // default sphere group/cluster
             sphere_group.at(i) = SPHERE_GROUP::CORE;
             sphere_cluster.at(i) = (unsigned int)CLUSTER_INDEX::START;
+            sphere_inside_mesh.at(i) = false;
             if (user_provided_vel) {
                 auto vel = user_sphere_vel.at(i);
                 pos_X_dt.at(i) = (float)(vel.x / VEL_SU2UU);

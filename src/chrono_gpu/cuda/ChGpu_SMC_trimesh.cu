@@ -522,9 +522,6 @@ __host__ double ChSystemGpuMesh_impl::AdvanceSimulation(float duration) {
     gpuErrchk(cudaPeekAtLastError());
     gpuErrchk(cudaDeviceSynchronize());
 
-    // WriteAdjacencyFiles("test");
-    // getchar();
-
     // Clustering is not that fast in general, so should be done after all steps.
     if ((gran_params->cluster_graph_method > CLUSTER_GRAPH_METHOD::NONE) 
         && (gran_params->cluster_search_method > CLUSTER_SEARCH_METHOD::NONE)) {
@@ -539,6 +536,20 @@ __host__ double ChSystemGpuMesh_impl::AdvanceSimulation(float duration) {
         // step 2- Search the graph, find the clusters.
         switch(gran_params->cluster_search_method) {
             case CLUSTER_SEARCH_METHOD::BFS: {
+                GdbscanInitSphereGroup<<<nBlocks, CUDA_THREADS_PER_BLOCK>>>(nSpheres,
+                            sphere_data->adj_num, sphere_data->sphere_group, gran_params->gdbscan_min_pts);
+                gpuErrchk(cudaPeekAtLastError());
+                gpuErrchk(cudaDeviceSynchronize());
+
+                /// must be set AFTER GdbscanInitSphereGroup, and AFTER interactionGranMat_TriangleSoup
+                SetVolumeSphereGroup<<<nBlocks, CUDA_THREADS_PER_BLOCK>>>(sphere_data, nSpheres);
+                gpuErrchk(cudaPeekAtLastError());
+                gpuErrchk(cudaDeviceSynchronize());
+
+                GdbscanInitSphereCluster<<<nBlocks, CUDA_THREADS_PER_BLOCK>>>(nSpheres, sphere_data->sphere_cluster, static_cast<unsigned int>(chrono::gpu::CLUSTER_INDEX::GROUND));
+                gpuErrchk(cudaPeekAtLastError());
+                gpuErrchk(cudaDeviceSynchronize());
+
                 GdbscanSearchGraph(sphere_data, gran_params, nSpheres, gran_params->gdbscan_min_pts);
                 break;
             }

@@ -77,6 +77,7 @@ static __global__ void SetVolumeSphereGroup(ChSystemGpu_impl::GranSphereDataPtr 
     if (mySphereID < nSpheres) {
         if (sphere_data->sphere_inside_mesh[mySphereID]) {
            sphere_data->sphere_group[mySphereID] = SPHERE_GROUP::VOLUME;
+       }
     }
 }
 
@@ -92,14 +93,18 @@ static __global__ void GdbscanFinalClusterFromGroup(unsigned int nSpheres,
     }
 }
 
-static __global__ void GdbscanFinalClusterFromGroup(unsigned int nSpheres,
-                                           unsigned int* sphere_cluster,
+// find if any particle is in the bucket cluster.
+// if any of bucket is true, this is the bucket cluster UNLESS
+// it is the biggest cluster -> becomes the ground cluster.
+static __global__ void FindBucketCluster(unsigned int nSpheres,
+                                           bool * visited,
+                                           bool * in_bucket,
                                            SPHERE_GROUP* sphere_group) {
     unsigned int mySphereID = threadIdx.x + blockIdx.x * blockDim.x;
     // don't overrun the array
     if (mySphereID < nSpheres) {
-        if (sphere_group[mySphereID] == SPHERE_GROUP::NOISE) {
-            sphere_cluster[mySphereID] = static_cast<unsigned int>(chrono::gpu::CLUSTER_INDEX::INVALID);
+        if ((sphere_group[mySphereID] == SPHERE_GROUP::VOLUME) && (visited[mySphereID])) {
+            in_bucket[mySphereID] = true;
         }
     }
 }

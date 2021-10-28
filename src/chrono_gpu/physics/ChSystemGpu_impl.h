@@ -215,7 +215,7 @@ class ChSystemGpu_impl {
 
         SPHERE_GROUP* sphere_group;  ///< Group to which the sphere belongs
         unsigned int* sphere_cluster; ///< Cluster to which the sphere belongs
-        bool* sphere_inside_mesh; ///< Is the sphere inside the bucket
+        not_stupid_bool* sphere_inside_mesh; ///< Is the sphere inside the bucket
 
         unsigned int* contact_partners_map;   ///< Contact partners for each sphere. Only in frictional simulations
         not_stupid_bool* contact_active_map;  ///< Whether the frictional contact at an index is active
@@ -557,8 +557,8 @@ class ChSystemGpu_impl {
     std::vector<SPHERE_GROUP, cudallocator<SPHERE_GROUP>> sphere_group;
     /// Sphere cluster
     std::vector<unsigned int, cudallocator<unsigned int>> sphere_cluster;
-    /// Sphere cluster
-    std::vector<bool, cudallocator<bool>> sphere_inside_mesh;
+    /// Sphere inside mesh
+    std::vector<not_stupid_bool, cudallocator<not_stupid_bool>> sphere_inside_mesh;
     
     /// Set of contact partners for each sphere. Only used in frictional simulations
     std::vector<unsigned int, cudallocator<unsigned int>> contact_partners_map;
