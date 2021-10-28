@@ -61,12 +61,12 @@ double smalldis = 1.0e-9;
 /// Dimension of the space domain
 double bxDim = 1.0 + smalldis;
 double byDim = 1.0 + smalldis;
-double bzDim = 0.1 + smalldis;
+double bzDim = 0.2 + smalldis;
 
 /// Dimension of the terrain domain
 double fxDim = 1.0 + smalldis;
 double fyDim = 1.0 + smalldis;
-double fzDim = 0.2 + smalldis;
+double fzDim = 0.1 + smalldis;
 
 /// Pointer to store the VIPER instance
 std::shared_ptr<Viper> rover;
@@ -149,7 +149,7 @@ int main(int argc, char* argv[]) {
         ShowUsage();
         return 1;
     }
-    myFsiSystem.SetSimParameter(inputJson, paramsH, ChVector<>(0.0e0));
+    myFsiSystem.SetSimParameter(inputJson, paramsH, ChVector<>(bxDim, byDim, bzDim));
 
     /// Reset the domain size 
     bxDim = paramsH->boxDimX + smalldis;
@@ -179,7 +179,7 @@ int main(int argc, char* argv[]) {
     /// Create an initial box for the terrain patch
     chrono::utils::GridSampler<> sampler(initSpace0);
     /// Use a chrono sampler to create a bucket of granular material
-    ChVector<> boxCenter(0, 0, fzDim / 2 + 0 * initSpace0);
+    ChVector<> boxCenter(0, 0, fzDim / 2);
     ChVector<> boxHalfDim(fxDim / 2, fyDim / 2, fzDim / 2);
     std::vector<ChVector<>> points = sampler.SampleBox(boxCenter, boxHalfDim);
     /// Add SPH particles from the sampler points to the FSI system
