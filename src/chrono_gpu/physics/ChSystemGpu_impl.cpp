@@ -79,7 +79,7 @@ ChSystemGpu_impl::ChSystemGpu_impl(float sphere_rad, float density, float3 boxDi
     gran_params->cluster_search_method = CLUSTER_SEARCH_METHOD::BFS;
 
     gran_params->gdbscan_radius = 0.1f; // [m] ?
-    gran_params->gdbscan_min_pts = 6;
+    gran_params->gdbscan_min_pts = 3;
 
     this->time_integrator = CHGPU_TIME_INTEGRATOR::EXTENDED_TAYLOR;
     this->output_flags = CHGPU_OUTPUT_FLAGS::ABSV |  CHGPU_OUTPUT_FLAGS::ANG_VEL_COMPONENTS;
