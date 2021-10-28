@@ -54,9 +54,9 @@ double fzDim = bzDim;
 // Analytical solution of the poiseuille flow
 //------------------------------------------------------------------
 double PoiseuilleAnalytical(double Z,
-                           double L,
-                           double time,
-                           std::shared_ptr<fsi::SimParams> paramsH){
+                            double L,
+                            double time,
+                            std::shared_ptr<fsi::SimParams> paramsH){
     double nu   = paramsH->mu0/paramsH->rho0;
     double F    = paramsH->bodyForce3.x;
     double initSpace0 = paramsH->MULT_INITSPACE * paramsH->HSML;
@@ -89,26 +89,26 @@ void CreateSolidPhase(ChSystemSMC& mphysicalSystem,
     mysurfmaterial->SetRestitution(0.2f);
     mysurfmaterial->SetAdhesion(0);
 
-    // Ground body
-    auto ground = chrono_types::make_shared<ChBody>();
-    ground->SetIdentifier(-1);
-    ground->SetBodyFixed(true);
-    ground->SetCollide(true);
-    ground->GetCollisionModel()->ClearModel();
+    // Create a body for the wall
+    auto body = chrono_types::make_shared<ChBody>();
+    body->SetIdentifier(-1);
+    body->SetBodyFixed(true);
+    body->SetCollide(true);
+    body->GetCollisionModel()->ClearModel();
 
+    // Size and position of the bottom and top walls
     double initSpace0 = myFsiSystem.GetIniSpace();
-
-    // Bottom and Top wall
-    ChVector<> sizeWall(bxDim / 2, byDim / 2 + 0 * initSpace0, 2 * initSpace0);
+    ChVector<> sizeWall(bxDim / 2, byDim / 2, 2 * initSpace0);
     ChVector<> posBottom(0, 0, -3 * initSpace0);
     ChVector<> posTop(0, 0, bzDim + 1 * initSpace0);
 
-    chrono::utils::AddBoxGeometry(ground.get(), mysurfmaterial, sizeWall, posBottom, chrono::QUNIT, true);
-    ground->GetCollisionModel()->BuildModel();
-    mphysicalSystem.AddBody(ground);
+    // Add a geometry to the body and set the collision model 
+    chrono::utils::AddBoxGeometry(body.get(), mysurfmaterial, sizeWall, posBottom, QUNIT, true);
+    body->GetCollisionModel()->BuildModel();
+    mphysicalSystem.AddBody(body);
 
     // Add BCE particles to the bottom and top wall boundary
-    myFsiSystem.AddBceBox(paramsH, ground, posBottom, chrono::QUNIT, sizeWall);
+    myFsiSystem.AddBceBox(paramsH, body, posBottom, QUNIT, sizeWall);
 }
 
 // ===============================
@@ -121,23 +121,21 @@ int main(int argc, char* argv[]) {
     // JSON file to fill it out with the user parameters
     std::shared_ptr<fsi::SimParams> paramsH = myFsiSystem.GetSimParams();
 
-    // Use the default input file or you may enter 
-    // your input parameters as a command line argument
-    std::string inputJson = GetChronoDataFile("fsi/input_json/demo_FSI_Poiseuille_flow_Explicit.json");
-    // fsi::utils::ParseJSON(inputJson, paramsH, fsi::mR3(bxDim, byDim, bzDim));
-    myFsiSystem.SetSimParameter(inputJson, paramsH, ChVector<>(bxDim, byDim, bzDim));
+    // Initialize the parameters using an input JSON file
+    std::string myJson = GetChronoDataFile("fsi/input_json/demo_FSI_Poiseuille_flow_Explicit.json");
+    myFsiSystem.SetSimParameter(myJson, paramsH, ChVector<>(bxDim, byDim, bzDim));
 
     // Reset the domain size to handle periodic boundary condition
-    double initSpace0 = paramsH->MULT_INITSPACE * paramsH->HSML;
-    ChVector<> cMin(-bxDim / 2 - initSpace0 / 2, -byDim / 2 - initSpace0 / 2, - 5.0 * initSpace0);
-    ChVector<> cMax( bxDim / 2 + initSpace0 / 2,  byDim / 2 + initSpace0 / 2, bzDim + 5.0 * initSpace0);
+    double initSpace0 = myFsiSystem.GetIniSpace();
+    ChVector<> cMin(-bxDim / 2 - initSpace0 / 2, -byDim / 2 - initSpace0 / 2, - 10.0 * initSpace0);
+    ChVector<> cMax( bxDim / 2 + initSpace0 / 2,  byDim / 2 + initSpace0 / 2, bzDim + 10.0 * initSpace0);
     myFsiSystem.SetPeriodicBC(cMin, cMax, paramsH);
 
     // Set up the solver based on the input value of the prameters
     myFsiSystem.SetFluidDynamics(paramsH->fluid_dynamic_type);
     myFsiSystem.SetFluidSystemLinearSolver(paramsH->LinearSolver);// this is only for ISPH
 
-    // Setup sub doamins for a faster neighbor search
+    // Setup sub doamins for a faster neighbor particle searching
     myFsiSystem.SetSubDomain(paramsH);
 
     // Create SPH particles for the fluid domain
