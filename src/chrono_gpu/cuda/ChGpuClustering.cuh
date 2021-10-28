@@ -29,10 +29,11 @@
 #include <cstdint>
 #include <algorithm>
 
+#include "chrono/core/ChMathematics.h"
 #include "chrono_gpu/ChGpuDefines.h"
 #include "chrono_gpu/physics/ChSystemGpu_impl.h"
-#include "chrono_gpu/cuda/ChCudaMathUtils.cuh"
-#include "chrono_gpu/cuda/ChGpuHelpers.cuh"
+#include "chrono_gpu/physics/ChSystemGpuMesh_impl.h"
+#include "chrono_thirdparty/cub/device/device_reduce.cuh"
 
 using chrono::gpu::CHGPU_TIME_INTEGRATOR;
 using chrono::gpu::CHGPU_FRICTION_MODE;
@@ -107,26 +108,6 @@ static __global__ void FindBucketCluster(unsigned int nSpheres,
             in_bucket[mySphereID] = true;
         }
     }
-}
-
-
-/// G-DBSCAN; density-based h_clustering algorithm. Identifies core, border and noise points in h_clusters.
-/// SEARCH STEP
-/// min_pts: minimal number of points for a h_cluster
-/// radius: proximity radius, points inside can form a h_cluster
-static __host__ void GdbscanConstructGraph(ChSystemGpu_impl::GranSphereDataPtr sphere_data,
-                                           ChSystemGpu_impl::GranParamsPtr gran_params,
-                                           unsigned int nSpheres, size_t min_pts, float radius) {
-    // unsigned int nBlocks = (nSpheres + CUDA_THREADS_PER_BLOCK - 1) / CUDA_THREADS_PER_BLOCK;
-
-    // /// 2 steps:
-    // ///     1- compute all adjacent spheres inside radius
-    // construct_adj_num_start_by_proximity<<<nBlocks, CUDA_THREADS_PER_BLOCK>>>(sphere_data, gran_params, nSpheres,
-    //         radius, adj_num, adj_start);
-
-    // ///     2- compute adjacency list
-    // construct_adj_list_by_proximity<<<nBlocks, CUDA_THREADS_PER_BLOCK>>>(sphere_data, gran_params, nSpheres,
-    //         radius, adj_num, adj_start, adj_list);
 }
 
 // compute adj_start from adj_num. assumes memory was allocated
@@ -207,9 +188,12 @@ static __global__ void ComputeAdjListByContact(ChSystemGpu_impl::GranSphereDataP
     }
 }
 
+__host__ void GdbscanConstructGraph(ChSystemGpu_impl::GranSphereDataPtr sphere_data,
+                                           ChSystemGpu_impl::GranParamsPtr gran_params,
+                                           unsigned int nSpheres, size_t min_pts, float radius);
+
 __host__ void GdbscanSearchGraph(ChSystemGpu_impl::GranSphereDataPtr sphere_data,
                                            ChSystemGpu_impl::GranParamsPtr gran_params,
                                            unsigned int nSpheres, size_t min_pts);
-
 
 /// @} gpu_cuda

@@ -18,103 +18,20 @@
 #include "chrono_gpu/physics/ChSystemGpu_impl.h"
 #include "chrono_gpu/cuda/ChCudaMathUtils.cuh"
 #include "chrono_gpu/cuda/ChGpuHelpers.cuh"
+#include "chrono_gpu/cuda/ChGpu_SMC.cuh"
 #include "chrono_gpu/cuda/ChGpuClustering.cuh"
 
 namespace chrono {
 namespace gpu {
 
-// /// UNTESTED
-// /// counts number of adjacent spheres by proximity.
-// static __global__ void construct_adj_num_start_by_proximity(
-//                         ChSystemGpu_impl::GranSphereDataPtr sphere_data,
-//                         ChSystemGpu_impl::GranParamsPtr gran_params,
-//                         unsigned int nSpheres, float radius) {
-
-//     // my sphere ID, we're using a 1D thread->sphere map
-//     unsigned int mySphereID = threadIdx.x + blockIdx.x * blockDim.x;
-//     unsigned int otherSphereID;
-
-//     unsigned int thisSD = blockIdx.x; // sphere_pos_local is relative to this SD
-//     unsigned int mySD = sphere_data->sphere_owner_SDs[mySphereID];
-//     unsigned int otherSD;
-
-//     int3 mySphere_pos_local, otherSphere_pos_local;
-//     double3 mySphere_pos_global, otherSphere_pos_local, distance;
-
-//     mySphere_pos_local = make_int3(sphere_data->sphere_local_pos_X[mySphereID], 
-//             sphere_data->sphere_local_pos_Y[mySphereID], sphere_data->sphere_local_pos_Z[mySphereID]);
-//     mySphere_pos_global = int64_t3_to_double3(convertPosLocalToGlobal(thisSD, mySphere_pos_local, gran_params));   
-
-//     if (mySphereID < nSpheres) {
-//     /// find all spheres inside the radius around mySphere
-//         for (size_t i = 0; (i < nSpheres); i++) {
-//             otherSphere_pos_local = make_int3(sphere_data->sphere_local_pos_X[i], 
-//             sphere_data->sphere_local_pos_Y[i], sphere_data->sphere_local_pos_Z[i]);
-//             otherSphere_pos_global = int64_t3_to_double3(convertPosLocalToGlobal(thisSD, otherSphere_pos_local, gran_params));   
-//             distance = mySphere_pos_global - otherSphere_pos_global;
-//                 if ((i != mySphereID) && (Dot(distance, distance) < (radius*radius))) {
-//                     adj_num[i]++;
-//                     adj_num[mySphereID]++;
-//                 }
-//             adj_start[i+1]++;
-//             /// perform an inclusive sum. start index of subsequent vertices depend on all previous indices.
-//             void * d_temp_storage = NULL;
-//             size_t temp_storage_bytesize = 0;
-//             cub::DeviceScan::InclusiveSum(d_temp_storage, temp_storage_bytesize, adj_start + i, adj_start + i, nSpheres - i);
-//             gpuErrchk(cudaMalloc(&d_temp_storage, temp_storage_bytesize));
-//             cub::DeviceScan::InclusiveSum(d_temp_storage, temp_storage_bytesize, adj_start + i, adj_start + i, nSpheres - i);
-//         }
-//     }
-// }
-
-// /// UNTESTED
-// /// computes adj_list from proximity using known adj_num and adj_start
-// static __global__ void construct_adj_list_by_proximity(ChSystemGpu_impl::GranSphereDataPtr sphere_data,
-//                                            ChSystemGpu_impl::GranParamsPtr gran_params,
-//                                            unsigned int nSpheres, float radius,
-//                                            unsigned int* adj_num,
-//                                            unsigned int* adj_start,
-//                                            unsigned int* adj_list) {
-//     // my sphere ID, we're using a 1D thread->sphere map
-//     unsigned int mySphereID = threadIdx.x + blockIdx.x * blockDim.x;
-//     unsigned int otherSphereID;
-
-//     unsigned int thisSD = blockIdx.x; // sphere_pos_local is relative to this SD
-//     unsigned int mySD = sphere_data->sphere_owner_SDs[mySphereID];
-//     unsigned int otherSD;
-
-//     unsigned int vertex_start = adj_start[mySphereID];
-//     unsigned int adjacency_num = 0;
-
-//     int3 mySphere_pos_local, otherSphere_pos_local;
-//     double3 mySphere_pos_global, otherSphere_pos_global;
-
-//     mySphere_pos_local = make_int3(sphere_data->sphere_local_pos_X[mySphereID], 
-//             sphere_data->sphere_local_pos_Y[mySphereID], sphere_data->sphere_local_pos_Z[mySphereID]);
-//     mySphere_pos_global = int64_t3_to_double3(convertPosLocalToGlobal(thisSD, mySphere_pos_local, gran_params));   
-
-//     if (mySphereID < nSpheres) {
-//         for (size_t i = 0; (i < nSpheres); i++) {
-//             otherSphere_pos_local = make_int3(sphere_data->sphere_local_pos_X[i], 
-//             sphere_data->sphere_local_pos_Y[i], sphere_data->sphere_local_pos_Z[i]);
-//             otherSphere_pos_global = int64_t3_to_double3(convertPosLocalToGlobal(thisSD, otherSphere_pos_local, gran_params));   
-//             distance = mySphere_pos_global - otherSphere_pos_global;
-//             if ((i != mySphereID) && (Dot(distance, distance) < (radius*radius))) {
-//                 adj_list[vertex_start + adjacency_num] = i;
-//             }
-//         }                  
-//     }
-//     assert(adjacency_num == vertex_adjacency_num[mySphereID]);
-// }
-
-// /// All spheres with > min_pts contacts are core, other points maybe be border points.
-// static __global__ void InitSphereGroup(unsigned int nSpheres,
-//                                            unsigned int* adj_num,
-//                                            SPHERE_GROUP* sphere_group,
-//                                            unsigned int min_pts) {
-//     unsigned int mySphereID = threadIdx.x + blockIdx.x * blockDim.x;
-//     sphere_group[mySphereID] = (adj_num[mySphereID] > min_pts) ? SPHERE_GROUP::CORE : SPHERE_GROUP::NOISE;
-// }
+/// All spheres with > min_pts contacts are core, other points maybe be border points.
+static __global__ void InitSphereGroup(unsigned int nSpheres,
+                                           unsigned int* adj_num,
+                                           SPHERE_GROUP* sphere_group,
+                                           unsigned int min_pts) {
+    unsigned int mySphereID = threadIdx.x + blockIdx.x * blockDim.x;
+    sphere_group[mySphereID] = (adj_num[mySphereID] > min_pts) ? SPHERE_GROUP::CORE : SPHERE_GROUP::NOISE;
+}
 
 /// computes h_cluster by breadth first search
 static __global__ void ClusterSearchBFSKernel(unsigned int nSpheres,
@@ -292,9 +209,106 @@ static __host__ unsigned int ** ClusterSearchBFS(unsigned int nSpheres,
     return(h_clusters);
 }
 
+/// UNTESTED
+/// counts number of adjacent spheres by proximity.
+static __global__ void ComputeAdjNumByProximity(
+                        ChSystemGpu_impl::GranSphereDataPtr sphere_data,
+                        ChSystemGpu_impl::GranParamsPtr gran_params,
+                        unsigned int nSpheres, float radius) {
+
+    // my sphere ID, we're using a 1D thread->sphere map
+    unsigned int mySphereID = threadIdx.x + blockIdx.x * blockDim.x;
+    unsigned int otherSphereID;
+
+    unsigned int thisSD = blockIdx.x; // sphere_pos_local is relative to this SD
+    unsigned int mySD = sphere_data->sphere_owner_SDs[mySphereID];
+    unsigned int otherSD;
+
+    int3 mySphere_pos_local, otherSphere_pos_local;
+    double3 mySphere_pos_global, otherSphere_pos_global, distance;
+
+    mySphere_pos_local = make_int3(sphere_data->sphere_local_pos_X[mySphereID],
+            sphere_data->sphere_local_pos_Y[mySphereID], sphere_data->sphere_local_pos_Z[mySphereID]);
+    mySphere_pos_global = int64_t3_to_double3(convertPosLocalToGlobal(thisSD, mySphere_pos_local, gran_params));
+
+    if (mySphereID < nSpheres) {
+    /// find all spheres inside the radius around mySphere
+        for (size_t i = 0; (i < nSpheres); i++) {
+            otherSphere_pos_local = make_int3(sphere_data->sphere_local_pos_X[i],
+            sphere_data->sphere_local_pos_Y[i], sphere_data->sphere_local_pos_Z[i]);
+            otherSphere_pos_global = int64_t3_to_double3(convertPosLocalToGlobal(thisSD,
+                otherSphere_pos_local, gran_params));
+            distance = mySphere_pos_global - otherSphere_pos_global;
+            if ((i != mySphereID) && (Dot(distance, distance) < (radius*radius))) {
+                sphere_data->adj_num[i]++;
+                sphere_data->adj_num[mySphereID]++;
+            }
+        }
+    }
+}
+
+/// UNTESTED
+/// computes adj_list from proximity using known adj_num and adj_start
+static __global__ void ComputeAdjListByProximity(ChSystemGpu_impl::GranSphereDataPtr sphere_data,
+                                           ChSystemGpu_impl::GranParamsPtr gran_params,
+                                           unsigned int nSpheres, float radius) {
+    // my sphere ID, we're using a 1D thread->sphere map
+    unsigned int mySphereID = threadIdx.x + blockIdx.x * blockDim.x;
+    unsigned int otherSphereID;
+
+    unsigned int thisSD = blockIdx.x; // sphere_pos_local is relative to this SD
+    unsigned int mySD = sphere_data->sphere_owner_SDs[mySphereID];
+    unsigned int otherSD;
+
+    unsigned int vertex_start = sphere_data->adj_start[mySphereID];
+    unsigned int adjacency_num = 0;
+
+    int3 mySphere_pos_local, otherSphere_pos_local;
+    double3 mySphere_pos_global, otherSphere_pos_global, distance;
+
+    mySphere_pos_local = make_int3(sphere_data->sphere_local_pos_X[mySphereID],
+            sphere_data->sphere_local_pos_Y[mySphereID], sphere_data->sphere_local_pos_Z[mySphereID]);
+    mySphere_pos_global = int64_t3_to_double3(convertPosLocalToGlobal(thisSD, mySphere_pos_local, gran_params));
+
+    if (mySphereID < nSpheres) {
+        for (size_t i = 0; (i < nSpheres); i++) {
+            otherSphere_pos_local = make_int3(sphere_data->sphere_local_pos_X[i],
+            sphere_data->sphere_local_pos_Y[i], sphere_data->sphere_local_pos_Z[i]);
+            otherSphere_pos_global = int64_t3_to_double3(convertPosLocalToGlobal(thisSD,
+                otherSphere_pos_local, gran_params));
+            distance = mySphere_pos_global - otherSphere_pos_global;
+            if ((i != mySphereID) && (Dot(distance, distance) < (radius*radius))) {
+                sphere_data->adj_list[vertex_start + adjacency_num] = i;
+            }
+        }
+    }
+    assert(adjacency_num == sphere_data->adj_num[mySphereID]);
+}
+
+
 }  // namespace gpu
 }  // namespace chrono
 
+
+
+/// UNTESTED
+/// G-DBSCAN; density-based h_clustering algorithm. Identifies core, border and noise points in h_clusters.
+/// min_pts: minimal number of points for a h_cluster
+/// radius: proximity radius, points inside can form a h_cluster
+__host__ void GdbscanConstructGraph(ChSystemGpu_impl::GranSphereDataPtr sphere_data,
+                                           ChSystemGpu_impl::GranParamsPtr gran_params,
+                                           unsigned int nSpheres, size_t min_pts, float radius) {
+    unsigned int nBlocks = (nSpheres + CUDA_THREADS_PER_BLOCK - 1) / CUDA_THREADS_PER_BLOCK;
+
+    /// compute all adjacent spheres inside radius
+    ComputeAdjNumByProximity<<<nBlocks, CUDA_THREADS_PER_BLOCK>>>(sphere_data, gran_params, nSpheres,
+            radius);
+    /// compute all adjacent spheres inside radius
+    ComputeAdjStartFromAdjNum(nSpheres, sphere_data->adj_num, sphere_data->adj_start);
+    /// compute adjacency list
+    ComputeAdjListByProximity<<<nBlocks, CUDA_THREADS_PER_BLOCK>>>(sphere_data, gran_params, nSpheres,
+            radius);
+}
 
 /// G-DBSCAN; density-based h_clustering algorithm. Identifies core, border and noise points in h_clusters.<
 /// Searches using a parallel Breadth-First search
@@ -348,4 +362,5 @@ __host__ void GdbscanSearchGraph(ChSystemGpu_impl::GranSphereDataPtr sphere_data
     gpuErrchk(cudaPeekAtLastError());
     gpuErrchk(cudaDeviceSynchronize());
 }
+
 
