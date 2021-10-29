@@ -120,6 +120,7 @@ static __host__ unsigned int ** ClusterSearchBFS(unsigned int nSpheres,
             gpuErrchk(cudaDeviceSynchronize());
             h_cluster_num++;
 
+            // visit all spheres connected to sphere i in parallel
             do {
                 ClusterSearchBFSKernel<<<nBlocks, CUDA_THREADS_PER_BLOCK>>>(nSpheres,
                 adj_num, adj_start, adj_list,
