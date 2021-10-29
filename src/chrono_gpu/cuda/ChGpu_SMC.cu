@@ -545,7 +545,6 @@ __host__ double ChSystemGpu_impl::AdvanceSimulation(float duration) {
             gpuErrchk(cudaDeviceSynchronize());
         } else if (gran_params->friction_mode == CHGPU_FRICTION_MODE::SINGLE_STEP ||
                    gran_params->friction_mode == CHGPU_FRICTION_MODE::MULTI_STEP) {
-
             // figure out who is contacting
             determineContactPairs<<<nSDs, MAX_COUNT_OF_SPHERES_PER_SD>>>(sphere_data, gran_params);
             gpuErrchk(cudaPeekAtLastError());
@@ -558,7 +557,7 @@ __host__ double ChSystemGpu_impl::AdvanceSimulation(float duration) {
             gpuErrchk(cudaPeekAtLastError());
             gpuErrchk(cudaDeviceSynchronize());
         }
-        
+
         METRICS_PRINTF("Starting integrateSpheres!\n");
         integrateSpheres<<<nBlocks, CUDA_THREADS_PER_BLOCK>>>(stepSize_SU, sphere_data, nSpheres, gran_params);
         gpuErrchk(cudaPeekAtLastError());

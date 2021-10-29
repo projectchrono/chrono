@@ -474,7 +474,6 @@ inline __device__ void applyExternalForces(unsigned int currSphereID,
 
 static __global__ void determineContactPairs(ChSystemGpu_impl::GranSphereDataPtr sphere_data,
                                              ChSystemGpu_impl::GranParamsPtr gran_params) {
-    
     // Cache positions of spheres local to this SD
     __shared__ int3 sphere_pos_local[MAX_COUNT_OF_SPHERES_PER_SD];
     __shared__ unsigned int sphIDs[MAX_COUNT_OF_SPHERES_PER_SD];
