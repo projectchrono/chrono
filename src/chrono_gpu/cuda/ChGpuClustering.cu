@@ -97,7 +97,7 @@ static __host__ unsigned int ** ClusterSearchBFS(unsigned int nSpheres,
     bool * d_visited; // [mySphereID] -> was vertex d_visited during BFS_kernel?
     bool * h_visited; // [mySphereID] -> host of d_visited
     bool * h_searched; // [mySphereID] -> was vertex searched before?
-    bool * d_in_bucket; // [mySphereID] -> was vertex searched before?
+    bool * d_in_bucket; // [mySphereID] -> is particle inside the bucket?
     gpuErrchk(cudaMalloc((void**)&d_borders, sizeof(*d_borders) * nSpheres));
     gpuErrchk(cudaMalloc((void**)&d_visited, sizeof(*d_visited) * nSpheres));
     gpuErrchk(cudaMalloc((void**)&d_in_bucket, sizeof(*d_in_bucket) * nSpheres));
