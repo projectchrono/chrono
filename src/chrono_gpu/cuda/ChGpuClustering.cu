@@ -31,12 +31,11 @@ namespace gpu {
 /// Neighbors set in d_borders, visited on next call
 /// Call until no border spheres i.e. nothing true in d_borders
 static __global__ void ClusterSearchBFSKernel(unsigned int nSpheres,
-                        unsigned int * adj_num,
-                        unsigned int * adj_start,
-                        unsigned int * adj_list,
-                        bool * d_borders, 
-                        bool * d_visited) {
-
+                                              unsigned int * adj_num,
+                                              unsigned int * adj_start,
+                                              unsigned int * adj_list,
+                                              bool * d_borders,
+                                              bool * d_visited) {
     // my sphere ID, we're using a 1D thread->sphere map
     unsigned int mySphereID = threadIdx.x + blockIdx.x * blockDim.x;
     if (mySphereID < nSpheres) { 
@@ -62,11 +61,11 @@ static __global__ void ClusterSearchBFSKernel(unsigned int nSpheres,
 /// h_clusters[M][N] -> Nth point in Mth h_cluster
 /// return pointer to h_clusters: array of pointers to arrays of variable length
 static __host__ unsigned int ** ClusterSearchBFS(unsigned int nSpheres,
-                        ChSystemGpu_impl::GranSphereDataPtr sphere_data,
-                        unsigned int* adj_num,
-                        unsigned int* adj_start,
-                        unsigned int* adj_list,
-                        SPHERE_GROUP* sphere_group) {
+                                                 ChSystemGpu_impl::GranSphereDataPtr sphere_data,
+                                                 unsigned int* adj_num,
+                                                 unsigned int* adj_start,
+                                                 unsigned int* adj_list,
+                                                 SPHERE_GROUP* sphere_group) {
     unsigned int nBlocks = (nSpheres + CUDA_THREADS_PER_BLOCK - 1) / CUDA_THREADS_PER_BLOCK;
 
     cudaMemset(sphere_data->sphere_cluster, static_cast<unsigned int>(chrono::gpu::CLUSTER_INDEX::GROUND), sizeof(*sphere_data->sphere_cluster) * nSpheres);
@@ -216,9 +215,9 @@ static __host__ unsigned int ** ClusterSearchBFS(unsigned int nSpheres,
 /// UNTESTED
 /// counts number of adjacent spheres by proximity.
 static __global__ void ComputeAdjNumByProximity(
-                        ChSystemGpu_impl::GranSphereDataPtr sphere_data,
-                        ChSystemGpu_impl::GranParamsPtr gran_params,
-                        unsigned int nSpheres, float radius) {
+        ChSystemGpu_impl::GranSphereDataPtr sphere_data,
+        ChSystemGpu_impl::GranParamsPtr gran_params,
+        unsigned int nSpheres, float radius) {
 
     // my sphere ID, we're using a 1D thread->sphere map
     unsigned int mySphereID = threadIdx.x + blockIdx.x * blockDim.x;
@@ -253,9 +252,10 @@ static __global__ void ComputeAdjNumByProximity(
 
 /// UNTESTED
 /// computes adj_list from proximity using known adj_num and adj_start
-static __global__ void ComputeAdjListByProximity(ChSystemGpu_impl::GranSphereDataPtr sphere_data,
-                                           ChSystemGpu_impl::GranParamsPtr gran_params,
-                                           unsigned int nSpheres, float radius) {
+static __global__ void ComputeAdjListByProximity(
+        ChSystemGpu_impl::GranSphereDataPtr sphere_data,
+       ChSystemGpu_impl::GranParamsPtr gran_params,
+       unsigned int nSpheres, float radius) {
     // my sphere ID, we're using a 1D thread->sphere map
     unsigned int mySphereID = threadIdx.x + blockIdx.x * blockDim.x;
     unsigned int otherSphereID;
@@ -296,12 +296,14 @@ static __global__ void ComputeAdjListByProximity(ChSystemGpu_impl::GranSphereDat
 
 
 /// UNTESTED
-/// G-DBSCAN; density-based h_clustering algorithm. Identifies core, border and noise points in h_clusters.
+/// G-DBSCAN; density-based h_clustering algorithm.
+/// Identifies core, border and noise points in h_clusters.
 /// min_pts: minimal number of points for a h_cluster
 /// radius: proximity radius, points inside can form a h_cluster
-__host__ void GdbscanConstructGraph(ChSystemGpu_impl::GranSphereDataPtr sphere_data,
-                                           ChSystemGpu_impl::GranParamsPtr gran_params,
-                                           unsigned int nSpheres, size_t min_pts, float radius) {
+__host__ void GdbscanConstructGraph(
+        ChSystemGpu_impl::GranSphereDataPtr sphere_data,
+        ChSystemGpu_impl::GranParamsPtr gran_params,
+        unsigned int nSpheres, size_t min_pts, float radius) {
     unsigned int nBlocks = (nSpheres + CUDA_THREADS_PER_BLOCK - 1) / CUDA_THREADS_PER_BLOCK;
 
     /// compute all adjacent spheres inside radius
@@ -317,9 +319,10 @@ __host__ void GdbscanConstructGraph(ChSystemGpu_impl::GranSphereDataPtr sphere_d
 /// G-DBSCAN; density-based h_clustering algorithm. Identifies core, border and noise points in h_clusters.<
 /// Searches using a parallel Breadth-First search
 /// min_pts: minimal number of points for a cluster
-__host__ void GdbscanSearchGraph(ChSystemGpu_impl::GranSphereDataPtr sphere_data,
-                                           ChSystemGpu_impl::GranParamsPtr gran_params,
-                                           unsigned int nSpheres, size_t min_pts) {
+__host__ void GdbscanSearchGraph(
+        ChSystemGpu_impl::GranSphereDataPtr sphere_data,
+        ChSystemGpu_impl::GranParamsPtr gran_params,
+        unsigned int nSpheres, size_t min_pts) {
     unsigned int nBlocks = (nSpheres + CUDA_THREADS_PER_BLOCK - 1) / CUDA_THREADS_PER_BLOCK;
 
     unsigned int ** h_clusters = ClusterSearchBFS(nSpheres, sphere_data,

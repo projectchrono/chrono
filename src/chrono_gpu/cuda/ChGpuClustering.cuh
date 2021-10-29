@@ -50,9 +50,9 @@ using chrono::gpu::CLUSTER_SEARCH_METHOD;
 
 /// All spheres with > minPts contacts are core, other points maybe be border points.
 static __global__ void GdbscanInitSphereGroup(unsigned int nSpheres,
-                                           unsigned int* adj_num,
-                                           SPHERE_GROUP* sphere_group,
-                                           unsigned int minPts) {
+                                              unsigned int* adj_num,
+                                              SPHERE_GROUP* sphere_group,
+                                              unsigned int minPts) {
     unsigned int mySphereID = threadIdx.x + blockIdx.x * blockDim.x;
     // don't overrun the array
     if (mySphereID < nSpheres) {
@@ -76,8 +76,8 @@ static __global__ void SetVolumeSphereGroup(ChSystemGpu_impl::GranSphereDataPtr 
 /// Any particle with sphere_group == NOISE are not part of any cluster
 /// sphere_cluster is tagged INVALID
 static __global__ void GdbscanFinalClusterFromGroup(unsigned int nSpheres,
-                                           unsigned int* sphere_cluster,
-                                           SPHERE_GROUP* sphere_group) {
+                                                    unsigned int* sphere_cluster,
+                                                    SPHERE_GROUP* sphere_group) {
     unsigned int mySphereID = threadIdx.x + blockIdx.x * blockDim.x;
     // don't overrun the array
     if (mySphereID < nSpheres) {
@@ -91,9 +91,9 @@ static __global__ void GdbscanFinalClusterFromGroup(unsigned int nSpheres,
 // if any of volume is true, this is the volume cluster UNLESS
 // it is the biggest cluster -> becomes the ground cluster.
 static __global__ void FindVolumeCluster(unsigned int nSpheres,
-                                           bool * visited,
-                                           bool * in_volume,
-                                           SPHERE_GROUP* sphere_group) {
+                                         bool * visited,
+                                         bool * in_volume,
+                                         SPHERE_GROUP* sphere_group) {
     unsigned int mySphereID = threadIdx.x + blockIdx.x * blockDim.x;
     // don't overrun the array
     if (mySphereID < nSpheres) {
@@ -107,8 +107,8 @@ static __global__ void FindVolumeCluster(unsigned int nSpheres,
 /// needs fully known adj_num
 /// call BEFORE ComputeAdjList___
 static __host__ void ComputeAdjStartFromAdjNum(unsigned int nSpheres, 
-                                                unsigned int * adj_num,
-                                                unsigned int * adj_start) {
+                                               unsigned int * adj_num,
+                                               unsigned int * adj_start) {
     memcpy(adj_start, adj_num, sizeof(*adj_start) * nSpheres);
     /// all start indices after mySphereID depend on it -> exclusive sum
     void * d_temp_storage = NULL;
@@ -126,9 +126,10 @@ static __host__ void ComputeAdjStartFromAdjNum(unsigned int nSpheres,
 /// compute adj_num from chrono contact_active_map
 /// adj_start needs fully known adj_num 
 /// adl_list needs fully known adj_list 
-static __global__ void ComputeAdjNumByContact(ChSystemGpu_impl::GranSphereDataPtr sphere_data,
-                                           ChSystemGpu_impl::GranParamsPtr gran_params,
-                                           unsigned int nSpheres) {
+static __global__ void ComputeAdjNumByContact(
+        ChSystemGpu_impl::GranSphereDataPtr sphere_data,
+        ChSystemGpu_impl::GranParamsPtr gran_params,
+        unsigned int nSpheres) {
     // my sphere ID, we're using a 1D thread->sphere map
     unsigned int mySphereID = threadIdx.x + blockIdx.x * blockDim.x;
 
@@ -151,9 +152,10 @@ static __global__ void ComputeAdjNumByContact(ChSystemGpu_impl::GranSphereDataPt
 /// compute adj_list from chrono contact_active_map.
 /// called AFTER ComputeAdjNumByContact and ComputeAdjStartFromAdjNum
 /// adj_list needs fully known ajd_start
-static __global__ void ComputeAdjListByContact(ChSystemGpu_impl::GranSphereDataPtr sphere_data,
-                                           ChSystemGpu_impl::GranParamsPtr gran_params,
-                                           unsigned int nSpheres) {
+static __global__ void ComputeAdjListByContact(
+        ChSystemGpu_impl::GranSphereDataPtr sphere_data,
+        ChSystemGpu_impl::GranParamsPtr gran_params,
+        unsigned int nSpheres) {
     // my sphere ID, we're using a 1D thread->sphere map
     unsigned int mySphereID = threadIdx.x + blockIdx.x * blockDim.x;
 
@@ -172,12 +174,14 @@ static __global__ void ComputeAdjListByContact(ChSystemGpu_impl::GranSphereDataP
     }
 }
 
-__host__ void GdbscanConstructGraph(ChSystemGpu_impl::GranSphereDataPtr sphere_data,
-                                           ChSystemGpu_impl::GranParamsPtr gran_params,
-                                           unsigned int nSpheres, size_t min_pts, float radius);
+__host__ void GdbscanConstructGraph(
+        ChSystemGpu_impl::GranSphereDataPtr sphere_data,
+        ChSystemGpu_impl::GranParamsPtr gran_params,
+        unsigned int nSpheres, size_t min_pts, float radius);
 
-__host__ void GdbscanSearchGraph(ChSystemGpu_impl::GranSphereDataPtr sphere_data,
-                                           ChSystemGpu_impl::GranParamsPtr gran_params,
-                                           unsigned int nSpheres, size_t min_pts);
+__host__ void GdbscanSearchGraph(
+        ChSystemGpu_impl::GranSphereDataPtr sphere_data,
+        ChSystemGpu_impl::GranParamsPtr gran_params,
+        unsigned int nSpheres, size_t min_pts);
 
 /// @} gpu_cuda
