@@ -15,27 +15,18 @@
 // to generate the bed for balldrop test. Once particles are settled, 
 // a projectile modeled as boundary condition is dropped 
 // with impact velocity 1m/s
-=============================================================================
+// =============================================================================
 
 #include <iostream>
-#include <iomanip>
-#include <fstream>
-#include <vector>
 #include <string>
 
 #include "chrono/core/ChGlobal.h"
-#include "chrono/physics/ChSystemSMC.h"
-#include "chrono/physics/ChBody.h"
-#include "chrono/physics/ChForce.h"
 #include "chrono/utils/ChUtilsSamplers.h"
-#include "chrono/utils/ChUtilsCreators.h"
-#include "chrono/timestepper/ChTimestepper.h"
 
 #include "chrono_thirdparty/filesystem/path.h"
 
 #include "chrono_gpu/ChGpuData.h"
 #include "chrono_gpu/physics/ChSystemGpu.h"
-#include "chrono_gpu/utils/ChGpuJsonParser.h"
 
 
 using namespace chrono;
@@ -153,11 +144,11 @@ int main(int argc, char* argv[]) {
     gran_sys.SetBCSpherePosition(projectile_id, projectile_pos);
     gran_sys.SetBCSphereVelocity(projectile_id, projectile_impact_velo);
 
-
     ChVector<float> bc_pos(0.0f, 0.0f, 0.0f);
     ChVector<float> bc_velo(0.0f, 0.0f, 0.0f);
     ChVector<float> bc_force(0.0f, 0.0f, 0.0f);
 
+    // impact phase
     while (t < time_end) {
         gran_sys.AdvanceSimulation(frame_step_impact);
         
