@@ -96,18 +96,18 @@ static __global__ void GdbscanFinalClusterFromGroup(unsigned int nSpheres,
     }
 }
 
-// find if any particle is in the bucket cluster.
-// if any of bucket is true, this is the bucket cluster UNLESS
+// find if any particle is in the volume cluster.
+// if any of volume is true, this is the volume cluster UNLESS
 // it is the biggest cluster -> becomes the ground cluster.
 static __global__ void FindBucketCluster(unsigned int nSpheres,
                                            bool * visited,
-                                           bool * in_bucket,
+                                           bool * in_volume,
                                            SPHERE_GROUP* sphere_group) {
     unsigned int mySphereID = threadIdx.x + blockIdx.x * blockDim.x;
     // don't overrun the array
     if (mySphereID < nSpheres) {
         if ((sphere_group[mySphereID] == SPHERE_GROUP::VOLUME) && (visited[mySphereID])) {
-            in_bucket[mySphereID] = true;
+            in_volume[mySphereID] = true;
         }
     }
 }

@@ -215,7 +215,7 @@ class ChSystemGpu_impl {
 
         SPHERE_GROUP* sphere_group;  ///< Group to which the sphere belongs
         unsigned int* sphere_cluster; ///< Cluster to which the sphere belongs
-        not_stupid_bool* sphere_inside_mesh; ///< Is the sphere inside the bucket
+        not_stupid_bool* sphere_inside_mesh; ///< Is the sphere inside the volume
 
         unsigned int* contact_partners_map;   ///< Contact partners for each sphere. Only in frictional simulations
         not_stupid_bool* contact_active_map;  ///< Whether the frictional contact at an index is active
