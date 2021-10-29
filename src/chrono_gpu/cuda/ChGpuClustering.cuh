@@ -49,7 +49,6 @@ using chrono::gpu::CLUSTER_SEARCH_METHOD;
 /// @{
 
 /// All spheres with > minPts contacts are core, other points maybe be border points.
-// InitSphereGroup
 static __global__ void GdbscanInitSphereGroup(unsigned int nSpheres,
                                            unsigned int* adj_num,
                                            SPHERE_GROUP* sphere_group,
@@ -61,8 +60,8 @@ static __global__ void GdbscanInitSphereGroup(unsigned int nSpheres,
     }
 }
 
-// set spheres found inside mesh to group VOLUME
-// must de run AFTER interactionGranMat_TriangleSoup()
+// Tag spheres found inside mesh to group VOLUME
+// must de run AFTER interactionGranMat_TriangleSoup
 static __global__ void SetVolumeSphereGroup(ChSystemGpu_impl::GranSphereDataPtr sphere_data,
                                             unsigned int nSpheres) {
     unsigned int mySphereID = threadIdx.x + blockIdx.x * blockDim.x;
@@ -74,6 +73,8 @@ static __global__ void SetVolumeSphereGroup(ChSystemGpu_impl::GranSphereDataPtr 
     }
 }
 
+/// Any particle with sphere_group == NOISE are not part of any cluster
+/// sphere_cluster is tagged INVALID
 static __global__ void GdbscanFinalClusterFromGroup(unsigned int nSpheres,
                                            unsigned int* sphere_cluster,
                                            SPHERE_GROUP* sphere_group) {
@@ -102,7 +103,9 @@ static __global__ void FindVolumeCluster(unsigned int nSpheres,
     }
 }
 
-// compute adj_start from adj_num. assumes memory was allocated
+/// Compute adj_start from adj_num. 
+/// needs fully known adj_num
+/// call BEFORE ComputeAdjList___
 static __host__ void ComputeAdjStartFromAdjNum(unsigned int nSpheres, 
                                                 unsigned int * adj_num,
                                                 unsigned int * adj_start) {
@@ -120,22 +123,9 @@ static __host__ void ComputeAdjStartFromAdjNum(unsigned int nSpheres,
     gpuErrchk(cudaFree(d_temp_storage));
 }
 
-static __global__ void InitAdj(unsigned int nSpheres,
-                                unsigned int * adj_num,
-                                unsigned int * adj_start,
-                                unsigned int * adj_list) {
-    unsigned int mySphereID = threadIdx.x + blockIdx.x * blockDim.x;
-    if (mySphereID < nSpheres) {
-        adj_num[mySphereID] = 0;
-        adj_start[mySphereID] = 0;
-        for (unsigned int i = mySphereID; i < mySphereID + MAX_SPHERES_TOUCHED_BY_SPHERE ; i++) {
-            adj_list[i] = 0;
-        }
-    }
-}
-
 /// compute adj_num from chrono contact_active_map
-/// need to be separate from ComputeAdjListByContact to compute adj_start
+/// adj_start needs fully known adj_num 
+/// adl_list needs fully known adj_list 
 static __global__ void ComputeAdjNumByContact(ChSystemGpu_impl::GranSphereDataPtr sphere_data,
                                            ChSystemGpu_impl::GranParamsPtr gran_params,
                                            unsigned int nSpheres) {
@@ -158,7 +148,9 @@ static __global__ void ComputeAdjNumByContact(ChSystemGpu_impl::GranSphereDataPt
     }
 }
 
-/// compute adj_list from chrono contact_active_map
+/// compute adj_list from chrono contact_active_map.
+/// called AFTER ComputeAdjNumByContact and ComputeAdjStartFromAdjNum
+/// adj_list needs fully known ajd_start
 static __global__ void ComputeAdjListByContact(ChSystemGpu_impl::GranSphereDataPtr sphere_data,
                                            ChSystemGpu_impl::GranParamsPtr gran_params,
                                            unsigned int nSpheres) {
