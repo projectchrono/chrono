@@ -165,10 +165,10 @@ int main(int argc, char* argv[]) {
     myFsiSystem.SetFluidSystemLinearSolver(paramsH->LinearSolver); // this is only for ISPH
 
     /// Set the periodic boundary condition
-    double initSpace0 = myFsiSystem.GetIniSpace();
+    double initSpace0 = paramsH->MULT_INITSPACE * paramsH->HSML;
     ChVector<> cMin(-bxDim / 2 * 10, -byDim / 2 * 10, -bzDim * 10);
     ChVector<> cMax( bxDim / 2 * 10,  byDim / 2 * 10,  bzDim * 10);
-    myFsiSystem.SetPeriodicBC(cMin, cMax, paramsH);
+    myFsiSystem.SetBoundaries(cMin, cMax, paramsH);
     
     /// Setup sub doamins for a faster neighbor particle searching
     myFsiSystem.SetSubDomain(paramsH);
@@ -261,7 +261,7 @@ void CreateSolidPhase(ChSystemNSC& mphysicalSystem,
                       ChSystemFsi& myFsiSystem,
                       std::shared_ptr<fsi::SimParams> paramsH) {
     /// Get the initial SPH particle spacing
-    double initSpace0 = myFsiSystem.GetIniSpace();
+    double initSpace0 = paramsH->MULT_INITSPACE * paramsH->HSML;
 
     /// Set the gravity force for the simulation
     ChVector<> gravity = ChVector<>(paramsH->gravity.x, paramsH->gravity.y, paramsH->gravity.z);

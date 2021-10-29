@@ -266,7 +266,8 @@ __global__ void UpdateFluidD(Real4* posRadD,
     Real p_tr, p_n;
 
     if (rhoPresMu.w < 0) {
-        if (paramsD.elastic_SPH) {  // This is only implemented for granular material
+        // This is only implemented for granular material
+        if (paramsD.elastic_SPH) {
             //--------------------------------
             // ** shear stress tau
             //--------------------------------
@@ -286,16 +287,22 @@ __global__ void UpdateFluidD(Real4* posRadD,
             updatedTauXxYyZz.x += p_tr;
             updatedTauXxYyZz.y += p_tr;
             updatedTauXxYyZz.z += p_tr;
-            Real tau_tr = square(updatedTauXxYyZz.x) + square(updatedTauXxYyZz.y) + square(updatedTauXxYyZz.z) +
-                          2.0 * square(updatedTauXyXzYz.x) + 2.0 * square(updatedTauXyXzYz.y) +
-                          2.0 * square(updatedTauXyXzYz.z);
-            Real tau_n = square(tauXxYyZz.x) + square(tauXxYyZz.y) + square(tauXxYyZz.z) + 2.0 * square(tauXyXzYz.x) +
-                         2.0 * square(tauXyXzYz.y) + 2.0 * square(tauXyXzYz.z);
+            Real tau_tr = square(updatedTauXxYyZz.x) 
+                        + square(updatedTauXxYyZz.y) 
+                        + square(updatedTauXxYyZz.z)
+                        + 2.0 * square(updatedTauXyXzYz.x) 
+                        + 2.0 * square(updatedTauXyXzYz.y) 
+                        + 2.0 * square(updatedTauXyXzYz.z);
+            Real tau_n = square(tauXxYyZz.x) 
+                       + square(tauXxYyZz.y) 
+                       + square(tauXxYyZz.z) 
+                       + 2.0 * square(tauXyXzYz.x) 
+                       + 2.0 * square(tauXyXzYz.y) 
+                       + 2.0 * square(tauXyXzYz.z);
             tau_tr = sqrt(0.5 * tau_tr);
             tau_n = sqrt(0.5 * tau_n);
-            Real Chi =
-                abs(tau_tr - tau_n) / dT / paramsD.G_shear;  // should use the positive magnitude according to "A
-                                                             // constitutive law for dense granular flows" Nature 2006
+            Real Chi = abs(tau_tr - tau_n) / dT / paramsD.G_shear;  // should use the positive magnitude according to "A  
+                                                                    // constitutive law for dense granular flows" Nature 2006
             if (p_tr > 0.0e0) {
                 Real mu_s = paramsD.mu_fric_s;
                 Real mu_2 = paramsD.mu_fric_2;
@@ -316,7 +323,7 @@ __global__ void UpdateFluidD(Real4* posRadD,
                 //     updatedTauXxYyZz = updatedTauXxYyZz*coeff;
                 //     updatedTauXyXzYz = updatedTauXyXzYz*coeff;
                 // }
-                Real tau_max = p_tr * mu;  // p_tr*paramsD.Q_FA; //
+                Real tau_max = p_tr * mu;  // p_tr*paramsD.Q_FA;
                 if (tau_tr > tau_max) {  // should use tau_max instead of s_0 according to "A constitutive law for dense
                                          // granular flows" Nature 2006
                     Real coeff = tau_max / (tau_tr + 1e-9);
@@ -334,19 +341,23 @@ __global__ void UpdateFluidD(Real4* posRadD,
                 updatedTauXyXzYz = mR3(0.0);
                 p_tr = 0.0;
             }
-            tau_tr = square(updatedTauXxYyZz.x) + square(updatedTauXxYyZz.y) + square(updatedTauXxYyZz.z) +
-                     2.0 * square(updatedTauXyXzYz.x) + 2.0 * square(updatedTauXyXzYz.y) +
-                     2.0 * square(updatedTauXyXzYz.z);
+            tau_tr = square(updatedTauXxYyZz.x) 
+                   + square(updatedTauXxYyZz.y) 
+                   + square(updatedTauXxYyZz.z)
+                   + 2.0 * square(updatedTauXyXzYz.x) 
+                   + 2.0 * square(updatedTauXyXzYz.y) 
+                   + 2.0 * square(updatedTauXyXzYz.z);
             tau_tr = sqrt(0.5 * tau_tr);
             sr_tau_I_mu_iD[index].y = tau_tr;
 
             tauXxYyZzD[index] = updatedTauXxYyZz - mR3(p_tr);
             tauXyXzYzD[index] = updatedTauXyXzYz;
         }
+
         //-------------
         // ** position
         //-------------
-        Real3 vel_XSPH = velMasD[index] + paramsD.EPS_XSPH * vel_XSPH_D[index];
+        Real3 vel_XSPH = velMasD[index] + vel_XSPH_D[index]; //paramsD.EPS_XSPH * 
         Real3 posRad = mR3(posRadD[index]);
         Real3 updatedPositon = posRad + vel_XSPH * dT;
         if (!(isfinite(updatedPositon.x) && isfinite(updatedPositon.y) && isfinite(updatedPositon.z))) {
@@ -381,7 +392,7 @@ __global__ void UpdateFluidD(Real4* posRadD,
             *isErrorD = true;
             return;
         }
-        rhoPresMuD[index] = rhoPresMu;  // rhoPresMuD updated
+        rhoPresMuD[index] = rhoPresMu; 
     }
 
     /// Important note: the derivVelRhoD that is calculated by the ChForceExplicitSPH is the negative of actual time
@@ -405,8 +416,7 @@ __global__ void Update_Fluid_State(Real3* new_vel,  // input: sorted velocities,
     if (i_idx >= updatePortion.y)
         return;
 
-    velMas[i_idx] = velMas[i_idx] + paramsD.EPS_XSPH * new_vel[i_idx];
-    //    printf("%f=", new_vel[i_idx].z);
+    velMas[i_idx] = new_vel[i_idx];
 
     Real3 newpos = mR3(posRad[i_idx]) + dT * velMas[i_idx];
     Real h = posRad[i_idx].w;
