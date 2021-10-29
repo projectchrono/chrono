@@ -537,7 +537,6 @@ void ChSystemGpu::SetParticlePositions(const std::vector<ChVector<float>>& point
 
 void ChSystemGpuMesh::Initialize() {
     ChSystemGpuMesh_impl* sys_trimesh = static_cast<ChSystemGpuMesh_impl*>(m_sys);
-    // std::cout << "initializeSpheres" << std::endl;
     sys_trimesh->initializeSpheres();
     sys_trimesh->initializeTriangles();
 }
