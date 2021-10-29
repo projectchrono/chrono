@@ -9,7 +9,7 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Author: Milad Rakhsha, Arman Pazouki
+// Author: Milad Rakhsha, Arman Pazouki, Wei Hu
 // =============================================================================
 //
 // Implementation of FSI system that includes all subclasses for proximity and
@@ -167,11 +167,30 @@ class CH_FSI_API ChSystemFsi : public ChFsiGeneral {
 
     /// Add BCE particle for a box
     void AddBceBox(std::shared_ptr<SimParams> paramsH,
-                    std::shared_ptr<ChBody>& body,
-                    const ChVector<>& relPos,
-                    const ChQuaternion<>& relRot,
-                    const ChVector<>& size,
-                    int plane = 12);
+                   std::shared_ptr<ChBody> body,
+                   const ChVector<>& relPos,
+                   const ChQuaternion<>& relRot,
+                   const ChVector<>& size,
+                   int plane = 12);
+
+    /// Add BCE particle for a cylinder
+    void AddBceCylinder(std::shared_ptr<SimParams> paramsH,
+                        std::shared_ptr<ChBody> body,
+                        ChVector<> relPos,
+                        ChQuaternion<> relRot,
+                        double radius,
+                        double height,
+                        double kernel_h,
+                        bool cartesian = true);
+
+    /// Add BCE particle from a file
+    void AddBceFile(std::shared_ptr<fsi::SimParams> paramsH,
+                    std::shared_ptr<ChBody> body,
+                    std::string dataPath,
+                    ChVector<> collisionShapeRelativePos,
+                    ChQuaternion<> collisionShapeRelativeRot,
+                    double scale,
+                    bool isSolid = true); // true means moving body
 
     /// Set FSI parameters from a JSON file
     void SetSimParameter(const std::string& inputJson,
@@ -196,7 +215,16 @@ class CH_FSI_API ChSystemFsi : public ChFsiGeneral {
     /// Set subdomains so that we find neighbor particles faster
     void SetSubDomain(std::shared_ptr<SimParams> paramsH);
 
+    /// Set output directory for FSI data
+    void SetFsiOutputDir(std::shared_ptr<fsi::SimParams> paramsH,
+                          std::string& demo_dir,
+                          std::string out_dir,
+                          std::string inputJson);
+
+    /// Return the SPH particle position
     std::vector<ChVector<>> GetParticlePosOrProperties();
+
+    /// Return the SPH particle velocity
     std::vector<ChVector<>> GetParticleVel();
 
   protected:

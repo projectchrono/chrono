@@ -27,9 +27,6 @@
 
 /// Chrono fsi includes
 #include "chrono_fsi/ChSystemFsi.h"
-#include "chrono_fsi/utils/ChUtilsGeneratorFsi.h"
-#include "chrono_fsi/utils/ChUtilsJSON.h"
-#include "chrono_fsi/utils/ChUtilsPrintSph.cuh"
 
 /// Chrono namespaces
 using namespace chrono;
@@ -233,12 +230,12 @@ void CreateSolidPhase(ChSystemSMC& mphysicalSystem,
     mphysicalSystem.AddBody(box);
 
     /// Add BCE particles attached on the walls into FSI system
-    fsi::utils::AddBoxBce(myFsiSystem.GetFsiData(), paramsH, box, pos_zp, QUNIT, size_XY, 12);
-    fsi::utils::AddBoxBce(myFsiSystem.GetFsiData(), paramsH, box, pos_zn, QUNIT, size_XY, 12);
-    fsi::utils::AddBoxBce(myFsiSystem.GetFsiData(), paramsH, box, pos_xp, QUNIT, size_YZ, 23);
-    fsi::utils::AddBoxBce(myFsiSystem.GetFsiData(), paramsH, box, pos_xn, QUNIT, size_YZ, 23);
-    fsi::utils::AddBoxBce(myFsiSystem.GetFsiData(), paramsH, box, pos_yp, QUNIT, size_XZ, 13);
-    fsi::utils::AddBoxBce(myFsiSystem.GetFsiData(), paramsH, box, pos_yn, QUNIT, size_XZ, 13);
+    myFsiSystem.AddBceBox(paramsH, box, pos_zp, QUNIT, size_XY, 12);
+    myFsiSystem.AddBceBox(paramsH, box, pos_zn, QUNIT, size_XY, 12);
+    myFsiSystem.AddBceBox(paramsH, box, pos_xp, QUNIT, size_YZ, 23);
+    myFsiSystem.AddBceBox(paramsH, box, pos_xn, QUNIT, size_YZ, 23);
+    myFsiSystem.AddBceBox(paramsH, box, pos_yp, QUNIT, size_XZ, 13);
+    myFsiSystem.AddBceBox(paramsH, box, pos_yn, QUNIT, size_XZ, 13);
 
     /// Create a falling cylinder
     auto cylinder = chrono_types::make_shared<ChBody>();
@@ -272,13 +269,13 @@ void CreateSolidPhase(ChSystemSMC& mphysicalSystem,
     myFsiSystem.AddFsiBody(cylinder);
 
     /// Add BCE particles attached on the cylinder into FSI system
-    fsi::utils::AddCylinderBce(myFsiSystem.GetFsiData(), paramsH, cylinder, ChVector<>(0),
-                               ChQuaternion<>(1, 0, 0, 0), cyl_radius, cyl_length + initSpace0, paramsH->HSML, false);
+    myFsiSystem.AddBceCylinder(paramsH, cylinder, ChVector<>(0), ChQuaternion<>(1, 0, 0, 0), 
+        cyl_radius, cyl_length + initSpace0, paramsH->HSML, false);
 }
 
 // =============================================================================
 int main(int argc, char* argv[]) {
-    // Create a physics system and an FSI system
+    /// Create a physics system and an FSI system
     ChSystemSMC mphysicalSystem;
     ChSystemFsi myFsiSystem(mphysicalSystem);
 
@@ -316,7 +313,7 @@ int main(int argc, char* argv[]) {
     ChVector<> cMax( bxDim / 2 * 10,  byDim / 2 * 10,  bzDim * 10);
     myFsiSystem.SetBoundaries(cMin, cMax, paramsH);
 
-    // Set the time integration type and the linear solver type (only for ISPH)
+    /// Set the time integration type and the linear solver type (only for ISPH)
     myFsiSystem.SetFluidDynamics(paramsH->fluid_dynamic_type);
     myFsiSystem.SetFluidSystemLinearSolver(paramsH->LinearSolver);
 
@@ -324,7 +321,7 @@ int main(int argc, char* argv[]) {
     myFsiSystem.SetSubDomain(paramsH);
 
     /// Setup the output directory for FSI data
-    fsi::utils::PrepareOutputDir(paramsH, demo_dir, out_dir, inputJson);
+    myFsiSystem.SetFsiOutputDir(paramsH, demo_dir, out_dir, inputJson);
 
     /// Create an initial box for the terrain patch
     chrono::utils::GridSampler<> sampler(initSpace0);
@@ -359,7 +356,7 @@ int main(int argc, char* argv[]) {
     mystepper->SetMode(ChTimestepperHHT::ACCELERATION);
     mystepper->SetScaling(true);
 
-    // Start the simulation
+    /// Start the simulation
     double time = 0;
     int stepEnd = int(paramsH->tFinal / paramsH->dT);
     double TIMING_sta = clock();

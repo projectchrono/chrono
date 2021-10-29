@@ -9,7 +9,7 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Author: Milad Rakhsha, Arman Pazouki
+// Author: Milad Rakhsha, Arman Pazouki, Wei Hu
 // =============================================================================
 //
 // Implementation of fsi system that includes all subclasses for proximity and
@@ -264,12 +264,34 @@ void ChSystemFsi::AddRefArray(const int start,
 }
 //--------------------------------------------------------------------------------------------------------------------------------
 void ChSystemFsi::AddBceBox(std::shared_ptr<SimParams> paramsH,
-                            std::shared_ptr<ChBody>& body,
+                            std::shared_ptr<ChBody> body,
                             const ChVector<>& relPos,
                             const ChQuaternion<>& relRot,
                             const ChVector<>& size,
                             int plane) {
     utils::AddBoxBce(fsiSystem, paramsH, body, relPos, relRot, size, plane);
+}
+//--------------------------------------------------------------------------------------------------------------------------------
+void ChSystemFsi::AddBceCylinder(std::shared_ptr<SimParams> paramsH,
+                                 std::shared_ptr<ChBody> body,
+                                 ChVector<> relPos,
+                                 ChQuaternion<> relRot,
+                                 double radius,
+                                 double height,
+                                 double kernel_h,
+                                 bool cartesian) {
+    utils::AddCylinderBce(fsiSystem, paramsH, body, relPos, relRot, radius, height, kernel_h, cartesian);
+}
+//--------------------------------------------------------------------------------------------------------------------------------
+void ChSystemFsi::AddBceFile(std::shared_ptr<SimParams> paramsH,
+                            std::shared_ptr<ChBody> body,
+                            std::string dataPath,
+                            ChVector<> collisionShapeRelativePos,
+                            ChQuaternion<> collisionShapeRelativeRot,
+                            double scale,
+                            bool isSolid) { //true means mving rigid body, false means wall boundary
+    utils::AddBCE_FromFile(fsiSystem, paramsH, body, dataPath, collisionShapeRelativePos, 
+        collisionShapeRelativeRot, scale, isSolid);
 }
 //--------------------------------------------------------------------------------------------------------------------------------
 void ChSystemFsi::SetSimParameter(const std::string& inputJson,
@@ -301,6 +323,13 @@ float ChSystemFsi::GetKernelLength() const {
 //--------------------------------------------------------------------------------------------------------------------------------
 void ChSystemFsi::SetSubDomain(std::shared_ptr<SimParams> paramsH) {
     utils::FinalizeDomain(paramsH);
+}
+//--------------------------------------------------------------------------------------------------------------------------------
+void ChSystemFsi::SetFsiOutputDir(std::shared_ptr<fsi::SimParams> paramsH,
+                                  std::string& demo_dir,
+                                  std::string out_dir,
+                                  std::string inputJson) {
+    utils::PrepareOutputDir(paramsH, demo_dir, out_dir, inputJson);
 }
 //--------------------------------------------------------------------------------------------------------------------------------
 std::vector<ChVector<>> ChSystemFsi::GetParticlePosOrProperties() {
