@@ -545,10 +545,6 @@ __host__ double ChSystemGpuMesh_impl::AdvanceSimulation(float duration) {
                 gpuErrchk(cudaPeekAtLastError());
                 gpuErrchk(cudaDeviceSynchronize());
 
-                GdbscanInitSphereCluster<<<nBlocks, CUDA_THREADS_PER_BLOCK>>>(nSpheres, sphere_data->sphere_cluster, static_cast<unsigned int>(chrono::gpu::CLUSTER_INDEX::GROUND));
-                gpuErrchk(cudaPeekAtLastError());
-                gpuErrchk(cudaDeviceSynchronize());
-
                 GdbscanSearchGraph(sphere_data, gran_params, nSpheres, gran_params->gdbscan_min_pts);
                 break;
             }

@@ -69,6 +69,10 @@ static __host__ unsigned int ** ClusterSearchBFS(unsigned int nSpheres,
                         SPHERE_GROUP* sphere_group) {
     unsigned int nBlocks = (nSpheres + CUDA_THREADS_PER_BLOCK - 1) / CUDA_THREADS_PER_BLOCK;
 
+    cudaMemset(sphere_data->sphere_cluster, static_cast<unsigned int>(chrono::gpu::CLUSTER_INDEX::GROUND), sizeof(*sphere_data->sphere_cluster) * nSpheres);
+    gpuErrchk(cudaPeekAtLastError());
+    gpuErrchk(cudaDeviceSynchronize());
+
     /// CLUSTERS REPRESENTATION IN MEMORY
     /// clusters, array of points to arrays of variable lengths, with lengths at [0]
     unsigned int * h_cluster;

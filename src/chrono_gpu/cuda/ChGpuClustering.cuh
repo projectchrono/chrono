@@ -61,16 +61,6 @@ static __global__ void GdbscanInitSphereGroup(unsigned int nSpheres,
     }
 }
 
-static __global__ void GdbscanInitSphereCluster(unsigned int nSpheres,
-                                            unsigned int* sphere_cluster,
-                                           unsigned int cluster_id) {
-    unsigned int mySphereID = threadIdx.x + blockIdx.x * blockDim.x;
-    // don't overrun the array
-    if (mySphereID < nSpheres) {
-        sphere_cluster[mySphereID] = cluster_id;
-    }
-}
-
 // set spheres found inside mesh to group VOLUME
 // must de run AFTER interactionGranMat_TriangleSoup()
 static __global__ void SetVolumeSphereGroup(ChSystemGpu_impl::GranSphereDataPtr sphere_data,

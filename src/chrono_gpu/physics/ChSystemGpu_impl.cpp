@@ -515,8 +515,7 @@ void ChSystemGpu_impl::WriteFile(
 
 void ChSystemGpu_impl::WriteAdjacencyFiles(std::string ofile) const {
     if (gran_params->cluster_graph_method == CLUSTER_GRAPH_METHOD::NONE) {
-        printf("ERROR: no cluster search method set, no adjacency!\n");
-        exit(1);
+        printf("ERROR: no cluster search method set, no adjacency! Not writing file.\n");
     } else {
         std::ofstream ptFilenum(ofile + "_adj_num_start.csv", std::ios::out);
         std::ostringstream adj_num_strstream;
