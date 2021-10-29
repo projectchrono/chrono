@@ -9,9 +9,11 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 //
-// Contains collision helper functions from ChNarrowphaseR
+// Contains functions that separated soil particles into clusters
+// Reference: Andrade, Guilherme, et al. "G-dbscan: A gpu accelerated algorithm 
+// for density-based clustering." Procedia Computer Science 18 (2013): 369-378.
 // =============================================================================
-// Authors: Conlain Kelly, Nic Olsen, Dan Negrut
+// Authors: Gabriel Taillon
 // =============================================================================
 
 #include "chrono_gpu/ChGpuDefines.h"

@@ -50,12 +50,12 @@ enum class CHGPU_ROLLING_MODE { NO_RESISTANCE, SCHWARTZ, ELASTIC_PLASTIC };
 enum CHGPU_OUTPUT_FLAGS { ABSV = 1, VEL_COMPONENTS = 2, FIXITY = 4, ANG_VEL_COMPONENTS = 8, FORCE_COMPONENTS = 16, GROUP = 32, CLUSTER = 64, ADJACENCY = 128 };
 
 /// Clustering algorithm switches
-// 0 on ANY cluster related switch means no clustering done, all particles group 0.
+// 0 on ANY cluster related switch means no clustering done, all sphere_group and sphere_cluster to 0.
 enum class CLUSTER_GRAPH_METHOD {NONE = 0, CONTACT = 1, PROXIMITY = 2}; /* TODO: Implement proximity graph construction */
-// CONTACT leverages DetermineContactPairs to build the graph.
-// PROXIMITY determine contacts by checking if distance between spehre pairs < some radius
+// CONTACT leverages sphere_contact_map to build the graph.
+// PROXIMITY determine contacts by checking if distance between spehre pairs < dbscan_radius
 
-enum class CLUSTER_SEARCH_METHOD {NONE = 0, BFS = 1}; // TO DO: implement other search than BFS
+enum class CLUSTER_SEARCH_METHOD {NONE = 0, BFS = 1}; // TO DO: implement faster search than BFS
 // BFS -> Breadth-First search
 
 /// Cluster index. Ground cluster has most spheres.
