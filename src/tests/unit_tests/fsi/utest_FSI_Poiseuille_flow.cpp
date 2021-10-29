@@ -97,7 +97,7 @@ void CreateSolidPhase(ChSystemSMC& mphysicalSystem,
     body->GetCollisionModel()->ClearModel();
 
     // Size and position of the bottom and top walls
-    double initSpace0 = myFsiSystem.GetIniSpace();
+    auto initSpace0 = paramsH->MULT_INITSPACE * paramsH->HSML;
     ChVector<> sizeWall(bxDim / 2, byDim / 2, 2 * initSpace0);
     ChVector<> posBottom(0, 0, -3 * initSpace0);
     ChVector<> posTop(0, 0, bzDim + 1 * initSpace0);
@@ -126,10 +126,10 @@ int main(int argc, char* argv[]) {
     myFsiSystem.SetSimParameter(myJson, paramsH, ChVector<>(bxDim, byDim, bzDim));
 
     // Reset the domain size to handle periodic boundary condition
-    double initSpace0 = myFsiSystem.GetIniSpace();
+    auto initSpace0 = paramsH->MULT_INITSPACE * paramsH->HSML;
     ChVector<> cMin(-bxDim / 2 - initSpace0 / 2, -byDim / 2 - initSpace0 / 2, - 10.0 * initSpace0);
     ChVector<> cMax( bxDim / 2 + initSpace0 / 2,  byDim / 2 + initSpace0 / 2, bzDim + 10.0 * initSpace0);
-    myFsiSystem.SetPeriodicBC(cMin, cMax, paramsH);
+    myFsiSystem.SetBoundaries(cMin, cMax, paramsH);
 
     // Set up the solver based on the input value of the prameters
     myFsiSystem.SetFluidDynamics(paramsH->fluid_dynamic_type);
@@ -166,20 +166,15 @@ int main(int argc, char* argv[]) {
         time += paramsH->dT;
     
         // Copy data from device to host
-        thrust::host_vector<fsi::Real4> posRadH = myFsiSystem.GetFsiData()->sphMarkersD2->posRadD;
-        thrust::host_vector<fsi::Real3> velMasH = myFsiSystem.GetFsiData()->sphMarkersD2->velMasD;
-
-        // std::vector<ChVector<>> ParPos;
-        // myFsiSystem.GetParticlePos(ParPos);
-        // std::vector<ChVector<>> ParVel;
-        // myFsiSystem.GetParticleVel(ParVel);
-        
+        auto posRad = myFsiSystem.GetParticlePosOrProperties();
+        auto vel = myFsiSystem.GetParticleVel();
+       
         // Calculate the relative error of the solution
         double error = 0.0;
         double abs_val = 0.0;
         for (int i = 0; i < numPart; i++) {
-            double pos_Z = posRadH[i].z;
-            double vel_X = velMasH[i].x;
+            double pos_Z = posRad[i].z();
+            double vel_X = vel[i].x();
             double vel_X_ana = PoiseuilleAnalytical(pos_Z, bzDim, time + 0.5, paramsH);
             error = error + pow(vel_X - vel_X_ana, 2);
             abs_val = abs_val + pow(vel_X_ana, 2);

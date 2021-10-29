@@ -195,7 +195,7 @@ void CreateSolidPhase(ChSystemSMC& mphysicalSystem,
     mysurfmaterial->SetAdhesion(0);
 
     /// Create the geometry of the boundaries
-    double initSpace0 = myFsiSystem.GetIniSpace();
+    auto initSpace0 = paramsH->MULT_INITSPACE * paramsH->HSML;
 
     /// Bottom and Top wall - size and position
     ChVector<> size_XY(bxDim / 2 + 3 * initSpace0, byDim / 2 + 3 * initSpace0, 2 * initSpace0);
@@ -311,10 +311,10 @@ int main(int argc, char* argv[]) {
     cyl_length = paramsH->bodyLength;
 
     /// Set the periodic boundary condition (if not, set relative larger values)
-    double initSpace0 = myFsiSystem.GetIniSpace();
+    auto initSpace0 = paramsH->MULT_INITSPACE * paramsH->HSML;
     ChVector<> cMin(-bxDim / 2 * 10, -byDim / 2 * 10, -bzDim * 10);
     ChVector<> cMax( bxDim / 2 * 10,  byDim / 2 * 10,  bzDim * 10);
-    myFsiSystem.SetPeriodicBC(cMin, cMax, paramsH);
+    myFsiSystem.SetBoundaries(cMin, cMax, paramsH);
 
     // Set the time integration type and the linear solver type (only for ISPH)
     myFsiSystem.SetFluidDynamics(paramsH->fluid_dynamic_type);

@@ -170,7 +170,8 @@ class CH_FSI_API ChSystemFsi : public ChFsiGeneral {
                     std::shared_ptr<ChBody>& body,
                     const ChVector<>& relPos,
                     const ChQuaternion<>& relRot,
-                    const ChVector<>& size);
+                    const ChVector<>& size,
+                    int plane = 12);
 
     /// Set FSI parameters from a JSON file
     void SetSimParameter(const std::string& inputJson,
@@ -178,15 +179,16 @@ class CH_FSI_API ChSystemFsi : public ChFsiGeneral {
                          const ChVector<>& box_size);
 
     /// Set Periodic boundary condition for fluid
-    void SetPeriodicBC(const ChVector<>& cMin,
+    void SetBoundaries(const ChVector<>& cMin,
                        const ChVector<>& cMax,
                        std::shared_ptr<SimParams> paramsH);
+                       
+    /// Set prescribed initial pressure for gravity field
+    void SetInitPressure(std::shared_ptr<SimParams> paramsH,
+                         const double fzDim);
 
     /// Gets the FSI mesh for flexible elements.
     std::shared_ptr<fea::ChMesh> GetFsiMesh() { return fsi_mesh; }
-
-    /// Return the SPH initial spacing between particles.
-    float GetIniSpace() const;
 
     /// Return the SPH kernel length of kernel function.
     float GetKernelLength() const;
@@ -194,8 +196,8 @@ class CH_FSI_API ChSystemFsi : public ChFsiGeneral {
     /// Set subdomains so that we find neighbor particles faster
     void SetSubDomain(std::shared_ptr<SimParams> paramsH);
 
-    void GetParticlePos();
-    void GetParticleVel();
+    std::vector<ChVector<>> GetParticlePosOrProperties();
+    std::vector<ChVector<>> GetParticleVel();
 
   protected:
     std::shared_ptr<ChSystemFsi_impl> fsiSystem; 
@@ -207,8 +209,6 @@ class CH_FSI_API ChSystemFsi : public ChFsiGeneral {
     void SetFluidIntegratorType(fluid_dynamics params_type);
 
     CHFSI_OUTPUT_MODE file_write_mode;  ///< FSI particle output type::CSV | ChPF | None, default is NONE
-
-    std::shared_ptr<ChSystemFsi_impl> fsiData;       ///< Pointer to all FSI data
 
     std::vector<std::shared_ptr<ChBody>> fsiBodies;  ///< Vector of a pointers to fsi bodies. fsi bodies
                                                      /// are those that interact with fluid

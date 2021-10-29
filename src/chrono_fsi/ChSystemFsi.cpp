@@ -267,8 +267,9 @@ void ChSystemFsi::AddBceBox(std::shared_ptr<SimParams> paramsH,
                             std::shared_ptr<ChBody>& body,
                             const ChVector<>& relPos,
                             const ChQuaternion<>& relRot,
-                            const ChVector<>& size) {
-    utils::AddBoxBce(fsiSystem, paramsH, body, relPos, relRot, size);
+                            const ChVector<>& size,
+                            int plane) {
+    utils::AddBoxBce(fsiSystem, paramsH, body, relPos, relRot, size, plane);
 }
 //--------------------------------------------------------------------------------------------------------------------------------
 void ChSystemFsi::SetSimParameter(const std::string& inputJson,
@@ -277,15 +278,21 @@ void ChSystemFsi::SetSimParameter(const std::string& inputJson,
     utils::ParseJSON(inputJson, paramsH, ChUtilsTypeConvert::ChVectorToReal3(box_size));
 }
 //--------------------------------------------------------------------------------------------------------------------------------
-void ChSystemFsi::SetPeriodicBC(const ChVector<>& cMin,
+void ChSystemFsi::SetBoundaries(const ChVector<>& cMin,
                                 const ChVector<>& cMax,
                                 std::shared_ptr<SimParams> paramsH){
     paramsH->cMin = ChUtilsTypeConvert::ChVectorToReal3(cMin);
     paramsH->cMax = ChUtilsTypeConvert::ChVectorToReal3(cMax);
 }
 //--------------------------------------------------------------------------------------------------------------------------------
-float ChSystemFsi::GetIniSpace() const {
-    return paramsH->MULT_INITSPACE * paramsH->HSML;
+void ChSystemFsi::SetInitPressure(std::shared_ptr<SimParams> paramsH,
+                                  const double fzDim) {
+    size_t numParticles = fsiSystem->sphMarkersH->rhoPresMuH.size();
+    for (int i = 0; i < numParticles; i++) {
+        double z = fsiSystem->sphMarkersH->posRadH[i].z;
+        fsiSystem->sphMarkersH->rhoPresMuH[i].y = 
+            -paramsH->rho0 * paramsH->gravity.z * paramsH->gravity.z * (z - fzDim);
+    }
 }
 //--------------------------------------------------------------------------------------------------------------------------------
 float ChSystemFsi::GetKernelLength() const {
@@ -296,24 +303,22 @@ void ChSystemFsi::SetSubDomain(std::shared_ptr<SimParams> paramsH) {
     utils::FinalizeDomain(paramsH);
 }
 //--------------------------------------------------------------------------------------------------------------------------------
-void ChSystemFsi::GetParticlePos() {
-    std::vector<ChVector<>> Pos;
-    thrust::host_vector<fsi::Real4> PosH = fsiData->sphMarkersD2->posRadD;
-    size_t numPart = PosH.size();
-
-    for(int i = 0; i < numPart; i++){
-        Pos[i] = ChUtilsTypeConvert::Real4ToChVector(PosH[i]);
+std::vector<ChVector<>> ChSystemFsi::GetParticlePosOrProperties() {
+    thrust::host_vector<fsi::Real4> posRadH = fsiSystem->sphMarkersD2->posRadD;
+    std::vector<ChVector<>> pos;
+    for(size_t i = 0; i < posRadH.size(); i++) {
+        pos.push_back(ChUtilsTypeConvert::Real4ToChVector(posRadH[i]));
     }
+    return pos;
 }
 //--------------------------------------------------------------------------------------------------------------------------------
-void ChSystemFsi::GetParticleVel() {
-    std::vector<ChVector<>> Vel;
-    thrust::host_vector<fsi::Real3> VelH = fsiData->sphMarkersD2->velMasD;
-    size_t numPart = VelH.size();
-
-    for(int i = 0; i < numPart; i++){
-        Vel[i] = ChUtilsTypeConvert::Real3ToChVector(VelH[i]);
+std::vector<ChVector<>> ChSystemFsi::GetParticleVel() {
+    thrust::host_vector<fsi::Real3> velH = fsiSystem->sphMarkersD2->velMasD;
+    std::vector<ChVector<>> vel;
+     for(size_t i = 0; i < velH.size(); i++) {
+        vel.push_back(ChUtilsTypeConvert::Real3ToChVector(velH[i]));
     }
+    return vel;
 }
 //--------------------------------------------------------------------------------------------------------------------------------
 

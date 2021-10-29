@@ -31,7 +31,6 @@
 using namespace chrono;
 using namespace chrono::collision;
 using namespace chrono::fsi;
-typedef chrono::fsi::Real Real;
 
 // std::ofstream simParams;
 // =============================================================================
@@ -45,14 +44,14 @@ std::string demo_dir;
 bool save_output = true;
 
 // Size of the box
-Real bxDim = 1.0;
-Real byDim = 1.0;
-Real bzDim = 1.4;
+double bxDim = 1.0;
+double byDim = 1.0;
+double bzDim = 1.4;
 
 // Size of the fluid domain
-Real fxDim = bxDim;
-Real fyDim = byDim;
-Real fzDim = 1.0;
+double fxDim = bxDim;
+double fyDim = byDim;
+double fzDim = 1.0;
 
 // -----------------------------------------------------------------
 // Show command line usage
@@ -105,7 +104,7 @@ void CreateSolidPhase(ChSystemSMC& mphysicalSystem,
     ground->SetCollide(true);
     ground->GetCollisionModel()->ClearModel();
 
-    Real initSpace0 = paramsH->MULT_INITSPACE * paramsH->HSML;
+    auto initSpace0 = paramsH->MULT_INITSPACE * paramsH->HSML;
 
     ChVector<> sizeBottom(bxDim / 2 + 3 * initSpace0, byDim / 2 + 3 * initSpace0, 2 * initSpace0);
     //    ChVector<> sizeBottom(bxDim / 2, byDim / 2, 3 * initSpace0);
@@ -130,19 +129,13 @@ void CreateSolidPhase(ChSystemSMC& mphysicalSystem,
     ground->GetCollisionModel()->BuildModel();
     mphysicalSystem.AddBody(ground);
 
-    fsi::utils::AddBoxBce(myFsiSystem.GetFsiData(), paramsH, ground, posBottom, QUNIT, sizeBottom);
-    // fsi::utils::AddBoxBce(myFsiSystem.GetFsiData(), paramsH, ground, posTop, QUNIT, sizeBottom);
+    myFsiSystem.AddBceBox(paramsH, ground, posBottom, QUNIT, sizeBottom);
+    // myFsiSystem.AddBceBox(paramsH, ground, posTop, QUNIT, sizeBottom);
 
-    fsi::utils::AddBoxBce(myFsiSystem.GetFsiData(), paramsH, ground, pos_xp, QUNIT, size_YZ, 23);
-    fsi::utils::AddBoxBce(myFsiSystem.GetFsiData(), paramsH, ground, pos_xn, QUNIT, size_YZ, 23);
-    fsi::utils::AddBoxBce(myFsiSystem.GetFsiData(), paramsH, ground, pos_yp, QUNIT, size_XZ, 13);
-    fsi::utils::AddBoxBce(myFsiSystem.GetFsiData(), paramsH, ground, pos_yn, QUNIT, size_XZ, 13);
-    size_t L = myFsiSystem.GetFsiData()->sphMarkersH->rhoPresMuH.size();
-    for (int i = 0; i < L; i++) {
-        double z = myFsiSystem.GetFsiData()->sphMarkersH->posRadH[i].z;
-        myFsiSystem.GetFsiData()->sphMarkersH->rhoPresMuH[i].y =
-            -paramsH->rho0 * paramsH->gravity.z * paramsH->gravity.z * (z - fzDim);
-    }
+    myFsiSystem.AddBceBox(paramsH, ground, pos_xp, QUNIT, size_YZ, 23);
+    myFsiSystem.AddBceBox(paramsH, ground, pos_xn, QUNIT, size_YZ, 23);
+    myFsiSystem.AddBceBox(paramsH, ground, pos_yp, QUNIT, size_XZ, 13);
+    myFsiSystem.AddBceBox(paramsH, ground, pos_yn, QUNIT, size_XZ, 13);
 }
 
 // =============================================================================
@@ -158,14 +151,11 @@ int main(int argc, char* argv[]) {
     std::shared_ptr<fsi::SimParams> paramsH = myFsiSystem.GetSimParams();
 
     // Use the default input file or you may enter your input parameters as a command line argument
-    std::string inputJson = GetChronoDataFile("fsi/input_json/demo_FSI_Compressibility_ WCSPH.json");
-    if (argc == 1) {
-        // fsi::utils::ParseJSON(inputJson, paramsH, fsi::mR3(bxDim, byDim, bzDim));
-    } else if (argc == 2) {
+    std::string inputJson = GetChronoDataFile("fsi/input_json/demo_FSI_Compressibility_Explicit.json");
+    if (argc == 2) {
         std::string my_inputJson = std::string(argv[1]);
         inputJson = GetChronoDataFile(my_inputJson);
-        // fsi::utils::ParseJSON(inputJson, paramsH, fsi::mR3(bxDim, byDim, bzDim));
-    } else {
+    } else if (argc > 2){
         ShowUsage();
         return 1;
     }
@@ -173,13 +163,16 @@ int main(int argc, char* argv[]) {
 
     myFsiSystem.SetFluidDynamics(paramsH->fluid_dynamic_type);
     myFsiSystem.SetFluidSystemLinearSolver(paramsH->LinearSolver);
-    paramsH->cMin = fsi::mR3(-bxDim / 2, -byDim / 2, 0.0) - fsi::mR3(paramsH->HSML * 20);
-    paramsH->cMax = fsi::mR3(bxDim / 2, byDim / 2, bzDim) + fsi::mR3(paramsH->HSML * 10);
+
+    auto initSpace0 = paramsH->MULT_INITSPACE * paramsH->HSML;
+    ChVector<> cMin = ChVector<>(-bxDim / 2, -byDim / 2, -bzDim / 2) - ChVector<>(initSpace0 * 20);
+    ChVector<> cMax = ChVector<>(bxDim / 2, byDim / 2, bzDim) + ChVector<>(initSpace0 * 10);
+    myFsiSystem.SetBoundaries(cMin, cMax, paramsH);
+
     fsi::utils::FinalizeDomain(paramsH);
     fsi::utils::PrepareOutputDir(paramsH, demo_dir, out_dir, inputJson);
 
     // ******************************* Create Fluid region ****************************************
-    Real initSpace0 = paramsH->MULT_INITSPACE * paramsH->HSML;
     chrono::utils::GridSampler<> sampler(initSpace0);
     ChVector<> boxCenter(-bxDim / 2 + fxDim / 2, 0 * initSpace0, fzDim / 2 + 1 * initSpace0);
     ChVector<> boxHalfDim(fxDim / 2, fyDim / 2, fzDim / 2);
@@ -193,21 +186,21 @@ int main(int argc, char* argv[]) {
                                  paramsH->HSML, -1);
     }
 
-    myFsiSystem.GetFsiData()->fsiGeneralData->referenceArray.push_back(fsi::mI4(0, (int)numPart, -1, -1));
+    myFsiSystem.AddRefArray(0, (int)numPart, -1, -1);
     // ******************************* Create Solid region ****************************************
     CreateSolidPhase(mphysicalSystem, myFsiSystem, paramsH);
+    myFsiSystem.SetInitPressure(paramsH, fzDim);
 
     /// Construction of the FSI system must be finalized
     myFsiSystem.Finalize();
 
     int stepEnd = int(paramsH->tFinal / paramsH->dT);
     stepEnd = 50000;
-    fsi::ChUtilsDevice fsiUtils;
 
     SaveParaViewFilesMBD(myFsiSystem, mphysicalSystem, paramsH, 0, 0);
 
-    Real time = 0;
-    Real Global_max_dT = paramsH->dT_Max;
+    double time = 0;
+    double Global_max_dT = paramsH->dT_Max;
     double TIMING = clock();
 
     for (int tStep = 0; tStep < stepEnd + 1; tStep++) {
@@ -224,12 +217,9 @@ int main(int argc, char* argv[]) {
         //        printf("next_frame is:%d,  max dt is set to %f\n", next_frame, paramsH->dT_Max);
 
         myFsiSystem.DoStepDynamics_FSI();
-        fsiUtils.CopyD2H(myFsiSystem.GetFsiData()->sphMarkersD2->rhoPresMuD,
-                         myFsiSystem.GetFsiData()->sphMarkersH->rhoPresMuH);
-        fsiUtils.CopyD2H(myFsiSystem.GetFsiData()->sphMarkersD2->velMasD,
-                         myFsiSystem.GetFsiData()->sphMarkersH->velMasH);
-        thrust::host_vector<fsi::Real4> rhoPresMuH = myFsiSystem.GetFsiData()->sphMarkersH->rhoPresMuH;
-        thrust::host_vector<fsi::Real4> velMasH = myFsiSystem.GetFsiData()->sphMarkersH->rhoPresMuH;
+
+        auto rhoPresMu = myFsiSystem.GetParticlePosOrProperties();
+        auto vel = myFsiSystem.GetParticleVel();
 
         std::ofstream output;
         std::string delim = ",";
@@ -237,15 +227,14 @@ int main(int argc, char* argv[]) {
         if (tStep == 0)
             output << "Time" << delim << "Rho_fluid" << delim << "k_fluid" << std::endl;
 
-        Real KE = 0;
-        Real Rho = 0;
-        int numFluidMarkers = myFsiSystem.GetFsiData()->fsiGeneralData->referenceArray[0].y;
-        for (int i = 0; i < numFluidMarkers; i++) {
-            KE += 0.5 * length(velMasH[i]);
-            Rho += rhoPresMuH[i].x;
+        double KE = 0;
+        double Rho = 0;
+        for (int i = 0; i < numPart; i++) {
+            KE += 0.5 * vel[i].Length();
+            Rho += rhoPresMu[i].x();
         }
 
-        output << time << delim << Rho / numFluidMarkers << delim << paramsH->markerMass * KE / numFluidMarkers << std::endl;
+        output << time << delim << Rho / numPart << delim << paramsH->markerMass * KE / numPart << std::endl;
         output.close();
         time += paramsH->dT;
         SaveParaViewFilesMBD(myFsiSystem, mphysicalSystem, paramsH, next_frame, time);
