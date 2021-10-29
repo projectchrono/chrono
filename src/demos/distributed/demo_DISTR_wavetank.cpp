@@ -321,7 +321,7 @@ int main(int argc, char* argv[]) {
     ChVector<double> domlo(-hx - amplitude - spacing, -hy - spacing, -2.0 * spacing);
     ChVector<double> domhi(hx + amplitude + spacing, hy + spacing, height + 3.0 * spacing);
     my_sys.GetDomain()->SetSplitAxis(split_axis);
-    my_sys.GetDomain()->SetSimDomain(domlo.x(), domhi.x(), domlo.y(), domhi.y(), domlo.z(), domhi.z());
+    my_sys.GetDomain()->SetSimDomain(domlo, domhi);
 
     if (verbose)
         my_sys.GetDomain()->PrintDomain();
