@@ -57,7 +57,7 @@ __host__ std::vector<float3> ChSystemGpu_impl::get_max_z_map(unsigned int x_size
 
     size_t nSpheres = sphere_local_pos_Z.size();
     for (size_t index = 0; index < nSpheres; index++) {
-        if (sphere_data->sphere_group[index] == SPHERE_GROUP::CORE) {
+        if (sphere_data->sphere_cluster[index] == SPHERE_CLUSTER::GROUND) {
             unsigned int ownerSD = sphere_data->sphere_owner_SDs[index];
             unsigned int spheresTouchingThisSD = sphere_data->SD_NumSpheresTouching[ownerSD];
             if (spheresTouchingThisSD < 5) {
