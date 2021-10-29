@@ -59,9 +59,14 @@ enum class CLUSTER_SEARCH_METHOD {NONE = 0, BFS = 1}; // TO DO: implement faster
 // BFS -> Breadth-First search
 
 /// Cluster index. Ground cluster has most spheres.
-enum class CLUSTER_INDEX {GROUND = 0, INVALID = 1, VOLUME = 2, START = 3};/* number of clusters go up to nSpheres */
+/// Noise spheres are part of their own invalid cluster,
+/// Any cluster that contain a VOLUME sphere is part 
+/// of the VOLUME cluster, except if it is the GROUND cluster
+/// Otherwise cluster index increases from START when cluster found 
+enum class CLUSTER_INDEX {GROUND = 0, INVALID = 1, VOLUME = 2, START = 3}; /* number of clusters go up to nSpheres */
 
-/// Sphere groups, core border or noise for clustering, volume inside volume
+/// Sphere groups, core border or noise for clustering, volume for inside mesh
+/// a sphere can be a CORE or BORDER of any cluster. 
 enum class SPHERE_GROUP {CORE = 0, BORDER = 1, NOISE = 2, VOLUME = 3};
 
 #define GET_OUTPUT_SETTING(setting) (this->output_flags & static_cast<unsigned int>(setting))

@@ -99,7 +99,7 @@ static __global__ void GdbscanFinalClusterFromGroup(unsigned int nSpheres,
 // find if any particle is in the volume cluster.
 // if any of volume is true, this is the volume cluster UNLESS
 // it is the biggest cluster -> becomes the ground cluster.
-static __global__ void FindBucketCluster(unsigned int nSpheres,
+static __global__ void FindVolumeCluster(unsigned int nSpheres,
                                            bool * visited,
                                            bool * in_volume,
                                            SPHERE_GROUP* sphere_group) {

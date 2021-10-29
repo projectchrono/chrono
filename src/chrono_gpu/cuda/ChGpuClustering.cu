@@ -26,16 +26,10 @@
 namespace chrono {
 namespace gpu {
 
-/// All spheres with > min_pts contacts are core, other points maybe be border points.
-static __global__ void InitSphereGroup(unsigned int nSpheres,
-                                           unsigned int* adj_num,
-                                           SPHERE_GROUP* sphere_group,
-                                           unsigned int min_pts) {
-    unsigned int mySphereID = threadIdx.x + blockIdx.x * blockDim.x;
-    sphere_group[mySphereID] = (adj_num[mySphereID] > min_pts) ? SPHERE_GROUP::CORE : SPHERE_GROUP::NOISE;
-}
-
-/// computes h_cluster by breadth first search
+/// ClusterSearchBFSKernel: GPU part of Breadth First Search (BFS) algorithm
+/// Visits all border spheres (d_borders) in parallel, finds neighbors
+/// Neighbors set in d_borders, visited on next call
+/// Call until no border spheres i.e. nothing true in d_borders
 static __global__ void ClusterSearchBFSKernel(unsigned int nSpheres,
                         unsigned int * adj_num,
                         unsigned int * adj_start,
@@ -63,6 +57,9 @@ static __global__ void ClusterSearchBFSKernel(unsigned int nSpheres,
 }
 
 /// computes h_cluster by breadth first search
+/// h_clusters[0][0] -> number of pointers/h_clusters
+/// h_clusters[M][0] -> size of the Mth h_cluster
+/// h_clusters[M][N] -> Nth point in Mth h_cluster
 /// return pointer to h_clusters: array of pointers to arrays of variable length
 static __host__ unsigned int ** ClusterSearchBFS(unsigned int nSpheres,
                         ChSystemGpu_impl::GranSphereDataPtr sphere_data,
@@ -80,9 +77,7 @@ static __host__ unsigned int ** ClusterSearchBFS(unsigned int nSpheres,
     h_clusters = (unsigned int **)malloc(sizeof(*h_clusters) * (nSpheres+1)); // at worst, there will be nSpheres h_clusters
     h_clusters[0] = (unsigned int *)malloc(sizeof(**h_clusters)); // number of h_clusters at h_clusters[0][0]
     h_clusters[0][0] = h_cluster_num;
-    /// h_clusters[0][0] -> number of pointers/h_clusters
-    /// h_clusters[M][0] -> size of the Mth h_cluster
-    /// h_clusters[M][N] -> Nth point in Mth h_cluster
+
 
     unsigned int * d_border_num; // number of remaining border vertices to search in BFS_kernel
     unsigned int * d_in_volume_num; // number of spheres inside the volume
@@ -145,7 +140,7 @@ static __host__ unsigned int ** ClusterSearchBFS(unsigned int nSpheres,
             } while ((*h_border_num) > 0);
 
             // find if any sphere was tagged in the VOLUME group i.e. in the volume.
-            FindBucketCluster<<<nBlocks, CUDA_THREADS_PER_BLOCK>>>(nSpheres,
+            FindVolumeCluster<<<nBlocks, CUDA_THREADS_PER_BLOCK>>>(nSpheres,
                                            d_visited, d_in_volume,
                                            sphere_data->sphere_group);
             // Sum number of particles in d_in_volume into h_in_volume_num
@@ -169,10 +164,10 @@ static __host__ unsigned int ** ClusterSearchBFS(unsigned int nSpheres,
             assert(h_cluster[0] == 0);
 
             unsigned int cluster_index;
-            // if any sphere is in the volume, the cluster is BUCKET
+            // if any sphere is in the volume, the cluster is VOLUME
             // gets overwritten by the biggest cluster in GdbscanSearchGraph
             if (*h_in_volume_num > 0) {
-                cluster_index = static_cast<unsigned int>(chrono::gpu::CLUSTER_INDEX::BUCKET);
+                cluster_index = static_cast<unsigned int>(chrono::gpu::CLUSTER_INDEX::VOLUME);
             }  else {
                 cluster_index = h_cluster_num + static_cast<unsigned int>(chrono::gpu::CLUSTER_INDEX::START);
             }
