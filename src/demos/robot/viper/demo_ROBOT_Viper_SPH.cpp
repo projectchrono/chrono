@@ -174,7 +174,7 @@ int main(int argc, char* argv[]) {
     myFsiSystem.SetSubDomain(paramsH);
 
     /// Setup the output directory for FSI data
-    fsi::utils::PrepareOutputDir(paramsH, demo_dir, out_dir, inputJson.c_str());
+    myFsiSystem.SetFsiOutputDir(paramsH, demo_dir, out_dir, inputJson.c_str());
 
     /// Create an initial box for the terrain patch
     chrono::utils::GridSampler<> sampler(initSpace0);
@@ -293,19 +293,12 @@ void CreateSolidPhase(ChSystemNSC& mphysicalSystem,
     ChVector<> pos_yp(0, byDim / 2 + initSpace0, bzDim / 2 + 0 * initSpace0);
     ChVector<> pos_yn(0, -byDim / 2 - 3 * initSpace0, bzDim / 2 + 0 * initSpace0);
 
-    /// Fluid-Solid Coupling at the walls via Condition Enforcement (BCE) Markers
-    // fsi::utils::AddBoxBce(myFsiSystem.GetFsiData(), paramsH, mfloor, pos_zp, QUNIT, size_XY, 12);
-    fsi::utils::AddBoxBce(myFsiSystem.GetFsiData(), paramsH, mfloor, pos_zn, QUNIT, size_XY, 12);
-    fsi::utils::AddBoxBce(myFsiSystem.GetFsiData(), paramsH, mfloor, pos_xp, QUNIT, size_YZ, 23);
-    fsi::utils::AddBoxBce(myFsiSystem.GetFsiData(), paramsH, mfloor, pos_xn, QUNIT, size_YZ, 23);
-    fsi::utils::AddBoxBce(myFsiSystem.GetFsiData(), paramsH, mfloor, pos_yp, QUNIT, size_XZ, 13);
-    fsi::utils::AddBoxBce(myFsiSystem.GetFsiData(), paramsH, mfloor, pos_yn, QUNIT, size_XZ, 13);
-
-    // myFsiSystem.AddBceBox(paramsH, mfloor, posBottom, QUNIT, size_XY, 12);
-    // myFsiSystem.AddBceBox(paramsH, mfloor, posBottom, QUNIT, size_XY, 23);
-    // myFsiSystem.AddBceBox(paramsH, mfloor, posBottom, QUNIT, size_XY, 23);
-    // myFsiSystem.AddBceBox(paramsH, mfloor, posBottom, QUNIT, size_XY, 13);
-    // myFsiSystem.AddBceBox(paramsH, mfloor, posBottom, QUNIT, size_XY, 13);
+    /// Fluid-Solid Coupling at the walls via BCE particles
+    myFsiSystem.AddBceBox(paramsH, mfloor, pos_zn, QUNIT, size_XY, 12);
+    myFsiSystem.AddBceBox(paramsH, mfloor, pos_xp, QUNIT, size_YZ, 23);
+    myFsiSystem.AddBceBox(paramsH, mfloor, pos_xn, QUNIT, size_YZ, 23);
+    myFsiSystem.AddBceBox(paramsH, mfloor, pos_yp, QUNIT, size_XZ, 13);
+    myFsiSystem.AddBceBox(paramsH, mfloor, pos_yn, QUNIT, size_XZ, 13);
 
     auto driver = chrono_types::make_shared<ViperDCMotorControl>();
     rover = chrono_types::make_shared<Viper>(&mphysicalSystem);
@@ -333,6 +326,7 @@ void CreateSolidPhase(ChSystemNSC& mphysicalSystem,
         std::string BCE_path = GetChronoDataFile("fsi/demo_BCE/BCE_viperWheel.txt");
         fsi::utils::AddBCE_FromFile(myFsiSystem.GetFsiData(), paramsH, wheel_body, BCE_path, ChVector<double>(0),
                                     QUNIT, 1.0);
+        myFsiSystem.AddBceFile(paramsH, wheel_body, BCE_path, ChVector<>(0), QUNIT, 1.0, true);
     }
 }
 
