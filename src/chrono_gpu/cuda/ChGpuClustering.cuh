@@ -117,14 +117,14 @@ static __host__ void ComputeAdjStartFromAdjNum(unsigned int nSpheres,
                                                 unsigned int * adj_num,
                                                 unsigned int * adj_start) {
     memcpy(adj_start, adj_num, sizeof(*adj_start) * nSpheres);
-    /// all start indices after mySphereID depend on it -> inclusive sum
+    /// all start indices after mySphereID depend on it -> exclusive sum
     void * d_temp_storage = NULL;
     size_t bytesize = 0;
-    /// with d_temp_storage = NULL, InclusiveSum computes necessary bytesize
+    /// with d_temp_storage = NULL, ExclusiveSum computes necessary bytesize
     cub::DeviceScan::ExclusiveSum(d_temp_storage, bytesize,
     adj_start, adj_start, nSpheres);
     gpuErrchk(cudaMalloc(&d_temp_storage, bytesize));
-    /// Actually perform IncluseSum
+    /// Actually perform ExcluseSum
     cub::DeviceScan::ExclusiveSum(d_temp_storage, bytesize,
     adj_start, adj_start, nSpheres);
     gpuErrchk(cudaFree(d_temp_storage));
