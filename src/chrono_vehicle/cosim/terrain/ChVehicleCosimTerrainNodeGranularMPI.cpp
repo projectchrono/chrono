@@ -30,8 +30,10 @@
 #include "chrono/utils/ChUtilsCreators.h"
 #include "chrono/utils/ChUtilsGenerators.h"
 #include "chrono/utils/ChUtilsInputOutput.h"
-
 #include "chrono/assets/ChTriangleMeshShape.h"
+
+#include "chrono_distributed/collision/ChBoundary.h"
+#include "chrono_distributed/collision/ChCollisionModelDistributed.h"
 
 #include "chrono_vehicle/cosim/terrain/ChVehicleCosimTerrainNodeGranularMPI.h"
 
@@ -47,6 +49,11 @@ using namespace rapidjson;
 namespace chrono {
 namespace vehicle {
 
+// Ensure that all bodies other than obstacles or granular particles are created with a smaller identifier.
+// This allows filtering particle bodies or particle+obstacle bodies.
+static const int body_id_obstacles = 100000;  // start identifier for obstacle bodies
+static const int body_id_particles = 110000;  // start identifier for particle bodies
+
 // -----------------------------------------------------------------------------
 // Construction of the terrain node:
 // - create the (distributed) Chrono system and set solver parameters
@@ -58,15 +65,13 @@ namespace vehicle {
 //  currently not possible.
 // -----------------------------------------------------------------------------
 ChVehicleCosimTerrainNodeGranularMPI::ChVehicleCosimTerrainNodeGranularMPI(double length, double width)
-    : ChVehicleCosimTerrainNodeChrono(Type::GRANULAR_OMP, length, width, ChContactMethod::SMC),
+    : ChVehicleCosimTerrainNodeChrono(Type::GRANULAR_MPI, length, width, ChContactMethod::SMC),
       m_radius_p(5e-3),
       m_sampling_type(utils::SamplingType::POISSON_DISK),
       m_init_depth(0.2),
       m_separation_factor(1.001),
       m_in_layers(false),
-      m_Id_g(10000),
       m_constructed(false),
-      m_use_checkpoint(false),
       m_hthick(0.1),
       m_num_particles(0),
       m_system(nullptr),
@@ -80,10 +85,8 @@ ChVehicleCosimTerrainNodeGranularMPI::ChVehicleCosimTerrainNodeGranularMPI(doubl
 }
 
 ChVehicleCosimTerrainNodeGranularMPI::ChVehicleCosimTerrainNodeGranularMPI(const std::string& specfile)
-    : ChVehicleCosimTerrainNodeChrono(Type::GRANULAR_OMP, 0, 0, ChContactMethod::SMC),
-      m_Id_g(10000),
+    : ChVehicleCosimTerrainNodeChrono(Type::GRANULAR_MPI, 0, 0, ChContactMethod::SMC),
       m_constructed(false),
-      m_use_checkpoint(false),
       m_hthick(0.1),
       m_num_particles(0),
       m_system(nullptr),
@@ -176,7 +179,6 @@ void ChVehicleCosimTerrainNodeGranularMPI::SetWallThickness(double thickness) {
 void ChVehicleCosimTerrainNodeGranularMPI::SetGranularMaterial(double radius, double density) {
     m_radius_g = radius;
     m_rho_g = density;
-    m_system->GetSettings()->collision.collision_envelope = 0.1 * radius;
 }
 
 void ChVehicleCosimTerrainNodeGranularMPI::UseMaterialProperties(bool flag) {
@@ -206,11 +208,6 @@ void ChVehicleCosimTerrainNodeGranularMPI::SetMaterialSurface(const std::shared_
     m_material_terrain = mat;
 }
 
-void ChVehicleCosimTerrainNodeGranularMPI::SetInputFromCheckpoint(const std::string& filename) {
-    m_use_checkpoint = true;
-    m_checkpoint_filename = filename;
-}
-
 // -----------------------------------------------------------------------------
 // Complete construction of the mechanical system.
 // Invoked by ChVehicleCosimTerrainNodeChrono::OnInitialize.
@@ -222,6 +219,9 @@ void ChVehicleCosimTerrainNodeGranularMPI::SetInputFromCheckpoint(const std::str
 void ChVehicleCosimTerrainNodeGranularMPI::Construct() {
     if (m_constructed)
         return;
+
+    std::cout << "SUB RANK = " << m_sub_rank << std::endl;
+
 
     // Create the Chrono::Distributed system.
     m_system = new ChSystemDistributed(TerrainCommunicator(), m_radius_g * 2, 100000);
@@ -244,51 +244,54 @@ void ChVehicleCosimTerrainNodeGranularMPI::Construct() {
     {
         // Sanity check: print number of threads in a parallel region
         if (m_verbose)
-            cout << "[Terrain node] actual number of OpenMP threads: " << omp_get_num_threads() << endl;
+            cout << "[Terrain node] [" << m_rank << " " << m_sub_rank
+                 << "]  actual number of OpenMP threads: " << omp_get_num_threads() << endl;
     }
 
     // Calculate container (half) height
     double r = m_separation_factor * m_radius_g;
     double delta = 2.0f * r;
-    double hdimZ = 0.5 * m_init_depth;
+
+    // Domain decomposition
+    ChVector<> lo(-m_hdimX - delta, -m_hdimY - delta, -2 * m_radius_g);
+    ChVector<> hi(+m_hdimX + delta, +m_hdimY + delta, +3 * m_radius_g);
+    m_system->GetDomain()->SetSplitAxis(0);   //// TODO: let user specify this
+    m_system->GetDomain()->SetSimDomain(lo, hi);
 
     // Estimates for number of bins for broad-phase.
     int factor = 2;
-    int binsX = (int)std::ceil(m_hdimX / m_radius_g) / factor;
-    int binsY = (int)std::ceil(m_hdimY / m_radius_g) / factor;
+    auto& sub_lo = m_system->GetDomain()->GetSubLo();
+    auto& sub_hi = m_system->GetDomain()->GetSubHi();
+    auto sub_hdim = (sub_hi - sub_lo) / 2;
+    int binsX = (int)std::ceil(sub_hdim.x() / m_radius_g) / factor;
+    int binsY = (int)std::ceil(sub_hdim.y() / m_radius_g) / factor;
     int binsZ = 1;
     m_system->GetSettings()->collision.bins_per_axis = vec3(binsX, binsY, binsZ);
-    if (m_verbose)
+    if (m_verbose && m_sub_rank == 0)
         cout << "[Terrain node] broad-phase bins: " << binsX << " x " << binsY << " x " << binsZ << endl;
 
     // ---------------------
     // Create container body
-    // ---------------------
+    // ----------------------
 
     auto container = std::shared_ptr<ChBody>(m_system->NewBody());
-    m_system->AddBody(container);
     container->SetIdentifier(-1);
+    container->SetPos(ChVector<>(0, 0, 0));
     container->SetMass(1);
     container->SetBodyFixed(true);
     container->SetCollide(true);
+    m_system->AddBodyAllRanks(container);
 
-    container->GetCollisionModel()->ClearModel();
-    // Bottom box
-    utils::AddBoxGeometry(container.get(), m_material_terrain, ChVector<>(m_hdimX, m_hdimY, m_hthick),
-                          ChVector<>(0, 0, -m_hthick), ChQuaternion<>(1, 0, 0, 0), true);
-    // Front box
-    utils::AddBoxGeometry(container.get(), m_material_terrain, ChVector<>(m_hthick, m_hdimY, hdimZ + m_hthick),
-                          ChVector<>(m_hdimX + m_hthick, 0, hdimZ - m_hthick), ChQuaternion<>(1, 0, 0, 0), false);
-    // Rear box
-    utils::AddBoxGeometry(container.get(), m_material_terrain, ChVector<>(m_hthick, m_hdimY, hdimZ + m_hthick),
-                          ChVector<>(-m_hdimX - m_hthick, 0, hdimZ - m_hthick), ChQuaternion<>(1, 0, 0, 0), false);
-    // Left box
-    utils::AddBoxGeometry(container.get(), m_material_terrain, ChVector<>(m_hdimX, m_hthick, hdimZ + m_hthick),
-                          ChVector<>(0, m_hdimY + m_hthick, hdimZ - m_hthick), ChQuaternion<>(1, 0, 0, 0), false);
-    // Right box
-    utils::AddBoxGeometry(container.get(), m_material_terrain, ChVector<>(m_hdimX, m_hthick, hdimZ + m_hthick),
-                          ChVector<>(0, -m_hdimY - m_hthick, hdimZ - m_hthick), ChQuaternion<>(1, 0, 0, 0), false);
-    container->GetCollisionModel()->BuildModel();
+    double dimX = 2 * m_hdimX;
+    double dimY = 2 * m_hdimY;
+    double dimZ = m_init_depth;
+    double hdimZ = dimZ / 2;
+    auto cb = new ChBoundary(container, std::static_pointer_cast<ChMaterialSurfaceSMC>(m_material_terrain));
+    cb->AddPlane(ChFrame<>(ChVector<>(0, 0, 0), QUNIT), ChVector2<>(dimX, dimY));
+    cb->AddPlane(ChFrame<>(ChVector<>(-m_hdimX, 0, hdimZ), Q_from_AngY(+CH_C_PI_2)), ChVector2<>(dimZ, dimY));
+    cb->AddPlane(ChFrame<>(ChVector<>(+m_hdimX, 0, hdimZ), Q_from_AngY(-CH_C_PI_2)), ChVector2<>(dimZ, dimY));
+    cb->AddPlane(ChFrame<>(ChVector<>(0, -m_hdimY, hdimZ), Q_from_AngX(-CH_C_PI_2)), ChVector2<>(dimX, dimZ));
+    cb->AddPlane(ChFrame<>(ChVector<>(0, +m_hdimY, hdimZ), Q_from_AngX(+CH_C_PI_2)), ChVector2<>(dimX, dimZ));
 
     // Enable deactivation of bodies that exit a specified bounding box.
     // We set this bounding box to encapsulate the container with a conservative height.
@@ -300,20 +303,9 @@ void ChVehicleCosimTerrainNodeGranularMPI::Construct() {
     // Generate granular material
     // --------------------------
 
-    // Cache the number of bodies that have been added so far to the multicore system.
-    // ATTENTION: This will be used to set the state of granular material particles if
-    // initializing them from a checkpoint file.
-    uint particles_start_index = m_system->data_manager->num_rigid_bodies;
-
-    // Create a particle generator and a mixture entirely made out of spheres
-    utils::Generator gen(m_system);
-    std::shared_ptr<utils::MixtureIngredient> m1 = gen.AddMixtureIngredient(utils::MixtureType::SPHERE, 1.0);
-    m1->setDefaultMaterial(m_material_terrain);
-    m1->setDefaultDensity(m_rho_g);
-    m1->setDefaultSize(m_radius_g);
-
-    // Set starting value for body identifiers
-    gen.setBodyIdentifier(m_Id_g);
+    // Mass and inertia moments for a granular particle
+    double mass_g = m_rho_g * 4 / 3 * CH_C_PI * m_radius_g * m_radius_g * m_radius_g;
+    ChVector<> inertia_g = (2.0 / 5.0) * mass_g * m_radius_g * m_radius_g * ChVector<>(1, 1, 1);
 
     // Create particles using the specified volume sampling type
     utils::Sampler<double>* sampler;
@@ -330,83 +322,57 @@ void ChVehicleCosimTerrainNodeGranularMPI::Construct() {
             break;
     }
 
+    // Create particle locations
+    std::vector<ChVector<>> points;
     if (m_in_layers) {
         ChVector<> hdims(m_hdimX - r, m_hdimY - r, 0);
         double z = delta;
         while (z < m_init_depth) {
-            gen.CreateObjectsBox(*sampler, ChVector<>(0, 0, z), hdims);
-            if (m_verbose)
-                cout << "   z =  " << z << "\tnum particles = " << gen.getTotalNumBodies() << endl;
+            auto points_new = sampler->SampleBox(ChVector<>(0, 0, z), hdims);
+            points.insert(points.end(), points_new.begin(), points_new.end());
+            if (m_verbose && m_sub_rank == 0)
+                cout << "   z =  " << z << "\tnum particles = " << points.size() << endl;
             z += delta;
         }
     } else {
-        ChVector<> hdims(m_hdimX - r, m_hdimY - r, m_init_depth / 2 - r);
-        gen.CreateObjectsBox(*sampler, ChVector<>(0, 0, m_init_depth / 2), hdims);
+        ChVector<> hdims(m_hdimX - r, m_hdimY - r, hdimZ - r);
+        points = sampler->SampleBox(ChVector<>(0, 0, hdimZ), hdims);
     }
 
-    m_num_particles = gen.getTotalNumBodies();
-    if (m_verbose)
+    // Create particle bodies with identifiers starting at m_Id_g
+    m_num_particles = (unsigned int)points.size();
+    if (m_verbose && m_sub_rank == 0)
         cout << "[Terrain node] Generated num particles = " << m_num_particles << endl;
 
-    // -------------------------------------------------------
-    // If requested, overwrite particle states from checkpoint
-    // -------------------------------------------------------
-    if (m_use_checkpoint) {
-        // Open input file stream
-        std::string checkpoint_filename = m_node_out_dir + "/" + m_checkpoint_filename;
-        std::ifstream ifile(checkpoint_filename);
-        if (!ifile.is_open()) {
-            cout << "ERROR: could not open checkpoint file " << checkpoint_filename << endl;
-            MPI_Abort(MPI_COMM_WORLD, 1);
-        }
-        std::string line;
+    m_init_height = -std::numeric_limits<double>::max();
+    int particle_id = body_id_particles;
+    for (unsigned int i = 0; i < m_num_particles; i++) {
+        auto body = chrono_types::make_shared<ChBody>(chrono_types::make_shared<collision::ChCollisionModelDistributed>());
+        body->SetIdentifier(particle_id++);
+        body->SetMass(mass_g);
+        body->SetInertiaXX(inertia_g);
+        body->SetPos(points[i]);
+        body->SetRot(ChQuaternion<>(1, 0, 0, 0));
+        body->SetBodyFixed(false);
+        body->SetCollide(true);
 
-        // Read and discard line with current time
-        std::getline(ifile, line);
+        body->GetCollisionModel()->ClearModel();
+        utils::AddSphereGeometry(body.get(), m_material_terrain, m_radius_g);
+        body->GetCollisionModel()->BuildModel();
 
-        // Read number of particles in checkpoint
-        unsigned int num_particles;
-        {
-            std::getline(ifile, line);
-            std::istringstream iss(line);
-            iss >> num_particles;
+        m_system->AddBody(body);
 
-            if (num_particles != m_num_particles) {
-                cout << "ERROR: inconsistent number of particles in checkpoint file!" << endl;
-                MPI_Abort(MPI_COMM_WORLD, 1);
-            }
-        }
-
-        // Read granular material state from checkpoint
-        for (uint ib = particles_start_index; ib < m_system->Get_bodylist().size(); ++ib) {
-            std::getline(ifile, line);
-            std::istringstream iss(line);
-            int identifier;
-            ChVector<> pos;
-            ChQuaternion<> rot;
-            ChVector<> pos_dt;
-            ChQuaternion<> rot_dt;
-            iss >> identifier >> pos.x() >> pos.y() >> pos.z() >> rot.e0() >> rot.e1() >> rot.e2() >> rot.e3() >>
-                pos_dt.x() >> pos_dt.y() >> pos_dt.z() >> rot_dt.e0() >> rot_dt.e1() >> rot_dt.e2() >> rot_dt.e3();
-
-            auto body = m_system->Get_bodylist()[ib];
-            assert(body->GetIdentifier() == identifier);
-            body->SetPos(ChVector<>(pos.x(), pos.y(), pos.z()));
-            body->SetRot(ChQuaternion<>(rot.e0(), rot.e1(), rot.e2(), rot.e3()));
-            body->SetPos_dt(ChVector<>(pos_dt.x(), pos_dt.y(), pos_dt.z()));
-            body->SetRot_dt(ChQuaternion<>(rot_dt.e0(), rot_dt.e1(), rot_dt.e2(), rot_dt.e3()));
-        }
-
-        if (m_verbose)
-            cout << "[Terrain node] read " << checkpoint_filename << "   num. particles = " << num_particles << endl;
+        if (points[i].z() > m_init_height)
+            m_init_height = points[i].z();
     }
 
-    // Find "height" of granular material
-    m_init_height = CalcCurrentHeight() + m_radius_g;
-    if (m_verbose)
-        cout << "[Terrain node] initial height = " << m_init_height << endl;
+    cout << "[Terrain node] initial height = " << m_init_height << endl;
 
-    // Add all rigid obstacles
+    // ----------------------
+    // Create rigid obstacles
+    // ----------------------
+
+    int obstacle_id = body_id_obstacles;
     for (auto& b : m_obstacles) {
         auto mat = b.m_contact_mat.CreateMaterial(m_system->GetContactMethod());
         auto trimesh = chrono_types::make_shared<geometry::ChTriangleMeshConnected>();
@@ -418,6 +384,7 @@ void ChVehicleCosimTerrainNodeGranularMPI::Construct() {
 
         auto body = std::shared_ptr<ChBody>(m_system->NewBody());
         body->SetNameString("obstacle");
+        body->SetIdentifier(obstacle_id++);
         body->SetPos(b.m_init_pos);
         body->SetRot(b.m_init_rot);
         body->SetMass(mass * b.m_density);
@@ -452,35 +419,36 @@ void ChVehicleCosimTerrainNodeGranularMPI::Construct() {
 #endif
 
     // Write file with terrain node settings
-    std::ofstream outf;
-    outf.open(m_node_out_dir + "/settings.info", std::ios::out);
-    outf << "System settings" << endl;
-    outf << "   Integration step size = " << m_step_size << endl;
-    outf << "   Use material properties? " << (m_system->GetSettings()->solver.use_material_properties ? "YES" : "NO")
-         << endl;
-    outf << "   Collision envelope = " << m_system->GetSettings()->collision.collision_envelope << endl;
-    outf << "Terrain patch dimensions" << endl;
-    outf << "   X = " << 2 * m_hdimX << "  Y = " << 2 * m_hdimY << endl;
-    outf << "Terrain material properties" << endl;
+    if (m_sub_rank == 0) {
+        std::ofstream outf;
+        outf.open(m_node_out_dir + "/settings.info", std::ios::out);
+        outf << "System settings" << endl;
+        outf << "   Integration step size = " << m_step_size << endl;
+        outf << "   Use material properties? "
+             << (m_system->GetSettings()->solver.use_material_properties ? "YES" : "NO") << endl;
+        outf << "Terrain patch dimensions" << endl;
+        outf << "   X = " << 2 * m_hdimX << "  Y = " << 2 * m_hdimY << endl;
+        outf << "Terrain material properties" << endl;
 
-    auto mat = std::static_pointer_cast<ChMaterialSurfaceSMC>(m_material_terrain);
-    outf << "   Coefficient of friction    = " << mat->GetKfriction() << endl;
-    outf << "   Coefficient of restitution = " << mat->GetRestitution() << endl;
-    outf << "   Young modulus              = " << mat->GetYoungModulus() << endl;
-    outf << "   Poisson ratio              = " << mat->GetPoissonRatio() << endl;
-    outf << "   Adhesion force             = " << mat->GetAdhesion() << endl;
-    outf << "   Kn = " << mat->GetKn() << endl;
-    outf << "   Gn = " << mat->GetGn() << endl;
-    outf << "   Kt = " << mat->GetKt() << endl;
-    outf << "   Gt = " << mat->GetGt() << endl;
+        auto mat = std::static_pointer_cast<ChMaterialSurfaceSMC>(m_material_terrain);
+        outf << "   Coefficient of friction    = " << mat->GetKfriction() << endl;
+        outf << "   Coefficient of restitution = " << mat->GetRestitution() << endl;
+        outf << "   Young modulus              = " << mat->GetYoungModulus() << endl;
+        outf << "   Poisson ratio              = " << mat->GetPoissonRatio() << endl;
+        outf << "   Adhesion force             = " << mat->GetAdhesion() << endl;
+        outf << "   Kn = " << mat->GetKn() << endl;
+        outf << "   Gn = " << mat->GetGn() << endl;
+        outf << "   Kt = " << mat->GetKt() << endl;
+        outf << "   Gt = " << mat->GetGt() << endl;
 
-    outf << "Granular material properties" << endl;
-    outf << "   particle radius  = " << m_radius_g << endl;
-    outf << "   particle density = " << m_rho_g << endl;
-    outf << "   number particles = " << m_num_particles << endl;
-    outf << "Proxy body properties" << endl;
-    outf << "   proxies fixed? " << (m_fixed_proxies ? "YES" : "NO") << endl;
-    outf << "   proxy contact radius = " << m_radius_p << endl;
+        outf << "Granular material properties" << endl;
+        outf << "   particle radius  = " << m_radius_g << endl;
+        outf << "   particle density = " << m_rho_g << endl;
+        outf << "   number particles = " << m_num_particles << endl;
+        outf << "Proxy body properties" << endl;
+        outf << "   proxies fixed? " << (m_fixed_proxies ? "YES" : "NO") << endl;
+        outf << "   proxy contact radius = " << m_radius_p << endl;
+    }
 
     // Mark system as constructed.
     m_constructed = true;
@@ -502,10 +470,17 @@ double ChVehicleCosimTerrainNodeGranularMPI::CalcTotalKineticEnergy() {
 
 double ChVehicleCosimTerrainNodeGranularMPI::CalcCurrentHeight() {
     double height = -std::numeric_limits<double>::max();
-    for (const auto& body : m_system->Get_bodylist()) {
-        if (body->GetIdentifier() > 0 && body->GetPos().z() > height)
-            height = body->GetPos().z();
+
+    int i = 0;
+    auto bl_itr = m_system->data_manager->body_list->begin();
+    for (; bl_itr != m_system->data_manager->body_list->end(); bl_itr++, i++) {
+        if (m_system->ddm->comm_status[i] != chrono::distributed::EMPTY) {
+            ChVector<> pos = (*bl_itr)->GetPos();
+            if ((*bl_itr)->GetIdentifier() > 0 && pos.z() > height)
+                height = pos.z();
+        }
     }
+
     return height;
 }
 
@@ -648,7 +623,8 @@ void ChVehicleCosimTerrainNodeGranularMPI::UpdateMeshProxies(unsigned int i, con
         shape_data[3 * it + 2] = real3(pC.x() - pos.x(), pC.y() - pos.y(), pC.z() - pos.z());
     }
 
-    PrintMeshProxiesUpdateData(i, mesh_state);
+    if (m_verbose && m_sub_rank == 0)
+        PrintMeshProxiesUpdateData(i, mesh_state);
 }
 
 // Set state of wheel proxy body.
@@ -790,7 +766,7 @@ void ChVehicleCosimTerrainNodeGranularMPI::WriteParticleInformation(utils::CSV_w
 
     // Write particle positions and linear velocities
     for (auto body : m_system->Get_bodylist()) {
-        if (body->GetIdentifier() < m_Id_g)
+        if (body->GetIdentifier() < body_id_particles)
             continue;
         ////csv << body->GetIdentifier() << body->GetPos() << body->GetPos_dt() << endl;
         csv << body->GetPos() << body->GetPos_dt() << endl;
@@ -807,7 +783,7 @@ void ChVehicleCosimTerrainNodeGranularMPI::WriteCheckpoint(const std::string& fi
     // Loop over all bodies in the system and write state for granular material bodies.
     // Filter granular material using the body identifier.
     for (auto& body : m_system->Get_bodylist()) {
-        if (body->GetIdentifier() < m_Id_g)
+        if (body->GetIdentifier() < body_id_particles)
             continue;
         csv << body->GetIdentifier() << body->GetPos() << body->GetRot() << body->GetPos_dt() << body->GetRot_dt()
             << endl;
@@ -815,7 +791,7 @@ void ChVehicleCosimTerrainNodeGranularMPI::WriteCheckpoint(const std::string& fi
 
     std::string checkpoint_filename = m_node_out_dir + "/" + filename;
     csv.write_to_file(checkpoint_filename);
-    if (m_verbose)
+    if (m_verbose && m_sub_rank == 0)
         cout << "[Terrain node] write checkpoint ===> " << checkpoint_filename << endl;
 }
 

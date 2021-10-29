@@ -504,7 +504,10 @@ void ChVehicleCosimTerrainNodeGranularOMP::Construct() {
     if (m_verbose)
         cout << "[Terrain node] initial height = " << m_init_height << endl;
 
-    // Add all rigid obstacles
+    // ----------------------
+    // Create rigid obstacles
+    // ----------------------
+
     int id = body_id_obstacles;
     for (auto& b : m_obstacles) {
         auto mat = b.m_contact_mat.CreateMaterial(m_system->GetContactMethod());
@@ -1054,7 +1057,7 @@ void ChVehicleCosimTerrainNodeGranularOMP::OutputVisualizationData(int frame) {
     auto filename = OutputFilename(m_node_out_dir + "/visualization", "vis", "dat", frame, 5);
     // Include only obstacles and particles
     utils::WriteVisualizationAssets(
-        m_system, filename, [](const ChBody& b) -> bool { return b.GetIdentifier() > body_id_obstacles; }, true);
+        m_system, filename, [](const ChBody& b) -> bool { return b.GetIdentifier() >= body_id_obstacles; }, true);
 }
 
 void ChVehicleCosimTerrainNodeGranularOMP::PrintMeshProxiesUpdateData(unsigned int i, const MeshState& mesh_state) {

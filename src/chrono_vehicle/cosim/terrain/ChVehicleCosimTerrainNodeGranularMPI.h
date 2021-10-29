@@ -92,11 +92,6 @@ class CH_VEHICLE_API ChVehicleCosimTerrainNodeGranularMPI : public ChVehicleCosi
     /// collision detection algorithm).
     void SetProxyContactRadius(double radius) { m_radius_p = radius; }
 
-    /// Initialize granular terrain from the specified checkpoint file (which must exist in the output directory).
-    /// By default, particles are created uniformly distributed in the specified domain such that they are initially not
-    /// in contact.
-    void SetInputFromCheckpoint(const std::string& filename);
-
     /// Write checkpoint to the specified file (which will be created in the output directory).
     virtual void WriteCheckpoint(const std::string& filename) const override;
 
@@ -122,10 +117,6 @@ class CH_VEHICLE_API ChVehicleCosimTerrainNodeGranularMPI : public ChVehicleCosi
     double m_separation_factor;           ///< radius inflation factor for initial particle separation
     bool m_in_layers;                     ///< initialize material layer-by-layer (true) or all at once (false)
 
-    bool m_use_checkpoint;              ///< initialize granular terrain from checkpoint file
-    std::string m_checkpoint_filename;  ///< name of input checkpoint file
-
-    int m_Id_g;                    ///< first identifier for granular material bodies
     unsigned int m_num_particles;  ///< number of granular material bodies
     double m_radius_g;             ///< radius of one particle of granular material
     double m_rho_g;                ///< particle material density

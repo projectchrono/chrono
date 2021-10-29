@@ -20,6 +20,12 @@ set(PROGRAMS
     demo_VEH_Cosim_Curiosity
     )
 
+if(ENABLE_MODULE_DISTRIBUTED)
+  set(PROGRAMS ${PROGRAMS}
+      demo_VEH_Cosim_WheelRig_DistributedTerrain
+      )
+endif()
+
 include_directories(${CH_VEHCOSIM_INCLUDES})
 
 FOREACH(PROGRAM ${PROGRAMS})
