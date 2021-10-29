@@ -57,7 +57,7 @@ __host__ std::vector<float3> ChSystemGpu_impl::get_max_z_map(unsigned int x_size
 
     size_t nSpheres = sphere_local_pos_Z.size();
     for (size_t index = 0; index < nSpheres; index++) {
-        if (sphere_data->sphere_cluster[index] == SPHERE_CLUSTER::GROUND) {
+        if (sphere_data->sphere_cluster[index] == static_cast<int>(CLUSTER_INDEX::GROUND)) {
             unsigned int ownerSD = sphere_data->sphere_owner_SDs[index];
             unsigned int spheresTouchingThisSD = sphere_data->SD_NumSpheresTouching[ownerSD];
             if (spheresTouchingThisSD < 5) {
@@ -216,6 +216,7 @@ __host__ void ChSystemGpu_impl::defragment_initial_positions() {
     sphere_inside_mesh_tmp.resize(nSpheres);
     sphere_owner_SDs_tmp.resize(nSpheres);
 
+    // reorder values into new sorted
     for (unsigned int i = 0; i < nSpheres; i++) {
         sphere_pos_x_tmp.at(i) = sphere_local_pos_X.at(sphere_ids.at(i));
         sphere_pos_y_tmp.at(i) = sphere_local_pos_Y.at(sphere_ids.at(i));
