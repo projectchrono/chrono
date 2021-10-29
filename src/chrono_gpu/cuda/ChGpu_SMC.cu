@@ -272,7 +272,7 @@ __host__ void ChSystemGpu_impl::setupSphereDataStructures() {
 
     TRACK_VECTOR_RESIZE(sphere_fixed, nSpheres, "sphere_fixed", 0);
     TRACK_VECTOR_RESIZE(sphere_group, nSpheres, "sphere_group", SPHERE_GROUP::CORE);
-    TRACK_VECTOR_RESIZE(sphere_cluster, nSpheres, "sphere_cluster", 1);
+    TRACK_VECTOR_RESIZE(sphere_cluster, nSpheres, "sphere_cluster", static_cast<unsigned int>(CLUSTER_INDEX::GROUND));
     TRACK_VECTOR_RESIZE(sphere_inside_mesh, nSpheres, "sphere_inside_mesh", false);
 
     TRACK_VECTOR_RESIZE(pos_X_dt, nSpheres, "pos_X_dt", 0);
@@ -309,7 +309,7 @@ __host__ void ChSystemGpu_impl::setupSphereDataStructures() {
             sphere_fixed.at(i) = (not_stupid_bool)((user_provided_fixed) ? user_sphere_fixed[i] : false);
             // default sphere group/cluster
             sphere_group.at(i) = SPHERE_GROUP::CORE;
-            sphere_cluster.at(i) = (unsigned int)CLUSTER_INDEX::START;
+            sphere_cluster.at(i) = static_cast<unsigned int>(CLUSTER_INDEX::START);
             sphere_inside_mesh.at(i) = false;
             if (user_provided_vel) {
                 auto vel = user_sphere_vel.at(i);
