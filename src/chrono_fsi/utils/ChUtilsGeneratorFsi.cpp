@@ -25,7 +25,7 @@
 #include "chrono_fsi/utils/ChUtilsGeneratorFsi.h"
 
 #include "chrono/fea/ChElementCableANCF.h"
-#include "chrono/fea/ChElementShellANCF.h"
+#include "chrono/fea/ChElementShellANCF_3423.h"
 #include "chrono/fea/ChMesh.h"
 
 namespace chrono {
@@ -328,11 +328,11 @@ void CreateBceGlobalMarkersFromBceLocalPos_CableANCF(std::shared_ptr<ChFsiDataMa
 void CreateBceGlobalMarkersFromBceLocalPos_ShellANCF(std::shared_ptr<ChFsiDataManager> fsiData,
                                                      std::shared_ptr<fsi::SimParams> paramsH,
                                                      const thrust::host_vector<Real4>& posRadBCE,
-                                                     std::shared_ptr<fea::ChElementShellANCF> shell,
+                                                     std::shared_ptr<fea::ChElementShellANCF_3423> shell,
                                                      double kernel_h = 0) {
     int type = 3;
 
-    fea::ChElementShellANCF::ShapeVector N;
+    fea::ChElementShellANCF_3423::ShapeVector N;
     size_t posRadSizeModified = 0;
 
     double my_h = (kernel_h == 0) ? paramsH->HSML : kernel_h;
@@ -676,7 +676,7 @@ void CreateBoxFSI(std::shared_ptr<ChFsiDataManager> fsiData,
 
 void AddBCE_ShellANCF(std::shared_ptr<ChFsiDataManager> fsiData,
                       std::shared_ptr<fsi::SimParams> paramsH,
-                      std::vector<std::shared_ptr<fea::ChElementShellANCF>>& fsiShells,
+                      std::vector<std::shared_ptr<fea::ChElementShellANCF_3423>>& fsiShells,
                       std::shared_ptr<fea::ChMesh> my_mesh,
                       bool multiLayer,
                       bool removeMiddleLayer,
@@ -685,7 +685,7 @@ void AddBCE_ShellANCF(std::shared_ptr<ChFsiDataManager> fsiData,
     int numShells = my_mesh->GetNelements();
     printf("number of shells to be meshed is %d\n", numShells);
     for (size_t i = 0; i < numShells; i++) {
-        auto thisShell = std::dynamic_pointer_cast<fea::ChElementShellANCF>(my_mesh->GetElement((unsigned int)i));
+        auto thisShell = std::dynamic_pointer_cast<fea::ChElementShellANCF_3423>(my_mesh->GetElement((unsigned int)i));
         fsiShells.push_back(thisShell);
         CreateBCE_On_shell(posRadBCE, paramsH, thisShell, multiLayer, removeMiddleLayer, SIDE);
         CreateBceGlobalMarkersFromBceLocalPos_ShellANCF(fsiData, paramsH, posRadBCE, thisShell);
@@ -698,7 +698,7 @@ void AddBCE_ShellANCF(std::shared_ptr<ChFsiDataManager> fsiData,
 
 void AddBCE_ShellFromMesh(std::shared_ptr<ChFsiDataManager> fsiData,
                           std::shared_ptr<fsi::SimParams> paramsH,
-                          std::vector<std::shared_ptr<fea::ChElementShellANCF>>& fsiShells,
+                          std::vector<std::shared_ptr<fea::ChElementShellANCF_3423>>& fsiShells,
                           std::vector<std::shared_ptr<fea::ChNodeFEAxyzD>>& fsiNodes,
                           std::shared_ptr<fea::ChMesh> my_mesh,
                           const std::vector<std::vector<int>>& elementsNodes,
@@ -718,7 +718,7 @@ void AddBCE_ShellFromMesh(std::shared_ptr<ChFsiDataManager> fsiData,
     for (size_t i = 0; i < numShells; i++) {
         remove.resize(4);
         std::fill(remove.begin(), remove.begin() + 4, 0);
-        auto thisShell = std::dynamic_pointer_cast<fea::ChElementShellANCF>(my_mesh->GetElement((unsigned int)i));
+        auto thisShell = std::dynamic_pointer_cast<fea::ChElementShellANCF_3423>(my_mesh->GetElement((unsigned int)i));
         fsiShells.push_back(thisShell);
         // Look into the nodes of this element
         size_t myNumNodes = (elementsNodes[i].size() > 4) ? 4 : elementsNodes[i].size();
@@ -768,7 +768,7 @@ void AddBCE_FromMesh(std::shared_ptr<ChFsiDataManager> fsiData,
                      std::shared_ptr<fea::ChMesh> my_mesh,
                      std::vector<std::shared_ptr<fea::ChNodeFEAxyzD>>& fsiNodes,
                      std::vector<std::shared_ptr<fea::ChElementCableANCF>>& fsiCables,
-                     std::vector<std::shared_ptr<fea::ChElementShellANCF>>& fsiShells,
+                     std::vector<std::shared_ptr<fea::ChElementShellANCF_3423>>& fsiShells,
                      const std::vector<std::vector<int>>& NodeNeighborElement,
                      const std::vector<std::vector<int>>& _1D_elementsNodes,
                      const std::vector<std::vector<int>>& _2D_elementsNodes,
@@ -831,7 +831,7 @@ void AddBCE_FromMesh(std::shared_ptr<ChFsiDataManager> fsiData,
         // Check for Shell Elements
         if (_2D_elementsNodes.size() > 0) {
             if (auto thisShell =
-                    std::dynamic_pointer_cast<fea::ChElementShellANCF>(my_mesh->GetElement((unsigned int)i))) {
+                    std::dynamic_pointer_cast<fea::ChElementShellANCF_3423>(my_mesh->GetElement((unsigned int)i))) {
                 remove2D.resize(4);
                 std::fill(remove2D.begin(), remove2D.begin() + 4, 0);
 

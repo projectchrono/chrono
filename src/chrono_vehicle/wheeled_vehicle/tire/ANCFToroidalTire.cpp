@@ -82,8 +82,7 @@ void ANCFToroidalTire::CreateMesh(const ChFrameMoving<>& wheel_frame, VehicleSid
             if (i == m_div_circumference - 1) {
                 inode0 = j;
                 inode3 = j + 1;
-            }
-            else {
+            } else {
                 inode0 = j + (i + 1) * (m_div_width + 1);
                 inode3 = j + 1 + (i + 1) * (m_div_width + 1);
             }
@@ -94,7 +93,7 @@ void ANCFToroidalTire::CreateMesh(const ChFrameMoving<>& wheel_frame, VehicleSid
             auto node3 = std::dynamic_pointer_cast<ChNodeFEAxyzD>(m_mesh->GetNode(inode3));
 
             // Create the element and set its nodes.
-            auto element = chrono_types::make_shared<ChElementShellANCF>();
+            auto element = chrono_types::make_shared<ChElementShellANCF_3423>();
             element->SetNodes(node0, node1, node2, node3);
 
             // Set element dimensions
@@ -105,15 +104,11 @@ void ANCFToroidalTire::CreateMesh(const ChFrameMoving<>& wheel_frame, VehicleSid
 
             // Set other element properties
             element->SetAlphaDamp(m_alpha);
-            element->SetGravityOn(true);
 
             // Add element to mesh
             m_mesh->AddElement(element);
         }
     }
-
-    // Switch off automatic gravity
-    m_mesh->SetAutomaticGravity(false);
 }
 
 std::vector<std::shared_ptr<ChNodeFEAbase>> ANCFToroidalTire::GetConnectedNodes() const {

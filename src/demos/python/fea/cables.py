@@ -94,14 +94,14 @@ class Model2 :
 
         # This ChBuilderCableANCF helper object is very useful because it will
         # subdivide 'beams' into sequences of finite elements of beam type, ex.
-        # one 'beam' could be made of 5 FEM elements of ChElementBeamANCF class.
+        # one 'beam' could be made of 5 FEM elements of ChElementBeamANCF_3333 class.
         # If new nodes are needed, it will create them for you.
         builder = fea.ChBuilderCableANCF()
 
         # Now, simply use BuildBeam to create a beam from a poto another:
         builder.BuildBeam(mesh,                    # the mesh where to put the created nodes and elements
-                          msection_cable2,         # the ChBeamSectionCable to use for the ChElementBeamANCF elements
-                          10,                      # the number of ChElementBeamANCF to create
+                          msection_cable2,         # the ChBeamSectionCable to use for the ChElementBeamANCF_3333 elements
+                          10,                      # the number of ChElementBeamANCF_3333 to create
                           chrono.ChVectorD(0, 0, -0.1),  # the 'A' poin space (beginning of beam)
                           chrono.ChVectorD(0.5, 0, -0.1))  # the 'B' poin space (end of beam)
 
@@ -140,8 +140,8 @@ class Model3 :
 
             # Now, simply use BuildBeam to create a beam from a poto another:
             builder.BuildBeam(mesh,             # the mesh where to put the created nodes and elements
-                              msection_cable2,  # ChBeamSectionCable to use for the ChElementBeamANCF elements
-                              1 + j,            # number of ChElementBeamANCF to create
+                              msection_cable2,  # ChBeamSectionCable to use for the ChElementBeamANCF_3333 elements
+                              1 + j,            # number of ChElementBeamANCF_3333 to create
                               chrono.ChVectorD(0, 0, -0.1 * j),             # poA (beginning of beam)
                               chrono.ChVectorD(0.1 + 0.1 * j, 0, -0.1 * j)  # poB (end of beam)
             )
@@ -173,8 +173,8 @@ class Model3 :
             # make another beam
             builder.BuildBeam(
                 mesh,                # mesh where to put the created nodes and elements
-                msection_cable2,     # ChBeamSectionCable to use for the ChElementBeamANCF elements
-                1 + (n_chains - j),  # number of ChElementBeamANCF to create
+                msection_cable2,     # ChBeamSectionCable to use for the ChElementBeamANCF_3333 elements
+                1 + (n_chains - j),  # number of ChElementBeamANCF_3333 to create
                 chrono.ChVectorD(mbox.GetPos().x + 0.1, 0, -0.1 * j),                        # poA (beginning of beam)
                 chrono.ChVectorD(mbox.GetPos().x + 0.1 + 0.1 * (n_chains - j), 0, -0.1 * j)  # poB (end of beam)
             )

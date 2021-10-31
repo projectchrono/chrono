@@ -21,10 +21,10 @@
 
 #include "chrono/fea/ChElementSpring.h"
 #include "chrono/fea/ChElementBar.h"
-#include "chrono/fea/ChElementTetra_4.h"
-#include "chrono/fea/ChElementTetra_10.h"
-#include "chrono/fea/ChElementHexa_8.h"
-#include "chrono/fea/ChElementHexa_20.h"
+#include "chrono/fea/ChElementTetraCorot_4.h"
+#include "chrono/fea/ChElementTetraCorot_10.h"
+#include "chrono/fea/ChElementHexaCorot_8.h"
+#include "chrono/fea/ChElementHexaCorot_20.h"
 #include "chrono/fea/ChMesh.h"
 #include "chrono/fea/ChMeshFileLoader.h"
 #include "chrono/fea/ChLinkPointFrame.h"
@@ -121,7 +121,7 @@ int main(int argc, char* argv[]) {
             my_mesh->AddNode(hnode4);
 
             if (ilayer > 0) {
-                auto helement1 = chrono_types::make_shared<ChElementHexa_8>();
+                auto helement1 = chrono_types::make_shared<ChElementHexaCorot_8>();
                 helement1->SetNodes(hnode1_lower, hnode2_lower, hnode3_lower, hnode4_lower, hnode1, hnode2, hnode3,
                                     hnode4);
                 helement1->SetMaterial(mmaterial);
