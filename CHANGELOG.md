@@ -5,6 +5,7 @@ Change Log
 ==========
 
 - [Unreleased (development version)](#unreleased-development-branch)
+  - [ANCF element improvements and additions](#changed-ancf-element-improvements-and-additions)
   - [New Chrono::Vehicle features](#added-new-chronovehicle-features)
   - [New robot models](#added-new-robot-models)
   - [New multicore collision detection system](#added-new-multicore-collision-detection-system)
@@ -47,6 +48,105 @@ Change Log
 - [Release 4.0.0](#release-400---2019-02-22)
 
 ## Unreleased (development branch)
+
+### [Changed] ANCF element improvements and additions
+
+**Changed - Element Naming Convention:** 
+
+The following ANCF elements have been renamed according to the 4-digit ANCF naming convention from: *Dmitrochenko, O., Mikkola, A.: Digital nomenclature code for topology and kinematics of finite elements based on the absolute nodal co-ordinate formulation. Proc. Inst. Mech. Eng., Part K: J. Multi-Body Dyn. 225(1), 34–51 (2011)*
+- `ChElementBeamANCF` renamed to `ChElementBeamANCF_3333`
+- `ChElementShellANCF` renamed to `ChElementShellANCF_3423`
+- `ChElementShellANCF_8` renamed to `ChElementShellANCF_3833`
+- `ChElementBrick` renamed to `ChElementHexaANCF_3813`
+- `ChElementBrick_9` renamed to `ChElementHexaANCF_3813_9`
+
+The following elements were renamed to improve naming consistency:
+- `ChElementHexa_8` renamed to `ChElementHexaCorot_8`
+- `ChElementHexa_20` renamed to `ChElementHexaCorot_20`
+- `ChElementTetra_4` renamed to `ChElementTetraCorot_4`
+- `ChElementTetra_10` renamed to `ChElementTetraCorot_10`
+
+**Added - New ANCF Elements:**
+
+- `ChElementBeamANCF_3243` a fully parameterized 2-Node ANCF beam element
+  - 24 DOF per element
+  - Uses the enhanced continuum mechanics method to reduce locking (the same method as `ChElementBeamANCF_3333`)
+  - Only rectangular cross sections are currently supported 
+  - Only linear viscoelastic materials are supported at this time (single coefficient damping model)
+- `ChElementShellANCF_3443` a fully parameterized 4-Node ANCF shell element
+  - 48 DOF per element
+  - Prone to locking, no modifications to reduce locking are included at this time
+  - Supports multiple discrete layers in a single shell element like `ChElementShellANCF_3833`
+  - Only linear viscoelastic materials are supported at this time (single coefficient damping model)
+- `ChElementHexaANCF_3843` a fully parameterized 4-Node ANCF brick element
+  - 96 DOF per element
+  - No modifications to reduce locking are included at this time
+  - Only linear viscoelastic materials are supported at this time (single coefficient damping model)
+
+
+**Changed - Internal Force Calculation Method:** 
+
+Applies to: `ChElementBeamANCF_3243`, `ChElementBeamANCF_3333`, `ChElementShellANCF_3443`, `ChElementShellANCF_3833`, and `ChElementHexaANCF_3843`
+
+For these 5 elements, there is an option for two different generalized internal force calculation methods:
+- `IntFrcMethod::ContInt` (**Default**): The "Continuous Integration" method efficiently integrates across the volume of the element every time the generalized internal force or its Jacobian is calculated.  This method is dependent on the number of Gauss quadrature points used for the integration, resulting in increased generalized internal force and Jacobian calculation times as additional layers are added to the shell elements.  Even so, this method will typically be faster, and it has a significantly lower memory storage overhead.  This method is a modification and extension to the method found in: *Gerstmayr, J., Shabana, A.A.: Efficient integration of the elastic forces and thin three-dimensional beam elements in the absolute nodal coordinate formulation. In: Proceedings of the Multibody Dynamics Eccomas thematic Conference, Madrid(2005).*
+- `IntFrcMethod::PreInt`: The "Pre-Integration" method is designed so that integration across the volume of the element occurs only once prior to the start of the simulation.  This method is independent on the number of Gauss quadrature points used for the integration, resulting in no change in in-simulation generalized internal force and Jacobian calculation times as additional layers are added to the shell elements.  This method is generally slower and has a significantly higher memory storage overhead, especially as the degree of freedom count for the element increases.  This method is a modification and extension to the method found in: *Liu, Cheng, Qiang Tian, and Haiyan Hu. "Dynamics of a large scale rigid–flexible multibody system composed of composite laminated plates." Multibody System Dynamics 26, no. 3 (2011): 283-305.*
+
+If possible, the calculation method should be set prior to the start of the simulation so that the precalculation phase is not called for both calculation methods resulting in unnecessary calculation and memory overhead.
+
+A report covering the detailed mathematics and implementation both of these generalized internal force calculations and their Jacobians can be found in: *Taylor, M., Serban, R., and Negrut, D.: Technical Report TR-2020-09 Efficient CPU Based Calculations of the Generalized Internal Forces and Jacobian of the Generalized Internal Forces for ANCF Continuum Mechanics Elements with Linear Viscoelastic Materials, Simulation Based Engineering Lab, University of Wisconsin-Madison; 2021.*
+
+These calculation methods make heavy use of the Eigen3 library.  For MSVC 2017 and to a lesser extent MSVC 2019, this can result in **significantly** longer compile times.  This is a known issue with Eigen3 and MSVC: https://gitlab.com/libeigen/eigen/-/issues/1725.
+
+
+**Changed - Obtaining Stress and Strain:** 
+
+Applies to: `ChElementBeamANCF_3243`, `ChElementBeamANCF_3333`, `ChElementShellANCF_3443`, `ChElementShellANCF_3833`, and `ChElementHexaANCF_3843`
+
+For all 5 of these elements, the full 3x3 Green-Lagrange Strain Tensor can be obtained using the function below using normalized element coordinates with values between -1 and 1:
+  ```cpp
+  ChMatrix33<> GetGreenLagrangeStrain(double xi, double eta, double zeta)
+  ```
+  
+The full 3x3 2nd Piola-Kirchhoff Stress Tensor can be obtained for the beam and brick elements using the function:
+  ```cpp
+  ChMatrix33<> GetPK2Stress(double xi, double eta, double zeta)
+  ```
+Since the shell elements support multiple discrete layers which can result in stress discontinuities, information about the layer of interest must be provided when obtaining the full 3x3 Green-Lagrange Strain Tensor.  For the shell elements, the layer index (0-index starting with the first layer defined for the element) is required as well as the normalized position through the thickness of the layer whose value is between -1 and 1.
+  ```cpp
+  ChMatrix33<> GetPK2Stress(double layer, double xi, double eta, double layer_zeta)
+  ```
+  
+The Von Misses Stress can be obtained for the beam and brick elements using the function: 
+  ```cpp
+  double GetVonMissesStress(double xi, double eta, double zeta)
+  ```
+For the shell elements, the Von Misses Stress can be obtained using the function:   
+  ```cpp
+  double GetVonMissesStress(double layer, double xi, double eta, double layer_zeta)
+  ```
+
+**Changed - Application of Gravity:** 
+
+Applies to: `ChElementCableANCF`, `ChElementBeamANCF_3243`, `ChElementBeamANCF_3333`, `ChElementShellANCF_3423`, `ChElementShellANCF_3443`, `ChElementShellANCF_3833`, `ChElementHexaANCF_3813`, `ChElementHexaANCF_3813_9`, and `ChElementHexaANCF_3843`
+
+The ANCF has an efficient way to exactly calculate the generalized force due to gravity.  In the past this efficient gravity calculation method had to be explicitly enabled with the `SetGravityOn()` function which had to be coupled with a call to disable gravity at the mesh level `mesh->SetAutomaticGravity(false);`.  These elements have now been setup so that the default mesh level gravity calculation now automatically calls the efficient and exact ANCF gravity calculation.  With this change the `SetGravityOn()` function has been eliminated as it is no longer needed to enable the ANCF specific gravity calculation.
+
+
+**Added - Ability to Apply Moments:** 
+
+Applies to: `ChElementBeamANCF_3243`, `ChElementBeamANCF_3333`, `ChElementShellANCF_3423`, `ChElementShellANCF_3443`, `ChElementShellANCF_3833`, and `ChElementHexaANCF_3843`
+
+Moments can be applied at any point within these elements just like forces.  For applied forces and moments, the first 3 entries in the force vector are assumed to be the applied force vector in global coordinates.  The second 3 entries are assumed to be the applied moment in global coordinates.  Any entries beyond the first 6 are ignored.  With this change, the returned Jacobians for potential use with numeric integration were updated to reflect the actual current configuration line/area/volume ratio rather than the reference configuration line/area/volume ratio.
+
+**Added - Contacts:** 
+
+- For `ChElementBeamANCF_3243` and `ChElementBeamANCF_3333`, the contacts are calculated using a capsule shape between the two end nodes whose radius is equal to the diagonal length of the reference cross-section shape.  This is the same approach as `ChElementBeamEuler`.
+
+- For `ChElementShellANCF_3443`, a skin at the midsurface is used just like `ChElementShellANCF_3423` and `ChElementShellANCF_3443`.
+
+- For `ChElementHexaANCF_3813` and `ChElementHexaANCF_3843`, a linear quadrilateral face is added to the free faces just like `ChElementHexaANCF_3813_9`.
+
 
 ### [Added] New Chrono::Vehicle features
 
