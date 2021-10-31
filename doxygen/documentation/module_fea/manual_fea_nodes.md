@@ -80,6 +80,15 @@ In this page you can find a description of their properties.
 - Ex. used by these elements:
   - ChElementTetraCorot_4_P 
 
+
+# ChNodeFEAcurv   {#manual_ChNodeFEAcurv}
+
+- 9 coordinates (3 2nd order partial derivatives of the position vector, which represent curvatures)
+  - 2nd order partial derivative of position with respect to just x
+  - 2nd order partial derivative of position with respect to just y
+  - 2nd order partial derivative of position with respect to just z
+- Ex. used by these elements:
+  - ChElementHexaANCF_3813_9 
   
   
 # Theory
