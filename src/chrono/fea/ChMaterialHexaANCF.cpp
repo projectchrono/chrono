@@ -12,33 +12,33 @@
 // Authors: Michael Taylor, Antonio Recuero, Radu Serban
 // =============================================================================
 
-#include "chrono/fea/ChMaterialBrickANCF.h"
+#include "chrono/fea/ChMaterialHexaANCF.h"
 
 namespace chrono {
 namespace fea {
 
 // Construct an isotropic material.
-ChMaterialBrickANCF::ChMaterialBrickANCF(double rho,  // material density
-                                         double E,    // Young's modulus
-                                         double nu    // Poisson ratio
-                                         )
+ChMaterialHexaANCF::ChMaterialHexaANCF(double rho,  // material density
+                                       double E,    // Young's modulus
+                                       double nu    // Poisson ratio
+                                       )
     : m_rho(rho) {
     double G = 0.5 * E / (1 + nu);
     Calc_D(ChVector<>(E), ChVector<>(nu), ChVector<>(G));
 }
 
 // Construct a (possibly) orthotropic material.
-ChMaterialBrickANCF::ChMaterialBrickANCF(double rho,            // material density
-                                         const ChVector<>& E,   // elasticity moduli (E_x, E_y, E_z)
-                                         const ChVector<>& nu,  // Poisson ratios (nu_xy, nu_xz, nu_yz)
-                                         const ChVector<>& G    // shear moduli (G_xy, G_xz, G_yz)
-                                         )
+ChMaterialHexaANCF::ChMaterialHexaANCF(double rho,            // material density
+                                       const ChVector<>& E,   // elasticity moduli (E_x, E_y, E_z)
+                                       const ChVector<>& nu,  // Poisson ratios (nu_xy, nu_xz, nu_yz)
+                                       const ChVector<>& G    // shear moduli (G_xy, G_xz, G_yz)
+                                       )
     : m_rho(rho) {
     Calc_D(E, nu, G);
 }
 
 // Calculate the 6x6 matrix form of stiffness tensors used by the ANCF element
-void ChMaterialBrickANCF::Calc_D(const ChVector<>& E, const ChVector<>& nu, const ChVector<>& G) {
+void ChMaterialHexaANCF::Calc_D(const ChVector<>& E, const ChVector<>& nu, const ChVector<>& G) {
     // orthotropic material ref: http://homes.civil.aau.dk/lda/Continuum/material.pdf
     // except position of the shear terms is different to match the original ANCF reference paper
 

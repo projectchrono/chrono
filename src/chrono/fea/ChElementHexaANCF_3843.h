@@ -36,7 +36,7 @@
 #include <vector>
 
 #include "chrono/fea/ChElementHexahedron.h"
-#include "chrono/fea/ChMaterialBrickANCF.h"
+#include "chrono/fea/ChMaterialHexaANCF.h"
 #include "chrono/core/ChQuadrature.h"
 #include "chrono/fea/ChElementGeneric.h"
 #include "chrono/fea/ChNodeFEAxyzDDD.h"
@@ -126,10 +126,10 @@ class ChApi ChElementHexaANCF_3843 : public ChElementHexahedron, public ChElemen
     void SetDimensions(double lenX, double lenY, double lenZ);
 
     /// Specify the element material.
-    void SetMaterial(std::shared_ptr<ChMaterialBrickANCF> brick_mat);
+    void SetMaterial(std::shared_ptr<ChMaterialHexaANCF> brick_mat);
 
     /// Return the material.
-    std::shared_ptr<ChMaterialBrickANCF> GetMaterial() const { return m_material; }
+    std::shared_ptr<ChMaterialHexaANCF> GetMaterial() const { return m_material; }
 
     /// Access the n-th node of this element.
     virtual std::shared_ptr<ChNodeFEAbase> GetNodeN(int n) override { return m_nodes[n]; }
@@ -414,8 +414,8 @@ class ChApi ChElementHexaANCF_3843 : public ChElementHexahedron, public ChElemen
     /// Access a statically-allocated set of tables, from 0 to a 10th order, with precomputed tables.
     static ChQuadratureTables* GetStaticGQTables();
 
-    IntFrcMethod m_method;                            ///< Generalized internal force and Jacobian calculation method
-    std::shared_ptr<ChMaterialBrickANCF> m_material;  ///< material model
+    IntFrcMethod m_method;                           ///< Generalized internal force and Jacobian calculation method
+    std::shared_ptr<ChMaterialHexaANCF> m_material;  ///< material model
     std::vector<std::shared_ptr<ChNodeFEAxyzDDD>> m_nodes;  ///< element nodes
     double m_lenX;                                          ///< total element length along X
     double m_lenY;                                          ///< total element length along Y

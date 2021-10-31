@@ -148,7 +148,7 @@ void ChElementHexaANCF_3843::SetDimensions(double lenX, double lenY, double lenZ
 
 // Specify the element material.
 
-void ChElementHexaANCF_3843::SetMaterial(std::shared_ptr<ChMaterialBrickANCF> brick_mat) {
+void ChElementHexaANCF_3843::SetMaterial(std::shared_ptr<ChMaterialHexaANCF> brick_mat) {
     m_material = brick_mat;
 
     // Check to see if the Pre-Integration method is selected and if the precomputed matrices have already been

@@ -26,19 +26,19 @@ namespace fea {
 /// @{
 
 /// Definition of materials to be used for ANCF brick elements.
-class ChApi ChMaterialBrickANCF {
+class ChApi ChMaterialHexaANCF {
   public:
     /// Construct an isotropic material.
-    ChMaterialBrickANCF(double rho,  ///< material density
-                        double E,    ///< Young's modulus
-                        double nu    ///< Poisson ratio
+    ChMaterialHexaANCF(double rho,  ///< material density
+                       double E,    ///< Young's modulus
+                       double nu    ///< Poisson ratio
     );
 
     /// Construct a (possibly) orthotropic material.
-    ChMaterialBrickANCF(double rho,            ///< material density
-                        const ChVector<>& E,   ///< elasticity moduli (E_x, E_y, E_z)
-                        const ChVector<>& nu,  ///< Poisson ratios (nu_xy, nu_xz, nu_yz)
-                        const ChVector<>& G    ///< shear moduli (G_xy, G_xz, G_yz)
+    ChMaterialHexaANCF(double rho,            ///< material density
+                       const ChVector<>& E,   ///< elasticity moduli (E_x, E_y, E_z)
+                       const ChVector<>& nu,  ///< Poisson ratios (nu_xy, nu_xz, nu_yz)
+                       const ChVector<>& G    ///< shear moduli (G_xy, G_xz, G_yz)
     );
 
     /// Return the material density.

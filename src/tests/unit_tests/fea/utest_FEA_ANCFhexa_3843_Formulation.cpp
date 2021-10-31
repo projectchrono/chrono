@@ -157,7 +157,7 @@ ANCFBrickTest::ANCFBrickTest(bool useContInt) {
     double E = 210e9;     // Pa
     double nu = 0.3;
 
-    auto material = chrono_types::make_shared<ChMaterialBrickANCF>(rho, E, nu);
+    auto material = chrono_types::make_shared<ChMaterialHexaANCF>(rho, E, nu);
 
     // Create mesh container
     auto mesh = chrono_types::make_shared<ChMesh>();
@@ -1259,7 +1259,7 @@ bool ANCFBrickTest::AxialDisplacementCheck(int msglvl) {
     double E = 71.7e9;  // Pa
     double nu = 0.33;
 
-    auto material = chrono_types::make_shared<ChMaterialBrickANCF>(rho, E, nu);
+    auto material = chrono_types::make_shared<ChMaterialHexaANCF>(rho, E, nu);
 
     // Create mesh container
     auto mesh = chrono_types::make_shared<ChMesh>();
@@ -1457,7 +1457,7 @@ bool ANCFBrickTest::CantileverTipLoadCheck(int msglvl) {
     double E = 71.7e9;  // Pa
     double nu = 0.33;
 
-    auto material = chrono_types::make_shared<ChMaterialBrickANCF>(rho, E, nu);
+    auto material = chrono_types::make_shared<ChMaterialHexaANCF>(rho, E, nu);
 
     // Create mesh container
     auto mesh = chrono_types::make_shared<ChMesh>();
@@ -1660,7 +1660,7 @@ bool ANCFBrickTest::CantileverGravityCheck(int msglvl) {
     double E = 71.7e9;  // Pa
     double nu = 0.33;
 
-    auto material = chrono_types::make_shared<ChMaterialBrickANCF>(rho, E, nu);
+    auto material = chrono_types::make_shared<ChMaterialHexaANCF>(rho, E, nu);
 
     // Create mesh container
     auto mesh = chrono_types::make_shared<ChMesh>();
@@ -1821,7 +1821,7 @@ bool ANCFBrickTest::AxialTwistCheck(int msglvl) {
     double nu = 0.33;
     double G = E / (2 * (1 + nu));
 
-    auto material = chrono_types::make_shared<ChMaterialBrickANCF>(rho, E, nu);
+    auto material = chrono_types::make_shared<ChMaterialHexaANCF>(rho, E, nu);
 
     // Create mesh container
     auto mesh = chrono_types::make_shared<ChMesh>();

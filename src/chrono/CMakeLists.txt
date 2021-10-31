@@ -392,7 +392,7 @@ set(ChronoEngine_fea_SOURCES
     fea/ChLoadContactSurfaceMesh.cpp
     fea/ChMaterialBeamANCF.cpp
     fea/ChMaterialShellANCF.cpp
-    fea/ChMaterialBrickANCF.cpp
+    fea/ChMaterialHexaANCF.cpp
     fea/ChMaterialShellReissner.cpp
 	fea/ChMaterialShellKirchhoff.cpp
     )
@@ -436,7 +436,7 @@ set(ChronoEngine_fea_HEADERS
     fea/ChRotUtils.h
     fea/ChMaterialBeamANCF.h
     fea/ChMaterialShellANCF.h
-    fea/ChMaterialBrickANCF.h
+    fea/ChMaterialHexaANCF.h
     fea/ChMaterialShellReissner.h
 	fea/ChMaterialShellKirchhoff.h
 )
