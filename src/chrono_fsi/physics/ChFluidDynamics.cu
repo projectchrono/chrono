@@ -33,9 +33,7 @@ __device__ void collideCellDensityReInit(Real& numerator,
                                          Real4* sortedRhoPreMu,
                                          uint* cellStart,
                                          uint* cellEnd) {
-    //?c2 printf("grid pos %d %d %d \n", gridPos.x, gridPos.y, gridPos.z);
     uint gridHash = calcGridHash(gridPos);
-    // get start of bucket for this cell
 
     uint startIndex = cellStart[gridHash];
     if (startIndex != 0xffffffff) {  // cell is not empty
@@ -123,7 +121,6 @@ __global__ void ApplyInletBoundaryXKernel(Real4* posRadD, Real3* VelMassD, Real4
         rhoPresMuD[index].y = 0;
 
     if (posRad.x < paramsD.x_in) {
-        //        Real vel = paramsD.V_in * 4 * (posRadD[index].z) * (0.41 - posRadD[index].z) / (0.41 * 0.41);
         VelMassD[index] = mR3(paramsD.V_in.x, 0, 0);
     }
 }
@@ -211,27 +208,21 @@ __global__ void ApplyOutOfBoundaryKernel(Real4* posRadD, Real4* rhoPresMuD, Real
     Real h = posRadD[index].w;
     if (posRad.x > 0.5 * paramsD.boxDimX) {
         posRad.x = 0.5 * paramsD.boxDimX;
-        // vel.x = 0.0;
     }
     if (posRad.x < -0.5 * paramsD.boxDimX) {
         posRad.x = -0.5 * paramsD.boxDimX;
-        // vel.x = 0.0;
     }
     if (posRad.y > 0.5 * paramsD.boxDimY) {
         posRad.y = 0.5 * paramsD.boxDimY;
-        // vel.y = 0.0;
     }
     if (posRad.y < -0.5 * paramsD.boxDimY) {
         posRad.y = -0.5 * paramsD.boxDimY;
-        // vel.y = 0.0;
     }
     if (posRad.z > 1.0 * paramsD.boxDimZ) {
         posRad.z = 1.0 * paramsD.boxDimZ;
-        // vel.z = 0.0;
     }
     if (posRad.z < -0.0 * paramsD.boxDimZ) {
         posRad.z = -0.0 * paramsD.boxDimZ;
-        // vel.z = 0.0;
     }
     posRadD[index] = mR4(posRad, h);
     velMasD[index] = mR3(vel);
@@ -279,11 +270,11 @@ __global__ void UpdateFluidD(Real4* posRadD,
             Real3 updatedTauXyXzYz = tauXyXzYz + mR3(derivTauXyXzYz) * dT;
 
             // check if there is a plastic flow
-            p_n = -1.0 / 3.0 * (tauXxYyZz.x + tauXxYyZz.y + tauXxYyZz.z);  // rhoPresMu.y;
+            p_n = -1.0 / 3.0 * (tauXxYyZz.x + tauXxYyZz.y + tauXxYyZz.z); 
             tauXxYyZz.x += p_n;
             tauXxYyZz.y += p_n;
             tauXxYyZz.z += p_n;
-            p_tr = -1.0 / 3.0 * (updatedTauXxYyZz.x + updatedTauXxYyZz.y + updatedTauXxYyZz.z);  // rhoPresMu.y;
+            p_tr = -1.0 / 3.0 * (updatedTauXxYyZz.x + updatedTauXxYyZz.y + updatedTauXxYyZz.z);
             updatedTauXxYyZz.x += p_tr;
             updatedTauXxYyZz.y += p_tr;
             updatedTauXxYyZz.z += p_tr;

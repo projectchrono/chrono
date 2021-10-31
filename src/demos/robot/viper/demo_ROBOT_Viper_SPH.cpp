@@ -39,10 +39,6 @@
 
 /// Chrono fsi includes
 #include "chrono_fsi/ChSystemFsi.h"
-#include "chrono_fsi/utils/ChUtilsTypeConvert.h"
-#include "chrono_fsi/utils/ChUtilsGeneratorFsi.h"
-#include "chrono_fsi/utils/ChUtilsJSON.h"
-#include "chrono_fsi/utils/ChUtilsPrintSph.cuh"
 
 /// Chrono namespaces
 using namespace chrono;
@@ -205,6 +201,7 @@ int main(int argc, char* argv[]) {
     std::vector<std::shared_ptr<ChBody>>& FSI_Bodies = myFsiSystem.GetFsiBodies();
     auto Rover = FSI_Bodies[0];
 
+    /// Save data at the initial moment
     SaveParaViewFiles(myFsiSystem, mphysicalSystem, paramsH, 0, 0);
 
     /// write the Penetration into file
@@ -260,9 +257,6 @@ int main(int argc, char* argv[]) {
 void CreateSolidPhase(ChSystemNSC& mphysicalSystem,
                       ChSystemFsi& myFsiSystem,
                       std::shared_ptr<fsi::SimParams> paramsH) {
-    /// Get the initial SPH particle spacing
-    double initSpace0 = paramsH->MULT_INITSPACE * paramsH->HSML;
-
     /// Set the gravity force for the simulation
     ChVector<> gravity = ChVector<>(paramsH->gravity.x, paramsH->gravity.y, paramsH->gravity.z);
     mphysicalSystem.Set_G_acc(gravity);
@@ -273,32 +267,36 @@ void CreateSolidPhase(ChSystemNSC& mphysicalSystem,
     collision::ChCollisionModel::SetDefaultSuggestedEnvelope(0.0025);
     collision::ChCollisionModel::SetDefaultSuggestedMargin(0.0025);
 
-    auto mfloor = chrono_types::make_shared<ChBodyEasyBox>(10, 10, 0.02, 1000, false, false);
-    mfloor->SetPos(ChVector<>(0, 0, 0));
-    mfloor->SetBodyFixed(true);
-    mphysicalSystem.Add(mfloor);
+    /// Create a body for the rigid soil container
+    auto box = chrono_types::make_shared<ChBodyEasyBox>(10, 10, 0.02, 1000, false, false);
+    box->SetPos(ChVector<>(0, 0, 0));
+    box->SetBodyFixed(true);
+    mphysicalSystem.Add(box);
+
+    /// Get the initial SPH particle spacing
+    double initSpace0 = paramsH->MULT_INITSPACE * paramsH->HSML;
 
     /// Bottom wall
     ChVector<> size_XY(bxDim / 2 + 3 * initSpace0, byDim / 2 + 3 * initSpace0, 2 * initSpace0);
     ChVector<> pos_zn(0, 0, -3 * initSpace0);
     ChVector<> pos_zp(0, 0, bzDim + 2 * initSpace0);
 
-    /// left and right Wall
+    /// Left and right wall
     ChVector<> size_YZ(2 * initSpace0, byDim / 2 + 3 * initSpace0, bzDim / 2);
     ChVector<> pos_xp(bxDim / 2 + initSpace0, 0.0, bzDim / 2 + 0 * initSpace0);
     ChVector<> pos_xn(-bxDim / 2 - 3 * initSpace0, 0.0, bzDim / 2 + 0 * initSpace0);
 
-    /// Front and back Wall
+    /// Front and back wall
     ChVector<> size_XZ(bxDim / 2, 2 * initSpace0, bzDim / 2);
     ChVector<> pos_yp(0, byDim / 2 + initSpace0, bzDim / 2 + 0 * initSpace0);
     ChVector<> pos_yn(0, -byDim / 2 - 3 * initSpace0, bzDim / 2 + 0 * initSpace0);
 
     /// Fluid-Solid Coupling at the walls via BCE particles
-    myFsiSystem.AddBceBox(paramsH, mfloor, pos_zn, QUNIT, size_XY, 12);
-    myFsiSystem.AddBceBox(paramsH, mfloor, pos_xp, QUNIT, size_YZ, 23);
-    myFsiSystem.AddBceBox(paramsH, mfloor, pos_xn, QUNIT, size_YZ, 23);
-    myFsiSystem.AddBceBox(paramsH, mfloor, pos_yp, QUNIT, size_XZ, 13);
-    myFsiSystem.AddBceBox(paramsH, mfloor, pos_yn, QUNIT, size_XZ, 13);
+    myFsiSystem.AddBceBox(paramsH, box, pos_zn, QUNIT, size_XY, 12);
+    myFsiSystem.AddBceBox(paramsH, box, pos_xp, QUNIT, size_YZ, 23);
+    myFsiSystem.AddBceBox(paramsH, box, pos_xn, QUNIT, size_YZ, 23);
+    myFsiSystem.AddBceBox(paramsH, box, pos_yp, QUNIT, size_XZ, 13);
+    myFsiSystem.AddBceBox(paramsH, box, pos_yn, QUNIT, size_XZ, 13);
 
     auto driver = chrono_types::make_shared<ViperDCMotorControl>();
     rover = chrono_types::make_shared<Viper>(&mphysicalSystem);
@@ -306,7 +304,7 @@ void CreateSolidPhase(ChSystemNSC& mphysicalSystem,
     rover->SetWheelContactMaterial(CustomWheelMaterial(ChContactMethod::NSC));
     rover->Initialize(ChFrame<>(ChVector<>(paramsH->bodyIniPosX, paramsH->bodyIniPosY, paramsH->bodyIniPosZ), QUNIT));
 
-    // add BCE particles and mesh of wheels to the system
+    /// Add BCE particles and mesh of wheels to the system
     for (int i = 0; i < 4; i++) {
         std::shared_ptr<ChBodyAuxRef> wheel_body;
         if (i == 0) {
@@ -324,8 +322,6 @@ void CreateSolidPhase(ChSystemNSC& mphysicalSystem,
 
         myFsiSystem.AddFsiBody(wheel_body);
         std::string BCE_path = GetChronoDataFile("fsi/demo_BCE/BCE_viperWheel.txt");
-        fsi::utils::AddBCE_FromFile(myFsiSystem.GetFsiData(), paramsH, wheel_body, BCE_path, ChVector<double>(0),
-                                    QUNIT, 1.0);
         myFsiSystem.AddBceFile(paramsH, wheel_body, BCE_path, ChVector<>(0), QUNIT, 1.0, true);
     }
 }
@@ -730,6 +726,5 @@ void SaveParaViewFiles(ChSystemFsi& myFsiSystem,
         std::cout << "             Output frame:   " << next_frame << std::endl;
         std::cout << "             Time:           " << mTime << std::endl;
         std::cout << "-------------------------------------\n" << std::endl;
-
     }
 }

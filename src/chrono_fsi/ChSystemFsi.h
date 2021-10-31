@@ -190,7 +190,7 @@ class CH_FSI_API ChSystemFsi : public ChFsiGeneral {
                     ChVector<> collisionShapeRelativePos,
                     ChQuaternion<> collisionShapeRelativeRot,
                     double scale,
-                    bool isSolid = true); // true means moving body
+                    bool isSolid = true); // true means moving body, false means fixed boundary
 
     /// Set FSI parameters from a JSON file
     void SetSimParameter(const std::string& inputJson,
@@ -248,7 +248,7 @@ class CH_FSI_API ChSystemFsi : public ChFsiGeneral {
     std::vector<std::vector<int>> ShellElementsNodes;  ///< Indices of nodes of each Element
     std::vector<std::vector<int>> CableElementsNodes;  ///< Indices of nodes of each Element
     std::shared_ptr<ChFluidDynamics> fluidDynamics;    ///< pointer to the fluid system
-    CHFSI_TIME_INTEGRATOR fluidIntegrator;       ///< IISPH by default
+    CHFSI_TIME_INTEGRATOR fluidIntegrator;             ///< IISPH by default
     std::shared_ptr<ChFsiInterface> fsiInterface;      ///< pointer to the fsi interface system
     std::shared_ptr<ChBce> bceWorker;                  ///< pointer to the bce workers
     std::shared_ptr<SimParams> paramsH;                ///< pointer to the simulation parameters

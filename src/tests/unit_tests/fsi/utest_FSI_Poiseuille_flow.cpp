@@ -108,7 +108,8 @@ void CreateSolidPhase(ChSystemSMC& mphysicalSystem,
     mphysicalSystem.AddBody(body);
 
     // Add BCE particles to the bottom and top wall boundary
-    myFsiSystem.AddBceBox(paramsH, body, posBottom, QUNIT, sizeWall);
+    myFsiSystem.AddBceBox(paramsH, body, posTop, QUNIT, sizeWall, 12);
+    myFsiSystem.AddBceBox(paramsH, body, posBottom, QUNIT, sizeWall, 12);
 }
 
 // ===============================

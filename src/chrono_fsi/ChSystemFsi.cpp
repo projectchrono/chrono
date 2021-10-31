@@ -101,8 +101,8 @@ void ChSystemFsi::CopyDeviceDataToHalfStep() {
 }
 //--------------------------------------------------------------------------------------------------------------------------------
 void ChSystemFsi::DoStepDynamics_FSI() {
-    /// The following is used to execute the Explicit WCSPH
     if (fluidDynamics->GetIntegratorType() == CHFSI_TIME_INTEGRATOR::ExplicitSPH) {
+        /// The following is used to execute the Explicit WCSPH
         fsiInterface->Copy_ChSystem_to_External();
         CopyDeviceDataToHalfStep();
         ChUtilsDevice::FillMyThrust3(fsiSystem->fsiGeneralData->derivTauXxYyZzD, mR3(0));
@@ -122,7 +122,6 @@ void ChSystemFsi::DoStepDynamics_FSI() {
 
         fsiInterface->Copy_External_To_ChSystem();
 
-        // paramsH->dT_Flex = paramsH->dT;
         // dT_Flex is the time step of solid body system
         mTime += 1 * paramsH->dT;
         if (paramsH->dT_Flex == 0)
@@ -130,21 +129,14 @@ void ChSystemFsi::DoStepDynamics_FSI() {
         int sync = int(paramsH->dT / paramsH->dT_Flex);
         if (sync < 1)
             sync = 1;
-        // printf("%d * DoStepChronoSystem with dt= %f\n", sync, paramsH->dT / sync);
         for (int t = 0; t < sync; t++) {
             mphysicalSystem.DoStepDynamics(paramsH->dT / sync);
         }
 
         fsiInterface->Copy_fsiBodies_ChSystem_to_FluidSystem(fsiSystem->fsiBodiesD2);
         bceWorker->UpdateRigidMarkersPositionVelocity(fsiSystem->sphMarkersD2, fsiSystem->fsiBodiesD2);
-        // fsiSystem->sphMarkersD1 = fsiSystem->sphMarkersD2;
-        // Density re-initialization
-        //        int tStep = int(mTime / paramsH->dT);
-        //        if ((tStep % (paramsH->densityReinit + 1) == 0)) {
-        //            fluidDynamics->DensityReinitialization();
-        //        }
     } else {
-        // A different coupling scheme is used for implicit SPH formulations
+        /// A different coupling scheme is used for implicit SPH formulations
         printf("Copy_ChSystem_to_External\n");
         fsiInterface->Copy_ChSystem_to_External();
         printf("IntegrateIISPH\n");
@@ -159,7 +151,6 @@ void ChSystemFsi::DoStepDynamics_FSI() {
         // be applied, or if any thing has been applied will be rewritten by Add_Flex_Forces_To_ChSystem();
         fsiInterface->Add_Flex_Forces_To_ChSystem();
 
-        // paramsH->dT_Flex = paramsH->dT;
         mTime += 1 * paramsH->dT;
         if (paramsH->dT_Flex == 0)
             paramsH->dT_Flex = paramsH->dT;
@@ -284,12 +275,12 @@ void ChSystemFsi::AddBceCylinder(std::shared_ptr<SimParams> paramsH,
 }
 //--------------------------------------------------------------------------------------------------------------------------------
 void ChSystemFsi::AddBceFile(std::shared_ptr<SimParams> paramsH,
-                            std::shared_ptr<ChBody> body,
-                            std::string dataPath,
-                            ChVector<> collisionShapeRelativePos,
-                            ChQuaternion<> collisionShapeRelativeRot,
-                            double scale,
-                            bool isSolid) { //true means mving rigid body, false means wall boundary
+                             std::shared_ptr<ChBody> body,
+                             std::string dataPath,
+                             ChVector<> collisionShapeRelativePos,
+                             ChQuaternion<> collisionShapeRelativeRot,
+                             double scale,
+                             bool isSolid) { // true means moving body, false means fixed boundary
     utils::AddBCE_FromFile(fsiSystem, paramsH, body, dataPath, collisionShapeRelativePos, 
         collisionShapeRelativeRot, scale, isSolid);
 }

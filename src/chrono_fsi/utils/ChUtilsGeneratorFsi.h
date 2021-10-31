@@ -9,7 +9,7 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Author: Arman Pazouki, Milad Rakhsha
+// Author: Arman Pazouki, Milad Rakhsha, Wei Hu
 // =============================================================================
 //
 // Utility class for generating BCE markers.//
@@ -40,16 +40,15 @@ chrono::ChVector<> TransformBCEToCOG(std::shared_ptr<ChBody> body, const Real3& 
 
 CH_FSI_API void FinalizeDomain(std::shared_ptr<SimParams> paramsH);
 
-CH_FSI_API void CreateBceGlobalMarkersFromBceLocalPos(
-    std::shared_ptr<ChSystemFsi_impl> fsiSystem,
-    std::shared_ptr<SimParams> paramsH,
-    const thrust::host_vector<Real4>& posRadBCE,
-    std::shared_ptr<ChBody> body,
-    chrono::ChVector<> collisionShapeRelativePos = chrono::ChVector<>(0),
-    chrono::ChQuaternion<> collisionShapeRelativeRot = chrono::QUNIT,
-    bool isSolid = true,
-    bool add_to_fluid_helpers = false,
-    bool add_to_previous_object = false);
+CH_FSI_API void CreateBceGlobalMarkersFromBceLocalPos(std::shared_ptr<ChSystemFsi_impl> fsiSystem,
+                                                      std::shared_ptr<SimParams> paramsH,
+                                                      const thrust::host_vector<Real4>& posRadBCE,
+                                                      std::shared_ptr<ChBody> body,
+                                                      chrono::ChVector<> collisionShapeRelativePos = chrono::ChVector<>(0),
+                                                      chrono::ChQuaternion<> collisionShapeRelativeRot = chrono::QUNIT,
+                                                      bool isSolid = true,
+                                                      bool add_to_fluid_helpers = false,
+                                                      bool add_to_previous_object = false);
 
 CH_FSI_API void CreateBceGlobalMarkersFromBceLocalPosBoundary(std::shared_ptr<ChSystemFsi_impl> fsiSystem,
                                                               std::shared_ptr<SimParams> paramsH,

@@ -191,7 +191,7 @@ void CreateSolidPhase(ChSystemSMC& mphysicalSystem,
     mysurfmaterial->SetRestitution(0.05f);
     mysurfmaterial->SetAdhesion(0);
 
-    /// Create the geometry of the boundaries
+    /// Get particle spacing in the simulation
     auto initSpace0 = paramsH->MULT_INITSPACE * paramsH->HSML;
 
     /// Bottom and Top wall - size and position
@@ -199,12 +199,12 @@ void CreateSolidPhase(ChSystemSMC& mphysicalSystem,
     ChVector<> pos_zp(0, 0, bzDim + 1 * initSpace0);
     ChVector<> pos_zn(0, 0, -3 * initSpace0);
 
-    /// Left and right Wall - size and position
+    /// Left and right wall - size and position
     ChVector<> size_YZ(2 * initSpace0, byDim / 2 + 3 * initSpace0, bzDim / 2);
     ChVector<> pos_xp(bxDim / 2 + initSpace0, 0.0, bzDim / 2 + 0 * initSpace0);
     ChVector<> pos_xn(-bxDim / 2 - 3 * initSpace0, 0.0, bzDim / 2 + 0 * initSpace0);
 
-    /// Front and back Wall - size and position
+    /// Front and back wall - size and position
     ChVector<> size_XZ(bxDim / 2, 2 * initSpace0, bzDim / 2);
     ChVector<> pos_yp(0, byDim / 2 + initSpace0, bzDim / 2 + 0 * initSpace0);
     ChVector<> pos_yn(0, -byDim / 2 - 3 * initSpace0, bzDim / 2 + 0 * initSpace0);
