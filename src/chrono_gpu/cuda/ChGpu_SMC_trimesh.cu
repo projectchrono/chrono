@@ -418,7 +418,6 @@ __global__ void interactionGranMat_TriangleSoup(ChSystemGpuMesh_impl::TriangleSo
 /// Identifies the clusters according to parameters in gran_params
 /// Not super fast.
 __host__ void ChSystemGpuMesh_impl::IdentifyClusters() {
-    printf("IdentifyClusters");
     // Figure our the number of blocks that need to be launched to cover the box
     unsigned int nBlocks = (nSpheres + CUDA_THREADS_PER_BLOCK - 1) / CUDA_THREADS_PER_BLOCK;
 

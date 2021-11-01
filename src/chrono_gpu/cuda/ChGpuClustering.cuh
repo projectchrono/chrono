@@ -10,7 +10,7 @@
 //
 //
 // Contains functions that separated soil particles into clusters
-// Reference: Andrade, Guilherme, et al. "G-dbscan: A gpu accelerated algorithm 
+// Reference: Andrade, Guilherme, et al. "G-dbscan: A gpu accelerated algorithm
 // for density-based clustering." Procedia Computer Science 18 (2013): 369-378.
 // =============================================================================
 // Authors: Gabriel Taillon
@@ -18,9 +18,6 @@
 
 #pragma once
 
-#include "chrono_thirdparty/cub/cub.cuh"
-
-#include <cuda.h>
 #include <cassert>
 #include <cstdio>
 #include <fstream>
@@ -30,7 +27,9 @@
 #include <string>
 #include <cstdint>
 #include <algorithm>
+#include <cuda.h>
 
+#include "chrono_thirdparty/cub/cub.cuh"
 #include "chrono/core/ChMathematics.h"
 #include "chrono_gpu/ChGpuDefines.h"
 #include "chrono_gpu/physics/ChSystemGpu_impl.h"
@@ -41,6 +40,7 @@ using chrono::gpu::CHGPU_TIME_INTEGRATOR;
 using chrono::gpu::CHGPU_FRICTION_MODE;
 using chrono::gpu::CHGPU_ROLLING_MODE;
 using chrono::gpu::SPHERE_GROUP;
+using chrono::gpu::CLUSTER_INDEX;
 using chrono::gpu::CLUSTER_GRAPH_METHOD;
 using chrono::gpu::CLUSTER_SEARCH_METHOD;
 
@@ -48,7 +48,8 @@ using chrono::gpu::CLUSTER_SEARCH_METHOD;
 /// @addtogroup gpu_cuda
 /// @{
 
-/// All spheres with > minPts contacts are core, other points maybe be border points.
+/// spheres with > minPts contacts are CORE, others are NOISE
+/// Only NOISE spheres may be changed to BORDER later
 static __global__ void GdbscanInitSphereGroup(unsigned int nSpheres,
                                               unsigned int* adj_num,
                                               SPHERE_GROUP* sphere_group,
@@ -56,12 +57,13 @@ static __global__ void GdbscanInitSphereGroup(unsigned int nSpheres,
     unsigned int mySphereID = threadIdx.x + blockIdx.x * blockDim.x;
     // don't overrun the array
     if (mySphereID < nSpheres) {
-        sphere_group[mySphereID] = adj_num[mySphereID] > minPts ? SPHERE_GROUP::CORE : SPHERE_GROUP::NOISE;
+        sphere_group[mySphereID] = adj_num[mySphereID] > minPts ?
+        SPHERE_GROUP::CORE : SPHERE_GROUP::NOISE;
     }
 }
 
 // Tag spheres found inside mesh to group VOLUME
-// must de run AFTER interactionGranMat_TriangleSoup
+// must run AFTER interactionGranMat_TriangleSoup
 static __global__ void SetVolumeSphereGroup(ChSystemGpu_impl::GranSphereDataPtr sphere_data,
                                             unsigned int nSpheres) {
     unsigned int mySphereID = threadIdx.x + blockIdx.x * blockDim.x;
@@ -74,7 +76,8 @@ static __global__ void SetVolumeSphereGroup(ChSystemGpu_impl::GranSphereDataPtr 
 }
 
 /// Any particle with sphere_group == NOISE are not part of any cluster
-/// sphere_cluster is tagged INVALID
+/// -> sphere_cluster = INVALID
+/// Should be run at the end of search step
 static __global__ void GdbscanFinalClusterFromGroup(unsigned int nSpheres,
                                                     unsigned int* sphere_cluster,
                                                     SPHERE_GROUP* sphere_group) {
@@ -82,14 +85,14 @@ static __global__ void GdbscanFinalClusterFromGroup(unsigned int nSpheres,
     // don't overrun the array
     if (mySphereID < nSpheres) {
         if (sphere_group[mySphereID] == SPHERE_GROUP::NOISE) {
-            sphere_cluster[mySphereID] = static_cast<unsigned int>(chrono::gpu::CLUSTER_INDEX::INVALID);
+            sphere_cluster[mySphereID] = static_cast<unsigned int>(CLUSTER_INDEX::INVALID);
         }
     }
 }
 
-// find if any particle is in the volume cluster.
-// if any of volume is true, this is the volume cluster UNLESS
-// it is the biggest cluster -> becomes the ground cluster.
+// Find if any particle is in the volume cluster.
+// If any sphere in cluster sphere_group == VOLUME -> sphere_cluster = VOLUME
+// UNLESS it is the biggest cluster -> sphere_cluster = GROUND
 static __global__ void FindVolumeCluster(unsigned int nSpheres,
                                          bool * visited,
                                          bool * in_volume,
@@ -103,14 +106,14 @@ static __global__ void FindVolumeCluster(unsigned int nSpheres,
     }
 }
 
-/// Compute adj_start from adj_num. 
+/// Compute adj_start from adj_num with ExclusiveSum
 /// needs fully known adj_num
 /// call BEFORE ComputeAdjList___
-static __host__ void ComputeAdjStartFromAdjNum(unsigned int nSpheres, 
+static __host__ void ComputeAdjStartFromAdjNum(unsigned int nSpheres,
                                                unsigned int * adj_num,
                                                unsigned int * adj_start) {
     memcpy(adj_start, adj_num, sizeof(*adj_start) * nSpheres);
-    /// all start indices after mySphereID depend on it -> exclusive sum
+    /// all start indices AFTER mySphereID depend on it -> exclusive sum
     void * d_temp_storage = NULL;
     size_t bytesize = 0;
     /// with d_temp_storage = NULL, ExclusiveSum computes necessary bytesize
@@ -126,9 +129,9 @@ static __host__ void ComputeAdjStartFromAdjNum(unsigned int nSpheres,
     gpuErrchk(cudaDeviceSynchronize());
 }
 
-/// compute adj_num from chrono contact_active_map
+/// Compute adj_num from chrono contact_active_map
 /// adj_start needs fully known adj_num
-/// adl_list needs fully known adj_list
+/// adl_list needs fully known adj_start
 static __global__ void ComputeAdjNumByContact(
         ChSystemGpu_impl::GranSphereDataPtr sphere_data,
         ChSystemGpu_impl::GranParamsPtr gran_params,
@@ -143,7 +146,8 @@ static __global__ void ComputeAdjNumByContact(
         // count the number of contacts.
         unsigned char numActiveContacts = 0;
         for (unsigned char body_B_offset = 0; body_B_offset < MAX_SPHERES_TOUCHED_BY_SPHERE; body_B_offset++) {
-            bool active_contact = sphere_data->contact_active_map[body_A_offset + body_B_offset];
+            unsigned int contact_id = body_A_offset + body_B_offset;
+            bool active_contact = sphere_data->contact_active_map[contact_id];
             if (active_contact) {
                 numActiveContacts++;
             }
@@ -152,9 +156,9 @@ static __global__ void ComputeAdjNumByContact(
     }
 }
 
-/// compute adj_list from chrono contact_active_map.
-/// called AFTER ComputeAdjNumByContact and ComputeAdjStartFromAdjNum
-/// adj_list needs fully known ajd_start
+/// Compute adj_list from chrono contact_active_map.
+/// call AFTER ComputeAdjNumByContact and ComputeAdjStartFromAdjNum
+/// adj_list needs fully known ajd_start, which needs fully known adj_num
 static __global__ void ComputeAdjListByContact(
         ChSystemGpu_impl::GranSphereDataPtr sphere_data,
         ChSystemGpu_impl::GranParamsPtr gran_params,
@@ -168,9 +172,11 @@ static __global__ void ComputeAdjListByContact(
 
         unsigned char numActiveContacts = 0;
         for (unsigned char body_B_offset = 0; body_B_offset < MAX_SPHERES_TOUCHED_BY_SPHERE; body_B_offset++) {
-            bool active_contact = sphere_data->contact_active_map[body_A_offset + body_B_offset];
+            unsigned int contact_id = body_A_offset + body_B_offset;
+            bool active_contact = sphere_data->contact_active_map[contact_id];
             if (active_contact) {
-                sphere_data->adj_list[sphere_data->adj_start[mySphereID] + numActiveContacts] = sphere_data->contact_partners_map[body_A_offset + body_B_offset];;
+                unsigned int adj_list_index = sphere_data->adj_start[mySphereID] + numActiveContacts;
+                sphere_data->adj_list[adj_list_index] = sphere_data->contact_partners_map[contact_id];
                 numActiveContacts++;
             }
         }
