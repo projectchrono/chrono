@@ -48,7 +48,7 @@ struct NumberOfObjects {
     size_t numAllMarkers;        ///< Total number of SPH markers in the simulation
 };
 
-class ChFsiGeneral {
+class CH_FSI_API ChFsiGeneral {
   public:
     ChFsiGeneral();
     ChFsiGeneral(std::shared_ptr<SimParams> hostParams, 

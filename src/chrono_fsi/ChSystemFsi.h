@@ -190,7 +190,19 @@ class CH_FSI_API ChSystemFsi : public ChFsiGeneral {
                     ChVector<> collisionShapeRelativePos,
                     ChQuaternion<> collisionShapeRelativeRot,
                     double scale,
-                    bool isSolid = true); // true means moving body, false means fixed boundary
+                    bool isSolid = true);                  
+
+    void AddBceFromMesh(std::shared_ptr<SimParams> paramsH,
+                        std::shared_ptr<fea::ChMesh> my_mesh,
+                        const std::vector<std::vector<int>>& NodeNeighborElement,
+                        const std::vector<std::vector<int>>& _1D_elementsNodes,
+                        const std::vector<std::vector<int>>& _2D_elementsNodes,
+                        bool add1DElem,
+                        bool add2DElem,
+                        bool multiLayer,
+                        bool removeMiddleLayer,
+                        int SIDE,
+                        int SIZE2D);
 
     /// Set FSI parameters from a JSON file
     void SetSimParameter(const std::string& inputJson,

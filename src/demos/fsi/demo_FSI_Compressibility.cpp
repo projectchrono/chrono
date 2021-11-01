@@ -25,7 +25,6 @@
 #include "chrono_fsi/ChSystemFsi.h"
 #include "chrono_fsi/utils/ChUtilsGeneratorFsi.h"
 #include "chrono_fsi/utils/ChUtilsJSON.h"
-#include "chrono_fsi/utils/ChUtilsPrintSph.cuh"
 
 // Chrono namespaces
 using namespace chrono;
@@ -214,7 +213,7 @@ int main(int argc, char* argv[]) {
         else
             paramsH->dT_Max = Global_max_dT;
 
-        //        printf("next_frame is:%d,  max dt is set to %f\n", next_frame, paramsH->dT_Max);
+        // printf("next_frame is:%d,  max dt is set to %f\n", next_frame, paramsH->dT_Max);
 
         myFsiSystem.DoStepDynamics_FSI();
 

@@ -285,6 +285,22 @@ void ChSystemFsi::AddBceFile(std::shared_ptr<SimParams> paramsH,
         collisionShapeRelativeRot, scale, isSolid);
 }
 //--------------------------------------------------------------------------------------------------------------------------------
+void ChSystemFsi::AddBceFromMesh(std::shared_ptr<SimParams> paramsH,
+                                 std::shared_ptr<fea::ChMesh> my_mesh,
+                                 const std::vector<std::vector<int>>& NodeNeighborElement,
+                                 const std::vector<std::vector<int>>& _1D_elementsNodes,
+                                 const std::vector<std::vector<int>>& _2D_elementsNodes,
+                                 bool add1DElem,
+                                 bool add2DElem,
+                                 bool multiLayer,
+                                 bool removeMiddleLayer,
+                                 int SIDE,
+                                 int SIDE2D) {
+    utils::AddBCE_FromMesh(fsiSystem, paramsH, my_mesh, this->GetFsiNodes(), this->GetFsiCables(), this->GetFsiShells(), 
+                           NodeNeighborElement, _1D_elementsNodes, _2D_elementsNodes,
+                           add1DElem, add2DElem, multiLayer, removeMiddleLayer, SIDE, SIDE2D);
+}
+//--------------------------------------------------------------------------------------------------------------------------------
 void ChSystemFsi::SetSimParameter(const std::string& inputJson,
                                   std::shared_ptr<SimParams> paramsH,
                                   const ChVector<>& box_size){
