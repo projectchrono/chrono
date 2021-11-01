@@ -59,7 +59,6 @@ double cyl_radius;
 /// -----------------------------------------------------------------
 void ShowUsage() {
     std::cout << "usage: ./demo_FSI_CylinderDrop <json_file>" << std::endl;
-    std::cout << "or to use default input parameters ./demo_FSI_CylinderDrop " << std::endl;
 }
 
 //------------------------------------------------------------------
@@ -194,7 +193,7 @@ void CreateSolidPhase(ChSystemSMC& mphysicalSystem,
     /// Get particle spacing in the simulation
     auto initSpace0 = paramsH->MULT_INITSPACE * paramsH->HSML;
 
-    /// Bottom and Top wall - size and position
+    /// Bottom and top wall - size and position
     ChVector<> size_XY(bxDim / 2 + 3 * initSpace0, byDim / 2 + 3 * initSpace0, 2 * initSpace0);
     ChVector<> pos_zp(0, 0, bzDim + 1 * initSpace0);
     ChVector<> pos_zn(0, 0, -3 * initSpace0);
@@ -325,10 +324,12 @@ int main(int argc, char* argv[]) {
 
     /// Create an initial box for the terrain patch
     chrono::utils::GridSampler<> sampler(initSpace0);
+    
     /// Use a chrono sampler to create a bucket of granular material
     ChVector<> boxCenter(0, 0, fzDim / 2);
     ChVector<> boxHalfDim(fxDim / 2, fyDim / 2, fzDim / 2);
     std::vector<ChVector<>> points = sampler.SampleBox(boxCenter, boxHalfDim);
+
     /// Add SPH particles from the sampler points to the FSI system
     size_t numPart = (int)points.size();
     for (int i = 0; i < numPart; i++) {

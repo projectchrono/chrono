@@ -23,22 +23,16 @@
 
 // Chrono fsi includes
 #include "chrono_fsi/ChSystemFsi.h"
-#include "chrono_fsi/utils/ChUtilsGeneratorFsi.h"
-#include "chrono_fsi/utils/ChUtilsJSON.h"
 
 // Chrono namespaces
 using namespace chrono;
 using namespace chrono::collision;
 using namespace chrono::fsi;
 
-// std::ofstream simParams;
-// =============================================================================
-
-//----------------------------
-// output directories and settings
-//----------------------------
+// Output directories and settings
 const std::string out_dir = GetChronoOutputPath() + "FSI_COMPRESSIBILITY/";
 std::string demo_dir;
+
 // Save data as csv files, turn it on to be able to see the results off-line using paraview
 bool save_output = true;
 
@@ -62,7 +56,7 @@ void ShowUsage() {
 //------------------------------------------------------------------
 // Function to save the paraview files
 //------------------------------------------------------------------
-void SaveParaViewFilesMBD(fsi::ChSystemFsi& myFsiSystem,
+void SaveParaViewFilesMBD(ChSystemFsi& myFsiSystem,
                           ChSystemSMC& mphysicalSystem,
                           std::shared_ptr<fsi::SimParams> paramsH,
                           int next_frame,
@@ -87,7 +81,7 @@ void SaveParaViewFilesMBD(fsi::ChSystemFsi& myFsiSystem,
 // bce representation are created and added to the systems
 //------------------------------------------------------------------
 void CreateSolidPhase(ChSystemSMC& mphysicalSystem,
-                      fsi::ChSystemFsi& myFsiSystem,
+                      ChSystemFsi& myFsiSystem,
                       std::shared_ptr<fsi::SimParams> paramsH) {
     auto mysurfmaterial = chrono_types::make_shared<ChMaterialSurfaceSMC>();
 
@@ -105,22 +99,22 @@ void CreateSolidPhase(ChSystemSMC& mphysicalSystem,
 
     auto initSpace0 = paramsH->MULT_INITSPACE * paramsH->HSML;
 
-    ChVector<> sizeBottom(bxDim / 2 + 3 * initSpace0, byDim / 2 + 3 * initSpace0, 2 * initSpace0);
-    //    ChVector<> sizeBottom(bxDim / 2, byDim / 2, 3 * initSpace0);
-    ChVector<> posBottom(0, 0, -2 * initSpace0);
-    ChVector<> posTop(0, 0, bzDim + 2 * initSpace0);
+    // Bottom and top wall
+    ChVector<> size_XY(bxDim / 2 + 3 * initSpace0, byDim / 2 + 3 * initSpace0, 2 * initSpace0);
+    ChVector<> pos_zp(0, 0, bzDim + 2 * initSpace0);
+    ChVector<> pos_zn(0, 0, -2 * initSpace0);
 
-    // left and right Wall
+    // Left and right wall
     ChVector<> size_YZ(2 * initSpace0, byDim / 2 + 3 * initSpace0, bzDim / 2);
     ChVector<> pos_xp(bxDim / 2 + initSpace0, 0.0, bzDim / 2 + 1 * initSpace0);
     ChVector<> pos_xn(-bxDim / 2 - 3 * initSpace0, 0.0, bzDim / 2 + 1 * initSpace0);
 
-    // Front and back Wall
+    // Front and back wall
     ChVector<> size_XZ(bxDim / 2, 2 * initSpace0, bzDim / 2);
     ChVector<> pos_yp(0, byDim / 2 + initSpace0, bzDim / 2 + 1 * initSpace0);
     ChVector<> pos_yn(0, -byDim / 2 - 3 * initSpace0, bzDim / 2 + 1 * initSpace0);
 
-    chrono::utils::AddBoxGeometry(ground.get(), mysurfmaterial, sizeBottom, posBottom, QUNIT, true);
+    chrono::utils::AddBoxGeometry(ground.get(), mysurfmaterial, size_XY, pos_zn, QUNIT, true);
     chrono::utils::AddBoxGeometry(ground.get(), mysurfmaterial, size_YZ, pos_xp, QUNIT, true);
     chrono::utils::AddBoxGeometry(ground.get(), mysurfmaterial, size_YZ, pos_xn, QUNIT, true);
     chrono::utils::AddBoxGeometry(ground.get(), mysurfmaterial, size_XZ, pos_yp, QUNIT, true);
@@ -128,9 +122,7 @@ void CreateSolidPhase(ChSystemSMC& mphysicalSystem,
     ground->GetCollisionModel()->BuildModel();
     mphysicalSystem.AddBody(ground);
 
-    myFsiSystem.AddBceBox(paramsH, ground, posBottom, QUNIT, sizeBottom);
-    // myFsiSystem.AddBceBox(paramsH, ground, posTop, QUNIT, sizeBottom);
-
+    myFsiSystem.AddBceBox(paramsH, ground, pos_zn, QUNIT, size_XY, 12);
     myFsiSystem.AddBceBox(paramsH, ground, pos_xp, QUNIT, size_YZ, 23);
     myFsiSystem.AddBceBox(paramsH, ground, pos_xn, QUNIT, size_YZ, 23);
     myFsiSystem.AddBceBox(paramsH, ground, pos_yp, QUNIT, size_XZ, 13);
@@ -151,10 +143,13 @@ int main(int argc, char* argv[]) {
 
     // Use the default input file or you may enter your input parameters as a command line argument
     std::string inputJson = GetChronoDataFile("fsi/input_json/demo_FSI_Compressibility_Explicit.json");
-    if (argc == 2) {
+    if (argc == 1) {
+        std::cout << "Use the default JSON file \n" << std::endl;
+    } else if (argc == 2) {
+        std::cout << "Use the specified JSON file \n" << std::endl;
         std::string my_inputJson = std::string(argv[1]);
         inputJson = GetChronoDataFile(my_inputJson);
-    } else if (argc > 2){
+    } else {
         ShowUsage();
         return 1;
     }
@@ -168,40 +163,42 @@ int main(int argc, char* argv[]) {
     ChVector<> cMax = ChVector<>(bxDim / 2, byDim / 2, bzDim) + ChVector<>(initSpace0 * 10);
     myFsiSystem.SetBoundaries(cMin, cMax, paramsH);
 
-    fsi::utils::FinalizeDomain(paramsH);
-    fsi::utils::PrepareOutputDir(paramsH, demo_dir, out_dir, inputJson);
+    // Setup sub doamins for a faster neighbor particle searching
+    myFsiSystem.SetSubDomain(paramsH);
 
-    // ******************************* Create Fluid region ****************************************
+    // Setup the output directory for FSI data
+    myFsiSystem.SetFsiOutputDir(paramsH, demo_dir, out_dir, inputJson);
+
+    // Create an initial box for the terrain patch
     chrono::utils::GridSampler<> sampler(initSpace0);
+
+    // Use a chrono sampler to create a bucket of granular material
     ChVector<> boxCenter(-bxDim / 2 + fxDim / 2, 0 * initSpace0, fzDim / 2 + 1 * initSpace0);
     ChVector<> boxHalfDim(fxDim / 2, fyDim / 2, fzDim / 2);
     std::vector<ChVector<>> points = sampler.SampleBox(boxCenter, boxHalfDim);
 
-    /// Use a chrono sampler to create a bucket of fluid
+    // Add SPH particles from the sampler points to the FSI system
     size_t numPart = points.size();
     for (int i = 0; i < numPart; i++) {
         myFsiSystem.AddSphMarker(ChVector<>(points[i].x(), points[i].y(), points[i].z()),
                                  ChVector<>(paramsH->rho0, paramsH->BASEPRES, paramsH->mu0),
                                  paramsH->HSML, -1);
     }
-
     myFsiSystem.AddRefArray(0, (int)numPart, -1, -1);
-    // ******************************* Create Solid region ****************************************
+
+    // Create MBD and BCE particles for the solid domain
     CreateSolidPhase(mphysicalSystem, myFsiSystem, paramsH);
     myFsiSystem.SetInitPressure(paramsH, fzDim);
 
-    /// Construction of the FSI system must be finalized
+    // Construction of the FSI system must be finalized
     myFsiSystem.Finalize();
-
-    int stepEnd = int(paramsH->tFinal / paramsH->dT);
-    stepEnd = 50000;
 
     SaveParaViewFilesMBD(myFsiSystem, mphysicalSystem, paramsH, 0, 0);
 
     double time = 0;
+    int stepEnd = int(paramsH->tFinal / paramsH->dT);
     double Global_max_dT = paramsH->dT_Max;
-    double TIMING = clock();
-
+    double TIMING_sta = clock();
     for (int tStep = 0; tStep < stepEnd + 1; tStep++) {
         printf("\nstep : %d, time= : %f (s) \n", tStep, time);
         double frame_time = 1.0 / paramsH->out_fps;
@@ -212,8 +209,6 @@ int main(int argc, char* argv[]) {
             paramsH->dT_Max = std::min(Global_max_dT, max_allowable_dt);
         else
             paramsH->dT_Max = Global_max_dT;
-
-        // printf("next_frame is:%d,  max dt is set to %f\n", next_frame, paramsH->dT_Max);
 
         myFsiSystem.DoStepDynamics_FSI();
 
@@ -241,7 +236,9 @@ int main(int argc, char* argv[]) {
             break;
     }
 
-    double test = (clock() - TIMING) / (double)CLOCKS_PER_SEC;
-    printf("Finished in %f\n", test);
+    // Total computational cost
+    double TIMING_end = (clock() - TIMING_sta) / (double)CLOCKS_PER_SEC;
+    printf("\nSimulation Finished in %f (s)\n", TIMING_end);
+    
     return 0;
 }

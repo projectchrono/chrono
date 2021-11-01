@@ -25,18 +25,11 @@
 
 // Chrono fsi includes
 #include "chrono_fsi/ChSystemFsi.h"
-#include "chrono_fsi/utils/ChUtilsGeneratorFsi.h"
-#include "chrono_fsi/utils/ChUtilsJSON.h"
-#include "chrono_fsi/utils/ChUtilsPrintSph.cuh"
-#include "chrono_thirdparty/filesystem/path.h"
 
 // Chrono namespaces
 using namespace chrono;
-using namespace collision;
-
-using std::cout;
-using std::endl;
-std::ofstream simParams;
+using namespace chrono::collision;
+using namespace chrono::fsi;
 
 // Output directories and settings
 const std::string out_dir = GetChronoOutputPath() + "FSI_DAM_BREAK/";
@@ -55,13 +48,13 @@ double fyDim = 1.0;
 double fzDim = 2.0;
 
 void ShowUsage() {
-    cout << "usage: ./demo_FSI_DamBreak <json_file>" << endl;
+    std::cout << "usage: ./demo_FSI_DamBreak <json_file>" << std::endl;
 }
 
 //------------------------------------------------------------------
 // Function to save the paraview files
 //------------------------------------------------------------------
-void SaveParaViewFilesMBD(fsi::ChSystemFsi& myFsiSystem,
+void SaveParaViewFilesMBD(ChSystemFsi& myFsiSystem,
                           ChSystemSMC& mphysicalSystem,
                           std::shared_ptr<fsi::SimParams> paramsH,
                           int this_frame,
@@ -72,10 +65,10 @@ void SaveParaViewFilesMBD(fsi::ChSystemFsi& myFsiSystem,
     // Output data to files
     if (save_output && std::abs(mTime - (this_frame)*frame_time) < 1e-9) {
         myFsiSystem.PrintParticleToFile(demo_dir);
-        cout << "\n--------------------------------\n" << endl;
-        cout << "------------ Output Frame:   " << this_frame << endl;
-        cout << "------------ Sim Time:       " << mTime << " (s)\n" << endl;
-        cout << "--------------------------------\n" << endl;
+        std::cout << "\n--------------------------------\n" << std::endl;
+        std::cout << "------------ Output Frame:   " << this_frame << std::endl;
+        std::cout << "------------ Sim Time:       " << mTime << " (s)\n" << std::endl;
+        std::cout << "--------------------------------\n" << std::endl;
     }
 }
 
@@ -84,7 +77,7 @@ void SaveParaViewFilesMBD(fsi::ChSystemFsi& myFsiSystem,
 // their BCE representation are created and added to the systems
 //------------------------------------------------------------------
 void CreateSolidPhase(ChSystemSMC& mphysicalSystem,
-                      fsi::ChSystemFsi& myFsiSystem,
+                      ChSystemFsi& myFsiSystem,
                       std::shared_ptr<fsi::SimParams> paramsH) {
     // Set common material Properties
     auto mysurfmaterial = chrono_types::make_shared<ChMaterialSurfaceSMC>();
@@ -103,17 +96,17 @@ void CreateSolidPhase(ChSystemSMC& mphysicalSystem,
     // Create the geometry of the boundaries
     auto initSpace0 = paramsH->MULT_INITSPACE * paramsH->HSML;
 
-    // Bottom and Top wall - size and position
+    // Bottom and top wall - size and position
     ChVector<> size_XY(bxDim / 2 + 3 * initSpace0, byDim / 2 + 0 * initSpace0, 2 * initSpace0);
     ChVector<> pos_zp(0, 0, bzDim + 1 * initSpace0);
     ChVector<> pos_zn(0, 0, -3 * initSpace0);
 
-    // Left and right Wall - size and position
+    // Left and right wall - size and position
     ChVector<> size_YZ(2 * initSpace0, byDim / 2 + 0 * initSpace0, bzDim / 2);
     ChVector<> pos_xp(bxDim / 2 + initSpace0, 0.0, bzDim / 2 + 0 * initSpace0);
     ChVector<> pos_xn(-bxDim / 2 - 3 * initSpace0, 0.0, bzDim / 2 + 0 * initSpace0);
 
-    // Front and back Wall - size and position
+    // Front and back wall - size and position
     ChVector<> size_XZ(bxDim / 2, 2 * initSpace0, bzDim / 2);
     ChVector<> pos_yp(0, byDim / 2 + initSpace0, bzDim / 2 + 0 * initSpace0);
     ChVector<> pos_yn(0, -byDim / 2 - 3 * initSpace0, bzDim / 2 + 0 * initSpace0);
@@ -146,7 +139,7 @@ void CreateSolidPhase(ChSystemSMC& mphysicalSystem,
 int main(int argc, char* argv[]) {
     // Create a physics system and an FSI system
     ChSystemSMC mphysicalSystem;
-    fsi::ChSystemFsi myFsiSystem(mphysicalSystem);
+    ChSystemFsi myFsiSystem(mphysicalSystem);
 
     // Get the pointer to the system parameter and use a JSON file to fill it out with the user parameters
     std::shared_ptr<fsi::SimParams> paramsH = myFsiSystem.GetSimParams();
@@ -184,17 +177,19 @@ int main(int argc, char* argv[]) {
     ChVector<> cMax = ChVector<>(bxDim / 2 + 10.0 * initSpace0, byDim / 2 + 1.0 * initSpace0 / 2.0, 2.0 * bzDim);
     myFsiSystem.SetBoundaries(cMin, cMax, paramsH);
 
-    // Call FinalizeDomain to setup the binning for neighbor search
-    fsi::utils::FinalizeDomain(paramsH);
-    fsi::utils::PrepareOutputDir(paramsH, demo_dir, out_dir, inputJson);
+    // Setup sub doamins for a faster neighbor particle searching
+    myFsiSystem.SetSubDomain(paramsH);
+
+    // Setup the output directory for FSI data
+    myFsiSystem.SetFsiOutputDir(paramsH, demo_dir, out_dir, inputJson);
 
     // Create Fluid region and discretize with SPH particles
     ChVector<> boxCenter(-bxDim / 2 + fxDim / 2, 0.0, fzDim / 2);
     ChVector<> boxHalfDim(fxDim / 2, fyDim / 2, fzDim / 2);
 
     // Use a chrono sampler to create a bucket of points
-    utils::GridSampler<> sampler(initSpace0);
-    utils::Generator::PointVector points = sampler.SampleBox(boxCenter, boxHalfDim);
+    chrono::utils::GridSampler<> sampler(initSpace0);
+    chrono::utils::Generator::PointVector points = sampler.SampleBox(boxCenter, boxHalfDim);
 
     // Add fluid particles from the sampler points to the FSI system
     size_t numPart = points.size();
