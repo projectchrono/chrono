@@ -66,8 +66,8 @@ Model::Model() {
 
     // Now, simply use BuildBeam to create a beam from a point to another:
     builder.BuildBeam(my_mesh,               // the mesh where to put the created nodes and elements
-                      msection_cable2,       // ChBeamSectionCable to use for the ChElementBeamANCF elements
-                      1,                     // number of ChElementBeamANCF to create
+                      msection_cable2,       // ChBeamSectionCable to use for the ChElementBeamANCF_3333 elements
+                      1,                     // number of ChElementBeamANCF_3333 to create
                       ChVector<>(0, 0, 0),   // point A (beginning of beam)
                       ChVector<>(0.1, 0, 0)  // point B (end of beam)
     );
@@ -94,8 +94,8 @@ Model::Model() {
 
     // make another beam
     builder.BuildBeam(my_mesh,          // mesh where to put the created nodes and elements
-                      msection_cable2,  // ChBeamSectionCable to use for the ChElementBeamANCF elements
-                      7,                // number of ChElementBeamANCF to create
+                      msection_cable2,  // ChBeamSectionCable to use for the ChElementBeamANCF_3333 elements
+                      7,                // number of ChElementBeamANCF_3333 to create
                       ChVector<>(m_box1->GetPos().x() + 0.1, 0, 0),           // point A (beginning of beam)
                       ChVector<>(m_box1->GetPos().x() + 0.1 + 0.1 * 6, 0, 0)  // point B (end of beam)
     );

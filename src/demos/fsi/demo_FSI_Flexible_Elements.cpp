@@ -35,7 +35,7 @@
 #include "chrono_fsi/utils/ChUtilsJSON.h"
 
 // Chrono fea includes
-#include "chrono/fea/ChElementShellANCF.h"
+#include "chrono/fea/ChElementShellANCF_3423.h"
 #include "chrono/fea/ChLinkDirFrame.h"
 #include "chrono/fea/ChLinkPointFrame.h"
 #include "chrono/fea/ChMesh.h"
@@ -269,8 +269,8 @@ void Create_MB_FE(ChSystemSMC& mphysicalSystem,
         double loc_x = -0.3;  //+bxDim / 8 + 3 * initSpace0;
         builder.BuildBeam_FSI(
             my_mesh,         // the mesh where to put the created nodes and elements
-            msection_cable,  // the ChBeamSectionCable to use for the ChElementBeamANCF elements
-            15,              // the number of ChElementBeamANCF to create
+            msection_cable,  // the ChBeamSectionCable to use for the ChElementBeamANCF_3333 elements
+            15,              // the number of ChElementBeamANCF_3333 to create
             ChVector<>(loc_x, 0.0, initSpace0 * 15),  // the 'A' point in space (beginning of beam)
             ChVector<>(loc_x, 0.0, initSpace0),  // the 'B' point in space (end of beam) _1D__2D_elementsNodes_mesh,
             _1D_elementsNodes_mesh, NodeNeighborElement_mesh);
@@ -362,7 +362,7 @@ void Create_MB_FE(ChSystemSMC& mphysicalSystem,
                 NodeNeighborElement_mesh[node2].push_back(num_elem);
                 NodeNeighborElement_mesh[node3].push_back(num_elem);
                 // Create the element and set its nodes.
-                auto element = chrono_types::make_shared<ChElementShellANCF>();
+                auto element = chrono_types::make_shared<ChElementShellANCF_3423>();
                 element->SetNodes(std::dynamic_pointer_cast<ChNodeFEAxyzD>(my_mesh->GetNode(node0)),
                                   std::dynamic_pointer_cast<ChNodeFEAxyzD>(my_mesh->GetNode(node1)),
                                   std::dynamic_pointer_cast<ChNodeFEAxyzD>(my_mesh->GetNode(node2)),
@@ -375,8 +375,7 @@ void Create_MB_FE(ChSystemSMC& mphysicalSystem,
                 element->AddLayer(dx, 0 * CH_C_DEG_TO_RAD, mat);
 
                 // Set other element properties
-                element->SetAlphaDamp(0.05);   // Structural damping for this element
-                element->SetGravityOn(false);  // turn internal gravitational force calculation off
+                element->SetAlphaDamp(0.05);  // Structural damping for this element
 
                 // Add element to mesh
                 my_mesh->AddElement(element);

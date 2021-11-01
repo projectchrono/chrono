@@ -20,10 +20,10 @@
 #include "chrono/solver/ChIterativeSolverLS.h"
 
 #include "chrono/fea/ChElementSpring.h"
-#include "chrono/fea/ChElementTetra_4.h"
-#include "chrono/fea/ChElementTetra_10.h"
-#include "chrono/fea/ChElementHexa_8.h"
-#include "chrono/fea/ChElementHexa_20.h"
+#include "chrono/fea/ChElementTetraCorot_4.h"
+#include "chrono/fea/ChElementTetraCorot_10.h"
+#include "chrono/fea/ChElementHexaCorot_8.h"
+#include "chrono/fea/ChElementHexaCorot_20.h"
 #include "chrono/fea/ChMesh.h"
 #include "chrono/fea/ChLinkPointFrame.h"
 
@@ -151,7 +151,7 @@ void test_2() {
 
     // Create the tetrahedron element, and assign
     // nodes and material
-    auto melement1 = chrono_types::make_shared<ChElementTetra_4>();
+    auto melement1 = chrono_types::make_shared<ChElementTetraCorot_4>();
     melement1->SetNodes(mnode1, mnode2, mnode3, mnode4);
     melement1->SetMaterial(mmaterial);
 
@@ -264,7 +264,7 @@ void test_3() {
 
     // Create the tetrahedron element, and assign
     // it nodes and material
-    auto melement1 = chrono_types::make_shared<ChElementTetra_10>();
+    auto melement1 = chrono_types::make_shared<ChElementTetraCorot_10>();
     melement1->SetNodes(mnode1, mnode2, mnode3, mnode4, mnode5, mnode6, mnode7, mnode8, mnode9, mnode10);
     melement1->SetMaterial(mmaterial);
 
@@ -376,7 +376,7 @@ void test_4() {
 
     // Create the tetrahedron element, and assign
     // it nodes and material
-    auto melement1 = chrono_types::make_shared<ChElementHexa_8>();
+    auto melement1 = chrono_types::make_shared<ChElementHexaCorot_8>();
     melement1->SetNodes(mnode1, mnode2, mnode3, mnode4, mnode5, mnode6, mnode7, mnode8);
     melement1->SetMaterial(mmaterial);
 
@@ -524,7 +524,7 @@ void test_5() {
 
     // Create the tetrahedron element, and assign
     // its nodes and material
-    auto melement1 = chrono_types::make_shared<ChElementHexa_20>();
+    auto melement1 = chrono_types::make_shared<ChElementHexaCorot_20>();
     melement1->SetNodes(mnode1, mnode2, mnode3, mnode4, mnode5, mnode6, mnode7, mnode8, mnode9, mnode10, mnode11,
                         mnode12, mnode13, mnode14, mnode15, mnode16, mnode17, mnode18, mnode19, mnode20);
     melement1->SetMaterial(mmaterial);

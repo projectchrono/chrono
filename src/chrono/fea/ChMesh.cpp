@@ -24,7 +24,7 @@
 #include "chrono/physics/ChObject.h"
 #include "chrono/physics/ChSystem.h"
 
-#include "chrono/fea/ChElementTetra_4.h"
+#include "chrono/fea/ChElementTetraCorot_4.h"
 #include "chrono/fea/ChMesh.h"
 #include "chrono/fea/ChNodeFEAxyz.h"
 #include "chrono/fea/ChNodeFEAxyzrot.h"
@@ -189,12 +189,11 @@ void ChMesh::RemoveCollisionModelsFromSystem() {
 
 //// STATE BOOKKEEPING FUNCTIONS
 
-void ChMesh::IntStateGather(const unsigned int off_x,  
-                            ChState& x,                
-                            const unsigned int off_v,  
-                            ChStateDelta& v,           
-                            double& T)                 
-{
+void ChMesh::IntStateGather(const unsigned int off_x,
+                            ChState& x,
+                            const unsigned int off_v,
+                            ChStateDelta& v,
+                            double& T) {
     unsigned int local_off_x = 0;
     unsigned int local_off_v = 0;
     for (unsigned int j = 0; j < vnodes.size(); j++) {
@@ -208,10 +207,10 @@ void ChMesh::IntStateGather(const unsigned int off_x,
     T = GetChTime();
 }
 
-void ChMesh::IntStateScatter(const unsigned int off_x,  
-                             const ChState& x,          
-                             const unsigned int off_v,  
-                             const ChStateDelta& v,     
+void ChMesh::IntStateScatter(const unsigned int off_x,
+                             const ChState& x,
+                             const unsigned int off_v,
+                             const ChStateDelta& v,
                              const double T,
                              bool full_update) {
     unsigned int local_off_x = 0;
@@ -247,12 +246,11 @@ void ChMesh::IntStateScatterAcceleration(const unsigned int off_a, const ChState
     }
 }
 
-void ChMesh::IntStateIncrement(const unsigned int off_x,  
-                               ChState& x_new,            
-                               const ChState& x,          
-                               const unsigned int off_v,  
-                               const ChStateDelta& Dv)    
-{
+void ChMesh::IntStateIncrement(const unsigned int off_x,
+                               ChState& x_new,
+                               const ChState& x,
+                               const unsigned int off_v,
+                               const ChStateDelta& Dv) {
     unsigned int local_off_x = 0;
     unsigned int local_off_v = 0;
     for (unsigned int j = 0; j < vnodes.size(); j++) {
@@ -262,9 +260,9 @@ void ChMesh::IntStateIncrement(const unsigned int off_x,
             local_off_v += vnodes[j]->Get_ndof_w();
         }
     }
-	for (unsigned int ie = 0; ie < velements.size(); ie++) {
-		velements[ie]->EleDoIntegration();
-	}
+    for (unsigned int ie = 0; ie < velements.size(); ie++) {
+        velements[ie]->EleDoIntegration();
+    }
 }
 
 void ChMesh::IntLoadResidual_F(const unsigned int off, ChVectorDynamic<>& R, const double c) {
@@ -318,8 +316,6 @@ void ChMesh::IntLoadResidual_F(const unsigned int off, ChVectorDynamic<>& R, con
             }
         }
     }
-
-
 }
 
 void ChMesh::ComputeMassProperties(double& mass,           // ChMesh object mass
@@ -347,7 +343,7 @@ void ChMesh::IntLoadResidual_Mv(const unsigned int off,      ///< offset in R re
                                 ChVectorDynamic<>& R,        ///< result: the R residual, R += c*M*v
                                 const ChVectorDynamic<>& w,  ///< the w vector
                                 const double c               ///< a scaling factor
-                                ) {
+) {
     // nodal masses
     unsigned int local_off_v = 0;
     for (unsigned int j = 0; j < vnodes.size(); j++) {

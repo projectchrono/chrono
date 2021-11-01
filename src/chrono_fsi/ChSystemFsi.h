@@ -37,7 +37,7 @@ namespace fea {
 class ChNodeFEAxyzD;
 class ChMesh;
 class ChElementCableANCF;
-class ChElementShellANCF;
+class ChElementShellANCF_3423;
 }  // namespace fea
 
 /// Output mode of system.
@@ -106,9 +106,9 @@ class CH_FSI_API ChSystemFsi : public ChFsiGeneral {
     /// fsi ChElementCableANCF are the ones seen by the fluid dynamics system.
     std::vector<std::shared_ptr<fea::ChElementCableANCF>>& GetFsiCables() { return fsiCables; }
 
-    /// Get a reference to the fsi ChElementShellANCF.
-    /// fsi ChElementShellANCF are the ones seen by the fluid dynamics system.
-    std::vector<std::shared_ptr<fea::ChElementShellANCF>>& GetFsiShells() { return fsiShells; }
+    /// Get a reference to the fsi ChElementShellANCF_3423.
+    /// fsi ChElementShellANCF_3423 are the ones seen by the fluid dynamics system.
+    std::vector<std::shared_ptr<fea::ChElementShellANCF_3423>>& GetFsiShells() { return fsiShells; }
 
     /// Get a reference to the fsi ChNodeFEAxyzD.
     /// fsi ChNodeFEAxyzD are the ones seen by the fluid dynamics system.
@@ -161,10 +161,11 @@ class CH_FSI_API ChSystemFsi : public ChFsiGeneral {
     std::shared_ptr<ChFsiDataManager> fsiData;       ///< Pointer to data manager which holds all the data
     std::vector<std::shared_ptr<ChBody>> fsiBodeis;  ///< Vector of a pointers to fsi bodies. fsi bodies
                                                      /// are those that interact with fluid
-    std::vector<std::shared_ptr<fea::ChElementCableANCF>> fsiCables;  ///< Vector of ChElementShellANCF pointers
-    std::vector<std::shared_ptr<fea::ChElementShellANCF>> fsiShells;  ///< Vector of ChElementShellANCF pointers
-    std::vector<std::shared_ptr<fea::ChNodeFEAxyzD>> fsiNodes;        ///< Vector of ChNodeFEAxyzD nodes
-    std::shared_ptr<fea::ChMesh> fsi_mesh;                            ///< ChMesh Pointer
+    std::vector<std::shared_ptr<fea::ChElementCableANCF>> fsiCables;  ///< Vector of ChElementCableANCF pointers
+    std::vector<std::shared_ptr<fea::ChElementShellANCF_3423>>
+        fsiShells;                                              ///< Vector of ChElementShellANCF_3423 pointers
+    std::vector<std::shared_ptr<fea::ChNodeFEAxyzD>> fsiNodes;  ///< Vector of ChNodeFEAxyzD nodes
+    std::shared_ptr<fea::ChMesh> fsi_mesh;                      ///< ChMesh Pointer
 
     std::vector<std::vector<int>> ShellElementsNodes;  ///< Indices of nodes of each Element
     std::vector<std::vector<int>> CableElementsNodes;  ///< Indices of nodes of each Element

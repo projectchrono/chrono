@@ -436,10 +436,12 @@ class ChApi ChContactSurfaceMesh : public ChContactSurface {
     /// or clockwise order, this has a reason: shells collisions are oriented and might work only from the "outer" side.
     /// Supported elements that generate boundary skin:
     /// - solids:
-    ///     - ChElementTetra_4: tetrahedrons
-    ///     - ChFaceBrick_9: solid hexahedrons
+    ///     - ChElementTetrahedron: all solid tetrahedrons
+    ///     - ChElementHexahedron: all solid hexahedrons
     /// - shells:
-    ///     - ChElementShellANCF ANCF: shells (only one side)
+    ///     - ChElementShellANCF_3423 ANCF: shells (only one side)
+    ///     - ChElementShellANCF_3443 ANCF: shells (only one side)
+    ///     - ChElementShellANCF_3833 ANCF: shells (only one side)
     ///     - ChElementShellReissner: Reissner 4-nodes shells (only one side)
     /// - beams:
     ///     - ChElementCableANCF: ANCF beams (as sphere-swept lines, i.e. sequence of capsules)

@@ -15,8 +15,8 @@
 #include "chrono/collision/ChCollisionModelBullet.h"
 #include "chrono/physics/ChSystem.h"
 #include "chrono/fea/ChContactSurfaceNodeCloud.h"
-#include "chrono/fea/ChElementShellANCF.h"
-#include "chrono/fea/ChElementTetra_4.h"
+#include "chrono/fea/ChElementShellANCF_3423.h"
+#include "chrono/fea/ChElementTetraCorot_4.h"
 #include "chrono/fea/ChMesh.h"
 
 namespace chrono {
@@ -41,9 +41,9 @@ void ChContactNodeXYZ::ComputeJacobianForContactPart(const ChVector<>& abs_point
     if (!second)
         Jx1 *= -1;
 
-    jacobian_tuple_N.Get_Cq().segment(0,3) = Jx1.row(0);
-    jacobian_tuple_U.Get_Cq().segment(0,3) = Jx1.row(1);
-    jacobian_tuple_V.Get_Cq().segment(0,3) = Jx1.row(2);
+    jacobian_tuple_N.Get_Cq().segment(0, 3) = Jx1.row(0);
+    jacobian_tuple_U.Get_Cq().segment(0, 3) = Jx1.row(1);
+    jacobian_tuple_V.Get_Cq().segment(0, 3) = Jx1.row(2);
 }
 
 ChPhysicsItem* ChContactNodeXYZ::GetPhysicsItem() {
@@ -78,9 +78,9 @@ void ChContactNodeXYZROT::ComputeJacobianForContactPart(const ChVector<>& abs_po
     if (!second)
         Jx1 *= -1;
 
-    jacobian_tuple_N.Get_Cq().segment(0,3) = Jx1.row(0);
-    jacobian_tuple_U.Get_Cq().segment(0,3) = Jx1.row(1);
-    jacobian_tuple_V.Get_Cq().segment(0,3) = Jx1.row(2);
+    jacobian_tuple_N.Get_Cq().segment(0, 3) = Jx1.row(0);
+    jacobian_tuple_U.Get_Cq().segment(0, 3) = Jx1.row(1);
+    jacobian_tuple_V.Get_Cq().segment(0, 3) = Jx1.row(2);
 }
 
 ChPhysicsItem* ChContactNodeXYZROT::GetPhysicsItem() {

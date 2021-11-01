@@ -22,7 +22,7 @@
 #include "chrono/core/ChMathematics.h"
 
 #include "chrono/fea/ChElementCableANCF.h"
-#include "chrono/fea/ChElementShellANCF.h"
+#include "chrono/fea/ChElementShellANCF_3423.h"
 #include "chrono/fea/ChNodeFEAxyzD.h"
 #include "chrono_fsi/utils/ChUtilsDevice.cuh"
 #include "chrono_fsi/utils/ChUtilsGeneratorBce.h"
@@ -295,7 +295,7 @@ void LoadBCE_fromFile(thrust::host_vector<Real4>& posRadBCE, std::string fileNam
 
 void CreateBCE_On_shell(thrust::host_vector<Real4>& posRadBCE,
                         std::shared_ptr<SimParams> paramsH,
-                        std::shared_ptr<chrono::fea::ChElementShellANCF> shell,
+                        std::shared_ptr<chrono::fea::ChElementShellANCF_3423> shell,
                         bool multiLayer,
                         bool removeMiddleLayer,
                         int SIDE) {
@@ -420,7 +420,7 @@ void CreateBCE_On_ChElementCableANCF(thrust::host_vector<Real4>& posRadBCE,
 // =============================================================================
 void CreateBCE_On_ChElementShellANCF(thrust::host_vector<Real4>& posRadBCE,
                                      std::shared_ptr<SimParams> paramsH,
-                                     std::shared_ptr<chrono::fea::ChElementShellANCF> shell,
+                                     std::shared_ptr<chrono::fea::ChElementShellANCF_3423> shell,
                                      std::vector<int> remove,
                                      bool multiLayer,
                                      bool removeMiddleLayer,
