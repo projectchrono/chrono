@@ -653,20 +653,8 @@ static __global__ void computeSphereContactForces(ChSystemGpu_impl::GranSphereDa
             if (active_contact) {
                 theirIDList[numActiveContacts] = sphere_data->contact_partners_map[body_A_offset + body_B_offset];
                 contactIDList[numActiveContacts] = body_B_offset;
-                if ((gran_params->cluster_graph_method == CLUSTER_GRAPH_METHOD::CONTACT) &&
-                    (gran_params->cluster_search_method > CLUSTER_SEARCH_METHOD::NONE)) {
-                    if (numActiveContacts <= sphere_data->adj_num[mySphereID]) {
-                        sphere_data->adj_list[sphere_data->adj_start[mySphereID] + numActiveContacts] = theirIDList[numActiveContacts];
-                    } else {
-                        ABORTABORTABORT("adj_list was overran! sphere %d adj_num has %d contacts yet numActiveContacts is %d\n", mySphereID, sphere_data->adj_num[mySphereID], numActiveContacts);
-                    }
-                }
                 numActiveContacts++;
             }
-        }
-
-        if (numActiveContacts != sphere_data->adj_num[mySphereID]) {
-            ABORTABORTABORT("adj_list error! sphere %d adj_num has %d contacts yet numActiveContacts is %d\n", mySphereID, sphere_data->adj_num[mySphereID], numActiveContacts);
         }
 
         // Sort. Simple but should be effective since we have 12 contacts max

@@ -301,6 +301,11 @@ class CH_GPU_API ChSystemGpuMesh : public ChSystemGpu {
     /// Requires Initialize() to have been called.
     virtual double AdvanceSimulation(float duration) override;
 
+    /// Finds particle clusters to identify the Ground, Volume and others
+    /// Constructs a graph using cluster_graph_method and
+    /// searches it with cluster_searchs_method in gran_params
+    virtual void IdentifyClusters();
+
     /// Collect contact forces exerted on all meshes by the granular system.
     void CollectMeshContactForces(std::vector<ChVector<>>& forces, std::vector<ChVector<>>& torques);
 

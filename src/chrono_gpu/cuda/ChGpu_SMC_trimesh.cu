@@ -415,6 +415,68 @@ __global__ void interactionGranMat_TriangleSoup(ChSystemGpuMesh_impl::TriangleSo
     }  // end sphere id check
 }  // end kernel
 
+/// Identifies the clusters according to parameters in gran_params
+/// Not super fast.
+__host__ void ChSystemGpuMesh_impl::IdentifyClusters() {
+    // Figure our the number of blocks that need to be launched to cover the box
+    unsigned int nBlocks = (nSpheres + CUDA_THREADS_PER_BLOCK - 1) / CUDA_THREADS_PER_BLOCK;
+
+    // skip clustering if not both graph_method and search_method
+    if ((gran_params->cluster_graph_method > CLUSTER_GRAPH_METHOD::NONE)
+        && (gran_params->cluster_search_method > CLUSTER_SEARCH_METHOD::NONE)) {
+        // step 1- Graph construction
+        switch (gran_params->cluster_graph_method) {
+            case CLUSTER_GRAPH_METHOD::CONTACT: {
+                ConstructGraphByContact(sphere_data, gran_params, nSpheres);
+                break;
+            }
+            case CLUSTER_GRAPH_METHOD::PROXIMITY: {
+                ConstructGraphByProximity(sphere_data, gran_params, nSpheres,
+                                          gran_params->gdbscan_min_pts,
+                                          gran_params->gdbscan_radius);
+                break;
+            }
+            default: {break;}
+        }
+        // step 2- Search the graph, find the clusters.
+        switch (gran_params->cluster_search_method) {
+            case CLUSTER_SEARCH_METHOD::BFS: {
+                /// sphere_group is CORE if neighbors_num > min_pts else NOISE
+                GdbscanInitSphereGroup<<<nBlocks, CUDA_THREADS_PER_BLOCK>>>(
+                    nSpheres,
+                    sphere_data->adj_num,
+                    sphere_data->sphere_group,
+                    gran_params->gdbscan_min_pts);
+                gpuErrchk(cudaPeekAtLastError());
+                gpuErrchk(cudaDeviceSynchronize());
+
+                /// finds spheres in volume
+                /// must be set AFTER GdbscanInitSphereGroup,
+                ///  and AFTER interactionGranMat_TriangleSoup,
+                ///  which is AFTER AdvanceSimulation
+                SetVolumeSphereGroup<<<nBlocks, CUDA_THREADS_PER_BLOCK>>>(
+                    sphere_data,
+                    nSpheres);
+                gpuErrchk(cudaPeekAtLastError());
+                gpuErrchk(cudaDeviceSynchronize());
+
+                /// Finds clusters, tags Ground cluster (biggest), other clusters.
+                /// Changes NOISE sphere_group to BORDER if in cluster
+                GdbscanSearchGraph(sphere_data, gran_params, nSpheres,
+                                   gran_params->gdbscan_min_pts);
+                break;
+            }
+            default: {break;}
+        }
+    } else {
+        printf("ERROR: Either cluster_graph_method or cluster_search_method not set. Skipping clustering.\n");
+    }
+
+    gpuErrchk(cudaPeekAtLastError());
+    gpuErrchk(cudaDeviceSynchronize());
+}
+
+
 __host__ double ChSystemGpuMesh_impl::AdvanceSimulation(float duration) {
     // Figure our the number of blocks that need to be launched to cover the box
     unsigned int nBlocks = (nSpheres + CUDA_THREADS_PER_BLOCK - 1) / CUDA_THREADS_PER_BLOCK;
@@ -455,21 +517,8 @@ __host__ double ChSystemGpuMesh_impl::AdvanceSimulation(float duration) {
             determineContactPairs<<<nSDs, MAX_COUNT_OF_SPHERES_PER_SD>>>(sphere_data, gran_params);
             gpuErrchk(cudaPeekAtLastError());
             gpuErrchk(cudaDeviceSynchronize());
-
-            // computing adj_num and adj_start
-            if ((gran_params->cluster_graph_method == CLUSTER_GRAPH_METHOD::CONTACT) 
-                && (gran_params->cluster_search_method > CLUSTER_SEARCH_METHOD::NONE)) {
-                ComputeAdjNumByContact<<<nBlocks, CUDA_THREADS_PER_BLOCK>>>(sphere_data,
-                                                                 gran_params, nSpheres);
-                gpuErrchk(cudaPeekAtLastError());
-                gpuErrchk(cudaDeviceSynchronize());
-
-                ComputeAdjStartFromAdjNum(nSpheres, sphere_data->adj_num, sphere_data->adj_start);
-            }
-            gpuErrchk(cudaPeekAtLastError());
-            gpuErrchk(cudaDeviceSynchronize());
             
-            // compute contact forces + adj_list if CLUSTER_GRAPH_METHOD::CONTACT
+            // compute contact forces
             computeSphereContactForces<<<nBlocks, CUDA_THREADS_PER_BLOCK>>>(
                 sphere_data, gran_params, BC_type_list.data(), BC_params_list_SU.data(),
                 (unsigned int)BC_params_list_SU.size(), nSpheres);
@@ -516,40 +565,6 @@ __host__ double ChSystemGpuMesh_impl::AdvanceSimulation(float duration) {
 
         runSphereBroadphase();
         elapsedSimTime += (float)(stepSize_SU * TIME_SU2UU);  // Advance current time
-    }
-
-    gpuErrchk(cudaPeekAtLastError());
-    gpuErrchk(cudaDeviceSynchronize());
-
-    // Clustering is not that fast in general, so should be done after all steps.
-    if ((gran_params->cluster_graph_method > CLUSTER_GRAPH_METHOD::NONE) 
-        && (gran_params->cluster_search_method > CLUSTER_SEARCH_METHOD::NONE)) {
-        // step 1- Graph construction
-        switch(gran_params->cluster_graph_method) {
-            case CLUSTER_GRAPH_METHOD::PROXIMITY: {
-                GdbscanConstructGraph(sphere_data, gran_params, nSpheres, gran_params->gdbscan_min_pts, gran_params->gdbscan_radius);
-                break;
-            }
-            default: {break;}
-        }
-        // step 2- Search the graph, find the clusters.
-        switch(gran_params->cluster_search_method) {
-            case CLUSTER_SEARCH_METHOD::BFS: {
-                GdbscanInitSphereGroup<<<nBlocks, CUDA_THREADS_PER_BLOCK>>>(nSpheres,
-                            sphere_data->adj_num, sphere_data->sphere_group, gran_params->gdbscan_min_pts);
-                gpuErrchk(cudaPeekAtLastError());
-                gpuErrchk(cudaDeviceSynchronize());
-
-                /// must be set AFTER GdbscanInitSphereGroup, and AFTER interactionGranMat_TriangleSoup
-                SetVolumeSphereGroup<<<nBlocks, CUDA_THREADS_PER_BLOCK>>>(sphere_data, nSpheres);
-                gpuErrchk(cudaPeekAtLastError());
-                gpuErrchk(cudaDeviceSynchronize());
-
-                GdbscanSearchGraph(sphere_data, gran_params, nSpheres, gran_params->gdbscan_min_pts);
-                break;
-            }
-            default: {break;}
-        }
     }
 
     gpuErrchk(cudaPeekAtLastError());

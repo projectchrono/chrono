@@ -121,11 +121,14 @@ static __host__ void ComputeAdjStartFromAdjNum(unsigned int nSpheres,
     cub::DeviceScan::ExclusiveSum(d_temp_storage, bytesize,
     adj_start, adj_start, nSpheres);
     gpuErrchk(cudaFree(d_temp_storage));
+
+    gpuErrchk(cudaPeekAtLastError());
+    gpuErrchk(cudaDeviceSynchronize());
 }
 
 /// compute adj_num from chrono contact_active_map
-/// adj_start needs fully known adj_num 
-/// adl_list needs fully known adj_list 
+/// adj_start needs fully known adj_num
+/// adl_list needs fully known adj_list
 static __global__ void ComputeAdjNumByContact(
         ChSystemGpu_impl::GranSphereDataPtr sphere_data,
         ChSystemGpu_impl::GranParamsPtr gran_params,
@@ -174,7 +177,12 @@ static __global__ void ComputeAdjListByContact(
     }
 }
 
-__host__ void GdbscanConstructGraph(
+__host__ void ConstructGraphByContact(
+        ChSystemGpu_impl::GranSphereDataPtr sphere_data,
+        ChSystemGpu_impl::GranParamsPtr gran_params,
+        unsigned int nSpheres);
+
+__host__ void ConstructGraphByProximity(
         ChSystemGpu_impl::GranSphereDataPtr sphere_data,
         ChSystemGpu_impl::GranParamsPtr gran_params,
         unsigned int nSpheres, size_t min_pts, float radius);

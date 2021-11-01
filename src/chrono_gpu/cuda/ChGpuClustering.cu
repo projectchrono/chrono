@@ -38,7 +38,7 @@ static __global__ void ClusterSearchBFSKernel(unsigned int nSpheres,
                                               bool * d_visited) {
     // my sphere ID, we're using a 1D thread->sphere map
     unsigned int mySphereID = threadIdx.x + blockIdx.x * blockDim.x;
-    if (mySphereID < nSpheres) { 
+    if (mySphereID < nSpheres) {
         if (d_borders[mySphereID]) {
             d_visited[mySphereID] = true;
             d_borders[mySphereID] = false;
@@ -293,27 +293,55 @@ static __global__ void ComputeAdjListByProximity(
 }  // namespace gpu
 }  // namespace chrono
 
+/// Uses sphere_contact_map to construct adjacency lists for clustering
+__host__ void ConstructGraphByContact(
+        ChSystemGpu_impl::GranSphereDataPtr sphere_data,
+        ChSystemGpu_impl::GranParamsPtr gran_params,
+        unsigned int nSpheres) {
+    unsigned int nBlocks = (nSpheres + CUDA_THREADS_PER_BLOCK - 1) / CUDA_THREADS_PER_BLOCK;
 
+    ComputeAdjNumByContact<<<nBlocks, CUDA_THREADS_PER_BLOCK>>>(sphere_data,
+                                                                gran_params,
+                                                                nSpheres);
+    gpuErrchk(cudaPeekAtLastError());
+    gpuErrchk(cudaDeviceSynchronize());
+
+    ComputeAdjStartFromAdjNum(nSpheres,
+                              sphere_data->adj_num,
+                              sphere_data->adj_start);
+    
+    ComputeAdjListByContact<<<nBlocks, CUDA_THREADS_PER_BLOCK>>>(sphere_data,
+                                                                 gran_params,
+                                                                 nSpheres);
+    gpuErrchk(cudaPeekAtLastError());
+    gpuErrchk(cudaDeviceSynchronize());
+}
 
 /// UNTESTED
 /// G-DBSCAN; density-based h_clustering algorithm.
 /// Identifies core, border and noise points in h_clusters.
 /// min_pts: minimal number of points for a h_cluster
 /// radius: proximity radius, points inside can form a h_cluster
-__host__ void GdbscanConstructGraph(
+__host__ void ConstructGraphByProximity(
         ChSystemGpu_impl::GranSphereDataPtr sphere_data,
         ChSystemGpu_impl::GranParamsPtr gran_params,
         unsigned int nSpheres, size_t min_pts, float radius) {
     unsigned int nBlocks = (nSpheres + CUDA_THREADS_PER_BLOCK - 1) / CUDA_THREADS_PER_BLOCK;
 
     /// compute all adjacent spheres inside radius
-    ComputeAdjNumByProximity<<<nBlocks, CUDA_THREADS_PER_BLOCK>>>(sphere_data, gran_params, nSpheres,
-            radius);
+    ComputeAdjNumByProximity<<<nBlocks, CUDA_THREADS_PER_BLOCK>>>(sphere_data,
+                                                                  gran_params,
+                                                                  nSpheres,
+                                                                  radius);
     /// compute all adjacent spheres inside radius
-    ComputeAdjStartFromAdjNum(nSpheres, sphere_data->adj_num, sphere_data->adj_start);
+    ComputeAdjStartFromAdjNum(nSpheres,
+                              sphere_data->adj_num,
+                              sphere_data->adj_start);
     /// compute adjacency list
-    ComputeAdjListByProximity<<<nBlocks, CUDA_THREADS_PER_BLOCK>>>(sphere_data, gran_params, nSpheres,
-            radius);
+    ComputeAdjListByProximity<<<nBlocks, CUDA_THREADS_PER_BLOCK>>>(sphere_data,
+                                                                   gran_params,
+                                                                   nSpheres,
+                                                                   radius);
 }
 
 /// G-DBSCAN; density-based h_clustering algorithm. Identifies core, border and noise points in h_clusters.<
