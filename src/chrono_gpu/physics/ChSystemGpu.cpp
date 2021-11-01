@@ -555,6 +555,13 @@ void ChSystemGpu::Initialize() {
 
 // -----------------------------------------------------------------------------
 
+void ChSystemGpuMesh::IdentifyClusters() {
+    ChSystemGpuMesh_impl* sys_trimesh = static_cast<ChSystemGpuMesh_impl*>(m_sys);
+    sys_trimesh->IdentifyClusters();
+}
+
+// -----------------------------------------------------------------------------
+
 double ChSystemGpuMesh::AdvanceSimulation(float duration) {
     ChSystemGpuMesh_impl* sys_trimesh = static_cast<ChSystemGpuMesh_impl*>(m_sys);
     return sys_trimesh->AdvanceSimulation(duration);
