@@ -418,6 +418,7 @@ __global__ void interactionGranMat_TriangleSoup(ChSystemGpuMesh_impl::TriangleSo
 /// Identifies the clusters according to parameters in gran_params
 /// Not super fast.
 __host__ void ChSystemGpuMesh_impl::IdentifyClusters() {
+    printf("IdentifyClusters");
     // Figure our the number of blocks that need to be launched to cover the box
     unsigned int nBlocks = (nSpheres + CUDA_THREADS_PER_BLOCK - 1) / CUDA_THREADS_PER_BLOCK;
 
@@ -438,6 +439,7 @@ __host__ void ChSystemGpuMesh_impl::IdentifyClusters() {
             }
             default: {break;}
         }
+
         // step 2- Search the graph, find the clusters.
         switch (gran_params->cluster_search_method) {
             case CLUSTER_SEARCH_METHOD::BFS: {
@@ -504,6 +506,14 @@ __host__ double ChSystemGpuMesh_impl::AdvanceSimulation(float duration) {
             resetTriangleBroadphaseInformation();
         }
 
+        if (gran_params->friction_mode != CHGPU_FRICTION_MODE::FRICTIONLESS) {
+            const unsigned int nThreadsUpdateHist = 2 * CUDA_THREADS_PER_BLOCK;
+            unsigned int fricMapSize = nSpheres * MAX_SPHERES_TOUCHED_BY_SPHERE;
+            unsigned int nBlocksFricHistoryPostProcess = (fricMapSize + nThreadsUpdateHist - 1) / nThreadsUpdateHist;
+            resetActiveFrictionData<<<nBlocksFricHistoryPostProcess, nThreadsUpdateHist>>>(fricMapSize, sphere_data,
+                                                                                      gran_params);
+        }
+
         METRICS_PRINTF("Starting computeSphereForces!\n");
 
         if (gran_params->friction_mode == CHGPU_FRICTION_MODE::FRICTIONLESS) {
@@ -554,7 +564,7 @@ __host__ double ChSystemGpuMesh_impl::AdvanceSimulation(float duration) {
             const unsigned int nThreadsUpdateHist = 2 * CUDA_THREADS_PER_BLOCK;
             unsigned int fricMapSize = nSpheres * MAX_SPHERES_TOUCHED_BY_SPHERE;
             unsigned int nBlocksFricHistoryPostProcess = (fricMapSize + nThreadsUpdateHist - 1) / nThreadsUpdateHist;
-            updateFrictionData<<<nBlocksFricHistoryPostProcess, nThreadsUpdateHist>>>(fricMapSize, sphere_data,
+            updateInactiveFrictionData<<<nBlocksFricHistoryPostProcess, nThreadsUpdateHist>>>(fricMapSize, sphere_data,
                                                                                       gran_params);
             gpuErrchk(cudaPeekAtLastError());
             gpuErrchk(cudaDeviceSynchronize());
