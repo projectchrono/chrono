@@ -76,6 +76,16 @@ inline __host__ __device__ Real cube(Real a) {
     return a * a * a;
 }
 
+/// Quartic a float value.
+inline __host__ __device__ Real quartic(Real a) {
+    return a * a * a * a;
+}
+
+/// Quintic a float value.
+inline __host__ __device__ Real quintic(Real a) {
+    return a * a * a * a * a;
+}
+
 ////////////////////////////////////////////////////////////////////////////////
 // implementations of basic cuda types
 ////////////////////////////////////////////////////////////////////////////////
@@ -1599,6 +1609,15 @@ __host__ __device__ inline Real3 user_BC_U(Real3 Pos) {
 
     return vel;
 }
+
+// __host__ uint iDivUp(uint a, uint b) {
+//     return (a % b != 0) ? (a / b + 1) : (a / b);
+// } 
+// __host__ void computeGridSize(uint n, uint blockSize, uint& numBlocks, uint&  numThreads) {
+//     uint n2 = (n == 0) ? 1 : n;
+//     numThreads = min(blockSize, n2);
+//     numBlocks = iDivUp(n2, numThreads);
+// }
 
 /// @} fsi_math
 

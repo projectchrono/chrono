@@ -41,22 +41,24 @@ class CH_SENSOR_API ChFilterVisualizePointCloud : public ChFilterVisualize {
     /// @param h Height of the window to create
     /// @param zoom Value to multiply by the default box in which points are viewed
     /// @param name String name of the filter
-    ChFilterVisualizePointCloud(int w, int h, float zoom, std::string name = {});
+    ChFilterVisualizePointCloud(int w, int h, float zoom, std::string name = "ChFilterVisualizePointCloud");
 
     /// Class destructor
     virtual ~ChFilterVisualizePointCloud();
 
     /// Apply function. Visualizes data as an image.
-    /// @param pSensor A pointer to the sensor on which the filter is attached.
-    /// @param bufferInOut A buffer that is passed into the filter.
-    virtual void Apply(std::shared_ptr<ChSensor> pSensor, std::shared_ptr<SensorBuffer>& bufferInOut);
+    virtual void Apply();
 
     /// Initializes all data needed by the filter access apply function.
-    /// @param pSensor A pointer to the sensor.
-    virtual void Initialize(std::shared_ptr<ChSensor> pSensor) {}
+    /// @param pSensor A pointer to the sensor on which the filter is attached.
+    /// @param bufferInOut A buffer that is passed into the filter.
+    virtual void Initialize(std::shared_ptr<ChSensor> pSensor, std::shared_ptr<SensorBuffer>& bufferInOut);
 
   private:
     float m_zoom;  ///< value for setting the zoom factor of the visualization box
+    std::shared_ptr<SensorDeviceXYZIBuffer> m_buffer_in;  ///< input buffer
+    std::shared_ptr<SensorHostXYZIBuffer> m_host_buffer;  ///< host side buffer for visualization
+    CUstream m_cuda_stream;                               ///< reference to the cuda stream
 };
 
 /// @}

@@ -29,10 +29,6 @@ set(DEMOS
     demo_VEH_MAN_7t
     demo_VEH_MAN_10t
     demo_VEH_MROLE
-    demo_VEH_MROLE_TurnCircle
-    demo_VEH_MROLE_Ride
-    demo_VEH_MROLE_Obstacle
-    demo_VEH_MROLE_ObstacleTool
     demo_VEH_RCCar
     demo_VEH_Sedan
     demo_VEH_Sedan_Lockable_Diff
@@ -42,12 +38,6 @@ set(DEMOS
     demo_VEH_WheeledGeneric
     demo_VEH_WheeledJSON
 )
-
-if(HAVE_OPENCRG)
-    set(DEMOS ${DEMOS}
-        demo_VEH_MROLE_Shock
-    )
-endif()
 
 #--------------------------------------------------------------
 # Include directories, compiler flags, libraries

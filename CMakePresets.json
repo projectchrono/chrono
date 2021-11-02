@@ -49,7 +49,9 @@
 				"ENABLE_MODULE_DISTRIBUTED": "ON",
 				"ENABLE_MODULE_FSI": "ON",
 				"ENABLE_MODULE_GPU": "ON",
-				"CMAKE_CXX_FLAGS": "-fdiagnostics-color=always"
+				"CMAKE_CXX_FLAGS": "-fdiagnostics-color=always",
+				"ENABLE_MODULE_SENSOR": "ON",
+				"OptiX_INSTALL_DIR": "/opt/optix/7.2.0"
 			}
 		},
 		{
@@ -70,7 +72,8 @@
 				"ENABLE_MODULE_DISTRIBUTED": "OFF",
 				"ENABLE_MODULE_FSI": "OFF",
 				"ENABLE_MODULE_GPU": "OFF",
-				"USE_MULTICORE_CUDA": "OFF"
+				"USE_MULTICORE_CUDA": "OFF",
+				"ENABLE_MODULE_SENSOR": "OFF"
 			}
 		},
 		{
@@ -110,7 +113,9 @@
 			],
 			"cacheVariables": {
 				"ENABLE_MODULE_GPU": "ON",
-				"ENABLE_MODULE_FSI": "ON"
+				"ENABLE_MODULE_FSI": "ON",
+				"ENABLE_MODULE_SENSOR": "OFF",
+				"OptiX_INSTALL_DIR": "C:/Program Files/NVIDIA Corporation/OptiX SDK 7.2.0"
 			}
 		},
 		{
@@ -126,4 +131,5 @@
 			]
 		}
 	]
+
 }

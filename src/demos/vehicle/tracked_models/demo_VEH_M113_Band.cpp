@@ -116,7 +116,7 @@ int main(int argc, char* argv[]) {
     // --------------------------
 
     CollisionType chassis_collision_type = CollisionType::PRIMITIVES;
-    M113_Vehicle vehicle(false, TrackShoeType::BAND_BUSHING, DrivelineTypeTV::SIMPLE, BrakeType::SIMPLE,
+    M113_Vehicle vehicle(false, TrackShoeType::BAND_BUSHING, DrivelineTypeTV::SIMPLE, BrakeType::SIMPLE, false,
                          ChContactMethod::SMC, chassis_collision_type);
 
     // Disable gravity in this simulation
@@ -400,7 +400,7 @@ int main(int argc, char* argv[]) {
             if (povray_output) {
                 char filename[100];
                 sprintf(filename, "%s/data_%03d.dat", pov_dir.c_str(), render_frame + 1);
-                utils::WriteShapesPovray(vehicle.GetSystem(), filename);
+                utils::WriteVisualizationAssets(vehicle.GetSystem(), filename);
             }
 
 #ifdef USE_IRRLICHT

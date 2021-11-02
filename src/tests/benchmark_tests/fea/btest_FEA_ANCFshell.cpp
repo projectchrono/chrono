@@ -26,32 +26,30 @@
 #include "chrono/solver/ChIterativeSolverLS.h"
 #include "chrono/solver/ChDirectSolverLS.h"
 
-#include "chrono/fea/ChElementShellANCF.h"
+#include "chrono/fea/ChElementShellANCF_3423.h"
 #include "chrono/fea/ChMesh.h"
 #include "chrono/fea/ChVisualizationFEAmesh.h"
 
 #ifdef CHRONO_IRRLICHT
-#include "chrono_irrlicht/ChIrrApp.h"
+    #include "chrono_irrlicht/ChIrrApp.h"
 #endif
 
 #ifdef CHRONO_PARDISO_MKL
-#include "chrono_pardisomkl/ChSolverPardisoMKL.h"
+    #include "chrono_pardisomkl/ChSolverPardisoMKL.h"
 #endif
 
 #ifdef CHRONO_MUMPS
-#include "chrono_mumps/ChSolverMumps.h"
+    #include "chrono_mumps/ChSolverMumps.h"
 #endif
 
 #ifdef CHRONO_PARDISOPROJECT
-#include "chrono_pardisoproject/ChSolverPardisoProject.h"
+    #include "chrono_pardisoproject/ChSolverPardisoProject.h"
 #endif
-
-
 
 using namespace chrono;
 using namespace chrono::fea;
 
-enum class SolverType {MINRES, MKL, MUMPS, PARDISO_PROJECT, SparseQR};
+enum class SolverType { MINRES, MKL, MUMPS, PARDISO_PROJECT, SparseQR };
 
 template <int N>
 class ANCFshell : public utils::ChBenchmarkTest {
@@ -228,12 +226,11 @@ ANCFshell<N>::ANCFshell(SolverType solver_type) {
         mesh->AddNode(nodeC);
         mesh->AddNode(nodeD);
 
-        auto element = chrono_types::make_shared<ChElementShellANCF>();
+        auto element = chrono_types::make_shared<ChElementShellANCF_3423>();
         element->SetNodes(nodeA, nodeB, nodeD, nodeC);
         element->SetDimensions(dx, width);
         element->AddLayer(thickness, 0 * CH_C_DEG_TO_RAD, mat);
         element->SetAlphaDamp(0.0);
-        element->SetGravityOn(false);
         mesh->AddElement(element);
 
         nodeA = nodeC;
@@ -257,11 +254,11 @@ void ANCFshell<N>::SimulateVis() {
         application.BeginScene();
         application.DrawAll();
         irrlicht::tools::drawSegment(application.GetVideoDriver(), ChVector<>(0), ChVector<>(1, 0, 0),
-                                          irr::video::SColor(255, 255, 0, 0));
+                                     irr::video::SColor(255, 255, 0, 0));
         irrlicht::tools::drawSegment(application.GetVideoDriver(), ChVector<>(0), ChVector<>(0, 1, 0),
-                                          irr::video::SColor(255, 0, 255, 0));
+                                     irr::video::SColor(255, 0, 255, 0));
         irrlicht::tools::drawSegment(application.GetVideoDriver(), ChVector<>(0), ChVector<>(0, 0, 1),
-                                          irr::video::SColor(255, 0, 0, 255));
+                                     irr::video::SColor(255, 0, 0, 255));
         ExecuteStep();
         application.EndScene();
     }

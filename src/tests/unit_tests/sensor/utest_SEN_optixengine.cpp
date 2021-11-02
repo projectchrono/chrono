@@ -21,7 +21,7 @@
 #include "chrono/core/ChLog.h"
 #include "chrono/physics/ChBodyEasy.h"
 #include "chrono/physics/ChSystemNSC.h"
-#include "chrono_sensor/ChCameraSensor.h"
+#include "chrono_sensor/sensors/ChCameraSensor.h"
 #include "chrono_sensor/ChSensorManager.h"
 #include "chrono_sensor/filters/ChFilterAccess.h"
 #include "chrono_sensor/filters/ChFilterSave.h"
@@ -32,11 +32,14 @@ using namespace sensor;
 
 #define end_time 1.0
 
+// forcing sim to bottleneck each phase (dynamics, scene rebuild, scene trace, post-process)
+TEST(ChOptixEngine, render_synchronization) {}
+
 // for making sure we can add sensors safely while the simulation is running
 TEST(ChOptixEngine, assign_sensor_safety) {
     ChSystemNSC mphysicalSystem;
 
-    auto box = chrono_types::make_shared<ChBodyEasyBox>(1, 1, 1, 1000, true, true);
+    auto box = chrono_types::make_shared<ChBodyEasyBox>(1, 1, 1, 1000, true, false);
     box->SetBodyFixed(true);
     mphysicalSystem.Add(box);
 
@@ -83,14 +86,14 @@ TEST(ChOptixEngine, assign_sensor_safety) {
         ch_time = (float)mphysicalSystem.GetChTime();
     }
 
-    ASSERT_EQ(success, true);
+    ASSERT_TRUE(success);
 }
 
 // for making sure user interaction with the render engine is safe while the simulation is running
 TEST(ChOptixEngine, construct_scene_safety) {
     ChSystemNSC mphysicalSystem;
 
-    auto box = chrono_types::make_shared<ChBodyEasyBox>(1, 1, 1, 1000, true, true);
+    auto box = chrono_types::make_shared<ChBodyEasyBox>(1, 1, 1, 1000, true, false);
     box->SetBodyFixed(true);
     mphysicalSystem.Add(box);
 
@@ -121,7 +124,7 @@ TEST(ChOptixEngine, construct_scene_safety) {
         mphysicalSystem.DoStepDynamics(0.01);
 
         if (frame == 10) {
-            auto b = chrono_types::make_shared<ChBodyEasyBox>(.5, .5, .5, 1000, true, true);
+            auto b = chrono_types::make_shared<ChBodyEasyBox>(.5, .5, .5, 1000, true, false);
             b->SetPos({0, 0, 2});
             b->SetBodyFixed(true);
             mphysicalSystem.Add(b);
@@ -132,13 +135,13 @@ TEST(ChOptixEngine, construct_scene_safety) {
         frame++;
     }
 
-    ASSERT_EQ(success, true);
+    ASSERT_TRUE(success);
 }
 
 TEST(ChOptixEngine, construct_scene_safety_2) {
     ChSystemNSC mphysicalSystem;
 
-    auto box = chrono_types::make_shared<ChBodyEasyBox>(1, 1, 1, 1000, true, true);
+    auto box = chrono_types::make_shared<ChBodyEasyBox>(1, 1, 1, 1000, true, false);
     box->SetBodyFixed(true);
     mphysicalSystem.Add(box);
 
@@ -170,7 +173,7 @@ TEST(ChOptixEngine, construct_scene_safety_2) {
         mphysicalSystem.DoStepDynamics(0.01);
 
         if (frame == 10) {
-            auto b = chrono_types::make_shared<ChBodyEasyBox>(.5, .5, .5, 1000, true, true);
+            auto b = chrono_types::make_shared<ChBodyEasyBox>(.5, .5, .5, 1000, true, false);
             b->SetPos({0, 0, 2});
             b->SetBodyFixed(true);
             mphysicalSystem.Add(b);
@@ -181,13 +184,13 @@ TEST(ChOptixEngine, construct_scene_safety_2) {
         frame++;
     }
 
-    ASSERT_EQ(success, true);
+    ASSERT_TRUE(success);
 }
 
 TEST(ChOptixEngine, lights) {
     ChSystemNSC mphysicalSystem;
 
-    auto box = chrono_types::make_shared<ChBodyEasyBox>(1, 1, 1, 1000, true, true);
+    auto box = chrono_types::make_shared<ChBodyEasyBox>(1, 1, 1, 1000, true, false);
     box->SetBodyFixed(true);
     mphysicalSystem.Add(box);
 

@@ -61,3 +61,11 @@ inline std::string pretty_format_bytes(size_t bytes) {
     }
     return ret.str();
 }
+
+// calculate effective youngs modulus and shear modulus 
+inline void materialPropertyCombine(double Y1, double Y2, double nu1, double nu2, double& E_eff, double& G_eff){
+    double invE = (1-nu1*nu1)/Y1 + (1 - nu2*nu2)/Y2;
+    E_eff = 1./invE;
+    double invG = 2*(2-nu1)*(1+nu1)/Y1 + 2*(2-nu2)*(1+nu2)/Y2;
+    G_eff = 1./invG;
+}

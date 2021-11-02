@@ -19,6 +19,7 @@
 #define CHFILTERSAVEPTCLOUD_H
 
 #include "chrono_sensor/filters/ChFilter.h"
+#include "chrono_sensor/utils/CudaMallocHelper.h"
 
 namespace chrono {
 namespace sensor {
@@ -35,23 +36,25 @@ class CH_SENSOR_API ChFilterSavePtCloud : public ChFilter {
   public:
     /// Class constructor
     /// @param data_path Path to where data should be saved
-    ChFilterSavePtCloud(std::string data_path = "");
+    ChFilterSavePtCloud(std::string data_path = "", std::string name = "ChFilterSavePtCloud");
 
     /// Class destructor
     virtual ~ChFilterSavePtCloud();
 
     /// Apply function. Saves point cloud data in CSV file format.
-    /// @param pSensor A pointer to the sensor on which the filter is attached.
-    /// @param bufferInOut A buffer that is passed into the filter.
-    virtual void Apply(std::shared_ptr<ChSensor> pSensor, std::shared_ptr<SensorBuffer>& bufferInOut);
+    virtual void Apply();
 
     /// Initializes all data needed by the filter access apply function.
-    /// @param pSensor A pointer to the sensor.
-    virtual void Initialize(std::shared_ptr<ChSensor> pSensor);
+    /// @param pSensor A pointer to the sensor on which the filter is attached.
+    /// @param bufferInOut A buffer that is passed into the filter.
+    virtual void Initialize(std::shared_ptr<ChSensor> pSensor, std::shared_ptr<SensorBuffer>& bufferInOut);
 
   private:
-    std::string m_path;               ///< path to saved data
-    unsigned int m_frame_number = 0;  ///< frame counter for saving sequential frames
+    std::string m_path;                                   ///< path to saved data
+    unsigned int m_frame_number = 0;                      ///< frame counter for saving sequential frames
+    std::shared_ptr<SensorDeviceXYZIBuffer> m_buffer_in;  ///< input buffer for point cloud
+    std::shared_ptr<SensorHostXYZIBuffer> m_host_buffer;  ///< input buffer for point cloud
+    CUstream m_cuda_stream;
 };
 
 /// @}

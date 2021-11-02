@@ -197,9 +197,6 @@ void ChTrackShoeDoublePin::Connect(std::shared_ptr<ChTrackShoe> next,
     ChSystem* system = m_shoe->GetSystem();
     double sign = ccw ? +1 : -1;
 
-    bool add_RSDA = (track->GetConnectionType() == ChTrackAssemblySegmented::ConnectionType::RSDA_JOINT);
-    assert(!add_RSDA || track->GetTorqueFunctor());
-
     // Create and initialize the revolute joints between shoe body and connector bodies.
     ChVector<> loc_L =
         m_shoe->TransformPointLocalToParent(ChVector<>(sign * GetShoeLength() / 2, +GetShoeWidth() / 2, 0));
@@ -208,15 +205,15 @@ void ChTrackShoeDoublePin::Connect(std::shared_ptr<ChTrackShoe> next,
     ChQuaternion<> rot = m_shoe->GetRot() * Q_from_AngX(CH_C_PI_2);
 
     m_revolute_L = chrono_types::make_shared<ChVehicleJoint>(ChVehicleJoint::Type::REVOLUTE, m_name + "_rev_L", m_shoe,
-                                                             m_connector_L, ChCoordsys<>(loc_L, rot), GetBushingData());
+                                                             m_connector_L, ChCoordsys<>(loc_L, rot), track->GetBushingData());
     chassis->AddJoint(m_revolute_L);
 
     m_revolute_R = chrono_types::make_shared<ChVehicleJoint>(ChVehicleJoint::Type::REVOLUTE, m_name + "_rev_R", m_shoe,
-                                                             m_connector_R, ChCoordsys<>(loc_R, rot), GetBushingData());
+                                                             m_connector_R, ChCoordsys<>(loc_R, rot), track->GetBushingData());
     chassis->AddJoint(m_revolute_R);
 
     // Optionally, include rotational spring-dampers to model track bending stiffness
-    if (add_RSDA) {
+    if (track->GetTorqueFunctor()) {
         m_rsda_L = chrono_types::make_shared<ChLinkRotSpringCB>();
         m_rsda_L->SetNameString(m_name + "_rsda_rev_L");
         m_rsda_L->Initialize(m_shoe, m_connector_L, false, ChCoordsys<>(loc_L, m_shoe->GetRot()),
@@ -236,7 +233,7 @@ void ChTrackShoeDoublePin::Connect(std::shared_ptr<ChTrackShoe> next,
     loc_R = m_connector_R->TransformPointLocalToParent(ChVector<>(sign * GetConnectorLength() / 2, 0, 0));
 
     // Create connections between these connector bodies and the next shoe body
-    if (m_index == -1 && !GetBushingData()) {
+    if (m_index == -1 && !track->GetBushingData()) {
         // Create and initialize a point-line joint for left connector (sliding along X axis)
         rot = m_connector_L->GetRot() * Q_from_AngZ(CH_C_PI_2);
         auto pointline_L =
@@ -255,20 +252,21 @@ void ChTrackShoeDoublePin::Connect(std::shared_ptr<ChTrackShoe> next,
     } else {
         // Create and initialize a spherical joint for left connector
         auto sph_L = chrono_types::make_shared<ChVehicleJoint>(ChVehicleJoint::Type::SPHERICAL, m_name + "_sph_L",
-                                                               next->GetShoeBody(), m_connector_L, ChCoordsys<>(loc_L), GetBushingData());
+                                                               next->GetShoeBody(), m_connector_L, ChCoordsys<>(loc_L),
+                                                               track->GetBushingData());
         chassis->AddJoint(sph_L);
         m_connection_joint_L = sph_L;
 
         // Create and initialize a spherical joint for right connector
         auto sph_R = chrono_types::make_shared<ChVehicleJoint>(ChVehicleJoint::Type::SPHERICAL, m_name + "_sph_R",
                                                                next->GetShoeBody(), m_connector_R, ChCoordsys<>(loc_R),
-                                                               GetBushingData());
+                                                               track->GetBushingData());
         chassis->AddJoint(sph_R);
         m_connection_joint_R = sph_R;
     }
 
     // Optionally, include rotational spring-dampers to model track bending stiffness
-    if (add_RSDA) {
+    if (track->GetTorqueFunctor()) {
         m_connection_rsda_L = chrono_types::make_shared<ChLinkRotSpringCB>();
         m_connection_rsda_L->SetNameString(m_name + "_rsda_sph_L");
         m_connection_rsda_L->Initialize(next->GetShoeBody(), m_connector_L, false,

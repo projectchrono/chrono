@@ -48,6 +48,7 @@ linux:arch-gcc:build:
     -DCMAKE_CXX_COMPILER=/usr/bin/g++ 
     -DEIGEN3_INCLUDE_DIR=/usr/include/eigen3
     -DBUILD_TESTING_GPU=FALSE
+    -DBUILD_TESTING_SENSOR=FALSE
   - ninja -j 8
   artifacts:
     expire_in: 60m
@@ -125,6 +126,7 @@ linux:arch-llvm:build:
     -DEIGEN3_INCLUDE_DIR=/usr/include/eigen3
     -DCUDA_HOST_COMPILER=/usr/bin/gcc
     -DBUILD_TESTING_GPU=FALSE
+    -DBUILD_TESTING_SENSOR=FALSE
     -DCMAKE_CXX_FLAGS=-fcolor-diagnostics
   - export CLANG_FORCE_COLOR_DIAGNOSTICS=1
   - ninja -j 8
@@ -241,6 +243,9 @@ linux:ubuntu2004:build:
         -DPYTHON_EXECUTABLE=/usr/bin/python3
         -DEIGEN3_INCLUDE_DIR=/usr/include/eigen3
         -DCMAKE_VERBOSE_MAKEFILE=TRUE
+        -DENABLE_MODULE_SENSOR=TRUE
+        -DBUILD_TESTING_SENSOR=FALSE
+        -DOptiX_INSTALL_DIR=/opt/optix/7.2.0
     - ninja -j 8
   artifacts:
     expire_in: 60m

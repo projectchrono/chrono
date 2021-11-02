@@ -18,15 +18,14 @@
 
 #include "chrono_sensor/ChSensorManager.h"
 
-#include "chrono_sensor/ChOptixSensor.h"
+#include "chrono_sensor/sensors/ChOptixSensor.h"
 #include <iomanip>
 #include <iostream>
 
 namespace chrono {
 namespace sensor {
 
-CH_SENSOR_API ChSensorManager::ChSensorManager(ChSystem* chrono_system)
-    : m_verbose(false), m_optix_reflections(7), m_num_keyframes(2) {
+CH_SENSOR_API ChSensorManager::ChSensorManager(ChSystem* chrono_system) : m_verbose(false), m_optix_reflections(9) {
     // save the chrono system handle
     m_system = chrono_system;
     scene = chrono_types::make_shared<ChScene>();
@@ -34,16 +33,6 @@ CH_SENSOR_API ChSensorManager::ChSensorManager(ChSystem* chrono_system)
 }
 
 CH_SENSOR_API ChSensorManager::~ChSensorManager() {}
-
-CH_SENSOR_API void ChSensorManager::SetKeyframeSize(int size) {
-    m_num_keyframes = max(size, 2);
-}
-
-CH_SENSOR_API void ChSensorManager::SetKeyframeSizeFromTimeStep(float min_timestep, float max_collection_window) {
-    int conservative_estimate =
-        (int)(max_collection_window / min_timestep + 2);  // always allow set a couple extra frames just in case
-    m_num_keyframes = max(conservative_estimate, 2);
-}
 
 CH_SENSOR_API std::shared_ptr<ChOptixEngine> ChSensorManager::GetEngine(int context_id) {
     if (context_id < m_engines.size())
@@ -75,13 +64,6 @@ CH_SENSOR_API void ChSensorManager::SetDeviceList(std::vector<unsigned int> devi
 CH_SENSOR_API std::vector<unsigned int> ChSensorManager::GetDeviceList() {
     // return the list of devices being used
     return m_device_list;
-}
-
-CH_SENSOR_API void ChSensorManager::AddInstancedStaticSceneMeshes(std::vector<ChFrame<>>& frames,
-                                                                  std::shared_ptr<ChTriangleMeshShape> mesh) {
-    for (auto eng : m_engines) {
-        eng->AddInstancedStaticSceneMeshes(frames, mesh);
-    }
 }
 
 CH_SENSOR_API void ChSensorManager::ReconstructScenes() {
@@ -125,27 +107,33 @@ CH_SENSOR_API void ChSensorManager::AddSensor(std::shared_ptr<ChSensor> sensor) 
             }
         }
 
-        // create new engines only when we need them
-        if (!found_group) {
-            if (m_engines.size() < m_allowable_groups) {
-                auto engine = chrono_types::make_shared<ChOptixEngine>(
-                    m_system, m_device_list[(int)m_engines.size()], m_optix_reflections, m_verbose,
-                    m_num_keyframes);  // limits to 2 gpus, TODO: check if device supports cuda
+        try {
+            // create new engines only when we need them
+            if (!found_group) {
+                if (m_engines.size() < m_allowable_groups) {
+                    auto engine = chrono_types::make_shared<ChOptixEngine>(
+                        m_system, m_device_list[(int)m_engines.size()], m_optix_reflections,
+                        m_verbose);  // limits to 2 gpus, TODO: check if device supports cuda
 
-                engine->ConstructScene();
-                engine->AssignSensor(pOptixSensor);
+                    // engine->ConstructScene();
+                    engine->AssignSensor(pOptixSensor);
 
-                m_engines.push_back(engine);
-                if (m_verbose)
-                    std::cout << "Created another OptiX engine. Now at: " << m_engines.size() << "\n";
+                    m_engines.push_back(engine);
+                    if (m_verbose)
+                        std::cout << "Created another OptiX engine. Now at: " << m_engines.size() << "\n";
 
-            } else {  // if we are not allowed to create additional groups, warn the user and polute the first group
-                // std::cout << "No more allowable groups, consider allowing more groups if performace would
-                // increase\n";
-                m_engines[0]->AssignSensor(pOptixSensor);
-                if (m_verbose)
-                    std::cout << "Couldn't find suitable existing OptiX engine, so adding to first engine\n";
+                } else {  // if we are not allowed to create additional groups, warn the user and polute the first group
+                    // std::cout << "No more allowable groups, consider allowing more groups if performace would
+                    // increase\n";
+                    m_engines[0]->AssignSensor(pOptixSensor);
+                    if (m_verbose)
+                        std::cout << "Couldn't find suitable existing OptiX engine, so adding to first engine\n";
+                }
             }
+        }
+        catch (std::exception& e) {
+            std::cerr << "Failed to create a ChOptixEngine, with error:\n" << e.what() << "\n";
+            exit(1);
         }
     } else {
         if (!m_dynamics_manager) {

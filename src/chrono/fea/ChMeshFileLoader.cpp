@@ -26,8 +26,8 @@
 #include "chrono/physics/ChSystem.h"
 
 #include <array>
-#include "chrono/fea/ChElementShellANCF.h"
-#include "chrono/fea/ChElementTetra_4.h"
+#include "chrono/fea/ChElementShellANCF_3423.h"
+#include "chrono/fea/ChElementTetraCorot_4.h"
 #include "chrono/fea/ChMeshFileLoader.h"
 #include "chrono/fea/ChNodeFEAxyz.h"
 
@@ -169,7 +169,7 @@ void ChMeshFileLoader::FromTetGenFile(std::shared_ptr<ChMesh> mesh,
                 if (n4 > totnodes)
                     throw ChException("ERROR in TetGen .node file, ID of 4th node is out of range: \n" + line + "\n");
                 if (std::dynamic_pointer_cast<ChContinuumElastic>(my_material)) {
-                    auto mel = chrono_types::make_shared<ChElementTetra_4>();
+                    auto mel = chrono_types::make_shared<ChElementTetraCorot_4>();
                     mel->SetNodes(std::dynamic_pointer_cast<ChNodeFEAxyz>(mesh->GetNode(nodes_offset + n1 - 1)),
                                   std::dynamic_pointer_cast<ChNodeFEAxyz>(mesh->GetNode(nodes_offset + n3 - 1)),
                                   std::dynamic_pointer_cast<ChNodeFEAxyz>(mesh->GetNode(nodes_offset + n2 - 1)),
@@ -177,7 +177,7 @@ void ChMeshFileLoader::FromTetGenFile(std::shared_ptr<ChMesh> mesh,
                     mel->SetMaterial(std::static_pointer_cast<ChContinuumElastic>(my_material));
                     mesh->AddElement(mel);
                 } else if (std::dynamic_pointer_cast<ChContinuumPoisson3D>(my_material)) {
-                    auto mel = chrono_types::make_shared<ChElementTetra_4_P>();
+                    auto mel = chrono_types::make_shared<ChElementTetraCorot_4_P>();
                     mel->SetNodes(std::dynamic_pointer_cast<ChNodeFEAxyzP>(mesh->GetNode(nodes_offset + n1 - 1)),
                                   std::dynamic_pointer_cast<ChNodeFEAxyzP>(mesh->GetNode(nodes_offset + n3 - 1)),
                                   std::dynamic_pointer_cast<ChNodeFEAxyzP>(mesh->GetNode(nodes_offset + n2 - 1)),
@@ -359,7 +359,8 @@ void ChMeshFileLoader::FromAbaqusFile(std::shared_ptr<ChMesh> mesh,
                 if (ntoken != 11)
                     throw ChException("ERROR in .inp file, tetrahedrons require ID and 10 node IDs, see line:\n" +
                                       line + "\n");
-                // TODO: 'idelem' might be stored in an index in ChElementBase in order to provide consistency with the INP file
+                // TODO: 'idelem' might be stored in an index in ChElementBase in order to provide consistency with the
+                // INP file
                 ////idelem = (int)tokenvals[0];
 
                 for (int in = 0; in < 10; ++in)
@@ -392,7 +393,7 @@ void ChMeshFileLoader::FromAbaqusFile(std::shared_ptr<ChMesh> mesh,
                 }
 
                 if (std::dynamic_pointer_cast<ChContinuumElastic>(my_material)) {
-                    auto mel = chrono_types::make_shared<ChElementTetra_4>();
+                    auto mel = chrono_types::make_shared<ChElementTetraCorot_4>();
                     mel->SetNodes(std::static_pointer_cast<ChNodeFEAxyz>(element_nodes[3]),
                                   std::static_pointer_cast<ChNodeFEAxyz>(element_nodes[1]),
                                   std::static_pointer_cast<ChNodeFEAxyz>(element_nodes[2]),
@@ -401,7 +402,7 @@ void ChMeshFileLoader::FromAbaqusFile(std::shared_ptr<ChMesh> mesh,
                     mesh->AddElement(mel);
 
                 } else if (std::dynamic_pointer_cast<ChContinuumPoisson3D>(my_material)) {
-                    auto mel = chrono_types::make_shared<ChElementTetra_4_P>();
+                    auto mel = chrono_types::make_shared<ChElementTetraCorot_4_P>();
                     mel->SetNodes(std::static_pointer_cast<ChNodeFEAxyzP>(element_nodes[0]),
                                   std::static_pointer_cast<ChNodeFEAxyzP>(element_nodes[1]),
                                   std::static_pointer_cast<ChNodeFEAxyzP>(element_nodes[2]),
@@ -676,7 +677,7 @@ void ChMeshFileLoader::ANCFShellFromGMFFile(std::shared_ptr<ChMesh> mesh,
     }
     GetLog() << "-----------------------------------------------------------\n";
     for (int ielem = 0; ielem < 0 + TotalNumElements; ielem++) {
-        auto element = chrono_types::make_shared<ChElementShellANCF>();
+        auto element = chrono_types::make_shared<ChElementShellANCF_3423>();
         element->SetNodes(
             std::dynamic_pointer_cast<ChNodeFEAxyzD>(mesh->GetNode(nodes_offset + elementsVector[ielem][0] - 1)),
             std::dynamic_pointer_cast<ChNodeFEAxyzD>(mesh->GetNode(nodes_offset + elementsVector[ielem][1] - 1)),
@@ -704,91 +705,87 @@ void ChMeshFileLoader::BSTShellFromObjFile(
     ChVector<> pos_transform,                               // optional displacement of imported mesh
     ChMatrix33<> rot_transform                              // optional rotation/scaling of imported mesh
 ) {
-	auto mmesh = geometry::ChTriangleMeshConnected();
-	mmesh.LoadWavefrontMesh(std::string(filename), false, false);
+    auto mmesh = geometry::ChTriangleMeshConnected();
+    mmesh.LoadWavefrontMesh(std::string(filename), false, false);
 
-	std::map<std::pair<int, int>, std::pair<int, int>> winged_edges;
-	mmesh.ComputeWingedEdges(winged_edges);
+    std::map<std::pair<int, int>, std::pair<int, int>> winged_edges;
+    mmesh.ComputeWingedEdges(winged_edges);
 
-	std::vector< std::shared_ptr<ChNodeFEAxyz>> shapenodes;
+    std::vector<std::shared_ptr<ChNodeFEAxyz>> shapenodes;
 
-	for (size_t i = 0; i < mmesh.m_vertices.size(); i++) {
-		ChVector<double> pos = mmesh.m_vertices[i];
-		pos = rot_transform * pos;
-		pos += pos_transform;
-		auto mnode = chrono_types::make_shared<ChNodeFEAxyz>();
-		mnode->SetPos(pos);
-		mesh->AddNode(mnode);
-		shapenodes.push_back(mnode); // for future reference when adding faces
-	}
+    for (size_t i = 0; i < mmesh.m_vertices.size(); i++) {
+        ChVector<double> pos = mmesh.m_vertices[i];
+        pos = rot_transform * pos;
+        pos += pos_transform;
+        auto mnode = chrono_types::make_shared<ChNodeFEAxyz>();
+        mnode->SetPos(pos);
+        mesh->AddNode(mnode);
+        shapenodes.push_back(mnode);  // for future reference when adding faces
+    }
 
-	for (size_t j = 0; j < mmesh.m_face_v_indices.size(); j++) {
-		int i0 = mmesh.m_face_v_indices[j][0];
-		int i1 = mmesh.m_face_v_indices[j][1];
-		int i2 = mmesh.m_face_v_indices[j][2];
-		//GetLog() << "nodes 012 ids= " << i0 << " " << i1 << " " << i2 << " " << "\n";
+    for (size_t j = 0; j < mmesh.m_face_v_indices.size(); j++) {
+        int i0 = mmesh.m_face_v_indices[j][0];
+        int i1 = mmesh.m_face_v_indices[j][1];
+        int i2 = mmesh.m_face_v_indices[j][2];
+        // GetLog() << "nodes 012 ids= " << i0 << " " << i1 << " " << i2 << " " << "\n";
 
-		std::pair<int, int> medge0(i1, i2);
-		std::pair<int, int> medge1(i2, i0);
-		std::pair<int, int> medge2(i0, i1);
-		if (medge0.first > medge0.second)
+        std::pair<int, int> medge0(i1, i2);
+        std::pair<int, int> medge1(i2, i0);
+        std::pair<int, int> medge2(i0, i1);
+        if (medge0.first > medge0.second)
             medge0 = std::pair<int, int>(medge0.second, medge0.first);
-		if (medge1.first > medge1.second)
+        if (medge1.first > medge1.second)
             medge1 = std::pair<int, int>(medge1.second, medge1.first);
-		if (medge0.first > medge0.second)
+        if (medge0.first > medge0.second)
             medge2 = std::pair<int, int>(medge2.second, medge2.first);
-		std::shared_ptr<ChNodeFEAxyz> node3 = nullptr;
-		std::shared_ptr<ChNodeFEAxyz> node4 = nullptr;
-		std::shared_ptr<ChNodeFEAxyz> node5 = nullptr;
-		int itri = -1;
-		int ivert = -1;
-		if (winged_edges[medge0].second == j) 
-			itri = winged_edges[medge0].first;
-		else
-			itri = winged_edges[medge0].second;
-		for (int vi = 0; vi < 3; ++vi) {
-			if (mmesh.m_face_v_indices[itri][vi] != medge0.first && mmesh.m_face_v_indices[itri][vi] != medge0.second)
-				ivert = mmesh.m_face_v_indices[itri][vi];
-		}
-		if (ivert != -1)
-			node3 = shapenodes[ivert];
+        std::shared_ptr<ChNodeFEAxyz> node3 = nullptr;
+        std::shared_ptr<ChNodeFEAxyz> node4 = nullptr;
+        std::shared_ptr<ChNodeFEAxyz> node5 = nullptr;
+        int itri = -1;
+        int ivert = -1;
+        if (winged_edges[medge0].second == j)
+            itri = winged_edges[medge0].first;
+        else
+            itri = winged_edges[medge0].second;
+        for (int vi = 0; vi < 3; ++vi) {
+            if (mmesh.m_face_v_indices[itri][vi] != medge0.first && mmesh.m_face_v_indices[itri][vi] != medge0.second)
+                ivert = mmesh.m_face_v_indices[itri][vi];
+        }
+        if (ivert != -1)
+            node3 = shapenodes[ivert];
 
-		itri = -1;
-		ivert = -1;
-		if (winged_edges[medge1].second == j) 
-			itri = winged_edges[medge1].first;
-		else
-			itri = winged_edges[medge1].second;
-		for (int vi = 0; vi < 3; ++vi) {
-			if (mmesh.m_face_v_indices[itri][vi] != medge1.first && mmesh.m_face_v_indices[itri][vi] != medge1.second)
-				ivert = mmesh.m_face_v_indices[itri][vi];
-		}
-		if (ivert != -1)
-			node4 = shapenodes[ivert];
+        itri = -1;
+        ivert = -1;
+        if (winged_edges[medge1].second == j)
+            itri = winged_edges[medge1].first;
+        else
+            itri = winged_edges[medge1].second;
+        for (int vi = 0; vi < 3; ++vi) {
+            if (mmesh.m_face_v_indices[itri][vi] != medge1.first && mmesh.m_face_v_indices[itri][vi] != medge1.second)
+                ivert = mmesh.m_face_v_indices[itri][vi];
+        }
+        if (ivert != -1)
+            node4 = shapenodes[ivert];
 
-		itri = -1;
-		ivert = -1;
-		if (winged_edges[medge2].second == j) 
-			itri = winged_edges[medge2].first;
-		else
-			itri = winged_edges[medge2].second;
-		for (int vi = 0; vi < 3; ++vi) {
-			if (mmesh.m_face_v_indices[itri][vi] != medge2.first && mmesh.m_face_v_indices[itri][vi] != medge2.second)
-				ivert = mmesh.m_face_v_indices[itri][vi];
-		}
-		if (ivert != -1)
-			node5 = shapenodes[ivert];
+        itri = -1;
+        ivert = -1;
+        if (winged_edges[medge2].second == j)
+            itri = winged_edges[medge2].first;
+        else
+            itri = winged_edges[medge2].second;
+        for (int vi = 0; vi < 3; ++vi) {
+            if (mmesh.m_face_v_indices[itri][vi] != medge2.first && mmesh.m_face_v_indices[itri][vi] != medge2.second)
+                ivert = mmesh.m_face_v_indices[itri][vi];
+        }
+        if (ivert != -1)
+            node5 = shapenodes[ivert];
 
-		
-		auto melement = chrono_types::make_shared<ChElementShellBST>();
-		melement->SetNodes(shapenodes[i0], shapenodes[i1], shapenodes[i2], node3, node4, node5);
-		mesh->AddElement(melement);
-		melement->AddLayer(my_thickness, 0, my_material);
-	}
-
-	
+        auto melement = chrono_types::make_shared<ChElementShellBST>();
+        melement->SetNodes(shapenodes[i0], shapenodes[i1], shapenodes[i2], node3, node4, node5);
+        mesh->AddElement(melement);
+        melement->AddLayer(my_thickness, 0, my_material);
+    }
 }
-
 
 }  // end namespace fea
 }  // end namespace chrono

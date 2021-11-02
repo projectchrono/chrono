@@ -98,15 +98,16 @@ int main(int argc, char* argv[]) {
         VehicleSide side = LEFT;
         TrackShoeType type = TrackShoeType::SINGLE_PIN;
         BrakeType brake_type = BrakeType::SIMPLE;
+        bool add_track_RSDA = true;
         std::shared_ptr<ChTrackAssembly> track_assembly;
         switch (type) {
             case TrackShoeType::SINGLE_PIN: {
-                auto assembly = chrono_types::make_shared<M113_TrackAssemblySinglePin>(side, brake_type);
+                auto assembly = chrono_types::make_shared<M113_TrackAssemblySinglePin>(side, brake_type, add_track_RSDA);
                 track_assembly = assembly;
                 break;
             }
             case TrackShoeType::DOUBLE_PIN: {
-                auto assembly = chrono_types::make_shared<M113_TrackAssemblyDoublePin>(side, brake_type);
+                auto assembly = chrono_types::make_shared<M113_TrackAssemblyDoublePin>(side, brake_type, add_track_RSDA);
                 track_assembly = assembly;
                 break;
             }
@@ -137,6 +138,7 @@ int main(int argc, char* argv[]) {
     app.SetChaseCameraState(utils::ChChaseCamera::Free);
     app.SetChaseCameraAngle(-CH_C_PI_2);
     app.SetChaseCameraMultipliers(1e-4, 10);
+    ////app.RenderTrackShoeFrames(true, 0.4);
 
     // -----------------------------------
     // Create and attach the driver system

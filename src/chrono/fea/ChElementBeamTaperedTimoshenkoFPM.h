@@ -126,6 +126,11 @@ class ChApi ChElementBeamTaperedTimoshenkoFPM : public ChElementBeamTaperedTimos
     /* To be completed: Created to be consistent with base class implementation*/
     // strain_v = Bx * displ
     virtual void EvaluateSectionStrain(const double eta, ChVector<>& StrainV) override {}
+    
+    /// Gets the strains(traction along x, shear along y, along shear z, torsion about x, bending about y, on bending
+    /// about z) at a section along the beam line, at abscissa 'eta'. It's evaluated at the elastic center. Note, eta=-1
+    /// at node1, eta=+1 at node2. Results are not corotated, and are expressed in the reference system of beam.
+    virtual void EvaluateSectionStrain(const double eta, ChVector<>& StrainV_trans, ChVector<>& StrainV_rot) override;
 
     /// Evaluate N'*F , where N is some type of shape function
     /// evaluated at U coordinates of the line, each ranging in -1..+1

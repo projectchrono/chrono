@@ -936,7 +936,7 @@ int box_box(const real3& posT,
     quaternion rot = Mult(Inv(rotT), rotO);
 
     // Find the direction of smallest overlap between boxes. Note that dirT is calculated so that it points
-    // from boxO to boxT and is expressed in the frame of boxT. If the two boxes don't overlap, we're done.
+    // from boxO to boxT and is expressed in the frame of boxT. If the two boxes are too far apart, we're done.
     // Otherwise, penetrated = -1 if the boxes overlap or +1 if they are separated.
     real3 dirT;
     int penetrated = box_intersects_box(hdimsT, hdimsO, pos, rot, separation, dirT);
@@ -1221,6 +1221,161 @@ int box_box(const real3& posT,
 }
 
 // =============================================================================
+//              TRIANGLE - BOX
+
+// Triangle-box narrow phase collision detection.
+// In: box at position pos1, with orientation rot1, and half-dimensions hdims1
+//     triangular face defined by points A2, B2, C2
+// Note: a triangle-box collision may return up to 6 contacts
+
+int triangle_box(const real3& pos1,
+                 const quaternion& rot1,
+                 const real3& hdims1,
+                 const real3* v2,
+                 const real& separation,
+                 real3* norm,
+                 real* depth,
+                 real3* pt1,
+                 real3* pt2,
+                 real* eff_radius) {
+    // Express the triangle vertices in the box frame.
+    real3 v[] = {RotateT(v2[0] - pos1, rot1), RotateT(v2[1] - pos1, rot1), RotateT(v2[2] - pos1, rot1)};
+
+    // Test intersection. If the two shapes are too far apart, we're done. Otherwise, penetrated = -1 if the boxes
+    // overlap or +1 if they are separated.
+    int penetrated = box_intersects_triangle(hdims1, v[0], v[1], v[2], separation);
+    if (penetrated == 0)
+        return 0;
+
+    // If separation = 0, then penetrated must be -1.
+    assert(separation > 0 || penetrated == -1);
+
+    // Calculate face normal.
+    real3 nrm2 = triangle_normal(v2[0], v2[1], v2[2]);  // expressed in global frame
+    real3 nrm2b = RotateT(nrm2, rot1);                  // expressed in box frame
+
+    // Find the box face closest to being parallel to the triangle.
+    real3 nrmAbs = Abs(nrm2b);
+    uint codeF = nrmAbs[0] > nrmAbs[1] ? (nrmAbs[0] > nrmAbs[2] ? 1 : 4) : (nrmAbs[1] > nrmAbs[2] ? 2 : 4);
+    real3 corner = box_farthest_corner(hdims1, nrm2b);
+
+    // Keep track of all added contacts
+    int nc = 0;
+
+    // Working in the global frame, check the face vertices against the triangle.
+    real3 face_corners[4];
+    get_face_corners(corner, codeF, face_corners);
+
+    for (uint i = 0; i < 4; i++) {
+        // Express face corner in global frame
+        real3 box_point = pos1 + Rotate(face_corners[i], rot1);
+        if (point_in_triangle(v2[0], v2[1], v2[2], box_point)) {
+            real h = Dot(box_point - v2[0], nrm2);
+            if (h < separation) {
+                *(pt1 + nc) = box_point;
+                *(pt2 + nc) = box_point - h * nrm2;
+                *(norm + nc) = nrm2;
+                *(depth + nc) = h;
+                *(eff_radius + nc) = edge_radius;
+                nc++;
+            }
+        }
+    }
+    
+    // Working in the box frame, check the triangle edges against the box face.
+    static const real threshold_par = real(1e-4);    // threshold for axis parallel to face test
+    static const real threshold_close = real(1e-4);  // threshold for distance to vertex
+    bool v_added[] = {false, false, false};          // keep track of triangle vertices (do not include twice)
+
+    int i1 = codeF >> 1;    // index of face normal direction
+    int i2 = (i1 + 1) % 3;  // next direction (0->1->2->0)
+    int i3 = (i2 + 1) % 3;  // previous direction (0->2->1->0)
+
+    real3 hdims1s = hdims1 + separation;  // size of expanded box
+
+    for (uint j = 0; j < 3; j++) {
+        const auto& A = v[j];            // first point on triangle edge
+        const auto& B = v[(j + 1) % 3];  // second point on triangle edge
+        real3 AB = B - A;
+        real AB_len2 = Length2(AB);
+
+        // Clamp triangle edge to extended box slabs i2 and i3
+        real tRange[2] = {-C_REAL_MAX, +C_REAL_MAX};
+        if (abs(AB[i2]) > threshold_par) {
+            real tA = (-hdims1s[i2] - A[i2]) / AB[i2];
+            real tB = (+hdims1s[i2] - A[i2]) / AB[i2];
+            tRange[0] = Max(tRange[0], Min(tA, tB));
+            tRange[1] = Min(tRange[1], Max(tA, tB));
+        }
+        if (abs(AB[i3]) > threshold_par) {
+            real tA = (-hdims1s[i3] - A[i3]) / AB[i3];
+            real tB = (+hdims1s[i3] - A[i3]) / AB[i3];
+            tRange[0] = Max(tRange[0], Min(tA, tB));
+            tRange[1] = Min(tRange[1], Max(tA, tB));
+        }
+        if (tRange[0] > tRange[1])
+            continue;
+
+        // Clamp tRange to triangle edge
+        ClampValue(tRange[0], 0, 1);
+        ClampValue(tRange[1], 0, 1);
+
+        // Check the two points on the triangle edge
+        for (uint i = 0; i < 2; i++) {
+            // Point on triangle edge
+            real3 tri_point = A + tRange[i] * AB;
+            // Snap to original box slabs
+            tri_point[i1] = corner[i1];
+            ClampValue(tri_point[i2], -hdims1[i2], +hdims1[i2]);
+            ClampValue(tri_point[i3], -hdims1[i3], +hdims1[i3]);
+            // Snap back to triangle edge
+            real t = Clamp(Dot(tri_point - A, AB) / AB_len2, 0, 1);
+            tri_point = A + t * AB;
+
+            if (abs(tri_point[i1]) > hdims1s[i1] || abs(tri_point[i2]) > hdims1s[i2] ||
+                abs(tri_point[i3]) > hdims1s[i3])
+                continue;
+
+            // Point on box
+            real3 box_point = tri_point;
+            box_point[i1] = corner[i1];
+            ClampValue(box_point[i2], -hdims1[i2], +hdims1[i2]);
+            ClampValue(box_point[i3], -hdims1[i3], +hdims1[i3]);
+
+            // Check distance smaller than separation
+            real3 delta = box_point - tri_point;
+            real dist = penetrated * Length(delta);
+            if (dist > separation)
+                continue;
+
+            // Do not add triangle vertices twice
+            if (t < threshold_close) {
+                if (v_added[j])
+                    continue;
+                else
+                    v_added[j] = true;
+            }
+            if (t > 1 - threshold_close) {
+                if (v_added[(j + 1) % 3])
+                    continue;
+                else
+                    v_added[(j + 1) % 3] = true;
+            }
+
+            // Add collision pair
+            *(pt1 + nc) = Rotate(box_point, rot1) + pos1;
+            *(pt2 + nc) = Rotate(tri_point, rot1) + pos1;
+            *(norm + nc) = Rotate(delta / dist, rot1);
+            *(depth + nc) = dist;
+            *(eff_radius + nc) = edge_radius;
+            nc++;
+        }
+    }
+
+    return nc;
+}
+
+// =============================================================================
 
 void ChNarrowphase::SetDefaultEdgeRadius(real radius) {
     edge_radius = radius;
@@ -1428,6 +1583,22 @@ bool ChNarrowphase::PRIMSCollision(const ConvexBase* shapeA,  // first candidate
 
         return true;
     }
+
+    if (shapeA->Type() == ChCollisionShape::Type::BOX && shapeB->Type() == ChCollisionShape::Type::TRIANGLE) {
+        nC = triangle_box(shapeA->A(), shapeA->R(), shapeA->Box(), shapeB->Triangles(), separation, ct_norm, ct_depth,
+                          ct_pt1, ct_pt2, ct_eff_rad);
+        return false;
+    }
+
+    if (shapeA->Type() == ChCollisionShape::Type::TRIANGLE && shapeB->Type() == ChCollisionShape::Type::BOX) {
+        nC = triangle_box(shapeB->A(), shapeB->R(), shapeB->Box(), shapeA->Triangles(), separation, ct_norm, ct_depth,
+                          ct_pt2, ct_pt1, ct_eff_rad);
+        for (int i = 0; i < nC; i++) {
+            *(ct_norm + i) = -(*(ct_norm + i));
+        }
+        return false;
+    }
+
 
     // Contact could not be checked using this CD algorithm
     return false;
