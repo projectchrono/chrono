@@ -55,7 +55,7 @@ static __global__ void ClusterSearchBFSKernel(unsigned int nSpheres,
     }
 }
 
-/// Identifies all clusters by breadth first search and outputs 
+/// Identifies all clusters by breadth first search and outputs
 /// Returns h_clusters: array of pointers to arrays of variable length
 /// h_clusters[0][0] -> number of pointers/cluster in h_clusters
 /// h_clusters[M][0] -> size of the Mth cluster

@@ -56,7 +56,7 @@ enum CHGPU_OUTPUT_FLAGS { ABSV = 1 << 0, VEL_COMPONENTS = 1 << 1,
 // 0 on ANY cluster related switch means no clustering done, all sphere_group and sphere_cluster to 0.
 enum class CLUSTER_GRAPH_METHOD {NONE = 0, CONTACT = 1, PROXIMITY = 2}; /* TODO: Implement proximity graph construction */
 // CONTACT leverages sphere_contact_map to build the graph.
-// PROXIMITY determine contacts by checking if distance between spehre pairs < dbscan_radius
+// PROXIMITY determine contacts by checking if distance between sphere pairs < gbscan_radius; TODO UNTESTED
 
 enum class CLUSTER_SEARCH_METHOD {NONE = 0, BFS = 1}; // TO DO: implement faster search than BFS
 // BFS -> Breadth-First search
