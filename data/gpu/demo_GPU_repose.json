@@ -1,33 +1,49 @@
 {
-	"sphere_radius": 0.5,
-	"sphere_density": 1.53,
+	"sphere_radius": 0.1,
+	"sphere_density": 2.8,
 	"box_X": 40 ,
 	"box_Y": 40 ,
 	"box_Z": 40 ,
-	"step_size": 1e-4,
-	"time_end": 100,
+	"step_size": 2.5e-6,
+	"time_end": 10,
 	"grav_X": 0,
 	"grav_Y": 0,
 	"grav_Z": -980,
-	"normalStiffS2S": 1e7,
-	"normalStiffS2W": 1e7,
-	"normalDampS2S": 2e4,
-	"normalDampS2W": 2e4,
-	"tangentStiffS2S" : 2e6,
-	"tangentStiffS2W" : 1e6, 
-	"tangentDampS2S": 50,
-	"tangentDampS2W": 50,
+	"normalStiffS2S": 1e8,
+	"normalStiffS2W": 1e8,
+    "normalStiffS2M": 1e8,
+
+	"normalDampS2S": 1e6,
+	"normalDampS2W": 1e6,
+    "normalDampS2M": 1e6,
+
+	"tangentStiffS2S" : 1e8,
+	"tangentStiffS2W" : 1e8, 
+    "tangentStiffS2M" : 1e8,
+
+	"tangentDampS2S": 1e6,
+	"tangentDampS2W": 1e6,
+    "tangentDampS2M": 1e6,
+
 	"cohesion_ratio": 0,
+	// "cohesion_ratio": 50,
 	"adhesion_ratio_s2w": 0,
-	"static_friction_coeffS2S": 0.5,
-	"static_friction_coeffS2W": 0.5,
-	"rolling_friction_coeffS2S": 0.5,
-	"rolling_friction_coeffS2W": 0.5,
-	"verbose": true,
+	"static_friction_coeffS2S": 0.75,
+	"static_friction_coeffS2W": 0.75,
+    "static_friction_coeffS2M": 0.75,	
+  
+	"rolling_friction_coeffS2S": 0,
+    // "rolling_friction_coeffS2S": 1,
+	"rolling_friction_coeffS2W": 0,
+    "rolling_friction_coeffS2M": 0,
+	
+    "verbose": true,
 
 	"psi_T": 32,
 	"psi_L": 16,
 
 	"output_dir": "repose",
-	"write_mode": "csv"
+	// "output_dir": "repose_with_cohesion",
+	// "output_dir": "repose_with_rolling_friction",
+    "write_mode": "csv"
 }

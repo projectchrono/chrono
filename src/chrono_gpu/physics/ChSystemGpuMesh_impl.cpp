@@ -35,6 +35,10 @@ ChSystemGpuMesh_impl::ChSystemGpuMesh_impl(float sphere_rad, float density, floa
       K_t_s2m_UU(0),
       Gamma_n_s2m_UU(0),
       Gamma_t_s2m_UU(0),
+      YoungsModulus_mesh_UU(0.0),
+      COR_mesh_UU(0.0),
+      use_mat_based(false),
+      PoissonRatio_mesh_UU(0.0),
       rolling_coeff_s2m_UU(0),
       spinning_coeff_s2m_UU(0),
       adhesion_s2m_over_gravity(0) {
@@ -55,18 +59,60 @@ ChSystemGpuMesh_impl::~ChSystemGpuMesh_impl() {
     cleanupTriMesh();
 }
 double ChSystemGpuMesh_impl::get_max_K() const {
-    return std::max(std::max(K_n_s2s_UU, K_n_s2w_UU), K_n_s2m_UU);
+    double maxK;
+    if (tri_params->use_mat_based == true) {
+        // material pparameter sigma for different surface
+        // see reference eq 2.13, 2.14 in Book Contact Force Model, Flores and Lankarani
+        double sigma_sphere = (1 - std::pow(PoissonRatio_sphere_UU, 2)) / YoungsModulus_sphere_UU;
+        double sigma_wall = (1 - std::pow(PoissonRatio_wall_UU, 2)) / YoungsModulus_wall_UU;
+        double sigma_mesh = (1 - std::pow(PoissonRatio_mesh_UU, 2)) / YoungsModulus_mesh_UU;
+
+        maxK = 4.0 / (3.0 * (sigma_sphere + std::min(std::min(sigma_sphere, sigma_wall), sigma_mesh))) *
+                      std::sqrt(sphere_radius_UU);
+        INFO_PRINTF("Use material based contact force model, maximum effective stiffnes is %e\n", maxK);
+        return maxK;
+
+    } else {
+        maxK = std::max(std::max(K_n_s2s_UU, K_n_s2w_UU), K_n_s2m_UU);
+        INFO_PRINTF("Use user defined contact force model, maximum effective stiffnes is %e\n", maxK);
+        return maxK;
+    }
+}
+
+void ChSystemGpuMesh_impl::combineMaterialSurface() {
+    // effective youngs modulus and shear modulus in user units
+    double E_eff_s2m_uu, G_eff_s2m_uu;
+
+    materialPropertyCombine(YoungsModulus_sphere_UU, YoungsModulus_mesh_UU, PoissonRatio_sphere_UU,
+                            PoissonRatio_mesh_UU, E_eff_s2m_uu, G_eff_s2m_uu);
+
+    // unit conversion of youngs modulus
+    double E_SU2UU = this->MASS_SU2UU / (this->LENGTH_SU2UU * this->TIME_SU2UU * this->TIME_SU2UU);
+
+    // convert effective youngs modulus and shear modulus to simulation units
+    tri_params->E_eff_s2m_SU = (float)E_eff_s2m_uu / E_SU2UU;
+    tri_params->G_eff_s2m_SU = (float)G_eff_s2m_uu / E_SU2UU;
+
+    // assign coefficient of restitution in simulation units
+    tri_params->COR_s2m_SU = std::min(COR_sphere_UU, COR_mesh_UU);
 }
 
 void ChSystemGpuMesh_impl::initializeTriangles() {
-    double K_SU2UU = MASS_SU2UU / (TIME_SU2UU * TIME_SU2UU);
-    double GAMMA_SU2UU = 1. / TIME_SU2UU;
+    tri_params->use_mat_based = use_mat_based;
 
-    tri_params->K_n_s2m_SU = (float)(K_n_s2m_UU / K_SU2UU);
-    tri_params->K_t_s2m_SU = (float)(K_t_s2m_UU / K_SU2UU);
+    if (use_mat_based == false) {
+        double K_SU2UU = MASS_SU2UU / (TIME_SU2UU * TIME_SU2UU);
+        double GAMMA_SU2UU = 1. / TIME_SU2UU;
 
-    tri_params->Gamma_n_s2m_SU = (float)(Gamma_n_s2m_UU / GAMMA_SU2UU);
-    tri_params->Gamma_t_s2m_SU = (float)(Gamma_t_s2m_UU / GAMMA_SU2UU);
+        tri_params->K_n_s2m_SU = (float)(K_n_s2m_UU / K_SU2UU);
+        tri_params->K_t_s2m_SU = (float)(K_t_s2m_UU / K_SU2UU);
+
+        tri_params->Gamma_n_s2m_SU = (float)(Gamma_n_s2m_UU / GAMMA_SU2UU);
+        tri_params->Gamma_t_s2m_SU = (float)(Gamma_t_s2m_UU / GAMMA_SU2UU);
+
+    } else {
+        combineMaterialSurface();
+    }
 
     double magGravAcc = sqrt(X_accGrav * X_accGrav + Y_accGrav * Y_accGrav + Z_accGrav * Z_accGrav);
     tri_params->adhesionAcc_s2m = (float)(adhesion_s2m_over_gravity * magGravAcc);
@@ -77,7 +123,7 @@ void ChSystemGpuMesh_impl::initializeTriangles() {
 
     tri_params->rolling_coeff_s2m_SU = (float)rolling_coeff_s2m_UU;
 
-    const double meshRot[4] = {1.,0.,0.,0.};
+    const double meshRot[4] = {1., 0., 0., 0.};
     for (unsigned int fam = 0; fam < meshSoup->numTriangleFamilies; fam++) {
         generate_rot_matrix<float>(meshRot, tri_params->fam_frame_broad[fam].rot_mat);
         tri_params->fam_frame_broad[fam].pos[0] = (float)0.0;

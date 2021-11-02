@@ -64,7 +64,6 @@ class ChFsiForceExplicitSPH : public ChFsiForce {
                  thrust::device_vector<Real4>& sortedRhoPreMu,
                  thrust::device_vector<Real3>& velMas_ModifiedBCE,
                  thrust::device_vector<Real4>& rhoPreMu_ModifiedBCE,
-
                  thrust::device_vector<uint>& gridMarkerIndex,
                  thrust::device_vector<uint>& cellStart,
                  thrust::device_vector<uint>& cellEnd);
