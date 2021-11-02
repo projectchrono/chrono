@@ -31,7 +31,7 @@
 #include "chrono/utils/ChUtilsCreators.h"
 
 #include "chrono/fea/ChContactSurfaceNodeCloud.h"
-#include "chrono/fea/ChElementShellANCF.h"
+#include "chrono/fea/ChElementShellANCF_3423.h"
 #include "chrono/fea/ChMesh.h"
 
 using namespace chrono;
@@ -174,7 +174,7 @@ int main(int argc, char* argv[]) {
         getchar();*/
 
         // Create the element and set its nodes.
-        auto element = chrono_types::make_shared<ChElementShellANCF>();
+        auto element = chrono_types::make_shared<ChElementShellANCF_3423>();
         element->SetNodes(std::dynamic_pointer_cast<ChNodeFEAxyzD>(my_mesh->GetNode(node0)),
                           std::dynamic_pointer_cast<ChNodeFEAxyzD>(my_mesh->GetNode(node1)),
                           std::dynamic_pointer_cast<ChNodeFEAxyzD>(my_mesh->GetNode(node2)),
@@ -186,7 +186,6 @@ int main(int argc, char* argv[]) {
         element->AddLayer(dy, 0.0, mat);  // Thickness: dy;  Ply angle: 0.
         // Set other element properties
         element->SetAlphaDamp(0.05);  // Structural damping for this
-        element->SetGravityOn(true);  // element calculates its own gravitational load
         // Add element to mesh
         my_mesh->AddElement(element);
     }
@@ -204,9 +203,6 @@ int main(int argc, char* argv[]) {
     auto contact_surf = chrono_types::make_shared<ChContactSurfaceNodeCloud>(mysurfmaterial);
     my_mesh->AddContactSurface(contact_surf);
     contact_surf->AddAllNodes(m_contact_node_radius);
-
-    // Switch off mesh class gravity (ANCF shell elements have a custom implementation)
-    my_mesh->SetAutomaticGravity(false);
 
     // Remember to add the mesh to the system!
     system.Add(my_mesh);

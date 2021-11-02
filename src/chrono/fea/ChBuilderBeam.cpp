@@ -356,7 +356,6 @@ void ChBuilderBeamANCF::BuildBeam(std::shared_ptr<ChMesh> mesh,             // m
                                   const double w,                           // width
                                   const ChVector<> DIR,                     // initial nodal direction
                                   const ChVector<> CUR,                     // initial nodal curvature
-                                  const bool Poisson_effect,                // set true to evaluate poisson effects
                                   const bool grav,                          // set true to apply gravity force
                                   const double damp                         // damping
 ) {
@@ -382,22 +381,18 @@ void ChBuilderBeamANCF::BuildBeam(std::shared_ptr<ChMesh> mesh,             // m
         mesh->AddNode(nodeC);
         beam_nodes.push_back(nodeC);
         beam_nodes.push_back(nodeB);
-        auto element = chrono_types::make_shared<ChElementBeamANCF>();
+        auto element = chrono_types::make_shared<ChElementBeamANCF_3333>();
         beam_elems.push_back(element);
 
         element->SetNodes(beam_nodes[2 * (i - 1)], beam_nodes[2 * i], beam_nodes[2 * i - 1]);
         element->SetDimensions(tot_length / (double)N, h, w);
         element->SetMaterial(mat);
         element->SetAlphaDamp(damp);
-        element->SetGravityOn(grav);
-        if (Poisson_effect) {
-            element->SetStrainFormulation(ChElementBeamANCF::StrainFormulation::CMPoisson);
-        } else {
-            element->SetStrainFormulation(ChElementBeamANCF::StrainFormulation::CMNoPoisson);
-        };
 
         mesh->AddElement(element);
     }
+
+    mesh->SetAutomaticGravity(grav);
 }
 
 

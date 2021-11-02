@@ -9,7 +9,7 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Author: Milad Rakhsha, Arman Pazouki
+// Author: Milad Rakhsha, Arman Pazouki, Wei Hu
 // =============================================================================
 //
 // Implementation of FSI system that includes all subclasses for proximity and
@@ -25,10 +25,11 @@
 
 #include "chrono_fsi/physics/ChBce.cuh"
 #include "chrono_fsi/physics/ChFluidDynamics.cuh"
-#include "chrono_fsi/ChFsiDataManager.cuh"
-#include "chrono_fsi/physics/ChFsiGeneral.cuh"
+#include "chrono_fsi/physics/ChFsiGeneral.h"
 #include "chrono_fsi/ChFsiInterface.h"
+#include "chrono_fsi/ChFsiDefines.h"
 #include "chrono_fsi/utils/ChUtilsPrintSph.cuh"
+#include "chrono_fsi/utils/ChUtilsJSON.h"
 
 namespace chrono {
 
@@ -37,34 +38,34 @@ namespace fea {
 class ChNodeFEAxyzD;
 class ChMesh;
 class ChElementCableANCF;
-class ChElementShellANCF;
+class ChElementShellANCF_3423;
 }  // namespace fea
 
-/// Output mode of system.
-enum class CHFSI_OUTPUT_MODE { CSV, CHPF, NONE };
-
 namespace fsi {
+
+class ChSystemFsi_impl;
 
 /// @addtogroup fsi_physics
 /// @{
 
-/// @brief Physical system for fluid-solid interaction problem.
+/// @brief Physical system for fluid-solid interaction problems.
 ///
-/// This class is used to represent a fluid-solid interaction problem consist of
-/// fluid dynamics and multibody system. Each of the two underlying physics are
-/// independent objects owned and instantiated by this class. Additionally,
+/// This class is used to represent fluid-solid interaction problems consisting of
+/// fluid dynamics and multibody system. Each of the two underlying physics is
+/// an independent object owned and instantiated by this class. Additionally,
 /// the fsi system owns other objects to handle the interface between the two
 /// systems, boundary condition enforcing markers, and data.
-class CH_FSI_API ChSystemFsi : public ChFsiGeneral {
+class CH_FSI_API ChSystemFsi {
   public:
     /// Constructor for FSI system.
     /// This class constructor instantiates all the member objects. Wherever relevant, the
     /// instantiation is handled by sending a pointer to other objects or data.
     /// Therefore, the sub-classes have pointers to the same data.
-    ChSystemFsi(ChSystem& other_physicalSystem, ChFluidDynamics::Integrator type = ChFluidDynamics::Integrator::IISPH);
+    ChSystemFsi(ChSystem& other_physicalSystem, 
+                CHFSI_TIME_INTEGRATOR time_integrator = CHFSI_TIME_INTEGRATOR::ExplicitSPH);
 
     /// Destructor for the FSI system.
-    ~ChSystemFsi();
+    virtual ~ChSystemFsi();
 
     /// Function to integrate the fsi system in time.
     /// It uses a Runge-Kutta 2nd order algorithm to update both the fluid and multibody
@@ -85,7 +86,7 @@ class CH_FSI_API ChSystemFsi : public ChFsiGeneral {
     virtual void FinalizeData();
 
     /// Get a pointer to the data manager.
-    std::shared_ptr<ChFsiDataManager> GetDataManager() { return fsiData; }
+    std::shared_ptr<ChSystemFsi_impl> GetFsiData() { return fsiSystem; }
 
     /// Set the linear system solver for implicit methods
     void SetFluidSystemLinearSolver(ChFsiLinearSolver::SolverType other_solverType) {
@@ -100,22 +101,22 @@ class CH_FSI_API ChSystemFsi : public ChFsiGeneral {
 
     /// Get a reference to the fsi bodies.
     /// fsi bodies are the ones seen by the fluid dynamics system.
-    std::vector<std::shared_ptr<ChBody>>& GetFsiBodies() { return fsiBodeis; }
+    std::vector<std::shared_ptr<ChBody>>& GetFsiBodies() { return fsiBodies; }
 
     /// Get a reference to the fsi ChElementCableANCF.
     /// fsi ChElementCableANCF are the ones seen by the fluid dynamics system.
     std::vector<std::shared_ptr<fea::ChElementCableANCF>>& GetFsiCables() { return fsiCables; }
 
-    /// Get a reference to the fsi ChElementShellANCF.
-    /// fsi ChElementShellANCF are the ones seen by the fluid dynamics system.
-    std::vector<std::shared_ptr<fea::ChElementShellANCF>>& GetFsiShells() { return fsiShells; }
+    /// Get a reference to the fsi ChElementShellANCF_3423.
+    /// fsi ChElementShellANCF_3423 are the ones seen by the fluid dynamics system.
+    std::vector<std::shared_ptr<fea::ChElementShellANCF_3423>>& GetFsiShells() { return fsiShells; }
 
     /// Get a reference to the fsi ChNodeFEAxyzD.
     /// fsi ChNodeFEAxyzD are the ones seen by the fluid dynamics system.
     std::vector<std::shared_ptr<fea::ChNodeFEAxyzD>>& GetFsiNodes() { return fsiNodes; }
 
     /// Adds FSI body to the FsiSystem
-    void AddFsiBody(std::shared_ptr<ChBody> mbody) { fsiBodeis.push_back(mbody); }
+    void AddFsiBody(std::shared_ptr<ChBody> mbody) { fsiBodies.push_back(mbody); }
 
     /// Finzalizes data by calling FinalizeData function and finalize fluid and bce
     /// and also finalizes the fluid and bce objects if the system have fluid.
@@ -124,14 +125,14 @@ class CH_FSI_API ChSystemFsi : public ChFsiGeneral {
     /// Finalizes the construction of cable elements in the FSI system.
     void SetCableElementsNodes(std::vector<std::vector<int>> elementsNodes) {
         CableElementsNodes = elementsNodes;
-        size_t test = fsiData->fsiGeneralData->CableElementsNodes.size();
+        size_t test = fsiSystem->fsiGeneralData->CableElementsNodes.size();
         std::cout << "numObjects.numFlexNodes" << test << std::endl;
     }
 
     /// Finalizes the construction of cable elements in the FSI system.
     void SetShellElementsNodes(std::vector<std::vector<int>> elementsNodes) {
         ShellElementsNodes = elementsNodes;
-        size_t test = fsiData->fsiGeneralData->ShellElementsNodes.size();
+        size_t test = fsiSystem->fsiGeneralData->ShellElementsNodes.size();
         std::cout << "numObjects.numFlexNodes" << test << std::endl;
     }
 
@@ -147,8 +148,100 @@ class CH_FSI_API ChSystemFsi : public ChFsiGeneral {
     /// Write FSI system particle output
     void WriteParticleFile(const std::string& outfilename) const;
 
+    /// Function to save the SPH particle information into files,
+    /// when called, this function creates three files to write fluid,
+    /// boundary and BCE markers data into file
+    void PrintParticleToFile(const std::string& out_dir) const;
+
+    /// Add SPH particle's information into the FSI system
+    void AddSphMarker(const ChVector<>& points,
+                      const ChVector<>& properties,
+                      const double h,
+                      const double particle_type,
+                      const ChVector<>& velocity = ChVector<>(),
+                      const ChVector<>& tauXxYyZz = ChVector<>(),
+                      const ChVector<>& tauXyXzYz = ChVector<>());
+
+    /// Add reference array for SPH particles
+    void AddRefArray(const int start, const int numPart, const int typeA, const int typeB);
+
+    /// Add BCE particle for a box
+    void AddBceBox(std::shared_ptr<SimParams> paramsH,
+                   std::shared_ptr<ChBody> body,
+                   const ChVector<>& relPos,
+                   const ChQuaternion<>& relRot,
+                   const ChVector<>& size,
+                   int plane = 12);
+
+    /// Add BCE particle for a cylinder
+    void AddBceCylinder(std::shared_ptr<SimParams> paramsH,
+                        std::shared_ptr<ChBody> body,
+                        ChVector<> relPos,
+                        ChQuaternion<> relRot,
+                        double radius,
+                        double height,
+                        double kernel_h,
+                        bool cartesian = true);
+
+    /// Add BCE particle from a file
+    void AddBceFile(std::shared_ptr<fsi::SimParams> paramsH,
+                    std::shared_ptr<ChBody> body,
+                    std::string dataPath,
+                    ChVector<> collisionShapeRelativePos,
+                    ChQuaternion<> collisionShapeRelativeRot,
+                    double scale,
+                    bool isSolid = true);                  
+    
+    /// Add BCE particle from mesh
+    void AddBceFromMesh(std::shared_ptr<SimParams> paramsH,
+                        std::shared_ptr<fea::ChMesh> my_mesh,
+                        const std::vector<std::vector<int>>& NodeNeighborElement,
+                        const std::vector<std::vector<int>>& _1D_elementsNodes,
+                        const std::vector<std::vector<int>>& _2D_elementsNodes,
+                        bool add1DElem,
+                        bool add2DElem,
+                        bool multiLayer,
+                        bool removeMiddleLayer,
+                        int SIDE,
+                        int SIZE2D);
+
+    /// Set FSI parameters from a JSON file
+    void SetSimParameter(const std::string& inputJson,
+                         std::shared_ptr<SimParams> paramsH,
+                         const ChVector<>& box_size);
+
+    /// Set Periodic boundary condition for fluid
+    void SetBoundaries(const ChVector<>& cMin,
+                       const ChVector<>& cMax,
+                       std::shared_ptr<SimParams> paramsH);
+                       
+    /// Set prescribed initial pressure for gravity field
+    void SetInitPressure(std::shared_ptr<SimParams> paramsH,
+                         const double fzDim);
+
     /// Gets the FSI mesh for flexible elements.
     std::shared_ptr<fea::ChMesh> GetFsiMesh() { return fsi_mesh; }
+
+    /// Return the SPH kernel length of kernel function.
+    float GetKernelLength() const;
+
+    /// Set subdomains so that we find neighbor particles faster
+    void SetSubDomain(std::shared_ptr<SimParams> paramsH);
+
+    /// Set output directory for FSI data
+    void SetFsiOutputDir(std::shared_ptr<fsi::SimParams> paramsH,
+                          std::string& demo_dir,
+                          std::string out_dir,
+                          std::string inputJson);
+
+    /// Return the SPH particle position
+    std::vector<ChVector<>> GetParticlePosOrProperties();
+
+    /// Return the SPH particle velocity
+    std::vector<ChVector<>> GetParticleVel();
+
+  protected:
+    std::shared_ptr<ChSystemFsi_impl> fsiSystem; 
 
   private:
     /// Integrate the chrono system based on an explicit Euler scheme.
@@ -156,20 +249,20 @@ class CH_FSI_API ChSystemFsi : public ChFsiGeneral {
     /// Set the type of the fluid dynamics
     void SetFluidIntegratorType(fluid_dynamics params_type);
 
-    CHFSI_OUTPUT_MODE file_write_mode;  ///< FSI particle output type::CSV | ChPF | None, default is NONE
+    CHFSI_OUTPUT_MODE file_write_mode;  ///< FSI particle output type::CSV | ChPF | NONE, default is NONE
 
-    std::shared_ptr<ChFsiDataManager> fsiData;       ///< Pointer to data manager which holds all the data
-    std::vector<std::shared_ptr<ChBody>> fsiBodeis;  ///< Vector of a pointers to fsi bodies. fsi bodies
+    std::vector<std::shared_ptr<ChBody>> fsiBodies;  ///< Vector of a pointers to fsi bodies. fsi bodies
                                                      /// are those that interact with fluid
-    std::vector<std::shared_ptr<fea::ChElementCableANCF>> fsiCables;  ///< Vector of ChElementShellANCF pointers
-    std::vector<std::shared_ptr<fea::ChElementShellANCF>> fsiShells;  ///< Vector of ChElementShellANCF pointers
-    std::vector<std::shared_ptr<fea::ChNodeFEAxyzD>> fsiNodes;        ///< Vector of ChNodeFEAxyzD nodes
-    std::shared_ptr<fea::ChMesh> fsi_mesh;                            ///< ChMesh Pointer
+    std::vector<std::shared_ptr<fea::ChElementCableANCF>> fsiCables;  ///< Vector of ChElementCableANCF pointers
+    std::vector<std::shared_ptr<fea::ChElementShellANCF_3423>>
+        fsiShells;                                              ///< Vector of ChElementShellANCF_3423 pointers
+    std::vector<std::shared_ptr<fea::ChNodeFEAxyzD>> fsiNodes;  ///< Vector of ChNodeFEAxyzD nodes
+    std::shared_ptr<fea::ChMesh> fsi_mesh;                      ///< ChMesh Pointer
 
     std::vector<std::vector<int>> ShellElementsNodes;  ///< Indices of nodes of each Element
     std::vector<std::vector<int>> CableElementsNodes;  ///< Indices of nodes of each Element
     std::shared_ptr<ChFluidDynamics> fluidDynamics;    ///< pointer to the fluid system
-    ChFluidDynamics::Integrator fluidIntegrator;       ///< IISPH by default
+    CHFSI_TIME_INTEGRATOR fluidIntegrator;             ///< IISPH by default
     std::shared_ptr<ChFsiInterface> fsiInterface;      ///< pointer to the fsi interface system
     std::shared_ptr<ChBce> bceWorker;                  ///< pointer to the bce workers
     std::shared_ptr<SimParams> paramsH;                ///< pointer to the simulation parameters

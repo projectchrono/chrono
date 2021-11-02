@@ -20,7 +20,7 @@
 #include <thrust/host_vector.h>
 #include "chrono_fsi/ChApiFsi.h"
 #include "chrono_fsi/utils/ChUtilsDevice.cuh"
-#include "chrono_fsi/physics/ChParams.cuh"
+#include "chrono_fsi/physics/ChParams.h"
 #include "chrono_fsi/math/custom_math.h"
 #define FLOAT16_TYPE_AVAILABLE
 #include "chrono_thirdparty/chpf/particle_writer.hpp"

@@ -14,6 +14,7 @@
 #include <thrust/extrema.h>
 #include <thrust/sort.h>
 #include "chrono_fsi/physics/ChFsiForceIISPH.cuh"
+#include "chrono_fsi/physics/ChSphGeneral.cuh"
 #define RESOLUTION_LENGTH_MULT_IISPH 2.0
 
 //==========================================================================================================================================

@@ -21,6 +21,7 @@
 #include <thrust/sort.h>
 #include "cublas_v2.h"
 #include "chrono_fsi/physics/ChFsiForceI2SPH.cuh"
+#include "chrono_fsi/physics/ChSphGeneral.cuh"
 
 //==========================================================================================================================================
 namespace chrono {

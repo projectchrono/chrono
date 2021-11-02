@@ -38,7 +38,7 @@ Real3 ChUtilsTypeConvert::ChVectorToReal3(chrono::ChVector<> v3) {
     return mR3(v3.x(), v3.y(), v3.z());
 }
 
-Real4 ChUtilsTypeConvert::ChVectorRToReal4(chrono::ChVector<> v3, Real m) {
+Real4 ChUtilsTypeConvert::ChVectorToReal4(chrono::ChVector<> v3, Real m) {
     return mR4(v3.x(), v3.y(), v3.z(), m);
 }
 
