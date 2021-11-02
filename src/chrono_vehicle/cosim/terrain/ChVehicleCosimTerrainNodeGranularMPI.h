@@ -49,7 +49,7 @@ class CH_VEHICLE_API ChVehicleCosimTerrainNodeGranularMPI : public ChVehicleCosi
 
     virtual ChSystem* GetSystem() override { return m_system; }
 
-    /// Set the number of OpenMP threads for each Chrono::Multicore terrain simulation.
+    /// Set the number of OpenMP threads for each Chrono::Multicore terrain simulation (default: 1).
     void SetNumThreads(int num_threads);
 
     /// Set full terrain specification from JSON specfile.
@@ -101,16 +101,22 @@ class CH_VEHICLE_API ChVehicleCosimTerrainNodeGranularMPI : public ChVehicleCosi
     double CalculatePackingDensity(double& depth);
 
   private:
-    ChSystemDistributed* m_system;                          ///< containing system
-    int m_num_threads;                                      ///< number of OpenMP threads used on each rank
-    ChSystemSMC::ContactForceModel m_force_model;           ///< Hertz, Hooke, Flores, or PlainCoulomb
-    ChSystemSMC::TangentialDisplacementModel m_displ_mode;  ///< MultiStep, OneStep, or None
-    bool m_use_mat_props;                                   ///< true if using material properties
-    bool m_constructed;                                     ///< system construction completed?
+    /// Additional data for tire proxy bodies
+    struct TireData {
+        std::vector<uint> m_gids;              ///< global indices of proxy bodies
+        std::unordered_map<uint, uint> m_map;  ///< map from global ID to triangle index
+        unsigned int m_start_tri;              ///< start triangle index for proxy body identifiers
+    };
 
-    double m_hthick;  ///< container wall half-thickness
+    ChSystemDistributed* m_system;  ///< containing system
+    bool m_constructed;             ///< system construction completed?
+    bool m_proxies_constructed;     ///< proxy bodies created?
 
-    double m_radius_p;  ///< radius for a proxy body
+    int m_sub_rank;  ///< MPI rank within the terrain MPI intracommunicator
+
+    double m_hthick;                    ///< container wall half-thickness
+    double m_radius_p;                  ///< radius for a proxy body
+    std::vector<TireData> m_tire_data;  ///< data for the vehicle tire proxies
 
     utils::SamplingType m_sampling_type;  ///< sampling method for generation of particles
     double m_init_depth;                  ///< height of granular maerial initialization volume
@@ -129,25 +135,32 @@ class CH_VEHICLE_API ChVehicleCosimTerrainNodeGranularMPI : public ChVehicleCosi
     virtual int GetNumContacts() const override { return m_system->GetNcontacts(); }
 
     virtual void CreateMeshProxies(unsigned int i) override;
-    virtual void UpdateMeshProxies(unsigned int i, const MeshState& mesh_state) override;
+    virtual void UpdateMeshProxies(unsigned int i, MeshState& mesh_state) override;
     virtual void GetForcesMeshProxies(unsigned int i, MeshContact& mesh_contact) override;
-    void PrintMeshProxiesUpdateData(unsigned int i, const MeshState& mesh_state);
 
     virtual void CreateWheelProxy(unsigned int i) override;
-    virtual void UpdateWheelProxy(unsigned int i, const BodyState& spindle_state) override;
+    virtual void UpdateWheelProxy(unsigned int i, BodyState& spindle_state) override;
     virtual void GetForceWheelProxy(unsigned int i, TerrainForce& wheel_contact) override;
 
     virtual void OnAdvance(double step_size) override;
     virtual void OnOutputData(int frame) override;
     virtual void Render(double time) override;
 
+    /// Create the Chrono::Distributed system.
+    void CreateSystem();
+
+    /// Distribute tire mesh information from main terrain node to intra-communicator.
+    void ScatterInitData(unsigned int i);
+
+    /// Create the tire mesh proxy bodies.
+    void CreateMeshProxiesInternal(unsigned int i);
+    void CreateWheelProxyInternal(unsigned int i);
+
     /// Calculate current height of granular terrain.
     double CalcCurrentHeight();
 
     /// Calculate total kinetic energy of granular material.
     double CalcTotalKineticEnergy();
-
-    void WriteParticleInformation(utils::CSV_writer& csv);
 
     static ChVector<> CalcBarycentricCoords(const ChVector<>& v1,
                                             const ChVector<>& v2,
