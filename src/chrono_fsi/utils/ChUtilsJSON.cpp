@@ -27,8 +27,6 @@
 #include "ChUtilsJSON.h"
 #include "chrono_fsi/utils/ChUtilsDevice.cuh"
 #include "chrono_fsi/math/ChFsiLinearSolver.h"
-#include "chrono_fsi/physics/ChParams.cuh"
-#include "chrono_fsi/physics/ChSphGeneral.cuh"
 #include "chrono_fsi/utils/ChUtilsPrintStruct.h"
 // Chrono general utils
 #include "chrono_thirdparty/filesystem/path.h"
@@ -45,7 +43,17 @@ Real3 LoadVectorJSON(const Value& a) {
     assert(a.Size() == 3);
     return mR3(a[0u].GetDouble(), a[1u].GetDouble(), a[2u].GetDouble());
 }
-
+Real W3h_Spline(Real d, Real h) {
+    Real invh = 1.0 / h;
+    Real q = fabs(d) * invh;
+    if (q < 1) {
+        return (0.25f * (INVPI * invh * invh * invh) * (cube(2 - q) - 4 * cube(1 - q)));
+    }
+    if (q < 2) {
+        return (0.25f * (INVPI * invh * invh * invh) * cube(2 - q));
+    }
+    return 0;
+}
 Real massCalculator(int& num_nei, Real Kernel_h, Real InitialSpacing, Real rho0) {
     int IDX = 10;
     Real sum_wij = 0;

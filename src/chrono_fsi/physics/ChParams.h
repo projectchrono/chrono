@@ -26,8 +26,8 @@
 ///<   Computer Methods in Applied Mechanics and Engineering, 2018
 ///< =============================================================================
 
-#ifndef CHPARAMS_CUH_
-#define CHPARAMS_CUH_
+#ifndef CHPARAMS_H_
+#define CHPARAMS_H_
 
 #include <ctime>
 #include "chrono_fsi/math/ChFsiLinearSolver.h"

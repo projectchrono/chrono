@@ -19,6 +19,7 @@
 #include <thrust/sort.h>
 #include "chrono_fsi/physics/ChFsiForce.cuh"
 #include "chrono_fsi/utils/ChUtilsDevice.cuh"
+#include "chrono_fsi/physics/ChSphGeneral.cuh"
 
 //==========================================================================================================================================
 namespace chrono {

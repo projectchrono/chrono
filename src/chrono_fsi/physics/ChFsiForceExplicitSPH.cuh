@@ -25,7 +25,7 @@ namespace fsi {
 /// @{
 
 /// @brief Child class of ChFsiForce
-class CH_FSI_API ChFsiForceExplicitSPH : public ChFsiForce {
+class ChFsiForceExplicitSPH : public ChFsiForce {
   public:
     ChFsiForceExplicitSPH(
         std::shared_ptr<ChBce> otherBceWorker,                    ///< Pointer to the ChBce object that handles BCE markers
