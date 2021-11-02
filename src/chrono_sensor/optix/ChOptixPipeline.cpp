@@ -641,8 +641,11 @@ unsigned int ChOptixPipeline::GetMaterial(std::shared_ptr<ChVisualMaterial> mat)
         material.metallic_tex = 0;         // explicitely null as default
         material.roughness_tex = 0;        // explicitely null as default
         material.opacity_tex = 0;          // explicitely null as default
+        material.weight_tex = 0;
         material.class_id = mat->GetClassID();
         material.instance_id = mat->GetInstanceID();
+
+        material.tex_scale = {mat->GetTextureScale().x(),mat->GetTextureScale().y()};
 
         // normal texture
         if (mat->GetNormalMapTexture() != "") {
@@ -674,6 +677,12 @@ unsigned int ChOptixPipeline::GetMaterial(std::shared_ptr<ChVisualMaterial> mat)
             cudaArray_t d_img_array;
             CreateDeviceTexture(material.opacity_tex, d_img_array, mat->GetOpacityTexture());
         }
+        // weight texture
+        if (mat->GetWeightTexture() != "") {
+            cudaArray_t d_img_array;
+            CreateDeviceTexture(material.weight_tex, d_img_array, mat->GetWeightTexture());
+        }
+
         m_material_pool.push_back(material);
         return m_material_pool.size() - 1;
 
@@ -696,9 +705,11 @@ unsigned int ChOptixPipeline::GetMaterial(std::shared_ptr<ChVisualMaterial> mat)
             material.roughness_tex = 0;
             material.metallic_tex = 0;
             material.opacity_tex = 0;
+            material.weight_tex = 0;
             material.use_specular_workflow = 0;
             material.class_id = 0;
             material.instance_id = 0;
+            material.tex_scale = {1.f,1.f};
 
             m_material_pool.push_back(material);
             m_default_material_id = m_material_pool.size() - 1;
@@ -709,10 +720,18 @@ unsigned int ChOptixPipeline::GetMaterial(std::shared_ptr<ChVisualMaterial> mat)
     }
 }
 
-unsigned int ChOptixPipeline::GetBoxMaterial(std::shared_ptr<ChVisualMaterial> mat) {
+unsigned int ChOptixPipeline::GetBoxMaterial(std::vector<std::shared_ptr<ChVisualMaterial>> mat_list) {
     unsigned int material_id;
-    if (mat) {
-        material_id = GetMaterial(mat);
+    // if (mat) {
+    //     material_id = GetMaterial(mat);
+    // } else {
+    //     material_id = GetMaterial();
+    // }
+    if (mat_list.size() > 0) {
+        material_id = GetMaterial(mat_list[0]);
+        for (int i = 1; i < mat_list.size(); i++) {
+            GetMaterial(mat_list[i]);
+        }
     } else {
         material_id = GetMaterial();
     }
@@ -720,15 +739,24 @@ unsigned int ChOptixPipeline::GetBoxMaterial(std::shared_ptr<ChVisualMaterial> m
     Record<MaterialRecordParameters> mat_record;
     OPTIX_ERROR_CHECK(optixSbtRecordPackHeader(m_hit_box_group, &mat_record));
     mat_record.data.material_pool_id = material_id;
+    mat_record.data.num_blended_materials = mat_list.size();
     m_material_records.push_back(mat_record);
 
     return m_material_records.size() - 1;
 }
 
-unsigned int ChOptixPipeline::GetSphereMaterial(std::shared_ptr<ChVisualMaterial> mat) {
+unsigned int ChOptixPipeline::GetSphereMaterial(std::vector<std::shared_ptr<ChVisualMaterial>> mat_list) {
     unsigned int material_id;
-    if (mat) {
-        material_id = GetMaterial(mat);
+    // if (mat) {
+    //     material_id = GetMaterial(mat);
+    // } else {
+    //     material_id = GetMaterial();
+    // }
+    if (mat_list.size() > 0) {
+        material_id = GetMaterial(mat_list[0]);
+        for (int i = 1; i < mat_list.size(); i++) {
+            GetMaterial(mat_list[i]);
+        }
     } else {
         material_id = GetMaterial();
     }
@@ -736,15 +764,24 @@ unsigned int ChOptixPipeline::GetSphereMaterial(std::shared_ptr<ChVisualMaterial
     Record<MaterialRecordParameters> mat_record;
     OPTIX_ERROR_CHECK(optixSbtRecordPackHeader(m_hit_sphere_group, &mat_record));
     mat_record.data.material_pool_id = material_id;
+    mat_record.data.num_blended_materials = mat_list.size();
     m_material_records.push_back(mat_record);
 
     return m_material_records.size() - 1;
 }
 
-unsigned int ChOptixPipeline::GetCylinderMaterial(std::shared_ptr<ChVisualMaterial> mat) {
+unsigned int ChOptixPipeline::GetCylinderMaterial(std::vector<std::shared_ptr<ChVisualMaterial>> mat_list) {
     unsigned int material_id;
-    if (mat) {
-        material_id = GetMaterial(mat);
+    // if (mat) {
+    //     material_id = GetMaterial(mat);
+    // } else {
+    //     material_id = GetMaterial();
+    // }
+    if (mat_list.size() > 0) {
+        material_id = GetMaterial(mat_list[0]);
+        for (int i = 1; i < mat_list.size(); i++) {
+            GetMaterial(mat_list[i]);
+        }
     } else {
         material_id = GetMaterial();
     }
@@ -752,6 +789,7 @@ unsigned int ChOptixPipeline::GetCylinderMaterial(std::shared_ptr<ChVisualMateri
     Record<MaterialRecordParameters> mat_record;
     OPTIX_ERROR_CHECK(optixSbtRecordPackHeader(m_hit_cyl_group, &mat_record));
     mat_record.data.material_pool_id = material_id;
+    mat_record.data.num_blended_materials = 1; //TODO: change mat to list
     m_material_records.push_back(mat_record);
 
     return m_material_records.size() - 1;
@@ -923,6 +961,13 @@ unsigned int ChOptixPipeline::GetRigidMeshMaterial(CUdeviceptr& d_vertices,
     Record<MaterialRecordParameters> mat_record;
     OPTIX_ERROR_CHECK(optixSbtRecordPackHeader(m_hit_mesh_group, &mat_record));
     mat_record.data.material_pool_id = material_id;
+    //assume that if meshes have weight map, materials should be blended
+    //if materials should be blended, all materials will have weight map
+    mat_record.data.num_blended_materials = 1;
+    if(mat_list[0]->GetWeightTexture() != ""){
+        mat_record.data.num_blended_materials = mat_list.size();
+    }
+
     mat_record.data.mesh_pool_id = mesh_id;
     m_material_records.push_back(mat_record);
 

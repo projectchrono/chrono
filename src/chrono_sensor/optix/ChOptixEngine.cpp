@@ -445,7 +445,7 @@ void ChOptixEngine::boxVisualization(std::shared_ptr<ChBody> body,
     if (box_shape->material_list.size() == 0) {
         mat_id = m_pipeline->GetBoxMaterial();
     } else {
-        mat_id = m_pipeline->GetBoxMaterial(box_shape->material_list[0]);
+        mat_id = m_pipeline->GetBoxMaterial(box_shape->material_list);
     }
     m_geometry->AddBox(body, asset_frame, size, mat_id);
     m_pipeline->AddBody(body);
@@ -463,7 +463,7 @@ void ChOptixEngine::sphereVisualization(std::shared_ptr<ChBody> body,
     if (sphere_shape->material_list.size() == 0) {
         mat_id = m_pipeline->GetSphereMaterial();
     } else {
-        mat_id = m_pipeline->GetSphereMaterial(sphere_shape->material_list[0]);
+        mat_id = m_pipeline->GetSphereMaterial(sphere_shape->material_list);
     }
     m_geometry->AddSphere(body, asset_frame, size, mat_id);
     m_pipeline->AddBody(body);
@@ -483,7 +483,7 @@ void ChOptixEngine::cylinderVisualization(std::shared_ptr<ChBody> body,
     if (cyl_shape->material_list.size() == 0) {
         mat_id = m_pipeline->GetCylinderMaterial();
     } else {
-        mat_id = m_pipeline->GetCylinderMaterial(cyl_shape->material_list[0]);
+        mat_id = m_pipeline->GetCylinderMaterial(cyl_shape->material_list);
     }
     m_geometry->AddCylinder(body, asset_frame, size, mat_id);
     m_pipeline->AddBody(body);

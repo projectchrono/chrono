@@ -175,9 +175,11 @@ struct MaterialParameters {      // pad to align 16 (swig doesn't support explic
     cudaTextureObject_t metallic_tex;   ///< a metalic color texture // size 8
     cudaTextureObject_t roughness_tex;  ///< a roughness texture // size 8
     cudaTextureObject_t opacity_tex;    ///< an opacity texture // size 8
+    cudaTextureObject_t weight_tex;    ///< a weight texture for blended textures // size 8
+    float2 tex_scale;                ///< texture scaling
     unsigned short int class_id;        ///< a class id of an object // size 2
     unsigned short int instance_id;     ///< an instance id of an object // size 2
-    // float3 pad;                      // padding to ensure 16 byte alignment
+    // float2 pad;                      // padding to ensure 16 byte alignment
 };
 
 /// Parameters associated with the entire optix scene
@@ -195,13 +197,15 @@ struct ContextParameters {
     MeshParameters* mesh_pool;          ///< device pointer to list of meshes for instancing
 };
 
-/// Parameters associated with a single object in the scnee
+/// Parameters associated with a single object in the scene. Padding added during record creation
 struct MaterialRecordParameters {
-    unsigned int material_pool_id;
-    unsigned int mesh_pool_id;
-    float3 translational_velocity;
-    float3 angular_velocity;
-    float objectId;
+    unsigned int material_pool_id;       ///< material id of first material to be
+    unsigned int num_blended_materials;  ///< number of blended materials on this object (can use a weight file per
+                                         ///< material to blend)
+    unsigned int mesh_pool_id;           ///< mesh id of object
+    float3 translational_velocity;       ///< translational velocity of object, used for radars
+    float3 angular_velocity;             ///< angular velocity of object, used for radar
+    float objectId;                      ///< object id, used for tracking and clustering in radar
 };
 
 /// Data associated with a single camera ray

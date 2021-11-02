@@ -279,7 +279,7 @@ int main(int argc, char* argv[]) {
     cam->PushFilter(chrono_types::make_shared<ChFilterR8Access>());
 
     // add sensor to the manager
-    // manager->AddSensor(cam);
+    manager->AddSensor(cam);
 
     // -------------------------------------------------------
     // Create a second camera and add it to the sensor manager
