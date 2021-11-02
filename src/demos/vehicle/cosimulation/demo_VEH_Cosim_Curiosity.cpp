@@ -167,7 +167,7 @@ int main(int argc, char** argv) {
     double terrain_width = -1;
     int nthreads_tire = 1;
     int nthreads_terrain = 1;
-    double step_size = 4e-4;
+    double step_size = 1e-4;
     bool fixed_settling_time = true;
     double KE_threshold = std::numeric_limits<double>::infinity();
     double settling_time = 0.4;
@@ -279,7 +279,7 @@ int main(int argc, char** argv) {
         curiosity->SetDriver(driver);
         curiosity->SetIntegratorType(ChTimestepper::Type::EULER_IMPLICIT_LINEARIZED, ChSolver::Type::BARZILAIBORWEIN);
         curiosity->SetVerbose(verbose);
-        curiosity->SetInitialLocation(ChVector<>(init_loc.x(), init_loc.y(), 0.2));
+        curiosity->SetInitialLocation(ChVector<>(init_loc.x(), init_loc.y(), 0.1));
         curiosity->SetInitialYaw(0);
         curiosity->SetStepSize(step_size);
         curiosity->SetNumThreads(1);
