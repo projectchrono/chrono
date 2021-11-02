@@ -36,23 +36,25 @@ class CH_SENSOR_API ChFilterCameraNoiseConstNormal : public ChFilter {
     /// @param mean The mean value of the Guassian distribution
     /// @param stdev The standard deviation of the Gaussian distribution
     /// @param name The string name of the filter.
-    ChFilterCameraNoiseConstNormal(float mean, float stdev, std::string name = {});
+    ChFilterCameraNoiseConstNormal(float mean, float stdev, std::string name = "ChFilterCameraNoiseConstNormal");
 
     /// Apply function. Adds uniform Gaussian noise to an image.
+    virtual void Apply();
+
+    /// Initializes all data needed by the filter access apply function.
     /// @param pSensor A pointer to the sensor on which the filter is attached.
     /// @param bufferInOut A buffer that is passed into the filter. This data is what will be made available for the
     /// user.
-    virtual void Apply(std::shared_ptr<ChSensor> pSensor, std::shared_ptr<SensorBuffer>& bufferInOut);
-
-    /// Initializes all data needed by the filter access apply function.
-    /// @param pSensor A pointer to the sensor.
-    virtual void Initialize(std::shared_ptr<ChSensor> pSensor) {}
+    virtual void Initialize(std::shared_ptr<ChSensor> pSensor, std::shared_ptr<SensorBuffer>& bufferInOut);
 
   private:
-    float m_mean;                          ///< mean value of the Guassian distribution
-    float m_stdev;                         ///< standard deviation of the Gaussian distribution
-    std::shared_ptr<curandState_t> m_rng;  ///< cuda random number generator
-    bool m_noise_init = true;              ///< initialize noise only once
+    float m_mean;                                           ///< mean value of the Guassian distribution
+    float m_stdev;                                          ///< standard deviation of the Gaussian distribution
+    std::shared_ptr<curandState_t> m_rng;                   ///< cuda random number generator
+    bool m_noise_init = true;                               ///< initialize noise only once
+    std::shared_ptr<SensorDeviceRGBA8Buffer> m_rgba8InOut;  ///< input/output buffer for rgba8
+    std::shared_ptr<SensorDeviceR8Buffer> m_r8InOut;        ///< input/output buffer for r8
+    CUstream m_cuda_stream;                                 ///< reference to the cuda stream
 };
 
 /// A filter that adds pixel dependent gaussian noise across an image. Method summarized in paper: ()
@@ -63,24 +65,29 @@ class CH_SENSOR_API ChFilterCameraNoisePixDep : public ChFilter {
     /// @param sigma_read The standard deviation of the multiplicative noise
     /// @param sigma_adc The standard deviation of the additive noise
     /// @param name The string name of the filter.
-    ChFilterCameraNoisePixDep(float gain, float sigma_read, float sigma_adc, std::string name = {});
+    ChFilterCameraNoisePixDep(float gain,
+                              float sigma_read,
+                              float sigma_adc,
+                              std::string name = "ChFilterCameraNoisePixDep");
 
     /// Apply function. Adds uniform Gaussian noise to an image.
+    virtual void Apply();
+
+    /// Initializes all data needed by the filter access apply function.
     /// @param pSensor A pointer to the sensor on which the filter is attached.
     /// @param bufferInOut A buffer that is passed into the filter. This data is what will be made available for the
     /// user.
-    virtual void Apply(std::shared_ptr<ChSensor> pSensor, std::shared_ptr<SensorBuffer>& bufferInOut);
-
-    /// Initializes all data needed by the filter access apply function.
-    /// @param pSensor A pointer to the sensor.
-    virtual void Initialize(std::shared_ptr<ChSensor> pSensor) {}
+    virtual void Initialize(std::shared_ptr<ChSensor> pSensor, std::shared_ptr<SensorBuffer>& bufferInOut);
 
   private:
     float m_gain;        ///< The linear correlation factor between the intensity and the noise variance
     float m_sigma_read;  ///< The standard deviation of the multiplicative noise
     float m_sigma_adc;   ///< The standard deviation of the additive noise
-    std::shared_ptr<curandState_t> m_rng;  ///< cuda random number generator
-    bool m_noise_init = true;              ///< initialize noise only once
+    std::shared_ptr<curandState_t> m_rng;                   ///< cuda random number generator
+    bool m_noise_init = true;                               ///< initialize noise only once
+    std::shared_ptr<SensorDeviceRGBA8Buffer> m_rgba8InOut;  ///< input/output buffer for rgba8
+    std::shared_ptr<SensorDeviceR8Buffer> m_r8InOut;        ///< input/output buffer for r8
+    CUstream m_cuda_stream;                                 ///< reference to the cuda stream
 };
 
 /// @}

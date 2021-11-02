@@ -113,34 +113,34 @@ class CH_DISTR_API ChDomainDistributed {
     /// Defines the global space used for simulation. This space cannot be changed once set and
     /// needs to encompass all of the possible simulation region. If a body leaves the specified
     /// simulation domain, it may be removed from the simulation entirely.
-    void SetSimDomain(double xlo, double xhi, double ylo, double yhi, double zlo, double zhi);
+    void SetSimDomain(const ChVector<>& lo, const ChVector<>& hi);
 
     /// Return the location of the specified body within this rank based on the data manager
-    virtual distributed::COMM_STATUS GetBodyRegion(int index);
+    virtual distributed::COMM_STATUS GetBodyRegion(int index) const;
 
     /// Returns the location of the specified body within this rank based on the body-list
-    virtual distributed::COMM_STATUS GetBodyRegion(std::shared_ptr<ChBody> body);
+    virtual distributed::COMM_STATUS GetBodyRegion(std::shared_ptr<ChBody> body) const;
 
     /// Get the lower bounds of the global simulation domain
-    ChVector<double> GetBoxLo() { return boxlo; }
+    const ChVector<double>& GetBoxLo() const { return boxlo; }
     /// Get the upper bounds of the global simulation domain
-    ChVector<double> GetBoxHi() { return boxhi; }
+    const ChVector<double>& GetBoxHi() const { return boxhi; }
 
     /// Get the lower bounds of the local sub-domain
-    ChVector<double> GetSubLo() { return sublo; }
+    const ChVector<double>& GetSubLo() const { return sublo; }
     /// Get the upper bounds of the local sub-domain
-    ChVector<double> GetSubHi() { return subhi; }
+    const ChVector<double>& GetSubHi() const { return subhi; }
 
     /// Sets the axis along which the domain will be split x=0, y=1, z=2
     void SetSplitAxis(int i);
     /// x = 0, y = 1, z = 2
-    int GetSplitAxis() { return split_axis; }
+    int GetSplitAxis() const { return split_axis; }
 
     /// Returns the rank which has ownership of a body with the given position
-    int GetRank(ChVector<double> pos);
+    int GetRank(const ChVector<double>& pos) const;
 
     /// Returns true if the domain has been set.
-    bool IsSplit() { return split; }
+    bool IsSplit() const { return split; }
 
     /// Prints basic information about the domain decomposition
     virtual void PrintDomain();
@@ -150,6 +150,7 @@ class CH_DISTR_API ChDomainDistributed {
 
     ChVector<double> sublo;  ///< Lower coordinates of this subdomain
     ChVector<double> subhi;  ///< Upper coordinates of this subdomain
+
   protected:
     ChSystemDistributed* my_sys;
 
@@ -165,7 +166,7 @@ class CH_DISTR_API ChDomainDistributed {
   private:
     /// Helper function that is called by the public GetRegion methods to get
     /// the region classification for a body based on the center position.
-    distributed::COMM_STATUS GetRegion(double pos);
+    distributed::COMM_STATUS GetRegion(double pos) const;
 };
 /// @} distributed_physics
 

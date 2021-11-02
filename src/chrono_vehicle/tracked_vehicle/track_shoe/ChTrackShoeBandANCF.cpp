@@ -31,8 +31,8 @@
 
 #include "chrono/fea/ChContactSurfaceMesh.h"
 #include "chrono/fea/ChContactSurfaceNodeCloud.h"
-#include "chrono/fea/ChElementShellANCF.h"
-#include "chrono/fea/ChElementShellANCF_8.h"
+#include "chrono/fea/ChElementShellANCF_3423.h"
+#include "chrono/fea/ChElementShellANCF_3833.h"
 #include "chrono/fea/ChLinkDirFrame.h"
 #include "chrono/fea/ChLinkPointFrame.h"
 #include "chrono/fea/ChMesh.h"
@@ -142,7 +142,7 @@ void ChTrackShoeBandANCF::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,
                     unsigned int node3 = m_starting_node_index + (y_idx + 1) + x_idx * N_y;
 
                     // Create the element and set its nodes.
-                    auto element = chrono_types::make_shared<ChElementShellANCF>();
+                    auto element = chrono_types::make_shared<ChElementShellANCF_3423>();
                     element->SetNodes(std::dynamic_pointer_cast<ChNodeFEAxyzD>(m_web_mesh->GetNode(node0)),
                                       std::dynamic_pointer_cast<ChNodeFEAxyzD>(m_web_mesh->GetNode(node1)),
                                       std::dynamic_pointer_cast<ChNodeFEAxyzD>(m_web_mesh->GetNode(node2)),
@@ -158,7 +158,6 @@ void ChTrackShoeBandANCF::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,
 
                     // Set other element properties
                     element->SetAlphaDamp(m_alpha);
-                    element->SetGravityOn(false);  // turn internal gravitational force calculation off
 
                     // Add element to mesh
                     m_web_mesh->AddElement(element);
@@ -224,7 +223,7 @@ void ChTrackShoeBandANCF::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,
                     unsigned int node7 = m_starting_node_index + 2 * y_idx + x_idx * (N_y_edge + N_y_mid) + 1;
 
                     // Create the element and set its nodes.
-                    auto element = chrono_types::make_shared<ChElementShellANCF_8>();
+                    auto element = chrono_types::make_shared<ChElementShellANCF_3833>();
                     element->SetNodes(std::dynamic_pointer_cast<ChNodeFEAxyzDD>(m_web_mesh->GetNode(node0)),
                                       std::dynamic_pointer_cast<ChNodeFEAxyzDD>(m_web_mesh->GetNode(node1)),
                                       std::dynamic_pointer_cast<ChNodeFEAxyzDD>(m_web_mesh->GetNode(node2)),
@@ -244,7 +243,6 @@ void ChTrackShoeBandANCF::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,
 
                     // Set other element properties
                     element->SetAlphaDamp(m_alpha);
-                    element->SetGravityOn(false);  // turn internal gravitational force calculation off
 
                     // Add element to mesh
                     m_web_mesh->AddElement(element);

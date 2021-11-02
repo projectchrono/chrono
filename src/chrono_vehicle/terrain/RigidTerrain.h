@@ -25,6 +25,7 @@
 #include "chrono/assets/ChColor.h"
 #include "chrono/assets/ChColorAsset.h"
 #include "chrono/geometry/ChTriangleMeshConnected.h"
+#include "chrono/geometry/ChTriangleMeshSoup.h"
 #include "chrono/physics/ChBody.h"
 #include "chrono/physics/ChSystem.h"
 
@@ -117,6 +118,7 @@ class CH_VEHICLE_API RigidTerrain : public ChTerrain {
         std::shared_ptr<ChMaterialSurface> material,  ///< [in] contact material
         const ChCoordsys<>& position,                 ///< [in] patch location and orientation
         const std::string& mesh_file,                 ///< [in] filename of the input mesh (OBJ)
+        bool connected_mesh = true,                   ///< [in] use connected contact mesh?
         double sweep_sphere_radius = 0,               ///< [in] radius of sweep sphere
         bool visualization = true                     ///< [in] enable/disable construction of visualization assets
     );
@@ -131,6 +133,7 @@ class CH_VEHICLE_API RigidTerrain : public ChTerrain {
         double width,                                 ///< [in] patch width
         double hMin,                                  ///< [in] minimum height (black level)
         double hMax,                                  ///< [in] maximum height (white level)
+        bool connected_mesh = true,                   ///< [in] use connected contact mesh?
         double sweep_sphere_radius = 0,               ///< [in] radius of sweep sphere
         bool visualization = true                     ///< [in] enable/disable construction of visualization assets
     );
@@ -194,7 +197,8 @@ class CH_VEHICLE_API RigidTerrain : public ChTerrain {
 
     /// Patch represented as a mesh.
     struct CH_VEHICLE_API MeshPatch : public Patch {
-        std::shared_ptr<geometry::ChTriangleMeshConnected> m_trimesh;  ///< associated mesh
+        std::shared_ptr<geometry::ChTriangleMeshConnected> m_trimesh;  ///< associated mesh (contact and visualization)
+        std::shared_ptr<geometry::ChTriangleMeshSoup> m_trimesh_s;     ///< associated contact mesh soup
         std::string m_mesh_name;                                       ///< name of associated mesh
         virtual bool FindPoint(const ChVector<>& loc, double& height, ChVector<>& normal) const override;
         virtual void ExportMeshPovray(const std::string& out_dir, bool smoothed = false) override;

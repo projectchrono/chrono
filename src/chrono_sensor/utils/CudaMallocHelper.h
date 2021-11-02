@@ -18,8 +18,14 @@
 #ifndef CUDAMALLOCHELPER_H
 #define CUDAMALLOCHELPER_H
 
+#include "chrono_sensor/optix/ChOptixUtils.h"
+
 #include <iostream>
 #include <sstream>
+
+#include <cuda.h>
+#include <device_types.h>
+#include <cuda_runtime_api.h>
 
 namespace chrono {
 namespace sensor {
@@ -32,12 +38,8 @@ namespace sensor {
 template <class T>
 inline T* cudaMallocHelper(unsigned int size) {
     void* ret;
-    cudaError_t err = cudaMalloc(&ret, size * sizeof(T));
-    if (err != cudaSuccess) {
-        std::stringstream s;
-        s << "cudaMalloc failed with error " << err;
-        throw std::runtime_error(s.str());
-    }
+    CUDA_ERROR_CHECK(cudaMalloc(&ret, size * sizeof(T)));
+    CUDA_ERROR_CHECK(cudaMemset(ret, 0, size * sizeof(T)));
     return (T*)ret;
 }
 
@@ -46,7 +48,25 @@ inline T* cudaMallocHelper(unsigned int size) {
 template <class T>
 inline void cudaFreeHelper(T* ptr) {
     if (ptr)
-        cudaFree((void*)ptr);
+        CUDA_ERROR_CHECK(cudaFree(reinterpret_cast<void*>(ptr)));
+}
+
+/// Function for creating a chunk of memory that will implicitely desconstruct itself.
+/// @param size The number of values for which we should have space. Full memory length will be size*sizeof(T)
+template <class T>
+inline T* cudaHostMallocHelper(unsigned int size) {
+    void* ret;
+    CUDA_ERROR_CHECK(cudaHostAlloc(&ret, size * sizeof(T), cudaHostAllocDefault));
+    memset(ret, 0, size * sizeof(T));
+    return (T*)ret;
+}
+
+/// The desconstructor that will be called to free memory from the device pointer.
+/// @param ptr The pointer to the object that should be freed.
+template <class T>
+inline void cudaHostFreeHelper(T* ptr) {
+    if (ptr)
+        CUDA_ERROR_CHECK(cudaFreeHost(reinterpret_cast<void*>(ptr)));
 }
 
 /// @}

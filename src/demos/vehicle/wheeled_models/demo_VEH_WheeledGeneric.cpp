@@ -277,7 +277,7 @@ int main(int argc, char* argv[]) {
         if (step_number % render_steps == 0) {
             // Output render data
             sprintf(filename, "%s/data_%03d.dat", pov_dir.c_str(), render_frame + 1);
-            utils::WriteShapesPovray(vehicle.GetSystem(), filename);
+            utils::WriteVisualizationAssets(vehicle.GetSystem(), filename);
             std::cout << "Output frame:   " << render_frame << std::endl;
             std::cout << "Sim frame:      " << step_number << std::endl;
             std::cout << "Time:           " << time << std::endl;

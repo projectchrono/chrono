@@ -16,8 +16,9 @@ SET(DEMOS
   demo_SEN_JSON
   demo_SEN_lidar
   demo_SEN_GPSIMU
-  demo_SEN_vis_materials
-  demo_SEN_normalmap
+  demo_SEN_radar
+  demo_SEN_tachometer
+  demo_SEN_radar1
 )
 
 #list of demos that combine sensor simulation with vehicle dynamics
@@ -26,16 +27,13 @@ IF(ENABLE_MODULE_IRRLICHT AND ENABLE_MODULE_VEHICLE)
       ${DEMOS}
       demo_SEN_HMMWV
       demo_SEN_Gator
-      demo_SEN_rccar
       demo_SEN_deformableSoil
     )
     list(APPEND CHRONO_LIBRARIES "ChronoEngine_irrlicht")
     list(APPEND CHRONO_LIBRARIES "ChronoEngine_vehicle")
     list(APPEND CHRONO_LIBRARIES "ChronoEngine_vehicle_irrlicht")
     list(APPEND CHRONO_LIBRARIES "ChronoModels_vehicle")
-
     set(CHRONO_COMPILE_FLAGS "${CHRONO_COMPILE_FLAGS} ${CH_IRRLICHT_CXX_FLAGS}" )
-
 ENDIF()
 
 #demos that require tensorrt

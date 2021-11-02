@@ -19,7 +19,7 @@
 #include "chrono_fsi/utils/ChUtilsDevice.cuh"
 #include "chrono_fsi/utils/ChUtilsTypeConvert.h"
 #include "chrono/fea/ChElementCableANCF.h"
-#include "chrono/fea/ChElementShellANCF.h"
+#include "chrono/fea/ChElementShellANCF_3423.h"
 #include "chrono/fea/ChMesh.h"
 #include "chrono/fea/ChNodeFEAxyzD.h"
 
@@ -34,7 +34,7 @@ ChFsiInterface::ChFsiInterface(chrono::ChSystem& other_mphysicalSystem,
                                std::vector<std::shared_ptr<chrono::ChBody>>& other_fsiBodies,
                                std::vector<std::shared_ptr<fea::ChNodeFEAxyzD>>& other_fsiNodes,
                                std::vector<std::shared_ptr<fea::ChElementCableANCF>>& other_fsiCables,
-                               std::vector<std::shared_ptr<fea::ChElementShellANCF>>& other_fsiShells,
+                               std::vector<std::shared_ptr<fea::ChElementShellANCF_3423>>& other_fsiShells,
                                thrust::host_vector<int2>& other_CableElementsNodesH,
                                thrust::device_vector<int2>& other_CableElementsNodes,
                                thrust::host_vector<int4>& other_ShellElementsNodesH,
@@ -333,7 +333,7 @@ void ChFsiInterface::ResizeChronoShellsData(std::vector<std::vector<int>> ShellE
 
     int numShells = 0;
     for (unsigned int i = 0; i < fsi_mesh->GetNelements(); i++) {
-        if (std::dynamic_pointer_cast<fea::ChElementShellANCF>(fsi_mesh->GetElement(i)))
+        if (std::dynamic_pointer_cast<fea::ChElementShellANCF_3423>(fsi_mesh->GetElement(i)))
             numShells++;
     }
 

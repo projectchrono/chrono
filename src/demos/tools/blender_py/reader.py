@@ -19,61 +19,66 @@ def import_shapes(filepath):
     shapes_data = []
     
     with open(filepath, 'r') as FH:
-        for file in FH.readlines():
-            line = file.strip()
-            line_data = line.split(',')
-            # Check that the POVRayShapeType is a number
-            if len(line_data) < 13 or not line_data[12].isdigit():
-                continue
-            if int(line_data[12]) == shapes_index.TRIANGLEMESH:
-                try:
-                    body_ind, active,  x, y, z, e0, e1, e2, e3, r, g, b, shape_tpye, path, _  = line_data
-                    shapes_data.append([int(shape_tpye), int(body_ind), active,  float(x), float(y), float(z), float(e0), float(e1), float(e2), float(e3), 
-                                        float(r), float(g), float(b), path.strip('"')])
-                except:
-                    print ("Record: ", line)
-                    raise Exception("Failed while trying to parse trimesh data.")
+        lines = FH.readlines()
+
+        # Read number of bodies, visual assets, joints, and TSDA elements (first line)
+        line = lines[0].strip().split(',')
+        num_bodies = int(line[0])
+        num_assets = int(line[1])
+        ##print ("File: ", filepath, "  Num bodies: ", num_bodies, "  Num assets: ", num_assets)
+
+        # Read only visual assets
+        for il in range(1 + num_bodies, 1 + num_bodies + num_assets):
+            line = lines[il].strip().split(',')
             
-            elif int(line_data[12]) == shapes_index.SPHERE:
+            # Extract information common to all assets
+            body_id, active,  x, y, z, e0, e1, e2, e3, r, g, b, shape_type = line[:13:]
+            data = [int(shape_type), int(body_id), active,  float(x), float(y), float(z), float(e0), float(e1), float(e2), float(e3), float(r), float(g), float(b)]
+            
+            # Read asset-specific data
+            if int(shape_type) == shapes_index.TRIANGLEMESH:
                 try:
-                    body_ind, active,  x, y, z, e0, e1, e2, e3, r, g, b, shape_tpye, rad, _  = line_data
-                    shapes_data.append([int(shape_tpye), int(body_ind), active,  float(x), float(y), float(z), float(e0), float(e1), float(e2), float(e3), float(r), float(g), float(b), float(rad)])
+                    path = line[13]
+                    data.extend([path.strip('"')])
                 except:
-                    print ("Record: ", line)
+                    print("Record: ", lines[il])
+                    raise Exception("Failed while trying to parse trimesh data.")
+            elif int(shape_type) == shapes_index.SPHERE:
+                try:
+                    rad = line[13]
+                    data.extend([float(rad)])
+                except:
+                    print("Record: ", lines[il])
                     raise Exception("Failed while trying to parse sphere data.")
-                    
-            elif int(line_data[12]) == shapes_index.BOX:
+            elif int(shape_type) == shapes_index.BOX:
                 try:
-                    body_ind, active,  x, y, z, e0, e1, e2, e3, r, g, b, shape_tpye, size_x, size_y, size_z, _  = line_data
-                    shapes_data.append([int(shape_tpye), int(body_ind), active,  float(x), float(y), float(z), float(e0), float(e1), float(e2), float(e3), 
-                                        float(r), float(g), float(b), float(size_x), float(size_y), float(size_z)])
+                    size_x, size_y, size_z = line[13:16:]
+                    data.extend([float(size_x), float(size_y), float(size_z)])
                 except:
-                    print ("Record: ", line)
+                    print("Record: ", lines[il])
                     raise Exception("Failed while trying to parse box data.")
-                    
-            elif int(line_data[12]) == shapes_index.ELLIPSOID:
+            elif int(shape_type) == shapes_index.ELLIPSOID:
                 try:
-                    body_ind, active,  x, y, z, e0, e1, e2, e3, r, g, b, shape_tpye, size_x, size_y, size_z, _  = line_data
-                    shapes_data.append([int(shape_tpye), int(body_ind), active,  float(x), float(y), float(z), float(e0), float(e1), float(e2), float(e3), 
-                                        float(r), float(g), float(b), float(size_x), float(size_y), float(size_z)])
+                    size_x, size_y, size_z = line[13:16:]
+                    data.extend([float(size_x), float(size_y), float(size_z)])
                 except:
-                    print ("Record: ", line)
-                    raise Exception("Failed while trying to parse Ellipsoid data.")
-                    
-            elif int(line_data[12]) == shapes_index.CYLINDER:
+                    print("Record: ", lines[il])
+                    raise Exception("Failed while trying to parse ellipsoid data.")
+            elif int(shape_type) == shapes_index.CYLINDER:
                 try:
-                    body_ind, active,  x, y, z, e0, e1, e2, e3, r, g, b, shape_tpye, rad, p1x, p1y, p1z, p2x, p2y, p2z, _  = line_data
-                    shapes_data.append([int(shape_tpye), int(body_ind), active,  float(x), float(y), float(z), float(e0), float(e1), float(e2), float(e3), 
-                                        float(r), float(g), float(b), float(rad), float(p1x), float(p1y), float(p1z), float(p2x), float(p2y), float(p2z)])
+                    rad, p1x, p1y, p1z, p2x, p2y, p2z = line[13:20:]
+                    data.extend([float(rad), float(p1x), float(p1y), float(p1z), float(p2x), float(p2y), float(p2z)])
                 except:
-                    print ("Record: ", line)
+                    print("Record: ", lines[il])
                     raise Exception("Failed while trying to parse cyilinder data.")    
-                    
-                    
             else:
                 print('Unsupported shape type')
+                continue
             
-    
+            # Append to list of shape data
+            shapes_data.append(data)
+
+
     return shapes_data
 
 if __name__ == "__main__":

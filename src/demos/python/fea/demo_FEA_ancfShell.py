@@ -123,7 +123,7 @@ for i in range(TotalNumElements):
     node3 = (i // numDiv_x) * N_x + i % numDiv_x + N_x
 
     # Create the element and set its nodes.
-    element = fea.ChElementShellANCF()
+    element = fea.ChElementShellANCF_3423()
     element.SetNodes(CastNode(my_mesh.GetNode(node0)),
                       CastNode(my_mesh.GetNode(node1)),
                       CastNode(my_mesh.GetNode(node2)),
@@ -137,7 +137,6 @@ for i in range(TotalNumElements):
 
     # Set other element properties
     element.SetAlphaDamp(0.0)    # Structural damping for this element
-    element.SetGravityOn(False)  # turn internal gravitational force calculation off
     
     # Add element to mesh
     my_mesh.AddElement(element)

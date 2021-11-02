@@ -19,7 +19,7 @@
 #include "chrono/core/ChTypes.h"
 
 #include "chrono/fea/ChElementCableANCF.h"
-#include "chrono/fea/ChElementShellANCF.h"
+#include "chrono/fea/ChElementShellANCF_3423.h"
 #include "chrono/fea/ChMesh.h"
 #include "chrono/fea/ChNodeFEAxyzD.h"
 

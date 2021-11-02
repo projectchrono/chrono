@@ -32,7 +32,7 @@
 #include "chrono/utils/ChUtilsInputOutput.h"
 
 #include "chrono/fea/ChElementBar.h"
-#include "chrono/fea/ChElementBrick.h"
+#include "chrono/fea/ChElementHexaANCF_3813.h"
 #include "chrono/fea/ChElementSpring.h"
 #include "chrono/fea/ChLinkDirFrame.h"
 #include "chrono/fea/ChLinkPointFrame.h"
@@ -194,8 +194,8 @@ int main(int argc, char* argv[]) {
 
     int elemcount = 0;
     while (elemcount < TotalNumElements) {
-        auto element = chrono_types::make_shared<ChElementBrick>();
-        ChVectorN<double, 3> InertFlexVec;  // Read element length, used in ChElementBrick
+        auto element = chrono_types::make_shared<ChElementHexaANCF_3813>();
+        ChVectorN<double, 3> InertFlexVec;  // Read element length, used in ChElementHexaANCF_3813
         InertFlexVec.setZero();
         InertFlexVec(0) = ElemLengthXY(elemcount, 0);
         InertFlexVec(1) = ElemLengthXY(elemcount, 1);
@@ -212,7 +212,6 @@ int main(int argc, char* argv[]) {
                           std::dynamic_pointer_cast<ChNodeFEAxyz>(my_mesh->GetNode(NumNodes(elemcount, 7))));
         element->SetMaterial(mmaterial);
         element->SetElemNum(elemcount);
-        element->SetGravityOn(true);      // Turn gravity on/off from within the element
         element->SetMooneyRivlin(false);  // Turn on/off Mooney Rivlin (Linear Isotropic by default)
         // element->SetMRCoefficients(551584.0, 137896.0); // Set two coefficients for Mooney-Rivlin
 
@@ -225,8 +224,6 @@ int main(int argc, char* argv[]) {
         elemcount++;
     }
 
-    // Deactivate automatic gravity in mesh
-    my_mesh->SetAutomaticGravity(false);
     // Remember to add the mesh to the system!
     my_system.Add(my_mesh);
 

@@ -25,7 +25,7 @@
 #include "chrono/utils/ChUtilsCreators.h"
 #include "chrono_thirdparty/filesystem/path.h"
 
-#include "chrono_sensor/ChCameraSensor.h"
+#include "chrono_sensor/sensors/ChCameraSensor.h"
 #include "chrono_sensor/ChSensorManager.h"
 #include "chrono_sensor/filters/ChFilterAccess.h"
 #include "chrono_sensor/filters/ChFilterGrayscale.h"
@@ -36,16 +36,16 @@ using namespace chrono;
 using namespace chrono::geometry;
 using namespace chrono::sensor;
 
-float time_interval = 2.0f;
+float time_interval = 5.0f;
 
 float x_bound = 10;
 float y_bound = 10;
 float z_bound = 2;
 
-int stop_exp = 12;
-int start_exp = 5;
+int start_exp = 17;
+int stop_exp = 21;
 
-int obj_type = 2;  // 0=box, 1=sphere, 2=cylinder
+int obj_type = 0;  // 0=box, 1=sphere, 2=cylinder
 
 bool vis = true;
 
@@ -73,7 +73,7 @@ int main(int argc, char* argv[]) {
     mphysicalSystem.Add(cam_body);
     auto cam = std::make_shared<ChCameraSensor>(
         cam_body,                                                           // body camera is attached to
-        5.0f,                                                               // update rate in Hz
+        10.0f,                                                              // update rate in Hz
         chrono::ChFrame<double>({-8, 0, 1}, Q_from_AngAxis(0, {0, 1, 0})),  // offset pose
         1280,                                                               // image width
         720,                                                                // image height
@@ -162,7 +162,7 @@ int main(int argc, char* argv[]) {
                 Q_from_AngAxis(ch_time * orbit_rate, {0, 0, 1}) * Q_from_AngAxis(.3, {0, 1, 0})));
 
             manager->Update();
-            mphysicalSystem.DoStepDynamics(0.001);
+            mphysicalSystem.DoStepDynamics(0.1);
 
             ch_time = (float)mphysicalSystem.GetChTime();
         }

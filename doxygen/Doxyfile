@@ -877,7 +877,7 @@ EXCLUDE                = ../src/chrono/collision/bullet \
                          ../src/chrono_sensor/README.md \
                          ../src/chrono_fsi/README.md \
                          ../src/chrono_python/sensor_readme.md \
-                         ../stc/tests/README.md
+                         ../src/tests/README.md
 
 # The EXCLUDE_SYMLINKS tag can be used to select whether or not files or
 # directories that are symbolic links (a Unix file system feature) are excluded
