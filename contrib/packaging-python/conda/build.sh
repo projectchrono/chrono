@@ -31,6 +31,7 @@ cmake -DCMAKE_INSTALL_PREFIX=$PREFIX \
  -DENABLE_MODULE_POSTPROCESS=ON \
  -DENABLE_MODULE_VEHICLE=ON \
  -DENABLE_MODULE_PYTHON=ON \
+ -DENABLE_MODULE_SENSOR=ON \
  -DBUILD_DEMOS=OFF \
  -DBUILD_TESTING=OFF \
  -DBUILD_BENCHMARKING=OFF \
@@ -43,6 +44,7 @@ cmake -DCMAKE_INSTALL_PREFIX=$PREFIX \
  -DMKL_RT_LIBRARY=$HOME/miniconda3/lib/libmkl_rt.so \
  -DEIGEN3_INCLUDE_DIR=/usr/include/eigen3 \
  -DPYCHRONO_DATA_PATH=../../../../../../share/chrono/data \
+ -DOptiX_INSTALL_DIR=/opt/optix/7.2.0 \
  ./..
 # Build step
 # on linux travis, limit the number of concurrent jobs otherwise
