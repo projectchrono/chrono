@@ -455,9 +455,11 @@ void ChVehicleCosimTerrainNodeGranularSPH::CreateWheelProxy(unsigned int i) {
 
     // Add collision shape (only if obstacles are present)
     if (num_obstacles > 0) {
+        auto material_tire = m_mat_props[i].CreateMaterial(m_method);
+
         body->GetCollisionModel()->ClearModel();
-        body->GetCollisionModel()->AddTriangleMesh(m_material_tire[i], trimesh, false, false, ChVector<>(0),
-                                                   ChMatrix33<>(1), m_radius_g);
+        body->GetCollisionModel()->AddTriangleMesh(material_tire, trimesh, false, false, ChVector<>(0), ChMatrix33<>(1),
+                                                   m_radius_g);
         body->GetCollisionModel()->SetFamily(1);
         body->GetCollisionModel()->SetFamilyMaskNoCollisionWithFamily(1);
         body->GetCollisionModel()->BuildModel();
@@ -477,7 +479,7 @@ void ChVehicleCosimTerrainNodeGranularSPH::CreateWheelProxy(unsigned int i) {
 }
 
 // Set state of wheel proxy body.
-void ChVehicleCosimTerrainNodeGranularSPH::UpdateWheelProxy(unsigned int i, const BodyState& spindle_state) {
+void ChVehicleCosimTerrainNodeGranularSPH::UpdateWheelProxy(unsigned int i, BodyState& spindle_state) {
     auto& proxies = m_proxies[i];  // proxies for the i-th tire
 
     proxies[0].m_body->SetPos(spindle_state.pos);

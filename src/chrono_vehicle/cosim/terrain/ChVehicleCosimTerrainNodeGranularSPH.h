@@ -81,7 +81,7 @@ class CH_VEHICLE_API ChVehicleCosimTerrainNodeGranularSPH : public ChVehicleCosi
     virtual void Construct() override;
 
     virtual void CreateWheelProxy(unsigned int i) override;
-    virtual void UpdateWheelProxy(unsigned int i, const BodyState& spindle_state) override;
+    virtual void UpdateWheelProxy(unsigned int i, BodyState& spindle_state) override;
     virtual void GetForceWheelProxy(unsigned int i, TerrainForce& wheel_contact) override;
 
     virtual void OnOutputData(int frame) override;

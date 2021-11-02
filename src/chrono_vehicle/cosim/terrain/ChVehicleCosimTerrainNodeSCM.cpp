@@ -296,6 +296,8 @@ void ChVehicleCosimTerrainNodeSCM::CreateMeshProxies(unsigned int i) {
 }
 
 void ChVehicleCosimTerrainNodeSCM::CreateWheelProxy(unsigned int i) {
+    auto material_tire = m_mat_props[i].CreateMaterial(m_method);
+
     // Create wheel proxy body
     auto body = std::shared_ptr<ChBody>(m_system->NewBody());
     body->SetIdentifier(0);
@@ -313,8 +315,8 @@ void ChVehicleCosimTerrainNodeSCM::CreateWheelProxy(unsigned int i) {
 
     // Set collision shape
     body->GetCollisionModel()->ClearModel();
-    body->GetCollisionModel()->AddTriangleMesh(m_material_tire[i], trimesh, false, false, ChVector<>(0),
-                                               ChMatrix33<>(1), m_radius_p);
+    body->GetCollisionModel()->AddTriangleMesh(material_tire, trimesh, false, false, ChVector<>(0), ChMatrix33<>(1),
+                                               m_radius_p);
     body->GetCollisionModel()->SetFamily(1);
     body->GetCollisionModel()->SetFamilyMaskNoCollisionWithFamily(1);
     body->GetCollisionModel()->BuildModel();
@@ -343,12 +345,12 @@ void ChVehicleCosimTerrainNodeSCM::CreateWheelProxy(unsigned int i) {
 }
 
 // Set position, orientation, and velocity of proxy bodies based on tire mesh faces.
-void ChVehicleCosimTerrainNodeSCM::UpdateMeshProxies(unsigned int i, const MeshState& mesh_state) {
+void ChVehicleCosimTerrainNodeSCM::UpdateMeshProxies(unsigned int i, MeshState& mesh_state) {
     //// TODO
 }
 
 // Set state of wheel proxy body.
-void ChVehicleCosimTerrainNodeSCM::UpdateWheelProxy(unsigned int i, const BodyState& spindle_state) {
+void ChVehicleCosimTerrainNodeSCM::UpdateWheelProxy(unsigned int i, BodyState& spindle_state) {
     auto& proxies = m_proxies[i];  // proxies for the i-th tire
 
     proxies[0].m_body->SetPos(spindle_state.pos);

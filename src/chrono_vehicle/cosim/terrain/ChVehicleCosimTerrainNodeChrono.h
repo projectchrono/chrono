@@ -158,9 +158,8 @@ class CH_VEHICLE_API ChVehicleCosimTerrainNodeChrono : public ChVehicleCosimTerr
 
     double m_init_height;  ///< terrain initial height
 
-    bool m_fixed_proxies;                                             ///< are proxy bodies fixed to ground?
-    std::vector<Proxies> m_proxies;                                   ///< proxy bodies for each tire
-    std::vector<std::shared_ptr<ChMaterialSurface>> m_material_tire;  ///< material properties for proxy bodies
+    std::vector<Proxies> m_proxies;  ///< proxy bodies for each tire
+    bool m_fixed_proxies;            ///< are proxy bodies fixed to ground?
 
     std::vector<RigidObstacle> m_obstacles;  ///< list of rigid obstacles
 };

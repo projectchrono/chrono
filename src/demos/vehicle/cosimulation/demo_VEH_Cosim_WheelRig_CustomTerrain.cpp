@@ -29,7 +29,6 @@
 #include "chrono_vehicle/ChVehicleModelData.h"
 
 #include "chrono_vehicle/cosim/ChVehicleCosimTerrainNode.h"
-#include "chrono_vehicle/cosim/ChVehicleCosimOtherNode.h"
 #include "chrono_vehicle/cosim/mbs/ChVehicleCosimRigNode.h"
 #include "chrono_vehicle/cosim/tire/ChVehicleCosimTireNodeBypass.h"
 
@@ -74,7 +73,7 @@ class MyTerrain : public ChVehicleCosimTerrainNode {
     virtual void Render(double time) override;
 
     // Update the state of the wheel proxy body for the i-th tire.
-    virtual void UpdateWheelProxy(unsigned int i, const BodyState& spindle_state) override;
+    virtual void UpdateWheelProxy(unsigned int i, BodyState& spindle_state) override;
 
     // Collect cumulative contact force and torque on the wheel proxy body for the i-th tire.
     virtual void GetForceWheelProxy(unsigned int i, TerrainForce& wheel_contact) override;
@@ -198,7 +197,7 @@ void MyTerrain::Render(double time) {
 #endif
 }
 
-void MyTerrain::UpdateWheelProxy(unsigned int i, const BodyState& spindle_state) {
+void MyTerrain::UpdateWheelProxy(unsigned int i, BodyState& spindle_state) {
     m_bodies[i]->SetPos(spindle_state.pos);
     m_bodies[i]->SetPos_dt(spindle_state.lin_vel);
     m_bodies[i]->SetRot(spindle_state.rot);
@@ -234,9 +233,9 @@ int main(int argc, char** argv) {
     MPI_Barrier(MPI_COMM_WORLD);
 #endif
 
-    if (num_procs < 3) {
+    if (num_procs != 3) {
         if (rank == 0)
-            std::cout << "\n\nSingle wheel cosimulation code must be run on at least 3 ranks!\n\n" << std::endl;
+            std::cout << "\n\nSingle wheel cosimulation code must be run on exactly 3 ranks!\n\n" << std::endl;
         MPI_Abort(MPI_COMM_WORLD, 1);
         return 1;
     }
@@ -264,6 +263,9 @@ int main(int argc, char** argv) {
     // Number of simulation steps between miscellaneous events.
     int sim_steps = (int)std::ceil(sim_time / step_size);
     int output_steps = (int)std::ceil(1 / (output_fps * step_size));
+
+    // Initialize co-simulation framework (specify 1 tire node).
+    cosim::InitializeFramework(1);
 
     // Create the node (a rig, tire, or terrain node, depending on rank).
     ChVehicleCosimBaseNode* node = nullptr;
@@ -313,8 +315,6 @@ int main(int argc, char** argv) {
         terrain->EnableRuntimeVisualization(render, render_fps);
 
         node = terrain;
-    } else {
-        node = new ChVehicleCosimOtherNode();
     }
 
     // Initialize systems.
@@ -328,7 +328,6 @@ int main(int argc, char** argv) {
                 cout << "rank: " << rank << " running on: " << procname << endl;
                 cout << "   node type:    " << node->GetNodeTypeString() << endl;
                 cout << "   cosim node:   " << (node->IsCosimNode() ? "yes" : "no") << endl;
-                cout << "   terrain_rank: " << node->TerrainRank() << endl;
                 cout << "   output dir:   " << node->GetOutDirName() << endl;
             }
             MPI_Barrier(MPI_COMM_WORLD);

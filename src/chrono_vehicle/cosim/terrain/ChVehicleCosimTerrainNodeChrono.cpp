@@ -157,7 +157,6 @@ void ChVehicleCosimTerrainNodeChrono::AddRigidObstacle(const RigidObstacle& obst
 // - create the appropriate proxy bodies (state not set yet)
 // -----------------------------------------------------------------------------
 void ChVehicleCosimTerrainNodeChrono::OnInitialize(unsigned int num_tires) {
-    m_material_tire.resize(num_tires);
     m_proxies.resize(num_tires);
 
     // Construct the terrain
@@ -166,11 +165,8 @@ void ChVehicleCosimTerrainNodeChrono::OnInitialize(unsigned int num_tires) {
     // Reset system time
     GetSystem()->SetChTime(0);
 
+    // Create proxy bodies
     for (unsigned int i = 0; i < num_tires; i++) {
-        // Create the "tire" contact material, but defer using it until the proxy bodies are created.
-        m_material_tire[i] = m_mat_props[i].CreateMaterial(m_method);
-
-        // Create proxy bodies
         switch (m_interface_type) {
             case InterfaceType::BODY:
                 CreateWheelProxy(i);

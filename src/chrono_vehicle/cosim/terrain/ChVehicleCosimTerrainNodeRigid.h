@@ -86,12 +86,12 @@ class CH_VEHICLE_API ChVehicleCosimTerrainNodeRigid : public ChVehicleCosimTerra
     virtual int GetNumContacts() const override { return m_system->GetNcontacts(); }
 
     virtual void CreateMeshProxies(unsigned int i) override;
-    virtual void UpdateMeshProxies(unsigned int i, const MeshState& mesh_state) override;
+    virtual void UpdateMeshProxies(unsigned int i, MeshState& mesh_state) override;
     virtual void GetForcesMeshProxies(unsigned int i, MeshContact& mesh_contact) override;
     void PrintMeshProxiesUpdateData(unsigned int i, const MeshState& mesh_state);
 
     virtual void CreateWheelProxy(unsigned int i) override;
-    virtual void UpdateWheelProxy(unsigned int i, const BodyState& spindle_state) override;
+    virtual void UpdateWheelProxy(unsigned int i, BodyState& spindle_state) override;
     virtual void GetForceWheelProxy(unsigned int i, TerrainForce& wheel_contact) override;
 
     virtual void OnAdvance(double step_size) override;

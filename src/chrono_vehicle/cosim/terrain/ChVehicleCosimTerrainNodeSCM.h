@@ -111,11 +111,11 @@ class CH_VEHICLE_API ChVehicleCosimTerrainNodeSCM : public ChVehicleCosimTerrain
     virtual void Construct() override;
 
     virtual void CreateMeshProxies(unsigned int i) override;
-    virtual void UpdateMeshProxies(unsigned int i, const MeshState& mesh_state) override;
+    virtual void UpdateMeshProxies(unsigned int i, MeshState& mesh_state) override;
     virtual void GetForcesMeshProxies(unsigned int i, MeshContact& mesh_contact) override;
 
     virtual void CreateWheelProxy(unsigned int i) override;
-    virtual void UpdateWheelProxy(unsigned int i, const BodyState& spindle_state) override;
+    virtual void UpdateWheelProxy(unsigned int i, BodyState& spindle_state) override;
     virtual void GetForceWheelProxy(unsigned int i, TerrainForce& wheel_contact) override;
 
     virtual void OnOutputData(int frame) override;

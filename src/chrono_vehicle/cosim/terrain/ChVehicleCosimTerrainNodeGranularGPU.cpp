@@ -616,7 +616,7 @@ void ChVehicleCosimTerrainNodeGranularGPU::SetMatPropertiesInternal() {
 // Set composite material properties for external contacts (granular-tire)
 void ChVehicleCosimTerrainNodeGranularGPU::SetMatPropertiesExternal(unsigned int i) {
     auto material_terrain = std::static_pointer_cast<ChMaterialSurfaceSMC>(m_material_terrain);
-    auto material_tire = std::static_pointer_cast<ChMaterialSurfaceSMC>(m_material_tire[i]);
+    auto material_tire = std::static_pointer_cast<ChMaterialSurfaceSMC>(m_mat_props[i].CreateMaterial(m_method));
 
     const auto& strategy = m_system->GetMaterialCompositionStrategy();
     auto Kn = strategy.CombineStiffnessCoefficient(material_terrain->GetKn(), material_tire->GetKn());
@@ -665,9 +665,10 @@ void ChVehicleCosimTerrainNodeGranularGPU::CreateWheelProxy(unsigned int i) {
     body->GetAssets().push_back(trimesh_shape);
 
     // Add collision shape (only if obstacles are present)
+    auto material_tire = m_mat_props[i].CreateMaterial(m_method);
     if (num_obstacles > 0) {
         body->GetCollisionModel()->ClearModel();
-        body->GetCollisionModel()->AddTriangleMesh(m_material_tire[i], trimesh, false, false, ChVector<>(0),
+        body->GetCollisionModel()->AddTriangleMesh(material_tire, trimesh, false, false, ChVector<>(0),
                                                    ChMatrix33<>(1), m_radius_g);
         body->GetCollisionModel()->SetFamily(1);
         body->GetCollisionModel()->SetFamilyMaskNoCollisionWithFamily(1);
@@ -691,7 +692,7 @@ void ChVehicleCosimTerrainNodeGranularGPU::CreateWheelProxy(unsigned int i) {
 }
 
 // Set state of wheel proxy body.
-void ChVehicleCosimTerrainNodeGranularGPU::UpdateWheelProxy(unsigned int i, const BodyState& spindle_state) {
+void ChVehicleCosimTerrainNodeGranularGPU::UpdateWheelProxy(unsigned int i, BodyState& spindle_state) {
     auto& proxies = m_proxies[i];  // proxies for the i-th tire
 
     proxies[0].m_body->SetPos(spindle_state.pos);

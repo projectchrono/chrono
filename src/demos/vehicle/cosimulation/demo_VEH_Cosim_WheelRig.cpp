@@ -212,6 +212,9 @@ int main(int argc, char** argv) {
     int output_steps = (int)std::ceil(1 / (output_fps * step_size));
     int vis_output_steps = (int)std::ceil(1 / (vis_output_fps * step_size));
 
+    // Initialize co-simulation framework (specify 1 tire node).
+    cosim::InitializeFramework(1);
+
     // Create the node (a rig, tire, or terrain node, depending on rank).
     ChVehicleCosimBaseNode* node = nullptr;
 

@@ -65,6 +65,28 @@ namespace vehicle {
 /// @addtogroup vehicle_cosim
 /// @{
 
+// =============================================================================
+
+namespace cosim {
+
+/// Initialize the co-simulation framework.
+/// This function creates an MPI communicator that includes all nodes designated of type TERRAIN.
+/// Calling this framework initialization function is optional. If invoked, it *must* be called on all ranks.
+/// Returns MPI_SUCCESS if successful and MPI_ERR_OTHER if there are not enough ranks.
+CH_VEHICLE_API int InitializeFramework(int num_tires);
+
+/// Return true if the co-simulation framework was initialized and false otherwise.
+CH_VEHICLE_API bool IsFrameworkInitialized();
+
+/// Return the MPI communicator for distributed terrain simulation.
+/// This intra-communicator is created if more than one node is designated of type TERRAIN.
+/// On a TERRAIN node, the rank within the intra-communicator is accessible through MPI_Comm_rank.
+CH_VEHICLE_API MPI_Comm GetTerrainIntracommunicator();
+
+};  // namespace cosim
+
+// =============================================================================
+
 /// Base class for a co-simulation node.
 class CH_VEHICLE_API ChVehicleCosimBaseNode {
   public:
@@ -99,17 +121,6 @@ class CH_VEHICLE_API ChVehicleCosimBaseNode {
 
     /// Return true if this node is part of the co-simulation infrastructure.
     bool IsCosimNode() const;
-
-    /// Get the terrain MPI intracommunicator.
-    /// This intra-communicator is created if more than one node is designated of type TERRAIN.
-    /// On a TERRAIN node, the rank within the intra-communicator is accessible through TerrainRank().
-    /// On any other node type, this function returns MPI_COMM_NULL.
-    MPI_Comm TerrainCommunicator() const { return m_sub_communicator; }
-
-    /// Get the rank of a TERRAIN node within the terrain intra-communicator.
-    /// This is available only if more than one terrain node was defined.
-    /// On any other node type, this function returns -1.
-    int TerrainRank() const { return m_sub_rank; }
 
     /// Set the integration step size (default: 1e-4).
     void SetStepSize(double step) { m_step_size = step; }
@@ -199,9 +210,7 @@ class CH_VEHICLE_API ChVehicleCosimBaseNode {
   protected:
     ChVehicleCosimBaseNode(const std::string& name);
 
-    int m_rank;                   ///< MPI rank of this node (in MPI_COMM_WORLD)
-    MPI_Comm m_sub_communicator;  ///< communicator for terrain nodes, if more than one (null on MBS and tire nodes)
-    int m_sub_rank;               ///< MPI rank of tire node in sub-communicator (-1 on MBS and tire nodes)
+    int m_rank;  ///< MPI rank of this node (in MPI_COMM_WORLD)
 
     double m_step_size;  ///< integration step size
 

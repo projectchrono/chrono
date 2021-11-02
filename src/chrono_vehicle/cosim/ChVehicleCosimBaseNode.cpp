@@ -28,6 +28,53 @@ using std::endl;
 namespace chrono {
 namespace vehicle {
 
+// -----------------------------------------------------------------------------
+// Free functions in the cosim namespace
+// -----------------------------------------------------------------------------
+
+namespace cosim {
+
+static MPI_Comm terrain_comm = MPI_COMM_NULL;
+
+int InitializeFramework(int num_tires) {
+    int world_size;
+    MPI_Comm_size(MPI_COMM_WORLD, &world_size);
+    if (world_size < 2 + num_tires) {
+        return MPI_ERR_OTHER;
+    }
+
+    // Get the group for MPI_COMM_WORLD
+    MPI_Group world_group;
+    MPI_Comm_group(MPI_COMM_WORLD, &world_group);
+
+    // Set list of excluded ranks (vehicle and tire nodes)
+    std::vector<int> excluded;
+    excluded.push_back(MBS_NODE_RANK);
+    for (int i = 0; i < num_tires; i++)
+        excluded.push_back(TIRE_NODE_RANK(i));
+
+    // Create the group of ranks for terrain simulation
+    MPI_Group terrain_group;
+    MPI_Group_excl(world_group, 1 + num_tires, excluded.data(), &terrain_group);
+
+    // Create and return a communicator from the terrain group
+    MPI_Comm_create(MPI_COMM_WORLD, terrain_group, &terrain_comm);
+
+    return MPI_SUCCESS;
+}
+
+bool IsFrameworkInitialized() {
+    return terrain_comm != MPI_COMM_NULL;
+}
+
+MPI_Comm GetTerrainIntracommunicator() {
+    return terrain_comm;
+}
+
+}  // end namespace cosim
+
+// -----------------------------------------------------------------------------
+
 const double ChVehicleCosimBaseNode::m_gacc = -9.81;
 
 ChVehicleCosimBaseNode::ChVehicleCosimBaseNode(const std::string& name)
@@ -38,13 +85,12 @@ ChVehicleCosimBaseNode::ChVehicleCosimBaseNode(const std::string& name)
       m_num_mbs_nodes(0),
       m_num_terrain_nodes(0),
       m_num_tire_nodes(0),
-      m_rank(-1),
-      m_sub_rank(-1),
-      m_sub_communicator(MPI_COMM_NULL) {}
+      m_rank(-1) {
+    MPI_Comm_rank(MPI_COMM_WORLD, &m_rank);
+}
 
 void ChVehicleCosimBaseNode::Initialize() {
     int size;
-    MPI_Comm_rank(MPI_COMM_WORLD, &m_rank);
     MPI_Comm_size(MPI_COMM_WORLD, &size);
 
     // Gather node types from all ranks
@@ -87,6 +133,7 @@ void ChVehicleCosimBaseNode::Initialize() {
 
     // Error checks
     bool err = false;
+
     if (m_num_mbs_nodes != 1) {
         if (m_rank == 0)
             cerr << "ERROR: More than one MBS node." << endl;
@@ -115,31 +162,6 @@ void ChVehicleCosimBaseNode::Initialize() {
 
     if (err) {
         MPI_Abort(MPI_COMM_WORLD, 1);
-    }
-
-    // Create a sub-communicator from all TERRAIN nodes (if more than one)
-
-    if (m_num_terrain_nodes > 1) {
-        // Get the group for MPI_COMM_WORLD
-        MPI_Group world_group;
-        MPI_Comm_group(MPI_COMM_WORLD, &world_group);
-
-        // Set list of excluded ranks (vehicle and tire nodes)
-        std::vector<int> excluded;
-        excluded.push_back(MBS_NODE_RANK);
-        for (unsigned int i = 0; i < m_num_tire_nodes; i++)
-            excluded.push_back(TIRE_NODE_RANK(i));
-
-        // Create the group of ranks for terrain simulation
-        MPI_Group terrain_group;
-        MPI_Group_excl(world_group, 1 + m_num_tire_nodes, excluded.data(), &terrain_group);
-
-        // Create and return a communicator from the terrain group
-        MPI_Comm_create(MPI_COMM_WORLD, terrain_group, &m_sub_communicator);
-
-        // Get MPI rank in sub-communicator
-        if (GetNodeType() == NodeType::TERRAIN)
-            MPI_Comm_rank(m_sub_communicator, &m_sub_rank);
     }
 }
 
