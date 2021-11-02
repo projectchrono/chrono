@@ -20,8 +20,8 @@
 #include "chrono/ChConfig.h"
 #include "chrono/physics/ChSystem.h"
 #include "chrono_fsi/ChApiFsi.h"
-#include "chrono_fsi/ChFsiDataManager.cuh"
-#include "chrono_fsi/physics/ChFsiGeneral.cuh"
+#include "chrono_fsi/ChSystemFsi_impl.cuh"
+#include "chrono_fsi/physics/ChFsiGeneral.h"
 
 namespace chrono {
 
@@ -30,24 +30,24 @@ namespace fea {
 class ChNodeFEAxyzD;
 class ChMesh;
 class ChElementCableANCF;
-class ChElementShellANCF;
+class ChElementShellANCF_3423;
 }  // namespace fea
 
 namespace fsi {
 /// @addtogroup fsi_physics
 /// @{
 /// Base class for processing the interface between chrono and fsi modules
-class CH_FSI_API ChFsiInterface : public ChFsiGeneral {
+class ChFsiInterface : public ChFsiGeneral {
   public:
     ChFsiInterface(chrono::ChSystem& other_mphysicalSystem,
                    std::shared_ptr<fea::ChMesh> other_fsiMesh,
                    std::shared_ptr<SimParams> other_paramsH,
                    std::shared_ptr<FsiBodiesDataH> other_fsiBodiesH,
                    std::shared_ptr<FsiMeshDataH> other_fsiMeshH,
-                   std::vector<std::shared_ptr<chrono::ChBody>>& other_fsiBodeis,
+                   std::vector<std::shared_ptr<chrono::ChBody>>& other_fsiBodies,
                    std::vector<std::shared_ptr<fea::ChNodeFEAxyzD>>& other_fsiNodes,
                    std::vector<std::shared_ptr<fea::ChElementCableANCF>>& other_fsiCables,
-                   std::vector<std::shared_ptr<fea::ChElementShellANCF>>& other_fsiShells,
+                   std::vector<std::shared_ptr<fea::ChElementShellANCF_3423>>& other_fsiShells,
                    thrust::host_vector<int2>& other_CableElementsNodesH,
                    thrust::device_vector<int2>& other_CableElementsNodes,
                    thrust::host_vector<int4>& other_ShellElementsNodesH,
@@ -96,10 +96,11 @@ class CH_FSI_API ChFsiInterface : public ChFsiGeneral {
         Flex_FSI_ForcesD;  ///< Surface-integrated forces from the fluid dynamics system to flexible bodies.
 
     std::shared_ptr<fea::ChMesh> fsi_mesh;
-    std::vector<std::shared_ptr<ChBody>>& fsiBodeis;  ///< List of ChBody shared pointers handled by the FSI system.
+    std::vector<std::shared_ptr<ChBody>>& fsiBodies;  ///< List of ChBody shared pointers handled by the FSI system.
     std::vector<std::shared_ptr<fea::ChNodeFEAxyzD>>& fsiNodes;        ///< List of FE nodes available in fsi system.
     std::vector<std::shared_ptr<fea::ChElementCableANCF>>& fsiCables;  ///< List of FE cable elements in fsi system.
-    std::vector<std::shared_ptr<fea::ChElementShellANCF>>& fsiShells;  ///< List of FE shell elements in fsi system.
+    std::vector<std::shared_ptr<fea::ChElementShellANCF_3423>>&
+        fsiShells;                                    ///< List of FE shell elements in fsi system.
     thrust::host_vector<int2>& CableElementsNodesH;   ///< These are the indices of nodes of each Element
     thrust::device_vector<int2>& CableElementsNodes;  ///< These are the indices of nodes of each Element
     thrust::host_vector<int4>& ShellElementsNodesH;   ///< These are the indices of nodes of each Element

@@ -21,14 +21,14 @@
 #include <thrust/host_vector.h>
 #include <string>
 #include "chrono/ChConfig.h"
-#include "chrono_fsi/physics/ChParams.cuh"
+#include "chrono_fsi/physics/ChParams.h"
 #include "chrono_fsi/math/custom_math.h"
 
 namespace chrono {
 // Forward declaration
 namespace fea {
 class ChElementCableANCF;
-class ChElementShellANCF;
+class ChElementShellANCF_3423;
 }  // namespace fea
 
 namespace fsi {
@@ -64,7 +64,7 @@ void LoadBCE_fromFile(thrust::host_vector<Real4>& posRadBCE, std::string fileNam
 
 void CreateBCE_On_shell(thrust::host_vector<Real4>& posRadBCE,
                         std::shared_ptr<SimParams> paramsH,
-                        std::shared_ptr<chrono::fea::ChElementShellANCF> shell,
+                        std::shared_ptr<chrono::fea::ChElementShellANCF_3423> shell,
                         bool multiLayer = true,
                         bool removeMiddleLayer = false,
                         int SIDE = -2);
@@ -79,7 +79,7 @@ void CreateBCE_On_ChElementCableANCF(thrust::host_vector<Real4>& posRadBCE,
 
 void CreateBCE_On_ChElementShellANCF(thrust::host_vector<Real4>& posRadBCE,
                                      std::shared_ptr<SimParams> paramsH,
-                                     std::shared_ptr<chrono::fea::ChElementShellANCF> shell,
+                                     std::shared_ptr<chrono::fea::ChElementShellANCF_3423> shell,
                                      std::vector<int> remove,
                                      bool multiLayer = true,
                                      bool removeMiddleLayer = false,

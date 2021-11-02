@@ -1,7 +1,7 @@
 // =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2014 projectchrono.org
+// Copyright (c) 2021 projectchrono.org
 // All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
@@ -9,15 +9,15 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Authors: Andrea Favali, Alessandro Tasora
+// Authors: Radu Serban
+// =============================================================================
+// Base class for a FEA element with hexahedral shape.
 // =============================================================================
 
-#ifndef CHELEMENTHEXAHEDRON_H
-#define CHELEMENTHEXAHEDRON_H
+#ifndef CH_HEXAHEDRON_H
+#define CH_HEXAHEDRON_H
 
-#include "chrono/fea/ChElementGeneric.h"
-#include "chrono/fea/ChElementCorotational.h"
-#include "chrono/fea/ChGaussIntegrationRule.h"
+#include "chrono/fea/ChNodeFEAxyz.h"
 
 namespace chrono {
 namespace fea {
@@ -25,36 +25,19 @@ namespace fea {
 /// @addtogroup fea_elements
 /// @{
 
-/// Class for hexahedral elements.
-class ChApi ChElementHexahedron : public ChElementGeneric, public ChElementCorotational {
+/// Base class for a FEA element with hexahedral shape.
+class ChApi ChElementHexahedron {
   public:
-    ChElementHexahedron() : ir(nullptr), Volume(0) {}
+    ChElementHexahedron() {}
+    virtual ~ChElementHexahedron() {}
 
-    virtual ~ChElementHexahedron() {
-        delete ir;
-        for (auto gpoint : GpVector)
-            delete gpoint;
-        GpVector.clear();
-    }
-
-    double GetVolume() { return Volume; }
-
-    virtual void Update() {
-        // parent class update:
-        ChElementGeneric::Update();
-        // always keep updated the rotation matrix A:
-        this->UpdateRotation();
-    }
-
-  protected:
-    ChGaussIntegrationRule* ir;
-    std::vector<ChGaussPoint*> GpVector;
-    double Volume;
+    /// Return the specified hexahedron node (0 <= n <= 7).
+    virtual std::shared_ptr<ChNodeFEAxyz> GetHexahedronNode(int n) = 0;
 };
 
 /// @} fea_elements
 
-}  // end namespace fea
-}  // end namespace chrono
+}  // namespace fea
+}  // namespace chrono
 
 #endif

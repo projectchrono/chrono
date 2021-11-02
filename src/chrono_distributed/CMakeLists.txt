@@ -14,7 +14,7 @@ endif()
 message(STATUS "==== Chrono Distributed module ====")
 
 # Return now if MPI is not available
-if(NOT MPI_CXX_FOUND)
+if(NOT MPI_FOUND)
     message(WARNING "Chrono::Distributed requires MPI, but MPI not found; disabling Chrono::Distributed")
 	set(ENABLE_MODULE_DISTRIBUTED OFF CACHE BOOL "Enable the Chrono Distributed module" FORCE)
 	return()

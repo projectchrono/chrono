@@ -23,12 +23,12 @@
 
 #include "chrono/fea/ChElementBar.h"
 #include "chrono/fea/ChElementBeamEuler.h"
-#include "chrono/fea/ChElementBrick.h"
-#include "chrono/fea/ChElementHexa_20.h"
-#include "chrono/fea/ChElementHexa_8.h"
-#include "chrono/fea/ChElementShellANCF.h"
-#include "chrono/fea/ChElementTetra_10.h"
-#include "chrono/fea/ChElementTetra_4.h"
+#include "chrono/fea/ChElementHexaANCF_3813.h"
+#include "chrono/fea/ChElementHexaCorot_20.h"
+#include "chrono/fea/ChElementHexaCorot_8.h"
+#include "chrono/fea/ChElementShellANCF_3423.h"
+#include "chrono/fea/ChElementTetraCorot_10.h"
+#include "chrono/fea/ChElementTetraCorot_4.h"
 #include "chrono/fea/ChLinkDirFrame.h"
 #include "chrono/fea/ChLinkPointFrame.h"
 #include "chrono/fea/ChLinkPointFrame.h"
@@ -147,10 +147,10 @@ void test_1() {
             ChVectorDynamic<>& F,        ///< Result F vector here, size must be = n.field coords.of loadable
             ChVectorDynamic<>* state_x,  ///< if != 0, update state (pos. part) to this, then evaluate F
             ChVectorDynamic<>* state_w   ///< if != 0, update state (speed part) to this, then evaluate F
-            ) {
+        ) {
             double Fy_max = 0.005;
             F.segment(0, 3) = ChVector<>(0, ((1 + U) / 2) * Fy_max, 0).eigen();  // load, force part
-            F.segment(3, 3).setZero();                                             // load, torque part
+            F.segment(3, 3).setZero();                                           // load, torque part
         }
 
         // Needed because inheriting ChLoaderUdistributed. Use 1 because linear load fx.
@@ -188,7 +188,7 @@ void test_1() {
             ChVectorDynamic<>& F,        ///< Result F vector here, size must be = n.field coords.of loadable
             ChVectorDynamic<>* state_x,  ///< if != 0, update state (pos. part) to this, then evaluate F
             ChVectorDynamic<>* state_w   ///< if != 0, update state (speed part) to this, then evaluate F
-            ) {
+        ) {
             ChVector<> node_pos;
             ChVector<> node_vel;
             if (state_x) {
