@@ -16,6 +16,7 @@
 #include "chrono_gpu/cuda/ChGpu_SMC.cuh"
 #include "chrono_gpu/physics/ChSystemGpuMesh_impl.h"
 #include "chrono_gpu/utils/ChGpuUtilities.h"
+#include <math_constants.h>
 
 namespace chrono {
 namespace gpu {
@@ -314,7 +315,7 @@ __global__ void interactionGranMat_TriangleSoup_matBased(ChSystemGpuMesh_impl::T
                 float Sn = 2. * mesh_params->E_eff_s2m_SU * sqrt_Rd;
 
                 float loge = (mesh_params->COR_s2m_SU < EPSILON) ? log(EPSILON) : log(mesh_params->COR_s2m_SU);
-                float beta = loge / sqrt(loge * loge + chrono::CH_C_PI * chrono::CH_C_PI);
+                float beta = loge / sqrt(loge * loge + CUDART_PI_F * CUDART_PI_F);
 
                 // effective mass = mass_mesh * mass_sphere / (m_mesh + mass_sphere)
                 float fam_mass_SU = d_triangleSoup->familyMass_SU[fam];

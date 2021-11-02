@@ -34,6 +34,8 @@
 #include "chrono_gpu/cuda/ChCudaMathUtils.cuh"
 #include "chrono_gpu/cuda/ChGpuHelpers.cuh"
 #include "chrono_gpu/cuda/ChGpuBoundaryConditions.cuh"
+#include <math_constants.h>
+
 
 using chrono::gpu::ChSystemGpu_impl;
 
@@ -683,7 +685,7 @@ inline __device__ float3 computeSphereNormalForces_matBased(float3& vrel_t,
     float Sn = 2. * gran_params->E_eff_s2s_SU * sqrt_Rd;
 
     float loge = (gran_params->COR_s2s_SU < EPSILON) ? log(EPSILON) : log(gran_params->COR_s2s_SU);
-    beta = loge / sqrt(loge * loge + chrono::CH_C_PI * chrono::CH_C_PI);
+    beta = loge / sqrt(loge * loge + CUDART_PI_F * CUDART_PI_F);
 
     // stiffness and damping coefficient
     float kn = (2.0 / 3.0) * Sn;
@@ -803,7 +805,7 @@ static __global__ void computeSphereContactForces(ChSystemGpu_impl::GranSphereDa
                 sphere_data->normal_contact_force[body_A_offset + contact_id] = force_accum;
             }
 
-            float hertz_force_factor = std::sqrt(2. * (1 - (1. / reciplength)));  // sqrt(delta_n / (2 R_eff)
+            float hertz_force_factor = sqrtf(2. * (1 - (1. / reciplength)));  // sqrt(delta_n / (2 R_eff)
 
             // add frictional terms, if needed
             if (gran_params->friction_mode != CHGPU_FRICTION_MODE::FRICTIONLESS) {
@@ -883,14 +885,14 @@ inline __device__ bool evaluateRollingFriction(ChSystemGpu_impl::GranParamsPtr g
                                                const float& m_eff,
                                                const float& time_contact,
                                                float& t_collision) {
-    float kn_simple = 4.f / 3.f * E_eff * std::sqrt(R_eff);
-    float gn_simple = -2.f * std::sqrt(5.f / 3.f * m_eff * E_eff) * beta * std::pow(R_eff, 1.f / 4.f);
+    float kn_simple = 4.f / 3.f * E_eff * sqrtf(R_eff);
+    float gn_simple = -2.f * sqrtf(5.f / 3.f * m_eff * E_eff) * beta * pow(R_eff, 1.f / 4.f);
 
-    float d_coeff = gn_simple / (2.f * std::sqrt(kn_simple * m_eff));
+    float d_coeff = gn_simple / (2.f * sqrtf(kn_simple * m_eff));
 
     if (d_coeff < 1) {
-        t_collision = chrono::CH_C_PI * std::sqrt(m_eff / (kn_simple * (1.f - d_coeff * d_coeff)));
-        if (time_contact <= t_collision * std::pow(gran_params->LENGTH_UNIT, 0.25f)) {
+        t_collision = CUDART_PI_F * sqrtf(m_eff / (kn_simple * (1.f - d_coeff * d_coeff)));
+        if (time_contact <= t_collision * powf(gran_params->LENGTH_UNIT, 0.25f)) {
             return false;
         }
     }
