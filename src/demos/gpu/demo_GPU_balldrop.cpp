@@ -107,9 +107,11 @@ int main(int argc, char* argv[]) {
     gran_sys.SetFixedStepSize(step_size);
     gran_sys.SetTimeIntegrator(CHGPU_TIME_INTEGRATOR::FORWARD_EULER);
 
-    gran_sys.SetParticleOutputMode(CHGPU_OUTPUT_MODE::CSV);
-    std::string out_dir = GetChronoOutputPath() + "GPU/balldrop/";
+    std::string out_dir = GetChronoOutputPath() + "GPU/";
     filesystem::create_directory(filesystem::path(out_dir));
+    out_dir = out_dir + "/balldrop/";
+    filesystem::create_directory(filesystem::path(out_dir));
+
     gran_sys.SetParticleOutputFlags(ABSV);
     gran_sys.SetParticleOutputMode(CHGPU_OUTPUT_MODE::CSV);
 
