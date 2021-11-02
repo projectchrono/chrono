@@ -21,7 +21,6 @@
 
 #include "chrono_fsi/physics/ChFsiForce.cuh"
 
-#include "chrono_fsi/physics/ChSphGeneral.cuh"
 
 #include "chrono_fsi/utils/ChUtilsDevice.cuh"
 

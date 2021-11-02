@@ -20,7 +20,7 @@
 
 #include "chrono_fsi/ChApiFsi.h"
 #include "chrono_fsi/physics/ChFsiGeneral.h"
-#include "chrono_fsi/physics/ChSphGeneral.cuh"
+#include "chrono_fsi/ChSystemFsi_impl.cuh"
 
 namespace chrono {
 namespace fsi {

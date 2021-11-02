@@ -45,7 +45,7 @@ class CH_FSI_API ChUtilsTypeConvert {
     static Real3 ChVectorToReal3(ChVector<> v3);
 
     /// Converts a ChVector and a scalar to a Real4 data structure.
-    static Real4 ChVectorRToReal4(ChVector<> v3, Real m);
+    static Real4 ChVectorToReal4(ChVector<> v3, Real m);
 
     /// Converts a ChQuaternion data structure to a Real4 data structure.
     static Real4 ChQuaternionToReal4(ChQuaternion<> q4);

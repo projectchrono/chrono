@@ -61,12 +61,12 @@ namespace fsi {
     typedef thrust::tuple<r3IterH, r4IterH, r3IterH, r4IterH, r3IterH, r3IterH> iterTupleRigidH;
     typedef thrust::zip_iterator<iterTupleRigidH> zipIterRigidH;
 
-    // typedef device iterators for shorthand chrono bodies operations
+    /// typedef device iterators for shorthand chrono bodies operations
     typedef thrust::tuple<r3IterH, r3IterH, r3IterH, r4IterH, r3IterH, r3IterH> iterTupleChronoBodiesH;
     typedef thrust::zip_iterator<iterTupleChronoBodiesH> zipIterChronoBodiesH;
 
 
-    /// Class for storing the information of SPH markers on the device
+    /// Struct to store the information of SPH markers on the device
     struct SphMarkerDataD {
 
         thrust::device_vector<Real4> posRadD;     ///< Vector of the positions of markers + characteristic radius
@@ -79,7 +79,7 @@ namespace fsi {
         void resize(size_t s);
     };
 
-    /// Class for storing the information of SPH markers on the host
+    /// Struct to store the information of SPH markers on the host
     struct SphMarkerDataH {
         thrust::host_vector<Real4> posRadH;     ///< Vector of the positions of markers
         thrust::host_vector<Real3> velMasH;     ///< Vector of the velocities of markers
@@ -91,7 +91,7 @@ namespace fsi {
         void resize(size_t s);
     };
 
-    /// Class for storing the information of rigid bodies of the simulation on the host
+    /// Struct to store the information of rigid bodies on the host
     struct FsiBodiesDataH {
         thrust::host_vector<Real3> posRigid_fsiBodies_H;      ///< Vector of the linear positions of rigid bodies
         thrust::host_vector<Real4> velMassRigid_fsiBodies_H;  ///< Vector of the linear velocities of rigid bodies
@@ -104,7 +104,7 @@ namespace fsi {
         void resize(size_t s);
     };
 
-    /// Class for storing the information of rigid bodies of the simulation on the device
+    /// Struct to store the information of rigid bodies on the device
     struct FsiBodiesDataD {
         thrust::device_vector<Real3> posRigid_fsiBodies_D;      ///< Vector of the linear positions of rigid bodies
         thrust::device_vector<Real4> velMassRigid_fsiBodies_D;  ///< Vector of the linear velocities of rigid bodies
@@ -124,7 +124,7 @@ namespace fsi {
         thrust::host_vector<Real3> vel_fsi_fea_H;
         thrust::host_vector<Real3> acc_fsi_fea_H;
 
-        //  zipIterFlexH iterator();
+        // zipIterFlexH iterator();
         
         void resize(size_t s);
         size_t size() { return pos_fsi_fea_H.size(); };
@@ -135,7 +135,7 @@ namespace fsi {
         thrust::device_vector<Real3> vel_fsi_fea_D;
         thrust::device_vector<Real3> acc_fsi_fea_D;
 
-        //  zipIterFlexD iterator();
+        // zipIterFlexD iterator();
         void CopyFromH(const FsiMeshDataH& other);
         FsiMeshDataD& operator=(const FsiMeshDataD& other);
         void resize(size_t s);
@@ -157,7 +157,7 @@ namespace fsi {
         thrust::host_vector<Real3> accFlex_fsiBodies_nC_H;
         thrust::host_vector<Real3> accFlex_fsiBodies_nD_H;
 
-        //  zipIterFlexH iterator();
+        // zipIterFlexH iterator();
         void resize(size_t s);
     };
 
@@ -177,13 +177,13 @@ namespace fsi {
         thrust::device_vector<Real3> accFlex_fsiBodies_nC_D;
         thrust::device_vector<Real3> accFlex_fsiBodies_nD_D;
 
-        //  zipIterFlexD iterator();
+        // zipIterFlexD iterator();
         void CopyFromH(const FsiShellsDataH& other);
         FsiShellsDataD& operator=(const FsiShellsDataD& other);
         void resize(size_t s);
     };
 
-    /// Class for storing the neighbor search informations on the device
+    /// Struct to store neighbor search information on the device
     struct ProximityDataD {
         thrust::device_vector<uint> gridMarkerHashD;   ///< gridMarkerHash=s(i,j,k)= k*n_x*n_y + j*n_x + i (numAllMarkers);
         thrust::device_vector<uint> gridMarkerIndexD;  ///< (numAllMarkers);
@@ -212,7 +212,7 @@ namespace fsi {
         ChronoShellsDataH() {}
         ChronoShellsDataH(size_t s);
 
-        //  zipIterChronoShellsH iterator();
+        // zipIterChronoShellsH iterator();
 
         thrust::host_vector<Real3> posFlex_ChSystemH_nA_H;
         thrust::host_vector<Real3> posFlex_ChSystemH_nB_H;
@@ -241,7 +241,7 @@ namespace fsi {
 
         void resize(size_t s);
     };
-    /// Class to hold information of the fluid system that needs to be passed to Chrono
+    /// Struct to store fluid system information that need to be passed to Chrono
     struct FsiGeneralData {
         // ----------------
         //  host

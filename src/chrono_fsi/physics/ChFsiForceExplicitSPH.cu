@@ -14,6 +14,7 @@
 #include <thrust/extrema.h>
 #include <thrust/sort.h>
 #include "chrono_fsi/physics/ChFsiForceExplicitSPH.cuh"
+#include "chrono_fsi/physics/ChSphGeneral.cuh"
 
 //================================================================================================================================
 namespace chrono {
@@ -478,7 +479,7 @@ __global__ void calcRho_kernel(Real4* sortedPosRad,
                         if (sortedRhoPreMu_old[j].w == -1) {
                             Real h_j = sortedPosRad[j].w;
                             Real m_j = paramsD.markerMass;
-                            Real W3 = W3h_GPU(d, 0.5 * (h_j + h_i));
+                            Real W3 = W3h(d, 0.5 * (h_j + h_i));
                             sum_mW += m_j * W3;
                             sum_W += W3;
                             sum_mW_rho += m_j * W3 / sortedRhoPreMu_old[j].x;
@@ -964,7 +965,7 @@ __global__ void Navier_Stokes(Real4* sortedDerivVelRho,
     int3 gridPos = calcGridPos(posRadA);
     Real3 inner_sum = mR3(0.0);
     // Real mi_bar = 0.0, r0 = 0.0;
-    Real sum_w_i = W3h_GPU(0.0, sortedPosRad[index].w) * cube(sortedPosRad[index].w * paramsD.MULT_INITSPACE);
+    Real sum_w_i = W3h(0.0, sortedPosRad[index].w) * cube(sortedPosRad[index].w * paramsD.MULT_INITSPACE);
     int N_ = 1;
     int N_s = 0;
     for (int x = -1; x <= 1; x++) {
@@ -1039,7 +1040,7 @@ __global__ void Navier_Stokes(Real4* sortedDerivVelRho,
                         }
 
                         if (d > paramsD.HSML*1.0e-9 && sum_w_i < paramsD.C_Wi) {
-                            sum_w_i = sum_w_i + W3h_GPU(d, sortedPosRad[index].w) * cube(sortedPosRad[index].w * paramsD.MULT_INITSPACE);
+                            sum_w_i = sum_w_i + W3h(d, sortedPosRad[index].w) * cube(sortedPosRad[index].w * paramsD.MULT_INITSPACE);
                             N_ = N_ + 1;
                         }
 
@@ -1247,7 +1248,7 @@ __global__ void NS_SSR( Real4* sortedDerivVelRho,
     Real bsvdT = paramsD.beta_shifting * v_ab_m * paramsD.dT ;
 
     Real3 inner_sum = mR3(0.0);
-    Real sum_w_i = W3h_GPU(0.0, sortedPosRad[index].w) * cube(sortedPosRad[index].w * paramsD.MULT_INITSPACE);
+    Real sum_w_i = W3h(0.0, sortedPosRad[index].w) * cube(sortedPosRad[index].w * paramsD.MULT_INITSPACE);
     int N_ = 1;
     int N_s = 0;
     for(uint n = 0; n < j_num; n++){
@@ -1323,7 +1324,7 @@ __global__ void NS_SSR( Real4* sortedDerivVelRho,
         }
         // Do integration for the kernel function
         if (d > paramsD.HSML*1.0e-9) {
-            Real Wab = W3h_GPU(d, sortedPosRad[index].w);
+            Real Wab = W3h(d, sortedPosRad[index].w);
             sum_w_i = sum_w_i +  Wab * cube(sortedPosRad[index].w * paramsD.MULT_INITSPACE);
             // XSPH
             if (rhoPresMuB.w > -1.5 && rhoPresMuB.w < -0.5){
@@ -1432,7 +1433,7 @@ __global__ void CalcVel_XSPH_D(Real3* vel_XSPH_Sorted_D,  // output: new velocit
                         Real3 velMasB = sortedVelMas[j];
                         Real rho_bar = 0.5 * (rhoPreMuA.x + rhoPresMuB.x);
                         deltaV += paramsD.markerMass * (velMasB - velMasA) *
-                                  W3h_GPU(d, (sortedPosRad_old[index].w + sortedPosRad_old[j].w) * 0.5) / rho_bar;
+                                  W3h(d, (sortedPosRad_old[index].w + sortedPosRad_old[j].w) * 0.5) / rho_bar;
                     }
                 }
             }

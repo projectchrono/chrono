@@ -48,14 +48,14 @@ class ChSystemFsi_impl;
 /// @addtogroup fsi_physics
 /// @{
 
-/// @brief Physical system for fluid-solid interaction problem.
+/// @brief Physical system for fluid-solid interaction problems.
 ///
-/// This class is used to represent a fluid-solid interaction problem consist of
-/// fluid dynamics and multibody system. Each of the two underlying physics are
-/// independent objects owned and instantiated by this class. Additionally,
+/// This class is used to represent fluid-solid interaction problems consisting of
+/// fluid dynamics and multibody system. Each of the two underlying physics is
+/// an independent object owned and instantiated by this class. Additionally,
 /// the fsi system owns other objects to handle the interface between the two
 /// systems, boundary condition enforcing markers, and data.
-class CH_FSI_API ChSystemFsi : public ChFsiGeneral {
+class CH_FSI_API ChSystemFsi {
   public:
     /// Constructor for FSI system.
     /// This class constructor instantiates all the member objects. Wherever relevant, the
@@ -150,7 +150,7 @@ class CH_FSI_API ChSystemFsi : public ChFsiGeneral {
 
     /// Function to save the SPH particle information into files,
     /// when called, this function creates three files to write fluid,
-    /// fluid-boundary and BCE markers data into file
+    /// boundary and BCE markers data into file
     void PrintParticleToFile(const std::string& out_dir) const;
 
     /// Add SPH particle's information into the FSI system
@@ -191,7 +191,8 @@ class CH_FSI_API ChSystemFsi : public ChFsiGeneral {
                     ChQuaternion<> collisionShapeRelativeRot,
                     double scale,
                     bool isSolid = true);                  
-
+    
+    /// Add BCE particle from mesh
     void AddBceFromMesh(std::shared_ptr<SimParams> paramsH,
                         std::shared_ptr<fea::ChMesh> my_mesh,
                         const std::vector<std::vector<int>>& NodeNeighborElement,
@@ -248,7 +249,7 @@ class CH_FSI_API ChSystemFsi : public ChFsiGeneral {
     /// Set the type of the fluid dynamics
     void SetFluidIntegratorType(fluid_dynamics params_type);
 
-    CHFSI_OUTPUT_MODE file_write_mode;  ///< FSI particle output type::CSV | ChPF | None, default is NONE
+    CHFSI_OUTPUT_MODE file_write_mode;  ///< FSI particle output type::CSV | ChPF | NONE, default is NONE
 
     std::vector<std::shared_ptr<ChBody>> fsiBodies;  ///< Vector of a pointers to fsi bodies. fsi bodies
                                                      /// are those that interact with fluid

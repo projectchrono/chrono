@@ -28,27 +28,27 @@ namespace fsi {
 /**
  * @brief Number of fluid markers, solid bodies, solid markers, boundary markers
  * @details
- * 		This structure holds necessary information for the fsi system to be finalized. Note that the order of makers in
+ * 		This structure holds the number of SPH particles and rigid/flexible bodies. Note that the order of makers in
  * 		the memory is as follows: i) fluid markers, ii) markers attached to fixed objects (boundary markers), iii)
  * 		markers attached to rigid bodies, and iv) markers attached to flexible bodies
  */
 struct NumberOfObjects {
-    size_t numRigidBodies;    ///< Number of rigid bodies
-    size_t numFlexNodes;      ///< Number of Nodes in a flexible mesh, Each FE is made up of nodes
-    size_t numFlexBodies1D;      ///< Number of 1D-Flexible bodies, Each FE is one body
-    size_t numFlexBodies2D;   ///< Number of 2D-Flexible bodies, Each FE is one body
-    size_t numGhostMarkers;      ///< Number of Ghost SPH markers that comes into play with Variable Resolution methods
-    size_t numHelperMarkers;  ///< Number of helper SPH markers that is used for merging particles
-    size_t numFluidMarkers;      ///< Number of fluid SPH markers
+    size_t numRigidBodies;      ///< Number of rigid bodies
+    size_t numFlexNodes;        ///< Number of Nodes in a flexible mesh, Each FE is made up of nodes
+    size_t numFlexBodies1D;     ///< Number of 1D-Flexible bodies, Each FE is one body
+    size_t numFlexBodies2D;     ///< Number of 2D-Flexible bodies, Each FE is one body
+    size_t numGhostMarkers;     ///< Number of Ghost SPH markers that comes into play with Variable Resolution methods
+    size_t numHelperMarkers;    ///< Number of helper SPH markers that is used for merging particles
+    size_t numFluidMarkers;     ///< Number of fluid SPH markers
     size_t numBoundaryMarkers;  ///< Number of boundary SPH markers
-    size_t startRigidMarkers;    ///< Index of the first SPH marker that covers the first rigid body.
+    size_t startRigidMarkers;   ///< Index of the first SPH marker that covers the first rigid body.
     size_t startFlexMarkers;    ///< Index of the first SPH marker that covers the first flexible body.
-    size_t numRigid_SphMarkers;  ///< Number of SPH markers attached to rigid bodies
-    size_t numFlex_SphMarkers;   ///< Number of SPH markers attached to flexible bodies
-    size_t numAllMarkers;        ///< Total number of SPH markers in the simulation
+    size_t numRigid_SphMarkers; ///< Number of SPH markers attached to rigid bodies
+    size_t numFlex_SphMarkers;  ///< Number of SPH markers attached to flexible bodies
+    size_t numAllMarkers;       ///< Total number of SPH markers in the simulation
 };
 
-class CH_FSI_API ChFsiGeneral {
+class ChFsiGeneral {
   public:
     ChFsiGeneral();
     ChFsiGeneral(std::shared_ptr<SimParams> hostParams, 

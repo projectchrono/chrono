@@ -231,7 +231,6 @@ FsiMeshDataD& FsiMeshDataD::operator=(const FsiMeshDataD& other) {
 }
 
 //---------------------------------------------------------------------------------------
-
 zipIterRigidH FsiBodiesDataH::iterator() {
     return thrust::make_zip_iterator(
         thrust::make_tuple(posRigid_fsiBodies_H.begin(), velMassRigid_fsiBodies_H.begin(), accRigid_fsiBodies_H.begin(),
@@ -256,7 +255,6 @@ void ProximityDataD::resize(size_t numAllMarkers) {
 }
 
 //---------------------------------------------------------------------------------------
-
 ChronoBodiesDataH::ChronoBodiesDataH(size_t s) {
     resize(s);
 }
@@ -450,11 +448,6 @@ void ChSystemFsi_impl::ConstructReferenceArray() {
                                dummyRhoPresMuH.begin(), numComponentMarkers.begin(), sphTypeCompEqual()))
             .first -
         dummyRhoPresMuH.begin();
-    // if (numberOfComponents == 0) {
-    // 	std::cout << "Error! no marker found! Thrown from
-    // ConstructReferenceArray\n";
-    // 	return;
-    // }
 
     printf("numberOfComponents=%zd\n", numberOfComponents);
 

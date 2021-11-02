@@ -16,6 +16,7 @@
 // =============================================================================
 
 #include "chrono_fsi/physics/ChFluidDynamics.cuh"
+#include "chrono_fsi/physics/ChSphGeneral.cuh"
 
 namespace chrono {
 namespace fsi {
@@ -506,7 +507,7 @@ ChFluidDynamics::ChFluidDynamics(std::shared_ptr<ChBce> otherBceWorker,
             printf("Created an ExplicitSPH framework.\n");
             break;
 
-            /// Extend this function with your own linear solvers
+        /// Extend this function with your own linear solvers
         default:
             forceSystem = chrono_types::make_shared<ChFsiForceIISPH>(otherBceWorker, fsiSystem->sortedSphMarkersD,
                                                                      fsiSystem->markersProximityD,
@@ -527,10 +528,9 @@ void ChFluidDynamics::Finalize() {
 }
 
 // -----------------------------------------------------------------------------
-
 ChFluidDynamics::~ChFluidDynamics() {}
-// -----------------------------------------------------------------------------
 
+// -----------------------------------------------------------------------------
 void ChFluidDynamics::IntegrateSPH(std::shared_ptr<SphMarkerDataD> sphMarkersD2,
                                    std::shared_ptr<SphMarkerDataD> sphMarkersD1,
                                    std::shared_ptr<FsiBodiesDataD> fsiBodiesD,
@@ -550,7 +550,6 @@ void ChFluidDynamics::IntegrateSPH(std::shared_ptr<SphMarkerDataD> sphMarkersD2,
 }
 
 // -----------------------------------------------------------------------------
-
 void ChFluidDynamics::UpdateFluid(std::shared_ptr<SphMarkerDataD> sphMarkersD, Real dT) {
     int2 updatePortion =
         mI2(0, fsiSystem->fsiGeneralData->referenceArray[fsiSystem->fsiGeneralData->referenceArray.size() - 1].y);
@@ -588,8 +587,6 @@ void ChFluidDynamics::UpdateFluid_Implicit(std::shared_ptr<SphMarkerDataD> sphMa
 
     int4 updatePortion = mI4(fsiSystem->fsiGeneralData->referenceArray[haveHelper].x,
                              fsiSystem->fsiGeneralData->referenceArray[haveHelper + haveGhost].y, 0, 0);
-    //    std::cout << "Skipping the markers greater than "
-    //              << fsiSystem->fsiGeneralData->referenceArray[haveHelper + haveGhost].y << " in position update\n";
 
     std::cout << "time step in UpdateFluid_Implicit " << paramsH->dT << std::endl;
     bool *isErrorH, *isErrorD;

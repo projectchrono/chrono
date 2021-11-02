@@ -17,6 +17,7 @@
 // =============================================================================
 
 #include "chrono_fsi/physics/ChBce.cuh"  //for FsiGeneralData
+#include "chrono_fsi/physics/ChSphGeneral.cuh"
 
 namespace chrono {
 namespace fsi {
@@ -190,8 +191,6 @@ __global__ void Calc_Flex_FSI_ForcesD(Real3* FlexSPH_MeshPos_LRF_D,
 }
 //--------------------------------------------------------------------------------------------------------------------------------
 // collide a particle against all other particles in a given cell
-// Arman : revisit equation 10 of tech report, is it only on fluid or it is on
-// all markers
 __device__ void BCE_modification_Share(Real3& sumVW,
                                        Real3& sumRhoRW,
                                        Real& sumPW,
@@ -285,7 +284,7 @@ __global__ void new_BCE_VelocityPressure(Real4* velMassRigid_fsiBodies_D,
             if (rigidBceIndex < 0 || rigidBceIndex >= numObjectsD.numRigid_SphMarkers) {
                 printf(
                     "Error! marker index out of bound: thrown from "
-                    "SDKCollisionSystem.cu, new_BCE_VelocityPressure !\n");
+                    "ChBce.cu, new_BCE_VelocityPressure !\n");
                 *isErrorD = true;
                 return;
             }
@@ -539,18 +538,15 @@ void ChBce::Finalize(std::shared_ptr<SphMarkerDataD> sphMarkersD,
     dummyIdentify.resize(numObjectsH->numRigidBodies);
     torqueMarkersD.resize(numObjectsH->numRigid_SphMarkers);
 
-    // Resizing the arrays used to modify the BCE velocity and pressure according
-    // to ADAMI
+    // Resizing the arrays used to modify the BCE velocity and pressure according to ADAMI
 
     int haveGhost = (numObjectsH->numGhostMarkers > 0) ? 1 : 0;
     int haveHelper = (numObjectsH->numHelperMarkers > 0) ? 1 : 0;
 
     int numFlexAndRigidAndBoundaryMarkers =
-        fsiGeneralData
-            ->referenceArray[2 + haveHelper + haveGhost + numObjectsH->numRigidBodies + numObjectsH->numFlexBodies1D +
-                             numObjectsH->numFlexBodies2D - 1]
-            .y -
-        fsiGeneralData->referenceArray[haveHelper + haveGhost].y;
+        fsiGeneralData->referenceArray[2 + haveHelper + haveGhost + numObjectsH->numRigidBodies + numObjectsH->numFlexBodies1D +
+                                       numObjectsH->numFlexBodies2D - 1].y
+        - fsiGeneralData->referenceArray[haveHelper + haveGhost].y;
     printf("numFlexAndRigidAndBoundaryMarkers= %d, All= %zd\n", numFlexAndRigidAndBoundaryMarkers,
            numObjectsH->numBoundaryMarkers + numObjectsH->numRigid_SphMarkers + numObjectsH->numFlex_SphMarkers);
 
@@ -630,7 +626,6 @@ void ChBce::MakeFlexIdentifier() {
     }
 }
 ////--------------------------------------------------------------------------------------------------------------------------------
-
 void ChBce::Populate_RigidSPH_MeshPos_LRF(std::shared_ptr<SphMarkerDataD> sphMarkersD,
                                           std::shared_ptr<FsiBodiesDataD> fsiBodiesD) {
     if (numObjectsH->numRigidBodies == 0) {
@@ -653,7 +648,6 @@ void ChBce::Populate_RigidSPH_MeshPos_LRF(std::shared_ptr<SphMarkerDataD> sphMar
     UpdateRigidMarkersPositionVelocity(sphMarkersD, fsiBodiesD);
 }
 ////--------------------------------------------------------------------------------------------------------------------------------
-
 void ChBce::Populate_FlexSPH_MeshPos_LRF(std::shared_ptr<SphMarkerDataD> sphMarkersD,
                                          std::shared_ptr<FsiMeshDataD> fsiMeshD) {
     if ((numObjectsH->numFlexBodies1D + numObjectsH->numFlexBodies2D) == 0) {
@@ -800,7 +794,7 @@ void ChBce::Rigid_Forces_Torques(std::shared_ptr<SphMarkerDataD> sphMarkersD,
     cudaDeviceSynchronize();
     cudaCheckError();
 }
-////////////////////////////////////////////////////////////////////////////////////////////////////////
+//--------------------------------------------------------------------------------------------------------------------------------
 void ChBce::Flex_Forces(std::shared_ptr<SphMarkerDataD> sphMarkersD, std::shared_ptr<FsiMeshDataD> fsiMeshD) {
     if ((numObjectsH->numFlexBodies1D + numObjectsH->numFlexBodies2D) == 0) {
         return;

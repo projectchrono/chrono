@@ -28,7 +28,7 @@
 #include "chrono_fsi/math/ChFsiLinearSolver.h"
 #include "chrono_fsi/math/ChFsiLinearSolverBiCGStab.h"
 #include "chrono_fsi/math/ChFsiLinearSolverGMRES.h"
-#include "chrono_fsi/physics/ChSphGeneral.cuh"
+#include "chrono_fsi/ChSystemFsi_impl.cuh"
 #include "chrono_fsi/math/ExactLinearSolvers.cuh"
 
 namespace chrono {

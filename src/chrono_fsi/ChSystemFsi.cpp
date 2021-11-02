@@ -240,8 +240,8 @@ void ChSystemFsi::AddSphMarker(const ChVector<>& points,
                                const ChVector<>& velocity,
                                const ChVector<>& tauXxYyZz,
                                const ChVector<>& tauXyXzYz) {
-    fsiSystem->AddSphMarker(ChUtilsTypeConvert::ChVectorRToReal4(points, h),
-                            ChUtilsTypeConvert::ChVectorRToReal4(properties, particle_type),
+    fsiSystem->AddSphMarker(ChUtilsTypeConvert::ChVectorToReal4(points, h),
+                            ChUtilsTypeConvert::ChVectorToReal4(properties, particle_type),
                             ChUtilsTypeConvert::ChVectorToReal3(velocity),
                             ChUtilsTypeConvert::ChVectorToReal3(tauXxYyZz),
                             ChUtilsTypeConvert::ChVectorToReal3(tauXyXzYz));
