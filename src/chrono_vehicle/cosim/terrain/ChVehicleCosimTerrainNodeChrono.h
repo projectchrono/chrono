@@ -45,6 +45,8 @@ namespace vehicle {
  * (using the Chrono::GPU module).
  * - ChVehicleCosimTerrainNodeGranularSPH wraps a deformable terrain rectangular patch modeled with granular material
  * (using the Chrono::FSI module).
+ * - ChVehicleCosimTerrainNodeGranularMPI wraps a deformable terrain rectangular patch modeled with granular material
+ * (using the Chrono::Distributed module).
  */
 
 /// @addtogroup vehicle_cosim_chrono

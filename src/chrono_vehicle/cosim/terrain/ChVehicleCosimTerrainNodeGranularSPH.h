@@ -58,8 +58,9 @@ class CH_VEHICLE_API ChVehicleCosimTerrainNodeGranularSPH : public ChVehicleCosi
     void SetPropertiesSPH(const std::string& filename, double depth);
 
     /// Set properties of granular material.
-    void SetGranularMaterial(double radius,    ///< particle radius (default: 0.01)
-                             double density);  ///< particle material density (default: 2000)
+    void SetGranularMaterial(double radius,  ///< particle radius (default: 0.01)
+                             double density  ///< particle material density (default: 2000)
+    );
 
     /// Output post-processing visualization data.
     virtual void OutputVisualizationData(int frame) override final;
