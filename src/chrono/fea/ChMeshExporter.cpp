@@ -38,9 +38,9 @@ void ChMeshExporter::writeMesh(std::shared_ptr<ChMesh> my_mesh, std::string Save
     for (unsigned int iele = 0; iele < my_mesh->GetNelements(); iele++) {
         if (std::dynamic_pointer_cast<ChElementCableANCF>(my_mesh->GetElement(iele)))
             numCables++;
-        if (std::dynamic_pointer_cast<ChElementShellANCF>(my_mesh->GetElement(iele)))
+        if (std::dynamic_pointer_cast<ChElementShellANCF_3423>(my_mesh->GetElement(iele)))
             numShells++;
-        if (std::dynamic_pointer_cast<ChElementBrick>(my_mesh->GetElement(iele)))
+        if (std::dynamic_pointer_cast<ChElementHexaANCF_3813>(my_mesh->GetElement(iele)))
             numBricks++;
     }
     MESH << "\nCELLS " << my_mesh->GetNelements() << " "
@@ -68,7 +68,7 @@ void ChMeshExporter::writeMesh(std::shared_ptr<ChMesh> my_mesh, std::string Save
                 }
             }
             MESH << "\n";
-        } else if (auto elementS = std::dynamic_pointer_cast<ChElementShellANCF>(my_mesh->GetElement(iele))) {
+        } else if (auto elementS = std::dynamic_pointer_cast<ChElementShellANCF_3423>(my_mesh->GetElement(iele))) {
             mynodes.resize(4);
             MESH << "4 ";
             int nodeOrder[] = {0, 1, 2, 3};
@@ -89,7 +89,7 @@ void ChMeshExporter::writeMesh(std::shared_ptr<ChMesh> my_mesh, std::string Save
                 }
             }
             MESH << "\n";
-        } else if (auto elementB = std::dynamic_pointer_cast<ChElementBrick>(my_mesh->GetElement(iele))) {
+        } else if (auto elementB = std::dynamic_pointer_cast<ChElementHexaANCF_3813>(my_mesh->GetElement(iele))) {
             mynodes.resize(8);
             MESH << "8 ";
             int nodeOrder[] = {0, 1, 2, 3, 4, 5, 6, 7};
@@ -122,9 +122,9 @@ void ChMeshExporter::writeMesh(std::shared_ptr<ChMesh> my_mesh, std::string Save
     for (unsigned int iele = 0; iele < my_mesh->GetNelements(); iele++) {
         if (std::dynamic_pointer_cast<ChElementCableANCF>(my_mesh->GetElement(iele)))
             MESH << "3\n";
-        else if (std::dynamic_pointer_cast<ChElementShellANCF>(my_mesh->GetElement(iele)))
+        else if (std::dynamic_pointer_cast<ChElementShellANCF_3423>(my_mesh->GetElement(iele)))
             MESH << "9\n";
-        else if (std::dynamic_pointer_cast<ChElementBrick>(my_mesh->GetElement(iele)))
+        else if (std::dynamic_pointer_cast<ChElementHexaANCF_3813>(my_mesh->GetElement(iele)))
             MESH << "12\n";
     }
 
@@ -158,7 +158,7 @@ void ChMeshExporter::writeFrame(std::shared_ptr<ChMesh> my_mesh, char SaveAsBuff
     for (unsigned int iele = 0; iele < my_mesh->GetNelements(); iele++) {
         if (std::dynamic_pointer_cast<ChElementCableANCF>(my_mesh->GetElement(iele)))
             numCell++;
-        else if (std::dynamic_pointer_cast<ChElementShellANCF>(my_mesh->GetElement(iele)))
+        else if (std::dynamic_pointer_cast<ChElementShellANCF_3423>(my_mesh->GetElement(iele)))
             numCell++;
     }
 
@@ -170,7 +170,7 @@ void ChMeshExporter::writeFrame(std::shared_ptr<ChMesh> my_mesh, char SaveAsBuff
     for (unsigned int iele = 0; iele < my_mesh->GetNelements(); iele++) {
         if (auto elementC = std::dynamic_pointer_cast<ChElementCableANCF>(my_mesh->GetElement(iele)))
             scalar = elementC->GetCurrLength() - elementC->GetRestLength();
-        else if (auto elementS = std::dynamic_pointer_cast<ChElementShellANCF>(my_mesh->GetElement(iele)))
+        else if (auto elementS = std::dynamic_pointer_cast<ChElementShellANCF_3423>(my_mesh->GetElement(iele)))
             elementS->EvaluateDeflection(scalar);
         output << scalar + 1e-20 << "\n";
     }
@@ -180,9 +180,10 @@ void ChMeshExporter::writeFrame(std::shared_ptr<ChMesh> my_mesh, char SaveAsBuff
     for (unsigned int iele = 0; iele < my_mesh->GetNelements(); iele++) {
         if (auto elementC = std::dynamic_pointer_cast<ChElementCableANCF>(my_mesh->GetElement(iele)))
             elementC->EvaluateSectionStrain(0.0, StrainV);
-        else if (auto elementS = std::dynamic_pointer_cast<ChElementShellANCF>(my_mesh->GetElement(iele))) {
-             const ChStrainStress3D strainStressOut = elementS->EvaluateSectionStrainStress(ChVector<double>(0,0,0),0);
-             StrainV.Set(strainStressOut.strain[0], strainStressOut.strain[1], strainStressOut.strain[3]);
+        else if (auto elementS = std::dynamic_pointer_cast<ChElementShellANCF_3423>(my_mesh->GetElement(iele))) {
+            const ChStrainStress3D strainStressOut =
+                elementS->EvaluateSectionStrainStress(ChVector<double>(0, 0, 0), 0);
+            StrainV.Set(strainStressOut.strain[0], strainStressOut.strain[1], strainStressOut.strain[3]);
         }
         StrainV += ChVector<>(1e-20);
         output << StrainV.x() << " " << StrainV.y() << " " << StrainV.z() << "\n";

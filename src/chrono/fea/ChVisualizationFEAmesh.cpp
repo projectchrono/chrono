@@ -18,21 +18,18 @@
 #include "chrono/fea/ChContactSurfaceMesh.h"
 #include "chrono/fea/ChContactSurfaceNodeCloud.h"
 #include "chrono/fea/ChElementCableANCF.h"
-#include "chrono/fea/ChElementBeamANCF.h"
+#include "chrono/fea/ChElementBeamANCF_3243.h"
+#include "chrono/fea/ChElementBeamANCF_3333.h"
 #include "chrono/fea/ChElementBeamEuler.h"
 #include "chrono/fea/ChElementBeamTaperedTimoshenko.h"
 #include "chrono/fea/ChElementBeamTaperedTimoshenkoFPM.h"
 #include "chrono/fea/ChElementBeamIGA.h"
-#include "chrono/fea/ChElementBrick.h"
-#include "chrono/fea/ChElementBrick_9.h"
-#include "chrono/fea/ChElementHexa_20.h"
-#include "chrono/fea/ChElementHexa_8.h"
 #include "chrono/fea/ChElementShell.h"
 #include "chrono/fea/ChElementShellReissner4.h"
 #include "chrono/fea/ChElementShellBST.h"
-#include "chrono/fea/ChElementTetra_10.h"
-#include "chrono/fea/ChElementTetra_4.h"
-#include "chrono/fea/ChFaceTetra_4.h"
+#include "chrono/fea/ChElementTetraCorot_4.h"
+#include "chrono/fea/ChTetrahedronFace.h"
+#include "chrono/fea/ChHexahedronFace.h"
 #include "chrono/fea/ChVisualizationFEAmesh.h"
 
 namespace chrono {
@@ -121,19 +118,19 @@ double ChVisualizationFEAmesh::ComputeScalarOutput(std::shared_ptr<ChNodeFEAxyz>
         case E_PLOT_NODE_ACCEL_Z:
             return mnode->GetPos_dtdt().z();
         case E_PLOT_ELEM_STRAIN_VONMISES:
-            if (auto mytetra = std::dynamic_pointer_cast<ChElementTetra_4>(melement)) {
+            if (auto mytetra = std::dynamic_pointer_cast<ChElementTetraCorot_4>(melement)) {
                 return mytetra->GetStrain().GetEquivalentVonMises();
             }
         case E_PLOT_ELEM_STRESS_VONMISES:
-            if (auto mytetra = std::dynamic_pointer_cast<ChElementTetra_4>(melement)) {
+            if (auto mytetra = std::dynamic_pointer_cast<ChElementTetraCorot_4>(melement)) {
                 return mytetra->GetStress().GetEquivalentVonMises();
             }
         case E_PLOT_ELEM_STRAIN_HYDROSTATIC:
-            if (auto mytetra = std::dynamic_pointer_cast<ChElementTetra_4>(melement)) {
+            if (auto mytetra = std::dynamic_pointer_cast<ChElementTetraCorot_4>(melement)) {
                 return mytetra->GetStrain().GetEquivalentMeanHydrostatic();
             }
         case E_PLOT_ELEM_STRESS_HYDROSTATIC:
-            if (auto mytetra = std::dynamic_pointer_cast<ChElementTetra_4>(melement)) {
+            if (auto mytetra = std::dynamic_pointer_cast<ChElementTetraCorot_4>(melement)) {
                 return mytetra->GetStress().GetEquivalentMeanHydrostatic();
             }
         default:
@@ -326,30 +323,19 @@ void ChVisualizationFEAmesh::Update(ChPhysicsItem* updater, const ChCoordsys<>& 
     //
     if (this->fem_data_type != E_PLOT_NONE && this->fem_data_type != E_PLOT_LOADSURFACES &&
         this->fem_data_type != E_PLOT_CONTACTSURFACES) {
-        for (unsigned int iel = 0; iel < this->FEMmesh->GetNelements(); ++iel) {
-            if (std::dynamic_pointer_cast<ChElementTetra_4>(this->FEMmesh->GetElement(iel))) {
-                // ELEMENT IS A TETRAHEDRON
+        for (unsigned int iel = 0; iel < FEMmesh->GetNelements(); ++iel) {
+            if (std::dynamic_pointer_cast<ChElementTetrahedron>(FEMmesh->GetElement(iel)) ||
+                std::dynamic_pointer_cast<ChElementTetraCorot_4_P>(FEMmesh->GetElement(iel))) {
                 n_verts += 4;
                 n_vcols += 4;
                 n_vnorms += 4;     // flat faces
                 n_triangles += 4;  // n. triangle faces
-            } else if (std::dynamic_pointer_cast<ChElementTetra_4_P>(this->FEMmesh->GetElement(iel))) {
-                // ELEMENT IS A TETRAHEDRON for scalar field
-                n_verts += 4;
-                n_vcols += 4;
-                n_vnorms += 4;     // flat faces
-                n_triangles += 4;  // n. triangle faces
-            } else if (std::dynamic_pointer_cast<ChElementHexa_8>(FEMmesh->GetElement(iel)) ||
-                       std::dynamic_pointer_cast<ChElementBrick>(FEMmesh->GetElement(iel)) ||
-                       std::dynamic_pointer_cast<ChElementBrick_9>(FEMmesh->GetElement(iel))) {
-                // ELEMENT IS A HEXAHEDRON
+            } else if (std::dynamic_pointer_cast<ChElementHexahedron>(FEMmesh->GetElement(iel))) {
                 n_verts += 8;
                 n_vcols += 8;
                 n_vnorms += 24;
                 n_triangles += 12;  // n. triangle faces
-            } else if (auto mybeam = std::dynamic_pointer_cast<ChElementBeam>(this->FEMmesh->GetElement(iel))) {
-                // ELEMENT IS A BEAM
-
+            } else if (auto mybeam = std::dynamic_pointer_cast<ChElementBeam>(FEMmesh->GetElement(iel))) {
                 // ELEMENT HAS A ChBeamSectionShape
                 std::shared_ptr<ChBeamSectionShape> sectionshape;
                 if (auto mybeameuler = std::dynamic_pointer_cast<ChElementBeamEuler>(mybeam)) {
@@ -363,7 +349,11 @@ void ChVisualizationFEAmesh::Update(ChPhysicsItem* updater, const ChCoordsys<>& 
                 } else if (auto mybeamtimoshenkofpm =
                                std::dynamic_pointer_cast<ChElementBeamTaperedTimoshenkoFPM>(mybeam)) {
                     sectionshape = mybeamtimoshenkofpm->GetTaperedSection()->GetSectionA()->GetDrawShape();
-                } else if (auto mybeamancf = std::dynamic_pointer_cast<ChElementBeamANCF>(mybeam)) {
+                } else if (auto mybeamancf = std::dynamic_pointer_cast<ChElementBeamANCF_3243>(mybeam)) {
+                    sectionshape = chrono_types::make_shared<ChBeamSectionShapeRectangular>(
+                        mybeamancf->GetThicknessY(),
+                        mybeamancf->GetThicknessZ());  // TO DO use ChBeamSection also in ANCF beam
+                } else if (auto mybeamancf = std::dynamic_pointer_cast<ChElementBeamANCF_3333>(mybeam)) {
                     sectionshape = chrono_types::make_shared<ChBeamSectionShapeRectangular>(
                         mybeamancf->GetThicknessY(),
                         mybeamancf->GetThicknessZ());  // TO DO use ChBeamSection also in ANCF beam
@@ -377,7 +367,7 @@ void ChVisualizationFEAmesh::Update(ChPhysicsItem* updater, const ChCoordsys<>& 
                     }
                 }
 
-            } else if (auto mshell = std::dynamic_pointer_cast<ChElementShell>(this->FEMmesh->GetElement(iel))) {
+            } else if (auto mshell = std::dynamic_pointer_cast<ChElementShell>(FEMmesh->GetElement(iel))) {
                 // ELEMENT IS A SHELL
                 if (!mshell->IsTriangleShell()) {
                     n_verts += shell_resolution * shell_resolution;
@@ -407,13 +397,13 @@ void ChVisualizationFEAmesh::Update(ChPhysicsItem* updater, const ChCoordsys<>& 
             std::shared_ptr<ChMeshSurface> msurface = this->FEMmesh->GetMeshSurface(isu);
             for (unsigned int ifa = 0; ifa < msurface->GetFacesList().size(); ++ifa) {
                 std::shared_ptr<ChLoadableUV> mface = msurface->GetFacesList()[ifa];
-                if (std::dynamic_pointer_cast<ChFaceTetra_4>(mface)) {
+                if (std::dynamic_pointer_cast<ChTetrahedronFace>(mface)) {
                     // FACE ELEMENT IS A TETRAHEDRON FACE
                     n_verts += 3;
                     n_vcols += 3;
-                    n_vnorms += 1;     // flat face
-                    n_triangles += 1;  // n. triangle faces
-                } else if (std::dynamic_pointer_cast<ChElementTetra_4_P>(mface)) {
+                    n_vnorms += 1;                                                       // flat face
+                    n_triangles += 1;                                                    // n. triangle faces
+                } else if (std::dynamic_pointer_cast<ChElementTetraCorot_4_P>(mface)) {  //// RADU ?!?!?
                     // FACE ELEMENT IS A SHELL
                     n_verts += shell_resolution * shell_resolution;
                     n_vcols += shell_resolution * shell_resolution;
@@ -477,11 +467,11 @@ void ChVisualizationFEAmesh::Update(ChPhysicsItem* updater, const ChCoordsys<>& 
         for (unsigned int iel = 0; iel < this->FEMmesh->GetNelements(); ++iel) {
             // ------------ELEMENT IS A TETRAHEDRON 4 NODES?
 
-            if (auto mytetra = std::dynamic_pointer_cast<ChElementTetra_4>(this->FEMmesh->GetElement(iel))) {
-                auto node0 = std::dynamic_pointer_cast<ChNodeFEAxyz>(mytetra->GetNodeN(0));
-                auto node1 = std::dynamic_pointer_cast<ChNodeFEAxyz>(mytetra->GetNodeN(1));
-                auto node2 = std::dynamic_pointer_cast<ChNodeFEAxyz>(mytetra->GetNodeN(2));
-                auto node3 = std::dynamic_pointer_cast<ChNodeFEAxyz>(mytetra->GetNodeN(3));
+            if (auto mytetra = std::dynamic_pointer_cast<ChElementTetrahedron>(this->FEMmesh->GetElement(iel))) {
+                auto node0 = std::dynamic_pointer_cast<ChNodeFEAxyz>(mytetra->GetTetrahedronNode(0));
+                auto node1 = std::dynamic_pointer_cast<ChNodeFEAxyz>(mytetra->GetTetrahedronNode(1));
+                auto node2 = std::dynamic_pointer_cast<ChNodeFEAxyz>(mytetra->GetTetrahedronNode(2));
+                auto node3 = std::dynamic_pointer_cast<ChNodeFEAxyz>(mytetra->GetTetrahedronNode(3));
 
                 unsigned int ivert_el = i_verts;
                 unsigned int inorm_el = i_vnorms;
@@ -552,7 +542,7 @@ void ChVisualizationFEAmesh::Update(ChPhysicsItem* updater, const ChCoordsys<>& 
 
             // ------------ELEMENT IS A TETRAHEDRON 4 NODES -for SCALAR field- ?
 
-            if (auto mytetra = std::dynamic_pointer_cast<ChElementTetra_4_P>(this->FEMmesh->GetElement(iel))) {
+            if (auto mytetra = std::dynamic_pointer_cast<ChElementTetraCorot_4_P>(this->FEMmesh->GetElement(iel))) {
                 auto node0 = std::dynamic_pointer_cast<ChNodeFEAxyzP>(mytetra->GetNodeN(0));
                 auto node1 = std::dynamic_pointer_cast<ChNodeFEAxyzP>(mytetra->GetNodeN(1));
                 auto node2 = std::dynamic_pointer_cast<ChNodeFEAxyzP>(mytetra->GetNodeN(2));
@@ -620,9 +610,7 @@ void ChVisualizationFEAmesh::Update(ChPhysicsItem* updater, const ChCoordsys<>& 
             }
 
             // ------------ELEMENT IS A HEXAHEDRON 8 NODES?
-            if (std::dynamic_pointer_cast<ChElementHexa_8>(FEMmesh->GetElement(iel)) ||
-                std::dynamic_pointer_cast<ChElementBrick>(FEMmesh->GetElement(iel)) ||
-                std::dynamic_pointer_cast<ChElementBrick_9>(FEMmesh->GetElement(iel))) {
+            if (std::dynamic_pointer_cast<ChElementHexahedron>(FEMmesh->GetElement(iel))) {
                 UpdateBuffers_Hex(FEMmesh->GetElement(iel), *trianglemesh, i_verts, i_vnorms, i_vcols, i_triindex);
             }
 
@@ -640,7 +628,10 @@ void ChVisualizationFEAmesh::Update(ChPhysicsItem* updater, const ChCoordsys<>& 
                 } else if (auto mybeamtimoshenkofpm =
                                std::dynamic_pointer_cast<ChElementBeamTaperedTimoshenkoFPM>(mybeam)) {
                     sectionshape = mybeamtimoshenkofpm->GetTaperedSection()->GetSectionA()->GetDrawShape();
-                } else if (auto mybeamancf = std::dynamic_pointer_cast<ChElementBeamANCF>(mybeam)) {
+                } else if (auto mybeamancf = std::dynamic_pointer_cast<ChElementBeamANCF_3243>(mybeam)) {
+                    sectionshape = chrono_types::make_shared<ChBeamSectionShapeRectangular>(
+                        mybeamancf->GetThicknessY(), mybeamancf->GetThicknessZ());
+                } else if (auto mybeamancf = std::dynamic_pointer_cast<ChElementBeamANCF_3333>(mybeam)) {
                     sectionshape = chrono_types::make_shared<ChBeamSectionShapeRectangular>(
                         mybeamancf->GetThicknessY(), mybeamancf->GetThicknessZ());
                 }
@@ -941,7 +932,7 @@ void ChVisualizationFEAmesh::Update(ChPhysicsItem* updater, const ChCoordsys<>& 
             for (unsigned int ifa = 0; ifa < msurface->GetFacesList().size(); ++ifa) {
                 std::shared_ptr<ChLoadableUV> mface = msurface->GetFacesList()[ifa];
                 // FACE ELEMENT IS A TETRAHEDRON FACE
-                if (auto mfacetetra = std::dynamic_pointer_cast<ChFaceTetra_4>(mface)) {
+                if (auto mfacetetra = std::dynamic_pointer_cast<ChTetrahedronFace>(mface)) {
                     auto node0 = std::static_pointer_cast<ChNodeFEAxyz>(mfacetetra->GetNodeN(0));
                     auto node1 = std::static_pointer_cast<ChNodeFEAxyz>(mfacetetra->GetNodeN(1));
                     auto node2 = std::static_pointer_cast<ChNodeFEAxyz>(mfacetetra->GetNodeN(2));
@@ -988,7 +979,7 @@ void ChVisualizationFEAmesh::Update(ChPhysicsItem* updater, const ChCoordsys<>& 
                 }
 
                 // FACE ELEMENT IS A SHELL
-                if (auto mfacetetra = std::dynamic_pointer_cast<ChElementTetra_4_P>(mface)) {
+                if (auto mfacetetra = std::dynamic_pointer_cast<ChElementTetraCorot_4_P>(mface)) {
                     //***TODO***
                 }
             }
@@ -1111,7 +1102,7 @@ void ChVisualizationFEAmesh::Update(ChPhysicsItem* updater, const ChCoordsys<>& 
     if (this->fem_glyph == ChVisualizationFEAmesh::E_GLYPH_ELEM_VECT_DP) {
         glyphs_asset->SetDrawMode(ChGlyphs::GLYPH_VECTOR);
         for (unsigned int iel = 0; iel < this->FEMmesh->GetNelements(); ++iel)
-            if (auto myelement = std::dynamic_pointer_cast<ChElementTetra_4_P>(this->FEMmesh->GetElement(iel))) {
+            if (auto myelement = std::dynamic_pointer_cast<ChElementTetraCorot_4_P>(this->FEMmesh->GetElement(iel))) {
                 ChVector<> mvP(myelement->GetPgradient());
                 auto n0 = std::static_pointer_cast<ChNodeFEAxyzP>(myelement->GetNodeN(0));
                 auto n1 = std::static_pointer_cast<ChNodeFEAxyzP>(myelement->GetNodeN(1));
@@ -1126,7 +1117,7 @@ void ChVisualizationFEAmesh::Update(ChPhysicsItem* updater, const ChCoordsys<>& 
         glyphs_asset->SetDrawMode(ChGlyphs::GLYPH_VECTOR);
         int nglyvect = 0;
         for (unsigned int iel = 0; iel < this->FEMmesh->GetNelements(); ++iel)
-            if (auto myelement = std::dynamic_pointer_cast<ChElementTetra_4>(this->FEMmesh->GetElement(iel))) {
+            if (auto myelement = std::dynamic_pointer_cast<ChElementTetraCorot_4>(this->FEMmesh->GetElement(iel))) {
                 ChStrainTensor<> mstrain = myelement->GetStrain();
                 // mstrain.Rotate(myelement->Rotation());
                 double e1, e2, e3;
@@ -1157,7 +1148,7 @@ void ChVisualizationFEAmesh::Update(ChPhysicsItem* updater, const ChCoordsys<>& 
         glyphs_asset->SetDrawMode(ChGlyphs::GLYPH_VECTOR);
         int nglyvect = 0;
         for (unsigned int iel = 0; iel < this->FEMmesh->GetNelements(); ++iel)
-            if (auto myelement = std::dynamic_pointer_cast<ChElementTetra_4>(this->FEMmesh->GetElement(iel))) {
+            if (auto myelement = std::dynamic_pointer_cast<ChElementTetraCorot_4>(this->FEMmesh->GetElement(iel))) {
                 ChStressTensor<> mstress = myelement->GetStress();
                 mstress.Rotate(myelement->Rotation());
                 double e1, e2, e3;

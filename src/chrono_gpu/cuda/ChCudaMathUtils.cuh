@@ -17,6 +17,7 @@
 
 #define MIN(a, b) ((a < b) ? a : b)
 #define MAX(a, b) ((a > b) ? a : b)
+#define EPSILON 1e-7
 
 inline __device__ double3 Cross(const double3& v1, const double3& v2) {
     return make_double3(v1.y * v2.z - v1.z * v2.y, v1.z * v2.x - v1.x * v2.z, v1.x * v2.y - v1.y * v2.x);
@@ -41,10 +42,27 @@ inline __device__ float Length(const float3& v) {
     return sqrt(Dot(v, v));
 }
 
+// Get vector 2-norm square
+inline __device__ double Length2(const double3& v) {
+    return Dot(v, v);
+}
+// Get vector 2-norm square
+inline __device__ float Length2(const float3& v) {
+    return Dot(v, v);
+}
+
+
+//Get normalized vector
+inline __device__ float3 Normalize(const float3& v){
+    float ratio = 1./sqrt(Dot(v,v));
+    return make_float3(v.x * ratio, v.y * ratio, v.z * ratio);
+}
+
 // Multiply a * v
 inline __device__ double3 operator*(const double& a, const double3& v) {
     return make_double3(a * v.x, a * v.y, a * v.z);
 }
+
 // Multiply a * v
 inline __device__ double3 operator*(const double3& v, const double& a) {
     return make_double3(a * v.x, a * v.y, a * v.z);

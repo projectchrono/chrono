@@ -19,7 +19,7 @@
 #ifndef ANCF_TIRE_H
 #define ANCF_TIRE_H
 
-#include "chrono/fea/ChElementShellANCF.h"
+#include "chrono/fea/ChElementShellANCF_3423.h"
 #include "chrono_vehicle/ChApiVehicle.h"
 #include "chrono_vehicle/wheeled_vehicle/tire/ChANCFTire.h"
 

@@ -23,7 +23,7 @@
 #include "chrono/physics/ChSystemSMC.h"
 #include "chrono/solver/ChIterativeSolverLS.h"
 
-#include "chrono/fea/ChElementBeamANCF.h"
+#include "chrono/fea/ChElementBeamANCF_3333.h"
 
 #include "chrono/fea/ChMesh.h"
 #include "chrono/fea/ChVisualizationFEAmesh.h"
@@ -93,7 +93,7 @@ int main(int argc, char* argv[]) {
     nodeA->SetFixed(true);
     mesh->AddNode(nodeA);
 
-    auto elementlast = chrono_types::make_shared<ChElementBeamANCF>();
+    auto elementlast = chrono_types::make_shared<ChElementBeamANCF_3333>();
     std::shared_ptr<ChNodeFEAxyzDD> nodeEndPoint;
 
     for (int i = 1; i <= num_elements; i++) {
@@ -102,15 +102,11 @@ int main(int argc, char* argv[]) {
         mesh->AddNode(nodeB);
         mesh->AddNode(nodeC);
 
-        auto element = chrono_types::make_shared<ChElementBeamANCF>();
+        auto element = chrono_types::make_shared<ChElementBeamANCF_3333>();
         element->SetNodes(nodeA, nodeB, nodeC);
         element->SetDimensions(2 * dx, width, width);
         element->SetMaterial(material);
         element->SetAlphaDamp(0.0);
-        element->SetGravityOn(
-            false);  // Enable the efficient ANCF method for calculating the application of gravity to the element
-        element->SetStrainFormulation(ChElementBeamANCF::StrainFormulation::CMPoisson);
-        // element->SetStrainFormulation(ElementVersion::StrainFormulation::CMNoPoisson);
         mesh->AddElement(element);
 
         nodeA = nodeB;
@@ -119,8 +115,7 @@ int main(int argc, char* argv[]) {
 
     nodeEndPoint = nodeA;
 
-    mesh->SetAutomaticGravity(false);  // Turn off the default method for applying gravity to the mesh since it is less
-                                       // efficient for ANCF elements
+    mesh->SetAutomaticGravity(false);
 
     // Create a custom atomic (point) load
     class MyLoaderTimeDependentTipLoad : public ChLoaderUatomic {

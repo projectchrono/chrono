@@ -20,7 +20,6 @@
 #include <fstream>
 #include <sstream>
 #include "chrono_fsi/utils/ChUtilsDevice.cuh"
-#include "chrono_fsi/physics/ChParams.cuh"
 #include "chrono_fsi/utils/ChUtilsPrintSph.cuh"
 
 namespace chrono {
@@ -313,9 +312,9 @@ void WriteChPFParticlesToFile(thrust::device_vector<Real4>& posRadD,
     // ======================================================
 
     for (size_t i = referenceArray[haveHelper + haveGhost].x; i < referenceArray[haveHelper + haveGhost].y; i++) {
-        pos_x[i] = posRadH[i].x;
-        pos_y[i] = posRadH[i].y;
-        pos_z[i] = posRadH[i].z;
+        pos_x[i] = (float)posRadH[i].x;
+        pos_y[i] = (float)posRadH[i].y;
+        pos_z[i] = (float)posRadH[i].z;
     }
 
     pw.write(ptFile, ParticleFormatWriter::CompressionType::NONE, pos_x, pos_y, pos_z);

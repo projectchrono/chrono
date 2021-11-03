@@ -212,7 +212,43 @@ void ChSystemGpu::SetAdhesionRatio_SPH2WALL(float someValue) {
     m_sys->adhesion_s2w_over_gravity = someValue;
 }
 
+void ChSystemGpu::UseMaterialBasedModel(bool val) {
+    m_sys->use_mat_based = val;
+    m_sys->gran_params->use_mat_based = val;
+}
+
+void ChSystemGpu::SetYoungModulus_SPH(double someValue) {
+    m_sys->YoungsModulus_sphere_UU = someValue;
+}
+
+void ChSystemGpu::SetYoungModulus_WALL(double someValue) {
+    m_sys->YoungsModulus_wall_UU = someValue;
+}
+
+void ChSystemGpu::SetPoissonRatio_SPH(double someValue) {
+    m_sys->PoissonRatio_sphere_UU = someValue;
+}
+
+void ChSystemGpu::SetPoissonRatio_WALL(double someValue) {
+    m_sys->PoissonRatio_wall_UU = someValue;
+}
+
+void ChSystemGpu::SetRestitution_SPH(double someValue) {
+    m_sys->COR_sphere_UU = someValue;
+}
+
+void ChSystemGpu::SetRestitution_WALL(double someValue) {
+    m_sys->COR_wall_UU = someValue;
+}
+
 // -----------------------------------------------------------------------------
+
+void ChSystemGpuMesh::UseMaterialBasedModel(bool val) {
+    ChSystemGpuMesh_impl* sys_trimesh = static_cast<ChSystemGpuMesh_impl*>(m_sys);
+    sys_trimesh->tri_params->use_mat_based = val;
+    sys_trimesh->gran_params->use_mat_based = val;
+    sys_trimesh->use_mat_based = val;
+}
 
 void ChSystemGpuMesh::SetStaticFrictionCoeff_SPH2MESH(float mu) {
     ChSystemGpuMesh_impl* sys_trimesh = static_cast<ChSystemGpuMesh_impl*>(m_sys);
@@ -254,6 +290,21 @@ void ChSystemGpuMesh::SetAdhesionRatio_SPH2MESH(float someValue) {
     sys_trimesh->adhesion_s2m_over_gravity = someValue;
 }
 
+void ChSystemGpuMesh::SetYoungModulus_MESH(double someValue) {
+    ChSystemGpuMesh_impl* sys_trimesh = static_cast<ChSystemGpuMesh_impl*>(m_sys);
+    sys_trimesh->YoungsModulus_mesh_UU = someValue;
+}
+
+void ChSystemGpuMesh::SetPoissonRatio_MESH(double someValue) {
+    ChSystemGpuMesh_impl* sys_trimesh = static_cast<ChSystemGpuMesh_impl*>(m_sys);
+    sys_trimesh->PoissonRatio_mesh_UU = someValue;
+}
+
+void ChSystemGpuMesh::SetRestitution_MESH(double someValue) {
+    ChSystemGpuMesh_impl* sys_trimesh = static_cast<ChSystemGpuMesh_impl*>(m_sys);
+    sys_trimesh->COR_mesh_UU = someValue;
+}
+
 // -----------------------------------------------------------------------------
 
 void ChSystemGpu::SetVerbosity(CHGPU_VERBOSITY level) {
@@ -269,9 +320,28 @@ void ChSystemGpuMesh::SetMeshVerbosity(CHGPU_MESH_VERBOSITY level) {
 size_t ChSystemGpu::CreateBCSphere(const ChVector<float>& center,
                                    float radius,
                                    bool outward_normal,
-                                   bool track_forces) {
+                                   bool track_forces,
+                                   float sphere_mass) {
     float sph_center[3] = {center.x(), center.y(), center.z()};
-    return m_sys->CreateBCSphere(sph_center, radius, outward_normal, track_forces);
+    return m_sys->CreateBCSphere(sph_center, radius, outward_normal, track_forces, sphere_mass);
+}
+
+void ChSystemGpu::SetBCSpherePosition(size_t sphere_bc_id, const ChVector<float>& pos) {
+    m_sys->SetBCSpherePosition(sphere_bc_id, make_float3(pos.x(), pos.y(), pos.z()));
+}
+
+ChVector<float> ChSystemGpu::GetBCSpherePosition(size_t sphere_bc_id) const {
+    float3 pos = m_sys->GetBCSpherePosition(sphere_bc_id);
+    return ChVector<float>(pos.x, pos.y, pos.z);
+}
+
+void ChSystemGpu::SetBCSphereVelocity(size_t sphere_bc_id, const ChVector<float>& velo) {
+    m_sys->SetBCSphereVelocity(sphere_bc_id, make_float3(velo.x(), velo.y(), velo.z()));
+}
+
+ChVector<float> ChSystemGpu::GetBCSphereVelocity(size_t sphere_bc_id) const {
+    float3 velo = m_sys->GetBCSphereVelocity(sphere_bc_id);
+    return ChVector<float>(velo.x, velo.y, velo.z);
 }
 
 size_t ChSystemGpu::CreateBCConeZ(const ChVector<float>& tip,
@@ -287,7 +357,18 @@ size_t ChSystemGpu::CreateBCConeZ(const ChVector<float>& tip,
 size_t ChSystemGpu::CreateBCPlane(const ChVector<float>& pos, const ChVector<float>& normal, bool track_forces) {
     float plane_pos[3] = {pos.x(), pos.y(), pos.z()};
     float plane_nrm[3] = {normal.x(), normal.y(), normal.z()};
+
     return m_sys->CreateBCPlane(plane_pos, plane_nrm, track_forces);
+}
+
+// customized plate for angle of repose test, plate has a limited width in y direction, and can move in y direction
+size_t ChSystemGpu::CreateCustomizedPlate(const ChVector<float>& pos_center,
+                                          const ChVector<float>& normal,
+                                          float hdim_y) {
+    float plate_pos[3] = {pos_center.x(), pos_center.y(), pos_center.z()};
+    float plate_nrm[3] = {normal.x(), normal.y(), normal.z()};
+
+    return m_sys->CreateCustomizedPlate(plate_pos, plate_nrm, hdim_y);
 }
 
 size_t ChSystemGpu::CreateBCCylinderZ(const ChVector<float>& center,
@@ -326,6 +407,12 @@ ChVector<float> ChSystemGpu::GetBCPlanePosition(size_t plane_id) const {
     return ChVector<float>(pos.x, pos.y, pos.z);
 }
 
+void ChSystemGpu::SetBCPlaneRotation(size_t plane_id, ChVector<double> center, ChVector<double> omega) {
+    double3 rotation_center = make_double3(center.x(), center.y(), center.z());
+    double3 rotation_omega = make_double3(omega.x(), omega.y(), omega.z());
+    m_sys->SetBCPlaneRotation(plane_id, rotation_center, rotation_omega);
+}
+
 bool ChSystemGpu::GetBCReactionForces(size_t BC_id, ChVector<float>& force) const {
     float3 frc;
     bool ret = m_sys->GetBCReactionForces(BC_id, frc);
@@ -354,9 +441,19 @@ ChVector<float> ChSystemGpu::GetParticlePosition(int nSphere) const {
     return ChVector<float>(pos.x, pos.y, pos.z);
 }
 
+void ChSystemGpu::SetParticlePosition(int nSphere, const ChVector<double> pos) {
+    double3 position = make_double3(pos.x(), pos.y(), pos.z());
+    m_sys->SetParticlePosition(nSphere, position);
+}
+
 ChVector<float> ChSystemGpu::GetParticleVelocity(int nSphere) const {
     float3 vel = m_sys->GetParticleLinVelocity(nSphere);
     return ChVector<float>(vel.x, vel.y, vel.z);
+}
+
+void ChSystemGpu::SetParticleVelocity(int nSphere, const ChVector<double> velo) {
+    double3 velocity = make_double3(velo.x(), velo.y(), velo.z());
+    m_sys->SetParticleVelocity(nSphere, velocity);
 }
 
 ChVector<float> ChSystemGpu::GetParticleAngVelocity(int nSphere) const {
@@ -365,6 +462,15 @@ ChVector<float> ChSystemGpu::GetParticleAngVelocity(int nSphere) const {
 
     float3 omega = m_sys->GetParticleAngVelocity(nSphere);
     return ChVector<float>(omega.x, omega.y, omega.z);
+}
+
+ChVector<float> ChSystemGpu::GetParticleLinAcc(int nSphere) const {
+    float3 acc = m_sys->GetParticleLinAcc(nSphere);
+    return ChVector<float>(acc.x, acc.y, acc.z);
+}
+
+bool ChSystemGpu::IsFixed(int nSphere) const {
+    return m_sys->IsFixed(nSphere);
 }
 
 float ChSystemGpu::GetParticlesKineticEnergy() const {
@@ -596,7 +702,8 @@ inline unsigned int quarryHistoryFormat(const std::string& line, unsigned int ma
         iss1 >> max_partner;
     } else
         printf(
-            "WARNING! The friction history either has no header, or its header indicates there is no history to load "
+            "WARNING! The friction history either has no header, or its header indicates there is no history to "
+            "load "
             "in!\n");
     if (line.find("history") != std::string::npos)
         formatMode += 2;
@@ -683,8 +790,8 @@ void ChSystemGpu::ReadCsvParticles(std::ifstream& ifile, unsigned int totRow) {
     m_sys->user_sphere_fixed = fixity;
 
     // Last thing: if this function runs successfully, then we automatically disable the defragment process on
-    // simulation initialization. A re-started simulation would better not have its particle order re-arranged. But if
-    // the user does not like it, they can still force the defragment by calling a method.
+    // simulation initialization. A re-started simulation would better not have its particle order re-arranged. But
+    // if the user does not like it, they can still force the defragment by calling a method.
     if (numRow > 0)
         m_sys->defragment_on_start = false;
 }
@@ -753,8 +860,8 @@ void ChSystemGpu::ReadHstHistory(std::ifstream& ifile, unsigned int totItem) {
     m_sys->user_friction_history = history;
 
     // Last thing: if this function runs successfully, then we automatically disable the defragment process on
-    // simulation initialization. A re-started simulation would better not have its particle order re-arranged. But if
-    // the user does not like it, they can still force the defragment by calling a method.
+    // simulation initialization. A re-started simulation would better not have its particle order re-arranged. But
+    // if the user does not like it, they can still force the defragment by calling a method.
     if (numItem > 0)
         m_sys->defragment_on_start = false;
 }
@@ -783,8 +890,8 @@ void ChSystemGpu::ReadParticleFile(const std::string& infilename) {
 
 // A smaller hasher that helps determine the indentifier type.
 // It is powerful enough for our purpose and good-looking. We did not use built-in functions (such as string_view?)
-// because that could require C++17, also I feel it would make the code look longer. In any case, if this small hasher
-// is not sufficient anymore in future updates, we can spot that during compilation.
+// because that could require C++17, also I feel it would make the code look longer. In any case, if this small
+// hasher is not sufficient anymore in future updates, we can spot that during compilation.
 constexpr unsigned int hash_charr(const char* s, int off = 0) {
     return !s[off] ? 7001 : (hash_charr(s, off + 1) * 33) ^ s[off];
 }
@@ -798,8 +905,8 @@ bool diff(float3 a, float3 b) {
     return std::abs(a.x - b.x) > 1e-6f || std::abs(a.y - b.y) > 1e-6f || std::abs(a.z - b.z) > 1e-6f;
 }
 
-// Use hash to find matching indentifier and load parameters. Return 1 if found no matching paramter to set, return 0 if
-// status normal
+// Use hash to find matching indentifier and load parameters. Return 1 if found no matching paramter to set, return
+// 0 if status normal
 bool ChSystemGpu::SetParamsFromIdentifier(const std::string& identifier, std::istringstream& iss1, bool overwrite) {
     unsigned int i;        // integer holder
     float f;               // float holder
@@ -984,8 +1091,8 @@ bool ChSystemGpu::SetParamsFromIdentifier(const std::string& identifier, std::is
 }
 
 // Read in simulation parameters. Returns the total number of particles. If instructed to overwrite, then overwrite
-// cuurent simulation parameters with the values in the checkpoint file; else, when an inconsistency is found, throw an
-// error.
+// cuurent simulation parameters with the values in the checkpoint file; else, when an inconsistency is found, throw
+// an error.
 unsigned int ChSystemGpu::ReadDatParams(std::ifstream& ifile, bool overwrite) {
     std::string line;
     unsigned int nSpheres = 0;
@@ -1005,7 +1112,8 @@ unsigned int ChSystemGpu::ReadDatParams(std::ifstream& ifile, bool overwrite) {
             if (!overwrite && (nSpheres - m_sys->nSpheres != 0))
                 CHGPU_ERROR(
                     "ERROR! Number of particles in checkpoint file is inconsistent with the current system.\n"
-                    "If you wish to construct a simulation systen from scratch using this checkpoint file, then you "
+                    "If you wish to construct a simulation systen from scratch using this checkpoint file, then "
+                    "you "
                     "should supply this file as the constructor parameter.\nExiting...\n");
         } else {
             bool anomaly = SetParamsFromIdentifier(identifier, iss1, overwrite);
@@ -1019,13 +1127,14 @@ unsigned int ChSystemGpu::ReadDatParams(std::ifstream& ifile, bool overwrite) {
 
     if (nSpheres == 0)
         printf(
-            "WARNING! The checkpoint file indicates there are 0 particles to be loaded. If this is intended, the user "
+            "WARNING! The checkpoint file indicates there are 0 particles to be loaded. If this is intended, the "
+            "user "
             "must initialize the particles by themselves.\n");
     return nSpheres;
 }
 
-// Read in a (Chrono::Gpu generated) checkpoint file to restart a simulation. It calls ReadHstHistory, ReadCsvParticles
-// and ReadDatParams to parse in the entire checkpoint file.
+// Read in a (Chrono::Gpu generated) checkpoint file to restart a simulation. It calls ReadHstHistory,
+// ReadCsvParticles and ReadDatParams to parse in the entire checkpoint file.
 void ChSystemGpu::ReadCheckpointFile(const std::string& infilename, bool overwrite) {
     // Open the file
     std::ifstream ifile(infilename.c_str());
@@ -1044,7 +1153,8 @@ void ChSystemGpu::ReadCheckpointFile(const std::string& infilename, bool overwri
     if (line != "ChSystemGpu")
         printf(
             "WARNING! Header of checkpoint file indicates this is not for ChSystemGpu (and it seems to be for %s)! "
-            "There may still be parameters defaulted after loading this checkpoint file, and you may want to set them "
+            "There may still be parameters defaulted after loading this checkpoint file, and you may want to set "
+            "them "
             "manually.\n",
             line.c_str());
 
@@ -1143,8 +1253,10 @@ void ChSystemGpuMesh::ReadCheckpointFile(const std::string& infilename, bool ove
         std::getline(ifile, line);
     if (line != "ChSystemGpuMesh")
         printf(
-            "WARNING! Header of checkpoint file indicates this is not for ChSystemGpuMesh (and it seems to be for %s)! "
-            "There may still be parameters defaulted after loading this checkpoint file, and you may want to set them "
+            "WARNING! Header of checkpoint file indicates this is not for ChSystemGpuMesh (and it seems to be for "
+            "%s)! "
+            "There may still be parameters defaulted after loading this checkpoint file, and you may want to set "
+            "them "
             "manually.\n",
             line.c_str());
 
@@ -1259,8 +1371,10 @@ void ChSystemGpu::WriteCheckpointParams(std::ofstream& cpFile) const {
     if (m_sys->time_integrator == CHGPU_TIME_INTEGRATOR::CHUNG)
         printf(
             "WARNING! CHUNG integrator is partially supported in this version. The acceleration and angular "
-            "acceleration info is not stored in the checkpoint file, leading to a potential change in physics. You can "
-            "consider using other integrators if checkpointing is needed, or wait for a fix in the next version.\n");
+            "acceleration info is not stored in the checkpoint file, leading to a potential change in physics. You "
+            "can "
+            "consider using other integrators if checkpointing is needed, or wait for a fix in the next "
+            "version.\n");
 
     paramStream << "maxSafeVelSU: " << m_sys->gran_params->max_safe_vel << "\n";
 
@@ -1471,7 +1585,6 @@ void ChSystemGpuMesh::WriteMesh(const std::string& outfilename, unsigned int i) 
         return;
     }
 
-    printf("Writing mesh family %u...\n", i);
     std::string ofile;
     if (outfilename.substr(outfilename.length() - std::min(outfilename.length(), (size_t)4)) != ".vtk" &&
         outfilename.substr(outfilename.length() - std::min(outfilename.length(), (size_t)4)) != ".VTK")
@@ -1515,6 +1628,40 @@ void ChSystemGpuMesh::WriteMesh(const std::string& outfilename, unsigned int i) 
     outfile << ostream.str();
 }
 
+/// get index list of neighbors
+void ChSystemGpu::getNeighbors(int ID, std::vector<int>& neighborList) {
+    m_sys->getNeighbors(ID, neighborList);
+}
+
+/// Get rolling friction torque between body i and j, return 0 if not in contact
+ChVector<float> ChSystemGpu::getRollingFrictionTorque(int i, int j) {
+    float3 m_roll = m_sys->getRollingFrictionTorque(i, j);
+    return ChVector<float>(m_roll.x, m_roll.y, m_roll.z);
+}
+
+/// Get v_rot for rolling friction
+ChVector<float> ChSystemGpu::getRollingVrot(int i, int j) {
+    float3 vrot = m_sys->getRollingVrot(i, j);
+    return ChVector<float>(vrot.x, vrot.y, vrot.z);
+}
+
+/// get contact char time
+float ChSystemGpu::getRollingCharContactTime(int i, int j) {
+    return m_sys->getRollingCharContactTime(i, j);
+}
+
+/// Get tangential friction force between body i and j, return 0 if not in contact
+ChVector<float> ChSystemGpu::getSlidingFrictionForce(int i, int j) {
+    float3 fr = m_sys->getSlidingFrictionForce(i, j);
+    return ChVector<float>(fr.x, fr.y, fr.z);
+}
+
+/// Get normal friction force between body i and j, return 0 if not in contact
+ChVector<float> ChSystemGpu::getNormalForce(int i, int j) {
+    float3 N = m_sys->getNormalForce(i, j);
+    return ChVector<float>(N.x, N.y, N.z);
+}
+
 void ChSystemGpuMesh::WriteMeshes(const std::string& outfilename) const {
     ChSystemGpuMesh_impl* sys_trimesh = static_cast<ChSystemGpuMesh_impl*>(m_sys);
     if (sys_trimesh->file_write_mode == CHGPU_OUTPUT_MODE::NONE) {
@@ -1531,7 +1678,7 @@ void ChSystemGpuMesh::WriteMeshes(const std::string& outfilename) const {
     size_t total_f = 0;
     size_t total_v = 0;
 
-    printf("Writing %zu mesh(es)...\n", m_meshes.size());
+    // printf("Writing %zu mesh(es)...\n", m_meshes.size());
     std::string ofile;
     if (outfilename.substr(outfilename.length() - std::min(outfilename.length(), (size_t)4)) != ".vtk" &&
         outfilename.substr(outfilename.length() - std::min(outfilename.length(), (size_t)4)) != ".VTK")

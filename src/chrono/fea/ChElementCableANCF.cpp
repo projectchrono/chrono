@@ -353,44 +353,32 @@ void ChElementCableANCF::ComputeInternalJacobians(double Kfactor, double Rfactor
 void ChElementCableANCF::ComputeMassMatrix() {
     assert(section);
 
-    double Area = section->Area;
-    double rho = section->density;
+    double L = this->length;
+    double rhoAL = section->density * section->Area * L;
+    double rhoAL2 = rhoAL * L;
+    double rhoAL3 = rhoAL2 * L;
 
-    // Integrate  Area*rho*(S'*S)
-    // where S=[N1*eye(3) N2*eye(3) N3*eye(3) N4*eye(3)]
-
-    class CableANCF_Mass : public ChIntegrable1D<ChMatrixNM<double, 12, 12>> {
-      public:
-        ChElementCableANCF* element;
-        ChMatrixNM<double, 3, 12> S;
-        ChElementCableANCF::ShapeVector N;
-
-        // Evaluate the S'*S  at point x
-        virtual void Evaluate(ChMatrixNM<double, 12, 12>& result, const double x) {
-            element->ShapeFunctions(N, x);
-            // S=[N1*eye(3) N2*eye(3) N3*eye(3) N4*eye(3)]
-            S.setZero();
-            for (int i = 0; i < 4; i++) {
-                S(0, 3 * i + 0) = N(i);
-                S(1, 3 * i + 1) = N(i);
-                S(2, 3 * i + 2) = N(i);
-            }
-
-            result = S.transpose() * S;
-        }
-    };
-
-    CableANCF_Mass myformula;
-    myformula.element = this;
     m_MassMatrix.setZero();
-    ChQuadrature::Integrate1D<ChMatrixNM<double, 12, 12>>(m_MassMatrix,  // result of integration will go there
-                                                          myformula,     // formula to integrate
-                                                          0,             // start of x
-                                                          1,             // end of x
-                                                          4              // order of integration
-    );
 
-    m_MassMatrix *= (rho * Area * this->length);
+    m_MassMatrix.block<3, 3>(0, 0).fillDiagonal(13.0 / 35.0 * rhoAL);
+    m_MassMatrix.block<3, 3>(0, 3).fillDiagonal(11.0 / 210.0 * rhoAL2);
+    m_MassMatrix.block<3, 3>(0, 6).fillDiagonal(9.0 / 70.0 * rhoAL);
+    m_MassMatrix.block<3, 3>(0, 9).fillDiagonal(-13.0 / 420.0 * rhoAL2);
+
+    m_MassMatrix.block<3, 3>(3, 0).fillDiagonal(11.0 / 210.0 * rhoAL2);
+    m_MassMatrix.block<3, 3>(3, 3).fillDiagonal(1.0 / 105.0 * rhoAL3);
+    m_MassMatrix.block<3, 3>(3, 6).fillDiagonal(13.0 / 420.0 * rhoAL2);
+    m_MassMatrix.block<3, 3>(3, 9).fillDiagonal(-1.0 / 140.0 * rhoAL3);
+
+    m_MassMatrix.block<3, 3>(6, 0).fillDiagonal(9.0 / 70.0 * rhoAL);
+    m_MassMatrix.block<3, 3>(6, 3).fillDiagonal(13.0 / 420.0 * rhoAL2);
+    m_MassMatrix.block<3, 3>(6, 6).fillDiagonal(13.0 / 35.0 * rhoAL);
+    m_MassMatrix.block<3, 3>(6, 9).fillDiagonal(-11.0 / 210.0 * rhoAL2);
+
+    m_MassMatrix.block<3, 3>(9, 0).fillDiagonal(-13.0 / 420.0 * rhoAL2);
+    m_MassMatrix.block<3, 3>(9, 3).fillDiagonal(-1.0 / 140.0 * rhoAL3);
+    m_MassMatrix.block<3, 3>(9, 6).fillDiagonal(-11.0 / 210.0 * rhoAL2);
+    m_MassMatrix.block<3, 3>(9, 9).fillDiagonal(1.0 / 105.0 * rhoAL3);
 }
 
 // Setup: precompute mass and matrices that do not change during the simulation.
@@ -411,6 +399,13 @@ void ChElementCableANCF::SetupInitial(ChSystem* system) {
 
     // Compute mass matrix
     ComputeMassMatrix();
+
+    // Compute the matrix used to multiply the acceleration due to gravity to get the generalized gravitational force
+    // vector for the element
+    m_GravForceScale(0) = 0.5 * this->section->density * this->section->Area * this->length;
+    m_GravForceScale(1) = 1.0 / 12.0 * this->section->density * this->section->Area * this->length * this->length;
+    m_GravForceScale(2) = 0.5 * this->section->density * this->section->Area * this->length;
+    m_GravForceScale(3) = -1.0 / 12.0 * this->section->density * this->section->Area * this->length * this->length;
 }
 
 // Sets H as the global stiffness matrix K, scaled  by Kfactor. Optionally, also superimposes global
@@ -628,6 +623,20 @@ void ChElementCableANCF::ComputeInternalForces_Impl(const ChVector<>& pA,
 
     // Also subtract contribution of initial configuration
     Fi -= (E * I * length) * Fcurv + m_GenForceVec0;
+}
+
+// Compute the generalized force vector due to gravity using the efficient ANCF specific method
+void ChElementCableANCF::ComputeGravityForces(ChVectorDynamic<>& Fg, const ChVector<>& G_acc) {
+    assert(Fg.size() == 12);
+
+    // Calculate and add the generalized force due to gravity to the generalized internal force vector for the element.
+    // The generalized force due to gravity could be computed once prior to the start of the simulation if gravity was
+    // assumed constant throughout the entire simulation.  However, this implementation assumes that the acceleration
+    // due to gravity, while a constant for the entire system, can change from step to step which could be useful for
+    // gravity loaded units tests as an example.  The generalized force due to gravity is calculated in compact matrix
+    // form and is pre-mapped to the desired vector format
+    Eigen::Map<ChMatrixNM<double, 4, 3>> GravForceCompact(Fg.data(), 4, 3);
+    GravForceCompact = m_GravForceScale * G_acc.eigen().transpose();
 }
 
 void ChElementCableANCF::EvaluateSectionDisplacement(const double eta, ChVector<>& u_displ, ChVector<>& u_rotaz) {

@@ -9,7 +9,7 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Author: Arman Pazouki, Milad Rakhsha
+// Author: Arman Pazouki, Milad Rakhsha, Wei Hu
 // =============================================================================
 //
 // Utility class for generating BCE markers.//
@@ -19,7 +19,7 @@
 #define CH_UTILSGENERATORFSI_CUH
 
 #include "chrono/ChConfig.h"
-#include "chrono_fsi/ChFsiDataManager.cuh"
+#include "chrono_fsi/ChSystemFsi_impl.cuh"
 #include "chrono_fsi/utils/ChUtilsGeneratorBce.h"
 
 namespace chrono {
@@ -27,7 +27,7 @@ namespace chrono {
 // Forward declaration
 namespace fea {
 class ChElementCableANCF;
-class ChElementShellANCF;
+class ChElementShellANCF_3423;
 class ChNodeFEAxyzD;
 class ChMesh;
 }  // namespace fea
@@ -40,18 +40,17 @@ chrono::ChVector<> TransformBCEToCOG(std::shared_ptr<ChBody> body, const Real3& 
 
 CH_FSI_API void FinalizeDomain(std::shared_ptr<SimParams> paramsH);
 
-CH_FSI_API void CreateBceGlobalMarkersFromBceLocalPos(
-    std::shared_ptr<ChFsiDataManager> fsiData,
-    std::shared_ptr<SimParams> paramsH,
-    const thrust::host_vector<Real4>& posRadBCE,
-    std::shared_ptr<ChBody> body,
-    chrono::ChVector<> collisionShapeRelativePos = chrono::ChVector<>(0),
-    chrono::ChQuaternion<> collisionShapeRelativeRot = chrono::QUNIT,
-    bool isSolid = true,
-    bool add_to_fluid_helpers = false,
-    bool add_to_previous_object = false);
+CH_FSI_API void CreateBceGlobalMarkersFromBceLocalPos(std::shared_ptr<ChSystemFsi_impl> fsiSystem,
+                                                      std::shared_ptr<SimParams> paramsH,
+                                                      const thrust::host_vector<Real4>& posRadBCE,
+                                                      std::shared_ptr<ChBody> body,
+                                                      chrono::ChVector<> collisionShapeRelativePos = chrono::ChVector<>(0),
+                                                      chrono::ChQuaternion<> collisionShapeRelativeRot = chrono::QUNIT,
+                                                      bool isSolid = true,
+                                                      bool add_to_fluid_helpers = false,
+                                                      bool add_to_previous_object = false);
 
-CH_FSI_API void CreateBceGlobalMarkersFromBceLocalPosBoundary(std::shared_ptr<ChFsiDataManager> fsiData,
+CH_FSI_API void CreateBceGlobalMarkersFromBceLocalPosBoundary(std::shared_ptr<ChSystemFsi_impl> fsiSystem,
                                                               std::shared_ptr<SimParams> paramsH,
                                                               const thrust::host_vector<Real4>& posRadBCE,
                                                               std::shared_ptr<ChBody> body,
@@ -60,14 +59,14 @@ CH_FSI_API void CreateBceGlobalMarkersFromBceLocalPosBoundary(std::shared_ptr<Ch
                                                               bool isSolid = false,
                                                               bool add_to_previous = true);
 
-CH_FSI_API void AddSphereBce(std::shared_ptr<ChFsiDataManager> fsiData,
+CH_FSI_API void AddSphereBce(std::shared_ptr<ChSystemFsi_impl> fsiSystem,
                              std::shared_ptr<SimParams> paramsH,
                              std::shared_ptr<ChBody> body,
                              chrono::ChVector<> relPos,
                              chrono::ChQuaternion<> relRot,
                              Real radius);
 
-CH_FSI_API void AddCylinderBce(std::shared_ptr<ChFsiDataManager> fsiData,
+CH_FSI_API void AddCylinderBce(std::shared_ptr<ChSystemFsi_impl> fsiSystem,
                                std::shared_ptr<SimParams> paramsH,
                                std::shared_ptr<ChBody> body,
                                chrono::ChVector<> relPos,
@@ -76,7 +75,7 @@ CH_FSI_API void AddCylinderBce(std::shared_ptr<ChFsiDataManager> fsiData,
                                Real height,
                                Real kernel_h,
                                bool cartesian = true);
-CH_FSI_API void AddConeBce(std::shared_ptr<ChFsiDataManager> fsiData,
+CH_FSI_API void AddConeBce(std::shared_ptr<ChSystemFsi_impl> fsiSystem,
                            std::shared_ptr<SimParams> paramsH,
                            std::shared_ptr<ChBody> body,
                            chrono::ChVector<> relPos,
@@ -85,7 +84,7 @@ CH_FSI_API void AddConeBce(std::shared_ptr<ChFsiDataManager> fsiData,
                            Real height,
                            Real kernel_h,
                            bool cartesian = true);
-CH_FSI_API void AddCylinderSurfaceBce(std::shared_ptr<ChFsiDataManager> fsiData,
+CH_FSI_API void AddCylinderSurfaceBce(std::shared_ptr<ChSystemFsi_impl> fsiSystem,
                                       std::shared_ptr<SimParams> paramsH,
                                       std::shared_ptr<ChBody> body,
                                       ChVector<> relPos,
@@ -93,14 +92,14 @@ CH_FSI_API void AddCylinderSurfaceBce(std::shared_ptr<ChFsiDataManager> fsiData,
                                       Real radius,
                                       Real height,
                                       Real kernel_h);
-CH_FSI_API void AddSphereSurfaceBce(std::shared_ptr<ChFsiDataManager> fsiData,
+CH_FSI_API void AddSphereSurfaceBce(std::shared_ptr<ChSystemFsi_impl> fsiSystem,
                                     std::shared_ptr<SimParams> paramsH,
                                     std::shared_ptr<ChBody> body,
                                     ChVector<> relPos,
                                     ChQuaternion<> relRot,
                                     Real radius,
                                     Real kernel_h);
-CH_FSI_API void AddBoxBce(std::shared_ptr<ChFsiDataManager> fsiData,
+CH_FSI_API void AddBoxBce(std::shared_ptr<ChSystemFsi_impl> fsiSystem,
                           std::shared_ptr<SimParams> paramsH,
                           std::shared_ptr<ChBody> body,
                           chrono::ChVector<> relPos,
@@ -110,14 +109,14 @@ CH_FSI_API void AddBoxBce(std::shared_ptr<ChFsiDataManager> fsiData,
                           bool isSolid = false,
                           bool add_to_previous = false);
 
-CH_FSI_API void AddBCE_FromPoints(std::shared_ptr<ChFsiDataManager> fsiData,
+CH_FSI_API void AddBCE_FromPoints(std::shared_ptr<ChSystemFsi_impl> fsiSystem,
                                   std::shared_ptr<SimParams> paramsH,
                                   std::shared_ptr<ChBody> body,
                                   const std::vector<chrono::ChVector<>>& points,
                                   chrono::ChVector<> collisionShapeRelativePos = chrono::ChVector<>(0),
                                   chrono::ChQuaternion<> collisionShapeRelativeRot = chrono::QUNIT);
 
-CH_FSI_API void AddBCE_FromFile(std::shared_ptr<ChFsiDataManager> fsiData,
+CH_FSI_API void AddBCE_FromFile(std::shared_ptr<ChSystemFsi_impl> fsiSystem,
                                 std::shared_ptr<SimParams> paramsH,
                                 std::shared_ptr<ChBody> body,
                                 std::string dataPath,
@@ -126,18 +125,18 @@ CH_FSI_API void AddBCE_FromFile(std::shared_ptr<ChFsiDataManager> fsiData,
                                 double scale = 1.0,
                                 bool isSolid = true);
 
-CH_FSI_API void CreateSphereFSI(std::shared_ptr<ChFsiDataManager> fsiData,
+CH_FSI_API void CreateSphereFSI(std::shared_ptr<ChSystemFsi_impl> fsiSystem,
                                 chrono::ChSystem& mphysicalSystem,
-                                std::vector<std::shared_ptr<ChBody>>& fsiBodeis,
+                                std::vector<std::shared_ptr<ChBody>>& fsiBodies,
                                 std::shared_ptr<SimParams> paramsH,
                                 std::shared_ptr<chrono::ChMaterialSurface> mat_prop,
                                 Real density,
                                 chrono::ChVector<> pos,
                                 Real radius);
 
-CH_FSI_API void CreateCylinderFSI(std::shared_ptr<ChFsiDataManager> fsiData,
+CH_FSI_API void CreateCylinderFSI(std::shared_ptr<ChSystemFsi_impl> fsiSystem,
                                   chrono::ChSystem& mphysicalSystem,
-                                  std::vector<std::shared_ptr<ChBody>>& fsiBodeis,
+                                  std::vector<std::shared_ptr<ChBody>>& fsiBodies,
                                   std::shared_ptr<SimParams> paramsH,
                                   std::shared_ptr<chrono::ChMaterialSurface> mat_prop,
                                   Real density,
@@ -146,9 +145,9 @@ CH_FSI_API void CreateCylinderFSI(std::shared_ptr<ChFsiDataManager> fsiData,
                                   Real radius,
                                   Real length);
 
-CH_FSI_API void CreateBoxFSI(std::shared_ptr<ChFsiDataManager> fsiData,
+CH_FSI_API void CreateBoxFSI(std::shared_ptr<ChSystemFsi_impl> fsiSystem,
                              chrono::ChSystem& mphysicalSystem,
-                             std::vector<std::shared_ptr<ChBody>>& fsiBodeis,
+                             std::vector<std::shared_ptr<ChBody>>& fsiBodies,
                              std::shared_ptr<SimParams> paramsH,
                              std::shared_ptr<chrono::ChMaterialSurface> mat_prop,
                              Real density,
@@ -156,17 +155,17 @@ CH_FSI_API void CreateBoxFSI(std::shared_ptr<ChFsiDataManager> fsiData,
                              chrono::ChQuaternion<> rot,
                              const chrono::ChVector<>& hsize);
 
-CH_FSI_API void AddBCE_ShellANCF(std::shared_ptr<ChFsiDataManager> fsiData,
+CH_FSI_API void AddBCE_ShellANCF(std::shared_ptr<ChSystemFsi_impl> fsiSystem,
                                  std::shared_ptr<SimParams> paramsH,
-                                 std::vector<std::shared_ptr<fea::ChElementShellANCF>>& fsiShells,
+                                 std::vector<std::shared_ptr<fea::ChElementShellANCF_3423>>& fsiShells,
                                  std::shared_ptr<fea::ChMesh> my_mesh,
                                  bool multiLayer = true,
                                  bool removeMiddleLayer = false,
                                  int SIDE = -2);
 
-CH_FSI_API void AddBCE_ShellFromMesh(std::shared_ptr<ChFsiDataManager> fsiData,
+CH_FSI_API void AddBCE_ShellFromMesh(std::shared_ptr<ChSystemFsi_impl> fsiSystem,
                                      std::shared_ptr<SimParams> paramsH,
-                                     std::vector<std::shared_ptr<fea::ChElementShellANCF>>& fsiShells,
+                                     std::vector<std::shared_ptr<fea::ChElementShellANCF_3423>>& fsiShells,
                                      std::vector<std::shared_ptr<fea::ChNodeFEAxyzD>>& fsiNodes,
                                      std::shared_ptr<fea::ChMesh> my_mesh,
                                      const std::vector<std::vector<int>>& elementsNodes,
@@ -175,12 +174,12 @@ CH_FSI_API void AddBCE_ShellFromMesh(std::shared_ptr<ChFsiDataManager> fsiData,
                                      bool removeMiddleLayer = false,
                                      int SIDE = -2);
 
-CH_FSI_API void AddBCE_FromMesh(std::shared_ptr<ChFsiDataManager> fsiData,
+CH_FSI_API void AddBCE_FromMesh(std::shared_ptr<ChSystemFsi_impl> fsiSystem,
                                 std::shared_ptr<SimParams> paramsH,
                                 std::shared_ptr<fea::ChMesh> my_mesh,
                                 std::vector<std::shared_ptr<fea::ChNodeFEAxyzD>>& fsiNodes,
                                 std::vector<std::shared_ptr<fea::ChElementCableANCF>>& fsiCables,
-                                std::vector<std::shared_ptr<fea::ChElementShellANCF>>& fsiShells,
+                                std::vector<std::shared_ptr<fea::ChElementShellANCF_3423>>& fsiShells,
                                 const std::vector<std::vector<int>>& NodeNeighborElement,
                                 const std::vector<std::vector<int>>& _1D_elementsNodes,
                                 const std::vector<std::vector<int>>& _2D_elementsNodes,

@@ -5,8 +5,7 @@ import glob
 import reader
 import mathutils
 from blend_ChParticle_utils import renderPsys
-
-#import multiprocessing
+import multiprocessing
 
 
 # resolution reduction for the rendered image, LOW speeds up things for development, HIGH is slow but produces HD images
@@ -36,14 +35,14 @@ def convertshape(shapedata, meshespaths):
                 obj_object = bpy.context.object
                 olist =bpy.context.selected_objects
                 for o in olist:
-                    o.location.x = shapedata[3] 
+                    o.location.x = shapedata[3]
                     o.location.y = shapedata[4]
                     o.location.z = shapedata[5]
                     o.rotation_mode = 'QUATERNION'
                     q = (shapedata[6], shapedata[7], shapedata[8], shapedata[9])
                     o.rotation_quaternion = q
                 return True
-            
+
         return False
     # sphere, box cylinder
     elif shapedata[0]==0 or shapedata[0]==2 or shapedata[0]==3:
@@ -54,20 +53,20 @@ def convertshape(shapedata, meshespaths):
                                                   rotation=mathutils.Quaternion(shapedata[6], shapedata[7], shapedata[8], shapedata[9]).to_euler())
             obj = bpy.context.active_object
 
-        
+
         # Box
         elif shapedata[0] == 2:
             bpy.ops.mesh.primitive_cube_add(size=1, location=(shapedata[3], shapedata[4], shapedata[5]),
                                                   rotation=mathutils.Quaternion((shapedata[6], shapedata[7], shapedata[8], shapedata[9])).to_euler())
             obj = bpy.context.active_object
-            obj.scale= ( shapedata[13]*2, shapedata[14]*2, shapedata[15]*2) 
-            
-        
+            obj.scale= ( shapedata[13]*2, shapedata[14]*2, shapedata[15]*2)
+
+
         # Cylinder
         elif shapedata[0] == 3:
             bodypos = mathutils.Vector((shapedata[3], shapedata[4], shapedata[5]))
             bodyrot = mathutils.Quaternion((shapedata[6], shapedata[7], shapedata[8], shapedata[9]))
-            #p1 & p2 
+            #p1 & p2
             p1 = mathutils.Vector((shapedata[14], shapedata[15], shapedata[16]))
             p2 = mathutils.Vector((shapedata[17], shapedata[18], shapedata[19]))
             # p2 - p1 vector
@@ -83,7 +82,7 @@ def convertshape(shapedata, meshespaths):
             bpy.ops.mesh.primitive_cylinder_add(location=center, rotation=ang, radius=shapedata[13], depth=axis.length)
             obj = bpy.context.active_object
 
-            
+
         mat = bpy.data.materials.new("Blue")
         # Activate its nodes
         mat.use_nodes = True
@@ -146,8 +145,8 @@ def render_image(dirpaths, filepath,file_index, out_dir, meshes_prefixes,res,  t
         obj_camera = bpy.data.objects["Camera"]
         obj_camera.location = camera_pos
         look_at(obj_camera, mathutils.Vector(targ_pos), a_up)
-        
-        
+
+
     elif camera_mode == 'Follow':
         print('Follow camera mode')
         obj_camera = bpy.data.objects["Camera"]
@@ -175,7 +174,7 @@ def render_image(dirpaths, filepath,file_index, out_dir, meshes_prefixes,res,  t
     scene.cycles.device = 'GPU'
     prefs = bpy.context.preferences
     cprefs = prefs.addons['cycles'].preferences
-    
+
     # Attempt to set GPU device types if available
     for compute_device_type in ('CUDA', 'OPENCL', 'NONE'):
         try:
@@ -183,22 +182,22 @@ def render_image(dirpaths, filepath,file_index, out_dir, meshes_prefixes,res,  t
             break
         except TypeError:
             pass
-    
+
     # Enable all CPU and GPU devices
     cprefs.get_devices()
     for device in cprefs.devices:
         device.use = True
-    
-    
-    if use_sky:    
+
+
+    if use_sky:
         sky_texture = bpy.context.scene.world.node_tree.nodes.new("ShaderNodeTexSky")
         bg = bpy.context.scene.world.node_tree.nodes["Background"]
         bpy.context.scene.world.node_tree.links.new(bg.inputs["Color"], sky_texture.outputs["Color"])
-        #sky_texture.sky_type = 'HOSEK_WILKIE' # or 'PREETHAM'
+        sky_texture.sky_type = 'PREETHAM'
         #sky_texture.turbidity = 2.0
         #sky_texture.ground_albedo = 0.4
-        ##sky_texture.sun_direction = mathutils.Vector((1.0, 0.0, 1.0))  # add `import mathutils` at the beginning of the script 
-    
+        ##sky_texture.sun_direction = mathutils.Vector((1.0, 0.0, 1.0))  # add `import mathutils` at the beginning of the script
+
     # create light datablock, set attributes
     light_data = bpy.data.lights.new(name="light_2.80", type='POINT')
     light_data.energy = light_energy
@@ -210,7 +209,7 @@ def render_image(dirpaths, filepath,file_index, out_dir, meshes_prefixes,res,  t
     bpy.context.view_layer.objects.active = light_object
     # change location
     light_object.location = light_loc
-    
+
     bpy.context.scene.render.engine = 'CYCLES'
     bpy.context.scene.cycles.device = 'GPU'
     #bpy.context.scene.render.resolution_percentage = 200
@@ -239,11 +238,20 @@ def bl_render(meshes_prefixes, out_dir, datadirs, res, camera_mode, use_sky, cam
     #for file in os.listdir(datadir):
     for root, dirs, files in os.walk(datadirs[0]):
         for file in files:
+            files.sort()
             if file.endswith(".dat") or file.endswith(".chpf"):
                 datafiles.append(file[:file.rfind(".")])
 
-    #p = multiprocessing.Pool(processes = multiprocessing.cpu_count()-1)
-    for file_ind, datafile in enumerate(datafiles):
-        #p.apply_async(render_image, [datadir+datafile, file_ind, out_dir, meshes_prefixes, res, targ_bodyid, targ_shapetypeid, targ_name, camera_mode, camera_dist, camera_pos, use_sky, a_up, light_loc, light_energy])
-        render_image(datadirs, datafile, file_ind, out_dir, meshes_prefixes, res, targ,
-                     camera_mode, camera_pos, use_sky, a_up, light_loc, light_energy)
+
+    if os.name == 'nt':
+        for file_ind, datafile in enumerate(datafiles):
+            render_image(datadirs, datafile, file_ind, out_dir, meshes_prefixes, res, targ,
+                         camera_mode, camera_pos, use_sky, a_up, light_loc, light_energy)
+
+    elif os.name == 'posix':
+        print('MULTIPROCESSING ACTIVE')
+        pool = multiprocessing.Pool(processes=multiprocessing.cpu_count()-1)
+        pool.starmap(render_image, [(datadirs, datafile, file_ind, out_dir, meshes_prefixes, res, targ,
+                         camera_mode, camera_pos, use_sky, a_up, light_loc, light_energy)
+                                for file_ind, datafile in enumerate(datafiles)])
+        pool.terminate()
