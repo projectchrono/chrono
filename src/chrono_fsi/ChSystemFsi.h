@@ -148,13 +148,15 @@ class CH_FSI_API ChSystemFsi {
     void PrintParticleToFile(const std::string& out_dir) const;
 
     /// Add SPH particle's information into the FSI system.
-    void AddSphMarker(const ChVector<>& points,
-                      const ChVector<>& properties,
-                      const double h,
-                      const double particle_type,
-                      const ChVector<>& velocity = ChVector<>(),
-                      const ChVector<>& tauXxYyZz = ChVector<>(),
-                      const ChVector<>& tauXyXzYz = ChVector<>());
+    void AddSphMarker(const ChVector<>& point,
+                      double rho0,
+                      double pres0,
+                      double mu0,
+                      double h,
+                      double particle_type,
+                      const ChVector<>& velocity = ChVector<>(0),
+                      const ChVector<>& tauXxYyZz = ChVector<>(0),
+                      const ChVector<>& tauXyXzYz = ChVector<>(0));
 
     /// Add reference array for SPH particles.
     void AddRefArray(const int start, const int numPart, const int typeA, const int typeB);

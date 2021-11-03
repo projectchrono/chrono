@@ -229,16 +229,18 @@ void ChSystemFsi::PrintParticleToFile(const std::string& out_dir) const {
                        fsiSystem->fsiGeneralData->referenceArray, thrust::host_vector<int4>(), out_dir, true);
 }
 //--------------------------------------------------------------------------------------------------------------------------------
-void ChSystemFsi::AddSphMarker(const ChVector<>& points,
-                               const ChVector<>& properties,
-                               const double h,
-                               const double particle_type,
+void ChSystemFsi::AddSphMarker(const ChVector<>& point,
+                               double rho0,
+                               double pres0,
+                               double mu0,
+                               double h,
+                               double particle_type,
                                const ChVector<>& velocity,
                                const ChVector<>& tauXxYyZz,
                                const ChVector<>& tauXyXzYz) {
-    fsiSystem->AddSphMarker(
-        ChUtilsTypeConvert::ChVectorToReal4(points, h), ChUtilsTypeConvert::ChVectorToReal4(properties, particle_type),
-        ChUtilsTypeConvert::ChVectorToReal3(velocity), ChUtilsTypeConvert::ChVectorToReal3(tauXxYyZz),
+    fsiSystem->AddSphMarker(ChUtilsTypeConvert::ChVectorToReal4(point, h), mR4(rho0, pres0, mu0, particle_type),
+                            ChUtilsTypeConvert::ChVectorToReal3(velocity),
+                            ChUtilsTypeConvert::ChVectorToReal3(tauXxYyZz),
         ChUtilsTypeConvert::ChVectorToReal3(tauXyXzYz));
 }
 //--------------------------------------------------------------------------------------------------------------------------------
