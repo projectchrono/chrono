@@ -449,6 +449,8 @@ The following enhancements are currenty under development:
 
 ### [Added] Miscellaneous additions to Chrono::Gpu
 
+**Added - Specification of the compuational domain**
+
 The location of the computational domain can now be specified (in addition to its dimensions) through a fourth optional constructor argument of `ChSystemGpu` and `ChSystemGpuMesh`. By default, the axis-aligned computational domain is centered at the origin.  As such,
 ```cpp
 ChSystemGpu gpu_sys(1, 1, ChVector<float>(100, 80, 60));
@@ -460,7 +462,54 @@ ChSystemGpu gpu_sys(1, 1, ChVector<float>(100, 80, 60), ChVector<float>(10, 20, 
 sets the computational domain to be [-40,60] x [-20,60] x [0,60].
 Note also that, for consistency of the API, the type of the domain size (third constructor argument) was changed to `const ChVector<float>&`.
 
+**Added - calculation of total kinetic energy**
+
 A new function, `ChSystemGpu::GetParticlesKineticEnergy` was added to calculate and return the total kinetic energy of the granular particles.
+
+**Added - Contact material properties**
+
+For contact force calculation that uses material-based parameters, such as Young's Modulus, Poisson ratio and coefficient of restitution, the following function has to be called (set `val` to `true`), 
+
+```cpp
+void UseMaterialBasedModel(bool val);
+```
+Note that the default setting is using user-defined stiffness and damping ratio for contact forces, so no need to set `val` to `false`. The corresponding material properties associated with particles, boundary and mesh can be set using the following functions,
+````cpp
+void SetYoungModulus_SPH(double val);
+void SetYoungModulus_WALL(double val);
+void SetYoungModulus_MESH(double val);
+
+void SetPoissonRatio_SPH(double val);
+void SetPoissonRatio_WALL(double val);
+void SetPoissonRatio_MESH(double val);
+
+void SetRestitution_SPH(double val);
+void SetRestitution_WALL(double val);
+void SetRestitution_MESH(double val);
+````
+
+**Changed - Spherical boundary condition**
+
+Boundary condition type `Sphere` is now defined as a numerical boundary with mass assigned. Simple dynamics among `BCSphere` and granular particles can be performed, see example `demo_GPU_balldrop.cpp`. The spherical boundary is created with:
+````cpp
+size_t CreateBCSphere(const ChVector<float>& center, float radius, bool outward_normal, bool track_forces, float mass);
+
+````
+where `outward_normal` is set to true if granular particles are outside the sphere. Some get and set methods are available during the simulation stage:
+````cpp
+ChVector<float> GetBCSpherePosition(size_t sphere_id);
+void SetBCSpherePosition(size_t sphere_bc_id, const ChVector<float>& pos);
+ChVector<float> GetBCSphereVelocity(size_t sphere_id);
+SetBCSphereVelocity(size_t sphere_bc_id, const ChVector<float>& velo);
+````
+
+**Added - Rotating plane boundary condition** 
+
+A `BCPlane` type boundary condition of id `plane_id` can be set to rotate with respect to point `center` at a constant angular velocity `omega`
+````cpp
+void SetBCPlaneRotation(size_t plane_id, ChVector<double> center, ChVector<double> omega);
+````
+
 
 ### [Added] New loads for ChNodeFEAxyzrot
 
