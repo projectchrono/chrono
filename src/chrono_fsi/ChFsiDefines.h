@@ -10,19 +10,22 @@
 //
 // =============================================================================
 
-#pragma once
+#ifndef CH_FSI_DEFINES_H
+#define CH_FSI_DEFINES_H
 
 namespace chrono {
 namespace fsi {
 
-// Output mode
+/// Output mode
 enum class CHFSI_OUTPUT_MODE { CSV, CHPF, NONE };
 
-// Time integration methods
+/// Time integration methods
 enum class CHFSI_TIME_INTEGRATOR { ExplicitSPH, IISPH, I2SPH };
 
-// Linear solver type
+/// Linear solver type
 enum class CHFSI_SOLVER_TYPE { JACOBI, BICGSSTAB, GMRES, CR, CG, SAP };
 
 } // namespace fsi
 } // namespace chrono
+
+#endif

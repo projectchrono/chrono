@@ -17,8 +17,9 @@
 #ifndef CH_SOLVER6X6_H_
 #define CH_SOLVER6X6_H_
 
-#include <cuda_runtime.h>  // for __host__ __device__ flags
+#include <cuda_runtime.h>
 #include "chrono_fsi/ChConfigFSI.h"
+
 namespace chrono {
 namespace fsi {
 
@@ -1639,4 +1640,5 @@ static __host__ __device__ void inv6xdelta_mn(Real* B, Real* L) {
 
 }  // namespace fsi
 }  // namespace chrono
-#endif /* 6X6SOLVER_H_ */
+
+#endif

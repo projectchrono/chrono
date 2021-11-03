@@ -20,7 +20,7 @@
 #ifndef CHFSI_CUSTOM_MATH_H
 #define CHFSI_CUSTOM_MATH_H
 
-#include <cuda_runtime.h>  // for __host__ __device__ flags
+#include <cuda_runtime.h>
 #ifndef __CUDACC__
 #include <cmath>
 #endif
