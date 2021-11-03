@@ -23,30 +23,16 @@
 namespace chrono {
 namespace fsi {
 
-/**
- * @brief calcHashD
- * @details
- * 		 1. Get particle index determined by the block and thread we are in.
- * 		 2. From x,y,z position, determine which bin it is in.
- * 		 3. Calculate hash from bin index.
- * 		 4. Store hash and particle index associated with it.
- *
- * @param gridMarkerHashD
- * @param gridMarkerIndexD
- * @param posRad
- * @param numAllMarkers
- */
-
-/// calcHashD :
-/// 1. Get particle index determined by the block and thread we are in.
-/// 2. From x, y, z position, determine which bin it is in.
-/// 3. Calculate hash from bin index.
-/// 4. Store hash and particle index associated with it.
+// calcHashD :
+// 1. Get particle index determined by the block and thread we are in.
+// 2. From x, y, z position, determine which bin it is in.
+// 3. Calculate hash from bin index.
+// 4. Store hash and particle index associated with it.
 __global__ void calcHashD(
-    uint* gridMarkerHashD,   ///< gridMarkerHash Store marker hash here
-    uint* gridMarkerIndexD,  ///< gridMarkerIndex Store marker index here
-    Real4* posRad,           ///< posRad Vector containing the positions of all particles, including boundary particles
-    const size_t numAllMarkers,  ///< Total number of markers (fluid + boundary)
+    uint* gridMarkerHashD,   // gridMarkerHash Store marker hash here
+    uint* gridMarkerIndexD,  // gridMarkerIndex Store marker index here
+    Real4* posRad,           // posRad Vector containing the positions of all particles, including boundary particles
+    const size_t numAllMarkers,  // Total number of markers (fluid + boundary)
     volatile bool* isErrorD) {
     /* Calculate the index of where the particle is stored in posRad. */
     uint index = blockIdx.x * blockDim.x + threadIdx.x;

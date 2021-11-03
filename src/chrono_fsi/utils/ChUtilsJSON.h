@@ -15,8 +15,9 @@
 // Utility function to read input from JSON files
 // =============================================================================
 
-#ifndef CHUTILSJSON_H_
-#define CHUTILSJSON_H_
+#ifndef CH_FSI_UTILS_JSON_H
+#define CH_FSI_UTILS_JSON_H
+
 #include <memory>
 #include "chrono_fsi/ChApiFsi.h"
 #include "chrono_fsi/math/custom_math.h"
@@ -27,6 +28,8 @@ using namespace rapidjson;
 
 namespace chrono {
 namespace fsi {
+
+// Forward declaration
 struct SimParams;
 
 namespace utils {
@@ -45,4 +48,4 @@ void InvalidArg(std::string arg);
 }  // namespace fsi
 }  // namespace chrono
 
-#endif /* CHUTILSJSON_H_ */
+#endif

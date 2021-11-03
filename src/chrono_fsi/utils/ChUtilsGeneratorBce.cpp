@@ -174,7 +174,6 @@ void CreateBCE_On_surface_of_Cylinder(thrust::host_vector<Real4>& posRadBCE,
     int num_layers = (int)std::floor(cyl_h / spacing);
     for (size_t si = 0; si < num_layers; si++) {
         Real s = -0.5 * cyl_h + (cyl_h / num_layers) * si;
-        ///////////
         //        for (Real x = -cyl_rad; x <= cyl_rad; x += spacing) {
         //            for (Real y = -cyl_rad; y <= cyl_rad; y += spacing) {
         //                if (x * x + y * y <= cyl_rad * cyl_rad)

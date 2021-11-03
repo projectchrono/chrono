@@ -34,7 +34,7 @@ namespace utils {
 void FinalizeDomain(std::shared_ptr<fsi::SimParams> paramsH) {
     paramsH->NUM_BOUNDARY_LAYERS = 3;
     paramsH->ApplyInFlowOutFlow = false;
-    paramsH->Apply_BC_U = false;  ///< You should go to custom_math.h all the way to end of file and set your function
+    paramsH->Apply_BC_U = false;  // You should go to custom_math.h all the way to end of file and set your function
     paramsH->ApplyInFlowOutFlow = false;
     int3 side0 = mI3((int)floor((paramsH->cMax.x - paramsH->cMin.x) / (2 * paramsH->HSML)),
                      (int)floor((paramsH->cMax.y - paramsH->cMin.y) / (2 * paramsH->HSML)),

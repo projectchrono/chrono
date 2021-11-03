@@ -15,8 +15,8 @@
 // Macro defines for exporting DLL
 // =============================================================================
 
-#ifndef CHAPIFSI_H_
-#define CHAPIFSI_H_
+#ifndef CH_API_FSI_H
+#define CH_API_FSI_H
 
 #include "chrono/ChVersion.h"
 #include "chrono/core/ChPlatform.h"

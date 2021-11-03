@@ -1,33 +1,33 @@
-///< =============================================================================
-///< PROJECT CHRONO - http://projectchrono.org
+// =============================================================================
+// PROJECT CHRONO - http://projectchrono.org
 //
-///< Copyright (c) 2014 projectchrono.org
-///< All rights reserved.
+// Copyright (c) 2014 projectchrono.org
+// All rights reserved.
 //
-///< Use of this source code is governed by a BSD-style license that can be found
-///< in the LICENSE file at the top level of the distribution and at
-///< http://projectchrono.org/license-chrono.txt.
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
 //
-///< =============================================================================
-///< Author:Arman Pazouki, Milad Rakhsha, Wei Hu
-///< =============================================================================
+// =============================================================================
+// Author:Arman Pazouki, Milad Rakhsha, Wei Hu
+// =============================================================================
 //
-///< Structure to hold the simulation parameters.
+// Structure to hold the simulation parameters.
 //
-///< For more informaiton about these parameters see the following:
+// For more informaiton about these parameters see the following:
 //
-///< - Using a half-implicit integration scheme for the SPH-based solution of
-///<   fluid-solid interaction problems,
-///<   Milad Rakhsha, Arman Pazouki, Radu Serban, Dan Negrut,
-///<   Computer Methods in Applied Mechanics and Engineering
+// - Using a half-implicit integration scheme for the SPH-based solution of
+//   fluid-solid interaction problems,
+//   Milad Rakhsha, Arman Pazouki, Radu Serban, Dan Negrut,
+//   Computer Methods in Applied Mechanics and Engineering
 //
-///< - A Consistent Multi-Resolution Smoothed Particle Hydrodynamics Method,
-///<   Wei Hu, Wenxiao Pan, Milad Rakhsha, Qiang Tian, Haiyan Hu, Dan Negrut,
-///<   Computer Methods in Applied Mechanics and Engineering, 2018
-///< =============================================================================
+// - A Consistent Multi-Resolution Smoothed Particle Hydrodynamics Method,
+//   Wei Hu, Wenxiao Pan, Milad Rakhsha, Qiang Tian, Haiyan Hu, Dan Negrut,
+//   Computer Methods in Applied Mechanics and Engineering, 2018
+// =============================================================================
 
-#ifndef CHPARAMS_H_
-#define CHPARAMS_H_
+#ifndef CH_FSI_PARAMS_H
+#define CH_FSI_PARAMS_H
 
 #include <ctime>
 #include "chrono_fsi/math/ChFsiLinearSolver.h"
@@ -36,11 +36,11 @@
 namespace chrono {
 namespace fsi {
 
-enum BceVersion { ADAMI = 0, mORIGINAL = 1 };
-enum PPE_SolutionType { MATRIX_FREE, FORM_SPARSE_MATRIX };
-enum rheology { Inertia_rheology, nonlocal_fluidity };
-enum friction_law { constant, linear, nonlinear };
-enum fluid_dynamics { IISPH, I2SPH, WCSPH };
+enum class BceVersion { ADAMI = 0, mORIGINAL = 1 };
+enum class PPE_SolutionType { MATRIX_FREE, FORM_SPARSE_MATRIX };
+enum class rheology { Inertia_rheology, nonlocal_fluidity };
+enum class friction_law { constant, linear, nonlinear };
+enum class fluid_dynamics { IISPH, I2SPH, WCSPH };
 
 struct SimParams {
     fluid_dynamics fluid_dynamic_type;  ///< Type of SPH mehtod

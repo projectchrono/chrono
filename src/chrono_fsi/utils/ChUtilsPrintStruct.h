@@ -14,8 +14,9 @@
 //
 // Utility function to print structured data from fsi
 // =============================================================================
-#ifndef CHUTILSPRINTSTRUCT_H
-#define CHUTILSPRINTSTRUCT_H
+
+#ifndef CH_FSI_UTILS_PRINTSTRUCT_H
+#define CH_FSI_UTILS_PRINTSTRUCT_H
 
 #include "chrono_fsi/ChApiFsi.h"
 #include "chrono_fsi/math/custom_math.h"
