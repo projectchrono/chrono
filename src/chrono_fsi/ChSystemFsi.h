@@ -170,19 +170,26 @@ class CH_FSI_API ChSystemFsi {
     /// Add BCE particle for a cylinder.
     void AddBceCylinder(std::shared_ptr<SimParams> paramsH,
                         std::shared_ptr<ChBody> body,
-                        ChVector<> relPos,
-                        ChQuaternion<> relRot,
+                        const ChVector<>& relPos,
+                        const ChQuaternion<>& relRot,
                         double radius,
                         double height,
                         double kernel_h,
                         bool cartesian = true);
 
+    /// Add BCE particles from a set of points.
+    void AddBceFromPoints(std::shared_ptr<SimParams> paramsH,
+                          std::shared_ptr<ChBody> body,
+                          const std::vector<ChVector<>>& points,
+                          const ChVector<>& collisionShapeRelativePos,
+                          const ChQuaternion<>& collisionShapeRelativeRot);
+
     /// Add BCE particle from a file.
     void AddBceFile(std::shared_ptr<SimParams> paramsH,
                     std::shared_ptr<ChBody> body,
-                    std::string dataPath,
-                    ChVector<> collisionShapeRelativePos,
-                    ChQuaternion<> collisionShapeRelativeRot,
+                    const std::string& dataPath,
+                    const ChVector<>& collisionShapeRelativePos,
+                    const ChQuaternion<>& collisionShapeRelativeRot,
                     double scale,
                     bool isSolid = true);
 

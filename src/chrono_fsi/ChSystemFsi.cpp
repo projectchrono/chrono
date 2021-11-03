@@ -257,8 +257,8 @@ void ChSystemFsi::AddBceBox(std::shared_ptr<SimParams> paramsH,
 //--------------------------------------------------------------------------------------------------------------------------------
 void ChSystemFsi::AddBceCylinder(std::shared_ptr<SimParams> paramsH,
                                  std::shared_ptr<ChBody> body,
-                                 ChVector<> relPos,
-                                 ChQuaternion<> relRot,
+                                 const ChVector<>& relPos,
+                                 const ChQuaternion<>& relRot,
                                  double radius,
                                  double height,
                                  double kernel_h,
@@ -266,11 +266,19 @@ void ChSystemFsi::AddBceCylinder(std::shared_ptr<SimParams> paramsH,
     utils::AddCylinderBce(fsiSystem, paramsH, body, relPos, relRot, radius, height, kernel_h, cartesian);
 }
 //--------------------------------------------------------------------------------------------------------------------------------
+void ChSystemFsi::AddBceFromPoints(std::shared_ptr<SimParams> paramsH,
+                                   std::shared_ptr<ChBody> body,
+                                   const std::vector<chrono::ChVector<>>& points,
+                                   const ChVector<>& collisionShapeRelativePos,
+                                   const ChQuaternion<>& collisionShapeRelativeRot) {
+    utils::AddBCE_FromPoints(fsiSystem, paramsH, body, points, collisionShapeRelativePos, collisionShapeRelativeRot);
+}
+//--------------------------------------------------------------------------------------------------------------------------------
 void ChSystemFsi::AddBceFile(std::shared_ptr<SimParams> paramsH,
                              std::shared_ptr<ChBody> body,
-                             std::string dataPath,
-                             ChVector<> collisionShapeRelativePos,
-                             ChQuaternion<> collisionShapeRelativeRot,
+                             const std::string& dataPath,
+                             const ChVector<>& collisionShapeRelativePos,
+                             const ChQuaternion<>& collisionShapeRelativeRot,
                              double scale,
                              bool isSolid) {  // true means moving body, false means fixed boundary
     utils::AddBCE_FromFile(fsiSystem, paramsH, body, dataPath, collisionShapeRelativePos, collisionShapeRelativeRot,
