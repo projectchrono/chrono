@@ -68,8 +68,6 @@ class CH_SENSOR_API ChOptixEngine {
     /// @param device_id The id of the GPU which this engine is running on
     /// @param max_scene_reflections The maximum number of ray recursions that should be allowed by this engine
     /// @param verbose Sets verbose level for the engine
-    /// @param max_keyframes The number of keyframes to used for motion blur. Defaults to minimum of 2 which is smallest
-    /// that enables interpolation.
     ChOptixEngine(ChSystem* sys, int device_id, int max_scene_reflections = 9, bool verbose = false);
 
     /// Class destructor

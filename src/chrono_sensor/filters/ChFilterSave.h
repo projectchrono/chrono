@@ -36,6 +36,7 @@ class CH_SENSOR_API ChFilterSave : public ChFilter {
   public:
     /// Class constructor
     /// @param data_path The path to save the data
+    /// @param name the name of the filter
     ChFilterSave(std::string data_path = "", std::string name = "ChFilterSave");
 
     /// Class destructor

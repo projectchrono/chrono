@@ -1,4 +1,5 @@
 Tachometer Sensor Model {#tachometer_sensor}
+=================================
 
 \tableofcontents
 
