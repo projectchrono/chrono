@@ -122,9 +122,7 @@ int main(int argc, char* argv[]) {
     chrono::utils::Generator::PointVector points = sampler.SampleBox(boxCenter, boxHalfDim);
     size_t numPart = points.size();
     for (int i = 0; i < numPart; i++) {
-        myFsiSystem.AddSphMarker(ChVector<>(points[i].x(), points[i].y(), points[i].z()),
-                                 ChVector<>(paramsH->rho0, paramsH->BASEPRES, paramsH->mu0),
-                                 paramsH->HSML, -1);
+        myFsiSystem.AddSphMarker(points[i], paramsH->rho0, paramsH->BASEPRES, paramsH->mu0, paramsH->HSML, -1);
     }
     myFsiSystem.AddRefArray(0, (int)numPart, -1, -1);
 

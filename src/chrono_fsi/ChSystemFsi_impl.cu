@@ -486,7 +486,7 @@ void ChSystemFsi_impl::ConstructReferenceArray() {
     }
 }
 
-////--------------------------------------------------------------------------------------------------------------------------------
+//--------------------------------------------------------------------------------------------------------------------------------
 void ChSystemFsi_impl::ResizeDataManager(int numNodes) {
     ConstructReferenceArray();
     if (numObjects->numAllMarkers != sphMarkersH->rhoPresMuH.size()) {

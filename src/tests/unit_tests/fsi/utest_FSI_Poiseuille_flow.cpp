@@ -147,9 +147,7 @@ int main(int argc, char* argv[]) {
     size_t numPart = points.size();
     for (int i = 0; i < numPart; i++) {
         double v_x = PoiseuilleAnalytical(points[i].z(), bzDim, 0.5, paramsH);
-        myFsiSystem.AddSphMarker(ChVector<>(points[i].x(), points[i].y(), points[i].z()),
-                                 ChVector<>(paramsH->rho0, paramsH->BASEPRES, paramsH->mu0),
-                                 paramsH->HSML, -1,
+        myFsiSystem.AddSphMarker(points[i], paramsH->rho0, paramsH->BASEPRES, paramsH->mu0, paramsH->HSML, -1,
                                  ChVector<>(v_x, 0.0, 0.0));
     }
     myFsiSystem.AddRefArray(0, (int)numPart, -1, -1);
