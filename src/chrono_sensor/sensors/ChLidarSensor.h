@@ -104,7 +104,7 @@ class CH_SENSOR_API ChLidarSensor : public ChOptixSensor {
 
     /// Returns the beam sample radius
     /// @return the beam sample radius
-    float GetSampleRadius() const { return m_sample_radius; }
+    unsigned int GetSampleRadius() const { return m_sample_radius; }
 
     /// Returns the horizontal beam divergence angle
     /// @return the horizontal beam divergence angle
@@ -123,8 +123,6 @@ class CH_SENSOR_API ChLidarSensor : public ChOptixSensor {
       }
     }
     
-
-
   private:
     float m_hFOV;                   ///< the horizontal field of view of the sensor
     float m_max_vert_angle;         ///< maximum vertical angle of the rays
