@@ -121,6 +121,9 @@ class ChApi ChElementCableANCF : public ChElementBeam, public ChLoadableU, publi
     /// (e.g. the actual position of nodes is not in relaxed reference position).
     virtual void ComputeInternalForces(ChVectorDynamic<>& Fi) override;
 
+    /// Compute the generalized force vector due to gravity using the efficient ANCF specific method
+    virtual void ComputeGravityForces(ChVectorDynamic<>& Fg, const ChVector<>& G_acc) override;
+
     //
     // Beam-specific functions
     //
@@ -249,6 +252,7 @@ class ChApi ChElementCableANCF : public ChElementBeam, public ChLoadableU, publi
     ChVectorN<double, 12> m_GenForceVec0;
     ChMatrixNM<double, 12, 12> m_JacobianMatrix;  ///< Jacobian matrix (Kfactor*[K] + Rfactor*[R])
     ChMatrixNM<double, 12, 12> m_MassMatrix;      ///< mass matrix
+    ChVectorN<double, 4> m_GravForceScale;  ///< Gravity scaling matrix used to get the generalized force due to gravity
 
   public:
     EIGEN_MAKE_ALIGNED_OPERATOR_NEW

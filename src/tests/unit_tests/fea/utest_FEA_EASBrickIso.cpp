@@ -30,7 +30,7 @@
 #include "chrono/utils/ChUtilsInputOutput.h"
 
 #include "chrono/fea/ChElementBar.h"
-#include "chrono/fea/ChElementBrick.h"
+#include "chrono/fea/ChElementHexaANCF_3813.h"
 #include "chrono/fea/ChElementSpring.h"
 #include "chrono/fea/ChLinkDirFrame.h"
 #include "chrono/fea/ChLinkPointFrame.h"
@@ -193,8 +193,8 @@ int main(int argc, char* argv[]) {
 
     int elemcount = 0;
     while (elemcount < TotalNumElements) {
-        auto element = chrono_types::make_shared<ChElementBrick>();
-        ChVectorN<double, 3> InertFlexVec;  // read element length, used in ChElementBrick
+        auto element = chrono_types::make_shared<ChElementHexaANCF_3813>();
+        ChVectorN<double, 3> InertFlexVec;  // read element length, used in ChElementHexaANCF_3813
         InertFlexVec.setZero();
         InertFlexVec(0) = ElemLengthXY(elemcount, 0);
         InertFlexVec(1) = ElemLengthXY(elemcount, 1);
@@ -211,7 +211,6 @@ int main(int argc, char* argv[]) {
 
         element->SetMaterial(mmaterial);
         element->SetElemNum(elemcount);   // for EAS
-        element->SetGravityOn(false);     // turn gravity on/off from within the element
         element->SetMooneyRivlin(false);  // turn on/off Mooney Rivlin (Linear Isotropic by default)
         ChVectorN<double, 9> stock_alpha_EAS;
         stock_alpha_EAS.setZero();

@@ -149,6 +149,23 @@ class CH_GPU_API ChSystemGpu {
     /// Set the ratio of adhesion to gravity for sphere to wall. Assumes a constant cohesion model.
     void SetAdhesionRatio_SPH2WALL(float someValue);
 
+    void UseMaterialBasedModel(bool val);
+
+    /// Set youngs modulus of spheres
+    void SetYoungModulus_SPH(double someValue);
+    /// Set youngs modulus of boundary
+    void SetYoungModulus_WALL(double someValue);
+
+    /// Set poisson ratio of sphere
+    void SetPoissonRatio_SPH(double someValue);
+    /// Set poisson ratio of boundary
+    void SetPoissonRatio_WALL(double someValue);
+
+    /// Set coefficient of restitution of spheres
+    void SetRestitution_SPH(double someValue);
+    /// Set coefficient of restitution of spheres
+    void SetRestitution_WALL(double someValue);
+
     /// Safety check velocity to ensure the simulation is still stable.
     void SetMaxSafeVelocity_SU(float max_vel);
 
@@ -168,7 +185,13 @@ class CH_GPU_API ChSystemGpu {
     void SetVerbosity(CHGPU_VERBOSITY level);
 
     /// Create an axis-aligned sphere boundary condition.
-    size_t CreateBCSphere(const ChVector<float>& center, float radius, bool outward_normal, bool track_forces);
+    size_t CreateBCSphere(const ChVector<float>& center,
+                          float radius,
+                          bool outward_normal,
+                          bool track_forces,
+                          float mass);
+
+    // void UpdateBCSpherePosition(size_t sphere_bc_id, ChVector<double> position);
 
     /// Create a Z-axis aligned cone boundary condition.
     size_t CreateBCConeZ(const ChVector<float>& tip,
@@ -180,6 +203,9 @@ class CH_GPU_API ChSystemGpu {
 
     /// Create a plane boundary condition.
     size_t CreateBCPlane(const ChVector<float>& pos, const ChVector<float>& normal, bool track_forces);
+
+    /// create a plate boundary condition
+    size_t CreateCustomizedPlate(const ChVector<float>& pos_center, const ChVector<float>& normal, float hdim_y);
 
     /// Create a Z-axis aligned cylinder boundary condition.
     size_t CreateBCCylinderZ(const ChVector<float>& center, float radius, bool outward_normal, bool track_forces);
@@ -216,8 +242,20 @@ class CH_GPU_API ChSystemGpu {
     /// Return particle position.
     ChVector<float> GetParticlePosition(int nSphere) const;
 
+    /// Set particle position
+    void SetParticlePosition(int nSphere, const ChVector<double> pos);
+
+    /// Set particle velocity
+    void SetParticleVelocity(int nSphere, const ChVector<double> velo);
+
     /// Return particle angular velocity.
     ChVector<float> GetParticleAngVelocity(int nSphere) const;
+
+    /// return particle acc
+    ChVector<float> GetParticleLinAcc(int nSphere) const;
+
+    /// Return whether or not the particle is fixed
+    bool IsFixed(int nSphere) const;
 
     /// Return particle linear velocity.
     ChVector<float> GetParticleVelocity(int nSphere) const;
@@ -227,6 +265,21 @@ class CH_GPU_API ChSystemGpu {
 
     /// Return position of BC plane.
     ChVector<float> GetBCPlanePosition(size_t plane_id) const;
+
+    /// Return position of BC sphere
+    ChVector<float> GetBCSpherePosition(size_t sphere_id) const;
+
+    /// Set position of BC spheres
+    void SetBCSpherePosition(size_t sphere_bc_id, const ChVector<float>& pos);
+
+    /// Return velocity of BC sphere
+    ChVector<float> GetBCSphereVelocity(size_t sphere_id) const;
+
+    /// Set velocity of BC spheres
+    void SetBCSphereVelocity(size_t sphere_bc_id, const ChVector<float>& velo);
+
+    /// Set BC plane rotation
+    void SetBCPlaneRotation(size_t plane_id, ChVector<double> center, ChVector<double> omega);
 
     /// Get the reaction forces on a boundary by ID, returns false if the forces are invalid (bad BC ID)
     bool GetBCReactionForces(size_t BC_id, ChVector<float>& force) const;
@@ -262,6 +315,24 @@ class CH_GPU_API ChSystemGpu {
 
     /// Roughly estimate of the total amount of memory used by the system.
     size_t EstimateMemUsage() const;
+
+    /// Get rolling friction torque between body i and j, return 0 if not in contact
+    ChVector<float> getRollingFrictionTorque(int i, int j);
+
+    /// Get tangential friction force between body i and j, return 0 if not in contact
+    ChVector<float> getSlidingFrictionForce(int i, int j);
+
+    /// Get normal friction force between body i and j, return 0 if not in contact
+    ChVector<float> getNormalForce(int i, int j);
+
+    /// Get v_rot for rolling friction
+    ChVector<float> getRollingVrot(int i, int j);
+
+    /// get contact char time
+    float getRollingCharContactTime(int i, int j);
+
+    /// get index list of neighbors
+    void getNeighbors(int ID, std::vector<int>& neighborList);
 
   protected:
     /// Protected default constructor.  Derived class must create m_sys.
@@ -386,6 +457,15 @@ class CH_GPU_API ChSystemGpuMesh : public ChSystemGpu {
     void SetKt_SPH2MESH(double someValue);
     /// Set sphere-to-mesh tangential damping coefficient.
     void SetGt_SPH2MESH(double someValue);
+
+    void UseMaterialBasedModel(bool val);
+
+    /// Set material-based contact model parameters
+    void SetYoungModulus_MESH(double someValue);
+
+    void SetPoissonRatio_MESH(double someValue);
+
+    void SetRestitution_MESH(double someValue);
 
     /// Set the ratio of adhesion force to sphere weight for sphere to mesh.
     void SetAdhesionRatio_SPH2MESH(float someValue);

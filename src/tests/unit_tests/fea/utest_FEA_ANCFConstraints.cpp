@@ -43,7 +43,7 @@
 #include "chrono/utils/ChUtilsInputOutput.h"
 #include "chrono/utils/ChUtilsValidation.h"
 
-#include "chrono/fea/ChElementShellANCF.h"
+#include "chrono/fea/ChElementShellANCF_3423.h"
 #include "chrono/fea/ChLinkDirFrame.h"
 #include "chrono/fea/ChLinkPointFrame.h"
 #include "chrono/fea/ChMesh.h"
@@ -159,7 +159,7 @@ void AddMesh(ChSystemNSC& my_system) {
         int node3 = (i / (numDiv_x)) * (N_x) + i % numDiv_x + N_x;
 
         // Create the element and set its nodes.
-        auto element = chrono_types::make_shared<ChElementShellANCF>();
+        auto element = chrono_types::make_shared<ChElementShellANCF_3423>();
         element->SetNodes(std::dynamic_pointer_cast<ChNodeFEAxyzD>(mesh->GetNode(node0)),
                           std::dynamic_pointer_cast<ChNodeFEAxyzD>(mesh->GetNode(node1)),
                           std::dynamic_pointer_cast<ChNodeFEAxyzD>(mesh->GetNode(node2)),
@@ -173,14 +173,10 @@ void AddMesh(ChSystemNSC& my_system) {
 
         // Set other element properties
         element->SetAlphaDamp(0.08);  // structural damping for this element
-        element->SetGravityOn(true);  // gravitational forces
 
         // Add element to mesh
         mesh->AddElement(element);
     }
-
-    // Switch off mesh class gravity
-    mesh->SetAutomaticGravity(false);
 
     // Add the mesh to the system
     my_system.Add(mesh);

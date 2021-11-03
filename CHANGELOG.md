@@ -5,6 +5,8 @@ Change Log
 ==========
 
 - [Unreleased (development version)](#unreleased-development-branch)
+  - [Sensor performance improvements and feature additions](#changed-sensor-to-improve-performance-and-added-features)
+  - [ANCF element improvements and additions](#changed-ancf-element-improvements-and-additions)
   - [New Chrono::Vehicle features](#added-new-chronovehicle-features)
   - [New robot models](#added-new-robot-models)
   - [New multicore collision detection system](#added-new-multicore-collision-detection-system)
@@ -47,6 +49,248 @@ Change Log
 - [Release 4.0.0](#release-400---2019-02-22)
 
 ## Unreleased (development branch)
+
+### [Changed] Sensor to improve performance and added features 
+
+**Changed - Optix 7.2 as Dependency:**
+ - Upgraded to Optix 7.2 from 6.5. 7.2 (exactly) is the only version supported.
+
+**Changed - Refactored sensor code:**
+ - sensors have been moved to `src/chrono_sensor/sensors/` to cleanup directory structure
+ - all optix-dependent code was moved to `src/chrono_sensor/optix` to consolidate the dependency
+
+**Changed - IMU to Accelerometer and Gyroscope:**
+ - Split the IMU sensor into its components (ChAccelerometerSensor and ChGyroscopeSensor) to facilitate additional sensors. Using both sensors together with same update rate will produce the same behavior as the original IMU. These sensors are still maintained under `ChIMUSensor.h and ChIMUSensor.cpp`
+  ```cpp
+  ChAccelerometerSensor(std::shared_ptr<chrono::ChBody> parent, float updateRate, chrono::ChFrame<double> offsetPose, std::shared_ptr<ChNoiseModel> noise_model);
+
+  ChGyroscopeSensor(std::shared_ptr<chrono::ChBody> parent, float updateRate, chrono::ChFrame<double> offsetPose, std::shared_ptr<ChNoiseModel> noise_model);
+  ```
+**Added - Magnetometer:**
+ - Added magnetometer sensor alongside accelerometer and gyroscope. Sensor is maintained in `ChIMUSensor.h` and `ChIMUSensor.cpp`. 
+ - Returns a magentic field strength vector based on the orientation of the sensor, and the GPS location of the sensor and simulation.
+ - Can be permuted with noise using same noise models available for accelerometer and gyroscope.
+  ```cpp
+  ChMagnetometerSensor(std::shared_ptr<chrono::ChBody> parent, float updateRate, chrono::ChFrame<double> offsetPose, std::shared_ptr<ChNoiseModel> noise_model, ChVector<double> gps_reference);
+  ```
+
+**Removed - Keyframe user configuration:**
+ - Removed the need for users to set the number of keyframes used for motion blur. Will now automatically find these internally.
+
+**Changed - Scene API:**
+ - Point lights can be created then added to the scene rather than adding directly though a function call
+ - Point lights must be modified based on index rather than reference: `void ChScene::ModifyPointLight(unsigned int id, PointLight p)`
+ - Background is created by the user and passed to the scene via the sensor manager `void ChScene::SetBackground(Background b)`
+ - Ambient light is now configurable by the user through the scene `void ChScene::SetAmbientLight(ChVector<float> color)`
+ - The ray tracing epsilon used to prevent self-intersections is configurable in the scene to allow the user to adjust the parameter when artifacts are present. `void ChScene::SetSceneEpsilon(float e)`
+ - 
+
+**Added - Gradient background:**
+ - Can add gradient colors for sky alongside solid color or sky map.
+  ``` cpp
+  enum class BackgroundMode {
+      SOLID_COLOR,     ///< single solid color defined by RGB
+      GRADIENT,        ///< color gradient used for upper hemisphere
+      ENVIRONMENT_MAP  ///< image used for spherical sky map
+  };
+  ```
+
+**Changed - ChOptixEngine to hide optix-dependent code:**  
+ - ChOptixEngine no longer supports returning the optix context to the user.
+
+**Changed - Automatic mesh and object instancing:**
+ - Objects that use the same mesh will automatically instance the mesh (instanced if using same chrono::geometry::ChTriangleMeshConnected)
+ - Removed the ability to add instanced objects explicitely.
+ - Recommended instancing is to create single ChTriangleMeshConnected, then adding that with many scales (using ChTriangleMeshShape) and positions (using ChBody).
+
+**Changed - Shaders for visualization:**
+ - Improved the material shaders to support physically-based materials and phong materials in the same scene. 
+ - Shading calls do NOT change API, but WILL be visible on objects.
+ - Expanded parameters contained in `chrono::ChVisualMaterial` to include metalic, roughness, and other textures as well as whether to use a specular or metalic workflow. Will be detected for meshes loaded from file.
+
+**Added - Global Illumination with Optix Denoiser:**
+Added option for cameras to use global illumination with a denoiser to reduce stochastic noise imparted by the ray tracing algorithm. 
+ - enable global illumination and gamma correction exponent in camera constructor:
+ ``` cpp
+  ChCameraSensor(std::shared_ptr<chrono::ChBody> parent, // object to which the sensor is attached
+                float updateRate,                        // rate at which the sensor updates
+                chrono::ChFrame<double> offsetPose,      // position of sensor relative to parent
+                unsigned int w,                          // image width
+                unsigned int h,                          // image height
+                float hFOV,                              // horizontal field of view
+                unsigned int supersample_factor = 1,     // supersample diameter
+                CameraLensModelType lens_model = CameraLensModelType::PINHOLE, //lens model
+                bool use_gi = false,  // global illumination enable/disable
+                float gamma = 2.2);   // gamma correction exponent
+ ```
+- denoiser will automatically be used internally
+
+**Changed - Lidar sensor beam divergence**
+ - beam divergence can be configured by beam shape (rectangular or elliptical)
+  ```cpp
+  enum class LidarBeamShape {
+    RECTANGULAR,  ///< rectangular beam (inclusive of square beam)
+    ELLIPTICAL    ///< elliptical beam (inclusive of circular beam)
+  };  
+  ```
+ - vertical and horizontal divergence angles independently parameterized
+ - Dual return mode added
+  ``` cpp
+  enum class LidarReturnMode {
+    STRONGEST_RETURN,  ///< range at peak intensity
+    MEAN_RETURN,       ///< average beam range
+    FIRST_RETURN,      ///< shortest beam range
+    LAST_RETURN,       ///< longest beam range
+    DUAL_RETURN        ///< first and strongest returns
+  };
+  ```
+
+```cpp
+ChLidarSensor(std::shared_ptr<chrono::ChBody> parent,
+              float updateRate,
+              chrono::ChFrame<double> offsetPose,
+              unsigned int w,
+              unsigned int h,
+              float hfov,
+              float max_vertical_angle,
+              float min_vertical_angle,
+              float max_distance,
+              LidarBeamShape beam_shape = LidarBeamShape::RECTANGULAR,
+              unsigned int sample_radius = 1,
+              float vert_divergence_angle = .003f,
+              float hori_divergence_angle = .003f,
+              LidarReturnMode return_mode = LidarReturnMode::MEAN_RETURN,
+              float clip_near = 1e-3f);
+```
+
+**Added - Radar sensor:**
+- A radar sensor was added, with the initial version similar to lidar. Will return set of points that include range, azimuth, elevation, doppler velocity, ampliture of detection, and object id used for clustering
+- radar is configurable based on update rate, position, vertical and horizontal resolutions, vertical and horizontal field of view, and maximum distance.
+``` cpp
+ChRadarSensor(std::shared_ptr<chrono::ChBody> parent,
+              const float updateRate,
+              chrono::ChFrame<double> offsetPose,
+              const unsigned int w,
+              const unsigned int h,
+              const float hfov,
+              const float vfov,
+              const float max_distance,
+              const float clip_near = 1e-3f);
+```
+
+**Added - Segmentation camera:**
+- Added a segmentation camera `ChSegmentationCamera` which returns an image with class ID and instance ID for each pixel in the image.
+- If paired with an RGB camera at same frequency, position, fiew of view, and resolution, can be used to generate automatically segmented images
+- Instance ID and class ID are set in the material, defaulting to 0. See `demo_SEN_camera` and `chrono::ChVisualMaterial` for details on configuration.
+
+```cpp
+ChSegmentationCamera(std::shared_ptr<chrono::ChBody> parent,  // object to which the sensor is attached
+                      float updateRate,                       // rate at which the sensor updates
+                      chrono::ChFrame<double> offsetPose,     // position of sensor relative to parent
+                      unsigned int w,                         // image width
+                      unsigned int h,                         // image height
+                      float hFOV,                             // horizontal field of view
+                      CameraLensModelType lens_model = CameraLensModelType::PINHOLE);  // lens model type
+```
+
+### [Changed] ANCF element improvements and additions
+
+**Changed - Element Naming Convention:** 
+
+The following ANCF elements have been renamed according to the 4-digit ANCF naming convention from: *Dmitrochenko, O., Mikkola, A.: Digital nomenclature code for topology and kinematics of finite elements based on the absolute nodal co-ordinate formulation. Proc. Inst. Mech. Eng., Part K: J. Multi-Body Dyn. 225(1), 34–51 (2011)*
+- `ChElementBeamANCF` renamed to `ChElementBeamANCF_3333`
+- `ChElementShellANCF` renamed to `ChElementShellANCF_3423`
+- `ChElementShellANCF_8` renamed to `ChElementShellANCF_3833`
+- `ChElementBrick` renamed to `ChElementHexaANCF_3813`
+- `ChElementBrick_9` renamed to `ChElementHexaANCF_3813_9`
+
+The following elements were renamed to improve naming consistency:
+- `ChElementHexa_8` renamed to `ChElementHexaCorot_8`
+- `ChElementHexa_20` renamed to `ChElementHexaCorot_20`
+- `ChElementTetra_4` renamed to `ChElementTetraCorot_4`
+- `ChElementTetra_10` renamed to `ChElementTetraCorot_10`
+
+**Added - New ANCF Elements:**
+
+- `ChElementBeamANCF_3243` a fully parameterized 2-Node ANCF beam element
+  - 24 DOF per element
+  - Uses the enhanced continuum mechanics method to reduce locking (the same method as `ChElementBeamANCF_3333`)
+  - Only rectangular cross sections are currently supported 
+  - Only linear viscoelastic materials are supported at this time (single coefficient damping model)
+- `ChElementShellANCF_3443` a fully parameterized 4-Node ANCF shell element
+  - 48 DOF per element
+  - Prone to locking, no modifications to reduce locking are included at this time
+  - Supports multiple discrete layers in a single shell element like `ChElementShellANCF_3833`
+  - Only linear viscoelastic materials are supported at this time (single coefficient damping model)
+- `ChElementHexaANCF_3843` a fully parameterized 4-Node ANCF brick element
+  - 96 DOF per element
+  - No modifications to reduce locking are included at this time
+  - Only linear viscoelastic materials are supported at this time (single coefficient damping model)
+
+
+**Changed - Internal Force Calculation Method:** 
+
+Applies to: `ChElementBeamANCF_3243`, `ChElementBeamANCF_3333`, `ChElementShellANCF_3443`, `ChElementShellANCF_3833`, and `ChElementHexaANCF_3843`
+
+For these 5 elements, there is an option for two different generalized internal force calculation methods:
+- `IntFrcMethod::ContInt` (**Default**): The "Continuous Integration" method efficiently integrates across the volume of the element every time the generalized internal force or its Jacobian is calculated.  This method is dependent on the number of Gauss quadrature points used for the integration, resulting in increased generalized internal force and Jacobian calculation times as additional layers are added to the shell elements.  Even so, this method will typically be faster, and it has a significantly lower memory storage overhead.  This method is a modification and extension to the method found in: *Gerstmayr, J., Shabana, A.A.: Efficient integration of the elastic forces and thin three-dimensional beam elements in the absolute nodal coordinate formulation. In: Proceedings of the Multibody Dynamics Eccomas thematic Conference, Madrid(2005).*
+- `IntFrcMethod::PreInt`: The "Pre-Integration" method is designed so that integration across the volume of the element occurs only once prior to the start of the simulation.  This method is independent on the number of Gauss quadrature points used for the integration, resulting in no change in in-simulation generalized internal force and Jacobian calculation times as additional layers are added to the shell elements.  This method is generally slower and has a significantly higher memory storage overhead, especially as the degree of freedom count for the element increases.  This method is a modification and extension to the method found in: *Liu, Cheng, Qiang Tian, and Haiyan Hu. "Dynamics of a large scale rigid–flexible multibody system composed of composite laminated plates." Multibody System Dynamics 26, no. 3 (2011): 283-305.*
+
+If possible, the calculation method should be set prior to the start of the simulation so that the precalculation phase is not called for both calculation methods resulting in unnecessary calculation and memory overhead.
+
+A report covering the detailed mathematics and implementation both of these generalized internal force calculations and their Jacobians can be found in: *Taylor, M., Serban, R., and Negrut, D.: Technical Report TR-2020-09 Efficient CPU Based Calculations of the Generalized Internal Forces and Jacobian of the Generalized Internal Forces for ANCF Continuum Mechanics Elements with Linear Viscoelastic Materials, Simulation Based Engineering Lab, University of Wisconsin-Madison; 2021.*
+
+These calculation methods make heavy use of the Eigen3 library.  For MSVC 2017 and to a lesser extent MSVC 2019, this can result in **significantly** longer compile times.  This is a known issue with Eigen3 and MSVC: https://gitlab.com/libeigen/eigen/-/issues/1725.
+
+
+**Changed - Obtaining Stress and Strain:** 
+
+Applies to: `ChElementBeamANCF_3243`, `ChElementBeamANCF_3333`, `ChElementShellANCF_3443`, `ChElementShellANCF_3833`, and `ChElementHexaANCF_3843`
+
+For all 5 of these elements, the full 3x3 Green-Lagrange Strain Tensor can be obtained using the function below using normalized element coordinates with values between -1 and 1:
+  ```cpp
+  ChMatrix33<> GetGreenLagrangeStrain(double xi, double eta, double zeta)
+  ```
+  
+The full 3x3 2nd Piola-Kirchhoff Stress Tensor can be obtained for the beam and brick elements using the function:
+  ```cpp
+  ChMatrix33<> GetPK2Stress(double xi, double eta, double zeta)
+  ```
+Since the shell elements support multiple discrete layers which can result in stress discontinuities, information about the layer of interest must be provided when obtaining the full 3x3 Green-Lagrange Strain Tensor.  For the shell elements, the layer index (0-index starting with the first layer defined for the element) is required as well as the normalized position through the thickness of the layer whose value is between -1 and 1.
+  ```cpp
+  ChMatrix33<> GetPK2Stress(double layer, double xi, double eta, double layer_zeta)
+  ```
+  
+The Von Misses Stress can be obtained for the beam and brick elements using the function: 
+  ```cpp
+  double GetVonMissesStress(double xi, double eta, double zeta)
+  ```
+For the shell elements, the Von Misses Stress can be obtained using the function:   
+  ```cpp
+  double GetVonMissesStress(double layer, double xi, double eta, double layer_zeta)
+  ```
+
+**Changed - Application of Gravity:** 
+
+Applies to: `ChElementCableANCF`, `ChElementBeamANCF_3243`, `ChElementBeamANCF_3333`, `ChElementShellANCF_3423`, `ChElementShellANCF_3443`, `ChElementShellANCF_3833`, `ChElementHexaANCF_3813`, `ChElementHexaANCF_3813_9`, and `ChElementHexaANCF_3843`
+
+The ANCF has an efficient way to exactly calculate the generalized force due to gravity.  In the past this efficient gravity calculation method had to be explicitly enabled with the `SetGravityOn()` function which had to be coupled with a call to disable gravity at the mesh level `mesh->SetAutomaticGravity(false);`.  These elements have now been setup so that the default mesh level gravity calculation now automatically calls the efficient and exact ANCF gravity calculation.  With this change the `SetGravityOn()` function has been eliminated as it is no longer needed to enable the ANCF specific gravity calculation.
+
+
+**Added - Ability to Apply Moments:** 
+
+Applies to: `ChElementBeamANCF_3243`, `ChElementBeamANCF_3333`, `ChElementShellANCF_3423`, `ChElementShellANCF_3443`, `ChElementShellANCF_3833`, and `ChElementHexaANCF_3843`
+
+Moments can be applied at any point within these elements just like forces.  For applied forces and moments, the first 3 entries in the force vector are assumed to be the applied force vector in global coordinates.  The second 3 entries are assumed to be the applied moment in global coordinates.  Any entries beyond the first 6 are ignored.  With this change, the returned Jacobians for potential use with numeric integration were updated to reflect the actual current configuration line/area/volume ratio rather than the reference configuration line/area/volume ratio.
+
+**Added - Contacts:** 
+
+- For `ChElementBeamANCF_3243` and `ChElementBeamANCF_3333`, the contacts are calculated using a capsule shape between the two end nodes whose radius is equal to the diagonal length of the reference cross-section shape.  This is the same approach as `ChElementBeamEuler`.
+
+- For `ChElementShellANCF_3443`, a skin at the midsurface is used just like `ChElementShellANCF_3423` and `ChElementShellANCF_3443`.
+
+- For `ChElementHexaANCF_3813` and `ChElementHexaANCF_3843`, a linear quadrilateral face is added to the free faces just like `ChElementHexaANCF_3813_9`.
+
 
 ### [Added] New Chrono::Vehicle features
 
@@ -205,6 +449,8 @@ The following enhancements are currenty under development:
 
 ### [Added] Miscellaneous additions to Chrono::Gpu
 
+**Added - Specification of the compuational domain**
+
 The location of the computational domain can now be specified (in addition to its dimensions) through a fourth optional constructor argument of `ChSystemGpu` and `ChSystemGpuMesh`. By default, the axis-aligned computational domain is centered at the origin.  As such,
 ```cpp
 ChSystemGpu gpu_sys(1, 1, ChVector<float>(100, 80, 60));
@@ -216,7 +462,54 @@ ChSystemGpu gpu_sys(1, 1, ChVector<float>(100, 80, 60), ChVector<float>(10, 20, 
 sets the computational domain to be [-40,60] x [-20,60] x [0,60].
 Note also that, for consistency of the API, the type of the domain size (third constructor argument) was changed to `const ChVector<float>&`.
 
+**Added - calculation of total kinetic energy**
+
 A new function, `ChSystemGpu::GetParticlesKineticEnergy` was added to calculate and return the total kinetic energy of the granular particles.
+
+**Added - Contact material properties**
+
+For contact force calculation that uses material-based parameters, such as Young's Modulus, Poisson ratio and coefficient of restitution, the following function has to be called (set `val` to `true`), 
+
+```cpp
+void UseMaterialBasedModel(bool val);
+```
+Note that the default setting is using user-defined stiffness and damping ratio for contact forces, so no need to set `val` to `false`. The corresponding material properties associated with particles, boundary and mesh can be set using the following functions,
+````cpp
+void SetYoungModulus_SPH(double val);
+void SetYoungModulus_WALL(double val);
+void SetYoungModulus_MESH(double val);
+
+void SetPoissonRatio_SPH(double val);
+void SetPoissonRatio_WALL(double val);
+void SetPoissonRatio_MESH(double val);
+
+void SetRestitution_SPH(double val);
+void SetRestitution_WALL(double val);
+void SetRestitution_MESH(double val);
+````
+
+**Changed - Spherical boundary condition**
+
+Boundary condition type `Sphere` is now defined as a numerical boundary with mass assigned. Simple dynamics among `BCSphere` and granular particles can be performed, see example `demo_GPU_balldrop.cpp`. The spherical boundary is created with:
+````cpp
+size_t CreateBCSphere(const ChVector<float>& center, float radius, bool outward_normal, bool track_forces, float mass);
+
+````
+where `outward_normal` is set to true if granular particles are outside the sphere. Some get and set methods are available during the simulation stage:
+````cpp
+ChVector<float> GetBCSpherePosition(size_t sphere_id);
+void SetBCSpherePosition(size_t sphere_bc_id, const ChVector<float>& pos);
+ChVector<float> GetBCSphereVelocity(size_t sphere_id);
+SetBCSphereVelocity(size_t sphere_bc_id, const ChVector<float>& velo);
+````
+
+**Added - Rotating plane boundary condition** 
+
+A `BCPlane` type boundary condition of id `plane_id` can be set to rotate with respect to point `center` at a constant angular velocity `omega`
+````cpp
+void SetBCPlaneRotation(size_t plane_id, ChVector<double> center, ChVector<double> omega);
+````
+
 
 ### [Added] New loads for ChNodeFEAxyzrot
 

@@ -25,7 +25,7 @@ namespace fsi {
 /// @{
 
 /// @brief Derived class of ChFsiForce that implements the I2SPH method.
-class CH_FSI_API ChFsiForceI2SPH : public ChFsiForce {
+class ChFsiForceI2SPH : public ChFsiForce {
   private:
     thrust::device_vector<Real> _sumWij_inv;
     thrust::device_vector<uint> Contact_i;

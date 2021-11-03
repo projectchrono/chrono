@@ -24,19 +24,19 @@
 #include "chrono/core/ChMatrix.h"
 #include "chrono/physics/ChSystemSMC.h"
 #include "chrono/solver/ChDirectSolverLS.h"
-#include "chrono/fea/ChElementShellANCF.h"
+#include "chrono/fea/ChElementShellANCF_3423.h"
 #include "chrono/fea/ChMesh.h"
 
 #ifdef CHRONO_PARDISO_MKL
-#include "chrono_pardisomkl/ChSolverPardisoMKL.h"
+    #include "chrono_pardisomkl/ChSolverPardisoMKL.h"
 #endif
 
 #ifdef CHRONO_MUMPS
-#include "chrono_mumps/ChSolverMumps.h"
+    #include "chrono_mumps/ChSolverMumps.h"
 #endif
 
 #ifdef CHRONO_PARDISOPROJECT
-#include "chrono_pardisoproject/ChSolverPardisoProject.h"
+    #include "chrono_pardisoproject/ChSolverPardisoProject.h"
 #endif
 
 using namespace chrono;
@@ -80,12 +80,11 @@ class SystemFixture : public ::benchmark::Fixture {
             mesh->AddNode(nodeC);
             mesh->AddNode(nodeD);
 
-            auto element = chrono_types::make_shared<ChElementShellANCF>();
+            auto element = chrono_types::make_shared<ChElementShellANCF_3423>();
             element->SetNodes(nodeA, nodeB, nodeD, nodeC);
             element->SetDimensions(dx, width);
             element->AddLayer(thickness, 0 * CH_C_DEG_TO_RAD, mat);
             element->SetAlphaDamp(0.0);
-            element->SetGravityOn(false);
             mesh->AddElement(element);
 
             nodeA = nodeC;
@@ -98,7 +97,7 @@ class SystemFixture : public ::benchmark::Fixture {
     void Report(benchmark::State& st) {
         auto descr = m_system->GetSystemDescriptor();
         auto num_it = st.iterations();
-        
+
         st.counters["SIZE"] = descr->CountActiveVariables() + descr->CountActiveConstraints();
 
         st.counters["LS_Jacobian"] = m_system->GetTimerJacobian() * 1e3 / num_it;

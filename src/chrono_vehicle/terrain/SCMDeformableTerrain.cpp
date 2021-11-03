@@ -1047,7 +1047,7 @@ void SCMDeformableSoil::ComputeInternalForces() {
         int num_ray_casts = 0;
     #pragma omp parallel for num_threads(nthreads) reduction(+:num_ray_casts)
         for (int k = 0; k < p.m_range.size(); k++) {
-            int t_num = omp_get_thread_num();
+            int t_num = ChOMP::GetThreadNum();
             ChVector2<int> ij = p.m_range[k];
 
             // Move from (i, j) to (x, y, z) representation in the world frame

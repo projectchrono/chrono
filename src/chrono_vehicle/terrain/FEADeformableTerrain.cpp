@@ -22,7 +22,7 @@
 #include "chrono/physics/ChMaterialSurfaceNSC.h"
 #include "chrono/physics/ChMaterialSurfaceSMC.h"
 
-#include "chrono/fea/ChElementBrick_9.h"
+#include "chrono/fea/ChElementHexaANCF_3813_9.h"
 #include "chrono/fea/ChContactSurfaceMesh.h"
 #include "chrono/fea/ChVisualizationFEAmesh.h"
 
@@ -75,7 +75,7 @@ void FEADeformableTerrain::SetSoilParametersFEA(double rho,              ///< So
                                                 double hardening_slope,  ///< Soil hardening slope, for plasticity
                                                 double friction_angle,   ///< Soil internal friction angle
                                                 double dilatancy_angle   ///< Soil dilatancy angle
-                                                ) {
+) {
     m_rho = rho;
     m_E = Emod;
     m_nu = nu;
@@ -152,7 +152,7 @@ void FEADeformableTerrain::Initialize(const ChVector<>& start_point,
     // Initialize coordinates for curvature (central) node
     for (int i = 0; i < TotalNumElements; i++) {
         auto node = chrono_types::make_shared<ChNodeFEAcurv>(ChVector<>(0.0, 0.0, 0.0), ChVector<>(0.0, 0.0, 0.0),
-                                                    ChVector<>(0.0, 0.0, 0.0));
+                                                             ChVector<>(0.0, 0.0, 0.0));
         node->SetMass(0);
         m_mesh->AddNode(node);
     }
@@ -193,7 +193,7 @@ void FEADeformableTerrain::Initialize(const ChVector<>& start_point,
         int node8 = (numDiv_z + 1) * XYNumNodes + i;
 
         // Create the element and set its nodes.
-        auto element = chrono_types::make_shared<ChElementBrick_9>();
+        auto element = chrono_types::make_shared<ChElementHexaANCF_3813_9>();
         element->SetNodes(std::dynamic_pointer_cast<ChNodeFEAxyz>(m_mesh->GetNode(node0)),
                           std::dynamic_pointer_cast<ChNodeFEAxyz>(m_mesh->GetNode(node1)),
                           std::dynamic_pointer_cast<ChNodeFEAxyz>(m_mesh->GetNode(node2)),
@@ -212,18 +212,17 @@ void FEADeformableTerrain::Initialize(const ChVector<>& start_point,
 
         // Set other element properties
         element->SetAlphaDamp(5e-4);    // Structural damping for this element
-        element->SetGravityOn(true);    // Turn internal gravitational force calculation
         element->SetDPIterationNo(50);  // Set maximum number of iterations for Drucker-Prager Newton-Raphson
         element->SetDPYieldTol(1e-8);   // Set stop tolerance for Drucker-Prager Newton-Raphson
-        element->SetStrainFormulation(ChElementBrick_9::Hencky);
-        element->SetPlasticityFormulation(ChElementBrick_9::DruckerPrager);
-        if (element->GetStrainFormulation() == ChElementBrick_9::Hencky) {
+        element->SetStrainFormulation(ChElementHexaANCF_3813_9::Hencky);
+        element->SetPlasticityFormulation(ChElementHexaANCF_3813_9::DruckerPrager);
+        if (element->GetStrainFormulation() == ChElementHexaANCF_3813_9::Hencky) {
             element->SetPlasticity(Plasticity);
             if (Plasticity) {
                 element->SetYieldStress(m_yield_stress);
                 element->SetHardeningSlope(m_hardening_slope);
                 element->SetCCPInitial(CCPInitial);
-                if (element->GetPlasticityFormulation() == ChElementBrick_9::DruckerPrager) {
+                if (element->GetPlasticityFormulation() == ChElementHexaANCF_3813_9::DruckerPrager) {
                     element->SetFriction(m_friction_angle);
                     element->SetDilatancy(m_dilatancy_angle);
                     element->SetDPType(3);
@@ -246,9 +245,6 @@ void FEADeformableTerrain::Initialize(const ChVector<>& start_point,
     mvisualizemesh->SetShrinkElements(true, 0.995);
     mvisualizemesh->SetSmoothFaces(false);
     m_mesh->AddAsset(mvisualizemesh);
-
-    // Deactivate mesh gravity (added through system)
-    m_mesh->SetAutomaticGravity(false);
 }
 }  // end namespace vehicle
 }  // end namespace chrono

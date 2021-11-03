@@ -86,10 +86,10 @@ CUDA_HOST_DEVICE static inline real Max(const real a, const real b) {
     return fmax(a, b);
 }
 CUDA_HOST_DEVICE static inline real Min(const real a, const real b, const real c) {
-    return fminf(fminf(a, b), c);
+    return fmin(fmin(a, b), c);
 }
 CUDA_HOST_DEVICE static inline real Max(const real a, const real b, const real c) {
-    return fmaxf(fmaxf(a, b), c);
+    return fmax(fmax(a, b), c);
 }
 CUDA_HOST_DEVICE static inline real Floor(const real a) {
     return floor(a);

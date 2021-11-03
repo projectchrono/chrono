@@ -24,27 +24,21 @@ namespace fea {
 /// @addtogroup fea_elements
 /// @{
 
-/// Class for corotational elements (elements with rotation
-/// matrices that follow the global motion of the element)
+/// Class for corotational elements (elements with rotation matrices that follow the global motion of the element).
 class ChApi ChElementCorotational {
   protected:
     ChMatrix33<> A;  // rotation matrix
 
   public:
-    ChElementCorotational() {
-        A.setIdentity();
-    }
+    ChElementCorotational() { A.setIdentity(); }
 
     virtual ~ChElementCorotational() {}
 
-    /// Access the cumulative rotation matrix of the element,
-    /// The rotation is expressed relative to initial reference
-    /// position of element.
+    /// Access the cumulative rotation matrix of the element.
+    /// The rotation is expressed relative to initial reference position of element.
     ChMatrix33<>& Rotation() { return A; }
 
-    /// Given the actual position of the nodes, recompute
-    /// the cumulative rotation matrix A.
-    /// CHLDREN CLASSES MUST IMPLEMENT THIS!!!
+    /// Given the actual position of the nodes, recompute the cumulative rotation matrix A.
     virtual void UpdateRotation() = 0;
 };
 

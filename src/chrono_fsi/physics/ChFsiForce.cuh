@@ -28,7 +28,7 @@
 #include "chrono_fsi/math/ChFsiLinearSolver.h"
 #include "chrono_fsi/math/ChFsiLinearSolverBiCGStab.h"
 #include "chrono_fsi/math/ChFsiLinearSolverGMRES.h"
-#include "chrono_fsi/physics/ChSphGeneral.cuh"
+#include "chrono_fsi/ChSystemFsi_impl.cuh"
 #include "chrono_fsi/math/ExactLinearSolvers.cuh"
 
 namespace chrono {
@@ -90,7 +90,7 @@ __device__ inline void clearRow3(uint i_idx, uint csrStartIdx, uint csrEndIdx, R
 /// data of SPH markers, proximity data, parameters, and numbers.
 /// Child class must implement Finalize and ForceSPH methods
 
-class CH_FSI_API ChFsiForce : public ChFsiGeneral {
+class ChFsiForce : public ChFsiGeneral {
   public:
     /// Base constructor for FSI force class.
     /// The constructor instantiates the collision system (ChCollisionSystemFsi)

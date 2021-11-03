@@ -22,7 +22,7 @@
 #include "chrono/core/ChMathematics.h"
 
 #include "chrono/fea/ChElementCableANCF.h"
-#include "chrono/fea/ChElementShellANCF.h"
+#include "chrono/fea/ChElementShellANCF_3423.h"
 #include "chrono/fea/ChNodeFEAxyzD.h"
 #include "chrono_fsi/utils/ChUtilsDevice.cuh"
 #include "chrono_fsi/utils/ChUtilsGeneratorBce.h"
@@ -174,7 +174,6 @@ void CreateBCE_On_surface_of_Cylinder(thrust::host_vector<Real4>& posRadBCE,
     int num_layers = (int)std::floor(cyl_h / spacing);
     for (size_t si = 0; si < num_layers; si++) {
         Real s = -0.5 * cyl_h + (cyl_h / num_layers) * si;
-        ///////////
         //        for (Real x = -cyl_rad; x <= cyl_rad; x += spacing) {
         //            for (Real y = -cyl_rad; y <= cyl_rad; y += spacing) {
         //                if (x * x + y * y <= cyl_rad * cyl_rad)
@@ -295,7 +294,7 @@ void LoadBCE_fromFile(thrust::host_vector<Real4>& posRadBCE, std::string fileNam
 
 void CreateBCE_On_shell(thrust::host_vector<Real4>& posRadBCE,
                         std::shared_ptr<SimParams> paramsH,
-                        std::shared_ptr<chrono::fea::ChElementShellANCF> shell,
+                        std::shared_ptr<chrono::fea::ChElementShellANCF_3423> shell,
                         bool multiLayer,
                         bool removeMiddleLayer,
                         int SIDE) {
@@ -420,7 +419,7 @@ void CreateBCE_On_ChElementCableANCF(thrust::host_vector<Real4>& posRadBCE,
 // =============================================================================
 void CreateBCE_On_ChElementShellANCF(thrust::host_vector<Real4>& posRadBCE,
                                      std::shared_ptr<SimParams> paramsH,
-                                     std::shared_ptr<chrono::fea::ChElementShellANCF> shell,
+                                     std::shared_ptr<chrono::fea::ChElementShellANCF_3423> shell,
                                      std::vector<int> remove,
                                      bool multiLayer,
                                      bool removeMiddleLayer,
