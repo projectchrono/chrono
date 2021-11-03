@@ -34,7 +34,7 @@
 namespace chrono {
 namespace fsi {
 
-/// I made this const variables static in order to be able to use them in a different translation units in the utils
+/// Declared as const variables static in order to be able to use them in a different translation units in the utils
 __constant__ static SimParams paramsD;
 __constant__ static NumberOfObjects numObjectsD;
 

@@ -435,7 +435,7 @@ __global__ void Pressure_Equation(Real4* sortedPosRad,  // input: sorted positio
         }
 
         //======================= Boundary ===========================
-    } else if (Boundary_Marker && paramsD.bceType != ADAMI) {
+    } else if (Boundary_Marker && paramsD.bceType != BceVersion::ADAMI) {
         Real3 my_normal = Normals[i_idx];
         for (int count = csrStartIdx; count < csrEndIdx; count++) {
             uint j = csrColInd[count];
@@ -461,7 +461,7 @@ __global__ void Pressure_Equation(Real4* sortedPosRad,  // input: sorted positio
         //                A_Matrix[count] = A_Matrix[count] / Scale;
 
         //======================= Boundary Adami===========================
-    } else if (Boundary_Marker && paramsD.bceType == ADAMI && paramsD.USE_NonIncrementalProjection) {
+    } else if (Boundary_Marker && paramsD.bceType == BceVersion::ADAMI && paramsD.USE_NonIncrementalProjection) {
         Real h_i = sortedPosRad[i_idx].w;
         //        Real Vi = sumWij_inv[i_idx];
         Real3 posRadA = mR3(sortedPosRad[i_idx]);
@@ -496,7 +496,7 @@ __global__ void Pressure_Equation(Real4* sortedPosRad,  // input: sorted positio
         if (abs(den) > EPSILON) {
             A_Matrix[csrStartIdx] = den;
             Bi[i_idx] = pRHS;
-            /// Scale to make the diagonal element 1
+            // Scale to make the diagonal element 1
 
         } else {
             A_Matrix[csrStartIdx] = 1.0;
@@ -604,7 +604,7 @@ __global__ void Velocity_Correction_and_update(Real4* sortedPosRad,
             //            grad_uz += A_G[count] * Vstar[j].z;
         }
 
-        /// No forces for BCE to BCE markers
+        // No forces for BCE to BCE markers
         if (sortedRhoPreMu_old[j].w > -1 && sortedRhoPreMu_old[i_idx].w > -1)
             continue;
 
@@ -986,7 +986,7 @@ void ChFsiForceI2SPH::PreProcessor(std::shared_ptr<SphMarkerDataD> otherSphMarke
 void ChFsiForceI2SPH::ForceSPH(std::shared_ptr<SphMarkerDataD> otherSphMarkersD,
                                std::shared_ptr<FsiBodiesDataD> otherFsiBodiesD,
                                std::shared_ptr<FsiMeshDataD> otherFsiMeshD) {
-    if (paramsH->bceType == ADAMI && !paramsH->USE_NonIncrementalProjection) {
+    if (paramsH->bceType == BceVersion::ADAMI && !paramsH->USE_NonIncrementalProjection) {
         throw std::runtime_error(
             "\nADAMI boundary condition is only applicable to non-incremental Projection method. Please "
             "revise the BC scheme or set USE_NonIncrementalProjection to true.!\n");
@@ -1185,7 +1185,7 @@ void ChFsiForceI2SPH::ForceSPH(std::shared_ptr<SphMarkerDataD> otherSphMarkersD,
     //    }
 
     if (paramsH->USE_LinearSolver) {
-        if (paramsH->PPE_Solution_type != FORM_SPARSE_MATRIX) {
+        if (paramsH->PPE_Solution_type != PPE_SolutionType::FORM_SPARSE_MATRIX) {
             printf(
                 "You should paramsH->PPE_Solution_type == FORM_SPARSE_MATRIX in order to use the "
                 "chrono_fsi linear "
@@ -1197,7 +1197,7 @@ void ChFsiForceI2SPH::ForceSPH(std::shared_ptr<SphMarkerDataD> otherSphMarkersD,
         myLinearSolver->SetRelRes(paramsH->LinearSolver_Rel_Tol);
         myLinearSolver->SetIterationLimit(paramsH->LinearSolver_Max_Iter);
 
-        if (paramsH->PPE_Solution_type != FORM_SPARSE_MATRIX) {
+        if (paramsH->PPE_Solution_type != PPE_SolutionType::FORM_SPARSE_MATRIX) {
             printf(
                 "You should paramsH->PPE_Solution_type == FORM_SPARSE_MATRIX in order to use the "
                 "chrono_fsi linear "
@@ -1329,7 +1329,7 @@ void ChFsiForceI2SPH::ForceSPH(std::shared_ptr<SphMarkerDataD> otherSphMarkersD,
     printf("| Velocity_Correction_and_update: %f (sec), Ave_density_Err=%.3e, Re=%.1f\n", updateComputation,
            Ave_density_Err, Re);
 
-    /// post-processing for conservative formulation
+    // post-processing for conservative formulation
     if (paramsH->Conservative_Form && paramsH->ClampPressure) {
         Real minP = thrust::transform_reduce(sphMarkersD->rhoPresMuD.begin(), sphMarkersD->rhoPresMuD.end(),
                                              Real4_y_min(), 1e9, thrust::minimum<Real>());
