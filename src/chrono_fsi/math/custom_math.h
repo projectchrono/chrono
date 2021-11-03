@@ -76,6 +76,16 @@ inline __host__ __device__ Real cube(Real a) {
     return a * a * a;
 }
 
+/// Quartic a float value.
+inline __host__ __device__ Real quartic(Real a) {
+    return a * a * a * a;
+}
+
+/// Quintic a float value.
+inline __host__ __device__ Real quintic(Real a) {
+    return a * a * a * a * a;
+}
+
 ////////////////////////////////////////////////////////////////////////////////
 // implementations of basic cuda types
 ////////////////////////////////////////////////////////////////////////////////
