@@ -25,6 +25,9 @@
 namespace chrono {
 namespace fsi {
 
+/// @addtogroup fsi_physics
+/// @{
+
 /**
  * @brief Number of fluid markers, solid bodies, solid markers, boundary markers
  * @details
@@ -48,6 +51,7 @@ struct NumberOfObjects {
     size_t numAllMarkers;       ///< Total number of SPH markers in the simulation
 };
 
+/// Class for FSI properties and functions.
 class ChFsiGeneral {
   public:
     ChFsiGeneral();
@@ -70,6 +74,9 @@ class ChFsiGeneral {
     std::shared_ptr<SimParams> paramsH;
     std::shared_ptr<NumberOfObjects> numObjectsH;
 };
+
+/// @} fsi_physics
+
 }  // end namespace fsi
 }  // end namespace chrono
 

@@ -34,8 +34,10 @@ class ChElementShellANCF_3423;
 }
 
 namespace fsi {
+
 /// @addtogroup fsi_physics
 /// @{
+
 /// Base class for processing the interface between Chrono and FSI modules.
 class ChFsiInterface : public ChFsiGeneral {
   public:

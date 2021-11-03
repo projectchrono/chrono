@@ -27,28 +27,36 @@ namespace chrono {
 namespace fsi {
 namespace utils {
 
+/// @addtogroup fsi_utils
+/// @{
+
+/// Print a Real2 struct.
 void printStruct(struct Real2& s) {
     std::cout << "x = " << s.x << ", ";
     std::cout << "y = " << s.y << ", " << std::endl;
 }
 
+/// Print a Int2 struct.
 void printStruct(struct int2& s) {
     std::cout << "x = " << s.x << ", ";
     std::cout << "y = " << s.y << ", " << std::endl;
 }
 
+/// Print a Real3 struct.
 void printStruct(struct Real3& s) {
     std::cout << "x = " << s.x << ", ";
     std::cout << "y = " << s.y << ", ";
     std::cout << "z = " << s.z << ", " << std::endl;
 }
 
+/// Print a Int3 struct.
 void printStruct(struct int3& s) {
     std::cout << "x = " << s.x << ", ";
     std::cout << "y = " << s.y << ", ";
     std::cout << "z = " << s.z << ", " << std::endl;
 }
 
+/// Print a Real4 struct.
 void printStruct(struct Real4& s) {
     std::cout << "x = " << s.x << ", ";
     std::cout << "y = " << s.y << ", ";
@@ -56,12 +64,15 @@ void printStruct(struct Real4& s) {
     std::cout << "w = " << s.w << ", " << std::endl;
 }
 
+/// Print a Int4 struct.
 void printStruct(struct int4& s) {
     std::cout << "x = " << s.x << ", ";
     std::cout << "y = " << s.y << ", ";
     std::cout << "z = " << s.z << ", ";
     std::cout << "w = " << s.w << ", " << std::endl;
 }
+
+/// @} fsi_utils
 
 }  // end namespace utils
 }  // end namespace fsi

@@ -647,7 +647,8 @@ bool ParseJSON(const std::string& json_file, std::shared_ptr<SimParams> paramsH,
     utils::printStruct(paramsH->gridSize);
     std::cout << "********************" << std::endl;
     return true;
-}  // namespace utils
+}
+
 void PrepareOutputDir(std::shared_ptr<fsi::SimParams> paramsH,
                       std::string& demo_dir,
                       std::string out_dir,
@@ -710,6 +711,7 @@ void PrepareOutputDir(std::shared_ptr<fsi::SimParams> paramsH,
     std::cout << "input json file: " << jsonFile << "\n"
               << "backup json file: " << js << std::endl;
 }
+
 }  // namespace utils
 }  // namespace fsi
 }  // namespace chrono

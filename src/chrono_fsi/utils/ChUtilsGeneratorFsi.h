@@ -12,11 +12,11 @@
 // Author: Arman Pazouki, Milad Rakhsha, Wei Hu
 // =============================================================================
 //
-// Utility class for generating BCE markers.//
+// Utility class for generating BCE markers.
 // =============================================================================
 
-#ifndef CH_UTILSGENERATORFSI_CUH
-#define CH_UTILSGENERATORFSI_CUH
+#ifndef CH_FSI_UTILSGENERATOR_CUH
+#define CH_FSI_UTILSGENERATOR_CUH
 
 #include "chrono/ChConfig.h"
 #include "chrono_fsi/ChSystemFsi_impl.cuh"
@@ -24,16 +24,19 @@
 
 namespace chrono {
 
-// Forward declaration
+// Forward declarations
 namespace fea {
 class ChElementCableANCF;
 class ChElementShellANCF_3423;
 class ChNodeFEAxyzD;
 class ChMesh;
-}  // namespace fea
+}
 
 namespace fsi {
 namespace utils {
+
+/// @addtogroup fsi_utils
+/// @{
 
 chrono::ChVector<> TransformBCEToCOG(std::shared_ptr<ChBody> body, const chrono::ChVector<>& pos);
 chrono::ChVector<> TransformBCEToCOG(std::shared_ptr<ChBody> body, const Real3& pos3);
@@ -190,6 +193,8 @@ CH_FSI_API void AddBCE_FromMesh(std::shared_ptr<ChSystemFsi_impl> fsiSystem,
                                 int SIDE,
                                 int SIDE2D = 2,
                                 double kernel_h = 0);
+
+/// @} fsi_utils
 
 }  // end namespace utils
 }  // end namespace fsi

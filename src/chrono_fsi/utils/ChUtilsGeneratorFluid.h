@@ -25,9 +25,14 @@ namespace chrono {
 namespace fsi {
 namespace utils {
 
+/// @addtogroup fsi_utils
+/// @{
+
 int2 CreateFluidMarkers(std::shared_ptr<SphMarkerDataH> sphMarkersH,
                         std::shared_ptr<FsiGeneralData> fsiGeneralData,
                         std::shared_ptr<SimParams> paramsH);
+
+/// @} fsi_utils
 
 }  // end namespace utils
 }  // end namespace fsi

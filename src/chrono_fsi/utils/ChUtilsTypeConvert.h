@@ -27,7 +27,7 @@
 namespace chrono {
 namespace fsi {
 
-/// @addtogroup fsi_math
+/// @addtogroup fsi_utils
 /// @{
 
 /// Class for converting Chrono data structure to/from FSI data structure.
@@ -54,7 +54,7 @@ class CH_FSI_API ChUtilsTypeConvert {
   private:
 };
 
-/// @} fsi_math
+/// @} fsi_utils
 
 }  // end namespace fsi
 }  // end namespace chrono

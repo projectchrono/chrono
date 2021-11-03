@@ -46,7 +46,7 @@
     @{
         @defgroup fsi_physics Physics objects
         @defgroup fsi_collision Collision objects
-        @defgroup fsi_solver Solvers
+        @defgroup fsi_solver Linear solvers
         @defgroup fsi_utils Model construction, and I/O utilities
         @defgroup fsi_math Math utilities
     @}

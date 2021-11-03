@@ -35,6 +35,9 @@ class ChElementShellANCF_3423;
 namespace fsi {
 namespace utils {
 
+/// @addtogroup fsi_utils
+/// @{
+
 void CreateBCE_On_Sphere(thrust::host_vector<Real4>& posRadBCE, Real rad, std::shared_ptr<SimParams> paramsH);
 void CreateBCE_On_surface_of_Sphere(thrust::host_vector<Real4>& posRadBCE, Real rad, Real kernel_h);
 void CreateBCE_On_Cylinder(thrust::host_vector<Real4>& posRadBCE,
@@ -86,6 +89,8 @@ void CreateBCE_On_ChElementShellANCF(thrust::host_vector<Real4>& posRadBCE,
                                      bool removeMiddleLayer = false,
                                      int SIDE = -2,
                                      double kernel_h = 0);
+
+/// @} fsi_utils
 
 }  // end namespace utils
 }  // end namespace fsi
