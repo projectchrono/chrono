@@ -192,7 +192,8 @@ void ChVehicleCosimTireNodeFlexible::WriteTireMeshInformation(utils::CSV_writer&
         double areaX = 0, areaY = 0, areaZ = 0;
         double area = 0;
         for (unsigned int ie = 0; ie < m_adjElements[in].size(); ie++) {
-            auto element = std::static_pointer_cast<fea::ChElementShellANCF>(mesh->GetElement(m_adjElements[in][ie]));
+            auto element =
+                std::static_pointer_cast<fea::ChElementShellANCF_3423>(mesh->GetElement(m_adjElements[in][ie]));
             auto StrainStress = element->EvaluateSectionStrainStress(ChVector<>(0, 0, 0), 0);
             ChVector<> StrainVector = StrainStress.strain;
             double dx = element->GetLengthX();

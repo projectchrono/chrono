@@ -311,19 +311,10 @@ void ChVehicleCosimTerrainNodeGranularSPH::Construct() {
         // Calculate the pressure of a steady state (p = rho*g*h)
         fsi::Real pre_ini = m_params->rho0 * abs(m_params->gravity.z) * (-points[i].z() + fzDim);
         fsi::Real rho_ini = m_params->rho0 + pre_ini / (m_params->Cs * m_params->Cs);
-        m_systemFSI->GetDataManager()->AddSphMarker(
-            fsi::mR4(points[i].x(), points[i].y(), points[i].z(), m_params->HSML), fsi::mR3(1e-10),
-            fsi::mR4(rho_ini, pre_ini, m_params->mu0, -1));
+        m_systemFSI->AddSphMarker(points[i], rho_ini, pre_ini, m_params->mu0, m_params->HSML, -1, ChVector<>(1e-10));
     }
 
-    size_t numPhases = m_systemFSI->GetDataManager()->fsiGeneralData->referenceArray.size();
-    if (numPhases != 0) {
-        cout << "ERROR: incorrect number of phases in SPH granular terrain!" << endl;
-        MPI_Abort(MPI_COMM_WORLD, 1);
-    }
-
-    m_systemFSI->GetDataManager()->fsiGeneralData->referenceArray.push_back(fsi::mI4(0, numPart, -1, -1));
-    m_systemFSI->GetDataManager()->fsiGeneralData->referenceArray.push_back(fsi::mI4(numPart, numPart, 0, 0));
+    m_systemFSI->AddRefArray(0, numPart, -1, -1);
 
     // Create a body for the fluid container body
     auto container = std::shared_ptr<ChBody>(m_system->NewBody());
@@ -349,11 +340,11 @@ void ChVehicleCosimTerrainNodeGranularSPH::Construct() {
     ChVector<> pos_yn(0, -byDim / 2 - 3 * initSpace0, bzDim / 2 + 0 * initSpace0);
 
     // Add BCE particles attached on the walls into FSI system
-    fsi::utils::AddBoxBce(m_systemFSI->GetDataManager(), m_params, container, pos_zn, chrono::QUNIT, size_XY, 12);
-    fsi::utils::AddBoxBce(m_systemFSI->GetDataManager(), m_params, container, pos_xp, chrono::QUNIT, size_YZ, 23);
-    fsi::utils::AddBoxBce(m_systemFSI->GetDataManager(), m_params, container, pos_xn, chrono::QUNIT, size_YZ, 23);
-    fsi::utils::AddBoxBce(m_systemFSI->GetDataManager(), m_params, container, pos_yp, chrono::QUNIT, size_XZ, 13);
-    fsi::utils::AddBoxBce(m_systemFSI->GetDataManager(), m_params, container, pos_yn, chrono::QUNIT, size_XZ, 13);
+    m_systemFSI->AddBceBox(m_params, container, pos_zn, chrono::QUNIT, size_XY, 12);
+    m_systemFSI->AddBceBox(m_params, container, pos_xp, chrono::QUNIT, size_YZ, 23);
+    m_systemFSI->AddBceBox(m_params, container, pos_xn, chrono::QUNIT, size_YZ, 23);
+    m_systemFSI->AddBceBox(m_params, container, pos_yp, chrono::QUNIT, size_XZ, 13);
+    m_systemFSI->AddBceBox(m_params, container, pos_yn, chrono::QUNIT, size_XZ, 13);
 
     // Add all rigid obstacles
     int id = body_id_obstacles;
@@ -397,9 +388,8 @@ void ChVehicleCosimTerrainNodeGranularSPH::Construct() {
         // Create BCE markers associated with trimesh
         std::vector<ChVector<>> point_cloud;
         CreateMeshMarkers(trimesh, (double)initSpace0, point_cloud);
-        fsi::utils::AddBCE_FromPoints(m_systemFSI->GetDataManager(), m_params, body, point_cloud, VNULL, QUNIT);
+        m_systemFSI->AddBceFromPoints(m_params, body, point_cloud, VNULL, QUNIT);
     }
-
 
 #ifdef CHRONO_OPENGL
     // Add visualization asset for the container
@@ -475,7 +465,7 @@ void ChVehicleCosimTerrainNodeGranularSPH::CreateWheelProxy(unsigned int i) {
     auto initSpace0 = m_params->MULT_INITSPACE * m_params->HSML;
     std::vector<ChVector<>> point_cloud;
     CreateMeshMarkers(trimesh, (double)initSpace0, point_cloud);
-    fsi::utils::AddBCE_FromPoints(m_systemFSI->GetDataManager(), m_params, body, point_cloud, VNULL, QUNIT);
+    m_systemFSI->AddBceFromPoints(m_params, body, point_cloud, VNULL, QUNIT);
 }
 
 // Set state of wheel proxy body.
@@ -534,12 +524,7 @@ void ChVehicleCosimTerrainNodeGranularSPH::Render(double time) {
 
 void ChVehicleCosimTerrainNodeGranularSPH::OnOutputData(int frame) {
     // Save SPH and BCE particles' information into CSV files
-    fsi::utils::PrintToFile(
-        m_systemFSI->GetDataManager()->sphMarkersD2->posRadD, m_systemFSI->GetDataManager()->sphMarkersD2->velMasD,
-        m_systemFSI->GetDataManager()->sphMarkersD2->rhoPresMuD,
-        m_systemFSI->GetDataManager()->fsiGeneralData->sr_tau_I_mu_i,
-        m_systemFSI->GetDataManager()->fsiGeneralData->referenceArray,
-        m_systemFSI->GetDataManager()->fsiGeneralData->referenceArray_FEA, m_node_out_dir + "/simulation", true);
+    m_systemFSI->PrintParticleToFile("/simulation");
 }
 
 void ChVehicleCosimTerrainNodeGranularSPH::OutputVisualizationData(int frame) {
