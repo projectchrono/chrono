@@ -12,11 +12,11 @@
 // Author: Milad Rakhsha, Arman Pazouki
 // =============================================================================
 //
-// Class for fsi properties and functions.//
+// Class for FSI properties and functions.
 // =============================================================================
 
-#ifndef CH_FSIGENERAL_H_
-#define CH_FSIGENERAL_H_
+#ifndef CH_FSI_GENERAL_H
+#define CH_FSI_GENERAL_H
 
 #include <memory>
 #include "chrono_fsi/ChApiFsi.h"
@@ -24,6 +24,9 @@
 
 namespace chrono {
 namespace fsi {
+
+/// @addtogroup fsi_physics
+/// @{
 
 /**
  * @brief Number of fluid markers, solid bodies, solid markers, boundary markers
@@ -48,14 +51,15 @@ struct NumberOfObjects {
     size_t numAllMarkers;       ///< Total number of SPH markers in the simulation
 };
 
+/// Class for FSI properties and functions.
 class ChFsiGeneral {
   public:
     ChFsiGeneral();
     ChFsiGeneral(std::shared_ptr<SimParams> hostParams, 
                  std::shared_ptr<NumberOfObjects> hostNumObjects);
-    ~ChFsiGeneral();
+    virtual ~ChFsiGeneral() {}
 
-    /// @brief Compute number of blocks and threads for calculation on GPU
+    /// @brief Compute number of blocks and threads for calculation on GPU.
     /// This function calculates the number of blocks and threads for a given number of elements based on the blockSize
     void computeGridSize(uint n,           ///< Total num elements
                          uint blockSize,   ///< BlockSize Number of threads per block
@@ -70,6 +74,9 @@ class ChFsiGeneral {
     std::shared_ptr<SimParams> paramsH;
     std::shared_ptr<NumberOfObjects> numObjectsH;
 };
+
+/// @} fsi_physics
+
 }  // end namespace fsi
 }  // end namespace chrono
 

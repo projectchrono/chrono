@@ -566,7 +566,7 @@ ChBce::~ChBce() {
     // TODO
 }
 
-////--------------------------------------------------------------------------------------------------------------------------------
+//--------------------------------------------------------------------------------------------------------------------------------
 void ChBce::MakeRigidIdentifier() {
     if (numObjectsH->numRigidBodies > 0) {
         int haveGhost = (numObjectsH->numGhostMarkers > 0) ? 1 : 0;
@@ -587,7 +587,7 @@ void ChBce::MakeRigidIdentifier() {
         }
     }
 }
-////--------------------------------------------------------------------------------------------------------------------------------
+//--------------------------------------------------------------------------------------------------------------------------------
 void ChBce::MakeFlexIdentifier() {
     if ((numObjectsH->numFlexBodies1D + numObjectsH->numFlexBodies2D) > 0) {
         fsiGeneralData->FlexIdentifierD.resize(numObjectsH->numFlex_SphMarkers);
@@ -625,7 +625,7 @@ void ChBce::MakeFlexIdentifier() {
         }
     }
 }
-////--------------------------------------------------------------------------------------------------------------------------------
+//--------------------------------------------------------------------------------------------------------------------------------
 void ChBce::Populate_RigidSPH_MeshPos_LRF(std::shared_ptr<SphMarkerDataD> sphMarkersD,
                                           std::shared_ptr<FsiBodiesDataD> fsiBodiesD) {
     if (numObjectsH->numRigidBodies == 0) {
@@ -647,7 +647,7 @@ void ChBce::Populate_RigidSPH_MeshPos_LRF(std::shared_ptr<SphMarkerDataD> sphMar
 
     UpdateRigidMarkersPositionVelocity(sphMarkersD, fsiBodiesD);
 }
-////--------------------------------------------------------------------------------------------------------------------------------
+//--------------------------------------------------------------------------------------------------------------------------------
 void ChBce::Populate_FlexSPH_MeshPos_LRF(std::shared_ptr<SphMarkerDataD> sphMarkersD,
                                          std::shared_ptr<FsiMeshDataD> fsiMeshD) {
     if ((numObjectsH->numFlexBodies1D + numObjectsH->numFlexBodies2D) == 0) {
@@ -753,7 +753,7 @@ void ChBce::ModifyBceVelocity(std::shared_ptr<SphMarkerDataD> sphMarkersD, std::
     }
     int3 updatePortion = mI3(fsiGeneralData->referenceArray[0].y, fsiGeneralData->referenceArray[1].y,
                              fsiGeneralData->referenceArray[2 + numObjectsH->numRigidBodies - 1].y);
-    if (paramsH->bceType == ADAMI) {
+    if (paramsH->bceType == BceVersion::ADAMI) {
         thrust::device_vector<Real3> bceAcc(numObjectsH->numRigid_SphMarkers);
         if (numObjectsH->numRigid_SphMarkers > 0) {
             CalcBceAcceleration(bceAcc, fsiBodiesD->q_fsiBodies_D, fsiBodiesD->accRigid_fsiBodies_D,

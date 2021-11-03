@@ -65,7 +65,7 @@ void ChFsiForce::SetLinearSolver(ChFsiLinearSolver::SolverType other_solverType)
         case ChFsiLinearSolver::SolverType::GMRES:
             myLinearSolver = chrono_types::make_shared<ChFsiLinearSolverGMRES>();
             break;
-            /// Extend this function with your own linear solvers
+            // Extend this function with your own linear solvers
         default:
 
             myLinearSolver = chrono_types::make_shared<ChFsiLinearSolverBiCGStab>();

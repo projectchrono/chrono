@@ -334,8 +334,6 @@ __global__ void calcNormalizedRho_kernel(Real4* sortedPosRad,  // input: sorted 
         theta_i = 1;
     Real3 mynormals = mR3(0.0);
 
-    //  /// if (gridPos.x == paramsD.gridSize.x-1) printf("****aha %d %d\n", gridPos.x, paramsD.gridSize.x);
-    //
     // examine neighbouring cells
     for (int z = -1; z <= 1; z++)
         for (int y = -1; y <= 1; y++)
@@ -565,12 +563,11 @@ __global__ void Function_Gradient_Laplacian_Operator(Real4* sortedPosRad,  // in
                                                      Real* sumWij_inv,
                                                      Real* G_tensor,
                                                      Real* L_tensor,
-
-                                                     Real* A_L,   /// Laplacian Operator matrix
-                                                     Real3* A_G,  /// Gradient Operator matrix
-                                                     Real* A_f,   /// Function Operator matrix
-                                                     /// A_L, A_G are in system level;
-                                                     /// A_G* p gives gradp, A_L*p gives Delta^2p
+                                                     Real* A_L,   // Laplacian Operator matrix
+                                                     Real3* A_G,  // Gradient Operator matrix
+                                                     Real* A_f,   // Function Operator matrix
+                                                     // A_L, A_G are in system level;
+                                                     // A_G* p gives gradp, A_L*p gives Delta^2p
                                                      uint* csrColInd,
                                                      uint* numContacts,
                                                      const size_t numAllMarkers,
