@@ -232,15 +232,15 @@ using namespace chrono::copter;
 %ignore chrono::robosimian::RS_Driver::GetCurrentPhase;
 %feature("director")  chrono::robosimian::RS_Driver::PhaseChangeCallback;
 
-%include "../chrono_models/robot/robosimian/RoboSimian.h"
-%include "../chrono_models/robot/viper/Viper.h"
-%include "../chrono_models/robot/curiosity/Curiosity.h"
-%include "../chrono_models/robot/turtlebot/Turtlebot.h"
+%include "../../chrono_models/robot/robosimian/RoboSimian.h"
+%include "../../chrono_models/robot/viper/Viper.h"
+%include "../../chrono_models/robot/curiosity/Curiosity.h"
+%include "../../chrono_models/robot/turtlebot/Turtlebot.h"
 
-%include "../chrono_models/robot/copters/Copter.h"
+%include "../../chrono_models/robot/copters/Copter.h"
 %template(ChCopter6) chrono::copter::Copter<6>;
 %template(ChCopter4) chrono::copter::Copter<4>;
-%include "../chrono_models/robot/copters/Little_Hexy.h"
+%include "../../chrono_models/robot/copters/Little_Hexy.h"
 
 
 
