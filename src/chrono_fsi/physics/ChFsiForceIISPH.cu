@@ -1541,7 +1541,7 @@ void ChFsiForceIISPH::calcPressureIISPH(std::shared_ptr<FsiBodiesDataD> otherFsi
         }
 
         myLinearSolver->Solve((int)numAllMarkers, NNZ, R1CAST(csrValA), U1CAST(numContacts), U1CAST(csrColIndA),
-                              (double*)R1CAST(p_old), R1CAST(B_i));
+                              R1CAST(p_old), R1CAST(B_i));
         cudaCheckError();
     } else {
         while ((MaxRes > paramsH->LinearSolver_Abs_Tol || Iteration < 3) &&

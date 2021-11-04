@@ -26,6 +26,7 @@
 #include <typeinfo>
 #include "cublas_v2.h"
 #include "cusparse_v2.h"
+#include "custom_math.h"
 
 namespace chrono {
 namespace fsi {
@@ -41,8 +42,8 @@ class ChFsiLinearSolver {
     enum class SolverType { BICGSTAB, GMRES, CR, CG, SAP };
 
     ChFsiLinearSolver(SolverType msolver,
-                      double mrel_res = 1e-8,
-                      double mabs_res = 1e-4,
+                      Real mrel_res = 1e-8,
+                      Real mabs_res = 1e-4,
                       int mmax_iter = 1000,
                       bool mverbose = false) {
         rel_res = mrel_res;
@@ -64,7 +65,7 @@ class ChFsiLinearSolver {
     bool GetVerbose() const { return verbose; }
 
     /// Return the current residual.
-    double GetResidual() { return residual; }
+    Real GetResidual() { return residual; }
 
     /// Return the number of current Iterations.
     int GetNumIterations() { return Iterations; }
@@ -76,16 +77,16 @@ class ChFsiLinearSolver {
     int GetIterationLimit() { return max_iter; }
 
     /// Set the absolute residual.
-    void SetAbsRes(double mabs_res) { abs_res = mabs_res; }
+    void SetAbsRes(Real mabs_res) { abs_res = mabs_res; }
 
     /// Get the absolute residual.
-    double GetAbsRes() { return abs_res; }
+    Real GetAbsRes() { return abs_res; }
 
     /// Get the relative residual.
-    void SetRelRes(double mrel_res) { rel_res = mrel_res; }
+    void SetRelRes(Real mrel_res) { rel_res = mrel_res; }
 
     /// Get the relative residual.
-    double GetRelRes() { return rel_res; }
+    Real GetRelRes() { return rel_res; }
 
     /// Return the solver status.
     /// - 0: unsuccessful
@@ -94,15 +95,15 @@ class ChFsiLinearSolver {
 
     /// Solve linear system for x.
     virtual void
-    Solve(int SIZE, int NNZ, double* A, unsigned int* ArowIdx, unsigned int* AcolIdx, double* x, double* b) = 0;
+    Solve(int SIZE, int NNZ, Real* A, unsigned int* ArowIdx, unsigned int* AcolIdx, Real* x, Real* b) = 0;
 
   protected:
-    double rel_res = 1e-3;
-    double abs_res = 1e-6;
+    Real rel_res = 1e-3;
+    Real abs_res = 1e-6;
     int max_iter = 500;
     bool verbose = false;
     int Iterations = 0;
-    double residual = 1e5;
+    Real residual = 1e5;
     int solver_status = 0;
 
   private:
