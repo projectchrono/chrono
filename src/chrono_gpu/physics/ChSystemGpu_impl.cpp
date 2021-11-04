@@ -169,7 +169,7 @@ void ChSystemGpu_impl::packSphereDataPointers() {
     }
 
     sphere_data->sphere_fixed = sphere_fixed.data();
-    sphere_data->sphere_group = sphere_group.data();
+    sphere_data->sphere_type = sphere_type.data();
     sphere_data->sphere_cluster = sphere_cluster.data();
     sphere_data->sphere_inside_mesh = sphere_inside_mesh.data();
 
@@ -345,7 +345,7 @@ void ChSystemGpu_impl::WriteFile(
             }
 
             if (GET_OUTPUT_SETTING(GROUP)) {
-                int group = (int)sphere_group[n];
+                int group = (int)sphere_type[n];
                 outstrstream << "," << group;
             }
 
@@ -476,7 +476,7 @@ void ChSystemGpu_impl::WriteFile(
         if (GET_OUTPUT_SETTING(GROUP)) {
             unsigned char* group = new unsigned char[nSpheres];
             for (size_t n = 0; n < nSpheres; n++) {
-                group[n] = sphere_group[n];
+                group[n] = sphere_type[n];
             }
             H5::DataSet ds_group = file.createDataSet("group", H5::PredType::NATIVE_UCHAR, dataspace);
             ds_group.write(group, H5::PredType::NATIVE_UCHAR);

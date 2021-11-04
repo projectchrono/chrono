@@ -442,11 +442,11 @@ __host__ void ChSystemGpuMesh_impl::IdentifyClusters() {
         // step 2- Search the graph, find the clusters.
         switch (gran_params->cluster_search_method) {
             case CLUSTER_SEARCH_METHOD::BFS: {
-                /// sphere_group is CORE if neighbors_num > min_pts else NOISE
+                /// sphere_type is CORE if neighbors_num > min_pts else NOISE
                 GdbscanInitSphereGroup<<<nBlocks, CUDA_THREADS_PER_BLOCK>>>(
                     nSpheres,
                     sphere_data->adj_num,
-                    sphere_data->sphere_group,
+                    sphere_data->sphere_type,
                     gran_params->gdbscan_min_pts);
                 gpuErrchk(cudaPeekAtLastError());
                 gpuErrchk(cudaDeviceSynchronize());
@@ -462,7 +462,7 @@ __host__ void ChSystemGpuMesh_impl::IdentifyClusters() {
                 gpuErrchk(cudaDeviceSynchronize());
 
                 /// Finds clusters, tags Ground cluster (biggest), other clusters.
-                /// Changes NOISE sphere_group to BORDER if in cluster
+                /// Changes NOISE sphere_type to BORDER if in cluster
                 GdbscanSearchGraph(sphere_data, gran_params, nSpheres,
                                    gran_params->gdbscan_min_pts);
                 break;
@@ -583,11 +583,11 @@ __host__ double ChSystemGpuMesh_impl::AdvanceSimulation(float duration) {
 }
 
 __global__ void count_spheres_in_mesh(const unsigned int nSpheres,
-                                      SPHERE_GROUP* sphere_group,
+                                      SPHERE_TYPE* sphere_type,
                                       unsigned int* d_sphere_count) {
     unsigned int my_sphere = blockIdx.x * blockDim.x + threadIdx.x;
     if (my_sphere < nSpheres) {
-        if (sphere_group[my_sphere] == SPHERE_GROUP::VOLUME) {
+        if (sphere_type[my_sphere] == SPHERE_TYPE::VOLUME) {
             d_sphere_count[my_sphere] = 1;
         } else {
             d_sphere_count[my_sphere] = 0;
@@ -604,7 +604,7 @@ __host__ double ChSystemGpuMesh_impl::volume_inside_mesh() {
     gpuErrchk(cudaMalloc(&d_sphere_count, nSpheres * sizeof(unsigned int)));
 
     count_spheres_in_mesh<<<(nSpheres + 255) / 256, 256>>>(
-            nSpheres, sphere_data->sphere_group, d_sphere_count);
+            nSpheres, sphere_data->sphere_type, d_sphere_count);
 
     void     *d_temp_storage = NULL;
     size_t   temp_storage_bytes = 0;

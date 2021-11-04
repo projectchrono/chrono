@@ -39,7 +39,7 @@
 using chrono::gpu::CHGPU_TIME_INTEGRATOR;
 using chrono::gpu::CHGPU_FRICTION_MODE;
 using chrono::gpu::CHGPU_ROLLING_MODE;
-using chrono::gpu::SPHERE_GROUP;
+using chrono::gpu::SPHERE_TYPE;
 using chrono::gpu::CLUSTER_INDEX;
 using chrono::gpu::CLUSTER_GRAPH_METHOD;
 using chrono::gpu::CLUSTER_SEARCH_METHOD;
@@ -52,17 +52,17 @@ using chrono::gpu::CLUSTER_SEARCH_METHOD;
 /// Only NOISE spheres may be changed to BORDER later
 static __global__ void GdbscanInitSphereGroup(unsigned int nSpheres,
                                               unsigned int* adj_num,
-                                              SPHERE_GROUP* sphere_group,
+                                              SPHERE_TYPE* sphere_type,
                                               unsigned int minPts) {
     unsigned int mySphereID = threadIdx.x + blockIdx.x * blockDim.x;
     // don't overrun the array
     if (mySphereID < nSpheres) {
-        sphere_group[mySphereID] = adj_num[mySphereID] > minPts ?
-        SPHERE_GROUP::CORE : SPHERE_GROUP::NOISE;
+        sphere_type[mySphereID] = adj_num[mySphereID] > minPts ?
+        SPHERE_TYPE::CORE : SPHERE_TYPE::NOISE;
     }
 }
 
-// Tag spheres found inside mesh to group VOLUME
+// Tag spheres found inside mesh to type VOLUME
 // must run AFTER interactionGranMat_TriangleSoup
 static __global__ void SetVolumeSphereGroup(ChSystemGpu_impl::GranSphereDataPtr sphere_data,
                                             unsigned int nSpheres) {
@@ -70,37 +70,37 @@ static __global__ void SetVolumeSphereGroup(ChSystemGpu_impl::GranSphereDataPtr 
     // don't overrun the array
     if (mySphereID < nSpheres) {
         if (sphere_data->sphere_inside_mesh[mySphereID]) {
-           sphere_data->sphere_group[mySphereID] = SPHERE_GROUP::VOLUME;
+           sphere_data->sphere_type[mySphereID] = SPHERE_TYPE::VOLUME;
        }
     }
 }
 
-/// Any particle with sphere_group == NOISE are not part of any cluster
+/// Any particle with sphere_type == NOISE are not part of any cluster
 /// -> sphere_cluster = INVALID
 /// Should be run at the end of search step
 static __global__ void GdbscanFinalClusterFromGroup(unsigned int nSpheres,
                                                     unsigned int* sphere_cluster,
-                                                    SPHERE_GROUP* sphere_group) {
+                                                    SPHERE_TYPE* sphere_type) {
     unsigned int mySphereID = threadIdx.x + blockIdx.x * blockDim.x;
     // don't overrun the array
     if (mySphereID < nSpheres) {
-        if (sphere_group[mySphereID] == SPHERE_GROUP::NOISE) {
+        if (sphere_type[mySphereID] == SPHERE_TYPE::NOISE) {
             sphere_cluster[mySphereID] = static_cast<unsigned int>(CLUSTER_INDEX::INVALID);
         }
     }
 }
 
 // Find if any particle is in the volume cluster.
-// If any sphere in cluster sphere_group == VOLUME -> sphere_cluster = VOLUME
+// If any sphere in cluster sphere_type == VOLUME -> sphere_cluster = VOLUME
 // UNLESS it is the biggest cluster -> sphere_cluster = GROUND
 static __global__ void FindVolumeCluster(unsigned int nSpheres,
                                          bool * visited,
                                          bool * in_volume,
-                                         SPHERE_GROUP* sphere_group) {
+                                         SPHERE_TYPE* sphere_type) {
     unsigned int mySphereID = threadIdx.x + blockIdx.x * blockDim.x;
     // don't overrun the array
     if (mySphereID < nSpheres) {
-        if ((sphere_group[mySphereID] == SPHERE_GROUP::VOLUME) && (visited[mySphereID])) {
+        if ((sphere_type[mySphereID] == SPHERE_TYPE::VOLUME) && (visited[mySphereID])) {
             in_volume[mySphereID] = true;
         }
     }

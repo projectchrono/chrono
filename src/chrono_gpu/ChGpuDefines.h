@@ -53,7 +53,7 @@ enum CHGPU_OUTPUT_FLAGS { ABSV = 1 << 0, VEL_COMPONENTS = 1 << 1,
                           CLUSTER = 1 << 6, ADJACENCY = 1 << 7 };
 
 /// Clustering algorithm switches
-// 0 on ANY cluster related switch means no clustering done, all sphere_group and sphere_cluster to 0.
+// 0 on ANY cluster related switch means no clustering done, all sphere_type and sphere_cluster to 0.
 enum class CLUSTER_GRAPH_METHOD {NONE = 0, CONTACT = 1, PROXIMITY = 2}; /* TODO: Implement proximity graph construction */
 // CONTACT leverages sphere_contact_map to build the graph.
 // PROXIMITY determine contacts by checking if distance between sphere pairs < gbscan_radius; TODO UNTESTED
@@ -70,7 +70,7 @@ enum class CLUSTER_INDEX {GROUND = 0, INVALID = 1, VOLUME = 2, START = 3}; /* nu
 
 /// Sphere groups, core border or noise for clustering, volume for inside mesh
 /// a sphere can be a CORE or BORDER of any cluster. 
-enum class SPHERE_GROUP {CORE = 0, BORDER = 1, NOISE = 2, VOLUME = 3};
+enum class SPHERE_TYPE {CORE = 0, BORDER = 1, NOISE = 2, VOLUME = 3};
 
 #define GET_OUTPUT_SETTING(setting) (this->output_flags & static_cast<unsigned int>(setting))
 

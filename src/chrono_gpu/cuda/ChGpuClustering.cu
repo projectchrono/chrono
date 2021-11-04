@@ -66,7 +66,7 @@ static __host__ unsigned int ** ClusterSearchBFS(unsigned int nSpheres,
                                                  unsigned int* adj_num,
                                                  unsigned int* adj_start,
                                                  unsigned int* adj_list,
-                                                 SPHERE_GROUP* sphere_group) {
+                                                 SPHERE_TYPE* sphere_type) {
     unsigned int nBlocks = (nSpheres + CUDA_THREADS_PER_BLOCK - 1) / CUDA_THREADS_PER_BLOCK;
 
     cudaMemset(sphere_data->sphere_cluster,
@@ -106,14 +106,14 @@ static __host__ unsigned int ** ClusterSearchBFS(unsigned int nSpheres,
 
     h_visited = (bool *)calloc(sizeof(*h_visited), nSpheres);
     h_searched = (bool *)calloc(sizeof(*h_searched), nSpheres);
-    SPHERE_GROUP h_current_group;
+    SPHERE_TYPE h_current_type;
 
     // Search for clusters at every sphere.
     for (size_t i = 0; i < nSpheres; i++) {
-        h_current_group = sphere_group[i];
+        h_current_type = sphere_type[i];
         /// find the next h_cluster, at the first sphere not yet searched
         /// all spheres connected to it are part of this cluster
-        if ((!h_searched[i]) && (h_current_group == SPHERE_GROUP::CORE)) {
+        if ((!h_searched[i]) && (h_current_type == SPHERE_TYPE::CORE)) {
             cudaMemset(d_borders, false, sizeof(*d_borders) * nSpheres);
             cudaMemset(d_visited, false, sizeof(*d_visited) * nSpheres);
             cudaMemset(d_in_volume, false, sizeof(*d_in_volume) * nSpheres);
@@ -149,10 +149,10 @@ static __host__ unsigned int ** ClusterSearchBFS(unsigned int nSpheres,
                 gpuErrchk(cudaDeviceSynchronize());
             } while ((*h_border_num) > 0);
 
-            // find if any sphere was tagged in the VOLUME group
+            // find if any sphere was tagged in the VOLUME type
             FindVolumeCluster<<<nBlocks, CUDA_THREADS_PER_BLOCK>>>(nSpheres,
                d_visited, d_in_volume,
-               sphere_data->sphere_group);
+               sphere_data->sphere_type);
             // Sum number of particles in d_in_volume into h_in_volume_num
             void *d_temp_storage = NULL;
             size_t temp_storage_bytes = 0;
@@ -188,9 +188,9 @@ static __host__ unsigned int ** ClusterSearchBFS(unsigned int nSpheres,
 
             for (size_t j = 0; j < nSpheres; j++) {
                 if (h_visited[j]) {
-                    if ((sphere_group[j] != SPHERE_GROUP::CORE) &&
-                        (sphere_group[j] != SPHERE_GROUP::VOLUME)) {
-                        sphere_group[j] = SPHERE_GROUP::BORDER;
+                    if ((sphere_type[j] != SPHERE_TYPE::CORE) &&
+                        (sphere_type[j] != SPHERE_TYPE::VOLUME)) {
+                        sphere_type[j] = SPHERE_TYPE::BORDER;
                     }
 
                     h_searched[j] = true;
@@ -371,7 +371,7 @@ __host__ void GdbscanSearchGraph(
                                         sphere_data->adj_num,
                                         sphere_data->adj_start,
                                         sphere_data->adj_list,
-                                        sphere_data->sphere_group);
+                                        sphere_data->sphere_type);
     unsigned int cluster_num = h_clusters[0][0];
     unsigned int sphere_num_in_cluster;
     unsigned int biggest_cluster_size = 1;
@@ -389,7 +389,7 @@ __host__ void GdbscanSearchGraph(
             }
         }
 
-        // tag each sphere to a biggest cluster_group
+        // tag each sphere to a biggest cluster
         sphere_num_in_cluster = h_clusters[biggest_cluster_id][0];
         assert(h_clusters[biggest_cluster_id][0] <= nSpheres);
         for (size_t j = 1; j < (sphere_num_in_cluster + 1); j++) {
@@ -401,7 +401,7 @@ __host__ void GdbscanSearchGraph(
     }
 
     GdbscanFinalClusterFromGroup<<<nBlocks, CUDA_THREADS_PER_BLOCK>>>(nSpheres,
-            sphere_data->sphere_cluster, sphere_data->sphere_group);
+            sphere_data->sphere_cluster, sphere_data->sphere_type);
     gpuErrchk(cudaPeekAtLastError());
     gpuErrchk(cudaDeviceSynchronize());
 

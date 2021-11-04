@@ -41,7 +41,7 @@ using chrono::gpu::ChSystemGpu_impl;
 using chrono::gpu::CHGPU_TIME_INTEGRATOR;
 using chrono::gpu::CHGPU_FRICTION_MODE;
 using chrono::gpu::CHGPU_ROLLING_MODE;
-using chrono::gpu::SPHERE_GROUP;
+using chrono::gpu::SPHERE_TYPE;
 using chrono::gpu::CLUSTER_GRAPH_METHOD;
 using chrono::gpu::CLUSTER_SEARCH_METHOD;
 
