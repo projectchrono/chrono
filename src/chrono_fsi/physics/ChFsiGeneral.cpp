@@ -12,10 +12,10 @@
 // Author: Milad Rakhsha, Arman Pazouki
 // =============================================================================
 //
-// Class for fsi properties and functions.//
+// Class for FSI properties and functions.
 // =============================================================================
 
-#include "chrono_fsi/physics/ChFsiGeneral.cuh"
+#include "chrono_fsi/physics/ChFsiGeneral.h"
 
 namespace chrono {
 namespace fsi {
@@ -24,8 +24,6 @@ ChFsiGeneral::ChFsiGeneral() : paramsH(NULL), numObjectsH(NULL) {}
 
 ChFsiGeneral::ChFsiGeneral(std::shared_ptr<SimParams> other_paramsH, std::shared_ptr<NumberOfObjects> other_numObjects)
     : paramsH(other_paramsH), numObjectsH(other_numObjects) {}
-
-ChFsiGeneral::~ChFsiGeneral() {}
 
 uint ChFsiGeneral::iDivUp(uint a, uint b) {
     return (a % b != 0) ? (a / b + 1) : (a / b);

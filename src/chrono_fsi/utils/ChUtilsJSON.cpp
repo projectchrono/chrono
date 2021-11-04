@@ -27,8 +27,6 @@
 #include "ChUtilsJSON.h"
 #include "chrono_fsi/utils/ChUtilsDevice.cuh"
 #include "chrono_fsi/math/ChFsiLinearSolver.h"
-#include "chrono_fsi/physics/ChParams.cuh"
-#include "chrono_fsi/physics/ChSphGeneral.cuh"
 #include "chrono_fsi/utils/ChUtilsPrintStruct.h"
 // Chrono general utils
 #include "chrono_thirdparty/filesystem/path.h"
@@ -45,7 +43,17 @@ Real3 LoadVectorJSON(const Value& a) {
     assert(a.Size() == 3);
     return mR3(a[0u].GetDouble(), a[1u].GetDouble(), a[2u].GetDouble());
 }
-
+Real W3h_Spline(Real d, Real h) {
+    Real invh = 1.0 / h;
+    Real q = fabs(d) * invh;
+    if (q < 1) {
+        return (0.25f * (INVPI * invh * invh * invh) * (cube(2 - q) - 4 * cube(1 - q)));
+    }
+    if (q < 2) {
+        return (0.25f * (INVPI * invh * invh * invh) * cube(2 - q));
+    }
+    return 0;
+}
 Real massCalculator(int& num_nei, Real Kernel_h, Real InitialSpacing, Real rho0) {
     int IDX = 10;
     Real sum_wij = 0;
@@ -259,7 +267,7 @@ bool ParseJSON(const std::string& json_file, std::shared_ptr<SimParams> paramsH,
 
     if (doc.HasMember("Pressure Equation")) {
         if (doc["Pressure Equation"].HasMember("Linear solver")) {
-            paramsH->PPE_Solution_type = FORM_SPARSE_MATRIX;
+            paramsH->PPE_Solution_type = PPE_SolutionType::FORM_SPARSE_MATRIX;
             std::string solver = doc["Pressure Equation"]["Linear solver"].GetString();
             if (solver == "Jacobi") {
                 paramsH->USE_LinearSolver = false;
@@ -271,7 +279,7 @@ bool ParseJSON(const std::string& json_file, std::shared_ptr<SimParams> paramsH,
                     paramsH->LinearSolver = ChFsiLinearSolver::SolverType::GMRES;
             }
         } else {
-            paramsH->PPE_Solution_type = MATRIX_FREE;
+            paramsH->PPE_Solution_type = PPE_SolutionType::MATRIX_FREE;
         }
 
         if (doc["Pressure Equation"].HasMember("Poisson source term")) {
@@ -337,11 +345,11 @@ bool ParseJSON(const std::string& json_file, std::shared_ptr<SimParams> paramsH,
         if (doc["Pressure Equation"].HasMember("Boundary Conditions")) {
             std::string BC = doc["Pressure Equation"]["Boundary Conditions"].GetString();
             if (BC == "Generalized Wall BC")
-                paramsH->bceType = ADAMI;
+                paramsH->bceType = BceVersion::ADAMI;
             else
-                paramsH->bceType = mORIGINAL;
+                paramsH->bceType = BceVersion::mORIGINAL;
         } else
-            paramsH->bceType = ADAMI;
+            paramsH->bceType = BceVersion::ADAMI;
     }
 
     // this part is for modeling granular material dynamics using elastic SPH
@@ -524,7 +532,7 @@ bool ParseJSON(const std::string& json_file, std::shared_ptr<SimParams> paramsH,
                     throw std::runtime_error("No rheology model is indicated.\n");
                 }
                 //===============================================================
-                /// mu(I) functionality
+                // mu(I) functionality
                 //===============================================================
                 if (doc["Material Model"]["granular model"].HasMember("mu(I)")) {
                     std::string type = doc["Material Model"]["granular model"]["mu(I)"]["type"].GetString();
@@ -606,8 +614,8 @@ bool ParseJSON(const std::string& json_file, std::shared_ptr<SimParams> paramsH,
 
     std::cout << "paramsH->non_newtonian: " << paramsH->non_newtonian << std::endl;
     std::cout << "paramsH->granular_material: " << paramsH->granular_material << std::endl;
-    std::cout << "paramsH->mu_of_I : " << paramsH->mu_of_I << std::endl;
-    std::cout << "paramsH->rheology_model: " << paramsH->rheology_model << std::endl;
+    std::cout << "paramsH->mu_of_I : " << (int)paramsH->mu_of_I << std::endl;
+    std::cout << "paramsH->rheology_model: " << (int)paramsH->rheology_model << std::endl;
     std::cout << "paramsH->ave_diam: " << paramsH->ave_diam << std::endl;
     std::cout << "paramsH->mu_max: " << paramsH->mu_max << std::endl;
     std::cout << "paramsH->mu_fric_s: " << paramsH->mu_fric_s << std::endl;
@@ -623,7 +631,7 @@ bool ParseJSON(const std::string& json_file, std::shared_ptr<SimParams> paramsH,
     std::cout << "paramsH->cMax: ";
     utils::printStruct(paramsH->cMax);
 
-    std::cout << "paramsH->bceType: " << paramsH->bceType << std::endl;
+    std::cout << "paramsH->bceType: " << (int)paramsH->bceType << std::endl;
     std::cout << "paramsH->USE_NonIncrementalProjection : " << paramsH->USE_NonIncrementalProjection << std::endl;
     //    std::cout << "paramsH->LinearSolver: " << paramsH->LinearSolver << std::endl;
     std::cout << "paramsH->PPE_relaxation: " << paramsH->PPE_relaxation << std::endl;
@@ -639,7 +647,8 @@ bool ParseJSON(const std::string& json_file, std::shared_ptr<SimParams> paramsH,
     utils::printStruct(paramsH->gridSize);
     std::cout << "********************" << std::endl;
     return true;
-}  // namespace utils
+}
+
 void PrepareOutputDir(std::shared_ptr<fsi::SimParams> paramsH,
                       std::string& demo_dir,
                       std::string out_dir,
@@ -702,6 +711,7 @@ void PrepareOutputDir(std::shared_ptr<fsi::SimParams> paramsH,
     std::cout << "input json file: " << jsonFile << "\n"
               << "backup json file: " << js << std::endl;
 }
+
 }  // namespace utils
 }  // namespace fsi
 }  // namespace chrono

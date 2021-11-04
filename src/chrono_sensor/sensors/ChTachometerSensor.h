@@ -36,8 +36,8 @@ enum Axis {X, Y, Z};
 class CH_SENSOR_API ChTachometerSensor : public ChDynamicSensor {
   public:
     /// Class constructor
-    /// @param parenttt Body to which the sensor is attached
-    /// @param updateRate Rate at which the sensor should update.
+    /// @param parent Body to which the sensor is attached
+    /// @param update Rate at which the sensor should update.
     /// @param offsetPose Relative position and orientation of sensor relative to parent body
     /// @param axis Axis of rotation to measure (X,Y,Z)
     ChTachometerSensor(std::shared_ptr<chrono::ChBody> parent, float update, chrono::ChFrame<double> offsetPose, Axis axis);

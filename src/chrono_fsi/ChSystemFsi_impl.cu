@@ -12,32 +12,25 @@
 // Author: Milad Rakhsha, Arman Pazouki
 // =============================================================================
 //
-// Base class for managing data in chrono_fsi, aka fluid system.//
+// Implementation of FSI system that includes all subclasses for proximity and
+// force calculation, and time integration.
+//
 // =============================================================================
 
-#include <thrust/sort.h>
-#include "chrono_fsi/ChFsiDataManager.cuh"
-#include "chrono_fsi/utils/ChUtilsDevice.cuh"
+#include "chrono_fsi/ChSystemFsi_impl.cuh"
 
 namespace chrono {
 namespace fsi {
 
-struct sphTypeCompLess {
-    __host__ __device__ bool operator()(const Real4& o1, const Real4& o2) { return o1.w <= o2.w; }
-};
-
 struct sphTypeCompEqual {
     __host__ __device__ bool operator()(const Real4& o1, const Real4& o2) { return o1.w == o2.w; }
 };
-
 //---------------------------------------------------------------------------------------
 zipIterSphD SphMarkerDataD::iterator() {
     return thrust::make_zip_iterator(thrust::make_tuple(posRadD.begin(), velMasD.begin(), rhoPresMuD.begin(),
                                                         tauXxYyZzD.begin(), tauXyXzYzD.begin()));
 }
 
-
-// resize
 void SphMarkerDataD::resize(size_t s) {
     posRadD.resize(s);
     velMasD.resize(s);
@@ -47,7 +40,6 @@ void SphMarkerDataD::resize(size_t s) {
 }
 
 //---------------------------------------------------------------------------------------
-
 zipIterSphH SphMarkerDataH::iterator() {
     return thrust::make_zip_iterator(thrust::make_tuple(posRadH.begin(), velMasH.begin(), rhoPresMuH.begin(),
                                                         tauXxYyZzH.begin(), tauXyXzYzH.begin()));
@@ -63,7 +55,6 @@ void SphMarkerDataH::resize(size_t s) {
 }
 
 //---------------------------------------------------------------------------------------
-
 zipIterRigidD FsiBodiesDataD::iterator() {
     return thrust::make_zip_iterator(thrust::make_tuple(posRigid_fsiBodies_D.begin(), 
                                                         velMassRigid_fsiBodies_D.begin(), 
@@ -73,7 +64,6 @@ zipIterRigidD FsiBodiesDataD::iterator() {
                                                         omegaAccLRF_fsiBodies_D.begin()));
 }
 
-// resize
 void FsiBodiesDataD::resize(size_t s) {
     posRigid_fsiBodies_D.resize(s);
     velMassRigid_fsiBodies_D.resize(s);
@@ -83,7 +73,6 @@ void FsiBodiesDataD::resize(size_t s) {
     omegaAccLRF_fsiBodies_D.resize(s);
 }
 
-// resize
 void FsiShellsDataH::resize(size_t s) {
     posFlex_fsiBodies_nA_H.resize(s);
     posFlex_fsiBodies_nB_H.resize(s);
@@ -101,7 +90,6 @@ void FsiShellsDataH::resize(size_t s) {
     accFlex_fsiBodies_nD_H.resize(s);
 }
 
-// resize
 void FsiShellsDataD::resize(size_t s) {
     posFlex_fsiBodies_nA_D.resize(s);
     posFlex_fsiBodies_nB_D.resize(s);
@@ -123,7 +111,6 @@ void FsiMeshDataH::resize(size_t s) {
     vel_fsi_fea_H.resize(s);
     acc_fsi_fea_H.resize(s);
 }
-// resize
 void FsiMeshDataD::resize(size_t s) {
     pos_fsi_fea_D.resize(s);
     vel_fsi_fea_D.resize(s);
@@ -244,7 +231,6 @@ FsiMeshDataD& FsiMeshDataD::operator=(const FsiMeshDataD& other) {
 }
 
 //---------------------------------------------------------------------------------------
-
 zipIterRigidH FsiBodiesDataH::iterator() {
     return thrust::make_zip_iterator(
         thrust::make_tuple(posRigid_fsiBodies_H.begin(), velMassRigid_fsiBodies_H.begin(), accRigid_fsiBodies_H.begin(),
@@ -269,7 +255,6 @@ void ProximityDataD::resize(size_t numAllMarkers) {
 }
 
 //---------------------------------------------------------------------------------------
-
 ChronoBodiesDataH::ChronoBodiesDataH(size_t s) {
     resize(s);
 }
@@ -287,7 +272,6 @@ zipIterChronoBodiesH ChronoBodiesDataH::iterator() {
                                                         omegaVelGRF_ChSystemH.begin(), omegaAccGRF_ChSystemH.begin()));
 }
 
-// resize
 void ChronoBodiesDataH::resize(size_t s) {
     pos_ChSystemH.resize(s);
     vel_ChSystemH.resize(s);
@@ -319,11 +303,10 @@ void ChronoMeshDataH::resize(size_t s) {
     velFlex_ChSystemH_H.resize(s);
     accFlex_ChSystemH_H.resize(s);
 }
-//---------------------------------------------------------------------------------------
 
 //---------------------------------------------------------------------------------------
 
-ChFsiDataManager::ChFsiDataManager() {
+ChSystemFsi_impl::ChSystemFsi_impl() {
     numObjects = chrono_types::make_shared<NumberOfObjects>();
     InitNumObjects();
     sphMarkersD1 = chrono_types::make_shared<SphMarkerDataD>();
@@ -339,25 +322,21 @@ ChFsiDataManager::ChFsiDataManager() {
     markersProximityD = chrono_types::make_shared<ProximityDataD>();
 }
 
-ChFsiDataManager::~ChFsiDataManager() {}
+ChSystemFsi_impl::~ChSystemFsi_impl() {}
 
-void ChFsiDataManager::AddSphMarker(Real4 pos, Real3 vel, Real4 rhoPresMu, Real3 tauXxYyZz, Real3 tauXyXzYz) {
+void ChSystemFsi_impl::AddSphMarker(Real4 pos, Real4 rhoPresMu, Real3 vel, Real3 tauXxYyZz, Real3 tauXyXzYz) {
     sphMarkersH->posRadH.push_back(pos);
     sphMarkersH->velMasH.push_back(vel);
     sphMarkersH->rhoPresMuH.push_back(rhoPresMu);
-    sphMarkersH->tauXxYyZzH.push_back(tauXxYyZz);
     sphMarkersH->tauXyXzYzH.push_back(tauXyXzYz);
+    sphMarkersH->tauXxYyZzH.push_back(tauXxYyZz);
 }
-
-void ChFsiDataManager::ArrangeDataManager() {
+void ChSystemFsi_impl::ArrangeDataManager() {
     thrust::host_vector<Real4> dummyRhoPresMuH = sphMarkersH->rhoPresMuH;
-
-    // arrange data based on type: fluid, boundary, bce1, bce2, ....
-    //  thrust::sort_by_key(dummyRhoPresMuH.begin(), dummyRhoPresMuH.end(), sphMarkersH->iterator(), sphTypeCompLess());
     dummyRhoPresMuH.clear();
 }
 
-void ChFsiDataManager::InitNumObjects() {
+void ChSystemFsi_impl::InitNumObjects() {
     numObjects->numRigidBodies = 0;  /* Number of rigid bodies */
     numObjects->numFlexBodies1D = 0; /* Number of Flexible bodies*/
     numObjects->numFlexBodies2D = 0; /* Number of Flexible bodies*/
@@ -373,12 +352,12 @@ void ChFsiDataManager::InitNumObjects() {
     numObjects->numAllMarkers = 0;       /* Total number of SPH markers */
 }
 
-void ChFsiDataManager::CalcNumObjects() {
+void ChSystemFsi_impl::CalcNumObjects() {
     InitNumObjects();
     size_t rSize = fsiGeneralData->referenceArray.size();
     bool flagRigid = false;
     bool flagFlex = false;
-    std::cout << "ChFsiDataManager::CalcNumObjects: rSize=" << rSize << " \n";
+    std::cout << "ChSystemFsi_impl::CalcNumObjects: rSize=" << rSize << " \n";
 
     for (size_t i = 0; i < rSize; i++) {
         int4 rComp4 = fsiGeneralData->referenceArray[i];
@@ -447,7 +426,7 @@ void ChFsiDataManager::CalcNumObjects() {
         numObjects->startRigidMarkers, numObjects->startFlexMarkers, numObjects->numAllMarkers);
 }
 
-void ChFsiDataManager::ConstructReferenceArray() {
+void ChSystemFsi_impl::ConstructReferenceArray() {
     //  ArrangeDataManager();
 
     CalcNumObjects();
@@ -455,7 +434,7 @@ void ChFsiDataManager::ConstructReferenceArray() {
     // determine the number of each component
     if (numObjects->numAllMarkers != sphMarkersH->rhoPresMuH.size()) {
         printf(
-            "\nChFsiDataManager::ConstructReferenceArray()    numObjects->numAllMarkers=%zd, "
+            "\nChSystemFsi_impl::ConstructReferenceArray()    numObjects->numAllMarkers=%zd, "
             "sphMarkersH->rhoPresMuH.size()=%zd\n",
             numObjects->numAllMarkers, sphMarkersH->rhoPresMuH.size());
         throw std::runtime_error("Error! numObjects wrong! thrown from ConstructReferenceArray !\n");
@@ -469,11 +448,6 @@ void ChFsiDataManager::ConstructReferenceArray() {
                                dummyRhoPresMuH.begin(), numComponentMarkers.begin(), sphTypeCompEqual()))
             .first -
         dummyRhoPresMuH.begin();
-    // if (numberOfComponents == 0) {
-    // 	std::cout << "Error! no marker found! Thrown from
-    // ConstructReferenceArray\n";
-    // 	return;
-    // }
 
     printf("numberOfComponents=%zd\n", numberOfComponents);
 
@@ -512,8 +486,8 @@ void ChFsiDataManager::ConstructReferenceArray() {
     }
 }
 
-////--------------------------------------------------------------------------------------------------------------------------------
-void ChFsiDataManager::ResizeDataManager(int numNodes) {
+//--------------------------------------------------------------------------------------------------------------------------------
+void ChSystemFsi_impl::ResizeDataManager(int numNodes) {
     ConstructReferenceArray();
     if (numObjects->numAllMarkers != sphMarkersH->rhoPresMuH.size()) {
         throw std::runtime_error("Error! numObjects wrong! thrown from FinalizeDataManager !\n");
@@ -521,11 +495,6 @@ void ChFsiDataManager::ResizeDataManager(int numNodes) {
 
     //    int numNodes = fsiGeneralData->CableElementsNodesH.size();
     numObjects->numFlexNodes = numNodes;
-
-    //  printf("ChSystemFsi::FinalizeData pos[%d]=%f,%f,%f, pos[%d]=%f,%f,%f\n", 22995, sphMarkersH->posRadH[22995].x,
-    //         sphMarkersH->posRadH[22995].y, sphMarkersH->posRadH[22995].z, 23054, sphMarkersH->posRadH[23054].x,
-    //         sphMarkersH->posRadH[23054].y, sphMarkersH->posRadH[23054].z);
-    //  printf("\n\n fsiData->ResizeDataManager (numAllMarkers)...\n");
 
     sphMarkersD1->resize(numObjects->numAllMarkers);
     sphMarkersD2->resize(numObjects->numAllMarkers);
@@ -545,9 +514,6 @@ void ChFsiDataManager::ResizeDataManager(int numNodes) {
 
     printf("fsiData->ResizeDataManager (sphMarkersH)...\n");
 
-    //  printf("ChFsiDataManager::ResizeDataManager pos[%d]=%f,%f,%f, pos[%d]=%f,%f,%f\n", 22995,
-    //         sphMarkersH->posRadH[22995].x, sphMarkersH->posRadH[22995].y, sphMarkersH->posRadH[22995].z, 23054,
-    //         sphMarkersH->posRadH[23054].x, sphMarkersH->posRadH[23054].y, sphMarkersH->posRadH[23054].z);
     // Arman: implement this in one shot function in class
     thrust::copy(sphMarkersH->posRadH.begin(), sphMarkersH->posRadH.end(), sphMarkersD1->posRadD.begin());
     thrust::copy(sphMarkersH->velMasH.begin(), sphMarkersH->velMasH.end(), sphMarkersD1->velMasD.begin());
@@ -607,6 +573,5 @@ void ChFsiDataManager::ResizeDataManager(int numNodes) {
     fsiMeshH->resize(numObjects->numFlexNodes);
     fsiGeneralData->Flex_FSI_ForcesD.resize(numObjects->numFlexNodes);
 }
-
 }  // end namespace fsi
 }  // end namespace chrono

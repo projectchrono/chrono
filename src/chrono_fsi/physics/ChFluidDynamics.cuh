@@ -21,7 +21,6 @@
 
 #include "chrono_fsi/physics/ChFsiForce.cuh"
 
-#include "chrono_fsi/physics/ChSphGeneral.cuh"
 
 #include "chrono_fsi/utils/ChUtilsDevice.cuh"
 
@@ -29,7 +28,10 @@
 #include "chrono_fsi/physics/ChFsiForceI2SPH.cuh"
 #include "chrono_fsi/physics/ChFsiForceIISPH.cuh"
 
-#include "chrono_fsi/ChFsiDataManager.cuh"
+#include "chrono_fsi/ChSystemFsi_impl.cuh"
+#include "chrono_fsi/ChFsiDefines.h"
+
+using chrono::fsi::CHFSI_TIME_INTEGRATOR;
 
 namespace chrono {
 namespace fsi {
@@ -47,33 +49,24 @@ namespace fsi {
 /// It also include a forceSystem, which takes care of the
 /// computation of force between markers. The forceSystem is owned
 /// by the class.
-class CH_FSI_API ChFluidDynamics : public ChFsiGeneral {
+class ChFluidDynamics : public ChFsiGeneral {
   public:
-    /// SPH implementation
-    enum class Integrator { IISPH, ExplicitSPH, I2SPH };
-
     /// Fluid dynamics class constructor.
-    /// The class constructor performs the following operations:
-    /// Instantiate ChFsiForce, i.e. force system;
-    /// Copy the pointer to fluid data, parameters, and number of objects
-    /// to member variables.
+    /// - Instantiate ChFsiForce, i.e. force system;
+    /// - Copy the pointer to fluid data, parameters, and number of objects to member variables.
     ChFluidDynamics(std::shared_ptr<ChBce> otherBceWorker,
-                    std::shared_ptr<ChFsiDataManager> otherFsiData,
+                    std::shared_ptr<ChSystemFsi_impl> otherFsiSystem,
                     std::shared_ptr<SimParams> otherParamsH,
                     std::shared_ptr<NumberOfObjects> otherNumObjects,
-                    ChFluidDynamics::Integrator type);
+                    CHFSI_TIME_INTEGRATOR otherIntegrator);
 
-    /// Class destructor. Deletes the force system.
     ~ChFluidDynamics();
 
-    /// Integrate the fluid system in time. The underlying SPH method implementation
-    /// goes inside this function.
-    /// In a explicit scheme, to perform the integration, the force system
-    /// calculates the forces between the particles. Then the forces are used to
-    /// to update the markers position, velocity, and density in time, the latter
-    /// is used to update the pressure from an equation of state. In the
-    /// implicit scheme, the pressures are updated instead of density.
-
+    /// Integrate the fluid system in time.
+    /// The underlying SPH method implementation goes inside this function. In a explicit scheme, to perform the
+    /// integration, the force system calculates the forces between the particles. Then the forces are used to to update
+    /// the markers position, velocity, and density in time, the latter is used to update the pressure from an equation
+    /// of state. In the implicit scheme, the pressures are updated instead of density.
     virtual void IntegrateSPH(std::shared_ptr<SphMarkerDataD> sphMarkersD2,
                               std::shared_ptr<SphMarkerDataD> sphMarkersD1,
                               std::shared_ptr<FsiBodiesDataD> fsiBodiesD,
@@ -81,33 +74,29 @@ class CH_FSI_API ChFluidDynamics : public ChFsiGeneral {
                               Real dT);
 
     /// Function to Shepard Filtering.
-    /// It calculates the densities directly, not based on the derivative of
-    /// the density. This function is used in addition to the density update
-    /// in UpdateFluid.
+    /// It calculates the densities directly, not based on the derivative of the density. This function is used in
+    /// addition to the density update in UpdateFluid.
     virtual void DensityReinitialization();
 
-    /// Synchronize the copy of the data (parameters and number of objects)
-    /// between device (GPU) and host (CPU).
+    /// Synchronize the copy of the data (parameters and number of objects) between device (GPU) and host (CPU).
     /// This function needs to be called once the host data are modified
     void Finalize();
-    ChFluidDynamics::Integrator GetIntegratorType() { return myIntegrator; }
+
+    /// Return integrator type.
+    CHFSI_TIME_INTEGRATOR GetIntegratorType() { return integrator_type; }
 
     std::shared_ptr<ChFsiForce> GetForceSystem() { return forceSystem; }
 
   protected:
-    std::shared_ptr<ChFsiDataManager> fsiData;  ///< pointer to the fsi data. The values are maintained externally
+    std::shared_ptr<ChSystemFsi_impl> fsiSystem;   ///< FSI data; values are maintained externally
+    std::shared_ptr<SimParams> paramsH;            ///< FSI parameters; values are mainained externally
+    std::shared_ptr<NumberOfObjects> numObjectsH;  ///< number of objects (fluid markers, number of rigids, boundaries)
 
-    std::shared_ptr<ChFsiForce> forceSystem;   ///< force system object. It calculates the force between markers.
-    ChFluidDynamics::Integrator myIntegrator;  ///< IISPH by default
-
-    std::shared_ptr<SimParams> paramsH;  ///< pointer to parameters. The values are mainained externally.
-
-    std::shared_ptr<NumberOfObjects>
-        numObjectsH;  ///< pointer to number of objects (fluid markers, number of rigids, boundaries)
+    std::shared_ptr<ChFsiForce> forceSystem;  ///< force system object; calculates the force between markers
+    CHFSI_TIME_INTEGRATOR integrator_type;    ///< integrator type
 
     /// Update SPH markers data.
-    /// In an explicit formulation, the update Fluid function relies on explicit Euler
-    /// Integration argorithm.
+    /// In an explicit formulation, the fluid uluid function relies on the explicit Euler method.
     virtual void UpdateFluid(std::shared_ptr<SphMarkerDataD> sphMarkersD, Real dT);
     virtual void UpdateFluid_Implicit(std::shared_ptr<SphMarkerDataD> sphMarkersD);
 

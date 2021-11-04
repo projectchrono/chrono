@@ -1256,7 +1256,7 @@ int triangle_box(const real3& pos1,
 
     // Find the box face closest to being parallel to the triangle.
     real3 nrmAbs = Abs(nrm2b);
-    uint code = nrmAbs[0] > nrmAbs[1] ? (nrmAbs[0] > nrmAbs[2] ? 1 : 4) : (nrmAbs[1] > nrmAbs[2] ? 2 : 4);
+    uint codeF = nrmAbs[0] > nrmAbs[1] ? (nrmAbs[0] > nrmAbs[2] ? 1 : 4) : (nrmAbs[1] > nrmAbs[2] ? 2 : 4);
     real3 corner = box_farthest_corner(hdims1, nrm2b);
 
     // Keep track of all added contacts
@@ -1264,81 +1264,112 @@ int triangle_box(const real3& pos1,
 
     // Working in the global frame, check the face vertices against the triangle.
     real3 face_corners[4];
-    get_face_corners(corner, code, face_corners);
+    get_face_corners(corner, codeF, face_corners);
 
     for (uint i = 0; i < 4; i++) {
         // Express face corner in global frame
         real3 box_point = pos1 + Rotate(face_corners[i], rot1);
         if (point_in_triangle(v2[0], v2[1], v2[2], box_point)) {
-            real h = Dot(v2[0] - box_point, nrm2);
-            if (h > 0) {
+            real h = Dot(box_point - v2[0], nrm2);
+            if (h < separation) {
                 *(pt1 + nc) = box_point;
-                *(pt2 + nc) = box_point + h * nrm2;
-                *(norm + nc) = -nrm2;
-                *(depth + nc) = -h;
+                *(pt2 + nc) = box_point - h * nrm2;
+                *(norm + nc) = nrm2;
+                *(depth + nc) = h;
                 *(eff_radius + nc) = edge_radius;
                 nc++;
             }
         }
     }
-
+    
     // Working in the box frame, check the triangle edges against the box face.
-    static const real threshold_par = real(1e-4);  // threshold for axis parallel to face test
+    static const real threshold_par = real(1e-4);    // threshold for axis parallel to face test
+    static const real threshold_close = real(1e-4);  // threshold for distance to vertex
+    bool v_added[] = {false, false, false};          // keep track of triangle vertices (do not include twice)
 
-    int i1 = (code == 1) ? 0 : (code == 2 ? 1 : 2);
-    int i2 = (i1 + 1) % 3;
-    int i3 = (i2 + 1) % 3;
+    int i1 = codeF >> 1;    // index of face normal direction
+    int i2 = (i1 + 1) % 3;  // next direction (0->1->2->0)
+    int i3 = (i2 + 1) % 3;  // previous direction (0->2->1->0)
+
+    real3 hdims1s = hdims1 + separation;  // size of expanded box
+
     for (uint j = 0; j < 3; j++) {
         const auto& A = v[j];            // first point on triangle edge
         const auto& B = v[(j + 1) % 3];  // second point on triangle edge
         real3 AB = B - A;
+        real AB_len2 = Length2(AB);
 
-        // Clamp triangle edge to box slabs i2 and i3
-        real tMin = -C_REAL_MAX;
-        real tMax = +C_REAL_MAX;
+        // Clamp triangle edge to extended box slabs i2 and i3
+        real tRange[2] = {-C_REAL_MAX, +C_REAL_MAX};
         if (abs(AB[i2]) > threshold_par) {
-            real tA = (-hdims1[i2] - A[i2]) / AB[i2];
-            real tB = (+hdims1[i2] - A[i2]) / AB[i2];
-            tMin = Max(tMin, Min(tA, tB));
-            tMax = Min(tMax, Max(tA, tB));
+            real tA = (-hdims1s[i2] - A[i2]) / AB[i2];
+            real tB = (+hdims1s[i2] - A[i2]) / AB[i2];
+            tRange[0] = Max(tRange[0], Min(tA, tB));
+            tRange[1] = Min(tRange[1], Max(tA, tB));
         }
         if (abs(AB[i3]) > threshold_par) {
-            real tA = (-hdims1[i3] - A[i3]) / AB[i3];
-            real tB = (+hdims1[i3] - A[i3]) / AB[i3];
-            tMin = Max(tMin, Min(tA, tB));
-            tMax = Min(tMax, Max(tA, tB));
+            real tA = (-hdims1s[i3] - A[i3]) / AB[i3];
+            real tB = (+hdims1s[i3] - A[i3]) / AB[i3];
+            tRange[0] = Max(tRange[0], Min(tA, tB));
+            tRange[1] = Min(tRange[1], Max(tA, tB));
         }
-        if (tMin > tMax)
+        if (tRange[0] > tRange[1])
             continue;
 
-        // Clamp tMin and tMax to triangle edge
-        real AB_len = Length(AB);
-        ClampValue(tMin, 0, AB_len);
-        ClampValue(tMax, 0, AB_len);
+        // Clamp tRange to triangle edge
+        ClampValue(tRange[0], 0, 1);
+        ClampValue(tRange[1], 0, 1);
 
-        // Generate two points on triangle edge
-        real3 locs[] = {A + tMin * AB, A + tMax * AB};
-
+        // Check the two points on the triangle edge
         for (uint i = 0; i < 2; i++) {
-            real3 box_point = locs[i];
-            if (box_point[i1] * box_point[i1] > corner[i1] * corner[i1])
+            // Point on triangle edge
+            real3 tri_point = A + tRange[i] * AB;
+            // Snap to original box slabs
+            tri_point[i1] = corner[i1];
+            ClampValue(tri_point[i2], -hdims1[i2], +hdims1[i2]);
+            ClampValue(tri_point[i3], -hdims1[i3], +hdims1[i3]);
+            // Snap back to triangle edge
+            real t = Clamp(Dot(tri_point - A, AB) / AB_len2, 0, 1);
+            tri_point = A + t * AB;
+
+            if (abs(tri_point[i1]) > hdims1s[i1] || abs(tri_point[i2]) > hdims1s[i2] ||
+                abs(tri_point[i3]) > hdims1s[i3])
                 continue;
-            if (abs(box_point[i2]) > hdims1[i2])
-                continue;
-            if (abs(box_point[i3]) > hdims1[i3])
-                continue;
+
+            // Point on box
+            real3 box_point = tri_point;
             box_point[i1] = corner[i1];
-            real3 u = box_point - locs[i];
-            real u_len = Length(u);
-            u = u / u_len;
+            ClampValue(box_point[i2], -hdims1[i2], +hdims1[i2]);
+            ClampValue(box_point[i3], -hdims1[i3], +hdims1[i3]);
+
+            // Check distance smaller than separation
+            real3 delta = box_point - tri_point;
+            real dist = penetrated * Length(delta);
+            if (dist > separation)
+                continue;
+
+            // Do not add triangle vertices twice
+            if (t < threshold_close) {
+                if (v_added[j])
+                    continue;
+                else
+                    v_added[j] = true;
+            }
+            if (t > 1 - threshold_close) {
+                if (v_added[(j + 1) % 3])
+                    continue;
+                else
+                    v_added[(j + 1) % 3] = true;
+            }
+
+            // Add collision pair
             *(pt1 + nc) = Rotate(box_point, rot1) + pos1;
-            *(pt2 + nc) = Rotate(locs[i], rot1) + pos1;
-            *(norm + nc) = Rotate(u, rot1);
-            *(depth + nc) = -u_len;
+            *(pt2 + nc) = Rotate(tri_point, rot1) + pos1;
+            *(norm + nc) = Rotate(delta / dist, rot1);
+            *(depth + nc) = dist;
             *(eff_radius + nc) = edge_radius;
             nc++;
         }
-        
     }
 
     return nc;

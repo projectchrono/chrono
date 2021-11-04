@@ -21,8 +21,8 @@
 #define CH_BCE_CUH_
 
 #include "chrono_fsi/ChApiFsi.h"
-#include "chrono_fsi/physics/ChFsiGeneral.cuh"
-#include "chrono_fsi/physics/ChSphGeneral.cuh"
+#include "chrono_fsi/physics/ChFsiGeneral.h"
+#include "chrono_fsi/ChSystemFsi_impl.cuh"
 
 namespace chrono {
 namespace fsi {
@@ -36,7 +36,7 @@ namespace fsi {
 /// in an FSI system.
 /// This class handles the Fluid-Solid Interaction by enforcing i) forces from the fluid dynamics system to the MBD
 /// system and ii) displacement from the MBD system to the fluid dynamics system.
-class CH_FSI_API ChBce : public ChFsiGeneral {
+class ChBce : public ChFsiGeneral {
   public:
     thrust::device_vector<Real3> velMas_ModifiedBCE;
     thrust::device_vector<Real4> rhoPreMu_ModifiedBCE;
