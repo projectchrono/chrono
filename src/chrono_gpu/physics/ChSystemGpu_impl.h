@@ -235,7 +235,7 @@ class ChSystemGpu_impl {
         /// Graph representation of sphere connectivity
         /// used to differentiate clusters of particles
         unsigned int* adj_num; // [mySphereID] -> number of adj
-        unsigned int* adj_start; // [mySphereID] -> start of adjs in adj_list
+        unsigned int* adj_offset; // [mySphereID] -> start of adjs in adj_list
         unsigned int* adj_list; // [start + N] -> Nth adj SphereID (n < adj_num[myShpereID])
     };
 
@@ -591,7 +591,7 @@ class ChSystemGpu_impl {
 
     // Adjacency lists for clustering
     std::vector<unsigned int, cudallocator<unsigned int>> adj_num;
-    std::vector<unsigned int, cudallocator<unsigned int>> adj_start;
+    std::vector<unsigned int, cudallocator<unsigned int>> adj_offset;
     std::vector<unsigned int, cudallocator<unsigned int>> adj_list;
 
     /// User provided timestep in UU

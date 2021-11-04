@@ -106,23 +106,23 @@ static __global__ void FindVolumeCluster(unsigned int nSpheres,
     }
 }
 
-/// Compute adj_start from adj_num with ExclusiveSum
+/// Compute adj_offset from adj_num with ExclusiveSum
 /// needs fully known adj_num
 /// call BEFORE ComputeAdjList___
 static __host__ void ComputeAdjStartFromAdjNum(unsigned int nSpheres,
                                                unsigned int * adj_num,
-                                               unsigned int * adj_start) {
-    memcpy(adj_start, adj_num, sizeof(*adj_start) * nSpheres);
+                                               unsigned int * adj_offset) {
+    memcpy(adj_offset, adj_num, sizeof(*adj_offset) * nSpheres);
     /// all start indices AFTER mySphereID depend on it -> exclusive sum
     void * d_temp_storage = NULL;
     size_t bytesize = 0;
     /// with d_temp_storage = NULL, ExclusiveSum computes necessary bytesize
     cub::DeviceScan::ExclusiveSum(d_temp_storage, bytesize,
-    adj_start, adj_start, nSpheres);
+    adj_offset, adj_offset, nSpheres);
     gpuErrchk(cudaMalloc(&d_temp_storage, bytesize));
     /// Actually perform ExcluseSum
     cub::DeviceScan::ExclusiveSum(d_temp_storage, bytesize,
-    adj_start, adj_start, nSpheres);
+    adj_offset, adj_offset, nSpheres);
     gpuErrchk(cudaFree(d_temp_storage));
 
     gpuErrchk(cudaPeekAtLastError());
@@ -130,8 +130,8 @@ static __host__ void ComputeAdjStartFromAdjNum(unsigned int nSpheres,
 }
 
 /// Compute adj_num from chrono contact_active_map
-/// adj_start needs fully known adj_num
-/// adl_list needs fully known adj_start
+/// adj_offset needs fully known adj_num
+/// adl_list needs fully known adj_offset
 static __global__ void ComputeAdjNumByContact(
         ChSystemGpu_impl::GranSphereDataPtr sphere_data,
         ChSystemGpu_impl::GranParamsPtr gran_params,
@@ -175,7 +175,7 @@ static __global__ void ComputeAdjListByContact(
             unsigned int contact_id = body_A_offset + body_B_offset;
             bool active_contact = sphere_data->contact_active_map[contact_id];
             if (active_contact) {
-                unsigned int adj_list_index = sphere_data->adj_start[mySphereID] + numActiveContacts;
+                unsigned int adj_list_index = sphere_data->adj_offset[mySphereID] + numActiveContacts;
                 sphere_data->adj_list[adj_list_index] = sphere_data->contact_partners_map[contact_id];
                 numActiveContacts++;
             }

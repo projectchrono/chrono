@@ -193,7 +193,7 @@ __host__ void ChSystemGpu_impl::defragment_initial_positions() {
     std::vector<float, cudallocator<float>> sphere_vel_z_tmp;
 
     std::vector<unsigned int, cudallocator<unsigned int>> adj_num_tmp;
-    std::vector<unsigned int, cudallocator<unsigned int>> adj_start_tmp;
+    std::vector<unsigned int, cudallocator<unsigned int>> adj_offset_tmp;
     std::vector<unsigned int, cudallocator<unsigned int>> adj_list_tmp;
 
     std::vector<not_stupid_bool, cudallocator<not_stupid_bool>> sphere_fixed_tmp;
@@ -261,7 +261,7 @@ __host__ void ChSystemGpu_impl::setupSphereDataStructures() {
 
     // Allocate space for connectivity graph
     TRACK_VECTOR_RESIZE(adj_num, nSpheres, "adj_num", 0);
-    TRACK_VECTOR_RESIZE(adj_start, nSpheres, "adj_start", 0);
+    TRACK_VECTOR_RESIZE(adj_offset, nSpheres, "adj_offset", 0);
     TRACK_VECTOR_RESIZE(adj_list, (nSpheres * MAX_SPHERES_TOUCHED_BY_SPHERE), "adj_list", 0);
 
     TRACK_VECTOR_RESIZE(sphere_owner_SDs, nSpheres, "sphere_owner_SDs", NULL_CHGPU_ID);

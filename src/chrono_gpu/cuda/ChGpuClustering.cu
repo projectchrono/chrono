@@ -32,7 +32,7 @@ namespace gpu {
 /// Call until no border spheres i.e. nothing true in d_borders
 static __global__ void ClusterSearchBFSKernel(unsigned int nSpheres,
                                               unsigned int * adj_num,
-                                              unsigned int * adj_start,
+                                              unsigned int * adj_offset,
                                               unsigned int * adj_list,
                                               bool * d_borders,
                                               bool * d_visited) {
@@ -43,8 +43,8 @@ static __global__ void ClusterSearchBFSKernel(unsigned int nSpheres,
             d_visited[mySphereID] = true;
             d_borders[mySphereID] = false;
 
-            unsigned int start = adj_start[mySphereID];
-            unsigned int end = adj_start[mySphereID] + adj_num[mySphereID];
+            unsigned int start = adj_offset[mySphereID];
+            unsigned int end = adj_offset[mySphereID] + adj_num[mySphereID];
             for (size_t i = start; i < end; i++) {
                 unsigned int neighborSphereID = adj_list[i];
                 if (!d_visited[neighborSphereID]) {
@@ -64,7 +64,7 @@ static __global__ void ClusterSearchBFSKernel(unsigned int nSpheres,
 static __host__ unsigned int ** ClusterSearchBFS(unsigned int nSpheres,
                                                  ChSystemGpu_impl::GranSphereDataPtr sphere_data,
                                                  unsigned int* adj_num,
-                                                 unsigned int* adj_start,
+                                                 unsigned int* adj_offset,
                                                  unsigned int* adj_list,
                                                  SPHERE_TYPE* sphere_type) {
     unsigned int nBlocks = (nSpheres + CUDA_THREADS_PER_BLOCK - 1) / CUDA_THREADS_PER_BLOCK;
@@ -126,7 +126,7 @@ static __host__ unsigned int ** ClusterSearchBFS(unsigned int nSpheres,
             do {
                 // find and visit border points, establishing the cluster
                 ClusterSearchBFSKernel<<<nBlocks, CUDA_THREADS_PER_BLOCK>>>(
-                    nSpheres, adj_num, adj_start, adj_list,
+                    nSpheres, adj_num, adj_offset, adj_list,
                     d_borders, d_visited);
                 gpuErrchk(cudaPeekAtLastError());
                 gpuErrchk(cudaDeviceSynchronize());
@@ -263,7 +263,7 @@ static __global__ void ComputeAdjNumByProximity(
 }
 
 /// UNTESTED
-/// computes adj_list from proximity using known adj_num and adj_start
+/// computes adj_list from proximity using known adj_num and adj_offset
 static __global__ void ComputeAdjListByProximity(
         ChSystemGpu_impl::GranSphereDataPtr sphere_data,
         ChSystemGpu_impl::GranParamsPtr gran_params,
@@ -277,7 +277,7 @@ static __global__ void ComputeAdjListByProximity(
     unsigned int mySD = sphere_data->sphere_owner_SDs[mySphereID];
     unsigned int otherSD;
 
-    unsigned int vertex_start = sphere_data->adj_start[mySphereID];
+    unsigned int vertex_start = sphere_data->adj_offset[mySphereID];
     unsigned int adjacency_num = 0;
 
     int3 mySphere_pos_local, otherSphere_pos_local;
@@ -321,7 +321,7 @@ __host__ void ConstructGraphByContact(
 
     ComputeAdjStartFromAdjNum(nSpheres,
                               sphere_data->adj_num,
-                              sphere_data->adj_start);
+                              sphere_data->adj_offset);
     
     ComputeAdjListByContact<<<nBlocks, CUDA_THREADS_PER_BLOCK>>>(sphere_data,
                                                                  gran_params,
@@ -349,7 +349,7 @@ __host__ void ConstructGraphByProximity(
     /// compute all adjacent spheres inside radius
     ComputeAdjStartFromAdjNum(nSpheres,
                               sphere_data->adj_num,
-                              sphere_data->adj_start);
+                              sphere_data->adj_offset);
     /// compute adjacency list
     ComputeAdjListByProximity<<<nBlocks, CUDA_THREADS_PER_BLOCK>>>(sphere_data,
                                                                    gran_params,
@@ -369,7 +369,7 @@ __host__ void GdbscanSearchGraph(
 
     unsigned int ** h_clusters = ClusterSearchBFS(nSpheres, sphere_data,
                                         sphere_data->adj_num,
-                                        sphere_data->adj_start,
+                                        sphere_data->adj_offset,
                                         sphere_data->adj_list,
                                         sphere_data->sphere_type);
     unsigned int cluster_num = h_clusters[0][0];

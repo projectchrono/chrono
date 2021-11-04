@@ -191,7 +191,7 @@ void ChSystemGpu_impl::packSphereDataPointers() {
     if ((gran_params->cluster_graph_method > CLUSTER_GRAPH_METHOD::NONE) &&
             (gran_params->cluster_search_method > CLUSTER_SEARCH_METHOD::NONE)) {
         sphere_data->adj_num = adj_num.data();
-        sphere_data->adj_start = adj_start.data();
+        sphere_data->adj_offset = adj_offset.data();
         sphere_data->adj_list = adj_list.data();
     }
 
@@ -519,16 +519,16 @@ void ChSystemGpu_impl::WriteAdjacencyFiles(std::string ofile) const {
     } else {
         std::ofstream ptFilenum(ofile + "_adj_num_start.csv", std::ios::out);
         std::ostringstream adj_num_strstream;
-        adj_num_strstream << "adj_num, adj_start \n";
+        adj_num_strstream << "adj_num, adj_offset \n";
         for (unsigned int n = 0; n < nSpheres; n++) {
             adj_num_strstream
                 << sphere_data->adj_num[n] << ", "
-                << sphere_data->adj_start[n] << "\n";
+                << sphere_data->adj_offset[n] << "\n";
         }
         ptFilenum << adj_num_strstream.str();
 
         std::ostringstream adj_list_strstream;
-        unsigned int adj_list_len = sphere_data->adj_num[nSpheres - 1] + sphere_data->adj_start[nSpheres - 1];
+        unsigned int adj_list_len = sphere_data->adj_num[nSpheres - 1] + sphere_data->adj_offset[nSpheres - 1];
         std::ofstream ptFilelist(ofile + "_adj_list.csv", std::ios::out);
         for (unsigned int m = 0; m < adj_list_len; m++) {
             adj_list_strstream
