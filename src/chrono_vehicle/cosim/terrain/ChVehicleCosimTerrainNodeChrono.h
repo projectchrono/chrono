@@ -115,8 +115,8 @@ class CH_VEHICLE_API ChVehicleCosimTerrainNodeChrono : public ChVehicleCosimTerr
     );
 
     /// Initialize this Chrono terrain node.
-    /// Construct the terrain system, the tire material, and the proxy bodies.
-    virtual void OnInitialize(unsigned int num_tires) override final;
+    /// Construct the terrain system and the proxy bodies.
+    virtual void OnInitialize(unsigned int num_tires) override;
 
     /// Advance simulation.
     /// This function is called after a synchronization to allow the node to advance

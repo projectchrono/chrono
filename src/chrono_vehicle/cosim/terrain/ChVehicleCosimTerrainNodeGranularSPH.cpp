@@ -59,8 +59,7 @@ static const int body_id_obstacles = 100000;
 // -----------------------------------------------------------------------------
 ChVehicleCosimTerrainNodeGranularSPH::ChVehicleCosimTerrainNodeGranularSPH(double length, double width)
     : ChVehicleCosimTerrainNodeChrono(Type::GRANULAR_SPH, length, width, ChContactMethod::SMC),
-      m_depth(0),
-      m_FSI_finalized(false) {
+      m_depth(0) {
     // Default granular material properties
     m_radius_g = 0.01;
     m_rho_g = 2000;
@@ -77,7 +76,7 @@ ChVehicleCosimTerrainNodeGranularSPH::ChVehicleCosimTerrainNodeGranularSPH(doubl
 }
 
 ChVehicleCosimTerrainNodeGranularSPH::ChVehicleCosimTerrainNodeGranularSPH(const std::string& specfile)
-    : ChVehicleCosimTerrainNodeChrono(Type::GRANULAR_SPH, 0, 0, ChContactMethod::SMC), m_FSI_finalized(false) {
+    : ChVehicleCosimTerrainNodeChrono(Type::GRANULAR_SPH, 0, 0, ChContactMethod::SMC) {
     // Create systems
     m_system = new ChSystemSMC;
     m_systemFSI = new ChSystemFsi(*m_system);
@@ -243,9 +242,11 @@ void CreateMeshMarkers(std::shared_ptr<geometry::ChTriangleMeshConnected> mesh,
 
 // -----------------------------------------------------------------------------
 // Complete construction of the mechanical system.
-// This function is invoked automatically from Initialize.
+// This function is invoked automatically from OnInitialize.
 // - adjust system settings
 // - create the container body
+// - add fluid particles
+// - create obstacle bodies (if any)
 // -----------------------------------------------------------------------------
 void ChVehicleCosimTerrainNodeGranularSPH::Construct() {
     if (m_verbose)
@@ -443,7 +444,7 @@ void ChVehicleCosimTerrainNodeGranularSPH::CreateWheelProxy(unsigned int i) {
     trimesh_shape->Rot = ChQuaternion<>(1, 0, 0, 0);
     body->GetAssets().push_back(trimesh_shape);
 
-    // Add collision shape (only if obstacles are present)
+    // Add collision shape only if obstacles are present (for wheel-obstacle interactions)
     if (num_obstacles > 0) {
         auto material_tire = m_mat_props[i].CreateMaterial(m_method);
 
@@ -466,6 +467,12 @@ void ChVehicleCosimTerrainNodeGranularSPH::CreateWheelProxy(unsigned int i) {
     std::vector<ChVector<>> point_cloud;
     CreateMeshMarkers(trimesh, (double)initSpace0, point_cloud);
     m_systemFSI->AddBceFromPoints(m_params, body, point_cloud, VNULL, QUNIT);
+}
+
+// Once all proxy bodies are created, complete construction of the underlying FSI system.
+void ChVehicleCosimTerrainNodeGranularSPH::OnInitialize(unsigned int num_tires) {
+    ChVehicleCosimTerrainNodeChrono::OnInitialize(num_tires);
+    m_systemFSI->Finalize();
 }
 
 // Set state of wheel proxy body.
@@ -491,12 +498,6 @@ void ChVehicleCosimTerrainNodeGranularSPH::GetForceWheelProxy(unsigned int i, Te
 // -----------------------------------------------------------------------------
 
 void ChVehicleCosimTerrainNodeGranularSPH::OnAdvance(double step_size) {
-    // Complete construction of the FSI system before running
-    if (!m_FSI_finalized) {
-        m_systemFSI->Finalize();
-        m_FSI_finalized = true;
-    }
-
     double t = 0;
     while (t < step_size) {
         double h = std::min<>(m_step_size, step_size - t);
@@ -524,7 +525,7 @@ void ChVehicleCosimTerrainNodeGranularSPH::Render(double time) {
 
 void ChVehicleCosimTerrainNodeGranularSPH::OnOutputData(int frame) {
     // Save SPH and BCE particles' information into CSV files
-    m_systemFSI->PrintParticleToFile("/simulation");
+    m_systemFSI->PrintParticleToFile(m_node_out_dir + "/simulation");
 }
 
 void ChVehicleCosimTerrainNodeGranularSPH::OutputVisualizationData(int frame) {

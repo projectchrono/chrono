@@ -153,7 +153,6 @@ void ChVehicleCosimTerrainNodeChrono::AddRigidObstacle(const RigidObstacle& obst
 // -----------------------------------------------------------------------------
 // Initialization of the base Chrono terrain node:
 // - complete system construction
-// - create the "tire" material
 // - create the appropriate proxy bodies (state not set yet)
 // -----------------------------------------------------------------------------
 void ChVehicleCosimTerrainNodeChrono::OnInitialize(unsigned int num_tires) {

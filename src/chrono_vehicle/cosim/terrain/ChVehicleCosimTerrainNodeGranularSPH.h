@@ -62,6 +62,10 @@ class CH_VEHICLE_API ChVehicleCosimTerrainNodeGranularSPH : public ChVehicleCosi
                              double density  ///< particle material density (default: 2000)
     );
 
+    /// Initialize this Chrono terrain node.
+    /// Construct the terrain system and the proxy bodies, then finalize the underlying FSI system.
+    virtual void OnInitialize(unsigned int num_tires) override;
+
     /// Output post-processing visualization data.
     virtual void OutputVisualizationData(int frame) override final;
 
@@ -74,8 +78,6 @@ class CH_VEHICLE_API ChVehicleCosimTerrainNodeGranularSPH : public ChVehicleCosi
 
     double m_radius_g;  ///< radius of one particle of granular material
     double m_rho_g;     ///< particle material density
-
-    bool m_FSI_finalized; ///< flag that Finalize was called for ChSystemFsi
 
     virtual bool SupportsMeshInterface() const override { return false; }
 
