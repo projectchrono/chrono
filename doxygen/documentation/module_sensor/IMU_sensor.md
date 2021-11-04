@@ -10,18 +10,18 @@ Chrono::Sensor supports three sensors commonly used collectively as an IMU. Thes
 // create a noise model
 auto
 noise_model=chrono_types::make_shared<ChNoiseNormalDrift>(
-    100.f,   // float updateRate,
-    {0,0,0},     // float mean,
-    {0.001,0.001,0.001},   // float stdev,
-    .01f,     // float bias_drift,
-    .1f     // float tau_drift
+    100.f,                  // float updateRate,
+    {0,0,0},                // float mean,
+    {0.001,0.001,0.001},    // float stdev,
+    .01f,                   // float bias_drift,
+    .1f                     // float tau_drift
 );
 
 auto acc= chrono_types::make_shared<ChAccelerometerSensor>(
-    my_body,          // body to which the IMU is attached
-    imu_update_rate,  // update rate
-    imu_offset_pose,  // offset pose from body
-    noise_model //noise model
+    parent_body,        // body to which the IMU is attached
+    imu_update_rate,    // update rate
+    imu_offset_pose,    // offset pose from body
+    noise_model         // noise model
 );
 
 acc->SetName("Accelerometer");
@@ -41,24 +41,24 @@ manager->AddSensor(acc);
 // create a noise model
 auto
 noise_model=chrono_types::make_shared<ChNoiseNormalDrift>(
-    100.f,   // float updateRate,
-    {0,0,0},     // float mean,
-    {0.001,0.001,0.001},   // float stdev,
-    .01f,     // float bias_drift,
-    .1f     // float tau_drift
+    100.f,                  // float updateRate,
+    {0,0,0},                // float mean,
+    {0.001,0.001,0.001},    // float stdev,
+    .01f,                   // float bias_drift,
+    .1f                     // float tau_drift
 );
 
 auto gyro= chrono_types::make_shared<ChGyroscopeSensor>(
-    my_body,          // body to which the IMU is attached
-    imu_update_rate,  // update rate
-    imu_offset_pose,  // offset pose from body
-    noise_model //noise model
+    my_body,            // body to which the IMU is attached
+    imu_update_rate,    // update rate
+    imu_offset_pose,    // offset pose from body
+    noise_model         // noise model
 );
 
 gyro->SetName("Gyroscope");
 
-gyro->SetLag(.001); //1 millisecond lag
-gyro->SetCollectionWindow(.001);  //1 millisecond collection time
+gyro->SetLag(.001);                 // 1 millisecond lag
+gyro->SetCollectionWindow(.001);    // 1 millisecond collection time
 
 // Gyroscope data access filter
 gyro->PushFilter(chrono_types::make_shared<ChFilterGyroAccess>());
@@ -72,21 +72,21 @@ manager->AddSensor(gyro);
 // create a noise model
 auto
 noise_model=chrono_types::make_shared<ChNoiseNormal>(
-    {0,0,0},     // float mean,
-    {0.001,0.001,0.001},   // float stdev
+    {0,0,0},                // float mean,
+    {0.001,0.001,0.001},    // float stdev
 );
 
 auto mag= chrono_types::make_shared<ChMagnetometerSensor>(
-    my_body,          // body to which the IMU is attached
-    100.f,  // update rate of 100 Hz
-    imu_offset_pose,  // offset pose from body
-    noise_model //noise model
+    my_body,            // body to which the IMU is attached
+    100.f,              // update rate of 100 Hz
+    imu_offset_pose,    // offset pose from body
+    noise_model         // noise model
 );
 
 mag->SetName("Magnetometer");
 
-mag->SetLag(.001); //1 millisecond lag
-mag->SetCollectionWindow(.001);  //1 millisecond collection time
+mag->SetLag(.001);                  // 1 millisecond lag
+mag->SetCollectionWindow(.001);     // 1 millisecond collection time
 
 // Gyroscope data access filter
 mag->PushFilter(chrono_types::make_shared<ChFilterMagnetAccess>());
@@ -94,8 +94,6 @@ mag->PushFilter(chrono_types::make_shared<ChFilterMagnetAccess>());
 // Addsensorto manager
 manager->AddSensor(mag);
 ~~~
-
-
 
 <br>
 
