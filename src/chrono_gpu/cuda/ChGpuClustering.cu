@@ -125,8 +125,10 @@ static __host__ unsigned int ** ClusterSearchBFS(unsigned int nSpheres,
 
             // find if any sphere was tagged in the VOLUME type
             FindVolumeCluster<<<nBlocks, CUDA_THREADS_PER_BLOCK>>>(
-                nSpheres, d_visited,
-                d_in_volume, sphere_data->sphere_type);
+                nSpheres,
+                d_visited,
+                d_in_volume,
+                sphere_data->sphere_type);
             // Sum number of particles in d_in_volume into h_in_volume_num
             void *d_temp_storage = NULL;
             size_t temp_storage_bytes = 0;
@@ -202,10 +204,9 @@ static __host__ unsigned int ** ClusterSearchBFS(unsigned int nSpheres,
 }  // namespace chrono
 
 /// Uses sphere_contact_map to construct adjacency lists for clustering
-__host__ void ConstructGraphByContact(
-        ChSystemGpu_impl::GranSphereDataPtr sphere_data,
-        ChSystemGpu_impl::GranParamsPtr gran_params,
-        unsigned int nSpheres) {
+__host__ void ConstructGraphByContact(ChSystemGpu_impl::GranSphereDataPtr sphere_data,
+                                      ChSystemGpu_impl::GranParamsPtr gran_params,
+                                      unsigned int nSpheres) {
     unsigned int nBlocks = (nSpheres + CUDA_THREADS_PER_BLOCK - 1) / CUDA_THREADS_PER_BLOCK;
 
     ComputeAdjNumByContact<<<nBlocks, CUDA_THREADS_PER_BLOCK>>>(sphere_data,
@@ -230,10 +231,11 @@ __host__ void ConstructGraphByContact(
 /// Identifies core, border and noise points in h_clusters.
 /// min_pts: minimal number of points for a h_cluster
 /// radius: proximity radius, points inside can form a h_cluster
-__host__ void ConstructGraphByProximity(
-        ChSystemGpu_impl::GranSphereDataPtr sphere_data,
-        ChSystemGpu_impl::GranParamsPtr gran_params,
-        unsigned int nSpheres, size_t min_pts, float radius) {
+__host__ void ConstructGraphByProximity(ChSystemGpu_impl::GranSphereDataPtr sphere_data,
+                                        ChSystemGpu_impl::GranParamsPtr gran_params,
+                                        unsigned int nSpheres,
+                                        size_t min_pts,
+                                        float radius) {
     unsigned int nBlocks = (nSpheres + CUDA_THREADS_PER_BLOCK - 1) / CUDA_THREADS_PER_BLOCK;
 
     /// compute all adjacent spheres inside radius
@@ -256,17 +258,17 @@ __host__ void ConstructGraphByProximity(
 /// Identifies core, border and noise points in h_clusters.
 /// Searches using a parallel Breadth-First search
 /// min_pts: minimal number of points for a cluster
-__host__ void GdbscanSearchGraph(
-        ChSystemGpu_impl::GranSphereDataPtr sphere_data,
-        ChSystemGpu_impl::GranParamsPtr gran_params,
-        unsigned int nSpheres, size_t min_pts) {
+__host__ void GdbscanSearchGraph(ChSystemGpu_impl::GranSphereDataPtr sphere_data,
+                                 ChSystemGpu_impl::GranParamsPtr gran_params,
+                                 unsigned int nSpheres,
+                                 size_t min_pts) {
     unsigned int nBlocks = (nSpheres + CUDA_THREADS_PER_BLOCK - 1) / CUDA_THREADS_PER_BLOCK;
 
     unsigned int ** h_clusters = ClusterSearchBFS(nSpheres, sphere_data,
-                                        sphere_data->adj_num,
-                                        sphere_data->adj_offset,
-                                        sphere_data->adj_list,
-                                        sphere_data->sphere_type);
+                                                  sphere_data->adj_num,
+                                                  sphere_data->adj_offset,
+                                                  sphere_data->adj_list,
+                                                  sphere_data->sphere_type);
     unsigned int cluster_num = h_clusters[0][0];
     unsigned int sphere_num_in_cluster;
     unsigned int biggest_cluster_size = 1;
@@ -295,8 +297,10 @@ __host__ void GdbscanSearchGraph(
         gpuErrchk(cudaDeviceSynchronize());
     }
 
-    GdbscanFinalClusterFromType<<<nBlocks, CUDA_THREADS_PER_BLOCK>>>(nSpheres,
-            sphere_data->sphere_cluster, sphere_data->sphere_type);
+    GdbscanFinalClusterFromType<<<nBlocks, CUDA_THREADS_PER_BLOCK>>>(
+        nSpheres,
+        sphere_data->sphere_cluster,
+        sphere_data->sphere_type);
     gpuErrchk(cudaPeekAtLastError());
     gpuErrchk(cudaDeviceSynchronize());
 
