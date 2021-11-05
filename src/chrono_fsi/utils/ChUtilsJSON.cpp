@@ -68,8 +68,6 @@ Real massCalculator(int& num_nei, Real Kernel_h, Real InitialSpacing, Real rho0)
                 }
                 sum_wij += W;
             }
-    printf("Kernel_h=%f, InitialSpacing=%f, Number of Neighbors=%d, Mass_i= %f, Sum_wi= %f\n", Kernel_h, InitialSpacing,
-           count, rho0 / sum_wij, sum_wij);
     num_nei = count;
     return rho0 / sum_wij;
 }
@@ -79,7 +77,7 @@ void InvalidArg(std::string arg) {
 }
 
 bool ParseJSON(const std::string& json_file, std::shared_ptr<SimParams> paramsH, Real3 Domain) {
-    std::cout << "Reading parameters: " << json_file << std::endl;
+    std::cout << "Reading parameters from: " << json_file << std::endl;
     FILE* fp = fopen(json_file.c_str(), "r");
     if (!fp) {
         std::cout << "Invalid JSON file!" << std::endl;
@@ -97,8 +95,7 @@ bool ParseJSON(const std::string& json_file, std::shared_ptr<SimParams> paramsH,
         std::cerr << "Invalid JSON file!!" << std::endl;
         return false;
     }
-
-    std::cout << "--- Parsing JSON ---" << std::endl;
+    std::cout << "Parsing the JSON file" << std::endl;
     if (doc.HasMember("Output Folder"))
         strcpy(paramsH->out_name, doc["Output Folder"].GetString());
     else
@@ -144,7 +141,7 @@ bool ParseJSON(const std::string& json_file, std::shared_ptr<SimParams> paramsH,
     if (doc.HasMember("SPH Parameters")) {
         if (doc["SPH Parameters"].HasMember("Method")) {
             std::string SPH = doc["SPH Parameters"]["Method"].GetString();
-            std::cout << SPH << std::endl;
+            std::cout << "Modeling method is: " << SPH << std::endl;
             if (SPH == "I2SPH")
                 paramsH->fluid_dynamic_type = fluid_dynamics::I2SPH;
             else if (SPH == "IISPH")
@@ -645,7 +642,6 @@ bool ParseJSON(const std::string& json_file, std::shared_ptr<SimParams> paramsH,
     utils::printStruct(paramsH->boxDims);
     std::cout << "paramsH->gridSize: ";
     utils::printStruct(paramsH->gridSize);
-    std::cout << "********************" << std::endl;
     return true;
 }
 
@@ -701,15 +697,15 @@ void PrepareOutputDir(std::shared_ptr<fsi::SimParams> paramsH,
     }
 #endif
 
-    std::string js = (filesystem::path(demo_dir) / filesystem::path("input.json")).str();
+    std::string js = (filesystem::path(demo_dir) / filesystem::path("Backup.json")).str();
     std::ifstream srce(jsonFile);
     std::ofstream dest(js);
     dest << srce.rdbuf();
 
-    std::cout << "out_dir directory= " << out_dir << std::endl;
-    std::cout << "Demo Directory= " << paramsH->demo_dir << std::endl;
-    std::cout << "input json file: " << jsonFile << "\n"
-              << "backup json file: " << js << std::endl;
+    std::cout << "Output Directory: " << out_dir << std::endl;
+    std::cout << "Demo Directory: " << paramsH->demo_dir << std::endl;
+    std::cout << "Input JSON File: " << jsonFile << std::endl;
+    std::cout << "Backup JSON File: " << js << std::endl;
 }
 
 }  // namespace utils

@@ -487,33 +487,39 @@ ChFluidDynamics::ChFluidDynamics(std::shared_ptr<ChBce> otherBceWorker,
     integrator_type = type;
     switch (integrator_type) {
         case CHFSI_TIME_INTEGRATOR::I2SPH:
-            forceSystem = chrono_types::make_shared<ChFsiForceI2SPH>(otherBceWorker, fsiSystem->sortedSphMarkersD,
-                                                                     fsiSystem->markersProximityD,
-                                                                     fsiSystem->fsiGeneralData, paramsH, numObjectsH);
-            printf("Created an I2SPH framework.\n");
+            forceSystem = chrono_types::make_shared<ChFsiForceI2SPH>(
+                otherBceWorker, fsiSystem->sortedSphMarkersD, fsiSystem->markersProximityD,
+                fsiSystem->fsiGeneralData, paramsH, numObjectsH);
+            std::cout << "===============================================================================" << std::endl;
+            std::cout << "========================   Created an I2SPH framework   =======================" << std::endl;
+            std::cout << "===============================================================================" << std::endl;
             break;
 
         case CHFSI_TIME_INTEGRATOR::IISPH:
-            forceSystem = chrono_types::make_shared<ChFsiForceIISPH>(otherBceWorker, fsiSystem->sortedSphMarkersD,
-                                                                     fsiSystem->markersProximityD,
-                                                                     fsiSystem->fsiGeneralData, paramsH, numObjectsH);
-            printf("Created an IISPH framework.\n");
+            forceSystem = chrono_types::make_shared<ChFsiForceIISPH>(
+                otherBceWorker, fsiSystem->sortedSphMarkersD, fsiSystem->markersProximityD,
+                fsiSystem->fsiGeneralData, paramsH, numObjectsH);
+            std::cout << "===============================================================================" << std::endl;
+            std::cout << "========================   Created an IISPH framework   =======================" << std::endl;
+            std::cout << "===============================================================================" << std::endl;
             break;
 
         case CHFSI_TIME_INTEGRATOR::ExplicitSPH:
             forceSystem = chrono_types::make_shared<ChFsiForceExplicitSPH>(
-                otherBceWorker, fsiSystem->sortedSphMarkersD, fsiSystem->markersProximityD, fsiSystem->fsiGeneralData,
-                paramsH, numObjectsH);
-            printf("Created an ExplicitSPH framework.\n");
+                otherBceWorker, fsiSystem->sortedSphMarkersD, fsiSystem->markersProximityD,
+                fsiSystem->fsiGeneralData, paramsH, numObjectsH);
+            std::cout << "===============================================================================" << std::endl;
+            std::cout << "=====================   Created an Explicit SPH framework   ===================" << std::endl;
+            std::cout << "===============================================================================" << std::endl;
             break;
 
         // Extend this function with your own linear solvers
         default:
-            forceSystem = chrono_types::make_shared<ChFsiForceIISPH>(otherBceWorker, fsiSystem->sortedSphMarkersD,
+            forceSystem = chrono_types::make_shared<ChFsiForceExplicitSPH>(otherBceWorker, fsiSystem->sortedSphMarkersD,
                                                                      fsiSystem->markersProximityD,
                                                                      fsiSystem->fsiGeneralData, paramsH, numObjectsH);
             std::cout << "The ChFsiForce you chose has not been implemented, reverting back to "
-                         "ChFsiForceIISPH\n";
+                         "ChFsiForceExplicitSPH" << std::endl;
     }
 }
 
