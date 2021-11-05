@@ -213,7 +213,7 @@ class ChSystemGpu_impl {
 
         not_stupid_bool* sphere_fixed;  ///< Flags indicating whether or not a sphere is fixed
 
-        SPHERE_TYPE* sphere_type;  ///< Group to which the sphere belongs
+        SPHERE_TYPE* sphere_type;  ///< Type of sphere
         unsigned int* sphere_cluster; ///< Cluster to which the sphere belongs
         not_stupid_bool* sphere_inside_mesh; ///< Is the sphere inside the volume
 
@@ -550,7 +550,7 @@ class ChSystemGpu_impl {
     /// Fixity of each sphere
     std::vector<not_stupid_bool, cudallocator<not_stupid_bool>> sphere_fixed;
 
-    /// Sphere group
+    /// Sphere type
     std::vector<SPHERE_TYPE, cudallocator<SPHERE_TYPE>> sphere_type;
     /// Sphere cluster
     std::vector<unsigned int, cudallocator<unsigned int>> sphere_cluster;

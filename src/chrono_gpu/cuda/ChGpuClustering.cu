@@ -292,7 +292,7 @@ __host__ void GdbscanSearchGraph(
         gpuErrchk(cudaDeviceSynchronize());
     }
 
-    GdbscanFinalClusterFromGroup<<<nBlocks, CUDA_THREADS_PER_BLOCK>>>(nSpheres,
+    GdbscanFinalClusterFromType<<<nBlocks, CUDA_THREADS_PER_BLOCK>>>(nSpheres,
             sphere_data->sphere_cluster, sphere_data->sphere_type);
     gpuErrchk(cudaPeekAtLastError());
     gpuErrchk(cudaDeviceSynchronize());

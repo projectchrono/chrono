@@ -282,8 +282,8 @@ void ChSystemGpu_impl::WriteFile(
         if (GET_OUTPUT_SETTING(FIXITY)) {
             outstrstream << ",fixed";
         }
-        if (GET_OUTPUT_SETTING(GROUP)) {
-            outstrstream << ",group";
+        if (GET_OUTPUT_SETTING(TYPE)) {
+            outstrstream << ",type";
         }
         if (GET_OUTPUT_SETTING(CLUSTER)) {
             outstrstream << ",cluster";
@@ -344,9 +344,9 @@ void ChSystemGpu_impl::WriteFile(
                 outstrstream << "," << fixed;
             }
 
-            if (GET_OUTPUT_SETTING(GROUP)) {
-                int group = (int)sphere_type[n];
-                outstrstream << "," << group;
+            if (GET_OUTPUT_SETTING(TYPE)) {
+                int type = (int)sphere_type[n];
+                outstrstream << "," << type;
             }
 
             if (GET_OUTPUT_SETTING(CLUSTER)) {
@@ -473,15 +473,15 @@ void ChSystemGpu_impl::WriteFile(
             delete[] fixed;
         }
 
-        if (GET_OUTPUT_SETTING(GROUP)) {
-            unsigned char* group = new unsigned char[nSpheres];
+        if (GET_OUTPUT_SETTING(TYPE)) {
+            unsigned char* type = new unsigned char[nSpheres];
             for (size_t n = 0; n < nSpheres; n++) {
-                group[n] = sphere_type[n];
+                type[n] = sphere_type[n];
             }
-            H5::DataSet ds_group = file.createDataSet("group", H5::PredType::NATIVE_UCHAR, dataspace);
-            ds_group.write(group, H5::PredType::NATIVE_UCHAR);
+            H5::DataSet ds_type = file.createDataSet("type", H5::PredType::NATIVE_UCHAR, dataspace);
+            ds_type.write(type, H5::PredType::NATIVE_UCHAR);
 
-            delete[] group;
+            delete[] type;
         }
 
         if (gran_params->friction_mode != CHGPU_FRICTION_MODE::FRICTIONLESS && GET_OUTPUT_SETTING(ANG_VEL_COMPONENTS)) {

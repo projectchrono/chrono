@@ -49,7 +49,7 @@ enum class CHGPU_ROLLING_MODE { NO_RESISTANCE, SCHWARTZ, ELASTIC_PLASTIC };
 
 enum CHGPU_OUTPUT_FLAGS { ABSV = 1 << 0, VEL_COMPONENTS = 1 << 1,
                           FIXITY = 1 << 2, ANG_VEL_COMPONENTS = 1 << 3,
-                          FORCE_COMPONENTS = 1 << 4, GROUP = 1 << 5,
+                          FORCE_COMPONENTS = 1 << 4, TYPE = 1 << 5,
                           CLUSTER = 1 << 6, ADJACENCY = 1 << 7 };
 
 /// Clustering algorithm switches

@@ -35,6 +35,11 @@
 #include "chrono_gpu/physics/ChSystemGpu_impl.h"
 #include "chrono_gpu/physics/ChSystemGpuMesh_impl.h"
 #include "chrono_thirdparty/cub/device/device_reduce.cuh"
+#include "chrono_gpu/physics/ChSystemGpu_impl.h"
+#include "chrono_gpu/cuda/ChCudaMathUtils.cuh"
+#include "chrono_gpu/cuda/ChGpuHelpers.cuh"
+#include "chrono_gpu/cuda/ChGpu_SMC.cuh"
+
 
 using chrono::gpu::CHGPU_TIME_INTEGRATOR;
 using chrono::gpu::CHGPU_FRICTION_MODE;
@@ -50,7 +55,7 @@ using chrono::gpu::CLUSTER_SEARCH_METHOD;
 
 /// spheres with > minPts contacts are CORE, others are NOISE
 /// Only NOISE spheres may be changed to BORDER later
-static __global__ void GdbscanInitSphereGroup(unsigned int nSpheres,
+static __global__ void GdbscanInitSphereType(unsigned int nSpheres,
                                               unsigned int* adj_num,
                                               SPHERE_TYPE* sphere_type,
                                               unsigned int minPts) {
@@ -64,7 +69,7 @@ static __global__ void GdbscanInitSphereGroup(unsigned int nSpheres,
 
 // Tag spheres found inside mesh to type VOLUME
 // must run AFTER interactionGranMat_TriangleSoup
-static __global__ void SetVolumeSphereGroup(ChSystemGpu_impl::GranSphereDataPtr sphere_data,
+static __global__ void SetVolumeSphereType(ChSystemGpu_impl::GranSphereDataPtr sphere_data,
                                             unsigned int nSpheres) {
     unsigned int mySphereID = threadIdx.x + blockIdx.x * blockDim.x;
     // don't overrun the array
@@ -78,7 +83,7 @@ static __global__ void SetVolumeSphereGroup(ChSystemGpu_impl::GranSphereDataPtr 
 /// Any particle with sphere_type == NOISE are not part of any cluster
 /// -> sphere_cluster = INVALID
 /// Should be run at the end of search step
-static __global__ void GdbscanFinalClusterFromGroup(unsigned int nSpheres,
+static __global__ void GdbscanFinalClusterFromType(unsigned int nSpheres,
                                                     unsigned int* sphere_cluster,
                                                     SPHERE_TYPE* sphere_type) {
     unsigned int mySphereID = threadIdx.x + blockIdx.x * blockDim.x;

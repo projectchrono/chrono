@@ -443,7 +443,7 @@ __host__ void ChSystemGpuMesh_impl::IdentifyClusters() {
         switch (gran_params->cluster_search_method) {
             case CLUSTER_SEARCH_METHOD::BFS: {
                 /// sphere_type is CORE if neighbors_num > min_pts else NOISE
-                GdbscanInitSphereGroup<<<nBlocks, CUDA_THREADS_PER_BLOCK>>>(
+                GdbscanInitSphereType<<<nBlocks, CUDA_THREADS_PER_BLOCK>>>(
                     nSpheres,
                     sphere_data->adj_num,
                     sphere_data->sphere_type,
@@ -452,10 +452,10 @@ __host__ void ChSystemGpuMesh_impl::IdentifyClusters() {
                 gpuErrchk(cudaDeviceSynchronize());
 
                 /// finds spheres in volume
-                /// must be set AFTER GdbscanInitSphereGroup,
+                /// must be set AFTER GdbscanInitSphereType,
                 ///  and AFTER interactionGranMat_TriangleSoup,
                 ///  which is AFTER AdvanceSimulation
-                SetVolumeSphereGroup<<<nBlocks, CUDA_THREADS_PER_BLOCK>>>(
+                SetVolumeSphereType<<<nBlocks, CUDA_THREADS_PER_BLOCK>>>(
                     sphere_data,
                     nSpheres);
                 gpuErrchk(cudaPeekAtLastError());

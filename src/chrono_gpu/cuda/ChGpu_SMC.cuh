@@ -34,7 +34,7 @@
 #include "chrono_gpu/cuda/ChCudaMathUtils.cuh"
 #include "chrono_gpu/cuda/ChGpuHelpers.cuh"
 #include "chrono_gpu/cuda/ChGpuBoundaryConditions.cuh"
-#include "chrono_gpu/cuda/ChGpuClustering.cuh"
+// #include "chrono_gpu/cuda/ChGpuClustering.cuh"
 
 using chrono::gpu::ChSystemGpu_impl;
 
