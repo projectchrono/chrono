@@ -1,7 +1,8 @@
-# Co-simulation tire test rig
+# ------------------------------------------------------------------------------
+# Co-simulation framework demos
 # ------------------------------------------------------------------------------
 
-if(NOT ENABLE_MODULE_VEHICLE)
+if(NOT MPI_FOUND)
   return()
 endif()
 
