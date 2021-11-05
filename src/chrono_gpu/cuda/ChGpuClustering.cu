@@ -255,6 +255,42 @@ __host__ void ConstructGraphByProximity(ChSystemGpu_impl::GranSphereDataPtr sphe
                                                                    radius);
 }
 
+__host__ void IdentifyGroundClusterByBiggest(
+        ChSystemGpu_impl::GranSphereDataPtr sphere_data,
+        ChSystemGpu_impl::GranParamsPtr gran_params,
+        unsigned int ** h_clusters) {
+    
+}
+
+
+__host__ void IdentifyGroundClusterByBiggest(
+        ChSystemGpu_impl::GranSphereDataPtr sphere_data,
+        ChSystemGpu_impl::GranParamsPtr gran_params,
+        unsigned int ** h_clusters) {
+    unsigned int ground_cluster = 0;
+    unsigned int cluster_num = h_clusters[0][0];
+    unsigned int sphere_num_in_cluster = 1;
+    unsigned int biggest_cluster_size = 1;
+    // find which cluster is the bigged
+    for (size_t i = 1; i < cluster_num; i++) {
+        sphere_num_in_cluster = h_clusters[i][0];
+        assert(sphere_num_in_cluster <= nSpheres);
+        if (sphere_num_in_cluster > biggest_cluster_size) {
+            biggest_cluster_size = sphere_num_in_cluster;
+            ground_cluster = i;
+        }
+    }
+    // tag all spheres in biggest cluster to GROUND
+    sphere_num_in_cluster = h_clusters[ground_cluster][0];
+    assert(h_clusters[ground_cluster][0] <= nSpheres);
+    for (size_t j = 1; j < (sphere_num_in_cluster + 1); j++) {
+        unsigned int CurrentSphereID = h_clusters[ground_cluster][j];
+        sphere_data->sphere_cluster[CurrentSphereID] = static_cast<unsigned int>(chrono::gpu::CLUSTER_INDEX::GROUND);
+    }
+    gpuErrchk(cudaPeekAtLastError());
+    gpuErrchk(cudaDeviceSynchronize());
+}
+
 /// G-DBSCAN; density-based h_clustering algorithm.
 /// Identifies core, border and noise points in h_clusters.
 /// Searches using a parallel Breadth-First search
@@ -271,31 +307,20 @@ __host__ void GdbscanSearchGraph(ChSystemGpu_impl::GranSphereDataPtr sphere_data
                                                   sphere_data->adj_list,
                                                   sphere_data->sphere_type);
     unsigned int cluster_num = h_clusters[0][0];
-    unsigned int sphere_num_in_cluster;
-    unsigned int biggest_cluster_size = 1;
-    unsigned int biggest_cluster_id = 1;
 
     if (cluster_num > 0) {
-        // find biggest cluster id
-        // expect low number of clusters, maximum 3-4
-        for (size_t i = 1; i < cluster_num; i++) {
-            sphere_num_in_cluster = h_clusters[i][0];
-            assert(sphere_num_in_cluster <= nSpheres);
-            if (sphere_num_in_cluster > biggest_cluster_size) {
-                biggest_cluster_size = sphere_num_in_cluster;
-                biggest_cluster_id = i;
+        switch(gran_params->cluster_ground_method) {
+            case NONE:{break;}
+            case BIGGEST: {
+                IdentifyGroundClusterByBiggest(sphere_data, gran_params, h_clusters);
+                break;
             }
+            case LOWEST: {
+                IdentifyGroundClusterByLowest(sphere_data, gran_params, h_clusters);
+                break;
+            }
+            default:{break;}
         }
-
-        // tag each sphere to a biggest cluster
-        sphere_num_in_cluster = h_clusters[biggest_cluster_id][0];
-        assert(h_clusters[biggest_cluster_id][0] <= nSpheres);
-        for (size_t j = 1; j < (sphere_num_in_cluster + 1); j++) {
-            unsigned int CurrentSphereID = h_clusters[biggest_cluster_id][j];
-            sphere_data->sphere_cluster[CurrentSphereID] = static_cast<unsigned int>(chrono::gpu::CLUSTER_INDEX::GROUND);
-        }
-        gpuErrchk(cudaPeekAtLastError());
-        gpuErrchk(cudaDeviceSynchronize());
     }
 
     GdbscanFinalClusterFromType<<<nBlocks, CUDA_THREADS_PER_BLOCK>>>(
