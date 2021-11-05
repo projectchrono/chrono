@@ -53,7 +53,8 @@ enum CHGPU_OUTPUT_FLAGS { ABSV = 1 << 0, VEL_COMPONENTS = 1 << 1,
                           CLUSTER = 1 << 6, ADJACENCY = 1 << 7 };
 
 /// Clustering algorithm switches
-// 0 on ANY cluster related switch means no clustering done, all sphere_type and sphere_cluster to 0.
+// 0 on CLUSTER_GRAPH_METHOD or CLUSTER_SEARCH_METHO switch means no clustering
+//  all sphere_type and sphere_cluster to 0.
 enum class CLUSTER_GRAPH_METHOD {NONE = 0, CONTACT = 1, PROXIMITY = 2}; /* TODO: Implement proximity graph construction */
 // CONTACT leverages sphere_contact_map to build the graph.
 // PROXIMITY determine contacts by checking if distance between sphere pairs < gbscan_radius; TODO UNTESTED
@@ -61,10 +62,15 @@ enum class CLUSTER_GRAPH_METHOD {NONE = 0, CONTACT = 1, PROXIMITY = 2}; /* TODO:
 enum class CLUSTER_SEARCH_METHOD {NONE = 0, BFS = 1}; // TO DO: implement faster search than BFS
 // BFS -> Breadth-First search
 
-/// Cluster index. Ground cluster has most spheres.
-/// Noise spheres are part of their own invalid cluster,
-/// Any cluster that contain a VOLUME sphere is part 
-/// of the VOLUME cluster, except if it is the GROUND cluster
+// How is the ground cluster identified
+enum class CLUSTER_GROUND_METHOD {BIGGEST = 0, LOWEST = 1}; 
+// BIGGEST: cluster with the most number of spheres
+// LOWEST: cluster with many particles close to the bounding box bottom
+
+/// Cluster index.
+/// NOISE spheres are part of the INVALID cluster,
+/// Any cluster that contain a VOLUME sphere is part VOLUME cluster, EXCEPT 
+/// EXCEPT if it is the GROUND cluster
 /// Otherwise cluster index increases from START when cluster found 
 enum class CLUSTER_INDEX {GROUND = 0, INVALID = 1, VOLUME = 2, START = 3}; /* number of clusters go up to nSpheres */
 
