@@ -22,8 +22,8 @@ For more detail, read the [Chrono::Sensor](@ref manual_sensor) section of the re
   * NVIDIA GPU, Maxwell or later - capable of running OptiX
 
 - To **build** applications based on this module, the following are required:
-  * [CUDA](https://developer.nvidia.com/cuda-downloads) - tested with version 11.3
-  * [OptiX](https://developer.nvidia.com/designworks/optix/download) - version 7.2 only (will not work with 6.X or 7.3!)
+  * [CUDA](https://developer.nvidia.com/cuda-downloads)
+  * [OptiX](https://developer.nvidia.com/designworks/optix/download) - version 7.2 only (will NOT work with 6.X or 7.3)
   * [GLFW](https://www.glfw.org/) - version 3.0 or later
   * [GLEW](http://glew.sourceforge.net/) - version 1.0 or later
   * OpenGL

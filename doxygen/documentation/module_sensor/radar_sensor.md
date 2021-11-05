@@ -1,25 +1,24 @@
-Radasr Sensor Model {#radar_sensor}
+Radar Sensor Model {#radar_sensor}
 =================================
 
 \tableofcontents
 
-In Chrono:Sensor:ChRadarSensor, the synthetic data is generated via GPU-based ray-tracing. By leveraging hardware acclereated support and the headless rendering capablities provided by Nvidia Optix Library. Rays are For each lidar beam, a group of rays are traced that sample that lidar beam. The number of samples, along with beam divergence angle, are set by the user. The entire frame/scan of the lidar is processed in a single render step. To account for the time difference of rays across the scan, keyframes and motion blur techniques are used. With these keyframes, each beam in the scan traces the scene at a specific time, reproducing the motion of objects and the lidar. The intensity returned by the lidar beams is based on diffuse reflectance.
+In chrono:sensor:ChRadarSensor, the synthetic data is generated via GPU-based ray-tracing. By leveraging hardware acclereated support and the headless rendering capablities provided by NVIDIA Optix Library. The field of view and maximum distance of the radar define the space in which objects may be detected. To model this, the space is partitioned and sampled using rays. The rays trace the environment from the sensors out into the environement. If a ray colision is detected, the ray is endowed with the velocity of the detection, the intensity of return, object ID, and distance to detection. The sampled says are then used to approximate the full radar return. Since radar is transmitted as a single, continuous wave, the movement of the scene during a scan is neglibible in constrast to lidar. The intensity returned by the radar samples is based on a diffuse reflectance model.
 
-#### Creating a Lidar
+#### Creating a Radar
 ~~~{.cpp}
 auto radar = chrono_types::make_shared<ChRadarSensor>(
-	               my_body,             // body lidar is attached to
+	               parent_body,         // body radar is attached to
                    update_rate,         // scanning rate in Hz
                    offset_pose,         // offset pose
                    horizontal_samples,  // number of horizontal rays
-                   vertical_samples,   // number of vertical rays
+                   vertical_samples,    // number of vertical rays
                    horizontal_fov,      // horizontal field of view
-                   vertical_fov,      // low vertical extent
+                   vertical_fov,        // low vertical extent
                    100);                // maximum range
 
 radar->SetName("Radar Sensor");
 radar->SetLag(lag);
-radar->SetCollectionWindow(collection_time); // typically time to spin 360 degrees
 ~~~
 
 <br>
@@ -32,7 +31,7 @@ radar->PushFilter(chrono_types::make_shared<ChFilterRadarAccess>());
 // Generate point cloud from raw data
 radar->PushFilter(chrono_types::make_shared<ChFilterRadarXYZReturn>());
 
-// Access lidar data in point cloud format
+// Access radar data in point cloud format
 radar->PushFilter(chrono_types::make_shared<ChFilterRadarXYZAccess>());
 
 // visualize point cloud (<height, width, zoom, name> of visual window)
@@ -44,7 +43,7 @@ manager->AddSensor(radar);
 
 <br>
 
-#### Ridar Data Access
+#### Radar Data Access
 ~~~{.cpp}
 UserRadarXYZBufferPtr data_ptr;
 while () {

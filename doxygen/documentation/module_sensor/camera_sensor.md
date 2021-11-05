@@ -3,7 +3,7 @@ Camera Sensor Model {#camera_sensor}
 
 \tableofcontents
 
-In Chrono:Sensor:ChCameraSensor, the synthetic data is generated via GPU-based ray-tracing. By leveraging hardware accelerated support and the headless rendering capabilities provided by Nvidia Optix Library.
+In Chrono:Sensor:ChCameraSensor, the synthetic data is generated via GPU-based ray-tracing. By leveraging hardware accelerated support and the headless rendering capabilities provided by NVIDIA Optix Library.
 
 ## Camera sensor Setup
 
@@ -12,14 +12,17 @@ chrono::ChFrame<double> offset_pose({10, 2, .5},                           // Po
                                      Q_from_AngAxis(CH_C_PI, {0, 0, 1}));  // Rotation
 
 auto Camera = chrono_types::make_shared<ChCameraSensor>(
-                    ground_body,   // body camera is attached to
-                    update_rate,   // update rate in Hz
-                    offset_pose,   // offset pose
-                    image_width,   // image width
-                    image_height,  // image height
-                    fov,           // camera's horizontal field of view
-                    alias_factor,  // supersample factor for antialiasing
-                    lens_model);   // FOV
+                    parent_body,                // body camera is attached to
+                    update_rate,                // update rate in Hz
+                    offset_pose,                // offset pose
+                    image_width,                // image width
+                    image_height,               // image height
+                    fov,                        // camera's horizontal field of view
+                    alias_factor,               // supersample factor for antialiasing
+                    lens_model,                 // lens model for optional distortion
+                    use_global_illumination,    // optional for enabling global illumination on camera
+                    gamma                       // optionally set the gamma correction exponent (defaults to 2.2)
+                    ); 
 
 Camera->SetName("Camera Sensor");
 Camera->SetLag(lag);
@@ -69,7 +72,6 @@ Any number of filters can be append to the list and modify the final result. The
 * [Visualize Result](@ref chrono::sensor::ChFilterVisualize)
 
 ## Camera animation
-
 The position and rotation of the camera can be easily changed using `SetOffsetPose` during simulation
 ~~~{.cpp}
 Camera->SetOffsetPose(chrono::ChFrame<double>({8, 2, .5},    // Position

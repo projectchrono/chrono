@@ -334,7 +334,7 @@ void ChFsiInterface::ResizeChronoShellsData(std::vector<std::vector<int>> ShellE
             numShells++;
     }
 
-    printf("\n\n numShells in ResizeChronoShellsData  %d\n", numShells);
+    printf("numShells in ResizeChronoShellsData  %d\n", numShells);
     printf("ShellElementsNodesSTDVector.size() in ResizeChronoShellsData  %zd\n", ShellElementsNodesSTDVector.size());
 
     if (ShellElementsNodesSTDVector.size() != numShells) {
