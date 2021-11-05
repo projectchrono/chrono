@@ -509,10 +509,12 @@ __host__ double ChSystemGpuMesh_impl::AdvanceSimulation(float duration) {
             const unsigned int nThreadsUpdateHist = 2 * CUDA_THREADS_PER_BLOCK;
             unsigned int fricMapSize = nSpheres * MAX_SPHERES_TOUCHED_BY_SPHERE;
             unsigned int nBlocksFricHistoryPostProcess = (fricMapSize + nThreadsUpdateHist - 1) / nThreadsUpdateHist;
-            resetActiveFrictionData<<<nBlocksFricHistoryPostProcess, nThreadsUpdateHist>>>(
+            updateFrictionData<<<nBlocksFricHistoryPostProcess, nThreadsUpdateHist>>>(
                 fricMapSize,
                 sphere_data,
                 gran_params);
+            gpuErrchk(cudaPeekAtLastError());
+            gpuErrchk(cudaDeviceSynchronize());
         }
 
         METRICS_PRINTF("Starting computeSphereForces!\n");
@@ -565,12 +567,6 @@ __host__ double ChSystemGpuMesh_impl::AdvanceSimulation(float duration) {
             const unsigned int nThreadsUpdateHist = 2 * CUDA_THREADS_PER_BLOCK;
             unsigned int fricMapSize = nSpheres * MAX_SPHERES_TOUCHED_BY_SPHERE;
             unsigned int nBlocksFricHistoryPostProcess = (fricMapSize + nThreadsUpdateHist - 1) / nThreadsUpdateHist;
-            updateInactiveFrictionData<<<nBlocksFricHistoryPostProcess, nThreadsUpdateHist>>>(
-                fricMapSize,
-                sphere_data,
-                gran_params);
-            gpuErrchk(cudaPeekAtLastError());
-            gpuErrchk(cudaDeviceSynchronize());
             updateAngVels<<<nBlocks, CUDA_THREADS_PER_BLOCK>>>(stepSize_SU, sphere_data, nSpheres, gran_params);
             gpuErrchk(cudaPeekAtLastError());
             gpuErrchk(cudaDeviceSynchronize());

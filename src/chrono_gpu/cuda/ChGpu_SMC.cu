@@ -567,9 +567,7 @@ __host__ double ChSystemGpu_impl::AdvanceSimulation(float duration) {
             const unsigned int nThreadsUpdateHist = 2 * CUDA_THREADS_PER_BLOCK;
             unsigned int fricMapSize = nSpheres * MAX_SPHERES_TOUCHED_BY_SPHERE;
             unsigned int nBlocksFricHistoryPostProcess = (fricMapSize + nThreadsUpdateHist - 1) / nThreadsUpdateHist;
-            updateInactiveFrictionData<<<nBlocksFricHistoryPostProcess, nThreadsUpdateHist>>>(
-                fricMapSize, sphere_data, gran_params);
-            resetActiveFrictionData<<<nBlocksFricHistoryPostProcess, nThreadsUpdateHist>>>(
+            updateFrictionData<<<nBlocksFricHistoryPostProcess, nThreadsUpdateHist>>>(
                 fricMapSize, sphere_data, gran_params);
             gpuErrchk(cudaPeekAtLastError());
             gpuErrchk(cudaDeviceSynchronize());

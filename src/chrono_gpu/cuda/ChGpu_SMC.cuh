@@ -1021,30 +1021,9 @@ static __global__ void integrateSpheres(const float stepsize_SU,
 }
 
 /**
- * Reset active friction data. ONLY use this with friction on
- */
-static __global__ void resetActiveFrictionData(unsigned int frictionHistoryMapSize,
-                                          ChSystemGpu_impl::GranSphereDataPtr sphere_data,
-                                          ChSystemGpu_impl::GranParamsPtr gran_params) {
-    unsigned int offsetInFrictionMap = threadIdx.x + blockIdx.x * blockDim.x;
-
-    if (offsetInFrictionMap < frictionHistoryMapSize) {
-        // look at this map contact slot and reset it if that slot wasn't active last timestep
-        // printf("contact map for sphere %u entry %u is other %u, active %u \t history is %f, %f, %f\n", body_A,
-        //        contact_id, contact_partners[contact_id], contact_active[contact_id],
-        //        contact_history[contact_id].x, contact_history[contact_id].y, contact_history[contact_id].z);
-        // if the contact is not active, reset it
-        if (sphere_data->contact_active_map[offsetInFrictionMap] != false) {
-            // otherwise reset the active bit for the next step
-            sphere_data->contact_active_map[offsetInFrictionMap] = false;
-        }
-    }
-}
-
-/**
  * Integrate angular accelerations. ONLY use this with friction on
  */
-static __global__ void updateInactiveFrictionData(unsigned int frictionHistoryMapSize,
+static __global__ void updateFrictionData(unsigned int frictionHistoryMapSize,
                                           ChSystemGpu_impl::GranSphereDataPtr sphere_data,
                                           ChSystemGpu_impl::GranParamsPtr gran_params) {
     unsigned int offsetInFrictionMap = threadIdx.x + blockIdx.x * blockDim.x;
@@ -1061,10 +1040,12 @@ static __global__ void updateInactiveFrictionData(unsigned int frictionHistoryMa
                 constexpr float3 null_history = {0.f, 0.f, 0.f};
                 sphere_data->contact_history_map[offsetInFrictionMap] = null_history;
             }
+        } else {
+            // otherwise reset the active bit for the next step
+            sphere_data->contact_active_map[offsetInFrictionMap] = false;
         }
     }
 }
-
 
 /**
  * Integrate angular accelerations. Called only when friction is on
