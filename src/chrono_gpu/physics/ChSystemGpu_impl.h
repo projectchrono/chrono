@@ -176,6 +176,10 @@ class ChSystemGpu_impl {
         // GDBSCAN clustering parameters.
         float gdbscan_radius; // ignored if CLUSTER_GRAPH_METHOD::CONTACT
         unsigned int gdbscan_min_pts; // used if CLUSTER_GRAPH_METHOD::CONTACT
+
+        // Clustering GROUND identification parameters
+        // Any cluster that has a sphere below this value is the ground.
+        float ground_z_lim; // for CLUSTER_GROUND_METHOD::LOWEST
     };
 
     /// Structure of pointers to kinematic quantities of the ChSystemGpu_impl.
