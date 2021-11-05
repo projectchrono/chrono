@@ -95,6 +95,50 @@ static __global__ void GdbscanFinalClusterFromType(unsigned int nSpheres,
     }
 }
 
+// Switch cluster index of spheres. 
+// Mostly used to switch index of a certain cluster to CLUSTER_INDEX::GROUND
+static __global__ void SwitchClusterIndex(ChSystemGpu_impl::GranSphereDataPtr sphere_data,
+                                          ChSystemGpu_impl::GranParamsPtr gran_params,
+                                          unsigned int nSpheres,
+                                          unsigned int cluster_from,
+                                          unsigned int cluster_to) {
+    unsigned int mySphereID = threadIdx.x + blockIdx.x * blockDim.x;
+    if (mySphereID < nSpheres) {
+        if(sphere_data->sphere_cluster[mySphereID] == cluster_from) {
+            sphere_data->sphere_cluster[mySphereID] = cluster_to;
+        }
+    }
+}
+
+
+// Find if any particle in the cluster are below a certain z_lim
+// if input param cluster == 0 checks all spheres.
+static __global__ void AreSpheresBelowZLim(ChSystemGpu_impl::GranSphereDataPtr sphere_data,
+                                           ChSystemGpu_impl::GranParamsPtr gran_params,
+                                           unsigned int nSpheres,
+                                           bool * d_below,
+                                           unsigned int cluster,
+                                           float z_lim) {
+    unsigned int mySphereID = threadIdx.x + blockIdx.x * blockDim.x;
+
+    // don't overrun the array
+    if (mySphereID < nSpheres) {
+        int3 mySphere_pos_local;
+        double3 mySphere_pos_global;
+
+        mySphere_pos_local = make_int3(sphere_data->sphere_local_pos_X[mySphereID],
+                                       sphere_data->sphere_local_pos_Y[mySphereID],
+                                       sphere_data->sphere_local_pos_Z[mySphereID]);
+        mySphere_pos_global = int64_t3_to_double3(convertPosLocalToGlobal(thisSD, mySphere_pos_local, gran_params));
+        if ((cluster == 0) || (sphere_data->sphere_cluster[mySphereID] == cluster)) {
+            if (mySphere_pos_global.z < z_lim) {
+                d_below[mySphereID] = true;
+            }
+        }
+    }
+}
+
+
 // Find if any particle is in the volume cluster.
 // If any sphere in cluster sphere_type == VOLUME -> sphere_cluster = VOLUME
 // UNLESS it is the biggest cluster -> sphere_cluster = GROUND

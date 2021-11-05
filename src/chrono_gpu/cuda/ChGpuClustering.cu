@@ -258,19 +258,75 @@ __host__ void ConstructGraphByProximity(ChSystemGpu_impl::GranSphereDataPtr sphe
 __host__ void IdentifyGroundClusterByLowest(
         ChSystemGpu_impl::GranSphereDataPtr sphere_data,
         ChSystemGpu_impl::GranParamsPtr gran_params,
-        unsigned int ** h_clusters) {
+        unsigned int ** h_clusters,
+        unsigned int nSpheres) {
+    unsigned int nBlocks = (nSpheres + CUDA_THREADS_PER_BLOCK - 1) / CUDA_THREADS_PER_BLOCK;
     unsigned int ground_cluster = 0;
+    unsigned int cluster_num = h_cluster[0][0];
+
     ///　PLAN：
     ///　Find ALL clusters with any sphere center below plane box_z + 1*sphere_radius
-    float z_lim = -box_size_Z / 2 + sphere_radius_UU;
+    unsigned int * h_below_num = (unsigned int *)malloc(sizeof(*h_below_num)); 
+    bool * d_below;
+    gpuErrchk(cudaMalloc((void**)&d_below, sizeof(*d_below) * nSpheres));
+    unsigned int * d_below_num;
+    gpuErrchk(cudaMalloc((void**)&d_border_num, sizeof(*d_border_num)));
+    unsigned int ground_cluster = static_cast<unsigned int>(chrono::gpu::CLUSTER_INDEX::GROUND);
+    for (size_t i = 0; i < cluster_num; i++) {
+        cudaMemset(d_below, false, sizeof(*d_below) * nSpheres);
+        cluster_index = i + static_cast<unsigned int>(CLUSTER_INDEX::START);
+        AreSpheresBelowZLim<<<nBlocks, CUDA_THREADS_PER_BLOCK>>>(sphere_data,
+                                                                 gran_params,nSpheres,
+                                                                 d_below,
+                                                                 d_in_cluster,
+                                                                 gran_params->z_lim);
+        gpuErrchk(cudaPeekAtLastError());
+        gpuErrchk(cudaDeviceSynchronize());
 
-    TagGroundCluster(sphere_data, gran_params, h_clusters, ground_cluster);
+        // Sum number of particles in d_in_volume into h_in_volume_num
+        void *d_temp_storage = NULL;
+        size_t temp_storage_bytes = 0;
+        // Determine temporary device storage requirements
+        cub::DeviceReduce::Sum(d_temp_storage, temp_storage_bytes,
+                               d_below, d_below_num, nSpheres);
+        // find and visit border points, establishing the cluster
+        gpuErrchk(cudaMalloc(&d_temp_storage, temp_storage_bytes));
+        gpuErrchk(cudaPeekAtLastError());
+        gpuErrchk(cudaDeviceSynchronize());
+        cub::DeviceReduce::Sum(d_temp_storage, temp_storage_bytes,
+                               d_below, d_below_num, nSpheres);
+        cudaMemcpy(h_below_num, d_below_num,
+                   sizeof(*d_below_num), cudaMemcpyDeviceToHost);
+        if (d_below_num > 0) {
+            SwitchClusterIndex<<<nBlocks, CUDA_THREADS_PER_BLOCK>>>(sphere_data,
+                                                                    gran_params,
+                                                                    nSpheres,
+                                                                    cluster_index,
+                                                                    ground_cluster);
+            gpuErrchk(cudaPeekAtLastError());
+            gpuErrchk(cudaDeviceSynchronize());
+
+        }
+        gpuErrchk(cudaFree(d_temp_storage));
+        
+        gpuErrchk(cudaPeekAtLastError());
+        gpuErrchk(cudaDeviceSynchronize());
+    }
+    
+
+
+    gpuErrchk(cudaFree(d_below));
+    gpuErrchk(cudaFree(d_below_num));
+    free(h_below_num);
+    
 }
 
 __host__ void IdentifyGroundClusterByBiggest(
         ChSystemGpu_impl::GranSphereDataPtr sphere_data,
         ChSystemGpu_impl::GranParamsPtr gran_params,
-        unsigned int ** h_clusters) {
+        unsigned int ** h_clusters,
+        unsigned int nSpheres) {
+    unsigned int nBlocks = (nSpheres + CUDA_THREADS_PER_BLOCK - 1) / CUDA_THREADS_PER_BLOCK;
     unsigned int ground_cluster = 0;
     unsigned int cluster_num = h_clusters[0][0];
     unsigned int sphere_num_in_cluster = 1;
@@ -284,7 +340,14 @@ __host__ void IdentifyGroundClusterByBiggest(
             ground_cluster = i;
         }
     }
-    TagGroundCluster(sphere_data, gran_params, h_clusters, ground_cluster);
+
+    SwitchClusterIndex<<<nBlocks, CUDA_THREADS_PER_BLOCK>>>(sphere_data,
+                                                            gran_params,
+                                                            nSpheres,
+                                                            ground_cluster,
+                                                            static_cast<unsigned int>(chrono::gpu::CLUSTER_INDEX::GROUND));
+    gpuErrchk(cudaPeekAtLastError());
+    gpuErrchk(cudaDeviceSynchronize());
 }
 
 __host__ void TagGroundCluster(
