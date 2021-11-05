@@ -16,7 +16,7 @@
 
 #pragma once
 
-#include "chrono_thirdparty/cub/cub.cuh"
+//#include "chrono_thirdparty/cub/cub.cuh"
 
 #include <cuda.h>
 #include <cassert>
