@@ -96,9 +96,12 @@ static __host__ unsigned int ** ClusterSearchBFS(unsigned int nSpheres,
             // visit all spheres connected to sphere i in parallel
             do {
                 // find and visit border points, establishing the cluster
-                ClusterSearchBFSKernel<<<nBlocks, CUDA_THREADS_PER_BLOCK>>>(
-                    nSpheres, adj_num, adj_offset, adj_list,
-                    d_borders, d_visited);
+                ClusterSearchBFSKernel<<<nBlocks, CUDA_THREADS_PER_BLOCK>>>(nSpheres,
+                    adj_num,
+                    adj_offset,
+                    adj_list,
+                    d_borders,
+                    d_visited);
                 gpuErrchk(cudaPeekAtLastError());
                 gpuErrchk(cudaDeviceSynchronize());
                 // Allocate temporary storage
@@ -121,9 +124,9 @@ static __host__ unsigned int ** ClusterSearchBFS(unsigned int nSpheres,
             } while ((*h_border_num) > 0);
 
             // find if any sphere was tagged in the VOLUME type
-            FindVolumeCluster<<<nBlocks, CUDA_THREADS_PER_BLOCK>>>(nSpheres,
-               d_visited, d_in_volume,
-               sphere_data->sphere_type);
+            FindVolumeCluster<<<nBlocks, CUDA_THREADS_PER_BLOCK>>>(
+                nSpheres, d_visited,
+                d_in_volume, sphere_data->sphere_type);
             // Sum number of particles in d_in_volume into h_in_volume_num
             void *d_temp_storage = NULL;
             size_t temp_storage_bytes = 0;

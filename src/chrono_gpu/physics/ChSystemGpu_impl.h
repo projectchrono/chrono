@@ -175,9 +175,6 @@ class ChSystemGpu_impl {
         // GDBSCAN clustering parameters.
         float gdbscan_radius; // ignored if CLUSTER_GRAPH_METHOD::CONTACT
         unsigned int gdbscan_min_pts; // used if CLUSTER_GRAPH_METHOD::CONTACT
-
-        // k Nearest Neighbor parameters.
-        unsigned int kNN_neighbors_num;
     };
 
     /// Structure of pointers to kinematic quantities of the ChSystemGpu_impl.

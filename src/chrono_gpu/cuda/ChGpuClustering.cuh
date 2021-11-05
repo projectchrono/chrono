@@ -56,9 +56,9 @@ using chrono::gpu::CLUSTER_SEARCH_METHOD;
 /// spheres with > minPts contacts are CORE, others are NOISE
 /// Only NOISE spheres may be changed to BORDER later
 static __global__ void GdbscanInitSphereType(unsigned int nSpheres,
-                                              unsigned int* adj_num,
-                                              SPHERE_TYPE* sphere_type,
-                                              unsigned int minPts) {
+                                             unsigned int* adj_num,
+                                             SPHERE_TYPE* sphere_type,
+                                             unsigned int minPts) {
     unsigned int mySphereID = threadIdx.x + blockIdx.x * blockDim.x;
     // don't overrun the array
     if (mySphereID < nSpheres) {
@@ -70,7 +70,7 @@ static __global__ void GdbscanInitSphereType(unsigned int nSpheres,
 // Tag spheres found inside mesh to type VOLUME
 // must run AFTER interactionGranMat_TriangleSoup
 static __global__ void SetVolumeSphereType(ChSystemGpu_impl::GranSphereDataPtr sphere_data,
-                                            unsigned int nSpheres) {
+                                           unsigned int nSpheres) {
     unsigned int mySphereID = threadIdx.x + blockIdx.x * blockDim.x;
     // don't overrun the array
     if (mySphereID < nSpheres) {
@@ -84,8 +84,8 @@ static __global__ void SetVolumeSphereType(ChSystemGpu_impl::GranSphereDataPtr s
 /// -> sphere_cluster = INVALID
 /// Should be run at the end of search step
 static __global__ void GdbscanFinalClusterFromType(unsigned int nSpheres,
-                                                    unsigned int* sphere_cluster,
-                                                    SPHERE_TYPE* sphere_type) {
+                                                   unsigned int* sphere_cluster,
+                                                   SPHERE_TYPE* sphere_type) {
     unsigned int mySphereID = threadIdx.x + blockIdx.x * blockDim.x;
     // don't overrun the array
     if (mySphereID < nSpheres) {
@@ -137,10 +137,9 @@ static __host__ void ComputeAdjOffsetFromAdjNum(unsigned int nSpheres,
 /// Compute adj_num from chrono contact_active_map
 /// adj_offset needs fully known adj_num
 /// adl_list needs fully known adj_offset
-static __global__ void ComputeAdjNumByContact(
-        ChSystemGpu_impl::GranSphereDataPtr sphere_data,
-        ChSystemGpu_impl::GranParamsPtr gran_params,
-        unsigned int nSpheres) {
+static __global__ void ComputeAdjNumByContact(ChSystemGpu_impl::GranSphereDataPtr sphere_data,
+                                              ChSystemGpu_impl::GranParamsPtr gran_params,
+                                              unsigned int nSpheres) {
     // my sphere ID, we're using a 1D thread->sphere map
     unsigned int mySphereID = threadIdx.x + blockIdx.x * blockDim.x;
 
@@ -164,10 +163,9 @@ static __global__ void ComputeAdjNumByContact(
 /// Compute adj_list from chrono contact_active_map.
 /// call AFTER ComputeAdjNumByContact and ComputeAdjOffsetFromAdjNum
 /// adj_list needs fully known ajd_start, which needs fully known adj_num
-static __global__ void ComputeAdjListByContact(
-        ChSystemGpu_impl::GranSphereDataPtr sphere_data,
-        ChSystemGpu_impl::GranParamsPtr gran_params,
-        unsigned int nSpheres) {
+static __global__ void ComputeAdjListByContact(ChSystemGpu_impl::GranSphereDataPtr sphere_data,
+                                               ChSystemGpu_impl::GranParamsPtr gran_params,
+                                               unsigned int nSpheres) {
     // my sphere ID, we're using a 1D thread->sphere map
     unsigned int mySphereID = threadIdx.x + blockIdx.x * blockDim.x;
 
@@ -219,10 +217,10 @@ static __global__ void ClusterSearchBFSKernel(unsigned int nSpheres,
 
 /// UNTESTED
 /// counts number of adjacent spheres by proximity.
-static __global__ void ComputeAdjNumByProximity(
-        ChSystemGpu_impl::GranSphereDataPtr sphere_data,
-        ChSystemGpu_impl::GranParamsPtr gran_params,
-        unsigned int nSpheres, float radius) {
+static __global__ void ComputeAdjNumByProximity(ChSystemGpu_impl::GranSphereDataPtr sphere_data,
+                                                ChSystemGpu_impl::GranParamsPtr gran_params,
+                                                unsigned int nSpheres,
+                                                float radius) {
     // my sphere ID, we're using a 1D thread->sphere map
     unsigned int mySphereID = threadIdx.x + blockIdx.x * blockDim.x;
     unsigned int otherSphereID;
@@ -257,10 +255,10 @@ static __global__ void ComputeAdjNumByProximity(
 
 /// UNTESTED
 /// computes adj_list from proximity using known adj_num and adj_offset
-static __global__ void ComputeAdjListByProximity(
-        ChSystemGpu_impl::GranSphereDataPtr sphere_data,
-        ChSystemGpu_impl::GranParamsPtr gran_params,
-        unsigned int nSpheres, float radius) {
+static __global__ void ComputeAdjListByProximity(ChSystemGpu_impl::GranSphereDataPtr sphere_data,
+                                                 ChSystemGpu_impl::GranParamsPtr gran_params,
+                                                 unsigned int nSpheres,
+                                                 float radius) {
     // my sphere ID, we're using a 1D thread->sphere map
     unsigned int mySphereID = threadIdx.x + blockIdx.x * blockDim.x;
     unsigned int otherSphereID;
@@ -296,19 +294,19 @@ static __global__ void ComputeAdjListByProximity(
     assert(adjacency_num == sphere_data->adj_num[mySphereID]);
 }
 
-__host__ void ConstructGraphByContact(
-        ChSystemGpu_impl::GranSphereDataPtr sphere_data,
-        ChSystemGpu_impl::GranParamsPtr gran_params,
-        unsigned int nSpheres);
+__host__ void ConstructGraphByContact(ChSystemGpu_impl::GranSphereDataPtr sphere_data,
+                                      ChSystemGpu_impl::GranParamsPtr gran_params,
+                                      unsigned int nSpheres);
 
-__host__ void ConstructGraphByProximity(
-        ChSystemGpu_impl::GranSphereDataPtr sphere_data,
-        ChSystemGpu_impl::GranParamsPtr gran_params,
-        unsigned int nSpheres, size_t min_pts, float radius);
+__host__ void ConstructGraphByProximity(ChSystemGpu_impl::GranSphereDataPtr sphere_data,
+                                        ChSystemGpu_impl::GranParamsPtr gran_params,
+                                        unsigned int nSpheres,
+                                        size_t min_pts,
+                                        float radius);
 
-__host__ void GdbscanSearchGraph(
-        ChSystemGpu_impl::GranSphereDataPtr sphere_data,
-        ChSystemGpu_impl::GranParamsPtr gran_params,
-        unsigned int nSpheres, size_t min_pts);
+__host__ void GdbscanSearchGraph(ChSystemGpu_impl::GranSphereDataPtr sphere_data,
+                                 ChSystemGpu_impl::GranParamsPtr gran_params,
+                                 unsigned int nSpheres,
+                                 size_t min_pts);
 
 /// @} gpu_cuda
