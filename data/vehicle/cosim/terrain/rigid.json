@@ -1,0 +1,31 @@
+// Sample RIGID terrain specification file for co-simulation
+{
+    "Type": "RIGID",
+
+    "Patch dimensions": {
+        "Length": 4,
+        "Width":  1
+    },
+
+    "Material properties": {
+        "Coefficient of friction": 0.9,
+        "Coefficient of restitution": 0,
+        "Young modulus": 8e5,
+        "Poisson ratio": 0.3,
+        "Cohesion pressure": 0,
+        "Kn": 1e6,
+        "Gn": 6e1,
+        "Kt": 4e5,
+        "Gt": 4e1
+    },
+
+    "Simulation settings": {
+        // Hertz / Hooke / Flores / PlainCoulomb
+        "Normal contact model": "Hertz",
+        // MultiStep / OneStep / None
+        "Tangential displacement model": "OneStep",
+        "Use material properties": true,
+        "Proxy contact radius": 0.002,
+        "Fix proxies": true
+    }
+}

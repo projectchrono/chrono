@@ -593,16 +593,12 @@ void ChOptixEngine::ConstructScene() {
 
                     } else if (std::shared_ptr<ChEllipsoidShape> ellipsoid_shape =
                                    std::dynamic_pointer_cast<ChEllipsoidShape>(asset)) {
-                    } else if (std::shared_ptr<ChCylinderShape> cylinder_shape =
-                                   std::dynamic_pointer_cast<ChCylinderShape>(asset)) {
                     } else if (std::shared_ptr<ChConeShape> cone_shape =
                                    std::dynamic_pointer_cast<ChConeShape>(asset)) {
                     } else if (std::shared_ptr<ChRoundedBoxShape> shape =
                                    std::dynamic_pointer_cast<ChRoundedBoxShape>(asset)) {
                     } else if (std::shared_ptr<ChCapsuleShape> capsule_shape =
                                    std::dynamic_pointer_cast<ChCapsuleShape>(asset)) {
-                    } else if (std::shared_ptr<ChTriangleMeshShape> trimesh_shape =
-                                   std::dynamic_pointer_cast<ChTriangleMeshShape>(asset)) {
                     } else if (std::shared_ptr<ChPathShape> path_shape =
                                    std::dynamic_pointer_cast<ChPathShape>(asset)) {
                     } else if (std::shared_ptr<ChLineShape> line_shape =

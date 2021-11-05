@@ -37,7 +37,6 @@ ChSystemFsi::ChSystemFsi(ChSystem& other_physicalSystem, CHFSI_TIME_INTEGRATOR o
       fluidIntegrator(other_integrator),
       file_write_mode(CHFSI_OUTPUT_MODE::NONE) {
     fsiSystem = chrono_types::make_shared<ChSystemFsi_impl>();
-    // fsiSystem = new ChSystemFsi_impl();
     paramsH = chrono_types::make_shared<SimParams>();
     numObjectsH = fsiSystem->numObjects;
     bceWorker = chrono_types::make_shared<ChBce>(fsiSystem->sortedSphMarkersD, fsiSystem->markersProximityD,
@@ -61,13 +60,19 @@ ChSystemFsi::ChSystemFsi(ChSystem& other_physicalSystem, CHFSI_TIME_INTEGRATOR o
 void ChSystemFsi::SetFluidIntegratorType(fluid_dynamics params_type) {
     if (params_type == fluid_dynamics::IISPH) {
         fluidIntegrator = CHFSI_TIME_INTEGRATOR::IISPH;
-        std::cout << "fluid dynamics is reset to IISPH" << std::endl;
+        std::cout << "=====================   Fluid dynamics is reset to IISPH   ====================" << std::endl;
+        std::cout << "===============================================================================" << std::endl;
+        std::cout << "===============================================================================" << std::endl;
     } else if (params_type == fluid_dynamics::WCSPH) {
         fluidIntegrator = CHFSI_TIME_INTEGRATOR::ExplicitSPH;
-        std::cout << "fluid dynamics is reset to Explicit WCSPH" << std::endl;
+        std::cout << "===============================================================================" << std::endl;
+        std::cout << "=====================   Fluid dynamics is reset to WCSPH   ====================" << std::endl;
+        std::cout << "===============================================================================" << std::endl;
     } else {
         fluidIntegrator = CHFSI_TIME_INTEGRATOR::I2SPH;
-        std::cout << "fluid dynamics is reset to I2SPH" << std::endl;
+        std::cout << "===============================================================================" << std::endl;
+        std::cout << "=====================   Fluid dynamics is reset to I2SPH   ====================" << std::endl;
+        std::cout << "===============================================================================" << std::endl;
     }
 }
 //--------------------------------------------------------------------------------------------------------------------------------
@@ -78,14 +83,21 @@ void ChSystemFsi::SetFluidDynamics(fluid_dynamics params_type) {
 }
 //--------------------------------------------------------------------------------------------------------------------------------
 void ChSystemFsi::Finalize() {
-    printf("\n\nChSystemFsi::Finalize 1-FinalizeData\n");
+    printf("===============================================================================\n");
+    printf("ChSystemFsi::Finalize 1-FinalizeData\n");
     FinalizeData();
-    printf("\n\nChSystemFsi::Finalize 2-bceWorker->Finalize\n");
+    
+    printf("===============================================================================\n");
+    printf("ChSystemFsi::Finalize 2-bceWorker->Finalize\n");
     bceWorker->Finalize(fsiSystem->sphMarkersD1, fsiSystem->fsiBodiesD1, fsiSystem->fsiMeshD);
-    printf("\n\nChSystemFsi::Finalize 3-fluidDynamics->Finalize\n");
+    
+    printf("===============================================================================\n");
+    printf("ChSystemFsi::Finalize 3-fluidDynamics->Finalize\n");
     fluidDynamics->Finalize();
-    std::cout << "referenceArraySize in 3-fluidDynamics->Finalize" << fsiSystem->fsiGeneralData->referenceArray.size()
-              << "\n";
+    std::cout << "referenceArraySize in fluid dynamics is " 
+              << fsiSystem->fsiGeneralData->referenceArray.size()
+              << std::endl;
+    printf("===============================================================================\n");
 }
 //--------------------------------------------------------------------------------------------------------------------------------
 ChSystemFsi::~ChSystemFsi() {}
@@ -192,23 +204,25 @@ void ChSystemFsi::DoStepDynamics_ChronoRK2() {
 }
 //--------------------------------------------------------------------------------------------------------------------------------
 void ChSystemFsi::FinalizeData() {
-    printf("\n\nfsiInterface->ResizeChronoBodiesData()\n");
+    printf("fsiInterface->ResizeChronoBodiesData()\n");
     fsiInterface->ResizeChronoBodiesData();
     int fea_node = 0;
     fsiInterface->ResizeChronoCablesData(CableElementsNodes, fsiSystem->fsiGeneralData->CableElementsNodesH);
     fsiInterface->ResizeChronoShellsData(ShellElementsNodes, fsiSystem->fsiGeneralData->ShellElementsNodesH);
     fsiInterface->ResizeChronoFEANodesData();
-    printf("\nfsiSystem->ResizeDataManager...\n");
+    printf("fsiSystem->ResizeDataManager()\n");
     fea_node = fsi_mesh->GetNnodes();
 
     fsiSystem->ResizeDataManager(fea_node);
 
-    printf("\n\nfsiInterface->Copy_fsiBodies_ChSystem_to_FluidSystem()\n");
+    printf("fsiInterface->Copy_fsiBodies_ChSystem_to_FluidSystem()\n");
     fsiInterface->Copy_fsiBodies_ChSystem_to_FluidSystem(fsiSystem->fsiBodiesD1);
     fsiInterface->Copy_fsiNodes_ChSystem_to_FluidSystem(fsiSystem->fsiMeshD);
     fsiInterface->Copy_fsiNodes_ChSystem_to_FluidSystem(fsiSystem->fsiMeshD);
 
-    std::cout << "referenceArraySize in FinalizeData " << fsiSystem->fsiGeneralData->referenceArray.size() << "\n";
+    std::cout << "referenceArraySize in FinalizeData is " 
+              << fsiSystem->fsiGeneralData->referenceArray.size() 
+              << std::endl;
     fsiSystem->fsiBodiesD2 = fsiSystem->fsiBodiesD1;  //(2) construct midpoint rigid data
 }
 //--------------------------------------------------------------------------------------------------------------------------------

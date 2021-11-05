@@ -60,8 +60,8 @@ void cuda_image_gauss_blur_char(void* buf, int w, int h, int c, int factor, CUst
 /// Conversion from half4 to uchar4
 /// @param bufIn  A device pointer to the image image.
 /// @param bufOut A device pointer to the ouput image.
-/// @param w_out The output image width.
-/// @param h_out The output image height.
+/// @param w The output image width.
+/// @param h The output image height.
 /// @param stream cuda stream for computation
 void cuda_image_half4_to_uchar4(void* bufIn, void* bufOut, int w, int h, CUstream& stream);
 

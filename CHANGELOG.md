@@ -5,6 +5,9 @@ Change Log
 ==========
 
 - [Unreleased (development version)](#unreleased-development-branch)
+  - [New terramechanics co-simulation module](#added-new-terramechanics-co-simulation-module)
+  - [Chrono::Fsi API redesign](#changed-chronofsi-api-redesign)
+  - [Sensor performance improvements and feature additions](#changed-sensor-to-improve-performance-and-added-features)
   - [ANCF element improvements and additions](#changed-ancf-element-improvements-and-additions)
   - [New Chrono::Vehicle features](#added-new-chronovehicle-features)
   - [New robot models](#added-new-robot-models)
@@ -48,6 +51,222 @@ Change Log
 - [Release 4.0.0](#release-400---2019-02-22)
 
 ## Unreleased (development branch)
+
+### [Added] New terramechanics co-simulation module
+
+This new module provides support for co-simulating various Chrono models of ground wheeled vehicles.  This framework implements an explicit co-simulation model (of force-displacement type) and uses an MPI layer for exchanging data between the participant nodes.
+
+The co-simulation framework was architected to support:
+- any of the terramechanics simulation capabilities in Chrono (rigid terrain; deformable SCM; granular terrain with Chrono::Multicore, Chrono::Gpu, or Chrono::Distributed; continuous granular terrain representation with Chrono::Fsi);
+- external, third-party terramechanics simulation packages (regardless of implementation and/or parallel programing paradigm);
+- terramechanics packages that do not advance themselves the dynamics of the tires (if any) or else treat both tire and terrain simulation;
+- rigid or flexible tires (the latter assumed to rely on the Chrono FEA simulation capabilities);
+- a variety of Chrono wheeled vehicle models (including any Chrono::Vehicle wheeled model, as well as single-wheel test rigs, or wheeled rover models such as the Curiosity and Viper).
+
+The new module is build automatically if MPI is found and available and if the Chrono::Vehicle module is enabled (at CMake configuration time).  Support for different terramechanics models is enabled within the module if the corresponding Chrono module is enabled (note that each of the following Chrono modules has its own additional dependencies):
+- Chrono::Multicore for granular multi-core simulation (OpenMP-based)
+- Chrono::Gpu for granular GPU simulation (CUDA-based)
+- Chrono::Distributed for granular distributed simulation (MPI-based)
+- Chrono::FSI for continuous granular terrain representation (CUDA-based)
+
+Terrain simulation is conducted on one or more `Terrain` nodes (MPI ranks).  If the terramechanics simulation is itself using MPI, support is provided to generate and provide an MPI sub-communicator consisting of all `Terrain` ranks; only the main `Terrain` rank (rank 0 in the sub-communicator) participates in the co-simulation communication.
+
+Several types of `MBS` nodes are provided, representing different wheeled mechanisms and vehicles:
+- `ChVehicleCosimRigNode` wraps a model of a single-wheel test rig;
+- `ChVehicleCosimVehicleNode` wraps a Chrono::Vehicle ground wheeled vehicle model (with arbitrary number of wheels);
+- `ChVehicleCosimCuriosityNode` wraps the Curiosity Mars rover available in the Chrono robot models library;
+- `ChVehicleCosimViperNode` wraps the Viper lunar rover available in the Chrono robot models library;
+
+Three different types of `Tire` nodes are provided to intermediate simulation and data-exchanged between the MBS node and the main Terrain node:
+- `ChVehicleCosimTireNodeRigid` is a simple conduit between the MBS node and the Terrain node; it does not perform any dynamics of its own, but does maintain a physical representation of the associated tire for simulation and visualization output purposes;
+- `ChVehicleCosimTireNodeFlexible` wraps a deformable tire modeled with Chrono::FEA elements; this node performs its own dynamics (accelerated by the use of OpenMP parallel loops in Chrono::FEA);
+- `ChVehicleCosimTireNodeBypass` provides a pure short-circuit between the MBS and Terrain nodes and is intended for coupling to terramechanics external packages which simulate simultaneously the tire, the terrain, and the tire-terrain interaction.
+
+The architecture of the framework thus implements a "three way" co-simulation setup.  The data exchange between the three different node types is as follows:
+- the MBS node sends spindle body states to the appropriate Tire nodes;  a Tire node sends terrain forces and moments acting on the spindle body to the MBS node;
+- a Tire node sends tire body state (for a rigid tire) or tire FEA mesh state (for a flexible tire) to the Terrain node; the (main) Terrain node send terrain force on the spindle (rigid tire) body or nodal terrain forces (for a flexible tire) to the appropriate Tire node.
+
+The co-simulation framework also provides the ability to attach a drawbar pull rig mechanism to any of the supported MBS nodes. Two variants are provided:
+- `ChVehicleCosimDBPRigImposedSlip` allows imposing known (fixed) vehicle forward linear velocity and wheel angular velocity to maintain a prescribed value of the longitudinal slip. The actuation specifies if the linear velocity or angular velocity is considered as "base velocity", with the other one derived from the slip value. The DBP force is extracted as the reaction force required to enforce the vehicle forward linear velocity (at steady state).  Each run of this experiment produces one point on the slip-DBP curve.
+- `ChVehicleCosimDBPRigImposedAngVel` enforces a prescribed wheel angular velocity. A linearly increasing resistive force is applied against the forward motion of the vehicle and the experiment is ended when the vehicle stops. At each time, the vehicle forward speed and resulting slip are calculated and stored together with the current resistive force (DBP). This experiment produces the entire slip-DBP curve at once.
+
+Output feature include:
+- Run-time visualization.  Available if the Chrono::OpenGL module is enabled, this option permits run-time visualization from the Terrain node.  The only exception is the SCM deformable terrain node which uses Chrono::Irrlicht (if available)
+- Simulation output.  A variety of output files are created from each type of co-simulation node, as well as from the drawbar-pull rig (if one is present).  These include both files with information from all time steps and individual frame files created at each output step.
+- Off-line visualization.  If desired, the user can invoke functions to generate post-processing visualization output.  The visualization output files (where possible) are meant to be used with the new Blender-based python scripts available in Chrono and allow rendering in a single scene the visualization assets from all co-simulation nodes.
+
+The design of the co-simulation framework is such that all inter-node co-simulation communication is transparent to the user.  User code need only instantiate the appropriate number of co-simulation nodes of the appropriate type (MBS, Tire, or Terrain), select simulation options, and make calls to advance the state of the coupled system from step to step.  At a minimum, the main user simulation loop must call `Synchronize` followed by `Advance` for all co-simulation nodes; optional calls may be made to functions controlling simulation and off-line visualization output.  A set of demo programs (named `demo_VEH_Cosim***`) are provided to illustrate the use of the co-simulation framework with different multibody systems and terrain models.
+
+
+### [Changed] Chrono::Fsi API redesign
+
+For consistency with the main Chrono module and other optional Chrono modules, the Chrono::FSI API was changed as follows: 
+
+- The user's interaction with the Chrono::FSI module was streamlined by exposing in the public API a single Chrono::FSI system object (of type `ChSystemFsi` ) and hiding the underlying implementation in a private class. 
+
+- User code only needs to include one Chrono::Fsi header in their project, namely `chrono_fsi/ChSystemFsi.h` and need not include any of the utility header files from `utils/`.
+
+- Users can use standard C++ types to declare a scalar, and use Chrono types (`ChVector`, `ChQuaternion`, etc) to declare vectors, quaternions, etc. 
+
+- The initialization of the parameters from a JSON file was changed from fsi::utils::ParseJSON() to `myFsiSystem.SetSimParameter()`, assuming the user has created an FSI system `myFsiSystem`. 
+
+- A new function was added to set periodic boundary condition: `ChSystemFsi::SetBoundaries()`. 
+
+- The function used to finalize the subdomains was changed from fsi::utils::FinalizeDomain() to `ChSystemFsi::SetSubDomain()`.
+
+- The function used to set the output directory was changed from utils::PrepareOutputDir() to `ChSystemFsi::SetFsiOutputDir()`.
+
+- The function used to add SPH particles was changed from myFsiSystem.GetDataManager()->AddSphMarker() to `ChSystem::AddSphMarker()`. 
+
+- The functions used to add BCE particles were changed along the same lines; for instance, to add BCE particles for a cylinder, use `ChSystemFsi::AddBceCylinder()`. 
+
+- The function used to output data was changed from fsi::utils::PrintToFile() to `ChSystemFsi::PrintParticleToFile()`. 
+
+See the updated FSI demo programs for usage of the new Chrono::Fsi API.
+
+
+### [Changed] Sensor to improve performance and added features 
+
+**Changed - Optix 7.2 as Dependency:**
+ - Upgraded to Optix 7.2 from 6.5. 7.2 (exactly) is the only version supported.
+
+**Changed - Refactored sensor code:**
+ - sensors have been moved to `src/chrono_sensor/sensors/` to cleanup directory structure
+ - all optix-dependent code was moved to `src/chrono_sensor/optix` to consolidate the dependency
+
+**Changed - IMU to Accelerometer and Gyroscope:**
+ - Split the IMU sensor into its components (ChAccelerometerSensor and ChGyroscopeSensor) to facilitate additional sensors. Using both sensors together with same update rate will produce the same behavior as the original IMU. These sensors are still maintained under `ChIMUSensor.h and ChIMUSensor.cpp`
+  ```cpp
+  ChAccelerometerSensor(std::shared_ptr<chrono::ChBody> parent, float updateRate, chrono::ChFrame<double> offsetPose, std::shared_ptr<ChNoiseModel> noise_model);
+
+  ChGyroscopeSensor(std::shared_ptr<chrono::ChBody> parent, float updateRate, chrono::ChFrame<double> offsetPose, std::shared_ptr<ChNoiseModel> noise_model);
+  ```
+**Added - Magnetometer:**
+ - Added magnetometer sensor alongside accelerometer and gyroscope. Sensor is maintained in `ChIMUSensor.h` and `ChIMUSensor.cpp`. 
+ - Returns a magentic field strength vector based on the orientation of the sensor, and the GPS location of the sensor and simulation.
+ - Can be permuted with noise using same noise models available for accelerometer and gyroscope.
+  ```cpp
+  ChMagnetometerSensor(std::shared_ptr<chrono::ChBody> parent, float updateRate, chrono::ChFrame<double> offsetPose, std::shared_ptr<ChNoiseModel> noise_model, ChVector<double> gps_reference);
+  ```
+
+**Removed - Keyframe user configuration:**
+ - Removed the need for users to set the number of keyframes used for motion blur. Will now automatically find these internally.
+
+**Changed - Scene API:**
+ - Point lights can be created then added to the scene rather than adding directly though a function call
+ - Point lights must be modified based on index rather than reference: `void ChScene::ModifyPointLight(unsigned int id, PointLight p)`
+ - Background is created by the user and passed to the scene via the sensor manager `void ChScene::SetBackground(Background b)`
+ - Ambient light is now configurable by the user through the scene `void ChScene::SetAmbientLight(ChVector<float> color)`
+ - The ray tracing epsilon used to prevent self-intersections is configurable in the scene to allow the user to adjust the parameter when artifacts are present. `void ChScene::SetSceneEpsilon(float e)`
+ - 
+
+**Added - Gradient background:**
+ - Can add gradient colors for sky alongside solid color or sky map.
+  ``` cpp
+  enum class BackgroundMode {
+      SOLID_COLOR,     ///< single solid color defined by RGB
+      GRADIENT,        ///< color gradient used for upper hemisphere
+      ENVIRONMENT_MAP  ///< image used for spherical sky map
+  };
+  ```
+
+**Changed - ChOptixEngine to hide optix-dependent code:**  
+ - ChOptixEngine no longer supports returning the optix context to the user.
+
+**Changed - Automatic mesh and object instancing:**
+ - Objects that use the same mesh will automatically instance the mesh (instanced if using same chrono::geometry::ChTriangleMeshConnected)
+ - Removed the ability to add instanced objects explicitely.
+ - Recommended instancing is to create single ChTriangleMeshConnected, then adding that with many scales (using ChTriangleMeshShape) and positions (using ChBody).
+
+**Changed - Shaders for visualization:**
+ - Improved the material shaders to support physically-based materials and phong materials in the same scene. 
+ - Shading calls do NOT change API, but WILL be visible on objects.
+ - Expanded parameters contained in `chrono::ChVisualMaterial` to include metalic, roughness, and other textures as well as whether to use a specular or metalic workflow. Will be detected for meshes loaded from file.
+
+**Added - Global Illumination with Optix Denoiser:**
+Added option for cameras to use global illumination with a denoiser to reduce stochastic noise imparted by the ray tracing algorithm. 
+ - enable global illumination and gamma correction exponent in camera constructor:
+ ``` cpp
+  ChCameraSensor(std::shared_ptr<chrono::ChBody> parent, // object to which the sensor is attached
+                float updateRate,                        // rate at which the sensor updates
+                chrono::ChFrame<double> offsetPose,      // position of sensor relative to parent
+                unsigned int w,                          // image width
+                unsigned int h,                          // image height
+                float hFOV,                              // horizontal field of view
+                unsigned int supersample_factor = 1,     // supersample diameter
+                CameraLensModelType lens_model = CameraLensModelType::PINHOLE, //lens model
+                bool use_gi = false,  // global illumination enable/disable
+                float gamma = 2.2);   // gamma correction exponent
+ ```
+- denoiser will automatically be used internally
+
+**Changed - Lidar sensor beam divergence**
+ - beam divergence can be configured by beam shape (rectangular or elliptical)
+  ```cpp
+  enum class LidarBeamShape {
+    RECTANGULAR,  ///< rectangular beam (inclusive of square beam)
+    ELLIPTICAL    ///< elliptical beam (inclusive of circular beam)
+  };  
+  ```
+ - vertical and horizontal divergence angles independently parameterized
+ - Dual return mode added
+  ``` cpp
+  enum class LidarReturnMode {
+    STRONGEST_RETURN,  ///< range at peak intensity
+    MEAN_RETURN,       ///< average beam range
+    FIRST_RETURN,      ///< shortest beam range
+    LAST_RETURN,       ///< longest beam range
+    DUAL_RETURN        ///< first and strongest returns
+  };
+  ```
+
+```cpp
+ChLidarSensor(std::shared_ptr<chrono::ChBody> parent,
+              float updateRate,
+              chrono::ChFrame<double> offsetPose,
+              unsigned int w,
+              unsigned int h,
+              float hfov,
+              float max_vertical_angle,
+              float min_vertical_angle,
+              float max_distance,
+              LidarBeamShape beam_shape = LidarBeamShape::RECTANGULAR,
+              unsigned int sample_radius = 1,
+              float vert_divergence_angle = .003f,
+              float hori_divergence_angle = .003f,
+              LidarReturnMode return_mode = LidarReturnMode::MEAN_RETURN,
+              float clip_near = 1e-3f);
+```
+
+**Added - Radar sensor:**
+- A radar sensor was added, with the initial version similar to lidar. Will return set of points that include range, azimuth, elevation, doppler velocity, ampliture of detection, and object id used for clustering
+- radar is configurable based on update rate, position, vertical and horizontal resolutions, vertical and horizontal field of view, and maximum distance.
+``` cpp
+ChRadarSensor(std::shared_ptr<chrono::ChBody> parent,
+              const float updateRate,
+              chrono::ChFrame<double> offsetPose,
+              const unsigned int w,
+              const unsigned int h,
+              const float hfov,
+              const float vfov,
+              const float max_distance,
+              const float clip_near = 1e-3f);
+```
+
+**Added - Segmentation camera:**
+- Added a segmentation camera `ChSegmentationCamera` which returns an image with class ID and instance ID for each pixel in the image.
+- If paired with an RGB camera at same frequency, position, fiew of view, and resolution, can be used to generate automatically segmented images
+- Instance ID and class ID are set in the material, defaulting to 0. See `demo_SEN_camera` and `chrono::ChVisualMaterial` for details on configuration.
+
+```cpp
+ChSegmentationCamera(std::shared_ptr<chrono::ChBody> parent,  // object to which the sensor is attached
+                      float updateRate,                       // rate at which the sensor updates
+                      chrono::ChFrame<double> offsetPose,     // position of sensor relative to parent
+                      unsigned int w,                         // image width
+                      unsigned int h,                         // image height
+                      float hFOV,                             // horizontal field of view
+                      CameraLensModelType lens_model = CameraLensModelType::PINHOLE);  // lens model type
+```
 
 ### [Changed] ANCF element improvements and additions
 
@@ -305,6 +524,8 @@ The following enhancements are currenty under development:
 
 ### [Added] Miscellaneous additions to Chrono::Gpu
 
+**Added - Specification of the compuational domain**
+
 The location of the computational domain can now be specified (in addition to its dimensions) through a fourth optional constructor argument of `ChSystemGpu` and `ChSystemGpuMesh`. By default, the axis-aligned computational domain is centered at the origin.  As such,
 ```cpp
 ChSystemGpu gpu_sys(1, 1, ChVector<float>(100, 80, 60));
@@ -316,7 +537,54 @@ ChSystemGpu gpu_sys(1, 1, ChVector<float>(100, 80, 60), ChVector<float>(10, 20, 
 sets the computational domain to be [-40,60] x [-20,60] x [0,60].
 Note also that, for consistency of the API, the type of the domain size (third constructor argument) was changed to `const ChVector<float>&`.
 
+**Added - calculation of total kinetic energy**
+
 A new function, `ChSystemGpu::GetParticlesKineticEnergy` was added to calculate and return the total kinetic energy of the granular particles.
+
+**Added - Contact material properties**
+
+For contact force calculation that uses material-based parameters, such as Young's Modulus, Poisson ratio and coefficient of restitution, the following function has to be called (set `val` to `true`), 
+
+```cpp
+void UseMaterialBasedModel(bool val);
+```
+Note that the default setting is using user-defined stiffness and damping ratio for contact forces, so no need to set `val` to `false`. The corresponding material properties associated with particles, boundary and mesh can be set using the following functions,
+````cpp
+void SetYoungModulus_SPH(double val);
+void SetYoungModulus_WALL(double val);
+void SetYoungModulus_MESH(double val);
+
+void SetPoissonRatio_SPH(double val);
+void SetPoissonRatio_WALL(double val);
+void SetPoissonRatio_MESH(double val);
+
+void SetRestitution_SPH(double val);
+void SetRestitution_WALL(double val);
+void SetRestitution_MESH(double val);
+````
+
+**Changed - Spherical boundary condition**
+
+Boundary condition type `Sphere` is now defined as a numerical boundary with mass assigned. Simple dynamics among `BCSphere` and granular particles can be performed, see example `demo_GPU_balldrop.cpp`. The spherical boundary is created with:
+````cpp
+size_t CreateBCSphere(const ChVector<float>& center, float radius, bool outward_normal, bool track_forces, float mass);
+
+````
+where `outward_normal` is set to true if granular particles are outside the sphere. Some get and set methods are available during the simulation stage:
+````cpp
+ChVector<float> GetBCSpherePosition(size_t sphere_id);
+void SetBCSpherePosition(size_t sphere_bc_id, const ChVector<float>& pos);
+ChVector<float> GetBCSphereVelocity(size_t sphere_id);
+SetBCSphereVelocity(size_t sphere_bc_id, const ChVector<float>& velo);
+````
+
+**Added - Rotating plane boundary condition** 
+
+A `BCPlane` type boundary condition of id `plane_id` can be set to rotate with respect to point `center` at a constant angular velocity `omega`
+````cpp
+void SetBCPlaneRotation(size_t plane_id, ChVector<double> center, ChVector<double> omega);
+````
+
 
 ### [Added] New loads for ChNodeFEAxyzrot
 

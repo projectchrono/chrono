@@ -70,9 +70,9 @@ int main(int argc, char* argv[]) {
 
                     // ChVector<> p = {10 * (float)rand() - 5, 10 * (float)rand() - 5, 10 * (float)rand() - 5};
 
-                    ChQuaternion<> q = Q_from_AngAxis(p.Length(), {0, 0, 1});
+                    ChQuaternion<> quat = Q_from_AngAxis(p.Length(), {0, 0, 1});
 
-                    ChFrame<> f = ChFrame<>(p, q);
+                    ChFrame<> f = ChFrame<>(p, quat);
 
                     auto trimesh_shape = std::make_shared<ChTriangleMeshShape>();
                     trimesh_shape->SetMesh(mmesh);
@@ -83,7 +83,7 @@ int main(int argc, char* argv[]) {
 
                     auto mesh_body = chrono_types::make_shared<ChBody>();
                     mesh_body->SetPos(p);
-                    mesh_body->SetRot(q);
+                    mesh_body->SetRot(quat);
                     mesh_body->SetBodyFixed(true);
                     mesh_body->AddAsset(trimesh_shape);
                     mphysicalSystem.Add(mesh_body);

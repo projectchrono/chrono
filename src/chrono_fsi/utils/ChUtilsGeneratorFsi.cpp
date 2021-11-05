@@ -112,8 +112,8 @@ void CreateBceGlobalMarkersFromBceLocalPos(std::shared_ptr<ChSystemFsi_impl> fsi
     if (isSolid) {
         object = refSize4.w + !add_to_previous_object;
         type = 1;
-        printf("adding solid object %d, type is %d, ref size=%zd\n", object, type,
-               fsiSystem->fsiGeneralData->referenceArray.size());
+        // printf("adding solid object %d, type is %d, ref size=%zd\n", object, type,
+        //        fsiSystem->fsiGeneralData->referenceArray.size());
     }
 
     if (type < 0) {
@@ -146,7 +146,8 @@ void CreateBceGlobalMarkersFromBceLocalPos(std::shared_ptr<ChSystemFsi_impl> fsi
     // Modify number of objects
     // ------------------------
     size_t numBce = posRadBCE.size();
-    printf("type=%d ", type);
+    printf("Particle Type = %d ", type);
+    printf("Pushing back to reference array\n");
 
     fsiSystem->numObjects->numAllMarkers += numBce;
     // For helper markers
@@ -157,7 +158,6 @@ void CreateBceGlobalMarkersFromBceLocalPos(std::shared_ptr<ChSystemFsi_impl> fsi
     else if ((type == 0 || (add_to_previous_object && type == 1)) && !add_to_fluid_helpers) {
         fsiSystem->numObjects->numBoundaryMarkers += numBce;
         if (refSize4.w == -1) {
-            printf("pushing back to refarr\n");
             fsiSystem->fsiGeneralData->referenceArray.push_back(mI4(refSize4.y, refSize4.y + (int)numBce, 0, 0));
         } else if (refSize4.w == 0 || (refSize4.w && add_to_previous_object)) {
             refSize4.y = refSize4.y + (int)numBce;
@@ -165,9 +165,8 @@ void CreateBceGlobalMarkersFromBceLocalPos(std::shared_ptr<ChSystemFsi_impl> fsi
         }
     } else if (!add_to_fluid_helpers) {
         if (fsiSystem->fsiGeneralData->referenceArray.size() < 2) {
-            printf(
-                "Error! Boundary markers are not initialized while trying to "
-                "initialize rigid marker!\n\n");
+            printf("Error! Boundary markers are not initialized while trying to "
+                   "initialize rigid marker!\n\n");
             std::cin.get();
         }
         fsiSystem->numObjects->numRigid_SphMarkers += numBce;
@@ -175,8 +174,8 @@ void CreateBceGlobalMarkersFromBceLocalPos(std::shared_ptr<ChSystemFsi_impl> fsi
         fsiSystem->numObjects->startRigidMarkers = fsiSystem->fsiGeneralData->referenceArray[1].y;
         fsiSystem->fsiGeneralData->referenceArray.push_back(
             mI4(refSize4.y, refSize4.y + (int)numBce, 1, object));  // 1: for rigid
-        printf("refSize4.y=%d, refSize4.y + numBce = %d, %d, type=,%d\n", refSize4.y, refSize4.y + (int)numBce, 1,
-               object);
+        // printf("refSize4.y = %d, refSize4.y + numBce = %d, %d, Particle Type = ,%d\n", 
+        //        refSize4.y, refSize4.y + (int)numBce, 1, object);
     }
 }
 // =============================================================================

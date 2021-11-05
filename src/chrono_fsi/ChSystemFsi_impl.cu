@@ -237,7 +237,6 @@ zipIterRigidH FsiBodiesDataH::iterator() {
                            q_fsiBodies_H.begin(), omegaVelLRF_fsiBodies_H.begin(), omegaAccLRF_fsiBodies_H.begin()));
 }
 
-// resize
 void FsiBodiesDataH::resize(size_t s) {
     posRigid_fsiBodies_H.resize(s);
     velMassRigid_fsiBodies_H.resize(s);
@@ -267,9 +266,10 @@ ChronoMeshDataH::ChronoMeshDataH(size_t s) {
     resize(s);
 }
 zipIterChronoBodiesH ChronoBodiesDataH::iterator() {
-    return thrust::make_zip_iterator(thrust::make_tuple(pos_ChSystemH.begin(), vel_ChSystemH.begin(),
-                                                        acc_ChSystemH.begin(), quat_ChSystemH.begin(),
-                                                        omegaVelGRF_ChSystemH.begin(), omegaAccGRF_ChSystemH.begin()));
+    return thrust::make_zip_iterator(thrust::make_tuple(
+        pos_ChSystemH.begin(), vel_ChSystemH.begin(),
+        acc_ChSystemH.begin(), quat_ChSystemH.begin(),
+        omegaVelGRF_ChSystemH.begin(), omegaAccGRF_ChSystemH.begin()));
 }
 
 void ChronoBodiesDataH::resize(size_t s) {
@@ -357,43 +357,44 @@ void ChSystemFsi_impl::CalcNumObjects() {
     size_t rSize = fsiGeneralData->referenceArray.size();
     bool flagRigid = false;
     bool flagFlex = false;
-    std::cout << "ChSystemFsi_impl::CalcNumObjects: rSize=" << rSize << " \n";
+    std::cout << "ChSystemFsi_impl::CalcNumObjects" << std::endl;
 
     for (size_t i = 0; i < rSize; i++) {
         int4 rComp4 = fsiGeneralData->referenceArray[i];
         int numMerkers = rComp4.y - rComp4.x;
-        //        std::cout << "rComp4.z=" << rComp4.z << " \n";
 
         switch (rComp4.z) {
             case -3:
                 numObjects->numHelperMarkers += numMerkers;
-                std::cout << "Added " << numMerkers << " helper  markers\n";
+                std::cout << "Added " << numMerkers << " helper particles\n";
                 break;
             case -2:
                 numObjects->numGhostMarkers += numMerkers;
-                std::cout << "Added " << numMerkers << " ghost  markers\n";
+                std::cout << "Added " << numMerkers << " ghost particles\n";
                 break;
             case -1:
                 numObjects->numFluidMarkers += numMerkers;
-                std::cout << "Added " << numMerkers << " fluid  markers\n";
+                std::cout << "Added " << numMerkers << " fluid particles\n";
                 break;
             case 0:
                 numObjects->numBoundaryMarkers += numMerkers;
-                std::cout << "Added " << numMerkers << " boundary  markers\n";
+                std::cout << "Added " << numMerkers << " boundary particles\n";
                 break;
             case 1:
                 numObjects->numRigid_SphMarkers += numMerkers;
-                std::cout << "Added " << numMerkers << " rigid  markers\n";
+                std::cout << "Added " << numMerkers << " rigid particles\n";
                 numObjects->numRigidBodies++;
                 flagRigid = true;
                 break;
             case 2:
                 numObjects->numFlex_SphMarkers += numMerkers;
+                std::cout << "Added " << numMerkers << " 1D flexible particles\n";
                 numObjects->numFlexBodies1D++;
                 flagFlex = true;
                 break;
             case 3:
                 numObjects->numFlex_SphMarkers += numMerkers;
+                std::cout << "Added " << numMerkers << " 2D flexible particles\n";
                 numObjects->numFlexBodies2D++;
                 flagFlex = true;
                 break;
@@ -418,12 +419,15 @@ void ChSystemFsi_impl::CalcNumObjects() {
         (flagFlex) ? (numObjects->numFluidMarkers + numObjects->numBoundaryMarkers + numObjects->numRigid_SphMarkers)
                    : numObjects->numAllMarkers;
 
-    printf(
-        "# Markers: helpers:%zd, Ghost:%zd, Fluid:%zd boundary:%zd ridigSph:%zd flexSph:%zd, start-rigid:%zd, start-flex:%zd, "
-        "All:%zd \n",
-        numObjects->numHelperMarkers, numObjects->numGhostMarkers, numObjects->numFluidMarkers,
-        numObjects->numBoundaryMarkers, numObjects->numRigid_SphMarkers, numObjects->numFlex_SphMarkers,
-        numObjects->startRigidMarkers, numObjects->startFlexMarkers, numObjects->numAllMarkers);
+    printf("Number of Helper particles = %zd\n",numObjects->numHelperMarkers);
+    printf("Number of Ghost particles = %zd\n",numObjects->numGhostMarkers);
+    printf("Number of Fluid particles = %zd\n",numObjects->numFluidMarkers);
+    printf("Number of Boundary particles = %zd\n",numObjects->numBoundaryMarkers);
+    printf("Number of Rigid particles = %zd\n",numObjects->numRigid_SphMarkers);
+    printf("Number of Flexible particles = %zd\n",numObjects->numFlex_SphMarkers);
+    printf("Total number particles = %zd\n",numObjects->numAllMarkers);
+    printf("Rigid particles start at = %zd\n",numObjects->startRigidMarkers);
+    printf("Flexible particles start at = %zd\n",numObjects->startFlexMarkers);
 }
 
 void ChSystemFsi_impl::ConstructReferenceArray() {
@@ -448,8 +452,7 @@ void ChSystemFsi_impl::ConstructReferenceArray() {
                                dummyRhoPresMuH.begin(), numComponentMarkers.begin(), sphTypeCompEqual()))
             .first -
         dummyRhoPresMuH.begin();
-
-    printf("numberOfComponents=%zd\n", numberOfComponents);
+    printf("Number of particle types = %zd\n", numberOfComponents);
 
     fsiGeneralData->referenceArray.resize(numberOfComponents);
     dummyRhoPresMuH.resize(numberOfComponents);
@@ -479,7 +482,7 @@ void ChSystemFsi_impl::ConstructReferenceArray() {
     dummyRhoPresMuH.clear();
     numComponentMarkers.clear();
 
-    printf("reference array \n");
+    printf("Reference array \n");
     for (size_t i = 0; i < fsiGeneralData->referenceArray.size(); i++) {
         int4 num = fsiGeneralData->referenceArray[i];
         printf("%d %d %d %d \n", num.x, num.y, num.z, num.w);
@@ -493,7 +496,6 @@ void ChSystemFsi_impl::ResizeDataManager(int numNodes) {
         throw std::runtime_error("Error! numObjects wrong! thrown from FinalizeDataManager !\n");
     }
 
-    //    int numNodes = fsiGeneralData->CableElementsNodesH.size();
     numObjects->numFlexNodes = numNodes;
 
     sphMarkersD1->resize(numObjects->numAllMarkers);
@@ -560,10 +562,10 @@ void ChSystemFsi_impl::ResizeDataManager(int numNodes) {
         fsiGeneralData->CableElementsNodes.resize(numObjects->numFlexBodies1D);
 
     fsiGeneralData->ShellElementsNodes.resize(numObjects->numFlexBodies2D);
-    printf("numObjects->numFlexBodies1D= %zd, numObjects->numFlexBodies2D= %zd \n", numObjects->numFlexBodies1D,
-           numObjects->numFlexBodies2D);
-    printf("fsiGeneralData->CableElementsNodesH.size()= %zd, fsiGeneralData->ShellElementsNodesH= %zd \n",
-           fsiGeneralData->CableElementsNodesH.size(), fsiGeneralData->ShellElementsNodesH.size());
+    printf("numObjects->numFlexBodies1D = %zd, numObjects->numFlexBodies2D = %zd\n", 
+           numObjects->numFlexBodies1D, numObjects->numFlexBodies2D);
+    printf("fsiGeneralData->CableElementsNodesH.size() = %zd\n", fsiGeneralData->CableElementsNodesH.size());
+    printf("fsiGeneralData->ShellElementsNodesH.size() = %zd\n", fsiGeneralData->ShellElementsNodesH.size());
     thrust::copy(fsiGeneralData->CableElementsNodesH.begin(), fsiGeneralData->CableElementsNodesH.end(),
                  fsiGeneralData->CableElementsNodes.begin());
     thrust::copy(fsiGeneralData->ShellElementsNodesH.begin(), fsiGeneralData->ShellElementsNodesH.end(),

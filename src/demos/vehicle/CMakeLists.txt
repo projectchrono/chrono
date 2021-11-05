@@ -22,3 +22,5 @@ add_subdirectory(two_cars)
 add_subdirectory(ISO2631)
 add_subdirectory(paths)
 add_subdirectory(visualization)
+
+add_subdirectory(cosimulation)
