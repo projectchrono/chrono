@@ -114,7 +114,7 @@ static __global__ void FindVolumeCluster(unsigned int nSpheres,
 /// Compute adj_offset from adj_num with ExclusiveSum
 /// needs fully known adj_num
 /// call BEFORE ComputeAdjList___
-static __host__ void ComputeAdjStartFromAdjNum(unsigned int nSpheres,
+static __host__ void ComputeAdjOffsetFromAdjNum(unsigned int nSpheres,
                                                unsigned int * adj_num,
                                                unsigned int * adj_offset) {
     memcpy(adj_offset, adj_num, sizeof(*adj_offset) * nSpheres);
@@ -162,7 +162,7 @@ static __global__ void ComputeAdjNumByContact(
 }
 
 /// Compute adj_list from chrono contact_active_map.
-/// call AFTER ComputeAdjNumByContact and ComputeAdjStartFromAdjNum
+/// call AFTER ComputeAdjNumByContact and ComputeAdjOffsetFromAdjNum
 /// adj_list needs fully known ajd_start, which needs fully known adj_num
 static __global__ void ComputeAdjListByContact(
         ChSystemGpu_impl::GranSphereDataPtr sphere_data,

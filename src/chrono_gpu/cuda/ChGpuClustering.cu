@@ -211,7 +211,7 @@ __host__ void ConstructGraphByContact(
     gpuErrchk(cudaPeekAtLastError());
     gpuErrchk(cudaDeviceSynchronize());
 
-    ComputeAdjStartFromAdjNum(nSpheres,
+    ComputeAdjOffsetFromAdjNum(nSpheres,
                               sphere_data->adj_num,
                               sphere_data->adj_offset);
     
@@ -239,7 +239,7 @@ __host__ void ConstructGraphByProximity(
                                                                   nSpheres,
                                                                   radius);
     /// compute all adjacent spheres inside radius
-    ComputeAdjStartFromAdjNum(nSpheres,
+    ComputeAdjOffsetFromAdjNum(nSpheres,
                               sphere_data->adj_num,
                               sphere_data->adj_offset);
     /// compute adjacency list
