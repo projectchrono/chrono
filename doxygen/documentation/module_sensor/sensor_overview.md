@@ -3,7 +3,7 @@ Overview of Chrono::Sensor {#sensor_overview}
 
 \tableofcontents
 
-The Chrono::Sensor module provides support for simulating RGB cameras, lidar, GPS, and IMU within a Chrono simulation. Sensors are objects that are attached to Chrono Bodies(ChBody). Chrono::Sensor is currently compatible with the core rigid body simulation in Chrono including Chrono::Vehicle.
+The Chrono::Sensor module provides support for simulating RGB cameras, lidar, radar, GPS, and accelerometer, gyroscope, and magnetometer within a Chrono simulation. Sensors are objects that are attached to Chrono Bodies(ChBody). Chrono::Sensor is currently compatible with the core rigid body simulation in Chrono including Chrono::Vehicle.
 
 ## Detailed overview of Chrono::Sensor.
 
@@ -18,7 +18,20 @@ ChSystemNSC mphysicalSystem
 
 // Setup and initialize sensors and sensor system (manager and environment)
 auto manager = chrono_types::make_shared<ChSensor>();
+
+// Setup and customize the scene
 manager->scene->AddPointLight({x,y,z}, {intensity, intensity, intensity}, distance);
+manager->scene->SetAmbientLight({0.1, 0.1, 0.1});
+
+// Set sky gradient
+Background b;
+b.mode = BackgroundMode::GRADIENT;
+b.color_horizon = {.6, .7, .8};
+b.color_zenith = {.4, .5, .6};
+manager->scene->SetBackground(b);
+
+// Add some sensors
+// see sensor specific pages for adding sensors to manager
 
 // Simulation loop
 while(){
@@ -50,22 +63,13 @@ Each sensor has a filter graph which users can extend to customize the computati
 
 <br>
 
- ##### How key frames are used
-  Keyframes are a used for generating time-dependent effects such as motion blur on a camera and scanning effects in a lidar. These keyframes are time-stamped transforms of objects in the dynamic scene. When using motion blur or scanning time on the camera or lidar, the number of keyframes that Chrono::Sensor should save must be set using the following which tells Chrono::Sensor the timestep the dynamics will be advanced at as well as the longest time window for which a sensor will be collecting data.
-
-  ~~~{.cpp}
-  auto manager = chrono_types::make_shared<ChSensor>();
-  manager->SetKeyframeSizeFromTimeStep((float)step_size, .2f);
-  ~~~
-
-<br>
 
 ##### Loading sensor models from JSON Files
 ~~~{.cpp}
 auto cam = Sensor::CreateFromJSON(
-  GetChronoDataFile("sensor/json/generic/Camera.json"),    // path to json file
-  my_body,    // body to which the sensor is attached
-  ChFrame<>({-5, 0, 0}, Q_from_AngZ(0)));    // attachment pose for the sensor
+  GetChronoDataFile("sensor/json/generic/Camera.json"),   // path to json file
+  my_body,                                                // body to which the sensor is attached
+  ChFrame<>({-5, 0, 0}, Q_from_AngZ(0)));                 // attachment pose for the sensor
 
   // add camera to the manager
   manager->AddSensor(cam);
