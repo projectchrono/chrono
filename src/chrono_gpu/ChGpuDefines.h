@@ -68,7 +68,7 @@ enum class CLUSTER_SEARCH_METHOD {NONE = 0, BFS = 1}; // TO DO: implement faster
 /// Otherwise cluster index increases from START when cluster found 
 enum class CLUSTER_INDEX {GROUND = 0, INVALID = 1, VOLUME = 2, START = 3}; /* number of clusters go up to nSpheres */
 
-/// Sphere groups, core border or noise for clustering, volume for inside mesh
+/// Sphere type, CORE BORDER or NOISE for clustering, VOLUME for inside mesh
 /// a sphere can be a CORE or BORDER of any cluster. 
 enum class SPHERE_TYPE {CORE = 0, BORDER = 1, NOISE = 2, VOLUME = 3};
 
