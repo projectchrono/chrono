@@ -96,7 +96,8 @@ static __host__ unsigned int ** ClusterSearchBFS(unsigned int nSpheres,
             // visit all spheres connected to sphere i in parallel
             do {
                 // find and visit border points, establishing the cluster
-                ClusterSearchBFSKernel<<<nBlocks, CUDA_THREADS_PER_BLOCK>>>(nSpheres,
+                ClusterSearchBFSKernel<<<nBlocks, CUDA_THREADS_PER_BLOCK>>>(
+                    nSpheres,
                     adj_num,
                     adj_offset,
                     adj_list,
