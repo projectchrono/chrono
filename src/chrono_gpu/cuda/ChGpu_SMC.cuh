@@ -33,10 +33,10 @@
 #include "chrono_gpu/physics/ChSystemGpu_impl.h"
 #include "chrono_gpu/cuda/ChCudaMathUtils.cuh"
 #include "chrono_gpu/cuda/ChGpuHelpers.cuh"
-#include "chrono_gpu/cuda/ChGpuBoundaryConditions.cuh"
-#include <math_constants.h>
+#include "chrono_gpu/cuda/ChGpuBoundaryConditions.cuh"  
+//#include <math_constants.h>
 
-
+#define PI_F 3.1415926
 using chrono::gpu::ChSystemGpu_impl;
 
 using chrono::gpu::CHGPU_TIME_INTEGRATOR;
@@ -685,7 +685,7 @@ inline __device__ float3 computeSphereNormalForces_matBased(float3& vrel_t,
     float Sn = 2. * gran_params->E_eff_s2s_SU * sqrt_Rd;
 
     float loge = (gran_params->COR_s2s_SU < EPSILON) ? log(EPSILON) : log(gran_params->COR_s2s_SU);
-    beta = loge / sqrt(loge * loge + CUDART_PI_F * CUDART_PI_F);
+    beta = loge / sqrt(loge * loge + PI_F * PI_F);
 
     // stiffness and damping coefficient
     float kn = (2.0 / 3.0) * Sn;
@@ -891,7 +891,7 @@ inline __device__ bool evaluateRollingFriction(ChSystemGpu_impl::GranParamsPtr g
     float d_coeff = gn_simple / (2.f * sqrtf(kn_simple * m_eff));
 
     if (d_coeff < 1) {
-        t_collision = CUDART_PI_F * sqrtf(m_eff / (kn_simple * (1.f - d_coeff * d_coeff)));
+        t_collision = PI_F * sqrtf(m_eff / (kn_simple * (1.f - d_coeff * d_coeff)));
         if (time_contact <= t_collision * powf(gran_params->LENGTH_UNIT, 0.25f)) {
             return false;
         }
