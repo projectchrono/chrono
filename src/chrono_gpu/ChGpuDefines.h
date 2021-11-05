@@ -63,7 +63,7 @@ enum class CLUSTER_SEARCH_METHOD {NONE = 0, BFS = 1}; // TO DO: implement faster
 // BFS -> Breadth-First search
 
 // How is the ground cluster identified
-enum class CLUSTER_GROUND_METHOD {BIGGEST = 0, LOWEST = 1}; 
+enum class CLUSTER_GROUND_METHOD {NONE = 0, BIGGEST = 1, LOWEST = 2};
 // BIGGEST: cluster with the most number of spheres
 // LOWEST: cluster with many particles close to the bounding box bottom
 

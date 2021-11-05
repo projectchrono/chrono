@@ -103,6 +103,7 @@ class ChSystemGpu_impl {
         
         CLUSTER_GRAPH_METHOD cluster_graph_method; /// graph construction for clustering
         CLUSTER_SEARCH_METHOD cluster_search_method; /// search algorithm used for clustering
+        CLUSTER_GROUND_METHOD cluster_ground_method; /// identification method of ground cluster
 
         /// Ratio of normal force to peak tangent force, also arctan(theta) where theta is the friction angle
         /// sphere-to-sphere
