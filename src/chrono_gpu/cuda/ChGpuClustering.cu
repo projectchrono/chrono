@@ -305,13 +305,11 @@ __host__ void IdentifyGroundClusterByLowest(
         gpuErrchk(cudaPeekAtLastError());
         gpuErrchk(cudaDeviceSynchronize());
     }
-    
 
 
     gpuErrchk(cudaFree(d_below));
     gpuErrchk(cudaFree(d_below_num));
     free(h_below_num);
-    
 }
 
 __host__ void IdentifyGroundClusterByBiggest(
@@ -320,17 +318,18 @@ __host__ void IdentifyGroundClusterByBiggest(
         unsigned int ** h_clusters,
         unsigned int nSpheres) {
     unsigned int nBlocks = (nSpheres + CUDA_THREADS_PER_BLOCK - 1) / CUDA_THREADS_PER_BLOCK;
-    unsigned int ground_cluster = 0;
+    unsigned int ground_cluster = static_cast<unsigned int>(chrono::gpu::CLUSTER_INDEX::NONE);
     unsigned int cluster_num = h_clusters[0][0];
     unsigned int sphere_num_in_cluster = 1;
     unsigned int biggest_cluster_size = 1;
-    // find which cluster is the bigged
-    for (size_t i = 1; i < cluster_num; i++) {
+
+    // find which cluster is the biggest
+    for (size_t i = 1; i < (cluster_num + 1); i++) {
         sphere_num_in_cluster = h_clusters[i][0];
         assert(sphere_num_in_cluster <= nSpheres);
         if (sphere_num_in_cluster > biggest_cluster_size) {
             biggest_cluster_size = sphere_num_in_cluster;
-            ground_cluster = i;
+            ground_cluster = i + static_cast<unsigned int>(chrono::gpu::CLUSTER_INDEX::START);
         }
     }
 
