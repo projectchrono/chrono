@@ -33,10 +33,10 @@ endif()
 # Additional options for this module
 # ------------------------------------------------------------------------------
 
-#option(USE_FSI_DOUBLE "Compile Chrono::FSI with double precision math" ON)
-#if(USE_FSI_DOUBLE)
+option(USE_FSI_DOUBLE "Compile Chrono::FSI with double precision math" ON)
+if(USE_FSI_DOUBLE)
   set(CHRONO_FSI_USE_DOUBLE "#define CHRONO_FSI_USE_DOUBLE")
-#endif()
+endif()
 
 # ------------------------------------------------------------------------------
 # If using MSVC, disable warnings related to missing DLL interface
