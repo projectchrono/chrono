@@ -120,6 +120,7 @@ static __global__ void AreSpheresBelowZLim(ChSystemGpu_impl::GranSphereDataPtr s
                                            unsigned int cluster,
                                            float z_lim) {
     unsigned int mySphereID = threadIdx.x + blockIdx.x * blockDim.x;
+    unsigned int thisSD = blockIdx.x;
 
     // don't overrun the array
     if (mySphereID < nSpheres) {

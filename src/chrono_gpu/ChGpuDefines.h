@@ -72,10 +72,12 @@ enum class CLUSTER_GROUND_METHOD {NONE = 0, BIGGEST = 1, LOWEST = 2};
 /// Any cluster that contain a VOLUME sphere is part VOLUME cluster, EXCEPT 
 /// EXCEPT if it is the GROUND cluster
 /// Otherwise cluster index increases from START when cluster found 
+/// no sphere with NONE if no bugs.
 enum class CLUSTER_INDEX {NONE = 0, GROUND = 1, INVALID = 2, VOLUME = 3, START = 4}; /* number of clusters go up to nSpheres */
 
 /// Sphere type, CORE BORDER or NOISE for clustering, VOLUME for inside mesh
 /// a sphere can be a CORE or BORDER of any cluster. 
+/// no sphere with NONE if no bugs.
 enum class SPHERE_TYPE {NONE = 0, CORE = 1, BORDER = 2, NOISE = 3, VOLUME = 4};
 
 #define GET_OUTPUT_SETTING(setting) (this->output_flags & static_cast<unsigned int>(setting))
