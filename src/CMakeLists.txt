@@ -397,6 +397,25 @@ else()
   mark_as_advanced(CLEAR THRUST_INCLUDE_DIR)
 endif()
 
+#-----------------------------------------------------------------------------
+# CUB Library
+#-----------------------------------------------------------------------------
+
+if (CUDA_FOUND) # CUB should only be used with CUDA 
+	message(STATUS "Searching for CUB...")
+
+	if (CUDA_VERSION_STRING VERSION_LESS 11.0)
+		find_path(
+			CUB_INCLUDE_DIR 
+			cub.cuh
+			PATHS 
+				"${CUDA_TOOLKIT_ROOT_DIR}/include/cub/"
+				"${CMAKE_SOURCE_DIR}/src/chrono_thirdparty/cub/cub/"
+			DOC "Path to the CUB include directory" 
+			REQUIRED
+		)
+	endif()
+endif()
 
 #-----------------------------------------------------------------------------
 # Miscellaneous compiler flags

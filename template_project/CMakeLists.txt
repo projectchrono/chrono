@@ -23,8 +23,8 @@ project(my_project)
 # Find the Chrono package and any REQUIRED or OPTIONAL modules
 # by invoking the find_package function in CONFIG mode:
 #    find_package(Chrono
-#	              COMPONENTS req_module1 req_module1 ...
-#	              OPTIONAL opt_module1 opt_module2 ...
+#                 COMPONENTS req_module1 req_module1 ...
+#                 OPTIONAL_COMPONENTS opt_module1 opt_module2 ...
 #                 CONFIG)
 # The following Chrono modules can be requested (their names
 # are case insensitive): Cascade, Cosimulation, FEA, Irrlicht,
@@ -57,11 +57,13 @@ project(my_project)
 # CHRONO_[COMPONENT]_FOUND
 # 
 # In this example, we only request the Irrlicht module (required)
+# and, for demonstration purposes, the PardisoMKL module (optional)
 #--------------------------------------------------------------
 
 LIST(APPEND CMAKE_PREFIX_PATH "${CMAKE_INSTALL_PREFIX}/../Chrono/lib")
 find_package(Chrono
              COMPONENTS Irrlicht
+             OPTIONAL_COMPONENTS PardisoMKL
              CONFIG)
 
 #--------------------------------------------------------------

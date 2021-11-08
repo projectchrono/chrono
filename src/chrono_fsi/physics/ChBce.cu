@@ -212,11 +212,11 @@ __device__ void BCE_modification_Share(Real3& sumVW,
     for (uint j = startIndex; j < endIndex; j++) {
         Real3 posRadB = mR3(sortedPosRad[j]);
         Real3 dist3 = Distance(posRadA, posRadB);
-        Real d = length(dist3);
+        Real dd = dist3.x * dist3.x + dist3.y * dist3.y + dist3.z * dist3.z;
         Real4 rhoPresMuB = sortedRhoPreMu[j];
-        if (d > RESOLUTION_LENGTH_MULT * paramsD.HSML || rhoPresMuB.w > -1.0)
+        if (dd > RESOLUTION_LENGTH_MULT * paramsD.HSML * RESOLUTION_LENGTH_MULT * paramsD.HSML || rhoPresMuB.w > -1.0)
             continue;
-
+        Real d = length(dist3);
         Real Wd = W3h(d, sortedPosRad[j].w);
         Real3 velMasB = sortedVelMas[j];
         sumVW += velMasB * Wd;
@@ -544,11 +544,10 @@ void ChBce::Finalize(std::shared_ptr<SphMarkerDataD> sphMarkersD,
     int haveHelper = (numObjectsH->numHelperMarkers > 0) ? 1 : 0;
 
     int numFlexAndRigidAndBoundaryMarkers =
-        fsiGeneralData->referenceArray[2 + haveHelper + haveGhost + numObjectsH->numRigidBodies + numObjectsH->numFlexBodies1D +
-                                       numObjectsH->numFlexBodies2D - 1].y
-        - fsiGeneralData->referenceArray[haveHelper + haveGhost].y;
-    printf("numFlexAndRigidAndBoundaryMarkers= %d, All= %zd\n", numFlexAndRigidAndBoundaryMarkers,
-           numObjectsH->numBoundaryMarkers + numObjectsH->numRigid_SphMarkers + numObjectsH->numFlex_SphMarkers);
+        fsiGeneralData->referenceArray[2 + haveHelper + haveGhost + numObjectsH->numRigidBodies 
+            + numObjectsH->numFlexBodies1D + numObjectsH->numFlexBodies2D - 1].y
+            - fsiGeneralData->referenceArray[haveHelper + haveGhost].y;
+    printf("Total number of BCE particles = %d\n", numFlexAndRigidAndBoundaryMarkers);
 
     if ((numObjectsH->numBoundaryMarkers + numObjectsH->numRigid_SphMarkers + numObjectsH->numFlex_SphMarkers) !=
         numFlexAndRigidAndBoundaryMarkers) {
