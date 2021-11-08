@@ -68,15 +68,15 @@ enum class CLUSTER_GROUND_METHOD {NONE = 0, BIGGEST = 1, LOWEST = 2};
 // LOWEST: cluster with many particles close to the bounding box bottom
 
 /// Cluster index.
-/// NOISE spheres are part of the INVALID cluster,
+/// NOISE spheres are part of the INVALID cluster (not really a cluster)
 /// Any cluster that contain a VOLUME sphere is part VOLUME cluster, EXCEPT 
 /// EXCEPT if it is the GROUND cluster
 /// Otherwise cluster index increases from START when cluster found 
-enum class CLUSTER_INDEX {GROUND = 0, INVALID = 1, VOLUME = 2, START = 3}; /* number of clusters go up to nSpheres */
+enum class CLUSTER_INDEX {NONE = 0, GROUND = 1, INVALID = 2, VOLUME = 3, START = 4}; /* number of clusters go up to nSpheres */
 
 /// Sphere type, CORE BORDER or NOISE for clustering, VOLUME for inside mesh
 /// a sphere can be a CORE or BORDER of any cluster. 
-enum class SPHERE_TYPE {CORE = 0, BORDER = 1, NOISE = 2, VOLUME = 3};
+enum class SPHERE_TYPE {NONE = 0, CORE = 1, BORDER = 2, NOISE = 3, VOLUME = 4};
 
 #define GET_OUTPUT_SETTING(setting) (this->output_flags & static_cast<unsigned int>(setting))
 
