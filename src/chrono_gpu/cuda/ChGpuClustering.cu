@@ -350,18 +350,6 @@ __host__ void IdentifyGroundClusterByBiggest(
     gpuErrchk(cudaDeviceSynchronize());
 }
 
-__host__ void TagGroundCluster(
-        ChSystemGpu_impl::GranSphereDataPtr sphere_data,
-        ChSystemGpu_impl::GranParamsPtr gran_params,
-        unsigned int ** h_clusters, unsigned int ground_cluster) {
-    sphere_num_in_cluster = h_clusters[ground_cluster][0];
-    assert(h_clusters[ground_cluster][0] <= nSpheres);
-    for (size_t j = 1; j < (sphere_num_in_cluster + 1); j++) {
-        unsigned int CurrentSphereID = h_clusters[ground_cluster][j];
-        sphere_data->sphere_cluster[CurrentSphereID] = static_cast<unsigned int>(chrono::gpu::CLUSTER_INDEX::GROUND);
-    }
-}
-
 /// G-DBSCAN; density-based h_clustering algorithm.
 /// Identifies core, border and noise points in h_clusters.
 /// Searches using a parallel Breadth-First search

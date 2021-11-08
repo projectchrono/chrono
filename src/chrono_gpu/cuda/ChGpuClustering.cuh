@@ -112,7 +112,7 @@ static __global__ void SwitchClusterIndex(ChSystemGpu_impl::GranSphereDataPtr sp
 
 
 // Find if any particle in the cluster are below a certain z_lim
-// if input param cluster == 0 checks all spheres.
+// if input param cluster == 0/NONE checks all spheres.
 static __global__ void AreSpheresBelowZLim(ChSystemGpu_impl::GranSphereDataPtr sphere_data,
                                            ChSystemGpu_impl::GranParamsPtr gran_params,
                                            unsigned int nSpheres,
@@ -130,7 +130,8 @@ static __global__ void AreSpheresBelowZLim(ChSystemGpu_impl::GranSphereDataPtr s
                                        sphere_data->sphere_local_pos_Y[mySphereID],
                                        sphere_data->sphere_local_pos_Z[mySphereID]);
         mySphere_pos_global = int64_t3_to_double3(convertPosLocalToGlobal(thisSD, mySphere_pos_local, gran_params));
-        if ((cluster == 0) || (sphere_data->sphere_cluster[mySphereID] == cluster)) {
+        if ((cluster == static_cast<unsigned int>(CLUSTER_INDEX::NONE)) ||
+            (sphere_data->sphere_cluster[mySphereID] == cluster)) {
             if (mySphere_pos_global.z < z_lim) {
                 d_below[mySphereID] = true;
             }
