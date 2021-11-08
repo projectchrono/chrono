@@ -95,8 +95,8 @@ static __global__ void GdbscanFinalClusterFromType(unsigned int nSpheres,
     }
 }
 
-// Switch cluster index of spheres. 
-// Mostly used to switch index of a certain cluster to CLUSTER_INDEX::GROUND
+/// Switch cluster index of spheres.
+/// Mostly used to switch index of a certain cluster to CLUSTER_INDEX::GROUND
 static __global__ void SwitchClusterIndex(ChSystemGpu_impl::GranSphereDataPtr sphere_data,
                                           ChSystemGpu_impl::GranParamsPtr gran_params,
                                           unsigned int nSpheres,
@@ -111,8 +111,9 @@ static __global__ void SwitchClusterIndex(ChSystemGpu_impl::GranSphereDataPtr sp
 }
 
 
-// Find if any particle in the cluster are below a certain z_lim
-// if input param cluster == NONE checks all spheres.
+/// Find if any particle in a cluster are below a certain z_lim
+/// if input param cluster == NONE checks all spheres.
+/// VOLUME cluster is set before ground cluster
 static __global__ void AreSpheresBelowZLim(ChSystemGpu_impl::GranSphereDataPtr sphere_data,
                                            ChSystemGpu_impl::GranParamsPtr gran_params,
                                            unsigned int nSpheres,
@@ -131,6 +132,9 @@ static __global__ void AreSpheresBelowZLim(ChSystemGpu_impl::GranSphereDataPtr s
                                        sphere_data->sphere_local_pos_Y[mySphereID],
                                        sphere_data->sphere_local_pos_Z[mySphereID]);
         mySphere_pos_global = int64_t3_to_double3(convertPosLocalToGlobal(thisSD, mySphere_pos_local, gran_params));
+        /// if:
+        ///    cond 1-  cluster == NONE                -> check sphere
+        ///    cond 2-  sphere is in input cluster     -> check sphere
         if ((cluster == static_cast<unsigned int>(CLUSTER_INDEX::NONE)) ||
             (sphere_data->sphere_cluster[mySphereID] == cluster)) {
             if (mySphere_pos_global.z < z_lim) {

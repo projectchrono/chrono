@@ -53,19 +53,20 @@ enum CHGPU_OUTPUT_FLAGS { ABSV = 1 << 0, VEL_COMPONENTS = 1 << 1,
                           CLUSTER = 1 << 6, ADJACENCY = 1 << 7 };
 
 /// Clustering algorithm switches
-// 0 on CLUSTER_GRAPH_METHOD or CLUSTER_SEARCH_METHO switch means no clustering
-//  all sphere_type and sphere_cluster to 0.
+/// 0 is reserved for NONE
+/// 0 on CLUSTER_GRAPH_METHOD or CLUSTER_SEARCH_METHOD switch means no clustering
+/// 0 on CLUSTER_GROUND_METHOD means GROUND cluster not tagged
+
 enum class CLUSTER_GRAPH_METHOD {NONE = 0, CONTACT = 1, PROXIMITY = 2}; /* TODO: Implement proximity graph construction */
-// CONTACT leverages sphere_contact_map to build the graph.
-// PROXIMITY determine contacts by checking if distance between sphere pairs < gbscan_radius; TODO UNTESTED
+/// CONTACT leverages sphere_contact_map to build the graph.
+/// PROXIMITY determine contacts by checking if distance between sphere pairs < gbscan_radius; TODO UNTESTED
 
 enum class CLUSTER_SEARCH_METHOD {NONE = 0, BFS = 1}; // TO DO: implement faster search than BFS
-// BFS -> Breadth-First search
+/// BFS -> Breadth-First search
 
-// How is the ground cluster identified
 enum class CLUSTER_GROUND_METHOD {NONE = 0, BIGGEST = 1, LOWEST = 2};
-// BIGGEST: cluster with the most number of spheres
-// LOWEST: cluster with many particles close to the bounding box bottom
+/// BIGGEST: cluster with the most number of spheres is GROUND
+/// LOWEST: cluster with many particles close to the bounding box bottom
 
 /// Cluster index.
 /// NOISE spheres are part of the INVALID cluster (not really a cluster)
