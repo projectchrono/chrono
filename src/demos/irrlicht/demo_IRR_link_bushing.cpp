@@ -9,7 +9,7 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Authors: Antonio Recuero, Alessandro Tasora
+// Authors: Antonio Recuero, Alessandro Tasora, Radu Serban
 // =============================================================================
 //
 // Demonstration of flexible bushing between two bodies
@@ -32,6 +32,26 @@
 using namespace chrono;
 using namespace chrono::irrlicht;
 
+// Select one of the following examples:
+//
+// 1 - ChLoadBodyBodyBushingGeneric
+//     This type of bushing requires two 6x6 matrices for generic stiffness and damping, for both translation and
+//     rotation. Optionally, it also supports initial pre-displacement and pre-stress
+// 2 - ChLoadBodyBodyBushingMate
+//     This type of bushing is like a simplified version of ChLoadBodyBodyBushingGeneric, it adds compliance to both
+//     translation and rotation, using three x y z and three Rx Ry Rz stiffness values.
+// 3 - ChLoadBodyBodyBushingPlastic
+//     A special type of ChLoadBodyBodyBushingSpherical that also provides plastic deformation with a plastic yeld.
+// 4 - ChLinkBushing
+//     The ChLinkBushing is inherited from the ChLink classes. Differently from the previous example, it does NOT
+//     support stiffness matrices, so it should NOT be used for very stiff problems.
+// 5 - ChLoadBodyBodyBushingGeneric
+//     No stiffness and damping in one rotational direction
+
+int example = 1;
+
+// -----------------------------------------------------------------------------
+
 int main(int argc, char* argv[]) {
     GetLog() << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
 
@@ -45,8 +65,7 @@ int main(int argc, char* argv[]) {
     ground->SetBodyFixed(true);
 
     // Create a moving body that will 'bounce' thanks to a flexible bushing.
-    // Give it an initial angular velocity and attach also a small sphere
-    // to show the anchoring of the bushing.
+    // Give it an initial angular velocity and attach also a small sphere to show the anchoring of the bushing.
     auto body = chrono_types::make_shared<ChBodyEasyBox>(0.9, 0.9, 0.15, 1000, true, false);
     system.Add(body);
     body->SetBodyFixed(false);
@@ -63,22 +82,19 @@ int main(int argc, char* argv[]) {
     body_col->SetColor(ChColor(0.6f, 0, 0));
     body->AddAsset(body_col);
 
-    // Now create the bushing. It will connect "ground" and "body".
-    // A bushing is like an invisible connection between two bodies;
-    // but differently from constraints, it has some compliance.
-    // In the following you will see different examples: just uncomment
-    // the my_loadcontainer->Add(..); line to use the associated bushing.
+    // Now create the bushing connecting the "body" to the "ground".
+    // A bushing is like an invisible connection between two bodies, but differently from constraints, it has some
+    // compliance.
 
     // Bushings are inherited from ChLoad, so they require a 'load container'
 
-    auto my_loadcontainer = chrono_types::make_shared<ChLoadContainer>();
-    system.Add(my_loadcontainer);
+    auto load_container = chrono_types::make_shared<ChLoadContainer>();
+    system.Add(load_container);
 
     // EXAMPLE 1: use  ChLoadBodyBodyBushingGeneric
     //
-    // This type of bushing requires two 6x6 matrices for generic stiffness and
-    // damping, for both translation and rotation.
-    // Optionally, it also supports initial pre-displacement and pre-stress
+    // This type of bushing requires two 6x6 matrices for generic stiffness and damping, for both translation and
+    // rotation. Optionally, it also supports initial pre-displacement and pre-stress
 
     ChMatrixNM<double, 6, 6> K_matrix;
     ChMatrixNM<double, 6, 6> R_matrix;
@@ -86,79 +102,93 @@ int main(int argc, char* argv[]) {
     K_matrix.setZero();
     R_matrix.setZero();
     for (unsigned int ii = 0; ii < 6; ii++) {
-        K_matrix(ii, ii) = 95000.0;
-        R_matrix(ii, ii) = 1000.0;
+        K_matrix(ii, ii) = 1e5;
+        R_matrix(ii, ii) = 1e3;
     }
 
-    auto my_loadbushingg = chrono_types::make_shared<ChLoadBodyBodyBushingGeneric>(
+    auto bushing_generic = chrono_types::make_shared<ChLoadBodyBodyBushingGeneric>(
         body,                                  // body A
         ground,                                // body B
-        ChFrame<>(ChVector<>(0.5, 0.0, 0.0)),  // initial frame of bushing in abs space
+        ChFrame<>(ChVector<>(0.0, 0.0, 0.0)),  // initial frame of bushing in abs space
         K_matrix,                              // the 6x6 (translation+rotation) K matrix in local frame
         R_matrix                               // the 6x6 (translation+rotation) R matrix in local frame
     );
-    my_loadbushingg->SetNeutralForce(ChVector<>(100, 0, 0));
-    my_loadbushingg->NeutralDisplacement().SetPos(ChVector<>(0.02, 0, 0));
-    my_loadcontainer->Add(my_loadbushingg);
+    bushing_generic->SetNeutralForce(ChVector<>(100, 0, 0));
+    bushing_generic->NeutralDisplacement().SetPos(ChVector<>(0.02, 0, 0));
+    if (example == 1) {
+        load_container->Add(bushing_generic);
+    }
 
     // EXAMPLE 2: use  ChLoadBodyBodyBushingMate
     //
-    // This type of bushing is like a simplified version of
-    // ChLoadBodyBodyBushingGeneric, it adds compliance to both translation
-    // and rotation, using three x y z and three Rx Ry Rz stiffness values.
+    // This type of bushing is like a simplified version of ChLoadBodyBodyBushingGeneric, it adds compliance to both
+    // translation and rotation, using three x y z and three Rx Ry Rz stiffness values.
 
-    auto my_loadbushing = chrono_types::make_shared<ChLoadBodyBodyBushingMate>(
+    auto bushing_mate = chrono_types::make_shared<ChLoadBodyBodyBushingMate>(
         body,                                  // body A
         ground,                                // body B
-        ChFrame<>(ChVector<>(0.5, 0.0, 0.0)),  // initial frame of bushing in abs space
+        ChFrame<>(ChVector<>(0.0, 0.0, 0.0)),  // initial frame of bushing in abs space
         ChVector<>(95000.0),                   // K stiffness in local frame  [N/m]
         ChVector<>(100.0),                     // R damping in local frame  [N/m/s]
         ChVector<>(95000.0),                   // K rotational stiffness,in local frame [Nm/rad]
         ChVector<>(100.0)                      // R rotational damping, in local frame [Nm/rad/s]
     );
-    // my_loadcontainer->Add(my_loadbushing);
+    if (example == 2) {
+        load_container->Add(bushing_mate);
+    }
 
     // EXAMPLE 3: use  ChLoadBodyBodyBushingPlastic
     //
-    // A special type of ChLoadBodyBodyBushingSpherical
-    // that also provides plastic deformation with a plastic yeld.
+    // A special type of ChLoadBodyBodyBushingSpherical that also provides plastic deformation with a plastic yeld.
 
-    auto my_loadbushingp = chrono_types::make_shared<ChLoadBodyBodyBushingPlastic>(
+    auto bushing_plastic = chrono_types::make_shared<ChLoadBodyBodyBushingPlastic>(
         body,                                  // body A
         ground,                                // body B
-        ChFrame<>(ChVector<>(0.5, 0.0, 0.0)),  // initial frame of bushing in abs space
+        ChFrame<>(ChVector<>(0.0, 0.0, 0.0)),  // initial frame of bushing in abs space
         ChVector<>(95000.0),                   // K stiffness in local frame  [N/m]
         ChVector<>(100.0),                     // R damping in local frame  [N/m/s]
         ChVector<>(18000.0)                    // plastic yield [N/m]
     );
-    // my_loadcontainer->Add(my_loadbushingp);
+    if (example == 3) {
+        load_container->Add(bushing_plastic);
+    }
 
     // EXAMPLE 4: use  ChLinkBushing
     //
-    // Note, the ChLinkBushing is inherited from the ChLink classes. Differently from the
-    // previous example, it does NOT support stiffness matrices, so it should NOT be used
-    // for very stiff problems.
-    // This behaves in various ways according to the types in its enums:
-    // ChLinkBushing::Spherical: Rotational dofs are free, translational defined by stiffness/damping matrices
-    // ChLinkBushing::Revolute: One rotational dof is free, rest of dofs defined by stiffness/damping matrices
-    // ChLinkBushing::Mount: All six dofs defined by stiffness/damping matrices
+    // Note, the ChLinkBushing is inherited from the ChLink classes. Differently from the previous example, it does NOT
+    // support stiffness matrices, so it should NOT be used for very stiff problems. This behaves in various ways
+    // according to the types in its enums:
+    // - ChLinkBushing::Spherical: Rotational dofs are free, translational defined by stiffness/damping matrices
+    // - ChLinkBushing::Revolute: One rotational dof is free, rest of dofs defined by stiffness/damping matrices
+    // - ChLinkBushing::Mount: All six dofs defined by stiffness/damping matrices
 
-    /*
-    auto my_linkbushing = chrono_types::make_shared<ChLinkBushing>(ChLinkBushing::Mount);
-    my_linkbushing->Initialize(
+    auto bushing_link = chrono_types::make_shared<ChLinkBushing>(ChLinkBushing::Mount);
+    bushing_link->Initialize(
         body,                                                                 // body A
         ground,                                                               // body B
-        ChCoordsys<>(ChVector<>(0.5, 0.0, 0.0), ChQuaternion<>(1, 0, 0, 0)),  // initial frame of bushing in abs space
-        K_matrix,   // the 6x6 (translation+rotation) K matrix in local frame
-        R_matrix);  // the 6x6 (translation+rotation) R matrix in local frame
-    system.Add(my_linkbushing);
-    */
+        ChCoordsys<>(ChVector<>(0.0, 0.0, 0.0), ChQuaternion<>(1, 0, 0, 0)),  // initial frame of bushing in abs space
+        K_matrix,                                                             // K stiffness in local frame
+        R_matrix);                                                            // R damping in local frame
+    if (example == 4) {
+        system.Add(bushing_link);
+    }
 
-    // Finally, add a force that tends to bend the body:
+    // EXAMPLE 5: ChLoadBodyBodyBushingGeneric
+    //
+    // Same as example 1, but set the rotational stiffness and damping about Y axis to 0.
 
-    auto my_loadforce =
-        chrono_types::make_shared<ChLoadBodyForce>(body, ChVector<>(0, 0, -8000), false, ChVector<>(1, 0, 0));
-    my_loadcontainer->Add(my_loadforce);
+    if (example == 5) {
+        K_matrix(4, 4) = 0;
+        R_matrix(4, 4) = 0;
+        bushing_generic->SetStiffnessMatrix(K_matrix);
+        bushing_generic->SetDampingMatrix(R_matrix);
+        load_container->Add(bushing_generic);
+    }
+
+    // Finally, add a force that tends to bend the body
+
+    auto force = chrono_types::make_shared<ChLoadBodyForce>(body, ChVector<>(0, 0, -8e3), false, ChVector<>(1, 0, 0));
+    load_container->Add(force);
 
     // Create the Irrlicht application
     ChIrrApp application(&system, L"ChLinkBushing", irr::core::dimension2d<irr::u32>(800, 600), VerticalDir::Z);
@@ -175,8 +205,7 @@ int main(int argc, char* argv[]) {
     // Change some solver settings
 
     // Barzilai-Borwein does not support stiffness matrics => explicit integration for stiff bushings
-    // system.SetSolverType(ChSolver::Type::BARZILAIBORWEIN); // does NOT support stiffness matrices, so explicit
-    // integration holds for stiff bushings
+    ////system.SetSolverType(ChSolver::Type::BARZILAIBORWEIN);
 
     // MINRES (or GMRES) support stiffness matrices => implicit integration of the stiff bushings
     auto solver = chrono_types::make_shared<ChSolverMINRES>();
@@ -186,8 +215,6 @@ int main(int argc, char* argv[]) {
     solver->EnableDiagonalPreconditioner(true);
     solver->EnableWarmStart(true);  // IMPORTANT for convergence when using EULER_IMPLICIT_LINEARIZED
     solver->SetVerbose(false);
-
-    // system.SetSolverForceTolerance(1e-12);
 
     system.SetTimestepperType(ChTimestepper::Type::EULER_IMPLICIT_LINEARIZED);
 

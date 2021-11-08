@@ -510,6 +510,28 @@ inline ChState operator+(const ChStateDelta& Dy, const ChState& y) {
     return result;
 }
 
+/// Custom operator "-" that takes care of incremental update of a state y by an increment Dy.
+/// "y_new = y - Dy", invokes the specialized StateIncrement() in the ChIntegrable. If none is 
+/// provided, this defaults to a simple vector sum
+inline ChState operator-(const ChState& y, const ChStateDelta& Dy) {
+    ChState result(y.size(), y.GetIntegrable());
+    y.GetIntegrable()->StateIncrement(result, y, Dy*-1);
+    return result;
+}
+inline ChState& operator-=(ChState& y, const ChStateDelta& Dy) {
+    ChState tmp_y(y);
+    y.GetIntegrable()->StateIncrement(y, tmp_y, Dy*-1);
+    return y;
+}
+
+/// Custom operator "-" that takes care of incremental update of a state y by an increment Dy
+/// "y_new = Dy - y", invokes the specialized StateIncrement() in the ChIntegrable. If none is 
+/// provided, this defaults to a simple vector sum
+inline ChState operator-(const ChStateDelta& Dy, const ChState& y) {
+    ChState result(y.size(), y.GetIntegrable());
+    y.GetIntegrable()->StateIncrement(result, y, Dy*-1);
+    return result;
+}
 }  // end namespace chrono
 
 #endif

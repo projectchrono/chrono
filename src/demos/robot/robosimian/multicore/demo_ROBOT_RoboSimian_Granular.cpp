@@ -229,7 +229,7 @@ int main(int argc, char* argv[]) {
     sys->Set_G_acc(ChVector<double>(0, 0, -9.8));
     ////sys->Set_G_acc(ChVector<double>(0, 0, 0));
 
-    int max_threads = omp_get_num_procs();
+    int max_threads = ChOMP::GetNumThreads();
     if (nthreads > max_threads)
         nthreads = max_threads;
     sys->SetNumThreads(nthreads);
@@ -408,7 +408,7 @@ int main(int argc, char* argv[]) {
         if (pov_output && sim_frame % pov_steps == 0) {
             char filename[100];
             sprintf(filename, "%s/data_%04d.dat", pov_dir.c_str(), pov_frame + 1);
-            utils::WriteShapesPovray(sys, filename);
+            utils::WriteVisualizationAssets(sys, filename);
             pov_frame++;
         }
 

@@ -1,0 +1,8 @@
+{
+  "Name":                       "FMTV brake",
+  "Type":                       "Brake",
+  "Template":                   "BrakeShafts",
+
+  "Shaft Inertia":              0.4,
+  "Maximum Torque":             7500
+}

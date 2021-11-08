@@ -102,14 +102,13 @@ class ChApi ChLinkLock : public ChLinkMarkers {
 
     // LINK VIOLATIONS
 
-    // Get the constraint violations, i.e. the residual of the constraint equations and their time derivatives
-
     /// Link violation (residuals of the link constraint equations).
-    const ChConstraintVectorX& GetC() const { return C; }
+    virtual ChVectorDynamic<> GetConstraintViolation() const override { return C; }
+
     /// Time derivatives of link violation.
-    const ChConstraintVectorX& GetC_dt() const { return C_dt; }
+    const ChConstraintVectorX& GetConstraintViolation_dt() const { return C_dt; }
     /// Second time derivatives of link violation.
-    const ChConstraintVectorX& GetC_dtdt() const { return C_dtdt; }
+    const ChConstraintVectorX& GetConstraintViolation_dtdt() const { return C_dtdt; }
 
     // LINK STATE MATRICES
 

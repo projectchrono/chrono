@@ -17,6 +17,12 @@ endif()
 # ------------------------------------------------------------------------------
 
 include_directories(${CH_IRRLICHTINC})
+set(LIBRARIES 
+    ChronoEngine
+    ChronoEngine_vehicle
+    ChronoModels_robot
+    ChronoEngine_irrlicht
+)
 
 # ------------------------------------------------------------------------------
 
@@ -24,6 +30,14 @@ set(DEMOS
     demo_ROBOT_Viper_Rigid
     demo_ROBOT_Viper_SCM
 )
+
+if(ENABLE_MODULE_FSI)
+  set(DEMOS ${DEMOS}
+      demo_ROBOT_Viper_SPH
+  )
+  include_directories(${CH_FSI_INCLUDES})
+  list(APPEND LIBRARIES ChronoEngine_fsi)
+endif()
 
 # ------------------------------------------------------------------------------
 # Add all executables
@@ -40,12 +54,7 @@ foreach(PROGRAM ${DEMOS})
         LINK_FLAGS "${CH_LINKERFLAG_EXE}")
     set_property(TARGET ${PROGRAM} PROPERTY VS_DEBUGGER_WORKING_DIRECTORY "$<TARGET_FILE_DIR:${PROGRAM}>")
 
-    target_link_libraries(${PROGRAM}
-                          ChronoEngine
-                          ChronoEngine_vehicle
-                          ChronoModels_robot
-                          ChronoEngine_irrlicht
-                        )
+    target_link_libraries(${PROGRAM} ${LIBRARIES})
 
     install(TARGETS ${PROGRAM} DESTINATION ${CH_INSTALL_DEMO})
 endforeach()

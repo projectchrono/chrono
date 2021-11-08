@@ -47,7 +47,7 @@ namespace vehicle {
 /// are provided.
 class CH_VEHICLE_API ChPitmanArm : public ChSteering {
   public:
-    virtual ~ChPitmanArm() {}
+    virtual ~ChPitmanArm();
 
     /// Get the name of the vehicle subsystem template.
     virtual std::string GetTemplateName() const override { return "PitmanArm"; }

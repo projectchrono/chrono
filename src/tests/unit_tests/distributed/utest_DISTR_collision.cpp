@@ -16,7 +16,7 @@ int main(int argc, char* argv[]) {
     int my_rank;
     MPI_Comm_rank(MPI_COMM_WORLD, &my_rank);
     ChSystemDistributed sys(MPI_COMM_WORLD, 1.0, 10000);
-    sys.GetDomain()->SetSimDomain(0, 10, 0, 10, 0, 20);
+    sys.GetDomain()->SetSimDomain(ChVector<>(0, 0, 0), ChVector<>(10, 10, 20));
 
     sys.Set_G_acc(ChVector<double>(0, 0, -9.8));
 

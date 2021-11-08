@@ -15,7 +15,10 @@
 // =============================================================================
 
 #include "chrono_sensor/filters/ChFilterVisualizePointCloud.h"
-#include "chrono_sensor/ChOptixSensor.h"
+#include "chrono_sensor/sensors/ChOptixSensor.h"
+#include "chrono_sensor/utils/CudaMallocHelper.h"
+
+#include <cuda_runtime_api.h>
 
 namespace chrono {
 namespace sensor {
@@ -25,31 +28,40 @@ CH_SENSOR_API ChFilterVisualizePointCloud::ChFilterVisualizePointCloud(int w, in
 
 CH_SENSOR_API ChFilterVisualizePointCloud::~ChFilterVisualizePointCloud() {}
 
-CH_SENSOR_API void ChFilterVisualizePointCloud::Apply(std::shared_ptr<ChSensor> pSensor,
-                                                      std::shared_ptr<SensorBuffer>& bufferInOut) {
-    // to visualize, the buffer must either be an optix buffer, or a GPU R8 (grayscale) buffer.
-    std::shared_ptr<SensorHostXYZIBuffer> pHostXYZIBuffer =
-        std::dynamic_pointer_cast<SensorHostXYZIBuffer>(bufferInOut);
-    std::shared_ptr<SensorDeviceXYZIBuffer> pDeviceXYZIBuffer =
-        std::dynamic_pointer_cast<SensorDeviceXYZIBuffer>(bufferInOut);
+CH_SENSOR_API void ChFilterVisualizePointCloud::Initialize(std::shared_ptr<ChSensor> pSensor,
+                                                           std::shared_ptr<SensorBuffer>& bufferInOut) {
+    if (!bufferInOut)
+        InvalidFilterGraphNullBuffer(pSensor);
+    auto pOptixSen = std::dynamic_pointer_cast<ChOptixSensor>(pSensor);
+    if (!pOptixSen) {
+        InvalidFilterGraphSensorTypeMismatch(pSensor);
+    }
+    m_cuda_stream = pOptixSen->GetCudaStream();
+    m_buffer_in = std::dynamic_pointer_cast<SensorDeviceXYZIBuffer>(bufferInOut);
+    if (!m_buffer_in)
+        InvalidFilterGraphBufferTypeMismatch(pSensor);
 
-    std::shared_ptr<ChOptixSensor> pVis = std::dynamic_pointer_cast<ChOptixSensor>(pSensor);
-
-    if (!pHostXYZIBuffer && !pDeviceXYZIBuffer)
-        throw std::runtime_error("This buffer type cannot be visualized.");
-
-    if (!pVis)
-        throw std::runtime_error("This sensor type cannot be visualized.");
-
+    m_host_buffer = chrono_types::make_shared<SensorHostXYZIBuffer>();
+    std::shared_ptr<PixelXYZI[]> b(
+        cudaHostMallocHelper<PixelXYZI>(m_buffer_in->Width * m_buffer_in->Height * (m_buffer_in->Dual_return + 1)),
+        cudaHostFreeHelper<PixelXYZI>);
+    m_host_buffer->Buffer = std::move(b);
+    m_host_buffer->Width = m_buffer_in->Width;
+    m_host_buffer->Height = m_buffer_in->Height;
+}
+CH_SENSOR_API void ChFilterVisualizePointCloud::Apply() {
     if (!m_window && !m_window_disabled) {
-        CreateGlfwWindow(pSensor);
-        if (m_window)
-            glfwSetWindowSize(m_window.get(), 640,
-                              480);  // because window size is not just dependent on sensor data size here
+        CreateGlfwWindow(Name());
     }
     // only render if we have a window
     if (m_window) {
-        MakeGlContextActive();
+        // copy buffer to host
+        cudaMemcpyAsync(m_host_buffer->Buffer.get(), m_buffer_in->Buffer.get(),
+                        m_buffer_in->Beam_return_count * sizeof(PixelXYZI), cudaMemcpyDeviceToHost);
+        // lock the glfw mutex because from here on out, we don't want to be interrupted
+        std::lock_guard<std::mutex> lck(s_glfwMutex);
+        // visualize data
+        glfwMakeContextCurrent(m_window.get());
 
         int window_w, window_h;
         glfwGetWindowSize(m_window.get(), &window_w, &window_h);
@@ -64,7 +76,8 @@ CH_SENSOR_API void ChFilterVisualizePointCloud::Apply(std::shared_ptr<ChSensor> 
 
         // Establish clipping volume (left, right, bottom, top, near, far)
         float FOV = 20 * m_zoom;
-        glOrtho(-FOV, FOV, -FOV, FOV, -FOV, FOV);  // TODO: adjust these based on the sensor or data - vis parameters
+        glOrtho(-FOV, FOV, -FOV, FOV, -FOV,
+                FOV);  // TODO: adjust these based on the sensor or data - vis parameters
 
         // Reset Model view matrix stack
         glMatrixMode(GL_MODELVIEW);
@@ -83,24 +96,13 @@ CH_SENSOR_API void ChFilterVisualizePointCloud::Apply(std::shared_ptr<ChSensor> 
         glPointSize(1.0);
         glBegin(GL_POINTS);
 
-        if (pDeviceXYZIBuffer) {
-            int data_w = pDeviceXYZIBuffer->Width;
-            int data_h = pDeviceXYZIBuffer->Height;
-            unsigned int sz = data_w * data_h * sizeof(PixelXYZI);
-            auto tmp_buf = std::make_unique<PixelXYZI[]>(sz);
-
-            cudaMemcpy(tmp_buf.get(), pDeviceXYZIBuffer->Buffer.get(), sz, cudaMemcpyDeviceToHost);
-
-            // draw the vertices, color them by the intensity of the lidar point (red=0, green=1)
-            for (int i = 0; i < data_w; i++) {
-                for (int j = 0; j < data_h; j++) {
-                    if (tmp_buf[i * data_h + j].intensity > 1e-6) {
-                        float inten = tmp_buf[i * data_h + j].intensity;
-                        glColor3f(1 - inten, inten, 0);
-                        glVertex3f(-tmp_buf[i * data_h + j].y, tmp_buf[i * data_h + j].z, tmp_buf[i * data_h + j].x);
-                    }
-                }
-            }
+        // display the points, synchronizing the stream first
+        cudaStreamSynchronize(m_cuda_stream);
+        // draw the vertices, color them by the intensity of the lidar point (red=0, green=1)
+        for (int i = 0; i < m_buffer_in->Beam_return_count; i++) {
+            float inten = m_host_buffer->Buffer[i].intensity;
+            glColor3f(1 - inten, inten, 0);
+            glVertex3f(-m_host_buffer->Buffer[i].y, m_host_buffer->Buffer[i].z, m_host_buffer->Buffer[i].x);
         }
 
         // Done drawing points

@@ -34,6 +34,24 @@ namespace vehicle {
 ChShaftsDriveline4WD::ChShaftsDriveline4WD(const std::string& name)
     : ChDrivelineWV(name), m_dir_motor_block(ChVector<>(1, 0, 0)), m_dir_axle(ChVector<>(0, 1, 0)) {}
 
+ChShaftsDriveline4WD::~ChShaftsDriveline4WD() {
+    auto sys = m_central_differential->GetSystem();
+    if (sys) {
+        sys->Remove(m_central_differential);
+        sys->Remove(m_central_clutch);
+        sys->Remove(m_front_shaft);
+        sys->Remove(m_rear_shaft);
+        sys->Remove(m_rear_conicalgear);
+        sys->Remove(m_rear_differential);
+        sys->Remove(m_rear_differentialbox);
+        sys->Remove(m_rear_clutch);
+        sys->Remove(m_front_conicalgear);
+        sys->Remove(m_front_differential);
+        sys->Remove(m_front_differentialbox);
+        sys->Remove(m_front_clutch);
+    }
+}
+
 // -----------------------------------------------------------------------------
 // Initialize the driveline subsystem.
 // This function connects this driveline to the specified axles.
@@ -229,6 +247,14 @@ double ChShaftsDriveline4WD::GetSpindleTorque(int axle, VehicleSide side) const 
     }
 
     return 0;
+}
+
+// -----------------------------------------------------------------------------
+void ChShaftsDriveline4WD::Disconnect() {
+    m_front_differential->SetDisabled(true);
+    m_rear_differential->SetDisabled(true);
+    m_front_clutch->SetDisabled(true);
+    m_rear_clutch->SetDisabled(true);
 }
 
 }  // end namespace vehicle

@@ -63,7 +63,7 @@ void ChWheeledVehicle::InitializeTire(std::shared_ptr<ChTire> tire,
 // -----------------------------------------------------------------------------
 void ChWheeledVehicle::InitializePowertrain(std::shared_ptr<ChPowertrain> powertrain) {
     m_powertrain = powertrain;
-    powertrain->Initialize(m_chassis, m_driveline);
+    powertrain->Initialize(m_chassis);
 }
 
 // -----------------------------------------------------------------------------
@@ -78,7 +78,7 @@ void ChWheeledVehicle::Synchronize(double time, const ChDriver::Inputs& driver_i
         // Extract the torque from the powertrain.
         powertrain_torque = m_powertrain->GetOutputTorque();
         // Synchronize the associated powertrain system (pass throttle input).
-        m_powertrain->Synchronize(time, driver_inputs.m_throttle);
+        m_powertrain->Synchronize(time, driver_inputs.m_throttle, m_driveline->GetDriveshaft()->GetPos_dt());
     }
 
     // Apply powertrain torque to the driveline's input shaft.
@@ -140,6 +140,12 @@ void ChWheeledVehicle::LockAxleDifferential(int axle, bool lock) {
 
 void ChWheeledVehicle::LockCentralDifferential(int which, bool lock) {
     m_driveline->LockCentralDifferential(which, lock);
+}
+
+// Disconnect driveline
+void ChWheeledVehicle::DisconnectDriveline() {
+    if (m_driveline)
+        m_driveline->Disconnect();
 }
 
 // -----------------------------------------------------------------------------
@@ -322,12 +328,6 @@ ChVector<> ChWheeledVehicle::GetSpindleAngVel(int axle, VehicleSide side) const 
 
 double ChWheeledVehicle::GetSpindleOmega(int axle, VehicleSide side) const {
     return m_axles[axle]->m_suspension->GetAxleSpeed(side);
-}
-
-// -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
-double ChWheeledVehicle::GetDriveshaftSpeed() const {
-    return m_driveline->GetDriveshaftSpeed();
 }
 
 // -----------------------------------------------------------------------------

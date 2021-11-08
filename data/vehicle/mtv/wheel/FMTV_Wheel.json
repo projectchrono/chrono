@@ -1,0 +1,14 @@
+{
+    "Name": "FMTV Wheel",
+    "Type": "Wheel",
+    "Template": "Wheel",
+
+    "Mass": 30.0,
+    "Inertia": [ 0.6, 0.63, 0.6 ],
+
+    "Visualization": {
+        "Mesh Filename": "mtv/meshes/MTV_rim.obj",
+        "Radius": 0.254,
+        "Width": 0.254
+    }
+}

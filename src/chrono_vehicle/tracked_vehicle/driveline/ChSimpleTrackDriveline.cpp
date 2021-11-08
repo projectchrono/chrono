@@ -28,8 +28,7 @@ namespace vehicle {
 // -----------------------------------------------------------------------------
 // Construct a default simple track driveline.
 // -----------------------------------------------------------------------------
-ChSimpleTrackDriveline::ChSimpleTrackDriveline(const std::string& name) : ChDrivelineTV(name) {
-}
+ChSimpleTrackDriveline::ChSimpleTrackDriveline(const std::string& name) : ChDrivelineTV(name) {}
 
 // -----------------------------------------------------------------------------
 // Initialize the driveline subsystem.
@@ -39,15 +38,14 @@ ChSimpleTrackDriveline::ChSimpleTrackDriveline(const std::string& name) : ChDriv
 void ChSimpleTrackDriveline::Initialize(std::shared_ptr<ChChassis> chassis,
                                         std::shared_ptr<ChTrackAssembly> track_left,
                                         std::shared_ptr<ChTrackAssembly> track_right) {
+    // Create the driveshaft
+    m_driveshaft = chrono_types::make_shared<ChShaft>();
+    m_driveshaft->SetInertia(0.5);
+    chassis->GetSystem()->Add(m_driveshaft);
+
     // Grab handles to the sprocket shafts.
     m_shaft_left = track_left->GetSprocket()->GetAxle();
     m_shaft_right = track_right->GetSprocket()->GetAxle();
-}
-
-// -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
-double ChSimpleTrackDriveline::GetDriveshaftSpeed() const {
-    return 0.5 * (m_shaft_left->GetPos_dt() + m_shaft_right->GetPos_dt());
 }
 
 // -----------------------------------------------------------------------------
@@ -88,6 +86,10 @@ static void differentialSplit(double torque,
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 void ChSimpleTrackDriveline::Synchronize(double steering, double torque) {
+    // Enforce driveshaft speed 
+    double driveshaft_speed = 0.5 * (m_shaft_left->GetPos_dt() + m_shaft_right->GetPos_dt());
+    m_driveshaft->SetPos_dt(driveshaft_speed);
+
     // Split the axle torques for the corresponding left/right sprockets and apply
     // them to the sprocket axle shafts.
     double torque_left;

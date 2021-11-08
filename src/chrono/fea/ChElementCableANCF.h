@@ -121,6 +121,9 @@ class ChApi ChElementCableANCF : public ChElementBeam, public ChLoadableU, publi
     /// (e.g. the actual position of nodes is not in relaxed reference position).
     virtual void ComputeInternalForces(ChVectorDynamic<>& Fi) override;
 
+    /// Compute the generalized force vector due to gravity using the efficient ANCF specific method
+    virtual void ComputeGravityForces(ChVectorDynamic<>& Fg, const ChVector<>& G_acc) override;
+
     //
     // Beam-specific functions
     //
@@ -184,14 +187,17 @@ class ChApi ChElementCableANCF : public ChElementBeam, public ChLoadableU, publi
     /// Number of coordinates in the interpolated field.
     virtual int Get_field_ncoords() override { return 6; }
 
-    /// Return the number of DOFs blocks.
+    /// Get the number of DOFs sub-blocks.
     virtual int GetSubBlocks() override { return 2; }
 
-    /// Get the offset of the i-th sub-block of DOFs in global vector.
+    /// Get the offset of the specified sub-block of DOFs in global vector.
     virtual unsigned int GetSubBlockOffset(int nblock) override { return nodes[nblock]->NodeGetOffset_w(); }
 
-    /// Get the size of the i-th sub-block of DOFs in global vector.
+    /// Get the size of the specified sub-block of DOFs in global vector.
     virtual unsigned int GetSubBlockSize(int nblock) override { return 6; }
+
+    /// Check if the specified sub-block of DOFs is active.
+    virtual bool IsSubBlockActive(int nblock) const override { return !nodes[nblock]->GetFixed(); }
 
     /// Get the pointers to the contained ChVariables, appending to the mvars vector.
     virtual void LoadableGetVariables(std::vector<ChVariables*>& mvars) override;
@@ -246,6 +252,7 @@ class ChApi ChElementCableANCF : public ChElementBeam, public ChLoadableU, publi
     ChVectorN<double, 12> m_GenForceVec0;
     ChMatrixNM<double, 12, 12> m_JacobianMatrix;  ///< Jacobian matrix (Kfactor*[K] + Rfactor*[R])
     ChMatrixNM<double, 12, 12> m_MassMatrix;      ///< mass matrix
+    ChVectorN<double, 4> m_GravForceScale;  ///< Gravity scaling matrix used to get the generalized force due to gravity
 
   public:
     EIGEN_MAKE_ALIGNED_OPERATOR_NEW

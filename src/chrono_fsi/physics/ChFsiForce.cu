@@ -19,6 +19,7 @@
 #include <thrust/sort.h>
 #include "chrono_fsi/physics/ChFsiForce.cuh"
 #include "chrono_fsi/utils/ChUtilsDevice.cuh"
+#include "chrono_fsi/physics/ChSphGeneral.cuh"
 
 //==========================================================================================================================================
 namespace chrono {
@@ -45,7 +46,7 @@ ChFsiForce::ChFsiForce(std::shared_ptr<ChBce> otherBceWorker,
 void ChFsiForce::Finalize() {
     cudaMemcpyToSymbolAsync(paramsD, paramsH.get(), sizeof(SimParams));
     cudaMemcpyToSymbolAsync(numObjectsD, numObjectsH.get(), sizeof(NumberOfObjects));
-    printf("ChFsiForce::Finalize() numAllMarkers=%zd\n", numObjectsH->numAllMarkers);
+    printf("ChFsiForce::Finalize() number of all particles = %zd\n", numObjectsH->numAllMarkers);
 
     vel_XSPH_Sorted_D.resize(numObjectsH->numAllMarkers);
     vel_vis_Sorted_D.resize(numObjectsH->numAllMarkers);
@@ -64,7 +65,7 @@ void ChFsiForce::SetLinearSolver(ChFsiLinearSolver::SolverType other_solverType)
         case ChFsiLinearSolver::SolverType::GMRES:
             myLinearSolver = chrono_types::make_shared<ChFsiLinearSolverGMRES>();
             break;
-            /// Extend this function with your own linear solvers
+            // Extend this function with your own linear solvers
         default:
 
             myLinearSolver = chrono_types::make_shared<ChFsiLinearSolverBiCGStab>();

@@ -44,11 +44,12 @@ HMMWV_VehicleFull::HMMWV_VehicleFull(const bool fixed,
                                      DrivelineTypeWV drive_type,
                                      BrakeType brake_type,
                                      SteeringTypeWV steering_type,
+                                     bool use_tierod_bodies,
                                      bool rigid_steering_column,
                                      ChContactMethod contact_method,
                                      CollisionType chassis_collision_type)
     : HMMWV_Vehicle("HMMWVfull", contact_method, drive_type) {
-    Create(fixed, brake_type, steering_type, rigid_steering_column, chassis_collision_type);
+    Create(fixed, brake_type, steering_type, use_tierod_bodies, rigid_steering_column, chassis_collision_type);
 }
 
 HMMWV_VehicleFull::HMMWV_VehicleFull(ChSystem* system,
@@ -56,15 +57,17 @@ HMMWV_VehicleFull::HMMWV_VehicleFull(ChSystem* system,
                                      DrivelineTypeWV drive_type,
                                      BrakeType brake_type,
                                      SteeringTypeWV steering_type,
+                                     bool use_tierod_bodies,
                                      bool rigid_steering_column,
                                      CollisionType chassis_collision_type)
     : HMMWV_Vehicle("HMMWVfull", system, drive_type) {
-    Create(fixed, brake_type, steering_type, rigid_steering_column, chassis_collision_type);
+    Create(fixed, brake_type, steering_type, use_tierod_bodies, rigid_steering_column, chassis_collision_type);
 }
 
 void HMMWV_VehicleFull::Create(bool fixed,
                                BrakeType brake_type,
                                SteeringTypeWV steering_type,
+                               bool use_tierod_bodies,
                                bool rigid_steering_column,
                                CollisionType chassis_collision_type) {
     // Create the chassis subsystem
@@ -89,8 +92,8 @@ void HMMWV_VehicleFull::Create(bool fixed,
     m_axles[0] = chrono_types::make_shared<ChAxle>();
     m_axles[1] = chrono_types::make_shared<ChAxle>();
 
-    m_axles[0]->m_suspension = chrono_types::make_shared<HMMWV_DoubleWishboneFront>("FrontSusp");
-    m_axles[1]->m_suspension = chrono_types::make_shared<HMMWV_DoubleWishboneRear>("RearSusp");
+    m_axles[0]->m_suspension = chrono_types::make_shared<HMMWV_DoubleWishboneFront>("FrontSusp", use_tierod_bodies);
+    m_axles[1]->m_suspension = chrono_types::make_shared<HMMWV_DoubleWishboneRear>("RearSusp", use_tierod_bodies);
 
     m_axles[0]->m_wheels.resize(2);
     m_axles[0]->m_wheels[0] = chrono_types::make_shared<HMMWV_Wheel>("Wheel_FL");

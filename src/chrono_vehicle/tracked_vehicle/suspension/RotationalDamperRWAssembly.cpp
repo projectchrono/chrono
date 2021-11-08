@@ -66,11 +66,11 @@ void RotationalDamperRWAssembly::Create(const rapidjson::Document& d) {
     assert(d.HasMember("Torsional Spring"));
     assert(d["Torsional Spring"].IsObject());
 
-    ////double torsion_a0 = d["Torsional Spring"]["Free Angle"].GetDouble();
+    double torsion_a0 = d["Torsional Spring"]["Free Angle"].GetDouble();
     double torsion_k = d["Torsional Spring"]["Spring Constant"].GetDouble();
     double torsion_c = d["Torsional Spring"]["Damping Coefficient"].GetDouble();
     double torsion_t = d["Torsional Spring"]["Preload"].GetDouble();
-    m_spring_torqueCB = chrono_types::make_shared<LinearSpringDamperActuatorTorque>(torsion_k, torsion_c, torsion_t);
+    m_spring_torqueCB = chrono_types::make_shared<LinearSpringDamperActuatorTorque>(torsion_k, torsion_c, torsion_t, torsion_a0);
 
     // Read linear shock data
     assert(d.HasMember("Damper"));

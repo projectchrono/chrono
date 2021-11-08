@@ -18,19 +18,18 @@
 #include "chrono/fea/ChContactSurfaceMesh.h"
 #include "chrono/fea/ChContactSurfaceNodeCloud.h"
 #include "chrono/fea/ChElementCableANCF.h"
-#include "chrono/fea/ChElementBeamANCF.h"
+#include "chrono/fea/ChElementBeamANCF_3243.h"
+#include "chrono/fea/ChElementBeamANCF_3333.h"
 #include "chrono/fea/ChElementBeamEuler.h"
+#include "chrono/fea/ChElementBeamTaperedTimoshenko.h"
+#include "chrono/fea/ChElementBeamTaperedTimoshenkoFPM.h"
 #include "chrono/fea/ChElementBeamIGA.h"
-#include "chrono/fea/ChElementBrick.h"
-#include "chrono/fea/ChElementBrick_9.h"
-#include "chrono/fea/ChElementHexa_20.h"
-#include "chrono/fea/ChElementHexa_8.h"
 #include "chrono/fea/ChElementShell.h"
 #include "chrono/fea/ChElementShellReissner4.h"
 #include "chrono/fea/ChElementShellBST.h"
-#include "chrono/fea/ChElementTetra_10.h"
-#include "chrono/fea/ChElementTetra_4.h"
-#include "chrono/fea/ChFaceTetra_4.h"
+#include "chrono/fea/ChElementTetraCorot_4.h"
+#include "chrono/fea/ChTetrahedronFace.h"
+#include "chrono/fea/ChHexahedronFace.h"
 #include "chrono/fea/ChVisualizationFEAmesh.h"
 
 namespace chrono {
@@ -51,7 +50,7 @@ ChVisualizationFEAmesh::ChVisualizationFEAmesh(ChMesh& mymesh) {
     symbols_thickness = 0.002;
 
     wireframe = false;
-	backface_cull = false;
+    backface_cull = false;
 
     zbuffer_hide = true;
 
@@ -119,19 +118,19 @@ double ChVisualizationFEAmesh::ComputeScalarOutput(std::shared_ptr<ChNodeFEAxyz>
         case E_PLOT_NODE_ACCEL_Z:
             return mnode->GetPos_dtdt().z();
         case E_PLOT_ELEM_STRAIN_VONMISES:
-            if (auto mytetra = std::dynamic_pointer_cast<ChElementTetra_4>(melement)) {
+            if (auto mytetra = std::dynamic_pointer_cast<ChElementTetraCorot_4>(melement)) {
                 return mytetra->GetStrain().GetEquivalentVonMises();
             }
         case E_PLOT_ELEM_STRESS_VONMISES:
-            if (auto mytetra = std::dynamic_pointer_cast<ChElementTetra_4>(melement)) {
+            if (auto mytetra = std::dynamic_pointer_cast<ChElementTetraCorot_4>(melement)) {
                 return mytetra->GetStress().GetEquivalentVonMises();
             }
         case E_PLOT_ELEM_STRAIN_HYDROSTATIC:
-            if (auto mytetra = std::dynamic_pointer_cast<ChElementTetra_4>(melement)) {
+            if (auto mytetra = std::dynamic_pointer_cast<ChElementTetraCorot_4>(melement)) {
                 return mytetra->GetStrain().GetEquivalentMeanHydrostatic();
             }
         case E_PLOT_ELEM_STRESS_HYDROSTATIC:
-            if (auto mytetra = std::dynamic_pointer_cast<ChElementTetra_4>(melement)) {
+            if (auto mytetra = std::dynamic_pointer_cast<ChElementTetraCorot_4>(melement)) {
                 return mytetra->GetStress().GetEquivalentMeanHydrostatic();
             }
         default:
@@ -179,9 +178,9 @@ void TriangleNormalsCompute(ChVector<int> norm_indexes,
                             std::vector<ChVector<>>& vertexes,
                             std::vector<ChVector<>>& normals,
                             std::vector<int>& accumul) {
-    ChVector<> tnorm =
-        Vcross(vertexes[vert_indexes.y()] - vertexes[vert_indexes.x()], vertexes[vert_indexes.z()] - vertexes[vert_indexes.x()])
-            .GetNormalized(); 
+    ChVector<> tnorm = Vcross(vertexes[vert_indexes.y()] - vertexes[vert_indexes.x()],
+                              vertexes[vert_indexes.z()] - vertexes[vert_indexes.x()])
+                           .GetNormalized();
     normals[norm_indexes.x()] += tnorm;
     normals[norm_indexes.y()] += tnorm;
     normals[norm_indexes.z()] += tnorm;
@@ -324,66 +323,67 @@ void ChVisualizationFEAmesh::Update(ChPhysicsItem* updater, const ChCoordsys<>& 
     //
     if (this->fem_data_type != E_PLOT_NONE && this->fem_data_type != E_PLOT_LOADSURFACES &&
         this->fem_data_type != E_PLOT_CONTACTSURFACES) {
-        for (unsigned int iel = 0; iel < this->FEMmesh->GetNelements(); ++iel) {
-            if (std::dynamic_pointer_cast<ChElementTetra_4>(this->FEMmesh->GetElement(iel))) {
-                // ELEMENT IS A TETRAHEDRON
+        for (unsigned int iel = 0; iel < FEMmesh->GetNelements(); ++iel) {
+            if (std::dynamic_pointer_cast<ChElementTetrahedron>(FEMmesh->GetElement(iel)) ||
+                std::dynamic_pointer_cast<ChElementTetraCorot_4_P>(FEMmesh->GetElement(iel))) {
                 n_verts += 4;
                 n_vcols += 4;
                 n_vnorms += 4;     // flat faces
                 n_triangles += 4;  // n. triangle faces
-            } else if (std::dynamic_pointer_cast<ChElementTetra_4_P>(this->FEMmesh->GetElement(iel))) {
-                // ELEMENT IS A TETRAHEDRON for scalar field
-                n_verts += 4;
-                n_vcols += 4;
-                n_vnorms += 4;     // flat faces
-                n_triangles += 4;  // n. triangle faces
-            } else if (std::dynamic_pointer_cast<ChElementHexa_8>(FEMmesh->GetElement(iel)) ||
-                       std::dynamic_pointer_cast<ChElementBrick>(FEMmesh->GetElement(iel)) ||
-                       std::dynamic_pointer_cast<ChElementBrick_9>(FEMmesh->GetElement(iel))) {
-                // ELEMENT IS A HEXAHEDRON
+            } else if (std::dynamic_pointer_cast<ChElementHexahedron>(FEMmesh->GetElement(iel))) {
                 n_verts += 8;
                 n_vcols += 8;
                 n_vnorms += 24;
                 n_triangles += 12;  // n. triangle faces
-            } else if (auto mybeam = std::dynamic_pointer_cast<ChElementBeam>(this->FEMmesh->GetElement(iel))) {
-                // ELEMENT IS A BEAM
-
+            } else if (auto mybeam = std::dynamic_pointer_cast<ChElementBeam>(FEMmesh->GetElement(iel))) {
                 // ELEMENT HAS A ChBeamSectionShape
                 std::shared_ptr<ChBeamSectionShape> sectionshape;
                 if (auto mybeameuler = std::dynamic_pointer_cast<ChElementBeamEuler>(mybeam)) {
                     sectionshape = mybeameuler->GetSection()->GetDrawShape();
-                }  else if (auto mycableancf = std::dynamic_pointer_cast<ChElementCableANCF>(mybeam)) {
+                } else if (auto mycableancf = std::dynamic_pointer_cast<ChElementCableANCF>(mybeam)) {
                     sectionshape = mycableancf->GetSection()->GetDrawShape();
                 } else if (auto mybeamiga = std::dynamic_pointer_cast<ChElementBeamIGA>(mybeam)) {
                     sectionshape = mybeamiga->GetSection()->GetDrawShape();
-                } else if (auto mybeamancf = std::dynamic_pointer_cast<ChElementBeamANCF>(mybeam)) {
-                    sectionshape = chrono_types::make_shared<ChBeamSectionShapeRectangular>(mybeamancf->GetThicknessY(), mybeamancf->GetThicknessZ()); // TO DO use ChBeamSection also in ANCF beam
+                } else if (auto mybeamtimoshenko = std::dynamic_pointer_cast<ChElementBeamTaperedTimoshenko>(mybeam)) {
+                    sectionshape = mybeamtimoshenko->GetTaperedSection()->GetSectionA()->GetDrawShape();
+                } else if (auto mybeamtimoshenkofpm =
+                               std::dynamic_pointer_cast<ChElementBeamTaperedTimoshenkoFPM>(mybeam)) {
+                    sectionshape = mybeamtimoshenkofpm->GetTaperedSection()->GetSectionA()->GetDrawShape();
+                } else if (auto mybeamancf = std::dynamic_pointer_cast<ChElementBeamANCF_3243>(mybeam)) {
+                    sectionshape = chrono_types::make_shared<ChBeamSectionShapeRectangular>(
+                        mybeamancf->GetThicknessY(),
+                        mybeamancf->GetThicknessZ());  // TO DO use ChBeamSection also in ANCF beam
+                } else if (auto mybeamancf = std::dynamic_pointer_cast<ChElementBeamANCF_3333>(mybeam)) {
+                    sectionshape = chrono_types::make_shared<ChBeamSectionShapeRectangular>(
+                        mybeamancf->GetThicknessY(),
+                        mybeamancf->GetThicknessZ());  // TO DO use ChBeamSection also in ANCF beam
                 }
                 if (sectionshape) {
                     for (int il = 0; il < sectionshape->GetNofLines(); ++il) {
-                        n_verts  += sectionshape->GetNofPoints(il) * beam_resolution;
-                        n_vcols  += sectionshape->GetNofPoints(il) * beam_resolution;
+                        n_verts += sectionshape->GetNofPoints(il) * beam_resolution;
+                        n_vcols += sectionshape->GetNofPoints(il) * beam_resolution;
                         n_vnorms += sectionshape->GetNofPoints(il) * beam_resolution;
                         n_triangles += 2 * (sectionshape->GetNofPoints(il) - 1) * (beam_resolution - 1);
                     }
                 }
 
-                
-            } else if (auto mshell=std::dynamic_pointer_cast<ChElementShell>(this->FEMmesh->GetElement(iel))) {
+            } else if (auto mshell = std::dynamic_pointer_cast<ChElementShell>(FEMmesh->GetElement(iel))) {
                 // ELEMENT IS A SHELL
-				if (!mshell->IsTriangleShell()) {
-					n_verts += shell_resolution * shell_resolution;
-					n_vcols += shell_resolution * shell_resolution;
-					n_vnorms += shell_resolution * shell_resolution;
-					n_triangles += 2 * (shell_resolution - 1) * (shell_resolution - 1);  // n. triangle faces
-				} else {
-					for (int idp = 1; idp <= shell_resolution; ++idp) {
-						n_verts += idp;
-						n_vcols += idp;
-						n_vnorms += idp;
-					}
-					n_triangles += 2*(shell_resolution - 1) * (shell_resolution - 1);  // n. triangle faces (double as twin-triangles for back lightning)
-				}
+                if (!mshell->IsTriangleShell()) {
+                    n_verts += shell_resolution * shell_resolution;
+                    n_vcols += shell_resolution * shell_resolution;
+                    n_vnorms += shell_resolution * shell_resolution;
+                    n_triangles += 2 * (shell_resolution - 1) * (shell_resolution - 1);  // n. triangle faces
+                } else {
+                    for (int idp = 1; idp <= shell_resolution; ++idp) {
+                        n_verts += idp;
+                        n_vcols += idp;
+                        n_vnorms += idp;
+                    }
+                    n_triangles +=
+                        2 * (shell_resolution - 1) *
+                        (shell_resolution - 1);  // n. triangle faces (double as twin-triangles for back lightning)
+                }
             }
 
             //***TO DO*** other types of elements...
@@ -397,13 +397,13 @@ void ChVisualizationFEAmesh::Update(ChPhysicsItem* updater, const ChCoordsys<>& 
             std::shared_ptr<ChMeshSurface> msurface = this->FEMmesh->GetMeshSurface(isu);
             for (unsigned int ifa = 0; ifa < msurface->GetFacesList().size(); ++ifa) {
                 std::shared_ptr<ChLoadableUV> mface = msurface->GetFacesList()[ifa];
-                if (std::dynamic_pointer_cast<ChFaceTetra_4>(mface)) {
+                if (std::dynamic_pointer_cast<ChTetrahedronFace>(mface)) {
                     // FACE ELEMENT IS A TETRAHEDRON FACE
                     n_verts += 3;
                     n_vcols += 3;
-                    n_vnorms += 1;     // flat face
-                    n_triangles += 1;  // n. triangle faces
-                } else if (std::dynamic_pointer_cast<ChElementTetra_4_P>(mface)) {
+                    n_vnorms += 1;                                                       // flat face
+                    n_triangles += 1;                                                    // n. triangle faces
+                } else if (std::dynamic_pointer_cast<ChElementTetraCorot_4_P>(mface)) {  //// RADU ?!?!?
                     // FACE ELEMENT IS A SHELL
                     n_verts += shell_resolution * shell_resolution;
                     n_vcols += shell_resolution * shell_resolution;
@@ -467,11 +467,11 @@ void ChVisualizationFEAmesh::Update(ChPhysicsItem* updater, const ChCoordsys<>& 
         for (unsigned int iel = 0; iel < this->FEMmesh->GetNelements(); ++iel) {
             // ------------ELEMENT IS A TETRAHEDRON 4 NODES?
 
-            if (auto mytetra = std::dynamic_pointer_cast<ChElementTetra_4>(this->FEMmesh->GetElement(iel))) {
-                auto node0 = std::dynamic_pointer_cast<ChNodeFEAxyz>(mytetra->GetNodeN(0));
-                auto node1 = std::dynamic_pointer_cast<ChNodeFEAxyz>(mytetra->GetNodeN(1));
-                auto node2 = std::dynamic_pointer_cast<ChNodeFEAxyz>(mytetra->GetNodeN(2));
-                auto node3 = std::dynamic_pointer_cast<ChNodeFEAxyz>(mytetra->GetNodeN(3));
+            if (auto mytetra = std::dynamic_pointer_cast<ChElementTetrahedron>(this->FEMmesh->GetElement(iel))) {
+                auto node0 = std::dynamic_pointer_cast<ChNodeFEAxyz>(mytetra->GetTetrahedronNode(0));
+                auto node1 = std::dynamic_pointer_cast<ChNodeFEAxyz>(mytetra->GetTetrahedronNode(1));
+                auto node2 = std::dynamic_pointer_cast<ChNodeFEAxyz>(mytetra->GetTetrahedronNode(2));
+                auto node3 = std::dynamic_pointer_cast<ChNodeFEAxyz>(mytetra->GetTetrahedronNode(3));
 
                 unsigned int ivert_el = i_verts;
                 unsigned int inorm_el = i_vnorms;
@@ -542,7 +542,7 @@ void ChVisualizationFEAmesh::Update(ChPhysicsItem* updater, const ChCoordsys<>& 
 
             // ------------ELEMENT IS A TETRAHEDRON 4 NODES -for SCALAR field- ?
 
-            if (auto mytetra = std::dynamic_pointer_cast<ChElementTetra_4_P>(this->FEMmesh->GetElement(iel))) {
+            if (auto mytetra = std::dynamic_pointer_cast<ChElementTetraCorot_4_P>(this->FEMmesh->GetElement(iel))) {
                 auto node0 = std::dynamic_pointer_cast<ChNodeFEAxyzP>(mytetra->GetNodeN(0));
                 auto node1 = std::dynamic_pointer_cast<ChNodeFEAxyzP>(mytetra->GetNodeN(1));
                 auto node2 = std::dynamic_pointer_cast<ChNodeFEAxyzP>(mytetra->GetNodeN(2));
@@ -610,31 +610,35 @@ void ChVisualizationFEAmesh::Update(ChPhysicsItem* updater, const ChCoordsys<>& 
             }
 
             // ------------ELEMENT IS A HEXAHEDRON 8 NODES?
-            if (std::dynamic_pointer_cast<ChElementHexa_8>(FEMmesh->GetElement(iel)) ||
-                std::dynamic_pointer_cast<ChElementBrick>(FEMmesh->GetElement(iel)) ||
-                std::dynamic_pointer_cast<ChElementBrick_9>(FEMmesh->GetElement(iel))) {
+            if (std::dynamic_pointer_cast<ChElementHexahedron>(FEMmesh->GetElement(iel))) {
                 UpdateBuffers_Hex(FEMmesh->GetElement(iel), *trianglemesh, i_verts, i_vnorms, i_vcols, i_triindex);
             }
 
             // ------------ELEMENT IS A BEAM with the new ChBeamSectionShape?
             if (auto mybeam = std::dynamic_pointer_cast<ChElementBeam>(this->FEMmesh->GetElement(iel))) {
-
-
                 std::shared_ptr<ChBeamSectionShape> sectionshape;
                 if (auto mybeameuler = std::dynamic_pointer_cast<ChElementBeamEuler>(mybeam)) {
                     sectionshape = mybeameuler->GetSection()->GetDrawShape();
-                }  else if (auto mycableancf = std::dynamic_pointer_cast<ChElementCableANCF>(mybeam)) {
+                } else if (auto mycableancf = std::dynamic_pointer_cast<ChElementCableANCF>(mybeam)) {
                     sectionshape = mycableancf->GetSection()->GetDrawShape();
                 } else if (auto mybeamiga = std::dynamic_pointer_cast<ChElementBeamIGA>(mybeam)) {
                     sectionshape = mybeamiga->GetSection()->GetDrawShape();
-                } else if (auto mybeamancf = std::dynamic_pointer_cast<ChElementBeamANCF>(mybeam)) {
-                    sectionshape = chrono_types::make_shared<ChBeamSectionShapeRectangular>(mybeamancf->GetThicknessY(), mybeamancf->GetThicknessZ());
+                } else if (auto mybeamtimoshenko = std::dynamic_pointer_cast<ChElementBeamTaperedTimoshenko>(mybeam)) {
+                    sectionshape = mybeamtimoshenko->GetTaperedSection()->GetSectionA()->GetDrawShape();
+                } else if (auto mybeamtimoshenkofpm =
+                               std::dynamic_pointer_cast<ChElementBeamTaperedTimoshenkoFPM>(mybeam)) {
+                    sectionshape = mybeamtimoshenkofpm->GetTaperedSection()->GetSectionA()->GetDrawShape();
+                } else if (auto mybeamancf = std::dynamic_pointer_cast<ChElementBeamANCF_3243>(mybeam)) {
+                    sectionshape = chrono_types::make_shared<ChBeamSectionShapeRectangular>(
+                        mybeamancf->GetThicknessY(), mybeamancf->GetThicknessZ());
+                } else if (auto mybeamancf = std::dynamic_pointer_cast<ChElementBeamANCF_3333>(mybeam)) {
+                    sectionshape = chrono_types::make_shared<ChBeamSectionShapeRectangular>(
+                        mybeamancf->GetThicknessY(), mybeamancf->GetThicknessZ());
                 }
 
                 if (sectionshape) {
-
                     unsigned int ivert_el = i_verts;
-                    int n_section_pts =0;
+                    int n_section_pts = 0;
                     for (int i = 0; i < sectionshape->GetNofLines(); ++i)
                         n_section_pts += sectionshape->GetNofPoints(i);
 
@@ -644,7 +648,7 @@ void ChVisualizationFEAmesh::Update(ChPhysicsItem* updater, const ChCoordsys<>& 
                         ChVector<> P;
                         ChQuaternion<> msectionrot;
                         mybeam->EvaluateSectionFrame(eta, P,
-                                                        msectionrot);  // compute abs. pos and rot of section plane
+                                                     msectionrot);  // compute abs. pos and rot of section plane
 
                         ChVector<> vresult;
                         ChVector<> vresultB;
@@ -690,11 +694,12 @@ void ChVisualizationFEAmesh::Update(ChPhysicsItem* updater, const ChCoordsys<>& 
                         int subline_stride = 0;
 
                         for (int il = 0; il < sectionshape->GetNofLines(); ++il) {
-                                
-                            std::vector<ChVector<>> msubline_pts(sectionshape->GetNofPoints(il)); // suboptimal temp - better store&transform in place
-                            std::vector<ChVector<>> msubline_normals(sectionshape->GetNofPoints(il)); // suboptimal temp - better store&transform in place
+                            std::vector<ChVector<>> msubline_pts(
+                                sectionshape->GetNofPoints(il));  // suboptimal temp - better store&transform in place
+                            std::vector<ChVector<>> msubline_normals(
+                                sectionshape->GetNofPoints(il));  // suboptimal temp - better store&transform in place
 
-                            // compute the point yz coords and yz normals in sectional frame 
+                            // compute the point yz coords and yz normals in sectional frame
                             sectionshape->GetPoints(il, msubline_pts);
                             sectionshape->GetNormals(il, msubline_normals);
 
@@ -706,50 +711,49 @@ void ChVisualizationFEAmesh::Update(ChPhysicsItem* updater, const ChCoordsys<>& 
                                 ++i_verts;
                                 trianglemesh->getCoordsColors()[i_vcols] = mcol;
                                 ++i_vcols;
-							    if (this->smooth_faces) {
-								    trianglemesh->getCoordsNormals()[i_vnorms] = Rn;
-								    ++i_vnorms;
-							    }
+                                if (this->smooth_faces) {
+                                    trianglemesh->getCoordsNormals()[i_vnorms] = Rn;
+                                    ++i_vnorms;
+                                }
                             }
                             // store face connectivity
                             if (in > 0) {
                                 ChVector<int> ivert_offset(ivert_el, ivert_el, ivert_el);
-                                ChVector<int> islice_offset((in - 1) * n_section_pts, 
-                                                            (in - 1) * n_section_pts,
+                                ChVector<int> islice_offset((in - 1) * n_section_pts, (in - 1) * n_section_pts,
                                                             (in - 1) * n_section_pts);
-                                for (size_t is = 0; is < msubline_pts.size()-1; ++is) {
+                                for (size_t is = 0; is < msubline_pts.size() - 1; ++is) {
                                     int ipa = int(is) + subline_stride;
-                                    int ipb = int(is + 1) + subline_stride;// % n_section_pts; if wrapped - not needed here;
+                                    int ipb =
+                                        int(is + 1) + subline_stride;  // % n_section_pts; if wrapped - not needed here;
                                     int ipaa = ipa + n_section_pts;
                                     int ipbb = ipb + n_section_pts;
 
                                     trianglemesh->getIndicesVertexes()[i_triindex] =
                                         ChVector<int>(ipa, ipbb, ipaa) + islice_offset + ivert_offset;
-								    if (this->smooth_faces) {
-									    trianglemesh->getIndicesNormals()[i_triindex] =
-										    ChVector<int>(ipa, ipbb, ipaa) + islice_offset + ivert_offset;
-								    }
+                                    if (this->smooth_faces) {
+                                        trianglemesh->getIndicesNormals()[i_triindex] =
+                                            ChVector<int>(ipa, ipbb, ipaa) + islice_offset + ivert_offset;
+                                    }
                                     ++i_triindex;
 
                                     trianglemesh->getIndicesVertexes()[i_triindex] =
                                         ChVector<int>(ipa, ipb, ipbb) + islice_offset + ivert_offset;
-								    if (this->smooth_faces) {
-									    trianglemesh->getIndicesNormals()[i_triindex] =
-										    ChVector<int>(ipa, ipb, ipbb) + islice_offset + ivert_offset;
-								    }
+                                    if (this->smooth_faces) {
+                                        trianglemesh->getIndicesNormals()[i_triindex] =
+                                            ChVector<int>(ipa, ipb, ipbb) + islice_offset + ivert_offset;
+                                    }
                                     ++i_triindex;
                                 }
-                            } // end if not first section
+                            }  // end if not first section
 
                             subline_stride += int(msubline_pts.size());
 
-                        } // end sublines loop
+                        }  // end sublines loop
 
                     }  // end sections loop
 
                     // normals are already computed in the best way
                     need_automatic_smoothing = false;
-
                 }
             }
 
@@ -758,182 +762,161 @@ void ChVisualizationFEAmesh::Update(ChPhysicsItem* updater, const ChCoordsys<>& 
                 unsigned int ivert_el = i_verts;
                 unsigned int inorm_el = i_vnorms;
 
-				if (!myshell->IsTriangleShell()) {
+                if (!myshell->IsTriangleShell()) {
+                    for (int iu = 0; iu < shell_resolution; ++iu)
+                        for (int iv = 0; iv < shell_resolution; ++iv) {
+                            double u = -1.0 + (2.0 * iu / (shell_resolution - 1));
+                            double v = -1.0 + (2.0 * iv / (shell_resolution - 1));
 
-					for (int iu = 0; iu < shell_resolution; ++iu)
-						for (int iv = 0; iv < shell_resolution; ++iv) {
-							double u = -1.0 + (2.0 * iu / (shell_resolution - 1));
-							double v = -1.0 + (2.0 * iv / (shell_resolution - 1));
+                            ChVector<> P;
+                            myshell->EvaluateSectionPoint(u, v, P);  // compute abs. pos and rot of section plane
 
-							ChVector<> P;
-							myshell->EvaluateSectionPoint(u, v, P);  // compute abs. pos and rot of section plane
+                            ChVector<float> mcol(1, 1, 1);
+                            /*
+                            ChVector<> vresult;
+                            ChVector<> vresultB;
+                            double sresult = 0;
+                            switch(this->fem_data_type)
+                            {
+                                case E_PLOT_ELEM_SHELL_blabla:
+                                    myshell->EvaluateSectionForceTorque(eta, vresult, vresultB);
+                                    sresult = vresultB.x();
+                                    break;
 
-							ChVector<float> mcol(1, 1, 1);
-							/*
-							ChVector<> vresult;
-							ChVector<> vresultB;
-							double sresult = 0;
-							switch(this->fem_data_type)
-							{
-								case E_PLOT_ELEM_SHELL_blabla:
-									myshell->EvaluateSectionForceTorque(eta, vresult, vresultB);
-									sresult = vresultB.x();
-									break;
+                            }
+                            ChVector<float> mcol = ComputeFalseColor(sresult);
+                            */
 
-							}
-							ChVector<float> mcol = ComputeFalseColor(sresult);
-							*/
+                            trianglemesh->getCoordsVertices()[i_verts] = P;
+                            ++i_verts;
 
-							trianglemesh->getCoordsVertices()[i_verts] = P;
-							++i_verts;
+                            trianglemesh->getCoordsColors()[i_vcols] = mcol;
+                            ++i_vcols;
 
-							trianglemesh->getCoordsColors()[i_vcols] = mcol;
-							++i_vcols;
+                            ++i_vnorms;
 
-							++i_vnorms;
+                            if (iu > 0 && iv > 0) {
+                                ChVector<int> ivert_offset(ivert_el, ivert_el, ivert_el);
 
-							if (iu > 0 && iv > 0) {
-								ChVector<int> ivert_offset(ivert_el, ivert_el, ivert_el);
+                                trianglemesh->getIndicesVertexes()[i_triindex] =
+                                    ChVector<int>(iu * shell_resolution + iv, (iu - 1) * shell_resolution + iv,
+                                                  iu * shell_resolution + iv - 1) +
+                                    ivert_offset;
+                                ++i_triindex;
+                                trianglemesh->getIndicesVertexes()[i_triindex] =
+                                    ChVector<int>(iu * shell_resolution + iv - 1, (iu - 1) * shell_resolution + iv,
+                                                  (iu - 1) * shell_resolution + iv - 1) +
+                                    ivert_offset;
+                                ++i_triindex;
 
-								trianglemesh->getIndicesVertexes()[i_triindex] =
-									ChVector<int>(iu * shell_resolution + iv, (iu - 1) * shell_resolution + iv,
-										iu * shell_resolution + iv - 1) +
-									ivert_offset;
-								++i_triindex;
-								trianglemesh->getIndicesVertexes()[i_triindex] =
-									ChVector<int>(iu * shell_resolution + iv - 1, (iu - 1) * shell_resolution + iv,
-									(iu - 1) * shell_resolution + iv - 1) +
-									ivert_offset;
-								++i_triindex;
+                                if (this->smooth_faces) {
+                                    ChVector<int> inorm_offset = ChVector<int>(inorm_el, inorm_el, inorm_el);
+                                    trianglemesh->getIndicesNormals()[i_triindex - 2] =
+                                        ChVector<int>(iu * shell_resolution + iv, (iu - 1) * shell_resolution + iv,
+                                                      iu * shell_resolution + iv - 1) +
+                                        inorm_offset;
+                                    trianglemesh->getIndicesNormals()[i_triindex - 1] =
+                                        ChVector<int>(iu * shell_resolution + iv - 1, (iu - 1) * shell_resolution + iv,
+                                                      (iu - 1) * shell_resolution + iv - 1) +
+                                        inorm_offset;
+                                }
+                            }
+                        }
+                }
 
-								if (this->smooth_faces) {
-									ChVector<int> inorm_offset = ChVector<int>(inorm_el, inorm_el, inorm_el);
-									trianglemesh->getIndicesNormals()[i_triindex - 2] =
-										ChVector<int>(iu * shell_resolution + iv, (iu - 1) * shell_resolution + iv,
-											iu * shell_resolution + iv - 1) +
-										inorm_offset;
-									trianglemesh->getIndicesNormals()[i_triindex - 1] =
-										ChVector<int>(iu * shell_resolution + iv - 1, (iu - 1) * shell_resolution + iv,
-										(iu - 1) * shell_resolution + iv - 1) +
-										inorm_offset;
-								}
-							}
-						}
-				}
-				
-				
-				if (myshell->IsTriangleShell()) {
+                if (myshell->IsTriangleShell()) {
+                    need_automatic_smoothing = false;
 
-					need_automatic_smoothing = false; 
-					
-					int triangle_pt = 0;
-					for (int iu = 0; iu < shell_resolution; ++iu) {
-						for (int iv = 0; iv + iu < shell_resolution; ++iv) {
-							double u = ((double)iu / (double)(shell_resolution - 1));
-							double v = ((double)iv / (double)(shell_resolution - 1));
-							ChVector<> P;
-							myshell->EvaluateSectionPoint(u, v, P);  // compute abs. pos and rot of section plane
+                    int triangle_pt = 0;
+                    for (int iu = 0; iu < shell_resolution; ++iu) {
+                        for (int iv = 0; iv + iu < shell_resolution; ++iv) {
+                            double u = ((double)iu / (double)(shell_resolution - 1));
+                            double v = ((double)iv / (double)(shell_resolution - 1));
+                            ChVector<> P;
+                            myshell->EvaluateSectionPoint(u, v, P);  // compute abs. pos and rot of section plane
 
-							ChVector<float> mcol(1, 1, 1);
-							/*
-							ChVector<> vresult;
-							ChVector<> vresultB;
-							double sresult = 0;
-							switch(this->fem_data_type)
-							{
-								case E_PLOT_ELEM_SHELL_blabla:
-									myshell->EvaluateSectionForceTorque(eta, vresult, vresultB);
-									sresult = vresultB.x();
-									break;
+                            ChVector<float> mcol(1, 1, 1);
+                            /*
+                            ChVector<> vresult;
+                            ChVector<> vresultB;
+                            double sresult = 0;
+                            switch(this->fem_data_type)
+                            {
+                                case E_PLOT_ELEM_SHELL_blabla:
+                                    myshell->EvaluateSectionForceTorque(eta, vresult, vresultB);
+                                    sresult = vresultB.x();
+                                    break;
 
-							}
-							ChVector<float> mcol = ComputeFalseColor(sresult);
-							*/
+                            }
+                            ChVector<float> mcol = ComputeFalseColor(sresult);
+                            */
 
-							trianglemesh->getCoordsVertices()[i_verts] = P;
-							++i_verts;
+                            trianglemesh->getCoordsVertices()[i_verts] = P;
+                            ++i_verts;
 
-							trianglemesh->getCoordsColors()[i_vcols] = mcol;
-							++i_vcols;
+                            trianglemesh->getCoordsColors()[i_vcols] = mcol;
+                            ++i_vcols;
 
-							++i_vnorms;
+                            ++i_vnorms;
 
-							if (iu < shell_resolution-1) {
-								ChVector<int> ivert_offset(ivert_el, ivert_el, ivert_el);
-								ChVector<int> inorm_offset(inorm_el, inorm_el, inorm_el);
+                            if (iu < shell_resolution - 1) {
+                                ChVector<int> ivert_offset(ivert_el, ivert_el, ivert_el);
+                                ChVector<int> inorm_offset(inorm_el, inorm_el, inorm_el);
 
-								if (iv>0) {
-									trianglemesh->getIndicesVertexes()[i_triindex] =
-										ChVector<int>(
-											triangle_pt,
-											triangle_pt - 1,
-											triangle_pt + shell_resolution - iu - 1
-											) +
-										ivert_offset;
-									trianglemesh->getIndicesVertexes()[i_triindex+1] =
-										ChVector<int>(
-											triangle_pt - 1,
-											triangle_pt,
-											triangle_pt + shell_resolution - iu - 1
-											) +
-										ivert_offset;
+                                if (iv > 0) {
+                                    trianglemesh->getIndicesVertexes()[i_triindex] =
+                                        ChVector<int>(triangle_pt, triangle_pt - 1,
+                                                      triangle_pt + shell_resolution - iu - 1) +
+                                        ivert_offset;
+                                    trianglemesh->getIndicesVertexes()[i_triindex + 1] =
+                                        ChVector<int>(triangle_pt - 1, triangle_pt,
+                                                      triangle_pt + shell_resolution - iu - 1) +
+                                        ivert_offset;
 
-									if (this->smooth_faces) {
-										trianglemesh->getIndicesNormals()[i_triindex] =
-											ChVector<int>(
-												triangle_pt,
-												triangle_pt - 1,
-												triangle_pt + shell_resolution - iu - 1) +
-											inorm_offset;
-										trianglemesh->getIndicesNormals()[i_triindex+1] =
-											ChVector<int>(
-												triangle_pt - 1,
-												triangle_pt,
-												triangle_pt + shell_resolution - iu - 1) +
-											inorm_offset;
-									}
-									++i_triindex;
-									++i_triindex;
-								}
+                                    if (this->smooth_faces) {
+                                        trianglemesh->getIndicesNormals()[i_triindex] =
+                                            ChVector<int>(triangle_pt, triangle_pt - 1,
+                                                          triangle_pt + shell_resolution - iu - 1) +
+                                            inorm_offset;
+                                        trianglemesh->getIndicesNormals()[i_triindex + 1] =
+                                            ChVector<int>(triangle_pt - 1, triangle_pt,
+                                                          triangle_pt + shell_resolution - iu - 1) +
+                                            inorm_offset;
+                                    }
+                                    ++i_triindex;
+                                    ++i_triindex;
+                                }
 
-								if (iv > 1) {
-									trianglemesh->getIndicesVertexes()[i_triindex] =
-										ChVector<int>(
-											triangle_pt - 1,
-											triangle_pt + shell_resolution - iu - 2,
-											triangle_pt + shell_resolution - iu - 1) +
-										ivert_offset;
-									trianglemesh->getIndicesVertexes()[i_triindex+1] =
-										ChVector<int>(
-											triangle_pt - 1,
-											triangle_pt + shell_resolution - iu - 1,
-											triangle_pt + shell_resolution - iu - 2) +
-										ivert_offset;
+                                if (iv > 1) {
+                                    trianglemesh->getIndicesVertexes()[i_triindex] =
+                                        ChVector<int>(triangle_pt - 1, triangle_pt + shell_resolution - iu - 2,
+                                                      triangle_pt + shell_resolution - iu - 1) +
+                                        ivert_offset;
+                                    trianglemesh->getIndicesVertexes()[i_triindex + 1] =
+                                        ChVector<int>(triangle_pt - 1, triangle_pt + shell_resolution - iu - 1,
+                                                      triangle_pt + shell_resolution - iu - 2) +
+                                        ivert_offset;
 
-									if (this->smooth_faces) {
-										trianglemesh->getIndicesNormals()[i_triindex] =
-											ChVector<int>(triangle_pt - 1,
-														  triangle_pt + shell_resolution - iu - 2,
-														  triangle_pt + shell_resolution - iu - 1) +
-											inorm_offset;
-										trianglemesh->getIndicesNormals()[i_triindex+1] =
-											ChVector<int>(triangle_pt - 1,
-														  triangle_pt + shell_resolution - iu - 1,
-														  triangle_pt + shell_resolution - iu - 2) +
-											inorm_offset;
-									}
-									++i_triindex;
-									++i_triindex;
-								}
+                                    if (this->smooth_faces) {
+                                        trianglemesh->getIndicesNormals()[i_triindex] =
+                                            ChVector<int>(triangle_pt - 1, triangle_pt + shell_resolution - iu - 2,
+                                                          triangle_pt + shell_resolution - iu - 1) +
+                                            inorm_offset;
+                                        trianglemesh->getIndicesNormals()[i_triindex + 1] =
+                                            ChVector<int>(triangle_pt - 1, triangle_pt + shell_resolution - iu - 1,
+                                                          triangle_pt + shell_resolution - iu - 2) +
+                                            inorm_offset;
+                                    }
+                                    ++i_triindex;
+                                    ++i_triindex;
+                                }
+                            }
+                            ++triangle_pt;
 
-							}
-							++triangle_pt;
+                        }  // end V loop on triangle tesselated points
+                    }      // end U loop on triangle tesselated points
 
-						} // end V loop on triangle tesselated points
-					} // end U loop on triangle tesselated points
-
-				} // end if triangular shell
-
+                }  // end if triangular shell
             }
 
             // ------------***TO DO*** other types of elements...
@@ -949,7 +932,7 @@ void ChVisualizationFEAmesh::Update(ChPhysicsItem* updater, const ChCoordsys<>& 
             for (unsigned int ifa = 0; ifa < msurface->GetFacesList().size(); ++ifa) {
                 std::shared_ptr<ChLoadableUV> mface = msurface->GetFacesList()[ifa];
                 // FACE ELEMENT IS A TETRAHEDRON FACE
-                if (auto mfacetetra = std::dynamic_pointer_cast<ChFaceTetra_4>(mface)) {
+                if (auto mfacetetra = std::dynamic_pointer_cast<ChTetrahedronFace>(mface)) {
                     auto node0 = std::static_pointer_cast<ChNodeFEAxyz>(mfacetetra->GetNodeN(0));
                     auto node1 = std::static_pointer_cast<ChNodeFEAxyz>(mfacetetra->GetNodeN(1));
                     auto node2 = std::static_pointer_cast<ChNodeFEAxyz>(mfacetetra->GetNodeN(2));
@@ -996,7 +979,7 @@ void ChVisualizationFEAmesh::Update(ChPhysicsItem* updater, const ChCoordsys<>& 
                 }
 
                 // FACE ELEMENT IS A SHELL
-                if (auto mfacetetra = std::dynamic_pointer_cast<ChElementTetra_4_P>(mface)) {
+                if (auto mfacetetra = std::dynamic_pointer_cast<ChElementTetraCorot_4_P>(mface)) {
                     //***TODO***
                 }
             }
@@ -1062,7 +1045,7 @@ void ChVisualizationFEAmesh::Update(ChPhysicsItem* updater, const ChCoordsys<>& 
 
     // other flags
     mesh_asset->SetWireframe(this->wireframe);
-	mesh_asset->SetBackfaceCull(this->backface_cull);
+    mesh_asset->SetBackfaceCull(this->backface_cull);
     //
     // GLYPHS
     //
@@ -1084,7 +1067,7 @@ void ChVisualizationFEAmesh::Update(ChPhysicsItem* updater, const ChCoordsys<>& 
             } else if (auto mynode3 = std::dynamic_pointer_cast<ChNodeFEAxyzD>(this->FEMmesh->GetNode(inode))) {
                 glyphs_asset->SetGlyphPoint(inode, mynode3->GetPos(), this->symbolscolor);
             } else if (auto mynode4 = std::dynamic_pointer_cast<ChNodeFEAxyzDD>(this->FEMmesh->GetNode(inode))) {
-                glyphs_asset->SetGlyphPoint(inode, mynode4->GetPos(), this->symbolscolor);            
+                glyphs_asset->SetGlyphPoint(inode, mynode4->GetPos(), this->symbolscolor);
             }
         }
     }
@@ -1096,7 +1079,7 @@ void ChVisualizationFEAmesh::Update(ChPhysicsItem* updater, const ChCoordsys<>& 
             }
             // else if (auto mynode = std::dynamic_pointer_cast<ChNodeFEAxyzD>(this->FEMmesh->GetNode(inode))) {
             //	glyphs_asset->SetGlyphVector(inode, mynode->GetPos(), mynode->GetD() * this->symbols_scale,
-            //this->symbolscolor );
+            // this->symbolscolor );
             //}
         }
     }
@@ -1119,7 +1102,7 @@ void ChVisualizationFEAmesh::Update(ChPhysicsItem* updater, const ChCoordsys<>& 
     if (this->fem_glyph == ChVisualizationFEAmesh::E_GLYPH_ELEM_VECT_DP) {
         glyphs_asset->SetDrawMode(ChGlyphs::GLYPH_VECTOR);
         for (unsigned int iel = 0; iel < this->FEMmesh->GetNelements(); ++iel)
-            if (auto myelement = std::dynamic_pointer_cast<ChElementTetra_4_P>(this->FEMmesh->GetElement(iel))) {
+            if (auto myelement = std::dynamic_pointer_cast<ChElementTetraCorot_4_P>(this->FEMmesh->GetElement(iel))) {
                 ChVector<> mvP(myelement->GetPgradient());
                 auto n0 = std::static_pointer_cast<ChNodeFEAxyzP>(myelement->GetNodeN(0));
                 auto n1 = std::static_pointer_cast<ChNodeFEAxyzP>(myelement->GetNodeN(1));
@@ -1134,7 +1117,7 @@ void ChVisualizationFEAmesh::Update(ChPhysicsItem* updater, const ChCoordsys<>& 
         glyphs_asset->SetDrawMode(ChGlyphs::GLYPH_VECTOR);
         int nglyvect = 0;
         for (unsigned int iel = 0; iel < this->FEMmesh->GetNelements(); ++iel)
-            if (auto myelement = std::dynamic_pointer_cast<ChElementTetra_4>(this->FEMmesh->GetElement(iel))) {
+            if (auto myelement = std::dynamic_pointer_cast<ChElementTetraCorot_4>(this->FEMmesh->GetElement(iel))) {
                 ChStrainTensor<> mstrain = myelement->GetStrain();
                 // mstrain.Rotate(myelement->Rotation());
                 double e1, e2, e3;
@@ -1165,7 +1148,7 @@ void ChVisualizationFEAmesh::Update(ChPhysicsItem* updater, const ChCoordsys<>& 
         glyphs_asset->SetDrawMode(ChGlyphs::GLYPH_VECTOR);
         int nglyvect = 0;
         for (unsigned int iel = 0; iel < this->FEMmesh->GetNelements(); ++iel)
-            if (auto myelement = std::dynamic_pointer_cast<ChElementTetra_4>(this->FEMmesh->GetElement(iel))) {
+            if (auto myelement = std::dynamic_pointer_cast<ChElementTetraCorot_4>(this->FEMmesh->GetElement(iel))) {
                 ChStressTensor<> mstress = myelement->GetStress();
                 mstress.Rotate(myelement->Rotation());
                 double e1, e2, e3;
@@ -1225,7 +1208,8 @@ void ChVisualizationFEAmesh::Update(ChPhysicsItem* updater, const ChCoordsys<>& 
                     glyphs_asset->SetDrawMode(ChGlyphs::GLYPH_VECTOR);
                     for (int igp = 0; igp < 4; ++igp) {
                         glyphs_asset->GetNumberOfGlyphs();
-                        glyphs_asset->SetGlyphVector((unsigned int)glyphs_asset->GetNumberOfGlyphs(), myshell->EvaluateGP(igp),
+                        glyphs_asset->SetGlyphVector((unsigned int)glyphs_asset->GetNumberOfGlyphs(),
+                                                     myshell->EvaluateGP(igp),
                                                      ChVector<>(0, myshell->alpha_i[igp] * 4, 0));
                     }
                 }
@@ -1256,13 +1240,13 @@ void ChVisualizationFEAmesh::Update(ChPhysicsItem* updater, const ChCoordsys<>& 
                         glyphs_asset->SetDrawMode(ChGlyphs::GLYPH_VECTOR);
                         double scale = 1;
                         glyphs_asset->GetNumberOfGlyphs();
-                        glyphs_asset->SetGlyphVector((unsigned int)glyphs_asset->GetNumberOfGlyphs(), myshell->EvaluateGP(igp),
-                                                     myshell->T_i[igp] * (myshell->eps_tilde_1_i[igp] * scale),
-                                                     ChColor(1, 0, 0));
+                        glyphs_asset->SetGlyphVector(
+                            (unsigned int)glyphs_asset->GetNumberOfGlyphs(), myshell->EvaluateGP(igp),
+                            myshell->T_i[igp] * (myshell->eps_tilde_1_i[igp] * scale), ChColor(1, 0, 0));
                         glyphs_asset->GetNumberOfGlyphs();
-                        glyphs_asset->SetGlyphVector((unsigned int)glyphs_asset->GetNumberOfGlyphs(), myshell->EvaluateGP(igp),
-                                                     myshell->T_i[igp] * (myshell->eps_tilde_2_i[igp] * scale),
-                                                     ChColor(0, 0, 1));
+                        glyphs_asset->SetGlyphVector(
+                            (unsigned int)glyphs_asset->GetNumberOfGlyphs(), myshell->EvaluateGP(igp),
+                            myshell->T_i[igp] * (myshell->eps_tilde_2_i[igp] * scale), ChColor(0, 0, 1));
                         glyphs_asset->GetNumberOfGlyphs();
                     }
                 }

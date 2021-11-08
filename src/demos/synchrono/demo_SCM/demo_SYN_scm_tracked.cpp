@@ -47,7 +47,7 @@
 
 #ifdef CHRONO_SENSOR
     #include "chrono_sensor/ChSensorManager.h"
-    #include "chrono_sensor/ChCameraSensor.h"
+    #include "chrono_sensor/sensors/ChCameraSensor.h"
     #include "chrono_sensor/filters/ChFilterAccess.h"
     #include "chrono_sensor/filters/ChFilterSave.h"
     #include "chrono_sensor/filters/ChFilterVisualize.h"

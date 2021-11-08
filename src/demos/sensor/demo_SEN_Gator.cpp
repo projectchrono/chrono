@@ -33,8 +33,8 @@
 
 #include "chrono_thirdparty/filesystem/path.h"
 
-#include "chrono_sensor/ChCameraSensor.h"
-#include "chrono_sensor/ChLidarSensor.h"
+#include "chrono_sensor/sensors/ChCameraSensor.h"
+#include "chrono_sensor/sensors/ChLidarSensor.h"
 #include "chrono_sensor/ChSensorManager.h"
 #include "chrono_sensor/filters/ChFilterAccess.h"
 #include "chrono_sensor/filters/ChFilterPCfromDepth.h"
@@ -43,9 +43,9 @@
 #include "chrono_sensor/filters/ChFilterSavePtCloud.h"
 #include "chrono_sensor/filters/ChFilterVisualizePointCloud.h"
 #include "chrono_sensor/utils/ChVisualMaterialUtils.h"
-#include "chrono_sensor/ChGPSSensor.h"
-#include "chrono_sensor/ChIMUSensor.h"
-#include "chrono_sensor/ChSensorManager.h"
+#include "chrono_sensor/sensors/ChGPSSensor.h"
+#include "chrono_sensor/sensors/ChIMUSensor.h"
+#include "chrono_sensor/sensors/ChNoiseModel.h"
 #include "chrono_sensor/filters/ChFilterAccess.h"
 #include "chrono_sensor/filters/ChFilterVisualize.h"
 
@@ -123,8 +123,8 @@ float cam_fov = 1.408f;
 
 // Lidar's horizontal and vertical fov
 float lidar_hfov = (float)(2 * CH_C_PI);   // 360 degrees
-float lidar_vmax = (float)(CH_C_PI / 12);   // 15 degrees up
-float lidar_vmin = (float)(-CH_C_PI / 6);    // 30 degrees down
+float lidar_vmax = (float)(CH_C_PI / 12);  // 15 degrees up
+float lidar_vmin = (float)(-CH_C_PI / 6);  // 30 degrees down
 
 // -----------------------------------------------------------------------------
 // IMU parameters
@@ -217,8 +217,8 @@ int main(int argc, char* argv[]) {
             patch->SetTexture(vehicle::GetDataFile("terrain/textures/tile4.jpg"), 200, 200);
             break;
         case RigidTerrain::PatchType::HEIGHT_MAP:
-            patch = terrain.AddPatch(patch_mat, CSYSNORM, vehicle::GetDataFile("terrain/height_maps/test64.bmp"),
-                                     128, 128, 0, 4);
+            patch = terrain.AddPatch(patch_mat, CSYSNORM, vehicle::GetDataFile("terrain/height_maps/test64.bmp"), 128,
+                                     128, 0, 4);
             patch->SetTexture(vehicle::GetDataFile("terrain/textures/grass.jpg"), 16, 16);
             break;
         case RigidTerrain::PatchType::MESH:
@@ -277,7 +277,10 @@ int main(int argc, char* argv[]) {
 
     auto manager = chrono_types::make_shared<ChSensorManager>(gator.GetSystem());
     manager->scene->AddPointLight({100, 100, 100}, {2, 2, 2}, 5000);
-    manager->SetKeyframeSizeFromTimeStep((float)step_size, exposure_time);
+    Background b;
+    b.mode = BackgroundMode::ENVIRONMENT_MAP;
+    b.env_tex = GetChronoDataFile("sensor/textures/quarry_01_4k.hdr");
+    manager->scene->SetBackground(b);
 
     // third person camera
     auto cam = chrono_types::make_shared<ChCameraSensor>(
@@ -288,10 +291,10 @@ int main(int argc, char* argv[]) {
         image_height,                                                        // image height
         cam_fov,
         super_samples);  // fov, lag, exposure
-    cam->SetName("Camera Sensor");
+    cam->SetName("3rd Person Camera Sensor");
     cam->SetCollectionWindow(exposure_time);
     if (sensor_vis)
-        cam->PushFilter(chrono_types::make_shared<ChFilterVisualize>(image_width, image_height));
+        cam->PushFilter(chrono_types::make_shared<ChFilterVisualize>(image_width, image_height, "Third-person View"));
     if (sensor_save)
         cam->PushFilter(chrono_types::make_shared<ChFilterSave>(sens_dir + "/cam1/"));
     cam->PushFilter(chrono_types::make_shared<ChFilterRGBA8Access>());
@@ -309,7 +312,8 @@ int main(int argc, char* argv[]) {
     cam2->SetName("Camera Sensor");
     cam2->SetCollectionWindow(exposure_time);
     if (sensor_vis)
-        cam2->PushFilter(chrono_types::make_shared<ChFilterVisualize>(image_width, image_height));
+        cam2->PushFilter(
+            chrono_types::make_shared<ChFilterVisualize>(image_width, image_height, "Front-facing Camera"));
     if (sensor_save)
         cam2->PushFilter(chrono_types::make_shared<ChFilterSave>(sens_dir + "/cam2/"));
     cam2->PushFilter(chrono_types::make_shared<ChFilterRGBA8Access>());
@@ -324,12 +328,13 @@ int main(int argc, char* argv[]) {
         lidar_hfov,                                                               // horizontal field of view
         lidar_vmax,                                                               // vertical field of view
         lidar_vmin,                                                               // vertical field of view
-        100.0f,                                                                   //
+        100.0f,                                                                   // max distance
+        LidarBeamShape::RECTANGULAR,                                              // beam shape
         1,                                                                        //
         0.0f,                                                                     //
-        LidarReturnMode::STRONGEST_RETURN,                                        //
-        LidarModelType::RAYCAST,                                                  //
-        0.1f                                                                      //
+        0.0f,
+        LidarReturnMode::STRONGEST_RETURN,  //
+        0.1f                                //
     );
     lidar->SetName("Lidar Sensor");
     lidar->SetLag(1 / lidar_update_rate);
@@ -345,48 +350,84 @@ int main(int argc, char* argv[]) {
     lidar->PushFilter(chrono_types::make_shared<ChFilterXYZIAccess>());
     manager->AddSensor(lidar);
 
-    std::shared_ptr<ChIMUNoiseModel> imu_noise_model;
+    std::shared_ptr<ChNoiseModel> acc_noise_model;
+    std::shared_ptr<ChNoiseModel> gyro_noise_model;
+    std::shared_ptr<ChNoiseModel> mag_noise_model;
     switch (imu_noise_type) {
         case NORMAL_DRIFT:
-            imu_noise_model = chrono_types::make_shared<ChIMUNoiseNormalDrift>(100.f,   // float updateRate,
-                                                                               0.f,     // float g_mean,
-                                                                               .001f,   // float g_stdev,
-                                                                               .0f,     // float g_bias_drift,
-                                                                               .1f,     // float g_tau_drift,
-                                                                               .0f,     // float a_mean,
-                                                                               .0075f,  // float a_stdev,
-                                                                               .001f,   // float a_bias_drift,
-                                                                               .1f      // float a_tau_drift);
-            );
+            // Set the imu noise model to a gaussian model
+            acc_noise_model =
+                chrono_types::make_shared<ChNoiseNormalDrift>(100.f,                           // double updateRate,
+                                                              ChVector<double>({0., 0., 0.}),  // double mean,
+                                                              ChVector<double>({0.001, 0.001, 0.001}),  // double stdev,
+                                                              .0001,  // double bias_drift,
+                                                              .1);    // double tau_drift,
+            gyro_noise_model = chrono_types::make_shared<ChNoiseNormalDrift>(
+                100.f,                                       // float updateRate,
+                ChVector<double>({0., 0., 0.}),              // float mean,
+                ChVector<double>({0.0075, 0.0075, 0.0075}),  // float stdev,
+                .001,                                        // double bias_drift,
+                .1);                                         // double tau_drift,
+            mag_noise_model =
+                chrono_types::make_shared<ChNoiseNormal>(ChVector<double>({0., 0., 0.}),            // float mean,
+                                                         ChVector<double>({0.001, 0.001, 0.001}));  // float stdev,
             break;
         case IMU_NONE:
-            imu_noise_model = chrono_types::make_shared<ChIMUNoiseNone>();
+            // Set the imu noise model to none (does not affect the data)
+            acc_noise_model = chrono_types::make_shared<ChNoiseNone>();
+            gyro_noise_model = chrono_types::make_shared<ChNoiseNone>();
+            mag_noise_model = chrono_types::make_shared<ChNoiseNone>();
             break;
     }
+
     auto imu_offset_pose = chrono::ChFrame<double>({0, 0, 1.45}, Q_from_AngAxis(0, {1, 0, 0}));
-    auto imu = chrono_types::make_shared<ChIMUSensor>(gator.GetChassisBody(),  // body to which the IMU is attached
-                                                      imu_update_rate,         // update rate
-                                                      imu_offset_pose,         // offset pose from body
-                                                      imu_noise_model);        // IMU noise model
-    imu->SetName("IMU");
-    imu->SetLag(imu_lag);
-    imu->SetCollectionWindow(imu_collection_time);
-    imu->PushFilter(chrono_types::make_shared<ChFilterIMUAccess>());
-    manager->AddSensor(imu);
+    auto acc =
+        chrono_types::make_shared<ChAccelerometerSensor>(gator.GetChassisBody(),  // body to which the IMU is attached
+                                                         imu_update_rate,         // update rate
+                                                         imu_offset_pose,         // offset pose from body
+                                                         acc_noise_model);        // IMU noise model
+    acc->SetName("IMU - Accelerometer");
+    acc->SetLag(imu_lag);
+    acc->SetCollectionWindow(imu_collection_time);
+    acc->PushFilter(chrono_types::make_shared<ChFilterAccelAccess>());  // Add a filter to access the imu data
+    manager->AddSensor(acc);                                            // Add the IMU sensor to the sensor manager
+
+    auto gyro =
+        chrono_types::make_shared<ChGyroscopeSensor>(gator.GetChassisBody(),  // body to which the IMU is attached
+                                                     100,                     // update rate
+                                                     imu_offset_pose,         // offset pose from body
+                                                     gyro_noise_model);       // IMU noise model
+    gyro->SetName("IMU - Gyroscope");
+    gyro->SetLag(imu_lag);
+    gyro->SetCollectionWindow(imu_collection_time);
+    gyro->PushFilter(chrono_types::make_shared<ChFilterGyroAccess>());  // Add a filter to access the imu data
+    manager->AddSensor(gyro);                                           // Add the IMU sensor to the sensor manager
+
+    auto mag =
+        chrono_types::make_shared<ChMagnetometerSensor>(gator.GetChassisBody(),  // body to which the IMU is attached
+                                                        100,                     // update rate
+                                                        imu_offset_pose,         // offset pose from body
+                                                        mag_noise_model,
+                                                        gps_reference);  // IMU noise model
+    mag->SetName("IMU - Magnetometer");
+    mag->SetLag(imu_lag);
+    mag->SetCollectionWindow(imu_collection_time);
+    mag->PushFilter(chrono_types::make_shared<ChFilterMagnetAccess>());  // Add a filter to access the imu data
+    manager->AddSensor(mag);                                             // Add the IMU sensor to the sensor manager
 
     // ---------------------------------------------
     // Create a GPS and add it to the sensor manager
     // ---------------------------------------------
-    std::shared_ptr<ChGPSNoiseModel> gps_noise_model;
+    std::shared_ptr<ChNoiseModel> gps_noise_model;
     switch (gps_noise_type) {
         case GPSNoiseModel::NORMAL:
             gps_noise_model =
-                chrono_types::make_shared<ChGPSNoiseNormal>(ChVector<float>(1.f, 1.f, 1.f),  // Mean
-                                                            ChVector<float>(2.f, 3.f, 1.f)   // Standard Deviation
+                chrono_types::make_shared<ChNoiseNormal>(ChVector<float>(1.f, 1.f, 1.f),  // Mean
+                                                         ChVector<float>(2.f, 3.f, 1.f)   // Standard Deviation
                 );
             break;
         case GPSNoiseModel::GPS_NONE:
-            gps_noise_model = chrono_types::make_shared<ChGPSNoiseNone>();
+            gps_noise_model = chrono_types::make_shared<ChNoiseNone>();
             break;
     }
     auto gps_offset_pose = chrono::ChFrame<double>({0, 0, 1.45}, Q_from_AngAxis(0, {1, 0, 0}));
@@ -439,7 +480,7 @@ int main(int argc, char* argv[]) {
             if (povray_output) {
                 char filename[100];
                 sprintf(filename, "%s/data_%03d.dat", pov_dir.c_str(), render_frame + 1);
-                utils::WriteShapesPovray(gator.GetSystem(), filename);
+                utils::WriteVisualizationAssets(gator.GetSystem(), filename);
             }
 
             render_frame++;

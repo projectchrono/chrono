@@ -18,11 +18,11 @@
 
 #include "chrono_gpu/physics/ChSystemGpu_impl.h"
 #include "chrono_gpu/cuda/ChCudaMathUtils.cuh"
+#include "chrono_gpu/ChGpuDefines.h"
 
-#include "chrono_thirdparty/cub/cub.cuh"
+#include <cub/cub.cuh>
 
 using chrono::gpu::ChSystemGpu_impl;
-
 using chrono::gpu::CHGPU_TIME_INTEGRATOR;
 using chrono::gpu::CHGPU_FRICTION_MODE;
 using chrono::gpu::CHGPU_ROLLING_MODE;
@@ -135,6 +135,7 @@ inline __device__ size_t findContactPairInfo(ChSystemGpu_impl::GranSphereDataPtr
                                              ChSystemGpu_impl::GranParamsPtr gran_params,
                                              unsigned int body_A,
                                              unsigned int body_B) {
+
     // TODO this should be size_t everywhere
     size_t body_A_offset = (size_t)MAX_SPHERES_TOUCHED_BY_SPHERE * body_A;
     // first skim through and see if this contact pair is in the map
@@ -239,18 +240,21 @@ inline __device__ float3 computeRollingAngAcc(ChSystemGpu_impl::GranSphereDataPt
                 const float3 v_rot = Cross(omega_rel, r_contact);
                 float v_rot_su = Length(v_rot);
                 float velo_su2uu = (float)(gran_params->LENGTH_UNIT/gran_params->TIME_UNIT);
+                // float acc_su2uu = (float)(gran_params->LENGTH_UNIT/(gran_params->TIME_UNIT*gran_params->TIME_UNIT));
+                // float force_su2uu = (float)(gran_params->MASS_UNIT * acc_su2uu);
+                // float torque_su2uu = force_su2uu * gran_params->LENGTH_UNIT;
                 // convert v_rot to user unit for threshold comparison
-                float v_rot_uu = v_rot_su * velo_su2uu;
-                if (v_rot_uu < 5e-3f) {  
-                    return make_float3(0.f, 0.f, 0.f);
-                }
+                // float v_rot_uu = v_rot_su * velo_su2uu;
 
-                const float dr = Length(r_contact);
-                const float normal_force_mag = Length(normal_force);
-                float3 torque = (rolling_coeff * normal_force_mag / Length(v_rot)) * Cross(r_contact, v_rot);
+                    if (v_rot_su < 1e-4f * gran_params->TIME_UNIT / gran_params->LENGTH_UNIT) {
+                        return make_float3(0.f, 0.f, 0.f);
+                    }
+    
+                    const float normal_force_mag = Length(normal_force);
+                    float3 torque = (rolling_coeff * normal_force_mag / Length(v_rot)) * Cross(r_contact, v_rot);
+                    delta_Ang_Acc = 1.f / (gran_params->sphereInertia_by_r * gran_params->sphereRadius_SU) * torque;
+    
 
-                // d_aa = torque / inertia
-                delta_Ang_Acc = 1.f / (gran_params->sphereInertia_by_r * gran_params->sphereRadius_SU) * torque;
                 break;
             }
             default: {
@@ -269,7 +273,7 @@ inline __device__ void computeSingleStepDisplacement(ChSystemGpu_impl::GranParam
                                                      float3& delta_t) {
     delta_t = rel_vel * gran_params->stepSize_SU;
     float ut = Length(delta_t);
-}
+}    
 
 // Compute multi-step friction displacement
 // set delta_t for the displacement
@@ -279,19 +283,21 @@ inline __device__ void computeMultiStepDisplacement(ChSystemGpu_impl::GranParams
                                                     const float3& vrel_t,
                                                     const float3& contact_normal,
                                                     float3& delta_t) {
+    
     // get the tangential displacement so far
     delta_t = sphere_data->contact_history_map[contact_id];
+
     // add on what we have for this step
     delta_t = delta_t + vrel_t * gran_params->stepSize_SU;
-
     // project onto contact normal
     float disp_proj = Dot(delta_t, contact_normal);
     // remove normal projection
     delta_t = delta_t - disp_proj * contact_normal;
-
     // write back the updated displacement
     sphere_data->contact_history_map[contact_id] = delta_t;
 }
+
+
 
 inline __device__ void updateMultiStepDisplacement(ChSystemGpu_impl::GranSphereDataPtr sphere_data,
                                                    const size_t& contact_index,
@@ -305,6 +311,16 @@ inline __device__ void updateMultiStepDisplacement(ChSystemGpu_impl::GranSphereD
     // Reverse engineer the delta_t from the clamped force and update the map
     sphere_data->contact_history_map[contact_index] =
         ((tangent_force / force_model_multiplier) + gamma_t * m_eff * vrel_t) / -k_t;
+}
+
+inline __device__ void updateMultiStepDisplacement_matBased(ChSystemGpu_impl::GranSphereDataPtr sphere_data,
+                                                    const size_t& contact_index,
+                                                    const float3& vrel_t,
+                                                    const float kt,
+                                                    const float gt,
+                                                    const float3& tangent_force) {
+     // Reverse engineer the delta_t from the clamped force and update the map 
+     sphere_data->contact_history_map[contact_index] = (tangent_force + gt * vrel_t) / -kt;
 }
 
 // compute friction forces for a contact
@@ -353,6 +369,65 @@ inline __device__ float3 computeFrictionForces(ChSystemGpu_impl::GranParamsPtr g
     return tangent_force;
 }
 
+/// compute material based friction forces for a contact
+/// tangential displacement is hisotry based
+/// returns tangent force including hertz factor, clamped and all
+inline __device__ float3 computeFrictionForces_matBased(ChSystemGpu_impl::GranParamsPtr gran_params,
+                                                        ChSystemGpu_impl::GranSphereDataPtr sphere_data,
+                                                        size_t contact_index,
+                                                        const float& static_friction_coeff,
+                                                        const float& E_eff,
+                                                        const float& G_eff,
+                                                        const float& sqrt_Rd,
+                                                        const float& beta,
+                                                        const float3& normal_force,
+                                                        const float3& vrel_t,
+                                                        const float3& contact_normal,
+                                                        const float m_eff) {
+    float3 delta_t = {0.f, 0.f, 0.f};
+
+    computeMultiStepDisplacement(gran_params, sphere_data, contact_index, vrel_t, contact_normal, delta_t);
+    // evaluate kt and gt
+    float kt = 8. * G_eff * sqrt_Rd;
+    float gt = -2. * beta *  std::sqrt(5./6. * m_eff * kt);
+
+    // float3 tangent_force =  - kt * delta_t - gt * vrel_t; // this works for sph-sph and sph-bc contact
+
+    float3 tangent_force =  -kt * delta_t - gt * vrel_t;
+
+    const float ft = Length(tangent_force);  // could be small
+
+    // TODO what value is (1) a negligible SU force (2) a safe number to divide by numerically?
+    constexpr float GRAN_MACHINE_EPSILON = 1e-7f;
+    if (ft < GRAN_MACHINE_EPSILON) {
+        return make_float3(0.f, 0.f, 0.f);
+    }
+
+    // If the force is beyond the coulomb criterion, clamp it
+    const float ft_max = Length(normal_force) * static_friction_coeff;
+    // float normal_mag = Length(normal_force) * force_unit;
+
+    if (ft > ft_max) {
+        // Scale tangent_force to coulomb condition and use stiffness portion of that to clamp displacement
+        tangent_force = tangent_force * ft_max / ft;  // TODO stability
+            updateMultiStepDisplacement_matBased(sphere_data, contact_index, vrel_t, kt, gt, tangent_force);
+    }
+
+    // float velo_unit = gran_params->LENGTH_UNIT/gran_params->TIME_UNIT;
+    // float len_unit = gran_params->LENGTH_UNIT;
+    // float force_unit = gran_params->MASS_UNIT * gran_params->LENGTH_UNIT/(gran_params->TIME_UNIT * gran_params->TIME_UNIT);
+    // float stiffness_unit = gran_params->MASS_UNIT/(gran_params->TIME_UNIT * gran_params->TIME_UNIT);
+    // float damp_unit = gran_params->MASS_UNIT/gran_params->TIME_UNIT;
+
+    // printf("%e, %e, %e, %e, %e, %e, %e, %e, %e, %e, %e, %e\n", ft_max * force_unit,
+    // tangent_force.x * force_unit, tangent_force.y * force_unit, tangent_force.z * force_unit, kt * stiffness_unit, 
+    // delta_t.x * len_unit, delta_t.y * len_unit, delta_t.z * len_unit, gt * damp_unit, 
+    // vrel_t.x * velo_unit, vrel_t.y * velo_unit, vrel_t.z * velo_unit);
+
+    return tangent_force;
+}
+
+
 // overload for if the body ids are given rather than contact id
 inline __device__ float3 computeFrictionForces(ChSystemGpu_impl::GranParamsPtr gran_params,
                                                ChSystemGpu_impl::GranSphereDataPtr sphere_data,
@@ -374,4 +449,28 @@ inline __device__ float3 computeFrictionForces(ChSystemGpu_impl::GranParamsPtr g
     }
     return computeFrictionForces(gran_params, sphere_data, contact_id, static_friction_coeff, k_t, gamma_t,
                                  force_model_multiplier, m_eff, normal_force, rel_vel, contact_normal);
+
+
+}
+
+// overload for if the body ids are given rather than contact id (for sphere-wall contact)
+inline __device__ float3 computeFrictionForces_matBased(ChSystemGpu_impl::GranParamsPtr gran_params,
+                                               ChSystemGpu_impl::GranSphereDataPtr sphere_data,
+                                               unsigned int body_A_index,
+                                               unsigned int body_B_index,
+                                               float static_friction_coeff,
+                                               float E_eff,
+                                               float G_eff,
+                                               float sqrt_Rd,
+                                               float beta,
+                                               const float3& normal_force,
+                                               const float3& rel_vel,
+                                               const float3& contact_normal,
+                                               const float m_eff) {
+    size_t contact_id = 0;
+
+    // if multistep, compute contact id, otherwise we don't care anyways
+    contact_id = findContactPairInfo(sphere_data, gran_params, body_A_index, body_B_index);
+
+    return computeFrictionForces_matBased(gran_params, sphere_data, contact_id, static_friction_coeff, E_eff, G_eff, sqrt_Rd, beta, normal_force, rel_vel, contact_normal, m_eff);
 }

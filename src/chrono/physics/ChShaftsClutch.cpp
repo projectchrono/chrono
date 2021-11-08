@@ -21,9 +21,9 @@ namespace chrono {
 // Register into the object factory, to enable run-time dynamic creation and persistence
 CH_FACTORY_REGISTER(ChShaftsClutch)
 
-ChShaftsClutch::ChShaftsClutch() : maxT(1), minT(-1), modulation(1), torque_react(0) {}
+ChShaftsClutch::ChShaftsClutch() : maxT(1), minT(-1), modulation(1), torque_react(0), active(true) {}
 
-ChShaftsClutch::ChShaftsClutch(const ChShaftsClutch& other) : ChShaftsCouple(other) {
+ChShaftsClutch::ChShaftsClutch(const ChShaftsClutch& other) : ChShaftsCouple(other), active(true) {
     maxT = other.maxT;
     minT = other.minT;
     modulation = other.modulation;
@@ -73,6 +73,9 @@ void ChShaftsClutch::IntLoadResidual_CqL(const unsigned int off_L,    // offset 
                                          const ChVectorDynamic<>& L,  // the L vector
                                          const double c               // a scaling factor
                                          ) {
+    if (!active)
+        return;
+
     constraint.MultiplyTandAdd(R, L(off_L) * c);
 }
 
@@ -82,6 +85,9 @@ void ChShaftsClutch::IntLoadConstraint_C(const unsigned int off_L,  // offset in
                                          bool do_clamp,             // apply clamping to c*C?
                                          double recovery_clamp      // value for min/max clamping of c*C
                                          ) {
+    if (!active)
+        return;
+
     double res = 0;  // no residual anyway! allow drifting...
 
     double cnstr_violation = c * res;
@@ -94,6 +100,9 @@ void ChShaftsClutch::IntLoadConstraint_C(const unsigned int off_L,  // offset in
 }
 
 void ChShaftsClutch::IntLoadResidual_F(const unsigned int off, ChVectorDynamic<>& R, const double c) {
+    if (!active)
+        return;
+
     // Might not be the best place to put this, but it works.
     // Update the limits on lagrangian multipliers:
     double dt = c;  // note: not always c=dt, this is true for euler implicit linearized and similar DVI timesteppers,
@@ -109,8 +118,10 @@ void ChShaftsClutch::IntToDescriptor(const unsigned int off_v,  // offset in v, 
                                      const unsigned int off_L,  // offset in L, Qc
                                      const ChVectorDynamic<>& L,
                                      const ChVectorDynamic<>& Qc) {
-    constraint.Set_l_i(L(off_L));
+    if (!active)
+        return;
 
+    constraint.Set_l_i(L(off_L));
     constraint.Set_b_i(Qc(off_L));
 }
 
@@ -118,14 +129,17 @@ void ChShaftsClutch::IntFromDescriptor(const unsigned int off_v,  // offset in v
                                        ChStateDelta& v,
                                        const unsigned int off_L,  // offset in L
                                        ChVectorDynamic<>& L) {
+    if (!active)
+        return;
+
     L(off_L) = constraint.Get_l_i();
 }
 
 // SOLVER INTERFACES
 
 void ChShaftsClutch::InjectConstraints(ChSystemDescriptor& mdescriptor) {
-    // if (!IsActive())
-    //	return;
+    if (!active)
+        return;
 
     mdescriptor.InsertConstraint(&constraint);
 }
@@ -135,8 +149,8 @@ void ChShaftsClutch::ConstraintsBiReset() {
 }
 
 void ChShaftsClutch::ConstraintsBiLoad_C(double factor, double recovery_clamp, bool do_clamp) {
-    // if (!IsActive())
-    //	return;
+    if (!active)
+        return;
 
     double res = 0;  // no residual
 
@@ -144,9 +158,6 @@ void ChShaftsClutch::ConstraintsBiLoad_C(double factor, double recovery_clamp, b
 }
 
 void ChShaftsClutch::ConstraintsBiLoad_Ct(double factor) {
-    // if (!IsActive())
-    //	return;
-
     // nothing
 }
 

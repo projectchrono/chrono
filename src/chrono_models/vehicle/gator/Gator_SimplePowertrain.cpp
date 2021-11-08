@@ -37,20 +37,14 @@ const double Gator_SimplePowertrain::m_rev_gear_ratio = -0.04;
 Gator_SimplePowertrain::Gator_SimplePowertrain(const std::string& name)
     : ChPowertrain(name), m_motorSpeed(0), m_motorTorque(0), m_shaftTorque(0) {}
 
-void Gator_SimplePowertrain::Initialize(std::shared_ptr<ChChassis> chassis, std::shared_ptr<ChDriveline> driveline) {
-    ChPowertrain::Initialize(chassis, driveline);
-}
-
 void Gator_SimplePowertrain::SetGearRatios(std::vector<double>& fwd, double& rev) {
     rev = m_rev_gear_ratio;
     fwd.push_back(m_fwd_gear_ratio);
 }
 
-void Gator_SimplePowertrain::Synchronize(double time, double throttle) {
-    double shaftSpeed = std::abs(m_driveline->GetDriveshaftSpeed());
-
+void Gator_SimplePowertrain::Synchronize(double time, double throttle, double shaft_speed) {
     // The motor speed is the shaft speed multiplied by gear ratio inversed
-    m_motorSpeed = shaftSpeed / std::abs(m_current_gear_ratio);
+    m_motorSpeed = std::abs(shaft_speed) / std::abs(m_current_gear_ratio);
 
     // DC motor model (throttle modulates output torque)
     m_motorTorque = m_max_torque - m_motorSpeed * (m_max_torque / m_max_speed);
@@ -60,7 +54,7 @@ void Gator_SimplePowertrain::Synchronize(double time, double throttle) {
     m_shaftTorque = m_motorTorque / m_current_gear_ratio;
 
     ////std::cout << throttle                                            //
-    ////          << "      " << m_motorSpeed << "  " << shaftSpeed      //
+    ////          << "      " << m_motorSpeed << "  " << shaft_speed     //
     ////          << "      " << m_motorTorque << "  " << m_shaftTorque  //
     ////          << std::endl;
 }

@@ -121,6 +121,24 @@ class ChSystemGpu_impl {
         float K_t_s2s_SU;  ///< sphere-to-sphere tangent contact stiffness, expressed in SU
         float K_t_s2w_SU;  ///< sphere-to-wall tangent contact stiffness, expressed in SU
 
+        /// use material-based property
+        bool use_mat_based = false;
+
+        /// effective sphere-to-sphere youngs modulus, expressed in SU
+        float E_eff_s2s_SU;
+        /// effective sphere-to-wall youngs modulus, expressed in SU
+        float E_eff_s2w_SU;
+
+        /// effective sphere-to-sphere shear modulus, expressed in SU
+        float G_eff_s2s_SU;
+        /// effective sphere-to-wall shear modulus, expressed in SU
+        float G_eff_s2w_SU;
+
+        /// effective sphere-to-sphere coefficient of restitution, expressed in SU
+        float COR_s2s_SU;
+        /// effective sphere-to-wall coefficient of restitution, expressed in SU
+        float COR_s2w_SU;
+
         unsigned int sphereRadius_SU;  ///< Radius of the sphere, expressed in SU
         float sphereInertia_by_r;      ///< Moment of inertia of a sphere, normalized by the radius, expressed in SU
 
@@ -205,10 +223,13 @@ class ChSystemGpu_impl {
         unsigned int* contact_partners_map;   ///< Contact partners for each sphere. Only in frictional simulations
         not_stupid_bool* contact_active_map;  ///< Whether the frictional contact at an index is active
         float3* contact_history_map;  ///< Tangential history for a given contact pair. Only for multistep friction
+        float* contact_duration;      ///< Duration of persistent contact between pairs
 
         float3* normal_contact_force;       ///< Track normal contact force
         float3* tangential_friction_force;  ///< Track sliding friction force
         float3* rolling_friction_torque;    ///< Track rolling friction force
+        float* char_collision_time;         ///< Track characteristic collision time
+        float3* v_rot_array;                ///< Track v_rot array
 
         unsigned int* SD_NumSpheresTouching;         ///< Number of particles touching each subdomain
         unsigned int* SD_SphereCompositeOffsets;     ///< Offset of each subdomain in the big composite array
@@ -228,7 +249,7 @@ class ChSystemGpu_impl {
     void CreateWallBCs();
 
     /// Create an axis-aligned sphere boundary condition
-    size_t CreateBCSphere(float center[3], float radius, bool outward_normal, bool track_forces);
+    size_t CreateBCSphere(float center[3], float radius, bool outward_normal, bool track_forces, float mass);
 
     /// Create an z-axis aligned cone boundary condition
     size_t CreateBCConeZ(float cone_tip[3],
@@ -242,6 +263,9 @@ class ChSystemGpu_impl {
     /// Instead of always push_back, you can select a position in vector to store the BC info: this is for reserved BCs
     /// (box domain BCs) only. And if the position is SIZE_MAX then the behavior is push_back.
     size_t CreateBCPlane(float plane_pos[3], float plane_normal[3], bool track_forces, size_t position = SIZE_MAX);
+
+    /// Create customized bc plate
+    size_t CreateCustomizedPlate(float plate_pos_center[3], float plate_normal[3], float hdim_y);
 
     /// Create an z-axis aligned cylinder boundary condition
     size_t CreateBCCylinderZ(float center[3], float radius, bool outward_normal, bool track_forces);
@@ -327,8 +351,14 @@ class ChSystemGpu_impl {
     /// Return particle position.
     float3 GetParticlePosition(int nSphere) const;
 
+    /// Set particle position
+    void SetParticlePosition(int nSphere, double3 position);
+
     /// return absolute velocity
     float getAbsVelocity(int nSphere);
+
+    // whether or not the particle is fixed
+    bool IsFixed(int nSphere) const;
 
     /// Return particle linear velocity.
     float3 GetParticleLinVelocity(int nSphere) const;
@@ -336,11 +366,26 @@ class ChSystemGpu_impl {
     /// Return particle angular velocity.
     float3 GetParticleAngVelocity(int nSphere) const;
 
+    /// Return particle acceleration
+    float3 GetParticleLinAcc(int nSphere) const;
+
     /// Return number of particle-particle contacts.
     int GetNumContacts() const;
 
     /// Return position of BC plane.
     float3 GetBCPlanePosition(size_t plane_id) const;
+
+    /// return position of BC sphere
+    float3 GetBCSpherePosition(size_t bc_id) const;
+
+    /// set bc sphere position
+    void SetBCSpherePosition(size_t bc_id, const float3 pos);
+
+    /// set bc sphere vleocity
+    void SetBCSphereVelocity(size_t bc_id, const float3 velo);
+
+    /// return velocity of BC sphere
+    float3 GetBCSphereVelocity(size_t bc_id) const;
 
     /// Get the reaction forces on a boundary by ID, returns false if the forces are invalid (bad BC ID)
     bool GetBCReactionForces(size_t BC_id, float3& force) const;
@@ -349,6 +394,11 @@ class ChSystemGpu_impl {
     void SetParticles(const std::vector<float3>& points,
                       const std::vector<float3>& vels = std::vector<float3>(),
                       const std::vector<float3>& ang_vels = std::vector<float3>());
+
+    /// set particle velocity, can be called during the simulation
+    void SetParticleVelocity(int id, const double3& velocity);
+
+    void SetBCPlaneRotation(size_t plane_id, double3 rotation_center, double3 rotation_omega);
 
     /// Advance simulation by duration in user units, return actual duration elapsed
     /// Requires initialize() to have been called
@@ -411,6 +461,9 @@ class ChSystemGpu_impl {
     /// scaling of various physical quantities set by the user.
     virtual void switchToSimUnits();
 
+    /// combine material properties of two types to get effective ones
+    void combineMaterialSurface();
+
     /// Set the position function of a boundary condition and account for the offset
     void setBCOffset(const BC_type&,
                      const BC_params_t<float, float3>& params_UU,
@@ -430,6 +483,24 @@ class ChSystemGpu_impl {
 
     /// Write contact info file
     void WriteContactInfoFile(const std::string& outfilename) const;
+
+    /// Get rolling friction torque between body i and j, return 0 if not in contact
+    float3 getRollingFrictionTorque(int i, int j);
+
+    /// get rolling friction v_rot
+    float3 getRollingVrot(int i, int j);
+
+    /// get rolling characterisitc contact time
+    float getRollingCharContactTime(int i, int j);
+
+    /// Get tangential friction force between body i and j, return 0 if not in contact
+    float3 getSlidingFrictionForce(int i, int j);
+
+    /// Get normal friction force between body i and j, return 0 if not in contact
+    float3 getNormalForce(int i, int j);
+
+    /// get list of neighbors in contact with particle ID
+    void getNeighbors(int ID, std::vector<int>& neighborList);
 
     /// Rough estimate of the total amount of memory used by the system.
     size_t EstimateMemUsage() const;
@@ -555,12 +626,19 @@ class ChSystemGpu_impl {
     std::vector<not_stupid_bool, cudallocator<not_stupid_bool>> contact_active_map;
     /// Tracks the tangential history vector for a given contact pair. Only used in multistep friction
     std::vector<float3, cudallocator<float3>> contact_history_map;
+    /// Tracks the duration of contact between contact pairs. Only used in multistep friction
+    std::vector<float, cudallocator<float>> contact_duration;
     /// Tracks the normal contact force for a given contact pair
     std::vector<float3, cudallocator<float3>> normal_contact_force;
     /// Tracks the tangential contact force for a given contact pair
     std::vector<float3, cudallocator<float3>> tangential_friction_force;
     /// Tracks the rolling resistance for a given contact pair
     std::vector<float3, cudallocator<float3>> rolling_friction_torque;
+    /////////////////////DEBUG PURPOSE///////////////////////////
+    /// Tracks the characteristic contact time for a given contact pair
+    std::vector<float, cudallocator<float>> char_collision_time;
+    /// Tracks v_rot
+    std::vector<float3, cudallocator<float3>> v_rot_array;
 
     /// X gravity in user units
     float X_accGrav;
@@ -616,6 +694,21 @@ class ChSystemGpu_impl {
 
     /// Tangential damping for sphere-to-wall
     double Gamma_t_s2w_UU;
+
+    /// material based property: youngs modulus, poisson ratio, cor
+    bool use_mat_based = false;
+
+    double YoungsModulus_sphere_UU;
+    double YoungsModulus_wall_UU;
+    double YoungsModulus_mesh_UU;
+
+    double COR_sphere_UU;
+    double COR_wall_UU;
+    double COR_mesh_UU;
+
+    double PoissonRatio_sphere_UU;
+    double PoissonRatio_wall_UU;
+    double PoissonRatio_mesh_UU;
 
     /// Rolling friction coefficient for sphere-to-sphere
     double rolling_coeff_s2s_UU;

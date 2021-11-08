@@ -66,12 +66,16 @@
 #include "chrono_models/ChApiModels.h"
 #include "chrono_models/robot/robosimian/RoboSimian.h"
 #include "chrono_models/robot/viper/Viper.h"
+#include "chrono_models/robot/curiosity/Curiosity.h"
+#include "chrono_models/robot/turtlebot/Turtlebot.h"
 #include "chrono_models/robot/copters/Copter.h"
 #include "chrono_models/robot/copters/Little_Hexy.h"
 
 using namespace chrono;
 using namespace chrono::robosimian;
 using namespace chrono::viper;
+using namespace chrono::curiosity;
+using namespace chrono::turtlebot;
 using namespace chrono::copter;
 
 %}
@@ -138,12 +142,37 @@ using namespace chrono::copter;
 %shared_ptr(chrono::robosimian::RS_WheelDD)
 %shared_ptr(chrono::robosimian::RS_Driver)
 
-%shared_ptr(chrono::viper::Viper_Part)
-%shared_ptr(chrono::viper::Viper_Chassis)
-%shared_ptr(chrono::viper::Viper_Wheel)
-%shared_ptr(chrono::viper::Viper_Up_Arm)
-%shared_ptr(chrono::viper::Viper_Bottom_Arm)
-%shared_ptr(chrono::viper::Viper_Steer)
+%shared_ptr(chrono::viper::ViperPart)
+%shared_ptr(chrono::viper::ViperChassis)
+%shared_ptr(chrono::viper::ViperWheel)
+%shared_ptr(chrono::viper::ViperUpperArm)
+%shared_ptr(chrono::viper::ViperLowerArm)
+%shared_ptr(chrono::viper::ViperUpright)
+%shared_ptr(chrono::viper::ViperDriver)
+%shared_ptr(chrono::viper::ViperDCMotorControl)
+%shared_ptr(chrono::viper::ViperSpeedDriver)
+
+%shared_ptr(chrono::curiosity::CuriosityPart)
+%shared_ptr(chrono::curiosity::CuriosityChassis)
+%shared_ptr(chrono::curiosity::CuriosityWheel)
+%shared_ptr(chrono::curiosity::CuriosityRocker)
+%shared_ptr(chrono::curiosity::CuriosityBogie)
+%shared_ptr(chrono::curiosity::CuriosityUpright)
+%shared_ptr(chrono::curiosity::CuriosityDifferentialBar)
+%shared_ptr(chrono::curiosity::CuriosityDifferentialLink)
+%shared_ptr(chrono::curiosity::CuriosityDriver)
+%shared_ptr(chrono::curiosity::CuriosityDCMotorControl)
+%shared_ptr(chrono::curiosity::CuriositySpeedDriver)
+
+%shared_ptr(chrono::turtlebot::Turtlebot_Part)
+%shared_ptr(chrono::turtlebot::Turtlebot_Chassis)
+%shared_ptr(chrono::turtlebot::Turtlebot_ActiveWheel)
+%shared_ptr(chrono::turtlebot::Turtlebot_PassiveWheel)
+%shared_ptr(chrono::turtlebot::Turtlebot_Rod_Short)
+%shared_ptr(chrono::turtlebot::Turtlebot_BottomPlate)
+%shared_ptr(chrono::turtlebot::Turtlebot_MiddlePlate)
+%shared_ptr(chrono::turtlebot::Turtlebot_TopPlate)
+%shared_ptr(chrono::turtlebot::Turtlebot_Rod_Long)
 
 //
 // B- INCLUDE HEADERS
@@ -205,6 +234,8 @@ using namespace chrono::copter;
 
 %include "../chrono_models/robot/robosimian/RoboSimian.h"
 %include "../chrono_models/robot/viper/Viper.h"
+%include "../chrono_models/robot/curiosity/Curiosity.h"
+%include "../chrono_models/robot/turtlebot/Turtlebot.h"
 
 %include "../chrono_models/robot/copters/Copter.h"
 %template(ChCopter6) chrono::copter::Copter<6>;
@@ -241,13 +272,31 @@ using namespace chrono::copter;
 %}
 */
 
-%extend chrono::viper::ViperRover{
+%extend chrono::viper::Viper{
 		public:
-			ViperRover(chrono::ChSystem* system,
-               const chrono::ChVector<double>& rover_pos,
-               const chrono::ChQuaternion<double>& rover_rot){
+			Viper(chrono::ChSystem* system){
 			   
-			   auto selfpoint = std::make_shared<chrono::viper::ViperRover>(system, rover_pos, rover_rot, nullptr);
+			   auto selfpoint = std::make_shared<chrono::viper::Viper>(system, ViperWheelType::RealWheel);
+			   return selfpoint.get();
+			   }
+		};
+
+%extend chrono::curiosity::Curiosity{
+		public:
+			Curiosity(chrono::ChSystem* system){
+			   
+			   auto selfpoint = std::make_shared<chrono::curiosity::Curiosity>(system, CuriosityChassisType::FullRover, CuriosityWheelType::RealWheel);
+			   return selfpoint.get();
+			   }
+		};
+
+%extend chrono::turtlebot::TurtleBot{
+		public:
+			TurtleBot(chrono::ChSystem* system,
+               const chrono::ChVector<double>& robot_pos,
+               const chrono::ChQuaternion<double>& robot_rot){
+			   
+			   auto selfpoint = std::make_shared<chrono::turtlebot::TurtleBot>(system, robot_pos, robot_rot, nullptr);
 			   return selfpoint.get();
 			   }
 		};

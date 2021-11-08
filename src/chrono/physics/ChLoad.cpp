@@ -138,10 +138,12 @@ void ChLoadCustom::ComputeJacobian(ChState* state_x,       // state position to 
 void ChLoadCustom::LoadIntLoadResidual_F(ChVectorDynamic<>& R, const double c) {
     unsigned int rowQ = 0;
     for (int i = 0; i < loadable->GetSubBlocks(); ++i) {
-        unsigned int moffset = loadable->GetSubBlockOffset(i);
-        for (unsigned int row = 0; row < loadable->GetSubBlockSize(i); ++row) {
-            R(row + moffset) += load_Q(rowQ) * c;
-            ++rowQ;
+        if (loadable->IsSubBlockActive(i)) {
+            unsigned int moffset = loadable->GetSubBlockOffset(i);
+            for (unsigned int row = 0; row < loadable->GetSubBlockSize(i); ++row) {
+                R(row + moffset) += load_Q(rowQ) * c;
+                ++rowQ;
+            }
         }
     }
 }
@@ -274,10 +276,8 @@ void ChLoadCustomMultiple::ComputeJacobian(ChState* state_x,       // state posi
 void ChLoadCustomMultiple::LoadIntLoadResidual_F(ChVectorDynamic<>& R, const double c) {
     unsigned int mQoffset = 0;
     for (int k = 0; k < loadables.size(); ++k) {
-        std::vector<ChVariables*> kvars;
-        loadables[k]->LoadableGetVariables(kvars);
         for (int i = 0; i < loadables[k]->GetSubBlocks(); ++i) {
-            if (kvars[i]->IsActive()) {
+            if (loadables[k]->IsSubBlockActive(i)) {
                 unsigned int mblockoffset = loadables[k]->GetSubBlockOffset(i);
                 for (unsigned int row = 0; row < loadables[k]->GetSubBlockSize(i); ++row) {
                     R(row + mblockoffset) += load_Q(row + mQoffset) * c;

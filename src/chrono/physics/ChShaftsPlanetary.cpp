@@ -22,10 +22,20 @@ namespace chrono {
 CH_FACTORY_REGISTER(ChShaftsPlanetary)
 
 ChShaftsPlanetary::ChShaftsPlanetary()
-    : r1(1), r2(1), r3(1), torque_react(0), shaft1(NULL), shaft2(NULL), shaft3(NULL), avoid_phase_drift(true),
-    phase1(0), phase2(0), phase3(0) {}
+    : r1(1),
+      r2(1),
+      r3(1),
+      torque_react(0),
+      shaft1(NULL),
+      shaft2(NULL),
+      shaft3(NULL),
+      avoid_phase_drift(true),
+      phase1(0),
+      phase2(0),
+      phase3(0),
+      active(true) {}
 
-ChShaftsPlanetary::ChShaftsPlanetary(const ChShaftsPlanetary& other) : ChPhysicsItem(other) {
+ChShaftsPlanetary::ChShaftsPlanetary(const ChShaftsPlanetary& other) : ChPhysicsItem(other), active(true) {
     r1 = other.r1;
     r2 = other.r2;
     r3 = other.r3;
@@ -84,6 +94,9 @@ void ChShaftsPlanetary::IntLoadResidual_CqL(const unsigned int off_L,    // offs
                                             const ChVectorDynamic<>& L,  // the L vector
                                             const double c               // a scaling factor
                                             ) {
+    if (!active)
+        return;
+
     constraint.MultiplyTandAdd(R, L(off_L) * c);
 }
 
@@ -93,6 +106,9 @@ void ChShaftsPlanetary::IntLoadConstraint_C(const unsigned int off_L,  // offset
                                             bool do_clamp,             // apply clamping to c*C?
                                             double recovery_clamp      // value for min/max clamping of c*C
                                             ) {
+    if (!active)
+        return;
+
     double res = this->r1 * (this->shaft1->GetPos() - this->phase1) +
                  this->r2 * (this->shaft2->GetPos() - this->phase2) +
                  this->r3 * (this->shaft3->GetPos() - this->phase3);  
@@ -114,8 +130,10 @@ void ChShaftsPlanetary::IntToDescriptor(const unsigned int off_v,  // offset in 
                                         const unsigned int off_L,  // offset in L, Qc
                                         const ChVectorDynamic<>& L,
                                         const ChVectorDynamic<>& Qc) {
-    constraint.Set_l_i(L(off_L));
+    if (!active)
+        return;
 
+    constraint.Set_l_i(L(off_L));
     constraint.Set_b_i(Qc(off_L));
 }
 
@@ -123,6 +141,9 @@ void ChShaftsPlanetary::IntFromDescriptor(const unsigned int off_v,  // offset i
                                           ChStateDelta& v,
                                           const unsigned int off_L,  // offset in L
                                           ChVectorDynamic<>& L) {
+    if (!active)
+        return;
+
     L(off_L) = constraint.Get_l_i();
 }
 
@@ -137,8 +158,8 @@ void ChShaftsPlanetary::IntStateScatterReactions(const unsigned int off_L, const
 }
 
 void ChShaftsPlanetary::InjectConstraints(ChSystemDescriptor& mdescriptor) {
-    // if (!IsActive())
-    //	return;
+     if (!active)
+    	return;
 
     mdescriptor.InsertConstraint(&constraint);
 }
@@ -148,8 +169,8 @@ void ChShaftsPlanetary::ConstraintsBiReset() {
 }
 
 void ChShaftsPlanetary::ConstraintsBiLoad_C(double factor, double recovery_clamp, bool do_clamp) {
-    // if (!IsActive())
-    //	return;
+     if (!active)
+    	return;
 
     double res = 0;  // no residual
 
@@ -157,9 +178,6 @@ void ChShaftsPlanetary::ConstraintsBiLoad_C(double factor, double recovery_clamp
 }
 
 void ChShaftsPlanetary::ConstraintsBiLoad_Ct(double factor) {
-    // if (!IsActive())
-    //	return;
-
     // nothing
 }
 

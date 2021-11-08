@@ -28,5 +28,15 @@ namespace vehicle {
 // -----------------------------------------------------------------------------
 ChTrackShoe::ChTrackShoe(const std::string& name) : ChPart(name), m_index(0) {}
 
+ChTrackShoe::~ChTrackShoe() {
+    if (!m_shoe)
+        return;
+
+    auto sys = m_shoe->GetSystem();
+    if (sys) {
+        sys->Remove(m_shoe);
+    }
+}
+
 }  // end namespace vehicle
 }  // end namespace chrono

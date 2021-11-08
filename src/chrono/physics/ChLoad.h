@@ -383,10 +383,12 @@ template <class Tloader>
 inline void ChLoad<Tloader>::LoadIntLoadResidual_F(ChVectorDynamic<>& R, const double c) {
     unsigned int rowQ = 0;
     for (int i = 0; i < this->loader.GetLoadable()->GetSubBlocks(); ++i) {
-        unsigned int moffset = this->loader.GetLoadable()->GetSubBlockOffset(i);
-        for (unsigned int row = 0; row < this->loader.GetLoadable()->GetSubBlockSize(i); ++row) {
-            R(row + moffset) += this->loader.Q(rowQ) * c;
-            ++rowQ;
+        if (this->loader.GetLoadable()->IsSubBlockActive(i)) {
+            unsigned int moffset = this->loader.GetLoadable()->GetSubBlockOffset(i);
+            for (unsigned int row = 0; row < this->loader.GetLoadable()->GetSubBlockSize(i); ++row) {
+                R(row + moffset) += this->loader.Q(rowQ) * c;
+                ++rowQ;
+            }
         }
     }
 }

@@ -307,8 +307,8 @@ void ChPovRay::ExportScript(const std::string& filename) {
             char m;
             try {
                 templatefile >> m;
-            } catch (ChException mex) {
-            };
+            } catch (const ChException&) {
+            }
 
             buffer_template += m;
         }
@@ -373,7 +373,8 @@ void ChPovRay::ExportScript(const std::string& filename) {
     // Write POV code to open the n.th scene file
 
     mfile << "// Include POV code to for the n.th scene file: \n\n";
-    mfile << "#declare scene_file = concat(\"" << (this->out_path + "/" + this->out_data_filename).c_str() << "\", str(frame_number,-5,0), \".pov\") \n";
+    mfile << "#declare scene_file = concat(\"" << (this->out_path + "/" + this->out_data_filename).c_str()
+          << "\", str(frame_number,-5,0), \".pov\") \n";
     mfile << "#include scene_file \n\n";
 
     // Write POV code to load and display contacts
@@ -473,7 +474,7 @@ void ChPovRay::_recurseExportAssets(std::vector<std::shared_ptr<ChAsset> >& asse
                         temp_allocated_loadtrimesh->LoadWavefrontMesh(myobjshapeasset->GetFilename(), true, true);
 
                         mytrimesh = temp_allocated_loadtrimesh;
-                    } catch (ChException) {
+                    } catch (const ChException&) {
                         if (temp_allocated_loadtrimesh)
                             delete temp_allocated_loadtrimesh;
                         temp_allocated_loadtrimesh = 0;
@@ -500,15 +501,15 @@ void ChPovRay::_recurseExportAssets(std::vector<std::shared_ptr<ChAsset> >& asse
                     assets_file << " vertex_vectors {\n";
                     assets_file << (int)mytrimesh->m_vertices.size() << ",\n";
                     for (unsigned int iv = 0; iv < mytrimesh->m_vertices.size(); iv++)
-                        assets_file << "  <" << mytrimesh->m_vertices[iv].x() << "," << mytrimesh->m_vertices[iv].y() << ","
-                        << mytrimesh->m_vertices[iv].z() << ">,\n";
+                        assets_file << "  <" << mytrimesh->m_vertices[iv].x() << "," << mytrimesh->m_vertices[iv].y()
+                                    << "," << mytrimesh->m_vertices[iv].z() << ">,\n";
                     assets_file << " }\n";
 
                     assets_file << " normal_vectors {\n";
                     assets_file << (int)mytrimesh->m_normals.size() << ",\n";
                     for (unsigned int iv = 0; iv < mytrimesh->m_normals.size(); iv++)
-                        assets_file << "  <" << mytrimesh->m_normals[iv].x() << "," << mytrimesh->m_normals[iv].y() << ","
-                        << mytrimesh->m_normals[iv].z() << ">,\n";
+                        assets_file << "  <" << mytrimesh->m_normals[iv].x() << "," << mytrimesh->m_normals[iv].y()
+                                    << "," << mytrimesh->m_normals[iv].z() << ">,\n";
                     assets_file << " }\n";
 
                     assets_file << " uv_vectors {\n";
@@ -522,8 +523,8 @@ void ChPovRay::_recurseExportAssets(std::vector<std::shared_ptr<ChAsset> >& asse
                         assets_file << (int)(mytrimesh->m_colors.size()) << ",\n";
                         for (unsigned int iv = 0; iv < mytrimesh->m_vertices.size(); iv++) {
                             assets_file << " texture{pigment{rgb <" << mytrimesh->m_colors[iv].x() << ","
-                                << mytrimesh->m_colors[iv].y() << ","
-                                << mytrimesh->m_colors[iv].z() << ">}},\n";
+                                        << mytrimesh->m_colors[iv].y() << "," << mytrimesh->m_colors[iv].z()
+                                        << ">}},\n";
                         }
                         assets_file << " }\n";
                     }
@@ -532,10 +533,12 @@ void ChPovRay::_recurseExportAssets(std::vector<std::shared_ptr<ChAsset> >& asse
                     assets_file << (int)mytrimesh->m_face_v_indices.size() << ",\n";
                     for (unsigned int it = 0; it < mytrimesh->m_face_v_indices.size(); it++) {
                         assets_file << "  <" << mytrimesh->m_face_v_indices[it].x() << ","
-                            << mytrimesh->m_face_v_indices[it].y() << "," << mytrimesh->m_face_v_indices[it].z()
-                            << ">";
+                                    << mytrimesh->m_face_v_indices[it].y() << "," << mytrimesh->m_face_v_indices[it].z()
+                                    << ">";
                         if (mytrimesh->m_colors.size() == mytrimesh->m_vertices.size())
-                            assets_file << mytrimesh->m_face_v_indices[it].x() << "," << mytrimesh->m_face_v_indices[it].y() << "," << mytrimesh->m_face_v_indices[it].z();
+                            assets_file << mytrimesh->m_face_v_indices[it].x() << ","
+                                        << mytrimesh->m_face_v_indices[it].y() << ","
+                                        << mytrimesh->m_face_v_indices[it].z();
                         assets_file << ",\n";
                     }
                     assets_file << " }\n";
@@ -547,8 +550,8 @@ void ChPovRay::_recurseExportAssets(std::vector<std::shared_ptr<ChAsset> >& asse
                         assets_file << (int)mytrimesh->m_face_n_indices.size() << ",\n";
                         for (unsigned int it = 0; it < mytrimesh->m_face_n_indices.size(); it++)
                             assets_file << "  <" << mytrimesh->m_face_n_indices[it].x() << ","
-                            << mytrimesh->m_face_n_indices[it].y() << "," << mytrimesh->m_face_n_indices[it].z()
-                            << ">,\n";
+                                        << mytrimesh->m_face_n_indices[it].y() << ","
+                                        << mytrimesh->m_face_n_indices[it].z() << ">,\n";
                         assets_file << " }\n";
                     }
                     if ((mytrimesh->m_face_uv_indices.size() != mytrimesh->m_face_v_indices.size()) &&
@@ -557,23 +560,28 @@ void ChPovRay::_recurseExportAssets(std::vector<std::shared_ptr<ChAsset> >& asse
                         assets_file << (int)mytrimesh->m_face_uv_indices.size() << ",\n";
                         for (unsigned int it = 0; it < mytrimesh->m_face_uv_indices.size(); it++)
                             assets_file << "  <" << mytrimesh->m_face_uv_indices[it].x() << ","
-                            << mytrimesh->m_face_uv_indices[it].y() << "," << mytrimesh->m_face_uv_indices[it].z()
-                            << ">,\n";
+                                        << mytrimesh->m_face_uv_indices[it].y() << ","
+                                        << mytrimesh->m_face_uv_indices[it].z() << ">,\n";
                         assets_file << " }\n";
                     }
 
                     assets_file << "}\n";
-                }
-                else {
+                } else {
                     // wireframed mesh
-                    std::map < std::pair<int, int>,std::pair<int, int> > medges;
+                    std::map<std::pair<int, int>, std::pair<int, int> > medges;
                     mytrimesh->ComputeWingedEdges(medges, true);
                     for (auto& medge : medges) {
-                        assets_file << " cylinder {<" << mytrimesh->m_vertices[medge.first.first].x() << "," << mytrimesh->m_vertices[medge.first.first].y() << "," << mytrimesh->m_vertices[medge.first.first].z() << ">,";
-                        assets_file << "<" << mytrimesh->m_vertices[medge.first.second].x() << "," << mytrimesh->m_vertices[medge.first.second].y() << "," << mytrimesh->m_vertices[medge.first.second].z() << ">,";
+                        assets_file << " cylinder {<" << mytrimesh->m_vertices[medge.first.first].x() << ","
+                                    << mytrimesh->m_vertices[medge.first.first].y() << ","
+                                    << mytrimesh->m_vertices[medge.first.first].z() << ">,";
+                        assets_file << "<" << mytrimesh->m_vertices[medge.first.second].x() << ","
+                                    << mytrimesh->m_vertices[medge.first.second].y() << ","
+                                    << mytrimesh->m_vertices[medge.first.second].z() << ">,";
                         assets_file << (this->wireframe_thickness * 0.5) << "\n no_shadow ";
                         if (mytrimesh->m_colors.size() == mytrimesh->m_vertices.size())
-                            assets_file << "finish{ ambient rgb<" << mytrimesh->m_colors[medge.first.first].x() << "," << mytrimesh->m_colors[medge.first.first].y() << "," << mytrimesh->m_colors[medge.first.first].z() << "> diffuse 0}";
+                            assets_file << "finish{ ambient rgb<" << mytrimesh->m_colors[medge.first.first].x() << ","
+                                        << mytrimesh->m_colors[medge.first.first].y() << ","
+                                        << mytrimesh->m_colors[medge.first.first].z() << "> diffuse 0}";
                         assets_file << "}\n";
                     }
                 }
@@ -616,13 +624,13 @@ void ChPovRay::_recurseExportAssets(std::vector<std::shared_ptr<ChAsset> >& asse
                 assets_file << "sphere  {\n";
 
                 assets_file << " <" << myobjshapeassetE->GetEllipsoidGeometry().center.x();
-                assets_file << "," <<  myobjshapeassetE->GetEllipsoidGeometry().center.y();
-                assets_file << "," <<  myobjshapeassetE->GetEllipsoidGeometry().center.z() << ">\n";
-                assets_file << " " <<  1.0 << "\n";
+                assets_file << "," << myobjshapeassetE->GetEllipsoidGeometry().center.y();
+                assets_file << "," << myobjshapeassetE->GetEllipsoidGeometry().center.z() << ">\n";
+                assets_file << " " << 1.0 << "\n";
                 assets_file << " scale ";
-                assets_file << "<" <<  myobjshapeassetE->GetEllipsoidGeometry().rad.x();
-                assets_file << "," <<  myobjshapeassetE->GetEllipsoidGeometry().rad.y();
-                assets_file << "," <<  myobjshapeassetE->GetEllipsoidGeometry().rad.z() << ">\n";
+                assets_file << "<" << myobjshapeassetE->GetEllipsoidGeometry().rad.x();
+                assets_file << "," << myobjshapeassetE->GetEllipsoidGeometry().rad.y();
+                assets_file << "," << myobjshapeassetE->GetEllipsoidGeometry().rad.z() << ">\n";
                 assets_file << "}\n";
 
                 // POV macro - end
@@ -708,10 +716,12 @@ void ChPovRay::_recurseExportAssets(std::vector<std::shared_ptr<ChAsset> >& asse
                 auto abstexturepath = reltexturepath.make_absolute().str();
 
                 std::string texture_extension = "";
-                if (myobjtextureasset->GetTextureFilename().substr(myobjtextureasset->GetTextureFilename().length() - 5, 1) == ".")
+                if (myobjtextureasset->GetTextureFilename().substr(myobjtextureasset->GetTextureFilename().length() - 5,
+                                                                   1) == ".")
                     texture_extension = (abstexturepath.substr(abstexturepath.length() - 4, 4)).c_str();
 
-                if (myobjtextureasset->GetTextureFilename().substr(myobjtextureasset->GetTextureFilename().length() - 4, 1) == ".")
+                if (myobjtextureasset->GetTextureFilename().substr(myobjtextureasset->GetTextureFilename().length() - 4,
+                                                                   1) == ".")
                     texture_extension = (abstexturepath.substr(abstexturepath.length() - 3, 3)).c_str();
                 if (texture_extension == "jpg")
                     texture_extension = "jpeg";
@@ -750,7 +760,6 @@ void ChPovRay::_recurseExportAssets(std::vector<std::shared_ptr<ChAsset> >& asse
 }
 
 void ChPovRay::ExportAssets(ChStreamOutAsciiFile& assets_file) {
-    
     // This will scan all the ChPhysicsItem added objects, and if
     // they have some reference to renderizable assets, write geoemtries in
     // the POV assets script.
@@ -764,7 +773,7 @@ void ChPovRay::ExportAssets(ChStreamOutAsciiFile& assets_file) {
 void ChPovRay::_recurseExportObjData(std::vector<std::shared_ptr<ChAsset> >& assetlist,
                                      ChFrame<> parentframe,
                                      ChStreamOutAsciiFile& mfilepov) {
-    mfilepov << "union{\n";   // begin union
+    mfilepov << "union{\n";  // begin union
 
     // Scan assets in object and write the macro to set their position
     for (unsigned int k = 0; k < assetlist.size(); k++) {
@@ -773,10 +782,8 @@ void ChPovRay::_recurseExportObjData(std::vector<std::shared_ptr<ChAsset> >& ass
         // asset k of object i references a mesh, a box, a sphere, i.e. any exported shape?
         if (std::dynamic_pointer_cast<ChObjShapeFile>(k_asset) ||
             std::dynamic_pointer_cast<ChTriangleMeshShape>(k_asset) ||
-            std::dynamic_pointer_cast<ChSphereShape>(k_asset) || 
-            std::dynamic_pointer_cast<ChEllipsoidShape>(k_asset) || 
-            std::dynamic_pointer_cast<ChCylinderShape>(k_asset) ||
-            std::dynamic_pointer_cast<ChBoxShape>(k_asset)) {
+            std::dynamic_pointer_cast<ChSphereShape>(k_asset) || std::dynamic_pointer_cast<ChEllipsoidShape>(k_asset) ||
+            std::dynamic_pointer_cast<ChCylinderShape>(k_asset) || std::dynamic_pointer_cast<ChBoxShape>(k_asset)) {
             mfilepov << "sh_" << (size_t)k_asset.get() << "()\n";
         }
 
@@ -826,7 +833,6 @@ void ChPovRay::_recurseExportObjData(std::vector<std::shared_ptr<ChAsset> >& ass
     mfilepov << "}\n";  // end union
 }
 
-
 /// This function is used at each timestep to export data
 /// formatted in a way that it can be load with the POV
 /// scripts generated by ExportScript().
@@ -841,7 +847,7 @@ void ChPovRay::_recurseExportObjData(std::vector<std::shared_ptr<ChAsset> >& ass
 void ChPovRay::ExportData() {
     char fullname[200];
     sprintf(fullname, "%s%05d", this->out_data_filename.c_str(), this->framenumber);
-    this->ExportData( (this->out_path + "/" + std::string(fullname)) );
+    this->ExportData((this->out_path + "/" + std::string(fullname)));
 }
 
 void ChPovRay::ExportData(const std::string& filename) {
@@ -966,13 +972,13 @@ void ChPovRay::ExportData(const std::string& filename) {
                     ChFrame<> frBabs = mylinkmate->GetFrame2() >> *mylinkmate->GetBody2();
                     mfilepov << "sh_csysFRM(";
                     mfilepov << frAabs.GetPos().x() << "," << frAabs.GetPos().y() << "," << frAabs.GetPos().z() << ",";
-                    mfilepov << frAabs.GetRot().e0() << "," << frAabs.GetRot().e1() << "," << frAabs.GetRot().e2() << ","
-                             << frAabs.GetRot().e3() << ",";
+                    mfilepov << frAabs.GetRot().e0() << "," << frAabs.GetRot().e1() << "," << frAabs.GetRot().e2()
+                             << "," << frAabs.GetRot().e3() << ",";
                     mfilepov << this->links_size * 0.7 << ")\n";  // smaller, as 'slave' csys.
                     mfilepov << "sh_csysFRM(";
                     mfilepov << frBabs.GetPos().x() << "," << frBabs.GetPos().y() << "," << frBabs.GetPos().z() << ",";
-                    mfilepov << frBabs.GetRot().e0() << "," << frBabs.GetRot().e1() << "," << frBabs.GetRot().e2() << ","
-                             << frBabs.GetRot().e3() << ",";
+                    mfilepov << frBabs.GetRot().e0() << "," << frBabs.GetRot().e1() << "," << frBabs.GetRot().e2()
+                             << "," << frBabs.GetRot().e3() << ",";
                     mfilepov << this->links_size << ")\n";
                 }
             }
@@ -986,52 +992,51 @@ void ChPovRay::ExportData(const std::string& filename) {
                 _recurseExportObjData(mdata[i]->GetAssets(), assetcsys, mfilepov);
             }
 
-
         }  // end loop on objects
 
         // #) saving contacts ?
         if (this->contacts_show) {
-              ChStreamOutAsciiFile data_contacts((base_path + filename + ".contacts").c_str());
+            ChStreamOutAsciiFile data_contacts((base_path + filename + ".contacts").c_str());
 
-              class _reporter_class : public ChContactContainer::ReportContactCallback {
-                public:
-                  virtual bool OnReportContact(
-                      const ChVector<>& pA,             // contact pA
-                      const ChVector<>& pB,             // contact pB
-                      const ChMatrix33<>& plane_coord,  // contact plane coordsystem (A column 'X' is contact normal)
-                      const double& distance,           // contact distance
-                      const double& eff_radius,         // effective radius of curvature at contact
-                      const ChVector<>& react_forces,   // react.forces (in coordsystem 'plane_coord')
-                      const ChVector<>& react_torques,  // react.torques (if rolling friction)
-                      ChContactable* contactobjA,       // model A (note: could be nullptr)
-                      ChContactable* contactobjB        // model B (note: could be nullptr)
-                      ) override {
-                      if (fabs(react_forces.x()) > 1e-8 || fabs(react_forces.y()) > 1e-8 ||
-                          fabs(react_forces.z()) > 1e-8) {
-                          ChMatrix33<> localmatr(plane_coord);
-                          ChVector<> n1 = localmatr.Get_A_Xaxis();
-                          ChVector<> absreac = localmatr * react_forces;
-                          (*mfile) << pA.x() << ", ";
-                          (*mfile) << pA.y() << ", ";
-                          (*mfile) << pA.z() << ", ";
-                          (*mfile) << n1.x() << ", ";
-                          (*mfile) << n1.y() << ", ";
-                          (*mfile) << n1.z() << ", ";
-                          (*mfile) << absreac.x() << ", ";
-                          (*mfile) << absreac.y() << ", ";
-                          (*mfile) << absreac.z() << ", \n";
-                      }
-                      return true;  // to continue scanning contacts
-                  }
-                  // Data
-                  ChStreamOutAsciiFile* mfile;
-              };
+            class _reporter_class : public ChContactContainer::ReportContactCallback {
+              public:
+                virtual bool OnReportContact(
+                    const ChVector<>& pA,             // contact pA
+                    const ChVector<>& pB,             // contact pB
+                    const ChMatrix33<>& plane_coord,  // contact plane coordsystem (A column 'X' is contact normal)
+                    const double& distance,           // contact distance
+                    const double& eff_radius,         // effective radius of curvature at contact
+                    const ChVector<>& react_forces,   // react.forces (in coordsystem 'plane_coord')
+                    const ChVector<>& react_torques,  // react.torques (if rolling friction)
+                    ChContactable* contactobjA,       // model A (note: could be nullptr)
+                    ChContactable* contactobjB        // model B (note: could be nullptr)
+                    ) override {
+                    if (fabs(react_forces.x()) > 1e-8 || fabs(react_forces.y()) > 1e-8 ||
+                        fabs(react_forces.z()) > 1e-8) {
+                        ChMatrix33<> localmatr(plane_coord);
+                        ChVector<> n1 = localmatr.Get_A_Xaxis();
+                        ChVector<> absreac = localmatr * react_forces;
+                        (*mfile) << pA.x() << ", ";
+                        (*mfile) << pA.y() << ", ";
+                        (*mfile) << pA.z() << ", ";
+                        (*mfile) << n1.x() << ", ";
+                        (*mfile) << n1.y() << ", ";
+                        (*mfile) << n1.z() << ", ";
+                        (*mfile) << absreac.x() << ", ";
+                        (*mfile) << absreac.y() << ", ";
+                        (*mfile) << absreac.z() << ", \n";
+                    }
+                    return true;  // to continue scanning contacts
+                }
+                // Data
+                ChStreamOutAsciiFile* mfile;
+            };
 
-              auto my_contact_reporter = chrono_types::make_shared<_reporter_class>();
-              my_contact_reporter->mfile = &data_contacts;
+            auto my_contact_reporter = chrono_types::make_shared<_reporter_class>();
+            my_contact_reporter->mfile = &data_contacts;
 
-              // scan all contacts
-              this->mSystem->GetContactContainer()->ReportAllContacts(my_contact_reporter);
+            // scan all contacts
+            this->mSystem->GetContactContainer()->ReportAllContacts(my_contact_reporter);
         }
 
         // If a camera have been found in assets, create it and override the default one
@@ -1058,7 +1063,7 @@ void ChPovRay::ExportData(const std::string& filename) {
 
         // At the end of the .pov file, remember to close the .dat
         mfilepov << "\n\n#fclose MyDatFile \n";
-    } catch (ChException) {
+    } catch (const ChException&) {
         char error[400];
         sprintf(error, "Can't save data into file %s.pov (or .dat)", filename.c_str());
         throw(ChException(error));

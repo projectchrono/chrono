@@ -16,7 +16,7 @@
 // =============================================================================
 
 #include "chrono_sensor/filters/ChFilterSavePtCloud.h"
-#include "chrono_sensor/ChSensor.h"
+#include "chrono_sensor/sensors/ChOptixSensor.h"
 
 #include "chrono_thirdparty/filesystem/path.h"
 #include "chrono/utils/ChUtilsInputOutput.h"
@@ -24,49 +24,58 @@
 #include <vector>
 #include <sstream>
 
+#include <cuda_runtime_api.h>
+
 namespace chrono {
 namespace sensor {
 
-CH_SENSOR_API ChFilterSavePtCloud::ChFilterSavePtCloud(std::string data_path) : ChFilter("") {
+CH_SENSOR_API ChFilterSavePtCloud::ChFilterSavePtCloud(std::string data_path, std::string name) : ChFilter(name) {
     m_path = data_path;
 }
 
 CH_SENSOR_API ChFilterSavePtCloud::~ChFilterSavePtCloud() {}
 
-CH_SENSOR_API void ChFilterSavePtCloud::Apply(std::shared_ptr<ChSensor> pSensor,
-                                              std::shared_ptr<SensorBuffer>& bufferInOut) {
-    std::shared_ptr<SensorDeviceXYZIBuffer> pXYZI = std::dynamic_pointer_cast<SensorDeviceXYZIBuffer>(bufferInOut);
-
-    if (!pXYZI)
-        throw std::runtime_error("This buffer type cannot be saved as as a point cloud");
+CH_SENSOR_API void ChFilterSavePtCloud::Apply() {
+    cudaMemcpyAsync(m_host_buffer->Buffer.get(), m_buffer_in->Buffer.get(),
+                    sizeof(PixelXYZI) * m_host_buffer->Width * m_host_buffer->Height * (m_host_buffer->Dual_return + 1),
+                    cudaMemcpyDeviceToHost, m_cuda_stream);
 
     std::string filename = m_path + "frame_" + std::to_string(m_frame_number) + ".csv";
     m_frame_number++;
-
-    if (pXYZI) {
-        utils::CSV_writer csv_writer(",");
-
-        float* buf = new float[pXYZI->Width * pXYZI->Height * 4];
-        cudaMemcpy(buf, pXYZI->Buffer.get(), pXYZI->Width * pXYZI->Height * sizeof(PixelXYZI), cudaMemcpyDeviceToHost);
-
-        for (unsigned int i = 0; i < pXYZI->Width * pXYZI->Height; i++) {
-            for (int j = 0; j < 4; j++) {
-                csv_writer << buf[i * 4 + j];
-            }
-            csv_writer << std::endl;
-        }
-
-        csv_writer.write_to_file(filename);
-
-        // write a grayscale png
-
-        delete[] buf;
+    utils::CSV_writer csv_writer(",");
+    cudaStreamSynchronize(m_cuda_stream);
+    std::cout << "Beam count: " << m_buffer_in->Beam_return_count << std::endl;
+    for (unsigned int i = 0; i < m_buffer_in->Beam_return_count; i++) {
+        csv_writer << m_host_buffer->Buffer[i].x << m_host_buffer->Buffer[i].y << m_host_buffer->Buffer[i].z
+                   << m_host_buffer->Buffer[i].intensity << std::endl;
     }
+    csv_writer.write_to_file(filename);
 }
 
-CH_SENSOR_API void ChFilterSavePtCloud::Initialize(std::shared_ptr<ChSensor> pSensor) {
-    std::vector<std::string> split_string;
+CH_SENSOR_API void ChFilterSavePtCloud::Initialize(std::shared_ptr<ChSensor> pSensor,
+                                                   std::shared_ptr<SensorBuffer>& bufferInOut) {
+    if (!bufferInOut)
+        InvalidFilterGraphNullBuffer(pSensor);
 
+    m_buffer_in = std::dynamic_pointer_cast<SensorDeviceXYZIBuffer>(bufferInOut);
+    if (!m_buffer_in)
+        InvalidFilterGraphBufferTypeMismatch(pSensor);
+
+    if (auto pOpx = std::dynamic_pointer_cast<ChOptixSensor>(pSensor)) {
+        m_cuda_stream = pOpx->GetCudaStream();
+    } else {
+        InvalidFilterGraphSensorTypeMismatch(pSensor);
+    }
+
+    m_host_buffer = chrono_types::make_shared<SensorHostXYZIBuffer>();
+    std::shared_ptr<PixelXYZI[]> b(
+        cudaHostMallocHelper<PixelXYZI>(m_buffer_in->Width * m_buffer_in->Height * (m_buffer_in->Dual_return + 1)),
+        cudaHostFreeHelper<PixelXYZI>);
+    m_host_buffer->Buffer = std::move(b);
+    m_host_buffer->Width = m_buffer_in->Width;
+    m_host_buffer->Height = m_buffer_in->Height;
+
+    std::vector<std::string> split_string;
 #ifdef _WIN32
     std::istringstream istring(m_path);
 

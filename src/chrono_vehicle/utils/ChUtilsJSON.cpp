@@ -56,6 +56,7 @@
 #include "chrono_vehicle/wheeled_vehicle/suspension/ThreeLinkIRS.h"
 #include "chrono_vehicle/wheeled_vehicle/suspension/ToeBarLeafspringAxle.h"
 #include "chrono_vehicle/wheeled_vehicle/suspension/SAEToeBarLeafspringAxle.h"
+#include "chrono_vehicle/wheeled_vehicle/subchassis/Balancer.h"
 #include "chrono_vehicle/wheeled_vehicle/tire/ANCFTire.h"
 #include "chrono_vehicle/wheeled_vehicle/tire/FEATire.h"
 #include "chrono_vehicle/wheeled_vehicle/tire/FialaTire.h"
@@ -147,6 +148,25 @@ MaterialInfo ReadMaterialInfoJSON(const rapidjson::Value& mat) {
 
     return minfo;
 }
+
+std::shared_ptr<ChVehicleBushingData> ReadBushingDataJSON(const rapidjson::Value& bd) {
+    auto bushing_data = chrono_types::make_shared<ChVehicleBushingData>();
+
+    bushing_data->K_lin = bd["Stiffness Linear"].GetDouble();
+    bushing_data->D_lin = bd["Damping Linear"].GetDouble();
+    bushing_data->K_rot = bd["Stiffness Rotational"].GetDouble();
+    bushing_data->D_rot = bd["Damping Rotational"].GetDouble();
+
+    if (bd.HasMember("DOF")) {
+        bushing_data->K_lin_dof = bd["DOF"]["Stiffness Linear"].GetDouble();
+        bushing_data->D_lin_dof = bd["DOF"]["Damping Linear"].GetDouble();
+        bushing_data->K_rot_dof = bd["DOF"]["Stiffness Rotational"].GetDouble();
+        bushing_data->D_rot_dof = bd["DOF"]["Damping Rotational"].GetDouble();    
+    }
+
+    return bushing_data;
+}
+
 
 // -----------------------------------------------------------------------------
 
@@ -437,6 +457,33 @@ std::shared_ptr<ChWheel> ReadWheelJSON(const std::string& filename) {
     return wheel;
 }
 
+std::shared_ptr<ChSubchassis> ReadSubchassisJSON(const std::string& filename) {
+    std::shared_ptr<ChSubchassis> chassis;
+
+    Document d;
+    ReadFileJSON(filename, d);
+    if (d.IsNull())
+        return nullptr;
+
+    // Check that the given file is a wheel specification file.
+    assert(d.HasMember("Type"));
+    std::string type = d["Type"].GetString();
+    assert(type.compare("Subchassis") == 0);
+
+    // Extract the wheel type.
+    assert(d.HasMember("Template"));
+    std::string subtype = d["Template"].GetString();
+
+    // Create the wheel using the appropriate template.
+    if (subtype.compare("Balancer") == 0) {
+        chassis = chrono_types::make_shared<Balancer>(d);
+    } else {
+        throw ChException("Subchassis type not supported in ReadSubchassisJSON.");
+    }
+
+    return chassis;
+}
+
 std::shared_ptr<ChBrake> ReadBrakeJSON(const std::string& filename) {
     std::shared_ptr<ChBrake> brake;
 
@@ -511,7 +558,7 @@ std::shared_ptr<ChTire> ReadTireJSON(const std::string& filename) {
 
 // -----------------------------------------------------------------------------
 
-std::shared_ptr<ChTrackAssembly> ReadTrackAssemblySON(const std::string& filename) {
+std::shared_ptr<ChTrackAssembly> ReadTrackAssemblyJSON(const std::string& filename) {
     std::shared_ptr<ChTrackAssembly> track;
 
     Document d;ReadFileJSON(filename, d);
@@ -537,7 +584,7 @@ std::shared_ptr<ChTrackAssembly> ReadTrackAssemblySON(const std::string& filenam
     } else if (subtype.compare("TrackAssemblyBandANCF") == 0) {
         track = chrono_types::make_shared<TrackAssemblyBandANCF>(d);
     } else {
-        throw ChException("TrackAssembly type not supported in ReadTrackAssemblySON.");
+        throw ChException("TrackAssembly type not supported in ReadTrackAssemblyJSON.");
     }
 
     return track;

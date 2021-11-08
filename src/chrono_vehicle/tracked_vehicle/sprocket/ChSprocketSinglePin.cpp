@@ -46,7 +46,6 @@ class SprocketSinglePinContactCB : public ChSystem::CustomCollisionCallback {
                                )
         : m_track(track),
           m_envelope(envelope),
-          m_sprocket(m_track->GetSprocket()),
           m_gear_nteeth(gear_nteeth),
           m_gear_RO(gear_RO),
           m_gear_RC(gear_RC),
@@ -60,6 +59,8 @@ class SprocketSinglePinContactCB : public ChSystem::CustomCollisionCallback {
           m_lateral_backlash(lateral_backlash),
           m_shoe_pin(shoe_pin),
           m_shoe_Rhat(shoe_R + envelope) {
+        m_sprocket = static_cast<ChSprocketSinglePin*>(m_track->GetSprocket().get());
+
         double safety_factor = 2;
         m_R_sum = m_gear_RO + m_shoe_R + safety_factor * m_envelope;
         m_R_diff = m_gear_R - m_shoe_R;
@@ -102,8 +103,8 @@ class SprocketSinglePinContactCB : public ChSystem::CustomCollisionCallback {
     // The calculation is performed in the (x-z) plane.
     ChVector<> FindClosestArc(const ChVector<>& loc);
 
-    ChTrackAssembly* m_track;                // pointer to containing track assembly
-    std::shared_ptr<ChSprocket> m_sprocket;  // handle to the sprocket
+    ChTrackAssembly* m_track;         // pointer to containing track assembly
+    ChSprocketSinglePin* m_sprocket;  // handle to the sprocket
 
     double m_envelope;  // collision detection envelope
 

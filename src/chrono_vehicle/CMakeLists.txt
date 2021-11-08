@@ -148,6 +148,8 @@ set(CV_BASE_FILES
     ChDriver.cpp
     ChPart.h
     ChPart.cpp
+    ChVehicleJoint.h
+    ChVehicleJoint.cpp
     ChDriveline.h
     ChDriveline.cpp
     ChPowertrain.h
@@ -396,8 +398,8 @@ set(CV_WV_SUBCHASSIS_FILES
     wheeled_vehicle/subchassis/ChBalancer.h
     wheeled_vehicle/subchassis/ChBalancer.cpp
 
-    #wheeled_vehicle/subchassis/Balancer.h
-    #wheeled_vehicle/subchassis/Balancer.cpp
+    wheeled_vehicle/subchassis/Balancer.h
+    wheeled_vehicle/subchassis/Balancer.cpp
 )
 source_group("wheeled_vehicle\\subchassis" FILES ${CV_WV_SUBCHASSIS_FILES})
 
@@ -441,8 +443,8 @@ set(CV_WV_SUSPENSION_FILES
     wheeled_vehicle/suspension/DoubleWishbone.cpp
     wheeled_vehicle/suspension/DoubleWishboneReduced.h
     wheeled_vehicle/suspension/DoubleWishboneReduced.cpp
-#    wheeled_vehicle/suspension/SingleWishbone.h
-#    wheeled_vehicle/suspension/SingleWishbone.cpp
+    wheeled_vehicle/suspension/SingleWishbone.h
+    wheeled_vehicle/suspension/SingleWishbone.cpp
     wheeled_vehicle/suspension/SolidAxle.h
     wheeled_vehicle/suspension/SolidAxle.cpp
     wheeled_vehicle/suspension/MultiLink.h
@@ -570,23 +572,6 @@ set(CV_WV_WHEEL_FILES
     wheeled_vehicle/wheel/Wheel.cpp
 )
 source_group("wheeled_vehicle\\wheel" FILES ${CV_WV_WHEEL_FILES})
-
-#if(MPI_CXX_FOUND)
-#    set(CV_WV_COSIM_FILES
-#        wheeled_vehicle/cosim/ChCosimManager.h
-#        wheeled_vehicle/cosim/ChCosimManager.cpp
-#        wheeled_vehicle/cosim/ChCosimNode.h
-#        wheeled_vehicle/cosim/ChCosimVehicleNode.h
-#        wheeled_vehicle/cosim/ChCosimVehicleNode.cpp
-#        wheeled_vehicle/cosim/ChCosimTireNode.h
-#        wheeled_vehicle/cosim/ChCosimTireNode.cpp
-#        wheeled_vehicle/cosim/ChCosimTerrainNode.h
-#        wheeled_vehicle/cosim/ChCosimTerrainNode.cpp
-#    )
-#    source_group("wheeled_vehicle\\cosim" FILES ${CV_WV_COSIM_FILES})
-#else()
-    set(CV_WV_COSIM_FILES "")
-#endif()
 
 # --------------- TRACKED VEHICLE FILES
 
@@ -783,6 +768,8 @@ if(ENABLE_MODULE_IRRLICHT)
     set(CVIRR_TV_UTILS_FILES
         tracked_vehicle/utils/ChTrackedVehicleIrrApp.h
         tracked_vehicle/utils/ChTrackedVehicleIrrApp.cpp
+        tracked_vehicle/utils/ChTrackTestRigIrrApp.h
+        tracked_vehicle/utils/ChTrackTestRigIrrApp.cpp
     )
 else()
     set(CVIRR_TV_UTILS_FILES "")
@@ -814,13 +801,6 @@ set(CXX_FLAGS ${CH_CXX_FLAGS})
 set(COMPILE_DEFS "CH_API_COMPILE_VEHICLE")
 set(LINK_FLAGS ${CH_LINKERFLAG_SHARED})
 set(LIBRARIES "ChronoEngine")
-
-if(MPI_CXX_FOUND)
-    set(CXX_FLAGS "${CXX_FLAGS} ${MPI_CXX_COMPILE_FLAGS}")
-    set(LINK_FLAGS "${LINK_FLAGS} ${MPI_CXX_LINK_FLAGS}")
-    include_directories(${MPI_CXX_INCLUDE_PATH})
-    list(APPEND LIBRARIES ${MPI_CXX_LIBRARIES})
-endif()
 
 if(HDF5_FOUND)
     set(COMPILE_DEFS "${COMPILE_DEFS} ${H5_BUILT_AS_DYNAMIC_LIB}")
@@ -857,7 +837,6 @@ add_library(ChronoEngine_vehicle SHARED
     ${CV_WV_UTILS_FILES}
     ${CV_WV_VEHICLE_FILES}
     ${CV_WV_WHEEL_FILES}
-    ${CV_WV_COSIM_FILES}
 #
     ${CV_TV_BASE_FILES}
     ${CV_TV_BRAKE_FILES}
@@ -875,6 +854,8 @@ add_library(ChronoEngine_vehicle SHARED
 #
     ${CV_STB_FILES}
 )
+
+message(STATUS "Add ChronoEngine_vehicle library")
 
 set_target_properties(ChronoEngine_vehicle PROPERTIES
                       COMPILE_FLAGS "${CXX_FLAGS}"
@@ -905,11 +886,6 @@ list(APPEND LIBRARIES ChronoEngine_vehicle)
 list(APPEND LIBRARIES ChronoEngine_irrlicht) 
 include_directories(${CH_IRRLICHTINC})
 
-if(ENABLE_IRRKLANG)
-    include_directories(${CH_IRRKLANGINC})
-    list(APPEND LIBRARIES ${CH_IRRKLANGLIB})
-endif()
-
 add_library(ChronoEngine_vehicle_irrlicht SHARED
     ${CVIRR_DRIVER_FILES}
     ${CVIRR_UTILS_FILES}
@@ -918,6 +894,13 @@ add_library(ChronoEngine_vehicle_irrlicht SHARED
     ${CVIRR_TV_TEST_RIG_FILES}
     ${CVIRR_TV_UTILS_FILES}
 )
+
+if(ENABLE_IRRKLANG)
+    target_include_directories(ChronoEngine_vehicle_irrlicht PUBLIC ${CH_IRRKLANGINC})
+    list(APPEND LIBRARIES ${CH_IRRKLANGLIB})
+    set(CH_IRRLICHTINC ${CH_IRRLICHTINC} ${CH_IRRKLANGINC} PARENT_SCOPE)
+    set(IRRLICHT_LIBRARY ${IRRLICHT_LIBRARY} ${CH_IRRKLANGLIB} PARENT_SCOPE)
+endif()
 
 set_target_properties(ChronoEngine_vehicle_irrlicht PROPERTIES
                       COMPILE_FLAGS "${CXX_FLAGS}"
@@ -934,6 +917,11 @@ install(TARGETS ChronoEngine_vehicle_irrlicht
         ARCHIVE DESTINATION lib)
 
 endif()
+
+#-------------------------------------------------------------------------------
+# Trigger CMake for vehicle cosimulation
+#-------------------------------------------------------------------------------
+add_subdirectory(cosim)
 
 #-------------------------------------------------------------------------------
 # Install Chrono::Vehicle headers

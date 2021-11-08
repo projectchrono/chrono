@@ -66,7 +66,7 @@ class CH_VEHICLE_API ChPac89Tire : public ChTire {
     void SetGammaLimit(double gamma_limit) { m_gamma_limit = gamma_limit; }
 
     /// Get the width of the tire.
-    double GetWidth() const { return m_width; }
+    virtual double GetWidth() const override { return m_width; }
 
     /// Get the tire deflection
     virtual double GetDeflection() const override { return m_data.depth; }

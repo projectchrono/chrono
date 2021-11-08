@@ -35,16 +35,15 @@ class CH_VEHICLE_API ChDriveline : public ChPart {
   public:
     ChDriveline(const std::string& name);
 
-    virtual ~ChDriveline() {}
+    virtual ~ChDriveline();
 
     /// Get a handle to the driveshaft.
     /// Return a pointer to the shaft that connects this driveline to a powertrain system.
     std::shared_ptr<ChShaft> GetDriveshaft() const { return m_driveshaft; }
 
     /// Get the angular speed of the driveshaft.
-    /// This represents the output from the driveline subsystem that is passed to the powertrain system. The default
-    /// implementation returns the driveline's driveshaft speed.
-    virtual double GetDriveshaftSpeed() const { return m_driveshaft->GetPos_dt(); }
+    /// This represents the output from the driveline subsystem that is passed to the powertrain system.
+    double GetDriveshaftSpeed() const { return -m_driveshaft->GetPos_dt(); }
 
   protected:
     std::shared_ptr<ChShaft> m_driveshaft;  ///< shaft connection to the powertrain
