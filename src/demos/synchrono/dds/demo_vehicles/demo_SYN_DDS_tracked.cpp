@@ -66,7 +66,7 @@ ChVector<> trackPoint(0.0, 0.0, 1.75);
 ChContactMethod contact_method = ChContactMethod::SMC;
 
 // Simulation step sizes
-double step_size = 1.5e-3;
+double step_size = 5e-4;
 
 // Simulation end time
 double end_time = 1000;
