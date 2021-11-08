@@ -54,6 +54,7 @@ using namespace chrono::vehicle;
 // Quality of Service
 #include <fastdds/dds/domain/qos/DomainParticipantQos.hpp>
 #include <fastdds/rtps/transport/UDPv4TransportDescriptor.h>
+#include <fastdds/rtps/transport/UDPv6TransportDescriptor.h>
 
 using namespace eprosima::fastdds::dds;
 using namespace eprosima::fastdds::rtps;
@@ -92,6 +93,9 @@ double end_time = 1000;
 
 // How often SynChrono state messages are interchanged
 double heartbeat = 1e-2;  // 100[Hz]
+
+// USe IPv6
+bool IPv6 = false;  // 100[Hz]
 
 // Time interval between two render frames
 double render_step_size = 1.0 / 50;  // FPS = 50
@@ -178,6 +182,7 @@ int main(int argc, char* argv[]) {
     step_size = cli.GetAsType<double>("step_size");
     end_time = cli.GetAsType<double>("end_time");
     heartbeat = cli.GetAsType<double>("heartbeat");
+    IPv6 = cli.GetAsType<bool>("ipv6");
 
     const int node_id = cli.GetAsType<int>("node_id");
     const int num_nodes = cli.GetAsType<int>("num_nodes");
@@ -194,21 +199,35 @@ int main(int argc, char* argv[]) {
     // Create the DomainParticipantQos
     DomainParticipantQos qos;
     qos.name("/syn/node/" + std::to_string(node_id) + ".0");
+    if (IPv6) {
+        // Use UDP by default
+        qos.transport().user_transports.push_back(std::make_shared<UDPv6TransportDescriptor>());
 
-    // Use UDP by default
-    qos.transport().user_transports.push_back(std::make_shared<UDPv4TransportDescriptor>());
+        qos.transport().use_builtin_transports = false;
+        qos.wire_protocol().builtin.avoid_builtin_multicast = false;
 
-    qos.transport().use_builtin_transports = false;
-    qos.wire_protocol().builtin.avoid_builtin_multicast = false;
+        // Set the initialPeersList
+        for (const auto& ip : ip_list) {
+            Locator_t locator;
+            locator.kind = LOCATOR_KIND_UDPv6;
+            IPLocator::setIPv6(locator, ip);
+            qos.wire_protocol().builtin.initialPeersList.push_back(locator);
+        }
+    } else {
+        // Use UDP by default
+        qos.transport().user_transports.push_back(std::make_shared<UDPv4TransportDescriptor>());
 
-    // Set the initialPeersList
-    for (const auto& ip : ip_list) {
-        Locator_t locator;
-        locator.kind = LOCATOR_KIND_UDPv4;
-        IPLocator::setIPv4(locator, ip);
-        qos.wire_protocol().builtin.initialPeersList.push_back(locator);
+        qos.transport().use_builtin_transports = false;
+        qos.wire_protocol().builtin.avoid_builtin_multicast = false;
+
+        // Set the initialPeersList
+        for (const auto& ip : ip_list) {
+            Locator_t locator;
+            locator.kind = LOCATOR_KIND_UDPv4;
+            IPLocator::setIPv4(locator, ip);
+            qos.wire_protocol().builtin.initialPeersList.push_back(locator);
+        }
     }
-
     auto communicator = chrono_types::make_shared<SynDDSCommunicator>(qos);
     SynChronoManager syn_manager(node_id, num_nodes, communicator);
 
@@ -398,6 +417,7 @@ void AddCommandLineOptions(ChCLI& cli) {
 
     // Other options
     cli.AddOption<int>("Demo", "v,vehicle", "Vehicle Options [0-4]: Sedan, HMMWV, UAZ, CityBus, MAN", "0");
+    cli.AddOption<bool>("Demo", "p,ipv6", "Use IPv6", "false");
 
     // DDS Specific
     cli.AddOption<int>("DDS", "d,node_id", "ID for this Node", "1");
