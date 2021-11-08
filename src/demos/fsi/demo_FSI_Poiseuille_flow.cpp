@@ -132,7 +132,7 @@ int main(int argc, char* argv[]) {
     } else if (argc == 2) {
         std::cout << "Use the specified JSON file" << std::endl;
         std::string my_inputJson = std::string(argv[1]);
-        inputJson = GetChronoDataFile(my_inputJson);
+        inputJson = my_inputJson;
     } else {
         ShowUsage();
         return 1;
