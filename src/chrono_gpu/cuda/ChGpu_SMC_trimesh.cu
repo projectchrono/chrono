@@ -442,28 +442,9 @@ __host__ void ChSystemGpuMesh_impl::IdentifyClusters() {
         // step 2- Search the graph, find the clusters.
         switch (gran_params->cluster_search_method) {
             case CLUSTER_SEARCH_METHOD::BFS: {
-                /// sphere_type is CORE if neighbors_num > min_pts else NOISE
-                GdbscanInitSphereType<<<nBlocks, CUDA_THREADS_PER_BLOCK>>>(
-                    nSpheres,
-                    sphere_data->adj_num,
-                    sphere_data->sphere_type,
-                    gran_params->gdbscan_min_pts);
-                gpuErrchk(cudaPeekAtLastError());
-                gpuErrchk(cudaDeviceSynchronize());
-
-                /// finds spheres in volume
-                /// must be set AFTER GdbscanInitSphereType,
-                ///  and AFTER interactionGranMat_TriangleSoup,
-                ///  which is AFTER AdvanceSimulation
-                SetVolumeSphereType<<<nBlocks, CUDA_THREADS_PER_BLOCK>>>(
-                    sphere_data,
-                    nSpheres);
-                gpuErrchk(cudaPeekAtLastError());
-                gpuErrchk(cudaDeviceSynchronize());
-
-                /// Finds clusters, tags Ground cluster (biggest), other clusters.
+                /// Finds clusters, tags Ground cluster, other clusters.
                 /// Changes NOISE sphere_type to BORDER if in cluster
-                GdbscanSearchGraph(sphere_data, gran_params, nSpheres,
+                GdbscanSearchGraphByBFS(sphere_data, gran_params, nSpheres,
                                    gran_params->gdbscan_min_pts);
                 break;
             }

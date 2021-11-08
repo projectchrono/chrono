@@ -143,7 +143,7 @@ static __global__ void AreSpheresBelowZLim(ChSystemGpu_impl::GranSphereDataPtr s
 
 // Find if any particle is in the volume cluster.
 // If any sphere in cluster sphere_type == VOLUME -> sphere_cluster = VOLUME
-// UNLESS it is the biggest cluster -> sphere_cluster = GROUND
+// UNLESS it is the biggestbiggest cluster -> sphere_cluster = GROUND
 static __global__ void FindVolumeCluster(unsigned int nSpheres,
                                          bool * visited,
                                          bool * in_volume,
@@ -359,9 +359,9 @@ __host__ void ConstructGraphByProximity(ChSystemGpu_impl::GranSphereDataPtr sphe
                                         size_t min_pts,
                                         float radius);
 
-__host__ void GdbscanSearchGraph(ChSystemGpu_impl::GranSphereDataPtr sphere_data,
-                                 ChSystemGpu_impl::GranParamsPtr gran_params,
-                                 unsigned int nSpheres,
-                                 size_t min_pts);
+__host__ void GdbscanSearchGraphByBFS(ChSystemGpu_impl::GranSphereDataPtr sphere_data,
+                                      ChSystemGpu_impl::GranParamsPtr gran_params,
+                                      unsigned int nSpheres,
+                                      size_t min_pts);
 
 /// @} gpu_cuda

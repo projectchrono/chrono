@@ -153,7 +153,7 @@ static __host__ unsigned int ** ClusterSearchBFS(unsigned int nSpheres,
 
             unsigned int cluster_index;
             // if any sphere is in the volume, the cluster is VOLUME
-            // gets overwritten by the biggest cluster in GdbscanSearchGraph
+            // gets overwritten by the GROUND cluster later
             if (*h_in_volume_num > 0) {
                 cluster_index = static_cast<unsigned int>(chrono::gpu::CLUSTER_INDEX::VOLUME);
             }  else {
@@ -343,26 +343,18 @@ __host__ void IdentifyGroundClusterByBiggest(
     gpuErrchk(cudaDeviceSynchronize());
 }
 
-/// G-DBSCAN; density-based h_clustering algorithm.
-/// Identifies core, border and noise points in h_clusters.
-/// Searches using a parallel Breadth-First search
-/// min_pts: minimal number of points for a cluster
-__host__ void GdbscanSearchGraph(ChSystemGpu_impl::GranSphereDataPtr sphere_data,
-                                 ChSystemGpu_impl::GranParamsPtr gran_params,
-                                 unsigned int nSpheres,
-                                 size_t min_pts) {
-    unsigned int nBlocks = (nSpheres + CUDA_THREADS_PER_BLOCK - 1) / CUDA_THREADS_PER_BLOCK;
-
-    unsigned int ** h_clusters = ClusterSearchBFS(nSpheres, sphere_data,
-                                                  sphere_data->adj_num,
-                                                  sphere_data->adj_offset,
-                                                  sphere_data->adj_list,
-                                                  sphere_data->sphere_type);
+/// Finds the GROUND cluster using method in graan_params
+__host__ void IdentifyGroundCluster(ChSystemGpu_impl::GranSphereDataPtr sphere_data,
+                                    ChSystemGpu_impl::GranParamsPtr gran_params,
+                                    unsigned int nSpheres,
+                                    unsigned int ** h_clusters) {
     unsigned int cluster_num = h_clusters[0][0];
 
     if (cluster_num > 0) {
         switch(gran_params->cluster_ground_method) {
-            case chrono::gpu::CLUSTER_GROUND_METHOD::NONE:{break;}
+            case chrono::gpu::CLUSTER_GROUND_METHOD::NONE:{
+                break;
+            }
             case chrono::gpu::CLUSTER_GROUND_METHOD::BIGGEST: {
                 IdentifyGroundClusterByBiggest(sphere_data, gran_params, h_clusters, nSpheres);
                 break;
@@ -371,14 +363,53 @@ __host__ void GdbscanSearchGraph(ChSystemGpu_impl::GranSphereDataPtr sphere_data
                 IdentifyGroundClusterByLowest(sphere_data, gran_params, h_clusters, nSpheres);
                 break;
             }
-            default:{break;}
+            default:{
+                break;
+            }
         }
     }
+}
 
-    GdbscanFinalClusterFromType<<<nBlocks, CUDA_THREADS_PER_BLOCK>>>(
-        nSpheres,
-        sphere_data->sphere_cluster,
-        sphere_data->sphere_type);
+/// Search part of G-DBSCAN; density-based h_clustering algorithm.
+/// Identifies core, border and noise points in h_clusters.
+/// Searches using a parallel Breadth-First search
+/// min_pts: minimal number of points for a cluster
+__host__ void GdbscanSearchGraphByBFS(ChSystemGpu_impl::GranSphereDataPtr sphere_data,
+                                 ChSystemGpu_impl::GranParamsPtr gran_params,
+                                 unsigned int nSpheres,
+                                 size_t min_pts) {
+    unsigned int nBlocks = (nSpheres + CUDA_THREADS_PER_BLOCK - 1) / CUDA_THREADS_PER_BLOCK;
+
+    /// sphere_type is CORE if neighbors_num > min_pts else NOISE
+    GdbscanInitSphereType<<<nBlocks, CUDA_THREADS_PER_BLOCK>>>(nSpheres,
+                                                               sphere_data->adj_num,
+                                                               sphere_data->sphere_type,
+                                                               gran_params->gdbscan_min_pts);
+    gpuErrchk(cudaPeekAtLastError());
+    gpuErrchk(cudaDeviceSynchronize());
+
+    /// finds spheres in volume
+    /// must be set AFTER GdbscanInitSphereType,
+    ///  and AFTER interactionGranMat_TriangleSoup,
+    ///  which is AFTER AdvanceSimulation
+    SetVolumeSphereType<<<nBlocks, CUDA_THREADS_PER_BLOCK>>>(sphere_data,
+                                                             nSpheres);
+    gpuErrchk(cudaPeekAtLastError());
+    gpuErrchk(cudaDeviceSynchronize());
+
+
+    unsigned int ** h_clusters = ClusterSearchBFS(nSpheres, sphere_data,
+                                                  sphere_data->adj_num,
+                                                  sphere_data->adj_offset,
+                                                  sphere_data->adj_list,
+                                                  sphere_data->sphere_type);
+    unsigned int cluster_num = h_clusters[0][0];
+
+    IdentifyGroundCluster(sphere_data, gran_params, nSpheres, h_clusters);
+
+    GdbscanFinalClusterFromType<<<nBlocks, CUDA_THREADS_PER_BLOCK>>>(nSpheres,
+                                                                     sphere_data->sphere_cluster,
+                                                                     sphere_data->sphere_type);
     gpuErrchk(cudaPeekAtLastError());
     gpuErrchk(cudaDeviceSynchronize());
 
