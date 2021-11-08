@@ -255,7 +255,6 @@ __host__ void IdentifyGroundClusterByLowest(
         unsigned int ** h_clusters,
         unsigned int nSpheres) {
     unsigned int nBlocks = (nSpheres + CUDA_THREADS_PER_BLOCK - 1) / CUDA_THREADS_PER_BLOCK;
-    unsigned int ground_cluster = 0;
     unsigned int cluster_num = h_clusters[0][0];
 
     ///　PLAN：
@@ -268,12 +267,12 @@ __host__ void IdentifyGroundClusterByLowest(
     unsigned int ground_cluster = static_cast<unsigned int>(chrono::gpu::CLUSTER_INDEX::GROUND);
     for (size_t i = 0; i < cluster_num; i++) {
         cudaMemset(d_below, false, sizeof(*d_below) * nSpheres);
-        cluster_index = i + static_cast<unsigned int>(chrono::gpu::CLUSTER_INDEX::START);
+        unsigned int cluster_index = i + static_cast<unsigned int>(chrono::gpu::CLUSTER_INDEX::START);
         AreSpheresBelowZLim<<<nBlocks, CUDA_THREADS_PER_BLOCK>>>(sphere_data,
                                                                  gran_params,nSpheres,
                                                                  d_below,
-                                                                 d_in_cluster,
-                                                                 gran_params->z_lim);
+                                                                 *d_below_num,
+                                                                 gran_params->ground_z_lim);
         gpuErrchk(cudaPeekAtLastError());
         gpuErrchk(cudaDeviceSynchronize());
 
@@ -363,13 +362,13 @@ __host__ void GdbscanSearchGraph(ChSystemGpu_impl::GranSphereDataPtr sphere_data
 
     if (cluster_num > 0) {
         switch(gran_params->cluster_ground_method) {
-            case NONE:{break;}
+            case chrono::gpu::CLUSTER_GROUND_METHOD::NONE:{break;}
             case chrono::gpu::CLUSTER_GROUND_METHOD::BIGGEST: {
-                IdentifyGroundClusterByBiggest(sphere_data, gran_params, h_clusters);
+                IdentifyGroundClusterByBiggest(sphere_data, gran_params, h_clusters, nSpheres);
                 break;
             }
             case chrono::gpu::CLUSTER_GROUND_METHOD::LOWEST: {
-                IdentifyGroundClusterByLowest(sphere_data, gran_params, h_clusters);
+                IdentifyGroundClusterByLowest(sphere_data, gran_params, h_clusters, nSpheres);
                 break;
             }
             default:{break;}
