@@ -156,6 +156,11 @@ class ChSystemGpuMesh_impl : public ChSystemGpu_impl {
 
     static void ApplyFrameTransform(float3& p, float* pos, float* rot_mat);
 
+    /// Finds particle clusters to identify the Ground, Volume and others
+    /// Constructs a graph using cluster_graph_method and
+    /// searches it with cluster_searchs_method in gran_params
+    virtual void IdentifyClusters();
+
     /// Advance simulation by duration in user units, return actual duration elapsed.
     /// Requires initialize() to have been called.
     virtual double AdvanceSimulation(float duration) override;

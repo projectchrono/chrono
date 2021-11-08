@@ -47,12 +47,32 @@ enum class CHGPU_FRICTION_MODE { FRICTIONLESS, SINGLE_STEP, MULTI_STEP };
 /// Rolling resistance models -- ELASTIC_PLASTIC not implemented yet.
 enum class CHGPU_ROLLING_MODE { NO_RESISTANCE, SCHWARTZ, ELASTIC_PLASTIC };
 
-enum CHGPU_OUTPUT_FLAGS { ABSV = 1, VEL_COMPONENTS = 2, FIXITY = 4, ANG_VEL_COMPONENTS = 8, FORCE_COMPONENTS = 16, GROUP = 32};
+enum CHGPU_OUTPUT_FLAGS { ABSV = 1 << 0, VEL_COMPONENTS = 1 << 1,
+                          FIXITY = 1 << 2, ANG_VEL_COMPONENTS = 1 << 3,
+                          FORCE_COMPONENTS = 1 << 4, TYPE = 1 << 5,
+                          CLUSTER = 1 << 6, ADJACENCY = 1 << 7 };
 
-/// Sphere clustering groups
-enum SPHERE_GROUP {GROUND = 0, VOLUME = 1, AIRBORNE = 2};
+/// Clustering algorithm switches
+// 0 on ANY cluster related switch means no clustering done, all sphere_type and sphere_cluster to 0.
+enum class CLUSTER_GRAPH_METHOD {NONE = 0, CONTACT = 1, PROXIMITY = 2}; /* TODO: Implement proximity graph construction */
+// CONTACT leverages sphere_contact_map to build the graph.
+// PROXIMITY determine contacts by checking if distance between sphere pairs < gbscan_radius; TODO UNTESTED
 
-#define GET_OUTPUT_SETTING(setting) (this->output_flags & setting)
+enum class CLUSTER_SEARCH_METHOD {NONE = 0, BFS = 1}; // TO DO: implement faster search than BFS
+// BFS -> Breadth-First search
+
+/// Cluster index. Ground cluster has most spheres.
+/// Noise spheres are part of their own invalid cluster,
+/// Any cluster that contain a VOLUME sphere is part 
+/// of the VOLUME cluster, except if it is the GROUND cluster
+/// Otherwise cluster index increases from START when cluster found 
+enum class CLUSTER_INDEX {GROUND = 0, INVALID = 1, VOLUME = 2, START = 3}; /* number of clusters go up to nSpheres */
+
+/// Sphere type, CORE BORDER or NOISE for clustering, VOLUME for inside mesh
+/// a sphere can be a CORE or BORDER of any cluster. 
+enum class SPHERE_TYPE {CORE = 0, BORDER = 1, NOISE = 2, VOLUME = 3};
+
+#define GET_OUTPUT_SETTING(setting) (this->output_flags & static_cast<unsigned int>(setting))
 
 }  // namespace gpu
 }  // namespace chrono

@@ -64,6 +64,14 @@ void ChSystemGpu::SetOutputFlags(unsigned char flags) {
     m_sys->output_flags = flags;
 }
 
+void ChSystemGpu::SetClusterSearchMethod(CLUSTER_SEARCH_METHOD flag) {
+    m_sys->gran_params->cluster_search_method = flag;
+}
+
+void ChSystemGpu::SetClusterGraphMethod(CLUSTER_GRAPH_METHOD flag) {
+    m_sys->gran_params->cluster_graph_method = flag;
+}
+
 void ChSystemGpu::SetFixedStepSize(float size_UU) {
     m_sys->stepSize_UU = size_UU;
 }
@@ -325,10 +333,6 @@ std::vector<float3> ChSystemGpu::get_max_z_map(unsigned int x_size, unsigned int
     return m_sys->get_max_z_map(x_size, y_size);
 }
 
-void ChSystemGpu::reset_ground_group() {
-    m_sys->reset_ground_group();
-}
-
 size_t ChSystemGpu::EstimateMemUsage() const {
     return m_sys->EstimateMemUsage();
 }
@@ -547,6 +551,13 @@ void ChSystemGpu::Initialize() {
     if (m_sys->verbosity == CHGPU_VERBOSITY::INFO || m_sys->verbosity == CHGPU_VERBOSITY::METRICS) {
         printf("Approx mem usage is %s\n", pretty_format_bytes(EstimateMemUsage()).c_str());
     }
+}
+
+// -----------------------------------------------------------------------------
+
+void ChSystemGpuMesh::IdentifyClusters() {
+    ChSystemGpuMesh_impl* sys_trimesh = static_cast<ChSystemGpuMesh_impl*>(m_sys);
+    sys_trimesh->IdentifyClusters();
 }
 
 // -----------------------------------------------------------------------------

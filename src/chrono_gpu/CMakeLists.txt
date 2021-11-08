@@ -121,6 +121,8 @@ set(ChronoEngine_GPU_CUDA
     cuda/ChGpu_SMC.cuh
     cuda/ChGpu_SMC_trimesh.cu
     cuda/ChGpu_SMC_trimesh.cuh
+    cuda/ChGpuClustering.cuh
+    cuda/ChGpuClustering.cu
     cuda/ChGpuCollision.cuh
     cuda/ChGpuBoundaryConditions.cuh
     cuda/ChGpuHelpers.cuh

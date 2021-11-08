@@ -74,8 +74,15 @@ ChSystemGpu_impl::ChSystemGpu_impl(float sphere_rad, float density, float3 boxDi
     gran_params->friction_mode = CHGPU_FRICTION_MODE::FRICTIONLESS;
     gran_params->rolling_mode = CHGPU_ROLLING_MODE::NO_RESISTANCE;
     gran_params->time_integrator = CHGPU_TIME_INTEGRATOR::EXTENDED_TAYLOR;
+
+    gran_params->cluster_graph_method = CLUSTER_GRAPH_METHOD::CONTACT;
+    gran_params->cluster_search_method = CLUSTER_SEARCH_METHOD::BFS;
+
+    gran_params->gdbscan_radius = 0.1f; // [m] ?
+    gran_params->gdbscan_min_pts = 3;
+
     this->time_integrator = CHGPU_TIME_INTEGRATOR::EXTENDED_TAYLOR;
-    this->output_flags = ABSV | ANG_VEL_COMPONENTS;
+    this->output_flags = ABSV | ANG_VEL_COMPONENTS | CLUSTER | ADJACENCY;
 
     gran_params->max_safe_vel = (float)UINT_MAX;
 
@@ -162,7 +169,9 @@ void ChSystemGpu_impl::packSphereDataPointers() {
     }
 
     sphere_data->sphere_fixed = sphere_fixed.data();
-    sphere_data->sphere_group = sphere_group.data();
+    sphere_data->sphere_type = sphere_type.data();
+    sphere_data->sphere_cluster = sphere_cluster.data();
+    sphere_data->sphere_inside_mesh = sphere_inside_mesh.data();
 
     sphere_data->SD_NumSpheresTouching = SD_NumSpheresTouching.data();
     sphere_data->SD_SphereCompositeOffsets = SD_SphereCompositeOffsets.data();
@@ -177,6 +186,13 @@ void ChSystemGpu_impl::packSphereDataPointers() {
 
     if (gran_params->friction_mode == CHGPU_FRICTION_MODE::MULTI_STEP) {
         sphere_data->contact_history_map = contact_history_map.data();
+    }
+
+    if ((gran_params->cluster_graph_method > CLUSTER_GRAPH_METHOD::NONE) &&
+            (gran_params->cluster_search_method > CLUSTER_SEARCH_METHOD::NONE)) {
+        sphere_data->adj_num = adj_num.data();
+        sphere_data->adj_offset = adj_offset.data();
+        sphere_data->adj_list = adj_list.data();
     }
 
     if (gran_params->recording_contactInfo == true) {
@@ -266,8 +282,14 @@ void ChSystemGpu_impl::WriteFile(
         if (GET_OUTPUT_SETTING(FIXITY)) {
             outstrstream << ",fixed";
         }
-        if (GET_OUTPUT_SETTING(GROUP)) {
-            outstrstream << ",group";
+        if (GET_OUTPUT_SETTING(TYPE)) {
+            outstrstream << ",type";
+        }
+        if (GET_OUTPUT_SETTING(CLUSTER)) {
+            outstrstream << ",cluster";
+        }
+        if (GET_OUTPUT_SETTING(ADJACENCY)) {
+            outstrstream << ",adj_num";
         }
 
         if (gran_params->friction_mode != CHGPU_FRICTION_MODE::FRICTIONLESS && GET_OUTPUT_SETTING(ANG_VEL_COMPONENTS)) {
@@ -322,9 +344,19 @@ void ChSystemGpu_impl::WriteFile(
                 outstrstream << "," << fixed;
             }
 
-            if (GET_OUTPUT_SETTING(GROUP)) {
-                int group = (int)sphere_group[n];
-                outstrstream << "," << group;
+            if (GET_OUTPUT_SETTING(TYPE)) {
+                int type = (int)sphere_type[n];
+                outstrstream << "," << type;
+            }
+
+            if (GET_OUTPUT_SETTING(CLUSTER)) {
+                int cluster = (int)sphere_cluster[n];
+                outstrstream << "," << cluster;
+            }
+
+            if (GET_OUTPUT_SETTING(ADJACENCY)) {
+                int adjacency = (int)adj_num[n];
+                outstrstream << "," << adjacency;
             }
 
             if (gran_params->friction_mode != CHGPU_FRICTION_MODE::FRICTIONLESS &&
@@ -441,15 +473,15 @@ void ChSystemGpu_impl::WriteFile(
             delete[] fixed;
         }
 
-        if (GET_OUTPUT_SETTING(GROUP)) {
-            unsigned char* group = new unsigned char[nSpheres];
+        if (GET_OUTPUT_SETTING(TYPE)) {
+            unsigned char* type = new unsigned char[nSpheres];
             for (size_t n = 0; n < nSpheres; n++) {
-                group[n] = sphere_group[n];
+                type[n] = sphere_type[n];
             }
-            H5::DataSet ds_group = file.createDataSet("group", H5::PredType::NATIVE_UCHAR, dataspace);
-            ds_group.write(group, H5::PredType::NATIVE_UCHAR);
+            H5::DataSet ds_type = file.createDataSet("type", H5::PredType::NATIVE_UCHAR, dataspace);
+            ds_type.write(type, H5::PredType::NATIVE_UCHAR);
 
-            delete[] group;
+            delete[] type;
         }
 
         if (gran_params->friction_mode != CHGPU_FRICTION_MODE::FRICTIONLESS && GET_OUTPUT_SETTING(ANG_VEL_COMPONENTS)) {
@@ -478,6 +510,31 @@ void ChSystemGpu_impl::WriteFile(
 #endif
     } else if (file_write_mode == CHGPU_OUTPUT_MODE::NONE) {
         // Do nothing, only here for symmetry
+    }
+}
+
+void ChSystemGpu_impl::WriteAdjacencyFiles(std::string ofile) const {
+    if (gran_params->cluster_graph_method == CLUSTER_GRAPH_METHOD::NONE) {
+        printf("ERROR: no cluster search method set, no adjacency! Not writing file.\n");
+    } else {
+        std::ofstream ptFilenum(ofile + "_adj_num_start.csv", std::ios::out);
+        std::ostringstream adj_num_strstream;
+        adj_num_strstream << "adj_num, adj_offset \n";
+        for (unsigned int n = 0; n < nSpheres; n++) {
+            adj_num_strstream
+                << sphere_data->adj_num[n] << ", "
+                << sphere_data->adj_offset[n] << "\n";
+        }
+        ptFilenum << adj_num_strstream.str();
+
+        std::ostringstream adj_list_strstream;
+        unsigned int adj_list_len = sphere_data->adj_num[nSpheres - 1] + sphere_data->adj_offset[nSpheres - 1];
+        std::ofstream ptFilelist(ofile + "_adj_list.csv", std::ios::out);
+        for (unsigned int m = 0; m < adj_list_len; m++) {
+            adj_list_strstream
+                << sphere_data->adj_list[m] << "\n";
+        }
+        ptFilelist << adj_list_strstream.str();
     }
 }
 

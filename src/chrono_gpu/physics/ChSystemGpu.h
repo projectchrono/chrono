@@ -65,6 +65,10 @@ class CH_GPU_API ChSystemGpu {
     /// Set output settings bit flags by bitwise ORing settings in CHGPU_OUTPUT_FLAGS.
     void SetOutputFlags(unsigned char flags);
 
+    /// Set graph construction method in gran_params with a CLUSTER_GRAPH_METHOD
+    void SetClusterGraphMethod(CLUSTER_GRAPH_METHOD flag);
+    void SetClusterSearchMethod(CLUSTER_SEARCH_METHOD flag);
+
     /// Set timestep size.
     void SetFixedStepSize(float size_UU);
 
@@ -178,9 +182,6 @@ class CH_GPU_API ChSystemGpu {
 
     /// Get map of the max z positions of the spheres
     std::vector<float3> get_max_z_map(unsigned int x_size, unsigned int y_size) const;
-
-    /// Reset all particles to be ground group
-    void reset_ground_group();
 
     /// Return particle position.
     ChVector<float> GetParticlePosition(int nSphere) const;
@@ -299,6 +300,11 @@ class CH_GPU_API ChSystemGpuMesh : public ChSystemGpu {
     /// Advance simulation by duration in user units, return actual duration elapsed.
     /// Requires Initialize() to have been called.
     virtual double AdvanceSimulation(float duration) override;
+
+    /// Finds particle clusters to identify the Ground, Volume and others
+    /// Constructs a graph using cluster_graph_method and
+    /// searches it with cluster_searchs_method in gran_params
+    virtual void IdentifyClusters();
 
     /// Collect contact forces exerted on all meshes by the granular system.
     void CollectMeshContactForces(std::vector<ChVector<>>& forces, std::vector<ChVector<>>& torques);

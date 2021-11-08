@@ -93,12 +93,16 @@ class ChSystemGpu_impl {
   protected:
     /// Structure with simulation parameters for sphere-based granular dynamics.
     /// This structure is stored in CUDA unified memory so that it can be accessed from both host and device.
+
     struct GranParams {
         float stepSize_SU;  ///< Timestep in SU
 
         CHGPU_FRICTION_MODE friction_mode;      ///< Which friction mode is active for the simulation
         CHGPU_ROLLING_MODE rolling_mode;        ///< Which rolling resistance model is active
         CHGPU_TIME_INTEGRATOR time_integrator;  ///< Which time integrator is active
+        
+        CLUSTER_GRAPH_METHOD cluster_graph_method; /// graph construction for clustering
+        CLUSTER_SEARCH_METHOD cluster_search_method; /// search algorithm used for clustering
 
         /// Ratio of normal force to peak tangent force, also arctan(theta) where theta is the friction angle
         /// sphere-to-sphere
@@ -167,6 +171,10 @@ class ChSystemGpu_impl {
         float max_safe_vel = (float)UINT_MAX;
 
         bool recording_contactInfo;  ///< recording contact info
+
+        // GDBSCAN clustering parameters.
+        float gdbscan_radius; // ignored if CLUSTER_GRAPH_METHOD::CONTACT
+        unsigned int gdbscan_min_pts; // used if CLUSTER_GRAPH_METHOD::CONTACT
     };
 
     /// Structure of pointers to kinematic quantities of the ChSystemGpu_impl.
@@ -202,7 +210,9 @@ class ChSystemGpu_impl {
 
         not_stupid_bool* sphere_fixed;  ///< Flags indicating whether or not a sphere is fixed
 
-        SPHERE_GROUP* sphere_group;  ///< Group to which the sphere belongs
+        SPHERE_TYPE* sphere_type;  ///< Type of sphere
+        unsigned int* sphere_cluster; ///< Cluster to which the sphere belongs
+        not_stupid_bool* sphere_inside_mesh; ///< Is the sphere inside the volume
 
         unsigned int* contact_partners_map;   ///< Contact partners for each sphere. Only in frictional simulations
         not_stupid_bool* contact_active_map;  ///< Whether the frictional contact at an index is active
@@ -218,6 +228,12 @@ class ChSystemGpu_impl {
         unsigned int* spheres_in_SD_composite;       ///< Big composite array of sphere-subdomain membership
 
         unsigned int* sphere_owner_SDs;  ///< List of owner subdomains for each sphere
+
+        /// Graph representation of sphere connectivity
+        /// used to differentiate clusters of particles
+        unsigned int* adj_num; // [mySphereID] -> number of adj
+        unsigned int* adj_offset; // [mySphereID] -> start of adjs in adj_list
+        unsigned int* adj_list; // [start + N] -> Nth adj SphereID (n < adj_num[myShpereID])
     };
 
     // The system is not default-constructible
@@ -343,9 +359,6 @@ class ChSystemGpu_impl {
     /// Get map of the max z positions of the spheres
     std::vector<float3> get_max_z_map(unsigned int x_size, unsigned int y_size) const;
 
-    /// Reset ground group
-    void reset_ground_group();
-
     /// Advance simulation by duration in user units, return actual duration elapsed
     /// Requires initialize() to have been called
     virtual double AdvanceSimulation(float duration);
@@ -421,6 +434,9 @@ class ChSystemGpu_impl {
 
     /// Write contact info file
     void WriteContactInfoFile(std::string ofile) const;
+
+    /// Write adjacency info file
+    void WriteAdjacencyFiles(std::string ofile) const;
 
     /// Rough estimate of the total amount of memory used by the system.
     size_t EstimateMemUsage() const;
@@ -531,9 +547,13 @@ class ChSystemGpu_impl {
     /// Fixity of each sphere
     std::vector<not_stupid_bool, cudallocator<not_stupid_bool>> sphere_fixed;
 
-    /// Sphere group
-    std::vector<SPHERE_GROUP, cudallocator<SPHERE_GROUP>> sphere_group;
-
+    /// Sphere type
+    std::vector<SPHERE_TYPE, cudallocator<SPHERE_TYPE>> sphere_type;
+    /// Sphere cluster
+    std::vector<unsigned int, cudallocator<unsigned int>> sphere_cluster;
+    /// Sphere inside mesh
+    std::vector<not_stupid_bool, cudallocator<not_stupid_bool>> sphere_inside_mesh;
+    
     /// Set of contact partners for each sphere. Only used in frictional simulations
     std::vector<unsigned int, cudallocator<unsigned int>> contact_partners_map;
     /// Whether the frictional contact at an index is active
@@ -565,6 +585,11 @@ class ChSystemGpu_impl {
 
     /// List of owner subdomains for each sphere
     std::vector<unsigned int, cudallocator<unsigned int>> sphere_owner_SDs;
+
+    // Adjacency lists for clustering
+    std::vector<unsigned int, cudallocator<unsigned int>> adj_num;
+    std::vector<unsigned int, cudallocator<unsigned int>> adj_offset;
+    std::vector<unsigned int, cudallocator<unsigned int>> adj_list;
 
     /// User provided timestep in UU
     float stepSize_UU;

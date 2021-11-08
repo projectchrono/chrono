@@ -17,6 +17,7 @@
 
 #include "chrono_gpu/ChGpuDefines.h"
 #include "chrono_gpu/cuda/ChGpu_SMC.cuh"
+#include "chrono_gpu/cuda/ChGpuClustering.cuh"
 #include "chrono_gpu/utils/ChGpuUtilities.h"
 
 namespace chrono {
@@ -56,7 +57,7 @@ __host__ std::vector<float3> ChSystemGpu_impl::get_max_z_map(unsigned int x_size
 
     size_t nSpheres = sphere_local_pos_Z.size();
     for (size_t index = 0; index < nSpheres; index++) {
-        if (sphere_data->sphere_group[index] == SPHERE_GROUP::GROUND) {
+        if (sphere_data->sphere_cluster[index] == static_cast<int>(CLUSTER_INDEX::GROUND)) {
             unsigned int ownerSD = sphere_data->sphere_owner_SDs[index];
             unsigned int spheresTouchingThisSD = sphere_data->SD_NumSpheresTouching[ownerSD];
             if (spheresTouchingThisSD < 5) {
@@ -83,12 +84,6 @@ __host__ std::vector<float3> ChSystemGpu_impl::get_max_z_map(unsigned int x_size
     }
 
     return max_z_map;
-}
-
-__host__ void ChSystemGpu_impl::reset_ground_group() {
-    for (size_t index = 0; index < nSpheres; index++) {
-        sphere_data->sphere_group[index] = SPHERE_GROUP::GROUND;
-    }
 }
 
 // Reset broadphase data structures
@@ -197,8 +192,14 @@ __host__ void ChSystemGpu_impl::defragment_initial_positions() {
     std::vector<float, cudallocator<float>> sphere_vel_y_tmp;
     std::vector<float, cudallocator<float>> sphere_vel_z_tmp;
 
+    std::vector<unsigned int, cudallocator<unsigned int>> adj_num_tmp;
+    std::vector<unsigned int, cudallocator<unsigned int>> adj_offset_tmp;
+    std::vector<unsigned int, cudallocator<unsigned int>> adj_list_tmp;
+
     std::vector<not_stupid_bool, cudallocator<not_stupid_bool>> sphere_fixed_tmp;
-    std::vector<SPHERE_GROUP, cudallocator<SPHERE_GROUP>> sphere_group_tmp;
+    std::vector<SPHERE_TYPE, cudallocator<SPHERE_TYPE>> sphere_type_tmp;
+    std::vector<unsigned int, cudallocator<unsigned int>> sphere_cluster_tmp;
+    std::vector<not_stupid_bool, cudallocator<not_stupid_bool>> sphere_inside_mesh_tmp;
     std::vector<unsigned int, cudallocator<unsigned int>> sphere_owner_SDs_tmp;
 
     sphere_pos_x_tmp.resize(nSpheres);
@@ -210,7 +211,9 @@ __host__ void ChSystemGpu_impl::defragment_initial_positions() {
     sphere_vel_z_tmp.resize(nSpheres);
 
     sphere_fixed_tmp.resize(nSpheres);
-    sphere_group_tmp.resize(nSpheres);
+    sphere_type_tmp.resize(nSpheres);
+    sphere_cluster_tmp.resize(nSpheres);
+    sphere_inside_mesh_tmp.resize(nSpheres);
     sphere_owner_SDs_tmp.resize(nSpheres);
 
     // reorder values into new sorted
@@ -224,7 +227,9 @@ __host__ void ChSystemGpu_impl::defragment_initial_positions() {
         sphere_vel_z_tmp.at(i) = (float)pos_Z_dt.at(sphere_ids.at(i));
 
         sphere_fixed_tmp.at(i) = sphere_fixed.at(sphere_ids.at(i));
-        sphere_group_tmp.at(i) = sphere_group.at(sphere_ids.at(i));
+        sphere_type_tmp.at(i) = sphere_type.at(sphere_ids.at(i));
+        sphere_cluster_tmp.at(i) = sphere_cluster.at(sphere_ids.at(i));
+        sphere_inside_mesh_tmp.at(i) = sphere_inside_mesh.at(sphere_ids.at(i));
         sphere_owner_SDs_tmp.at(i) = sphere_owner_SDs.at(sphere_ids.at(i));
     }
 
@@ -238,7 +243,9 @@ __host__ void ChSystemGpu_impl::defragment_initial_positions() {
     pos_Z_dt.swap(sphere_vel_z_tmp);
 
     sphere_fixed.swap(sphere_fixed_tmp);
-    sphere_group.swap(sphere_group_tmp);
+    sphere_type.swap(sphere_type_tmp);
+    sphere_cluster.swap(sphere_cluster_tmp);
+    sphere_inside_mesh.swap(sphere_inside_mesh_tmp);
     sphere_owner_SDs.swap(sphere_owner_SDs_tmp);
 }
 __host__ void ChSystemGpu_impl::setupSphereDataStructures() {
@@ -252,15 +259,21 @@ __host__ void ChSystemGpu_impl::setupSphereDataStructures() {
     INFO_PRINTF("%u balls added!\n", nSpheres);
     gran_params->nSpheres = nSpheres;
 
-    TRACK_VECTOR_RESIZE(sphere_owner_SDs, nSpheres, "sphere_owner_SDs", NULL_CHGPU_ID);
+    // Allocate space for connectivity graph
+    TRACK_VECTOR_RESIZE(adj_num, nSpheres, "adj_num", 0);
+    TRACK_VECTOR_RESIZE(adj_offset, nSpheres, "adj_offset", 0);
+    TRACK_VECTOR_RESIZE(adj_list, (nSpheres * MAX_SPHERES_TOUCHED_BY_SPHERE), "adj_list", 0);
 
+    TRACK_VECTOR_RESIZE(sphere_owner_SDs, nSpheres, "sphere_owner_SDs", NULL_CHGPU_ID);
     // Allocate space for new bodies
     TRACK_VECTOR_RESIZE(sphere_local_pos_X, nSpheres, "sphere_local_pos_X", 0);
     TRACK_VECTOR_RESIZE(sphere_local_pos_Y, nSpheres, "sphere_local_pos_Y", 0);
     TRACK_VECTOR_RESIZE(sphere_local_pos_Z, nSpheres, "sphere_local_pos_Z", 0);
 
     TRACK_VECTOR_RESIZE(sphere_fixed, nSpheres, "sphere_fixed", 0);
-    TRACK_VECTOR_RESIZE(sphere_group, nSpheres, "sphere_group", SPHERE_GROUP::GROUND);
+    TRACK_VECTOR_RESIZE(sphere_type, nSpheres, "sphere_type", SPHERE_TYPE::CORE);
+    TRACK_VECTOR_RESIZE(sphere_cluster, nSpheres, "sphere_cluster", static_cast<unsigned int>(CLUSTER_INDEX::GROUND));
+    TRACK_VECTOR_RESIZE(sphere_inside_mesh, nSpheres, "sphere_inside_mesh", false);
 
     TRACK_VECTOR_RESIZE(pos_X_dt, nSpheres, "pos_X_dt", 0);
     TRACK_VECTOR_RESIZE(pos_Y_dt, nSpheres, "pos_Y_dt", 0);
@@ -294,7 +307,10 @@ __host__ void ChSystemGpu_impl::setupSphereDataStructures() {
 
             // Convert to not_stupid_bool
             sphere_fixed.at(i) = (not_stupid_bool)((user_provided_fixed) ? user_sphere_fixed[i] : false);
-            sphere_group.at(i) = SPHERE_GROUP::GROUND;
+            // default sphere type/cluster
+            sphere_type.at(i) = SPHERE_TYPE::CORE;
+            sphere_cluster.at(i) = static_cast<unsigned int>(CLUSTER_INDEX::START);
+            sphere_inside_mesh.at(i) = false;
             if (user_provided_vel) {
                 auto vel = user_sphere_vel.at(i);
                 pos_X_dt.at(i) = (float)(vel.x / VEL_SU2UU);
@@ -534,11 +550,7 @@ __host__ double ChSystemGpu_impl::AdvanceSimulation(float duration) {
             gpuErrchk(cudaPeekAtLastError());
             gpuErrchk(cudaDeviceSynchronize());
 
-            update_ground_group<<<nBlocks, CUDA_THREADS_PER_BLOCK>>>(
-                    sphere_data, gran_params, nSpheres);
-            gpuErrchk(cudaPeekAtLastError());
-            gpuErrchk(cudaDeviceSynchronize());
-
+            // compute contact forces
             computeSphereContactForces<<<nBlocks, CUDA_THREADS_PER_BLOCK>>>(
                 sphere_data, gran_params, BC_type_list.data(), BC_params_list_SU.data(),
                 (unsigned int)BC_params_list_SU.size(), nSpheres);
@@ -555,8 +567,8 @@ __host__ double ChSystemGpu_impl::AdvanceSimulation(float duration) {
             const unsigned int nThreadsUpdateHist = 2 * CUDA_THREADS_PER_BLOCK;
             unsigned int fricMapSize = nSpheres * MAX_SPHERES_TOUCHED_BY_SPHERE;
             unsigned int nBlocksFricHistoryPostProcess = (fricMapSize + nThreadsUpdateHist - 1) / nThreadsUpdateHist;
-            updateFrictionData<<<nBlocksFricHistoryPostProcess, nThreadsUpdateHist>>>(fricMapSize, sphere_data,
-                                                                                      gran_params);
+            updateFrictionData<<<nBlocksFricHistoryPostProcess, nThreadsUpdateHist>>>(
+                fricMapSize, sphere_data, gran_params);
             gpuErrchk(cudaPeekAtLastError());
             gpuErrchk(cudaDeviceSynchronize());
             updateAngVels<<<nBlocks, CUDA_THREADS_PER_BLOCK>>>(stepSize_SU, sphere_data, nSpheres, gran_params);

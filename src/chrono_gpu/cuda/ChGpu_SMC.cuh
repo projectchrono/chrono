@@ -34,13 +34,16 @@
 #include "chrono_gpu/cuda/ChCudaMathUtils.cuh"
 #include "chrono_gpu/cuda/ChGpuHelpers.cuh"
 #include "chrono_gpu/cuda/ChGpuBoundaryConditions.cuh"
+// #include "chrono_gpu/cuda/ChGpuClustering.cuh"
 
 using chrono::gpu::ChSystemGpu_impl;
 
 using chrono::gpu::CHGPU_TIME_INTEGRATOR;
 using chrono::gpu::CHGPU_FRICTION_MODE;
 using chrono::gpu::CHGPU_ROLLING_MODE;
-using chrono::gpu::SPHERE_GROUP;
+using chrono::gpu::SPHERE_TYPE;
+using chrono::gpu::CLUSTER_GRAPH_METHOD;
+using chrono::gpu::CLUSTER_SEARCH_METHOD;
 
 /// @addtogroup gpu_cuda
 /// @{
@@ -536,74 +539,13 @@ static __global__ void determineContactPairs(ChSystemGpu_impl::GranSphereDataPtr
                                     sphIDs[bodyA]);
                 }
                 bodyB_list[ncontacts] = bodyB;  // Save the collision pair
-                ncontacts++;                    // Increment the contact counter
+                ncontacts++; // Increment the contact counter
             }
         }
         // for each contact we just found, mark it in the global map
         for (unsigned char contact_id = 0; contact_id < ncontacts; contact_id++) {
             // find and mark a spot in the contact map
             findContactPairInfo(sphere_data, gran_params, sphIDs[bodyA], sphIDs[bodyB_list[contact_id]]);
-        }
-    }
-}
-
-/// Update sphere group information, in particular ground group
-static __global__ void update_ground_group(ChSystemGpu_impl::GranSphereDataPtr sphere_data,
-                                           ChSystemGpu_impl::GranParamsPtr gran_params,
-                                           unsigned int nSpheres) {
-    // my sphere ID, we're using a 1D thread->sphere map
-    unsigned int mySphereID = threadIdx.x + blockIdx.x * blockDim.x;
-
-    // don't overrun the array
-    if (mySphereID < nSpheres) {
-        bool mark_as_ground = false;
-
-
-        //unsigned int myOwnerSD = sphere_data->sphere_owner_SDs[mySphereID];
-        //int3 ownerSD_triplet = SDIDTriplet(myOwnerSD, gran_params);
-
-        //// check if we are at the ground small domain
-        //if (ownerSD_triplet.z == 0) { // TODO this is not a good condition
-        //    mark_as_ground = true;
-        //}
-
-        // check if there are ground spheres that contact me
-        if (!mark_as_ground) {
-            size_t body_A_offset = MAX_SPHERES_TOUCHED_BY_SPHERE * mySphereID;
-
-            unsigned char ground_contacts = 0;
-            for (unsigned char contact_id = 0; contact_id < MAX_SPHERES_TOUCHED_BY_SPHERE; contact_id++) {
-                bool active_contact = sphere_data->contact_active_map[body_A_offset + contact_id];
-
-                if (active_contact) {
-                    unsigned int theirSphereID = sphere_data->contact_partners_map[body_A_offset + contact_id];
-
-                    if (theirSphereID >= nSpheres) {
-                        ABORTABORTABORT("Invalid other sphere id found for sphere %u at slot %u, other is %u. Maximum is %u\n",
-                                        mySphereID,
-                                        contact_id,
-                                        theirSphereID,
-                                        nSpheres);
-                    }
-
-                    if (sphere_data->sphere_group[theirSphereID] == SPHERE_GROUP::GROUND) {
-                        ground_contacts += 1;
-                    }
-                }
-            }
-
-        // // TO DO better criteria for airborne.
-        // // mark depending on the number of ground contacts
-        //    if (ground_contacts > 2) {
-        //        mark_as_ground = true;
-        //     }
-        }
-
-        // mark or unmark as ground
-        if (mark_as_ground) {
-            sphere_data->sphere_group[mySphereID] = SPHERE_GROUP::GROUND;
-        //} else {
-        //    sphere_data->sphere_group[mySphereID] = SPHERE_GROUP::AIRBORNE;
         }
     }
 }
@@ -1079,7 +1021,7 @@ static __global__ void integrateSpheres(const float stepsize_SU,
 }
 
 /**
- * Integrate angular accelerations and reset friction data. ONLY use this with friction on
+ * Integrate angular accelerations. ONLY use this with friction on
  */
 static __global__ void updateFrictionData(unsigned int frictionHistoryMapSize,
                                           ChSystemGpu_impl::GranSphereDataPtr sphere_data,

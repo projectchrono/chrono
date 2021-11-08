@@ -15,6 +15,7 @@
 #include "chrono/core/ChMathematics.h"
 #include "chrono_gpu/ChGpuDefines.h"
 #include "chrono_gpu/cuda/ChGpu_SMC_trimesh.cuh"
+#include "chrono_gpu/cuda/ChGpuClustering.cuh"
 #include "chrono_gpu/cuda/ChGpu_SMC.cuh"
 #include "chrono_gpu/physics/ChSystemGpuMesh_impl.h"
 #include "chrono_thirdparty/cub/device/device_reduce.cuh"
@@ -258,7 +259,6 @@ __global__ void interactionGranMat_TriangleSoup(ChSystemGpuMesh_impl::TriangleSo
     float3 sphere_force = {0.f, 0.f, 0.f};
     float3 sphere_AngAcc = {0.f, 0.f, 0.f};
     if (sphereIDLocal < spheresTouchingThisSD) {
-        bool sphere_inside_mesh = false;
         bool first_volume_triangle = true;
         // loop over each triangle in the SD and compute the force this sphere (thread) exerts on it
         for (unsigned int triangleLocalID = 0; triangleLocalID < numSDTriangles; triangleLocalID++) {
@@ -299,10 +299,10 @@ __global__ void interactionGranMat_TriangleSoup(ChSystemGpuMesh_impl::TriangleSo
                     int64_t3_to_double3(convertPosLocalToGlobal(thisSD, sphere_pos_local[sphereIDLocal], gran_params));
 
                 if (first_volume_triangle) {
-                    sphere_inside_mesh = true;
+                    sphere_data->sphere_inside_mesh[sphereIDGlobal] = true;
                     first_volume_triangle = false;
                 }
-                sphere_inside_mesh = sphere_inside_mesh && sphere_behind_face(
+                sphere_data->sphere_inside_mesh[sphereIDGlobal] = sphere_data->sphere_inside_mesh[sphereIDGlobal] && sphere_behind_face(
                         node1[triangleLocalID], node2[triangleLocalID], node3[triangleLocalID],
                         sphCntr, gran_params->sphereRadius_SU);
             }
@@ -400,11 +400,6 @@ __global__ void interactionGranMat_TriangleSoup(ChSystemGpuMesh_impl::TriangleSo
                 atomicAdd(d_triangleSoup->generalizedForcesPerFamily + fam * 6 + 5, torque.z);
             }
         }  // end of per-triangle loop
-        if (sphere_inside_mesh) {
-            sphere_data->sphere_group[sphereIDGlobal] = SPHERE_GROUP::VOLUME;
-        } else {
-            sphere_data->sphere_group[sphereIDGlobal] = SPHERE_GROUP::GROUND; // TODO add proper logic
-        }
 
         // write back sphere forces
         atomicAdd(sphere_data->sphere_acc_X + sphereIDGlobal, sphere_force.x / gran_params->sphere_mass_SU);
@@ -419,6 +414,69 @@ __global__ void interactionGranMat_TriangleSoup(ChSystemGpuMesh_impl::TriangleSo
         }
     }  // end sphere id check
 }  // end kernel
+
+/// Identifies the clusters according to parameters in gran_params
+/// Not super fast.
+__host__ void ChSystemGpuMesh_impl::IdentifyClusters() {
+    // Figure our the number of blocks that need to be launched to cover the box
+    unsigned int nBlocks = (nSpheres + CUDA_THREADS_PER_BLOCK - 1) / CUDA_THREADS_PER_BLOCK;
+
+    // skip clustering if not both graph_method and search_method
+    if ((gran_params->cluster_graph_method > CLUSTER_GRAPH_METHOD::NONE)
+        && (gran_params->cluster_search_method > CLUSTER_SEARCH_METHOD::NONE)) {
+        // step 1- Graph construction
+        switch (gran_params->cluster_graph_method) {
+            case CLUSTER_GRAPH_METHOD::CONTACT: {
+                ConstructGraphByContact(sphere_data, gran_params, nSpheres);
+                break;
+            }
+            case CLUSTER_GRAPH_METHOD::PROXIMITY: {
+                ConstructGraphByProximity(sphere_data, gran_params, nSpheres,
+                                          gran_params->gdbscan_min_pts,
+                                          gran_params->gdbscan_radius);
+                break;
+            }
+            default: {break;}
+        }
+
+        // step 2- Search the graph, find the clusters.
+        switch (gran_params->cluster_search_method) {
+            case CLUSTER_SEARCH_METHOD::BFS: {
+                /// sphere_type is CORE if neighbors_num > min_pts else NOISE
+                GdbscanInitSphereType<<<nBlocks, CUDA_THREADS_PER_BLOCK>>>(
+                    nSpheres,
+                    sphere_data->adj_num,
+                    sphere_data->sphere_type,
+                    gran_params->gdbscan_min_pts);
+                gpuErrchk(cudaPeekAtLastError());
+                gpuErrchk(cudaDeviceSynchronize());
+
+                /// finds spheres in volume
+                /// must be set AFTER GdbscanInitSphereType,
+                ///  and AFTER interactionGranMat_TriangleSoup,
+                ///  which is AFTER AdvanceSimulation
+                SetVolumeSphereType<<<nBlocks, CUDA_THREADS_PER_BLOCK>>>(
+                    sphere_data,
+                    nSpheres);
+                gpuErrchk(cudaPeekAtLastError());
+                gpuErrchk(cudaDeviceSynchronize());
+
+                /// Finds clusters, tags Ground cluster (biggest), other clusters.
+                /// Changes NOISE sphere_type to BORDER if in cluster
+                GdbscanSearchGraph(sphere_data, gran_params, nSpheres,
+                                   gran_params->gdbscan_min_pts);
+                break;
+            }
+            default: {break;}
+        }
+    } else {
+        printf("ERROR: Either cluster_graph_method or cluster_search_method not set. Skipping clustering.\n");
+    }
+
+    gpuErrchk(cudaPeekAtLastError());
+    gpuErrchk(cudaDeviceSynchronize());
+}
+
 
 __host__ double ChSystemGpuMesh_impl::AdvanceSimulation(float duration) {
     // Figure our the number of blocks that need to be launched to cover the box
@@ -447,6 +505,18 @@ __host__ double ChSystemGpuMesh_impl::AdvanceSimulation(float duration) {
             resetTriangleBroadphaseInformation();
         }
 
+        if (gran_params->friction_mode != CHGPU_FRICTION_MODE::FRICTIONLESS) {
+            const unsigned int nThreadsUpdateHist = 2 * CUDA_THREADS_PER_BLOCK;
+            unsigned int fricMapSize = nSpheres * MAX_SPHERES_TOUCHED_BY_SPHERE;
+            unsigned int nBlocksFricHistoryPostProcess = (fricMapSize + nThreadsUpdateHist - 1) / nThreadsUpdateHist;
+            updateFrictionData<<<nBlocksFricHistoryPostProcess, nThreadsUpdateHist>>>(
+                fricMapSize,
+                sphere_data,
+                gran_params);
+            gpuErrchk(cudaPeekAtLastError());
+            gpuErrchk(cudaDeviceSynchronize());
+        }
+
         METRICS_PRINTF("Starting computeSphereForces!\n");
 
         if (gran_params->friction_mode == CHGPU_FRICTION_MODE::FRICTIONLESS) {
@@ -460,15 +530,13 @@ __host__ double ChSystemGpuMesh_impl::AdvanceSimulation(float duration) {
             determineContactPairs<<<nSDs, MAX_COUNT_OF_SPHERES_PER_SD>>>(sphere_data, gran_params);
             gpuErrchk(cudaPeekAtLastError());
             gpuErrchk(cudaDeviceSynchronize());
-
-            update_ground_group<<<nBlocks, CUDA_THREADS_PER_BLOCK>>>(
-                    sphere_data, gran_params, nSpheres);
-            gpuErrchk(cudaPeekAtLastError());
-            gpuErrchk(cudaDeviceSynchronize());
-
+            
+            // compute contact forces
             computeSphereContactForces<<<nBlocks, CUDA_THREADS_PER_BLOCK>>>(
                 sphere_data, gran_params, BC_type_list.data(), BC_params_list_SU.data(),
                 (unsigned int)BC_params_list_SU.size(), nSpheres);
+            gpuErrchk(cudaPeekAtLastError());
+            gpuErrchk(cudaDeviceSynchronize());
         }
         gpuErrchk(cudaPeekAtLastError());
         gpuErrchk(cudaDeviceSynchronize());
@@ -499,10 +567,6 @@ __host__ double ChSystemGpuMesh_impl::AdvanceSimulation(float duration) {
             const unsigned int nThreadsUpdateHist = 2 * CUDA_THREADS_PER_BLOCK;
             unsigned int fricMapSize = nSpheres * MAX_SPHERES_TOUCHED_BY_SPHERE;
             unsigned int nBlocksFricHistoryPostProcess = (fricMapSize + nThreadsUpdateHist - 1) / nThreadsUpdateHist;
-            updateFrictionData<<<nBlocksFricHistoryPostProcess, nThreadsUpdateHist>>>(fricMapSize, sphere_data,
-                                                                                      gran_params);
-            gpuErrchk(cudaPeekAtLastError());
-            gpuErrchk(cudaDeviceSynchronize());
             updateAngVels<<<nBlocks, CUDA_THREADS_PER_BLOCK>>>(stepSize_SU, sphere_data, nSpheres, gran_params);
             gpuErrchk(cudaPeekAtLastError());
             gpuErrchk(cudaDeviceSynchronize());
@@ -512,15 +576,18 @@ __host__ double ChSystemGpuMesh_impl::AdvanceSimulation(float duration) {
         elapsedSimTime += (float)(stepSize_SU * TIME_SU2UU);  // Advance current time
     }
 
+    gpuErrchk(cudaPeekAtLastError());
+    gpuErrchk(cudaDeviceSynchronize());
+
     return time_elapsed_SU * TIME_SU2UU;  // return elapsed UU time
 }
 
 __global__ void count_spheres_in_mesh(const unsigned int nSpheres,
-                                      SPHERE_GROUP* sphere_group,
+                                      SPHERE_TYPE* sphere_type,
                                       unsigned int* d_sphere_count) {
     unsigned int my_sphere = blockIdx.x * blockDim.x + threadIdx.x;
     if (my_sphere < nSpheres) {
-        if (sphere_group[my_sphere] == SPHERE_GROUP::VOLUME) {
+        if (sphere_type[my_sphere] == SPHERE_TYPE::VOLUME) {
             d_sphere_count[my_sphere] = 1;
         } else {
             d_sphere_count[my_sphere] = 0;
@@ -537,7 +604,7 @@ __host__ double ChSystemGpuMesh_impl::volume_inside_mesh() {
     gpuErrchk(cudaMalloc(&d_sphere_count, nSpheres * sizeof(unsigned int)));
 
     count_spheres_in_mesh<<<(nSpheres + 255) / 256, 256>>>(
-            nSpheres, sphere_data->sphere_group, d_sphere_count);
+            nSpheres, sphere_data->sphere_type, d_sphere_count);
 
     void     *d_temp_storage = NULL;
     size_t   temp_storage_bytes = 0;
