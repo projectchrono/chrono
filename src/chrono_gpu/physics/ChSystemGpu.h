@@ -69,7 +69,7 @@ class CH_GPU_API ChSystemGpu {
     void SetClusterGraphMethod(CLUSTER_GRAPH_METHOD flag);
     void SetClusterSearchMethod(CLUSTER_SEARCH_METHOD flag);
     void SetClusterGroundMethod(CLUSTER_GROUND_METHOD flag);
-    void SetClusterGroundZlim(float z_lim); // for CLUSTER_GROUND_METHOD::LOWEST
+    void SetClusterGroundZLim(float z_lim); // for CLUSTER_GROUND_METHOD::LOWEST
 
     /// Set timestep size.
     void SetFixedStepSize(float size_UU);
