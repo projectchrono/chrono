@@ -13,6 +13,7 @@ build:
   script_env:
     - CC
     - CXX
+    - CI_PROJECT_DIR
 
   number: {{ environ.get('GIT_DESCRIBE_NUMBER', 0) }}
   binary_relocation: true
