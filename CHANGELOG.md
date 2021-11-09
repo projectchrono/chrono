@@ -22,6 +22,7 @@ Change Log
   - [New tracked vehicle model](#added-new-tracked-vehicle-model)
   - [Support for Z up camera in Chrono::Irrlicht](#changed-support-for-z-up-camera-in-chronoirrlicht)
   - [Reading and writing collision meshes in Chrono::Gpu](#changed-reading-and-writing-collision-meshes-in-chronogpu)
+  - [Support compiling to WebAssembly](#added-support-for-the-emscripten-compiler-targeting-webassembly)
 - [Release 6.0.0](#release-600---2021-02-10) 
   - [New Chrono::Csharp module](#added-new-chronocsharp-module)
   - [RoboSimian, Viper, and LittleHexy models](#added-robosimian-viper-and-littlehexy-models)
