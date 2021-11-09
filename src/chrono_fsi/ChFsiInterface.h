@@ -9,7 +9,7 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Author: Milad Rakhsha, Arman Pazouki
+// Author: Milad Rakhsha, Arman Pazouki, Wei Hu
 // =============================================================================
 //
 // Base class for processing the interface between Chrono and FSI modules
@@ -41,6 +41,7 @@ namespace fsi {
 /// Base class for processing the interface between Chrono and FSI modules.
 class ChFsiInterface : public ChFsiGeneral {
   public:
+    /// Constructor of the FSI interface class.
     ChFsiInterface(ChSystem& other_mphysicalSystem,
                    std::shared_ptr<fea::ChMesh> other_fsiMesh,
                    std::shared_ptr<SimParams> other_paramsH,
@@ -58,11 +59,11 @@ class ChFsiInterface : public ChFsiGeneral {
                    thrust::device_vector<Real3>& other_rigid_FSI_TorquesD,
                    thrust::device_vector<Real3>& other_Flex_FSI_ForcesD);
 
-    /// Destructor of the FSI interface.
+    /// Destructor of the FSI interface class.
     ~ChFsiInterface();
 
-    /// Read the surface-integrated pressure and viscous forces form the fluid dynamics system, and add these forces
-    /// and torques as external forces to the ChSystem bodies.
+    /// Read the surface-integrated pressure and viscous forces form the fluid/granular dynamics system, 
+    /// and add these forces and torques as external forces to the ChSystem rigid bodies.
     void Add_Rigid_ForceTorques_To_ChSystem();
 
     /// Use an external configuration to set the generalized coordinates of the ChSystem.
@@ -70,17 +71,34 @@ class ChFsiInterface : public ChFsiGeneral {
 
     /// Use the generalized coordinates of the ChSystem to set the configuration state in the FSI system.
     void Copy_ChSystem_to_External();
+
+    /// Copy the ChSystem rigid bodies from CPU to GPU.
     void Copy_fsiBodies_ChSystem_to_FluidSystem(std::shared_ptr<FsiBodiesDataD> fsiBodiesD);
+
+    /// Resize the number of ChSystem rigid bodies.
     void ResizeChronoBodiesData();
 
+    /// Set the FSI mesh for flexible elements.
     void SetFsiMesh(std::shared_ptr<fea::ChMesh> other_fsi_mesh) { fsi_mesh = other_fsi_mesh; };
+
+    /// Add forces and torques as external forces to the ChSystem flexible bodies.
     void Add_Flex_Forces_To_ChSystem();
+
+    /// Resize number of nodes used in the flexible elements
     void ResizeChronoNodesData();
+
+    /// Resize number of cable elements used in the flexible elements
     void ResizeChronoCablesData(std::vector<std::vector<int>> CableElementsNodesSTDVector,
                                         thrust::host_vector<int2>& CableElementsNodesH);
+
+    /// Resize number of shell elements used in the flexible elements
     void ResizeChronoShellsData(std::vector<std::vector<int>> ShellElementsNodesSTDVector,
                                         thrust::host_vector<int4>& ShellElementsNodesH);
+
+    /// Resize number of nodes used in the flexible elements
     void ResizeChronoFEANodesData();
+
+    /// Copy the nodes information in ChSystem from CPU to GPU.
     void Copy_fsiNodes_ChSystem_to_FluidSystem(std::shared_ptr<FsiMeshDataD> FsiMeshD);
 
   private:

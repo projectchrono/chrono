@@ -38,14 +38,15 @@ namespace fsi {
 /// GMRES iterative linear solver.
 class ChFsiLinearSolverGMRES : public ChFsiLinearSolver {
   public:
+    /// Constructor of the ChFsiLinearSolverGMRES class.
     ChFsiLinearSolverGMRES(double mrel_res = 1e-8, double mabs_res = 1e-4, int mmax_iter = 1000, bool mverbose = false)
         : ChFsiLinearSolver(SolverType::GMRES, mrel_res, mabs_res, mmax_iter, mverbose) {}
 
+    /// Destructor of the ChFsiLinearSolverGMRES class.
     ~ChFsiLinearSolverGMRES() {}
 
     /// Solve the linear system on the device.
-    virtual void Solve(int SIZE, int NNZ, double* A, unsigned int* ArowIdx, unsigned int* AcolIdx, double* x, double* b)
-        override;
+    virtual void Solve(int SIZE, int NNZ, double* A, unsigned int* ArowIdx, unsigned int* AcolIdx, double* x, double* b) override;
 
     /// Set the restart parameter in the GMRES method.
     void SetRestart(int R) { restart = R; }

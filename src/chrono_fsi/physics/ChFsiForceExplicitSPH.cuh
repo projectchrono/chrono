@@ -27,8 +27,9 @@ namespace fsi {
 /// @brief Child class of ChFsiForce.
 class ChFsiForceExplicitSPH : public ChFsiForce {
   public:
+    /// Constructor of the ChFsiForceExplicitSPH class.
     /// Force class implemented using WCSPH with explicit integretor,
-    /// Support for both fluid and granular material dynamics.
+    /// supports for both fluid and granular material dynamics.
     ChFsiForceExplicitSPH(
         std::shared_ptr<ChBce> otherBceWorker,                    ///< Pointer to the ChBce object that handles BCE particles
         std::shared_ptr<SphMarkerDataD> otherSortedSphMarkersD,   ///< Information of SPH particles in the sorted array on device
@@ -38,6 +39,7 @@ class ChFsiForceExplicitSPH : public ChFsiForce {
         std::shared_ptr<NumberOfObjects> otherNumObjects          ///< Pointer to number of objects, fluid, solid body, and boundary particles, etc.
     );
 
+    /// Destructor of the ChFsiForceExplicitSPH class
     ~ChFsiForceExplicitSPH();
 
     void Finalize() override;
