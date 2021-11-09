@@ -36,8 +36,8 @@ void RegisterParticipant(std::shared_ptr<SynCommunicator> communicator, const st
         SynLog() << "Adding Participant: " << participant_name << "\n";
 
         auto callback = std::bind(&ProcessMessage, communicator, std::placeholders::_1);
-        dds_communicator->CreateSubscriber(SynDDSTopic::RemovePrefix(participant_name, dds_communicator->m_prefix), new SynDDSMessagePubSubType(),
-                                           callback, new SynDDSMessage(), true, true);
+        dds_communicator->CreateSubscriber(SynDDSTopic::RemovePrefix(participant_name, dds_communicator->m_prefix), new SynDDSMessagePubSubType(), callback, new SynDDSMessage(),
+                                           dds_communicator->subSyncPolicy(), true);
     }
 }
 

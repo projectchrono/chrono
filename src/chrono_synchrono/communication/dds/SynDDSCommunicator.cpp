@@ -53,17 +53,21 @@ using namespace eprosima::fastrtps::rtps;
 namespace chrono {
 namespace synchrono {
 
-SynDDSCommunicator::SynDDSCommunicator(int node_id, const std::string& prefix) : m_prefix(prefix) {
+SynDDSCommunicator::SynDDSCommunicator(int node_id, const std::string& prefix, bool syncsub)
+    : m_prefix(prefix), syncSubs(syncsub) {
     AgentKey agent_key = AgentKey(node_id, 0);
     InitQoS(m_prefix + agent_key.GetKeyString());
 }
 
-SynDDSCommunicator::SynDDSCommunicator(const std::string& name, const std::string& prefix) : m_prefix(prefix) {
+SynDDSCommunicator::SynDDSCommunicator(const std::string& name, const std::string& prefix, bool syncsub)
+    : m_prefix(prefix), syncSubs(syncsub) {
     InitQoS(name);
 }
 
-SynDDSCommunicator::SynDDSCommunicator(eprosima::fastdds::dds::DomainParticipantQos& qos, const std::string& prefix)
-    : m_prefix(prefix) {
+SynDDSCommunicator::SynDDSCommunicator(eprosima::fastdds::dds::DomainParticipantQos& qos,
+                                       const std::string& prefix,
+                                       bool syncsub)
+    : m_prefix(prefix), syncSubs(syncsub) {
     CreateParticipant(qos);
 }
 
@@ -205,8 +209,7 @@ std::shared_ptr<SynDDSSubscriber> SynDDSCommunicator::CreateSubscriber(std::shar
 
     // Create the data reader
     StatusMask mask = StatusMask::all();
-    if (is_synchronous)
-        mask >> StatusMask::data_available();
+    mask >> StatusMask::data_available();
     auto reader = subscriber->create_datareader(topic->GetDDSTopic(), *qos, listener, mask);
     if (!reader) {
         SynLog() << "CreateSubscriber: Reader instantiation FAILED\n";
@@ -325,8 +328,12 @@ void SynDDSCommunicator::Publish() {
 
 void SynDDSCommunicator::Listen() {
     for (auto subscriber : m_subscribers)
-        if (subscriber->IsSynchronous())
+        if (subscriber->IsSynchronous() || !async_initialized) {
             subscriber->Receive();
+            async_initialized = true;
+        } else {
+            subscriber->AsyncReceive();
+        }
 }
 
 }  // namespace synchrono

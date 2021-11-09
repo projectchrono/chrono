@@ -85,7 +85,14 @@ void SynDDSSubscriber::AsyncReceive() {
         return;
     }
 
-    m_reader->set_listener(m_listener, StatusMask::data_available());
+    SampleInfo info;
+    if (m_reader->take_next_sample(m_message, &info) == ReturnCode_t::RETCODE_OK) {
+        if (info.instance_state == ALIVE_INSTANCE_STATE) {
+            m_callback(m_message);
+        } else {
+            std::cout << "Remote writer for topic " << m_topic->GetFullTopicName() << " is dead" << std::endl;
+        }
+    }
 }
 
 void SynDDSSubscriber::WaitForMatches(unsigned int matches) {
