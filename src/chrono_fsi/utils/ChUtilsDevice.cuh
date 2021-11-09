@@ -9,7 +9,7 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Author: Arman Pazouki, Milad Rakhsha
+// Author: Arman Pazouki, Milad Rakhsha, Wei Hu
 // =============================================================================
 //
 // Base class for changing device arrays in non-cuda files
@@ -27,6 +27,9 @@
 
 namespace chrono {
 namespace fsi {
+
+/// @addtogroup fsi_physics
+/// @{
 
 // ----------------------------------------------------------------------------
 // Short-hand notation
@@ -106,12 +109,9 @@ typedef unsigned int uint;
         }                                                                                    \
     }
 
-// --------------------------------------------------------------------
-// GpuTimer
-//
-/// @brief A template time recorder for cuda events.
+
+/// A template time recorder for cuda events.
 /// This utility class encapsulates a simple timer for recording the time between a start and stop event.
-// --------------------------------------------------------------------
 class GpuTimer {
   public:
     GpuTimer(cudaStream_t stream = 0) : m_stream(stream) {
@@ -124,9 +124,13 @@ class GpuTimer {
         cudaEventDestroy(m_stop);
     }
 
+    /// Record the start time
     void Start() { cudaEventRecord(m_start, m_stream); }
+
+    /// Record the stop time
     void Stop() { cudaEventRecord(m_stop, m_stream); }
 
+    /// Return the elapsed time
     float Elapsed() {
         float elapsed;
         cudaEventSynchronize(m_stop);
@@ -140,11 +144,8 @@ class GpuTimer {
     cudaEvent_t m_stop;
 };
 
-// --------------------------------------------------------------------
-// ChUtilsDevice
-//
+
 /// This utility class encapsulates a operators on device vectors which might be needed in host files
-// --------------------------------------------------------------------
 class CH_FSI_API ChUtilsDevice {
   public:
     /// Resizes a thrust vector of Real3 on the device to a specific size
@@ -182,20 +183,27 @@ class CH_FSI_API ChUtilsDevice {
 
     /// Resizes a thrust vector of uint on the device to a specific size
     static void ResizeU1(thrust::device_vector<uint>& mThrustVec, int size);
-
+    
+    /// Error check
     static void Sync_CheckError(bool* isErrorH, bool* isErrorD, std::string carshReport);
 
-    //    template <class DATATYPE>
-    //    static void CopyD2H(thrust::device_vector<DATATYPE>& DevVec, thrust::host_vector<DATATYPE>& HostVec) {
-    //        thrust::copy(DevVec.begin(), DevVec.end(), HostVec.begin());
-    //    }
+    /// Fetch Element
     static Real3 FetchElement(const thrust::device_vector<Real3>& DevVec, size_t i);
+
+    /// Copy data with Real4 type from device to host.
     static void CopyD2H(thrust::device_vector<Real4>& DevVec, thrust::host_vector<Real4>& HostVec);
+
+    /// Copy data with Real3 type from device to host.
     static void CopyD2H(thrust::device_vector<Real3>& DevVec, thrust::host_vector<Real3>& HostVec);
+
+    /// Copy data with Real type from device to host.
     static void CopyD2H(thrust::device_vector<Real>& DevVec, thrust::host_vector<Real>& HostVec);
 
   private:
 };
+
+/// @} fsi_physics
+
 }  // end namespace fsi
 }  // end namespace chrono
 

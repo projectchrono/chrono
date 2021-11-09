@@ -31,16 +31,17 @@
 namespace chrono {
 namespace fsi {
 
-/// @addtogroup fsi_solvers
+/// @addtogroup fsi_solver
 /// @{
 
 /// Base class for solving linear systems on GPUs. 
 /// Specific solution methods are implemented in derived classes.
 class ChFsiLinearSolver {
   public:
-    /// Solver type.
+    /// Solver type supported in ISPH.
     enum class SolverType { BICGSTAB, GMRES, CR, CG, SAP };
 
+    /// Constructor of the ChFsiLinearSolver class.
     ChFsiLinearSolver(SolverType msolver,
                       Real mrel_res = 1e-8,
                       Real mabs_res = 1e-4,
@@ -53,6 +54,7 @@ class ChFsiLinearSolver {
         solver_type = msolver;
     };
 
+    /// Destructor of the ChFsiLinearSolver class.
     virtual ~ChFsiLinearSolver() {}
 
     /// Return the solver type.
@@ -94,8 +96,7 @@ class ChFsiLinearSolver {
     int GetSolverStatus() { return solver_status; }
 
     /// Solve linear system for x.
-    virtual void
-    Solve(int SIZE, int NNZ, Real* A, unsigned int* ArowIdx, unsigned int* AcolIdx, Real* x, Real* b) = 0;
+    virtual void Solve(int SIZE, int NNZ, double* A, unsigned int* ArowIdx, unsigned int* AcolIdx, double* x, double* b) = 0;
 
   protected:
     Real rel_res = 1e-3;
@@ -110,7 +111,7 @@ class ChFsiLinearSolver {
     SolverType solver_type;
 };
 
-/// @} fsi_solvers
+/// @} fsi_solver
 
 }  // end namespace fsi
 }  // end namespace chrono

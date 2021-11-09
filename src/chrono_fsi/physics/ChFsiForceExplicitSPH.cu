@@ -502,7 +502,6 @@ __global__ void calcRho_kernel(Real4* sortedPosRad,
 }
 
 //--------------------------------------------------------------------------------------------------------------------------------
-// modify pressure for body force
 __device__ __inline__ void modifyPressure(Real4& rhoPresMuB, const Real3& dist3Alpha) {
     // body force in x direction
     rhoPresMuB.y = (dist3Alpha.x > 0.5 * paramsD.boxDims.x) ? (rhoPresMuB.y - paramsD.deltaPress.x) : rhoPresMuB.y;
@@ -663,10 +662,6 @@ __device__ inline Real3 CubicEigen(Real4 c1, Real4 c2, Real4 c3) {
 }
 
 //--------------------------------------------------------------------------------------------------------------------------------
-/**	
- * @brief DifVelocityRho
- * @details  See SDKCollisionSystem.cuh
- */
 __device__ inline Real4 DifVelocityRho(float G_i[9],
                                        Real3 dist3,
                                        Real d,
@@ -711,7 +706,6 @@ __device__ inline Real4 DifVelocityRho(float G_i[9],
 }
 
 //--------------------------------------------------------------------------------------------------------------------------------
-// Only for modeling granular problems
 __device__ inline Real4 DifVelocityRho_ElasticSPH(Real3 gradW,
                                                   Real3 dist3,
                                                   Real d,
