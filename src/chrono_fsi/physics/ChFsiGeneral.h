@@ -74,11 +74,12 @@ class ChFsiGeneral {
     );
 
   protected:
+    /// Return a/b or a/b + 1
     uint iDivUp(uint a, uint b);
 
   private:
-    std::shared_ptr<SimParams> paramsH;
-    std::shared_ptr<NumberOfObjects> numObjectsH;
+    std::shared_ptr<SimParams> paramsH; ///< Simulation parameters on host.
+    std::shared_ptr<NumberOfObjects> numObjectsH; ///< NUmber of objects on host.
 };
 
 /// @} fsi_physics

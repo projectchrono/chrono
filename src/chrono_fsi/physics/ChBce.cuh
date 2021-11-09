@@ -36,7 +36,10 @@ namespace fsi {
 /// system to the MBD system, and ii) displacement from the MBD system to the fluid dynamics system.
 class ChBce : public ChFsiGeneral {
   public:
+    /// Modified velocity information for BCE particles.
     thrust::device_vector<Real3> velMas_ModifiedBCE;
+
+    /// Modified density, pressure information for BCE particles.
     thrust::device_vector<Real4> rhoPreMu_ModifiedBCE;
 
     /// Constructor of the ChBce class
@@ -94,20 +97,15 @@ class ChBce : public ChFsiGeneral {
                   std::shared_ptr<FsiMeshDataD> fsiMeshD);
 
   private:
-    std::shared_ptr<FsiGeneralData>
-        fsiGeneralData;  ///< General information of the simulation, e.g, ordering of the phases.
-    std::shared_ptr<SphMarkerDataD>
-        sortedSphMarkersD;  ///< Holds the position, velocity, denisty, pressure, viscousity and types of
-                            /// the SPH particles.
-    std::shared_ptr<ProximityDataD>
-        markersProximityD;               ///< Holds the information for the neighbor search and mapping 
-                                         /// from the  sorted variables to an unsorted ones.
+    std::shared_ptr<FsiGeneralData> fsiGeneralData;  ///< General information of the simulation, e.g, ordering of the phases.
+    std::shared_ptr<SphMarkerDataD> sortedSphMarkersD;  ///< Holds the position, velocity, denisty, pressure, viscousity and 
+                                                        /// types of the SPH particles.
+    std::shared_ptr<ProximityDataD> markersProximityD; ///< Holds the information for the neighbor search and mapping 
+                                                       /// from the  sorted variables to an unsorted ones.
     std::shared_ptr<SimParams> paramsH;  ///< Parameters of the simulation.
     std::shared_ptr<NumberOfObjects> numObjectsH;  ///< Holds the number of SPH particles on each phase.
-    thrust::device_vector<Real4>
-        totalSurfaceInteractionRigid4;  ///< Total surface-integrated forces from the fluid dynamics to Chbodies.
-    thrust::device_vector<Real3>
-        torqueMarkersD;  ///< Total surface-integrated torques from the fluid dynamics to Chbodies.
+    thrust::device_vector<Real4> totalSurfaceInteractionRigid4;  ///< Total surface-integrated forces from the fluid dynamics to Chbodies.
+    thrust::device_vector<Real3>torqueMarkersD;  ///< Total surface-integrated torques from the fluid dynamics to Chbodies.
 
     thrust::device_vector<int> dummyIdentify;
 

@@ -9,7 +9,7 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Author: Milad Rakhsha, Arman Pazouki
+// Author: Milad Rakhsha, Arman Pazouki, Wei Hu
 // =============================================================================
 //
 // Implementation of FSI system that includes all subclasses for proximity and
@@ -71,7 +71,6 @@ namespace fsi {
 
     /// Struct to store the information of SPH particles on the device
     struct SphMarkerDataD {
-
         thrust::device_vector<Real4> posRadD;     ///< Vector of the positions of particles + characteristic radius
         thrust::device_vector<Real3> velMasD;     ///< Vector of the velocities of particles
         thrust::device_vector<Real4> rhoPresMuD;  ///< Vector of the rho+pressure+mu+type of particles
@@ -122,21 +121,22 @@ namespace fsi {
         void resize(size_t s);
     };
 
+    /// Struct to store the information of mesh on the host
     struct FsiMeshDataH {
-        thrust::host_vector<Real3> pos_fsi_fea_H;
-        thrust::host_vector<Real3> vel_fsi_fea_H;
-        thrust::host_vector<Real3> acc_fsi_fea_H;
+        thrust::host_vector<Real3> pos_fsi_fea_H;   ///< Vector of the mesh position
+        thrust::host_vector<Real3> vel_fsi_fea_H;   ///< Vector of the mesh velocity
+        thrust::host_vector<Real3> acc_fsi_fea_H;   ///< Vector of the mesh acceleration
 
         // zipIterFlexH iterator();
-
         void resize(size_t s);
         size_t size() { return pos_fsi_fea_H.size(); };
     };
 
+    /// Struct to store the information of mesh on the device
     struct FsiMeshDataD {
-        thrust::device_vector<Real3> pos_fsi_fea_D;
-        thrust::device_vector<Real3> vel_fsi_fea_D;
-        thrust::device_vector<Real3> acc_fsi_fea_D;
+        thrust::device_vector<Real3> pos_fsi_fea_D; ///< Vector of the mesh position
+        thrust::device_vector<Real3> vel_fsi_fea_D; ///< Vector of the mesh velocity
+        thrust::device_vector<Real3> acc_fsi_fea_D; ///< Vector of the mesh acceleration
 
         // zipIterFlexD iterator();
         void CopyFromH(const FsiMeshDataH& other);
@@ -144,41 +144,43 @@ namespace fsi {
         void resize(size_t s);
     };
 
+    /// Struct to store the information of shell elements on the host
     struct FsiShellsDataH {
-        thrust::host_vector<Real3> posFlex_fsiBodies_nA_H;
-        thrust::host_vector<Real3> posFlex_fsiBodies_nB_H;
-        thrust::host_vector<Real3> posFlex_fsiBodies_nC_H;
-        thrust::host_vector<Real3> posFlex_fsiBodies_nD_H;
+        thrust::host_vector<Real3> posFlex_fsiBodies_nA_H; ///< Vector of the node A position
+        thrust::host_vector<Real3> posFlex_fsiBodies_nB_H; ///< Vector of the node B position
+        thrust::host_vector<Real3> posFlex_fsiBodies_nC_H; ///< Vector of the node B position
+        thrust::host_vector<Real3> posFlex_fsiBodies_nD_H; ///< Vector of the node D position
 
-        thrust::host_vector<Real3> velFlex_fsiBodies_nA_H;
-        thrust::host_vector<Real3> velFlex_fsiBodies_nB_H;
-        thrust::host_vector<Real3> velFlex_fsiBodies_nC_H;
-        thrust::host_vector<Real3> velFlex_fsiBodies_nD_H;
+        thrust::host_vector<Real3> velFlex_fsiBodies_nA_H; ///< Vector of the node A velocity
+        thrust::host_vector<Real3> velFlex_fsiBodies_nB_H; ///< Vector of the node B velocity
+        thrust::host_vector<Real3> velFlex_fsiBodies_nC_H; ///< Vector of the node C velocity
+        thrust::host_vector<Real3> velFlex_fsiBodies_nD_H; ///< Vector of the node D velocity
 
-        thrust::host_vector<Real3> accFlex_fsiBodies_nA_H;
-        thrust::host_vector<Real3> accFlex_fsiBodies_nB_H;
-        thrust::host_vector<Real3> accFlex_fsiBodies_nC_H;
-        thrust::host_vector<Real3> accFlex_fsiBodies_nD_H;
+        thrust::host_vector<Real3> accFlex_fsiBodies_nA_H; ///< Vector of the node A acceleration
+        thrust::host_vector<Real3> accFlex_fsiBodies_nB_H; ///< Vector of the node B acceleration
+        thrust::host_vector<Real3> accFlex_fsiBodies_nC_H; ///< Vector of the node C acceleration
+        thrust::host_vector<Real3> accFlex_fsiBodies_nD_H; ///< Vector of the node D acceleration
 
         // zipIterFlexH iterator();
         void resize(size_t s);
     };
 
+    /// Struct to store the information of shell elements on the device
     struct FsiShellsDataD {
-        thrust::device_vector<Real3> posFlex_fsiBodies_nA_D;
-        thrust::device_vector<Real3> posFlex_fsiBodies_nB_D;
-        thrust::device_vector<Real3> posFlex_fsiBodies_nC_D;
-        thrust::device_vector<Real3> posFlex_fsiBodies_nD_D;
+        thrust::device_vector<Real3> posFlex_fsiBodies_nA_D; ///< Vector of the node A position
+        thrust::device_vector<Real3> posFlex_fsiBodies_nB_D; ///< Vector of the node B position
+        thrust::device_vector<Real3> posFlex_fsiBodies_nC_D; ///< Vector of the node C position
+        thrust::device_vector<Real3> posFlex_fsiBodies_nD_D; ///< Vector of the node D position
 
-        thrust::device_vector<Real3> velFlex_fsiBodies_nA_D;
-        thrust::device_vector<Real3> velFlex_fsiBodies_nB_D;
-        thrust::device_vector<Real3> velFlex_fsiBodies_nC_D;
-        thrust::device_vector<Real3> velFlex_fsiBodies_nD_D;
+        thrust::device_vector<Real3> velFlex_fsiBodies_nA_D; ///< Vector of the node A velocity
+        thrust::device_vector<Real3> velFlex_fsiBodies_nB_D; ///< Vector of the node B velocity
+        thrust::device_vector<Real3> velFlex_fsiBodies_nC_D; ///< Vector of the node C velocity
+        thrust::device_vector<Real3> velFlex_fsiBodies_nD_D; ///< Vector of the node D velocity
 
-        thrust::device_vector<Real3> accFlex_fsiBodies_nA_D;
-        thrust::device_vector<Real3> accFlex_fsiBodies_nB_D;
-        thrust::device_vector<Real3> accFlex_fsiBodies_nC_D;
-        thrust::device_vector<Real3> accFlex_fsiBodies_nD_D;
+        thrust::device_vector<Real3> accFlex_fsiBodies_nA_D; ///< Vector of the node A acceleration
+        thrust::device_vector<Real3> accFlex_fsiBodies_nB_D; ///< Vector of the node B acceleration
+        thrust::device_vector<Real3> accFlex_fsiBodies_nC_D; ///< Vector of the node C acceleration
+        thrust::device_vector<Real3> accFlex_fsiBodies_nD_D; ///< Vector of the node D acceleration
 
         // zipIterFlexD iterator();
         void CopyFromH(const FsiShellsDataH& other);
@@ -192,11 +194,12 @@ namespace fsi {
         thrust::device_vector<uint> gridMarkerIndexD;  ///< (numAllMarkers);
         thrust::device_vector<uint> cellStartD;        ///< Index of the particle starts a cell in sorted list (m_numGridCells)
         thrust::device_vector<uint> cellEndD;          ///< Index of the particle ends a cell in sorted list (m_numGridCells)
-        thrust::device_vector<uint> mapOriginalToSorted;
+        thrust::device_vector<uint> mapOriginalToSorted; ///< Index mapping from the original to the sorted
 
         void resize(size_t numAllMarkers);
     };
 
+    /// Struct to store Chrono rigid bodies information on the host
     struct ChronoBodiesDataH {
         ChronoBodiesDataH() {}
         ChronoBodiesDataH(size_t s);
@@ -211,40 +214,44 @@ namespace fsi {
         void resize(size_t s);
     };
 
+    /// Struct to store Chrono shell elements information on the host
     struct ChronoShellsDataH {
         ChronoShellsDataH() {}
         ChronoShellsDataH(size_t s);
 
         // zipIterChronoShellsH iterator();
 
-        thrust::host_vector<Real3> posFlex_ChSystemH_nA_H;
-        thrust::host_vector<Real3> posFlex_ChSystemH_nB_H;
-        thrust::host_vector<Real3> posFlex_ChSystemH_nC_H;
-        thrust::host_vector<Real3> posFlex_ChSystemH_nD_H;
+        thrust::host_vector<Real3> posFlex_ChSystemH_nA_H; ///< Vector of the node A position
+        thrust::host_vector<Real3> posFlex_ChSystemH_nB_H; ///< Vector of the node B position
+        thrust::host_vector<Real3> posFlex_ChSystemH_nC_H; ///< Vector of the node C position
+        thrust::host_vector<Real3> posFlex_ChSystemH_nD_H; ///< Vector of the node D position
 
-        thrust::host_vector<Real3> velFlex_ChSystemH_nA_H;
-        thrust::host_vector<Real3> velFlex_ChSystemH_nB_H;
-        thrust::host_vector<Real3> velFlex_ChSystemH_nC_H;
-        thrust::host_vector<Real3> velFlex_ChSystemH_nD_H;
+        thrust::host_vector<Real3> velFlex_ChSystemH_nA_H; ///< Vector of the node A velocity
+        thrust::host_vector<Real3> velFlex_ChSystemH_nB_H; ///< Vector of the node B velocity
+        thrust::host_vector<Real3> velFlex_ChSystemH_nC_H; ///< Vector of the node C velocity
+        thrust::host_vector<Real3> velFlex_ChSystemH_nD_H; ///< Vector of the node D velocity
 
-        thrust::host_vector<Real3> accFlex_ChSystemH_nA_H;
-        thrust::host_vector<Real3> accFlex_ChSystemH_nB_H;
-        thrust::host_vector<Real3> accFlex_ChSystemH_nC_H;
-        thrust::host_vector<Real3> accFlex_ChSystemH_nD_H;
+        thrust::host_vector<Real3> accFlex_ChSystemH_nA_H; ///< Vector of the node A acceleration
+        thrust::host_vector<Real3> accFlex_ChSystemH_nB_H; ///< Vector of the node B acceleration
+        thrust::host_vector<Real3> accFlex_ChSystemH_nC_H; ///< Vector of the node C acceleration
+        thrust::host_vector<Real3> accFlex_ChSystemH_nD_H; ///< Vector of the node D acceleration
 
         void resize(size_t s);
     };
+
+    /// Struct to store Chrono mesh information on the host
     struct ChronoMeshDataH {
         ChronoMeshDataH() {}
         ChronoMeshDataH(size_t s);
 
-        thrust::host_vector<Real3> posFlex_ChSystemH_H;
-        thrust::host_vector<Real3> velFlex_ChSystemH_H;
-        thrust::host_vector<Real3> accFlex_ChSystemH_H;
+        thrust::host_vector<Real3> posFlex_ChSystemH_H; ///< Vector of the mesh position
+        thrust::host_vector<Real3> velFlex_ChSystemH_H; ///< Vector of the mesh velocity
+        thrust::host_vector<Real3> accFlex_ChSystemH_H; ///< Vector of the mesh acceleration
 
         void resize(size_t s);
     };
-    /// Struct to store fluid system information that need to be passed to Chrono
+
+    /// Struct to store fluid/granular system information that need to be passed to Chrono
     struct FsiGeneralData {
         // ----------------
         //  host
@@ -266,22 +273,22 @@ namespace fsi {
 
         // BCE
         thrust::device_vector<Real3> rigidSPH_MeshPos_LRF_D;  ///< Position of a particle attached to a rigid body in a local
-        thrust::device_vector<Real3> FlexSPH_MeshPos_LRF_D;
-        thrust::host_vector<Real3> FlexSPH_MeshPos_LRF_H;
+        thrust::device_vector<Real3> FlexSPH_MeshPos_LRF_D;   ///< Position of a particle attached to a mesh in a local on device
+        thrust::host_vector<Real3> FlexSPH_MeshPos_LRF_H;     ///< Position of a particle attached to a mesh in a local on host
 
         thrust::device_vector<uint> rigidIdentifierD;         ///< Identifies which rigid body a particle belongs to
-        thrust::device_vector<uint> FlexIdentifierD;
+        thrust::device_vector<uint> FlexIdentifierD;          ///< Identifies which flexible body a particle belongs to
 
         // fsi bodies
         thrust::device_vector<Real3> rigid_FSI_ForcesD;       ///< Vector of the surface-integrated forces to rigid bodies
         thrust::device_vector<Real3> rigid_FSI_TorquesD;      ///< Vector of the surface-integrated torques to rigid bodies
         thrust::device_vector<Real3> Flex_FSI_ForcesD;        ///< Vector of the surface-integrated force on FEA nodes
 
-        thrust::host_vector<int2> CableElementsNodesH;
-        thrust::device_vector<int2> CableElementsNodes;
+        thrust::host_vector<int2> CableElementsNodesH;        ///< Vector of the cable elements dodes on host
+        thrust::device_vector<int2> CableElementsNodes;       ///< Vector of the cable elements dodes on device
 
-        thrust::host_vector<int4> ShellElementsNodesH;
-        thrust::device_vector<int4> ShellElementsNodes;
+        thrust::host_vector<int4> ShellElementsNodesH;        ///< Vector of the shell elements dodes on host
+        thrust::device_vector<int4> ShellElementsNodes;       ///< Vector of the shell elements dodes on device
     };
 
 /// @brief Data related function implementations for FSI system
@@ -292,9 +299,11 @@ class ChSystemFsi_impl : public ChFsiGeneral {
 
     /// Add an SPH particle given its position, physical properties, velocity, and stress
     void AddSphMarker(Real4 pos, Real4 rhoPresMu, Real3 vel = mR3(0.0), Real3 tauXxYyZz = mR3(0.0), Real3 tauXyXzYz = mR3(0.0));
+
+    /// Resize the simulation data based on the FSI system constructed.
     void ResizeDataManager(int numNode = 0);
 
-    std::shared_ptr<NumberOfObjects> numObjects;
+    std::shared_ptr<NumberOfObjects> numObjects;        ///< Number of objects (SPH particles, BCE particles, rigid bodies and such).
 
     std::shared_ptr<SphMarkerDataD> sphMarkersD1;       ///< Information of SPH particles at state 1 on device
     std::shared_ptr<SphMarkerDataD> sphMarkersD2;       ///< Information of SPH particles at state 2 on device
@@ -304,12 +313,12 @@ class ChSystemFsi_impl : public ChFsiGeneral {
     std::shared_ptr<FsiBodiesDataD> fsiBodiesD1;  ///< Information of rigid bodies at state 1 on device
     std::shared_ptr<FsiBodiesDataD> fsiBodiesD2;  ///< Information of rigid bodies at state 2 on device
     std::shared_ptr<FsiBodiesDataH> fsiBodiesH;   ///< Information of rigid bodies at state 1 on host
-    std::shared_ptr<FsiMeshDataD> fsiMeshD;
-    std::shared_ptr<FsiMeshDataH> fsiMeshH;
+    std::shared_ptr<FsiMeshDataD> fsiMeshD;       ///< Information of mesh on device
+    std::shared_ptr<FsiMeshDataH> fsiMeshH;       ///< Information of mesh on host
 
-    std::shared_ptr<FsiGeneralData> fsiGeneralData;
+    std::shared_ptr<FsiGeneralData> fsiGeneralData;  ///< General FSI data needed in the simulation
 
-    std::shared_ptr<ProximityDataD> markersProximityD;
+    std::shared_ptr<ProximityDataD> markersProximityD; ///< Information of neighbor search on the device
 
   private:
     void ArrangeDataManager();
@@ -318,6 +327,7 @@ class ChSystemFsi_impl : public ChFsiGeneral {
     void CalcNumObjects();  ///< Calculates the number of rigid bodies, flexible bodies, etc. based on the type of particles
 
   public:
+    /// Base class of FSI system.
     friend class ChSystemFsi;
 
 };
