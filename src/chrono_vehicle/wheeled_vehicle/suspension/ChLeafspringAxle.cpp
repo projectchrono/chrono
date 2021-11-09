@@ -57,9 +57,7 @@ ChLeafspringAxle::~ChLeafspringAxle() {
     auto sys = m_axleTube->GetSystem();
     if (sys) {
         sys->Remove(m_axleTube);
-        sys->Remove(m_tierod);
         sys->Remove(m_axleTubeGuide);
-        sys->Remove(m_sphericalTierod);
         for (int i = 0; i < 2; i++) {
             sys->Remove(m_shock[i]);
             sys->Remove(m_spring[i]);
@@ -257,12 +255,9 @@ void ChLeafspringAxle::LogHardpointLocations(const ChVector<>& ref, bool inches)
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 void ChLeafspringAxle::LogConstraintViolations(VehicleSide side) {
-    // TODO: Update this to reflect new suspension joints
-    // Revolute joints
-
     {
-        ChVectorDynamic<> C = m_sphericalTierod->GetConstraintViolation();
-        GetLog() << "Tierod spherical          ";
+        ChVectorDynamic<> C = m_axleTubeGuide->GetConstraintViolation();
+        GetLog() << "Axle tube prismatic       ";
         GetLog() << "  " << C(0) << "  ";
         GetLog() << "  " << C(1) << "  ";
         GetLog() << "  " << C(2) << "\n";
