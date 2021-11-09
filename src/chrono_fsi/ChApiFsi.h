@@ -37,7 +37,7 @@
     @brief Fluid-Solid Interation modeling and simulation
 
     This module provides support for modeling multi-phase systems for
-    fluid-soild interaction problems.
+    fluid-soild interaction problems and granular-solid interaction problems
 
     For additional information, see:
     - the [installation guide](@ref module_fsi_installation)
