@@ -96,7 +96,7 @@ class ChFsiLinearSolver {
     int GetSolverStatus() { return solver_status; }
 
     /// Solve linear system for x.
-    virtual void Solve(int SIZE, int NNZ, double* A, unsigned int* ArowIdx, unsigned int* AcolIdx, double* x, double* b) = 0;
+    virtual void Solve(int SIZE, int NNZ, Real* A, unsigned int* ArowIdx, unsigned int* AcolIdx, Real* x, Real* b) = 0;
 
   protected:
     Real rel_res = 1e-3;
