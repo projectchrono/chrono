@@ -762,6 +762,25 @@ or write a particular mesh to a file by
     void WriteMesh(const std::string& outfilename, unsigned int i) const;
 ```
 
+### [Added] Support for the Emscripten compiler targeting WebAssembly
+
+Chrono now provides limited support for compiling to WebAssembly and running in browser or Node.js. The core library is supported along with Chrono::OpenGL and Chrono::Vehicle. It is recommended to use the `emcmake` wrapper and Ninja generator when targeting WASM to ensure that all of the configuration options are set correctly. 
+
+```sh
+cd build
+emcmake ccmake -G Ninja ..
+ninja
+``` 
+
+**Changed - Shaders embedded using embedfile.cpp are now generated in pure CMake**
+
+This allows for cross-compilation which is necessary for WASM. 
+
+**Changed - OpenGL components now target OpenGL ES 3.0**
+
+WebAssembly platforms typically use WebGL, which maintains a feature set roughly on par with OpenGL ES. WebGL 2.0 is able to emulate almost all of OpenGL ES 3.0, which is similar to the capabilities of the previously supported target of OpenGL 3.3. This modification should also improve overall Chrono::OpenGL performance on low-power rendering hardware such as ultra-portable laptops or mobile devices. 
+
+
 ## Release 6.0.0 - 2021-02-10
 
 ### [Added] New Chrono::Csharp module
