@@ -200,7 +200,7 @@ int main(int argc, char* argv[]) {
     DomainParticipantQos qos;
     qos.name("/syn/node/" + std::to_string(node_id) + ".0");
     if (IPv6) {
-        // Use UDP by default
+        // Use UDP6
         qos.transport().user_transports.push_back(std::make_shared<UDPv6TransportDescriptor>());
 
         qos.transport().use_builtin_transports = false;
@@ -214,7 +214,7 @@ int main(int argc, char* argv[]) {
             qos.wire_protocol().builtin.initialPeersList.push_back(locator);
         }
     } else {
-        // Use UDP by default
+        // Use UDP4
         qos.transport().user_transports.push_back(std::make_shared<UDPv4TransportDescriptor>());
 
         qos.transport().use_builtin_transports = false;
@@ -228,7 +228,7 @@ int main(int argc, char* argv[]) {
             qos.wire_protocol().builtin.initialPeersList.push_back(locator);
         }
     }
-    auto communicator = chrono_types::make_shared<SynDDSCommunicator>(qos);
+    auto communicator = chrono_types::make_shared<SynDDSCommunicator>(qos, "/syn/node/", true);
     SynChronoManager syn_manager(node_id, num_nodes, communicator);
 
     // Change SynChronoManager settings
@@ -381,11 +381,12 @@ int main(int argc, char* argv[]) {
         step_number++;
 
         // Log clock time
-        if (step_number % 100 == 0 && node_id == 1) {
+        if (step_number % 100 == 0 ) {
             std::chrono::high_resolution_clock::time_point end = std::chrono::high_resolution_clock::now();
             auto time_span = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
 
             SynLog() << (time_span.count() / 1e3) / time << "\n";
+            std::cout << std::flush;
         }
 
         #ifdef CHRONO_IRRLICHT
