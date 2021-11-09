@@ -25,6 +25,10 @@
 
 #include <cmath>
 
+#ifdef __EMSCRIPTEN__
+#include <emscripten.h>
+#endif
+
 #include "chrono/physics/ChSystemNSC.h"
 #include "chrono/core/ChRealtimeStep.h"
 #include "chrono/assets/ChSphereShape.h"
@@ -265,7 +269,7 @@ int main(int argc, char* argv[]) {
     int target_id = 0;
     double switch_time = 0;
 
-    while (gl_window.Active()) {
+    std::function<void()> step_iter = [&]() -> void {
         if (gl_window.Running()) {
             // At a switch time, flip target for cart location
             if (system.GetChTime() > switch_time) {
@@ -282,12 +286,18 @@ int main(int argc, char* argv[]) {
             system.DoStepDynamics(time_step);
             controller.Advance(time_step);
 
-            // Enforce soft real-time
-            realtime_timer.Spin(time_step);
+            gl_window.Render();
         }
+    };
 
-        gl_window.Render();
+#ifdef __EMSCRIPTEN__
+    emscripten_set_main_loop_arg(&opengl::ChOpenGLWindow::WrapRenderStep, (void*)&step_iter, 50, true);
+#else
+    while (gl_window.Active()) {
+        step_iter();
+        realtime_timer.Spin(time_step);
     }
+#endif
 
     return 0;
 }

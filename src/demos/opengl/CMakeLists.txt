@@ -19,6 +19,10 @@ IF(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
   SET (CH_LINKERFLAG_EXE  "${CH_LINKERFLAG_EXE} -framework IOKit -framework Cocoa -framework OpenGL")
 ENDIF()
 
+IF(${CMAKE_SYSTEM_NAME} MATCHES "Emscripten")
+  set (CH_LINKERFLAG_EXE "${CH_LINKERFLAG_EXE} -s FULL_ES3=1 -s USE_GLFW=3")
+ENDIF()
+
 #--------------------------------------------------------------
 
 # Add executables
