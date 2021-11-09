@@ -48,6 +48,7 @@ cmake -DCMAKE_INSTALL_PREFIX=$PREFIX \
  -DPYCHRONO_DATA_PATH=../../../../../../share/chrono/data \
  -DOptiX_INSTALL_DIR=/opt/optix/7.2.0 \
  -DNUMPY_INCLUDE_DIR=$NP_INCL \
+ -DUSE_CUDA_NVRTC=OFF \
  ./..
 # Build step
 # on linux travis, limit the number of concurrent jobs otherwise

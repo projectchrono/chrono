@@ -26,7 +26,7 @@ requirements:
   build:
     - python
     - cmake >=3.9.3
-    - swig >=3.0.12
+    - swig >=4.0.0
     - mkl
     - numpy
     - glew
