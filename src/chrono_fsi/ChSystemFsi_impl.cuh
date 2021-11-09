@@ -35,20 +35,23 @@
 namespace chrono {
 namespace fsi {
 
-    /// typedef device iterators for shorthand sph operation of thrust vectors of Real3
+/// @addtogroup fsi_physics
+/// @{
+
+    /// typedef device iterators for shorthand SPH operation of thrust vectors of Real3
     typedef thrust::device_vector<Real3>::iterator r3IterD;
-    /// typedef device iterators for shorthand sph operation of thrust vectors of Real4
+    /// typedef device iterators for shorthand SPH operation of thrust vectors of Real4
     typedef thrust::device_vector<Real4>::iterator r4IterD;
-    /// typedef device tuple for holding sph data pos,vel,[rho,pressure,mu,type]
-    typedef thrust::tuple<r4IterD, r3IterD, r4IterD, r3IterD, r3IterD> iterTupleSphD;  
+    /// typedef device tuple for holding SPH data pos,vel,[rho,pressure,mu,type]
+    typedef thrust::tuple<r4IterD, r3IterD, r4IterD, r3IterD, r3IterD> iterTupleSphD;
     typedef thrust::zip_iterator<iterTupleSphD> zipIterSphD;
 
-    /// typedef host iterators for shorthand sph operation of thrust vectors of Real3
+    /// typedef host iterators for shorthand SPH operation of thrust vectors of Real3
     typedef thrust::host_vector<Real3>::iterator r3IterH;
-    /// typedef host iterators for shorthand sph operation of thrust vectors of Real4
+    /// typedef host iterators for shorthand SPH operation of thrust vectors of Real4
     typedef thrust::host_vector<Real4>::iterator r4IterH;
-    /// typedef host tuple for holding sph data pos,vel,[rho,pressure,mu,type]
-    typedef thrust::tuple<r4IterH, r3IterH, r4IterH, r3IterH, r3IterH> iterTupleH;  
+    /// typedef host tuple for holding SPH data pos,vel,[rho,pressure,mu,type]
+    typedef thrust::tuple<r4IterH, r3IterH, r4IterH, r3IterH, r3IterH> iterTupleH;
     typedef thrust::zip_iterator<iterTupleH> zipIterSphH;
 
     /// typedef device iterators for shorthand rigid body states:
@@ -66,26 +69,26 @@ namespace fsi {
     typedef thrust::zip_iterator<iterTupleChronoBodiesH> zipIterChronoBodiesH;
 
 
-    /// Struct to store the information of SPH markers on the device
+    /// Struct to store the information of SPH particles on the device
     struct SphMarkerDataD {
 
-        thrust::device_vector<Real4> posRadD;     ///< Vector of the positions of markers + characteristic radius
-        thrust::device_vector<Real3> velMasD;     ///< Vector of the velocities of markers
-        thrust::device_vector<Real4> rhoPresMuD;  ///< Vector of the rho+pressure+mu+type of markers
-        thrust::device_vector<Real3> tauXxYyZzD;  ///< Vector of the shear stress (diagonal) of markers
-        thrust::device_vector<Real3> tauXyXzYzD;  ///< Vector of the shear stress (off-diagonal) of markers
+        thrust::device_vector<Real4> posRadD;     ///< Vector of the positions of particles + characteristic radius
+        thrust::device_vector<Real3> velMasD;     ///< Vector of the velocities of particles
+        thrust::device_vector<Real4> rhoPresMuD;  ///< Vector of the rho+pressure+mu+type of particles
+        thrust::device_vector<Real3> tauXxYyZzD;  ///< Vector of the shear stress (diagonal) of particles
+        thrust::device_vector<Real3> tauXyXzYzD;  ///< Vector of the shear stress (off-diagonal) of particles
 
         zipIterSphD iterator();
         void resize(size_t s);
     };
 
-    /// Struct to store the information of SPH markers on the host
+    /// Struct to store the information of SPH particles on the host
     struct SphMarkerDataH {
-        thrust::host_vector<Real4> posRadH;     ///< Vector of the positions of markers
-        thrust::host_vector<Real3> velMasH;     ///< Vector of the velocities of markers
-        thrust::host_vector<Real4> rhoPresMuH;  ///< Vector of the rho+pressure+mu+type of markers
-        thrust::host_vector<Real3> tauXxYyZzH;  ///< Vector of the shear stress (diagonal) of markers
-        thrust::host_vector<Real3> tauXyXzYzH;  ///< Vector of the shear stress (off-diagonal) of markers
+        thrust::host_vector<Real4> posRadH;     ///< Vector of the positions of particles
+        thrust::host_vector<Real3> velMasH;     ///< Vector of the velocities of particles
+        thrust::host_vector<Real4> rhoPresMuH;  ///< Vector of the rho+pressure+mu+type of particles
+        thrust::host_vector<Real3> tauXxYyZzH;  ///< Vector of the shear stress (diagonal) of particles
+        thrust::host_vector<Real3> tauXyXzYzH;  ///< Vector of the shear stress (off-diagonal) of particles
 
         zipIterSphH iterator();
         void resize(size_t s);
@@ -96,9 +99,9 @@ namespace fsi {
         thrust::host_vector<Real3> posRigid_fsiBodies_H;      ///< Vector of the linear positions of rigid bodies
         thrust::host_vector<Real4> velMassRigid_fsiBodies_H;  ///< Vector of the linear velocities of rigid bodies
         thrust::host_vector<Real3> accRigid_fsiBodies_H;      ///< Vector of the linear acceleration of rigid bodies
-        thrust::host_vector<Real4> q_fsiBodies_H;  ///< Vector of the orientations (Euler parameters as Quaternion) of rigid bodies
-        thrust::host_vector<Real3> omegaVelLRF_fsiBodies_H;  ///< Vector of the angular velocities of rigid bodies
-        thrust::host_vector<Real3> omegaAccLRF_fsiBodies_H;  ///< Vector of the angular acceleration of rigid bodies
+        thrust::host_vector<Real4> q_fsiBodies_H;             ///< Vector of the orientations (Euler parameters as Quaternion) of rigid bodies
+        thrust::host_vector<Real3> omegaVelLRF_fsiBodies_H;   ///< Vector of the angular velocities of rigid bodies
+        thrust::host_vector<Real3> omegaAccLRF_fsiBodies_H;   ///< Vector of the angular acceleration of rigid bodies
 
         zipIterRigidH iterator();
         void resize(size_t s);
@@ -109,9 +112,9 @@ namespace fsi {
         thrust::device_vector<Real3> posRigid_fsiBodies_D;      ///< Vector of the linear positions of rigid bodies
         thrust::device_vector<Real4> velMassRigid_fsiBodies_D;  ///< Vector of the linear velocities of rigid bodies
         thrust::device_vector<Real3> accRigid_fsiBodies_D;      ///< Vector of the linear acceleration of rigid bodies
-        thrust::device_vector<Real4> q_fsiBodies_D;  ///< Vector of the orientations (Euler parameters as Quaternion) of rigid bodies
-        thrust::device_vector<Real3> omegaVelLRF_fsiBodies_D;  ///< Vector of the angular velocities of rigid bodies
-        thrust::device_vector<Real3> omegaAccLRF_fsiBodies_D;  ///< Vector of the angular acceleration of rigid bodies
+        thrust::device_vector<Real4> q_fsiBodies_D;             ///< Vector of the orientations (Euler parameters as Quaternion) of rigid bodies
+        thrust::device_vector<Real3> omegaVelLRF_fsiBodies_D;   ///< Vector of the angular velocities of rigid bodies
+        thrust::device_vector<Real3> omegaAccLRF_fsiBodies_D;   ///< Vector of the angular acceleration of rigid bodies
 
         zipIterRigidD iterator();
         void CopyFromH(const FsiBodiesDataH& other);
@@ -125,7 +128,7 @@ namespace fsi {
         thrust::host_vector<Real3> acc_fsi_fea_H;
 
         // zipIterFlexH iterator();
-        
+
         void resize(size_t s);
         size_t size() { return pos_fsi_fea_H.size(); };
     };
@@ -187,8 +190,8 @@ namespace fsi {
     struct ProximityDataD {
         thrust::device_vector<uint> gridMarkerHashD;   ///< gridMarkerHash=s(i,j,k)= k*n_x*n_y + j*n_x + i (numAllMarkers);
         thrust::device_vector<uint> gridMarkerIndexD;  ///< (numAllMarkers);
-        thrust::device_vector<uint> cellStartD;  ///< Index of the marker starts a cell in sorted list (m_numGridCells)
-        thrust::device_vector<uint> cellEndD;    ///< Index of the marker ends a cell in sorted list (m_numGridCells)
+        thrust::device_vector<uint> cellStartD;        ///< Index of the particle starts a cell in sorted list (m_numGridCells)
+        thrust::device_vector<uint> cellEndD;          ///< Index of the particle ends a cell in sorted list (m_numGridCells)
         thrust::device_vector<uint> mapOriginalToSorted;
 
         void resize(size_t numAllMarkers);
@@ -197,10 +200,10 @@ namespace fsi {
     struct ChronoBodiesDataH {
         ChronoBodiesDataH() {}
         ChronoBodiesDataH(size_t s);
-        thrust::host_vector<Real3> pos_ChSystemH;  ///< Vector of the linear positions of rigid bodies
-        thrust::host_vector<Real3> vel_ChSystemH;  ///< Vector of the linear velocities of rigid bodies
-        thrust::host_vector<Real3> acc_ChSystemH;  ///< Vector of the linear accelerations of rigid bodies
-        thrust::host_vector<Real4> quat_ChSystemH;  ///< Vector of the orientations (Euler parameters as Quaternion) of rigid bodies
+        thrust::host_vector<Real3> pos_ChSystemH;          ///< Vector of the linear positions of rigid bodies
+        thrust::host_vector<Real3> vel_ChSystemH;          ///< Vector of the linear velocities of rigid bodies
+        thrust::host_vector<Real3> acc_ChSystemH;          ///< Vector of the linear accelerations of rigid bodies
+        thrust::host_vector<Real4> quat_ChSystemH;         ///< Vector of the orientations (Euler parameters as Quaternion) of rigid bodies
         thrust::host_vector<Real3> omegaVelGRF_ChSystemH;  ///< Vector of the angular velocities of rigid bodies
         thrust::host_vector<Real3> omegaAccGRF_ChSystemH;  ///< Vector of the angular acceleraion of rigid bodies
 
@@ -247,34 +250,32 @@ namespace fsi {
         //  host
         // ----------------
         // fluidfsiBodiesIndex
-        thrust::host_vector<int4> referenceArray;  ///< Holds information of each phase in the array of sph markers
-        thrust::host_vector<int4> referenceArray_FEA;  ///< Holds information of each phase in the array of sph markers for Flexible elements
+        thrust::host_vector<int4> referenceArray;        ///< Holds information of each phase in the array of SPH particles
+        thrust::host_vector<int4> referenceArray_FEA;    ///< Holds information of each phase in the array of SPH particles for Flexible elements
         // ----------------
         //  device
         // ----------------
         // fluid
-        thrust::device_vector<Real4> derivVelRhoD;      ///< dv/dt and d(rho)/dt for markers
-        thrust::device_vector<Real4> derivVelRhoD_old;  ///< dv/dt and d(rho)/dt for markers,
-
-        thrust::device_vector<Real3> derivTauXxYyZzD;  ///< d(tau)/dt for markers
-        thrust::device_vector<Real3> derivTauXyXzYzD;  ///< d(tau)/dt for markers
-
-        thrust::device_vector<Real3> vel_XSPH_D;     ///< XSPH velocity for markers
-        thrust::device_vector<Real3> vis_vel_SPH_D;  ///< IISPH velocity for markers
-        thrust::device_vector<Real4> sr_tau_I_mu_i;  ///< I2SPH strain-rate, stress, inertia number, friction
+        thrust::device_vector<Real4> derivVelRhoD;       ///< dv/dt and d(rho)/dt for particles
+        thrust::device_vector<Real4> derivVelRhoD_old;   ///< dv/dt and d(rho)/dt for particles
+        thrust::device_vector<Real3> derivTauXxYyZzD;    ///< d(tau)/dt for particles
+        thrust::device_vector<Real3> derivTauXyXzYzD;    ///< d(tau)/dt for particles
+        thrust::device_vector<Real3> vel_XSPH_D;         ///< XSPH velocity for particles
+        thrust::device_vector<Real3> vis_vel_SPH_D;      ///< IISPH velocity for particles
+        thrust::device_vector<Real4> sr_tau_I_mu_i;      ///< I2SPH strain-rate, stress, inertia number, friction
 
         // BCE
-        thrust::device_vector<Real3> rigidSPH_MeshPos_LRF_D;  ///< Position of a marker attached to a rigid body in a local
+        thrust::device_vector<Real3> rigidSPH_MeshPos_LRF_D;  ///< Position of a particle attached to a rigid body in a local
         thrust::device_vector<Real3> FlexSPH_MeshPos_LRF_D;
         thrust::host_vector<Real3> FlexSPH_MeshPos_LRF_H;
 
-        thrust::device_vector<uint> rigidIdentifierD;  ///< Identifies which rigid body a marker belongs to
+        thrust::device_vector<uint> rigidIdentifierD;         ///< Identifies which rigid body a particle belongs to
         thrust::device_vector<uint> FlexIdentifierD;
 
         // fsi bodies
-        thrust::device_vector<Real3> rigid_FSI_ForcesD;   ///< Vector of the surface-integrated forces to rigid bodies
-        thrust::device_vector<Real3> rigid_FSI_TorquesD;  ///< Vector of the surface-integrated torques to rigid bodies
-        thrust::device_vector<Real3> Flex_FSI_ForcesD;    ///< Vector of the surface-integrated force on FEA nodes
+        thrust::device_vector<Real3> rigid_FSI_ForcesD;       ///< Vector of the surface-integrated forces to rigid bodies
+        thrust::device_vector<Real3> rigid_FSI_TorquesD;      ///< Vector of the surface-integrated torques to rigid bodies
+        thrust::device_vector<Real3> Flex_FSI_ForcesD;        ///< Vector of the surface-integrated force on FEA nodes
 
         thrust::host_vector<int2> CableElementsNodesH;
         thrust::device_vector<int2> CableElementsNodes;
@@ -283,20 +284,22 @@ namespace fsi {
         thrust::device_vector<int4> ShellElementsNodes;
     };
 
+/// @brief Data related function implementations for FSI system
 class ChSystemFsi_impl : public ChFsiGeneral {
   public:
     ChSystemFsi_impl();
     virtual ~ChSystemFsi_impl();
 
+    /// Add an SPH particle given its position, physical properties, velocity, and stress
     void AddSphMarker(Real4 pos, Real4 rhoPresMu, Real3 vel = mR3(0.0), Real3 tauXxYyZz = mR3(0.0), Real3 tauXyXzYz = mR3(0.0));
     void ResizeDataManager(int numNode = 0);
 
     std::shared_ptr<NumberOfObjects> numObjects;
 
-    std::shared_ptr<SphMarkerDataD> sphMarkersD1;       ///< Information of SPH markers at state 1 on device
-    std::shared_ptr<SphMarkerDataD> sphMarkersD2;       ///< Information of SPH markers at state 2 on device
-    std::shared_ptr<SphMarkerDataD> sortedSphMarkersD;  ///< Sorted information of SPH markers at state 1 on device
-    std::shared_ptr<SphMarkerDataH> sphMarkersH;        ///< Information of SPH markers on host
+    std::shared_ptr<SphMarkerDataD> sphMarkersD1;       ///< Information of SPH particles at state 1 on device
+    std::shared_ptr<SphMarkerDataD> sphMarkersD2;       ///< Information of SPH particles at state 2 on device
+    std::shared_ptr<SphMarkerDataD> sortedSphMarkersD;  ///< Sorted information of SPH particles at state 1 on device
+    std::shared_ptr<SphMarkerDataH> sphMarkersH;        ///< Information of SPH particles on host
 
     std::shared_ptr<FsiBodiesDataD> fsiBodiesD1;  ///< Information of rigid bodies at state 1 on device
     std::shared_ptr<FsiBodiesDataD> fsiBodiesD2;  ///< Information of rigid bodies at state 2 on device
@@ -312,7 +315,7 @@ class ChSystemFsi_impl : public ChFsiGeneral {
     void ArrangeDataManager();
     void ConstructReferenceArray();
     void InitNumObjects();
-    void CalcNumObjects();  ///< Calculates the number of rigid bodies, flexible bodies, etc. based on the type of markers
+    void CalcNumObjects();  ///< Calculates the number of rigid bodies, flexible bodies, etc. based on the type of particles
 
   public:
     friend class ChSystemFsi;

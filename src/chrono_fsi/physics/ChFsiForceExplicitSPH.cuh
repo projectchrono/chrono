@@ -27,7 +27,7 @@ namespace fsi {
 /// @brief Child class of ChFsiForce.
 class ChFsiForceExplicitSPH : public ChFsiForce {
   public:
-    /// Force class implemented using WCSPH with explicit integretor, 
+    /// Force class implemented using WCSPH with explicit integretor,
     /// Support for both fluid and granular material dynamics.
     ChFsiForceExplicitSPH(
         std::shared_ptr<ChBce> otherBceWorker,                    ///< Pointer to the ChBce object that handles BCE particles
