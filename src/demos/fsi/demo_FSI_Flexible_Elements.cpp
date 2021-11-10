@@ -428,7 +428,7 @@ void SaveParaViewFiles(ChSystemFsi& myFsiSystem,
     double frame_time = 1.0 / paramsH->out_fps;
     static int out_frame = 0;
 
-    if (pv_output && std::abs(mTime - (next_frame)*frame_time) < 1e-7) {
+    if (pv_output && std::abs(mTime - (next_frame)*frame_time) < 1e-6) {
         myFsiSystem.PrintParticleToFile(demo_dir);
 
         std::cout << "-------------------------------------\n" << std::endl;

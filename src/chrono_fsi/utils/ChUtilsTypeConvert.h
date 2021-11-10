@@ -36,6 +36,9 @@ class CH_FSI_API ChUtilsTypeConvert {
     /// Convert a Real3 data structure to a ChVector data structure.
     static ChVector<> Real3ToChVector(Real3 p3);
 
+    /// Convert a Real2 data structure to a ChVector data structure.
+    static ChVector<> Real2ToChVector(Real2 p2);
+
     /// Convert the first 3 arguments of a Real4 data structure to a ChVector data structure.
     static ChVector<> Real4ToChVector(Real4 p4);
 

@@ -214,11 +214,12 @@ void CreateBceGlobalMarkersFromBceLocalPos_CableANCF(std::shared_ptr<ChSystemFsi
         cable->ShapeFunctions(N, pos_natural.x());
 
         Real2 NFSI = Cables_ShapeFunctions(pos_natural.x());
+        ChVector<> NFSI_Chvector = ChUtilsTypeConvert::Real2ToChVector(NFSI);
 
         ChVector<> Normal;
 
         ChVector<> Correct_Pos =
-            NFSI.x * nAp + NFSI.y * nBp + new_y_axis * pos_physical.y() + new_z_axis * pos_physical.z();
+            NFSI_Chvector.x() * nAp + NFSI_Chvector.y() * nBp + new_y_axis * pos_physical.y() + new_z_axis * pos_physical.z();
 
         printf(" physic_to_natural is = (%f,%f,%f)\n", physic_to_natural.x(), physic_to_natural.y(),
                physic_to_natural.z());
