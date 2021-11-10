@@ -28,6 +28,7 @@ namespace utils {
 /// @addtogroup fsi_utils
 /// @{
 
+/// Create fluid/granular SPH particles for the simulation.
 int2 CreateFluidMarkers(std::shared_ptr<SphMarkerDataH> sphMarkersH,
                         std::shared_ptr<FsiGeneralData> fsiGeneralData,
                         std::shared_ptr<SimParams> paramsH);

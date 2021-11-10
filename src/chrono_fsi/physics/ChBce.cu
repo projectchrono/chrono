@@ -13,7 +13,7 @@
 // =============================================================================
 //
 // Base class for processing boundary condition enforcing (bce) markers forces
-// in fsi system.//
+// in FSI system.
 // =============================================================================
 
 #include "chrono_fsi/physics/ChBce.cuh"  //for FsiGeneralData

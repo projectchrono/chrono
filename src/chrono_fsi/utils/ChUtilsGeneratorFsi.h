@@ -38,11 +38,22 @@ namespace utils {
 /// @addtogroup fsi_utils
 /// @{
 
+/// This utility function converts a given position and orientation, specified
+/// with respect to a body's reference frame, into a frame defined with respect
+/// to the body's centroidal frame. Note that by default, a body's reference
+/// frame is the centroidal frame. This is not true for a ChBodyAuxRef.
 ChVector<> TransformBCEToCOG(std::shared_ptr<ChBody> body, const ChVector<>& pos);
+
+/// This utility function converts a given position and orientation, specified
+/// with respect to a body's reference frame, into a frame defined with respect
+/// to the body's centroidal frame. Note that by default, a body's reference
+/// frame is the centroidal frame. This is not true for a ChBodyAuxRef.
 ChVector<> TransformBCEToCOG(std::shared_ptr<ChBody> body, const Real3& pos3);
 
+/// Set subdomains to find neighbor particles faster.
 CH_FSI_API void FinalizeDomain(std::shared_ptr<SimParams> paramsH);
 
+/// Create BCE particles from the local position on a body.
 CH_FSI_API void CreateBceGlobalMarkersFromBceLocalPos(std::shared_ptr<ChSystemFsi_impl> fsiSystem,
                                                       std::shared_ptr<SimParams> paramsH,
                                                       const thrust::host_vector<Real4>& posRadBCE,
@@ -53,6 +64,7 @@ CH_FSI_API void CreateBceGlobalMarkersFromBceLocalPos(std::shared_ptr<ChSystemFs
                                                       bool add_to_fluid_helpers = false,
                                                       bool add_to_previous_object = false);
 
+/// Create BCE particles from the local position on a boundary.
 CH_FSI_API void CreateBceGlobalMarkersFromBceLocalPosBoundary(std::shared_ptr<ChSystemFsi_impl> fsiSystem,
                                                               std::shared_ptr<SimParams> paramsH,
                                                               const thrust::host_vector<Real4>& posRadBCE,
@@ -62,6 +74,7 @@ CH_FSI_API void CreateBceGlobalMarkersFromBceLocalPosBoundary(std::shared_ptr<Ch
                                                               bool isSolid = false,
                                                               bool add_to_previous = true);
 
+/// Add BCE particles genetrated from a sphere.
 CH_FSI_API void AddSphereBce(std::shared_ptr<ChSystemFsi_impl> fsiSystem,
                              std::shared_ptr<SimParams> paramsH,
                              std::shared_ptr<ChBody> body,
@@ -69,6 +82,7 @@ CH_FSI_API void AddSphereBce(std::shared_ptr<ChSystemFsi_impl> fsiSystem,
                              const ChQuaternion<>& relRot,
                              Real radius);
 
+/// Add BCE particles genetrated from a cylinder.
 CH_FSI_API void AddCylinderBce(std::shared_ptr<ChSystemFsi_impl> fsiSystem,
                                std::shared_ptr<SimParams> paramsH,
                                std::shared_ptr<ChBody> body,
@@ -78,6 +92,8 @@ CH_FSI_API void AddCylinderBce(std::shared_ptr<ChSystemFsi_impl> fsiSystem,
                                Real height,
                                Real kernel_h,
                                bool cartesian = true);
+
+/// Add BCE particles genetrated from a cone.
 CH_FSI_API void AddConeBce(std::shared_ptr<ChSystemFsi_impl> fsiSystem,
                            std::shared_ptr<SimParams> paramsH,
                            std::shared_ptr<ChBody> body,
@@ -87,6 +103,8 @@ CH_FSI_API void AddConeBce(std::shared_ptr<ChSystemFsi_impl> fsiSystem,
                            Real height,
                            Real kernel_h,
                            bool cartesian = true);
+
+/// Add BCE particles genetrated from the surface of a cylinder.
 CH_FSI_API void AddCylinderSurfaceBce(std::shared_ptr<ChSystemFsi_impl> fsiSystem,
                                       std::shared_ptr<SimParams> paramsH,
                                       std::shared_ptr<ChBody> body,
@@ -95,6 +113,8 @@ CH_FSI_API void AddCylinderSurfaceBce(std::shared_ptr<ChSystemFsi_impl> fsiSyste
                                       Real radius,
                                       Real height,
                                       Real kernel_h);
+
+/// Add BCE particles genetrated from the surface of a sphere.
 CH_FSI_API void AddSphereSurfaceBce(std::shared_ptr<ChSystemFsi_impl> fsiSystem,
                                     std::shared_ptr<SimParams> paramsH,
                                     std::shared_ptr<ChBody> body,
@@ -102,6 +122,8 @@ CH_FSI_API void AddSphereSurfaceBce(std::shared_ptr<ChSystemFsi_impl> fsiSystem,
                                     const ChQuaternion<>& relRot,
                                     Real radius,
                                     Real kernel_h);
+
+/// Add BCE particles genetrated from a box.
 CH_FSI_API void AddBoxBce(std::shared_ptr<ChSystemFsi_impl> fsiSystem,
                           std::shared_ptr<SimParams> paramsH,
                           std::shared_ptr<ChBody> body,
@@ -112,6 +134,7 @@ CH_FSI_API void AddBoxBce(std::shared_ptr<ChSystemFsi_impl> fsiSystem,
                           bool isSolid = false,
                           bool add_to_previous = false);
 
+/// Add BCE particles genetrated from point information.
 CH_FSI_API void AddBCE_FromPoints(std::shared_ptr<ChSystemFsi_impl> fsiSystem,
                                   std::shared_ptr<SimParams> paramsH,
                                   std::shared_ptr<ChBody> body,
@@ -119,6 +142,7 @@ CH_FSI_API void AddBCE_FromPoints(std::shared_ptr<ChSystemFsi_impl> fsiSystem,
                                   const ChVector<>& collisionShapeRelativePos = ChVector<>(0),
                                   const ChQuaternion<>& collisionShapeRelativeRot = QUNIT);
 
+/// Add BCE particles loaded from a file.
 CH_FSI_API void AddBCE_FromFile(std::shared_ptr<ChSystemFsi_impl> fsiSystem,
                                 std::shared_ptr<SimParams> paramsH,
                                 std::shared_ptr<ChBody> body,
@@ -128,6 +152,7 @@ CH_FSI_API void AddBCE_FromFile(std::shared_ptr<ChSystemFsi_impl> fsiSystem,
                                 double scale = 1.0,
                                 bool isSolid = true);
 
+/// Create an FSI body for a sphere.
 CH_FSI_API void CreateSphereFSI(std::shared_ptr<ChSystemFsi_impl> fsiSystem,
                                 ChSystem& mphysicalSystem,
                                 std::vector<std::shared_ptr<ChBody>>& fsiBodies,
@@ -137,6 +162,7 @@ CH_FSI_API void CreateSphereFSI(std::shared_ptr<ChSystemFsi_impl> fsiSystem,
                                 const ChVector<>& pos,
                                 Real radius);
 
+/// Create an FSI body for a cylinder.
 CH_FSI_API void CreateCylinderFSI(std::shared_ptr<ChSystemFsi_impl> fsiSystem,
                                   ChSystem& mphysicalSystem,
                                   std::vector<std::shared_ptr<ChBody>>& fsiBodies,
@@ -148,6 +174,7 @@ CH_FSI_API void CreateCylinderFSI(std::shared_ptr<ChSystemFsi_impl> fsiSystem,
                                   Real radius,
                                   Real length);
 
+/// Create an FSI body for a box.
 CH_FSI_API void CreateBoxFSI(std::shared_ptr<ChSystemFsi_impl> fsiSystem,
                              ChSystem& mphysicalSystem,
                              std::vector<std::shared_ptr<ChBody>>& fsiBodies,
@@ -158,6 +185,7 @@ CH_FSI_API void CreateBoxFSI(std::shared_ptr<ChSystemFsi_impl> fsiSystem,
                              const ChQuaternion<>& rot,
                              const ChVector<>& hsize);
 
+/// Add BCE particles genetrated from ANCF shell elements.
 CH_FSI_API void AddBCE_ShellANCF(std::shared_ptr<ChSystemFsi_impl> fsiSystem,
                                  std::shared_ptr<SimParams> paramsH,
                                  std::vector<std::shared_ptr<fea::ChElementShellANCF_3423>>& fsiShells,
@@ -166,6 +194,7 @@ CH_FSI_API void AddBCE_ShellANCF(std::shared_ptr<ChSystemFsi_impl> fsiSystem,
                                  bool removeMiddleLayer = false,
                                  int SIDE = -2);
 
+/// Add BCE particles genetrated from shell elements.
 CH_FSI_API void AddBCE_ShellFromMesh(std::shared_ptr<ChSystemFsi_impl> fsiSystem,
                                      std::shared_ptr<SimParams> paramsH,
                                      std::vector<std::shared_ptr<fea::ChElementShellANCF_3423>>& fsiShells,
@@ -177,6 +206,7 @@ CH_FSI_API void AddBCE_ShellFromMesh(std::shared_ptr<ChSystemFsi_impl> fsiSystem
                                      bool removeMiddleLayer = false,
                                      int SIDE = -2);
 
+/// Add BCE particles genetrated from mesh.
 CH_FSI_API void AddBCE_FromMesh(std::shared_ptr<ChSystemFsi_impl> fsiSystem,
                                 std::shared_ptr<SimParams> paramsH,
                                 std::shared_ptr<fea::ChMesh> my_mesh,

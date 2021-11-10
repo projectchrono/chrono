@@ -9,7 +9,7 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Author: Arman Pazouki, Milad Rakhsha
+// Author: Arman Pazouki, Milad Rakhsha, Wei Hu
 // =============================================================================
 //
 // Utility class for generating fluid markers.
@@ -38,14 +38,21 @@ namespace utils {
 /// @addtogroup fsi_utils
 /// @{
 
+/// Create BCE particles from a sphere.
 void CreateBCE_On_Sphere(thrust::host_vector<Real4>& posRadBCE, Real rad, std::shared_ptr<SimParams> paramsH);
+
+/// Create BCE particles from the surface of a sphere.
 void CreateBCE_On_surface_of_Sphere(thrust::host_vector<Real4>& posRadBCE, Real rad, Real kernel_h);
+
+/// Create BCE particles from a cylinder.
 void CreateBCE_On_Cylinder(thrust::host_vector<Real4>& posRadBCE,
                            Real cyl_rad,
                            Real cyl_h,
                            std::shared_ptr<SimParams> paramsH,
                            Real kernel_h,
                            bool cartesian = true);
+
+/// Create BCE particles from a cone.
 void CreateBCE_On_Cone(thrust::host_vector<Real4>& posRadBCE,
                        Real cone_rad,
                        Real cone_h,
@@ -53,19 +60,23 @@ void CreateBCE_On_Cone(thrust::host_vector<Real4>& posRadBCE,
                        Real kernel_h,
                        bool cartesian = true);
 
+/// Create BCE particles from the surface of a cylinder.
 void CreateBCE_On_surface_of_Cylinder(thrust::host_vector<Real4>& posRadBCE,
                                       thrust::host_vector<Real3>& normals,
                                       Real cyl_rad,
                                       Real cyl_h,
                                       Real spacing);
 
+/// Create BCE particles from box.
 void CreateBCE_On_Box(thrust::host_vector<Real4>& posRadBCE,
                       const Real3& hsize,
                       int face,
                       std::shared_ptr<SimParams> paramsH);
 
+/// Load BCE particles from a file.
 void LoadBCE_fromFile(thrust::host_vector<Real4>& posRadBCE, std::string fileName, double scale = 1, double hsml = 1);
 
+/// Create BCE particles from a shell element.
 void CreateBCE_On_shell(thrust::host_vector<Real4>& posRadBCE,
                         std::shared_ptr<SimParams> paramsH,
                         std::shared_ptr<chrono::fea::ChElementShellANCF_3423> shell,
@@ -73,6 +84,7 @@ void CreateBCE_On_shell(thrust::host_vector<Real4>& posRadBCE,
                         bool removeMiddleLayer = false,
                         int SIDE = -2);
 
+/// Create BCE particles from a cable element.
 void CreateBCE_On_ChElementCableANCF(thrust::host_vector<Real4>& posRadBCE,
                                      std::shared_ptr<SimParams> paramsH,
                                      std::shared_ptr<chrono::fea::ChElementCableANCF> cable,
@@ -81,6 +93,7 @@ void CreateBCE_On_ChElementCableANCF(thrust::host_vector<Real4>& posRadBCE,
                                      bool removeMiddleLayer = false,
                                      int SIDE = 1);
 
+/// Create BCE particles from a shell element.
 void CreateBCE_On_ChElementShellANCF(thrust::host_vector<Real4>& posRadBCE,
                                      std::shared_ptr<SimParams> paramsH,
                                      std::shared_ptr<chrono::fea::ChElementShellANCF_3423> shell,
