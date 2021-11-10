@@ -228,7 +228,7 @@ int main(int argc, char* argv[]) {
             qos.wire_protocol().builtin.initialPeersList.push_back(locator);
         }
     }
-    auto communicator = chrono_types::make_shared<SynDDSCommunicator>(qos, "/syn/node/", true);
+    auto communicator = chrono_types::make_shared<SynDDSCommunicator>(qos);
     SynChronoManager syn_manager(node_id, num_nodes, communicator);
 
     // Change SynChronoManager settings
