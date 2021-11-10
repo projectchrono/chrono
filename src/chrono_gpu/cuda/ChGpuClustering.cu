@@ -254,7 +254,8 @@ __host__ void IdentifyGroundClusterByLowest(
         ChSystemGpu_impl::GranSphereDataPtr sphere_data,
         ChSystemGpu_impl::GranParamsPtr gran_params,
         unsigned int ** h_clusters,
-        unsigned int nSpheres) {
+        unsigned int nSpheres,
+        double LENGTH_SU2UU) {
     unsigned int nBlocks = (nSpheres + CUDA_THREADS_PER_BLOCK - 1) / CUDA_THREADS_PER_BLOCK;
     unsigned int cluster_num = h_clusters[0][0];
     unsigned int cluster_index;
@@ -267,23 +268,29 @@ __host__ void IdentifyGroundClusterByLowest(
     unsigned int ground_cluster = static_cast<unsigned int>(chrono::gpu::CLUSTER_INDEX::GROUND);
     ///　Find ALL clusters with any sphere center below plane box_z + 1*sphere_radius
     for (size_t i = 1; i < (cluster_num + 1); i++) {
+        printf("i %d \n", i);
         cudaMemset(d_below, false, sizeof(*d_below) * nSpheres);
 
-        // if sphere is in VOLUME cluster, cluster index should be VOLUME
+        // if any sphere is in VOLUME cluster, cluster index should be VOLUME
+        printf("test %d", h_clusters[i][0]);
+
         if (sphere_data->sphere_cluster[h_clusters[i][1]] == static_cast<unsigned int>(chrono::gpu::CLUSTER_INDEX::VOLUME)) {
             cluster_index = static_cast<unsigned int>(chrono::gpu::CLUSTER_INDEX::VOLUME);
         } else {
             cluster_index = i + static_cast<unsigned int>(chrono::gpu::CLUSTER_INDEX::START);
         }
+        printf("AreSpheresBelowZLim \n");
         AreSpheresBelowZLim<<<nBlocks, CUDA_THREADS_PER_BLOCK>>>(sphere_data,
                                                                  gran_params,
                                                                  nSpheres,
                                                                  d_below,
                                                                  cluster_index,
-                                                                 gran_params->ground_z_lim);
+                                                                 gran_params->ground_z_lim, 
+                                                                 LENGTH_SU2UU);
         gpuErrchk(cudaPeekAtLastError());
         gpuErrchk(cudaDeviceSynchronize());
 
+        printf("DeviceReduce::Sum \n");
         // Sum number of particles in d_in_volume into h_in_volume_num
         void *d_temp_storage = NULL;
         size_t temp_storage_bytes = 0;
@@ -301,7 +308,9 @@ __host__ void IdentifyGroundClusterByLowest(
         gpuErrchk(cudaPeekAtLastError());
         gpuErrchk(cudaDeviceSynchronize());
 
-        if (d_below_num > 0) {
+        printf("h_below_num %d \n", *h_below_num);
+        if ((*h_below_num) > 0) {
+            printf("SwitchClusterIndex \n");
             SwitchClusterIndex<<<nBlocks, CUDA_THREADS_PER_BLOCK>>>(sphere_data,
                                                                     gran_params,
                                                                     nSpheres,
@@ -321,6 +330,14 @@ __host__ void IdentifyGroundClusterByLowest(
 }
 
 /// Tags spheres that are in the cluster with most spheres to GROUND cluster
+__host__ void FreeClusters(unsigned int ** h_clusters) {
+    unsigned int cluster_num = h_clusters[0][0];
+    for (size_t i = 0; i < (cluster_num + 1); i++) {
+        free(h_clusters[i]);
+    }
+    free(h_clusters);
+}
+
 __host__ void IdentifyGroundClusterByBiggest(
         ChSystemGpu_impl::GranSphereDataPtr sphere_data,
         ChSystemGpu_impl::GranParamsPtr gran_params,
@@ -356,7 +373,8 @@ __host__ void IdentifyGroundClusterByBiggest(
 __host__ void IdentifyGroundCluster(ChSystemGpu_impl::GranSphereDataPtr sphere_data,
                                     ChSystemGpu_impl::GranParamsPtr gran_params,
                                     unsigned int nSpheres,
-                                    unsigned int ** h_clusters) {
+                                    unsigned int ** h_clusters, 
+                                    double LENGTH_SU2UU) {
     unsigned int cluster_num = h_clusters[0][0];
 
     if (cluster_num > 0) {
@@ -369,7 +387,7 @@ __host__ void IdentifyGroundCluster(ChSystemGpu_impl::GranSphereDataPtr sphere_d
                 break;
             }
             case chrono::gpu::CLUSTER_GROUND_METHOD::LOWEST: {
-                IdentifyGroundClusterByLowest(sphere_data, gran_params, h_clusters, nSpheres);
+                IdentifyGroundClusterByLowest(sphere_data, gran_params, h_clusters, nSpheres, LENGTH_SU2UU);
                 break;
             }
             default: {
@@ -383,7 +401,7 @@ __host__ void IdentifyGroundCluster(ChSystemGpu_impl::GranSphereDataPtr sphere_d
 /// Identifies core, border and noise points in h_clusters.
 /// Searches using a parallel Breadth-First search
 /// min_pts: minimal number of points for a cluster
-__host__ void GdbscanSearchGraphByBFS(ChSystemGpu_impl::GranSphereDataPtr sphere_data,
+__host__ unsigned int ** GdbscanSearchGraphByBFS(ChSystemGpu_impl::GranSphereDataPtr sphere_data,
                                  ChSystemGpu_impl::GranParamsPtr gran_params,
                                  unsigned int nSpheres,
                                  size_t min_pts) {
@@ -414,20 +432,12 @@ __host__ void GdbscanSearchGraphByBFS(ChSystemGpu_impl::GranSphereDataPtr sphere
                                                   sphere_data->sphere_type);
     unsigned int cluster_num = h_clusters[0][0];
 
-    IdentifyGroundCluster(sphere_data, gran_params, nSpheres, h_clusters);
-
     GdbscanFinalClusterFromType<<<nBlocks, CUDA_THREADS_PER_BLOCK>>>(nSpheres,
                                                                      sphere_data->sphere_cluster,
                                                                      sphere_data->sphere_type);
     gpuErrchk(cudaPeekAtLastError());
     gpuErrchk(cudaDeviceSynchronize());
-
-    for (size_t i = 0; i < cluster_num; i++) {
-        free(h_clusters[i]);
-    }
-    free(h_clusters);
-    gpuErrchk(cudaPeekAtLastError());
-    gpuErrchk(cudaDeviceSynchronize());
+    return(h_clusters);
 }
 
 

@@ -119,7 +119,8 @@ static __global__ void AreSpheresBelowZLim(ChSystemGpu_impl::GranSphereDataPtr s
                                            unsigned int nSpheres,
                                            bool * d_below,
                                            unsigned int cluster,
-                                           float z_lim) {
+                                           float z_lim, 
+                                           double LENGTH_SU2UU) {
     unsigned int mySphereID = threadIdx.x + blockIdx.x * blockDim.x;
     unsigned int thisSD = blockIdx.x;
 
@@ -139,8 +140,7 @@ static __global__ void AreSpheresBelowZLim(ChSystemGpu_impl::GranSphereDataPtr s
         ///    cond 2-  sphere is in input cluster     -> check sphere
         if ((cluster == static_cast<unsigned int>(CLUSTER_INDEX::NONE)) ||
             (sphere_data->sphere_cluster[mySphereID] == cluster)) {
-            if (mySphere_pos_global.z < z_lim) {
-                printf("%f %f \n", mySphere_pos_global.z, z_lim);
+            if ((mySphere_pos_global.z * LENGTH_SU2UU) < z_lim) {
                 d_below[mySphereID] = true;
             }
         }
@@ -366,9 +366,17 @@ __host__ void ConstructGraphByProximity(ChSystemGpu_impl::GranSphereDataPtr sphe
                                         size_t min_pts,
                                         float radius);
 
-__host__ void GdbscanSearchGraphByBFS(ChSystemGpu_impl::GranSphereDataPtr sphere_data,
+__host__ unsigned int ** GdbscanSearchGraphByBFS(ChSystemGpu_impl::GranSphereDataPtr sphere_data,
                                       ChSystemGpu_impl::GranParamsPtr gran_params,
                                       unsigned int nSpheres,
                                       size_t min_pts);
+
+__host__ void IdentifyGroundCluster(ChSystemGpu_impl::GranSphereDataPtr sphere_data,
+                                    ChSystemGpu_impl::GranParamsPtr gran_params,
+                                    unsigned int nSpheres,
+                                    unsigned int ** h_clusters, 
+                                    double LENGTH_SU2UU);
+
+__host__ void FreeClusters(unsigned int ** h_clusters);
 
 /// @} gpu_cuda

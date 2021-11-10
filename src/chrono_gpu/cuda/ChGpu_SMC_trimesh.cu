@@ -425,6 +425,7 @@ __host__ void ChSystemGpuMesh_impl::IdentifyClusters() {
     if ((gran_params->cluster_graph_method > CLUSTER_GRAPH_METHOD::NONE)
         && (gran_params->cluster_search_method > CLUSTER_SEARCH_METHOD::NONE)) {
         // step 1- Graph construction
+        unsigned int ** h_clusters;
         switch (gran_params->cluster_graph_method) {
             case CLUSTER_GRAPH_METHOD::CONTACT: {
                 ConstructGraphByContact(sphere_data, gran_params, nSpheres);
@@ -438,18 +439,19 @@ __host__ void ChSystemGpuMesh_impl::IdentifyClusters() {
             }
             default: {break;}
         }
-
         // step 2- Search the graph, find the clusters.
         switch (gran_params->cluster_search_method) {
             case CLUSTER_SEARCH_METHOD::BFS: {
                 /// Finds clusters, tags Ground cluster, other clusters.
                 /// Changes NOISE sphere_type to BORDER if in cluster
-                GdbscanSearchGraphByBFS(sphere_data, gran_params, nSpheres,
+                h_clusters = GdbscanSearchGraphByBFS(sphere_data, gran_params, nSpheres,
                                    gran_params->gdbscan_min_pts);
                 break;
             }
             default: {break;}
         }
+        IdentifyGroundCluster(sphere_data, gran_params, nSpheres, h_clusters, LENGTH_SU2UU);
+        FreeClusters(h_clusters);
     } else {
         printf("ERROR: Either cluster_graph_method or cluster_search_method not set. Skipping clustering.\n");
     }
