@@ -208,11 +208,13 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
     set(CH_INSTALL_DATA "data")
     set(CH_INSTALL_DEMO "bin")
     set(CH_INSTALL_SAMPLE_PROJ "template_project")
+    set(CH_INSTALL_SAMPLE_PROJ_COSIM "template_project_vehicle_cosim")
     set(CH_INSTALL_PYTHON "bin")
 else()
     set(CH_INSTALL_DATA "share/chrono/data")
     set(CH_INSTALL_DEMO "share/chrono/bin")
     set(CH_INSTALL_SAMPLE_PROJ "share/chrono/template_project")
+    set(CH_INSTALL_SAMPLE_PROJ_COSIM "share/chrono/template_project_vehicle_cosim")
     set(CH_INSTALL_PYTHON "share/chrono/python")
 endif()
 
@@ -230,6 +232,7 @@ endif()
 
 install(DIRECTORY ${CMAKE_SOURCE_DIR}/data/ DESTINATION ${CH_INSTALL_DATA})
 install(DIRECTORY ${CMAKE_SOURCE_DIR}/template_project/ DESTINATION ${CH_INSTALL_SAMPLE_PROJ})
+install(DIRECTORY ${CMAKE_SOURCE_DIR}/template_project_vehicle_cosim/ DESTINATION ${CH_INSTALL_SAMPLE_PROJ_COSIM})
 
 #------------------------------------------------------------
 # Defer configuration of all Chrono libraries and programs
