@@ -136,6 +136,7 @@ static __global__ void AreSpheresBelowZLim(ChSystemGpu_impl::GranSphereDataPtr s
         mySphere_pos_global = int64_t3_to_double3(convertPosLocalToGlobal(ownerSD, mySphere_pos_local, gran_params));
 
         if (sphere_data->sphere_cluster[mySphereID] == cluster) {
+            // printf("mySphere_pos_global %f %f \n", mySphere_pos_global.z * gran_params->LENGTH_UNIT, z_lim);
             if (static_cast<float>(mySphere_pos_global.z * gran_params->LENGTH_UNIT) < z_lim) {
                 d_below[mySphereID] = true;
             }
