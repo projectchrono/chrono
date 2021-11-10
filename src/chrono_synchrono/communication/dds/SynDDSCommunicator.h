@@ -60,19 +60,17 @@ const std::string default_prefix = std::string("/syn/node/");
 /// Uses the Data Distribution Service (DDS) standard
 class SYN_API SynDDSCommunicator : public SynCommunicator {
   public:
-    SynDDSCommunicator(int node_id, const std::string& prefix = default_prefix, bool syncsub = true);
+    SynDDSCommunicator(int node_id, const std::string& prefix = default_prefix);
 
     ///@brief Default constructor
     ///
     ///@param name The name to set to the qos
-    SynDDSCommunicator(const std::string& name, const std::string& prefix = default_prefix, bool syncsub = true);
+    SynDDSCommunicator(const std::string& name, const std::string& prefix = default_prefix);
 
     ///@brief Set the QoS directly from the constructor
     ///
     ///@param qos the Quality of Service to set for the participant
-    SynDDSCommunicator(eprosima::fastdds::dds::DomainParticipantQos& qos,
-                       const std::string& prefix = default_prefix,
-                       bool syncsub = true);
+    SynDDSCommunicator(eprosima::fastdds::dds::DomainParticipantQos& qos, const std::string& prefix = default_prefix);
 
     ///@brief Destructor
     ///
@@ -194,8 +192,6 @@ class SYN_API SynDDSCommunicator : public SynCommunicator {
                                                      eprosima::fastdds::dds::TopicDataType* data_type,
                                                      bool is_managed = false);
 
-    /// @brief Returns whether subscribers automatically created by the manager are synchronous
-    bool subSyncPolicy() { return syncSubs; }
     // -----------------------------------------------------------------------------------------------
 
     std::string m_prefix;
@@ -226,10 +222,6 @@ class SYN_API SynDDSCommunicator : public SynCommunicator {
     SubscriberList m_subscribers;
 
     SynDDSParticipantListener* m_listener;
-
-    // Toggles automatically created subscribers synchronism
-    bool syncSubs;
-    bool async_initialized = false;
 };
 
 /// @} synchrono_communication
