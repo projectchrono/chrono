@@ -103,6 +103,7 @@ static __global__ void SwitchClusterIndex(ChSystemGpu_impl::GranSphereDataPtr sp
                                           unsigned int cluster_from,
                                           unsigned int cluster_to) {
     unsigned int mySphereID = threadIdx.x + blockIdx.x * blockDim.x;
+    // don't overrun the array
     if (mySphereID < nSpheres) {
         if(sphere_data->sphere_cluster[mySphereID] == cluster_from) {
             sphere_data->sphere_cluster[mySphereID] = cluster_to;
@@ -119,8 +120,7 @@ static __global__ void AreSpheresBelowZLim(ChSystemGpu_impl::GranSphereDataPtr s
                                            unsigned int nSpheres,
                                            bool * d_below,
                                            unsigned int cluster,
-                                           float z_lim, 
-                                           double LENGTH_SU2UU) {
+                                           float z_lim) {
     unsigned int mySphereID = threadIdx.x + blockIdx.x * blockDim.x;
     unsigned int thisSD = blockIdx.x;
 
@@ -128,20 +128,20 @@ static __global__ void AreSpheresBelowZLim(ChSystemGpu_impl::GranSphereDataPtr s
     if (mySphereID < nSpheres) {
         int3 mySphere_pos_local;
         double3 mySphere_pos_global;
+        unsigned int ownerSD = sphere_data->sphere_owner_SDs[mySphereID];
 
         mySphere_pos_local = make_int3(sphere_data->sphere_local_pos_X[mySphereID],
                                        sphere_data->sphere_local_pos_Y[mySphereID],
                                        sphere_data->sphere_local_pos_Z[mySphereID]);
-        mySphere_pos_global = int64_t3_to_double3(convertPosLocalToGlobal(thisSD, mySphere_pos_local, gran_params));
+        mySphere_pos_global = int64_t3_to_double3(convertPosLocalToGlobal(ownerSD, mySphere_pos_local, gran_params));
 
         if (sphere_data->sphere_cluster[mySphereID] == cluster) {
-            if ((mySphere_pos_global.z * LENGTH_SU2UU) < z_lim) {
+            if (static_cast<float>(mySphere_pos_global.z * gran_params->LENGTH_UNIT) < z_lim) {
                 d_below[mySphereID] = true;
             }
         }
     }
 }
-
 
 // Find if any particle is in the volume cluster.
 // If any sphere in cluster sphere_type == VOLUME -> sphere_cluster = VOLUME
@@ -369,8 +369,7 @@ __host__ unsigned int ** GdbscanSearchGraphByBFS(ChSystemGpu_impl::GranSphereDat
 __host__ void IdentifyGroundCluster(ChSystemGpu_impl::GranSphereDataPtr sphere_data,
                                     ChSystemGpu_impl::GranParamsPtr gran_params,
                                     unsigned int nSpheres,
-                                    unsigned int ** h_clusters, 
-                                    double LENGTH_SU2UU);
+                                    unsigned int ** h_clusters);
 
 __host__ void FreeClusters(unsigned int ** h_clusters);
 

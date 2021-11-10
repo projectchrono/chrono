@@ -442,15 +442,13 @@ __host__ void ChSystemGpuMesh_impl::IdentifyClusters() {
         // step 2- Search the graph, find the clusters.
         switch (gran_params->cluster_search_method) {
             case CLUSTER_SEARCH_METHOD::BFS: {
-                /// Finds clusters, tags Ground cluster, other clusters.
-                /// Changes NOISE sphere_type to BORDER if in cluster
                 h_clusters = GdbscanSearchGraphByBFS(sphere_data, gran_params, nSpheres,
                                    gran_params->gdbscan_min_pts);
                 break;
             }
             default: {break;}
         }
-        IdentifyGroundCluster(sphere_data, gran_params, nSpheres, h_clusters, LENGTH_SU2UU);
+        IdentifyGroundCluster(sphere_data, gran_params, nSpheres, h_clusters);
         FreeClusters(h_clusters);
     } else {
         printf("ERROR: Either cluster_graph_method or cluster_search_method not set. Skipping clustering.\n");
