@@ -711,6 +711,10 @@ install(DIRECTORY ${CMAKE_SOURCE_DIR}/src/chrono_thirdparty/yafel
         DESTINATION include/chrono_thirdparty
         FILES_MATCHING PATTERN "*.h" PATTERN "*.cuh" PATTERN "*.hpp" PATTERN "*.inl")
 
+install(DIRECTORY ${CMAKE_SOURCE_DIR}/src/chrono_thirdparty/chpf
+	      DESTINATION include/chrono_thirdparty
+	      FILES_MATCHING PATTERN "*.hpp")
+
 if(BUILD_TESTING)
    install(DIRECTORY ${CMAKE_SOURCE_DIR}/src/chrono_thirdparty/googletest/googletest/include
            DESTINATION include/chrono_thirdparty/googletest/googletest
