@@ -52,27 +52,30 @@ class CH_VEHICLE_API WheeledVehicle : public ChWheeledVehicle {
     void Create(const std::string& filename);
 
   private:
-    int m_num_rear_chassis;            // number of rear chassis subsystems for this vehicle
-    std::vector<int> m_rearchChassis;  // indexes of connected chassis (-1: main chassis, >=0: rear chassis)
+    int m_num_rear_chassis;                   // number of rear chassis subsystems for this vehicle
+    std::vector<int> m_rearch_chassis_index;  // indexes of connected chassis (-1: main chassis, >=0: rear chassis)
 
-    int m_num_axles;                          // number of axles for this vehicle
-    std::vector<ChVector<>> m_suspLocations;  // locations of the suspensions relative to chassis
-    std::vector<ChVector<>> m_arbLocations;   // locations of the antirollbar subsystems relative to chassis
-    std::vector<int> m_suspSteering;          // indexes of steering subsystems (-1 indicates a non-steered suspension)
-    std::vector<int> m_suspSubchassis;  // indexes of subchassis subsystems (-1 indicates connection to chassis only)
-    double m_wheelbase;                 // vehicle wheel base
+    double m_wheelbase;  // vehicle wheel base
 
-    int m_num_strs;                              // number of steering subsystems
-    std::vector<ChVector<>> m_strLocations;      // locations of the steering subsystems relative to chassis
-    std::vector<ChQuaternion<>> m_strRotations;  // orientations of the steering subsystems relative to chassis
+    int m_num_axles;                           // number of axles for this vehicle
+    std::vector<ChVector<>> m_susp_locations;  // locations of the suspensions relative to chassis
+    std::vector<ChVector<>> m_arb_locations;   // locations of the antirollbar subsystems relative to chassis
+    std::vector<int> m_susp_steering_index;    // indexes of associated steering (-1: none, non-steered suspension)
+    std::vector<int> m_susp_chassis_index;     // indexes of associated chassis (-1: main chassis, >=0: rear chassis)
+    std::vector<int> m_susp_subchassis_index;  // indexes of associated subchassis (-1: none, connect to chassis only)
 
-    int m_num_subch;                           // number of subchassis subsystems
-    std::vector<ChVector<>> m_subchLocations;  // locations of the subchassis subsystems relative to chassis
-    std::vector<int> m_subchChassis;           // indexes of associated chassis (-1: main chassis, >=0: rear chassis)
+    int m_num_strs;                               // number of steering subsystems
+    std::vector<ChVector<>> m_str_locations;      // locations of the steering subsystems relative to chassis
+    std::vector<ChQuaternion<>> m_str_rotations;  // orientations of the steering subsystems relative to chassis
+    std::vector<int> m_str_chassis_index;         // indexes of associated chassis (-1: main chassis, >=0: rear chassis)
+
+    int m_num_subch;                            // number of subchassis subsystems
+    std::vector<ChVector<>> m_subch_locations;  // locations of the subchassis subsystems relative to chassis
+    std::vector<int> m_subch_chassis_index;     // indexes of associated chassis (-1: main chassis, >=0: rear chassis)
 
     std::vector<int> m_driven_axles;  // indexes of the driven axles
 
-    std::vector<double> m_wheelSeparations;  // wheel separations for each axle
+    std::vector<double> m_wheel_separations;  // wheel separations for each axle
 
     double m_turn_radius;  // minimum turning radius
     double m_steer_angle;  // maximum steering angle

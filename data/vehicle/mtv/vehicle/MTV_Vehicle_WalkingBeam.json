@@ -19,7 +19,7 @@
     {
         "Input File": "mtv/chassis/MTV_Balancer.json",
         "Subchassis Location": [-4.1, 0.0, 0.26],
-        "Chassis Index": 0    // attached to first rear chassis
+        "Chassis Index": 0    // attached to (first) rear chassis
     }
   ],
 
@@ -37,6 +37,8 @@
     {
       "Suspension Input File": "mtv/suspension/MTV_SolidThreeLinkAxleF.json",
       "Suspension Location": [ -3.4, 0, 0 ],
+      "Chassis Index":  0,    // attach to (first) rear chassis
+      "Subchassis Index": 0,  // attach to (first) subchassis system
       "Left Wheel Input File": "mtv/wheel/FMTV_Wheel.json",
       "Right Wheel Input File": "mtv/wheel/FMTV_Wheel.json",
       "Left Brake Input File": "mtv/brake/FMTV_BrakeShafts.json",
@@ -46,6 +48,8 @@
     {
       "Suspension Input File": "mtv/suspension/MTV_SolidThreeLinkAxleR.json",
       "Suspension Location": [ -4.8, 0, 0 ],
+      "Chassis Index":  0,    // attach to (first) rear chassis
+      "Subchassis Index": 0,  // attach to (first) subchassis system
       "Left Wheel Input File": "mtv/wheel/FMTV_Wheel.json",
       "Right Wheel Input File": "mtv/wheel/FMTV_Wheel.json",
       "Left Brake Input File": "mtv/brake/FMTV_BrakeShafts.json",
