@@ -922,7 +922,7 @@ __global__ void Navier_Stokes(Real4* sortedDerivVelRho,
     if (paramsD.USE_Consistent_G) {
         calc_G_Matrix(sortedPosRad,sortedVelMas,sortedRhoPreMu,G_i,cellStart,cellEnd,numAllMarkers);
     }
-    if(!paramsD.elastic_SPH && paramsD.USE_Consistent_G){
+    if(!paramsD.elastic_SPH && paramsD.USE_Consistent_L){
         Real A_i[27] = {0.0};
         calc_A_Matrix(sortedPosRad,sortedVelMas,sortedRhoPreMu,A_i,G_i,cellStart,cellEnd,numAllMarkers);
         calc_L_Matrix(sortedPosRad,sortedVelMas,sortedRhoPreMu,A_i,L_i,G_i,cellStart,cellEnd,numAllMarkers);
