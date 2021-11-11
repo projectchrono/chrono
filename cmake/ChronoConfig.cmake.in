@@ -260,8 +260,6 @@ foreach(COMPONENT ${Chrono_FIND_COMPONENTS})
         list(APPEND CHRONO_DLL_NAMES "ChronoEngine_vehicle_cosim.dll")
       endif()
 
-      
-
     elseif(${COMPONENT_UPPER} MATCHES "FSI")
 
       list(APPEND CHRONO_INCLUDE_DIRS "@CH_FSI_INCLUDES@")
@@ -283,6 +281,7 @@ foreach(COMPONENT ${Chrono_FIND_COMPONENTS})
     elseif(${COMPONENT_UPPER} MATCHES "SYNCHRONO")
 
       list(APPEND CHRONO_INCLUDE_DIRS "@SYN_INCLUDES@")
+      list(APPEND CHRONO_INCLUDE_DIRS "@CH_THIRDPARTY_INCLUDE_DIR@/flatbuffers/include")
       list(PREPEND CHRONO_LIB_NAMES "ChronoEngine_synchrono")
       list(APPEND CHRONO_LIBRARIES "@SYN_LIBRARIES@")
       list(APPEND CHRONO_DLL_NAMES "ChronoEngine_synchrono.dll")

@@ -908,6 +908,7 @@ install(FILES "${PROJECT_BINARY_DIR}/chrono/ChVersion.h"
 #------------------------------------------------------------
 
 # For the BUILD tree
+set(CH_THIRDPARTY_INCLUDE_DIR "${PROJECT_SOURCE_DIR}/src/chrono_thirdparty")
 set(CH_INCLUDE_DIRS "${PROJECT_SOURCE_DIR}/src")
 set(CH_INCLUDE_DIRS ${CH_INCLUDE_DIRS} "${PROJECT_SOURCE_DIR}/src/chrono")
 set(CH_INCLUDE_DIRS ${CH_INCLUDE_DIRS} "${PROJECT_SOURCE_DIR}/src/chrono/collision/bullet")
@@ -927,6 +928,7 @@ configure_file("${PROJECT_SOURCE_DIR}/cmake/ChronoConfig.cmake.in"
                @ONLY)
 
 # For the INSTALL tree
+set(CH_THIRDPARTY_INCLUDE_DIR "${CMAKE_INSTALL_PREFIX}/include/chrono_thirdparty")
 set(CH_INCLUDE_DIRS "${CMAKE_INSTALL_PREFIX}/include")
 set(CH_INCLUDE_DIRS ${CH_INCLUDE_DIRS} "${CMAKE_INSTALL_PREFIX}/include/chrono")
 set(CH_INCLUDE_DIRS ${CH_INCLUDE_DIRS} "${CMAKE_INSTALL_PREFIX}/include/chrono/collision/bullet")

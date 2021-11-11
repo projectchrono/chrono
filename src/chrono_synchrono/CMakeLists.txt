@@ -26,19 +26,16 @@ if(NOT ENABLE_MODULE_VEHICLE)
     return()
 endif()
 
-set(SYN_INCLUDES "${CMAKE_SOURCE_DIR}/src/chrono_thirdparty/flatbuffers/include")
-
 set(SYN_CXX_FLAGS "${CH_CXX_FLAGS}")
 set(SYN_LINKER_FLAGS "${CH_LINKERFLAG_SHARED}")
 set(SYN_LIBRARIES "")
 set(SYN_LIB_NAMES "ChronoEngine")
 
 #-----------------------------------------------------------------------------
-# Find MPI (Default transport method)
+# Initialize exported variables
 #-----------------------------------------------------------------------------
 
 set(SYN_INCLUDES
-    ${SYN_INCLUDES}
     ${MPI_C_HEADER_DIR}
     ${MPI_CXX_HEADER_DIR}
 )
@@ -240,6 +237,7 @@ SET(SYN_INCLUDES     "${SYN_INCLUDES}"  PARENT_SCOPE)
 SET(SYN_LIBRARIES    "${SYN_LIBRARIES}" PARENT_SCOPE)
 SET(SYN_CXX_FLAGS    "${SYN_CXX_FLAGS}" PARENT_SCOPE)
 
+include_directories("${CMAKE_SOURCE_DIR}/src/chrono_thirdparty/flatbuffers/include")
 include_directories(${SYN_INCLUDES})
 
 add_library(ChronoEngine_synchrono SHARED
@@ -262,6 +260,7 @@ set_target_properties(ChronoEngine_synchrono PROPERTIES
 
 target_compile_definitions(ChronoEngine_synchrono PRIVATE "SYN_API_COMPILE")
 
+target_include_directories(ChronoEngine_synchrono PUBLIC "${CMAKE_SOURCE_DIR}/src/chrono_thirdparty/flatbuffers/include")
 target_include_directories(ChronoEngine_synchrono PUBLIC ${SYN_INCLUDES})
 
 target_link_libraries(ChronoEngine_synchrono ${SYN_LIB_NAMES} ${SYN_LIBRARIES})
