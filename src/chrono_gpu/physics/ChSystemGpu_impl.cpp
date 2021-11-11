@@ -103,7 +103,6 @@ void ChSystemGpu_impl::CreateWallBCs() {
     float plane_center_top_Y[3] = {0, box_size_Y / 2, 0};
     float plane_center_bot_Z[3] = {0, 0, -box_size_Z / 2};
     float plane_center_top_Z[3] = {0, 0, box_size_Z / 2};
-
     // face in upwards
     float plane_normal_bot_X[3] = {1, 0, 0};
     float plane_normal_top_X[3] = {-1, 0, 0};

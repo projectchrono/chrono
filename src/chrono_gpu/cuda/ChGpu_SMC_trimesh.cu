@@ -442,8 +442,10 @@ __host__ void ChSystemGpuMesh_impl::IdentifyClusters() {
         // step 2- Search the graph, find the clusters.
         switch (gran_params->cluster_search_method) {
             case CLUSTER_SEARCH_METHOD::BFS: {
-                h_clusters = GdbscanSearchGraphByBFS(sphere_data, gran_params, nSpheres,
-                                   gran_params->gdbscan_min_pts);
+                h_clusters = GdbscanSearchGraphByBFS(sphere_data,
+                                                     gran_params,
+                                                     nSpheres,
+                                                     gran_params->gdbscan_min_pts);
                 break;
             }
             default: {break;}

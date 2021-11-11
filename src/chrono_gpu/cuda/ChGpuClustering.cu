@@ -211,11 +211,10 @@ __host__ void ConstructGraphByProximity(ChSystemGpu_impl::GranSphereDataPtr sphe
 }
 
 /// identify ground cluster by spheres lower than a certain plane
-__host__ void IdentifyGroundClusterByLowest(
-        ChSystemGpu_impl::GranSphereDataPtr sphere_data,
-        ChSystemGpu_impl::GranParamsPtr gran_params,
-        unsigned int ** h_clusters,
-        unsigned int nSpheres) {
+__host__ void IdentifyGroundClusterByLowest(ChSystemGpu_impl::GranSphereDataPtr sphere_data,
+                                            ChSystemGpu_impl::GranParamsPtr gran_params,
+                                            unsigned int ** h_clusters,
+                                            unsigned int nSpheres) {
     unsigned int nBlocks = (nSpheres + CUDA_THREADS_PER_BLOCK - 1) / CUDA_THREADS_PER_BLOCK;
     unsigned int cluster_num = h_clusters[0][0];
     unsigned int cluster_index;
@@ -291,11 +290,10 @@ __host__ void FreeClusters(unsigned int ** h_clusters) {
 
 /// Finds cluster in h_clusters with most sphres (biggest cluster)
 /// sets sphere_cluster of all those spheres to GROUND
-__host__ void IdentifyGroundClusterByBiggest(
-        ChSystemGpu_impl::GranSphereDataPtr sphere_data,
-        ChSystemGpu_impl::GranParamsPtr gran_params,
-        unsigned int ** h_clusters,
-        unsigned int nSpheres) {
+__host__ void IdentifyGroundClusterByBiggest(ChSystemGpu_impl::GranSphereDataPtr sphere_data,
+                                             ChSystemGpu_impl::GranParamsPtr gran_params,
+                                             unsigned int ** h_clusters,
+                                             unsigned int nSpheres) {
     unsigned int nBlocks = (nSpheres + CUDA_THREADS_PER_BLOCK - 1) / CUDA_THREADS_PER_BLOCK;
     unsigned int ground_cluster = static_cast<unsigned int>(chrono::gpu::CLUSTER_INDEX::GROUND);
     unsigned int cluster_num = h_clusters[0][0];
@@ -359,11 +357,13 @@ __host__ void IdentifyVolumeCluster(ChSystemGpu_impl::GranSphereDataPtr sphere_d
         unsigned int cluster_index = i + static_cast<unsigned int>(chrono::gpu::CLUSTER_INDEX::START);
 
         // find if any sphere in cluster was tagged in the VOLUME type
-        // puts everything to fasle if sphere is in GROUND
         FindVolumeTypeInCluster<<<nBlocks, CUDA_THREADS_PER_BLOCK>>>(sphere_data,
                                                                nSpheres,
                                                                d_in_volume,
                                                                cluster_index);
+        gpuErrchk(cudaPeekAtLastError());
+        gpuErrchk(cudaDeviceSynchronize());
+
         // Sum number of particles in d_in_volume into h_in_volume_num
         void *d_temp_storage = NULL;
         size_t temp_storage_bytes = 0;
@@ -382,7 +382,7 @@ __host__ void IdentifyVolumeCluster(ChSystemGpu_impl::GranSphereDataPtr sphere_d
         gpuErrchk(cudaPeekAtLastError());
         gpuErrchk(cudaDeviceSynchronize());
 
-        // if any sphere is in the volume, the cluster is VOLUME
+        // any sphere of cluster is type  VOLUME -> sphere_cluster becomes VOLUME
         // UNLESS it is GROUND
         if (*h_in_volume_num > 0) {
             unsigned int volume_cluster = static_cast<unsigned int>(chrono::gpu::CLUSTER_INDEX::VOLUME);
@@ -400,7 +400,7 @@ __host__ void IdentifyVolumeCluster(ChSystemGpu_impl::GranSphereDataPtr sphere_d
 }
 
 
-/// Finds the GROUND cluster using method in gran_params
+/// Finds the GROUND cluster using cluster_ground_method in gran_params
 __host__ void IdentifyGroundCluster(ChSystemGpu_impl::GranSphereDataPtr sphere_data,
                                     ChSystemGpu_impl::GranParamsPtr gran_params,
                                     unsigned int nSpheres,

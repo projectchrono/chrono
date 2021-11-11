@@ -122,7 +122,6 @@ static __global__ void AreSpheresBelowZLim(ChSystemGpu_impl::GranSphereDataPtr s
                                            unsigned int cluster,
                                            float z_lim) {
     unsigned int mySphereID = threadIdx.x + blockIdx.x * blockDim.x;
-    unsigned int thisSD = blockIdx.x;
 
     // don't overrun the array
     if (mySphereID < nSpheres) {
@@ -135,8 +134,8 @@ static __global__ void AreSpheresBelowZLim(ChSystemGpu_impl::GranSphereDataPtr s
                                        sphere_data->sphere_local_pos_Z[mySphereID]);
         mySphere_pos_global = int64_t3_to_double3(convertPosLocalToGlobal(ownerSD, mySphere_pos_local, gran_params));
 
-        if (sphere_data->sphere_cluster[mySphereID] == cluster) {
-            // printf("mySphere_pos_global %f %f \n", mySphere_pos_global.z * gran_params->LENGTH_UNIT, z_lim);
+        if ((sphere_data->sphere_cluster[mySphereID] == cluster) ||
+            (cluster == static_cast<unsigned int>(chrono::gpu::CLUSTER_INDEX::NONE))) {
             if (static_cast<float>(mySphere_pos_global.z * gran_params->LENGTH_UNIT) < z_lim) {
                 d_below[mySphereID] = true;
             }
@@ -146,11 +145,11 @@ static __global__ void AreSpheresBelowZLim(ChSystemGpu_impl::GranSphereDataPtr s
 
 // Find if any particle is in the volume cluster.
 // If any sphere in cluster sphere_type == VOLUME -> sphere_cluster = VOLUME
-// UNLESS it is the biggestbiggest cluster -> sphere_cluster = GROUND
+// UNLESS it is the biggest cluster -> sphere_cluster = GROUND
 static __global__ void FindVolumeTypeInCluster(ChSystemGpu_impl::GranSphereDataPtr sphere_data,
-                                         unsigned int nSpheres,
-                                         bool * in_volume,
-                                         unsigned int cluster) {
+                                               unsigned int nSpheres,
+                                               bool * in_volume,
+                                               unsigned int cluster) {
     unsigned int mySphereID = threadIdx.x + blockIdx.x * blockDim.x;
     // don't overrun the array
     if (mySphereID < nSpheres) {
@@ -364,9 +363,9 @@ __host__ void ConstructGraphByProximity(ChSystemGpu_impl::GranSphereDataPtr sphe
                                         float radius);
 
 __host__ unsigned int ** GdbscanSearchGraphByBFS(ChSystemGpu_impl::GranSphereDataPtr sphere_data,
-                                      ChSystemGpu_impl::GranParamsPtr gran_params,
-                                      unsigned int nSpheres,
-                                      size_t min_pts);
+                                                 ChSystemGpu_impl::GranParamsPtr gran_params,
+                                                 unsigned int nSpheres,
+                                                 size_t min_pts);
 
 __host__ void IdentifyGroundCluster(ChSystemGpu_impl::GranSphereDataPtr sphere_data,
                                     ChSystemGpu_impl::GranParamsPtr gran_params,
