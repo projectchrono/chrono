@@ -49,6 +49,9 @@ cmake -DCMAKE_INSTALL_PREFIX=$PREFIX \
  -DOptiX_INSTALL_DIR=/opt/optix/7.2.0 \
  -DNUMPY_INCLUDE_DIR=$NP_INCL \
  -DUSE_CUDA_NVRTC=OFF \
+ -DCUDA_ARCH_NAME=Manual \
+ -DCUDA_ARCH_PTX=52 \
+ -DCUDA_ARCH_BIN=5.2 \
  ./..
 # Build step
 # on linux travis, limit the number of concurrent jobs otherwise
