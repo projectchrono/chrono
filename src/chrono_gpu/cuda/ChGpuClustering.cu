@@ -290,6 +290,7 @@ __host__ void FreeClusters(unsigned int ** h_clusters) {
 
 /// Finds cluster in h_clusters with most sphres (biggest cluster)
 /// sets sphere_cluster of all those spheres to GROUND
+/// OVERWRITES the VOLUME cluster
 __host__ void IdentifyGroundClusterByBiggest(ChSystemGpu_impl::GranSphereDataPtr sphere_data,
                                              ChSystemGpu_impl::GranParamsPtr gran_params,
                                              unsigned int ** h_clusters,
@@ -307,12 +308,17 @@ __host__ void IdentifyGroundClusterByBiggest(ChSystemGpu_impl::GranSphereDataPtr
         assert(sphere_num_in_cluster <= nSpheres);
         if (sphere_num_in_cluster > biggest_cluster_size) {
             biggest_cluster_size = sphere_num_in_cluster;
-            if (sphere_data->sphere_cluster[h_clusters[i][1]] == static_cast<unsigned int>(chrono::gpu::CLUSTER_INDEX::VOLUME)) {
-                biggest_cluster = static_cast<unsigned int>(chrono::gpu::CLUSTER_INDEX::VOLUME);
-            } else {
-                biggest_cluster = i + static_cast<unsigned int>(chrono::gpu::CLUSTER_INDEX::START);
-            }
+            biggest_cluster = i;
         }
+    }
+
+    /// GROUND overwrites VOLUME cluster
+    /// if ANY sphere_cluster is VOLUME, all sphere_cluster are VOLUME
+    unsigned int firstSphereID = h_clusters[biggest_cluster][1];
+    if (sphere_data->sphere_cluster[firstSphereID] == static_cast<unsigned int>(chrono::gpu::CLUSTER_INDEX::VOLUME)) {
+        biggest_cluster = static_cast<unsigned int>(chrono::gpu::CLUSTER_INDEX::VOLUME);
+    } else {
+        biggest_cluster += static_cast<unsigned int>(chrono::gpu::CLUSTER_INDEX::START);
     }
 
     SwitchClusterIndex<<<nBlocks, CUDA_THREADS_PER_BLOCK>>>(sphere_data,
@@ -324,6 +330,8 @@ __host__ void IdentifyGroundClusterByBiggest(ChSystemGpu_impl::GranSphereDataPtr
     gpuErrchk(cudaDeviceSynchronize());
 }
 
+/// Finds the VOLUME cluster by checking if a sphere in cluster has type VOLUME
+/// does NOT overwrite the ground cluster
 __host__ void IdentifyVolumeCluster(ChSystemGpu_impl::GranSphereDataPtr sphere_data,
                                     ChSystemGpu_impl::GranParamsPtr gran_params,
                                     unsigned int nSpheres,
@@ -450,7 +458,6 @@ __host__ unsigned int ** GdbscanSearchGraphByBFS(ChSystemGpu_impl::GranSphereDat
                                                   sphere_data->adj_offset,
                                                   sphere_data->adj_list,
                                                   sphere_data->sphere_type);
-    unsigned int cluster_num = h_clusters[0][0];
 
     GdbscanFinalClusterFromType<<<nBlocks, CUDA_THREADS_PER_BLOCK>>>(nSpheres,
                                                                      sphere_data->sphere_cluster,
