@@ -4,25 +4,25 @@ namespace chrono {
 namespace synchrono {
 
 // Global node id
-static SynNodeID* GlobalNodeID = NULL;
+static int* GlobalNodeID = NULL;
 
-void SetLogNodeID(SynNodeID node_id) {
-    GlobalNodeID = new SynNodeID(node_id);
+void SetLogNodeID(int node_id) {
+    GlobalNodeID = new int(node_id);
 }
 
-std::string GetAppendingString(SynNodeID nid);
-ChStreamOutAscii& AppendLog(SynNodeID);
+std::string GetAppendingString(int node_id);
+ChStreamOutAscii& AppendLog(int);
 
 ChStreamOutAscii& SynLog() {
     return GlobalNodeID != NULL ? AppendLog((*GlobalNodeID)) : GetLog();
 }
 
-std::string GetAppendingString(SynNodeID nid) {
-    return "[" + std::to_string(nid) + "]:\t";
+std::string GetAppendingString(int node_id) {
+    return "[" + std::to_string(node_id) + "]:\t";
 }
 
-ChStreamOutAscii& AppendLog(SynNodeID nid) {
-    return GetLog() << GetAppendingString(nid).c_str();
+ChStreamOutAscii& AppendLog(int node_id) {
+    return GetLog() << GetAppendingString(node_id).c_str();
 }
 
 }  // namespace synchrono

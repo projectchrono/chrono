@@ -385,8 +385,8 @@ std::shared_ptr<ChLidarSensor> ReadLidarSensorJSON(const std::string& filename,
 
     unsigned int sample_radius = 1;
     LidarBeamShape beam_shape = LidarBeamShape::RECTANGULAR;
-    float vert_divergence_angle = .003;
-    float hori_divergence_angle = .003;
+    float vert_divergence_angle = .003f;
+    float hori_divergence_angle = .003f;
     LidarReturnMode return_mode = LidarReturnMode::STRONGEST_RETURN;
     float near_clip = 0.f;
 

@@ -25,7 +25,7 @@
 namespace chrono {
 namespace synchrono {
 
-SynAgent::SynAgent(SynAgentID aid) : m_aid(aid) {}
+SynAgent::SynAgent(AgentKey agent_key) : m_agent_key(agent_key) {}
 
 SynAgent::~SynAgent() {}
 

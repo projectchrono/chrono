@@ -28,8 +28,8 @@ namespace synchrono {
 namespace Agent = SynFlatBuffers::Agent;
 namespace TrackedVehicle = SynFlatBuffers::Agent::TrackedVehicle;
 
-SynTrackedVehicleStateMessage::SynTrackedVehicleStateMessage(unsigned int source_id, unsigned int destination_id)
-    : SynMessage(source_id, destination_id) {}
+SynTrackedVehicleStateMessage::SynTrackedVehicleStateMessage(AgentKey source_key, AgentKey destination_key)
+    : SynMessage(source_key, destination_key) {}
 
 void SynTrackedVehicleStateMessage::SetState(double time,
                                              SynPose chassis,
@@ -50,8 +50,8 @@ void SynTrackedVehicleStateMessage::ConvertFromFlatBuffers(const SynFlatBuffers:
     if (message->message_type() != SynFlatBuffers::Type_Agent_State)
         return;
 
-    m_source_id = message->source_id();
-    m_destination_id = message->destination_id();
+    m_source_key = AgentKey(message->source_key());
+    m_destination_key = AgentKey(message->destination_key());
 
     auto agent_state = message->message_as_Agent_State();
     auto state = agent_state->message_as_TrackedVehicle_State();
@@ -109,20 +109,21 @@ FlatBufferMessage SynTrackedVehicleStateMessage::ConvertToFlatBuffers(flatbuffer
                                                            &road_wheels);  //
 
     auto flatbuffer_state = Agent::CreateState(builder, vehicle_type, vehicle_state.Union());
-    auto flatbuffer_message = SynFlatBuffers::CreateMessage(builder,                           //
-                                                            SynFlatBuffers::Type_Agent_State,  //
-                                                            flatbuffer_state.Union(),          //
-                                                            m_source_id, m_destination_id);    //
+    auto flatbuffer_message =
+        SynFlatBuffers::CreateMessage(builder,                                                                   //
+                                      SynFlatBuffers::Type_Agent_State,                                          //
+                                      flatbuffer_state.Union(),                                                  //
+                                      m_source_key.GetFlatbuffersKey(), m_destination_key.GetFlatbuffersKey());  //
 
     return flatbuffers::Offset<SynFlatBuffers::Message>(flatbuffer_message);
 }
 
 // ---------------------------------------------------------------------------------------------------------------
 
-SynTrackedVehicleDescriptionMessage::SynTrackedVehicleDescriptionMessage(unsigned int source_id,
-                                                                         unsigned int destination_id,
+SynTrackedVehicleDescriptionMessage::SynTrackedVehicleDescriptionMessage(AgentKey source_key,
+                                                                         AgentKey destination_key,
                                                                          const std::string& json)
-    : SynMessage(source_id, destination_id), json(json) {}
+    : SynMessage(source_key, destination_key), json(json) {}
 
 /// Generate description from FlatBuffers message
 void SynTrackedVehicleDescriptionMessage::ConvertFromFlatBuffers(const SynFlatBuffers::Message* message) {
@@ -131,8 +132,8 @@ void SynTrackedVehicleDescriptionMessage::ConvertFromFlatBuffers(const SynFlatBu
         return;
 
     auto description = message->message_as_Agent_Description();
-    m_source_id = message->source_id();
-    m_destination_id = message->destination_id();
+    m_source_key = AgentKey(message->source_key());
+    m_destination_key = message->destination_key();
 
     if (description->json()->Length())
         this->json = description->json()->str();
@@ -183,10 +184,10 @@ FlatBufferMessage SynTrackedVehicleDescriptionMessage::ConvertToFlatBuffers(
                                                            vehicle_description.Union(),  //
                                                            flatbuffer_json);             //
 
-    return SynFlatBuffers::CreateMessage(builder,                                 //
-                                         SynFlatBuffers::Type_Agent_Description,  //
-                                         flatbuffer_description.Union(),          //
-                                         m_source_id, m_destination_id);          //
+    return SynFlatBuffers::CreateMessage(builder,                                                                   //
+                                         SynFlatBuffers::Type_Agent_Description,                                    //
+                                         flatbuffer_description.Union(),                                            //
+                                         m_source_key.GetFlatbuffersKey(), m_destination_key.GetFlatbuffersKey());  //
 }
 
 void SynTrackedVehicleDescriptionMessage::SetZombieVisualizationFilesFromJSON(const std::string& filename) {

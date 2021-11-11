@@ -49,6 +49,7 @@ class CH_SENSOR_API ChLidarSensor : public ChOptixSensor {
     /// @param hfov Horizontal field of view of the lidar
     /// @param max_vertical_angle Maximum vertical angle of the lidar
     /// @param min_vertical_angle Minimum vertical angle of the lidar
+    /// @param max_distance the maximum measurable distance for the lidar
     /// @param beam_shape Shape of lidar beam, only rectangules and ellipse are supported currently.
     /// @param sample_radius The radius in samples for multisampling beams (total samples per beam is 2*radius-1)
     /// @param vert_divergence_angle The vertical divergence angle of the lidar's laser beam
@@ -103,7 +104,7 @@ class CH_SENSOR_API ChLidarSensor : public ChOptixSensor {
 
     /// Returns the beam sample radius
     /// @return the beam sample radius
-    float GetSampleRadius() const { return m_sample_radius; }
+    unsigned int GetSampleRadius() const { return m_sample_radius; }
 
     /// Returns the horizontal beam divergence angle
     /// @return the horizontal beam divergence angle
@@ -122,8 +123,6 @@ class CH_SENSOR_API ChLidarSensor : public ChOptixSensor {
       }
     }
     
-
-
   private:
     float m_hFOV;                   ///< the horizontal field of view of the sensor
     float m_max_vert_angle;         ///< maximum vertical angle of the rays

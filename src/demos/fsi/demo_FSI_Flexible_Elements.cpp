@@ -79,19 +79,21 @@ void ShowUsage() {
 }
 
 int main(int argc, char* argv[]) {
+    // Create a physics system and an FSI system
     ChSystemSMC mphysicalSystem;
     ChSystemFsi myFsiSystem(mphysicalSystem);
+
     // Get the pointer to the system parameter and use a JSON file to fill it out with the user parameters
     std::shared_ptr<fsi::SimParams> paramsH = myFsiSystem.GetSimParams();
 
     // Use the default input file or you may enter your input parameters as a command line argument
     std::string inputJson = GetChronoDataFile("fsi/input_json/demo_FSI_Flexible_Elements_I2SPH.json");
     if (argc == 1) {
-        std::cout << "Use the default JSON file \n" << std::endl;
+        std::cout << "Use the default JSON file" << std::endl;
     } else if (argc == 2) {
-        std::cout << "Use the specified JSON file \n" << std::endl;
+        std::cout << "Use the specified JSON file" << std::endl;
         std::string my_inputJson = std::string(argv[1]);
-        inputJson = GetChronoDataFile(my_inputJson);
+        inputJson = my_inputJson;
     } else {
         ShowUsage();
         return 1;
@@ -122,9 +124,7 @@ int main(int argc, char* argv[]) {
     chrono::utils::Generator::PointVector points = sampler.SampleBox(boxCenter, boxHalfDim);
     size_t numPart = points.size();
     for (int i = 0; i < numPart; i++) {
-        myFsiSystem.AddSphMarker(ChVector<>(points[i].x(), points[i].y(), points[i].z()),
-                                 ChVector<>(paramsH->rho0, paramsH->BASEPRES, paramsH->mu0),
-                                 paramsH->HSML, -1);
+        myFsiSystem.AddSphMarker(points[i], paramsH->rho0, paramsH->BASEPRES, paramsH->mu0, paramsH->HSML, -1);
     }
     myFsiSystem.AddRefArray(0, (int)numPart, -1, -1);
 
@@ -428,7 +428,7 @@ void SaveParaViewFiles(ChSystemFsi& myFsiSystem,
     double frame_time = 1.0 / paramsH->out_fps;
     static int out_frame = 0;
 
-    if (pv_output && std::abs(mTime - (next_frame)*frame_time) < 1e-7) {
+    if (pv_output && std::abs(mTime - (next_frame)*frame_time) < 1e-6) {
         myFsiSystem.PrintParticleToFile(demo_dir);
 
         std::cout << "-------------------------------------\n" << std::endl;

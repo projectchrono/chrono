@@ -22,8 +22,8 @@ namespace chrono {
 namespace fsi {
 
 // -----------------------------------------------------------------------------
-/// Device function to calculate the share of density influence on a given
-/// marker from all other markers in a given cell
+// Device function to calculate the share of density influence on a given
+// marker from all other markers in a given cell
 __device__ void collideCellDensityReInit(Real& numerator,
                                          Real& denominator,
                                          int3 gridPos,
@@ -55,7 +55,7 @@ __device__ void collideCellDensityReInit(Real& numerator,
 }
 
 // -----------------------------------------------------------------------------
-/// Kernel to apply periodic BC along x
+// Kernel to apply periodic BC along x
 __global__ void ApplyPeriodicBoundaryXKernel(Real4* posRadD, Real4* rhoPresMuD) {
     uint index = blockIdx.x * blockDim.x + threadIdx.x;
     if (index >= numObjectsD.numAllMarkers) {
@@ -87,7 +87,7 @@ __global__ void ApplyPeriodicBoundaryXKernel(Real4* posRadD, Real4* rhoPresMuD) 
 }
 
 // -----------------------------------------------------------------------------
-/// Kernel to apply inlet/outlet BC along x
+// Kernel to apply inlet/outlet BC along x
 __global__ void ApplyInletBoundaryXKernel(Real4* posRadD, Real3* VelMassD, Real4* rhoPresMuD) {
     uint index = blockIdx.x * blockDim.x + threadIdx.x;
     if (index >= numObjectsD.numAllMarkers) {
@@ -127,7 +127,7 @@ __global__ void ApplyInletBoundaryXKernel(Real4* posRadD, Real3* VelMassD, Real4
 }
 
 // -----------------------------------------------------------------------------
-/// Kernel to apply periodic BC along y
+// Kernel to apply periodic BC along y
 __global__ void ApplyPeriodicBoundaryYKernel(Real4* posRadD, Real4* rhoPresMuD) {
     uint index = blockIdx.x * blockDim.x + threadIdx.x;
     if (index >= numObjectsD.numAllMarkers) {
@@ -161,7 +161,7 @@ __global__ void ApplyPeriodicBoundaryYKernel(Real4* posRadD, Real4* rhoPresMuD) 
 }
 
 // -----------------------------------------------------------------------------
-/// Kernel to apply periodic BC along z
+// Kernel to apply periodic BC along z
 __global__ void ApplyPeriodicBoundaryZKernel(Real4* posRadD, Real4* rhoPresMuD) {
     uint index = blockIdx.x * blockDim.x + threadIdx.x;
     if (index >= numObjectsD.numAllMarkers) {
@@ -194,7 +194,7 @@ __global__ void ApplyPeriodicBoundaryZKernel(Real4* posRadD, Real4* rhoPresMuD) 
     }
 }
 // -----------------------------------------------------------------------------
-/// Kernel to keep particle inside the simulation domain
+// Kernel to keep particle inside the simulation domain
 __global__ void ApplyOutOfBoundaryKernel(Real4* posRadD, Real4* rhoPresMuD, Real3* velMasD) {
     uint index = blockIdx.x * blockDim.x + threadIdx.x;
     if (index >= numObjectsD.numAllMarkers) {
@@ -230,9 +230,9 @@ __global__ void ApplyOutOfBoundaryKernel(Real4* posRadD, Real4* rhoPresMuD, Real
     return;
 }
 // -----------------------------------------------------------------------------
-/// Kernel to update the fluid properities.
-/// It updates the density, velocity and position relying on explicit Euler
-/// scheme. Pressure is obtained from the density and an Equation of State.
+// Kernel to update the fluid properities.
+// It updates the density, velocity and position relying on explicit Euler
+// scheme. Pressure is obtained from the density and an Equation of State.
 __global__ void UpdateFluidD(Real4* posRadD,
                              Real3* velMasD,
                              Real3* vel_XSPH_D,
@@ -387,8 +387,8 @@ __global__ void UpdateFluidD(Real4* posRadD,
         rhoPresMuD[index] = rhoPresMu; 
     }
 
-    /// Important note: the derivVelRhoD that is calculated by the ChForceExplicitSPH is the negative of actual time
-    /// derivative. That is important to keep the derivVelRhoD to be the force/mass for fsi forces.
+    // Important note: the derivVelRhoD that is calculated by the ChForceExplicitSPH is the negative of actual time
+    // derivative. That is important to keep the derivVelRhoD to be the force/mass for fsi forces.
     // calculate the force that is f=m dv/dt
     derivVelRhoD[index] *= paramsD.markerMass;
 }
@@ -430,9 +430,9 @@ __global__ void Update_Fluid_State(Real3* new_vel,  // input: sorted velocities,
 }
 
 // -----------------------------------------------------------------------------
-/// Kernel for updating the density.
-/// It calculates the density of the markers. It does include the normalization
-/// close to the boundaries and free surface.
+// Kernel for updating the density.
+// It calculates the density of the markers. It does include the normalization
+// close to the boundaries and free surface.
 __global__ void ReCalcDensityD_F1(Real4* dummySortedRhoPreMu,
                                   Real4* sortedPosRad,
                                   Real3* sortedVelMas,
@@ -449,7 +449,7 @@ __global__ void ReCalcDensityD_F1(Real4* dummySortedRhoPreMu,
     Real3 posRadA = mR3(sortedPosRad[index]);
     Real4 rhoPreMuA = sortedRhoPreMu[index];
 
-    /// If density initialization should only be applied to fluid markers
+    // If density initialization should only be applied to fluid markers
     //    if (rhoPreMuA.w > -.1)
     //        return;
 
@@ -469,7 +469,7 @@ __global__ void ReCalcDensityD_F1(Real4* dummySortedRhoPreMu,
         }
     }
 
-    rhoPreMuA.x = numerator;  /// denominator;
+    rhoPreMuA.x = numerator;  // denominator;
     //    rhoPreMuA.y = Eos(rhoPreMuA.x, rhoPreMuA.w);
     dummySortedRhoPreMu[index] = rhoPreMuA;
 }
@@ -484,36 +484,42 @@ ChFluidDynamics::ChFluidDynamics(std::shared_ptr<ChBce> otherBceWorker,
                                  std::shared_ptr<NumberOfObjects> otherNumObjects,
                                  CHFSI_TIME_INTEGRATOR type)
     : fsiSystem(otherFsiSystem), paramsH(otherParamsH), numObjectsH(otherNumObjects) {
-    myIntegrator = type;
-    switch (myIntegrator) {
+    integrator_type = type;
+    switch (integrator_type) {
         case CHFSI_TIME_INTEGRATOR::I2SPH:
-            forceSystem = chrono_types::make_shared<ChFsiForceI2SPH>(otherBceWorker, fsiSystem->sortedSphMarkersD,
-                                                                     fsiSystem->markersProximityD,
-                                                                     fsiSystem->fsiGeneralData, paramsH, numObjectsH);
-            printf("Created an I2SPH framework.\n");
+            forceSystem = chrono_types::make_shared<ChFsiForceI2SPH>(
+                otherBceWorker, fsiSystem->sortedSphMarkersD, fsiSystem->markersProximityD,
+                fsiSystem->fsiGeneralData, paramsH, numObjectsH);
+            std::cout << "===============================================================================" << std::endl;
+            std::cout << "========================   Created an I2SPH framework   =======================" << std::endl;
+            std::cout << "===============================================================================" << std::endl;
             break;
 
         case CHFSI_TIME_INTEGRATOR::IISPH:
-            forceSystem = chrono_types::make_shared<ChFsiForceIISPH>(otherBceWorker, fsiSystem->sortedSphMarkersD,
-                                                                     fsiSystem->markersProximityD,
-                                                                     fsiSystem->fsiGeneralData, paramsH, numObjectsH);
-            printf("Created an IISPH framework.\n");
+            forceSystem = chrono_types::make_shared<ChFsiForceIISPH>(
+                otherBceWorker, fsiSystem->sortedSphMarkersD, fsiSystem->markersProximityD,
+                fsiSystem->fsiGeneralData, paramsH, numObjectsH);
+            std::cout << "===============================================================================" << std::endl;
+            std::cout << "========================   Created an IISPH framework   =======================" << std::endl;
+            std::cout << "===============================================================================" << std::endl;
             break;
 
         case CHFSI_TIME_INTEGRATOR::ExplicitSPH:
             forceSystem = chrono_types::make_shared<ChFsiForceExplicitSPH>(
-                otherBceWorker, fsiSystem->sortedSphMarkersD, fsiSystem->markersProximityD, fsiSystem->fsiGeneralData,
-                paramsH, numObjectsH);
-            printf("Created an ExplicitSPH framework.\n");
+                otherBceWorker, fsiSystem->sortedSphMarkersD, fsiSystem->markersProximityD,
+                fsiSystem->fsiGeneralData, paramsH, numObjectsH);
+            std::cout << "===============================================================================" << std::endl;
+            std::cout << "=====================   Created an Explicit SPH framework   ===================" << std::endl;
+            std::cout << "===============================================================================" << std::endl;
             break;
 
-        /// Extend this function with your own linear solvers
+        // Extend this function with your own linear solvers
         default:
-            forceSystem = chrono_types::make_shared<ChFsiForceIISPH>(otherBceWorker, fsiSystem->sortedSphMarkersD,
+            forceSystem = chrono_types::make_shared<ChFsiForceExplicitSPH>(otherBceWorker, fsiSystem->sortedSphMarkersD,
                                                                      fsiSystem->markersProximityD,
                                                                      fsiSystem->fsiGeneralData, paramsH, numObjectsH);
             std::cout << "The ChFsiForce you chose has not been implemented, reverting back to "
-                         "ChFsiForceIISPH\n";
+                         "ChFsiForceExplicitSPH" << std::endl;
     }
 }
 
@@ -541,7 +547,7 @@ void ChFluidDynamics::IntegrateSPH(std::shared_ptr<SphMarkerDataD> sphMarkersD2,
     else
         forceSystem->ForceSPH(sphMarkersD1, fsiBodiesD, fsiMeshD);
 
-    if (myIntegrator == CHFSI_TIME_INTEGRATOR::IISPH)
+    if (integrator_type == CHFSI_TIME_INTEGRATOR::IISPH)
         this->UpdateFluid_Implicit(sphMarkersD2);
     else if (GetIntegratorType() == CHFSI_TIME_INTEGRATOR::ExplicitSPH)
         this->UpdateFluid(sphMarkersD1, dT);

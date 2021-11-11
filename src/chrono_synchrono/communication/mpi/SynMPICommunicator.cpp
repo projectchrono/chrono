@@ -47,10 +47,6 @@ SynMPICommunicator::~SynMPICommunicator() {
     MPI_Finalize();
 }
 
-bool SynMPICommunicator::Initialize() {
-    return true;
-}
-
 void SynMPICommunicator::Synchronize() {
     m_flatbuffers_manager.Finish();
 

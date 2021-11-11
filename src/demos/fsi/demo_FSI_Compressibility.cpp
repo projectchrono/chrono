@@ -144,11 +144,11 @@ int main(int argc, char* argv[]) {
     // Use the default input file or you may enter your input parameters as a command line argument
     std::string inputJson = GetChronoDataFile("fsi/input_json/demo_FSI_Compressibility_Explicit.json");
     if (argc == 1) {
-        std::cout << "Use the default JSON file \n" << std::endl;
+        std::cout << "Use the default JSON file" << std::endl;
     } else if (argc == 2) {
-        std::cout << "Use the specified JSON file \n" << std::endl;
+        std::cout << "Use the specified JSON file" << std::endl;
         std::string my_inputJson = std::string(argv[1]);
-        inputJson = GetChronoDataFile(my_inputJson);
+        inputJson = my_inputJson;
     } else {
         ShowUsage();
         return 1;
@@ -180,9 +180,7 @@ int main(int argc, char* argv[]) {
     // Add SPH particles from the sampler points to the FSI system
     size_t numPart = points.size();
     for (int i = 0; i < numPart; i++) {
-        myFsiSystem.AddSphMarker(ChVector<>(points[i].x(), points[i].y(), points[i].z()),
-                                 ChVector<>(paramsH->rho0, paramsH->BASEPRES, paramsH->mu0),
-                                 paramsH->HSML, -1);
+        myFsiSystem.AddSphMarker(points[i], paramsH->rho0, paramsH->BASEPRES, paramsH->mu0, paramsH->HSML, -1);
     }
     myFsiSystem.AddRefArray(0, (int)numPart, -1, -1);
 

@@ -136,11 +136,11 @@ int main(int argc, char* argv[]) {
     std::shared_ptr<fsi::SimParams> paramsH = myFsiSystem.GetSimParams();
     std::string inputJson = GetChronoDataFile("fsi/input_json/demo_FSI_Viper_granular_NSC.json");
     if (argc == 1) {
-        std::cout << "Use the default JSON file \n" << std::endl;
+        std::cout << "Use the default JSON file" << std::endl;
     } else if (argc == 2) {
-        std::cout << "Use the specified JSON file \n" << std::endl;
+        std::cout << "Use the specified JSON file" << std::endl;
         std::string my_inputJson = std::string(argv[1]);
-        inputJson = GetChronoDataFile(my_inputJson);
+        inputJson = my_inputJson;
     } else {
         ShowUsage();
         return 1;
@@ -182,12 +182,11 @@ int main(int argc, char* argv[]) {
     int numPart = (int)points.size();
     for (int i = 0; i < numPart; i++) {
         double pre_ini = paramsH->rho0 * abs(paramsH->gravity.z) * (-points[i].z() + fzDim);
-        myFsiSystem.AddSphMarker(
-            ChVector<>(points[i].x(), points[i].y(), points[i].z()), 
-            ChVector<>(paramsH->rho0, pre_ini, paramsH->mu0), paramsH->HSML, -1,
-            ChVector<>(0.0e0),   // initial velocity
-            ChVector<>(0.0e0),   // tauxxyyzz
-            ChVector<>(0.0e0));  // tauxyxzyz
+        myFsiSystem.AddSphMarker(points[i], paramsH->rho0, pre_ini, paramsH->mu0, paramsH->HSML, -1,
+                                 ChVector<>(0),  // initial velocity
+                                 ChVector<>(0),  // tauxxyyzz
+                                 ChVector<>(0)   // tauxyxzyz
+        );
     }
     myFsiSystem.AddRefArray(0, (int)numPart, -1, -1);
 
@@ -215,6 +214,12 @@ int main(int argc, char* argv[]) {
     double time = 0;
     double Global_max_dT = paramsH->dT_Max;
     int stepEnd = int(paramsH->tFinal / paramsH->dT);
+
+    /// Add timing for ths simulation
+    double TIMING_sta;
+    double TIMING_end;
+    double sim_cost = 0.0;
+
     for (int tStep = 0; tStep < stepEnd + 1; tStep++) {
         printf("\nstep : %d, time= : %f (s) \n", tStep, time);
         double frame_time = 1.0 / paramsH->out_fps;
@@ -227,7 +232,12 @@ int main(int argc, char* argv[]) {
             paramsH->dT_Max = Global_max_dT;
 
         rover->Update();
+
+        TIMING_sta = clock();
         myFsiSystem.DoStepDynamics_FSI();
+        TIMING_end = clock();
+        sim_cost = sim_cost + (TIMING_end - TIMING_sta) / (double)CLOCKS_PER_SEC;
+
         time += paramsH->dT;
         SaveParaViewFiles(myFsiSystem, mphysicalSystem, paramsH, next_frame, time);
 
@@ -237,6 +247,7 @@ int main(int argc, char* argv[]) {
         printf("bin=%f,%f,%f\n", bbody->GetPos().x(), bbody->GetPos().y(), bbody->GetPos().z());
         printf("Rover=%f,%f,%f\n", rbody->GetPos().x(), rbody->GetPos().y(), rbody->GetPos().z());
         printf("Rover=%f,%f,%f\n", rbody->GetPos_dt().x(), rbody->GetPos_dt().y(), rbody->GetPos_dt().z());
+        printf("Physical time and computational cost = %f, %f\n", time, sim_cost);
         myFile.open("./body_position.txt", std::ios::app);
         myFile << time << "\t" << rbody->GetPos().x() << "\t" << rbody->GetPos().y() << "\t" << rbody->GetPos().z()
                << "\t" << rbody->GetPos_dt().x() << "\t" << rbody->GetPos_dt().y() << "\t" << rbody->GetPos_dt().z()

@@ -13,7 +13,7 @@ auto gps_noise_model=chrono_types::make_shared<ChNoiseNormal>(
     ChVector<float>(2.f, 3.f, 1.f)   // Standard Deviation
 );
 auto gps = chrono_types::make_shared<ChGPSSensor>(
-                my_body,          // body to which the GPS is attached
+                parent_body,      // body to which the GPS is attached
                 gps_update_rate,  // update rate
                 gps_offset_pose,  // offset pose from body
                 gps_reference,    // reference GPS location (GPS coordinates of simulation origin)

@@ -34,11 +34,14 @@
 namespace chrono {
 namespace fsi {
 
-/// I made this const variables static in order to be able to use them in a different translation units in the utils
+/// Declared as const variables static in order to be able to use them in a different translation units in the utils
 __constant__ static SimParams paramsD;
 __constant__ static NumberOfObjects numObjectsD;
 
+/// Short define of the kernel function
 #define W3h W3h_Spline
+
+/// Short define of the kernel function gradient
 #define GradWh GradWh_Spline
 
 void CopyParams_NumberOfObjects(std::shared_ptr<SimParams> paramsH, std::shared_ptr<NumberOfObjects> numObjectsH);
@@ -181,17 +184,6 @@ __device__ inline Real3 Modify_Local_PosB(Real3& b, Real3 a) {
     return (dist3);
 }
 
-/**
- * @brief Distance
- * @details
- *          Distance between two particles, considering the periodic boundary
- * condition
- *
- * @param a Position of Particle A
- * @param b Position of Particle B
- *
- * @return Distance vector (distance in x, distance in y, distance in z)
- */
 __device__ inline Real3 Distance(Real3 a, Real3 b) {
     return Modify_Local_PosB(b, a);
 }

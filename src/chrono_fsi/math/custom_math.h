@@ -20,7 +20,7 @@
 #ifndef CHFSI_CUSTOM_MATH_H
 #define CHFSI_CUSTOM_MATH_H
 
-#include <cuda_runtime.h>  // for __host__ __device__ flags
+#include <cuda_runtime.h>
 #ifndef __CUDACC__
 #include <cmath>
 #endif
@@ -32,13 +32,17 @@ namespace fsi {
 /// @addtogroup fsi_math
 /// @{
 
+/// Define the real type used in FSI (float or double).
 #ifdef CHRONO_FSI_USE_DOUBLE
 typedef double Real;
 #else
 typedef float Real;
 #endif
 
+/// Define the unsigned int type used in FSI.
 typedef unsigned int uint;
+
+/// Define the unsigned short type used in FSI.
 typedef unsigned short ushort;
 
 /// Return the minimum of two single precision numbers.
@@ -96,6 +100,7 @@ inline __host__ __device__ Real quintic(Real a) {
 #define __VECTOR_FUNCTIONS_DECL__ static __inline__ __host__ __device__
 #endif /* __CUDACC_RTC__ */
 
+/// Make a vector with two unsigned integer elements.
 __VECTOR_FUNCTIONS_DECL__ uint2 make_uint2(unsigned int x, unsigned int y) {
     uint2 t;
     t.x = x;
@@ -103,6 +108,7 @@ __VECTOR_FUNCTIONS_DECL__ uint2 make_uint2(unsigned int x, unsigned int y) {
     return t;
 }
 
+/// Make a vector with three unsigned integer elements.
 __VECTOR_FUNCTIONS_DECL__ uint3 make_uint3(unsigned int x, unsigned int y, unsigned int z) {
     uint3 t;
     t.x = x;
@@ -111,6 +117,7 @@ __VECTOR_FUNCTIONS_DECL__ uint3 make_uint3(unsigned int x, unsigned int y, unsig
     return t;
 }
 
+/// Make a vector with four unsigned integer elements.
 __VECTOR_FUNCTIONS_DECL__ uint4 make_uint4(unsigned int x, unsigned int y, unsigned int z, unsigned int w) {
     uint4 t;
     t.x = x;
@@ -120,6 +127,7 @@ __VECTOR_FUNCTIONS_DECL__ uint4 make_uint4(unsigned int x, unsigned int y, unsig
     return t;
 }
 
+/// Make a vector with two integer elements.
 __VECTOR_FUNCTIONS_DECL__ int2 make_int2(int x, int y) {
     int2 t;
     t.x = x;
@@ -127,6 +135,7 @@ __VECTOR_FUNCTIONS_DECL__ int2 make_int2(int x, int y) {
     return t;
 }
 
+/// Make a vector with three integer elements.
 __VECTOR_FUNCTIONS_DECL__ int3 make_int3(int x, int y, int z) {
     int3 t;
     t.x = x;
@@ -135,6 +144,7 @@ __VECTOR_FUNCTIONS_DECL__ int3 make_int3(int x, int y, int z) {
     return t;
 }
 
+/// Make a vector with four integer elements.
 __VECTOR_FUNCTIONS_DECL__ int4 make_int4(int x, int y, int z, int w) {
     int4 t;
     t.x = x;
@@ -144,6 +154,7 @@ __VECTOR_FUNCTIONS_DECL__ int4 make_int4(int x, int y, int z, int w) {
     return t;
 }
 
+/// Make a vector with two float elements.
 __VECTOR_FUNCTIONS_DECL__ float2 make_float2(float x, float y) {
     float2 t;
     t.x = x;
@@ -151,6 +162,7 @@ __VECTOR_FUNCTIONS_DECL__ float2 make_float2(float x, float y) {
     return t;
 }
 
+/// Make a vector with three float elements.
 __VECTOR_FUNCTIONS_DECL__ float3 make_float3(float x, float y, float z) {
     float3 t;
     t.x = x;
@@ -159,6 +171,7 @@ __VECTOR_FUNCTIONS_DECL__ float3 make_float3(float x, float y, float z) {
     return t;
 }
 
+/// Make a vector with four float elements.
 __VECTOR_FUNCTIONS_DECL__ float4 make_float4(float x, float y, float z, float w) {
     float4 t;
     t.x = x;
@@ -168,6 +181,7 @@ __VECTOR_FUNCTIONS_DECL__ float4 make_float4(float x, float y, float z, float w)
     return t;
 }
 
+/// Make a vector with two double elements.
 __VECTOR_FUNCTIONS_DECL__ double2 make_double2(double x, double y) {
     double2 t;
     t.x = x;
@@ -175,6 +189,7 @@ __VECTOR_FUNCTIONS_DECL__ double2 make_double2(double x, double y) {
     return t;
 }
 
+/// Make a vector with three double elements.
 __VECTOR_FUNCTIONS_DECL__ double3 make_double3(double x, double y, double z) {
     double3 t;
     t.x = x;
@@ -183,6 +198,7 @@ __VECTOR_FUNCTIONS_DECL__ double3 make_double3(double x, double y, double z) {
     return t;
 }
 
+/// Make a vector with four double elements.
 __VECTOR_FUNCTIONS_DECL__ double4 make_double4(double x, double y, double z, double w) {
     double4 t;
     t.x = x;
@@ -1609,15 +1625,6 @@ __host__ __device__ inline Real3 user_BC_U(Real3 Pos) {
 
     return vel;
 }
-
-// __host__ uint iDivUp(uint a, uint b) {
-//     return (a % b != 0) ? (a / b + 1) : (a / b);
-// } 
-// __host__ void computeGridSize(uint n, uint blockSize, uint& numBlocks, uint&  numThreads) {
-//     uint n2 = (n == 0) ? 1 : n;
-//     numThreads = min(blockSize, n2);
-//     numBlocks = iDivUp(n2, numThreads);
-// }
 
 /// @} fsi_math
 

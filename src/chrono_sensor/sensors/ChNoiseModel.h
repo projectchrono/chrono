@@ -88,7 +88,6 @@ class CH_SENSOR_API ChNoiseNormalDrift : public ChNoiseModel {
 
     /// Function for adding noise to data
     /// @param data data to augment
-    /// @param length Length of the data to augment
     virtual void AddNoise(ChVector<double>& data);
 
   private:

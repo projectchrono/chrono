@@ -8,10 +8,6 @@
 
 #include "chrono/physics/ChSystem.h"
 
-/// TODO: Create a class with utility functions
-#define SynNodeID uint16_t
-#define SynAgentNum uint16_t
-
 namespace chrono {
 namespace synchrono {
 
@@ -22,7 +18,7 @@ namespace synchrono {
 class SYN_API SynChronoManager {
   public:
     /// Class constructor
-    SynChronoManager(SynNodeID nid, SynAgentNum num_nodes, std::shared_ptr<SynCommunicator> communicator = nullptr);
+    SynChronoManager(int node_id, int num_nodes, std::shared_ptr<SynCommunicator> communicator = nullptr);
 
     /// Class destructor
     ~SynChronoManager();
@@ -37,8 +33,8 @@ class SYN_API SynChronoManager {
     /// Cannot be called after Initialize is called
     ///
     /// @param zombie The zombie that should be added to the SynChrono world
-    /// @param aid The id of the added zombie
-    bool AddZombie(std::shared_ptr<SynAgent> zombie, SynAgentID aid);
+    /// @param agent_key The id of the added zombie
+    bool AddZombie(std::shared_ptr<SynAgent> zombie, AgentKey agent_key);
 
     ///@brief Sets the underlying communicator
     ///
@@ -76,7 +72,7 @@ class SYN_API SynChronoManager {
 
     ///@brief Get the agents list
     ///
-    std::map<SynAgentID, std::shared_ptr<SynAgent>>& GetAgents() { return m_agents; }
+    std::map<AgentKey, std::shared_ptr<SynAgent>>& GetAgents() { return m_agents; }
 
     ///@brief Set the heartbeat for the rate at which SynChrono synchronization
     /// occurs
@@ -139,8 +135,9 @@ class SYN_API SynChronoManager {
 
     bool m_is_ok;
     bool m_initialized;       ///< Has the Initialize function been called?
-    SynNodeID m_nid;          ///< The node id assigned to this manager
-    SynAgentNum m_num_nodes;  ///< The number of nodes in the SynChrono world
+    int m_node_id;            ///< The node id assigned to this manager (provided by user code)
+    int m_num_nodes;          ///< The number of nodes in the SynChrono world (provided by user code)
+    AgentKey m_node_key;
 
     double m_heartbeat;  ///< Rate at which synchronization between nodes occurs
     double m_next_sync;  ///< Time at which next synchronization between nodes should occur
@@ -155,8 +152,9 @@ class SYN_API SynChronoManager {
     double m_time_communication;  ///< cummulative time for communication
     double m_time_msg_process;    ///< cumulative time for processing received messages
 
-    std::map<SynAgentID, std::shared_ptr<SynAgent>> m_agents;        ///< Agents in the SynChrono world on this node
-    std::map<SynAgentID, std::shared_ptr<SynAgent>> m_zombies;       ///< Agents in the SynChrono world not on this node
+    int m_num_managed_agents = 0;  ///< Number of agents managed by this node
+    std::map<AgentKey, std::shared_ptr<SynAgent>> m_agents;          ///< Agents in the SynChrono world on this node
+    std::map<AgentKey, std::shared_ptr<SynAgent>> m_zombies;         ///< Agents in the SynChrono world not on this node
     std::map<std::shared_ptr<SynAgent>, SynMessageList> m_messages;  ///< Messages associated with each agent
 
     std::shared_ptr<SynCommunicator> m_communicator;  ///< Underlying communicator used for inter-node comm
