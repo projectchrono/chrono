@@ -218,6 +218,16 @@ bool ParseJSON(const std::string& json_file, std::shared_ptr<SimParams> paramsH,
             paramsH->laplacian_type = doc["SPH Parameters"]["Laplacian Discretization Type"].GetInt();
         else
             paramsH->laplacian_type = 0;
+
+        if (doc["SPH Parameters"].HasMember("Consistent Discretization for Laplacian"))
+            paramsH->USE_Consistent_L = doc["SPH Parameters"]["Consistent Discretization for Laplacian"].GetInt();
+        else
+            paramsH->USE_Consistent_L = true;
+
+        if (doc["SPH Parameters"].HasMember("Consistent Discretization for Gradient"))
+            paramsH->USE_Consistent_G = doc["SPH Parameters"]["Consistent Discretization for Gradient"].GetInt();
+        else
+            paramsH->USE_Consistent_G = true;
     }
 
     if (doc.HasMember("Time Stepping")) {

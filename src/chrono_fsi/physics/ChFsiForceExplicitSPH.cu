@@ -917,11 +917,13 @@ __global__ void Navier_Stokes(Real4* sortedDerivVelRho,
     Real4 derivVelRho = mR4(0.0);
     Real SuppRadii = RESOLUTION_LENGTH_MULT * paramsD.HSML;
 
-    Real G_i[9] = {0.0};
-    Real A_i[27] = {0.0};
-    Real L_i[9] = {0.0};
-    calc_G_Matrix(sortedPosRad,sortedVelMas,sortedRhoPreMu,G_i,cellStart,cellEnd,numAllMarkers);
-    if(!paramsD.elastic_SPH){
+    Real G_i[9] = {1.0,0.0,0.0, 0.0,1.0,0.0, 0.0,0.0,1.0};
+    Real L_i[9] = {1.0,0.0,0.0, 0.0,1.0,0.0, 0.0,0.0,1.0};
+    if (paramsD.USE_Consistent_G) {
+        calc_G_Matrix(sortedPosRad,sortedVelMas,sortedRhoPreMu,G_i,cellStart,cellEnd,numAllMarkers);
+    }
+    if(!paramsD.elastic_SPH && paramsD.USE_Consistent_G){
+        Real A_i[27] = {0.0};
         calc_A_Matrix(sortedPosRad,sortedVelMas,sortedRhoPreMu,A_i,G_i,cellStart,cellEnd,numAllMarkers);
         calc_L_Matrix(sortedPosRad,sortedVelMas,sortedRhoPreMu,A_i,L_i,G_i,cellStart,cellEnd,numAllMarkers);
     }
@@ -1192,9 +1194,6 @@ __global__ void NS_SSR( Real4* sortedDerivVelRho,
     Real tauxy = sortedTauXyXzYz[index].x;
     Real tauxz = sortedTauXyXzYz[index].y;
     Real tauyz = sortedTauXyXzYz[index].z;
-    Real tauzx = tauxz;
-    Real tauzy = tauyz;
-    Real tauyx = tauxy;
     Real dTauxx = 0.0;
     Real dTauyy = 0.0;
     Real dTauzz = 0.0;
@@ -1204,7 +1203,7 @@ __global__ void NS_SSR( Real4* sortedDerivVelRho,
 
     // Calculate the correction matrix for gradient operator
     Real G_i[9] = {1.0,0.0,0.0, 0.0,1.0,0.0, 0.0,0.0,1.0};
-    {
+    if (paramsD.USE_Consistent_G) {
         Real mGi[9] = {0.0};
         for(uint n = 0; n < j_num; n++){
             uint j =  j_list[n];
@@ -1277,16 +1276,15 @@ __global__ void NS_SSR( Real4* sortedDerivVelRho,
             velMasB = velMas_ModifiedBCE[bceIndexB];
         }
         Real multViscosit = 1;
-        // For granular material dynamics
-        // Real rhoB = rhoPresMuB.x;
         Real hB = sortedPosRad[j].w;
-        // Real mB = paramsD.markerMass;
         Real3 gradW = GradWh(dist3, (hA + hB) * 0.5);
-        Real3 gradW_new;
-        gradW_new.x = G_i[0]*gradW.x + G_i[1]*gradW.y + G_i[2]*gradW.z;
-        gradW_new.y = G_i[3]*gradW.x + G_i[4]*gradW.y + G_i[5]*gradW.z;
-        gradW_new.z = G_i[6]*gradW.x + G_i[7]*gradW.y + G_i[8]*gradW.z;
-        gradW = gradW_new;
+        if (paramsD.USE_Consistent_G) {
+            Real3 gradW_new;
+            gradW_new.x = G_i[0]*gradW.x + G_i[1]*gradW.y + G_i[2]*gradW.z;
+            gradW_new.y = G_i[3]*gradW.x + G_i[4]*gradW.y + G_i[5]*gradW.z;
+            gradW_new.z = G_i[6]*gradW.x + G_i[7]*gradW.y + G_i[8]*gradW.z;
+            gradW = gradW_new;
+        }
         derivVelRho += DifVelocityRho_ElasticSPH(gradW, dist3, d, invd, 
             sortedPosRad[index], sortedPosRad[j], velMasA, velMasA,
             velMasB, velMasB, rhoPresMuA, rhoPresMuB, multViscosit,
@@ -1295,7 +1293,7 @@ __global__ void NS_SSR( Real4* sortedDerivVelRho,
         if(sortedRhoPreMu[index].w < -0.5){
             // start to calculate the stress rate
             Real Gm = paramsD.G_shear;  // shear modulus of the material
-            Real half_mB_over_rhoB = 0.5 * paramsD.volume0; //(mB / rhoB);
+            Real half_mB_over_rhoB = 0.5 * paramsD.volume0;
             Real3 velMasB_new = velMasB;
             if (rhoPresMuB.w > -1.0) 
                 velMasB_new = 2.0*velMasB - velMasA; // noslip BC
@@ -1309,25 +1307,19 @@ __global__ void NS_SSR( Real4* sortedDerivVelRho,
             Real exz = -vAB_h.x * gradW.z - vAB_h.z * gradW.x;
             Real eyz = -vAB_h.y * gradW.z - vAB_h.z * gradW.y;
             // entries of rotation rate (spin) tensor
-            // Real wxx = 0.0;
-            // Real wyy = 0.0;
-            // Real wzz = 0.0;
             Real wxy = -vAB_h.x * gradW.y + vAB_h.y * gradW.x;
             Real wxz = -vAB_h.x * gradW.z + vAB_h.z * gradW.x;
             Real wyz = -vAB_h.y * gradW.z + vAB_h.z * gradW.y;
-            Real wyx = -wxy;
-            // Real wzx = -wxz;
-            Real wzy = -wyz;
 
             Real edia = 1.0 / 3.0 * (exx + eyy + ezz);
             Real twoGm = 2.0 * Gm;
             Real K_edia = paramsD.K_bulk*1.0*edia;
             dTauxx += twoGm * (exx - edia) + 2.0 * (tauxy * wxy + tauxz * wxz) + K_edia;
-            dTauyy += twoGm * (eyy - edia) - 2.0 * (tauyx * wxy - tauyz * wyz) + K_edia;
-            dTauzz += twoGm * (ezz - edia) - 2.0 * (tauzx * wxz + tauzy * wyz) + K_edia;
-            dTauxy += twoGm * exy - (tauxx * wxy + tauxz * wzy) + (wxy * tauyy + wxz * tauzy);
+            dTauyy += twoGm * (eyy - edia) - 2.0 * (tauxy * wxy - tauyz * wyz) + K_edia;
+            dTauzz += twoGm * (ezz - edia) - 2.0 * (tauxz * wxz + tauyz * wyz) + K_edia;
+            dTauxy += twoGm * exy - (tauxx * wxy - tauxz * wyz) + (wxy * tauyy + wxz * tauyz);
             dTauxz += twoGm * exz - (tauxx * wxz + tauxy * wyz) + (wxy * tauyz + wxz * tauzz);
-            dTauyz += twoGm * eyz - (tauyx * wxz + tauyy * wyz) + (wyx * tauxz + wyz * tauzz);
+            dTauyz += twoGm * eyz - (tauxy * wxz + tauyy * wyz) - (wxy * tauxz - wyz * tauzz);
         }
         // Do integration for the kernel function
         if (d > paramsD.HSML*1.0e-9) {
@@ -1507,7 +1499,7 @@ void ChFsiForceExplicitSPH::CollideWrapper() {
     //------------------------------------------------------------------------
     // thread per particle
     uint numThreads, numBlocks;
-    computeGridSize((int)numObjectsH->numAllMarkers, 128, numBlocks, numThreads);
+    computeGridSize((int)numObjectsH->numAllMarkers, 256, numBlocks, numThreads);
     /* Execute the kernel */
     // thrust::device_vector<Real> _sumWij_rhoi(numObjectsH->numAllMarkers);
     thrust::device_vector<Real4> sortedDerivVelRho(numObjectsH->numAllMarkers);
@@ -1615,7 +1607,7 @@ void ChFsiForceExplicitSPH::CalculateXSPH_velocity() {
     else{
         /* thread per particle */
         uint numThreads, numBlocks;
-        computeGridSize((uint)numObjectsH->numAllMarkers, 128, numBlocks, numThreads);
+        computeGridSize((uint)numObjectsH->numAllMarkers, 256, numBlocks, numThreads);
         thrust::device_vector<Real4> sortedPosRad_old = sortedSphMarkersD->posRadD;
         thrust::fill(vel_XSPH_Sorted_D.begin(), vel_XSPH_Sorted_D.end(), mR3(0.0));
 
