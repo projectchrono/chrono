@@ -449,6 +449,7 @@ __host__ void ChSystemGpuMesh_impl::IdentifyClusters() {
             default: {break;}
         }
         IdentifyGroundCluster(sphere_data, gran_params, nSpheres, h_clusters);
+        IdentifyVolumeCluster(sphere_data, gran_params, nSpheres, h_clusters);
         FreeClusters(h_clusters);
     } else {
         printf("ERROR: Either cluster_graph_method or cluster_search_method not set. Skipping clustering.\n");

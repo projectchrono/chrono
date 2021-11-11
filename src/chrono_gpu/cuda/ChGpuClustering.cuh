@@ -147,14 +147,15 @@ static __global__ void AreSpheresBelowZLim(ChSystemGpu_impl::GranSphereDataPtr s
 // Find if any particle is in the volume cluster.
 // If any sphere in cluster sphere_type == VOLUME -> sphere_cluster = VOLUME
 // UNLESS it is the biggestbiggest cluster -> sphere_cluster = GROUND
-static __global__ void FindVolumeCluster(unsigned int nSpheres,
-                                         bool * visited,
+static __global__ void FindVolumeTypeInCluster(ChSystemGpu_impl::GranSphereDataPtr sphere_data,
+                                         unsigned int nSpheres,
                                          bool * in_volume,
-                                         SPHERE_TYPE* sphere_type) {
+                                         unsigned int cluster) {
     unsigned int mySphereID = threadIdx.x + blockIdx.x * blockDim.x;
     // don't overrun the array
     if (mySphereID < nSpheres) {
-        if ((sphere_type[mySphereID] == SPHERE_TYPE::VOLUME) && (visited[mySphereID])) {
+        if ((sphere_data->sphere_type[mySphereID] == SPHERE_TYPE::VOLUME) &&
+            (sphere_data->sphere_cluster[mySphereID] == cluster)){
             in_volume[mySphereID] = true;
         }
     }
@@ -368,6 +369,11 @@ __host__ unsigned int ** GdbscanSearchGraphByBFS(ChSystemGpu_impl::GranSphereDat
                                       size_t min_pts);
 
 __host__ void IdentifyGroundCluster(ChSystemGpu_impl::GranSphereDataPtr sphere_data,
+                                    ChSystemGpu_impl::GranParamsPtr gran_params,
+                                    unsigned int nSpheres,
+                                    unsigned int ** h_clusters);
+
+__host__ void IdentifyVolumeCluster(ChSystemGpu_impl::GranSphereDataPtr sphere_data,
                                     ChSystemGpu_impl::GranParamsPtr gran_params,
                                     unsigned int nSpheres,
                                     unsigned int ** h_clusters);

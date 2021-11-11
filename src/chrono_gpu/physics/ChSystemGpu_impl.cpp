@@ -79,10 +79,10 @@ ChSystemGpu_impl::ChSystemGpu_impl(float sphere_rad, float density, float3 boxDi
     gran_params->cluster_search_method = CLUSTER_SEARCH_METHOD::BFS;
     gran_params->cluster_ground_method = CLUSTER_GROUND_METHOD::LOWEST;
 
-    gran_params->gdbscan_radius = 0.1f; // [m] ?
+    gran_params->gdbscan_radius = 0.1f;  // [m] ?
     gran_params->gdbscan_min_pts = 3;
-    gran_params->ground_z_lim = -box_size_Z / 2.0f + sphere_rad; 
-    // any sphere below this z-plane makes its cluster GROUND 
+    // any sphere below this z-plane makes its cluster GROUND
+    gran_params->ground_z_lim = -(box_size_Z / 2.0f) + sphere_rad;
 
     this->time_integrator = CHGPU_TIME_INTEGRATOR::EXTENDED_TAYLOR;
     this->output_flags = ABSV | ANG_VEL_COMPONENTS | CLUSTER | ADJACENCY;
@@ -103,6 +103,7 @@ void ChSystemGpu_impl::CreateWallBCs() {
     float plane_center_top_Y[3] = {0, box_size_Y / 2, 0};
     float plane_center_bot_Z[3] = {0, 0, -box_size_Z / 2};
     float plane_center_top_Z[3] = {0, 0, box_size_Z / 2};
+
     // face in upwards
     float plane_normal_bot_X[3] = {1, 0, 0};
     float plane_normal_top_X[3] = {-1, 0, 0};

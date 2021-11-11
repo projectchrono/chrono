@@ -52,12 +52,8 @@ static __host__ unsigned int ** ClusterSearchBFS(unsigned int nSpheres,
 
     // border_num: number of remaining border vertices to search in BFS_kernel
     unsigned int * d_border_num;
-    unsigned int * h_border_num = (unsigned int *)malloc(sizeof(*h_border_num)); 
-    // in_volume_num: number of spheres inside the volume mesh
-    unsigned int * d_in_volume_num;
-    unsigned int * h_in_volume_num = (unsigned int *)malloc(sizeof(*h_in_volume_num)); 
     gpuErrchk(cudaMalloc((void**)&d_border_num, sizeof(*d_border_num)));
-    gpuErrchk(cudaMalloc((void**)&d_in_volume_num, sizeof(*d_in_volume_num)));
+    unsigned int * h_border_num = (unsigned int *)malloc(sizeof(*h_border_num)); 
     gpuErrchk(cudaPeekAtLastError());
     gpuErrchk(cudaDeviceSynchronize());
 
@@ -65,10 +61,8 @@ static __host__ unsigned int ** ClusterSearchBFS(unsigned int nSpheres,
     bool * d_visited;  // [mySphereID] -> was vertex d_visited in BFS_kernel?
     bool * h_visited;  // [mySphereID] -> host of d_visited
     bool * h_searched;  // [mySphereID] -> was vertex searched before?
-    bool * d_in_volume;  // [mySphereID] -> is particle inside the volume?
     gpuErrchk(cudaMalloc((void**)&d_borders, sizeof(*d_borders) * nSpheres));
     gpuErrchk(cudaMalloc((void**)&d_visited, sizeof(*d_visited) * nSpheres));
-    gpuErrchk(cudaMalloc((void**)&d_in_volume, sizeof(*d_in_volume) * nSpheres));
     gpuErrchk(cudaPeekAtLastError());
     gpuErrchk(cudaDeviceSynchronize());
 
@@ -84,7 +78,6 @@ static __host__ unsigned int ** ClusterSearchBFS(unsigned int nSpheres,
         if ((!h_searched[i]) && (h_current_type == SPHERE_TYPE::CORE)) {
             cudaMemset(d_borders, false, sizeof(*d_borders) * nSpheres);
             cudaMemset(d_visited, false, sizeof(*d_visited) * nSpheres);
-            cudaMemset(d_in_volume, false, sizeof(*d_in_volume) * nSpheres);
             cudaMemset(&d_borders[i], true, sizeof(*d_borders));
             gpuErrchk(cudaPeekAtLastError());
             gpuErrchk(cudaDeviceSynchronize());
@@ -121,44 +114,15 @@ static __host__ unsigned int ** ClusterSearchBFS(unsigned int nSpheres,
                 gpuErrchk(cudaDeviceSynchronize());
             } while ((*h_border_num) > 0);
 
-            // find if any sphere was tagged in the VOLUME type
-            FindVolumeCluster<<<nBlocks, CUDA_THREADS_PER_BLOCK>>>(
-                nSpheres,
-                d_visited,
-                d_in_volume,
-                sphere_data->sphere_type);
-            // Sum number of particles in d_in_volume into h_in_volume_num
-            void *d_temp_storage = NULL;
-            size_t temp_storage_bytes = 0;
-            // Determine temporary device storage requirements
-            cub::DeviceReduce::Sum(d_temp_storage, temp_storage_bytes,
-                                   d_in_volume, d_in_volume_num, nSpheres);
-            // find and visit border points, establishing the cluster
-            gpuErrchk(cudaMalloc(&d_temp_storage, temp_storage_bytes));
-            gpuErrchk(cudaPeekAtLastError());
-            gpuErrchk(cudaDeviceSynchronize());
-            cub::DeviceReduce::Sum(d_temp_storage, temp_storage_bytes,
-                                   d_in_volume, d_in_volume_num, nSpheres);
-            cudaMemcpy(h_in_volume_num, d_in_volume_num,
-                       sizeof(*d_in_volume_num), cudaMemcpyDeviceToHost);
-            gpuErrchk(cudaFree(d_temp_storage));
-            gpuErrchk(cudaPeekAtLastError());
-            gpuErrchk(cudaDeviceSynchronize());
-
             cudaMemcpy(h_visited, d_visited, sizeof(*d_visited) * nSpheres,
                        cudaMemcpyDeviceToHost);
             h_cluster = (unsigned int *)calloc((nSpheres + 1), sizeof(*h_cluster));
             // h_cluster[0] is its size, so it length nSpheres + 1
             assert(h_cluster[0] == 0);
 
-            unsigned int cluster_index;
-            // if any sphere is in the volume, the cluster is VOLUME
-            // gets overwritten by the GROUND cluster later
-            if (*h_in_volume_num > 0) {
-                cluster_index = static_cast<unsigned int>(chrono::gpu::CLUSTER_INDEX::VOLUME);
-            }  else {
-                cluster_index = h_cluster_num + static_cast<unsigned int>(chrono::gpu::CLUSTER_INDEX::START);
-            }
+            // First pass of tagging spheres to cluster
+            // GROUND and VOLUME clusters come later
+            unsigned int cluster_index = h_cluster_num + static_cast<unsigned int>(chrono::gpu::CLUSTER_INDEX::START);
 
             for (size_t j = 0; j < nSpheres; j++) {
                 if (h_visited[j]) {
@@ -185,11 +149,8 @@ static __host__ unsigned int ** ClusterSearchBFS(unsigned int nSpheres,
     free(h_visited);
     free(h_searched);
     free(h_border_num);
-    free(h_in_volume_num);
     gpuErrchk(cudaFree(d_borders));
     gpuErrchk(cudaFree(d_border_num));
-    gpuErrchk(cudaFree(d_in_volume_num));
-    gpuErrchk(cudaFree(d_in_volume));
     gpuErrchk(cudaFree(d_visited));
     assert(h_clusters[0][0] == h_cluster_num);
     assert(h_clusters[0][0] <= nSpheres);
@@ -289,7 +250,7 @@ __host__ void IdentifyGroundClusterByLowest(
         gpuErrchk(cudaDeviceSynchronize());
 
         printf("DeviceReduce::Sum \n");
-        // Sum number of particles in d_in_volume into h_in_volume_num
+        // Sum number of particles in below z_lim
         void *d_temp_storage = NULL;
         size_t temp_storage_bytes = 0;
         // Determine temporary device storage requirements
@@ -371,6 +332,80 @@ __host__ void IdentifyGroundClusterByBiggest(
     gpuErrchk(cudaDeviceSynchronize());
 }
 
+__host__ void IdentifyVolumeCluster(ChSystemGpu_impl::GranSphereDataPtr sphere_data,
+                                    ChSystemGpu_impl::GranParamsPtr gran_params,
+                                    unsigned int nSpheres,
+                                    unsigned int ** h_clusters) {
+    unsigned int nBlocks = (nSpheres + CUDA_THREADS_PER_BLOCK - 1) / CUDA_THREADS_PER_BLOCK;
+
+    /// sets sphere_type to VOLUME if inside a mesh
+    /// must be set AFTER GdbscanInitSphereType,
+    /// and AFTER interactionGranMat_TriangleSoup,
+    /// which is AFTER AdvanceSimulation
+    SetVolumeSphereType<<<nBlocks, CUDA_THREADS_PER_BLOCK>>>(sphere_data,
+                                                             nSpheres);
+    gpuErrchk(cudaPeekAtLastError());
+    gpuErrchk(cudaDeviceSynchronize());
+
+    // in_volume_num: number of spheres inside the volume mesh
+    unsigned int * d_in_volume_num;
+    unsigned int * h_in_volume_num = (unsigned int *)malloc(sizeof(*h_in_volume_num));
+    gpuErrchk(cudaMalloc((void**)&d_in_volume_num, sizeof(*d_in_volume_num)));
+    gpuErrchk(cudaPeekAtLastError());
+    gpuErrchk(cudaDeviceSynchronize());
+    bool * d_in_volume;  // [mySphereID] -> is particle inside the volume?
+    gpuErrchk(cudaMalloc((void**)&d_in_volume, sizeof(*d_in_volume) * nSpheres));
+    gpuErrchk(cudaPeekAtLastError());
+    gpuErrchk(cudaDeviceSynchronize());
+    unsigned int cluster_num = h_clusters[0][0];
+
+    for (size_t i = 1; i < (cluster_num + 1); i++) {
+        cudaMemset(d_in_volume, false, sizeof(*d_in_volume) * nSpheres);
+        unsigned int * h_cluster = h_clusters[i];
+        unsigned int cluster_index = i + static_cast<unsigned int>(chrono::gpu::CLUSTER_INDEX::START);
+
+        // find if any sphere in cluster was tagged in the VOLUME type
+        // puts everything to fasle if sphere is in GROUND
+        FindVolumeTypeInCluster<<<nBlocks, CUDA_THREADS_PER_BLOCK>>>(sphere_data,
+                                                               nSpheres,
+                                                               d_in_volume,
+                                                               cluster_index);
+        // Sum number of particles in d_in_volume into h_in_volume_num
+        void *d_temp_storage = NULL;
+        size_t temp_storage_bytes = 0;
+        // Determine temporary device storage requirements
+        cub::DeviceReduce::Sum(d_temp_storage, temp_storage_bytes,
+                               d_in_volume, d_in_volume_num, nSpheres);
+        // find and visit border points, establishing the cluster
+        gpuErrchk(cudaMalloc(&d_temp_storage, temp_storage_bytes));
+        gpuErrchk(cudaPeekAtLastError());
+        gpuErrchk(cudaDeviceSynchronize());
+        cub::DeviceReduce::Sum(d_temp_storage, temp_storage_bytes,
+                               d_in_volume, d_in_volume_num, nSpheres);
+        cudaMemcpy(h_in_volume_num, d_in_volume_num,
+                   sizeof(*d_in_volume_num), cudaMemcpyDeviceToHost);
+        gpuErrchk(cudaFree(d_temp_storage));
+        gpuErrchk(cudaPeekAtLastError());
+        gpuErrchk(cudaDeviceSynchronize());
+
+        // if any sphere is in the volume, the cluster is VOLUME
+        // UNLESS it is GROUND
+        if (*h_in_volume_num > 0) {
+            unsigned int volume_cluster = static_cast<unsigned int>(chrono::gpu::CLUSTER_INDEX::VOLUME);
+            unsigned int sphere_num_in_cluster = h_cluster[0];
+            for (size_t j = 1; j < (sphere_num_in_cluster + 1); j++) {
+                if (sphere_data->sphere_cluster[h_cluster[j]] != static_cast<unsigned int>(chrono::gpu::CLUSTER_INDEX::GROUND)) {
+                    sphere_data->sphere_cluster[h_cluster[j]] = volume_cluster;
+                }
+            }
+        }
+    }
+    gpuErrchk(cudaFree(d_in_volume_num));
+    gpuErrchk(cudaFree(d_in_volume));
+    free(h_in_volume_num);
+}
+
+
 /// Finds the GROUND cluster using method in gran_params
 __host__ void IdentifyGroundCluster(ChSystemGpu_impl::GranSphereDataPtr sphere_data,
                                     ChSystemGpu_impl::GranParamsPtr gran_params,
@@ -415,16 +450,6 @@ __host__ unsigned int ** GdbscanSearchGraphByBFS(ChSystemGpu_impl::GranSphereDat
                                                                gran_params->gdbscan_min_pts);
     gpuErrchk(cudaPeekAtLastError());
     gpuErrchk(cudaDeviceSynchronize());
-
-    /// sets sphere_type to VOLUME if inside a mesh
-    /// must be set AFTER GdbscanInitSphereType,
-    ///  and AFTER interactionGranMat_TriangleSoup,
-    ///  which is AFTER AdvanceSimulation
-    SetVolumeSphereType<<<nBlocks, CUDA_THREADS_PER_BLOCK>>>(sphere_data,
-                                                             nSpheres);
-    gpuErrchk(cudaPeekAtLastError());
-    gpuErrchk(cudaDeviceSynchronize());
-
 
     unsigned int ** h_clusters = ClusterSearchBFS(nSpheres, sphere_data,
                                                   sphere_data->adj_num,
