@@ -88,10 +88,17 @@ set(CTEST_MEMORYCHECK_COMMAND "/usr/bin/valgrind")
 set(CTEST_MEMORYCHECK_COMMAND_OPTIONS "-v --tool=memcheck --leak-check=full --track-fds=yes --num-callers=50 --show-reachable=yes --track-origins=yes --malloc-fill=0xff --free-fill=0xfe")
 
 if (NOT WIN32)
-    find_program(CCACHE_EXE ccache)
-    if(CCACHE_EXE)
-        set_property(GLOBAL PROPERTY RULE_LAUNCH_COMPILE "${CCACHE_EXE}")
-    endif()
+	option(USE_CCACHE "Build using ccache compiler driver" OFF) 
+
+	if (USE_CCACHE)
+		find_program(CCACHE_EXE ccache)
+		if(CCACHE_EXE)
+	        set_property(GLOBAL PROPERTY RULE_LAUNCH_COMPILE "${CCACHE_EXE}")
+	    endif()
+	else()
+		unset(CCACHE_EXE CACHE)
+		set_property(GLOBAL PROPERTY RULE_LAUNCH_COMPILE)
+	endif()
 endif()
 
 #-----------------------------------------------------------------------------
@@ -201,11 +208,13 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
     set(CH_INSTALL_DATA "data")
     set(CH_INSTALL_DEMO "bin")
     set(CH_INSTALL_SAMPLE_PROJ "template_project")
+    set(CH_INSTALL_SAMPLE_PROJ_COSIM "template_project_vehicle_cosim")
     set(CH_INSTALL_PYTHON "bin")
 else()
     set(CH_INSTALL_DATA "share/chrono/data")
     set(CH_INSTALL_DEMO "share/chrono/bin")
     set(CH_INSTALL_SAMPLE_PROJ "share/chrono/template_project")
+    set(CH_INSTALL_SAMPLE_PROJ_COSIM "share/chrono/template_project_vehicle_cosim")
     set(CH_INSTALL_PYTHON "share/chrono/python")
 endif()
 
@@ -223,6 +232,7 @@ endif()
 
 install(DIRECTORY ${CMAKE_SOURCE_DIR}/data/ DESTINATION ${CH_INSTALL_DATA})
 install(DIRECTORY ${CMAKE_SOURCE_DIR}/template_project/ DESTINATION ${CH_INSTALL_SAMPLE_PROJ})
+install(DIRECTORY ${CMAKE_SOURCE_DIR}/template_project_vehicle_cosim/ DESTINATION ${CH_INSTALL_SAMPLE_PROJ_COSIM})
 
 #------------------------------------------------------------
 # Defer configuration of all Chrono libraries and programs

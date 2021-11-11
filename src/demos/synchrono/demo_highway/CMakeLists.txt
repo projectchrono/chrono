@@ -13,6 +13,11 @@ set(DEMOS
 
 #--------------------------------------------------------------
 
+if(USE_FAST_DDS)
+  find_package(fastcdr REQUIRED)
+  find_package(fastrtps REQUIRED)
+endif()
+
 include_directories(${SYN_INCLUDES})
 
 foreach(PROGRAM ${DEMOS})

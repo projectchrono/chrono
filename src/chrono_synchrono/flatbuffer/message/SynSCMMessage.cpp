@@ -29,16 +29,15 @@ namespace Terrain = SynFlatBuffers::Terrain;
 namespace SCM = SynFlatBuffers::Terrain::SCM;
 
 /// Constructors
-SynSCMMessage::SynSCMMessage(unsigned int source_id, unsigned int destination_id)
-    : SynMessage(source_id, destination_id) {}
+SynSCMMessage::SynSCMMessage(AgentKey source_key, AgentKey destination_key) : SynMessage(source_key, destination_key) {}
 
 void SynSCMMessage::ConvertFromFlatBuffers(const SynFlatBuffers::Message* message) {
     // System of casts from SynFlatBuffers::Message to SynFlatBuffers::Terrain::SCM::State
     if (message->message_type() != SynFlatBuffers::Type_Terrain_State)
         return;
 
-    m_source_id = message->source_id();
-    m_destination_id = message->destination_id();
+    m_source_key = AgentKey(message->source_key());
+    m_destination_key = message->destination_key();
 
     auto terrain_state = message->message_as_Terrain_State();
     auto state = terrain_state->message_as_SCM_State();
@@ -65,10 +64,11 @@ FlatBufferMessage SynSCMMessage::ConvertToFlatBuffers(flatbuffers::FlatBufferBui
     auto scm_state = SCM::CreateStateDirect(builder, time, &modified_nodes);
 
     auto flatbuffer_state = Terrain::CreateState(builder, Terrain::Type::Type_SCM_State, scm_state.Union());
-    auto flatbuffer_message = SynFlatBuffers::CreateMessage(builder,                             //
-                                                            SynFlatBuffers::Type_Terrain_State,  //
-                                                            flatbuffer_state.Union(),            //
-                                                            m_source_id, m_destination_id);      //
+    auto flatbuffer_message =
+        SynFlatBuffers::CreateMessage(builder,                                                                   //
+                                      SynFlatBuffers::Type_Terrain_State,                                        //
+                                      flatbuffer_state.Union(),                                                  //
+                                      m_source_key.GetFlatbuffersKey(), m_destination_key.GetFlatbuffersKey());  //
 
     return flatbuffers::Offset<SynFlatBuffers::Message>(flatbuffer_message);
 }

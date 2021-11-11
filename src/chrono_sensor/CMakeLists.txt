@@ -108,7 +108,7 @@ if(USE_CUDA_NVRTC)
   else()
     list(APPEND LIBRARIES ${CUDA_NVRTC_LIBRARY})
     add_definitions( -DUSE_CUDA_NVRTC )
-    add_definitions( -DSENSOR_CUDA_SRC_DIR="${CMAKE_CURRENT_SOURCE_DIR}/optix/shaders/" )
+    add_definitions( -DCMAKE_SHADER_OUTPUT_PATH="${CMAKE_CURRENT_SOURCE_DIR}/optix/shaders/" )
 
     #set(CUDA_NVRTC_FLAGS -arch compute_30 -use_fast_math -lineinfo -default-device -rdc true -D__x86_64 CACHE STRING "NVRTC flags as list." FORCE)
     set(CUDA_NVRTC_FLAGS -use_fast_math -std=c++11 -default-device -rdc true -D__x86_64 CACHE STRING "NVRTC flags as list." FORCE)
@@ -209,7 +209,24 @@ source_group("Cuda" FILES
 #-----------------------------------------------------------------------------
 # LIST THE FILES THAT MAKE THE CORE SENSOR LIBRARY
 #-----------------------------------------------------------------------------
+
+
 set(ChronoEngine_sensor_SOURCES
+    ChSensorManager.cpp
+    ChDynamicsManager.cpp
+)
+set(ChronoEngine_sensor_HEADERS
+  	ChApiSensor.h
+    ChSensorManager.h
+    ChDynamicsManager.h
+)
+
+source_group("Source" FILES
+    ${ChronoEngine_sensor_SOURCES}
+  	${ChronoEngine_sensor_HEADERS}
+)
+
+set(ChronoEngine_sensor_SENSORS_SOURCES
     sensors/ChSensor.cpp
     sensors/ChNoiseModel.cpp
     sensors/ChOptixSensor.cpp
@@ -220,12 +237,9 @@ set(ChronoEngine_sensor_SOURCES
     sensors/ChIMUSensor.cpp
     sensors/ChGPSSensor.cpp
     sensors/ChTachometerSensor.cpp
-    ChSensorManager.cpp
-    ChDynamicsManager.cpp
     sensors/Sensor.cpp
 )
-set(ChronoEngine_sensor_HEADERS
-  	ChApiSensor.h
+set(ChronoEngine_sensor_SENSORS_HEADERS
     sensors/ChSensor.h
     sensors/ChNoiseModel.h
     sensors/ChOptixSensor.h
@@ -236,15 +250,13 @@ set(ChronoEngine_sensor_HEADERS
     sensors/ChIMUSensor.h
     sensors/ChGPSSensor.h
     sensors/ChTachometerSensor.h
-    ChSensorManager.h
-    ChDynamicsManager.h
   	sensors/ChSensorBuffer.h
     sensors/Sensor.h
 )
 
 source_group("Source" FILES
-    ${ChronoEngine_sensor_SOURCES}
-  	${ChronoEngine_sensor_HEADERS}
+    ${ChronoEngine_sensor_SENSORS_SOURCES}
+  	${ChronoEngine_sensor_SENSORS_HEADERS}
 )
 
 #-----------------------------------------------------------------------------
@@ -413,8 +425,8 @@ CUDA_WRAP_SRCS(ChronoEngine_sensor OBJ generated_obj_files ${ChronoEngine_sensor
 
 # Generate the PTX files only if NVRTC is disabled
 if(NOT USE_CUDA_NVRTC)
-  set(CUDA_GENERATED_OUTPUT_DIR "${CMAKE_BINARY_DIR}/sensor_ptx")
-  add_definitions( -DPTX_GENERATED_PATH="${CUDA_GENERATED_OUTPUT_DIR}/" )
+  set(CUDA_GENERATED_OUTPUT_DIR "${CMAKE_BINARY_DIR}/lib/sensor_ptx")
+  add_definitions(-DCMAKE_SHADER_OUTPUT_PATH="${CUDA_GENERATED_OUTPUT_DIR}/")
   CUDA_WRAP_SRCS(ChronoEngine_sensor PTX generated_rt_files ${ChronoEngine_sensor_RT_SOURCES} )
   source_group("Generated Files" FILES ${generated_rt_files})
 endif()
@@ -429,6 +441,8 @@ set(CUDA_GENERATED_OUTPUT_DIR "")
 
 list(APPEND ALL_CH_SENSOR_FILES ${ChronoEngine_sensor_SOURCES})
 list(APPEND ALL_CH_SENSOR_FILES ${ChronoEngine_sensor_HEADERS})
+list(APPEND ALL_CH_SENSOR_FILES ${ChronoEngine_sensor_SENSORS_SOURCES})
+list(APPEND ALL_CH_SENSOR_FILES ${ChronoEngine_sensor_SENSORS_HEADERS})
 list(APPEND ALL_CH_SENSOR_FILES ${ChronoEngine_sensor_UTILS_SOURCES})
 list(APPEND ALL_CH_SENSOR_FILES ${ChronoEngine_sensor_UTILS_HEADERS})
 list(APPEND ALL_CH_SENSOR_FILES ${ChronoEngine_sensor_OPTIX_SOURCES})
@@ -529,6 +543,8 @@ install(TARGETS ChronoEngine_sensor
 
 install(FILES ${ChronoEngine_sensor_HEADERS}
 		DESTINATION include/chrono_sensor)
+install(FILES ${ChronoEngine_sensor_SENSORS_HEADERS}
+		DESTINATION include/chrono_sensor/sensors)
 install(FILES ${ChronoEngine_sensor_UTILS_HEADERS}
 		DESTINATION include/chrono_sensor/utils)
 install(FILES ${ChronoEngine_sensor_OPTIX_HEADERS}
@@ -539,3 +555,13 @@ install(FILES ${ChronoEngine_sensor_CUDA_HEADERS}
       DESTINATION include/chrono_sensor/cuda)
 install(FILES ${ChronoEngine_sensor_SCENE_HEADERS}
       DESTINATION include/chrono_sensor/optix/scene)
+
+
+IF(NOT USE_CUDA_NVRTC)
+  install(FILES ${generated_rt_files}
+        DESTINATION lib/sensor_ptx)
+ELSE()
+  install(FILES ${ChronoEngine_sensor_RT_SOURCES}
+        DESTINATION include/chrono_sensor/optix/shaders)  
+ENDIF()
+

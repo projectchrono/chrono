@@ -73,17 +73,6 @@ int main(int argc, char* argv[]) {
     int num_nodes = communicator->GetNumRanks();
     SynChronoManager syn_manager(node_id, num_nodes, communicator);
 
-    /*
-#ifdef _DEBUG
-    if (node_id == 0) {
-        int foo;
-        std::cout << "Enter something to continue..." << std::endl;
-        std::cin >> foo;
-    }
-    MPI_Barrier(MPI_COMM_WORLD);
-#endif
-    */
-
     // Copyright
     if (node_id == 0) {
         SynLog() << "Copyright (c) 2020 projectchrono.org\n";
@@ -236,7 +225,7 @@ int main(int argc, char* argv[]) {
         app->SetSkyBox();
         app->AddTypicalLights(irr::core::vector3df(30.f, -30.f, 100.f), irr::core::vector3df(30.f, 50.f, 100.f), 250,
                               130);
-        app->SetChaseCamera(ChVector<>(0.0, 0.0, 1.75), 6.0, 0.5);
+        app->SetChaseCamera(ChVector<>(0.0, 0.0, 1.75), 16.0, 0.5);
         app->SetTimestep(step_size);
         app->AssetBindAll();
         app->AssetUpdateAll();

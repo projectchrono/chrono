@@ -23,7 +23,7 @@
 
 #include "chrono_vehicle/utils/ChUtilsJSON.h"
 #include "chrono_vehicle/ChVehicleModelData.h"
-
+#include "chrono_thirdparty/filesystem/path.h"
 #include "chrono_vehicle/chassis/ChRigidChassis.h"
 
 using namespace chrono::vehicle;
@@ -33,8 +33,8 @@ namespace synchrono {
 
 SynTrackedVehicleAgent::SynTrackedVehicleAgent(ChTrackedVehicle* vehicle, const std::string& filename)
     : SynAgent(), m_vehicle(vehicle) {
-    m_state = chrono_types::make_shared<SynTrackedVehicleStateMessage>(0, 0);
-    m_description = chrono_types::make_shared<SynTrackedVehicleDescriptionMessage>(0, 0);
+    m_state = chrono_types::make_shared<SynTrackedVehicleStateMessage>();
+    m_description = chrono_types::make_shared<SynTrackedVehicleDescriptionMessage>();
 
     if (!filename.empty())
         SetZombieVisualizationFilesFromJSON(filename);
@@ -122,10 +122,10 @@ void SynTrackedVehicleAgent::SetZombieVisualizationFilesFromJSON(const std::stri
     m_description->SetZombieVisualizationFilesFromJSON(filename);
 }
 
-void SynTrackedVehicleAgent::SetID(SynAgentID aid) {
-    m_description->SetSourceID(aid);
-    m_state->SetSourceID(aid);
-    m_aid = aid;
+void SynTrackedVehicleAgent::SetKey(AgentKey agent_key) {
+    m_description->SetSourceKey(agent_key);
+    m_state->SetSourceKey(agent_key);
+    m_agent_key = agent_key;
 }
 
 // ------------------------------------------------------------------------
@@ -138,7 +138,7 @@ std::shared_ptr<ChTriangleMeshShape> SynTrackedVehicleAgent::CreateMeshZombieCom
     auto trimesh = chrono_types::make_shared<ChTriangleMeshShape>();
     trimesh->SetMesh(mesh);
     trimesh->SetStatic(true);
-    trimesh->SetName(filename);
+    trimesh->SetName(filesystem::path(filename).stem());
 
     return trimesh;
 }

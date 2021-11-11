@@ -242,8 +242,3 @@ if (DEFINED ${CUB_INCLUDE_DIR})
     	    DESTINATION include/chrono_thirdparty
 	        FILES_MATCHING PATTERN "*.h" PATTERN "*.cuh" PATTERN "*.hpp" PATTERN "*.inl")
 endif()
-
-install(DIRECTORY ${CMAKE_SOURCE_DIR}/src/chrono_thirdparty/chpf
-        DESTINATION include/chrono_thirdparty
-        FILES_MATCHING PATTERN "*.hpp"
-)

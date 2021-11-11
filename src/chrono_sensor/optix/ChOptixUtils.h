@@ -45,6 +45,7 @@ namespace sensor {
 /// @addtogroup sensor_optix
 /// @{
 
+
 /// Checks the output of an optix call for any error, will throw a runtime error if not success
 #define OPTIX_ERROR_CHECK(result) { \
     if (result != OPTIX_SUCCESS) { \
@@ -183,10 +184,22 @@ CH_SENSOR_API ByteImageData LoadByteImage(std::string filename);
 /// @param s
 // void UpdateTransform(optix::Transform t, ChMatrix33<double> a, ChVector<double> b, ChVector<double> s);
 
-/// prefix for ptx file
-const std::string ptx_pre = "ChronoEngine_sensor_generated_";
-/// suffix for ptx file
-const std::string ptx_suff = ".cu.ptx";
+class SensorConfig{
+public:
+    static std::string ptx_pre; //= "ChronoEngine_sensor_generated_";
+    static std::string ptx_suff;// = ".cu.ptx";
+    static std::string SENSOR_SHADER_DIR;// = std::string(CMAKE_SHADER_OUTPUT_PATH);
+};
+
+CH_SENSOR_API void SetSensorShaderDir(std::string path);
+
+// /// prefix for ptx file
+// const std::string ptx_pre = "ChronoEngine_sensor_generated_";
+// /// suffix for ptx file
+// const std::string ptx_suff = ".cu.ptx";
+
+// extern std::string SENSOR_SHADER_DIR;// = "test"; //std::string(CMAKE_SHADER_OUTPUT_PATH);
+
 
 /// @} sensor_optix
 

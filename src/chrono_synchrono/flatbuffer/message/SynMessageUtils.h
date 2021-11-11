@@ -30,6 +30,29 @@
 namespace chrono {
 namespace synchrono {
 
+class SYN_API AgentKey {
+  public:
+    AgentKey() : AgentKey(-1, -1) {}
+    AgentKey(int node_id, int agent_id);
+    AgentKey(const SynFlatBuffers::AgentKey* agent_key) : AgentKey(agent_key->node_id(), agent_key->agent_id()){};
+
+    std::string GetKeyString() const;
+
+    std::size_t operator()(const AgentKey& k) const { return k.m_unique_id; }
+    bool operator==(const AgentKey& other) const { return m_unique_id == other.GetUniqueID(); }
+    bool operator<(const AgentKey& other) const { return m_unique_id < other.GetUniqueID(); }
+
+    int GetNodeID() const { return m_node_id; }
+    int GetAgentID() const { return m_agent_id; }
+    int GetUniqueID() const { return m_unique_id; }
+    const SynFlatBuffers::AgentKey* const GetFlatbuffersKey() const;
+
+  private:
+    int m_node_id;
+    int m_agent_id;
+    int m_unique_id;
+};
+
 /// @addtogroup synchrono_flatbuffer
 /// @{
 

@@ -74,6 +74,8 @@
 #include "chrono_sensor/sensors/ChNoiseModel.h"
 #include "chrono_sensor/optix/scene/ChScene.h"
 #include "chrono_sensor/optix/ChOptixDefinitions.h"
+#include "chrono_sensor/optix/ChOptixUtils.h"
+
 /// FILTERS
 #include "chrono_sensor/filters/ChFilter.h"
 #include "chrono_sensor/filters/ChFilterAccess.h"
@@ -309,6 +311,7 @@ using namespace chrono::sensor;
 
 %include "chrono_sensor/optix/scene/ChScene.h"
 %include "chrono_sensor/optix/ChOptixDefinitions.h"
+%include "chrono_sensor/optix/ChOptixUtils.h"
 %include "chrono_sensor/utils/ChGPSUtils.h"
 
 %include "chrono_sensor/sensors/ChSensor.h"
@@ -351,6 +354,15 @@ using namespace chrono::sensor;
 %template(GetMostRecentGyroBuffer) chrono::sensor::ChSensor::GetMostRecentBuffer< std::shared_ptr < chrono::sensor::SensorBufferT<std::shared_ptr<chrono::sensor::GyroData[]>>> > ;
 %template(GetMostRecentMagnetBuffer) chrono::sensor::ChSensor::GetMostRecentBuffer< std::shared_ptr < chrono::sensor::SensorBufferT<std::shared_ptr<chrono::sensor::MagnetData[]>>> > ;
 %template(GetMostRecentGPSBuffer) chrono::sensor::ChSensor::GetMostRecentBuffer< std::shared_ptr < chrono::sensor::SensorBufferT<std::shared_ptr<chrono::sensor::GPSData[]>>> > ;
+
+
+
+%extend chrono::sensor::SensorConfig<std::shared_ptr<chrono::sensor::PixelDI[]>> {
+        public:
+        bool HasData() {
+            return !($self->Buffer==NULL);
+        }
+};
 
 //
 // ADDITIONAL C++ FUNCTIONS / CLASSES THAT ARE USED ONLY FOR PYTHON WRAPPER

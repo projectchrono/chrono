@@ -367,7 +367,7 @@ int main(int argc, char* argv[]) {
 
 void AddCommandLineOptions(ChCLI& cli) {
     // Standard demo options
-    cli.AddOption<double>("Simulation", "s,step_size", "Step size", "1e-3");
+    cli.AddOption<double>("Simulation", "s,step_size", "Step size", "5e-4");
     cli.AddOption<double>("Simulation", "e,end_time", "End time", "1000");
     cli.AddOption<double>("Simulation", "b,heartbeat", "Heartbeat", "1e-2");
     cli.AddOption<std::string>("Simulation", "c,contact_method", "Contact Method", "SMC", "NSC/SMC");

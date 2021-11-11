@@ -22,6 +22,7 @@ Change Log
   - [New tracked vehicle model](#added-new-tracked-vehicle-model)
   - [Support for Z up camera in Chrono::Irrlicht](#changed-support-for-z-up-camera-in-chronoirrlicht)
   - [Reading and writing collision meshes in Chrono::Gpu](#changed-reading-and-writing-collision-meshes-in-chronogpu)
+  - [Support compiling to WebAssembly](#added-support-for-the-emscripten-compiler-targeting-webassembly)
 - [Release 6.0.0](#release-600---2021-02-10) 
   - [New Chrono::Csharp module](#added-new-chronocsharp-module)
   - [RoboSimian, Viper, and LittleHexy models](#added-robosimian-viper-and-littlehexy-models)
@@ -103,26 +104,23 @@ The design of the co-simulation framework is such that all inter-node co-simulat
 For consistency with the main Chrono module and other optional Chrono modules, the Chrono::FSI API was changed as follows: 
 
 - The user's interaction with the Chrono::FSI module was streamlined by exposing in the public API a single Chrono::FSI system object (of type `ChSystemFsi` ) and hiding the underlying implementation in a private class. 
-
 - User code only needs to include one Chrono::Fsi header in their project, namely `chrono_fsi/ChSystemFsi.h` and need not include any of the utility header files from `utils/`.
-
 - Users can use standard C++ types to declare a scalar, and use Chrono types (`ChVector`, `ChQuaternion`, etc) to declare vectors, quaternions, etc. 
-
 - The initialization of the parameters from a JSON file was changed from fsi::utils::ParseJSON() to `myFsiSystem.SetSimParameter()`, assuming the user has created an FSI system `myFsiSystem`. 
-
 - A new function was added to set periodic boundary condition: `ChSystemFsi::SetBoundaries()`. 
-
 - The function used to finalize the subdomains was changed from fsi::utils::FinalizeDomain() to `ChSystemFsi::SetSubDomain()`.
-
 - The function used to set the output directory was changed from utils::PrepareOutputDir() to `ChSystemFsi::SetFsiOutputDir()`.
-
 - The function used to add SPH particles was changed from myFsiSystem.GetDataManager()->AddSphMarker() to `ChSystem::AddSphMarker()`. 
-
 - The functions used to add BCE particles were changed along the same lines; for instance, to add BCE particles for a cylinder, use `ChSystemFsi::AddBceCylinder()`. 
-
 - The function used to output data was changed from fsi::utils::PrintToFile() to `ChSystemFsi::PrintParticleToFile()`. 
 
 See the updated FSI demo programs for usage of the new Chrono::Fsi API.
+
+**Added - Option to build Chrono::FSI in single precision**
+
+- Users can optionally configure Chrono::FSI in single precision by unsetting the CMake variable `USE_FSI_DOUBLE`
+- By default, Chrono::FSI is configured and built in double precision
+- Users shgould be careful opting for single precision as this can adversely impact simulation results
 
 
 ### [Changed] Sensor to improve performance and added features 
@@ -134,7 +132,7 @@ See the updated FSI demo programs for usage of the new Chrono::Fsi API.
  - sensors have been moved to `src/chrono_sensor/sensors/` to cleanup directory structure
  - all optix-dependent code was moved to `src/chrono_sensor/optix` to consolidate the dependency
 
-**Changed - IMU to Accelerometer and Gyroscope:**
+**Changed - IMU to accelerometer and gyroscope:**
  - Split the IMU sensor into its components (ChAccelerometerSensor and ChGyroscopeSensor) to facilitate additional sensors. Using both sensors together with same update rate will produce the same behavior as the original IMU. These sensors are still maintained under `ChIMUSensor.h and ChIMUSensor.cpp`
   ```cpp
   ChAccelerometerSensor(std::shared_ptr<chrono::ChBody> parent, float updateRate, chrono::ChFrame<double> offsetPose, std::shared_ptr<ChNoiseModel> noise_model);
@@ -761,6 +759,25 @@ or write a particular mesh to a file by
 ```cpp
     void WriteMesh(const std::string& outfilename, unsigned int i) const;
 ```
+
+### [Added] Support for the Emscripten compiler targeting WebAssembly
+
+Chrono now provides limited support for compiling to WebAssembly and running in browser or Node.js. The core library is supported along with Chrono::OpenGL and Chrono::Vehicle. It is recommended to use the `emcmake` wrapper and Ninja generator when targeting WASM to ensure that all of the configuration options are set correctly. 
+
+```sh
+cd build
+emcmake ccmake -G Ninja ..
+ninja
+``` 
+
+**Changed - Shaders embedded using embedfile.cpp are now generated in pure CMake**
+
+This allows for cross-compilation which is necessary for WASM. 
+
+**Changed - OpenGL components now target OpenGL ES 3.0**
+
+WebAssembly platforms typically use WebGL, which maintains a feature set roughly on par with OpenGL ES. WebGL 2.0 is able to emulate almost all of OpenGL ES 3.0, which is similar to the capabilities of the previously supported target of OpenGL 3.3. This modification should also improve overall Chrono::OpenGL performance on low-power rendering hardware such as ultra-portable laptops or mobile devices. 
+
 
 ## Release 6.0.0 - 2021-02-10
 

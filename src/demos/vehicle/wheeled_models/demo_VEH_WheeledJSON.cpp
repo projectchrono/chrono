@@ -112,8 +112,6 @@ class VW_Microbus_Model : public Vehicle_Model {
   public:
     virtual std::string ModelName() const override { return "VW_Microbus"; }
     virtual std::string VehicleJSON() const override {
-        ////return "uaz/vehicle/UAZBUS_Vehicle.json";
-        ////return "uaz/vehicle/UAZ469_Vehicle.json";
         return "VW_microbus/json/van_Vehicle.json";
     }
     virtual std::string TireJSON() const override {
