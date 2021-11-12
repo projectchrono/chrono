@@ -350,10 +350,10 @@ __host__ void IdentifyVolumeCluster(ChSystemGpu_impl::GranSphereDataPtr sphere_d
     gpuErrchk(cudaPeekAtLastError());
     gpuErrchk(cudaDeviceSynchronize());
 
-    // in_volume_num: number of spheres inside the volume mesh
-    unsigned int * d_in_volume_num;
-    unsigned int * h_in_volume_num = (unsigned int *)malloc(sizeof(*h_in_volume_num));
-    gpuErrchk(cudaMalloc((void**)&d_in_volume_num, sizeof(*d_in_volume_num)));
+    // in_volume_any: number of spheres inside the volume mesh
+    unsigned int * d_in_volume_any;
+    unsigned int * h_in_volume_any = (unsigned int *)malloc(sizeof(*h_in_volume_any));
+    gpuErrchk(cudaMalloc((void**)&d_in_volume_any, sizeof(*d_in_volume_any)));
     gpuErrchk(cudaPeekAtLastError());
     gpuErrchk(cudaDeviceSynchronize());
     bool * d_in_volume;  // [mySphereID] -> is particle inside the volume?
@@ -375,27 +375,27 @@ __host__ void IdentifyVolumeCluster(ChSystemGpu_impl::GranSphereDataPtr sphere_d
         gpuErrchk(cudaPeekAtLastError());
         gpuErrchk(cudaDeviceSynchronize());
 
-        // Sum number of particles in d_in_volume into h_in_volume_num
+        // Sum number of particles in d_in_volume into h_in_volume_any
         void *d_temp_storage = NULL;
         size_t temp_storage_bytes = 0;
         // Determine temporary device storage requirements
-        cub::DeviceReduce::Sum(d_temp_storage, temp_storage_bytes,
-                               d_in_volume, d_in_volume_num, nSpheres);
+        cub::DeviceReduce::Max(d_temp_storage, temp_storage_bytes,
+                               d_in_volume, d_in_volume_any, nSpheres);
         // find and visit border points, establishing the cluster
         gpuErrchk(cudaMalloc(&d_temp_storage, temp_storage_bytes));
         gpuErrchk(cudaPeekAtLastError());
         gpuErrchk(cudaDeviceSynchronize());
-        cub::DeviceReduce::Sum(d_temp_storage, temp_storage_bytes,
-                               d_in_volume, d_in_volume_num, nSpheres);
-        cudaMemcpy(h_in_volume_num, d_in_volume_num,
-                   sizeof(*d_in_volume_num), cudaMemcpyDeviceToHost);
+        cub::DeviceReduce::Max(d_temp_storage, temp_storage_bytes,
+                               d_in_volume, d_in_volume_any, nSpheres);
+        cudaMemcpy(h_in_volume_any, d_in_volume_any,
+                   sizeof(*d_in_volume_any), cudaMemcpyDeviceToHost);
         gpuErrchk(cudaFree(d_temp_storage));
         gpuErrchk(cudaPeekAtLastError());
         gpuErrchk(cudaDeviceSynchronize());
 
         // any sphere of cluster is type  VOLUME -> sphere_cluster becomes VOLUME
         // UNLESS it is GROUND
-        if (*h_in_volume_num > 0) {
+        if (*h_in_volume_any) {
             unsigned int volume_cluster = static_cast<unsigned int>(chrono::gpu::CLUSTER_INDEX::VOLUME);
             unsigned int sphere_num_in_cluster = h_cluster[0];
             for (size_t j = 1; j < (sphere_num_in_cluster + 1); j++) {
@@ -405,9 +405,9 @@ __host__ void IdentifyVolumeCluster(ChSystemGpu_impl::GranSphereDataPtr sphere_d
             }
         }
     }
-    gpuErrchk(cudaFree(d_in_volume_num));
+    gpuErrchk(cudaFree(d_in_volume_any));
     gpuErrchk(cudaFree(d_in_volume));
-    free(h_in_volume_num);
+    free(h_in_volume_any);
 }
 
 
