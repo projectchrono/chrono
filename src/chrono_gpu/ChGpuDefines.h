@@ -66,7 +66,7 @@ enum class CLUSTER_SEARCH_METHOD {NONE = 0, BFS = 1}; // TO DO: implement faster
 
 enum class CLUSTER_GROUND_METHOD {NONE = 0, BIGGEST = 1, LOWEST = 2};
 /// BIGGEST: cluster with the most number of spheres is GROUND
-/// LOWEST: cluster with many particles close to the bounding box bottom
+/// LOWEST: clusters with any particle below a z-plane are GROUND
 
 /// Cluster index.
 /// NOISE spheres are part of the INVALID cluster (not really a cluster)
