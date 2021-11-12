@@ -291,7 +291,7 @@ __host__ void FreeClusters(unsigned int ** h_clusters) {
     free(h_clusters);
 }
 
-/// Finds cluster in h_clusters with most sphres (biggest cluster)
+/// Finds cluster in h_clusters with most spheres (biggest cluster)
 /// sets sphere_cluster of all those spheres to GROUND
 /// OVERWRITES the VOLUME cluster
 __host__ void IdentifyGroundClusterByBiggest(ChSystemGpu_impl::GranSphereDataPtr sphere_data,
