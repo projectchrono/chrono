@@ -350,6 +350,9 @@ static __global__ void ComputeAdjListByProximity(ChSystemGpu_impl::GranSphereDat
     assert(adjacency_num == sphere_data->adj_num[mySphereID]);
 }
 
+namespace chrono {
+namespace gpu {
+
 __host__ void ConstructGraphByContact(ChSystemGpu_impl::GranSphereDataPtr sphere_data,
                                       ChSystemGpu_impl::GranParamsPtr gran_params,
                                       unsigned int nSpheres);
@@ -376,5 +379,9 @@ __host__ void IdentifyVolumeCluster(ChSystemGpu_impl::GranSphereDataPtr sphere_d
                                     unsigned int ** h_clusters);
 
 __host__ void FreeClusters(unsigned int ** h_clusters);
+
+
+} //chrono
+} //gpu
 
 /// @} gpu_cuda
