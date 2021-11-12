@@ -397,7 +397,7 @@ static __device__ __inline__ void CameraShader(PerRayData_camera* prd_camera,
             // If the camera uses GI, then it will trace two rays. So each ray's contribution should be halfed
 
             // corrected for transparency, bounce contribution, and blend
-            float3 weight = transparency * prd_camera->contrib_to_pixel * mat_blend_weight;
+            float weight = transparency * mat_blend_weight;
 
             // mirror correction accounts for us oversampling this direction
             // following line comes from a heuristic. Perect reflection for metalic smooth objects,
@@ -408,7 +408,13 @@ static __device__ __inline__ void CameraShader(PerRayData_camera* prd_camera,
             if (prd_camera->use_gi) {
                 weight = weight*.5f;
             }
-            next_contrib_to_pixel += mirror_correction * weight * f_ct * NdL / (4 * CUDART_PI_F);
+
+            float3 partial_contrib = mirror_correction * weight * f_ct * NdL / (4 * CUDART_PI_F);
+            partial_contrib = clamp(partial_contrib, make_float3(0), make_float3(1));
+
+            partial_contrib = partial_contrib * prd_camera->contrib_to_pixel;
+
+            next_contrib_to_pixel += partial_contrib;
             next_contrib_to_pixel = clamp(next_contrib_to_pixel, make_float3(0), make_float3(1));
         }
     }

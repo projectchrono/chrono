@@ -47,7 +47,10 @@ extern "C" __global__ void __raygen__camera_pinhole() {
         d = d + make_float2(dist_change.x * dir_change.x, dist_change.y * dir_change.y);
     }
 
-    const float t_frac = 0;  // 0-1 between start and end time of the camera (chosen here)
+    float t_frac = 0.f;
+    if(camera.rng_buffer)
+        t_frac = curand_uniform(&camera.rng_buffer[image_index]);  // 0-1 between start and end time of the camera (chosen here)
+
     const float t_traverse = raygen->t0 + t_frac * (raygen->t1 - raygen->t0);  // simulation time when ray is sent
     float3 ray_origin = lerp(raygen->pos0, raygen->pos1, t_frac);
     float4 ray_quat = nlerp(raygen->rot0, raygen->rot1, t_frac);
@@ -131,7 +134,9 @@ extern "C" __global__ void __raygen__camera_fov_lens() {
         d = d + make_float2(dist_change.x * dir_change.x, dist_change.y * dir_change.y);
     }
 
-    const float t_frac = 0;  // 0-1 between start and end time of the camera (chosen here)
+    float t_frac = 0.f;
+    if(camera.rng_buffer)
+        t_frac = curand_uniform(&camera.rng_buffer[image_index]);  // 0-1 between start and end time of the camera (chosen here)
     const float t_traverse = raygen->t0 + t_frac * (raygen->t1 - raygen->t0);  // simulation time when ray is sent
     float3 ray_origin = lerp(raygen->pos0, raygen->pos1, t_frac);
     float4 ray_quat = nlerp(raygen->rot0, raygen->rot1, t_frac);
