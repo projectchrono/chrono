@@ -7,14 +7,12 @@ if(NOT ENABLE_MODULE_IRRLICHT)
   return()
 endif()
 
-set(DEMOS demo_SYN_wheeled demo_SYN_tracked)
+set(DEMOS 
+    demo_SYN_wheeled
+    demo_SYN_tracked
+)
 
 # --------------------------------------------------------------
-
-if(USE_FAST_DDS)
-  find_package(fastcdr REQUIRED)
-  find_package(fastrtps REQUIRED)
-endif()
 
 include_directories(${SYN_INCLUDES})
 

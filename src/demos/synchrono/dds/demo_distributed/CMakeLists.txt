@@ -3,7 +3,7 @@
 # ------------------------------------------------------------------------------
 
 # Requires Irrlicht run-time visualization.
-if(NOT USE_FAST_DDS)
+if(NOT FAST_DDS_FOUND)
   return()
 endif()
 

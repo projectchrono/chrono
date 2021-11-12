@@ -51,27 +51,32 @@ set(SYN_LIBRARIES
 option(USE_FAST_DDS "Enable the FastDDS interface for the SynChrono Module" OFF)
 
 if (USE_FAST_DDS)
-	set(FAST_DDS_INSTALL_DIR "" CACHE PATH "Path to FastDDS install dir")
-	set(fastcdr_DIR "${FAST_DDS_INSTALL_DIR}/lib/cmake/fastcdr" CACHE PATH "Path to the FastCDR cmake config file")
-	set(fastrtps_DIR "${FAST_DDS_INSTALL_DIR}/share/fastrtps/cmake" CACHE PATH "Path to the FastDDS cmake config file")
-	set(foonathan_memory_DIR "${FAST_DDS_INSTALL_DIR}/lib/foonathan_memory/cmake" CACHE PATH "Path to the foonathan memory cmake config file")
-	if (NOT EXISTS ${foonathan_memory_DIR})
-		set(foonathan_memory_DIR "${FAST_DDS_INSTALL_DIR}/lib64/foonathan_memory/cmake" CACHE PATH "Path to the foonathan memory cmake config file" FORCE)
+	set(fastrtps_ROOT "" CACHE PATH "Path to FastDDS install dir")
+
+	if (fastrtps_ROOT STREQUAL "")
+	  set(FAST_DDS_FOUND FALSE)
+	else()
+	  find_package(fastrtps REQUIRED PATHS "${fastrtps_ROOT}/cmake" "${fastrtps}/share/fastrtps/cmake")
+	  
+	  message(STATUS "FastCDR found?        ${fastcdr_FOUND}")
+	  message(STATUS "FastCDR include dir:  ${fastcdr_INCLUDE_DIR}")
+      message(STATUS "FastCDR lib dir:      ${fastcdr_LIB_DIR}")
+	  
+	  message(STATUS "FastRTPS found?       ${fastrtps_FOUND}")
+	  message(STATUS "FastRTPS include dir: ${fastrtps_INCLUDE_DIR}")
+      message(STATUS "FastRTPS lib dir:     ${fastrtps_LIB_DIR}")
+	  
+	  message(STATUS "FooNathan found?       ${foonathan_memory_FOUND}")
+
+	  if (fastcdr_FOUND AND fastrtps_FOUND AND foonathan_memory_FOUND)
+	    list(APPEND SYN_LIBRARIES fastrtps fastcdr)
+	    set(SYN_INCLUDES ${SYN_INCLUDES} ${fastrtps_INCLUDE_DIR} ${fastcdr_INCLUDE_DIR})
+		set(FAST_DDS_FOUND TRUE)
+	  else()
+	    set(FAST_DDS_FOUND FALSE)
+      endif()
 	endif()
 
-	find_package(fastcdr REQUIRED)
-	find_package(fastrtps REQUIRED)
-
-	list(APPEND SYN_LIBRARIES
-		fastrtps
-		fastcdr
-	)
-
-	set(SYN_INCLUDES
-		${SYN_INCLUDES}
-		${fastrtps_INCLUDE_DIR}
-		${fastcdr_INCLUDE_DIR}
-	)
 endif()
 
 # ----------------------------------------------------------------------------
@@ -79,7 +84,7 @@ endif()
 # ----------------------------------------------------------------------------
 
 # Prepare replacement variables
-if(USE_FAST_DDS)
+if(FAST_DDS_FOUND)
 	set(CHRONO_FASTDDS "#define CHRONO_FASTDDS")
 else()
 	set(CHRONO_FASTDDS "#undef CHRONO_FASTDDS")
@@ -143,7 +148,7 @@ set(SYN_COMMUNICATION_FILES
     communication/mpi/SynMPICommunicator.h
     communication/mpi/SynMPICommunicator.cpp
 )
-if(USE_FAST_DDS)
+if(FAST_DDS_FOUND)
 	list(APPEND SYN_COMMUNICATION_FILES
 		communication/dds/SynDDSCommunicator.h
 		communication/dds/SynDDSCommunicator.cpp
@@ -233,6 +238,7 @@ list(APPEND SYN_LIB_NAMES ChronoEngine_vehicle)
 list(APPEND SYN_LIB_NAMES ChronoModels_vehicle)
 
 # Set some variables to be visible outside this directory
+set(FAST_DDS_FOUND   "${FAST_DDS_FOUND}" PARENT_SCOPE)
 SET(SYN_INCLUDES     "${SYN_INCLUDES}"  PARENT_SCOPE)
 SET(SYN_LIBRARIES    "${SYN_LIBRARIES}" PARENT_SCOPE)
 SET(SYN_CXX_FLAGS    "${SYN_CXX_FLAGS}" PARENT_SCOPE)
