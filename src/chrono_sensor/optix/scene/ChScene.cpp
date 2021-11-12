@@ -27,12 +27,12 @@ CH_SENSOR_API ChScene::ChScene() {
     m_background.color_horizon = {0.7f, 0.8f, 0.9f};
     m_background.env_tex = "";
 
-    m_ambient_light = ChVector<float>({.2, .2, .2});
+    m_ambient_light = ChVector<float>({.2f, .2f, .2f});
     m_pointlights = std::vector<PointLight>();
     lights_changed = true;
     background_changed = true;
 
-    m_scene_epsilon = 1e-3;
+    m_scene_epsilon = 1e-3f;
 }
 
 CH_SENSOR_API ChScene::~ChScene() {}

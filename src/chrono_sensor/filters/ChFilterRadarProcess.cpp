@@ -112,7 +112,7 @@ CH_SENSOR_API void ChFilterRadarProcess::Apply() {
     }
 
     std::vector<vec3f> points;
-    for (unsigned int i = 0; i < m_buffer_out->Beam_return_count; i++) {
+    for (int i = 0; i < m_buffer_out->Beam_return_count; i++) {
         processed_buffer[i] = buf[i];
         points.push_back(vec3f{processed_buffer[i].x,
                                processed_buffer[i].y,
