@@ -13,6 +13,7 @@ build:
   script_env:
     - CC
     - CXX
+    - CI_PROJECT_DIR
 
   number: {{ environ.get('GIT_DESCRIBE_NUMBER', 0) }}
   binary_relocation: true
@@ -25,12 +26,18 @@ requirements:
   build:
     - python
     - cmake >=3.9.3
-    - swig >=3.0.12
+    - swig >=4.0.0
     - mkl
+    - numpy
+    - glew
+    - glfw
 
   run:
     - python
     - mkl
+    - numpy
+    - glew
+    - glfw
 
 test:
   requires:
