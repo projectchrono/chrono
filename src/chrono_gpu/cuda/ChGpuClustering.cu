@@ -222,11 +222,11 @@ __host__ void IdentifyGroundClusterByLowest(ChSystemGpu_impl::GranSphereDataPtr 
     unsigned int cluster_num = h_clusters[0][0];
     unsigned int cluster_index;
 
-    unsigned int * h_below_num = (unsigned int *)malloc(sizeof(*h_below_num));
+    unsigned int * h_below_any = (unsigned int *)malloc(sizeof(*h_below_any));
     bool * d_below;
     gpuErrchk(cudaMalloc((void**)&d_below, sizeof(*d_below) * nSpheres));
-    unsigned int * d_below_num;
-    gpuErrchk(cudaMalloc((void**)&d_below_num, sizeof(*d_below_num)));
+    unsigned int * d_below_any;
+    gpuErrchk(cudaMalloc((void**)&d_below_any, sizeof(*d_below_any)));
     unsigned int ground_cluster = static_cast<unsigned int>(chrono::gpu::CLUSTER_INDEX::GROUND);
     ///　Find ALL clusters with any sphere center below plane box_z + 1*sphere_radius
     for (size_t i = 1; i < (cluster_num + 1); i++) {
@@ -251,21 +251,21 @@ __host__ void IdentifyGroundClusterByLowest(ChSystemGpu_impl::GranSphereDataPtr 
         void *d_temp_storage = NULL;
         size_t temp_storage_bytes = 0;
         // Determine temporary device storage requirements
-        cub::DeviceReduce::Sum(d_temp_storage, temp_storage_bytes,
-                               d_below, d_below_num, nSpheres);
+        cub::DeviceReduce::Max(d_temp_storage, temp_storage_bytes,
+                               d_below, d_below_any, nSpheres);
         // find and visit border points, establishing the cluster
         gpuErrchk(cudaMalloc(&d_temp_storage, temp_storage_bytes));
         gpuErrchk(cudaPeekAtLastError());
         gpuErrchk(cudaDeviceSynchronize());
-        cub::DeviceReduce::Sum(d_temp_storage, temp_storage_bytes,
-                               d_below, d_below_num, nSpheres);
-        cudaMemcpy(h_below_num, d_below_num,
-                   sizeof(*d_below_num), cudaMemcpyDeviceToHost);
+        cub::DeviceReduce::Max(d_temp_storage, temp_storage_bytes,
+                               d_below, d_below_any, nSpheres);
+        cudaMemcpy(h_below_any, d_below_any,
+                   sizeof(*d_below_any), cudaMemcpyDeviceToHost);
         gpuErrchk(cudaPeekAtLastError());
         gpuErrchk(cudaDeviceSynchronize());
         gpuErrchk(cudaFree(d_temp_storage));
 
-        if ((*h_below_num) > 0) {
+        if ((*h_below_any) > 0) {
             SwitchClusterIndex<<<nBlocks, CUDA_THREADS_PER_BLOCK>>>(sphere_data,
                                                                     gran_params,
                                                                     nSpheres,
@@ -279,8 +279,8 @@ __host__ void IdentifyGroundClusterByLowest(ChSystemGpu_impl::GranSphereDataPtr 
     }
 
     gpuErrchk(cudaFree(d_below));
-    gpuErrchk(cudaFree(d_below_num));
-    free(h_below_num);
+    gpuErrchk(cudaFree(d_below_any));
+    free(h_below_any);
 }
 
 __host__ void FreeClusters(unsigned int ** h_clusters) {
