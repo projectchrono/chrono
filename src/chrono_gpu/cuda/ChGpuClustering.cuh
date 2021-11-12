@@ -143,9 +143,7 @@ static __global__ void AreSpheresBelowZLim(ChSystemGpu_impl::GranSphereDataPtr s
     }
 }
 
-// Find if any particle is in the volume cluster.
-// If any sphere in cluster sphere_type == VOLUME -> sphere_cluster = VOLUME
-// UNLESS it is the biggest cluster -> sphere_cluster = GROUND
+// Find if any particle in the cluster has type VOLUME
 static __global__ void FindVolumeTypeInCluster(ChSystemGpu_impl::GranSphereDataPtr sphere_data,
                                                unsigned int nSpheres,
                                                bool * in_volume,
@@ -164,8 +162,8 @@ static __global__ void FindVolumeTypeInCluster(ChSystemGpu_impl::GranSphereDataP
 /// needs fully known adj_num
 /// call BEFORE ComputeAdjList___
 static __host__ void ComputeAdjOffsetFromAdjNum(unsigned int nSpheres,
-                                               unsigned int * adj_num,
-                                               unsigned int * adj_offset) {
+                                                unsigned int * adj_num,
+                                                unsigned int * adj_offset) {
     memcpy(adj_offset, adj_num, sizeof(*adj_offset) * nSpheres);
     /// all start indices AFTER mySphereID depend on it -> exclusive sum
     void * d_temp_storage = NULL;

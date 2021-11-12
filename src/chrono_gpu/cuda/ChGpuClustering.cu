@@ -23,6 +23,9 @@
 #include "chrono_gpu/cuda/ChGpu_SMC.cuh"
 #include "chrono_gpu/cuda/ChGpuClustering.cuh"
 
+namespace chrono {
+namespace gpu {
+
 /// Identifies all clusters by breadth first search and outputs
 /// Returns h_clusters: array of pointers to arrays of variable length
 /// h_clusters[0][0] -> number of pointers/cluster in h_clusters
@@ -366,9 +369,9 @@ __host__ void IdentifyVolumeCluster(ChSystemGpu_impl::GranSphereDataPtr sphere_d
 
         // find if any sphere in cluster was tagged in the VOLUME type
         FindVolumeTypeInCluster<<<nBlocks, CUDA_THREADS_PER_BLOCK>>>(sphere_data,
-                                                               nSpheres,
-                                                               d_in_volume,
-                                                               cluster_index);
+                                                                     nSpheres,
+                                                                     d_in_volume,
+                                                                     cluster_index);
         gpuErrchk(cudaPeekAtLastError());
         gpuErrchk(cudaDeviceSynchronize());
 
@@ -440,9 +443,9 @@ __host__ void IdentifyGroundCluster(ChSystemGpu_impl::GranSphereDataPtr sphere_d
 /// Searches using a parallel Breadth-First search
 /// min_pts: minimal number of points for a cluster
 __host__ unsigned int ** GdbscanSearchGraphByBFS(ChSystemGpu_impl::GranSphereDataPtr sphere_data,
-                                 ChSystemGpu_impl::GranParamsPtr gran_params,
-                                 unsigned int nSpheres,
-                                 size_t min_pts) {
+                                                 ChSystemGpu_impl::GranParamsPtr gran_params,
+                                                 unsigned int nSpheres,
+                                                 size_t min_pts) {
     unsigned int nBlocks = (nSpheres + CUDA_THREADS_PER_BLOCK - 1) / CUDA_THREADS_PER_BLOCK;
 
     /// sphere_type is CORE if neighbors_num > min_pts else NOISE
@@ -467,4 +470,5 @@ __host__ unsigned int ** GdbscanSearchGraphByBFS(ChSystemGpu_impl::GranSphereDat
     return(h_clusters);
 }
 
-
+}
+}
