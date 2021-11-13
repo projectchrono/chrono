@@ -1,12 +1,3 @@
-# ------------------------------------------------------------------------------
-# List of demos according their dependencies
-# ------------------------------------------------------------------------------
-
-# Requires Irrlicht run-time visualization.
-if(NOT FAST_DDS_FOUND)
-  return()
-endif()
-
 set(DEMOS 
     demo_SYN_DDS_distributed
 )

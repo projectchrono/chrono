@@ -43,14 +43,18 @@
 #
 # Other variables:
 # CHRONO_SSE_FOUND
-#       set to true if SSE support is available
-#       CHRONO_CXX_FLAGS includes all required flags
+#       set to true if SSE support is available;
+#       CHRONO_CXX_FLAGS includes all required flags.
 # CHRONO_AVX_FOUND
-#       set to true if AVX support is available
-#       CHRONO_CXX_FLAGS includes all required flags
+#       set to true if AVX support is available;
+#       CHRONO_CXX_FLAGS includes all required flags.
 # CHRONO_MPI_FOUND
-#       set to true if MPI support is available
-#       CHRONO_CXX_FLAGS, CHRONO_LINKER_FLAGS, and CHRONO_LIBRARIES include MPI
+#       set to true if MPI support is available;
+#       CHRONO_CXX_FLAGS, CHRONO_LINKER_FLAGS, and CHRONO_LIBRARIES include MPI.
+# CHRONO_FASTDDS_FOUND
+#       set to true if FastDDS support is available.
+#       CHRONO_INCLUDE_DIRS and CHRONO_LIBRARIES include FastDDS.
+#       However, the user must still invoke fast_package(fastrtps)!
 #===============================================================================
 
 if (CHRONO_CONFIG_INCLUDED)
@@ -89,6 +93,8 @@ set(SYNCHRONO_DATA_DIR "@CH_DATA_DIR@synchrono/")
 set(CHRONO_SSE_FOUND "@SSE_FOUND@")
 set(CHRONO_AVX_FOUND "@AVX_FOUND@")
 set(CHRONO_MPI_FOUND "@MPI_CXX_FOUND@")
+
+set(CHRONO_FASTDDS_FOUND "@FASTDDS_FOUND@")
 
 #-------------------------------------------------------------------------------
 # Local variables specifying which Chrono modules are enabled
@@ -282,10 +288,20 @@ foreach(COMPONENT ${Chrono_FIND_COMPONENTS})
 
     elseif(${COMPONENT_UPPER} MATCHES "SYNCHRONO")
 
+      if(CHRONO_FASTDDS_FOUND)
+         set(fastrtps_DIR "@fastrtps_DIR@")
+         find_package(fastrtps REQUIRED)
+      endif()
+
+      set(CHRONO_CXX_FLAGS "${CHRONO_CXX_FLAGS} @MPI_CXX_COMPILE_FLAGS@")
       list(APPEND CHRONO_INCLUDE_DIRS "@SYN_INCLUDES@")
+      list(APPEND CHRONO_INCLUDE_DIRS "@MPI_CXX_INCLUDE_PATH@")
       list(APPEND CHRONO_INCLUDE_DIRS "@CH_THIRDPARTY_INCLUDE_DIR@/flatbuffers/include")
-      list(PREPEND CHRONO_LIB_NAMES "ChronoEngine_synchrono")
+      list(APPEND CHRONO_LINKER_FLAGS "@MPI_CXX_LINK_FLAGS@")
+      list(APPEND CHRONO_LIBRARIES "@MPI_CXX_LIBRARIES@")
       list(APPEND CHRONO_LIBRARIES "@SYN_LIBRARIES@")
+
+      list(PREPEND CHRONO_LIB_NAMES "ChronoEngine_synchrono")
       list(APPEND CHRONO_DLL_NAMES "ChronoEngine_synchrono.dll")
 
     elseif(${COMPONENT_UPPER} MATCHES "GPU")

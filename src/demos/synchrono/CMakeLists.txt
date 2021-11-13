@@ -14,7 +14,8 @@ add_subdirectory(demo_SCM)
 add_subdirectory(demo_highway)
 add_subdirectory(demo_robots)
 
-add_subdirectory(dds/demo_vehicles)
-add_subdirectory(dds/demo_distributed)
+if(FASTDDS_FOUND)
+  add_subdirectory(dds/demo_vehicles)
+  add_subdirectory(dds/demo_distributed)
+endif()
 
-#--------------------------------------------------------------
