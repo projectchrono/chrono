@@ -25,7 +25,7 @@ build:
 requirements:
   build:
     - python
-    #- cmake >=3.9.3
+    - cmake >=3.9.3
     - swig >=4.0.0
     - mkl-devel
     - numpy >=1.16
