@@ -209,7 +209,7 @@ linux:arch-llvm:test:
     - conda config --set show_channel_urls true
     - conda install conda-build anaconda-client conda-verify --yes
     - conda update conda --yes
-    - conda config --add channels https://conda.anaconda.org/conda-forge
+    #- conda config --add channels https://conda.anaconda.org/conda-forge
     #- conda config --add channels https://conda.anaconda.org/intel
     - conda install --yes conda-build anaconda-client
     - conda install -c dlr-sc opencascade --yes
