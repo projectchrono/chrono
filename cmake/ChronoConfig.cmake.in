@@ -8,8 +8,9 @@
 #
 # In the call to find_package(), the following Chrono components can be
 # requested (case insensitive): 
-#   Cascade, Cosimulation, Irrlicht, OpenGL, Matlab, Multicore, Gpu,
-#   PardisoMKL, PardisoProject, Postprocess, Python, Vehicle, VehicleCosim.  
+#   Cascade, Cosimulation, Fsi, Irrlicht, OpenGL, Matlab, Multicore, Gpu,
+#   PardisoMKL, PardisoProject, Postprocess, Python, Sensor, Synchrono,
+#   Vehicle, VehicleCosim.  
 # A component can be requested either as required or optional
 # (see the CMake documentation for find_package).
 # 
@@ -275,8 +276,9 @@ foreach(COMPONENT ${Chrono_FIND_COMPONENTS})
       list(PREPEND CHRONO_LIB_NAMES "ChronoEngine_sensor")
       list(APPEND CHRONO_LIBRARIES "@SENSOR_LIBRARIES@")
       list(APPEND CHRONO_DLL_NAMES "ChronoEngine_sensor.dll")
-      list(APPEND CHRONO_DLLS "@optix_DLL@")
-      list(APPEND CHRONO_DLLS "@CH_GLEW_DLL@")
+      #list(APPEND CHRONO_DLLS "@optix_DLL@")
+      list(APPEND CHRONO_DLLS "@GLEW_DLL@")
+      list(APPEND CHRONO_DLLS "@GLFW_DLL@")
 
     elseif(${COMPONENT_UPPER} MATCHES "SYNCHRONO")
 
