@@ -214,7 +214,6 @@ linux:arch-llvm:test:
     - conda install --yes conda-build anaconda-client
     - conda install -c dlr-sc opencascade --yes
     - conda install -c intel mkl-devel --yes
-    - conda install numpy --yes
   environment:
     name: pychrono-ubuntu2004
     url: https://anaconda.org/projectchrono/pychrono
