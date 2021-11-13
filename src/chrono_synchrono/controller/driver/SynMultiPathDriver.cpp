@@ -22,11 +22,11 @@ ChMultiPathFollowerACCDriver::ChMultiPathFollowerACCDriver(
     double current_distance)
     : ChDriver(vehicle),
       m_steeringPID(path_pairs, 0),
-      m_pathName(path_name),
       m_target_speed(target_speed),
       m_target_following_time(target_following_time),
       m_target_min_distance(target_min_distance),
       m_current_distance(current_distance),
+      m_pathName(path_name),
       m_throttle_threshold(0.2) {
     Create();
 }

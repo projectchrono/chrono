@@ -22,10 +22,24 @@ endif()
 #Check for GLFW to use as window to display data for debug purposes
 mark_as_advanced(CLEAR GLFW_INCLUDE_DIR)
 mark_as_advanced(CLEAR GLFW_LIBRARY)
+mark_as_advanced(CLEAR GLEW_INCLUDE_DIR)
+mark_as_advanced(CLEAR GLEW_LIBRARY)
+if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
+  mark_as_advanced(CLEAR GLEW_DLL)
+  mark_as_advanced(CLEAR GLFW_DLL)
+endif()
 
 find_package(GLFW REQUIRED)
 find_package(OpenGL REQUIRED)
 find_package(GLEW REQUIRED)
+
+# On windows, ask for the GLEW and GLFW DLLs so that we can copy. This is
+# optional.  If not specified, it is the user's responsibility to make them
+# available at runtime.
+IF(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
+    SET(GLEW_DLL  "" CACHE FILEPATH "The GLEW DLL")
+    SET(GLFW_DLL  "" CACHE FILEPATH "The GLFW DLL")
+ENDIF()
 
 SET(CH_SENSOR_INCLUDES
     ${CH_SENSOR_INCLUDES}
@@ -499,38 +513,21 @@ set(CH_SENSOR_C_FLAGS       "${CH_SENSOR_C_FLAGS}"          PARENT_SCOPE)
 # copy_if_different.
 
 IF(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
-
-  # GLEW doesn't provide a 'root' variable so we make our own
-  get_filename_component(GLEW_ROOT ${GLEW_INCLUDE_DIR}/../ ABSOLUTE)
-
-  # Set variables that point to the DLLs. OptiX (and thus Chrono::Sensor) don't
-  # support 32 bit, so we just take the x64 version of GLEW.
-  # CMake/the user already defines the variable optix_DLL but you could do...
-  # SET(CH_OPTIX_DLL "${OptiX_INSTALL_DIR)/bin64/optix.6.5.0.dll")
-  SET(CH_GLEW_DLL "${GLEW_ROOT}/bin/Release/x64/glew32.dll")
-
-  ADD_CUSTOM_COMMAND(
-    TARGET ChronoEngine_sensor POST_BUILD
-    COMMAND ${CMAKE_COMMAND} -E make_directory
-            "${CMAKE_BINARY_DIR}/bin/$<CONFIGURATION>"
-    #COMMAND ${CMAKE_COMMAND} -E copy_if_different
-    #        "${optix_DLL}"
-    #        "${CMAKE_BINARY_DIR}/bin/$<CONFIGURATION>"
-    COMMAND ${CMAKE_COMMAND} -E copy_if_different
-            "${CH_GLEW_DLL}"
-            "${CMAKE_BINARY_DIR}/bin/$<CONFIGURATION>"
-    MAIN_DEPENDENCY ChronoEngine_sensor
-    COMMENT "Copying OptiX and GLEW DLLs..."
-  )
-
-  # copy the dlls into the installed package to be on the safe side
-  # install(FILES "${optix_DLL}" DESTINATION bin)
-  install(FILES "${CH_GLEW_DLL}" DESTINATION bin)
+    IF(EXISTS "${GLEW_DLL}")
+      ADD_CUSTOM_COMMAND(TARGET ChronoEngine_sensor POST_BUILD
+                         COMMAND ${CMAKE_COMMAND} -E copy_if_different
+                                 "${GLEW_DLL}"
+                                 "${CMAKE_BINARY_DIR}/bin/$<CONFIGURATION>")
+    ENDIF()
+    IF(EXISTS "${GLFW_DLL}")
+      ADD_CUSTOM_COMMAND(TARGET ChronoEngine_sensor POST_BUILD
+                         COMMAND ${CMAKE_COMMAND} -E copy_if_different
+                         "${GLFW_DLL}"
+                         "${CMAKE_BINARY_DIR}/bin/$<CONFIGURATION>")
+    ENDIF()
 
   # Make variables visible from outside this directory
-  #SET(CH_OPTIX_DLL "${optix_DLL}" PARENT_SCOPE)
   SET(CH_GLEW_DLL "${CH_GLEW_DLL}" PARENT_SCOPE)
-
 ENDIF()
 
 #-------------------------------------------------------------------------------
