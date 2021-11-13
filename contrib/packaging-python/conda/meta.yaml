@@ -29,8 +29,8 @@ requirements:
     - swig >=4.0.0
     - mkl
     - numpy
-    - glew
-    - glfw
+    #- glew
+    #- glfw
 
   run:
     - python
