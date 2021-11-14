@@ -12,7 +12,7 @@
 // Author: Arman Pazouki, Milad Rakhsha, Wei Hu
 // =============================================================================
 //
-// Utility class for generating BCE markers.//
+// Utility class for generating BCE particles.
 // =============================================================================
 
 #include "chrono/utils/ChUtilsCreators.h"
@@ -94,10 +94,8 @@ void CreateBceGlobalMarkersFromBceLocalPos(std::shared_ptr<ChSystemFsi_impl> fsi
                                            bool add_to_fluid_helpers,
                                            bool add_to_previous_object) {
     if (fsiSystem->fsiGeneralData->referenceArray.size() < 1 && !add_to_fluid_helpers) {
-        printf(
-            "\n\n\n\n Error! fluid need to be initialized before boundary. "
-            "Reference array should have two "
-            "components \n\n\n\n");
+        printf("\n\n\n\n Error! fluid need to be initialized before boundary. "
+               "Reference array should have two components. \n\n\n\n");
         std::cin.get();
     }
 
@@ -110,14 +108,13 @@ void CreateBceGlobalMarkersFromBceLocalPos(std::shared_ptr<ChSystemFsi_impl> fsi
     if (isSolid) {
         object = refSize4.w + !add_to_previous_object;
         type = 1;
-        // printf("adding solid object %d, type is %d, ref size=%zd\n", object, type,
-        //        fsiSystem->fsiGeneralData->referenceArray.size());
+        printf("Adding BCE to solid object %d, type is %d, ref size = %zd\n", object, type,
+               fsiSystem->fsiGeneralData->referenceArray.size() + 1);
     }
 
     if (type < 0) {
-        printf(
-            "\n\n\n\n Error! reference array type is not correct. It does not "
-            "denote boundary or rigid \n\n\n\n");
+        printf("\n\n\n\n Error! reference array type is not correct."
+               "It does not denote boundary or rigid. \n\n\n\n");
         std::cin.get();
     }
 
@@ -148,11 +145,12 @@ void CreateBceGlobalMarkersFromBceLocalPos(std::shared_ptr<ChSystemFsi_impl> fsi
     printf("Pushing back to reference array\n");
 
     fsiSystem->numObjects->numAllMarkers += numBce;
-    // For helper markers
+    // For helper particles, type = -3
     if (type == -3 && fsiSystem->fsiGeneralData->referenceArray.size() != 1) {
         fsiSystem->fsiGeneralData->referenceArray.push_back(
             mI4(refSize4.y, refSize4.y + (int)posRadBCE.size(), -3, -1));
-    }  // For boundary
+    }
+    // For boundary particles, type = 0
     else if ((type == 0 || (add_to_previous_object && type == 1)) && !add_to_fluid_helpers) {
         fsiSystem->numObjects->numBoundaryMarkers += numBce;
         if (refSize4.w == -1) {
@@ -161,19 +159,21 @@ void CreateBceGlobalMarkersFromBceLocalPos(std::shared_ptr<ChSystemFsi_impl> fsi
             refSize4.y = refSize4.y + (int)numBce;
             fsiSystem->fsiGeneralData->referenceArray.back() = refSize4;
         }
-    } else if (!add_to_fluid_helpers) {
+    }
+    // For rigid body particles, type = 1
+    else if (!add_to_fluid_helpers) {
         if (fsiSystem->fsiGeneralData->referenceArray.size() < 2) {
-            printf("Error! Boundary markers are not initialized while trying to "
-                   "initialize rigid marker!\n\n");
+            printf("Error! Boundary particles are not initialized while trying to "
+                   "initialize rigid particle!\n\n");
             std::cin.get();
         }
         fsiSystem->numObjects->numRigid_SphMarkers += numBce;
         fsiSystem->numObjects->numRigidBodies += 1;
         fsiSystem->numObjects->startRigidMarkers = fsiSystem->fsiGeneralData->referenceArray[1].y;
         fsiSystem->fsiGeneralData->referenceArray.push_back(
-            mI4(refSize4.y, refSize4.y + (int)numBce, 1, object));  // 1: for rigid
-        // printf("refSize4.y = %d, refSize4.y + numBce = %d, %d, Particle Type = ,%d\n", 
-        //        refSize4.y, refSize4.y + (int)numBce, 1, object);
+            mI4(refSize4.y, refSize4.y + (int)numBce, 1, object));
+        printf("refSize4.y = %d, refSize4.y + numBce = %d, particle type = %d, object number = %d\n", 
+               refSize4.y, refSize4.y + (int)numBce, 1, object);
     }
 }
 // =============================================================================
@@ -339,7 +339,7 @@ void CreateBceGlobalMarkersFromBceLocalPos_ShellANCF(std::shared_ptr<ChSystemFsi
             continue;
         }
 
-        // Note that the fluid markers are removed differently
+        // Note that the fluid particles are removed differently
         bool addthis = true;
         for (size_t p = 0; p < fsiSystem->sphMarkersH->posRadH.size() - 1; p++) {
             if (length(mR3(fsiSystem->sphMarkersH->posRadH[p]) - ChUtilsTypeConvert::ChVectorToReal3(Correct_Pos)) <
@@ -665,9 +665,9 @@ void AddBCE_ShellFromMesh(std::shared_ptr<ChSystemFsi_impl> fsiSystem,
             int thisNode = elementsNodes[i][j] - 1;
             // Look into the elements attached to thisNode
             for (size_t k = 0; k < NodeNeighborElement[thisNode].size(); k++) {
-                // If this neighbor element has more than one common node with the previous node this means that we must
-                // not
-                // add BCEs to this edge anymore. Because that edge has already been given BCE markers
+                // If this neighbor element has more than one common node with the previous 
+                // node this means that we must not add BCEs to this edge anymore. Because 
+                // that edge has already been given BCE particles.
                 // The kth element of this node:
                 int neighborElement = NodeNeighborElement[thisNode][k];
                 if (neighborElement >= i)
@@ -766,9 +766,9 @@ void AddBCE_FromMesh(std::shared_ptr<ChSystemFsi_impl> fsiSystem,
                     int thisNode = _2D_elementsNodes[i - Curr_size][j];
                     // Look into the elements attached to thisNode
                     for (size_t k = 0; k < NodeNeighborElement[thisNode].size(); k++) {
-                        // If this neighbor element has more than one common node with the previous node this means that
-                        // we must not
-                        // add BCEs to this edge anymore. Because that edge has already been given BCE markers
+                        // If this neighbor element has more than one common node with the previous 
+                        // node this means that we must not add BCEs to this edge anymore. Because
+                        // that edge has already been given BCE particles.
                         // The kth element of this node:
                         size_t neighborElement = NodeNeighborElement[thisNode][k] - Curr_size;
                         if (neighborElement >= i - Curr_size)

@@ -101,6 +101,11 @@ bool ParseJSON(const std::string& json_file, std::shared_ptr<SimParams> paramsH,
     else
         strcpy(paramsH->out_name, "Undefined");
 
+    if (doc.HasMember("Fully Output"))
+        paramsH->full_output = doc["Fully Output"].GetBool();
+    else
+        paramsH->full_output = false;
+
     if (doc.HasMember("Physical Properties of Fluid")) {
         if (doc["Physical Properties of Fluid"].HasMember("Density"))
             paramsH->rho0 = doc["Physical Properties of Fluid"]["Density"].GetDouble();

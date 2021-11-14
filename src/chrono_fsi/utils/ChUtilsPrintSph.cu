@@ -33,13 +33,14 @@ void PrintToFile(const thrust::device_vector<Real4>& posRadD,
                  const thrust::host_vector<int4>& referenceArray,
                  const thrust::host_vector<int4>& referenceArrayFEA,
                  const std::string& out_dir,
+                 const std::shared_ptr<SimParams>& paramsH,
                  bool printToParaview) {
     thrust::host_vector<Real4> posRadH = posRadD;
     thrust::host_vector<Real3> velMasH = velMasD;
     thrust::host_vector<Real4> rhoPresMuH = rhoPresMuD;
     thrust::host_vector<Real4> h_sr_tau_I_mu_i = sr_tau_I_mu_i;
 
-    bool short_out = true;  // if output with less information, set to true
+    bool short_out = !paramsH->full_output;  // if output with less information, set to true
 
     bool haveHelper = (referenceArray[0].z == -3) ? true : false;
     bool haveGhost = (referenceArray[0].z == -2 || referenceArray[1].z == -2) ? true : false;
@@ -49,6 +50,7 @@ void PrintToFile(const thrust::device_vector<Real4>& posRadD,
     double eps = 1e-20;
     sprintf(fileCounter, "%d", dumNumChar);
 
+    // Save helper and ghost particles to files 
     if (haveHelper || haveGhost) {
         const std::string nameOthers =
             out_dir + std::string("/others") + std::string(fileCounter) + std::string(".csv");
@@ -87,7 +89,8 @@ void PrintToFile(const thrust::device_vector<Real4>& posRadD,
         fileNameOtherParticles << ssotherParticles.str();
         fileNameOtherParticles.close();
     }
-    //*****************************************************
+    
+    // Save fluid/granular SPH particles to files
     const std::string nameFluid = out_dir + std::string("/fluid") + std::string(fileCounter) + std::string(".csv");
 
     std::ofstream fileNameFluidParticles;
@@ -101,7 +104,6 @@ void PrintToFile(const thrust::device_vector<Real4>& posRadD,
         }
     }
 
-    //    int startFluid = haveHelper + haveGhost;
     for (size_t i = referenceArray[haveHelper + haveGhost].x; i < referenceArray[haveHelper + haveGhost].y; i++) {
         Real4 rP = rhoPresMuH[i];
         if (rP.w != -1)
@@ -125,7 +127,7 @@ void PrintToFile(const thrust::device_vector<Real4>& posRadD,
     fileNameFluidParticles << ssFluidParticles.str();
     fileNameFluidParticles.close();
 
-    //*****************************************************
+    // Save boundary BCE particles to files
     if (dumNumChar == 0) {
         const std::string nameFluidBoundaries =
             out_dir + std::string("/boundary") + std::string(fileCounter) + std::string(".csv");
@@ -141,7 +143,6 @@ void PrintToFile(const thrust::device_vector<Real4>& posRadD,
             }
         }
 
-        //		ssFluidBoundaryParticles.precision(20);
         for (size_t i = referenceArray[haveHelper + haveGhost + 1].x; i < referenceArray[haveHelper + haveGhost + 1].y;
              i++) {
             Real4 rP = rhoPresMuH[i];
@@ -167,7 +168,8 @@ void PrintToFile(const thrust::device_vector<Real4>& posRadD,
         fileNameFluidBoundaries << ssFluidBoundaryParticles.str();
         fileNameFluidBoundaries.close();
     }
-    //*****************************************************
+
+    // Save rigid BCE particles to files
     int refSize = (int)referenceArray.size();
     if (refSize > haveHelper + haveGhost + 2) {
         const std::string nameBCE =
@@ -176,7 +178,6 @@ void PrintToFile(const thrust::device_vector<Real4>& posRadD,
         std::ofstream fileNameBCE;
         fileNameBCE.open(nameBCE);
         std::stringstream ssBCE;
-        //		ssFluidBoundaryParticles.precision(20);
         if (printToParaview) {
             if (short_out) {
                 ssBCE << "x,y,z,v_x,v_y,v_z,|U|,rho,pressure\n";
@@ -186,7 +187,6 @@ void PrintToFile(const thrust::device_vector<Real4>& posRadD,
         }
 
         for (size_t i = referenceArray[haveHelper + haveGhost + 2].x; i < referenceArray[refSize - 1].y; i++) {
-            //            if (referenceArray[haveHelper + haveGhost + 2].w)
             Real4 pos = posRadH[i];
             Real3 vel = velMasH[i] + mR3(1e-20);
             Real4 rP = rhoPresMuH[i];
@@ -210,7 +210,7 @@ void PrintToFile(const thrust::device_vector<Real4>& posRadD,
         fileNameBCE.close();
     }
 
-    //*****************************************************
+    // Save flexible BCE particles to files
     int refSize_Flex = (int)referenceArrayFEA.size();
     if (refSize_Flex > 0) {
         const std::string nameBCE_Flex =
@@ -219,7 +219,6 @@ void PrintToFile(const thrust::device_vector<Real4>& posRadD,
         std::ofstream fileNameBCE_Flex;
         fileNameBCE_Flex.open(nameBCE_Flex);
         std::stringstream ssBCE_Flex;
-        //		ssFluidBoundaryParticles.precision(20);
 
         if (printToParaview) {
             if (short_out) {
@@ -250,10 +249,10 @@ void PrintToFile(const thrust::device_vector<Real4>& posRadD,
         fileNameBCE_Flex.close();
     }
 
-    //*****************************************************
     posRadH.clear();
     velMasH.clear();
     rhoPresMuH.clear();
+    h_sr_tau_I_mu_i.clear();
 }
 
 void WriteCsvParticlesToFile(thrust::device_vector<Real4>& posRadD,

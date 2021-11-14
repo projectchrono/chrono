@@ -240,7 +240,8 @@ void ChSystemFsi::WriteParticleFile(const std::string& outfilename) const {
 void ChSystemFsi::PrintParticleToFile(const std::string& out_dir) const {
     utils::PrintToFile(fsiSystem->sphMarkersD2->posRadD, fsiSystem->sphMarkersD2->velMasD,
                        fsiSystem->sphMarkersD2->rhoPresMuD, fsiSystem->fsiGeneralData->sr_tau_I_mu_i,
-                       fsiSystem->fsiGeneralData->referenceArray, thrust::host_vector<int4>(), out_dir, true);
+                       fsiSystem->fsiGeneralData->referenceArray, thrust::host_vector<int4>(), out_dir, 
+                       paramsH, true);
 }
 //--------------------------------------------------------------------------------------------------------------------------------
 void ChSystemFsi::AddSphMarker(const ChVector<>& point,

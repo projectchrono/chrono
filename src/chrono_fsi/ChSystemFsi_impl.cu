@@ -464,11 +464,11 @@ void ChSystemFsi_impl::ConstructReferenceArray() {
         if (compType <= -2) {
             phaseType = -1;
         } else if (compType == -1) {
-            phaseType = -1;
+            phaseType = -1; // For fluid/granular
         } else if (compType == 0) {
-            phaseType = 0;
+            phaseType = 0;  // For boundary
         } else if (compType == 1) {
-            phaseType = 1;
+            phaseType = 1;  // For rigid
         } else if (compType == 2) {
             phaseType = 1;  // For Cable Elements
         } else if (compType == 3) {
