@@ -1,1 +1,1 @@
-echo 'SetSensorShaderDir('\'$PREFIX'/lib/sensor_ptx/'\'')' >> $PREFIX/lib/python3.7/site-packages/pychrono/sensor.py
+echo 'SetSensorShaderDir('\'$PREFIX'/lib/sensor_ptx/'\'')' >> $PREFIX/lib/python$PY_VER/site-packages/pychrono/sensor.py
