@@ -351,7 +351,7 @@ void ChOptixPipeline::CreateBaseSBT() {
     // camera miss record data
     miss_rec.data.camera_miss.mode = BackgroundMode::GRADIENT;
     miss_rec.data.camera_miss.color_zenith = {0.2f, 0.3f, 0.4f};
-    miss_rec.data.camera_miss.color_zenith = {0.7, 0.8f, 0.9f};
+    miss_rec.data.camera_miss.color_zenith = {0.7f, 0.8f, 0.9f};
 
     CUDA_ERROR_CHECK(cudaMemcpy(reinterpret_cast<void*>(md_miss_record), &miss_rec, sizeof(Record<MissParameters>),
                                 cudaMemcpyHostToDevice));
@@ -413,27 +413,27 @@ void ChOptixPipeline::SpawnPipeline(PipelineType type) {
         case PipelineType::CAMERA_PINHOLE: {
             program_groups.push_back(m_camera_pinhole_raygen_group);
             OPTIX_ERROR_CHECK(optixSbtRecordPackHeader(m_camera_pinhole_raygen_group, raygen_record.get()));
-            raygen_record->data.specific.camera.hFOV = 3.14 / 4.0;  // default value
+            raygen_record->data.specific.camera.hFOV = 3.14f / 4;   // default value
             raygen_record->data.specific.camera.frame_buffer = {};  // default value
             raygen_record->data.specific.camera.use_gi = false;     // default value
-            raygen_record->data.specific.camera.gamma = 2.2;        // default value
+            raygen_record->data.specific.camera.gamma = 2.2f;       // default value
             break;
         }
 
         case PipelineType::CAMERA_FOV_LENS: {
             program_groups.push_back(m_camera_fov_lens_raygen_group);
             OPTIX_ERROR_CHECK(optixSbtRecordPackHeader(m_camera_fov_lens_raygen_group, raygen_record.get()));
-            raygen_record->data.specific.camera.hFOV = 3.14 / 4.0;  // default value
+            raygen_record->data.specific.camera.hFOV = 3.14f / 4;   // default value
             raygen_record->data.specific.camera.frame_buffer = {};  // default value
             raygen_record->data.specific.camera.use_gi = false;     // default value
-            raygen_record->data.specific.camera.gamma = 2.2;        // default value
+            raygen_record->data.specific.camera.gamma = 2.2f;       // default value
             break;
         }
 
         case PipelineType::SEGMENTATION_PINHOLE: {
             program_groups.push_back(m_segmentation_pinhole_raygen_group);
             OPTIX_ERROR_CHECK(optixSbtRecordPackHeader(m_segmentation_pinhole_raygen_group, raygen_record.get()));
-            raygen_record->data.specific.segmentation.hFOV = 3.14 / 4.0;  // default value
+            raygen_record->data.specific.segmentation.hFOV = 3.14f / 4;   // default value
             raygen_record->data.specific.segmentation.frame_buffer = {};  // default value
             break;
         }
@@ -441,7 +441,7 @@ void ChOptixPipeline::SpawnPipeline(PipelineType type) {
         case PipelineType::SEGMENTATION_FOV_LENS: {
             program_groups.push_back(m_segmentation_fov_lens_raygen_group);
             OPTIX_ERROR_CHECK(optixSbtRecordPackHeader(m_segmentation_fov_lens_raygen_group, raygen_record.get()));
-            raygen_record->data.specific.segmentation.hFOV = 3.14 / 4.0;  // default value
+            raygen_record->data.specific.segmentation.hFOV = 3.14f / 4;   // default value
             raygen_record->data.specific.segmentation.frame_buffer = {};  // default value
             break;
         }
@@ -452,7 +452,7 @@ void ChOptixPipeline::SpawnPipeline(PipelineType type) {
             raygen_record->data.specific.lidar.frame_buffer = {};                         // default value
             raygen_record->data.specific.lidar.max_vert_angle = 1.f;                      // default value
             raygen_record->data.specific.lidar.min_vert_angle = -1.f;                     // default value
-            raygen_record->data.specific.lidar.hFOV = CH_C_2PI;                           // default value
+            raygen_record->data.specific.lidar.hFOV = (float)CH_C_2PI;                    // default value
             raygen_record->data.specific.lidar.beam_shape = LidarBeamShape::RECTANGULAR;  // default value
             raygen_record->data.specific.lidar.sample_radius = 1;                         // default value
             raygen_record->data.specific.lidar.horiz_div_angle = 0.f;                     // default value
@@ -468,7 +468,7 @@ void ChOptixPipeline::SpawnPipeline(PipelineType type) {
             raygen_record->data.specific.lidar.frame_buffer = {};                         // default value
             raygen_record->data.specific.lidar.max_vert_angle = 1.f;                      // default value
             raygen_record->data.specific.lidar.min_vert_angle = -1.f;                     // default value
-            raygen_record->data.specific.lidar.hFOV = CH_C_2PI;                           // default value
+            raygen_record->data.specific.lidar.hFOV = (float)CH_C_2PI;                    // default value
             raygen_record->data.specific.lidar.beam_shape = LidarBeamShape::RECTANGULAR;  // default value
             raygen_record->data.specific.lidar.sample_radius = 1;                         // default value
             raygen_record->data.specific.lidar.horiz_div_angle = 0.f;                     // default value
@@ -482,8 +482,8 @@ void ChOptixPipeline::SpawnPipeline(PipelineType type) {
             program_groups.push_back(m_radar_raygen_group);
             OPTIX_ERROR_CHECK(optixSbtRecordPackHeader(m_radar_raygen_group, raygen_record.get()));
             raygen_record->data.specific.radar.frame_buffer = {};      // default value
-            raygen_record->data.specific.radar.vFOV = CH_C_PI;  // default value
-            raygen_record->data.specific.radar.hFOV = CH_C_PI;         // default value
+            raygen_record->data.specific.radar.vFOV = (float)CH_C_PI;  // default value
+            raygen_record->data.specific.radar.hFOV = (float)CH_C_PI;  // default value
             raygen_record->data.specific.radar.max_distance = 200.f;   // default value
             raygen_record->data.specific.radar.clip_near = 0.f;        // default value
             break;

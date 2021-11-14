@@ -11,6 +11,11 @@
 // =============================================================================
 // Authors: Alessandro Tasora
 // =============================================================================
+// This file contains a number of ready-to-use loads (ChLoad inherited classes
+// and their embedded ChLoader classes) that can be applied to objects of
+// ChNodeFEAxyzrot (and inherited classes) type.
+// These are 'simplified' tools, that save from inheriting custom loads.
+// =============================================================================
 
 #ifndef CHLOADSXYZROTNODE_H
 #define CHLOADSXYZROTNODE_H
@@ -21,40 +26,30 @@
 #include "chrono/motion_functions/ChFunction.h"
 
 namespace chrono {
-
-// This file contains a number of ready-to-use loads (ChLoad inherited classes and
-// their embedded ChLoader classes) that can be applied to objects of ChNodeFEAxyzrot (and 
-// inherited classes) type.
-// These are 'simplified' tools, that save you from inheriting your custom 
-// loads. 
-// Or just look at these classes and learn how to implement some special type of load.
-
-
+namespace fea {
 
 ////////////////////////////////////////////////////////////////////////////
-// 
+//
 //  LOADS ON:   ChNodeFEAxyzrot
 
-
-/// Base class for loads representing a concentrated wrench (force+torque) acting on a ChNodeFEAxyzrot.
-/// Users should inherit from this and implement custom ComputeForceTorque(), this is enough
-/// to have the load working.
-/// Note: there are already some predefined examples, ie. children classes 
-/// with common concrete implementations, such as ChLoadXYZROTnodeForceAbsolute ;
-/// take inspiration from those example to inherit your own load if they are not enough.
+/// Base class for loads representing a concentrated wrench (force + torque) acting on a ChNodeFEAxyzrot.
+/// Users should inherit from this and implement custom ComputeForceTorque(), this is enough to have the load working.
+/// Note: there are already some predefined examples, i.e. children classes with common concrete implementations, such
+/// as ChLoadXYZROTnodeForceAbsolute; take inspiration from those example to inherit your own load if they are not
+/// enough.
 class ChApi ChLoadXYZROTnode : public ChLoadCustom {
   public:
-    ChLoadXYZROTnode(std::shared_ptr<fea::ChNodeFEAxyzrot> body  ///< node to apply load to
+    ChLoadXYZROTnode(std::shared_ptr<ChNodeFEAxyzrot> body  ///< node to apply load to
     );
 
     /// Compute the force and torque on the node, in absolute coordsystem,
     /// given absolute position and speed of node passed via node_frame_abs_pos_vel.
     /// Inherited classes MUST IMPLEMENT THIS.
     virtual void ComputeForceTorque(const ChFrameMoving<>& node_frame_abs_pos_vel,
-                               ChVector<>& abs_force, 
-                               ChVector<>& abs_torque) = 0;
+                                    ChVector<>& abs_force,
+                                    ChVector<>& abs_torque) = 0;
 
-	// Optional: inherited classes could implement this to avoid the
+    // Optional: inherited classes could implement this to avoid the
     // default numerical computation of jacobians:
     //   virtual void ComputeJacobian(...) // see ChLoad
 
@@ -64,7 +59,7 @@ class ChApi ChLoadXYZROTnode : public ChLoadCustom {
                           ChStateDelta* state_w  ///< state speed to evaluate Q
                           ) override;
 
-	/// For diagnosis purposes, this can return the actual last computed value of
+    /// For diagnosis purposes, this can return the actual last computed value of
     /// the applied force, expressed in absolute coordinate system, assumed applied to node
     ChVector<> GetForce() const { return computed_abs_force; }
 
@@ -73,42 +68,36 @@ class ChApi ChLoadXYZROTnode : public ChLoadCustom {
     ChVector<> GetTorque() const { return computed_abs_torque; }
 
   protected:
-
-	/// Inherited classes could override this and return true, if the load benefits from a jacobian
-	/// when using implicit integrators. 
+    /// Inherited classes could override this and return true, if the load benefits from a jacobian
+    /// when using implicit integrators.
     virtual bool IsStiff() override { return false; }
 
     virtual void Update(double time) override;
 
-	ChVector<> computed_abs_force;
+    ChVector<> computed_abs_force;
     ChVector<> computed_abs_torque;
 };
 
-
-
-
- // Example: 
-/// Load representing a concentrated force acting on a ChNodeXYZ,
-/// as a constant force, or it provides a function to modulate 
-/// it with time. As it is constant in space, IsStiff() is false, as default.
+/// Load representing a concentrated force acting on a ChNodeXYZ, as a constant force, or it provides a function to
+/// modulate it with time. As it is constant in space, IsStiff() is false, as default.
 class ChApi ChLoadXYZROTnodeForceAbsolute : public ChLoadXYZROTnode {
   public:
-    ChLoadXYZROTnodeForceAbsolute(std::shared_ptr<fea::ChNodeFEAxyzrot> node,  ///< node to apply load to
-                    const ChVector<>& force        ///< force to apply, assumed in absolute coordsys,
+    ChLoadXYZROTnodeForceAbsolute(std::shared_ptr<ChNodeFEAxyzrot> node,  ///< node to apply load to
+                                  const ChVector<>& force  ///< force to apply, assumed in absolute coordsys,
     );
 
     /// "Virtual" copy constructor (covariant return type).
     virtual ChLoadXYZROTnodeForceAbsolute* Clone() const override { return new ChLoadXYZROTnodeForceAbsolute(*this); }
 
-	/// Compute the force on the node, in absolute coordsystem,
+    /// Compute the force on the node, in absolute coordsystem,
     /// given absolute position and speed of node passed via node_frame_abs_pos_vel.
     virtual void ComputeForceTorque(const ChFrameMoving<>& node_frame_abs_pos_vel,
-                               ChVector<>& abs_force, 
-                               ChVector<>& abs_torque)  override;
+                                    ChVector<>& abs_force,
+                                    ChVector<>& abs_torque) override;
 
     /// Set the applied force vector: it is assumed constant, unless a
-	/// non-constant scaling time function is provided.
-    /// It is expressed in absolute coordinates. 
+    /// non-constant scaling time function is provided.
+    /// It is expressed in absolute coordinates.
     void SetForceBase(const ChVector<>& force);
 
     /// Return the current force vector (scaled by the current modulation value).
@@ -119,11 +108,10 @@ class ChApi ChLoadXYZROTnodeForceAbsolute : public ChLoadXYZROTnode {
     /// By default the modulation is a constant function, always returning a value of 1.
     void SetModulationFunction(std::shared_ptr<ChFunction> modulation) { m_modulation = modulation; }
 
-
   protected:
     ChVector<> m_force_base;  ///< base force value
 
-	std::shared_ptr<ChFunction> m_modulation;  ///< modulation function of time
+    std::shared_ptr<ChFunction> m_modulation;  ///< modulation function of time
     double m_scale;                            ///< scaling factor (current modulation value)
 
     virtual bool IsStiff() override { return false; }
@@ -131,36 +119,29 @@ class ChApi ChLoadXYZROTnodeForceAbsolute : public ChLoadXYZROTnode {
     virtual void Update(double time) override;
 };
 
-
-
 ////////////////////////////////////////////////////////////////////////////
-// 
+//
 //  LOADS ON:   ChNodeFEAxyzrot ---- ChNodeFEAxyzrot
 
-
 /// Base class for loads representing a concentrated wrench (force & torque) acting between two ChNodeFEAxyzrot.
-/// The force & torque is applied between two local references attached to the two nodes, loc_application_A and loc_application_B, 
-/// not necessarily centered in the respective nodes.
-/// Users should inherit from this and implement a custom ComputeForceTorque(), this is enough
-/// to have the load working.
-/// Note: there are already some predefined examples, ie. children classes 
-/// with common concrete implementations, such as ChLoadXYZROTnodeXYZROTnodeBushingSpherical
-/// ChLoadXYZROTnodeXYZROTnodeBushingMate, etc.; take inspiration from those example to inherit your 
-/// own load if they are not enough.
+/// The force & torque is applied between two local references attached to the two nodes, loc_application_A and
+/// loc_application_B, not necessarily centered in the respective nodes. Users should inherit from this and implement a
+/// custom ComputeForceTorque(), this is enough to have the load working. Note: there are already some predefined
+/// examples, ie. children classes with common concrete implementations, such as
+/// ChLoadXYZROTnodeXYZROTnodeBushingSpherical ChLoadXYZROTnodeXYZROTnodeBushingMate, etc.; take inspiration from those
+/// example to inherit your own load if they are not enough.
 class ChApi ChLoadXYZROTnodeXYZROTnode : public ChLoadCustomMultiple {
   public:
-    ChLoadXYZROTnodeXYZROTnode(std::shared_ptr<fea::ChNodeFEAxyzrot> mnodeA,   ///< node A to apply load to
-						       std::shared_ptr<fea::ChNodeFEAxyzrot> mnodeB,   ///< node B to apply load to, as reaction
+    ChLoadXYZROTnodeXYZROTnode(std::shared_ptr<ChNodeFEAxyzrot> mnodeA,  ///< node A to apply load to
+                               std::shared_ptr<ChNodeFEAxyzrot> mnodeB,  ///< node B to apply load to, as reaction
                                const ChFrame<>& abs_application  ///< location of load element (in abs. coordinates)
     );
 
     /// Compute the wrench (force & torque) between the two nodes, expressed in local frame of loc_application_B,
-    /// given rel_AB, i.e. the position and speed of loc_application_A respect to loc_application_B, expressed in frame of loc_application_B.
-    /// Force is assumed applied to loc_application_B, and its opposite reaction to A.
-    /// Inherited classes MUST IMPLEMENT THIS.
-    virtual void ComputeForceTorque(const ChFrameMoving<>& rel_AB,
-                                            ChVector<>& loc_force,
-                                            ChVector<>& loc_torque) = 0;
+    /// given rel_AB, i.e. the position and speed of loc_application_A respect to loc_application_B, expressed in frame
+    /// of loc_application_B. Force is assumed applied to loc_application_B, and its opposite reaction to A. Inherited
+    /// classes MUST IMPLEMENT THIS.
+    virtual void ComputeForceTorque(const ChFrameMoving<>& rel_AB, ChVector<>& loc_force, ChVector<>& loc_torque) = 0;
 
     /// Compute Q, the generalized load.
     /// Called automatically at each Update().
@@ -171,7 +152,6 @@ class ChApi ChLoadXYZROTnodeXYZROTnode : public ChLoadCustomMultiple {
     // Optional: inherited classes could implement this to avoid the
     // default numerical computation of jacobians:
     //   virtual void ComputeJacobian(...) // see ChLoad
-
 
     /// For diagnosis purposes, this can return the actual last computed value of
     /// the applied force, expressed in coordinate system of loc_application_B, assumed applied to body B
@@ -195,8 +175,8 @@ class ChApi ChLoadXYZROTnodeXYZROTnode : public ChLoadCustomMultiple {
     /// Get absolute coordinate of frame B (last computed)
     ChFrameMoving<> GetAbsoluteFrameB() const { return frame_Bw; }
 
-    std::shared_ptr<fea::ChNodeFEAxyzrot> GetNodeA() const;
-    std::shared_ptr<fea::ChNodeFEAxyzrot> GetNodeB() const;
+    std::shared_ptr<ChNodeFEAxyzrot> GetNodeA() const;
+    std::shared_ptr<ChNodeFEAxyzrot> GetNodeB() const;
 
   protected:
     ChFrame<> loc_application_A;  ///< application point on body A (local)
@@ -205,31 +185,30 @@ class ChApi ChLoadXYZROTnodeXYZROTnode : public ChLoadCustomMultiple {
     ChVector<> locB_torque;       ///< store computed values here
     ChFrameMoving<> frame_Aw;     ///< for results
     ChFrameMoving<> frame_Bw;     ///< for results
-
 };
-
-
-
 
 //------------------------------------------------------------------------------------------------
 
-/// Load for a visco-elastic bushing acting between two bodies. 
-/// The bushing is between two local references attached to the two nodes, loc_application_A and loc_application_B, 
+/// Load for a visco-elastic bushing acting between two bodies.
+/// The bushing is between two local references attached to the two nodes, loc_application_A and loc_application_B,
 /// not necessarily centered in the respective nodes.
 /// It uses three values for stiffness along the X Y Z axes of a coordinate system attached
 /// to the second body. This is equivalent to having a bushing with 3x3 diagonal local stiffness matrix.
 class ChApi ChLoadXYZROTnodeXYZROTnodeBushingSpherical : public ChLoadXYZROTnodeXYZROTnode {
   public:
     ChLoadXYZROTnodeXYZROTnodeBushingSpherical(
-        std::shared_ptr<fea::ChNodeFEAxyzrot> mnodeA,    ///< node A
-        std::shared_ptr<fea::ChNodeFEAxyzrot> mnodeB,    ///< node B
-        const ChFrame<>& abs_application,  ///< create bushing here, in abs. coordinates. Will define loc_application_A and B
-        const ChVector<>& mstiffness,      ///< stiffness, along x y z axes of the abs_application
-        const ChVector<>& mdamping         ///< damping, along x y z axes of the abs_application
+        std::shared_ptr<ChNodeFEAxyzrot> mnodeA,  ///< node A
+        std::shared_ptr<ChNodeFEAxyzrot> mnodeB,  ///< node B
+        const ChFrame<>&
+            abs_application,  ///< create bushing here, in abs. coordinates. Will define loc_application_A and B
+        const ChVector<>& mstiffness,  ///< stiffness, along x y z axes of the abs_application
+        const ChVector<>& mdamping     ///< damping, along x y z axes of the abs_application
     );
 
     /// "Virtual" copy constructor (covariant return type).
-    virtual ChLoadXYZROTnodeXYZROTnodeBushingSpherical* Clone() const override { return new ChLoadXYZROTnodeXYZROTnodeBushingSpherical(*this); }
+    virtual ChLoadXYZROTnodeXYZROTnodeBushingSpherical* Clone() const override {
+        return new ChLoadXYZROTnodeXYZROTnodeBushingSpherical(*this);
+    }
 
     /// Set stiffness, along the x y z axes of frame of loc_application_B, es [N/m]
     void SetStiffness(const ChVector<> mstiffness) { stiffness = mstiffness; }
@@ -246,11 +225,11 @@ class ChApi ChLoadXYZROTnodeXYZROTnodeBushingSpherical : public ChLoadXYZROTnode
     virtual bool IsStiff() override { return true; }
 
     /// Compute the wrench (force & torque) between the two nodes, expressed in local frame of loc_application_B,
-    /// given rel_AB, i.e. the position and speed of loc_application_A respect to loc_application_B, expressed in frame of loc_application_B.
-    /// Force is assumed applied to loc_application_B, and its opposite reaction to A.
+    /// given rel_AB, i.e. the position and speed of loc_application_A respect to loc_application_B, expressed in frame
+    /// of loc_application_B. Force is assumed applied to loc_application_B, and its opposite reaction to A.
     virtual void ComputeForceTorque(const ChFrameMoving<>& rel_AB,
-                                            ChVector<>& loc_force,
-                                            ChVector<>& loc_torque) override;
+                                    ChVector<>& loc_force,
+                                    ChVector<>& loc_torque) override;
 };
 
 //------------------------------------------------------------------------------------------------
@@ -262,12 +241,13 @@ class ChApi ChLoadXYZROTnodeXYZROTnodeBushingSpherical : public ChLoadXYZROTnode
 class ChApi ChLoadXYZROTnodeXYZROTnodeBushingPlastic : public ChLoadXYZROTnodeXYZROTnodeBushingSpherical {
   public:
     ChLoadXYZROTnodeXYZROTnodeBushingPlastic(
-        std::shared_ptr<fea::ChNodeFEAxyzrot> mnodeA,  ///< node A
-        std::shared_ptr<fea::ChNodeFEAxyzrot> mnodeB,  ///< node B
-        const ChFrame<>& abs_application,  ///< create the bushing here, in abs. coordinates. Will define loc_application_A and B
-        const ChVector<>& mstiffness,      ///< stiffness, along the x y z axes of the abs_application
-        const ChVector<>& mdamping,        ///< damping, along the x y z axes of the abs_application
-        const ChVector<>& myield           ///< plastic yield, along the x y z axes of the abs_application
+        std::shared_ptr<ChNodeFEAxyzrot> mnodeA,  ///< node A
+        std::shared_ptr<ChNodeFEAxyzrot> mnodeB,  ///< node B
+        const ChFrame<>&
+            abs_application,  ///< create the bushing here, in abs. coordinates. Will define loc_application_A and B
+        const ChVector<>& mstiffness,  ///< stiffness, along the x y z axes of the abs_application
+        const ChVector<>& mdamping,    ///< damping, along the x y z axes of the abs_application
+        const ChVector<>& myield       ///< plastic yield, along the x y z axes of the abs_application
     );
 
     /// Set plastic yield, forces beyond this limit will be capped.
@@ -284,11 +264,11 @@ class ChApi ChLoadXYZROTnodeXYZROTnodeBushingPlastic : public ChLoadXYZROTnodeXY
     ChVector<> plastic_def;
 
     /// Compute the wrench (force & torque) between the two nodes, expressed in local frame of loc_application_B,
-    /// given rel_AB, i.e. the position and speed of loc_application_A respect to loc_application_B, expressed in frame of loc_application_B.
-    /// Force is assumed applied to loc_application_B, and its opposite reaction to A.
+    /// given rel_AB, i.e. the position and speed of loc_application_A respect to loc_application_B, expressed in frame
+    /// of loc_application_B. Force is assumed applied to loc_application_B, and its opposite reaction to A.
     virtual void ComputeForceTorque(const ChFrameMoving<>& rel_AB,
-                                            ChVector<>& loc_force,
-                                            ChVector<>& loc_torque) override;
+                                    ChVector<>& loc_force,
+                                    ChVector<>& loc_torque) override;
 };
 
 //------------------------------------------------------------------------------------------------
@@ -301,13 +281,14 @@ class ChApi ChLoadXYZROTnodeXYZROTnodeBushingPlastic : public ChLoadXYZROTnodeXY
 class ChApi ChLoadXYZROTnodeXYZROTnodeBushingMate : public ChLoadXYZROTnodeXYZROTnodeBushingSpherical {
   public:
     ChLoadXYZROTnodeXYZROTnodeBushingMate(
-        std::shared_ptr<fea::ChNodeFEAxyzrot> mnodeA,  ///< node A
-        std::shared_ptr<fea::ChNodeFEAxyzrot> mnodeB,  ///< node B
-        const ChFrame<>& abs_application,  ///< create the bushing here, in abs. coordinates. Will define loc_application_A and B
-        const ChVector<>& mstiffness,      ///< stiffness, along x y z axes of the abs_application
-        const ChVector<>& mdamping,        ///< damping, along x y z axes of the abs_application
-        const ChVector<>& mrotstiffness,   ///< rotational stiffness, about x y z axes of the abs_application
-        const ChVector<>& mrotdamping      ///< rotational damping, about x y z axes of the abs_application
+        std::shared_ptr<ChNodeFEAxyzrot> mnodeA,  ///< node A
+        std::shared_ptr<ChNodeFEAxyzrot> mnodeB,  ///< node B
+        const ChFrame<>&
+            abs_application,  ///< create the bushing here, in abs. coordinates. Will define loc_application_A and B
+        const ChVector<>& mstiffness,     ///< stiffness, along x y z axes of the abs_application
+        const ChVector<>& mdamping,       ///< damping, along x y z axes of the abs_application
+        const ChVector<>& mrotstiffness,  ///< rotational stiffness, about x y z axes of the abs_application
+        const ChVector<>& mrotdamping     ///< rotational damping, about x y z axes of the abs_application
     );
 
     /// Set radial stiffness, along the x y z axes of loc_application_B, es [N/m]
@@ -323,11 +304,11 @@ class ChApi ChLoadXYZROTnodeXYZROTnodeBushingMate : public ChLoadXYZROTnodeXYZRO
     ChVector<> rot_damping;
 
     /// Compute the wrench (force & torque) between the two nodes, expressed in local frame of loc_application_B,
-    /// given rel_AB, i.e. the position and speed of loc_application_A respect to loc_application_B, expressed in frame of loc_application_B.
-    /// Force is assumed applied to loc_application_B, and its opposite reaction to A.
+    /// given rel_AB, i.e. the position and speed of loc_application_A respect to loc_application_B, expressed in frame
+    /// of loc_application_B. Force is assumed applied to loc_application_B, and its opposite reaction to A.
     virtual void ComputeForceTorque(const ChFrameMoving<>& rel_AB,
-                                            ChVector<>& loc_force,
-                                            ChVector<>& loc_torque) override;
+                                    ChVector<>& loc_force,
+                                    ChVector<>& loc_torque) override;
 };
 
 //------------------------------------------------------------------------------------------------
@@ -342,15 +323,18 @@ class ChApi ChLoadXYZROTnodeXYZROTnodeBushingMate : public ChLoadXYZROTnodeXYZRO
 class ChApi ChLoadXYZROTnodeXYZROTnodeBushingGeneric : public ChLoadXYZROTnodeXYZROTnode {
   public:
     ChLoadXYZROTnodeXYZROTnodeBushingGeneric(
-        std::shared_ptr<fea::ChNodeFEAxyzrot> mnodeA,  ///< node A
-        std::shared_ptr<fea::ChNodeFEAxyzrot> mnodeB,  ///< node B
-        const ChFrame<>& abs_application,  ///< create the bushing here, in abs. coordinates. Will define loc_application_A and B
-        ChMatrixConstRef mstiffness,       ///< stiffness as a 6x6 matrix, local in the abs_application frame
-        ChMatrixConstRef mdamping          ///< damping as a 6x6 matrix, local in the abs_application frame
+        std::shared_ptr<ChNodeFEAxyzrot> mnodeA,  ///< node A
+        std::shared_ptr<ChNodeFEAxyzrot> mnodeB,  ///< node B
+        const ChFrame<>&
+            abs_application,  ///< create the bushing here, in abs. coordinates. Will define loc_application_A and B
+        ChMatrixConstRef mstiffness,  ///< stiffness as a 6x6 matrix, local in the abs_application frame
+        ChMatrixConstRef mdamping     ///< damping as a 6x6 matrix, local in the abs_application frame
     );
 
     /// "Virtual" copy constructor (covariant return type).
-    virtual ChLoadXYZROTnodeXYZROTnodeBushingGeneric* Clone() const override { return new ChLoadXYZROTnodeXYZROTnodeBushingGeneric(*this); }
+    virtual ChLoadXYZROTnodeXYZROTnodeBushingGeneric* Clone() const override {
+        return new ChLoadXYZROTnodeXYZROTnodeBushingGeneric(*this);
+    }
 
     /// Set a generic 6x6 stiffness matrix, expressed in local
     /// coordinate system of loc_application_B.
@@ -390,51 +374,39 @@ class ChApi ChLoadXYZROTnodeXYZROTnodeBushingGeneric : public ChLoadXYZROTnodeXY
     virtual bool IsStiff() override { return true; }
 
     /// Compute the wrench (force & torque) between the two nodes, expressed in local frame of loc_application_B,
-    /// given rel_AB, i.e. the position and speed of loc_application_A respect to loc_application_B, expressed in frame of loc_application_B.
-    /// Force is assumed applied to loc_application_B, and its opposite reaction to A.
+    /// given rel_AB, i.e. the position and speed of loc_application_A respect to loc_application_B, expressed in frame
+    /// of loc_application_B. Force is assumed applied to loc_application_B, and its opposite reaction to A.
     virtual void ComputeForceTorque(const ChFrameMoving<>& rel_AB,
-                                            ChVector<>& loc_force,
-                                            ChVector<>& loc_torque) override;
+                                    ChVector<>& loc_force,
+                                    ChVector<>& loc_torque) override;
 
   public:
     EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 };
 
-
-
-
-
-
-
 ////////////////////////////////////////////////////////////////////////////
-// 
+//
 //  LOADS ON:   ChNodeFEAxyzrot ---- ChBody
 
-
-
-/// Base class for loads representing a concentrated wrench (force & torque) acting between a ChNodeFEAxyzrot and a ChBody
-/// The force & torque is applied between two local references attached to the two nodes, loc_application_A and loc_application_B, 
-/// not necessarily centered in the respective nodes.
-/// Users should inherit from this and implement a custom ComputeForceTorque(), this is enough
-/// to have the load working.
-/// Note: there are already some predefined examples, ie. children classes 
-/// with common concrete implementations, such as ChLoadXYZROTnodeBodyBushingSpherical
-/// ChLoadXYZROTnodeBodyBushingMate, etc.; take inspiration from those example to inherit your 
+/// Base class for loads representing a concentrated wrench (force & torque) acting between a ChNodeFEAxyzrot and a
+/// ChBody The force & torque is applied between two local references attached to the two nodes, loc_application_A and
+/// loc_application_B, not necessarily centered in the respective nodes. Users should inherit from this and implement a
+/// custom ComputeForceTorque(), this is enough to have the load working. Note: there are already some predefined
+/// examples, ie. children classes with common concrete implementations, such as ChLoadXYZROTnodeBodyBushingSpherical
+/// ChLoadXYZROTnodeBodyBushingMate, etc.; take inspiration from those example to inherit your
 /// own load if they are not enough.
 class ChApi ChLoadXYZROTnodeBody : public ChLoadCustomMultiple {
   public:
-    ChLoadXYZROTnodeBody(std::shared_ptr<fea::ChNodeFEAxyzrot> mnodeA,   ///< node A to apply load to as reaction,
-						 std::shared_ptr<ChBody> mbodyB,                 ///< body B to apply load to, 
-                         const ChFrame<>& abs_application                ///< location of load element (in abs. coordinates)
+    ChLoadXYZROTnodeBody(std::shared_ptr<ChNodeFEAxyzrot> mnodeA,  ///< node A to apply load to as reaction,
+                         std::shared_ptr<ChBody> mbodyB,           ///< body B to apply load to,
+                         const ChFrame<>& abs_application          ///< location of load element (in abs. coordinates)
     );
 
     /// Compute the wrench (force & torque) between the two nodes, expressed in local frame of loc_application_B,
-    /// given rel_AB, i.e. the position and speed of loc_application_A respect to loc_application_B, expressed in frame of loc_application_B.
-    /// Force is assumed applied to loc_application_B, and its opposite reaction to A.
-    /// Inherited classes MUST IMPLEMENT THIS.
-    virtual void ComputeForceTorque(const ChFrameMoving<>& rel_AB,
-                                            ChVector<>& loc_force,
-                                            ChVector<>& loc_torque) = 0;
+    /// given rel_AB, i.e. the position and speed of loc_application_A respect to loc_application_B, expressed in frame
+    /// of loc_application_B. Force is assumed applied to loc_application_B, and its opposite reaction to A. Inherited
+    /// classes MUST IMPLEMENT THIS.
+    virtual void ComputeForceTorque(const ChFrameMoving<>& rel_AB, ChVector<>& loc_force, ChVector<>& loc_torque) = 0;
 
     /// Compute Q, the generalized load.
     /// Called automatically at each Update().
@@ -445,7 +417,6 @@ class ChApi ChLoadXYZROTnodeBody : public ChLoadCustomMultiple {
     // Optional: inherited classes could implement this to avoid the
     // default numerical computation of jacobians:
     //   virtual void ComputeJacobian(...) // see ChLoad
-
 
     /// For diagnosis purposes, this can return the actual last computed value of
     /// the applied force, expressed in coordinate system of loc_application_B, assumed applied to body B
@@ -469,8 +440,8 @@ class ChApi ChLoadXYZROTnodeBody : public ChLoadCustomMultiple {
     /// Get absolute coordinate of frame B (last computed)
     ChFrameMoving<> GetAbsoluteFrameB() const { return frame_Bw; }
 
-    std::shared_ptr<fea::ChNodeFEAxyzrot> GetNodeA() const;
-    std::shared_ptr<ChBody>               GetBodyB() const;
+    std::shared_ptr<ChNodeFEAxyzrot> GetNodeA() const;
+    std::shared_ptr<ChBody> GetBodyB() const;
 
   protected:
     ChFrame<> loc_application_A;  ///< application point on body A (local)
@@ -479,10 +450,7 @@ class ChApi ChLoadXYZROTnodeBody : public ChLoadCustomMultiple {
     ChVector<> locB_torque;       ///< store computed values here
     ChFrameMoving<> frame_Aw;     ///< for results
     ChFrameMoving<> frame_Bw;     ///< for results
-
 };
-
-
 
 //------------------------------------------------------------------------------------------------
 
@@ -492,15 +460,17 @@ class ChApi ChLoadXYZROTnodeBody : public ChLoadCustomMultiple {
 class ChApi ChLoadXYZROTnodeBodyBushingSpherical : public ChLoadXYZROTnodeBody {
   public:
     ChLoadXYZROTnodeBodyBushingSpherical(
-        std::shared_ptr<fea::ChNodeFEAxyzrot> mnodeA, ///< node A
-        std::shared_ptr<ChBody> mbodyB,               ///< body B
-        const ChFrame<>& abs_application,  ///< bushing location, in abs. coordinates.
-        const ChVector<>& mstiffness,      ///< stiffness, along x y z axes of the abs_application
-        const ChVector<>& mdamping         ///< damping, along x y z axes of the abs_application
+        std::shared_ptr<ChNodeFEAxyzrot> mnodeA,  ///< node A
+        std::shared_ptr<ChBody> mbodyB,           ///< body B
+        const ChFrame<>& abs_application,         ///< bushing location, in abs. coordinates.
+        const ChVector<>& mstiffness,             ///< stiffness, along x y z axes of the abs_application
+        const ChVector<>& mdamping                ///< damping, along x y z axes of the abs_application
     );
 
     /// "Virtual" copy constructor (covariant return type).
-    virtual ChLoadXYZROTnodeBodyBushingSpherical* Clone() const override { return new ChLoadXYZROTnodeBodyBushingSpherical(*this); }
+    virtual ChLoadXYZROTnodeBodyBushingSpherical* Clone() const override {
+        return new ChLoadXYZROTnodeBodyBushingSpherical(*this);
+    }
 
     /// Set stiffness, along the x y z axes of loc_application_B, es [N/m]
     void SetStiffness(const ChVector<> mstiffness) { stiffness = mstiffness; }
@@ -517,11 +487,11 @@ class ChApi ChLoadXYZROTnodeBodyBushingSpherical : public ChLoadXYZROTnodeBody {
     virtual bool IsStiff() override { return true; }
 
     /// Compute the wrench (force & torque) between the two nodes, expressed in local frame of loc_application_B,
-    /// given rel_AB, i.e. the position and speed of loc_application_A respect to loc_application_B, expressed in frame of loc_application_B.
-    /// Force is assumed applied to loc_application_B, and its opposite reaction to A.
+    /// given rel_AB, i.e. the position and speed of loc_application_A respect to loc_application_B, expressed in frame
+    /// of loc_application_B. Force is assumed applied to loc_application_B, and its opposite reaction to A.
     virtual void ComputeForceTorque(const ChFrameMoving<>& rel_AB,
-                                            ChVector<>& loc_force,
-                                            ChVector<>& loc_torque) override;
+                                    ChVector<>& loc_force,
+                                    ChVector<>& loc_torque) override;
 };
 
 //------------------------------------------------------------------------------------------------
@@ -533,12 +503,12 @@ class ChApi ChLoadXYZROTnodeBodyBushingSpherical : public ChLoadXYZROTnodeBody {
 class ChApi ChLoadXYZROTnodeBodyBushingPlastic : public ChLoadXYZROTnodeBodyBushingSpherical {
   public:
     ChLoadXYZROTnodeBodyBushingPlastic(
-        std::shared_ptr<fea::ChNodeFEAxyzrot> mnodeA, ///< node A
-        std::shared_ptr<ChBody> mbodyB,               ///< body B
-        const ChFrame<>& abs_application,  ///< create the bushing here, in abs. coordinates.
-        const ChVector<>& mstiffness,      ///< stiffness, along the x y z axes of the abs_application
-        const ChVector<>& mdamping,        ///< damping, along the x y z axes of the abs_application
-        const ChVector<>& myield           ///< plastic yield, along the x y z axes of the abs_application
+        std::shared_ptr<ChNodeFEAxyzrot> mnodeA,  ///< node A
+        std::shared_ptr<ChBody> mbodyB,           ///< body B
+        const ChFrame<>& abs_application,         ///< create the bushing here, in abs. coordinates.
+        const ChVector<>& mstiffness,             ///< stiffness, along the x y z axes of the abs_application
+        const ChVector<>& mdamping,               ///< damping, along the x y z axes of the abs_application
+        const ChVector<>& myield                  ///< plastic yield, along the x y z axes of the abs_application
     );
 
     /// Set plastic yield, forces beyond this limit will be capped.
@@ -555,11 +525,11 @@ class ChApi ChLoadXYZROTnodeBodyBushingPlastic : public ChLoadXYZROTnodeBodyBush
     ChVector<> plastic_def;
 
     /// Compute the wrench (force & torque) between the two nodes, expressed in local frame of loc_application_B,
-    /// given rel_AB, i.e. the position and speed of loc_application_A respect to loc_application_B, expressed in frame of loc_application_B.
-    /// Force is assumed applied to loc_application_B, and its opposite reaction to A.
+    /// given rel_AB, i.e. the position and speed of loc_application_A respect to loc_application_B, expressed in frame
+    /// of loc_application_B. Force is assumed applied to loc_application_B, and its opposite reaction to A.
     virtual void ComputeForceTorque(const ChFrameMoving<>& rel_AB,
-                                            ChVector<>& loc_force,
-                                            ChVector<>& loc_torque) override;
+                                    ChVector<>& loc_force,
+                                    ChVector<>& loc_torque) override;
 };
 
 //------------------------------------------------------------------------------------------------
@@ -572,13 +542,13 @@ class ChApi ChLoadXYZROTnodeBodyBushingPlastic : public ChLoadXYZROTnodeBodyBush
 class ChApi ChLoadXYZROTnodeBodyBushingMate : public ChLoadXYZROTnodeBodyBushingSpherical {
   public:
     ChLoadXYZROTnodeBodyBushingMate(
-        std::shared_ptr<fea::ChNodeFEAxyzrot> mnodeA, ///< node A
-        std::shared_ptr<ChBody> mbodyB,               ///< body B
-        const ChFrame<>& abs_application,  ///< create the bushing here, in abs. coordinates.
-        const ChVector<>& mstiffness,      ///< stiffness, along x y z axes of the abs_application
-        const ChVector<>& mdamping,        ///< damping, along x y z axes of the abs_application
-        const ChVector<>& mrotstiffness,   ///< rotational stiffness, about x y z axes of the abs_application
-        const ChVector<>& mrotdamping      ///< rotational damping, about x y z axes of the abs_application
+        std::shared_ptr<ChNodeFEAxyzrot> mnodeA,  ///< node A
+        std::shared_ptr<ChBody> mbodyB,           ///< body B
+        const ChFrame<>& abs_application,         ///< create the bushing here, in abs. coordinates.
+        const ChVector<>& mstiffness,             ///< stiffness, along x y z axes of the abs_application
+        const ChVector<>& mdamping,               ///< damping, along x y z axes of the abs_application
+        const ChVector<>& mrotstiffness,          ///< rotational stiffness, about x y z axes of the abs_application
+        const ChVector<>& mrotdamping             ///< rotational damping, about x y z axes of the abs_application
     );
 
     /// Set radial stiffness, along the x y z axes of loc_application_B, es [N/m]
@@ -594,11 +564,11 @@ class ChApi ChLoadXYZROTnodeBodyBushingMate : public ChLoadXYZROTnodeBodyBushing
     ChVector<> rot_damping;
 
     /// Compute the wrench (force & torque) between the two nodes, expressed in local frame of loc_application_B,
-    /// given rel_AB, i.e. the position and speed of loc_application_A respect to loc_application_B, expressed in frame of loc_application_B.
-    /// Force is assumed applied to loc_application_B, and its opposite reaction to A.
+    /// given rel_AB, i.e. the position and speed of loc_application_A respect to loc_application_B, expressed in frame
+    /// of loc_application_B. Force is assumed applied to loc_application_B, and its opposite reaction to A.
     virtual void ComputeForceTorque(const ChFrameMoving<>& rel_AB,
-                                            ChVector<>& loc_force,
-                                            ChVector<>& loc_torque) override;
+                                    ChVector<>& loc_force,
+                                    ChVector<>& loc_torque) override;
 };
 
 //------------------------------------------------------------------------------------------------
@@ -613,15 +583,17 @@ class ChApi ChLoadXYZROTnodeBodyBushingMate : public ChLoadXYZROTnodeBodyBushing
 class ChApi ChLoadXYZROTnodeBodyBushingGeneric : public ChLoadXYZROTnodeBody {
   public:
     ChLoadXYZROTnodeBodyBushingGeneric(
-        std::shared_ptr<fea::ChNodeFEAxyzrot> mnodeA, ///< node A
-        std::shared_ptr<ChBody> mbodyB,               ///< body B
-        const ChFrame<>& abs_application,  ///< create the bushing here, in abs. coordinates.
-        ChMatrixConstRef mstiffness,       ///< stiffness as a 6x6 matrix, local in the abs_application frame
-        ChMatrixConstRef mdamping          ///< damping as a 6x6 matrix, local in the abs_application frame
+        std::shared_ptr<ChNodeFEAxyzrot> mnodeA,  ///< node A
+        std::shared_ptr<ChBody> mbodyB,           ///< body B
+        const ChFrame<>& abs_application,         ///< create the bushing here, in abs. coordinates.
+        ChMatrixConstRef mstiffness,              ///< stiffness as a 6x6 matrix, local in the abs_application frame
+        ChMatrixConstRef mdamping                 ///< damping as a 6x6 matrix, local in the abs_application frame
     );
 
     /// "Virtual" copy constructor (covariant return type).
-    virtual ChLoadXYZROTnodeBodyBushingGeneric* Clone() const override { return new ChLoadXYZROTnodeBodyBushingGeneric(*this); }
+    virtual ChLoadXYZROTnodeBodyBushingGeneric* Clone() const override {
+        return new ChLoadXYZROTnodeBodyBushingGeneric(*this);
+    }
 
     /// Set a generic 6x6 stiffness matrix, expressed in local
     /// coordinate system of loc_application_B.
@@ -661,18 +633,17 @@ class ChApi ChLoadXYZROTnodeBodyBushingGeneric : public ChLoadXYZROTnodeBody {
     virtual bool IsStiff() override { return true; }
 
     /// Compute the wrench (force & torque) between the two nodes, expressed in local frame of loc_application_B,
-    /// given rel_AB, i.e. the position and speed of loc_application_A respect to loc_application_B, expressed in frame of loc_application_B.
-    /// Force is assumed applied to loc_application_B, and its opposite reaction to A.
+    /// given rel_AB, i.e. the position and speed of loc_application_A respect to loc_application_B, expressed in frame
+    /// of loc_application_B. Force is assumed applied to loc_application_B, and its opposite reaction to A.
     virtual void ComputeForceTorque(const ChFrameMoving<>& rel_AB,
-                                            ChVector<>& loc_force,
-                                            ChVector<>& loc_torque) override;
+                                    ChVector<>& loc_force,
+                                    ChVector<>& loc_torque) override;
 
   public:
     EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 };
 
-
-
-}  // end namespace chrono
+}  // namespace fea
+}  // namespace chrono
 
 #endif

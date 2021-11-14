@@ -69,7 +69,7 @@ void SynDDSDataWriterListener::on_publication_matched(DataWriter* writer, const 
 // -----------------------------------------------------------------------------------
 
 SynDDSDataReaderListener::SynDDSDataReaderListener(std::function<void(void*)> callback, void* message)
-    : m_on_data_available_callback(callback), m_message(message) {}
+    : m_message(message) , m_on_data_available_callback(callback) {}
 
 void SynDDSDataReaderListener::on_data_available(DataReader* reader) {
     // std::cout << "Data Available" << std::endl;

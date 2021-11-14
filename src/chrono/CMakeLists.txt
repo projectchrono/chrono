@@ -291,7 +291,6 @@ set(ChronoEngine_physics_loads_SOURCES
     physics/ChLoad.cpp
     physics/ChLoadsBody.cpp
     physics/ChLoadsXYZnode.cpp
-    physics/ChLoadsXYZROTnode.cpp
     physics/ChLoadBodyMesh.cpp
 )
 
@@ -303,7 +302,6 @@ set(ChronoEngine_physics_loads_HEADERS
     physics/ChLoaderUVW.h
     physics/ChLoad.h
     physics/ChLoadsXYZnode.h
-    physics/ChLoadsXYZROTnode.h
     physics/ChLoadsBody.h
     physics/ChLoadBodyMesh.h
     physics/ChLoadContainer.h
@@ -390,6 +388,7 @@ set(ChronoEngine_fea_SOURCES
     fea/ChContactSurfaceMesh.cpp
     fea/ChMeshSurface.cpp
     fea/ChLoadContactSurfaceMesh.cpp
+    fea/ChLoadsXYZROTnode.cpp
     fea/ChMaterialBeamANCF.cpp
     fea/ChMaterialShellANCF.cpp
     fea/ChMaterialHexaANCF.cpp
@@ -433,6 +432,7 @@ set(ChronoEngine_fea_HEADERS
     fea/ChContactSurfaceMesh.h
     fea/ChMeshSurface.h
     fea/ChLoadContactSurfaceMesh.h
+    fea/ChLoadsXYZROTnode.h
     fea/ChRotUtils.h
     fea/ChMaterialBeamANCF.h
     fea/ChMaterialShellANCF.h

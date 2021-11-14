@@ -30,13 +30,13 @@ SynDDSSubscriber::SynDDSSubscriber(Subscriber* subscriber,
                                    std::function<void(void*)> callback,
                                    void* message,
                                    bool is_synchronous)
-    : m_subscriber(subscriber),
+    : m_is_synchronous(is_synchronous),
+      m_subscriber(subscriber),
       m_reader(reader),
       m_listener(listener),
       m_topic(topic),
-      m_callback(callback),
       m_message(message),
-      m_is_synchronous(is_synchronous) {}
+      m_callback(callback) {}
 
 SynDDSSubscriber::~SynDDSSubscriber() {}
 

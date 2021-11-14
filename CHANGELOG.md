@@ -383,7 +383,9 @@ Moments can be applied at any point within these elements just like forces.  For
 
 5. The contact manager for tracked vehicles was extended to also allow use with a track test rig. Furthermore, new public methods on `ChTrackedVehicle` and `ChTrackTestRig` allow controlling rendering of contact information (normals and/or contact forces) for all monitored subsystems.
 
-6. A demonstration program (`demo_VEH_RenderJSON`) was created to illustrate visualization of a Chrono::Vehicle model based on JSON specificatin files.  Using the Chrono::OpenGL run-time visualization module, this demo program allows re-creating the vehicle model after a potential change to one or more JSON specification files (use key `U` to trigger).
+6. Support was added for specifying and applying user-defined external forces on a vehicle's chassis.  Such forces are defined in a class derived from `ChChassis::ExternalForce` which should override the `Update` method (to calculate new values for the force and/or its application point at each synchronization of the chassis state).  An arbitrary number of such forces can be defined and added using `ChChassis::AddExternalForce`.
+
+7. A demonstration program (`demo_VEH_RenderJSON`) was created to illustrate visualization of a Chrono::Vehicle model based on JSON specificatin files.  Using the Chrono::OpenGL run-time visualization module, this demo program allows re-creating the vehicle model after a potential change to one or more JSON specification files (use key `U` to trigger).
 
 ### [Added] New robot models
 

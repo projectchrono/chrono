@@ -409,7 +409,7 @@ std::shared_ptr<RigidTerrain::Patch> RigidTerrain::AddPatch(std::shared_ptr<ChMa
         patch->m_trimesh_s = chrono_types::make_shared<geometry::ChTriangleMeshSoup>();
         std::vector<geometry::ChTriangle>& triangles = patch->m_trimesh_s->getTriangles();
         triangles.resize(n_faces);
-        for (int it = 0; it < n_faces; it++) {
+        for (it = 0; it < n_faces; it++) {
             const ChVector<int>& idx = idx_vertices[it];
             triangles[it] = geometry::ChTriangle(vertices[idx[0]], vertices[idx[1]], vertices[idx[2]]);
         }

@@ -9,33 +9,31 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Authors: Alessandro Tasora 
+// Authors: Alessandro Tasora
 // =============================================================================
 
-#include "chrono/physics/ChLoadsXYZROTnode.h"
+#include "chrono/fea/ChLoadsXYZROTnode.h"
 
 namespace chrono {
+namespace fea {
 
 // -----------------------------------------------------------------------------
 // ChLoadXYZROTnodeForce
 // -----------------------------------------------------------------------------
 
-ChLoadXYZROTnode::ChLoadXYZROTnode(std::shared_ptr<fea::ChNodeFEAxyzrot> body)
-    : ChLoadCustom(body)
-{
-	computed_abs_force = VNULL;
+ChLoadXYZROTnode::ChLoadXYZROTnode(std::shared_ptr<ChNodeFEAxyzrot> body) : ChLoadCustom(body) {
+    computed_abs_force = VNULL;
     computed_abs_torque = VNULL;
 }
 
 void ChLoadXYZROTnode::ComputeQ(ChState* state_x, ChStateDelta* state_w) {
-
-	auto mnode = std::dynamic_pointer_cast<fea::ChNodeFEAxyzrot>(this->loadable);
+    auto mnode = std::dynamic_pointer_cast<ChNodeFEAxyzrot>(this->loadable);
     if (!mnode->Variables().IsActive())
         return;
-    
+
     ChFrameMoving<> bodycoordA;
 
-	if (state_x) {
+    if (state_x) {
         // the numerical jacobian algo might change state_x
         bodycoordA.SetCoord(state_x->segment(0, 7));
     } else {
@@ -44,43 +42,40 @@ void ChLoadXYZROTnode::ComputeQ(ChState* state_x, ChStateDelta* state_w) {
 
     if (state_w) {
         // the numerical jacobian algo might change state_w
-		bodycoordA.SetPos_dt(state_w->segment(0, 3));
+        bodycoordA.SetPos_dt(state_w->segment(0, 3));
         bodycoordA.SetWvel_loc(state_w->segment(3, 3));
     } else {
         bodycoordA.SetCoord_dt(mnode->GetCoord_dt());
     }
 
-	ComputeForceTorque(bodycoordA, computed_abs_force, computed_abs_torque);
+    ComputeForceTorque(bodycoordA, computed_abs_force, computed_abs_torque);
 
-    // Compute Q 
+    // Compute Q
     load_Q.segment(0, 3) = computed_abs_force.eigen();
-    load_Q.segment(3, 3) = (bodycoordA.coord.rot.RotateBack(computed_abs_torque)).eigen(); // because Q expect torque in local frame
+    load_Q.segment(3, 3) =
+        (bodycoordA.coord.rot.RotateBack(computed_abs_torque)).eigen();  // because Q expect torque in local frame
 }
 
 void ChLoadXYZROTnode::Update(double time) {
     ChLoadCustom::Update(time);
 }
 
-
-
 // -----------------------------------------------------------------------------
 // ChLoadXYZnodeForceAbsolute
 // -----------------------------------------------------------------------------
 
-ChLoadXYZROTnodeForceAbsolute::ChLoadXYZROTnodeForceAbsolute(std::shared_ptr<fea::ChNodeFEAxyzrot> body,
-                                 const ChVector<>& force)
-    : ChLoadXYZROTnode(body),
-      m_force_base(force),
-      m_scale(1) {
+ChLoadXYZROTnodeForceAbsolute::ChLoadXYZROTnodeForceAbsolute(std::shared_ptr<ChNodeFEAxyzrot> body,
+                                                             const ChVector<>& force)
+    : ChLoadXYZROTnode(body), m_force_base(force), m_scale(1) {
     m_modulation = chrono_types::make_shared<ChFunction_Const>(1.0);
 }
 
 /// Compute the force on the node, in absolute coordsystem,
 /// given position of node as abs_pos.
-void ChLoadXYZROTnodeForceAbsolute:: ComputeForceTorque(const ChFrameMoving<>& node_frame_abs_pos_vel,
-                               ChVector<>& abs_force, 
-                               ChVector<>& abs_torque) {
-	abs_force = GetForce();
+void ChLoadXYZROTnodeForceAbsolute::ComputeForceTorque(const ChFrameMoving<>& node_frame_abs_pos_vel,
+                                                       ChVector<>& abs_force,
+                                                       ChVector<>& abs_torque) {
+    abs_force = GetForce();
 }
 
 void ChLoadXYZROTnodeForceAbsolute::Update(double time) {
@@ -97,14 +92,13 @@ ChVector<> ChLoadXYZROTnodeForceAbsolute::GetForce() const {
     return m_force_base * m_scale;
 }
 
-
 // -----------------------------------------------------------------------------
 // ChLoadXYZROTnodeXYZROTnode
 // -----------------------------------------------------------------------------
 
-ChLoadXYZROTnodeXYZROTnode::ChLoadXYZROTnodeXYZROTnode(std::shared_ptr<fea::ChNodeFEAxyzrot> mbodyA,
-                               std::shared_ptr<fea::ChNodeFEAxyzrot> mbodyB,
-                               const ChFrame<>& abs_application)
+ChLoadXYZROTnodeXYZROTnode::ChLoadXYZROTnodeXYZROTnode(std::shared_ptr<ChNodeFEAxyzrot> mbodyA,
+                                                       std::shared_ptr<ChNodeFEAxyzrot> mbodyB,
+                                                       const ChFrame<>& abs_application)
     : ChLoadCustomMultiple(mbodyA, mbodyB) {
     mbodyA->ChFrame::TransformParentToLocal(abs_application, loc_application_A);
     mbodyB->ChFrame::TransformParentToLocal(abs_application, loc_application_B);
@@ -159,56 +153,54 @@ void ChLoadXYZROTnodeXYZROTnode::ComputeQ(ChState* state_x, ChStateDelta* state_
     load_Q.segment(9, 3) = (loc_ftorque + loc_torque).eigen();
 }
 
-std::shared_ptr<fea::ChNodeFEAxyzrot> ChLoadXYZROTnodeXYZROTnode::GetNodeA() const {
-    return std::dynamic_pointer_cast<fea::ChNodeFEAxyzrot>(this->loadables[0]);
+std::shared_ptr<ChNodeFEAxyzrot> ChLoadXYZROTnodeXYZROTnode::GetNodeA() const {
+    return std::dynamic_pointer_cast<ChNodeFEAxyzrot>(this->loadables[0]);
 }
 
-std::shared_ptr<fea::ChNodeFEAxyzrot> ChLoadXYZROTnodeXYZROTnode::GetNodeB() const {
-    return std::dynamic_pointer_cast<fea::ChNodeFEAxyzrot>(this->loadables[1]);
+std::shared_ptr<ChNodeFEAxyzrot> ChLoadXYZROTnodeXYZROTnode::GetNodeB() const {
+    return std::dynamic_pointer_cast<ChNodeFEAxyzrot>(this->loadables[1]);
 }
-
-
 
 // -----------------------------------------------------------------------------
 // ChLoadXYZROTnodeXYZROTnodeBushingSpherical
 // -----------------------------------------------------------------------------
 
 ChLoadXYZROTnodeXYZROTnodeBushingSpherical::ChLoadXYZROTnodeXYZROTnodeBushingSpherical(
-        std::shared_ptr<fea::ChNodeFEAxyzrot> mnodeA,    ///< node A
-        std::shared_ptr<fea::ChNodeFEAxyzrot> mnodeB,    ///< node B
-        const ChFrame<>& abs_application,  ///< bushing location, in abs. coordinates. Will define loc_application_A and loc_application_B
-        const ChVector<>& mstiffness,      ///< stiffness, along x y z axes of the abs_application
-        const ChVector<>& mdamping         ///< damping, along x y z axes of the abs_application
+    std::shared_ptr<ChNodeFEAxyzrot> mnodeA,  ///< node A
+    std::shared_ptr<ChNodeFEAxyzrot> mnodeB,  ///< node B
+    const ChFrame<>& abs_application,  ///< bushing location, in abs. coordinates. Will define loc_application_A and
+                                       ///< loc_application_B
+    const ChVector<>& mstiffness,      ///< stiffness, along x y z axes of the abs_application
+    const ChVector<>& mdamping         ///< damping, along x y z axes of the abs_application
     )
     : ChLoadXYZROTnodeXYZROTnode(mnodeA, mnodeB, abs_application), stiffness(mstiffness), damping(mdamping) {}
 
 void ChLoadXYZROTnodeXYZROTnodeBushingSpherical::ComputeForceTorque(const ChFrameMoving<>& rel_AB,
-                                                                ChVector<>& loc_force,
-                                                                ChVector<>& loc_torque) {
-    loc_force =    rel_AB.GetPos() * stiffness   // element-wise product!
+                                                                    ChVector<>& loc_force,
+                                                                    ChVector<>& loc_torque) {
+    loc_force = rel_AB.GetPos() * stiffness      // element-wise product!
                 + rel_AB.GetPos_dt() * damping;  // element-wise product!
     loc_torque = VNULL;
 }
-
 
 // -----------------------------------------------------------------------------
 // ChLoadXYZROTnodeXYZROTnodeBushingPlastic
 // -----------------------------------------------------------------------------
 
 ChLoadXYZROTnodeXYZROTnodeBushingPlastic::ChLoadXYZROTnodeXYZROTnodeBushingPlastic(
-                                                         std::shared_ptr<fea::ChNodeFEAxyzrot> mnodeA,  ///< node A
-                                                         std::shared_ptr<fea::ChNodeFEAxyzrot> mnodeB,  ///< node B
-                                                         const ChFrame<>& abs_application,
-                                                         const ChVector<>& mstiffness,
-                                                         const ChVector<>& mdamping,
-                                                         const ChVector<>& myield)
+    std::shared_ptr<ChNodeFEAxyzrot> mnodeA,  ///< node A
+    std::shared_ptr<ChNodeFEAxyzrot> mnodeB,  ///< node B
+    const ChFrame<>& abs_application,
+    const ChVector<>& mstiffness,
+    const ChVector<>& mdamping,
+    const ChVector<>& myield)
     : ChLoadXYZROTnodeXYZROTnodeBushingSpherical(mnodeA, mnodeB, abs_application, mstiffness, mdamping),
       yield(myield),
       plastic_def(VNULL) {}
 
 void ChLoadXYZROTnodeXYZROTnodeBushingPlastic::ComputeForceTorque(const ChFrameMoving<>& rel_AB,
-                                                              ChVector<>& loc_force,
-                                                              ChVector<>& loc_torque) {
+                                                                  ChVector<>& loc_force,
+                                                                  ChVector<>& loc_torque) {
     loc_force = (rel_AB.GetPos() - plastic_def) * stiffness  // element-wise product!
                 + rel_AB.GetPos_dt() * damping;              // element-wise product!
 
@@ -249,20 +241,20 @@ void ChLoadXYZROTnodeXYZROTnodeBushingPlastic::ComputeForceTorque(const ChFrameM
 // -----------------------------------------------------------------------------
 
 ChLoadXYZROTnodeXYZROTnodeBushingMate::ChLoadXYZROTnodeXYZROTnodeBushingMate(
-                                                     std::shared_ptr<fea::ChNodeFEAxyzrot> mnodeA,  ///< node A
-                                                     std::shared_ptr<fea::ChNodeFEAxyzrot> mnodeB,  ///< node B
-                                                     const ChFrame<>& abs_application,
-                                                     const ChVector<>& mstiffness,
-                                                     const ChVector<>& mdamping,
-                                                     const ChVector<>& mrotstiffness,
-                                                     const ChVector<>& mrotdamping)
+    std::shared_ptr<ChNodeFEAxyzrot> mnodeA,  ///< node A
+    std::shared_ptr<ChNodeFEAxyzrot> mnodeB,  ///< node B
+    const ChFrame<>& abs_application,
+    const ChVector<>& mstiffness,
+    const ChVector<>& mdamping,
+    const ChVector<>& mrotstiffness,
+    const ChVector<>& mrotdamping)
     : ChLoadXYZROTnodeXYZROTnodeBushingSpherical(mnodeA, mnodeB, abs_application, mstiffness, mdamping),
       rot_stiffness(mrotstiffness),
       rot_damping(mrotdamping) {}
 
 void ChLoadXYZROTnodeXYZROTnodeBushingMate::ComputeForceTorque(const ChFrameMoving<>& rel_AB,
-                                                           ChVector<>& loc_force,
-                                                           ChVector<>& loc_torque) {
+                                                               ChVector<>& loc_force,
+                                                               ChVector<>& loc_torque) {
     // inherit parent to compute loc_force = ...
     ChLoadXYZROTnodeXYZROTnodeBushingSpherical::ComputeForceTorque(rel_AB, loc_force, loc_torque);
 
@@ -278,7 +270,7 @@ void ChLoadXYZROTnodeXYZROTnodeBushingMate::ComputeForceTorque(const ChFrameMovi
         angle_rot += CH_C_2PI;
     ChVector<> vect_rot = dir_rot * angle_rot;
 
-    loc_torque = vect_rot * rot_stiffness           // element-wise product!
+    loc_torque = vect_rot * rot_stiffness               // element-wise product!
                  + rel_AB.GetWvel_par() * rot_damping;  // element-wise product!
 }
 
@@ -287,16 +279,16 @@ void ChLoadXYZROTnodeXYZROTnodeBushingMate::ComputeForceTorque(const ChFrameMovi
 // -----------------------------------------------------------------------------
 
 ChLoadXYZROTnodeXYZROTnodeBushingGeneric::ChLoadXYZROTnodeXYZROTnodeBushingGeneric(
-                                                           std::shared_ptr<fea::ChNodeFEAxyzrot> mnodeA,  ///< node A
-                                                           std::shared_ptr<fea::ChNodeFEAxyzrot> mnodeB,  ///< node B
-                                                           const ChFrame<>& abs_application,
-                                                           ChMatrixConstRef mstiffness,
-                                                           ChMatrixConstRef mdamping)
+    std::shared_ptr<ChNodeFEAxyzrot> mnodeA,  ///< node A
+    std::shared_ptr<ChNodeFEAxyzrot> mnodeB,  ///< node B
+    const ChFrame<>& abs_application,
+    ChMatrixConstRef mstiffness,
+    ChMatrixConstRef mdamping)
     : ChLoadXYZROTnodeXYZROTnode(mnodeA, mnodeB, abs_application), stiffness(mstiffness), damping(mdamping) {}
 
 void ChLoadXYZROTnodeXYZROTnodeBushingGeneric::ComputeForceTorque(const ChFrameMoving<>& rel_AB,
-                                                              ChVector<>& loc_force,
-                                                              ChVector<>& loc_torque) {
+                                                                  ChVector<>& loc_force,
+                                                                  ChVector<>& loc_torque) {
     // compute local force & torque (assuming small rotations):
     ChVectorDynamic<> mF(6);
     ChVectorDynamic<> mS(6);
@@ -323,26 +315,20 @@ void ChLoadXYZROTnodeXYZROTnodeBushingGeneric::ComputeForceTorque(const ChFrameM
     loc_torque = ChVector<>(mF.segment(3, 3)) - neutral_torque;
 }
 
-
-
-
-
-
 // -----------------------------------------------------------------------------
 // ChLoadXYZROTnodeBody
 // -----------------------------------------------------------------------------
 
-ChLoadXYZROTnodeBody::ChLoadXYZROTnodeBody(
-                               std::shared_ptr<fea::ChNodeFEAxyzrot> mnodeA,
-                               std::shared_ptr<ChBody> mbodyB,
-                               const ChFrame<>& abs_application)
+ChLoadXYZROTnodeBody::ChLoadXYZROTnodeBody(std::shared_ptr<ChNodeFEAxyzrot> mnodeA,
+                                           std::shared_ptr<ChBody> mbodyB,
+                                           const ChFrame<>& abs_application)
     : ChLoadCustomMultiple(mnodeA, mbodyB) {
     mnodeA->ChFrame::TransformParentToLocal(abs_application, loc_application_A);
     mbodyB->ChFrame::TransformParentToLocal(abs_application, loc_application_B);
 }
 
 void ChLoadXYZROTnodeBody::ComputeQ(ChState* state_x, ChStateDelta* state_w) {
-    auto mbodyA = std::dynamic_pointer_cast<fea::ChNodeFEAxyzrot>(this->loadables[0]);
+    auto mbodyA = std::dynamic_pointer_cast<ChNodeFEAxyzrot>(this->loadables[0]);
     auto mbodyB = std::dynamic_pointer_cast<ChBody>(this->loadables[1]);
 
     ChFrameMoving<> bodycoordA, bodycoordB;
@@ -390,31 +376,28 @@ void ChLoadXYZROTnodeBody::ComputeQ(ChState* state_x, ChStateDelta* state_w) {
     load_Q.segment(9, 3) = (loc_ftorque + loc_torque).eigen();
 }
 
-std::shared_ptr<fea::ChNodeFEAxyzrot> ChLoadXYZROTnodeBody::GetNodeA() const {
-    return std::dynamic_pointer_cast<fea::ChNodeFEAxyzrot>(this->loadables[0]);
+std::shared_ptr<ChNodeFEAxyzrot> ChLoadXYZROTnodeBody::GetNodeA() const {
+    return std::dynamic_pointer_cast<ChNodeFEAxyzrot>(this->loadables[0]);
 }
 
 std::shared_ptr<ChBody> ChLoadXYZROTnodeBody::GetBodyB() const {
     return std::dynamic_pointer_cast<ChBody>(this->loadables[1]);
 }
 
-
-
 // -----------------------------------------------------------------------------
 // ChLoadXYZROTnodeBodyBushingSpherical
 // -----------------------------------------------------------------------------
 
-ChLoadXYZROTnodeBodyBushingSpherical::ChLoadXYZROTnodeBodyBushingSpherical( 
-                                                               std::shared_ptr<fea::ChNodeFEAxyzrot> mnodeA, 
-                                                               std::shared_ptr<ChBody> mbodyB,
-                                                               const ChFrame<>& abs_application,
-                                                               const ChVector<>& mstiffness,
-                                                               const ChVector<>& mdamping)
+ChLoadXYZROTnodeBodyBushingSpherical::ChLoadXYZROTnodeBodyBushingSpherical(std::shared_ptr<ChNodeFEAxyzrot> mnodeA,
+                                                                           std::shared_ptr<ChBody> mbodyB,
+                                                                           const ChFrame<>& abs_application,
+                                                                           const ChVector<>& mstiffness,
+                                                                           const ChVector<>& mdamping)
     : ChLoadXYZROTnodeBody(mnodeA, mbodyB, abs_application), stiffness(mstiffness), damping(mdamping) {}
 
 void ChLoadXYZROTnodeBodyBushingSpherical::ComputeForceTorque(const ChFrameMoving<>& rel_AB,
-                                                                ChVector<>& loc_force,
-                                                                ChVector<>& loc_torque) {
+                                                              ChVector<>& loc_force,
+                                                              ChVector<>& loc_torque) {
     loc_force = rel_AB.GetPos() * stiffness      // element-wise product!
                 + rel_AB.GetPos_dt() * damping;  // element-wise product!
     loc_torque = VNULL;
@@ -424,20 +407,19 @@ void ChLoadXYZROTnodeBodyBushingSpherical::ComputeForceTorque(const ChFrameMovin
 // ChLoadXYZROTnodeBodyBushingPlastic
 // -----------------------------------------------------------------------------
 
-ChLoadXYZROTnodeBodyBushingPlastic::ChLoadXYZROTnodeBodyBushingPlastic(
-                                                           std::shared_ptr<fea::ChNodeFEAxyzrot> mnodeA, 
-                                                           std::shared_ptr<ChBody> mbodyB,               
-                                                           const ChFrame<>& abs_application,
-                                                           const ChVector<>& mstiffness,
-                                                           const ChVector<>& mdamping,
-                                                           const ChVector<>& myield)
+ChLoadXYZROTnodeBodyBushingPlastic::ChLoadXYZROTnodeBodyBushingPlastic(std::shared_ptr<ChNodeFEAxyzrot> mnodeA,
+                                                                       std::shared_ptr<ChBody> mbodyB,
+                                                                       const ChFrame<>& abs_application,
+                                                                       const ChVector<>& mstiffness,
+                                                                       const ChVector<>& mdamping,
+                                                                       const ChVector<>& myield)
     : ChLoadXYZROTnodeBodyBushingSpherical(mnodeA, mbodyB, abs_application, mstiffness, mdamping),
       yield(myield),
       plastic_def(VNULL) {}
 
 void ChLoadXYZROTnodeBodyBushingPlastic::ComputeForceTorque(const ChFrameMoving<>& rel_AB,
-                                                              ChVector<>& loc_force,
-                                                              ChVector<>& loc_torque) {
+                                                            ChVector<>& loc_force,
+                                                            ChVector<>& loc_torque) {
     loc_force = (rel_AB.GetPos() - plastic_def) * stiffness  // element-wise product!
                 + rel_AB.GetPos_dt() * damping;              // element-wise product!
 
@@ -477,21 +459,20 @@ void ChLoadXYZROTnodeBodyBushingPlastic::ComputeForceTorque(const ChFrameMoving<
 // ChLoadXYZROTnodeBodyBushingMate
 // -----------------------------------------------------------------------------
 
-ChLoadXYZROTnodeBodyBushingMate::ChLoadXYZROTnodeBodyBushingMate(
-                                                     std::shared_ptr<fea::ChNodeFEAxyzrot> mnodeA, 
-                                                     std::shared_ptr<ChBody> mbodyB,
-                                                     const ChFrame<>& abs_application,
-                                                     const ChVector<>& mstiffness,
-                                                     const ChVector<>& mdamping,
-                                                     const ChVector<>& mrotstiffness,
-                                                     const ChVector<>& mrotdamping)
+ChLoadXYZROTnodeBodyBushingMate::ChLoadXYZROTnodeBodyBushingMate(std::shared_ptr<ChNodeFEAxyzrot> mnodeA,
+                                                                 std::shared_ptr<ChBody> mbodyB,
+                                                                 const ChFrame<>& abs_application,
+                                                                 const ChVector<>& mstiffness,
+                                                                 const ChVector<>& mdamping,
+                                                                 const ChVector<>& mrotstiffness,
+                                                                 const ChVector<>& mrotdamping)
     : ChLoadXYZROTnodeBodyBushingSpherical(mnodeA, mbodyB, abs_application, mstiffness, mdamping),
       rot_stiffness(mrotstiffness),
       rot_damping(mrotdamping) {}
 
 void ChLoadXYZROTnodeBodyBushingMate::ComputeForceTorque(const ChFrameMoving<>& rel_AB,
-                                                           ChVector<>& loc_force,
-                                                           ChVector<>& loc_torque) {
+                                                         ChVector<>& loc_force,
+                                                         ChVector<>& loc_torque) {
     // inherit parent to compute loc_force = ...
     ChLoadXYZROTnodeBodyBushingSpherical::ComputeForceTorque(rel_AB, loc_force, loc_torque);
 
@@ -507,7 +488,7 @@ void ChLoadXYZROTnodeBodyBushingMate::ComputeForceTorque(const ChFrameMoving<>& 
         angle_rot += CH_C_2PI;
     ChVector<> vect_rot = dir_rot * angle_rot;
 
-    loc_torque = vect_rot * rot_stiffness           // element-wise product!
+    loc_torque = vect_rot * rot_stiffness               // element-wise product!
                  + rel_AB.GetWvel_par() * rot_damping;  // element-wise product!
 }
 
@@ -515,17 +496,16 @@ void ChLoadXYZROTnodeBodyBushingMate::ComputeForceTorque(const ChFrameMoving<>& 
 // ChLoadXYZROTnodeBodyBushingGeneric
 // -----------------------------------------------------------------------------
 
-ChLoadXYZROTnodeBodyBushingGeneric::ChLoadXYZROTnodeBodyBushingGeneric(
-                                                           std::shared_ptr<fea::ChNodeFEAxyzrot> mnodeA, 
-                                                           std::shared_ptr<ChBody> mbodyB,
-                                                           const ChFrame<>& abs_application,
-                                                           ChMatrixConstRef mstiffness,
-                                                           ChMatrixConstRef mdamping)
+ChLoadXYZROTnodeBodyBushingGeneric::ChLoadXYZROTnodeBodyBushingGeneric(std::shared_ptr<ChNodeFEAxyzrot> mnodeA,
+                                                                       std::shared_ptr<ChBody> mbodyB,
+                                                                       const ChFrame<>& abs_application,
+                                                                       ChMatrixConstRef mstiffness,
+                                                                       ChMatrixConstRef mdamping)
     : ChLoadXYZROTnodeBody(mnodeA, mbodyB, abs_application), stiffness(mstiffness), damping(mdamping) {}
 
 void ChLoadXYZROTnodeBodyBushingGeneric::ComputeForceTorque(const ChFrameMoving<>& rel_AB,
-                                                              ChVector<>& loc_force,
-                                                              ChVector<>& loc_torque) {
+                                                            ChVector<>& loc_force,
+                                                            ChVector<>& loc_torque) {
     // compute local force & torque (assuming small rotations):
     ChVectorDynamic<> mF(6);
     ChVectorDynamic<> mS(6);
@@ -552,7 +532,5 @@ void ChLoadXYZROTnodeBodyBushingGeneric::ComputeForceTorque(const ChFrameMoving<
     loc_torque = ChVector<>(mF.segment(3, 3)) - neutral_torque;
 }
 
-
-
-
-}  // end namespace chrono
+}  // namespace fea
+}  // namespace chrono

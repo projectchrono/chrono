@@ -98,6 +98,7 @@
 #include "chrono/fea/ChLinkPointFrame.h"
 #include "chrono/fea/ChLinkPointPoint.h"
 #include "chrono/fea/ChMeshFileLoader.h"
+#include "chrono/fea/ChLoadsXYZROTnode.h"
 #include "Eigen/src/Core/util/Memory.h"
 
 using namespace chrono;
@@ -299,6 +300,18 @@ using namespace chrono::fea;
 %shared_ptr(chrono::fea::ChExtruderBeamEuler)
 %shared_ptr(chrono::fea::ChExtruderBeamIGA)
 %shared_ptr(chrono::fea::ChVisualizationFEAmesh)
+%shared_ptr(chrono::fea::ChLoadXYZROTnode)
+%shared_ptr(chrono::fea::ChLoadXYZROTnodeForceAbsolute)
+%shared_ptr(chrono::fea::ChLoadXYZROTnodeXYZROTnode)
+%shared_ptr(chrono::fea::ChLoadXYZROTnodeXYZROTnodeBushingSpherical)
+%shared_ptr(chrono::fea::ChLoadXYZROTnodeXYZROTnodeBushingPlastic)
+%shared_ptr(chrono::fea::ChLoadXYZROTnodeXYZROTnodeBushingMate)
+%shared_ptr(chrono::fea::ChLoadXYZROTnodeXYZROTnodeBushingGeneric)
+%shared_ptr(chrono::fea::ChLoadXYZROTnodeBody)
+%shared_ptr(chrono::fea::ChLoadXYZROTnodeBodyBushingSpherical)
+%shared_ptr(chrono::fea::ChLoadXYZROTnodeBodyBushingPlastic)
+%shared_ptr(chrono::fea::ChLoadXYZROTnodeBodyBushingMate)
+%shared_ptr(chrono::fea::ChLoadXYZROTnodeBodyBushingGeneric)
 
 //
 // B- INCLUDE HEADERS
@@ -433,6 +446,7 @@ using namespace chrono::fea;
 %include "../../chrono/fea/ChMesh.h"
 %include "../../chrono/fea/ChBuilderBeam.h"
 %include "../../chrono/fea/ChMeshFileLoader.h"
+%include "../../chrono/fea/ChLoadsXYZROTnode.h"
 
 //
 // C- DOWNCASTING OF SHARED POINTERS
@@ -534,6 +548,35 @@ using namespace chrono::fea;
     return ptr_out;
   }
 %}
+
+%extend chrono::fea::ChLoadXYZROTnodeXYZROTnodeBushingGeneric{
+		public:
+			ChLoadXYZROTnodeXYZROTnodeBushingGeneric(
+                    std::shared_ptr<chrono::fea::ChNodeFEAxyzrot> mnodeA,  ///< node A
+                    std::shared_ptr<chrono::fea::ChNodeFEAxyzrot> mnodeB,  ///< node B
+                    const ChFrame<>& abs_application,
+                    chrono::ChMatrixDynamic<double> mstiffness,
+                    chrono::ChMatrixDynamic<double> mdamping){
+
+               chrono::fea::ChLoadXYZROTnodeXYZROTnodeBushingGeneric *selfpoint = new ChLoadXYZROTnodeXYZROTnodeBushingGeneric(mnodeA, mnodeB, abs_application, mstiffness, mdamping);
+			   return selfpoint;
+			   }
+		};
+
+%extend chrono::fea::ChLoadXYZROTnodeBodyBushingGeneric{
+		public:
+			ChLoadXYZROTnodeBodyBushingGeneric(
+                    std::shared_ptr<chrono::fea::ChNodeFEAxyzrot> mnodeA,  ///< node A
+                    std::shared_ptr<chrono::ChBody> mnodeB,  ///< node B
+                    const ChFrame<>& abs_application,
+                    chrono::ChMatrixDynamic<double> mstiffness,
+                    chrono::ChMatrixDynamic<double> mdamping){
+			   
+			   chrono::fea::ChLoadXYZROTnodeBodyBushingGeneric *selfpoint = new ChLoadXYZROTnodeBodyBushingGeneric(mnodeA, mnodeB, abs_application, mstiffness, mdamping);
+
+			   return selfpoint;
+			   }
+		};
 
 //
 // ADD PYTHON CODE
