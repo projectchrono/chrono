@@ -66,7 +66,9 @@ struct SimParams {
     uint numBodies;       ///< Number of FSI bodies.
     Real3 boxDims;        ///< Dimensions of the domain. How big is the box that the domain is in.
     Real HSML;            ///< Interaction Radius (or h)
-    Real INVHSML;         ///< 1.0/h
+    Real INVHSML;         ///< 1.0 / h
+    Real INITSPACE;       ///< Initial separation of the fluid particles
+    Real INV_INIT;        ///< 1.0 / INITSPACE
     Real MULT_INITSPACE;  ///< Multiplier to hsml to determine the initial separation of the fluid particles and the
                           ///< fixed separation for the boundary particles. This means that the separation will always
                           ///< be a multiple of hsml. Default value = 1.0.
@@ -88,7 +90,7 @@ struct SimParams {
     Real3 deltaPress;  ///< Change in Pressure. This is needed for periodic BC. The change in pressure of a particle
                        ///< when it moves from end boundary to beginning.
 
-    Real3 V_in;  ///< Inlet velocity. This is needed for inlet BC.
+    Real3 V_in; ///< Inlet velocity. This is needed for inlet BC.
     Real x_in; ///< Inlet position. This is needed for inlet BC.
 
     Real3 gravity;     ///< Gravity. Applied to fluid, rigid and flexible.
@@ -98,7 +100,7 @@ struct SimParams {
     Real rho0;       ///< Density
     Real invrho0;    ///< Density's inverse
     Real rho_solid;  ///< Solid Density
-    Real volume0;    ///< Volume
+    Real volume0;    ///< Initial volume of particle
 
     Real markerMass;  ///< marker mass
     Real mu0;         ///< Viscosity
@@ -111,6 +113,7 @@ struct SimParams {
     Real dT;  ///< Time step. Depending on the model this will vary and the only way to determine what time step to use
               ///< is to run simulations multiple time and find which one is the largest dT that produces a stable
               ///< simulation.
+    Real INV_dT; ///< 1.0 / dT
 
     enum fluidity_model { frictional_plasticity, Inertia_rheology, nonlocal_fluidity };
 

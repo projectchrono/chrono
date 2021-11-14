@@ -233,7 +233,8 @@ void ChCollisionSystemFsi::calcHash() {
 
     /* Execute Kernel */
     calcHashD<<<numBlocks, numThreads>>>(U1CAST(markersProximityD->gridMarkerHashD),
-                                         U1CAST(markersProximityD->gridMarkerIndexD), mR4CAST(sphMarkersD->posRadD),
+                                         U1CAST(markersProximityD->gridMarkerIndexD), 
+                                         mR4CAST(sphMarkersD->posRadD),
                                          numObjectsH->numAllMarkers, isErrorD);
 
     /* Check for errors in kernel execution */

@@ -259,15 +259,14 @@ __device__ void BCE_modification_Share(Real3& sumVW,
 //--------------------------------------------------------------------------------------------------------------------------------
 __global__ void new_BCE_VelocityPressure(Real4* velMassRigid_fsiBodies_D,
                                          uint* rigidIdentifierD,
-                                         Real3* velMas_ModifiedBCE,    // input: sorted velocities
-                                         Real4* rhoPreMu_ModifiedBCE,  // input: sorted velocities
+                                         Real3* velMas_ModifiedBCE,
+                                         Real4* rhoPreMu_ModifiedBCE,
                                          Real4* sortedPosRad,          // input: sorted positions
                                          Real3* sortedVelMas,          // input: sorted velocities
                                          Real4* sortedRhoPreMu,
                                          uint* cellStart,
                                          uint* cellEnd,
                                          uint* mapOriginalToSorted,
-
                                          Real3* bceAcc,
                                          int3 updatePortion,
                                          volatile bool* isErrorD) {
@@ -305,6 +304,7 @@ __global__ void new_BCE_VelocityPressure(Real4* velMassRigid_fsiBodies_D,
     }
 
     if (abs(sumWFluid) > EPSILON) {
+        // velocity
         Real3 modifiedBCE_v = 2 * velMasA - sumVW / sumWFluid;
         velMas_ModifiedBCE[bceIndex] = modifiedBCE_v;
         // pressure
@@ -320,7 +320,8 @@ __global__ void new_BCE_VelocityPressure(Real4* velMassRigid_fsiBodies_D,
             }
             a3 = bceAcc[rigidBceIndex];
         }
-        Real pressure = (sumPW + dot(paramsD.gravity - a3, sumRhoRW)) / sumWFluid;  //(in fact:  (paramsD.gravity -
+        Real pressure = (sumPW + dot(paramsD.gravity - a3, sumRhoRW)) / sumWFluid;  
+        // in fact:  (paramsD.gravity -
         // aW), but aW for moving rigids
         // is hard to calc. Assume aW is
         // zero for now
@@ -734,7 +735,7 @@ void ChBce::RecalcSortedVelocityPressure_BCE(std::shared_ptr<FsiBodiesDataD> fsi
 
     // thread per particle
     uint numThreads, numBlocks;
-    computeGridSize(updatePortion.z - updatePortion.x, 64, numBlocks, numThreads);
+    computeGridSize(updatePortion.z - updatePortion.x, 256, numBlocks, numThreads);
 
     new_BCE_VelocityPressure<<<numBlocks, numThreads>>>(
         mR4CAST(fsiBodiesD->velMassRigid_fsiBodies_D), U1CAST(fsiGeneralData->rigidIdentifierD),
@@ -765,7 +766,7 @@ void ChBce::CalcBceAcceleration(thrust::device_vector<Real3>& bceAcc,
                                 int numRigid_SphMarkers) {
     // thread per particle
     uint numThreads, numBlocks;
-    computeGridSize(numRigid_SphMarkers, 64, numBlocks, numThreads);
+    computeGridSize(numRigid_SphMarkers, 256, numBlocks, numThreads);
 
     calcBceAcceleration_kernel<<<numBlocks, numThreads>>>(
         mR3CAST(bceAcc), mR4CAST(q_fsiBodies_D), mR3CAST(accRigid_fsiBodies_D), mR3CAST(omegaVelLRF_fsiBodies_D),

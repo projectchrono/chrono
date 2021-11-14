@@ -164,10 +164,15 @@ bool ParseJSON(const std::string& json_file, std::shared_ptr<SimParams> paramsH,
             paramsH->INVHSML = 1.0 / paramsH->HSML;
         }
 
-        if (doc["SPH Parameters"].HasMember("Initial Spacing"))
-            paramsH->MULT_INITSPACE = doc["SPH Parameters"]["Initial Spacing"].GetDouble() / paramsH->HSML;
-        else
+        if (doc["SPH Parameters"].HasMember("Initial Spacing")){
+            paramsH->INITSPACE = doc["SPH Parameters"]["Initial Spacing"].GetDouble();
+            paramsH->INV_INIT = 1.0 / paramsH->INITSPACE;
+            paramsH->MULT_INITSPACE = paramsH->INITSPACE / paramsH->HSML;}
+        else{
+            paramsH->INITSPACE = paramsH->HSML;
+            paramsH->INV_INIT = 1.0 / paramsH->INITSPACE;
             paramsH->MULT_INITSPACE = 1.0;
+        }
 
         if (doc["SPH Parameters"].HasMember("Initial Spacing Solid"))
             paramsH->MULT_INITSPACE_Shells = doc["SPH Parameters"]["Initial Spacing Solid"].GetDouble() / paramsH->HSML;
@@ -250,6 +255,7 @@ bool ParseJSON(const std::string& json_file, std::shared_ptr<SimParams> paramsH,
             paramsH->dT = doc["Time Stepping"]["Fluid time step"].GetDouble();
         else
             paramsH->dT = 0.01;
+        paramsH->INV_dT = 1.0 / paramsH->dT;
 
         if (doc["Time Stepping"].HasMember("Solid time step"))
             paramsH->dT_Flex = doc["Time Stepping"]["Solid time step"].GetDouble();
@@ -579,9 +585,9 @@ bool ParseJSON(const std::string& json_file, std::shared_ptr<SimParams> paramsH,
     }
     
     int NN = 0;
-    paramsH->markerMass = massCalculator(NN, paramsH->HSML, paramsH->MULT_INITSPACE * paramsH->HSML, paramsH->rho0);
-    paramsH->markerMass = cube(paramsH->MULT_INITSPACE * paramsH->HSML) * paramsH->rho0;
-    paramsH->volume0 = paramsH->markerMass / paramsH->rho0;
+    // paramsH->markerMass = massCalculator(NN, paramsH->HSML, paramsH->MULT_INITSPACE * paramsH->HSML, paramsH->rho0);
+    paramsH->volume0 = cube(paramsH->INITSPACE);
+    paramsH->markerMass = paramsH->volume0 * paramsH->rho0;
     paramsH->invrho0 = 1.0 / paramsH->rho0;
     paramsH->num_neighbors = NN;
     
@@ -601,7 +607,7 @@ bool ParseJSON(const std::string& json_file, std::shared_ptr<SimParams> paramsH,
     utils::printStruct(paramsH->gravity);
 
     std::cout << "paramsH->HSML: " << paramsH->HSML << std::endl;
-
+    std::cout << "paramsH->INITSPACE: " << paramsH->INITSPACE << std::endl;
     std::cout << "paramsH->MULT_INITSPACE: " << paramsH->MULT_INITSPACE << std::endl;
     std::cout << "paramsH->NUM_BOUNDARY_LAYERS: " << paramsH->NUM_BOUNDARY_LAYERS << std::endl;
     std::cout << "paramsH->epsMinMarkersDis: " << paramsH->epsMinMarkersDis << std::endl;
