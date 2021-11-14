@@ -187,9 +187,9 @@ class UT_Model : public Trailer_Model {
 // =============================================================================
 
 // Current vehicle model selection
-//auto vehicle_model = HMMWV_Model();
+auto vehicle_model = HMMWV_Model();
 ////auto vehicle_model = Sedan_Model();
-auto vehicle_model = VW_Microbus_Model();
+////auto vehicle_model = VW_Microbus_Model();
 ////auto vehicle_model = UAZ_Model();
 ////auto vehicle_model = CityBus_Model();
 ////auto vehicle_model = MAN_Model();
@@ -207,7 +207,7 @@ std::string rigidterrain_file("terrain/RigidPlane.json");
 ////std::string rigidterrain_file("terrain/RigidSlope20.json");
 
 // Initial vehicle position and orientation
-ChVector<> initLoc(0, 0, 2.5);
+ChVector<> initLoc(0, 0, 0.5);
 double initYaw = 20 * CH_C_DEG_TO_RAD;
 
 // Simulation step size
@@ -224,7 +224,7 @@ int main(int argc, char* argv[]) {
     // Create the vehicle system
     WheeledVehicle vehicle(vehicle::GetDataFile(vehicle_model.VehicleJSON()), ChContactMethod::SMC);
     vehicle.Initialize(ChCoordsys<>(initLoc, Q_from_AngZ(initYaw)));
-    vehicle.GetChassis()->SetFixed(true);
+    vehicle.GetChassis()->SetFixed(false);
     vehicle.SetChassisVisualizationType(VisualizationType::NONE);
     vehicle.SetChassisRearVisualizationType(VisualizationType::NONE);
     vehicle.SetSuspensionVisualizationType(VisualizationType::PRIMITIVES);
