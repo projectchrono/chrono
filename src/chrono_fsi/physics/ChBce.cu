@@ -778,8 +778,7 @@ void ChBce::CalcBceAcceleration(thrust::device_vector<Real3>& bceAcc,
 //--------------------------------------------------------------------------------------------------------------------------------
 void ChBce::ModifyBceVelocity(std::shared_ptr<SphMarkerDataD> sphMarkersD, std::shared_ptr<FsiBodiesDataD> fsiBodiesD) {
     // modify BCE velocity and pressure
-    int numRigidAndBoundaryMarkers =
-        fsiGeneralData->referenceArray[2 + numObjectsH->numRigidBodies - 1].y - fsiGeneralData->referenceArray[0].y;
+    int numRigidAndBoundaryMarkers = fsiGeneralData->referenceArray[2].y - fsiGeneralData->referenceArray[0].y;
     if ((numObjectsH->numBoundaryMarkers + numObjectsH->numRigid_SphMarkers) != numRigidAndBoundaryMarkers) {
         throw std::runtime_error(
             "Error! number of rigid and boundary markers are "
@@ -794,7 +793,7 @@ void ChBce::ModifyBceVelocity(std::shared_ptr<SphMarkerDataD> sphMarkersD, std::
             "ModifyBceVelocity!\n");
     }
     int3 updatePortion = mI3(fsiGeneralData->referenceArray[0].y, fsiGeneralData->referenceArray[1].y,
-                             fsiGeneralData->referenceArray[2 + numObjectsH->numRigidBodies - 1].y);
+                             fsiGeneralData->referenceArray[2].y);
     if (paramsH->bceType == BceVersion::ADAMI) {
         thrust::device_vector<Real3> bceAcc(numObjectsH->numRigid_SphMarkers);
         if (numObjectsH->numRigid_SphMarkers > 0) {

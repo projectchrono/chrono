@@ -159,7 +159,7 @@ class CH_FSI_API ChSystemFsi {
                       const ChVector<>& tauXyXzYz = ChVector<>(0));
 
     /// Add reference array for SPH particles.
-    void AddRefArray(const int start, const int numPart, const int typeA, const int typeB);
+    void AddRefArray(const int start, const int numPart, const int compType, const int phaseType);
 
     /// Add BCE particle for a box.
     void AddBceBox(std::shared_ptr<SimParams> paramsH,

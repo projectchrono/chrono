@@ -259,8 +259,8 @@ void ChSystemFsi::AddSphMarker(const ChVector<>& point,
         ChUtilsTypeConvert::ChVectorToReal3(tauXyXzYz));
 }
 //--------------------------------------------------------------------------------------------------------------------------------
-void ChSystemFsi::AddRefArray(const int start, const int numPart, const int typeA, const int typeB) {
-    fsiSystem->fsiGeneralData->referenceArray.push_back(mI4(start, numPart, typeA, typeB));
+void ChSystemFsi::AddRefArray(const int start, const int numPart, const int compType, const int phaseType) {
+    fsiSystem->fsiGeneralData->referenceArray.push_back(mI4(start, numPart, compType, phaseType));
 }
 //--------------------------------------------------------------------------------------------------------------------------------
 void ChSystemFsi::AddBceBox(std::shared_ptr<SimParams> paramsH,
