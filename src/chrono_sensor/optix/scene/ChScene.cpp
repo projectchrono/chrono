@@ -44,13 +44,13 @@ CH_SENSOR_API unsigned int ChScene::AddPointLight(ChVector<float> pos, ChVector<
     p.max_range = max_range;
     m_pointlights.push_back(p);
     lights_changed = true;
-    return m_pointlights.size() - 1;
+    return static_cast<unsigned int>(m_pointlights.size() - 1);
 }
 
 CH_SENSOR_API unsigned int ChScene::AddPointLight(PointLight p) {
     m_pointlights.push_back(p);
     lights_changed = true;
-    return m_pointlights.size() - 1;
+    return static_cast<unsigned int>(m_pointlights.size() - 1);
 }
 
 CH_SENSOR_API void ChScene::ModifyPointLight(unsigned int id, PointLight p) {

@@ -184,9 +184,10 @@ CH_SENSOR_API void ChFilterRadarProcess::Apply() {
         m_buffer_out->centroids[i][2] = m_buffer_out->centroids[i][2] / (clusters[i].size());
     }
 
-    m_buffer_out->invalid_returns = m_buffer_out->Beam_return_count - valid_returns.size();
-    m_buffer_out->Beam_return_count = valid_returns.size();
-    m_buffer_out->Num_clusters = clusters.size();
+    int num_valid_returns = static_cast<int>(valid_returns.size());
+    m_buffer_out->invalid_returns = m_buffer_out->Beam_return_count - num_valid_returns;
+    m_buffer_out->Beam_return_count = num_valid_returns;
+    m_buffer_out->Num_clusters = static_cast<int>(clusters.size());
 
 //    for (int i = 0; i < clusters.size(); i++){
 //        valid_returns.data()[i].xyz[0] = m_buffer_out->centroids[i][0];

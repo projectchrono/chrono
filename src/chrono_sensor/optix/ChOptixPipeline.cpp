@@ -504,7 +504,7 @@ void ChOptixPipeline::SpawnPipeline(PipelineType type) {
     size_t sizeof_log = sizeof(log);
     // OptixPipeline pipeline;
     m_pipelines.emplace_back();
-    const int id = m_pipelines.size() - 1;
+    auto id = m_pipelines.size() - 1;
     OPTIX_ERROR_CHECK(optixPipelineCreate(m_context, &m_pipeline_compile_options, &pipeline_link_options,
                                           program_groups.data(), static_cast<unsigned int>(program_groups.size()), log,
                                           &sizeof_log, &m_pipelines[id]));
@@ -531,7 +531,7 @@ void ChOptixPipeline::SpawnPipeline(PipelineType type) {
 
     // set the shader program record - same for all pipelines
     b->hitgroupRecordBase = md_material_records;
-    b->hitgroupRecordCount = m_material_records.size();  // we are pushing one back for each object
+    b->hitgroupRecordCount = static_cast<unsigned int>(m_material_records.size());  // we are pushing one back for each object
     b->hitgroupRecordStrideInBytes = static_cast<uint32_t>(sizeof(Record<MaterialRecordParameters>));
     m_sbts.push_back(b);
 }
@@ -574,8 +574,8 @@ void ChOptixPipeline::UpdateAllSBTs() {
     // make sure all sbts are updated to have correct parameters
     for (int b = 0; b < m_sbts.size(); b++) {
         m_sbts[b]->hitgroupRecordBase = md_material_records;
-        m_sbts[b]->hitgroupRecordCount = m_material_records.size();  // we are pushing one back for each ray type of
-                                                                     // each material
+        // we are pushing one back for each ray type of each material
+        m_sbts[b]->hitgroupRecordCount = static_cast<unsigned int>(m_material_records.size());
         m_sbts[b]->hitgroupRecordStrideInBytes = static_cast<uint32_t>(sizeof(Record<MaterialRecordParameters>));
     }
 }
@@ -673,7 +673,7 @@ unsigned int ChOptixPipeline::GetMaterial(std::shared_ptr<ChVisualMaterial> mat)
             CreateDeviceTexture(material.opacity_tex, d_img_array, mat->GetOpacityTexture());
         }
         m_material_pool.push_back(material);
-        return m_material_pool.size() - 1;
+        return static_cast<unsigned int>(m_material_pool.size() - 1);
 
     } else {
         if (!m_default_material_inst) {
@@ -699,7 +699,7 @@ unsigned int ChOptixPipeline::GetMaterial(std::shared_ptr<ChVisualMaterial> mat)
             material.instance_id = 0;
 
             m_material_pool.push_back(material);
-            m_default_material_id = m_material_pool.size() - 1;
+            m_default_material_id = static_cast<unsigned int>(m_material_pool.size() - 1);
             m_default_material_inst = true;
         }
 
@@ -720,7 +720,7 @@ unsigned int ChOptixPipeline::GetBoxMaterial(std::shared_ptr<ChVisualMaterial> m
     mat_record.data.material_pool_id = material_id;
     m_material_records.push_back(mat_record);
 
-    return m_material_records.size() - 1;
+    return static_cast<unsigned int>(m_material_records.size() - 1);
 }
 
 unsigned int ChOptixPipeline::GetSphereMaterial(std::shared_ptr<ChVisualMaterial> mat) {
@@ -736,7 +736,7 @@ unsigned int ChOptixPipeline::GetSphereMaterial(std::shared_ptr<ChVisualMaterial
     mat_record.data.material_pool_id = material_id;
     m_material_records.push_back(mat_record);
 
-    return m_material_records.size() - 1;
+    return static_cast<unsigned int>(m_material_records.size() - 1);
 }
 
 unsigned int ChOptixPipeline::GetCylinderMaterial(std::shared_ptr<ChVisualMaterial> mat) {
@@ -752,7 +752,7 @@ unsigned int ChOptixPipeline::GetCylinderMaterial(std::shared_ptr<ChVisualMateri
     mat_record.data.material_pool_id = material_id;
     m_material_records.push_back(mat_record);
 
-    return m_material_records.size() - 1;
+    return static_cast<unsigned int>(m_material_records.size() - 1);
 }
 
 // this will actually make a new material (new mesh info), but will apply a default coloring/texture
@@ -764,7 +764,7 @@ unsigned int ChOptixPipeline::GetRigidMeshMaterial(CUdeviceptr& d_vertices,
 
     // check if this mesh is known, if so, we can just get the mesh pool id directly
     bool mesh_found = false;
-    unsigned int mesh_id;
+    unsigned int mesh_id = 0;
     for (int i = 0; i < m_known_meshes.size(); i++) {
         if (mesh == std::get<0>(m_known_meshes[i])) {
             mesh_found = true;
@@ -902,7 +902,7 @@ unsigned int ChOptixPipeline::GetRigidMeshMaterial(CUdeviceptr& d_vertices,
 
         m_mesh_pool.push_back(mesh_data);
 
-        mesh_id = m_mesh_pool.size() - 1;
+        mesh_id = static_cast<unsigned int>(m_mesh_pool.size() - 1);
 
         // push this mesh to our known meshes
         m_known_meshes.push_back(std::make_tuple(mesh, mesh_id));
@@ -924,7 +924,7 @@ unsigned int ChOptixPipeline::GetRigidMeshMaterial(CUdeviceptr& d_vertices,
     mat_record.data.mesh_pool_id = mesh_id;
     m_material_records.push_back(mat_record);
 
-    return m_material_records.size() - 1;
+    return static_cast<unsigned int>(m_material_records.size() - 1);
 }
 
 unsigned int ChOptixPipeline::GetDeformableMeshMaterial(CUdeviceptr& d_vertices,
@@ -935,7 +935,7 @@ unsigned int ChOptixPipeline::GetDeformableMeshMaterial(CUdeviceptr& d_vertices,
 
     unsigned int mesh_id = m_material_records[mat_id].data.mesh_pool_id;
     CUdeviceptr d_normals = reinterpret_cast<CUdeviceptr>(m_mesh_pool[mesh_id].normal_buffer);
-    unsigned int num_triangles = mesh_shape->GetMesh()->getIndicesVertexes().size();
+    unsigned int num_triangles = static_cast<unsigned int>(mesh_shape->GetMesh()->getIndicesVertexes().size());
     m_deformable_meshes.push_back(std::make_tuple(mesh_shape, d_vertices, d_normals, num_triangles));
 
     return mat_id;
