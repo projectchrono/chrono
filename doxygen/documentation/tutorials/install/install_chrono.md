@@ -13,7 +13,7 @@ A summary of the process required to **build** Chrono is provided in the picture
 ## 1) Check/Install a C++ compiler
 
 Recommended compilers:
-- Microsoft Visual C++: Visual Studio 2015 or newer. The [community edition of the latest Visual Studio](https://visualstudio.microsoft.com/downloads/) is available for free. 
+- Microsoft Visual C++: Visual Studio 2019 or newer. The [community edition of the latest Visual Studio](https://visualstudio.microsoft.com/downloads/) is available for free. 
 - Xcode Package for MacOS: Download via App Store for free - it contains the clang++ compiler.
 
 Other compilers were also tested (e.g. Intel C++, PGI) but they are not officially supported and maintained.
@@ -22,22 +22,22 @@ While it is likely possible to build Chrono with other toolchains, this might re
 <div class="ce-warning"> 
 The Microsoft Visual C++ compiler is included in the Visual Studio package, but it is **not** installed by default.<br>
 So, make sure to install the C++ toolchain during the setup!<br>
-Moreover, since Visual Studio 2017 make sure to also select, under the *Single Components* tab, the `Windows Universal CRT SDK` and the `Windows 8.1 SDK`.
+Moreover, make sure to also select, under the *Single Components* tab, the `Windows Universal CRT SDK` and the `Windows 8.1 SDK`.
 </div> 
 
 <div class="ce-danger">
-The initial release of Visual Studio 2015 gives an 
-error compiling Chrono. [Upgrade](https://www.visualstudio.com/en-us/news/vs2015-update2-vs.aspx) to 
-**update 2** to fix this problem.
+Visual Studio 2017 has problems with the heavy use of inlining in recent version of Eigen. 
+For the latest version of Chrono (specifically due to the reimplemented ANCF elements), this can result in very long compilation times or even hang ups.
+We recommend using VS 2019 or newer.
 </div>
 
 
 ## 2) Download and install the Eigen library
 
-Chrono now uses [Eigen3](http://eigen.tuxfamily.org/) for all of its internal dense linear algebra needs. Chrono requires Eigen version 3.3.0 or newer, but we strongly encourage using the **latest stable release, Eigen 3.3.7**. On the Mac you should install it via homebrew: <tt>brew install eigen</tt>.
+Chrono now uses [Eigen3](http://eigen.tuxfamily.org/) for all of its internal dense linear algebra needs. Chrono requires Eigen version 3.3.0 or newer, but we strongly encourage using the **latest stable release, Eigen 3.4.0**. On the Mac you should install it via homebrew: <tt>brew install eigen</tt>.
 
 <div class="ce-warning"> 
-Chrono has been tested most extensively with Eigen 3.3.4 and Eigen 3.3.7.<br>
+Chrono has been tested most extensively with Eigen 3.3.9 and Eigen 3.4.0.<br>
 Most Chrono modules will build and work with Eigen 3.3.0 or newer.<br>
 However, if you are building the Chrono::FSI or Chrono::Granular modules, note that CUDA 9.1 removed a header file (math_functions.hpp) which was referenced in older versions of Eigen; this issue was addressed as of Eigen 3.3.6. 
 </div>
@@ -84,6 +84,12 @@ While Chrono::Irrlicht is an optional module and not required to begin modeling 
 
 - **download** [Irrlicht Engine](http://irrlicht.sourceforge.net/downloads.html); the newest tested version is [1.8.4](http://downloads.sourceforge.net/irrlicht/irrlicht-1.8.4.zip)
 - **unzip** it in a directory of your choice. For example, here we suppose that you unzipped it in <tt>C:/workspace/libraries/irrlicht-1.8.4</tt>.
+
+<div class="ce-info">
+Some Windows users may experience issues (black rendering window) when using shadow lights, as done in a few Chrono demos.<br>
+In such situations, we recommend either disabling use of shadows, or else installing the appropriate legacy DirectX SDK from [Microsoft](https://www.microsoft.com/en-gb/download/details.aspx?id=35).<br>
+Irrlicht 1.8.4 requires the June 2010 DirectX SDK.
+</div>
 
 <div class="ce-info">
 Release v.1.8.4 should work perfectly. MacOS users should use this, since previous releases showed some issues. The best way to install irrlicht on the Mac is: <tt>brew install irrlicht</tt>. Cmake can find irrlicht automatically then without any extra settings. Actually MacOS 11 (Big Sur) has been released by Apple. Chrono_opengl demos run well, but chrono_irrlicht demos have a scaling problem, but they work yet. We hope, this can be resolved soon.<br>

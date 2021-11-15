@@ -119,7 +119,7 @@ class VW_Microbus_Model : public Vehicle_Model {
         return "VW_microbus/json/van_TMeasyTire.json";
     }
     virtual std::string PowertrainJSON() const override { return "VW_microbus/json/van_SimpleMapPowertrain.json"; }
-    virtual double CameraDistance() const override { return 8.0; }
+    virtual double CameraDistance() const override { return 7.0; }
 };
 
 class CityBus_Model : public Vehicle_Model {
@@ -299,6 +299,11 @@ int main(int argc, char* argv[]) {
     vehicle.ExportComponentList(veh_dir + "/component_list.json");
 
     vehicle.LogSubsystemTypes();
+
+    // Optionally, enable output from selected vehicle subsystems
+    ////vehicle.SetSuspensionOutput(0, true);
+    ////vehicle.SetSuspensionOutput(1, true);
+    ////vehicle.SetOutput(ChVehicleOutput::ASCII, veh_dir, "output", 0.1);
 
     // Modify solver settings if the vehicle model contains bushings
     if (vehicle.HasBushings()) {
