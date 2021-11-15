@@ -261,7 +261,7 @@ __global__ void UpdateFluidD(Real4* posRadD,
         // This is only implemented for granular material
         if (paramsD.elastic_SPH) {
             //--------------------------------
-            // ** shear stress tau
+            // ** total stress tau
             //--------------------------------
             Real3 tauXxYyZz = tauXxYyZzD[index];
             Real3 tauXyXzYz = tauXyXzYzD[index];
@@ -515,9 +515,9 @@ ChFluidDynamics::ChFluidDynamics(std::shared_ptr<ChBce> otherBceWorker,
 
         // Extend this function with your own linear solvers
         default:
-            forceSystem = chrono_types::make_shared<ChFsiForceExplicitSPH>(otherBceWorker, fsiSystem->sortedSphMarkersD,
-                                                                     fsiSystem->markersProximityD,
-                                                                     fsiSystem->fsiGeneralData, paramsH, numObjectsH);
+            forceSystem = chrono_types::make_shared<ChFsiForceExplicitSPH>(
+                otherBceWorker, fsiSystem->sortedSphMarkersD, fsiSystem->markersProximityD,
+                fsiSystem->fsiGeneralData, paramsH, numObjectsH);
             std::cout << "The ChFsiForce you chose has not been implemented, reverting back to "
                          "ChFsiForceExplicitSPH" << std::endl;
     }
@@ -622,7 +622,7 @@ void ChFluidDynamics::UpdateFluid_Implicit(std::shared_ptr<SphMarkerDataD> sphMa
 /**
  * @brief ApplyBoundarySPH_Markers
  * @details
- * 		applies periodic boundary conditions in x,y, and z directions
+ * 		applies periodic boundary conditions in x, y, and z directions
  */
 void ChFluidDynamics::ApplyBoundarySPH_Markers(std::shared_ptr<SphMarkerDataD> sphMarkersD) {
     uint nBlock_NumSpheres, nThreads_SphMarkers;

@@ -148,9 +148,8 @@ int main(int argc, char* argv[]) {
     fyDim = paramsH->fluidDimY;
     fzDim = paramsH->fluidDimZ;
 
-    // Set the time integration type and the linear solver type (only for ISPH)
+    // Set the time integration type
     myFsiSystem.SetFluidDynamics(paramsH->fluid_dynamic_type);
-    myFsiSystem.SetFluidSystemLinearSolver(paramsH->LinearSolver);
 
     // Set the periodic boundary condition (in X and Y direction)
     auto initSpace0 = paramsH->MULT_INITSPACE * paramsH->HSML;

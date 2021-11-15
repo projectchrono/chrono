@@ -158,9 +158,8 @@ int main(int argc, char* argv[]) {
     }
     myFsiSystem.SetSimParameter(inputJson, paramsH, ChVector<>(bxDim, byDim, bzDim));
 
-    // Set the time integration type and the linear solver type (only for ISPH)
+    // Set the time integration type
     myFsiSystem.SetFluidDynamics(paramsH->fluid_dynamic_type);
-    myFsiSystem.SetFluidSystemLinearSolver(paramsH->LinearSolver);
 
     // Dimension of the space domain
     bxDim = paramsH->boxDimX;

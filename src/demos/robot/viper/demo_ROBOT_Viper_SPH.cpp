@@ -158,7 +158,6 @@ int main(int argc, char* argv[]) {
 
     /// Setup the solver based on the input value of the prameters
     myFsiSystem.SetFluidDynamics(paramsH->fluid_dynamic_type);
-    myFsiSystem.SetFluidSystemLinearSolver(paramsH->LinearSolver); // this is only for ISPH
 
     /// Set the periodic boundary condition
     double initSpace0 = paramsH->MULT_INITSPACE * paramsH->HSML;

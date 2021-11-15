@@ -32,17 +32,16 @@ namespace fsi {
 
 //--------------------------------------------------------------------------------------------------------------------------------
 ChSystemFsi::ChSystemFsi(ChSystem& other_physicalSystem, CHFSI_TIME_INTEGRATOR other_integrator)
-    : mphysicalSystem(other_physicalSystem),
-      mTime(0),
-      fluidIntegrator(other_integrator),
+    : mphysicalSystem(other_physicalSystem), mTime(0), fluidIntegrator(other_integrator),
       file_write_mode(CHFSI_OUTPUT_MODE::NONE) {
     fsiSystem = chrono_types::make_shared<ChSystemFsi_impl>();
     paramsH = chrono_types::make_shared<SimParams>();
     numObjectsH = fsiSystem->numObjects;
-    bceWorker = chrono_types::make_shared<ChBce>(fsiSystem->sortedSphMarkersD, fsiSystem->markersProximityD,
-                                                 fsiSystem->fsiGeneralData, paramsH, numObjectsH);
-    fluidDynamics =
-        chrono_types::make_shared<ChFluidDynamics>(bceWorker, fsiSystem, paramsH, numObjectsH, other_integrator);
+    bceWorker = chrono_types::make_shared<ChBce>(
+        fsiSystem->sortedSphMarkersD, fsiSystem->markersProximityD,
+        fsiSystem->fsiGeneralData, paramsH, numObjectsH);
+    fluidDynamics = chrono_types::make_shared<ChFluidDynamics>(
+        bceWorker, fsiSystem, paramsH, numObjectsH, other_integrator);
 
     fsi_mesh = chrono_types::make_shared<fea::ChMesh>();
     fsiBodies.resize(0);
@@ -80,6 +79,7 @@ void ChSystemFsi::SetFluidDynamics(fluid_dynamics params_type) {
     SetFluidIntegratorType(params_type);
     fluidDynamics =
         chrono_types::make_shared<ChFluidDynamics>(bceWorker, fsiSystem, paramsH, numObjectsH, fluidIntegrator);
+    fluidDynamics->GetForceSystem()->SetLinearSolver(paramsH->LinearSolver);
 }
 //--------------------------------------------------------------------------------------------------------------------------------
 void ChSystemFsi::Finalize() {

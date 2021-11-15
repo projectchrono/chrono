@@ -74,8 +74,8 @@ namespace fsi {
         thrust::device_vector<Real4> posRadD;     ///< Vector of the positions of particles + characteristic radius
         thrust::device_vector<Real3> velMasD;     ///< Vector of the velocities of particles
         thrust::device_vector<Real4> rhoPresMuD;  ///< Vector of the rho+pressure+mu+type of particles
-        thrust::device_vector<Real3> tauXxYyZzD;  ///< Vector of the shear stress (diagonal) of particles
-        thrust::device_vector<Real3> tauXyXzYzD;  ///< Vector of the shear stress (off-diagonal) of particles
+        thrust::device_vector<Real3> tauXxYyZzD;  ///< Vector of the total stress (diagonal) of particles
+        thrust::device_vector<Real3> tauXyXzYzD;  ///< Vector of the total stress (off-diagonal) of particles
 
         zipIterSphD iterator();
         void resize(size_t s);
@@ -86,8 +86,8 @@ namespace fsi {
         thrust::host_vector<Real4> posRadH;     ///< Vector of the positions of particles
         thrust::host_vector<Real3> velMasH;     ///< Vector of the velocities of particles
         thrust::host_vector<Real4> rhoPresMuH;  ///< Vector of the rho+pressure+mu+type of particles
-        thrust::host_vector<Real3> tauXxYyZzH;  ///< Vector of the shear stress (diagonal) of particles
-        thrust::host_vector<Real3> tauXyXzYzH;  ///< Vector of the shear stress (off-diagonal) of particles
+        thrust::host_vector<Real3> tauXxYyZzH;  ///< Vector of the total stress (diagonal) of particles
+        thrust::host_vector<Real3> tauXyXzYzH;  ///< Vector of the total stress (off-diagonal) of particles
 
         zipIterSphH iterator();
         void resize(size_t s);
@@ -191,10 +191,10 @@ namespace fsi {
     /// Struct to store neighbor search information on the device
     struct ProximityDataD {
         thrust::device_vector<uint> gridMarkerHashD;   ///< gridMarkerHash=s(i,j,k)= k*n_x*n_y + j*n_x + i (numAllMarkers);
-        thrust::device_vector<uint> gridMarkerIndexD;  ///< (numAllMarkers);
+        thrust::device_vector<uint> gridMarkerIndexD;  ///< Marker's index, can be original or sorted (numAllMarkers);
         thrust::device_vector<uint> cellStartD;        ///< Index of the particle starts a cell in sorted list (m_numGridCells)
         thrust::device_vector<uint> cellEndD;          ///< Index of the particle ends a cell in sorted list (m_numGridCells)
-        thrust::device_vector<uint> mapOriginalToSorted; ///< Index mapping from the original to the sorted
+        thrust::device_vector<uint> mapOriginalToSorted; ///< Index mapping from the original to the sorted (numAllMarkers);
 
         void resize(size_t numAllMarkers);
     };

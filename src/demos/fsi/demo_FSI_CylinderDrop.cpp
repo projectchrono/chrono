@@ -312,9 +312,8 @@ int main(int argc, char* argv[]) {
     ChVector<> cMax( bxDim / 2 * 10,  byDim / 2 * 10,  bzDim * 10);
     myFsiSystem.SetBoundaries(cMin, cMax, paramsH);
 
-    /// Set the time integration type and the linear solver type (only for ISPH)
+    /// Set the time integration type
     myFsiSystem.SetFluidDynamics(paramsH->fluid_dynamic_type);
-    myFsiSystem.SetFluidSystemLinearSolver(paramsH->LinearSolver);
 
     /// Setup sub doamins for a faster neighbor particle searching
     myFsiSystem.SetSubDomain(paramsH);

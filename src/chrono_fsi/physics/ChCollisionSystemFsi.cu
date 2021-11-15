@@ -12,7 +12,7 @@
 // Author: Arman Pazouki, Milad Rakhsha
 // =============================================================================
 //
-// Base class for processing proximity in fsi system.//
+// Base class for processing proximity in fsi system.
 // =============================================================================
 
 #include <thrust/sort.h>
@@ -29,10 +29,10 @@ namespace fsi {
 // 3. Calculate hash from bin index.
 // 4. Store hash and particle index associated with it.
 __global__ void calcHashD(
-    uint* gridMarkerHashD,   // gridMarkerHash Store marker hash here
-    uint* gridMarkerIndexD,  // gridMarkerIndex Store marker index here
-    Real4* posRad,           // posRad Vector containing the positions of all particles, including boundary particles
-    const size_t numAllMarkers,  // Total number of markers (fluid + boundary)
+    uint* gridMarkerHashD,   // gridMarkerHash Store particle hash here
+    uint* gridMarkerIndexD,  // gridMarkerIndex Store particle index here
+    Real4* posRad,           // posRad Vector containing the positions of all particles (SPH and BCE)
+    const size_t numAllMarkers,  // Total number of particles (fluid + boundary)
     volatile bool* isErrorD) {
     /* Calculate the index of where the particle is stored in posRad. */
     uint index = blockIdx.x * blockDim.x + threadIdx.x;
@@ -89,10 +89,10 @@ __global__ void reorderDataAndFindCellStartD(uint* cellStartD,      // output: c
                                              Real4* sortedPosRadD,  // output: sorted positions
                                              Real3* sortedVelMasD,  // output: sorted velocities
                                              Real4* sortedRhoPreMuD,
-                                             Real3* sortedTauXxYyZzD,    // output: sorted shear stress xxyyzz
-                                             Real3* sortedTauXyXzYzD,    // output: sorted shear stress xyzxyz
-                                             Real3* tauXxYyZzD,          // 
-                                             Real3* tauXyXzYzD,          // 
+                                             Real3* sortedTauXxYyZzD,    // output: sorted total stress xxyyzz
+                                             Real3* sortedTauXyXzYzD,    // output: sorted total stress xyzxyz
+                                             Real3* tauXxYyZzD,          // input: original total stress xxyyzz
+                                             Real3* tauXyXzYzD,          // input: original total stress xyzxyz
                                              uint* gridMarkerHashD,      // input: sorted grid hashes
                                              uint* gridMarkerIndexD,     // input: sorted particle indices
                                              uint* mapOriginalToSorted,  // mapOriginalToSorted[originalIndex] =
@@ -265,7 +265,7 @@ void ChCollisionSystemFsi::reorderDataAndFindCellStart() {
     thrust::fill(markersProximityD->cellEndD.begin(), markersProximityD->cellEndD.end(), 0);
 
     uint numThreads, numBlocks;
-    computeGridSize((uint)numObjectsH->numAllMarkers, 256, numBlocks, numThreads);  //?$ 256 is blockSize
+    computeGridSize((uint)numObjectsH->numAllMarkers, 256, numBlocks, numThreads);  // 256 is blockSize
 
     uint smemSize = sizeof(uint) * (numThreads + 1);
     reorderDataAndFindCellStartD<<<numBlocks, numThreads, smemSize>>>(
