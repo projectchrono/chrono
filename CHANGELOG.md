@@ -53,6 +53,57 @@ Change Log
 
 ## Unreleased (development branch)
 
+### [Added] DDS Communicator in Chrono::Synchrono module
+
+`Chrono::SynChrono` used to rely only on MPI to pass message between ranks. We added a different `SynCommunicator` derived class called `SynDDSCommunicator`. This communicator relies on e-Prosima implementation of DDS, called [fastDDS](https://www.eprosima.com/index.php/products-all/eprosima-fast-dds) and it is alternative to MPI communication. Please note that while DDS implementations are interoperable, they are not compatible at the implementation level, therefore to use this functionality please download or clone and build fastDDS and follow the [instructions on our website](https://github.com/projectchrono/chrono/tree/develop/src/chrono_synchrono). The main purpose of SynChrono-DDS is to perform distributed simulation across different machines, hence overcoming MPI limitations: as long as two machines can establish a UDP/TCP communication they can participate in a distributed SynChrono-DDS communication. 
+
+- From the user API perspective, the change is minimal: for example, in `demo_SYN_DDS_wheeled.cpp` the only change is the communicator itself, after including the proper header:
+   ```cpp
+   #include "chrono_synchrono/communication/dds/SynDDSCommunicator.h"
+   .....
+   auto communicator = chrono_types::make_shared<SynDDSCommunicator>(node_id);
+   ```
+- Launching the jobs: instead of using mpiexec/mpirun, DDS ranks are started separately (either manually or through a job scheduler). DDS implements a _Barrier_ such that jobs freeze until the expected number of participant is found. This means that jobs can be launched even minutes apart and they will simply wait for each other before stepping forward together.
+- UDP communication: the most useful application of SynChronoDDS is using it across UDP, to perform distributed simulation without MPI boundaries. It is sufficient to provide the IP address of the machines to connect with to set up communication (given that the Firewall is not preventing it) as in `demo_SYN_DDS_distributed.cpp`: 
+ ```cpp
+qos.transport().user_transports.push_back(std::make_shared<UDPv4TransportDescriptor>());
+qos.transport().use_builtin_transports = false;
+qos.wire_protocol().builtin.avoid_builtin_multicast = false;
+// Set the initialPeersList
+for (const auto& ip : ip_list) {
+    Locator_t locator;
+    locator.kind = LOCATOR_KIND_UDPv4;
+    IPLocator::setIPv4(locator, ip);
+    qos.wire_protocol().builtin.initialPeersList.push_back(locator);
+}
+auto communicator = chrono_types::make_shared<SynDDSCommunicator>(qos);
+```
+
+
+### [Changed] Rename Intel MKL Pardiso interface module
+
+For consistency and clarity, the `Chrono::MKL` module was renamed to `Chrono::PardisoMKL` (indeed, this module interfaces only to the sparse direct linear solver Pardiso from the Intel MKL library).  From a public API perspective, this name change requires the following changes to user code:
+
+- Include header
+
+   ```cpp
+   #include "chrono_pardisomkl/ChSolverPardisoMKL.h"
+   ```
+
+- The new solver name is `ChSolverPardisoMKL`.  For example:
+
+   ```cpp
+   auto my_solver = chrono_types::make_shared<ChSolverPardisoMKL>();
+   my_solver->LockSparsityPattern(true);
+   my_system.SetSolver(my_solver);
+   ```
+
+- Solver type enum value for this solver is now `ChSolver::Type::PARDISO_MKL`
+
+- Use in CMake project configuration script
+
+  To request this new module when configuring an external project to use Chrono, use the component name `PardisoMKL` in your CMake call to `find_pakage(Chrono...)`.  Recall that the names of the components are case insensitive
+
 ### [Added] New terramechanics co-simulation module
 
 This new module provides support for co-simulating various Chrono models of ground wheeled vehicles.  This framework implements an explicit co-simulation model (of force-displacement type) and uses an MPI layer for exchanging data between the participant nodes.

@@ -425,7 +425,10 @@ windows:vs2019:deploy:
     # this command is needed to get the git describe data needed by the numbering
     - git fetch --prune --unshallow
     - clang --version
+    # conda build uses "build.sh" for both Linux and MacOS. Since we do things differently, we do the following workaround
     - mv -f ./contrib/packaging-python/conda/buildMacOS.sh ./contrib/packaging-python/conda/build.sh
+    # same goes for the post install script: we don't want it to operate on MacOS bs it wouldn't find any sensor.py (not enabled in macos)
+    - rm ./contrib/packaging-python/conda/post-link.sh 
     - conda install -c conda-forge llvm-openmp --yes
   environment:
     name: pychrono-macos
