@@ -1,7 +1,7 @@
 # change the version number in case of a release build
 package:
   name: pychrono
-  version: 6.0.0
+  version: 7.0.0
 
 source:
   path: ../../..
@@ -27,15 +27,15 @@ requirements:
     - python
     - cmake >=3.9.3
     - swig >=4.0.0
-    - mkl
-    - numpy
+    - mkl-devel
+    - numpy >=1.16
     - glew
     - glfw
 
   run:
     - python
     - mkl
-    - numpy
+    - numpy >=1.16
     - glew
     - glfw
 

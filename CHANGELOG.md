@@ -5,6 +5,8 @@ Change Log
 ==========
 
 - [Unreleased (development version)](#unreleased-development-branch)
+- [Release 7.0.0](#release-700---2021-11-15) 
+  - [DDS communicator in Chrono::Synchrono module](#added-dds-communicator-in-chronosynchrono-module)
   - [New terramechanics co-simulation module](#added-new-terramechanics-co-simulation-module)
   - [Chrono::Fsi API redesign](#changed-chronofsi-api-redesign)
   - [Sensor performance improvements and feature additions](#changed-sensor-to-improve-performance-and-added-features)
@@ -52,6 +54,36 @@ Change Log
 - [Release 4.0.0](#release-400---2019-02-22)
 
 ## Unreleased (development branch)
+
+
+
+## Release 7.0.0 - 2021-11-15
+
+### [Added] DDS communicator in Chrono::Synchrono module
+
+`Chrono::SynChrono` used to rely only on MPI to pass message between ranks. We added a different `SynCommunicator` derived class called `SynDDSCommunicator`. This communicator relies on e-Prosima implementation of DDS, called [fastDDS](https://www.eprosima.com/index.php/products-all/eprosima-fast-dds) and it is alternative to MPI communication. Please note that while DDS implementations are interoperable, they are not compatible at the implementation level, therefore to use this functionality please download or clone and build fastDDS and follow the [instructions on our website](https://github.com/projectchrono/chrono/tree/develop/src/chrono_synchrono). The main purpose of SynChrono-DDS is to perform distributed simulation across different machines, hence overcoming MPI limitations: as long as two machines can establish a UDP/TCP communication they can participate in a distributed SynChrono-DDS communication. 
+
+- From the user API perspective, the change is minimal: for example, in `demo_SYN_DDS_wheeled.cpp` the only change is the communicator itself, after including the proper header:
+   ```cpp
+   #include "chrono_synchrono/communication/dds/SynDDSCommunicator.h"
+   .....
+   auto communicator = chrono_types::make_shared<SynDDSCommunicator>(node_id);
+   ```
+- Launching the jobs: instead of using mpiexec/mpirun, DDS ranks are started separately (either manually or through a job scheduler). DDS implements a _Barrier_ such that jobs freeze until the expected number of participant is found. This means that jobs can be launched even minutes apart and they will simply wait for each other before stepping forward together.
+- UDP communication: the most useful application of SynChronoDDS is using it across UDP, to perform distributed simulation without MPI boundaries. It is sufficient to provide the IP address of the machines to connect with to set up communication (given that the Firewall is not preventing it) as in `demo_SYN_DDS_distributed.cpp`: 
+ ```cpp
+qos.transport().user_transports.push_back(std::make_shared<UDPv4TransportDescriptor>());
+qos.transport().use_builtin_transports = false;
+qos.wire_protocol().builtin.avoid_builtin_multicast = false;
+// Set the initialPeersList
+for (const auto& ip : ip_list) {
+    Locator_t locator;
+    locator.kind = LOCATOR_KIND_UDPv4;
+    IPLocator::setIPv4(locator, ip);
+    qos.wire_protocol().builtin.initialPeersList.push_back(locator);
+}
+auto communicator = chrono_types::make_shared<SynDDSCommunicator>(qos);
+```
 
 ### [Added] New terramechanics co-simulation module
 

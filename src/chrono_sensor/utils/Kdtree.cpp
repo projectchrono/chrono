@@ -28,6 +28,9 @@ OF SUCH DAMAGE.
 
 #include <stdio.h>
 
+// Disable MSVC C4706 warning "assignment within conditional expression"
+#pragma warning(disable : 4706)
+
 void clear_rec(struct kdnode* node, void (*destr)(void*));
 int insert_rec(struct kdnode** node, const float* pos, void* data, int dir);
 int rlist_insert(struct res_node* list, struct kdnode* item, float dist_sq);

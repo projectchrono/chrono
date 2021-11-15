@@ -108,7 +108,7 @@ void ChOptixGeometry::AddGenericObject(unsigned int mat_id,
     // create the motion transform for this box
     m_motion_transforms.emplace_back();
     m_motion_handles.emplace_back();
-    int i = m_motion_transforms.size() - 1;
+    auto i = m_motion_transforms.size() - 1;
     m_obj_asset_frames.push_back(asset_frame);
     m_obj_scales.push_back(scale);
 
@@ -177,7 +177,7 @@ void ChOptixGeometry::AddBox(std::shared_ptr<ChBody> body,
 
         m_gas_handles.emplace_back();
         m_gas_buffers.emplace_back();
-        m_box_gas_id = m_gas_handles.size() - 1;
+        m_box_gas_id = static_cast<unsigned int>(m_gas_handles.size() - 1);
 
         OPTIX_ERROR_CHECK(optixAccelBuild(m_context, 0, &accel_options, &aabb_input, 1, d_temp_buffer_gas,
                                           gas_buffer_sizes.tempSizeInBytes, d_buffer_temp_output_gas_and_compacted_size,
@@ -254,7 +254,7 @@ void ChOptixGeometry::AddSphere(std::shared_ptr<ChBody> body,
 
         m_gas_handles.emplace_back();
         m_gas_buffers.emplace_back();
-        m_sphere_gas_id = m_gas_handles.size() - 1;
+        m_sphere_gas_id = static_cast<unsigned int>(m_gas_handles.size() - 1);
 
         OPTIX_ERROR_CHECK(optixAccelBuild(m_context, 0, &accel_options, &aabb_input, 1, d_temp_buffer_gas,
                                           gas_buffer_sizes.tempSizeInBytes, d_buffer_temp_output_gas_and_compacted_size,
@@ -331,7 +331,7 @@ void ChOptixGeometry::AddCylinder(std::shared_ptr<ChBody> body,
 
         m_gas_handles.emplace_back();
         m_gas_buffers.emplace_back();
-        m_cyl_gas_id = m_gas_handles.size() - 1;
+        m_cyl_gas_id = static_cast<unsigned int>(m_gas_handles.size() - 1);
 
         OPTIX_ERROR_CHECK(optixAccelBuild(m_context, 0, &accel_options, &aabb_input, 1, d_temp_buffer_gas,
                                           gas_buffer_sizes.tempSizeInBytes, d_buffer_temp_output_gas_and_compacted_size,
@@ -369,7 +369,7 @@ unsigned int ChOptixGeometry::AddRigidMesh(CUdeviceptr d_vertices,
                                            unsigned int mat_id) {
     // std::cout << "Adding rigid mesh to optix!\n";
     bool mesh_found = false;
-    unsigned int mesh_gas_id;
+    unsigned int mesh_gas_id = 0;
     for (int i = 0; i < m_known_meshes.size(); i++) {
         if (d_vertices == std::get<0>(m_known_meshes[i])) {
             mesh_found = true;
@@ -439,14 +439,14 @@ unsigned int ChOptixGeometry::BuildTrianglesGAS(std::shared_ptr<ChTriangleMeshSh
 
     // vertex data/params
     mesh_input.triangleArray.vertexBuffers = &d_vertices;
-    mesh_input.triangleArray.numVertices = mesh->getCoordsVertices().size();
+    mesh_input.triangleArray.numVertices = static_cast<unsigned int>(mesh->getCoordsVertices().size());
     mesh_input.triangleArray.vertexFormat = OPTIX_VERTEX_FORMAT_FLOAT3;
     // TODO: if vertices get padded to float4, this need to reflect that
     mesh_input.triangleArray.vertexStrideInBytes = sizeof(float4);  // sizeof(float3);
 
     // index data/params
     mesh_input.triangleArray.indexBuffer = d_indices;
-    mesh_input.triangleArray.numIndexTriplets = mesh->getIndicesVertexes().size();
+    mesh_input.triangleArray.numIndexTriplets = static_cast<unsigned int>(mesh->getIndicesVertexes().size());
     mesh_input.triangleArray.indexFormat = OPTIX_INDICES_FORMAT_UNSIGNED_INT3;
     // TODO: if vertices get padded to uint4, this need to reflect that
     mesh_input.triangleArray.indexStrideInBytes = sizeof(uint4);  // sizeof(uint3);
@@ -467,7 +467,7 @@ unsigned int ChOptixGeometry::BuildTrianglesGAS(std::shared_ptr<ChTriangleMeshSh
     if (!rebuild) {
         m_gas_handles.emplace_back();
         m_gas_buffers.emplace_back();
-        mesh_gas_id = m_gas_handles.size() - 1;
+        mesh_gas_id = static_cast<unsigned int>(m_gas_handles.size() - 1);
     }
 
     if (compact_no_update) {
@@ -547,7 +547,7 @@ OptixTraversableHandle ChOptixGeometry::CreateRootStructure() {
     instance_input.type = OPTIX_BUILD_INPUT_TYPE_INSTANCES;
     // instance_input.type = OPTIX_BUILD_INPUT_TYPE_INSTANCE_POINTERS;
     instance_input.instanceArray.instances = md_instances;
-    instance_input.instanceArray.numInstances = m_instances.size();
+    instance_input.instanceArray.numInstances = static_cast<unsigned int>(m_instances.size());
     OptixAccelBuildOptions accel_options = {};
     // accel_options.buildFlags = OPTIX_BUILD_FLAG_NONE;
     // accel_options.buildFlags = OPTIX_BUILD_FLAG_ALLOW_UPDATE;
@@ -642,7 +642,7 @@ void ChOptixGeometry::RebuildRootStructure() {
     OptixBuildInput instance_input = {};
     instance_input.type = OPTIX_BUILD_INPUT_TYPE_INSTANCES;
     instance_input.instanceArray.instances = md_instances;
-    instance_input.instanceArray.numInstances = m_instances.size();
+    instance_input.instanceArray.numInstances = static_cast<unsigned int>(m_instances.size());
     OptixAccelBuildOptions accel_options = {};
     // accel_options.buildFlags = OPTIX_BUILD_FLAG_NONE;
     accel_options.buildFlags = OPTIX_BUILD_FLAG_PREFER_FAST_TRACE;// | OPTIX_BUILD_FLAG_ALLOW_UPDATE;
