@@ -5,6 +5,7 @@ Change Log
 ==========
 
 - [Unreleased (development version)](#unreleased-development-branch)
+  - [DDS communicator in Chrono::Synchrono module](#added-dds-communicator-in-chronosynchrono-module)
   - [New terramechanics co-simulation module](#added-new-terramechanics-co-simulation-module)
   - [Chrono::Fsi API redesign](#changed-chronofsi-api-redesign)
   - [Sensor performance improvements and feature additions](#changed-sensor-to-improve-performance-and-added-features)
@@ -53,7 +54,7 @@ Change Log
 
 ## Unreleased (development branch)
 
-### [Added] DDS Communicator in Chrono::Synchrono module
+### [Added] DDS communicator in Chrono::Synchrono module
 
 `Chrono::SynChrono` used to rely only on MPI to pass message between ranks. We added a different `SynCommunicator` derived class called `SynDDSCommunicator`. This communicator relies on e-Prosima implementation of DDS, called [fastDDS](https://www.eprosima.com/index.php/products-all/eprosima-fast-dds) and it is alternative to MPI communication. Please note that while DDS implementations are interoperable, they are not compatible at the implementation level, therefore to use this functionality please download or clone and build fastDDS and follow the [instructions on our website](https://github.com/projectchrono/chrono/tree/develop/src/chrono_synchrono). The main purpose of SynChrono-DDS is to perform distributed simulation across different machines, hence overcoming MPI limitations: as long as two machines can establish a UDP/TCP communication they can participate in a distributed SynChrono-DDS communication. 
 
@@ -78,31 +79,6 @@ for (const auto& ip : ip_list) {
 }
 auto communicator = chrono_types::make_shared<SynDDSCommunicator>(qos);
 ```
-
-
-### [Changed] Rename Intel MKL Pardiso interface module
-
-For consistency and clarity, the `Chrono::MKL` module was renamed to `Chrono::PardisoMKL` (indeed, this module interfaces only to the sparse direct linear solver Pardiso from the Intel MKL library).  From a public API perspective, this name change requires the following changes to user code:
-
-- Include header
-
-   ```cpp
-   #include "chrono_pardisomkl/ChSolverPardisoMKL.h"
-   ```
-
-- The new solver name is `ChSolverPardisoMKL`.  For example:
-
-   ```cpp
-   auto my_solver = chrono_types::make_shared<ChSolverPardisoMKL>();
-   my_solver->LockSparsityPattern(true);
-   my_system.SetSolver(my_solver);
-   ```
-
-- Solver type enum value for this solver is now `ChSolver::Type::PARDISO_MKL`
-
-- Use in CMake project configuration script
-
-  To request this new module when configuring an external project to use Chrono, use the component name `PardisoMKL` in your CMake call to `find_pakage(Chrono...)`.  Recall that the names of the components are case insensitive
 
 ### [Added] New terramechanics co-simulation module
 
