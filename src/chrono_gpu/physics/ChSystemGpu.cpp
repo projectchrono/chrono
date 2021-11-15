@@ -72,6 +72,14 @@ void ChSystemGpu::SetClusterGraphMethod(CLUSTER_GRAPH_METHOD flag) {
     m_sys->gran_params->cluster_graph_method = flag;
 }
 
+void ChSystemGpu::SetClusterGroundMethod(CLUSTER_GROUND_METHOD flag) {
+    m_sys->gran_params->cluster_ground_method = flag;
+}
+
+void ChSystemGpu::SetClusterGroundZLim(float z_lim) {
+    m_sys->gran_params->ground_z_lim = z_lim;
+}
+
 void ChSystemGpu::SetFixedStepSize(float size_UU) {
     m_sys->stepSize_UU = size_UU;
 }

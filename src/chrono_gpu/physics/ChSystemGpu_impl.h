@@ -103,6 +103,7 @@ class ChSystemGpu_impl {
         
         CLUSTER_GRAPH_METHOD cluster_graph_method; /// graph construction for clustering
         CLUSTER_SEARCH_METHOD cluster_search_method; /// search algorithm used for clustering
+        CLUSTER_GROUND_METHOD cluster_ground_method; /// identification method of ground cluster
 
         /// Ratio of normal force to peak tangent force, also arctan(theta) where theta is the friction angle
         /// sphere-to-sphere
@@ -175,6 +176,10 @@ class ChSystemGpu_impl {
         // GDBSCAN clustering parameters.
         float gdbscan_radius; // ignored if CLUSTER_GRAPH_METHOD::CONTACT
         unsigned int gdbscan_min_pts; // used if CLUSTER_GRAPH_METHOD::CONTACT
+
+        // Clustering GROUND identification parameters
+        // Any cluster that has a sphere below this value is the ground.
+        float ground_z_lim; // for CLUSTER_GROUND_METHOD::LOWEST
     };
 
     /// Structure of pointers to kinematic quantities of the ChSystemGpu_impl.

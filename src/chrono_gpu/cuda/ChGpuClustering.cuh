@@ -95,17 +95,64 @@ static __global__ void GdbscanFinalClusterFromType(unsigned int nSpheres,
     }
 }
 
-// Find if any particle is in the volume cluster.
-// If any sphere in cluster sphere_type == VOLUME -> sphere_cluster = VOLUME
-// UNLESS it is the biggest cluster -> sphere_cluster = GROUND
-static __global__ void FindVolumeCluster(unsigned int nSpheres,
-                                         bool * visited,
-                                         bool * in_volume,
-                                         SPHERE_TYPE* sphere_type) {
+/// Switch cluster index of spheres.
+/// Mostly used to switch index of a certain cluster to CLUSTER_INDEX::GROUND
+static __global__ void SwitchClusterIndex(ChSystemGpu_impl::GranSphereDataPtr sphere_data,
+                                          ChSystemGpu_impl::GranParamsPtr gran_params,
+                                          unsigned int nSpheres,
+                                          unsigned int cluster_from,
+                                          unsigned int cluster_to) {
     unsigned int mySphereID = threadIdx.x + blockIdx.x * blockDim.x;
     // don't overrun the array
     if (mySphereID < nSpheres) {
-        if ((sphere_type[mySphereID] == SPHERE_TYPE::VOLUME) && (visited[mySphereID])) {
+        if(sphere_data->sphere_cluster[mySphereID] == cluster_from) {
+            sphere_data->sphere_cluster[mySphereID] = cluster_to;
+        }
+    }
+}
+
+
+/// Find if any particle in a cluster are below a certain z_lim
+/// if input param cluster == NONE checks all spheres.
+/// VOLUME cluster is set before ground cluster
+static __global__ void AreSpheresBelowZLim(ChSystemGpu_impl::GranSphereDataPtr sphere_data,
+                                           ChSystemGpu_impl::GranParamsPtr gran_params,
+                                           unsigned int nSpheres,
+                                           bool * d_below,
+                                           unsigned int cluster,
+                                           float z_lim) {
+    unsigned int mySphereID = threadIdx.x + blockIdx.x * blockDim.x;
+
+    // don't overrun the array
+    if (mySphereID < nSpheres) {
+        int3 mySphere_pos_local;
+        double3 mySphere_pos_global;
+        unsigned int ownerSD = sphere_data->sphere_owner_SDs[mySphereID];
+
+        mySphere_pos_local = make_int3(sphere_data->sphere_local_pos_X[mySphereID],
+                                       sphere_data->sphere_local_pos_Y[mySphereID],
+                                       sphere_data->sphere_local_pos_Z[mySphereID]);
+        mySphere_pos_global = int64_t3_to_double3(convertPosLocalToGlobal(ownerSD, mySphere_pos_local, gran_params));
+
+        if ((sphere_data->sphere_cluster[mySphereID] == cluster) ||
+            (cluster == static_cast<unsigned int>(chrono::gpu::CLUSTER_INDEX::NONE))) {
+            if (static_cast<float>(mySphere_pos_global.z * gran_params->LENGTH_UNIT) < z_lim) {
+                d_below[mySphereID] = true;
+            }
+        }
+    }
+}
+
+// Find if any particle in the cluster has type VOLUME
+static __global__ void FindVolumeTypeInCluster(ChSystemGpu_impl::GranSphereDataPtr sphere_data,
+                                               unsigned int nSpheres,
+                                               bool * in_volume,
+                                               unsigned int cluster) {
+    unsigned int mySphereID = threadIdx.x + blockIdx.x * blockDim.x;
+    // don't overrun the array
+    if (mySphereID < nSpheres) {
+        if ((sphere_data->sphere_type[mySphereID] == SPHERE_TYPE::VOLUME) &&
+            (sphere_data->sphere_cluster[mySphereID] == cluster)){
             in_volume[mySphereID] = true;
         }
     }
@@ -115,8 +162,8 @@ static __global__ void FindVolumeCluster(unsigned int nSpheres,
 /// needs fully known adj_num
 /// call BEFORE ComputeAdjList___
 static __host__ void ComputeAdjOffsetFromAdjNum(unsigned int nSpheres,
-                                               unsigned int * adj_num,
-                                               unsigned int * adj_offset) {
+                                                unsigned int * adj_num,
+                                                unsigned int * adj_offset) {
     memcpy(adj_offset, adj_num, sizeof(*adj_offset) * nSpheres);
     /// all start indices AFTER mySphereID depend on it -> exclusive sum
     void * d_temp_storage = NULL;
@@ -303,6 +350,9 @@ static __global__ void ComputeAdjListByProximity(ChSystemGpu_impl::GranSphereDat
     assert(adjacency_num == sphere_data->adj_num[mySphereID]);
 }
 
+namespace chrono {
+namespace gpu {
+
 __host__ void ConstructGraphByContact(ChSystemGpu_impl::GranSphereDataPtr sphere_data,
                                       ChSystemGpu_impl::GranParamsPtr gran_params,
                                       unsigned int nSpheres);
@@ -313,9 +363,25 @@ __host__ void ConstructGraphByProximity(ChSystemGpu_impl::GranSphereDataPtr sphe
                                         size_t min_pts,
                                         float radius);
 
-__host__ void GdbscanSearchGraph(ChSystemGpu_impl::GranSphereDataPtr sphere_data,
-                                 ChSystemGpu_impl::GranParamsPtr gran_params,
-                                 unsigned int nSpheres,
-                                 size_t min_pts);
+__host__ unsigned int ** GdbscanSearchGraphByBFS(ChSystemGpu_impl::GranSphereDataPtr sphere_data,
+                                                 ChSystemGpu_impl::GranParamsPtr gran_params,
+                                                 unsigned int nSpheres,
+                                                 size_t min_pts);
+
+__host__ void IdentifyGroundCluster(ChSystemGpu_impl::GranSphereDataPtr sphere_data,
+                                    ChSystemGpu_impl::GranParamsPtr gran_params,
+                                    unsigned int nSpheres,
+                                    unsigned int ** h_clusters);
+
+__host__ void IdentifyVolumeCluster(ChSystemGpu_impl::GranSphereDataPtr sphere_data,
+                                    ChSystemGpu_impl::GranParamsPtr gran_params,
+                                    unsigned int nSpheres,
+                                    unsigned int ** h_clusters);
+
+__host__ void FreeClusters(unsigned int ** h_clusters);
+
+
+} //chrono
+} //gpu
 
 /// @} gpu_cuda

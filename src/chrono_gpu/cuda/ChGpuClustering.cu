@@ -41,7 +41,7 @@ static __host__ unsigned int ** ClusterSearchBFS(unsigned int nSpheres,
     unsigned int nBlocks = (nSpheres + CUDA_THREADS_PER_BLOCK - 1) / CUDA_THREADS_PER_BLOCK;
 
     cudaMemset(sphere_data->sphere_cluster,
-               static_cast<unsigned int>(CLUSTER_INDEX::GROUND),
+               static_cast<unsigned int>(chrono::gpu::CLUSTER_INDEX::GROUND),
                sizeof(*sphere_data->sphere_cluster) * nSpheres);
     gpuErrchk(cudaPeekAtLastError());
     gpuErrchk(cudaDeviceSynchronize());
@@ -55,12 +55,8 @@ static __host__ unsigned int ** ClusterSearchBFS(unsigned int nSpheres,
 
     // border_num: number of remaining border vertices to search in BFS_kernel
     unsigned int * d_border_num;
-    unsigned int * h_border_num = (unsigned int *)malloc(sizeof(*h_border_num)); 
-    // in_volume_num: number of spheres inside the volume mesh
-    unsigned int * d_in_volume_num;
-    unsigned int * h_in_volume_num = (unsigned int *)malloc(sizeof(*h_in_volume_num)); 
     gpuErrchk(cudaMalloc((void**)&d_border_num, sizeof(*d_border_num)));
-    gpuErrchk(cudaMalloc((void**)&d_in_volume_num, sizeof(*d_in_volume_num)));
+    unsigned int * h_border_num = (unsigned int *)malloc(sizeof(*h_border_num)); 
     gpuErrchk(cudaPeekAtLastError());
     gpuErrchk(cudaDeviceSynchronize());
 
@@ -68,10 +64,8 @@ static __host__ unsigned int ** ClusterSearchBFS(unsigned int nSpheres,
     bool * d_visited;  // [mySphereID] -> was vertex d_visited in BFS_kernel?
     bool * h_visited;  // [mySphereID] -> host of d_visited
     bool * h_searched;  // [mySphereID] -> was vertex searched before?
-    bool * d_in_volume;  // [mySphereID] -> is particle inside the volume?
     gpuErrchk(cudaMalloc((void**)&d_borders, sizeof(*d_borders) * nSpheres));
     gpuErrchk(cudaMalloc((void**)&d_visited, sizeof(*d_visited) * nSpheres));
-    gpuErrchk(cudaMalloc((void**)&d_in_volume, sizeof(*d_in_volume) * nSpheres));
     gpuErrchk(cudaPeekAtLastError());
     gpuErrchk(cudaDeviceSynchronize());
 
@@ -87,7 +81,6 @@ static __host__ unsigned int ** ClusterSearchBFS(unsigned int nSpheres,
         if ((!h_searched[i]) && (h_current_type == SPHERE_TYPE::CORE)) {
             cudaMemset(d_borders, false, sizeof(*d_borders) * nSpheres);
             cudaMemset(d_visited, false, sizeof(*d_visited) * nSpheres);
-            cudaMemset(d_in_volume, false, sizeof(*d_in_volume) * nSpheres);
             cudaMemset(&d_borders[i], true, sizeof(*d_borders));
             gpuErrchk(cudaPeekAtLastError());
             gpuErrchk(cudaDeviceSynchronize());
@@ -124,50 +117,21 @@ static __host__ unsigned int ** ClusterSearchBFS(unsigned int nSpheres,
                 gpuErrchk(cudaDeviceSynchronize());
             } while ((*h_border_num) > 0);
 
-            // find if any sphere was tagged in the VOLUME type
-            FindVolumeCluster<<<nBlocks, CUDA_THREADS_PER_BLOCK>>>(
-                nSpheres,
-                d_visited,
-                d_in_volume,
-                sphere_data->sphere_type);
-            // Sum number of particles in d_in_volume into h_in_volume_num
-            void *d_temp_storage = NULL;
-            size_t temp_storage_bytes = 0;
-            // Determine temporary device storage requirements
-            cub::DeviceReduce::Sum(d_temp_storage, temp_storage_bytes,
-                                   d_in_volume, d_in_volume_num, nSpheres);
-            // find and visit border points, establishing the cluster
-            gpuErrchk(cudaMalloc(&d_temp_storage, temp_storage_bytes));
-            gpuErrchk(cudaPeekAtLastError());
-            gpuErrchk(cudaDeviceSynchronize());
-            cub::DeviceReduce::Sum(d_temp_storage, temp_storage_bytes,
-                                   d_in_volume, d_in_volume_num, nSpheres);
-            cudaMemcpy(h_in_volume_num, d_in_volume_num,
-                       sizeof(*d_in_volume_num), cudaMemcpyDeviceToHost);
-            gpuErrchk(cudaFree(d_temp_storage));
-            gpuErrchk(cudaPeekAtLastError());
-            gpuErrchk(cudaDeviceSynchronize());
-
             cudaMemcpy(h_visited, d_visited, sizeof(*d_visited) * nSpheres,
                        cudaMemcpyDeviceToHost);
             h_cluster = (unsigned int *)calloc((nSpheres + 1), sizeof(*h_cluster));
             // h_cluster[0] is its size, so it length nSpheres + 1
             assert(h_cluster[0] == 0);
 
-            unsigned int cluster_index;
-            // if any sphere is in the volume, the cluster is VOLUME
-            // gets overwritten by the biggest cluster in GdbscanSearchGraph
-            if (*h_in_volume_num > 0) {
-                cluster_index = static_cast<unsigned int>(CLUSTER_INDEX::VOLUME);
-            }  else {
-                cluster_index = h_cluster_num + static_cast<unsigned int>(CLUSTER_INDEX::START);
-            }
+            // First pass of setting sphere_cluster
+            // GROUND and VOLUME clusters come later
+            unsigned int cluster_index = h_cluster_num + static_cast<unsigned int>(chrono::gpu::CLUSTER_INDEX::START);
 
             for (size_t j = 0; j < nSpheres; j++) {
                 if (h_visited[j]) {
-                    if ((sphere_type[j] != SPHERE_TYPE::CORE) &&
-                        (sphere_type[j] != SPHERE_TYPE::VOLUME)) {
-                        sphere_type[j] = SPHERE_TYPE::BORDER;
+                    if ((sphere_type[j] != chrono::gpu::SPHERE_TYPE::CORE) &&
+                        (sphere_type[j] != chrono::gpu::SPHERE_TYPE::VOLUME)) {
+                        sphere_type[j] = chrono::gpu::SPHERE_TYPE::BORDER;
                     }
 
                     h_searched[j] = true;
@@ -188,11 +152,8 @@ static __host__ unsigned int ** ClusterSearchBFS(unsigned int nSpheres,
     free(h_visited);
     free(h_searched);
     free(h_border_num);
-    free(h_in_volume_num);
     gpuErrchk(cudaFree(d_borders));
     gpuErrchk(cudaFree(d_border_num));
-    gpuErrchk(cudaFree(d_in_volume_num));
-    gpuErrchk(cudaFree(d_in_volume));
     gpuErrchk(cudaFree(d_visited));
     assert(h_clusters[0][0] == h_cluster_num);
     assert(h_clusters[0][0] <= nSpheres);
@@ -200,9 +161,6 @@ static __host__ unsigned int ** ClusterSearchBFS(unsigned int nSpheres,
     gpuErrchk(cudaDeviceSynchronize());
     return(h_clusters);
 }
-
-}  // namespace gpu
-}  // namespace chrono
 
 /// Uses sphere_contact_map to construct adjacency lists for clustering
 __host__ void ConstructGraphByContact(ChSystemGpu_impl::GranSphereDataPtr sphere_data,
@@ -255,62 +213,262 @@ __host__ void ConstructGraphByProximity(ChSystemGpu_impl::GranSphereDataPtr sphe
                                                                    radius);
 }
 
-/// G-DBSCAN; density-based h_clustering algorithm.
+/// identify ground cluster by spheres lower than a certain plane
+__host__ void IdentifyGroundClusterByLowest(ChSystemGpu_impl::GranSphereDataPtr sphere_data,
+                                            ChSystemGpu_impl::GranParamsPtr gran_params,
+                                            unsigned int ** h_clusters,
+                                            unsigned int nSpheres) {
+    unsigned int nBlocks = (nSpheres + CUDA_THREADS_PER_BLOCK - 1) / CUDA_THREADS_PER_BLOCK;
+    unsigned int cluster_num = h_clusters[0][0];
+    unsigned int cluster_index;
+
+    unsigned int * h_below_any = (unsigned int *)malloc(sizeof(*h_below_any));
+    bool * d_below;
+    gpuErrchk(cudaMalloc((void**)&d_below, sizeof(*d_below) * nSpheres));
+    unsigned int * d_below_any;
+    gpuErrchk(cudaMalloc((void**)&d_below_any, sizeof(*d_below_any)));
+    unsigned int ground_cluster = static_cast<unsigned int>(chrono::gpu::CLUSTER_INDEX::GROUND);
+    ///　Find ALL clusters with any sphere center below plane box_z + 1*sphere_radius
+    for (size_t i = 1; i < (cluster_num + 1); i++) {
+        cudaMemset(d_below, false, sizeof(*d_below) * nSpheres);
+
+        // if any sphere is in VOLUME cluster, cluster index should be VOLUME
+        if (sphere_data->sphere_cluster[h_clusters[i][1]] == static_cast<unsigned int>(chrono::gpu::CLUSTER_INDEX::VOLUME)) {
+            cluster_index = static_cast<unsigned int>(chrono::gpu::CLUSTER_INDEX::VOLUME);
+        } else {
+            cluster_index = i + static_cast<unsigned int>(chrono::gpu::CLUSTER_INDEX::START);
+        }
+        AreSpheresBelowZLim<<<nBlocks, CUDA_THREADS_PER_BLOCK>>>(sphere_data,
+                                                                 gran_params,
+                                                                 nSpheres,
+                                                                 d_below,
+                                                                 cluster_index,
+                                                                 gran_params->ground_z_lim);
+        gpuErrchk(cudaPeekAtLastError());
+        gpuErrchk(cudaDeviceSynchronize());
+
+        // Sum number of particles in below z_lim
+        void *d_temp_storage = NULL;
+        size_t temp_storage_bytes = 0;
+        // Determine temporary device storage requirements
+        cub::DeviceReduce::Max(d_temp_storage, temp_storage_bytes,
+                               d_below, d_below_any, nSpheres);
+        // find and visit border points, establishing the cluster
+        gpuErrchk(cudaMalloc(&d_temp_storage, temp_storage_bytes));
+        gpuErrchk(cudaPeekAtLastError());
+        gpuErrchk(cudaDeviceSynchronize());
+        cub::DeviceReduce::Max(d_temp_storage, temp_storage_bytes,
+                               d_below, d_below_any, nSpheres);
+        cudaMemcpy(h_below_any, d_below_any,
+                   sizeof(*d_below_any), cudaMemcpyDeviceToHost);
+        gpuErrchk(cudaPeekAtLastError());
+        gpuErrchk(cudaDeviceSynchronize());
+        gpuErrchk(cudaFree(d_temp_storage));
+
+        if ((*h_below_any) > 0) {
+            SwitchClusterIndex<<<nBlocks, CUDA_THREADS_PER_BLOCK>>>(sphere_data,
+                                                                    gran_params,
+                                                                    nSpheres,
+                                                                    cluster_index,
+                                                                    ground_cluster);
+            gpuErrchk(cudaPeekAtLastError());
+            gpuErrchk(cudaDeviceSynchronize());
+        }
+        gpuErrchk(cudaPeekAtLastError());
+        gpuErrchk(cudaDeviceSynchronize());
+    }
+
+    gpuErrchk(cudaFree(d_below));
+    gpuErrchk(cudaFree(d_below_any));
+    free(h_below_any);
+}
+
+__host__ void FreeClusters(unsigned int ** h_clusters) {
+    unsigned int cluster_num = h_clusters[0][0];
+    for (size_t i = 0; i < (cluster_num + 1); i++) {
+        free(h_clusters[i]);
+    }
+    free(h_clusters);
+}
+
+/// Finds cluster in h_clusters with most spheres (biggest cluster)
+/// sets sphere_cluster of all those spheres to GROUND
+/// OVERWRITES the VOLUME cluster
+__host__ void IdentifyGroundClusterByBiggest(ChSystemGpu_impl::GranSphereDataPtr sphere_data,
+                                             ChSystemGpu_impl::GranParamsPtr gran_params,
+                                             unsigned int ** h_clusters,
+                                             unsigned int nSpheres) {
+    unsigned int nBlocks = (nSpheres + CUDA_THREADS_PER_BLOCK - 1) / CUDA_THREADS_PER_BLOCK;
+    unsigned int ground_cluster = static_cast<unsigned int>(chrono::gpu::CLUSTER_INDEX::GROUND);
+    unsigned int cluster_num = h_clusters[0][0];
+    unsigned int sphere_num_in_cluster = 1;
+    unsigned int biggest_cluster_size = 1;
+    unsigned int biggest_cluster;
+
+    // find which cluster is the biggest
+    for (size_t i = 1; i < (cluster_num + 1); i++) {
+        sphere_num_in_cluster = h_clusters[i][0];
+        assert(sphere_num_in_cluster <= nSpheres);
+        if (sphere_num_in_cluster > biggest_cluster_size) {
+            biggest_cluster_size = sphere_num_in_cluster;
+            biggest_cluster = i;
+        }
+    }
+
+    /// GROUND overwrites VOLUME cluster
+    /// if ANY sphere_cluster is VOLUME, all sphere_cluster are VOLUME
+    unsigned int firstSphereID = h_clusters[biggest_cluster][1];
+    if (sphere_data->sphere_cluster[firstSphereID] == static_cast<unsigned int>(chrono::gpu::CLUSTER_INDEX::VOLUME)) {
+        biggest_cluster = static_cast<unsigned int>(chrono::gpu::CLUSTER_INDEX::VOLUME);
+    } else {
+        biggest_cluster += static_cast<unsigned int>(chrono::gpu::CLUSTER_INDEX::START);
+    }
+
+    SwitchClusterIndex<<<nBlocks, CUDA_THREADS_PER_BLOCK>>>(sphere_data,
+                                                            gran_params,
+                                                            nSpheres,
+                                                            biggest_cluster,
+                                                            ground_cluster);
+    gpuErrchk(cudaPeekAtLastError());
+    gpuErrchk(cudaDeviceSynchronize());
+}
+
+/// Finds the VOLUME cluster by checking if a sphere in cluster has type VOLUME
+/// does NOT overwrite the ground cluster
+__host__ void IdentifyVolumeCluster(ChSystemGpu_impl::GranSphereDataPtr sphere_data,
+                                    ChSystemGpu_impl::GranParamsPtr gran_params,
+                                    unsigned int nSpheres,
+                                    unsigned int ** h_clusters) {
+    unsigned int nBlocks = (nSpheres + CUDA_THREADS_PER_BLOCK - 1) / CUDA_THREADS_PER_BLOCK;
+
+    /// sets sphere_type to VOLUME if inside a mesh
+    /// must be set AFTER GdbscanInitSphereType,
+    /// and AFTER interactionGranMat_TriangleSoup,
+    /// which is AFTER AdvanceSimulation
+    SetVolumeSphereType<<<nBlocks, CUDA_THREADS_PER_BLOCK>>>(sphere_data,
+                                                             nSpheres);
+    gpuErrchk(cudaPeekAtLastError());
+    gpuErrchk(cudaDeviceSynchronize());
+
+    // in_volume_any: number of spheres inside the volume mesh
+    unsigned int * d_in_volume_any;
+    unsigned int * h_in_volume_any = (unsigned int *)malloc(sizeof(*h_in_volume_any));
+    gpuErrchk(cudaMalloc((void**)&d_in_volume_any, sizeof(*d_in_volume_any)));
+    gpuErrchk(cudaPeekAtLastError());
+    gpuErrchk(cudaDeviceSynchronize());
+    bool * d_in_volume;  // [mySphereID] -> is particle inside the volume?
+    gpuErrchk(cudaMalloc((void**)&d_in_volume, sizeof(*d_in_volume) * nSpheres));
+    gpuErrchk(cudaPeekAtLastError());
+    gpuErrchk(cudaDeviceSynchronize());
+    unsigned int cluster_num = h_clusters[0][0];
+
+    for (size_t i = 1; i < (cluster_num + 1); i++) {
+        cudaMemset(d_in_volume, false, sizeof(*d_in_volume) * nSpheres);
+        unsigned int * h_cluster = h_clusters[i];
+        unsigned int cluster_index = i + static_cast<unsigned int>(chrono::gpu::CLUSTER_INDEX::START);
+
+        // find if any sphere in cluster was tagged in the VOLUME type
+        FindVolumeTypeInCluster<<<nBlocks, CUDA_THREADS_PER_BLOCK>>>(sphere_data,
+                                                                     nSpheres,
+                                                                     d_in_volume,
+                                                                     cluster_index);
+        gpuErrchk(cudaPeekAtLastError());
+        gpuErrchk(cudaDeviceSynchronize());
+
+        // Sum number of particles in d_in_volume into h_in_volume_any
+        void *d_temp_storage = NULL;
+        size_t temp_storage_bytes = 0;
+        // Determine temporary device storage requirements
+        cub::DeviceReduce::Max(d_temp_storage, temp_storage_bytes,
+                               d_in_volume, d_in_volume_any, nSpheres);
+        // find and visit border points, establishing the cluster
+        gpuErrchk(cudaMalloc(&d_temp_storage, temp_storage_bytes));
+        gpuErrchk(cudaPeekAtLastError());
+        gpuErrchk(cudaDeviceSynchronize());
+        cub::DeviceReduce::Max(d_temp_storage, temp_storage_bytes,
+                               d_in_volume, d_in_volume_any, nSpheres);
+        cudaMemcpy(h_in_volume_any, d_in_volume_any,
+                   sizeof(*d_in_volume_any), cudaMemcpyDeviceToHost);
+        gpuErrchk(cudaFree(d_temp_storage));
+        gpuErrchk(cudaPeekAtLastError());
+        gpuErrchk(cudaDeviceSynchronize());
+
+        // any sphere of cluster is type  VOLUME -> sphere_cluster becomes VOLUME
+        // UNLESS it is GROUND
+        if (*h_in_volume_any) {
+            unsigned int volume_cluster = static_cast<unsigned int>(chrono::gpu::CLUSTER_INDEX::VOLUME);
+            unsigned int sphere_num_in_cluster = h_cluster[0];
+            for (size_t j = 1; j < (sphere_num_in_cluster + 1); j++) {
+                if (sphere_data->sphere_cluster[h_cluster[j]] != static_cast<unsigned int>(chrono::gpu::CLUSTER_INDEX::GROUND)) {
+                    sphere_data->sphere_cluster[h_cluster[j]] = volume_cluster;
+                }
+            }
+        }
+    }
+    gpuErrchk(cudaFree(d_in_volume_any));
+    gpuErrchk(cudaFree(d_in_volume));
+    free(h_in_volume_any);
+}
+
+
+/// Finds the GROUND cluster using cluster_ground_method in gran_params
+__host__ void IdentifyGroundCluster(ChSystemGpu_impl::GranSphereDataPtr sphere_data,
+                                    ChSystemGpu_impl::GranParamsPtr gran_params,
+                                    unsigned int nSpheres,
+                                    unsigned int ** h_clusters) {
+    unsigned int cluster_num = h_clusters[0][0];
+
+    if (cluster_num > 0) {
+        switch (gran_params->cluster_ground_method) {
+            case chrono::gpu::CLUSTER_GROUND_METHOD::NONE: {
+                break;
+            }
+            case chrono::gpu::CLUSTER_GROUND_METHOD::BIGGEST: {
+                IdentifyGroundClusterByBiggest(sphere_data, gran_params, h_clusters, nSpheres);
+                break;
+            }
+            case chrono::gpu::CLUSTER_GROUND_METHOD::LOWEST: {
+                IdentifyGroundClusterByLowest(sphere_data, gran_params, h_clusters, nSpheres);
+                break;
+            }
+            default: {
+                break;
+            }
+        }
+    }
+}
+
+/// Search part of G-DBSCAN; density-based h_clustering algorithm.
 /// Identifies core, border and noise points in h_clusters.
 /// Searches using a parallel Breadth-First search
 /// min_pts: minimal number of points for a cluster
-__host__ void GdbscanSearchGraph(ChSystemGpu_impl::GranSphereDataPtr sphere_data,
-                                 ChSystemGpu_impl::GranParamsPtr gran_params,
-                                 unsigned int nSpheres,
-                                 size_t min_pts) {
+__host__ unsigned int ** GdbscanSearchGraphByBFS(ChSystemGpu_impl::GranSphereDataPtr sphere_data,
+                                                 ChSystemGpu_impl::GranParamsPtr gran_params,
+                                                 unsigned int nSpheres,
+                                                 size_t min_pts) {
     unsigned int nBlocks = (nSpheres + CUDA_THREADS_PER_BLOCK - 1) / CUDA_THREADS_PER_BLOCK;
+
+    /// sphere_type is CORE if neighbors_num > min_pts else NOISE
+    GdbscanInitSphereType<<<nBlocks, CUDA_THREADS_PER_BLOCK>>>(nSpheres,
+                                                               sphere_data->adj_num,
+                                                               sphere_data->sphere_type,
+                                                               gran_params->gdbscan_min_pts);
+    gpuErrchk(cudaPeekAtLastError());
+    gpuErrchk(cudaDeviceSynchronize());
 
     unsigned int ** h_clusters = ClusterSearchBFS(nSpheres, sphere_data,
                                                   sphere_data->adj_num,
                                                   sphere_data->adj_offset,
                                                   sphere_data->adj_list,
                                                   sphere_data->sphere_type);
-    unsigned int cluster_num = h_clusters[0][0];
-    unsigned int sphere_num_in_cluster;
-    unsigned int biggest_cluster_size = 1;
-    unsigned int biggest_cluster_id = 1;
 
-    if (cluster_num > 0) {
-        // find biggest cluster id
-        // expect low number of clusters, maximum 3-4
-        for (size_t i = 1; i < cluster_num; i++) {
-            sphere_num_in_cluster = h_clusters[i][0];
-            assert(sphere_num_in_cluster <= nSpheres);
-            if (sphere_num_in_cluster > biggest_cluster_size) {
-                biggest_cluster_size = sphere_num_in_cluster;
-                biggest_cluster_id = i;
-            }
-        }
-
-        // tag each sphere to a biggest cluster
-        sphere_num_in_cluster = h_clusters[biggest_cluster_id][0];
-        assert(h_clusters[biggest_cluster_id][0] <= nSpheres);
-        for (size_t j = 1; j < (sphere_num_in_cluster + 1); j++) {
-            unsigned int CurrentSphereID = h_clusters[biggest_cluster_id][j];
-            sphere_data->sphere_cluster[CurrentSphereID] = static_cast<unsigned int>(chrono::gpu::CLUSTER_INDEX::GROUND);
-        }
-        gpuErrchk(cudaPeekAtLastError());
-        gpuErrchk(cudaDeviceSynchronize());
-    }
-
-    GdbscanFinalClusterFromType<<<nBlocks, CUDA_THREADS_PER_BLOCK>>>(
-        nSpheres,
-        sphere_data->sphere_cluster,
-        sphere_data->sphere_type);
+    GdbscanFinalClusterFromType<<<nBlocks, CUDA_THREADS_PER_BLOCK>>>(nSpheres,
+                                                                     sphere_data->sphere_cluster,
+                                                                     sphere_data->sphere_type);
     gpuErrchk(cudaPeekAtLastError());
     gpuErrchk(cudaDeviceSynchronize());
-
-    for (size_t i = 0; i < cluster_num; i++) {
-        free(h_clusters[i]);
-    }
-    free(h_clusters);
-    gpuErrchk(cudaPeekAtLastError());
-    gpuErrchk(cudaDeviceSynchronize());
+    return(h_clusters);
 }
 
-
+}
+}

@@ -77,9 +77,12 @@ ChSystemGpu_impl::ChSystemGpu_impl(float sphere_rad, float density, float3 boxDi
 
     gran_params->cluster_graph_method = CLUSTER_GRAPH_METHOD::CONTACT;
     gran_params->cluster_search_method = CLUSTER_SEARCH_METHOD::BFS;
+    gran_params->cluster_ground_method = CLUSTER_GROUND_METHOD::BIGGEST;
 
-    gran_params->gdbscan_radius = 0.1f; // [m] ?
+    gran_params->gdbscan_radius = 0.1f;  // [m] ?
     gran_params->gdbscan_min_pts = 3;
+    // any sphere below this z-plane makes its cluster GROUND
+    gran_params->ground_z_lim = -(box_size_Z / 2.0f) + sphere_rad;
 
     this->time_integrator = CHGPU_TIME_INTEGRATOR::EXTENDED_TAYLOR;
     this->output_flags = ABSV | ANG_VEL_COMPONENTS | CLUSTER | ADJACENCY;

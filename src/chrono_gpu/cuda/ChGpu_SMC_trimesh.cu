@@ -425,6 +425,7 @@ __host__ void ChSystemGpuMesh_impl::IdentifyClusters() {
     if ((gran_params->cluster_graph_method > CLUSTER_GRAPH_METHOD::NONE)
         && (gran_params->cluster_search_method > CLUSTER_SEARCH_METHOD::NONE)) {
         // step 1- Graph construction
+        unsigned int ** h_clusters;
         switch (gran_params->cluster_graph_method) {
             case CLUSTER_GRAPH_METHOD::CONTACT: {
                 ConstructGraphByContact(sphere_data, gran_params, nSpheres);
@@ -438,37 +439,20 @@ __host__ void ChSystemGpuMesh_impl::IdentifyClusters() {
             }
             default: {break;}
         }
-
         // step 2- Search the graph, find the clusters.
         switch (gran_params->cluster_search_method) {
             case CLUSTER_SEARCH_METHOD::BFS: {
-                /// sphere_type is CORE if neighbors_num > min_pts else NOISE
-                GdbscanInitSphereType<<<nBlocks, CUDA_THREADS_PER_BLOCK>>>(
-                    nSpheres,
-                    sphere_data->adj_num,
-                    sphere_data->sphere_type,
-                    gran_params->gdbscan_min_pts);
-                gpuErrchk(cudaPeekAtLastError());
-                gpuErrchk(cudaDeviceSynchronize());
-
-                /// finds spheres in volume
-                /// must be set AFTER GdbscanInitSphereType,
-                ///  and AFTER interactionGranMat_TriangleSoup,
-                ///  which is AFTER AdvanceSimulation
-                SetVolumeSphereType<<<nBlocks, CUDA_THREADS_PER_BLOCK>>>(
-                    sphere_data,
-                    nSpheres);
-                gpuErrchk(cudaPeekAtLastError());
-                gpuErrchk(cudaDeviceSynchronize());
-
-                /// Finds clusters, tags Ground cluster (biggest), other clusters.
-                /// Changes NOISE sphere_type to BORDER if in cluster
-                GdbscanSearchGraph(sphere_data, gran_params, nSpheres,
-                                   gran_params->gdbscan_min_pts);
+                h_clusters = GdbscanSearchGraphByBFS(sphere_data,
+                                                     gran_params,
+                                                     nSpheres,
+                                                     gran_params->gdbscan_min_pts);
                 break;
             }
             default: {break;}
         }
+        IdentifyGroundCluster(sphere_data, gran_params, nSpheres, h_clusters);
+        IdentifyVolumeCluster(sphere_data, gran_params, nSpheres, h_clusters);
+        FreeClusters(h_clusters);
     } else {
         printf("ERROR: Either cluster_graph_method or cluster_search_method not set. Skipping clustering.\n");
     }
