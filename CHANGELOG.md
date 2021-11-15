@@ -4,6 +4,7 @@
 Change Log
 ==========
 
+- [Unreleased (development version)](#unreleased-development-branch)
 - [Release 7.0.0](#release-700---2021-11-15) 
   - [DDS communicator in Chrono::Synchrono module](#added-dds-communicator-in-chronosynchrono-module)
   - [New terramechanics co-simulation module](#added-new-terramechanics-co-simulation-module)
@@ -51,6 +52,10 @@ Change Log
   - [Eigen dense linear algebra](#changed-refactoring-of-dense-linear-algebra)
   - [Eigen sparse matrices](#changed-eigen-sparse-matrices-and-updates-to-direct-sparse-linear-solvers)
 - [Release 4.0.0](#release-400---2019-02-22)
+
+## Unreleased (development branch)
+
+
 
 ## Release 7.0.0 - 2021-11-15
 
