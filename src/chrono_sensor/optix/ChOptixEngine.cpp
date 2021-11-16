@@ -186,11 +186,8 @@ void ChOptixEngine::UpdateSensors(std::shared_ptr<ChScene> scene) {
             // do this once per sensor because we don't know if they will be updated at the same time
             m_geometry->UpdateBodyTransformsStart((float)m_system->GetChTime(),
                                                   (float)m_system->GetChTime() + sensor->GetCollectionWindow());
-            // std::cout << "Loaded a set of body start transforms time=" << m_system->GetChTime() << std::endl;
-
             m_cameraStartFrames[i] = sensor->GetParent()->GetAssetsFrame();
             m_cameraStartFrames_set[i] = true;
-            // std::cout << "Set camera " << i << " start frame at time=" << m_system->GetChTime() << std::endl;
         }
     }
 
@@ -213,23 +210,15 @@ void ChOptixEngine::UpdateSensors(std::shared_ptr<ChScene> scene) {
             // m_sceneThread.cv.wait(lck);  // wait for the scene thread to tell us it is done
             cudaDeviceSynchronize();  // TODO: do we need to synchronize here?
 
-            // std::cout << "Starting optix scene update\n";
             // update the scene for the optix context
-            UpdateCameraTransforms();
+            UpdateCameraTransforms(to_be_updated);
 
             m_geometry->UpdateBodyTransformsEnd((float)m_system->GetChTime());
 
-            // std::cout<<"Num render threads: "<<m_renderThreads.size()<<std::endl;
             // m_renderThreads
-            // cudaDeviceSynchronize();
             UpdateSceneDescription(scene);
             UpdateDeformableMeshes();
-            // UpdateDynamicMeshes();
-            // std::cout << "Updated optix scene\n";
-            // std::chrono::high_resolution_clock::time_point t2 = std::chrono::high_resolution_clock::now();
-            // std::chrono::duration<double> wall_time =
-            //     std::chrono::duration_cast<std::chrono::duration<double>>(t2 - t1);
-            // std::cout << "Synchronizing scene time: " << wall_time.count() << std::endl;
+
             float t = (float)m_system->GetChTime();
             // push the sensors that need updating to the render queue
             for (auto i : to_be_updated) {
@@ -239,17 +228,10 @@ void ChOptixEngine::UpdateSensors(std::shared_ptr<ChScene> scene) {
                 m_renderThreads[i].done =
                     false;  // this render thread must not be done now given we have prepped some data for it
             }
-            // for (int i = 0; i < to_be_updated.size(); i++) {
-            //     m_renderQueue.push_back(m_assignedSensor[to_be_updated[i]]);
-            //     m_assignedSensor[to_be_updated[i]]->IncrementNumLaunches();
-            //     m_assignedRenderers[to_be_updated[i]]->m_time_stamp = t;
-            // }
+
         }
-        // m_mainLock.unlock();
         // we only notify the worker thread when there is a sensor to launch and filters to process
-        // std::cout << "== Preprocessing complete, notifying scene thread" << std::endl;
         m_sceneThread.done = false;  // tell the thread it is not done
-        // std::cout << "Telling the scene thread it is not done" << std::endl;
         m_sceneThread.start = true;     // tell the thread it should start
         m_sceneThread.cv.notify_all();  // tell the scene thread it should proceed
     }
@@ -667,10 +649,14 @@ void ChOptixEngine::ConstructScene() {
     cudaMemcpy(reinterpret_cast<void*>(md_params), &m_params, sizeof(ContextParameters), cudaMemcpyHostToDevice);
 }
 
-void ChOptixEngine::UpdateCameraTransforms() {
+void ChOptixEngine::UpdateCameraTransforms(std::vector<int>& to_be_updated) {
     // go through all of the bodies
-    for (int i = 0; i < m_assignedSensor.size(); i++) {
-        auto sensor = m_assignedSensor[i];
+
+
+    // for (int i = 0; i < m_assignedSensor.size(); i++) {
+    for(unsigned int i=0; i<to_be_updated.size(); i++){
+        int id = to_be_updated[i];
+        auto sensor = m_assignedSensor[id];
 
         // update radar velocity
         if (auto radar = std::dynamic_pointer_cast<ChRadarSensor>(sensor)) {
@@ -679,32 +665,32 @@ void ChOptixEngine::UpdateCameraTransforms() {
             auto ang_vel = radar->GetAngularVelocity() % r;
             auto vel_abs =
                 radar->GetOffsetPose().TransformDirectionLocalToParent(ang_vel) + radar->GetTranslationalVelocity();
-            m_assignedRenderers[i]->m_raygen_record->data.specific.radar.velocity.x = vel_abs.x();
-            m_assignedRenderers[i]->m_raygen_record->data.specific.radar.velocity.y = vel_abs.y();
-            m_assignedRenderers[i]->m_raygen_record->data.specific.radar.velocity.z = vel_abs.z();
+            m_assignedRenderers[id]->m_raygen_record->data.specific.radar.velocity.x = vel_abs.x();
+            m_assignedRenderers[id]->m_raygen_record->data.specific.radar.velocity.y = vel_abs.y();
+            m_assignedRenderers[id]->m_raygen_record->data.specific.radar.velocity.z = vel_abs.z();
             m_pipeline->UpdateObjectVelocity();
         }
 
         ChFrame<double> f_offset = sensor->GetOffsetPose();
-        ChFrame<double> f_body_0 = m_cameraStartFrames[i];
-        m_cameraStartFrames_set[i] = false;  // reset this camera frame so that we know it should be packed again
+        ChFrame<double> f_body_0 = m_cameraStartFrames[id];
+        m_cameraStartFrames_set[id] = false;  // reset this camera frame so that we know it should be packed again
         ChFrame<double> f_body_1 = sensor->GetParent()->GetAssetsFrame();
         ChFrame<double> global_loc_0 = f_body_0 * f_offset;
         ChFrame<double> global_loc_1 = f_body_1 * f_offset;
-        m_assignedRenderers[i]->m_raygen_record->data.t0 =
+        m_assignedRenderers[id]->m_raygen_record->data.t0 =
             (float)(m_system->GetChTime() - sensor->GetCollectionWindow());
-        m_assignedRenderers[i]->m_raygen_record->data.t1 = (float)(m_system->GetChTime());
-        m_assignedRenderers[i]->m_raygen_record->data.pos0 = make_float3(
+        m_assignedRenderers[id]->m_raygen_record->data.t1 = (float)(m_system->GetChTime());
+        m_assignedRenderers[id]->m_raygen_record->data.pos0 = make_float3(
             (float)global_loc_0.GetPos().x(), (float)global_loc_0.GetPos().y(), (float)global_loc_0.GetPos().z());
-        m_assignedRenderers[i]->m_raygen_record->data.rot0 =
+        m_assignedRenderers[id]->m_raygen_record->data.rot0 =
             make_float4((float)global_loc_0.GetRot().e0(), (float)global_loc_0.GetRot().e1(),
                         (float)global_loc_0.GetRot().e2(), (float)global_loc_0.GetRot().e3());
-        m_assignedRenderers[i]->m_raygen_record->data.pos1 = make_float3(
+        m_assignedRenderers[id]->m_raygen_record->data.pos1 = make_float3(
             (float)global_loc_1.GetPos().x(), (float)global_loc_1.GetPos().y(), (float)global_loc_1.GetPos().z());
-        m_assignedRenderers[i]->m_raygen_record->data.rot1 =
+        m_assignedRenderers[id]->m_raygen_record->data.rot1 =
             make_float4((float)global_loc_1.GetRot().e0(), (float)global_loc_1.GetRot().e1(),
                         (float)global_loc_1.GetRot().e2(), (float)global_loc_1.GetRot().e3());
-        m_assignedRenderers[i]->m_time_stamp = (float)m_system->GetChTime();
+        m_assignedRenderers[id]->m_time_stamp = (float)m_system->GetChTime();
     }
 }
 

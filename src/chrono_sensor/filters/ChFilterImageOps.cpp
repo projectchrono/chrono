@@ -191,11 +191,14 @@ CH_SENSOR_API void ChFilterImgAlias::Apply() {
     //     m_buffer_float4_out->TimeStamp = m_buffer_float4_in->TimeStamp;
     // }
     if (m_buffer_rgba8_in) {
+
+        // cuda_image_gauss_blur_char(m_buffer_rgba8_in->Buffer.get(), (int)m_buffer_rgba8_in->Width, (int)m_buffer_rgba8_in->Height, sizeof(PixelRGBA8), m_factor,m_cuda_stream);
         cuda_image_alias(m_buffer_rgba8_in->Buffer.get(), m_buffer_rgba8_out->Buffer.get(),
                          (int)m_buffer_rgba8_out->Width, (int)m_buffer_rgba8_out->Height, m_factor, sizeof(PixelRGBA8),
                          m_cuda_stream);
         m_buffer_rgba8_out->LaunchedCount = m_buffer_rgba8_in->LaunchedCount;
         m_buffer_rgba8_out->TimeStamp = m_buffer_rgba8_in->TimeStamp;
+
     } else if (m_buffer_r8_in) {
         cuda_image_alias(m_buffer_r8_in->Buffer.get(), m_buffer_r8_out->Buffer.get(), (int)m_buffer_r8_out->Width,
                          (int)m_buffer_r8_out->Height, m_factor, sizeof(char), m_cuda_stream);

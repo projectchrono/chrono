@@ -185,7 +185,10 @@ extern "C" __global__ void __raygen__segmentation_pinhole() {
         (make_float2(idx.x, idx.y) + make_float2(0.5, 0.5)) / make_float2(screen.x, screen.y) * 2.f - make_float2(1.f);
     d.y *= (float)(screen.y) / (float)(screen.x);  // correct for the aspect ratio
 
-    const float t_frac = 0;  // 0-1 between start and end time of the camera (chosen here)
+    float t_frac = 0;  // 0-1 between start and end time of the camera (chosen here)
+    if(camera.rng_buffer)
+        t_frac = curand_uniform(&camera.rng_buffer[image_index]);  // 0-1 between start and end time of the camera (chosen here)
+
     const float t_traverse = raygen->t0 + t_frac * (raygen->t1 - raygen->t0);  // simulation time when ray is sent
     float3 ray_origin = lerp(raygen->pos0, raygen->pos1, t_frac);
     float4 ray_quat = nlerp(raygen->rot0, raygen->rot1, t_frac);
