@@ -39,6 +39,8 @@ endif()
 # Dependencies for OpenGL module
 # ------------------------------------------------------------------------------
 
+cmake_policy(SET CMP0072 NEW)
+
 find_package(OpenGL)
 find_package(GLM)
 find_package(GLEW)
@@ -54,13 +56,15 @@ ENDIF()
 
 # If all dependencies are available, enable building OpenGL support.
 IF(OPENGL_FOUND AND GLM_FOUND AND GLEW_FOUND AND GLFW_FOUND)
-    SET(CHRONO_OPENGL "#define CHRONO_OPENGL")
-    SET(ENABLE_OPENGL ON)
+    set(CHRONO_OPENGL "#define CHRONO_OPENGL")
+    message(STATUS "OpenGL libraries: ${OPENGL_LIBRARIES}")
+    message(STATUS "GLEW libraries:   ${GLEW_LIBRARY}")
+    message(STATUS "GLFW libraries:   ${GLFW_LIBRARY}")
 ELSE()
     # Unable to find everything, turn off OpenGL
-    MESSAGE("Cannot build ChronoEngine_OpenGL (missing dependencies).")
-    SET(CHRONO_OPENGL "#undef CHRONO_OPENGL")
-    SET(ENABLE_OPENGL OFF)
+    message("Cannot build ChronoEngine_OpenGL (missing dependencies); disabling Chrono::OpenGL")
+    set(CHRONO_OPENGL "#undef CHRONO_OPENGL")
+    set(ENABLE_MODULE_GPU OFF CACHE BOOL "Enable the Chrono::OpenGL module" FORCE)
 ENDIF()
 
 # ------------------------------------------------------------------------------
@@ -84,6 +88,9 @@ ENDIF()
 # ------------------------------------------------------------------------------
 
 SET(CH_OPENGL_INCLUDES "${CH_OPENGL_INCLUDES}" PARENT_SCOPE)
+SET(GLEW_LIBRARY       "${GLEW_LIBRARY}" PARENT_SCOPE)
+SET(GLFW_LIBRARY       "${GLFW_LIBRARY}" PARENT_SCOPE)
+SET(OPENGL_LIBRARIES   "${OPENGL_LIBRARIES}" PARENT_SCOPE)
 
 # ------------------------------------------------------------------------------
 # Add commands to compile shaders
@@ -269,7 +276,6 @@ ADD_LIBRARY(ChronoEngine_opengl SHARED
 
 SET(CE_OpenGL_FLAGS "${CH_CXX_FLAGS}")
 
-
 IF(${CMAKE_SYSTEM_NAME} MATCHES "Emscripten")
   SET(CE_OpenGL_LIBRARIES 
     # ${OPENGL_LIBRARIES}
@@ -282,8 +288,6 @@ ELSE()
     ${OPENGL_LIBRARIES}
     ChronoEngine)
 ENDIF()
-
-
 
 if(ENABLE_MODULE_MULTICORE)
 	SET(CE_OpenGL_LIBRARIES ${CE_OpenGL_LIBRARIES} ChronoEngine_multicore)
