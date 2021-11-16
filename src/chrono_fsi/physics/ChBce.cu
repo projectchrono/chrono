@@ -614,8 +614,8 @@ void ChBce::MakeRigidIdentifier() {
         int haveGhost = (numObjectsH->numGhostMarkers > 0) ? 1 : 0;
         int haveHelper = (numObjectsH->numHelperMarkers > 0) ? 1 : 0;
 
-        for (size_t rigidSphereA = 0; rigidSphereA < numObjectsH->numRigidBodies; rigidSphereA++) {
-            int4 referencePart = fsiGeneralData->referenceArray[haveHelper + haveGhost + 2 + rigidSphereA];
+        for (size_t rigidNum = 0; rigidNum < numObjectsH->numRigidBodies; rigidNum++) {
+            int4 referencePart = fsiGeneralData->referenceArray[haveHelper + haveGhost + 2 + rigidNum];
             if (referencePart.z != 1) {
                 printf(
                     " Error! in accessing rigid bodies. Reference array indexing is "
@@ -625,7 +625,7 @@ void ChBce::MakeRigidIdentifier() {
             int2 updatePortion = mI2(referencePart);  // first two component of the
             thrust::fill(fsiGeneralData->rigidIdentifierD.begin() + (updatePortion.x - numObjectsH->startRigidMarkers),
                          fsiGeneralData->rigidIdentifierD.begin() + (updatePortion.y - numObjectsH->startRigidMarkers),
-                         rigidSphereA);
+                         rigidNum);
         }
     }
 }

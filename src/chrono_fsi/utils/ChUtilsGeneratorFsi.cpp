@@ -274,10 +274,10 @@ void CreateBceGlobalMarkersFromBceLocalPos_CableANCF(std::shared_ptr<ChSystemFsi
 
     int4 last = fsiSystem->fsiGeneralData->referenceArray[fsiSystem->fsiGeneralData->referenceArray.size() - 1];
     fsiSystem->fsiGeneralData->referenceArray.push_back(
-        mI4(last.y, last.y + (int)numBce, type, (int)fsiSystem->numObjects->numFlexBodies1D));  // 2: for Shell
+        mI4(last.y, last.y + (int)numBce, type, (int)fsiSystem->numObjects->numFlexBodies1D));  // 2: for cable
 
     fsiSystem->fsiGeneralData->referenceArray_FEA.push_back(
-        mI4(last.y, last.y + (int)numBce, type, (int)fsiSystem->numObjects->numFlexBodies1D));  // 2: for Shell
+        mI4(last.y, last.y + (int)numBce, type, (int)fsiSystem->numObjects->numFlexBodies1D));  // 2: for cable
 
     printf(" push_back Index %zd. ", fsiSystem->fsiGeneralData->referenceArray.size() - 1);
     int4 test = fsiSystem->fsiGeneralData->referenceArray[fsiSystem->fsiGeneralData->referenceArray.size() - 1];
@@ -379,10 +379,10 @@ void CreateBceGlobalMarkersFromBceLocalPos_ShellANCF(std::shared_ptr<ChSystemFsi
 
     int4 last = fsiSystem->fsiGeneralData->referenceArray[fsiSystem->fsiGeneralData->referenceArray.size() - 1];
     fsiSystem->fsiGeneralData->referenceArray.push_back(
-        mI4(last.y, last.y + (int)numBce, type, (int)fsiSystem->numObjects->numFlexBodies2D));  // 2: for Shell
+        mI4(last.y, last.y + (int)numBce, type, (int)fsiSystem->numObjects->numFlexBodies2D));  // 3: for Shell
 
     fsiSystem->fsiGeneralData->referenceArray_FEA.push_back(
-        mI4(last.y, last.y + (int)numBce, type, (int)fsiSystem->numObjects->numFlexBodies2D));  // 2: for Shell
+        mI4(last.y, last.y + (int)numBce, type, (int)fsiSystem->numObjects->numFlexBodies2D));  // 3: for Shell
 
     printf(" referenceArray size %zd. ", fsiSystem->fsiGeneralData->referenceArray.size());
     int4 test = fsiSystem->fsiGeneralData->referenceArray[fsiSystem->fsiGeneralData->referenceArray.size() - 1];
