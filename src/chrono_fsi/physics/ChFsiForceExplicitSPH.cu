@@ -377,7 +377,7 @@ __global__ void Shear_Stress_Rate(Real4* sortedPosRad,
                         Real3 velMasB = sortedVelMas[j];
                         Real4 rhoPresMuB = sortedRhoPreMu[j];
                         if (rhoPresMuB.w > -0.5) {
-                            int bceIndexB = gridMarkerIndex[j] - (numObjectsD.numFluidMarkers);
+                            int bceIndexB = gridMarkerIndex[j] - numObjectsD.numFluidMarkers;
                             if (!(bceIndexB >= 0 &&
                                   bceIndexB < numObjectsD.numBoundaryMarkers + numObjectsD.numRigid_SphMarkers)) {
                                 printf("Error! bceIndex out of bound, collideCell !\n");
@@ -667,9 +667,7 @@ __device__ inline Real4 DifVelocityRho(float G_i[9],
                                        Real4 posRadA,
                                        Real4 posRadB,
                                        Real3 velMasA,
-                                       Real3 vel_XSPH_A,
                                        Real3 velMasB,
-                                       Real3 vel_XSPH_B,
                                        Real4 rhoPresMuA,
                                        Real4 rhoPresMuB,
                                        Real multViscosity) {
@@ -679,7 +677,7 @@ __device__ inline Real4 DifVelocityRho(float G_i[9],
     Real3 gradW = GradWh(dist3, (posRadA.w + posRadB.w) * 0.5);
 
     // Continuty equation
-    Real derivRho = paramsD.markerMass * dot(vel_XSPH_A - vel_XSPH_B, gradW);
+    Real derivRho = paramsD.markerMass * dot(velMasA - velMasB, gradW);
 
     // Viscosity
     Real rAB_Dot_GradWh = dot(dist3, gradW);
@@ -690,7 +688,7 @@ __device__ inline Real4 DifVelocityRho(float G_i[9],
 
     // Artificial viscosity
     Real vAB_Dot_rAB = dot(velMasA - velMasB, dist3);
-    if ( (vAB_Dot_rAB < 0.0) && (1==0)) { // change to 1==1 if needs artificial viscosity
+    if ( (vAB_Dot_rAB < 0.0) && (1 == 0) ) { // change to 1==1 if needs artificial viscosity
         Real alpha = paramsD.Ar_vis_alpha;
         Real c_ab = paramsD.Cs;
         Real rho = 0.5f * (rhoPresMuA.x * rhoPresMuB.x);
@@ -968,7 +966,7 @@ __global__ void Navier_Stokes(Real4* sortedDerivVelRho,
                         // }
                         Real3 velMasB = sortedVelMas[j];
                         if (rhoPresMuB.w > -0.5) {
-                            int bceIndexB = gridMarkerIndex[j] - (numObjectsD.numFluidMarkers);
+                            int bceIndexB = gridMarkerIndex[j] - numObjectsD.numFluidMarkers;
                             // if (!(bceIndexB >= 0 &&
                             //       bceIndexB < numObjectsD.numBoundaryMarkers + numObjectsD.numRigid_SphMarkers)) {
                             //     printf("Error! bceIndex out of bound, collideCell !\n");
@@ -995,8 +993,8 @@ __global__ void Navier_Stokes(Real4* sortedDerivVelRho,
                                                       sortedTauXxYyZz[j], sortedTauXyXzYz[j]);
                         }
                         else{
-                            derivVelRho += DifVelocityRho(Gi, dist3, d, sortedPosRad[index], sortedPosRad[j], velMasA, velMasA,
-                                                          velMasB, velMasB, rhoPresMuA, rhoPresMuB, multViscosit);
+                            derivVelRho += DifVelocityRho(Gi, dist3, d, sortedPosRad[index], sortedPosRad[j], velMasA,
+                                                          velMasB, rhoPresMuA, rhoPresMuB, multViscosit);
                             preGra  += GradientOperator(Gi, dist3, sortedPosRad[index], sortedPosRad[j], 
                                                         -rhoPresMuA.y, rhoPresMuB.y, rhoPresMuA, rhoPresMuB);
                             velxGra += GradientOperator(Gi, dist3, sortedPosRad[index], sortedPosRad[j], 
@@ -1245,11 +1243,11 @@ __global__ void NS_SSR( Real4* sortedDerivVelRho,
         Real invd = 1.0 / d;
         Real3 velMasB = sortedVelMas[j];
         if (rhoPresMuB.w > -0.5) {
-            int bceIndexB = gridMarkerIndex[j] - (numObjectsD.numFluidMarkers);
+            int bceIndexB = gridMarkerIndex[j] - numObjectsD.numFluidMarkers;
             rhoPresMuB = rhoPreMu_ModifiedBCE[bceIndexB];
             velMasB = velMas_ModifiedBCE[bceIndexB];
         }
-
+        // Correct the kernel function gradient
         Real3 gradW = GradWh(dist3, hA);
         if (paramsD.USE_Consistent_G) {
             Real3 gradW_new;
@@ -1263,16 +1261,11 @@ __global__ void NS_SSR( Real4* sortedDerivVelRho,
             sortedPosRad[index], sortedPosRad[j], velMasA, velMasB,
             rhoPresMuA, rhoPresMuB, sortedTauXxYyZz[index], 
             sortedTauXyXzYz[index], sortedTauXxYyZz[j], sortedTauXyXzYz[j]);
-            
         // Calculate dsigma/dt
         if(sortedRhoPreMu[index].w < -0.5){
             // start to calculate the stress rate
-            Real half_volume = 0.5 * paramsD.volume0;
-            Real3 velMasB_new = velMasB;
-            if (rhoPresMuB.w > -0.5) 
-                velMasB_new = 2.0 * velMasB - velMasA; // noslip BC
-            Real3 vAB = velMasA - velMasB_new;
-            Real3 vAB_h = vAB * half_volume;
+            Real3 vAB = velMasA - velMasB;
+            Real3 vAB_h = 0.5 * vAB *  paramsD.volume0;
             // entries of strain rate tensor
             Real exx = -2.0 * vAB_h.x * gradW.x;
             Real eyy = -2.0 * vAB_h.y * gradW.y;

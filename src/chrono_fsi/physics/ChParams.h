@@ -40,7 +40,7 @@ namespace fsi {
 /// @{
 
 /// Approach to handle BCE particles
-enum class BceVersion { ADAMI = 0, mORIGINAL = 1 };
+enum class BceVersion { ADAMI = 0, ORIGINAL = 1 };
 
 /// PPE_SolutionType
 enum class PPE_SolutionType { MATRIX_FREE, FORM_SPARSE_MATRIX };
@@ -159,7 +159,8 @@ struct SimParams {
 
     int contactBoundary;  ///< 0: straight channel, 1: serpentine
 
-    BceVersion bceType;  ///< Type of boundary conditions, ADAMI or mORIGINAL
+    BceVersion bceType;  ///< Type of boundary conditions, ADAMI or ORIGINAL
+    BceVersion bceTypeWall;  ///< Type of boundary conditions for fixed wall, ADAMI or ORIGINAL
 
     bool Conservative_Form;  ///< Whether conservative or consistent discretization should be used
     int gradient_type; ///< Type of the gradient operator.

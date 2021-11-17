@@ -365,9 +365,13 @@ bool ParseJSON(const std::string& json_file, std::shared_ptr<SimParams> paramsH,
             if (BC == "Generalized Wall BC")
                 paramsH->bceType = BceVersion::ADAMI;
             else
-                paramsH->bceType = BceVersion::mORIGINAL;
+                paramsH->bceType = BceVersion::ORIGINAL;
         } else
             paramsH->bceType = BceVersion::ADAMI;
+        paramsH->bceTypeWall = BceVersion::ADAMI;
+    } else{
+        paramsH->bceType = BceVersion::ADAMI;
+        paramsH->bceTypeWall = BceVersion::ADAMI;
     }
 
     // this part is for modeling granular material dynamics using elastic SPH
