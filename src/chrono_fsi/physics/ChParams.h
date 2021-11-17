@@ -223,6 +223,7 @@ struct SimParams {
     bool elastic_SPH;   ///< Handles the WCSPH solver for fluid (0) or granular (1)
     Real E_young;       ///< Young's modulus
     Real G_shear;       ///< Shear modulus
+    Real INV_G_shear;   ///< 1.0 / G_shear
     Real K_bulk;        ///< Bulk modulus
     Real Nu_poisson;    ///< Poisson’s ratio
     Real Ar_stress;     ///< Artifical stress

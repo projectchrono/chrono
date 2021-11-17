@@ -23,7 +23,7 @@ namespace fsi {
 
 // -----------------------------------------------------------------------------
 // Device function to calculate the share of density influence on a given
-// marker from all other markers in a given cell
+// particle from all other particle in a given cell
 __device__ void collideCellDensityReInit(Real& numerator,
                                          Real& denominator,
                                          int3 gridPos,
@@ -35,12 +35,10 @@ __device__ void collideCellDensityReInit(Real& numerator,
                                          uint* cellStart,
                                          uint* cellEnd) {
     uint gridHash = calcGridHash(gridPos);
-
     uint startIndex = cellStart[gridHash];
     if (startIndex != 0xffffffff) {  // cell is not empty
         // iterate over particles in this cell
         uint endIndex = cellEnd[gridHash];
-
         for (uint j = startIndex; j < endIndex; j++) {
             Real3 posRadB = mR3(sortedPosRad[j]);
             Real4 rhoPreMuB = sortedRhoPreMu[j];
@@ -230,9 +228,9 @@ __global__ void ApplyOutOfBoundaryKernel(Real4* posRadD, Real4* rhoPresMuD, Real
     return;
 }
 // -----------------------------------------------------------------------------
-// Kernel to update the fluid properities.
-// It updates the density, velocity and position relying on explicit Euler
-// scheme. Pressure is obtained from the density and an Equation of State.
+// Kernel to update the fluid properities. It updates the stress tensor,
+// density, velocity and position relying on explicit Euler scheme.
+// Pressure is obtained from the density and an Equation of State.
 __global__ void UpdateFluidD(Real4* posRadD,
                              Real3* velMasD,
                              Real3* vel_XSPH_D,
@@ -244,13 +242,11 @@ __global__ void UpdateFluidD(Real4* posRadD,
                              Real3* derivTauXyXzYzD,
                              Real4* sr_tau_I_mu_iD,
                              int2 updatePortion,
-                             Real dT,
                              volatile bool* isErrorD) {
     uint index = blockIdx.x * blockDim.x + threadIdx.x;
-    index += updatePortion.x;  // updatePortion = [start, end] index of the update portion
-    if (index >= updatePortion.y) {
+    index += updatePortion.x;  
+    if (index >= updatePortion.y)
         return;
-    }
 
     Real4 derivVelRho = derivVelRhoD[index];
     Real4 rhoPresMu = rhoPresMuD[index];
@@ -267,8 +263,8 @@ __global__ void UpdateFluidD(Real4* posRadD,
             Real3 tauXyXzYz = tauXyXzYzD[index];
             Real3 derivTauXxYyZz = derivTauXxYyZzD[index];
             Real3 derivTauXyXzYz = derivTauXyXzYzD[index];
-            Real3 updatedTauXxYyZz = tauXxYyZz + mR3(derivTauXxYyZz) * dT;
-            Real3 updatedTauXyXzYz = tauXyXzYz + mR3(derivTauXyXzYz) * dT;
+            Real3 updatedTauXxYyZz = tauXxYyZz + mR3(derivTauXxYyZz) * paramsD.dT;
+            Real3 updatedTauXyXzYz = tauXyXzYz + mR3(derivTauXyXzYz) * paramsD.dT;
 
             // check if there is a plastic flow
             p_n = -1.0 / 3.0 * (tauXxYyZz.x + tauXxYyZz.y + tauXxYyZz.z); 
@@ -279,23 +275,25 @@ __global__ void UpdateFluidD(Real4* posRadD,
             updatedTauXxYyZz.x += p_tr;
             updatedTauXxYyZz.y += p_tr;
             updatedTauXxYyZz.z += p_tr;
-            Real tau_tr = square(updatedTauXxYyZz.x) 
-                        + square(updatedTauXxYyZz.y) 
-                        + square(updatedTauXxYyZz.z)
-                        + 2.0 * square(updatedTauXyXzYz.x) 
-                        + 2.0 * square(updatedTauXyXzYz.y) 
-                        + 2.0 * square(updatedTauXyXzYz.z);
-            Real tau_n = square(tauXxYyZz.x) 
-                       + square(tauXxYyZz.y) 
-                       + square(tauXxYyZz.z) 
-                       + 2.0 * square(tauXyXzYz.x) 
-                       + 2.0 * square(tauXyXzYz.y) 
-                       + 2.0 * square(tauXyXzYz.z);
-            tau_tr = sqrt(0.5 * tau_tr);
-            tau_n = sqrt(0.5 * tau_n);
-            Real Chi = abs(tau_tr - tau_n) / dT / paramsD.G_shear;  // should use the positive magnitude according to "A  
-                                                                    // constitutive law for dense granular flows" Nature 2006
-            if (p_tr > 0.0e0) {
+
+            if (p_tr > 0.0) {
+                Real tau_tr = square(updatedTauXxYyZz.x) 
+                            + square(updatedTauXxYyZz.y) 
+                            + square(updatedTauXxYyZz.z)
+                            + 2.0 * square(updatedTauXyXzYz.x) 
+                            + 2.0 * square(updatedTauXyXzYz.y) 
+                            + 2.0 * square(updatedTauXyXzYz.z);
+                Real tau_n = square(tauXxYyZz.x) 
+                           + square(tauXxYyZz.y) 
+                           + square(tauXxYyZz.z) 
+                           + 2.0 * square(tauXyXzYz.x) 
+                           + 2.0 * square(tauXyXzYz.y) 
+                           + 2.0 * square(tauXyXzYz.z);
+                tau_tr = sqrt(0.5 * tau_tr);
+                tau_n = sqrt(0.5 * tau_n);
+                Real Chi = abs(tau_tr - tau_n) * paramsD.INV_dT * paramsD.INV_G_shear;  
+                // should use the positive magnitude according to "A  
+                // constitutive law for dense granular flows" Nature 2006
                 Real mu_s = paramsD.mu_fric_s;
                 Real mu_2 = paramsD.mu_fric_2;
                 // Real s_0 = mu_s * p_tr;
@@ -304,7 +302,7 @@ __global__ void UpdateFluidD(Real4* posRadD,
                 Real dia = paramsD.ave_diam;
                 Real I0 = paramsD.mu_I0;  // xi*dia*sqrt(rhoPresMu.x);//
                 Real I = Chi * dia * sqrt(paramsD.rho0 / p_tr);
-                Real mu = mu_s + (mu_2 - mu_s) / (I0 / (I + 1.0E-9) + 1.0);
+                Real mu = mu_s + (mu_2 - mu_s) * (I + 1.0-9) / (I0 + I + 1.0E-9);
                 // Real G0 = paramsD.G_shear;
                 // Real alpha = xi*G0*I0*(paramsD.dT)*sqrt(p_tr);
                 // Real B0 = s_2 + tau_tr + alpha;
@@ -316,31 +314,34 @@ __global__ void UpdateFluidD(Real4* posRadD,
                 //     updatedTauXyXzYz = updatedTauXyXzYz*coeff;
                 // }
                 Real tau_max = p_tr * mu;  // p_tr*paramsD.Q_FA;
-                if (tau_tr > tau_max) {  // should use tau_max instead of s_0 according to "A constitutive law for dense
-                                         // granular flows" Nature 2006
+                if (tau_tr > tau_max) { // should use tau_max instead of s_0 according to 
+                                        // "A constitutive law for dense granular flows" Nature 2006
                     Real coeff = tau_max / (tau_tr + 1e-9);
                     updatedTauXxYyZz = updatedTauXxYyZz * coeff;
                     updatedTauXyXzYz = updatedTauXyXzYz * coeff;
                 }
             }
-            if (p_tr < 0.0e0) {
+            if (p_tr < 0.0) {
                 updatedTauXxYyZz = mR3(0.0);
                 updatedTauXyXzYz = mR3(0.0);
                 p_tr = 0.0;
             }
-            if (derivVelRho.w < 0.0e0) {
+            if (derivVelRho.w < 0.0) {
                 updatedTauXxYyZz = mR3(0.0);
                 updatedTauXyXzYz = mR3(0.0);
                 p_tr = 0.0;
             }
-            tau_tr = square(updatedTauXxYyZz.x) 
-                   + square(updatedTauXxYyZz.y) 
-                   + square(updatedTauXxYyZz.z)
-                   + 2.0 * square(updatedTauXyXzYz.x) 
-                   + 2.0 * square(updatedTauXyXzYz.y) 
-                   + 2.0 * square(updatedTauXyXzYz.z);
-            tau_tr = sqrt(0.5 * tau_tr);
-            sr_tau_I_mu_iD[index].y = tau_tr;
+
+            if (paramsD.full_output){
+                Real tau_tr = square(updatedTauXxYyZz.x) 
+                            + square(updatedTauXxYyZz.y) 
+                            + square(updatedTauXxYyZz.z)
+                            + 2.0 * (square(updatedTauXyXzYz.x) 
+                            + square(updatedTauXyXzYz.y) 
+                            + square(updatedTauXyXzYz.z));
+                tau_tr = sqrt(0.5 * tau_tr);
+                sr_tau_I_mu_iD[index].y = tau_tr;
+            }
 
             tauXxYyZzD[index] = updatedTauXxYyZz - mR3(p_tr);
             tauXyXzYzD[index] = updatedTauXyXzYz;
@@ -351,7 +352,7 @@ __global__ void UpdateFluidD(Real4* posRadD,
         //-------------
         Real3 vel_XSPH = velMasD[index] + vel_XSPH_D[index]; //paramsD.EPS_XSPH * 
         Real3 posRad = mR3(posRadD[index]);
-        Real3 updatedPositon = posRad + vel_XSPH * dT;
+        Real3 updatedPositon = posRad + vel_XSPH * paramsD.dT;
         if (!(isfinite(updatedPositon.x) && isfinite(updatedPositon.y) && isfinite(updatedPositon.z))) {
             printf("Error! particle position is NAN: thrown from ChFluidDynamics.cu, UpdateFluidDKernel !\n");
             *isErrorD = true;
@@ -365,7 +366,7 @@ __global__ void UpdateFluidD(Real4* posRadD,
         // Note that the velocity update should not use the XSPH contribution
         // It adds dissipation to the solution, and provides numerical damping
         Real3 velMas = velMasD[index] + 0.0 * vel_XSPH_D[index];  // paramsD.EPS_XSPH * vel_XSPH_D[index]
-        Real3 updatedVelocity = velMas + mR3(derivVelRho) * dT;
+        Real3 updatedVelocity = velMas + mR3(derivVelRho) * paramsD.dT;
         velMasD[index] = updatedVelocity;
 
         //-------------
@@ -375,7 +376,7 @@ __global__ void UpdateFluidD(Real4* posRadD,
             rhoPresMu.y = p_tr;
             rhoPresMu.x = paramsD.rho0;
         } else {
-            Real rho2 = rhoPresMu.x + derivVelRho.w * dT;
+            Real rho2 = rhoPresMu.x + derivVelRho.w * paramsD.dT;
             rhoPresMu.y = Eos(rho2, rhoPresMu.w);
             rhoPresMu.x = rho2;
         }
@@ -390,7 +391,7 @@ __global__ void UpdateFluidD(Real4* posRadD,
     // Important note: the derivVelRhoD that is calculated by the ChForceExplicitSPH is the negative of actual time
     // derivative. That is important to keep the derivVelRhoD to be the force/mass for fsi forces.
     // calculate the force that is f=m dv/dt
-    derivVelRhoD[index] *= paramsD.markerMass;
+    // derivVelRhoD[index] *= paramsD.markerMass;
 }
 
 //------------------------------------------------------------------------------
@@ -404,7 +405,6 @@ __global__ void Update_Fluid_State(Real3* new_vel,  // input: sorted velocities,
                                    double dT,
                                    volatile bool* isErrorD) {
     uint i_idx = blockIdx.x * blockDim.x + threadIdx.x;
-
     if (i_idx >= updatePortion.y)
         return;
 
@@ -431,7 +431,7 @@ __global__ void Update_Fluid_State(Real3* new_vel,  // input: sorted velocities,
 
 // -----------------------------------------------------------------------------
 // Kernel for updating the density.
-// It calculates the density of the markers. It does include the normalization
+// It calculates the density of the particle. It does include the normalization
 // close to the boundaries and free surface.
 __global__ void ReCalcDensityD_F1(Real4* dummySortedRhoPreMu,
                                   Real4* sortedPosRad,
@@ -449,9 +449,9 @@ __global__ void ReCalcDensityD_F1(Real4* dummySortedRhoPreMu,
     Real3 posRadA = mR3(sortedPosRad[index]);
     Real4 rhoPreMuA = sortedRhoPreMu[index];
 
-    // If density initialization should only be applied to fluid markers
-    //    if (rhoPreMuA.w > -.1)
-    //        return;
+    // If density initialization should only be applied to fluid particles
+    // if (rhoPreMuA.w > -.1)
+    //    return;
 
     // get address in grid
     int3 gridPos = calcGridPos(posRadA);
@@ -477,7 +477,6 @@ __global__ void ReCalcDensityD_F1(Real4* dummySortedRhoPreMu,
 // -----------------------------------------------------------------------------
 // CLASS FOR FLUID DYNAMICS SYSTEM
 // -----------------------------------------------------------------------------
-
 ChFluidDynamics::ChFluidDynamics(std::shared_ptr<ChBce> otherBceWorker,
                                  std::shared_ptr<ChSystemFsi_impl> otherFsiSystem,
                                  std::shared_ptr<SimParams> otherParamsH,
@@ -524,7 +523,6 @@ ChFluidDynamics::ChFluidDynamics(std::shared_ptr<ChBce> otherBceWorker,
 }
 
 // -----------------------------------------------------------------------------
-
 void ChFluidDynamics::Finalize() {
     printf("ChFluidDynamics::Finalize()\n");
     forceSystem->Finalize();
@@ -557,22 +555,26 @@ void ChFluidDynamics::IntegrateSPH(std::shared_ptr<SphMarkerDataD> sphMarkersD2,
 
 // -----------------------------------------------------------------------------
 void ChFluidDynamics::UpdateFluid(std::shared_ptr<SphMarkerDataD> sphMarkersD, Real dT) {
-    int2 updatePortion =
-        mI2(0, fsiSystem->fsiGeneralData->referenceArray[fsiSystem->fsiGeneralData->referenceArray.size() - 1].y);
+    // Update portion of the SPH particles (should be fluid particles only here)
+    int2 updatePortion = mI2(0, fsiSystem->fsiGeneralData->referenceArray[0].y);
+    
     bool *isErrorH, *isErrorD;
     isErrorH = (bool*)malloc(sizeof(bool));
     cudaMalloc((void**)&isErrorD, sizeof(bool));
     *isErrorH = false;
     cudaMemcpy(isErrorD, isErrorH, sizeof(bool), cudaMemcpyHostToDevice);
+
     //------------------------
-    uint nBlock_UpdateFluid, nThreads;
-    computeGridSize(updatePortion.y - updatePortion.x, 256, nBlock_UpdateFluid, nThreads);
-    UpdateFluidD<<<nBlock_UpdateFluid, nThreads>>>(
-        mR4CAST(sphMarkersD->posRadD), mR3CAST(sphMarkersD->velMasD), mR3CAST(fsiSystem->fsiGeneralData->vel_XSPH_D),
+    uint numBlocks, numThreads;
+    computeGridSize(updatePortion.y - updatePortion.x, 256, numBlocks, numThreads);
+    UpdateFluidD<<<numBlocks, numThreads>>>(
+        mR4CAST(sphMarkersD->posRadD), mR3CAST(sphMarkersD->velMasD), 
+        mR3CAST(fsiSystem->fsiGeneralData->vel_XSPH_D),
         mR4CAST(sphMarkersD->rhoPresMuD), mR4CAST(fsiSystem->fsiGeneralData->derivVelRhoD_old),
         mR3CAST(sphMarkersD->tauXxYyZzD), mR3CAST(sphMarkersD->tauXyXzYzD),
-        mR3CAST(fsiSystem->fsiGeneralData->derivTauXxYyZzD), mR3CAST(fsiSystem->fsiGeneralData->derivTauXyXzYzD),
-        mR4CAST(fsiSystem->fsiGeneralData->sr_tau_I_mu_i), updatePortion, dT, isErrorD);
+        mR3CAST(fsiSystem->fsiGeneralData->derivTauXxYyZzD), 
+        mR3CAST(fsiSystem->fsiGeneralData->derivTauXyXzYzD),
+        mR4CAST(fsiSystem->fsiGeneralData->sr_tau_I_mu_i), updatePortion, isErrorD);
     cudaDeviceSynchronize();
     cudaCheckError();
     //------------------------
@@ -618,31 +620,32 @@ void ChFluidDynamics::UpdateFluid_Implicit(std::shared_ptr<SphMarkerDataD> sphMa
 }
 
 // -----------------------------------------------------------------------------
-
 /**
  * @brief ApplyBoundarySPH_Markers
  * @details
  * 		applies periodic boundary conditions in x, y, and z directions
  */
 void ChFluidDynamics::ApplyBoundarySPH_Markers(std::shared_ptr<SphMarkerDataD> sphMarkersD) {
-    uint nBlock_NumSpheres, nThreads_SphMarkers;
+    uint numBlocks, numThreads;
 
-    computeGridSize((int)numObjectsH->numAllMarkers, 256, nBlock_NumSpheres, nThreads_SphMarkers);
-    ApplyPeriodicBoundaryXKernel<<<nBlock_NumSpheres, nThreads_SphMarkers>>>(mR4CAST(sphMarkersD->posRadD),
-                                                                             mR4CAST(sphMarkersD->rhoPresMuD));
+    computeGridSize((int)numObjectsH->numAllMarkers, 256, numBlocks, numThreads);
+    ApplyPeriodicBoundaryXKernel<<<numBlocks, numThreads>>>
+        (mR4CAST(sphMarkersD->posRadD), mR4CAST(sphMarkersD->rhoPresMuD));
     cudaDeviceSynchronize();
     cudaCheckError();
-    ApplyPeriodicBoundaryYKernel<<<nBlock_NumSpheres, nThreads_SphMarkers>>>(mR4CAST(sphMarkersD->posRadD),
-                                                                             mR4CAST(sphMarkersD->rhoPresMuD));
+
+    ApplyPeriodicBoundaryYKernel<<<numBlocks, numThreads>>>
+        (mR4CAST(sphMarkersD->posRadD), mR4CAST(sphMarkersD->rhoPresMuD));
     cudaDeviceSynchronize();
     cudaCheckError();
-    ApplyPeriodicBoundaryZKernel<<<nBlock_NumSpheres, nThreads_SphMarkers>>>(mR4CAST(sphMarkersD->posRadD),
-                                                                             mR4CAST(sphMarkersD->rhoPresMuD));
+
+    ApplyPeriodicBoundaryZKernel<<<numBlocks, numThreads>>>
+        (mR4CAST(sphMarkersD->posRadD), mR4CAST(sphMarkersD->rhoPresMuD));
     cudaDeviceSynchronize();
     cudaCheckError();
-    // ApplyOutOfBoundaryKernel<<<nBlock_NumSpheres, nThreads_SphMarkers>>>(mR4CAST(sphMarkersD->posRadD),
-    //                                                                      mR4CAST(sphMarkersD->rhoPresMuD),
-    //                                                                      mR3CAST(sphMarkersD->velMasD));
+
+    // ApplyOutOfBoundaryKernel<<<numBlocks, numThreads>>>
+    //     (mR4CAST(sphMarkersD->posRadD), mR4CAST(sphMarkersD->rhoPresMuD), mR3CAST(sphMarkersD->velMasD));
     // cudaDeviceSynchronize();
     // cudaCheckError();
 }
@@ -654,43 +657,50 @@ void ChFluidDynamics::ApplyBoundarySPH_Markers(std::shared_ptr<SphMarkerDataD> s
  * 		This functions needs to be tested.
  */
 void ChFluidDynamics::ApplyModifiedBoundarySPH_Markers(std::shared_ptr<SphMarkerDataD> sphMarkersD) {
-    uint nBlock_NumSpheres, nThreads_SphMarkers;
-    computeGridSize((int)numObjectsH->numAllMarkers, 256, nBlock_NumSpheres, nThreads_SphMarkers);
-    ApplyInletBoundaryXKernel<<<nBlock_NumSpheres, nThreads_SphMarkers>>>(
-        mR4CAST(sphMarkersD->posRadD), mR3CAST(sphMarkersD->velMasD), mR4CAST(sphMarkersD->rhoPresMuD));
+    uint numBlocks, numThreads;
+    computeGridSize((int)numObjectsH->numAllMarkers, 256, numBlocks, numThreads);
+    ApplyInletBoundaryXKernel<<<numBlocks, numThreads>>>
+        (mR4CAST(sphMarkersD->posRadD), mR3CAST(sphMarkersD->velMasD), mR4CAST(sphMarkersD->rhoPresMuD));
     cudaDeviceSynchronize();
     cudaCheckError();
+
     // these are useful anyway for out of bound particles
-    ApplyPeriodicBoundaryYKernel<<<nBlock_NumSpheres, nThreads_SphMarkers>>>(mR4CAST(sphMarkersD->posRadD),
-                                                                             mR4CAST(sphMarkersD->rhoPresMuD));
+    ApplyPeriodicBoundaryYKernel<<<numBlocks, numThreads>>>
+        (mR4CAST(sphMarkersD->posRadD),mR4CAST(sphMarkersD->rhoPresMuD));
     cudaDeviceSynchronize();
     cudaCheckError();
-    ApplyPeriodicBoundaryZKernel<<<nBlock_NumSpheres, nThreads_SphMarkers>>>(mR4CAST(sphMarkersD->posRadD),
-                                                                             mR4CAST(sphMarkersD->rhoPresMuD));
+
+    ApplyPeriodicBoundaryZKernel<<<numBlocks, numThreads>>>
+        (mR4CAST(sphMarkersD->posRadD), mR4CAST(sphMarkersD->rhoPresMuD));
     cudaDeviceSynchronize();
     cudaCheckError();
 }
 // -----------------------------------------------------------------------------
 
 void ChFluidDynamics::DensityReinitialization() {
-    uint nBlock_NumSpheres, nThreads_SphMarkers;
-    computeGridSize((int)numObjectsH->numAllMarkers, 256, nBlock_NumSpheres, nThreads_SphMarkers);
+    uint numBlocks, numThreads;
+    computeGridSize((int)numObjectsH->numAllMarkers, 256, numBlocks, numThreads);
 
     thrust::device_vector<Real4> dummySortedRhoPreMu(numObjectsH->numAllMarkers);
     thrust::fill(dummySortedRhoPreMu.begin(), dummySortedRhoPreMu.end(), mR4(0.0));
 
-    ReCalcDensityD_F1<<<nBlock_NumSpheres, nThreads_SphMarkers>>>(
-        mR4CAST(dummySortedRhoPreMu), mR4CAST(fsiSystem->sortedSphMarkersD->posRadD),
-        mR3CAST(fsiSystem->sortedSphMarkersD->velMasD), mR4CAST(fsiSystem->sortedSphMarkersD->rhoPresMuD),
-        U1CAST(fsiSystem->markersProximityD->gridMarkerIndexD), U1CAST(fsiSystem->markersProximityD->cellStartD),
+    ReCalcDensityD_F1<<<numBlocks, numThreads>>>(
+        mR4CAST(dummySortedRhoPreMu), 
+        mR4CAST(fsiSystem->sortedSphMarkersD->posRadD),
+        mR3CAST(fsiSystem->sortedSphMarkersD->velMasD), 
+        mR4CAST(fsiSystem->sortedSphMarkersD->rhoPresMuD),
+        U1CAST(fsiSystem->markersProximityD->gridMarkerIndexD), 
+        U1CAST(fsiSystem->markersProximityD->cellStartD),
         U1CAST(fsiSystem->markersProximityD->cellEndD), numObjectsH->numAllMarkers);
 
     cudaDeviceSynchronize();
     cudaCheckError();
-    ChFsiForce::CopySortedToOriginal_NonInvasive_R4(fsiSystem->sphMarkersD1->rhoPresMuD, dummySortedRhoPreMu,
-                                                    fsiSystem->markersProximityD->gridMarkerIndexD);
-    ChFsiForce::CopySortedToOriginal_NonInvasive_R4(fsiSystem->sphMarkersD2->rhoPresMuD, dummySortedRhoPreMu,
-                                                    fsiSystem->markersProximityD->gridMarkerIndexD);
+    ChFsiForce::CopySortedToOriginal_NonInvasive_R4(
+        fsiSystem->sphMarkersD1->rhoPresMuD, dummySortedRhoPreMu,
+        fsiSystem->markersProximityD->gridMarkerIndexD);
+    ChFsiForce::CopySortedToOriginal_NonInvasive_R4(
+        fsiSystem->sphMarkersD2->rhoPresMuD, dummySortedRhoPreMu,
+        fsiSystem->markersProximityD->gridMarkerIndexD);
     dummySortedRhoPreMu.clear();
 }
 

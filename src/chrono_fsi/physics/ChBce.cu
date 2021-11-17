@@ -139,8 +139,8 @@ __global__ void Calc_Rigid_FSI_ForcesD_TorquesD(Real3* rigid_FSI_ForcesD,
     }
     int RigidIndex = rigidIdentifierD[index];
     uint rigidMarkerIndex = index + numObjectsD.startRigidMarkers;
-    derivVelRhoD[rigidMarkerIndex] = derivVelRhoD[rigidMarkerIndex] * paramsD.Beta 
-                                   + derivVelRhoD_old[rigidMarkerIndex] * (1 - paramsD.Beta);
+    derivVelRhoD[rigidMarkerIndex] = ( derivVelRhoD[rigidMarkerIndex] * paramsD.Beta 
+        + derivVelRhoD_old[rigidMarkerIndex] * (1 - paramsD.Beta) ) * paramsD.markerMass;
 
     if (std::is_same<Real, double>::value) {
         atomicAdd_double((double*)&(rigid_FSI_ForcesD[RigidIndex].x), derivVelRhoD[rigidMarkerIndex].x);
@@ -178,11 +178,11 @@ __global__ void Calc_Flex_FSI_ForcesD(Real3* FlexSPH_MeshPos_LRF_D,
     if (index >= numObjectsD.numFlex_SphMarkers) {
         return;
     }
-
     int FlexIndex = FlexIdentifierD[index];
     uint FlexMarkerIndex = index + numObjectsD.startFlexMarkers;
-    derivVelRhoD[FlexMarkerIndex] =
-        derivVelRhoD[FlexMarkerIndex] * paramsD.Beta + derivVelRhoD_old[FlexMarkerIndex] * (1 - paramsD.Beta);
+    derivVelRhoD[FlexMarkerIndex] = ( derivVelRhoD[FlexMarkerIndex] * paramsD.Beta 
+        + derivVelRhoD_old[FlexMarkerIndex] * (1 - paramsD.Beta) ) * paramsD.markerMass;
+
     if (FlexIndex < numFlex1D) {
         Real2 N_cable = Cables_ShapeFunctions(FlexSPH_MeshPos_LRF_D[index].x);
         Real NA = N_cable.x;

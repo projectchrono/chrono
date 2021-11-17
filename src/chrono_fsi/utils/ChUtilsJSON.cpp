@@ -383,6 +383,7 @@ bool ParseJSON(const std::string& json_file, std::shared_ptr<SimParams> paramsH,
         if (doc["Elastic SPH"].HasMember("Young modulus")) {
             paramsH->E_young = doc["Elastic SPH"]["Young modulus"].GetDouble();              // Young's modulus
             paramsH->G_shear = paramsH->E_young / (2.0 * (1.0 + paramsH->Nu_poisson));       // shear modulus
+            paramsH->INV_G_shear = 1.0 / paramsH->G_shear;
             paramsH->K_bulk = paramsH->E_young / (3.0 * (1.0 - 2.0 * paramsH->Nu_poisson));  // bulk modulus
             paramsH->Cs = sqrt(paramsH->K_bulk / paramsH->rho0);
         }
