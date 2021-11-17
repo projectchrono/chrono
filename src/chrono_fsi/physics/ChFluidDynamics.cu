@@ -302,7 +302,7 @@ __global__ void UpdateFluidD(Real4* posRadD,
                 Real dia = paramsD.ave_diam;
                 Real I0 = paramsD.mu_I0;  // xi*dia*sqrt(rhoPresMu.x);//
                 Real I = Chi * dia * sqrt(paramsD.rho0 / p_tr);
-                Real mu = mu_s + (mu_2 - mu_s) * (I + 1.0-9) / (I0 + I + 1.0E-9);
+                Real mu = mu_s + (mu_2 - mu_s) * (I + 1.0E-9) / (I0 + I + 1.0E-9);
                 // Real G0 = paramsD.G_shear;
                 // Real alpha = xi*G0*I0*(paramsD.dT)*sqrt(p_tr);
                 // Real B0 = s_2 + tau_tr + alpha;
