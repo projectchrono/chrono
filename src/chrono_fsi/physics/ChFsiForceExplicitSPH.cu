@@ -54,7 +54,7 @@ __device__ __inline__ void calc_G_Matrix(Real4* sortedPosRad,
                         Real3 posRadB = mR3(sortedPosRad[j]);
                         Real3 rij = Distance(posRadA, posRadB);
                         Real d = length(rij);
-                        if (d > SuppRadii || sortedRhoPreMu[j].w <= -2)
+                        if (d > SuppRadii || sortedRhoPreMu[j].w < -1.5)
                             continue;
                         Real3 grad_i_wij = GradWh(rij, h_i);
                         Real3 grw_vj = grad_i_wij * paramsD.volume0;
@@ -131,7 +131,7 @@ __device__ __inline__ void calc_A_Matrix(Real4* sortedPosRad,
                         Real3 posRadB = mR3(sortedPosRad[j]);
                         Real3 rij = Distance(posRadA, posRadB);
                         Real d = length(rij);
-                        if (d > SuppRadii || sortedRhoPreMu[j].w <= -2)
+                        if (d > SuppRadii || sortedRhoPreMu[j].w < -1.5)
                             continue;
                         Real h_j = sortedPosRad[j].w;
                         Real h_ij = 0.5 * (h_j + h_i);
@@ -212,7 +212,7 @@ __device__ __inline__ void calc_L_Matrix(Real4* sortedPosRad,
                         Real3 posRadB = mR3(sortedPosRad[j]);
                         Real3 rij = Distance(posRadA, posRadB);
                         Real d = length(rij);
-                        if (d > SuppRadii || sortedRhoPreMu[j].w <= -2)
+                        if (d > SuppRadii || sortedRhoPreMu[j].w < -1.5)
                             continue;
                         Real3 eij = rij / d;
 
@@ -441,7 +441,6 @@ __global__ void Shear_Stress_Rate(Real4* sortedPosRad,
 __global__ void calcRho_kernel(Real4* sortedPosRad,
                                Real4* sortedRhoPreMu,
                                Real4* sortedRhoPreMu_old,
-                               Real* _sumWij_rhoi,
                                uint* cellStart,
                                uint* cellEnd,
                                const size_t numAllMarkers,
@@ -477,7 +476,7 @@ __global__ void calcRho_kernel(Real4* sortedPosRad,
                         Real d = length(dist3);
                         if (d > SuppRadii)
                             continue;
-                        if (sortedRhoPreMu_old[j].w == -1) {
+                        if (sortedRhoPreMu_old[j].w > -1.5 && sortedRhoPreMu_old[j].w < -0.5) {
                             Real h_j = sortedPosRad[j].w;
                             Real m_j = paramsD.markerMass;
                             Real W3 = W3h(d, 0.5 * (h_j + h_i));
@@ -492,11 +491,11 @@ __global__ void calcRho_kernel(Real4* sortedPosRad,
     }
 
     // sortedRhoPreMu[i_idx].x = sum_mW;
-    if ((density_reinit == 0) && (sortedRhoPreMu[i_idx].w == -1))
+    if ((density_reinit == 0) && (sortedRhoPreMu[i_idx].w > -1.5) && (sortedRhoPreMu[i_idx].w < -0.5))
         sortedRhoPreMu[i_idx].x = sum_mW / sum_mW_rho;
 
     if ((sortedRhoPreMu[i_idx].x > 3 * paramsD.rho0 || sortedRhoPreMu[i_idx].x < 0.01 * paramsD.rho0) &&
-        sortedRhoPreMu[i_idx].w == -1)
+        (sortedRhoPreMu[i_idx].w > -1.5) && (sortedRhoPreMu[i_idx].w < -0.5))
         printf("(calcRho_kernel)density marker %d, sum_mW=%f, sum_W=%f, h_i=%f\n", i_idx, sum_mW, sum_W, h_i);
 }
 
@@ -671,7 +670,7 @@ __device__ inline Real4 DifVelocityRho(float G_i[9],
                                        Real4 rhoPresMuA,
                                        Real4 rhoPresMuB,
                                        Real multViscosity) {
-    if (rhoPresMuA.w > -1 && rhoPresMuB.w > -1)
+    if (rhoPresMuA.w > -0.5 && rhoPresMuB.w > -0.5)
         return mR4(0.0);
 
     Real3 gradW = GradWh(dist3, (posRadA.w + posRadB.w) * 0.5);
@@ -956,7 +955,7 @@ __global__ void Navier_Stokes(Real4* sortedDerivVelRho,
                         if (d > SuppRadii)
                             continue;
                         Real4 rhoPresMuB = sortedRhoPreMu[j];
-                        if (rhoPresMuA.w > -.1 && rhoPresMuB.w > -.1) {  // no rigid-rigid force
+                        if (rhoPresMuA.w > -0.5 && rhoPresMuB.w > -0.5) {  // no rigid-rigid force
                             continue;
                         }
                         Real invd = 1.0 / d;
@@ -1060,7 +1059,7 @@ __global__ void Navier_Stokes(Real4* sortedDerivVelRho,
                       Gi[1] * Gi[5] * Gi[6] + Gi[2] * Gi[3] * Gi[7] - Gi[2] * Gi[4] * Gi[6]);
         Real Det_L = (Li[0] * Li[4] * Li[8] - Li[0] * Li[5] * Li[7] - Li[1] * Li[3] * Li[8] +
                       Li[1] * Li[5] * Li[6] + Li[2] * Li[3] * Li[7] - Li[2] * Li[4] * Li[6]);
-        if(rhoPresMuA.w == -1){
+        if(rhoPresMuA.w > -1.5  && rhoPresMuA.w < -0.5){
             if( Det_G > 0.9 && Det_G < 1.1 && Det_L > 0.9 && Det_L < 1.1 && sum_w_i > 0.9){
                 derivVelRho = mR4(dvxdt, dvydt, dvzdt, drhodt);
             }
@@ -1182,7 +1181,7 @@ __global__ void NS_SSR( Real4* sortedDerivVelRho,
             Real3 rij = Distance(posRadA, posRadB);
             // Real d = length(rij);
             Real dd = rij.x*rij.x + rij.y*rij.y + rij.z*rij.z;
-            if (dd > SqRadii || sortedRhoPreMu[j].w <= -2)
+            if (dd > SqRadii || sortedRhoPreMu[j].w < -1.5)
                 continue;
             Real3 grad_i_wij = GradWh(rij, hA);
             Real3 grw_vj = grad_i_wij * paramsD.volume0;
@@ -1237,7 +1236,7 @@ __global__ void NS_SSR( Real4* sortedDerivVelRho,
         if (d > SuppRadii)
             continue;
         Real4 rhoPresMuB = sortedRhoPreMu[j];
-        if (rhoPresMuA.w > -.1 && rhoPresMuB.w > -.1) {  
+        if (rhoPresMuA.w > -0.5 && rhoPresMuB.w > -0.5) {  
             continue; // No BCE-BCE interaction
         }
         Real invd = 1.0 / d;
@@ -1397,7 +1396,7 @@ __global__ void CalcVel_XSPH_D(Real3* vel_XSPH_Sorted_D,  // output: new velocit
                             continue;
                         Real4 rhoPresMuB = sortedRhoPreMu[j];
 
-                        if (rhoPresMuB.w != -1.0)
+                        if (rhoPresMuB.w > -0.5 || rhoPresMuB.w < -1.5)
                             continue;
                         Real3 velMasB = sortedVelMas[j];
                         Real rho_bar = 0.5 * (rhoPreMuA.x + rhoPresMuB.x);
@@ -1471,26 +1470,19 @@ void ChFsiForceExplicitSPH::CollideWrapper() {
     uint numThreads, numBlocks;
     computeGridSize((int)numObjectsH->numAllMarkers, 256, numBlocks, numThreads);
     /* Execute the kernel */
-    // thrust::device_vector<Real> _sumWij_rhoi(numObjectsH->numAllMarkers);
     thrust::device_vector<Real4> sortedDerivVelRho(numObjectsH->numAllMarkers);
     thrust::device_vector<Real3> sortedDerivTauXxYyZz(numObjectsH->numAllMarkers);
     thrust::device_vector<Real3> sortedDerivTauXyXzYz(numObjectsH->numAllMarkers);
     shift_r.resize(numObjectsH->numAllMarkers);
-    // thrust::fill(_sumWij_rhoi.begin(), _sumWij_rhoi.end(), 0.);
-    // thrust::fill(shift_r.begin(), shift_r.end(), mR3(0.0));
-    // thrust::fill(sortedDerivVelRho.begin(), sortedDerivVelRho.end(), mR4(0.0));
-    // thrust::fill(sortedDerivTauXxYyZz.begin(), sortedDerivTauXxYyZz.end(), mR3(0.0));
-    // thrust::fill(sortedDerivTauXyXzYz.begin(), sortedDerivTauXyXzYz.end(), mR3(0.0));
-    // thrust::device_vector<Real4> rhoPresMuD_old = sortedSphMarkersD->rhoPresMuD;
 
     if (density_initialization == 0){
-        thrust::device_vector<Real> _sumWij_rhoi(numObjectsH->numAllMarkers);
         thrust::device_vector<Real4> rhoPresMuD_old = sortedSphMarkersD->rhoPresMuD;
         printf("Re-initializing density after %d steps.\n", paramsH->densityReinit);
         calcRho_kernel<<<numBlocks, numThreads>>>(
-            mR4CAST(sortedSphMarkersD->posRadD), mR4CAST(sortedSphMarkersD->rhoPresMuD), mR4CAST(rhoPresMuD_old),
-            R1CAST(_sumWij_rhoi), U1CAST(markersProximityD->cellStartD), U1CAST(markersProximityD->cellEndD),
-            numObjectsH->numAllMarkers, density_initialization, isErrorD);
+            mR4CAST(sortedSphMarkersD->posRadD), mR4CAST(sortedSphMarkersD->rhoPresMuD),
+            mR4CAST(rhoPresMuD_old), U1CAST(markersProximityD->cellStartD),
+            U1CAST(markersProximityD->cellEndD), numObjectsH->numAllMarkers,
+            density_initialization, isErrorD);
             ChUtilsDevice::Sync_CheckError(isErrorH, isErrorD, "calcRho_kernel");
     }
     
@@ -1591,8 +1583,6 @@ void ChFsiForceExplicitSPH::CalculateXSPH_velocity() {
 
         CopySortedToOriginal_NonInvasive_R3(fsiGeneralData->vel_XSPH_D, vel_XSPH_Sorted_D, 
             markersProximityD->gridMarkerIndexD);
-        // CopySortedToOriginal_NonInvasive_R4(sphMarkersD->posRadD, sortedSphMarkersD->posRadD, 
-        //     markersProximityD->gridMarkerIndexD);
     }
 
     if (density_initialization % paramsH->densityReinit == 0)
