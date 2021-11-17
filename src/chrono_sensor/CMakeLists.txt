@@ -33,6 +33,10 @@ find_package(GLFW REQUIRED)
 find_package(OpenGL REQUIRED)
 find_package(GLEW REQUIRED)
 
+message(STATUS "OpenGL libraries: ${OPENGL_LIBRARIES}")
+message(STATUS "GLEW libraries:   ${GLEW_LIBRARY}")
+message(STATUS "GLFW libraries:   ${GLFW_LIBRARY}")
+
 # On windows, ask for the GLEW and GLFW DLLs so that we can copy. This is
 # optional.  If not specified, it is the user's responsibility to make them
 # available at runtime.
@@ -51,6 +55,8 @@ SET(CH_SENSOR_INCLUDES
 # Find and set everything needed for OptiX
 # ------------------------------------------------------------------------------
 find_package(OptiX REQUIRED)
+
+message(STATUS "OptiX include directory: ${OptiX_INCLUDE}")
 
 if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
     add_compile_definitions(NOMINMAX)
