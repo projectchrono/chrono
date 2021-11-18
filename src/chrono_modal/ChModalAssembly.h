@@ -15,53 +15,14 @@
 #ifndef CHMODALASSEMBLY_H
 #define CHMODALASSEMBLY_H
 
+#include "chrono_modal/ChApiModal.h"
 #include "chrono/physics/ChAssembly.h"
 #include "chrono/solver/ChVariablesGeneric.h"
 #include <complex>
 
 namespace chrono {
+namespace modal {
 
-
-/// Base interface class for eigensolvers for the dynamic problem 
-/// ie. the quadratic eigenvalue problem  (lambda^2*M + lambda*R + K)*x = 0
-/// Children classes can implement this in different ways, overridding Solve()
-class ChApi ChQuadraticEigenvalueSolver {
-public:
-    virtual ~ChQuadraticEigenvalueSolver() {};
-
-    /// Solve the quadratic eigenvalue problem (lambda^2*M + lambda*R + K)*x = 0 s.t. Cq*x = 0
-    /// If n_modes=0, return all eigenvalues, otherwise only the first lower n_modes. 
-    virtual bool Solve(
-        const ChSparseMatrix& M,  ///< input M matrix
-        const ChSparseMatrix& R,  ///< input R matrix
-        const ChSparseMatrix& K,  ///< input K matrix
-        const ChSparseMatrix& Cq, ///< input Cq matrix of constraint jacobians
-        ChMatrixDynamic<std::complex<double>>& V,    ///< output matrix with eigenvectors as columns, will be resized
-        ChVectorDynamic<std::complex<double>>& eig,  ///< output vector with eigenvalues (real part not zero if some damping), will be resized
-        int n_modes = 0             ///< optional: n. of desired lower eigenvalues. If =0, return all eigenvalues.
-    ) = 0;
-};
-
-/// Solves the eigenvalue problem with a direct method: first does LU factorization of Cq jacobians
-/// to find the null space, then solves the problem using the direct  Eigen::EigenSolver.
-/// Note: since intermediate dense matrices are built, the performance is acceptable only for small-sized problems.
-/// Note: since the method is direct, all eigenvalues are computed, regardless of n_modes, but only lower n_modes are returned.
-class ChApi ChQuadraticEigenvalueSolverNullspaceDirect : public ChQuadraticEigenvalueSolver {
-public:
-    virtual ~ChQuadraticEigenvalueSolverNullspaceDirect() {};
-
-    /// Solve the quadratic eigenvalue problem (lambda^2*M + lambda*R + K)*x = 0 s.t. Cq*x = 0
-    /// If n_modes=0, return all eigenvalues, otherwise only the first lower n_modes. 
-    virtual bool Solve(
-        const ChSparseMatrix& M, ///< input M matrix
-        const ChSparseMatrix& R, ///< input R matrix
-        const ChSparseMatrix& K, ///< input K matrix
-        const ChSparseMatrix& Cq,   ///< input Cq matrix of constraint jacobians
-        ChMatrixDynamic<std::complex<double>>& V,    ///< output matrix with eigenvectors as columns, will be resized
-        ChVectorDynamic<std::complex<double>>& eig,  ///< output vector with eigenvalues (real part not zero if some damping), will be resized
-        int n_modes = 0             ///< optional: n. of desired lower eigenvalues. If =0, return all eigenvalues.
-    );
-};
 
 
 /// Class for assemblies of items, for example ChBody, ChLink, ChMesh, etc.
@@ -70,7 +31,7 @@ public:
 /// to the motion of a floating frame (for small deflections). Some nodes can be selected as "boundary nodes"
 /// to allow connecting this modal assembly to external joints and forces.
 
-class ChApi ChModalAssembly : public ChAssembly {
+class ChApiModal ChModalAssembly : public ChAssembly {
   public:
     ChModalAssembly();
     ChModalAssembly(const ChModalAssembly& other);
@@ -146,17 +107,21 @@ public:
     /// Access the modal damping matrix - read only
     const ChMatrixDynamic<>& Get_modal_R() const { return modal_R; }
 
-    /// Access the modal eigenvectors for the "inner" part of the assembly, if previously computed. 
+    /// Access the modal eigenvectors, if previously computed. 
     /// Read only. Use one of the ComputeModes() functions to set it.
     const ChMatrixDynamic<std::complex<double>>& Get_modes_V() const { return modes_V; }
 
-    /// Access the modal eigenvalues, if previously computed. Ex. the imaginary part is omega [rad/s].
+    /// Access the modal eigenvalues, if previously computed.
     /// Read only. Use one of the ComputeModes() functions to set it.
     const ChVectorDynamic<std::complex<double>>& Get_modes_eig() const { return modes_eig; }
 
-    /// Get a vector of modal natural frequencies [Hz], if previously computed.
+    /// Get a vector of (undamped) modal natural frequencies [Hz], if previously computed.
     /// Read only. Use one of the ComputeModes() functions to set it.
-    const ChVectorDynamic<> Get_modes_frequencies() const { return (1.0/CH_C_2PI) * modes_eig.imag(); }
+    const ChVectorDynamic<double>& Get_modes_frequencies() const { return this->modes_freq; }
+
+    /// Get a vector of modal damping ratios = damping/critical_damping, if previously computed.
+    /// Read only. Use one of the ComputeModes() functions to set it.
+    const ChVectorDynamic<double>& Get_modes_damping_ratios() const { return this->modes_damping_ratio; }
 
 
     //
@@ -405,9 +370,9 @@ public:
     // SWAP FUNCTION
 
     /// Swap the contents of the two provided ChAssembly objects.
-    /// Implemented as a friend (as opposed to a member function) so classes with a ChAssembly member can use ADL when
+    /// Implemented as a friend (as opposed to a member function) so classes with a ChModalAssembly member can use ADL when
     /// implementing their own swap.
-    friend void swap(ChAssembly& first, ChAssembly& second);
+    friend void swap(ChModalAssembly& first, ChModalAssembly& second);
 
   private:
     virtual void SetupInitial() override;
@@ -432,8 +397,10 @@ public:
     ChMatrixDynamic<> modal_K;
     ChMatrixDynamic<> modal_R;
 
-    ChMatrixDynamic<std::complex<double>> modes_V;    // eigenvectors
-    ChVectorDynamic<std::complex<double>> modes_eig;  // eigenvalues
+    ChMatrixDynamic<std::complex<double>> modes_V;             // eigenvectors
+    ChVectorDynamic<std::complex<double>> modes_eig;           // eigenvalues
+    ChVectorDynamic<double>               modes_freq;          // frequencies
+    ChVectorDynamic<double>               modes_damping_ratio; // damping ratio
 
 
 
@@ -487,7 +454,9 @@ public:
     EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 };
 
-CH_CLASS_VERSION(ChModalAssembly, 0)
+}  // end namespace modal
+
+CH_CLASS_VERSION(modal::ChModalAssembly, 0)
 
 }  // end namespace chrono
 

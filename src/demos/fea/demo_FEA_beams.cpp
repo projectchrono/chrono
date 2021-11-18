@@ -232,7 +232,27 @@ int main(int argc, char* argv[]) {
 
     GetLog() << "\n\n\n===========STATICS======== \n\n\n";
 
+
     application.GetSystem()->DoStaticLinear();
+
+    //***TEST***    
+my_system.Setup();
+my_system.Update();
+ChMatrixDynamic<> myHa(12, 12);
+ChMatrixDynamic<> myHn(12, 12);
+auto myel = builder.GetLastBeamElements()[1]; //.back();
+myel->SetUseGeometricStiffness(true);
+myel->ComputeKRMmatricesGlobal(myHa, 1, 0, 0);
+GetLog() << "K analytical = \n" << myHa;
+ //***TEST***
+my_system.SetNumThreads(1);
+for (auto i : builder.GetLastBeamElements()) i->use_numerical_diff_for_KR = true;
+
+// builder.GetLastBeamElements().back()->use_numerical_diff_for_KR = true;
+myel->ComputeKRMmatricesGlobal(myHn, 1, 0, 0);
+GetLog() << "K numerical = \n" << myHn;
+GetLog() << "K diff = \n" << ChMatrixDynamic<>(((myHn-myHa).array().abs()).array().cwiseQuotient(myHa.array().abs().array()));
+system("pause");
 
     GetLog() << "BEAM RESULTS (LINEAR STATIC ANALYSIS) \n\n";
 

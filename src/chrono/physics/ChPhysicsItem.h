@@ -26,6 +26,7 @@ namespace chrono {
 
 // Forward references
 class ChSystem;
+namespace modal { class ChModalAssembly; }
 
 /// Base class for items that can contain objects of ChVariables or ChConstraints,
 /// such as rigid bodies, mechanical joints, etc.
@@ -406,7 +407,7 @@ class ChApi ChPhysicsItem : public ChObj {
 
     friend class ChSystem;
     friend class ChAssembly;
-    friend class ChModalAssembly;
+    friend class modal::ChModalAssembly;
 };
 
 CH_CLASS_VERSION(ChPhysicsItem, 0)

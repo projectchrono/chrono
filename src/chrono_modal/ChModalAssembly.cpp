@@ -13,7 +13,8 @@
 // =============================================================================
 
 
-#include "chrono/physics/ChModalAssembly.h"
+#include "chrono_modal/ChModalAssembly.h"
+#include "chrono_modal/ChEigenvalueSolver.h"
 #include "chrono/physics/ChSystem.h"
 
 namespace chrono {
@@ -21,6 +22,8 @@ namespace chrono {
 using namespace fea;
 using namespace collision;
 using namespace geometry;
+
+namespace modal {
 
 // Register into the object factory, to enable run-time dynamic creation and persistence
 CH_FACTORY_REGISTER(ChModalAssembly)
@@ -141,9 +144,25 @@ void ChModalAssembly::ComputeModes(int nmodes) {
     this->GetSubassemblyStiffnessMatrix(&full_K);
     this->GetSubassemblyConstraintJacobianMatrix(&full_Cq);
 
-    // TEST use the nullspace method just for golden reference
-    ChQuadraticEigenvalueSolverNullspaceDirect eigsolver;
-    eigsolver.Solve(full_M, full_R, full_K, full_Cq, this->modes_V, this->modes_eig, 5);
+    // EXPERIMENTAL PART HERE  testing different solvers...
+    // - Must work with large dimension and sparse matrices only
+    // - Must work also in free-free cases, with 6 rigid body modes at 0 frequency.
+
+
+    // TEST: UNDAMPED SYSTEM. 
+
+    //ChGeneralizedEigenvalueSolverLanczos     eigsolver;   // OK! 
+    ChGeneralizedEigenvalueSolverKrylovSchur eigsolver;   // OK! 
+    eigsolver.Solve(full_M, full_K, full_Cq, this->modes_V, this->modes_eig, this->modes_freq, nmodes);
+    this->modes_damping_ratio.setZero(this->modes_freq.rows());
+
+    // TEST: DAMPED SYSTEM 
+    
+    //ChQuadraticEigenvalueSolverNullspaceDirect eigsolver;  // OK! But not for large dimensions... use the nullspace method just for golden reference
+    //ChQuadraticEigenvalueSolverKrylovSchur eigsolver;      // ***WARNING*** Krylov-Schur in SPECTRA not yet working for complex eigenvalues!!!!
+    //eigsolver.Solve(full_M, full_R, full_K, full_Cq, this->modes_V, this->modes_eig, this->modes_freq, this->modes_damping_ratio, nmodes);
+    
+ 
 
     // TEST
     auto V_real = this->modes_V.real();
@@ -1422,102 +1441,7 @@ void ChModalAssembly::ArchiveIN(ChArchiveIn& marchive) {
 }
 
 
-bool ChQuadraticEigenvalueSolverNullspaceDirect::Solve(const ChSparseMatrix& M, const ChSparseMatrix& R, const ChSparseMatrix& K, const ChSparseMatrix& Cq, 
-                                                        ChMatrixDynamic<std::complex<double>>& V,    ///< output matrix with eigenvectors as columns, will be resized
-                                                        ChVectorDynamic<std::complex<double>>& eig,  ///< output vector with eigenvalues (real part not zero if some damping), will be resized 
-                                                        int n_modes)
-{
-    // The folowing is adapted from the former implementation of Peng Chao
 
-	// Compute the null space of the Cq matrix
-    ChMatrixDynamic<> Cq_full = Cq; // because the fullPivLu is not available for sparse matrix in Eigen
-	Eigen::MatrixXd Cq_null_space = Cq_full.fullPivLu().kernel();
-	Eigen::MatrixXd M_hat = Cq_null_space.transpose() * M * Cq_null_space;
-	Eigen::MatrixXd K_hat = Cq_null_space.transpose() * K * Cq_null_space;
-	Eigen::MatrixXd R_hat = Cq_null_space.transpose() * R * Cq_null_space;
-	
-	// frequency-shift，Solve the matrix singular problem - it is not needed now, you can set it to 0
-    double freq_shift = 0; // shift value, can take any value 
-	Eigen::MatrixXd M_bar = M_hat;
-	Eigen::MatrixXd K_bar = pow(freq_shift, 2) * M_hat + freq_shift * R_hat + K_hat;
-	Eigen::MatrixXd R_bar = 2 * freq_shift * M_hat + R_hat;
-	Eigen::MatrixXd M_bar_inv = M_bar.inverse();  // performance warning! dense inverse matrix! Only small sizes should be used.
-	
-	// Generate the A matrix of the state equation, whose eigenvalues ​​are the modal frequencies
-	int dim = M_bar.rows();
-	Eigen::MatrixXd A_tilde(2 * dim, 2 * dim);  
-	A_tilde << Eigen::MatrixXd::Zero(dim, dim), Eigen::MatrixXd::Identity(dim, dim),
-		       -M_bar_inv * K_bar             , -M_bar_inv * R_bar;
-	
-	// Call EIGEN3, dense matrix to directly solve the eigenvalues ​​and eigenvectors
-	// NOTE：EIGEN3 has a very fast calculation speed in release mode, and a very slow calculation speed in debug mode
-	Eigen::EigenSolver<Eigen::MatrixXd> eigen_solver(A_tilde);
-	Eigen::VectorXcd eigen_values = eigen_solver.eigenvalues() + freq_shift;
-	Eigen::MatrixXcd eigen_vectors = eigen_solver.eigenvectors();
- 
-    class eig_vect_and_val
-    {
-    public:
-        Eigen::VectorXcd eigen_vect;
-        std::complex<double> eigen_val;
-
-        bool operator < (const eig_vect_and_val& str) const {
-            return (eigen_val.imag() < str.eigen_val.imag());
-        }
-    };
-
-	std::vector<eig_vect_and_val> all_eigen_values_and_vectors;
-	for (int i = 0; i < eigen_values.size(); i++) {
-        eig_vect_and_val vec_and_val{ eigen_vectors.col(i), eigen_values(i) };
-        all_eigen_values_and_vectors.push_back(vec_and_val);
-	}
-
-	// sort
-	std::sort(all_eigen_values_and_vectors.begin(), all_eigen_values_and_vectors.end());   // sort by imaginary part
-
-	// organize and return results
-	int middle_number = (int)(all_eigen_values_and_vectors.size() / 2);  // The eigenvalues ​​filtered out are conjugate complex roots, just take half
-	int DOF_counts = (int)((all_eigen_values_and_vectors.at(0)).eigen_vect.rows()/2);  // The number of degrees of freedom in the model, used when extracting the mode shape. 
-
-    /*
-	OutputEigenResults output_temp;
-	Eigen::VectorXcd vector_temp;
-	REAL damping_ratio;
-	int jj = 0; int i = 0; int index_mode = 0;
-	while (i < mode_count) {  
-		index_mode = jj + middle_number;
-		damping_ratio = std::get<2>(all_eigen_values_and_vectors.at(index_mode));
-		if (damping_ratio < 0.95) { // filter by damping ratio 
-			std::get<0>(output_temp) = std::get<0>(all_eigen_values_and_vectors.at(index_mode));  // undamped modal freq.
-			std::get<1>(output_temp) = std::get<1>(all_eigen_values_and_vectors.at(index_mode));  // damped modal freq.
-			std::get<2>(output_temp) = std::get<2>(all_eigen_values_and_vectors.at(index_mode));  // damping ratio
-			std::get<3>(output_temp) = std::get<3>(all_eigen_values_and_vectors.at(index_mode));  // plural eigenvalues
-			vector_temp = std::get<4>(all_eigen_values_and_vectors.at(index_mode));
-			std::get<4>(output_temp) = Cq_null_space * vector_temp.head(DOF_counts);// Mode shape, displacement term
-			std::get<5>(output_temp) = Cq_null_space * vector_temp.tail(DOF_counts);// Mode shape, velocity term
-			res_eigen_values_and_vectors.push_back(output_temp);
-			
-			i++;
-		} 
-		jj++;
-	}
-    */
-    
-    // Return values
-    V.setZero(M.rows(), n_modes);
-    eig.setZero(n_modes);
-
-    for (int i = 0; i < n_modes; i++) {
-        int i_half = middle_number + i; // because the n.of eigenvalues is double (conjugate pairs), so just use the 2nd half after sorting
-        auto mv = all_eigen_values_and_vectors.at(i_half).eigen_vect.head(DOF_counts);
-        auto mvhns = Cq_null_space * mv;
-
-        V.col(i) = mvhns; 
-        V.col(i).normalize(); // check if necessary or already normalized
-        eig(i) = all_eigen_values_and_vectors.at(i_half).eigen_val;
-    }
-
-    return true;
-}
+}  // end namespace modal
 
 }  // end namespace chrono

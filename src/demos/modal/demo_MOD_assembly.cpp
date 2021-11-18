@@ -16,6 +16,7 @@
 //
 // =============================================================================
 
+#include "chrono_modal/ChModalAssembly.h"
 #include "chrono/physics/ChSystemNSC.h"
 #include "chrono/physics/ChLinkMate.h"
 #include "chrono/physics/ChLinkLock.h"
@@ -27,7 +28,6 @@
 #include "chrono/fea/ChMesh.h"
 #include "chrono/fea/ChVisualizationFEAmesh.h"
 
-#include "chrono_modal/ChModalAssembly.h"
 #include "chrono_irrlicht/ChIrrApp.h"
 #include "chrono_pardisomkl/ChSolverPardisoMKL.h"
 #include "chrono_thirdparty/filesystem/path.h"
@@ -57,8 +57,8 @@ void BuildAssembly( std::shared_ptr<ChModalAssembly> my_assembly,
 {
     // BODY: the base & tower:
 
-    auto my_body_A = chrono_types::make_shared<ChBodyEasyBox>(5, 2, 5, 200);
-    my_body_A->SetBodyFixed(false);
+    auto my_body_A = chrono_types::make_shared<ChBodyEasyBox>(10, 2, 10, 3000);
+    my_body_A->SetBodyFixed(true);
     my_body_A->SetPos(ChVector<>(0, -10, 0));
     my_assembly->Add(my_body_A);
 
@@ -120,7 +120,7 @@ void BuildAssembly( std::shared_ptr<ChModalAssembly> my_assembly,
     builder.BuildBeam(
         my_mesh,   // the mesh where to put the created nodes and elements
         msection,  // the ChBeamSectionEuler to use for the ChElementBeamEuler elements
-        6,         // the number of ChElementBeamEuler to create
+        6,        // the number of ChElementBeamEuler to create
         ChVector<>(0, beam_Rmin, 1),  // the 'A' point in space (beginning of beam)
         ChVector<>(0, beam_Rmax, 1),  // the 'B' point in space (end of beam)
         ChVector<>(0, 0, 1)     // the 'Y' up direction of the section for the beam
@@ -196,14 +196,9 @@ int main(int argc, char* argv[]) {
     
     my_assembly2->DumpSubassemblyMatrices(true, true, true, true, (out_dir+"/dump").c_str());
 
-    my_assembly2->ComputeModes(15);
-    
-    for (int i = 0; i < my_assembly2->Get_modes_frequencies().rows(); ++i)
-        GetLog() << "Mode n." << i
-                 << "  frequency [Hz]: " << my_assembly2->Get_modes_frequencies()(i) 
-                 << "  damping ratio:" << my_assembly2->Get_modes_damping_ratios()(i) 
-                 << "    Re=" << my_assembly2->Get_modes_eig()(i).real() << "  Im=" <<   my_assembly2->Get_modes_eig()(i).imag()
-                 << "\n";
+    my_assembly2->ComputeModes(5);
+
+    GetLog() << "Frequencies [Hz]: " << my_assembly2->Get_modes_frequencies() << "\n";
 
     //
     // VISUALIZATION
@@ -309,8 +304,7 @@ int main(int argc, char* argv[]) {
 
     while (application.GetDevice()->run()) {
 
-        phi += 0.1;
-
+        phi += 0.06;
         my_assembly2->ModeIncrementState(nmode, phi, ampli);
 
         application.BeginScene();
@@ -329,8 +323,6 @@ int main(int argc, char* argv[]) {
         if (phi > 2 * CH_C_2PI) nmode = 1;
         if (phi > 4 * CH_C_2PI) nmode = 2;
         if (phi > 6 * CH_C_2PI) nmode = 3;
-        if (phi > 8 * CH_C_2PI) nmode = 4;
-        GetLog() << "\r Nmode = " << nmode;
 
         // for plotting the tip oscillations, in the blade root coordinate:
         if (!application.GetPaused()) {
