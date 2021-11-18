@@ -136,7 +136,6 @@ set(ChronoEngine_physics_SOURCES
     physics/ChProximityContainerSPH.cpp
     physics/ChConveyor.cpp
     physics/ChAssembly.cpp
-    physics/ChModalAssembly.cpp
     )
 
 set(ChronoEngine_physics_HEADERS
@@ -162,7 +161,6 @@ set(ChronoEngine_physics_HEADERS
     physics/ChSystemNSC.h
     physics/ChSystemSMC.h
     physics/ChAssembly.h
-    physics/ChModalAssembly.h
     physics/ChInertiaUtils.h
     )
 
