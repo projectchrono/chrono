@@ -222,12 +222,16 @@ foreach(COMPONENT ${Chrono_FIND_COMPONENTS})
 
       list(APPEND CHRONO_INCLUDE_DIRS "@CH_OPENGL_INCLUDES@")
       list(PREPEND CHRONO_LIB_NAMES "ChronoEngine_opengl")
-      list(APPEND CHRONO_LIBRARIES "@GLEW_LIBRARY@")
-      list(APPEND CHRONO_LIBRARIES "@GLFW_LIBRARY@")
-      list(APPEND CHRONO_LIBRARIES "@OPENGL_LIBRARIES@")
       list(APPEND CHRONO_DLL_NAMES "ChronoEngine_opengl.dll")
       list(APPEND CHRONO_DLLS "@GLEW_DLL@")
       list(APPEND CHRONO_DLLS "@GLFW_DLL@")
+      if(${CMAKE_SYSTEM_NAME} MATCHES "Emscripten")
+        set(CHRONO_LINKER_FLAGS "${CHRONO_LINKER_FLAGS} -s FULL_ES3=1 -s USE_GLFW=3")
+      else()
+        list(APPEND CHRONO_LIBRARIES "@GLEW_LIBRARY@")
+        list(APPEND CHRONO_LIBRARIES "@GLFW_LIBRARY@")
+        list(APPEND CHRONO_LIBRARIES "@OPENGL_LIBRARIES@")
+      endif()
 
     elseif(${COMPONENT_UPPER} MATCHES "IRRLICHT")
 
@@ -383,6 +387,10 @@ endforeach()
 # Loop over list of Chrono library names and find the actual libraries.
 #-------------------------------------------------------------------------------
 
+if(${CMAKE_SYSTEM_NAME} MATCHES "Emscripten")
+    set(CMAKE_FIND_ROOT_PATH_MODE_LIBRARY NEVER)
+endif()
+
 foreach(lib ${CHRONO_LIB_NAMES})
   set(onelib "${lib}-NOTFOUND")
   find_library(onelib ${lib}
@@ -396,6 +404,10 @@ foreach(lib ${CHRONO_LIB_NAMES})
     list(APPEND CHRONO_LIBRARIES "${onelib}")
   endif()
 endforeach()
+
+if(${CMAKE_SYSTEM_NAME} MATCHES "Emscripten")
+    set(CMAKE_FIND_ROOT_PATH_MODE_LIBRARY ONLY)
+endif()
 
 mark_as_advanced(FORCE onelib)
 
