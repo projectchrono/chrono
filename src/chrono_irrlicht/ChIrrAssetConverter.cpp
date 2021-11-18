@@ -20,7 +20,9 @@
 #include "chrono/assets/ChSurfaceShape.h"
 #include "chrono/assets/ChBarrelShape.h"
 #include "chrono/assets/ChCapsuleShape.h"
-#include "chrono/physics/ChModalAssembly.h"
+#ifdef CHRONO_MODAL
+#include "chrono_modal/ChModalAssembly.h"
+#endif
 
 #include "chrono_irrlicht/ChIrrAssetConverter.h"
 #include "chrono_irrlicht/ChIrrTools.h"
@@ -497,8 +499,9 @@ void ChIrrAssetConverter::BindAllContentsOfAssembly(const ChAssembly* massy, std
         Bind(link);
     }
 
+ #ifdef CHRONO_MODAL
     // Modal assemblies contain custom internal items that might be useful to visualize
-    if (auto myassy_modal = dynamic_cast<const chrono::ChModalAssembly*>(massy)) {
+    if (auto myassy_modal = dynamic_cast<const chrono::modal::ChModalAssembly*>(massy)) {
         for (auto body : myassy_modal->Get_internal_bodylist()) {
             Bind(body);
         }
@@ -516,6 +519,7 @@ void ChIrrAssetConverter::BindAllContentsOfAssembly(const ChAssembly* massy, std
             Bind(link);
         }
     }
+#endif 
 
 }
 
@@ -546,8 +550,9 @@ void ChIrrAssetConverter::UpdateAllContentsOfAssembly(const ChAssembly* massy, s
         Update(link);
     }
 
+ #ifdef CHRONO_MODAL
     // Modal assemblies contain custom internal items that might be useful to visualize
-    if (auto myassy_modal = dynamic_cast<const chrono::ChModalAssembly*>(massy)) {
+    if (auto myassy_modal = dynamic_cast<const chrono::modal::ChModalAssembly*>(massy)) {
         for (auto body : myassy_modal->Get_internal_bodylist()) {
             Update(body);
         }
@@ -565,6 +570,7 @@ void ChIrrAssetConverter::UpdateAllContentsOfAssembly(const ChAssembly* massy, s
             Update(link);
         }
     }
+ #endif
 
 }
 
