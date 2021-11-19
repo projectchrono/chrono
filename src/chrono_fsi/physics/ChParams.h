@@ -60,6 +60,7 @@ struct SimParams {
     char out_name[256]; ///< Name of the output directory.
     char demo_dir[2048]; ///< Demo output directory.
     bool full_output; ///< Output all information of SPH particles into data files
+    bool output_fsi; ///< Output fsi information for each body/node
 
     int3 gridSize;        ///< dx, dy, dz distances between particle centers.
     Real3 worldOrigin;    ///< Origin point.
