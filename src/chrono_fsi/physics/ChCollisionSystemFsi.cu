@@ -198,15 +198,12 @@ ChCollisionSystemFsi::ChCollisionSystemFsi(std::shared_ptr<SphMarkerDataD> other
       numObjectsH(otherNumObjects) {
     sphMarkersD = NULL;
 }
+ChCollisionSystemFsi::~ChCollisionSystemFsi() {}
 
 //--------------------------------------------------------------------------------------------------------------------------------
 void ChCollisionSystemFsi::Finalize() {
     cudaMemcpyToSymbolAsync(paramsD, paramsH.get(), sizeof(SimParams));
     cudaMemcpyToSymbolAsync(numObjectsD, numObjectsH.get(), sizeof(NumberOfObjects));
-}
-//--------------------------------------------------------------------------------------------------------------------------------
-ChCollisionSystemFsi::~ChCollisionSystemFsi() {
-    // TODO
 }
 
 //--------------------------------------------------------------------------------------------------------------------------------

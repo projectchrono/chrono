@@ -196,7 +196,7 @@ namespace fsi {
         thrust::device_vector<uint> cellEndD;          ///< Index of the particle ends a cell in sorted list (m_numGridCells)
         thrust::device_vector<uint> mapOriginalToSorted; ///< Index mapping from the original to the sorted (numAllMarkers);
 
-        void resize(size_t numAllMarkers);
+        void resize(size_t s);
     };
 
     /// Struct to store Chrono rigid bodies information on the host

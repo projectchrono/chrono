@@ -247,10 +247,10 @@ void FsiBodiesDataH::resize(size_t s) {
 }
 
 //---------------------------------------------------------------------------------------
-void ProximityDataD::resize(size_t numAllMarkers) {
-    gridMarkerHashD.resize(numAllMarkers);
-    gridMarkerIndexD.resize(numAllMarkers);
-    mapOriginalToSorted.resize(numAllMarkers);
+void ProximityDataD::resize(size_t s) {
+    gridMarkerHashD.resize(s);
+    gridMarkerIndexD.resize(s);
+    mapOriginalToSorted.resize(s);
 }
 
 //---------------------------------------------------------------------------------------
