@@ -125,7 +125,7 @@ Since the interaction with this terrain type is done through the underlying Chro
 
 ## Deformable FEA (ANCF solid elements) {#vehicle_terrain_fea}
 
-[FEADeformableTerrain](@ref chrono::vehicle::FEADeformableTerrain) provides a deformable terrain model based on specialized FEA brick elements of type [ChElementBrick_9](@ref chrono::fea::ChElementBrick_9).  
+[FEADeformableTerrain](@ref chrono::vehicle::FEADeformableTerrain) provides a deformable terrain model based on specialized FEA brick elements of type [ChElementHexaANCF_3813_9](@ref chrono::fea::ChElementHexaANCF_3813_9).  
 
 This terrain model permits:
 - discretization of a box domain into a user-prescribed number of elements

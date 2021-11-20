@@ -194,7 +194,7 @@ int main(int argc, char* argv[]) {
         if (step_number % render_steps == 0) {
             app.BeginScene(true, true, irr::video::SColor(255, 140, 161, 192));
             app.DrawAll();
-            app.RenderFrame(ChVector<>(0, 0, 0), 10);
+            app.RenderFrame(ChFrame<>(), 10);
             app.RenderGrid(ChVector<>(0, 0.01, 0), 20, 1.0);
             app.EndScene();
         }

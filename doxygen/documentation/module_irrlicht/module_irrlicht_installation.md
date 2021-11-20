@@ -60,7 +60,7 @@ you do not need to do anything. Otherwise do what follows.
 1. **download** [Irrlicht Engine](http://irrlicht.sourceforge.net/downloads.html) 
 
 2. **unzip** it in whatever directory.  
-   For example, here we suppose that you unzipped it in `C:/engine_demos/irrlicht-1.8.2`.
+   For example, here we suppose that you unzipped it in `C:/engine_demos/irrlicht-1.8.4`.
 
 3. Repeat the instructions for the [full installation](@ref tutorial_install_chrono), but when you see 
    the CMake window, you must add the following steps:
@@ -68,10 +68,10 @@ you do not need to do anything. Otherwise do what follows.
 4. Set the `ENABLE_MODULE_IRRLICHT` as 'on', then press 'Configure' (to refresh the variable list) 
  
 5. Set the directory in `IRRLICHT_ROOT`: it must contain the path to your unzipped Irrlicht directory.  
-   In our example, browse to `C:/engine_demos/irrlicht-1.8.2`
+   In our example, browse to `C:/engine_demos/irrlicht-1.8.4`
    
 6. The corresponding `IRRLICHT_LIBRARY` should be found automatically: it must contain the file of the Irrlicht.lib.  
-   In our example, browse to `C:/engine_demos/irrlicht-1.8.2/lib/Win64-visualStudio/Irrlicht.lib`.
+   In our example, browse to `C:/engine_demos/irrlicht-1.8.4/lib/Win64-visualStudio/Irrlicht.lib`.
 	 
 7. Press 'Configure' again, then 'Generate', and proceed as usual in the installation instructions.
 

@@ -26,7 +26,7 @@
 #include "chrono_thirdparty/stb/stb_image.h"
 #include "chrono_thirdparty/stb/stb_image_write.h"
 
-///  Simple C++ wrapper around image functions in the STB library.
+/// Simple C++ wrapper around image functions in the STB library.
 class STB {
   public:
     STB() : m_nx(0), m_ny(0), m_num_channels(0), m_avail_channels(0), m_range(0), m_data(nullptr) {}
@@ -54,35 +54,35 @@ class STB {
     /// Return the range of the image data (for 16-bit, this is USHRT_MAX=65535).
     int GetRange() const {return m_range;}
 
-    /// Return the red value at the specified pixel. If no red channel, return -1.
+    /// Return the red value at the specified pixel. If no red channel, return 0.
     /// Recall that images are loaded from the top-left corner.
     unsigned short Red(int i, int j) const {
         if (m_num_channels < 3)
-            return -1;
+            return 0;
         return *(m_data + m_num_channels * (m_nx * j + i) + 0);
     }
 
-    /// Return the green value at the specified pixel. If no green channel, return -1.
+    /// Return the green value at the specified pixel. If no green channel, return 0.
     /// Recall that images are loaded from the top-left corner.
     unsigned short Green(int i, int j) const {
         if (m_num_channels < 3)
-            return -1;
+            return 0;
         return *(m_data + m_num_channels * (m_nx * j + i) + 1);
     }
 
-    /// Return the blue value at the specified pixel. If no blue channel, return -1.
+    /// Return the blue value at the specified pixel. If no blue channel, return 0.
     /// Recall that images are loaded from the top-left corner.
     unsigned short Blue(int i, int j) const {
         if (m_num_channels < 3)
-            return -1;
+            return 0;
         return *(m_data + m_num_channels * (m_nx * j + i) + 2);
     }
 
-    /// Return the alpha value at the specified pixel. If no alpha channel, return -1.
+    /// Return the alpha value at the specified pixel. If no alpha channel, return 0.
     /// Recall that images are loaded from the top-left corner.
     unsigned short Alpha(int i, int j) const {
         if (m_num_channels == 1 || m_num_channels == 3)
-            return -1;
+            return 0;
         return *(m_data + m_num_channels * (m_nx * j + i) + (m_num_channels - 1));
     }
 

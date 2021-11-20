@@ -29,6 +29,7 @@ namespace sensor {
 /// @param stdev_h_angle Standard deviation of noise for horizontal angle measurement.
 /// @param stdev_intensity Standard deviation of noise for vertical angle measurement.
 /// @param rng The state to be randomly generated
+/// @param stream The cuda stream for the kernel launch
 void cuda_lidar_noise_normal(float* bufPtr,
                              int width,
                              int height,
@@ -36,7 +37,8 @@ void cuda_lidar_noise_normal(float* bufPtr,
                              float stdev_v_angle,
                              float stdev_h_angle,
                              float stdev_intensity,
-                             curandState_t* rng);
+                             curandState_t* rng,
+                             CUstream& stream);
 
 /// @}
 

@@ -33,10 +33,10 @@ endif()
 # Additional options for this module
 # ------------------------------------------------------------------------------
 
-#option(USE_FSI_DOUBLE "Compile Chrono::FSI with double precision math" ON)
-#if(USE_FSI_DOUBLE)
+option(USE_FSI_DOUBLE "Compile Chrono::FSI with double precision math" ON)
+if(USE_FSI_DOUBLE)
   set(CHRONO_FSI_USE_DOUBLE "#define CHRONO_FSI_USE_DOUBLE")
-#endif()
+endif()
 
 # ------------------------------------------------------------------------------
 # If using MSVC, disable warnings related to missing DLL interface
@@ -79,35 +79,21 @@ install(FILES "${PROJECT_BINARY_DIR}/chrono_fsi/ChConfigFSI.h"
 # LIST THE FILES THAT MAKE THE FSI FLUID-SOLID INTERACTION LIBRARY
 #-----------------------------------------------------------------------------
 
-set(ChronoEngine_FSI_SOURCES
+set(ChronoEngine_FSI_FILES
+    ChApiFsi.h
+    ChFsiDefines.h
+    ChSystemFsi.h
+    ChSystemFsi_impl.cuh
+    ChFsiInterface.h
+
     ChSystemFsi.cpp
     ChFsiInterface.cpp
-    ChFsiDataManager.cu
-    utils/ChUtilsDevice.cu
-    utils/ChUtilsTypeConvert.cpp
-    
- 	physics/ChBce.cu
-    physics/ChFluidDynamics.cu
-    physics/ChCollisionSystemFsi.cu
-    physics/ChFsiForce.cu
-    physics/ChFsiForceExplicitSPH.cu
-    physics/ChFsiForceI2SPH.cu
-    physics/ChFsiForceIISPH.cu
-    physics/ChFsiGeneral.cu
-    physics/ChSphGeneral.cu
-    
-    math/ChFsiLinearSolverBiCGStab.cpp
-    math/ChFsiLinearSolverGMRES.cpp
+    ChSystemFsi_impl.cu
 )
 
-set(ChronoEngine_FSI_HEADERS
-    ChApiFsi.h
-    ChSystemFsi.h
-    ChFsiInterface.h
-    ChFsiDataManager.cuh
- 	utils/ChUtilsDevice.cuh
-    utils/ChUtilsTypeConvert.h
+source_group("" FILES ${ChronoEngine_FSI_FILES})
 
+set(ChronoEngine_FSI_PHYSICS_FILES
     physics/ChBce.cuh
     physics/ChFluidDynamics.cuh
     physics/ChCollisionSystemFsi.cuh
@@ -115,41 +101,56 @@ set(ChronoEngine_FSI_HEADERS
     physics/ChFsiForceExplicitSPH.cuh
     physics/ChFsiForceI2SPH.cuh
     physics/ChFsiForceIISPH.cuh
-    physics/ChFsiGeneral.cuh
+    physics/ChFsiGeneral.h
     physics/ChSphGeneral.cuh
-    physics/ChParams.cuh
+    physics/ChParams.h
 
+ 	physics/ChBce.cu
+    physics/ChFluidDynamics.cu
+    physics/ChCollisionSystemFsi.cu
+    physics/ChFsiForce.cu
+    physics/ChFsiForceExplicitSPH.cu
+    physics/ChFsiForceI2SPH.cu
+    physics/ChFsiForceIISPH.cu
+    physics/ChFsiGeneral.cpp
+    physics/ChSphGeneral.cu
+)
+
+source_group(physics FILES ${ChronoEngine_FSI_PHYSICS_FILES})
+
+set(ChronoEngine_FSI_MATH_FILES
     math/custom_math.h
     math/ExactLinearSolvers.cuh
     math/ChFsiLinearSolver.h
     math/ChFsiLinearSolverBiCGStab.h
     math/ChFsiLinearSolverGMRES.h
+
+    math/ChFsiLinearSolverBiCGStab.cpp
+    math/ChFsiLinearSolverGMRES.cpp
 )
 
-source_group("" FILES
-    ${ChronoEngine_FSI_SOURCES}
-    ${ChronoEngine_FSI_HEADERS})
+source_group(math FILES ${ChronoEngine_FSI_MATH_FILES})
 
-set(ChronoEngine_FSI_UTILS_SOURCES
-	utils/ChUtilsJSON.cpp
-    utils/ChUtilsGeneratorBce.cpp
-    utils/ChUtilsGeneratorFluid.cpp
-    utils/ChUtilsGeneratorFsi.cpp
-    utils/ChUtilsPrintSph.cu
-)
-
-set(ChronoEngine_FSI_UTILS_HEADERS
+set(ChronoEngine_FSI_UTILS_FILES
    	utils/ChUtilsJSON.h
     utils/ChUtilsGeneratorBce.h
     utils/ChUtilsGeneratorFluid.h
     utils/ChUtilsGeneratorFsi.h
     utils/ChUtilsPrintStruct.h
     utils/ChUtilsPrintSph.cuh
+    utils/ChUtilsDevice.cuh
+    utils/ChUtilsTypeConvert.h
+
+	utils/ChUtilsJSON.cpp
+    utils/ChUtilsGeneratorBce.cpp
+    utils/ChUtilsGeneratorFluid.cpp
+    utils/ChUtilsGeneratorFsi.cpp
+    utils/ChUtilsPrintSph.cu
+    utils/ChUtilsDevice.cu
+    utils/ChUtilsTypeConvert.cpp
 )
 
-source_group(utils FILES
-    ${ChronoEngine_FSI_UTILS_SOURCES}
-    ${ChronoEngine_FSI_UTILS_HEADERS})
+source_group(utils FILES ${ChronoEngine_FSI_UTILS_FILES})
 
 #-----------------------------------------------------------------------------
 # Create the ChronoEngine_fsi library
@@ -158,10 +159,10 @@ source_group(utils FILES
 set(CXX_FLAGS ${CH_CXX_FLAGS})
 
 cuda_add_library(ChronoEngine_fsi SHARED
-    ${ChronoEngine_FSI_SOURCES}
-    ${ChronoEngine_FSI_HEADERS}
-    ${ChronoEngine_FSI_UTILS_SOURCES}
-    ${ChronoEngine_FSI_UTILS_HEADERS}
+    ${ChronoEngine_FSI_FILES}
+    ${ChronoEngine_FSI_PHYSICS_FILES}
+    ${ChronoEngine_FSI_MATH_FILES}
+    ${ChronoEngine_FSI_UTILS_FILES}
 )
 
 set_target_properties(ChronoEngine_fsi PROPERTIES

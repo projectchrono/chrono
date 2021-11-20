@@ -103,7 +103,7 @@ class SYN_API SynWheeledVehicleAgent : public SynAgent {
 
     ///@brief Set the Agent ID
     ///
-    virtual void SetID(SynAgentID aid) override;
+    virtual void SetKey(AgentKey agent_key) override;
 
     // ------------------------------------------------------------------------
 

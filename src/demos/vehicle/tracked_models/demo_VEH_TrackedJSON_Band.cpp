@@ -278,6 +278,8 @@ int main(int argc, char* argv[]) {
 #endif
 
     switch (solver_type) {
+        default:
+            break;
 #ifdef CHRONO_MUMPS
         case ChSolver::Type::MUMPS: {
             auto mumps_solver = chrono_types::make_shared<ChSolverMumps>();
@@ -288,7 +290,6 @@ int main(int argc, char* argv[]) {
         }
 #endif
 #ifdef CHRONO_PARDISO_MKL
-        default:
         case ChSolver::Type::PARDISO_MKL: {
             auto mkl_solver = chrono_types::make_shared<ChSolverPardisoMKL>();
             mkl_solver->LockSparsityPattern(true);
@@ -387,7 +388,7 @@ int main(int argc, char* argv[]) {
             if (povray_output) {
                 char filename[100];
                 sprintf(filename, "%s/data_%03d.dat", pov_dir.c_str(), render_frame + 1);
-                utils::WriteShapesPovray(vehicle.GetSystem(), filename);
+                utils::WriteVisualizationAssets(vehicle.GetSystem(), filename);
             }
 
 #ifdef USE_IRRLICHT

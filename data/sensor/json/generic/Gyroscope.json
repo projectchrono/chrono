@@ -1,0 +1,26 @@
+{
+  "Name": "Generic sensor",
+  "Type": "Sensor",
+  "Template": "Gyroscope",
+
+  "Properties": {
+    "Update Rate": 100,
+    "Lag": 0.01,
+    "Collection Time": 0.01,
+    "Noise Model": {
+      "Noise Type": "ChNoiseNormalDrift",
+      "Update Rate": 100.0,
+      "Mean": [0.0,0.0,0.0],
+      "Standard Deviation": [0.001,0.001,0.001],
+      "Bias Drift": 0.0,
+      "Tau Drift": 0.1
+    }
+  },
+
+  "Filters":
+  [
+    {
+      "Filter": "ChFilterGyroAccess"
+    }
+  ]
+}

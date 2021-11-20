@@ -21,10 +21,10 @@ In this page you can find a description of their properties.
 
 - 3 coordinates (p, ie. x y z translation in 3D)
 - Ex. Used by solid elements:
-  - ChElementTetra_4 
-  - ChElementTetra_10 
-  - ChElementHexa_8
-  - ChElementHexa_20  etc. 
+  - ChElementTetraCorot_4 
+  - ChElementTetraCorot_10 
+  - ChElementHexaCorot_8
+  - ChElementHexaCorot_20  etc. 
 
 
 
@@ -47,7 +47,7 @@ In this page you can find a description of their properties.
 - Useful for defining simple beams of cable type, where information about torsion is not useful
 - Ex. used by these elements:
   - ChElementCableANCF 
-  - ChElementShellANCF
+  - ChElementShellANCF_3423
 
  
 # ChNodeFEAxyzDD {#manual_ChNodeFEAxyzDD}
@@ -56,9 +56,21 @@ In this page you can find a description of their properties.
 
 - 9 coordinates (x y z translations and two directions)
 - Ex. used by these elements:
-  - ChElementBeamANCF 
+  - ChElementBeamANCF_3333 
+  - ChElementShellANCF_3833
 
-  
+
+# ChNodeFEAxyzDDD {#manual_ChNodeFEAxyzDDD}
+
+![](http://www.projectchrono.org/assets/manual/fea_ChNodeFEAxyzDDD.png)
+
+- 12 coordinates (x y z translations and three directions)
+- Ex. used by these elements:
+  - ChElementBeamANCF_3243 
+  - ChElementShellANCF_3443
+  - ChElementHexaANCF_3843
+
+
 # ChNodeFEAxyzP   {#manual_ChNodeFEAxyzP}
 
 ![](http://www.projectchrono.org/assets/manual/fea_ChNodeFEAxyzP.png)
@@ -66,8 +78,17 @@ In this page you can find a description of their properties.
 - 1 coordinates (a scalar P, in a 3D space)
 - Used for thermal and electrostatic analysis
 - Ex. used by these elements:
-  - ChElementTetra_4_P 
+  - ChElementTetraCorot_4_P 
 
+
+# ChNodeFEAcurv   {#manual_ChNodeFEAcurv}
+
+- 9 coordinates (3 2nd order partial derivatives of the position vector, which represent curvatures)
+  - 2nd order partial derivative of position with respect to just x
+  - 2nd order partial derivative of position with respect to just y
+  - 2nd order partial derivative of position with respect to just z
+- Ex. used by these elements:
+  - ChElementHexaANCF_3813_9 
   
   
 # Theory

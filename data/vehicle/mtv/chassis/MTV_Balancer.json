@@ -4,23 +4,11 @@
     "Template": "Balancer",
 
     "Beam": {
-        "Mass": 150,
+        "Mass": 50,
         "COM": [ 0.0, 0.529, 0.0 ],
         "Inertia": [ 0.052, 8.177, 8.208 ],
         "Size": [ 1.4, 0.1, 0.05 ],
-        "Pin Location": [ 0.0, 0.529, 0.0 ],
-        "Bushing Data": {
-            "Stiffness Linear": 7e7,
-            "Damping Linear": 0.35e5,
-            "Stiffness Rotational": 1e5,
-            "Damping Rotational": 0.5e3,
-            "DOF": {
-                "Stiffness Linear": 0,
-                "Damping Linear": 0,
-                "Stiffness Rotational": 0,
-                "Damping Rotational": 0
-            }
-        }
+        "Pin Location": [ 0.0, 0.529, 0.0 ]
     },
 
     "Maximum Pitch": 0.14 // radians

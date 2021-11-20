@@ -10,3 +10,6 @@
 [submodule "src/chrono_thirdparty/chpf"]
 	path = src/chrono_thirdparty/chpf
 	url = https://gitlab.com/uwsbel/chpf.git
+[submodule "src/chrono_thirdparty/cub"]
+	path = src/chrono_thirdparty/cub
+	url = https://github.com/NVIDIA/cub.git

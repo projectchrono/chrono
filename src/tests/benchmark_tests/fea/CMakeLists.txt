@@ -1,6 +1,11 @@
 set(TESTS
     btest_FEA_ANCFshell
     btest_FEA_contact
+	btest_FEA_ANCFbeam_3243_LargeDisplacement
+	btest_FEA_ANCFbeam_3333_LargeDisplacement
+	btest_FEA_ANCFshell_3443_LargeDisplacement
+	btest_FEA_ANCFshell_3833_LargeDisplacement
+	btest_FEA_ANCFhexa_3843_LargeDisplacement
     )
 
 set(TESTS_MKL_MUMPS_PARPROJ

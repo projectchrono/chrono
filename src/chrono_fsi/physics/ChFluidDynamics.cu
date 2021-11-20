@@ -16,13 +16,14 @@
 // =============================================================================
 
 #include "chrono_fsi/physics/ChFluidDynamics.cuh"
+#include "chrono_fsi/physics/ChSphGeneral.cuh"
 
 namespace chrono {
 namespace fsi {
 
 // -----------------------------------------------------------------------------
-/// Device function to calculate the share of density influence on a given
-/// marker from all other markers in a given cell
+// Device function to calculate the share of density influence on a given
+// marker from all other markers in a given cell
 __device__ void collideCellDensityReInit(Real& numerator,
                                          Real& denominator,
                                          int3 gridPos,
@@ -33,9 +34,7 @@ __device__ void collideCellDensityReInit(Real& numerator,
                                          Real4* sortedRhoPreMu,
                                          uint* cellStart,
                                          uint* cellEnd) {
-    //?c2 printf("grid pos %d %d %d \n", gridPos.x, gridPos.y, gridPos.z);
     uint gridHash = calcGridHash(gridPos);
-    // get start of bucket for this cell
 
     uint startIndex = cellStart[gridHash];
     if (startIndex != 0xffffffff) {  // cell is not empty
@@ -56,7 +55,7 @@ __device__ void collideCellDensityReInit(Real& numerator,
 }
 
 // -----------------------------------------------------------------------------
-/// Kernel to apply periodic BC along x
+// Kernel to apply periodic BC along x
 __global__ void ApplyPeriodicBoundaryXKernel(Real4* posRadD, Real4* rhoPresMuD) {
     uint index = blockIdx.x * blockDim.x + threadIdx.x;
     if (index >= numObjectsD.numAllMarkers) {
@@ -88,7 +87,7 @@ __global__ void ApplyPeriodicBoundaryXKernel(Real4* posRadD, Real4* rhoPresMuD) 
 }
 
 // -----------------------------------------------------------------------------
-/// Kernel to apply inlet/outlet BC along x
+// Kernel to apply inlet/outlet BC along x
 __global__ void ApplyInletBoundaryXKernel(Real4* posRadD, Real3* VelMassD, Real4* rhoPresMuD) {
     uint index = blockIdx.x * blockDim.x + threadIdx.x;
     if (index >= numObjectsD.numAllMarkers) {
@@ -123,13 +122,12 @@ __global__ void ApplyInletBoundaryXKernel(Real4* posRadD, Real3* VelMassD, Real4
         rhoPresMuD[index].y = 0;
 
     if (posRad.x < paramsD.x_in) {
-        //        Real vel = paramsD.V_in * 4 * (posRadD[index].z) * (0.41 - posRadD[index].z) / (0.41 * 0.41);
         VelMassD[index] = mR3(paramsD.V_in.x, 0, 0);
     }
 }
 
 // -----------------------------------------------------------------------------
-/// Kernel to apply periodic BC along y
+// Kernel to apply periodic BC along y
 __global__ void ApplyPeriodicBoundaryYKernel(Real4* posRadD, Real4* rhoPresMuD) {
     uint index = blockIdx.x * blockDim.x + threadIdx.x;
     if (index >= numObjectsD.numAllMarkers) {
@@ -163,7 +161,7 @@ __global__ void ApplyPeriodicBoundaryYKernel(Real4* posRadD, Real4* rhoPresMuD) 
 }
 
 // -----------------------------------------------------------------------------
-/// Kernel to apply periodic BC along z
+// Kernel to apply periodic BC along z
 __global__ void ApplyPeriodicBoundaryZKernel(Real4* posRadD, Real4* rhoPresMuD) {
     uint index = blockIdx.x * blockDim.x + threadIdx.x;
     if (index >= numObjectsD.numAllMarkers) {
@@ -196,7 +194,7 @@ __global__ void ApplyPeriodicBoundaryZKernel(Real4* posRadD, Real4* rhoPresMuD) 
     }
 }
 // -----------------------------------------------------------------------------
-/// Kernel to keep particle inside the simulation domain
+// Kernel to keep particle inside the simulation domain
 __global__ void ApplyOutOfBoundaryKernel(Real4* posRadD, Real4* rhoPresMuD, Real3* velMasD) {
     uint index = blockIdx.x * blockDim.x + threadIdx.x;
     if (index >= numObjectsD.numAllMarkers) {
@@ -211,36 +209,30 @@ __global__ void ApplyOutOfBoundaryKernel(Real4* posRadD, Real4* rhoPresMuD, Real
     Real h = posRadD[index].w;
     if (posRad.x > 0.5 * paramsD.boxDimX) {
         posRad.x = 0.5 * paramsD.boxDimX;
-        // vel.x = 0.0;
     }
     if (posRad.x < -0.5 * paramsD.boxDimX) {
         posRad.x = -0.5 * paramsD.boxDimX;
-        // vel.x = 0.0;
     }
     if (posRad.y > 0.5 * paramsD.boxDimY) {
         posRad.y = 0.5 * paramsD.boxDimY;
-        // vel.y = 0.0;
     }
     if (posRad.y < -0.5 * paramsD.boxDimY) {
         posRad.y = -0.5 * paramsD.boxDimY;
-        // vel.y = 0.0;
     }
     if (posRad.z > 1.0 * paramsD.boxDimZ) {
         posRad.z = 1.0 * paramsD.boxDimZ;
-        // vel.z = 0.0;
     }
     if (posRad.z < -0.0 * paramsD.boxDimZ) {
         posRad.z = -0.0 * paramsD.boxDimZ;
-        // vel.z = 0.0;
     }
     posRadD[index] = mR4(posRad, h);
     velMasD[index] = mR3(vel);
     return;
 }
 // -----------------------------------------------------------------------------
-/// Kernel to update the fluid properities.
-/// It updates the density, velocity and position relying on explicit Euler
-/// scheme. Pressure is obtained from the density and an Equation of State.
+// Kernel to update the fluid properities.
+// It updates the density, velocity and position relying on explicit Euler
+// scheme. Pressure is obtained from the density and an Equation of State.
 __global__ void UpdateFluidD(Real4* posRadD,
                              Real3* velMasD,
                              Real3* vel_XSPH_D,
@@ -266,7 +258,8 @@ __global__ void UpdateFluidD(Real4* posRadD,
     Real p_tr, p_n;
 
     if (rhoPresMu.w < 0) {
-        if (paramsD.elastic_SPH) {  // This is only implemented for granular material
+        // This is only implemented for granular material
+        if (paramsD.elastic_SPH) {
             //--------------------------------
             // ** shear stress tau
             //--------------------------------
@@ -278,24 +271,30 @@ __global__ void UpdateFluidD(Real4* posRadD,
             Real3 updatedTauXyXzYz = tauXyXzYz + mR3(derivTauXyXzYz) * dT;
 
             // check if there is a plastic flow
-            p_n = -1.0 / 3.0 * (tauXxYyZz.x + tauXxYyZz.y + tauXxYyZz.z);  // rhoPresMu.y;
+            p_n = -1.0 / 3.0 * (tauXxYyZz.x + tauXxYyZz.y + tauXxYyZz.z); 
             tauXxYyZz.x += p_n;
             tauXxYyZz.y += p_n;
             tauXxYyZz.z += p_n;
-            p_tr = -1.0 / 3.0 * (updatedTauXxYyZz.x + updatedTauXxYyZz.y + updatedTauXxYyZz.z);  // rhoPresMu.y;
+            p_tr = -1.0 / 3.0 * (updatedTauXxYyZz.x + updatedTauXxYyZz.y + updatedTauXxYyZz.z);
             updatedTauXxYyZz.x += p_tr;
             updatedTauXxYyZz.y += p_tr;
             updatedTauXxYyZz.z += p_tr;
-            Real tau_tr = square(updatedTauXxYyZz.x) + square(updatedTauXxYyZz.y) + square(updatedTauXxYyZz.z) +
-                          2.0 * square(updatedTauXyXzYz.x) + 2.0 * square(updatedTauXyXzYz.y) +
-                          2.0 * square(updatedTauXyXzYz.z);
-            Real tau_n = square(tauXxYyZz.x) + square(tauXxYyZz.y) + square(tauXxYyZz.z) + 2.0 * square(tauXyXzYz.x) +
-                         2.0 * square(tauXyXzYz.y) + 2.0 * square(tauXyXzYz.z);
+            Real tau_tr = square(updatedTauXxYyZz.x) 
+                        + square(updatedTauXxYyZz.y) 
+                        + square(updatedTauXxYyZz.z)
+                        + 2.0 * square(updatedTauXyXzYz.x) 
+                        + 2.0 * square(updatedTauXyXzYz.y) 
+                        + 2.0 * square(updatedTauXyXzYz.z);
+            Real tau_n = square(tauXxYyZz.x) 
+                       + square(tauXxYyZz.y) 
+                       + square(tauXxYyZz.z) 
+                       + 2.0 * square(tauXyXzYz.x) 
+                       + 2.0 * square(tauXyXzYz.y) 
+                       + 2.0 * square(tauXyXzYz.z);
             tau_tr = sqrt(0.5 * tau_tr);
             tau_n = sqrt(0.5 * tau_n);
-            Real Chi =
-                abs(tau_tr - tau_n) / dT / paramsD.G_shear;  // should use the positive magnitude according to "A
-                                                             // constitutive law for dense granular flows" Nature 2006
+            Real Chi = abs(tau_tr - tau_n) / dT / paramsD.G_shear;  // should use the positive magnitude according to "A  
+                                                                    // constitutive law for dense granular flows" Nature 2006
             if (p_tr > 0.0e0) {
                 Real mu_s = paramsD.mu_fric_s;
                 Real mu_2 = paramsD.mu_fric_2;
@@ -316,7 +315,7 @@ __global__ void UpdateFluidD(Real4* posRadD,
                 //     updatedTauXxYyZz = updatedTauXxYyZz*coeff;
                 //     updatedTauXyXzYz = updatedTauXyXzYz*coeff;
                 // }
-                Real tau_max = p_tr * mu;  // p_tr*paramsD.Q_FA; //
+                Real tau_max = p_tr * mu;  // p_tr*paramsD.Q_FA;
                 if (tau_tr > tau_max) {  // should use tau_max instead of s_0 according to "A constitutive law for dense
                                          // granular flows" Nature 2006
                     Real coeff = tau_max / (tau_tr + 1e-9);
@@ -334,19 +333,23 @@ __global__ void UpdateFluidD(Real4* posRadD,
                 updatedTauXyXzYz = mR3(0.0);
                 p_tr = 0.0;
             }
-            tau_tr = square(updatedTauXxYyZz.x) + square(updatedTauXxYyZz.y) + square(updatedTauXxYyZz.z) +
-                     2.0 * square(updatedTauXyXzYz.x) + 2.0 * square(updatedTauXyXzYz.y) +
-                     2.0 * square(updatedTauXyXzYz.z);
+            tau_tr = square(updatedTauXxYyZz.x) 
+                   + square(updatedTauXxYyZz.y) 
+                   + square(updatedTauXxYyZz.z)
+                   + 2.0 * square(updatedTauXyXzYz.x) 
+                   + 2.0 * square(updatedTauXyXzYz.y) 
+                   + 2.0 * square(updatedTauXyXzYz.z);
             tau_tr = sqrt(0.5 * tau_tr);
             sr_tau_I_mu_iD[index].y = tau_tr;
 
             tauXxYyZzD[index] = updatedTauXxYyZz - mR3(p_tr);
             tauXyXzYzD[index] = updatedTauXyXzYz;
         }
+
         //-------------
         // ** position
         //-------------
-        Real3 vel_XSPH = velMasD[index] + paramsD.EPS_XSPH * vel_XSPH_D[index];
+        Real3 vel_XSPH = velMasD[index] + vel_XSPH_D[index]; //paramsD.EPS_XSPH * 
         Real3 posRad = mR3(posRadD[index]);
         Real3 updatedPositon = posRad + vel_XSPH * dT;
         if (!(isfinite(updatedPositon.x) && isfinite(updatedPositon.y) && isfinite(updatedPositon.z))) {
@@ -381,11 +384,11 @@ __global__ void UpdateFluidD(Real4* posRadD,
             *isErrorD = true;
             return;
         }
-        rhoPresMuD[index] = rhoPresMu;  // rhoPresMuD updated
+        rhoPresMuD[index] = rhoPresMu; 
     }
 
-    /// Important note: the derivVelRhoD that is calculated by the ChForceExplicitSPH is the negative of actual time
-    /// derivative. That is important to keep the derivVelRhoD to be the force/mass for fsi forces.
+    // Important note: the derivVelRhoD that is calculated by the ChForceExplicitSPH is the negative of actual time
+    // derivative. That is important to keep the derivVelRhoD to be the force/mass for fsi forces.
     // calculate the force that is f=m dv/dt
     derivVelRhoD[index] *= paramsD.markerMass;
 }
@@ -405,8 +408,7 @@ __global__ void Update_Fluid_State(Real3* new_vel,  // input: sorted velocities,
     if (i_idx >= updatePortion.y)
         return;
 
-    velMas[i_idx] = velMas[i_idx] + paramsD.EPS_XSPH * new_vel[i_idx];
-    //    printf("%f=", new_vel[i_idx].z);
+    velMas[i_idx] = new_vel[i_idx];
 
     Real3 newpos = mR3(posRad[i_idx]) + dT * velMas[i_idx];
     Real h = posRad[i_idx].w;
@@ -428,9 +430,9 @@ __global__ void Update_Fluid_State(Real3* new_vel,  // input: sorted velocities,
 }
 
 // -----------------------------------------------------------------------------
-/// Kernel for updating the density.
-/// It calculates the density of the markers. It does include the normalization
-/// close to the boundaries and free surface.
+// Kernel for updating the density.
+// It calculates the density of the markers. It does include the normalization
+// close to the boundaries and free surface.
 __global__ void ReCalcDensityD_F1(Real4* dummySortedRhoPreMu,
                                   Real4* sortedPosRad,
                                   Real3* sortedVelMas,
@@ -447,7 +449,7 @@ __global__ void ReCalcDensityD_F1(Real4* dummySortedRhoPreMu,
     Real3 posRadA = mR3(sortedPosRad[index]);
     Real4 rhoPreMuA = sortedRhoPreMu[index];
 
-    /// If density initialization should only be applied to fluid markers
+    // If density initialization should only be applied to fluid markers
     //    if (rhoPreMuA.w > -.1)
     //        return;
 
@@ -467,7 +469,7 @@ __global__ void ReCalcDensityD_F1(Real4* dummySortedRhoPreMu,
         }
     }
 
-    rhoPreMuA.x = numerator;  /// denominator;
+    rhoPreMuA.x = numerator;  // denominator;
     //    rhoPreMuA.y = Eos(rhoPreMuA.x, rhoPreMuA.w);
     dummySortedRhoPreMu[index] = rhoPreMuA;
 }
@@ -477,41 +479,47 @@ __global__ void ReCalcDensityD_F1(Real4* dummySortedRhoPreMu,
 // -----------------------------------------------------------------------------
 
 ChFluidDynamics::ChFluidDynamics(std::shared_ptr<ChBce> otherBceWorker,
-                                 std::shared_ptr<ChFsiDataManager> otherFsiData,
+                                 std::shared_ptr<ChSystemFsi_impl> otherFsiSystem,
                                  std::shared_ptr<SimParams> otherParamsH,
                                  std::shared_ptr<NumberOfObjects> otherNumObjects,
-                                 ChFluidDynamics::Integrator type)
-    : fsiData(otherFsiData), paramsH(otherParamsH), numObjectsH(otherNumObjects) {
-    myIntegrator = type;
-    switch (myIntegrator) {
-        case ChFluidDynamics::Integrator::I2SPH:
-            forceSystem = chrono_types::make_shared<ChFsiForceI2SPH>(otherBceWorker, fsiData->sortedSphMarkersD,
-                                                                     fsiData->markersProximityD,
-                                                                     fsiData->fsiGeneralData, paramsH, numObjectsH);
-            printf("Created an I2SPH frame work.\n");
+                                 CHFSI_TIME_INTEGRATOR type)
+    : fsiSystem(otherFsiSystem), paramsH(otherParamsH), numObjectsH(otherNumObjects) {
+    integrator_type = type;
+    switch (integrator_type) {
+        case CHFSI_TIME_INTEGRATOR::I2SPH:
+            forceSystem = chrono_types::make_shared<ChFsiForceI2SPH>(
+                otherBceWorker, fsiSystem->sortedSphMarkersD, fsiSystem->markersProximityD,
+                fsiSystem->fsiGeneralData, paramsH, numObjectsH);
+            std::cout << "===============================================================================" << std::endl;
+            std::cout << "========================   Created an I2SPH framework   =======================" << std::endl;
+            std::cout << "===============================================================================" << std::endl;
             break;
 
-        case ChFluidDynamics::Integrator::IISPH:
-            forceSystem = chrono_types::make_shared<ChFsiForceIISPH>(otherBceWorker, fsiData->sortedSphMarkersD,
-                                                                     fsiData->markersProximityD,
-                                                                     fsiData->fsiGeneralData, paramsH, numObjectsH);
-            printf("Created an IISPH framework.\n");
+        case CHFSI_TIME_INTEGRATOR::IISPH:
+            forceSystem = chrono_types::make_shared<ChFsiForceIISPH>(
+                otherBceWorker, fsiSystem->sortedSphMarkersD, fsiSystem->markersProximityD,
+                fsiSystem->fsiGeneralData, paramsH, numObjectsH);
+            std::cout << "===============================================================================" << std::endl;
+            std::cout << "========================   Created an IISPH framework   =======================" << std::endl;
+            std::cout << "===============================================================================" << std::endl;
             break;
 
-        case ChFluidDynamics::Integrator::ExplicitSPH:
+        case CHFSI_TIME_INTEGRATOR::ExplicitSPH:
             forceSystem = chrono_types::make_shared<ChFsiForceExplicitSPH>(
-                otherBceWorker, fsiData->sortedSphMarkersD, fsiData->markersProximityD, fsiData->fsiGeneralData,
-                paramsH, numObjectsH);
-            printf("Created an ExplicitSPHframe work.\n");
+                otherBceWorker, fsiSystem->sortedSphMarkersD, fsiSystem->markersProximityD,
+                fsiSystem->fsiGeneralData, paramsH, numObjectsH);
+            std::cout << "===============================================================================" << std::endl;
+            std::cout << "=====================   Created an Explicit SPH framework   ===================" << std::endl;
+            std::cout << "===============================================================================" << std::endl;
             break;
 
-            /// Extend this function with your own linear solvers
+        // Extend this function with your own linear solvers
         default:
-            forceSystem = chrono_types::make_shared<ChFsiForceIISPH>(otherBceWorker, fsiData->sortedSphMarkersD,
-                                                                     fsiData->markersProximityD,
-                                                                     fsiData->fsiGeneralData, paramsH, numObjectsH);
+            forceSystem = chrono_types::make_shared<ChFsiForceExplicitSPH>(otherBceWorker, fsiSystem->sortedSphMarkersD,
+                                                                     fsiSystem->markersProximityD,
+                                                                     fsiSystem->fsiGeneralData, paramsH, numObjectsH);
             std::cout << "The ChFsiForce you chose has not been implemented, reverting back to "
-                         "ChFsiForceIISPH\n";
+                         "ChFsiForceExplicitSPH" << std::endl;
     }
 }
 
@@ -526,33 +534,31 @@ void ChFluidDynamics::Finalize() {
 }
 
 // -----------------------------------------------------------------------------
-
 ChFluidDynamics::~ChFluidDynamics() {}
-// -----------------------------------------------------------------------------
 
+// -----------------------------------------------------------------------------
 void ChFluidDynamics::IntegrateSPH(std::shared_ptr<SphMarkerDataD> sphMarkersD2,
                                    std::shared_ptr<SphMarkerDataD> sphMarkersD1,
                                    std::shared_ptr<FsiBodiesDataD> fsiBodiesD,
                                    std::shared_ptr<FsiMeshDataD> fsiMeshD,
                                    Real dT) {
-    if (GetIntegratorType() == ChFluidDynamics::Integrator::ExplicitSPH)
+    if (GetIntegratorType() == CHFSI_TIME_INTEGRATOR::ExplicitSPH)
         forceSystem->ForceSPH(sphMarkersD2, fsiBodiesD, fsiMeshD);
     else
         forceSystem->ForceSPH(sphMarkersD1, fsiBodiesD, fsiMeshD);
 
-    if (myIntegrator == ChFluidDynamics::Integrator::IISPH)
+    if (integrator_type == CHFSI_TIME_INTEGRATOR::IISPH)
         this->UpdateFluid_Implicit(sphMarkersD2);
-    else if (GetIntegratorType() == ChFluidDynamics::Integrator::ExplicitSPH)
+    else if (GetIntegratorType() == CHFSI_TIME_INTEGRATOR::ExplicitSPH)
         this->UpdateFluid(sphMarkersD1, dT);
 
     this->ApplyBoundarySPH_Markers(sphMarkersD2);
 }
 
 // -----------------------------------------------------------------------------
-
 void ChFluidDynamics::UpdateFluid(std::shared_ptr<SphMarkerDataD> sphMarkersD, Real dT) {
     int2 updatePortion =
-        mI2(0, fsiData->fsiGeneralData->referenceArray[fsiData->fsiGeneralData->referenceArray.size() - 1].y);
+        mI2(0, fsiSystem->fsiGeneralData->referenceArray[fsiSystem->fsiGeneralData->referenceArray.size() - 1].y);
     bool *isErrorH, *isErrorD;
     isErrorH = (bool*)malloc(sizeof(bool));
     cudaMalloc((void**)&isErrorD, sizeof(bool));
@@ -562,11 +568,11 @@ void ChFluidDynamics::UpdateFluid(std::shared_ptr<SphMarkerDataD> sphMarkersD, R
     uint nBlock_UpdateFluid, nThreads;
     computeGridSize(updatePortion.y - updatePortion.x, 256, nBlock_UpdateFluid, nThreads);
     UpdateFluidD<<<nBlock_UpdateFluid, nThreads>>>(
-        mR4CAST(sphMarkersD->posRadD), mR3CAST(sphMarkersD->velMasD), mR3CAST(fsiData->fsiGeneralData->vel_XSPH_D),
-        mR4CAST(sphMarkersD->rhoPresMuD), mR4CAST(fsiData->fsiGeneralData->derivVelRhoD_old),
+        mR4CAST(sphMarkersD->posRadD), mR3CAST(sphMarkersD->velMasD), mR3CAST(fsiSystem->fsiGeneralData->vel_XSPH_D),
+        mR4CAST(sphMarkersD->rhoPresMuD), mR4CAST(fsiSystem->fsiGeneralData->derivVelRhoD_old),
         mR3CAST(sphMarkersD->tauXxYyZzD), mR3CAST(sphMarkersD->tauXyXzYzD),
-        mR3CAST(fsiData->fsiGeneralData->derivTauXxYyZzD), mR3CAST(fsiData->fsiGeneralData->derivTauXyXzYzD),
-        mR4CAST(fsiData->fsiGeneralData->sr_tau_I_mu_i), updatePortion, dT, isErrorD);
+        mR3CAST(fsiSystem->fsiGeneralData->derivTauXxYyZzD), mR3CAST(fsiSystem->fsiGeneralData->derivTauXyXzYzD),
+        mR4CAST(fsiSystem->fsiGeneralData->sr_tau_I_mu_i), updatePortion, dT, isErrorD);
     cudaDeviceSynchronize();
     cudaCheckError();
     //------------------------
@@ -585,10 +591,8 @@ void ChFluidDynamics::UpdateFluid_Implicit(std::shared_ptr<SphMarkerDataD> sphMa
     int haveGhost = (numObjectsH->numGhostMarkers > 0) ? 1 : 0;
     int haveHelper = (numObjectsH->numHelperMarkers > 0) ? 1 : 0;
 
-    int4 updatePortion = mI4(fsiData->fsiGeneralData->referenceArray[haveHelper].x,
-                             fsiData->fsiGeneralData->referenceArray[haveHelper + haveGhost].y, 0, 0);
-    //    std::cout << "Skipping the markers greater than "
-    //              << fsiData->fsiGeneralData->referenceArray[haveHelper + haveGhost].y << " in position update\n";
+    int4 updatePortion = mI4(fsiSystem->fsiGeneralData->referenceArray[haveHelper].x,
+                             fsiSystem->fsiGeneralData->referenceArray[haveHelper + haveGhost].y, 0, 0);
 
     std::cout << "time step in UpdateFluid_Implicit " << paramsH->dT << std::endl;
     bool *isErrorH, *isErrorD;
@@ -597,7 +601,7 @@ void ChFluidDynamics::UpdateFluid_Implicit(std::shared_ptr<SphMarkerDataD> sphMa
     *isErrorH = false;
     cudaMemcpy(isErrorD, isErrorH, sizeof(bool), cudaMemcpyHostToDevice);
     Update_Fluid_State<<<numBlocks, numThreads>>>(
-        mR3CAST(fsiData->fsiGeneralData->vel_XSPH_D), mR3CAST(fsiData->fsiGeneralData->vis_vel_SPH_D),
+        mR3CAST(fsiSystem->fsiGeneralData->vel_XSPH_D), mR3CAST(fsiSystem->fsiGeneralData->vis_vel_SPH_D),
         mR4CAST(sphMarkersD->posRadD), mR3CAST(sphMarkersD->velMasD), mR4CAST(sphMarkersD->rhoPresMuD), updatePortion,
         numObjectsH->numAllMarkers, paramsH->dT, isErrorD);
     cudaDeviceSynchronize();
@@ -676,17 +680,17 @@ void ChFluidDynamics::DensityReinitialization() {
     thrust::fill(dummySortedRhoPreMu.begin(), dummySortedRhoPreMu.end(), mR4(0.0));
 
     ReCalcDensityD_F1<<<nBlock_NumSpheres, nThreads_SphMarkers>>>(
-        mR4CAST(dummySortedRhoPreMu), mR4CAST(fsiData->sortedSphMarkersD->posRadD),
-        mR3CAST(fsiData->sortedSphMarkersD->velMasD), mR4CAST(fsiData->sortedSphMarkersD->rhoPresMuD),
-        U1CAST(fsiData->markersProximityD->gridMarkerIndexD), U1CAST(fsiData->markersProximityD->cellStartD),
-        U1CAST(fsiData->markersProximityD->cellEndD), numObjectsH->numAllMarkers);
+        mR4CAST(dummySortedRhoPreMu), mR4CAST(fsiSystem->sortedSphMarkersD->posRadD),
+        mR3CAST(fsiSystem->sortedSphMarkersD->velMasD), mR4CAST(fsiSystem->sortedSphMarkersD->rhoPresMuD),
+        U1CAST(fsiSystem->markersProximityD->gridMarkerIndexD), U1CAST(fsiSystem->markersProximityD->cellStartD),
+        U1CAST(fsiSystem->markersProximityD->cellEndD), numObjectsH->numAllMarkers);
 
     cudaDeviceSynchronize();
     cudaCheckError();
-    ChFsiForce::CopySortedToOriginal_NonInvasive_R4(fsiData->sphMarkersD1->rhoPresMuD, dummySortedRhoPreMu,
-                                                    fsiData->markersProximityD->gridMarkerIndexD);
-    ChFsiForce::CopySortedToOriginal_NonInvasive_R4(fsiData->sphMarkersD2->rhoPresMuD, dummySortedRhoPreMu,
-                                                    fsiData->markersProximityD->gridMarkerIndexD);
+    ChFsiForce::CopySortedToOriginal_NonInvasive_R4(fsiSystem->sphMarkersD1->rhoPresMuD, dummySortedRhoPreMu,
+                                                    fsiSystem->markersProximityD->gridMarkerIndexD);
+    ChFsiForce::CopySortedToOriginal_NonInvasive_R4(fsiSystem->sphMarkersD2->rhoPresMuD, dummySortedRhoPreMu,
+                                                    fsiSystem->markersProximityD->gridMarkerIndexD);
     dummySortedRhoPreMu.clear();
 }
 

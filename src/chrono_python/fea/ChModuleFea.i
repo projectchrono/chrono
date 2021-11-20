@@ -58,21 +58,21 @@
 #include "chrono/fea/ChElementBar.h"
 #include "chrono/fea/ChElementBeam.h"
 #include "chrono/fea/ChElementBeamEuler.h"
-#include "chrono/fea/ChElementBeamANCF.h"
+#include "chrono/fea/ChElementBeamANCF_3333.h"
 #include "chrono/fea/ChElementBeamIGA.h"
-#include "chrono/fea/ChElementTetra_4.h"
-#include "chrono/fea/ChElementTetra_10.h"
-#include "chrono/fea/ChElementHexa_8.h"
-#include "chrono/fea/ChElementHexa_20.h"
-#include "chrono/fea/ChElementBrick.h"
-#include "chrono/fea/ChElementBrick_9.h"
+#include "chrono/fea/ChElementTetraCorot_4.h"
+#include "chrono/fea/ChElementTetraCorot_10.h"
+#include "chrono/fea/ChElementHexaCorot_8.h"
+#include "chrono/fea/ChElementHexaCorot_20.h"
+#include "chrono/fea/ChElementHexaANCF_3813.h"
+#include "chrono/fea/ChElementHexaANCF_3813_9.h"
 #include "chrono/fea/ChElementShell.h"
 #include "chrono/fea/ChMaterialShellReissner.h"
 #include "chrono/fea/ChMaterialShellANCF.h"
 #include "chrono/fea/ChMaterialShellKirchhoff.h"
 #include "chrono/fea/ChElementShellReissner4.h"
-#include "chrono/fea/ChElementShellANCF.h"
-#include "chrono/fea/ChElementShellANCF_8.h"
+#include "chrono/fea/ChElementShellANCF_3423.h"
+#include "chrono/fea/ChElementShellANCF_3833.h"
 #include "chrono/fea/ChElementShellBST.h"
 #include "chrono/fea/ChElementCableANCF.h"
 #include "chrono/fea/ChBuilderBeam.h"
@@ -98,6 +98,7 @@
 #include "chrono/fea/ChLinkPointFrame.h"
 #include "chrono/fea/ChLinkPointPoint.h"
 #include "chrono/fea/ChMeshFileLoader.h"
+#include "chrono/fea/ChLoadsXYZROTnode.h"
 #include "Eigen/src/Core/util/Memory.h"
 
 using namespace chrono;
@@ -140,7 +141,7 @@ using namespace chrono::fea;
 %template(vector_ChElementBeamEuler)    std::vector< std::shared_ptr<chrono::fea::ChElementBeamEuler> >;
 %template(vector_ChElementBeamIGA)    std::vector< std::shared_ptr<chrono::fea::ChElementBeamIGA> >;
 %template(vector_ChElementCableANCF)    std::vector< std::shared_ptr<chrono::fea::ChElementCableANCF> >;
-%template(vector_ChElementBeamANCF)    std::vector< std::shared_ptr<chrono::fea::ChElementBeamANCF> >;
+%template(vector_ChElementBeamANCF_3333)    std::vector< std::shared_ptr<chrono::fea::ChElementBeamANCF_3333> >;
 
 //
 // For each class, keep updated the  A, B, C sections: 
@@ -218,7 +219,7 @@ using namespace chrono::fea;
 %shared_ptr(chrono::fea::ChInertiaCosseratMassref)
 %shared_ptr(chrono::fea::ChElementBeam)
 %shared_ptr(chrono::fea::ChElementBeamEuler)
-%shared_ptr(chrono::fea::ChElementBeamANCF)
+%shared_ptr(chrono::fea::ChElementBeamANCF_3333)
 %shared_ptr(chrono::fea::ChElementBeamIGA)
 %shared_ptr(chrono::fea::ChContinuumMaterial)
 %shared_ptr(chrono::fea::ChContinuumElastic)
@@ -238,14 +239,14 @@ using namespace chrono::fea;
 %shared_ptr(chrono::fea::ChElementBar)
 %shared_ptr(chrono::fea::ChElementCorotational)
 %shared_ptr(chrono::fea::ChElementTetrahedron)
-%shared_ptr(chrono::fea::ChElementTetra_4)
-%shared_ptr(chrono::fea::ChElementTetra_4_P)
-%shared_ptr(chrono::fea::ChElementTetra_10)
+%shared_ptr(chrono::fea::ChElementTetraCorot_4)
+%shared_ptr(chrono::fea::ChElementTetraCorot_4_P)
+%shared_ptr(chrono::fea::ChElementTetraCorot_10)
 %shared_ptr(chrono::fea::ChElementHexahedron)
-%shared_ptr(chrono::fea::ChElementHexa_8)
-%shared_ptr(chrono::fea::ChElementHexa_20)
-%shared_ptr(chrono::fea::ChElementBrick)
-%shared_ptr(chrono::fea::ChElementBrick_9)
+%shared_ptr(chrono::fea::ChElementHexaCorot_8)
+%shared_ptr(chrono::fea::ChElementHexaCorot_20)
+%shared_ptr(chrono::fea::ChElementHexaANCF_3813)
+%shared_ptr(chrono::fea::ChElementHexaANCF_3813_9)
 %shared_ptr(chrono::fea::ChNodeFEAbase)
 %shared_ptr(chrono::fea::ChNodeFEAxyz)
 %shared_ptr(chrono::fea::ChNodeFEAxyzP)
@@ -285,8 +286,8 @@ using namespace chrono::fea;
 %shared_ptr(chrono::fea::ChDampingKirchhoffRayleigh)
 %shared_ptr(chrono::fea::ChElementShell)
 %shared_ptr(chrono::fea::ChElementShellReissner4)
-%shared_ptr(chrono::fea::ChElementShellANCF)
-%shared_ptr(chrono::fea::ChElementShellANCF_8)
+%shared_ptr(chrono::fea::ChElementShellANCF_3423)
+%shared_ptr(chrono::fea::ChElementShellANCF_3833)
 %shared_ptr(chrono::fea::ChElementShellBST)
 %shared_ptr(chrono::fea::ChElementCableANCF)
 %shared_ptr(chrono::fea::ChBuilderBeamEuler)
@@ -299,6 +300,18 @@ using namespace chrono::fea;
 %shared_ptr(chrono::fea::ChExtruderBeamEuler)
 %shared_ptr(chrono::fea::ChExtruderBeamIGA)
 %shared_ptr(chrono::fea::ChVisualizationFEAmesh)
+%shared_ptr(chrono::fea::ChLoadXYZROTnode)
+%shared_ptr(chrono::fea::ChLoadXYZROTnodeForceAbsolute)
+%shared_ptr(chrono::fea::ChLoadXYZROTnodeXYZROTnode)
+%shared_ptr(chrono::fea::ChLoadXYZROTnodeXYZROTnodeBushingSpherical)
+%shared_ptr(chrono::fea::ChLoadXYZROTnodeXYZROTnodeBushingPlastic)
+%shared_ptr(chrono::fea::ChLoadXYZROTnodeXYZROTnodeBushingMate)
+%shared_ptr(chrono::fea::ChLoadXYZROTnodeXYZROTnodeBushingGeneric)
+%shared_ptr(chrono::fea::ChLoadXYZROTnodeBody)
+%shared_ptr(chrono::fea::ChLoadXYZROTnodeBodyBushingSpherical)
+%shared_ptr(chrono::fea::ChLoadXYZROTnodeBodyBushingPlastic)
+%shared_ptr(chrono::fea::ChLoadXYZROTnodeBodyBushingMate)
+%shared_ptr(chrono::fea::ChLoadXYZROTnodeBodyBushingGeneric)
 
 //
 // B- INCLUDE HEADERS
@@ -379,19 +392,19 @@ using namespace chrono::fea;
 %include "../../chrono/fea/ChBeamSectionCable.h"
 %include "../../chrono/fea/ChElementBeam.h"
 %include "../../chrono/fea/ChElementBeamEuler.h"
-%include "../../chrono/fea/ChElementBeamANCF.h"
+%include "../../chrono/fea/ChElementBeamANCF_3333.h"
 %include "../../chrono/fea/ChElementBeamIGA.h"
 %include "../../chrono/fea/ChContinuumPoisson3D.h"
 %include "../../chrono/fea/ChContinuumElectrostatics.h"
 %include "../../chrono/fea/ChContinuumThermal.h"
 %include "../../chrono/fea/ChElementTetrahedron.h"  	
-%include "../../chrono/fea/ChElementTetra_4.h"
-%include "../../chrono/fea/ChElementTetra_10.h"
+%include "../../chrono/fea/ChElementTetraCorot_4.h"
+%include "../../chrono/fea/ChElementTetraCorot_10.h"
 %include "../../chrono/fea/ChElementHexahedron.h"		
-%include "../../chrono/fea/ChElementHexa_8.h"
-%include "../../chrono/fea/ChElementHexa_20.h"
-%include "../../chrono/fea/ChElementBrick.h"
-%include "../../chrono/fea/ChElementBrick_9.h"
+%include "../../chrono/fea/ChElementHexaCorot_8.h"
+%include "../../chrono/fea/ChElementHexaCorot_20.h"
+%include "../../chrono/fea/ChElementHexaANCF_3813.h"
+%include "../../chrono/fea/ChElementHexaANCF_3813_9.h"
 %include "../../chrono/fea/ChMaterialShellANCF.h"
 // TODO: if eigen::ref can be wrapped, unignore these,
 %ignore chrono::fea::ChElasticityReissner::ComputeStiffnessMatrix;
@@ -410,10 +423,10 @@ using namespace chrono::fea;
 %include "../../chrono/fea/ChElementShell.h"
 %rename(ShellReissner4Layer) chrono::fea::ChElementShellReissner4::Layer;
 %include "../../chrono/fea/ChElementShellReissner4.h"
-%rename(ShellANCF) chrono::fea::ChElementShellANCF::Layer;
-%include "../../chrono/fea/ChElementShellANCF.h"
-%rename(ShellANCF_8Layer) chrono::fea::ChElementShellANCF_8::Layer;
-%include "../../chrono/fea/ChElementShellANCF_8.h"
+%rename(ShellANCF) chrono::fea::ChElementShellANCF_3423::Layer;
+%include "../../chrono/fea/ChElementShellANCF_3423.h"
+%rename(ShellANCF_8Layer) chrono::fea::ChElementShellANCF_3833::Layer;
+%include "../../chrono/fea/ChElementShellANCF_3833.h"
 %rename(ShellBSTLayer) chrono::fea::ChElementShellBST::Layer;
 %include "../../chrono/fea/ChElementShellBST.h"
 %include "../../chrono/fea/ChElementCableANCF.h"
@@ -433,6 +446,7 @@ using namespace chrono::fea;
 %include "../../chrono/fea/ChMesh.h"
 %include "../../chrono/fea/ChBuilderBeam.h"
 %include "../../chrono/fea/ChMeshFileLoader.h"
+%include "../../chrono/fea/ChLoadsXYZROTnode.h"
 
 //
 // C- DOWNCASTING OF SHARED POINTERS
@@ -467,19 +481,20 @@ using namespace chrono::fea;
 %DefSharedPtrDynamicDowncast(chrono::fea,ChElasticityKirchhoff,ChElasticityKirchhoffGeneric)
 %DefSharedPtrDynamicDowncast(chrono::fea,ChElementBase,ChElementBar)
 %DefSharedPtrDynamicDowncast(chrono::fea,ChElementBase,ChElementSpring)
-%DefSharedPtrDynamicDowncast(chrono::fea,ChElementBase,ChElementTetra_4)
-%DefSharedPtrDynamicDowncast(chrono::fea,ChElementBase,ChElementTetra_10)
-%DefSharedPtrDynamicDowncast(chrono::fea,ChElementBase,ChElementHexa_8)
-%DefSharedPtrDynamicDowncast(chrono::fea,ChElementBase,ChElementHexa_20)
+%DefSharedPtrDynamicDowncast(chrono::fea,ChElementBase,ChElementTetraCorot_4)
+%DefSharedPtrDynamicDowncast(chrono::fea,ChElementBase,ChElementTetraCorot_4_P)
+%DefSharedPtrDynamicDowncast(chrono::fea,ChElementBase,ChElementTetraCorot_10)
+%DefSharedPtrDynamicDowncast(chrono::fea,ChElementBase,ChElementHexaCorot_8)
+%DefSharedPtrDynamicDowncast(chrono::fea,ChElementBase,ChElementHexaCorot_20)
 %DefSharedPtrDynamicDowncast(chrono::fea,ChElementBase,ChElementBeamEuler)
-%DefSharedPtrDynamicDowncast(chrono::fea,ChElementBase,ChElementBeamANCF)
+%DefSharedPtrDynamicDowncast(chrono::fea,ChElementBase,ChElementBeamANCF_3333)
 %DefSharedPtrDynamicDowncast(chrono::fea,ChElementBase,ChElementBeamIGA)
 %DefSharedPtrDynamicDowncast(chrono::fea,ChElementBase,ChElementCableANCF)
 %DefSharedPtrDynamicDowncast(chrono::fea,ChElementBase,ChElementShellReissner4)
-%DefSharedPtrDynamicDowncast(chrono::fea,ChElementBase,ChElementShellANCF)
-%DefSharedPtrDynamicDowncast(chrono::fea,ChElementBase,ChElementShellANCF_8)
-%DefSharedPtrDynamicDowncast(chrono::fea,ChElementBase,ChElementBrick)
-%DefSharedPtrDynamicDowncast(chrono::fea,ChElementBase,ChElementBrick_9)
+%DefSharedPtrDynamicDowncast(chrono::fea,ChElementBase,ChElementShellANCF_3423)
+%DefSharedPtrDynamicDowncast(chrono::fea,ChElementBase,ChElementShellANCF_3833)
+%DefSharedPtrDynamicDowncast(chrono::fea,ChElementBase,ChElementHexaANCF_3813)
+%DefSharedPtrDynamicDowncast(chrono::fea,ChElementBase,ChElementHexaANCF_3813_9)
 %DefSharedPtrDynamicDowncast2NS(chrono,chrono::fea,ChNodeBase,ChNodeFEAbase)
 %DefSharedPtrDynamicDowncast(chrono::fea,ChNodeFEAbase,ChNodeFEAxyz)
 %DefSharedPtrDynamicDowncast(chrono::fea,ChNodeFEAbase,ChNodeFEAxyzP)
@@ -533,6 +548,35 @@ using namespace chrono::fea;
     return ptr_out;
   }
 %}
+
+%extend chrono::fea::ChLoadXYZROTnodeXYZROTnodeBushingGeneric{
+		public:
+			ChLoadXYZROTnodeXYZROTnodeBushingGeneric(
+                    std::shared_ptr<chrono::fea::ChNodeFEAxyzrot> mnodeA,  ///< node A
+                    std::shared_ptr<chrono::fea::ChNodeFEAxyzrot> mnodeB,  ///< node B
+                    const ChFrame<>& abs_application,
+                    chrono::ChMatrixDynamic<double> mstiffness,
+                    chrono::ChMatrixDynamic<double> mdamping){
+
+               chrono::fea::ChLoadXYZROTnodeXYZROTnodeBushingGeneric *selfpoint = new ChLoadXYZROTnodeXYZROTnodeBushingGeneric(mnodeA, mnodeB, abs_application, mstiffness, mdamping);
+			   return selfpoint;
+			   }
+		};
+
+%extend chrono::fea::ChLoadXYZROTnodeBodyBushingGeneric{
+		public:
+			ChLoadXYZROTnodeBodyBushingGeneric(
+                    std::shared_ptr<chrono::fea::ChNodeFEAxyzrot> mnodeA,  ///< node A
+                    std::shared_ptr<chrono::ChBody> mnodeB,  ///< node B
+                    const ChFrame<>& abs_application,
+                    chrono::ChMatrixDynamic<double> mstiffness,
+                    chrono::ChMatrixDynamic<double> mdamping){
+			   
+			   chrono::fea::ChLoadXYZROTnodeBodyBushingGeneric *selfpoint = new ChLoadXYZROTnodeBodyBushingGeneric(mnodeA, mnodeB, abs_application, mstiffness, mdamping);
+
+			   return selfpoint;
+			   }
+		};
 
 //
 // ADD PYTHON CODE

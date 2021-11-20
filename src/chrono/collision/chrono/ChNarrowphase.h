@@ -37,7 +37,7 @@ namespace collision {
 ///          |  sphere   box   rbox   capsule   cylinder   rcyl   trimesh
 /// ---------+----------------------------------------------------------
 /// sphere   |    Y       Y      Y       Y         Y        Y        Y
-/// box      |            Y      N       Y         N        N        N
+/// box      |            Y      N       Y         N        N        Y
 /// rbox     |                   N       N         N        N        N
 /// capsule  |                           Y         N        N        N
 /// cylinder |                                     N        N        N

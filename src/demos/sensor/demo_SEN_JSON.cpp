@@ -30,8 +30,8 @@
 #include "chrono/utils/ChUtilsCreators.h"
 #include "chrono_thirdparty/filesystem/path.h"
 
-#include "chrono_sensor/Sensor.h"
-#include "chrono_sensor/ChCameraSensor.h"
+#include "chrono_sensor/sensors/Sensor.h"
+#include "chrono_sensor/sensors/ChCameraSensor.h"
 #include "chrono_sensor/ChSensorManager.h"
 
 using namespace chrono;
@@ -109,10 +109,20 @@ int main(int argc, char* argv[]) {
     // ---------------------------------------------
     // Create a imu and add it to the sensor manager
     // ---------------------------------------------
-    auto imu = Sensor::CreateFromJSON(GetChronoDataFile("sensor/json/generic/IMU.json"), mesh_body,
+    auto acc = Sensor::CreateFromJSON(GetChronoDataFile("sensor/json/generic/Accelerometer.json"), mesh_body,
                                       ChFrame<>({0, 0, 0}, Q_from_AngZ(0)));
     // add sensor to the manager
-    manager->AddSensor(imu);
+    manager->AddSensor(acc);
+
+    auto gyro = Sensor::CreateFromJSON(GetChronoDataFile("sensor/json/generic/Gyroscope.json"), mesh_body,
+                                       ChFrame<>({0, 0, 0}, Q_from_AngZ(0)));
+    // add sensor to the manager
+    manager->AddSensor(gyro);
+
+    auto mag = Sensor::CreateFromJSON(GetChronoDataFile("sensor/json/generic/Magnetometer.json"), mesh_body,
+                                      ChFrame<>({0, 0, 0}, Q_from_AngZ(0)));
+    // add sensor to the manager
+    manager->AddSensor(mag);
 
     // ---------------
     // Simulate system
@@ -154,8 +164,8 @@ int main(int argc, char* argv[]) {
             // std::cout << "Data recieved from gps. Frame: " << num_gps_updates << std::endl;
         }
 
-        UserIMUBufferPtr imu_data = imu->GetMostRecentBuffer<UserIMUBufferPtr>();
-        if (imu_data->Buffer) {
+        UserAccelBufferPtr acc_data = acc->GetMostRecentBuffer<UserAccelBufferPtr>();
+        if (acc_data->Buffer) {
             num_imu_updates++;
             // std::cout << "Data recieved from imu. Frame: " << num_imu_updates << std::endl;
         }

@@ -23,6 +23,23 @@
 namespace chrono {
 namespace synchrono {
 
+AgentKey::AgentKey(int node_id, int agent_id) {
+    m_node_id = node_id;
+    m_agent_id = agent_id;
+
+    // Matthew Szudzik pairing function (Cantor pair would also work)
+    m_unique_id = node_id >= agent_id ? (node_id * node_id) + node_id + agent_id : (agent_id * agent_id) + node_id;
+}
+
+std::string AgentKey::GetKeyString() const {
+    return std::to_string(m_node_id) + "." + std::to_string(m_agent_id);
+}
+
+const SynFlatBuffers::AgentKey* const AgentKey::GetFlatbuffersKey() const {
+    // This memory is freed when we clear out messages
+    return new SynFlatBuffers::AgentKey(m_node_id, m_agent_id);
+}
+
 SynPose::SynPose(const ChVector<>& mv, const ChQuaternion<>& mq) {
     m_frame = ChFrameMoving<>(mv, mq);
 }

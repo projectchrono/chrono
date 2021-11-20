@@ -769,6 +769,21 @@ ChApi int box_intersects_box(const real3& hdims1,
                              real separation,
                              real3& dir);
 
+/// This function returns an integer indicating whether or not a box with dimensions hdims intersects (or is close
+/// enough to) a triangle given by its vertices v0, v1, v2.  The check is performed in the box frame and it is assumed
+/// that the triangle vertices are expressed in the box frame.
+///
+/// The return value is -1 if the box and triangle overlap, +1 if they are within a distance of 'separation' from each
+/// other, and 0 if they are "far" from each other.
+///
+/// This check is performed by testing 13 possible separating planes between the box and triangle (see Ericson).
+ChApi int box_intersects_triangle(const real3& hdims,
+                                  const real3& v0,
+                                  const real3& v1,
+                                  const real3& v2,
+                                  real separation);
+
+
 /// @}
 
 }  // end namespace ch_utils

@@ -291,7 +291,6 @@ set(ChronoEngine_physics_loads_SOURCES
     physics/ChLoad.cpp
     physics/ChLoadsBody.cpp
     physics/ChLoadsXYZnode.cpp
-    physics/ChLoadsXYZROTnode.cpp
     physics/ChLoadBodyMesh.cpp
 )
 
@@ -303,7 +302,6 @@ set(ChronoEngine_physics_loads_HEADERS
     physics/ChLoaderUVW.h
     physics/ChLoad.h
     physics/ChLoadsXYZnode.h
-    physics/ChLoadsXYZROTnode.h
     physics/ChLoadsBody.h
     physics/ChLoadBodyMesh.h
     physics/ChLoadContainer.h
@@ -331,6 +329,7 @@ set(ChronoEngine_physics_shafts_SOURCES
     physics/ChShaftsTorqueConverter.cpp
     physics/ChShaftsThermalEngine.cpp
     physics/ChShaftsLoads.cpp
+    physics/ChShaftsFreewheel.cpp
 )
 
 set(ChronoEngine_physics_shafts_HEADERS
@@ -352,6 +351,7 @@ set(ChronoEngine_physics_shafts_HEADERS
     physics/ChShaftsTorqueConverter.h
     physics/ChShaftsThermalEngine.h
     physics/ChShaftsLoads.h
+    physics/ChShaftsFreewheel.h
 )
 
 source_group(physics\\shafts FILES
@@ -390,7 +390,10 @@ set(ChronoEngine_fea_SOURCES
     fea/ChContactSurfaceMesh.cpp
     fea/ChMeshSurface.cpp
     fea/ChLoadContactSurfaceMesh.cpp
+    fea/ChLoadsXYZROTnode.cpp
+    fea/ChMaterialBeamANCF.cpp
     fea/ChMaterialShellANCF.cpp
+    fea/ChMaterialHexaANCF.cpp
     fea/ChMaterialShellReissner.cpp
 	fea/ChMaterialShellKirchhoff.cpp
     )
@@ -408,9 +411,8 @@ set(ChronoEngine_fea_HEADERS
     fea/ChContinuumPoisson3D.h
     fea/ChContinuumThermal.h
     fea/ChContinuumElectrostatics.h
-    fea/ChFaceTetra_4.h
-    fea/ChFaceBrick_9.h
-    fea/ChFaceHexa_8.h
+    fea/ChHexahedronFace.h
+    fea/ChTetrahedronFace.h
     fea/ChLoadsBeam.h
     fea/ChGaussIntegrationRule.h
     fea/ChGaussPoint.h
@@ -432,8 +434,11 @@ set(ChronoEngine_fea_HEADERS
     fea/ChContactSurfaceMesh.h
     fea/ChMeshSurface.h
     fea/ChLoadContactSurfaceMesh.h
+    fea/ChLoadsXYZROTnode.h
     fea/ChRotUtils.h
+    fea/ChMaterialBeamANCF.h
     fea/ChMaterialShellANCF.h
+    fea/ChMaterialHexaANCF.h
     fea/ChMaterialShellReissner.h
 	fea/ChMaterialShellKirchhoff.h
 )
@@ -450,6 +455,7 @@ set(ChronoEngine_fea_nodes_SOURCES
     fea/ChNodeFEAxyzP.cpp
     fea/ChNodeFEAxyzD.cpp
     fea/ChNodeFEAxyzDD.cpp
+    fea/ChNodeFEAxyzDDD.cpp
     fea/ChNodeFEAcurv.cpp
 )
 
@@ -460,6 +466,7 @@ set(ChronoEngine_fea_nodes_HEADERS
     fea/ChNodeFEAxyzP.h
     fea/ChNodeFEAxyzD.h
     fea/ChNodeFEAxyzDD.h
+    fea/ChNodeFEAxyzDDD.h
     fea/ChNodeFEAcurv.h
 )
 
@@ -468,7 +475,6 @@ source_group(fea\\nodes FILES
     ${ChronoEngine_fea_nodes_HEADERS})
 
 set(ChronoEngine_fea_elements_SOURCES
-    fea/ChElementBeamANCF.cpp
     fea/ChElementBeamEuler.cpp
     fea/ChElementBeamTaperedTimoshenko.cpp
     fea/ChElementBeamTaperedTimoshenkoFPM.cpp
@@ -477,16 +483,20 @@ set(ChronoEngine_fea_elements_SOURCES
     fea/ChElementGeneric.cpp
     fea/ChElementSpring.cpp
     fea/ChElementBar.cpp
-    fea/ChElementTetra_4.cpp
-    fea/ChElementTetra_10.cpp
-    fea/ChElementHexa_8.cpp
-    fea/ChElementHexa_20.cpp
-    fea/ChElementShellANCF.cpp
-    fea/ChElementShellANCF_8.cpp
-    fea/ChElementShellReissner4.cpp
+    fea/ChElementTetraCorot_4.cpp
+    fea/ChElementTetraCorot_10.cpp
+    fea/ChElementHexaCorot_8.cpp
+    fea/ChElementHexaCorot_20.cpp
+    fea/ChElementHexaANCF_3813.cpp
+    fea/ChElementHexaANCF_3813_9.cpp
+    fea/ChElementHexaANCF_3843.cpp
+    fea/ChElementBeamANCF_3243.cpp
+    fea/ChElementBeamANCF_3333.cpp
+    fea/ChElementShellANCF_3423.cpp
+    fea/ChElementShellANCF_3833.cpp
+    fea/ChElementShellANCF_3443.cpp
 	fea/ChElementShellBST.cpp
-    fea/ChElementBrick.cpp
-    fea/ChElementBrick_9.cpp
+    fea/ChElementShellReissner4.cpp
 )
 
 set(ChronoEngine_fea_elements_HEADERS
@@ -496,23 +506,26 @@ set(ChronoEngine_fea_elements_HEADERS
     fea/ChElementSpring.h
     fea/ChElementBar.h
     fea/ChElementBeam.h
-    fea/ChElementBeamANCF.h
+    fea/ChElementBeamANCF_3243.h
+    fea/ChElementBeamANCF_3333.h
     fea/ChElementBeamEuler.h
     fea/ChElementBeamTaperedTimoshenko.h
     fea/ChElementBeamTaperedTimoshenkoFPM.h
     fea/ChElementBeamIGA.h
     fea/ChElementCableANCF.h
-    fea/ChElementBrick.h
-    fea/ChElementBrick_9.h
     fea/ChElementTetrahedron.h
-    fea/ChElementTetra_4.h
-    fea/ChElementTetra_10.h
+    fea/ChElementTetraCorot_4.h
+    fea/ChElementTetraCorot_10.h
     fea/ChElementHexahedron.h
-    fea/ChElementHexa_8.h
-    fea/ChElementHexa_20.h
+    fea/ChElementHexaANCF_3813.h
+    fea/ChElementHexaANCF_3813_9.h
+    fea/ChElementHexaCorot_8.h
+    fea/ChElementHexaCorot_20.h
+    fea/ChElementHexaANCF_3843.h
     fea/ChElementShell.h
-    fea/ChElementShellANCF.h
-    fea/ChElementShellANCF_8.h
+    fea/ChElementShellANCF_3423.h
+    fea/ChElementShellANCF_3443.h
+    fea/ChElementShellANCF_3833.h
     fea/ChElementShellReissner4.h
 	fea/ChElementShellBST.h
 )

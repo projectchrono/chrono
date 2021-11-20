@@ -112,6 +112,10 @@ class CH_VEHICLE_API SAEToeBarLeafspringAxle : public ChSAEToeBarLeafspringAxle 
 
     virtual bool isLeftKnuckleActuated() override { return m_use_left_knuckle; }
 
+    virtual std::shared_ptr<ChVehicleBushingData> getShackleBushingData() const override { return m_shackleBushingData; }
+    virtual std::shared_ptr<ChVehicleBushingData> getClampBushingData() const override { return m_clampBushingData; }
+    virtual std::shared_ptr<ChVehicleBushingData> getLeafspringBushingData() const override { return m_leafspringBushingData; }
+
   private:
     virtual const ChVector<> getLocation(PointId which) override { return m_points[which]; }
 
@@ -165,6 +169,10 @@ class CH_VEHICLE_API SAEToeBarLeafspringAxle : public ChSAEToeBarLeafspringAxle 
     ChVector<> m_shackleInertia;
 
     bool m_use_left_knuckle;
+
+    std::shared_ptr<ChVehicleBushingData> m_shackleBushingData;
+    std::shared_ptr<ChVehicleBushingData> m_clampBushingData;
+    std::shared_ptr<ChVehicleBushingData> m_leafspringBushingData;
 };
 
 /// @} vehicle_wheeled_suspension

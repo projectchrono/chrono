@@ -156,7 +156,7 @@ The following example illustrates it.
 
 ~~~{.cpp}
 	// Create the tetrahedron element, 
-    auto melement1 = std::make_shared<ChElementTetra_4>();
+    auto melement1 = std::make_shared<ChElementTetraCorot_4>();
     
     // Remember to add elements to the mesh!
     my_mesh->AddElement(melement1);

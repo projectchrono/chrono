@@ -14,6 +14,7 @@
 #include <thrust/extrema.h>
 #include <thrust/sort.h>
 #include "chrono_fsi/physics/ChFsiForceIISPH.cuh"
+#include "chrono_fsi/physics/ChSphGeneral.cuh"
 #define RESOLUTION_LENGTH_MULT_IISPH 2.0
 
 //==========================================================================================================================================
@@ -295,7 +296,7 @@ __global__ void Calc_dij_pj(Real3* dij_pj,  // write
     F_p[i_idx] = -m_i * my_F_p;
 }
 
-////--------------------------------------------------------------------------------------------------------------------------------
+//--------------------------------------------------------------------------------------------------------------------------------
 __global__ void CalcNumber_Contacts(uint* numContacts,
                                     Real4* sortedPosRad,
                                     Real4* sortedRhoPreMu,
@@ -352,7 +353,7 @@ __global__ void CalcNumber_Contacts(uint* numContacts,
                             numCol[counter] = j;
                             counter++;
                             // Do not count BCE-BCE interactions...
-                            if (myType >= 0 && sortedRhoPreMu[j].w >= 0 && paramsD.bceType == ADAMI)
+                            if (myType >= 0 && sortedRhoPreMu[j].w >= 0 && paramsD.bceType == BceVersion::ADAMI)
                                 counter--;
                         }
 
@@ -393,7 +394,7 @@ __global__ void CalcNumber_Contacts(uint* numContacts,
                                 }
                             }
                         }
-                        ///////////////////////////////
+
                     }
                 }
             }
@@ -403,7 +404,7 @@ __global__ void CalcNumber_Contacts(uint* numContacts,
     numContacts[i_idx] = counter + 10;
 }
 
-////--------------------------------------------------------------------------------------------------------------------------------
+//--------------------------------------------------------------------------------------------------------------------------------
 __global__ void Calc_summGradW(Real3* summGradW,  // write
                                Real4* sortedPosRad,
                                Real4* sortedRhoPreMu,
@@ -455,13 +456,13 @@ __global__ void Calc_summGradW(Real3* summGradW,  // write
     summGradW[i_idx] = My_summgradW;
 }
 
-////--------------------------------------------------------------------------------------------------------------------------------
+//--------------------------------------------------------------------------------------------------------------------------------
 __device__ void Calc_BC_aij_Bi(const uint i_idx,
                                Real* csrValA,
                                uint* csrColIndA,
                                unsigned long int* GlobalcsrColIndA,
                                uint* numContacts,
-                               ///> The above 4 vectors are used for CSR form.
+                               // The above 4 vectors are used for CSR form.
                                Real* a_ii,  // write
                                Real* B_i,
                                Real4* sortedPosRad,
@@ -560,7 +561,7 @@ __device__ void Calc_BC_aij_Bi(const uint i_idx,
                         Real Wd = W3h(d, h_ij);
                         Real3 Vel_j = sortedVelMas[j];
 
-                        if (paramsD.bceType != ADAMI) {
+                        if (paramsD.bceType != BceVersion::ADAMI) {
                             if (sortedRhoPreMu[j].w == -1.0 || dot(my_normal, mR3(pos_i - pos_j)) > 0) {
                                 Real3 grad_i_wij = GradWh(dist3, h_ij);
                                 csrValA[csrStartIdx - 1] += dot(grad_i_wij, my_normal);
@@ -593,7 +594,7 @@ __device__ void Calc_BC_aij_Bi(const uint i_idx,
     if (abs(denumenator) < EPSILON) {
         V_new[i_idx] = 2 * V_prescribed;
         B_i[i_idx] = 0;
-        if (paramsD.bceType == ADAMI) {
+        if (paramsD.bceType == BceVersion::ADAMI) {
             csrValA[csrStartIdx - 1] = a_ii[i_idx];
             csrColIndA[csrStartIdx - 1] = i_idx;
             GlobalcsrColIndA[csrStartIdx - 1] = i_idx + numAllMarkers * i_idx;
@@ -602,7 +603,7 @@ __device__ void Calc_BC_aij_Bi(const uint i_idx,
         Real Scaling = a_ii[i_idx] / denumenator;
         V_new[i_idx] = 2 * V_prescribed - numeratorv / denumenator;
 
-        if (paramsD.bceType == ADAMI) {
+        if (paramsD.bceType == BceVersion::ADAMI) {
             B_i[i_idx] = pRHS;
             csrValA[csrStartIdx - 1] = denumenator;
             csrColIndA[csrStartIdx - 1] = i_idx;
@@ -614,7 +615,7 @@ __device__ void Calc_BC_aij_Bi(const uint i_idx,
         }
     }
 
-    if (paramsD.bceType != ADAMI) {
+    if (paramsD.bceType != BceVersion::ADAMI) {
         Real Scaling = a_ii[i_idx];
         if (abs(csrValA[csrStartIdx - 1]) > EPSILON) {
             Scaling = a_ii[i_idx];  // csrValA[csrStartIdx - 1];
@@ -646,13 +647,13 @@ __device__ void Calc_BC_aij_Bi(const uint i_idx,
 }  // namespace fsi
 //--------------------------------------------------------------------------------------------------------------------------------
 
-////--------------------------------------------------------------------------------------------------------------------------------
+//--------------------------------------------------------------------------------------------------------------------------------
 __device__ void Calc_fluid_aij_Bi(const uint i_idx,
                                   Real* csrValA,
                                   uint* csrColIndA,
                                   unsigned long int* GlobalcsrColIndA,
                                   uint* numContacts,
-                                  ///> The above 4 vectors are used for CSR form.
+                                  // The above 4 vectors are used for CSR form.
                                   Real* B_i,
                                   Real3* d_ii,   // Read
                                   Real* a_ii,    // Read
@@ -773,7 +774,7 @@ __device__ void Calc_fluid_aij_Bi(const uint i_idx,
                                 }
                             }
                         }
-                        ///////////////////////////////
+
                     }
                 }
             }
@@ -807,7 +808,7 @@ __global__ void FormAXB(Real* csrValA,
                         unsigned long int* GlobalcsrColIndA,
 
                         uint* numContacts,
-                        ///> The above 4 vectors are used for CSR form.
+                        // The above 4 vectors are used for CSR form.
                         Real* a_ij,   // write
                         Real* B_i,    // write
                         Real3* d_ii,  // Read
@@ -932,7 +933,7 @@ __global__ void Calc_Pressure_AXB_USING_CSR(Real* csrValA,
     }
 }
 
-////--------------------------------------------------------------------------------------------------------------------------------
+//--------------------------------------------------------------------------------------------------------------------------------
 __global__ void Calc_Pressure(Real* a_ii,     // Read
                               Real3* d_ii,    // Read
                               Real3* dij_pj,  // Read
@@ -1433,7 +1434,7 @@ void ChFsiForceIISPH::calcPressureIISPH(std::shared_ptr<FsiBodiesDataD> otherFsi
             fsiGeneralData->referenceArray[haveGhost + haveHelper + 1 + numObjectsH->numRigidBodies + numFlexbodies].y);
 
     uint NNZ;
-    if (mySolutionType == FORM_SPARSE_MATRIX) {
+    if (mySolutionType == PPE_SolutionType::FORM_SPARSE_MATRIX) {
         thrust::fill(a_ij.begin(), a_ij.end(), 0.0);
         thrust::fill(B_i.begin(), B_i.end(), 0.0);
         //        thrust::fill(summGradW.begin(), summGradW.end(), mR3(0.0));
@@ -1531,7 +1532,7 @@ void ChFsiForceIISPH::calcPressureIISPH(std::shared_ptr<FsiBodiesDataD> otherFsi
     myLinearSolver->SetIterationLimit(paramsH->LinearSolver_Max_Iter);
 
     if (paramsH->USE_LinearSolver) {
-        if (paramsH->PPE_Solution_type != FORM_SPARSE_MATRIX) {
+        if (paramsH->PPE_Solution_type != PPE_SolutionType::FORM_SPARSE_MATRIX) {
             printf(
                 "You should paramsH->PPE_Solution_type == FORM_SPARSE_MATRIX in order to use the "
                 "chrono_fsi linear "
@@ -1540,7 +1541,7 @@ void ChFsiForceIISPH::calcPressureIISPH(std::shared_ptr<FsiBodiesDataD> otherFsi
         }
 
         myLinearSolver->Solve((int)numAllMarkers, NNZ, R1CAST(csrValA), U1CAST(numContacts), U1CAST(csrColIndA),
-                              (double*)R1CAST(p_old), R1CAST(B_i));
+                              R1CAST(p_old), R1CAST(B_i));
         cudaCheckError();
     } else {
         while ((MaxRes > paramsH->LinearSolver_Abs_Tol || Iteration < 3) &&
@@ -1557,7 +1558,7 @@ void ChFsiForceIISPH::calcPressureIISPH(std::shared_ptr<FsiBodiesDataD> otherFsi
                 throw std::runtime_error("Error! program crashed after Initialize_Variables!\n");
             }
 
-            if (mySolutionType == MATRIX_FREE) {
+            if (mySolutionType == PPE_SolutionType::MATRIX_FREE) {
                 *isErrorH = false;
                 cudaMemcpy(isErrorD, isErrorH, sizeof(bool), cudaMemcpyHostToDevice);
                 Calc_dij_pj<<<numBlocks, numThreads>>>(
@@ -1599,7 +1600,7 @@ void ChFsiForceIISPH::calcPressureIISPH(std::shared_ptr<FsiBodiesDataD> otherFsi
                 }
             }
 
-            if (mySolutionType == FORM_SPARSE_MATRIX) {
+            if (mySolutionType == PPE_SolutionType::FORM_SPARSE_MATRIX) {
                 *isErrorH = false;
                 cudaMemcpy(isErrorD, isErrorH, sizeof(bool), cudaMemcpyHostToDevice);
                 Calc_Pressure_AXB_USING_CSR<<<numBlocks, numThreads>>>(

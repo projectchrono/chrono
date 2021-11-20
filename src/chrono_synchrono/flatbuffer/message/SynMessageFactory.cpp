@@ -36,14 +36,16 @@ std::shared_ptr<SynMessage> SynMessageFactory::GenerateMessage(const SynFlatBuff
     std::shared_ptr<SynMessage> message;
 
     // Get rank
-    unsigned int source_id = incoming_message->source_id();
-    unsigned int destination_id = incoming_message->destination_id();
+    auto fb_source = incoming_message->source_key();
+    auto fb_destination = incoming_message->destination_key();
+    AgentKey source_key(fb_source->node_id(), fb_source->agent_id());
+    AgentKey destination_key(fb_destination->node_id(), fb_destination->agent_id());
 
     // Create the correct message
     if (incoming_message->message_type() == SynFlatBuffers::Type_Terrain_State) {
         auto terrain_state = incoming_message->message_as_Terrain_State();
         if (terrain_state->message_type() == SynFlatBuffers::Terrain::Type_SCM_State) {
-            message = chrono_types::make_shared<SynSCMMessage>(source_id, destination_id);
+            message = chrono_types::make_shared<SynSCMMessage>(source_key, destination_key);
         } else {
             throw ChException("SynMessageFactory::GenerateMessage: Unknown TERRAIN type.");
         }
@@ -51,13 +53,13 @@ std::shared_ptr<SynMessage> SynMessageFactory::GenerateMessage(const SynFlatBuff
         const SynFlatBuffers::Agent::State* agent_state = incoming_message->message_as_Agent_State();
 
         if (agent_state->message_type() == SynFlatBuffers::Agent::Type_WheeledVehicle_State) {
-            message = chrono_types::make_shared<SynWheeledVehicleStateMessage>(source_id, destination_id);
+            message = chrono_types::make_shared<SynWheeledVehicleStateMessage>(source_key, destination_key);
         } else if (agent_state->message_type() == SynFlatBuffers::Agent::Type_TrackedVehicle_State) {
-            message = chrono_types::make_shared<SynTrackedVehicleStateMessage>(source_id, destination_id);
+            message = chrono_types::make_shared<SynTrackedVehicleStateMessage>(source_key, destination_key);
         } else if (agent_state->message_type() == SynFlatBuffers::Agent::Type_Environment_State) {
-            message = chrono_types::make_shared<SynEnvironmentMessage>(source_id, destination_id);
+            message = chrono_types::make_shared<SynEnvironmentMessage>(source_key, destination_key);
         } else if (agent_state->message_type() == SynFlatBuffers::Agent::Type_Copter_State) {
-            message = chrono_types::make_shared<SynCopterStateMessage>(source_id, destination_id);
+            message = chrono_types::make_shared<SynCopterStateMessage>(source_key, destination_key);
         } else {
             throw ChException("SynMessageFactory::GenerateMessage: Unknown AGENT STATE type.");
         }
@@ -65,22 +67,22 @@ std::shared_ptr<SynMessage> SynMessageFactory::GenerateMessage(const SynFlatBuff
         auto agent_description = incoming_message->message_as_Agent_Description();
 
         if (agent_description->description_type() == SynFlatBuffers::Agent::Type_WheeledVehicle_Description) {
-            message = chrono_types::make_shared<SynWheeledVehicleDescriptionMessage>(source_id, destination_id);
+            message = chrono_types::make_shared<SynWheeledVehicleDescriptionMessage>(source_key, destination_key);
         } else if (agent_description->description_type() == SynFlatBuffers::Agent::Type_TrackedVehicle_Description) {
-            message = chrono_types::make_shared<SynTrackedVehicleDescriptionMessage>(source_id, destination_id);
+            message = chrono_types::make_shared<SynTrackedVehicleDescriptionMessage>(source_key, destination_key);
         } else if (agent_description->description_type() == SynFlatBuffers::Agent::Type_Environment_Description) {
-            message = chrono_types::make_shared<SynEnvironmentMessage>(source_id, destination_id);
+            message = chrono_types::make_shared<SynEnvironmentMessage>(source_key, destination_key);
         } else if (agent_description->description_type() == SynFlatBuffers::Agent::Type_Copter_Description) {
-            message = chrono_types::make_shared<SynCopterDescriptionMessage>(source_id, destination_id);
+            message = chrono_types::make_shared<SynCopterDescriptionMessage>(source_key, destination_key);
         } else {
             throw ChException("SynMessageFactory::GenerateMessage: Unknown AGENT DESCRIPTION type.");
         }
     } else if (incoming_message->message_type() == SynFlatBuffers::Type_Simulation_State) {
-        message = chrono_types::make_shared<SynSimulationMessage>(source_id, destination_id);
+        message = chrono_types::make_shared<SynSimulationMessage>(source_key, destination_key);
     } else if (incoming_message->message_type() == SynFlatBuffers::Type_SPAT_State) {
-        message = chrono_types::make_shared<SynSPATMessage>(source_id, destination_id);
+        message = chrono_types::make_shared<SynSPATMessage>(source_key, destination_key);
     } else if (incoming_message->message_type() == SynFlatBuffers::Type_MAP_State) {
-        message = chrono_types::make_shared<SynMAPMessage>(source_id, destination_id);
+        message = chrono_types::make_shared<SynMAPMessage>(source_key, destination_key);
     } else {
         throw ChException("SynMessageFactory::GenerateMessage: Unknown type.");
     }

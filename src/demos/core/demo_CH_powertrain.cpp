@@ -29,6 +29,8 @@
 #include "chrono/physics/ChShaftsMotor.h"
 #include "chrono/physics/ChShaftsTorque.h"
 #include "chrono/physics/ChShaftsThermalEngine.h"
+#include "chrono/physics/ChShaftsFreewheel.h"
+#include "chrono/physics/ChShaftsMotorAngle.h"
 
 using namespace chrono;
 
@@ -359,7 +361,7 @@ int main(int argc, char* argv[]) {
         // EXAMPLE 5:
         //
 
-        GetLog() << " Example: torque converter and thermal engine \n";
+        GetLog() << " Example 5: torque converter and thermal engine \n";
 
         // In this example we use a torque converter.
         // The torque converter is represented by a ChShaftsTorqueConverter
@@ -494,6 +496,111 @@ int main(int argc, char* argv[]) {
                      << "  T(w)=" << my_motor->GetTorqueReactionOn1() << "[Nm]"
                      << "  w=" << my_motor->GetRelativeRotation_dt() << "[rad/s]"
                      << "\n";
+        }
+    }
+
+    if (true) {
+        //
+        // EXAMPLE 6:
+        //
+
+        GetLog() << " Example 6: a ratcheting freewheel, as a one-directional clutch \n";
+
+        // In this example we use a ratcheting freewheel, that acts as a one-directional 
+        // clutch (where the locking in reverse direction happens only at discrete
+        // steps, depending on the n.of ratcheting teeths).
+        // The example consists of:
+        // - the fixed shaft A
+        // - the shaft B, that rotates back and forth 
+        // - the shaft C, that rotates only unidirectionally
+        // - the fixed shaft D
+        // In the following scheme
+        // - the freewheel is represented as [ fw ],
+        // - we also add a motor, shown with [ m ], to generate sinusoidal rotation of B for testing
+        // - we also add a clutch, shown with [ cl ], just to keep the shaft C "stopped" when not 
+        //   pushed by the unidirectional freewheel, otherwise would proceed in one direction forever.
+        // (A,D are shown as * because fixed).
+        //
+        //   A           B             C             D
+        //   *---[ m ]---||---[ fw ]---||---[ cl ]---*
+        //
+
+        // The physical system: it contains all physical objects.
+        ChSystemNSC my_system;
+
+        // Create 'A', a 1D shaft, fixed
+        auto my_shaftA = chrono_types::make_shared<ChShaft>();
+        my_shaftA->SetShaftFixed(true);
+        my_system.Add(my_shaftA);
+
+        // Create 'B', a 1D shaft
+        auto my_shaftB = chrono_types::make_shared<ChShaft>();
+        my_shaftB->SetInertia(1.5);
+        my_system.Add(my_shaftB);
+
+        // Create 'C', a 1D shaft
+        auto my_shaftC = chrono_types::make_shared<ChShaft>();
+        my_shaftC->SetInertia(3.2);
+        my_system.Add(my_shaftC);
+
+        // Create D', a 1D shaft, fixed
+        auto my_shaftD = chrono_types::make_shared<ChShaft>();
+        my_shaftD->SetShaftFixed(true);
+        my_system.Add(my_shaftD);
+
+        // Make the motor imposing a test sinusoidal rotation
+        auto my_motor = chrono_types::make_shared<ChShaftsMotorAngle>();
+        my_motor->Initialize(my_shaftA, my_shaftB);
+        my_system.Add(my_motor);
+        auto my_sinefunction = chrono_types::make_shared<ChFunction_Sine>(0, 1.2,  0.001+0.5*CH_C_2PI / 20); // phase freq ampl
+        my_motor->SetAngleFunction(my_sinefunction);
+
+        // Make the freewheel:
+        auto my_freewheel = chrono_types::make_shared<ChShaftsFreewheel>();
+        my_freewheel->Initialize(my_shaftB, my_shaftC);
+        my_freewheel->SetRatchetingModeTeeth(25);  
+        //my_freewheel->SetJammingMode(); // this is like having infinite teeth, i.e. no backlash
+        //my_freewheel->SetFreeBackward(); // this is to reverse the unidirectional behavior
+        my_system.Add(my_freewheel);
+
+        // Make the clutch that keeps the shaft C in place:
+        auto my_clutch = chrono_types::make_shared<ChShaftsClutch>();
+        my_clutch->Initialize(my_shaftC, my_shaftD);
+        my_clutch->SetTorqueLimit(100);
+        my_system.Add(my_clutch);
+
+
+        GetLog() << "\n\n\nHere's the system hierarchy: \n\n ";
+        my_system.ShowHierarchy(GetLog());
+
+        ChStreamOutAsciiFile file_results("test_clutch.txt");
+
+        // Perform a very simple simulation loop..
+        double chronoTime = 0;
+        double step = 0.01;
+        while (chronoTime < 5.5) {
+            chronoTime += step;
+
+            // PERFORM SIMULATION UP TO chronoTime
+            my_system.DoStepDynamics(step);
+
+            // Print something on the console..
+            GetLog() << "Time: " << chronoTime << "\n"
+                << "  shaft B rot: " << my_shaftB->GetPos() << "  speed: " << my_shaftB->GetPos_dt()
+                << "  accel: " << my_shaftB->GetPos_dtdt() << "\n"
+                << "  shaft C rot: " << my_shaftC->GetPos() << "  speed: " << my_shaftC->GetPos_dt()
+                << "  accel: " << my_shaftC->GetPos_dtdt() << "\n"
+                << "  Torque: Tmotor=" << my_motor->GetTorqueReactionOn1()
+                << "  Tfreewheel=" << my_freewheel->GetTorqueReactionOn1()
+                << "  Tclutch=" << my_clutch->GetTorqueReactionOn1()
+                << "  ratchet vane=" << my_freewheel->GetCurrentTeethVane()
+                << "\n";
+            file_results << chronoTime << ", " 
+                << my_shaftB->GetPos() << ", " 
+                << my_shaftC->GetPos() << ", " 
+                << my_shaftC->GetPos_dt() << ", " 
+                << my_clutch->GetTorqueReactionOn1() << ", " 
+                << my_freewheel->GetCurrentTeethVane() << "\n";
         }
     }
 

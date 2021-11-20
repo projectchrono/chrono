@@ -15,7 +15,7 @@
 // =============================================================================
 
 #include <cuda.h>
-#include "grayscale.cuh"
+#include "chrono_sensor/cuda/lidar_clip.cuh"
 #include <iostream>
 
 namespace chrono {
@@ -33,10 +33,10 @@ __global__ void lidar_clip_kernel(float* buf, int w, int h, float threshold, flo
     }
 }
 
-void cuda_lidar_clip(float* buf, int width, int height, float threshold, float default_dist) {
+void cuda_lidar_clip(float* buf, int width, int height, float threshold, float default_dist, CUstream& stream) {
     const int nThreads = 512;
     int nBlocks = (width * height + nThreads - 1) / nThreads;
-    lidar_clip_kernel<<<nBlocks, nThreads>>>(buf, width, height, threshold, default_dist);
+    lidar_clip_kernel<<<nBlocks, nThreads, 0, stream>>>(buf, width, height, threshold, default_dist);
 }
 
 }  // namespace sensor

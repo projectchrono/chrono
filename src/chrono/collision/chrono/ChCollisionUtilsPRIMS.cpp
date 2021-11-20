@@ -178,7 +178,7 @@ bool point_vs_face(const real3& hdims,
 
 // This utility function calculates the closest points between the box edge identified by 'pt_on_edge' and 'code' and a
 // line segment between 'pt1' and 'pt2'. It returns true if the closest points are within the extent of the edge and
-// the segment, respecively, and false otherwise. The closest points are returned in 'locE' and 'locS', respectively.
+// the segment, respectively, and false otherwise. The closest points are returned in 'locE' and 'locS', respectively.
 // This function uses the parametric solution of the two support lines to solve for the closest points, simplified as
 // we work in the local frame of the box.
 // See box_closest_feature for definition of 'code.
@@ -326,6 +326,135 @@ int box_intersects_box(const real3& hdims1,
     }
 
     // If minOverlap is larger than the specified separation, the boxes actually penetrate.
+    // Otherwise, they are separated (but not by more that 'separation').
+    return (minOverlap >= separation) ? -1 : +1;
+}
+
+// This function returns an integer indicating whether or not a box with dimensions hdims intersects (or is close
+// enough to) a triangle given by its vertices v0, v1, v2.  The check is performed in the box frame and it is assumed
+// that the triangle vertices are expressed in the box frame.
+//
+// The return value is -1 if the box and triangle overlap, +1 if they are within a distance of 'separation' from each
+// other, and 0 if they are "far" from each other.
+//
+// This check is performed by testing 13 possible separating planes between the box and triangle (see Ericson).
+int box_intersects_triangle(const real3& hdims,
+                            const real3& v0,
+                            const real3& v1,
+                            const real3& v2,
+                            real separation) {
+    real3 hdimsS = hdims + separation;
+    real minOverlap = C_REAL_MAX;
+    real overlap;
+
+    // (1) Test the 3 axes corresponding to the box face normals
+    for (int i = 0; i < 3; i++) {
+        overlap = Max(v0[i], v1[i], v2[i]) + hdimsS[i];
+        if (overlap <= 0)
+            return 0;
+        if (overlap < minOverlap) {
+            minOverlap = overlap;
+        }
+        overlap = hdimsS[i] - Min(v0[i], v1[i], v2[i]);
+        if (overlap <= 0)
+            return 0;
+        if (overlap < minOverlap) {
+            minOverlap = overlap;
+        }
+    }
+
+    // Triangle normal vector
+    real3 n = triangle_normal(v0, v1, v2);
+
+    // (2) Test the axis corresponding to the triangle normal
+    real r = hdimsS[0] * Abs(n[0]) + hdimsS[1] * Abs(n[1]) + hdimsS[2] * Abs(n[2]);
+    real d = Dot(n, v0);
+    overlap = r - Abs(d);
+    if (overlap <= 0)
+        return 0;
+    if (overlap < minOverlap) {
+        minOverlap = overlap;
+    }
+
+    // Calculate triangle edge vectors
+    real3 f[] = {
+        v1 - v0,  // edge V0V1
+        v2 - v1,  // edge V1V2
+        v0 - v2   // edge V2V0
+    };
+
+    // (3) Test axis corresponding to cross products of triangle edges and box directions
+    //       --------|----------0----*-----|-----------*-------
+    //              -r               m    +r           M
+    for (int i = 0; i < 3; i++) {
+        // For each of the 3 box directions (k=0,1,2), calculate:
+        // (a) cross product of current triangle edge f[i] with the box direction (a_k)
+        // (b) projection radius of box onto the cross product (r_k)
+        // (c) projection of each triangle vertex onto the cross product:
+        //     p0_k = V0 . a_k , p1_k = V1 . a_k , p2_k = V2 . a_k
+        // (d) projection interval of triangle onto the cross product:
+        //     [m_k , M_k] = [min(p0_k, p1_k, p2_k) , max(p0_k, p1_k, p2_k)]
+        // (e) overlap = 2 * r_k - Max(m_k+r_k, -M_k-r_k)
+
+        // box direction u0 = [1,0,0]
+        real3 a0(0, -f[i].z, +f[i].y);  // a0 = [1, 0, 0] x f[i]
+        real a0_len = Length(a0);
+        if (a0_len > 1e-10) {
+            real r0 = hdimsS.y * Abs(f[i].z) + hdimsS.z * Abs(f[i].y);
+            real p0_0 = -v0.y * f[i].z + v0.z * f[i].y;
+            real p1_0 = -v1.y * f[i].z + v1.z * f[i].y;
+            real p2_0 = -v2.y * f[i].z + v2.z * f[i].y;
+            real m0 = Min(p0_0, p1_0, p2_0);
+            real M0 = Max(p0_0, p1_0, p2_0);
+            overlap = 2 * r0 - Max(m0 + r0, -M0 - r0);
+            if (overlap <= 0)
+                return 0;
+            overlap /= a0_len;
+            if (overlap < minOverlap) {
+                minOverlap = overlap;
+            }
+        }
+
+        // box direction u1 = [0,1,0]
+        real3 a1(+f[i].z, 0, -f[i].z);  // a1 = [0, 1, 0] x f[i]
+        real a1_len = Length(a1);
+        if (a1_len > 1e-10) {
+            real r1 = hdimsS.x * Abs(f[i].z) + hdimsS.z * Abs(f[i].x);
+            real p0_1 = v0.x * f[i].z - v0.z * f[i].x;
+            real p1_1 = v1.x * f[i].z - v1.z * f[i].x;
+            real p2_1 = v2.x * f[i].z - v2.z * f[i].x;
+            real m1 = Min(p0_1, p1_1, p2_1);
+            real M1 = Max(p0_1, p1_1, p2_1);
+            overlap = 2 * r1 - Max(m1 + r1, -M1 - r1);
+            if (overlap <= 0)
+                return 0;
+            overlap /= a1_len;
+            if (overlap < minOverlap) {
+                minOverlap = overlap;
+            }
+        }
+
+        // box direction u2 = [0,0,1]
+        real3 a2(-f[i].y, +f[i].x, 0);  // a2 = [0, 0, 1] x f[i]
+        real a2_len = Length(a2);
+        if (a2_len > 1e-10) {
+            real r2 = hdimsS.x * Abs(f[i].y) + hdimsS.y * Abs(f[i].x);
+            real p0_2 = -v0.x * f[i].y + v0.y * f[i].x;
+            real p1_2 = -v1.x * f[i].y + v1.y * f[i].x;
+            real p2_2 = -v2.x * f[i].y + v2.y * f[i].x;
+            real m2 = Min(p0_2, p1_2, p2_2);
+            real M2 = Max(p0_2, p1_2, p2_2);
+            overlap = 2 * r2 - Max(m2 + r2, -M2 - r2);
+            if (overlap <= 0)
+                return 0;
+            overlap /= a2_len;
+            if (overlap < minOverlap) {
+                minOverlap = overlap;
+            }
+        }
+    }
+
+    // If minOverlap is larger than the specified separation, the box and triangle actually penetrate.
     // Otherwise, they are separated (but not by more that 'separation').
     return (minOverlap >= separation) ? -1 : +1;
 }

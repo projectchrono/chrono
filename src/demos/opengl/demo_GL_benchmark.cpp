@@ -18,6 +18,10 @@
 // The global reference frame has Z up.
 // =============================================================================
 
+#ifdef __EMSCRIPTEN__
+#include <emscripten.h>
+#endif
+
 #include "chrono/physics/ChSystemNSC.h"
 #include "chrono/utils/ChUtilsCreators.h"
 #include "chrono/utils/ChUtilsGenerators.h"
@@ -56,9 +60,18 @@ int main(int argc, char* argv[]) {
     opengl::ChOpenGLWindow& gl_window = opengl::ChOpenGLWindow::getInstance();
     gl_window.Initialize(1280, 720, "benchmarkOpenGL", &msystem);
     gl_window.SetCamera(ChVector<>(-50, -50, 0), ChVector<>(0, 0, 0), ChVector<>(0, 0, 1));
-    while (gl_window.Active()) {
+    
+    std::function<void()> step_iter = [&]() {
         gl_window.Render();
+    };
+    
+#ifdef __EMSCRIPTEN__
+    emscripten_set_main_loop_arg(&opengl::ChOpenGLWindow::WrapRenderStep, (void*)&step_iter, 50, true);
+#else
+    while (gl_window.Active()) {
+        step_iter();
     }
+#endif
 
     return 0;
 }

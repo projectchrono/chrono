@@ -27,7 +27,7 @@ namespace chrono {
 namespace synchrono {
 
 SynEnvironmentAgent::SynEnvironmentAgent(ChSystem* system) : SynAgent(), m_system(system) {
-    m_message = chrono_types::make_shared<SynEnvironmentMessage>(0, 0);
+    m_message = chrono_types::make_shared<SynEnvironmentMessage>();
 }
 
 SynEnvironmentAgent::~SynEnvironmentAgent() {}
@@ -77,11 +77,11 @@ void SynEnvironmentAgent::SetColor(int intersection, int approach, int lane, Lan
     m_message->spat_message->SetColor(intersection, approach, lane, color);
 }
 
-void SynEnvironmentAgent::SetID(SynAgentID aid) {
-    m_message->SetSourceID(aid);
-    m_message->spat_message->SetSourceID(aid);
-    m_message->map_message->SetSourceID(aid);
-    m_aid = aid;
+void SynEnvironmentAgent::SetKey(AgentKey agent_key) {
+    m_message->SetSourceKey(agent_key);
+    m_message->spat_message->SetSourceKey(agent_key);
+    m_message->map_message->SetSourceKey(agent_key);
+    m_agent_key = agent_key;
 }
 
 // ------------------------------------------------------------------------

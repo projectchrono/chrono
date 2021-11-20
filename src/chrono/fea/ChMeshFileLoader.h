@@ -19,7 +19,7 @@
 
 #include <map>
 
-#include "chrono/fea/ChElementShellANCF.h"
+#include "chrono/fea/ChElementShellANCF_3423.h"
 #include "chrono/fea/ChElementShellBST.h"
 #include "chrono/fea/ChMesh.h"
 #include "chrono/core/ChMatrix.h"
@@ -81,15 +81,15 @@ class ChApi ChMeshFileLoader {
         bool printElements = false                         ///< display the imported elements
     );
 
-	/// Load a .obj triangle mesh in Wavefront OBJ file format, and convert it into a mesh of shell elements
-	/// of ChElementShellBST type. 
-	static void BSTShellFromObjFile(
-        std::shared_ptr<ChMesh> mesh,                      ///< destination mesh
-        const char* filename,                              ///< .obj mesh complete filename
+    /// Load a .obj triangle mesh in Wavefront OBJ file format, and convert it into a mesh of shell elements
+    /// of ChElementShellBST type.
+    static void BSTShellFromObjFile(
+        std::shared_ptr<ChMesh> mesh,                           ///< destination mesh
+        const char* filename,                                   ///< .obj mesh complete filename
         std::shared_ptr<ChMaterialShellKirchhoff> my_material,  ///< material to be given to the shell elements
-		double my_thickness,							   ///< thickness to be given to shell elements
-        ChVector<> pos_transform = VNULL,                  ///< optional displacement of imported mesh
-        ChMatrix33<> rot_transform = ChMatrix33<>(1)      ///< optional rotation/scaling of imported mesh
+        double my_thickness,                                    ///< thickness to be given to shell elements
+        ChVector<> pos_transform = VNULL,                       ///< optional displacement of imported mesh
+        ChMatrix33<> rot_transform = ChMatrix33<>(1)            ///< optional rotation/scaling of imported mesh
     );
 };
 

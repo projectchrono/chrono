@@ -25,7 +25,21 @@ namespace fsi {
 /// @{
 
 /// @brief Derived class of ChFsiForce that implements the I2SPH method.
-class CH_FSI_API ChFsiForceI2SPH : public ChFsiForce {
+class ChFsiForceI2SPH : public ChFsiForce {
+  public:
+    /// Force class implemented using incompressible SPH method with implicit integrator
+    ChFsiForceI2SPH(
+      std::shared_ptr<ChBce> otherBceWorker,                   ///< Pointer to the ChBce object that handles BCE particles
+      std::shared_ptr<SphMarkerDataD> otherSortedSphMarkersD,  ///< Information of SPH particles in the sorted array on device
+      std::shared_ptr<ProximityDataD> otherMarkersProximityD,  ///< Pointer to the object that holds the proximity of particles on device
+      std::shared_ptr<FsiGeneralData> otherFsiGeneralData,     ///< Pointer to the SPH general data
+      std::shared_ptr<SimParams> otherParamsH,                 ///< Pointer to the simulation parameters on host
+      std::shared_ptr<NumberOfObjects> otherNumObjects         ///< Pointer to number of objects, fluid and boundary particles, etc.
+    );
+
+    ~ChFsiForceI2SPH();
+    void Finalize() override;
+
   private:
     thrust::device_vector<Real> _sumWij_inv;
     thrust::device_vector<uint> Contact_i;
@@ -54,21 +68,6 @@ class CH_FSI_API ChFsiForceI2SPH : public ChFsiForce {
     void PreProcessor(std::shared_ptr<SphMarkerDataD> otherSphMarkersD,
                       bool print = true,
                       bool calcLaplacianOperator = true);
-
-  public:
-    ChFsiForceI2SPH(std::shared_ptr<ChBce> otherBceWorker,  ///< Pointer to the ChBce object that handles BCE markers
-                    std::shared_ptr<SphMarkerDataD>
-                        otherSortedSphMarkersD,  ///< Information of markers in the sorted array on device
-                    std::shared_ptr<ProximityDataD> otherMarkersProximityD,  ///< Pointer to the object that holds the
-                                                                             ///< proximity of the markers on device
-                    std::shared_ptr<FsiGeneralData> otherFsiGeneralData,     ///< Pointer to the sph general data
-                    std::shared_ptr<SimParams> otherParamsH,  ///< Pointer to the simulation parameters on host
-                    std::shared_ptr<NumberOfObjects>
-                        otherNumObjects  ///< Pointer to number of objects, fluid and boundary markers, etc.
-    );
-
-    ~ChFsiForceI2SPH();
-    void Finalize() override;
 };
 
 /// @} fsi_physics

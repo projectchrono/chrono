@@ -384,7 +384,7 @@ int main(int argc, char* argv[]) {
             if (povray_output) {
                 char filename[100];
                 sprintf(filename, "%s/data_%04d.dat", pov_dir.c_str(), render_frame + 1);
-                utils::WriteShapesPovray(my_sys, filename);
+                utils::WriteVisualizationAssets(my_sys, filename);
             }
             if (image_output) {
                 char filename[100];

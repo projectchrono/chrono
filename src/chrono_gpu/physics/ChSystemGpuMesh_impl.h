@@ -50,6 +50,18 @@ class ChSystemGpuMesh_impl : public ChSystemGpu_impl {
         /// Sphere-to-mesh tangent contact damping coefficient, expressed in SU
         float Gamma_t_s2m_SU;
 
+        /// material based property
+        bool use_mat_based;
+
+        /// effective sphere-to-mesh youngs modulus, expressed in SU
+        float E_eff_s2m_SU;
+
+        /// effective sphere-to-mesh shear modulus, expressed in SU
+        float G_eff_s2m_SU;
+    
+        /// effective sphere-to-mesh coefficient of restitution, expressed in SU
+        float COR_s2m_SU;
+
         /// Acceleration caused by adhesion force (constant adhesion model)
         float adhesionAcc_s2m;
 
@@ -111,6 +123,10 @@ class ChSystemGpuMesh_impl : public ChSystemGpu_impl {
     /// Construct Chrono::Gpu system with given sphere radius, density, big domain dimensions and frame origin.
     ChSystemGpuMesh_impl(float sphere_rad, float density, float3 boxDims, float3 O);
 
+    /// combine material properties of two types to get effective ones
+    void combineMaterialSurface();
+
+
     /// Apply rigid body motion to specified mesh.
     void ApplyMeshMotion(unsigned int mesh_id,
                          const double* pos,
@@ -153,6 +169,18 @@ class ChSystemGpuMesh_impl : public ChSystemGpu_impl {
     double K_t_s2m_UU;
     /// Sphere-to-mesh tangent damping coefficient, in user units
     double Gamma_t_s2m_UU;
+
+    /// flag for using material based property
+    bool use_mat_based = false;
+    
+    /// youngs modulus of mesh
+    double YoungsModulus_mesh_UU;
+
+    /// Poisson ratio of mesh
+    double PoissonRatio_mesh_UU;
+    
+    /// coefficient of restitution of mesh
+    double COR_mesh_UU;
 
     /// Rolling friction coefficient for sphere-to-mesh -- units and effect depend on rolling resistance model
     float rolling_coeff_s2m_UU;

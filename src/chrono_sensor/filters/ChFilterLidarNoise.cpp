@@ -15,7 +15,7 @@
 // =============================================================================
 
 #include "chrono_sensor/filters/ChFilterLidarNoise.h"
-#include "chrono_sensor/ChSensor.h"
+#include "chrono_sensor/sensors/ChOptixSensor.h"
 #include "chrono_sensor/cuda/lidar_noise.cuh"
 #include "chrono_sensor/cuda/curand_utils.cuh"
 #include "chrono_sensor/utils/CudaMallocHelper.h"
@@ -35,36 +35,32 @@ ChFilterLidarNoiseXYZI::ChFilterLidarNoiseXYZI(float stdev_range,
       m_stdev_intensity(stdev_intensity),
       ChFilter(name) {}
 
-void ChFilterLidarNoiseXYZI::Initialize(std::shared_ptr<ChSensor> pSensor) {}
-
-void ChFilterLidarNoiseXYZI::Apply(std::shared_ptr<ChSensor> pSensor, std::shared_ptr<SensorBuffer>& bufferInOut) {
-    // this filter CANNOT be the first filter in a sensor's filter list, so the bufferIn CANNOT null.
-    assert(bufferInOut != nullptr);
+void ChFilterLidarNoiseXYZI::Initialize(std::shared_ptr<ChSensor> pSensor, std::shared_ptr<SensorBuffer>& bufferInOut) {
     if (!bufferInOut)
-        throw std::runtime_error("The filter was not supplied an input buffer");
+        InvalidFilterGraphNullBuffer(pSensor);
 
-    // to grayscale (for now), the incoming buffer must be an optix buffer
     std::shared_ptr<SensorDeviceXYZIBuffer> pXYZI = std::dynamic_pointer_cast<SensorDeviceXYZIBuffer>(bufferInOut);
     if (!pXYZI) {
-        throw std::runtime_error("The XYZI noise filter can only be run on a SensorDeviceXYZIBuffer");
+        InvalidFilterGraphBufferTypeMismatch(pSensor);
+    }
+    m_bufferInOut = pXYZI;
+
+    if (auto pOpx = std::dynamic_pointer_cast<ChOptixSensor>(pSensor)) {
+        m_cuda_stream = pOpx->GetCudaStream();
+    } else {
+        InvalidFilterGraphSensorTypeMismatch(pSensor);
     }
 
-    unsigned int width = pXYZI->Width;
-    unsigned int height = pXYZI->Height;
+    m_rng = std::shared_ptr<curandState_t>(
+        cudaMallocHelper<curandState_t>(m_bufferInOut->Width * m_bufferInOut->Height), cudaFreeHelper<curandState_t>);
+    init_cuda_rng((unsigned int)(std::chrono::high_resolution_clock::now().time_since_epoch().count()), m_rng.get(),
+                  m_bufferInOut->Width * m_bufferInOut->Height);
+}
 
-    // must initialize noise during first run since we don't know the dimensions in the initialize function
-    if (m_noise_init) {
-        m_rng = std::shared_ptr<curandState_t>(cudaMallocHelper<curandState_t>(width * height),
-                                               cudaFreeHelper<curandState_t>);
-
-        init_cuda_rng((unsigned int)(std::chrono::high_resolution_clock::now().time_since_epoch().count()), m_rng.get(),
-                      width * height);
-
-        m_noise_init = false;
-    }
-
-    cuda_lidar_noise_normal((float*)pXYZI->Buffer.get(), (int)width, (int)height, m_stdev_range, m_stdev_v_angle,
-                            m_stdev_h_angle, m_stdev_intensity, m_rng.get());
+void ChFilterLidarNoiseXYZI::Apply() {
+    cuda_lidar_noise_normal((float*)m_bufferInOut->Buffer.get(), (int)m_bufferInOut->Width, (int)m_bufferInOut->Height,
+                            m_stdev_range, m_stdev_v_angle, m_stdev_h_angle, m_stdev_intensity, m_rng.get(),
+                            m_cuda_stream);
 }
 
 }  // namespace sensor
