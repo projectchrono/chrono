@@ -242,6 +242,7 @@ __global__ void UpdateFluidD(Real4* posRadD,
                              Real3* derivTauXyXzYzD,
                              Real4* sr_tau_I_mu_iD,
                              int2 updatePortion,
+                             Real dT,
                              volatile bool* isErrorD) {
     uint index = blockIdx.x * blockDim.x + threadIdx.x;
     index += updatePortion.x;  
@@ -263,8 +264,8 @@ __global__ void UpdateFluidD(Real4* posRadD,
             Real3 tauXyXzYz = tauXyXzYzD[index];
             Real3 derivTauXxYyZz = derivTauXxYyZzD[index];
             Real3 derivTauXyXzYz = derivTauXyXzYzD[index];
-            Real3 updatedTauXxYyZz = tauXxYyZz + mR3(derivTauXxYyZz) * paramsD.dT;
-            Real3 updatedTauXyXzYz = tauXyXzYz + mR3(derivTauXyXzYz) * paramsD.dT;
+            Real3 updatedTauXxYyZz = tauXxYyZz + mR3(derivTauXxYyZz) * dT;
+            Real3 updatedTauXyXzYz = tauXyXzYz + mR3(derivTauXyXzYz) * dT;
 
             // check if there is a plastic flow
             p_n = -1.0 / 3.0 * (tauXxYyZz.x + tauXxYyZz.y + tauXxYyZz.z); 
@@ -291,7 +292,7 @@ __global__ void UpdateFluidD(Real4* posRadD,
                            + 2.0 * square(tauXyXzYz.z);
                 tau_tr = sqrt(0.5 * tau_tr);
                 tau_n = sqrt(0.5 * tau_n);
-                Real Chi = abs(tau_tr - tau_n) * paramsD.INV_dT * paramsD.INV_G_shear;  
+                Real Chi = abs(tau_tr - tau_n) * paramsD.INV_G_shear / dT;  
                 // should use the positive magnitude according to "A  
                 // constitutive law for dense granular flows" Nature 2006
                 Real mu_s = paramsD.mu_fric_s;
@@ -304,7 +305,7 @@ __global__ void UpdateFluidD(Real4* posRadD,
                 Real I = Chi * dia * sqrt(paramsD.rho0 / p_tr);
                 Real mu = mu_s + (mu_2 - mu_s) * (I + 1.0E-9) / (I0 + I + 1.0E-9);
                 // Real G0 = paramsD.G_shear;
-                // Real alpha = xi*G0*I0*(paramsD.dT)*sqrt(p_tr);
+                // Real alpha = xi*G0*I0*(dT)*sqrt(p_tr);
                 // Real B0 = s_2 + tau_tr + alpha;
                 // Real H0 = s_2*tau_tr + s_0*alpha;
                 // Real tau_n1 = (B0+sqrt(B0*B0-4*H0))/(2*H0+1e-9);
@@ -352,7 +353,7 @@ __global__ void UpdateFluidD(Real4* posRadD,
         //-------------
         Real3 vel_XSPH = velMasD[index] + vel_XSPH_D[index]; //paramsD.EPS_XSPH * 
         Real3 posRad = mR3(posRadD[index]);
-        Real3 updatedPositon = posRad + vel_XSPH * paramsD.dT;
+        Real3 updatedPositon = posRad + vel_XSPH * dT;
         if (!(isfinite(updatedPositon.x) && isfinite(updatedPositon.y) && isfinite(updatedPositon.z))) {
             printf("Error! particle position is NAN: thrown from ChFluidDynamics.cu, UpdateFluidDKernel !\n");
             *isErrorD = true;
@@ -366,7 +367,7 @@ __global__ void UpdateFluidD(Real4* posRadD,
         // Note that the velocity update should not use the XSPH contribution
         // It adds dissipation to the solution, and provides numerical damping
         Real3 velMas = velMasD[index] + 0.0 * vel_XSPH_D[index];  // paramsD.EPS_XSPH * vel_XSPH_D[index]
-        Real3 updatedVelocity = velMas + mR3(derivVelRho) * paramsD.dT;
+        Real3 updatedVelocity = velMas + mR3(derivVelRho) * dT;
         velMasD[index] = updatedVelocity;
 
         //-------------
@@ -376,7 +377,7 @@ __global__ void UpdateFluidD(Real4* posRadD,
             rhoPresMu.y = p_tr;
             rhoPresMu.x = paramsD.rho0;
         } else {
-            Real rho2 = rhoPresMu.x + derivVelRho.w * paramsD.dT;
+            Real rho2 = rhoPresMu.x + derivVelRho.w * dT;
             rhoPresMu.y = Eos(rho2, rhoPresMu.w);
             rhoPresMu.x = rho2;
         }
@@ -574,7 +575,7 @@ void ChFluidDynamics::UpdateFluid(std::shared_ptr<SphMarkerDataD> sphMarkersD, R
         mR3CAST(sphMarkersD->tauXxYyZzD), mR3CAST(sphMarkersD->tauXyXzYzD),
         mR3CAST(fsiSystem->fsiGeneralData->derivTauXxYyZzD), 
         mR3CAST(fsiSystem->fsiGeneralData->derivTauXyXzYzD),
-        mR4CAST(fsiSystem->fsiGeneralData->sr_tau_I_mu_i), updatePortion, isErrorD);
+        mR4CAST(fsiSystem->fsiGeneralData->sr_tau_I_mu_i), updatePortion, dT, isErrorD);
     cudaDeviceSynchronize();
     cudaCheckError();
     //------------------------

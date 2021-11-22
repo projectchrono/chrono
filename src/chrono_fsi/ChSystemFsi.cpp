@@ -118,7 +118,6 @@ void ChSystemFsi::CopyDeviceDataToHalfStep() {
 void ChSystemFsi::DoStepDynamics_FSI() {
     if (fluidDynamics->GetIntegratorType() == CHFSI_TIME_INTEGRATOR::ExplicitSPH) {
         // The following is used to execute the Explicit WCSPH
-        fsiInterface->Copy_ChSystem_to_External();
         CopyDeviceDataToHalfStep();
         ChUtilsDevice::FillMyThrust3(fsiSystem->fsiGeneralData->derivTauXxYyZzD, mR3(0));
         ChUtilsDevice::FillMyThrust3(fsiSystem->fsiGeneralData->derivTauXyXzYzD, mR3(0));
@@ -134,8 +133,6 @@ void ChSystemFsi::DoStepDynamics_FSI() {
         // Note that because of applying forces to the nodal coordinates using SetForce() no other external forces can
         // be applied, or if any thing has been applied will be rewritten by Add_Flex_Forces_To_ChSystem();
         fsiInterface->Add_Flex_Forces_To_ChSystem();
-
-        fsiInterface->Copy_External_To_ChSystem();
 
         // dT_Flex is the time step of solid body system
         mTime += 1 * paramsH->dT;
