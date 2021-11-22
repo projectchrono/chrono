@@ -903,7 +903,7 @@ __global__ void EOS(Real4* sortedRhoPreMu, uint numAllMarkers, volatile bool* is
 //--------------------------------------------------------------------------------------------------------------------------------
 __global__ void Navier_Stokes(uint* indexOfIndex,
                               Real4* sortedDerivVelRho,
-                              Real3* shift_r,
+                              Real3* sortedXSPHandShift,
                               Real4* sortedPosRad,
                               Real3* sortedVelMas,
                               Real4* sortedRhoPreMu,
@@ -1137,10 +1137,10 @@ __global__ void Navier_Stokes(uint* indexOfIndex,
     Real det_r_max = 0.05 * vAdT;
     Real det_r_A = length(inner_sum);
     if(det_r_A < det_r_max){
-        shift_r[index] = inner_sum;
+        sortedXSPHandShift[index] = inner_sum;
     }
     else{
-        shift_r[index] = inner_sum * det_r_max/(det_r_A + 1e-9);
+        sortedXSPHandShift[index] = inner_sum * det_r_max/(det_r_A + 1e-9);
     }
 }
 
@@ -1149,7 +1149,7 @@ __global__ void NS_SSR( uint* indexOfIndex,
                         Real4* sortedDerivVelRho,
                         Real3* sortedDerivTauXxYyZz,
                         Real3* sortedDerivTauXyXzYz,
-                        Real3* shift_r,
+                        Real3* sortedXSPHandShift,
                         Real4* sortedPosRad,
                         Real3* sortedVelMas,
                         Real4* sortedRhoPreMu,
@@ -1176,7 +1176,7 @@ __global__ void NS_SSR( uint* indexOfIndex,
         sortedDerivTauXyXzYz[index] = mR3(0.0);
         return;
     }
-        
+
     Real hA = sortedPosRad[index].w;
     Real3 posRadA = mR3(sortedPosRad[index]);
     Real3 velMasA = sortedVelMas[index];
@@ -1384,17 +1384,17 @@ __global__ void NS_SSR( uint* indexOfIndex,
     Real det_r_max = 0.05 * vAdT;
     Real det_r_A = length(inner_sum);
     if(det_r_A < det_r_max){
-        shift_r[index] = inner_sum;
+        sortedXSPHandShift[index] = inner_sum;
     }
     else{
-        shift_r[index] = inner_sum * det_r_max / (det_r_A + 1e-9);
+        sortedXSPHandShift[index] = inner_sum * det_r_max / (det_r_A + 1e-9);
     }
 
     // Add the XSPH term into the shifting vector
-    shift_r[index] += paramsD.EPS_XSPH * deltaV * paramsD.dT;
+    sortedXSPHandShift[index] += paramsD.EPS_XSPH * deltaV * paramsD.dT;
 
     // Get the shifting velocity
-    shift_r[index] = shift_r[index] * paramsD.INV_dT;
+    sortedXSPHandShift[index] = sortedXSPHandShift[index] * paramsD.INV_dT;
 
     // Add gravity and other body force to fluid markers
     if (rhoPresMuA.w > -1.5 && rhoPresMuA.w < -0.5){
@@ -1414,7 +1414,7 @@ __global__ void CalcVel_XSPH_D(uint* indexOfIndex,
                                Real4* sortedPosRad,       // input: sorted positions
                                Real3* sortedVelMas,       // input: sorted velocities
                                Real4* sortedRhoPreMu,
-                               Real3* shift_r,
+                               Real3* sortedXSPHandShift,
                                uint* gridMarkerIndex,  // input: sorted particle indices
                                uint* cellStart,
                                uint* cellEnd,
@@ -1469,7 +1469,7 @@ __global__ void CalcVel_XSPH_D(uint* indexOfIndex,
         }
     }
 
-    vel_XSPH_Sorted_D[index] = paramsD.EPS_XSPH * deltaV + shift_r[index] * paramsD.INV_dT;
+    vel_XSPH_Sorted_D[index] = paramsD.EPS_XSPH * deltaV + sortedXSPHandShift[index] * paramsD.INV_dT;
 
     if (!(isfinite(vel_XSPH_Sorted_D[index].x) && isfinite(vel_XSPH_Sorted_D[index].y) &&
           isfinite(vel_XSPH_Sorted_D[index].z))) {
@@ -1478,13 +1478,48 @@ __global__ void CalcVel_XSPH_D(uint* indexOfIndex,
     }
 }
 
+__global__ void SortedToOriginal_D( Real4* sortedDerivVelRho,
+                                    Real3* sortedDerivTauXxYyZz,
+                                    Real3* sortedDerivTauXyXzYz,
+                                    Real4* originalDerivVelRho,
+                                    Real3* originalDerivTauXxYyZz,
+                                    Real3* originalDerivTauXyXzYz,
+                                    uint* gridMarkerIndex,
+                                    const size_t numAllMarkers) {
+    uint id = blockIdx.x * blockDim.x + threadIdx.x;
+    if (id >= numAllMarkers)
+        return;
+
+    uint index = gridMarkerIndex[id];
+
+    originalDerivVelRho[index] = sortedDerivVelRho[id];
+    if(paramsD.elastic_SPH){
+        originalDerivTauXxYyZz[index] = sortedDerivTauXxYyZz[id];
+        originalDerivTauXyXzYz[index] = sortedDerivTauXyXzYz[id];
+    }
+}
+
+__global__ void SortedToOriginal_XSPH_D(Real3* sortedXSPH,
+                                        Real3* originalXSPH,
+                                        uint* gridMarkerIndex,
+                                        const size_t numAllMarkers) {
+    uint id = blockIdx.x * blockDim.x + threadIdx.x;
+    if (id >= numAllMarkers)
+        return;
+
+    uint index = gridMarkerIndex[id];
+
+    originalXSPH[index] = sortedXSPH[id];
+}
+
 //--------------------------------------------------------------------------------------------------------------------------------
-ChFsiForceExplicitSPH::ChFsiForceExplicitSPH(std::shared_ptr<ChBce> otherBceWorker,
-                                             std::shared_ptr<SphMarkerDataD> otherSortedSphMarkersD,
-                                             std::shared_ptr<ProximityDataD> otherMarkersProximityD,
-                                             std::shared_ptr<FsiGeneralData> otherFsiGeneralData,
-                                             std::shared_ptr<SimParams> otherParamsH,
-                                             std::shared_ptr<NumberOfObjects> otherNumObjects)
+ChFsiForceExplicitSPH::ChFsiForceExplicitSPH(
+    std::shared_ptr<ChBce> otherBceWorker,
+    std::shared_ptr<SphMarkerDataD> otherSortedSphMarkersD,
+    std::shared_ptr<ProximityDataD> otherMarkersProximityD,
+    std::shared_ptr<FsiGeneralData> otherFsiGeneralData,
+    std::shared_ptr<SimParams> otherParamsH,
+    std::shared_ptr<NumberOfObjects> otherNumObjects)
     : ChFsiForce(otherBceWorker,
                  otherSortedSphMarkersD,
                  otherMarkersProximityD,
@@ -1536,12 +1571,14 @@ void ChFsiForceExplicitSPH::CollideWrapper() {
     thrust::device_vector<Real4> sortedDerivVelRho(numObjectsH->numAllMarkers);
     thrust::device_vector<Real3> sortedDerivTauXxYyZz(numObjectsH->numAllMarkers);
     thrust::device_vector<Real3> sortedDerivTauXyXzYz(numObjectsH->numAllMarkers);
-    shift_r.resize(numObjectsH->numAllMarkers);
+    sortedXSPHandShift.resize(numObjectsH->numAllMarkers);
 
     thrust::fill(sortedDerivVelRho.begin(), sortedDerivVelRho.end(), mR4(0));
-    thrust::fill(sortedDerivTauXxYyZz.begin(), sortedDerivTauXxYyZz.end(), mR3(0));
-    thrust::fill(sortedDerivTauXyXzYz.begin(), sortedDerivTauXyXzYz.end(), mR3(0));
-    thrust::fill(shift_r.begin(), shift_r.end(), mR3(0));
+    thrust::fill(sortedXSPHandShift.begin(), sortedXSPHandShift.end(), mR3(0));
+    if(paramsH->elastic_SPH){
+        thrust::fill(sortedDerivTauXxYyZz.begin(), sortedDerivTauXxYyZz.end(), mR3(0));
+        thrust::fill(sortedDerivTauXyXzYz.begin(), sortedDerivTauXyXzYz.end(), mR3(0));
+    }
 
     // Find the index which is related to the wall boundary particle
     uint numBlocks1, numThreads1;
@@ -1573,7 +1610,7 @@ void ChFsiForceExplicitSPH::CollideWrapper() {
         // execute the kernel Navier_Stokes and Shear_Stress_Rate in one kernel
         NS_SSR<<<numBlocks, numThreads>>>( U1CAST(indexOfIndex), 
             mR4CAST(sortedDerivVelRho), mR3CAST(sortedDerivTauXxYyZz), mR3CAST(sortedDerivTauXyXzYz),
-            mR3CAST(shift_r), mR4CAST(sortedSphMarkersD->posRadD),
+            mR3CAST(sortedXSPHandShift), mR4CAST(sortedSphMarkersD->posRadD),
             mR3CAST(sortedSphMarkersD->velMasD), mR4CAST(sortedSphMarkersD->rhoPresMuD),
             mR3CAST(bceWorker->velMas_ModifiedBCE), mR4CAST(bceWorker->rhoPreMu_ModifiedBCE),
             mR3CAST(sortedSphMarkersD->tauXxYyZzD), mR3CAST(sortedSphMarkersD->tauXyXzYzD),
@@ -1588,7 +1625,7 @@ void ChFsiForceExplicitSPH::CollideWrapper() {
 
         // execute the kernel
         Navier_Stokes<<<numBlocks, numThreads>>>( U1CAST(indexOfIndex), 
-            mR4CAST(sortedDerivVelRho), mR3CAST(shift_r), mR4CAST(sortedSphMarkersD->posRadD),
+            mR4CAST(sortedDerivVelRho), mR3CAST(sortedXSPHandShift), mR4CAST(sortedSphMarkersD->posRadD),
             mR3CAST(sortedSphMarkersD->velMasD), mR4CAST(sortedSphMarkersD->rhoPresMuD),
             mR3CAST(bceWorker->velMas_ModifiedBCE), mR4CAST(bceWorker->rhoPreMu_ModifiedBCE),
             mR3CAST(sortedSphMarkersD->tauXxYyZzD), mR3CAST(sortedSphMarkersD->tauXyXzYzD), 
@@ -1598,18 +1635,26 @@ void ChFsiForceExplicitSPH::CollideWrapper() {
         ChUtilsDevice::Sync_CheckError(isErrorH, isErrorD, "Navier_Stokes");
     }
 
-    CopySortedToOriginal_Invasive_R4(fsiGeneralData->derivVelRhoD_old, 
-        sortedDerivVelRho, markersProximityD->gridMarkerIndexD);
-    if(paramsH->elastic_SPH){
-        CopySortedToOriginal_Invasive_R3(fsiGeneralData->derivTauXxYyZzD, 
-            sortedDerivTauXxYyZz, markersProximityD->gridMarkerIndexD);
-        CopySortedToOriginal_Invasive_R3(fsiGeneralData->derivTauXyXzYzD, 
-            sortedDerivTauXyXzYz, markersProximityD->gridMarkerIndexD);
-    }
+    // CopySortedToOriginal_Invasive_R4(fsiGeneralData->derivVelRhoD_old, 
+    //     sortedDerivVelRho, markersProximityD->gridMarkerIndexD);
+    // if(paramsH->elastic_SPH){
+    //     CopySortedToOriginal_Invasive_R3(fsiGeneralData->derivTauXxYyZzD, 
+    //         sortedDerivTauXxYyZz, markersProximityD->gridMarkerIndexD);
+    //     CopySortedToOriginal_Invasive_R3(fsiGeneralData->derivTauXyXzYzD, 
+    //         sortedDerivTauXyXzYz, markersProximityD->gridMarkerIndexD);
+    // }
+
+    // Launch a kernel to copy data from sorted arrays to original arrays.
+    // This is faster than using thrust::sort_by_key()
+    SortedToOriginal_D<<<numBlocks1, numThreads1>>>(
+        mR4CAST(sortedDerivVelRho), mR3CAST(sortedDerivTauXxYyZz),
+        mR3CAST(sortedDerivTauXyXzYz), mR4CAST(fsiGeneralData->derivVelRhoD_old),
+        mR3CAST(fsiGeneralData->derivTauXxYyZzD), mR3CAST(fsiGeneralData->derivTauXyXzYzD),
+        U1CAST(markersProximityD->gridMarkerIndexD), numObjectsH->numAllMarkers);
 
     sortedDerivVelRho.clear();
-    sortedDerivTauXxYyZz.clear(); 
-    sortedDerivTauXyXzYz.clear(); 
+    sortedDerivTauXxYyZz.clear();
+    sortedDerivTauXyXzYz.clear();
     cudaFree(isErrorD);
     free(isErrorH);
     density_initialization++;
@@ -1634,23 +1679,26 @@ void ChFsiForceExplicitSPH::CalculateXSPH_velocity() {
     *isErrorH = false;
     cudaMemcpy(isErrorD, isErrorH, sizeof(bool), cudaMemcpyHostToDevice);
 
+    // thread per particle
+    uint numBlocks, numThreads;
+    computeGridSize((int)numObjectsH->numFluidMarkers +
+        (int)numObjectsH->numRigid_SphMarkers, 256, numBlocks, numThreads);
+    uint numBlocks1, numThreads1;
+    computeGridSize((int)numObjectsH->numAllMarkers, 256, numBlocks1, numThreads1);
+    
     //------------------------------------------------------------------------
     if(paramsH->elastic_SPH){
         // The XSPH vector already included in the shifting vector
-        CopySortedToOriginal_Invasive_R3(fsiGeneralData->vel_XSPH_D, shift_r, 
-            markersProximityD->gridMarkerIndexD);
-    }
-    else{
-        // thread per particle
-        uint numBlocks, numThreads;
-        computeGridSize((int)numObjectsH->numFluidMarkers +
-            (int)numObjectsH->numRigid_SphMarkers, 256, numBlocks, numThreads);
+        // CopySortedToOriginal_Invasive_R3(fsiGeneralData->vel_XSPH_D, sortedXSPHandShift, 
+        //     markersProximityD->gridMarkerIndexD);
+        SortedToOriginal_XSPH_D<<<numBlocks1, numThreads1>>>(
+            mR3CAST(sortedXSPHandShift), mR3CAST(fsiGeneralData->vel_XSPH_D),
+            U1CAST(markersProximityD->gridMarkerIndexD), numObjectsH->numAllMarkers);
+    }else{
         thrust::device_vector<Real4> sortedPosRad_old = sortedSphMarkersD->posRadD;
         thrust::fill(vel_XSPH_Sorted_D.begin(), vel_XSPH_Sorted_D.end(), mR3(0.0));
 
         // Find the index which is related to the wall boundary particle
-        uint numBlocks1, numThreads1;
-        computeGridSize((int)numObjectsH->numAllMarkers, 256, numBlocks1, numThreads1);
         thrust::device_vector<uint> indexOfIndex(numObjectsH->numAllMarkers);
         thrust::device_vector<uint> identityOfIndex(numObjectsH->numAllMarkers);
         calIndexOfIndex<<<numBlocks1, numThreads1>>>(U1CAST(indexOfIndex), U1CAST(identityOfIndex), 
@@ -1662,14 +1710,17 @@ void ChFsiForceExplicitSPH::CalculateXSPH_velocity() {
         // Execute the kernel
         CalcVel_XSPH_D<<<numBlocks, numThreads>>>( U1CAST(indexOfIndex), 
             mR3CAST(vel_XSPH_Sorted_D), mR4CAST(sortedPosRad_old), mR4CAST(sortedSphMarkersD->posRadD),
-            mR3CAST(sortedSphMarkersD->velMasD), mR4CAST(sortedSphMarkersD->rhoPresMuD), mR3CAST(shift_r),
+            mR3CAST(sortedSphMarkersD->velMasD), mR4CAST(sortedSphMarkersD->rhoPresMuD), mR3CAST(sortedXSPHandShift),
             U1CAST(markersProximityD->gridMarkerIndexD), U1CAST(markersProximityD->cellStartD),
             U1CAST(markersProximityD->cellEndD), numObjectsH->numFluidMarkers, 
             numObjectsH->numBoundaryMarkers, numObjectsH->numRigid_SphMarkers, isErrorD);
         ChUtilsDevice::Sync_CheckError(isErrorH, isErrorD, "CalcVel_XSPH_D");
 
-        CopySortedToOriginal_NonInvasive_R3(fsiGeneralData->vel_XSPH_D, vel_XSPH_Sorted_D, 
-            markersProximityD->gridMarkerIndexD);
+        // CopySortedToOriginal_Invasive_R3(fsiGeneralData->vel_XSPH_D, vel_XSPH_Sorted_D, 
+        //     markersProximityD->gridMarkerIndexD);
+        SortedToOriginal_XSPH_D<<<numBlocks1, numThreads1>>>(
+            mR3CAST(vel_XSPH_Sorted_D), mR3CAST(fsiGeneralData->vel_XSPH_D),
+            U1CAST(markersProximityD->gridMarkerIndexD), numObjectsH->numAllMarkers);
     }
 
     if (density_initialization % paramsH->densityReinit == 0)

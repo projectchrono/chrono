@@ -9,7 +9,7 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Author: Arman Pazouki, Milad Rakhsha
+// Author: Arman Pazouki, Milad Rakhsha, Wei Hu
 // =============================================================================
 //
 // Base class for processing proximity in fsi system.
@@ -95,8 +95,6 @@ __global__ void reorderDataAndFindCellStartD(uint* cellStartD,      // output: c
                                              Real3* tauXyXzYzD,          // input: original total stress xyzxyz
                                              uint* gridMarkerHashD,      // input: sorted grid hashes
                                              uint* gridMarkerIndexD,     // input: sorted particle indices
-                                             uint* mapOriginalToSorted,  // mapOriginalToSorted[originalIndex] =
-                                                                         // originalIndex
                                              Real4* posRadD,             // input: sorted position array
                                              Real3* velMasD,             // input: sorted velocity array
                                              Real4* rhoPresMuD,
@@ -142,17 +140,10 @@ __global__ void reorderDataAndFindCellStartD(uint* cellStartD,      // output: c
 
         /* Now use the sorted index to reorder the pos and vel data */
         uint originalIndex = gridMarkerIndexD[index];  // map sorted to original
-        mapOriginalToSorted[index] = index;            // will be sorted outside. Alternatively, you could have
-        // mapOriginalToSorted[originalIndex] = index; without need to sort. But
-        // that
-        // is not thread safe
         Real3 posRad = mR3(posRadD[originalIndex]);  // macro does either global read or
                                                      // texture fetch
         Real3 velMas = velMasD[originalIndex];       // see particles_kernel.cuh
         Real4 rhoPreMu = rhoPresMuD[originalIndex];
-
-        Real3 tauXxYyZz = tauXxYyZzD[originalIndex];  
-        Real3 tauXyXzYz = tauXyXzYzD[originalIndex]; 
 
         if (!(isfinite(posRad.x) && isfinite(posRad.y) && isfinite(posRad.z))) {
             printf(
@@ -169,22 +160,41 @@ __global__ void reorderDataAndFindCellStartD(uint* cellStartD,      // output: c
                 "Error! particle rhoPreMu is NAN: thrown from "
                 "ChCollisionSystemFsi.cu, reorderDataAndFindCellStartD !\n");
         }
-        if (!(isfinite(tauXxYyZz.x) && isfinite(tauXxYyZz.y) && isfinite(tauXxYyZz.z))) {  
-            printf(
-                "Error! particle tauXxYyZz is NAN: thrown from "
-                "ChCollisionSystemFsi.cu, reorderDataAndFindCellStartD !\n");
-        }
-        if (!(isfinite(tauXyXzYz.x) && isfinite(tauXyXzYz.y) && isfinite(tauXyXzYz.z))) { 
-            printf(
-                "Error! particle tauXyXzYz is NAN: thrown from "
-                "ChCollisionSystemFsi.cu, reorderDataAndFindCellStartD !\n");
-        }
+
         sortedPosRadD[index] = mR4(posRad, posRadD[originalIndex].w);
         sortedVelMasD[index] = velMas;
         sortedRhoPreMuD[index] = rhoPreMu;
-        sortedTauXxYyZzD[index] = tauXxYyZz;  
-        sortedTauXyXzYzD[index] = tauXyXzYz; 
+
+        // For granular material
+        if( paramsD.elastic_SPH ) {
+            Real3 tauXxYyZz = tauXxYyZzD[originalIndex];  
+            Real3 tauXyXzYz = tauXyXzYzD[originalIndex]; 
+            if (!(isfinite(tauXxYyZz.x) && isfinite(tauXxYyZz.y) && isfinite(tauXxYyZz.z))) {  
+                printf(
+                    "Error! particle tauXxYyZz is NAN: thrown from "
+                    "ChCollisionSystemFsi.cu, reorderDataAndFindCellStartD !\n");
+            }
+            if (!(isfinite(tauXyXzYz.x) && isfinite(tauXyXzYz.y) && isfinite(tauXyXzYz.z))) { 
+                printf(
+                    "Error! particle tauXyXzYz is NAN: thrown from "
+                    "ChCollisionSystemFsi.cu, reorderDataAndFindCellStartD !\n");
+            }
+            sortedTauXxYyZzD[index] = tauXxYyZz;  
+            sortedTauXyXzYzD[index] = tauXyXzYz; 
+        }
     }
+}
+
+__global__ void OriginalToSortedD(uint* mapOriginalToSorted,
+                                  uint* gridMarkerIndex,
+                                  const size_t numAllMarkers) {
+    uint id = blockIdx.x * blockDim.x + threadIdx.x;
+    if (id >= numAllMarkers)
+        return;
+
+    uint index = gridMarkerIndex[id];
+
+    mapOriginalToSorted[index] = id;
 }
 
 //--------------------------------------------------------------------------------------------------------------------------------
@@ -271,16 +281,21 @@ void ChCollisionSystemFsi::reorderDataAndFindCellStart() {
         mR3CAST(sortedSphMarkersD->tauXxYyZzD), mR3CAST(sortedSphMarkersD->tauXyXzYzD),  
         mR3CAST(sphMarkersD->tauXxYyZzD), mR3CAST(sphMarkersD->tauXyXzYzD),            
         U1CAST(markersProximityD->gridMarkerHashD), U1CAST(markersProximityD->gridMarkerIndexD),
-        U1CAST(markersProximityD->mapOriginalToSorted), mR4CAST(sphMarkersD->posRadD), mR3CAST(sphMarkersD->velMasD),
+        mR4CAST(sphMarkersD->posRadD), mR3CAST(sphMarkersD->velMasD),
         mR4CAST(sphMarkersD->rhoPresMuD), numObjectsH->numAllMarkers);
     cudaDeviceSynchronize();
     cudaCheckError();
 
-    // unroll sorted index to have the location of original particles in the
-    // sorted arrays
-    thrust::device_vector<uint> dummyIndex = markersProximityD->gridMarkerIndexD;
-    thrust::sort_by_key(dummyIndex.begin(), dummyIndex.end(), markersProximityD->mapOriginalToSorted.begin());
-    dummyIndex.clear();
+    // Unroll sorted index to have the location of original particles in the sorted arrays
+    // thrust::device_vector<uint> dummyIndex = markersProximityD->gridMarkerIndexD;
+    // thrust::sort_by_key(dummyIndex.begin(), dummyIndex.end(), markersProximityD->mapOriginalToSorted.begin());
+    // dummyIndex.clear();
+
+    // Launch a kernel to find the location of original particles in the sorted arrays.
+    // This is faster than using thrust::sort_by_key()
+    OriginalToSortedD<<<numBlocks, numThreads, smemSize>>>(U1CAST(markersProximityD->mapOriginalToSorted),
+        U1CAST(markersProximityD->gridMarkerIndexD), numObjectsH->numAllMarkers);
+
 }
 
 void ChCollisionSystemFsi::ArrangeData(std::shared_ptr<SphMarkerDataD> otherSphMarkersD) {
