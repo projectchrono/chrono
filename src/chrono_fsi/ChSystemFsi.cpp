@@ -353,6 +353,23 @@ void ChSystemFsi::SetFsiOutputDir(std::shared_ptr<SimParams> paramsH,
     utils::PrepareOutputDir(paramsH, demo_dir, out_dir, inputJson);
 }
 //--------------------------------------------------------------------------------------------------------------------------------
+void ChSystemFsi::SetDiscreType(bool useGmatrix, bool useLmatrix){
+    paramsH->USE_Consistent_G = useGmatrix;
+    paramsH->USE_Consistent_L = useLmatrix;
+}
+//--------------------------------------------------------------------------------------------------------------------------------
+void ChSystemFsi::SetFsiInfoOutput(bool outputFsiInfo){
+    paramsH->output_fsi =  outputFsiInfo;
+}
+//--------------------------------------------------------------------------------------------------------------------------------
+void ChSystemFsi::SetOutputFormat(bool fullOutput){
+    paramsH->full_output = fullOutput;
+}
+//--------------------------------------------------------------------------------------------------------------------------------
+void ChSystemFsi::SetWallBC(BceVersion wallBC){
+    paramsH->bceTypeWall = wallBC;
+}
+//--------------------------------------------------------------------------------------------------------------------------------
 std::vector<ChVector<>> ChSystemFsi::GetParticlePosOrProperties() {
     thrust::host_vector<Real4> posRadH = fsiSystem->sphMarkersD2->posRadD;
     std::vector<ChVector<>> pos;

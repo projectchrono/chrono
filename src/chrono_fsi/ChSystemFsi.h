@@ -238,6 +238,18 @@ class CH_FSI_API ChSystemFsi {
     /// Return the SPH particle velocity.
     std::vector<ChVector<>> GetParticleVel();
 
+    /// Set SPH discretization type, consistent or inconsistent
+    void SetDiscreType(bool useGmatrix, bool useLmatrix);
+
+    /// Set FSI information output
+    void SetFsiInfoOutput(bool outputFsiInfo);
+
+    /// Set simulation data output format
+    void SetOutputFormat(bool fullOutput);
+
+    /// Set wall boundary condition
+    void SetWallBC(BceVersion wallBC);
+
   private:
     /// Set the type of the fluid dynamics.
     void SetFluidIntegratorType(fluid_dynamics params_type);

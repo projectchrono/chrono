@@ -146,6 +146,12 @@ int main(int argc, char* argv[]) {
         return 1;
     }
     myFsiSystem.SetSimParameter(inputJson, paramsH, ChVector<>(bxDim, byDim, bzDim));
+    
+    /// Set SPH discretization type, consistent or inconsistent
+    myFsiSystem.SetDiscreType(false, false);
+
+    /// Set wall boundary condition
+    myFsiSystem.SetWallBC(BceVersion::ORIGINAL);
 
     /// Reset the domain size 
     bxDim = paramsH->boxDimX + smalldis;
@@ -161,8 +167,8 @@ int main(int argc, char* argv[]) {
 
     /// Set the periodic boundary condition
     double initSpace0 = paramsH->MULT_INITSPACE * paramsH->HSML;
-    ChVector<> cMin(-bxDim / 2 * 10, -byDim / 2 * 10, -bzDim * 10);
-    ChVector<> cMax( bxDim / 2 * 10,  byDim / 2 * 10,  bzDim * 10);
+    ChVector<> cMin(-bxDim / 2 * 2, -byDim / 2 * 2, -bzDim * 10);
+    ChVector<> cMax( bxDim / 2 * 2,  byDim / 2 * 2,  bzDim * 10);
     myFsiSystem.SetBoundaries(cMin, cMax, paramsH);
     
     /// Setup sub doamins for a faster neighbor particle searching
@@ -170,6 +176,12 @@ int main(int argc, char* argv[]) {
 
     /// Setup the output directory for FSI data
     myFsiSystem.SetFsiOutputDir(paramsH, demo_dir, out_dir, inputJson.c_str());
+
+    /// Set FSI information output
+    myFsiSystem.SetFsiInfoOutput(false);
+
+    /// Set simulation data output format
+    myFsiSystem.SetOutputFormat(false);
 
     /// Create an initial box for the terrain patch
     chrono::utils::GridSampler<> sampler(initSpace0);
@@ -347,7 +359,7 @@ void SaveParaViewFiles(ChSystemFsi& myFsiSystem,
     double frame_time = 1.0 / paramsH->out_fps;
     char filename[4096];
 
-    if (pv_output && std::abs(mTime - (next_frame)*frame_time) < 1e-7) {
+    if (pv_output && std::abs(mTime - (next_frame)*frame_time) < 1e-5) {
         /// save the SPH particles
         myFsiSystem.PrintParticleToFile(demo_dir);
 
