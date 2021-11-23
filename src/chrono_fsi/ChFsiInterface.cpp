@@ -111,22 +111,14 @@ void ChFsiInterface::Add_Rigid_ForceTorques_To_ChSystem() {
             else {
                 file.open(filename);
                 file << "Time" << delim << "x" << delim << "y" << delim << "z" << delim << "q0" << delim << "q1" << delim
-                    << "q2" << delim << "q3" << delim << "Vx" << delim << "Vy" << delim << "Vz" << delim << "Fx" << delim
-                    << "Fy" << delim << "Fz" << delim << "Tx" << delim << "Ty" << delim << "Tz" << std::endl;
+                     << "q2" << delim << "q3" << delim << "Vx" << delim << "Vy" << delim << "Vz" << delim << "Fx" << delim
+                     << "Fy" << delim << "Fz" << delim << "Tx" << delim << "Ty" << delim << "Tz" << std::endl;
             }
 
-            if (1)  // set as 1 if output to file
-                file << mphysicalSystem.GetChTime() << delim << pos.x() << delim << pos.y() << delim << pos.z() << delim
-                    << rot.e0() << delim << rot.e1() << delim << rot.e2() << delim << rot.e3() << delim << vel.x() << delim
-                    << vel.y() << delim << vel.z() << delim << mforce.x() << delim << mforce.y() << delim << mforce.z()
-                    << delim << mtorque.x() << delim << mtorque.y() << delim << mtorque.z() << std::endl;
-
-            if (1)  // set as 1 if output to screen
-                std::cout << mphysicalSystem.GetChTime() << delim << pos.x() << delim << pos.y() << delim << pos.z()
-                        << delim << rot.e0() << delim << rot.e1() << delim << rot.e2() << delim << rot.e3() << delim
-                        << vel.x() << delim << vel.y() << delim << vel.z() << delim << mforce.x() << delim << mforce.y()
-                        << delim << mforce.z() << delim << mtorque.x() << delim << mtorque.y() << delim << mtorque.z()
-                        << std::endl;
+            file << mphysicalSystem.GetChTime() << delim << pos.x() << delim << pos.y() << delim << pos.z() << delim
+                 << rot.e0() << delim << rot.e1() << delim << rot.e2() << delim << rot.e3() << delim << vel.x() << delim
+                 << vel.y() << delim << vel.z() << delim << mforce.x() << delim << mforce.y() << delim << mforce.z()
+                 << delim << mtorque.x() << delim << mtorque.y() << delim << mtorque.z() << std::endl;
             file.close();
         }
     }
@@ -233,12 +225,12 @@ void ChFsiInterface::Add_Flex_Forces_To_ChSystem() {
             else {
                 file.open(filename);
                 file << "Time" << delim << "x" << delim << "y" << delim << "z" << delim << "Vx" << delim << "Vy" << delim
-                    << "Vz" << delim << "Fx" << delim << "Fy" << delim << "Fz" << std::endl;
+                     << "Vz" << delim << "Fx" << delim << "Fy" << delim << "Fz" << std::endl;
             }
 
             file << mphysicalSystem.GetChTime() << delim << pos.x() << delim << pos.y() << delim << pos.z() << delim
-                << vel.x() << delim << vel.y() << delim << vel.z() << delim << mforce.x() << delim << mforce.y() << delim
-                << mforce.z() << std::endl;
+                 << vel.x() << delim << vel.y() << delim << vel.z() << delim << mforce.x() << delim << mforce.y() << delim
+                 << mforce.z() << std::endl;
             file.close();
         }
     }
