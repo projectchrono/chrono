@@ -260,6 +260,8 @@ struct SimParams {
     Real bodyIniAngVel; ///< Initial angular velocity of the FSI body
     Real bodyMass; ///< Mass of the FSI body
     Real bodyDensity; ///< Density of the FSI body
+
+    Real3 bodyActiveDomain; ///< Size of the active domain that influenced by an FSI body
 };
 
 /// @} fsi_physics

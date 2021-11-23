@@ -1146,6 +1146,7 @@ __global__ void Navier_Stokes(uint* indexOfIndex,
 
 //--------------------------------------------------------------------------------------------------------------------------------
 __global__ void NS_SSR( uint* indexOfIndex,
+                        uint* sortedActiveParticle,
                         Real4* sortedDerivVelRho,
                         Real3* sortedDerivTauXxYyZz,
                         Real3* sortedDerivTauXyXzYz,
@@ -1160,26 +1161,40 @@ __global__ void NS_SSR( uint* indexOfIndex,
                         uint* gridMarkerIndex,
                         uint* cellStart,
                         uint* cellEnd,
+                        Real3* rigidBodyPos,
                         const size_t numFluidMarkers,
                         const size_t numBounMarkers,
                         const size_t numRigidMarkers,
+                        const size_t numRigidBodies,
                         volatile bool* isErrorD) {
     uint id = blockIdx.x * blockDim.x + threadIdx.x;
     if (id >= numFluidMarkers + numRigidMarkers)
         return;
 
     uint index = indexOfIndex[id];
+    if (sortedRhoPreMu[index].w > -0.5 && sortedRhoPreMu[index].w < 0.5)
+        return;
 
-    if (sortedRhoPreMu[index].w > -0.5 && sortedRhoPreMu[index].w < 0.5){
-        sortedDerivVelRho[index] = mR4(0.0);
-        sortedDerivTauXxYyZz[index] = mR3(0.0);
-        sortedDerivTauXyXzYz[index] = mR3(0.0);
+    // Check the activity of this particle
+    uint isNotActive = 0;
+    Real3 posRadA = mR3(sortedPosRad[index]);
+    for (uint num = 0; num < numRigidBodies; num++) {
+        Real3 detPos = posRadA - rigidBodyPos[num];
+        if(abs(detPos.x) > paramsD.bodyActiveDomain.x
+           || abs(detPos.y) > paramsD.bodyActiveDomain.y
+           || abs(detPos.z) > paramsD.bodyActiveDomain.z) {
+            isNotActive = isNotActive +1;
+        }
+    }
+    Real3 velMasA = sortedVelMas[index];
+    if(isNotActive == numRigidBodies && numRigidBodies > 0){
+        sortedDerivVelRho[index] = mR4( -velMasA.x * paramsD.INV_dT, 
+            -velMasA.y * paramsD.INV_dT, -velMasA.z * paramsD.INV_dT, -1.0);
+        sortedActiveParticle[index] = 0;
         return;
     }
 
     Real hA = sortedPosRad[index].w;
-    Real3 posRadA = mR3(sortedPosRad[index]);
-    Real3 velMasA = sortedVelMas[index];
     Real4 rhoPresMuA = sortedRhoPreMu[index];
     Real4 derivVelRho = mR4(0.0);
     Real3 deltaV = mR3(0.0);
@@ -1399,7 +1414,7 @@ __global__ void NS_SSR( uint* indexOfIndex,
     // Add gravity and other body force to fluid markers
     if (rhoPresMuA.w > -1.5 && rhoPresMuA.w < -0.5){
         Real3 totalFluidBodyForce3 = paramsD.bodyForce3 + paramsD.gravity;
-        derivVelRho += mR4(totalFluidBodyForce3);    
+        derivVelRho += mR4(totalFluidBodyForce3, 0.0);    
     }
 
     sortedDerivVelRho[index] = derivVelRho;
@@ -1549,13 +1564,13 @@ void ChFsiForceExplicitSPH::ForceSPH(std::shared_ptr<SphMarkerDataD> otherSphMar
     sphMarkersD = otherSphMarkersD;
     fsiCollisionSystem->ArrangeData(sphMarkersD);
     bceWorker->ModifyBceVelocity(sphMarkersD, otherFsiBodiesD);
-    CollideWrapper();
+    CollideWrapper(otherFsiBodiesD);
     CalculateXSPH_velocity();
     // AddGravityToFluid();
 }
 
 //--------------------------------------------------------------------------------------------------------------------------------
-void ChFsiForceExplicitSPH::CollideWrapper() {
+void ChFsiForceExplicitSPH::CollideWrapper(std::shared_ptr<FsiBodiesDataD> otherFsiBodiesD) {
     bool *isErrorH, *isErrorD;
     isErrorH = (bool*)malloc(sizeof(bool));
     cudaMalloc((void**)&isErrorD, sizeof(bool));
@@ -1572,12 +1587,14 @@ void ChFsiForceExplicitSPH::CollideWrapper() {
     thrust::device_vector<Real3> sortedDerivTauXxYyZz(numObjectsH->numAllMarkers);
     thrust::device_vector<Real3> sortedDerivTauXyXzYz(numObjectsH->numAllMarkers);
     sortedXSPHandShift.resize(numObjectsH->numAllMarkers);
+    sortedActiveParticle.resize(numObjectsH->numAllMarkers);
 
     thrust::fill(sortedDerivVelRho.begin(), sortedDerivVelRho.end(), mR4(0));
     thrust::fill(sortedXSPHandShift.begin(), sortedXSPHandShift.end(), mR3(0));
     if(paramsH->elastic_SPH){
         thrust::fill(sortedDerivTauXxYyZz.begin(), sortedDerivTauXxYyZz.end(), mR3(0));
         thrust::fill(sortedDerivTauXyXzYz.begin(), sortedDerivTauXyXzYz.end(), mR3(0));
+        thrust::fill(sortedActiveParticle.begin(), sortedActiveParticle.end(), 1);
     }
 
     // Find the index which is related to the wall boundary particle
@@ -1608,15 +1625,16 @@ void ChFsiForceExplicitSPH::CollideWrapper() {
         cudaMemcpy(isErrorD, isErrorH, sizeof(bool), cudaMemcpyHostToDevice);
 
         // execute the kernel Navier_Stokes and Shear_Stress_Rate in one kernel
-        NS_SSR<<<numBlocks, numThreads>>>( U1CAST(indexOfIndex), 
+        NS_SSR<<<numBlocks, numThreads>>>( U1CAST(indexOfIndex), U1CAST(sortedActiveParticle),
             mR4CAST(sortedDerivVelRho), mR3CAST(sortedDerivTauXxYyZz), mR3CAST(sortedDerivTauXyXzYz),
             mR3CAST(sortedXSPHandShift), mR4CAST(sortedSphMarkersD->posRadD),
             mR3CAST(sortedSphMarkersD->velMasD), mR4CAST(sortedSphMarkersD->rhoPresMuD),
             mR3CAST(bceWorker->velMas_ModifiedBCE), mR4CAST(bceWorker->rhoPreMu_ModifiedBCE),
             mR3CAST(sortedSphMarkersD->tauXxYyZzD), mR3CAST(sortedSphMarkersD->tauXyXzYzD),
             U1CAST(markersProximityD->gridMarkerIndexD), U1CAST(markersProximityD->cellStartD),
-            U1CAST(markersProximityD->cellEndD), numObjectsH->numFluidMarkers,
-            numObjectsH->numBoundaryMarkers, numObjectsH->numRigid_SphMarkers, isErrorD);
+            U1CAST(markersProximityD->cellEndD), mR3CAST(otherFsiBodiesD->posRigid_fsiBodies_D),
+            numObjectsH->numFluidMarkers, numObjectsH->numBoundaryMarkers,
+            numObjectsH->numRigid_SphMarkers, numObjectsH->numRigidBodies, isErrorD);
         ChUtilsDevice::Sync_CheckError(isErrorH, isErrorD, "Navier_Stokes and Shear_Stress_Rate");
     }
     else{ // For fluid 

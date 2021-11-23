@@ -78,6 +78,8 @@
     "BodyIniAngVel": 0.0,
     "BodyMass": 0.0,
     "BodyDensity": 200.0
-  }
+  },
+
+  "Body Active Domain": [ 0.4, 0.3, 0.5 ]
 
 }

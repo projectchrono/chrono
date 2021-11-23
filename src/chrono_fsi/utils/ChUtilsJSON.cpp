@@ -502,6 +502,12 @@ bool ParseJSON(const std::string& json_file, std::shared_ptr<SimParams> paramsH,
         }
     }
 
+    if (doc.HasMember("Body Active Domain")) {
+        paramsH->bodyActiveDomain = LoadVectorJSON(doc["Body Active Domain"]);
+    }else{
+        paramsH->bodyActiveDomain = mR3(10000.0, 10000.0, 10000.0);
+    }
+
     //===============================================================
     // Material Models
     //===============================================================
