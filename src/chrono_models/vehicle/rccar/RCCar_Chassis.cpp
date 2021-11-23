@@ -40,7 +40,7 @@ const double RCCar_Chassis::m_mass = 4.96866766;
 const ChVector<> RCCar_Chassis::m_inertiaXX(0.05389410, 0.24738708, 0.28435979);
 const ChVector<> RCCar_Chassis::m_inertiaXY(-0.00027434, -0.00228453, -0.00294115);
 const ChVector<> RCCar_Chassis::m_COM_loc(-.1336, -.0014, -.048);
-const ChCoordsys<> RCCar_Chassis::m_driverCsys(ChVector<>(0.0, 0.0, 0.0), ChQuaternion<>(1, 0, 0, 0));
+const ChCoordsys<> RCCar_Chassis::m_driverCsys(ChVector<>(-.3504, 0.0, .10018), ChQuaternion<>(1, 0, 0, 0));
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
