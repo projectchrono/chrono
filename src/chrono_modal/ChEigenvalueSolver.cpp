@@ -138,7 +138,7 @@ bool ChGeneralizedEigenvalueSolverKrylovSchur::Solve(const ChSparseMatrix& M,  /
     BOpType Bop(B);
 
 	// The Krylov-Schur solver, using the shift and invert mode:
-	KrylovSchurGEigsShiftInvert<OpType, BOpType> eigen_solver(op, Bop, n_modes, m, sigma);  //*** OK EIGVECTS, WRONG EIGVALS REQUIRE eigen_values(i) = (1.0 / eigen_values(i)) + sigma;
+ 	KrylovSchurGEigsShiftInvert<OpType, BOpType> eigen_solver(op, Bop, n_modes, m, sigma);  //*** OK EIGVECTS, WRONG EIGVALS REQUIRE eigen_values(i) = (1.0 / eigen_values(i)) + sigma;
 
 	/*
 	// Note: the former can be obtained even without the KrylovSchurGEigsShiftInvert custom class, just by doing:

@@ -58,7 +58,7 @@ void BuildAssembly( std::shared_ptr<ChModalAssembly> my_assembly,
     // BODY: the base & tower:
 
     auto my_body_A = chrono_types::make_shared<ChBodyEasyBox>(5, 2, 5, 200);
-    my_body_A->SetBodyFixed(false);
+    my_body_A->SetBodyFixed(true);
     my_body_A->SetPos(ChVector<>(0, -10, 0));
     my_assembly->Add(my_body_A);
 
@@ -303,15 +303,21 @@ int main(int argc, char* argv[]) {
     std::vector<double> rec_tip_flap_d;
     int elapsed_frames_start_dynamics = 200;
     
-    double phi = 0;
-    int nmode = 0;
-    double ampli = 0.5;
+    // Need to show modes in 3D? No changes in your while() loop! In fact if you set application.SetModalShow(true), 
+    // the application.BeginScene() in the simulation loop will overimpose the nth mode shape, displayed in 3D as a 
+    // continuous oscillation; at the same time application.DoStep() won't advance dynamics. 
+    // Note, in order to have this modal visualization  working, a ChModalAssembly must have been added to the ChSystem, 
+    // where some modes must have been already computed.
+    application.SetModalShow(true);
+    application.SetModalSpeed(15);
+    application.SetModalAmplitude(0.8);
+    application.SetModalModeNumber(0);
+
+    // Optional: this opens the GUI for changing the N of the mode shape via a slider in the Irrlicht view:
+    application.SetShowInfos(true);
+    application.SetInfosTab(1);
 
     while (application.GetDevice()->run()) {
-
-        phi += 0.1;
-
-        my_assembly2->ModeIncrementState(nmode, phi, ampli);
 
         application.BeginScene();
 
@@ -321,16 +327,7 @@ int main(int argc, char* argv[]) {
                              ChCoordsys<>(ChVector<>(0, 0, 0), CH_C_PI_2, VECT_Z),
                              video::SColor(100, 120, 120, 120), true);
 
-        //application.DoStep();
-        
-        // restore original
-        my_assembly2->ModeIncrementState(nmode, -phi, ampli);
-
-        if (phi > 2 * CH_C_2PI) nmode = 1;
-        if (phi > 4 * CH_C_2PI) nmode = 2;
-        if (phi > 6 * CH_C_2PI) nmode = 3;
-        if (phi > 8 * CH_C_2PI) nmode = 4;
-        GetLog() << "\r Nmode = " << nmode;
+        application.DoStep();
 
         // for plotting the tip oscillations, in the blade root coordinate:
         if (!application.GetPaused()) {
