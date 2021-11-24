@@ -113,6 +113,23 @@ class ChApiIrr ChIrrAppInterface {
     void SetVideoframeSaveInterval(int val) { videoframe_each = val; }
     int GetVideoframeSaveInterval() { return videoframe_each; }
 
+    /// If set true, instead of doing time integration in myapplication.DoStep() it 
+    /// just shows an oscillatory motion of the nth mode (only if some ChModalAssembly is found)
+    void SetModalShow(bool val) { modal_show = val; }
+    bool GetModalShow() { return modal_show; }
+
+    /// When in SetModalShow(true), use this to pick the n-th mode to show (only if some ChModalAssembly is found)
+    void SetModalModeNumber(int val) { modal_mode_n = val; }
+    int  GetModalModeNumber() { return modal_mode_n; }
+
+    /// When in SetModalShow(true), this sets the amplitude of shown mode (only if some ChModalAssembly is found)
+    void SetModalAmplitude(double val) { modal_amplitude = val; }
+    double GetModalAmplitude() { return modal_amplitude; }
+
+    /// When in SetModalShow(true), this sets the speed of shown mode (only if some ChModalAssembly is found)
+    void SetModalSpeed(double val) { modal_speed = val; }
+    double GetModalSpeed() { return modal_speed; }
+
 #ifdef CHRONO_POSTPROCESS
 
     /// If set to true, each frame of the animation will be saved on the disk
@@ -264,6 +281,14 @@ class ChApiIrr ChIrrAppInterface {
     int videoframe_num;
     int videoframe_each;
 
+    bool modal_show;
+    int  modal_mode_n;
+    double modal_amplitude;
+    double modal_speed;
+    double modal_phi;
+    double modal_current_mode_n;
+    double modal_current_freq;
+
 #ifdef CHRONO_POSTPROCESS
     bool povray_save;
     std::unique_ptr<postprocess::ChPovRay> pov_exporter;
@@ -309,6 +334,10 @@ class ChApiIrr ChIrrAppInterface {
     irr::gui::IGUIEditBox* gad_symbolscale;
     irr::gui::IGUIStaticText* gad_symbolscale_info;
     irr::gui::IGUIStaticText* gad_textHelp;
+
+    irr::gui::IGUICheckBox* gad_modal_show;
+    irr::gui::IGUIScrollBar* gad_modal_mode_n;
+    irr::gui::IGUIStaticText* gad_modal_mode_n_info;
 
     irr::gui::IGUITreeView* gad_treeview;
 
