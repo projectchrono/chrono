@@ -496,6 +496,7 @@ void ChSystemFsi_impl::ResizeDataManager(int numNodes) {
 
     numObjects->numFlexNodes = numNodes;
 
+    printf("fsiData->ResizeDataManager (fsiGeneralData)...\n");
     sphMarkersD1->resize(numObjects->numAllMarkers);
     sphMarkersD2->resize(numObjects->numAllMarkers);
     sortedSphMarkersD->resize(numObjects->numAllMarkers);
@@ -511,6 +512,8 @@ void ChSystemFsi_impl::ResizeDataManager(int numNodes) {
     fsiGeneralData->vel_XSPH_D.resize(numObjects->numAllMarkers);
     fsiGeneralData->vis_vel_SPH_D.resize(numObjects->numAllMarkers, mR3(1e-20));
     fsiGeneralData->sr_tau_I_mu_i.resize(numObjects->numAllMarkers, mR4(1e-20));
+
+    fsiGeneralData->activityIdentifierD.resize(numObjects->numAllMarkers, 1);
 
     printf("fsiData->ResizeDataManager (sphMarkersH)...\n");
     thrust::copy(sphMarkersH->posRadH.begin(), sphMarkersH->posRadH.end(), sphMarkersD1->posRadD.begin());

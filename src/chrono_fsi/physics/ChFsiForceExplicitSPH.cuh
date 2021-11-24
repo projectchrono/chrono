@@ -47,7 +47,6 @@ class ChFsiForceExplicitSPH : public ChFsiForce {
   private:
     int density_initialization;
     thrust::device_vector<Real3> sortedXSPHandShift;
-    thrust::device_vector<uint> sortedActiveParticle;
 
     /// Function to find neighbor particles and calculate the interactions between SPH particles
     void ForceSPH(std::shared_ptr<SphMarkerDataD> otherSphMarkersD,
@@ -61,7 +60,7 @@ class ChFsiForceExplicitSPH : public ChFsiForce {
 
     /// A wrapper around collide function, where calculates the force on particles, and copies the
     /// sorted XSPH velocities to the original. The latter is needed later for position update.
-    void CollideWrapper(std::shared_ptr<FsiBodiesDataD> otherFsiBodiesD);
+    void CollideWrapper();
 
     /// Function to add gravity force (acceleration) to other forces on SPH  particles.
     void AddGravityToFluid();

@@ -191,6 +191,7 @@ __global__ void ApplyPeriodicBoundaryZKernel(Real4* posRadD, Real4* rhoPresMuD) 
         return;
     }
 }
+
 // -----------------------------------------------------------------------------
 // Kernel to keep particle inside the simulation domain
 __global__ void ApplyOutOfBoundaryKernel(Real4* posRadD, Real4* rhoPresMuD, Real3* velMasD) {
@@ -227,26 +228,32 @@ __global__ void ApplyOutOfBoundaryKernel(Real4* posRadD, Real4* rhoPresMuD, Real
     velMasD[index] = mR3(vel);
     return;
 }
+
 // -----------------------------------------------------------------------------
 // Kernel to update the fluid properities. It updates the stress tensor,
 // density, velocity and position relying on explicit Euler scheme.
 // Pressure is obtained from the density and an Equation of State.
 __global__ void UpdateFluidD(Real4* posRadD,
                              Real3* velMasD,
-                             Real3* vel_XSPH_D,
                              Real4* rhoPresMuD,
-                             Real4* derivVelRhoD,
                              Real3* tauXxYyZzD,
                              Real3* tauXyXzYzD,
+                             Real3* vel_XSPH_D,
+                             Real4* derivVelRhoD,
                              Real3* derivTauXxYyZzD,
                              Real3* derivTauXyXzYzD,
                              Real4* sr_tau_I_mu_iD,
+                             uint* activityIdentifierD,
                              int2 updatePortion,
                              Real dT,
                              volatile bool* isErrorD) {
     uint index = blockIdx.x * blockDim.x + threadIdx.x;
     index += updatePortion.x;  
     if (index >= updatePortion.y)
+        return;
+
+    uint activity = activityIdentifierD[index];
+    if(activity == 0)
         return;
 
     Real4 derivVelRho = derivVelRhoD[index];
@@ -476,6 +483,41 @@ __global__ void ReCalcDensityD_F1(Real4* dummySortedRhoPreMu,
 }
 
 // -----------------------------------------------------------------------------
+// Kernel for updating the activity of all particles.
+__global__ void UpdateActivityD(Real4* posRadD,
+                                Real3* velMasD,
+                                Real3* posRigidBodiesD,
+                                uint* activityIdentifierD,
+                                int2 updatePortion,
+                                size_t numRigidBodies,
+                                volatile bool* isErrorD) {
+    uint index = blockIdx.x * blockDim.x + threadIdx.x;
+    index += updatePortion.x;  
+    if (index >= updatePortion.y)
+        return;
+
+    // Set the particle as an active particle 
+    activityIdentifierD[index] = 1;
+
+    // Check the activity of this particle
+    uint isNotActive = 0;
+    Real3 posRadA = mR3(posRadD[index]);
+    for (uint num = 0; num < numRigidBodies; num++) {
+        Real3 detPos = posRadA - posRigidBodiesD[num];
+        Real3 Acdomain = paramsD.bodyActiveDomain;
+        if(abs(detPos.x) > Acdomain.x || abs(detPos.y) > Acdomain.y || abs(detPos.z) > Acdomain.z)
+            isNotActive = isNotActive +1;
+    }
+
+    // Set the particle as an inactive particle if needed
+    if(isNotActive == numRigidBodies && numRigidBodies > 0){
+        activityIdentifierD[index] = 0;
+        velMasD[index] = mR3(0.0);
+        return;
+    }
+}
+
+// -----------------------------------------------------------------------------
 // CLASS FOR FLUID DYNAMICS SYSTEM
 // -----------------------------------------------------------------------------
 ChFluidDynamics::ChFluidDynamics(std::shared_ptr<ChBce> otherBceWorker,
@@ -524,6 +566,9 @@ ChFluidDynamics::ChFluidDynamics(std::shared_ptr<ChBce> otherBceWorker,
 }
 
 // -----------------------------------------------------------------------------
+ChFluidDynamics::~ChFluidDynamics() {}
+
+// -----------------------------------------------------------------------------
 void ChFluidDynamics::Finalize() {
     printf("ChFluidDynamics::Finalize()\n");
     forceSystem->Finalize();
@@ -533,16 +578,14 @@ void ChFluidDynamics::Finalize() {
 }
 
 // -----------------------------------------------------------------------------
-ChFluidDynamics::~ChFluidDynamics() {}
-
-// -----------------------------------------------------------------------------
 void ChFluidDynamics::IntegrateSPH(std::shared_ptr<SphMarkerDataD> sphMarkersD2,
                                    std::shared_ptr<SphMarkerDataD> sphMarkersD1,
                                    std::shared_ptr<FsiBodiesDataD> fsiBodiesD,
                                    std::shared_ptr<FsiMeshDataD> fsiMeshD,
                                    Real dT) {
-    if (GetIntegratorType() == CHFSI_TIME_INTEGRATOR::ExplicitSPH)
-        forceSystem->ForceSPH(sphMarkersD2, fsiBodiesD, fsiMeshD);
+    if (GetIntegratorType() == CHFSI_TIME_INTEGRATOR::ExplicitSPH){
+        this->UpdateActivity(sphMarkersD1, sphMarkersD2, fsiBodiesD);
+        forceSystem->ForceSPH(sphMarkersD2, fsiBodiesD, fsiMeshD);}
     else
         forceSystem->ForceSPH(sphMarkersD1, fsiBodiesD, fsiMeshD);
 
@@ -552,6 +595,39 @@ void ChFluidDynamics::IntegrateSPH(std::shared_ptr<SphMarkerDataD> sphMarkersD2,
         this->UpdateFluid(sphMarkersD1, dT);
 
     this->ApplyBoundarySPH_Markers(sphMarkersD2);
+}
+
+// -----------------------------------------------------------------------------
+void ChFluidDynamics::UpdateActivity(std::shared_ptr<SphMarkerDataD> sphMarkersD1,
+                                     std::shared_ptr<SphMarkerDataD> sphMarkersD2, 
+                                     std::shared_ptr<FsiBodiesDataD> fsiBodiesD) {
+    // Update portion of the SPH particles (should be all particles here)
+    int2 updatePortion = mI2(0, numObjectsH->numAllMarkers);
+    
+    bool *isErrorH, *isErrorD;
+    isErrorH = (bool*)malloc(sizeof(bool));
+    cudaMalloc((void**)&isErrorD, sizeof(bool));
+    *isErrorH = false;
+    cudaMemcpy(isErrorD, isErrorH, sizeof(bool), cudaMemcpyHostToDevice);
+
+    //------------------------
+    uint numBlocks, numThreads;
+    computeGridSize(updatePortion.y - updatePortion.x, 256, numBlocks, numThreads);
+    UpdateActivityD<<<numBlocks, numThreads>>>(
+        mR4CAST(sphMarkersD2->posRadD), mR3CAST(sphMarkersD1->velMasD), 
+        mR3CAST(fsiBodiesD->posRigid_fsiBodies_D),
+        U1CAST(fsiSystem->fsiGeneralData->activityIdentifierD), updatePortion, 
+        numObjectsH->numRigidBodies, isErrorD);
+    cudaDeviceSynchronize();
+    cudaCheckError();
+    //------------------------
+
+    cudaMemcpy(isErrorH, isErrorD, sizeof(bool), cudaMemcpyDeviceToHost);
+    if (*isErrorH == true) {
+        throw std::runtime_error("Error! program crashed in UpdateActivityD!\n");
+    }
+    cudaFree(isErrorD);
+    free(isErrorH);
 }
 
 // -----------------------------------------------------------------------------
@@ -568,25 +644,28 @@ void ChFluidDynamics::UpdateFluid(std::shared_ptr<SphMarkerDataD> sphMarkersD, R
     //------------------------
     uint numBlocks, numThreads;
     computeGridSize(updatePortion.y - updatePortion.x, 256, numBlocks, numThreads);
-    UpdateFluidD<<<numBlocks, numThreads>>>(
-        mR4CAST(sphMarkersD->posRadD), mR3CAST(sphMarkersD->velMasD), 
+    UpdateFluidD<<<numBlocks, numThreads>>>(mR4CAST(sphMarkersD->posRadD),
+        mR3CAST(sphMarkersD->velMasD), mR4CAST(sphMarkersD->rhoPresMuD),
+        mR3CAST(sphMarkersD->tauXxYyZzD),mR3CAST(sphMarkersD->tauXyXzYzD),
         mR3CAST(fsiSystem->fsiGeneralData->vel_XSPH_D),
-        mR4CAST(sphMarkersD->rhoPresMuD), mR4CAST(fsiSystem->fsiGeneralData->derivVelRhoD_old),
-        mR3CAST(sphMarkersD->tauXxYyZzD), mR3CAST(sphMarkersD->tauXyXzYzD),
+        mR4CAST(fsiSystem->fsiGeneralData->derivVelRhoD_old),
         mR3CAST(fsiSystem->fsiGeneralData->derivTauXxYyZzD), 
         mR3CAST(fsiSystem->fsiGeneralData->derivTauXyXzYzD),
-        mR4CAST(fsiSystem->fsiGeneralData->sr_tau_I_mu_i), updatePortion, dT, isErrorD);
+        mR4CAST(fsiSystem->fsiGeneralData->sr_tau_I_mu_i), 
+        U1CAST(fsiSystem->fsiGeneralData->activityIdentifierD),
+        updatePortion, dT, isErrorD);
     cudaDeviceSynchronize();
     cudaCheckError();
     //------------------------
     cudaMemcpy(isErrorH, isErrorD, sizeof(bool), cudaMemcpyDeviceToHost);
     if (*isErrorH == true) {
-        throw std::runtime_error("Error! program crashed in  UpdateFluidD!\n");
+        throw std::runtime_error("Error! program crashed in UpdateFluidD!\n");
     }
     cudaFree(isErrorD);
     free(isErrorH);
 }
 
+// -----------------------------------------------------------------------------
 void ChFluidDynamics::UpdateFluid_Implicit(std::shared_ptr<SphMarkerDataD> sphMarkersD) {
     uint numThreads, numBlocks;
     computeGridSize((int)numObjectsH->numAllMarkers, 256, numBlocks, numThreads);
@@ -612,7 +691,7 @@ void ChFluidDynamics::UpdateFluid_Implicit(std::shared_ptr<SphMarkerDataD> sphMa
 
     cudaMemcpy(isErrorH, isErrorD, sizeof(bool), cudaMemcpyDeviceToHost);
     if (*isErrorH == true) {
-        throw std::runtime_error("Error! program crashed in  Update_Fluid_State!\n");
+        throw std::runtime_error("Error! program crashed in Update_Fluid_State!\n");
     }
     //------------------------------------------------------------------------
 
@@ -651,6 +730,7 @@ void ChFluidDynamics::ApplyBoundarySPH_Markers(std::shared_ptr<SphMarkerDataD> s
     // cudaCheckError();
 }
 
+// -----------------------------------------------------------------------------
 /**
  * @brief ApplyBoundarySPH_Markers
  * @details
@@ -676,8 +756,8 @@ void ChFluidDynamics::ApplyModifiedBoundarySPH_Markers(std::shared_ptr<SphMarker
     cudaDeviceSynchronize();
     cudaCheckError();
 }
-// -----------------------------------------------------------------------------
 
+// -----------------------------------------------------------------------------
 void ChFluidDynamics::DensityReinitialization() {
     uint numBlocks, numThreads;
     computeGridSize((int)numObjectsH->numAllMarkers, 256, numBlocks, numThreads);
