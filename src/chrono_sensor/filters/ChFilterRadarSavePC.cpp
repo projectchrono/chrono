@@ -40,7 +40,7 @@ CH_SENSOR_API void ChFilterRadarSavePC::Apply() {
     std::string filename = m_path + "frame_" + std::to_string(m_frame_number) + ".csv";
     m_frame_number++;
     utils::CSV_writer csv_writer(",");
-    for (unsigned int i = 0; i < m_buffer_in->Beam_return_count; i++) {
+    for (int i = 0; i < m_buffer_in->Beam_return_count; i++) {
         csv_writer << m_buffer_in->Buffer[i].x << m_buffer_in->Buffer[i].y << m_buffer_in->Buffer[i].z
                    << m_buffer_in->Buffer[i].vel_x << m_buffer_in->Buffer[i].vel_y << m_buffer_in->Buffer[i].vel_z
                    << m_buffer_in->Buffer[i].amplitude << m_buffer_in->Buffer[i].objectId << std::endl;

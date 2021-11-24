@@ -5,6 +5,10 @@ Change Log
 ==========
 
 - [Unreleased (development version)](#unreleased-development-branch)
+- [Release 7.0.0](#release-700---2021-11-15) 
+  - [DDS communicator in Chrono::Synchrono module](#added-dds-communicator-in-chronosynchrono-module)
+  - [New terramechanics co-simulation module](#added-new-terramechanics-co-simulation-module)
+  - [Chrono::Fsi API redesign](#changed-chronofsi-api-redesign)
   - [Sensor performance improvements and feature additions](#changed-sensor-to-improve-performance-and-added-features)
   - [ANCF element improvements and additions](#changed-ancf-element-improvements-and-additions)
   - [New Chrono::Vehicle features](#added-new-chronovehicle-features)
@@ -20,6 +24,7 @@ Change Log
   - [New tracked vehicle model](#added-new-tracked-vehicle-model)
   - [Support for Z up camera in Chrono::Irrlicht](#changed-support-for-z-up-camera-in-chronoirrlicht)
   - [Reading and writing collision meshes in Chrono::Gpu](#changed-reading-and-writing-collision-meshes-in-chronogpu)
+  - [Support compiling to WebAssembly](#added-support-for-the-emscripten-compiler-targeting-webassembly)
 - [Release 6.0.0](#release-600---2021-02-10) 
   - [New Chrono::Csharp module](#added-new-chronocsharp-module)
   - [RoboSimian, Viper, and LittleHexy models](#added-robosimian-viper-and-littlehexy-models)
@@ -50,6 +55,106 @@ Change Log
 
 ## Unreleased (development branch)
 
+
+
+## Release 7.0.0 - 2021-11-15
+
+### [Added] DDS communicator in Chrono::Synchrono module
+
+`Chrono::SynChrono` used to rely only on MPI to pass message between ranks. We added a different `SynCommunicator` derived class called `SynDDSCommunicator`. This communicator relies on e-Prosima implementation of DDS, called [fastDDS](https://www.eprosima.com/index.php/products-all/eprosima-fast-dds) and it is alternative to MPI communication. Please note that while DDS implementations are interoperable, they are not compatible at the implementation level, therefore to use this functionality please download or clone and build fastDDS and follow the [instructions on our website](https://github.com/projectchrono/chrono/tree/develop/src/chrono_synchrono). The main purpose of SynChrono-DDS is to perform distributed simulation across different machines, hence overcoming MPI limitations: as long as two machines can establish a UDP/TCP communication they can participate in a distributed SynChrono-DDS communication. 
+
+- From the user API perspective, the change is minimal: for example, in `demo_SYN_DDS_wheeled.cpp` the only change is the communicator itself, after including the proper header:
+   ```cpp
+   #include "chrono_synchrono/communication/dds/SynDDSCommunicator.h"
+   .....
+   auto communicator = chrono_types::make_shared<SynDDSCommunicator>(node_id);
+   ```
+- Launching the jobs: instead of using mpiexec/mpirun, DDS ranks are started separately (either manually or through a job scheduler). DDS implements a _Barrier_ such that jobs freeze until the expected number of participant is found. This means that jobs can be launched even minutes apart and they will simply wait for each other before stepping forward together.
+- UDP communication: the most useful application of SynChronoDDS is using it across UDP, to perform distributed simulation without MPI boundaries. It is sufficient to provide the IP address of the machines to connect with to set up communication (given that the Firewall is not preventing it) as in `demo_SYN_DDS_distributed.cpp`: 
+ ```cpp
+qos.transport().user_transports.push_back(std::make_shared<UDPv4TransportDescriptor>());
+qos.transport().use_builtin_transports = false;
+qos.wire_protocol().builtin.avoid_builtin_multicast = false;
+// Set the initialPeersList
+for (const auto& ip : ip_list) {
+    Locator_t locator;
+    locator.kind = LOCATOR_KIND_UDPv4;
+    IPLocator::setIPv4(locator, ip);
+    qos.wire_protocol().builtin.initialPeersList.push_back(locator);
+}
+auto communicator = chrono_types::make_shared<SynDDSCommunicator>(qos);
+```
+
+### [Added] New terramechanics co-simulation module
+
+This new module provides support for co-simulating various Chrono models of ground wheeled vehicles.  This framework implements an explicit co-simulation model (of force-displacement type) and uses an MPI layer for exchanging data between the participant nodes.
+
+The co-simulation framework was architected to support:
+- any of the terramechanics simulation capabilities in Chrono (rigid terrain; deformable SCM; granular terrain with Chrono::Multicore, Chrono::Gpu, or Chrono::Distributed; continuous granular terrain representation with Chrono::Fsi);
+- external, third-party terramechanics simulation packages (regardless of implementation and/or parallel programing paradigm);
+- terramechanics packages that do not advance themselves the dynamics of the tires (if any) or else treat both tire and terrain simulation;
+- rigid or flexible tires (the latter assumed to rely on the Chrono FEA simulation capabilities);
+- a variety of Chrono wheeled vehicle models (including any Chrono::Vehicle wheeled model, as well as single-wheel test rigs, or wheeled rover models such as the Curiosity and Viper).
+
+The new module is build automatically if MPI is found and available and if the Chrono::Vehicle module is enabled (at CMake configuration time).  Support for different terramechanics models is enabled within the module if the corresponding Chrono module is enabled (note that each of the following Chrono modules has its own additional dependencies):
+- Chrono::Multicore for granular multi-core simulation (OpenMP-based)
+- Chrono::Gpu for granular GPU simulation (CUDA-based)
+- Chrono::Distributed for granular distributed simulation (MPI-based)
+- Chrono::FSI for continuous granular terrain representation (CUDA-based)
+
+Terrain simulation is conducted on one or more `Terrain` nodes (MPI ranks).  If the terramechanics simulation is itself using MPI, support is provided to generate and provide an MPI sub-communicator consisting of all `Terrain` ranks; only the main `Terrain` rank (rank 0 in the sub-communicator) participates in the co-simulation communication.
+
+Several types of `MBS` nodes are provided, representing different wheeled mechanisms and vehicles:
+- `ChVehicleCosimRigNode` wraps a model of a single-wheel test rig;
+- `ChVehicleCosimVehicleNode` wraps a Chrono::Vehicle ground wheeled vehicle model (with arbitrary number of wheels);
+- `ChVehicleCosimCuriosityNode` wraps the Curiosity Mars rover available in the Chrono robot models library;
+- `ChVehicleCosimViperNode` wraps the Viper lunar rover available in the Chrono robot models library;
+
+Three different types of `Tire` nodes are provided to intermediate simulation and data-exchanged between the MBS node and the main Terrain node:
+- `ChVehicleCosimTireNodeRigid` is a simple conduit between the MBS node and the Terrain node; it does not perform any dynamics of its own, but does maintain a physical representation of the associated tire for simulation and visualization output purposes;
+- `ChVehicleCosimTireNodeFlexible` wraps a deformable tire modeled with Chrono::FEA elements; this node performs its own dynamics (accelerated by the use of OpenMP parallel loops in Chrono::FEA);
+- `ChVehicleCosimTireNodeBypass` provides a pure short-circuit between the MBS and Terrain nodes and is intended for coupling to terramechanics external packages which simulate simultaneously the tire, the terrain, and the tire-terrain interaction.
+
+The architecture of the framework thus implements a "three way" co-simulation setup.  The data exchange between the three different node types is as follows:
+- the MBS node sends spindle body states to the appropriate Tire nodes;  a Tire node sends terrain forces and moments acting on the spindle body to the MBS node;
+- a Tire node sends tire body state (for a rigid tire) or tire FEA mesh state (for a flexible tire) to the Terrain node; the (main) Terrain node send terrain force on the spindle (rigid tire) body or nodal terrain forces (for a flexible tire) to the appropriate Tire node.
+
+The co-simulation framework also provides the ability to attach a drawbar pull rig mechanism to any of the supported MBS nodes. Two variants are provided:
+- `ChVehicleCosimDBPRigImposedSlip` allows imposing known (fixed) vehicle forward linear velocity and wheel angular velocity to maintain a prescribed value of the longitudinal slip. The actuation specifies if the linear velocity or angular velocity is considered as "base velocity", with the other one derived from the slip value. The DBP force is extracted as the reaction force required to enforce the vehicle forward linear velocity (at steady state).  Each run of this experiment produces one point on the slip-DBP curve.
+- `ChVehicleCosimDBPRigImposedAngVel` enforces a prescribed wheel angular velocity. A linearly increasing resistive force is applied against the forward motion of the vehicle and the experiment is ended when the vehicle stops. At each time, the vehicle forward speed and resulting slip are calculated and stored together with the current resistive force (DBP). This experiment produces the entire slip-DBP curve at once.
+
+Output feature include:
+- Run-time visualization.  Available if the Chrono::OpenGL module is enabled, this option permits run-time visualization from the Terrain node.  The only exception is the SCM deformable terrain node which uses Chrono::Irrlicht (if available)
+- Simulation output.  A variety of output files are created from each type of co-simulation node, as well as from the drawbar-pull rig (if one is present).  These include both files with information from all time steps and individual frame files created at each output step.
+- Off-line visualization.  If desired, the user can invoke functions to generate post-processing visualization output.  The visualization output files (where possible) are meant to be used with the new Blender-based python scripts available in Chrono and allow rendering in a single scene the visualization assets from all co-simulation nodes.
+
+The design of the co-simulation framework is such that all inter-node co-simulation communication is transparent to the user.  User code need only instantiate the appropriate number of co-simulation nodes of the appropriate type (MBS, Tire, or Terrain), select simulation options, and make calls to advance the state of the coupled system from step to step.  At a minimum, the main user simulation loop must call `Synchronize` followed by `Advance` for all co-simulation nodes; optional calls may be made to functions controlling simulation and off-line visualization output.  A set of demo programs (named `demo_VEH_Cosim***`) are provided to illustrate the use of the co-simulation framework with different multibody systems and terrain models.
+
+
+### [Changed] Chrono::Fsi API redesign
+
+For consistency with the main Chrono module and other optional Chrono modules, the Chrono::FSI API was changed as follows: 
+
+- The user's interaction with the Chrono::FSI module was streamlined by exposing in the public API a single Chrono::FSI system object (of type `ChSystemFsi` ) and hiding the underlying implementation in a private class. 
+- User code only needs to include one Chrono::Fsi header in their project, namely `chrono_fsi/ChSystemFsi.h` and need not include any of the utility header files from `utils/`.
+- Users can use standard C++ types to declare a scalar, and use Chrono types (`ChVector`, `ChQuaternion`, etc) to declare vectors, quaternions, etc. 
+- The initialization of the parameters from a JSON file was changed from fsi::utils::ParseJSON() to `myFsiSystem.SetSimParameter()`, assuming the user has created an FSI system `myFsiSystem`. 
+- A new function was added to set periodic boundary condition: `ChSystemFsi::SetBoundaries()`. 
+- The function used to finalize the subdomains was changed from fsi::utils::FinalizeDomain() to `ChSystemFsi::SetSubDomain()`.
+- The function used to set the output directory was changed from utils::PrepareOutputDir() to `ChSystemFsi::SetFsiOutputDir()`.
+- The function used to add SPH particles was changed from myFsiSystem.GetDataManager()->AddSphMarker() to `ChSystem::AddSphMarker()`. 
+- The functions used to add BCE particles were changed along the same lines; for instance, to add BCE particles for a cylinder, use `ChSystemFsi::AddBceCylinder()`. 
+- The function used to output data was changed from fsi::utils::PrintToFile() to `ChSystemFsi::PrintParticleToFile()`. 
+
+See the updated FSI demo programs for usage of the new Chrono::Fsi API.
+
+**Added - Option to build Chrono::FSI in single precision**
+
+- Users can optionally configure Chrono::FSI in single precision by unsetting the CMake variable `USE_FSI_DOUBLE`
+- By default, Chrono::FSI is configured and built in double precision
+- Users shgould be careful opting for single precision as this can adversely impact simulation results
+
+
 ### [Changed] Sensor to improve performance and added features 
 
 **Changed - Optix 7.2 as Dependency:**
@@ -59,7 +164,7 @@ Change Log
  - sensors have been moved to `src/chrono_sensor/sensors/` to cleanup directory structure
  - all optix-dependent code was moved to `src/chrono_sensor/optix` to consolidate the dependency
 
-**Changed - IMU to Accelerometer and Gyroscope:**
+**Changed - IMU to accelerometer and gyroscope:**
  - Split the IMU sensor into its components (ChAccelerometerSensor and ChGyroscopeSensor) to facilitate additional sensors. Using both sensors together with same update rate will produce the same behavior as the original IMU. These sensors are still maintained under `ChIMUSensor.h and ChIMUSensor.cpp`
   ```cpp
   ChAccelerometerSensor(std::shared_ptr<chrono::ChBody> parent, float updateRate, chrono::ChFrame<double> offsetPose, std::shared_ptr<ChNoiseModel> noise_model);
@@ -310,7 +415,9 @@ Moments can be applied at any point within these elements just like forces.  For
 
 5. The contact manager for tracked vehicles was extended to also allow use with a track test rig. Furthermore, new public methods on `ChTrackedVehicle` and `ChTrackTestRig` allow controlling rendering of contact information (normals and/or contact forces) for all monitored subsystems.
 
-6. A demonstration program (`demo_VEH_RenderJSON`) was created to illustrate visualization of a Chrono::Vehicle model based on JSON specificatin files.  Using the Chrono::OpenGL run-time visualization module, this demo program allows re-creating the vehicle model after a potential change to one or more JSON specification files (use key `U` to trigger).
+6. Support was added for specifying and applying user-defined external forces on a vehicle's chassis.  Such forces are defined in a class derived from `ChChassis::ExternalForce` which should override the `Update` method (to calculate new values for the force and/or its application point at each synchronization of the chassis state).  An arbitrary number of such forces can be defined and added using `ChChassis::AddExternalForce`.
+
+7. A demonstration program (`demo_VEH_RenderJSON`) was created to illustrate visualization of a Chrono::Vehicle model based on JSON specificatin files.  Using the Chrono::OpenGL run-time visualization module, this demo program allows re-creating the vehicle model after a potential change to one or more JSON specification files (use key `U` to trigger).
 
 ### [Added] New robot models
 
@@ -686,6 +793,25 @@ or write a particular mesh to a file by
 ```cpp
     void WriteMesh(const std::string& outfilename, unsigned int i) const;
 ```
+
+### [Added] Support for the Emscripten compiler targeting WebAssembly
+
+Chrono now provides limited support for compiling to WebAssembly and running in browser or Node.js. The core library is supported along with Chrono::OpenGL and Chrono::Vehicle. It is recommended to use the `emcmake` wrapper and Ninja generator when targeting WASM to ensure that all of the configuration options are set correctly. 
+
+```sh
+cd build
+emcmake ccmake -G Ninja ..
+ninja
+``` 
+
+**Changed - Shaders embedded using embedfile.cpp are now generated in pure CMake**
+
+This allows for cross-compilation which is necessary for WASM. 
+
+**Changed - OpenGL components now target OpenGL ES 3.0**
+
+WebAssembly platforms typically use WebGL, which maintains a feature set roughly on par with OpenGL ES. WebGL 2.0 is able to emulate almost all of OpenGL ES 3.0, which is similar to the capabilities of the previously supported target of OpenGL 3.3. This modification should also improve overall Chrono::OpenGL performance on low-power rendering hardware such as ultra-portable laptops or mobile devices. 
+
 
 ## Release 6.0.0 - 2021-02-10
 

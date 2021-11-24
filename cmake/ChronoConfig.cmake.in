@@ -8,8 +8,9 @@
 #
 # In the call to find_package(), the following Chrono components can be
 # requested (case insensitive): 
-#   Cascade, Cosimulation, Irrlicht, OpenGL, Matlab, Multicore, Gpu,
-#   PardisoMKL, PardisoProject, Postprocess, Python, Vehicle, VehicleCosim.  
+#   Cascade, Cosimulation, Fsi, Irrlicht, OpenGL, Matlab, Multicore, Gpu,
+#   PardisoMKL, PardisoProject, Postprocess, Python, Sensor, Synchrono,
+#   Vehicle, VehicleCosim.  
 # A component can be requested either as required or optional
 # (see the CMake documentation for find_package).
 # 
@@ -42,14 +43,18 @@
 #
 # Other variables:
 # CHRONO_SSE_FOUND
-#       set to true if SSE support is available
-#       CHRONO_CXX_FLAGS includes all required flags
+#       set to true if SSE support is available;
+#       CHRONO_CXX_FLAGS includes all required flags.
 # CHRONO_AVX_FOUND
-#       set to true if AVX support is available
-#       CHRONO_CXX_FLAGS includes all required flags
+#       set to true if AVX support is available;
+#       CHRONO_CXX_FLAGS includes all required flags.
 # CHRONO_MPI_FOUND
-#       set to true if MPI support is available
-#       CHRONO_CXX_FLAGS, CHRONO_LINKER_FLAGS, and CHRONO_LIBRARIES include MPI
+#       set to true if MPI support is available;
+#       CHRONO_CXX_FLAGS, CHRONO_LINKER_FLAGS, and CHRONO_LIBRARIES include MPI.
+# CHRONO_FASTDDS_FOUND
+#       set to true if FastDDS support is available.
+#       CHRONO_INCLUDE_DIRS and CHRONO_LIBRARIES include FastDDS.
+#       However, the user must still invoke fast_package(fastrtps)!
 #===============================================================================
 
 if (CHRONO_CONFIG_INCLUDED)
@@ -74,10 +79,10 @@ endif()
 
 list(APPEND CHRONO_INCLUDE_DIRS "@CH_INCLUDE_DIRS@")
 list(APPEND CHRONO_LIBRARIES "@OPENMP_LIBRARIES@")
-list(APPEND CHRONO_LIB_NAMES "ChronoEngine")
+list(PREPEND CHRONO_LIB_NAMES "ChronoEngine")
 list(APPEND CHRONO_DLLS "")
 list(APPEND CHRONO_DLL_NAMES "ChronoEngine.dll")
-list(APPEND CHRONO_LIB_NAMES "ChronoModels_robot")
+list(PREPEND CHRONO_LIB_NAMES "ChronoModels_robot")
 list(APPEND CHRONO_DLL_NAMES "ChronoModels_robot.dll")
 
 set(CHRONO_DATA_DIR "@CH_DATA_DIR@")
@@ -88,6 +93,8 @@ set(SYNCHRONO_DATA_DIR "@CH_DATA_DIR@synchrono/")
 set(CHRONO_SSE_FOUND "@SSE_FOUND@")
 set(CHRONO_AVX_FOUND "@AVX_FOUND@")
 set(CHRONO_MPI_FOUND "@MPI_CXX_FOUND@")
+
+set(CHRONO_FASTDDS_FOUND "@FASTDDS_FOUND@")
 
 #-------------------------------------------------------------------------------
 # Local variables specifying which Chrono modules are enabled
@@ -208,19 +215,23 @@ foreach(COMPONENT ${Chrono_FIND_COMPONENTS})
       set(CHRONO_C_FLAGS "${CHRONO_C_FLAGS} @CH_MULTICORE_C_FLAGS@")
 
       list(APPEND CHRONO_INCLUDE_DIRS "@CH_MULTICORE_INCLUDES@")
-      list(APPEND CHRONO_LIB_NAMES "ChronoEngine_multicore")
+      list(PREPEND CHRONO_LIB_NAMES "ChronoEngine_multicore")
       list(APPEND CHRONO_DLL_NAMES "ChronoEngine_multicore.dll")
 
     elseif(${COMPONENT_UPPER} MATCHES "OPENGL")
 
       list(APPEND CHRONO_INCLUDE_DIRS "@CH_OPENGL_INCLUDES@")
-      list(APPEND CHRONO_LIB_NAMES "ChronoEngine_opengl")
-      list(APPEND CHRONO_LIBRARIES "@GLEW_LIBRARY@")
-      list(APPEND CHRONO_LIBRARIES "@GLFW_LIBRARY@")
-      list(APPEND CHRONO_LIBRARIES "@OPENGL_LIBRARY@")
+      list(PREPEND CHRONO_LIB_NAMES "ChronoEngine_opengl")
       list(APPEND CHRONO_DLL_NAMES "ChronoEngine_opengl.dll")
       list(APPEND CHRONO_DLLS "@GLEW_DLL@")
       list(APPEND CHRONO_DLLS "@GLFW_DLL@")
+      if(${CMAKE_SYSTEM_NAME} MATCHES "Emscripten")
+        set(CHRONO_LINKER_FLAGS "${CHRONO_LINKER_FLAGS} -s FULL_ES3=1 -s USE_GLFW=3")
+      else()
+        list(APPEND CHRONO_LIBRARIES "@GLEW_LIBRARY@")
+        list(APPEND CHRONO_LIBRARIES "@GLFW_LIBRARY@")
+        list(APPEND CHRONO_LIBRARIES "@OPENGL_LIBRARIES@")
+      endif()
 
     elseif(${COMPONENT_UPPER} MATCHES "IRRLICHT")
 
@@ -228,25 +239,25 @@ foreach(COMPONENT ${Chrono_FIND_COMPONENTS})
       set(CHRONO_C_FLAGS "${CHRONO_C_FLAGS} @CH_IRRLICHT_C_FLAGS@")
 
       list(APPEND CHRONO_INCLUDE_DIRS "@CH_IRRLICHTINC@")
-      list(APPEND CHRONO_LIB_NAMES "ChronoEngine_irrlicht")
+      list(PREPEND CHRONO_LIB_NAMES "ChronoEngine_irrlicht")
       list(APPEND CHRONO_LIBRARIES "@IRRLICHT_LIBRARY@")
       list(APPEND CHRONO_DLL_NAMES "ChronoEngine_irrlicht.dll")
       list(APPEND CHRONO_DLLS "@CH_IRRLICHT_DLL@")
 
       if(Chrono_HAS_postprocess)
-          list(APPEND CHRONO_LIB_NAMES "ChronoEngine_postprocess")
+          list(PREPEND CHRONO_LIB_NAMES "ChronoEngine_postprocess")
           list(APPEND CHRONO_DLL_NAMES "ChronoEngine_postprocess.dll")
       endif()
 
     elseif(${COMPONENT_UPPER} MATCHES "VEHICLE")
 
-      list(APPEND CHRONO_LIB_NAMES "ChronoEngine_vehicle")
+      list(PREPEND CHRONO_LIB_NAMES "ChronoEngine_vehicle")
       list(APPEND CHRONO_DLL_NAMES "ChronoEngine_vehicle.dll")
-      list(APPEND CHRONO_LIB_NAMES "ChronoModels_vehicle")
+      list(PREPEND CHRONO_LIB_NAMES "ChronoModels_vehicle")
       list(APPEND CHRONO_DLL_NAMES "ChronoModels_vehicle.dll")
 
       if(${Chrono_HAS_irrlicht})
-        list(APPEND CHRONO_LIB_NAMES "ChronoEngine_vehicle_irrlicht")
+        list(PREPEND CHRONO_LIB_NAMES "ChronoEngine_vehicle_irrlicht")
         list(APPEND CHRONO_DLL_NAMES "ChronoEngine_vehicle_irrlicht.dll")
       endif()
 
@@ -256,14 +267,14 @@ foreach(COMPONENT ${Chrono_FIND_COMPONENTS})
         list(APPEND CHRONO_INCLUDE_DIRS "@MPI_CXX_INCLUDE_PATH@")
         list(APPEND CHRONO_LIBRARIES "@MPI_CXX_LIBRARIES@")
 
-        list(APPEND CHRONO_LIB_NAMES "ChronoEngine_vehicle_cosim")
+        list(PREPEND CHRONO_LIB_NAMES "ChronoEngine_vehicle_cosim")
         list(APPEND CHRONO_DLL_NAMES "ChronoEngine_vehicle_cosim.dll")
       endif()
 
     elseif(${COMPONENT_UPPER} MATCHES "FSI")
 
       list(APPEND CHRONO_INCLUDE_DIRS "@CH_FSI_INCLUDES@")
-      list(APPEND CHRONO_LIB_NAMES "ChronoEngine_fsi")
+      list(PREPEND CHRONO_LIB_NAMES "ChronoEngine_fsi")
       list(APPEND CHRONO_DLL_NAMES "ChronoEngine_fsi.dll")
 
     elseif(${COMPONENT_UPPER} MATCHES "SENSOR")
@@ -272,17 +283,29 @@ foreach(COMPONENT ${Chrono_FIND_COMPONENTS})
       set(CHRONO_C_FLAGS "${CHRONO_C_FLAGS} @CH_SENSOR_C_FLAGS@")
 
       list(APPEND CHRONO_INCLUDE_DIRS "@CH_SENSOR_INCLUDES@")
-      list(APPEND CHRONO_LIB_NAMES "ChronoEngine_sensor")
+      list(PREPEND CHRONO_LIB_NAMES "ChronoEngine_sensor")
       list(APPEND CHRONO_LIBRARIES "@SENSOR_LIBRARIES@")
       list(APPEND CHRONO_DLL_NAMES "ChronoEngine_sensor.dll")
-      list(APPEND CHRONO_DLLS "@optix_DLL@")
-      list(APPEND CHRONO_DLLS "@CH_GLEW_DLL@")
+      #list(APPEND CHRONO_DLLS "@optix_DLL@")
+      list(APPEND CHRONO_DLLS "@GLEW_DLL@")
+      list(APPEND CHRONO_DLLS "@GLFW_DLL@")
 
     elseif(${COMPONENT_UPPER} MATCHES "SYNCHRONO")
 
+      if(CHRONO_FASTDDS_FOUND)
+         set(fastrtps_DIR "@fastrtps_DIR@")
+         find_package(fastrtps REQUIRED)
+      endif()
+
+      set(CHRONO_CXX_FLAGS "${CHRONO_CXX_FLAGS} @MPI_CXX_COMPILE_FLAGS@")
       list(APPEND CHRONO_INCLUDE_DIRS "@SYN_INCLUDES@")
-      list(APPEND CHRONO_LIB_NAMES "ChronoEngine_synchrono")
+      list(APPEND CHRONO_INCLUDE_DIRS "@MPI_CXX_INCLUDE_PATH@")
+      list(APPEND CHRONO_INCLUDE_DIRS "@CH_THIRDPARTY_INCLUDE_DIR@/flatbuffers/include")
+      list(APPEND CHRONO_LINKER_FLAGS "@MPI_CXX_LINK_FLAGS@")
+      list(APPEND CHRONO_LIBRARIES "@MPI_CXX_LIBRARIES@")
       list(APPEND CHRONO_LIBRARIES "@SYN_LIBRARIES@")
+
+      list(PREPEND CHRONO_LIB_NAMES "ChronoEngine_synchrono")
       list(APPEND CHRONO_DLL_NAMES "ChronoEngine_synchrono.dll")
 
     elseif(${COMPONENT_UPPER} MATCHES "GPU")
@@ -290,7 +313,7 @@ foreach(COMPONENT ${Chrono_FIND_COMPONENTS})
       set(CHRONO_CXX_FLAGS "${CHRONO_CXX_FLAGS} @CH_GPU_CXX_FLAGS@")
 
       list(APPEND CHRONO_INCLUDE_DIRS "@CH_GPU_INCLUDES@")
-      list(APPEND CHRONO_LIB_NAMES "ChronoEngine_gpu")
+      list(PREPEND CHRONO_LIB_NAMES "ChronoEngine_gpu")
       list(APPEND CHRONO_DLL_NAMES "ChronoEngine_gpu.dll")
 
     elseif(${COMPONENT_UPPER} MATCHES "PARDISOMKL")
@@ -299,7 +322,7 @@ foreach(COMPONENT ${Chrono_FIND_COMPONENTS})
 
       list(APPEND CHRONO_INCLUDE_DIRS "@CH_MKL_INCLUDES@")      
       list(APPEND CHRONO_LIBRARIES "@CH_MKL_LIBRARIES@")
-      list(APPEND CHRONO_LIB_NAMES "ChronoEngine_pardisomkl")
+      list(PREPEND CHRONO_LIB_NAMES "ChronoEngine_pardisomkl")
       list(APPEND CHRONO_DLL_NAMES "ChronoEngine_pardisomkl.dll")
 
     elseif(${COMPONENT_UPPER} MATCHES "MUMPS")
@@ -307,50 +330,50 @@ foreach(COMPONENT ${Chrono_FIND_COMPONENTS})
       set(CHRONO_LINKER_FLAGS "${CHRONO_LINKER_FLAGS} @CH_MUMPS_LINK_FLAGS@")
 
       list(APPEND CHRONO_INCLUDE_DIRS "@CH_MUMPS_INCLUDES@")
-      list(APPEND CHRONO_LIB_NAMES "ChronoEngine_mumps")
+      list(PREPEND CHRONO_LIB_NAMES "ChronoEngine_mumps")
       list(APPEND CHRONO_LIBRARIES "@MUMPS_LIBRARY@")
       list(APPEND CHRONO_DLL_NAMES "ChronoEngine_mumps.dll")
       list(APPEND CHRONO_DLLS "@MUMPS_SHARED_LIBRARIES@")
 
     elseif(${COMPONENT_UPPER} MATCHES "POSTPROCESS")
 
-      list(APPEND CHRONO_LIB_NAMES "ChronoEngine_postprocess")
+      list(PREPEND CHRONO_LIB_NAMES "ChronoEngine_postprocess")
       list(APPEND CHRONO_DLL_NAMES "ChronoEngine_postprocess.dll")
 
     elseif(${COMPONENT_UPPER} MATCHES "CASCADE")
 
       list(APPEND CHRONO_INCLUDE_DIRS "@CASCADE_INCLUDE_DIR@")
-      list(APPEND CHRONO_LIB_NAMES "ChronoEngine_cascade")
+      list(PREPEND CHRONO_LIB_NAMES "ChronoEngine_cascade")
       list(APPEND CHRONO_LIBRARIES "@CASCADE_LIBRARIES@")
       list(APPEND CHRONO_DLL_NAMES "ChronoEngine_cascade.dll")
 
     elseif(${COMPONENT_UPPER} MATCHES "COSIMULATION")
 
       list(APPEND CHRONO_LIBRARIES "@CH_SOCKET_LIB@")
-      list(APPEND CHRONO_LIB_NAMES "ChronoEngine_cosimulation")
+      list(PREPEND CHRONO_LIB_NAMES "ChronoEngine_cosimulation")
       list(APPEND CHRONO_DLL_NAMES "ChronoEngine_cosimulation.dll")
 
     elseif(${COMPONENT_UPPER} MATCHES "PYTHON")
 
       list(APPEND CHRONO_INCLUDE_DIRS "@CH_PYTHONINC@")
-      list(APPEND CHRONO_LIB_NAMES "_ChronoEngine_python_core")
-      list(APPEND CHRONO_LIB_NAMES "ChronoEngine_pyparser")
+      list(PREPEND CHRONO_LIB_NAMES "_ChronoEngine_python_core")
+      list(PREPEND CHRONO_LIB_NAMES "ChronoEngine_pyparser")
       list(APPEND CHRONO_DLL_NAMES "ChronoEngine_pyparser.dll")
 
       if(${Chrono_HAS_irrlicht})
-        list(APPEND CHRONO_LIB_NAMES "_ChronoEngine_python_irrlicht")
+        list(PREPEND CHRONO_LIB_NAMES "_ChronoEngine_python_irrlicht")
       endif()
 
     elseif(${COMPONENT_UPPER} MATCHES "MATLAB")
 
       list(APPEND CHRONO_INCLUDE_DIRS "@CH_MATLABINC@")
-      list(APPEND CHRONO_LIB_NAMES "ChronoEngine_matlab")
+      list(PREPEND CHRONO_LIB_NAMES "ChronoEngine_matlab")
       list(APPEND CHRONO_LIBRARIES "@CH_MATLABLIB@")
       list(APPEND CHRONO_DLL_NAMES "ChronoEngine_matlab.dll")
 
     elseif(${COMPONENT_UPPER} MATCHES "PARDISOPROJECT")
 
-      list(APPEND CHRONO_LIB_NAMES "ChronoEngine_pardisoproject")
+      list(PREPEND CHRONO_LIB_NAMES "ChronoEngine_pardisoproject")
       list(APPEND CHRONO_LIBRARIES "@PARDISOPROJECT_LIBRARIES@")
       list(APPEND CHRONO_DLL_NAMES "ChronoEngine_pardisoproject.dll")
 
@@ -363,6 +386,10 @@ endforeach()
 #-------------------------------------------------------------------------------
 # Loop over list of Chrono library names and find the actual libraries.
 #-------------------------------------------------------------------------------
+
+if(${CMAKE_SYSTEM_NAME} MATCHES "Emscripten")
+    set(CMAKE_FIND_ROOT_PATH_MODE_LIBRARY NEVER)
+endif()
 
 foreach(lib ${CHRONO_LIB_NAMES})
   set(onelib "${lib}-NOTFOUND")
@@ -377,6 +404,10 @@ foreach(lib ${CHRONO_LIB_NAMES})
     list(APPEND CHRONO_LIBRARIES "${onelib}")
   endif()
 endforeach()
+
+if(${CMAKE_SYSTEM_NAME} MATCHES "Emscripten")
+    set(CMAKE_FIND_ROOT_PATH_MODE_LIBRARY ONLY)
+endif()
 
 mark_as_advanced(FORCE onelib)
 

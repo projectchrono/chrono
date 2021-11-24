@@ -72,6 +72,8 @@ int main(int argc, char* argv[]) {
 
     ChSystemSMC my_system;
 
+    my_system.SetNumThreads(ChOMP::GetNumProcs(), 0, 1);
+
     // Create the Irrlicht visualization (open the Irrlicht device,
     // bind a simple user interface, etc. etc.)
     ChIrrApp application(&my_system, L"ANCF Contact", core::dimension2d<u32>(800, 600));

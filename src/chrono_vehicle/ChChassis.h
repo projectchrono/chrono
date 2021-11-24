@@ -157,7 +157,7 @@ class CH_VEHICLE_API ChChassis : public ChPart {
     );
 
     /// Update the state of the chassis subsystem.
-    /// The base class implementation applies aerodynamic drag forces to the chassis body (if enabled).
+    /// The base class implementation applies all defined external forces to the chassis body.
     virtual void Synchronize(double time);
 
     /// Utility function to add a joint (kinematic or bushing) to the vehicle system.
@@ -166,16 +166,29 @@ class CH_VEHICLE_API ChChassis : public ChPart {
     /// Utility function to remove a joint (kinematic or bushing) from the vehicle system.
     static void RemoveJoint(std::shared_ptr<ChVehicleJoint> joint);
 
+    /// Base class for a user-defined custom force acting on the chassis body.
+    class ExternalForce {
+      public:
+        virtual ~ExternalForce() {}
+
+        /// The external load is updated at each vehicle synchronization.
+        /// A derived class must load the current values for the external force and its application point on the chassis
+        /// body, both assumed to be provided in the chassis body local frame.
+        virtual void Update(double time, const ChChassis& chassis, ChVector<>& force, ChVector<>& point) {}
+    };
+
+    /// Utility force to add an external load to the chassis body.
+    void AddExternalForce(std::shared_ptr<ExternalForce> force);
+
   protected:
     std::shared_ptr<ChBodyAuxRef> m_body;              ///< handle to the chassis body
     std::shared_ptr<ChLoadContainer> m_bushings;       ///< load container for vehicle bushings
     std::vector<std::shared_ptr<ChMarker>> m_markers;  ///< list of user-defined markers
     bool m_fixed;                                      ///< is the chassis body fixed to ground?
 
-    bool m_apply_drag;     ///< enable aerodynamic drag force?
-    double m_Cd;           ///< drag coefficient
-    double m_area;         ///< reference area (m2)
-    double m_air_density;  ///< air density (kg/m3)
+  private:
+    std::shared_ptr<ChLoadContainer> m_container_forces;   ///< load container for external forces
+    std::vector<std::shared_ptr<ExternalForce>> m_forces;  ///< external forces
 };
 
 // -----------------------------------------------------------------------------

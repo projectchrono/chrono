@@ -41,7 +41,8 @@ WheeledVehicle::WheeledVehicle(ChSystem* system, const std::string& filename) : 
 // -----------------------------------------------------------------------------
 void WheeledVehicle::Create(const std::string& filename) {
     // Open and parse the input file
-    Document d; ReadFileJSON(filename, d);
+    Document d;
+    ReadFileJSON(filename, d);
     if (d.IsNull())
         return;
 
@@ -95,26 +96,28 @@ void WheeledVehicle::Create(const std::string& filename) {
     if (m_num_rear_chassis > 0) {
         m_chassis_rear.resize(m_num_rear_chassis);
         m_chassis_connectors.resize(m_num_rear_chassis);
-        m_rearchChassis.resize(m_num_rear_chassis);
+        m_rearch_chassis_index.resize(m_num_rear_chassis);
     }
 
     if (m_num_subch > 0) {
         m_subchassis.resize(m_num_subch);
-        m_subchLocations.resize(m_num_subch);
-        m_subchChassis.resize(m_num_subch);
+        m_subch_locations.resize(m_num_subch);
+        m_subch_chassis_index.resize(m_num_subch);
     }
 
     m_axles.resize(m_num_axles);
-    m_suspLocations.resize(m_num_axles);
-    m_suspSteering.resize(m_num_axles, -1);
-    m_suspSubchassis.resize(m_num_axles, -1);
-    m_arbLocations.resize(m_num_axles);
+    m_arb_locations.resize(m_num_axles);
+    m_susp_locations.resize(m_num_axles);
+    m_susp_steering_index.resize(m_num_axles, -1);    // default: non-steerbale
+    m_susp_chassis_index.resize(m_num_axles, -1);     // default: attached to main chassis
+    m_susp_subchassis_index.resize(m_num_axles, -1);  // default: no subchassis attachment
 
     m_steerings.resize(m_num_strs);
-    m_strLocations.resize(m_num_strs);
-    m_strRotations.resize(m_num_strs);
+    m_str_locations.resize(m_num_strs);
+    m_str_rotations.resize(m_num_strs);
+    m_str_chassis_index.resize(m_num_strs, -1);  // default: attach to main chassis  
 
-    m_wheelSeparations.resize(m_num_axles, 0.0);
+    m_wheel_separations.resize(m_num_axles, 0.0);
 
     // -------------------------------------------
     // Create the chassis system
@@ -140,7 +143,7 @@ void WheeledVehicle::Create(const std::string& filename) {
         }
         file_name = d["Rear Chassis"][i]["Connector Input File"].GetString();
         m_chassis_connectors[i] = ReadChassisConnectorJSON(vehicle::GetDataFile(file_name));
-        m_rearchChassis[i] = d["Rear Chassis"][i]["Chassis Index"].GetInt();
+        m_rearch_chassis_index[i] = d["Rear Chassis"][i]["Chassis Index"].GetInt();
     }
 
     // -------------------------------------
@@ -150,8 +153,8 @@ void WheeledVehicle::Create(const std::string& filename) {
     for (int i = 0; i < m_num_subch; i++) {
         std::string file_name = d["Subchassis"][i]["Input File"].GetString();
         m_subchassis[i] = ReadSubchassisJSON(vehicle::GetDataFile(file_name));
-        m_subchLocations[i] = ReadVectorJSON(d["Subchassis"][i]["Subchassis Location"]);
-        m_subchChassis[i] = d["Subchassis"][i]["Chassis Index"].GetInt();
+        m_subch_locations[i] = ReadVectorJSON(d["Subchassis"][i]["Subchassis Location"]);
+        m_subch_chassis_index[i] = d["Subchassis"][i]["Chassis Index"].GetInt();
     }
 
     // ------------------------------
@@ -164,8 +167,13 @@ void WheeledVehicle::Create(const std::string& filename) {
         if (d["Steering Subsystems"][i].HasMember("Output")) {
             m_steerings[i]->SetOutput(d["Steering Subsystems"][i]["Output"].GetBool());
         }
-        m_strLocations[i] = ReadVectorJSON(d["Steering Subsystems"][i]["Location"]);
-        m_strRotations[i] = ReadQuaternionJSON(d["Steering Subsystems"][i]["Orientation"]);
+        m_str_locations[i] = ReadVectorJSON(d["Steering Subsystems"][i]["Location"]);
+        m_str_rotations[i] = ReadQuaternionJSON(d["Steering Subsystems"][i]["Orientation"]);
+
+        // Index of chassis subsystem (if applicable)
+        if (d["Steering Subsystems"][i].HasMember("Chassis Index")) {
+            m_str_chassis_index[i] = d["Steering Subsystems"][i]["Chassis Index"].GetInt();
+        }
     }
 
     // --------------------
@@ -195,16 +203,21 @@ void WheeledVehicle::Create(const std::string& filename) {
         // Suspension
         std::string file_name = d["Axles"][i]["Suspension Input File"].GetString();
         m_axles[i]->m_suspension = ReadSuspensionJSON(vehicle::GetDataFile(file_name));
-        m_suspLocations[i] = ReadVectorJSON(d["Axles"][i]["Suspension Location"]);
+        m_susp_locations[i] = ReadVectorJSON(d["Axles"][i]["Suspension Location"]);
 
         // Index of steering subsystem (if applicable)
         if (d["Axles"][i].HasMember("Steering Index")) {
-            m_suspSteering[i] = d["Axles"][i]["Steering Index"].GetInt();
+            m_susp_steering_index[i] = d["Axles"][i]["Steering Index"].GetInt();
+        }
+
+        // Index of chassis subsystem (if applicable)
+        if (d["Axles"][i].HasMember("Chassis Index")) {
+            m_susp_chassis_index[i] = d["Axles"][i]["Chassis Index"].GetInt();
         }
 
         // Index of subchassis subsystem (if applicable)
         if (d["Axles"][i].HasMember("Subchassis Index")) {
-            m_suspSubchassis[i] = d["Axles"][i]["Subchassis Index"].GetInt();
+            m_susp_subchassis_index[i] = d["Axles"][i]["Subchassis Index"].GetInt();
         }
 
         // Antirollbar (if applicable)
@@ -213,13 +226,13 @@ void WheeledVehicle::Create(const std::string& filename) {
             assert(d["Axles"][i].HasMember("Antirollbar Location"));
             file_name = d["Axles"][i]["Antirollbar Input File"].GetString();
             m_axles[i]->m_antirollbar = ReadAntirollbarJSON(vehicle::GetDataFile(file_name));
-            m_arbLocations[i] = ReadVectorJSON(d["Axles"][i]["Antirollbar Location"]);
+            m_arb_locations[i] = ReadVectorJSON(d["Axles"][i]["Antirollbar Location"]);
         }
 
         // Check if there are double wheels
         // Otherwise, assume only two
         if (d["Axles"][i].HasMember("Wheel Separation")) {
-            m_wheelSeparations[i] = d["Axles"][i]["Wheel Separation"].GetDouble();
+            m_wheel_separations[i] = d["Axles"][i]["Wheel Separation"].GetDouble();
 
             int num_wheels = 4;
             m_axles[i]->m_wheels.resize(num_wheels);
@@ -264,7 +277,7 @@ void WheeledVehicle::Create(const std::string& filename) {
     if (d.HasMember("Wheelbase")) {
         m_wheelbase = d["Wheelbase"].GetDouble();
     } else {
-        m_wheelbase = m_suspLocations[0].x() - m_suspLocations[m_num_axles - 1].x();
+        m_wheelbase = m_susp_locations[0].x() - m_susp_locations[m_num_axles - 1].x();
     }
     assert(m_wheelbase > 0);
 
@@ -295,7 +308,7 @@ void WheeledVehicle::Initialize(const ChCoordsys<>& chassisPos, double chassisFw
 
     // Initialize any rear chassis subsystems and their connectors.
     for (int i = 0; i < m_num_rear_chassis; i++) {
-        int front_index = m_rearchChassis[i];
+        int front_index = m_rearch_chassis_index[i];
         std::shared_ptr<ChChassis> front = (front_index == -1) ? m_chassis : m_chassis_rear[front_index];
         m_chassis_rear[i]->Initialize(front, WheeledCollisionFamily::CHASSIS);
         m_chassis_connectors[i]->Initialize(front, m_chassis_rear[i]);
@@ -303,24 +316,28 @@ void WheeledVehicle::Initialize(const ChCoordsys<>& chassisPos, double chassisFw
 
     // Initialize any subchassis subsystems.
     for (int i = 0; i < m_num_subch; i++) {
-        int chassis_index = m_subchChassis[i];
+        int chassis_index = m_subch_chassis_index[i];
         std::shared_ptr<ChChassis> chassis = (chassis_index == -1) ? m_chassis : m_chassis_rear[chassis_index];
-        m_subchassis[i]->Initialize(chassis, m_subchLocations[i]);
+        m_subchassis[i]->Initialize(chassis, m_subch_locations[i]);
     }
 
     // Initialize the steering subsystems.
     for (int i = 0; i < m_num_strs; i++) {
-        m_steerings[i]->Initialize(m_chassis, m_strLocations[i], m_strRotations[i]);
+        int ch_index = m_str_chassis_index[i];
+        std::shared_ptr<ChChassis> chassis = (ch_index == -1) ? m_chassis : m_chassis_rear[ch_index];
+        m_steerings[i]->Initialize(chassis, m_str_locations[i], m_str_rotations[i]);
     }
 
     // Initialize the axles (suspension + brakes + wheels + antirollbar)
     for (int i = 0; i < m_num_axles; i++) {
-        int str_index = m_suspSteering[i];
-        std::shared_ptr<ChSteering> steering = (str_index == -1) ? nullptr : m_steerings[str_index];
-        int subch_index = m_suspSubchassis[i];
+        int ch_index = m_susp_chassis_index[i];
+        int subch_index = m_susp_subchassis_index[i];
+        int str_index = m_susp_steering_index[i];
+        std::shared_ptr<ChChassis> chassis = (ch_index == -1) ? m_chassis : m_chassis_rear[ch_index];
         std::shared_ptr<ChSubchassis> subchassis = (subch_index == -1) ? nullptr : m_subchassis[subch_index];
-        m_axles[i]->Initialize(m_chassis, subchassis, steering, m_suspLocations[i], m_arbLocations[i],
-                               m_wheelSeparations[i]);
+        std::shared_ptr<ChSteering> steering = (str_index == -1) ? nullptr : m_steerings[str_index];
+        m_axles[i]->Initialize(chassis, subchassis, steering, m_susp_locations[i], m_arb_locations[i],
+                               m_wheel_separations[i]);
     }
 
     // Initialize the driveline

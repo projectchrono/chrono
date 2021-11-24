@@ -25,7 +25,9 @@ namespace fsi {
 chrono::ChVector<> ChUtilsTypeConvert::Real3ToChVector(Real3 p3) {
     return chrono::ChVector<>(p3.x, p3.y, p3.z);
 }
-
+chrono::ChVector<> ChUtilsTypeConvert::Real2ToChVector(Real2 p2) {
+    return chrono::ChVector<>(p2.x, p2.y, 0.0);
+}
 chrono::ChVector<> ChUtilsTypeConvert::Real4ToChVector(Real4 p4) {
     return Real3ToChVector(mR3(p4));
 }

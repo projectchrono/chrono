@@ -50,6 +50,9 @@
 %{
 #include <typeindex>
 #include <cstddef>
+
+#include "chrono/ChConfig.h"
+
 #include "chrono/core/ChApiCE.h"
 #include "chrono/physics/ChBody.h"
 #include "chrono/physics/ChBodyEasy.h"
@@ -69,8 +72,11 @@
 #include "chrono/assets/ChEllipsoidShape.h"
 #include "chrono/assets/ChVisualMaterial.h"
 #include "chrono/assets/ChGlyphs.h"
+
 #include "chrono/collision/ChCollisionUtils.h"
 #include "chrono/collision/ChCollisionSystem.h"
+#include "chrono/collision/ChCollisionSystemBullet.h"
+
 #include "chrono/geometry/ChTriangleMesh.h"
 #include "chrono/geometry/ChTriangleMeshConnected.h"
 #include "chrono/geometry/ChTriangleMeshSoup.h"
@@ -182,6 +188,8 @@ using namespace chrono::fea;
 
 
 %shared_ptr(chrono::collision::ChCollisionModel)
+%shared_ptr(chrono::collision::ChCollisionModelBullet)
+
 %shared_ptr(chrono::collision::ChCollisionSystem::BroadphaseCallback)
 %shared_ptr(chrono::collision::ChCollisionSystem::NarrowphaseCallback)
 
@@ -319,18 +327,20 @@ using namespace chrono::fea;
 %include "ChRealtimeStep.i"
 %include "ChTransform.i"
 
-
-// motion_functions/   classes
-%include "ChFunction.i"
-
 // geometry/   classes
 %include "ChGeometry.i"
 
+//collision classes
 %include "ChMaterialSurface.i"
 %include "ChCollisionModel.i"
 %include "../../chrono/collision/ChCollisionUtils.h"
 %include "../../chrono/collision/ChCollisionSystem.h"
+%include "../../chrono/collision/ChCollisionSystemBullet.h"
+////%include "ChCollisionChrono.i"
 %include "ChCollisionInfo.i"
+
+// motion_functions/   classes
+%include "ChFunction.i"
 
 // assets
 %include "ChAsset.i"

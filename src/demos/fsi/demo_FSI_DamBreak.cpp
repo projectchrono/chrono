@@ -63,7 +63,7 @@ void SaveParaViewFilesMBD(ChSystemFsi& myFsiSystem,
     double frame_time = 1.0 / paramsH->out_fps;
 
     // Output data to files
-    if (save_output && std::abs(mTime - (this_frame)*frame_time) < 1e-9) {
+    if (save_output && std::abs(mTime - (this_frame)*frame_time) < 1e-6) {
         myFsiSystem.PrintParticleToFile(demo_dir);
         std::cout << "\n--------------------------------\n" << std::endl;
         std::cout << "------------ Output Frame:   " << this_frame << std::endl;
@@ -151,7 +151,7 @@ int main(int argc, char* argv[]) {
     } else if (argc == 2) {
         std::cout << "Use the specified JSON file" << std::endl;
         std::string my_inputJson = std::string(argv[1]);
-        inputJson = GetChronoDataFile(my_inputJson);
+        inputJson = my_inputJson;
     } else {
         ShowUsage();
         return 1;
@@ -215,7 +215,7 @@ int main(int argc, char* argv[]) {
     for (int tStep = 0; tStep < stepEnd + 1; tStep++) {
         printf("\nstep : %d, time= : %f (s) \n", tStep, time);
         double frame_time = 1.0 / paramsH->out_fps;
-        int this_frame = (int)floor((time + 1e-9) / frame_time);
+        int this_frame = (int)floor((time + 1e-6) / frame_time);
 
         // Save data of the simulation
         SaveParaViewFilesMBD(myFsiSystem, mphysicalSystem, paramsH, this_frame, time);

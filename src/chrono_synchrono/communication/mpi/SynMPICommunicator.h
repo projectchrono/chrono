@@ -50,9 +50,7 @@ class SYN_API SynMPICommunicator : public SynCommunicator {
     /// Although not mandatory, this method should handle initial peer-to-peer communication.
     /// This could mean a simple handshake or an actual exchange of information used during the simulation.
     ///
-    ///@return true was the initialization process successful
-    ///@return false did the initialization process fail
-    virtual bool Initialize() override;
+    virtual void Initialize() override{};
 
     ///@brief This method is responsible for continuous synchronization steps
     /// This method, depending on it's implementation, could be blocking or non-blocking.

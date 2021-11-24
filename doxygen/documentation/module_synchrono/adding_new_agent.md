@@ -105,7 +105,7 @@ if (!m_copter)
     SynMessageFactory uses dynamic cast to infer the type of the message. For this reason, whenever we add a new message type, we have to add another condition to the states and descriptions elseif statements:
 ```cpp
 else if (agent_state->message_type() == SynFlatBuffers::Agent::Type_Copter_State) {
-            message = chrono_types::make_shared<SynCopterStateMessage>(source_id, destination_id);
+            message = chrono_types::make_shared<SynCopterStateMessage>(source_key, destination_key);
         }
 ```
 
@@ -114,7 +114,7 @@ AgentFactory uses dynamics casts to create a zombie agent from a description com
 ```cpp
 else if (auto copter_description = std::dynamic_pointer_cast<SynCopterDescriptionMessage>(description)) {
         auto copter_agent = chrono_types::make_shared<SynCopterAgent>();
-        copter_agent->SetID(source_id);
+        copter_agent->SetKey(source_key);
         copter_agent->SetZombieVisualizationFiles(copter_description->chassis_vis_file,  //
                                                   copter_description->propeller_vis_file);  //
 

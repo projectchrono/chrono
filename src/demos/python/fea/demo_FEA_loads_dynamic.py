@@ -153,6 +153,28 @@ class MyLoadCustom(chrono.ChLoadCustom):
 mloadcustom = MyLoadCustom(nodeD)
 loadcontainer.Add(mloadcustom)
 
+
+
+# Stiffness and damping matrices
+K_matrix = chrono.ChMatrixDynamicD(6, 6)
+R_matrix = chrono.ChMatrixDynamicD(6, 6)
+
+for i in range(6):
+    K_matrix[i, i] = 1e5
+
+for i in range(6):
+    for j in range(6):
+        R_matrix[i, j] = 1e-3
+
+ch_bushing = fea.ChLoadXYZROTnodeBodyBushingGeneric(
+    nodeB,
+    ground,
+    nodeB,
+    K_matrix,
+    R_matrix)
+
+loadcontainer.Add(ch_bushing)
+
 # -----------------------------------------------------------------
 # Set visualization of the FEM mesh.
 

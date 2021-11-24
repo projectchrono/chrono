@@ -32,9 +32,6 @@
 #include <vector>
 #include <functional>
 
-/// TODO: Create a class with utility functions
-#define SynAgentID uint32_t
-
 namespace chrono {
 namespace synchrono {
 
@@ -56,7 +53,7 @@ class SYN_API SynCommunicator {
     /// Although not necessarily true, this method should handle initial peer-to-peer communication.
     /// This could mean a simple handshake or an actual exchange of information used during the simulation.
     ///
-    virtual bool Initialize();
+    virtual void Initialize();
 
     ///@brief This method is responsible for continuous synchronous synchronization steps
     /// This method is the blocking form of the communication interface.

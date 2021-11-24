@@ -99,7 +99,7 @@ CH_SENSOR_API void ChFilterVisualizePointCloud::Apply() {
         // display the points, synchronizing the stream first
         cudaStreamSynchronize(m_cuda_stream);
         // draw the vertices, color them by the intensity of the lidar point (red=0, green=1)
-        for (int i = 0; i < m_buffer_in->Beam_return_count; i++) {
+        for (unsigned int i = 0; i < m_buffer_in->Beam_return_count; i++) {
             float inten = m_host_buffer->Buffer[i].intensity;
             glColor3f(1 - inten, inten, 0);
             glVertex3f(-m_host_buffer->Buffer[i].y, m_host_buffer->Buffer[i].z, m_host_buffer->Buffer[i].x);

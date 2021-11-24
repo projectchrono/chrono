@@ -28,6 +28,7 @@ endif("${isSystemDir}" STREQUAL "-1")
 
 if(APPLE)
     set(CMAKE_MACOSX_BUNDLE ON)
+    set(MACOSX_BUNDLE_INFO_PLIST "${PROJECT_SOURCE_DIR}/cmake/MacOSXBundleInfo.plist.in")
 endif()
 
 #--------------------------------------------------------------

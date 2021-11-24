@@ -35,7 +35,7 @@ namespace synchrono {
 
 SynSCMTerrainAgent::SynSCMTerrainAgent(std::shared_ptr<vehicle::SCMDeformableTerrain> terrain)
     : SynAgent(), m_terrain(terrain) {
-    m_message = chrono_types::make_shared<SynSCMMessage>(0, 0);
+    m_message = chrono_types::make_shared<SynSCMMessage>();
 }
 
 SynSCMTerrainAgent::~SynSCMTerrainAgent() {}
@@ -82,9 +82,9 @@ void SynSCMTerrainAgent::SetSoilParametersFromStruct(SCMParameters* params) {
                                  params->m_elastic_K, params->m_damping_R);
 }
 
-void SynSCMTerrainAgent::SetID(SynAgentID aid) {
-    m_message->SetSourceID(aid);
-    m_aid = aid;
+void SynSCMTerrainAgent::SetKey(AgentKey agent_key) {
+    m_message->SetSourceKey(agent_key);
+    m_agent_key = agent_key;
 }
 
 }  // namespace synchrono

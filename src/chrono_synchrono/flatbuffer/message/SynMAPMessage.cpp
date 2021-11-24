@@ -22,15 +22,14 @@
 namespace chrono {
 namespace synchrono {
 
-SynMAPMessage::SynMAPMessage(unsigned int source_id, unsigned int destination_id)
-    : SynMessage(source_id, destination_id) {}
+SynMAPMessage::SynMAPMessage(AgentKey source_key, AgentKey destination_key) : SynMessage(source_key, destination_key) {}
 
 void SynMAPMessage::ConvertFromFlatBuffers(const SynFlatBuffers::Message* message) {
     if (message->message_type() != SynFlatBuffers::Type_MAP_State)
         return;
 
-    m_source_id = message->source_id();
-    m_destination_id = message->destination_id();
+    m_source_key = AgentKey(message->source_key());
+    m_destination_key = message->destination_key();
 
     auto state = message->message_as_MAP_State();
     this->time = state->time();
@@ -38,7 +37,7 @@ void SynMAPMessage::ConvertFromFlatBuffers(const SynFlatBuffers::Message* messag
     for (auto flatbuffer_intersection : *state->intersections()) {
         Intersection intersection;
         for (auto flatbuffer_approach : *flatbuffer_intersection->approaches()) {
-            auto approach = chrono_types::make_shared<SynApproachMessage>(m_source_id, m_destination_id);
+            auto approach = chrono_types::make_shared<SynApproachMessage>(m_source_key, m_destination_key);
             approach->ConvertSPATFromFlatBuffers(flatbuffer_approach);
             intersection.approaches.push_back(approach);
         }
@@ -75,8 +74,9 @@ FlatBufferMessage SynMAPMessage::ConvertToFlatBuffers(flatbuffers::FlatBufferBui
     flatbuffers::Offset<SynFlatBuffers::MAP::State> flatbuffer_state =
         SynFlatBuffers::MAP::CreateState(builder, time, builder.CreateVector(flatbuffer_intersections));
 
-    FlatBufferMessage message = flatbuffers::Offset<SynFlatBuffers::Message>(SynFlatBuffers::CreateMessage(
-        builder, SynFlatBuffers::Type_MAP_State, flatbuffer_state.Union(), m_source_id, m_destination_id));
+    FlatBufferMessage message = flatbuffers::Offset<SynFlatBuffers::Message>(
+        SynFlatBuffers::CreateMessage(builder, SynFlatBuffers::Type_MAP_State, flatbuffer_state.Union(),
+                                      m_source_key.GetFlatbuffersKey(), m_destination_key.GetFlatbuffersKey()));
     return message;
 }
 
@@ -87,7 +87,7 @@ unsigned SynMAPMessage::AddLane(int intersection, int approach, ApproachLane lan
 
     while (this->intersections[intersection].approaches.size() <= approach)
         this->intersections[intersection].approaches.push_back(
-            chrono_types::make_shared<SynApproachMessage>(m_source_id, m_destination_id));
+            chrono_types::make_shared<SynApproachMessage>(m_source_key, m_destination_key));
 
     unsigned num_lanes = (unsigned)this->intersections[intersection].approaches[approach]->lanes.size();
     this->intersections[intersection].approaches[approach]->lanes.push_back(lane);

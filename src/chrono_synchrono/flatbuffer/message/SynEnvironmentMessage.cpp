@@ -27,10 +27,10 @@ namespace synchrono {
 namespace Agent = SynFlatBuffers::Agent;
 namespace Environment = SynFlatBuffers::Agent::Environment;
 
-SynEnvironmentMessage::SynEnvironmentMessage(unsigned int source_id, unsigned int destination_id)
-    : SynMessage(source_id, destination_id) {
-    map_message = chrono_types::make_shared<SynMAPMessage>(0, 0);
-    spat_message = chrono_types::make_shared<SynSPATMessage>(0, 0);
+SynEnvironmentMessage::SynEnvironmentMessage(AgentKey source_key, AgentKey destination_key)
+    : SynMessage(source_key, destination_key) {
+    map_message = chrono_types::make_shared<SynMAPMessage>();
+    spat_message = chrono_types::make_shared<SynSPATMessage>();
 }
 
 void SynEnvironmentMessage::ConvertFromFlatBuffers(const SynFlatBuffers::Message* message) {
@@ -38,8 +38,8 @@ void SynEnvironmentMessage::ConvertFromFlatBuffers(const SynFlatBuffers::Message
     if (message->message_type() != SynFlatBuffers::Type_Agent_State)
         return;
 
-    m_source_id = message->source_id();
-    m_destination_id = message->destination_id();
+    m_source_key = AgentKey(message->source_key());
+    m_destination_key = message->destination_key();
 
     const SynFlatBuffers::Agent::State* agent_state = message->message_as_Agent_State();
     const SynFlatBuffers::Agent::Environment::State* state = agent_state->message_as_Environment_State();
@@ -57,10 +57,11 @@ FlatBufferMessage SynEnvironmentMessage::ConvertToFlatBuffers(flatbuffers::FlatB
 
     auto flatbuffer_state = Agent::CreateState(builder, environment_type, environment_state);
 
-    auto flatbuffer_message = SynFlatBuffers::CreateMessage(builder,                           //
-                                                            SynFlatBuffers::Type_Agent_State,  //
-                                                            flatbuffer_state.Union(),          //
-                                                            m_source_id, m_destination_id);    //
+    auto flatbuffer_message =
+        SynFlatBuffers::CreateMessage(builder,                                                                   //
+                                      SynFlatBuffers::Type_Agent_State,                                          //
+                                      flatbuffer_state.Union(),                                                  //
+                                      m_source_key.GetFlatbuffersKey(), m_destination_key.GetFlatbuffersKey());  //
 
     return flatbuffers::Offset<SynFlatBuffers::Message>(flatbuffer_message);
 }

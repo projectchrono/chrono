@@ -5,8 +5,8 @@
 #=============================================================================
 
 # Return now if MPI is not available
-if(NOT MPI_CXX_FOUND)
-	message("Chrono::Vehicle cosimulation support requires MPI")
+if(NOT MPI_FOUND)
+	message(WARNING "Chrono::Vehicle cosimulation support requires MPI, but MPI not found")
 	message(STATUS "Cosimulation support disabled")
 	return()
 endif()

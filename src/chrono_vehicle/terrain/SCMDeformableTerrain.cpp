@@ -23,7 +23,9 @@
 #include <unordered_set>
 #include <limits>
 
+#ifdef _OPENMP
 #include <omp.h>
+#endif
 
 #include "chrono/physics/ChMaterialSurfaceNSC.h"
 #include "chrono/physics/ChMaterialSurfaceSMC.h"

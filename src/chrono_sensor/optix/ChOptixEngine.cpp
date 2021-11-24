@@ -136,10 +136,11 @@ void ChOptixEngine::AssignSensor(std::shared_ptr<ChOptixSensor> sensor) {
 
         // create a ChFilterOptixRender and push to front of filter list
         auto opx_filter = chrono_types::make_shared<ChFilterOptixRender>();
-        opx_filter->m_optix_pipeline = m_pipeline->GetPipeline(m_assignedSensor.size() - 1);
+        unsigned int id = static_cast<unsigned int>(m_assignedSensor.size() - 1);
+        opx_filter->m_optix_pipeline = m_pipeline->GetPipeline(id);
         opx_filter->m_optix_params = md_params;
-        opx_filter->m_optix_sbt = m_pipeline->GetSBT(m_assignedSensor.size() - 1);
-        opx_filter->m_raygen_record = m_pipeline->GetRayGenRecord(m_assignedSensor.size() - 1);
+        opx_filter->m_optix_sbt = m_pipeline->GetSBT(id);
+        opx_filter->m_raygen_record = m_pipeline->GetRayGenRecord(id);
 
         // add a denoiser to the optix render filter if its a camera and global illumination is enabled
         if (auto cam = std::dynamic_pointer_cast<ChCameraSensor>(sensor)) {
@@ -159,7 +160,7 @@ void ChOptixEngine::AssignSensor(std::shared_ptr<ChOptixSensor> sensor) {
         }
         // create the thread that will be in charge of this sensor (must be consistent thread for visualization reasons)
         m_renderThreads.emplace_back();
-        int id = m_renderThreads.size() - 1;
+        id = static_cast<unsigned int>(m_renderThreads.size() - 1);
         m_renderThreads[id].done = true;
         m_renderThreads[id].start = false;
         m_renderThreads[id].terminate = false;
@@ -606,13 +607,13 @@ void ChOptixEngine::ConstructScene() {
                     }
 
                     // check if the asset is a ChColorAsset
-                    else if (std::shared_ptr<ChColorAsset> visual_asset =
+                    else if (std::shared_ptr<ChColorAsset> color_asset =
                                  std::dynamic_pointer_cast<ChColorAsset>(asset)) {
                         // std::cout << "Asset was color\n";
                     }
 
                     // check if the asset is a ChTexture
-                    else if (std::shared_ptr<ChTexture> visual_asset = std::dynamic_pointer_cast<ChTexture>(asset)) {
+                    else if (std::shared_ptr<ChTexture> texture_asset = std::dynamic_pointer_cast<ChTexture>(asset)) {
                         // std::cout << "Asset was texture\n";
                     }
                 }
@@ -731,7 +732,7 @@ void ChOptixEngine::UpdateSceneDescription(std::shared_ptr<ChScene> scene) {
 
         cudaMemcpy(reinterpret_cast<void*>(m_params.lights), l.data(), l.size() * sizeof(PointLight),
                    cudaMemcpyHostToDevice);
-        m_params.num_lights = l.size();
+        m_params.num_lights = static_cast<int>(l.size());
         m_params.ambient_light_color = {scene->GetAmbientLight().x(), scene->GetAmbientLight().y(),
                                         scene->GetAmbientLight().z()};
         cudaMemcpy(reinterpret_cast<void*>(md_params), &m_params, sizeof(ContextParameters), cudaMemcpyHostToDevice);

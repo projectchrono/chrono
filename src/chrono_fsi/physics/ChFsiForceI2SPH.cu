@@ -27,12 +27,12 @@
 namespace chrono {
 namespace fsi {
 struct my_Functor {
-    double ave;
+    Real ave;
     my_Functor(Real s) { ave = s; }
-    __host__ __device__ void operator()(double& i) { i -= ave; }
+    __host__ __device__ void operator()(Real& i) { i -= ave; }
 };
 struct my_Functor_real4y {
-    double ave;
+    Real ave;
     my_Functor_real4y(Real s) { ave = s; }
     __host__ __device__ void operator()(Real4& i) { i.y -= ave; }
 };
@@ -418,7 +418,7 @@ __global__ void Pressure_Equation(Real4* sortedPosRad,  // input: sorted positio
                 A_Matrix[count] = 1 / rhoi * A_L[count] - 1.0 / (rhoi * rhoi) * dot(grad_rho_i, A_G[count]);
             }
 
-            double alpha = paramsD.Alpha;  // square(rhoi / paramsD.rho0);
+            Real alpha = paramsD.Alpha;  // square(rhoi / paramsD.rho0);
             //            alpha = (alpha > 1) ? 1.0 : alpha;
             if (paramsD.DensityBaseProjetion)
                 Bi[i_idx] = alpha * (paramsD.rho0 - rhoi_star) / paramsD.rho0 * (TIME_SCALE / (delta_t * delta_t)) +
@@ -1140,8 +1140,8 @@ void ChFsiForceI2SPH::ForceSPH(std::shared_ptr<SphMarkerDataD> otherSphMarkersD,
 
     thrust::fill(AMatrix.begin(), AMatrix.end(), 0.0);
     thrust::fill(b1Vector.begin(), b1Vector.end(), 0.0);
-    thrust::fill(q_old.begin(), q_old.end(), double(paramsH->Pressure_Constraint) * paramsH->BASEPRES);
-    thrust::fill(q_new.begin(), q_new.end(), double(paramsH->Pressure_Constraint) * paramsH->BASEPRES);
+    thrust::fill(q_old.begin(), q_old.end(), paramsH->Pressure_Constraint * paramsH->BASEPRES);
+    thrust::fill(q_new.begin(), q_new.end(), paramsH->Pressure_Constraint * paramsH->BASEPRES);
 
     Pressure_Equation<<<numBlocks, numThreads>>>(
         mR4CAST(sortedSphMarkersD->posRadD), mR3CAST(sortedSphMarkersD->velMasD),
@@ -1162,12 +1162,12 @@ void ChFsiForceI2SPH::ForceSPH(std::shared_ptr<SphMarkerDataD> otherSphMarkersD,
         numAllMarkers, numObjectsH->numFluidMarkers, paramsH->dT, isErrorD);
     ChUtilsDevice::Sync_CheckError(isErrorH, isErrorD, "Pressure_Equation");
 
-    double Ave_RHS = thrust::reduce(b1Vector.begin(), b1Vector.end(), 0.0) / numAllMarkers;
+    Real Ave_RHS = thrust::reduce(b1Vector.begin(), b1Vector.end(), 0.0) / numAllMarkers;
 
     my_Functor mf(Ave_RHS);
     if (paramsH->Pressure_Constraint) {
         thrust::for_each(b1Vector.begin(), b1Vector.end(), mf);
-        double Ave_after = thrust::reduce(b1Vector.begin(), b1Vector.end(), 0.0) / numAllMarkers;
+        Real Ave_after = thrust::reduce(b1Vector.begin(), b1Vector.end(), 0.0) / numAllMarkers;
         printf("Ave RHS =%f, Ave after removing null space=%f\n", Ave_RHS, Ave_after);
     }
     //    if (paramsH->Pressure_Constraint) {
@@ -1205,7 +1205,7 @@ void ChFsiForceI2SPH::ForceSPH(std::shared_ptr<SphMarkerDataD> otherSphMarkersD,
             exit(0);
         }
         myLinearSolver->Solve((int)numAllMarkers, NNZ, R1CAST(AMatrix), U1CAST(Contact_i), U1CAST(csrColInd),
-                              (double*)R1CAST(q_new), R1CAST(b1Vector));
+                              R1CAST(q_new), R1CAST(b1Vector));
 
         cudaCheckError();
         MaxRes = myLinearSolver->GetResidual();
@@ -1264,7 +1264,7 @@ void ChFsiForceI2SPH::ForceSPH(std::shared_ptr<SphMarkerDataD> otherSphMarkersD,
     Real Ave_pressure = thrust::reduce(q_new.begin(), q_new.end(), 0.0) / (numObjectsH->numAllMarkers) / TIME_SCALE;
 
     thrust::for_each(b1Vector.begin(), b1Vector.end(), mf);
-    double Ave_after = thrust::reduce(b1Vector.begin(), b1Vector.end(), 0.0) / numAllMarkers;
+    Real Ave_after = thrust::reduce(b1Vector.begin(), b1Vector.end(), 0.0) / numAllMarkers;
     printf("Ave RHS =%.3e, Ave after removing null space=%.3e\n", Ave_RHS, Ave_after);
 
     double Pressure_Computation = (clock() - LinearSystemClock_p) / (double)CLOCKS_PER_SEC;

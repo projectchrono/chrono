@@ -37,17 +37,18 @@ namespace fsi {
 /// BiCG-Stab iterative linear solver.
 class ChFsiLinearSolverBiCGStab : public ChFsiLinearSolver {
   public:
-    ChFsiLinearSolverBiCGStab(double mrel_res = 1e-8,
-                              double mabs_res = 1e-4,
+    /// Constructor of the ChFsiLinearSolverBiCGStab class.
+    ChFsiLinearSolverBiCGStab(Real mrel_res = 1e-8,
+                              Real mabs_res = 1e-4,
                               int mmax_iter = 1000,
                               bool mverbose = false)
         : ChFsiLinearSolver(SolverType::BICGSTAB, mrel_res, mabs_res, mmax_iter, mverbose) {}
 
+    /// Destructor of the ChFsiLinearSolverBiCGStab class.
     ~ChFsiLinearSolverBiCGStab() {}
 
     /// Solves the linear system on the device.
-    virtual void Solve(int SIZE, int NNZ, double* A, unsigned int* ArowIdx, unsigned int* AcolIdx, double* x, double* b)
-        override;
+    virtual void Solve(int SIZE, int NNZ, Real* A, unsigned int* ArowIdx, unsigned int* AcolIdx, Real* x, Real* b) override;
 
   private:
 };

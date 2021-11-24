@@ -29,7 +29,7 @@
 namespace chrono {
 namespace fsi {
 
-void printMatrix(const double* A, int Ny, int Nx) {
+void printMatrix(const Real* A, int Ny, int Nx) {
     printf("Matrix A(%d,%d):\n", Ny, Nx);
     for (int i = 0; i < Ny; i++) {
         for (int j = 0; j < Nx; j++) {
@@ -39,26 +39,26 @@ void printMatrix(const double* A, int Ny, int Nx) {
     }
 }
 
-void GeneratePlaneRotation(const double& dx, const double& dy, double& cs, double& sn) {
-    if (dx == double(0.0)) {
-        cs = double(0.0);
-        sn = double(1.0);
+void GeneratePlaneRotation(const Real& dx, const Real& dy, Real& cs, Real& sn) {
+    if (dx == Real(0.0)) {
+        cs = Real(0.0);
+        sn = Real(1.0);
     } else {
-        double scale = abs(dx) + abs(dy);
-        double norm = scale * sqrt(abs(dx / scale) * abs(dx / scale) + abs(dy / scale) * abs(dy / scale));
-        double alpha = dx / abs(dx);
+        Real scale = abs(dx) + abs(dy);
+        Real norm = scale * sqrt(abs(dx / scale) * abs(dx / scale) + abs(dy / scale) * abs(dy / scale));
+        Real alpha = dx / abs(dx);
         cs = abs(dx) / norm;
         sn = alpha * (dy) / norm;
     }
 }
 
-void ApplyPlaneRotation(double& dx, double& dy, const double& cs, const double& sn) {
-    double temp = cs * dx + sn * dy;
+void ApplyPlaneRotation(Real& dx, Real& dy, const Real& cs, const Real& sn) {
+    Real temp = cs * dx + sn * dy;
     dy = -sn * dx + cs * dy;
     dx = temp;
 }
 
-void PlaneRotation(double* H, double* cs, double* sn, double* s, const int i, const int restart) {
+void PlaneRotation(Real* H, Real* cs, Real* sn, Real* s, const int i, const int restart) {
     for (int k = 0; k < i; k++) {
         ApplyPlaneRotation(H[k * restart + i], H[(k + 1) * restart + i], cs[k], sn[k]);
     }
@@ -69,11 +69,11 @@ void PlaneRotation(double* H, double* cs, double* sn, double* s, const int i, co
 
 void ChFsiLinearSolverGMRES::Solve(int SIZE,
                                    int NNZ,
-                                   double* A,
+                                   Real* A,
                                    unsigned int* ArowIdx,
                                    unsigned int* AcolIdx,
-                                   double* x,
-                                   double* b) {
+                                   Real* x,
+                                   Real* b) {
 #ifndef CUDART_VERSION
 #error CUDART_VERSION Undefined!
 #elif (CUDART_VERSION == 11000)
@@ -90,32 +90,32 @@ void ChFsiLinearSolverGMRES::Solve(int SIZE,
     cusparseCreateCsr(&descrA, SIZE, SIZE, NNZ, (int*)ArowIdx, (int*)AcolIdx, A,
                       CUSPARSE_INDEX_32I, CUSPARSE_INDEX_32I, CUSPARSE_INDEX_BASE_ZERO, CUDA_R_64F);
 
-    double *w, *v0, *V, *sDev, *H, *s, *cs, *sn;
+    Real *w, *v0, *V, *sDev, *H, *s, *cs, *sn;
 
-    cudaMalloc((void**)&w, sizeof(double) * SIZE);
-    cudaMalloc((void**)&v0, sizeof(double) * SIZE);
-    cudaMalloc((void**)&V, sizeof(double) * (restart + 1) * SIZE);  // Arnoldi Matrix
+    cudaMalloc((void**)&w, sizeof(Real) * SIZE);
+    cudaMalloc((void**)&v0, sizeof(Real) * SIZE);
+    cudaMalloc((void**)&V, sizeof(Real) * (restart + 1) * SIZE);  // Arnoldi Matrix
     // Note that this is in fact the transpose of the matrix because of performance reasons
-    cudaMalloc((void**)&sDev, sizeof(double) * (restart + 1));
+    cudaMalloc((void**)&sDev, sizeof(Real) * (restart + 1));
 
-    H = (double*)malloc(sizeof(double) * (restart + 1) * restart);
-    s = (double*)malloc(sizeof(double) * (restart + 1));
-    cs = (double*)malloc(sizeof(double) * restart);
-    sn = (double*)malloc(sizeof(double) * restart);
+    H = (Real*)malloc(sizeof(Real) * (restart + 1) * restart);
+    s = (Real*)malloc(sizeof(Real) * (restart + 1));
+    cs = (Real*)malloc(sizeof(Real) * restart);
+    sn = (Real*)malloc(sizeof(Real) * restart);
 
     cudaDeviceSynchronize();
 
-    //    cudaMemset((void*)x, 0.0, sizeof(double) * SIZE);
+    //    cudaMemset((void*)x, 0.0, sizeof(Real) * SIZE);
 
-    cudaMemset((void*)w, 0, sizeof(double) * SIZE);
-    cudaMemset((void*)v0, 0, sizeof(double) * SIZE);
-    cudaMemset((void*)V, 0, sizeof(double) * (restart + 1) * SIZE);
-    cudaMemset((void*)sDev, 0, sizeof(double) * (restart + 1));
+    cudaMemset((void*)w, 0, sizeof(Real) * SIZE);
+    cudaMemset((void*)v0, 0, sizeof(Real) * SIZE);
+    cudaMemset((void*)V, 0, sizeof(Real) * (restart + 1) * SIZE);
+    cudaMemset((void*)sDev, 0, sizeof(Real) * (restart + 1));
 
-    memset(H, 0, sizeof(double) * (restart + 1) * restart);
-    memset(s, 0, sizeof(double) * (restart + 1));
-    memset(cs, 0, sizeof(double) * restart);
-    memset(sn,0, sizeof(double) * restart);
+    memset(H, 0, sizeof(Real) * (restart + 1) * restart);
+    memset(s, 0, sizeof(Real) * (restart + 1));
+    memset(cs, 0, sizeof(Real) * restart);
+    memset(sn,0, sizeof(Real) * restart);
 
     cudaDeviceSynchronize();
 
@@ -130,11 +130,11 @@ void ChFsiLinearSolverGMRES::Solve(int SIZE,
     cudaDeviceSynchronize();
 
     //===========================Solution=====================================================
-    double beta = 1.0, mOneOverBeta = 1, temp = 1, mtemp = -1, Hnew = 1, oneOverHnew = 1;
-    double nrmr0 = 1e5, nrmr = 1e5, res = 1e5;
-    double zero = 0.0;
-    double one = 1.0;
-    double mone = -1.0;
+    Real beta = 1.0, mOneOverBeta = 1, temp = 1, mtemp = -1, Hnew = 1, oneOverHnew = 1;
+    Real nrmr0 = 1e5, nrmr = 1e5, res = 1e5;
+    Real zero = 0.0;
+    Real one = 1.0;
+    Real mone = -1.0;
     cudaCheckError();
 
     for (Iterations = 0; Iterations < max_iter; Iterations++) {
@@ -157,8 +157,8 @@ void ChFsiLinearSolverGMRES::Solve(int SIZE,
 
         mOneOverBeta = -1.0 / beta;
         cublasDscal(cublasHandle, SIZE, &mOneOverBeta, w, 1);  // w=-w/beta
-        cudaMemcpy(V, w, SIZE * sizeof(double), cudaMemcpyDeviceToDevice);
-        memset(s, 0, sizeof(double) * (restart + 1));
+        cudaMemcpy(V, w, SIZE * sizeof(Real), cudaMemcpyDeviceToDevice);
+        memset(s, 0, sizeof(Real) * (restart + 1));
 
         s[0] = beta;
         //        printf("-----2\n");
@@ -172,7 +172,7 @@ void ChFsiLinearSolverGMRES::Solve(int SIZE,
             cusparseStatus = cusparseSpMV(cusparseHandle, trans_A, &one, descrA, vecW, &zero, vecV0, 
                      CUDA_R_64F, CUSPARSE_MV_ALG_DEFAULT, bufferW);
 
-            cudaMemcpy(w, v0, SIZE * sizeof(double), cudaMemcpyDeviceToDevice);
+            cudaMemcpy(w, v0, SIZE * sizeof(Real), cudaMemcpyDeviceToDevice);
             cublasDnrm2(cublasHandle, SIZE, w, 1, &temp);
             cudaDeviceSynchronize();
             //            printf("m=%d, temp=%f\n", m, temp);
@@ -197,7 +197,7 @@ void ChFsiLinearSolverGMRES::Solve(int SIZE,
             // V(i+1) = V(i+1) / H(i+1, i)
             cublasDscal(cublasHandle, SIZE, &oneOverHnew, w, 1);
             cudaDeviceSynchronize();
-            cudaMemcpy(V + (m + 1) * SIZE, w, sizeof(double) * SIZE, cudaMemcpyDeviceToDevice);
+            cudaMemcpy(V + (m + 1) * SIZE, w, sizeof(Real) * SIZE, cudaMemcpyDeviceToDevice);
             PlaneRotation(H, cs, sn, s, (int)m, restart);
             res = abs(s[m + 1]);
         }

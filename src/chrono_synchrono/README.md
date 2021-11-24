@@ -70,7 +70,7 @@ SynChrono includes support for arbitrary communication between agents in the sys
 
 ## Build Instructions
 
-Follow the standard [Chrono build process](http://api.projectchrono.org/tutorial_install_chrono.html) to build SynChrono. The Chrono::Vehicle module is required, and one of Chrono::Irrlicht or Chrono::Sensor is recommended for visualization. The only additional dependencies that SynChrono requires are Flatbuffers and MPI.
+Follow the standard [Chrono build process](http://api.projectchrono.org/tutorial_install_chrono.html) to build SynChrono. The Chrono::Vehicle module is required, and one of Chrono::Irrlicht or Chrono::Sensor is recommended for visualization. The only additional dependencies that SynChrono requires are Flatbuffers and MPI. FastDDS is an optional dependency.
 
 #### Flatbuffers
 
@@ -101,3 +101,5 @@ MS-MPI specific, most of these can be set automatically by running `set MSMPI` i
 - MSMPI_LIB32
 - MSMPI_LIB64
 
+#### FastDDS
+FastDDS is supported on most modern systems (Linux, MacOS, Windows). To install, please visit the [FastDDS website](https://fast-dds.docs.eprosima.com/en/latest/). To link to Chrono, either install globally or install in a single directory and point `FAST_DDS_INSTALL_DIR` to that location.
