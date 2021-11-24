@@ -74,6 +74,8 @@ class ChApiIrr ChIrrAppInterface {
     void SetShowInfos(bool val) { show_infos = val; }
     bool GetShowInfos() { return show_infos; }
 
+    void SetInfosTab(int ntab) { this->gad_tabbed->setActiveTab(ntab); }
+
     /// Show the realtime profiler in the 3D view
     void SetShowProfiler(bool val) { show_profiler = val; }
     bool GetShowProfiler() { return show_profiler; }
