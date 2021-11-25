@@ -272,6 +272,7 @@ namespace fsi {
         thrust::device_vector<Real4> sr_tau_I_mu_i;      ///< I2SPH strain-rate, stress, inertia number, friction
 
         thrust::device_vector<uint> activityIdentifierD; ///< Identifies if a particle is an active particle or not
+        thrust::device_vector<uint> extendedActivityIdD; ///< Identifies if a particle is in an extended active domain 
 
         // BCE
         thrust::device_vector<Real3> rigidSPH_MeshPos_LRF_D;  ///< Position of a particle attached to a rigid body in a local

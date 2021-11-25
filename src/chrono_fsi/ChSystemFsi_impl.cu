@@ -514,6 +514,7 @@ void ChSystemFsi_impl::ResizeDataManager(int numNodes) {
     fsiGeneralData->sr_tau_I_mu_i.resize(numObjects->numAllMarkers, mR4(1e-20));
 
     fsiGeneralData->activityIdentifierD.resize(numObjects->numAllMarkers, 1);
+    fsiGeneralData->extendedActivityIdD.resize(numObjects->numAllMarkers, 1);
 
     printf("fsiData->ResizeDataManager (sphMarkersH)...\n");
     thrust::copy(sphMarkersH->posRadH.begin(), sphMarkersH->posRadH.end(), sphMarkersD1->posRadD.begin());

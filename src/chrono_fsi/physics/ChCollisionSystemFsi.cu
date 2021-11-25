@@ -231,63 +231,66 @@ __global__ void findCellStartEndD(uint* cellStartD,         // output: cell star
     }
 }
 
-__global__ void reorderDataD(uint* gridMarkerIndexD,     // input: sorted particle indices                                         
-                            Real4* sortedPosRadD,       // output: sorted positions
-                            Real3* sortedVelMasD,       // output: sorted velocities
-                            Real4* sortedRhoPreMuD,     // output: sorted density pressure
-                            Real3* sortedTauXxYyZzD,    // output: sorted total stress xxyyzz
-                            Real3* sortedTauXyXzYzD,    // output: sorted total stress xyzxyz
-                            Real4* posRadD,             // input: original position array
-                            Real3* velMasD,             // input: original velocity array
-                            Real4* rhoPresMuD,          // input: original density pressure
-                            Real3* tauXxYyZzD,          // input: original total stress xxyyzz
-                            Real3* tauXyXzYzD,          // input: original total stress xyzxyz
-                            const size_t numAllMarkers) {
+__global__ void reorderDataD(uint* gridMarkerIndexD,     // input: sorted particle indices
+                             uint* extendedActivityIdD,
+                             Real4* sortedPosRadD,       // output: sorted positions
+                             Real3* sortedVelMasD,       // output: sorted velocities
+                             Real4* sortedRhoPreMuD,     // output: sorted density pressure
+                             Real3* sortedTauXxYyZzD,    // output: sorted total stress xxyyzz
+                             Real3* sortedTauXyXzYzD,    // output: sorted total stress xyzxyz
+                             Real4* posRadD,             // input: original position array
+                             Real3* velMasD,             // input: original velocity array
+                             Real4* rhoPresMuD,          // input: original density pressure
+                             Real3* tauXxYyZzD,          // input: original total stress xxyyzz
+                             Real3* tauXyXzYzD,          // input: original total stress xyzxyz
+                             const size_t numAllMarkers) {
     uint index = blockIdx.x * blockDim.x + threadIdx.x;
 
     if (index < numAllMarkers) {
         /* Now use the sorted index to reorder the pos and vel data */
         uint originalIndex = gridMarkerIndexD[index];  // map sorted to original
-        Real3 posRad = mR3(posRadD[originalIndex]);
-        Real3 velMas = velMasD[originalIndex];
-        Real4 rhoPreMu = rhoPresMuD[originalIndex];
+        if(extendedActivityIdD[originalIndex] == 1) {
+            Real3 posRad = mR3(posRadD[originalIndex]);
+            Real3 velMas = velMasD[originalIndex];
+            Real4 rhoPreMu = rhoPresMuD[originalIndex];
 
-        if (!(isfinite(posRad.x) && isfinite(posRad.y) && isfinite(posRad.z))) {
-            printf(
-                "Error! particle position is NAN: thrown from "
-                "ChCollisionSystemFsi.cu, reorderDataAndFindCellStartD !\n");
-        }
-        if (!(isfinite(velMas.x) && isfinite(velMas.y) && isfinite(velMas.z))) {
-            printf(
-                "Error! particle velocity is NAN: thrown from "
-                "ChCollisionSystemFsi.cu, reorderDataAndFindCellStartD !\n");
-        }
-        if (!(isfinite(rhoPreMu.x) && isfinite(rhoPreMu.y) && isfinite(rhoPreMu.z) && isfinite(rhoPreMu.w))) {
-            printf(
-                "Error! particle rhoPreMu is NAN: thrown from "
-                "ChCollisionSystemFsi.cu, reorderDataAndFindCellStartD !\n");
-        }
-
-        sortedPosRadD[index] = mR4(posRad, posRadD[originalIndex].w);
-        sortedVelMasD[index] = velMas;
-        sortedRhoPreMuD[index] = rhoPreMu;
-
-        // For granular material
-        if( paramsD.elastic_SPH ) {
-            Real3 tauXxYyZz = tauXxYyZzD[originalIndex];  
-            Real3 tauXyXzYz = tauXyXzYzD[originalIndex]; 
-            if (!(isfinite(tauXxYyZz.x) && isfinite(tauXxYyZz.y) && isfinite(tauXxYyZz.z))) {  
+            if (!(isfinite(posRad.x) && isfinite(posRad.y) && isfinite(posRad.z))) {
                 printf(
-                    "Error! particle tauXxYyZz is NAN: thrown from "
+                    "Error! particle position is NAN: thrown from "
                     "ChCollisionSystemFsi.cu, reorderDataAndFindCellStartD !\n");
             }
-            if (!(isfinite(tauXyXzYz.x) && isfinite(tauXyXzYz.y) && isfinite(tauXyXzYz.z))) { 
+            if (!(isfinite(velMas.x) && isfinite(velMas.y) && isfinite(velMas.z))) {
                 printf(
-                    "Error! particle tauXyXzYz is NAN: thrown from "
+                    "Error! particle velocity is NAN: thrown from "
                     "ChCollisionSystemFsi.cu, reorderDataAndFindCellStartD !\n");
             }
-            sortedTauXxYyZzD[index] = tauXxYyZz;  
-            sortedTauXyXzYzD[index] = tauXyXzYz; 
+            if (!(isfinite(rhoPreMu.x) && isfinite(rhoPreMu.y) && isfinite(rhoPreMu.z) && isfinite(rhoPreMu.w))) {
+                printf(
+                    "Error! particle rhoPreMu is NAN: thrown from "
+                    "ChCollisionSystemFsi.cu, reorderDataAndFindCellStartD !\n");
+            }
+
+            sortedPosRadD[index] = mR4(posRad, posRadD[originalIndex].w);
+            sortedVelMasD[index] = velMas;
+            sortedRhoPreMuD[index] = rhoPreMu;
+
+            // For granular material
+            if( paramsD.elastic_SPH ) {
+                Real3 tauXxYyZz = tauXxYyZzD[originalIndex];  
+                Real3 tauXyXzYz = tauXyXzYzD[originalIndex]; 
+                if (!(isfinite(tauXxYyZz.x) && isfinite(tauXxYyZz.y) && isfinite(tauXxYyZz.z))) {  
+                    printf(
+                        "Error! particle tauXxYyZz is NAN: thrown from "
+                        "ChCollisionSystemFsi.cu, reorderDataAndFindCellStartD !\n");
+                }
+                if (!(isfinite(tauXyXzYz.x) && isfinite(tauXyXzYz.y) && isfinite(tauXyXzYz.z))) { 
+                    printf(
+                        "Error! particle tauXyXzYz is NAN: thrown from "
+                        "ChCollisionSystemFsi.cu, reorderDataAndFindCellStartD !\n");
+                }
+                sortedTauXxYyZzD[index] = tauXxYyZz;  
+                sortedTauXyXzYzD[index] = tauXyXzYz; 
+            }
         }
     }
 }
@@ -307,10 +310,12 @@ __global__ void OriginalToSortedD(uint* mapOriginalToSorted,
 //--------------------------------------------------------------------------------------------------------------------------------
 ChCollisionSystemFsi::ChCollisionSystemFsi(std::shared_ptr<SphMarkerDataD> otherSortedSphMarkersD,
                                            std::shared_ptr<ProximityDataD> otherMarkersProximityD,
+                                           std::shared_ptr<FsiGeneralData> otherFsiGeneralData,
                                            std::shared_ptr<SimParams> otherParamsH,
                                            std::shared_ptr<NumberOfObjects> otherNumObjects)
     : sortedSphMarkersD(otherSortedSphMarkersD),
       markersProximityD(otherMarkersProximityD),
+      fsiGeneralData(otherFsiGeneralData),
       paramsH(otherParamsH),
       numObjectsH(otherNumObjects) {
     sphMarkersD = NULL;
@@ -375,8 +380,8 @@ void ChCollisionSystemFsi::reorderDataAndFindCellStart() {
         throw std::runtime_error("Error! size error, reorderDataAndFindCellStart!\n");
     }
 
-    // thrust::fill(markersProximityD->cellStartD.begin(), markersProximityD->cellStartD.end(), 0);
-    // thrust::fill(markersProximityD->cellEndD.begin(), markersProximityD->cellEndD.end(), 0);
+    thrust::fill(markersProximityD->cellStartD.begin(), markersProximityD->cellStartD.end(), 0);
+    thrust::fill(markersProximityD->cellEndD.begin(), markersProximityD->cellEndD.end(), 0);
 
     uint numThreads, numBlocks;
     computeGridSize((uint)numObjectsH->numAllMarkers, 256, numBlocks, numThreads);  // 256 is blockSize
@@ -391,7 +396,8 @@ void ChCollisionSystemFsi::reorderDataAndFindCellStart() {
     cudaCheckError();
 
     // Reorder the arrays according to the sorted index of all particles
-    reorderDataD<<<numBlocks, numThreads, smemSize>>>(U1CAST(markersProximityD->gridMarkerIndexD),
+    reorderDataD<<<numBlocks, numThreads, smemSize>>>(
+        U1CAST(markersProximityD->gridMarkerIndexD), U1CAST(fsiGeneralData->extendedActivityIdD),
         mR4CAST(sortedSphMarkersD->posRadD), mR3CAST(sortedSphMarkersD->velMasD), 
         mR4CAST(sortedSphMarkersD->rhoPresMuD), mR3CAST(sortedSphMarkersD->tauXxYyZzD), 
         mR3CAST(sortedSphMarkersD->tauXyXzYzD), mR4CAST(sphMarkersD->posRadD), 

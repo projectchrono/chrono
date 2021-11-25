@@ -488,6 +488,7 @@ __global__ void UpdateActivityD(Real4* posRadD,
                                 Real3* velMasD,
                                 Real3* posRigidBodiesD,
                                 uint* activityIdentifierD,
+                                uint* extendedActivityIdD,
                                 int2 updatePortion,
                                 size_t numRigidBodies,
                                 volatile bool* isErrorD) {
@@ -498,23 +499,31 @@ __global__ void UpdateActivityD(Real4* posRadD,
 
     // Set the particle as an active particle 
     activityIdentifierD[index] = 1;
+    extendedActivityIdD[index] = 1;
 
     // Check the activity of this particle
     uint isNotActive = 0;
+    uint isNotExtended = 0;
     Real3 posRadA = mR3(posRadD[index]);
     for (uint num = 0; num < numRigidBodies; num++) {
         Real3 detPos = posRadA - posRigidBodiesD[num];
         Real3 Acdomain = paramsD.bodyActiveDomain;
+        Real3 ExAcdomain = paramsD.bodyActiveDomain + mR3(2 * RESOLUTION_LENGTH_MULT * paramsD.HSML);
         if(abs(detPos.x) > Acdomain.x || abs(detPos.y) > Acdomain.y || abs(detPos.z) > Acdomain.z)
             isNotActive = isNotActive +1;
+        if(abs(detPos.x) > ExAcdomain.x || abs(detPos.y) > ExAcdomain.y || abs(detPos.z) > ExAcdomain.z)
+            isNotExtended = isNotExtended + 1;
     }
 
     // Set the particle as an inactive particle if needed
     if(isNotActive == numRigidBodies && numRigidBodies > 0){
         activityIdentifierD[index] = 0;
         velMasD[index] = mR3(0.0);
-        return;
     }
+    if(isNotExtended == numRigidBodies && numRigidBodies > 0)
+        extendedActivityIdD[index] = 0;
+
+    return;
 }
 
 // -----------------------------------------------------------------------------
@@ -616,8 +625,9 @@ void ChFluidDynamics::UpdateActivity(std::shared_ptr<SphMarkerDataD> sphMarkersD
     UpdateActivityD<<<numBlocks, numThreads>>>(
         mR4CAST(sphMarkersD2->posRadD), mR3CAST(sphMarkersD1->velMasD), 
         mR3CAST(fsiBodiesD->posRigid_fsiBodies_D),
-        U1CAST(fsiSystem->fsiGeneralData->activityIdentifierD), updatePortion, 
-        numObjectsH->numRigidBodies, isErrorD);
+        U1CAST(fsiSystem->fsiGeneralData->activityIdentifierD),
+        U1CAST(fsiSystem->fsiGeneralData->extendedActivityIdD),
+        updatePortion, numObjectsH->numRigidBodies, isErrorD);
     cudaDeviceSynchronize();
     cudaCheckError();
     //------------------------
