@@ -193,9 +193,9 @@ int main(int argc, char* argv[]) {
     int numPart = (int)points.size();
     for (int i = 0; i < numPart; i++) {
         double pre_ini = paramsH->rho0 * abs(paramsH->gravity.z) * (-points[i].z() + fzDim);
-        myFsiSystem.AddSphMarker(points[i], paramsH->rho0, pre_ini, paramsH->mu0, paramsH->HSML, -1,
+        myFsiSystem.AddSphMarker(points[i], paramsH->rho0, 0, paramsH->mu0, paramsH->HSML, -1,
                                  ChVector<>(0),  // initial velocity
-                                 ChVector<>(0),  // tauxxyyzz
+                                 ChVector<>(-pre_ini),  // tauxxyyzz
                                  ChVector<>(0)   // tauxyxzyz
         );
     }
