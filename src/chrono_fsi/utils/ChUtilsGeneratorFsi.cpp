@@ -35,9 +35,9 @@ namespace utils {
 void FinalizeDomain(std::shared_ptr<fsi::SimParams> paramsH) {
     paramsH->NUM_BOUNDARY_LAYERS = 3;
     paramsH->Apply_BC_U = false;  // You should go to custom_math.h all the way to end of file and set your function
-    int3 side0 = mI3((int)floor((paramsH->cMax.x - paramsH->cMin.x) / (2 * paramsH->HSML)),
-                     (int)floor((paramsH->cMax.y - paramsH->cMin.y) / (2 * paramsH->HSML)),
-                     (int)floor((paramsH->cMax.z - paramsH->cMin.z) / (2 * paramsH->HSML)));
+    int3 side0 = mI3((int)floor((paramsH->cMax.x - paramsH->cMin.x) / (RESOLUTION_LENGTH_MULT * paramsH->HSML)),
+                     (int)floor((paramsH->cMax.y - paramsH->cMin.y) / (RESOLUTION_LENGTH_MULT * paramsH->HSML)),
+                     (int)floor((paramsH->cMax.z - paramsH->cMin.z) / (RESOLUTION_LENGTH_MULT * paramsH->HSML)));
     Real3 binSize3 = mR3((paramsH->cMax.x - paramsH->cMin.x) / side0.x, (paramsH->cMax.y - paramsH->cMin.y) / side0.y,
                          (paramsH->cMax.z - paramsH->cMin.z) / side0.z);
     paramsH->binSize0 = (binSize3.x > binSize3.y) ? binSize3.x : binSize3.y;
