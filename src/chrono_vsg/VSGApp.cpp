@@ -336,7 +336,7 @@ namespace chrono {
                 // exactly one global symbol, always at {0;0;0}, never rotated
                 m_globalSymTransform->matrix = vsg::scale(m_symSize, m_symSize, m_symSize);
                 // exactly one body reference, can be at any position and rotation
-                for(size_t i=0; i < m_system->Get_bodylist().size(); i++) {
+                for (size_t i = 0; i < m_system->Get_bodylist().size(); i++) {
                     auto body = m_system->Get_bodylist().at(i);
                     // position of the body
                     const Vector pos = body->GetFrame_REF_to_abs().GetPos();
@@ -348,7 +348,7 @@ namespace chrono {
                     double s = m_symSize;
                     vsg::ref_ptr<vsg::MatrixTransform> body_tf;
                     bool tf_ok = m_body_sym_subgraph->children[i].node->getValue("transform", body_tf);
-                    if(tf_ok) {
+                    if (tf_ok) {
                         body_tf->matrix = vsg::translate(pos.x(), pos.y(), pos.z())
                                 * vsg::rotate(angle, axis.x(), axis.y(), axis.z())
                                 * vsg::scale(s, s, s);
@@ -357,10 +357,10 @@ namespace chrono {
                 // each body can have an arbitrary number of assets (0 included) at any position and orientation
                 size_t kNode = 0;
                 size_t maxNode = m_asset_sym_subgraph->children.size() - 1;
-                for(size_t i=0; i<m_system->Get_bodylist().size(); i++) {
+                for (size_t i = 0; i < m_system->Get_bodylist().size(); i++) {
                     auto body = m_system->Get_bodylist().at(i);
-                    for(size_t j=0; j<body->GetAssets().size(); j++) {
-                        if(kNode > maxNode) {
+                    for (size_t j = 0; j < body->GetAssets().size(); j++) {
+                        if (kNode > maxNode) {
                             GetLog() << "Asset Symbols Graph is inconsistent with MBS\n";
                         }
                         auto visual_asset = std::dynamic_pointer_cast<ChVisualization>(body->GetAssets().at(j));
@@ -384,7 +384,7 @@ namespace chrono {
             }
         }
 
-        static vsg::mat4 vsgXform(const ChFrame<> &X, const ChVector<> &s) {
+        static vsg::dmat4 vsgXform(const ChFrame<> &X, const ChVector<> &s) {
             const ChVector<> &t = X.GetPos();
             const ChQuaternion<> &q = X.GetRot();
             double angle;

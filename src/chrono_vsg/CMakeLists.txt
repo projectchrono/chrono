@@ -22,8 +22,6 @@ MARK_AS_ADVANCED(CLEAR VSG_ROOT)
 # List all the files in the ChronoEngine_vsg lib
 SET(ChronoEngine_VSG_SOURCES
     VSGApp.cpp
-    ChVSGApp.cpp
-    ChVSGApp2.cpp
     assets/ChPBRSetting.cpp
     assets/ChPBRMaps.cpp
     core/VSGIndexMesh.cpp
@@ -46,8 +44,6 @@ SET(ChronoEngine_VSG_SOURCES
 
 SET(ChronoEngine_VSG_HEADERS
     VSGApp.h
-    ChVSGApp.h
-    ChVSGApp2.h
     assets/ChPBRSetting.h
     assets/ChPBRMaps.h
     core/ChApiVSG.h
