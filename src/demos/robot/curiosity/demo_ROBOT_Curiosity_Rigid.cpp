@@ -19,6 +19,7 @@
 
 #include "chrono_models/robot/curiosity/Curiosity.h"
 #include "chrono/physics/ChSystemNSC.h"
+#include "chrono/physics/ChSystemPBD.h"
 #include "chrono/physics/ChBodyEasy.h"
 #include "chrono/assets/ChTexture.h"
 
@@ -48,7 +49,7 @@ CuriosityChassisType chassis_type = CuriosityChassisType::FullRover;
 CuriosityWheelType wheel_type = CuriosityWheelType::RealWheel;
 
 // Simulation time step
-double time_step = 1e-3;
+double time_step = 1e-2;
 
 // -----------------------------------------------------------------------------
 
@@ -57,7 +58,8 @@ void CreateTerrain(ChSystem& sys);
 int main(int argc, char* argv[]) {
     GetLog() << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
     // Create a ChronoENGINE physical system
-    ChSystemNSC sys;
+    ChSystemPBD sys;
+    //sys.SetSubsteps(20);
     sys.Set_G_acc(ChVector<>(0, 0, -9.81));
 
     // Create the Irrlicht visualization (open the Irrlicht device,
@@ -67,8 +69,8 @@ int main(int argc, char* argv[]) {
     application.AddTypicalSky();
     application.AddTypicalLights();
     application.AddTypicalCamera(core::vector3df(3, 3, 1));
-    application.AddLightWithShadow(core::vector3df(2.5f, 7.0f, 0.0f), core::vector3df(0, 0, 0), 50, 4, 25, 130, 512,
-                                   video::SColorf(0.8f, 0.8f, 0.8f));
+    //application.AddLightWithShadow(core::vector3df(2.5f, 7.0f, 0.0f), core::vector3df(0, 0, 0), 50, 4, 25, 130, 512,
+    //                               video::SColorf(0.8f, 0.8f, 0.8f));
     application.SetContactsDrawMode(IrrContactsDrawMode::CONTACT_DISTANCES);
     application.SetTimestep(time_step);
 
@@ -79,8 +81,8 @@ int main(int argc, char* argv[]) {
     CreateTerrain(sys);
 
     // Create a Curiosity rover and the asociated driver
-    ////auto driver = chrono_types::make_shared<CuriositySpeedDriver>(1.0, 5.0);
-    auto driver = chrono_types::make_shared<CuriosityDCMotorControl>();
+    auto driver = chrono_types::make_shared<CuriositySpeedDriver>(1.0, 5.0);
+    //auto driver = chrono_types::make_shared<CuriosityDCMotorControl>();
 
     Curiosity rover(&sys, chassis_type, wheel_type);
     rover.SetDriver(driver);
@@ -102,7 +104,7 @@ int main(int argc, char* argv[]) {
     // Complete visual asset construction
     application.AssetBindAll();
     application.AssetUpdateAll();
-    application.AddShadowAll();
+    //application.AddShadowAll();
 
     // Simulation loop
     while (application.GetDevice()->run()) {

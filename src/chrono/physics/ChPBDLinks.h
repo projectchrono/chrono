@@ -94,7 +94,7 @@ namespace chrono {
 		//ChVector<> p1_old;
 		//ChVector<> p2_old;
 		// Compliance (TODO: make it settable)
-		double alpha = 1e-5;
+        double alpha = 1e-4;
 
 		// Limits
 		bool is_rot_limited = false;

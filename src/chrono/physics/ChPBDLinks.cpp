@@ -364,7 +364,7 @@ namespace chrono {
 		//findRDOF();
 		// TODO: set properly alpha according to http://blog.mmacklin.com/
 		// rmember to eval alpha_hat = alpha/(h^2)
-		alpha = 0.0;
+		alpha = 100;
 	}
 
 	// Adjust tangential velocity of bodies 
