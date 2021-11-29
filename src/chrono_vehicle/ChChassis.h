@@ -181,14 +181,12 @@ class CH_VEHICLE_API ChChassis : public ChPart {
     void AddExternalForce(std::shared_ptr<ExternalForce> force);
 
   protected:
-    std::shared_ptr<ChBodyAuxRef> m_body;              ///< handle to the chassis body
-    std::shared_ptr<ChLoadContainer> m_bushings;       ///< load container for vehicle bushings
-    std::vector<std::shared_ptr<ChMarker>> m_markers;  ///< list of user-defined markers
-    bool m_fixed;                                      ///< is the chassis body fixed to ground?
-
-  private:
+    std::shared_ptr<ChBodyAuxRef> m_body;                  ///< handle to the chassis body
+    std::shared_ptr<ChLoadContainer> m_bushings;           ///< load container for vehicle bushings
     std::shared_ptr<ChLoadContainer> m_container_forces;   ///< load container for external forces
     std::vector<std::shared_ptr<ExternalForce>> m_forces;  ///< external forces
+    std::vector<std::shared_ptr<ChMarker>> m_markers;      ///< list of user-defined markers
+    bool m_fixed;                                          ///< is the chassis body fixed to ground?
 };
 
 // -----------------------------------------------------------------------------
