@@ -84,6 +84,10 @@ class CH_VEHICLE_API ChWheeledTrailer {
     /// This function should be called only after trailer initialization.
     void SetWheelVisualizationType(VisualizationType vis);
 
+    /// Set visualization type for the tire subsystems.
+    /// This function should be called only after trailer and tire initialization.
+    void SetTireVisualizationType(VisualizationType vis);
+
     /// Initialize this trailer relative to the specified front chassis.
     /// This base class implementation only initializes the trailer chassis and connector subsystems.
     /// Derived classes must extend this function to initialize the axle subsystems.
