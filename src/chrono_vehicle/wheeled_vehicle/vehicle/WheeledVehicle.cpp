@@ -28,18 +28,22 @@ namespace vehicle {
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-WheeledVehicle::WheeledVehicle(const std::string& filename, ChContactMethod contact_method)
+WheeledVehicle::WheeledVehicle(const std::string& filename,
+                               ChContactMethod contact_method,
+                               bool create_powertrain,
+                               bool create_tires)
     : ChWheeledVehicle("", contact_method) {
-    Create(filename);
+    Create(filename, create_powertrain, create_tires);
 }
 
-WheeledVehicle::WheeledVehicle(ChSystem* system, const std::string& filename) : ChWheeledVehicle("", system) {
-    Create(filename);
+WheeledVehicle::WheeledVehicle(ChSystem* system, const std::string& filename, bool create_powertrain, bool create_tires)
+    : ChWheeledVehicle("", system) {
+    Create(filename, create_powertrain, create_tires);
 }
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-void WheeledVehicle::Create(const std::string& filename) {
+void WheeledVehicle::Create(const std::string& filename, bool create_powertrain, bool create_tires) {
     // Open and parse the input file
     Document d;
     ReadFileJSON(filename, d);
@@ -176,6 +180,15 @@ void WheeledVehicle::Create(const std::string& filename) {
         }
     }
 
+    // ------------------------------------
+    // Create the powertrain (if specified)
+    // ------------------------------------
+
+    if (create_powertrain && d.HasMember("Powertrain")) {
+        std::string file_name = d["Powertrain"]["Input File"].GetString();
+        m_powertrain = ReadPowertrainJSON(vehicle::GetDataFile(file_name));
+    }
+
     // --------------------
     // Create the driveline
     // --------------------
@@ -195,6 +208,7 @@ void WheeledVehicle::Create(const std::string& filename) {
 
     // ---------------------------------------------------
     // Create the suspension, wheel, and brake subsystems.
+    // Create tires (if specified)
     // ---------------------------------------------------
 
     for (int i = 0; i < m_num_axles; i++) {
@@ -257,13 +271,21 @@ void WheeledVehicle::Create(const std::string& filename) {
             m_axles[i]->m_wheels[1] = ReadWheelJSON(vehicle::GetDataFile(file_name));
         }
 
-        // Left and right brakes (may be absent)
+        // Left and right brakes (if specified)
         if (d["Axles"][i].HasMember("Left Brake Input File")) {
             file_name = d["Axles"][i]["Left Brake Input File"].GetString();
             m_axles[i]->m_brake_left = ReadBrakeJSON(vehicle::GetDataFile(file_name));
 
             file_name = d["Axles"][i]["Right Brake Input File"].GetString();
             m_axles[i]->m_brake_right = ReadBrakeJSON(vehicle::GetDataFile(file_name));
+        }
+
+        // Create tires (if specified)
+        if (create_tires && d["Axles"][i].HasMember("Tire Input File")) {
+            file_name = d["Axles"][i]["Tire Input File"].GetString();
+            for (auto& wheel : m_axles[i]->GetWheels()) {
+                wheel->SetTire(ReadTireJSON(vehicle::GetDataFile(file_name)));
+            }
         }
 
         if (d["Axles"][i].HasMember("Output")) {
@@ -338,6 +360,12 @@ void WheeledVehicle::Initialize(const ChCoordsys<>& chassisPos, double chassisFw
         std::shared_ptr<ChSteering> steering = (str_index == -1) ? nullptr : m_steerings[str_index];
         m_axles[i]->Initialize(chassis, subchassis, steering, m_susp_locations[i], m_arb_locations[i],
                                m_wheel_separations[i]);
+        // Initialize tires (if present)
+        for (auto& wheel : m_axles[i]->GetWheels()) {
+            if (wheel->GetTire()) {
+                InitializeTire(wheel->GetTire(), wheel);
+            }
+        }
     }
 
     // Initialize the driveline
@@ -345,6 +373,11 @@ void WheeledVehicle::Initialize(const ChCoordsys<>& chassisPos, double chassisFw
 
     // Sanity check: make sure the driveline can accommodate the number of driven axles.
     assert(m_driveline->GetNumDrivenAxles() == m_driven_axles.size());
+
+    // Initialize the powertain (if present)
+    if (m_powertrain) {
+        InitializePowertrain(m_powertrain);
+    }
 }
 
 }  // end namespace vehicle

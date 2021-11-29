@@ -230,18 +230,19 @@ int main(int argc, char* argv[]) {
     vehicle.SetSuspensionVisualizationType(VisualizationType::PRIMITIVES);
     vehicle.SetSteeringVisualizationType(VisualizationType::PRIMITIVES);
     vehicle.SetWheelVisualizationType(VisualizationType::MESH);
+    vehicle.SetTireVisualizationType(VisualizationType::MESH);
 
     // Create and initialize the powertrain system
-    auto powertrain = ReadPowertrainJSON(vehicle::GetDataFile(vehicle_model.PowertrainJSON()));
-    vehicle.InitializePowertrain(powertrain);
+    ////auto powertrain = ReadPowertrainJSON(vehicle::GetDataFile(vehicle_model.PowertrainJSON()));
+    ////vehicle.InitializePowertrain(powertrain);
 
     // Create and initialize the tires
-    for (auto& axle : vehicle.GetAxles()) {
-        for (auto& wheel : axle->GetWheels()) {
-            auto tire = ReadTireJSON(vehicle::GetDataFile(vehicle_model.TireJSON()));
-            vehicle.InitializeTire(tire, wheel, VisualizationType::MESH);
-        }
-    }
+    ////for (auto& axle : vehicle.GetAxles()) {
+    ////    for (auto& wheel : axle->GetWheels()) {
+    ////        auto tire = ReadTireJSON(vehicle::GetDataFile(vehicle_model.TireJSON()));
+    ////        vehicle.InitializeTire(tire, wheel, VisualizationType::MESH);
+    ////    }
+    ////}
 
     // Containing system
     auto system = vehicle.GetSystem();

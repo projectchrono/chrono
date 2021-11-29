@@ -198,6 +198,15 @@ void ChWheeledVehicle::SetWheelVisualizationType(VisualizationType vis) {
     }
 }
 
+void ChWheeledVehicle::SetTireVisualizationType(VisualizationType vis) {
+    for (auto& axle : m_axles) {
+        for (auto& wheel : axle->m_wheels) {
+            if (wheel->GetTire())
+                wheel->GetTire()->SetVisualizationType(vis);
+        }
+    }
+}
+
 // -----------------------------------------------------------------------------
 // Enable/disable collision between the chassis and all other vehicle subsystems
 // This only controls collisions between the chassis and the tire systems.
