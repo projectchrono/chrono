@@ -1,4 +1,4 @@
-\mainpage Project Chrono API/SDK documentation
+\mainpage Project Chrono API/SDK documentation (development branch)
 
 @subpage introduction_chrono
 

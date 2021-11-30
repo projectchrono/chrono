@@ -98,6 +98,11 @@ GranularTerrain::GranularTerrain(ChSystem* system)
     m_ground->AddAsset(m_color);
 }
 
+GranularTerrain::~GranularTerrain() {
+    if (m_collision_callback)
+        m_ground->GetSystem()->UnregisterCustomCollisionCallback(m_collision_callback);
+}
+
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 void GranularTerrain::EnableRoughSurface(int num_spheres_x, int num_spheres_y) {
@@ -435,8 +440,8 @@ void GranularTerrain::Initialize(const ChVector<>& center,
     }
 
     // Register the custom collision callback for boundary conditions.
-    auto cb = chrono_types::make_shared<BoundaryContact>(this);
-    m_ground->GetSystem()->RegisterCustomCollisionCallback(cb);
+    m_collision_callback = chrono_types::make_shared<BoundaryContact>(this);
+    m_ground->GetSystem()->RegisterCustomCollisionCallback(m_collision_callback);
 }
 
 void GranularTerrain::Synchronize(double time) {

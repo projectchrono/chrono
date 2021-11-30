@@ -14,6 +14,7 @@
 %csmethodmodifiers chrono::ChShaft::GetSubBlocks "public"
 %csmethodmodifiers chrono::ChShaft::GetSubBlockOffset "public"
 %csmethodmodifiers chrono::ChShaft::GetSubBlockSize "public"
+%csmethodmodifiers chrono::ChShaft::IsSubBlockActive "public"
 %csmethodmodifiers chrono::ChShaft::LoadableGetVariables "public"
 
 //// RADU:  Do we actually want to wrap methods of ChLoadable?

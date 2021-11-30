@@ -20,10 +20,10 @@
 
 #include "curand_utils.cuh"
 #include "lidar_noise.cuh"
-#include "chrono_sensor/utils/CudaMallocHelper.h"
+// #include "chrono_sensor/utils/CudaMallocHelper.h"
 
-#include <chrono>
-#include <memory>
+// #include <chrono>
+// #include <memory>
 
 namespace chrono {
 namespace sensor {
@@ -89,12 +89,12 @@ void cuda_lidar_noise_normal(float* bufPtr,
                              float stdev_v_angle,
                              float stdev_h_angle,
                              float stdev_intensity,
-                             curandState_t* rng) {
+                             curandState_t* rng,
+                             CUstream& stream) {
     const int nThreads = 512;
     int nBlocks = (width * height + nThreads - 1) / nThreads;
-
-    lidar_normal_noise_kernel<<<nBlocks, nThreads>>>(bufPtr, width, height, stdev_range, stdev_v_angle, stdev_h_angle,
-                                                     stdev_intensity, rng);
+    lidar_normal_noise_kernel<<<nBlocks, nThreads, 0, stream>>>(bufPtr, width, height, stdev_range, stdev_v_angle,
+                                                                stdev_h_angle, stdev_intensity, rng);
 }
 
 }  // namespace sensor

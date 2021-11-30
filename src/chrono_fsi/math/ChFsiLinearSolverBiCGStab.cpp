@@ -31,37 +31,37 @@ namespace fsi {
 
 void ChFsiLinearSolverBiCGStab::Solve(int SIZE,
                                       int NNZ,
-                                      double* A,
+                                      Real* A,
                                       unsigned int* ArowIdx,
                                       unsigned int* AcolIdx,
-                                      double* x,
-                                      double* b) {
+                                      Real* x,
+                                      Real* b) {
 #ifndef CUDART_VERSION
 #error CUDART_VERSION Undefined!
 #elif (CUDART_VERSION == 11000)
 
-    double *r, *rh, *p, *ph, *v, *s, *t, *Ac;
+    Real *r, *rh, *p, *ph, *v, *s, *t, *Ac;
 
-    cudaMalloc((void**)&r, sizeof(double) * SIZE);
-    cudaMalloc((void**)&rh, sizeof(double) * SIZE);
-    cudaMalloc((void**)&p, sizeof(double) * SIZE);
-    cudaMalloc((void**)&ph, sizeof(double) * SIZE);
-    cudaMalloc((void**)&v, sizeof(double) * SIZE);
-    cudaMalloc((void**)&s, sizeof(double) * SIZE);
-    cudaMalloc((void**)&t, sizeof(double) * SIZE);
+    cudaMalloc((void**)&r, sizeof(Real) * SIZE);
+    cudaMalloc((void**)&rh, sizeof(Real) * SIZE);
+    cudaMalloc((void**)&p, sizeof(Real) * SIZE);
+    cudaMalloc((void**)&ph, sizeof(Real) * SIZE);
+    cudaMalloc((void**)&v, sizeof(Real) * SIZE);
+    cudaMalloc((void**)&s, sizeof(Real) * SIZE);
+    cudaMalloc((void**)&t, sizeof(Real) * SIZE);
 
-    cudaMalloc((void**)&Ac, sizeof(double) * NNZ);
+    cudaMalloc((void**)&Ac, sizeof(Real) * NNZ);
     cudaDeviceSynchronize();
 
-    cudaMemset((void*)r, 0, sizeof(double) * SIZE);
-    cudaMemset((void*)rh, 0, sizeof(double) * SIZE);
-    cudaMemset((void*)p, 0, sizeof(double) * SIZE);
-    cudaMemset((void*)ph, 0, sizeof(double) * SIZE);
-    cudaMemset((void*)v, 0, sizeof(double) * SIZE);
-    cudaMemset((void*)s, 0, sizeof(double) * SIZE);
-    cudaMemset((void*)t, 0, sizeof(double) * SIZE);
+    cudaMemset((void*)r, 0, sizeof(Real) * SIZE);
+    cudaMemset((void*)rh, 0, sizeof(Real) * SIZE);
+    cudaMemset((void*)p, 0, sizeof(Real) * SIZE);
+    cudaMemset((void*)ph, 0, sizeof(Real) * SIZE);
+    cudaMemset((void*)v, 0, sizeof(Real) * SIZE);
+    cudaMemset((void*)s, 0, sizeof(Real) * SIZE);
+    cudaMemset((void*)t, 0, sizeof(Real) * SIZE);
 
-    cudaMemset((void*)Ac, 0, sizeof(double) * NNZ);
+    cudaMemset((void*)Ac, 0, sizeof(Real) * NNZ);
     cudaDeviceSynchronize();
 
     //====== Get handle to the CUBLAS context ========
@@ -209,12 +209,12 @@ void ChFsiLinearSolverBiCGStab::Solve(int SIZE,
     }
   
     //===========================Solution=====================================================
-    double rho = 1, rho_old = 1, beta = 1, alpha = 1, negalpha = -1, omega = 1, negomega = -1, temp = 1, temp2 = 1;
-    double nrmr = 0.0, nrmr0 = 0.0;
-    double zero = 0.0;
-    double one = 1.0;
+    Real rho = 1, rho_old = 1, beta = 1, alpha = 1, negalpha = -1, omega = 1, negomega = -1, temp = 1, temp2 = 1;
+    Real nrmr = 0.0, nrmr0 = 0.0;
+    Real zero = 0.0;
+    Real one = 1.0;
     // negative one
-    double none = -1.0;
+    Real none = -1.0;
 
     // compute initial residual r0=b-Ax0 (using initial guess in x)
     // 1. get Ax0 - Dcsrmv, can be mitigated to cusparseSpMV() later
@@ -250,10 +250,10 @@ void ChFsiLinearSolverBiCGStab::Solve(int SIZE,
         cublasDdot(cublasHandle, SIZE, rh, 1, r, 1, &rho);
 
         // compute beta
-        // double rho_old_m = (rho_old < 1e-15) ? rho_old * 1e6 : rho_old;
-        // double rho_m = (rho_old < 1e-15) ? rho * 1e6 : rho;
-        // double omega_m = (omega < 1e-15) ? omega * 1e6 : omega;
-        // double alpha_m = (omega < 1e-15) ? alpha * 1e6 : alpha;
+        // Real rho_old_m = (rho_old < 1e-15) ? rho_old * 1e6 : rho_old;
+        // Real rho_m = (rho_old < 1e-15) ? rho * 1e6 : rho;
+        // Real omega_m = (omega < 1e-15) ? omega * 1e6 : omega;
+        // Real alpha_m = (omega < 1e-15) ? alpha * 1e6 : alpha;
 
         beta = (rho / rho_old) * (alpha / omega);
         // p_i = r_{i-1} + beta * (p_{i-1} - omega_{i-1} * v_{i-1}) 

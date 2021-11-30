@@ -42,6 +42,7 @@ class CH_VEHICLE_API ShaftsPowertrain : public ChShaftsPowertrain {
     virtual double GetMotorBlockInertia() const override { return m_motorblock_inertia; }
     virtual double GetCrankshaftInertia() const override { return m_crankshaft_inertia; }
     virtual double GetIngearShaftInertia() const override { return m_ingear_shaft_inertia; }
+    virtual double GetPowershaftInertia() const override { return m_power_shaft_inertia; }
 
     virtual double GetUpshiftRPM() const override { return m_upshift_RPM; }
     virtual double GetDownshiftRPM() const override { return m_downshift_RPM; }
@@ -66,6 +67,7 @@ class CH_VEHICLE_API ShaftsPowertrain : public ChShaftsPowertrain {
     double m_motorblock_inertia;
     double m_crankshaft_inertia;
     double m_ingear_shaft_inertia;
+    double m_power_shaft_inertia;
 
     double m_rev_gear;
     std::vector<double> m_fwd_gear;

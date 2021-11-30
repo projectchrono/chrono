@@ -41,7 +41,7 @@ class CH_VEHICLE_API ChShaftsDriveline4WD : public ChDrivelineWV {
   public:
     ChShaftsDriveline4WD(const std::string& name);
 
-    virtual ~ChShaftsDriveline4WD() {}
+    virtual ~ChShaftsDriveline4WD();
 
     /// Get the name of the vehicle subsystem template.
     virtual std::string GetTemplateName() const override { return "ShaftsDriveline4WD"; }
@@ -83,6 +83,9 @@ class CH_VEHICLE_API ChShaftsDriveline4WD : public ChDrivelineWV {
 
     /// Get the motor torque to be applied to the specified spindle.
     virtual double GetSpindleTorque(int axle, VehicleSide side) const override;
+
+    /// Disconnect driveline from driven wheels.
+    virtual void Disconnect() override;
 
   protected:
     /// Return the inertia of the driveshaft.

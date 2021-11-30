@@ -138,7 +138,7 @@ void SaveHullsWavefront(ChIrrAppInterface* application, const char* filename) {
     try {
         ChStreamOutAsciiFile decomposed_objfile(filename);
         mydecompositionHACDv2.WriteConvexHullsAsWavefrontObj(decomposed_objfile);
-    } catch (const ChException &myex) {
+    } catch (const ChException&) {
         application->GetIGUIEnvironment()->addMessageBox(L"Save file error", L"Impossible to write into file.");
     }
 }
@@ -150,7 +150,7 @@ void SaveHullsChulls(ChIrrAppInterface* application, const char* filename) {
     try {
         ChStreamOutAsciiFile decomposed_objfile(filename);
         mydecompositionHACDv2.WriteConvexHullsAsChullsFile(decomposed_objfile);
-    } catch (const ChException &myex) {
+    } catch (const ChException&) {
         application->GetIGUIEnvironment()->addMessageBox(L"Save file error", L"Impossible to write into file.");
     }
 }

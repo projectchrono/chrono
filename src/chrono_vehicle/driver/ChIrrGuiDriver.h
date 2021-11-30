@@ -55,6 +55,17 @@ class CH_VEHICLE_API ChIrrGuiDriver : public ChDriver, public irr::IEventReceive
         JOYSTICK   ///< driver inputs from joystick
     };
 
+    /// Exposes the unnamed enum of irrlicht axes to enforce right values in API usage
+    enum JoystickAxes {
+        AXIS_X = irr::SEvent::SJoystickEvent::AXIS_X,
+        AXIS_Y = irr::SEvent::SJoystickEvent::AXIS_Y,		
+        AXIS_Z = irr::SEvent::SJoystickEvent::AXIS_Z,		
+        AXIS_R = irr::SEvent::SJoystickEvent::AXIS_R,		
+        AXIS_U = irr::SEvent::SJoystickEvent::AXIS_U,
+        AXIS_V = irr::SEvent::SJoystickEvent::AXIS_V,
+        NONE
+    };
+
     /// Construct an Irrlicht GUI driver.
     ChIrrGuiDriver(ChVehicleIrrApp& app);
 
@@ -94,6 +105,24 @@ class CH_VEHICLE_API ChIrrGuiDriver : public ChDriver, public irr::IEventReceive
     /// Return the current functioning mode as a string.
     std::string GetInputModeAsString() const;
 
+    /// Set joystick axes: throttle, brake, steering, clutch. 
+    void SetJoystickAxes(JoystickAxes tr_ax, JoystickAxes br_ax, JoystickAxes st_ax, JoystickAxes cl_ax);
+
+    /// Get joystick axes for the throttle.
+    JoystickAxes GetThrottleAxis(JoystickAxes tr_ax) const { return throttle_axis; }
+
+    /// Get joystick axes for the brake.
+    JoystickAxes GetBrakeAxis(JoystickAxes br_ax) const { return brake_axis; }
+
+    /// Get joystick axes for the steer.
+    JoystickAxes GetSteerAxis(JoystickAxes st_ax) const { return steer_axis; }
+
+    /// Get joystick axes for the clutch.
+    JoystickAxes GetClutchAxis(JoystickAxes cl_ax) const { return cl_ax; }
+
+    /// Feed button number and callback function to implement a custom callback.
+    void SetButtonCallback(int button, void(*cbfun)()) {cb_fun = cbfun; callbackButton=button; }
+
   protected:
     ChVehicleIrrApp& m_app;
 
@@ -116,6 +145,15 @@ class CH_VEHICLE_API ChIrrGuiDriver : public ChDriver, public irr::IEventReceive
 
     // Variables for mode=JOYSTICK
     int m_dT;
+    // Axes for joystick usage
+    JoystickAxes throttle_axis = AXIS_Z;
+    JoystickAxes brake_axis = AXIS_R;
+    JoystickAxes steer_axis = AXIS_X;
+    JoystickAxes clutch_axis = AXIS_Y;
+    // Joystick button associated to the custom callback
+    int callbackButton = -1;
+    // Custom callback, can be implemented in the application
+    void (*cb_fun)() = nullptr;
 
     // Variables for mode=DATAFILE
     double m_time_shift;                          ///< time at which mode was switched to DATAFILE

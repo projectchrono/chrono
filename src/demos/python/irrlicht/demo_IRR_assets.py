@@ -304,6 +304,7 @@ application.SetTryRealtime(True)
 while application.GetDevice().run():
     application.BeginScene()
     application.DrawAll()
+    application.GetIGUIEnvironment().addStaticText('Hello World!', chronoirr.recti(50, 60, 150, 80))
     application.DoStep()
     application.EndScene()
 

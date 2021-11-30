@@ -12,7 +12,7 @@
 // Author: Arman Pazouki, Milad Rakhsha
 // =============================================================================
 //
-// Utility class for generating fluid markers.//
+// Utility class for generating fluid markers.
 // =============================================================================
 
 #include "chrono_fsi/utils/ChUtilsGeneratorFluid.h"

@@ -82,14 +82,13 @@ class CH_VEHICLE_API ChSimpleCVTPowertrain : public ChPowertrain {
 
   private:
     /// Initialize the powertrain system.
-    virtual void Initialize(std::shared_ptr<ChChassis> chassis,     ///< [in] chassis of the associated vehicle
-                            std::shared_ptr<ChDriveline> driveline  ///< [in] driveline of the associated vehicle
-                            ) override;
+    virtual void Initialize(std::shared_ptr<ChChassis> chassis) override;
 
     /// Update the state of this powertrain system at the current time.
     /// The powertrain system is provided the current driver throttle input, a value in the range [0,1].
-    virtual void Synchronize(double time,     ///< [in] current time
-                             double throttle  ///< [in] current throttle input [0,1]
+    virtual void Synchronize(double time,        ///< [in] current time
+                             double throttle,    ///< [in] current throttle input [0,1]
+                             double shaft_speed  ///< [in] driveshaft speed
                              ) override;
 
     /// Advance the state of this powertrain system by the specified time step.

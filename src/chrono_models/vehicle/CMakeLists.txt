@@ -211,11 +211,16 @@ set(CVM_FMTV_FILES
     mtv/MTV_ChassisRear.h
     mtv/MTV_Balancer.cpp
     mtv/MTV_Balancer.h
+    mtv/MTV_SpringDamper.cpp
+    mtv/MTV_SpringDamper.h    
     mtv/MTV_LeafspringAxle1.cpp
     mtv/MTV_LeafspringAxle1.h
     mtv/MTV_LeafspringAxle2.cpp
     mtv/MTV_LeafspringAxle2.h
-)
+    mtv/MTV_Solid3LinkAxle1.cpp
+    mtv/MTV_Solid3LinkAxle1.h
+    mtv/MTV_Solid3LinkAxle2.cpp
+    mtv/MTV_Solid3LinkAxle2.h)
 source_group("mtv" FILES ${CVM_FMTV_FILES})
 
 set(CVM_UAZ_FILES
@@ -566,6 +571,8 @@ set(CVM_RCCAR_FILES
   rccar/RCCar_PitmanArm.h
   rccar/RCCar_RigidTire.cpp
   rccar/RCCar_RigidTire.h
+  rccar/RCCar_TMeasyTire.cpp
+  rccar/RCCar_TMeasyTire.h
   rccar/RCCar_SimpleMapPowertrain.cpp
   rccar/RCCar_SimpleMapPowertrain.h
   rccar/RCCar_Vehicle.cpp

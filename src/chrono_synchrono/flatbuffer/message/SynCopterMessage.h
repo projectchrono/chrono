@@ -23,9 +23,6 @@
 
 #include "chrono_synchrono/flatbuffer/message/SynMessage.h"
 
-/// TODO: Create a class with utility functions
-#define SynAgentID uint32_t
-
 namespace chrono {
 namespace synchrono {
 
@@ -37,9 +34,9 @@ class SYN_API SynCopterStateMessage : public SynMessage {
   public:
     ///@brief Constructor
     ///
-    ///@param source_id the id of the source to which the message is sent from
-    ///@param destination_id the id of the destination to which the message is sent to
-    SynCopterStateMessage(SynAgentID source_id, SynAgentID destination_id);
+    ///@param source_key the id of the source to which the message is sent from
+    ///@param destination_key the id of the destination to which the message is sent to
+    SynCopterStateMessage(AgentKey source_key = AgentKey(), AgentKey destination_key = AgentKey());
 
     ///@brief Converts a received flatbuffer message to a SynMessage
     ///
@@ -74,9 +71,9 @@ class SYN_API SynCopterDescriptionMessage : public SynMessage {
   public:
     ///@brief Constructor
     ///
-    ///@param source_id the id of the source to which the message is sent from
-    ///@param destination_id the id of the destination to which the message is sent to
-    SynCopterDescriptionMessage(SynAgentID source_id, SynAgentID destination_id);
+    ///@param source_key the id of the source to which the message is sent from
+    ///@param destination_key the id of the destination to which the message is sent to
+    SynCopterDescriptionMessage(AgentKey source_key = AgentKey(), AgentKey destination_key = AgentKey());
 
     ///@brief Converts a received flatbuffer message to a SynMessage
     ///

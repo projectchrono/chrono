@@ -35,6 +35,16 @@ namespace vehicle {
 ChShaftsDriveline2WD::ChShaftsDriveline2WD(const std::string& name)
     : ChDrivelineWV(name), m_dir_motor_block(ChVector<>(1, 0, 0)), m_dir_axle(ChVector<>(0, 1, 0)) {}
 
+ChShaftsDriveline2WD::~ChShaftsDriveline2WD() {
+    auto sys = m_differential->GetSystem();
+    if (sys) {
+        sys->Remove(m_conicalgear);
+        sys->Remove(m_differentialbox);
+        sys->Remove(m_differential);
+        sys->Remove(m_clutch);
+    }
+}
+
 // -----------------------------------------------------------------------------
 // Initialize the driveline subsystem.
 // This function connects this driveline to the specified axle.
@@ -112,6 +122,12 @@ double ChShaftsDriveline2WD::GetSpindleTorque(int axle, VehicleSide side) const 
     }
 
     return 0;
+}
+
+// -----------------------------------------------------------------------------
+void ChShaftsDriveline2WD::Disconnect() {
+    m_differential->SetDisabled(true);
+    m_clutch->SetDisabled(true);
 }
 
 }  // end namespace vehicle

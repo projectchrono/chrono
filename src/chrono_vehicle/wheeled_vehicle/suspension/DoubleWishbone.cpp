@@ -31,8 +31,13 @@ namespace vehicle {
 // file.
 // -----------------------------------------------------------------------------
 DoubleWishbone::DoubleWishbone(const std::string& filename)
-    : ChDoubleWishbone(""), m_springForceCB(NULL), m_shockForceCB(NULL) {
-    Document d; ReadFileJSON(filename, d);
+    : ChDoubleWishbone(""),
+      m_springForceCB(nullptr),
+      m_shockForceCB(nullptr),
+      m_UCABushingData(nullptr),
+      m_LCABushingData(nullptr) {
+    Document d;
+    ReadFileJSON(filename, d);
     if (d.IsNull())
         return;
 
@@ -42,7 +47,11 @@ DoubleWishbone::DoubleWishbone(const std::string& filename)
 }
 
 DoubleWishbone::DoubleWishbone(const rapidjson::Document& d)
-    : ChDoubleWishbone(""), m_springForceCB(NULL), m_shockForceCB(NULL) {
+    : ChDoubleWishbone(""),
+      m_springForceCB(nullptr),
+      m_shockForceCB(nullptr),
+      m_UCABushingData(nullptr),
+      m_LCABushingData(nullptr) {
     Create(d);
 }
 
@@ -97,6 +106,9 @@ void DoubleWishbone::Create(const rapidjson::Document& d) {
     m_points[UCA_F] = ReadVectorJSON(d["Upper Control Arm"]["Location Chassis Front"]);
     m_points[UCA_B] = ReadVectorJSON(d["Upper Control Arm"]["Location Chassis Back"]);
     m_points[UCA_U] = ReadVectorJSON(d["Upper Control Arm"]["Location Upright"]);
+    if (d["Upper Control Arm"].HasMember("Bushing Data")) {
+        m_UCABushingData = ReadBushingDataJSON(d["Upper Control Arm"]["Bushing Data"]);
+    }
 
     // Read LCA data
     assert(d.HasMember("Lower Control Arm"));
@@ -110,10 +122,30 @@ void DoubleWishbone::Create(const rapidjson::Document& d) {
     m_points[LCA_F] = ReadVectorJSON(d["Lower Control Arm"]["Location Chassis Front"]);
     m_points[LCA_B] = ReadVectorJSON(d["Lower Control Arm"]["Location Chassis Back"]);
     m_points[LCA_U] = ReadVectorJSON(d["Lower Control Arm"]["Location Upright"]);
+    if (d["Lower Control Arm"].HasMember("Bushing Data")) {
+        m_LCABushingData = ReadBushingDataJSON(d["Lower Control Arm"]["Bushing Data"]);
+    }
 
     // Read Tierod data
     assert(d.HasMember("Tierod"));
     assert(d["Tierod"].IsObject());
+
+    if (d["Tierod"].HasMember("Mass")) {
+        assert(d["Tierod"].HasMember("Inertia"));
+        assert(d["Tierod"].HasMember("Radius"));
+        m_tierodMass = d["Tierod"]["Mass"].GetDouble();
+        m_tierodRadius = d["Tierod"]["Radius"].GetDouble();
+        m_tierodInertia = ReadVectorJSON(d["Tierod"]["Inertia"]);
+        m_use_tierod_bodies = true;
+        if (d["Tierod"].HasMember("Bushing Data")) {
+            m_tierodBushingData = ReadBushingDataJSON(d["Tierod"]["Bushing Data"]);
+        }
+    } else {
+        m_tierodMass = 0;
+        m_tierodRadius = 0;
+        m_tierodInertia = ChVector<>(0);
+        m_use_tierod_bodies = false;
+    }
 
     m_points[TIEROD_C] = ReadVectorJSON(d["Tierod"]["Location Chassis"]);
     m_points[TIEROD_U] = ReadVectorJSON(d["Tierod"]["Location Upright"]);
@@ -144,7 +176,7 @@ void DoubleWishbone::Create(const rapidjson::Document& d) {
     } else {
         if (d["Spring"].HasMember("Spring Coefficient")) {
             m_springForceCB =
-                chrono_types::make_shared < LinearSpringForce>(d["Spring"]["Spring Coefficient"].GetDouble());
+                chrono_types::make_shared<LinearSpringForce>(d["Spring"]["Spring Coefficient"].GetDouble());
         } else if (d["Spring"].HasMember("Curve Data")) {
             int num_points = d["Spring"]["Curve Data"].Size();
             auto springForceCB = chrono_types::make_shared<MapSpringForce>();

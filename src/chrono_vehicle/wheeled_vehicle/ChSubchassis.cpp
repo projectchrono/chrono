@@ -16,12 +16,21 @@
 //
 // =============================================================================
 
+#include "chrono/physics/ChSystem.h"
 #include "chrono_vehicle/wheeled_vehicle/ChSubchassis.h"
 
 namespace chrono {
 namespace vehicle {
 
 ChSubchassis::ChSubchassis(const std::string& name) : ChPart(name) {}
+
+ChSubchassis::~ChSubchassis() {
+    auto sys = m_beam[0]->GetSystem();
+    if (sys) {
+        sys->Remove(m_beam[0]);
+        sys->Remove(m_beam[1]);
+    }
+}
 
 }  // end namespace vehicle
 }  // end namespace chrono

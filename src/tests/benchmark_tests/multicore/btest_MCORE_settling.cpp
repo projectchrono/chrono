@@ -173,7 +173,7 @@ BENCHMARK_DEFINE_F(TEST_NAME, Settle)(benchmark::State& st) {
     std::cout << "Simulated " << m_test->GetNumParticles() << " particles ";
 #pragma omp parallel
 #pragma omp master
-    std::cout << "using " << omp_get_num_threads() << " threads." << std::endl;
+    std::cout << "using " << ChOMP::GetNumThreads() << " threads." << std::endl;
 }
 BENCHMARK_REGISTER_F(TEST_NAME, Settle)
     ->Unit(benchmark::kMillisecond)

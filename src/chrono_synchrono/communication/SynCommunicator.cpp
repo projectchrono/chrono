@@ -31,10 +31,8 @@ SynCommunicator::SynCommunicator() : m_initialized(false) {}
 
 SynCommunicator::~SynCommunicator() {}
 
-bool SynCommunicator::Initialize() {
+void SynCommunicator::Initialize() {
     m_initialized = true;
-
-    return true;
 }
 
 // -----------------------------------------------------------------------------------------------
@@ -50,7 +48,7 @@ void SynCommunicator::AddOutgoingMessages(SynMessageList& messages) {
 
 void SynCommunicator::AddQuitMessage() {
     // Source and destination are meaningless in this case
-    auto message = chrono_types::make_shared<SynSimulationMessage>(0, 0, true);
+    auto message = chrono_types::make_shared<SynSimulationMessage>(AgentKey(), AgentKey(), true);
     m_flatbuffers_manager.AddMessage(message);
 }
 

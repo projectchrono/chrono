@@ -17,7 +17,7 @@
 // =============================================================================
 
 #include "chrono/core/ChCubicSpline.h"
-#include "chrono/fea/ChElementHexa_8.h"
+#include "chrono/fea/ChElementHexaCorot_8.h"
 #include "chrono/fea/ChLinkPointTriface.h"
 
 #include "chrono_vehicle/wheeled_vehicle/tire/ReissnerTire.h"
@@ -445,7 +445,7 @@ void ReissnerTire::CreateMesh(const ChFrameMoving<>& wheel_frame, VehicleSide si
 
                 // create the hexahedron element
                 if (is > 0) {
-                    auto helement1 = chrono_types::make_shared<ChElementHexa_8>();
+                    auto helement1 = chrono_types::make_shared<ChElementHexaCorot_8>();
                     helement1->SetNodes(n1, n2, n3, n4, node1, node2, node3, node4);
                     helement1->SetMaterial(m_lugs_material);
                     m_mesh->AddElement(helement1);

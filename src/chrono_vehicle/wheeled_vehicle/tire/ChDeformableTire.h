@@ -44,12 +44,12 @@ namespace vehicle {
 class CH_VEHICLE_API ChDeformableTire : public ChTire {
   public:
     /// Type of the mesh contact surface.
-    enum ContactSurfaceType { NODE_CLOUD, TRIANGLE_MESH };
+    enum class ContactSurfaceType { NODE_CLOUD, TRIANGLE_MESH };
 
     /// Construct a deformable tire with the specified name.
     ChDeformableTire(const std::string& name);
 
-    virtual ~ChDeformableTire() {}
+    virtual ~ChDeformableTire();
 
     /// Set the type of contact surface.
     void SetContactSurfaceType(ContactSurfaceType type) { m_contact_type = type; }
@@ -102,9 +102,6 @@ class CH_VEHICLE_API ChDeformableTire : public ChTire {
 
     /// Get the rim radius (inner tire radius).
     virtual double GetRimRadius() const = 0;
-
-    /// Get the tire width.
-    virtual double GetWidth() const = 0;
 
     /// Calculate and return the tire mass.
     /// The return value is the mass of the underlying FEA mesh.

@@ -29,7 +29,7 @@ namespace vehicle {
 // -----------------------------------------------------------------------------
 // Construct a default 4WD simple driveline.
 // -----------------------------------------------------------------------------
-ChSimpleDriveline::ChSimpleDriveline(const std::string& name) : ChDrivelineWV(name) {}
+ChSimpleDriveline::ChSimpleDriveline(const std::string& name) : ChDrivelineWV(name), m_connected(true) {}
 
 // -----------------------------------------------------------------------------
 // Initialize the driveline subsystem.
@@ -38,7 +38,12 @@ ChSimpleDriveline::ChSimpleDriveline(const std::string& name) : ChDrivelineWV(na
 void ChSimpleDriveline::Initialize(std::shared_ptr<ChChassis> chassis,
                                    const ChAxleList& axles,
                                    const std::vector<int>& driven_axles) {
-    assert(axles.size() >= 2);
+    assert(driven_axles.size() == 2);
+
+    // Create the driveshaft
+    m_driveshaft = chrono_types::make_shared<ChShaft>();
+    m_driveshaft->SetInertia(0.5);
+    chassis->GetSystem()->Add(m_driveshaft);
 
     m_driven_axles = driven_axles;
 
@@ -48,16 +53,6 @@ void ChSimpleDriveline::Initialize(std::shared_ptr<ChChassis> chassis,
 
     m_rear_left = axles[m_driven_axles[1]]->m_suspension->GetAxle(LEFT);
     m_rear_right = axles[m_driven_axles[1]]->m_suspension->GetAxle(RIGHT);
-}
-
-// -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
-double ChSimpleDriveline::GetDriveshaftSpeed() const {
-    double speed_front = 0.5 * (m_front_left->GetPos_dt() + m_front_right->GetPos_dt());
-    double speed_rear = 0.5 * (m_rear_left->GetPos_dt() + m_rear_right->GetPos_dt());
-    double alpha = GetFrontTorqueFraction();
-
-    return alpha * speed_front + (1 - alpha) * speed_rear;
 }
 
 // -----------------------------------------------------------------------------
@@ -98,6 +93,16 @@ void differentialSplit(double torque,
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 void ChSimpleDriveline::Synchronize(double torque) {
+    if (!m_connected)
+        return;
+
+    // Enforce driveshaft speed 
+    double speed_front = 0.5 * (m_front_left->GetPos_dt() + m_front_right->GetPos_dt());
+    double speed_rear = 0.5 * (m_rear_left->GetPos_dt() + m_rear_right->GetPos_dt());
+    double alpha = GetFrontTorqueFraction();
+    double driveshaft_speed = alpha * speed_front + (1 - alpha) * speed_rear;
+    m_driveshaft->SetPos_dt(driveshaft_speed);
+
     // Split the input torque front/back.
     double torque_front = torque * GetFrontTorqueFraction();
     double torque_rear = torque - torque_front;
@@ -121,6 +126,9 @@ void ChSimpleDriveline::Synchronize(double torque) {
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 double ChSimpleDriveline::GetSpindleTorque(int axle, VehicleSide side) const {
+    if (!m_connected)
+        return 0;
+
     if (axle == m_driven_axles[0]) {
         switch (side) {
             case LEFT:
@@ -138,6 +146,11 @@ double ChSimpleDriveline::GetSpindleTorque(int axle, VehicleSide side) const {
     }
 
     return 0;
+}
+
+// -----------------------------------------------------------------------------
+void ChSimpleDriveline::Disconnect() {
+    m_connected = false;
 }
 
 }  // end namespace vehicle

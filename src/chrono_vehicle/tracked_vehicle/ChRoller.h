@@ -43,7 +43,7 @@ class CH_VEHICLE_API ChRoller : public ChPart {
     ChRoller(const std::string& name  ///< [in] name of the subsystem
              );
 
-    virtual ~ChRoller() {}
+    virtual ~ChRoller();
 
     /// Return the type of track shoe consistent with this roller wheel.
     virtual GuidePinType GetType() const = 0;

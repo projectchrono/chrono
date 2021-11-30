@@ -12,11 +12,11 @@ set(FEA_DEMOS ${FEA_DEMOS}
     demo_FEA_thermal
     demo_FEA_electrostatics
     demo_FEA_visualize
-    demo_FEA_contacts
+    demo_FEA_contacts_SMC
     demo_FEA_cables
-    demo_FEA_ancfShell
-    demo_FEA_ancfShell_8
-    demo_FEA_brick
+    demo_FEA_shellsANCF_3423
+    demo_FEA_shellsANCF_3833
+    demo_FEA_hexaANCF_3813
     demo_FEA_cosimulate_load
     demo_FEA_loads_dynamics
     demo_FEA_truss
@@ -40,19 +40,19 @@ endif()
 # Add demos that require Irrlicht and MKL
 if(ENABLE_MODULE_IRRLICHT AND ENABLE_MODULE_PARDISO_MKL)
 set(FEA_DEMOS ${FEA_DEMOS}
-    demo_FEA_contacts_NSC
-    demo_FEA_beams
+    demo_FEA_beamsEuler
     demo_FEA_beams_static
     demo_FEA_beams_constr
     demo_FEA_beams_extrude
     demo_FEA_cablesMKL
     demo_FEA_abaqus_wheel
-    demo_FEA_shells
+    demo_FEA_shellsReissner
     demo_FEA_shellsBST
-    demo_FEA_ContactANCF
-    demo_FEA_Brick9
+    demo_FEA_contacts_NSC
+    demo_FEA_contactsANCF_SMC
+    demo_FEA_hexaANCF_3813_9
     demo_FEA_beamsIGA
-    demo_FEA_beamsANCF
+    demo_FEA_beamsANCF_3333
 )
 endif()
 
@@ -60,6 +60,13 @@ endif()
 if(ENABLE_MODULE_IRRLICHT AND ENABLE_MODULE_MUMPS)
 set(FEA_DEMOS ${FEA_DEMOS}
     demo_FEA_cablesMUMPS
+)
+endif()
+
+# Add demos that require Irrlicht and MKL and postprocess
+if(ENABLE_MODULE_IRRLICHT AND ENABLE_MODULE_PARDISO_MKL AND ENABLE_MODULE_POSTPROCESS)
+set(FEA_DEMOS ${FEA_DEMOS}
+    demo_FEA_beams_rotor
 )
 endif()
 
@@ -103,6 +110,10 @@ if(ENABLE_MODULE_PARDISO_PROJECT)
   list(APPEND LIBS ${PARDISOPROJECT_LIBRARIES})
 endif()
 
+if(ENABLE_MODULE_POSTPROCESS)
+  list(APPEND LIBS "ChronoEngine_postprocess")
+endif()
+
 #--------------------------------------------------------------
 
 message(STATUS "Demo programs for FEA module...")
@@ -117,6 +128,9 @@ foreach(PROGRAM ${FEA_DEMOS})
         FOLDER demos
         COMPILE_FLAGS "${COMPILER_FLAGS}"
         LINK_FLAGS "${LINKER_FLAGS}")
+    if(APPLE)
+      set_target_properties(${PROGRAM} PROPERTIES MACOSX_BUNDLE_INFO_PLIST ${MACOSX_BUNDLE_INFO_PLIST})
+    endif()
     set_property(TARGET ${PROGRAM} PROPERTY VS_DEBUGGER_WORKING_DIRECTORY "$<TARGET_FILE_DIR:${PROGRAM}>")
     target_link_libraries(${PROGRAM} ${LIBS})
     

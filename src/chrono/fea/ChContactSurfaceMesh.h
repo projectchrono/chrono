@@ -43,11 +43,11 @@ class ChApi ChContactTriangleXYZ : public ChContactable_3vars<3, 3, 3>, public C
     collision::ChCollisionModel* GetCollisionModel() { return collision_model; }
 
     /// Access the FEA node to whom this is a proxy as triangle vertex
-    std::shared_ptr<ChNodeFEAxyz> GetNode1() { return mnode1; }
+    std::shared_ptr<ChNodeFEAxyz> GetNode1() const { return mnode1; }
     /// Access the FEA node to whom this is a proxy as triangle vertex
-    std::shared_ptr<ChNodeFEAxyz> GetNode2() { return mnode2; }
+    std::shared_ptr<ChNodeFEAxyz> GetNode2() const { return mnode2; }
     /// Access the FEA node to whom this is a proxy as triangle vertex
-    std::shared_ptr<ChNodeFEAxyz> GetNode3() { return mnode3; }
+    std::shared_ptr<ChNodeFEAxyz> GetNode3() const { return mnode3; }
 
     /// Set the FEA node to whom this is a proxy
     void SetNode1(std::shared_ptr<ChNodeFEAxyz> mn) { mnode1 = mn; }
@@ -169,17 +169,20 @@ class ChApi ChContactTriangleXYZ : public ChContactable_3vars<3, 3, 3>, public C
     /// tetrahedron finite element or a cable, = 1 for a thermal problem, etc.
     virtual int Get_field_ncoords() override { return 3; }
 
-    /// Tell the number of DOFs blocks (ex. =1 for a body, =4 for a tetrahedron, etc.)
+    /// Get the number of DOFs sub-blocks.
     virtual int GetSubBlocks() override { return 3; }
 
-    /// Get the offset of the i-th sub-block of DOFs in global vector.
+    /// Get the offset of the specified sub-block of DOFs in global vector.
     virtual unsigned int GetSubBlockOffset(int nblock) override;
 
-    /// Get the size of the i-th sub-block of DOFs in global vector.
+    /// Get the size of the specified sub-block of DOFs in global vector.
     virtual unsigned int GetSubBlockSize(int nblock) override { return 3; }
 
     /// Get the pointers to the contained ChVariables, appending to the mvars vector.
     virtual void LoadableGetVariables(std::vector<ChVariables*>& mvars) override;
+
+    /// Check if the specified sub-block of DOFs is active.
+    virtual bool IsSubBlockActive(int nblock) const override;
 
     /// Evaluate N'*F , where N is some type of shape function
     /// evaluated at U,V coordinates of the surface, each ranging in 0..+1 (as IsTriangleIntegrationNeeded() is true)
@@ -239,11 +242,11 @@ class ChApi ChContactTriangleXYZROT : public ChContactable_3vars<6, 6, 6>, publi
     // FUNCTIONS
 
     /// Access the FEA node to whom this is a proxy as triangle vertex
-    std::shared_ptr<ChNodeFEAxyzrot> GetNode1() { return mnode1; }
+    std::shared_ptr<ChNodeFEAxyzrot> GetNode1() const { return mnode1; }
     /// Access the FEA node to whom this is a proxy as triangle vertex
-    std::shared_ptr<ChNodeFEAxyzrot> GetNode2() { return mnode2; }
+    std::shared_ptr<ChNodeFEAxyzrot> GetNode2() const { return mnode2; }
     /// Access the FEA node to whom this is a proxy as triangle vertex
-    std::shared_ptr<ChNodeFEAxyzrot> GetNode3() { return mnode3; }
+    std::shared_ptr<ChNodeFEAxyzrot> GetNode3() const { return mnode3; }
 
     /// Set the FEA node to whom this is a proxy
     void SetNode1(std::shared_ptr<ChNodeFEAxyzrot> mn) { mnode1 = mn; }
@@ -365,14 +368,17 @@ class ChApi ChContactTriangleXYZROT : public ChContactable_3vars<6, 6, 6>, publi
     /// tetrahedron finite element or a cable, = 1 for a thermal problem, etc.
     virtual int Get_field_ncoords() override { return 6; }
 
-    /// Tell the number of DOFs blocks (ex. =1 for a body, =4 for a tetrahedron, etc.)
+    /// Get the number of DOFs sub-blocks.
     virtual int GetSubBlocks() override { return 3; }
 
-    /// Get the offset of the i-th sub-block of DOFs in global vector.
+    /// Get the offset of the specified sub-block of DOFs in global vector.
     virtual unsigned int GetSubBlockOffset(int nblock) override;
 
-    /// Get the size of the i-th sub-block of DOFs in global vector.
+    /// Get the size of the specified sub-block of DOFs in global vector.
     virtual unsigned int GetSubBlockSize(int nblock) override { return 6; }
+
+    /// Check if the specified sub-block of DOFs is active.
+    virtual bool IsSubBlockActive(int nblock) const override;
 
     /// Get the pointers to the contained ChVariables, appending to the mvars vector.
     virtual void LoadableGetVariables(std::vector<ChVariables*>& mvars) override;
@@ -430,10 +436,12 @@ class ChApi ChContactSurfaceMesh : public ChContactSurface {
     /// or clockwise order, this has a reason: shells collisions are oriented and might work only from the "outer" side.
     /// Supported elements that generate boundary skin:
     /// - solids:
-    ///     - ChElementTetra_4: tetrahedrons
-    ///     - ChFaceBrick_9: solid hexahedrons
+    ///     - ChElementTetrahedron: all solid tetrahedrons
+    ///     - ChElementHexahedron: all solid hexahedrons
     /// - shells:
-    ///     - ChElementShellANCF ANCF: shells (only one side)
+    ///     - ChElementShellANCF_3423 ANCF: shells (only one side)
+    ///     - ChElementShellANCF_3443 ANCF: shells (only one side)
+    ///     - ChElementShellANCF_3833 ANCF: shells (only one side)
     ///     - ChElementShellReissner: Reissner 4-nodes shells (only one side)
     /// - beams:
     ///     - ChElementCableANCF: ANCF beams (as sphere-swept lines, i.e. sequence of capsules)

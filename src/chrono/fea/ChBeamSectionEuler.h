@@ -31,7 +31,8 @@ namespace fea {
 class ChApi ChBeamSectionEuler : public ChBeamSection {
   public:
     ChBeamSectionEuler()
-        : rdamping(0.01),           // default Rayleigh damping.
+        : rdamping_beta(0.01),      // default Rayleigh beta damping.
+          rdamping_alpha(0),        // default Rayleigh alpha damping.
           JzzJyy_factor(1. / 500.)  // default tiny rotational inertia of section on Y and Z to avoid singular mass
     {}
     virtual ~ChBeamSectionEuler() {}
@@ -131,9 +132,20 @@ class ChApi ChBeamSectionEuler : public ChBeamSection {
 
     // DAMPING INTERFACE
 
-    /// Set the Rayleigh damping ratio r (as in: R = r * K ), to do: also mass-proportional term
-    virtual void SetBeamRaleyghDamping(double mr) { this->rdamping = mr; }
-    double GetBeamRaleyghDamping() { return this->rdamping; }
+    /// Set the "alpha" Rayleigh damping ratio,  
+    /// the mass-proportional structural damping in: R = alpha*M + beta*K 
+    virtual void SetBeamRaleyghDampingAlpha(double malpha) { this->rdamping_alpha = malpha; }
+    double GetBeamRaleyghDampingAlpha() { return this->rdamping_alpha; }
+
+    /// Set the "beta" Rayleigh damping ratio,
+    /// the stiffness-proportional structural damping in: R = alpha*M + beta*K 
+    virtual void SetBeamRaleyghDampingBeta(double mbeta) { this->rdamping_beta = mbeta; }
+    double GetBeamRaleyghDampingBeta() { return this->rdamping_beta; }
+
+    /// Set both beta and alpha coefficients in Rayleigh damping model:  R = alpha*M + beta*K. 
+    /// For backward compatibility, if one provides only the first parameter, this would be the "beta" 
+    /// stiffness-proportional term, and the "alpha" mass proportional term would be left to default zero.
+    virtual void SetBeamRaleyghDamping(double mbeta, double malpha = 0) { this->rdamping_beta = mbeta; this->rdamping_alpha = malpha; }
 
 
     // Optimization flags
@@ -152,7 +164,8 @@ class ChApi ChBeamSectionEuler : public ChBeamSection {
 
 
   protected:
-    double rdamping;
+    double rdamping_beta;
+    double rdamping_alpha;
     double JzzJyy_factor;
 };
 

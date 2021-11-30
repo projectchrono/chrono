@@ -20,11 +20,16 @@
 namespace chrono {
 namespace gpu {
 
+/// Sphere 
 template <typename T, typename T3>
 struct Sphere_BC_params_t {
     T3 sphere_center;
-    unsigned int radius;
+    float3 sphere_velo;
+    float3 sphere_angularVelo;
+    float3 reaction_torques;
+    float radius;
     T normal_sign;
+    float mass;
 };
 
 /// Z-aligned cone pointed downward
@@ -42,6 +47,16 @@ template <typename T3>
 struct Plane_BC_params_t {
     float3 normal;
     T3 position;
+    T3 rotation_center;
+    float3 angular_acc;
+};
+
+/// Customized finite Plate defined by center of the plate, normal and y dim
+template <typename T3>
+struct Plate_BC_params_t {
+    float3 normal;
+    T3 plate_center;
+    float h_dim_y;
 };
 
 /// Infinite Z-aligned cylinder
@@ -67,11 +82,12 @@ struct BC_params_t {
     union {
         Sphere_BC_params_t<T, T3> sphere_params;
         Z_Cone_BC_params_t<T, T3> cone_params;
+        Plate_BC_params_t<T3> plate_params;
         Plane_BC_params_t<T3> plane_params;        // plane only needs one template arg
         Z_Cylinder_BC_params_t<T, T3> cyl_params;  // plane only needs one arg
     };
 };
 
-enum BC_type { SPHERE, CONE, PLANE, CYLINDER };
+enum BC_type { SPHERE, CONE, PLANE, PLATE, CYLINDER };
 }  // namespace gpu
 }  // namespace chrono

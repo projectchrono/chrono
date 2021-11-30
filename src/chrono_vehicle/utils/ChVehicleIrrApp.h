@@ -33,6 +33,7 @@
 #include "chrono_vehicle/ChApiVehicle.h"
 #include "chrono_vehicle/ChVehicle.h"
 #include "chrono_vehicle/ChDriver.h"
+#include "chrono_vehicle/ChConfigVehicle.h"
 
 #ifdef CHRONO_IRRKLANG
 #include <irrKlang.h>
@@ -105,8 +106,8 @@ class CH_VEHICLE_API ChVehicleIrrApp : public irrlicht::ChIrrApp {
     /// Render a horizontal grid at the specified location.
     void RenderGrid(const ChVector<>& loc, int num_divs, double delta);
 
-    /// Render a reference frame (aligned with the world frame) at the specified location.
-    void RenderFrame(const ChVector<>& loc, double axis_length = 1);
+    /// Render the specified reference frame.
+    void RenderFrame(const ChFrame<>& frame, double axis_length = 1);
 
     /// Update information related to driver inputs.
     void Synchronize(const std::string& msg, const ChDriver::Inputs& driver_inputs);

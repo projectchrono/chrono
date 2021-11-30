@@ -44,14 +44,13 @@ void ChBeamSectionTimoshenkoAdvancedGeneric::SetMainInertiasInMassReference(cons
     // define a vector of local mass properties expressed in mass center coordinate system
     EigenMat5x1 Jm_vec;
     // Jm_vec << Qmy, Qmz, Jmyy, Jmzz, Jmyz;
-
     Jm_vec(0) = Qmy;
     Jm_vec(1) = Qmz;
     Jm_vec(2) = Jmyy;
     Jm_vec(3) = Jmzz;
     Jm_vec(4) = Jmyz;
 
-    // a constant vector, which is from the mass center offset (My,Mz)
+    // A constant vector, which is from the mass center offset (My,Mz)
     EigenMat5x1 const_vec;
     const_vec.setZero();
     const_vec(0) = this->mu * this->Mz;
@@ -60,7 +59,7 @@ void ChBeamSectionTimoshenkoAdvancedGeneric::SetMainInertiasInMassReference(cons
     const_vec(3) = this->mu * this->My * this->My;
     const_vec(4) = this->mu * this->My * this->Mz;
 
-    // transformation matrix from the mass center coordinate system to the centerline of beam
+    // Transformation matrix from the mass center coordinate system to the centerline of beam
     EigenMat5x5 Acog2cl;
     Acog2cl.setZero();
     double cosphi = cos(mass_phi);
@@ -103,7 +102,7 @@ void ChBeamSectionTimoshenkoAdvancedGeneric::SetMainInertiasInMassReference(cons
     this->Jyy = J_vec(2);
     this->Jzz = J_vec(3);
     this->Jyz = J_vec(4);
-    // automatically set parent Jxx value
+    // Automatically set parent Jxx value
     this->Jxx = (this->Jyy + this->Jzz);
 }
 
@@ -197,8 +196,10 @@ void ChBeamSectionTimoshenkoAdvancedGeneric::GetMainInertiasInMassReference(doub
     Jmyz = Jm_vec(4);
 }
 
+// Three Lambda functions to evalute the average parameters conveniently.
 auto GetAverageValue = [](const double mv1, const double mv2) { return (mv1 + mv2) / 2.0; };
 
+// For more information, please refer to ANSYS theory document in the chapters of tapered beam element.
 auto GetAverageValue3 = [](const double mv1, const double mv2) {
     if (mv1 * mv2 < 0.) {
         // GetLog() << "WARNING: negative value, error!\n";
@@ -206,7 +207,7 @@ auto GetAverageValue3 = [](const double mv1, const double mv2) {
     }
     return (mv1 + pow(mv1 * mv2, 0.5) + mv2) / 3.0;
 };
-
+// For more information, please refer to ANSYS theory document in the chapters of tapered beam element.
 auto GetAverageValue5 = [](const double mv1, const double mv2) {
     if (mv1 * mv2 < 0.) {
         // GetLog() << "WARNING: negative value, error!\n";
@@ -217,8 +218,12 @@ auto GetAverageValue5 = [](const double mv1, const double mv2) {
 };
 
 void ChBeamSectionTaperedTimoshenkoAdvancedGeneric::ComputeAverageSectionParameters() {
+    if (compute_ave_sec_par) {
+        return;
+    }
+
     double mu1 = this->sectionA->GetMassPerUnitLength();
-    double Jxx1 = this->sectionA->GetInertiaJxxPerUnitLength();
+    // double Jxx1 = this->sectionA->GetInertiaJxxPerUnitLength();
     double Jyy1 = this->sectionA->GetInertiaJyyPerUnitLength();
     double Jzz1 = this->sectionA->GetInertiaJzzPerUnitLength();
     double Jyz1 = this->sectionA->GetInertiaJyzPerUnitLength();
@@ -245,7 +250,7 @@ void ChBeamSectionTaperedTimoshenkoAdvancedGeneric::ComputeAverageSectionParamet
     double Qmy1;
     double Qmz1;
     this->sectionA->GetMainInertiasInMassReference(Jmyy1, Jmzz1, Jmyz1, mass_phi1, Qmy1, Qmz1);
-    double Jmxx1 = Jmyy1 + Jmzz1;
+    // double Jmxx1 = Jmyy1 + Jmzz1;
     // rotate the bending and shear stiffnesses from elastic axis to mass axis
     double cosphi1 = cos(mass_phi1);
     double sinphi1 = sin(mass_phi1);
@@ -254,9 +259,10 @@ void ChBeamSectionTaperedTimoshenkoAdvancedGeneric::ComputeAverageSectionParamet
     double GAmyy1 = GAyy1 * cosphi1 + GAzz1 * sinphi1;
     double GAmzz1 = -GAyy1 * sinphi1 + GAzz1 * cosphi1;
     DampingCoefficients rdamping_coeff1 = this->sectionA->GetBeamRaleyghDamping();
+    double artificial_factor_for_shear_damping1 = this->sectionA->GetArtificialFactorForShearDamping();
 
     double mu2 = this->sectionB->GetMassPerUnitLength();
-    double Jxx2 = this->sectionB->GetInertiaJxxPerUnitLength();
+    // double Jxx2 = this->sectionB->GetInertiaJxxPerUnitLength();
     double Jyy2 = this->sectionB->GetInertiaJyyPerUnitLength();
     double Jzz2 = this->sectionB->GetInertiaJzzPerUnitLength();
     double Jyz2 = this->sectionB->GetInertiaJyzPerUnitLength();
@@ -283,7 +289,7 @@ void ChBeamSectionTaperedTimoshenkoAdvancedGeneric::ComputeAverageSectionParamet
     double Qmy2;
     double Qmz2;
     this->sectionB->GetMainInertiasInMassReference(Jmyy2, Jmzz2, Jmyz2, mass_phi2, Qmy2, Qmz2);
-    double Jmxx2 = Jmyy2 + Jmzz2;
+    // double Jmxx2 = Jmyy2 + Jmzz2;
     // rotate the bending and shear stiffnesses from elastic axis to mass axis
     double cosphi2 = cos(mass_phi2);
     double sinphi2 = sin(mass_phi2);
@@ -292,6 +298,7 @@ void ChBeamSectionTaperedTimoshenkoAdvancedGeneric::ComputeAverageSectionParamet
     double GAmyy2 = GAyy2 * cosphi2 + GAzz2 * sinphi2;
     double GAmzz2 = -GAyy2 * sinphi2 + GAzz2 * cosphi2;
     DampingCoefficients rdamping_coeff2 = this->sectionB->GetBeamRaleyghDamping();
+    double artificial_factor_for_shear_damping2 = this->sectionB->GetArtificialFactorForShearDamping();
 
     double L = this->GetLength();
     double LL = L * L;
@@ -336,25 +343,35 @@ void ChBeamSectionTaperedTimoshenkoAdvancedGeneric::ComputeAverageSectionParamet
     this->avg_sec_par->rdamping_coeff.by = GetAverageValue(rdamping_coeff1.by, rdamping_coeff2.by);
     this->avg_sec_par->rdamping_coeff.bz = GetAverageValue(rdamping_coeff1.bz, rdamping_coeff2.bz);
     this->avg_sec_par->rdamping_coeff.bt = GetAverageValue(rdamping_coeff1.bt, rdamping_coeff2.bt);
+    this->avg_sec_par->rdamping_coeff.alpha = GetAverageValue(rdamping_coeff1.alpha, rdamping_coeff2.alpha);
+    this->avg_sec_par->artificial_factor_for_shear_damping =
+        GetAverageValue(artificial_factor_for_shear_damping1, artificial_factor_for_shear_damping2);
 
-    this->avg_sec_par->phimy = 0.;
-    this->avg_sec_par->phimz = 0.;
+    this->avg_sec_par->phimy =
+        0.;  // If the shear stiffness of section is not input by user, the shear deformation effect is ignored
+    this->avg_sec_par->phimz =
+        0.;  // If the shear stiffness of section is not input by user, the shear deformation effect is ignored
     double eps = 0.01;
-    if (abs(this->avg_sec_par->GAmyy) > eps) {
+    if (abs(this->avg_sec_par->GAmyy) > eps) {  // avoid dividing zero
         this->avg_sec_par->phimy = 12.0 * this->avg_sec_par->EImzz / (this->avg_sec_par->GAmyy * LL);
     }
-    if (abs(this->avg_sec_par->GAmzz) > eps) {
+    if (abs(this->avg_sec_par->GAmzz) > eps) {  // avoid dividing zero
         this->avg_sec_par->phimz = 12.0 * this->avg_sec_par->EImyy / (this->avg_sec_par->GAmzz * LL);
     }
 
-    this->avg_sec_par->phiy = 0.;
-    this->avg_sec_par->phiz = 0.;
-    if (abs(this->avg_sec_par->GAyy) > eps) {
+    this->avg_sec_par->phiy =
+        0.;  // If the shear stiffness of section is not input by user, the shear deformation effect is ignored
+    this->avg_sec_par->phiz =
+        0.;  // If the shear stiffness of section is not input by user, the shear deformation effect is ignored
+    if (abs(this->avg_sec_par->GAyy) > eps) {  // avoid dividing zero
         this->avg_sec_par->phiy = 12.0 * this->avg_sec_par->EIzz / (this->avg_sec_par->GAyy * LL);
     }
-    if (abs(this->avg_sec_par->GAzz) > eps) {
+    if (abs(this->avg_sec_par->GAzz) > eps) {  // avoid dividing zero
         this->avg_sec_par->phiz = 12.0 * this->avg_sec_par->EIyy / (this->avg_sec_par->GAzz * LL);
     }
+    
+    // update the status of lock, to avoid computing again.
+    compute_ave_sec_par = true;
 }
 
 void ChBeamSectionTaperedTimoshenkoAdvancedGeneric::ComputeLumpedInertiaMatrix(ChMatrixNM<double, 12, 12>& M) {
@@ -535,8 +552,6 @@ void ChBeamSectionTaperedTimoshenkoAdvancedGeneric::ComputeSimpleConsistentInert
 
     // do the transformation for mass matrix
     M = Tm.transpose() * M * Tm;
-
-    // GetLog() << "Consistent mass matrix is:\t\n"<<M << "\n\n";
 }
 
 void ChBeamSectionTaperedTimoshenkoAdvancedGeneric::ComputeConsistentInertiaMatrix(ChMatrixNM<double, 12, 12>& M) {
@@ -587,10 +602,10 @@ void ChBeamSectionTaperedTimoshenkoAdvancedGeneric::ComputeConsistentInertiaMatr
         6. * Jyy2 / (5. * L) * oneplusphiz2 + mu2 * L * (1. / 3. * phiz2 + 7. / 10. * phiz + 13. / 35.) * oneplusphiz2;
     double rAz2 =
         6. * Jzz2 / (5. * L) * oneplusphiy2 + mu2 * L * (1. / 3. * phiy2 + 7. / 10. * phiy + 13. / 35.) * oneplusphiy2;
-    double rAy =
-        6. * Jyy / (5. * L) * oneplusphiz2 + mu * L * (1. / 3. * phiz2 + 7. / 10. * phiz + 13. / 35.) * oneplusphiz2;
-    double rAz =
-        6. * Jzz / (5. * L) * oneplusphiy2 + mu * L * (1. / 3. * phiy2 + 7. / 10. * phiy + 13. / 35.) * oneplusphiy2;
+    // double rAy =
+    // 6. * Jyy / (5. * L) * oneplusphiz2 + mu * L * (1. / 3. * phiz2 + 7. / 10. * phiz + 13. / 35.) * oneplusphiz2;
+    // double rAz =
+    // 6. * Jzz / (5. * L) * oneplusphiy2 + mu * L * (1. / 3. * phiy2 + 7. / 10. * phiy + 13. / 35.) * oneplusphiy2;
 
     double rBy =
         (mu * L * (1. / 6. * phiz2 + 3. / 10. * phiz + 9. / 70.)) * oneplusphiz2 - 6. * Jyy / (5. * L) * oneplusphiz2;
@@ -605,10 +620,10 @@ void ChBeamSectionTaperedTimoshenkoAdvancedGeneric::ComputeConsistentInertiaMatr
                   (1. / 2. * phiz - 1. / 10.) * Jyy2 * oneplusphiz2;
     double rCz2 = (mu2 * LL * (1. / 24. * phiy2 + 11. / 120. * phiy + 11. / 210.)) * oneplusphiy2 -
                   (1. / 2. * phiy - 1. / 10.) * Jzz2 * oneplusphiy2;
-    double rCy = (mu * LL * (1. / 24. * phiz2 + 11. / 120. * phiz + 11. / 210.)) * oneplusphiz2 -
-                 (1. / 2. * phiz - 1. / 10.) * Jyy * oneplusphiz2;
-    double rCz = (mu * LL * (1. / 24. * phiy2 + 11. / 120. * phiy + 11. / 210.)) * oneplusphiy2 -
-                 (1. / 2. * phiy - 1. / 10.) * Jzz * oneplusphiy2;
+    // double rCy = (mu * LL * (1. / 24. * phiz2 + 11. / 120. * phiz + 11. / 210.)) * oneplusphiz2 -
+    //(1. / 2. * phiz - 1. / 10.) * Jyy * oneplusphiz2;
+    // double rCz = (mu * LL * (1. / 24. * phiy2 + 11. / 120. * phiy + 11. / 210.)) * oneplusphiy2 -
+    //(1. / 2. * phiy - 1. / 10.) * Jzz * oneplusphiy2;
 
     double rDy = (mu * LL * (1. / 24. * phiz2 + 3. / 40. * phiz + 13. / 420.)) * oneplusphiz2 +
                  (1. / 2. * phiz - 1. / 10.) * Jyy * oneplusphiz2;
@@ -623,10 +638,10 @@ void ChBeamSectionTaperedTimoshenkoAdvancedGeneric::ComputeConsistentInertiaMatr
                   L * (1. / 3. * phiz2 + 1. / 6. * phiz + 2. / 15.) * Jyy2 * oneplusphiz2;
     double rEz2 = mu2 * LLL * (1. / 120. * phiy2 + 1. / 60. * phiy + 1. / 105.) * oneplusphiy2 +
                   L * (1. / 3. * phiy2 + 1. / 6. * phiy + 2. / 15.) * Jzz2 * oneplusphiy2;
-    double rEy = mu * LLL * (1. / 120. * phiz2 + 1. / 60. * phiz + 1. / 105.) * oneplusphiz2 +
-                 L * (1. / 3. * phiz2 + 1. / 6. * phiz + 2. / 15.) * Jyy * oneplusphiz2;
-    double rEz = mu * LLL * (1. / 120. * phiy2 + 1. / 60. * phiy + 1. / 105.) * oneplusphiy2 +
-                 L * (1. / 3. * phiy2 + 1. / 6. * phiy + 2. / 15.) * Jzz * oneplusphiy2;
+    // double rEy = mu * LLL * (1. / 120. * phiz2 + 1. / 60. * phiz + 1. / 105.) * oneplusphiz2 +
+    // L * (1. / 3. * phiz2 + 1. / 6. * phiz + 2. / 15.) * Jyy * oneplusphiz2;
+    // double rEz = mu * LLL * (1. / 120. * phiy2 + 1. / 60. * phiy + 1. / 105.) * oneplusphiy2 +
+    // L * (1. / 3. * phiy2 + 1. / 6. * phiy + 2. / 15.) * Jzz * oneplusphiy2;
 
     double rFy = (mu * LLL * (1. / 120. * phiz2 + 1. / 60. * phiz + 1. / 140.)) * oneplusphiz2 +
                  L * (-1. / 6. * phiz2 + 1. / 6. * phiz + 1. / 30.) * Jyy * oneplusphiz2;
@@ -644,8 +659,8 @@ void ChBeamSectionTaperedTimoshenkoAdvancedGeneric::ComputeConsistentInertiaMatr
     double rHz1 = L * (1. / 3. * phiz + 1. / 12.) * Qy1 * oneplusphiz;
     double rHy2 = L * (1. / 3. * phiy + 1. / 12.) * Qz2 * oneplusphiy;
     double rHz2 = L * (1. / 3. * phiz + 1. / 12.) * Qy2 * oneplusphiz;
-    double rHy = L * (1. / 3. * phiy + 1. / 12.) * Qz * oneplusphiy;
-    double rHz = L * (1. / 3. * phiz + 1. / 12.) * Qy * oneplusphiz;
+    // double rHy = L * (1. / 3. * phiy + 1. / 12.) * Qz * oneplusphiy;
+    // double rHz = L * (1. / 3. * phiz + 1. / 12.) * Qy * oneplusphiz;
 
     double rIy = L * (1. / 6. * phiy - 1. / 12.) * Qz * oneplusphiy;
     double rIz = L * (1. / 6. * phiz - 1. / 12.) * Qy * oneplusphiz;
@@ -661,8 +676,8 @@ void ChBeamSectionTaperedTimoshenkoAdvancedGeneric::ComputeConsistentInertiaMatr
     double rLz1 = L * (1. / 3. * phiz + 7. / 20.) * Qz1 * oneplusphiz;
     double rLy2 = L * (1. / 3. * phiy + 7. / 20.) * Qy2 * oneplusphiy;
     double rLz2 = L * (1. / 3. * phiz + 7. / 20.) * Qz2 * oneplusphiz;
-    double rLy = L * (1. / 3. * phiy + 7. / 20.) * Qy * oneplusphiy;
-    double rLz = L * (1. / 3. * phiz + 7. / 20.) * Qz * oneplusphiz;
+    // double rLy = L * (1. / 3. * phiy + 7. / 20.) * Qy * oneplusphiy;
+    // double rLz = L * (1. / 3. * phiz + 7. / 20.) * Qz * oneplusphiz;
 
     double rMy1 = (1. / 2. * phiy - 1. / 10.) * Jyz1 * oneplusphiyz;
     double rMz1 = (1. / 2. * phiz - 1. / 10.) * Jyz1 * oneplusphiyz;
@@ -673,7 +688,7 @@ void ChBeamSectionTaperedTimoshenkoAdvancedGeneric::ComputeConsistentInertiaMatr
 
     double rNyz1 = L * (1. / 12. * phiy + 1. / 12. * phiz + 1. / 3. * phiy * phiz + 2. / 15.) * Jyz1 * oneplusphiyz;
     double rNyz2 = L * (1. / 12. * phiy + 1. / 12. * phiz + 1. / 3. * phiy * phiz + 2. / 15.) * Jyz2 * oneplusphiyz;
-    double rNyz = L * (1. / 12. * phiy + 1. / 12. * phiz + 1. / 3. * phiy * phiz + 2. / 15.) * Jyz * oneplusphiyz;
+    // double rNyz = L * (1. / 12. * phiy + 1. / 12. * phiz + 1. / 3. * phiy * phiz + 2. / 15.) * Jyz * oneplusphiyz;
 
     double rOyz = L * (1. / 12. * phiy + 1. / 12. * phiz - 1. / 6. * phiy * phiz + 1. / 30.) * Jyz * oneplusphiyz;
     double rPy = LL * (1. / 24. * phiy + 1. / 30.) * Qy * oneplusphiy;
@@ -683,8 +698,8 @@ void ChBeamSectionTaperedTimoshenkoAdvancedGeneric::ComputeConsistentInertiaMatr
     double rQz1 = LL * (1. / 24. * phiz + 1. / 20.) * Qz1 * oneplusphiz;
     double rQy2 = LL * (1. / 24. * phiy + 1. / 20.) * Qy2 * oneplusphiy;
     double rQz2 = LL * (1. / 24. * phiz + 1. / 20.) * Qz2 * oneplusphiz;
-    double rQy = LL * (1. / 24. * phiy + 1. / 20.) * Qy * oneplusphiy;
-    double rQz = LL * (1. / 24. * phiz + 1. / 20.) * Qz * oneplusphiz;
+    // double rQy = LL * (1. / 24. * phiy + 1. / 20.) * Qy * oneplusphiy;
+    // double rQz = LL * (1. / 24. * phiz + 1. / 20.) * Qz * oneplusphiz;
 
     M(0, 0) = mu1 * L / 3.;
     M(1, 0) = rGz1;
@@ -803,6 +818,62 @@ void ChBeamSectionTaperedTimoshenkoAdvancedGeneric::ComputeInertiaMatrix(ChMatri
         // ComputeSimpleConsistentInertiaMatrix(Mtmp);
     }
     M = Mtmp;  // transform from ChMatrixNM<double, 12, 12> to ChMatrixDynamic<>
+}
+
+void ChBeamSectionTaperedTimoshenkoAdvancedGeneric::ComputeInertiaDampingMatrix(ChMatrixNM<double, 12, 12>& Ri,
+                                                                                const ChVector<>& mW_A,
+                                                                                const ChVector<>& mW_B) {
+    Ri.setZero(12, 12);
+
+    if (this->compute_inertia_damping_matrix == false)
+        return;
+
+    this->sectionA->compute_inertia_damping_matrix = this->compute_inertia_damping_matrix;
+    this->sectionA->compute_inertia_stiffness_matrix = this->compute_inertia_stiffness_matrix;
+    this->sectionA->compute_Ri_Ki_by_num_diff = this->compute_Ri_Ki_by_num_diff;
+
+    this->sectionB->compute_inertia_damping_matrix = this->compute_inertia_damping_matrix;
+    this->sectionB->compute_inertia_stiffness_matrix = this->compute_inertia_stiffness_matrix;
+    this->sectionB->compute_Ri_Ki_by_num_diff = this->compute_Ri_Ki_by_num_diff;
+
+    ChMatrixNM<double, 6, 6> Ri_A;
+    ChMatrixNM<double, 6, 6> Ri_B;
+    this->sectionA->ComputeInertiaDampingMatrix(Ri_A, mW_A);
+    this->sectionB->ComputeInertiaDampingMatrix(Ri_B, mW_B);
+
+    Ri.block<6, 6>(0, 0) = Ri_A;
+    Ri.block<6, 6>(6, 6) = Ri_B;
+}
+
+void ChBeamSectionTaperedTimoshenkoAdvancedGeneric::ComputeInertiaStiffnessMatrix(
+    ChMatrixNM<double, 12, 12>& Ki,
+    const ChVector<>& mWvel_A,  ///< current angular velocity of section of node A, in material frame
+    const ChVector<>& mWacc_A,  ///< current angular acceleration of section of node A, in material frame
+    const ChVector<>& mXacc_A,  ///< current acceleration of section of node A, in material frame)
+    const ChVector<>& mWvel_B,  ///< current angular velocity of section of node B, in material frame
+    const ChVector<>& mWacc_B,  ///< current angular acceleration of section of node B, in material frame
+    const ChVector<>& mXacc_B   ///< current acceleration of section of node B, in material frame
+) {
+    Ki.setZero(12, 12);
+
+    if (this->compute_inertia_stiffness_matrix == false)
+        return;
+
+    this->sectionA->compute_inertia_damping_matrix = this->compute_inertia_damping_matrix;
+    this->sectionA->compute_inertia_stiffness_matrix = this->compute_inertia_stiffness_matrix;
+    this->sectionA->compute_Ri_Ki_by_num_diff = this->compute_Ri_Ki_by_num_diff;
+
+    this->sectionB->compute_inertia_damping_matrix = this->compute_inertia_damping_matrix;
+    this->sectionB->compute_inertia_stiffness_matrix = this->compute_inertia_stiffness_matrix;
+    this->sectionB->compute_Ri_Ki_by_num_diff = this->compute_Ri_Ki_by_num_diff;
+
+    ChMatrixNM<double, 6, 6> Ki_A;
+    ChMatrixNM<double, 6, 6> Ki_B;
+    this->sectionA->ComputeInertiaStiffnessMatrix(Ki_A, mWvel_A, mWacc_A, mXacc_A);
+    this->sectionB->ComputeInertiaStiffnessMatrix(Ki_B, mWvel_B, mWacc_B, mXacc_B);
+
+    Ki.block<6, 6>(0, 0) = Ki_A;
+    Ki.block<6, 6>(6, 6) = Ki_B;
 }
 
 DampingCoefficients ChBeamSectionTaperedTimoshenkoAdvancedGeneric::GetBeamRaleyghDamping() const {

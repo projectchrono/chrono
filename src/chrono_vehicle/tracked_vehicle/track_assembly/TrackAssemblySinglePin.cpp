@@ -112,6 +112,8 @@ TrackAssemblySinglePin::TrackAssemblySinglePin(const rapidjson::Document& d) : C
     Create(d);
 }
 
+TrackAssemblySinglePin::~TrackAssemblySinglePin() {}
+
 void TrackAssemblySinglePin::Create(const rapidjson::Document& d) {
     // Invoke base class method.
     ChPart::Create(d);
@@ -192,12 +194,15 @@ void TrackAssemblySinglePin::Create(const rapidjson::Document& d) {
         }
         m_num_track_shoes = d["Track Shoes"]["Number Shoes"].GetInt();
         ReadTrackShoes(vehicle::GetDataFile(file_name), m_num_track_shoes, output);
-    
-        if (d["Track Shoes"].HasMember("Joint Torsion")) {
-            m_connection_type = ChTrackAssemblySegmented::ConnectionType::RSDA_JOINT;
-            double torsion_k = d["Track Shoes"]["Joint Torsion"]["Spring Constant"].GetDouble();
-            double torsion_c = d["Track Shoes"]["Joint Torsion"]["Damping Coefficient"].GetDouble();
-            m_torque_funct = chrono_types::make_shared<LinearSpringDamperTorque>(torsion_k, torsion_c);
+
+        if (d["Track Shoes"].HasMember("RSDA Data")) {
+            double k = d["Track Shoes"]["RSDA Data"]["Stiffness Rotational"].GetDouble();
+            double c = d["Track Shoes"]["RSDA Data"]["Damping Rotational"].GetDouble();
+            m_torque_funct = chrono_types::make_shared<ChTrackAssemblySegmented::TrackBendingFunctor>(k, c);
+        }
+
+        if (d["Track Shoes"].HasMember("Bushing Data")) {
+            m_bushing_data = ReadBushingDataJSON(d["Track Shoes"]["Bushing Data"]);
         }
     }
 }

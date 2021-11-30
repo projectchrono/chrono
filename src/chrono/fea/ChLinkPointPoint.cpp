@@ -51,7 +51,7 @@ void ChLinkPointPoint::Update(double mytime, bool update_assets) {
     // ...
 }
 
-ChVectorN<double, 3> ChLinkPointPoint::GetC() const {
+ChVectorDynamic<> ChLinkPointPoint::GetConstraintViolation() const {
     ChVector<> res = mnodeA->GetPos() - mnodeB->GetPos();
     ChVectorN<double, 3> C;
     C(0) = res.x();

@@ -27,7 +27,7 @@
 #include "chrono_synchrono/flatbuffer/message/SynApproachMessage.h"
 
 #ifdef SENSOR
-#include "chrono_sensor/ChLidarSensor.h"
+#include "chrono_sensor/sensors/ChLidarSensor.h"
 #endif
 
 namespace chrono {

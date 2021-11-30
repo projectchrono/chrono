@@ -43,9 +43,9 @@ class SYN_API SynApproachMessage : public SynMessage {
   public:
     ///@brief Constructor
     ///
-    ///@param source_id the id of the source to which the message is sent from
-    ///@param destination_id the id of the destination to which the message is sent to
-    SynApproachMessage(unsigned int source_id, unsigned int destination_id);
+    ///@param source_key the id of the source to which the message is sent from
+    ///@param destination_key the id of the destination to which the message is sent to
+    SynApproachMessage(AgentKey source_key = AgentKey(), AgentKey destination_key = AgentKey());
 
     ///@brief Converts a received flatbuffer message to a SynMessage
     ///

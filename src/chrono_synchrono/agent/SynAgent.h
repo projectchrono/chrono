@@ -30,9 +30,6 @@
 
 #include <functional>
 
-/// TODO: Create a class with utility functions
-#define SynAgentID uint32_t
-
 namespace chrono {
 namespace synchrono {
 
@@ -44,8 +41,8 @@ class SYN_API SynAgent {
   public:
     ///@brief Construct a agent with the specified node_id
     ///
-    ///@param aid the agent id associated with this agent (defaults to uninitialized)
-    SynAgent(SynAgentID aid = 0);
+    ///@param agent_key the agent id associated with this agent (defaults to uninitialized)
+    SynAgent(AgentKey agent_key = {0, 0});
 
     ///@brief Destructor.
     virtual ~SynAgent();
@@ -96,11 +93,13 @@ class SYN_API SynAgent {
 
     // -------------------------------------------------------------------------
 
-    SynAgentID GetID() const { return m_aid; }
-    virtual void SetID(SynAgentID aid) { m_aid = aid; }
+    int GetID() { return m_agent_key.GetAgentID(); }
+
+    AgentKey GetKey() { return m_agent_key; }
+    virtual void SetKey(AgentKey agent_key) { m_agent_key = agent_key; }
 
   protected:
-    SynAgentID m_aid;
+    AgentKey m_agent_key;
 
     std::function<void(std::shared_ptr<SynMessage>)> m_process_message_callback;
 };

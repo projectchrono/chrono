@@ -9,9 +9,8 @@ ENDIF()
 
 MESSAGE(STATUS "Demo programs for SynChrono module...")
 
-add_subdirectory(demo_vehicles)
-add_subdirectory(demo_SCM)
-add_subdirectory(demo_highway)
-add_subdirectory(demo_robots)
+add_subdirectory(mpi)
 
-#--------------------------------------------------------------
+if(FASTDDS_FOUND)
+  add_subdirectory(dds)
+endif()

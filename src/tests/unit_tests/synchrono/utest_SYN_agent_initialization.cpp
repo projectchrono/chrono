@@ -66,16 +66,24 @@ int main(int argc, char* argv[]) {
     system.SetSolverMaxIterations(150);
     system.SetMaxPenetrationRecoverySpeed(4.0);
 
+    int rank_group = rank % 3;
+
     // Add agents
-    if (rank % 2 == 0) {
-        agent_1 = chrono_types::make_shared<SynWheeledVehicleAgent>();
-        syn_manager.AddAgent(agent_1);
-    } else if (rank % 2 == 1) {
-        agent_2 = chrono_types::make_shared<SynTrackedVehicleAgent>();
-        syn_manager.AddAgent(agent_2);
-    } else if (rank % 3 == 1) {
-        agent_3 = chrono_types::make_shared<SynEnvironmentAgent>(&system);
-        syn_manager.AddAgent(agent_3);
+    switch (rank_group) {
+        case 0:
+            agent_1 = chrono_types::make_shared<SynWheeledVehicleAgent>();
+            syn_manager.AddAgent(agent_1);
+            break;
+        case 1:
+            agent_2 = chrono_types::make_shared<SynTrackedVehicleAgent>();
+            syn_manager.AddAgent(agent_2);
+            break;
+        case 2:
+            agent_3 = chrono_types::make_shared<SynEnvironmentAgent>(&system);
+            syn_manager.AddAgent(agent_3);
+            break;
+        default:
+            throw std::invalid_argument("Improper enumeration of integers modulo 3");
     }
 
     // Generate and sync msg for every agent
@@ -84,12 +92,18 @@ int main(int argc, char* argv[]) {
 
     // Store the current msg buffer
     SynMessageList messages;
-    if (rank % 2 == 0) {
-        agent_1->GatherMessages(messages);
-    } else if (rank % 2 == 1) {
-        agent_2->GatherMessages(messages);
-    } else if (rank % 3 == 1) {
-        agent_3->GatherMessages(messages);
+    switch (rank_group) {
+        case 0:
+            agent_1->GatherMessages(messages);
+            break;
+        case 1:
+            agent_2->GatherMessages(messages);
+            break;
+        case 2:
+            agent_3->GatherMessages(messages);
+            break;
+        default:
+            throw std::invalid_argument("Improper enumeration of integers modulo 3");
     }
     msg_sent = messages[0];
 
@@ -111,7 +125,7 @@ TEST(SynChrono, SynChronoInit) {
 
     // Var to store msg on the current rank after mpi sync
     SynMessageList messages;
-    check_agent_list[rank]->GatherMessages(messages);
+    check_agent_list[AgentKey(rank, 0)]->GatherMessages(messages);
     auto msg_recvd = messages[0];
 
     // Check whether agent size is num_ranks

@@ -24,6 +24,8 @@ endif()
 
 set(CH_C_FLAGS "${CMAKE_C_FLAGS}")
 set(CH_CXX_FLAGS "${CMAKE_CXX_FLAGS}")
+set(CH_LINKERFLAG_EXE "${CMAKE_EXE_LINKER_FLAGS}")
+set(CH_LINKERFLAG_SHARED "")
 
 #-----------------------------------------------------------------------------
 # Enable C++11 support.  Check for C++14 support
@@ -73,6 +75,21 @@ if (CMAKE_CXX_COMPILER_ID MATCHES "PGI")
   endif()
 endif()
 
+# Allow user to enable whole program optimization (MSVC only)
+if (MSVC)
+  option(CH_WHOLE_PROG_OPT "Enable whole program optimization" OFF)
+
+  if(CH_WHOLE_PROG_OPT)
+     set(CH_CXX_FLAGS "${CH_CXX_FLAGS} /GL")
+     set(CH_C_FLAGS "${CH_C_FLAGS} /GL")
+     set(CH_LINKERFLAG_EXE "${CH_LINKERFLAG_EXE} /LTCG")
+     set(CH_LINKERFLAG_SHARED "${CH_LINKERFLAG_SHARED} /LTCG")
+     message(STATUS "Enabling whole program optimization...")
+     message(STATUS "  Compiler flag: /GL")
+     message(STATUS "  Linker flag: /LTGL")
+  endif()
+endif()
+
 #-----------------------------------------------------------------------------
 # Threads and OpenMP support
 #-----------------------------------------------------------------------------
@@ -95,7 +112,7 @@ set(CH_C_FLAGS "${CH_C_FLAGS} ${CMAKE_THREAD_LIBS_INIT}")
 # main ChronoEngine library, regardless on whether or not OpenMP is found.
 
 message(STATUS "Searching for OpenMP...")
-find_package("OpenMP")
+find_package(OpenMP)
 
 # Determine OpenMP version. Prepare substitution variables that can be used in
 # generating configuration header files.
@@ -200,12 +217,26 @@ if(USE_SIMD)
    endif()
 
    # Figure out FMA level support
-   message(STATUS "Searching for FMA...")
-   find_package(FMA)
+   set(CHECK_FMA TRUE)
+   if(MSVC)
+     if(NOT CH_WHOLE_PROG_OPT)
+        message(STATUS "FMA requires enabling whole program optimization. FMA check disabled.")
+        set(CHECK_FMA FALSE)
+     endif()
+     if(NOT DETECTED_AVX_20)
+        message(STATU "FMA requires AVX2 support. FMA check disabled.")
+        set(CHECK_FMA FALSE)
+     endif()
+   endif()
+     
+   if(CHECK_FMA)    
+     message(STATUS "Searching for FMA...")
+     find_package(FMA)
    
-   # Set substitution variables for configuration file
-   if(FMA_FOUND)
-     set(CHRONO_HAS_FMA "#define CHRONO_HAS_FMA")
+     # Set substitution variables for configuration file
+     if(FMA_FOUND)
+       set(CHRONO_HAS_FMA "#define CHRONO_HAS_FMA")
+     endif()
    endif()
    
    # Add SSE, AVX, and FMA flags to Chrono compiler flags
@@ -232,10 +263,6 @@ else()
    message(STATUS "SIMD support disabled")
 
 endif() 
-
-message(STATUS "C++ compiler flags: ${CH_CXX_FLAGS}")
-message(STATUS "C compile flags:    ${CH_C_FLAGS}")
-
 
 #-----------------------------------------------------------------------------
 # Eigen library
@@ -272,8 +299,7 @@ endif()
 
 message(STATUS "Searching for MPI...")
 find_package(MPI)
-message(STATUS "  MPI (C++) found: ${MPI_CXX_FOUND}")
-if(MPI_CXX_FOUND)
+if(MPI_FOUND)
   message(STATUS "  MPI compiler:      ${MPI_CXX_COMPILER}")
   message(STATUS "  MPI compile flags: ${MPI_CXX_COMPILE_FLAGS}")
   message(STATUS "  MPI include path:  ${MPI_CXX_INCLUDE_PATH}")
@@ -371,6 +397,25 @@ else()
   mark_as_advanced(CLEAR THRUST_INCLUDE_DIR)
 endif()
 
+#-----------------------------------------------------------------------------
+# CUB Library
+#-----------------------------------------------------------------------------
+
+if (CUDA_FOUND) # CUB should only be used with CUDA 
+	message(STATUS "Searching for CUB...")
+
+	if (CUDA_VERSION_STRING VERSION_LESS 11.0)
+		find_path(
+			CUB_INCLUDE_DIR 
+			cub.cuh
+			PATHS 
+				"${CUDA_TOOLKIT_ROOT_DIR}/include/cub/"
+				"${CMAKE_SOURCE_DIR}/src/chrono_thirdparty/cub/cub/"
+			DOC "Path to the CUB include directory" 
+			REQUIRED
+		)
+	endif()
+endif()
 
 #-----------------------------------------------------------------------------
 # Miscellaneous compiler flags
@@ -389,8 +434,8 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
     if(MINGW OR CMAKE_COMPILER_IS_GNUCC OR CMAKE_COMPILER_IS_GNUCXX)
         set(CH_CXX_FLAGS "${CH_CXX_FLAGS} -D_MINGW -D_WINDOWS")
         set(CH_C_FLAGS "${CH_C_FLAGS} -D_MINGW -D_WINDOWS")
-        set(CH_LINKERFLAG_EXE "-Wl,--enable-runtime-pseudo-reloc")
-        set(CH_LINKERFLAG_SHARED "-Wl,--export-all-symbols -Wl,--enable-auto-import -Wl,--enable-runtime-pseudo-reloc")
+        set(CH_LINKERFLAG_EXE "${CH_LINKERFLAG_EXE} -Wl,--enable-runtime-pseudo-reloc")
+        set(CH_LINKERFLAG_SHARED "${CH_LINKERFLAG_SHARED} -Wl,--export-all-symbols -Wl,--enable-auto-import -Wl,--enable-runtime-pseudo-reloc")
 
         if(CMAKE_SIZEOF_VOID_P MATCHES 8)
             set(CH_CXX_FLAGS "${CH_CXX_FLAGS} -m64")
@@ -489,6 +534,11 @@ endif()
 # Set the base compilation flags
 #-----------------------------------------------------------------------------
 
+message(STATUS "Compiler and linker flags:")
+message(STATUS "  C++ compiler flags: ${CH_CXX_FLAGS}")
+message(STATUS "  C compiler flags:   ${CH_C_FLAGS}")
+message(STATUS "  Linker flags:       ${CH_LINKERFLAG_EXE}")
+
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${CH_CXX_FLAGS}")
 set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} ${CH_CXX_FLAGS} -D_DEBUG -DDEBUG")
 set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} ${CH_CXX_FLAGS} -DNDEBUG")
@@ -516,7 +566,9 @@ include_directories(${THRUST_INCLUDE_DIR})
 # Build submodules
 #------------------------------------------------------------
 
-message(STATUS "==== Submodules ====")
+message(STATUS "")
+message(STATUS "==== Chrono Modules ====")
+message(STATUS "")
 
 if(BUILD_TESTING)
   message(STATUS "Build Google test framework")
@@ -658,6 +710,18 @@ install(DIRECTORY ${CMAKE_SOURCE_DIR}/src/chrono_thirdparty/tinyobjloader
 install(DIRECTORY ${CMAKE_SOURCE_DIR}/src/chrono_thirdparty/yafel
         DESTINATION include/chrono_thirdparty
         FILES_MATCHING PATTERN "*.h" PATTERN "*.cuh" PATTERN "*.hpp" PATTERN "*.inl")
+
+install(DIRECTORY ${CMAKE_SOURCE_DIR}/src/chrono_thirdparty/chpf
+	      DESTINATION include/chrono_thirdparty
+	      FILES_MATCHING PATTERN "*.hpp")
+        
+install(DIRECTORY ${CMAKE_SOURCE_DIR}/src/chrono_thirdparty/stb
+        DESTINATION include/chrono_thirdparty
+        FILES_MATCHING PATTERN "*.h" PATTERN "*.cuh" PATTERN "*.hpp" PATTERN "*.inl")
+
+install(DIRECTORY ${CMAKE_SOURCE_DIR}/src/chrono_thirdparty/variant
+        DESTINATION include/chrono_thirdparty
+        FILES_MATCHING PATTERN "*.h" PATTERN "*.hpp" PATTERN "*.inl")
 
 if(BUILD_TESTING)
    install(DIRECTORY ${CMAKE_SOURCE_DIR}/src/chrono_thirdparty/googletest/googletest/include
@@ -844,6 +908,7 @@ install(FILES "${PROJECT_BINARY_DIR}/chrono/ChVersion.h"
 #------------------------------------------------------------
 
 # For the BUILD tree
+set(CH_THIRDPARTY_INCLUDE_DIR "${PROJECT_SOURCE_DIR}/src/chrono_thirdparty")
 set(CH_INCLUDE_DIRS "${PROJECT_SOURCE_DIR}/src")
 set(CH_INCLUDE_DIRS ${CH_INCLUDE_DIRS} "${PROJECT_SOURCE_DIR}/src/chrono")
 set(CH_INCLUDE_DIRS ${CH_INCLUDE_DIRS} "${PROJECT_SOURCE_DIR}/src/chrono/collision/bullet")
@@ -863,6 +928,7 @@ configure_file("${PROJECT_SOURCE_DIR}/cmake/ChronoConfig.cmake.in"
                @ONLY)
 
 # For the INSTALL tree
+set(CH_THIRDPARTY_INCLUDE_DIR "${CMAKE_INSTALL_PREFIX}/include/chrono_thirdparty")
 set(CH_INCLUDE_DIRS "${CMAKE_INSTALL_PREFIX}/include")
 set(CH_INCLUDE_DIRS ${CH_INCLUDE_DIRS} "${CMAKE_INSTALL_PREFIX}/include/chrono")
 set(CH_INCLUDE_DIRS ${CH_INCLUDE_DIRS} "${CMAKE_INSTALL_PREFIX}/include/chrono/collision/bullet")

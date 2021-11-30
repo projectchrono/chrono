@@ -159,9 +159,9 @@ bool ChOpenGLViewer::Initialize() {
     graph_renderer.Initialize(white, &cloud_shader);
 
     // glEnable(GL_MULTISAMPLE);
-    glEnable(GL_POINT_SPRITE);
-    glEnable(GL_PROGRAM_POINT_SIZE);
-    glEnable(GL_VERTEX_PROGRAM_POINT_SIZE);
+    // glEnable(GL_POINT_SPRITE);
+    // glEnable(GL_PROGRAM_POINT_SIZE);
+    // glEnable(GL_VERTEX_PROGRAM_POINT_SIZE);
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     // glLineWidth(10);
@@ -177,7 +177,7 @@ bool ChOpenGLViewer::Update(double time_step) {
     single_step = false;
     return true;
 }
-void ChOpenGLViewer::Render() {
+void ChOpenGLViewer::Render(bool render_hud) {
     timer_render.reset();
     timer_text.reset();
     timer_geometry.reset();
@@ -196,11 +196,11 @@ void ChOpenGLViewer::Render() {
         dot_shader.SetViewport(window_size);
         sphere_shader.SetViewport(window_size);
 
-        if (render_mode == WIREFRAME) {
-            glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-        } else {
-            glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-        }
+        // if (render_mode == WIREFRAME) {
+        //     glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+        // } else {
+        //     glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+        // }
 
         if (render_mode != POINTS) {
             model_box.clear();
@@ -268,7 +268,7 @@ void ChOpenGLViewer::Render() {
         time_geometry = .5 * timer_geometry() + .5 * time_geometry;
 
         timer_text.start();
-        DisplayHUD();
+        DisplayHUD(render_hud);
         timer_text.stop();
         time_text = .5 * timer_text() + .5 * time_text;
     }
@@ -348,7 +348,7 @@ void ChOpenGLViewer::DrawObject(std::shared_ptr<ChBody> abody) {
 			mrot.Set_A_axis(mx, my, mz);
             lrot =rot % (visual_asset->Rot.Get_A_quaternion() % mrot.Get_A_quaternion());
 			//position of cylinder based on two points
-			ChVector<> mpos = 0.5 * (cylinder_shape->GetCylinderGeometry().p2 + cylinder_shape->GetCylinderGeometry().p1);
+			ChVector<> mpos = center + 0.5 * (cylinder_shape->GetCylinderGeometry().p2 + cylinder_shape->GetCylinderGeometry().p1);
 
             lrot.Q_to_AngAxis(angle, axis);
 			ChVector<> pos_final = pos  + rot.Rotate(mpos);
@@ -495,7 +495,10 @@ void ChOpenGLViewer::DrawObject(std::shared_ptr<ChBody> abody) {
     }
 }
 
-void ChOpenGLViewer::DisplayHUD() {
+void ChOpenGLViewer::DisplayHUD(bool render_hud) {
+    if (!render_hud && !view_help)
+        return;
+
     GLReturnedError("Start text");
     HUD_renderer.Update(window_size, dpi, fps, time_geometry, time_text, time_total);
     if (view_help) {

@@ -56,6 +56,11 @@
   "Track Shoes":
   {
       "Input File":           "M113/track_shoe/M113_TrackShoeDoublePin.json",
-      "Number Shoes":         64
+      "Number Shoes":         64,
+      "RSDA Data":
+      {
+	      "Stiffness Rotational": 1000,
+	      "Damping Rotational": 10
+	    }
   }
- }
+}

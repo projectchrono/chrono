@@ -43,6 +43,7 @@ MAN_7t::MAN_7t()
       m_contactMethod(ChContactMethod::NSC),
       m_chassisCollisionType(CollisionType::NONE),
       m_fixed(false),
+      m_use_6WD_drivetrain(false),
       m_powertrainType(PowertrainModelType::SIMPLE_CVT),
       m_brake_locking(false),
       m_brake_type(BrakeType::SIMPLE),
@@ -59,6 +60,7 @@ MAN_7t::MAN_7t(ChSystem* system)
       m_contactMethod(ChContactMethod::NSC),
       m_chassisCollisionType(CollisionType::NONE),
       m_fixed(false),
+      m_use_6WD_drivetrain(false),
       m_powertrainType(PowertrainModelType::SIMPLE_CVT),
       m_brake_locking(false),
       m_brake_type(BrakeType::SIMPLE),
@@ -85,8 +87,10 @@ void MAN_7t::SetAerodynamicDrag(double Cd, double area, double air_density) {
 // -----------------------------------------------------------------------------
 void MAN_7t::Initialize() {
     // Create and initialize the MAN_7t vehicle
-    m_vehicle = m_system ? new MAN_7t_Vehicle(m_system, m_fixed, m_brake_type, m_chassisCollisionType)
-                         : new MAN_7t_Vehicle(m_fixed, m_brake_type, m_contactMethod, m_chassisCollisionType);
+    m_vehicle =
+        m_system
+            ? new MAN_7t_Vehicle(m_system, m_fixed, m_brake_type, m_chassisCollisionType, m_use_6WD_drivetrain)
+            : new MAN_7t_Vehicle(m_fixed, m_brake_type, m_contactMethod, m_chassisCollisionType, m_use_6WD_drivetrain);
 
     m_vehicle->SetInitWheelAngVel(m_initOmega);
     m_vehicle->Initialize(m_initPos, m_initFwdVel);

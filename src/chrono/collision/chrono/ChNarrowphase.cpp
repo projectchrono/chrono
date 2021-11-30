@@ -123,6 +123,9 @@ int ChNarrowphase::PreprocessCount() {
                 contact_index[index] = 8;
             } else if (type1 == ChCollisionShape::Type::BOX && type2 == ChCollisionShape::Type::BOX) {
                 contact_index[index] = 8;
+            } else if ((type1 == ChCollisionShape::Type::BOX && type2 == ChCollisionShape::Type::TRIANGLE) ||
+                       (type1 == ChCollisionShape::Type::TRIANGLE && type2 == ChCollisionShape::Type::BOX)) {
+                contact_index[index] = 6;
             } else {
                 contact_index[index] = 1;
             }

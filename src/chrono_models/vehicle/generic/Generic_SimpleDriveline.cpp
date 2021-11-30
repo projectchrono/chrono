@@ -31,7 +31,7 @@ const double Generic_SimpleDriveline::m_conicalgear_ratio = -0.2433;
 // -----------------------------------------------------------------------------
 // Construct a 2WD open differential simple driveline.
 // -----------------------------------------------------------------------------
-Generic_SimpleDriveline::Generic_SimpleDriveline(const std::string& name) : ChDrivelineWV(name) {}
+Generic_SimpleDriveline::Generic_SimpleDriveline(const std::string& name) : ChDrivelineWV(name), m_connected(true) {}
 
 // -----------------------------------------------------------------------------
 // Initialize the driveline subsystem.
@@ -42,6 +42,11 @@ void Generic_SimpleDriveline::Initialize(std::shared_ptr<ChChassis> chassis,
                                          const std::vector<int>& driven_axles) {
     assert(axles.size() >= 1);
 
+    // Create the driveshaft
+    m_driveshaft = chrono_types::make_shared<ChShaft>();
+    m_driveshaft->SetInertia(0.5);
+    chassis->GetSystem()->Add(m_driveshaft);
+
     m_driven_axles = driven_axles;
 
     // Grab handles to the suspension wheel shafts.
@@ -51,15 +56,14 @@ void Generic_SimpleDriveline::Initialize(std::shared_ptr<ChChassis> chassis,
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-double Generic_SimpleDriveline::GetDriveshaftSpeed() const {
-    double wheel_speed = 0.5 * (m_driven_left->GetPos_dt() + m_driven_right->GetPos_dt());
-
-    return (wheel_speed / m_conicalgear_ratio);
-}
-
-// -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
 void Generic_SimpleDriveline::Synchronize(double torque) {
+    if (!m_connected)
+        return;
+
+    // Enforce driveshaft speed 
+    double driveshaft_speed = 0.5 * (m_driven_left->GetPos_dt() + m_driven_right->GetPos_dt());
+    m_driveshaft->SetPos_dt(driveshaft_speed / m_conicalgear_ratio);
+
     // Split the input torque front/back.
     double torque_drive = -torque / m_conicalgear_ratio;
 
@@ -70,6 +74,9 @@ void Generic_SimpleDriveline::Synchronize(double torque) {
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 double Generic_SimpleDriveline::GetSpindleTorque(int axle, VehicleSide side) const {
+    if (!m_connected)
+        return 0;
+
     if (axle == m_driven_axles[0]) {
         switch (side) {
             case LEFT:
@@ -80,6 +87,11 @@ double Generic_SimpleDriveline::GetSpindleTorque(int axle, VehicleSide side) con
     }
 
     return 0;
+}
+
+// -----------------------------------------------------------------------------
+void Generic_SimpleDriveline::Disconnect() {
+    m_connected = false;
 }
 
 }  // end namespace generic

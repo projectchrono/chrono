@@ -23,6 +23,14 @@ namespace vehicle {
 
 ChBrakeShafts::ChBrakeShafts(const std::string& name) : ChBrake(name), m_modulation(0), m_locked(false) {}
 
+ChBrakeShafts::~ChBrakeShafts() {
+    auto sys = m_shaft->GetSystem();
+    if (sys) {
+        sys->Remove(m_shaft);
+        sys->Remove(m_clutch);
+    }
+}
+
 void ChBrakeShafts::Initialize(std::shared_ptr<ChChassis> chassis,
                                std::shared_ptr<ChSuspension> suspension,
                                VehicleSide side) {

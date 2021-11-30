@@ -29,7 +29,7 @@ namespace vehicle {
 // -----------------------------------------------------------------------------
 // Construct a default 4WD simple driveline.
 // -----------------------------------------------------------------------------
-ChSimpleDrivelineXWD::ChSimpleDrivelineXWD(const std::string& name) : ChDrivelineWV(name) {}
+ChSimpleDrivelineXWD::ChSimpleDrivelineXWD(const std::string& name) : ChDrivelineWV(name), m_connected(true) {}
 
 // -----------------------------------------------------------------------------
 // Initialize the driveline subsystem.
@@ -40,6 +40,11 @@ void ChSimpleDrivelineXWD::Initialize(std::shared_ptr<ChChassis> chassis,
                                       const std::vector<int>& driven_axles) {
     assert(axles.size() >= 1);
 
+    // Create the driveshaft
+    m_driveshaft = chrono_types::make_shared<ChShaft>();
+    m_driveshaft->SetInertia(0.5);
+    chassis->GetSystem()->Add(m_driveshaft);
+
     m_driven_axles = driven_axles;
 
     for (int i = 0; i < driven_axles.size(); i++) {
@@ -47,19 +52,6 @@ void ChSimpleDrivelineXWD::Initialize(std::shared_ptr<ChChassis> chassis,
         m_shaft_left.push_back(axles[m_driven_axles[i]]->m_suspension->GetAxle(LEFT));
         m_shaft_right.push_back(axles[m_driven_axles[i]]->m_suspension->GetAxle(RIGHT));
     }
-}
-
-// -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
-double ChSimpleDrivelineXWD::GetDriveshaftSpeed() const {
-    double alpha = 1.0 / double(m_shaft_left.size());
-    double speed = 0;
-
-    for (int i = 0; i < m_shaft_left.size(); i++) {
-        speed += alpha * 0.5 * (m_shaft_left[i]->GetPos_dt() + m_shaft_right[i]->GetPos_dt());
-    }
-
-    return speed;
 }
 
 // -----------------------------------------------------------------------------
@@ -100,7 +92,19 @@ void differentialSplitXWD(double torque,
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 void ChSimpleDrivelineXWD::Synchronize(double torque) {
+    if (!m_connected)
+        return;
+
     double alpha = 1.0 / double(m_shaft_left.size());
+
+    // Enforce driveshaft speed 
+    double driveshaft_speed = 0;
+    for (int i = 0; i < m_shaft_left.size(); i++) {
+        driveshaft_speed += alpha * 0.5 * (m_shaft_left[i]->GetPos_dt() + m_shaft_right[i]->GetPos_dt());
+    }
+    m_driveshaft->SetPos_dt(driveshaft_speed);
+
+    // Split the input torque over all driven axles. 
     double torque_axle = alpha * torque;
 
     // Split the axle torques for the corresponding left/right wheels and apply
@@ -119,6 +123,9 @@ void ChSimpleDrivelineXWD::Synchronize(double torque) {
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 double ChSimpleDrivelineXWD::GetSpindleTorque(int axle, VehicleSide side) const {
+    if (!m_connected)
+        return 0;
+
     switch (side) {
         case LEFT:
             return -m_shaft_left[axle]->GetAppliedTorque();
@@ -127,6 +134,11 @@ double ChSimpleDrivelineXWD::GetSpindleTorque(int axle, VehicleSide side) const 
     }
 
     return 0;
+}
+
+// -----------------------------------------------------------------------------
+void ChSimpleDrivelineXWD::Disconnect() {
+    m_connected = false;
 }
 
 }  // end namespace vehicle

@@ -36,7 +36,21 @@ namespace vehicle {
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-ChDoubleWishboneReduced::ChDoubleWishboneReduced(const std::string& name) : ChSuspension(name) {
+ChDoubleWishboneReduced::ChDoubleWishboneReduced(const std::string& name) : ChSuspension(name) {}
+
+ChDoubleWishboneReduced::~ChDoubleWishboneReduced() {
+    auto sys = m_upright[0]->GetSystem();
+    if (sys) {
+        for (int i = 0; i < 2; i++) {
+            sys->Remove(m_upright[i]);
+            sys->Remove(m_distUCA_F[i]);
+            sys->Remove(m_distUCA_B[i]);
+            sys->Remove(m_distLCA_F[i]);
+            sys->Remove(m_distLCA_B[i]);
+            sys->Remove(m_distTierod[i]);
+            sys->Remove(m_shock[i]);
+        }
+    }
 }
 
 // -----------------------------------------------------------------------------
@@ -321,7 +335,7 @@ void ChDoubleWishboneReduced::AddVisualizationUpright(std::shared_ptr<ChBody> up
 void ChDoubleWishboneReduced::LogConstraintViolations(VehicleSide side) {
     // Revolute joint
     {
-        ChVectorDynamic<> C = m_revolute[side]->GetC();
+        ChVectorDynamic<> C = m_revolute[side]->GetConstraintViolation();
         GetLog() << "Spindle revolute      ";
         GetLog() << "  " << C(0) << "  ";
         GetLog() << "  " << C(1) << "  ";

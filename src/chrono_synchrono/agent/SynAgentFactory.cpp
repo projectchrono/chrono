@@ -38,7 +38,7 @@ std::shared_ptr<SynAgent> SynAgentFactory::CreateAgent(std::shared_ptr<SynMessag
     std::shared_ptr<SynAgent> agent = nullptr;
 
     // For convenience
-    auto source_id = description->GetSourceID();
+    auto source_key = description->GetSourceKey();
 
     /// TODO: Add json support
 
@@ -50,44 +50,44 @@ std::shared_ptr<SynAgent> SynAgentFactory::CreateAgent(std::shared_ptr<SynMessag
     //     std::string type = d["Template"].GetString();
 
     //     if (type.compare("WheeledVehicleAgent") == 0) {
-    //         agent = chrono_types::make_shared<SynWheeledVehicleAgent>(source_id, description->json);
+    //         agent = chrono_types::make_shared<SynWheeledVehicleAgent>(source_key, description->json);
     //     } else if (type.compare("TrackedVehicleAgent") == 0) {
-    //         agent = chrono_types::make_shared<SynTrackedVehicleAgent>(source_id, description->json);
+    //         agent = chrono_types::make_shared<SynTrackedVehicleAgent>(source_key, description->json);
     //     } else {
     //         std::string message = "SynAgentFactory::CreateAgent: Agent type \"" + type + "\" not recognized.";
     //         throw ChException(message);
     //     }
     // } else
-    if (auto vehicle_description = std::dynamic_pointer_cast<SynWheeledVehicleDescriptionMessage>(description)) {
+    if (auto wv_description = std::dynamic_pointer_cast<SynWheeledVehicleDescriptionMessage>(description)) {
         auto vehicle_agent = chrono_types::make_shared<SynWheeledVehicleAgent>();
-        vehicle_agent->SetID(source_id);
-        vehicle_agent->SetZombieVisualizationFiles(vehicle_description->chassis_vis_file,  //
-                                                   vehicle_description->wheel_vis_file,    //
-                                                   vehicle_description->tire_vis_file);    //
-        vehicle_agent->SetNumWheels(vehicle_description->num_wheels);
+        vehicle_agent->SetKey(source_key);
+        vehicle_agent->SetZombieVisualizationFiles(wv_description->chassis_vis_file,  //
+                                                   wv_description->wheel_vis_file,    //
+                                                   wv_description->tire_vis_file);    //
+        vehicle_agent->SetNumWheels(wv_description->num_wheels);
 
         agent = vehicle_agent;
-    } else if (auto vehicle_description = std::dynamic_pointer_cast<SynTrackedVehicleDescriptionMessage>(description)) {
+    } else if (auto tv_description = std::dynamic_pointer_cast<SynTrackedVehicleDescriptionMessage>(description)) {
         auto vehicle_agent = chrono_types::make_shared<SynTrackedVehicleAgent>();
-        vehicle_agent->SetID(source_id);
-        vehicle_agent->SetZombieVisualizationFiles(vehicle_description->chassis_vis_file,            //
-                                                   vehicle_description->track_shoe_vis_file,         //
-                                                   vehicle_description->left_sprocket_vis_file,      //
-                                                   vehicle_description->right_sprocket_vis_file,     //
-                                                   vehicle_description->left_idler_vis_file,         //
-                                                   vehicle_description->right_idler_vis_file,        //
-                                                   vehicle_description->left_road_wheel_vis_file,    //
-                                                   vehicle_description->right_road_wheel_vis_file);  //
+        vehicle_agent->SetKey(source_key);
+        vehicle_agent->SetZombieVisualizationFiles(tv_description->chassis_vis_file,            //
+                                                   tv_description->track_shoe_vis_file,         //
+                                                   tv_description->left_sprocket_vis_file,      //
+                                                   tv_description->right_sprocket_vis_file,     //
+                                                   tv_description->left_idler_vis_file,         //
+                                                   tv_description->right_idler_vis_file,        //
+                                                   tv_description->left_road_wheel_vis_file,    //
+                                                   tv_description->right_road_wheel_vis_file);  //
 
-        vehicle_agent->SetNumAssemblyComponents(vehicle_description->num_track_shoes,   //
-                                                vehicle_description->num_sprockets,     //
-                                                vehicle_description->num_idlers,        //
-                                                vehicle_description->num_road_wheels);  //
+        vehicle_agent->SetNumAssemblyComponents(tv_description->num_track_shoes,   //
+                                                tv_description->num_sprockets,     //
+                                                tv_description->num_idlers,        //
+                                                tv_description->num_road_wheels);  //
 
         agent = vehicle_agent;
     } else if (auto copter_description = std::dynamic_pointer_cast<SynCopterDescriptionMessage>(description)) {
         auto copter_agent = chrono_types::make_shared<SynCopterAgent>();
-        copter_agent->SetID(source_id);
+        copter_agent->SetKey(source_key);
         copter_agent->SetZombieVisualizationFiles(copter_description->chassis_vis_file,  //
                                                   copter_description->propeller_vis_file);  //
 
@@ -99,7 +99,7 @@ std::shared_ptr<SynAgent> SynAgentFactory::CreateAgent(std::shared_ptr<SynMessag
         agent = terrain_agent;
     } else if (auto env_message = std::dynamic_pointer_cast<SynEnvironmentMessage>(description)) {
         agent = chrono_types::make_shared<SynEnvironmentAgent>(nullptr);
-        agent->SetID(source_id);
+        agent->SetKey(source_key);
     } else {
         std::string message = "SynAgentFactory::CreateAgent: Passed SynAgentDescription is not supported.";
         throw ChException(message);

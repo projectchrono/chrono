@@ -27,14 +27,12 @@ namespace vehicle {
 ChSimpleCVTPowertrain::ChSimpleCVTPowertrain(const std::string& name)
     : ChPowertrain(name), m_motorSpeed(0), m_motorTorque(0), m_shaftTorque(0), m_critical_speed(1e4) {}
 
-void ChSimpleCVTPowertrain::Initialize(std::shared_ptr<ChChassis> chassis, std::shared_ptr<ChDriveline> driveline) {
-    ChPowertrain::Initialize(chassis, driveline);
+void ChSimpleCVTPowertrain::Initialize(std::shared_ptr<ChChassis> chassis) {
+    ChPowertrain::Initialize(chassis);
     m_critical_speed = GetMaxPower() / GetMaxTorque();
 }
 
-void ChSimpleCVTPowertrain::Synchronize(double time, double throttle) {
-    double shaft_speed = m_driveline->GetDriveshaftSpeed();
-
+void ChSimpleCVTPowertrain::Synchronize(double time, double throttle, double shaft_speed) {
     // The motor speed is the shaft speed multiplied by gear ratio inversed:
     m_motorSpeed = std::abs(shaft_speed / m_current_gear_ratio);
 

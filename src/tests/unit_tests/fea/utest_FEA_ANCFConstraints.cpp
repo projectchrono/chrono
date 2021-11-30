@@ -43,7 +43,7 @@
 #include "chrono/utils/ChUtilsInputOutput.h"
 #include "chrono/utils/ChUtilsValidation.h"
 
-#include "chrono/fea/ChElementShellANCF.h"
+#include "chrono/fea/ChElementShellANCF_3423.h"
 #include "chrono/fea/ChLinkDirFrame.h"
 #include "chrono/fea/ChLinkPointFrame.h"
 #include "chrono/fea/ChMesh.h"
@@ -159,7 +159,7 @@ void AddMesh(ChSystemNSC& my_system) {
         int node3 = (i / (numDiv_x)) * (N_x) + i % numDiv_x + N_x;
 
         // Create the element and set its nodes.
-        auto element = chrono_types::make_shared<ChElementShellANCF>();
+        auto element = chrono_types::make_shared<ChElementShellANCF_3423>();
         element->SetNodes(std::dynamic_pointer_cast<ChNodeFEAxyzD>(mesh->GetNode(node0)),
                           std::dynamic_pointer_cast<ChNodeFEAxyzD>(mesh->GetNode(node1)),
                           std::dynamic_pointer_cast<ChNodeFEAxyzD>(mesh->GetNode(node2)),
@@ -173,14 +173,10 @@ void AddMesh(ChSystemNSC& my_system) {
 
         // Set other element properties
         element->SetAlphaDamp(0.08);  // structural damping for this element
-        element->SetGravityOn(true);  // gravitational forces
 
         // Add element to mesh
         mesh->AddElement(element);
     }
-
-    // Switch off mesh class gravity
-    mesh->SetAutomaticGravity(false);
 
     // Add the mesh to the system
     my_system.Add(mesh);
@@ -226,16 +222,16 @@ bool CheckConstraints() {
     violation(3) = Vdot(body_axis, Node_1->D);
 
     // Check violation in weld joint
-    violation.segment(4, 6) = joint_weld->GetC();
+    violation.segment(4, 6) = joint_weld->GetConstraintViolation();
 
     // Check violation in revolute joint
-    violation.segment(10, 5) = joint_revolute->GetC();
+    violation.segment(10, 5) = joint_revolute->GetConstraintViolation();
 
     // Check violation in body-node hinge constraint
-    violation.segment(15, 3) = constraint_point->GetC();
+    violation.segment(15, 3) = constraint_point->GetConstraintViolation();
 
     // Check violation in body-node direction constraint
-    violation.segment(18, 2) = constraint_dir->GetC();
+    violation.segment(18, 2) = constraint_dir->GetConstraintViolation();
 
     return violation.isZero(precision);
 }
@@ -292,16 +288,16 @@ int main(int argc, char* argv[]) {
         double dot = Vdot(body_axis, Node_1->D);
         printf("Dot product = %e\n", dot);
 
-        ChVectorN<double, 3> Cp = constraint_point->GetC();
+        ChVectorN<double, 3> Cp = constraint_point->GetConstraintViolation();
         printf("Point constraint violations:      %12.4e  %12.4e  %12.4e\n", Cp(0), Cp(1), Cp(2));
-        ChVectorN<double, 2> Cd = constraint_dir->GetC();
+        ChVectorN<double, 2> Cd = constraint_dir->GetConstraintViolation();
         printf("Direction constraint violations:  %12.4e  %12.4e\n", Cd(0), Cd(1));
 
-        ChVectorDynamic<> Cw = joint_weld->GetC();
+        ChVectorDynamic<> Cw = joint_weld->GetConstraintViolation();
         printf("Weld joint constraints: %12.4e  %12.4e  %12.4e  %12.4e  %12.4e  %12.4e\n", Cw(0), Cw(1), Cw(2), Cw(3),
                Cw(4), Cw(5));
 
-        ChVectorDynamic<> Cr = joint_revolute->GetC();
+        ChVectorDynamic<> Cr = joint_revolute->GetConstraintViolation();
         printf("Rev joint constraints:  %12.4e  %12.4e  %12.4e  %12.4e  %12.4e\n", Cr(0), Cr(1), Cr(2), Cr(3), Cr(4));
 
         printf("\n\n");

@@ -24,6 +24,7 @@
 
 #include "chrono/physics/ChSystem.h"
 #include "chrono/physics/ChBodyAuxRef.h"
+#include "chrono/physics/ChLoadContainer.h"
 
 #include "chrono_vehicle/ChApiVehicle.h"
 #include "chrono_vehicle/ChPart.h"
@@ -45,7 +46,7 @@ class CH_VEHICLE_API ChChassis : public ChPart {
               bool fixed = false        ///< [in] is the chassis body fixed to ground?
     );
 
-    virtual ~ChChassis() {}
+    virtual ~ChChassis();
 
     /// Get the chassis mass.
     virtual double GetMass() const = 0;
@@ -73,6 +74,9 @@ class CH_VEHICLE_API ChChassis : public ChPart {
 
     /// Get a handle to the vehicle's chassis body.
     std::shared_ptr<ChBodyAuxRef> GetBody() const { return m_body; }
+
+    /// Get a pointer to the containing system.
+    ChSystem* GetSystem() const { return m_body->GetSystem(); }
 
     /// Get the global location of the chassis reference frame origin.
     const ChVector<>& GetPos() const { return m_body->GetFrame_REF_to_abs().GetPos(); }
@@ -134,6 +138,9 @@ class CH_VEHICLE_API ChChassis : public ChPart {
     /// Return true if the chassis body is fixed to ground.
     bool IsFixed() const { return m_body->GetBodyFixed(); }
 
+    /// Return true if the vehicle model contains bushings.
+    bool HasBushings() const { return m_bushings->GetNumLoads() > 0; }
+
     /// Add a marker on the chassis body at the specified position (relative to the chassis reference frame).
     /// If called before initialization, this function has no effect.
     void AddMarker(const std::string& name,  ///< [in] marker name
@@ -150,19 +157,36 @@ class CH_VEHICLE_API ChChassis : public ChPart {
     );
 
     /// Update the state of the chassis subsystem.
-    /// The base class implementation applies aerodynamic drag forces to the
-    /// chassis body (if enabled).
+    /// The base class implementation applies all defined external forces to the chassis body.
     virtual void Synchronize(double time);
 
-  protected:
-    std::shared_ptr<ChBodyAuxRef> m_body;              ///< handle to the chassis body
-    std::vector<std::shared_ptr<ChMarker>> m_markers;  ///< list of user-defined markers
-    bool m_fixed;                                      ///< is the chassis body fixed to ground?
+    /// Utility function to add a joint (kinematic or bushing) to the vehicle system.
+    void AddJoint(std::shared_ptr<ChVehicleJoint> joint);
 
-    bool m_apply_drag;     ///< enable aerodynamic drag force?
-    double m_Cd;           ///< drag coefficient
-    double m_area;         ///< reference area (m2)
-    double m_air_density;  ///< air density (kg/m3)
+    /// Utility function to remove a joint (kinematic or bushing) from the vehicle system.
+    static void RemoveJoint(std::shared_ptr<ChVehicleJoint> joint);
+
+    /// Base class for a user-defined custom force acting on the chassis body.
+    class ExternalForce {
+      public:
+        virtual ~ExternalForce() {}
+
+        /// The external load is updated at each vehicle synchronization.
+        /// A derived class must load the current values for the external force and its application point on the chassis
+        /// body, both assumed to be provided in the chassis body local frame.
+        virtual void Update(double time, const ChChassis& chassis, ChVector<>& force, ChVector<>& point) {}
+    };
+
+    /// Utility force to add an external load to the chassis body.
+    void AddExternalForce(std::shared_ptr<ExternalForce> force);
+
+  protected:
+    std::shared_ptr<ChBodyAuxRef> m_body;                  ///< handle to the chassis body
+    std::shared_ptr<ChLoadContainer> m_bushings;           ///< load container for vehicle bushings
+    std::shared_ptr<ChLoadContainer> m_container_forces;   ///< load container for external forces
+    std::vector<std::shared_ptr<ExternalForce>> m_forces;  ///< external forces
+    std::vector<std::shared_ptr<ChMarker>> m_markers;      ///< list of user-defined markers
+    bool m_fixed;                                          ///< is the chassis body fixed to ground?
 };
 
 // -----------------------------------------------------------------------------

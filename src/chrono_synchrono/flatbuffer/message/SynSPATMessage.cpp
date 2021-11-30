@@ -23,8 +23,8 @@
 namespace chrono {
 namespace synchrono {
 
-SynSPATMessage::SynSPATMessage(unsigned int source_id, unsigned int destination_id)
-    : SynMessage(source_id, destination_id) {}
+SynSPATMessage::SynSPATMessage(AgentKey source_key, AgentKey destination_key)
+    : SynMessage(source_key, destination_key) {}
 
 void SynSPATMessage::ConvertFromFlatBuffers(const SynFlatBuffers::Message* message) {
     if (message->message_type() != SynFlatBuffers::Type_SPAT_State)
@@ -61,8 +61,9 @@ FlatBufferMessage SynSPATMessage::ConvertToFlatBuffers(flatbuffers::FlatBufferBu
     flatbuffers::Offset<SynFlatBuffers::SPAT::State> flatbuffer_state =
         SynFlatBuffers::SPAT::CreateState(builder, this->time, builder.CreateVector(flatbuffer_lanes));
 
-    FlatBufferMessage message = flatbuffers::Offset<SynFlatBuffers::Message>(SynFlatBuffers::CreateMessage(
-        builder, SynFlatBuffers::Type_SPAT_State, flatbuffer_state.Union(), m_source_id, m_destination_id));
+    FlatBufferMessage message = flatbuffers::Offset<SynFlatBuffers::Message>(
+        SynFlatBuffers::CreateMessage(builder, SynFlatBuffers::Type_SPAT_State, flatbuffer_state.Union(),
+                                      m_source_key.GetFlatbuffersKey(), m_destination_key.GetFlatbuffersKey()));
     return message;
 }
 

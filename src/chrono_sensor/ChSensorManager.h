@@ -24,10 +24,10 @@
 
 #include "chrono/physics/ChSystem.h"
 
-#include "chrono_sensor/ChSensor.h"
-#include "chrono_sensor/optixcpp/ChOptixEngine.h"
+#include "chrono_sensor/sensors/ChSensor.h"
+#include "chrono_sensor/optix/ChOptixEngine.h"
 #include "chrono_sensor/ChDynamicsManager.h"
-#include "chrono_sensor/scene/ChScene.h"
+#include "chrono_sensor/optix/scene/ChScene.h"
 
 #include <fstream>
 #include <sstream>
@@ -79,10 +79,6 @@ class CH_SENSOR_API ChSensorManager {
     /// @return A shared pointer to an OptiX engine the manager is using
     std::shared_ptr<ChOptixEngine> GetEngine(int context_id);
 
-    /// Add many environment meshes that bypass the requirement to have them in the Chrono system.
-    /// This adds meshes that only exist in OptiX. Meshes will be removed upon call to ReconstructScenes().
-    void AddInstancedStaticSceneMeshes(std::vector<ChFrame<>>& frames, std::shared_ptr<ChTriangleMeshShape> mesh);
-
     /// Calls on the sensor manager to rebuild the scene, translating all objects from the Chrono system into their
     /// appropriate optix objects.
     void ReconstructScenes();
@@ -97,19 +93,6 @@ class CH_SENSOR_API ChSensorManager {
     /// bottleneck in the multithreading paradigm of the render engine.
     /// @param num_groups The maximum number of optix engines the manager is allowed to create.
     void SetMaxEngines(int num_groups);
-
-    /// Set the max number of keyframes to use when rendering motion blur
-    /// @param size The number of keyframes
-    void SetKeyframeSize(int size);
-
-    /// Get the max number of keyframes to use when rendering motion blur
-    /// @return the number of keyframes being used
-    int GetKeyframeSize() { return m_num_keyframes; }
-
-    /// Set the max key frame size from a simulation time step and the largest collection window
-    /// @param min_timestep The estimated timestep to be used in the simulation
-    /// @param max_collection_window The largest collection window of any rendering sensor (camera or lidar)
-    void SetKeyframeSizeFromTimeStep(float min_timestep, float max_collection_window);
 
     /// Set the number of recursions for ray tracing
     /// @param rec The max number of recursions allowed in ray tracing

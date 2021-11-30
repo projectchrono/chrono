@@ -63,7 +63,7 @@ void ChWheeledVehicle::InitializeTire(std::shared_ptr<ChTire> tire,
 // -----------------------------------------------------------------------------
 void ChWheeledVehicle::InitializePowertrain(std::shared_ptr<ChPowertrain> powertrain) {
     m_powertrain = powertrain;
-    powertrain->Initialize(m_chassis, m_driveline);
+    powertrain->Initialize(m_chassis);
 }
 
 // -----------------------------------------------------------------------------
@@ -78,7 +78,7 @@ void ChWheeledVehicle::Synchronize(double time, const ChDriver::Inputs& driver_i
         // Extract the torque from the powertrain.
         powertrain_torque = m_powertrain->GetOutputTorque();
         // Synchronize the associated powertrain system (pass throttle input).
-        m_powertrain->Synchronize(time, driver_inputs.m_throttle);
+        m_powertrain->Synchronize(time, driver_inputs.m_throttle, m_driveline->GetDriveshaft()->GetPos_dt());
     }
 
     // Apply powertrain torque to the driveline's input shaft.
@@ -140,6 +140,12 @@ void ChWheeledVehicle::LockAxleDifferential(int axle, bool lock) {
 
 void ChWheeledVehicle::LockCentralDifferential(int which, bool lock) {
     m_driveline->LockCentralDifferential(which, lock);
+}
+
+// Disconnect driveline
+void ChWheeledVehicle::DisconnectDriveline() {
+    if (m_driveline)
+        m_driveline->Disconnect();
 }
 
 // -----------------------------------------------------------------------------
@@ -325,12 +331,6 @@ double ChWheeledVehicle::GetSpindleOmega(int axle, VehicleSide side) const {
 }
 
 // -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
-double ChWheeledVehicle::GetDriveshaftSpeed() const {
-    return m_driveline->GetDriveshaftSpeed();
-}
-
-// -----------------------------------------------------------------------------
 // Estimate the maximum steering angle based on a bicycle model, from the vehicle
 // minimum turning radius, the wheelbase, and the track of the front suspension.
 // -----------------------------------------------------------------------------
@@ -424,13 +424,13 @@ std::string ChWheeledVehicle::ExportComponentList() const {
 
     rapidjson::Value brakeArray(rapidjson::kArrayType);
     for (auto& axle : m_axles) {
-        {
+        if (axle->m_brake_left) {
             rapidjson::Document jsonSubDocument(&jsonDocument.GetAllocator());
             jsonSubDocument.SetObject();
             axle->m_brake_left->ExportComponentList(jsonSubDocument);
             brakeArray.PushBack(jsonSubDocument, jsonDocument.GetAllocator());
         }
-        {
+        if (axle->m_brake_right) {
             rapidjson::Document jsonSubDocument(&jsonDocument.GetAllocator());
             jsonSubDocument.SetObject();
             axle->m_brake_right->ExportComponentList(jsonSubDocument);
@@ -490,11 +490,11 @@ void ChWheeledVehicle::Output(int frame, ChVehicleOutput& database) const {
             database.WriteSection(axle->m_suspension->GetName());
             axle->m_suspension->Output(database);
         }
-        if (axle->m_brake_left->OutputEnabled()) {
+        if (axle->m_brake_left && axle->m_brake_left->OutputEnabled()) {
             database.WriteSection(axle->m_brake_left->GetName());
             axle->m_brake_left->Output(database);
         }
-        if (axle->m_brake_right->OutputEnabled()) {
+        if (axle->m_brake_right && axle->m_brake_right->OutputEnabled()) {
             database.WriteSection(axle->m_brake_right->GetName());
             axle->m_brake_right->Output(database);
         }

@@ -26,8 +26,8 @@
 #include "chrono_thirdparty/filesystem/path.h"
 #include "chrono/utils/ChUtilsInputOutput.h"
 
-#include "chrono_sensor/ChLidarSensor.h"
-#include "chrono_sensor/ChCameraSensor.h"
+#include "chrono_sensor/sensors/ChLidarSensor.h"
+#include "chrono_sensor/sensors/ChCameraSensor.h"
 #include "chrono_sensor/ChSensorManager.h"
 #include "chrono_sensor/filters/ChFilterAccess.h"
 #include "chrono_sensor/filters/ChFilterPCfromDepth.h"
@@ -88,7 +88,6 @@ int main(int argc, char* argv[]) {
     float step_size = 0.01f;
     auto manager = std::make_shared<ChSensorManager>(&mphysicalSystem);
     manager->scene->AddPointLight({-100, 100, 100}, {1, 1, 1}, 1000);
-    manager->SetKeyframeSizeFromTimeStep(step_size, 1);
 
     // ------------------------------------------------
     // Create a camera and add it to the sensor manager
@@ -101,7 +100,7 @@ int main(int argc, char* argv[]) {
         1000,                                                              // number of horizontal samples
         10,                                                                // number of vertical channels
         2 * (float)CH_C_PI,                                                // horizontal field of view
-        0.1f, -0.1f, 100.0f                                                // vertical field of view
+        0.1f, -0.1f, 100.0f, LidarBeamShape::RECTANGULAR                   // vertical field of view
     );
     lidar1->SetName("Lidar Sensor");
     lidar1->SetLag(1);

@@ -29,6 +29,13 @@ ChBrakeSimple::ChBrakeSimple(const std::string& name)
     m_brake = chrono_types::make_shared<ChLinkBrake>();
 }
 
+ChBrakeSimple::~ChBrakeSimple() {
+    auto sys = m_brake->GetSystem();
+    if (sys) {
+        sys->Remove(m_brake);
+    }
+}
+
 void ChBrakeSimple::Initialize(std::shared_ptr<ChChassis> chassis,
                                std::shared_ptr<ChSuspension> suspension,
                                VehicleSide side) {

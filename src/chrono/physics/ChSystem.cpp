@@ -285,7 +285,20 @@ std::shared_ptr<ChSolver> ChSystem::GetSolver() {
     return solver;
 }
 
-// Plug-in components configuration
+// -----------------------------------------------------------------------------
+
+void ChSystem::RegisterCustomCollisionCallback(std::shared_ptr<CustomCollisionCallback> callback) {
+    collision_callbacks.push_back(callback);
+}
+
+void ChSystem::UnregisterCustomCollisionCallback(std::shared_ptr<CustomCollisionCallback> callback) {
+    auto itr = std::find(std::begin(collision_callbacks), std::end(collision_callbacks), callback);
+    if (itr != collision_callbacks.end()) {
+        collision_callbacks.erase(itr);
+    }
+}
+
+// -----------------------------------------------------------------------------
 
 void ChSystem::SetSystemDescriptor(std::shared_ptr<ChSystemDescriptor> newdescriptor) {
     assert(newdescriptor);
@@ -345,8 +358,8 @@ void ChSystem::SetMaterialCompositionStrategy(std::unique_ptr<ChMaterialComposit
 
 void ChSystem::SetNumThreads(int num_threads_chrono, int num_threads_collision, int num_threads_eigen) {
     nthreads_chrono = std::max(1, num_threads_chrono);
-    nthreads_collision = (num_threads_collision == 0) ? num_threads_chrono : num_threads_collision;
-    nthreads_eigen = (num_threads_eigen == 0) ? num_threads_chrono : num_threads_eigen;
+    nthreads_collision = (num_threads_collision <= 0) ? num_threads_chrono : num_threads_collision;
+    nthreads_eigen = (num_threads_eigen <= 0) ? num_threads_chrono : num_threads_eigen;
 
     collision_system->SetNumThreads(nthreads_collision);
 }
@@ -1583,11 +1596,14 @@ bool ChSystem::DoStaticNonlinear(int nsteps, bool verbose) {
     return true;
 }
 
-bool ChSystem::DoStaticNonlinear(std::shared_ptr<ChStaticNonLinearAnalysis> analysis) {
+bool ChSystem::DoStaticAnalysis(std::shared_ptr<ChStaticAnalysis> analysis) {
     if (!is_initialized)
         SetupInitial();
 
     applied_forces_current = false;
+
+    solvecount = 0;
+    setupcount = 0;
 
     Setup();
     Update();
@@ -1595,6 +1611,37 @@ bool ChSystem::DoStaticNonlinear(std::shared_ptr<ChStaticNonLinearAnalysis> anal
     DescriptorPrepareInject(*descriptor);
 
     analysis->StaticAnalysis();
+
+    return true;
+}
+
+bool ChSystem::DoStaticNonlinearRheonomic(int nsteps, bool verbose, std::shared_ptr<ChStaticNonLinearRheonomicAnalysis::IterationCallback> mcallback) {
+    if (!is_initialized)
+        SetupInitial();
+
+    applied_forces_current = false;
+
+    solvecount = 0;
+    setupcount = 0;
+
+    Setup();
+    Update();
+
+    int old_maxsteps = GetSolverMaxIterations();
+    SetSolverMaxIterations(std::max(old_maxsteps, 300));
+
+    // Prepare lists of variables and constraints.
+    DescriptorPrepareInject(*descriptor);
+
+    ChStaticNonLinearRheonomicAnalysis manalysis(*this);
+    manalysis.SetMaxIterations(nsteps);
+    manalysis.SetVerbose(verbose);
+    manalysis.SetCallbackIterationBegin(mcallback);
+
+    // Perform analysis
+    manalysis.StaticAnalysis();
+
+    SetSolverMaxIterations(old_maxsteps);
 
     return true;
 }

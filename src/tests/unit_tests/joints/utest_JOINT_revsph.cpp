@@ -361,7 +361,7 @@ bool TestRevSpherical(
             out_energy << simTime << transKE << rotKE << deltaPE << totalE - totalE0 << std::endl;
 
             // Constraint violations
-            ChVectorDynamic<> C = revSphericalConstraint->GetC();
+            ChVectorDynamic<> C = revSphericalConstraint->GetConstraintViolation();
             out_cnstr << simTime << C(0) << C(1) << std::endl;
 
             // Increment output time

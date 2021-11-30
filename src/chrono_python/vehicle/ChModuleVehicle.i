@@ -66,7 +66,11 @@
 #include "chrono/physics/ChLoadsXYZnode.h"
 #include "chrono/physics/ChPhysicsItem.h"
 
+#include "chrono/collision/ChCollisionModel.h"
+#include "chrono/collision/ChCollisionModelBullet.h"
+
 #include "chrono/collision/ChCollisionSystem.h"
+#include "chrono/collision/ChCollisionSystemBullet.h"
 
 #include "chrono_vehicle/ChApiVehicle.h"
 #include "chrono_vehicle/ChVehicle.h"
@@ -204,11 +208,10 @@ using namespace chrono::vehicle::m113;
 %shared_ptr(chrono::ChLinkMarkers)
 
 %shared_ptr(chrono::collision::ChCollisionModel)
+%shared_ptr(chrono::collision::ChCollisionModelBullet)
 %shared_ptr(chrono::collision::ChCollisionSystem::BroadphaseCallback)
 %shared_ptr(chrono::collision::ChCollisionSystem::NarrowphaseCallback)
 
-%feature("director") chrono::collision::ChCollisionSystem::BroadphaseCallback;
-%feature("director") chrono::collision::ChCollisionSystem::NarrowphaseCallback;
 
 /*
 from this module: pay attention to inheritance in the model namespace (generic, sedan etc). 
@@ -324,8 +327,6 @@ Before adding a shared_ptr, mark as shared ptr all its inheritance tree in the m
 
 // TODO: 
 //%include "rapidjson.i"
-
-%include "../../chrono/collision/ChCollisionSystem.h"
 
 //%include "../../chrono_vehicle/ChApiVehicle.h"
 %ignore chrono::vehicle::TrackedCollisionFamily::Enum;

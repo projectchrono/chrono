@@ -12,7 +12,8 @@
     "Min Vertical Angle": -0.399,
     "Max Distance": 100.0,
     "Lag": 0.01,
-    "Collection Time": 0
+    "Collection Time": 0,
+    "Sample Radius": 2
   },
 
   "Filters":
@@ -42,7 +43,7 @@
       "Filter": "ChFilterVisualizePointCloud",
       "Width": 800,
       "Height": 800,
-      "Zoom": 1.3
+      "Zoom": 0.5
     },
     {
       "Filter": "ChFilterXYZIAccess"

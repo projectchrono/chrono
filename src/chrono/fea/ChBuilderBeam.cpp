@@ -356,7 +356,6 @@ void ChBuilderBeamANCF::BuildBeam(std::shared_ptr<ChMesh> mesh,             // m
                                   const double w,                           // width
                                   const ChVector<> DIR,                     // initial nodal direction
                                   const ChVector<> CUR,                     // initial nodal curvature
-                                  const bool Poisson_effect,                // set true to evaluate poisson effects
                                   const bool grav,                          // set true to apply gravity force
                                   const double damp                         // damping
 ) {
@@ -382,22 +381,18 @@ void ChBuilderBeamANCF::BuildBeam(std::shared_ptr<ChMesh> mesh,             // m
         mesh->AddNode(nodeC);
         beam_nodes.push_back(nodeC);
         beam_nodes.push_back(nodeB);
-        auto element = chrono_types::make_shared<ChElementBeamANCF>();
+        auto element = chrono_types::make_shared<ChElementBeamANCF_3333>();
         beam_elems.push_back(element);
 
         element->SetNodes(beam_nodes[2 * (i - 1)], beam_nodes[2 * i], beam_nodes[2 * i - 1]);
         element->SetDimensions(tot_length / (double)N, h, w);
         element->SetMaterial(mat);
         element->SetAlphaDamp(damp);
-        element->SetGravityOn(grav);
-        if (Poisson_effect) {
-            element->SetStrainFormulation(ChElementBeamANCF::StrainFormulation::CMPoisson);
-        } else {
-            element->SetStrainFormulation(ChElementBeamANCF::StrainFormulation::CMNoPoisson);
-        };
 
         mesh->AddElement(element);
     }
+
+    mesh->SetAutomaticGravity(grav);
 }
 
 
@@ -509,6 +504,130 @@ void ChBuilderBeamTaperedTimoshenko::BuildBeam(
         beam_nodes.push_back(nodeBi);
 
         auto element = chrono_types::make_shared<ChElementBeamTaperedTimoshenko>();
+        mesh->AddElement(element);
+        beam_elems.push_back(element);
+
+        element->SetNodes(beam_nodes[i - 1], beam_nodes[i]);
+
+        ChQuaternion<> elrot = mrot.Get_A_quaternion();
+        element->SetNodeAreferenceRot(elrot.GetConjugate() % element->GetNodeA()->Frame().GetRot());
+        element->SetNodeBreferenceRot(elrot.GetConjugate() % element->GetNodeB()->Frame().GetRot());
+        // GetLog() << "Element n." << i << " with rotations: \n";
+        // GetLog() << "   Qa=" << element->GetNodeAreferenceRot() << "\n";
+        // GetLog() << "   Qb=" << element->GetNodeBreferenceRot() << "\n\n";
+        element->SetTaperedSection(sect);
+    }
+}
+
+
+// ------------------------------------------------------------------
+// ChBuilderBeamTaperedTimoshenkoFPM
+// ------------------------------------------------------------------
+
+void ChBuilderBeamTaperedTimoshenkoFPM::BuildBeam(
+    std::shared_ptr<ChMesh> mesh,                                         // mesh to store the resulting elements
+    std::shared_ptr<ChBeamSectionTaperedTimoshenkoAdvancedGenericFPM> sect,  // section material for beam elements
+    const int N,                                                          // number of elements in the segment
+    const ChVector<> A,                                                   // starting point
+    const ChVector<> B,                                                   // ending point
+    const ChVector<> Ydir                                                 // the 'up' Y direction of the beam
+) {
+    beam_elems.clear();
+    beam_nodes.clear();
+
+    ChMatrix33<> mrot;
+    mrot.Set_A_Xdir(B - A, Ydir);
+
+    auto nodeA = chrono_types::make_shared<ChNodeFEAxyzrot>(ChFrame<>(A, mrot));
+    mesh->AddNode(nodeA);
+    beam_nodes.push_back(nodeA);
+
+    for (int i = 1; i <= N; ++i) {
+        double eta = (double)i / (double)N;
+        ChVector<> pos = A + (B - A) * eta;
+
+        auto nodeB = chrono_types::make_shared<ChNodeFEAxyzrot>(ChFrame<>(pos, mrot));
+        mesh->AddNode(nodeB);
+        beam_nodes.push_back(nodeB);
+
+        auto element = chrono_types::make_shared<ChElementBeamTaperedTimoshenkoFPM>();
+        mesh->AddElement(element);
+        beam_elems.push_back(element);
+
+        element->SetNodes(beam_nodes[i - 1], beam_nodes[i]);
+
+        element->SetTaperedSection(sect);
+    }
+}
+
+void ChBuilderBeamTaperedTimoshenkoFPM::BuildBeam(
+    std::shared_ptr<ChMesh> mesh,                                         // mesh to store the resulting elements
+    std::shared_ptr<ChBeamSectionTaperedTimoshenkoAdvancedGenericFPM> sect,  // section material for beam elements
+    const int N,                                                          // number of elements in the segment
+    std::shared_ptr<ChNodeFEAxyzrot> nodeA,                               // starting point
+    std::shared_ptr<ChNodeFEAxyzrot> nodeB,                               // ending point
+    const ChVector<> Ydir                                                 // the 'up' Y direction of the beam
+) {
+    beam_elems.clear();
+    beam_nodes.clear();
+
+    ChMatrix33<> mrot;
+    mrot.Set_A_Xdir(nodeB->Frame().GetPos() - nodeA->Frame().GetPos(), Ydir);
+
+    beam_nodes.push_back(nodeA);
+
+    for (int i = 1; i <= N; ++i) {
+        double eta = (double)i / (double)N;
+        ChVector<> pos = nodeA->Frame().GetPos() + (nodeB->Frame().GetPos() - nodeA->Frame().GetPos()) * eta;
+
+        std::shared_ptr<ChNodeFEAxyzrot> nodeBi;
+        if (i < N) {
+            nodeBi = chrono_types::make_shared<ChNodeFEAxyzrot>(ChFrame<>(pos, mrot));
+            mesh->AddNode(nodeBi);
+        } else
+            nodeBi = nodeB;  // last node: use the one passed as parameter.
+
+        beam_nodes.push_back(nodeBi);
+
+        auto element = chrono_types::make_shared<ChElementBeamTaperedTimoshenkoFPM>();
+        mesh->AddElement(element);
+        beam_elems.push_back(element);
+
+        element->SetNodes(beam_nodes[i - 1], beam_nodes[i]);
+
+        ChQuaternion<> elrot = mrot.Get_A_quaternion();
+        element->SetNodeAreferenceRot(elrot.GetConjugate() % element->GetNodeA()->Frame().GetRot());
+        element->SetNodeBreferenceRot(elrot.GetConjugate() % element->GetNodeB()->Frame().GetRot());
+
+        element->SetTaperedSection(sect);
+    }
+}
+
+void ChBuilderBeamTaperedTimoshenkoFPM::BuildBeam(
+    std::shared_ptr<ChMesh> mesh,                                         // mesh to store the resulting elements
+    std::shared_ptr<ChBeamSectionTaperedTimoshenkoAdvancedGenericFPM> sect,  // section material for beam elements
+    const int N,                                                          // number of elements in the segment
+    std::shared_ptr<ChNodeFEAxyzrot> nodeA,                               // starting point
+    const ChVector<> B,                                                   // ending point
+    const ChVector<> Ydir                                                 // the 'up' Y direction of the beam
+) {
+    beam_elems.clear();
+    beam_nodes.clear();
+
+    ChMatrix33<> mrot;
+    mrot.Set_A_Xdir(B - nodeA->Frame().GetPos(), Ydir);
+
+    beam_nodes.push_back(nodeA);
+
+    for (int i = 1; i <= N; ++i) {
+        double eta = (double)i / (double)N;
+        ChVector<> pos = nodeA->Frame().GetPos() + (B - nodeA->Frame().GetPos()) * eta;
+
+        auto nodeBi = chrono_types::make_shared<ChNodeFEAxyzrot>(ChFrame<>(pos, mrot));
+        mesh->AddNode(nodeBi);
+        beam_nodes.push_back(nodeBi);
+
+        auto element = chrono_types::make_shared<ChElementBeamTaperedTimoshenkoFPM>();
         mesh->AddElement(element);
         beam_elems.push_back(element);
 

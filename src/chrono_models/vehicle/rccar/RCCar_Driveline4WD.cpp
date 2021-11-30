@@ -28,18 +28,18 @@ namespace rccar {
 // -----------------------------------------------------------------------------
 // Static variables
 // -----------------------------------------------------------------------------
-const double RCCar_Driveline4WD::m_central_differentialbox_inertia = 0.06;
-const double RCCar_Driveline4WD::m_front_differentialbox_inertia = 0.06;
-const double RCCar_Driveline4WD::m_rear_differentialbox_inertia = 0.06;
-const double RCCar_Driveline4WD::m_driveshaft_inertia = 0.05;
-const double RCCar_Driveline4WD::m_frontshaft_inertia = 0.05;
-const double RCCar_Driveline4WD::m_rearshaft_inertia = 0.05;
+const double RCCar_Driveline4WD::m_central_differentialbox_inertia = 0.00000797;  // estimate
+const double RCCar_Driveline4WD::m_front_differentialbox_inertia = 0.00000797;    // estimate
+const double RCCar_Driveline4WD::m_rear_differentialbox_inertia = 0.00000797;     // estimate
+const double RCCar_Driveline4WD::m_driveshaft_inertia = 0.000001;               // estimate
+const double RCCar_Driveline4WD::m_frontshaft_inertia = 0.000001;               // estimate
+const double RCCar_Driveline4WD::m_rearshaft_inertia = 0.000001;                // estimate
 
-const double RCCar_Driveline4WD::m_front_conicalgear_ratio = 1;
-const double RCCar_Driveline4WD::m_rear_conicalgear_ratio = 1;
+const double RCCar_Driveline4WD::m_front_conicalgear_ratio = .5; //TODO
+const double RCCar_Driveline4WD::m_rear_conicalgear_ratio = .5; //TODO
 
-const double RCCar_Driveline4WD::m_axle_differential_locking_limit = 100;
-const double RCCar_Driveline4WD::m_central_differential_locking_limit = 100;
+const double RCCar_Driveline4WD::m_axle_differential_locking_limit = 1000; //no locking on axle diffs
+const double RCCar_Driveline4WD::m_central_differential_locking_limit = 1; //no central diff
 
 // -----------------------------------------------------------------------------
 // Constructor of the RCCar_Driveline4WD.

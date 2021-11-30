@@ -93,7 +93,8 @@ int main(int argc, char* argv[]) {
     auto hnodeancf1 = chrono_types::make_shared<ChNodeFEAxyzD>(ChVector<>(0, 0, 0.0), ChVector<>(1, 0, 0));
     auto hnodeancf2 = chrono_types::make_shared<ChNodeFEAxyzD>(ChVector<>(beam_length / 4, 0, 0), ChVector<>(1, 0, 0));
     auto hnodeancf3 = chrono_types::make_shared<ChNodeFEAxyzD>(ChVector<>(beam_length / 2, 0, 0), ChVector<>(1, 0, 0));
-    auto hnodeancf4 = chrono_types::make_shared<ChNodeFEAxyzD>(ChVector<>(3.0 * beam_length / 4, 0, 0), ChVector<>(1, 0, 0));
+    auto hnodeancf4 =
+        chrono_types::make_shared<ChNodeFEAxyzD>(ChVector<>(3.0 * beam_length / 4, 0, 0), ChVector<>(1, 0, 0));
     auto hnodeancf5 = chrono_types::make_shared<ChNodeFEAxyzD>(ChVector<>(beam_length, 0, 0), ChVector<>(1, 0, 0));
 
     my_mesh->AddNode(hnodeancf1);
@@ -137,42 +138,15 @@ int main(int argc, char* argv[]) {
     constraint_hinge->Initialize(hnodeancf1, mtruss);
     my_system.Add(constraint_hinge);
 
-    // Cancel automatic gravity
-    my_mesh->SetAutomaticGravity(false);
-
     // Remember to add the mesh to the system!
     my_system.Add(my_mesh);
 
-    // Add external forces and initial conditions
-    // Angular velocity initial condition
+    // Set Angular velocity initial condition
     hnodeancf1->SetPos_dt(ChVector<>(0, 0, -Ang_VelY * beam_length / NElem * 0.0));
     hnodeancf2->SetPos_dt(ChVector<>(0, 0, -Ang_VelY * beam_length / NElem * 1.0));
     hnodeancf3->SetPos_dt(ChVector<>(0, 0, -Ang_VelY * beam_length / NElem * 2.0));
     hnodeancf4->SetPos_dt(ChVector<>(0, 0, -Ang_VelY * beam_length / NElem * 3.0));
     hnodeancf5->SetPos_dt(ChVector<>(0, 0, -Ang_VelY * beam_length / NElem * 4.0));
-
-    // First: loads must be added to "load containers",
-    // and load containers must be added to your system
-    auto mloadcontainer = chrono_types::make_shared<ChLoadContainer>();
-    my_system.Add(mloadcontainer);
-
-    // Add gravity (constant volumetric load): Use 2 Gauss integration points
-
-    auto mgravity1 = chrono_types::make_shared<ChLoad<ChLoaderGravity>>(belementancf1);
-    mgravity1->loader.SetNumIntPoints(2);
-    mloadcontainer->Add(mgravity1);
-
-    auto mgravity2 = chrono_types::make_shared<ChLoad<ChLoaderGravity>>(belementancf2);
-    mgravity2->loader.SetNumIntPoints(2);
-    mloadcontainer->Add(mgravity2);
-
-    auto mgravity3 = chrono_types::make_shared<ChLoad<ChLoaderGravity>>(belementancf3);
-    mgravity3->loader.SetNumIntPoints(2);
-    mloadcontainer->Add(mgravity3);
-
-    auto mgravity4 = chrono_types::make_shared<ChLoad<ChLoaderGravity>>(belementancf4);
-    mgravity4->loader.SetNumIntPoints(2);
-    mloadcontainer->Add(mgravity4);
 
     // Change solver settings
     auto solver = chrono_types::make_shared<ChSolverMINRES>();

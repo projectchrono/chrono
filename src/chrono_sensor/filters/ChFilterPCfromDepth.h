@@ -18,6 +18,7 @@
 #define CHFILTERPCFROMDEPTH_H
 
 #include "chrono_sensor/filters/ChFilter.h"
+#include <cuda.h>
 
 namespace chrono {
 namespace sensor {
@@ -36,16 +37,20 @@ class CH_SENSOR_API ChFilterPCfromDepth : public ChFilter {
     ChFilterPCfromDepth(std::string name = {});
 
     /// Apply function. Converts data from depth/intensity to point cloud data
-    /// @param pSensor A pointer to the sensor on which the filter is attached.
-    /// @param bufferInOut A buffer that is passed into the filter.
-    virtual void Apply(std::shared_ptr<ChSensor> pSensor, std::shared_ptr<SensorBuffer>& bufferInOut);
+    virtual void Apply();
 
     /// Initializes all data needed by the filter access apply function.
-    /// @param pSensor A pointer to the sensor.
-    virtual void Initialize(std::shared_ptr<ChSensor> pSensor) {}
+    /// @param pSensor A pointer to the sensor on which the filter is attached.
+    /// @param bufferInOut A buffer that is passed into the filter.
+    virtual void Initialize(std::shared_ptr<ChSensor> pSensor, std::shared_ptr<SensorBuffer>& bufferInOut);
 
   private:
-    std::shared_ptr<SensorDeviceXYZIBuffer> m_buffer;  ///< holder of the output buffer
+    float m_hFOV;                                          ///< field of view of the parent lidar
+    float m_min_vert_angle;                                ///< mimimum vertical angle of parent lidar
+    float m_max_vert_angle;                                ///< maximum vetical angle of parent lidar
+    CUstream m_cuda_stream;                                ///< reference to the cuda stream
+    std::shared_ptr<SensorDeviceDIBuffer> m_buffer_in;     ///< holder of the input buffer
+    std::shared_ptr<SensorDeviceXYZIBuffer> m_buffer_out;  ///< holder of the output buffer
 };
 
 /// @}
