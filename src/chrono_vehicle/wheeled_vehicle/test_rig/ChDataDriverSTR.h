@@ -26,8 +26,7 @@
 #ifndef CH_DATADRIVER_STR_H
 #define CH_DATADRIVER_STR_H
 
-#include <string>
-#include <vector>
+#include <memory>
 
 #include "chrono_vehicle/ChApiVehicle.h"
 #include "chrono_vehicle/wheeled_vehicle/test_rig/ChDriverSTR.h"
