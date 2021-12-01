@@ -232,7 +232,8 @@ __global__ void findCellStartEndD(uint* cellStartD,         // output: cell star
 }
 
 __global__ void reorderDataD(uint* gridMarkerIndexD,     // input: sorted particle indices
-                             uint* extendedActivityIdD,
+                             uint* extendedActivityIdD,  // input: particles in an extended active sub-domain
+                             uint* mapOriginalToSorted,  // input: original index to sorted index
                              Real4* sortedPosRadD,       // output: sorted positions
                              Real3* sortedVelMasD,       // output: sorted velocities
                              Real4* sortedRhoPreMuD,     // output: sorted density pressure
@@ -244,54 +245,61 @@ __global__ void reorderDataD(uint* gridMarkerIndexD,     // input: sorted partic
                              Real3* tauXxYyZzD,          // input: original total stress xxyyzz
                              Real3* tauXyXzYzD,          // input: original total stress xyzxyz
                              const size_t numAllMarkers) {
-    uint index = blockIdx.x * blockDim.x + threadIdx.x;
+    uint id = blockIdx.x * blockDim.x + threadIdx.x;
+    if (id >= numAllMarkers)
+        return;
 
-    if (index < numAllMarkers) {
-        /* Now use the sorted index to reorder the pos and vel data */
-        uint originalIndex = gridMarkerIndexD[index];  // map sorted to original
-        if(extendedActivityIdD[originalIndex] == 1) {
-            Real3 posRad = mR3(posRadD[originalIndex]);
-            Real3 velMas = velMasD[originalIndex];
-            Real4 rhoPreMu = rhoPresMuD[originalIndex];
+    // Now use the sorted index to reorder the pos and vel data
+    uint originalIndex = id;
 
-            if (!(isfinite(posRad.x) && isfinite(posRad.y) && isfinite(posRad.z))) {
-                printf(
-                    "Error! particle position is NAN: thrown from "
-                    "ChCollisionSystemFsi.cu, reorderDataAndFindCellStartD !\n");
-            }
-            if (!(isfinite(velMas.x) && isfinite(velMas.y) && isfinite(velMas.z))) {
-                printf(
-                    "Error! particle velocity is NAN: thrown from "
-                    "ChCollisionSystemFsi.cu, reorderDataAndFindCellStartD !\n");
-            }
-            if (!(isfinite(rhoPreMu.x) && isfinite(rhoPreMu.y) && isfinite(rhoPreMu.z) && isfinite(rhoPreMu.w))) {
-                printf(
-                    "Error! particle rhoPreMu is NAN: thrown from "
-                    "ChCollisionSystemFsi.cu, reorderDataAndFindCellStartD !\n");
-            }
+    // no need to do anything if it is not an active particle
+    uint activity = extendedActivityIdD[originalIndex];
+    if(activity == 0)
+        return; 
 
-            sortedPosRadD[index] = mR4(posRad, posRadD[originalIndex].w);
-            sortedVelMasD[index] = velMas;
-            sortedRhoPreMuD[index] = rhoPreMu;
+    // map original to sorted
+    uint index = mapOriginalToSorted[originalIndex]; 
 
-            // For granular material
-            if( paramsD.elastic_SPH ) {
-                Real3 tauXxYyZz = tauXxYyZzD[originalIndex];  
-                Real3 tauXyXzYz = tauXyXzYzD[originalIndex]; 
-                if (!(isfinite(tauXxYyZz.x) && isfinite(tauXxYyZz.y) && isfinite(tauXxYyZz.z))) {  
-                    printf(
-                        "Error! particle tauXxYyZz is NAN: thrown from "
-                        "ChCollisionSystemFsi.cu, reorderDataAndFindCellStartD !\n");
-                }
-                if (!(isfinite(tauXyXzYz.x) && isfinite(tauXyXzYz.y) && isfinite(tauXyXzYz.z))) { 
-                    printf(
-                        "Error! particle tauXyXzYz is NAN: thrown from "
-                        "ChCollisionSystemFsi.cu, reorderDataAndFindCellStartD !\n");
-                }
-                sortedTauXxYyZzD[index] = tauXxYyZz;  
-                sortedTauXyXzYzD[index] = tauXyXzYz; 
-            }
+    Real3 posRad = mR3(posRadD[originalIndex]);
+    Real3 velMas = velMasD[originalIndex];
+    Real4 rhoPreMu = rhoPresMuD[originalIndex];
+
+    if (!(isfinite(posRad.x) && isfinite(posRad.y) && isfinite(posRad.z))) {
+        printf(
+            "Error! particle position is NAN: thrown from "
+            "ChCollisionSystemFsi.cu, reorderDataAndFindCellStartD !\n");
+    }
+    if (!(isfinite(velMas.x) && isfinite(velMas.y) && isfinite(velMas.z))) {
+        printf(
+            "Error! particle velocity is NAN: thrown from "
+            "ChCollisionSystemFsi.cu, reorderDataAndFindCellStartD !\n");
+    }
+    if (!(isfinite(rhoPreMu.x) && isfinite(rhoPreMu.y) && isfinite(rhoPreMu.z) && isfinite(rhoPreMu.w))) {
+        printf(
+            "Error! particle rhoPreMu is NAN: thrown from "
+            "ChCollisionSystemFsi.cu, reorderDataAndFindCellStartD !\n");
+    }
+
+    sortedPosRadD[index] = mR4(posRad, posRadD[originalIndex].w);
+    sortedVelMasD[index] = velMas;
+    sortedRhoPreMuD[index] = rhoPreMu;
+
+    // For granular material
+    if( paramsD.elastic_SPH ) {
+        Real3 tauXxYyZz = tauXxYyZzD[originalIndex];  
+        Real3 tauXyXzYz = tauXyXzYzD[originalIndex]; 
+        if (!(isfinite(tauXxYyZz.x) && isfinite(tauXxYyZz.y) && isfinite(tauXxYyZz.z))) {  
+            printf(
+                "Error! particle tauXxYyZz is NAN: thrown from "
+                "ChCollisionSystemFsi.cu, reorderDataAndFindCellStartD !\n");
         }
+        if (!(isfinite(tauXyXzYz.x) && isfinite(tauXyXzYz.y) && isfinite(tauXyXzYz.z))) { 
+            printf(
+                "Error! particle tauXyXzYz is NAN: thrown from "
+                "ChCollisionSystemFsi.cu, reorderDataAndFindCellStartD !\n");
+        }
+        sortedTauXxYyZzD[index] = tauXxYyZz;  
+        sortedTauXyXzYzD[index] = tauXyXzYz; 
     }
 }
 
@@ -395,9 +403,17 @@ void ChCollisionSystemFsi::reorderDataAndFindCellStart() {
     cudaDeviceSynchronize();
     cudaCheckError();
 
+    // Launch a kernel to find the location of original particles in the sorted arrays.
+    // This is faster than using thrust::sort_by_key()
+    OriginalToSortedD<<<numBlocks, numThreads>>>(
+        U1CAST(markersProximityD->mapOriginalToSorted),
+        U1CAST(markersProximityD->gridMarkerIndexD), numObjectsH->numAllMarkers);
+
     // Reorder the arrays according to the sorted index of all particles
-    reorderDataD<<<numBlocks, numThreads, smemSize>>>(
-        U1CAST(markersProximityD->gridMarkerIndexD), U1CAST(fsiGeneralData->extendedActivityIdD),
+    reorderDataD<<<numBlocks, numThreads>>>(
+        U1CAST(markersProximityD->gridMarkerIndexD),
+        U1CAST(fsiGeneralData->extendedActivityIdD),
+        U1CAST(markersProximityD->mapOriginalToSorted),
         mR4CAST(sortedSphMarkersD->posRadD), mR3CAST(sortedSphMarkersD->velMasD), 
         mR4CAST(sortedSphMarkersD->rhoPresMuD), mR3CAST(sortedSphMarkersD->tauXxYyZzD), 
         mR3CAST(sortedSphMarkersD->tauXyXzYzD), mR4CAST(sphMarkersD->posRadD), 
@@ -406,17 +422,6 @@ void ChCollisionSystemFsi::reorderDataAndFindCellStart() {
         numObjectsH->numAllMarkers);
     cudaDeviceSynchronize();
     cudaCheckError();
-
-    // Unroll sorted index to have the location of original particles in the sorted arrays
-    // thrust::device_vector<uint> dummyIndex = markersProximityD->gridMarkerIndexD;
-    // thrust::sort_by_key(dummyIndex.begin(), dummyIndex.end(), markersProximityD->mapOriginalToSorted.begin());
-    // dummyIndex.clear();
-
-    // Launch a kernel to find the location of original particles in the sorted arrays.
-    // This is faster than using thrust::sort_by_key()
-    OriginalToSortedD<<<numBlocks, numThreads, smemSize>>>(U1CAST(markersProximityD->mapOriginalToSorted),
-        U1CAST(markersProximityD->gridMarkerIndexD), numObjectsH->numAllMarkers);
-
 }
 
 void ChCollisionSystemFsi::ArrangeData(std::shared_ptr<SphMarkerDataD> otherSphMarkersD) {
