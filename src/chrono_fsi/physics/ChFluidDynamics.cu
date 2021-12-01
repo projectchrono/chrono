@@ -54,11 +54,17 @@ __device__ void collideCellDensityReInit(Real& numerator,
 
 // -----------------------------------------------------------------------------
 // Kernel to apply periodic BC along x
-__global__ void ApplyPeriodicBoundaryXKernel(Real4* posRadD, Real4* rhoPresMuD) {
+__global__ void ApplyPeriodicBoundaryXKernel(Real4* posRadD, Real4* rhoPresMuD,
+    uint* activityIdentifierD) {
     uint index = blockIdx.x * blockDim.x + threadIdx.x;
     if (index >= numObjectsD.numAllMarkers) {
         return;
     }
+
+    uint activity = activityIdentifierD[index];
+    if(activity == 0)
+        return; // no need to do anything if it is not an active particle
+
     Real4 rhoPresMu = rhoPresMuD[index];
     if (fabs(rhoPresMu.w) < .1) {
         return;
@@ -126,11 +132,17 @@ __global__ void ApplyInletBoundaryXKernel(Real4* posRadD, Real3* VelMassD, Real4
 
 // -----------------------------------------------------------------------------
 // Kernel to apply periodic BC along y
-__global__ void ApplyPeriodicBoundaryYKernel(Real4* posRadD, Real4* rhoPresMuD) {
+__global__ void ApplyPeriodicBoundaryYKernel(Real4* posRadD, Real4* rhoPresMuD,
+    uint* activityIdentifierD) {
     uint index = blockIdx.x * blockDim.x + threadIdx.x;
     if (index >= numObjectsD.numAllMarkers) {
         return;
     }
+
+    uint activity = activityIdentifierD[index];
+    if(activity == 0)
+        return; // no need to do anything if it is not an active particle
+
     Real4 rhoPresMu = rhoPresMuD[index];
     if (fabs(rhoPresMu.w) < .1) {
         return;
@@ -160,11 +172,17 @@ __global__ void ApplyPeriodicBoundaryYKernel(Real4* posRadD, Real4* rhoPresMuD) 
 
 // -----------------------------------------------------------------------------
 // Kernel to apply periodic BC along z
-__global__ void ApplyPeriodicBoundaryZKernel(Real4* posRadD, Real4* rhoPresMuD) {
+__global__ void ApplyPeriodicBoundaryZKernel(Real4* posRadD, Real4* rhoPresMuD,
+    uint* activityIdentifierD) {
     uint index = blockIdx.x * blockDim.x + threadIdx.x;
     if (index >= numObjectsD.numAllMarkers) {
         return;
     }
+
+    uint activity = activityIdentifierD[index];
+    if(activity == 0)
+        return; // no need to do anything if it is not an active particle
+
     Real4 rhoPresMu = rhoPresMuD[index];
     if (fabs(rhoPresMu.w) < .1) {
         return;
@@ -719,18 +737,21 @@ void ChFluidDynamics::ApplyBoundarySPH_Markers(std::shared_ptr<SphMarkerDataD> s
     uint numBlocks, numThreads;
 
     computeGridSize((int)numObjectsH->numAllMarkers, 256, numBlocks, numThreads);
-    ApplyPeriodicBoundaryXKernel<<<numBlocks, numThreads>>>
-        (mR4CAST(sphMarkersD->posRadD), mR4CAST(sphMarkersD->rhoPresMuD));
+    ApplyPeriodicBoundaryXKernel<<<numBlocks, numThreads>>>(
+        mR4CAST(sphMarkersD->posRadD), mR4CAST(sphMarkersD->rhoPresMuD),
+        U1CAST(fsiSystem->fsiGeneralData->activityIdentifierD));
     cudaDeviceSynchronize();
     cudaCheckError();
 
-    ApplyPeriodicBoundaryYKernel<<<numBlocks, numThreads>>>
-        (mR4CAST(sphMarkersD->posRadD), mR4CAST(sphMarkersD->rhoPresMuD));
+    ApplyPeriodicBoundaryYKernel<<<numBlocks, numThreads>>>(
+        mR4CAST(sphMarkersD->posRadD), mR4CAST(sphMarkersD->rhoPresMuD),
+        U1CAST(fsiSystem->fsiGeneralData->activityIdentifierD));
     cudaDeviceSynchronize();
     cudaCheckError();
 
-    ApplyPeriodicBoundaryZKernel<<<numBlocks, numThreads>>>
-        (mR4CAST(sphMarkersD->posRadD), mR4CAST(sphMarkersD->rhoPresMuD));
+    ApplyPeriodicBoundaryZKernel<<<numBlocks, numThreads>>>(
+        mR4CAST(sphMarkersD->posRadD), mR4CAST(sphMarkersD->rhoPresMuD),
+        U1CAST(fsiSystem->fsiGeneralData->activityIdentifierD));
     cudaDeviceSynchronize();
     cudaCheckError();
 
@@ -757,12 +778,14 @@ void ChFluidDynamics::ApplyModifiedBoundarySPH_Markers(std::shared_ptr<SphMarker
 
     // these are useful anyway for out of bound particles
     ApplyPeriodicBoundaryYKernel<<<numBlocks, numThreads>>>
-        (mR4CAST(sphMarkersD->posRadD),mR4CAST(sphMarkersD->rhoPresMuD));
+        (mR4CAST(sphMarkersD->posRadD),mR4CAST(sphMarkersD->rhoPresMuD),
+         U1CAST(fsiSystem->fsiGeneralData->activityIdentifierD));
     cudaDeviceSynchronize();
     cudaCheckError();
 
     ApplyPeriodicBoundaryZKernel<<<numBlocks, numThreads>>>
-        (mR4CAST(sphMarkersD->posRadD), mR4CAST(sphMarkersD->rhoPresMuD));
+        (mR4CAST(sphMarkersD->posRadD), mR4CAST(sphMarkersD->rhoPresMuD),
+         U1CAST(fsiSystem->fsiGeneralData->activityIdentifierD));
     cudaDeviceSynchronize();
     cudaCheckError();
 }
