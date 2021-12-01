@@ -1488,22 +1488,23 @@ __global__ void CopySortedToOriginal_D(Real4* sortedDerivVelRho,
                                        Real3* originalDerivTauXyXzYz,
                                        uint* gridMarkerIndex,
                                        uint* activityIdentifierD,
+                                       uint* mapOriginalToSorted,
                                        const size_t numAllMarkers) {
     uint id = blockIdx.x * blockDim.x + threadIdx.x;
     if (id >= numAllMarkers)
         return;
 
-    uint index = gridMarkerIndex[id];
-
     // Check the activity of this particle
-    uint activity = activityIdentifierD[index];
+    uint activity = activityIdentifierD[id];
     if(activity == 0)
         return;
 
-    originalDerivVelRho[index] = sortedDerivVelRho[id];
+    uint index = mapOriginalToSorted[id];
+
+    originalDerivVelRho[id] = sortedDerivVelRho[index];
     if(paramsD.elastic_SPH){
-        originalDerivTauXxYyZz[index] = sortedDerivTauXxYyZz[id];
-        originalDerivTauXyXzYz[index] = sortedDerivTauXyXzYz[id];
+        originalDerivTauXxYyZz[id] = sortedDerivTauXxYyZz[index];
+        originalDerivTauXyXzYz[id] = sortedDerivTauXyXzYz[index];
     }
     return;
 }
@@ -1512,19 +1513,20 @@ __global__ void CopySortedToOriginal_XSPH_D(Real3* sortedXSPH,
                                             Real3* originalXSPH,
                                             uint* gridMarkerIndex,
                                             uint* activityIdentifierD,
+                                            uint* mapOriginalToSorted,
                                             const size_t numAllMarkers) {
     uint id = blockIdx.x * blockDim.x + threadIdx.x;
     if (id >= numAllMarkers)
         return;
 
-    uint index = gridMarkerIndex[id];
-
     // Check the activity of this particle
-    uint activity = activityIdentifierD[index];
+    uint activity = activityIdentifierD[id];
     if(activity == 0)
         return;
 
-    originalXSPH[index] = sortedXSPH[id];
+    uint index = mapOriginalToSorted[id];
+
+    originalXSPH[id] = sortedXSPH[index];
 }
 
 //--------------------------------------------------------------------------------------------------------------------------------
@@ -1657,7 +1659,7 @@ void ChFsiForceExplicitSPH::CollideWrapper() {
         mR3CAST(sortedDerivTauXyXzYz), mR4CAST(fsiGeneralData->derivVelRhoD_old),
         mR3CAST(fsiGeneralData->derivTauXxYyZzD), mR3CAST(fsiGeneralData->derivTauXyXzYzD),
         U1CAST(markersProximityD->gridMarkerIndexD), U1CAST(fsiGeneralData->activityIdentifierD),
-        numObjectsH->numAllMarkers);
+        U1CAST(markersProximityD->mapOriginalToSorted), numObjectsH->numAllMarkers);
 
     sortedDerivVelRho.clear();
     sortedDerivTauXxYyZz.clear();
@@ -1698,8 +1700,10 @@ void ChFsiForceExplicitSPH::CalculateXSPH_velocity() {
         // The XSPH vector already included in the shifting vector
         CopySortedToOriginal_XSPH_D<<<numBlocks1, numThreads1>>>(
             mR3CAST(sortedXSPHandShift), mR3CAST(fsiGeneralData->vel_XSPH_D),
-            U1CAST(markersProximityD->gridMarkerIndexD), 
-            U1CAST(fsiGeneralData->activityIdentifierD), numObjectsH->numAllMarkers);
+            U1CAST(markersProximityD->gridMarkerIndexD),
+            U1CAST(fsiGeneralData->activityIdentifierD),
+            U1CAST(markersProximityD->mapOriginalToSorted),
+            numObjectsH->numAllMarkers);
     }else{
         thrust::device_vector<Real4> sortedPosRad_old = sortedSphMarkersD->posRadD;
         thrust::fill(vel_XSPH_Sorted_D.begin(), vel_XSPH_Sorted_D.end(), mR3(0.0));
@@ -1724,8 +1728,10 @@ void ChFsiForceExplicitSPH::CalculateXSPH_velocity() {
 
         CopySortedToOriginal_XSPH_D<<<numBlocks1, numThreads1>>>(
             mR3CAST(vel_XSPH_Sorted_D), mR3CAST(fsiGeneralData->vel_XSPH_D),
-            U1CAST(markersProximityD->gridMarkerIndexD), 
-            U1CAST(fsiGeneralData->activityIdentifierD), numObjectsH->numAllMarkers);
+            U1CAST(markersProximityD->gridMarkerIndexD),
+            U1CAST(fsiGeneralData->activityIdentifierD),
+            U1CAST(markersProximityD->mapOriginalToSorted),
+            numObjectsH->numAllMarkers);
     }
 
     if (density_initialization % paramsH->densityReinit == 0)
