@@ -87,6 +87,9 @@ class CH_VEHICLE_API ChSuspensionTestRig {
     /// Advance the state of the suspension test rig by the specified time step.
     void Advance(double step);
 
+    /// Get a handle to the underlying vehicle system.
+    ChWheeledVehicle& GetVehicle() const { return *m_vehicle; }
+
     /// Get the global location of the specified spindle.
     /// Note: 'axle' is the index in the set of tested axles.
     const ChVector<>& GetSpindlePos(int axle, VehicleSide side) const;
@@ -164,13 +167,17 @@ class CH_VEHICLE_API ChSuspensionTestRig {
     void PlotOutput(const std::string& out_dir, const std::string& out_name);
 
   protected:
-    /// Construct a test rig for a specified axle of a given vehicle.
-    /// This version uses a concrete vehicle object.
-    ChSuspensionTestRig(ChWheeledVehicle& vehicle,        ///< vehicle source
-                        std::vector<int> axle_index,      ///< indices of the suspension to be tested
-                        std::vector<int> steering_index,  ///< indices of associated steering subsystem
-                        double displ_limit                ///< displacement limits
+    /// Construct a test rig for specified sets of axles and sterring mechanisms of a given vehicle.
+    ChSuspensionTestRig(std::shared_ptr<ChWheeledVehicle> vehicle,  ///< test vehicle
+                        std::vector<int> axle_index,                ///< list of tested vehicle axles
+                        std::vector<int> steering_index,            ///< list of tested vehicle steering mechanisms
+                        double displ_limit                          ///< displacement limits
     );
+
+    /// Construct a test rig from the given JSON specification file.
+    /// An STR specification file includes the JSON specification for the underlying vehicle, the sets of tested vehicle
+    /// subsystems, and the displacement limit for the rig posts.
+    ChSuspensionTestRig(const std::string& spec_filename);
 
     /// Create and initialize the bodies, joints, and actuators of the rig mechanism.
     virtual void InitializeRig() = 0;
@@ -192,11 +199,11 @@ class CH_VEHICLE_API ChSuspensionTestRig {
     /// Collect data for plot output.
     void CollectPlotData(double time);
 
-    ChWheeledVehicle& m_vehicle;        ///< associated vehicle
-    std::vector<int> m_axle_index;      ///< list of tested vehicle axles in rig
-    std::vector<int> m_steering_index;  ///< list of tested vehicle steering mechanisms in rig
-    int m_naxles;                       ///< number of tested axles
-    int m_nsteerings;                   ///< number of tested steering mechanisms
+    std::shared_ptr<ChWheeledVehicle> m_vehicle;  ///< associated vehicle
+    std::vector<int> m_axle_index;                ///< list of tested vehicle axles in rig
+    std::vector<int> m_steering_index;            ///< list of tested vehicle steering mechanisms in rig
+    int m_naxles;                                 ///< number of tested axles
+    int m_nsteerings;                             ///< number of tested steering mechanisms
 
     double m_ride_height;                ///< ride height
     double m_displ_limit;                ///< scale factor for post displacement
@@ -232,12 +239,17 @@ class CH_VEHICLE_API ChSuspensionTestRig {
 /// Definition of a suspension test rig using platforms to actuate the tires.
 class CH_VEHICLE_API ChSuspensionTestRigPlatform : public ChSuspensionTestRig {
   public:
-    /// Construct a test rig for a specified axle of a given vehicle.
-    ChSuspensionTestRigPlatform(ChWheeledVehicle& vehicle,        ///< vehicle source
-                                std::vector<int> axle_index,      ///< indices of the suspension to be tested
-                                std::vector<int> steering_index,  ///< indices of associated steering subsystem
+    /// Construct a test rig for specified sets of axles and sterring mechanisms of a given vehicle.
+    ChSuspensionTestRigPlatform(std::shared_ptr<ChWheeledVehicle> vehicle,  ///< test vehicle
+                                std::vector<int> axle_index,                ///< list of tested vehicle axles
+                                std::vector<int> steering_index,  ///< list of tested vehicle steering mechanisms
                                 double displ_limit                ///< displacement limits
     );
+
+    /// Construct a test rig from the given JSON specification file.
+    /// An STR specification file includes the JSON specification for the underlying vehicle, the sets of tested vehicle
+    /// subsystems, and the displacement limit for the rig posts.
+    ChSuspensionTestRigPlatform(const std::string& spec_filename);
 
     ~ChSuspensionTestRigPlatform();
 
@@ -277,12 +289,17 @@ class CH_VEHICLE_API ChSuspensionTestRigPlatform : public ChSuspensionTestRig {
 /// Definition of a suspension test rig with direct actuation on the spindle bodies.
 class CH_VEHICLE_API ChSuspensionTestRigPushrod : public ChSuspensionTestRig {
   public:
-    /// Construct a test rig for a specified axle of a given vehicle.
-    ChSuspensionTestRigPushrod(ChWheeledVehicle& vehicle,        ///< vehicle source
-                               std::vector<int> axle_index,      ///< indices of the suspension to be tested
-                               std::vector<int> steering_index,  ///< indices of associated steering subsystem
-                               double displ_limit                ///< displacement limits
+    /// Construct a test rig for specified sets of axles and sterring mechanisms of a given vehicle.
+    ChSuspensionTestRigPushrod(std::shared_ptr<ChWheeledVehicle> vehicle,  ///< test vehicle
+                               std::vector<int> axle_index,                ///< list of tested vehicle axles
+                               std::vector<int> steering_index,            ///< list of tested vehicle steering mechanisms
+                               double displ_limit                          ///< displacement limits
     );
+
+    /// Construct a test rig from the given JSON specification file.
+    /// An STR specification file includes the JSON specification for the underlying vehicle, the sets of tested vehicle
+    /// subsystems, and the displacement limit for the rig posts.
+    ChSuspensionTestRigPushrod(const std::string& spec_filename);
 
     ~ChSuspensionTestRigPushrod();
 

@@ -29,11 +29,7 @@
 namespace chrono {
 namespace vehicle {
 
-ChDriverSTR::ChDriverSTR()
-    : m_time(0),
-      m_steering(0),
-      m_delay(0),
-      m_log_filename("") {}
+ChDriverSTR::ChDriverSTR() : m_time(0), m_steering(0), m_delay(0), m_log_filename("") {}
 
 void ChDriverSTR::Synchronize(double time) {
     m_time = time;

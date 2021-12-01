@@ -27,15 +27,12 @@
 #include "chrono/assets/ChColorAsset.h"
 #include "chrono/assets/ChCylinderShape.h"
 
-#include "chrono_vehicle/chassis/ChRigidChassis.h"
 #include "chrono_vehicle/ChVehicleModelData.h"
 #include "chrono_vehicle/utils/ChUtilsJSON.h"
-
-#include "chrono_thirdparty/rapidjson/prettywriter.h"
-#include "chrono_thirdparty/rapidjson/stringbuffer.h"
+#include "chrono_vehicle/wheeled_vehicle/vehicle/WheeledVehicle.h"
 
 #ifdef CHRONO_POSTPROCESS
-#include "chrono_postprocess/ChGnuPlot.h"
+    #include "chrono_postprocess/ChGnuPlot.h"
 #endif
 
 using namespace rapidjson;
@@ -58,8 +55,7 @@ class TestRigTerrain : public ChTerrain {
     std::vector<double> m_height_R;
 };
 
-TestRigTerrain::TestRigTerrain(int naxles, const std::vector<double>& x)
-    : m_naxles(naxles), m_x(x) {
+TestRigTerrain::TestRigTerrain(int naxles, const std::vector<double>& x) : m_naxles(naxles), m_x(x) {
     m_height_L.resize(naxles, -1000);
     m_height_R.resize(naxles, -1000);
 }
@@ -96,7 +92,7 @@ const double ChSuspensionTestRigPushrod::m_rod_radius = 0.02;
 // =============================================================================
 // Base class implementation
 // =============================================================================
-ChSuspensionTestRig::ChSuspensionTestRig(ChWheeledVehicle& vehicle,
+ChSuspensionTestRig::ChSuspensionTestRig(std::shared_ptr<ChWheeledVehicle> vehicle,
                                          std::vector<int> axle_index,
                                          std::vector<int> steering_index,
                                          double displ_limit)
@@ -121,13 +117,74 @@ ChSuspensionTestRig::ChSuspensionTestRig(ChWheeledVehicle& vehicle,
     m_nsteerings = (int)steering_index.size();
 
     // Initialize the vehicle
-    m_vehicle.Initialize(ChCoordsys<>());
+    m_vehicle->Initialize(ChCoordsys<>());
 
     // Fix chassis to ground
-    m_vehicle.GetChassis()->SetFixed(true);
+    m_vehicle->GetChassis()->SetFixed(true);
 
     // Disconnect driveline
-    m_vehicle.DisconnectDriveline();
+    m_vehicle->DisconnectDriveline();
+}
+
+ChSuspensionTestRig::ChSuspensionTestRig(const std::string& spec_filename)
+    : m_vis_suspension(VisualizationType::PRIMITIVES),
+      m_vis_steering(VisualizationType::PRIMITIVES),
+      m_vis_wheel(VisualizationType::NONE),
+      m_vis_tire(VisualizationType::PRIMITIVES),
+      m_out_steering(false),
+      m_out_suspension(false),
+      m_out_antiroll(false),
+      m_plot_output(false),
+      m_plot_output_step(0),
+      m_next_plot_output_time(0),
+      m_csv(nullptr) {
+    // Open and parse the input file (rig JSON specification file)
+    Document d;
+    ReadFileJSON(spec_filename, d);
+    if (d.IsNull())
+        return;
+
+    // Read top-level data
+    assert(d.HasMember("Type"));
+    std::string type = d["Type"].GetString();
+    assert(type.compare("SuspensionTestRig") == 0);
+
+    assert(d.HasMember("Vehicle Input File"));
+    m_vehicle = chrono_types::make_shared<WheeledVehicle>(vehicle::GetDataFile(d["Vehicle Input File"].GetString()),
+                                                          ChContactMethod::SMC);
+
+    assert(d.HasMember("Test Axle Indices"));
+    m_naxles = (int)d["Test Axle Indices"].Size();
+    m_axle_index.resize(m_naxles);
+    for (int ia = 0; ia < m_naxles; ia++)
+        m_axle_index[ia] = d["Test Axle Indices"][ia].GetInt();
+
+    if (d.HasMember("Test Steering Indices")) {
+        m_nsteerings = (int)d["Test Steering Indices"].Size();
+        m_steering_index.resize(m_naxles);
+        for (int ia = 0; ia < m_nsteerings; ia++)
+            m_steering_index[ia] = d["Test Steering Indices"][ia].GetInt();
+    } else {
+        m_nsteerings = 0;
+    }
+
+    assert(d.HasMember("Displacement Limit"));
+    m_displ_limit = d["Displacement Limit"].GetDouble();
+
+    if (d.HasMember("Initial Ride Height")) {
+        m_ride_height = d["Initial Ride Height"].GetDouble();
+    } else {
+        m_ride_height = -1;
+    }
+
+    // Initialize the vehicle
+    m_vehicle->Initialize(ChCoordsys<>());
+
+    // Fix chassis to ground
+    m_vehicle->GetChassis()->SetFixed(true);
+
+    // Disconnect driveline
+    m_vehicle->DisconnectDriveline();
 }
 
 ChSuspensionTestRig::~ChSuspensionTestRig() {
@@ -136,17 +193,17 @@ ChSuspensionTestRig::~ChSuspensionTestRig() {
 
 void ChSuspensionTestRig::Initialize() {
     for (auto ia : m_axle_index) {
-        if (ia < 0 || ia >= m_vehicle.GetNumberAxles()) {
+        if (ia < 0 || ia >= m_vehicle->GetNumberAxles()) {
             throw ChException("Incorrect axle index " + std::to_string(ia) + " for the given vehicle");
         }
-        for (const auto& wheel : m_vehicle.GetAxle(ia)->GetWheels()) {
+        for (const auto& wheel : m_vehicle->GetAxle(ia)->GetWheels()) {
             if (!wheel->GetTire()) {
                 throw ChException("No tires attached to axle " + std::to_string(ia) + " for the given vehicle");
             }
         }
     }
     for (auto is : m_steering_index) {
-        if (is < 0 || is >= (int)m_vehicle.GetSteerings().size()) {
+        if (is < 0 || is >= (int)m_vehicle->GetSteerings().size()) {
             throw ChException("Incorrect steering index " + std::to_string(is) + " for the given vehicle");
         }
     }
@@ -156,24 +213,24 @@ void ChSuspensionTestRig::Initialize() {
     }
 
     // Initialize visualization for all vehicle subsystems
-    m_vehicle.SetChassisVisualizationType(VisualizationType::NONE);
-    m_vehicle.SetSubchassisVisualizationType(VisualizationType::NONE);
-    m_vehicle.SetSteeringVisualizationType(VisualizationType::NONE);
-    m_vehicle.SetSuspensionVisualizationType(VisualizationType::NONE);
-    m_vehicle.SetWheelVisualizationType(VisualizationType::NONE);
-    m_vehicle.SetTireVisualizationType(VisualizationType::NONE);
+    m_vehicle->SetChassisVisualizationType(VisualizationType::NONE);
+    m_vehicle->SetSubchassisVisualizationType(VisualizationType::PRIMITIVES);
+    m_vehicle->SetSteeringVisualizationType(VisualizationType::NONE);
+    m_vehicle->SetSuspensionVisualizationType(VisualizationType::NONE);
+    m_vehicle->SetWheelVisualizationType(VisualizationType::NONE);
+    m_vehicle->SetTireVisualizationType(VisualizationType::NONE);
 
     // Process steering mechanisms
     for (auto is : m_steering_index) {
         // Overwrite visualization setting
-        m_vehicle.GetSteering(is)->SetVisualizationType(m_vis_steering);
+        m_vehicle->GetSteering(is)->SetVisualizationType(m_vis_steering);
         // Overwrite output setting
-        m_vehicle.SetSteeringOutput(is, m_out_steering);
+        m_vehicle->SetSteeringOutput(is, m_out_steering);
     }
 
     // Process axles
     for (auto ia : m_axle_index) {
-        const auto& axle = m_vehicle.GetAxle(ia);
+        const auto& axle = m_vehicle->GetAxle(ia);
         // Overwrite visualization setting
         axle->m_suspension->SetVisualizationType(m_vis_suspension);
         for (const auto& wheel : axle->GetWheels()) {
@@ -181,7 +238,7 @@ void ChSuspensionTestRig::Initialize() {
             wheel->GetTire()->SetVisualizationType(m_vis_tire);
         }
         // Overwrite output setting
-        m_vehicle.SetSuspensionOutput(ia, m_out_suspension);
+        m_vehicle->SetSuspensionOutput(ia, m_out_suspension);
         // Initialize reference spindle vertical positions at design configuration.
         m_spindle_ref_L.push_back(axle->m_suspension->GetSpindlePos(LEFT).z());
         m_spindle_ref_R.push_back(axle->m_suspension->GetSpindlePos(RIGHT).z());
@@ -195,7 +252,7 @@ void ChSuspensionTestRig::Initialize() {
     double displ_delay = 0;
     m_displ_offset.resize(m_naxles, 0.0);
     if (m_ride_height > 0) {
-        displ_delay = 0.1;
+        displ_delay = 0.5;
         for (int ia = 0; ia < m_naxles; ia++) {
             m_displ_offset[ia] = CalcDisplacementOffset(ia);
         }
@@ -204,7 +261,7 @@ void ChSuspensionTestRig::Initialize() {
     // Create the terrain system; pass spindle X positions
     std::vector<double> xS;
     for (auto ia : m_axle_index) {
-        const auto& suspension = m_vehicle.GetAxle(ia)->m_suspension;
+        const auto& suspension = m_vehicle->GetAxle(ia)->m_suspension;
         xS.push_back(suspension->GetSpindlePos(LEFT).x());
     }
     m_terrain = std::unique_ptr<ChTerrain>(new TestRigTerrain(m_naxles, xS));
@@ -226,25 +283,25 @@ void ChSuspensionTestRig::SetDriver(std::shared_ptr<ChDriverSTR> driver) {
 // -----------------------------------------------------------------------------
 
 const ChVector<>& ChSuspensionTestRig::GetSpindlePos(int axle, VehicleSide side) const {
-    return m_vehicle.GetSpindlePos(m_axle_index[axle], side);
+    return m_vehicle->GetSpindlePos(m_axle_index[axle], side);
 }
 
 ChQuaternion<> ChSuspensionTestRig::GetSpindleRot(int axle, VehicleSide side) const {
-    return m_vehicle.GetSpindleRot(m_axle_index[axle], side);
+    return m_vehicle->GetSpindleRot(m_axle_index[axle], side);
 }
 
 const ChVector<>& ChSuspensionTestRig::GetSpindleLinVel(int axle, VehicleSide side) const {
-    return m_vehicle.GetSpindleLinVel(m_axle_index[axle], side);
+    return m_vehicle->GetSpindleLinVel(m_axle_index[axle], side);
 }
 
 ChVector<> ChSuspensionTestRig::GetSpindleAngVel(int axle, VehicleSide side) const {
-    return m_vehicle.GetSpindleAngVel(m_axle_index[axle], side);
+    return m_vehicle->GetSpindleAngVel(m_axle_index[axle], side);
 }
 
 double ChSuspensionTestRig::GetWheelTravel(int axle, VehicleSide side) const {
-    if (m_vehicle.GetChTime() < m_driver->m_delay)
+    if (m_vehicle->GetChTime() < m_driver->m_delay)
         return 0;
-    const auto& suspension = m_vehicle.GetAxle(m_axle_index[axle])->m_suspension;
+    const auto& suspension = m_vehicle->GetAxle(m_axle_index[axle])->m_suspension;
     return (side == LEFT) ? suspension->GetSpindlePos(LEFT).z() - m_spindle_ref_L[axle]
                           : suspension->GetSpindlePos(RIGHT).z() - m_spindle_ref_R[axle];
 }
@@ -252,7 +309,7 @@ double ChSuspensionTestRig::GetWheelTravel(int axle, VehicleSide side) const {
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 void ChSuspensionTestRig::Advance(double step) {
-    double time = m_vehicle.GetChTime();
+    double time = m_vehicle->GetChTime();
 
     // Actuation inputs
     std::vector<double> displ_left(m_naxles, 0.0);
@@ -266,7 +323,7 @@ void ChSuspensionTestRig::Advance(double step) {
             displ_left[ia] = m_displ_offset[ia] * time / m_driver->m_delay;
             displ_right[ia] = m_displ_offset[ia] * time / m_driver->m_delay;
             // Update spindle vertical reference positions
-            const auto& suspension = m_vehicle.GetAxle(m_axle_index[ia])->m_suspension;
+            const auto& suspension = m_vehicle->GetAxle(m_axle_index[ia])->m_suspension;
             m_spindle_ref_L.push_back(suspension->GetSpindlePos(LEFT).z());
             m_spindle_ref_R.push_back(suspension->GetSpindlePos(RIGHT).z());
         }
@@ -291,7 +348,7 @@ void ChSuspensionTestRig::Advance(double step) {
 
     // Synchronize vehicle system
     ChDriver::Inputs driver_inputs = {m_steering_input, 0, 0};
-    m_vehicle.Synchronize(time, driver_inputs, *m_terrain);
+    m_vehicle->Synchronize(time, driver_inputs, *m_terrain);
 
     // Synchronize driver system
     m_driver->Synchronize(time);
@@ -307,10 +364,10 @@ void ChSuspensionTestRig::Advance(double step) {
     }
 
     // Advance vehicle state
-    m_vehicle.Advance(step);
+    m_vehicle->Advance(step);
 
     // Generate output for plotting if requested
-    time = m_vehicle.GetChTime();
+    time = m_vehicle->GetChTime();
     if (!m_driver->Started()) {
         m_next_plot_output_time = time + m_plot_output_step;
     } else if (m_plot_output && time > m_next_plot_output_time) {
@@ -324,33 +381,32 @@ void ChSuspensionTestRig::Advance(double step) {
 // -----------------------------------------------------------------------------
 void ChSuspensionTestRig::LogConstraintViolations() {
     GetLog().SetNumFormat("%16.4e");
-    
+
     // Report constraint violations for the suspension joints
     for (auto ia : m_axle_index) {
-        const auto& axle = m_vehicle.GetAxle(ia);
+        const auto& axle = m_vehicle->GetAxle(ia);
         GetLog() << "\n---- LEFT side suspension constraint violations\n\n";
         axle->m_suspension->LogConstraintViolations(LEFT);
         GetLog() << "\n---- RIGHT side suspension constraint violations\n\n";
         axle->m_suspension->LogConstraintViolations(RIGHT);
     }
-    
+
     // Report constraint violations for the steering joints
     for (auto is : m_steering_index) {
         GetLog() << "\n---- STEERING constrain violations\n\n";
-        m_vehicle.GetSteering(is)->LogConstraintViolations();
+        m_vehicle->GetSteering(is)->LogConstraintViolations();
     }
 
     GetLog().SetNumFormat("%g");
-    
 }
 
 // -----------------------------------------------------------------------------
 
-void ChSuspensionTestRig::SetOutput(ChVehicleOutput::Type type, 
-                                 const std::string& out_dir,   
-                                 const std::string& out_name,  
-                                 double output_step) {
-    m_vehicle.SetOutput(type, out_dir, out_name, output_step);
+void ChSuspensionTestRig::SetOutput(ChVehicleOutput::Type type,
+                                    const std::string& out_dir,
+                                    const std::string& out_name,
+                                    double output_step) {
+    m_vehicle->SetOutput(type, out_dir, out_name, output_step);
 }
 
 void ChSuspensionTestRig::SetPlotOutput(double output_step) {
@@ -363,7 +419,7 @@ void ChSuspensionTestRig::CollectPlotData(double time) {
     *m_csv << time;
 
     for (int ia = 0; ia < m_naxles; ia++) {
-        const auto& axle = m_vehicle.GetAxle(m_axle_index[ia]);
+        const auto& axle = m_vehicle->GetAxle(m_axle_index[ia]);
 
         // Suspension spring and shock forces
         auto frc_left = axle->m_suspension->ReportSuspensionForce(LEFT);
@@ -435,18 +491,17 @@ void ChSuspensionTestRig::PlotOutput(const std::string& out_dir, const std::stri
 // ChSuspensionTestRigPlatform class implementation
 // =============================================================================
 
-ChSuspensionTestRigPlatform::ChSuspensionTestRigPlatform(
-    ChWheeledVehicle& vehicle,        // vehicle source
-    std::vector<int> axle_index,      // indices of the suspension to be tested
-    std::vector<int> steering_index,  // indices of associated steering subsystem
-    double displ_limit                // displacement limits
-    )
-    : ChSuspensionTestRig(vehicle, axle_index, steering_index, displ_limit) {
-}
+ChSuspensionTestRigPlatform::ChSuspensionTestRigPlatform(std::shared_ptr<ChWheeledVehicle> vehicle,
+                                                         std::vector<int> axle_index,
+                                                         std::vector<int> steering_index,
+                                                         double displ_limit)
+    : ChSuspensionTestRig(vehicle, axle_index, steering_index, displ_limit) {}
 
+ChSuspensionTestRigPlatform::ChSuspensionTestRigPlatform(const std::string& spec_filename)
+    : ChSuspensionTestRig(spec_filename) {}
 
 ChSuspensionTestRigPlatform::~ChSuspensionTestRigPlatform() {
-    auto sys = m_vehicle.GetSystem();
+    auto sys = m_vehicle->GetSystem();
     if (sys) {
         for (int ia = 0; ia < m_naxles; ia++) {
             sys->Remove(m_post_L[ia]);
@@ -458,7 +513,7 @@ ChSuspensionTestRigPlatform::~ChSuspensionTestRigPlatform() {
 }
 
 void ChSuspensionTestRigPlatform::InitializeRig() {
-    auto sys = m_vehicle.GetSystem();
+    auto sys = m_vehicle->GetSystem();
 
     // Create a contact material for the posts (shared)
     //// TODO: are default material properties ok?
@@ -466,7 +521,7 @@ void ChSuspensionTestRigPlatform::InitializeRig() {
     auto post_mat = minfo.CreateMaterial(sys->GetContactMethod());
 
     for (int ia = 0; ia < m_naxles; ia++) {
-        const auto& axle = m_vehicle.GetAxle(m_axle_index[ia]);
+        const auto& axle = m_vehicle->GetAxle(m_axle_index[ia]);
         const auto& suspension = axle->m_suspension;
         auto tire_radius = axle->m_wheels[0]->GetTire()->GetRadius();
 
@@ -511,14 +566,14 @@ void ChSuspensionTestRigPlatform::InitializeRig() {
         auto linact_L = chrono_types::make_shared<ChLinkMotorLinearPosition>();
         linact_L->SetNameString("L_post_linActuator");
         linact_L->SetMotionFunction(func_L);
-        linact_L->Initialize(m_vehicle.GetChassisBody(), post_L,
+        linact_L->Initialize(m_vehicle->GetChassisBody(), post_L,
                              ChFrame<>(ChVector<>(post_L_pos), Q_from_AngY(CH_C_PI_2)));
         sys->AddLink(linact_L);
 
         auto linact_R = chrono_types::make_shared<ChLinkMotorLinearPosition>();
         linact_R->SetNameString("R_post_linActuator");
         linact_R->SetMotionFunction(func_R);
-        linact_R->Initialize(m_vehicle.GetChassisBody(), post_R,
+        linact_R->Initialize(m_vehicle->GetChassisBody(), post_R,
                              ChFrame<>(ChVector<>(post_R_pos), Q_from_AngY(CH_C_PI_2)));
         sys->AddLink(linact_R);
 
@@ -554,7 +609,7 @@ void ChSuspensionTestRigPlatform::AddPostVisualization(std::shared_ptr<ChBody> p
     cyl->GetCylinderGeometry().rad = m_post_radius / 4.0;
     cyl->GetCylinderGeometry().p1 = post->GetPos() - ChVector<>(0, 0, 16 * m_post_hheight);
     cyl->GetCylinderGeometry().p2 = post->GetPos() - ChVector<>(0, 0, 32 * m_post_hheight);
-    m_vehicle.GetChassisBody()->AddAsset(cyl);
+    m_vehicle->GetChassisBody()->AddAsset(cyl);
 }
 
 double ChSuspensionTestRigPlatform::CalcDisplacementOffset(int axle) {
@@ -579,7 +634,7 @@ void ChSuspensionTestRigPlatform::UpdateActuators(std::vector<double> displ_left
 }
 
 double ChSuspensionTestRigPlatform::GetActuatorDisp(int axle, VehicleSide side) {
-    double time = m_vehicle.GetChTime();
+    double time = m_vehicle->GetChTime();
     return (side == LEFT) ? m_linact_L[axle]->GetMotionFunction()->Get_y(time)
                           : m_linact_R[axle]->GetMotionFunction()->Get_y(time);
 }
@@ -597,17 +652,17 @@ double ChSuspensionTestRigPlatform::GetRideHeight(int axle) const {
 // ChSuspensionTestRigPushrod class implementation
 // =============================================================================
 
-ChSuspensionTestRigPushrod::ChSuspensionTestRigPushrod(
-    ChWheeledVehicle& vehicle,        // vehicle source
-    std::vector<int> axle_index,      // indices of the suspension to be tested
-    std::vector<int> steering_index,  // indices of associated steering subsystem
-    double displ_limit                // displacement limits
-    )
-    : ChSuspensionTestRig(vehicle, axle_index, steering_index, displ_limit) {
-}
+ChSuspensionTestRigPushrod::ChSuspensionTestRigPushrod(std::shared_ptr<ChWheeledVehicle> vehicle,
+                                                       std::vector<int> axle_index,
+                                                       std::vector<int> steering_index,
+                                                       double displ_limit)
+    : ChSuspensionTestRig(vehicle, axle_index, steering_index, displ_limit) {}
+
+ChSuspensionTestRigPushrod::ChSuspensionTestRigPushrod(const std::string& spec_filename)
+    : ChSuspensionTestRig(spec_filename) {}
 
 ChSuspensionTestRigPushrod::~ChSuspensionTestRigPushrod() {
-    auto sys = m_vehicle.GetSystem();
+    auto sys = m_vehicle->GetSystem();
     if (sys) {
         for (int ia = 0; ia < m_naxles; ia++) {
             sys->Remove(m_rod_L[ia]);
@@ -619,10 +674,10 @@ ChSuspensionTestRigPushrod::~ChSuspensionTestRigPushrod() {
 }
 
 void ChSuspensionTestRigPushrod::InitializeRig() {
-    auto sys = m_vehicle.GetSystem();
+    auto sys = m_vehicle->GetSystem();
 
     for (int ia = 0; ia < m_naxles; ia++) {
-        const auto& axle = m_vehicle.GetAxle(m_axle_index[ia]);
+        const auto& axle = m_vehicle->GetAxle(m_axle_index[ia]);
         const auto& suspension = axle->m_suspension;
 
         // Create and initialize the linear actuators.
@@ -642,16 +697,14 @@ void ChSuspensionTestRigPushrod::InitializeRig() {
         auto linact_L = chrono_types::make_shared<ChLinkLinActuator>();
         linact_L->SetNameString("L_rod_actuator");
         linact_L->Set_dist_funct(func_L);
-        linact_L->Initialize(m_vehicle.GetChassisBody(), suspension->GetSpindle(LEFT), false, pos_gL,
-                                       pos_sL);
+        linact_L->Initialize(m_vehicle->GetChassisBody(), suspension->GetSpindle(LEFT), false, pos_gL, pos_sL);
         linact_L->Set_lin_offset(m_rod_length);
         sys->AddLink(linact_L);
 
         auto linact_R = chrono_types::make_shared<ChLinkLinActuator>();
         linact_R->SetNameString("R_rod_actuator");
         linact_R->Set_dist_funct(func_R);
-        linact_R->Initialize(m_vehicle.GetChassisBody(), suspension->GetSpindle(RIGHT), false, pos_gR,
-                                        pos_sR);
+        linact_R->Initialize(m_vehicle->GetChassisBody(), suspension->GetSpindle(RIGHT), false, pos_gR, pos_sR);
         linact_R->Set_lin_offset(m_rod_length);
         sys->AddLink(linact_R);
 
@@ -687,7 +740,7 @@ void ChSuspensionTestRigPushrod::AddRodVisualization(std::shared_ptr<ChBody> rod
 
 double ChSuspensionTestRigPushrod::CalcDisplacementOffset(int axle) {
     // Set initial spindle position based on tire radius (note: tire assumed rigid here)
-    auto tire_radius = m_vehicle.GetAxle(m_axle_index[axle])->m_wheels[0]->GetTire()->GetRadius();
+    auto tire_radius = m_vehicle->GetAxle(m_axle_index[axle])->m_wheels[0]->GetTire()->GetRadius();
     return tire_radius - m_ride_height;
 }
 
@@ -707,14 +760,14 @@ void ChSuspensionTestRigPushrod::UpdateActuators(std::vector<double> displ_left,
         func_R->SetSetpointAndDerivatives(displ_right[ia], displ_speed_right[ia], 0.0);
 
         // Move the rod visualization bodies
-        const auto& axle = m_vehicle.GetAxle(m_axle_index[ia]);
+        const auto& axle = m_vehicle->GetAxle(m_axle_index[ia]);
         m_rod_L[ia]->SetPos(axle->m_suspension->GetSpindle(LEFT)->GetPos());
         m_rod_R[ia]->SetPos(axle->m_suspension->GetSpindle(RIGHT)->GetPos());
     }
 }
 
 double ChSuspensionTestRigPushrod::GetActuatorDisp(int axle, VehicleSide side) {
-    double time = m_vehicle.GetChTime();
+    double time = m_vehicle->GetChTime();
     return (side == LEFT) ? m_linact_L[axle]->Get_dist_funct()->Get_y(time)
                           : m_linact_R[axle]->Get_dist_funct()->Get_y(time);
 }
@@ -727,8 +780,8 @@ double ChSuspensionTestRigPushrod::GetActuatorForce(int axle, VehicleSide side) 
 
 double ChSuspensionTestRigPushrod::GetRideHeight(int axle) const {
     // Estimated from average spindle positions and tire radius (note: tire assumed rigid here)
-    const auto& suspension = m_vehicle.GetAxle(m_axle_index[axle])->m_suspension;
-    auto tire_radius = m_vehicle.GetAxle(m_axle_index[axle])->m_wheels[0]->GetTire()->GetRadius();
+    const auto& suspension = m_vehicle->GetAxle(m_axle_index[axle])->m_suspension;
+    auto tire_radius = m_vehicle->GetAxle(m_axle_index[axle])->m_wheels[0]->GetTire()->GetRadius();
     auto spindle_avg = (suspension->GetSpindle(LEFT)->GetPos().z() + suspension->GetSpindle(RIGHT)->GetPos().z()) / 2;
     return tire_radius - spindle_avg;
 }
