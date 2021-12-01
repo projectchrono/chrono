@@ -476,8 +476,7 @@ __global__ void Shear_Stress_Rate(uint* indexOfIndex,
 }
 
 //--------------------------------------------------------------------------------------------------------------------------------
-__global__ void calcRho_kernel(uint* indexOfIndex,
-                               Real4* sortedPosRad,
+__global__ void calcRho_kernel(Real4* sortedPosRad,
                                Real4* sortedRhoPreMu,
                                Real4* sortedRhoPreMu_old,
                                uint* cellStart,
@@ -487,11 +486,12 @@ __global__ void calcRho_kernel(uint* indexOfIndex,
                                const size_t numRigidMarkers,
                                int density_reinit,
                                volatile bool* isErrorD) {
-    uint id = blockIdx.x * blockDim.x + threadIdx.x;
-    if (id >= numFluidMarkers + numRigidMarkers)
+    uint index = blockIdx.x * blockDim.x + threadIdx.x;
+    if (index >= numFluidMarkers + numBounMarkers + numRigidMarkers)
         return;
 
-    uint index = indexOfIndex[id];
+    if (sortedRhoPreMu[index].w > -0.5 && sortedRhoPreMu[index].w < 0.5)
+        return;
 
     sortedRhoPreMu_old[index].y = Eos(sortedRhoPreMu_old[index].x, sortedRhoPreMu_old[index].w);
 
@@ -1145,8 +1145,7 @@ __global__ void Navier_Stokes(uint* indexOfIndex,
 }
 
 //--------------------------------------------------------------------------------------------------------------------------------
-__global__ void NS_SSR( uint* indexOfIndex,
-                        uint* activityIdentifierD,
+__global__ void NS_SSR( uint* activityIdentifierD,
                         Real4* sortedDerivVelRho,
                         Real3* sortedDerivTauXxYyZz,
                         Real3* sortedDerivTauXyXzYz,
@@ -1161,22 +1160,22 @@ __global__ void NS_SSR( uint* indexOfIndex,
                         uint* gridMarkerIndex,
                         uint* cellStart,
                         uint* cellEnd,
-                        const size_t numFluidMarkers,
-                        const size_t numBounMarkers,
-                        const size_t numRigidMarkers,
+                        uint* mapOriginalToSorted,
+                        const size_t numAllMarkers,
                         volatile bool* isErrorD) {
     uint id = blockIdx.x * blockDim.x + threadIdx.x;
-    if (id >= numFluidMarkers + numRigidMarkers)
+    if (id >= numAllMarkers)
         return;
 
-    uint index = indexOfIndex[id];
-    if (sortedRhoPreMu[index].w > -0.5 && sortedRhoPreMu[index].w < 0.5)
-        return;
-
-    // Check the activity of this particle
-    uint originalIndex = gridMarkerIndex[index];
-    uint activity = activityIdentifierD[originalIndex];
+    // no need to do anything if it is not an active particle
+    uint activity = activityIdentifierD[id];
     if(activity == 0)
+        return; 
+
+    // map original to sorted
+    uint index = mapOriginalToSorted[id]; 
+
+    if (sortedRhoPreMu[index].w > -0.5 && sortedRhoPreMu[index].w < 0.5)
         return;
 
     Real hA = sortedPosRad[index].w;
@@ -1581,8 +1580,7 @@ void ChFsiForceExplicitSPH::CollideWrapper() {
     //------------------------------------------------------------------------
     // thread per particle
     uint numBlocks, numThreads;
-    computeGridSize((int)numObjectsH->numFluidMarkers +
-        (int)numObjectsH->numRigid_SphMarkers, 256, numBlocks, numThreads);
+    computeGridSize((int)numObjectsH->numAllMarkers, 256, numBlocks, numThreads);
 
     // Execute the kernel
     thrust::device_vector<Real4> sortedDerivVelRho(numObjectsH->numAllMarkers);
@@ -1590,58 +1588,57 @@ void ChFsiForceExplicitSPH::CollideWrapper() {
     thrust::device_vector<Real3> sortedDerivTauXyXzYz(numObjectsH->numAllMarkers);
     sortedXSPHandShift.resize(numObjectsH->numAllMarkers);
 
-    thrust::fill(sortedDerivVelRho.begin(), sortedDerivVelRho.end(), mR4(0));
-    thrust::fill(sortedXSPHandShift.begin(), sortedXSPHandShift.end(), mR3(0));
-    if(paramsH->elastic_SPH){
-        thrust::fill(sortedDerivTauXxYyZz.begin(), sortedDerivTauXxYyZz.end(), mR3(0));
-        thrust::fill(sortedDerivTauXyXzYz.begin(), sortedDerivTauXyXzYz.end(), mR3(0));
-    }
-
-    // Find the index which is related to the wall boundary particle
-    uint numBlocks1, numThreads1;
-    computeGridSize((int)numObjectsH->numAllMarkers, 256, numBlocks1, numThreads1);
-    thrust::device_vector<uint> indexOfIndex(numObjectsH->numAllMarkers);
-    thrust::device_vector<uint> identityOfIndex(numObjectsH->numAllMarkers);
-    calIndexOfIndex<<<numBlocks1, numThreads1>>>(U1CAST(indexOfIndex), U1CAST(identityOfIndex), 
-        U1CAST(markersProximityD->gridMarkerIndexD), numObjectsH->numFluidMarkers, 
-        numObjectsH->numBoundaryMarkers, numObjectsH->numAllMarkers);
-    thrust::remove_if(indexOfIndex.begin(), indexOfIndex.end(), identityOfIndex.begin(), 
-        thrust::identity<int>());
-
-    if (density_initialization == 0){
+    // Re-Initialize the density after several time steps
+    if (density_initialization >= paramsH->densityReinit){
         thrust::device_vector<Real4> rhoPresMuD_old = sortedSphMarkersD->rhoPresMuD;
         printf("Re-initializing density after %d steps.\n", paramsH->densityReinit);
-        calcRho_kernel<<<numBlocks, numThreads>>>(U1CAST(indexOfIndex), 
+        calcRho_kernel<<<numBlocks, numThreads>>>(
             mR4CAST(sortedSphMarkersD->posRadD), mR4CAST(sortedSphMarkersD->rhoPresMuD),
             mR4CAST(rhoPresMuD_old), U1CAST(markersProximityD->cellStartD),
             U1CAST(markersProximityD->cellEndD), numObjectsH->numFluidMarkers,
             numObjectsH->numBoundaryMarkers, numObjectsH->numRigid_SphMarkers,
             density_initialization, isErrorD);
-            ChUtilsDevice::Sync_CheckError(isErrorH, isErrorD, "calcRho_kernel");
+        ChUtilsDevice::Sync_CheckError(isErrorH, isErrorD, "calcRho_kernel");
+        density_initialization = 0;
     }
+    density_initialization++;
     
+    // Execute the kernel
     if(paramsH->elastic_SPH){ // For granular material
         *isErrorH = false;
         cudaMemcpy(isErrorD, isErrorH, sizeof(bool), cudaMemcpyHostToDevice);
 
         // execute the kernel Navier_Stokes and Shear_Stress_Rate in one kernel
-        NS_SSR<<<numBlocks, numThreads>>>( U1CAST(indexOfIndex), U1CAST(fsiGeneralData->activityIdentifierD),
+        NS_SSR<<<numBlocks, numThreads>>>(U1CAST(fsiGeneralData->activityIdentifierD),
             mR4CAST(sortedDerivVelRho), mR3CAST(sortedDerivTauXxYyZz), mR3CAST(sortedDerivTauXyXzYz),
             mR3CAST(sortedXSPHandShift), mR4CAST(sortedSphMarkersD->posRadD),
             mR3CAST(sortedSphMarkersD->velMasD), mR4CAST(sortedSphMarkersD->rhoPresMuD),
             mR3CAST(bceWorker->velMas_ModifiedBCE), mR4CAST(bceWorker->rhoPreMu_ModifiedBCE),
             mR3CAST(sortedSphMarkersD->tauXxYyZzD), mR3CAST(sortedSphMarkersD->tauXyXzYzD),
             U1CAST(markersProximityD->gridMarkerIndexD), U1CAST(markersProximityD->cellStartD),
-            U1CAST(markersProximityD->cellEndD), numObjectsH->numFluidMarkers,
-            numObjectsH->numBoundaryMarkers, numObjectsH->numRigid_SphMarkers, isErrorD);
+            U1CAST(markersProximityD->cellEndD), U1CAST(markersProximityD->mapOriginalToSorted),
+            numObjectsH->numAllMarkers, isErrorD);
         ChUtilsDevice::Sync_CheckError(isErrorH, isErrorD, "Navier_Stokes and Shear_Stress_Rate");
     }
     else{ // For fluid 
         *isErrorH = false;
         cudaMemcpy(isErrorD, isErrorH, sizeof(bool), cudaMemcpyHostToDevice);
 
+        // Find the index which is related to the wall boundary particle
+        uint numBlocks1, numThreads1;
+        computeGridSize((int)numObjectsH->numFluidMarkers +
+            (int)numObjectsH->numRigid_SphMarkers, 256, numBlocks1, numThreads1);
+
+        thrust::device_vector<uint> indexOfIndex(numObjectsH->numAllMarkers);
+        thrust::device_vector<uint> identityOfIndex(numObjectsH->numAllMarkers);
+        calIndexOfIndex<<<numBlocks, numThreads>>>(U1CAST(indexOfIndex), U1CAST(identityOfIndex), 
+            U1CAST(markersProximityD->gridMarkerIndexD), numObjectsH->numFluidMarkers, 
+            numObjectsH->numBoundaryMarkers, numObjectsH->numAllMarkers);
+        thrust::remove_if(indexOfIndex.begin(), indexOfIndex.end(), identityOfIndex.begin(), 
+            thrust::identity<int>());
+
         // execute the kernel
-        Navier_Stokes<<<numBlocks, numThreads>>>( U1CAST(indexOfIndex), 
+        Navier_Stokes<<<numBlocks1, numThreads1>>>(U1CAST(indexOfIndex), 
             mR4CAST(sortedDerivVelRho), mR3CAST(sortedXSPHandShift), mR4CAST(sortedSphMarkersD->posRadD),
             mR3CAST(sortedSphMarkersD->velMasD), mR4CAST(sortedSphMarkersD->rhoPresMuD),
             mR3CAST(bceWorker->velMas_ModifiedBCE), mR4CAST(bceWorker->rhoPreMu_ModifiedBCE),
@@ -1654,7 +1651,7 @@ void ChFsiForceExplicitSPH::CollideWrapper() {
 
     // Launch a kernel to copy data from sorted arrays to original arrays.
     // This is faster than using thrust::sort_by_key()
-    CopySortedToOriginal_D<<<numBlocks1, numThreads1>>>(
+    CopySortedToOriginal_D<<<numBlocks, numThreads>>>(
         mR4CAST(sortedDerivVelRho), mR3CAST(sortedDerivTauXxYyZz),
         mR3CAST(sortedDerivTauXyXzYz), mR4CAST(fsiGeneralData->derivVelRhoD_old),
         mR3CAST(fsiGeneralData->derivTauXxYyZzD), mR3CAST(fsiGeneralData->derivTauXyXzYzD),
@@ -1666,9 +1663,6 @@ void ChFsiForceExplicitSPH::CollideWrapper() {
     sortedDerivTauXyXzYz.clear();
     cudaFree(isErrorD);
     free(isErrorH);
-    density_initialization++;
-    if (density_initialization >= paramsH->densityReinit)
-        density_initialization = 0;
 }
 
 //--------------------------------------------------------------------------------------------------------------------------------
@@ -1690,35 +1684,36 @@ void ChFsiForceExplicitSPH::CalculateXSPH_velocity() {
 
     // thread per particle
     uint numBlocks, numThreads;
-    computeGridSize((int)numObjectsH->numFluidMarkers +
-        (int)numObjectsH->numRigid_SphMarkers, 256, numBlocks, numThreads);
-    uint numBlocks1, numThreads1;
-    computeGridSize((int)numObjectsH->numAllMarkers, 256, numBlocks1, numThreads1);
+    computeGridSize((int)numObjectsH->numAllMarkers, 256, numBlocks, numThreads);
     
     //------------------------------------------------------------------------
     if(paramsH->elastic_SPH){
         // The XSPH vector already included in the shifting vector
-        CopySortedToOriginal_XSPH_D<<<numBlocks1, numThreads1>>>(
+        CopySortedToOriginal_XSPH_D<<<numBlocks, numThreads>>>(
             mR3CAST(sortedXSPHandShift), mR3CAST(fsiGeneralData->vel_XSPH_D),
             U1CAST(markersProximityD->gridMarkerIndexD),
             U1CAST(fsiGeneralData->activityIdentifierD),
             U1CAST(markersProximityD->mapOriginalToSorted),
             numObjectsH->numAllMarkers);
     }else{
+        uint numBlocks1, numThreads1;
+        computeGridSize((int)numObjectsH->numFluidMarkers +
+            (int)numObjectsH->numRigid_SphMarkers, 256, numBlocks1, numThreads1);
+
         thrust::device_vector<Real4> sortedPosRad_old = sortedSphMarkersD->posRadD;
         thrust::fill(vel_XSPH_Sorted_D.begin(), vel_XSPH_Sorted_D.end(), mR3(0.0));
 
         // Find the index which is related to the wall boundary particle
         thrust::device_vector<uint> indexOfIndex(numObjectsH->numAllMarkers);
         thrust::device_vector<uint> identityOfIndex(numObjectsH->numAllMarkers);
-        calIndexOfIndex<<<numBlocks1, numThreads1>>>(U1CAST(indexOfIndex), U1CAST(identityOfIndex), 
+        calIndexOfIndex<<<numBlocks, numThreads>>>(U1CAST(indexOfIndex), U1CAST(identityOfIndex), 
             U1CAST(markersProximityD->gridMarkerIndexD), numObjectsH->numFluidMarkers, 
             numObjectsH->numBoundaryMarkers, numObjectsH->numAllMarkers);
         thrust::remove_if(indexOfIndex.begin(), indexOfIndex.end(), identityOfIndex.begin(), 
             thrust::identity<int>());
         
         // Execute the kernel
-        CalcVel_XSPH_D<<<numBlocks, numThreads>>>(U1CAST(indexOfIndex), 
+        CalcVel_XSPH_D<<<numBlocks1, numThreads1>>>(U1CAST(indexOfIndex), 
             mR3CAST(vel_XSPH_Sorted_D), mR4CAST(sortedPosRad_old), mR4CAST(sortedSphMarkersD->posRadD),
             mR3CAST(sortedSphMarkersD->velMasD), mR4CAST(sortedSphMarkersD->rhoPresMuD), mR3CAST(sortedXSPHandShift),
             U1CAST(markersProximityD->gridMarkerIndexD), U1CAST(markersProximityD->cellStartD),
@@ -1726,7 +1721,7 @@ void ChFsiForceExplicitSPH::CalculateXSPH_velocity() {
             numObjectsH->numBoundaryMarkers, numObjectsH->numRigid_SphMarkers, isErrorD);
         ChUtilsDevice::Sync_CheckError(isErrorH, isErrorD, "CalcVel_XSPH_D");
 
-        CopySortedToOriginal_XSPH_D<<<numBlocks1, numThreads1>>>(
+        CopySortedToOriginal_XSPH_D<<<numBlocks, numThreads>>>(
             mR3CAST(vel_XSPH_Sorted_D), mR3CAST(fsiGeneralData->vel_XSPH_D),
             U1CAST(markersProximityD->gridMarkerIndexD),
             U1CAST(fsiGeneralData->activityIdentifierD),
