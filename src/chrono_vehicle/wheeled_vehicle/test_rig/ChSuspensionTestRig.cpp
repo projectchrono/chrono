@@ -94,27 +94,22 @@ const double ChSuspensionTestRigPushrod::m_rod_radius = 0.02;
 // =============================================================================
 ChSuspensionTestRig::ChSuspensionTestRig(std::shared_ptr<ChWheeledVehicle> vehicle,
                                          std::vector<int> axle_index,
-                                         std::vector<int> steering_index,
                                          double displ_limit)
     : m_vehicle(vehicle),
       m_axle_index(axle_index),
-      m_steering_index(steering_index),
       m_displ_limit(displ_limit),
       m_ride_height(-1),
       m_vis_suspension(VisualizationType::PRIMITIVES),
+      m_vis_subchassis(VisualizationType::PRIMITIVES),
       m_vis_steering(VisualizationType::PRIMITIVES),
       m_vis_wheel(VisualizationType::NONE),
       m_vis_tire(VisualizationType::PRIMITIVES),
-      m_out_steering(false),
-      m_out_suspension(false),
-      m_out_antiroll(false),
       m_plot_output(false),
       m_plot_output_step(0),
       m_next_plot_output_time(0),
       m_csv(nullptr) {
     // Cache number of tested axles and steering mechanisms
     m_naxles = (int)axle_index.size();
-    m_nsteerings = (int)steering_index.size();
 
     // Initialize the vehicle
     m_vehicle->Initialize(ChCoordsys<>());
@@ -128,12 +123,10 @@ ChSuspensionTestRig::ChSuspensionTestRig(std::shared_ptr<ChWheeledVehicle> vehic
 
 ChSuspensionTestRig::ChSuspensionTestRig(const std::string& spec_filename)
     : m_vis_suspension(VisualizationType::PRIMITIVES),
+      m_vis_subchassis(VisualizationType::PRIMITIVES),
       m_vis_steering(VisualizationType::PRIMITIVES),
       m_vis_wheel(VisualizationType::NONE),
       m_vis_tire(VisualizationType::PRIMITIVES),
-      m_out_steering(false),
-      m_out_suspension(false),
-      m_out_antiroll(false),
       m_plot_output(false),
       m_plot_output_step(0),
       m_next_plot_output_time(0),
@@ -159,13 +152,18 @@ ChSuspensionTestRig::ChSuspensionTestRig(const std::string& spec_filename)
     for (int ia = 0; ia < m_naxles; ia++)
         m_axle_index[ia] = d["Test Axle Indices"][ia].GetInt();
 
+    if (d.HasMember("Test Subchassis Indices")) {
+        int nsubchassis = (int)d["Test Subchassis Indices"].Size();
+        m_subchassis_index.resize(nsubchassis);
+        for (int is = 0; is < nsubchassis; is++)
+            m_subchassis_index[is] = d["Test Subchassis Indices"][is].GetInt();
+    }
+
     if (d.HasMember("Test Steering Indices")) {
-        m_nsteerings = (int)d["Test Steering Indices"].Size();
-        m_steering_index.resize(m_naxles);
-        for (int ia = 0; ia < m_nsteerings; ia++)
-            m_steering_index[ia] = d["Test Steering Indices"][ia].GetInt();
-    } else {
-        m_nsteerings = 0;
+        int nsteerings = (int)d["Test Steering Indices"].Size();
+        m_steering_index.resize(nsteerings);
+        for (int is = 0; is < nsteerings; is++)
+            m_steering_index[is] = d["Test Steering Indices"][is].GetInt();
     }
 
     assert(d.HasMember("Displacement Limit"));
@@ -191,6 +189,14 @@ ChSuspensionTestRig::~ChSuspensionTestRig() {
     delete m_csv;
 }
 
+void ChSuspensionTestRig::IncludeSubchassis(int index) {
+    m_subchassis_index.push_back(index);
+}
+
+void ChSuspensionTestRig::IncludeSteeringMechanism(int index) {
+    m_steering_index.push_back(index);
+}
+
 void ChSuspensionTestRig::Initialize() {
     for (auto ia : m_axle_index) {
         if (ia < 0 || ia >= m_vehicle->GetNumberAxles()) {
@@ -202,6 +208,7 @@ void ChSuspensionTestRig::Initialize() {
             }
         }
     }
+
     for (auto is : m_steering_index) {
         if (is < 0 || is >= (int)m_vehicle->GetSteerings().size()) {
             throw ChException("Incorrect steering index " + std::to_string(is) + " for the given vehicle");
@@ -214,34 +221,49 @@ void ChSuspensionTestRig::Initialize() {
 
     // Initialize visualization for all vehicle subsystems
     m_vehicle->SetChassisVisualizationType(VisualizationType::NONE);
-    m_vehicle->SetSubchassisVisualizationType(VisualizationType::PRIMITIVES);
+    m_vehicle->SetSubchassisVisualizationType(VisualizationType::NONE);
     m_vehicle->SetSteeringVisualizationType(VisualizationType::NONE);
     m_vehicle->SetSuspensionVisualizationType(VisualizationType::NONE);
     m_vehicle->SetWheelVisualizationType(VisualizationType::NONE);
     m_vehicle->SetTireVisualizationType(VisualizationType::NONE);
-
-    // Process steering mechanisms
-    for (auto is : m_steering_index) {
-        // Overwrite visualization setting
-        m_vehicle->GetSteering(is)->SetVisualizationType(m_vis_steering);
-        // Overwrite output setting
-        m_vehicle->SetSteeringOutput(is, m_out_steering);
-    }
 
     // Process axles
     for (auto ia : m_axle_index) {
         const auto& axle = m_vehicle->GetAxle(ia);
         // Overwrite visualization setting
         axle->m_suspension->SetVisualizationType(m_vis_suspension);
+        if (axle->m_antirollbar) {
+            axle->m_antirollbar->SetVisualizationType(m_vis_suspension);
+        }
         for (const auto& wheel : axle->GetWheels()) {
             wheel->SetVisualizationType(m_vis_wheel);
             wheel->GetTire()->SetVisualizationType(m_vis_tire);
         }
-        // Overwrite output setting
-        m_vehicle->SetSuspensionOutput(ia, m_out_suspension);
+        // Enable output
+        m_vehicle->SetSuspensionOutput(ia, true);
+        if (axle->m_antirollbar) {
+            m_vehicle->SetAntirollbarOutput(ia, true);
+        }
+
         // Initialize reference spindle vertical positions at design configuration.
         m_spindle_ref_L.push_back(axle->m_suspension->GetSpindlePos(LEFT).z());
         m_spindle_ref_R.push_back(axle->m_suspension->GetSpindlePos(RIGHT).z());
+    }
+    
+    // Process subchassis mechanisms
+    for (auto is : m_subchassis_index) {
+        // Overwrite visualization setting
+        m_vehicle->GetSubchassis(is)->SetVisualizationType(m_vis_subchassis);
+        // Enable output
+        ////m_vehicle->SetSubchassisOutput(is, true);
+    }
+
+    // Process steering mechanisms
+    for (auto is : m_steering_index) {
+        // Overwrite visualization setting
+        m_vehicle->GetSteering(is)->SetVisualizationType(m_vis_steering);
+        // Enable output
+        m_vehicle->SetSteeringOutput(is, true);
     }
 
     // Let derived classes construct their rig mechanism
@@ -493,9 +515,8 @@ void ChSuspensionTestRig::PlotOutput(const std::string& out_dir, const std::stri
 
 ChSuspensionTestRigPlatform::ChSuspensionTestRigPlatform(std::shared_ptr<ChWheeledVehicle> vehicle,
                                                          std::vector<int> axle_index,
-                                                         std::vector<int> steering_index,
                                                          double displ_limit)
-    : ChSuspensionTestRig(vehicle, axle_index, steering_index, displ_limit) {}
+    : ChSuspensionTestRig(vehicle, axle_index, displ_limit) {}
 
 ChSuspensionTestRigPlatform::ChSuspensionTestRigPlatform(const std::string& spec_filename)
     : ChSuspensionTestRig(spec_filename) {}
@@ -654,9 +675,8 @@ double ChSuspensionTestRigPlatform::GetRideHeight(int axle) const {
 
 ChSuspensionTestRigPushrod::ChSuspensionTestRigPushrod(std::shared_ptr<ChWheeledVehicle> vehicle,
                                                        std::vector<int> axle_index,
-                                                       std::vector<int> steering_index,
                                                        double displ_limit)
-    : ChSuspensionTestRig(vehicle, axle_index, steering_index, displ_limit) {}
+    : ChSuspensionTestRig(vehicle, axle_index, displ_limit) {}
 
 ChSuspensionTestRigPushrod::ChSuspensionTestRigPushrod(const std::string& spec_filename)
     : ChSuspensionTestRig(spec_filename) {}

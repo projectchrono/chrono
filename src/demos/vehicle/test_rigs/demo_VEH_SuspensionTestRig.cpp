@@ -53,6 +53,7 @@ class STR_Setup {
     virtual std::string TireJSON() const = 0;
     virtual std::string DataDriverFile() const = 0;
     virtual std::vector<int> TestAxles() const = 0;
+    virtual std::vector<int> TestSubchassis() const = 0;
     virtual std::vector<int> TestSteerings() const = 0;
     virtual double InitRideHeight() const = 0;
     virtual double PostLimit() const = 0;
@@ -66,6 +67,7 @@ class HMMWV_STR_Setup : public STR_Setup {
     virtual std::string TireJSON() const override { return "hmmwv/tire/HMMWV_TMeasyTire.json"; }
     virtual std::string DataDriverFile() const override { return "hmmwv/suspensionTest/ST_inputs.dat"; }
     virtual std::vector<int> TestAxles() const override { return {0}; }
+    virtual std::vector<int> TestSubchassis() const override { return {}; }
     virtual std::vector<int> TestSteerings() const { return {0}; }
     virtual double InitRideHeight() const override { return 0.5; }
     virtual double PostLimit() const { return 0.15; }
@@ -79,6 +81,7 @@ class MTV_STR_Setup : public STR_Setup {
     virtual std::string TireJSON() const override { return "mtv/tire/FMTV_TMeasyTire.json"; }
     virtual std::string DataDriverFile() const override { return "mtv/suspensionTest/ST_inputs.dat"; }
     virtual std::vector<int> TestAxles() const override { return {1, 2}; }
+    virtual std::vector<int> TestSubchassis() const override { return {0}; }
     virtual std::vector<int> TestSteerings() const { return {}; }
     virtual double InitRideHeight() const override { return 0.55; }
     virtual double PostLimit() const { return 0.15; }
@@ -92,6 +95,7 @@ class Generic_STR_Setup : public STR_Setup {
     virtual std::string TireJSON() const override { return "generic/tire/FialaTire.json"; }
     virtual std::string DataDriverFile() const override { return "generic/suspensionTest/ST_inputs.dat"; }
     virtual std::vector<int> TestAxles() const override { return {0}; }
+    virtual std::vector<int> TestSubchassis() const override { return {}; }
     virtual std::vector<int> TestSteerings() const { return {0}; }
     virtual double InitRideHeight() const override { return 0.55; }
     virtual double PostLimit() const { return 0.07; }
@@ -114,7 +118,7 @@ enum class DriverMode {DATA_FILE, INTERACTIVE};
 DriverMode driver_mode = DriverMode::DATA_FILE;
 
 // Output collection
-bool output = false;
+bool output = true;
 bool plot = true;
 std::string out_dir = GetChronoOutputPath() + "SUSPENSION_TEST_RIG";
 double out_step_size = 1e-2;
@@ -125,6 +129,8 @@ double step_size = 1e-3;
 // =============================================================================
 
 std::shared_ptr<ChSuspensionTestRig> CreateFromVehicleModel() {
+    std::cout << "Using vehicle specification file: " << setup.VehicleJSON() << std::endl;
+
     // Create the vehicle
     auto vehicle =
         chrono_types::make_shared<WheeledVehicle>(vehicle::GetDataFile(setup.VehicleJSON()), ChContactMethod::SMC);
@@ -134,16 +140,20 @@ std::shared_ptr<ChSuspensionTestRig> CreateFromVehicleModel() {
     switch (rig_mode) {
         default:
         case RigMode::PLATFORM: {
-            rig = chrono_types::make_shared<ChSuspensionTestRigPlatform>(vehicle, setup.TestAxles(),
-                                                                         setup.TestSteerings(), setup.PostLimit());
+            rig = chrono_types::make_shared<ChSuspensionTestRigPlatform>(vehicle, setup.TestAxles(), setup.PostLimit());
             break;
         }
         case RigMode::PUSHROD: {
-            rig = chrono_types::make_shared<ChSuspensionTestRigPushrod>(vehicle, setup.TestAxles(),
-                                                                        setup.TestSteerings(), setup.PostLimit());
+            rig = chrono_types::make_shared<ChSuspensionTestRigPushrod>(vehicle, setup.TestAxles(), setup.PostLimit());
             break;
         }
     }
+
+    // Include additional subsystems in test
+    for (auto is : setup.TestSteerings())
+        rig->IncludeSteeringMechanism(is);
+    for (auto is : setup.TestSubchassis())
+        rig->IncludeSubchassis(is);
 
     rig->SetInitialRideHeight(setup.InitRideHeight());
 
@@ -151,6 +161,8 @@ std::shared_ptr<ChSuspensionTestRig> CreateFromVehicleModel() {
 }
 
 std::shared_ptr<ChSuspensionTestRig> CreateFromSpecFile() {
+    std::cout << "Using STR specification file: " << setup.SuspensionRigJSON() << std::endl;
+
     switch (rig_mode) {
         default:
         case RigMode::PLATFORM:
@@ -168,10 +180,10 @@ int main(int argc, char* argv[]) {
     GetLog() << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
 
     // Option 1: Create the suspension rig from an existing vehicle model
-    auto rig = CreateFromVehicleModel(); 
+    ////auto rig = CreateFromVehicleModel(); 
 
     // Option 2: Create the suspension rig from a JSON rig specification file
-    ////auto rig = CreateFromSpecFile();
+    auto rig = CreateFromSpecFile();
 
     // Create and attach the vehicle tires.
     // (not needed if tires are specified in the vehicle's suspension JSON files)
@@ -180,15 +192,16 @@ int main(int argc, char* argv[]) {
         for (auto& wheel : axle->GetWheels()) {
             if (!wheel->GetTire()) {
                 auto tire = ReadTireJSON(vehicle::GetDataFile(setup.TireJSON()));
-                rig->GetVehicle().InitializeTire(tire, wheel, VisualizationType::MESH);
+                rig->GetVehicle().InitializeTire(tire, wheel, VisualizationType::NONE);
             }
         }
     }
 
     // Optional rig settings
     rig->SetSuspensionVisualizationType(VisualizationType::PRIMITIVES);
-    rig->SetWheelVisualizationType(VisualizationType::NONE);
     rig->SetSteeringVisualizationType(VisualizationType::PRIMITIVES);
+    rig->SetSubchassisVisualizationType(VisualizationType::PRIMITIVES);
+    rig->SetWheelVisualizationType(VisualizationType::NONE);
     rig->SetTireVisualizationType(VisualizationType::MESH);
 
     // Create the vehicle Irrlicht application.
@@ -226,8 +239,6 @@ int main(int argc, char* argv[]) {
         return 1;
     }
     if (output) {
-        rig->SetSuspensionOutput(true);
-        rig->SetSteeringOutput(true);
         rig->SetOutput(ChVehicleOutput::ASCII, out_dir, "output", out_step_size);
     }
     if (plot) {

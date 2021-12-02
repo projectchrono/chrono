@@ -55,29 +55,26 @@ class CH_VEHICLE_API ChSuspensionTestRig {
     /// Set the limits for post displacement (same for jounce and rebound).
     void SetDisplacementLimit(double limit) { m_displ_limit = limit; }
 
+    /// Include the specified steering mechanism in testing.
+    void IncludeSteeringMechanism(int index);
+
+    /// Include the specified subchassis in testing.
+    void IncludeSubchassis(int index);
+
     /// Set visualization type for the suspension subsystem (default: PRIMITIVES).
     void SetSuspensionVisualizationType(VisualizationType vis) { m_vis_suspension = vis; }
 
     /// Set visualization type for the steering subsystems (default: PRIMITIVES).
     void SetSteeringVisualizationType(VisualizationType vis) { m_vis_steering = vis; }
 
+    /// Set visualization type for the subchassis subsystems (default: PRIMITIVES).
+    void SetSubchassisVisualizationType(VisualizationType vis) { m_vis_subchassis = vis; }
+
     /// Set visualization type for the wheel subsystems (default: NONE).
     void SetWheelVisualizationType(VisualizationType vis) { m_vis_wheel = vis; }
 
     /// Set visualization type for the tire subsystems (default: PRIMITIVES).
     void SetTireVisualizationType(VisualizationType vis) { m_vis_tire = vis; }
-
-    /// Enable/disable output from the suspension subsystem (default: false).
-    /// See also ChVehicle::SetOuput.
-    void SetSuspensionOutput(bool state) { m_out_suspension = state; }
-
-    /// Enable/disable output from the steering subsystem, if one exists (default: false).
-    /// See also ChVehicle::SetOuput.
-    void SetSteeringOutput(bool state) { m_out_steering = state; }
-
-    /// Enable/disable output from the anti-roll bar subsystem, if one exists (default: false).
-    /// See also ChVehicle::SetOuput.
-    void SetAntirollbarOutput(bool state) { m_out_antiroll = state; }
 
     /// Initialize the suspension test rig.
     /// Initialize and prepare the associated vehicle and rig driver, then let derived classes construct the bodies,
@@ -170,7 +167,6 @@ class CH_VEHICLE_API ChSuspensionTestRig {
     /// Construct a test rig for specified sets of axles and sterring mechanisms of a given vehicle.
     ChSuspensionTestRig(std::shared_ptr<ChWheeledVehicle> vehicle,  ///< test vehicle
                         std::vector<int> axle_index,                ///< list of tested vehicle axles
-                        std::vector<int> steering_index,            ///< list of tested vehicle steering mechanisms
                         double displ_limit                          ///< displacement limits
     );
 
@@ -200,10 +196,10 @@ class CH_VEHICLE_API ChSuspensionTestRig {
     void CollectPlotData(double time);
 
     std::shared_ptr<ChWheeledVehicle> m_vehicle;  ///< associated vehicle
+    int m_naxles;                                 ///< number of tested axles
     std::vector<int> m_axle_index;                ///< list of tested vehicle axles in rig
     std::vector<int> m_steering_index;            ///< list of tested vehicle steering mechanisms in rig
-    int m_naxles;                                 ///< number of tested axles
-    int m_nsteerings;                             ///< number of tested steering mechanisms
+    std::vector<int> m_subchassis_index;          ///< list of tested vehicle subchassis mechanisms in rig
 
     double m_ride_height;                ///< ride height
     double m_displ_limit;                ///< scale factor for post displacement
@@ -221,12 +217,9 @@ class CH_VEHICLE_API ChSuspensionTestRig {
 
     VisualizationType m_vis_steering;
     VisualizationType m_vis_suspension;
+    VisualizationType m_vis_subchassis;
     VisualizationType m_vis_wheel;
     VisualizationType m_vis_tire;
-
-    bool m_out_steering;
-    bool m_out_suspension;
-    bool m_out_antiroll;
 
     bool m_plot_output;
     double m_plot_output_step;
@@ -242,8 +235,7 @@ class CH_VEHICLE_API ChSuspensionTestRigPlatform : public ChSuspensionTestRig {
     /// Construct a test rig for specified sets of axles and sterring mechanisms of a given vehicle.
     ChSuspensionTestRigPlatform(std::shared_ptr<ChWheeledVehicle> vehicle,  ///< test vehicle
                                 std::vector<int> axle_index,                ///< list of tested vehicle axles
-                                std::vector<int> steering_index,  ///< list of tested vehicle steering mechanisms
-                                double displ_limit                ///< displacement limits
+                                double displ_limit                          ///< displacement limits
     );
 
     /// Construct a test rig from the given JSON specification file.
@@ -292,7 +284,6 @@ class CH_VEHICLE_API ChSuspensionTestRigPushrod : public ChSuspensionTestRig {
     /// Construct a test rig for specified sets of axles and sterring mechanisms of a given vehicle.
     ChSuspensionTestRigPushrod(std::shared_ptr<ChWheeledVehicle> vehicle,  ///< test vehicle
                                std::vector<int> axle_index,                ///< list of tested vehicle axles
-                               std::vector<int> steering_index,            ///< list of tested vehicle steering mechanisms
                                double displ_limit                          ///< displacement limits
     );
 
