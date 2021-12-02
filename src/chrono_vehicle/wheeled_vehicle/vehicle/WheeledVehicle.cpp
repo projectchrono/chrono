@@ -68,11 +68,8 @@ void WheeledVehicle::Create(const std::string& filename, bool create_powertrain,
     // ----------------------------
 
     assert(d.HasMember("Chassis"));
-    assert(d.HasMember("Steering Subsystems"));
-    assert(d.HasMember("Driveline"));
     assert(d.HasMember("Axles"));
     assert(d["Axles"].IsArray());
-    assert(d["Steering Subsystems"].IsArray());
 
     // Extract number of rear chassis subsystems
     if (d.HasMember("Rear Chassis")) {
@@ -94,7 +91,12 @@ void WheeledVehicle::Create(const std::string& filename, bool create_powertrain,
     m_num_axles = d["Axles"].Size();
 
     // Extract the number of steering subsystems
-    m_num_strs = d["Steering Subsystems"].Size();
+    if (d.HasMember("Steering Subsystems")) {
+        assert(d["Steering Subsystems"].IsArray());
+        m_num_strs = d["Steering Subsystems"].Size();
+    } else {
+        m_num_strs = 0;
+    }
 
     // Resize arrays
     if (m_num_rear_chassis > 0) {
@@ -116,10 +118,12 @@ void WheeledVehicle::Create(const std::string& filename, bool create_powertrain,
     m_susp_chassis_index.resize(m_num_axles, -1);     // default: attached to main chassis
     m_susp_subchassis_index.resize(m_num_axles, -1);  // default: no subchassis attachment
 
-    m_steerings.resize(m_num_strs);
-    m_str_locations.resize(m_num_strs);
-    m_str_rotations.resize(m_num_strs);
-    m_str_chassis_index.resize(m_num_strs, -1);  // default: attach to main chassis  
+    if (m_num_strs > 0) {
+        m_steerings.resize(m_num_strs);
+        m_str_locations.resize(m_num_strs);
+        m_str_rotations.resize(m_num_strs);
+        m_str_chassis_index.resize(m_num_strs, -1);  // default: attach to main chassis
+    }
 
     m_wheel_separations.resize(m_num_axles, 0.0);
 
@@ -193,7 +197,7 @@ void WheeledVehicle::Create(const std::string& filename, bool create_powertrain,
     // Create the driveline
     // --------------------
 
-    {
+    if (d.HasMember("Driveline")) {
         std::string file_name = d["Driveline"]["Input File"].GetString();
         m_driveline = ReadDrivelineWVJSON(vehicle::GetDataFile(file_name));
         if (d["Driveline"].HasMember("Output")) {
@@ -301,7 +305,7 @@ void WheeledVehicle::Create(const std::string& filename, bool create_powertrain,
     } else {
         m_wheelbase = m_susp_locations[0].x() - m_susp_locations[m_num_axles - 1].x();
     }
-    assert(m_wheelbase > 0);
+    assert(m_wheelbase >= 0);
 
     // Get the minimum turning radius (if defined in JSON file).
     // Otherwise, use default value.
@@ -369,10 +373,12 @@ void WheeledVehicle::Initialize(const ChCoordsys<>& chassisPos, double chassisFw
     }
 
     // Initialize the driveline
-    m_driveline->Initialize(m_chassis, m_axles, m_driven_axles);
+    if (m_driveline) {
+        m_driveline->Initialize(m_chassis, m_axles, m_driven_axles);
 
-    // Sanity check: make sure the driveline can accommodate the number of driven axles.
-    assert(m_driveline->GetNumDrivenAxles() == m_driven_axles.size());
+        // Sanity check: make sure the driveline can accommodate the number of driven axles.
+        assert(m_driveline->GetNumDrivenAxles() == m_driven_axles.size());
+    }
 
     // Initialize the powertain (if present)
     if (m_powertrain) {

@@ -74,7 +74,7 @@ void ChWheeledVehicle::InitializePowertrain(std::shared_ptr<ChPowertrain> powert
 // -----------------------------------------------------------------------------
 void ChWheeledVehicle::Synchronize(double time, const ChDriver::Inputs& driver_inputs, const ChTerrain& terrain) {
     double powertrain_torque = 0;
-    if (m_powertrain) {
+    if (m_powertrain && m_driveline) {
         // Extract the torque from the powertrain.
         powertrain_torque = m_powertrain->GetOutputTorque();
         // Synchronize the associated powertrain system (pass throttle input).
@@ -82,7 +82,8 @@ void ChWheeledVehicle::Synchronize(double time, const ChDriver::Inputs& driver_i
     }
 
     // Apply powertrain torque to the driveline's input shaft.
-    m_driveline->Synchronize(powertrain_torque);
+    if (m_driveline)
+        m_driveline->Synchronize(powertrain_torque);
 
     // Let the steering subsystems process the steering input.
     for (auto& steering : m_steerings) {
@@ -135,11 +136,13 @@ void ChWheeledVehicle::Advance(double step) {
 // Enable/disable differential locking.
 // -----------------------------------------------------------------------------
 void ChWheeledVehicle::LockAxleDifferential(int axle, bool lock) {
-    m_driveline->LockAxleDifferential(axle, lock);
+    if (m_driveline)
+        m_driveline->LockAxleDifferential(axle, lock);
 }
 
 void ChWheeledVehicle::LockCentralDifferential(int which, bool lock) {
-    m_driveline->LockCentralDifferential(which, lock);
+    if (m_driveline)
+        m_driveline->LockCentralDifferential(which, lock);
 }
 
 // Disconnect driveline
@@ -242,7 +245,8 @@ void ChWheeledVehicle::SetAntirollbarOutput(int id, bool state) {
 }
 
 void ChWheeledVehicle::SetDrivelineOutput(bool state) {
-    m_driveline->SetOutput(state);
+    if (m_driveline)
+        m_driveline->SetOutput(state);
 }
 
 // -----------------------------------------------------------------------------
@@ -375,8 +379,10 @@ void ChWheeledVehicle::LogConstraintViolations() {
 void ChWheeledVehicle::LogSubsystemTypes() {
     GetLog() << "\nSubsystem types\n";
     GetLog() << "Chassis:        " << m_chassis->GetTemplateName().c_str() << "\n";
-    GetLog() << "Powertrain:     " << m_powertrain->GetTemplateName().c_str() << "\n";
-    GetLog() << "Driveline:      " << m_driveline->GetTemplateName().c_str() << "\n";
+    if (m_powertrain)
+        GetLog() << "Powertrain:     " << m_powertrain->GetTemplateName().c_str() << "\n";
+    if (m_driveline)
+        GetLog() << "Driveline:      " << m_driveline->GetTemplateName().c_str() << "\n";
 
     for (int i = 0; i < m_steerings.size(); i++) {
         GetLog() << "Steering " << i << ":     " << m_steerings[i]->GetTemplateName().c_str() << "\n";
