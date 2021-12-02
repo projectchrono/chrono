@@ -358,7 +358,7 @@ __global__ void UpdateFluidD(Real4* posRadD,
                 p_tr = 0.0;
             }
 
-            if (paramsD.full_output){
+            if (paramsD.output_length == 2){
                 Real tau_tr = square(updatedTauXxYyZz.x) 
                             + square(updatedTauXxYyZz.y) 
                             + square(updatedTauXxYyZz.z)

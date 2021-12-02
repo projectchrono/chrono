@@ -40,7 +40,8 @@ void PrintToFile(const thrust::device_vector<Real4>& posRadD,
     thrust::host_vector<Real4> rhoPresMuH = rhoPresMuD;
     thrust::host_vector<Real4> h_sr_tau_I_mu_i = sr_tau_I_mu_i;
 
-    bool short_out = !paramsH->full_output;  // if output with less information, set to true
+    // Set the data output length
+    int out_length = paramsH->output_length;
 
     bool haveHelper = (referenceArray[0].z == -3) ? true : false;
     bool haveGhost = (referenceArray[0].z == -2 || referenceArray[1].z == -2) ? true : false;
@@ -59,9 +60,11 @@ void PrintToFile(const thrust::device_vector<Real4>& posRadD,
         fileNameOtherParticles.open(nameOthers);
         std::stringstream ssotherParticles;
         if (printToParaview) {
-            if (short_out) {
+            if (out_length == 0) {
+                ssotherParticles << "x,y,z,|U|\n";
+            } else if (out_length == 1) {
                 ssotherParticles << "x,y,z,v_x,v_y,v_z,|U|,rho,pressure\n";
-            } else {
+            } else if (out_length == 2) {
                 ssotherParticles << "x,y,z,h,v_x,v_y,v_z,|U|,rho(rpx),p(rpy),mu(rpz),sr,tau,I,mu_i,type(rpw)\n";
             }
         }
@@ -74,11 +77,13 @@ void PrintToFile(const thrust::device_vector<Real4>& posRadD,
             Real4 stIm = h_sr_tau_I_mu_i[i] + mR4(1e-20);
 
             Real velMag = length(vel);
-            if (short_out) {
+            if (out_length == 0) {
+                ssotherParticles << pos.x << ", " << pos.y << ", " << pos.z << ", " << velMag + eps << std::endl;
+            } else if (out_length == 1) {
                 ssotherParticles << pos.x << ", " << pos.y << ", " << pos.z << ", " << vel.x + eps << ", "
                                  << vel.y + eps << ", " << vel.z + eps << ", " << velMag + eps << ", " << rP.x << ", "
                                  << rP.y + eps << std::endl;
-            } else {
+            } else if (out_length == 2) {
                 ssotherParticles << pos.x << ", " << pos.y << ", " << pos.z << ", " << pos.w << ", " << vel.x + eps
                                  << ", " << vel.y + eps << ", " << vel.z + eps << ", " << velMag + eps << ", " << rP.x
                                  << ", " << rP.y + eps << ", " << rP.z << ", " << stIm.x << ", " << stIm.y << ", "
@@ -97,9 +102,11 @@ void PrintToFile(const thrust::device_vector<Real4>& posRadD,
     fileNameFluidParticles.open(nameFluid);
     std::stringstream ssFluidParticles;
     if (printToParaview) {
-        if (short_out) {
+        if (out_length == 0) {
+            ssFluidParticles << "x,y,z,|U|\n";
+        } else if (out_length == 1) {
             ssFluidParticles << "x,y,z,v_x,v_y,v_z,|U|,rho,pressure\n";
-        } else {
+        } else if (out_length == 2) {
             ssFluidParticles << "x,y,z,h,v_x,v_y,v_z,|U|,rho(rpx),p(rpy),mu(rpz),sr,tau,I,mu_i,type(rpw)\n";
         }
     }
@@ -113,11 +120,13 @@ void PrintToFile(const thrust::device_vector<Real4>& posRadD,
         Real4 stIm = h_sr_tau_I_mu_i[i] + mR4(1e-20);
 
         Real velMag = length(vel);
-        if (short_out) {
-            ssFluidParticles << pos.x << ", " << pos.y << ", " << pos.z << ", " << vel.x + eps << ", " << vel.y + eps
-                             << ", " << vel.z + eps << ", " << velMag + eps << ", " << rP.x << ", " << rP.y + eps
-                             << std::endl;
-        } else {
+        if (out_length == 0) {
+            ssFluidParticles << pos.x << ", " << pos.y << ", " << pos.z << ", " << velMag + eps << std::endl;
+        } else if (out_length == 1) {
+            ssFluidParticles << pos.x << ", " << pos.y << ", " << pos.z << ", " << vel.x + eps << ", "
+                             << vel.y + eps << ", " << vel.z + eps << ", " << velMag + eps << ", " << rP.x << ", "
+                             << rP.y + eps << std::endl;
+        } else if (out_length == 2) {
             ssFluidParticles << pos.x << ", " << pos.y << ", " << pos.z << ", " << pos.w << ", " << vel.x + eps << ", "
                              << vel.y + eps << ", " << vel.z + eps << ", " << velMag + eps << ", " << rP.x << ", "
                              << rP.y + eps << ", " << rP.z << ", " << stIm.x << ", " << stIm.y + eps << ", " << stIm.z
@@ -136,9 +145,11 @@ void PrintToFile(const thrust::device_vector<Real4>& posRadD,
         fileNameFluidBoundaries.open(nameFluidBoundaries);
         std::stringstream ssFluidBoundaryParticles;
         if (printToParaview) {
-            if (short_out) {
+            if (out_length == 0) {
+                ssFluidBoundaryParticles << "x,y,z,|U|\n";
+            } else if (out_length == 1) {
                 ssFluidBoundaryParticles << "x,y,z,v_x,v_y,v_z,|U|,rho,pressure\n";
-            } else {
+            } else if (out_length == 2) {
                 ssFluidBoundaryParticles << "x,y,z,h,v_x,v_y,v_z,|U|,rho(rpx),p(rpy),mu(rpz),sr,tau,I,mu_i,type(rpw)\n";
             }
         }
@@ -153,11 +164,13 @@ void PrintToFile(const thrust::device_vector<Real4>& posRadD,
             Real4 stIm = h_sr_tau_I_mu_i[i] + mR4(1e-20);
 
             Real velMag = length(vel);
-            if (short_out) {
+            if (out_length == 0) {
+                ssFluidBoundaryParticles << pos.x << ", " << pos.y << ", " << pos.z << ", " << velMag + eps << std::endl;
+            } else if (out_length == 1) {
                 ssFluidBoundaryParticles << pos.x << ", " << pos.y << ", " << pos.z << ", " << vel.x + eps << ", "
-                                         << vel.y + eps << ", " << vel.z + eps << ", " << velMag + eps << ", " << rP.x
-                                         << ", " << rP.y + eps << std::endl;
-            } else {
+                                         << vel.y + eps << ", " << vel.z + eps << ", " << velMag + eps << ", " << rP.x << ", "
+                                         << rP.y + eps << std::endl;
+            } else if (out_length == 2) {
                 ssFluidBoundaryParticles << pos.x << ", " << pos.y << ", " << pos.z << ", " << pos.w << ", "
                                          << vel.x + eps << ", " << vel.y + eps << ", " << vel.z + eps << ", "
                                          << velMag + eps << ", " << rP.x << ", " << rP.y + eps << ", " << rP.z << ", "
@@ -179,9 +192,11 @@ void PrintToFile(const thrust::device_vector<Real4>& posRadD,
         fileNameBCE.open(nameBCE);
         std::stringstream ssBCE;
         if (printToParaview) {
-            if (short_out) {
+            if (out_length == 0) {
+                ssBCE << "x,y,z,|U|\n";
+            } else if (out_length == 1) {
                 ssBCE << "x,y,z,v_x,v_y,v_z,|U|,rho,pressure\n";
-            } else {
+            } else if (out_length == 2) {
                 ssBCE << "x,y,z,h,v_x,v_y,v_z,|U|,rho(rpx),p(rpy),mu(rpz),sr,tau,I,mu_i,type(rpw)\n";
             }
         }
@@ -194,11 +209,13 @@ void PrintToFile(const thrust::device_vector<Real4>& posRadD,
             Real4 stIm = h_sr_tau_I_mu_i[i] + mR4(1e-20);
 
             if (rP.w == 1.0) {
-                if (short_out) {
-                    ssBCE << pos.x << ", " << pos.y << ", " << pos.z << ", " << vel.x + eps << ", " << vel.y + eps
-                          << ", " << vel.z + eps << ", " << velMag + eps << ", " << rP.x << ", " << rP.y + eps
-                          << std::endl;
-                } else {
+                if (out_length == 0) {
+                    ssBCE << pos.x << ", " << pos.y << ", " << pos.z << ", " << velMag + eps << std::endl;
+                } else if (out_length == 1) {
+                    ssBCE << pos.x << ", " << pos.y << ", " << pos.z << ", " << vel.x + eps << ", "
+                          << vel.y + eps << ", " << vel.z + eps << ", " << velMag + eps << ", " << rP.x << ", "
+                          << rP.y + eps << std::endl;
+                } else if (out_length == 2) {
                     ssBCE << pos.x << ", " << pos.y << ", " << pos.z << ", " << pos.w << ", " << vel.x + eps << ", "
                           << vel.y + eps << ", " << vel.z + eps << ", " << velMag + eps << ", " << rP.x << ", "
                           << rP.y + eps << ", " << rP.z << ", " << stIm.x << ", " << stIm.y + eps << ", " << stIm.z
@@ -221,9 +238,11 @@ void PrintToFile(const thrust::device_vector<Real4>& posRadD,
         std::stringstream ssBCE_Flex;
 
         if (printToParaview) {
-            if (short_out) {
+            if (out_length == 0) {
+                ssBCE_Flex << "x,y,z,|U|\n";
+            } else if (out_length == 1) {
                 ssBCE_Flex << "x,y,z,v_x,v_y,v_z,|U|,rho,pressure\n";
-            } else {
+            } else if (out_length == 2) {
                 ssBCE_Flex << "x,y,z,h,v_x,v_y,v_z,|U|,rho(rpx),p(rpy),mu(rpz),sr,tau,I,mu_i,type(rpw)\n";
             }
         }
@@ -234,11 +253,13 @@ void PrintToFile(const thrust::device_vector<Real4>& posRadD,
             Real4 stIm = h_sr_tau_I_mu_i[i] + mR4(1e-20);
 
             Real velMag = length(vel);
-            if (short_out) {
-                ssBCE_Flex << pos.x << ", " << pos.y << ", " << pos.z << ", " << vel.x + eps << ", " << vel.y + eps
-                           << ", " << vel.z + eps << ", " << velMag + eps << ", " << rP.x << ", " << rP.y + eps
-                           << std::endl;
-            } else {
+            if (out_length == 0) {
+                ssBCE_Flex << pos.x << ", " << pos.y << ", " << pos.z << ", " << velMag + eps << std::endl;
+            } else if (out_length == 1) {
+                ssBCE_Flex << pos.x << ", " << pos.y << ", " << pos.z << ", " << vel.x + eps << ", "
+                           << vel.y + eps << ", " << vel.z + eps << ", " << velMag + eps << ", " << rP.x << ", "
+                           << rP.y + eps << std::endl;
+            } else if (out_length == 2) {
                 ssBCE_Flex << pos.x << ", " << pos.y << ", " << pos.z << ", " << pos.w << ", " << vel.x + eps << ", "
                            << vel.y + eps << ", " << vel.z + eps << ", " << velMag + eps << ", " << rP.x << ", "
                            << rP.y + 1e-20 << ", " << rP.z << ", " << stIm.x << ", " << stIm.y + eps << ", " << stIm.z

@@ -57,10 +57,10 @@ enum class fluid_dynamics { IISPH, I2SPH, WCSPH };
 /// Structure with FSI simulation parameters.
 struct SimParams {
     fluid_dynamics fluid_dynamic_type;  ///< Type of SPH mehtod (WCSPH, IISPH, or I2SPH)
-    char out_name[256]; ///< Name of the output directory.
-    char demo_dir[2048]; ///< Demo output directory.
-    bool full_output; ///< Output all information of SPH particles into data files
-    bool output_fsi; ///< Output fsi information for each body/node
+    char out_name[256];   ///< Name of the output directory.
+    char demo_dir[2048];  ///< Demo output directory.
+    int output_length;    ///< Output length (0:short, 1:middle, 2:long) information of SPH particles into data files
+    bool output_fsi;      ///< Output fsi information for each body/node
 
     int3 gridSize;        ///< dx, dy, dz distances between particle centers.
     Real3 worldOrigin;    ///< Origin point.

@@ -244,8 +244,8 @@ class CH_FSI_API ChSystemFsi {
     /// Set FSI information output
     void SetFsiInfoOutput(bool outputFsiInfo);
 
-    /// Set simulation data output format
-    void SetOutputFormat(bool fullOutput);
+    /// Set simulation data output length
+    void SetOutputLength(int OutputLength);
 
     /// Set wall boundary condition
     void SetWallBC(BceVersion wallBC);

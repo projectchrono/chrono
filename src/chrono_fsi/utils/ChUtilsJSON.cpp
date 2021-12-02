@@ -101,10 +101,10 @@ bool ParseJSON(const std::string& json_file, std::shared_ptr<SimParams> paramsH,
     else
         strcpy(paramsH->out_name, "Undefined");
 
-    if (doc.HasMember("Fully Output"))
-        paramsH->full_output = doc["Fully Output"].GetBool();
+    if (doc.HasMember("Data Output Length"))
+        paramsH->output_length = doc["Data Output Length"].GetInt();
     else
-        paramsH->full_output = false;
+        paramsH->output_length = 1;
 
     if (doc.HasMember("Output FSI"))
         paramsH->output_fsi = doc["Output FSI"].GetBool();

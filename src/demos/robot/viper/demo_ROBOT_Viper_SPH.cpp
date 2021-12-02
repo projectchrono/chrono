@@ -177,8 +177,8 @@ int main(int argc, char* argv[]) {
     /// Set FSI information output
     myFsiSystem.SetFsiInfoOutput(false);
 
-    /// Set simulation data output format
-    myFsiSystem.SetOutputFormat(false);
+    /// Set simulation data output length
+    myFsiSystem.SetOutputLength(0);
 
     /// Create an initial box for the terrain patch
     chrono::utils::GridSampler<> sampler(initSpace0);

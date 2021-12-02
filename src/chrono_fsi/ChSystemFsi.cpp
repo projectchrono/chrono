@@ -357,8 +357,8 @@ void ChSystemFsi::SetFsiInfoOutput(bool outputFsiInfo){
     paramsH->output_fsi =  outputFsiInfo;
 }
 //--------------------------------------------------------------------------------------------------------------------------------
-void ChSystemFsi::SetOutputFormat(bool fullOutput){
-    paramsH->full_output = fullOutput;
+void ChSystemFsi::SetOutputLength(int OutputLength){
+    paramsH->output_length = OutputLength;
 }
 //--------------------------------------------------------------------------------------------------------------------------------
 void ChSystemFsi::SetWallBC(BceVersion wallBC){
