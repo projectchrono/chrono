@@ -329,6 +329,7 @@ set(ChronoEngine_physics_shafts_SOURCES
     physics/ChShaftsTorqueConverter.cpp
     physics/ChShaftsThermalEngine.cpp
     physics/ChShaftsLoads.cpp
+    physics/ChShaftsFreewheel.cpp
 )
 
 set(ChronoEngine_physics_shafts_HEADERS
@@ -350,6 +351,7 @@ set(ChronoEngine_physics_shafts_HEADERS
     physics/ChShaftsTorqueConverter.h
     physics/ChShaftsThermalEngine.h
     physics/ChShaftsLoads.h
+    physics/ChShaftsFreewheel.h
 )
 
 source_group(physics\\shafts FILES

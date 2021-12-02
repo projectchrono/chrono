@@ -89,8 +89,8 @@ void MacPhersonStrut::Create(const rapidjson::Document& d) {
     m_points[LCA_F] = ReadVectorJSON(d["Control Arm"]["Location Chassis Front"]);
     m_points[LCA_B] = ReadVectorJSON(d["Control Arm"]["Location Chassis Back"]);
     m_points[LCA_U] = ReadVectorJSON(d["Control Arm"]["Location Upright"]);
-    if (d["Lower Control Arm"].HasMember("Bushing Data")) {
-        m_LCABushingData = ReadBushingDataJSON(d["Lower Control Arm"]["Bushing Data"]);
+    if (d["Control Arm"].HasMember("Bushing Data")) {
+        m_LCABushingData = ReadBushingDataJSON(d["Control Arm"]["Bushing Data"]);
     }
 
     // Read strut data

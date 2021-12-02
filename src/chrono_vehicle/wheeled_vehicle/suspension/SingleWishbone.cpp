@@ -82,7 +82,7 @@ void SingleWishbone::Create(const rapidjson::Document& d) {
     m_CARadius = d["Control Arm"]["Radius"].GetDouble();
     m_points[CA_C] = ReadVectorJSON(d["Control Arm"]["Location Chassis"]);
     m_points[CA_U] = ReadVectorJSON(d["Control Arm"]["Location Upright"]);
-    if (d["Lower Control Arm"].HasMember("Bushing Data")) {
+    if (d["Control Arm"].HasMember("Bushing Data")) {
         m_CABushingData = ReadBushingDataJSON(d["Control Arm"]["Bushing Data"]);
     }
 

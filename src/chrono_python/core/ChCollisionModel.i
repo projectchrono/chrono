@@ -2,6 +2,7 @@
 
 /* Includes the header in the wrapper code */
 #include "chrono/collision/ChCollisionModel.h"
+#include "chrono/collision/ChCollisionModelBullet.h"
 
 using namespace collision;
 
@@ -12,4 +13,4 @@ using namespace collision;
 
 /* Parse the header file to generate wrappers */
 %include "../../chrono/collision/ChCollisionModel.h"
-
+%include "../../chrono/collision/ChCollisionModelBullet.h"

@@ -424,13 +424,13 @@ std::string ChWheeledVehicle::ExportComponentList() const {
 
     rapidjson::Value brakeArray(rapidjson::kArrayType);
     for (auto& axle : m_axles) {
-        {
+        if (axle->m_brake_left) {
             rapidjson::Document jsonSubDocument(&jsonDocument.GetAllocator());
             jsonSubDocument.SetObject();
             axle->m_brake_left->ExportComponentList(jsonSubDocument);
             brakeArray.PushBack(jsonSubDocument, jsonDocument.GetAllocator());
         }
-        {
+        if (axle->m_brake_right) {
             rapidjson::Document jsonSubDocument(&jsonDocument.GetAllocator());
             jsonSubDocument.SetObject();
             axle->m_brake_right->ExportComponentList(jsonSubDocument);
@@ -490,11 +490,11 @@ void ChWheeledVehicle::Output(int frame, ChVehicleOutput& database) const {
             database.WriteSection(axle->m_suspension->GetName());
             axle->m_suspension->Output(database);
         }
-        if (axle->m_brake_left->OutputEnabled()) {
+        if (axle->m_brake_left && axle->m_brake_left->OutputEnabled()) {
             database.WriteSection(axle->m_brake_left->GetName());
             axle->m_brake_left->Output(database);
         }
-        if (axle->m_brake_right->OutputEnabled()) {
+        if (axle->m_brake_right && axle->m_brake_right->OutputEnabled()) {
             database.WriteSection(axle->m_brake_right->GetName());
             axle->m_brake_right->Output(database);
         }

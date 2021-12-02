@@ -200,7 +200,7 @@ void TrackAssemblyDoublePin::Create(const rapidjson::Document& d) {
         }
 
         if (d["Track Shoes"].HasMember("Bushing Data")) {
-            m_bushing_data = ReadBushingDataJSON(d["Bushing Data"]);
+            m_bushing_data = ReadBushingDataJSON(d["Track Shoes"]["Bushing Data"]);
         }
     }
 }
