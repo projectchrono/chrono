@@ -41,8 +41,10 @@ using namespace chrono::vehicle;
 // =============================================================================
 // Specification of a vehicle suspension test rig
 // Available models:
-//    HMMWV
-//    MTV
+//    HMMWV   : demonstrates STR for a steered axle
+//    MTV     : demonstrates STR for a walking-beam suspension
+//    Generic : demonstrates STR for an axle with antiroll bar
+//               (requires smaller step size)
 
 class STR_Setup {
   public:
@@ -83,11 +85,25 @@ class MTV_STR_Setup : public STR_Setup {
     virtual double CameraDistance() const override { return 4.0; }
 };
 
+class Generic_STR_Setup : public STR_Setup {
+  public:
+    virtual std::string SuspensionRigJSON() const override { return "generic/suspensionTest/STR_example.json"; }
+    virtual std::string VehicleJSON() const override { return "generic/vehicle/Vehicle_DoubleWishbones_ARB.json"; }
+    virtual std::string TireJSON() const override { return "generic/tire/FialaTire.json"; }
+    virtual std::string DataDriverFile() const override { return "generic/suspensionTest/ST_inputs.dat"; }
+    virtual std::vector<int> TestAxles() const override { return {0}; }
+    virtual std::vector<int> TestSteerings() const { return {0}; }
+    virtual double InitRideHeight() const override { return 0.55; }
+    virtual double PostLimit() const { return 0.07; }
+    virtual double CameraDistance() const override { return 2.0; }
+};
+
 // =============================================================================
 // USER SETTINGS
 
 HMMWV_STR_Setup setup;
 ////MTV_STR_Setup setup;
+////Generic_STR_Setup setup;
 
 // STR rig type
 enum class RigMode {PLATFORM, PUSHROD};
@@ -158,11 +174,14 @@ int main(int argc, char* argv[]) {
     ////auto rig = CreateFromSpecFile();
 
     // Create and attach the vehicle tires.
-    // (not needed if tires are specified in the vehicle's suspension JSON file)
-    for (auto& axle : rig->GetVehicle().GetAxles()) {
+    // (not needed if tires are specified in the vehicle's suspension JSON files)
+    for (auto ia : setup.TestAxles()) {
+        auto axle = rig->GetVehicle().GetAxle(ia);
         for (auto& wheel : axle->GetWheels()) {
-            auto tire = ReadTireJSON(vehicle::GetDataFile(setup.TireJSON()));
-            rig->GetVehicle().InitializeTire(tire, wheel, VisualizationType::MESH);
+            if (!wheel->GetTire()) {
+                auto tire = ReadTireJSON(vehicle::GetDataFile(setup.TireJSON()));
+                rig->GetVehicle().InitializeTire(tire, wheel, VisualizationType::MESH);
+            }
         }
     }
 
