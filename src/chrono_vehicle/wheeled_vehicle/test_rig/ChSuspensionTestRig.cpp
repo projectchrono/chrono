@@ -255,7 +255,7 @@ void ChSuspensionTestRig::Initialize() {
         // Overwrite visualization setting
         m_vehicle->GetSubchassis(is)->SetVisualizationType(m_vis_subchassis);
         // Enable output
-        ////m_vehicle->SetSubchassisOutput(is, true);
+        m_vehicle->SetSubchassisOutput(is, true);
     }
 
     // Process steering mechanisms

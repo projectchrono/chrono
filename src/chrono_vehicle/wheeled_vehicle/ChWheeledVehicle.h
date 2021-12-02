@@ -184,6 +184,10 @@ class CH_VEHICLE_API ChWheeledVehicle : public ChVehicle {
     /// See also ChVehicle::SetOuput.
     void SetSteeringOutput(int id, bool state);
 
+    /// Enable/disable output from the subchassis subsystems.
+    /// See also ChVehicle::SetOuput.
+    void SetSubchassisOutput(int id, bool state);
+
     /// Enable/disable output from the anti-roll bar subsystems.
     /// See also ChVehicle::SetOuput.
     void SetAntirollbarOutput(int id, bool state);

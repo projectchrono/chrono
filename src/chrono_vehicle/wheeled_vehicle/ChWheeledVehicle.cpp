@@ -239,6 +239,10 @@ void ChWheeledVehicle::SetSteeringOutput(int id, bool state) {
     m_steerings[id]->SetOutput(state);
 }
 
+void ChWheeledVehicle::SetSubchassisOutput(int id, bool state) {
+    m_subchassis[id]->SetOutput(state);
+}
+
 void ChWheeledVehicle::SetAntirollbarOutput(int id, bool state) {
     assert(m_axles[id]->m_antirollbar);
     m_axles[id]->m_antirollbar->SetOutput(state);
@@ -419,6 +423,15 @@ std::string ChWheeledVehicle::ExportComponentList() const {
 
     //// TODO add array of rear chassis subsystems
 
+    rapidjson::Value subchassisArray(rapidjson::kArrayType);
+    for (auto& subchassis : m_subchassis) {
+        rapidjson::Document jsonSubDocument(&jsonDocument.GetAllocator());
+        jsonSubDocument.SetObject();
+        subchassis->ExportComponentList(jsonSubDocument);
+        subchassisArray.PushBack(jsonSubDocument, jsonDocument.GetAllocator());    
+    }
+    jsonDocument.AddMember("subchassis", subchassisArray, jsonDocument.GetAllocator());
+
     rapidjson::Value sterringArray(rapidjson::kArrayType);
     for (auto& steering : m_steerings) {
         rapidjson::Document jsonSubDocument(&jsonDocument.GetAllocator());
@@ -490,6 +503,13 @@ void ChWheeledVehicle::Output(int frame, ChVehicleOutput& database) const {
         if (c->OutputEnabled()) {
             database.WriteSection(c->GetName());
             c->Output(database);
+        }
+    }
+
+    for (auto& subchassis : m_subchassis) {
+        if (subchassis->OutputEnabled()) {
+            database.WriteSection(subchassis->GetName());
+            subchassis->Output(database);
         }
     }
 
