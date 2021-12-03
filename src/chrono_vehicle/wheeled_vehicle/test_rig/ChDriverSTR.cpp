@@ -29,17 +29,7 @@
 namespace chrono {
 namespace vehicle {
 
-// -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
-ChDriverSTR::ChDriverSTR()
-    : m_time(0),
-      m_displLeft(0),
-      m_displRight(0),
-      m_displSpeedLeft(0),
-      m_displSpeedRight(0),
-      m_steering(0),
-      m_delay(0),
-      m_log_filename("") {}
+ChDriverSTR::ChDriverSTR() : m_time(0), m_steering(0), m_delay(0), m_log_filename("") {}
 
 void ChDriverSTR::Synchronize(double time) {
     m_time = time;
@@ -49,9 +39,15 @@ bool ChDriverSTR::Started() const {
     return m_time > m_delay;
 }
 
-// -----------------------------------------------------------------------------
-// Initialize output file for recording deriver inputs.
-// -----------------------------------------------------------------------------
+void ChDriverSTR::Initialize(int naxles) {
+    m_naxles = naxles;
+    m_displLeft.resize(naxles, 0.0);
+    m_displRight.resize(naxles, 0.0);
+    m_displSpeedLeft.resize(naxles, 0.0);
+    m_displSpeedRight.resize(naxles, 0.0);
+}
+
+// Initialize output file for recording driver inputs.
 bool ChDriverSTR::LogInit(const std::string& filename) {
     m_log_filename = filename;
 
@@ -64,9 +60,7 @@ bool ChDriverSTR::LogInit(const std::string& filename) {
     return true;
 }
 
-// -----------------------------------------------------------------------------
 // Record the current driver inputs to the log file.
-// -----------------------------------------------------------------------------
 bool ChDriverSTR::Log(double time) {
     if (m_log_filename.empty())
         return false;
@@ -75,20 +69,23 @@ bool ChDriverSTR::Log(double time) {
     if (!ofile)
         return false;
 
-    ofile << time << "\t" << m_displLeft << "\t" << m_displRight << "\t" << m_steering << std::endl;
+    ofile << time << "\t" << m_steering << "\t";
+    for (int ia = 0; ia < m_naxles; ia++) {
+        ofile << m_displLeft[ia] << "\t" << m_displRight[ia] << "\t";
+    }
+    ofile << std::endl;
+
     ofile.close();
     return true;
 }
 
-// -----------------------------------------------------------------------------
 // Clamp a specified input value to appropriate interval.
-// -----------------------------------------------------------------------------
-void ChDriverSTR::SetDisplacementLeft(double val, double min_val, double max_val) {
-    m_displLeft = ChClamp(val, min_val, max_val);
+void ChDriverSTR::SetDisplacementLeft(int axle, double val, double min_val, double max_val) {
+    m_displLeft[axle] = ChClamp(val, min_val, max_val);
 }
 
-void ChDriverSTR::SetDisplacementRight(double val, double min_val, double max_val) {
-    m_displRight = ChClamp(val, min_val, max_val);
+void ChDriverSTR::SetDisplacementRight(int axle, double val, double min_val, double max_val) {
+    m_displRight[axle] = ChClamp(val, min_val, max_val);
 }
 
 void ChDriverSTR::SetSteering(double val, double min_val, double max_val) {

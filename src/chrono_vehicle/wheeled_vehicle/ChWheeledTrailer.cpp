@@ -56,6 +56,15 @@ void ChWheeledTrailer::SetWheelVisualizationType(VisualizationType vis) {
     }
 }
 
+void ChWheeledTrailer::SetTireVisualizationType(VisualizationType vis) {
+    for (auto& axle : m_axles) {
+        for (auto& wheel : axle->m_wheels) {
+            if (wheel->GetTire())
+                wheel->GetTire()->SetVisualizationType(vis);
+        }
+    }
+}
+
 // Synchronize the trailer subsystem at the specified time
 void ChWheeledTrailer::Synchronize(double time, double braking, const ChTerrain& terrain) {
     // Synchronize the trailer's axle subsystems

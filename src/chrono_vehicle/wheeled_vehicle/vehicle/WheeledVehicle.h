@@ -34,9 +34,21 @@ namespace vehicle {
 /// Wheeled vehicle model constructed from a JSON specification file.
 class CH_VEHICLE_API WheeledVehicle : public ChWheeledVehicle {
   public:
-    WheeledVehicle(const std::string& filename, ChContactMethod contact_method = ChContactMethod::NSC);
+    /// Create a wheeled vehicle from the provided JSON specification file.
+    /// The vehicle is added to a newly created Chrono system which uses the specified contact formulation. If
+    /// indicated, an associated powertrain and tires are created (if specified in the JSON file).
+    WheeledVehicle(const std::string& filename,
+                   ChContactMethod contact_method = ChContactMethod::NSC,
+                   bool create_powertrain = true,
+                   bool create_tires = true);
 
-    WheeledVehicle(ChSystem* system, const std::string& filename);
+    /// Create a wheeled vehicle from the provided JSON specification file.
+    /// The vehicle is added to the given Chrono system. If indicated, an associated powertrain and tires are created
+    /// (if specified in the JSON file).
+    WheeledVehicle(ChSystem* system,
+                   const std::string& filename,
+                   bool create_powertrain = true,
+                   bool create_tires = true);
 
     ~WheeledVehicle() {}
 
@@ -49,7 +61,7 @@ class CH_VEHICLE_API WheeledVehicle : public ChWheeledVehicle {
     virtual void Initialize(const ChCoordsys<>& chassisPos, double chassisFwdVel = 0) override;
 
   private:
-    void Create(const std::string& filename);
+    void Create(const std::string& filename, bool create_powertrain, bool create_tires);
 
   private:
     int m_num_rear_chassis;                   // number of rear chassis subsystems for this vehicle
