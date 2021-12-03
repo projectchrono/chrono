@@ -58,7 +58,7 @@ void BuildAssembly( std::shared_ptr<ChModalAssembly> my_assembly,
     // BODY: the base & tower:
 
     auto my_body_A = chrono_types::make_shared<ChBodyEasyBox>(5, 2, 5, 200);
-    my_body_A->SetBodyFixed(true);
+    my_body_A->SetBodyFixed(false);
     my_body_A->SetPos(ChVector<>(0, -10, 0));
     my_assembly->Add(my_body_A);
 
