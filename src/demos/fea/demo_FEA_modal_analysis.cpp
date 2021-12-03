@@ -357,6 +357,9 @@ class MyEventReceiver : public IEventReceiver {
                 case irr::KEY_KEY_4:
                     ID_current_example = 4;
                     return true;
+                case irr::KEY_KEY_5:
+                    ID_current_example = 5;
+                    return true;
                 default:
                     break;
             }
@@ -416,8 +419,11 @@ int main(int argc, char* argv[]) {
 
     // Some help on the screen
     application.GetIGUIEnvironment()->addStaticText(
-        L" Press 1: fixed cantilever \n Press 2: free-free cantilever \n Press 3: L-beam, root fixed \n Press 4: L-beam, free-free"
-        L"Modal analysis",
+        L" Press 1: fixed cantilever \n "
+        L" Press 2: free-free cantilever \n"
+        L" Press 3: L-beam, root fixed \n "
+        L" Press 4: L-beam, free-free, \n "
+        L" Press 5: L-beam, fixed-fixed",
         irr::core::rect<irr::s32>(400, 80, 650, 200), false, true, 0);
 
 
@@ -476,6 +482,11 @@ int main(int argc, char* argv[]) {
                 MakeAndRunDemoLbeam(application, 
                     false,    // end 1 free
                     false);   // end 2 free
+                break;
+            case 5:
+                MakeAndRunDemoLbeam(application, 
+                    true,    // end 1 fixed
+                    true);   // end 2 fixed
                 break;
             default:
                 break;
