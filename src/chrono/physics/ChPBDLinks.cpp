@@ -45,7 +45,7 @@ namespace chrono {
 	}
 	void ChLinkPBD::SolvePositions() {
 		assert(!Body1->GetBodyFixed() || !Body2->GetBodyFixed());
-
+        double alpha_hat = alpha / pow(PBDsys->h,2);
 		// if position free skip completely
 		if (!r_free) {
 			ChVector<> nr = getQdelta();
@@ -59,7 +59,7 @@ namespace chrono {
 				w1_rot = w1r(0, 0);
 				w2_rot = w2r(0, 0);
 
-				double delta_lambda_t = -(theta + alpha * lambda_t) / (w1_rot + w2_rot + alpha);
+				double delta_lambda_t = -(theta + alpha_hat * lambda_t) / (w1_rot + w2_rot + alpha_hat);
 				lambda_t += delta_lambda_t;
 
 				ChVector<> pr = delta_lambda_t * nr;
@@ -104,6 +104,7 @@ namespace chrono {
 			ChVector<> nt = M*n_loc;
 			double C = nt.Length();
 			if (dist_constr){
+                return;
 				if (displ_actuated)
 					dist = motor_func->Get_y(PBDsys->T);
 				C -= dist;
@@ -123,7 +124,7 @@ namespace chrono {
 				w1 = invm1 + Ii1(0, 0);
 				w2 = invm2 + Ii2(0, 0);
 
-				double delta_lambda_f = -(C + alpha * lambda_f) / (w1 + w2 + alpha);
+				double delta_lambda_f = -(C + alpha_hat * lambda_f) / (w1 + w2 + alpha_hat);
 				lambda_f += delta_lambda_f;
 				ChVector<> p = delta_lambda_f * nt;
 
@@ -364,7 +365,7 @@ namespace chrono {
 		//findRDOF();
 		// TODO: set properly alpha according to http://blog.mmacklin.com/
 		// rmember to eval alpha_hat = alpha/(h^2)
-		alpha = 100;
+		alpha = 2.5E-5;
 	}
 
 	// Adjust tangential velocity of bodies 
@@ -414,8 +415,8 @@ namespace chrono {
 					Eigen::Matrix<double, 1, 1> Ii2 = ((f2.coord.pos.Cross(n2).eigen()).transpose()) * Inv_I2 * (f2.coord.pos.Cross(n2).eigen());
 					w1_tf = invm1 + Ii1(0, 0);
 					w2_tf = invm2 + Ii2(0, 0);
-
-					double delta_lambda_tf = -(C + alpha * lambda_contact_tf) / (w1_tf + w2_tf + alpha);
+                    double alpha_hat = alpha / pow(PBDsys->h, 2);
+                    double delta_lambda_tf = -(C + alpha_hat * lambda_contact_tf) / (w1_tf + w2_tf + alpha_hat);
 					ChVector<> p = delta_lambda_tf * n_tf;
 					lambda_contact_tf += delta_lambda_tf;
 					lambda_tf_dir = n_tf;
@@ -583,9 +584,16 @@ namespace chrono {
         dist_constr = true;
         dist = link->GetImposedDistance();
     }
+
+	ChLinkPBD::ChLinkPBD(ChSystemPBD* sys) {
+        PBDsys = sys;
+        alpha = PBDsys->link_compl;
+    };
+
 	ChLinkPBD::ChLinkPBD(ChBody* body1, ChBody* body2, ChFrame<>& fr1, ChFrame<>& fr2, 
 						bool mmask[6], ChSystemPBD* sys, double impdist, std::shared_ptr<ChFunction> motfun) : ChLinkPBD(sys) {
-		//link = alink;
+
+        alpha = PBDsys->link_compl;
 		Body1 = body1;
 		Body2 = body2;
 		f1 = fr1;

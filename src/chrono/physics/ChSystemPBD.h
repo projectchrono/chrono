@@ -32,7 +32,7 @@ class ChApi ChSystemPBD : public ChSystem {
   public:
     /// Create a physical system.
     /// If init_sys is false, the collision system oand solver are not initialized.
-	ChSystemPBD(bool init_sys = true);
+	ChSystemPBD(double link_compliance=2.5E-11, bool init_sys = true);
 
     /// Copy constructor
 	ChSystemPBD(const ChSystemPBD& other);
@@ -94,6 +94,7 @@ class ChApi ChSystemPBD : public ChSystem {
 	/// number of substeps per step 
 	int substeps = 20;
 	double h;
+    double link_compl;
     /// Setup the PBD system
 	bool PBD_isSetup = false;
 	/// Lists of links and contacts usable by PBD formulation

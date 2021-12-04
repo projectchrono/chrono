@@ -31,7 +31,7 @@ namespace chrono {
 // Register into the object factory, to enable run-time dynamic creation and persistence
 CH_FACTORY_REGISTER(ChSystemPBD)
 
-ChSystemPBD::ChSystemPBD(bool init_sys) : ChSystem() {
+ChSystemPBD::ChSystemPBD(double link_compliance, bool init_sys) : ChSystem(), link_compl(link_compliance) {
     if (init_sys) {
         // Set default contact container
         contact_container = chrono_types::make_shared<ChContactContainerPBD>();

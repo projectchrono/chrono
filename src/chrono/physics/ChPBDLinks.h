@@ -39,7 +39,7 @@ namespace chrono {
 	public:
 
 		/// Create a LinkPBD
-		ChLinkPBD(ChSystemPBD* sys) { PBDsys = sys; };
+        ChLinkPBD(ChSystemPBD* sys);
 
 		/// Constructor that fully defines a link using PBD formulation
 		ChLinkPBD::ChLinkPBD(ChBody* body1, ChBody* body2, ChFrame<>& fr1, ChFrame<>& fr2, 
@@ -94,7 +94,7 @@ namespace chrono {
 		//ChVector<> p1_old;
 		//ChVector<> p2_old;
 		// Compliance (TODO: make it settable)
-        double alpha = 1e-4;
+        double alpha;
 
 		// Limits
 		bool is_rot_limited = false;
