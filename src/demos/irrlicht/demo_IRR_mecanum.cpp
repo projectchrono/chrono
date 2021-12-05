@@ -22,6 +22,7 @@
 #include "chrono/core/ChRealtimeStep.h"
 #include "chrono/physics/ChLinkMotorRotationSpeed.h"
 #include "chrono/physics/ChSystemNSC.h"
+#include "chrono/physics/ChSystemPBD.h"
 #include "chrono/physics/ChBodyEasy.h"
 #include "chrono/utils/ChUtilsGeometry.h"
 #include "chrono/assets/ChBarrelShape.h"
@@ -105,7 +106,7 @@ class MyEventReceiver : public IEventReceiver {
 // This small function creates a Mecanum wheel, made with many ChBodySceneNode rigid bodies (a central
 // wheel and the many radial rollers, already lined to the wheel with revolute joints.)
 // The function returns the pointer to the central wheel.
-std::shared_ptr<ChBody> create_mecanum_wheel(ChSystemNSC& mphysicalSystem,
+std::shared_ptr<ChBody> create_mecanum_wheel(ChSystem& mphysicalSystem,
                                              ChVector<> shaft_position,
                                              ChQuaternion<> shaft_alignment,
                                              double wheel_radius,
@@ -190,7 +191,7 @@ int main(int argc, char* argv[]) {
     GetLog() << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
 
     // Create a ChronoENGINE physical system
-    ChSystemNSC mphysicalSystem;
+    ChSystemPBD mphysicalSystem;
 
     // Create the Irrlicht visualization (open the Irrlicht device,
     // bind a simple user interface, etc. etc.)
@@ -326,6 +327,7 @@ int main(int argc, char* argv[]) {
     //
 
     application.SetTimestep(0.01);
+    //mphysicalSystem.SetSubsteps(60);
     application.SetTryRealtime(true);
 
     while (application.GetDevice()->run()) {

@@ -21,6 +21,7 @@
 // =============================================================================
 
 #include "chrono/physics/ChSystemNSC.h"
+#include "chrono/physics/ChSystemPBD.h"
 #include "chrono/physics/ChBodyEasy.h"
 #include "chrono/core/ChTimer.h"
 #include "chrono/core/ChRealtimeStep.h"
@@ -39,11 +40,16 @@ using namespace irr::video;
 using namespace irr::io;
 using namespace irr::gui;
 
+bool abs_rev = true;
+int num_pend = 1;
+double pend_dist = 1.5;
+double z0 = 3.5;
+
 // This function will be used to apply forces caused by
 // a rotating fan, to all objects in front of it (a simple
 // example just to demonstrate how to apply custom forces).
 
-void apply_fan_force(ChSystemNSC* msystem,    // contains all bodies
+void apply_fan_force(ChSystem* msystem,    // contains all bodies
                      ChCoordsys<>& fan_csys,  // pos and rotation of fan
                      double aradius,          // radius of fan
                      double aspeed,           // speed of fan
@@ -82,7 +88,8 @@ int main(int argc, char* argv[]) {
     GetLog() << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
 
     // Create a ChronoENGINE physical system
-    ChSystemNSC my_system;
+    ChSystemPBD my_system;
+    //my_system.SetSubsteps(180);
 
     // Create the Irrlicht visualization (open the Irrlicht device,
     // bind a simple user interface, etc. etc.)
@@ -98,8 +105,8 @@ int main(int argc, char* argv[]) {
 
     // ..create the five pendulums
 
-    for (int k = 0; k < 5; k++) {
-        double z_step = (double)k * 2.;
+    for (int k = 0; k < num_pend; k++) {
+        double z_step = (double)k * pend_dist + z0;
 
         // .. the truss
         auto mrigidBody0 = chrono_types::make_shared<ChBodyEasyBox>(5, 1, 0.5,  // x,y,z size
@@ -137,8 +144,8 @@ int main(int argc, char* argv[]) {
 
         // .. a joint of type 'point on a line', with upper and lower limits on
         //    the X sliding direction, for the pendulum-ground constraint.
-        auto my_link_01 = chrono_types::make_shared<ChLinkLockPointLine>();
-        my_link_01->Initialize(mrigidBody1, mrigidBody0, ChCoordsys<>(ChVector<>(0, 0, z_step)));
+        auto my_link_01 = chrono_types::make_shared<ChLinkLockPrismatic>();
+        my_link_01->Initialize(mrigidBody1, mrigidBody0, ChCoordsys<>(ChVector<>(0, 0, z_step), Q_ROTATE_X_TO_Z));
 
         my_link_01->GetLimit_X().SetActive(true);
         my_link_01->GetLimit_X().SetMax(1.0);
@@ -147,13 +154,23 @@ int main(int argc, char* argv[]) {
         my_system.AddLink(my_link_01);
 
         // .. a spherical joint
-        auto my_link_12 = chrono_types::make_shared<ChLinkLockSpherical>();
-        my_link_12->Initialize(mrigidBody2, mrigidBody1, ChCoordsys<>(ChVector<>(0, -6, z_step)));
+        auto my_link_12 = chrono_types::make_shared<ChLinkLockLock>();
+        if (abs_rev)
+            my_link_12->Initialize(mrigidBody2, mrigidBody1, ChCoordsys<>(ChVector<>(0, -6, 0)));
+        else {
+            my_link_12->Initialize(mrigidBody2, mrigidBody1, true, ChCoordsys<>(ChVector<>(0, 3, 0)),
+                                   ChCoordsys<>(ChVector<>(0, -3, 0)));
+        }
         my_system.AddLink(my_link_12);
 
         // .. a spherical joint
-        auto my_link_23 = chrono_types::make_shared<ChLinkLockSpherical>();
-        my_link_23->Initialize(mrigidBody3, mrigidBody2, ChCoordsys<>(ChVector<>(0, -12, z_step)));
+        auto my_link_23 = chrono_types::make_shared<ChLinkLockLock>();
+        if (abs_rev)
+            my_link_23->Initialize(mrigidBody3, mrigidBody2, ChCoordsys<>(ChVector<>(0, -12, 0)));
+        else {
+            my_link_23->Initialize(mrigidBody3, mrigidBody2, true, ChCoordsys<>(ChVector<>(-3, 0, 0)),
+                                   ChCoordsys<>(ChVector<>(0, -3, 0)));
+        }
         my_system.AddLink(my_link_23);     
     }
 
@@ -207,7 +224,7 @@ int main(int argc, char* argv[]) {
 
         // Apply forces caused by fan & wind if Chrono rigid bodies are
         // in front of the fan, using a simple tutorial function (see above):
-        apply_fan_force(&my_system, my_fan_coord, fan_radius, 5.2, 0.5);
+        //apply_fan_force(&my_system, my_fan_coord, fan_radius, 5.2, 0.5);
 
         // HERE CHRONO INTEGRATION IS PERFORMED: THE
         // TIME OF THE SIMULATION ADVANCES FOR A SINGLE

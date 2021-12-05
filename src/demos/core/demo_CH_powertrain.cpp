@@ -20,6 +20,7 @@
 // =============================================================================
 
 #include "chrono/physics/ChSystemNSC.h"
+#include "chrono/physics/ChSystemPBD.h"
 #include "chrono/physics/ChShaftsGear.h"
 #include "chrono/physics/ChShaftsClutch.h"
 #include "chrono/physics/ChShaftsPlanetary.h"
@@ -107,7 +108,7 @@ int main(int argc, char* argv[]) {
         }
     }
 
-    if (false) {
+    if (true) {
         //
         // EXAMPLE 2:
         //
@@ -354,7 +355,7 @@ int main(int argc, char* argv[]) {
         }
     }
 
-    if (true) {
+    if (false) {
         //
         // EXAMPLE 5:
         //
@@ -378,7 +379,7 @@ int main(int argc, char* argv[]) {
         //
 
         // The physical system: it contains all physical objects.
-        ChSystemNSC my_system;
+        ChSystemPBD my_system;
 
         // Create 'A', a 1D shaft
         auto my_shaftA = chrono_types::make_shared<ChShaft>();

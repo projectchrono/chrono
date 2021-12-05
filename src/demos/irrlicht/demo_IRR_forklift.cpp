@@ -25,6 +25,7 @@
 #include "chrono/physics/ChLinkMotorRotationAngle.h"
 #include "chrono/physics/ChLinkMotorRotationSpeed.h"
 #include "chrono/physics/ChSystemNSC.h"
+#include "chrono/physics/ChSystemPBD.h"
 
 #include "chrono_irrlicht/ChIrrApp.h"
 
@@ -426,7 +427,7 @@ int main(int argc, char* argv[]) {
     GetLog() << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
 
     // Create a ChronoENGINE physical system
-    ChSystemNSC my_system;
+    ChSystemPBD my_system;
 
     // Create the Irrlicht visualization (open the Irrlicht device,
     // bind a simple user interface, etc. etc.)
@@ -448,7 +449,7 @@ int main(int argc, char* argv[]) {
     auto my_ground = chrono_types::make_shared<ChBodyEasyBox>(40, 2, 40, 1000, true, true, ground_mat);
     my_system.Add(my_ground);
     my_ground->SetBodyFixed(true);
-    my_ground->SetPos(ChVector<>(0, -1, 0));
+    my_ground->SetPos(ChVector<>(0, -1.5, 0));
     my_ground->AddAsset(chrono_types::make_shared<ChTexture>(GetChronoDataFile("textures/concrete.jpg")));
 
     // ..some obstacles on the ground:
@@ -491,7 +492,7 @@ int main(int argc, char* argv[]) {
     // THE SOFT-REAL-TIME CYCLE, SHOWING THE SIMULATION
     //
 
-    application.SetTimestep(0.005);
+    application.SetTimestep(0.01);
     application.SetTryRealtime(true);
 
     while (application.GetDevice()->run()) {

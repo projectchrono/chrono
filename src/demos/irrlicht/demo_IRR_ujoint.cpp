@@ -188,7 +188,7 @@ int main(int argc, char* argv[]) {
     application.AssetUpdateAll();
 
     // Simulation loop
-    application.SetTimestep(0.001);
+    application.SetTimestep(0.05);
 
     int frame = 0;
 

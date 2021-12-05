@@ -50,6 +50,8 @@ SET(DEMOS
   demo_IRR_debugDrawer_collisionModels
   demo_IRR_imposed_motion
   demo_IRR_custom_contact
+  demo_IRR_PBD_NewtonPendulum
+  demo_IRR_PBD_dist
 )
 
 if (THRUST_FOUND)

@@ -32,7 +32,8 @@
 #include "chrono_vehicle/output/ChVehicleOutputASCII.h"
 
 #include "chrono_vehicle/wheeled_vehicle/utils/ChWheeledVehicleIrrApp.h"
-
+#include "chrono/physics/ChSystemNSC.h"
+#include "chrono/physics/ChSystemPBD.h"
 #include "chrono_models/vehicle/hmmwv/HMMWV.h"
 
 #include "chrono_thirdparty/filesystem/path.h"
@@ -94,8 +95,8 @@ ChContactMethod contact_method = ChContactMethod::SMC;
 bool contact_vis = false;
 
 // Simulation step sizes
-double step_size = 3e-3;
-double tire_step_size = 1e-3;
+double step_size = 1e-2;
+double tire_step_size = 1e-4;
 
 // Simulation end time
 double t_end = 1000;
@@ -124,15 +125,17 @@ int main(int argc, char* argv[]) {
     // --------------
 
     // Create the HMMWV vehicle, set parameters, and initialize
-    HMMWV_Full my_hmmwv;
+    ChSystemPBD* msys = new (ChSystemPBD);
+    msys->Set_G_acc(ChVector<>(0, 0, -9.81));
+    HMMWV_Reduced my_hmmwv(msys);
     my_hmmwv.SetContactMethod(contact_method);
     my_hmmwv.SetChassisCollisionType(chassis_collision_type);
     my_hmmwv.SetChassisFixed(false);
     my_hmmwv.SetInitPosition(ChCoordsys<>(initLoc, initRot));
     my_hmmwv.SetPowertrainType(powertrain_model);
     my_hmmwv.SetDriveType(drive_type);
-    my_hmmwv.UseTierodBodies(use_tierod_bodies);
-    my_hmmwv.SetSteeringType(steering_type);
+    //my_hmmwv.UseTierodBodies(use_tierod_bodies);
+    //my_hmmwv.SetSteeringType(steering_type);
     my_hmmwv.SetTireType(tire_model);
     my_hmmwv.SetTireStepSize(tire_step_size);
     my_hmmwv.Initialize();
@@ -243,10 +246,10 @@ int main(int argc, char* argv[]) {
 
     my_hmmwv.GetVehicle().LogSubsystemTypes();
 
-    if (debug_output) {
-        GetLog() << "\n\n============ System Configuration ============\n";
-        my_hmmwv.LogHardpointLocations();
-    }
+    //if (debug_output) {
+    //    GetLog() << "\n\n============ System Configuration ============\n";
+    //    my_hmmwv.LogHardpointLocations();
+    //}
 
     // Number of simulation steps between miscellaneous events
     int render_steps = (int)std::ceil(render_step_size / step_size);
@@ -290,7 +293,7 @@ int main(int argc, char* argv[]) {
         if (debug_output && step_number % debug_steps == 0) {
             GetLog() << "\n\n============ System Information ============\n";
             GetLog() << "Time = " << time << "\n\n";
-            my_hmmwv.DebugLog(OUT_SPRINGS | OUT_SHOCKS | OUT_CONSTRAINTS);
+            //my_hmmwv.DebugLog(OUT_SPRINGS | OUT_SHOCKS | OUT_CONSTRAINTS);
 
             auto marker_driver = my_hmmwv.GetChassis()->GetMarkers()[0]->GetAbsCoord().pos;
             auto marker_com = my_hmmwv.GetChassis()->GetMarkers()[1]->GetAbsCoord().pos;
@@ -317,6 +320,7 @@ int main(int argc, char* argv[]) {
         app.Synchronize(driver.GetInputModeAsString(), driver_inputs);
 
         // Advance simulation for one timestep for all modules
+        msys->DoStepDynamics(step_size);
         driver.Advance(step_size);
         terrain.Advance(step_size);
         my_hmmwv.Advance(step_size);

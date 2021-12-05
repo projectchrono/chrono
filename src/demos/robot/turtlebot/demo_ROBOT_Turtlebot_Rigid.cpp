@@ -33,7 +33,7 @@
 #include "chrono/physics/ChLinkMotorRotationSpeed.h"
 #include "chrono/physics/ChLinkMotorRotationTorque.h"
 #include "chrono/physics/ChLinkDistance.h"
-
+#include "chrono/physics/ChSystemPBD.h"
 #include "chrono_irrlicht/ChIrrApp.h"
 
 using namespace chrono;
@@ -84,12 +84,13 @@ std::shared_ptr<ChMaterialSurface> CustomWheelMaterial(ChContactMethod contact_m
 }
 
 // Simulation time step
-double time_step = 0.0005;
+double time_step = 0.003;
 
 int main(int argc, char* argv[]) {
     GetLog() << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
     // Create a ChronoENGINE physical system
-    ChSystemNSC mphysicalSystem;
+    ChSystemPBD mphysicalSystem;
+    mphysicalSystem.SetSubsteps(120);
 
     // set gravity
     mphysicalSystem.Set_G_acc(ChVector<>(0, 0, -9.81));
@@ -103,8 +104,8 @@ int main(int argc, char* argv[]) {
     application.AddTypicalLights(irr::core::vector3df(30.f, 30.f, 100.f), irr::core::vector3df(30.f, -30.f, 100.f));
     application.AddTypicalCamera(core::vector3df(0, 0.5, 0.5));
 
-    application.AddLightWithShadow(core::vector3df(1.5f, 1.5f, 5.5f), core::vector3df(0, 0, 0), 3, 4, 10, 40, 512,
-                                   video::SColorf(0.8f, 0.8f, 1.0f));
+    //application.AddLightWithShadow(core::vector3df(1.5f, 1.5f, 5.5f), core::vector3df(0, 0, 0), 3, 4, 10, 40, 512,
+    //                               video::SColorf(0.8f, 0.8f, 1.0f));
 
     application.SetContactsDrawMode(IrrContactsDrawMode::CONTACT_DISTANCES);
 
@@ -141,7 +142,7 @@ int main(int argc, char* argv[]) {
     application.AssetUpdateAll();
 
     // Use shadows in realtime view
-    application.AddShadowAll();
+    //application.AddShadowAll();
 
     application.SetTimestep(time_step);
 

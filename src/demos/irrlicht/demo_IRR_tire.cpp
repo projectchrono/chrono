@@ -24,7 +24,7 @@
 #include "chrono/physics/ChBodyEasy.h"
 
 #include "chrono_irrlicht/ChIrrApp.h"
-
+#include "chrono/physics/ChSystemPBD.h"
 #include <irrlicht.h>
 
 // Use the namespaces of Chrono
@@ -82,7 +82,7 @@ std::shared_ptr<ChBody> create_wheel(ChVector<> mposition, ChIrrAppInterface& ma
     return mrigidBody;
 }
 
-void create_some_falling_items(ChSystemNSC& mphysicalSystem, ISceneManager* msceneManager, IVideoDriver* driver) {
+void create_some_falling_items(ChSystem& mphysicalSystem, ISceneManager* msceneManager, IVideoDriver* driver) {
     ChCollisionModel::SetDefaultSuggestedEnvelope(0.003);
     ChCollisionModel::SetDefaultSuggestedMargin(0.002);
 

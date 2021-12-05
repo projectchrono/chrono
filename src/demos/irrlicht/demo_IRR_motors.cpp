@@ -17,6 +17,7 @@
 // =============================================================================
 
 #include "chrono/physics/ChSystemNSC.h"
+#include "chrono/physics/ChSystemPBD.h"
 #include "chrono/physics/ChBodyEasy.h"
 #include "chrono/assets/ChTexture.h"
 #include "chrono/motion_functions/ChFunction_Sine.h"
@@ -133,7 +134,7 @@ int main(int argc, char* argv[]) {
     // geometrically; no compliance is allowed, this means that if the
     // rotating body hits some hard contact, the solver might give unpredictable
     // oscillatory or diverging results because of the contradiction.
-
+    /*
     ChVector<> positionA1(-3, 2, -3);
     std::shared_ptr<ChBody> stator1;
     std::shared_ptr<ChBody> rotor1;
@@ -162,7 +163,7 @@ int main(int argc, char* argv[]) {
     // level can be disabled as follows:
     //
     // rotmotor1->SetAvoidAngleDrift(false);
-
+    
     // EXAMPLE A.2
     //
     // - class:   ChLinkMotorRotationAngle
@@ -179,7 +180,7 @@ int main(int argc, char* argv[]) {
     // geometrically; no compliance is allowed, this means that if the
     // rotating body hits some hard contact, the solver might give unpredictable
     // oscillatory or diverging results because of the contradiction.
-
+    
     ChVector<> positionA2(-3, 2, -2);
     std::shared_ptr<ChBody> stator2;
     std::shared_ptr<ChBody> rotor2;
@@ -202,7 +203,7 @@ int main(int argc, char* argv[]) {
     );
     // Let the motor use this motion function as a motion profile:
     rotmotor2->SetAngleFunction(msineangle);
-
+    
     // EXAMPLE A.3
     //
     // - class:   ChLinkMotorRotationTorque
@@ -237,7 +238,7 @@ int main(int argc, char* argv[]) {
 
     // Let the motor use this motion function as a motion profile:
     rotmotor3->SetTorqueFunction(mtorquetime);
-
+    
     // EXAMPLE A.4
     //
     // As before, use a ChLinkMotorRotationTorque, but this time compute
@@ -296,7 +297,7 @@ int main(int argc, char* argv[]) {
 
     // Let the motor use this motion function as a motion profile:
     rotmotor4->SetTorqueFunction(mtorquespeed);
-
+    
     // EXAMPLE A.5
     //
     //
@@ -398,7 +399,7 @@ int main(int argc, char* argv[]) {
     // GetLog() << " 3D motor angular speed: rot-stat " << rotmotor5->GetMotorRot_dt() << " [rad/s] \n";
     // GetLog() << " 3D motor torque: "                 << rotmotor5->GetMotorTorque() << " [Ns] \n";
     // etc.
-
+    */
     // EXAMPLE B.1
     //
     // - class:   ChLinkMotorLinearPosition
@@ -435,7 +436,7 @@ int main(int argc, char* argv[]) {
     );
     // Let the motor use this motion function:
     motor1->SetMotionFunction(msine);
-
+    /*
     // EXAMPLE B.2
     //
     // - class:   ChLinkMotorLinearSpeed
@@ -792,7 +793,7 @@ int main(int argc, char* argv[]) {
     auto motor6setpoint = chrono_types::make_shared<ChFunction_Setpoint>();
     // Let the motor use this motion function:
     motor6->SetMotionFunction(motor6setpoint);
-
+    */
     // Create the Irrlicht visualization (open the Irrlicht device,
     // bind a simple user interface, etc. etc.)
     ChIrrApp application(&mphysicalSystem, L"Motors", core::dimension2d<u32>(800, 600));
@@ -802,8 +803,8 @@ int main(int argc, char* argv[]) {
     application.AddTypicalSky();
     application.AddTypicalLights();
     application.AddTypicalCamera(core::vector3df(1, 3, -7));
-    application.AddLightWithShadow(vector3df(20.0f, 35.0f, -25.0f), vector3df(0, 0, 0), 55, 20, 55, 35, 512,
-                                   video::SColorf(0.6f, 0.8f, 1.0f));
+    //application.AddLightWithShadow(vector3df(20.0f, 35.0f, -25.0f), vector3df(0, 0, 0), 55, 20, 55, 35, 512,
+    //                               video::SColorf(0.6f, 0.8f, 1.0f));
 
     // Use this function for adding a ChIrrNodeAsset to all items
     // Otherwise use application.AssetBind(myitem); on a per-item basis.
@@ -814,7 +815,7 @@ int main(int argc, char* argv[]) {
 
     // This is to enable shadow maps (shadow casting with soft shadows) in Irrlicht
     // for all objects (or use application.AddShadow(..) for enable shadow on a per-item basis)
-    application.AddShadowAll();
+    //application.AddShadowAll();
 
     // Modify some setting of the physical system for the simulation, if you want
     mphysicalSystem.SetSolverType(ChSolver::Type::PSOR);
@@ -832,7 +833,7 @@ int main(int argc, char* argv[]) {
         // for example use a clamped sinusoid, just for fun:
         double t = mphysicalSystem.GetChTime();
         double Sp = ChMin(ChMax(2.6 * sin(t * 1.8), -1.4), 1.4);
-        motor6setpoint->SetSetpoint(Sp, t);
+        //motor6setpoint->SetSetpoint(Sp, t);
 
         application.DoStep();
 

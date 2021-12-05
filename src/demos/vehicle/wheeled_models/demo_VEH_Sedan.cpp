@@ -23,7 +23,7 @@
 #include "chrono/core/ChRealtimeStep.h"
 #include "chrono/utils/ChUtilsInputOutput.h"
 #include "chrono/utils/ChFilters.h"
-
+#include "chrono/physics/ChSystemPBD.h"
 #include "chrono_vehicle/ChConfigVehicle.h"
 #include "chrono_vehicle/ChVehicleModelData.h"
 #include "chrono_vehicle/terrain/RigidTerrain.h"
@@ -106,7 +106,9 @@ int main(int argc, char* argv[]) {
     // --------------
 
     // Create the Sedan vehicle, set parameters, and initialize
-    Sedan my_sedan;
+    ChSystemPBD* msys = new (ChSystemPBD);
+    msys->Set_G_acc(ChVector<>(0, 0, -9.81));
+    Sedan my_sedan(msys);
     my_sedan.SetContactMethod(contact_method);
     my_sedan.SetChassisCollisionType(chassis_collision_type);
     my_sedan.SetChassisFixed(false);
@@ -279,6 +281,7 @@ int main(int argc, char* argv[]) {
         terrain.Advance(step_size);
         my_sedan.Advance(step_size);
         app.Advance(step_size);
+        msys->DoStepDynamics(step_size);
 
         // Increment frame number
         step_number++;

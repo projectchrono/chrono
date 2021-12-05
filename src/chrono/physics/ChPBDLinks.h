@@ -16,8 +16,8 @@
 //
 // =============================================================================
 
-#ifndef CH_PBD_UTILS_H
-#define CH_PBD_UTILS_H
+#ifndef CH_PBD_LINKS_H
+#define CH_PBD_LINKS_H
 
 #include "chrono/physics/ChSystem.h"
 #include "chrono/physics/ChLinkMate.h"

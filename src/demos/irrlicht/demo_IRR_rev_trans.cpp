@@ -22,6 +22,7 @@
 #include <cstdio>
 
 #include "chrono/physics/ChSystemNSC.h"
+#include "chrono/physics/ChSystemPBD.h"
 #include "chrono/physics/ChBody.h"
 
 #include "chrono_irrlicht/ChIrrApp.h"
@@ -34,7 +35,7 @@ using namespace irr;
 int main(int argc, char* argv[]) {
     GetLog() << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
 
-    ChSystemNSC system;
+    ChSystemPBD system;
     system.Set_G_acc(ChVector<>(0.01, -1, 1));
 
     double L = 0.5; // distance for the revolute-translational joint

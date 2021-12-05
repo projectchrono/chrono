@@ -362,12 +362,14 @@ source_group(physics\\shafts FILES
 set(ChronoEngine_physics_PBD_SOURCES
 	physics/ChSystemPBD.cpp
 	physics/ChPBDLinks.cpp
+    physics/ChPBDShaftsCouple.cpp
 )
 
 set(ChronoEngine_physics_PBD_HEADERS
     physics/ChSystemPBD.h
 	physics/ChPBDLinks.h
 	physics/ChContactContainerPBD.h
+    physics/ChPBDShaftsCouple.h
 )
 
 source_group(physics\\PBD FILES

@@ -26,7 +26,8 @@
 #include "chrono_vehicle/terrain/RigidTerrain.h"
 #include "chrono_vehicle/driver/ChIrrGuiDriver.h"
 #include "chrono_vehicle/wheeled_vehicle/utils/ChWheeledVehicleIrrApp.h"
-
+#include "chrono/physics/ChSystemNSC.h"
+#include "chrono/physics/ChSystemPBD.h"
 #include "chrono_models/vehicle/gator/Gator.h"
 #include "chrono_models/vehicle/gator/Gator_SimplePowertrain.h"
 
@@ -63,7 +64,7 @@ RigidTerrain::PatchType terrain_model = RigidTerrain::PatchType::BOX;
 ChContactMethod contact_method = ChContactMethod::NSC;
 
 // Simulation step sizes
-double step_size = 2e-3;
+double step_size = 1e-3;
 double tire_step_size = step_size;
 
 // Time interval between two render frames
@@ -84,8 +85,10 @@ int main(int argc, char* argv[]) {
     // --------------
     // Create vehicle
     // --------------
-
-    Gator gator;
+    ChSystemPBD* msys = new(ChSystemPBD);
+    //msys->SetSubsteps(1600);
+    msys->Set_G_acc(ChVector<>(0, 0, -9.81));
+    Gator gator(msys);
     gator.SetContactMethod(contact_method);
     gator.SetChassisCollisionType(chassis_collision_type);
     gator.SetChassisFixed(false);
@@ -227,6 +230,7 @@ int main(int argc, char* argv[]) {
         driver.Advance(step_size);
         terrain.Advance(step_size);
         gator.Advance(step_size);
+        msys->DoStepDynamics(step_size);
         app.Advance(step_size);
 
         // Increment frame number

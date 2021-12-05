@@ -27,7 +27,7 @@
 
 #include "chrono_models/robot/robosimian/RoboSimian.h"
 #include "chrono_models/robot/robosimian/RoboSimianIrrApp.h"
-
+#include "chrono/physics/ChSystemPBD.h"
 #include "chrono_thirdparty/filesystem/path.h"
 
 using namespace chrono;
@@ -42,7 +42,7 @@ bool drop = true;
 robosimian::LocomotionMode mode = robosimian::LocomotionMode::WALK;
 
 // Contact method (system type)
-ChContactMethod contact_method = ChContactMethod::SMC;
+ChContactMethod contact_method = ChContactMethod::NSC;
 
 // Phase durations
 double duration_pose = 1.0;          // Interval to assume initial pose
@@ -199,7 +199,7 @@ int main(int argc, char* argv[]) {
     ChSystem* my_sys = nullptr;
     switch (contact_method) {
         case ChContactMethod::NSC:
-            my_sys = new ChSystemNSC;
+            my_sys = new ChSystemPBD;
             break;
         case ChContactMethod::SMC:
             my_sys = new ChSystemSMC;

@@ -22,6 +22,7 @@
 
 #include "chrono/physics/ChSystem.h"
 #include "chrono/physics/ChPBDLinks.h"
+#include "chrono/physics/ChShaft.h"
 
 namespace chrono {
 
@@ -64,6 +65,9 @@ class ChApi ChSystemPBD : public ChSystem {
 	/// Set the number of substeps
 	void SetSubsteps(int s) { substeps = s; }
 
+	/// Get the amplitude of the substep
+    double Get_h() { return h; }
+
   protected:
 	/// convert the Chrono system to fit into PBD formulation
 	void SetupInitial() override;
@@ -100,6 +104,8 @@ class ChApi ChSystemPBD : public ChSystem {
 	/// Lists of links and contacts usable by PBD formulation
 	std::vector<std::shared_ptr< ChLinkPBD> > linklistPBD;
 	std::vector<std::shared_ptr<ChContactPBD>> contactlistPBD;
+    std::vector<std::shared_ptr<ChShaft>> shaftlistPBD;
+	//std::vector<std::shared_ptr<ChShaftsCouplePBD>> shaftcouplelistPBD;
 
 	std::vector < ChVector<>> x_prev;
 	std::vector < ChQuaternion<>> q_prev;

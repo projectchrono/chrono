@@ -20,6 +20,7 @@
 
 #include "chrono_models/robot/viper/Viper.h"
 #include "chrono/physics/ChSystemNSC.h"
+#include "chrono/physics/ChSystemPBD.h"
 #include "chrono/physics/ChBodyEasy.h"
 #include "chrono/physics/ChInertiaUtils.h"
 #include "chrono/assets/ChTexture.h"
@@ -95,7 +96,7 @@ int main(int argc, char* argv[]) {
     GetLog() << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
 
     // Create the Chrono system with gravity in the negative Z direction
-    ChSystemNSC sys;
+    ChSystemPBD sys;
     sys.Set_G_acc(ChVector<>(0, 0, -9.81));
 
     // Create the Irrlicht visualization

@@ -27,6 +27,7 @@
 #include "chrono/physics/ChBodyEasy.h"
 #include "chrono/physics/ChLinkMotorRotationSpeed.h"
 #include "chrono/physics/ChSystemNSC.h"
+#include "chrono/physics/ChSystemPBD.h"
 
 #include "chrono_irrlicht/ChIrrApp.h"
 #include "chrono_irrlicht/ChIrrMeshTools.h"
@@ -78,7 +79,7 @@ class MySimpleTank {
     // Build and initialize the tank, creating all bodies corresponding to
     // the various parts and adding them to the physical system - also creating
     // and adding constraints to the system.
-    MySimpleTank(ChSystemNSC& my_system,        ///< the Chrono physical system
+    MySimpleTank(ChSystem& my_system,        ///< the Chrono physical system
                  ISceneManager* msceneManager,  ///< the Irrlicht scene manager for 3d shapes
                  IVideoDriver* mdriver          ///< the Irrlicht video driver
     ) {
@@ -405,7 +406,7 @@ class MySimpleTank {
         std::shared_ptr<ChBody> template_shoe,  // collision geometry will be shared with this body
         ChVector<> position,                    // position
         ChQuaternion<> rotation,                // orientation
-        ChSystemNSC& my_system,                 // the physical system
+        ChSystem& my_system,                 // the physical system
         chrono::ChVector<> joint_displacement   // position of shoe-shoe constraint, relative to COG.
     ) {
         auto rigidBodyShoe = std::shared_ptr<ChBody>(template_shoe.get()->Clone());
@@ -516,7 +517,8 @@ int main(int argc, char* argv[]) {
 
     // 1- Create a ChronoENGINE physical system: all bodies and constraints
     //    will be handled by this ChSystemNSC object.
-    ChSystemNSC my_system;
+    ChSystemPBD my_system;
+    my_system.SetSubsteps(560);
 
     // Create the Irrlicht visualization (open the Irrlicht device, bind a simple user interface, etc. etc.)
     ChIrrApp application(&my_system, L"Modeling a simplified   tank", core::dimension2d<u32>(800, 600));
@@ -582,7 +584,7 @@ int main(int argc, char* argv[]) {
     // Simulation loop
     //
 
-    application.SetTimestep(0.03);
+    application.SetTimestep(0.001);
     application.SetTryRealtime(true);
 
     while (application.GetDevice()->run()) {
