@@ -135,7 +135,7 @@ void ChSystemPBD::ArchiveOUT(ChArchiveOut& marchive) {
 // Method to allow de serialization of transient data from archives.
 void ChSystemPBD::ArchiveIN(ChArchiveIn& marchive) {
     // version number
-    int version = marchive.VersionRead<ChSystemPBD>();
+    marchive.VersionRead<ChSystemPBD>();
 
     // deserialize parent class
     ChSystem::ArchiveIN(marchive);
@@ -256,8 +256,8 @@ void ChSystemPBD::CollectContacts() {
         ChQuaternion<> q_cb2 = Q_from_Vect_to_Vect(body2->GetRot().Rotate(VECT_X), norm);
         ChFrame<double> frame1(p1, q_cb1);
         ChFrame<double> frame2(p2, q_cb2);
-        auto contact = std::make_shared<ChContactPBD>(body1, body2, this, frame1, frame2, frict);
-        contactlistPBD.push_back(contact);
+        auto contactPBD = std::make_shared<ChContactPBD>(body1, body2, this, frame1, frame2, frict);
+        contactlistPBD.push_back(contactPBD);
     }
 }
 
