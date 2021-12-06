@@ -428,7 +428,7 @@ void ChSAEToeBarLeafspringAxle::InitializeSide(VehicleSide side,
                                                   m_clampA[side], m_axleTube, rev_csys_clampA, getClampBushingData());
     chassis->AddJoint(m_clampARev[side]);
 
-    m_latRotSpringA[side] = chrono_types::make_shared<ChLinkRotSpringCB>();
+    m_latRotSpringA[side] = chrono_types::make_shared<ChLinkRSDA>();
     m_latRotSpringA[side]->Initialize(m_clampA[side], m_axleTube, rev_csys_clampA);
     m_latRotSpringA[side]->RegisterTorqueFunctor(getLatTorqueFunctorA());
     chassis->GetSystem()->AddLink(m_latRotSpringA[side]);
@@ -450,7 +450,7 @@ void ChSAEToeBarLeafspringAxle::InitializeSide(VehicleSide side,
                                                   m_clampB[side], m_axleTube, rev_csys_clampB, getClampBushingData());
     chassis->AddJoint(m_clampBRev[side]);
 
-    m_latRotSpringB[side] = chrono_types::make_shared<ChLinkRotSpringCB>();
+    m_latRotSpringB[side] = chrono_types::make_shared<ChLinkRSDA>();
     m_latRotSpringB[side]->Initialize(m_clampB[side], m_axleTube, rev_csys_clampB);
     m_latRotSpringB[side]->RegisterTorqueFunctor(getLatTorqueFunctorB());
     chassis->GetSystem()->AddLink(m_latRotSpringB[side]);
@@ -462,7 +462,7 @@ void ChSAEToeBarLeafspringAxle::InitializeSide(VehicleSide side,
         rev_csys_rearleaf, getLeafspringBushingData());
     chassis->AddJoint(m_rearleafRev[side]);
 
-    m_vertRotSpringB[side] = chrono_types::make_shared<ChLinkRotSpringCB>();
+    m_vertRotSpringB[side] = chrono_types::make_shared<ChLinkRSDA>();
     m_vertRotSpringB[side]->Initialize(m_clampB[side], m_rearleaf[side], rev_csys_clampB);
     m_vertRotSpringB[side]->RegisterTorqueFunctor(getVertTorqueFunctorB());
     chassis->GetSystem()->AddLink(m_vertRotSpringB[side]);
@@ -474,7 +474,7 @@ void ChSAEToeBarLeafspringAxle::InitializeSide(VehicleSide side,
         rev_csys_frontleaf, getLeafspringBushingData());
     chassis->AddJoint(m_frontleafRev[side]);
 
-    m_vertRotSpringA[side] = chrono_types::make_shared<ChLinkRotSpringCB>();
+    m_vertRotSpringA[side] = chrono_types::make_shared<ChLinkRSDA>();
     m_vertRotSpringA[side]->Initialize(m_clampA[side], m_frontleaf[side], rev_csys_frontleaf);
     m_vertRotSpringA[side]->RegisterTorqueFunctor(getVertTorqueFunctorA());
     chassis->GetSystem()->AddLink(m_vertRotSpringA[side]);

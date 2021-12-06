@@ -500,7 +500,7 @@ using namespace chrono::fea;
 %DefSharedPtrDynamicDowncast(chrono,ChPhysicsItem, ChLinkScrew)
 %DefSharedPtrDynamicDowncast(chrono,ChPhysicsItem, ChLinkSpring)
 %DefSharedPtrDynamicDowncast(chrono,ChPhysicsItem, ChLinkTSDA)
-%DefSharedPtrDynamicDowncast(chrono,ChPhysicsItem, ChLinkRotSpringCB)
+%DefSharedPtrDynamicDowncast(chrono,ChPhysicsItem, ChLinkRSDA)
 %DefSharedPtrDynamicDowncast(chrono,ChPhysicsItem, ChLinkMotor)
 %DefSharedPtrDynamicDowncast(chrono,ChPhysicsItem, ChLinkMotorLinear)
 %DefSharedPtrDynamicDowncast(chrono,ChPhysicsItem, ChLinkMotorLinearDriveline)

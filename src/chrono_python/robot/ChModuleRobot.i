@@ -58,7 +58,7 @@
 #include "chrono/physics/ChMarker.h"
 #include "chrono/physics/ChLink.h"
 #include "chrono/physics/ChLinkTSDA.h"
-#include "chrono/physics/ChLinkRotSpringCB.h"
+#include "chrono/physics/ChLinkRSDA.h"
 #include "chrono/physics/ChPhysicsItem.h"
 
 #include "Eigen/src/Core/util/Memory.h"

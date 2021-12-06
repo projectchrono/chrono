@@ -31,7 +31,7 @@
 #include "chrono/physics/ChLinkRevoluteTranslational.h"
 #include "chrono/physics/ChLinkScrew.h"
 #include "chrono/physics/ChLinkTSDA.h"
-#include "chrono/physics/ChLinkRotSpringCB.h"
+#include "chrono/physics/ChLinkRSDA.h"
 #include "chrono/physics/ChLinkTrajectory.h"
 #include "chrono/physics/ChLinkUniversal.h"
 

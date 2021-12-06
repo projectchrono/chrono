@@ -12,44 +12,46 @@
 // Authors: Radu Serban
 // =============================================================================
 
-#include "chrono/physics/ChLinkRotSpringCB.h"
+#include "chrono/physics/ChLinkRSDA.h"
 
 namespace chrono {
 
 // Register into the object factory, to enable run-time dynamic creation and persistence
-CH_FACTORY_REGISTER(ChLinkRotSpringCB)
+CH_FACTORY_REGISTER(ChLinkRSDA)
 
-ChLinkRotSpringCB::ChLinkRotSpringCB() : m_torque_fun(nullptr), m_torque(0) {}
+ChLinkRSDA::ChLinkRSDA() : m_k(0), m_r(0), m_t(0), m_torque_fun(nullptr), m_torque(0) {}
 
-ChLinkRotSpringCB::ChLinkRotSpringCB(const ChLinkRotSpringCB& other) : ChLinkMarkers(other) {
+ChLinkRSDA::ChLinkRSDA(const ChLinkRSDA& other) : ChLinkMarkers(other) {
     m_torque = other.m_torque;
     m_torque_fun = other.m_torque_fun;  //// do we need a deep copy?
 }
 
-void ChLinkRotSpringCB::UpdateForces(double time) {
+void ChLinkRSDA::UpdateForces(double time) {
     // Allow the base class to update itself (possibly adding its own forces).
     ChLinkMarkers::UpdateForces(time);
 
-    // Invoke the provided functor to evaluate torque.
+    // Calculate torque in the spring direction and convert to 3-D torque.
     double relAngle_dt = Vdot(relWvel, relAxis);
-    m_torque = m_torque_fun ? (*m_torque_fun)(time, relAngle, relAngle_dt, this) : 0;
-
+    if (m_torque_fun) {
+        m_torque = m_torque_fun->evaluate(time, relAngle, relAngle_dt, this);
+    } else {
+        m_torque = m_t - m_k * relAngle - m_r * relAngle_dt;
+    }
     // Add to existing torque.
     C_torque += Vmul(relAxis, m_torque);
 }
 
-void ChLinkRotSpringCB::ArchiveOUT(ChArchiveOut& marchive) {
+void ChLinkRSDA::ArchiveOUT(ChArchiveOut& marchive) {
     // version number
-    marchive.VersionWrite<ChLinkRotSpringCB>();
+    marchive.VersionWrite<ChLinkRSDA>();
 
     // serialize parent class
     ChLinkMarkers::ArchiveOUT(marchive);
 }
 
-/// Method to allow de serialization of transient data from archives.
-void ChLinkRotSpringCB::ArchiveIN(ChArchiveIn& marchive) {
+void ChLinkRSDA::ArchiveIN(ChArchiveIn& marchive) {
     // version number
-    /*int version =*/ marchive.VersionRead<ChLinkRotSpringCB>();
+    /*int version =*/ marchive.VersionRead<ChLinkRSDA>();
 
     // deserialize parent class
     ChLinkMarkers::ArchiveIN(marchive);

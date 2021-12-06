@@ -48,7 +48,7 @@ void ChChassisConnectorTorsion::Initialize(std::shared_ptr<ChChassis> front, std
     rear->GetBody()->GetSystem()->AddLink(m_joint);
 
     // Create the rotational spring-damper (as a model of chassis torsional stiffness)
-    m_spring = chrono_types::make_shared<ChLinkRotSpringCB>();
+    m_spring = chrono_types::make_shared<ChLinkRSDA>();
     m_spring->SetNameString(m_name + " torsionSpring");
     m_spring->Initialize(front->GetBody(), rear->GetBody(), rev_csys);
     double K = GetTorsionStiffness();

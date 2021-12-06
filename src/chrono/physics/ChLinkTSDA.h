@@ -30,10 +30,10 @@
 
 namespace chrono {
 
-/// Class for translational spring-damper-actuator (TSDA) with the force optionally specified through a functor object
-/// (default, linear TSDA). Optionally, a ChLinkTSDA can have internal dynamics, described by a system of ODEs. The
-/// internal states are integrated simultaneous with the containing system and they can be accessed and used in the
-/// force calculation. ChLinkTSDA provides optional support for computing Jacobians of the generalized forces.
+/// Class for translational spring-damper-actuator (TSDA) with the force optionally specified through a functor object.
+/// By default, models a linear TSDA. Optionally, a ChLinkTSDA can have internal dynamics, described by a system of
+/// ODEs. The internal states are integrated simultaneous with the containing system and they can be accessed and used
+/// in the force calculation. ChLinkTSDA provides optional support for computing Jacobians of the generalized forces.
 class ChApi ChLinkTSDA : public ChLink {
   public:
     ChLinkTSDA();
