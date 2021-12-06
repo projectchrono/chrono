@@ -203,7 +203,6 @@ using namespace chrono::fea;
 %shared_ptr(chrono::ChLinkRevolute)
 %shared_ptr(chrono::ChLinkRevoluteSpherical)
 %shared_ptr(chrono::ChLinkScrew)
-%shared_ptr(chrono::ChLinkSpring)
 %shared_ptr(chrono::ChLinkTSDA)
 %shared_ptr(chrono::ChLinkUniversal)
 %shared_ptr(chrono::ChLinkMotor)
@@ -356,7 +355,6 @@ using namespace chrono::fea;
 %include "ChLinkLinActuator.i"
 %include "ChLinkPulley.i"
 %include "ChLinkScrew.i"
-%include "ChLinkSpring.i"
 %include "ChLinkTSDA.i"
 %include "ChLinkRSDA.i"
 %include "ChLinkGear.i"
@@ -467,9 +465,8 @@ using namespace chrono::fea;
 %DefSharedPtrDynamicDowncast(chrono,ChPhysicsItem, ChLinkLinActuator)
 %DefSharedPtrDynamicDowncast(chrono,ChPhysicsItem, ChLinkPulley)
 %DefSharedPtrDynamicDowncast(chrono,ChPhysicsItem, ChLinkScrew)
-%DefSharedPtrDynamicDowncast(chrono,ChPhysicsItem, ChLinkSpring)
 %DefSharedPtrDynamicDowncast(chrono,ChPhysicsItem, ChLinkTSDA)
-%DefSharedPtrDynamicDowncast(chrono,ChPhysicsItem, ChLinkRotSpringCB)
+%DefSharedPtrDynamicDowncast(chrono,ChPhysicsItem, ChLinkRSDA)
 %DefSharedPtrDynamicDowncast(chrono,ChPhysicsItem, ChLinkMotor)
 %DefSharedPtrDynamicDowncast(chrono,ChPhysicsItem, ChLinkMotorLinear)
 %DefSharedPtrDynamicDowncast(chrono,ChPhysicsItem, ChLinkMotorLinearDriveline)
@@ -511,7 +508,6 @@ using namespace chrono::fea;
 %DefSharedPtrDynamicDowncast(chrono,ChLink, ChLinkLinActuator)
 %DefSharedPtrDynamicDowncast(chrono,ChLink, ChLinkPulley)
 %DefSharedPtrDynamicDowncast(chrono,ChLink, ChLinkScrew)
-%DefSharedPtrDynamicDowncast(chrono,ChLink, ChLinkSpring)
 %DefSharedPtrDynamicDowncast(chrono,ChLink, ChLinkTSDA)
 %DefSharedPtrDynamicDowncast(chrono,ChLink, ChLinkPointSpline) 
 %DefSharedPtrDynamicDowncast(chrono,ChLink, ChLinkTrajectory)

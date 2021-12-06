@@ -131,7 +131,7 @@ void ChVehicleOutputASCII::WriteLinSprings(const std::vector<std::shared_ptr<ChL
     }
 }
 
-void ChVehicleOutputASCII::WriteRotSprings(const std::vector<std::shared_ptr<ChLinkRotSpringCB>>& springs) {
+void ChVehicleOutputASCII::WriteRotSprings(const std::vector<std::shared_ptr<ChLinkRSDA>>& springs) {
     for (auto spring : springs) {
         m_stream << "    rot spring: " << spring->GetIdentifier() << " \"" << spring->GetNameString() << "\" ";
         m_stream << spring->GetRotSpringAngle() << " " << spring->GetRotSpringSpeed() << " ";

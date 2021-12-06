@@ -7,5 +7,7 @@
  
 namespace chrono { class ChBody; }
 
+%shared_ptr(chrono::ChMarker)
+
 /* Parse the header file to generate wrappers */
 %include "../../chrono/physics/ChMarker.h"  

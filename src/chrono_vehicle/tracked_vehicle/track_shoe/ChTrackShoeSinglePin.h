@@ -20,6 +20,8 @@
 #ifndef CH_TRACK_SHOE_SINGLE_PIN_H
 #define CH_TRACK_SHOE_SINGLE_PIN_H
 
+#include "chrono/physics/ChLinkRSDA.h"
+
 #include "chrono_vehicle/ChApiVehicle.h"
 #include "chrono_vehicle/ChSubsysDefs.h"
 
@@ -87,8 +89,8 @@ class CH_VEHICLE_API ChTrackShoeSinglePin : public ChTrackShoeSegmented {
                          bool ccw                            ///< [in] track assembled in counter clockwise direction
                          ) override final;
 
-    std::shared_ptr<ChVehicleJoint> m_connection_joint;    ///< connection to neighboring track shoe
-    std::shared_ptr<ChLinkRotSpringCB> m_connection_rsda;  ///< optional RSDA on connection
+    std::shared_ptr<ChVehicleJoint> m_connection_joint;  ///< connection to neighboring track shoe
+    std::shared_ptr<ChLinkRSDA> m_connection_rsda;       ///< optional RSDA on connection
 
     friend class ChSprocketSinglePin;
     friend class SprocketSinglePinContactCB;

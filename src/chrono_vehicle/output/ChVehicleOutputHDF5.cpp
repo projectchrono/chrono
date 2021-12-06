@@ -482,7 +482,7 @@ void ChVehicleOutputHDF5::WriteLinSprings(const std::vector<std::shared_ptr<ChLi
     set.write(info.data(), getLinSpringType());
 }
 
-void ChVehicleOutputHDF5::WriteRotSprings(const std::vector<std::shared_ptr<ChLinkRotSpringCB>>& springs) {
+void ChVehicleOutputHDF5::WriteRotSprings(const std::vector<std::shared_ptr<ChLinkRSDA>>& springs) {
     if (springs.empty())
         return;
 

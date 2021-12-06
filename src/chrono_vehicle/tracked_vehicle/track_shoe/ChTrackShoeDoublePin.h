@@ -105,13 +105,13 @@ class CH_VEHICLE_API ChTrackShoeDoublePin : public ChTrackShoeSegmented {
 
     std::shared_ptr<ChVehicleJoint> m_revolute_L;      ///< shoe - left connector joint
     std::shared_ptr<ChVehicleJoint> m_revolute_R;      ///< shoe - right connector joint
-    std::shared_ptr<ChLinkRotSpringCB> m_rsda_L;       ///< optional RSDA on left revolute
-    std::shared_ptr<ChLinkRotSpringCB> m_rsda_R;       ///< optional RSDA on right revolute
+    std::shared_ptr<ChLinkRSDA> m_rsda_L;              ///< optional RSDA on left revolute
+    std::shared_ptr<ChLinkRSDA> m_rsda_R;              ///< optional RSDA on right revolute
 
     std::shared_ptr<ChVehicleJoint> m_connection_joint_L;    ///< connection to neighboring track shoe
     std::shared_ptr<ChVehicleJoint> m_connection_joint_R;    ///< connection to neighboring track shoe
-    std::shared_ptr<ChLinkRotSpringCB> m_connection_rsda_L;  ///< optional RSDA on connection
-    std::shared_ptr<ChLinkRotSpringCB> m_connection_rsda_R;  ///< optional RSDA on connection
+    std::shared_ptr<ChLinkRSDA> m_connection_rsda_L;         ///< optional RSDA on connection
+    std::shared_ptr<ChLinkRSDA> m_connection_rsda_R;         ///< optional RSDA on connection
 
   private:
     /// Connect this track shoe to the specified neighbor.

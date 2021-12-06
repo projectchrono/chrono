@@ -61,7 +61,7 @@
 #include "chrono/physics/ChLink.h"
 #include "chrono/physics/ChShaftsCouple.h"
 #include "chrono/physics/ChLinkTSDA.h"
-#include "chrono/physics/ChLinkRotSpringCB.h"
+#include "chrono/physics/ChLinkRSDA.h"
 #include "chrono/physics/ChLoadsBody.h"
 #include "chrono/physics/ChLoadsXYZnode.h"
 #include "chrono/physics/ChPhysicsItem.h"

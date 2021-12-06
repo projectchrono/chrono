@@ -27,6 +27,7 @@
 %import "ChMatrix.i"
 
 %ignore chrono::ChQuaternion::eigen;
+%rename(conj) chrono::ChQuaternion::operator!; 
 
 /* Parse the header file to generate wrappers */
 %include "../../chrono/core/ChQuaternion.h"  

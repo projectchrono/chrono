@@ -23,7 +23,6 @@
 #include "chrono/assets/ChBoxShape.h"
 #include "chrono/assets/ChColorAsset.h"
 #include "chrono/assets/ChTexture.h"
-#include "chrono/physics/ChLinkRotSpringCB.h"
 
 #include "chrono_vehicle/tracked_vehicle/track_assembly/ChTrackAssemblySinglePin.h"
 #include "chrono_vehicle/tracked_vehicle/track_shoe/ChTrackShoeSinglePin.h"
@@ -113,7 +112,7 @@ void ChTrackShoeSinglePin::Connect(std::shared_ptr<ChTrackShoe> next,
 
     // Optionally, include rotational spring-damper to model track bending stiffness
     if (track->GetTorqueFunctor()) {
-        m_connection_rsda = chrono_types::make_shared<ChLinkRotSpringCB>();
+        m_connection_rsda = chrono_types::make_shared<ChLinkRSDA>();
         m_connection_rsda->SetNameString(m_name + "_rsda");
         m_connection_rsda->Initialize(m_shoe, next->GetShoeBody(), false, ChCoordsys<>(loc, m_shoe->GetRot()),
                                       ChCoordsys<>(loc, next->GetShoeBody()->GetRot()));

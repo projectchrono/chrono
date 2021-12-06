@@ -39,6 +39,7 @@ class ChAddContactCallbackP : public chrono::ChContactContainer::AddContactCallb
 
 %shared_ptr(chrono::ChContactContainer::ReportContactCallback)
 %shared_ptr(chrono::ChContactContainer::AddContactCallback)
+%shared_ptr(chrono::ChContactContainer)
 %shared_ptr(chrono::ChContactable)
 
 %inline %{

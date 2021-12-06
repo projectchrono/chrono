@@ -58,7 +58,7 @@
 #include "chrono/physics/ChMarker.h"
 #include "chrono/physics/ChLink.h"
 #include "chrono/physics/ChLinkTSDA.h"
-#include "chrono/physics/ChLinkRotSpringCB.h"
+#include "chrono/physics/ChLinkRSDA.h"
 #include "chrono/physics/ChPhysicsItem.h"
 
 #include "Eigen/src/Core/util/Memory.h"
@@ -131,7 +131,6 @@ using namespace chrono::copter;
 %shared_ptr(chrono::ChNodeXYZ) 
 %shared_ptr(chrono::ChTriangleMeshShape)
 %shared_ptr(chrono::geometry::ChTriangleMeshConnected)
-%shared_ptr(chrono::ChLinkSpring)
 %shared_ptr(chrono::ChFunction_Recorder)
 %shared_ptr(chrono::ChBezierCurve)
 %shared_ptr(chrono::ChLinkMarkers)

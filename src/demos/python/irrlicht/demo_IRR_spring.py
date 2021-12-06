@@ -39,16 +39,14 @@ class MySpringForce(chrono.ForceFunctor):
     def __init__(self):
         super(MySpringForce, self).__init__()
     
-    def __call__(             self,         #
-                              time,         # current time
-                              rest_length,  # undeformed length
-                              length,       # current length
-                              vel,          # current velocity (positive when extending)
-                              link):         # back-pointer to associated link
-                              
+    def evaluate(self,         #
+                 time,         # current time
+                 rest_length,  # undeformed length
+                 length,       # current length
+                 vel,          # current velocity (positive when extending)
+                 link):        # back-pointer to associated link
         force = -spring_coef * (length - rest_length) - damping_coef * vel
         return force
-    
 
 # =============================================================================
 
