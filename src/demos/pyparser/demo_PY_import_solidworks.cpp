@@ -68,7 +68,7 @@ int main(int argc, char* argv[]) {
         my_python.ImportSolidWorksSystem(GetChronoDataFile("solid_works/swiss_escapement").c_str(),
                                          mphysicalSystem);  // note, don't type the .py suffix in filename..
 
-    } catch (ChException myerror) {
+    } catch (const ChException& myerror) {
         GetLog() << myerror.what();
     }
 
