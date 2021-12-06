@@ -112,12 +112,12 @@ class ChApi ChLinkTSDA : public ChLink {
 
         /// Calculate and return the general spring-damper force at the specified configuration.
         /// If the link has internal ODE states, the current states can be accessed with link->GetStates().
-        virtual double operator()(double time,         ///< current time
-                                  double rest_length,  ///< undeformed length
-                                  double length,       ///< current length
-                                  double vel,          ///< current velocity (positive when extending)
-                                  ChLinkTSDA* link     ///< back-pointer to associated link
-                                  ) = 0;
+        virtual double evaluate(double time,         ///< current time
+                                double rest_length,  ///< undeformed length
+                                double length,       ///< current length
+                                double vel,          ///< current velocity (positive when extending)
+                                ChLinkTSDA* link     ///< back-pointer to associated link
+                                ) = 0;
     };
 
     /// Specify the functor object for calculating the force.

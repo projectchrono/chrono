@@ -61,7 +61,7 @@ class Marder_ShockForce : public ChLinkTSDA::ForceFunctor {
   public:
     Marder_ShockForce(double c) : m_c(c) {}
 
-    virtual double operator()(double time, double rest_length, double length, double vel, ChLinkTSDA* link) override {
+    virtual double evaluate(double time, double rest_length, double length, double vel, ChLinkTSDA* link) override {
         return -m_c * vel;
     }
 

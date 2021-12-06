@@ -98,7 +98,7 @@ typedef std::vector<TerrainForce> TerrainForces;
 class LinearSpringForce : public ChLinkTSDA::ForceFunctor {
   public:
     LinearSpringForce(double k) : m_k(k) {}
-    virtual double operator()(double time, double rest_length, double length, double vel, ChLinkTSDA* link) override {
+    virtual double evaluate(double time, double rest_length, double length, double vel, ChLinkTSDA* link) override {
         return -m_k * (length - rest_length);
     }
 
@@ -110,7 +110,7 @@ class LinearSpringForce : public ChLinkTSDA::ForceFunctor {
 class LinearDamperForce : public ChLinkTSDA::ForceFunctor {
   public:
     LinearDamperForce(double c) : m_c(c) {}
-    virtual double operator()(double time, double rest_length, double length, double vel, ChLinkTSDA* link) override {
+    virtual double evaluate(double time, double rest_length, double length, double vel, ChLinkTSDA* link) override {
         return -m_c * vel;
     }
 
@@ -122,7 +122,7 @@ class LinearDamperForce : public ChLinkTSDA::ForceFunctor {
 class LinearSpringDamperForce : public ChLinkTSDA::ForceFunctor {
   public:
     LinearSpringDamperForce(double k, double c) : m_k(k), m_c(c) {}
-    virtual double operator()(double time, double rest_length, double length, double vel, ChLinkTSDA* link) override {
+    virtual double evaluate(double time, double rest_length, double length, double vel, ChLinkTSDA* link) override {
         return -m_k * (length - rest_length) - m_c * vel;
     }
 
@@ -135,7 +135,7 @@ class LinearSpringDamperForce : public ChLinkTSDA::ForceFunctor {
 class LinearSpringDamperActuatorForce : public ChLinkTSDA::ForceFunctor {
   public:
     LinearSpringDamperActuatorForce(double k, double c, double f) : m_k(k), m_c(c), m_f(f) {}
-    virtual double operator()(double time, double rest_length, double length, double vel, ChLinkTSDA* link) override {
+    virtual double evaluate(double time, double rest_length, double length, double vel, ChLinkTSDA* link) override {
         return m_f - m_k * (length - rest_length) - m_c * vel;
     }
 
@@ -155,7 +155,7 @@ class MapSpringForce : public ChLinkTSDA::ForceFunctor {
         }
     }
     void add_point(double x, double y) { m_map.AddPoint(x, y); }
-    virtual double operator()(double time, double rest_length, double length, double vel, ChLinkTSDA* link) override {
+    virtual double evaluate(double time, double rest_length, double length, double vel, ChLinkTSDA* link) override {
         return -m_map.Get_y(length - rest_length);
     }
 
@@ -180,7 +180,7 @@ class MapSpringBistopForce : public ChLinkTSDA::ForceFunctor {
         }
     }
     void add_point(double x, double y) { m_map.AddPoint(x, y); }
-    virtual double operator()(double time, double rest_length, double length, double vel, ChLinkTSDA* link) override {
+    virtual double evaluate(double time, double rest_length, double length, double vel, ChLinkTSDA* link) override {
         double defl_bump = 0.0;
         double defl_rebound = 0.0;
 
@@ -260,7 +260,7 @@ class LinearSpringBistopForce : public ChLinkTSDA::ForceFunctor {
         m_rebound.AddPoint(60.0e-3, 125000.0);
     }
 
-    virtual double operator()(double time, double rest_length, double length, double vel, ChLinkTSDA* link) override {
+    virtual double evaluate(double time, double rest_length, double length, double vel, ChLinkTSDA* link) override {
         double force = 0;
 
         double defl_spring = rest_length - length;
@@ -314,7 +314,7 @@ class DegressiveDamperForce : public ChLinkTSDA::ForceFunctor {
           m_degr_compression(degr_compression),
           m_degr_expansion(degr_expansion) {}
 
-    virtual double operator()(double time, double rest_length, double length, double vel, ChLinkTSDA* link) override {
+    virtual double evaluate(double time, double rest_length, double length, double vel, ChLinkTSDA* link) override {
         if (vel >= 0) {
             return -m_c_expansion * vel / (1.0 + m_degr_expansion * vel);
         } else {
@@ -339,7 +339,7 @@ class MapDamperForce : public ChLinkTSDA::ForceFunctor {
         }
     }
     void add_point(double x, double y) { m_map.AddPoint(x, y); }
-    virtual double operator()(double time, double rest_length, double length, double vel, ChLinkTSDA* link) override {
+    virtual double evaluate(double time, double rest_length, double length, double vel, ChLinkTSDA* link) override {
         return -m_map.Get_y(vel);
     }
 
@@ -364,7 +364,7 @@ class MapSpringDamperActuatorForce : public ChLinkTSDA::ForceFunctor {
     void add_pointK(double x, double y) { m_mapK.AddPoint(x, y); }
     void add_pointC(double x, double y) { m_mapC.AddPoint(x, y); }
     void set_f(double f) { m_f = f; }
-    virtual double operator()(double time, double rest_length, double length, double vel, ChLinkTSDA* link) override {
+    virtual double evaluate(double time, double rest_length, double length, double vel, ChLinkTSDA* link) override {
         return m_f - m_mapK.Get_y(length - rest_length) - m_mapC.Get_y(vel);
     }
 

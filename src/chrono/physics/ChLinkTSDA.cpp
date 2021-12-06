@@ -135,7 +135,7 @@ void ChLinkTSDA::ComputeQ(double time,                  // current time
 
     // Calculate force in the spring direction and convert to 3-D force.
     if (m_force_fun) {
-        m_force = (*m_force_fun)(time, m_rest_length, m_length, m_length_dt, this);
+        m_force = m_force_fun->evaluate(time, m_rest_length, m_length, m_length_dt, this);
     } else {
         m_force = m_f - m_k * (m_length - m_rest_length) - m_r * m_length_dt;
     }
