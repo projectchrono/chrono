@@ -5,6 +5,8 @@
 #include "chrono/physics/ChBody.h"
 %}
 
+%shared_ptr(chrono::ChMarker)
+
 // Forward ref 
 //%import "ChPhysicsItem.i" // parent class does not need %import if all .i are included in proper order
 // For some strange reason, the forward reference in the .h must be replicated here:
