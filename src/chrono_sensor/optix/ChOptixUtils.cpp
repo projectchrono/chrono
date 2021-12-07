@@ -34,6 +34,13 @@
 namespace chrono {
 namespace sensor {
 
+class SensorConfig {
+  public:
+    static std::string ptx_pre;            //= "ChronoEngine_sensor_generated_";
+    static std::string ptx_suff;           // = ".cu.ptx";
+    static std::string SENSOR_SHADER_DIR;  // = std::string(CMAKE_SHADER_OUTPUT_PATH);
+};
+
 std::string SensorConfig::ptx_pre = "ChronoEngine_sensor_generated_";
 std::string SensorConfig::ptx_suff = ".cu.ptx";
 std::string SensorConfig::SENSOR_SHADER_DIR = std::string(CMAKE_SHADER_OUTPUT_PATH);
