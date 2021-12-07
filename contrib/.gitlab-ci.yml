@@ -103,7 +103,7 @@ linux:doxygen:deploy:
       artifacts: false
     - job: macos:catalina:test
       artifacts: false
-    - job: windows:vs2019:test
+    - job: windows:vs2022:test
       artifacts: false
   environment:
     name: doxygen
