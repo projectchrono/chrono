@@ -58,13 +58,13 @@ void ChTrackDrivelineBDS::Initialize(std::shared_ptr<ChChassis> chassis,
     // represents the connection of the driveline to the transmission box.
     m_driveshaft = chrono_types::make_shared<ChShaft>();
     m_driveshaft->SetInertia(GetDriveshaftInertia());
-    sys->Add(m_driveshaft);
+    sys->AddShaft(m_driveshaft);
 
     // Create a 1 d.o.f. object: a 'shaft' with rotational inertia.
     // This represents the inertia of the rotating box of the differential.
     m_differentialbox = chrono_types::make_shared<ChShaft>();
     m_differentialbox->SetInertia(GetDifferentialBoxInertia());
-    sys->Add(m_differentialbox);
+    sys->AddShaft(m_differentialbox);
 
     // Create an angled gearbox, i.e a transmission ratio constraint between two
     // non parallel shafts. This is the case of the 90° bevel gears in the

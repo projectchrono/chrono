@@ -36,19 +36,19 @@ void ChTrackBrakeShafts::Initialize(std::shared_ptr<ChChassis> chassis, std::sha
     m_shaft = chrono_types::make_shared<ChShaft>();
     m_shaft->SetNameString(m_name + "_shaft");
     m_shaft->SetInertia(GetShaftInertia());
-    chassis->GetBody()->GetSystem()->Add(m_shaft);
+    chassis->GetSystem()->AddShaft(m_shaft);
 
     // Create and initialize the connection between the brake shaft and the chassis
     auto connection = chrono_types::make_shared<ChShaftsBody>();
     connection->Initialize(m_shaft, chassis->GetBody(), ChVector<>(0, 1, 0));
-    chassis->GetBody()->GetSystem()->Add(connection);
+    chassis->GetSystem()->Add(connection);
 
     // Create and initialize the brake clutch (set as unlocked)
     m_clutch = chrono_types::make_shared<ChShaftsClutch>();
     m_clutch->SetTorqueLimit(GetMaxBrakingTorque());
     m_clutch->Initialize(m_shaft, sprocket->GetAxle());
     m_clutch->SetModulation(0);
-    chassis->GetBody()->GetSystem()->Add(m_clutch);
+    chassis->GetSystem()->Add(m_clutch);
 }
 
 void ChTrackBrakeShafts::Synchronize(double braking) {
