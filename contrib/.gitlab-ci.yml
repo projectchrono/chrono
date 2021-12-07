@@ -317,7 +317,7 @@ windows:vs2022:build:
   script:
     - cd $CI_PROJECT_DIR/src/chrono_thirdparty/flatbuffers
     - cmake ../ -G "Visual Studio 17 2022" -DCMAKE_BUILD_TYPE=Release .
-    - MSBuild.exe FlatBuffers.sln -maxcpucount:8 -property:Configuration=Release'
+    - MSBuild.exe FlatBuffers.sln -maxcpucount:8 -property:Configuration=Release
     - cd $CI_PROJECT_DIR/build
     - cmake --preset=windowsci-vs2022 -DBUILD_TESTING_GPU=FALSE ..
     - ninja -j 8
