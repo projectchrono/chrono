@@ -105,7 +105,6 @@
 			"displayName": "Windows CI Configuration for Visual Studio 2022 (as 2019)",
 			"description": "Options for Windows with Visual Studio 2019 toolchain",
 			"generator": "Ninja",
-			"architecture": "x64",
 			"toolset": {
 				"value": "version=14.29",
 				"strategy": "external" 
@@ -126,7 +125,6 @@
 			"displayName": "Windows CI Configuration for Visual Studio 2022",
 			"description": "Options for Windows with Visual Studio 2022 toolchain",
 			"generator": "Ninja",
-			"architecture": "x64",
 			"toolset": {
 				"value": "version=14.30",
 				"strategy": "external"
