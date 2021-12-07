@@ -65,7 +65,7 @@ int main(int argc, char* argv[]) {
         auto my_shaftA = chrono_types::make_shared<ChShaft>();
         my_shaftA->SetInertia(10);
         my_shaftA->SetAppliedTorque(6);
-        my_system.Add(my_shaftA);
+        my_system.AddShaft(my_shaftA);
 
         // Create another shaft. Note that we use shared pointers for ChShaft
         // objects, as we did for ChBody objects. Also, note that we must add them
@@ -73,7 +73,7 @@ int main(int argc, char* argv[]) {
         auto my_shaftB = chrono_types::make_shared<ChShaft>();
         my_shaftB->SetInertia(100);
         my_shaftB->SetShaftFixed(false);
-        my_system.Add(my_shaftB);
+        my_system.AddShaft(my_shaftB);
 
         // Create a ChShaftsGear, that represents a simplified model
         // of a reducer, with transmission ratio t, between two ChShaft objects.
@@ -133,13 +133,13 @@ int main(int argc, char* argv[]) {
         auto my_shaftA = chrono_types::make_shared<ChShaft>();
         my_shaftA->SetInertia(0.5);
         my_shaftA->SetPos_dt(30);
-        my_system.Add(my_shaftA);
+        my_system.AddShaft(my_shaftA);
 
         // Create another ChShaft, with opposite initial angular velocity
         auto my_shaftB = chrono_types::make_shared<ChShaft>();
         my_shaftB->SetInertia(0.6);
         my_shaftB->SetPos_dt(-10);
-        my_system.Add(my_shaftB);
+        my_system.AddShaft(my_shaftB);
 
         // Create a ChShaftsClutch, that represents a simplified model
         // of a clutch between two ChShaft objects (something that limits
@@ -212,17 +212,17 @@ int main(int argc, char* argv[]) {
         auto my_shaftA = chrono_types::make_shared<ChShaft>();
         my_shaftA->SetInertia(0.5);
         my_shaftA->SetAppliedTorque(10);
-        my_system.Add(my_shaftA);
+        my_system.AddShaft(my_shaftA);
 
         // Create shaft B
         auto my_shaftB = chrono_types::make_shared<ChShaft>();
         my_shaftB->SetInertia(0.5);
-        my_system.Add(my_shaftB);
+        my_system.AddShaft(my_shaftB);
 
         // Create shaft C, that will be fixed (to be used as truss of epicycloidal reducer)
         auto my_shaftC = chrono_types::make_shared<ChShaft>();
         my_shaftC->SetShaftFixed(true);
-        my_system.Add(my_shaftC);
+        my_system.AddShaft(my_shaftC);
 
         // Create a ChShaftsPlanetary, that represents a simplified model
         // of a planetary gear between THREE ChShaft objects (ex.: a car differential)
@@ -302,12 +302,12 @@ int main(int argc, char* argv[]) {
         // Create 'A', a 1D shaft
         auto my_shaftA = chrono_types::make_shared<ChShaft>();
         my_shaftA->SetInertia(9);
-        my_system.Add(my_shaftA);
+        my_system.AddShaft(my_shaftA);
 
         // Create 'C', a 1D shaft, fixed
         auto my_shaftC = chrono_types::make_shared<ChShaft>();
         my_shaftC->SetShaftFixed(true);
-        my_system.Add(my_shaftC);
+        my_system.AddShaft(my_shaftC);
 
         // Create 'B', a 3D rigid body
         auto my_bodyB = chrono_types::make_shared<ChBody>();
@@ -385,23 +385,23 @@ int main(int argc, char* argv[]) {
         // Create 'A', a 1D shaft
         auto my_shaftA = chrono_types::make_shared<ChShaft>();
         my_shaftA->SetInertia(1.5);
-        my_system.Add(my_shaftA);
+        my_system.AddShaft(my_shaftA);
 
         // Create 'B', a 1D shaft
         auto my_shaftB = chrono_types::make_shared<ChShaft>();
         my_shaftB->SetInertia(3.2);
         my_shaftB->SetAppliedTorque(-5);  // apply const braking torque
-        my_system.Add(my_shaftB);
+        my_system.AddShaft(my_shaftB);
 
         // Create 'C', a 1D shaft, fixed
         auto my_shaftC = chrono_types::make_shared<ChShaft>();
         my_shaftC->SetShaftFixed(true);
-        my_system.Add(my_shaftC);
+        my_system.AddShaft(my_shaftC);
 
         // Create 'D', a 1D shaft, fixed
         auto my_shaftD = chrono_types::make_shared<ChShaft>();
         my_shaftD->SetShaftFixed(true);
-        my_system.Add(my_shaftD);
+        my_system.AddShaft(my_shaftD);
 
         // Make the torque converter and connect the shafts:
         // A (input),B (output), C(truss stator)
@@ -531,22 +531,22 @@ int main(int argc, char* argv[]) {
         // Create 'A', a 1D shaft, fixed
         auto my_shaftA = chrono_types::make_shared<ChShaft>();
         my_shaftA->SetShaftFixed(true);
-        my_system.Add(my_shaftA);
+        my_system.AddShaft(my_shaftA);
 
         // Create 'B', a 1D shaft
         auto my_shaftB = chrono_types::make_shared<ChShaft>();
         my_shaftB->SetInertia(1.5);
-        my_system.Add(my_shaftB);
+        my_system.AddShaft(my_shaftB);
 
         // Create 'C', a 1D shaft
         auto my_shaftC = chrono_types::make_shared<ChShaft>();
         my_shaftC->SetInertia(3.2);
-        my_system.Add(my_shaftC);
+        my_system.AddShaft(my_shaftC);
 
         // Create D', a 1D shaft, fixed
         auto my_shaftD = chrono_types::make_shared<ChShaft>();
         my_shaftD->SetShaftFixed(true);
-        my_system.Add(my_shaftD);
+        my_system.AddShaft(my_shaftD);
 
         // Make the motor imposing a test sinusoidal rotation
         auto my_motor = chrono_types::make_shared<ChShaftsMotorAngle>();
