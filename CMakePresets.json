@@ -94,7 +94,7 @@
 				"GLM_INCLUDE_DIR": "C:/Users/builder/Documents/glm-0.9.9.8",
 				"IRRLICHT_LIBRARY": "C:/Users/builder/Documents/irrlicht-1.8.5/lib/Win64-visualStudio/Irrlicht.lib",
 				"IRRLICHT_ROOT": "C:/Users/builder/Documents/irrlicht-1.8.5",
-				"PYTHON_EXECUTABLE": "C:/ProgramData/Anaconda3/python.exe",
+				"PYTHON_EXECUTABLE": "C:/Users/builder/miniconda3/python.exe",
 				"SWIG_EXECUTABLE": "C:/Users/builder/Documents/swigwin-4.0.2/swig.exe",
 				"USE_MULTICORE_CUDA": "OFF",
 				"ENABLE_HDF5": "OFF"
@@ -125,7 +125,7 @@
 			"name": "windowsci-vs2022",
 			"displayName": "Windows CI Configuration for Visual Studio 2022",
 			"description": "Options for Windows with Visual Studio 2022 toolchain",
-			"generator": "Visual Studio 17 2022",
+			"generator": "Ninja",
 			"architecture": "x64",
 			"toolset": {
 				"value": "version=14.30",

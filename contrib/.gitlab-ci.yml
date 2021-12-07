@@ -302,15 +302,40 @@ linux:ubuntu2004:deploy-python3.8:
 
 .windows:
   tags:
-  - windows
+  - windows11
   before_script:
-  - $env:CONDA_INSTALL_LOCN= "C:\ProgramData\Anaconda3"
+  - '& "C:\Program Files (x86)\Microsoft Visual Studio\2022\BuildTools\Common7\Tools\Launch-VsDevShell.ps1"'
+  - $env:CONDA_INSTALL_LOCN= "C:\Users\builder\miniconda3"
   - echo $CI_PROJECT_DIR
   - git submodule init
   - git submodule update
   - mkdir -Force build
 
-windows:vs2019:build:
+windows:vs2022:build:
+  stage: build
+  extends: .windows
+  script:
+    - cd $CI_PROJECT_DIR/src/chrono_thirdparty/flatbuffers
+    - cmake ../ -G "Visual Studio 17 2022" -DCMAKE_BUILD_TYPE=Release .
+    - MSBuild.exe FlatBuffers.sln -maxcpucount:8 -property:Configuration=Release'
+    - cd $CI_PROJECT_DIR/build
+    - cmake --preset=windowsci-vs2022 -DBUILD_TESTING_GPU=FALSE ..
+    - ninja -j 8
+  artifacts:
+    expire_in: 60m
+    paths:
+      - build/
+
+windows:vs2022:test:
+  stage: test
+  needs: ["windows:vs2022:build"]
+  extends: .windows
+  script:
+  - cd build
+  - ctest --output-on-failure
+  dependencies: ["windows:vs2022:build"]
+
+.windows:vs2019:build:
   stage: build
   extends: .windows
   script:
@@ -330,7 +355,7 @@ windows:vs2019:build:
       - build/
 
 
-windows:vs2019:test:
+.windows:vs2019:test:
   stage: test
   needs: ["windows:vs2019:build"]
   extends: .windows
@@ -340,7 +365,7 @@ windows:vs2019:test:
   dependencies: ["windows:vs2019:build"]
 
 
-windows:vs2019:deploy:
+.windows:vs2019:deploy:
   stage: deploy
   needs: []
   extends: .windows
@@ -372,23 +397,6 @@ windows:vs2019:deploy:
     paths:
       - ./logs/
 
-.windows:vs2017:build:
-  stage: build
-  extends: .windows
-  script:
-    # Build flatbuffers
-  - cd $CI_PROJECT_DIR/src/chrono_thirdparty/flatbuffers
-  - cmake -G "Visual Studio 16 2019" -DCMAKE_BUILD_TYPE=Release .
-  - '& "C:\Program Files (x86)\Microsoft Visual Studio\2019\BuildTools\MSBuild\Current\Bin\MSBuild.exe" FlatBuffers.sln -maxcpucount:8 -property:Configuration=Release'
-  - cd $CI_PROJECT_DIR/build
-  - cmake --preset=windowsci-vs2017 -DBUILD_TESTING_GPU=FALSE ..
-  #- cmake --build . -t ALL_BUILD -j 8
-  #- Invoke-Expression "& `'C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\Common7\IDE\devenv.com`' Chrono.sln -Build `"Release|x64`" -log buildlog.txt"
-  - '& "C:\Program Files (x86)\Microsoft Visual Studio\2019\BuildTools\MSBuild\Current\Bin\MSBuild.exe" Chrono.sln -maxcpucount:8 -property:Configuration=Release'
-  artifacts:
-    expire_in: 60m
-    paths:
-      - build/
 
 
 #----------------#
