@@ -19,7 +19,7 @@
 // =============================================================================
 
 #include "chrono_irrlicht/ChIrrApp.h"
-#include "chrono_python/ChPython.h"
+#include "chrono_pyparser/ChPython.h"
 
 #include <irrlicht.h>
 

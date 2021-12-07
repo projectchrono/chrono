@@ -3,10 +3,15 @@
 //   ChModuleVehicle.i
 //
 //   SWIG configuration file.
-//   This is processed by SWIG to create the C#
-//   wrappers for the Chrono::Vehicle module.
+//   This is processed by SWIG to create the C::E
+//   wrapper for Python.
 //
 ///////////////////////////////////////////////////
+
+
+
+// Define the module to be used in Python when typing 
+//  'import pychrono.vehicle'
 
 
 %module(directors="1") vehicle
@@ -133,10 +138,6 @@ using namespace chrono::vehicle::sedan;
 using namespace chrono::vehicle::citybus;
 using namespace chrono::vehicle::man;
 using namespace chrono::vehicle::uaz;
-using namespace chrono::vehicle::gator;
-using namespace chrono::vehicle::man;
-using namespace chrono::vehicle::fmtv;
-using namespace chrono::vehicle::kraz;
 
 using namespace chrono::vehicle::m113;
 %}
@@ -150,6 +151,7 @@ using namespace chrono::vehicle::m113;
 #define CH_MODELS_API
 
 
+
 // workaround for trouble
 //%ignore chrono::fea::ChContactNodeXYZ::ComputeJacobianForContactPart;
 
@@ -159,8 +161,11 @@ using namespace chrono::vehicle::m113;
 // different c++ class, when possible.
 
 %include "std_string.i"
+%include "std_wstring.i"
 %include "std_vector.i"
 %include "typemaps.i"
+%include "wchar.i"
+%include "python/cwstring.i"
 %include "cstring.i"
 
 // This is to enable references to double,int,etc. types in function parameters
@@ -170,16 +175,16 @@ using namespace chrono::vehicle::m113;
 %pointer_class(char,char_ptr);
 
 
-%template(vector_int) std::vector<int>;
-%template(vector_double) std::vector<double>;
-%template(TerrainForces) std::vector<chrono::vehicle::TerrainForce>;
-%template(WheelStates) std::vector<chrono::vehicle::WheelState>;
+%template(vector_int) std::vector< int >;
+%template(TerrainForces) std::vector< chrono::vehicle::TerrainForce >;
+%template(WheelStates) std::vector< chrono::vehicle::WheelState >;
 %template(ChWheelList) std::vector<std::shared_ptr<chrono::vehicle::ChWheel> > ;
 %template(ChAxleList) std::vector<std::shared_ptr<chrono::vehicle::ChAxle> > ;
 
 //
 // For each class, keep updated the  A, B, C sections: 
 // 
+
 
 //
 // A- ENABLE SHARED POINTERS
@@ -206,6 +211,7 @@ using namespace chrono::vehicle::m113;
 %shared_ptr(chrono::collision::ChCollisionModelBullet)
 %shared_ptr(chrono::collision::ChCollisionSystem::BroadphaseCallback)
 %shared_ptr(chrono::collision::ChCollisionSystem::NarrowphaseCallback)
+
 
 /*
 from this module: pay attention to inheritance in the model namespace (generic, sedan etc). 
@@ -283,59 +289,59 @@ Before adding a shared_ptr, mark as shared ptr all its inheritance tree in the m
 //  mynamespace { class myclass; }
 // in the .i file, before the %include of the .h, even if already forwarded in .h
 
-%import  "chrono_csharp/core/ChClassFactory.i"
-%import  "chrono_csharp/core/ChObject.i"
-%import  "chrono_csharp/core/ChPhysicsItem.i"
-%import  "chrono_csharp/core/ChVector.i"
-%import  "chrono_csharp/core/ChQuaternion.i"
-%import  "chrono_csharp/core/ChCoordsys.i"
-%import  "chrono_csharp/core/ChFrame.i"
-%import  "chrono_csharp/core/ChFrameMoving.i"
-%import  "chrono_csharp/core/ChTimestepper.i"
-%import  "chrono_csharp/core/ChSystem.i"
-%import  "chrono_csharp/core/ChAssembly.i"
-%import  "chrono_csharp/core/ChCoordsys.i"
-%import  "chrono_csharp/core/ChMatrix.i"
-%import  "chrono_csharp/core/ChBodyFrame.i"
-%import  "chrono_csharp/core/ChBody.i"
-%import  "chrono_csharp/core/ChBodyAuxRef.i"
-%import  "chrono_csharp/core/ChLinkBase.i"
-%import  "chrono_csharp/core/ChLinkLock.i"
-%import  "chrono_csharp/core/ChLinkTSDA.i"
-%import  "chrono_csharp/core/ChLinkRSDA.i"
-%import  "chrono_csharp/core/ChLoad.i"
-%import  "chrono_csharp/core/ChShaft.i"
-%import  "chrono_csharp/core/ChAsset.i"
-%import  "chrono_csharp/core/ChAssetLevel.i"
-%import  "chrono_csharp/core/ChVisualization.i"
-%import(module = "pychrono.core")  "chrono_csharp/core/ChContactContainer.i"
-%import  "../../chrono/motion_functions/ChFunction.h"
-%import  "chrono_csharp/core/ChMaterialSurface.i"
-%import  "../../chrono/fea/ChContinuumMaterial.h"
-%import  "../../chrono/physics/ChPhysicsItem.h"
-%import  "../../chrono/physics/ChNodeBase.h"
-%import  "../../chrono/physics/ChBodyFrame.h"
-%import  "../../chrono/physics/ChLinkBase.h"
-%import  "chrono_csharp/core/ChTexture.i"
-%import  "../../chrono/assets/ChTriangleMeshShape.h"
+%import(module = "pychrono.core")  "chrono_swig/interface/core/ChClassFactory.i"
+%import(module = "pychrono.core")  "chrono_swig/interface/core/ChObject.i"
+%import(module = "pychrono.core")  "chrono_swig/interface/core/ChPhysicsItem.i"
+%import(module = "pychrono.core")  "chrono_swig/interface/core/ChVector.i"
+%import(module = "pychrono.core")  "chrono_swig/interface/core/ChQuaternion.i"
+%import(module = "pychrono.core")  "chrono_swig/interface/core/ChCoordsys.i"
+%import(module = "pychrono.core")  "chrono_swig/interface/core/ChFrame.i"
+%import(module = "pychrono.core")  "chrono_swig/interface/core/ChFrameMoving.i"
+%import(module = "pychrono.core")  "chrono_swig/interface/core/ChTimestepper.i"
+%import(module = "pychrono.core")  "chrono_swig/interface/core/ChSystem.i"
+%import(module = "pychrono.core")  "chrono_swig/interface/core/ChAssembly.i"
+%import(module = "pychrono.core")  "chrono_swig/interface/core/ChCoordsys.i"
+%import(module = "pychrono.core")  "chrono_swig/interface/core/ChMatrix.i"
+%import(module = "pychrono.core")  "chrono_swig/interface/core/ChBodyFrame.i"
+%import(module = "pychrono.core")  "chrono_swig/interface/core/ChBody.i"
+%import(module = "pychrono.core")  "chrono_swig/interface/core/ChBodyAuxRef.i"
+%import(module = "pychrono.core")  "chrono_swig/interface/core/ChLinkBase.i"
+%import(module = "pychrono.core")  "chrono_swig/interface/core/ChLinkLock.i"
+%import(module = "pychrono.core")  "chrono_swig/interface/core/ChLinkTSDA.i"
+%import(module = "pychrono.core")  "chrono_swig/interface/core/ChLinkRSDA.i"
+%import(module = "pychrono.core")  "chrono_swig/interface/core/ChLoad.i"
+%import(module = "pychrono.core")  "chrono_swig/interface/core/ChShaft.i"
+%import(module = "pychrono.core")  "chrono_swig/interface/core/ChAsset.i"
+%import(module = "pychrono.core")  "chrono_swig/interface/core/ChAssetLevel.i"
+%import(module = "pychrono.core")  "chrono_swig/interface/core/ChVisualization.i"
+%import(module = "pychrono.core")  "chrono_swig/interface/core/ChContactContainer.i"
+%import(module = "pychrono.core")  "../../../chrono/motion_functions/ChFunction.h"
+%import(module = "pychrono.core")  "chrono_swig/interface/core/ChMaterialSurface.i"
+%import(module = "pychrono.core")  "../../../chrono/fea/ChContinuumMaterial.h"
+%import(module = "pychrono.core")  "../../../chrono/physics/ChPhysicsItem.h"
+%import(module = "pychrono.core")  "../../../chrono/physics/ChNodeBase.h"
+%import(module = "pychrono.core")  "../../../chrono/physics/ChBodyFrame.h"
+%import(module = "pychrono.core")  "../../../chrono/physics/ChLinkBase.h"
+%import(module = "pychrono.core")  "chrono_swig/interface/core/ChTexture.i"
+%import(module = "pychrono.core")  "../../../chrono/assets/ChTriangleMeshShape.h"
 
 // TODO: 
 //%include "rapidjson.i"
 
-//%include "../../chrono_vehicle/ChApiVehicle.h"
+//%include "../../../chrono_vehicle/ChApiVehicle.h"
 %ignore chrono::vehicle::TrackedCollisionFamily::Enum;
 %ignore chrono::vehicle::TrackedCollisionFamily::OutputInformation;
 %ignore chrono::vehicle::TrackedCollisionFlag::Enum;
-%include "../../chrono_vehicle/ChSubsysDefs.h"
+%include "../../../chrono_vehicle/ChSubsysDefs.h"
 %include "../chrono_models/vehicle/ChVehicleModelDefs.h"
 //TODO: conversion from std::vectors of ChVehicleOutput
-%include "../../chrono_vehicle/ChVehicleOutput.h"
-%include "../../chrono_vehicle/ChVehicleModelData.h"
-%include "../../chrono_vehicle/ChPart.h"
-%include "../../chrono_vehicle/ChWorldFrame.h"
+%include "../../../chrono_vehicle/ChVehicleOutput.h"
+%include "../../../chrono_vehicle/ChVehicleModelData.h"
+%include "../../../chrono_vehicle/ChPart.h"
+%include "../../../chrono_vehicle/ChWorldFrame.h"
 %include "ChPowertrain.i"
 %include "ChChassis.i"
-%include "../../chrono_vehicle/ChVehicle.h"
+%include "../../../chrono_vehicle/ChVehicle.h"
 %include "ChDriver.i"
 %include "ChTerrain.i"
 //TODO: antirollbar
@@ -346,47 +352,47 @@ Before adding a shared_ptr, mark as shared ptr all its inheritance tree in the m
 %include "ChDriveline.i"
 %include "ChSteering.i"
 
-%include "../../chrono_vehicle/wheeled_vehicle/ChWheel.h"
-%include "../../chrono_vehicle/wheeled_vehicle/wheel/Wheel.h"
+%include "../../../chrono_vehicle/wheeled_vehicle/ChWheel.h"
+%include "../../../chrono_vehicle/wheeled_vehicle/wheel/Wheel.h"
 
-%include "../../chrono_vehicle/wheeled_vehicle/ChBrake.h"
-%include "../../chrono_vehicle/wheeled_vehicle/brake/ChBrakeSimple.h"
-%include "../../chrono_vehicle/wheeled_vehicle/brake/ChBrakeShafts.h"
-%include "../../chrono_vehicle/wheeled_vehicle/brake/BrakeSimple.h"
-%include "../../chrono_vehicle/wheeled_vehicle/brake/BrakeShafts.h"
+%include "../../../chrono_vehicle/wheeled_vehicle/ChBrake.h"
+%include "../../../chrono_vehicle/wheeled_vehicle/brake/ChBrakeSimple.h"
+%include "../../../chrono_vehicle/wheeled_vehicle/brake/ChBrakeShafts.h"
+%include "../../../chrono_vehicle/wheeled_vehicle/brake/BrakeSimple.h"
+%include "../../../chrono_vehicle/wheeled_vehicle/brake/BrakeShafts.h"
 
 %include "ChTire.i"
 
-%include "../../chrono_vehicle/wheeled_vehicle/ChAxle.h"
+%include "../../../chrono_vehicle/wheeled_vehicle/ChAxle.h"
 
-%include "../../chrono_vehicle/wheeled_vehicle/ChWheeledVehicle.h"
-%include "../../chrono_vehicle/wheeled_vehicle/ChWheeledTrailer.h"
-%include "../../chrono_vehicle/wheeled_vehicle/vehicle/WheeledVehicle.h"
-%include "../../chrono_vehicle/wheeled_vehicle/vehicle/WheeledTrailer.h"
+%include "../../../chrono_vehicle/wheeled_vehicle/ChWheeledVehicle.h"
+%include "../../../chrono_vehicle/wheeled_vehicle/ChWheeledTrailer.h"
+%include "../../../chrono_vehicle/wheeled_vehicle/vehicle/WheeledVehicle.h"
+%include "../../../chrono_vehicle/wheeled_vehicle/vehicle/WheeledTrailer.h"
 
 // Tracked vehicles
 %include "ChTrackAssembly.i"
 
-%include "../../chrono_vehicle/tracked_vehicle/ChSprocket.h"
-%include "../../chrono_vehicle/tracked_vehicle/ChIdler.h"
-%include "../../chrono_vehicle/tracked_vehicle/ChRoadWheel.h"
-%include "../../chrono_vehicle/tracked_vehicle/ChRoadWheelAssembly.h"
-%include "../../chrono_vehicle/tracked_vehicle/ChTrackShoe.h"
+%include "../../../chrono_vehicle/tracked_vehicle/ChSprocket.h"
+%include "../../../chrono_vehicle/tracked_vehicle/ChIdler.h"
+%include "../../../chrono_vehicle/tracked_vehicle/ChRoadWheel.h"
+%include "../../../chrono_vehicle/tracked_vehicle/ChRoadWheelAssembly.h"
+%include "../../../chrono_vehicle/tracked_vehicle/ChTrackShoe.h"
 
-%include "../../chrono_vehicle/tracked_vehicle/ChTrackBrake.h"
-%include "../../chrono_vehicle/tracked_vehicle/brake/ChTrackBrakeSimple.h"
-%include "../../chrono_vehicle/tracked_vehicle/brake/ChTrackBrakeShafts.h"
-%include "../../chrono_vehicle/tracked_vehicle/brake/TrackBrakeSimple.h"
-%include "../../chrono_vehicle/tracked_vehicle/brake/TrackBrakeShafts.h"
+%include "../../../chrono_vehicle/tracked_vehicle/ChTrackBrake.h"
+%include "../../../chrono_vehicle/tracked_vehicle/brake/ChTrackBrakeSimple.h"
+%include "../../../chrono_vehicle/tracked_vehicle/brake/ChTrackBrakeShafts.h"
+%include "../../../chrono_vehicle/tracked_vehicle/brake/TrackBrakeSimple.h"
+%include "../../../chrono_vehicle/tracked_vehicle/brake/TrackBrakeShafts.h"
 
-%include "../../chrono_vehicle/tracked_vehicle/ChTrackContactManager.h"
+%include "../../../chrono_vehicle/tracked_vehicle/ChTrackContactManager.h"
 
-%include "../../chrono_vehicle/tracked_vehicle/ChTrackedVehicle.h"
-%include "../../chrono_vehicle/tracked_vehicle/vehicle/TrackedVehicle.h"
+%include "../../../chrono_vehicle/tracked_vehicle/ChTrackedVehicle.h"
+%include "../../../chrono_vehicle/tracked_vehicle/vehicle/TrackedVehicle.h"
 
-%include "chrono_csharp/models/WheelModels.i"
-%include "chrono_csharp/models/BrakeModels.i"
-%include "chrono_csharp/models/VehicleModels.i"
+%include "chrono_swig/interface/models/WheelModels.i"
+%include "chrono_swig/interface/models/BrakeModels.i"
+%include "chrono_swig/interface/models/VehicleModels.i"
 
 %include "vehicleUtils.i"
 
@@ -397,33 +403,30 @@ Before adding a shared_ptr, mark as shared ptr all its inheritance tree in the m
 
 %DefSharedPtrDynamicDowncast(chrono::vehicle,ChSuspension, ChDoubleWishbone)
 %DefSharedPtrDynamicDowncast(chrono::vehicle,ChSuspension, ChMacPhersonStrut)
+//%DefSharedPtrDynamicDowncast(chrono::vehicle,ChSuspension, MacPhersonStrut)
 %DefSharedPtrDynamicDowncast(chrono::vehicle,ChSuspension, ChLeafspringAxle)
+//%DefSharedPtrDynamicDowncast(chrono::vehicle,ChSuspension, LeafspringAxle)
 %DefSharedPtrDynamicDowncast(chrono::vehicle,ChSuspension, ChHendricksonPRIMAXX)
 %DefSharedPtrDynamicDowncast(chrono::vehicle,ChSuspension, ChDoubleWishboneReduced)
 %DefSharedPtrDynamicDowncast(chrono::vehicle,ChSuspension, ChMultiLink)
+//%DefSharedPtrDynamicDowncast(chrono::vehicle,ChSuspension, MultiLink)
 %DefSharedPtrDynamicDowncast(chrono::vehicle,ChSuspension, ChRigidPinnedAxle)
 %DefSharedPtrDynamicDowncast(chrono::vehicle,ChSuspension, ChSemiTrailingArm)
+//%DefSharedPtrDynamicDowncast(chrono::vehicle,ChSuspension, SemiTrailingArm)
 %DefSharedPtrDynamicDowncast(chrono::vehicle,ChSuspension, ChRigidSuspension)
 %DefSharedPtrDynamicDowncast(chrono::vehicle,ChSuspension, ChSolidAxle)
 %DefSharedPtrDynamicDowncast(chrono::vehicle,ChSuspension, ChThreeLinkIRS)
 %DefSharedPtrDynamicDowncast(chrono::vehicle,ChSuspension, ChToeBarLeafspringAxle)
-%DefSharedPtrDynamicDowncast(chrono::vehicle,ChSuspension, ChSolidBellcrankThreeLinkAxle)
-%DefSharedPtrDynamicDowncast(chrono::vehicle,ChSuspension, ChSolidThreeLinkAxle)
-%DefSharedPtrDynamicDowncast(chrono::vehicle,ChSuspension, ChSingleWishbone)
-
-//%DefSharedPtrDynamicDowncast(chrono::vehicle,ChSuspension, MacPhersonStrut)
-//%DefSharedPtrDynamicDowncast(chrono::vehicle,ChSuspension, LeafspringAxle)
-//%DefSharedPtrDynamicDowncast(chrono::vehicle,ChSuspension, MultiLink)
-//%DefSharedPtrDynamicDowncast(chrono::vehicle,ChSuspension, SemiTrailingArm)
 //%DefSharedPtrDynamicDowncast(chrono::vehicle,ChSuspension, DoubleWishbone)
 //%DefSharedPtrDynamicDowncast(chrono::vehicle,ChSuspension, DoubleWishboneReduced)
 //%DefSharedPtrDynamicDowncast(chrono::vehicle,ChSuspension, HendricksonPRIMAXX)
 //%DefSharedPtrDynamicDowncast(chrono::vehicle,ChSuspension, SolidAxle)
 //%DefSharedPtrDynamicDowncast(chrono::vehicle,ChSuspension, ThreeLinkIRS)
 //%DefSharedPtrDynamicDowncast(chrono::vehicle,ChSuspension, ToeBarLeafspringAxle)
+%DefSharedPtrDynamicDowncast(chrono::vehicle,ChSuspension, ChSolidBellcrankThreeLinkAxle)
+%DefSharedPtrDynamicDowncast(chrono::vehicle,ChSuspension, ChSolidThreeLinkAxle)
 //%DefSharedPtrDynamicDowncast(chrono::vehicle,ChSuspension, SolidBellcrankThreeLinkAxle)
 //%DefSharedPtrDynamicDowncast(chrono::vehicle,ChSuspension, SolidThreeLinkAxle)
-//%DefSharedPtrDynamicDowncast(chrono::vehicle,ChSuspension, SingleWishbone)
 
 %DefSharedPtrDynamicDowncast(chrono::vehicle,ChSteering, ChPitmanArm)
 %DefSharedPtrDynamicDowncast(chrono::vehicle,ChSteering, ChPitmanArmShafts)
@@ -455,3 +458,27 @@ Before adding a shared_ptr, mark as shared ptr all its inheritance tree in the m
 %DefSharedPtrDynamicDowncast(chrono::vehicle,ChDriveline, ChShaftsDriveline4WD)
 %DefSharedPtrDynamicDowncast(chrono::vehicle,ChDriveline, ChSimpleDriveline)
 %DefSharedPtrDynamicDowncast(chrono::vehicle,ChDriveline, ChSimpleDrivelineXWD)
+
+//
+// ADDITIONAL C++ FUNCTIONS / CLASSES THAT ARE USED ONLY FOR PYTHON WRAPPER
+//
+
+/*
+%inline %{
+
+
+%}
+*/
+
+
+//
+// ADD PYTHON CODE
+//
+
+/*
+%pythoncode %{
+
+%}
+*/
+
+
