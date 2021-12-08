@@ -7,8 +7,8 @@
 #include "chrono/ChConfig.h"
 
 #include "chrono/core/ChBezierCurve.h"
+#include "chrono/utils/ChUtilsChaseCamera.h"
 #include "chrono_vehicle/ChVehicle.h"
-
 #include "chrono_vehicle/utils/ChSpeedController.h"
 #include "chrono_vehicle/utils/ChSteeringController.h"
 #include "chrono_vehicle/utils/ChAdaptiveSpeedController.h"
@@ -21,7 +21,6 @@
 
 //to import/wrap
 //#include "chrono_irrlicht/ChIrrApp.h"
-#include "chrono/utils/ChUtilsChaseCamera.h"
 
 #ifdef CHRONO_IRRLICHT
 #include "chrono_vehicle/utils/ChVehicleIrrApp.h"
@@ -29,8 +28,8 @@
 #include "chrono_vehicle/wheeled_vehicle/utils/ChWheeledVehicleIrrApp.h"
 #include "chrono_vehicle/tracked_vehicle/utils/ChTrackedVehicleIrrApp.h"
 
-/*using namespace chrono::irrlicht;
-using namespace irr;*/
+//using namespace chrono::irrlicht;
+//using namespace irr;
 #endif
 
 #endif             // --------------------------------------------------------------------- PYTHON

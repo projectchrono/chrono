@@ -84,7 +84,7 @@ message(STATUS "...add Chrono::CSharp CORE module")
 set(MODULE_CORE ChronoEngine_csharp_core)
 
 # Set interface file.
-set(INTERFACE_FILE_CORE core/ChModuleCore.i)
+set(INTERFACE_FILE_CORE ../interface/core/ChModuleCore.i)
 
 if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
   set_source_files_properties(${INTERFACE_FILE_CORE} PROPERTIES COMPILE_FLAGS "-D_WIN32")
@@ -130,7 +130,7 @@ if(ENABLE_MODULE_VEHICLE)
   set(MODULE_VEHICLE ChronoEngine_csharp_vehicle)
   
   # Set interface file.
-  set(INTERFACE_FILE_VEHICLE vehicle/ChModuleVehicle.i)
+  set(INTERFACE_FILE_VEHICLE ../interface/vehicle/ChModuleVehicle.i)
   
   if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
     set_source_files_properties(${INTERFACE_FILE_VEHICLE} PROPERTIES COMPILE_FLAGS "-D_WIN32")

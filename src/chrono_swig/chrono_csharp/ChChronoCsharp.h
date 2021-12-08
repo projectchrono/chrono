@@ -10,8 +10,8 @@
 //
 // =============================================================================
 
-#ifndef CH_APICSHARP
-#define CH_APICSHARP
+#ifndef CH_CHRONOCSHARP
+#define CH_CHRONOCSHARP
 
 
 /**

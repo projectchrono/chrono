@@ -660,7 +660,7 @@ add_subdirectory(chrono_sensor)
 add_subdirectory(chrono_synchrono)
 add_subdirectory(chrono_pyparser)
 add_subdirectory(chrono_swig/chrono_python)
-add_subdirectory(chrono_csharp)
+add_subdirectory(chrono_swig/chrono_csharp)
 
 # Add directories for model libraries
 add_subdirectory(chrono_models)
