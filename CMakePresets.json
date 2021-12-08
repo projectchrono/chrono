@@ -106,7 +106,7 @@
 			"description": "Options for Windows with Visual Studio 2019 toolchain",
 			"generator": "Visual Studio 17 2022",
 			"architecture": "x64",
-			"toolset": "v143",
+			"toolset": "v142",
 			"inherits": [
 				"windowsci-base",
 				"genericci-base"
@@ -124,7 +124,7 @@
 			"description": "Options for Windows with Visual Studio 2022 toolchain",
 			"generator": "Visual Studio 17 2022",
 			"architecture": "x64",
-			"toolset": "v142",
+			"toolset": "v143",
 			"inherits": [
 				"windowsci-base",
 				"genericci-base"
