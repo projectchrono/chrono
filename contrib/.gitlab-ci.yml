@@ -295,6 +295,54 @@ linux:ubuntu2004:deploy-python3.8:
     - anaconda -t $ANACONDA_TOKEN upload $HOME/miniconda3/conda-bld/linux-64/pychrono*.bz2 -l develop --force
   when: manual
 
+#------------------#
+#   EL8 Builder    #
+#------------------#
+
+.almalinux:
+  tags:
+    - linux
+  image:
+    name: almalinux
+  before_script:
+    - uname -a
+    - dnf groupinstall -y 'Development Tools'
+    - dnf config-manager --set-enabled powertools
+    - dnf install -y epel-release
+    - dnf install -y cmake irrlicht irrlicht-devel glew-devel eigen3 glfw-devel ninja-build glm-devel freeglut-devel
+    - git submodule init
+    - git submodule update
+    - mkdir -p build
+    
+linux:almalinux:build:
+  stage: build
+  extends: .almalinux
+  script:
+    - cd build
+    - cmake -G Ninja .. -DCMAKE_BUILD_TYPE=Release
+        -DBUILD_DEMOS=ON -DBUILD_BENCHMARK=ON -DBUILD_TESTING=ON
+        -DENABLE_MODULE_IRRLICHT=ON
+        -DENABLE_MODULE_COSIMULATION=ON 
+        -DENABLE_MODULE_POSTPROCESS=ON 
+        -DENABLE_MODULE_OPENGL=ON
+        -DENABLE_MODULE_VEHICLE=ON
+        -DENABLE_HDF5=ON 
+    - ninja -j 8
+  artifacts:
+    expire_in: 60m
+    paths:
+      - build/
+
+linux:almalinux:test:
+  stage: test
+  needs: ["linux:almalinux:build"]
+  extends: .almalinux
+  script:
+    - cd build
+    - export OMP_NUM_THREADS=8
+    - export CTEST_OUTPUT_ON_FAILURE=1 
+    - ninja test
+  dependencies: ["linux:almalinux:build"]
 
 #------------------#
 # Windows Builders #
