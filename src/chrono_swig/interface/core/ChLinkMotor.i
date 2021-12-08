@@ -1,6 +1,18 @@
-%{
+#ifdef SWIGCSHARP  // --------------------------------------------------------------------- CSHARP
 
-/* Includes the header in the wrapper code */
+// MULTIPLE INHERITANCE WORKAROUND
+
+// Extend ChLinkMotor with Initialize functions that take two ChBody (not ChBodyFrame)
+%extend chrono::ChLinkMotor
+{
+  void Initialize(std::shared_ptr<ChBody> body1, std::shared_ptr<ChBody> body2, ChFrame<double> absframe) {
+     $self->Initialize(std::dynamic_pointer_cast<ChBodyFrame>(body1), std::dynamic_pointer_cast<ChBodyFrame>(body2), absframe);
+  }
+}
+
+#endif             // --------------------------------------------------------------------- CSHARP
+
+%{
 #include "chrono/physics/ChLinkMotor.h"
 
 #include "chrono/physics/ChLinkMotorLinear.h"
@@ -14,14 +26,13 @@
 #include "chrono/physics/ChLinkMotorRotationDriveline.h"
 #include "chrono/physics/ChLinkMotorRotationSpeed.h"
 #include "chrono/physics/ChLinkMotorRotationTorque.h"
-
 %}
  
 // Tell SWIG about parent class in Python
 %import "ChLinkMate.i"
 
 
-/* Parse the header file to generate wrappers */
+// Parse the header file to generate wrappers
 %include "../../../chrono/physics/ChLinkMotor.h" 
 %include "../../../chrono/physics/ChLinkMotorLinear.h" 
 %include "../../../chrono/physics/ChLinkMotorLinearDriveline.h" 

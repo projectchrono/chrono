@@ -72,9 +72,10 @@ using namespace chrono;
 			%template(Set_A_Rodriguez) Set_A_Rodriguez<double>;
 			*/
 		};
-//
+
+#ifdef SWIGPYTHON  // --------------------------------------------------------------------- PYTHON
+
 // ADD PYTHON CODE
-//
 
 %pythoncode %{
 
@@ -119,3 +120,5 @@ setattr(ChMatrix33D, "SetMatr", SetMatr)
 setattr(ChMatrix33D, "GetMatr", GetMatr)
 
 %}
+
+#endif             // --------------------------------------------------------------------- PYTHON

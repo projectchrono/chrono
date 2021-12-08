@@ -36,6 +36,8 @@
 %template(ChQuaternionD) chrono::ChQuaternion<double>; 
 %template(ChQuaternionF) chrono::ChQuaternion<float>; 
 
+#ifdef SWIGPYTHON  // --------------------------------------------------------------------- PYTHON
+
 // This is needed because a std::vector<ChQuaternion<double>
 // might be used  somewhere, and we want to use it via python:
 %template(vector_ChQuaternionD) std::vector< chrono::ChQuaternion<double> >;
@@ -71,3 +73,5 @@
 	QNULL  = ChQuaternionD(0,0,0,0)
 	QUNIT  = ChQuaternionD(1,0,0,0)
 %}
+
+#endif             // --------------------------------------------------------------------- PYTHON

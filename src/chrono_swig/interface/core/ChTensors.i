@@ -1,11 +1,24 @@
 %{
 #include <cstddef>
-/* Includes the header in the wrapper code */
 #include "chrono/core/ChTensors.h"
-
 %}
 
-// The underlaying XX() method is ignored, then we rename our custom getXX as XX. 
+#ifdef SWIGCSHARP  // --------------------------------------------------------------------- CSHARP
+
+// Hack to avoid problems with .x() .y() .z() that work with references. 
+// This is not straightforward in SWIG. So access them as .x .y .z attributes 
+// using the following workaround (NOTE! must happen before calling %include)
+/*%include <attribute.i>
+%attributeref(chrono::ChVector<double>, double, x);
+%attributeref(chrono::ChVector<double>, double, y);
+%attributeref(chrono::ChVector<double>, double, z);
+%attributeref(chrono::ChVector<float>, float, x);
+%attributeref(chrono::ChVector<float>, float, y);
+%attributeref(chrono::ChVector<float>, float, z);*/
+
+#endif             // --------------------------------------------------------------------- CSHARP
+
+// The underlying XX() method is ignored, then we rename our custom getXX as XX. 
 // This way XX is substituted. We do the same for all the tensor elements
 %ignore chrono::ChVoightTensor::XX;
 %rename(XX) chrono::ChVoightTensor::getXX;
@@ -20,7 +33,7 @@
 %ignore chrono::ChVoightTensor::YZ;
 %rename(YZ) chrono::ChVoightTensor::getYZ;
 
-/* Parse the header file to generate wrappers */
+// Parse the header file to generate wrappers
 %include "../../../chrono/core/ChTensors.h"
 
 // Tensors are templated by type

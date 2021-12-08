@@ -13,6 +13,8 @@ using namespace chrono;
 
 %}
 
+#ifdef SWIGPYTHON  // --------------------------------------------------------------------- PYTHON
+
 /*
 typemaps redefine inputs and outputs of the methods that have the same arguments NAME and TYPE such as  (double* p, int len)
 
@@ -92,6 +94,8 @@ defines the Python function return ($result) from the C++ args ($1, $2...)
 %typemap(freearg) (double *mat, int ros, int col) %{
     delete($1);
 %}
+
+#endif             // --------------------------------------------------------------------- PYTHON
 
 template <typename Real = double>
 class chrono::ChMatrixDynamic : public Eigen::Matrix<Real, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor> {
@@ -197,9 +201,9 @@ class chrono::ChVectorDynamic : public Eigen::Matrix<T, Eigen::Dynamic, 1, Eigen
 			}
 		};
 
-//
+#ifdef SWIGPYTHON  // --------------------------------------------------------------------- PYTHON
+
 // ADD PYTHON CODE
-//
 
 %pythoncode %{
 
@@ -246,5 +250,8 @@ setattr(ChMatrixDynamicD, "__getitem__", __matr_getitem)
 setattr(ChMatrixDynamicD, "__setitem__", __matr_setitem)
 
 %}
+
+#endif             // --------------------------------------------------------------------- PYTHON
+
 %ignore chrono::ChMatrixDynamic;
 %include "../../../chrono/core/ChMatrix.h"

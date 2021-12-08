@@ -1,11 +1,11 @@
 %{
-
-/* Includes the header in the wrapper code */
 #include "chrono/physics/ChMarker.h"
 #include "chrono/physics/ChBody.h"
 %}
 
 %shared_ptr(chrono::ChMarker)
+
+#ifdef SWIGPYTHON  // --------------------------------------------------------------------- PYTHON
 
 // Forward ref 
 //%import "ChPhysicsItem.i" // parent class does not need %import if all .i are included in proper order
@@ -15,8 +15,12 @@ class chrono::ChBody;
 %ignore chrono::ChMarker::GetBody;
 %rename(GetBody) chrono::ChMarker::getBodySP;
 
-/* Parse the header file to generate wrappers */
+#endif             // --------------------------------------------------------------------- PYTHON
+
+// Parse the header file to generate wrappers
 %include "../../../chrono/physics/ChMarker.h"  
+
+#ifdef SWIGPYTHON  // --------------------------------------------------------------------- PYTHON
 
 // A method is added to ChMarker to return a shared_ptr instead of a raw ptr. 
 // The method is renamed so that nothing changes from a user perspective
@@ -30,3 +34,5 @@ class chrono::ChBody;
 				}
 			
 		};
+
+#endif             // --------------------------------------------------------------------- PYTHON

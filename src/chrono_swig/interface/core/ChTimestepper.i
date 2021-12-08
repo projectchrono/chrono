@@ -1,6 +1,53 @@
-%{
+#ifdef SWIGCSHARP  // --------------------------------------------------------------------- CSHARP
 
-/* Includes the header in the wrapper code */
+// MULTIPLE INHERITANCE WORKAROUND
+
+// (A) Methods inherited from base classes that SWIG discards
+//     (i.e. methods that *are not* overriden in ChTimestepperHHT and ChTimestepperEulerImplicit)
+
+// First, ensure that these functions are not marked as 'overrides' in the generated C# code.
+
+%csmethodmodifiers chrono::ChTimestepperHHT::SetMaxiters "public"
+%csmethodmodifiers chrono::ChTimestepperHHT::SetRelTolerance "public"
+%csmethodmodifiers chrono::ChTimestepperHHT::SetAbsTolerances "public"
+%csmethodmodifiers chrono::ChTimestepperHHT::GetNumIterations "public"
+%csmethodmodifiers chrono::ChTimestepperHHT::GetNumSetupCalls "public"
+%csmethodmodifiers chrono::ChTimestepperHHT::GetNumSolveCalls "public"
+
+%csmethodmodifiers chrono::ChTimestepperEulerImplicit::SetMaxiters "public"
+%csmethodmodifiers chrono::ChTimestepperEulerImplicit::SetRelTolerance "public"
+%csmethodmodifiers chrono::ChTimestepperEulerImplicit::SetAbsTolerances "public"
+%csmethodmodifiers chrono::ChTimestepperEulerImplicit::GetNumIterations "public"
+%csmethodmodifiers chrono::ChTimestepperEulerImplicit::GetNumSetupCalls "public"
+%csmethodmodifiers chrono::ChTimestepperEulerImplicit::GetNumSolveCalls "public"
+
+// Second, extend ChTimestepperHHT and ChTimestepperEulerImplicit with implementations of these functions
+
+%extend chrono::ChTimestepperHHT
+{
+    void SetMaxiters(int iters)                             {$self->SetMaxiters(iters);}
+    void SetRelTolerance(double rel_tol)                    {$self->SetRelTolerance(rel_tol);}
+    void SetAbsTolerances(double abs_tolS, double abs_tolL) {$self->SetAbsTolerances(abs_tolS, abs_tolL);}
+    void SetAbsTolerances(double abs_tol)                   {$self->SetAbsTolerances(abs_tol);}
+    int GetNumIterations() const {return $self->GetNumIterations();}
+    int GetNumSetupCalls() const {return $self->GetNumSetupCalls();}
+    int GetNumSolveCalls() const {return $self->GetNumSolveCalls();}
+}
+
+%extend chrono::ChTimestepperEulerImplicit
+{
+    void SetMaxiters(int iters)                             {$self->SetMaxiters(iters);}
+    void SetRelTolerance(double rel_tol)                    {$self->SetRelTolerance(rel_tol);}
+    void SetAbsTolerances(double abs_tolS, double abs_tolL) {$self->SetAbsTolerances(abs_tolS, abs_tolL);}
+    void SetAbsTolerances(double abs_tol)                   {$self->SetAbsTolerances(abs_tol);}
+    int GetNumIterations() const {return $self->GetNumIterations();}
+    int GetNumSetupCalls() const {return $self->GetNumSetupCalls();}
+    int GetNumSolveCalls() const {return $self->GetNumSolveCalls();}
+}
+
+#endif             // --------------------------------------------------------------------- CSHARP
+
+%{
 #include <cmath>
 #include <cstdlib>
 #include "chrono/core/ChApiCE.h"

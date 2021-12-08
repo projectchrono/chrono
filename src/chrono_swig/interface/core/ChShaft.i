@@ -1,6 +1,29 @@
-%{
+#ifdef SWIGCSHARP  // --------------------------------------------------------------------- CSHARP
 
-/* Includes the header in the wrapper code */
+// MULTIPLE INHERITANCE WORKAROUND
+
+// (B) Methods of a base class that SWIG discards that *are* overriden in ChShaft
+
+// Ensure that these functions are not marked as 'overrides' in the generated C# code.
+
+%csmethodmodifiers chrono::ChShaft::LoadableGet_ndof_x "public"
+%csmethodmodifiers chrono::ChShaft::LoadableGet_ndof_w "public"
+%csmethodmodifiers chrono::ChShaft::LoadableGetStateBlock_x "public"
+%csmethodmodifiers chrono::ChShaft::LoadableGetStateBlock_w "public"
+%csmethodmodifiers chrono::ChShaft::LoadableStateIncrement "public"
+%csmethodmodifiers chrono::ChShaft::Get_field_ncoords "public"
+%csmethodmodifiers chrono::ChShaft::GetSubBlocks "public"
+%csmethodmodifiers chrono::ChShaft::GetSubBlockOffset "public"
+%csmethodmodifiers chrono::ChShaft::GetSubBlockSize "public"
+%csmethodmodifiers chrono::ChShaft::IsSubBlockActive "public"
+%csmethodmodifiers chrono::ChShaft::LoadableGetVariables "public"
+
+//// RADU:  Do we actually want to wrap methods of ChLoadable?
+////        If not, we should probably just use %ignore
+
+#endif             // --------------------------------------------------------------------- CSHARP
+
+%{
 //#include "chrono/solver/ChVariables.h"
 //#include "chrono/solver/ChVariablesShaft.h"
 #include "chrono/physics/ChShaft.h"
@@ -14,10 +37,9 @@
 #include "chrono/physics/ChShaftsThermalEngine.h"
 #include "chrono/physics/ChShaftsTorsionSpring.h"
 #include "chrono/physics/ChShaftsLoads.h"
-
 %}
  
-// Tell SWIG about parent class in Python
+// Tell SWIG about parent classes
 %import "chrono_swig/interface/core/ChSystem.i"
 %import "chrono_swig/interface/core/ChPhysicsItem.i"
 %import "chrono_swig/interface/core/ChLoad.i"
@@ -41,8 +63,7 @@
 %shared_ptr(chrono::ChShaftsTorsionSpringDamper)
 %shared_ptr(chrono::ChShaftsElasticGear)
 
-
-/* Parse the header file to generate wrappers */
+// Parse the header file to generate wrappers
 //%include "../../../chrono/solver/ChVariables.h"
 //%include "../../../chrono/solver/ChVariablesShaft.h"
 %include "../../../chrono/physics/ChShaft.h"  

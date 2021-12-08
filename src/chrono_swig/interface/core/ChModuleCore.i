@@ -1,18 +1,18 @@
-//////////////////////////////////////////////////
+// =====================================================================================
 //  
 //   ChModuleCore.i
 //
 //   SWIG configuration file.
-//   This is processed by SWIG to create the C::E
-//   wrapper for Python.
+//   Processed with SWIG to create the Python and C# wrappers for the core Chrono module.
 //
-///////////////////////////////////////////////////
+// =====================================================================================
 
-
-
-// Define the module to be used in Python when typing 
-//  'import pychrono'
-
+#pragma SWIG nowarn=302
+#pragma SWIG nowarn=315
+#pragma SWIG nowarn=401
+#pragma SWIG nowarn=503
+#pragma SWIG nowarn=516
+#pragma SWIG nowarn=842
 
 %module(directors="1") core
 
@@ -150,6 +150,38 @@ using namespace chrono::fea;
 %shared_ptr(chrono::ChBezierCurve)
 %shared_ptr(chrono::ChGlyphs)
 
+%shared_ptr(chrono::ChFunction)  
+%shared_ptr(chrono::ChFunction_Const)
+%shared_ptr(chrono::ChFunction_ConstAcc)
+%shared_ptr(chrono::ChFunction_Derive)
+%shared_ptr(chrono::ChFunction_Fillet3)
+%shared_ptr(chrono::ChFunction_Integrate)
+%shared_ptr(chrono::ChFunction_Mirror)
+%shared_ptr(chrono::ChFunction_Mocap)
+%shared_ptr(chrono::ChFunction_Noise)
+%shared_ptr(chrono::ChFunction_Operation)
+%shared_ptr(chrono::ChFunction_Oscilloscope)
+%shared_ptr(chrono::ChFunction_Poly)
+%shared_ptr(chrono::ChFunction_Poly345)
+%shared_ptr(chrono::ChFunction_Ramp)
+%shared_ptr(chrono::ChFunction_Recorder)
+%shared_ptr(chrono::ChFunction_Repeat)
+%shared_ptr(chrono::ChFunction_Sequence)
+%shared_ptr(chrono::ChFunction_Sigma)
+%shared_ptr(chrono::ChFunction_Sine)
+%shared_ptr(chrono::ChFunction_Setpoint)
+%shared_ptr(chrono::ChFunction_SetpointCallback)
+
+%shared_ptr(chrono::ChFunctionRotation)
+%shared_ptr(chrono::ChFunctionRotation_axis)
+%shared_ptr(chrono::ChFunctionRotation_ABCfunctions)
+%shared_ptr(chrono::ChFunctionRotation_setpoint)
+%shared_ptr(chrono::ChFunctionRotation_spline)
+%shared_ptr(chrono::ChFunctionRotation_SQUAD)
+%shared_ptr(chrono::ChFunctionPosition)
+%shared_ptr(chrono::ChFunctionPosition_line)
+%shared_ptr(chrono::ChFunctionPosition_setpoint)
+%shared_ptr(chrono::ChFunctionPosition_XYZfunctions)
 
 %shared_ptr(chrono::collision::ChCollisionModel)
 %shared_ptr(chrono::collision::ChCollisionModelBullet)
@@ -558,6 +590,8 @@ using namespace chrono::fea;
 // .. to complete
 
 
+#ifdef SWIGPYTHON  // --------------------------------------------------------------------- PYTHON
+
 //
 // ADDITIONAL C++ FUNCTIONS / CLASSES THAT ARE USED ONLY FOR PYTHON WRAPPER
 //
@@ -634,6 +668,4 @@ def ImportSolidWorksSystem(mpath):
 
 %}
 
-
-//  
-//%shared_ptr(chrono::ChSystem)
+#endif             // --------------------------------------------------------------------- PYTHON

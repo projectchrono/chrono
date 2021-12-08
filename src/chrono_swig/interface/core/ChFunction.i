@@ -1,6 +1,4 @@
 %{
-
-/* Includes the header in the wrapper code */
 #include "chrono/motion_functions/ChFunction_Base.h"
 #include "chrono/motion_functions/ChFunction_Const.h"
 #include "chrono/motion_functions/ChFunction_ConstAcc.h"
@@ -32,6 +30,8 @@
 #include "chrono/motion_functions/ChFunctionPosition_line.h"
 #include "chrono/motion_functions/ChFunctionPosition_setpoint.h"
 #include "chrono/motion_functions/ChFunctionPosition_XYZfunctions.h"
+
+#ifdef SWIGPYTHON  // --------------------------------------------------------------------- PYTHON
 
 // Helper function that will be put in C++ wrapper and that will
 // be later used by %typemap in order to do downcasting to proper Python
@@ -83,6 +83,7 @@ SWIGRUNTIME PyObject* DowncastChFunction(chrono::ChFunction* out)
 	return SWIG_NewPointerObj(SWIG_as_voidptr(out), SWIGTYPE_p_chrono__ChFunction, 0 |  0 );
 }
 
+#endif             // --------------------------------------------------------------------- PYTHON
 
 %}
 
@@ -120,7 +121,7 @@ SWIGRUNTIME PyObject* DowncastChFunction(chrono::ChFunction* out)
 %shared_ptr(chrono::ChFunctionPosition_XYZfunctions)
 
 
-// Cross-inheritance between Python and c++ for callbacks that must be inherited.
+// Cross-inheritance for callbacks that must be inherited.
 // Put this 'director' feature _before_ class wrapping declaration.
 %feature("director") chrono::ChFunction;
 %feature("director") chrono::ChFunction_Setpoint;
@@ -133,7 +134,7 @@ SWIGRUNTIME PyObject* DowncastChFunction(chrono::ChFunction* out)
 %ignore chrono::ChFunctionPosition::Clone;
 %ignore chrono::ChFunctionRotation::Clone;
 
-/* Parse the header file to generate wrappers */
+// Parse the header file to generate wrappers
 %include "../../../chrono/motion_functions/ChFunction_Base.h"  
 %include "../../../chrono/motion_functions/ChFunction_Const.h"
 %include "../../../chrono/motion_functions/ChFunction_ConstAcc.h"
