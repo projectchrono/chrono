@@ -41,10 +41,8 @@
 %shared_ptr(chrono::vehicle::ChassisConnectorHitch)
 %shared_ptr(chrono::vehicle::ChassisConnectorTorsion)
 
-
-%import(module = "pychrono.core") "../../../chrono/assets/ChAsset.h"
-%import(module = "pychrono.core") "../../../chrono/assets/ChAssetLevel.h"
-
+%import "../../../chrono/assets/ChAsset.h"
+%import "../../../chrono/assets/ChAssetLevel.h"
 
 /* Parse the header file to generate wrappers */
 %include "../../../chrono_vehicle/ChChassis.h"

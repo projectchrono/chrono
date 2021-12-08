@@ -33,7 +33,14 @@
 %shared_ptr(chrono::vehicle::RackPinion)
 %shared_ptr(chrono::vehicle::RotaryArm)
 
+#ifdef SWIGCSHARP
+%import "chrono_swig/interface/core/ChShaft.i"
+#endif
+
+#ifdef SWIGPYCHRONO
 %import(module = "pychrono.core") "chrono_swig/interface/core/ChShaft.i"
+#endif
+
 %import "../../../chrono_vehicle/ChPart.h"
 
 /* Parse the header file to generate wrappers */

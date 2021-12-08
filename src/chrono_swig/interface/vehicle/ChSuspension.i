@@ -1,7 +1,4 @@
 %{
-
-/* Includes additional C++ in the wrapper code */
-
 #include <string>
 #include <vector>
 
@@ -44,7 +41,7 @@
 #include "chrono_vehicle/wheeled_vehicle/suspension/ToeBarLeafspringAxle.h"
 #include "chrono_vehicle/wheeled_vehicle/suspension/SolidBellcrankThreeLinkAxle.h"
 #include "chrono_vehicle/wheeled_vehicle/suspension/SolidThreeLinkAxle.h"
-//#include "chrono_vehicle/wheeled_vehicle/suspension/SingleWishbone.h"
+#include "chrono_vehicle/wheeled_vehicle/suspension/SingleWishbone.h"
 
 #include "chrono_thirdparty/rapidjson/document.h"
 %}
@@ -79,13 +76,19 @@
 %shared_ptr(chrono::vehicle::ToeBarLeafspringAxle)
 %shared_ptr(chrono::vehicle::SolidBellcrankThreeLinkAxle)
 %shared_ptr(chrono::vehicle::SolidThreeLinkAxle)
-//%shared_ptr(chrono::vehicle::SingleWishbone)
+%shared_ptr(chrono::vehicle::SingleWishbone)
 
+#ifdef SWIGCSHARP
+%import "chrono_swig/interface/core/ChShaft.i"
+#endif
 
+#ifdef SWIGPYCHRONO
 %import(module = "pychrono.core") "chrono_swig/interface/core/ChShaft.i"
+#endif
+
 %import "../../../chrono_vehicle/ChPart.h"
 
-/* Parse the header file to generate wrappers */
+// Parse the header file to generate wrappers
 %include "../../../chrono_vehicle/wheeled_vehicle/ChSuspension.h"
 %ignore chrono::vehicle::ChDoubleWishbone::getLocation;
 %include "../../../chrono_vehicle/wheeled_vehicle/suspension/ChDoubleWishbone.h"
@@ -104,6 +107,7 @@
 %include "../../../chrono_vehicle/wheeled_vehicle/suspension/ChToeBarLeafspringAxle.h"
 %include "../../../chrono_vehicle/wheeled_vehicle/suspension/ChSolidBellcrankThreeLinkAxle.h"
 %include "../../../chrono_vehicle/wheeled_vehicle/suspension/ChSolidThreeLinkAxle.h"
+%ignore chrono::vehicle::ChSingleWishbone::getLocation;
 %include "../../../chrono_vehicle/wheeled_vehicle/suspension/ChSingleWishbone.h"
 
 %include "../../../chrono_vehicle/wheeled_vehicle/suspension/DoubleWishbone.h"
@@ -118,7 +122,7 @@
 %include "../../../chrono_vehicle/wheeled_vehicle/suspension/ToeBarLeafspringAxle.h"
 %include "../../../chrono_vehicle/wheeled_vehicle/suspension/SolidBellcrankThreeLinkAxle.h"
 %include "../../../chrono_vehicle/wheeled_vehicle/suspension/SolidThreeLinkAxle.h"
-//%include "../../../chrono_vehicle/wheeled_vehicle/suspension/SingleWishbone.h"
+%include "../../../chrono_vehicle/wheeled_vehicle/suspension/SingleWishbone.h"
 
 %include "chrono_swig/interface/models/SuspensionModels.i"
 

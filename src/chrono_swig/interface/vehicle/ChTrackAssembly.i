@@ -1,7 +1,4 @@
 %{
-
-/* Includes additional C++ in the wrapper code */
-
 #include <string>
 
 #include "chrono/physics/ChSystem.h"
@@ -60,7 +57,6 @@
 #include "chrono_vehicle/tracked_vehicle/track_assembly/TrackAssemblySinglePin.h"
 #include "chrono_vehicle/tracked_vehicle/track_assembly/TrackAssemblyDoublePin.h"
 
-
 #include "chrono_thirdparty/rapidjson/document.h"
 %}
 
@@ -114,11 +110,17 @@
 %shared_ptr(chrono::vehicle::TrackAssemblySinglePin)
 %shared_ptr(chrono::vehicle::TrackAssemblyDoublePin)
 
+#ifdef SWIGCSHARP
+%import "chrono_swig/interface/core/ChShaft.i"
+#endif
+
+#ifdef SWIGPYCHRONO
 %import(module = "pychrono.core") "chrono_swig/interface/core/ChShaft.i"
+#endif
+
 %import "../../../chrono_vehicle/ChPart.h"
 
-/* Parse the header file to generate wrappers */
-
+// Parse the header file to generate wrappers
 %include "../../../chrono_vehicle/tracked_vehicle/ChSprocket.h"
 %include "../../../chrono_vehicle/tracked_vehicle/sprocket/ChSprocketSinglePin.h"
 %include "../../../chrono_vehicle/tracked_vehicle/sprocket/ChSprocketDoublePin.h"
@@ -170,6 +172,5 @@
 %include "../../../chrono_vehicle/tracked_vehicle/track_assembly/TrackAssemblyBandBushing.h"
 %include "../../../chrono_vehicle/tracked_vehicle/track_assembly/TrackAssemblySinglePin.h"
 %include "../../../chrono_vehicle/tracked_vehicle/track_assembly/TrackAssemblyDoublePin.h"
-
 
 %include "chrono_swig/interface/models/TrackAssemblyModels.i"

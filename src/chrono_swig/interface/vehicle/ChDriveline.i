@@ -57,7 +57,13 @@
 %shared_ptr(chrono::vehicle::SimpleTrackDriveline)
 %shared_ptr(chrono::vehicle::TrackDrivelineBDS)
 
+#ifdef SWIGCSHARP
+%import "chrono_swig/interface/core/ChShaft.i"
+#endif
+
+#ifdef SWIGPYCHRONO
 %import(module = "pychrono.core") "chrono_swig/interface/core/ChShaft.i"
+#endif
 
 /* Parse the header file to generate wrappers */
 %include "../../../chrono_vehicle/ChDriveline.h"

@@ -45,10 +45,11 @@
 
 %shared_ptr(chrono::vehicle::m113::M113_Chassis)
 
-/* Parse the header file to generate wrappers */
+// Parse the header file to generate wrappers
 %import "chrono_swig/interface/vehicle/ChChassis.i"
-%import(module = "pychrono.core") "../../../chrono/assets/ChAsset.h"
-%import(module = "pychrono.core") "../../../chrono/assets/ChAssetLevel.h"
+
+%import "../../../chrono/assets/ChAsset.h"
+%import "../../../chrono/assets/ChAssetLevel.h"
 
 // Model:
 %include "../../../chrono_models/vehicle/generic/Generic_Chassis.h"

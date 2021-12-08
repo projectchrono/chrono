@@ -84,7 +84,14 @@
 
 %shared_ptr(chrono::vehicle::m113::M113_Vehicle)
 
+#ifdef SWIGCSHARP
+%import "chrono_swig/interface/core/ChMaterialSurface.i"
+#endif
+
+#ifdef SWIGPYCHRONO
 %import(module = "pychrono.core") "chrono_swig/interface/core/ChMaterialSurface.i"
+#endif
+
 %import "chrono_swig/interface/vehicle/ChSuspension.i"
 %import "chrono_swig/interface/vehicle/ChDriveline.i"
 %import "chrono_swig/interface/vehicle/ChSteering.i"

@@ -1,24 +1,15 @@
-//////////////////////////////////////////////////
+// =====================================================================================
 //  
 //   ChModuleVehicle.i
 //
 //   SWIG configuration file.
-//   This is processed by SWIG to create the C::E
-//   wrapper for Python.
+//   Processed with SWIG to create the Python and C# wrappers for the vehicle Chrono module.
 //
-///////////////////////////////////////////////////
-
-
-
-// Define the module to be used in Python when typing 
-//  'import pychrono.vehicle'
-
+// =====================================================================================
 
 %module(directors="1") vehicle
 
-
 // Turn on the documentation of members, for more intuitive IDE typing
-
 %feature("autodoc", "1");
 %feature("flatnested", "1");
 
@@ -39,10 +30,6 @@
 
 // For supporting shared pointers:
 %include <std_shared_ptr.i>
-
-
-
-// Include C++ headers this way...
 
 %{
 #include <string>
@@ -128,7 +115,6 @@
 #include "chrono_thirdparty/rapidjson/document.h"
 #include "Eigen/src/Core/util/Memory.h"
 
-
 using namespace chrono;
 using namespace chrono::vehicle;
 
@@ -138,10 +124,13 @@ using namespace chrono::vehicle::sedan;
 using namespace chrono::vehicle::citybus;
 using namespace chrono::vehicle::man;
 using namespace chrono::vehicle::uaz;
+using namespace chrono::vehicle::gator;
+using namespace chrono::vehicle::man;
+using namespace chrono::vehicle::fmtv;
+using namespace chrono::vehicle::kraz;
 
 using namespace chrono::vehicle::m113;
 %}
-
 
 // Undefine ChApi otherwise SWIG gives a syntax error
 #define CH_VEHICLE_API 
@@ -150,23 +139,20 @@ using namespace chrono::vehicle::m113;
 #define CH_DEPRECATED(msg)
 #define CH_MODELS_API
 
-
-
 // workaround for trouble
 //%ignore chrono::fea::ChContactNodeXYZ::ComputeJacobianForContactPart;
 
-
 // Include other .i configuration files for SWIG. 
-// These are divided in many .i files, each per a
-// different c++ class, when possible.
-
 %include "std_string.i"
-%include "std_wstring.i"
 %include "std_vector.i"
 %include "typemaps.i"
+%include "cstring.i"
+
+#ifdef SWIGPYTHON
+%include "std_wstring.i"
 %include "wchar.i"
 %include "python/cwstring.i"
-%include "cstring.i"
+#endif
 
 // This is to enable references to double,int,etc. types in function parameters
 %pointer_class(int,int_ptr);
@@ -174,17 +160,12 @@ using namespace chrono::vehicle::m113;
 %pointer_class(float,float_ptr);
 %pointer_class(char,char_ptr);
 
-
-%template(vector_int) std::vector< int >;
-%template(TerrainForces) std::vector< chrono::vehicle::TerrainForce >;
-%template(WheelStates) std::vector< chrono::vehicle::WheelState >;
+%template(vector_int) std::vector<int>;
+%template(vector_double) std::vector<double>;
+%template(TerrainForces) std::vector<chrono::vehicle::TerrainForce>;
+%template(WheelStates) std::vector<chrono::vehicle::WheelState>;
 %template(ChWheelList) std::vector<std::shared_ptr<chrono::vehicle::ChWheel> > ;
 %template(ChAxleList) std::vector<std::shared_ptr<chrono::vehicle::ChAxle> > ;
-
-//
-// For each class, keep updated the  A, B, C sections: 
-// 
-
 
 //
 // A- ENABLE SHARED POINTERS
@@ -211,7 +192,6 @@ using namespace chrono::vehicle::m113;
 %shared_ptr(chrono::collision::ChCollisionModelBullet)
 %shared_ptr(chrono::collision::ChCollisionSystem::BroadphaseCallback)
 %shared_ptr(chrono::collision::ChCollisionSystem::NarrowphaseCallback)
-
 
 /*
 from this module: pay attention to inheritance in the model namespace (generic, sedan etc). 
@@ -270,7 +250,6 @@ Before adding a shared_ptr, mark as shared ptr all its inheritance tree in the m
 %shared_ptr(chrono::vehicle::MapSpringTorque)
 %shared_ptr(chrono::vehicle::MapDamperTorque)
 
-
 //
 // B- INCLUDE HEADERS
 //
@@ -289,6 +268,45 @@ Before adding a shared_ptr, mark as shared ptr all its inheritance tree in the m
 //  mynamespace { class myclass; }
 // in the .i file, before the %include of the .h, even if already forwarded in .h
 
+#ifdef SWIGCSHARP
+%import  "chrono_swig/interface/core/ChClassFactory.i"
+%import  "chrono_swig/interface/core/ChObject.i"
+%import  "chrono_swig/interface/core/ChPhysicsItem.i"
+%import  "chrono_swig/interface/core/ChVector.i"
+%import  "chrono_swig/interface/core/ChQuaternion.i"
+%import  "chrono_swig/interface/core/ChCoordsys.i"
+%import  "chrono_swig/interface/core/ChFrame.i"
+%import  "chrono_swig/interface/core/ChFrameMoving.i"
+%import  "chrono_swig/interface/core/ChTimestepper.i"
+%import  "chrono_swig/interface/core/ChSystem.i"
+%import  "chrono_swig/interface/core/ChAssembly.i"
+%import  "chrono_swig/interface/core/ChCoordsys.i"
+%import  "chrono_swig/interface/core/ChMatrix.i"
+%import  "chrono_swig/interface/core/ChBodyFrame.i"
+%import  "chrono_swig/interface/core/ChBody.i"
+%import  "chrono_swig/interface/core/ChBodyAuxRef.i"
+%import  "chrono_swig/interface/core/ChLinkBase.i"
+%import  "chrono_swig/interface/core/ChLinkLock.i"
+%import  "chrono_swig/interface/core/ChLinkTSDA.i"
+%import  "chrono_swig/interface/core/ChLinkRSDA.i"
+%import  "chrono_swig/interface/core/ChLoad.i"
+%import  "chrono_swig/interface/core/ChShaft.i"
+%import  "chrono_swig/interface/core/ChAsset.i"
+%import  "chrono_swig/interface/core/ChAssetLevel.i"
+%import  "chrono_swig/interface/core/ChVisualization.i"
+%import  "chrono_swig/interface/core/ChContactContainer.i"
+%import  "../../../chrono/motion_functions/ChFunction.h"
+%import  "chrono_swig/interface/core/ChMaterialSurface.i"
+%import  "../../../chrono/fea/ChContinuumMaterial.h"
+%import  "../../../chrono/physics/ChPhysicsItem.h"
+%import  "../../../chrono/physics/ChNodeBase.h"
+%import  "../../../chrono/physics/ChBodyFrame.h"
+%import  "../../../chrono/physics/ChLinkBase.h"
+%import  "chrono_swig/interface/core/ChTexture.i"
+%import  "../../../chrono/assets/ChTriangleMeshShape.h"
+#endif
+
+#ifdef SWIGPYTHON
 %import(module = "pychrono.core")  "chrono_swig/interface/core/ChClassFactory.i"
 %import(module = "pychrono.core")  "chrono_swig/interface/core/ChObject.i"
 %import(module = "pychrono.core")  "chrono_swig/interface/core/ChPhysicsItem.i"
@@ -324,6 +342,7 @@ Before adding a shared_ptr, mark as shared ptr all its inheritance tree in the m
 %import(module = "pychrono.core")  "../../../chrono/physics/ChLinkBase.h"
 %import(module = "pychrono.core")  "chrono_swig/interface/core/ChTexture.i"
 %import(module = "pychrono.core")  "../../../chrono/assets/ChTriangleMeshShape.h"
+#endif
 
 // TODO: 
 //%include "rapidjson.i"
@@ -345,7 +364,6 @@ Before adding a shared_ptr, mark as shared ptr all its inheritance tree in the m
 %include "ChDriver.i"
 %include "ChTerrain.i"
 //TODO: antirollbar
-
 
 // Wheeled vehicles
 %include "ChSuspension.i"
@@ -396,37 +414,39 @@ Before adding a shared_ptr, mark as shared ptr all its inheritance tree in the m
 
 %include "vehicleUtils.i"
 
-
 //
 // C- DOWNCASTING OF SHARED POINTERS
 //
 
 %DefSharedPtrDynamicDowncast(chrono::vehicle,ChSuspension, ChDoubleWishbone)
 %DefSharedPtrDynamicDowncast(chrono::vehicle,ChSuspension, ChMacPhersonStrut)
-//%DefSharedPtrDynamicDowncast(chrono::vehicle,ChSuspension, MacPhersonStrut)
 %DefSharedPtrDynamicDowncast(chrono::vehicle,ChSuspension, ChLeafspringAxle)
-//%DefSharedPtrDynamicDowncast(chrono::vehicle,ChSuspension, LeafspringAxle)
 %DefSharedPtrDynamicDowncast(chrono::vehicle,ChSuspension, ChHendricksonPRIMAXX)
 %DefSharedPtrDynamicDowncast(chrono::vehicle,ChSuspension, ChDoubleWishboneReduced)
 %DefSharedPtrDynamicDowncast(chrono::vehicle,ChSuspension, ChMultiLink)
-//%DefSharedPtrDynamicDowncast(chrono::vehicle,ChSuspension, MultiLink)
 %DefSharedPtrDynamicDowncast(chrono::vehicle,ChSuspension, ChRigidPinnedAxle)
 %DefSharedPtrDynamicDowncast(chrono::vehicle,ChSuspension, ChSemiTrailingArm)
-//%DefSharedPtrDynamicDowncast(chrono::vehicle,ChSuspension, SemiTrailingArm)
 %DefSharedPtrDynamicDowncast(chrono::vehicle,ChSuspension, ChRigidSuspension)
 %DefSharedPtrDynamicDowncast(chrono::vehicle,ChSuspension, ChSolidAxle)
 %DefSharedPtrDynamicDowncast(chrono::vehicle,ChSuspension, ChThreeLinkIRS)
 %DefSharedPtrDynamicDowncast(chrono::vehicle,ChSuspension, ChToeBarLeafspringAxle)
+%DefSharedPtrDynamicDowncast(chrono::vehicle,ChSuspension, ChSolidBellcrankThreeLinkAxle)
+%DefSharedPtrDynamicDowncast(chrono::vehicle,ChSuspension, ChSolidThreeLinkAxle)
+%DefSharedPtrDynamicDowncast(chrono::vehicle,ChSuspension, ChSingleWishbone)
+
+//%DefSharedPtrDynamicDowncast(chrono::vehicle,ChSuspension, MacPhersonStrut)
+//%DefSharedPtrDynamicDowncast(chrono::vehicle,ChSuspension, LeafspringAxle)
+//%DefSharedPtrDynamicDowncast(chrono::vehicle,ChSuspension, MultiLink)
+//%DefSharedPtrDynamicDowncast(chrono::vehicle,ChSuspension, SemiTrailingArm)
 //%DefSharedPtrDynamicDowncast(chrono::vehicle,ChSuspension, DoubleWishbone)
 //%DefSharedPtrDynamicDowncast(chrono::vehicle,ChSuspension, DoubleWishboneReduced)
 //%DefSharedPtrDynamicDowncast(chrono::vehicle,ChSuspension, HendricksonPRIMAXX)
 //%DefSharedPtrDynamicDowncast(chrono::vehicle,ChSuspension, SolidAxle)
 //%DefSharedPtrDynamicDowncast(chrono::vehicle,ChSuspension, ThreeLinkIRS)
 //%DefSharedPtrDynamicDowncast(chrono::vehicle,ChSuspension, ToeBarLeafspringAxle)
-%DefSharedPtrDynamicDowncast(chrono::vehicle,ChSuspension, ChSolidBellcrankThreeLinkAxle)
-%DefSharedPtrDynamicDowncast(chrono::vehicle,ChSuspension, ChSolidThreeLinkAxle)
 //%DefSharedPtrDynamicDowncast(chrono::vehicle,ChSuspension, SolidBellcrankThreeLinkAxle)
 //%DefSharedPtrDynamicDowncast(chrono::vehicle,ChSuspension, SolidThreeLinkAxle)
+//%DefSharedPtrDynamicDowncast(chrono::vehicle,ChSuspension, SingleWishbone)
 
 %DefSharedPtrDynamicDowncast(chrono::vehicle,ChSteering, ChPitmanArm)
 %DefSharedPtrDynamicDowncast(chrono::vehicle,ChSteering, ChPitmanArmShafts)
@@ -458,27 +478,3 @@ Before adding a shared_ptr, mark as shared ptr all its inheritance tree in the m
 %DefSharedPtrDynamicDowncast(chrono::vehicle,ChDriveline, ChShaftsDriveline4WD)
 %DefSharedPtrDynamicDowncast(chrono::vehicle,ChDriveline, ChSimpleDriveline)
 %DefSharedPtrDynamicDowncast(chrono::vehicle,ChDriveline, ChSimpleDrivelineXWD)
-
-//
-// ADDITIONAL C++ FUNCTIONS / CLASSES THAT ARE USED ONLY FOR PYTHON WRAPPER
-//
-
-/*
-%inline %{
-
-
-%}
-*/
-
-
-//
-// ADD PYTHON CODE
-//
-
-/*
-%pythoncode %{
-
-%}
-*/
-
-

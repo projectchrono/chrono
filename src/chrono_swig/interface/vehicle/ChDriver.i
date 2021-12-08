@@ -17,6 +17,8 @@
 #include "chrono_vehicle/driver/ChPathFollowerDriver.h"
 #include "chrono_vehicle/driver/ChPathFollowerACCDriver.h"
 
+#ifdef SWIGPYTHON  // --------------------------------------------------------------------- PYTHON
+
 //to import/wrap
 //#include "chrono_irrlicht/ChIrrApp.h"
 #include "chrono/utils/ChUtilsChaseCamera.h"
@@ -30,13 +32,22 @@
 /*using namespace chrono::irrlicht;
 using namespace irr;*/
 #endif
+
+#endif             // --------------------------------------------------------------------- PYTHON
+
 %}
 
+#ifdef SWIGCSHARP
+%import "../chrono/core/ChBezierCurve.h"
+#endif
+
+#ifdef SWIGPYCHRONO
+%import(module = "pychrono.core") "../chrono/core/ChBezierCurve.h"
+#endif
+
+#ifdef SWIGPYTHON  // --------------------------------------------------------------------- PYTHON
 
 #define ChApiIrr 
-
-
-%import(module = "pychrono.core") "../chrono/core/ChBezierCurve.h"
 
 #ifdef CHRONO_IRRLICHT
 %import(module = "pychrono.irrlicht") "dimension2d.h"
@@ -44,30 +55,30 @@ using namespace irr;*/
 %import(module = "pychrono.irrlicht") "../irrlicht/ChIrrApp.i"
 #endif
 
+#endif             // --------------------------------------------------------------------- PYTHON
+
+%import "../../../chrono/core/ChBezierCurve.h"
 %import "ChPowertrain.i"
 %import "ChChassis.i"
 %import "../../../chrono_vehicle/ChVehicle.h"
 
 //%shared_ptr(chrono::vehicle::RigidTerrain::Patch)
 
+%rename(DriverInputs) chrono::vehicle::ChDriver::Inputs;
 %rename(DataDriverEntry) chrono::vehicle::ChDataDriver::Entry;
 %template(vector_Entry) std::vector< chrono::vehicle::ChDataDriver::Entry >;
 
-
-/* Parse the header file to generate wrappers */
-
-
+// Parse the header file to generate wrappers
+%include "../../../chrono/utils/ChUtilsChaseCamera.h"
 %include "../../../chrono_vehicle/ChDriver.h"
 %include "../../../chrono_vehicle/driver/ChDataDriver.h"
+%include "../../../chrono_vehicle/driver/ChPathFollowerDriver.h"
+%include "../../../chrono_vehicle/driver/ChPathFollowerACCDriver.h"
 %include "../../../chrono_vehicle/utils/ChSpeedController.h"
 %include "../../../chrono_vehicle/utils/ChSteeringController.h"
 %include "../../../chrono_vehicle/utils/ChAdaptiveSpeedController.h"
 
-%include "../../../chrono_vehicle/driver/ChPathFollowerDriver.h"
-%include "../../../chrono_vehicle/driver/ChPathFollowerACCDriver.h"
-
-
-%include "../chrono/utils/ChUtilsChaseCamera.h"
+#ifdef SWIGPYTHON  // --------------------------------------------------------------------- PYTHON
 
 #ifdef CHRONO_IRRLICHT
 %include "../../../chrono_vehicle/utils/ChVehicleIrrApp.h"
@@ -79,3 +90,5 @@ using namespace irr;*/
 %include "dimension2d.h"
 %template(dimension2du) irr::core::dimension2d<irr::u32>;
 #endif
+
+#endif             // --------------------------------------------------------------------- PYTHON
