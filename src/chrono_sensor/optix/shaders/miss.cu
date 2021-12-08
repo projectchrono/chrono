@@ -52,7 +52,7 @@ extern "C" __global__ void __miss__shader() {
             // apply fog model
             if (prd->use_fog && params.fog_scattering > 0.f) {
                 float blend_alpha = expf(-params.fog_scattering * optixGetRayTmax());
-                prd->color = blend_alpha * prd->color + (1 - blend_alpha) * params.fog_color;
+                prd->color = blend_alpha * prd->color + (1 - blend_alpha) * params.fog_color*prd->contrib_to_pixel;
             }
 
             break;
