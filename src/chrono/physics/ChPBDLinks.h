@@ -42,7 +42,7 @@ namespace chrono {
         ChLinkPBD(ChSystemPBD* sys);
 
 		/// Constructor that fully defines a link using PBD formulation
-		ChLinkPBD::ChLinkPBD(ChBody* body1, ChBody* body2, ChFrame<>& fr1, ChFrame<>& fr2, 
+		ChLinkPBD(ChBody* body1, ChBody* body2, ChFrame<>& fr1, ChFrame<>& fr2, 
 						bool mmask[6], ChSystemPBD* sys, double dist = 0, std::shared_ptr<ChFunction> motfun = nullptr);
 
 		/// Copy constructor
