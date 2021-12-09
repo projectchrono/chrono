@@ -7,9 +7,9 @@ using namespace chrono;
 
 // NESTED CLASSES: inherit stubs (not virtual) as outside classes
 
-class ChForceFunctorP : public chrono::ChLinkTSDA::ForceFunctor {
+class TSDAForceFunctor : public chrono::ChLinkTSDA::ForceFunctor {
     public:
-        ChForceFunctorP() {}
+        TSDAForceFunctor() {}
         virtual double evaluate(double time,
                                 double rest_length,
                                 double length,
@@ -28,7 +28,7 @@ class ChForceFunctorP : public chrono::ChLinkTSDA::ForceFunctor {
 %shared_ptr(chrono::ChLinkTSDA::ForceFunctor)
 
 #ifdef SWIGCSHARP
-%feature("director") ChForceFunctorP;
+%feature("director") TSDAForceFunctor;
 #endif
 
 #ifdef SWIGPYTHON
@@ -42,9 +42,9 @@ class ChForceFunctorP : public chrono::ChLinkTSDA::ForceFunctor {
 
 // NESTED CLASSES
 
-class ChForceFunctorP {
+class TSDAForceFunctor {
     public:
-        virtual ~ChForceFunctorP() {}
+        virtual ~TSDAForceFunctor() {}
         virtual double evaluate(double time,
                                 double rest_length,
                                 double length,
@@ -56,7 +56,7 @@ class ChForceFunctorP {
 
 %extend chrono::ChLinkTSDA
 {
-    void RegisterForceFunctor(std::shared_ptr<::ChForceFunctorP> functor) {
+    void RegisterForceFunctor(std::shared_ptr<::TSDAForceFunctor> functor) {
        $self->RegisterForceFunctor(functor);
     }
 }

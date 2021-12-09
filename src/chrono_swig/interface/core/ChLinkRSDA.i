@@ -7,9 +7,9 @@ using namespace chrono;
 
 // NESTED CLASSES: inherit stubs (not virtual) as outside classes
 
-class ChTorqueFunctorP : public chrono::ChLinkRSDA::TorqueFunctor {
+class RSDATorqueFunctor : public chrono::ChLinkRSDA::TorqueFunctor {
     public:
-        ChTorqueFunctorP() {}
+        RSDATorqueFunctor() {}
         virtual double evaluate(double time,
                                 double angle,
                                 double vel,
@@ -27,7 +27,7 @@ class ChTorqueFunctorP : public chrono::ChLinkRSDA::TorqueFunctor {
 %shared_ptr(chrono::ChLinkRSDA::TorqueFunctor)
 
 #ifdef SWIGCSHARP
-%feature("director") ChTorqueFunctorP;
+%feature("director") RSDATorqueFunctor;
 #endif
 
 #ifdef SWIGPYTHON
@@ -41,9 +41,9 @@ class ChTorqueFunctorP : public chrono::ChLinkRSDA::TorqueFunctor {
 
 // NESTED CLASSES
 
-class ChTorqueFunctorP {
+class RSDATorqueFunctor {
     public:
-        virtual ~ChTorqueFunctorP() {}
+        virtual ~RSDATorqueFunctor() {}
         virtual double evaluate(double time,
                                 double angle,
                                 double vel,
@@ -54,7 +54,7 @@ class ChTorqueFunctorP {
 
 %extend chrono::ChLinkRSDA
 {
-    void RegisterTorqueFunctor(std::shared_ptr<::ChTorqueFunctorP> functor) {
+    void RegisterTorqueFunctor(std::shared_ptr<::RSDATorqueFunctor> functor) {
        $self->RegisterTorqueFunctor(functor);
     }
 }
