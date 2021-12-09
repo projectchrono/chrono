@@ -194,42 +194,26 @@ data/cosimulation/test_cosim_hydraulics.mdl
 You can find a ready-to-use example in 
 src/demos/cosimulation/demo_COSIM_hydraulics.cpp. The steps implemented in this program are as follows:
 
-- Use the 'try...catch' statements around socket communication operations 
-  because errors in sockets might throw exceptions
+- Use the 'try...catch' statements around socket communication operations because errors in sockets might throw exceptions.
 
-- create a Chsystem and populate it with a truss, a moving body, 
-  and a revolute joint.
+- Create a Chsystem and populate it with a truss, a moving body, and a revolute joint.
 
+- Now create create a 'dead' linear actuator between two points using a ChLinkTSDA with zero stiffness and damping. This will be used to apply the force between the two bodies as a cylinder with spherical ball ends.
 
-Now create create a 'dead' linear actuator between two points 
-using a @ref chrono::ChLinkSpring with zero stiffness and damping. 
-This will be used to apply the force between the two bodies as 
-a cylinder with spherical ball ends.
+- Create a spring-damper to have some load when moving, and configure the system's solver precision.
 
-Create a spring-damper to have some load when moving, 
-and configure the system's solver precision:
+- Add a socket framework object (a unique copy to be used through all the program) and a cosimulation interface.
 
 
-Add a socket framework object (a unique copy to be used through 
-all the program) and a cosimulation interface:
+- Prepare the two column vectors of data that will be swapped back and forth between Chrono and Simulink:
+  - receive one variable from Simulink (the hydraulic cylinder force);
+  - send two variables to Simulink (the hydraulic cylinder velocity and displacement).
 
+- Wait for client (Simulink) to connect. Note that in this implementation Chrono is the server and Simulink the client.
 
-Prepare the two column vectors of data that will be swapped 
-back and forth between Chrono and Simulink:
+- Upon establishing a connection, the simulation is ready to begin. Note that 'dt' must be the same with the value entered in the CEcosimulation block.
 
-- receive one variable from Simulink (the hydraulic cylinder force)
-- send two variables to Simulink (the hydraulic cylinder velocity and displacement)
-
-Wait for client (Simulink) to connect. Note that in this implementation Chrono is the server, 
-and Simulink the client.
-
-Upon establishing a connection, the simulation is ready to begin.
-Note that 'dt' must be the same with the value entered in the CEcosimulation block
-
-
-Finally, provision for exception catching in running into  
-any trouble with the socket connection.
-
+- Finally, provision for exception catching in running into any trouble with the socket connection.
 
 
 # Run the cosimulation
@@ -238,17 +222,13 @@ All the tools are ready for the cosimulation at this point. The next steps:
 
 - Compile the Chrono program;
 
-- Run the Chrono program; it will enter a wait state, 
-  because it is waiting Simulink to connect;
+- Run the Chrono program; it will enter a wait state because it is waiting Simulink to connect;
 
-- Open the ''Input/Output'' orange scope block in Simulink, 
-  simply to plot some results.
+- Open the ''Input/Output'' orange scope block in Simulink, simply to plot some results.
 
 - Run the Simulink model by pressing the '>' button in the Simulink interface;
 
-The two codes will run in parallel and will exchange data 
-  periodically up to the end of the simulation or up to when one presses 
-  'stop' or aborts the Chrono program.
+The two codes will run in parallel and will exchange data periodically up to the end of the simulation or up to when one presses 'stop' or aborts the Chrono program.
 
 
 ![](http://projectchrono.org/assets/manual/Tutorial_cosim_hydraulics_08.png)

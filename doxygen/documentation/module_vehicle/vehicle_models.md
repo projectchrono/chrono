@@ -91,6 +91,10 @@ Tha Gator is a model of a John Deere electric utility vehicle instrumented for a
 
 This model, based on the Ukrainian Kraz 64431, is a semi-trailer truck. The tractor has a toebar leaf-spring front suspension, steered through a rotary arm mechanism and two leaf-spring rear suspensions. The tractor is in a 6x4 configuration with the two rear axles driven. The trailer, connected to the tractor through a hitch, has three axles all of leaf-spring type.
 
+### RC-car {#vehicle_models_rccar}
+
+This is a model of a small remote-controlled 4WD wheeled vehicle.
+
 ### Generic wheeld vehicle {#vehicle_models_generic}
 
 The generic wheeld vehicle model is a sandbox for testing various templates and settings. It does not represent any particular vehicle and not all concrete subsystems provided for this model are necessarily consistent with each other.

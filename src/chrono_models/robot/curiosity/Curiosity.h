@@ -209,9 +209,10 @@ class CH_MODELS_API CuriosityUpright : public CuriosityPart {
 /// Curiosity rover differential bar.
 class CH_MODELS_API CuriosityDifferentialBar : public CuriosityPart {
   public:
-    CuriosityDifferentialBar(const std::string& name,   ///< part name
-                             const ChFrame<>& rel_pos,  ///< position relative to chassis frame
-                             std::shared_ptr<ChMaterialSurface> mat);
+    CuriosityDifferentialBar(const std::string& name,                ///< part name
+                             const ChFrame<>& rel_pos,               ///< position relative to chassis frame
+                             std::shared_ptr<ChMaterialSurface> mat  ///< contact material
+    );
     ~CuriosityDifferentialBar() {}
 };
 
