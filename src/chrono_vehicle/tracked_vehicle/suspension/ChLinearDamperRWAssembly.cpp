@@ -97,7 +97,7 @@ void ChLinearDamperRWAssembly::Initialize(std::shared_ptr<ChChassis> chassis,
     chassis->AddJoint(m_revolute);
 
     // Create and initialize the rotational spring torque element.
-    m_spring = chrono_types::make_shared<ChLinkRotSpringCB>();
+    m_spring = chrono_types::make_shared<ChLinkRSDA>();
     m_spring->SetNameString(m_name + "_spring");
     m_spring->Initialize(chassis->GetBody(), m_arm,
                          ChCoordsys<>(points[ARM_CHASSIS], susp_to_abs.GetRot() * Q_from_AngX(CH_C_PI_2)));
@@ -228,7 +228,7 @@ void ChLinearDamperRWAssembly::ExportComponentList(rapidjson::Document& jsonDocu
     ChPart::ExportJointList(jsonDocument, joints);
     ChPart::ExportBodyLoadList(jsonDocument, bushings);
 
-    std::vector<std::shared_ptr<ChLinkRotSpringCB>> rot_springs;
+    std::vector<std::shared_ptr<ChLinkRSDA>> rot_springs;
     rot_springs.push_back(m_spring);
     ChPart::ExportRotSpringList(jsonDocument, rot_springs);
 
@@ -254,7 +254,7 @@ void ChLinearDamperRWAssembly::Output(ChVehicleOutput& database) const {
     database.WriteJoints(joints);
     database.WriteBodyLoads(bushings);
 
-    std::vector<std::shared_ptr<ChLinkRotSpringCB>> rot_springs;
+    std::vector<std::shared_ptr<ChLinkRSDA>> rot_springs;
     rot_springs.push_back(m_spring);
     database.WriteRotSprings(rot_springs);
 

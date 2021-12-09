@@ -26,7 +26,7 @@
   "Spring":
   {
     "Location Chassis":         [0.0, 0.5275, 0.3],
-    "Location Arm":             [0.0, 0.5275, 0.0],
+    "Location Arm":             [0.0, 0.6075, 0.0],
     "Spring Coefficient":       55072.39256,
     "Free Length" :             0.41
   },
@@ -34,7 +34,7 @@
   "Shock":
   {
     "Location Chassis":         [0.0, 0.5275, 0.4],
-    "Location Arm":             [0.0, 0.5275, 0.0],
+    "Location Arm":             [0.0, 0.6075, 0.0],
     "Damping Coefficient":      8263.762265
   },
 

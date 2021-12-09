@@ -93,6 +93,7 @@ class CH_SENSOR_API ChMagnetometerSensor : public ChDynamicSensor {
     // @param lag Lag time between end of data collection and when data becomes available to the user.
     // @param collection_window Collection time over which the sensor should collect data from the simulation.
     /// @param noise_model Noise model for the sensor to use when augmentating data
+    /// @param gps_reference the GPS reference location for the simulation origin
     ChMagnetometerSensor(std::shared_ptr<chrono::ChBody> parent,
                          float updateRate,
                          chrono::ChFrame<double> offsetPose,

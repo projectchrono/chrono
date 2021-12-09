@@ -38,6 +38,7 @@
 #include <iostream>
 #include <sstream>
 #include <fstream>
+#include <functional>
 
 #include "chrono/core/ChApiCE.h"
 #include "chrono/core/ChBezierCurve.h"
@@ -177,10 +178,22 @@ ChApi void WriteCamera(const std::string& filename,
 /// - the type of visual asset (0 for segment or 1 for coil)
 /// - start point position
 /// - end point position
-ChApi void WriteVisualizationAssets(ChSystem* system,
-                                    const std::string& filename,
-                                    bool body_info = true,
-                                    const std::string& delim = ",");
+ChApi void WriteVisualizationAssets(ChSystem* system,               ///< containg system
+                                    const std::string& filename,    ///< output file name
+                                    bool body_info = true,          ///< include body state information
+                                    const std::string& delim = ","  ///< CSV delimitator
+);
+
+/// Write CSV output file with body and asset information for off-line visualization.
+/// This version uses a discriminator function to select which bodies and assets are included in the output.
+/// The function selector receives as argument a body reference and must return 'true' if the body and its assets should
+/// be included in the output file and 'false' otherwise.
+ChApi void WriteVisualizationAssets(ChSystem* system,                             ///< containg system
+                                    const std::string& filename,                  ///< output file name
+                                    std::function<bool(const ChBody&)> selector,  ///< select bodies
+                                    bool body_info = true,                        ///< include body state information
+                                    const std::string& delim = ","                ///< CSV delimitator
+);
 
 /// Write the specified mesh as a macro in a PovRay include file. The output file will be "[out_dir]/[mesh_name].inc".
 /// The mesh vertices will be transformed to the frame with specified offset and orientation.

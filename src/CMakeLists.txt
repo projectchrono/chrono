@@ -274,7 +274,7 @@ if(EIGEN3_FOUND)
   message(STATUS "  Eigen3 version: ${EIGEN3_VERSION}")
   message(STATUS "  Eigen3 include directory: ${EIGEN3_INCLUDE_DIR}")
 else()
-  # mark_as_advanced(CLEAR EIGEN3_INCLUDE_DIR)
+  mark_as_advanced(CLEAR EIGEN3_INCLUDE_DIR)
   mark_as_advanced(FORCE Eigen3_DIR)
   message(FATAL_ERROR "  Eigen3 not found. Specify EIGEN3_INCLUDE_DIR")
 endif()
@@ -299,8 +299,7 @@ endif()
 
 message(STATUS "Searching for MPI...")
 find_package(MPI)
-message(STATUS "  MPI (C++) found: ${MPI_CXX_FOUND}")
-if(MPI_CXX_FOUND)
+if(MPI_FOUND)
   message(STATUS "  MPI compiler:      ${MPI_CXX_COMPILER}")
   message(STATUS "  MPI compile flags: ${MPI_CXX_COMPILE_FLAGS}")
   message(STATUS "  MPI include path:  ${MPI_CXX_INCLUDE_PATH}")
@@ -398,6 +397,25 @@ else()
   mark_as_advanced(CLEAR THRUST_INCLUDE_DIR)
 endif()
 
+#-----------------------------------------------------------------------------
+# CUB Library
+#-----------------------------------------------------------------------------
+
+if (CUDA_FOUND) # CUB should only be used with CUDA 
+	message(STATUS "Searching for CUB...")
+
+	if (CUDA_VERSION_STRING VERSION_LESS 11.0)
+		find_path(
+			CUB_INCLUDE_DIR 
+			cub.cuh
+			PATHS 
+				"${CUDA_TOOLKIT_ROOT_DIR}/include/cub/"
+				"${CMAKE_SOURCE_DIR}/src/chrono_thirdparty/cub/cub/"
+			DOC "Path to the CUB include directory" 
+			REQUIRED
+		)
+	endif()
+endif()
 
 #-----------------------------------------------------------------------------
 # Miscellaneous compiler flags
@@ -632,7 +650,6 @@ add_subdirectory(chrono_cascade)
 add_subdirectory(chrono_postprocess)
 add_subdirectory(chrono_pardisoproject)
 add_subdirectory(chrono_cosimulation)
-add_subdirectory(chrono_python)
 add_subdirectory(chrono_multicore)
 add_subdirectory(chrono_opengl)
 add_subdirectory(chrono_gpu)
@@ -641,7 +658,9 @@ add_subdirectory(chrono_vehicle)
 add_subdirectory(chrono_fsi)
 add_subdirectory(chrono_sensor)
 add_subdirectory(chrono_synchrono)
-add_subdirectory(chrono_csharp)
+add_subdirectory(chrono_pyparser)
+add_subdirectory(chrono_swig/chrono_python)
+add_subdirectory(chrono_swig/chrono_csharp)
 
 # Add directories for model libraries
 add_subdirectory(chrono_models)
@@ -692,6 +711,18 @@ install(DIRECTORY ${CMAKE_SOURCE_DIR}/src/chrono_thirdparty/tinyobjloader
 install(DIRECTORY ${CMAKE_SOURCE_DIR}/src/chrono_thirdparty/yafel
         DESTINATION include/chrono_thirdparty
         FILES_MATCHING PATTERN "*.h" PATTERN "*.cuh" PATTERN "*.hpp" PATTERN "*.inl")
+
+install(DIRECTORY ${CMAKE_SOURCE_DIR}/src/chrono_thirdparty/chpf
+	      DESTINATION include/chrono_thirdparty
+	      FILES_MATCHING PATTERN "*.hpp")
+        
+install(DIRECTORY ${CMAKE_SOURCE_DIR}/src/chrono_thirdparty/stb
+        DESTINATION include/chrono_thirdparty
+        FILES_MATCHING PATTERN "*.h" PATTERN "*.cuh" PATTERN "*.hpp" PATTERN "*.inl")
+
+install(DIRECTORY ${CMAKE_SOURCE_DIR}/src/chrono_thirdparty/variant
+        DESTINATION include/chrono_thirdparty
+        FILES_MATCHING PATTERN "*.h" PATTERN "*.hpp" PATTERN "*.inl")
 
 if(BUILD_TESTING)
    install(DIRECTORY ${CMAKE_SOURCE_DIR}/src/chrono_thirdparty/googletest/googletest/include
@@ -878,6 +909,7 @@ install(FILES "${PROJECT_BINARY_DIR}/chrono/ChVersion.h"
 #------------------------------------------------------------
 
 # For the BUILD tree
+set(CH_THIRDPARTY_INCLUDE_DIR "${PROJECT_SOURCE_DIR}/src/chrono_thirdparty")
 set(CH_INCLUDE_DIRS "${PROJECT_SOURCE_DIR}/src")
 set(CH_INCLUDE_DIRS ${CH_INCLUDE_DIRS} "${PROJECT_SOURCE_DIR}/src/chrono")
 set(CH_INCLUDE_DIRS ${CH_INCLUDE_DIRS} "${PROJECT_SOURCE_DIR}/src/chrono/collision/bullet")
@@ -897,6 +929,7 @@ configure_file("${PROJECT_SOURCE_DIR}/cmake/ChronoConfig.cmake.in"
                @ONLY)
 
 # For the INSTALL tree
+set(CH_THIRDPARTY_INCLUDE_DIR "${CMAKE_INSTALL_PREFIX}/include/chrono_thirdparty")
 set(CH_INCLUDE_DIRS "${CMAKE_INSTALL_PREFIX}/include")
 set(CH_INCLUDE_DIRS ${CH_INCLUDE_DIRS} "${CMAKE_INSTALL_PREFIX}/include/chrono")
 set(CH_INCLUDE_DIRS ${CH_INCLUDE_DIRS} "${CMAKE_INSTALL_PREFIX}/include/chrono/collision/bullet")

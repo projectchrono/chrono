@@ -74,7 +74,7 @@ void ChSprocket::Initialize(std::shared_ptr<ChBodyAuxRef> chassis, const ChVecto
     m_axle = chrono_types::make_shared<ChShaft>();
     m_axle->SetNameString(m_name + "_axle");
     m_axle->SetInertia(GetAxleInertia());
-    chassis->GetSystem()->Add(m_axle);
+    chassis->GetSystem()->AddShaft(m_axle);
 
     m_axle_to_spindle = chrono_types::make_shared<ChShaftsBody>();
     m_axle_to_spindle->SetNameString(m_name + "_axle_to_spindle");

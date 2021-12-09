@@ -28,6 +28,7 @@ if(NOT CUDA_FOUND)
     return()
 endif()
 
+
 # ----------------------------------------------------------------------------
 # Generate and install configuration header file.
 # ----------------------------------------------------------------------------
@@ -166,6 +167,7 @@ set_target_properties(ChronoEngine_gpu PROPERTIES
 #endif()
 
 target_link_libraries(ChronoEngine_gpu ${CH_GPU_LINKED_LIBRARIES})
+target_include_directories(ChronoEngine_gpu PUBLIC "${CUB_INCLUDE_DIR}/../")
 
 install(TARGETS ChronoEngine_gpu
         RUNTIME DESTINATION bin
@@ -235,11 +237,8 @@ endif()
 message(STATUS "NVCC Flags: ${CUDA_NVCC_FLAGS}")
 
 # Install required chrono_thirdparty headers
-install(DIRECTORY ${CMAKE_SOURCE_DIR}/src/chrono_thirdparty/cub
-        DESTINATION include/chrono_thirdparty
-        FILES_MATCHING PATTERN "*.h" PATTERN "*.cuh" PATTERN "*.hpp" PATTERN "*.inl")
-
-install(DIRECTORY ${CMAKE_SOURCE_DIR}/src/chrono_thirdparty/chpf
-        DESTINATION include/chrono_thirdparty
-        FILES_MATCHING PATTERN "*.hpp"
-)
+if (DEFINED ${CUB_INCLUDE_DIR})
+	install(DIRECTORY ${CMAKE_SOURCE_DIR}/src/chrono_thirdparty/cub
+    	    DESTINATION include/chrono_thirdparty
+	        FILES_MATCHING PATTERN "*.h" PATTERN "*.cuh" PATTERN "*.hpp" PATTERN "*.inl")
+endif()

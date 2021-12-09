@@ -16,8 +16,7 @@
 // This class implements the functionality required by its base ChDriverSTR
 // class using keyboard inputs.
 // As an Irrlicht event receiver, its OnEvent() callback is used to keep track
-// and update the current driver inputs. As such it does not need to override
-// the default no-op Advance() virtual method.
+// and update the current inputs.
 //
 // =============================================================================
 
@@ -39,7 +38,7 @@ namespace vehicle {
 /// Irrlicht-based GUI driver for the a suspension test rig.  This class implements
 /// the functionality required by its base ChDriverSTR class using keyboard inputs.
 /// As an Irrlicht event receiver, its OnEvent() callback is used to keep track
-/// and update the current driver inputs.
+/// and update the current inputs.
 class CH_VEHICLE_API ChIrrGuiDriverSTR : public ChDriverSTR, public irr::IEventReceiver {
   public:
     ChIrrGuiDriverSTR(irrlicht::ChIrrApp& app);
@@ -60,10 +59,15 @@ class CH_VEHICLE_API ChIrrGuiDriverSTR : public ChDriverSTR, public irr::IEventR
     /// Override for OnEvent.
     virtual bool OnEvent(const irr::SEvent& event) override;
 
+    /// Get string message.
+    virtual std::string GetInfoMessage() const override { return m_msg; }
+
     irrlicht::ChIrrApp& m_app;
 
     double m_steeringDelta;
     double m_displDelta;
+    int m_current_post;
+    std::string m_msg;
 };
 
 /// @} vehicle_wheeled_test_rig

@@ -75,6 +75,7 @@ class CH_SENSOR_API ChFilterOptixRender : public ChFilter {
 
     /// Initializes all data needed by the filter access apply function.
     /// @param pSensor A pointer to the sensor.
+    /// @param bufferInOut A pointer to the process buffer
     virtual void Initialize(std::shared_ptr<ChSensor> pSensor, std::shared_ptr<SensorBuffer>& bufferInOut);
 
   private:

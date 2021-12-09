@@ -12,21 +12,28 @@
 // Author: Arman Pazouki, Milad Rakhsha
 // =============================================================================
 //
-// Utility class for generating fluid markers.//
+// Utility class for generating fluid markers.
 // =============================================================================
 
-#ifndef CH_UTILSGENERATORFLUID_H
-#define CH_UTILSGENERATORFLUID_H
+#ifndef CH_FSI_UTILS_GENERATORFLUID_H
+#define CH_FSI_UTILS_GENERATORFLUID_H
 
-#include "chrono_fsi/ChFsiDataManager.cuh"
+#include "chrono_fsi/ChSystemFsi_impl.cuh"
 #include "chrono_fsi/math/custom_math.h"
 
 namespace chrono {
 namespace fsi {
 namespace utils {
+
+/// @addtogroup fsi_utils
+/// @{
+
+/// Create fluid/granular SPH particles for the simulation.
 int2 CreateFluidMarkers(std::shared_ptr<SphMarkerDataH> sphMarkersH,
                         std::shared_ptr<FsiGeneralData> fsiGeneralData,
                         std::shared_ptr<SimParams> paramsH);
+
+/// @} fsi_utils
 
 }  // end namespace utils
 }  // end namespace fsi

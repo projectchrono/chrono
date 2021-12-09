@@ -12,7 +12,7 @@
 // Author: Milad Rakhsha
 // =============================================================================
 //
-// Class for solving a linear linear system via iterative methods.//
+// Class for solving a linear linear system via iterative methods.
 // =============================================================================
 
 #ifndef CHFSILINEARSOLVER_BICGSTAB_H_
@@ -31,30 +31,31 @@
 namespace chrono {
 namespace fsi {
 
-typedef char MM_typecode[4];
-/// @addtogroup fsi_math
+/// @addtogroup fsi_solver
 /// @{
+
+/// BiCG-Stab iterative linear solver.
 class ChFsiLinearSolverBiCGStab : public ChFsiLinearSolver {
   public:
-    ChFsiLinearSolverBiCGStab(double mrel_res = 1e-8,
-                              double mabs_res = 1e-4,
+    /// Constructor of the ChFsiLinearSolverBiCGStab class.
+    ChFsiLinearSolverBiCGStab(Real mrel_res = 1e-8,
+                              Real mabs_res = 1e-4,
                               int mmax_iter = 1000,
                               bool mverbose = false)
-        : ChFsiLinearSolver(mrel_res, mabs_res, mmax_iter, mverbose, SolverType::BICGSTAB) {}
+        : ChFsiLinearSolver(SolverType::BICGSTAB, mrel_res, mabs_res, mmax_iter, mverbose) {}
 
-    virtual ~ChFsiLinearSolverBiCGStab() {}
+    /// Destructor of the ChFsiLinearSolverBiCGStab class.
+    ~ChFsiLinearSolverBiCGStab() {}
 
-    /// Returns the solver type
-    virtual SolverType GetType() override { return SolverType::BICGSTAB; }
-
-    /// Solves the linear system on the device
-    virtual void Solve(int SIZE, int NNZ, double* A, unsigned int* ArowIdx, unsigned int* AcolIdx, double* x, double* b)
-        override;
+    /// Solves the linear system on the device.
+    virtual void Solve(int SIZE, int NNZ, Real* A, unsigned int* ArowIdx, unsigned int* AcolIdx, Real* x, Real* b) override;
 
   private:
 };
-/// @} fsi_math
+
+/// @} fsi_solver
 
 }  // end namespace fsi
 }  // end namespace chrono
+
 #endif

@@ -27,6 +27,7 @@ namespace sensor {
 /// @param height Height of the inpute data
 /// @param threshold Intensity threshold for removing points
 /// @param default_dist Default distance to use when removing points
+/// @param stream The cuda stream used for processing the kernel
 void cuda_lidar_clip(float* buf, int width, int height, float threshold, float default_dist, CUstream& stream);
 
 /// @}

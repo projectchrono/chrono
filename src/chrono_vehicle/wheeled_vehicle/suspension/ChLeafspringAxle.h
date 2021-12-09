@@ -182,10 +182,8 @@ class CH_VEHICLE_API ChLeafspringAxle : public ChSuspension {
     virtual std::shared_ptr<ChLinkTSDA::ForceFunctor> getShockForceFunctor() const = 0;
 
     std::shared_ptr<ChBody> m_axleTube;  ///< handles to the axle tube body
-    std::shared_ptr<ChBody> m_tierod;    ///< handles to the tierod body
 
     std::shared_ptr<ChLinkLockRevolutePrismatic> m_axleTubeGuide;  ///< allows translation Z and rotation X
-    std::shared_ptr<ChLinkLockSpherical> m_sphericalTierod;        ///< knuckle-tierod spherical joint (left)
 
     std::shared_ptr<ChLinkTSDA> m_shock[2];   ///< handles to the spring links (L/R)
     std::shared_ptr<ChLinkTSDA> m_spring[2];  ///< handles to the shock links (L/R)

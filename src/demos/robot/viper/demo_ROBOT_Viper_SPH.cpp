@@ -10,14 +10,16 @@
 //
 // =============================================================================
 // Author: Wei Hu, Jason Zhou
-// Chrono::FSI demo to show usage of viper rover models on SPH granular terrain
-// This demo uses a plug-in viper rover model from chrono::models
+// Chrono::FSI demo to show usage of VIPER rover models on SPH granular terrain
+// This demo uses a plug-in VIPER rover model from chrono::models
 // =============================================================================
 
+/// General Includes
 #include <cassert>
 #include <cstdlib>
 #include <ctime>
 
+/// Chrono includes
 #include "chrono_models/robot/viper/Viper.h"
 
 #include "chrono/physics/ChSystemNSC.h"
@@ -35,52 +37,40 @@
 #include "chrono/physics/ChLinkMotorRotationTorque.h"
 #include "chrono/physics/ChLinkDistance.h"
 
-#include "chrono_fsi/utils/ChUtilsTypeConvert.h"
+/// Chrono fsi includes
 #include "chrono_fsi/ChSystemFsi.h"
-#include "chrono_fsi/utils/ChUtilsGeneratorFsi.h"
-#include "chrono_fsi/utils/ChUtilsJSON.h"
-#include "chrono_fsi/utils/ChUtilsPrintSph.cuh"
 
-#define AddBoundaries
-
-// Chrono namespaces
+/// Chrono namespaces
 using namespace chrono;
 using namespace chrono::fsi;
 using namespace chrono::geometry;
 using namespace chrono::viper;
 
-using std::cout;
-using std::endl;
-
-//----------------------------
-// output directories and settings
-//----------------------------
-const std::string out_dir = GetChronoOutputPath() + "FSI_Viper/";
+/// output directories and settings
+const std::string out_dir = GetChronoOutputPath() + "FSI_VIPER/";
 std::string demo_dir;
 bool pv_output = true;
 bool save_obj = false;  // if true, save as Wavefront OBJ; if false, save as VTK
 
-Real smalldis = 1.0e-9;
+double smalldis = 1.0e-9;
+
 /// Dimension of the space domain
-Real bxDim = 0.0 + smalldis;
-Real byDim = 0.0 + smalldis;
-Real bzDim = 0.0 + smalldis;
-/// Dimension of the fluid domain
-Real fxDim = 0.0 + smalldis;
-Real fyDim = 0.0 + smalldis;
-Real fzDim = 0.0 + smalldis;
+double bxDim = 1.0 + smalldis;
+double byDim = 1.0 + smalldis;
+double bzDim = 0.2 + smalldis;
 
-int motor_type;           // 1 means constant rotation speed, 2 means constant torque
-double motor_F;           // if motor_type==1, this means the rotation speed, if motor_type==2, this means the torque
-double obstacle_density;  // density of the obstacle
+/// Dimension of the terrain domain
+double fxDim = 1.0 + smalldis;
+double fyDim = 1.0 + smalldis;
+double fzDim = 0.1 + smalldis;
 
-// Pointer to store the viper instance
+/// Pointer to store the VIPER instance
 std::shared_ptr<Viper> rover;
 
 std::shared_ptr<ChMaterialSurface> CustomWheelMaterial(ChContactMethod contact_method) {
     float mu = 0.4f;   // coefficient of friction
     float cr = 0.2f;   // coefficient of restitution
-    float Y = 2e7f;    // Young's modulus
+    float Y  = 2e7f;   // Young's modulus
     float nu = 0.3f;   // Poisson ratio
     float kn = 2e5f;   // normal stiffness
     float gn = 40.0f;  // normal viscous damping
@@ -111,10 +101,8 @@ std::shared_ptr<ChMaterialSurface> CustomWheelMaterial(ChContactMethod contact_m
     }
 }
 
-// -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
 /// Forward declaration of helper functions
-void SaveParaViewFiles(fsi::ChSystemFsi& myFsiSystem,
+void SaveParaViewFiles(ChSystemFsi& myFsiSystem,
                        ChSystemNSC& mphysicalSystem,
                        std::shared_ptr<fsi::SimParams> paramsH,
                        int tStep,
@@ -129,109 +117,90 @@ void AddWall(std::shared_ptr<ChBody> body,
     box->GetBoxGeometry().Size = dim;
     box->GetBoxGeometry().Pos = loc;
 }
-//------------------------------------------------------------------
-// Create the objects of the MBD system. Rigid bodies, and if fsi, their
-// bce representation are created and added to the systems
-//------------------------------------------------------------------
 
 void CreateSolidPhase(ChSystemNSC& mphysicalSystem,
-                      fsi::ChSystemFsi& myFsiSystem,
+                      ChSystemFsi& myFsiSystem,
                       std::shared_ptr<fsi::SimParams> paramsH);
+
 void ShowUsage() {
-    cout << "usage: ./demo_FSI_Granular_Viper <json_file>" << endl;
+    std::cout << "usage: ./demo_FSI_Granular_Viper <json_file>" << std::endl;
 }
 
-// =============================================================================
+
 int main(int argc, char* argv[]) {
-    // create a physics system
+    /// Create a physical system and a corresponding FSI system
     ChSystemNSC mphysicalSystem;
-    fsi::ChSystemFsi myFsiSystem(mphysicalSystem);
-    // Get the pointer to the system parameter and use a JSON file to fill it out with the user parameters
+    ChSystemFsi myFsiSystem(mphysicalSystem);
+    
+    /// Get the pointer to the system parameter and use a JSON file to fill it out with the user parameters
     std::shared_ptr<fsi::SimParams> paramsH = myFsiSystem.GetSimParams();
     std::string inputJson = GetChronoDataFile("fsi/input_json/demo_FSI_Viper_granular_NSC.json");
-    if (argc == 1 && fsi::utils::ParseJSON(inputJson.c_str(), paramsH, fsi::mR3(bxDim, byDim, bzDim))) {
-    } else if (argc == 2 && fsi::utils::ParseJSON(argv[1], paramsH, fsi::mR3(bxDim, byDim, bzDim))) {
+    if (argc == 1) {
+        std::cout << "Use the default JSON file" << std::endl;
+    } else if (argc == 2) {
+        std::cout << "Use the specified JSON file" << std::endl;
+        std::string my_inputJson = std::string(argv[1]);
+        inputJson = my_inputJson;
     } else {
         ShowUsage();
         return 1;
     }
+    myFsiSystem.SetSimParameter(inputJson, paramsH, ChVector<>(bxDim, byDim, bzDim));
 
-    /// Dimension of the space domain
+    /// Reset the domain size 
     bxDim = paramsH->boxDimX + smalldis;
     byDim = paramsH->boxDimY + smalldis;
     bzDim = paramsH->boxDimZ + smalldis;
-    /// Dimension of the fluid domain
+
     fxDim = paramsH->fluidDimX + smalldis;
     fyDim = paramsH->fluidDimY + smalldis;
     fzDim = paramsH->fluidDimZ + smalldis;
 
+    /// Setup the solver based on the input value of the prameters
     myFsiSystem.SetFluidDynamics(paramsH->fluid_dynamic_type);
-    myFsiSystem.SetFluidSystemLinearSolver(paramsH->LinearSolver);
+    myFsiSystem.SetFluidSystemLinearSolver(paramsH->LinearSolver); // this is only for ISPH
 
-    // fsi::utils::ParseJSON sets default values to cMin and cMax which may need
-    // to be modified depending on the case (e.g periodic BC)
-    Real initSpace0 = paramsH->MULT_INITSPACE * paramsH->HSML;
-    paramsH->cMin = fsi::mR3(-bxDim / 2, -byDim / 2, -bzDim - 10 * initSpace0) * 10 - 0 * initSpace0;
-    paramsH->cMax = fsi::mR3(bxDim / 2, byDim / 2, bzDim + 10 * initSpace0) * 10 + 0 * initSpace0;
-    // call FinalizeDomain to setup the binning for neighbor search or write your own
-    fsi::utils::FinalizeDomain(paramsH);
+    /// Set the periodic boundary condition
+    double initSpace0 = paramsH->MULT_INITSPACE * paramsH->HSML;
+    ChVector<> cMin(-bxDim / 2 * 10, -byDim / 2 * 10, -bzDim * 10);
+    ChVector<> cMax( bxDim / 2 * 10,  byDim / 2 * 10,  bzDim * 10);
+    myFsiSystem.SetBoundaries(cMin, cMax, paramsH);
+    
+    /// Setup sub doamins for a faster neighbor particle searching
+    myFsiSystem.SetSubDomain(paramsH);
 
-    if (argc == 1 && fsi::utils::ParseJSON(inputJson.c_str(), paramsH, fsi::mR3(bxDim, byDim, bzDim))) {
-        fsi::utils::PrepareOutputDir(paramsH, demo_dir, out_dir, inputJson.c_str());
-    } else if (argc == 2 && fsi::utils::ParseJSON(argv[1], paramsH, fsi::mR3(bxDim, byDim, bzDim))) {
-        fsi::utils::PrepareOutputDir(paramsH, demo_dir, out_dir, argv[1]);
-    }
+    /// Setup the output directory for FSI data
+    myFsiSystem.SetFsiOutputDir(paramsH, demo_dir, out_dir, inputJson.c_str());
 
-    // ******************************* Create Fluid region ****************************************
-    /// Create an initial box of fluid
+    /// Create an initial box for the terrain patch
     chrono::utils::GridSampler<> sampler(initSpace0);
-    /// Use a chrono sampler to create a bucket of fluid
-    ChVector<> boxCenter(0, 0, fzDim / 2 + 0 * initSpace0);
+    /// Use a chrono sampler to create a bucket of granular material
+    ChVector<> boxCenter(0, 0, fzDim / 2);
     ChVector<> boxHalfDim(fxDim / 2, fyDim / 2, fzDim / 2);
-    chrono::utils::Generator::PointVector points = sampler.SampleBox(boxCenter, boxHalfDim);
-    /// Add fluid markers from the sampler points to the FSI system
+    std::vector<ChVector<>> points = sampler.SampleBox(boxCenter, boxHalfDim);
+    /// Add SPH particles from the sampler points to the FSI system
     int numPart = (int)points.size();
     for (int i = 0; i < numPart; i++) {
-        Real pre_ini = paramsH->rho0 * abs(paramsH->gravity.z) * (-points[i].z() + fzDim);
-        ////Real rho_ini = paramsH->rho0 + pre_ini / (paramsH->Cs * paramsH->Cs);
-        myFsiSystem.GetDataManager()->AddSphMarker(
-            fsi::mR4(points[i].x(), points[i].y(), points[i].z(), paramsH->HSML), fsi::mR3(0.0, 0.0, 0.0),
-            fsi::mR4(paramsH->rho0, pre_ini, paramsH->mu0, -1),  // initial presssure modified as 0.0
-            fsi::mR3(0.0e0),                                     // tauxxyyzz
-            fsi::mR3(0.0e0));                                    // tauxyxzyz
+        double pre_ini = paramsH->rho0 * abs(paramsH->gravity.z) * (-points[i].z() + fzDim);
+        myFsiSystem.AddSphMarker(points[i], paramsH->rho0, pre_ini, paramsH->mu0, paramsH->HSML, -1,
+                                 ChVector<>(0),  // initial velocity
+                                 ChVector<>(0),  // tauxxyyzz
+                                 ChVector<>(0)   // tauxyxzyz
+        );
     }
+    myFsiSystem.AddRefArray(0, (int)numPart, -1, -1);
 
-    size_t numPhases = myFsiSystem.GetDataManager()->fsiGeneralData->referenceArray.size();
-
-    if (numPhases != 0) {
-        std::cout << "Error! numPhases is wrong, thrown from main\n" << std::endl;
-        std::cin.get();
-        return -1;
-    } else {
-        myFsiSystem.GetDataManager()->fsiGeneralData->referenceArray.push_back(chrono::fsi::mI4(0, numPart, -1, -1));
-        myFsiSystem.GetDataManager()->fsiGeneralData->referenceArray.push_back(
-            chrono::fsi::mI4(numPart, numPart, 0, 0));
-    }
-
-    /// Create MBD or FE model
+    /// Create MBD and BCE particles for the solid domain
     CreateSolidPhase(mphysicalSystem, myFsiSystem, paramsH);
 
     /// Construction of the FSI system must be finalized
     myFsiSystem.Finalize();
 
     /// Get the body from the FSI system for visualization
-    int stepEnd = int(paramsH->tFinal / paramsH->dT);
-    stepEnd = 1000000;
-
-    /// use the following to write a VTK file of the Rover
-    std::vector<std::vector<double>> vCoor;
-    std::vector<std::vector<int>> faces;
-    std::string RigidConectivity = demo_dir + "RigidConectivity.vtk";
-
-    /// Get the body from the FSI system
     std::vector<std::shared_ptr<ChBody>>& FSI_Bodies = myFsiSystem.GetFsiBodies();
     auto Rover = FSI_Bodies[0];
 
+    /// Save data at the initial moment
     SaveParaViewFiles(myFsiSystem, mphysicalSystem, paramsH, 0, 0);
 
     /// write the Penetration into file
@@ -242,8 +211,15 @@ int main(int argc, char* argv[]) {
     myFile << 0.0 << "\t" << Rover->GetPos().x() << "\t" << Rover->GetPos().y() << "\t" << Rover->GetPos().z() << "\t"
            << Rover->GetPos_dt().x() << "\t" << Rover->GetPos_dt().y() << "\t" << Rover->GetPos_dt().z() << "\n";
     myFile.close();
-    Real time = 0;
-    Real Global_max_dT = paramsH->dT_Max;
+    double time = 0;
+    double Global_max_dT = paramsH->dT_Max;
+    int stepEnd = int(paramsH->tFinal / paramsH->dT);
+
+    /// Add timing for ths simulation
+    double TIMING_sta;
+    double TIMING_end;
+    double sim_cost = 0.0;
+
     for (int tStep = 0; tStep < stepEnd + 1; tStep++) {
         printf("\nstep : %d, time= : %f (s) \n", tStep, time);
         double frame_time = 1.0 / paramsH->out_fps;
@@ -256,7 +232,12 @@ int main(int argc, char* argv[]) {
             paramsH->dT_Max = Global_max_dT;
 
         rover->Update();
+
+        TIMING_sta = clock();
         myFsiSystem.DoStepDynamics_FSI();
+        TIMING_end = clock();
+        sim_cost = sim_cost + (TIMING_end - TIMING_sta) / (double)CLOCKS_PER_SEC;
+
         time += paramsH->dT;
         SaveParaViewFiles(myFsiSystem, mphysicalSystem, paramsH, next_frame, time);
 
@@ -266,6 +247,7 @@ int main(int argc, char* argv[]) {
         printf("bin=%f,%f,%f\n", bbody->GetPos().x(), bbody->GetPos().y(), bbody->GetPos().z());
         printf("Rover=%f,%f,%f\n", rbody->GetPos().x(), rbody->GetPos().y(), rbody->GetPos().z());
         printf("Rover=%f,%f,%f\n", rbody->GetPos_dt().x(), rbody->GetPos_dt().y(), rbody->GetPos_dt().z());
+        printf("Physical time and computational cost = %f, %f\n", time, sim_cost);
         myFile.open("./body_position.txt", std::ios::app);
         myFile << time << "\t" << rbody->GetPos().x() << "\t" << rbody->GetPos().y() << "\t" << rbody->GetPos().z()
                << "\t" << rbody->GetPos_dt().x() << "\t" << rbody->GetPos_dt().y() << "\t" << rbody->GetPos_dt().z()
@@ -280,54 +262,52 @@ int main(int argc, char* argv[]) {
 }
 
 //------------------------------------------------------------------
-// Create the objects of the MBD system. Rigid bodies, and if fsi, their
-// bce representation are created and added to the systems
+// Create the objects of the MBD system. Rigid bodies, and if fsi, 
+// their BCE representation are created and added to the systems
 //------------------------------------------------------------------
 void CreateSolidPhase(ChSystemNSC& mphysicalSystem,
-                      fsi::ChSystemFsi& myFsiSystem,
+                      ChSystemFsi& myFsiSystem,
                       std::shared_ptr<fsi::SimParams> paramsH) {
-    Real initSpace0 = paramsH->MULT_INITSPACE * paramsH->HSML;
-
+    /// Set the gravity force for the simulation
     ChVector<> gravity = ChVector<>(paramsH->gravity.x, paramsH->gravity.y, paramsH->gravity.z);
     mphysicalSystem.Set_G_acc(gravity);
 
-    // Set common material Properties
+    /// Set common material Properties
     auto mysurfmaterial = chrono_types::make_shared<ChMaterialSurfaceNSC>();
-    // mysurfmaterial->SetYoungModulus(1e8);
-    // mysurfmaterial->SetFriction(0.5f);
-    // mysurfmaterial->SetRestitution(0.05f);
-    // mysurfmaterial->SetAdhesion(0);
 
     collision::ChCollisionModel::SetDefaultSuggestedEnvelope(0.0025);
     collision::ChCollisionModel::SetDefaultSuggestedMargin(0.0025);
 
-    auto mfloor = chrono_types::make_shared<ChBodyEasyBox>(10, 10, 0.02, 1000, false, false);
-    mfloor->SetPos(ChVector<>(0, 0, 0));
-    mfloor->SetBodyFixed(true);
-    mphysicalSystem.Add(mfloor);
+    /// Create a body for the rigid soil container
+    auto box = chrono_types::make_shared<ChBodyEasyBox>(10, 10, 0.02, 1000, false, false);
+    box->SetPos(ChVector<>(0, 0, 0));
+    box->SetBodyFixed(true);
+    mphysicalSystem.Add(box);
+
+    /// Get the initial SPH particle spacing
+    double initSpace0 = paramsH->MULT_INITSPACE * paramsH->HSML;
 
     /// Bottom wall
     ChVector<> size_XY(bxDim / 2 + 3 * initSpace0, byDim / 2 + 3 * initSpace0, 2 * initSpace0);
     ChVector<> pos_zn(0, 0, -3 * initSpace0);
     ChVector<> pos_zp(0, 0, bzDim + 2 * initSpace0);
 
-    /// left and right Wall
+    /// Left and right wall
     ChVector<> size_YZ(2 * initSpace0, byDim / 2 + 3 * initSpace0, bzDim / 2);
     ChVector<> pos_xp(bxDim / 2 + initSpace0, 0.0, bzDim / 2 + 0 * initSpace0);
     ChVector<> pos_xn(-bxDim / 2 - 3 * initSpace0, 0.0, bzDim / 2 + 0 * initSpace0);
 
-    /// Front and back Wall
+    /// Front and back wall
     ChVector<> size_XZ(bxDim / 2, 2 * initSpace0, bzDim / 2);
     ChVector<> pos_yp(0, byDim / 2 + initSpace0, bzDim / 2 + 0 * initSpace0);
     ChVector<> pos_yn(0, -byDim / 2 - 3 * initSpace0, bzDim / 2 + 0 * initSpace0);
 
-    /// Fluid-Solid Coupling at the walls via Condition Enforcement (BCE) Markers
-    // fsi::utils::AddBoxBce(myFsiSystem.GetDataManager(), paramsH, mfloor, pos_zp, QUNIT, size_XY, 12);
-    fsi::utils::AddBoxBce(myFsiSystem.GetDataManager(), paramsH, mfloor, pos_zn, QUNIT, size_XY, 12);
-    fsi::utils::AddBoxBce(myFsiSystem.GetDataManager(), paramsH, mfloor, pos_xp, QUNIT, size_YZ, 23);
-    fsi::utils::AddBoxBce(myFsiSystem.GetDataManager(), paramsH, mfloor, pos_xn, QUNIT, size_YZ, 23);
-    fsi::utils::AddBoxBce(myFsiSystem.GetDataManager(), paramsH, mfloor, pos_yp, QUNIT, size_XZ, 13);
-    fsi::utils::AddBoxBce(myFsiSystem.GetDataManager(), paramsH, mfloor, pos_yn, QUNIT, size_XZ, 13);
+    /// Fluid-Solid Coupling at the walls via BCE particles
+    myFsiSystem.AddBceBox(paramsH, box, pos_zn, QUNIT, size_XY, 12);
+    myFsiSystem.AddBceBox(paramsH, box, pos_xp, QUNIT, size_YZ, 23);
+    myFsiSystem.AddBceBox(paramsH, box, pos_xn, QUNIT, size_YZ, 23);
+    myFsiSystem.AddBceBox(paramsH, box, pos_yp, QUNIT, size_XZ, 13);
+    myFsiSystem.AddBceBox(paramsH, box, pos_yn, QUNIT, size_XZ, 13);
 
     auto driver = chrono_types::make_shared<ViperDCMotorControl>();
     rover = chrono_types::make_shared<Viper>(&mphysicalSystem);
@@ -335,7 +315,7 @@ void CreateSolidPhase(ChSystemNSC& mphysicalSystem,
     rover->SetWheelContactMaterial(CustomWheelMaterial(ChContactMethod::NSC));
     rover->Initialize(ChFrame<>(ChVector<>(paramsH->bodyIniPosX, paramsH->bodyIniPosY, paramsH->bodyIniPosZ), QUNIT));
 
-    // add BCE particles and mesh of wheels to the system
+    /// Add BCE particles and mesh of wheels to the system
     for (int i = 0; i < 4; i++) {
         std::shared_ptr<ChBodyAuxRef> wheel_body;
         if (i == 0) {
@@ -353,33 +333,26 @@ void CreateSolidPhase(ChSystemNSC& mphysicalSystem,
 
         myFsiSystem.AddFsiBody(wheel_body);
         std::string BCE_path = GetChronoDataFile("fsi/demo_BCE/BCE_viperWheel.txt");
-        fsi::utils::AddBCE_FromFile(myFsiSystem.GetDataManager(), paramsH, wheel_body, BCE_path, ChVector<double>(0),
-                                    QUNIT, 1.0);
+        myFsiSystem.AddBceFile(paramsH, wheel_body, BCE_path, ChVector<>(0), QUNIT, 1.0, true);
     }
 }
 
 //------------------------------------------------------------------
 // Function to save the povray files of the MBD
 //------------------------------------------------------------------
-void SaveParaViewFiles(fsi::ChSystemFsi& myFsiSystem,
+void SaveParaViewFiles(ChSystemFsi& myFsiSystem,
                        ChSystemNSC& mphysicalSystem,
                        std::shared_ptr<fsi::SimParams> paramsH,
                        int next_frame,
                        double mTime) {
     double frame_time = 1.0 / paramsH->out_fps;
     char filename[4096];
-    static int out_frame = 0;
 
     if (pv_output && std::abs(mTime - (next_frame)*frame_time) < 1e-7) {
-        // save the SPH particles
-        fsi::utils::PrintToFile(myFsiSystem.GetDataManager()->sphMarkersD2->posRadD,
-                                myFsiSystem.GetDataManager()->sphMarkersD2->velMasD,
-                                myFsiSystem.GetDataManager()->sphMarkersD2->rhoPresMuD,
-                                myFsiSystem.GetDataManager()->fsiGeneralData->sr_tau_I_mu_i,
-                                myFsiSystem.GetDataManager()->fsiGeneralData->referenceArray,
-                                myFsiSystem.GetDataManager()->fsiGeneralData->referenceArray_FEA, demo_dir, true);
+        /// save the SPH particles
+        myFsiSystem.PrintParticleToFile(demo_dir);
 
-        // save the viper body to obj/vtk files
+        /// save the VIPER body to obj/vtk files
         for (int i = 0; i < 1; i++) {
             auto body = rover->GetChassis()->GetBody();
             ChFrame<> body_ref_frame = body->GetFrame_REF_to_abs();
@@ -403,7 +376,7 @@ void SaveParaViewFiles(fsi::ChSystemFsi& myFsiSystem,
                 sprintf(filename, "%s/body_%d.obj", paramsH->demo_dir, next_frame);
                 std::vector<geometry::ChTriangleMeshConnected> meshes = {*mmesh};
                 geometry::ChTriangleMeshConnected::WriteWavefront(filename, meshes);
-            } else {
+            } else {  // save to vtk file
                 sprintf(filename, "%s/body_%d.vtk", paramsH->demo_dir, next_frame);
                 std::ofstream file;
                 file.open(filename);
@@ -426,7 +399,7 @@ void SaveParaViewFiles(fsi::ChSystemFsi& myFsiSystem,
             }
         }
 
-        // save the wheels to obj/vtk files
+        /// save the wheels to obj/vtk files
         for (int i = 0; i < 4; i++) {
             std::shared_ptr<ChBodyAuxRef> body;
             if (i == 0) {
@@ -486,7 +459,7 @@ void SaveParaViewFiles(fsi::ChSystemFsi& myFsiSystem,
             }
         }
 
-        // save the steering rod to obj/vtk files
+        /// save the steering rod to obj/vtk files
         for (int i = 0; i < 4; i++) {
             std::shared_ptr<ChBodyAuxRef> body;
             if (i == 0) {
@@ -551,7 +524,7 @@ void SaveParaViewFiles(fsi::ChSystemFsi& myFsiSystem,
             }
         }
 
-        // save the lower rod to obj/vtk files
+        /// save the lower rod to obj/vtk files
         for (int i = 0; i < 4; i++) {
             std::shared_ptr<ChBodyAuxRef> body;
             if (i == 0) {
@@ -616,7 +589,7 @@ void SaveParaViewFiles(fsi::ChSystemFsi& myFsiSystem,
             }
         }
 
-        // save the upper rod to obj/vtk files
+        /// save the upper rod to obj/vtk files
         for (int i = 0; i < 4; i++) {
             std::shared_ptr<ChBodyAuxRef> body;
             if (i == 0) {
@@ -682,7 +655,7 @@ void SaveParaViewFiles(fsi::ChSystemFsi& myFsiSystem,
             }
         }
 
-        // save box obstacle to vtk files
+        /// save box obstacle to vtk files
         for (int i = 0; i < 2; i++) {
             sprintf(filename, "%s/obstacle_%d_%d.vtk", paramsH->demo_dir, i + 1, next_frame);
             std::ofstream file;
@@ -734,7 +707,7 @@ void SaveParaViewFiles(fsi::ChSystemFsi& myFsiSystem,
             file << "4 " << 3 << " " << 2 << " " << 6 << " " << 7 << "\n";
         }
 
-        // save rigid body position and rotation
+        /// save rigid body position and rotation
         for (int i = 1; i < mphysicalSystem.Get_bodylist().size(); i++) {
             auto body = mphysicalSystem.Get_bodylist()[i];
             ChFrame<> ref_frame = body->GetFrame_REF_to_abs();
@@ -760,11 +733,9 @@ void SaveParaViewFiles(fsi::ChSystemFsi& myFsiSystem,
             file.close();
         }
 
-        cout << "-------------------------------------\n" << endl;
-        cout << "             Output frame:   " << next_frame << endl;
-        cout << "             Time:           " << mTime << endl;
-        cout << "-------------------------------------\n" << endl;
-
-        out_frame++;
+        std::cout << "-------------------------------------\n" << std::endl;
+        std::cout << "             Output frame:   " << next_frame << std::endl;
+        std::cout << "             Time:           " << mTime << std::endl;
+        std::cout << "-------------------------------------\n" << std::endl;
     }
 }

@@ -58,6 +58,7 @@ class CH_MULTICORE_API ChSystemMulticore : public ChSystem {
 
     virtual bool Integrate_Y() override;
     virtual void AddBody(std::shared_ptr<ChBody> newbody) override;
+    virtual void AddShaft(std::shared_ptr<ChShaft> shaft) override;
     virtual void AddLink(std::shared_ptr<ChLinkBase> link) override;
     virtual void AddOtherPhysicsItem(std::shared_ptr<ChPhysicsItem> newitem) override;
 
@@ -196,9 +197,6 @@ class CH_MULTICORE_API ChSystemMulticore : public ChSystem {
     std::vector<ChLink*>::iterator it;
 
   private:
-    void AddShaft(std::shared_ptr<ChShaft> shaft);
-
-    std::vector<ChShaft*> shaftlist;
     std::vector<ChLinkMotorLinearSpeed*> linmotorlist;
     std::vector<ChLinkMotorRotationSpeed*> rotmotorlist;
 };

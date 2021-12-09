@@ -51,7 +51,9 @@ class CH_MODELS_API M113_Suspension : public ChLinearDamperRWAssembly {
     virtual double GetArmVisRadius() const override { return m_arm_radius; }
 
     /// Return the functor object for the torsional spring torque.
-    virtual std::shared_ptr<ChLinkRotSpringCB::TorqueFunctor> GetSpringTorqueFunctor() const override { return m_spring_torqueCB; }
+    virtual std::shared_ptr<ChLinkRSDA::TorqueFunctor> GetSpringTorqueFunctor() const override {
+        return m_spring_torqueCB;
+    }
 
     /// Return the functor object for the translational shock force.
     virtual std::shared_ptr<ChLinkTSDA::ForceFunctor> GetShockForceFunctor() const override { return m_shock_forceCB; }
@@ -59,7 +61,7 @@ class CH_MODELS_API M113_Suspension : public ChLinearDamperRWAssembly {
   private:
     VehicleSide m_side;
 
-    std::shared_ptr<ChLinkRotSpringCB::TorqueFunctor> m_spring_torqueCB;
+    std::shared_ptr<ChLinkRSDA::TorqueFunctor> m_spring_torqueCB;
     std::shared_ptr<ChLinkTSDA::ForceFunctor> m_shock_forceCB;
 
     static const double m_arm_mass;

@@ -29,8 +29,8 @@ ApproachLane::ApproachLane(const SynFlatBuffers::Approach::Lane* lane) {
         controlPoints.emplace_back(point->x(), point->y(), point->z());
 }
 
-SynApproachMessage::SynApproachMessage(unsigned int source_id, unsigned int destination_id)
-    : SynMessage(source_id, destination_id) {}
+SynApproachMessage::SynApproachMessage(AgentKey source_key, AgentKey destination_key)
+    : SynMessage(source_key, destination_key) {}
 
 void SynApproachMessage::ConvertFromFlatBuffers(const SynFlatBuffers::Message* message) {
     if (message->message_type() != SynFlatBuffers::Type_Approach_State)
@@ -62,8 +62,9 @@ FlatBufferMessage SynApproachMessage::ConvertToFlatBuffers(flatbuffers::FlatBuff
     flatbuffers::Offset<SynFlatBuffers::Approach::State> flatbuffer_state =
         SynFlatBuffers::Approach::CreateState(builder, this->time, builder.CreateVector(flatbuffer_lanes));
 
-    FlatBufferMessage message = flatbuffers::Offset<SynFlatBuffers::Message>(SynFlatBuffers::CreateMessage(
-        builder, SynFlatBuffers::Type_Approach_State, flatbuffer_state.Union(), m_source_id, m_destination_id));
+    FlatBufferMessage message = flatbuffers::Offset<SynFlatBuffers::Message>(
+        SynFlatBuffers::CreateMessage(builder, SynFlatBuffers::Type_Approach_State, flatbuffer_state.Union(),
+                                      m_source_key.GetFlatbuffersKey(), m_destination_key.GetFlatbuffersKey()));
     return message;
 }
 

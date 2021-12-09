@@ -53,20 +53,20 @@ class SYN_API SynMessage {
     ///@return FlatBufferMessage the constructed flatbuffer message
     virtual FlatBufferMessage ConvertToFlatBuffers(flatbuffers::FlatBufferBuilder& builder) const = 0;
 
-    ///@brief Get the id of the source of this message
+    ///@brief Get the key of the source of this message
     ///
-    ///@return unsigned int the source id
-    unsigned int GetSourceID() const { return m_source_id; }
+    ///@return AgentKey the source key
+    AgentKey GetSourceKey() { return m_source_key; }
 
-    ///@brief Set the id of the source of this message
+    ///@brief Set the key of the source of this message
     ///
-    ///@param source_id unsigned int the source id
-    void SetSourceID(unsigned int source_id) { m_source_id = source_id; }
+    ///@param source_key AgentKey the source key
+    void SetSourceKey(AgentKey source_key) { m_source_key = source_key; }
 
-    ///@brief Get the id of the destination for this message
+    ///@brief Get the key of the destination for this message
     ///
-    ///@return unsigned int the destination id
-    unsigned int GetDestinationID() const { return m_destination_id; }
+    ///@return AgentKey the destination key
+    AgentKey GetDestinationKey() { return m_destination_key; }
 
     SynFlatBuffers::Type GetMessageType() { return m_msg_type; }
     void SetMessageType(SynFlatBuffers::Type msg_type) { m_msg_type = msg_type; }
@@ -76,16 +76,17 @@ class SYN_API SynMessage {
   protected:
     ///@brief Constructor
     ///
-    ///@param source_id the id of the source to which the message is sent from
-    ///@param destination_id the id of the destination to which the message is sent to
-    SynMessage(unsigned int source_id, unsigned int destination_id)
+    ///@param source_key the key of the source to which the message is sent from
+    ///@param destination_key the key of the destination to which the message is sent to
+    SynMessage(AgentKey source_key = AgentKey(), AgentKey destination_key = AgentKey())
         : time(0.0),
-          m_source_id(source_id),
-          m_destination_id(destination_id),
+          m_source_key(source_key),
+          m_destination_key(destination_key),
           m_msg_type(SynFlatBuffers::Type::Type_NONE) {}
 
-    unsigned int m_source_id;         ///< id for the source which sent this message
-    unsigned int m_destination_id;    ///< id for the destination of this message
+    AgentKey m_source_key;       ///< key for the source which sent this message
+    AgentKey m_destination_key;  ///< key for the destination of this message
+
     SynFlatBuffers::Type m_msg_type;  ///< Type of message that we contain
 };
 

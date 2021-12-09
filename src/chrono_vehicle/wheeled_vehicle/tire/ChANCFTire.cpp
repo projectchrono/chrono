@@ -16,7 +16,7 @@
 //
 // =============================================================================
 
-#include "chrono/fea/ChElementShellANCF.h"
+#include "chrono/fea/ChElementShellANCF_3423.h"
 
 #include "chrono_vehicle/wheeled_vehicle/tire/ChANCFTire.h"
 
@@ -35,7 +35,7 @@ void ChANCFTire::CreatePressureLoad() {
     // Create a pressure load for each element in the mesh.  Note that we set a
     // negative pressure (i.e. internal pressure, acting opposite to the surface normal)
     for (unsigned int ie = 0; ie < m_mesh->GetNelements(); ie++) {
-        if (auto mshell = std::dynamic_pointer_cast<ChElementShellANCF>(m_mesh->GetElement(ie))) {
+        if (auto mshell = std::dynamic_pointer_cast<ChElementShellANCF_3423>(m_mesh->GetElement(ie))) {
             auto load = chrono_types::make_shared<ChLoad<ChLoaderPressure>>(mshell);
             load->loader.SetPressure(-m_pressure);
             load->loader.SetStiff(false);          //// TODO:  user control?
@@ -49,13 +49,13 @@ void ChANCFTire::CreatePressureLoad() {
 // -----------------------------------------------------------------------------
 void ChANCFTire::CreateContactSurface() {
     switch (m_contact_type) {
-        case ContactSurfaceType::NODE_CLOUD : {
+        case ContactSurfaceType::NODE_CLOUD: {
             auto contact_surf = chrono_types::make_shared<ChContactSurfaceNodeCloud>(m_contact_mat);
             m_mesh->AddContactSurface(contact_surf);
             contact_surf->AddAllNodes(m_contact_node_radius);
             break;
         }
-        case ContactSurfaceType::TRIANGLE_MESH : {
+        case ContactSurfaceType::TRIANGLE_MESH: {
             auto contact_surf = chrono_types::make_shared<ChContactSurfaceMesh>(m_contact_mat);
             m_mesh->AddContactSurface(contact_surf);
             contact_surf->AddFacesFromBoundary(m_contact_face_thickness, false);

@@ -193,3 +193,16 @@ Your project has to be compiled with the same build configuration as Chrono. For
 Linux users do not have to worry about copying shared libraries because the .so libraries always go into a directory that is globally visible.
 </div>
 
+Important information if using Chrono::Sensor
+-----------------------------
+**NOTE** if linking to Chrono::Sensor install from an external project, make sure to set the directory of the install location where the shader code (compiled ptx code or shaders/*.cu files) is located. This should be set at the top of any external code that will use chrono::sensor from an install location.
+  ```cpp
+    //function to set the shader location (include ChOptixUtils.h)
+    chrono::sensor::SetSensorShaderDir("path/to/sensor/shaders");
+
+    //if USE_CUDA_NVRTC is enabled, use
+    chrono::sensor::SetSensorShaderDir("path/to/install/include/chrono_sensor/optix/shaders/");
+
+    //if USE_CUDA_NVRTC is disabled, use
+    chrono::sensor::SetSensorShaderDir("path/to/install/lib/sensor_ptx/");
+  ```

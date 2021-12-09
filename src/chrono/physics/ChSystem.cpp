@@ -152,6 +152,10 @@ void ChSystem::AddBody(std::shared_ptr<ChBody> body) {
     assembly.AddBody(body);
 }
 
+void ChSystem::AddShaft(std::shared_ptr<ChShaft> shaft) {
+    assembly.AddShaft(shaft);
+}
+
 void ChSystem::AddLink(std::shared_ptr<ChLinkBase> link) {
     assembly.AddLink(link);
 }
@@ -173,6 +177,11 @@ void ChSystem::Add(std::shared_ptr<ChPhysicsItem> item) {
         return;
     }
 
+    if (auto shaft = std::dynamic_pointer_cast<ChShaft>(item)) {
+        AddShaft(shaft);
+        return;
+    }
+
     if (auto link = std::dynamic_pointer_cast<ChLinkBase>(item)) {
         AddLink(link);
         return;
@@ -189,6 +198,11 @@ void ChSystem::Add(std::shared_ptr<ChPhysicsItem> item) {
 void ChSystem::Remove(std::shared_ptr<ChPhysicsItem> item) {
     if (auto body = std::dynamic_pointer_cast<ChBody>(item)) {
         RemoveBody(body);
+        return;
+    }
+
+    if (auto shaft = std::dynamic_pointer_cast<ChShaft>(item)) {
+        RemoveShaft(shaft);
         return;
     }
 
@@ -358,8 +372,8 @@ void ChSystem::SetMaterialCompositionStrategy(std::unique_ptr<ChMaterialComposit
 
 void ChSystem::SetNumThreads(int num_threads_chrono, int num_threads_collision, int num_threads_eigen) {
     nthreads_chrono = std::max(1, num_threads_chrono);
-    nthreads_collision = (num_threads_collision == 0) ? num_threads_chrono : num_threads_collision;
-    nthreads_eigen = (num_threads_eigen == 0) ? num_threads_chrono : num_threads_eigen;
+    nthreads_collision = (num_threads_collision <= 0) ? num_threads_chrono : num_threads_collision;
+    nthreads_eigen = (num_threads_eigen <= 0) ? num_threads_chrono : num_threads_eigen;
 
     collision_system->SetNumThreads(nthreads_collision);
 }

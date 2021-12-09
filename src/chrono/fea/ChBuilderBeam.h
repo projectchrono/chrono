@@ -19,7 +19,7 @@
 #include "chrono/fea/ChElementBeamEuler.h"
 #include "chrono/fea/ChElementBeamIGA.h"
 #include "chrono/fea/ChElementCableANCF.h"
-#include "chrono/fea/ChElementBeamANCF.h"
+#include "chrono/fea/ChElementBeamANCF_3333.h"
 #include "chrono/fea/ChElementBeamTaperedTimoshenko.h"
 #include "chrono/fea/ChElementBeamTaperedTimoshenkoFPM.h"
 #include "chrono/fea/ChContactSurfaceNodeCloud.h"
@@ -126,11 +126,11 @@ class ChApi ChBuilderCableANCF {
     std::vector<std::shared_ptr<ChNodeFEAxyzD>>& GetLastBeamNodes() { return beam_nodes; }
 };
 
-/// Utility class for creating complex beams using ChElementBeamANCF elements, for example subdivides a segment in
+/// Utility class for creating complex beams using ChElementBeamANCF_3333 elements, for example subdivides a segment in
 /// multiple finite elements.
 class ChApi ChBuilderBeamANCF {
   protected:
-    std::vector<std::shared_ptr<ChElementBeamANCF>> beam_elems;
+    std::vector<std::shared_ptr<ChElementBeamANCF_3333>> beam_elems;
     std::vector<std::shared_ptr<ChNodeFEAxyzDD>> beam_nodes;
 
   public:
@@ -145,7 +145,6 @@ class ChApi ChBuilderBeamANCF {
                    const double w,                           ///< width
                    const ChVector<> DIR,                     ///< initial nodal direction
                    const ChVector<> CUR,                     ///< initial nodal curvature
-                   const bool Poisson_effect = false,        ///< set true to evaluate poisson effects
                    const bool grav = false,                  ///< set true to apply gravity force
                    const double damp = 0                     ///< damping
     );
@@ -153,7 +152,7 @@ class ChApi ChBuilderBeamANCF {
     /// Access the list of elements used by the last built beam.
     /// It can be useful for changing properties afterwards.
     /// This list is reset all times a BuildBeam function is called.
-    std::vector<std::shared_ptr<ChElementBeamANCF>>& GetLastBeamElements() { return beam_elems; }
+    std::vector<std::shared_ptr<ChElementBeamANCF_3333>>& GetLastBeamElements() { return beam_elems; }
 
     /// Access the list of nodes used by the last built beam.
     /// It can be useful for adding constraints or changing properties afterwards.

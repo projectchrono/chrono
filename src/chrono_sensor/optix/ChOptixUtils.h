@@ -45,6 +45,7 @@ namespace sensor {
 /// @addtogroup sensor_optix
 /// @{
 
+
 /// Checks the output of an optix call for any error, will throw a runtime error if not success
 #define OPTIX_ERROR_CHECK(result) { \
     if (result != OPTIX_SUCCESS) { \
@@ -130,15 +131,16 @@ CH_SENSOR_API void optix_log_callback(unsigned int level, const char* tag, const
 /// @param filename
 CH_SENSOR_API ByteImageData LoadByteImage(std::string filename);
 
+/*
 /// creates an empty optix transform::node
 /// @param context the optix context
-// optix::Transform CreateEmptyTransform(optix::Context context);
+optix::Transform CreateEmptyTransform(optix::Context context);
 
 /// creates an opti::transform node
 /// @param context optix context
 /// @param a projection matrix
 /// @param b
-// optix::Transform CreateTransform(optix::Context context, ChMatrix33<double> a, ChVector<double> b);
+optix::Transform CreateTransform(optix::Context context, ChMatrix33<double> a, ChVector<double> b);
 
 /// creates an optix::transform node
 /// @param context optix context
@@ -146,8 +148,7 @@ CH_SENSOR_API ByteImageData LoadByteImage(std::string filename);
 /// @param b
 /// @param s
 /// @return an optix::transform
-// optix::Transform CreateTransform(optix::Context context, ChMatrix33<double> a, ChVector<double> b, ChVector<double>
-// s);
+optix::Transform CreateTransform(optix::Context context, ChMatrix33<double> a, ChVector<double> b, ChVector<double> s);
 
 /// creatse an optix::transform node based on end points
 /// @param context optix context
@@ -155,38 +156,45 @@ CH_SENSOR_API ByteImageData LoadByteImage(std::string filename);
 /// @param b
 /// @param from
 /// @return an optix::transform
-// optix::Transform CreateTransformFromEndPoints(optix::Context context, ChVector<> a, ChVector<> b, ChVector<> from);
+optix::Transform CreateTransformFromEndPoints(optix::Context context, ChVector<> a, ChVector<> b, ChVector<> from);
 
-/// creatse an optix::transform node based on end points
+/// creates an optix::transform node based on end points
 /// @param context optix context
 /// @param a projection matrix
 /// @param b
 /// @param from
 /// @param s
 /// @return an optix::transform
-// optix::Transform CreateTransformFromEndPoints(optix::Context context,
-//                                               ChVector<> a,
-//                                               ChVector<> b,
-//                                               ChVector<> from,
-//                                               ChVector<double> s);
+optix::Transform CreateTransformFromEndPoints(optix::Context context,
+                                              ChVector<> a,
+                                              ChVector<> b,
+                                              ChVector<> from,
+                                              ChVector<double> s);
 
 /// updates the projection matrix in the optix::transform object
 /// @param t optix transform object
 /// @param a projection matrix
 /// @param b
-// void UpdateTransform(optix::Transform t, ChMatrix33<double> a, ChVector<double> b);
+void UpdateTransform(optix::Transform t, ChMatrix33<double> a, ChVector<double> b);
 
 /// updates the projection matrix in the optix::transform object
 /// @param t optix tranform object
 /// @param a projection matrix
 /// @param b
 /// @param s
-// void UpdateTransform(optix::Transform t, ChMatrix33<double> a, ChVector<double> b, ChVector<double> s);
+void UpdateTransform(optix::Transform t, ChMatrix33<double> a, ChVector<double> b, ChVector<double> s);
+*/
 
+CH_SENSOR_API void SetSensorShaderDir(std::string path);
+
+/*
 /// prefix for ptx file
 const std::string ptx_pre = "ChronoEngine_sensor_generated_";
 /// suffix for ptx file
 const std::string ptx_suff = ".cu.ptx";
+
+extern std::string SENSOR_SHADER_DIR;// = "test"; //std::string(CMAKE_SHADER_OUTPUT_PATH);
+*/
 
 /// @} sensor_optix
 

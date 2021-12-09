@@ -214,14 +214,14 @@ void ChTrackShoeDoublePin::Connect(std::shared_ptr<ChTrackShoe> next,
 
     // Optionally, include rotational spring-dampers to model track bending stiffness
     if (track->GetTorqueFunctor()) {
-        m_rsda_L = chrono_types::make_shared<ChLinkRotSpringCB>();
+        m_rsda_L = chrono_types::make_shared<ChLinkRSDA>();
         m_rsda_L->SetNameString(m_name + "_rsda_rev_L");
         m_rsda_L->Initialize(m_shoe, m_connector_L, false, ChCoordsys<>(loc_L, m_shoe->GetRot()),
                          ChCoordsys<>(loc_L, m_connector_L->GetRot()));
         m_rsda_L->RegisterTorqueFunctor(track->GetTorqueFunctor());
         system->AddLink(m_rsda_L);
 
-        m_rsda_R = chrono_types::make_shared<ChLinkRotSpringCB>();
+        m_rsda_R = chrono_types::make_shared<ChLinkRSDA>();
         m_rsda_R->SetNameString(m_name + "_rsda_rev_R");
         m_rsda_R->Initialize(m_shoe, m_connector_R, false, ChCoordsys<>(loc_R, m_shoe->GetRot()),
                            ChCoordsys<>(loc_R, m_connector_R->GetRot()));
@@ -267,7 +267,7 @@ void ChTrackShoeDoublePin::Connect(std::shared_ptr<ChTrackShoe> next,
 
     // Optionally, include rotational spring-dampers to model track bending stiffness
     if (track->GetTorqueFunctor()) {
-        m_connection_rsda_L = chrono_types::make_shared<ChLinkRotSpringCB>();
+        m_connection_rsda_L = chrono_types::make_shared<ChLinkRSDA>();
         m_connection_rsda_L->SetNameString(m_name + "_rsda_sph_L");
         m_connection_rsda_L->Initialize(next->GetShoeBody(), m_connector_L, false,
                                         ChCoordsys<>(loc_L, next->GetShoeBody()->GetRot()),
@@ -275,7 +275,7 @@ void ChTrackShoeDoublePin::Connect(std::shared_ptr<ChTrackShoe> next,
         m_connection_rsda_L->RegisterTorqueFunctor(track->GetTorqueFunctor());
         system->AddLink(m_connection_rsda_L);
 
-        m_connection_rsda_R = chrono_types::make_shared<ChLinkRotSpringCB>();
+        m_connection_rsda_R = chrono_types::make_shared<ChLinkRSDA>();
         m_connection_rsda_R->SetNameString(m_name + "_rsda_sph_R");
         m_connection_rsda_R->Initialize(next->GetShoeBody(), m_connector_R, false,
                                         ChCoordsys<>(loc_R, next->GetShoeBody()->GetRot()),

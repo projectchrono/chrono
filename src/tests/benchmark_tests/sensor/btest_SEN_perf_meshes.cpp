@@ -95,9 +95,9 @@ int main(int argc, char* argv[]) {
                     //                                                  2 * randf() + .1, 1000, true, false);
                     mesh_body->SetPos({x_spread * (i + .5 - x_instances / 2.), y_spread * (j + .5 - y_instances / 2.),
                                        z_spread * (k + .5 - z_instances / 2.)});
-                    ChQuaternion<> q = {randf(), randf(), randf(), randf()};
-                    q.Normalize();
-                    mesh_body->SetRot(q);
+                    ChQuaternion<> quat = {randf(), randf(), randf(), randf()};
+                    quat.Normalize();
+                    mesh_body->SetRot(quat);
                     mesh_body->AddAsset(trimesh_shape);
                     mesh_body->SetBodyFixed(true);
                     mphysicalSystem.Add(mesh_body);

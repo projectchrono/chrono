@@ -31,6 +31,11 @@ CH_FACTORY_REGISTER(ChAssembly)
 
 ChAssembly::ChAssembly()
     : nbodies(0),
+      nbodies_sleep(0),
+      nbodies_fixed(0),
+      nshafts(0),
+      nshafts_sleep(0),
+      nshafts_fixed(0),
       nlinks(0),
       nmeshes(0),
       nphysicsitems(0),
@@ -42,12 +47,16 @@ ChAssembly::ChAssembly()
       nsysvars_w(0),
       ndof(0),
       ndoc_w_C(0),
-      ndoc_w_D(0),
-      nbodies_sleep(0),
-      nbodies_fixed(0) {}
+      ndoc_w_D(0)
+       {}
 
 ChAssembly::ChAssembly(const ChAssembly& other) : ChPhysicsItem(other) {
     nbodies = other.nbodies;
+    nbodies_sleep = other.nbodies_sleep;
+    nbodies_fixed = other.nbodies_fixed;
+    nshafts = other.nshafts;
+    nshafts_sleep = other.nshafts_sleep;
+    nshafts_fixed = other.nshafts_fixed;
     nlinks = other.nlinks;
     nmeshes = other.nmeshes;
     nphysicsitems = other.nphysicsitems;
@@ -60,15 +69,14 @@ ChAssembly::ChAssembly(const ChAssembly& other) : ChPhysicsItem(other) {
     ndof = other.ndof;
     nsysvars = other.nsysvars;
     nsysvars_w = other.nsysvars_w;
-    nbodies_sleep = other.nbodies_sleep;
-    nbodies_fixed = other.nbodies_fixed;
 
     //// RADU
-    //// TODO:  deep copy of the object lists (bodylist, linklist, meshlist,  otherphysicslist)
+    //// TODO:  deep copy of the object lists (bodylist, shaftlist, linklist, meshlist,  otherphysicslist)
 }
 
 ChAssembly::~ChAssembly() {
     RemoveAllBodies();
+    RemoveAllShafts();
     RemoveAllLinks();
     RemoveAllMeshes();
     RemoveAllOtherPhysicsItems();
@@ -85,6 +93,11 @@ ChAssembly& ChAssembly::operator=(ChAssembly other) {
 void swap(ChAssembly& first, ChAssembly& second) {
     using std::swap;
     swap(first.nbodies, second.nbodies);
+    swap(first.nbodies_sleep, second.nbodies_sleep);
+    swap(first.nbodies_fixed, second.nbodies_fixed);
+    swap(first.nshafts, second.nshafts);
+    swap(first.nshafts_sleep, second.nshafts_sleep);
+    swap(first.nshafts_fixed, second.nshafts_fixed);
     swap(first.nlinks, second.nlinks);
     swap(first.nmeshes, second.nmeshes);
     swap(first.nphysicsitems, second.nphysicsitems);
@@ -97,8 +110,6 @@ void swap(ChAssembly& first, ChAssembly& second) {
     swap(first.ndof, second.ndof);
     swap(first.nsysvars, second.nsysvars);
     swap(first.nsysvars_w, second.nsysvars_w);
-    swap(first.nbodies_sleep, second.nbodies_sleep);
-    swap(first.nbodies_fixed, second.nbodies_fixed);
 
     //// RADU
     //// TODO: deal with all other member variables...
@@ -107,10 +118,16 @@ void swap(ChAssembly& first, ChAssembly& second) {
 void ChAssembly::Clear() {
     RemoveAllLinks();
     RemoveAllBodies();
+    RemoveAllShafts();
     RemoveAllMeshes();
     RemoveAllOtherPhysicsItems();
 
     nbodies = 0;
+    nbodies_sleep = 0;
+    nbodies_fixed = 0;
+    nshafts = 0;
+    nshafts_sleep = 0;
+    nshafts_fixed = 0;
     nlinks = 0;
     nmeshes = 0;
     nphysicsitems = 0;
@@ -124,8 +141,6 @@ void ChAssembly::Clear() {
     ncoords_w = 0;
     nsysvars = 0;
     ncoords_w = 0;
-    nbodies_sleep = 0;
-    nbodies_fixed = 0;
 }
 
 // Note: removing items from the assembly incurs linear time cost
@@ -148,6 +163,27 @@ void ChAssembly::RemoveBody(std::shared_ptr<ChBody> body) {
 
     bodylist.erase(itr);
     body->SetSystem(nullptr);
+
+    system->is_updated = false;
+}
+
+void ChAssembly::AddShaft(std::shared_ptr<ChShaft> shaft) {
+    assert(std::find(std::begin(shaftlist), std::end(shaftlist), shaft) == shaftlist.end());
+    assert(shaft->GetSystem() == nullptr);  // should remove from other system before adding here
+
+    shaft->SetSystem(system);
+    shaftlist.push_back(shaft);
+
+    ////system->is_initialized = false;  // Not needed, unless/until ChShaft::SetupInitial does something
+    system->is_updated = false;
+}
+
+void ChAssembly::RemoveShaft(std::shared_ptr<ChShaft> shaft) {
+    auto itr = std::find(std::begin(shaftlist), std::end(shaftlist), shaft);
+    assert(itr != shaftlist.end());
+
+    shaftlist.erase(itr);
+    shaft->SetSystem(nullptr);
 
     system->is_updated = false;
 }
@@ -223,6 +259,11 @@ void ChAssembly::Add(std::shared_ptr<ChPhysicsItem> item) {
         return;
     }
 
+    if (auto shaft = std::dynamic_pointer_cast<ChShaft>(item)) {
+        AddShaft(shaft);
+        return;
+    }
+
     if (auto link = std::dynamic_pointer_cast<ChLinkBase>(item)) {
         AddLink(link);
         return;
@@ -256,6 +297,11 @@ void ChAssembly::Remove(std::shared_ptr<ChPhysicsItem> item) {
         return;
     }
 
+    if (auto shaft = std::dynamic_pointer_cast<ChShaft>(item)) {
+        RemoveShaft(shaft);
+        return;
+    }
+
     if (auto link = std::dynamic_pointer_cast<ChLinkBase>(item)) {
         RemoveLink(link);
         return;
@@ -274,6 +320,15 @@ void ChAssembly::RemoveAllBodies() {
         body->SetSystem(nullptr);
     }
     bodylist.clear();
+
+    system->is_updated = false;
+}
+
+void ChAssembly::RemoveAllShafts() {
+    for (auto& shaft : shaftlist) {
+        shaft->SetSystem(nullptr);
+    }
+    shaftlist.clear();
 
     system->is_updated = false;
 }
@@ -315,6 +370,11 @@ std::shared_ptr<ChBody> ChAssembly::SearchBodyID(int bodyID) {
         bodyID, bodylist.begin(), bodylist.end());
 }
 
+std::shared_ptr<ChShaft> ChAssembly::SearchShaft(const char* name) {
+    return ChContainerSearchFromName<std::shared_ptr<ChShaft>, std::vector<std::shared_ptr<ChShaft>>::iterator>(
+        name, shaftlist.begin(), shaftlist.end());
+}
+
 std::shared_ptr<ChLinkBase> ChAssembly::SearchLink(const char* name) {
     return ChContainerSearchFromName<std::shared_ptr<ChLinkBase>, std::vector<std::shared_ptr<ChLinkBase>>::iterator>(
         name, linklist.begin(), linklist.end());
@@ -334,6 +394,9 @@ std::shared_ptr<ChPhysicsItem> ChAssembly::SearchOtherPhysicsItem(const char* na
 std::shared_ptr<ChPhysicsItem> ChAssembly::Search(const char* name) {
     if (auto mbo = SearchBody(name))
         return mbo;
+
+    if (auto msh = SearchShaft(name))
+        return msh;
 
     if (auto mli = SearchLink(name))
         return mli;
@@ -377,6 +440,9 @@ void ChAssembly::SetSystem(ChSystem* m_system) {
     for (auto& body : bodylist) {
         body->SetSystem(m_system);
     }
+    for (auto& shaft : shaftlist) {
+        shaft->SetSystem(m_system);
+    }
     for (auto& link : linklist) {
         link->SetSystem(m_system);
     }
@@ -391,6 +457,9 @@ void ChAssembly::SetSystem(ChSystem* m_system) {
 void ChAssembly::SyncCollisionModels() {
     for (auto& body : bodylist) {
         body->SyncCollisionModels();
+    }
+    for (auto& shaft : shaftlist) {
+        shaft->SyncCollisionModels();
     }
     for (auto& link : linklist) {
         link->SyncCollisionModels();
@@ -410,6 +479,9 @@ void ChAssembly::SetupInitial() {
     for (int ip = 0; ip < bodylist.size(); ++ip) {
         bodylist[ip]->SetupInitial();
     }
+    for (int ip = 0; ip < shaftlist.size(); ++ip) {
+        shaftlist[ip]->SetupInitial();
+    }
     for (int ip = 0; ip < linklist.size(); ++ip) {
         linklist[ip]->SetupInitial();
     }
@@ -427,6 +499,9 @@ void ChAssembly::Setup() {
     nbodies = 0;
     nbodies_sleep = 0;
     nbodies_fixed = 0;
+    nshafts = 0;
+    nshafts_sleep = 0;
+    nshafts_fixed = 0;
     ncoords = 0;
     ncoords_w = 0;
     ndoc = 0;
@@ -459,6 +534,28 @@ void ChAssembly::Setup() {
             ndoc_w += body->GetDOC();      // not really needed since ChBody introduces no constraints
             ndoc_w_C += body->GetDOC_c();  // not really needed since ChBody introduces no constraints
             ndoc_w_D += body->GetDOC_d();  // not really needed since ChBody introduces no constraints
+        }
+    }
+
+    for (auto& shaft : shaftlist) {
+        if (shaft->GetShaftFixed())
+            nshafts_fixed++;
+        else if (shaft->GetSleeping())
+            nshafts_sleep++;
+        else {
+            nshafts++;
+
+            shaft->SetOffset_x(this->offset_x + ncoords);
+            shaft->SetOffset_w(this->offset_w + ncoords_w);
+            shaft->SetOffset_L(this->offset_L + ndoc_w);
+
+            shaft->Setup();
+
+            ncoords += shaft->GetDOF();
+            ncoords_w += shaft->GetDOF_w();
+            ndoc_w += shaft->GetDOC();
+            ndoc_w_C += shaft->GetDOC_c();
+            ndoc_w_D += shaft->GetDOC_d();
         }
     }
 
@@ -535,6 +632,9 @@ void ChAssembly::Update(bool update_assets) {
     for (int ip = 0; ip < (int)bodylist.size(); ++ip) {
         bodylist[ip]->Update(ChTime, update_assets);
     }
+    for (int ip = 0; ip < (int)shaftlist.size(); ++ip) {
+        shaftlist[ip]->Update(ChTime, update_assets);
+    }
     for (int ip = 0; ip < (int)otherphysicslist.size(); ++ip) {
         otherphysicslist[ip]->Update(ChTime, update_assets);
     }
@@ -549,6 +649,9 @@ void ChAssembly::Update(bool update_assets) {
 void ChAssembly::SetNoSpeedNoAcceleration() {
     for (auto& body : bodylist) {
         body->SetNoSpeedNoAcceleration();
+    }
+    for (auto& shaft : shaftlist) {
+        shaft->SetNoSpeedNoAcceleration();
     }
     for (auto& link : linklist) {
         link->SetNoSpeedNoAcceleration();
@@ -572,6 +675,10 @@ void ChAssembly::IntStateGather(const unsigned int off_x,
     for (auto& body : bodylist) {
         if (body->IsActive())
             body->IntStateGather(displ_x + body->GetOffset_x(), x, displ_v + body->GetOffset_w(), v, T);
+    }
+    for (auto& shaft : shaftlist) {
+        if (shaft->IsActive())
+            shaft->IntStateGather(displ_x + shaft->GetOffset_x(), x, displ_v + shaft->GetOffset_w(), v, T);
     }
     for (auto& link : linklist) {
         if (link->IsActive())
@@ -609,6 +716,12 @@ void ChAssembly::IntStateScatter(const unsigned int off_x,
         else
             body->Update(T, full_update);
     }
+    for (auto& shaft : shaftlist) {
+        if (shaft->IsActive())
+            shaft->IntStateScatter(displ_x + shaft->GetOffset_x(), x, displ_v + shaft->GetOffset_w(), v, T, full_update);
+        else
+            shaft->Update(T, full_update);
+    }
     for (auto& mesh : meshlist) {
         mesh->IntStateScatter(displ_x + mesh->GetOffset_x(), x, displ_v + mesh->GetOffset_w(), v, T, full_update);
     }
@@ -631,6 +744,10 @@ void ChAssembly::IntStateGatherAcceleration(const unsigned int off_a, ChStateDel
         if (body->IsActive())
             body->IntStateGatherAcceleration(displ_a + body->GetOffset_w(), a);
     }
+    for (auto& shaft : shaftlist) {
+        if (shaft->IsActive())
+            shaft->IntStateGatherAcceleration(displ_a + shaft->GetOffset_w(), a);
+    }
     for (auto& link : linklist) {
         if (link->IsActive())
             link->IntStateGatherAcceleration(displ_a + link->GetOffset_w(), a);
@@ -650,6 +767,10 @@ void ChAssembly::IntStateScatterAcceleration(const unsigned int off_a, const ChS
     for (auto& body : bodylist) {
         if (body->IsActive())
             body->IntStateScatterAcceleration(displ_a + body->GetOffset_w(), a);
+    }
+    for (auto& shaft : shaftlist) {
+        if (shaft->IsActive())
+            shaft->IntStateScatterAcceleration(displ_a + shaft->GetOffset_w(), a);
     }
     for (auto& link : linklist) {
         if (link->IsActive())
@@ -671,6 +792,10 @@ void ChAssembly::IntStateGatherReactions(const unsigned int off_L, ChVectorDynam
         if (body->IsActive())
             body->IntStateGatherReactions(displ_L + body->GetOffset_L(), L);
     }
+    for (auto& shaft : shaftlist) {
+        if (shaft->IsActive())
+            shaft->IntStateGatherReactions(displ_L + shaft->GetOffset_L(), L);
+    }
     for (auto& link : linklist) {
         if (link->IsActive())
             link->IntStateGatherReactions(displ_L + link->GetOffset_L(), L);
@@ -690,6 +815,10 @@ void ChAssembly::IntStateScatterReactions(const unsigned int off_L, const ChVect
     for (auto& body : bodylist) {
         if (body->IsActive())
             body->IntStateScatterReactions(displ_L + body->GetOffset_L(), L);
+    }
+    for (auto& shaft : shaftlist) {
+        if (shaft->IsActive())
+            shaft->IntStateScatterReactions(displ_L + shaft->GetOffset_L(), L);
     }
     for (auto& link : linklist) {
         if (link->IsActive())
@@ -716,6 +845,11 @@ void ChAssembly::IntStateIncrement(const unsigned int off_x,
             body->IntStateIncrement(displ_x + body->GetOffset_x(), x_new, x, displ_v + body->GetOffset_w(), Dv);
     }
 
+    for (auto& shaft : shaftlist) {
+        if (shaft->IsActive())
+            shaft->IntStateIncrement(displ_x + shaft->GetOffset_x(), x_new, x, displ_v + shaft->GetOffset_w(), Dv);
+    }
+
     for (auto& link : linklist) {
         if (link->IsActive())
             link->IntStateIncrement(displ_x + link->GetOffset_x(), x_new, x, displ_v + link->GetOffset_w(), Dv);
@@ -740,6 +874,10 @@ void ChAssembly::IntLoadResidual_F(const unsigned int off,  ///< offset in R res
         if (body->IsActive())
             body->IntLoadResidual_F(displ_v + body->GetOffset_w(), R, c);
     }
+    for (auto& shaft : shaftlist) {
+        if (shaft->IsActive())
+            shaft->IntLoadResidual_F(displ_v + shaft->GetOffset_w(), R, c);
+    }
     for (auto& link : linklist) {
         if (link->IsActive())
             link->IntLoadResidual_F(displ_v + link->GetOffset_w(), R, c);
@@ -763,6 +901,10 @@ void ChAssembly::IntLoadResidual_Mv(const unsigned int off,      ///< offset in 
         if (body->IsActive())
             body->IntLoadResidual_Mv(displ_v + body->GetOffset_w(), R, w, c);
     }
+    for (auto& shaft : shaftlist) {
+        if (shaft->IsActive())
+            shaft->IntLoadResidual_Mv(displ_v + shaft->GetOffset_w(), R, w, c);
+    }
     for (auto& link : linklist) {
         if (link->IsActive())
             link->IntLoadResidual_Mv(displ_v + link->GetOffset_w(), R, w, c);
@@ -785,6 +927,10 @@ void ChAssembly::IntLoadResidual_CqL(const unsigned int off_L,    ///< offset in
     for (auto& body : bodylist) {
         if (body->IsActive())
             body->IntLoadResidual_CqL(displ_L + body->GetOffset_L(), R, L, c);
+    }
+    for (auto& shaft : shaftlist) {
+        if (shaft->IsActive())
+            shaft->IntLoadResidual_CqL(displ_L + shaft->GetOffset_L(), R, L, c);
     }
     for (auto& link : linklist) {
         if (link->IsActive())
@@ -810,6 +956,10 @@ void ChAssembly::IntLoadConstraint_C(const unsigned int off_L,  ///< offset in Q
         if (body->IsActive())
             body->IntLoadConstraint_C(displ_L + body->GetOffset_L(), Qc, c, do_clamp, recovery_clamp);
     }
+    for (auto& shaft : shaftlist) {
+        if (shaft->IsActive())
+            shaft->IntLoadConstraint_C(displ_L + shaft->GetOffset_L(), Qc, c, do_clamp, recovery_clamp);
+    }
     for (auto& link : linklist) {
         if (link->IsActive())
             link->IntLoadConstraint_C(displ_L + link->GetOffset_L(), Qc, c, do_clamp, recovery_clamp);
@@ -831,6 +981,10 @@ void ChAssembly::IntLoadConstraint_Ct(const unsigned int off_L,  ///< offset in 
     for (auto& body : bodylist) {
         if (body->IsActive())
             body->IntLoadConstraint_Ct(displ_L + body->GetOffset_L(), Qc, c);
+    }
+    for (auto& shaft : shaftlist) {
+        if (shaft->IsActive())
+            shaft->IntLoadConstraint_Ct(displ_L + shaft->GetOffset_L(), Qc, c);
     }
     for (auto& link : linklist) {
         if (link->IsActive())
@@ -856,6 +1010,11 @@ void ChAssembly::IntToDescriptor(const unsigned int off_v,
     for (auto& body : bodylist) {
         if (body->IsActive())
             body->IntToDescriptor(displ_v + body->GetOffset_w(), v, R, displ_L + body->GetOffset_L(), L, Qc);
+    }
+
+    for (auto& shaft : shaftlist) {
+        if (shaft->IsActive())
+            shaft->IntToDescriptor(displ_v + shaft->GetOffset_w(), v, R, displ_L + shaft->GetOffset_L(), L, Qc);
     }
 
     for (auto& link : linklist) {
@@ -884,6 +1043,11 @@ void ChAssembly::IntFromDescriptor(const unsigned int off_v,
             body->IntFromDescriptor(displ_v + body->GetOffset_w(), v, displ_L + body->GetOffset_L(), L);
     }
 
+    for (auto& shaft : shaftlist) {
+        if (shaft->IsActive())
+            shaft->IntFromDescriptor(displ_v + shaft->GetOffset_w(), v, displ_L + shaft->GetOffset_L(), L);
+    }
+
     for (auto& link : linklist) {
         if (link->IsActive())
             link->IntFromDescriptor(displ_v + link->GetOffset_w(), v, displ_L + link->GetOffset_L(), L);
@@ -904,6 +1068,9 @@ void ChAssembly::InjectVariables(ChSystemDescriptor& mdescriptor) {
     for (auto& body : bodylist) {
         body->InjectVariables(mdescriptor);
     }
+    for (auto& shaft : shaftlist) {
+        shaft->InjectVariables(mdescriptor);
+    }
     for (auto& link : linklist) {
         link->InjectVariables(mdescriptor);
     }
@@ -918,6 +1085,9 @@ void ChAssembly::InjectVariables(ChSystemDescriptor& mdescriptor) {
 void ChAssembly::VariablesFbReset() {
     for (auto& body : bodylist) {
         body->VariablesFbReset();
+    }
+    for (auto& shaft : shaftlist) {
+        shaft->VariablesFbReset();
     }
     for (auto& link : linklist) {
         link->VariablesFbReset();
@@ -934,6 +1104,9 @@ void ChAssembly::VariablesFbLoadForces(double factor) {
     for (auto& body : bodylist) {
         body->VariablesFbLoadForces(factor);
     }
+    for (auto& shaft : shaftlist) {
+        shaft->VariablesFbLoadForces(factor);
+    }
     for (auto& link : linklist) {
         link->VariablesFbLoadForces(factor);
     }
@@ -948,6 +1121,9 @@ void ChAssembly::VariablesFbLoadForces(double factor) {
 void ChAssembly::VariablesFbIncrementMq() {
     for (auto& body : bodylist) {
         body->VariablesFbIncrementMq();
+    }
+    for (auto& shaft : shaftlist) {
+        shaft->VariablesFbIncrementMq();
     }
     for (auto& link : linklist) {
         link->VariablesFbIncrementMq();
@@ -964,6 +1140,9 @@ void ChAssembly::VariablesQbLoadSpeed() {
     for (auto& body : bodylist) {
         body->VariablesQbLoadSpeed();
     }
+    for (auto& shaft : shaftlist) {
+        shaft->VariablesQbLoadSpeed();
+    }
     for (auto& link : linklist) {
         link->VariablesQbLoadSpeed();
     }
@@ -978,6 +1157,9 @@ void ChAssembly::VariablesQbLoadSpeed() {
 void ChAssembly::VariablesQbSetSpeed(double step) {
     for (auto& body : bodylist) {
         body->VariablesQbSetSpeed(step);
+    }
+    for (auto& shaft : shaftlist) {
+        shaft->VariablesQbSetSpeed(step);
     }
     for (auto& link : linklist) {
         link->VariablesQbSetSpeed(step);
@@ -994,6 +1176,9 @@ void ChAssembly::VariablesQbIncrementPosition(double dt_step) {
     for (auto& body : bodylist) {
         body->VariablesQbIncrementPosition(dt_step);
     }
+    for (auto& shaft : shaftlist) {
+        shaft->VariablesQbIncrementPosition(dt_step);
+    }
     for (auto& link : linklist) {
         link->VariablesQbIncrementPosition(dt_step);
     }
@@ -1008,6 +1193,9 @@ void ChAssembly::VariablesQbIncrementPosition(double dt_step) {
 void ChAssembly::InjectConstraints(ChSystemDescriptor& mdescriptor) {
     for (auto& body : bodylist) {
         body->InjectConstraints(mdescriptor);
+    }
+    for (auto& shaft : shaftlist) {
+        shaft->InjectConstraints(mdescriptor);
     }
     for (auto& link : linklist) {
         link->InjectConstraints(mdescriptor);
@@ -1024,6 +1212,9 @@ void ChAssembly::ConstraintsBiReset() {
     for (auto& body : bodylist) {
         body->ConstraintsBiReset();
     }
+    for (auto& shaft : shaftlist) {
+        shaft->ConstraintsBiReset();
+    }
     for (auto& link : linklist) {
         link->ConstraintsBiReset();
     }
@@ -1038,6 +1229,9 @@ void ChAssembly::ConstraintsBiReset() {
 void ChAssembly::ConstraintsBiLoad_C(double factor, double recovery_clamp, bool do_clamp) {
     for (auto& body : bodylist) {
         body->ConstraintsBiLoad_C(factor, recovery_clamp, do_clamp);
+    }
+    for (auto& shaft : shaftlist) {
+        shaft->ConstraintsBiLoad_C(factor, recovery_clamp, do_clamp);
     }
     for (auto& link : linklist) {
         link->ConstraintsBiLoad_C(factor, recovery_clamp, do_clamp);
@@ -1054,6 +1248,9 @@ void ChAssembly::ConstraintsBiLoad_Ct(double factor) {
     for (auto& body : bodylist) {
         body->ConstraintsBiLoad_Ct(factor);
     }
+    for (auto& shaft : shaftlist) {
+        shaft->ConstraintsBiLoad_Ct(factor);
+    }
     for (auto& link : linklist) {
         link->ConstraintsBiLoad_Ct(factor);
     }
@@ -1068,6 +1265,9 @@ void ChAssembly::ConstraintsBiLoad_Ct(double factor) {
 void ChAssembly::ConstraintsBiLoad_Qc(double factor) {
     for (auto& body : bodylist) {
         body->ConstraintsBiLoad_Qc(factor);
+    }
+    for (auto& shaft : shaftlist) {
+        shaft->ConstraintsBiLoad_Qc(factor);
     }
     for (auto& link : linklist) {
         link->ConstraintsBiLoad_Qc(factor);
@@ -1084,6 +1284,9 @@ void ChAssembly::ConstraintsFbLoadForces(double factor) {
     for (auto& body : bodylist) {
         body->ConstraintsFbLoadForces(factor);
     }
+    for (auto& shaft : shaftlist) {
+        shaft->ConstraintsFbLoadForces(factor);
+    }
     for (auto& link : linklist) {
         link->ConstraintsFbLoadForces(factor);
     }
@@ -1098,6 +1301,9 @@ void ChAssembly::ConstraintsFbLoadForces(double factor) {
 void ChAssembly::ConstraintsLoadJacobians() {
     for (auto& body : bodylist) {
         body->ConstraintsLoadJacobians();
+    }
+    for (auto& shaft : shaftlist) {
+        shaft->ConstraintsLoadJacobians();
     }
     for (auto& link : linklist) {
         link->ConstraintsLoadJacobians();
@@ -1114,6 +1320,9 @@ void ChAssembly::ConstraintsFetch_react(double factor) {
     for (auto& body : bodylist) {
         body->ConstraintsFetch_react(factor);
     }
+    for (auto& shaft : shaftlist) {
+        shaft->ConstraintsFetch_react(factor);
+    }
     for (auto& link : linklist) {
         link->ConstraintsFetch_react(factor);
     }
@@ -1129,6 +1338,9 @@ void ChAssembly::InjectKRMmatrices(ChSystemDescriptor& mdescriptor) {
     for (auto& body : bodylist) {
         body->InjectKRMmatrices(mdescriptor);
     }
+    for (auto& shaft : shaftlist) {
+        shaft->InjectKRMmatrices(mdescriptor);
+    }
     for (auto& link : linklist) {
         link->InjectKRMmatrices(mdescriptor);
     }
@@ -1143,6 +1355,9 @@ void ChAssembly::InjectKRMmatrices(ChSystemDescriptor& mdescriptor) {
 void ChAssembly::KRMmatricesLoad(double Kfactor, double Rfactor, double Mfactor) {
     for (auto& body : bodylist) {
         body->KRMmatricesLoad(Kfactor, Rfactor, Mfactor);
+    }
+    for (auto& shaft : shaftlist) {
+        shaft->KRMmatricesLoad(Kfactor, Rfactor, Mfactor);
     }
     for (auto& link : linklist) {
         link->KRMmatricesLoad(Kfactor, Rfactor, Mfactor);
@@ -1176,9 +1391,14 @@ void ChAssembly::ShowHierarchy(ChStreamOutAscii& m_file, int level) const {
         }
     }
 
+    m_file << "\n" << mtabs << "List of the " << (int)shaftlist.size() << " added shafts: \n";
+    for (auto& shaft : shaftlist) {
+        m_file << mtabs << "  SHAFT:      " << shaft->GetName() << "\n";
+    }
+
     m_file << "\n" << mtabs << "List of the " << (int)linklist.size() << " added links: \n";
     for (auto& link : linklist) {
-        m_file << mtabs << "  LINK:  " << link->GetName() << " [" << typeid(link.get()).name() << "]\n";
+        m_file << mtabs << "  LINK:       " << link->GetName() << " [" << typeid(link.get()).name() << "]\n";
         if (auto malink = std::dynamic_pointer_cast<ChLinkMarkers>(link)) {
             if (malink->GetMarker1())
                 m_file << mtabs << "    marker1:  " << malink->GetMarker1()->GetName() << "\n";
@@ -1189,12 +1409,12 @@ void ChAssembly::ShowHierarchy(ChStreamOutAscii& m_file, int level) const {
 
     m_file << "\n" << mtabs << "List of the " << (int)meshlist.size() << " added meshes: \n";
     for (auto& mesh : meshlist) {
-        m_file << mtabs << "  MESH :   " << mesh->GetName() << "\n";
+        m_file << mtabs << "  MESH :      " << mesh->GetName() << "\n";
     }
 
     m_file << "\n" << mtabs << "List of other " << (int)otherphysicslist.size() << " added physic items: \n";
     for (auto& item : otherphysicslist) {
-        m_file << mtabs << "  PHYSIC ITEM :   " << item->GetName() << " [" << typeid(item.get()).name() << "]\n";
+        m_file << mtabs << "  PHYSIC ITEM: " << item->GetName() << " [" << typeid(item.get()).name() << "]\n";
 
         // recursion:
         if (auto assem = std::dynamic_pointer_cast<ChAssembly>(item))
@@ -1214,6 +1434,7 @@ void ChAssembly::ArchiveOUT(ChArchiveOut& marchive) {
     // serialize all member data:
 
     marchive << CHNVP(bodylist, "bodies");
+    marchive << CHNVP(shaftlist, "shafts");
     marchive << CHNVP(linklist, "links");
     marchive << CHNVP(meshlist, "meshes");
     marchive << CHNVP(otherphysicslist, "other_physics_items");
