@@ -18,7 +18,7 @@
 // =============================================================================
 
 #include <algorithm>
-
+#include <Eigen/Core>
 #include "chrono/physics/ChSystemPBD.h"
 #include "chrono/physics/ChContactContainerPBD.h"
 #include "chrono/physics/ChContactContainerNSC.h"
@@ -210,6 +210,7 @@ void ChSystemPBD::SetupInitial() {
     size_t n = Get_bodylist().size();
     x_prev.resize(n);
     q_prev.resize(n);
+    shaft_prev.resize(n);
 }
 
 void ChSystemPBD::SolvePositions() {
@@ -298,6 +299,17 @@ void ChSystemPBD::Advance() {
             qnew.Normalize();
             body->SetRot(qnew);
         }
+        for (int i = 0; i < shaftlistPBD.size(); i++) {
+            std::shared_ptr<ChShaft> sh = shaftlistPBD[i];
+            double thetainit = sh->GetPos();
+            double omegadot = sh->GetAppliedTorque() / sh->GetInertia();
+            // sh->SetPos_dtdt(omegadot);
+            double omega = sh->GetPos_dt() + omegadot * h;
+            sh->SetPos_dt(omega);
+            double theta = thetainit + omega * h;
+            sh->SetPos(theta);
+            shaft_prev(i) = thetainit;
+        }
         // Correct positions to respect constraints. "numPosIters"set to 1 according to the paper
         SolvePositions();
         SolveContacts(h);
@@ -321,6 +333,14 @@ void ChSystemPBD::Advance() {
         // Scatter updated state
         // Similarly we contraint normal (and, if static, tangential) displacement in contacts
         SolveVelocities(h);
+
+        for (int i = 0; i < shaftlistPBD.size(); i++) {
+            std::shared_ptr<ChShaft> sh = shaftlistPBD[i];
+            double thetainit = shaft_prev(i, 0);
+            double thetanew = sh->GetPos();
+            double omega = (thetanew - thetainit) / h;
+            sh->SetPos_dt(omega);
+        }
 
         T += h;
     }

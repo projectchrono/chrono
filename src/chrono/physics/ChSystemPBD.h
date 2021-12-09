@@ -109,6 +109,8 @@ class ChApi ChSystemPBD : public ChSystem {
 
 	std::vector < ChVector<>> x_prev;
 	std::vector < ChQuaternion<>> q_prev;
+	// N x 2 matrix, the i-th row holds the previous theta and omega of the i-th shaft
+    ChVectorDynamic<> shaft_prev;
 
 
 	ChState sys_state;
