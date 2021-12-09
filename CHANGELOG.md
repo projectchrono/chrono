@@ -5,6 +5,7 @@ Change Log
 ==========
 
 - [Unreleased (development version)](#unreleased-development-branch)
+  - [Translational and rotational spring-damper-actuators](#changed-translational-and-rotational-spring-damper-actuators)
   - [Refactor Chrono::Vehicle suspension test rigs](#changed-refactor-chronovehicle-suspension-test-rigs)
 - [Release 7.0.0](#release-700---2021-11-15) 
   - [DDS communicator in Chrono::Synchrono module](#added-dds-communicator-in-chronosynchrono-module)
@@ -55,6 +56,13 @@ Change Log
 - [Release 4.0.0](#release-400---2019-02-22)
 
 ## Unreleased (development branch)
+
+### [Changed] Translational and rotational spring-damper-actuators
+
+- The classes `ChLinkSpring` and `ChLinkSpringCB` were obsoleted, with their functionality superseded by `ChLinkTSDA`.  
+- For consistency, the class `ChLinkRotSpringCB` was renamed to `ChLinkRSDA`.
+
+Both `ChLinkTSDA` and `ChLinkRSDA` default to a linear spring-damper model, but an arbitrary user-defined spring-damper-actuation force can be implemented through functor classes (`ChLinkTSDA::ForceFunctor` and `ChLinkRSDA::TorqueFunctor`, respectively).  When using the PyChrono python wrappers, these functor classes are named `ForceFunctor` and `TorqueFunctor`. When using the C# wrappers, these functor classes are inherited as outside classes named `TSDAForceFunctor` and `RSDATorqueFunctor`, respectively.
 
 ### [Changed] Refactor Chrono::Vehicle suspension test rigs
 
