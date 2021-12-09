@@ -16,7 +16,7 @@
 
 /**
     @defgroup csharp_module C# module
-    @brief Parsing of Python commands 
+    @brief Chrono C# wrappers 
 
     This module generates the C# interface to selected Chrono functionality.
     This allows using Chrono in a C# program and facilitates interfacing to Unity3D.
