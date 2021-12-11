@@ -590,7 +590,7 @@ namespace chrono {
         alpha = PBDsys->link_compl;
     };
 
-	ChLinkPBD::ChLinkPBD(ChBody* body1, ChBody* body2, ChFrame<>& fr1, ChFrame<>& fr2, 
+	ChLinkPBD::ChLinkPBD(ChBody* body1, ChBody* body2, const ChFrame<>& fr1, const ChFrame<>& fr2, 
 						bool mmask[6], ChSystemPBD* sys, double impdist, std::shared_ptr<ChFunction> motfun) : ChLinkPBD(sys) {
 
         alpha = PBDsys->link_compl;
