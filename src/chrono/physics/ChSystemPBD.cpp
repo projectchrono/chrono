@@ -195,7 +195,7 @@ void ChSystemPBD::SetupInitial() {
             auto pbdlink = chrono_types::make_shared<ChLinkPBDDistance>(linkdist, this);
             linklistPBD.push_back(pbdlink);
         } else if (dynamic_cast<const ChLinkTSDA*>(value.get()) != nullptr ||
-                   dynamic_cast<const ChLinkRotSpringCB*>(value.get()) != nullptr) {
+                   dynamic_cast<const ChLinkRSDA*>(value.get()) != nullptr) {
             continue;
         } else {
 			std::cout << "Link not managed by PBD implementation\n";
@@ -210,7 +210,8 @@ void ChSystemPBD::SetupInitial() {
     size_t n = Get_bodylist().size();
     x_prev.resize(n);
     q_prev.resize(n);
-    shaft_prev.resize(n);
+    shaft_prev.resize(Get_shaftlist().size());
+    PopulateShaftCouplingPBD(shaftcouplelistPBD, Get_otherphysicslist(), this);
 }
 
 void ChSystemPBD::SolvePositions() {
@@ -224,6 +225,13 @@ void ChSystemPBD::SolveContacts(double h) {
     //#pragma omp parallel for
     for (int i = 0; i < n; i++) {
         contactlistPBD[i]->SolveContactPositions();
+    }
+}
+
+void ChSystemPBD::SolveShaftCouplings() {
+    
+    for (auto coupl : shaftcouplelistPBD) {
+        coupl->SolveShaftCoupling();
     }
 }
 
@@ -299,8 +307,8 @@ void ChSystemPBD::Advance() {
             qnew.Normalize();
             body->SetRot(qnew);
         }
-        for (int i = 0; i < shaftlistPBD.size(); i++) {
-            std::shared_ptr<ChShaft> sh = shaftlistPBD[i];
+        for (int sh_id = 0; sh_id < Get_shaftlist().size(); sh_id++) {
+            std::shared_ptr<ChShaft> sh = Get_shaftlist()[sh_id];
             double thetainit = sh->GetPos();
             double omegadot = sh->GetAppliedTorque() / sh->GetInertia();
             // sh->SetPos_dtdt(omegadot);
@@ -308,11 +316,12 @@ void ChSystemPBD::Advance() {
             sh->SetPos_dt(omega);
             double theta = thetainit + omega * h;
             sh->SetPos(theta);
-            shaft_prev(i) = thetainit;
+            shaft_prev(sh_id) = thetainit;
         }
         // Correct positions to respect constraints. "numPosIters"set to 1 according to the paper
         SolvePositions();
         SolveContacts(h);
+        SolveShaftCouplings();
 
         // Update velocities to take corrected positions into account
         //#pragma omp parallel for
@@ -334,9 +343,9 @@ void ChSystemPBD::Advance() {
         // Similarly we contraint normal (and, if static, tangential) displacement in contacts
         SolveVelocities(h);
 
-        for (int i = 0; i < shaftlistPBD.size(); i++) {
-            std::shared_ptr<ChShaft> sh = shaftlistPBD[i];
-            double thetainit = shaft_prev(i, 0);
+        for (int sh_id = 0; sh_id < Get_shaftlist().size(); sh_id++) {
+            std::shared_ptr<ChShaft> sh = Get_shaftlist()[sh_id];
+            double thetainit = shaft_prev(sh_id);
             double thetanew = sh->GetPos();
             double omega = (thetanew - thetainit) / h;
             sh->SetPos_dt(omega);

@@ -27,6 +27,8 @@ namespace chrono {
 
 	ChPBDShaftsCoupleGear::ChPBDShaftsCoupleGear(ChSystemPBD* sys, ChShaftsGear* gear)
     : shaftGear(gear), ChPBDShaftsCouple(sys, gear->GetShaft1(), gear->GetShaft2()) {}
+
+
 	void ChPBDShaftsCoupleGear::SolveShaftCoupling() {
 	
 	    double C = shaftGear->GetTransmissionRatio() * (shaft1->GetPos()) - (this->shaft2->GetPos());
@@ -39,11 +41,22 @@ namespace chrono {
             lambda += delta_lambda;
 
             shaft1->SetPos(shaft1->GetPos() + delta_lambda * w1);
-            shaft1->SetPos(shaft1->GetPos() - delta_lambda * w2);
+            shaft2->SetPos(shaft2->GetPos() - delta_lambda * w2);
 
         }
 	}
 
+
+    void PopulateShaftCouplingPBD(std::vector<std::shared_ptr<ChPBDShaftsCouple>>& listPBD,
+        const std::vector<std::shared_ptr<ChPhysicsItem>>& otherlist, ChSystemPBD* sys) {
+        for (auto& physobj : otherlist) {
+            if (dynamic_cast<const ChShaftsGear*>(physobj.get()) != nullptr) {
+                ChShaftsGear* gear = dynamic_cast<ChShaftsGear*>(physobj.get());
+                auto gearPBD = chrono_types::make_shared<ChPBDShaftsCoupleGear>(sys, gear);
+                listPBD.push_back(gearPBD);
+            }
+        }
+    }
 
 }
 

@@ -22,7 +22,7 @@
 
 #include "chrono/physics/ChSystem.h"
 #include "chrono/physics/ChPBDLinks.h"
-#include "chrono/physics/ChShaft.h"
+#include "chrono/physics/ChPBDShaftsCouple.h"
 
 namespace chrono {
 
@@ -84,6 +84,9 @@ class ChApi ChSystemPBD : public ChSystem {
 	/// Correct the state according to the contacts by performing SolveContacts on each contact
 	void SolveContacts(double h);
 
+	/// Correct the shaft states according to the contacts by performing SolveContacts on each contact
+    void SolveShaftCouplings();
+
 	/// Correct the state derivative according to the contacts by performing SolveVelocity on each contact
 	void SolveVelocities(double h);
 
@@ -104,8 +107,7 @@ class ChApi ChSystemPBD : public ChSystem {
 	/// Lists of links and contacts usable by PBD formulation
 	std::vector<std::shared_ptr< ChLinkPBD> > linklistPBD;
 	std::vector<std::shared_ptr<ChContactPBD>> contactlistPBD;
-    std::vector<std::shared_ptr<ChShaft>> shaftlistPBD;
-	//std::vector<std::shared_ptr<ChShaftsCouplePBD>> shaftcouplelistPBD;
+    std::vector<std::shared_ptr<ChPBDShaftsCouple>> shaftcouplelistPBD;
 
 	std::vector < ChVector<>> x_prev;
 	std::vector < ChQuaternion<>> q_prev;

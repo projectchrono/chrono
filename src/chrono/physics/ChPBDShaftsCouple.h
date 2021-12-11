@@ -70,6 +70,13 @@ namespace chrono {
 		  
     };
 
+
+
+
+	void PopulateShaftCouplingPBD(std::vector<std::shared_ptr<ChPBDShaftsCouple>>& listPBD,
+                                  const std::vector<std::shared_ptr<ChPhysicsItem>>& otherlist,
+                                  ChSystemPBD* sys);
+
 	
 }  // end namespace chrono
 
