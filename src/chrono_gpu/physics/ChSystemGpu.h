@@ -224,6 +224,9 @@ class CH_GPU_API ChSystemGpu {
     /// Write contact info file.
     void WriteContactInfoFile(std::string ofile) const;
 
+    void SetBDCenter(const ChVector<float>& O);
+
+
     /// Roughly estimate of the total amount of memory used by the system.
     size_t EstimateMemUsage() const;
 
@@ -328,7 +331,6 @@ class CH_GPU_API ChSystemGpuMesh : public ChSystemGpu {
     /// Set the center of the big box domain, relative to the origin of the coordinate system (default: [0,0,0]).
     /// Note that the domain is always axis-aligned. The user must make sure that all simulation information (particle
     /// locations, boundaries, meshes...) is consistent with this domain.
-    void SetBDCenter(const ChVector<float>& O);
 
   private:
     CHGPU_MESH_VERBOSITY mesh_verbosity;  ///< mesh operations verbosity level
