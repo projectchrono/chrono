@@ -24,6 +24,14 @@
 
 namespace chrono {
 
+    double ChPBDShaftsCouple::GetShaftInvI(ChShaft* shaft) {
+    if (shaft->GetShaftFixed()) {
+        return 0;
+    } else
+        return 1 / shaft->GetInertia();
+
+}
+
 ChPBDShaftsCoupleGear::ChPBDShaftsCoupleGear(ChSystemPBD* sys, ChShaftsGear* gear)
     : shaftGear(gear), ChPBDShaftsCouple(sys, gear->GetShaft1(), gear->GetShaft2()) {}
 
@@ -31,8 +39,8 @@ void ChPBDShaftsCoupleGear::SolveShaftCoupling() {
     double C = shaftGear->GetTransmissionRatio() * (shaft1->GetPos()) - (this->shaft2->GetPos());
     if (abs(C) > 0) {
         double alpha_hat = alpha / pow(PBDsys->Get_h(), 2);
-        double w1 = 1 / shaft1->GetInertia();
-        double w2 = 1 / shaft2->GetInertia();
+        double w1 = GetShaftInvI(shaft1);
+        double w2 = GetShaftInvI(shaft2);
 
         double delta_lambda = -(C + alpha_hat * lambda) / (w1 + w2 + alpha_hat);
         lambda += delta_lambda;
@@ -54,8 +62,8 @@ void ChPBDShaftsCoupleClutch::SolveShaftCoupling() {
         double minT = clutchptr->GetTorqueLimitB();
         double maxT = clutchptr->GetTorqueLimitF();
         double alpha_hat = alpha / h_sqrd;
-        double w1 = 1 / shaft1->GetInertia();
-        double w2 = 1 / shaft2->GetInertia();
+        double w1 = GetShaftInvI(shaft1);
+        double w2 = GetShaftInvI(shaft2);
 
         double delta_lambda = -(C + alpha_hat * lambda) / (w1 + w2 + alpha_hat);
         delta_lambda = ChClamp(delta_lambda, h_sqrd * minT * modulation, h_sqrd * maxT * modulation);

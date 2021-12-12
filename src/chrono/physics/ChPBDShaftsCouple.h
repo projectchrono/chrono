@@ -47,6 +47,9 @@ namespace chrono {
 	  // Will evaluate the violation and apply torque on the connected elements. Inherited classes will implement it. 
 	  virtual void SolveShaftCoupling() = 0;
 
+      // Shortcut to set shaft mass to 0 if fized, 1/I othewise
+      double GetShaftInvI(ChShaft* shaft);
+
     protected:
         ChShaft* shaft1;
         ChShaft* shaft2;

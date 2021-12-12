@@ -229,7 +229,6 @@ void ChSystemPBD::SolveContacts(double h) {
 }
 
 void ChSystemPBD::SolveShaftCouplings() {
-    
     for (auto coupl : shaftcouplelistPBD) {
         coupl->SolveShaftCoupling();
     }
@@ -309,6 +308,9 @@ void ChSystemPBD::Advance() {
         }
         for (int sh_id = 0; sh_id < Get_shaftlist().size(); sh_id++) {
             std::shared_ptr<ChShaft> sh = Get_shaftlist()[sh_id];
+            if (sh->GetShaftFixed()) {
+                continue;
+            }
             double thetainit = sh->GetPos();
             double omegadot = sh->GetAppliedTorque() / sh->GetInertia();
             // sh->SetPos_dtdt(omegadot);
@@ -345,6 +347,9 @@ void ChSystemPBD::Advance() {
 
         for (int sh_id = 0; sh_id < Get_shaftlist().size(); sh_id++) {
             std::shared_ptr<ChShaft> sh = Get_shaftlist()[sh_id];
+            if (sh->GetShaftFixed()) {
+                continue;
+            }
             double thetainit = shaft_prev(sh_id);
             double thetanew = sh->GetPos();
             double omega = (thetanew - thetainit) / h;
