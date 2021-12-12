@@ -58,7 +58,7 @@ int main(int argc, char* argv[]) {
 
     float iteration_step = params.step_size;
 
-    ChSystemGpuMesh gpu_sys(params.sphere_radius, params.sphere_density, make_float3(Bx, By, Bz));
+    ChSystemGpuMesh gpu_sys(params.sphere_radius, params.sphere_density, make_float3(Bx, By, Bz), make((float)0., (float)0., (float)0.));
 
     gpu_sys.SetKn_SPH2SPH(params.normalStiffS2S);
     gpu_sys.SetKn_SPH2WALL(params.normalStiffS2W);
