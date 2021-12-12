@@ -37,12 +37,15 @@ size_t gran_approx_bytes_used = 0;
 namespace chrono {
 namespace gpu {
 
-ChSystemGpu_impl::ChSystemGpu_impl(float sphere_rad, float density, float3 boxDims)
+ChSystemGpu_impl::ChSystemGpu_impl(float sphere_rad, float density, float3 boxDims, float3 O=(0,0,0))
     : sphere_radius_UU(sphere_rad),
       sphere_density_UU(density),
       box_size_X(boxDims.x),
       box_size_Y(boxDims.y),
       box_size_Z(boxDims.z),
+      user_coord_O_X(O.x),
+      user_coord_O_Y(O.y),
+      user_coord_O_Z(O.z),
       stepSize_UU(1e-4f),
       nSpheres(0),
       elapsedSimTime(0.f),
@@ -97,12 +100,12 @@ ChSystemGpu_impl::ChSystemGpu_impl(float sphere_rad, float density, float3 boxDi
 }
 
 void ChSystemGpu_impl::CreateWallBCs() {
-    float plane_center_bot_X[3] = {-box_size_X / 2, 0, 0};
-    float plane_center_top_X[3] = {box_size_X / 2, 0, 0};
-    float plane_center_bot_Y[3] = {0, -box_size_Y / 2, 0};
-    float plane_center_top_Y[3] = {0, box_size_Y / 2, 0};
-    float plane_center_bot_Z[3] = {0, 0, -box_size_Z / 2};
-    float plane_center_top_Z[3] = {0, 0, box_size_Z / 2};
+    float plane_center_bot_X[3] = {-box_size_X / 2.f + user_coord_O_X, 0, 0};
+    float plane_center_top_X[3] = {box_size_X / 2.f + user_coord_O_X, 0, 0};
+    float plane_center_bot_Y[3] = {0, -box_size_Y / 2.f + user_coord_O_Y, 0};
+    float plane_center_top_Y[3] = {0, box_size_Y / 2.f + user_coord_O_Y, 0};
+    float plane_center_bot_Z[3] = {0, 0, -box_size_Z / 2.f + user_coord_O_Z};
+    float plane_center_top_Z[3] = {0, 0, box_size_Z / 2.f + user_coord_O_Z};
     // face in upwards
     float plane_normal_bot_X[3] = {1, 0, 0};
     float plane_normal_top_X[3] = {-1, 0, 0};
@@ -1072,9 +1075,9 @@ void ChSystemGpu_impl::partitionBD() {
 
     // Place BD frame at bottom-left corner, one half-length in each direction
     // Can change later if desired
-    gran_params->BD_frame_X = (int64_t)(-0.5 * ((int64_t)nSDs_X * SD_size_X));
-    gran_params->BD_frame_Y = (int64_t)(-0.5 * ((int64_t)nSDs_Y * SD_size_Y));
-    gran_params->BD_frame_Z = (int64_t)(-0.5 * ((int64_t)nSDs_Z * SD_size_Z));
+    gran_params->BD_frame_X = (int64_t)(-0.5 * ((int64_t)nSDs_X * SD_size_X) + (double)user_coord_O_X / LENGTH_SU2UU);
+    gran_params->BD_frame_Y = (int64_t)(-0.5 * ((int64_t)nSDs_Y * SD_size_Y) + (double)user_coord_O_Y / LENGTH_SU2UU);
+    gran_params->BD_frame_Z = (int64_t)(-0.5 * ((int64_t)nSDs_Z * SD_size_Z) + (double)user_coord_O_Z / LENGTH_SU2UU);
 
     // permanently cache the initial frame
     BD_rest_frame_SU = make_longlong3(gran_params->BD_frame_X, gran_params->BD_frame_Y, gran_params->BD_frame_Z);

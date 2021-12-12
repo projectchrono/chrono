@@ -676,6 +676,11 @@ class ChSystemGpu_impl {
     /// Z-length of the big domain; defines the global Z axis located at the CM of the box
     const float box_size_Z;
 
+    /// User-provided XYZ coordinate of the center of the big box domain in the user-defined frame. Default is (0,0,0).
+    float user_coord_O_X;
+    float user_coord_O_Y;
+    float user_coord_O_Z;
+
     /// User-provided sphere positions in UU
     std::vector<float3> user_sphere_positions;
 
