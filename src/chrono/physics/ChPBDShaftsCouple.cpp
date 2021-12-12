@@ -99,6 +99,17 @@ void ChPBDShaftsCouplePlanetary::SolveShaftCoupling() {
     }
 }
 
+ChPBDShaftsCoupleTorque::ChPBDShaftsCoupleTorque(ChSystemPBD* sys, ChShaftsTorqueBase* torquelink)
+    : shaftTorqueptr(torquelink), ChPBDShaftsCouple(sys, torquelink->GetShaft1(), torquelink->GetShaft2()) {}
+
+void ChPBDShaftsCoupleTorque::SolveShaftCoupling() {
+    double torque = shaftTorqueptr->ComputeTorque();
+    double torque2 = shaftTorqueptr->GetTorqueReactionOn1();
+    shaft1->SetAppliedTorque(shaft1->GetAppliedTorque() + (torque - torqueOld));
+    shaft2->SetAppliedTorque(shaft2->GetAppliedTorque() - (torque - torqueOld));
+    torqueOld = torque;
+}
+
 void PopulateShaftCouplingPBD(std::vector<std::shared_ptr<ChPBDShaftsCouple>>& listPBD,
                               const std::vector<std::shared_ptr<ChPhysicsItem>>& otherlist,
                               ChSystemPBD* sys) {
@@ -117,6 +128,11 @@ void PopulateShaftCouplingPBD(std::vector<std::shared_ptr<ChPBDShaftsCouple>>& l
             ChShaftsPlanetary* planetary = dynamic_cast<ChShaftsPlanetary*>(physobj.get());
             auto planetaryPBD = chrono_types::make_shared<ChPBDShaftsCouplePlanetary>(sys, planetary);
             listPBD.push_back(planetaryPBD);
+        }
+        if (dynamic_cast<const ChShaftsTorqueBase*>(physobj.get()) != nullptr) {
+            ChShaftsTorqueBase* shaftTorque = dynamic_cast<ChShaftsTorqueBase*>(physobj.get());
+            auto shaftTorquePBD = chrono_types::make_shared<ChPBDShaftsCoupleTorque>(sys, shaftTorque);
+            listPBD.push_back(shaftTorquePBD);
         }
     }
 }

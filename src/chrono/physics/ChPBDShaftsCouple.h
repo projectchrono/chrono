@@ -24,6 +24,7 @@
 #include "chrono/physics/ChShaftsGear.h"
 #include "chrono/physics/ChShaftsClutch.h"
 #include "chrono/physics/ChShaftsPlanetary.h"
+#include "chrono/physics/ChShaftsTorqueBase.h"
 
 namespace chrono {
 	
@@ -57,8 +58,6 @@ namespace chrono {
 		// shaft couplings in PBD are violation-based like links, just 1-dimensional
         double alpha = 0;
         double lambda = 0;
-		
-	 
 	};
 
 //CH_CLASS_VERSION(ChPBDShaftsCouple, 0)
@@ -67,7 +66,7 @@ namespace chrono {
       public:
         /// Create a LinkPBD
         ChPBDShaftsCoupleGear(ChSystemPBD* sys, ChShaftsGear* gear);
-		// Will evaluate the violation and apply torque on the connected elements. Inherited classes will implement it.
+        // Solves constraint
         void SolveShaftCoupling() override;
 
       private:
@@ -79,7 +78,7 @@ namespace chrono {
       public:
         /// Create a LinkPBD
         ChPBDShaftsCoupleClutch(ChSystemPBD* sys, ChShaftsClutch* clutch);
-        // Will evaluate the violation and apply torque on the connected elements. Inherited classes will implement it.
+        // Solves constraint
         void SolveShaftCoupling() override;
 
       private:
@@ -91,13 +90,27 @@ namespace chrono {
       public:
         /// Create a LinkPBD
         ChPBDShaftsCouplePlanetary(ChSystemPBD* sys, ChShaftsPlanetary* planetary);
-        // Will evaluate the violation and apply torque on the connected elements. Inherited classes will implement it.
+        // Solves constraint
         void SolveShaftCoupling() override;
 
       private:
         ChShaftsPlanetary* planetaryptr;
         ChShaft* shaft3;
         double lambda2 = 0;
+    };
+
+    class ChApi ChPBDShaftsCoupleTorque: public ChPBDShaftsCouple {
+      public:
+        /// Create a LinkPBD
+        ChPBDShaftsCoupleTorque(ChSystemPBD* sys, ChShaftsTorqueBase* torquelink);
+        // Applies torque (calculated during Update) to the shafts
+        void SolveShaftCoupling() override;
+
+      private:
+        ChShaftsTorqueBase* shaftTorqueptr;
+        // We store the old value to subtract it before adding the new one. 
+        // If we just set torque we might override any other torque acting on the shaft
+        double torqueOld = 0;
     };
 
 	void PopulateShaftCouplingPBD(std::vector<std::shared_ptr<ChPBDShaftsCouple>>& listPBD,

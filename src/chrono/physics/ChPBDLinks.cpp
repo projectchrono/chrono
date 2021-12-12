@@ -104,7 +104,6 @@ namespace chrono {
 			ChVector<> nt = M*n_loc;
 			double C = nt.Length();
 			if (dist_constr){
-                return;
 				if (displ_actuated)
 					dist = motor_func->Get_y(PBDsys->T);
 				C -= dist;
