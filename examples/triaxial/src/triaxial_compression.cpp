@@ -65,7 +65,7 @@ int main(int argc, char* argv[]) {
     std::cout << "Box Dims: " << Bx << " " << By << " " << Bz << std::endl;
 
     float iteration_step = params.step_size;
-    ChSystemGpuMesh gpu_sys(params.sphere_radius, params.sphere_density, float3(Bx, By, Bz));
+    ChSystemGpuMesh gpu_sys(params.sphere_radius, params.sphere_density, (Bx, By, Bz));
 
 
     // One thing we can do is to move the Big Box Domain by (X/2, Y/2, Z/2) using SetBDCenter, so the
@@ -99,8 +99,15 @@ int main(int argc, char* argv[]) {
         initialVelo.push_back(velo);
     }
 
+    // create initial angular velocity vector
+    std::vector<ChVector<float>> initialAnglVelo;
+    for (size_t i = 0; i < numSpheres; i++) {
+        ChVector<float> velo(0, 0, 0); //TODO
+        initialAnglVelo.push_back(velo);
+    }
+
     // assign initial position and velocity to the granular system
-    gpu_sys.SetParticles(initialPos, initialVelo);
+    gpu_sys.SetParticlePositions(initialPos, initialVelo, initialAnglVelo);
     gpu_sys.SetPsiFactors(params.psi_T, params.psi_L);
 
     gpu_sys.SetKn_SPH2SPH(params.normalStiffS2S);
@@ -128,12 +135,11 @@ int main(int argc, char* argv[]) {
     gpu_sys.SetStaticFrictionCoeff_SPH2WALL(params.static_friction_coeffS2W);
     gpu_sys.SetStaticFrictionCoeff_SPH2MESH(params.static_friction_coeffS2M);
 
-    gpu_sys.SetParticleOutputMode(params.write_mode);
     gpu_sys.SetGravitationalAcceleration(ChVector<float>(params.grav_X, params.grav_Y, params.grav_Z));
-    gpu_sys.SetParticleOutputMode(params.write_mode);
-
+    
     // output parameters
-    gpu_sys.SetParticleOutputFlags(ABSV);
+    gpu_sys.SetOutputMode(params.write_mode);
+    gpu_sys.SetOutputFlags(ABSV);
     std::string out_dir = "./";
     filesystem::create_directory(filesystem::path(out_dir));
     out_dir = out_dir + params.output_dir;
@@ -221,8 +227,8 @@ int main(int argc, char* argv[]) {
 
         std::ofstream fcFile(filenameforce, std::ios::out);
 
-        gpu_sys.WriteParticleFile(std::string(filename));
-        gpu_sys.WriteMesh(filenamemesh, cylinder_mesh_id);
+        gpu_sys.WriteFile(std::string(filename));
+        gpu_sys.WriteMeshes(filenamemesh);
 
         ChSystemGpuMesh_impl* sys_trimesh = static_cast<ChSystemGpuMesh_impl*>(gpu_sys);
 
@@ -271,7 +277,7 @@ int main(int argc, char* argv[]) {
         // write position
         char filename[100];
         sprintf(filename, "%s/step%06d.csv", out_dir.c_str(), curr_frame);
-        gpu_sys.WriteParticleFile(std::string(filename));
+        gpu_sys.WriteFile(std::string(filename));
         gpu_sys.AdvanceSimulation(frame_step);
 
         platePos = gpu_sys.GetBCPlanePosition(topWall);

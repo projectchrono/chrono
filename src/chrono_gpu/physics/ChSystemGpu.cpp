@@ -651,6 +651,12 @@ void ChSystemGpuMesh::CollectMeshContactForces(int mesh, ChVector<>& force, ChVe
     torque = ChVector<>(tx, ty, tz) * torque_factor;  // Divide by C_TAU to go from SU to UU
 }
 
+void ChSystemGpu::SetBDCenter(const ChVector<float>& O) {
+    m_sys->user_coord_O_X = O.x();
+    m_sys->user_coord_O_Y = O.y();
+    m_sys->user_coord_O_Z = O.z();
+}
+
 // -----------------------------------------------------------------------------
 
 }  // namespace gpu
