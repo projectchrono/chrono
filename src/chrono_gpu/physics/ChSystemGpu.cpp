@@ -25,8 +25,8 @@ namespace gpu {
 
 // -----------------------------------------------------------------------------
 
-ChSystemGpu::ChSystemGpu(float sphere_rad, float density, float3 boxDims) {
-    m_sys = new ChSystemGpu_impl(sphere_rad, density, boxDims);
+ChSystemGpu::ChSystemGpu(float sphere_rad, float density, float3 boxDims, float3 boxCenter) {
+    m_sys = new ChSystemGpu_impl(sphere_rad, density, boxDims, boxCenter);
 }
 
 ChSystemGpuMesh::ChSystemGpuMesh(float sphere_rad, float density, float3 boxDims, float3 boxCenter)
