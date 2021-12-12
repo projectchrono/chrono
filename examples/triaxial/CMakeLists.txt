@@ -128,7 +128,7 @@ endif()
 # files in your project. 
 #--------------------------------------------------------------
 
-add_executable(triaxial triaxial_compression.cpp)
+add_executable(triaxial src/triaxial_compression.cpp)
 
 #--------------------------------------------------------------
 # Set properties for your executable target
