@@ -30,7 +30,7 @@ namespace chrono {
 namespace gpu {
 
 ChSystemGpuMesh_impl::ChSystemGpuMesh_impl(float sphere_rad, float density, float3 boxDims, float3 boxCenter)
-    : ChSystemGpu_impl(sphere_rad, density, boxDims),
+    : ChSystemGpu_impl(sphere_rad, density, boxDims, boxCenter),
       K_n_s2m_UU(0),
       K_t_s2m_UU(0),
       Gamma_n_s2m_UU(0),
