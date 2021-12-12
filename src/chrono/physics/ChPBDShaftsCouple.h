@@ -23,6 +23,7 @@
 #include "chrono/physics/ChShaft.h"
 #include "chrono/physics/ChShaftsGear.h"
 #include "chrono/physics/ChShaftsClutch.h"
+#include "chrono/physics/ChShaftsPlanetary.h"
 
 namespace chrono {
 	
@@ -82,6 +83,19 @@ namespace chrono {
         ChShaftsClutch* clutchptr;
     };
 
+
+    class ChApi ChPBDShaftsCouplePlanetary : public ChPBDShaftsCouple {
+      public:
+        /// Create a LinkPBD
+        ChPBDShaftsCouplePlanetary(ChSystemPBD* sys, ChShaftsPlanetary* planetary);
+        // Will evaluate the violation and apply torque on the connected elements. Inherited classes will implement it.
+        void SolveShaftCoupling() override;
+
+      private:
+        ChShaftsPlanetary* planetaryptr;
+        ChShaft* shaft3;
+        double lambda2 = 0;
+    };
 
 	void PopulateShaftCouplingPBD(std::vector<std::shared_ptr<ChPBDShaftsCouple>>& listPBD,
                                   const std::vector<std::shared_ptr<ChPhysicsItem>>& otherlist,
