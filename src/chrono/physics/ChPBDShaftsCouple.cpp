@@ -93,9 +93,9 @@ void ChPBDShaftsCouplePlanetary::SolveShaftCoupling() {
         double delta_lambda = -(C + alpha_hat * lambda) / (w1 + w2 + w3 + alpha_hat);
         lambda += delta_lambda;
 
-        shaft1->SetPos(shaft1->GetPos() + delta_lambda * w1);
-        shaft2->SetPos(shaft2->GetPos() - delta_lambda * w2);
-        shaft3->SetPos(shaft3->GetPos() - delta_lambda * w3);
+        shaft1->SetPos(shaft1->GetPos() + planetaryptr->GetTransmissionR1() * delta_lambda * w1);
+        shaft2->SetPos(shaft2->GetPos() + planetaryptr->GetTransmissionR2() * delta_lambda * w2);
+        shaft3->SetPos(shaft3->GetPos() + planetaryptr->GetTransmissionR3() * delta_lambda * w3);
     }
 }
 
