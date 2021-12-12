@@ -39,7 +39,7 @@ class ChSystemGpuMesh_impl;
 class CH_GPU_API ChSystemGpu {
   public:
     /// Construct system with given sphere radius, density, and big domain dimensions.
-    ChSystemGpu(float sphere_rad, float density, float3 boxDims);
+    ChSystemGpu(float sphere_rad, float density, float3 boxDims, float3 boxCenter);
 
     virtual ~ChSystemGpu();
 
@@ -243,7 +243,7 @@ class CH_GPU_API ChSystemGpu {
 class CH_GPU_API ChSystemGpuMesh : public ChSystemGpu {
   public:
     /// Construct system with given sphere radius, density, and big domain dimensions.
-    ChSystemGpuMesh(float sphere_rad, float density, float3 boxDims);
+    ChSystemGpuMesh(float sphere_rad, float density, float3 boxDims, float3 boxCenter);
     ~ChSystemGpuMesh();
 
     /// Load (from Wavefront OBJ files) triangle meshes into granular system.
