@@ -117,7 +117,7 @@ class ChSystemGpuMesh_impl : public ChSystemGpu_impl {
     ChSystemGpuMesh_impl() = delete;
 
     /// Construct Chrono::Gpu system with given sphere radius, density, and big domain dimensions
-    ChSystemGpuMesh_impl(float sphere_rad, float density, float3 boxDims);
+    ChSystemGpuMesh_impl(float sphere_rad, float density, float3 boxDims, float3 boxCenter);
 
     /// Apply rigid body motion to specified mesh.
     void ApplyMeshMotion(unsigned int mesh,
