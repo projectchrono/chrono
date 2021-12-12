@@ -29,9 +29,9 @@ ChSystemGpu::ChSystemGpu(float sphere_rad, float density, float3 boxDims) {
     m_sys = new ChSystemGpu_impl(sphere_rad, density, boxDims);
 }
 
-ChSystemGpuMesh::ChSystemGpuMesh(float sphere_rad, float density, float3 boxDims)
+ChSystemGpuMesh::ChSystemGpuMesh(float sphere_rad, float density, float3 boxDims, float3 boxCenter)
     : mesh_verbosity(CHGPU_MESH_VERBOSITY::QUIET) {
-    m_sys = new ChSystemGpuMesh_impl(sphere_rad, density, boxDims);
+    m_sys = new ChSystemGpuMesh_impl(sphere_rad, density, boxDims, boxCenter);
 }
 
 ChSystemGpu::~ChSystemGpu() {

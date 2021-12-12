@@ -245,7 +245,7 @@ class ChSystemGpu_impl {
     ChSystemGpu_impl() = delete;
 
     /// Construct Chrono::Gpu system with given sphere radius, density, and big domain dimensions.
-    ChSystemGpu_impl(float sphere_rad, float density, float3 boxDims);
+    ChSystemGpu_impl(float sphere_rad, float density, float3 boxDims, float3 boxCenter);
 
     /// Create big domain walls out of plane boundary conditions
     void CreateWallBCs();

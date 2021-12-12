@@ -65,7 +65,7 @@ int main(int argc, char* argv[]) {
     std::cout << "Box Dims: " << Bx << " " << By << " " << Bz << std::endl;
 
     float iteration_step = params.step_size;
-    ChSystemGpuMesh gpu_sys(params.sphere_radius, params.sphere_density, (Bx, By, Bz));
+    ChSystemGpuMesh gpu_sys(params.sphere_radius, params.sphere_density, make_float3(Bx, By, Bz), make_float3((float)0.,(float)0.,(float)0.));
 
 
     // One thing we can do is to move the Big Box Domain by (X/2, Y/2, Z/2) using SetBDCenter, so the
