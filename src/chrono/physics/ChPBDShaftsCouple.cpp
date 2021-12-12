@@ -46,7 +46,30 @@ namespace chrono {
         }
 	}
 
+    ChPBDShaftsCoupleClutch::ChPBDShaftsCoupleClutch(ChSystemPBD* sys, ChShaftsClutch* clutch)
+        : clutchptr(clutch), ChPBDShaftsCouple(sys, clutch->GetShaft1(), clutch->GetShaft2()) {}
 
+    void ChPBDShaftsCoupleClutch::SolveShaftCoupling() {
+        double h = PBDsys->Get_h();
+        double C = (shaft1->GetPos_dt() - shaft2->GetPos_dt()) * h;
+        if (abs(C) > 1E-5) {
+            double h_sqrd = pow(h, 2);
+            double modulation = clutchptr->GetModulation();
+            double minT = clutchptr->GetTorqueLimitB();
+            double maxT = clutchptr->GetTorqueLimitF();
+            double alpha_hat = alpha / h_sqrd;
+            double w1 = 1 / shaft1->GetInertia();
+            double w2 = 1 / shaft2->GetInertia();
+
+            double delta_lambda = -(C + alpha_hat * lambda) / (w1 + w2 + alpha_hat);
+            delta_lambda = ChClamp(delta_lambda, h_sqrd * minT * modulation,
+                                   h_sqrd * maxT * modulation);
+            lambda += delta_lambda;
+
+            shaft1->SetPos(shaft1->GetPos() + delta_lambda * w1);
+            shaft2->SetPos(shaft2->GetPos() - delta_lambda * w2);
+        }
+    }
     void PopulateShaftCouplingPBD(std::vector<std::shared_ptr<ChPBDShaftsCouple>>& listPBD,
         const std::vector<std::shared_ptr<ChPhysicsItem>>& otherlist, ChSystemPBD* sys) {
         for (auto& physobj : otherlist) {
@@ -54,6 +77,11 @@ namespace chrono {
                 ChShaftsGear* gear = dynamic_cast<ChShaftsGear*>(physobj.get());
                 auto gearPBD = chrono_types::make_shared<ChPBDShaftsCoupleGear>(sys, gear);
                 listPBD.push_back(gearPBD);
+            }
+            if (dynamic_cast<const ChShaftsClutch*>(physobj.get()) != nullptr) {
+                ChShaftsClutch* clutch = dynamic_cast<ChShaftsClutch*>(physobj.get());
+                auto clutchPBD = chrono_types::make_shared<ChPBDShaftsCoupleClutch>(sys, clutch);
+                listPBD.push_back(clutchPBD);
             }
         }
     }
