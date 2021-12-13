@@ -65,11 +65,11 @@ int main(int argc, char* argv[]) {
     const float By = Bx;
 
     const float chamber_height = Bx / 3;  // TODO
-    ChVector<float> cyl_center(0, 0, 0);
-    const float cyl_rad = Bx / 5.f;
+    ChVector<float> cyl_center(Bx / 2.0, By / 2.0, 0);
+    const float cyl_rad = Bx / 12.f; // must be < Bx/2, D:H = 1:2
 
-    const float fill_height = chamber_height;
-    const float Bz = chamber_height + fill_height;
+    const float fill_height = chamber_height / 2.f;
+    const float Bz = chamber_height + fill_height + 5.f;
     std::cout << "Box Dims: " << Bx << " " << By << " " << Bz << std::endl;
 
     float iteration_step = params.step_size;
@@ -118,7 +118,7 @@ int main(int argc, char* argv[]) {
     //
     // ================================================
 
-    const float chamber_bottom = -Bz / 2.f;
+    const float chamber_bottom = 0;
     const float fill_bottom = chamber_bottom + chamber_height;
 
     // gpu_sys.CreateBCCylinderZ(cyl_center, cyl_rad, false, false); // remove boundary condition cylinder
@@ -133,7 +133,7 @@ int main(int argc, char* argv[]) {
     float scale_z = chamber_height;  // TODO fix this / make switch on mixer_type
     float3 scaling = make_float3(scale_xy, scale_xy, scale_z);
     mesh_rotscales.push_back(ChMatrix33<float>(ChVector<float>(scaling.x, scaling.y, scaling.z)));
-    mesh_translations.push_back(make_float3(0, 0, 0));
+    mesh_translations.push_back(make_float3(Bx/2.f, By/2.f, 0));
 
     std::vector<float> mesh_masses;
     float mixer_mass = 10;
@@ -158,7 +158,7 @@ int main(int argc, char* argv[]) {
     utils::HCPSampler<float> sampler(2.1f * params.sphere_radius);
     std::vector<ChVector<float>> body_points;
 
-    const float fill_radius = Bx / 2.f - 2.f * params.sphere_radius;
+    const float fill_radius = cyl_rad - 2.f * params.sphere_radius;
     const float fill_top = fill_bottom + fill_height;
 
     std::cout << "Created " << body_points.size() << " spheres" << std::endl;
@@ -166,7 +166,7 @@ int main(int argc, char* argv[]) {
     std::cout << "Fill bottom " << fill_bottom << std::endl;
     std::cout << "Fill top " << fill_top << std::endl;
 
-    ChVector<float> center(0, 0, fill_bottom);
+    ChVector<float> center(Bx/2.f, By/2.f, fill_bottom);
     center.z() += 2 * params.sphere_radius;
     while (center.z() < fill_top - 2 * params.sphere_radius) {
         auto points = sampler.SampleCylinderZ(center, fill_radius, 0);
