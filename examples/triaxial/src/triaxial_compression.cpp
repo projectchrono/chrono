@@ -174,7 +174,7 @@ int main(int argc, char* argv[]) {
         center.z() += 2.1f * params.sphere_radius;
     }
 
-    size_t numSpheres = initialPos.size();
+    size_t numSpheres = body_points.size();
     
     // create initial velocity vector
     std::vector<ChVector<float>> initialVelo;
