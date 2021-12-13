@@ -3,7 +3,8 @@
     "sphere_radius": 0.5,
     "sphere_density": 2.8,
     
-    "box_X": 100,
+    "box_X": 10,
+	"box_Y":10,
 	"box_Z": 20 ,
 	"grav_X": 0,
 	"grav_Y": 0,
