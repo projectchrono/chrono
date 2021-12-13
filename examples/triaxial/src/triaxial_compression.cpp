@@ -35,10 +35,9 @@ using namespace chrono;
 using namespace chrono::gpu;
 
 // Output frequency
-float out_fps = 200;
+float out_fps = 100;
 
 // Enable/disable run-time visualization (if Chrono::OpenGL is available)
-bool render = true;
 float render_fps = 2000;
 
 // unit conversion from cgs to si
@@ -211,30 +210,32 @@ int main(int argc, char* argv[]) {
     // let system run for 0.5 second so the particles can settle
     while (curr_time < 1.0) {
         
-        char filename[100], filenamemesh[100], filenameforce[100];;
+        if (step % out_steps == 0){
+
+            char filename[100], filenamemesh[100], filenameforce[100];;
+            sprintf(filename, "%s/step%06d.csv", out_dir.c_str(), step);
+            sprintf(filenamemesh, "%s/mesh%06d.csv", out_dir.c_str(), step);
+            sprintf(filenameforce, "%s/forces%06d.csv", out_dir.c_str(), step);
+
+            std::ofstream fcFile(filenameforce, std::ios::out);
         
-        sprintf(filename, "%s/step%06d.csv", out_dir.c_str(), step);
-        sprintf(filenamemesh, "%s/mesh%06d.csv", out_dir.c_str(), step);
-        sprintf(filenameforce, "%s/forces%06d.csv", out_dir.c_str(), step);
+            gpu_sys.WriteFile(std::string(filename));
+            gpu_sys.WriteMeshes(filenamemesh);
 
-        std::ofstream fcFile(filenameforce, std::ios::out);
+            unsigned int nmeshes = gpu_sys.GetNumMeshes();
+            ChVector<> force;  // forces for each mesh
+            ChVector<> torque; //torques for each mesh
         
-        gpu_sys.WriteFile(std::string(filename));
-        gpu_sys.WriteMeshes(filenamemesh);
+            // Pull forces
+            for (unsigned int imesh = 0; imesh < nmeshes; imesh++) {
+                char fforces[100];
 
-        unsigned int nmeshes = gpu_sys.GetNumMeshes();
-        ChVector<> force;  // forces for each mesh
-        ChVector<> torque; //torques for each mesh
-        
-        // Pull forcs
-        for (unsigned int imesh = 0; imesh < nmeshes; imesh++) {
-            char fforces[100];
+                gpu_sys.CollectMeshContactForces(imesh, force, torque);
+                force = force * F_CGS_TO_SI;
+                sprintf(fforces, "%d, %6f, %6f, %6f \n", imesh, force.x()* F_CGS_TO_SI, force.y()* F_CGS_TO_SI, force.z()* F_CGS_TO_SI);
+                fcFile << fforces;
 
-            gpu_sys.CollectMeshContactForces(imesh, force, torque);
-            force = force * F_CGS_TO_SI;
-            sprintf(fforces, "%d, %6f, %6f, %6f \n", imesh, force.x()* F_CGS_TO_SI, force.y()* F_CGS_TO_SI, force.z()* F_CGS_TO_SI);
-            fcFile << fforces;
-
+            }
         }
 
         gpu_sys.AdvanceSimulation(iteration_step);
