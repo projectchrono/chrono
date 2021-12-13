@@ -113,7 +113,9 @@ int main(int argc, char* argv[]) {
     gpu_sys.SetBDFixed(true);
 
     // ================================================
+    //
     // Read and add the mesh to the simulation
+    //
     // ================================================
 
     const float chamber_bottom = -Bz / 2.f;
@@ -148,7 +150,9 @@ int main(int argc, char* argv[]) {
     gpu_sys.EnableMeshCollision(true);    
     
     // ======================================================
+    //
     // Add the particles to the sim
+    //
     // ======================================================    
     
     utils::HCPSampler<float> sampler(2.1f * params.sphere_radius);
@@ -170,7 +174,14 @@ int main(int argc, char* argv[]) {
         center.z() += 2.1f * params.sphere_radius;
     }
 
-    gpu_sys.SetParticlePositions(body_points);
+    // create initial velocity vector
+    std::vector<ChVector<float>> initialVelo;
+    for (size_t i = 0; i < numSpheres; i++) {
+        ChVector<float> velo(-body_points.at(i).x() / cyl_rad, -body_points.at(i).x() / cyl_rad, 0.0f);
+        initialVelo.push_back(velo);
+    }
+
+    gpu_sys.SetParticlePositions(body_points, initialVelo);
     gpu_sys.SetGravitationalAcceleration(ChVector<float>(0, 0, -980));
 
     gpu_sys.Initialize();
