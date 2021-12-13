@@ -67,7 +67,7 @@ int main(int argc, char* argv[]) {
 
     const float chamber_height = Bz / 4.f;  // TODO
     const float cyl_rad = Bx / 8.f; // must be < Bx/2, D:H = 1:2
-    ChVector<float> cyl_center(Bx / 2.0, By / 2.0, 0);
+    ChVector<float> cyl_center(0., 0., 0.);
 
     const float fill_bottom = chamber_height / 2.f;  // fill from half height
     const float fill_height = chamber_height / 2.f; // fill to top of chamber (make sure chamber height << box_Z)
@@ -130,7 +130,7 @@ int main(int argc, char* argv[]) {
     float scale_z = chamber_height;  // TODO fix this / make switch on mixer_type
     float3 scaling = make_float3(scale_xy, scale_xy, scale_z);
     mesh_rotscales.push_back(ChMatrix33<float>(ChVector<float>(scaling.x, scaling.y, scaling.z)));
-    mesh_translations.push_back(make_float3(Bx/2.f, By/2.f, 0));
+    mesh_translations.push_back(make_float3(cyl_center.x(), cyl_center.y(), cyl_center.z()));
 
     std::vector<float> mesh_masses;
     float mixer_mass = 10;
@@ -161,7 +161,7 @@ int main(int argc, char* argv[]) {
     std::cout << "Fill bottom " << fill_bottom << std::endl;
     std::cout << "Fill top " << fill_top << std::endl;
 
-    ChVector<float> center(Bx/2.f, By/2.f, fill_bottom);
+    ChVector<float> center(0.f, 0.f, fill_bottom);
     center.z() += 2 * params.sphere_radius;
     while (center.z() < fill_top - 2 * params.sphere_radius) {
         auto points = sampler.SampleCylinderZ(center, fill_radius, 0);
