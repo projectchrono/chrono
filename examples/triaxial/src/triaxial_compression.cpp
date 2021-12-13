@@ -183,6 +183,8 @@ int main(int argc, char* argv[]) {
     
     gpu_sys.EnableMeshCollision(true);    
     gpu_sys.Initialize();
+    unsigned int nummeshes = gpu_sys.GetNumMeshes();
+    std::cout << nummeshes << " meshes generated!" << std::endl;
 
     // ===================================================
     //
@@ -206,6 +208,10 @@ int main(int argc, char* argv[]) {
     ChVector<double> cylinder_reaction_force;
     ChVector<double> cylinder_torques;
     int nc;
+    
+    char filenamesumforces[100];
+    sprintf(filenamesumforces, "%s/sumforces.csv", out_dir.c_str());
+    std::ofstream sumfrcsFile(filenamesumforces, std::ios::out);
 
     // let system run for 0.5 second so the particles can settle
     while (curr_time < 1.0) {
@@ -213,29 +219,33 @@ int main(int argc, char* argv[]) {
         if (step % out_steps == 0){
 
             char filename[100], filenamemesh[100], filenameforce[100];;
-            sprintf(filename, "%s/step%06d.csv", out_dir.c_str(), step);
-            sprintf(filenamemesh, "%s/mesh%06d.csv", out_dir.c_str(), step);
-            sprintf(filenameforce, "%s/forces%06d.csv", out_dir.c_str(), step);
+            sprintf(filename, "%s/step%06d", out_dir.c_str(), step);
+            sprintf(filenamemesh, "%s/main%06d", out_dir.c_str(), step);
 
-            std::ofstream fcFile(filenameforce, std::ios::out);
-        
             gpu_sys.WriteFile(std::string(filename));
             gpu_sys.WriteMeshes(filenamemesh);
 
-            unsigned int nmeshes = gpu_sys.GetNumMeshes();
+            // Get sum of forces on cylinder
+            unsigned int nmeshes = gpu_sys.GetNumMeshes(); // only 1 mesh 
             ChVector<> force;  // forces for each mesh
             ChVector<> torque; //torques for each mesh
-        
-            // Pull forces
-            for (unsigned int imesh = 0; imesh < nmeshes; imesh++) {
-                char fforces[100];
+            gpu_sys.CollectMeshContactForces(0, force, torque);
+            force = force * F_CGS_TO_SI;
+            char fforces[100];
+            sprintf(fforces, "%d, %6f, %6f, %6f \n", step, force.x(), force.y(), force.z());            
+            sumfrcsFile << fforces;
 
-                gpu_sys.CollectMeshContactForces(imesh, force, torque);
-                force = force * F_CGS_TO_SI;
-                sprintf(fforces, "%d, %6f, %6f, %6f \n", imesh, force.x()* F_CGS_TO_SI, force.y()* F_CGS_TO_SI, force.z()* F_CGS_TO_SI);
-                fcFile << fforces;
+            // Pull individual mesh forces
+            
+            //for (unsigned int imesh = 0; imesh < nmeshes; imesh++) {
+            //    char fforces[100];
 
-            }
+            //    gpu_sys.CollectMeshContactForces(imesh, force, torque);
+            //    force = force * F_CGS_TO_SI;
+            //    sprintf(fforces, "%d, %6f, %6f, %6f \n", imesh, force.x()* F_CGS_TO_SI, force.y()* F_CGS_TO_SI, force.z()* F_CGS_TO_SI);
+            //    fcFile << fforces;
+            //}
+
             printf("time = %.4f\n", curr_time);
         }
 
