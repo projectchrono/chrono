@@ -9,107 +9,67 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Authors: Wassim Kassem
+// Authors: Nic Olsen
 // =============================================================================
-// Simulation of granular material settled in cylinder first, then
-// subjected to a triaxial test. Adapted from demo_GPU_compression
+// Chrono::Gpu evaluation of several simple mixer designs. Material consisting
+// of spherical particles is let to aggitate in a rotating mixer. Metrics on the
+// performance of each mixer can be determined in post-processing.
 // =============================================================================
 
+#include <cmath>
 #include <iostream>
 #include <string>
-#include <cmath>
 
 #include "chrono/core/ChGlobal.h"
-#include "chrono/core/ChStream.h"
-#include "chrono/core/ChVector.h"
-#include "chrono/physics/ChBody.h"
 #include "chrono/utils/ChUtilsSamplers.h"
 #include "chrono/assets/ChTriangleMeshShape.h"
-
-#include "chrono_thirdparty/filesystem/path.h"
 
 #include "chrono_gpu/ChGpuData.h"
 #include "chrono_gpu/physics/ChSystemGpu.h"
 #include "chrono_gpu/utils/ChGpuJsonParser.h"
 #include "chrono_gpu/utils/ChGpuVisualization.h"
 
+#include "chrono_thirdparty/filesystem/path.h"
 
 using namespace chrono;
 using namespace chrono::gpu;
 
-// unit conversion from cgs to si
-float F_CGS_TO_SI = 1e-5f;
-float KE_CGS_TO_SI = 1e-7f;
-float L_CGS_TO_SI = 1e-2f;
-
 // Output frequency
-
 float out_fps = 200;
 
 // Enable/disable run-time visualization (if Chrono::OpenGL is available)
-bool render = false;
+bool render = true;
 float render_fps = 2000;
 
 int main(int argc, char* argv[]) {
+
+    // ===============================================
+    // 1. Read json paramater files
+    // 2. Create ChSystemGpuMesh object
+    // 3. Set simulation parameters
+    // ===============================================
+
     ChGpuSimulationParameters params;
-    if (argc != 2 || ParseJSON(argv[1], params) == false) {
-        std::cout << "Usage:\n./triaxial <json_file>" << std::endl;
+
+    if (argc != 2 || ParseJSON( argv[1], params) == false) {
+        std::cout << "Usage:\n./demo_triaxial.json <json_file>" << std::endl;
         return 1;
     }
 
-    // Setup simulation, big domain: 10 by 10 by 20
     const float Bx = params.box_X;
     const float By = Bx;
-    const float chamber_height = Bx / 6;  // TODO
+
+    const float chamber_height = Bx / 3;  // TODO
+    ChVector<float> cyl_center(0, 0, 0);
+    const float cyl_rad = Bx / 5.f;
+
     const float fill_height = chamber_height;
     const float Bz = chamber_height + fill_height;
     std::cout << "Box Dims: " << Bx << " " << By << " " << Bz << std::endl;
 
     float iteration_step = params.step_size;
-    ChSystemGpuMesh gpu_sys(params.sphere_radius, params.sphere_density, make_float3(Bx, By, Bz), make_float3((float)0.,(float)0.,(float)0.));
 
-
-    // One thing we can do is to move the Big Box Domain by (X/2, Y/2, Z/2) using SetBDCenter, so the
-    // coordinate range we are now working with is (0,0,0) to (X,Y,Z), instead of (-X/2,-Y/2,-Z/2) to (X/2, Y/2, Z/2).
-    gpu_sys.SetBDCenter(ChVector<float>(Bx / 2, By / 2, Bz / 2));
-
-    // creat cylinder boundary of Radius 5 at the center of the box domain
-    ChVector<float> cyl_center(Bx / 2, By / 2, Bz / 2);
-    float cyl_rad = std::min(Bx, By) / 8.0f;
-    // gpu_sys.CreateBCCylinderZ(cyl_center, cyl_rad, false, true); // original cylinder used to confine particles
-
-    // initialize sampler, set distance between center of spheres as 2.1r
-    utils::PDSampler<float> sampler(2.1f * params.sphere_radius);
-    std::vector<ChVector<float>> initialPos;
-
-    // randomize by layer
-    ChVector<float> center(Bx / 2, By / 2, params.sphere_radius+10); //Fix units for 10 
-    // fill up each layer
-    while (center.z() + params.sphere_radius < Bz) {
-        auto points = sampler.SampleCylinderZ(center, cyl_rad - params.sphere_radius, 0);
-        initialPos.insert(initialPos.end(), points.begin(), points.end());
-        center.z() += 2.1f * params.sphere_radius;
-    }
-
-    size_t numSpheres = initialPos.size();
-
-    // create initial velocity vector
-    std::vector<ChVector<float>> initialVelo;
-    for (size_t i = 0; i < numSpheres; i++) {
-        ChVector<float> velo(-initialPos.at(i).x() / cyl_rad, -initialPos.at(i).x() / cyl_rad, 0.0f);
-        initialVelo.push_back(velo);
-    }
-
-    // create initial angular velocity vector
-    std::vector<ChVector<float>> initialAnglVelo;
-    for (size_t i = 0; i < numSpheres; i++) {
-        ChVector<float> velo(0, 0, 0); //TODO
-        initialAnglVelo.push_back(velo);
-    }
-
-    // assign initial position and velocity to the granular system
-    gpu_sys.SetParticlePositions(initialPos, initialVelo, initialAnglVelo);
-    gpu_sys.SetPsiFactors(params.psi_T, params.psi_L);
+    ChSystemGpuMesh gpu_sys(params.sphere_radius, params.sphere_density, make_float3(Bx, By, Bz), make_float3((float)0., (float)0., (float)0.));
 
     gpu_sys.SetKn_SPH2SPH(params.normalStiffS2S);
     gpu_sys.SetKn_SPH2WALL(params.normalStiffS2W);
@@ -136,87 +96,101 @@ int main(int argc, char* argv[]) {
     gpu_sys.SetStaticFrictionCoeff_SPH2WALL(params.static_friction_coeffS2W);
     gpu_sys.SetStaticFrictionCoeff_SPH2MESH(params.static_friction_coeffS2M);
 
-    gpu_sys.SetGravitationalAcceleration(ChVector<float>(params.grav_X, params.grav_Y, params.grav_Z));
-    
-    // output parameters
     gpu_sys.SetOutputMode(params.write_mode);
-    gpu_sys.SetOutputFlags(ABSV);
+
     std::string out_dir = "./";
     filesystem::create_directory(filesystem::path(out_dir));
     out_dir = out_dir + params.output_dir;
     filesystem::create_directory(filesystem::path(out_dir));
 
-    // Set the position of the BD fixed
-    gpu_sys.SetBDFixed(true);
-    gpu_sys.SetTimeIntegrator(CHGPU_TIME_INTEGRATOR::FORWARD_EULER);
+    gpu_sys.SetTimeIntegrator(CHGPU_TIME_INTEGRATOR::CENTERED_DIFFERENCE);
     gpu_sys.SetFixedStepSize(params.step_size);
+    gpu_sys.SetBDFixed(true);
 
-    gpu_sys.SetVerbosity(params.verbose);
+    // ================================================
+    // Read and add the mesh to the simulation
+    // ================================================
 
-    // create top plane boundary condition with its position and normal
-    ChVector<float> topWallPos(Bx / 2, By / 2, Bz);
-    ChVector<float> topWallNrm(0.0f, 0.0f, -1.0f);
-    size_t topWall = gpu_sys.CreateBCPlane(topWallPos, topWallNrm, true);
+    const float chamber_bottom = -Bz / 2.f;
+    const float fill_bottom = chamber_bottom + chamber_height;
 
-    float topWall_vel;       // top plane moving velocity
-    float topWall_offset;    // position offset of the plane when it first starts to move
-    float topWall_moveTime;  // time when the plane first starts to move
+    // gpu_sys.CreateBCCylinderZ(cyl_center, cyl_rad, false, false); // remove boundary condition cylinder
 
-    // user defined offset position function for top wall
-    std::function<double3(float)> topWall_posFunc = [&topWall_offset, &topWall_vel, &topWall_moveTime](float t) {
-        double3 pos = {0, 0, 0};
-        pos.z = topWall_offset + topWall_vel * (t - topWall_moveTime);
-        return pos;
-    };
+    std::vector<string> mesh_filenames;
+    mesh_filenames.push_back(GetChronoDataFile(params.mesh_model));
 
-    // add the mixer mesh to the GPU system
-    float scale_xy = 1.1 * cyl_rad;
-    float scale_z = chamber_height;
-    ChVector<> scaling(scale_xy, scale_xy, scale_z);
+    std::vector<ChMatrix33<float>> mesh_rotscales;
+    std::vector<float3> mesh_translations;
+
+    float scale_xy = cyl_rad;
+    float scale_z = chamber_height;  // TODO fix this / make switch on mixer_type
+    float3 scaling = make_float3(scale_xy, scale_xy, scale_z);
+    mesh_rotscales.push_back(ChMatrix33<float>(ChVector<float>(scaling.x, scaling.y, scaling.z)));
+    mesh_translations.push_back(make_float3(0, 0, 0));
+
+    std::vector<float> mesh_masses;
     float mixer_mass = 10;
-    auto cylinder_mesh = chrono_types::make_shared<geometry::ChTriangleMeshConnected>();
-    cylinder_mesh->LoadWavefrontMesh("./models/open_cylinder_subdivided.obj", true, false);
-    cylinder_mesh->Transform(ChVector<>(Bx/2, By/2, Bz/2+2.0), ChMatrix33<>(scaling));
-    auto cylinder_mesh_id = gpu_sys.AddMesh(cylinder_mesh, mixer_mass);
+    mesh_masses.push_back(mixer_mass);
 
-    // initialize the system
-    gpu_sys.EnableMeshCollision(true);
-    gpu_sys.Initialize();
+    gpu_sys.LoadMeshes(mesh_filenames, mesh_rotscales, mesh_translations, mesh_masses);
 
-    // visualisation options
-    ChGpuVisualization gpu_vis(&gpu_sys);
-    std::shared_ptr<ChBody> mixer;
-    if (render) {
-        // Create proxy body for mixer mesh
-        mixer = chrono_types::make_shared<ChBody>();
-        auto trimesh_shape = chrono_types::make_shared<ChTriangleMeshShape>();
-        trimesh_shape->SetMesh(cylinder_mesh);
-        mixer->AddAsset(trimesh_shape);
-        gpu_vis.AddProxyBody(mixer);
+    std::cout << gpu_sys.GetNumMeshes() << " meshes" << std::endl;
 
-        gpu_vis.SetTitle("Chrono::Gpu mixer demo");
-        gpu_vis.SetCameraPosition(ChVector<>(0, -100, 75), ChVector<>(0, 0, 0));
-        gpu_vis.SetCameraMoveScale(1.0f);
-        gpu_vis.Initialize();
+    float ang_vel_Z = 0; //TODO: remove
+    ChVector<> mesh_lin_vel(0); //TODO: remove
+    ChVector<> mesh_ang_vel(0, 0, ang_vel_Z); //TODO: remove
+
+    gpu_sys.EnableMeshCollision(true);    
+    
+    // ======================================================
+    // Add the particles to the sim
+    // ======================================================    
+    
+    utils::HCPSampler<float> sampler(2.1f * params.sphere_radius);
+    std::vector<ChVector<float>> body_points;
+
+    const float fill_radius = Bx / 2.f - 2.f * params.sphere_radius;
+    const float fill_top = fill_bottom + fill_height;
+
+    std::cout << "Created " << body_points.size() << " spheres" << std::endl;
+    std::cout << "Fill radius " << fill_radius << std::endl;
+    std::cout << "Fill bottom " << fill_bottom << std::endl;
+    std::cout << "Fill top " << fill_top << std::endl;
+
+    ChVector<float> center(0, 0, fill_bottom);
+    center.z() += 2 * params.sphere_radius;
+    while (center.z() < fill_top - 2 * params.sphere_radius) {
+        auto points = sampler.SampleCylinderZ(center, fill_radius, 0);
+        body_points.insert(body_points.end(), points.begin(), points.end());
+        center.z() += 2.1f * params.sphere_radius;
     }
 
-    // assume we run for at least one frame
-    float frame_step = 1.0f / out_fps;
-    float curr_time = 0;
-    int curr_frame = 0;
+    gpu_sys.SetParticlePositions(body_points);
+    gpu_sys.SetGravitationalAcceleration(ChVector<float>(0, 0, -980));
+
+    gpu_sys.Initialize();
+
+    // ===================================================
+    //
+    // Prepare main loop parameters
+    //
+    // ===================================================
     
-    unsigned int total_frames = (unsigned int)(((float)params.time_end - 0.5f) * out_fps) - 1;
-    unsigned int render_steps = (unsigned int)(1 / (render_fps * iteration_step));
+    unsigned int out_steps = (unsigned int)(1.0f / (out_fps * iteration_step));
+    unsigned int render_steps = (unsigned int)(1.0 / (render_fps * iteration_step));
+    unsigned int total_frames = (unsigned int)(params.time_end * out_fps);
+    std::cout << "out_steps " << out_steps << std::endl;
+
+    unsigned int currframe = 0;
     unsigned int step = 0;
 
-    // initialize values that I want to keep track of
+    // initialize values that we need to keep track of
     ChVector<float> plane_reaction_force;
     ChVector<float> platePos;
     ChVector<double> cylinder_reaction_force;
     ChVector<double> cylinder_torques;
     int nc;
 
-    
     // let system run for 0.5 second so the particles can settle
     while (curr_time < 1.0) {
         
@@ -227,11 +201,9 @@ int main(int argc, char* argv[]) {
         sprintf(filenameforce, "%s/forces%06d.csv", out_dir.c_str(), step);
 
         std::ofstream fcFile(filenameforce, std::ios::out);
-
+        
         gpu_sys.WriteFile(std::string(filename));
         gpu_sys.WriteMeshes(filenamemesh);
-
-        ChSystemGpuMesh_impl* sys_trimesh = static_cast<ChSystemGpuMesh_impl*>(gpu_sys);
 
         unsigned int nmeshes = gpu_sys.GetNumMeshes();
         ChVector<> force;  // forces for each mesh
@@ -248,12 +220,6 @@ int main(int argc, char* argv[]) {
 
         }
 
-        if (render && step % render_steps == 0) {
-            //mixer->SetPos(mesh_pos);
-            //mixer->SetRot(mesh_rot);
-            if (gpu_vis.Render())
-                break;
-        }
         gpu_sys.AdvanceSimulation(frame_step);
         curr_time += frame_step;
         printf("time = %.4f\n", curr_time);
