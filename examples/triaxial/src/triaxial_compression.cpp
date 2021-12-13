@@ -227,7 +227,7 @@ int main(int argc, char* argv[]) {
 
     }
     return 0;
-
+ /* 
     // top plate move downward with velocity 1cm/s
     topWall_vel = -1.0f;
     // i would like it to start from the top most sphere
@@ -263,5 +263,7 @@ int main(int argc, char* argv[]) {
         curr_time += frame_step;
 
     }
+    
     return 0;
+    */
 }
