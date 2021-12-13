@@ -63,6 +63,7 @@ int main(int argc, char* argv[]) {
 
     const float Bx = params.box_X;
     const float By = Bx;
+    const float Bz = params.box_Z;
 
     const float chamber_height = Bx / 3;  // TODO
     ChVector<float> cyl_center(Bx / 2.0, By / 2.0, 0);
