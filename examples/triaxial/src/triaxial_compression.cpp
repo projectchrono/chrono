@@ -174,7 +174,7 @@ int main(int argc, char* argv[]) {
     }
 
     gpu_sys.SetParticlePositions(initialPos, initialVelo);
-    // gpu_sys.SetGravitationalAcceleration(ChVector<float>(0, 0, -980));
+    gpu_sys.SetGravitationalAcceleration(ChVector<float>(0, 0, -980));
     std::cout << "Created " << initialPos.size() << " spheres" << std::endl;
     
     gpu_sys.EnableMeshCollision(true);    
