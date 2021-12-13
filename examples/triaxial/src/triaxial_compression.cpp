@@ -64,10 +64,6 @@ int main(int argc, char* argv[]) {
     const float By = Bx;
     const float Bz = params.box_Z;
 
-    const float cyl_hgt = Bz / 2.f;  // TODO
-    const float cyl_rad = Bx / 2.f; // must be < Bx/2, D:H = 1:2
-    ChVector<float> cyl_center(0., 0., 0.);
-
     std::cout << "Box Dims: " << Bx << " " << By << " " << Bz << std::endl;
 
     float iteration_step = params.step_size;
@@ -167,18 +163,18 @@ int main(int argc, char* argv[]) {
         initialPos.insert(initialPos.end(), points.begin(), points.end());
         center.z() += 2.1f * params.sphere_radius;
     }
-    
-    size_t numSpheres = body_points.size();
+
+    size_t numSpheres = initialPos.size();
     
     // create initial velocity vector
     std::vector<ChVector<float>> initialVelo;
     for (size_t i = 0; i < numSpheres; i++) {
-        ChVector<float> velo(-body_points.at(i).x() / cyl_rad, -body_points.at(i).x() / cyl_rad, 0.0f);
+        ChVector<float> velo(-initialPos.at(i).x() / cyl_rad, -initialPos.at(i).x() / cyl_rad, 0.0f);
         initialVelo.push_back(velo);
     }
 
-    gpu_sys.SetParticlePositions(body_points, initialVelo);
-    gpu_sys.SetGravitationalAcceleration(ChVector<float>(0, 0, -980));
+    gpu_sys.SetParticlePositions(initialPos, initialVelo);
+    // gpu_sys.SetGravitationalAcceleration(ChVector<float>(0, 0, -980));
     std::cout << "Created " << body_points.size() << " spheres" << std::endl;
     
     gpu_sys.EnableMeshCollision(true);    
