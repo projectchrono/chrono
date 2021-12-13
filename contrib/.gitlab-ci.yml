@@ -321,6 +321,7 @@ linux:almalinux:build:
     - cd build
     - cmake -G Ninja .. -DCMAKE_BUILD_TYPE=Release
         -DBUILD_DEMOS=ON -DBUILD_BENCHMARK=ON -DBUILD_TESTING=ON
+        -DPYTHON_EXECUTABLE=usr/bin/python3
         -DENABLE_MODULE_IRRLICHT=ON
         -DENABLE_MODULE_PYTHON=ON
         -DENABLE_MODULE_COSIMULATION=ON 
