@@ -65,13 +65,13 @@ int main(int argc, char* argv[]) {
     const float By = Bx;
     const float Bz = params.box_Z;
 
-    const float chamber_height = Bx / 3;  // TODO
+    const float chamber_height = Bz / 4.f;  // TODO
+    const float cyl_rad = Bx / 8.f; // must be < Bx/2, D:H = 1:2
     ChVector<float> cyl_center(Bx / 2.0, By / 2.0, 0);
-    const float cyl_rad = Bx / 12.f; // must be < Bx/2, D:H = 1:2
 
-    const float fill_bottom = chamber_height;
-    const float fill_height = Bz - chamber_height - 5.f; // fill to top of domain
-    //const float Bz = chamber_height + fill_height + 5.f;
+    const float fill_bottom = chamber_height / 2.f;  // fill from half height
+    const float fill_height = chamber_height / 2.f; // fill to top of chamber (make sure chamber height << box_Z)
+
     std::cout << "Box Dims: " << Bx << " " << By << " " << Bz << std::endl;
 
     float iteration_step = params.step_size;
