@@ -43,6 +43,7 @@ float KE_CGS_TO_SI = 1e-7f;
 float L_CGS_TO_SI = 1e-2f;
 
 // Output frequency
+
 float out_fps = 200;
 
 // Enable/disable run-time visualization (if Chrono::OpenGL is available)
