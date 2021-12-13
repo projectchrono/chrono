@@ -64,18 +64,18 @@ int main(int argc, char* argv[]) {
     const float By = Bx;
     const float Bz = params.box_Z;
 
-    const float chamber_height = Bz / 4.f;  // TODO
-    const float cyl_rad = Bx / 8.f; // must be < Bx/2, D:H = 1:2
+    const float cyl_hgt = Bz / 2.f;  // TODO
+    const float cyl_rad = Bx / 2.f; // must be < Bx/2, D:H = 1:2
     ChVector<float> cyl_center(0., 0., 0.);
-
-    const float fill_bottom = chamber_height / 2.f;  // fill from half height
-    const float fill_height = chamber_height / 2.f; // fill to top of chamber (make sure chamber height << box_Z)
 
     std::cout << "Box Dims: " << Bx << " " << By << " " << Bz << std::endl;
 
     float iteration_step = params.step_size;
 
-    ChSystemGpuMesh gpu_sys(params.sphere_radius, params.sphere_density, make_float3(Bx, By, Bz), make_float3((float)0., (float)0., (float)0.));
+    ChSystemGpuMesh gpu_sys(params.sphere_radius, 
+                            params.sphere_density, 
+                            make_float3(Bx, By, Bz), 
+                            make_float3((float)0., (float)0., (float)0.));
 
     gpu_sys.SetKn_SPH2SPH(params.normalStiffS2S);
     gpu_sys.SetKn_SPH2WALL(params.normalStiffS2W);
@@ -121,12 +121,16 @@ int main(int argc, char* argv[]) {
 
     std::vector<string> mesh_filenames;
     mesh_filenames.push_back("./models/open_cylinder_blender.obj"); //TODO: Add model member to struct ChGPUSimulationPArameters
+    
+    ChVector<float> cyl_center(0.0f, 0.0f, 0.0f);
+    float cyl_rad = std::min(params.box_X, params.box_Y) / 2.0f;
+    float cyl_hgt = params.box_Z /2.f
 
     std::vector<ChMatrix33<float>> mesh_rotscales;
     std::vector<float3> mesh_translations;
 
     float scale_xy = cyl_rad;
-    float scale_z = chamber_height;  // TODO fix this / make switch on mixer_type
+    float scale_z = cyl_hgt;  // TODO fix this / make switch on mixer_type
     float3 scaling = make_float3(scale_xy, scale_xy, scale_z);
     mesh_rotscales.push_back(ChMatrix33<float>(ChVector<float>(scaling.x, scaling.y, scaling.z)));
     mesh_translations.push_back(make_float3(cyl_center.x(), cyl_center.y(), cyl_center.z()));
@@ -150,24 +154,20 @@ int main(int argc, char* argv[]) {
     //
     // ======================================================    
     
+
+    // initialize sampler, set distance between center of spheres as 2.1r
     utils::HCPSampler<float> sampler(2.1f * params.sphere_radius);
-    std::vector<ChVector<float>> body_points;
+    std::vector<ChVector<float>> initialPos;
 
-    const float fill_radius = cyl_rad - 2.f * params.sphere_radius;
-    const float fill_top = fill_bottom + fill_height;
-
-    std::cout << "Fill radius " << fill_radius << std::endl;
-    std::cout << "Fill bottom " << fill_bottom << std::endl;
-    std::cout << "Fill top " << fill_top << std::endl;
-
-    ChVector<float> center(0.f, 0.f, fill_bottom);
-    center.z() += 2 * params.sphere_radius;
-    while (center.z() < fill_top - 2 * params.sphere_radius) {
-        auto points = sampler.SampleCylinderZ(center, fill_radius, 0);
-        body_points.insert(body_points.end(), points.begin(), points.end());
+    // randomize by layer
+    ChVector<float> center(0.0f, 0.0f, -params.box_Z / 2 + params.sphere_radius);
+    // fill up each layer
+    while (center.z() + params.sphere_radius < params.box_Z / 2) {
+        auto points = sampler.SampleCylinderZ(center, cyl_rad - params.sphere_radius, 0);
+        initialPos.insert(initialPos.end(), points.begin(), points.end());
         center.z() += 2.1f * params.sphere_radius;
     }
-
+    
     size_t numSpheres = body_points.size();
     
     // create initial velocity vector
