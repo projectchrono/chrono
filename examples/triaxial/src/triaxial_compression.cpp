@@ -68,8 +68,9 @@ int main(int argc, char* argv[]) {
     ChVector<float> cyl_center(Bx / 2.0, By / 2.0, 0);
     const float cyl_rad = Bx / 12.f; // must be < Bx/2, D:H = 1:2
 
-    const float fill_height = chamber_height / 2.f;
-    const float Bz = chamber_height + fill_height + 5.f;
+    const float fill_bottom = chamber_height;
+    const float fill_height = Bz - chamber_height - 5.f; // fill to top of domain
+    //const float Bz = chamber_height + fill_height + 5.f;
     std::cout << "Box Dims: " << Bx << " " << By << " " << Bz << std::endl;
 
     float iteration_step = params.step_size;
@@ -118,11 +119,6 @@ int main(int argc, char* argv[]) {
     //
     // ================================================
 
-    const float chamber_bottom = 0;
-    const float fill_bottom = chamber_bottom + chamber_height;
-
-    // gpu_sys.CreateBCCylinderZ(cyl_center, cyl_rad, false, false); // remove boundary condition cylinder
-
     std::vector<string> mesh_filenames;
     mesh_filenames.push_back("./models/open_cylinder_blender.obj"); //TODO: Add model member to struct ChGPUSimulationPArameters
 
@@ -147,7 +143,6 @@ int main(int argc, char* argv[]) {
     ChVector<> mesh_lin_vel(0); //TODO: remove
     ChVector<> mesh_ang_vel(0, 0, ang_vel_Z); //TODO: remove
 
-    gpu_sys.EnableMeshCollision(true);    
     
     // ======================================================
     //
@@ -161,7 +156,6 @@ int main(int argc, char* argv[]) {
     const float fill_radius = cyl_rad - 2.f * params.sphere_radius;
     const float fill_top = fill_bottom + fill_height;
 
-    std::cout << "Created " << body_points.size() << " spheres" << std::endl;
     std::cout << "Fill radius " << fill_radius << std::endl;
     std::cout << "Fill bottom " << fill_bottom << std::endl;
     std::cout << "Fill top " << fill_top << std::endl;
@@ -185,7 +179,9 @@ int main(int argc, char* argv[]) {
 
     gpu_sys.SetParticlePositions(body_points, initialVelo);
     gpu_sys.SetGravitationalAcceleration(ChVector<float>(0, 0, -980));
-
+    std::cout << "Created " << body_points.size() << " spheres" << std::endl;
+    
+    gpu_sys.EnableMeshCollision(true);    
     gpu_sys.Initialize();
 
     // ===================================================
