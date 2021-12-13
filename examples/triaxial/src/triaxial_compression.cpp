@@ -122,7 +122,7 @@ int main(int argc, char* argv[]) {
     // gpu_sys.CreateBCCylinderZ(cyl_center, cyl_rad, false, false); // remove boundary condition cylinder
 
     std::vector<string> mesh_filenames;
-    mesh_filenames.push_back(GetChronoDataFile(params.mesh_model));
+    mesh_filenames.push_back(GetChronoDataFile("./models/cylinder.obj")); //TODO: Add model member to struct ChGPUSimulationPArameters
 
     std::vector<ChMatrix33<float>> mesh_rotscales;
     std::vector<float3> mesh_translations;
@@ -189,6 +189,8 @@ int main(int argc, char* argv[]) {
     unsigned int currframe = 0;
     unsigned int step = 0;
 
+    float curr_time = 0;
+
     // initialize values that we need to keep track of
     ChVector<float> plane_reaction_force;
     ChVector<float> platePos;
@@ -226,7 +228,7 @@ int main(int argc, char* argv[]) {
         }
 
         gpu_sys.AdvanceSimulation(frame_step);
-        curr_time += frame_step;
+        curr_time += iteration_step;
         printf("time = %.4f\n", curr_time);
         step++;
 
