@@ -120,7 +120,7 @@ int main(int argc, char* argv[]) {
     
     ChVector<float> cyl_center(0.0f, 0.0f, 0.0f);
     float cyl_rad = std::min(params.box_X, params.box_Y) / 2.0f;
-    float cyl_hgt = params.box_Z /2.f
+    float cyl_hgt = params.box_Z /2.f;
 
     std::vector<ChMatrix33<float>> mesh_rotscales;
     std::vector<float3> mesh_translations;
@@ -175,7 +175,7 @@ int main(int argc, char* argv[]) {
 
     gpu_sys.SetParticlePositions(initialPos, initialVelo);
     // gpu_sys.SetGravitationalAcceleration(ChVector<float>(0, 0, -980));
-    std::cout << "Created " << body_points.size() << " spheres" << std::endl;
+    std::cout << "Created " << initialPos.size() << " spheres" << std::endl;
     
     gpu_sys.EnableMeshCollision(true);    
     gpu_sys.Initialize();
