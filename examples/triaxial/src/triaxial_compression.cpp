@@ -227,7 +227,7 @@ int main(int argc, char* argv[]) {
 
         }
 
-        gpu_sys.AdvanceSimulation(frame_step);
+        gpu_sys.AdvanceSimulation(iteration_step);
         curr_time += iteration_step;
         printf("time = %.4f\n", curr_time);
         step++;
