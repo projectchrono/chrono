@@ -236,11 +236,11 @@ int main(int argc, char* argv[]) {
                 fcFile << fforces;
 
             }
+            printf("time = %.4f\n", curr_time);
         }
 
         gpu_sys.AdvanceSimulation(iteration_step);
         curr_time += iteration_step;
-        printf("time = %.4f\n", curr_time);
         step++;
 
     }
