@@ -41,6 +41,11 @@ float out_fps = 200;
 bool render = true;
 float render_fps = 2000;
 
+// unit conversion from cgs to si
+float F_CGS_TO_SI = 1e-5f;
+float KE_CGS_TO_SI = 1e-7f;
+float L_CGS_TO_SI = 1e-2f;
+
 int main(int argc, char* argv[]) {
 
     // ===============================================
