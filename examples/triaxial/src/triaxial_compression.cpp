@@ -122,7 +122,7 @@ int main(int argc, char* argv[]) {
     // gpu_sys.CreateBCCylinderZ(cyl_center, cyl_rad, false, false); // remove boundary condition cylinder
 
     std::vector<string> mesh_filenames;
-    mesh_filenames.push_back(GetChronoDataFile("./models/open_cylinder_blender.obj")); //TODO: Add model member to struct ChGPUSimulationPArameters
+    mesh_filenames.push_back("./models/open_cylinder_blender.obj"); //TODO: Add model member to struct ChGPUSimulationPArameters
 
     std::vector<ChMatrix33<float>> mesh_rotscales;
     std::vector<float3> mesh_translations;
