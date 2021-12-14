@@ -119,14 +119,14 @@ int main(int argc, char* argv[]) {
     mesh_filenames.push_back("./models/open_cylinder_blender.obj"); //TODO: Add model member to struct ChGPUSimulationPArameters
     
     ChVector<float> cyl_center(0.0f, 0.0f, 0.0f);
-    float cyl_rad = 4.f;  //std::min(params.box_X, params.box_Y) / 2.0f; //TODO: fix these
-    float cyl_hgt = 12.f; //params.box_Z / 1.5f; //TODO: fix these
+    float cyl_rad = Bx / 2.f;  //std::min(params.box_X, params.box_Y) / 2.0f; //TODO: fix these
+    float cyl_hgt = Bz / 1.5f; //params.box_Z / 1.5f; //TODO: fix these
 
     std::vector<ChMatrix33<float>> mesh_rotscales;
     std::vector<float3> mesh_translations;
 
-    float scale_xy = 1;  // TODO: fix
-    float scale_z = 1;  // TODO: fix this / make switch on mixer_type
+    float scale_xy = cyl_rad;
+    float scale_z = cyl_hgt;  
     float3 scaling = make_float3(scale_xy, scale_xy, scale_z);
     mesh_rotscales.push_back(ChMatrix33<float>(ChVector<float>(scaling.x, scaling.y, scaling.z)));
     mesh_translations.push_back(make_float3(cyl_center.x(), cyl_center.y(), cyl_center.z()));
@@ -214,7 +214,7 @@ int main(int argc, char* argv[]) {
     std::ofstream sumfrcsFile(filenamesumforces, std::ios::out);
 
     // let system run for 0.5 second so the particles can settle
-    while (curr_time < 1.0) {
+    while (curr_time < 0.5) {
         
         if (step % out_steps == 0){
 
