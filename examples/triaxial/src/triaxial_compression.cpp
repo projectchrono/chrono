@@ -116,7 +116,7 @@ int main(int argc, char* argv[]) {
     // ================================================
 
     std::vector<string> mesh_filenames;
-    mesh_filenames.push_back("./models/open_cylinder_blender.obj"); //TODO: Add model member to struct ChGPUSimulationPArameters
+    mesh_filenames.push_back("./models/open_unit_cylinder_blender.obj"); //TODO: Add model member to struct ChGPUSimulationPArameters
     
     ChVector<float> cyl_center(0.0f, 0.0f, 0.0f);
     float cyl_rad = Bx / 2.f;  //std::min(params.box_X, params.box_Y) / 2.0f; //TODO: fix these
