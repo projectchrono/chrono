@@ -13,7 +13,12 @@ Do this:
 1. Be sure that you have installed the [Anaconda](https://www.anaconda.com/download/) Python distribution. (If you already
    have [Python](http://www.python.org) installed, you can still install Anaconda or MiniConda).
 
-2. Do **conda install -c projectchrono pychrono**. Alternatively, use the Anaconda Navigator GUI, 
+2. Add conda-forge and intel to your conda channel:
+    ```
+    conda config --add channels https://conda.anaconda.org/conda-forge
+    conda config --add channels https://conda.anaconda.org/intel
+    ```
+3. Do **conda install -c projectchrono pychrono**. Alternatively, use the Anaconda Navigator GUI, 
    picking pychrono from the projectchrono channell. 
 
 <div class="ce-info">
@@ -68,4 +73,3 @@ If you build PyChrono from the C++ source, i.e. method B), you need to set the P
 to the directory where you built the binaries. 
 This is not needed if you installed PyChrono with method A), because the Conda installer takes care of the PYTHONPATH.
 </div>
-
