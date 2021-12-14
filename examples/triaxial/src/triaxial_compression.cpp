@@ -119,13 +119,13 @@ int main(int argc, char* argv[]) {
     mesh_filenames.push_back("./models/open_unit_cylinder_blender.obj"); //TODO: Add model member to struct ChGPUSimulationPArameters
     
     ChVector<float> cyl_center(0.0f, 0.0f, 0.0f);
-    float cyl_rad = Bx;  //std::min(params.box_X, params.box_Y) / 2.0f; //TODO: fix these
+    float cyl_rad = Bx / 2.f;  //std::min(params.box_X, params.box_Y) / 2.0f; //TODO: fix these
     float cyl_hgt = Bz / 1.5f; //params.box_Z / 1.5f; //TODO: fix these
 
     std::vector<ChMatrix33<float>> mesh_rotscales;
     std::vector<float3> mesh_translations;
 
-    float scale_xy = cyl_rad;
+    float scale_xy = 2.f*cyl_rad;
     float scale_z = cyl_hgt;  
     float3 scaling = make_float3(scale_xy, scale_xy, scale_z);
     mesh_rotscales.push_back(ChMatrix33<float>(ChVector<float>(scaling.x, scaling.y, scaling.z)));
