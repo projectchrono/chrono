@@ -70,7 +70,7 @@ class MyTerrain : public ChVehicleCosimTerrainNode {
     virtual void Render(double time) override;
 
     // Update the state of the wheel proxy body for the i-th tire.
-    virtual void UpdateWheelProxy(unsigned int i, const BodyState& spindle_state) override;
+    virtual void UpdateWheelProxy(unsigned int i, BodyState& spindle_state) override;
 
     // Collect cumulative contact force and torque on the wheel proxy body for the i-th tire.
     virtual void GetForceWheelProxy(unsigned int i, TerrainForce& wheel_contact) override;
@@ -194,7 +194,7 @@ void MyTerrain::Render(double time) {
 #endif
 }
 
-void MyTerrain::UpdateWheelProxy(unsigned int i, const BodyState& spindle_state) {
+void MyTerrain::UpdateWheelProxy(unsigned int i, BodyState& spindle_state) {
     m_bodies[i]->SetPos(spindle_state.pos);
     m_bodies[i]->SetPos_dt(spindle_state.lin_vel);
     m_bodies[i]->SetRot(spindle_state.rot);
@@ -314,7 +314,6 @@ int main(int argc, char** argv) {
                 cout << "rank: " << rank << " running on: " << procname << endl;
                 cout << "   node type:    " << node->GetNodeTypeString() << endl;
                 cout << "   cosim node:   " << (node->IsCosimNode() ? "yes" : "no") << endl;
-                cout << "   terrain_rank: " << node->TerrainRank() << endl;
                 cout << "   output dir:   " << node->GetOutDirName() << endl;
             }
             MPI_Barrier(MPI_COMM_WORLD);
