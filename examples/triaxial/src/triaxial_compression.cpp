@@ -72,7 +72,7 @@ int main(int argc, char* argv[]) {
                             params.sphere_density, 
                             make_float3(Bx, By, Bz), 
                             make_float3((float)0., (float)0., (float)0.));
-
+    
     gpu_sys.SetKn_SPH2SPH(params.normalStiffS2S);
     gpu_sys.SetKn_SPH2WALL(params.normalStiffS2W);
     gpu_sys.SetKn_SPH2MESH(params.normalStiffS2M);
@@ -119,14 +119,14 @@ int main(int argc, char* argv[]) {
     mesh_filenames.push_back("./models/open_cylinder_blender.obj"); //TODO: Add model member to struct ChGPUSimulationPArameters
     
     ChVector<float> cyl_center(0.0f, 0.0f, 0.0f);
-    float cyl_rad = std::min(params.box_X, params.box_Y) / 2.0f;
-    float cyl_hgt = params.box_Z /2.f;
+    float cyl_rad = 4.f;  //std::min(params.box_X, params.box_Y) / 2.0f; //TODO: fix these
+    float cyl_hgt = 12.f; //params.box_Z / 1.5f; //TODO: fix these
 
     std::vector<ChMatrix33<float>> mesh_rotscales;
     std::vector<float3> mesh_translations;
 
-    float scale_xy = cyl_rad;
-    float scale_z = cyl_hgt;  // TODO fix this / make switch on mixer_type
+    float scale_xy = 1;  // TODO: fix
+    float scale_z = 1;  // TODO: fix this / make switch on mixer_type
     float3 scaling = make_float3(scale_xy, scale_xy, scale_z);
     mesh_rotscales.push_back(ChMatrix33<float>(ChVector<float>(scaling.x, scaling.y, scaling.z)));
     mesh_translations.push_back(make_float3(cyl_center.x(), cyl_center.y(), cyl_center.z()));
@@ -142,23 +142,21 @@ int main(int argc, char* argv[]) {
     float ang_vel_Z = 0; //TODO: remove
     ChVector<> mesh_lin_vel(0); //TODO: remove
     ChVector<> mesh_ang_vel(0, 0, ang_vel_Z); //TODO: remove
-
     
     // ======================================================
     //
     // Add the particles to the sim
     //
     // ======================================================    
-    
 
     // initialize sampler, set distance between center of spheres as 2.1r
-    utils::HCPSampler<float> sampler(2.1f * params.sphere_radius);
+    utils::PDSampler<float> sampler(2.1f * params.sphere_radius);
     std::vector<ChVector<float>> initialPos;
 
     // randomize by layer
-    ChVector<float> center(0.0f, 0.0f, -params.box_Z / 2 + params.sphere_radius);
+    ChVector<float> center(0.0f, 0.0f, 0.0f);
     // fill up each layer
-    while (center.z() + params.sphere_radius < params.box_Z / 2) {
+    while (center.z() + params.sphere_radius < cyl_hgt / 2.0f ) {
         auto points = sampler.SampleCylinderZ(center, cyl_rad - params.sphere_radius, 0);
         initialPos.insert(initialPos.end(), points.begin(), points.end());
         center.z() += 2.1f * params.sphere_radius;
@@ -175,13 +173,19 @@ int main(int argc, char* argv[]) {
 
     gpu_sys.SetParticlePositions(initialPos, initialVelo);
     gpu_sys.SetGravitationalAcceleration(ChVector<float>(0, 0, -980));
-    std::cout << "Created " << initialPos.size() << " spheres" << std::endl;
-    
+
+    // ===================================================
+    //
+    // Initialize
+    //
+    // ====================================================
+
     gpu_sys.EnableMeshCollision(true);    
     gpu_sys.Initialize();
     unsigned int nummeshes = gpu_sys.GetNumMeshes();
     std::cout << nummeshes << " meshes generated!" << std::endl;
-
+    std::cout << "Created " << initialPos.size() << " spheres" << std::endl;
+    
     // ===================================================
     //
     // Prepare main loop parameters
