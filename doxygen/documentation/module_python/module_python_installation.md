@@ -7,9 +7,7 @@ This is an optional module that adds Python support in Chrono.
 
 ## Features
 
-The **PYTHON module** allows users to use [Python](http://www.python.org)  
-for creating simulations. As with any scripting language, this allows for immediate execution, no compilers involved, simple to use, etc.
-This module is used to build the [PyChrono](@ref pychrono_introduction) wrapper.
+The **PYTHON module** allows users to use [Python](http://www.python.org) to creating simulations. This module is used to build the [PyChrono](@ref pychrono_introduction) wrapper.
 
 This module consists of *two* main sets of build targets:
 
@@ -25,7 +23,10 @@ This module consists of *two* main sets of build targets:
 - A *PYPARSER module*, which is a C++ module for parsing / executing / interpreting 
   Python instructions from C++ programs.
 
-  
+<div class="ce-info">
+    Note: If you are only interested in using PyChrono, an alternative to building the Chronmo Python module is to install the precompiled [PyChrono conda package](@ref pychrono_installation).
+</div>
+
 ## Requirements
 
 - To **run** applications based on this module:
@@ -35,7 +36,7 @@ This module consists of *two* main sets of build targets:
     - you must have the [SWIG](http://www.swig.org/) wrapper generator installed. On the Mac type <tt>brew install swig</tt>.
 
 <div class="ce-warning">
-PyChrono requires SWIG version **4.0.0* or newer.
+Building PyChrono requires SWIG version **4.0.0* or newer.
 On the Mac **SWIG v. 4.0.1** is known to work. It is installed by homebrew.
 </div>
 

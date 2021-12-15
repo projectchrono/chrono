@@ -5,11 +5,6 @@ The instruction process detailed here are universal to most major Linux distribu
 Windows and Mac instructions may be read [here](@ref tutorial_install_chrono).
 </div>
 
-A summary of the process required to **build** Chrono is provided in the picture below. 
-
-<img src="http://www.projectchrono.org/assets/manual/Pic_build_ce.png" class="img-responsive">
-<br>
-
 ## 1) Check/Install a C++ compiler
 
 Recommended compilers:
@@ -23,7 +18,7 @@ While it is likely possible to build Chrono with other tool chains, this might r
 
 ## 2) Download and install the Eigen library
 
-Chrono now uses [Eigen3](http://eigen.tuxfamily.org/) for all of its internal dense linear algebra needs. Chrono requires Eigen version 3.3.0 or newer, but we strongly encourage using the **latest stable release, Eigen 3.3.7**. Eigen is available through your system package manager as: `eigen`, `eigen3-dev`, `eigen3-devel`. 
+Chrono now uses [Eigen3](http://eigen.tuxfamily.org/) for all of its internal dense linear algebra needs. Chrono requires Eigen version 3.3.0 or newer, but we strongly encourage using the **latest stable release, Eigen 3.4.0**. Eigen is available through your system package manager as: `eigen`, `eigen3-dev`, `eigen3-devel`. 
 
 <div class="ce-warning"> 
 Chrono has been tested most extensively with Eigen 3.3.4 and Eigen 3.3.7.<br>

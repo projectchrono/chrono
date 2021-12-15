@@ -5,11 +5,6 @@ Looking for Linux installation instructions?<br>
 A detailed install guide may be found [here](@ref tutorial_install_chrono_linux).
 </div>
 
-A summary of the process required to **build** Chrono is provided in the picture below. 
-
-<img src="http://www.projectchrono.org/assets/manual/Pic_build_ce.png" class="img-responsive">
-<br>
-
 ## 1) Check/Install a C++ compiler
 
 Recommended compilers:
@@ -21,8 +16,7 @@ While it is likely possible to build Chrono with other toolchains, this might re
 
 <div class="ce-warning"> 
 The Microsoft Visual C++ compiler is included in the Visual Studio package, but it is **not** installed by default.<br>
-So, make sure to install the C++ toolchain during the setup!<br>
-Moreover, make sure to also select, under the *Single Components* tab, the `Windows Universal CRT SDK` and the `Windows 8.1 SDK`.
+Make sure to install the C++ toolchain during the setup!<br>
 </div> 
 
 <div class="ce-danger">
