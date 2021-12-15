@@ -132,7 +132,7 @@ int main(int argc, char* argv[]) {
     
     for (int i=0; i<120; ++i){
         mesh_filenames.push_back("./models/open_unit_cylinder_slab_120.obj"); // add slice
-        ChQuaternion quat = Q_from_AngAxis(i*3.f * CH_C_DEG_TO_RAD, VECT_Z); // find quaternion for rotation
+        ChQuaternion<> quat = Q_from_AngAxis(i*3.f * CH_C_DEG_TO_RAD, VECT_Z); // find quaternion for rotation
         mesh_rotscales.push_back(mesh_scale * ChMatrix33<float>(quat)); // create rotation * scaling matrix and push to vector
         mesh_translations.push_back(make_float3(cyl_center.x(), cyl_center.y(), cyl_center.z())); // push translation
         mesh_masses.push_back(mixer_mass); // push mass
