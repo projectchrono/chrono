@@ -216,7 +216,7 @@ int main(int argc, char* argv[]) {
     std::ofstream sumfrcsFile(filenamesumforces, std::ios::out);
 
     // let system run for 0.5 second so the particles can settle
-    while ( step == 0 ) { // curr_time < 0.5) {
+    while ( curr_time < 0.5 ) {
         
         if (step % out_steps == 0){
 
