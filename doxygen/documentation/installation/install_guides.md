@@ -54,11 +54,9 @@ Additional Chrono functionality is provided through optional modules. Building o
 
 #### The PyChrono Python module
 
-- [PyChrono](@ref pychrono_introduction), brief overview
 - @subpage pychrono_installation
 
 
 #### The Chrono::Solidworks add-in tool
 
-- [Chrono::SolidWorks](@ref introduction_chrono_solidworks), brief overview
 - @subpage tutorial_install_chrono_solidworks
