@@ -261,7 +261,7 @@ int main(int argc, char* argv[]) {
                 
                 // change to cylinderical coordinates
                 thetaF = std::fmod( atan2(imeshforce.y(), imeshforce.x()) + M_2_PI, M_2_PI);
-                theta = imesh * 2.f * M_PI / 120; // we are assuming mesh positions are going from 0 to 360 consecutively
+                theta = (float) (imesh/2) * 2.f * M_PI / 120; // we are assuming mesh positions are going from 0 to 360 consecutively
                 cst = cos(theta - thetaF);
                 snt = sin(theta - thetaF);
                 normfrc = sqrt( imeshforce.x()*imeshforce.x() + imeshforce.y()*imeshforce.y() );
@@ -273,7 +273,7 @@ int main(int argc, char* argv[]) {
                 sumforce += imeshforce;
                 sumforcecyl += imeshforcecyl;
                 // output to mesh file(s)
-                sprintf(meshfforces, "%d, %6f, %6f, %6f, %6f, %6f, %6f, %6f \n", imesh, imeshforce.x(), imeshforce.y(), imeshforce.z(),
+                sprintf(meshfforces, "%d, %6f, %6f, %6f, %6f, %6f, %6f, %6f \n", imesh/2, imeshforce.x(), imeshforce.y(), imeshforce.z(),
                 imeshforcecyl.x(), imeshforcecyl.y(), theta, thetaF);
                 meshfrcFile << meshfforces; 
             }
