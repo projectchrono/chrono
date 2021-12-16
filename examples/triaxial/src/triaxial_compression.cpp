@@ -126,23 +126,25 @@ int main(int argc, char* argv[]) {
     std::vector<float> mesh_masses;
     float mixer_mass = 10;
 
-    std::vector<string> mesh_bottom_filenames;
-    std::vector<string> mesh_side_filenames;
+    std::vector<string> mesh_filenames;
+    // std::vector<string> mesh_side_filenames;
     std::vector<ChMatrix33<float>> mesh_rotscales;
     ChMatrix33<float> mesh_scale(ChVector<float>(scaling.x, scaling.y, scaling.z));
     std::vector<float3> mesh_translations;
     
     for (int i=0; i<120; ++i){
-        mesh_bottom_filenames.push_back("./models/open_unit_cylinder_bottom_slab_120.obj"); // add slice
-        mesh_side_filenames.push_back("./models/open_unit_cylinder_side_slab_120.obj"); 
+        mesh_filenames.push_back("./models/open_unit_cylinder_bottom_slab_120.obj"); // add slice
+        mesh_filenames.push_back("./models/open_unit_cylinder_side_slab_120.obj"); 
         ChQuaternion<> quat = Q_from_AngAxis(i*3.f * CH_C_DEG_TO_RAD, VECT_Z); // find quaternion for rotation
-        mesh_rotscales.push_back(mesh_scale * ChMatrix33<float>(quat)); // create rotation * scaling matrix and push to vector
-        mesh_translations.push_back(make_float3(cyl_center.x(), cyl_center.y(), cyl_center.z())); // push translation
-        mesh_masses.push_back(mixer_mass); // push mass
+        for (int j=0; j<2; ++j){
+            mesh_rotscales.push_back(mesh_scale * ChMatrix33<float>(quat)); // create rotation * scaling matrix and push to vector
+            mesh_translations.push_back(make_float3(cyl_center.x(), cyl_center.y(), cyl_center.z())); // push translation
+            mesh_masses.push_back(mixer_mass); // push mass
+        }
     }
 
-    gpu_sys.LoadMeshes(mesh_bottom_filenames, mesh_rotscales, mesh_translations, mesh_masses);
-    gpu_sys.LoadMeshes(mesh_side_filenames, mesh_rotscales, mesh_translations, mesh_masses);
+    gpu_sys.LoadMeshes(mesh_filenames, mesh_rotscales, mesh_translations, mesh_masses);
+    // gpu_sys.LoadMeshes(mesh_side_filenames, mesh_rotscales, mesh_translations, mesh_masses);
         
     std::cout << gpu_sys.GetNumMeshes() << " meshes" << std::endl;
 
@@ -242,7 +244,7 @@ int main(int argc, char* argv[]) {
             // gpu_sys.CollectMeshContactForces(0, force, torque);
             // force = force * F_CGS_TO_SI;
             // Pull individual mesh forces
-            for (unsigned int imesh = nmeshes/2; imesh < nmeshes; imesh++) {
+            for (unsigned int imesh = 1; imesh < nmeshes; imesh = imesh+2) {
                 char xyzfforces[100];
                 ChVector<> imeshforce;  // forces for each mesh
                 ChVector<> imeshtorque; //torques for each mesh
