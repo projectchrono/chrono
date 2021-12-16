@@ -221,6 +221,7 @@ int main(int argc, char* argv[]) {
     char filenamesumforces[100];
     sprintf(filenamesumforces, "%s/sumforces.csv", out_dir.c_str());
     std::ofstream sumfrcsFile(filenamesumforces, std::ios::out);
+    sumfrcsFile << "#step, fx, fy, fz, fr, ftheta, fz\n";
 
     // let system run for 0.5 second so the particles can settle
     while (curr_time < 0.5) {
@@ -230,13 +231,15 @@ int main(int argc, char* argv[]) {
             char filename[100], filenamemesh[100], filenameforce[100];;
             sprintf(filename, "%s/step%06d", out_dir.c_str(), step);
             sprintf(filenamemesh, "%s/main%06d", out_dir.c_str(), step);
-            sprintf(filenameforce, "%s/meshforce%06d", out_dir.c_str(), step);
+            sprintf(filenameforce, "%s/meshforce%06d.csv", out_dir.c_str(), step);
 
             gpu_sys.WriteFile(std::string(filename));
             gpu_sys.WriteMeshes(filenamemesh);
 
             // Get sum of forces on cylinder
             std::ofstream meshfrcFile(filenameforce, std::ios::out);
+            meshfrcFile << "imesh, fx, fy, fz, fr, ftheta, fz\n";
+
             unsigned int nmeshes = gpu_sys.GetNumMeshes(); // only 1 mesh 
             ChVector<> sumforce;    // sum of forces for all meshes
             ChVector<> sumforcecyl; // sum of forces for all meshes in cylinderical coordinates
