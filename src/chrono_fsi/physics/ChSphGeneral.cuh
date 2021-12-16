@@ -25,238 +25,118 @@
 #include <device_launch_parameters.h>
 #include "chrono_fsi/ChApiFsi.h"
 #include "chrono_fsi/utils/ChUtilsDevice.cuh"
-#include "chrono_fsi/ChFsiDataManager.cuh"
-#include "chrono_fsi/physics/ChParams.cuh"
+#include "chrono_fsi/ChSystemFsi_impl.cuh"
+#include "chrono_fsi/physics/ChParams.h"
 #include "chrono_fsi/math/ChFsiLinearSolver.h"
 #include "chrono_fsi/math/ExactLinearSolvers.cuh"
 #include "chrono_fsi/math/custom_math.h"
 
-// #include <cstdio>
-
 namespace chrono {
 namespace fsi {
 
-/// I made this const variables static in order to be able to use them in a different translation units in the utils
-__constant__ static fsi::SimParams paramsD;
-__constant__ static fsi::NumberOfObjects numObjectsD;
+/// Declared as const variables static in order to be able to use them in a different translation units in the utils
+__constant__ static SimParams paramsD;
+__constant__ static NumberOfObjects numObjectsD;
+
+/// Short define of the kernel function
+#define W3h W3h_Spline
+
+/// Short define of the kernel function gradient
+#define GradWh GradWh_Spline
 
 void CopyParams_NumberOfObjects(std::shared_ptr<SimParams> paramsH, std::shared_ptr<NumberOfObjects> numObjectsH);
-//#define W3 W3_Spline
-//#define W2 W2_Spline
-//#define GradW GradW_Spline
-//
-//#define W3h W3H_KERNEL
-//#define GradWh W3H_GRADW
-//#define W_kappa 3
 
-#define W3h W3h_Spline
-#define W3h_GPU W3h_Spline_GPU
-#define GradWh GradWh_Spline
-// #define W3h W3h_High
-// #define GradWh GradWh_High
-#define W_kappa 2
-
+// 3D kernel function
 //--------------------------------------------------------------------------------------------------------------------------------
-// 3D SPH kernel function, W3_SplineA
-__device__ inline Real W3_Spline(Real d) {  // d is positive. h is the sph particle radius (i.e. h in
-                                            // the document) d is the distance of 2 particles
-    Real h = paramsD.HSML;
-    Real q = fabs(d) / h;
-    if (q < 1) {
-        return (0.25f / (PI * h * h * h) * (cube(2 - q) - 4 * cube(1 - q)));
-    }
-    if (q < 2) {
-        return (0.25f / (PI * h * h * h) * cube(2 - q));
-    }
-    return 0;
-}
-//--------------------------------------------------------------------------------------------------------------------------------
-// 3D SPH kernel function, W3_SplineA
-__host__ __device__ inline Real W3h_Spline(Real d, Real h) {  // d is positive. h is the sph particle radius (i.e. h in
-                                                              // the document) d is the distance of 2 particles
-    Real invh = 1.0f / h;
-    Real q = fabs(d) * invh;
-    if (q < 1) {
-        return (0.25f * (INVPI * invh * invh * invh) * (cube(2 - q) - 4 * cube(1 - q)));
-    }
-    if (q < 2) {
-        return (0.25f * (INVPI * invh * invh * invh) * cube(2 - q));
-    }
-    return 0;
-}
-__device__ inline Real W3h_Spline_GPU(Real d, Real h) {  // d is positive. h is the sph particle radius (i.e. h in
-                                                         // the document) d is the distance of 2 particles
+// Cubic Spline SPH kernel function
+__device__ inline Real W3h_Spline(Real d, Real h) {  // d is positive. h is the sph kernel length (i.e. h in
+                                                     // the document) d is the distance of 2 particles
     Real invh = paramsD.INVHSML;
     Real q = fabs(d) * invh;
     if (q < 1) {
-        return (0.25f * (INVPI * invh * invh * invh) * (cube(2 - q) - 4 * cube(1 - q)));
+        return (0.25f * (INVPI * cube(invh)) * (cube(2 - q) - 4 * cube(1 - q)));
     }
     if (q < 2) {
-        return (0.25f * (INVPI * invh * invh * invh) * cube(2 - q));
+        return (0.25f * (INVPI * cube(invh)) * cube(2 - q));
     }
     return 0;
 }
 //--------------------------------------------------------------------------------------------------------------------------------
 // Johnson kernel 1996b
-__host__ __device__ inline Real W3h_High(Real d, Real h) {  // d is positive. h is the sph particle radius (i.e. h in
-                                                            // the document) d is the distance of 2 particles
-    Real q = fabs(d) / h;
+__device__ inline Real W3h_High(Real d, Real h) {  // d is positive. h is the sph kernel length (i.e. h in
+                                                   // the document) d is the distance of 2 particles
+    Real invh = paramsD.INVHSML;
+    Real q = fabs(d) * invh;
     if (q < 2) {
-        return (5.0f / (4.0f * PI * h * h * h) * (3.0 / 16.0 * square(q) - 3.0 / 4.0 * q + 3.0 / 4.0));
+        return (1.25f * (INVPI * cube(invh)) * (0.1875f * square(q) - 0.75f * q + 0.75f));
+    }
+    return 0;
+}
+//--------------------------------------------------------------------------------------------------------------------------------
+// Quintic Spline SPH kernel function
+__device__ inline Real W3h_Quintic(Real d, Real h) {  // d is positive. h is the sph kernel length (i.e. h in
+                                                      // the document) d is the distance of 2 particles
+    Real invh = paramsD.INVHSML;
+    Real q = fabs(d) * invh;
+    Real coeff = 8.35655e-3; // 3/359
+    if (q < 1) {
+        return (coeff * INVPI * cube(invh) * (quintic(3 - q) - 6 * quintic(2 - q) + 15 * quintic(1 - q)));
+    }
+    if (q < 2) {
+        return (coeff * INVPI * cube(invh) * (quintic(3 - q) - 6 * quintic(2 - q)));
+    }
+    if (q < 3) {
+        return (coeff * INVPI * cube(invh) * (quintic(3 - q)));
     }
     return 0;
 }
 
-//// 3D SPH kernel function, W3_SplineA
-__device__ inline Real W3H_KERNEL(Real d, Real h) {  // d is positive. h is the sph particle radius (i.e. h in
-                                                     // the document) d is the distance of 2 particles
-    Real q = fabs(d) / h;
-    if (q < 1) {
-        return (3.0 / (359 * PI * h * h * h) *
-                (pow(3 - q, Real(5)) - 6 * pow(2 - q, Real(5)) + 15 * pow(1 - q, Real(5))));
-    }
-    if (q < 2) {
-        return (3.0 / (359 * PI * h * h * h) * (pow(3 - q, Real(5)) - 6 * pow(2 - q, Real(5))));
-    }
-    if (q < 3) {
-        return (3.0 / (359 * PI * h * h * h) * (pow(3 - q, Real(5))));
-    }
-    return 0;
+// Gradient of the kernel function
+//--------------------------------------------------------------------------------------------------------------------------------
+// Gradient of Cubic Spline SPH kernel function
+__device__ inline Real3 GradWh_Spline(Real3 d, Real h) {  // d is positive. r is the sph kernel length (i.e. h
+                                                          // in the document) d is the distance of 2 particles
+    Real invh = paramsD.INVHSML;
+    Real q = length(d) * invh;
+    if (abs(q) < EPSILON)
+        return mR3(0.0);
+    bool less1 = (q < 1);
+    bool less2 = (q < 2);
+    return (less1 * (3 * q - 4.0f) + less2 * (!less1) * (-q + 4.0f - 4.0f / q)) * .75f * INVPI * quintic(invh) * d;
 }
-__device__ inline Real3 W3H_GRADW(Real3 d, Real h) {  // d is positive. h is the sph particle radius (i.e. h in
-                                                      // the document) d is the distance of 2 particles
-    Real q = length(d) / h;
+//--------------------------------------------------------------------------------------------------------------------------------
+// Gradient of Johnson kernel 1996b
+__device__ inline Real3 GradWh_High(Real3 d, Real h) {  // d is positive. r is the sph kernel length (i.e. h
+                                                        // in the document) d is the distance of 2 particles
+    Real invh = paramsD.INVHSML;
+    Real q = length(d) * invh;
+    if (abs(q) < EPSILON)
+        return mR3(0.0);
+    bool less2 = (q < 2);
+    return (3.0 / 8.0 * q - 3.0 / 4.0) * 5.0 / 4.0 / q * INVPI * (1.0 / quintic(h)) * d * less2;
+}
+//--------------------------------------------------------------------------------------------------------------------------------
+// Gradient of Quintic Spline SPH kernel function
+__device__ inline Real3 W3h_Quintic(Real3 d, Real h) {  // d is positive. h is the sph kernel length (i.e. h in
+                                                        // the document) d is the distance of 2 particles
+    Real invh = paramsD.INVHSML;
+    Real q = length(d) * invh;
     if (fabs(q) < 1e-10)
         return mR3(0.0);
-
+    Real coeff = -4.178273e-2; // -15/359
     if (q < 1) {
-        return (-15.0 / (359 * PI * h * h * h * h * h * q) * d *
-                (pow(3 - q, Real(4)) - 6 * pow(2 - q, Real(4)) + 15 * pow(1 - q, Real(4))));
+        return (coeff * (INVPI * quintic(invh) / q) * d * (quartic(3 - q) - 6 * quartic(2 - q) + 15 * quartic(1 - q)));
     }
     if (q < 2) {
-        return (-15.0 / (359 * PI * h * h * h * h * h * q) * d * (pow(3 - q, Real(4)) - 6 * pow(2 - q, Real(4))));
+        return (coeff * (INVPI * quintic(invh) / q) * d * (quartic(3 - q) - 6 * quartic(2 - q)));
     }
     if (q < 3) {
-        return (-15.0 / (359 * PI * h * h * h * h * h * q) * d * (pow(3 - q, Real(4))));
+        return (coeff * (INVPI * quintic(invh) / q) * d * (quartic(3 - q)));
     }
     return mR3(0);
 }
 
-////--------------------------------------------------------------------------------------------------------------------------------
-////2D SPH kernel function, W2_SplineA
-//__device__ inline Real W2_Spline(Real d) { // d is positive. h is the sph
-// particle radius (i.e. h in the document) d
-// is the distance of 2 particles
-//	Real h = paramsD.HSML;
-//	Real q = fabs(d) / h;
-//	if (q < 1) {
-//		return (5 / (14 * PI * h * h) * (cube(2 - q) - 4 * cube(1 - q)));
-//	}
-//	if (q < 2) {
-//		return (5 / (14 * PI * h * h) * cube(2 - q));
-//	}
-//	return 0;
-//}
-////--------------------------------------------------------------------------------------------------------------------------------
-////3D SPH kernel function, W3_QuadraticA
-//__device__ inline Real W3_Quadratic(Real d, Real h) { // d is positive. h is
-// the sph particle radius (i.e. h in the
-// document) d is the distance of 2 particles
-//	Real q = fabs(d) / h;
-//	if (q < 2) {
-//		return (1.25f / (PI * h * h * h) * .75f * (square(.5f * q) -
-// q + 1));
-//	}
-//	return 0;
-//}
-////--------------------------------------------------------------------------------------------------------------------------------
-////2D SPH kernel function, W2_QuadraticA
-//__device__ inline Real W2_Quadratic(Real d, Real h) { // d is positive. h is
-// the sph particle radius (i.e. h in the
-// document) d is the distance of 2 particles
-//	Real q = fabs(d) / h;
-//	if (q < 2) {
-//		return (2.0f / (PI * h * h) * .75f * (square(.5f * q) - q +
-// 1));
-//	}
-//	return 0;
-//}
 //--------------------------------------------------------------------------------------------------------------------------------
-// Gradient of the kernel function
-// d: magnitude of the distance of the two particles
-// dW * dist3 gives the gradiant of W3_Quadratic, where dist3 is the distance
-// vector of the two particles, (dist3)a =
-// pos_a - pos_b
-__device__ inline Real3 GradW_Spline(Real3 d) {  // d is positive. r is the sph particle radius (i.e. h
-                                                 // in the document) d is the distance of 2 particles
-    Real h = paramsD.HSML;
-    Real q = length(d) / h;
-    bool less1 = (q < 1);
-    bool less2 = (q < 2);
-    return (less1 * (3 * q - 4) + less2 * (!less1) * (-q + 4.0f - 4.0f / q)) * .75f * (INVPI)*pow(h, Real(-5)) * d;
-    //	if (q < 1) {
-    //		return .75f * (INVPI) *pow(h, Real(-5))* (3 * q - 4) * d;
-    //	}
-    //	if (q < 2) {
-    //		return .75f * (INVPI) *pow(h, Real(-5))* (-q + 4.0f - 4.0f / q) *
-    // d;
-    //	}
-    //	return mR3(0);
-}
-
-__device__ inline Real3 GradWh_Spline(Real3 d, Real h) {  // d is positive. r is the sph particle radius (i.e. h
-                                                          // in the document) d is the distance of 2 particles
-    Real q = length(d) * paramsD.INVHSML;
-    Real INVHSML5 = paramsD.INVHSML * paramsD.INVHSML * paramsD.INVHSML * paramsD.INVHSML * paramsD.INVHSML;
-
-    if (abs(q) < EPSILON)
-        return mR3(0.0);
-    bool less1 = (q < 1);
-    bool less2 = (q < 2);
-    return (less1 * (3 * q - 4.0f) + less2 * (!less1) * (-q + 4.0f - 4.0f / q)) * .75f * INVPI * INVHSML5 * d;
-}
-
-__device__ inline Real3 GradWh_High(Real3 d, Real h) {  // d is positive. r is the sph particle radius (i.e. h
-                                                        // in the document) d is the distance of 2 particles
-    Real q = length(d) / h;
-    if (abs(q) < EPSILON)
-        return mR3(0.0);
-    bool less2 = (q < 2);
-    return (3.0 / 8.0 * q - 3.0 / 4.0) * 5.0 / 4.0 / q * (INVPI)*pow(h, Real(-5)) * d * less2;
-}
-
-////--------------------------------------------------------------------------------------------------------------------------------
-////Gradient of the kernel function
-//// d: magnitude of the distance of the two particles
-//// dW * dist3 gives the gradiant of W3_Quadratic, where dist3 is the distance
-/// vector of the two particles, (dist3)a =
-/// pos_a - pos_b
-//__device__ inline Real3 GradW_Quadratic(Real3 d, Real h) { // d is positive. r
-// is the sph particle radius (i.e. h in
-// the document) d is the distance of 2 particles
-//	Real q = length(d) / h;
-//	if (q < 2) {
-//		return 1.25f / (PI * pow(h, Real(5))) * .75f * (.5f - 1.0f / q) *
-// d;
-//	}
-//	return mR3(0);
-//}
-//--------------------------------------------------------------------------------------------------------------------------------
-
-__device__ inline Real EOS_new(Real rho, Real V_max, Real Min_rho) {
-    if (rho < paramsD.rho0)
-        rho = paramsD.rho0;
-
-    //    Real gama = 7;
-    //    Real B = paramsD.Cs * paramsD.Cs * paramsD.rho0 * V_max * V_max / gama;
-    //    return B * (pow(rho / paramsD.rho0, gama) - 1) + paramsD.BASEPRES;
-
-    //    Real B = paramsD.Cs * paramsD.Cs * paramsD.rho0 / gama;
-    return paramsD.Cs * paramsD.Cs * (rho / paramsD.rho0 - 1);
-}
-
-//--------------------------------------------------------------------------------------------------------------------------------
-// Eos is also defined in SDKCollisionSystem.cu
 // fluid equation of state
 __device__ inline Real Eos(Real rho, Real type) {
     // if (rho < paramsD.rho0) //
@@ -268,16 +148,8 @@ __device__ inline Real Eos(Real rho, Real type) {
     return paramsD.Cs * paramsD.Cs * (rho - paramsD.rho0);  //
 }
 //--------------------------------------------------------------------------------------------------------------------------------
+// Inverse of equation of state
 __device__ inline Real InvEos(Real pw) {
-    // Real gama = 7;
-    // Real B = 100 * paramsD.rho0 * paramsD.v_Max * paramsD.v_Max / gama;  // 200;//314e6; //c^2 * paramsD.rho0 / gama
-    //                                                                      // where c = 1484 m/s for water
-    // Real powerComp = (pw - paramsD.BASEPRES) / B + 1.0;
-    // Real rho = (powerComp > 0) ? paramsD.rho0 * pow(powerComp, 1.0 / gama)
-    //                            : -paramsD.rho0 * pow(fabs(powerComp),
-    //                                                  1.0 / gama);  // did this since CUDA is
-    //                                                                // stupid and freaks out by
-    //                                                                // negative^(1/gama)
     Real rho = pw / (paramsD.Cs * paramsD.Cs) + paramsD.rho0;  //
     return rho;
 }
@@ -285,12 +157,10 @@ __device__ inline Real InvEos(Real pw) {
 // ferrariCi
 __device__ inline Real FerrariCi(Real rho) {
     int gama = 7;
-    Real B = 100 * paramsD.rho0 * paramsD.v_Max * paramsD.v_Max / gama;  // 200;//314e6; //c^2 * paramsD.rho0 / gama
-                                                                         // where c = 1484 m/s for water
+    Real B = 100 * paramsD.rho0 * paramsD.v_Max * paramsD.v_Max / gama;
     return sqrt(gama * B / paramsD.rho0) * pow(rho / paramsD.rho0, 0.5 * (gama - 1));
 }
 //--------------------------------------------------------------------------------------------------------------------------------
-
 __device__ inline Real3 Modify_Local_PosB(Real3& b, Real3 a) {
     Real3 dist3 = a - b;
     b.x += ((dist3.x > 0.5f * paramsD.boxDims.x) ? paramsD.boxDims.x : 0);
@@ -304,41 +174,17 @@ __device__ inline Real3 Modify_Local_PosB(Real3& b, Real3 a) {
 
     dist3 = a - b;
     // modifying the markers perfect overlap
-    Real d = length(dist3);
-    if (d < paramsD.epsMinMarkersDis * paramsD.HSML) {
-        dist3 = mR3(paramsD.epsMinMarkersDis * paramsD.HSML, 0, 0);
+    Real dd = dist3.x*dist3.x + dist3.y*dist3.y + dist3.z*dist3.z;
+    Real MinD = paramsD.epsMinMarkersDis * paramsD.HSML;
+    Real sq_MinD = MinD * MinD;
+    if (dd < sq_MinD) {
+        dist3 = mR3(MinD, 0, 0);
     }
     b = a - dist3;
     return (dist3);
 }
 
-/**
- * @brief Distance
- * @details
- *          Distance between two particles, considering the periodic boundary
- * condition
- *
- * @param a Position of Particle A
- * @param b Position of Particle B
- *
- * @return Distance vector (distance in x, distance in y, distance in z)
- */
 __device__ inline Real3 Distance(Real3 a, Real3 b) {
-    //	Real3 dist3 = a - b;
-    //	dist3.x -= ((dist3.x > 0.5f * paramsD.boxDims.x) ? paramsD.boxDims.x :
-    // 0);
-    //	dist3.x += ((dist3.x < -0.5f * paramsD.boxDims.x) ? paramsD.boxDims.x :
-    // 0);
-    //
-    //	dist3.y -= ((dist3.y > 0.5f * paramsD.boxDims.y) ? paramsD.boxDims.y :
-    // 0);
-    //	dist3.y += ((dist3.y < -0.5f * paramsD.boxDims.y) ? paramsD.boxDims.y :
-    // 0);
-    //
-    //	dist3.z -= ((dist3.z > 0.5f * paramsD.boxDims.z) ? paramsD.boxDims.z :
-    // 0);
-    //	dist3.z += ((dist3.z < -0.5f * paramsD.boxDims.z) ? paramsD.boxDims.z :
-    // 0);
     return Modify_Local_PosB(b, a);
 }
 
@@ -351,7 +197,6 @@ __device__ inline void RotationMatirixFromQuaternion(Real3& AD1, Real3& AD2, Rea
     AD3 = 2 * mR3(q.y * q.w - q.x * q.z, q.z * q.w + q.x * q.y, 0.5f - q.y * q.y - q.z * q.z);
 }
 //--------------------------------------------------------------------------------------------------------------------------------
-
 __device__ inline Real3 InverseRotate_By_RotationMatrix_DeviceHost(const Real3& A1,
                                                                    const Real3& A2,
                                                                    const Real3& A3,
@@ -360,11 +205,6 @@ __device__ inline Real3 InverseRotate_By_RotationMatrix_DeviceHost(const Real3& 
                A1.z * r3.x + A2.z * r3.y + A3.z * r3.z);
 }
 //--------------------------------------------------------------------------------------------------------------------------------
-
-/**
- * @brief calcGridHash
- * @details  See SDKCollisionSystem.cuh
- */
 __device__ inline int3 calcGridPos(Real3 p) {
     int3 gridPos;
     if (paramsD.cellSize.x * paramsD.cellSize.y * paramsD.cellSize.z == 0)
@@ -375,12 +215,7 @@ __device__ inline int3 calcGridPos(Real3 p) {
     gridPos.z = (int)floor((p.z - paramsD.worldOrigin.z) / paramsD.cellSize.z);
     return gridPos;
 }
-
-/**
- * @brief calcGridHash
- * @details  See SDKCollisionSystem.cuh
- */
-
+//--------------------------------------------------------------------------------------------------------------------------------
 __device__ inline uint calcGridHash(int3 gridPos) {
     gridPos.x -= ((gridPos.x >= paramsD.gridSize.x) ? paramsD.gridSize.x : 0);
     gridPos.y -= ((gridPos.y >= paramsD.gridSize.y) ? paramsD.gridSize.y : 0);
@@ -498,20 +333,20 @@ inline __device__ void BCE_Vel_Acc(int i_idx,
         RotationMatirixFromQuaternion(a1, a2, a3, q4);
         Real3 rigidSPH_MeshPos_LRF__ = rigidSPH_MeshPos_LRF_D[Original_idx - updatePortion.y];
 
-        //        Real3 p_com = mR3(posRigid_fsiBodies_D[rigidIndex]);
+        // Real3 p_com = mR3(posRigid_fsiBodies_D[rigidIndex]);
         Real3 v_com = mR3(velMassRigid_fsiBodies_D[rigidIndex]);
         Real3 a_com = accRigid_fsiBodies_D[rigidIndex];
         Real3 angular_v_com = omegaVelLRF_fsiBodies_D[rigidIndex];
         Real3 angular_a_com = omegaAccLRF_fsiBodies_D[rigidIndex];
-        //        Real3 p_rel = mR3(sortedPosRad[i_idx]) - p_com;
+        // Real3 p_rel = mR3(sortedPosRad[i_idx]) - p_com;
         Real3 omegaCrossS = cross(angular_v_com, rigidSPH_MeshPos_LRF__);
         V_prescribed = v_com + mR3(dot(a1, omegaCrossS), dot(a2, omegaCrossS), dot(a3, omegaCrossS));
-        //        V_prescribed = v_com + cross(angular_v_com, rigidSPH_MeshPos_LRF);
+        // V_prescribed = v_com + cross(angular_v_com, rigidSPH_MeshPos_LRF);
 
         Real3 alphaCrossS = cross(angular_a_com, rigidSPH_MeshPos_LRF__);
         Real3 alphaCrossScrossS = cross(angular_v_com, cross(angular_v_com, rigidSPH_MeshPos_LRF__));
-        //        myAcc = a_com + cross(angular_a_com, p_rel) + cross(angular_v_com, cross(angular_v_com,
-        //        rigidSPH_MeshPos_LRF__));
+        // myAcc = a_com + cross(angular_a_com, p_rel) + cross(angular_v_com, cross(angular_v_com,
+        // rigidSPH_MeshPos_LRF__));
 
         myAcc = a_com + mR3(dot(a1, alphaCrossS), dot(a2, alphaCrossS), dot(a3, alphaCrossS)) +
                 mR3(dot(a1, alphaCrossScrossS), dot(a2, alphaCrossScrossS), dot(a3, alphaCrossScrossS));
@@ -546,9 +381,6 @@ inline __device__ void BCE_Vel_Acc(int i_idx,
             V_prescribed = NA * vel_fsi_fea_D_nA + NB * vel_fsi_fea_D_nB;
             myAcc = NA * acc_fsi_fea_D_nA + NB * acc_fsi_fea_D_nB;
 
-            //            printf("FlexIndex=%d, CableElementsNodes=%d,%d, NA=%f, Nb=%f, xi=%f\n", FlexIndex, nA, nB, NA,
-            //            NB,
-            //                   dx / Cable_x);
         }
         if (FlexIndex >= numFlex1D) {
             int nA = ShellelementsNodes[FlexIndex - numFlex1D].x;
@@ -583,20 +415,6 @@ inline __device__ void BCE_Vel_Acc(int i_idx,
 
             Real2 FlexSPH_MeshPos_Natural = mR2(dist3.x / Shell_x, dist3.y / Shell_y);
 
-            //            if (FlexIndex == -1) {
-            //                printf("FlexIndex=%d, Original_idx=%d, dist3=%f,%f,%f, Shell_x,y=%f,%f\n", FlexIndex,
-            //                Original_idx,
-            //                       dist3.x, dist3.y, dist3.z, Shell_x, Shell_y);
-            //
-            //                printf(
-            //                    "FlexIndex=%d, Original_idx=%d, ShellElementsNodes[FlexIndex]=%d,%d,%d,%d,Shell_center
-            //                    = %f, %f, "
-            //                    "%f, "
-            //                    "Ni = %f, %f\n",
-            //                    FlexIndex, Original_idx, nA, nB, nC, nD, Shell_center.x, Shell_center.y,
-            //                    Shell_center.z, FlexSPH_MeshPos_Natural.x, FlexSPH_MeshPos_Natural.y);
-            //            }
-
             Real4 N_shell = Shells_ShapeFunctions(FlexSPH_MeshPos_Natural.x, FlexSPH_MeshPos_Natural.y);
             Real NA = N_shell.x;
             Real NB = N_shell.y;
@@ -606,149 +424,12 @@ inline __device__ void BCE_Vel_Acc(int i_idx,
                 NA * vel_fsi_fea_D_nA + NB * vel_fsi_fea_D_nB + NC * vel_fsi_fea_D_nC + ND * vel_fsi_fea_D_nD;
             myAcc = NA * acc_fsi_fea_D_nA + NB * acc_fsi_fea_D_nB + NC * acc_fsi_fea_D_nC + ND * acc_fsi_fea_D_nD;
 
-            //            if (length(V_prescribed) > 18e-6) {
-            //                //                printf("i_idx=%d, myAcc:(%f,%f,%f) V_prescribed:(%f,%f,%f) \n", i_idx,
-            //                myAcc.x,
-            //                //                myAcc.y, myAcc.z,
-            //                //                       V_prescribed.x, V_prescribed.y, V_prescribed.z);
-            //                //                printf("FlexIndex=%d  FlexSPH_MeshPos_LRF_D[index]=%f,%f,
-            //                length(V_prescribed)=%f\n",
-            //                //                FlexIndex,
-            //                //                       FlexSPH_MeshPos_Natural.x, FlexSPH_MeshPos_Natural.y,
-            //                length(V_prescribed));
-            //            }
         }
     } else {
         printf("i_idx=%d, Original_idx:%d was not found \n\n", i_idx, Original_idx);
     }
 }
-//--------------------------------------------------------------------------------------------------------------------------------
-inline __device__ void grad_scalar(int i_idx,
-                                   Real4* sortedPosRad,  // input: sorted positions
-                                   Real4* sortedRhoPreMu,
-                                   Real* sumWij_inv,
-                                   Real* G_i,
-                                   Real4* Scalar,
-                                   Real3& myGrad,
-                                   uint* cellStart,
-                                   uint* cellEnd) {
-    // Note that this function only calculates the gradient of the first element of the Scalar;
-    // This is hard coded like this for now because usually rho appears in Real4 structure
-    Real3 posRadA = mR3(sortedPosRad[i_idx]);
-    Real h_i = sortedPosRad[i_idx].w;
-    int3 gridPos = calcGridPos(posRadA);
 
-    //    printf("update G[%d]= %f,%f,%f  %f,%f,%f, %f,%f,%f\n", i_idx, G_i[i_idx * 9 + 0], G_i[i_idx * 9 + 1],
-    //           G_i[i_idx * 9 + 2], G_i[i_idx * 9 + 3], G_i[i_idx * 9 + 4], G_i[i_idx * 9 + 5], G_i[i_idx * 9 + 6],
-    //           G_i[i_idx * 9 + 7], G_i[i_idx * 9 + 8]);
-
-    // This is the elements of inverse of G
-    Real mGi[9];
-    for (int n = 0; n < 9; n++)
-        mGi[n] = G_i[i_idx * 9 + n];
-
-    Real3 grad_si = mR3(0.);
-    for (int z = -1; z <= 1; z++) {
-        for (int y = -1; y <= 1; y++) {
-            for (int x = -1; x <= 1; x++) {
-                int3 neighbourPos = gridPos + mI3(x, y, z);
-                uint gridHash = calcGridHash(neighbourPos);
-                // get start of bucket for this cell50
-                uint startIndex = cellStart[gridHash];
-                if (startIndex != 0xffffffff) {  // cell is not empty
-                    uint endIndex = cellEnd[gridHash];
-
-                    for (uint j = startIndex; j < endIndex; j++) {
-                        Real3 posRadB = mR3(sortedPosRad[j]);
-                        Real3 dist3 = Distance(posRadA, posRadB);
-                        Real d = length(dist3);
-                        if (d > RESOLUTION_LENGTH_MULT * h_i || sortedRhoPreMu[j].w <= -2)
-                            continue;
-
-                        Real h_j = sortedPosRad[j].w;
-                        Real h_ij = 0.5 * (h_j + h_i);
-                        ////Real W3 = W3h(d, h_ij);
-                        Real3 grad_i_wij = GradWh(dist3, h_ij);
-                        Real V_j = sumWij_inv[j];
-                        Real3 common_part = mR3(0);
-                        common_part.x = grad_i_wij.x * mGi[0] + grad_i_wij.y * mGi[1] + grad_i_wij.z * mGi[2];
-                        common_part.y = grad_i_wij.x * mGi[3] + grad_i_wij.y * mGi[4] + grad_i_wij.z * mGi[5];
-                        common_part.z = grad_i_wij.x * mGi[6] + grad_i_wij.y * mGi[7] + grad_i_wij.z * mGi[8];
-                        grad_si += common_part * (Scalar[j].x - Scalar[i_idx].x) * V_j;
-                    }
-                }
-            }
-        }
-    }
-    myGrad = grad_si;
-    //    printf("grad_scalar[%d]= %f,%f,%f\n", i_idx, myGrad.x, myGrad.y, myGrad.z);
-}
-
-//--------------------------------------------------------------------------------------------------------------------------------
-inline __device__ void grad_vector(int i_idx,
-                                   Real4* sortedPosRad,  // input: sorted positions
-                                   Real4* sortedRhoPreMu,
-                                   Real* sumWij_inv,
-                                   Real* G_i,
-                                   Real3* Vector,
-                                   Real3& myGradx,
-                                   Real3& myGrady,
-                                   Real3& myGradz,
-                                   uint* cellStart,
-                                   uint* cellEnd) {
-    Real3 posRadA = mR3(sortedPosRad[i_idx]);
-    Real h_i = sortedPosRad[i_idx].w;
-    int3 gridPos = calcGridPos(posRadA);
-
-    // This is the elements of inverse of G
-    Real mGi[9] = {0.0};
-    for (int i = 0; i < 9; i++)
-        mGi[i] = G_i[i_idx * 9 + i];
-
-    Real3 common_part = mR3(0.);
-    Real3 grad_Vx = mR3(0.);
-    Real3 grad_Vy = mR3(0.);
-    Real3 grad_Vz = mR3(0.);
-
-    for (int z = -1; z <= 1; z++) {
-        for (int y = -1; y <= 1; y++) {
-            for (int x = -1; x <= 1; x++) {
-                int3 neighbourPos = gridPos + mI3(x, y, z);
-                uint gridHash = calcGridHash(neighbourPos);
-                // get start of bucket for this cell50
-                uint startIndex = cellStart[gridHash];
-                if (startIndex != 0xffffffff) {  // cell is not empty
-                    uint endIndex = cellEnd[gridHash];
-
-                    for (uint j = startIndex; j < endIndex; j++) {
-                        Real3 posRadB = mR3(sortedPosRad[j]);
-                        Real3 dist3 = Distance(posRadA, posRadB);
-                        Real d = length(dist3);
-                        if (d > RESOLUTION_LENGTH_MULT * h_i || sortedRhoPreMu[j].w <= -2)
-                            continue;
-
-                        Real h_j = sortedPosRad[j].w;
-                        Real h_ij = 0.5 * (h_j + h_i);
-                        ////Real W3 = W3h(d, h_ij);
-                        Real3 grad_i_wij = GradWh(dist3, h_ij);
-                        Real V_j = sumWij_inv[j];
-                        common_part.x = grad_i_wij.x * mGi[0] + grad_i_wij.y * mGi[1] + grad_i_wij.z * mGi[2];
-                        common_part.y = grad_i_wij.x * mGi[3] + grad_i_wij.y * mGi[4] + grad_i_wij.z * mGi[5];
-                        common_part.z = grad_i_wij.x * mGi[6] + grad_i_wij.y * mGi[7] + grad_i_wij.z * mGi[8];
-                        grad_Vx += common_part * (Vector[i_idx].x - Vector[j].x) * V_j;
-                        grad_Vy += common_part * (Vector[i_idx].y - Vector[j].y) * V_j;
-                        grad_Vz += common_part * (Vector[i_idx].z - Vector[j].z) * V_j;
-                    }
-                }
-            }
-        }
-    }
-    myGradx = grad_Vx;
-    myGrady = grad_Vy;
-    myGradz = grad_Vz;
-    //    printf("grad_vector[%d]= %f,%f,%f  %f,%f,%f, %f,%f,%f\n", i_idx, myGradx.x, myGradx.y, myGradx.z, myGrady.x,
-    //           myGrady.y, myGrady.z, myGradz.x, myGradz.y, myGradz.z);
-}
 //--------------------------------------------------------------------------------------------------------------------------------
 __global__ void calc_A_tensor(Real* A_tensor,
                               Real* G_tensor,

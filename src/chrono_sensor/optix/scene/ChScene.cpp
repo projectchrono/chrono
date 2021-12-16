@@ -27,7 +27,7 @@ CH_SENSOR_API ChScene::ChScene() {
     m_background.color_horizon = {0.7f, 0.8f, 0.9f};
     m_background.env_tex = "";
 
-    m_ambient_light = ChVector<float>({.2, .2, .2});
+    m_ambient_light = ChVector<float>({.2f, .2f, .2f});
     m_pointlights = std::vector<PointLight>();
     lights_changed = true;
     background_changed = true;
@@ -35,7 +35,7 @@ CH_SENSOR_API ChScene::ChScene() {
     m_fog_color = ChVector<float>(1.f,1.f,1.f);
     m_fog_scattering = 0.f;
 
-    m_scene_epsilon = 1e-3;
+    m_scene_epsilon = 1e-3f;
 }
 
 CH_SENSOR_API ChScene::~ChScene() {}
@@ -47,13 +47,13 @@ CH_SENSOR_API unsigned int ChScene::AddPointLight(ChVector<float> pos, ChVector<
     p.max_range = max_range;
     m_pointlights.push_back(p);
     lights_changed = true;
-    return m_pointlights.size() - 1;
+    return static_cast<unsigned int>(m_pointlights.size() - 1);
 }
 
 CH_SENSOR_API unsigned int ChScene::AddPointLight(PointLight p) {
     m_pointlights.push_back(p);
     lights_changed = true;
-    return m_pointlights.size() - 1;
+    return static_cast<unsigned int>(m_pointlights.size() - 1);
 }
 
 CH_SENSOR_API void ChScene::ModifyPointLight(unsigned int id, PointLight p) {

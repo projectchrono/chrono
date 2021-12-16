@@ -31,10 +31,11 @@ class SYN_API SynSimulationMessage : public SynMessage {
   public:
     ///@brief Constructor
     ///
-    ///@param source_id the id of the source to which the message is sent from
-    ///@param destination_id the id of the destination to which the message is sent to
-    ///@param quit_sim whether this message instructs the manager to end the simulation
-    SynSimulationMessage(unsigned int source_id, unsigned int destination_id, bool quit_sim = false);
+    ///@param source_key the id of the source to which the message is sent from
+    ///@param destination_key the id of the destination to which the message is sent to
+    SynSimulationMessage(AgentKey source_key = AgentKey(),
+                         AgentKey destination_key = AgentKey(),
+                         bool quit_sim = false);
 
     ///@brief Destroy the SynMessage object
     virtual ~SynSimulationMessage();

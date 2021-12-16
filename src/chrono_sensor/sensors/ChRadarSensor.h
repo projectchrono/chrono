@@ -29,15 +29,18 @@ namespace sensor {
 
 /// Radar Class/ This corresponds to a fmcw radar
 class CH_SENSOR_API ChRadarSensor : public ChOptixSensor {
+  public:
     /// Constructor for the base radar class
     /// @param parent Body to which the sensor is attached
+    /// @param updateRate the rate at which the sensor will be updated
+    /// @param offsetPose the relative mounting position of the sensor
     /// @param w Width in number of samples of a radar scan
     /// @param h Height in number of samples of a radar scan
-    /// @param clip_near Near clipping distance so that lidar sensor can be easily placed inside a visualization object
-    /// (sensor housing)
     /// @param hfov Horizontal field of view of the lidar
     /// @param vfov vertical angle of the lidar
-  public:
+    /// @param max_distance the farthest detectable distance for the radar
+    /// @param clip_near Near clipping distance so that lidar sensor can be easily placed inside a visualization object
+    /// (sensor housing)
     ChRadarSensor(std::shared_ptr<chrono::ChBody> parent,
                   const float updateRate,
                   chrono::ChFrame<double> offsetPose,

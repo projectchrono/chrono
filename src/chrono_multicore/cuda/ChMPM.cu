@@ -20,7 +20,7 @@
 #include "chrono_multicore/cuda/ChMPMUtils.h"
 #include "chrono_multicore/cuda/ChCudaHelper.cuh"
 #include "chrono_multicore/cuda/ChGPUVector.cuh"
-#include "chrono_thirdparty/cub/cub.cuh"
+#include <cub/cub.cuh>
 #include "chrono_multicore/cuda/matrixf.cuh"
 
 //#define BOX_YIELD

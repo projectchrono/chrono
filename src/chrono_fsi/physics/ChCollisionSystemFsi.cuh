@@ -9,7 +9,7 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Author: Arman Pazouki, Milad Rakhsha
+// Author: Arman Pazouki, Milad Rakhsha, Wei Hu
 // =============================================================================
 //
 // Base class for processing proximity in an FSI system.
@@ -19,8 +19,8 @@
 #define CH_COLLISIONSYSTEM_FSI_H_
 
 #include "chrono_fsi/ChApiFsi.h"
-#include "chrono_fsi/physics/ChFsiGeneral.cuh"
-#include "chrono_fsi/physics/ChSphGeneral.cuh"
+#include "chrono_fsi/physics/ChFsiGeneral.h"
+#include "chrono_fsi/ChSystemFsi_impl.cuh"
 
 namespace chrono {
 namespace fsi {
@@ -29,27 +29,28 @@ namespace fsi {
 /// @{
 
 /// Base class for processing proximity computation in an FSI system.
-class CH_FSI_API ChCollisionSystemFsi : public ChFsiGeneral {
+class ChCollisionSystemFsi : public ChFsiGeneral {
   public:
-    /// Constructor of the ChCollisionSystemFsi
+    /// Constructor of the ChCollisionSystemFsi class
     ChCollisionSystemFsi(
-        std::shared_ptr<SphMarkerDataD> otherSortedSphMarkersD,  ///< Information of the markers in the sorted array
+        std::shared_ptr<SphMarkerDataD> otherSortedSphMarkersD,  ///< Information of the particles in the sorted array
         std::shared_ptr<ProximityDataD> otherMarkersProximityD,  ///< Proximity information of the system
         std::shared_ptr<SimParams> otherParamsH,                 ///< Parameters of the simulation
         std::shared_ptr<NumberOfObjects> otherNumObjects         ///< Size of different objects in the system
     );
 
-    /// Destructor of the ChCollisionSystemFsi
+    /// Destructor of the ChCollisionSystemFsi class
     ~ChCollisionSystemFsi();
 
     /// Encapsulate calcHash and reaorderDataAndFindCellStart
     void ArrangeData(std::shared_ptr<SphMarkerDataD> otherSphMarkersD);
 
-    virtual void Finalize();
+    /// Finalize the data in ChCollisionSystemFsi.
+    void Finalize();
 
   private:
-    std::shared_ptr<SphMarkerDataD> sphMarkersD;        ///< Information of the markers in the original array
-    std::shared_ptr<SphMarkerDataD> sortedSphMarkersD;  ///< Information of the markers in the sorted array
+    std::shared_ptr<SphMarkerDataD> sphMarkersD;        ///< Information of the particles in the original array
+    std::shared_ptr<SphMarkerDataD> sortedSphMarkersD;  ///< Information of the particles in the sorted array
     std::shared_ptr<ProximityDataD> markersProximityD;  ///< Proximity information of the system
     std::shared_ptr<SimParams> paramsH;                 ///< Parameters of the simulation
     std::shared_ptr<NumberOfObjects> numObjectsH;       ///< Size of different objects in the system

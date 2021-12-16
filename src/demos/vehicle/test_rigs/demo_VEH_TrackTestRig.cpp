@@ -233,7 +233,7 @@ int main(int argc, char* argv[]) {
 #ifndef CHRONO_PARDISO_MKL
     use_mkl = false;
 #endif
-#ifndef CHRONO_PARDISO_MUMPS
+#ifndef CHRONO_MUMPS
     use_mumps = false;
 #endif
 

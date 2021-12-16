@@ -17,8 +17,9 @@
 
 #include <cmath>
 #include "chrono/fea/ChMesh.h"
+#include "chrono/physics/ChBodyAuxRef.h"
+#include "chrono/physics/ChShaft.h"
 #include "chrono/physics/ChLinksAll.h"
-#include "chrono/physics/ChPhysicsItem.h"
 
 namespace chrono {
 
@@ -52,6 +53,9 @@ class ChApi ChAssembly : public ChPhysicsItem {
     /// Attach a body to this assembly.
     void AddBody(std::shared_ptr<ChBody> body);
 
+    /// Attach a shaft to this assembly.
+    void AddShaft(std::shared_ptr<ChShaft> shaft);
+
     /// Attach a link to this assembly.
     void AddLink(std::shared_ptr<ChLinkBase> link);
 
@@ -62,11 +66,10 @@ class ChApi ChAssembly : public ChPhysicsItem {
     void AddOtherPhysicsItem(std::shared_ptr<ChPhysicsItem> item);
 
     /// Attach an arbitrary ChPhysicsItem (e.g. ChBody, ChParticles, ChLink, etc.) to the assembly.
-    /// It will take care of adding it to the proper list of bodies, links, meshes, or generic
-    /// physic item. (i.e. it calls AddBody(), AddLink(), AddMesh(), or AddOtherPhysicsItem()).
-    /// Note, you cannot call Add() during an Update (i.e. items like particle generators that
-    /// are already inserted in the assembly cannot call this) because not thread safe; instead,
-    /// use AddBatch().
+    /// It will take care of adding it to the proper list of bodies, links, meshes, or generic physic item. (i.e. it
+    /// calls AddBody(), AddShaft(), AddLink(), AddMesh(), or AddOtherPhysicsItem()). Note, you cannot call Add() during
+    /// an Update (i.e. items like particle generators that are already inserted in the assembly cannot call this)
+    /// because not thread safe; instead, use AddBatch().
     void Add(std::shared_ptr<ChPhysicsItem> item);
 
     /// Items added in this way are added like in the Add() method, but not instantly,
@@ -80,6 +83,8 @@ class ChApi ChAssembly : public ChPhysicsItem {
 
     /// Remove a body from this assembly.
     void RemoveBody(std::shared_ptr<ChBody> body);
+    /// Remove a shaft from this assembly.
+    void RemoveShaft(std::shared_ptr<ChShaft> shaft);
     /// Remove a link from this assembly.
     void RemoveLink(std::shared_ptr<ChLinkBase> link);
     /// Remove a mesh from the assembly.
@@ -91,6 +96,8 @@ class ChApi ChAssembly : public ChPhysicsItem {
 
     /// Remove all bodies from this assembly.
     void RemoveAllBodies();
+    /// Remove all shafts from this assembly.
+    void RemoveAllShafts();
     /// Remove all links from this assembly.
     void RemoveAllLinks();
     /// Remove all meshes from this assembly.
@@ -100,6 +107,8 @@ class ChApi ChAssembly : public ChPhysicsItem {
 
     /// Get the list of bodies.
     const std::vector<std::shared_ptr<ChBody>>& Get_bodylist() const { return bodylist; }
+    /// Get the list of shafts.
+    const std::vector<std::shared_ptr<ChShaft>>& Get_shaftlist() const { return shaftlist; }
     /// Get the list of links.
     const std::vector<std::shared_ptr<ChLinkBase>>& Get_linklist() const { return linklist; }
     /// Get the list of meshes.
@@ -109,6 +118,10 @@ class ChApi ChAssembly : public ChPhysicsItem {
 
     /// Search a body by its name.
     std::shared_ptr<ChBody> SearchBody(const char* name);
+    /// Search a body by its ID
+    std::shared_ptr<ChBody> SearchBodyID(int bodyID);
+    /// Search a shaft by its name.
+    std::shared_ptr<ChShaft> SearchShaft(const char* name);
     /// Search a link by its name.
     std::shared_ptr<ChLinkBase> SearchLink(const char* name);
     /// Search a mesh by its name.
@@ -117,12 +130,10 @@ class ChApi ChAssembly : public ChPhysicsItem {
     std::shared_ptr<ChPhysicsItem> SearchOtherPhysicsItem(const char* name);
     /// Search a marker by its name.
     std::shared_ptr<ChMarker> SearchMarker(const char* name);
-    /// Search an item (body, link or other ChPhysics items) by name.
-    std::shared_ptr<ChPhysicsItem> Search(const char* name);
-    /// Search a body by its ID
-    std::shared_ptr<ChBody> SearchBodyID(int bodyID);
     /// Search a marker by its unique ID.
     std::shared_ptr<ChMarker> SearchMarker(int markID);
+    /// Search an item (body, link or other ChPhysics items) by name.
+    std::shared_ptr<ChPhysicsItem> Search(const char* name);
 
     //
     // STATISTICS
@@ -136,6 +147,15 @@ class ChApi ChAssembly : public ChPhysicsItem {
     int GetNbodiesFixed() const { return nbodies_fixed; }
     /// Get the total number of bodies added to the assembly, including the grounded and sleeping bodies.
     int GetNbodiesTotal() const { return nbodies + nbodies_fixed + nbodies_sleep; }
+
+    /// Get the number of shafts.
+    int GetNshafts() const { return nshafts; }
+    /// Get the number of shafts that are in sleeping mode (excluding fixed shafts).
+    int GetNshaftsSleeping() const { return nshafts_sleep; }
+    /// Get the number of shafts that are fixed to ground.
+    int GetNshaftsFixed() const { return nshafts_fixed; }
+    /// Get the total number of shafts added to the assembly, including the grounded and sleeping shafts.
+    int GetNshaftsTotal() const { return nshafts + nshafts_fixed + nshafts_sleep; }
 
     /// Get the number of links.
     int GetNlinks() const { return nlinks; }
@@ -297,6 +317,7 @@ class ChApi ChAssembly : public ChPhysicsItem {
     virtual void SetupInitial() override;
 
     std::vector<std::shared_ptr<ChBody>> bodylist;                 ///< list of rigid bodies
+    std::vector<std::shared_ptr<ChShaft>> shaftlist;               ///< list of 1-D shafts
     std::vector<std::shared_ptr<ChLinkBase>> linklist;             ///< list of joints (links)
     std::vector<std::shared_ptr<fea::ChMesh>> meshlist;            ///< list of meshes
     std::vector<std::shared_ptr<ChPhysicsItem>> otherphysicslist;  ///< list of other physics objects
@@ -304,20 +325,24 @@ class ChApi ChAssembly : public ChPhysicsItem {
 
     // Statistics:
     int nbodies;        ///< number of bodies (currently active)
+    int nbodies_sleep;  ///< number of bodies that are sleeping
+    int nbodies_fixed;  ///< number of bodies that are fixed
+    int nshafts;        ///< number of shafts (currently active)
+    int nshafts_sleep;  ///< number of shafts that are sleeping
+    int nshafts_fixed;  ///< number of shafts that are fixed
     int nlinks;         ///< number of links
     int nmeshes;        ///< number of meshes
     int nphysicsitems;  ///< number of other physics items
-    int ncoords;        ///< number of scalar coordinates (including 4th dimension of quaternions) for all active bodies
-    int ndoc;           ///< number of scalar constraints (including constr. on quaternions)
-    int nsysvars;       ///< number of variables (coords+lagrangian mult.), i.e. = ncoords+ndoc  for all active bodies
-    int ncoords_w;      ///< number of scalar coordinates when using 3 rot. dof. per body;  for all active bodies
-    int ndoc_w;         ///< number of scalar constraints  when using 3 rot. dof. per body;  for all active bodies
-    int nsysvars_w;     ///< number of variables when using 3 rot. dof. per body; i.e. = ncoords_w+ndoc_w
-    int ndof;           ///< number of degrees of freedom, = ncoords-ndoc =  ncoords_w-ndoc_w ,
-    int ndoc_w_C;       ///< number of scalar constraints C, when using 3 rot. dof. per body (excluding unilaterals)
-    int ndoc_w_D;       ///< number of scalar constraints D, when using 3 rot. dof. per body (only unilaterals)
-    int nbodies_sleep;  ///< number of bodies that are sleeping
-    int nbodies_fixed;  ///< number of bodies that are fixed
+
+    int ncoords;     ///< number of scalar coordinates (including 4th dimension of quaternions) for all active bodies
+    int ndoc;        ///< number of scalar constraints (including constr. on quaternions)
+    int nsysvars;    ///< number of variables (coords+lagrangian mult.), i.e. = ncoords+ndoc  for all active bodies
+    int ncoords_w;   ///< number of scalar coordinates when using 3 rot. dof. per body;  for all active bodies
+    int ndoc_w;      ///< number of scalar constraints  when using 3 rot. dof. per body;  for all active bodies
+    int nsysvars_w;  ///< number of variables when using 3 rot. dof. per body; i.e. = ncoords_w+ndoc_w
+    int ndof;        ///< number of degrees of freedom, = ncoords-ndoc =  ncoords_w-ndoc_w ,
+    int ndoc_w_C;    ///< number of scalar constraints C, when using 3 rot. dof. per body (excluding unilaterals)
+    int ndoc_w_D;    ///< number of scalar constraints D, when using 3 rot. dof. per body (only unilaterals)
 
     friend class ChSystem;
     friend class ChSystemMulticore;

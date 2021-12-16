@@ -352,6 +352,19 @@ enum POVRayLinkType {
 enum POVRayLineType { SEGMENT = 0, COIL = 1 };
 
 void WriteVisualizationAssets(ChSystem* system, const std::string& filename, bool body_info, const std::string& delim) {
+    WriteVisualizationAssets(
+        system,                                        //
+        filename,                                      //
+        [](const ChBody& b) -> bool { return true; },  //
+        body_info,                                     //
+        delim);
+}
+
+void WriteVisualizationAssets(ChSystem* system,
+                              const std::string& filename,
+                              std::function<bool(const ChBody&)> selector,
+                              bool body_info,
+                              const std::string& delim) {
     CSV_writer csv(delim);
 
     // If requested, Loop over all bodies and write out their position and
@@ -360,6 +373,9 @@ void WriteVisualizationAssets(ChSystem* system, const std::string& filename, boo
 
     if (body_info) {
         for (auto body : system->Get_bodylist()) {
+            if (!selector(*body))
+                continue;
+
             const ChVector<>& body_pos = body->GetFrame_REF_to_abs().GetPos();
             const ChQuaternion<>& body_rot = body->GetFrame_REF_to_abs().GetRot();
 
@@ -372,6 +388,9 @@ void WriteVisualizationAssets(ChSystem* system, const std::string& filename, boo
     // Loop over all bodies and over all their assets.
     int a_count = 0;
     for (auto body : system->Get_bodylist()) {
+        if (!selector(*body))
+            continue;
+
         const ChVector<>& body_pos = body->GetFrame_REF_to_abs().GetPos();
         const ChQuaternion<>& body_rot = body->GetFrame_REF_to_abs().GetRot();
 

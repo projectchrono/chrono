@@ -40,11 +40,11 @@ static const std::string ref_dir = "testing/joints/transpringcb_force/";
 
 // Functor classes implementing the force for a ChLinkTSDA link.
 class MySpringForceCase01 : public ChLinkTSDA::ForceFunctor {
-    virtual double operator()(double time,         // current time
-                              double rest_length,  // undeformed length
-                              double length,       // current length
-                              double vel,          // current velocity (positive when extending)
-                              ChLinkTSDA* link     // back-pointer to associated link
+    virtual double evaluate(double time,         // current time
+                            double rest_length,  // undeformed length
+                            double length,       // current length
+                            double vel,          // current velocity (positive when extending)
+                            ChLinkTSDA* link     // back-pointer to associated link
     ) {
         double spring_coef = 10;
         double damping_coef = .5;
@@ -55,11 +55,11 @@ class MySpringForceCase01 : public ChLinkTSDA::ForceFunctor {
 };
 
 class MySpringForceCase02 : public ChLinkTSDA::ForceFunctor {
-    virtual double operator()(double time,         // current time
-                              double rest_length,  // undeformed length
-                              double length,       // current length
-                              double vel,          // current velocity (positive when extending)
-                              ChLinkTSDA* link     // back-pointer to associated link
+    virtual double evaluate(double time,         // current time
+                            double rest_length,  // undeformed length
+                            double length,       // current length
+                            double vel,          // current velocity (positive when extending)
+                            ChLinkTSDA* link     // back-pointer to associated link
     ) {
         double spring_coef = 100;
         double damping_coef = 5;
@@ -70,11 +70,11 @@ class MySpringForceCase02 : public ChLinkTSDA::ForceFunctor {
 };
 
 class MySpringForceCase03 : public ChLinkTSDA::ForceFunctor {
-    virtual double operator()(double time,         // current time
-                              double rest_length,  // undeformed length
-                              double length,       // current length
-                              double vel,          // current velocity (positive when extending)
-                              ChLinkTSDA* link     // back-pointer to associated link
+    virtual double evaluate(double time,         // current time
+                            double rest_length,  // undeformed length
+                            double length,       // current length
+                            double vel,          // current velocity (positive when extending)
+                            ChLinkTSDA* link     // back-pointer to associated link
     ) {
         double spring_coef = 50;
         double spring_nonlin_coef = 10;

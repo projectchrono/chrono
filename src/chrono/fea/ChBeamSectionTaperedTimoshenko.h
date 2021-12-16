@@ -136,7 +136,7 @@ class ChApi ChBeamSectionTimoshenkoAdvancedGeneric : public ChBeamSectionRayleig
         const double mBzz,                         ///< bending rigidity about zz
         const double mGAyy,                        ///< shear rigidity along yy
         const double mGAzz,                        ///< shear rigidity along zz
-        const DampingCoefficients mdamping_coeff,  /// damping coefficients
+        const DampingCoefficients mdamping_coeff,  ///< damping coefficients
         const double malpha,                       ///< section rotation about elastic center [rad]
         const double mCy,                          ///< elastic center y displacement respect to centerline
         const double mCz,                          ///< elastic center z displacement respect to centerline

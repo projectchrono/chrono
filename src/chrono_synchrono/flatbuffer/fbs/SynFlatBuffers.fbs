@@ -43,8 +43,13 @@ table Buffer {
 
 table Message {
   message:Type;
-  source_id:uint;
-  destination_id:uint;
+  source_key:AgentKey;
+  destination_key:AgentKey;
+}
+
+struct AgentKey {
+    node_id:int;
+    agent_id:int;
 }
 
 root_type Buffer;

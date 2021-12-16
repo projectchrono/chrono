@@ -12,7 +12,7 @@
 // Author: Milad Rakhsha
 // =============================================================================
 //
-// Class for solving a linear linear system via iterative methods.//
+// Class for solving a linear linear system via iterative methods.
 // =============================================================================
 
 #ifndef CHFSILINEARSOLVER_GMRES_H_
@@ -32,30 +32,30 @@
 namespace chrono {
 namespace fsi {
 
-typedef char MM_typecode[4];
-/// @addtogroup fsi_math
+/// @addtogroup fsi_solver
 /// @{
+
+/// GMRES iterative linear solver.
 class ChFsiLinearSolverGMRES : public ChFsiLinearSolver {
   public:
-    ChFsiLinearSolverGMRES(double mrel_res = 1e-8, double mabs_res = 1e-4, int mmax_iter = 1000, bool mverbose = false)
-        : ChFsiLinearSolver(mrel_res, mabs_res, mmax_iter, mverbose, SolverType::GMRES) {}
+    /// Constructor of the ChFsiLinearSolverGMRES class.
+    ChFsiLinearSolverGMRES(Real mrel_res = 1e-8, Real mabs_res = 1e-4, int mmax_iter = 1000, bool mverbose = false)
+        : ChFsiLinearSolver(SolverType::GMRES, mrel_res, mabs_res, mmax_iter, mverbose) {}
 
-    virtual ~ChFsiLinearSolverGMRES() {}
+    /// Destructor of the ChFsiLinearSolverGMRES class.
+    ~ChFsiLinearSolverGMRES() {}
 
-    /// Returns the solver type
-    virtual SolverType GetType() override { return SolverType::GMRES; }
+    /// Solve the linear system on the device.
+    virtual void Solve(int SIZE, int NNZ, Real* A, unsigned int* ArowIdx, unsigned int* AcolIdx, Real* x, Real* b) override;
 
-    /// Solves the linear system on the device
-    virtual void Solve(int SIZE, int NNZ, double* A, unsigned int* ArowIdx, unsigned int* AcolIdx, double* x, double* b)
-        override;
-
-    /// Sets the restart parameter in the GMRES method
+    /// Set the restart parameter in the GMRES method.
     void SetRestart(int R) { restart = R; }
 
   private:
     int restart = 100;
 };
-/// @} fsi_math
+
+/// @} fsi_solver
 
 }  // end namespace fsi
 }  // end namespace chrono

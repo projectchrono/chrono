@@ -26,8 +26,8 @@ namespace synchrono {
 namespace Agent = SynFlatBuffers::Agent;
 namespace Copter = SynFlatBuffers::Agent::Copter;
 
-SynCopterStateMessage::SynCopterStateMessage(unsigned int source_id, unsigned int destination_id)
-    : SynMessage(source_id, destination_id) {}
+SynCopterStateMessage::SynCopterStateMessage(AgentKey source_key, AgentKey destination_key)
+    : SynMessage(source_key, destination_key) {}
 
 void SynCopterStateMessage::SetState(double time, SynPose chassis, std::vector<SynPose> props) {
     this->time = time;
@@ -40,8 +40,8 @@ void SynCopterStateMessage::ConvertFromFlatBuffers(const SynFlatBuffers::Message
     if (message->message_type() != SynFlatBuffers::Type_Agent_State)
         return;
 
-    m_source_id = message->source_id();
-    m_destination_id = message->destination_id();
+    m_source_key = AgentKey(message->source_key());
+    m_destination_key = message->destination_key();
 
     auto agent_state = message->message_as_Agent_State();
     auto state = agent_state->message_as_Copter_State();
@@ -71,18 +71,19 @@ FlatBufferMessage SynCopterStateMessage::ConvertToFlatBuffers(flatbuffers::FlatB
                             .Union();
 
     auto flatbuffer_state = Agent::CreateState(builder, copter_type, copter_state);
-    auto flatbuffer_message = SynFlatBuffers::CreateMessage(builder,                           //
-                                                            SynFlatBuffers::Type_Agent_State,  //
-                                                            flatbuffer_state.Union(),          //
-                                                            m_source_id, m_destination_id);    //
+    auto flatbuffer_message =
+        SynFlatBuffers::CreateMessage(builder,                                                                   //
+                                      SynFlatBuffers::Type_Agent_State,                                          //
+                                      flatbuffer_state.Union(),                                                  //
+                                      m_source_key.GetFlatbuffersKey(), m_destination_key.GetFlatbuffersKey());  //
 
     return flatbuffers::Offset<SynFlatBuffers::Message>(flatbuffer_message);
 }
 
 // ---------------------------------------------------------------------------------------------------------------
 
-SynCopterDescriptionMessage::SynCopterDescriptionMessage(unsigned int source_id, unsigned int destination_id)
-    : SynMessage(source_id, destination_id) {}
+SynCopterDescriptionMessage::SynCopterDescriptionMessage(AgentKey source_key, AgentKey destination_key)
+    : SynMessage(source_key, destination_key) {}
 
 /// Generate agent description from FlatBuffers message
 void SynCopterDescriptionMessage::ConvertFromFlatBuffers(const SynFlatBuffers::Message* message) {
@@ -91,8 +92,8 @@ void SynCopterDescriptionMessage::ConvertFromFlatBuffers(const SynFlatBuffers::M
         return;
 
     auto description = message->message_as_Agent_Description();
-    m_source_id = message->source_id();
-    m_destination_id = message->destination_id();
+    m_source_key = AgentKey(message->source_key());
+    m_destination_key = message->destination_key();
     auto copter_description = description->description_as_Copter_Description();
     SetVisualizationFiles(copter_description->chassis_vis_file()->str(),
                           copter_description->propeller_vis_file()->str());
@@ -115,10 +116,10 @@ FlatBufferMessage SynCopterDescriptionMessage::ConvertToFlatBuffers(flatbuffers:
                                                            copter_description.Union()  //
     );                                                                                 //
 
-    return SynFlatBuffers::CreateMessage(builder,                                 //
-                                         SynFlatBuffers::Type_Agent_Description,  //
-                                         flatbuffer_description.Union(),          //
-                                         m_source_id, m_destination_id);          //
+    return SynFlatBuffers::CreateMessage(builder,                                                                   //
+                                         SynFlatBuffers::Type_Agent_Description,                                    //
+                                         flatbuffer_description.Union(),                                            //
+                                         m_source_key.GetFlatbuffersKey(), m_destination_key.GetFlatbuffersKey());  //
 }
 
 void SynCopterDescriptionMessage::SetVisualizationFiles(const std::string& chassis_vis_file,

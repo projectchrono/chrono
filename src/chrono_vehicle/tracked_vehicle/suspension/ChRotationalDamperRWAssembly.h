@@ -20,7 +20,7 @@
 #ifndef CH_ROTATIONAL_DAMPER_RWA_H
 #define CH_ROTATIONAL_DAMPER_RWA_H
 
-#include "chrono/physics/ChLinkRotSpringCB.h"
+#include "chrono/physics/ChLinkRSDA.h"
 #include "chrono/physics/ChLinkForce.h"
 
 #include "chrono_vehicle/ChApiVehicle.h"
@@ -99,10 +99,10 @@ class CH_VEHICLE_API ChRotationalDamperRWAssembly : public ChRoadWheelAssembly {
     virtual double GetArmVisRadius() const = 0;
 
     /// Return the functor object for the torsional spring torque.
-    virtual std::shared_ptr<ChLinkRotSpringCB::TorqueFunctor> GetSpringTorqueFunctor() const = 0;
+    virtual std::shared_ptr<ChLinkRSDA::TorqueFunctor> GetSpringTorqueFunctor() const = 0;
 
     /// Return the functor object for the rotational shock force.
-    virtual std::shared_ptr<ChLinkRotSpringCB::TorqueFunctor> GetShockTorqueCallback() const = 0;
+    virtual std::shared_ptr<ChLinkRSDA::TorqueFunctor> GetShockTorqueCallback() const = 0;
 
     /// Return stiffness and damping data for the arm bushing.
     /// Returning nullptr (default) results in using a kinematic revolute joint.
@@ -114,8 +114,8 @@ class CH_VEHICLE_API ChRotationalDamperRWAssembly : public ChRoadWheelAssembly {
 
     std::shared_ptr<ChBody> m_arm;                ///< handle to the trailing arm body
     std::shared_ptr<ChVehicleJoint> m_revolute;   ///< handle to the revolute joint arm-chassis
-    std::shared_ptr<ChLinkRotSpringCB> m_spring;  ///< handle to the rotational spring link
-    std::shared_ptr<ChLinkRotSpringCB> m_shock;   ///< handle to the rotational shock link
+    std::shared_ptr<ChLinkRSDA> m_spring;         ///< handle to the rotational spring link
+    std::shared_ptr<ChLinkRSDA> m_shock;          ///< handle to the rotational shock link
 
   private:
     // Points for arm visualization

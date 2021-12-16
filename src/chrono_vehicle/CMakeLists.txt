@@ -573,23 +573,6 @@ set(CV_WV_WHEEL_FILES
 )
 source_group("wheeled_vehicle\\wheel" FILES ${CV_WV_WHEEL_FILES})
 
-#if(MPI_CXX_FOUND)
-#    set(CV_WV_COSIM_FILES
-#        wheeled_vehicle/cosim/ChCosimManager.h
-#        wheeled_vehicle/cosim/ChCosimManager.cpp
-#        wheeled_vehicle/cosim/ChCosimNode.h
-#        wheeled_vehicle/cosim/ChCosimVehicleNode.h
-#        wheeled_vehicle/cosim/ChCosimVehicleNode.cpp
-#        wheeled_vehicle/cosim/ChCosimTireNode.h
-#        wheeled_vehicle/cosim/ChCosimTireNode.cpp
-#        wheeled_vehicle/cosim/ChCosimTerrainNode.h
-#        wheeled_vehicle/cosim/ChCosimTerrainNode.cpp
-#    )
-#    source_group("wheeled_vehicle\\cosim" FILES ${CV_WV_COSIM_FILES})
-#else()
-    set(CV_WV_COSIM_FILES "")
-#endif()
-
 # --------------- TRACKED VEHICLE FILES
 
 set(CV_TV_BASE_FILES
@@ -819,13 +802,6 @@ set(COMPILE_DEFS "CH_API_COMPILE_VEHICLE")
 set(LINK_FLAGS ${CH_LINKERFLAG_SHARED})
 set(LIBRARIES "ChronoEngine")
 
-if(MPI_CXX_FOUND)
-    set(CXX_FLAGS "${CXX_FLAGS} ${MPI_CXX_COMPILE_FLAGS}")
-    set(LINK_FLAGS "${LINK_FLAGS} ${MPI_CXX_LINK_FLAGS}")
-    include_directories(${MPI_CXX_INCLUDE_PATH})
-    list(APPEND LIBRARIES ${MPI_CXX_LIBRARIES})
-endif()
-
 if(HDF5_FOUND)
     set(COMPILE_DEFS "${COMPILE_DEFS} ${H5_BUILT_AS_DYNAMIC_LIB}")
     include_directories(${HDF5_INCLUDE_DIRS})
@@ -861,7 +837,6 @@ add_library(ChronoEngine_vehicle SHARED
     ${CV_WV_UTILS_FILES}
     ${CV_WV_VEHICLE_FILES}
     ${CV_WV_WHEEL_FILES}
-    ${CV_WV_COSIM_FILES}
 #
     ${CV_TV_BASE_FILES}
     ${CV_TV_BRAKE_FILES}
@@ -879,6 +854,8 @@ add_library(ChronoEngine_vehicle SHARED
 #
     ${CV_STB_FILES}
 )
+
+message(STATUS "Add ChronoEngine_vehicle library")
 
 set_target_properties(ChronoEngine_vehicle PROPERTIES
                       COMPILE_FLAGS "${CXX_FLAGS}"
@@ -940,6 +917,11 @@ install(TARGETS ChronoEngine_vehicle_irrlicht
         ARCHIVE DESTINATION lib)
 
 endif()
+
+#-------------------------------------------------------------------------------
+# Trigger CMake for vehicle cosimulation
+#-------------------------------------------------------------------------------
+add_subdirectory(cosim)
 
 #-------------------------------------------------------------------------------
 # Install Chrono::Vehicle headers

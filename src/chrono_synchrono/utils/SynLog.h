@@ -8,15 +8,12 @@
 /// @addtogroup synchrono_utils
 /// @{
 
-/// TODO: Create a class with utility functions
-#define SynNodeID uint16_t
-
 namespace chrono {
 namespace synchrono {
 
 /// Will set the node id for this specific node.
 /// That way, the logger will print the correct node id
-SYN_API void SetLogNodeID(SynNodeID node_id);
+SYN_API void SetLogNodeID(int node_id);
 
 /// "Overriden" global function to get the current ChLog object
 /// Will prepend any output with the global id set from SetLogNodeID

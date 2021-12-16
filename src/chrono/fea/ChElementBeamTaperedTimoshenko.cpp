@@ -1409,12 +1409,12 @@ void ChElementBeamTaperedTimoshenko::EvaluateSectionStrain(const double eta,
     auto dddkNby = std::get<0>(sfblk3d);
     auto dddkNbz = std::get<1>(sfblk3d);
 
-    double EA = this->tapered_section->GetAverageSectionParameters()->EA;
-    double GJ = this->tapered_section->GetAverageSectionParameters()->GJ;
+    ////double EA = this->tapered_section->GetAverageSectionParameters()->EA;
+    ////double GJ = this->tapered_section->GetAverageSectionParameters()->GJ;
     double GAyy = this->tapered_section->GetAverageSectionParameters()->GAyy;
     double GAzz = this->tapered_section->GetAverageSectionParameters()->GAzz;
-    double EIyy = this->tapered_section->GetAverageSectionParameters()->EIyy;
-    double EIzz = this->tapered_section->GetAverageSectionParameters()->EIzz;
+    ////double EIyy = this->tapered_section->GetAverageSectionParameters()->EIyy;
+    ////double EIzz = this->tapered_section->GetAverageSectionParameters()->EIzz;
 
     double eps = 1.0e-3;
     bool use_shear_stain = true;  // As default, use shear strain to evaluate the shear forces

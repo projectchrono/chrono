@@ -123,6 +123,8 @@ struct BufferBuilder;
 struct Message;
 struct MessageBuilder;
 
+struct AgentKey;
+
 namespace SPAT {
 
 enum Color : int8_t {
@@ -416,6 +418,29 @@ FLATBUFFERS_STRUCT_END(NodeLevel, 16);
 
 }  // namespace SCM
 }  // namespace Terrain
+
+FLATBUFFERS_MANUALLY_ALIGNED_STRUCT(4) AgentKey FLATBUFFERS_FINAL_CLASS {
+ private:
+  int32_t node_id_;
+  int32_t agent_id_;
+
+ public:
+  AgentKey()
+      : node_id_(0),
+        agent_id_(0) {
+  }
+  AgentKey(int32_t _node_id, int32_t _agent_id)
+      : node_id_(flatbuffers::EndianScalar(_node_id)),
+        agent_id_(flatbuffers::EndianScalar(_agent_id)) {
+  }
+  int32_t node_id() const {
+    return flatbuffers::EndianScalar(node_id_);
+  }
+  int32_t agent_id() const {
+    return flatbuffers::EndianScalar(agent_id_);
+  }
+};
+FLATBUFFERS_STRUCT_END(AgentKey, 8);
 
 namespace SPAT {
 
@@ -2253,8 +2278,8 @@ struct Message FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   enum FlatBuffersVTableOffset FLATBUFFERS_VTABLE_UNDERLYING_TYPE {
     VT_MESSAGE_TYPE = 4,
     VT_MESSAGE = 6,
-    VT_SOURCE_ID = 8,
-    VT_DESTINATION_ID = 10
+    VT_SOURCE_KEY = 8,
+    VT_DESTINATION_KEY = 10
   };
   SynFlatBuffers::Type message_type() const {
     return static_cast<SynFlatBuffers::Type>(GetField<uint8_t>(VT_MESSAGE_TYPE, 0));
@@ -2284,19 +2309,19 @@ struct Message FLATBUFFERS_FINAL_CLASS : private flatbuffers::Table {
   const SynFlatBuffers::Simulation::State *message_as_Simulation_State() const {
     return message_type() == SynFlatBuffers::Type_Simulation_State ? static_cast<const SynFlatBuffers::Simulation::State *>(message()) : nullptr;
   }
-  uint32_t source_id() const {
-    return GetField<uint32_t>(VT_SOURCE_ID, 0);
+  const SynFlatBuffers::AgentKey *source_key() const {
+    return GetStruct<const SynFlatBuffers::AgentKey *>(VT_SOURCE_KEY);
   }
-  uint32_t destination_id() const {
-    return GetField<uint32_t>(VT_DESTINATION_ID, 0);
+  const SynFlatBuffers::AgentKey *destination_key() const {
+    return GetStruct<const SynFlatBuffers::AgentKey *>(VT_DESTINATION_KEY);
   }
   bool Verify(flatbuffers::Verifier &verifier) const {
     return VerifyTableStart(verifier) &&
            VerifyField<uint8_t>(verifier, VT_MESSAGE_TYPE) &&
            VerifyOffset(verifier, VT_MESSAGE) &&
            VerifyType(verifier, message(), message_type()) &&
-           VerifyField<uint32_t>(verifier, VT_SOURCE_ID) &&
-           VerifyField<uint32_t>(verifier, VT_DESTINATION_ID) &&
+           VerifyField<SynFlatBuffers::AgentKey>(verifier, VT_SOURCE_KEY) &&
+           VerifyField<SynFlatBuffers::AgentKey>(verifier, VT_DESTINATION_KEY) &&
            verifier.EndTable();
   }
 };
@@ -2339,11 +2364,11 @@ struct MessageBuilder {
   void add_message(flatbuffers::Offset<void> message) {
     fbb_.AddOffset(Message::VT_MESSAGE, message);
   }
-  void add_source_id(uint32_t source_id) {
-    fbb_.AddElement<uint32_t>(Message::VT_SOURCE_ID, source_id, 0);
+  void add_source_key(const SynFlatBuffers::AgentKey *source_key) {
+    fbb_.AddStruct(Message::VT_SOURCE_KEY, source_key);
   }
-  void add_destination_id(uint32_t destination_id) {
-    fbb_.AddElement<uint32_t>(Message::VT_DESTINATION_ID, destination_id, 0);
+  void add_destination_key(const SynFlatBuffers::AgentKey *destination_key) {
+    fbb_.AddStruct(Message::VT_DESTINATION_KEY, destination_key);
   }
   explicit MessageBuilder(flatbuffers::FlatBufferBuilder &_fbb)
         : fbb_(_fbb) {
@@ -2360,11 +2385,11 @@ inline flatbuffers::Offset<Message> CreateMessage(
     flatbuffers::FlatBufferBuilder &_fbb,
     SynFlatBuffers::Type message_type = SynFlatBuffers::Type_NONE,
     flatbuffers::Offset<void> message = 0,
-    uint32_t source_id = 0,
-    uint32_t destination_id = 0) {
+    const SynFlatBuffers::AgentKey *source_key = 0,
+    const SynFlatBuffers::AgentKey *destination_key = 0) {
   MessageBuilder builder_(_fbb);
-  builder_.add_destination_id(destination_id);
-  builder_.add_source_id(source_id);
+  builder_.add_destination_key(destination_key);
+  builder_.add_source_key(source_key);
   builder_.add_message(message);
   builder_.add_message_type(message_type);
   return builder_.Finish();

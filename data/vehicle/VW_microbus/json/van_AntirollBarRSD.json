@@ -19,7 +19,7 @@
 
   "RSD":
   {
-    "Spring Coefficient":        1000000,
-    "Damping Coefficient":        2000
+    "Spring Coefficient":        100000,
+    "Damping Coefficient":        200
   }
 }

@@ -37,20 +37,18 @@ namespace sensor {
 /// The base buffer class that contains sensor data (contains meta data of the buffer and pointer to raw data)
 struct SensorBuffer {
     /// Default constructor that intializes all zero values
-    SensorBuffer() : Width(0), Height(0), LaunchedCount(0), TimeStamp(0) {}
+    SensorBuffer() : TimeStamp(0), Width(0), Height(0), LaunchedCount(0) {}
     /// Constructor based on height, width, and time
-    SensorBuffer(unsigned int w, unsigned int h, float t) : Width(w), Height(h), LaunchedCount(0), TimeStamp(t) {}
+    SensorBuffer(unsigned int w, unsigned int h, float t) : TimeStamp(t) , Width(w), Height(h), LaunchedCount(0) {}
 
-    /// virtual destructor so class is virtual so it can participate in dynamic_pointer_cast<>'s
     virtual ~SensorBuffer() {}
-    float TimeStamp;      ///< The time stamp on the buffer (simulation time when data collection stopped)
-    unsigned int Width;   ///< The width of the data (image width when data is an image)
-    unsigned int Height;  ///< The height of the data (image height when data is an image)
-                          //    unsigned int Beam_return_count;  ///< number of beam returns for lidar model
-                          //    bool Dual_return;                ///< true if dual return mode, false otherwise
-    unsigned int
-        LaunchedCount;  ///<  number of times updates have been launched. This may not reflect how many have been
-                        // completed.
+
+    float TimeStamp;             ///< The time stamp on the buffer (simulation time when data collection stopped)
+    unsigned int Width;          ///< The width of the data (image width when data is an image)
+    unsigned int Height;         ///< The height of the data (image height when data is an image)
+    unsigned int LaunchedCount;  ///<  number of times updates have been launched (may not reflect how many completed)
+    ////unsigned int Beam_return_count;  ///< number of beam returns for lidar model
+    ////bool Dual_return;                ///< true if dual return mode, false otherwise
 };
 
 /// Base class of 2D buffers. This holds the raw sensor data.

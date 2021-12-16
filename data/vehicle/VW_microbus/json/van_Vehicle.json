@@ -1,5 +1,5 @@
 {
-  "Name": "van Bus",
+  "Name": "VW Bus",
   "Type": "Vehicle",
   "Template": "WheeledVehicle",
 
@@ -34,7 +34,7 @@
   "Steering Subsystems": [
     {
       "Input File": "VW_microbus/json/van_RackPinion.json",
-      "Location": [ 0, 0, 0 ],
+      "Location": [ -0.25, 0, 0.05 ],
       "Orientation": [ 1, 0, 0, 0 ]
     }
   ],

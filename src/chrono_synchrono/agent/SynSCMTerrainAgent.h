@@ -99,7 +99,7 @@ class SYN_API SynSCMTerrainAgent : public SynAgent {
 
     ///@brief Set the Agent ID
     ///
-    virtual void SetID(SynAgentID aid) override;
+    virtual void SetKey(AgentKey agent_key) override;
 
   private:
     /// There is no STL default for hashing a pair of ints, but the SCM grid is indexed with integers, so we store diffs

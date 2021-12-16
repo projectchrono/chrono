@@ -149,7 +149,7 @@ class AirCoilSpringBistopForce : public ChLinkTSDA::ForceFunctor {
         m_rebound.AddPoint(60.0e-3, 125000.0);
     }
 
-    virtual double operator()(double time, double rest_length, double length, double vel, ChLinkTSDA* link) override {
+    virtual double evaluate(double time, double rest_length, double length, double vel, ChLinkTSDA* link) override {
         double force = 0;
 
         double defl_spring = rest_length - length;
@@ -195,12 +195,12 @@ class AirCoilSpringBistopForce : public ChLinkTSDA::ForceFunctor {
 
 class FEDA_ShockForce : public ChLinkTSDA::ForceFunctor {
   public:
-    virtual double operator()(double time,         // current time
-                              double rest_length,  // undeformed length
-                              double length,       // current length
-                              double vel,          // current velocity (positive when extending)
-                              ChLinkTSDA* link     // back-pointer to associated link
-                              ) override {
+    virtual double evaluate(double time,         // current time
+                            double rest_length,  // undeformed length
+                            double length,       // current length
+                            double vel,          // current velocity (positive when extending)
+                            ChLinkTSDA* link     // back-pointer to associated link
+                            ) override {
         // Access states
         auto& states = link->GetStates();
 

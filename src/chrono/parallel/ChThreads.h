@@ -19,7 +19,7 @@
 #include "chrono/parallel/ChThreadsWIN32.h"
 #endif
 
-#if (defined(__linux__) || defined(__APPLE__) || defined(__FreeBSD__))
+#if (defined(__linux__) || defined(__APPLE__) || defined(__FreeBSD__) || defined(__EMSCRIPTEN__))
 #include "chrono/parallel/ChThreadsPOSIX.h"
 #endif
 

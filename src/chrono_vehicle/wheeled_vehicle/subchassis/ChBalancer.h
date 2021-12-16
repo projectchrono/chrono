@@ -90,7 +90,11 @@ class CH_VEHICLE_API ChBalancer : public ChSubchassis {
 
     std::shared_ptr<ChVehicleJoint> m_balancer_joint[2];  ///< balancer pivot joints
 
-private:
+  private:
+    virtual void ExportComponentList(rapidjson::Document& jsonDocument) const override;
+
+    virtual void Output(ChVehicleOutput& database) const override;
+
     // Hardpoint absolute locations
     std::vector<ChVector<>> m_pointsL;
     std::vector<ChVector<>> m_pointsR;

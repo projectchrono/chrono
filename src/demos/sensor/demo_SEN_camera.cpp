@@ -356,8 +356,8 @@ int main(int argc, char* argv[]) {
     // Demonstration shows cameras panning around a stationary mesh.
     // Each camera begins on opposite sides of the object, but rotate at the same speed
     float orbit_radius = 10.f;
-    float orbit_rate = 0.1;
-    float ch_time = 0.0;
+    float orbit_rate = 0.1f;
+    float ch_time = 0.0f;
 
     std::chrono::high_resolution_clock::time_point t1 = std::chrono::high_resolution_clock::now();
 

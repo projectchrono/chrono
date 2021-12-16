@@ -21,17 +21,18 @@
 #include <thrust/sort.h>
 #include "cublas_v2.h"
 #include "chrono_fsi/physics/ChFsiForceI2SPH.cuh"
+#include "chrono_fsi/physics/ChSphGeneral.cuh"
 
 //==========================================================================================================================================
 namespace chrono {
 namespace fsi {
 struct my_Functor {
-    double ave;
+    Real ave;
     my_Functor(Real s) { ave = s; }
-    __host__ __device__ void operator()(double& i) { i -= ave; }
+    __host__ __device__ void operator()(Real& i) { i -= ave; }
 };
 struct my_Functor_real4y {
-    double ave;
+    Real ave;
     my_Functor_real4y(Real s) { ave = s; }
     __host__ __device__ void operator()(Real4& i) { i.y -= ave; }
 };
@@ -417,7 +418,7 @@ __global__ void Pressure_Equation(Real4* sortedPosRad,  // input: sorted positio
                 A_Matrix[count] = 1 / rhoi * A_L[count] - 1.0 / (rhoi * rhoi) * dot(grad_rho_i, A_G[count]);
             }
 
-            double alpha = paramsD.Alpha;  // square(rhoi / paramsD.rho0);
+            Real alpha = paramsD.Alpha;  // square(rhoi / paramsD.rho0);
             //            alpha = (alpha > 1) ? 1.0 : alpha;
             if (paramsD.DensityBaseProjetion)
                 Bi[i_idx] = alpha * (paramsD.rho0 - rhoi_star) / paramsD.rho0 * (TIME_SCALE / (delta_t * delta_t)) +
@@ -434,7 +435,7 @@ __global__ void Pressure_Equation(Real4* sortedPosRad,  // input: sorted positio
         }
 
         //======================= Boundary ===========================
-    } else if (Boundary_Marker && paramsD.bceType != ADAMI) {
+    } else if (Boundary_Marker && paramsD.bceType != BceVersion::ADAMI) {
         Real3 my_normal = Normals[i_idx];
         for (int count = csrStartIdx; count < csrEndIdx; count++) {
             uint j = csrColInd[count];
@@ -460,7 +461,7 @@ __global__ void Pressure_Equation(Real4* sortedPosRad,  // input: sorted positio
         //                A_Matrix[count] = A_Matrix[count] / Scale;
 
         //======================= Boundary Adami===========================
-    } else if (Boundary_Marker && paramsD.bceType == ADAMI && paramsD.USE_NonIncrementalProjection) {
+    } else if (Boundary_Marker && paramsD.bceType == BceVersion::ADAMI && paramsD.USE_NonIncrementalProjection) {
         Real h_i = sortedPosRad[i_idx].w;
         //        Real Vi = sumWij_inv[i_idx];
         Real3 posRadA = mR3(sortedPosRad[i_idx]);
@@ -495,7 +496,7 @@ __global__ void Pressure_Equation(Real4* sortedPosRad,  // input: sorted positio
         if (abs(den) > EPSILON) {
             A_Matrix[csrStartIdx] = den;
             Bi[i_idx] = pRHS;
-            /// Scale to make the diagonal element 1
+            // Scale to make the diagonal element 1
 
         } else {
             A_Matrix[csrStartIdx] = 1.0;
@@ -603,7 +604,7 @@ __global__ void Velocity_Correction_and_update(Real4* sortedPosRad,
             //            grad_uz += A_G[count] * Vstar[j].z;
         }
 
-        /// No forces for BCE to BCE markers
+        // No forces for BCE to BCE markers
         if (sortedRhoPreMu_old[j].w > -1 && sortedRhoPreMu_old[i_idx].w > -1)
             continue;
 
@@ -985,7 +986,7 @@ void ChFsiForceI2SPH::PreProcessor(std::shared_ptr<SphMarkerDataD> otherSphMarke
 void ChFsiForceI2SPH::ForceSPH(std::shared_ptr<SphMarkerDataD> otherSphMarkersD,
                                std::shared_ptr<FsiBodiesDataD> otherFsiBodiesD,
                                std::shared_ptr<FsiMeshDataD> otherFsiMeshD) {
-    if (paramsH->bceType == ADAMI && !paramsH->USE_NonIncrementalProjection) {
+    if (paramsH->bceType == BceVersion::ADAMI && !paramsH->USE_NonIncrementalProjection) {
         throw std::runtime_error(
             "\nADAMI boundary condition is only applicable to non-incremental Projection method. Please "
             "revise the BC scheme or set USE_NonIncrementalProjection to true.!\n");
@@ -1139,8 +1140,8 @@ void ChFsiForceI2SPH::ForceSPH(std::shared_ptr<SphMarkerDataD> otherSphMarkersD,
 
     thrust::fill(AMatrix.begin(), AMatrix.end(), 0.0);
     thrust::fill(b1Vector.begin(), b1Vector.end(), 0.0);
-    thrust::fill(q_old.begin(), q_old.end(), double(paramsH->Pressure_Constraint) * paramsH->BASEPRES);
-    thrust::fill(q_new.begin(), q_new.end(), double(paramsH->Pressure_Constraint) * paramsH->BASEPRES);
+    thrust::fill(q_old.begin(), q_old.end(), paramsH->Pressure_Constraint * paramsH->BASEPRES);
+    thrust::fill(q_new.begin(), q_new.end(), paramsH->Pressure_Constraint * paramsH->BASEPRES);
 
     Pressure_Equation<<<numBlocks, numThreads>>>(
         mR4CAST(sortedSphMarkersD->posRadD), mR3CAST(sortedSphMarkersD->velMasD),
@@ -1161,12 +1162,12 @@ void ChFsiForceI2SPH::ForceSPH(std::shared_ptr<SphMarkerDataD> otherSphMarkersD,
         numAllMarkers, numObjectsH->numFluidMarkers, paramsH->dT, isErrorD);
     ChUtilsDevice::Sync_CheckError(isErrorH, isErrorD, "Pressure_Equation");
 
-    double Ave_RHS = thrust::reduce(b1Vector.begin(), b1Vector.end(), 0.0) / numAllMarkers;
+    Real Ave_RHS = thrust::reduce(b1Vector.begin(), b1Vector.end(), 0.0) / numAllMarkers;
 
     my_Functor mf(Ave_RHS);
     if (paramsH->Pressure_Constraint) {
         thrust::for_each(b1Vector.begin(), b1Vector.end(), mf);
-        double Ave_after = thrust::reduce(b1Vector.begin(), b1Vector.end(), 0.0) / numAllMarkers;
+        Real Ave_after = thrust::reduce(b1Vector.begin(), b1Vector.end(), 0.0) / numAllMarkers;
         printf("Ave RHS =%f, Ave after removing null space=%f\n", Ave_RHS, Ave_after);
     }
     //    if (paramsH->Pressure_Constraint) {
@@ -1184,7 +1185,7 @@ void ChFsiForceI2SPH::ForceSPH(std::shared_ptr<SphMarkerDataD> otherSphMarkersD,
     //    }
 
     if (paramsH->USE_LinearSolver) {
-        if (paramsH->PPE_Solution_type != FORM_SPARSE_MATRIX) {
+        if (paramsH->PPE_Solution_type != PPE_SolutionType::FORM_SPARSE_MATRIX) {
             printf(
                 "You should paramsH->PPE_Solution_type == FORM_SPARSE_MATRIX in order to use the "
                 "chrono_fsi linear "
@@ -1196,7 +1197,7 @@ void ChFsiForceI2SPH::ForceSPH(std::shared_ptr<SphMarkerDataD> otherSphMarkersD,
         myLinearSolver->SetRelRes(paramsH->LinearSolver_Rel_Tol);
         myLinearSolver->SetIterationLimit(paramsH->LinearSolver_Max_Iter);
 
-        if (paramsH->PPE_Solution_type != FORM_SPARSE_MATRIX) {
+        if (paramsH->PPE_Solution_type != PPE_SolutionType::FORM_SPARSE_MATRIX) {
             printf(
                 "You should paramsH->PPE_Solution_type == FORM_SPARSE_MATRIX in order to use the "
                 "chrono_fsi linear "
@@ -1204,7 +1205,7 @@ void ChFsiForceI2SPH::ForceSPH(std::shared_ptr<SphMarkerDataD> otherSphMarkersD,
             exit(0);
         }
         myLinearSolver->Solve((int)numAllMarkers, NNZ, R1CAST(AMatrix), U1CAST(Contact_i), U1CAST(csrColInd),
-                              (double*)R1CAST(q_new), R1CAST(b1Vector));
+                              R1CAST(q_new), R1CAST(b1Vector));
 
         cudaCheckError();
         MaxRes = myLinearSolver->GetResidual();
@@ -1263,7 +1264,7 @@ void ChFsiForceI2SPH::ForceSPH(std::shared_ptr<SphMarkerDataD> otherSphMarkersD,
     Real Ave_pressure = thrust::reduce(q_new.begin(), q_new.end(), 0.0) / (numObjectsH->numAllMarkers) / TIME_SCALE;
 
     thrust::for_each(b1Vector.begin(), b1Vector.end(), mf);
-    double Ave_after = thrust::reduce(b1Vector.begin(), b1Vector.end(), 0.0) / numAllMarkers;
+    Real Ave_after = thrust::reduce(b1Vector.begin(), b1Vector.end(), 0.0) / numAllMarkers;
     printf("Ave RHS =%.3e, Ave after removing null space=%.3e\n", Ave_RHS, Ave_after);
 
     double Pressure_Computation = (clock() - LinearSystemClock_p) / (double)CLOCKS_PER_SEC;
@@ -1328,7 +1329,7 @@ void ChFsiForceI2SPH::ForceSPH(std::shared_ptr<SphMarkerDataD> otherSphMarkersD,
     printf("| Velocity_Correction_and_update: %f (sec), Ave_density_Err=%.3e, Re=%.1f\n", updateComputation,
            Ave_density_Err, Re);
 
-    /// post-processing for conservative formulation
+    // post-processing for conservative formulation
     if (paramsH->Conservative_Form && paramsH->ClampPressure) {
         Real minP = thrust::transform_reduce(sphMarkersD->rhoPresMuD.begin(), sphMarkersD->rhoPresMuD.end(),
                                              Real4_y_min(), 1e9, thrust::minimum<Real>());

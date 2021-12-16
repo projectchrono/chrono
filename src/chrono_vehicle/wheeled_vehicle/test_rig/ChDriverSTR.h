@@ -21,6 +21,7 @@
 #define CH_DRIVER_STR_H
 
 #include <string>
+#include <vector>
 
 #include "chrono_vehicle/ChApiVehicle.h"
 
@@ -31,27 +32,27 @@ namespace vehicle {
 /// @{
 
 /// Base class for a suspension test rig driver system.
-/// A driver system must be able to report the current values of the inputs (left post, right post, steering).
+/// A driver system must be able to report the current values of the inputs (left posts, right posts, steering).
 /// A concrete driver class must set the member variables m_displacementLeft, m_displacementRight, m_steering,
 /// and - if possible - the rates of change for the displacements (otherwise left at their default value of 0).
 class CH_VEHICLE_API ChDriverSTR {
   public:
     virtual ~ChDriverSTR() {}
 
-    /// Get the left post vertical displacement (in the range [-1,+1])
-    double GetDisplacementLeft() const { return m_displLeft; }
-
-    /// Get the right post vertical displacement (in the range [-1,+1])
-    double GetDisplacementRight() const { return m_displRight; }
-
-    /// Get the left post displacement rate of change.
-    double GetDisplacementSpeedLeft() const { return m_displSpeedLeft; }
-
-    /// Get the right post displacement rate of change.
-    double GetDisplacementSpeedRight() const { return m_displSpeedRight; }
-
-    /// Get the driver steering input (in the range [-1,+1])
+    /// Get the driver steering input (in the range [-1,+1]).
     double GetSteering() const { return m_steering; }
+
+    /// Get the left post vertical displacement inputs (each in the range [-1,+1]).
+    const std::vector<double>& GetDisplacementLeft() const { return m_displLeft; }
+
+    /// Get the right post vertical displacement inputs (each in the range [-1,+1]).
+    const std::vector<double>& GetDisplacementRight() const { return m_displRight; }
+
+    /// Get the left post displacement rates of change.
+    const std::vector<double>& GetDisplacementSpeedLeft() const { return m_displSpeedLeft; }
+
+    /// Get the right post displacement rates of change.
+    const std::vector<double>& GetDisplacementSpeedRight() const { return m_displSpeedRight; }
 
     /// Return false while driver inputs are ignored (while the rig is reaching the ride height configuration) and true
     /// otherwise. In general, outputs from the test rig should only be collected while Started returns true.
@@ -70,25 +71,29 @@ class CH_VEHICLE_API ChDriverSTR {
     ChDriverSTR();
 
     /// Initialize this driver system.
-    virtual void Initialize() {}
+    virtual void Initialize(int naxles);
 
     /// Update the state of this driver system at the current time.
     virtual void Synchronize(double time);
 
+    /// Get string message.
+    virtual std::string GetInfoMessage() const { return ""; }
+
     /// Set the value for the driver left post displacement input.
-    void SetDisplacementLeft(double val, double min_val = -1, double max_val = 1);
+    void SetDisplacementLeft(int axle, double val, double min_val = -1, double max_val = 1);
 
     /// Set the value for the driver right post displacement input.
-    void SetDisplacementRight(double val, double min_val = -1, double max_val = 1);
+    void SetDisplacementRight(int axle, double val, double min_val = -1, double max_val = 1);
 
     /// Set the value for the driver steering input.
     void SetSteering(double val, double min_val = -1, double max_val = 1);
 
-    double m_displLeft;        ///< current value of left post displacement
-    double m_displRight;       ///< current value of right post displacement
-    double m_displSpeedLeft;   ///< current value of left post displacement rate of change
-    double m_displSpeedRight;  ///< current value of right post displacement rate of change
-    double m_steering;         ///< current value of steering input
+    int m_naxles;                           ///< number of actuated axles
+    std::vector<double> m_displLeft;        ///< current value of left post displacements
+    std::vector<double> m_displRight;       ///< current value of right post displacements
+    std::vector<double> m_displSpeedLeft;   ///< current value of left post displacement rates of change
+    std::vector<double> m_displSpeedRight;  ///< current value of right post displacement rates of change
+    double m_steering;                      ///< current value of steering input
 
     double m_delay;  ///< time delay before generating inputs
 

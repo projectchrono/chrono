@@ -52,7 +52,7 @@ int main(int argc, char* argv[]){
     
 
     auto manager = chrono_types::make_shared<ChSensorManager>(&mphysicalsystem);
-    float intensity = 0.3;
+    float intensity = 0.3f;
     manager->scene->AddPointLight({100, 100, 100}, {intensity, intensity, intensity}, 500);
 
     auto cam_offset_pose = chrono::ChFrame<double>({-8, 0, 1}, Q_from_AngZ(0));

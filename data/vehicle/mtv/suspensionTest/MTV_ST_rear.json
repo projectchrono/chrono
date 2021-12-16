@@ -1,0 +1,10 @@
+{
+    "Name": "MTV Rear Suspension Test",
+    "Type": "SuspensionTestRig",
+
+    "Vehicle Input File": "mtv/vehicle/MTV_Vehicle_WalkingBeam.json",
+    "Test Axle Indices": [ 1, 2 ],
+    "Test Subchassis Indices": [ 0 ],
+    "Initial Ride Height": 0.55,
+    "Displacement Limit": 0.15
+}

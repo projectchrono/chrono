@@ -46,6 +46,7 @@ class CH_SENSOR_API ChFilterVisualize : public ChFilter {
     /// @param w Width of the window to create
     /// @param h Height of the window to create
     /// @param name String name of the filter
+    /// @param fullscreen whether the window should be spawned in full screen mode
     ChFilterVisualize(int w, int h, std::string name = "ChFilterVisualize", bool fullscreen = false);
 
     /// Class destructor
