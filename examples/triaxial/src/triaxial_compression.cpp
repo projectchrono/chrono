@@ -112,9 +112,10 @@ int main(int argc, char* argv[]) {
 
     // ================================================
     //
-    // Read and add the mesh to the simulation
+    // Read and add the mesh(es) to the simulation
     //
     // ================================================
+    
     ChVector<float> cyl_center(0.0f, 0.0f, 0.0f);
     float cyl_rad = Bx / 2.f;  //std::min(params.box_X, params.box_Y) / 2.0f; //TODO: fix these
     float cyl_hgt = Bz / 1.5f; //params.box_Z / 1.5f; //TODO: fix these
@@ -235,7 +236,8 @@ int main(int argc, char* argv[]) {
             unsigned int nmeshes = gpu_sys.GetNumMeshes(); // only 1 mesh 
             ChVector<> force;  // forces for each mesh
             ChVector<> torque; //torques for each mesh
-            
+            float theta, snt, cst, normfrc;
+
             // gpu_sys.CollectMeshContactForces(0, force, torque);
             // force = force * F_CGS_TO_SI;
             // Pull individual mesh forces
@@ -243,8 +245,19 @@ int main(int argc, char* argv[]) {
                 char xyzfforces[100];
                 ChVector<> imeshforce;  // forces for each mesh
                 ChVector<> imeshtorque; //torques for each mesh
+                ChVector<> imeshforcecyl;
 
                 gpu_sys.CollectMeshContactForces(imesh, imeshforce, imeshtorque);
+                
+                // change to cylinderical coordinates
+                theta = atan2(imeshforce.y(), imeshforce.x());
+                cst = cos(theta);
+                snt = sin(theta);
+                normfrc = imeshforce.norm();
+                imeshforcecyl.x = cst*imeshforce.x() - snt*imeshforce.y();
+                imeshforcecyl.y = snt*imeshforce.x() + cst*imeshforce.y();
+                imeshforcecyl.z = imeshforce.z();
+
                 force += imeshforce;
                 // sprintf(xyzfforces, "%d, %6f, %6f, %6f \n", imesh, imeshforce.x()* F_CGS_TO_SI, imeshforce.y()* F_CGS_TO_SI, imeshforce.z()* F_CGS_TO_SI);
                 // frcFile << xyzfforces;
@@ -264,6 +277,8 @@ int main(int argc, char* argv[]) {
 
     }
     return 0;
+ 
+ 
  /* 
     // top plate move downward with velocity 1cm/s
     topWall_vel = -1.0f;
