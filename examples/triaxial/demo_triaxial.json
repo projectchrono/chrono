@@ -1,7 +1,7 @@
 {
 
     "sphere_radius": 0.5,
-    "sphere_density": 280,
+    "sphere_density": 28,
     
     "box_X": 24,
 	"box_Y": 24,
