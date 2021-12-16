@@ -244,7 +244,7 @@ int main(int argc, char* argv[]) {
             ChVector<> sumforce;    // sum of forces for all meshes
             ChVector<> sumforcecyl; // sum of forces for all meshes in cylinderical coordinates
             ChVector<> sumtorque;   // torques for each mesh
-            float theta, snt, cst, normfrc;
+            float theta, thetaF, snt, cst, normfrc;
 
             // gpu_sys.CollectMeshContactForces(0, force, torque);
             // force = force * F_CGS_TO_SI;
@@ -261,7 +261,7 @@ int main(int argc, char* argv[]) {
                 
                 // change to cylinderical coordinates
                 thetaF = std::fmod( atan2(imeshforce.y(), imeshforce.x()) + M_2_PI, M_2_PI);
-                float theta = imesh * 2.f * M_PI / 120; // we are assuming mesh positions are going from 0 to 360 consecutively
+                theta = imesh * 2.f * M_PI / 120; // we are assuming mesh positions are going from 0 to 360 consecutively
                 cst = cos(theta - thetaF);
                 snt = sin(theta - thetaF);
                 normfrc = imeshforce.Length();
