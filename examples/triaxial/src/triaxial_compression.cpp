@@ -264,7 +264,7 @@ int main(int argc, char* argv[]) {
                 theta = imesh * 2.f * M_PI / 120; // we are assuming mesh positions are going from 0 to 360 consecutively
                 cst = cos(theta - thetaF);
                 snt = sin(theta - thetaF);
-                normfrc = sqrt( imeshforce.x()^2 + imeshforce.y()^2 );
+                normfrc = sqrt( imeshforce.x()*imeshforce.x() + imeshforce.y()*imeshforce.y() );
                 imeshforcecyl.Set( normfrc * cst, 
                                     normfrc * snt,
                                     imeshforce.z() );
