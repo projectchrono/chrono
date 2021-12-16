@@ -171,14 +171,6 @@ void Gator::SetWheelVisualizationType(VisualizationType vis) {
     m_vehicle->SetWheelVisualizationType(vis);
 }
 
-void Gator::SetTireVisualizationType(VisualizationType vis) {
-    for (auto& axle : m_vehicle->GetAxles()) {
-        for (auto& wheel : axle->GetWheels()) {
-            wheel->GetTire()->SetVisualizationType(vis);
-        }
-    }
-}
-
 // -----------------------------------------------------------------------------
 void Gator::Synchronize(double time, const ChDriver::Inputs& driver_inputs, const ChTerrain& terrain) {
     m_vehicle->Synchronize(time, driver_inputs, terrain);

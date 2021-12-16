@@ -11,8 +11,7 @@ endif()
 # List all demos
 
 set(DEMOS
-    demo_VEH_SuspensionTestRigPlatform
-    demo_VEH_SuspensionTestRigPushrod
+    demo_VEH_SuspensionTestRig
     demo_VEH_TireTestRig
     demo_VEH_TrackTestRig
 )
@@ -55,6 +54,9 @@ foreach(PROGRAM ${DEMOS})
     set_target_properties(${PROGRAM} PROPERTIES
                           COMPILE_FLAGS "${COMPILER_FLAGS}"
                           LINK_FLAGS "${LINKER_FLAGS}")
+    if(APPLE)
+      set_target_properties(${PROGRAM} PROPERTIES MACOSX_BUNDLE_INFO_PLIST ${MACOSX_BUNDLE_INFO_PLIST})
+    endif()
     set_property(TARGET ${PROGRAM} PROPERTY VS_DEBUGGER_WORKING_DIRECTORY "$<TARGET_FILE_DIR:${PROGRAM}>")
     target_link_libraries(${PROGRAM}
                           ChronoEngine

@@ -141,5 +141,44 @@ void ChBalancer::RemoveVisualizationAssets() {
     m_beam[RIGHT]->GetAssets().clear();
 }
 
+// -----------------------------------------------------------------------------
+
+void ChBalancer::ExportComponentList(rapidjson::Document& jsonDocument) const {
+    ChPart::ExportComponentList(jsonDocument);
+
+    std::vector<std::shared_ptr<ChBody>> bodies;
+    bodies.push_back(m_beam[0]);
+    bodies.push_back(m_beam[1]);
+    ChPart::ExportBodyList(jsonDocument, bodies);
+
+    std::vector<std::shared_ptr<ChLink>> joints;
+    std::vector<std::shared_ptr<ChLoadBodyBody>> bushings;
+    m_balancer_joint[0]->IsKinematic() ? joints.push_back(m_balancer_joint[0]->GetAsLink())
+                                       : bushings.push_back(m_balancer_joint[0]->GetAsBushing());
+    m_balancer_joint[1]->IsKinematic() ? joints.push_back(m_balancer_joint[1]->GetAsLink())
+                                       : bushings.push_back(m_balancer_joint[1]->GetAsBushing());
+    ChPart::ExportJointList(jsonDocument, joints);
+    ChPart::ExportBodyLoadList(jsonDocument, bushings);
+}
+
+void ChBalancer::Output(ChVehicleOutput& database) const {
+    if (!m_output)
+        return;
+
+    std::vector<std::shared_ptr<ChBody>> bodies;
+    bodies.push_back(m_beam[0]);
+    bodies.push_back(m_beam[1]);
+    database.WriteBodies(bodies);
+
+    std::vector<std::shared_ptr<ChLink>> joints;
+    std::vector<std::shared_ptr<ChLoadBodyBody>> bushings;
+    m_balancer_joint[0]->IsKinematic() ? joints.push_back(m_balancer_joint[0]->GetAsLink())
+                                       : bushings.push_back(m_balancer_joint[0]->GetAsBushing());
+    m_balancer_joint[1]->IsKinematic() ? joints.push_back(m_balancer_joint[1]->GetAsLink())
+                                       : bushings.push_back(m_balancer_joint[1]->GetAsBushing());
+    database.WriteJoints(joints);
+    database.WriteBodyLoads(bushings);
+}
+
 }  // end namespace vehicle
 }  // end namespace chrono

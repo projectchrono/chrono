@@ -187,22 +187,22 @@ void ChPitmanArmShafts::Initialize(std::shared_ptr<ChChassis> chassis,
     m_shaft_C->SetNameString(m_name + "_shaftC");
     m_shaft_C->SetInertia(inertia);
     m_shaft_C->SetShaftFixed(true);
-    sys->Add(m_shaft_C);
+    sys->AddShaft(m_shaft_C);
 
     m_shaft_C1 = chrono_types::make_shared<ChShaft>();
     m_shaft_C1->SetNameString(m_name + "_shaftC1");
     m_shaft_C1->SetInertia(inertia);
-    sys->Add(m_shaft_C1);
+    sys->AddShaft(m_shaft_C1);
 
     m_shaft_A1 = chrono_types::make_shared<ChShaft>();
     m_shaft_A1->SetNameString(m_name + "_shaftA1");
     m_shaft_A1->SetInertia(inertia);
-    sys->Add(m_shaft_A1);
+    sys->AddShaft(m_shaft_A1);
 
     m_shaft_A = chrono_types::make_shared<ChShaft>();
     m_shaft_A->SetNameString(m_name + "_shaftA");
     m_shaft_A->SetInertia(inertia);
-    sys->Add(m_shaft_A);
+    sys->AddShaft(m_shaft_A);
 
     // Rigidly attach shaftA to the arm body
     m_shaft_arm = chrono_types::make_shared<ChShaftsBody>();

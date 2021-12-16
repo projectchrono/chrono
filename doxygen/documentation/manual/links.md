@@ -52,8 +52,8 @@ Additionally, if a body has to be fixed to the global frame and reaction forces 
 | :-: | :-: | :--- | :-- | :-- |
 | 0\|3\|5 | 1 | Linear Actuator | Applies linear force\|speed\|position between frames; <br> optionally adds none\|prismatic\|spherical joints to its ends <br> can be paired with 1D @ref chrono::ChShaft | @ref chrono::ChLinkMotorLinear and derived |
 | 0\|3\|5 | 1 | Rotating Actuator | Applies torque\|speed\|position between frames; <br> optionally adds none\|revolute\|cylindrical\|Oldham joints to its ends <br> can be paired with 1D @ref chrono::ChShaft | @ref chrono::ChLinkMotorRotation and derived |
-| 0 | 1 | Linear Spring+Damper | Spring+Damper depending to frame distance; also with custom force | @ref chrono::ChLinkSpring <br> @ref chrono::ChLinkSpringCB |
-| 0 | 1 | Rotational Spring+Damper | Spring+Damper depending to frame rotation along Z axis; with custom force | @ref chrono::ChLinkRotSpringCB |
+| 0 | 1 | Linear Spring+Damper | Spring+Damper depending to frame distance; also with custom force | @ref chrono::ChLinkTSDA |
+| 0 | 1 | Rotational Spring+Damper | Spring+Damper depending to frame rotation along Z axis; also with custom force | @ref chrono::ChLinkRSDA |
 
 Also @ref chrono::ChLinkLockLock can be used to impose a motion between bodies.
 

@@ -23,13 +23,14 @@
 //
 // =============================================================================
 
-#include "chrono_vehicle/wheeled_vehicle/test_rig/ChDataDriverSTR.h"
-
 #include <algorithm>
 #include <fstream>
 #include <iostream>
 #include <sstream>
 #include <vector>
+
+#include "chrono_vehicle/wheeled_vehicle/test_rig/ChDataDriverSTR.h"
+#include "chrono/core/ChTypes.h"
 
 namespace chrono {
 namespace vehicle {
@@ -37,8 +38,8 @@ namespace vehicle {
 // -----------------------------------------------------------------------------
 /// Definition of driver inputs at a given time.
 struct DataEntrySTR {
-    DataEntrySTR() : m_time(0), m_displLeft(0), m_displRight(0), m_steering(0) {}
-    DataEntrySTR(double time, double displLeft, double displRight, double steering)
+    DataEntrySTR() : m_time(0), m_steering(0) {}
+    DataEntrySTR(double time, double steering, std::vector<double> displLeft, std::vector<double> displRight)
         : m_time(time), m_displLeft(displLeft), m_displRight(displRight), m_steering(steering) {}
     DataEntrySTR& operator=(const DataEntrySTR& other) {
         if (this != &other) {
@@ -50,9 +51,9 @@ struct DataEntrySTR {
         return *this;
     }
     double m_time;
-    double m_displLeft;
-    double m_displRight;
     double m_steering;
+    std::vector<double> m_displLeft;
+    std::vector<double> m_displRight;
 };
 
 static bool compare(const DataEntrySTR& a, const DataEntrySTR& b) {
@@ -60,20 +61,28 @@ static bool compare(const DataEntrySTR& a, const DataEntrySTR& b) {
 }
 
 // -----------------------------------------------------------------------------
-ChDataDriverSTR::ChDataDriverSTR(const std::string& filename)
-    : m_ended(false), m_curve_left(nullptr), m_curve_right(nullptr), m_curve_steering(nullptr) {
-    std::vector<DataEntrySTR> data;  // data table (for sorting)
+ChDataDriverSTR::ChDataDriverSTR(const std::string& filename) : m_filename(filename), m_ended(false) {}
+
+void ChDataDriverSTR::Initialize(int naxles) {
+    // Invoke base method
+    ChDriverSTR::Initialize(naxles);
 
     // Read data from file
-    std::ifstream ifile(filename.c_str());
+    std::vector<DataEntrySTR> data;  // data table (for sorting)
+
+    std::ifstream ifile(m_filename.c_str());
     std::string line;
     while (std::getline(ifile, line)) {
         std::istringstream iss(line);
-        double time, left, right, steering;
-        iss >> time >> left >> right >> steering;
+        double time, steering;
+        std::vector<double> left(naxles);
+        std::vector<double> right(naxles);
+        iss >> time >> steering;
+        for (int ia = 0; ia < naxles; ia++)
+            iss >> left[ia] >> right[ia];
         if (iss.fail())
             break;
-        data.push_back(DataEntrySTR(time, left, right, steering));
+        data.push_back(DataEntrySTR(time, steering, left, right));
     }
     ifile.close();
 
@@ -81,38 +90,42 @@ ChDataDriverSTR::ChDataDriverSTR(const std::string& filename)
     std::sort(data.begin(), data.end(), compare);
 
     // Create cubic splines
-    std::vector<double> t;  // time points
-    std::vector<double> l;  // left input values
-    std::vector<double> r;  // right input values
-    std::vector<double> s;  // steering values
+    std::vector<double> t;                       // time points
+    std::vector<double> s;                       // steering values
+    std::vector<std::vector<double>> l(naxles);  // left input values
+    std::vector<std::vector<double>> r(naxles);  // right input values
 
     t.push_back(data.begin()->m_time - 1);
-    l.push_back(0);
-    r.push_back(0);
     s.push_back(0);
+    for (int ia = 0; ia < naxles; ia++) {
+        l[ia].push_back(0);
+        r[ia].push_back(0);
+    }
 
     for (auto& entry : data) {
         t.push_back(entry.m_time);
-        l.push_back(entry.m_displLeft);
-        r.push_back(entry.m_displRight);
         s.push_back(entry.m_steering);
+        for (int ia = 0; ia < naxles; ia++) {
+            l[ia].push_back(entry.m_displLeft[ia]);
+            r[ia].push_back(entry.m_displRight[ia]);
+        }
     }
 
-    m_curve_left = new ChCubicSpline(t, l);
-    m_curve_right = new ChCubicSpline(t, r);
-    m_curve_steering = new ChCubicSpline(t, s);
+    m_curve_steering = chrono_types::make_unique<ChCubicSpline>(t, s);
+    for (int ia = 0; ia < m_naxles; ia++) {
+        m_curve_left.push_back(chrono_types::make_unique<ChCubicSpline>(t, l[ia]));
+        m_curve_right.push_back(chrono_types::make_unique<ChCubicSpline>(t, r[ia]));
+    }
 
     // Cache the last data entry
     m_last_time = data.back().m_time;
-    m_last_displLeft = data.back().m_displLeft;
-    m_last_displRight = data.back().m_displRight;
     m_last_steering = data.back().m_steering;
-}
-
-ChDataDriverSTR::~ChDataDriverSTR() {
-    delete m_curve_left;
-    delete m_curve_right;
-    delete m_curve_steering;
+    m_last_displLeft.resize(naxles);
+    m_last_displRight.resize(naxles);
+    for (int ia = 0; ia < m_naxles; ia++) {
+        m_last_displLeft[ia] = data.back().m_displLeft[ia];
+        m_last_displRight[ia] = data.back().m_displRight[ia];
+    }
 }
 
 // -----------------------------------------------------------------------------
@@ -121,11 +134,11 @@ void ChDataDriverSTR::Synchronize(double time) {
     ChDriverSTR::Synchronize(time);
 
     if (time < m_delay) {
-        m_displLeft = 0;
-        m_displRight = 0;
         m_steering = 0;
-        m_displSpeedLeft = 0;
-        m_displSpeedRight = 0;
+        std::fill(m_displLeft.begin(), m_displLeft.end(), 0.0);
+        std::fill(m_displRight.begin(), m_displRight.end(), 0.0);
+        std::fill(m_displSpeedLeft.begin(), m_displSpeedLeft.end(), 0.0);
+        std::fill(m_displSpeedRight.begin(), m_displSpeedRight.end(), 0.0);
         return;
     }
 
@@ -136,15 +149,17 @@ void ChDataDriverSTR::Synchronize(double time) {
         m_displLeft = m_last_displLeft;
         m_displRight = m_last_displRight;
         m_steering = m_last_steering;
-        m_displSpeedLeft = 0;
-        m_displSpeedRight = 0;
+        std::fill(m_displSpeedLeft.begin(), m_displSpeedLeft.end(), 0.0);
+        std::fill(m_displSpeedRight.begin(), m_displSpeedRight.end(), 0.0);
         return;
     }
 
     double dummy;
-    m_curve_left->Evaluate(time, m_displLeft, m_displSpeedLeft, dummy);
-    m_curve_right->Evaluate(time, m_displRight, m_displSpeedRight, dummy);
     m_curve_steering->Evaluate(time, m_steering, dummy, dummy);
+    for (int ia = 0; ia < m_naxles; ia++) {
+        m_curve_left[ia]->Evaluate(time, m_displLeft[ia], m_displSpeedLeft[ia], dummy);
+        m_curve_right[ia]->Evaluate(time, m_displRight[ia], m_displSpeedRight[ia], dummy);
+    }
 }
 
 // -----------------------------------------------------------------------------

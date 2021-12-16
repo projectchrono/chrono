@@ -172,9 +172,13 @@ void FEADeformableTerrain::Initialize(const ChVector<>& start_point,
         CCPInitial(4, k) = 1;
         CCPInitial(8, k) = 1;
     }
+
+    auto strain_formulation = ChElementHexaANCF_3813_9::StrainFormulation::Hencky;
+    auto plasticity_formulation = ChElementHexaANCF_3813_9::PlasticityFormulation::DruckerPrager;
+
+    // Create the elements
     int jj = -1;
     int kk = 0;
-    // Create the elements
     for (int i = 0; i < TotalNumElements; i++) {
         if (i % (numDiv_x * numDiv_y) == 0) {
             jj++;
@@ -214,15 +218,15 @@ void FEADeformableTerrain::Initialize(const ChVector<>& start_point,
         element->SetAlphaDamp(5e-4);    // Structural damping for this element
         element->SetDPIterationNo(50);  // Set maximum number of iterations for Drucker-Prager Newton-Raphson
         element->SetDPYieldTol(1e-8);   // Set stop tolerance for Drucker-Prager Newton-Raphson
-        element->SetStrainFormulation(ChElementHexaANCF_3813_9::Hencky);
-        element->SetPlasticityFormulation(ChElementHexaANCF_3813_9::DruckerPrager);
-        if (element->GetStrainFormulation() == ChElementHexaANCF_3813_9::Hencky) {
+        element->SetStrainFormulation(strain_formulation);
+        element->SetPlasticityFormulation(plasticity_formulation);
+        if (strain_formulation == ChElementHexaANCF_3813_9::StrainFormulation::Hencky) {
             element->SetPlasticity(Plasticity);
             if (Plasticity) {
                 element->SetYieldStress(m_yield_stress);
                 element->SetHardeningSlope(m_hardening_slope);
                 element->SetCCPInitial(CCPInitial);
-                if (element->GetPlasticityFormulation() == ChElementHexaANCF_3813_9::DruckerPrager) {
+                if (plasticity_formulation == ChElementHexaANCF_3813_9::PlasticityFormulation::DruckerPrager) {
                     element->SetFriction(m_friction_angle);
                     element->SetDilatancy(m_dilatancy_angle);
                     element->SetDPType(3);
