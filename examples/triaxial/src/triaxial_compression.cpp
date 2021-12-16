@@ -125,20 +125,24 @@ int main(int argc, char* argv[]) {
     std::vector<float> mesh_masses;
     float mixer_mass = 10;
 
-    std::vector<string> mesh_filenames;
+    std::vector<string> mesh_bottom_filenames;
+    std::vector<string> mesh_side_filenames;
     std::vector<ChMatrix33<float>> mesh_rotscales;
     ChMatrix33<float> mesh_scale(ChVector<float>(scaling.x, scaling.y, scaling.z));
     std::vector<float3> mesh_translations;
     
     for (int i=0; i<120; ++i){
-        mesh_filenames.push_back("./models/open_unit_cylinder_slab_120.obj"); // add slice
+        mesh_bottom_filenames.push_back("./models/open_unit_cylinder_bottom_slab_120.obj"); // add slice
+        mesh_side_filenames.push_back("./models/open_unit_cylinder_side_slab_120.obj"); 
         ChQuaternion<> quat = Q_from_AngAxis(i*3.f * CH_C_DEG_TO_RAD, VECT_Z); // find quaternion for rotation
         mesh_rotscales.push_back(mesh_scale * ChMatrix33<float>(quat)); // create rotation * scaling matrix and push to vector
         mesh_translations.push_back(make_float3(cyl_center.x(), cyl_center.y(), cyl_center.z())); // push translation
         mesh_masses.push_back(mixer_mass); // push mass
     }
 
-    gpu_sys.LoadMeshes(mesh_filenames, mesh_rotscales, mesh_translations, mesh_masses);
+    gpu_sys.LoadMeshes(mesh_bottom_filenames, mesh_rotscales, mesh_translations, mesh_masses);
+    gpu_sys.LoadMeshes(mesh_side_filenames, mesh_rotscales, mesh_translations, mesh_masses);
+        
     std::cout << gpu_sys.GetNumMeshes() << " meshes" << std::endl;
 
     float ang_vel_Z = 0; //TODO: remove
@@ -238,15 +242,16 @@ int main(int argc, char* argv[]) {
             sumfrcsFile << fforces;
 
             // Pull individual mesh forces
-            
-            //for (unsigned int imesh = 0; imesh < nmeshes; imesh++) {
-            //    char fforces[100];
+            for (unsigned int imesh = nmeshes/2; imesh < nmeshes; imesh++) {
+                char xyzfforces[100];
+                ChVector<> imeshforce;  // forces for each mesh
+                ChVector<> imeshtorque; //torques for each mesh
 
-            //    gpu_sys.CollectMeshContactForces(imesh, force, torque);
-            //    force = force * F_CGS_TO_SI;
-            //    sprintf(fforces, "%d, %6f, %6f, %6f \n", imesh, force.x()* F_CGS_TO_SI, force.y()* F_CGS_TO_SI, force.z()* F_CGS_TO_SI);
-            //    fcFile << fforces;
-            //}
+                gpu_sys.CollectMeshContactForces(imesh, imeshforce, imeshtorque);
+                imeshforce = imeshforce * F_CGS_TO_SI;
+                sprintf(xyzfforces, "%d, %6f, %6f, %6f \n", imesh, imeshforce.x()* F_CGS_TO_SI, imeshforce.y()* F_CGS_TO_SI, imeshforce.z()* F_CGS_TO_SI);
+                fcFile << xyzfforces;
+            }
 
             printf("time = %.4f\n", curr_time);
         }
