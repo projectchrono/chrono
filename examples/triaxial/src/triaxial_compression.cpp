@@ -266,8 +266,8 @@ int main(int argc, char* argv[]) {
                                     imeshforce.z() );
 
                 // add to sum
-                force += imeshforce;
-                forcecyl += imeshforcecyl;
+                sumforce += imeshforce;
+                sumforcecyl += imeshforcecyl;
                 // output to mesh file(s)
                 sprintf(meshfforces, "%d, %6f, %6f, %6f, %6f, %6f, %6f \n", imesh, imeshforce.x(), imeshforce.y(), imeshforce.z(),
                 imeshforcecyl.x(), imeshforcecyl.y(), imeshforcecyl.z());
@@ -276,7 +276,8 @@ int main(int argc, char* argv[]) {
 
             // output sum of forces to step file 
             char fforces[100];
-            sprintf(fforces, "%d, %6f, %6f, %6f, %6f, %6f, %6f \n", step, force.x(), force.y(), force.z(), forcecyl.x(), forcecyl.y(), forcecyl.z() );            
+            sprintf(fforces, "%d, %6f, %6f, %6f, %6f, %6f, %6f \n", step, sumforce.x(), sumforce.y(), sumforce.z(), 
+            sumforcecyl.x(), sumforcecyl.y(), sumforcecyl.z() );            
             sumfrcsFile << fforces;
             
             printf("time = %.4f\n", curr_time);
