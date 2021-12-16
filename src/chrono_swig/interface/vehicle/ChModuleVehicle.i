@@ -42,6 +42,7 @@
 #include "chrono/physics/ChSystem.h"
 #include "chrono/physics/ChShaft.h"
 #include "chrono/physics/ChShaftsLoads.h"
+#include "chrono/physics/ChShaftsFreewheel.h"
 #include "chrono/physics/ChBody.h"
 #include "chrono/physics/ChBodyAuxRef.h"
 #include "chrono/physics/ChMarker.h"
