@@ -254,7 +254,7 @@ int main(int argc, char* argv[]) {
                 theta = atan2(imeshforce.y(), imeshforce.x());
                 cst = cos(theta);
                 snt = sin(theta);
-                normfrc = imeshforce.norm();
+                normfrc = imeshforce.Length();
                 imeshforcecyl.Set( cst*imeshforce.x() - snt*imeshforce.y(),
                                     snt*imeshforce.x() + cst*imeshforce.y(),
                                     imeshforce.z() );
@@ -266,7 +266,7 @@ int main(int argc, char* argv[]) {
             }
 
             force *= F_CGS_TO_SI;
-            forcecyl *= F_CGS_TO_SI
+            forcecyl *= F_CGS_TO_SI;
             char fforces[100];
             sprintf(fforces, "%d, %6f, %6f, %6f, %6f, %6f, %6f \n", step, force.x(), force.y(), force.z(), forcecyl.x(), forcecyl.y(), forcecyl.z() );            
             sumfrcsFile << fforces;
