@@ -221,7 +221,7 @@ int main(int argc, char* argv[]) {
     char filenamesumforces[100];
     sprintf(filenamesumforces, "%s/sumforces.csv", out_dir.c_str());
     std::ofstream sumfrcsFile(filenamesumforces, std::ios::out);
-    sumfrcsFile << "#step, fx, fy, fz, fr, ftheta, fz\n";
+    sumfrcsFile << "#step, fx, fy, fz, fr, ftheta\n";
 
     // let system run for 0.5 second so the particles can settle
     while (curr_time < 0.5) {
@@ -238,7 +238,7 @@ int main(int argc, char* argv[]) {
 
             // Get sum of forces on cylinder
             std::ofstream meshfrcFile(filenameforce, std::ios::out);
-            meshfrcFile << "imesh, fx, fy, fz, fr, ftheta, fz\n";
+            meshfrcFile << "imesh, fx, fy, fz, fr, ftheta, theta, thetaF\n";
 
             unsigned int nmeshes = gpu_sys.GetNumMeshes(); // only 1 mesh 
             ChVector<> sumforce;    // sum of forces for all meshes
@@ -273,15 +273,15 @@ int main(int argc, char* argv[]) {
                 sumforce += imeshforce;
                 sumforcecyl += imeshforcecyl;
                 // output to mesh file(s)
-                sprintf(meshfforces, "%d, %6f, %6f, %6f, %6f, %6f, %6f \n", imesh, imeshforce.x(), imeshforce.y(), imeshforce.z(),
-                imeshforcecyl.x(), imeshforcecyl.y(), imeshforcecyl.z());
+                sprintf(meshfforces, "%d, %6f, %6f, %6f, %6f, %6f, %6f, %6f \n", imesh, imeshforce.x(), imeshforce.y(), imeshforce.z(),
+                imeshforcecyl.x(), imeshforcecyl.y(), theta, thetaF);
                 meshfrcFile << meshfforces; 
             }
 
             // output sum of forces to step file 
             char fforces[100];
-            sprintf(fforces, "%d, %6f, %6f, %6f, %6f, %6f, %6f \n", step, sumforce.x(), sumforce.y(), sumforce.z(), 
-            sumforcecyl.x(), sumforcecyl.y(), sumforcecyl.z() );            
+            sprintf(fforces, "%d, %6f, %6f, %6f, %6f, %6f \n", step, sumforce.x(), sumforce.y(), sumforce.z(), 
+            sumforcecyl.x(), sumforcecyl.y() );            
             sumfrcsFile << fforces;
             
             printf("time = %.4f\n", curr_time);
