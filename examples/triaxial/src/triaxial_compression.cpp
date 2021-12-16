@@ -235,6 +235,7 @@ int main(int argc, char* argv[]) {
             // Get sum of forces on cylinder
             unsigned int nmeshes = gpu_sys.GetNumMeshes(); // only 1 mesh 
             ChVector<> force;  // forces for each mesh
+            ChVector<> forcecyl;
             ChVector<> torque; //torques for each mesh
             float theta, snt, cst, normfrc;
 
@@ -254,18 +255,20 @@ int main(int argc, char* argv[]) {
                 cst = cos(theta);
                 snt = sin(theta);
                 normfrc = imeshforce.norm();
-                imeshforcecyl.x = cst*imeshforce.x() - snt*imeshforce.y();
-                imeshforcecyl.y = snt*imeshforce.x() + cst*imeshforce.y();
-                imeshforcecyl.z = imeshforce.z();
+                imeshforcecyl.Set( cst*imeshforce.x() - snt*imeshforce.y(),
+                                    snt*imeshforce.x() + cst*imeshforce.y(),
+                                    imeshforce.z() );
 
                 force += imeshforce;
+                forcecyl += imeshforcecyl;
                 // sprintf(xyzfforces, "%d, %6f, %6f, %6f \n", imesh, imeshforce.x()* F_CGS_TO_SI, imeshforce.y()* F_CGS_TO_SI, imeshforce.z()* F_CGS_TO_SI);
                 // frcFile << xyzfforces;
             }
 
-            force = force * F_CGS_TO_SI;
+            force *= F_CGS_TO_SI;
+            forcecyl *= F_CGS_TO_SI
             char fforces[100];
-            sprintf(fforces, "%d, %6f, %6f, %6f \n", step, force.x(), force.y(), force.z());            
+            sprintf(fforces, "%d, %6f, %6f, %6f, %6f, %6f, %6f \n", step, force.x(), force.y(), force.z(), forcecyl.x(), forcecyl.y(), forcecyl.z() );            
             sumfrcsFile << fforces;
             
             printf("time = %.4f\n", curr_time);
