@@ -230,27 +230,31 @@ int main(int argc, char* argv[]) {
             char filename[100], filenamemesh[100], filenameforce[100];;
             sprintf(filename, "%s/step%06d", out_dir.c_str(), step);
             sprintf(filenamemesh, "%s/main%06d", out_dir.c_str(), step);
+            sprintf(filenameforce, "%s/meshforce%06d", out_dir.c_str(), step);
 
             gpu_sys.WriteFile(std::string(filename));
             gpu_sys.WriteMeshes(filenamemesh);
 
             // Get sum of forces on cylinder
+            std::ofstream meshfrcFile(filenameforce, std::ios::out);
             unsigned int nmeshes = gpu_sys.GetNumMeshes(); // only 1 mesh 
-            ChVector<> force;  // forces for each mesh
-            ChVector<> forcecyl;
-            ChVector<> torque; //torques for each mesh
+            ChVector<> sumforce;    // sum of forces for all meshes
+            ChVector<> sumforcecyl; // sum of forces for all meshes in cylinderical coordinates
+            ChVector<> sumtorque;   // torques for each mesh
             float theta, snt, cst, normfrc;
 
             // gpu_sys.CollectMeshContactForces(0, force, torque);
             // force = force * F_CGS_TO_SI;
             // Pull individual mesh forces
             for (unsigned int imesh = 1; imesh < nmeshes; imesh = imesh+2) {
-                char xyzfforces[100];
+                char meshfforces[100];
                 ChVector<> imeshforce;  // forces for each mesh
                 ChVector<> imeshtorque; //torques for each mesh
                 ChVector<> imeshforcecyl;
 
+                // get the force on the ith-mesh
                 gpu_sys.CollectMeshContactForces(imesh, imeshforce, imeshtorque);
+                imeshforce *= F_CGS_TO_SI;                
                 
                 // change to cylinderical coordinates
                 theta = atan2(imeshforce.y(), imeshforce.x());
@@ -261,14 +265,16 @@ int main(int argc, char* argv[]) {
                                     snt*imeshforce.x() + cst*imeshforce.y(),
                                     imeshforce.z() );
 
+                // add to sum
                 force += imeshforce;
                 forcecyl += imeshforcecyl;
-                // sprintf(xyzfforces, "%d, %6f, %6f, %6f \n", imesh, imeshforce.x()* F_CGS_TO_SI, imeshforce.y()* F_CGS_TO_SI, imeshforce.z()* F_CGS_TO_SI);
-                // frcFile << xyzfforces;
+                // output to mesh file(s)
+                sprintf(meshfforces, "%d, %6f, %6f, %6f, %6f, %6f, %6f \n", imesh, imeshforce.x(), imeshforce.y(), imeshforce.z(),
+                imeshforcecyl.x, imeshforcecyl.y(), imeshforcecyl.z());
+                meshfrcFile << meshfforces; 
             }
 
-            force *= F_CGS_TO_SI;
-            forcecyl *= F_CGS_TO_SI;
+            // output sum of forces to step file 
             char fforces[100];
             sprintf(fforces, "%d, %6f, %6f, %6f, %6f, %6f, %6f \n", step, force.x(), force.y(), force.z(), forcecyl.x(), forcecyl.y(), forcecyl.z() );            
             sumfrcsFile << fforces;
