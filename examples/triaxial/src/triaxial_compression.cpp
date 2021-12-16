@@ -270,7 +270,7 @@ int main(int argc, char* argv[]) {
                 forcecyl += imeshforcecyl;
                 // output to mesh file(s)
                 sprintf(meshfforces, "%d, %6f, %6f, %6f, %6f, %6f, %6f \n", imesh, imeshforce.x(), imeshforce.y(), imeshforce.z(),
-                imeshforcecyl.x, imeshforcecyl.y(), imeshforcecyl.z());
+                imeshforcecyl.x(), imeshforcecyl.y(), imeshforcecyl.z());
                 meshfrcFile << meshfforces; 
             }
 
