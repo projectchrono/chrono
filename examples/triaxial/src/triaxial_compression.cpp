@@ -260,10 +260,10 @@ int main(int argc, char* argv[]) {
                 imeshforce *= F_CGS_TO_SI;                
                 
                 // change to cylinderical coordinates
-                theta = (atan2(imeshforce.y(), imeshforce.x()) + M_2_PI) % M_2_PI;
-                float theta0 = imesh * 2.f * M_PI / 120; // we are assuming mesh positions are going from 0 to 360 consecutively
-                cst = cos(theta - theta0);
-                snt = sin(theta - theta0);
+                thetaF = std::fmod( atan2(imeshforce.y(), imeshforce.x()) + M_2_PI, M_2_PI);
+                float theta = imesh * 2.f * M_PI / 120; // we are assuming mesh positions are going from 0 to 360 consecutively
+                cst = cos(theta - thetaF);
+                snt = sin(theta - thetaF);
                 normfrc = imeshforce.Length();
                 imeshforcecyl.Set( normfrc * cst, 
                                     normfrc * snt,
