@@ -964,8 +964,10 @@ unsigned int ChOptixPipeline::GetRigidMeshMaterial(CUdeviceptr& d_vertices,
     //assume that if meshes have weight map, materials should be blended
     //if materials should be blended, all materials will have weight map
     mat_record.data.num_blended_materials = 1;
-    if(mat_list[0]->GetWeightTexture() != ""){
+    if(mat_list.size() > 0 && mat_list[0]->GetWeightTexture() != ""){
         mat_record.data.num_blended_materials = mat_list.size();
+    }else{
+        mat_record.data.num_blended_materials = 1;
     }
 
     mat_record.data.mesh_pool_id = mesh_id;
