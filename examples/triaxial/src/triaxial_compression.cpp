@@ -235,12 +235,9 @@ int main(int argc, char* argv[]) {
             unsigned int nmeshes = gpu_sys.GetNumMeshes(); // only 1 mesh 
             ChVector<> force;  // forces for each mesh
             ChVector<> torque; //torques for each mesh
-            gpu_sys.CollectMeshContactForces(0, force, torque);
-            force = force * F_CGS_TO_SI;
-            char fforces[100];
-            sprintf(fforces, "%d, %6f, %6f, %6f \n", step, force.x(), force.y(), force.z());            
-            sumfrcsFile << fforces;
-
+            
+            // gpu_sys.CollectMeshContactForces(0, force, torque);
+            // force = force * F_CGS_TO_SI;
             // Pull individual mesh forces
             for (unsigned int imesh = nmeshes/2; imesh < nmeshes; imesh++) {
                 char xyzfforces[100];
@@ -248,11 +245,16 @@ int main(int argc, char* argv[]) {
                 ChVector<> imeshtorque; //torques for each mesh
 
                 gpu_sys.CollectMeshContactForces(imesh, imeshforce, imeshtorque);
-                imeshforce = imeshforce * F_CGS_TO_SI;
-                sprintf(xyzfforces, "%d, %6f, %6f, %6f \n", imesh, imeshforce.x()* F_CGS_TO_SI, imeshforce.y()* F_CGS_TO_SI, imeshforce.z()* F_CGS_TO_SI);
-                fcFile << xyzfforces;
+                force += imeshforce;
+                // sprintf(xyzfforces, "%d, %6f, %6f, %6f \n", imesh, imeshforce.x()* F_CGS_TO_SI, imeshforce.y()* F_CGS_TO_SI, imeshforce.z()* F_CGS_TO_SI);
+                // frcFile << xyzfforces;
             }
 
+            force = force * F_CGS_TO_SI;
+            char fforces[100];
+            sprintf(fforces, "%d, %6f, %6f, %6f \n", step, force.x(), force.y(), force.z());            
+            sumfrcsFile << fforces;
+            
             printf("time = %.4f\n", curr_time);
         }
 
