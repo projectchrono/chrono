@@ -411,7 +411,7 @@ int main(int argc, char* argv[]) {
 
             // output top plate info to step file
             char tforces[100];
-            sprintf(tforces, "%d, %6f, %d, %6f, %6f\n", step, curr_time, nc, platePos.z(), plane_reaction_force.z() * F_CGS_TO_SI )            
+            sprintf(tforces, "%d, %6f, %d, %6f, %6f\n", step, curr_time, nc, platePos.z(), plane_reaction_force.z() * F_CGS_TO_SI );  
             topplatefile << tforces;
             
             printf("time = %.4f\n", curr_time);
