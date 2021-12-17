@@ -308,9 +308,18 @@ int main(int argc, char* argv[]) {
         step++;
 
     }
- 
+
+    // ============================================
+    //
+    // Compression
+    //
+    //=============================================
+
+    // Useful information
     unsigned int nc=0; // number of contacts
-  
+    ChVector<float> plane_reaction_force;
+    ChVector<float> platePos;
+
     // top plate move downward with velocity 1cm/s
     topWall_vel = -1.0f;
     // i would like it to start from the top most sphere
@@ -407,8 +416,8 @@ int main(int argc, char* argv[]) {
             
             printf("time = %.4f\n", curr_time);
         }
-        curr_frame++;
-        curr_time += frame_step;
+        step++;
+        curr_time += iteration_step;
 
     }
     
