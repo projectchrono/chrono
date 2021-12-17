@@ -330,7 +330,7 @@ int main(int argc, char* argv[]) {
     gpu_sys.SetBCOffsetFunction(topWall, topWall_posFunc);
 
     // top plate force info
-    std::ostream topplatefile("topplateforces.csv", std::ios::out);
+    std::ofstream topplatefile("topplateforces.csv", std::ios::out);
     topplatefile << "# step, time, number of contacts, pos.z, fz\n";
 
     // continue simulation until the end
