@@ -28,12 +28,6 @@ namespace sensor {
 /// @addtogroup sensor_sensors
 /// @{
 
-/// The type of lens model that camera can use for rendering
-enum class CameraLensModelType {
-    PINHOLE,  ///< traditional computer graphics ideal camera model.
-    FOV_LENS  ///< Wide angle lens model based on single spherical lens.
-};
-
 /// Camera class
 class CH_SENSOR_API ChCameraSensor : public ChOptixSensor {
   public:
@@ -70,8 +64,18 @@ class CH_SENSOR_API ChCameraSensor : public ChOptixSensor {
     float GetHFOV() const { return m_hFOV; }
 
     /// returns the lens model type used for rendering
-    /// @return An enum specifying which lens model is being used. (0: PINHOLE, 1: SPHERICAL)
+    /// @return An enum specifying which lens model is being used. (0: PINHOLE, 1: FOV, 2: Radial)
     CameraLensModelType GetLensModelType() const { return m_lens_model_type; }
+
+    /// returns the lens model parameters
+    /// @return ChVector of lens parameters. Will default to zeros for any terms not used
+    ChVector<float> GetLensParameters() const { return m_lens_parameters; }
+
+    /// Sets the parameters for a radial lens distortion model
+    /// Parameters should be given for the forward model
+    /// The backward distortion model will the used and calculated from the forward parameters given
+    /// @param params the set of 3 radial parameters (k1,k2,k3)
+    void SetRadialLensParameters(ChVector<float> params);
 
     /// returns if the cemera requesting global illumination
     /// @return True if it does request
@@ -98,6 +102,7 @@ class CH_SENSOR_API ChCameraSensor : public ChOptixSensor {
     bool m_use_gi;                          ///< to hold reference to whether user what to use GI or not
     float m_gamma;                          ///< holds the camera's gamma value
     bool m_use_fog;                         ///< holds whether the camera follows the scene fog model
+    ChVector<float> m_lens_parameters;      ///< lens parameters when applicable
 };
 
 /// @} sensor_sensors

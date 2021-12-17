@@ -42,6 +42,13 @@ enum RayType {
     SEGMENTATION_RAY_TYPE = 4  /// semantic camera rays
 };
 
+/// The type of lens model that camera can use for rendering
+enum CameraLensModelType {
+    PINHOLE,   ///< traditional computer graphics ideal camera model.
+    FOV_LENS,  ///< Wide angle lens model based on single spherical lens.
+    RADIAL     ///< Wide angle lens model based on polynomial fit
+};
+
 /// Packed parameters of a point light
 struct PointLight {
     float3 pos;       ///< the light's global position
@@ -72,11 +79,13 @@ struct MissParameters {
 /// The parameters needed to define a camera
 struct CameraParameters {
     float hFOV;                        ///< horizontal field of view
-    float gamma;                       ///< camera's gamma value
-    half4* frame_buffer;               ///< buffer of camera pixels
+    CameraLensModelType lens_model;    ///< lens model to use
+    float3 lens_parameters;            ///< lens fitting parameters (if applicable)
     unsigned int super_sample_factor;  ///< number of samples per pixel in each dimension
+    float gamma;                       ///< camera's gamma value
     bool use_gi;                       ///< whether to use global illumination
     bool use_fog;                      ///< whether to use the scene fog model
+    half4* frame_buffer;               ///< buffer of camera pixels
     half4* albedo_buffer;  ///< the material color of the first hit. Only initialized if using global illumination
     half4* normal_buffer;  ///< The screen-space normal of the first hit. Only initialized if using global illumination
                            ///< (screenspace normal)
@@ -85,9 +94,11 @@ struct CameraParameters {
 
 /// Parameters need to define a camera that generates semantic segmentation data
 struct SemanticCameraParameters {
-    float hFOV;                 ///< horizontal field of view
-    ushort2* frame_buffer;      ///< buffer of class and instance ids
-    curandState_t* rng_buffer;  ///< only initialized if using global illumination
+    float hFOV;                      ///< horizontal field of view
+    CameraLensModelType lens_model;  ///< lens model to use
+    float3 lens_parameters;          ///< lens fitting parameters (if applicable)
+    ushort2* frame_buffer;           ///< buffer of class and instance ids
+    curandState_t* rng_buffer;       ///< only initialized if using global illumination
 };
 
 /// The shape of a lidar beam
@@ -175,8 +186,8 @@ struct MaterialParameters {      // pad to align 16 (swig doesn't support explic
     cudaTextureObject_t metallic_tex;   ///< a metalic color texture // size 8
     cudaTextureObject_t roughness_tex;  ///< a roughness texture // size 8
     cudaTextureObject_t opacity_tex;    ///< an opacity texture // size 8
-    cudaTextureObject_t weight_tex;    ///< a weight texture for blended textures // size 8
-    float2 tex_scale;                ///< texture scaling
+    cudaTextureObject_t weight_tex;     ///< a weight texture for blended textures // size 8
+    float2 tex_scale;                   ///< texture scaling
     unsigned short int class_id;        ///< a class id of an object // size 2
     unsigned short int instance_id;     ///< an instance id of an object // size 2
     // float2 pad;                      // padding to ensure 16 byte alignment
