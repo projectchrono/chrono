@@ -306,10 +306,19 @@ linux:ubuntu2004:deploy-python3.8:
     name: almalinux
   before_script:
     - uname -a
+    - tee > /etc/yum.repos.d/oneAPI.repo << EOF
+      [oneAPI]
+      name=Intel® oneAPI repository
+      baseurl=https://yum.repos.intel.com/oneapi
+      enabled=1
+      gpgcheck=1
+      repo_gpgcheck=1
+      gpgkey=https://yum.repos.intel.com/intel-gpg-keys/GPG-PUB-KEY-INTEL-SW-PRODUCTS.PUB
+      EOF
     - dnf groupinstall -y 'Development Tools'
     - dnf config-manager --set-enabled powertools
     - dnf install -y epel-release
-    - dnf install -y cmake irrlicht irrlicht-devel glew-devel eigen3 glfw-devel ninja-build glm-devel freeglut-devel swig platform-python-devel
+    - dnf install -y cmake irrlicht irrlicht-devel glew-devel eigen3 glfw-devel ninja-build glm-devel freeglut-devel swig platform-python-devel intel-oneapi-mkl-devel
     - git submodule init
     - git submodule update
     - mkdir -p build
@@ -321,8 +330,10 @@ linux:almalinux:build:
     - cd build
     - cmake -G Ninja .. -DCMAKE_BUILD_TYPE=Release
         -DBUILD_DEMOS=ON -DBUILD_BENCHMARK=ON -DBUILD_TESTING=ON
+        -DIOMP5_LIBRARY="/opt/intel/oneapi/compiler/2022.0.1/linux/compiler/lib/intel64_lin/libiomp5.so"
         -DPYTHON_EXECUTABLE=usr/bin/python3
         -DENABLE_MODULE_IRRLICHT=ON
+        -DENABLE_MODULE_PARDISO_MKL=ON
         -DENABLE_MODULE_PYTHON=ON
         -DENABLE_MODULE_COSIMULATION=ON 
         -DENABLE_MODULE_POSTPROCESS=ON 
