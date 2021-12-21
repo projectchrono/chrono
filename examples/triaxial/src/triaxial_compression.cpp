@@ -313,7 +313,7 @@ int main(int argc, char* argv[]) {
     ChVector<float> topPlate_ang(0.f, 0.f, 0.f);
 
     // sphere settled now push the plate downward
-    gpu_sys.ApplyMeshMotion(nmeshes-1, topPlate_pos, ChQuaternion(1,0,0,0), topPlate_vel, topPlate_ang);
+    gpu_sys.ApplyMeshMotion(nmeshes-1, topPlate_pos, ChQuaternion<float>(1,0,0,0), topPlate_vel, topPlate_ang);
 
     // continue simulation until the end
     while (curr_time < params.time_end) {
@@ -328,8 +328,8 @@ int main(int argc, char* argv[]) {
         nc = gpu_sys.GetNumContacts();
         std::cout << ", numContacts: " << nc;
 
-        gpu_sys.CollectMeshContactForces(nmeshes-1, topPlate_forces, topPlate_trorques);
-        std::cout << ", top plate force: " << plane_reaction_force.z() * F_CGS_TO_SI << " Newton";
+        gpu_sys.CollectMeshContactForces(nmeshes-1, topPlate_forces, topPlate_torques);
+        std::cout << ", top plate force: " << topPlate_forces.z() * F_CGS_TO_SI << " Newton";
         std::cout << "\n";
 
         if (step % out_steps == 0){
