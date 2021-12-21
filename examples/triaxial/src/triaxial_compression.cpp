@@ -47,7 +47,6 @@ float KE_CGS_TO_SI = 1e-7f;
 float L_CGS_TO_SI = 1e-2f;
 
 int main(int argc, char* argv[]) {
-
     // ===============================================
     // 1. Read json paramater files
     // 2. Create ChSystemGpuMesh object
@@ -131,9 +130,16 @@ int main(int argc, char* argv[]) {
     std::vector<ChMatrix33<float>> mesh_rotscales;
     ChMatrix33<float> mesh_scale(ChVector<float>(scaling.x, scaling.y, scaling.z));
     std::vector<float3> mesh_translations;
-    
+
+
+    // add bottom
+    mesh_filenames.push_back("./models/unit_circle_+z.obj"); // add bottom slice
+    mesh_rotscales.push_back(mesh_scale); // push scaling - no rotation
+    mesh_translations.push_back(make_float3(cyl_center.x(), cyl_center.y(), -0.5f)); // push translation
+    mesh_masses.push_back(mixer_mass); // push mass
+
+    // add sides
     for (int i=0; i<120; ++i){
-        mesh_filenames.push_back("./models/open_unit_cylinder_bottom_slab_120.obj"); // add slice
         mesh_filenames.push_back("./models/open_unit_cylinder_side_slab_120.obj"); 
         ChQuaternion<> quat = Q_from_AngAxis(i*3.f * CH_C_DEG_TO_RAD, VECT_Z); // find quaternion for rotation
         for (int j=0; j<2; ++j){
@@ -143,15 +149,16 @@ int main(int argc, char* argv[]) {
         }
     }
 
+    // add top
+    mesh_filenames.push_back("./models/unit_circle_-z.obj"); // add bottom slice
+    mesh_rotscales.push_back(mesh_scale); // push scaling - no rotation
+    mesh_translations.push_back(make_float3(cyl_center.x(), cyl_center.y(), +0.5f)); // push translation
+    mesh_masses.push_back(mixer_mass); // push mass
     gpu_sys.LoadMeshes(mesh_filenames, mesh_rotscales, mesh_translations, mesh_masses);
     // gpu_sys.LoadMeshes(mesh_side_filenames, mesh_rotscales, mesh_translations, mesh_masses);
         
     std::cout << gpu_sys.GetNumMeshes() << " meshes" << std::endl;
 
-    float ang_vel_Z = 0; //TODO: remove
-    ChVector<> mesh_lin_vel(0); //TODO: remove
-    ChVector<> mesh_ang_vel(0, 0, ang_vel_Z); //TODO: remove
-    
     // ======================================================
     //
     // Add the particles to the sim
@@ -165,7 +172,8 @@ int main(int argc, char* argv[]) {
     // randomize by layer
     ChVector<float> center(0.0f, 0.0f, 0.0f);
     // fill up each layer
-    while (center.z() + params.sphere_radius < cyl_hgt / 2.0f ) {
+    // particles start from 0 to cylinder_height/2
+    while (center.z() + params.sphere_radius < cyl_hgt / 2.0f )  {
         auto points = sampler.SampleCylinderZ(center, cyl_rad - params.sphere_radius, 0);
         initialPos.insert(initialPos.end(), points.begin(), points.end());
         center.z() += 2.1f * params.sphere_radius;
@@ -185,28 +193,6 @@ int main(int argc, char* argv[]) {
 
     // ===================================================
     //
-    // Add the top plate 
-    //
-    //==================================================== 
-
-    // create top plane boundary condition with its position and normal
-    ChVector<float> topWallPos(0.0f, 0.0f, params.box_Z / 2.0f);
-    ChVector<float> topWallNrm(0.0f, 0.0f, -1.0f);
-    size_t topWall = gpu_sys.CreateBCPlane(topWallPos, topWallNrm, true);
-
-    float topWall_vel;       // top plane moving velocity
-    float topWall_offset;    // position offset of the plane when it first starts to move
-    float topWall_moveTime;  // time when the plane first starts to move
-
-    // user defined offset position function for top wall
-    std::function<double3(float)> topWall_posFunc = [&topWall_offset, &topWall_vel, &topWall_moveTime](float t) {
-        double3 pos = {0, 0, 0};
-        pos.z = topWall_offset + topWall_vel * (t - topWall_moveTime);
-        return pos;
-    };
-
-    // ===================================================
-    //
     // Initialize
     //
     // ====================================================
@@ -223,6 +209,7 @@ int main(int argc, char* argv[]) {
     //
     // ===================================================
     
+    unsigned int nmeshes = gpu_sys.GetNumMeshes(); // 122 meshes (bottom + 120 side + top) TODO: consider changing side to also just one mesh 
     unsigned int out_steps = (unsigned int)(1.0f / (out_fps * iteration_step));
     unsigned int render_steps = (unsigned int)(1.0 / (render_fps * iteration_step));
     unsigned int total_frames = (unsigned int)(params.time_end * out_fps);
@@ -233,10 +220,10 @@ int main(int argc, char* argv[]) {
     float curr_time = 0;
 
     // sum-of-forces file 
-    char filenamesumforces[100];
-    sprintf(filenamesumforces, "%s/sumforces.csv", out_dir.c_str());
-    std::ofstream sumfrcsFile(filenamesumforces, std::ios::out);
-    sumfrcsFile << "#step, fx, fy, fz, fr, ftheta\n";
+    //char filenamesumforces[100];
+    //sprintf(filenamesumforces, "%s/sumforces.csv", out_dir.c_str());
+    //std::ofstream sumfrcsFile(filenamesumforces, std::ios::out);
+    //sumfrcsFile << "#step, fx, fy, fz, fr, ftheta\n";
 
     // let system run for 0.5 second so the particles can settle
     while (curr_time < 0.5) {
@@ -254,19 +241,17 @@ int main(int argc, char* argv[]) {
 
             // force-per-mesh files
             std::ofstream meshfrcFile(filenameforce, std::ios::out);
-            meshfrcFile << "imesh, fx, fy, fz, fr, ftheta, theta, thetaF\n";
+            meshfrcFile << "# imesh, fx, fy, fz, fr, ftheta, theta, thetaF\n";
 
-            unsigned int nmeshes = gpu_sys.GetNumMeshes(); // only 1 mesh 
-            ChVector<> sumforce;    // sum of forces for all meshes
-            ChVector<> sumforcecyl; // sum of forces for all meshes in cylinderical coordinates
-            ChVector<> sumtorque;   // torques for each mesh
+//            ChVector<> sumforce;    // sum of forces for all meshes
+//            ChVector<> sumforcecyl; // sum of forces for all meshes in cylinderical coordinates
+//            ChVector<> sumtorque;   // torques for each mesh
             float theta, thetaF, snt, cst, normfrc;
 
             // gpu_sys.CollectMeshContactForces(0, force, torque);
             // force = force * F_CGS_TO_SI;
             // Pull individual mesh forces
-            for (unsigned int imesh = 1; imesh < nmeshes; imesh = imesh+2) {
-                char meshfforces[100];
+            for (unsigned int imesh = 0; imesh < nmeshes; imesh++) {
                 ChVector<> imeshforce;  // forces for each mesh
                 ChVector<> imeshtorque; //torques for each mesh
                 ChVector<> imeshforcecyl;
@@ -286,19 +271,20 @@ int main(int argc, char* argv[]) {
                                     imeshforce.z() );
 
                 // add to sum
-                sumforce += imeshforce;
-                sumforcecyl += imeshforcecyl;
+//                sumforce += imeshforce;
+//                sumforcecyl += imeshforcecyl;
                 // output to mesh file(s)
-                sprintf(meshfforces, "%d, %6f, %6f, %6f, %6f, %6f, %6f, %6f \n", imesh/2, imeshforce.x(), imeshforce.y(), imeshforce.z(),
+                char meshfforces[100];
+                sprintf(meshfforces, "%d, %6f, %6f, %6f, %6f, %6f, %6f, %6f \n", imesh, imeshforce.x(), imeshforce.y(), imeshforce.z(),
                 imeshforcecyl.x(), imeshforcecyl.y(), theta, thetaF);
                 meshfrcFile << meshfforces; 
             }
 
             // output sum of forces to step file 
-            char fforces[100];
-            sprintf(fforces, "%d, %6f, %6f, %6f, %6f, %6f \n", step, sumforce.x(), sumforce.y(), sumforce.z(), 
-            sumforcecyl.x(), sumforcecyl.y() );            
-            sumfrcsFile << fforces;
+//            char fforces[100];
+//            sprintf(fforces, "%d, %6f, %6f, %6f, %6f, %6f \n", step, sumforce.x(), sumforce.y(), sumforce.z(), 
+//            sumforcecyl.x(), sumforcecyl.y() );            
+//            sumfrcsFile << fforces;
             
             printf("time = %.4f\n", curr_time);
         }
@@ -317,21 +303,17 @@ int main(int argc, char* argv[]) {
 
     // Useful information
     unsigned int nc=0; // number of contacts
-    ChVector<float> plane_reaction_force;
-    ChVector<float> platePos;
+    ChVector<float> topPlate_forces; // forces on the top plate
+    ChVector<float> topPlate_torques; // forces on the top plate
+    ChVector<float> topPlate_pos(0.0f, 0.0f, params.box_Z / 2.0f);
 
     // top plate move downward with velocity 1cm/s
-    topWall_vel = -1.0f;
-    // i would like it to start from the top most sphere
-    topWall_offset = (float)gpu_sys.GetMaxParticleZ() + params.sphere_radius - topWallPos[2];
-    topWall_moveTime = curr_time;
+    // topWall_vel = -1.0f;
+    ChVector<float> topPlate_vel(0.f, 0.f, -2.f);
+    ChVector<float> topPlate_ang(0.f, 0.f, 0.f);
 
     // sphere settled now push the plate downward
-    gpu_sys.SetBCOffsetFunction(topWall, topWall_posFunc);
-
-    // top plate force info
-    std::ofstream topplatefile("topplateforces.csv", std::ios::out);
-    topplatefile << "# step, time, number of contacts, pos.z, fz\n";
+    gpu_sys.ApplyMeshMotion(nmeshes-1, topPlate_pos, ChQuaternion(1,0,0,0), topPlate_vel, topPlate_ang);
 
     // continue simulation until the end
     while (curr_time < params.time_end) {
@@ -340,13 +322,13 @@ int main(int argc, char* argv[]) {
         // write position
         gpu_sys.AdvanceSimulation(iteration_step);
 
-        platePos = gpu_sys.GetBCPlanePosition(topWall);
-        std::cout << "top plate pos_z: " << platePos.z() << " cm";
+        // platePos = gpu_sys.GetBCPlanePosition(topWall); // TODO: replace this by my own function
+        // std::cout << "top plate pos_z: " << platePos.z() << " cm";
 
         nc = gpu_sys.GetNumContacts();
         std::cout << ", numContacts: " << nc;
 
-        gpu_sys.GetBCReactionForces(topWall, plane_reaction_force);
+        gpu_sys.CollectMeshContactForces(nmeshes-1, topPlate_forces, topPlate_trorques);
         std::cout << ", top plate force: " << plane_reaction_force.z() * F_CGS_TO_SI << " Newton";
         std::cout << "\n";
 
@@ -374,7 +356,7 @@ int main(int argc, char* argv[]) {
             // gpu_sys.CollectMeshContactForces(0, force, torque);
             // force = force * F_CGS_TO_SI;
             // Pull individual mesh forces
-            for (unsigned int imesh = 1; imesh < nmeshes; imesh = imesh+2) {
+            for (unsigned int imesh = 0; imesh < nmeshes; imesh++) {
                 char meshfforces[100];
                 ChVector<> imeshforce;  // forces for each mesh
                 ChVector<> imeshtorque; //torques for each mesh
@@ -395,24 +377,26 @@ int main(int argc, char* argv[]) {
                                     imeshforce.z() );
 
                 // add to sum
-                sumforce += imeshforce;
-                sumforcecyl += imeshforcecyl;
+                //if (imesh > 0 || imesh < nmeshes -1){
+                //    sumforce += imeshforce;
+                //    sumforcecyl += imeshforcecyl;
+                //}
                 // output to mesh file(s)
-                sprintf(meshfforces, "%d, %6f, %6f, %6f, %6f, %6f, %6f, %6f \n", imesh/2, imeshforce.x(), imeshforce.y(), imeshforce.z(),
+                sprintf(meshfforces, "%d, %6f, %6f, %6f, %6f, %6f, %6f, %6f \n", imesh, imeshforce.x(), imeshforce.y(), imeshforce.z(),
                 imeshforcecyl.x(), imeshforcecyl.y(), theta, thetaF);
                 meshfrcFile << meshfforces; 
             }
 
-            // output sum of forces to step file 
-            char fforces[100];
-            sprintf(fforces, "%d, %6f, %6f, %6f, %6f, %6f \n", step, sumforce.x(), sumforce.y(), sumforce.z(), 
-            sumforcecyl.x(), sumforcecyl.y() );            
-            sumfrcsFile << fforces;
+            // output sum of cylindrical forces to step file 
+            //char fforces[100];
+            //sprintf(fforces, "%d, %6f, %6f, %6f, %6f, %6f \n", step, sumforce.x(), sumforce.y(), sumforce.z(), 
+            //sumforcecyl.x(), sumforcecyl.y() );            
+            //sumfrcsFile << fforces;
 
             // output top plate info to step file
-            char tforces[100];
-            sprintf(tforces, "%d, %6f, %d, %6f, %6f\n", step, curr_time, nc, platePos.z(), plane_reaction_force.z() * F_CGS_TO_SI );  
-            topplatefile << tforces;
+            //char tforces[100];
+            //sprintf(tforces, "%d, %6f, %d, %6f, %6f\n", step, curr_time, nc, platePos.z(), plane_reaction_force.z() * F_CGS_TO_SI );  
+            //topplatefile << tforces;
             
             printf("time = %.4f\n", curr_time);
         }
