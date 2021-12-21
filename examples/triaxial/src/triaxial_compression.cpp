@@ -307,15 +307,15 @@ int main(int argc, char* argv[]) {
 
     // top plate move downward with velocity 1cm/s
     // topWall_vel = -1.0f;
-    ChVector<> topPlate_vel(0.f, 0.f, -4.f);
+    ChVector<> topPlate_vel(0.f, 0.f, -1.f);
     ChVector<> topPlate_ang(0.f, 0.f, 0.f);
 
     // sphere settled now push the plate downward
-    gpu_sys.ApplyMeshMotion(nmeshes-1, topPlate_pos, ChQuaternion<float>(1,0,0,0), topPlate_vel, topPlate_ang);
 
     // continue simulation until the end
     while (curr_time < params.time_end) {
         printf("rendering frame: %u of %u, curr_time: %.4f, ", step + 1, total_frames, curr_time);
+        gpu_sys.ApplyMeshMotion(nmeshes-1, topPlate_pos, ChQuaternion<float>(1,0,0,0), topPlate_vel, topPlate_ang);
 
         // write position
         gpu_sys.AdvanceSimulation(iteration_step);
