@@ -298,23 +298,31 @@ int main(int argc, char* argv[]) {
     // Compression
     //
     //=============================================
-
     // Useful information
     unsigned int nc=0; // number of contacts
     ChVector<> topPlate_forces; // forces on the top plate
     ChVector<> topPlate_torques; // forces on the top plate
-    ChVector<> topPlate_pos(0.0f, 0.0f, gpu_sys.GetMaxParticleZ() + params.sphere_radius + 1.f);
+    ChVector<> topPlate_offset(0.0f, 0.0f, cyl_hgt / 2.f); // initial top plate position
+    float topPlate_moveTime = curr_time;
 
     // top plate move downward with velocity 1cm/s
-    // topWall_vel = -1.0f;
     ChVector<> topPlate_vel(0.f, 0.f, -1.f);
     ChVector<> topPlate_ang(0.f, 0.f, 0.f);
 
+    std::function<ChVector<>(float)> topPlate_posFunc [&topPlate_offset, &topPlate_vel, &topPlate_moveTime](float t){
+        ChVector pos(topPlate_pos);
+        if (t > topPlate_moveTime){
+            pos.Set(topPlate_pos.x + topPlate_vel.x * (t - topPlate_moveTime),  
+                    topPlate_pos.y + topPlate_vel.y * (t - topPlate_moveTime),  
+                    topPlate_pos.z + topPlate_vel.z * (t - topPlate_moveTime) );
+        }
+    }
     // sphere settled now push the plate downward
 
     // continue simulation until the end
     while (curr_time < params.time_end) {
         printf("rendering frame: %u of %u, curr_time: %.4f, ", step + 1, total_frames, curr_time);
+        ChVector<> topPlate_pos(topPlate_posFunc(curr_time));
         gpu_sys.ApplyMeshMotion(nmeshes-1, topPlate_pos, ChQuaternion<float>(1,0,0,0), topPlate_vel, topPlate_ang);
 
         // write position
