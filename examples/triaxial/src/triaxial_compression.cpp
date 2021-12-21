@@ -307,7 +307,7 @@ int main(int argc, char* argv[]) {
 
     // top plate move downward with velocity 1cm/s
     // topWall_vel = -1.0f;
-    ChVector<> topPlate_vel(0.f, 0.f, -2.f);
+    ChVector<> topPlate_vel(0.f, 0.f, 2.f);
     ChVector<> topPlate_ang(0.f, 0.f, 0.f);
 
     // sphere settled now push the plate downward
