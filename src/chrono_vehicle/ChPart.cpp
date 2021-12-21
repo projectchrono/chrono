@@ -193,8 +193,7 @@ void ChPart::ExportLinSpringList(rapidjson::Document& jsonDocument, std::vector<
     jsonDocument.AddMember("linear spring-dampers", jsonArray, allocator);
 }
 
-void ChPart::ExportRotSpringList(rapidjson::Document& jsonDocument,
-                                 std::vector<std::shared_ptr<ChLinkRotSpringCB>> springs) {
+void ChPart::ExportRotSpringList(rapidjson::Document& jsonDocument, std::vector<std::shared_ptr<ChLinkRSDA>> springs) {
     rapidjson::Document::AllocatorType& allocator = jsonDocument.GetAllocator();
 
     rapidjson::Value jsonArray(rapidjson::kArrayType);

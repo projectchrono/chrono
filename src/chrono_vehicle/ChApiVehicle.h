@@ -46,6 +46,7 @@
         @defgroup vehicle_utils Utility classes
         
         @defgroup vehicle_wheeled Wheeled vehicles
+        @brief Wheeled vehicle subsystems
         @{
             @defgroup vehicle_wheeled_subchassis Subchassis subsystem
             @defgroup vehicle_wheeled_suspension Suspension subsystem
@@ -60,6 +61,7 @@
         @}
 
         @defgroup vehicle_tracked Tracked vehicles
+        @brief Tracked vehicle subsystems
         @{
             @defgroup vehicle_tracked_idler Idler subsystem
             @defgroup vehicle_tracked_suspension Suspension subsystem
@@ -72,7 +74,8 @@
             @defgroup vehicle_tracked_utils Utility classes
         @}
 
-        @defgroup vehicle_cosim Co-simulation support for vehicle-terrain interaction
+        @defgroup vehicle_cosim Co-simulation
+        @brief Co-simulation support for vehicle-terrain interaction
         @{
             @defgroup vehicle_cosim_mbs Multibody system nodes
             @defgroup vehicle_cosim_tire Tire simulation nodes

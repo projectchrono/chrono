@@ -19,7 +19,7 @@
 //
 // =============================================================================
 
-#include "chrono_python/ChPython.h"
+#include "chrono_pyparser/ChPython.h"
 #include "chrono/physics/ChSystemNSC.h"
 #include "chrono/physics/ChBodyAuxRef.h"
 #include <iostream>
@@ -93,7 +93,7 @@ int main(int argc, char* argv[]) {
 	GetLog() << "\n\n PyChrono Test 5.\n";
 	try {
         my_python.Run("a= this_itGoInG_TO_giVe_ErroRs!()");
-    } catch (ChException myerror) {
+    } catch (const ChException&) {
         GetLog() << "Ok, Python parsing error caught as expected.\n";
     }
 
@@ -129,7 +129,7 @@ int main(int argc, char* argv[]) {
             GetLog() << "Found body  its name in SolidWorks exported file, pos.x()=" << mbody->GetPos().x() << "\n";
 
 
-    } catch (ChException myerror) {
+    } catch (const ChException& myerror) {
         GetLog() << myerror.what();
     }
 

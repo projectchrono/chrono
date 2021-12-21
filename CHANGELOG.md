@@ -5,6 +5,8 @@ Change Log
 ==========
 
 - [Unreleased (development version)](#unreleased-development-branch)
+  - [Translational and rotational spring-damper-actuators](#changed-translational-and-rotational-spring-damper-actuators)
+  - [Refactor Chrono::Vehicle suspension test rigs](#changed-refactor-chronovehicle-suspension-test-rigs)
 - [Release 7.0.0](#release-700---2021-11-15) 
   - [DDS communicator in Chrono::Synchrono module](#added-dds-communicator-in-chronosynchrono-module)
   - [New terramechanics co-simulation module](#added-new-terramechanics-co-simulation-module)
@@ -55,6 +57,29 @@ Change Log
 
 ## Unreleased (development branch)
 
+### [Changed] Translational and rotational spring-damper-actuators
+
+- The classes `ChLinkSpring` and `ChLinkSpringCB` were obsoleted, with their functionality superseded by `ChLinkTSDA`.  
+- For consistency, the class `ChLinkRotSpringCB` was renamed to `ChLinkRSDA`.
+
+Both `ChLinkTSDA` and `ChLinkRSDA` default to a linear spring-damper model, but an arbitrary user-defined spring-damper-actuation force can be implemented through functor classes (`ChLinkTSDA::ForceFunctor` and `ChLinkRSDA::TorqueFunctor`, respectively).  When using the PyChrono python wrappers, these functor classes are named `ForceFunctor` and `TorqueFunctor`. When using the C# wrappers, these functor classes are inherited as outside classes named `TSDAForceFunctor` and `RSDATorqueFunctor`, respectively.
+
+### [Changed] Refactor Chrono::Vehicle suspension test rigs
+
+The wheeled vehicle suspension test rig (STR) was modified to accept an arbitrary number of tested axles from any given vehicle.
+
+The new STR will create posts / pushrods for all spindles (left and right) from all axles specified as "test axles".
+Like before, one can construct an STR from a given vehicle (from one of the models in the Chrono vehicle models library or else created from a JSON specification file) or else from a JSON specification file for an STR.  However, the latter approach will now construct the entire vehicle (specified though a vehicle JSON file) but include only a user-specified subset of its axles for testing.
+Note that this is not a limitation because Chrono::Vehicle was also modified to allow specification in a JSON file of a stripped-down vehicle model which need not include a driveline nor a steering mechanism and may even define a single axle.
+
+Additional vehicle subsystems (such as steering mechanisms or subchassis components) can be adding to either type of STR (`ChSuspensionTestRigPlatform` or `ChSuspensionTestRigPushrod`) using the functions `IncludeSteeringMechanism` and `IncludeSubchassis`. This simply means that: (i) run-time visualization of the additional subsystem can be enabled and (ii) the additional subsystem is included in the rig output (if that is enabled).
+The associated vehicle is initialized with its chassis fixed and its driveline automatically disconnected. Simulation of the test rig (through the function `ChSuspensionTestRig::Advance`) performs a simulation of the entire vehicle with all its components, but vehicle subsystems not explicitly included in testing are invisible and do not participate in any output.
+
+See `demo_VEH_SuspensionTestRig` for various examples and options, and look at the JSON files used in that demo for changes in their formats.
+
+Note also that the format for a data file with STR actuation information (used by a ChDataDriverSTR) was modified by moving the steering input in the 2nd column.
+In other words, each line of this ASCII file should now contain:<br>
+`    time  steering_input  left_post_0  right_post_0 left_post_1 right_post_1 …`
 
 
 ## Release 7.0.0 - 2021-11-15
@@ -152,7 +177,7 @@ See the updated FSI demo programs for usage of the new Chrono::Fsi API.
 
 - Users can optionally configure Chrono::FSI in single precision by unsetting the CMake variable `USE_FSI_DOUBLE`
 - By default, Chrono::FSI is configured and built in double precision
-- Users shgould be careful opting for single precision as this can adversely impact simulation results
+- Users should be careful opting for single precision as this can adversely impact simulation results
 
 
 ### [Changed] Sensor to improve performance and added features 

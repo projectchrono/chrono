@@ -87,17 +87,18 @@ class ChApi ChElementHexaANCF_3813_9 : public ChElementHexahedron, public ChElem
     std::shared_ptr<ChNodeFEAcurv> GetCentralNode() const { return m_central_node; }
 
     /// Strain type calculation.
-    enum StrainFormulation {
+    enum class StrainFormulation {
         GreenLagrange,  ///< Green-Lagrange strain formulation
         Hencky          ///< Hencky strain
     };
 
     /// Plasticity formulation.
-    enum PlasticityFormulation {
+    enum class PlasticityFormulation {
         J2,                ///< J2 plasticity (metals)
         DruckerPrager,     ///< Drucker-Prager plasticity (soil)
         DruckerPrager_Cap  ///< Drucker-Prager-Cap plasticity (soil)
     };
+
     /// Maximum number of iteration for DP return mapping
     int m_DP_iterationNo;
     /// Tolerance for yield function value (Drucker-Prager)
@@ -115,14 +116,12 @@ class ChApi ChElementHexaANCF_3813_9 : public ChElementHexahedron, public ChElem
 
     /// Set the structural damping.
     void SetAlphaDamp(double a) { m_Alpha = a; }
+
     /// Set the strain formulation.
     void SetStrainFormulation(StrainFormulation model) { m_strain_form = model; }
-    /// Get the strain formulation.
-    StrainFormulation GetStrainFormulation() const { return m_strain_form; }
     /// Set the plasticity formulation.
     void SetPlasticityFormulation(PlasticityFormulation model) { m_plast_form = model; }
-    /// Get the plasticity formulation.
-    PlasticityFormulation GetPlasticityFormulation() const { return m_plast_form; }
+
     /// Set the DP iteration number.
     void SetDPIterationNo(int ItNo) { m_DP_iterationNo = ItNo; }
     /// Set the hardening parameter look-up table
@@ -233,26 +232,26 @@ class ChApi ChElementHexaANCF_3813_9 : public ChElementHexahedron, public ChElem
     std::vector<std::shared_ptr<ChNodeFEAxyz>> m_nodes;  ///< corner element nodes
     std::shared_ptr<ChNodeFEAcurv> m_central_node;       ///< central node
 
-    std::shared_ptr<ChContinuumElastic> m_material;  ///< elastic naterial
+    std::shared_ptr<ChContinuumElastic> m_material;  ///< elastic material
 
     ChVector<> m_dimensions;                      ///< element dimensions (x, y, z components)
     ChMatrixNM<double, 33, 33> m_MassMatrix;      ///< mass matrix
     ChMatrixNM<double, 33, 33> m_JacobianMatrix;  ///< Jacobian matrix (Kfactor*[K] + Rfactor*[R])
     double m_GaussScaling;
-    double m_Alpha;  ///< structural damping
-    ChVectorN<double, 11>
-        m_GravForceScale;                ///< Gravity scaling matrix used to get the generalized force due to gravity
-    ChMatrixNM<double, 11, 3> m_d0;      ///< initial nodal coordinates (in matrix form)
-    ChMatrixNM<double, 11, 3> m_d;       ///< current nodal coordinates
-    ChMatrixNM<double, 11, 11> m_ddT;    ///< matrix m_d * m_d^T
-    ChMatrixNM<double, 11, 11> m_d0d0T;  ///< matrix m_d0 * m_d0^T
-    ChVectorN<double, 33> m_d_dt;        ///< current nodal velocities
-    double m_FrictionAngle;              ///< Drucker-Prager Friction Angle Beta
-    double m_DilatancyAngle;             ///< Drucker-Prager Dilatancy Angle Phi
-    int m_DPHardening;                   ///< Drucker-Prager Hardening Type
+    double m_Alpha;                          ///< structural damping
+    ChVectorN<double, 11> m_GravForceScale;  ///< gravity scaling matrix used in the generalized force
+    ChMatrixNM<double, 11, 3> m_d0;          ///< initial nodal coordinates (in matrix form)
+    ChMatrixNM<double, 11, 3> m_d;           ///< current nodal coordinates
+    ChMatrixNM<double, 11, 11> m_ddT;        ///< matrix m_d * m_d^T
+    ChMatrixNM<double, 11, 11> m_d0d0T;      ///< matrix m_d0 * m_d0^T
+    ChVectorN<double, 33> m_d_dt;            ///< current nodal velocities
+    double m_FrictionAngle;                  ///< Drucker-Prager Friction Angle Beta
+    double m_DilatancyAngle;                 ///< Drucker-Prager Dilatancy Angle Phi
+    int m_DPHardening;                       ///< Drucker-Prager Hardening Type
 
     StrainFormulation m_strain_form;     ///< Enum for strain formulation
     PlasticityFormulation m_plast_form;  ///< Enum for plasticity formulation
+
     bool m_Plasticity;                   ///< flag activating Plastic deformation
     bool m_DP;                           ///< flag activating Drucker-Prager formulation
 
@@ -338,12 +337,7 @@ class ChApi ChElementHexaANCF_3813_9 : public ChElementHexahedron, public ChElem
                                ChMatrixNM<double, 3, 3> FI,
                                ChMatrixNM<double, 3, 3> J0I);
 
-    void ComputeHardening_a(double& MeanEffP,
-                            double& Hi,
-                            double alphUp,
-                            ChVectorDynamic<double> m_DPVector1,
-                            ChVectorDynamic<double> m_DPVector2,
-                            int m_DPVector_size);
+    void ComputeHardening(double alpha, double& val, double& der);
 
   public:
     EIGEN_MAKE_ALIGNED_OPERATOR_NEW
