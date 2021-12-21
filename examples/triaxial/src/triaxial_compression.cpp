@@ -317,7 +317,7 @@ int main(int argc, char* argv[]) {
                     topPlate_offset.z() + topPlate_vel.z() * (t - topPlate_moveTime) );
         }
         return pos;
-    }i;
+    };
     // sphere settled now push the plate downward
 
     // continue simulation until the end
