@@ -309,7 +309,7 @@ int main(int argc, char* argv[]) {
     ChVector<> topPlate_vel(0.f, 0.f, -1.f);
     ChVector<> topPlate_ang(0.f, 0.f, 0.f);
 
-    std::function<ChVector(float)> topPlate_posFunc [&topPlate_offset, &topPlate_vel, &topPlate_moveTime](float t){
+    std::function<ChVector<float>(float)> topPlate_posFunc [&topPlate_offset, &topPlate_vel, &topPlate_moveTime](float t){
         ChVector<> pos(topPlate_offset);
         if (t > topPlate_moveTime){
             pos.Set(topPlate_pos.x + topPlate_vel.x * (t - topPlate_moveTime),  
